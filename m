@@ -1,7 +1,10 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Tue, 23 Jun 2020 02:56:50 -0700
-Subject: [PATCH 1/3] docs/platform: Update QEMU parameter for fw_payload
-Message-ID: <1592906212-13711-1-git-send-email-bmeng.cn@gmail.com>
+Date: Tue, 23 Jun 2020 02:56:51 -0700
+Subject: [PATCH 2/3] config.mk: Update QEMU run command for generic and sifive
+ fu540 platforms
+In-Reply-To: <1592906212-13711-1-git-send-email-bmeng.cn@gmail.com>
+References: <1592906212-13711-1-git-send-email-bmeng.cn@gmail.com>
+Message-ID: <1592906212-13711-2-git-send-email-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,90 +21,36 @@ hence to load fw_payload type image, we should explicitly pass the
 Signed-off-by: Bin Meng <bin.meng@windriver.com>
 ---
 
- docs/platform/qemu_virt.md | 12 ++++++------
- docs/platform/spike.md     |  4 ++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ platform/generic/config.mk      | 2 +-
+ platform/sifive/fu540/config.mk | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/docs/platform/qemu_virt.md b/docs/platform/qemu_virt.md
-index 2196e5a..2777148 100644
---- a/docs/platform/qemu_virt.md
-+++ b/docs/platform/qemu_virt.md
-@@ -28,7 +28,7 @@ make PLATFORM=generic
- Run:
- ```
- qemu-system-riscv64 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.bin
-+	-bios build/platform/generic/firmware/fw_payload.bin
- ```
+diff --git a/platform/generic/config.mk b/platform/generic/config.mk
+index 8d63ece..8151974 100644
+--- a/platform/generic/config.mk
++++ b/platform/generic/config.mk
+@@ -15,7 +15,7 @@ platform-ldflags-y =
  
- **U-Boot Payload**
-@@ -44,7 +44,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<uboot_build_directory>/u-boot.bin
- Run:
- ```
- qemu-system-riscv64 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf
-+	-bios build/platform/generic/firmware/fw_payload.elf
- ```
- or
- ```
-@@ -66,7 +66,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
- Run:
- ```
- qemu-system-riscv64 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf \
-+	-bios build/platform/generic/firmware/fw_payload.elf \
- 	-drive file=<path_to_linux_rootfs>,format=raw,id=hd0 \
- 	-device virtio-blk-device,drive=hd0 \
- 	-append "root=/dev/vda rw console=ttyS0"
-@@ -95,7 +95,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32
- Run:
- ```
- qemu-system-riscv32 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.bin
-+	-bios build/platform/generic/firmware/fw_payload.bin
- ```
+ # Command for platform specific "make run"
+ platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
+-  -nographic -kernel $(build_dir)/platform/generic/firmware/fw_payload.elf
++  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
  
- **U-Boot Payload**
-@@ -111,7 +111,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32 FW_PAYLOAD_PATH=<uboot_build_direct
- Run:
- ```
- qemu-system-riscv32 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf
-+	-bios build/platform/generic/firmware/fw_payload.elf
- ```
- or
- ```
-@@ -133,7 +133,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32 FW_PAYLOAD_PATH=<linux_build_direct
- Run:
- ```
- qemu-system-riscv32 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf \
-+	-bios build/platform/generic/firmware/fw_payload.elf \
- 	-drive file=<path_to_linux_rootfs>,format=raw,id=hd0 \
- 	-device virtio-blk-device,drive=hd0 \
- 	-append "root=/dev/vda rw console=ttyS0"
-diff --git a/docs/platform/spike.md b/docs/platform/spike.md
-index 8d6b422..79e2eb2 100644
---- a/docs/platform/spike.md
-+++ b/docs/platform/spike.md
-@@ -59,7 +59,7 @@ make PLATFORM=generic
- Run:
- ```
- qemu-system-riscv64 -M spike -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf
-+	-bios build/platform/generic/firmware/fw_payload.elf
- ```
+ # Blobs to build
+ FW_TEXT_START=0x80000000
+diff --git a/platform/sifive/fu540/config.mk b/platform/sifive/fu540/config.mk
+index e76adcd..23169b1 100644
+--- a/platform/sifive/fu540/config.mk
++++ b/platform/sifive/fu540/config.mk
+@@ -15,7 +15,7 @@ platform-ldflags-y =
  
- **Linux Kernel Payload**
-@@ -75,7 +75,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
- Run:
- ```
- qemu-system-riscv64 -M spike -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf \
-+	-bios build/platform/generic/firmware/fw_payload.elf \
- 	-initrd <path_to_cpio_ramdisk> \
- 	-append "root=/dev/ram rw console=hvc0 earlycon=sbi"
- ```
+ # Command for platform specific "make run"
+ platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M sifive_u -m 256M \
+-  -nographic -kernel $(build_dir)/platform/sifive/fu540/firmware/fw_payload.elf
++  -nographic -bios $(build_dir)/platform/sifive/fu540/firmware/fw_payload.elf
+ 
+ # Blobs to build
+ FW_TEXT_START=0x80000000
 -- 
 2.7.4
 
