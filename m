@@ -1,111 +1,51 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 25 Jun 2020 10:30:30 -0700
-Subject: [PATCH 1/3] docs/platform: Update QEMU parameter for fw_payload
-In-Reply-To: <1592906212-13711-1-git-send-email-bmeng.cn@gmail.com>
-References: <1592906212-13711-1-git-send-email-bmeng.cn@gmail.com>
-Message-ID: <CAOnJCULoAdDc5Go8eL6426VZw9oUxVMY99_41GKn-BBPqNi7tQ@mail.gmail.com>
+Date: Thu, 25 Jun 2020 10:29:39 -0700
+Subject: [PATCH] lib/utils: fdt: Update FDT expand size to 1024 for
+ reserved memory node
+In-Reply-To: <1593077799-16270-1-git-send-email-bmeng.cn@gmail.com>
+References: <1593077799-16270-1-git-send-email-bmeng.cn@gmail.com>
+Message-ID: <CAOnJCU+H9rHbQp+gYqg1HpTaDkT5T1Q_2_hPsJ0JkJVD1Zi6pA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 24, 2020 at 11:48 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Thu, Jun 25, 2020 at 2:36 AM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
 > From: Bin Meng <bin.meng@windriver.com>
 >
-> Since QEMU v5.1, if there is no "-bios" option provided, the default
-> OpenSBI firmware will be loaded by QEMU as the BIOS automatically,
-> hence to load fw_payload type image, we should explicitly pass the
-> "-bios" option to QEMU.
+> Currently 256 bytes is used for the FDT expand size when fixing up
+> reserved memory node. Increase it to 1024 bytes with an estimated
+> size of 64 bytes per PMP memory region by 16 regions in total.
 >
 > Signed-off-by: Bin Meng <bin.meng@windriver.com>
 > ---
 >
->  docs/platform/qemu_virt.md | 12 ++++++------
->  docs/platform/spike.md     |  4 ++--
->  2 files changed, 8 insertions(+), 8 deletions(-)
+>  lib/utils/fdt/fdt_fixup.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 >
-> diff --git a/docs/platform/qemu_virt.md b/docs/platform/qemu_virt.md
-> index 2196e5a..2777148 100644
-> --- a/docs/platform/qemu_virt.md
-> +++ b/docs/platform/qemu_virt.md
-> @@ -28,7 +28,7 @@ make PLATFORM=generic
->  Run:
->  ```
->  qemu-system-riscv64 -M virt -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.bin
-> +       -bios build/platform/generic/firmware/fw_payload.bin
->  ```
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index adf1be3..a3bccae 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -151,8 +151,14 @@ int fdt_reserved_memory_fixup(void *fdt)
+>         int na = fdt_address_cells(fdt, 0);
+>         int ns = fdt_size_cells(fdt, 0);
 >
->  **U-Boot Payload**
-> @@ -44,7 +44,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<uboot_build_directory>/u-boot.bin
->  Run:
->  ```
->  qemu-system-riscv64 -M virt -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.elf
-> +       -bios build/platform/generic/firmware/fw_payload.elf
->  ```
->  or
->  ```
-> @@ -66,7 +66,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
->  Run:
->  ```
->  qemu-system-riscv64 -M virt -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.elf \
-> +       -bios build/platform/generic/firmware/fw_payload.elf \
->         -drive file=<path_to_linux_rootfs>,format=raw,id=hd0 \
->         -device virtio-blk-device,drive=hd0 \
->         -append "root=/dev/vda rw console=ttyS0"
-> @@ -95,7 +95,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32
->  Run:
->  ```
->  qemu-system-riscv32 -M virt -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.bin
-> +       -bios build/platform/generic/firmware/fw_payload.bin
->  ```
+> -       /* expand the device tree to accommodate new node */
+> -       err  = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 256);
+> +       /*
+> +        * Expand the device tree to accommodate new node
+> +        * by the following estimated size:
+> +        *
+> +        * Each PMP memory region entry occupies 64 bytes.
+> +        * With 16 PMP memory regions we need 64 * 16 = 1024 bytes.
+> +        */
+> +       err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
+>         if (err < 0)
+>                 return err;
 >
->  **U-Boot Payload**
-> @@ -111,7 +111,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32 FW_PAYLOAD_PATH=<uboot_build_direct
->  Run:
->  ```
->  qemu-system-riscv32 -M virt -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.elf
-> +       -bios build/platform/generic/firmware/fw_payload.elf
->  ```
->  or
->  ```
-> @@ -133,7 +133,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32 FW_PAYLOAD_PATH=<linux_build_direct
->  Run:
->  ```
->  qemu-system-riscv32 -M virt -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.elf \
-> +       -bios build/platform/generic/firmware/fw_payload.elf \
->         -drive file=<path_to_linux_rootfs>,format=raw,id=hd0 \
->         -device virtio-blk-device,drive=hd0 \
->         -append "root=/dev/vda rw console=ttyS0"
-> diff --git a/docs/platform/spike.md b/docs/platform/spike.md
-> index 8d6b422..79e2eb2 100644
-> --- a/docs/platform/spike.md
-> +++ b/docs/platform/spike.md
-> @@ -59,7 +59,7 @@ make PLATFORM=generic
->  Run:
->  ```
->  qemu-system-riscv64 -M spike -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.elf
-> +       -bios build/platform/generic/firmware/fw_payload.elf
->  ```
->
->  **Linux Kernel Payload**
-> @@ -75,7 +75,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
->  Run:
->  ```
->  qemu-system-riscv64 -M spike -m 256M -nographic \
-> -       -kernel build/platform/generic/firmware/fw_payload.elf \
-> +       -bios build/platform/generic/firmware/fw_payload.elf \
->         -initrd <path_to_cpio_ramdisk> \
->         -append "root=/dev/ram rw console=hvc0 earlycon=sbi"
->  ```
 > --
 > 2.7.4
 >
