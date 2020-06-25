@@ -1,111 +1,87 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 25 Jun 2020 18:26:02 -0700
-Subject: [PATCH v2 1/3] docs/platform: Update QEMU parameter for fw_payload
-Message-ID: <1593134764-16743-1-git-send-email-bmeng.cn@gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Thu, 25 Jun 2020 10:23:30 -0700
+Subject: Something is wrong with this ML?
+In-Reply-To: <9fe2705c-ecd8-f2fc-d26a-b49b4db16e7b@hpe.com>
+References: <CAEUhbmXgfDdbLUQe=mKt3vByYnEu+D_jOa26vq2wOubyFBaW-g@mail.gmail.com>
+ <CY4PR04MB3751145F1B7C9B0575946C9BE7920@CY4PR04MB3751.namprd04.prod.outlook.com>
+ <CAEUhbmUmMtmv7DsstofNcDZGDqXLxApBEEKKq=gmEuZtLOkVjQ@mail.gmail.com>
+ <CY4PR04MB3751E29D1BE5097C9DE974CCE7920@CY4PR04MB3751.namprd04.prod.outlook.com>
+ <CAOnJCUJd8_peZeHWv7BBb2aXBbYXqd_pry5ydmRup1Jansw6Jw@mail.gmail.com>
+ <CAEUhbmXRZf9Sk4n-4crLzKGeie21+MTwBQr=20YGoH3tzZ5VNQ@mail.gmail.com>
+ <9fe2705c-ecd8-f2fc-d26a-b49b4db16e7b@hpe.com>
+Message-ID: <CAOnJCU+azk8tvBeCqxJd6LyrapFXzy_S4yg2rGhjfoJ7_FE5TA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Bin Meng <bin.meng@windriver.com>
+On Thu, Jun 25, 2020 at 12:29 AM Daniel Schaefer
+<daniel.schaefer@hpe.com> wrote:
+>
+> On 6/25/20 9:18 AM, Bin Meng wrote:
+> > On Thu, Jun 25, 2020 at 2:54 PM Atish Patra <atishp@atishpatra.org> wrote:
+> >>
+> >> On Wed, Jun 24, 2020 at 11:40 PM Damien Le Moal <Damien.LeMoal@wdc.com> wrote:
+> >>>
+> >>> On 2020/06/25 15:38, Bin Meng wrote:
+> >>>> On Thu, Jun 25, 2020 at 2:31 PM Damien Le Moal <Damien.LeMoal@wdc.com> wrote:
+> >>>>>
+> >>>>> On 2020/06/25 15:22, Bin Meng wrote:
+> >>>>>> Hi,
+> >>>>>>
+> >>>>>> It seems there is only Jun 2020 archive for this ML.
+> >>>>>> http://lists.infradead.org/pipermail/opensbi/
+> >>>>>>
+> >>>>>> Anything wrong??
+> >>>>>
+> >>>>> The machine hosting lists.infradead.org died (complete storage failure). It was
+> >>>>> rebuilt on a new server but the last backup was 2 years old... So the archive is
+> >>>>> unfortunately gone.
+> >>>>>
+> >>>>
+> >>>> Ah so that could explain that when I sent patches the other day it
+> >>>> prompted me that I was not subscribed to this ML ..
+> >>>
+> >>
+> >> Yeah. Did you save the opensbi archive by any chance ?
+> >
+> > Do you mean saving the lists.infradead.org archive?
+>
 
-Since QEMU v5.1, if there is no "-bios" option provided, the default
-OpenSBI firmware will be loaded by QEMU as the BIOS automatically,
-hence to load fw_payload type image, we should explicitly pass the
-"-bios" option to QEMU.
+Hi Daniel,
 
-Signed-off-by: Bin Meng <bin.meng@windriver.com>
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
----
+> We all have it on our IMAP server. Can't it be uploaded to the ML
+> archive with imapsync or as maildir?
+>
 
-(no changes since v1)
+I am not sure if lists.infradead.org supports restoring the archive
+from an IMAP server.
+Let me check that.
 
- docs/platform/qemu_virt.md | 12 ++++++------
- docs/platform/spike.md     |  4 ++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+> >
+> >>
+> >> Btw, I just noticed that your patches are still waiting for approval.
+> >> They should appear in the list now. We also have patchwork working for OpenSBI.
+> >> Hopefully, we will not have to deal with similar situations again.
+> >>
+> >> https://patchwork.ozlabs.org/project/opensbi/list/
+> >
+> > It's great to have patchwork setup for the opensbi project! I
+> > personally find it very helpful for a maintainer's daily work.
+> >
+> >>
+> >>> Yes. All contributors were re-subscribed automatically (pulled from git), but
+> >>> anybody else will need to resubscribe. Pass on the word please !
+> >>>
+> >
+> > Regards,
+> > Bin
+> >
 
-diff --git a/docs/platform/qemu_virt.md b/docs/platform/qemu_virt.md
-index 2196e5a..2777148 100644
---- a/docs/platform/qemu_virt.md
-+++ b/docs/platform/qemu_virt.md
-@@ -28,7 +28,7 @@ make PLATFORM=generic
- Run:
- ```
- qemu-system-riscv64 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.bin
-+	-bios build/platform/generic/firmware/fw_payload.bin
- ```
- 
- **U-Boot Payload**
-@@ -44,7 +44,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<uboot_build_directory>/u-boot.bin
- Run:
- ```
- qemu-system-riscv64 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf
-+	-bios build/platform/generic/firmware/fw_payload.elf
- ```
- or
- ```
-@@ -66,7 +66,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
- Run:
- ```
- qemu-system-riscv64 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf \
-+	-bios build/platform/generic/firmware/fw_payload.elf \
- 	-drive file=<path_to_linux_rootfs>,format=raw,id=hd0 \
- 	-device virtio-blk-device,drive=hd0 \
- 	-append "root=/dev/vda rw console=ttyS0"
-@@ -95,7 +95,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32
- Run:
- ```
- qemu-system-riscv32 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.bin
-+	-bios build/platform/generic/firmware/fw_payload.bin
- ```
- 
- **U-Boot Payload**
-@@ -111,7 +111,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32 FW_PAYLOAD_PATH=<uboot_build_direct
- Run:
- ```
- qemu-system-riscv32 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf
-+	-bios build/platform/generic/firmware/fw_payload.elf
- ```
- or
- ```
-@@ -133,7 +133,7 @@ make PLATFORM=generic PLATFORM_RISCV_XLEN=32 FW_PAYLOAD_PATH=<linux_build_direct
- Run:
- ```
- qemu-system-riscv32 -M virt -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf \
-+	-bios build/platform/generic/firmware/fw_payload.elf \
- 	-drive file=<path_to_linux_rootfs>,format=raw,id=hd0 \
- 	-device virtio-blk-device,drive=hd0 \
- 	-append "root=/dev/vda rw console=ttyS0"
-diff --git a/docs/platform/spike.md b/docs/platform/spike.md
-index 8d6b422..79e2eb2 100644
---- a/docs/platform/spike.md
-+++ b/docs/platform/spike.md
-@@ -59,7 +59,7 @@ make PLATFORM=generic
- Run:
- ```
- qemu-system-riscv64 -M spike -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf
-+	-bios build/platform/generic/firmware/fw_payload.elf
- ```
- 
- **Linux Kernel Payload**
-@@ -75,7 +75,7 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
- Run:
- ```
- qemu-system-riscv64 -M spike -m 256M -nographic \
--	-kernel build/platform/generic/firmware/fw_payload.elf \
-+	-bios build/platform/generic/firmware/fw_payload.elf \
- 	-initrd <path_to_cpio_ramdisk> \
- 	-append "root=/dev/ram rw console=hvc0 earlycon=sbi"
- ```
+
+
 -- 
-2.7.4
-
+Regards,
+Atish
 
