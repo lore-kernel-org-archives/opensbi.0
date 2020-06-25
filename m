@@ -1,30 +1,20 @@
-From: Alistair <alistair@alistair23.me>
-Date: Tue, 23 Jun 2020 18:55:27 -0700
-Subject: Test email
-In-Reply-To: <CAOnJCULo7fSWmhRRNO3fLZnotF6di6Lybk-+iPTuccBtMGqTpg@mail.gmail.com>
-References: <CAOnJCULo7fSWmhRRNO3fLZnotF6di6Lybk-+iPTuccBtMGqTpg@mail.gmail.com>
-Message-ID: <161e5bfe-254a-404d-9524-db9ab63a7fbf@www.fastmail.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Thu, 25 Jun 2020 14:21:32 +0800
+Subject: Something is wrong with this ML?
+Message-ID: <CAEUhbmXgfDdbLUQe=mKt3vByYnEu+D_jOa26vq2wOubyFBaW-g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 23, 2020, at 6:52 PM, Atish Patra wrote:
-> This is a test email for patchworks setup.
+Hi,
 
-This is a test reply.
+It seems there is only Jun 2020 archive for this ML.
+http://lists.infradead.org/pipermail/opensbi/
 
-Alistair
+Anything wrong??
 
-> 
-> -- 
-> Regards,
-> Atish
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-> 
+Regards,
+Bin
 
