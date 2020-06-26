@@ -1,74 +1,98 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 25 Jun 2020 10:18:50 -0700
-Subject: Something is wrong with this ML?
-In-Reply-To: <CAEUhbmXRZf9Sk4n-4crLzKGeie21+MTwBQr=20YGoH3tzZ5VNQ@mail.gmail.com>
-References: <CAEUhbmXgfDdbLUQe=mKt3vByYnEu+D_jOa26vq2wOubyFBaW-g@mail.gmail.com>
- <CY4PR04MB3751145F1B7C9B0575946C9BE7920@CY4PR04MB3751.namprd04.prod.outlook.com>
- <CAEUhbmUmMtmv7DsstofNcDZGDqXLxApBEEKKq=gmEuZtLOkVjQ@mail.gmail.com>
- <CY4PR04MB3751E29D1BE5097C9DE974CCE7920@CY4PR04MB3751.namprd04.prod.outlook.com>
- <CAOnJCUJd8_peZeHWv7BBb2aXBbYXqd_pry5ydmRup1Jansw6Jw@mail.gmail.com>
- <CAEUhbmXRZf9Sk4n-4crLzKGeie21+MTwBQr=20YGoH3tzZ5VNQ@mail.gmail.com>
-Message-ID: <CAOnJCULkdJqrbS-PZsqOcAi2Vkz5uTmLCiBTFLg23Tz6do9Wew@mail.gmail.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Thu, 25 Jun 2020 18:26:04 -0700
+Subject: [PATCH v2 3/3] docs/platform: sifive_fu540: Update U-Boot instructions
+In-Reply-To: <1593134764-16743-1-git-send-email-bmeng.cn@gmail.com>
+References: <1593134764-16743-1-git-send-email-bmeng.cn@gmail.com>
+Message-ID: <1593134764-16743-3-git-send-email-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 25, 2020 at 12:18 AM Bin Meng <bmeng.cn@gmail.com> wrote:
->
-> On Thu, Jun 25, 2020 at 2:54 PM Atish Patra <atishp@atishpatra.org> wrote:
-> >
-> > On Wed, Jun 24, 2020 at 11:40 PM Damien Le Moal <Damien.LeMoal@wdc.com> wrote:
-> > >
-> > > On 2020/06/25 15:38, Bin Meng wrote:
-> > > > On Thu, Jun 25, 2020 at 2:31 PM Damien Le Moal <Damien.LeMoal@wdc.com> wrote:
-> > > >>
-> > > >> On 2020/06/25 15:22, Bin Meng wrote:
-> > > >>> Hi,
-> > > >>>
-> > > >>> It seems there is only Jun 2020 archive for this ML.
-> > > >>> http://lists.infradead.org/pipermail/opensbi/
-> > > >>>
-> > > >>> Anything wrong??
-> > > >>
-> > > >> The machine hosting lists.infradead.org died (complete storage failure). It was
-> > > >> rebuilt on a new server but the last backup was 2 years old... So the archive is
-> > > >> unfortunately gone.
-> > > >>
-> > > >
-> > > > Ah so that could explain that when I sent patches the other day it
-> > > > prompted me that I was not subscribed to this ML ..
-> > >
-> >
-> > Yeah. Did you save the opensbi archive by any chance ?
->
-> Do you mean saving the lists.infradead.org archive?
->
+From: Bin Meng <bin.meng@windriver.com>
 
-Yeah. The past archive for opensbi mailing list.
+U-Boot v2020.07 release adds SPL support to SiFive HiFive Unleashed.
+Update the doc to mention that detailed build instructions are in the
+U-Boot doc.
 
-> >
-> > Btw, I just noticed that your patches are still waiting for approval.
-> > They should appear in the list now. We also have patchwork working for OpenSBI.
-> > Hopefully, we will not have to deal with similar situations again.
-> >
-> > https://patchwork.ozlabs.org/project/opensbi/list/
->
-> It's great to have patchwork setup for the opensbi project! I
-> personally find it very helpful for a maintainer's daily work.
->
-> >
-> > > Yes. All contributors were re-subscribed automatically (pulled from git), but
-> > > anybody else will need to resubscribe. Pass on the word please !
-> > >
->
-> Regards,
-> Bin
+This also adds detailed command line description to show how to boot
+U-Boot v2020.07 S-mode payload in the QEMU chapter.
 
+Signed-off-by: Bin Meng <bin.meng@windriver.com>
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
+---
 
+Changes in v2:
+- fix the typo in the doc
+
+ docs/platform/sifive_fu540.md | 35 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 5 deletions(-)
+
+diff --git a/docs/platform/sifive_fu540.md b/docs/platform/sifive_fu540.md
+index 9342846..1008432 100644
+--- a/docs/platform/sifive_fu540.md
++++ b/docs/platform/sifive_fu540.md
+@@ -41,13 +41,14 @@ make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/bo
+ **U-Boot Payload**
+ 
+ The command-line example here assumes that U-Boot was compiled using the
+-sifive_fu540_defconfig configuration and with U-Boot v2020.01 (or higher).
+-
+-The detailed U-Boot booting guide is avaialble at [U-Boot].
++sifive_fu540_defconfig configuration and with U-Boot v2020.01, and up to
++v2020.07-rc3.
+ 
+ ```
+ make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-boot_build_dir>/u-boot-dtb.bin
+ ```
++For U-Boot v2020.07-rc4 or later releases, SPL support was added in U-Boot.
++Please refer to the detailed U-Boot booting guide available at [U-Boot].
+ 
+ Flashing the OpenSBI firmware binary to storage media:
+ ------------------------------------------------------
+@@ -155,13 +156,37 @@ Linux kernel.
+ When U-Boot v2020.01 (or higher) is used as the payload, as the SiFive FU540
+ DTB for the real hardware is embedded in U-Boot binary itself, due to the same
+ reason above, we need to switch the U-Boot sifive_fu540_defconfig configuration
+-from CONFIG_OF_SEPARATE to CONFIG_OF_PRIOR_STAGE so that U-Boot uses the DTB
+-generated by QEMU, and u-boot.bin should be used as the payload image, like:
++from **CONFIG_OF_SEPARATE** to **CONFIG_OF_PRIOR_STAGE** so that U-Boot uses the
++DTB generated by QEMU, and u-boot.bin should be used as the payload image, like:
+ 
+ ```
+ make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-boot_build_dir>/u-boot.bin
+ ```
+ 
++U-Boot v2020.07 release added SPL support to SiFive HiFive Unleashed board,
++hence a build error will be seen after you switch to **CONFIG_OF_PRIOR_STAGE**.
++
++```
++./tools/mkimage: Can't open arch/riscv/dts/hifive-unleashed-a00.dtb: No such file or directory
++./tools/mkimage: failed to build FIT
++Makefile:1402: recipe for target 'u-boot.img' failed
++make: *** [u-boot.img] Error 1
++```
++
++The above errors can be safely ignored as we don't run U-Boot SPL under QEMU.
++
++Run:
++```
++qemu-system-riscv64 -M sifive_u -m 256M -nographic \
++	-bios build/platform/sifive/fu540/firmware/fw_payload.bin
++```
++or
++```
++qemu-system-riscv64 -M sifive_u -m 256M -nographic \
++	-bios build/platform/sifive/fu540/firmware/fw_jump.bin \
++	-kernel <uboot_build_dir>/u-boot.bin
++```
++
+ While the real hardware operates at the 64-bit mode, it's possible for QEMU to
+ test the 32-bit OpenSBI firmware. This can be helpful for testing 32-bit SiFive
+ specific drivers.
 -- 
-Regards,
-Atish
+2.7.4
+
 
