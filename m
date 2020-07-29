@@ -1,61 +1,102 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 29 Jul 2020 07:06:48 +0000
-Subject: [PATCH v2 3/3] Use standard C string APIs in FDT helper
-In-Reply-To: <20200725093041.7373-4-abner.chang@hpe.com>
-References: <20200725093041.7373-1-abner.chang@hpe.com>
- <20200725093041.7373-4-abner.chang@hpe.com>
-Message-ID: <DM6PR04MB6201015A5CFEA78C8695AA3A8D700@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed, 29 Jul 2020 17:31:53 +0530
+Subject: [PATCH] lib: sbi_misaligned_ldst: Determine transformed instruction
+ length correctly
+Message-ID: <20200729120153.127735-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+If MTINST[0:0] bit is 1 then we have transformed instruction encoding
+in MTINST CSR. For transformed instructions, if the MTINST[1:1] bit
+is Zero then original trapped instruction was a 16bit instruction
+which was converted to 32bit instruction at time of taking trap.
 
+We should use MTINST[1:1] bit to determine correct instruction length
+of transformed instruction.
 
-> -----Original Message-----
-> From: Abner Chang <abner.chang@hpe.com>
-> Sent: 25 July 2020 15:01
-> To: opensbi at lists.infradead.org
-> Cc: abner.chang at hpe.com; Atish Patra <Atish.Patra@wdc.com>; Anup Patel
-> <Anup.Patel@wdc.com>; Daniel Schaefer <daniel.schaefer@hpe.com>
-> Subject: [PATCH v2 3/3] Use standard C string APIs in FDT helper
-> 
-> Use strncmp instead of using sbi_strcmp directly in fdthelp.c.
-> 
-> Signed-off-by: Abner Chang <abner.chang@hpe.com>
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
-> 
-> Cc: Atish Patra <atish.patra@wdc.com>
-> Cc: Anup Patel <anup.patel@wdc.com>
-> Cc: Daniel Schaefer <daniel.schaefer@hpe.com>
-> ---
->  lib/utils/fdt/fdt_helper.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c index
-> 78077f7..aec73a0 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -123,7 +123,7 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32
-> *hartid)
->  	prop = fdt_getprop(fdt, cpu_offset, "device_type", &len);
->  	if (!prop || !len)
->  		return SBI_EINVAL;
-> -	if (sbi_strcmp(prop, "cpu"))
-> +	if (strncmp (prop, "cpu", strlen ("cpu")))
->  		return SBI_EINVAL;
-> 
->  	val = fdt_getprop(fdt, cpu_offset, "reg", &len);
-> --
-> 2.25.0
+This patch updates misaligned load/store emulation as-per above.
 
-Fixed patch subject at time of applying patch.
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ lib/sbi/sbi_misaligned_ldst.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+index 29d79bb..964a372 100644
+--- a/lib/sbi/sbi_misaligned_ldst.c
++++ b/lib/sbi/sbi_misaligned_ldst.c
+@@ -24,7 +24,7 @@ union reg_data {
+ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 				struct sbi_trap_regs *regs)
+ {
+-	ulong insn;
++	ulong insn, insn_len;
+ 	union reg_data val;
+ 	struct sbi_trap_info uptrap;
+ 	int i, fp = 0, shift = 0, len = 0;
+@@ -35,6 +35,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 		 * transformed instruction or custom instruction.
+ 		 */
+ 		insn = tinst | INSN_16BIT_MASK;
++		insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
+ 	} else {
+ 		/*
+ 		 * Bit[0] == 0 implies trapped instruction value is
+@@ -45,6 +46,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 			uptrap.epc = regs->mepc;
+ 			return sbi_trap_redirect(regs, &uptrap);
+ 		}
++		insn_len = INSN_LEN(insn);
+ 	}
+ 
+ 	if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
+@@ -134,7 +136,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 		SET_F32_RD(insn, regs, val.data_ulong);
+ #endif
+ 
+-	regs->mepc += INSN_LEN(insn);
++	regs->mepc += insn_len;
+ 
+ 	return 0;
+ }
+@@ -142,7 +144,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 				 struct sbi_trap_regs *regs)
+ {
+-	ulong insn;
++	ulong insn, insn_len;
+ 	union reg_data val;
+ 	struct sbi_trap_info uptrap;
+ 	int i, len = 0;
+@@ -153,6 +155,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 		 * transformed instruction or custom instruction.
+ 		 */
+ 		insn = tinst | INSN_16BIT_MASK;
++		insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
+ 	} else {
+ 		/*
+ 		 * Bit[0] == 0 implies trapped instruction value is
+@@ -163,6 +166,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 			uptrap.epc = regs->mepc;
+ 			return sbi_trap_redirect(regs, &uptrap);
+ 		}
++		insn_len = INSN_LEN(insn);
+ 	}
+ 
+ 	val.data_ulong = GET_RS2(insn, regs);
+@@ -233,7 +237,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 		}
+ 	}
+ 
+-	regs->mepc += INSN_LEN(insn);
++	regs->mepc += insn_len;
+ 
+ 	return 0;
+ }
+-- 
+2.25.1
 
 
