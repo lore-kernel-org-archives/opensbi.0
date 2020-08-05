@@ -1,129 +1,197 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 4 Aug 2020 03:22:28 +0000
-Subject: [PATCH] lib: sbi_misaligned_ldst: Determine transformed
- instruction length correctly
-In-Reply-To: <CAOnJCUJmciriWLh2fodRLpHyHa5VkpJf=zqYGOb4qKQXDdP+xA@mail.gmail.com>
-References: <20200729120153.127735-1-anup.patel@wdc.com>
- <CAOnJCUJmciriWLh2fodRLpHyHa5VkpJf=zqYGOb4qKQXDdP+xA@mail.gmail.com>
-Message-ID: <DM6PR04MB620151975CA1E4D8EDA10F828D4A0@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Hongzheng-Li <ethan.lee.qnl@gmail.com>
+Date: Wed,  5 Aug 2020 11:29:44 +0800
+Subject: [PATCH] lib: add Enhanced PMP support
+Message-ID: <20200805032944.936-1-Ethan.Lee.QNL@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+From: Hongzheng-Li <ethan.lee.qnl@gmail.com>
+
+The Enhanced PMP(ePMP) is used for memory access and execution prevention
+on Machine mode.
+The latest spec can be found here: https://docs.google.com/document/d/1Mh_aiHYxemL0umN3GTTw8vsbmzHZ_nxZXgjgOUzbvc8/edit?pli=1#heading=h.ab3kl2ch725u
+
+Signed-off-by: Hongzheng-Li <ethan.lee.qnl@gmail.com>
+Signed-off-by: Hou Weiying <weiying_hou@outlook.com>
+---
+ include/sbi/riscv_asm.h      |  4 ++++
+ include/sbi/riscv_encoding.h |  1 +
+ include/sbi/sbi_hart.h       |  9 ++++++---
+ lib/sbi/riscv_asm.c          | 30 ++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hart.c           | 27 +++++++++++++++++++++++++++
+ lib/sbi/sbi_init.c           |  1 +
+ 6 files changed, 69 insertions(+), 3 deletions(-)
+
+diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
+index 6e093ca..badd8af 100644
+--- a/include/sbi/riscv_asm.h
++++ b/include/sbi/riscv_asm.h
+@@ -182,6 +182,10 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 	    unsigned long *size);
+ 
++int epmp_set(int rlb, int mmwp, int mml);
++
++int epmp_get(int *rlb, int *mmwp, int *mml);
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 827c86c..2052925 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -279,6 +279,7 @@
+ #define CSR_PMPADDR13			0x3bd
+ #define CSR_PMPADDR14			0x3be
+ #define CSR_PMPADDR15			0x3bf
++#define CSR_MSECCFG			0x390
+ #define CSR_TSELECT			0x7a0
+ #define CSR_TDATA1			0x7a1
+ #define CSR_TDATA2			0x7a2
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 51c2c35..4ed882f 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -16,12 +16,14 @@
+ enum sbi_hart_features {
+ 	/** Hart has PMP support */
+ 	SBI_HART_HAS_PMP = (1 << 0),
++	/** enhanced PMP */
++	SBI_HART_HAS_EPMP = (1 << 1),
+ 	/** Hart has S-mode counter enable */
+-	SBI_HART_HAS_SCOUNTEREN = (1 << 1),
++	SBI_HART_HAS_SCOUNTEREN = (1 << 2),
+ 	/** Hart has M-mode counter enable */
+-	SBI_HART_HAS_MCOUNTEREN = (1 << 2),
++	SBI_HART_HAS_MCOUNTEREN = (1 << 3),
+ 	/** HART has timer csr implementation in hardware */
+-	SBI_HART_HAS_TIME = (1 << 3),
++	SBI_HART_HAS_TIME = (1 << 4),
+ 
+ 	/** Last index of Hart features*/
+ 	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+@@ -43,6 +45,7 @@ int sbi_hart_pmp_get(struct sbi_scratch *scratch, unsigned int n,
+ 		     unsigned long *prot_out, unsigned long *addr_out,
+ 		     unsigned long *size);
+ void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
++void sbi_hart_epmp_dump(struct sbi_scratch *scratch);
+ int  sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long daddr,
+ 			     unsigned long attr);
+ bool sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 6dfebd9..4621f70 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -349,3 +349,33 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 
+ 	return 0;
+ }
++
++int epmp_set(int rlb, int mmwp, int mml)
++{
++	unsigned long mseccfg;
++
++	if ((rlb | mmwp | mml) & ~1)
++		return SBI_EINVAL;
++
++#if __riscv_xlen == 32 || __riscv_xlen == 64
++	mseccfg = rlb << 2 | mmwp << 1 | mml;
++#else
++	mseccfg = -1;
++#endif
++	if (mseccfg < 0)
++		return SBI_ENOTSUPP;
++
++	csr_write(CSR_MSECCFG, mseccfg);
++
++	return 0;
++}
++
++int epmp_get(int *rlb, int *mmwp, int *mml)
++{
++	unsigned long mseccfg = csr_read(CSR_MSECCFG);
++	*rlb = (mseccfg >> 2) & 1;
++	*mmwp = (mseccfg >> 1) & 1;
++	*mml = mseccfg & 1;
++
++	return 0;
++}
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index fa20bd2..c1c6957 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -184,6 +184,18 @@ void sbi_hart_pmp_dump(struct sbi_scratch *scratch)
+ 	}
+ }
+ 
++void sbi_hart_epmp_dump(struct sbi_scratch *scratch)
++{
++	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_EPMP))
++		return;
++
++	int rlb, mmwp, mml;
++
++	epmp_get(&rlb, &mmwp, &mml);
++	sbi_printf("ePMP: RLB = %d, MMWP = %d, MML = %d\n",
++				rlb, mmwp, mml);
++}
++
+ int sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long addr,
+ 			    unsigned long attr)
+ {
+@@ -239,6 +251,9 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+ 	 */
+ 	pmp_set(pmp_idx++, PMP_R | PMP_W | PMP_X, 0, __riscv_xlen);
+ 
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_EPMP))
++		epmp_set(0, 0, 0);
++
+ 	return 0;
+ }
+ 
+@@ -288,6 +303,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+ 	case SBI_HART_HAS_TIME:
+ 		fstr = "time";
+ 		break;
++	case SBI_HART_HAS_EPMP:
++		fstr = "epmp";
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -397,6 +415,15 @@ static void hart_detect_features(struct sbi_scratch *scratch)
+ 			hfeatures->features |= SBI_HART_HAS_MCOUNTEREN;
+ 	}
+ 
++	/* Detect if hart supports EPMP(enhanced PMP) feature */
++	trap.cause = 0;
++	val = csr_read_allowed(CSR_MSECCFG, (unsigned long)&trap);
++	if (!trap.cause) {
++		csr_write_allowed(CSR_MSECCFG, (unsigned long)&trap, val);
++		if (!trap.cause)
++			hfeatures->features |= SBI_HART_HAS_EPMP;
++	}
++
+ 	/* Detect if hart supports time CSR */
+ 	trap.cause = 0;
+ 	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index a7fb848..1ced76b 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -82,6 +82,7 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+ 
+ 	sbi_hart_delegation_dump(scratch);
+ 	sbi_hart_pmp_dump(scratch);
++	sbi_hart_epmp_dump(scratch);
+ }
+ 
+ static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER;
+-- 
+2.24.1.windows.2
 
 
-> -----Original Message-----
-> From: Atish Patra <atishp@atishpatra.org>
-> Sent: 30 July 2020 12:13
-> To: Anup Patel <Anup.Patel@wdc.com>
-> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
-> <opensbi@lists.infradead.org>
-> Subject: Re: [PATCH] lib: sbi_misaligned_ldst: Determine transformed
-> instruction length correctly
-> 
-> On Wed, Jul 29, 2020 at 5:02 AM Anup Patel <anup.patel@wdc.com> wrote:
-> >
-> > If MTINST[0:0] bit is 1 then we have transformed instruction encoding
-> > in MTINST CSR. For transformed instructions, if the MTINST[1:1] bit is
-> > Zero then original trapped instruction was a 16bit instruction which
-> > was converted to 32bit instruction at time of taking trap.
-> >
-> > We should use MTINST[1:1] bit to determine correct instruction length
-> > of transformed instruction.
-> >
-> > This patch updates misaligned load/store emulation as-per above.
-> >
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > ---
-> >  lib/sbi/sbi_misaligned_ldst.c | 12 ++++++++----
-> >  1 file changed, 8 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/lib/sbi/sbi_misaligned_ldst.c
-> > b/lib/sbi/sbi_misaligned_ldst.c index 29d79bb..964a372 100644
-> > --- a/lib/sbi/sbi_misaligned_ldst.c
-> > +++ b/lib/sbi/sbi_misaligned_ldst.c
-> > @@ -24,7 +24,7 @@ union reg_data {
-> >  int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> >                                 struct sbi_trap_regs *regs)  {
-> > -       ulong insn;
-> > +       ulong insn, insn_len;
-> >         union reg_data val;
-> >         struct sbi_trap_info uptrap;
-> >         int i, fp = 0, shift = 0, len = 0; @@ -35,6 +35,7 @@ int
-> > sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> >                  * transformed instruction or custom instruction.
-> >                  */
-> >                 insn = tinst | INSN_16BIT_MASK;
-> > +               insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
-> >         } else {
-> >                 /*
-> >                  * Bit[0] == 0 implies trapped instruction value is @@
-> > -45,6 +46,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2,
-> ulong tinst,
-> >                         uptrap.epc = regs->mepc;
-> >                         return sbi_trap_redirect(regs, &uptrap);
-> >                 }
-> > +               insn_len = INSN_LEN(insn);
-> >         }
-> >
-> >         if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) { @@ -134,7 +136,7
-> > @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> >                 SET_F32_RD(insn, regs, val.data_ulong);  #endif
-> >
-> > -       regs->mepc += INSN_LEN(insn);
-> > +       regs->mepc += insn_len;
-> >
-> >         return 0;
-> >  }
-> > @@ -142,7 +144,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong
-> > tval2, ulong tinst,  int sbi_misaligned_store_handler(ulong addr, ulong
-> tval2, ulong tinst,
-> >                                  struct sbi_trap_regs *regs)  {
-> > -       ulong insn;
-> > +       ulong insn, insn_len;
-> >         union reg_data val;
-> >         struct sbi_trap_info uptrap;
-> >         int i, len = 0;
-> > @@ -153,6 +155,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong
-> tval2, ulong tinst,
-> >                  * transformed instruction or custom instruction.
-> >                  */
-> >                 insn = tinst | INSN_16BIT_MASK;
-> > +               insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
-> >         } else {
-> >                 /*
-> >                  * Bit[0] == 0 implies trapped instruction value is @@
-> > -163,6 +166,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong
-> tval2, ulong tinst,
-> >                         uptrap.epc = regs->mepc;
-> >                         return sbi_trap_redirect(regs, &uptrap);
-> >                 }
-> > +               insn_len = INSN_LEN(insn);
-> >         }
-> >
-> >         val.data_ulong = GET_RS2(insn, regs); @@ -233,7 +237,7 @@ int
-> > sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
-> >                 }
-> >         }
-> >
-> > -       regs->mepc += INSN_LEN(insn);
-> > +       regs->mepc += insn_len;
-> >
-> >         return 0;
-> >  }
-> > --
-> > 2.25.1
-> >
-> 
-> Looks good to me.
-> 
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> 
-
-Applied this patch to the riscv/opensbi repo
-
-Regards,
-Anup
