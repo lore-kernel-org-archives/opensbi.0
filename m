@@ -1,232 +1,42 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 11 Aug 2020 09:59:23 +0530
-Subject: [PATCH] firmware: fw_base: Improve exception stack setup in trap
- handler
-In-Reply-To: <CAAhSdy0E0gNP_=JswM2RF=_RLeR4UviewcgTi7KGW2FVVR2Vfg@mail.gmail.com>
-References: <20200810135245.230600-1-anup.patel@wdc.com>
- <DCB6D7D1-D9E1-4C50-8617-D80462EF6693@jrtc27.com>
- <CAAhSdy0E0gNP_=JswM2RF=_RLeR4UviewcgTi7KGW2FVVR2Vfg@mail.gmail.com>
-Message-ID: <CAAhSdy1RY8WCO4Gd0vPd7gtU483Lt4CrJxxdDVpK+ufHYwTMqw@mail.gmail.com>
+From: Ruinland ChuanTzu Tsai <ruinland@andestech.com>
+Date: Tue, 11 Aug 2020 17:52:37 +0800
+Subject: The senario when SCOUNTEREN[TM] == 0 && MCOUNTEREN[TM]==1 ?
+Message-ID: <20200811095237.GA4330@APC301.andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 11, 2020 at 8:40 AM Anup Patel <anup@brainfault.org> wrote:
->
-> On Mon, Aug 10, 2020 at 7:35 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> > On 10 Aug 2020, at 14:52, Anup Patel <Anup.Patel@wdc.com> wrote:
-> > >
-> > > Currently, the low-level trap handler (i.e. _trap_handler()) uses
-> > > branch instructions to conditionally setup exception stack based
-> > > on which mode trap occured.
-> > >
-> > > This patch implements exception stack setup using xor instructions
-> > > which is 2 instructions less compared to previous approach and faster
-> > > due to lack of branch instructions.
-> > >
-> > > The new exception stack setup approach can be best described by the
-> > > following pseudocode:
-> > >
-> > > Came_From_M_Mode = (MSTATUS.MPP & 0x2) >> 1
-> >
-> > This relies on PRIV 0b10 currently being unallocated, which doesn't
-> > make me feel warm and fuzzy inside.
->
-> The PRIV 0b10 mode is not used by any of the upcoming extensions. In future,
-> we will require really strong justification in future to use the
-> unused 0b10 mode.
-> Even H-extension has cleanly avoided using PRIV 0b10 mode.
->
-> In any case, we should document this assumption.
->
-> >
-> > > Exception_Stack = TP ^ (Came_From_M_Mode * (SP ^ TP))
-> >
-> > This relies on MUL with 0/1 being fast, but that may well be a different
->
-> The MUL can be replaced with AND instruction but it was taking one
-> additional instruction. See below.
->
->     /*
->      * Set T0 to appropriate exception stack
->      *
->      * Came_From_M_Mode = ((MSTATUS.MPP & 0x2) >> 1) - 1
->      * Exception_Stack = SP ^ (Came_From_M_Mode & (TP ^ SP))
->      *
->      * Came_From_M_Mode = -1UL   ==>    Exception_Stack = TP
->      * Came_From_M_Mode = 0UL    ==>    Exception_Stack = SP
->      */
->     csrr    t0, CSR_MSTATUS
->     srl    t0, t0, (MSTATUS_MPP_SHIFT + 1)
->     and    t0, t0, 0x1
->     add    t0, t0, -1
->     xor    tp, tp, sp
->     and    t0, t0, tp
->     xor    tp, tp, sp
->     xor    t0, sp, t0
->
-> > pipeline in your processor (in an OoO core) with fewer available, or a
-> > higher-latency path to an M-box in a simpler in-order pipeline. The MUL
-> > is also not compressible. You probably do want a branch, but in a way
-> > that macro-op fusion will hopefully turn it into a conditional move:
-> >
-> >     mv Exception_Stack, tp
-> >     beqz Came_From_M_Mode, 1f
-> >     mv Exception_Stack, sp
-> > 1:
->
-> Actually, I had started off with branches but code without branches (this
-> patch) is performing better on QEMU (because fewer TCG blocks required
-> for translating _trap_handler()). This code (this patch) will be much faster
-> on real HW because branch misses can cause bubbles in the instruction
-> pipeline.
->
-> The code with branches is as follows:
->     csrr    t0, CSR_MSTATUS
->     srl    t0, t0, (MSTATUS_MPP_SHIFT + 1)
->     and    t0, t0, 0x1
->     beq    t0, zero, _trap_stack_s_mode
-> _trap_stack_m_mode:
->     add    t0, sp, zero
->     j    _trap_stack_done
-> _trap_stack_s_mode:
->     add    t0, tp, zero
-> _trap_stack_done:
->
-> >
-> > Same number of instructions, but all compressible, no multiplications
-> > required and the lone branch can be macro-op fused.
->
-> Overall, the key thing is having no (or fewer) branches in _trap_handler()
-> with the same number of (or fewer) instructions.
+Hi all,                                                                                                                                                           
+I'm having some questions about the timing spec for RISC-V and OpenSBI.
 
-Here's another approach which has no assumption about PRIV 0b10 mode
-and it uses AND operation in-place of MUL.
+If I understand the spec correctly, we allow implementation to use a real timer CSR or
+triggers an illegal instruction exception and request OpenSBI to do the routine e.g. read a memory-mapped register.
 
-    /*
-     * Set T0 to appropriate exception stack
-     *
-     * Came_From_M_Mode = ((MSTATUS.MPP < 0x3) ? 1 : 0) - 1;
-     * Exception_Stack = TP ^ (Came_From_M_Mode * (SP ^ TP))
-     *
-     * Came_From_M_Mode = -1UL   ==>    Exception_Stack = SP
-     * Came_From_M_Mode = 0UL    ==>    Exception_Stack = TP
-     */
-    csrr    t0, CSR_MSTATUS
-    srl    t0, t0, MSTATUS_MPP_SHIFT
-    and    t0, t0, PRV_M
-    slti    t0, t0, PRV_M
-    add    t0, t0, -1
-    xor    sp, sp, tp
-    and    t0, t0, sp
-    xor    sp, sp, tp
-    xor    t0, tp, t0
+The problem is :
+As the Privileged ISA Spec stated, once the SCOUNTEREN[TM] is set to 0,
+then U-mode is not allowed to access timer;
+and thus the OpenSBI will refuse to provide timer info - -
+https://github.com/riscv/opensbi/blob/master/lib/sbi/sbi_emulate_csr.c#L32
 
-Overall, the number of instructions are the same but no branches. Even
-this approach performs better on QEMU compared to code with branches.
+This was not a problem before, yet recently Linux Kernel 5.8 changed its RISC-V vdso implementation to issue rdtime in the user space directly.
 
-Here's the code with branches..
+On some platform, this causes a backward-compat issue - -
+the hardware implementation without a real timer CSR internally expects that only S-mode could issue rdtime and hard-wires SCOUNTEREN[TM] to be 0 so the CPU will issue an illegal instruction exception and let OpenSBI do the job.
 
-    csrr    t0, CSR_MSTATUS
-    srl    t0, t0, MSTATUS_MPP_SHIFT
-    and    t0, t0, PRV_M
-    slti    t0, t0, PRV_M
-    beq    t0, zero, _trap_stack_m_mode
-_trap_stack_s_mode:
-    add    t0, tp, zero
-    j    _trap_stack_done
-_trap_stack_m_mode:
-    add    t0, sp, zero
-_trap_stack_done:
+So when OpenSBI checks SCOUNTEREN[TM], there will be no one to provide timer info and the init on rootfs will crash.
 
-Regards,
-Anup
+Furthermore, this raises a question to me - - when will SCOUNTEREN[TM] be set to 0 while MCOUNTEREN[TM] set to 1 ?
 
->
-> Regards,
-> Anup
->
-> >
-> > Jess
-> >
-> > > Came_From_M_Mode = 0    ==>    Exception_Stack = TP
-> > > Came_From_M_Mode = 1    ==>    Exception_Stack = SP
-> > >
-> > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > > ---
-> > > firmware/fw_base.S | 49 ++++++++++++++++++++--------------------------
-> > > 1 file changed, 21 insertions(+), 28 deletions(-)
-> > >
-> > > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> > > index b66ac41..53a9a48 100644
-> > > --- a/firmware/fw_base.S
-> > > +++ b/firmware/fw_base.S
-> > > @@ -490,35 +490,28 @@ _trap_handler:
-> > >       /* Save T0 in scratch space */
-> > >       REG_S   t0, SBI_SCRATCH_TMP0_OFFSET(tp)
-> > >
-> > > -     /* Check which mode we came from */
-> > > +     /*
-> > > +      * Set T0 to appropriate exception stack
-> > > +      *
-> > > +      * Came_From_M_Mode = (MSTATUS.MPP & 0x2) >> 1
-> > > +      * Exception_Stack = TP ^ (Came_From_M_Mode * (SP ^ TP))
-> > > +      *
-> > > +      * Came_From_M_Mode = 0    ==>    Exception_Stack = TP
-> > > +      * Came_From_M_Mode = 1    ==>    Exception_Stack = SP
-> > > +      */
-> > >       csrr    t0, CSR_MSTATUS
-> > > -     srl     t0, t0, MSTATUS_MPP_SHIFT
-> > > -     and     t0, t0, PRV_M
-> > > -     xori    t0, t0, PRV_M
-> > > -     beq     t0, zero, _trap_handler_m_mode
-> > > -
-> > > -     /* We came from S-mode or U-mode */
-> > > -_trap_handler_s_mode:
-> > > -     /* Set T0 to original SP */
-> > > -     add     t0, sp, zero
-> > > -
-> > > -     /* Setup exception stack */
-> > > -     add     sp, tp, -(SBI_TRAP_REGS_SIZE)
-> > > -
-> > > -     /* Jump to code common for all modes */
-> > > -     j       _trap_handler_all_mode
-> > > -
-> > > -     /* We came from M-mode */
-> > > -_trap_handler_m_mode:
-> > > -     /* Set T0 to original SP */
-> > > -     add     t0, sp, zero
-> > > -
-> > > -     /* Re-use current SP as exception stack */
-> > > -     add     sp, sp, -(SBI_TRAP_REGS_SIZE)
-> > > -
-> > > -_trap_handler_all_mode:
-> > > -     /* Save original SP (from T0) on stack */
-> > > -     REG_S   t0, SBI_TRAP_REGS_OFFSET(sp)(sp)
-> > > +     srl     t0, t0, (MSTATUS_MPP_SHIFT + 1)
-> > > +     and     t0, t0, 0x1
-> > > +     xor     sp, sp, tp
-> > > +     mul     t0, t0, sp
-> > > +     xor     sp, sp, tp
-> > > +     xor     t0, tp, t0
-> > > +
-> > > +     /* Save original SP on exception stack */
-> > > +     REG_S   sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_REGS_SIZE)(t0)
-> > > +
-> > > +     /* Set SP to exception stack and make room for trap registers */
-> > > +     add     sp, t0, -(SBI_TRAP_REGS_SIZE)
-> > >
-> > >       /* Restore T0 from scratch space */
-> > >       REG_L   t0, SBI_SCRATCH_TMP0_OFFSET(tp)
-> > > --
-> > > 2.25.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
+My gut-feeling is that the hypervisor might want this feature, so the guest U-mode program won't be able to access time CSR directly and the OpenSBI will return -1 so the S-mode program (e.g. Xvisor/KVM/Xen) could do the corresponding emulation, such as faking a timer.
+
+Yet I haven't seen any related code there.
+Is there a reason that we're checking SCOUNTEREN[TM] while the previous privileged mode is U-mode ?
+
+Besides, I'm wondering whether we should read [M|S]COUNTEREN in the first place.
+Since it's an enablement bit and it's designed as WARL, should it be just written by software and enables some hardware features, instead of being a "global status holder" for software to bridging different privileged modes ?
+
+Sincerely,
+Ruinland
 
