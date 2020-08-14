@@ -1,8 +1,11 @@
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Fri, 14 Aug 2020 13:13:22 +0200
+Date: Fri, 14 Aug 2020 11:36:47 +0200
 Subject: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
-In-Reply-To: <CAAhSdy2xfKZvU2gFbeM8hXVHaZgTJGHVkJdg8vDroB5mCjy+qA@mail.gmail.com>
+In-Reply-To: <DM6PR04MB6201D3F04981A0CC297E661C8D400@DM6PR04MB6201.namprd04.prod.outlook.com>
 References: <20200813162415.124469-1-xypron.glpk@gmx.de>
+ <B63355E7-4A46-4492-A97F-DE576FB0DDA0@jrtc27.com>
+ <CAOnJCUJ8aD8momBWbKuQMv6Apta=LM-Sddoh0VhAVPQhBN-ZAw@mail.gmail.com>
+ <e63dc1a5-fb1d-7488-5f59-c2f1165b34dc@gmx.de>
  <823E7031-FADE-4445-8DD6-E4775182712E@jrtc27.com>
  <45937abd-a5b9-5c4d-4520-58c6c0505921@gmx.de>
  <CAOnJCU+qSHMq0pvEPBE0bu4cgVq2_9pNfOWxd8ZRPhe+vj9Hbg@mail.gmail.com>
@@ -15,207 +18,142 @@ References: <20200813162415.124469-1-xypron.glpk@gmx.de>
  <DM6PR04MB62013F6069B11A60140B86A08D400@DM6PR04MB6201.namprd04.prod.outlook.com>
  <CY4PR04MB37513D1610F4F6381B8793B5E7400@CY4PR04MB3751.namprd04.prod.outlook.com>
  <DM6PR04MB6201D3F04981A0CC297E661C8D400@DM6PR04MB6201.namprd04.prod.outlook.com>
- <a0e63ffa-e1c8-fa22-b408-b505c62ee47b@gmx.de>
- <DM6PR04MB62015DD8E93E18147244B0EA8D400@DM6PR04MB6201.namprd04.prod.outlook.com>
- <CAAhSdy2xfKZvU2gFbeM8hXVHaZgTJGHVkJdg8vDroB5mCjy+qA@mail.gmail.com>
-Message-ID: <645a549a-f2e6-d7f1-2226-d1a2557ae0e9@gmx.de>
+Message-ID: <96762ce7-91d9-a498-2e4e-a9eb5530ec59@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 14.08.20 11:36, Anup Patel wrote:
-> On Fri, Aug 14, 2020 at 2:50 PM Anup Patel <Anup.Patel@wdc.com> wrote:
+On 14.08.20 09:03, Anup Patel wrote:
+>
+>
+>> -----Original Message-----
+>> From: Damien Le Moal <Damien.LeMoal@wdc.com>
+>> Sent: 14 August 2020 11:49
+>> To: Anup Patel <Anup.Patel@wdc.com>; atishp at atishpatra.org;
+>> xypron.glpk at gmx.de; seanga2 at gmail.com
+>> Cc: jrtc27 at jrtc27.com; Atish Patra <Atish.Patra@wdc.com>;
+>> bmeng.cn at gmail.com; opensbi at lists.infradead.org;
+>> merle at hardenedlinux.org
+>> Subject: Re: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
 >>
->>
->>
->>> -----Original Message-----
->>> From: Heinrich Schuchardt <xypron.glpk@gmx.de>
->>> Sent: 14 August 2020 14:46
->>> To: Anup Patel <Anup.Patel@wdc.com>; Damien Le Moal
->>> <Damien.LeMoal@wdc.com>; atishp at atishpatra.org; seanga2 at gmail.com
->>> Cc: Atish Patra <Atish.Patra@wdc.com>; bmeng.cn at gmail.com;
->>> jrtc27 at jrtc27.com; opensbi at lists.infradead.org; merle at hardenedlinux.org
->>> Subject: Re: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
->>>
->>> On 14.08.20 09:03, Anup Patel wrote:
+>> On 2020/08/14 15:08, Anup Patel wrote:
+>>>> The following works for me. However, the sbi_ecall_console_puts()
+>>>> call in
+>>>> test_main() for the test FW_PAYLOAD does not work. Individual calls
+>>>> to
+>>>> sbi_ecall_console_putc() do work, but not the full string. It looks
+>>>> like the string is broken, so the data section may be broken... Digging into
+>> that.
+>>>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
+>>>> a7fb848..9692cd9 100644
+>>>> --- a/lib/sbi/sbi_init.c
+>>>> +++ b/lib/sbi/sbi_init.c
+>>>> @@ -84,69 +84,18 @@ static void sbi_boot_prints(struct sbi_scratch
+>>>> *scratch, u32 hartid)
+>>>>         sbi_hart_pmp_dump(scratch);
+>>>>  }
 >>>>
+>>>> -static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER; -static
+>>>> unsigned long coldboot_done = 0; -static struct sbi_hartmask
+>>>> coldboot_wait_hmask = {
+>>>> 0 };
+>>>> +static atomic_t coldboot_done = ATOMIC_INITIALIZER(0);
 >>>>
->>>>> -----Original Message-----
->>>>> From: Damien Le Moal <Damien.LeMoal@wdc.com>
->>>>> Sent: 14 August 2020 11:49
->>>>> To: Anup Patel <Anup.Patel@wdc.com>; atishp at atishpatra.org;
->>>>> xypron.glpk at gmx.de; seanga2 at gmail.com
->>>>> Cc: jrtc27 at jrtc27.com; Atish Patra <Atish.Patra@wdc.com>;
->>>>> bmeng.cn at gmail.com; opensbi at lists.infradead.org;
->>>>> merle at hardenedlinux.org
->>>>> Subject: Re: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
->>>>>
->>>>> On 2020/08/14 15:08, Anup Patel wrote:
->>>>>>> The following works for me. However, the sbi_ecall_console_puts()
->>>>>>> call in
->>>>>>> test_main() for the test FW_PAYLOAD does not work. Individual calls
->>>>>>> to
->>>>>>> sbi_ecall_console_putc() do work, but not the full string. It looks
->>>>>>> like the string is broken, so the data section may be broken...
->>>>>>> Digging into
->>>>> that.
->>>>>>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
->>>>>>> a7fb848..9692cd9 100644
->>>>>>> --- a/lib/sbi/sbi_init.c
->>>>>>> +++ b/lib/sbi/sbi_init.c
->>>>>>> @@ -84,69 +84,18 @@ static void sbi_boot_prints(struct sbi_scratch
->>>>>>> *scratch, u32 hartid)
->>>>>>>         sbi_hart_pmp_dump(scratch);  }
->>>>>>>
->>>>>>> -static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER; -static
->>>>>>> unsigned long coldboot_done = 0; -static struct sbi_hartmask
->>>>>>> coldboot_wait_hmask = {
->>>>>>> 0 };
->>>>>>> +static atomic_t coldboot_done = ATOMIC_INITIALIZER(0);
->>>>>>>
->>>>>>> -static void wait_for_coldboot(struct sbi_scratch *scratch, u32
->>>>>>> hartid)
->>>>>>> +static inline void wait_for_coldboot(struct sbi_scratch *scratch,
->>>>>>> +u32
->>>>>>> hartid)
->>>>>>>  {
->>>>>>> -       unsigned long saved_mie, cmip;
->>>>>>> -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->>>>>>> -
->>>>>>> -       /* Save MIE CSR */
->>>>>>> -       saved_mie = csr_read(CSR_MIE);
->>>>>>> -
->>>>>>> -       /* Set MSIE bit to receive IPI */
->>>>>>> -       csr_set(CSR_MIE, MIP_MSIP);
->>>>>>> -
->>>>>>> -       /* Acquire coldboot lock */
->>>>>>> -       spin_lock(&coldboot_lock);
->>>>>>> -
->>>>>>> -       /* Mark current HART as waiting */
->>>>>>> -       sbi_hartmask_set_hart(hartid, &coldboot_wait_hmask);
->>>>>>> -
->>>>>>> -       /* Wait for coldboot to finish using WFI */
->>>>>>> -       while (!coldboot_done) {
->>>>>>> -               spin_unlock(&coldboot_lock);
->>>>>>> -               do {
->>>>>>> -                       wfi();
->>>>>>> -                       cmip = csr_read(CSR_MIP);
->>>>>>> -                } while (!(cmip & MIP_MSIP));
->>>>>>> -               spin_lock(&coldboot_lock);
->>>>>>> -       };
->>>>>>> -
->>>>>>> -       /* Unmark current HART as waiting */
->>>>>>> -       sbi_hartmask_clear_hart(hartid, &coldboot_wait_hmask);
->>>>>>> -
->>>>>>> -       /* Release coldboot lock */
->>>>>>> -       spin_unlock(&coldboot_lock);
->>>>>>> -
->>>>>>> -       /* Restore MIE CSR */
->>>>>>> -       csr_write(CSR_MIE, saved_mie);
->>>>>>> -
->>>>>>> -       /* Clear current HART IPI */
->>>>>>> -       sbi_platform_ipi_clear(plat, hartid);
->>>>>>> +       /* Wait for coldboot to finish */
->>>>>>> +       while (!atomic_read(&coldboot_done)) {};
+>>>> -static void wait_for_coldboot(struct sbi_scratch *scratch, u32
+>>>> hartid)
+>>>> +static inline void wait_for_coldboot(struct sbi_scratch *scratch,
+>>>> +u32
+>>>> hartid)
+>>>>  {
+>>>> -       unsigned long saved_mie, cmip;
+>>>> -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>>>> -
+>>>> -       /* Save MIE CSR */
+>>>> -       saved_mie = csr_read(CSR_MIE);
+>>>> -
+>>>> -       /* Set MSIE bit to receive IPI */
+>>>> -       csr_set(CSR_MIE, MIP_MSIP);
+>>>> -
+>>>> -       /* Acquire coldboot lock */
+>>>> -       spin_lock(&coldboot_lock);
+>>>> -
+>>>> -       /* Mark current HART as waiting */
+>>>> -       sbi_hartmask_set_hart(hartid, &coldboot_wait_hmask);
+>>>> -
+>>>> -       /* Wait for coldboot to finish using WFI */
+>>>> -       while (!coldboot_done) {
+>>>> -               spin_unlock(&coldboot_lock);
+>>>> -               do {
+>>>> -                       wfi();
+>>>> -                       cmip = csr_read(CSR_MIP);
+>>>> -                } while (!(cmip & MIP_MSIP));
+>>>> -               spin_lock(&coldboot_lock);
+>>>> -       };
+>>>> -
+>>>> -       /* Unmark current HART as waiting */
+>>>> -       sbi_hartmask_clear_hart(hartid, &coldboot_wait_hmask);
+>>>> -
+>>>> -       /* Release coldboot lock */
+>>>> -       spin_unlock(&coldboot_lock);
+>>>> -
+>>>> -       /* Restore MIE CSR */
+>>>> -       csr_write(CSR_MIE, saved_mie);
+>>>> -
+>>>> -       /* Clear current HART IPI */
+>>>> -       sbi_platform_ipi_clear(plat, hartid);
+>>>> +       /* Wait for coldboot to finish */
+>>>> +       while (!atomic_read(&coldboot_done)) {};
 >>>
+>>> This is over-simplified and will slow down the booting in cold boot path.
 >>>
->>> Atomicity of accesses to coldboot_done is not needed for the cold hart to
->>> signal that it has proceeded far enough to let the warm harts continue.
->>>
->>> As Jessica pointed out in the inter-thread communication we have to make
->>> sure that the compiler optimization does not re-sequence commands
->>> incorrectly. A good description can be found in
->>>
->>>     https://www.kernel.org/doc/Documentation/memory-barriers.txt
->>>
->>> The Linux kernel defines
->>>
->>>     #deine barrier() __asm__ __volatile__("": : :"memory")
->>>
->>> as a compiler barrier.
->>>
->>> I think we can completely remove the 'coldboot_lock' spin-lock and use
->>> barrier() instead.
+>>> Imagine, boot CPU in cold boot path and all secondary CPUs bombarding
+>>> the interconnect with atomic operations.
 >>
->> coldboot_lock protects the coldboot_wait_hmask. We should keep the
->> Coldboot_lock for this bitmask and make coldboot_done atomic.
+>> That was just a quick test. With this, the kendryte goes to S mode and start
+>> running the fw payload, which does not execute correctly still. So there is
+>> another problem somewhere with kendryte platform. Not sure what.
 >>
->> The atomic_read() and atomic_write() are regular read/write with
->> RISC-V barriers.
+>>>
+>>> It has to be a combination of atomic coldboot_done and WFI to avoid
+>>> unnecessary traffic in interconnect.
+>>>
+>>> We just need to make coldboot_done atomic and don't use coldboot_lock
+>>> for coldboot_done. Rest of the things should stay as-is.
 >>
->
-> This is what I am suggesting ....
->
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index a7fb848..6b58983 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -85,9 +85,10 @@ static void sbi_boot_prints(struct sbi_scratch
-> *scratch, u32 hartid)
->  }
->
->  static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER;
-> -static unsigned long coldboot_done = 0;
->  static struct sbi_hartmask coldboot_wait_hmask = { 0 };
->
-> +static atomic_t coldboot_done = ATOMIC_INITIALIZER(0);
-> +
->  static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->  {
->         unsigned long saved_mie, cmip;
-> @@ -105,16 +106,20 @@ static void wait_for_coldboot(struct sbi_scratch
-> *scratch, u32 hartid)
->         /* Mark current HART as waiting */
->         sbi_hartmask_set_hart(hartid, &coldboot_wait_hmask);
->
-> +       /* Release coldboot lock */
-> +       spin_unlock(&coldboot_lock);
-> +
->         /* Wait for coldboot to finish using WFI */
-> -       while (!coldboot_done) {
-> -               spin_unlock(&coldboot_lock);
-> +       while (!atomic_read(&coldboot_done)) {
->                 do {
->                         wfi();
->                         cmip = csr_read(CSR_MIP);
->                  } while (!(cmip & MIP_MSIP));
-> -               spin_lock(&coldboot_lock);
->         };
->
-> +       /* Acquire coldboot lock */
-> +       spin_lock(&coldboot_lock);
-> +
->         /* Unmark current HART as waiting */
->         sbi_hartmask_clear_hart(hartid, &coldboot_wait_hmask);
->
-> @@ -132,12 +137,12 @@ static void wake_coldboot_harts(struct
-> sbi_scratch *scratch, u32 hartid)
->  {
->         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->
-> +       /* Mark coldboot done */
-> +       atomic_write(&coldboot_done, 1);
-> +
->         /* Acquire coldboot lock */
->         spin_lock(&coldboot_lock);
->
-> -       /* Mark coldboot done */
-> -       coldboot_done = 1;
-> -
->         /* Send an IPI to all HARTs waiting for coldboot */
->         for (int i = 0; i <= sbi_scratch_last_hartid(); i++) {
->                 if ((i != hartid) &&
->
+>> Without the spinlock, there will be problems with coldboot_wait_hmask if it
+>> is used as is. But I do not think that one is necessary. The boot hart can just
+>> send an IPI to all waiting harts. The waiting harts do not need to clear that
+>> mask.
 
-This works fine on the MaixDuino (Kendryte K210)
+The reason why we need a spin-lock for coldboot_wait_hmask is that it is
+defined as bitmask. We could use a char array instead. The current
+bitmask is at least sizeof(long). So only on systems with more than 4 or
+8 cores we will use extra memory for the mask while saving on code size.
 
-Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Best regards
 
+Heinrich
+
+>
+> There is a contradiction in your statement here. How does boot hart know
+> which all HARTs are waiting for IPI ? In real world systems, we can have
+> faulty parts where certain CPUs never come-up so we can't assume that
+> all CPUs are waiting for WFI.
+>
+> The coldboot_wait_hmask is certainly required and if we use spinlock
+> just for coldboot_wait_hmask then it is fine because it won't be used in
+> a loop.
 >
 > Regards,
 > Anup
+>
+>>
+>>
+>> --
+>> Damien Le Moal
+>> Western Digital Research
 >
 
 
