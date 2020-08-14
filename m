@@ -1,25 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 14 Aug 2020 07:03:05 +0000
-Subject: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
-In-Reply-To: <CY4PR04MB37513D1610F4F6381B8793B5E7400@CY4PR04MB3751.namprd04.prod.outlook.com>
-References: <20200813162415.124469-1-xypron.glpk@gmx.de>
- <B98172B0-5CAA-48D2-A2F3-B4DB6B66FB16@jrtc27.com>
- <e3f6b789-0fa6-51f1-4cc4-f5eaa625b8df@gmx.de>
- <B63355E7-4A46-4492-A97F-DE576FB0DDA0@jrtc27.com>
- <CAOnJCUJ8aD8momBWbKuQMv6Apta=LM-Sddoh0VhAVPQhBN-ZAw@mail.gmail.com>
- <e63dc1a5-fb1d-7488-5f59-c2f1165b34dc@gmx.de>
- <823E7031-FADE-4445-8DD6-E4775182712E@jrtc27.com>
- <45937abd-a5b9-5c4d-4520-58c6c0505921@gmx.de>
- <CAOnJCU+qSHMq0pvEPBE0bu4cgVq2_9pNfOWxd8ZRPhe+vj9Hbg@mail.gmail.com>
- <e87d2a6e-5ecd-d47b-2d0f-76429772ab15@gmx.de>
- <CAOnJCUK_pyanTOsTZafEOgJEprgvVcy7zYuiOTHvKxJqhaxeAQ@mail.gmail.com>
- <407d4b67-b4c7-0d50-68a4-2de077a8b696@gmx.de>
- <CAOnJCU+8SKLvaoscCUvWsYxNmoYr8Muy06ta9Xf2gJ=Gtss9MA@mail.gmail.com>
- <f492bbba-bec3-4615-0652-fed340e97654@gmail.com>
- <7e050b0e57e6fdfa9cfe7a0a17d2f2501a4a67f9.camel@wdc.com>
- <DM6PR04MB62013F6069B11A60140B86A08D400@DM6PR04MB6201.namprd04.prod.outlook.com>
- <CY4PR04MB37513D1610F4F6381B8793B5E7400@CY4PR04MB3751.namprd04.prod.outlook.com>
-Message-ID: <DM6PR04MB6201D3F04981A0CC297E661C8D400@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Fri, 14 Aug 2020 09:15:39 +0000
+Subject: [PATCH v2] firmware: fw_base: Improve exception stack setup in
+ trap handler
+In-Reply-To: <CAOnJCUJ+7_1Mb0Tb7aJ_fkSibADR12QZuXN65aU5xLR+_X4T3w@mail.gmail.com>
+References: <20200812132653.262468-1-anup.patel@wdc.com>
+ <CAOnJCUJ+7_1Mb0Tb7aJ_fkSibADR12QZuXN65aU5xLR+_X4T3w@mail.gmail.com>
+Message-ID: <DM6PR04MB6201EB40FE8A8E5E7F4F04908D400@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -29,119 +15,119 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Damien Le Moal <Damien.LeMoal@wdc.com>
-> Sent: 14 August 2020 11:49
-> To: Anup Patel <Anup.Patel@wdc.com>; atishp at atishpatra.org;
-> xypron.glpk at gmx.de; seanga2 at gmail.com
-> Cc: jrtc27 at jrtc27.com; Atish Patra <Atish.Patra@wdc.com>;
-> bmeng.cn at gmail.com; opensbi at lists.infradead.org;
-> merle at hardenedlinux.org
-> Subject: Re: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 12 August 2020 23:21
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH v2] firmware: fw_base: Improve exception stack setup
+> in trap handler
 > 
-> On 2020/08/14 15:08, Anup Patel wrote:
-> >> The following works for me. However, the sbi_ecall_console_puts()
-> >> call in
-> >> test_main() for the test FW_PAYLOAD does not work. Individual calls
-> >> to
-> >> sbi_ecall_console_putc() do work, but not the full string. It looks
-> >> like the string is broken, so the data section may be broken... Digging into
-> that.
-> >> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
-> >> a7fb848..9692cd9 100644
-> >> --- a/lib/sbi/sbi_init.c
-> >> +++ b/lib/sbi/sbi_init.c
-> >> @@ -84,69 +84,18 @@ static void sbi_boot_prints(struct sbi_scratch
-> >> *scratch, u32 hartid)
-> >>         sbi_hart_pmp_dump(scratch);
-> >>  }
-> >>
-> >> -static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER; -static
-> >> unsigned long coldboot_done = 0; -static struct sbi_hartmask
-> >> coldboot_wait_hmask = {
-> >> 0 };
-> >> +static atomic_t coldboot_done = ATOMIC_INITIALIZER(0);
-> >>
-> >> -static void wait_for_coldboot(struct sbi_scratch *scratch, u32
-> >> hartid)
-> >> +static inline void wait_for_coldboot(struct sbi_scratch *scratch,
-> >> +u32
-> >> hartid)
-> >>  {
-> >> -       unsigned long saved_mie, cmip;
-> >> -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> >> -
-> >> -       /* Save MIE CSR */
-> >> -       saved_mie = csr_read(CSR_MIE);
-> >> -
-> >> -       /* Set MSIE bit to receive IPI */
-> >> -       csr_set(CSR_MIE, MIP_MSIP);
-> >> -
-> >> -       /* Acquire coldboot lock */
-> >> -       spin_lock(&coldboot_lock);
-> >> -
-> >> -       /* Mark current HART as waiting */
-> >> -       sbi_hartmask_set_hart(hartid, &coldboot_wait_hmask);
-> >> -
-> >> -       /* Wait for coldboot to finish using WFI */
-> >> -       while (!coldboot_done) {
-> >> -               spin_unlock(&coldboot_lock);
-> >> -               do {
-> >> -                       wfi();
-> >> -                       cmip = csr_read(CSR_MIP);
-> >> -                } while (!(cmip & MIP_MSIP));
-> >> -               spin_lock(&coldboot_lock);
-> >> -       };
-> >> -
-> >> -       /* Unmark current HART as waiting */
-> >> -       sbi_hartmask_clear_hart(hartid, &coldboot_wait_hmask);
-> >> -
-> >> -       /* Release coldboot lock */
-> >> -       spin_unlock(&coldboot_lock);
-> >> -
-> >> -       /* Restore MIE CSR */
-> >> -       csr_write(CSR_MIE, saved_mie);
-> >> -
-> >> -       /* Clear current HART IPI */
-> >> -       sbi_platform_ipi_clear(plat, hartid);
-> >> +       /* Wait for coldboot to finish */
-> >> +       while (!atomic_read(&coldboot_done)) {};
+> On Wed, Aug 12, 2020 at 6:27 AM Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > This is over-simplified and will slow down the booting in cold boot path.
+> > Currently, the low-level trap handler (i.e. _trap_handler()) uses
+> > branch instructions to conditionally setup exception stack based on
+> > which mode trap occured.
 > >
-> > Imagine, boot CPU in cold boot path and all secondary CPUs bombarding
-> > the interconnect with atomic operations.
+> > This patch implements exception stack setup using xor instructions
+> > which is faster with same number of instructions due to lack of branch
+> > instructions.
+> >
+> > The new exception stack setup approach can be best described by the
+> > following pseudocode:
+> >
+> >  Came_From_M_Mode = ((MSTATUS.MPP < PRV_M) ? 1 : 0) - 1;
+> > Exception_Stack = TP ^ (Came_From_M_Mode & (SP ^ TP))
+> >
+> >  Came_From_M_Mode = 0    ==>    Exception_Stack = TP
+> >  Came_From_M_Mode = -1   ==>    Exception_Stack = SP
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> > Changes since v1:
+> > - Don't assume that 0b10 privilege mode will never be used
+> > - Use AND operation in-place of MUL operation
+> > ---
+> >  firmware/fw_base.S | 47
+> > +++++++++++++++++++++-------------------------
+> >  1 file changed, 21 insertions(+), 26 deletions(-)
+> >
+> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S index
+> > b66ac41..0271d9a 100644
+> > --- a/firmware/fw_base.S
+> > +++ b/firmware/fw_base.S
+> > @@ -490,35 +490,30 @@ _trap_handler:
+> >         /* Save T0 in scratch space */
+> >         REG_S   t0, SBI_SCRATCH_TMP0_OFFSET(tp)
+> >
+> > -       /* Check which mode we came from */
+> > +       /*
+> > +        * Set T0 to appropriate exception stack
+> > +        *
+> > +        * Came_From_M_Mode = ((MSTATUS.MPP < PRV_M) ? 1 : 0) - 1;
+> > +        * Exception_Stack = TP ^ (Came_From_M_Mode & (SP ^ TP))
+> > +        *
+> > +        * Came_From_M_Mode = 0    ==>    Exception_Stack = TP
+> > +        * Came_From_M_Mode = -1   ==>    Exception_Stack = SP
+> > +        */
+> >         csrr    t0, CSR_MSTATUS
+> >         srl     t0, t0, MSTATUS_MPP_SHIFT
+> >         and     t0, t0, PRV_M
+> > -       xori    t0, t0, PRV_M
+> > -       beq     t0, zero, _trap_handler_m_mode
+> > -
+> > -       /* We came from S-mode or U-mode */
+> > -_trap_handler_s_mode:
+> > -       /* Set T0 to original SP */
+> > -       add     t0, sp, zero
+> > -
+> > -       /* Setup exception stack */
+> > -       add     sp, tp, -(SBI_TRAP_REGS_SIZE)
+> > -
+> > -       /* Jump to code common for all modes */
+> > -       j       _trap_handler_all_mode
+> > -
+> > -       /* We came from M-mode */
+> > -_trap_handler_m_mode:
+> > -       /* Set T0 to original SP */
+> > -       add     t0, sp, zero
+> > -
+> > -       /* Re-use current SP as exception stack */
+> > -       add     sp, sp, -(SBI_TRAP_REGS_SIZE)
+> > -
+> > -_trap_handler_all_mode:
+> > -       /* Save original SP (from T0) on stack */
+> > -       REG_S   t0, SBI_TRAP_REGS_OFFSET(sp)(sp)
+> > +       slti    t0, t0, PRV_M
+> > +       add     t0, t0, -1
+> > +       xor     sp, sp, tp
+> > +       and     t0, t0, sp
+> > +       xor     sp, sp, tp
+> > +       xor     t0, tp, t0
+> > +
+> > +       /* Save original SP on exception stack */
+> > +       REG_S   sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_REGS_SIZE)(t0)
+> > +
+> > +       /* Set SP to exception stack and make room for trap registers */
+> > +       add     sp, t0, -(SBI_TRAP_REGS_SIZE)
+> >
+> >         /* Restore T0 from scratch space */
+> >         REG_L   t0, SBI_SCRATCH_TMP0_OFFSET(tp)
+> > --
+> > 2.25.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 > 
-> That was just a quick test. With this, the kendryte goes to S mode and start
-> running the fw payload, which does not execute correctly still. So there is
-> another problem somewhere with kendryte platform. Not sure what.
+> Looks good to me.
 > 
-> >
-> > It has to be a combination of atomic coldboot_done and WFI to avoid
-> > unnecessary traffic in interconnect.
-> >
-> > We just need to make coldboot_done atomic and don't use coldboot_lock
-> > for coldboot_done. Rest of the things should stay as-is.
-> 
-> Without the spinlock, there will be problems with coldboot_wait_hmask if it
-> is used as is. But I do not think that one is necessary. The boot hart can just
-> send an IPI to all waiting harts. The waiting harts do not need to clear that
-> mask.
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
-There is a contradiction in your statement here. How does boot hart know
-which all HARTs are waiting for IPI ? In real world systems, we can have
-faulty parts where certain CPUs never come-up so we can't assume that
-all CPUs are waiting for WFI.
-
-The coldboot_wait_hmask is certainly required and if we use spinlock
-just for coldboot_wait_hmask then it is fine because it won't be used in
-a loop.
+Applied this patch to the riscv/opensbi repo
 
 Regards,
 Anup
-
-> 
-> 
-> --
-> Damien Le Moal
-> Western Digital Research
-
