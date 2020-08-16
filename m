@@ -1,79 +1,98 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun, 16 Aug 2020 14:30:01 +0800
-Subject: [PATCH 1/1] lib: sbi: relax scoldboot_lock spinlock
-In-Reply-To: <b9fc1a4a-3e80-be15-7564-d557386cb338@gmail.com>
-References: <20200813162415.124469-1-xypron.glpk@gmx.de>
- <B98172B0-5CAA-48D2-A2F3-B4DB6B66FB16@jrtc27.com>
- <e3f6b789-0fa6-51f1-4cc4-f5eaa625b8df@gmx.de>
- <B63355E7-4A46-4492-A97F-DE576FB0DDA0@jrtc27.com>
- <CAOnJCUJ8aD8momBWbKuQMv6Apta=LM-Sddoh0VhAVPQhBN-ZAw@mail.gmail.com>
- <b9fc1a4a-3e80-be15-7564-d557386cb338@gmail.com>
-Message-ID: <CAEUhbmWDOGBcsny1n_U+tObhtHV62=Bf_-FSCPUP_9togbAFBg@mail.gmail.com>
+Date: Sun, 16 Aug 2020 14:50:19 +0800
+Subject: [PATCH 1/2] lib: sbi_init: Avoid thundering hurd problem with
+ coldbook_lock
+In-Reply-To: <3ACE8B47-D24B-4811-85BC-353E155D269D@jrtc27.com>
+References: <20200815170055.286732-1-anup.patel@wdc.com>
+ <3ACE8B47-D24B-4811-85BC-353E155D269D@jrtc27.com>
+Message-ID: <CAEUhbmWJExf8Ym7xW2e4R1a1FVFTWpLhRbqvNeGS-Fs280LH5A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 14, 2020 at 1:57 AM Sean Anderson <seanga2@gmail.com> wrote:
+On Sun, Aug 16, 2020 at 3:49 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
-> On 8/13/20 1:45 PM, Atish Patra wrote:
-> > On Thu, Aug 13, 2020 at 10:03 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>
-> >> On 13 Aug 2020, at 17:51, Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >>> On 13.08.20 18:36, Jessica Clarke wrote:
-> >>>> On 13 Aug 2020, at 17:24, Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >>>>>
-> >>>>> OpenSBI hangs in wake_coldboot_harts() indefinitely on the MaixDuino board
-> >>>>> when trying to boot U-Boot as FW_PAYLOAD.
-> >>>>
-> >>>> This smells of there being a more fundamental issue that's not being
-> >>>> addressed which this manages to work around, either reliably or by
-> >>>> chance. What is the actual deadlock condition you observe?
-> >>>
-> >>> There are only two function using coldboot_lock spinlock:
-> >>>
-> >>> * wake_coldboot_harts()
-> >>> * wait_for_coldboot()
-> >>>
-> >>> wake_coldboot_harts() was entered but never left without patching one of
-> >>> the functions.
-> >>>
-> >>> The Kendryte K210 has two harts. One goes the cold boot path while the
-> >>> other is sent to the warm boot path.
-> >>
-> >> The K210's platform definition uses clint_ipi_send, which as far as I
-> >> can tell is entirely non-blocking. The only thing wake_coldboot_harts
-> >> does with the lock held is set coldboot_done to 1 and send an IPI to
-> >> all the other harts. Thus wake_coldboot_harts should never be able to
-> >> block holding the spin lock, meaning wait_for_coldboot should
-> >> eventually wake up and be able to acquire the lock (on platforms that
-> >> implement WFI fully it shouldn't have to wait long for the lock, though
-> >> on platforms that make it a NOP there might be a bit of .
-> >>
+> On 15 Aug 2020, at 18:00, Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > Yes. If wake_coldboot_harts is never able to acquire the spinlock,
-> > that indicates spinlock
-> > is always acquired by wait_for_coldboot. That can happen if
-> >
-> > 1. WFI is implemented as NOP as suggested by Jessica and MSIP in MIP
-> > is set which
-> > shouldn't happen unless there is an IPI sent.
-> >
-> > Can you try clearing the MIP just before acquiring the lock ? In qemu
-> > & unleashed, modifying the MSIP bit in
-> > MIP doesn't actually do anything. So we do sbi_platform_ipi_clear  to reset it.
+> > We can have thundering hurd problem with coldboot_lock where the
+> > boot HART can potentially starve trying to acquire coldboot_lock
+> > because some of the non-boot HARTs are continuously acquiring and
+> > releasing coldboot_lock. This can happen if WFI is a NOP
 >
-> I second this suggestion. I had a similar problem when porting U-Boot.
+> That is neither necessary nor sufficient, it's solely based on
+> whether the hart believes an M-mode software interrupt is pending?
 >
-> https://gitlab.denx.de/u-boot/u-boot/-/commit/9472630337e7c4ac442066b5a752aaa8c3b4d4a6
+> > OR if
+> > MIP.MSIP bit is already set for some of the non-boot HARTs.
+> >
+> > To avoid thundering hurd problem for coldboot_lock, we convert
+> > coldboot_done flag into atomic variable and using coldboot_lock
+> > only for coldboot_wait_hmask.
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> > ---
+> > lib/sbi/sbi_init.c | 19 ++++++++++++-------
+> > 1 file changed, 12 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> > index a7fb848..6b58983 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -85,9 +85,10 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+> > }
+> >
+> > static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER;
+> > -static unsigned long coldboot_done = 0;
+> > static struct sbi_hartmask coldboot_wait_hmask = { 0 };
+> >
+> > +static atomic_t coldboot_done = ATOMIC_INITIALIZER(0);
+> > +
+> > static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> > {
+> >       unsigned long saved_mie, cmip;
+> > @@ -105,16 +106,20 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >       /* Mark current HART as waiting */
+> >       sbi_hartmask_set_hart(hartid, &coldboot_wait_hmask);
+> >
+> > +     /* Release coldboot lock */
+> > +     spin_unlock(&coldboot_lock);
+> > +
+> >       /* Wait for coldboot to finish using WFI */
+> > -     while (!coldboot_done) {
+> > -             spin_unlock(&coldboot_lock);
+> > +     while (!atomic_read(&coldboot_done)) {
+>
+> Personally I'd make this a relaxed read and then explicitly fence
+> outside the loop, as otherwise if we end up with MSIP erroneously set
+> there may be a lot of cache coherency traffic due to repeated
+> unnecessary fences?
+>
+> >               do {
+> >                       wfi();
+> >                       cmip = csr_read(CSR_MIP);
+> >                } while (!(cmip & MIP_MSIP));
+> > -             spin_lock(&coldboot_lock);
+> >       };
+> >
+> > +     /* Acquire coldboot lock */
+> > +     spin_lock(&coldboot_lock);
+> > +
+> >       /* Unmark current HART as waiting */
+> >       sbi_hartmask_clear_hart(hartid, &coldboot_wait_hmask);
+> >
+> > @@ -132,12 +137,12 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
+> > {
+> >       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> >
+> > +     /* Mark coldboot done */
+> > +     atomic_write(&coldboot_done, 1);
+>
+> This only needs to be a store release.
 
-I am a bit confused. Atish said: "modifying the MSIP bit in MIP
-doesn't actually do anything", but the U-Boot commit did solve the
-problem? How?
-
-Also I am lost why Heinrich is seeing the problem? I thought the
-U-Boot upstream work is working on Kendyte K210, no?
+I believe relaxed read / write can work as well.
 
 Regards,
 Bin
