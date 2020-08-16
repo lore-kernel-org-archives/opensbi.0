@@ -1,156 +1,122 @@
 From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Sun, 16 Aug 2020 15:48:12 +0100
-Subject: [PATCH 1/2] lib: sbi_init: Avoid thundering hurd problem with
- coldbook_lock
-In-Reply-To: <CAAhSdy2xJO=AyaCnRiFaWxukWCQDx7Y7R6QNwL64CVFDJkWzQg@mail.gmail.com>
+Date: Sun, 16 Aug 2020 15:50:15 +0100
+Subject: [PATCH 2/2] lib: sbi: Handle the case were MTVAL has illegal
+ instruction address
+In-Reply-To: <CAAhSdy1+5U7xsx4GOzxMYBJ4bZf5UBCOu+N0DnGA5KjS-6rOdg@mail.gmail.com>
 References: <20200815170055.286732-1-anup.patel@wdc.com>
- <3ACE8B47-D24B-4811-85BC-353E155D269D@jrtc27.com>
- <CAEUhbmWJExf8Ym7xW2e4R1a1FVFTWpLhRbqvNeGS-Fs280LH5A@mail.gmail.com>
- <CAAhSdy0_GyZaM8b=+6qcDfp31jVvgTQR-nVB0qi30Zi+0X=M0g@mail.gmail.com>
- <3F154A67-BF2D-4B15-9FBF-2A627958C616@jrtc27.com>
- <CAAhSdy2xJO=AyaCnRiFaWxukWCQDx7Y7R6QNwL64CVFDJkWzQg@mail.gmail.com>
-Message-ID: <CB3E4F1C-597F-4F4E-B5DA-FE35A5C8FE15@jrtc27.com>
+ <20200815170055.286732-2-anup.patel@wdc.com>
+ <D8443477-12DE-41EE-85FD-8FC6D206B5CE@jrtc27.com>
+ <CAAhSdy1+5U7xsx4GOzxMYBJ4bZf5UBCOu+N0DnGA5KjS-6rOdg@mail.gmail.com>
+Message-ID: <9C9D5BE4-AD88-4360-AE5F-D01E82907E63@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 16 Aug 2020, at 15:24, Anup Patel <anup@brainfault.org> wrote:
+On 16 Aug 2020, at 15:15, Anup Patel <anup@brainfault.org> wrote:
 > 
-> On Sun, Aug 16, 2020 at 7:43 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> On Sun, Aug 16, 2020 at 1:21 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >> 
->> On 16 Aug 2020, at 15:02, Anup Patel <anup@brainfault.org> wrote:
+>> On 15 Aug 2020, at 18:00, Anup Patel <Anup.Patel@wdc.com> wrote:
 >>> 
->>> On Sun, Aug 16, 2020 at 12:20 PM Bin Meng <bmeng.cn@gmail.com> wrote:
->>>> 
->>>> On Sun, Aug 16, 2020 at 3:49 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->>>>> 
->>>>> On 15 Aug 2020, at 18:00, Anup Patel <anup.patel@wdc.com> wrote:
->>>>>> 
->>>>>> We can have thundering hurd problem with coldboot_lock where the
->>>>>> boot HART can potentially starve trying to acquire coldboot_lock
->>>>>> because some of the non-boot HARTs are continuously acquiring and
->>>>>> releasing coldboot_lock. This can happen if WFI is a NOP
->>>>> 
->>>>> That is neither necessary nor sufficient, it's solely based on
->>>>> whether the hart believes an M-mode software interrupt is pending?
->>>>> 
->>>>>> OR if
->>>>>> MIP.MSIP bit is already set for some of the non-boot HARTs.
->>>>>> 
->>>>>> To avoid thundering hurd problem for coldboot_lock, we convert
->>>>>> coldboot_done flag into atomic variable and using coldboot_lock
->>>>>> only for coldboot_wait_hmask.
->>>>>> 
->>>>>> Signed-off-by: Anup Patel <anup.patel@wdc.com>
->>>>>> Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
->>>>>> ---
->>>>>> lib/sbi/sbi_init.c | 19 ++++++++++++-------
->>>>>> 1 file changed, 12 insertions(+), 7 deletions(-)
->>>>>> 
->>>>>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->>>>>> index a7fb848..6b58983 100644
->>>>>> --- a/lib/sbi/sbi_init.c
->>>>>> +++ b/lib/sbi/sbi_init.c
->>>>>> @@ -85,9 +85,10 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
->>>>>> }
->>>>>> 
->>>>>> static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER;
->>>>>> -static unsigned long coldboot_done = 0;
->>>>>> static struct sbi_hartmask coldboot_wait_hmask = { 0 };
->>>>>> 
->>>>>> +static atomic_t coldboot_done = ATOMIC_INITIALIZER(0);
->>>>>> +
->>>>>> static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->>>>>> {
->>>>>>     unsigned long saved_mie, cmip;
->>>>>> @@ -105,16 +106,20 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->>>>>>     /* Mark current HART as waiting */
->>>>>>     sbi_hartmask_set_hart(hartid, &coldboot_wait_hmask);
->>>>>> 
->>>>>> +     /* Release coldboot lock */
->>>>>> +     spin_unlock(&coldboot_lock);
->>>>>> +
->>>>>>     /* Wait for coldboot to finish using WFI */
->>>>>> -     while (!coldboot_done) {
->>>>>> -             spin_unlock(&coldboot_lock);
->>>>>> +     while (!atomic_read(&coldboot_done)) {
->>>>> 
->>>>> Personally I'd make this a relaxed read and then explicitly fence
->>>>> outside the loop, as otherwise if we end up with MSIP erroneously set
->>>>> there may be a lot of cache coherency traffic due to repeated
->>>>> unnecessary fences?
->>>>> 
->>>>>>             do {
->>>>>>                     wfi();
->>>>>>                     cmip = csr_read(CSR_MIP);
->>>>>>              } while (!(cmip & MIP_MSIP));
->>>>>> -             spin_lock(&coldboot_lock);
->>>>>>     };
->>>>>> 
->>>>>> +     /* Acquire coldboot lock */
->>>>>> +     spin_lock(&coldboot_lock);
->>>>>> +
->>>>>>     /* Unmark current HART as waiting */
->>>>>>     sbi_hartmask_clear_hart(hartid, &coldboot_wait_hmask);
->>>>>> 
->>>>>> @@ -132,12 +137,12 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
->>>>>> {
->>>>>>     const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->>>>>> 
->>>>>> +     /* Mark coldboot done */
->>>>>> +     atomic_write(&coldboot_done, 1);
->>>>> 
->>>>> This only needs to be a store release.
->>>> 
->>>> I believe relaxed read / write can work as well.
+>>> The Kendryte K210 follows RISC-V v1.9 spec so MTVAL has instruction
+>>> address (instead of instruction encoding) on illegal instruction trap.
 >>> 
->>> Even if we use relaxed read / write, we will still need explicit Acquire
->>> and Release barriers. Better to use __smp_store_release() and
->>> __smp_load_acquire().
+>>> To handle above case, we fix sbi_illegal_insn_handler() without any
+>>> impact on RISC-V v1.10 (or higher) systems. This achieved by exploiting
+>>> the fact that program counter (and instruction address) is always 2-byte
+>>> aligned in RISC-V world.
+>>> 
+>>> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+>>> ---
+>>> lib/sbi/sbi_illegal_insn.c | 21 +++++++++++++++------
+>>> 1 file changed, 15 insertions(+), 6 deletions(-)
+>>> 
+>>> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+>>> index 0e5523f..779a727 100644
+>>> --- a/lib/sbi/sbi_illegal_insn.c
+>>> +++ b/lib/sbi/sbi_illegal_insn.c
+>>> @@ -118,13 +118,22 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+>>> {
+>>>      struct sbi_trap_info uptrap;
+>>> 
+>>> +     /*
+>>> +      * We only deal with 32bit (or longer) illegal instructions. If we
+>>> +      * see instruction is zero OR instruction is 16bit then we fetch and
+>>> +      * check the instruction encoding using unprivilege access.
+>>> +      *
+>>> +      * The program counter (PC) in RISC-V world is always 2-byte aligned
+>>> +      * so handling only 32bit (or longer) illegal instructions also help
+>>> +      * the case where MTVAL CSR contains instruction address for illegal
+>>> +      * instruction trap.
+>>> +      */
+>>> +
+>>>      if (unlikely((insn & 3) != 3)) {
 >> 
->> Why not just use the C11 versions? Inline assembly is rarely needed
->> these days for atomics. Especially helpful given the large hammer that
->> is volatile inline assembly with a memory clobber causes highly
->> pessimistic code generation from the compiler. In general it should
->> only be necessary when needing to deal with I/O memory.
+>> Isn't `(insn & 3) == 1` also unambiguous? It's only ambiguous when the
+>> LSB is 0.
 > 
-> We want to keep our barrier usage close to Linux RISC-V so that
-> people familiar with Linux can easily debug. Nothing against C11.
+> I did not understand your question.
+> 
+> The "(insn & 3) != 3" means either:
+> 1. insn[1:0] == 0 hence it is Quadrant0 16bit instruction OR entire insn == 0
+> 2. insn[1:0] == 1 hence it is Quadrant1 16bit instruction
+> 3. insn[1:0] == 2 hence it is Quadrant2 16bit instruction
 
-Ok, but what about those who don't deal with Linux and have to go look
-up the semantics? C11/C++11 atomics are completely target-independent
-and a universal standard. There are far more developers out there who
-know C11/C++11 atomics and how to use them properly than those who know
-the Linux atomics. They are also, in my opinion, far easier to reason
-about, and the Linux ones are just poorly named (e.g. wmb() being
-`fence ow, ow` but smp_wmb() being `fence w, w` is, to my mind,
-confusing and not well-indicated by the names); I think it is far
-easier for a Linux developer to move to the C11/C++11 atomics world
-than the other way round. And, as I've said, using `__asm__
-__volatile__ ("fence ..." ::: "memory")` everywhere does seriously hurt
-the compiler's ability to optimise your code, whereas if you use
-C11/C++11 atomics then it knows exactly what you're doing.
+My point was, for case 2, the LSB is 1, therefore MTVAL must be an
+instruction and not a PC, so there is no need to fetch the instruction.
 
-Quite frankly, settling on Linux atomics in order to make it familiar
-to Linux developers is a bit hostile towards non-Linux developers.
-FreeBSD doesn't use Linux atomics (and in fact it uses its own set that
-are basically C11/C++11 atomics, just currently implemented in assembly
-because they date from before widespread C11 support in compilers, but
-they can all be replaced with their C11 equivalents, with the exception
-of things dealing with I/O), so you're effectively declaring that Linux
-matters more than any other operating system? Whether or not that's
-your intent I don't know, nor do I particularly care, but it's
-nonetheless how it comes across. Picking a universal standard ensures
-you don't express favouritism, whilst making it _more_ accessible
-overall.
+>> I do also wonder if this would be better as a single boot-time quirk
+>> test (ie deliberately fault and see what the hart reports), so as to
+>> not overly penalise 1.10-implementing harts.
+> 
+> We are not penalising 1.10-implemetation because we are not
+> emulating any 16bit illegal instructions. In fact, we are removing
+> in "insn == 0" check for 1.10-implementation so we have removed
+> couple of instructions for 1.10-implementation.
 
-Using __smp_load_acquire/__smp_store_release though does seem
-especially pointless; those are just obfuscated (to the compiler)
-versions of C11 atomics, so those at least should just be the C11
-versions, even if you do end up keeping the barriers.
+Right, I had forgotten that the only compressed instruction emulation
+is for unaligned accesses, at least for the current C specification.
+Though this does still add overhead on 1.10 implementations for "truly
+illegal" (I don't know if OpenSBI reuses that term from BBL)
+instructions. For ones that are just going to cause the program in
+question to be killed with SIGILL that's probably not so important (and
+hopefully rare), but floating point instructions (like C.FLW) are
+important to think about here. OSes like to lazily context-switch
+floating-point state, and do so on RISC-V by setting MSTATUS.FS back to
+0 so that the first time the switched-to process tries to perform a
+floating-point operation it will trap, the OS can restore the right
+floating-point state and then retry the instruction. Maybe the overhead
+of doing all that already means that the increased inefficiency in
+OpenSBI forwarding it to S-mode isn't significant, but it is a little
+sad to be doing this unnecessary work.
 
 Jess
+
+>>> -             if (insn == 0) {
+>>> -                     insn = sbi_get_insn(regs->mepc, &uptrap);
+>>> -                     if (uptrap.cause) {
+>>> -                             uptrap.epc = regs->mepc;
+>>> -                             return sbi_trap_redirect(regs, &uptrap);
+>>> -                     }
+>>> +             insn = sbi_get_insn(regs->mepc, &uptrap);
+>>> +             if (uptrap.cause) {
+>>> +                     uptrap.epc = regs->mepc;
+>>> +                     return sbi_trap_redirect(regs, &uptrap);
+>>>              }
+>>>              if ((insn & 3) != 3)
+>>>                      return truly_illegal_insn(insn, regs);
+>>> --
+>>> 2.25.1
+>>> 
+>>> 
+>>> --
+>>> opensbi mailing list
+>>> opensbi at lists.infradead.org
+>>> http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Regards,
+> Anup
 
 
