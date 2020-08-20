@@ -1,43 +1,98 @@
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Wed, 19 Aug 2020 14:08:44 +0200
-Subject: [PATCH v3 1/2] lib: sbi_init: Avoid thundering hurd problem with
- coldboot_lock
-In-Reply-To: <3af21d65-6694-139e-583e-33ab48cea97f@gmail.com>
-References: <20200818040728.528426-1-anup.patel@wdc.com>
- <3af21d65-6694-139e-583e-33ab48cea97f@gmail.com>
-Message-ID: <3552d0c5-e7f0-3b1d-ff76-d5e9572c56f4@gmx.de>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Thu, 20 Aug 2020 11:39:55 +0000
+Subject: [PATCH] platform: kendryte/k210: fixup FDT
+In-Reply-To: <CAOnJCUJtCG0Bjjq-GbHjD32jUGJYr9jSDyErQy9d39EwZ+cVZQ@mail.gmail.com>
+References: <20200818154837.4190-1-xypron.glpk@gmx.de>
+ <CAOnJCUJtCG0Bjjq-GbHjD32jUGJYr9jSDyErQy9d39EwZ+cVZQ@mail.gmail.com>
+Message-ID: <DM6PR04MB6201E96DDD2324ED651824268D5A0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 19.08.20 14:03, Sean Anderson wrote:
-> On 8/18/20 12:07 AM, Anup Patel wrote:
->> We can have thundering hurd problem with coldboot_lock where the
->> boot HART can potentially starve trying to acquire coldboot_lock
->> because some of the non-boot HARTs are continuously acquiring and
->> releasing coldboot_lock. This can happen if MIP.MSIP bit is already
->> set for some of the non-boot HARTs.
->>
->> To avoid thundering hurd problem for coldboot_lock, we use the
->> __smp_load_acquire() and __smp_store_release() for coldboot_done
->> flag and use coldboot_lock only for coldboot_wait_hmask.
->>
->> Signed-off-by: Anup Patel <anup.patel@wdc.com>
->> Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
->> Reviewed-by: Atish Patra <atish.patra@wdc.com>
->
-> Just curious, what are the changes from v1 and v2?
 
-Barriers are realized in a different way in patch 1.
 
-Except for the barriers patch 1 follows what I proposed in my original
-patch and the following discussion.
+> -----Original Message-----
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 18 August 2020 22:47
+> To: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> Cc: Anup Patel <Anup.Patel@wdc.com>; Atish Patra
+> <Atish.Patra@wdc.com>; Damien Le Moal <Damien.LeMoal@wdc.com>; Bin
+> Meng <bmeng.cn@gmail.com>; OpenSBI list <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH] platform: kendryte/k210: fixup FDT
+> 
+> On Tue, Aug 18, 2020 at 8:54 AM Heinrich Schuchardt <xypron.glpk@gmx.de>
+> wrote:
+> >
+> > When passing the device tree to the next stage we should apply
+> > necessary device tree fix-ups first. These include:
+> >
+> > * fix up the CPU node in the device tree
+> > * fix up the PLIC node in the device tree
+> > * fix up the reserved memory node in the device tree
+> >
+> > Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> > ---
+> >  platform/kendryte/k210/platform.c | 18 ++++++++++++++++++
+> >  1 file changed, 18 insertions(+)
+> >
+> > diff --git a/platform/kendryte/k210/platform.c
+> > b/platform/kendryte/k210/platform.c
+> > index 5c28fd9..75883ed 100644
+> > --- a/platform/kendryte/k210/platform.c
+> > +++ b/platform/kendryte/k210/platform.c
+> > @@ -12,6 +12,7 @@
+> >  #include <sbi/sbi_console.h>
+> >  #include <sbi/sbi_const.h>
+> >  #include <sbi/sbi_platform.h>
+> > +#include <sbi_utils/fdt/fdt_fixup.h>
+> >  #include <sbi_utils/irqchip/plic.h>
+> >  #include <sbi_utils/serial/sifive-uart.h>  #include
+> > <sbi_utils/sys/clint.h> @@ -67,6 +68,21 @@ static u32
+> > k210_get_clk_freq(void)
+> >         return pll0_freq / div;
+> >  }
+> >
+> > +static int k210_final_init(bool cold_boot) {
+> > +       void *fdt;
+> > +
+> > +       if (!cold_boot)
+> > +               return 0;
+> > +
+> > +       fdt = sbi_scratch_thishart_arg1_ptr();
+> > +
+> > +       fdt_cpu_fixup(fdt);
+> > +       fdt_fixups(fdt);
+> > +
+> > +       return 0;
+> > +}
+> > +
+> >  static int k210_console_init(void)
+> >  {
+> >         return sifive_uart_init(K210_UART_BASE_ADDR,
+> > k210_get_clk_freq(), @@ -122,6 +138,8 @@ static int
+> > k210_system_reset(u32 type)  }
+> >
+> >  const struct sbi_platform_operations platform_ops = {
+> > +       .final_init     = k210_final_init,
+> > +
+> >         .console_init   = k210_console_init,
+> >         .console_putc   = sifive_uart_putc,
+> >         .console_getc   = sifive_uart_getc,
+> > --
+> > 2.28.0
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+> 
 
-And for sure Jessica was right that at least compiler barriers are needed.
+Applied this patch to the riscv/opensbi repo
 
-Best regards
-
-Heinrich
-
+Regards,
+Anup
