@@ -1,85 +1,38 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 22 Aug 2020 03:51:07 +0000
-Subject: [PATCH v3 2/2] lib: sbi: Handle the case where MTVAL has illegal
- instruction address
-In-Reply-To: <20200818040728.528426-2-anup.patel@wdc.com>
-References: <20200818040728.528426-1-anup.patel@wdc.com>
- <20200818040728.528426-2-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB62012749D7622B4BC58CA5BF8D580@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Sat, 22 Aug 2020 10:43:05 +0530
+Subject: [PATCH 0/5] PMP and HPM improvements
+Message-ID: <20200822051310.21394-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+This series:
+1. Improves PMP CSR detections as-per latest RISC-V spec
+2. Adds MHPM counter detection at boot-time
+3. Improves HPM counter read/write emulation as-per latest RISC-V spec
 
+These patches are also available in pmp_hpm_imp_v1 branch at
+https://github.com/avpatel/opensbi.git
 
-> -----Original Message-----
-> From: Anup Patel <Anup.Patel@wdc.com>
-> Sent: 18 August 2020 09:37
-> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>
-> Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>; Anup Patel
-> <anup@brainfault.org>; opensbi at lists.infradead.org; Anup Patel
-> <Anup.Patel@wdc.com>; Bin Meng <bin.meng@windriver.com>
-> Subject: [PATCH v3 2/2] lib: sbi: Handle the case where MTVAL has illegal
-> instruction address
-> 
-> The Kendryte K210 follows RISC-V v1.9 spec so MTVAL has instruction
-> address (instead of instruction encoding) on illegal instruction trap.
-> 
-> To handle above case, we fix sbi_illegal_insn_handler() without any impact
-> on RISC-V v1.10 (or higher) systems. This achieved by exploiting the fact that
-> program counter (and instruction address) is always 2-byte aligned in RISC-V
-> world.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-> Reviewed-by: Bin Meng <bin.meng@windriver.com>
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  lib/sbi/sbi_illegal_insn.c | 21 +++++++++++++++------
->  1 file changed, 15 insertions(+), 6 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c index
-> 0e5523f..9af3d24 100644
-> --- a/lib/sbi/sbi_illegal_insn.c
-> +++ b/lib/sbi/sbi_illegal_insn.c
-> @@ -118,13 +118,22 @@ int sbi_illegal_insn_handler(ulong insn, struct
-> sbi_trap_regs *regs)  {
->  	struct sbi_trap_info uptrap;
-> 
-> +	/*
-> +	 * We only deal with 32-bit (or longer) illegal instructions. If we
-> +	 * see instruction is zero OR instruction is 16-bit then we fetch and
-> +	 * check the instruction encoding using unprivilege access.
-> +	 *
-> +	 * The program counter (PC) in RISC-V world is always 2-byte aligned
-> +	 * so handling only 32-bit (or longer) illegal instructions also help
-> +	 * the case where MTVAL CSR contains instruction address for illegal
-> +	 * instruction trap.
-> +	 */
-> +
->  	if (unlikely((insn & 3) != 3)) {
-> -		if (insn == 0) {
-> -			insn = sbi_get_insn(regs->mepc, &uptrap);
-> -			if (uptrap.cause) {
-> -				uptrap.epc = regs->mepc;
-> -				return sbi_trap_redirect(regs, &uptrap);
-> -			}
-> +		insn = sbi_get_insn(regs->mepc, &uptrap);
-> +		if (uptrap.cause) {
-> +			uptrap.epc = regs->mepc;
-> +			return sbi_trap_redirect(regs, &uptrap);
->  		}
->  		if ((insn & 3) != 3)
->  			return truly_illegal_insn(insn, regs);
-> --
-> 2.25.1
+Anup Patel (5):
+  lib: sbi: Remove redundant SBI_HART_HAS_PMP feature
+  lib: sbi: Improve PMP CSR detection and progamming
+  lib: sbi: Detect and print MHPM counters at boot-time
+  include: sbi: Few cosmetic changes in riscv_encoding.h
+  lib: sbi: Improve HPM CSR read/write emulation
 
-Applied this patch to the riscv/opensbi repo
+ include/sbi/riscv_encoding.h |  71 ++++++++++++-
+ include/sbi/sbi_hart.h       |   9 +-
+ lib/sbi/riscv_asm.c          | 186 +++++++++++++----------------------
+ lib/sbi/sbi_emulate_csr.c    | 147 +++++++++++++--------------
+ lib/sbi/sbi_hart.c           | 106 ++++++++++++--------
+ lib/sbi/sbi_init.c           |   1 +
+ lib/utils/fdt/fdt_fixup.c    |   2 +-
+ 7 files changed, 282 insertions(+), 240 deletions(-)
 
-Regards,
-Anup
+-- 
+2.25.1
 
 
