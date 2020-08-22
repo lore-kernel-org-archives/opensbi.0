@@ -1,100 +1,53 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 22 Aug 2020 10:43:08 +0530
-Subject: [PATCH 3/5] lib: sbi: Detect and print MHPM counters at boot-time
+Date: Sat, 22 Aug 2020 10:43:09 +0530
+Subject: [PATCH 4/5] include: sbi: Few cosmetic changes in riscv_encoding.h
 In-Reply-To: <20200822051310.21394-1-anup.patel@wdc.com>
 References: <20200822051310.21394-1-anup.patel@wdc.com>
-Message-ID: <20200822051310.21394-4-anup.patel@wdc.com>
+Message-ID: <20200822051310.21394-5-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A RISC-V platform can leave unimplemented MHPM counters hard-wired
-to zero. We extend hart_detect_features() to detect MHPM counters
-which are accessible and not hard-wired to zero. We also print
-number of available MHPM counters as part of boot prints.
+This patch does few cosmentic changes to riscv_encoding.h:
+1. Place CSR_CYCLE define close to CSR_HPMCOUNTERx defines
+2. Rename CSR_HCOUNTERNEN to CSR_HCOUNTEREN
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_hart.h |  1 +
- lib/sbi/sbi_hart.c     | 17 +++++++++++++++++
- lib/sbi/sbi_init.c     |  1 +
- 3 files changed, 19 insertions(+)
+ include/sbi/riscv_encoding.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index c2ea686..1e1eb67 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -35,6 +35,7 @@ static inline ulong sbi_hart_expected_trap_addr(void)
- 	return (ulong)sbi_hart_expected_trap;
- }
- 
-+unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
- void sbi_hart_delegation_dump(struct sbi_scratch *scratch);
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
- int sbi_hart_pmp_get(struct sbi_scratch *scratch, unsigned int n,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 8f31d58..2211c3c 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -28,6 +28,7 @@ void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
- struct hart_features {
- 	unsigned long features;
- 	unsigned int pmp_count;
-+	unsigned int mhpm_count;
- };
- static unsigned long hart_features_offset;
- 
-@@ -135,6 +136,14 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch)
- #endif
- }
- 
-+unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
-+{
-+	struct hart_features *hfeatures =
-+			sbi_scratch_offset_ptr(scratch, hart_features_offset);
-+
-+	return hfeatures->mhpm_count;
-+}
-+
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
- {
- 	struct hart_features *hfeatures =
-@@ -339,6 +348,7 @@ static void hart_detect_features(struct sbi_scratch *scratch)
- 	hfeatures = sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 	hfeatures->features = 0;
- 	hfeatures->pmp_count = 0;
-+	hfeatures->mhpm_count = 0;
- 
- #define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
- 	val = csr_read_allowed(__csr, (ulong)&trap);			\
-@@ -382,6 +392,13 @@ static void hart_detect_features(struct sbi_scratch *scratch)
- 	__check_csr_64(CSR_PMPADDR0, 0, PMP_ADDR_MASK, pmp_count, __pmp_skip);
- __pmp_skip:
- 
-+	/* Detect number of MHPM counters */
-+	__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count, __mhpm_skip);
-+	__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count, __mhpm_skip);
-+	__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count, __mhpm_skip);
-+	__check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count, __mhpm_skip);
-+__mhpm_skip:
-+
- #undef __check_csr_64
- #undef __check_csr_32
- #undef __check_csr_16
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index c438eaa..e1a1d96 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -70,6 +70,7 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_hart_get_features_str(scratch, str, sizeof(str));
- 	sbi_printf("BOOT HART Features  : %s\n", str);
- 	sbi_printf("BOOT HART PMP Count : %d\n", sbi_hart_pmp_count(scratch));
-+	sbi_printf("BOOT HART MHPM Count: %d\n", sbi_hart_mhpm_count(scratch));
- 
- 	/* Firmware details */
- 	sbi_printf("Firmware Base       : 0x%lx\n", scratch->fw_start);
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 073261f..bb7eb88 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -175,7 +175,6 @@
+ #define CSR_FFLAGS			0x1
+ #define CSR_FRM				0x2
+ #define CSR_FCSR			0x3
+-#define CSR_CYCLE			0xc00
+ #define CSR_UIE				0x4
+ #define CSR_UTVEC			0x5
+ #define CSR_USCRATCH			0x40
+@@ -183,6 +182,7 @@
+ #define CSR_UCAUSE			0x42
+ #define CSR_UTVAL			0x43
+ #define CSR_UIP				0x44
++#define CSR_CYCLE			0xc00
+ #define CSR_TIME			0xc01
+ #define CSR_INSTRET			0xc02
+ #define CSR_HPMCOUNTER3			0xc03
+@@ -231,7 +231,7 @@
+ #define CSR_HIE				0x604
+ #define CSR_HTIMEDELTA			0x605
+ #define CSR_HTIMEDELTAH			0x615
+-#define CSR_HCOUNTERNEN			0x606
++#define CSR_HCOUNTEREN			0x606
+ #define CSR_HGEIE			0x607
+ #define CSR_HTVAL			0x643
+ #define CSR_HIP				0x644
 -- 
 2.25.1
 
