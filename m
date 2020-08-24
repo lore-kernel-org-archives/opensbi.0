@@ -1,253 +1,128 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 24 Aug 2020 19:22:43 +0530
-Subject: [PATCH v2 5/5] lib: sbi: Improve HPM CSR read/write emulation
-In-Reply-To: <20200824135243.136769-1-anup.patel@wdc.com>
+From: Alistair Francis <Alistair.Francis@wdc.com>
+Date: Mon, 24 Aug 2020 16:51:44 +0000
+Subject: [PATCH v2 1/5] lib: sbi: Remove redundant SBI_HART_HAS_PMP feature
+In-Reply-To: <20200824135243.136769-2-anup.patel@wdc.com>
 References: <20200824135243.136769-1-anup.patel@wdc.com>
-Message-ID: <20200824135243.136769-6-anup.patel@wdc.com>
+ <20200824135243.136769-2-anup.patel@wdc.com>
+Message-ID: <f18e8cbc7f0ca2d216848920142ac6de8bcdeac2.camel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We improve HPM CSR read/write emulation as follows:
-1. Fail for unimplemented counters so that trap is redirected
-   to S-mode which can further help debugging S-mode software.
-2. Check permissions in both MCOUNTEREN and SCOUNTEREN for
-   HS-mode and U-mode.
-3. Don't check permissions for TIME CSR because we emulate
-   TIME CSR for both Host (HS/U-mode) and Guest (VS/VU-mode).
-   Also, faster TIME CSR read is very helpful for good
-   performance of S-mode software.
-4. Don't emulate S-mode CSR read/write to M-mode HPM CSRs
-   because these should not be accessible to S-mode software.
+On Mon, 2020-08-24 at 19:22 +0530, Anup Patel wrote:
+> The SBI_HART_HAS_PMP feature is redundant because we already
+> have number of PMP regions returned by sbi_hart_pmp_count().
+> 
+> Checking whether PMP is supported for a HART can be simply done
+> by checking non-zero value returned by sbi_hart_pmp_count().
+> 
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- lib/sbi/sbi_emulate_csr.c | 147 +++++++++++++++++++-------------------
- 1 file changed, 75 insertions(+), 72 deletions(-)
+Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 
-diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-index 62c21a6..bee7761 100644
---- a/lib/sbi/sbi_emulate_csr.c
-+++ b/lib/sbi/sbi_emulate_csr.c
-@@ -13,14 +13,31 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_emulate_csr.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi/sbi_timer.h>
- #include <sbi/sbi_trap.h>
- 
-+static bool hpm_allowed(int hpm_num, ulong prev_mode, bool virt)
-+{
-+	ulong cen = -1UL;
-+
-+	if (prev_mode <= PRV_S) {
-+		cen &= csr_read(CSR_MCOUNTEREN);
-+		if (virt)
-+			cen &= csr_read(CSR_HCOUNTEREN);
-+	}
-+	if (prev_mode == PRV_U)
-+		cen &= csr_read(CSR_SCOUNTEREN);
-+
-+	return ((cen >> hpm_num) & 1) ? TRUE : FALSE;
-+}
-+
- int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
- 			 ulong *csr_val)
- {
- 	int ret = 0;
--	ulong cen = -1UL;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
- #if __riscv_xlen == 32
- 	bool virt = (regs->mstatusH & MSTATUSH_MPV) ? TRUE : FALSE;
-@@ -28,9 +45,6 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
- 	bool virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
- #endif
- 
--	if (prev_mode == PRV_U)
--		cen = csr_read(CSR_SCOUNTEREN);
--
- 	switch (csr_num) {
- 	case CSR_HTIMEDELTA:
- 		if (prev_mode == PRV_S && !virt)
-@@ -39,31 +53,27 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
- 			ret = SBI_ENOTSUPP;
- 		break;
- 	case CSR_CYCLE:
--		if (!((cen >> (CSR_CYCLE - CSR_CYCLE)) & 1))
--			return -1;
-+		if (!hpm_allowed(csr_num - CSR_CYCLE, prev_mode, virt))
-+			return SBI_ENOTSUPP;
- 		*csr_val = csr_read(CSR_MCYCLE);
- 		break;
- 	case CSR_TIME:
--		if (!((cen >> (CSR_TIME - CSR_CYCLE)) & 1))
--			return -1;
-+		/*
-+		 * We emulate TIME CSR for both Host (HS/U-mode) and
-+		 * Guest (VS/VU-mode).
-+		 *
-+		 * Faster TIME CSR reads are critical for good performance
-+		 * in S-mode software so we don't check CSR permissions.
-+		 */
- 		*csr_val = (virt) ? sbi_timer_virt_value():
- 				    sbi_timer_value();
- 		break;
- 	case CSR_INSTRET:
--		if (!((cen >> (CSR_INSTRET - CSR_CYCLE)) & 1))
--			return -1;
-+		if (!hpm_allowed(csr_num - CSR_CYCLE, prev_mode, virt))
-+			return SBI_ENOTSUPP;
- 		*csr_val = csr_read(CSR_MINSTRET);
- 		break;
--	case CSR_MHPMCOUNTER3:
--		if (!((cen >> (3 + CSR_MHPMCOUNTER3 - CSR_MHPMCOUNTER3)) & 1))
--			return -1;
--		*csr_val = csr_read(CSR_MHPMCOUNTER3);
--		break;
--	case CSR_MHPMCOUNTER4:
--		if (!((cen >> (3 + CSR_MHPMCOUNTER4 - CSR_MHPMCOUNTER3)) & 1))
--			return -1;
--		*csr_val = csr_read(CSR_MHPMCOUNTER4);
--		break;
-+
- #if __riscv_xlen == 32
- 	case CSR_HTIMEDELTAH:
- 		if (prev_mode == PRV_S && !virt)
-@@ -72,38 +82,61 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
- 			ret = SBI_ENOTSUPP;
- 		break;
- 	case CSR_CYCLEH:
--		if (!((cen >> (CSR_CYCLE - CSR_CYCLE)) & 1))
--			return -1;
-+		if (!hpm_allowed(csr_num - CSR_CYCLEH, prev_mode, virt))
-+			return SBI_ENOTSUPP;
- 		*csr_val = csr_read(CSR_MCYCLEH);
- 		break;
- 	case CSR_TIMEH:
--		if (!((cen >> (CSR_TIME - CSR_CYCLE)) & 1))
--			return -1;
-+		/* Refer comments on TIME CSR above. */
- 		*csr_val = (virt) ? sbi_timer_virt_value() >> 32:
- 				    sbi_timer_value() >> 32;
- 		break;
- 	case CSR_INSTRETH:
--		if (!((cen >> (CSR_INSTRET - CSR_CYCLE)) & 1))
--			return -1;
-+		if (!hpm_allowed(csr_num - CSR_CYCLEH, prev_mode, virt))
-+			return SBI_ENOTSUPP;
- 		*csr_val = csr_read(CSR_MINSTRETH);
- 		break;
--	case CSR_MHPMCOUNTER3H:
--		if (!((cen >> (3 + CSR_MHPMCOUNTER3 - CSR_MHPMCOUNTER3)) & 1))
--			return -1;
--		*csr_val = csr_read(CSR_MHPMCOUNTER3H);
--		break;
--	case CSR_MHPMCOUNTER4H:
--		if (!((cen >> (3 + CSR_MHPMCOUNTER4 - CSR_MHPMCOUNTER3)) & 1))
--			return -1;
--		*csr_val = csr_read(CSR_MHPMCOUNTER4H);
--		break;
- #endif
--	case CSR_MHPMEVENT3:
--		*csr_val = csr_read(CSR_MHPMEVENT3);
--		break;
--	case CSR_MHPMEVENT4:
--		*csr_val = csr_read(CSR_MHPMEVENT4);
--		break;
-+
-+#define switchcase_hpm(__uref, __mref, __csr)				\
-+	case __csr:							\
-+		if ((sbi_hart_mhpm_count(scratch) + 3) <= (__csr - __uref))\
-+			return SBI_ENOTSUPP;				\
-+		if (!hpm_allowed(__csr - __uref, prev_mode, virt))	\
-+			return SBI_ENOTSUPP;				\
-+		*csr_val = csr_read(__mref + __csr - __uref);		\
-+		break;
-+#define switchcase_hpm_2(__uref, __mref, __csr)			\
-+	switchcase_hpm(__uref, __mref, __csr + 0)			\
-+	switchcase_hpm(__uref, __mref, __csr + 1)
-+#define switchcase_hpm_4(__uref, __mref, __csr)			\
-+	switchcase_hpm_2(__uref, __mref, __csr + 0)			\
-+	switchcase_hpm_2(__uref, __mref, __csr + 2)
-+#define switchcase_hpm_8(__uref, __mref, __csr)			\
-+	switchcase_hpm_4(__uref, __mref, __csr + 0)			\
-+	switchcase_hpm_4(__uref, __mref, __csr + 4)
-+#define switchcase_hpm_16(__uref, __mref, __csr)			\
-+	switchcase_hpm_8(__uref, __mref, __csr + 0)			\
-+	switchcase_hpm_8(__uref, __mref, __csr + 8)
-+
-+	switchcase_hpm(CSR_CYCLE, CSR_MCYCLE, CSR_HPMCOUNTER3)
-+	switchcase_hpm_4(CSR_CYCLE, CSR_MCYCLE, CSR_HPMCOUNTER4)
-+	switchcase_hpm_8(CSR_CYCLE, CSR_MCYCLE, CSR_HPMCOUNTER8)
-+	switchcase_hpm_16(CSR_CYCLE, CSR_MCYCLE, CSR_HPMCOUNTER16)
-+
-+#if __riscv_xlen == 32
-+	switchcase_hpm(CSR_CYCLEH, CSR_MCYCLEH, CSR_HPMCOUNTER3H)
-+	switchcase_hpm_4(CSR_CYCLEH, CSR_MCYCLEH, CSR_HPMCOUNTER4H)
-+	switchcase_hpm_8(CSR_CYCLEH, CSR_MCYCLEH, CSR_HPMCOUNTER8H)
-+	switchcase_hpm_16(CSR_CYCLEH, CSR_MCYCLEH, CSR_HPMCOUNTER16H)
-+#endif
-+
-+#undef switchcase_hpm_16
-+#undef switchcase_hpm_8
-+#undef switchcase_hpm_4
-+#undef switchcase_hpm_2
-+#undef switchcase_hpm
-+
- 	default:
- 		ret = SBI_ENOTSUPP;
- 		break;
-@@ -134,18 +167,6 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
- 		else
- 			ret = SBI_ENOTSUPP;
- 		break;
--	case CSR_CYCLE:
--		csr_write(CSR_MCYCLE, csr_val);
--		break;
--	case CSR_INSTRET:
--		csr_write(CSR_MINSTRET, csr_val);
--		break;
--	case CSR_MHPMCOUNTER3:
--		csr_write(CSR_MHPMCOUNTER3, csr_val);
--		break;
--	case CSR_MHPMCOUNTER4:
--		csr_write(CSR_MHPMCOUNTER4, csr_val);
--		break;
- #if __riscv_xlen == 32
- 	case CSR_HTIMEDELTAH:
- 		if (prev_mode == PRV_S && !virt)
-@@ -153,25 +174,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
- 		else
- 			ret = SBI_ENOTSUPP;
- 		break;
--	case CSR_CYCLEH:
--		csr_write(CSR_MCYCLEH, csr_val);
--		break;
--	case CSR_INSTRETH:
--		csr_write(CSR_MINSTRETH, csr_val);
--		break;
--	case CSR_MHPMCOUNTER3H:
--		csr_write(CSR_MHPMCOUNTER3H, csr_val);
--		break;
--	case CSR_MHPMCOUNTER4H:
--		csr_write(CSR_MHPMCOUNTER4H, csr_val);
--		break;
- #endif
--	case CSR_MHPMEVENT3:
--		csr_write(CSR_MHPMEVENT3, csr_val);
--		break;
--	case CSR_MHPMEVENT4:
--		csr_write(CSR_MHPMEVENT4, csr_val);
--		break;
- 	default:
- 		ret = SBI_ENOTSUPP;
- 		break;
--- 
-2.25.1
+Alistair
 
-
+> ---
+>  include/sbi/sbi_hart.h    |  8 +++-----
+>  lib/sbi/sbi_hart.c        | 15 +--------------
+>  lib/utils/fdt/fdt_fixup.c |  2 +-
+>  3 files changed, 5 insertions(+), 20 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 51c2c35..c2ea686 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -14,14 +14,12 @@
+>  
+>  /** Possible feature flags of a hart */
+>  enum sbi_hart_features {
+> -	/** Hart has PMP support */
+> -	SBI_HART_HAS_PMP = (1 << 0),
+>  	/** Hart has S-mode counter enable */
+> -	SBI_HART_HAS_SCOUNTEREN = (1 << 1),
+> +	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
+>  	/** Hart has M-mode counter enable */
+> -	SBI_HART_HAS_MCOUNTEREN = (1 << 2),
+> +	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
+>  	/** HART has timer csr implementation in hardware */
+> -	SBI_HART_HAS_TIME = (1 << 3),
+> +	SBI_HART_HAS_TIME = (1 << 2),
+>  
+>  	/** Last index of Hart features*/
+>  	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index fa20bd2..80ed86a 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -158,9 +158,6 @@ void sbi_hart_pmp_dump(struct sbi_scratch
+> *scratch)
+>  	unsigned long prot, addr, size;
+>  	unsigned int i, pmp_count;
+>  
+> -	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
+> -		return;
+> -
+>  	pmp_count = sbi_hart_pmp_count(scratch);
+>  	for (i = 0; i < pmp_count; i++) {
+>  		pmp_get(i, &prot, &addr, &size);
+> @@ -190,9 +187,6 @@ int sbi_hart_pmp_check_addr(struct sbi_scratch
+> *scratch, unsigned long addr,
+>  	unsigned long prot, size, tempaddr;
+>  	unsigned int i, pmp_count;
+>  
+> -	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
+> -		return SBI_OK;
+> -
+>  	pmp_count = sbi_hart_pmp_count(scratch);
+>  	for (i = 0; i < pmp_count; i++) {
+>  		pmp_get(i, &prot, &tempaddr, &size);
+> @@ -213,7 +207,7 @@ static int pmp_init(struct sbi_scratch *scratch,
+> u32 hartid)
+>  	ulong prot, addr, log2size;
+>  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>  
+> -	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
+> +	if (!sbi_hart_pmp_count(scratch))
+>  		return 0;
+>  
+>  	/* Firmware PMP region to protect OpenSBI firmware */
+> @@ -276,9 +270,6 @@ static inline char
+> *sbi_hart_feature_id2string(unsigned long feature)
+>  		return NULL;
+>  
+>  	switch (feature) {
+> -	case SBI_HART_HAS_PMP:
+> -		fstr = "pmp";
+> -		break;
+>  	case SBI_HART_HAS_SCOUNTEREN:
+>  		fstr = "scounteren";
+>  		break;
+> @@ -375,10 +366,6 @@ static void hart_detect_features(struct
+> sbi_scratch *scratch)
+>  	__detect_pmp(CSR_PMPADDR15);
+>  #undef __detect_pmp
+>  
+> -	/* Set hart PMP feature if we have at least one PMP region */
+> -	if (hfeatures->pmp_count)
+> -		hfeatures->features |= SBI_HART_HAS_PMP;
+> -
+>  	/* Detect if hart supports SCOUNTEREN feature */
+>  	trap.cause = 0;
+>  	val = csr_read_allowed(CSR_SCOUNTEREN, (unsigned long)&trap);
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index a3bccae..4da7397 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -199,7 +199,7 @@ int fdt_reserved_memory_fixup(void *fdt)
+>  	 * With above assumption, we create child nodes directly.
+>  	 */
+>  
+> -	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP)) {
+> +	if (!sbi_hart_pmp_count(scratch)) {
+>  		/*
+>  		 * Update the DT with firmware start & size even if PMP
+> is not
+>  		 * supported. This makes sure that supervisor OS is
+> always
