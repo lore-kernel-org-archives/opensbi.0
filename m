@@ -1,117 +1,100 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 24 Aug 2020 19:22:39 +0530
-Subject: [PATCH v2 1/5] lib: sbi: Remove redundant SBI_HART_HAS_PMP feature
+Date: Mon, 24 Aug 2020 19:22:41 +0530
+Subject: [PATCH v2 3/5] lib: sbi: Detect and print MHPM counters at boot-time
 In-Reply-To: <20200824135243.136769-1-anup.patel@wdc.com>
 References: <20200824135243.136769-1-anup.patel@wdc.com>
-Message-ID: <20200824135243.136769-2-anup.patel@wdc.com>
+Message-ID: <20200824135243.136769-4-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The SBI_HART_HAS_PMP feature is redundant because we already
-have number of PMP regions returned by sbi_hart_pmp_count().
-
-Checking whether PMP is supported for a HART can be simply done
-by checking non-zero value returned by sbi_hart_pmp_count().
+A RISC-V platform can leave unimplemented MHPM counters hard-wired
+to zero. We extend hart_detect_features() to detect MHPM counters
+which are accessible and not hard-wired to zero. We also print
+number of available MHPM counters as part of boot prints.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_hart.h    |  8 +++-----
- lib/sbi/sbi_hart.c        | 15 +--------------
- lib/utils/fdt/fdt_fixup.c |  2 +-
- 3 files changed, 5 insertions(+), 20 deletions(-)
+ include/sbi/sbi_hart.h |  1 +
+ lib/sbi/sbi_hart.c     | 17 +++++++++++++++++
+ lib/sbi/sbi_init.c     |  1 +
+ 3 files changed, 19 insertions(+)
 
 diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 51c2c35..c2ea686 100644
+index c2ea686..1e1eb67 100644
 --- a/include/sbi/sbi_hart.h
 +++ b/include/sbi/sbi_hart.h
-@@ -14,14 +14,12 @@
+@@ -35,6 +35,7 @@ static inline ulong sbi_hart_expected_trap_addr(void)
+ 	return (ulong)sbi_hart_expected_trap;
+ }
  
- /** Possible feature flags of a hart */
- enum sbi_hart_features {
--	/** Hart has PMP support */
--	SBI_HART_HAS_PMP = (1 << 0),
- 	/** Hart has S-mode counter enable */
--	SBI_HART_HAS_SCOUNTEREN = (1 << 1),
-+	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
- 	/** Hart has M-mode counter enable */
--	SBI_HART_HAS_MCOUNTEREN = (1 << 2),
-+	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
- 	/** HART has timer csr implementation in hardware */
--	SBI_HART_HAS_TIME = (1 << 3),
-+	SBI_HART_HAS_TIME = (1 << 2),
- 
- 	/** Last index of Hart features*/
- 	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
++unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
+ void sbi_hart_delegation_dump(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+ int sbi_hart_pmp_get(struct sbi_scratch *scratch, unsigned int n,
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index fa20bd2..80ed86a 100644
+index 8f31d58..2211c3c 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -158,9 +158,6 @@ void sbi_hart_pmp_dump(struct sbi_scratch *scratch)
- 	unsigned long prot, addr, size;
- 	unsigned int i, pmp_count;
+@@ -28,6 +28,7 @@ void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
+ struct hart_features {
+ 	unsigned long features;
+ 	unsigned int pmp_count;
++	unsigned int mhpm_count;
+ };
+ static unsigned long hart_features_offset;
  
--	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
--		return;
--
- 	pmp_count = sbi_hart_pmp_count(scratch);
- 	for (i = 0; i < pmp_count; i++) {
- 		pmp_get(i, &prot, &addr, &size);
-@@ -190,9 +187,6 @@ int sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long addr,
- 	unsigned long prot, size, tempaddr;
- 	unsigned int i, pmp_count;
+@@ -135,6 +136,14 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch)
+ #endif
+ }
  
--	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
--		return SBI_OK;
--
- 	pmp_count = sbi_hart_pmp_count(scratch);
- 	for (i = 0; i < pmp_count; i++) {
- 		pmp_get(i, &prot, &tempaddr, &size);
-@@ -213,7 +207,7 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
- 	ulong prot, addr, log2size;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
++{
++	struct hart_features *hfeatures =
++			sbi_scratch_offset_ptr(scratch, hart_features_offset);
++
++	return hfeatures->mhpm_count;
++}
++
+ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
+ {
+ 	struct hart_features *hfeatures =
+@@ -339,6 +348,7 @@ static void hart_detect_features(struct sbi_scratch *scratch)
+ 	hfeatures = sbi_scratch_offset_ptr(scratch, hart_features_offset);
+ 	hfeatures->features = 0;
+ 	hfeatures->pmp_count = 0;
++	hfeatures->mhpm_count = 0;
  
--	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
-+	if (!sbi_hart_pmp_count(scratch))
- 		return 0;
+ #define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
+ 	val = csr_read_allowed(__csr, (ulong)&trap);			\
+@@ -382,6 +392,13 @@ static void hart_detect_features(struct sbi_scratch *scratch)
+ 	__check_csr_64(CSR_PMPADDR0, 0, PMP_ADDR_MASK, pmp_count, __pmp_skip);
+ __pmp_skip:
  
- 	/* Firmware PMP region to protect OpenSBI firmware */
-@@ -276,9 +270,6 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
- 		return NULL;
++	/* Detect number of MHPM counters */
++	__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count, __mhpm_skip);
++	__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count, __mhpm_skip);
++	__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count, __mhpm_skip);
++	__check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count, __mhpm_skip);
++__mhpm_skip:
++
+ #undef __check_csr_64
+ #undef __check_csr_32
+ #undef __check_csr_16
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index c438eaa..e1a1d96 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -70,6 +70,7 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+ 	sbi_hart_get_features_str(scratch, str, sizeof(str));
+ 	sbi_printf("BOOT HART Features  : %s\n", str);
+ 	sbi_printf("BOOT HART PMP Count : %d\n", sbi_hart_pmp_count(scratch));
++	sbi_printf("BOOT HART MHPM Count: %d\n", sbi_hart_mhpm_count(scratch));
  
- 	switch (feature) {
--	case SBI_HART_HAS_PMP:
--		fstr = "pmp";
--		break;
- 	case SBI_HART_HAS_SCOUNTEREN:
- 		fstr = "scounteren";
- 		break;
-@@ -375,10 +366,6 @@ static void hart_detect_features(struct sbi_scratch *scratch)
- 	__detect_pmp(CSR_PMPADDR15);
- #undef __detect_pmp
- 
--	/* Set hart PMP feature if we have@least one PMP region */
--	if (hfeatures->pmp_count)
--		hfeatures->features |= SBI_HART_HAS_PMP;
--
- 	/* Detect if hart supports SCOUNTEREN feature */
- 	trap.cause = 0;
- 	val = csr_read_allowed(CSR_SCOUNTEREN, (unsigned long)&trap);
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index a3bccae..4da7397 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -199,7 +199,7 @@ int fdt_reserved_memory_fixup(void *fdt)
- 	 * With above assumption, we create child nodes directly.
- 	 */
- 
--	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP)) {
-+	if (!sbi_hart_pmp_count(scratch)) {
- 		/*
- 		 * Update the DT with firmware start & size even if PMP is not
- 		 * supported. This makes sure that supervisor OS is always
+ 	/* Firmware details */
+ 	sbi_printf("Firmware Base       : 0x%lx\n", scratch->fw_start);
 -- 
 2.25.1
 
