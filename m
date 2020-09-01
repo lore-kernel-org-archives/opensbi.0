@@ -1,111 +1,151 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 1 Jul 2022 06:42:00 +0100
-Subject: [PATCH] Changes specific to Shakti uart
-In-Reply-To: <20220701050404.12688-1-ptprasanna@gmail.com>
-References: <20220701050404.12688-1-ptprasanna@gmail.com>
-Message-ID: <5AA321C6-BB01-4E2E-824C-9B640095E6AC@jrtc27.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Tue, 1 Sep 2020 04:59:35 +0000
+Subject: [PATCH v3 1/5] lib: sbi: Remove redundant SBI_HART_HAS_PMP feature
+In-Reply-To: <CAOnJCU+-dXZvNjxeN04Ow4Tynt0Qdqn7Fc1r+D6MbQ-uUxrg5w@mail.gmail.com>
+References: <20200828034012.144048-1-anup.patel@wdc.com>
+ <20200828034012.144048-2-anup.patel@wdc.com>
+ <CAOnJCU+-dXZvNjxeN04Ow4Tynt0Qdqn7Fc1r+D6MbQ-uUxrg5w@mail.gmail.com>
+Message-ID: <DM6PR04MB6201663D9DB0A6ECB7F43E208D2E0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 1 Jul 2022, at 06:04, Prasanna T <ptprasanna@gmail.com> wrote:
+
+
+> -----Original Message-----
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 31 August 2020 23:59
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH v3 1/5] lib: sbi: Remove redundant SBI_HART_HAS_PMP
+> feature
 > 
-
-No commit message and a vague subject.
-
-> ---
-> include/sbi_utils/serial/shakti-uart.h | 4 ++++
-> lib/utils/fdt/fdt_helper.c             | 2 +-
-> lib/utils/serial/shakti-uart.c         | 7 ++++---
-> 3 files changed, 9 insertions(+), 4 deletions(-)
+> On Thu, Aug 27, 2020 at 8:40 PM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > The SBI_HART_HAS_PMP feature is redundant because we already have
+> > number of PMP regions returned by sbi_hart_pmp_count().
+> >
+> > Checking whether PMP is supported for a HART can be simply done by
+> > checking non-zero value returned by sbi_hart_pmp_count().
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+> > ---
+> >  include/sbi/sbi_hart.h    |  8 +++-----
+> >  lib/sbi/sbi_hart.c        | 15 +--------------
+> >  lib/utils/fdt/fdt_fixup.c |  2 +-
+> >  3 files changed, 5 insertions(+), 20 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h index
+> > 51c2c35..c2ea686 100644
+> > --- a/include/sbi/sbi_hart.h
+> > +++ b/include/sbi/sbi_hart.h
+> > @@ -14,14 +14,12 @@
+> >
+> >  /** Possible feature flags of a hart */  enum sbi_hart_features {
+> > -       /** Hart has PMP support */
+> > -       SBI_HART_HAS_PMP = (1 << 0),
+> >         /** Hart has S-mode counter enable */
+> > -       SBI_HART_HAS_SCOUNTEREN = (1 << 1),
+> > +       SBI_HART_HAS_SCOUNTEREN = (1 << 0),
+> >         /** Hart has M-mode counter enable */
+> > -       SBI_HART_HAS_MCOUNTEREN = (1 << 2),
+> > +       SBI_HART_HAS_MCOUNTEREN = (1 << 1),
+> >         /** HART has timer csr implementation in hardware */
+> > -       SBI_HART_HAS_TIME = (1 << 3),
+> > +       SBI_HART_HAS_TIME = (1 << 2),
+> >
+> >         /** Last index of Hart features*/
+> >         SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME, diff --git
+> > a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index fa20bd2..80ed86a
+> > 100644
+> > --- a/lib/sbi/sbi_hart.c
+> > +++ b/lib/sbi/sbi_hart.c
+> > @@ -158,9 +158,6 @@ void sbi_hart_pmp_dump(struct sbi_scratch
+> *scratch)
+> >         unsigned long prot, addr, size;
+> >         unsigned int i, pmp_count;
+> >
+> > -       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
+> > -               return;
+> > -
+> >         pmp_count = sbi_hart_pmp_count(scratch);
+> >         for (i = 0; i < pmp_count; i++) {
+> >                 pmp_get(i, &prot, &addr, &size); @@ -190,9 +187,6 @@
+> > int sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long
+> addr,
+> >         unsigned long prot, size, tempaddr;
+> >         unsigned int i, pmp_count;
+> >
+> > -       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
+> > -               return SBI_OK;
+> > -
+> >         pmp_count = sbi_hart_pmp_count(scratch);
+> >         for (i = 0; i < pmp_count; i++) {
+> >                 pmp_get(i, &prot, &tempaddr, &size); @@ -213,7 +207,7
+> > @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+> >         ulong prot, addr, log2size;
+> >         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> >
+> > -       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP))
+> > +       if (!sbi_hart_pmp_count(scratch))
+> >                 return 0;
+> >
+> >         /* Firmware PMP region to protect OpenSBI firmware */ @@
+> > -276,9 +270,6 @@ static inline char *sbi_hart_feature_id2string(unsigned
+> long feature)
+> >                 return NULL;
+> >
+> >         switch (feature) {
+> > -       case SBI_HART_HAS_PMP:
+> > -               fstr = "pmp";
+> > -               break;
+> >         case SBI_HART_HAS_SCOUNTEREN:
+> >                 fstr = "scounteren";
+> >                 break;
+> > @@ -375,10 +366,6 @@ static void hart_detect_features(struct sbi_scratch
+> *scratch)
+> >         __detect_pmp(CSR_PMPADDR15);
+> >  #undef __detect_pmp
+> >
+> > -       /* Set hart PMP feature if we have at least one PMP region */
+> > -       if (hfeatures->pmp_count)
+> > -               hfeatures->features |= SBI_HART_HAS_PMP;
+> > -
+> >         /* Detect if hart supports SCOUNTEREN feature */
+> >         trap.cause = 0;
+> >         val = csr_read_allowed(CSR_SCOUNTEREN, (unsigned long)&trap);
+> > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> > index a3bccae..4da7397 100644
+> > --- a/lib/utils/fdt/fdt_fixup.c
+> > +++ b/lib/utils/fdt/fdt_fixup.c
+> > @@ -199,7 +199,7 @@ int fdt_reserved_memory_fixup(void *fdt)
+> >          * With above assumption, we create child nodes directly.
+> >          */
+> >
+> > -       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_PMP)) {
+> > +       if (!sbi_hart_pmp_count(scratch)) {
+> >                 /*
+> >                  * Update the DT with firmware start & size even if PMP is not
+> >                  * supported. This makes sure that supervisor OS is
+> > always
+> > --
+> > 2.25.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 > 
-> diff --git a/include/sbi_utils/serial/shakti-uart.h b/include/sbi_utils/serial/shakti-uart.h
-> index bcb019e..08043be 100644
-> --- a/include/sbi_utils/serial/shakti-uart.h
-> +++ b/include/sbi_utils/serial/shakti-uart.h
-> @@ -9,6 +9,10 @@
 > 
-> #include <sbi/sbi_types.h>
-> 
-> +void shakti_uart_putc(char ch);
-> +
-> +int shakti_uart_getc(void);
-> +
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
-These are wrong to add.
+Applied this patch to the riscv/opensbi repo
 
-> int shakti_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
-> 
-> #endif
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 2bdb1ef..40597e7 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -31,7 +31,7 @@
-> #define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
-> 
-> #define DEFAULT_SHAKTI_UART_FREQ		50000000
-> -#define DEFAULT_SHAKTI_UART_BAUD		115200
-> +#define DEFAULT_SHAKTI_UART_BAUD		19200
-
-Why change this?
-
-> const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
-> 				       const struct fdt_match *match_table)
-> diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> index 5f2fe75..d3fd5f1 100644
-> --- a/lib/utils/serial/shakti-uart.c
-> +++ b/lib/utils/serial/shakti-uart.c
-> @@ -20,20 +20,21 @@
-> 
-> #define UART_TX_FULL  0x2
-> #define UART_RX_FULL  0x8
-> +#define UART_RX_NOT_EMPTY 0x4
-
-Keep these sorted by their value.
-
-> static volatile char *uart_base;
-> 
-> static void shakti_uart_putc(char ch)
-> {
-> -	while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
-> +	while((readb(uart_base + REG_STATUS) & UART_TX_FULL))
-
-Why does this need changing? Was it always broken or did something
-change?
-
-> 		;
-> 	writeb(ch, uart_base + REG_TX);
-> }
-> 
-> static int shakti_uart_getc(void)
-> {
-> -	u16 status = readw(uart_base + REG_STATUS);
-> -	if (status & UART_RX_FULL)
-> +	u16 status = readb(uart_base + REG_STATUS);
-
-As with putc.
-
-> +	if (status & UART_RX_NOT_EMPTY) // MASKING 3rd bit for UARTv2. If UARTv1 use MASK UART_RX_FULL.
-
-So this seems to explain the changes, UARTv2 needs a different driver,
-so don?t break UARTv1, extend this driver to support both
-simultaneously?
-
-Jess
-
-> 		return readb(uart_base + REG_RX);
-> 	return -1;
-> }
-> -- 
-> 2.17.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-
+Regards,
+Anup
