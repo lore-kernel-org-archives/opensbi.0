@@ -1,40 +1,95 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed,  9 Sep 2020 20:20:23 +0530
-Subject: [PATCH 0/5] Hold E-core in HSM STOPPED State
-Message-ID: <20200909145028.446794-1-anup.patel@wdc.com>
+Date: Wed,  9 Sep 2020 20:20:24 +0530
+Subject: [PATCH 1/5] lib: sbi: Allow specifying start mode to
+ sbi_hsm_hart_start() API
+In-Reply-To: <20200909145028.446794-1-anup.patel@wdc.com>
+References: <20200909145028.446794-1-anup.patel@wdc.com>
+Message-ID: <20200909145028.446794-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series improves handling of E-core (i.e non-MMU HART) in OpenSBI by
-holding it in HSM STOPPED state instead of sbi_hart_hang(). This provides
-a foundation for upcoming OpenSBI domains feature because now all HARTs
-(irrespective they have MMU or not) are in some HSM state.
+The sbi_scratch already has provision to specify the next stage mode
+so we can leverage this to specify start mode to sbi_hsm_hart_start().
 
-These patches are also available in ecore_imp_v1 branch at
-https://github.com/avpatel/opensbi.git
+In future, this will be useful in providing SBI calls to U-mode on
+embedded cores where we M-mode and U-mode but no S-mode.
 
-Anup Patel (5):
-  lib: sbi: Allow specifying start mode to sbi_hsm_hart_start() API
-  lib: sbi: Allow specifying mode in sbi_hart_pmp_check_addr() API
-  lib: utils: Improve fdt_cpu_fixup() implementation
-  lib: sbi: Ensure coldboot HART supports next privilege mode
-  platform: generic: Don't mark non-MMU HARTs as invalid
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ include/sbi/sbi_hsm.h   | 2 +-
+ lib/sbi/sbi_ecall_hsm.c | 6 +++++-
+ lib/sbi/sbi_hsm.c       | 6 +++++-
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
- include/sbi/riscv_asm.h     |  2 +-
- include/sbi/sbi_hart.h      |  3 ++-
- include/sbi/sbi_hsm.h       |  2 +-
- lib/sbi/riscv_asm.c         | 18 ++++++++----------
- lib/sbi/sbi_ecall_hsm.c     |  6 +++++-
- lib/sbi/sbi_hart.c          | 28 +++++++++++++++++++++-------
- lib/sbi/sbi_hsm.c           |  8 ++++++--
- lib/sbi/sbi_init.c          | 29 ++++++++++++++++++++++++++++-
- lib/utils/fdt/fdt_fixup.c   | 13 +++++++++++--
- platform/generic/platform.c |  6 +-----
- 10 files changed, 84 insertions(+), 31 deletions(-)
-
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index 57d41ff..18d129b 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -25,7 +25,7 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
+ 
+ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+-		       ulong saddr, ulong priv);
++		       ulong saddr, ulong smode, ulong priv);
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+ int sbi_hsm_hart_get_state(u32 hartid);
+ int sbi_hsm_hart_state_to_status(int state);
+diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
+index 028bf68..992c93a 100644
+--- a/lib/sbi/sbi_ecall_hsm.c
++++ b/lib/sbi/sbi_ecall_hsm.c
+@@ -19,12 +19,16 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+ 				 unsigned long *args, unsigned long *out_val,
+ 				 struct sbi_trap_info *out_trap)
+ {
++	ulong smode;
+ 	int ret = 0, hstate;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 
+ 	switch (funcid) {
+ 	case SBI_EXT_HSM_HART_START:
+-		ret = sbi_hsm_hart_start(scratch, args[0], args[1], args[2]);
++		smode = csr_read(CSR_MSTATUS);
++		smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
++		ret = sbi_hsm_hart_start(scratch, args[0], args[1],
++					 smode, args[2]);
+ 		break;
+ 	case SBI_EXT_HSM_HART_STOP:
+ 		ret = sbi_hsm_hart_stop(scratch, TRUE);
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 013647a..b430793 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -203,7 +203,7 @@ fail_exit:
+ }
+ 
+ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+-		       ulong saddr, ulong priv)
++		       ulong saddr, ulong smode, ulong priv)
+ {
+ 	int rc;
+ 	unsigned long init_count;
+@@ -212,6 +212,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+ 	struct sbi_hsm_data *hdata;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 
++	if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
++		return SBI_EINVAL;
++
+ 	rscratch = sbi_hartid_to_scratch(hartid);
+ 	if (!rscratch)
+ 		return SBI_EINVAL;
+@@ -236,6 +239,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+ 	init_count = sbi_init_count(hartid);
+ 	rscratch->next_arg1 = priv;
+ 	rscratch->next_addr = saddr;
++	rscratch->next_mode = smode;
+ 
+ 	if (sbi_platform_has_hart_hotplug(plat) ||
+ 	   (sbi_platform_has_hart_secondary_boot(plat) && !init_count)) {
 -- 
 2.25.1
 
