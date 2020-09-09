@@ -1,75 +1,41 @@
-From: Daniel Schaefer <daniel.schaefer@hpe.com>
-Date: Wed, 9 Sep 2020 13:53:06 +0800
-Subject: [PATCH 3/3] lib: sbi_trap: Allow M-mode to M-mode ECALLs
-In-Reply-To: <DM6PR04MB6201E8B64DCFAD3FFBA44CA58D260@DM6PR04MB6201.namprd04.prod.outlook.com>
-References: <20200904121341.156416-1-anup.patel@wdc.com>
- <20200904121341.156416-4-anup.patel@wdc.com>
- <CAOnJCU+43kWH0Uaex=yPHPZCRxqz0cTqNnuFLb-Wjkkpc5_Cog@mail.gmail.com>
- <DM6PR04MB6201E8B64DCFAD3FFBA44CA58D260@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <6664c53a-8c38-4466-886f-6402ea79d193@hpe.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed,  9 Sep 2020 20:20:23 +0530
+Subject: [PATCH 0/5] Hold E-core in HSM STOPPED State
+Message-ID: <20200909145028.446794-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9/9/20 1:04 PM, Anup Patel wrote:
-> 
-> 
->> -----Original Message-----
->> From: Atish Patra <atishp@atishpatra.org>
->> Sent: 08 September 2020 11:20
->> To: Anup Patel <Anup.Patel@wdc.com>
->> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
->> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
->> <opensbi@lists.infradead.org>
->> Subject: Re: [PATCH 3/3] lib: sbi_trap: Allow M-mode to M-mode ECALLs
->>
->> On Fri, Sep 4, 2020 at 5:14 AM Anup Patel <anup.patel@wdc.com> wrote:
->>>
->>> We should allow M-mode to M-mode ECALLs because:
->>> 1. No other mode can handle M-mode ECALLs 2. In future, we can allow
->>> M-mode baremetal application (not
->>>     linked to OpenSBI) running independently and cooperatively
->>>     without corrupting OpenSBI M-mode state (CSRs and memory).
+This series improves handling of E-core (i.e non-MMU HART) in OpenSBI by
+holding it in HSM STOPPED state instead of sbi_hart_hang(). This provides
+a foundation for upcoming OpenSBI domains feature because now all HARTs
+(irrespective they have MMU or not) are in some HSM state.
 
-Nice! I was wondering why this wasn't there and I thought maybe it's not allowed.
-Good to see that there's nothing special about M-Mode making ecalls.
+These patches are also available in ecore_imp_v1 branch at
+https://github.com/avpatel/opensbi.git
 
-Since we now switch to S-Mode very early in EDK2, it doesn't make a difference for us.
+Anup Patel (5):
+  lib: sbi: Allow specifying start mode to sbi_hsm_hart_start() API
+  lib: sbi: Allow specifying mode in sbi_hart_pmp_check_addr() API
+  lib: utils: Improve fdt_cpu_fixup() implementation
+  lib: sbi: Ensure coldboot HART supports next privilege mode
+  platform: generic: Don't mark non-MMU HARTs as invalid
 
->>> Signed-off-by: Anup Patel <anup.patel@wdc.com>
->>> ---
->>>   lib/sbi/sbi_trap.c | 1 +
->>>   1 file changed, 1 insertion(+)
->>>
->>> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c index
->>> b8bb20c..db5aa2f 100644
->>> --- a/lib/sbi/sbi_trap.c
->>> +++ b/lib/sbi/sbi_trap.c
->>> @@ -252,6 +252,7 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
->>>                  msg = "misaligned store handler failed";
->>>                  break;
->>>          case CAUSE_SUPERVISOR_ECALL:
->>> +       case CAUSE_MACHINE_ECALL:
->>>                  rc  = sbi_ecall_handler(regs);
->>>                  msg = "ecall handler failed";
->>>                  break;
->>> --
->>> 2.25.1
->>>
->>>
->>> --
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
->>
->>
->> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> 
-> Applied this patch to the riscv/opensbi repo
-> 
-> Regards,
-> Anup
-> 
+ include/sbi/riscv_asm.h     |  2 +-
+ include/sbi/sbi_hart.h      |  3 ++-
+ include/sbi/sbi_hsm.h       |  2 +-
+ lib/sbi/riscv_asm.c         | 18 ++++++++----------
+ lib/sbi/sbi_ecall_hsm.c     |  6 +++++-
+ lib/sbi/sbi_hart.c          | 28 +++++++++++++++++++++-------
+ lib/sbi/sbi_hsm.c           |  8 ++++++--
+ lib/sbi/sbi_init.c          | 29 ++++++++++++++++++++++++++++-
+ lib/utils/fdt/fdt_fixup.c   | 13 +++++++++++--
+ platform/generic/platform.c |  6 +-----
+ 10 files changed, 84 insertions(+), 31 deletions(-)
+
+-- 
+2.25.1
+
 
