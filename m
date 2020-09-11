@@ -1,10 +1,11 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 10 Sep 2020 18:04:50 -0700
-Subject: [PATCH 3/5] lib: utils: Improve fdt_cpu_fixup() implementation
-In-Reply-To: <20200909145028.446794-4-anup.patel@wdc.com>
+Date: Thu, 10 Sep 2020 18:09:43 -0700
+Subject: [PATCH 4/5] lib: sbi: Ensure coldboot HART supports next
+ privilege mode
+In-Reply-To: <20200909145028.446794-5-anup.patel@wdc.com>
 References: <20200909145028.446794-1-anup.patel@wdc.com>
- <20200909145028.446794-4-anup.patel@wdc.com>
-Message-ID: <CAOnJCUKbtF9ZwYe6FdW0jAg1h5=rw4=NjSqJzJ-Zhxu-jZthJA@mail.gmail.com>
+ <20200909145028.446794-5-anup.patel@wdc.com>
+Message-ID: <CAOnJCU+MfpqyCTTbN9jEFs1RK32DXbMrGyCQNg16DgtfrumMFA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,49 +14,68 @@ Content-Transfer-Encoding: 7bit
 
 On Wed, Sep 9, 2020 at 7:51 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The fdt_cpu_fixup() should work fine even if HARTs without MMU
-> are not marked invalid by platform support code.
+> The coldboot HART jumps to the next booting stage at the end of
+> init_coldboot() so it is absolutely necessary for coldboot HART
+> to support the privilege mode expected by the next booting stage.
 >
-> In future, we plan to treat HARTs without MMU as valid in the
-> generic platform support so that we can hold these HARTs in
-> HSM STOPPED state.
+> We extend the coldboot HART selection in sbi_init() to ensure that
+> the selected coldboot HART always supports privilege mode specified
+> in scratch space (i.e. scratch->next_mode). This will further help
+> us allow E-core (without MMU) on SiFive Unleashed and PolarFire
+> ICICLE boards to proceed further and wait in HSM STOPPED state.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  lib/utils/fdt/fdt_fixup.c | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
+>  lib/sbi/sbi_init.c | 29 ++++++++++++++++++++++++++++-
+>  1 file changed, 28 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index 4da7397..8f554e1 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -21,7 +21,8 @@ void fdt_cpu_fixup(void *fdt)
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index e1a1d96..65d81ba 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -295,6 +295,7 @@ static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
+>   */
+>  void __noreturn sbi_init(struct sbi_scratch *scratch)
 >  {
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +       bool next_mode_supported        = FALSE;
+>         bool coldboot                   = FALSE;
+>         u32 hartid                      = current_hartid();
 >         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> -       int err, cpu_offset, cpus_offset;
-> +       int err, cpu_offset, cpus_offset, len;
-> +       const char *mmu_type;
->         u32 hartid;
+> @@ -303,7 +304,33 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+>             sbi_platform_hart_invalid(plat, hartid))
+>                 sbi_hart_hang();
 >
->         err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
-> @@ -37,7 +38,15 @@ void fdt_cpu_fixup(void *fdt)
->                 if (err)
->                         continue;
->
-> -               if (sbi_platform_hart_invalid(plat, hartid))
-> +               /*
-> +                * Disable a HART DT node if one of the following is true:
-> +                * 1. The HART is marked invalid by platform support
-> +                * 2. MMU is not available for the HART
-> +                */
+> -       if (atomic_xchg(&coldboot_lottery, 1) == 0)
+> +       switch (scratch->next_mode) {
+> +       case PRV_M:
+> +               next_mode_supported = TRUE;
+> +               break;
+> +       case PRV_S:
+> +               if (misa_extension('S'))
+> +                       next_mode_supported = TRUE;
+> +               break;
+> +       case PRV_U:
+> +               if (misa_extension('U'))
+> +                       next_mode_supported = TRUE;
+> +               break;
+> +       default:
+> +               sbi_hart_hang();
+> +       }
 > +
-> +               mmu_type = fdt_getprop(fdt, cpu_offset, "mmu-type", &len);
-> +               if (sbi_platform_hart_invalid(plat, hartid) ||
-> +                   !mmu_type || !len)
->                         fdt_setprop_string(fdt, cpu_offset, "status",
->                                            "disabled");
->         }
+> +       /*
+> +        * Only the HART supporting privilege mode specified in the
+> +        * scratch->next_mode should be allowed to become the coldboot
+> +        * HART because the coldboot HART will be directly jumping to
+> +        * the next booting stage.
+> +        *
+> +        * We use a lottery mechanism to select coldboot HART among
+> +        * HARTs which satisfy above condition.
+> +        */
+> +
+> +       if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
+>                 coldboot = TRUE;
+>
+>         if (coldboot)
 > --
 > 2.25.1
 >
