@@ -1,11 +1,10 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 10 Sep 2020 17:58:48 -0700
-Subject: [PATCH 1/5] lib: sbi: Allow specifying start mode to
- sbi_hsm_hart_start() API
-In-Reply-To: <20200909145028.446794-2-anup.patel@wdc.com>
+Date: Thu, 10 Sep 2020 18:04:50 -0700
+Subject: [PATCH 3/5] lib: utils: Improve fdt_cpu_fixup() implementation
+In-Reply-To: <20200909145028.446794-4-anup.patel@wdc.com>
 References: <20200909145028.446794-1-anup.patel@wdc.com>
- <20200909145028.446794-2-anup.patel@wdc.com>
-Message-ID: <CAOnJCUL_8Wj-S2yc8sxPVGRf6U1K9Pm0tG0MBJRA1rxbEEERuA@mail.gmail.com>
+ <20200909145028.446794-4-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKbtF9ZwYe6FdW0jAg1h5=rw4=NjSqJzJ-Zhxu-jZthJA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,85 +13,49 @@ Content-Transfer-Encoding: 7bit
 
 On Wed, Sep 9, 2020 at 7:51 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The sbi_scratch already has provision to specify the next stage mode
-> so we can leverage this to specify start mode to sbi_hsm_hart_start().
+> The fdt_cpu_fixup() should work fine even if HARTs without MMU
+> are not marked invalid by platform support code.
 >
-> In future, this will be useful in providing SBI calls to U-mode on
-> embedded cores where we M-mode and U-mode but no S-mode.
+> In future, we plan to treat HARTs without MMU as valid in the
+> generic platform support so that we can hold these HARTs in
+> HSM STOPPED state.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  include/sbi/sbi_hsm.h   | 2 +-
->  lib/sbi/sbi_ecall_hsm.c | 6 +++++-
->  lib/sbi/sbi_hsm.c       | 6 +++++-
->  3 files changed, 11 insertions(+), 3 deletions(-)
+>  lib/utils/fdt/fdt_fixup.c | 13 +++++++++++--
+>  1 file changed, 11 insertions(+), 2 deletions(-)
 >
-> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-> index 57d41ff..18d129b 100644
-> --- a/include/sbi/sbi_hsm.h
-> +++ b/include/sbi/sbi_hsm.h
-> @@ -25,7 +25,7 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
->  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
->
->  int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> -                      ulong saddr, ulong priv);
-> +                      ulong saddr, ulong smode, ulong priv);
->  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
->  int sbi_hsm_hart_get_state(u32 hartid);
->  int sbi_hsm_hart_state_to_status(int state);
-> diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
-> index 028bf68..992c93a 100644
-> --- a/lib/sbi/sbi_ecall_hsm.c
-> +++ b/lib/sbi/sbi_ecall_hsm.c
-> @@ -19,12 +19,16 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
->                                  unsigned long *args, unsigned long *out_val,
->                                  struct sbi_trap_info *out_trap)
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index 4da7397..8f554e1 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -21,7 +21,8 @@ void fdt_cpu_fixup(void *fdt)
 >  {
-> +       ulong smode;
->         int ret = 0, hstate;
 >         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->
->         switch (funcid) {
->         case SBI_EXT_HSM_HART_START:
-> -               ret = sbi_hsm_hart_start(scratch, args[0], args[1], args[2]);
-> +               smode = csr_read(CSR_MSTATUS);
-> +               smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-> +               ret = sbi_hsm_hart_start(scratch, args[0], args[1],
-> +                                        smode, args[2]);
->                 break;
->         case SBI_EXT_HSM_HART_STOP:
->                 ret = sbi_hsm_hart_stop(scratch, TRUE);
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 013647a..b430793 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -203,7 +203,7 @@ fail_exit:
->  }
->
->  int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> -                      ulong saddr, ulong priv)
-> +                      ulong saddr, ulong smode, ulong priv)
->  {
->         int rc;
->         unsigned long init_count;
-> @@ -212,6 +212,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
->         struct sbi_hsm_data *hdata;
 >         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> -       int err, cpu_offset, cpus_offset;
+> +       int err, cpu_offset, cpus_offset, len;
+> +       const char *mmu_type;
+>         u32 hartid;
 >
-> +       if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
-> +               return SBI_EINVAL;
+>         err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+> @@ -37,7 +38,15 @@ void fdt_cpu_fixup(void *fdt)
+>                 if (err)
+>                         continue;
+>
+> -               if (sbi_platform_hart_invalid(plat, hartid))
+> +               /*
+> +                * Disable a HART DT node if one of the following is true:
+> +                * 1. The HART is marked invalid by platform support
+> +                * 2. MMU is not available for the HART
+> +                */
 > +
->         rscratch = sbi_hartid_to_scratch(hartid);
->         if (!rscratch)
->                 return SBI_EINVAL;
-> @@ -236,6 +239,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
->         init_count = sbi_init_count(hartid);
->         rscratch->next_arg1 = priv;
->         rscratch->next_addr = saddr;
-> +       rscratch->next_mode = smode;
->
->         if (sbi_platform_has_hart_hotplug(plat) ||
->            (sbi_platform_has_hart_secondary_boot(plat) && !init_count)) {
+> +               mmu_type = fdt_getprop(fdt, cpu_offset, "mmu-type", &len);
+> +               if (sbi_platform_hart_invalid(plat, hartid) ||
+> +                   !mmu_type || !len)
+>                         fdt_setprop_string(fdt, cpu_offset, "status",
+>                                            "disabled");
+>         }
 > --
 > 2.25.1
 >
@@ -102,10 +65,8 @@ On Wed, Sep 9, 2020 at 7:51 AM Anup Patel <anup.patel@wdc.com> wrote:
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
-The change as such looks okay to me. But if it is done inside an
-internal function instead of changing sbi_hsm_hart_start,we can avoid
-confusion.
-We should keep the function names/arguments same as the spec if possible.
+
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
 -- 
 Regards,
