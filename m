@@ -1,55 +1,113 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Wed,  9 Sep 2020 20:20:28 +0530
-Subject: [PATCH 5/5] platform: generic: Don't mark non-MMU HARTs as invalid
-In-Reply-To: <20200909145028.446794-1-anup.patel@wdc.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Thu, 10 Sep 2020 17:58:48 -0700
+Subject: [PATCH 1/5] lib: sbi: Allow specifying start mode to
+ sbi_hsm_hart_start() API
+In-Reply-To: <20200909145028.446794-2-anup.patel@wdc.com>
 References: <20200909145028.446794-1-anup.patel@wdc.com>
-Message-ID: <20200909145028.446794-6-anup.patel@wdc.com>
+ <20200909145028.446794-2-anup.patel@wdc.com>
+Message-ID: <CAOnJCUL_8Wj-S2yc8sxPVGRf6U1K9Pm0tG0MBJRA1rxbEEERuA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, the generic platform fw_platform_init() marks non-MMU
-HARTs (e.g. E-core on SiFive Unleashed) as invalid. This means
-such non-MMU HARTs won't be allowed to go ahead by sbi_init().
+On Wed, Sep 9, 2020 at 7:51 AM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> The sbi_scratch already has provision to specify the next stage mode
+> so we can leverage this to specify start mode to sbi_hsm_hart_start().
+>
+> In future, this will be useful in providing SBI calls to U-mode on
+> embedded cores where we M-mode and U-mode but no S-mode.
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  include/sbi/sbi_hsm.h   | 2 +-
+>  lib/sbi/sbi_ecall_hsm.c | 6 +++++-
+>  lib/sbi/sbi_hsm.c       | 6 +++++-
+>  3 files changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+> index 57d41ff..18d129b 100644
+> --- a/include/sbi/sbi_hsm.h
+> +++ b/include/sbi/sbi_hsm.h
+> @@ -25,7 +25,7 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+>  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
+>
+>  int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> -                      ulong saddr, ulong priv);
+> +                      ulong saddr, ulong smode, ulong priv);
+>  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+>  int sbi_hsm_hart_get_state(u32 hartid);
+>  int sbi_hsm_hart_state_to_status(int state);
+> diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
+> index 028bf68..992c93a 100644
+> --- a/lib/sbi/sbi_ecall_hsm.c
+> +++ b/lib/sbi/sbi_ecall_hsm.c
+> @@ -19,12 +19,16 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+>                                  unsigned long *args, unsigned long *out_val,
+>                                  struct sbi_trap_info *out_trap)
+>  {
+> +       ulong smode;
+>         int ret = 0, hstate;
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>
+>         switch (funcid) {
+>         case SBI_EXT_HSM_HART_START:
+> -               ret = sbi_hsm_hart_start(scratch, args[0], args[1], args[2]);
+> +               smode = csr_read(CSR_MSTATUS);
+> +               smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> +               ret = sbi_hsm_hart_start(scratch, args[0], args[1],
+> +                                        smode, args[2]);
+>                 break;
+>         case SBI_EXT_HSM_HART_STOP:
+>                 ret = sbi_hsm_hart_stop(scratch, TRUE);
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 013647a..b430793 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -203,7 +203,7 @@ fail_exit:
+>  }
+>
+>  int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> -                      ulong saddr, ulong priv)
+> +                      ulong saddr, ulong smode, ulong priv)
+>  {
+>         int rc;
+>         unsigned long init_count;
+> @@ -212,6 +212,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+>         struct sbi_hsm_data *hdata;
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>
+> +       if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
+> +               return SBI_EINVAL;
+> +
+>         rscratch = sbi_hartid_to_scratch(hartid);
+>         if (!rscratch)
+>                 return SBI_EINVAL;
+> @@ -236,6 +239,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+>         init_count = sbi_init_count(hartid);
+>         rscratch->next_arg1 = priv;
+>         rscratch->next_addr = saddr;
+> +       rscratch->next_mode = smode;
+>
+>         if (sbi_platform_has_hart_hotplug(plat) ||
+>            (sbi_platform_has_hart_secondary_boot(plat) && !init_count)) {
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-The sbi_init() now has a check for next stage privilege mode when
-selecting coldboot HART. This check will force non-MMU HARTS (i.e.
-HARTs without S-mode) to proceed in warmboot path and wait in the
-HSM STOPPED state. This means we don't need to mark non-MMU HARTs
-as invalid in generic platform fw_platform_init().
+The change as such looks okay to me. But if it is done inside an
+internal function instead of changing sbi_hsm_hart_start,we can avoid
+confusion.
+We should keep the function names/arguments same as the spec if possible.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- platform/generic/platform.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index c3cf423..d902e71 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -71,7 +71,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 				unsigned long arg2, unsigned long arg3,
- 				unsigned long arg4)
- {
--	const char *model, *mmu_type;
-+	const char *model;
- 	void *fdt = (void *)arg1;
- 	u32 hartid, hart_count = 0;
- 	int rc, root_offset, cpus_offset, cpu_offset, len;
-@@ -101,10 +101,6 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 		if (SBI_HARTMASK_MAX_BITS <= hartid)
- 			continue;
- 
--		mmu_type = fdt_getprop(fdt, cpu_offset, "mmu-type", &len);
--		if (!mmu_type || !len)
--			hartid = -1U;
--
- 		generic_hart_index2id[hart_count++] = hartid;
- 	}
- 
 -- 
-2.25.1
-
+Regards,
+Atish
 
