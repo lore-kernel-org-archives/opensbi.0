@@ -1,108 +1,144 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 25 Sep 2020 09:06:02 +0000
-Subject: [PATCH] lib: sbi: Fix PMP CSR detection
-In-Reply-To: <DM6PR04MB62019E55ADA2B2209DF5CFC38D360@DM6PR04MB6201.namprd04.prod.outlook.com>
-References: <20200923071417.19000-1-pragnesh.patel@sifive.com>
- <CAOnJCU+UEw66ckVM1TG=0T1vnxEKyZdgMNGoTKOwgdVvr6QDTA@mail.gmail.com>
- <DM6PR04MB62019E55ADA2B2209DF5CFC38D360@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <DM6PR04MB6201B12041247C404E313E6B8D360@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Fri, 25 Sep 2020 16:57:54 +0530
+Subject: [RFC PATCH] lib: Implement System Reset (SRST) SBI extension
+Message-ID: <20200925112754.725742-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+The SBI SRST extension specification is in draft state and available
+in srbt_v1 branch of: https://github.com/avpatel/riscv-sbi-doc.
 
+It allows to S-mode software to request system shutdown, cold reboot,
+and warm reboot.
 
-> -----Original Message-----
-> From: Anup Patel
-> Sent: 25 September 2020 08:28
-> To: Atish Patra <atishp@atishpatra.org>; Pragnesh Patel
-> <pragnesh.patel@sifive.com>
-> Cc: Yash Shah <yash.shah@sifive.com>; Bin Meng <bmeng.cn@gmail.com>;
-> Sagar Shrikant Kadam <sagar.kadam@sifive.com>; OpenSBI
-> <opensbi@lists.infradead.org>
-> Subject: RE: [PATCH] lib: sbi: Fix PMP CSR detection
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Atish
-> > Patra
-> > Sent: 25 September 2020 01:09
-> > To: Pragnesh Patel <pragnesh.patel@sifive.com>
-> > Cc: Yash Shah <yash.shah@sifive.com>; Bin Meng
-> <bmeng.cn@gmail.com>;
-> > Sagar Shrikant Kadam <sagar.kadam@sifive.com>; OpenSBI
-> > <opensbi@lists.infradead.org>
-> > Subject: Re: [PATCH] lib: sbi: Fix PMP CSR detection
-> >
-> > On Wed, Sep 23, 2020 at 12:36 AM Pragnesh Patel
-> > <pragnesh.patel@sifive.com> wrote:
-> > >
-> > > HiFive unleashed currently implements fewer than 56 bits of physical
-> > > address so existing PMP CSR detection is broken.
-> > >
-> > > PMP address register encodes bits 55-2 of a 56-bit physical address,
-> > > Not all physical address bits may be implemented, So just check
-> > > minimum 1 bit.
-> > >
-> > It's good to add .
-> > As per the privilege spec,
-> >
-> > Are there any other usecase for PMP_ADDR_MASK in future? If not, we
-> > can remove that as well.
-> 
-> Based on this fix, (as a separate test) it will be good if we can detect number
-> of physical address bits implemented by RISC-V platform when atleast one
-> PMPADDRx CSR is available. This will require PMP_ADDR_MASK define.
-> 
-> >
-> > > Fixes: 74d1db706293 ("lib: sbi: Improve PMP CSR detection and
-> > > progamming")
-> > >
-> > > Signed-off-by: Pragnesh Patel <pragnesh.patel@sifive.com>
-> > > ---
-> > >  lib/sbi/sbi_hart.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index
-> > > 4cbe8ce..6413194 100644
-> > > --- a/lib/sbi/sbi_hart.c
-> > > +++ b/lib/sbi/sbi_hart.c
-> > > @@ -403,7 +403,7 @@ static void hart_detect_features(struct
-> > > sbi_scratch
-> > *scratch)
-> > >         __check_csr_32(__csr + 32, __rdonly, __wrval, __field,
-> > > __skip)
-> > >
-> > >         /* Detect number of PMP regions */
-> > > -       __check_csr_64(CSR_PMPADDR0, 0, PMP_ADDR_MASK,
-> pmp_count,
-> > __pmp_skip);
-> > > +       __check_csr_64(CSR_PMPADDR0, 0, 1UL, pmp_count, __pmp_skip);
-> > >  __pmp_skip:
-> > >
-> > >         /* Detect number of MHPM counters */
-> > > --
-> > > 2.17.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
-> > Otherwise,
-> >
-> > Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> 
-> Looks good to me.
-> 
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+This patch provides implementation of SBI SRST extension.
 
-Applied this patch to the riscv/opensbi repo
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ include/sbi/sbi_ecall.h           |  1 +
+ include/sbi/sbi_ecall_interface.h |  6 +++++
+ lib/sbi/objects.mk                |  1 +
+ lib/sbi/sbi_ecall.c               |  3 +++
+ lib/sbi/sbi_ecall_srst.c          | 44 +++++++++++++++++++++++++++++++
+ 5 files changed, 55 insertions(+)
+ create mode 100644 lib/sbi/sbi_ecall_srst.c
 
-Thanks,
-Anup
+diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
+index 3273ba6..1ef86e2 100644
+--- a/include/sbi/sbi_ecall.h
++++ b/include/sbi/sbi_ecall.h
+@@ -37,6 +37,7 @@ extern struct sbi_ecall_extension ecall_rfence;
+ extern struct sbi_ecall_extension ecall_ipi;
+ extern struct sbi_ecall_extension ecall_vendor;
+ extern struct sbi_ecall_extension ecall_hsm;
++extern struct sbi_ecall_extension ecall_srst;
+ 
+ u16 sbi_ecall_version_major(void);
+ 
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index af30500..bdc7d96 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -27,6 +27,7 @@
+ #define SBI_EXT_IPI				0x735049
+ #define SBI_EXT_RFENCE				0x52464E43
+ #define SBI_EXT_HSM				0x48534D
++#define SBI_EXT_SRST				0x53525354
+ 
+ /* SBI function IDs for BASE extension*/
+ #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
+@@ -62,6 +63,11 @@
+ #define SBI_HSM_HART_STATUS_START_PENDING	0x2
+ #define SBI_HSM_HART_STATUS_STOP_PENDING	0x3
+ 
++/* SBI function IDs for SRST extension */
++#define SBI_EXT_SRST_SHUTDOWN			0x0
++#define SBI_EXT_SRST_COLD_REBOOT		0x1
++#define SBI_EXT_SRST_WARM_REBOOT		0x2
++
+ #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
+ #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
+ #define SBI_SPEC_VERSION_MINOR_MASK		0xffffff
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index fa808a0..6ec1154 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -20,6 +20,7 @@ libsbi-objs-y += sbi_ecall_base.o
+ libsbi-objs-y += sbi_ecall_hsm.o
+ libsbi-objs-y += sbi_ecall_legacy.o
+ libsbi-objs-y += sbi_ecall_replace.o
++libsbi-objs-y += sbi_ecall_srst.o
+ libsbi-objs-y += sbi_ecall_vendor.o
+ libsbi-objs-y += sbi_emulate_csr.o
+ libsbi-objs-y += sbi_fifo.o
+diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
+index 64c9933..6d41cff 100644
+--- a/lib/sbi/sbi_ecall.c
++++ b/lib/sbi/sbi_ecall.c
+@@ -167,6 +167,9 @@ int sbi_ecall_init(void)
+ 	if (ret)
+ 		return ret;
+ 	ret = sbi_ecall_register_extension(&ecall_hsm);
++	if (ret)
++		return ret;
++	ret = sbi_ecall_register_extension(&ecall_srst);
+ 	if (ret)
+ 		return ret;
+ 	ret = sbi_ecall_register_extension(&ecall_legacy);
+diff --git a/lib/sbi/sbi_ecall_srst.c b/lib/sbi/sbi_ecall_srst.c
+new file mode 100644
+index 0000000..a1b4bee
+--- /dev/null
++++ b/lib/sbi/sbi_ecall_srst.c
+@@ -0,0 +1,44 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2020 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Anup Patel <anup.patel@wdc.com>
++ */
++
++#include <sbi/sbi_ecall.h>
++#include <sbi/sbi_ecall_interface.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_platform.h>
++#include <sbi/sbi_system.h>
++
++static int sbi_ecall_srst_handler(unsigned long extid, unsigned long funcid,
++				  unsigned long *args, unsigned long *out_val,
++				  struct sbi_trap_info *out_trap)
++{
++	int ret = 0;
++
++	switch (funcid) {
++	case SBI_EXT_SRST_SHUTDOWN:
++		sbi_system_reset(SBI_PLATFORM_RESET_SHUTDOWN);
++		break;
++	case SBI_EXT_SRST_COLD_REBOOT:
++		sbi_system_reset(SBI_PLATFORM_RESET_COLD);
++		break;
++	case SBI_EXT_SRST_WARM_REBOOT:
++		sbi_system_reset(SBI_PLATFORM_RESET_WARM);
++		break;
++	default:
++		ret = SBI_ENOTSUPP;
++		break;
++	};
++
++	return ret;
++}
++
++struct sbi_ecall_extension ecall_srst = {
++	.extid_start = SBI_EXT_SRST,
++	.extid_end = SBI_EXT_SRST,
++	.handle = sbi_ecall_srst_handler,
++};
+-- 
+2.25.1
+
 
