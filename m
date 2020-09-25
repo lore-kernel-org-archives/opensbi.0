@@ -1,70 +1,58 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Fri, 25 Sep 2020 16:58:58 +0530
-Subject: [PATCH 00/16] OpenSBI domain support
-Message-ID: <20200925112914.725846-1-anup.patel@wdc.com>
+Date: Fri, 25 Sep 2020 16:58:59 +0530
+Subject: [PATCH 01/16] include: sbi: Remove redundant includes from
+ sbi_platform.h
+In-Reply-To: <20200925112914.725846-1-anup.patel@wdc.com>
+References: <20200925112914.725846-1-anup.patel@wdc.com>
+Message-ID: <20200925112914.725846-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series extends OpenSBI to provide system-level partitioning where each
-logical system-level partition is referred to as OpenSBI domain. The last
-patch of this series provides documentation for OpenSBI domain support.
+The sbi_ecall.h and sbi_trap.h are not required to be included in
+sbi_platform.h hence we remove it. This way sources requiring
+these headers will have to explicitly include it thereby reducing
+implicit includes.
 
-It will be responsibility of OpenSBI platform support to populate OpenSBI
-domains based on use-case of platform vendor.
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ include/sbi/sbi_platform.h | 4 ++--
+ lib/sbi/sbi_hart.c         | 1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-We will be having separate series to extend OpenSBI generic platform so that
-OpenSBI generic platform can populate OpenSBI domains from DTB passed by the
-previous booting stage which in-turn provides more configurability to the
-previous booting stage.
-
-These patches are also available in domains_v1 branch at
-https://github.com/avpatel/opensbi.git
-
-Anup Patel (16):
-  include: sbi: Remove redundant includes from sbi_platform.h
-  include: sbi: Remove pmp_region callbacks from sbi_platform_operations
-  lib: sbi: Configure PMP late in coldboot and warmboot path
-  lib: sbi: Remove redundant hartid parameter from sbi_hart_init()
-  include: sbi: Make hartmask pointer as const in
-    sbi_hartmask_test_hart()
-  lib: sbi: Add initial domain support
-  lib: sbi: Extend sbi_hsm_hart_started_mask() for domains
-  lib: sbi: Extend sbi_hsm_hart_start() for domains
-  lib: sbi: Optimize sbi_hsm_hart_started_mask() implementation
-  lib: sbi: Extend sbi_system_reset() for domains
-  lib: utils: Update fdt_reserved_memory_fixup() to use current domain
-  lib: utils: Update fdt_cpu_fixup() to use current domain
-  lib: sbi: Remove redundant sbi_hart_pmp_xyz() functions
-  lib: sbi: Configure PMP based on domain memory regions
-  lib: sbi: Display domain details in boot prints
-  docs: Add initial documentation for domain support
-
- README.md                  |   3 +
- docs/domain_support.md     | 105 +++++++++
- docs/doxygen.cfg           |   1 +
- include/sbi/sbi_domain.h   | 144 ++++++++++++
- include/sbi/sbi_hart.h     |  13 +-
- include/sbi/sbi_hartmask.h |   2 +-
- include/sbi/sbi_hsm.h      |  12 +-
- include/sbi/sbi_platform.h |  56 ++---
- lib/sbi/objects.mk         |   1 +
- lib/sbi/sbi_domain.c       | 461 +++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_ecall_hsm.c    |   8 +-
- lib/sbi/sbi_ecall_legacy.c |   4 +-
- lib/sbi/sbi_hart.c         | 152 ++++--------
- lib/sbi/sbi_hsm.c          |  59 +++--
- lib/sbi/sbi_init.c         |  59 +++--
- lib/sbi/sbi_ipi.c          |   6 +-
- lib/sbi/sbi_system.c       |  11 +-
- lib/utils/fdt/fdt_fixup.c  |  55 ++---
- 18 files changed, 906 insertions(+), 246 deletions(-)
- create mode 100644 docs/domain_support.md
- create mode 100644 include/sbi/sbi_domain.h
- create mode 100644 lib/sbi/sbi_domain.c
-
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 8087148..f51e36a 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -40,12 +40,12 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#include <sbi/sbi_ecall.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_scratch.h>
+-#include <sbi/sbi_trap.h>
+ #include <sbi/sbi_version.h>
+ 
++struct sbi_trap_info;
++
+ /** Possible feature flags of a platform */
+ enum sbi_platform_features {
+ 	/** Platform has timer value */
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6413194..55a04da 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -19,6 +19,7 @@
+ #include <sbi/sbi_math.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_string.h>
++#include <sbi/sbi_trap.h>
+ 
+ extern void __sbi_expected_trap(void);
+ extern void __sbi_expected_trap_hext(void);
 -- 
 2.25.1
 
