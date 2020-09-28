@@ -1,154 +1,110 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 26 Sep 2020 12:23:21 +0530
-Subject: [RFC PATCH v2] lib: Implement System Reset (SRST) SBI extension
-Message-ID: <20200926065321.807213-1-anup.patel@wdc.com>
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 28 Sep 2020 12:17:36 +0200
+Subject: OpenSBI: Boot HART ISA display
+Message-ID: <3e977253-0836-e76f-964b-49b7f2541fde@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The SBI SRST extension specification is in draft state and available
-in srbt_v1 branch of: https://github.com/avpatel/riscv-sbi-doc.
+Hello Atish,
 
-It allows to S-mode software to request system shutdown, cold reboot,
-and warm reboot.
+on the Kendryte 210 MaixDuino the OpenSBI output line
 
-This patch provides implementation of SBI SRST extension.
+Boot HART ISA       : rv64cicacsidcacsi
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
-Changes since v1:
- - Updated patch as-per latest SBI SRST extension draft spec where
-   we have only one SBI call with "reset_type" parameter
----
- include/sbi/sbi_ecall.h           |  1 +
- include/sbi/sbi_ecall_interface.h |  8 ++++++
- lib/sbi/objects.mk                |  1 +
- lib/sbi/sbi_ecall.c               |  3 ++
- lib/sbi/sbi_ecall_srst.c          | 48 +++++++++++++++++++++++++++++++
- 5 files changed, 61 insertions(+)
- create mode 100644 lib/sbi/sbi_ecall_srst.c
+looks a bit strange to me (see full output at the end of the mail).
+Assuming that the characters after rv64 are related to extensions I
+would expect every letter appearing only once.
 
-diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-index 3273ba6..1ef86e2 100644
---- a/include/sbi/sbi_ecall.h
-+++ b/include/sbi/sbi_ecall.h
-@@ -37,6 +37,7 @@ extern struct sbi_ecall_extension ecall_rfence;
- extern struct sbi_ecall_extension ecall_ipi;
- extern struct sbi_ecall_extension ecall_vendor;
- extern struct sbi_ecall_extension ecall_hsm;
-+extern struct sbi_ecall_extension ecall_srst;
- 
- u16 sbi_ecall_version_major(void);
- 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index af30500..d9c2519 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -27,6 +27,7 @@
- #define SBI_EXT_IPI				0x735049
- #define SBI_EXT_RFENCE				0x52464E43
- #define SBI_EXT_HSM				0x48534D
-+#define SBI_EXT_SRST				0x53525354
- 
- /* SBI function IDs for BASE extension*/
- #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
-@@ -62,6 +63,13 @@
- #define SBI_HSM_HART_STATUS_START_PENDING	0x2
- #define SBI_HSM_HART_STATUS_STOP_PENDING	0x3
- 
-+/* SBI function IDs for SRST extension */
-+#define SBI_EXT_SRST_RESET			0x0
+I tried to add sbi_printf() statements to lib/sbi/riscv_asm.c but they
+do not print out correctly.
+
+After the following change:
+
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 8c54c11..a0c95a2 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -81,7 +81,7 @@ void misa_string(int xlen, char *out, unsigned int out_sz)
+
+        for (i = 0; i < array_size(valid_isa_order) && (pos < out_sz);
+i++) {
+                if (misa_extension_imp(valid_isa_order[i]))
+-                       out[pos++] = valid_isa_order[i];
++                       out[pos++] = '0' + i;
+        }
+
+        if (pos < out_sz)
+
+the output becomes
+
+Boot HART ISA       : rv6403567;<@BCDHI
+
+I am clueless why valid_isa_order[i] is not evaluated correctly.
+
+When my changes are:
+
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 8c54c11..b1bbfc4 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -12,6 +12,8 @@
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_platform.h>
+
++static const char valid_isa_order[] = "iemafdqclbjtpvnsuhkorwxyzg";
 +
-+#define SBI_SRST_RESET_TYPE_SHUTDOWN		0x0
-+#define SBI_SRST_RESET_TYPE_COLD_REBOOT	0x1
-+#define SBI_SRST_RESET_TYPE_WARM_REBOOT	0x2
-+
- #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
- #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
- #define SBI_SPEC_VERSION_MINOR_MASK		0xffffff
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index fa808a0..6ec1154 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -20,6 +20,7 @@ libsbi-objs-y += sbi_ecall_base.o
- libsbi-objs-y += sbi_ecall_hsm.o
- libsbi-objs-y += sbi_ecall_legacy.o
- libsbi-objs-y += sbi_ecall_replace.o
-+libsbi-objs-y += sbi_ecall_srst.o
- libsbi-objs-y += sbi_ecall_vendor.o
- libsbi-objs-y += sbi_emulate_csr.o
- libsbi-objs-y += sbi_fifo.o
-diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-index 64c9933..6d41cff 100644
---- a/lib/sbi/sbi_ecall.c
-+++ b/lib/sbi/sbi_ecall.c
-@@ -167,6 +167,9 @@ int sbi_ecall_init(void)
- 	if (ret)
- 		return ret;
- 	ret = sbi_ecall_register_extension(&ecall_hsm);
-+	if (ret)
-+		return ret;
-+	ret = sbi_ecall_register_extension(&ecall_srst);
- 	if (ret)
- 		return ret;
- 	ret = sbi_ecall_register_extension(&ecall_legacy);
-diff --git a/lib/sbi/sbi_ecall_srst.c b/lib/sbi/sbi_ecall_srst.c
-new file mode 100644
-index 0000000..64c228f
---- /dev/null
-+++ b/lib/sbi/sbi_ecall_srst.c
-@@ -0,0 +1,48 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2020 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi/sbi_system.h>
-+
-+static int sbi_ecall_srst_handler(unsigned long extid, unsigned long funcid,
-+				  unsigned long *args, unsigned long *out_val,
-+				  struct sbi_trap_info *out_trap)
-+{
-+	int ret = 0;
-+
-+	if (funcid == SBI_EXT_SRST_RESET) {
-+		switch (args[0]) {
-+		case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+			sbi_system_reset(SBI_PLATFORM_RESET_SHUTDOWN);
-+			break;
-+		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+			sbi_system_reset(SBI_PLATFORM_RESET_COLD);
-+			break;
-+		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+			sbi_system_reset(SBI_PLATFORM_RESET_WARM);
-+			break;
-+		default:
-+			ret = SBI_EINVAL;
-+			break;
-+		};
-+	} else {
-+		ret = SBI_ENOTSUPP;
-+	}
-+
-+	return ret;
-+}
-+
-+struct sbi_ecall_extension ecall_srst = {
-+	.extid_start = SBI_EXT_SRST,
-+	.extid_end = SBI_EXT_SRST,
-+	.handle = sbi_ecall_srst_handler,
-+};
--- 
-2.25.1
+ /* determine CPU extension, return non-zero support */
+ int misa_extension_imp(char ext)
+ {
+@@ -52,7 +54,6 @@ int misa_xlen(void)
+ void misa_string(int xlen, char *out, unsigned int out_sz)
+ {
+        unsigned int i, pos = 0;
+-       const char valid_isa_order[] = "iemafdqclbjtpvnsuhkorwxyzg";
+
+        if (!out)
+                return;
+
+the output is:
+
+Boot HART ISA       : rv64imafdcsu
+
+I disassembled build/lib/sbi/riscv_asm.o but could not find a problem.
+
+Do you have a suggestion how to analyze this further?
+
+Best regards
+
+Heinrich
+
+
+
+OpenSBI v0.8-29-g7701ea1
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name       : Kendryte K210
+Platform Features   : timer
+Platform HART Count : 2
+Boot HART ID        : 0
+Boot HART ISA       : rv64cicacsidcacsi
+BOOT HART Features  : none
+BOOT HART PMP Count : 0
+BOOT HART MHPM Count: 0
+Firmware Base       : 0x80000000
+Firmware Size       : 100 KB
+Runtime SBI Version : 0.2
+
+MIDELEG : 0x0000000000000222
+MEDELEG : 0x0000000000000109
 
 
