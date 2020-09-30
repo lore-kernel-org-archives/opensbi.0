@@ -1,12 +1,12 @@
 From: Damien Le Moal <Damien.LeMoal@wdc.com>
-Date: Wed, 30 Sep 2020 03:26:42 +0000
+Date: Wed, 30 Sep 2020 05:08:35 +0000
 Subject: OpenSBI: Boot HART ISA display
 In-Reply-To: <CAOnJCUKnY0fLZr6OjD5SWF8Fbk8vCQtWgniJanJrGZtPZW3NnQ@mail.gmail.com>
 References: <3e977253-0836-e76f-964b-49b7f2541fde@gmx.de>
  <CAOnJCULFvSArogZzzHLN-QW+2D7nPWh7JcxSUcxMOprnJVK-zQ@mail.gmail.com>
  <46daebe0-4099-c2a6-54ab-0010a0317b3e@gmx.de>
  <CAOnJCUKnY0fLZr6OjD5SWF8Fbk8vCQtWgniJanJrGZtPZW3NnQ@mail.gmail.com>
-Message-ID: <1fcdbebe0b1b1eb1fd8d8373c32c4e89faf2d61d.camel@wdc.com>
+Message-ID: <01c4c704e0672a755483ca7124ca691047ffc7b7.camel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -115,39 +115,75 @@ On Tue, 2020-09-29 at 13:38 -0700, Atish Patra wrote:
 > 
 > @Damien : Did you figure out the cause for that issue you were seeing?
 
-Here is what I get:
+I see lots of problems, not sure if they are related yet:
+1) On a clean build, make CROSS_COMPILE=riscv64-linux- PLATFORM=kendryte/k210
+after a "make clean" or "git clone", the kendryte dts is *not* compiled. If I
+modify the dts and run make again, then the dts gets compiled but throws out
+warnings about #address-cells missing. The Kendryte dts is wrong and needs
+updates. I updated with what I have for Linux which is what u-boot has too,
+simplified, and still gets warnings while there are none on kernel compiles.
+Since Kendryte is generic platform now, this may impact how initialization is
+done.
+2) I see the same problem as Heinrich with the misa string: garbage is output.
+As a little experiment, I made this change:
 
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 8c54c11..195b56b 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -11,6 +11,7 @@
+ #include <sbi/riscv_encoding.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_platform.h>
++#include <sbi/sbi_string.h>
+ 
+ /* determine CPU extension, return non-zero support */
+ int misa_extension_imp(char ext)
+@@ -52,7 +53,7 @@ int misa_xlen(void)
+ void misa_string(int xlen, char *out, unsigned int out_sz)
+ {
+        unsigned int i, pos = 0;
+-       const char valid_isa_order[] = "iemafdqclbjtpvnsuhkorwxyzg";
++       const char *valid_isa_order = "iemafdqclbjtpvnsuhkorwxyzg";
+ 
+        if (!out)
+                return;
+@@ -79,10 +80,8 @@ void misa_string(int xlen, char *out, unsigned int out_sz)
+                }
+        }
+ 
+-       for (i = 0; i < array_size(valid_isa_order) && (pos < out_sz); i++) {
+-               if (misa_extension_imp(valid_isa_order[i]))
+-                       out[pos++] = valid_isa_order[i];
+-       }
++       for (i = 0; i < sbi_strlen(valid_isa_order) && (pos < out_sz); i++)
++               out[pos++] = valid_isa_order[i];
+ 
+        if (pos < out_sz)
+                out[pos++] = '\0';
 
-OpenSBI v0.8-29-g7701ea1
-   ____                    _____ ____ _____
-  / __ \                  / ____|  _ \_   _|
- | |  | |_ __   ___ _ __ | (___ | |_) || |
- | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
- | |__| | |_) |  __/ | | |____) | |_) || |_
-  \____/| .__/ \___|_| |_|_____/|____/_____|
-        | |
-        |_|
+so that all valid_isa_order characters are printed. And I get:
 
-Platform Name       : Kendryte K210
-Platform Features   : timer
-Platform HART Count : 2
-Boot HART ID        : 0
-Boot HART ISA       : rv64fucicacsidc
-BOOT HART Features  : none
-BOOT HART PMP Count : 0
-BOOT HART MHPM Count: 0
-Firmware Base       : 0x80000000
-Firmware Size       : 96 KB
-Runtime SBI Version : 0.2
+Boot HART ISA       : rv64terrupt-controller
 
-MIDELEG : 0x0000000000000222
-MEDELEG : 0x0000000000000109
+Which looks like a piece of the dts...
 
-So different fuzziness for the MISA string, wrong too.
-And no prints from the test payload either, so definitely wrong.
+So, I think we have a build/linking/loading problem on our hands. Memory
+corruption of data basically. That also likely explain why there is no string
+output from the test payload but I do get single character outputs if I do
+them.
 
-However, I am getting warnings on the DTS. Something wrong there that may
-impact the serial. Looking into it.
+I tried changing the misa_string() code in different ways and each one gives a
+different garbage but always the same garbage (rebooting several time gives the
+same). So it looks like linking or loading problem.
+
+And the dts compilation needs addressing too:
+1) Erratic dtb build
+2) wrong error messages on dtb compilation
+
+Need to go back to linux-scsi for some patching. Will try to look into this
+later if I have time. Anyone, feel free to tackle this !
+
 
 > 
 > > It might be that some function is overwriting the area where the strings
