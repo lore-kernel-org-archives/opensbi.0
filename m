@@ -1,163 +1,148 @@
-From: Sean Anderson <seanga2@gmail.com>
-Date: Wed, 30 Sep 2020 07:37:19 -0400
-Subject: [RFC PATCH v2] lib: Implement System Reset (SRST) SBI extension
-In-Reply-To: <20200926065321.807213-1-anup.patel@wdc.com>
-References: <20200926065321.807213-1-anup.patel@wdc.com>
-Message-ID: <22b6cc96-f84e-0054-ba87-6ce5044ac3c4@gmail.com>
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 30 Sep 2020 15:16:43 +0200
+Subject: OpenSBI: Boot HART ISA display
+In-Reply-To: <5ddfbdef6b883dc2efd0fe6823a0d0c1b6463f0c.camel@wdc.com>
+References: <3e977253-0836-e76f-964b-49b7f2541fde@gmx.de>
+ <CAOnJCULFvSArogZzzHLN-QW+2D7nPWh7JcxSUcxMOprnJVK-zQ@mail.gmail.com>
+ <46daebe0-4099-c2a6-54ab-0010a0317b3e@gmx.de>
+ <CAOnJCUKnY0fLZr6OjD5SWF8Fbk8vCQtWgniJanJrGZtPZW3NnQ@mail.gmail.com>
+ <01c4c704e0672a755483ca7124ca691047ffc7b7.camel@wdc.com>
+ <915a8ca70d5d0ab737d22d6199a9c8ce1b4dd75b.camel@wdc.com>
+ <19cc6098-2816-59d6-20b1-c9c19b43354a@gmx.de>
+ <07f615f0-7f2e-a04c-36d8-ff5395b03194@gmx.de>
+ <5ddfbdef6b883dc2efd0fe6823a0d0c1b6463f0c.camel@wdc.com>
+Message-ID: <f6af88a1-90ba-ea54-a30c-11386fd49314@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9/26/20 2:53 AM, Anup Patel wrote:
-> The SBI SRST extension specification is in draft state and available
-> in srbt_v1 branch of: https://github.com/avpatel/riscv-sbi-doc.
-> 
-> It allows to S-mode software to request system shutdown, cold reboot,
-> and warm reboot.
-> 
-> This patch provides implementation of SBI SRST extension.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
-> Changes since v1:
->  - Updated patch as-per latest SBI SRST extension draft spec where
->    we have only one SBI call with "reset_type" parameter
-> ---
->  include/sbi/sbi_ecall.h           |  1 +
->  include/sbi/sbi_ecall_interface.h |  8 ++++++
->  lib/sbi/objects.mk                |  1 +
->  lib/sbi/sbi_ecall.c               |  3 ++
->  lib/sbi/sbi_ecall_srst.c          | 48 +++++++++++++++++++++++++++++++
->  5 files changed, 61 insertions(+)
->  create mode 100644 lib/sbi/sbi_ecall_srst.c
-> 
-> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> index 3273ba6..1ef86e2 100644
-> --- a/include/sbi/sbi_ecall.h
-> +++ b/include/sbi/sbi_ecall.h
-> @@ -37,6 +37,7 @@ extern struct sbi_ecall_extension ecall_rfence;
->  extern struct sbi_ecall_extension ecall_ipi;
->  extern struct sbi_ecall_extension ecall_vendor;
->  extern struct sbi_ecall_extension ecall_hsm;
-> +extern struct sbi_ecall_extension ecall_srst;
->  
->  u16 sbi_ecall_version_major(void);
->  
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index af30500..d9c2519 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -27,6 +27,7 @@
->  #define SBI_EXT_IPI				0x735049
->  #define SBI_EXT_RFENCE				0x52464E43
->  #define SBI_EXT_HSM				0x48534D
-> +#define SBI_EXT_SRST				0x53525354
->  
->  /* SBI function IDs for BASE extension*/
->  #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
-> @@ -62,6 +63,13 @@
->  #define SBI_HSM_HART_STATUS_START_PENDING	0x2
->  #define SBI_HSM_HART_STATUS_STOP_PENDING	0x3
->  
-> +/* SBI function IDs for SRST extension */
-> +#define SBI_EXT_SRST_RESET			0x0
-> +
-> +#define SBI_SRST_RESET_TYPE_SHUTDOWN		0x0
-> +#define SBI_SRST_RESET_TYPE_COLD_REBOOT	0x1
-> +#define SBI_SRST_RESET_TYPE_WARM_REBOOT	0x2
-> +
->  #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
->  #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
->  #define SBI_SPEC_VERSION_MINOR_MASK		0xffffff
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index fa808a0..6ec1154 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -20,6 +20,7 @@ libsbi-objs-y += sbi_ecall_base.o
->  libsbi-objs-y += sbi_ecall_hsm.o
->  libsbi-objs-y += sbi_ecall_legacy.o
->  libsbi-objs-y += sbi_ecall_replace.o
-> +libsbi-objs-y += sbi_ecall_srst.o
->  libsbi-objs-y += sbi_ecall_vendor.o
->  libsbi-objs-y += sbi_emulate_csr.o
->  libsbi-objs-y += sbi_fifo.o
-> diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-> index 64c9933..6d41cff 100644
-> --- a/lib/sbi/sbi_ecall.c
-> +++ b/lib/sbi/sbi_ecall.c
-> @@ -167,6 +167,9 @@ int sbi_ecall_init(void)
->  	if (ret)
->  		return ret;
->  	ret = sbi_ecall_register_extension(&ecall_hsm);
-> +	if (ret)
-> +		return ret;
-> +	ret = sbi_ecall_register_extension(&ecall_srst);
->  	if (ret)
->  		return ret;
->  	ret = sbi_ecall_register_extension(&ecall_legacy);
-> diff --git a/lib/sbi/sbi_ecall_srst.c b/lib/sbi/sbi_ecall_srst.c
-> new file mode 100644
-> index 0000000..64c228f
-> --- /dev/null
-> +++ b/lib/sbi/sbi_ecall_srst.c
-> @@ -0,0 +1,48 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2020 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Anup Patel <anup.patel@wdc.com>
-> + */
-> +
-> +#include <sbi/sbi_ecall.h>
-> +#include <sbi/sbi_ecall_interface.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_platform.h>
-> +#include <sbi/sbi_system.h>
-> +
-> +static int sbi_ecall_srst_handler(unsigned long extid, unsigned long funcid,
-> +				  unsigned long *args, unsigned long *out_val,
-> +				  struct sbi_trap_info *out_trap)
-> +{
-> +	int ret = 0;
-> +
-> +	if (funcid == SBI_EXT_SRST_RESET) {
-> +		switch (args[0]) {
-> +		case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +			sbi_system_reset(SBI_PLATFORM_RESET_SHUTDOWN);
+On 30.09.20 13:21, Damien Le Moal wrote:
+> On Wed, 2020-09-30 at 13:12 +0200, Heinrich Schuchardt wrote:
+>> On 30.09.20 10:45, Heinrich Schuchardt wrote:
+>>> On 30.09.20 10:22, Damien Le Moal wrote:
+>>>> On Wed, 2020-09-30 at 14:08 +0900, Damien Le Moal wrote:
+>>>>> On Tue, 2020-09-29 at 13:38 -0700, Atish Patra wrote:
+>>>>>> On Tue, Sep 29, 2020 at 12:38 PM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+>>>>>>> On 9/29/20 9:05 PM, Atish Patra wrote:
+>>>>>>>> On Mon, Sep 28, 2020 at 3:18 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+>>>>>>>>> Hello Atish,
+>>>>>>>>>
+>>>>>>>>> on the Kendryte 210 MaixDuino the OpenSBI output line
+>>>>>>>>>
+>>>>>>>>> Boot HART ISA       : rv64cicacsidcacsi
+>>>>>>>>>
+>>>>>>>>> looks a bit strange to me (see full output at the end of the mail).
+>>>>>>>>
+>>>>>>>> Yeah. It doesn't make any sense.
+>>>>>>>>
+>>>>>>>>> Assuming that the characters after rv64 are related to extensions I
+>>>>>>>>> would expect every letter appearing only once.
+>>>>>>>>>
+>>>>>>>>
+>>>>>>>> That's correct. See 3.1.1. Machine ISA Register misa in priv spec.
+>>>>>>>>
+>>>>>>>>> I tried to add sbi_printf() statements to lib/sbi/riscv_asm.c but they
+>>>>>>>>> do not print out correctly.
+>>>>>>>>>
+>>
+>> <snip />
+>>
+>> In build/platform/kendryte/k210/firmware/fw_payload.bin the string for
+>> the extensions
+>>
+>> valid_isa_order[] = "iemafdqclbjtpvnsuhkorwxyzg"
+>>
+>> directly follows the embedded device tree:
+>>
+>> .......................n........................
+>> ....#address-cells.#size-cells.compatible.bootar
+>> gs.device_type.clock-frequency.i-cache-size.d-ca
+>> che-size.mmu-type.reg.riscv,isa.status.#interrup
+>> cells.interrupt-controller.linux,phandle.inter
+>> rupts-extended......iemafdqclbjtpvnsuhkorwxyzg..
+>> .*..z*..t*..n*..h*..b*..\*..V*..P*..J*..D*..>*..
+>>
+>> When running fixups the device-tree becomes longer.
+>>
+>> Whenever we do device-tree fixups we have to copy the device tree to a
+>> different memory location with enough space for the fixups or we need
+>> the linker script to leave enough space.
+>>
+>> If OpenSBI is run from a NOR flash anyway we first have to copy the
+>> device-tree to RAM before we can do any fixup.
+>>
+>> Which way should we go:
+>> - allocate space for a copy of the fdt with sbi_scratch_alloc_offset, or
+>> - change the linker script to leave 1 KiB free space after the dtb
+>
+> You actually do not need to change the linker script I think. All you need is
+> to change scripts/d2c.sh to have awk add a bunch of zeroes at the end of the
+> array. Easy, but how much is "enough" is a hard question. This would be a very
+> weak fix. We likely will stumble on this bug again in the future if more fixups
+> are added...
 
-Shouldn't we check a return value here? Some platforms may not support
-all types of resets, and may want to return SBI_ENOTSUPP. For example,
-the K210 only supports warm resets.
+This works for me:
 
---Sean
+diff --git a/firmware/fw_payload.S b/firmware/fw_payload.S
+index 9805d8c..8266f9d 100644
+--- a/firmware/fw_payload.S
++++ b/firmware/fw_payload.S
+@@ -108,6 +108,8 @@ fw_options:
+        .globl fdt_bin
+ fdt_bin:
+        .incbin FW_PAYLOAD_FDT_PATH
++       /* 1 KiB of space for device tree updates */
++       . = . + 0x400;
+ #endif
 
-> +			break;
-> +		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +			sbi_system_reset(SBI_PLATFORM_RESET_COLD);
-> +			break;
-> +		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +			sbi_system_reset(SBI_PLATFORM_RESET_WARM);
-> +			break;
-> +		default:
-> +			ret = SBI_EINVAL;
-> +			break;
-> +		};
-> +	} else {
-> +		ret = SBI_ENOTSUPP;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +struct sbi_ecall_extension ecall_srst = {
-> +	.extid_start = SBI_EXT_SRST,
-> +	.extid_end = SBI_EXT_SRST,
-> +	.handle = sbi_ecall_srst_handler,
-> +};
-> 
+        .section .payload, "ax", %progbits
+diff --git a/scripts/d2c.sh b/scripts/d2c.sh
+index 821a995..8a28352 100755
+--- a/scripts/d2c.sh
++++ b/scripts/d2c.sh
+@@ -62,6 +62,9 @@ printf "const char __attribute__((aligned(%s)))
+%s_start[] = {\n" "${OUTPUT_C_AL
 
+ od -v -t x1 -An ${INPUT_PATH} | awk '{for (i=1; i<=NF; i++) printf "
+0x%s,", $i; printf "\n"; }'
+
++# Add 1 KiB of unused space for device tree fixups
++echo dummy | awk '{for (j=1; j<=0x40; j++) {for (i=1; i<=0x10; i++)
+printf " 0x00,"; printf "\n"}; }'
++
+ printf "};\n"
+
+ printf "const unsigned long %s_size = sizeof(%s_start);\n"
+"${OUTPUT_C_PREFIX}" "${OUTPUT_C_PREFIX}"
+
+
+The bad thing about this solution is that it does not cover a device
+tree passed@a fixed memory location FW_PAYLOAD_FDT_ADDR.
+
+>
+> The cleaner solution would be to do the fdt relocation exactly like on a normal
+> board which give an fdt, then do the fixups over there as there is enough room,
+> normally. That means tweaking fw_base.S.
+>
+
+It is unclear to me what you mean by normal board.
+
+The normal thing is that OpenSBI starts a payload and passes its
+device-tree including all fixups.
+
+You could instead have OpenSBI called with a devicetree in a fixed
+memory position FW_PAYLOAD_FDT_ADDR. In this case you should not expect
+any space for fixups. You must copy the device tree before fixups.
+
+So having OpenSBI copy the devicetree before fixup is the cleanest solution.
+
+I could not find any malloc() in OpenSBI. That is why I asked if I can
+reserve the memory for the relocated device-tree with
+sbi_scratch_alloc_offset().
+
+Best regards
+
+Heinrich
 
