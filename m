@@ -1,58 +1,198 @@
-From: Christoph Müllner <christoph.muellner@vrull.eu>
-Date: Thu, 28 Mar 2024 15:33:46 +0100
-Subject: [PATCH 0/9] T-Head: Allow read access to th.mxstatus CSR
-In-Reply-To: <IA1PR20MB4953940AF68B8AAE3E8E28CBBB3B2@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <20240327101137.3644359-1-christoph.muellner@vrull.eu> <IA1PR20MB4953940AF68B8AAE3E8E28CBBB3B2@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAEg0e7j_zC5NOeLyaU6nv6xxf8NR+PQdRdNBnPHjnN+Qjfc4XA@mail.gmail.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Thu, 1 Oct 2020 07:56:43 +0000
+Subject: [RFC PATCH v2] lib: Implement System Reset (SRST) SBI extension
+In-Reply-To: <22b6cc96-f84e-0054-ba87-6ce5044ac3c4@gmail.com>
+References: <20200926065321.807213-1-anup.patel@wdc.com>
+ <22b6cc96-f84e-0054-ba87-6ce5044ac3c4@gmail.com>
+Message-ID: <DM6PR04MB620124B1F88E246C47B1097E8D300@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 28, 2024 at 8:30?AM Inochi Amaoto <inochiama@outlook.com> wrote:
->
-> On Wed, Mar 27, 2024 at 11:11:28AM +0100, Christoph M?llner wrote:
-> > On T-Head C9xx harts, the th.mxstatus CSR provides valuable information
-> > about the available vendor extensions. As this CSR is only accessible in
-> > M-mode, we need to provide a mechanism for other modes to access this
-> > information. This patchset solves this by extending the existing
-> > platform abstraction such that platforms (or platform overrides)
-> > can provide a CSR read/write handler.
-> >
-> > A CSR read-handler for th.mxstatus is then added that is utilized by
-> > the Allwinner D1, the T-Head TH1520, and the Sophgo SG2042.
-> > Further, a generic mvendorid-based platform override is added that also
-> > enables the CSR read-handler for th.mxstatus (needed for QEMU).
-> >
-> > The CSR is documented here:
-> >   https://github.com/T-head-Semi/thead-extension-spec/pull/45
-> >
-> > For QEMU this patch depends on
-> >   https://lists.gnu.org/archive/html/qemu-devel/2024-03/msg06368.html
-> >
->
-> Although using something like vendor id to provide basic init code for
-> platform with the same cpus is a good idea, it may be too hard to
-> provide common code for the whole vendor. As the cpu evolves, a vendor
-> may provide something different completely from the previous cpu. This
-> make provide common code for the entire vendor almost impossible.
->
-> There is an another suggestion discussed in the kernel, which suggest
-> using pseudo extension to provide generic support. I think you want
-> to check it.
-> https://lore.kernel.org/all/20240311063018.1886757-1-dqfext at gmail.com/
 
-This is all about custom extensions and their discovery.
-In this particular case, we have the additional challenge that MAEE
-affects early boot.
-We have modeled it such that:
-* XTheadMxStatus/XTheadSxStatus provides the CSR to probe
-(https://github.com/T-head-Semi/thead-extension-spec/pull/45)
-* XTheadMaee is the extension for the page-based memory attributes
-So, all functionality is covered by custom extensions.
 
-The question if the kernel reads out the CSR or a DT property is a different
-discussion (DT is preferred but implies dependencies to FW providing that,
-and requires a boot process stage where we can already process a DT).
+> -----Original Message-----
+> From: Sean Anderson <seanga2@gmail.com>
+> Sent: 30 September 2020 17:07
+> To: Anup Patel <Anup.Patel@wdc.com>; Atish Patra
+> <Atish.Patra@wdc.com>; Alistair Francis <Alistair.Francis@wdc.com>
+> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org
+> Subject: Re: [RFC PATCH v2] lib: Implement System Reset (SRST) SBI
+> extension
+> 
+> On 9/26/20 2:53 AM, Anup Patel wrote:
+> > The SBI SRST extension specification is in draft state and available
+> > in srbt_v1 branch of: https://github.com/avpatel/riscv-sbi-doc.
+> >
+> > It allows to S-mode software to request system shutdown, cold reboot,
+> > and warm reboot.
+> >
+> > This patch provides implementation of SBI SRST extension.
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> > Changes since v1:
+> >  - Updated patch as-per latest SBI SRST extension draft spec where
+> >    we have only one SBI call with "reset_type" parameter
+> > ---
+> >  include/sbi/sbi_ecall.h           |  1 +
+> >  include/sbi/sbi_ecall_interface.h |  8 ++++++
+> >  lib/sbi/objects.mk                |  1 +
+> >  lib/sbi/sbi_ecall.c               |  3 ++
+> >  lib/sbi/sbi_ecall_srst.c          | 48 +++++++++++++++++++++++++++++++
+> >  5 files changed, 61 insertions(+)
+> >  create mode 100644 lib/sbi/sbi_ecall_srst.c
+> >
+> > diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h index
+> > 3273ba6..1ef86e2 100644
+> > --- a/include/sbi/sbi_ecall.h
+> > +++ b/include/sbi/sbi_ecall.h
+> > @@ -37,6 +37,7 @@ extern struct sbi_ecall_extension ecall_rfence;
+> > extern struct sbi_ecall_extension ecall_ipi;  extern struct
+> > sbi_ecall_extension ecall_vendor;  extern struct sbi_ecall_extension
+> > ecall_hsm;
+> > +extern struct sbi_ecall_extension ecall_srst;
+> >
+> >  u16 sbi_ecall_version_major(void);
+> >
+> > diff --git a/include/sbi/sbi_ecall_interface.h
+> > b/include/sbi/sbi_ecall_interface.h
+> > index af30500..d9c2519 100644
+> > --- a/include/sbi/sbi_ecall_interface.h
+> > +++ b/include/sbi/sbi_ecall_interface.h
+> > @@ -27,6 +27,7 @@
+> >  #define SBI_EXT_IPI				0x735049
+> >  #define SBI_EXT_RFENCE				0x52464E43
+> >  #define SBI_EXT_HSM				0x48534D
+> > +#define SBI_EXT_SRST				0x53525354
+> >
+> >  /* SBI function IDs for BASE extension*/
+> >  #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
+> > @@ -62,6 +63,13 @@
+> >  #define SBI_HSM_HART_STATUS_START_PENDING	0x2
+> >  #define SBI_HSM_HART_STATUS_STOP_PENDING	0x3
+> >
+> > +/* SBI function IDs for SRST extension */
+> > +#define SBI_EXT_SRST_RESET			0x0
+> > +
+> > +#define SBI_SRST_RESET_TYPE_SHUTDOWN		0x0
+> > +#define SBI_SRST_RESET_TYPE_COLD_REBOOT	0x1
+> > +#define SBI_SRST_RESET_TYPE_WARM_REBOOT	0x2
+> > +
+> >  #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
+> >  #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
+> >  #define SBI_SPEC_VERSION_MINOR_MASK		0xffffff
+> > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk index
+> > fa808a0..6ec1154 100644
+> > --- a/lib/sbi/objects.mk
+> > +++ b/lib/sbi/objects.mk
+> > @@ -20,6 +20,7 @@ libsbi-objs-y += sbi_ecall_base.o  libsbi-objs-y +=
+> > sbi_ecall_hsm.o  libsbi-objs-y += sbi_ecall_legacy.o  libsbi-objs-y +=
+> > sbi_ecall_replace.o
+> > +libsbi-objs-y += sbi_ecall_srst.o
+> >  libsbi-objs-y += sbi_ecall_vendor.o
+> >  libsbi-objs-y += sbi_emulate_csr.o
+> >  libsbi-objs-y += sbi_fifo.o
+> > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c index
+> > 64c9933..6d41cff 100644
+> > --- a/lib/sbi/sbi_ecall.c
+> > +++ b/lib/sbi/sbi_ecall.c
+> > @@ -167,6 +167,9 @@ int sbi_ecall_init(void)
+> >  	if (ret)
+> >  		return ret;
+> >  	ret = sbi_ecall_register_extension(&ecall_hsm);
+> > +	if (ret)
+> > +		return ret;
+> > +	ret = sbi_ecall_register_extension(&ecall_srst);
+> >  	if (ret)
+> >  		return ret;
+> >  	ret = sbi_ecall_register_extension(&ecall_legacy);
+> > diff --git a/lib/sbi/sbi_ecall_srst.c b/lib/sbi/sbi_ecall_srst.c new
+> > file mode 100644 index 0000000..64c228f
+> > --- /dev/null
+> > +++ b/lib/sbi/sbi_ecall_srst.c
+> > @@ -0,0 +1,48 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2020 Western Digital Corporation or its affiliates.
+> > + *
+> > + * Authors:
+> > + *   Anup Patel <anup.patel@wdc.com>
+> > + */
+> > +
+> > +#include <sbi/sbi_ecall.h>
+> > +#include <sbi/sbi_ecall_interface.h>
+> > +#include <sbi/sbi_error.h>
+> > +#include <sbi/sbi_platform.h>
+> > +#include <sbi/sbi_system.h>
+> > +
+> > +static int sbi_ecall_srst_handler(unsigned long extid, unsigned long
+> funcid,
+> > +				  unsigned long *args, unsigned long
+> *out_val,
+> > +				  struct sbi_trap_info *out_trap) {
+> > +	int ret = 0;
+> > +
+> > +	if (funcid == SBI_EXT_SRST_RESET) {
+> > +		switch (args[0]) {
+> > +		case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> > +
+> 	sbi_system_reset(SBI_PLATFORM_RESET_SHUTDOWN);
+> 
+> Shouldn't we check a return value here? Some platforms may not support all
+> types of resets, and may want to return SBI_ENOTSUPP. For example, the
+> K210 only supports warm resets.
+
+The sbi_system_reset() is implemented as noreturn function.
+
+We have three cases here:
+1. A platform has none of the SBI system reset types supported
+2. A platform has few of the SBI system reset types supported
+3. A platform has all SBI system reset types supported
+
+For case#1, we will simply halt all HARTs in WFI.
+
+For case#2, we will halt all HARTs in WFI when a
+particular SBI system reset type is not supported by platform.
+
+Basically, current sbi_system_reset() implementation ensures that
+we never return for a valid reset_type irrespective whether underlying
+platform supports it or not.
+
+The only case where SBI SRST RESET call fails is when provided
+reset_type is invalid.
+
+Regards,
+Anup
+
+> 
+> --Sean
+> 
+> > +			break;
+> > +		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> > +			sbi_system_reset(SBI_PLATFORM_RESET_COLD);
+> > +			break;
+> > +		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> > +			sbi_system_reset(SBI_PLATFORM_RESET_WARM);
+> > +			break;
+> > +		default:
+> > +			ret = SBI_EINVAL;
+> > +			break;
+> > +		};
+> > +	} else {
+> > +		ret = SBI_ENOTSUPP;
+> > +	}
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +struct sbi_ecall_extension ecall_srst = {
+> > +	.extid_start = SBI_EXT_SRST,
+> > +	.extid_end = SBI_EXT_SRST,
+> > +	.handle = sbi_ecall_srst_handler,
+> > +};
+> >
 
