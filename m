@@ -1,152 +1,140 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 1 Oct 2020 15:40:20 +0000
-Subject: [PATCH 1/1] firmware: provide space for firmware fixups
-In-Reply-To: <77381bd1-e96a-ae67-0250-26f0690cd9aa@gmx.de>
-References: <20201001102836.15622-1-xypron.glpk@gmx.de>
- <DM6PR04MB6201E6C1A30CD6930F472DF78D300@DM6PR04MB6201.namprd04.prod.outlook.com>
- <a499577f-9377-61c2-aae7-2acda489ac14@gmx.de>
- <DM6PR04MB6201F578219E66A9DFA961498D300@DM6PR04MB6201.namprd04.prod.outlook.com>
- <77381bd1-e96a-ae67-0250-26f0690cd9aa@gmx.de>
-Message-ID: <DM6PR04MB6201CC1A1241F58AEE15BA368D300@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Thu, 1 Oct 2020 11:05:57 -0700
+Subject: OpenSBI: Boot HART ISA display
+In-Reply-To: <af787708-1b31-2e67-fd45-9e30f2863dda@gmx.de>
+References: <3e977253-0836-e76f-964b-49b7f2541fde@gmx.de>
+ <CAOnJCULFvSArogZzzHLN-QW+2D7nPWh7JcxSUcxMOprnJVK-zQ@mail.gmail.com>
+ <46daebe0-4099-c2a6-54ab-0010a0317b3e@gmx.de>
+ <CAOnJCUKnY0fLZr6OjD5SWF8Fbk8vCQtWgniJanJrGZtPZW3NnQ@mail.gmail.com>
+ <01c4c704e0672a755483ca7124ca691047ffc7b7.camel@wdc.com>
+ <915a8ca70d5d0ab737d22d6199a9c8ce1b4dd75b.camel@wdc.com>
+ <19cc6098-2816-59d6-20b1-c9c19b43354a@gmx.de>
+ <07f615f0-7f2e-a04c-36d8-ff5395b03194@gmx.de>
+ <CAOnJCU+aTdARckrmGkmPSeayvT4Wo=Wkznh7LYX63RnpHykTtg@mail.gmail.com>
+ <af787708-1b31-2e67-fd45-9e30f2863dda@gmx.de>
+Message-ID: <CAOnJCUKf38UTb-q5+cHMB_bMri8StXHZ9M+OCNhiLKtT_1_cDw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-> -----Original Message-----
-> From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-> Sent: 01 October 2020 19:46
-> To: Anup Patel <Anup.Patel@wdc.com>; Atish Patra
-> <Atish.Patra@wdc.com>
-> Cc: OpenSBI List <opensbi@lists.infradead.org>; Atish Patra
-> <atishp@atishpatra.org>
-> Subject: Re: [PATCH 1/1] firmware: provide space for firmware fixups
-> 
-> On 01.10.20 14:08, Anup Patel wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-> >> Sent: 01 October 2020 16:55
-> >> To: Anup Patel <Anup.Patel@wdc.com>; Atish Patra
-> >> <Atish.Patra@wdc.com>
-> >> Cc: OpenSBI List <opensbi@lists.infradead.org>; Atish Patra
-> >> <atishp@atishpatra.org>
-> >> Subject: Re: [PATCH 1/1] firmware: provide space for firmware fixups
+On Wed, Sep 30, 2020 at 4:27 PM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+>
+> On 9/30/20 9:12 PM, Atish Patra wrote:
+> > On Wed, Sep 30, 2020 at 4:12 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
 > >>
-> >> On 01.10.20 12:56, Anup Patel wrote:
-> >>>
-> >>>
-> >>>> -----Original Message-----
-> >>>> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of
-> >>>> Heinrich Schuchardt
-> >>>> Sent: 01 October 2020 15:59
-> >>>> To: Atish Patra <Atish.Patra@wdc.com>
-> >>>> Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>; OpenSBI List
-> >>>> <opensbi@lists.infradead.org>; Atish Patra <atishp@atishpatra.org>
-> >>>> Subject: [PATCH 1/1] firmware: provide space for firmware fixups
-> >>>>
-> >>>> We expand the provided device tree by up to 1056 bytes in fixup
-> >> operations.
-> >>>> This space must be allocated in the firmware binary.
-> >>>>
-> >>>> An alternative approach would be to allocate RAM for a copy of the
-> >>>> device tree but we do not have library functions for dynamic memory
-> >> allocation yet.
-> >>>>
-> >>>> Without this patch devicetree fixups lead to memory corruption.
-> >>>>
-> >>>> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-> >>>> ---
-> >>>>  firmware/fw_payload.S | 2 ++
-> >>>>  scripts/d2c.sh        | 3 +++
-> >>>>  2 files changed, 5 insertions(+)
-> >>>>
-> >>>> diff --git a/firmware/fw_payload.S b/firmware/fw_payload.S index
-> >>>> 9805d8c..fdd082f 100644
-> >>>> --- a/firmware/fw_payload.S
-> >>>> +++ b/firmware/fw_payload.S
-> >>>> @@ -108,6 +108,8 @@ fw_options:
-> >>>>  	.globl fdt_bin
-> >>>>  fdt_bin:
-> >>>>  	.incbin	FW_PAYLOAD_FDT_PATH
-> >>>> +	/* space for device tree updates */
-> >>>> +	. = . + 0x420;
-> >>>>  #endif
-> >>>
-> >>> We should not add arbitrary padding like this. Instead we should
-> >>> have separate FW_PAYLOAD_FDT_PADDING options for config.mk.
-> >>>
-> >>>>
-> >>>>  	.section .payload, "ax", %progbits diff --git a/scripts/d2c.sh
-> >>>> b/scripts/d2c.sh index 821a995..1c53a71
-> >>>> 100755
-> >>>> --- a/scripts/d2c.sh
-> >>>> +++ b/scripts/d2c.sh
-> >>>> @@ -62,6 +62,9 @@ printf "const char __attribute__((aligned(%s)))
-> >>>> %s_start[] = {\n" "${OUTPUT_C_AL
-> >>>>
-> >>>>  od -v -t x1 -An ${INPUT_PATH} | awk '{for (i=1; i<=NF; i++) printf "
-> >>>> 0x%s,", $i; printf "\n"; }'
-> >>>>
-> >>>> +# Add 1056 bytes for device tree fixups echo dummy | awk '{for
-> >>>> +(j=1; j<=0x42; j++) {for (i=1; i<=0x10; i++) printf " 0x00,"; printf "\n"}; }'
-> >>>> +
-> >>>
-> >>> Here again, we should not have arbitrary padding. Instead:
-> >>> 1) Add optional parameter to d2c.sh for amount of padding required
-> >>> 2) In platform/kendryte/k210/objects.mk, add line "platform-padding-
-> >> k210.o = 1056"
+> >> On 30.09.20 10:45, Heinrich Schuchardt wrote:
+> >>> On 30.09.20 10:22, Damien Le Moal wrote:
+> >>>> On Wed, 2020-09-30 at 14:08 +0900, Damien Le Moal wrote:
+> >>>>> On Tue, 2020-09-29 at 13:38 -0700, Atish Patra wrote:
+> >>>>>> On Tue, Sep 29, 2020 at 12:38 PM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+> >>>>>>> On 9/29/20 9:05 PM, Atish Patra wrote:
+> >>>>>>>> On Mon, Sep 28, 2020 at 3:18 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+> >>>>>>>>> Hello Atish,
+> >>>>>>>>>
+> >>>>>>>>> on the Kendryte 210 MaixDuino the OpenSBI output line
+> >>>>>>>>>
+> >>>>>>>>> Boot HART ISA       : rv64cicacsidcacsi
+> >>>>>>>>>
+> >>>>>>>>> looks a bit strange to me (see full output at the end of the mail).
+> >>>>>>>>
+> >>>>>>>> Yeah. It doesn't make any sense.
+> >>>>>>>>
+> >>>>>>>>> Assuming that the characters after rv64 are related to extensions I
+> >>>>>>>>> would expect every letter appearing only once.
+> >>>>>>>>>
+> >>>>>>>>
+> >>>>>>>> That's correct. See 3.1.1. Machine ISA Register misa in priv spec.
+> >>>>>>>>
+> >>>>>>>>> I tried to add sbi_printf() statements to lib/sbi/riscv_asm.c but they
+> >>>>>>>>> do not print out correctly.
+> >>>>>>>>>
 > >>
-> >> This numbers 1024 and 32 is defined by lib/utils/fdt/fdt_fixup.c. I
-> >> understand why defining constants makes sense. These constants may be
-> >> used on platform level but should not be defined there but in an
-> >> include or common Makefile.
-> >
-> > The FDT fixups will keep changing over-time so common makefile
-> > variable for amount of padding in lib/utils/fdt/objects.mk is fine.
-> >
+> >> <snip />
 > >>
-> >>> 3) Extend "compile_d2c" and make rule to convert .dtb to .c file in
-> >>> toplevel Makfile
-> >>>
-> >>>>  printf "};\n"
-> >>>>
-> >>>>  printf "const unsigned long %s_size = sizeof(%s_start);\n"
-> >>>> "${OUTPUT_C_PREFIX}" "${OUTPUT_C_PREFIX}"
+> >> In build/platform/kendryte/k210/firmware/fw_payload.bin the string for
+> >> the extensions
 > >>
-> >> We already have firmware/fw_payload.S including
-> FW_PAYLOAD_FDT_PATH.
-> >> Shouldn't we unify the way device trees are included in the firmware.
-> >> We could define a new variable defined by FW_PAYLOAD_FDT_PATH with
-> a
-> >> fallback to a platform device tree.
+> >> valid_isa_order[] = "iemafdqclbjtpvnsuhkorwxyzg"
+> >>
+> >> directly follows the embedded device tree:
+> >>
+> >> .......................n........................
+> >> ....#address-cells.#size-cells.compatible.bootar
+> >> gs.device_type.clock-frequency.i-cache-size.d-ca
+> >> che-size.mmu-type.reg.riscv,isa.status.#interrup
+> >> cells.interrupt-controller.linux,phandle.inter
+> >> rupts-extended......iemafdqclbjtpvnsuhkorwxyzg..
+> >> .*..z*..t*..n*..h*..b*..\*..V*..P*..J*..D*..>*..
+> >>
+> >> When running fixups the device-tree becomes longer.
+> >>
+> >> Whenever we do device-tree fixups we have to copy the device tree to a
+> >> different memory location with enough space for the fixups or we need
+> >> the linker script to leave enough space.
+> >>
+> > Thanks for getting to the bottom of this issue. But does this issue
+> > solve the test payload issue Damien was facing ?
 > >
-> > FW_PAYLOAD_FDT_PATH has limitations. The d2c.sh approach is more
-> > flexible and allows having multiple built-in DTBs whereas we can only
-> > include one DTB with FW_PAYLOAD_FDT_PATH. Also, the
-> > FW_PAYLOAD_FDT_PATH
-> 
-> Do you have an example with multiple dtbs? Will each of the dtbs need a
-> fixup? Is the idea that OpenSBI will determine the relevant dtb at runtime?
+> > Looking at the fw_payload.bin, DT ends at 0x10d10 and payload starts
+> > at 0x14000. The .rodata sections of the payload
+> > starts at 0x15000. This is where the string in the payload resides. We
+> > expand the DT by 1056 bytes. The payload section
+> > is almost after 3KiB.
+> >
+> > Do we still have another issue that corrupts data/bass sections of
+> > payload running in S-mode?
+> >
+> >> If OpenSBI is run from a NOR flash anyway we first have to copy the
+> >> device-tree to RAM before we can do any fixup.
+> >>
+> >> Which way should we go:
+> >> - allocate space for a copy of the fdt with sbi_scratch_alloc_offset, or
+> >> - change the linker script to leave 1 KiB free space after the dtb
+> >>
+> >
+> > Currently, we expand the DT by 1024 + 32. So it has to be more than 1KB.
+>
+> Atish, thanks for that hint. Yes 1024 fdt_reserved_memory_fixup() and 32
+> in fdt_cpu_fixup(). Aren't those fdt_open_into() calls bound to fail
+> because fdt == buf and bufsize < 2 * fdtsize?
+>
 
-Let's say we have two DTS  (k210-board1.dts and k210-board2.dts) for same
-Kendryte K210 SOC but different boards then both DTS can be linked with
-platform objects.mk as follows:
+In the current cases, it just fdt_move gets called before this.
+Even if it reaches this check, it will not fail as bufsize > newsize.
 
-platform-objs-y += k210-board1.o
-platform-varprefix-k210-board1.o = dt_k210_board1
-platform-objs-y += k210-board2.o
-platform-varprefix-k210-board2.o = dt_k210_board2
+> /* First attempt to build converted tree at beginning of buffer */
+> tmp = buf;
+> /* But if that overlaps with the old tree... */
+> if (((tmp + newsize) > fdtstart) && (tmp < fdtend)) {
+>         /* Try right after the old tree instead */
+>         tmp = (char *)(uintptr_t)fdtend;
+>         if ((tmp + newsize) > ((char *)buf + bufsize))
+>                return -FDT_ERR_NOSPACE;  <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+> }
+>
+> My questions was if we should make a full copy or if we should try to
+> reserve memory inside the OpenSBI binary. What is your preference?
+>
 
-The OpenSBI kendyte k210 platform can select appropriate built-in DTB
-in fw_platform_init() based on some pinstrap or some other way.
+I see you have already sent that patch. I prefer the binary approach as well.
 
-We certainly don't need to fixup all built-in DTBs. Only the selected
-built-in DTB will be fixed-up.
+> Best regards
+>
+> Heinrich
+>
+> >
+> >> Best regards
+> >>
+> >> Heinrich
+> >
+> >
+> >
+>
 
+
+-- 
 Regards,
-Anup
+Atish
+
