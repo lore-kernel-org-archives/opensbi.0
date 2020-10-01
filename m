@@ -1,129 +1,194 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 1 Oct 2020 11:15:08 -0700
-Subject: OpenSBI: Boot HART ISA display
-In-Reply-To: <CY4PR04MB3751A39FC86B119448942F8AE7300@CY4PR04MB3751.namprd04.prod.outlook.com>
-References: <3e977253-0836-e76f-964b-49b7f2541fde@gmx.de>
- <CAOnJCULFvSArogZzzHLN-QW+2D7nPWh7JcxSUcxMOprnJVK-zQ@mail.gmail.com>
- <46daebe0-4099-c2a6-54ab-0010a0317b3e@gmx.de>
- <CAOnJCUKnY0fLZr6OjD5SWF8Fbk8vCQtWgniJanJrGZtPZW3NnQ@mail.gmail.com>
- <01c4c704e0672a755483ca7124ca691047ffc7b7.camel@wdc.com>
- <915a8ca70d5d0ab737d22d6199a9c8ce1b4dd75b.camel@wdc.com>
- <19cc6098-2816-59d6-20b1-c9c19b43354a@gmx.de>
- <07f615f0-7f2e-a04c-36d8-ff5395b03194@gmx.de>
- <CAOnJCU+aTdARckrmGkmPSeayvT4Wo=Wkznh7LYX63RnpHykTtg@mail.gmail.com>
- <CY4PR04MB3751A39FC86B119448942F8AE7300@CY4PR04MB3751.namprd04.prod.outlook.com>
-Message-ID: <CAOnJCUJDS=57PTmnV-TdWa9BSqYHNiVmSWeYSqg1HbPaHtGVZA@mail.gmail.com>
+Date: Thu, 1 Oct 2020 16:02:12 -0700
+Subject: [PATCH 16/16] docs: Add initial documentation for domain support
+In-Reply-To: <20200925112914.725846-17-anup.patel@wdc.com>
+References: <20200925112914.725846-1-anup.patel@wdc.com>
+ <20200925112914.725846-17-anup.patel@wdc.com>
+Message-ID: <CAOnJCULUpfaCjUjd55xF2pFZVqof2fbZWy74qsv7+zObyqJDEQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 30, 2020 at 7:04 PM Damien Le Moal <Damien.LeMoal@wdc.com> wrote:
+On Fri, Sep 25, 2020 at 4:30 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> On 2020/10/01 4:12, Atish Patra wrote:
-> > On Wed, Sep 30, 2020 at 4:12 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >>
-> >> On 30.09.20 10:45, Heinrich Schuchardt wrote:
-> >>> On 30.09.20 10:22, Damien Le Moal wrote:
-> >>>> On Wed, 2020-09-30 at 14:08 +0900, Damien Le Moal wrote:
-> >>>>> On Tue, 2020-09-29 at 13:38 -0700, Atish Patra wrote:
-> >>>>>> On Tue, Sep 29, 2020 at 12:38 PM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >>>>>>> On 9/29/20 9:05 PM, Atish Patra wrote:
-> >>>>>>>> On Mon, Sep 28, 2020 at 3:18 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >>>>>>>>> Hello Atish,
-> >>>>>>>>>
-> >>>>>>>>> on the Kendryte 210 MaixDuino the OpenSBI output line
-> >>>>>>>>>
-> >>>>>>>>> Boot HART ISA       : rv64cicacsidcacsi
-> >>>>>>>>>
-> >>>>>>>>> looks a bit strange to me (see full output at the end of the mail).
-> >>>>>>>>
-> >>>>>>>> Yeah. It doesn't make any sense.
-> >>>>>>>>
-> >>>>>>>>> Assuming that the characters after rv64 are related to extensions I
-> >>>>>>>>> would expect every letter appearing only once.
-> >>>>>>>>>
-> >>>>>>>>
-> >>>>>>>> That's correct. See 3.1.1. Machine ISA Register misa in priv spec.
-> >>>>>>>>
-> >>>>>>>>> I tried to add sbi_printf() statements to lib/sbi/riscv_asm.c but they
-> >>>>>>>>> do not print out correctly.
-> >>>>>>>>>
-> >>
-> >> <snip />
-> >>
-> >> In build/platform/kendryte/k210/firmware/fw_payload.bin the string for
-> >> the extensions
-> >>
-> >> valid_isa_order[] = "iemafdqclbjtpvnsuhkorwxyzg"
-> >>
-> >> directly follows the embedded device tree:
-> >>
-> >> .......................n........................
-> >> ....#address-cells.#size-cells.compatible.bootar
-> >> gs.device_type.clock-frequency.i-cache-size.d-ca
-> >> che-size.mmu-type.reg.riscv,isa.status.#interrup
-> >> cells.interrupt-controller.linux,phandle.inter
-> >> rupts-extended......iemafdqclbjtpvnsuhkorwxyzg..
-> >> .*..z*..t*..n*..h*..b*..\*..V*..P*..J*..D*..>*..
-> >>
-> >> When running fixups the device-tree becomes longer.
-> >>
-> >> Whenever we do device-tree fixups we have to copy the device tree to a
-> >> different memory location with enough space for the fixups or we need
-> >> the linker script to leave enough space.
-> >>
-> > Thanks for getting to the bottom of this issue. But does this issue
-> > solve the test payload issue Damien was facing ?
-> >
-> > Looking at the fw_payload.bin, DT ends at 0x10d10 and payload starts
-> > at 0x14000. The .rodata sections of the payload
-> > starts at 0x15000. This is where the string in the payload resides. We
-> > expand the DT by 1056 bytes. The payload section
-> > is almost after 3KiB.
-> >
-> > Do we still have another issue that corrupts data/bass sections of
-> > payload running in S-mode?
+> We add initial documentation for OpenSBI domain support to help
+> RISC-V platform vendors achieve system-level partitioning.
 >
-> Kendryte does not go to S-mode: no MMU ! That may be the cause of the payload
-> problem: M-mode ecalls may not be working as expected, resulting in the console
-> printk to fail. I can write individual characters (putc), but not normal printk.
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  README.md              |   3 ++
+>  docs/domain_support.md | 105 +++++++++++++++++++++++++++++++++++++++++
+>  docs/doxygen.cfg       |   1 +
+>  3 files changed, 109 insertions(+)
+>  create mode 100644 docs/domain_support.md
 >
-I was just asking about the test payload. I don't think there is any
-issue with ecalls
-as you were able to run sbi_ecall_console_putc.
+> diff --git a/README.md b/README.md
+> index bd41ba3..03c02fb 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -225,6 +225,8 @@ Detailed documentation of various aspects of OpenSBI can be found under the
+>  * [Platform Documentation]: Documentation of the platforms currently supported.
+>  * [Firmware Documentation]: Documentation for the different types of firmware
+>    examples build supported by OpenSBI.
+> +* [Domain Support]: Documentation for the OpenSBI domain support which helps
+> +  users achieve system-level partitioning using OpenSBI.
+>
+>  OpenSBI source code is also well documented. For source level documentation,
+>  doxygen style is used. Please refer to the [Doxygen manual] for details on this
+> @@ -278,6 +280,7 @@ make I=<install_directory> install_docs
+>  [Platform Support Guide]: docs/platform_guide.md
+>  [Platform Documentation]: docs/platform/platform.md
+>  [Firmware Documentation]: docs/firmware/fw.md
+> +[Domain Support]: docs/domain_support.md
+>  [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+>  [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+>  [third party notices]: ThirdPartyNotices.md
+> diff --git a/docs/domain_support.md b/docs/domain_support.md
+> new file mode 100644
+> index 0000000..fad4f67
+> --- /dev/null
+> +++ b/docs/domain_support.md
+> @@ -0,0 +1,105 @@
+> +OpenSBI Domain Support
+> +======================
+> +
+> +An OpenSBI domain is a system-level partition (subset) of underlying hardware
+> +having it's own memory regions (RAM and MMIO devices) and HARTs. The OpenSBI
+> +will try to achieve secure isolation between domains using RISC-V platform
+> +features such as PMP, IOPMP, etc.
+> +
 
-The only difference between sbi_ecall_console_puts &
-sbi_ecall_console_putc is that
-it accesses a string from the .rodata section.
+May be specify a few other options such as ePMP, SiFive shield as well
+as you mentioned in the patch commit.
 
-> >
-> >> If OpenSBI is run from a NOR flash anyway we first have to copy the
-> >> device-tree to RAM before we can do any fixup.
-> >>
-> >> Which way should we go:
-> >> - allocate space for a copy of the fdt with sbi_scratch_alloc_offset, or
-> >> - change the linker script to leave 1 KiB free space after the dtb
-> >>
-> >
-> > Currently, we expand the DT by 1024 + 32. So it has to be more than 1KB.
+> +Important entities which help implement OpenSBI domain support are:
+> +
+> +* **struct sbi_domain_memregion** - Representation of a domain memory region
+> +* **struct sbi_hartmask** - Representation of domain HART set
+> +* **struct sbi_domain** - Representation of a domain instance
+> +
+> +Each HART of a RISC-V platform must have an OpenSBI domain assigned to it.
+> +The OpenSBI platform support is responsible for populating domains and
+> +providing HART id to domain mapping. The OpenSBI domain support will by
+> +default assign **the ROOT domain** to all HARTs of a RISC-V platform so
+> +it is not mandatory for the OpenSBI platform support to populate domains.
+> +
+> +Domain Memory Region
+> +--------------------
+> +
+> +A domain memory region is represented by **struct sbi_domain_memregion** in
+> +OpenSBI and has following details:
+> +
+> +* **order** - The size of a memory region is **2 ^ order** where **order**
+> +  must be **3 <= order <= __riscv_xlen**
+> +* **base** - The base address of a memory region is **2 ^ order**
+> +  aligned start address
+> +* **flags** - The flags of a memory region represent memory type (i.e.
+> +  RAM or MMIO) and allowed accesses (i.e. READ, WRITE, EXECUTE, etc)
+> +
+> +Domain Instance
+> +---------------
+> +
+> +A domain instance is represented by **struct sbi_domain** in OpenSBI and
+> +has following details:
+> +
+> +* **index** - Logical index of this domain
+> +* **name** - Name of this domain
+> +* **assigned_harts** - HARTs assigned to this domain
+> +* **possible_harts** - HARTs possible in this domain
+> +* **regions** - Array of memory regions terminated by a memory region
+> +  with order zero
+> +* **boot_hartid** - HART id of the HART booting this domain. The domain
+> +  boot HART will be started at boot-time if boot HART is a possible and
+> +  assigned for this domain.
+> +* **next_addr** - Address of the next booting stage for this domain
+> +* **next_arg1** - Arg1 (or 'a1' register) of the next booting stage for
+> +   this domain
+> +* **next_mode** - Priviledge mode of the next booting stage for this domain
+> +* **system_reset_allowed** - Is domain allowed to reset the system?
+> +
+Will it be better to keep a bitwise flags for such features ?
+Does a domain allow modification of PMP regions ?
+
+> +The memory regions represented by **regions** in **struct sbi_domain** have
+> +following additional constraints to align with RISC-V PMP requirements:
+> +
+> +* A memory region to protect OpenSBI firmware from S-mode and U-mode
+> +  should always be present
+> +* For two overlapping memory regions, one should be sub-region of another
+> +* Two overlapping memory regions should not be of same size
+> +* Two overlapping memory regions canot have same flags
+/canot/cannot/gc
+
+> +* Memory access checks on overlapping address should prefer smallest
+> +  overlapping memory region flags.
+> +
+> +ROOT Domain
+> +-----------
+> +
+> +**The ROOT domain** is the default OpenSBI domain which is assigned by
+> +default to all HARTs of a RISC-V platform. The OpenSBI domain support
+> +will hand-craft **the ROOT domain** very early at boot-time in the
+> +following manner:
+> +
+> +* **index** - Logical index of the ROOT domain is always zero
+> +* **name** - Name of the ROOT domain is "root"
+> +* **assigned_harts** - At boot-time all valid HARTs of a RISC-V platform
+> +  are assigned the ROOT domain which changes later based on OpenSBI
+> +  platform support
+> +* **possible_harts** - All valid HARTs of a RISC-V platform are possible
+> +  HARTs of the ROOT domain
+> +* **regions** - Two memory regions available to the ROOT domain:
+> +  **A)** A memory region to protect OpenSBI firmware from S-mode and U-mode
+> +  **B)** A memory region of **order=__riscv_xlen** allowing S-mode and
+> +  U-mode access to full memory address space
+> +* **boot_hartid** - Coldboot HART is the HART booting the ROOT domain
+> +* **next_addr** - Next booting stage address in coldboot HART scratch
+> +  space is the next address for the ROOT domain
+> +* **next_arg1** - Next booting stage arg1 in coldboot HART scratch space
+> +  is the next arg1 for the ROOT domain
+> +* **next_mode** - Next booting stage mode in coldboot HART scratch space
+> +  is the next mode for the ROOT domain
+> +* **system_reset_allowed** - The ROOT domain is allowed to reset the system
+> +
+> +Domain Effects
+> +--------------
+> +
+> +Few noteworthy effects of a system partitioned into domains are as follows:
+> +
+> +* At any point in time, a HART is running in exactly one OpenSBI domain context
+> +* The SBI IPI and RFENCE calls from HART A are restricted to the HARTs in
+> +  domain assigned to HART A
+> +* The SBI HSM calls which try to change/read state of HART B from HART A will
+> +  only work if both HART A and HART B are assigned same domain
+> +* A HART running in S-mode or U-mode can only access memory based on the
+> +  memory regions of the domain assigned to the HART
+
+How about effects on PMP ?
+
+> \ No newline at end of file
+> diff --git a/docs/doxygen.cfg b/docs/doxygen.cfg
+> index dbf8ef9..82f31a7 100644
+> --- a/docs/doxygen.cfg
+> +++ b/docs/doxygen.cfg
+> @@ -795,6 +795,7 @@ INPUT                  = @@SRC_DIR@@/README.md \
+>                           @@SRC_DIR@@/docs/platform_guide.md \
+>                           @@SRC_DIR@@/docs/platform_requirements.md \
+>                           @@SRC_DIR@@/docs/library_usage.md \
+> +                         @@SRC_DIR@@/docs/domain_support.md \
+>                           @@SRC_DIR@@/docs/firmware \
+>                           @@SRC_DIR@@/docs/platform \
+>                           @@SRC_DIR@@/include \
+> --
+> 2.25.1
 >
-> Where is the expansion done ? In the relocated resting place or inplace where
-> the previous stage placed the dtb ? If it is the latter, then the equivalent for
-> Kendryte would be to add 1024+32 to the dtb array created by d2c.sh. Simple but
-> ugly in my  opinion. The better method I think would be to use this array
-> generated by d2c.sh exactly as if this is a dtb provided by the previous boot
-> stage and do everything with it normally. That means changing fw_base.S. I
-> looked at it but understanding that assembler would take me too long. Please
-> have a look if you can. fw_platform_init() returns the embedded dtb address,
-> that is the address of the array generated by d2c.sh.
->
-> Cheers.
 >
 > --
-> Damien Le Moal
-> Western Digital Research
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
 
