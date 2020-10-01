@@ -1,56 +1,53 @@
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu,  1 Oct 2020 12:28:36 +0200
-Subject: [PATCH 1/1] firmware: provide space for firmware fixups
-Message-ID: <20201001102836.15622-1-xypron.glpk@gmx.de>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Thu, 1 Oct 2020 10:39:04 +0000
+Subject: [PATCH 1/1] lib: sbi_scratch: typo scatch
+In-Reply-To: <20201001102747.15565-1-xypron.glpk@gmx.de>
+References: <20201001102747.15565-1-xypron.glpk@gmx.de>
+Message-ID: <DM6PR04MB62014252C4EF1E74741C740E8D300@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We expand the provided device tree by up to 1056 bytes in fixup operations.
-This space must be allocated in the firmware binary.
 
-An alternative approach would be to allocate RAM for a copy of the
-device tree but we do not have library functions for dynamic memory
-allocation yet.
 
-Without this patch devicetree fixups lead to memory corruption.
+> -----Original Message-----
+> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Heinrich
+> Schuchardt
+> Sent: 01 October 2020 15:58
+> To: Atish Patra <Atish.Patra@wdc.com>
+> Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>; OpenSBI List
+> <opensbi@lists.infradead.org>; Atish Patra <atishp@atishpatra.org>
+> Subject: [PATCH 1/1] lib: sbi_scratch: typo scatch
+> 
+> %s/scatch/scratch
+> 
+> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> ---
+>  include/sbi/sbi_scratch.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h index
+> 8086207..9f3453d 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -85,7 +85,7 @@ enum sbi_scratch_options {  #define
+> sbi_scratch_thishart_arg1_ptr() \
+>  	((void *)(sbi_scratch_thishart_ptr()->next_arg1))
+> 
+> -/** Initialize scatch table and allocator */
+> +/** Initialize scratch table and allocator */
+>  int sbi_scratch_init(struct sbi_scratch *scratch);
+> 
+>  /**
+> --
+> 2.28.0
 
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
----
- firmware/fw_payload.S | 2 ++
- scripts/d2c.sh        | 3 +++
- 2 files changed, 5 insertions(+)
+Looks good to me.
 
-diff --git a/firmware/fw_payload.S b/firmware/fw_payload.S
-index 9805d8c..fdd082f 100644
---- a/firmware/fw_payload.S
-+++ b/firmware/fw_payload.S
-@@ -108,6 +108,8 @@ fw_options:
- 	.globl fdt_bin
- fdt_bin:
- 	.incbin	FW_PAYLOAD_FDT_PATH
-+	/* space for device tree updates */
-+	. = . + 0x420;
- #endif
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
- 	.section .payload, "ax", %progbits
-diff --git a/scripts/d2c.sh b/scripts/d2c.sh
-index 821a995..1c53a71 100755
---- a/scripts/d2c.sh
-+++ b/scripts/d2c.sh
-@@ -62,6 +62,9 @@ printf "const char __attribute__((aligned(%s))) %s_start[] = {\n" "${OUTPUT_C_AL
-
- od -v -t x1 -An ${INPUT_PATH} | awk '{for (i=1; i<=NF; i++) printf " 0x%s,", $i; printf "\n"; }'
-
-+# Add 1056 bytes for device tree fixups
-+echo dummy | awk '{for (j=1; j<=0x42; j++) {for (i=1; i<=0x10; i++) printf " 0x00,"; printf "\n"}; }'
-+
- printf "};\n"
-
- printf "const unsigned long %s_size = sizeof(%s_start);\n" "${OUTPUT_C_PREFIX}" "${OUTPUT_C_PREFIX}"
---
-2.28.0
-
+Regards,
+Anup
 
