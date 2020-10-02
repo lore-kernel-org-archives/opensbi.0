@@ -1,5 +1,5 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 2 Oct 2020 06:28:18 +0000
+Date: Fri, 2 Oct 2020 06:31:18 +0000
 Subject: [PATCH 16/16] docs: Add initial documentation for domain support
 In-Reply-To: <CAOnJCU+CFhaHtY_UuOzPuA5WjrdX8_0kPGfY4yie7cxVgJiwHA@mail.gmail.com>
 References: <20200925112914.725846-1-anup.patel@wdc.com>
@@ -7,7 +7,7 @@ References: <20200925112914.725846-1-anup.patel@wdc.com>
  <CAOnJCULUpfaCjUjd55xF2pFZVqof2fbZWy74qsv7+zObyqJDEQ@mail.gmail.com>
  <DM6PR04MB6201F11971051F42CE7FD0AC8D310@DM6PR04MB6201.namprd04.prod.outlook.com>
  <CAOnJCU+CFhaHtY_UuOzPuA5WjrdX8_0kPGfY4yie7cxVgJiwHA@mail.gmail.com>
-Message-ID: <MN2PR04MB6207D3BA23D856AA7B07BE428D310@MN2PR04MB6207.namprd04.prod.outlook.com>
+Message-ID: <MN2PR04MB6207F47811CD9CD3DC0321688D310@MN2PR04MB6207.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -269,13 +269,12 @@ Content-Transfer-Encoding: 7bit
 > In that case, can it modify PMP ? or what happens if a child domain next
 > stage running in M-mode tries to modify some pmp configurations ?
 
-There is no parent child relationship between domains. It's much simpler
-now compared to initial ideas.
+I forgot to mention. Next stage running in M-mode can always overwrite
+any CSR programmed by OpenSBI so we cannot enforce restrictions on
+next stage when it runs in M-mode.
 
-We just have a ROOT domain and all other domains are non-ROOT domains.
-
-The M-mode software (OpenSBI) will ensure that PMP regions are configured
-for a HART based on the assigned domain.
+Regards,
+Anup
 
 > 
 > > >
@@ -316,6 +315,3 @@ for a HART based on the assigned domain.
 > --
 > Regards,
 > Atish
-
-Regards,
-Anup
