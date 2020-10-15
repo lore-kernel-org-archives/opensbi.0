@@ -1,48 +1,62 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Thu, 15 Oct 2020 13:42:06 +0530
-Subject: [PATCH 0/5] Builtin DTB improvements
-Message-ID: <20201015081211.1956554-1-anup.patel@wdc.com>
+Date: Thu, 15 Oct 2020 13:42:07 +0530
+Subject: [PATCH 1/5] Makefile: Build ELF,
+ BIN and LD script in platform build directory
+In-Reply-To: <20201015081211.1956554-1-anup.patel@wdc.com>
+References: <20201015081211.1956554-1-anup.patel@wdc.com>
+Message-ID: <20201015081211.1956554-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series is largely inspired from previous patch:
-https://patchwork.ozlabs.org/project/opensbi/patch/20201001102836.15622-1-xypron.glpk at gmx.de/
+Currently, the make rules for ELF, BIN and LD script are little
+generic to allowing ELF, BIN and LD script to be anywhere in the
+build directory. For OpenSBI firwares, the ELF, BIN, and LD script
+are always platform specific so we update make rules accordingly.
 
-Overall, this series:
-1. Adds common FW_FDT_PATH compile-time option which replaces the
-   FW_PAYLOAD_FDT_PATH compile-time option
-2. Extends d2c.sh for padding zeros to built-in DTB whenever required
-3. Adds some room in Kendryte/K210 built-in DTB using #2 above
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ Makefile | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-Anup Patel (4):
-  Makefile: Build ELF, BIN and LD script in platform build directory
-  firmware: Add common FW_FDT_PATH compile-time option
-  firmware: Remove FW_PAYLOAD_FDT_PATH compile-time option
-  platform: kendryte/k210: Add some padding for FDT fixups
-
-Heinrich Schuchardt (1):
-  Makefile: Allow padding zeros when converting DTB to C source
-
- Makefile                          | 25 ++++++++++++++-----------
- docs/firmware/fw.md               | 14 +++++++++-----
- docs/firmware/fw_payload.md       |  9 ++-------
- docs/platform/andes-ae350.md      |  4 ++--
- docs/platform/shakti_cclass.md    |  4 ++--
- docs/platform/sifive_fu540.md     |  6 +++---
- firmware/external_deps.mk         |  5 ++++-
- firmware/fw_base.S                | 21 ++++++++++++++-------
- firmware/fw_dynamic.S             | 13 -------------
- firmware/fw_jump.S                | 13 -------------
- firmware/fw_payload.S             | 25 -------------------------
- firmware/objects.mk               | 10 +++++++---
- platform/kendryte/k210/objects.mk |  1 +
- platform/template/config.mk       |  4 +++-
- scripts/d2c.sh                    |  9 ++++++++-
- 15 files changed, 69 insertions(+), 94 deletions(-)
-
+diff --git a/Makefile b/Makefile
+index 2a352ef..6c36f09 100644
+--- a/Makefile
++++ b/Makefile
+@@ -310,15 +310,6 @@ all: $(targets-y)
+ # Preserve all intermediate files
+ .SECONDARY:
+ 
+-$(build_dir)/%.bin: $(build_dir)/%.elf
+-	$(call compile_objcopy,$@,$<)
+-
+-$(build_dir)/%.elf: $(build_dir)/%.o $(build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
+-	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
+-
+-$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
+-	$(call compile_cpp,$@,$<)
+-
+ $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
+ 	$(call compile_ar,$@,$^)
+ 
+@@ -340,6 +331,15 @@ $(build_dir)/%.dep: $(src_dir)/%.S
+ $(build_dir)/%.o: $(src_dir)/%.S
+ 	$(call compile_as,$@,$<)
+ 
++$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
++	$(call compile_objcopy,$@,$<)
++
++$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
++	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
++
++$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
++	$(call compile_cpp,$@,$<)
++
+ $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c
+ 	$(call compile_cc_dep,$@,$<)
+ 
 -- 
 2.25.1
 
