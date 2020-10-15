@@ -1,148 +1,346 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 15 Oct 2020 17:35:29 +0530
-Subject: [PATCH 08/16] lib: sbi: Extend sbi_hsm_hart_start() for domains
-In-Reply-To: <CAOnJCU+4jdc06+nCzbPao0Wg3QAvxKj859-7gvfXpbE_uEL6Ow@mail.gmail.com>
+Date: Thu, 15 Oct 2020 18:36:41 +0530
+Subject: [PATCH 16/16] docs: Add initial documentation for domain support
+In-Reply-To: <CAOnJCU+g9CXQoj7-e0c7yZGWpYfE7yO3Kzp+GE1ATxT8TsBfRw@mail.gmail.com>
 References: <20200925112914.725846-1-anup.patel@wdc.com>
- <20200925112914.725846-9-anup.patel@wdc.com>
- <CAOnJCU+4jdc06+nCzbPao0Wg3QAvxKj859-7gvfXpbE_uEL6Ow@mail.gmail.com>
-Message-ID: <CAAhSdy35-5_2zbx+9Y8kPw2FG2nih5R_7XfgerzH4nXzUv1ctw@mail.gmail.com>
+ <20200925112914.725846-17-anup.patel@wdc.com>
+ <CAOnJCULUpfaCjUjd55xF2pFZVqof2fbZWy74qsv7+zObyqJDEQ@mail.gmail.com>
+ <DM6PR04MB6201F11971051F42CE7FD0AC8D310@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <CAOnJCU+CFhaHtY_UuOzPuA5WjrdX8_0kPGfY4yie7cxVgJiwHA@mail.gmail.com>
+ <MN2PR04MB6207F47811CD9CD3DC0321688D310@MN2PR04MB6207.namprd04.prod.outlook.com>
+ <CAOnJCU+g9CXQoj7-e0c7yZGWpYfE7yO3Kzp+GE1ATxT8TsBfRw@mail.gmail.com>
+Message-ID: <CAAhSdy2LaFYd_9G74Ex50E=w+uTyM7-8boWLz=hE9KnPe_=37Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 7, 2020 at 5:27 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Sat, Oct 3, 2020 at 1:12 PM Atish Patra <atishp@atishpatra.org> wrote:
 >
-> On Fri, Sep 25, 2020 at 4:30 AM Anup Patel <anup.patel@wdc.com> wrote:
+> On Thu, Oct 1, 2020 at 11:31 PM Anup Patel <Anup.Patel@wdc.com> wrote:
 > >
-> > The sbi_hsm_hart_start() should consider the domain under which we
-> > are trying to start the HART. This will help ensure that HART A can
-> > start HART B only if both HARTs A and B belong to the same domain.
 > >
-> > We also have a special case when we bring-up boot HART of non-root
-> > domains in sbi_domain_finalize() where we should skip domain checks
-> > in sbi_hsm_hart_start(). To achieve this, sbi_hsm_hart_start() should
-> > do domain checks only when domain parameter is non-NULL.
 > >
-> > This patch extends sbi_hsm_hart_start() as-per above.
+> > > -----Original Message-----
+> > > From: Atish Patra <atishp@atishpatra.org>
+> > > Sent: 02 October 2020 11:42
+> > > To: Anup Patel <Anup.Patel@wdc.com>
+> > > Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> > > <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
+> > > <opensbi@lists.infradead.org>
+> > > Subject: Re: [PATCH 16/16] docs: Add initial documentation for domain
+> > > support
+> > >
+> > > On Thu, Oct 1, 2020 at 9:49 PM Anup Patel <Anup.Patel@wdc.com> wrote:
+> > > >
+> > > >
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: Atish Patra <atishp@atishpatra.org>
+> > > > > Sent: 02 October 2020 04:32
+> > > > > To: Anup Patel <Anup.Patel@wdc.com>
+> > > > > Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> > > > > <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>;
+> > > > > OpenSBI <opensbi@lists.infradead.org>
+> > > > > Subject: Re: [PATCH 16/16] docs: Add initial documentation for
+> > > > > domain support
+> > > > >
+> > > > > On Fri, Sep 25, 2020 at 4:30 AM Anup Patel <anup.patel@wdc.com>
+> > > wrote:
+> > > > > >
+> > > > > > We add initial documentation for OpenSBI domain support to help
+> > > > > > RISC-V platform vendors achieve system-level partitioning.
+> > > > > >
+> > > > > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > > > > > ---
+> > > > > >  README.md              |   3 ++
+> > > > > >  docs/domain_support.md | 105
+> > > > > +++++++++++++++++++++++++++++++++++++++++
+> > > > > >  docs/doxygen.cfg       |   1 +
+> > > > > >  3 files changed, 109 insertions(+)  create mode 100644
+> > > > > > docs/domain_support.md
+> > > > > >
+> > > > > > diff --git a/README.md b/README.md index bd41ba3..03c02fb 100644
+> > > > > > --- a/README.md
+> > > > > > +++ b/README.md
+> > > > > > @@ -225,6 +225,8 @@ Detailed documentation of various aspects of
+> > > > > > OpenSBI can be found under the
+> > > > > >  * [Platform Documentation]: Documentation of the platforms
+> > > > > > currently
+> > > > > supported.
+> > > > > >  * [Firmware Documentation]: Documentation for the different types
+> > > > > > of
+> > > > > firmware
+> > > > > >    examples build supported by OpenSBI.
+> > > > > > +* [Domain Support]: Documentation for the OpenSBI domain support
+> > > > > > +which helps
+> > > > > > +  users achieve system-level partitioning using OpenSBI.
+> > > > > >
+> > > > > >  OpenSBI source code is also well documented. For source level
+> > > > > > documentation,  doxygen style is used. Please refer to the
+> > > > > > [Doxygen manual] for details on this @@ -278,6 +280,7 @@ make
+> > > > > > I=<install_directory> install_docs  [Platform Support Guide]:
+> > > > > > docs/platform_guide.md  [Platform Documentation]:
+> > > > > > docs/platform/platform.md  [Firmware Documentation]:
+> > > > > > docs/firmware/fw.md
+> > > > > > +[Domain Support]: docs/domain_support.md
+> > > > > >  [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+> > > > > >  [Kendryte standalone SDK]:
+> > > > > > https://github.com/kendryte/kendryte-standalone-sdk
+> > > > > >  [third party notices]: ThirdPartyNotices.md diff --git
+> > > > > > a/docs/domain_support.md b/docs/domain_support.md new file
+> > > mode
+> > > > > 100644
+> > > > > > index 0000000..fad4f67
+> > > > > > --- /dev/null
+> > > > > > +++ b/docs/domain_support.md
+> > > > > > @@ -0,0 +1,105 @@
+> > > > > > +OpenSBI Domain Support
+> > > > > > +======================
+> > > > > > +
+> > > > > > +An OpenSBI domain is a system-level partition (subset) of
+> > > > > > +underlying hardware having it's own memory regions (RAM and
+> > > MMIO
+> > > > > > +devices) and HARTs. The OpenSBI will try to achieve secure
+> > > > > > +isolation between domains using RISC-V platform features such as
+> > > PMP, IOPMP, etc.
+> > > > > > +
+> > > > >
+> > > > > May be specify a few other options such as ePMP, SiFive shield as
+> > > > > well as you mentioned in the patch commit.
+> > > >
+> > > > Okay, will add.
+> > > >
+> > > > >
+> > > > > > +Important entities which help implement OpenSBI domain support
+> > > are:
+> > > > > > +
+> > > > > > +* **struct sbi_domain_memregion** - Representation of a domain
+> > > > > memory
+> > > > > > +region
+> > > > > > +* **struct sbi_hartmask** - Representation of domain HART set
+> > > > > > +* **struct sbi_domain** - Representation of a domain instance
+> > > > > > +
+> > > > > > +Each HART of a RISC-V platform must have an OpenSBI domain
+> > > > > > +assigned
+> > > > > to it.
+> > > > > > +The OpenSBI platform support is responsible for populating
+> > > > > > +domains and providing HART id to domain mapping. The OpenSBI
+> > > > > > +domain support will by default assign **the ROOT domain** to all
+> > > > > > +HARTs of a RISC-V platform so it is not mandatory for the OpenSBI
+> > > > > > +platform support to
+> > > > > populate domains.
+> > > > > > +
+> > > > > > +Domain Memory Region
+> > > > > > +--------------------
+> > > > > > +
+> > > > > > +A domain memory region is represented by **struct
+> > > > > > +sbi_domain_memregion** in OpenSBI and has following details:
+> > > > > > +
+> > > > > > +* **order** - The size of a memory region is **2 ^ order** where
+> > > > > > +**order**
+> > > > > > +  must be **3 <= order <= __riscv_xlen**
+> > > > > > +* **base** - The base address of a memory region is **2 ^ order**
+> > > > > > +  aligned start address
+> > > > > > +* **flags** - The flags of a memory region represent memory type
+> > > (i.e.
+> > > > > > +  RAM or MMIO) and allowed accesses (i.e. READ, WRITE, EXECUTE,
+> > > > > > +etc)
+> > > > > > +
+> > > > > > +Domain Instance
+> > > > > > +---------------
+> > > > > > +
+> > > > > > +A domain instance is represented by **struct sbi_domain** in
+> > > > > > +OpenSBI and has following details:
+> > > > > > +
+> > > > > > +* **index** - Logical index of this domain
+> > > > > > +* **name** - Name of this domain
+> > > > > > +* **assigned_harts** - HARTs assigned to this domain
+> > > > > > +* **possible_harts** - HARTs possible in this domain
+> > > > > > +* **regions** - Array of memory regions terminated by a memory
+> > > > > > +region
+> > > > > > +  with order zero
+> > > > > > +* **boot_hartid** - HART id of the HART booting this domain. The
+> > > > > > +domain
+> > > > > > +  boot HART will be started at boot-time if boot HART is a
+> > > > > > +possible and
+> > > > > > +  assigned for this domain.
+> > > > > > +* **next_addr** - Address of the next booting stage for this
+> > > > > > +domain
+> > > > > > +* **next_arg1** - Arg1 (or 'a1' register) of the next booting stage for
+> > > > > > +   this domain
+> > > > > > +* **next_mode** - Priviledge mode of the next booting stage for
+> > > > > > +this domain
+> > > > > > +* **system_reset_allowed** - Is domain allowed to reset the
+> > > system?
+> > > > > > +
+> > > > > Will it be better to keep a bitwise flags for such features ?
+> > > > > Does a domain allow modification of PMP regions ?
+> > > > >
+> > > > > > +The memory regions represented by **regions** in **struct
+> > > > > > +sbi_domain** have following additional constraints to align with
+> > > > > > +RISC-V
+> > > > > PMP requirements:
+> > > > > > +
+> > > > > > +* A memory region to protect OpenSBI firmware from S-mode and U-
+> > > > > mode
+> > > > > > +  should always be present
+> > > > > > +* For two overlapping memory regions, one should be sub-region of
+> > > > > > +another
+> > > > > > +* Two overlapping memory regions should not be of same size
+> > > > > > +* Two overlapping memory regions canot have same flags
+> > > > > /canot/cannot/gc
+> > > >
+> > > > Okay, will update.
+> > > >
+> > > > >
+> > > > > > +* Memory access checks on overlapping address should prefer
+> > > > > > +smallest
+> > > > > > +  overlapping memory region flags.
+> > > > > > +
+> > > > > > +ROOT Domain
+> > > > > > +-----------
+> > > > > > +
+> > > > > > +**The ROOT domain** is the default OpenSBI domain which is
+> > > > > > +assigned by default to all HARTs of a RISC-V platform. The
+> > > > > > +OpenSBI domain support will hand-craft **the ROOT domain** very
+> > > > > > +early at boot-time in the following manner:
+> > > > > > +
+> > > > > > +* **index** - Logical index of the ROOT domain is always zero
+> > > > > > +* **name** - Name of the ROOT domain is "root"
+> > > > > > +* **assigned_harts** - At boot-time all valid HARTs of a RISC-V
+> > > > > > +platform
+> > > > > > +  are assigned the ROOT domain which changes later based on
+> > > > > > +OpenSBI
+> > > > > > +  platform support
+> > > > > > +* **possible_harts** - All valid HARTs of a RISC-V platform are
+> > > > > > +possible
+> > > > > > +  HARTs of the ROOT domain
+> > > > > > +* **regions** - Two memory regions available to the ROOT domain:
+> > > > > > +  **A)** A memory region to protect OpenSBI firmware from S-mode
+> > > > > > +and U-mode
+> > > > > > +  **B)** A memory region of **order=__riscv_xlen** allowing
+> > > > > > +S-mode and
+> > > > > > +  U-mode access to full memory address space
+> > > > > > +* **boot_hartid** - Coldboot HART is the HART booting the ROOT
+> > > > > domain
+> > > > > > +* **next_addr** - Next booting stage address in coldboot HART
+> > > > > > +scratch
+> > > > > > +  space is the next address for the ROOT domain
+> > > > > > +* **next_arg1** - Next booting stage arg1 in coldboot HART
+> > > > > > +scratch space
+> > > > > > +  is the next arg1 for the ROOT domain
+> > > > > > +* **next_mode** - Next booting stage mode in coldboot HART
+> > > > > > +scratch space
+> > > > > > +  is the next mode for the ROOT domain
+> > > > > > +* **system_reset_allowed** - The ROOT domain is allowed to reset
+> > > > > > +the system
+> > > > > > +
+> > > > > > +Domain Effects
+> > > > > > +--------------
+> > > > > > +
+> > > > > > +Few noteworthy effects of a system partitioned into domains are
+> > > > > > +as
+> > > > > follows:
+> > > > > > +
+> > > > > > +* At any point in time, a HART is running in exactly one OpenSBI
+> > > > > > +domain context
+> > > > > > +* The SBI IPI and RFENCE calls from HART A are restricted to the
+> > > > > > +HARTs in
+> > > > > > +  domain assigned to HART A
+> > > > > > +* The SBI HSM calls which try to change/read state of HART B from
+> > > > > > +HART A will
+> > > > > > +  only work if both HART A and HART B are assigned same domain
+> > > > > > +* A HART running in S-mode or U-mode can only access memory
+> > > based
+> > > > > > +on the
+> > > > > > +  memory regions of the domain assigned to the HART
+> > > > >
+> > > > > How about effects on PMP ?
+> > > >
+> > > > PMP is only accessible to M-mode so S-mode and U-mode can only access
+> > > > memory based on PMP configuration which is based on the memory
+> > > regions
+> > > > of domain assigned to the HART.
+> > > >
+> > > > Is there anything missing ?
+> > > >
+> > >
+> > > I meant to ask about the general effects of domain on PMP. I was not asking
+> > > to follow up the previous sentence. Let me rephrase.
+> > >
+> > > A child domain can run M-mode only payload where next_mode will be M-
+> > > mode. Correct ?
+> > > In that case, can it modify PMP ? or what happens if a child domain next
+> > > stage running in M-mode tries to modify some pmp configurations ?
 > >
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > ---
-> >  include/sbi/sbi_hsm.h   |  5 +++--
-> >  lib/sbi/sbi_domain.c    |  6 ++++--
-> >  lib/sbi/sbi_ecall_hsm.c |  4 ++--
-> >  lib/sbi/sbi_hsm.c       | 16 ++++++++--------
-> >  4 files changed, 17 insertions(+), 14 deletions(-)
+> > I forgot to mention. Next stage running in M-mode can always overwrite
+> > any CSR programmed by OpenSBI so we cannot enforce restrictions on
+> > next stage when it runs in M-mode.
 > >
-> > diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-> > index 296b267..4823383 100644
-> > --- a/include/sbi/sbi_hsm.h
-> > +++ b/include/sbi/sbi_hsm.h
-> > @@ -25,8 +25,9 @@ struct sbi_scratch;
-> >  int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
-> >  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
-> >
-> > -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> > -                      ulong saddr, ulong smode, ulong priv);
-> > +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
-> > +                      const struct sbi_domain *dom,
-> > +                      u32 hartid, ulong saddr, ulong smode, ulong priv);
-> >  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
-> >  int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
-> >  int sbi_hsm_hart_state_to_status(int state);
-> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> > index 8d5dae1..df0f2a5 100644
-> > --- a/lib/sbi/sbi_domain.c
-> > +++ b/lib/sbi/sbi_domain.c
-> > @@ -309,8 +309,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
-> >                         scratch->next_mode = dom->next_mode;
-> >                         scratch->next_arg1 = dom->next_arg1;
-> >                 } else {
-> > -                       rc = sbi_hsm_hart_start(scratch, dhart, dom->next_addr,
-> > -                                       dom->next_mode, dom->next_arg1);
-> > +                       rc = sbi_hsm_hart_start(scratch, NULL, dhart,
-> > +                                               dom->next_addr,
-> > +                                               dom->next_mode,
-> > +                                               dom->next_arg1);
-> >                         if (rc)
-> >                                 return rc;
-> >                 }
-> > diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
-> > index 3698a41..376740c 100644
-> > --- a/lib/sbi/sbi_ecall_hsm.c
-> > +++ b/lib/sbi/sbi_ecall_hsm.c
-> > @@ -28,8 +28,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
-> >         case SBI_EXT_HSM_HART_START:
-> >                 smode = csr_read(CSR_MSTATUS);
-> >                 smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-> > -               ret = sbi_hsm_hart_start(scratch, args[0], args[1],
-> > -                                        smode, args[2]);
-> > +               ret = sbi_hsm_hart_start(scratch, sbi_domain_thishart_ptr(),
-> > +                                        args[0], args[1], smode, args[2]);
-> >                 break;
-> >         case SBI_EXT_HSM_HART_STOP:
-> >                 ret = sbi_hsm_hart_stop(scratch, TRUE);
-> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> > index 1f8dadc..c16d542 100644
-> > --- a/lib/sbi/sbi_hsm.c
-> > +++ b/lib/sbi/sbi_hsm.c
-> > @@ -205,10 +205,10 @@ fail_exit:
-> >         sbi_hart_hang();
-> >  }
-> >
-> > -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> > -                      ulong saddr, ulong smode, ulong priv)
-> > +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
-> > +                      const struct sbi_domain *dom,
-> > +                      u32 hartid, ulong saddr, ulong smode, ulong priv)
-> >  {
-> > -       int rc;
-> >         unsigned long init_count;
-> >         unsigned int hstate;
-> >         struct sbi_scratch *rscratch;
-> > @@ -217,6 +217,11 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> >
-> >         if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
-> >                 return SBI_EINVAL;
-> > +       if (dom && !sbi_domain_assigned_hart(dom, hartid))
-> > +               return SBI_EINVAL;
-> > +       if (dom && !sbi_domain_check_addr(dom, saddr, smode,
-> > +                                         FALSE, FALSE, FALSE, TRUE))
-> > +               return SBI_EINVAL;
-> >
-> >         rscratch = sbi_hartid_to_scratch(hartid);
-> >         if (!rscratch)
-> > @@ -234,11 +239,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> >         if (hstate != SBI_HART_STOPPED)
-> >                 return SBI_EINVAL;
-> >
-> > -       rc = sbi_hart_pmp_check_addr(scratch, saddr, smode, PMP_X);
-> > -       if (rc)
-> > -               return rc;
-> > -       //TODO: We also need to check saddr for valid physical address as well.
-> > -
 >
-> Why is the check being removed ? IIRC, this API was improved in your
-> last series to include the mode but removed completely later in this
-> series.
-> Maybe I missed something in the series or yet to review.
+> I think that's a security flaw that a "secure" domain running in M-mode can
+> corrupt anything in OpenSBI. Is there a use case where  you want to
+> run your secure OS
+> on top of OpenSBI in M-mode ?
 
-The sbi_hart_pmp_check_addr() call is redundant here because the
-sbi_domain_check_addr() above does the required checks.
+Let's remove the support for the next stage starting in M-mode. This means
+next stage either starts in S-mode or U-mode. On platforms having Ecore
+(i.e. core having M-mode and U-mode), we can start the next stage directly
+in U-mode.
 
 >
-> >         init_count = sbi_init_count(hartid);
-> >         rscratch->next_arg1 = priv;
-> >         rscratch->next_addr = saddr;
-> > --
-> > 2.25.1
+> Otherwise, we can just disable this feature or at least enable it as a
+> separate compile time option so that
+> production systems can't be compromised.
+
+We can extend the OpenSBI domains in future, if we figure-out a clean way
+to start the next stage in M-mode. Until then let's not take any risk.
+
+>
+> > Regards,
+> > Anup
 > >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> > >
+> > > > >
+> > > > > > \ No newline at end of file
+> > > > > > diff --git a/docs/doxygen.cfg b/docs/doxygen.cfg index
+> > > > > > dbf8ef9..82f31a7 100644
+> > > > > > --- a/docs/doxygen.cfg
+> > > > > > +++ b/docs/doxygen.cfg
+> > > > > > @@ -795,6 +795,7 @@ INPUT                  = @@SRC_DIR@@/README.md
+> > > \
+> > > > > >                           @@SRC_DIR@@/docs/platform_guide.md \
+> > > > > >                           @@SRC_DIR@@/docs/platform_requirements.md \
+> > > > > >                           @@SRC_DIR@@/docs/library_usage.md \
+> > > > > > +                         @@SRC_DIR@@/docs/domain_support.md \
+> > > > > >                           @@SRC_DIR@@/docs/firmware \
+> > > > > >                           @@SRC_DIR@@/docs/platform \
+> > > > > >                           @@SRC_DIR@@/include \
+> > > > > > --
+> > > > > > 2.25.1
+> > > > > >
+> > > > > >
+> > > > > > --
+> > > > > > opensbi mailing list
+> > > > > > opensbi at lists.infradead.org
+> > > > > > http://lists.infradead.org/mailman/listinfo/opensbi
+> > > > >
+> > > > >
+> > > > >
+> > > > > --
+> > > > > Regards,
+> > > > > Atish
+> > > >
+> > > > Regards,
+> > > > Anup
+> > >
+> > >
+> > >
+> > > --
+> > > Regards,
+> > > Atish
 >
 >
 >
