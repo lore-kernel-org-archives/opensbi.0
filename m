@@ -1,11 +1,10 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 16 Oct 2020 12:44:33 -0700
-Subject: [PATCH 1/5] Makefile: Build ELF, BIN and LD script in platform
- build directory
-In-Reply-To: <20201015081211.1956554-2-anup.patel@wdc.com>
+Date: Fri, 16 Oct 2020 16:08:48 -0700
+Subject: [PATCH 2/5] firmware: Add common FW_FDT_PATH compile-time option
+In-Reply-To: <20201015081211.1956554-3-anup.patel@wdc.com>
 References: <20201015081211.1956554-1-anup.patel@wdc.com>
- <20201015081211.1956554-2-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJYp03F+BZeNppE2+hnk3YKVbP2K+OhjZEsbXwJz5gWng@mail.gmail.com>
+ <20201015081211.1956554-3-anup.patel@wdc.com>
+Message-ID: <CAOnJCUJvQdFWYBwhf_8LAypvW09nN6Fe-mULV+0XmkQSMQF2HQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,55 +13,112 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Oct 15, 2020 at 1:12 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> Currently, the make rules for ELF, BIN and LD script are little
-> generic to allowing ELF, BIN and LD script to be anywhere in the
-> build directory. For OpenSBI firwares, the ELF, BIN, and LD script
-> are always platform specific so we update make rules accordingly.
+> Currently, only FW_PAYLOAD has mechanism to embed external FDT
+> using FW_PAYLOAD_FDT_PATH compile-time option.
+>
+> This patch adds a commong FW_FDT_PATH compile-time option to
+> embed external FDT for all OpenSBI firmwares (i.e FW_JUMP,
+> FW_PAYLOAD, and FW_DYNAMIC).
 >
 
-/s/firewares/firmwares
+/s/commong/common
 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  Makefile | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
+>  docs/firmware/fw.md       | 14 +++++++++-----
+>  firmware/external_deps.mk |  4 ++++
+>  firmware/fw_base.S        | 16 ++++++++++++++++
+>  firmware/objects.mk       |  7 +++++++
+>  4 files changed, 36 insertions(+), 5 deletions(-)
 >
-> diff --git a/Makefile b/Makefile
-> index 2a352ef..6c36f09 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -310,15 +310,6 @@ all: $(targets-y)
->  # Preserve all intermediate files
->  .SECONDARY:
+> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
+> index 4133c23..1efdadf 100644
+> --- a/docs/firmware/fw.md
+> +++ b/docs/firmware/fw.md
+> @@ -51,11 +51,15 @@ case, a *FW_PAYLOAD* firmware allows embedding a flattened device tree in the
+>  Firmware Configuration and Compilation
+>  --------------------------------------
 >
-> -$(build_dir)/%.bin: $(build_dir)/%.elf
-> -       $(call compile_objcopy,$@,$<)
+> -All firmware types mandate the definition of the following compile time
+> -configuration parameter.
 > -
-> -$(build_dir)/%.elf: $(build_dir)/%.o $(build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
-> -       $(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
-> -
-> -$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
-> -       $(call compile_cpp,$@,$<)
-> -
->  $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
->         $(call compile_ar,$@,$^)
->
-> @@ -340,6 +331,15 @@ $(build_dir)/%.dep: $(src_dir)/%.S
->  $(build_dir)/%.o: $(src_dir)/%.S
->         $(call compile_as,$@,$<)
->
-> +$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
-> +       $(call compile_objcopy,$@,$<)
+> -* **FW_TEXT_ADDR** - Defines the address at which the previous booting stage
+> -  loads OpenSBI firmware.
+> +All firmware types support the following common compile time configuration
+> +parameters:
 > +
-> +$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
-> +       $(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
-> +
-> +$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
-> +       $(call compile_cpp,$@,$<)
-> +
->  $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c
->         $(call compile_cc_dep,$@,$<)
+> +* **FW_TEXT_ADDR** - Defines the execution address of the OpenSBI firmware.
+> +  This configuration parameter is mandatory.
+> +* **FW_FDT_PATH** - Path to an external flattened device tree binary file to
+> +  be embedded in the *.rodata* section of the final firmware. If this option
+> +  is not provided then the firmware will expect the FDT to be passed as an
+> +  argument by the prior booting stage.
 >
+>  Additionally, each firmware type as a set of type specific configuration
+>  parameters. Detailed information for each firmware type can be found in the
+> diff --git a/firmware/external_deps.mk b/firmware/external_deps.mk
+> index 2b8f9f6..f43ac06 100644
+> --- a/firmware/external_deps.mk
+> +++ b/firmware/external_deps.mk
+> @@ -7,5 +7,9 @@
+>  #   Anup Patel <anup.patel@wdc.com>
+>  #
+>
+> +$(platform_build_dir)/firmware/fw_dynamic.o: $(FW_FDT_PATH)
+> +$(platform_build_dir)/firmware/fw_jump.o: $(FW_FDT_PATH)
+> +$(platform_build_dir)/firmware/fw_payload.o: $(FW_FDT_PATH)
+> +
+>  $(platform_build_dir)/firmware/fw_payload.o: $(FW_PAYLOAD_PATH_FINAL)
+>  $(platform_build_dir)/firmware/fw_payload.o: $(FW_PAYLOAD_FDT_PATH)
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 0271d9a..95197da 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -182,6 +182,11 @@ _bss_zero:
+>         call    fw_save_info
+>         MOV_5R  a0, s0, a1, s1, a2, s2, a3, s3, a4, s4
+>
+> +#ifdef FW_FDT_PATH
+> +       /* Override previous arg1 */
+> +       la      a1, fw_fdt_bin
+> +#endif
+> +
+>         /* Override previous arg1 */
+>         MOV_3R  s0, a0, s1, a1, s2, a2
+>         call    fw_prev_arg1
+> @@ -668,3 +673,14 @@ _reset_regs:
+>         csrw CSR_MSCRATCH, 0
+>
+>         ret
+> +
+> +#ifdef FW_FDT_PATH
+> +       .section .rodata
+> +       .align 4
+> +       .globl fw_fdt_bin
+> +fw_fdt_bin:
+> +       .incbin FW_FDT_PATH
+> +#ifdef FW_FDT_PADDING
+> +       .fill FW_FDT_PADDING, 1, 0
+> +#endif
+> +#endif
+> diff --git a/firmware/objects.mk b/firmware/objects.mk
+> index c980362..2eea54c 100644
+> --- a/firmware/objects.mk
+> +++ b/firmware/objects.mk
+> @@ -17,6 +17,13 @@ ifdef FW_TEXT_START
+>  firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
+>  endif
+>
+> +ifdef FW_FDT_PATH
+> +firmware-genflags-y += -DFW_FDT_PATH=\"$(FW_FDT_PATH)\"
+> +ifdef FW_FDT_PADDING
+> +firmware-genflags-y += -DFW_FDT_PADDING=$(FW_FDT_PADDING)
+> +endif
+> +endif
+> +
+>  firmware-bins-$(FW_DYNAMIC) += fw_dynamic.bin
+>
+>  firmware-bins-$(FW_JUMP) += fw_jump.bin
 > --
 > 2.25.1
 >
@@ -72,9 +128,12 @@ On Thu, Oct 15, 2020 at 1:12 AM Anup Patel <anup.patel@wdc.com> wrote:
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
-Otherwise, looks good.
+I think we should document FW_FDT_PADDING as well.
+
+Other than that, looks good.
 
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
+
 
 -- 
 Regards,
