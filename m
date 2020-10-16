@@ -1,9 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 16 Oct 2020 03:52:57 +0000
-Subject: [PATCH 1/2] lib: utils: Implement "ranges" property parsing
-In-Reply-To: <20201016002447.4148184-1-atish.patra@wdc.com>
+Date: Fri, 16 Oct 2020 04:00:11 +0000
+Subject: [PATCH 2/2] lib: sbi: Check pmp range granularity before setting
+ pmp
+In-Reply-To: <20201016002447.4148184-2-atish.patra@wdc.com>
 References: <20201016002447.4148184-1-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB6201544B0327FF0D6FE87DA48D030@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201016002447.4148184-2-atish.patra@wdc.com>
+Message-ID: <DM6PR04MB620115E2AA013810C59B49858D030@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -17,77 +19,184 @@ Content-Transfer-Encoding: 7bit
 > Sent: 16 October 2020 05:55
 > To: opensbi at lists.infradead.org
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH 1/2] lib: utils: Implement "ranges" property parsing
+> Subject: [PATCH 2/2] lib: sbi: Check pmp range granularity before setting pmp
 > 
-> The "reg" property in a device node may not be the correct address always.
-> If a parent node defines a "ranges" property, the child address need to be
-> translated with respect to parents address. If the ranges property is not
-> present, it will just use 1:1 translation.
+> As per RISC-V privilege specificaiton, a platform may choose to implement a
+> coarser granularity scheme for PMP addresses. In that case, we shouldn't
+> allow any pmp region size smaller than the platform supports. The pmp range
+> granularity is dynamically detected while detecting pmp support.
+
+A platform can also skip higher bits of PMP address along with lower bits.
+
+We need two properties for each HART:
+1. PMP granularity
+2. PMP physical address size (in bits)
+
 > 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/utils/fdt/fdt_helper.c | 25 +++++++++++++++++++++----
->  1 file changed, 21 insertions(+), 4 deletions(-)
+>  include/sbi/riscv_asm.h |  2 +-
+>  lib/sbi/riscv_asm.c     |  5 +++--
+>  lib/sbi/sbi_hart.c      | 30 ++++++++++++++++++++++++------
+>  3 files changed, 28 insertions(+), 9 deletions(-)
 > 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c index
-> aec73a0598d7..8e1d1800d4de 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -74,10 +74,10 @@ int fdt_find_match(void *fdt, int startoff,  int
-> fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
->  			   unsigned long *size)
+> diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h index
+> 10f31a7fc3bb..00d9b8c9c954 100644
+> --- a/include/sbi/riscv_asm.h
+> +++ b/include/sbi/riscv_asm.h
+> @@ -177,7 +177,7 @@ int misa_xlen(void);  void misa_string(int xlen, char
+> *out, unsigned int out_sz);
+> 
+>  int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+> -	    unsigned long log2len);
+> +	    unsigned long log2len, unsigned long pmp_gran_log2);
+> 
+>  int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long
+> *addr_out,
+>  	    unsigned long *log2len);
+> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c index
+> 8c54c11147e7..698741def16c 100644
+> --- a/lib/sbi/riscv_asm.c
+> +++ b/lib/sbi/riscv_asm.c
+> @@ -187,14 +187,15 @@ static unsigned long ctz(unsigned long x)  }
+> 
+>  int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+> -	    unsigned long log2len)
+> +	    unsigned long log2len, unsigned long pmp_gran_log2)
 >  {
-> -	int parent, len, i;
-> +	int parent, len, i, rlen;
->  	int cell_addr, cell_size;
-> -	const fdt32_t *prop_addr, *prop_size;
-> -	uint64_t temp = 0;
-> +	const fdt32_t *prop_addr, *prop_size, *ranges;
-> +	uint64_t temp = 0, offset = 0, caddr = 0, paddr = 0, rsize = 0;
+>  	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+>  	unsigned long cfgmask, pmpcfg;
+>  	unsigned long addrmask, pmpaddr;
 > 
->  	parent = fdt_parent_offset(fdt, node);
->  	if (parent < 0)
-> @@ -98,7 +98,24 @@ int fdt_get_node_addr_size(void *fdt, int node,
-> unsigned long *addr,
->  	if (addr) {
->  		for (i = 0; i < cell_addr; i++)
->  			temp = (temp << 32) | fdt32_to_cpu(*prop_addr++);
-> -		*addr = temp;
-> +		ranges = fdt_getprop(fdt, parent, "ranges", &rlen);
-
-We can have multiple "ranges" property in the ancestry of a node.
-
-Please update this logic accordingly. You might need a separate
-static recursive function to do the translation based on "ranges".
-
-> +		if (ranges && rlen > 0) {
-> +			for (i = 0; i < cell_addr; i++)
-> +				caddr = (caddr << 32) |
-> fdt32_to_cpu(*ranges++);
-> +			for (i = 0; i < cell_addr; i++)
-> +				paddr = (paddr << 32) |
-> fdt32_to_cpu(*ranges++);
-> +			for (i = 0; i < cell_size; i++)
-> +				rsize = (rsize << 32) |
-> fdt32_to_cpu(*ranges++);
-> +			if (temp < caddr || caddr >= (temp + rsize )) {
-> +				sbi_dprintf("invalid address translation reg
-> [%lx] : ca [%lx]\n",temp, caddr);
-> +				return SBI_ENODEV;
-> +			}
-> +			offset = temp - caddr;
-> +			*addr = paddr + offset;
-> +		} else {
-> +			/* No translation required */
-> +			*addr = temp;
-> +		}
+>  	/* check parameters */
+> -	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len <
+> PMP_SHIFT)
+> +	if (n >= PMP_COUNT || log2len > __riscv_xlen ||
+> +	    log2len < PMP_SHIFT || log2len < pmp_gran_log2)
+>  		return SBI_EINVAL;
+> 
+>  	/* calculate PMP register and offset */ diff --git a/lib/sbi/sbi_hart.c
+> b/lib/sbi/sbi_hart.c index bf47f95a8758..8856aa7a661c 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -28,6 +28,7 @@ void (*sbi_hart_expected_trap)(void) =
+> &__sbi_expected_trap;  struct hart_features {
+>  	unsigned long features;
+>  	unsigned int pmp_count;
+> +	unsigned long pmp_gran;
+>  	unsigned int mhpm_count;
+>  };
+>  static unsigned long hart_features_offset; @@ -144,6 +145,14 @@ unsigned
+> int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
+>  	return hfeatures->mhpm_count;
+>  }
+> 
+> +static unsigned long sbi_hart_pmp_get_gran(struct sbi_scratch *scratch)
+> +{
+> +	struct hart_features *hfeatures =
+> +			sbi_scratch_offset_ptr(scratch,
+> hart_features_offset);
+> +
+> +	return hfeatures->pmp_gran;
+> +}
+> +
+>  unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)  {
+>  	struct hart_features *hfeatures =
+> @@ -226,7 +235,7 @@ int sbi_hart_pmp_check_addr(struct sbi_scratch
+> *scratch,  static int pmp_init(struct sbi_scratch *scratch, u32 hartid)  {
+>  	u32 i, pmp_idx = 0, pmp_count, count;
+> -	unsigned long fw_start, fw_size_log2;
+> +	unsigned long fw_start, fw_size_log2, pmpg_log2;
+>  	ulong prot, addr, log2size;
+>  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> 
+> @@ -236,7 +245,8 @@ static int pmp_init(struct sbi_scratch *scratch, u32
+> hartid)
+>  	/* Firmware PMP region to protect OpenSBI firmware */
+>  	fw_size_log2 = log2roundup(scratch->fw_size);
+>  	fw_start = scratch->fw_start & ~((1UL << fw_size_log2) - 1UL);
+> -	pmp_set(pmp_idx++, 0, fw_start, fw_size_log2);
+> +	pmpg_log2 = log2roundup(sbi_hart_pmp_get_gran(scratch));
+> +	pmp_set(pmp_idx++, 0, fw_start, fw_size_log2, pmpg_log2);
+> 
+>  	/* Platform specific PMP regions */
+>  	count = sbi_platform_pmp_region_count(plat, hartid); @@ -245,7
+> +255,7 @@ static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+>  		if (sbi_platform_pmp_region_info(plat, hartid, i, &prot,
+> &addr,
+>  						 &log2size))
+>  			continue;
+> -		pmp_set(pmp_idx++, prot, addr, log2size);
+> +		pmp_set(pmp_idx++, prot, addr, log2size, pmpg_log2);
 >  	}
->  	temp = 0;
 > 
+>  	/*
+> @@ -254,7 +264,7 @@ static int pmp_init(struct sbi_scratch *scratch, u32
+> hartid)
+>  	 * 1) Firmware PMP region
+>  	 * 2) Platform specific PMP regions
+>  	 */
+> -	pmp_set(pmp_idx++, PMP_R | PMP_W | PMP_X, 0, __riscv_xlen);
+> +	pmp_set(pmp_idx++, PMP_R | PMP_W | PMP_X, 0, __riscv_xlen,
+> pmpg_log2);
+> 
+>  	return 0;
+>  }
+> @@ -362,6 +372,7 @@ static void hart_detect_features(struct sbi_scratch
+> *scratch)
+>  	hfeatures = sbi_scratch_offset_ptr(scratch, hart_features_offset);
+>  	hfeatures->features = 0;
+>  	hfeatures->pmp_count = 0;
+> +	hfeatures->pmp_gran  = 0;
+>  	hfeatures->mhpm_count = 0;
+> 
+>  #define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
+> @@ -372,7 +383,14 @@ static void hart_detect_features(struct sbi_scratch
+> *scratch)
+>  		} else {						\
+>  			csr_write_allowed(__csr, (ulong)&trap, __wrval);\
+>  			if (!trap.cause) {				\
+> -				if (csr_swap(__csr, val) == __wrval)	\
+> +				if (__csr >= CSR_PMPADDR0 && __csr <=
+> CSR_PMPADDR63) \
+> +				{					\
+> +					val = csr_read(__csr);		\
+> +					if (val) {			\
+> +						(hfeatures->pmp_gran) =  1
+> << (ffs(val) + 1); 	\
+> +						(hfeatures->__field)++;
+> 		\
+> +					}	\
+> +				} else if (csr_swap(__csr, val) == __wrval)
+> 	\
+>  					(hfeatures->__field)++;
+> 	\
+>  				else					\
+>  					goto __skip;			\
+
+Please don't hack __check_csr() for detecting PMP granularity because the
+__check_csr() is also used to detect other non-PMP CSRs (e.g. various PMU
+counters) as well.
+
+Instead have separate logic just before "#define __check_csr()", which will:
+1. Detect PMPADDR0 using csr_read_allowed() and csr_write_allowed()
+2. If PMPADDR0 supports both READ and write then detect PMP granularity
+     otherwise jump to __pmp_skip
+
+> @@ -403,7 +421,7 @@ static void hart_detect_features(struct sbi_scratch
+> *scratch)
+>  	__check_csr_32(__csr + 32, __rdonly, __wrval, __field, __skip)
+> 
+>  	/* Detect number of PMP regions */
+> -	__check_csr_64(CSR_PMPADDR0, 0, 1UL, pmp_count, __pmp_skip);
+> +	__check_csr_64(CSR_PMPADDR0, 0, PMP_ADDR_MASK,
+> pmp_count, __pmp_skip);
+>  __pmp_skip:
+> 
+>  	/* Detect number of MHPM counters */
 > --
 > 2.25.1
 
 Regards,
 Anup
-
 
