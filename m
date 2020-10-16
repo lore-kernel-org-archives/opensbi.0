@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 16 Oct 2020 04:00:11 +0000
+Date: Fri, 16 Oct 2020 04:01:20 +0000
 Subject: [PATCH 2/2] lib: sbi: Check pmp range granularity before setting
  pmp
 In-Reply-To: <20201016002447.4148184-2-atish.patra@wdc.com>
 References: <20201016002447.4148184-1-atish.patra@wdc.com>
  <20201016002447.4148184-2-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB620115E2AA013810C59B49858D030@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <DM6PR04MB620124D3DC0651E891EA8CBC8D030@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -26,11 +26,8 @@ Content-Transfer-Encoding: 7bit
 > allow any pmp region size smaller than the platform supports. The pmp range
 > granularity is dynamically detected while detecting pmp support.
 
-A platform can also skip higher bits of PMP address along with lower bits.
-
-We need two properties for each HART:
-1. PMP granularity
-2. PMP physical address size (in bits)
+In addition to my previous comments, we also need separate patch to display
+PMP granularity and PMP physical address size for Boot HART in boot prints.
 
 > 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
@@ -173,16 +170,6 @@ We need two properties for each HART:
 > 	\
 >  				else					\
 >  					goto __skip;			\
-
-Please don't hack __check_csr() for detecting PMP granularity because the
-__check_csr() is also used to detect other non-PMP CSRs (e.g. various PMU
-counters) as well.
-
-Instead have separate logic just before "#define __check_csr()", which will:
-1. Detect PMPADDR0 using csr_read_allowed() and csr_write_allowed()
-2. If PMPADDR0 supports both READ and write then detect PMP granularity
-     otherwise jump to __pmp_skip
-
 > @@ -403,7 +421,7 @@ static void hart_detect_features(struct sbi_scratch
 > *scratch)
 >  	__check_csr_32(__csr + 32, __rdonly, __wrval, __field, __skip)
