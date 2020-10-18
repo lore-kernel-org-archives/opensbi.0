@@ -1,134 +1,170 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Sun, 18 Oct 2020 16:50:38 -0700
-Subject: [PATCH v2 11/16] lib: utils: Update fdt_reserved_memory_fixup()
- to use current domain
-In-Reply-To: <20201015132700.2232820-12-anup.patel@wdc.com>
-References: <20201015132700.2232820-1-anup.patel@wdc.com>
- <20201015132700.2232820-12-anup.patel@wdc.com>
-Message-ID: <CAOnJCUK-gy+XzLgFt0N0e573rR0Kxq8wuEsFGwEQM8Xs_ygTjA@mail.gmail.com>
+Date: Sun, 18 Oct 2020 16:54:31 -0700
+Subject: [PATCH 08/16] lib: sbi: Extend sbi_hsm_hart_start() for domains
+In-Reply-To: <CAAhSdy35-5_2zbx+9Y8kPw2FG2nih5R_7XfgerzH4nXzUv1ctw@mail.gmail.com>
+References: <20200925112914.725846-1-anup.patel@wdc.com>
+ <20200925112914.725846-9-anup.patel@wdc.com>
+ <CAOnJCU+4jdc06+nCzbPao0Wg3QAvxKj859-7gvfXpbE_uEL6Ow@mail.gmail.com>
+ <CAAhSdy35-5_2zbx+9Y8kPw2FG2nih5R_7XfgerzH4nXzUv1ctw@mail.gmail.com>
+Message-ID: <CAOnJCUKjPXefk4P9u+RwgrL3v9+47PjtecVWOXEAQOMUA3srdA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 15, 2020 at 6:28 AM Anup Patel <anup.patel@wdc.com> wrote:
+On Thu, Oct 15, 2020 at 5:05 AM Anup Patel <anup@brainfault.org> wrote:
 >
-> Now that each HART is mapped to a domain having a set of memory
-> regions, we update fdt_reserved_memory_fixup() to use domain memory
-> regions for adding reserved memory nodes in device tree.
+> On Wed, Oct 7, 2020 at 5:27 AM Atish Patra <atishp@atishpatra.org> wrote:
+> >
+> > On Fri, Sep 25, 2020 at 4:30 AM Anup Patel <anup.patel@wdc.com> wrote:
+> > >
+> > > The sbi_hsm_hart_start() should consider the domain under which we
+> > > are trying to start the HART. This will help ensure that HART A can
+> > > start HART B only if both HARTs A and B belong to the same domain.
+> > >
+> > > We also have a special case when we bring-up boot HART of non-root
+> > > domains in sbi_domain_finalize() where we should skip domain checks
+> > > in sbi_hsm_hart_start(). To achieve this, sbi_hsm_hart_start() should
+> > > do domain checks only when domain parameter is non-NULL.
+> > >
+> > > This patch extends sbi_hsm_hart_start() as-per above.
+> > >
+> > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > > ---
+> > >  include/sbi/sbi_hsm.h   |  5 +++--
+> > >  lib/sbi/sbi_domain.c    |  6 ++++--
+> > >  lib/sbi/sbi_ecall_hsm.c |  4 ++--
+> > >  lib/sbi/sbi_hsm.c       | 16 ++++++++--------
+> > >  4 files changed, 17 insertions(+), 14 deletions(-)
+> > >
+> > > diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+> > > index 296b267..4823383 100644
+> > > --- a/include/sbi/sbi_hsm.h
+> > > +++ b/include/sbi/sbi_hsm.h
+> > > @@ -25,8 +25,9 @@ struct sbi_scratch;
+> > >  int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+> > >  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
+> > >
+> > > -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> > > -                      ulong saddr, ulong smode, ulong priv);
+> > > +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+> > > +                      const struct sbi_domain *dom,
+> > > +                      u32 hartid, ulong saddr, ulong smode, ulong priv);
+> > >  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+> > >  int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+> > >  int sbi_hsm_hart_state_to_status(int state);
+> > > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > > index 8d5dae1..df0f2a5 100644
+> > > --- a/lib/sbi/sbi_domain.c
+> > > +++ b/lib/sbi/sbi_domain.c
+> > > @@ -309,8 +309,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+> > >                         scratch->next_mode = dom->next_mode;
+> > >                         scratch->next_arg1 = dom->next_arg1;
+> > >                 } else {
+> > > -                       rc = sbi_hsm_hart_start(scratch, dhart, dom->next_addr,
+> > > -                                       dom->next_mode, dom->next_arg1);
+> > > +                       rc = sbi_hsm_hart_start(scratch, NULL, dhart,
+> > > +                                               dom->next_addr,
+> > > +                                               dom->next_mode,
+> > > +                                               dom->next_arg1);
+> > >                         if (rc)
+> > >                                 return rc;
+> > >                 }
+> > > diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
+> > > index 3698a41..376740c 100644
+> > > --- a/lib/sbi/sbi_ecall_hsm.c
+> > > +++ b/lib/sbi/sbi_ecall_hsm.c
+> > > @@ -28,8 +28,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+> > >         case SBI_EXT_HSM_HART_START:
+> > >                 smode = csr_read(CSR_MSTATUS);
+> > >                 smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> > > -               ret = sbi_hsm_hart_start(scratch, args[0], args[1],
+> > > -                                        smode, args[2]);
+> > > +               ret = sbi_hsm_hart_start(scratch, sbi_domain_thishart_ptr(),
+> > > +                                        args[0], args[1], smode, args[2]);
+> > >                 break;
+> > >         case SBI_EXT_HSM_HART_STOP:
+> > >                 ret = sbi_hsm_hart_stop(scratch, TRUE);
+> > > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> > > index 1f8dadc..c16d542 100644
+> > > --- a/lib/sbi/sbi_hsm.c
+> > > +++ b/lib/sbi/sbi_hsm.c
+> > > @@ -205,10 +205,10 @@ fail_exit:
+> > >         sbi_hart_hang();
+> > >  }
+> > >
+> > > -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> > > -                      ulong saddr, ulong smode, ulong priv)
+> > > +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+> > > +                      const struct sbi_domain *dom,
+> > > +                      u32 hartid, ulong saddr, ulong smode, ulong priv)
+> > >  {
+> > > -       int rc;
+> > >         unsigned long init_count;
+> > >         unsigned int hstate;
+> > >         struct sbi_scratch *rscratch;
+> > > @@ -217,6 +217,11 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> > >
+> > >         if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
+> > >                 return SBI_EINVAL;
+> > > +       if (dom && !sbi_domain_assigned_hart(dom, hartid))
+> > > +               return SBI_EINVAL;
+> > > +       if (dom && !sbi_domain_check_addr(dom, saddr, smode,
+> > > +                                         FALSE, FALSE, FALSE, TRUE))
+> > > +               return SBI_EINVAL;
+> > >
+> > >         rscratch = sbi_hartid_to_scratch(hartid);
+> > >         if (!rscratch)
+> > > @@ -234,11 +239,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> > >         if (hstate != SBI_HART_STOPPED)
+> > >                 return SBI_EINVAL;
+> > >
+> > > -       rc = sbi_hart_pmp_check_addr(scratch, saddr, smode, PMP_X);
+> > > -       if (rc)
+> > > -               return rc;
+> > > -       //TODO: We also need to check saddr for valid physical address as well.
+> > > -
+> >
+> > Why is the check being removed ? IIRC, this API was improved in your
+> > last series to include the mode but removed completely later in this
+> > series.
+> > Maybe I missed something in the series or yet to review.
 >
-> We also change reserved memory node name prefix from "mmode_pmp"
-> to "mmode_resv" because domain memory regions can impact other
-> hardware configurations (such as IOPMP, etc) along with PMP.
+> The sbi_hart_pmp_check_addr() call is redundant here because the
+> sbi_domain_check_addr() above does the required checks.
 >
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  lib/utils/fdt/fdt_fixup.c | 47 ++++++++++++++++++---------------------
->  1 file changed, 22 insertions(+), 25 deletions(-)
+
+Yes. I know. I was asking sbi_hart_pmp_check_addr improved in domain
+preparation series
+but removed in actual domain series. That's why, I was asking why it
+was improved last time
+if it was to be removed in the next series. I guess you changed your
+implementation approach in between :).
+
+> >
+> > >         init_count = sbi_init_count(hartid);
+> > >         rscratch->next_arg1 = priv;
+> > >         rscratch->next_addr = saddr;
+> > > --
+> > > 2.25.1
+> > >
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
+> >
+> >
+> >
+> > --
+> > Regards,
+> > Atish
 >
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index 8f554e1..e9e1dff 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -9,6 +9,7 @@
->
->  #include <libfdt.h>
->  #include <sbi/sbi_console.h>
-> +#include <sbi/sbi_domain.h>
->  #include <sbi/sbi_math.h>
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_platform.h>
-> @@ -97,11 +98,11 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
->
->         if (na > 1 && addr_high)
->                 sbi_snprintf(name, sizeof(name),
-> -                            "mmode_pmp%d@%x,%x", index,
-> +                            "mmode_resv%d@%x,%x", index,
->                              addr_high, addr_low);
->         else
->                 sbi_snprintf(name, sizeof(name),
-> -                            "mmode_pmp%d@%x", index,
-> +                            "mmode_resv%d@%x", index,
->                              addr_low);
->
->         subnode = fdt_add_subnode(fdt, parent, name);
-> @@ -153,10 +154,11 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
->   */
->  int fdt_reserved_memory_fixup(void *fdt)
->  {
-> +       struct sbi_domain_memregion *reg;
-> +       struct sbi_domain *dom = sbi_domain_thishart_ptr();
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> -       unsigned long prot, addr, size;
-> -       int parent, i, j;
-> -       int err;
-> +       unsigned long addr, size;
-> +       int err, parent, i;
->         int na = fdt_address_cells(fdt, 0);
->         int ns = fdt_size_cells(fdt, 0);
->
-> @@ -203,34 +205,29 @@ int fdt_reserved_memory_fixup(void *fdt)
->          * We assume the given device tree does not contain any memory region
->          * child node protected by PMP. Normally PMP programming happens at
->          * M-mode firmware. The memory space used by OpenSBI is protected.
-> -        * Some additional memory spaces may be protected by platform codes.
-> +        * Some additional memory spaces may be protected by domain memory
-> +        * regions.
->          *
->          * With above assumption, we create child nodes directly.
->          */
->
-> -       if (!sbi_hart_pmp_count(scratch)) {
-> -               /*
-> -                * Update the DT with firmware start & size even if PMP is not
-> -                * supported. This makes sure that supervisor OS is always
-> -                * aware of OpenSBI resident memory area.
-> -                */
-> -               addr = scratch->fw_start & ~(scratch->fw_size - 1UL);
-> -               size = (1UL << log2roundup(scratch->fw_size));
-> -               return fdt_resv_memory_update_node(fdt, addr, size,
-> -                                                  0, parent, true);
-> -       }
-> -
-> -       for (i = 0, j = 0; i < sbi_hart_pmp_count(scratch); i++) {
-> -               err = sbi_hart_pmp_get(scratch, i, &prot, &addr, &size);
-> -               if (err)
-> +       i = 0;
-> +       sbi_domain_for_each_memregion(dom, reg) {
-> +               /* Ignore MMIO or READABLE or WRITABLE or EXECUTABLE regions */
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
-> +                       continue;
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
->                         continue;
-> -               if (!(prot & PMP_A))
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
->                         continue;
-> -               if (prot & (PMP_R | PMP_W | PMP_X))
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
->                         continue;
->
-> -               fdt_resv_memory_update_node(fdt, addr, size, j, parent, false);
-> -               j++;
-> +               addr = reg->base;
-> +               size = 1UL << reg->order;
-> +               fdt_resv_memory_update_node(fdt, addr, size, i, parent,
-> +                       (sbi_hart_pmp_count(scratch)) ? false : true);
-> +               i++;
->         }
->
->         return 0;
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Regards,
+> Anup
 
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
 -- 
 Regards,
