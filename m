@@ -1,40 +1,92 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Sun, 18 Oct 2020 14:48:05 -0700
-Subject: [PATCH v2 05/16] include: sbi: Make hartmask pointer const in
- sbi_hartmask_test_hart()
-In-Reply-To: <20201015132700.2232820-6-anup.patel@wdc.com>
+Date: Sun, 18 Oct 2020 16:41:25 -0700
+Subject: [PATCH v2 14/16] lib: sbi: Configure PMP based on domain memory
+ regions
+In-Reply-To: <20201015132700.2232820-15-anup.patel@wdc.com>
 References: <20201015132700.2232820-1-anup.patel@wdc.com>
- <20201015132700.2232820-6-anup.patel@wdc.com>
-Message-ID: <CAOnJCULAgc6HJohKYZT69Wqcgkvq0vse_-oaKPU2O6yTQ=i00Q@mail.gmail.com>
+ <20201015132700.2232820-15-anup.patel@wdc.com>
+Message-ID: <CAOnJCU+K785u1bOktzZR3os8caN6tYQm_cf=ScUvZfU1MxwKpA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 15, 2020 at 6:27 AM Anup Patel <anup.patel@wdc.com> wrote:
+On Thu, Oct 15, 2020 at 6:28 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The sbi_hartmask_test_hart() does not modify hartmask so the
-> hartmask pointer parameter should be declared const.
+> The PMP configuration on each HART should be only based on the
+> memory regions of the assigned domain. This patch updates the
+> sbi_hart_pmp_configure() function accordingly.
 >
+
+The commit should be more verbose in explaining that the root domain
+memory region
+already contains the firmware PMP region. That's why we just need to
+configure the domain memory regions.
+
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  include/sbi/sbi_hartmask.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  lib/sbi/sbi_hart.c | 37 ++++++++++++++++++++++---------------
+>  1 file changed, 22 insertions(+), 15 deletions(-)
 >
-> diff --git a/include/sbi/sbi_hartmask.h b/include/sbi/sbi_hartmask.h
-> index 77e42cb..f1cef0c 100644
-> --- a/include/sbi/sbi_hartmask.h
-> +++ b/include/sbi/sbi_hartmask.h
-> @@ -67,7 +67,7 @@ static inline void sbi_hartmask_clear_hart(u32 h, struct sbi_hartmask *m)
->   * @param h HART id to test
->   * @param m the hartmask pointer
->   */
-> -static inline int sbi_hartmask_test_hart(u32 h, struct sbi_hartmask *m)
-> +static inline int sbi_hartmask_test_hart(u32 h, const struct sbi_hartmask *m)
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index ea5d479..1871a1e 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -13,6 +13,7 @@
+>  #include <sbi/riscv_fp.h>
+>  #include <sbi/sbi_bitops.h>
+>  #include <sbi/sbi_console.h>
+> +#include <sbi/sbi_domain.h>
+>  #include <sbi/sbi_csr_detect.h>
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_hart.h>
+> @@ -184,24 +185,30 @@ void sbi_hart_pmp_dump(struct sbi_scratch *scratch)
+>
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
 >  {
->         if (h < SBI_HARTMASK_MAX_BITS)
->                 return __test_bit(h, m->bits);
+> -       u32 pmp_idx = 0;
+> -       unsigned long fw_start, fw_size_log2;
+> +       struct sbi_domain_memregion *reg;
+> +       struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> +       unsigned int pmp_idx = 0, pmp_flags;
+> +       unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+>
+> -       if (!sbi_hart_pmp_count(scratch))
+> +       if (!pmp_count)
+>                 return 0;
+>
+> -       /* Firmware PMP region to protect OpenSBI firmware */
+> -       fw_size_log2 = log2roundup(scratch->fw_size);
+> -       fw_start = scratch->fw_start & ~((1UL << fw_size_log2) - 1UL);
+> -       pmp_set(pmp_idx++, 0, fw_start, fw_size_log2);
+> -
+> -       /*
+> -        * Default PMP region for allowing S-mode and U-mode access to
+> -        * memory not covered by:
+> -        * 1) Firmware PMP region
+> -        * 2) Platform specific PMP regions
+> -        */
+> -       pmp_set(pmp_idx++, PMP_R | PMP_W | PMP_X, 0, __riscv_xlen);
+> +       sbi_domain_for_each_memregion(dom, reg) {
+> +               if (pmp_count <= pmp_idx)
+> +                       break;
+> +
+> +               pmp_flags = 0;
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
+> +                       pmp_flags |= PMP_R;
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
+> +                       pmp_flags |= PMP_W;
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
+> +                       pmp_flags |= PMP_X;
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
+> +                       pmp_flags |= PMP_L;
+> +
+> +               pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
+> +       }
+>
+>         return 0;
+>  }
 > --
 > 2.25.1
 >
@@ -44,6 +96,7 @@ On Thu, Oct 15, 2020 at 6:27 AM Anup Patel <anup.patel@wdc.com> wrote:
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
+Otherwise, looks good.
 
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
