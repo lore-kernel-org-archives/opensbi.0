@@ -1,51 +1,103 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 16 Oct 2020 16:31:23 -0700
-Subject: [PATCH 5/5] platform: kendryte/k210: Add some padding for FDT
- fixups
-In-Reply-To: <20201015081211.1956554-6-anup.patel@wdc.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Sun, 18 Oct 2020 04:05:14 +0000
+Subject: [PATCH 1/5] Makefile: Build ELF, BIN and LD script in platform
+ build directory
+In-Reply-To: <CAOnJCUJYp03F+BZeNppE2+hnk3YKVbP2K+OhjZEsbXwJz5gWng@mail.gmail.com>
 References: <20201015081211.1956554-1-anup.patel@wdc.com>
- <20201015081211.1956554-6-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJrebru+LWfZrUmBzOTbGdmJ-uy9D3wwmGZUaS7QmDhvw@mail.gmail.com>
+ <20201015081211.1956554-2-anup.patel@wdc.com>
+ <CAOnJCUJYp03F+BZeNppE2+hnk3YKVbP2K+OhjZEsbXwJz5gWng@mail.gmail.com>
+Message-ID: <DM6PR04MB6201DEF58CE11F8CD61118E68D010@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 15, 2020 at 1:13 AM Anup Patel <anup.patel@wdc.com> wrote:
->
-> The Kendryte K210 platform has built-in DTB and does not provides
-> FW_PAYLOAD_FDT_ADDR. This means the FDT fixups will be done on
-> the built-in DTB in absence of FW_PAYLOAD_FDT_ADDR. This patch
-> adds some padding in built-in DTB for FDT fixups.
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  platform/kendryte/k210/objects.mk | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/platform/kendryte/k210/objects.mk b/platform/kendryte/k210/objects.mk
-> index 106f9f2..b74da74 100644
-> --- a/platform/kendryte/k210/objects.mk
-> +++ b/platform/kendryte/k210/objects.mk
-> @@ -11,3 +11,4 @@ platform-objs-y += platform.o
->
->  platform-objs-y += k210.o
->  platform-varprefix-k210.o = dt_k210
-> +platform-padding-k210.o = 2048
+
+
+> -----Original Message-----
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 17 October 2020 01:15
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; Damien Le
+> Moal <Damien.LeMoal@wdc.com>; OpenSBI <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH 1/5] Makefile: Build ELF, BIN and LD script in platform
+> build directory
+> 
+> On Thu, Oct 15, 2020 at 1:12 AM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > Currently, the make rules for ELF, BIN and LD script are little
+> > generic to allowing ELF, BIN and LD script to be anywhere in the build
+> > directory. For OpenSBI firwares, the ELF, BIN, and LD script are
+> > always platform specific so we update make rules accordingly.
+> >
+> 
+> /s/firewares/firmwares
+
+Okay, will update.
+
+> 
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  Makefile | 18 +++++++++---------
+> >  1 file changed, 9 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/Makefile b/Makefile
+> > index 2a352ef..6c36f09 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -310,15 +310,6 @@ all: $(targets-y)  # Preserve all intermediate
+> > files
+> >  .SECONDARY:
+> >
+> > -$(build_dir)/%.bin: $(build_dir)/%.elf
+> > -       $(call compile_objcopy,$@,$<)
+> > -
+> > -$(build_dir)/%.elf: $(build_dir)/%.o $(build_dir)/%.elf.ld
+> $(platform_build_dir)/lib/libplatsbi.a
+> > -       $(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
+> > -
+> > -$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
+> > -       $(call compile_cpp,$@,$<)
+> > -
+> >  $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
+> >         $(call compile_ar,$@,$^)
+> >
+> > @@ -340,6 +331,15 @@ $(build_dir)/%.dep: $(src_dir)/%.S
+> >  $(build_dir)/%.o: $(src_dir)/%.S
+> >         $(call compile_as,$@,$<)
+> >
+> > +$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
+> > +       $(call compile_objcopy,$@,$<)
+> > +
+> > +$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o
+> $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
+> > +       $(call compile_elf,$@,$@.ld,$<
+> > +$(platform_build_dir)/lib/libplatsbi.a)
+> > +
+> > +$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
+> > +       $(call compile_cpp,$@,$<)
+> > +
+> >  $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c
+> >         $(call compile_cc_dep,$@,$<)
+> >
+> > --
+> > 2.25.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Otherwise, looks good.
+> 
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+> 
 > --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Regards,
+> Atish
 
-
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-
--- 
 Regards,
-Atish
-
+Anup
