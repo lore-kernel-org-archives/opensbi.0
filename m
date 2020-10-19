@@ -1,11 +1,11 @@
 From: Alistair Francis <Alistair.Francis@wdc.com>
-Date: Mon, 19 Oct 2020 17:52:23 +0000
-Subject: [PATCH v3 02/16] include: sbi: Remove pmp_region callbacks from
- sbi_platform_operations
-In-Reply-To: <20201019125453.2460105-3-anup.patel@wdc.com>
+Date: Mon, 19 Oct 2020 17:53:42 +0000
+Subject: [PATCH v3 03/16] lib: sbi: Configure PMP late in coldboot and
+ warmboot path
+In-Reply-To: <20201019125453.2460105-4-anup.patel@wdc.com>
 References: <20201019125453.2460105-1-anup.patel@wdc.com>
- <20201019125453.2460105-3-anup.patel@wdc.com>
-Message-ID: <ed4c04d44d5196f580c4de2d9399aab28d799e99.camel@wdc.com>
+ <20201019125453.2460105-4-anup.patel@wdc.com>
+Message-ID: <327a724145bbe0a36de28ab761624053f783a40c.camel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,10 +13,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 On Mon, 2020-10-19 at 18:24 +0530, Anup Patel wrote:
-> The pmp_region_xyz() callbacks are not required in
-> sbi_platform_operations
-> because we will be using OpenSBI domain memory regions to program the
-> PMP CSRs.
+> We factor-out PMP configuration from sbi_hart_init() as a separate
+> sbi_hart_pmp_configure() function and do the PMP configuration very
+> late in coldboot and warmboot path just before platform_final_init().
+> 
+> Eventually, this enable us to configure PMP totally based on OpenSBI
+> domain where OpenSBI domains can be parsed from device-tree in any of
+> the platform operations except platform_final_init().
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
@@ -26,121 +29,74 @@ Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 Alistair
 
 > ---
->  include/sbi/sbi_platform.h | 50 ------------------------------------
-> --
->  lib/sbi/sbi_hart.c         | 14 +----------
->  2 files changed, 1 insertion(+), 63 deletions(-)
+>  include/sbi/sbi_hart.h | 1 +
+>  lib/sbi/sbi_hart.c     | 4 ++--
+>  lib/sbi/sbi_init.c     | 8 ++++++++
+>  3 files changed, 11 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index f51e36a..f2c3237 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -89,15 +89,6 @@ struct sbi_platform_operations {
->  	 */
->  	int (*misa_get_xlen)(void);
->  
-> -	/** Get number of PMP regions for given HART */
-> -	u32 (*pmp_region_count)(u32 hartid);
-> -	/**
-> -	 * Get PMP regions details (namely: protection, base address,
-> -	 * and size) for given HART
-> -	 */
-> -	int (*pmp_region_info)(u32 hartid, u32 index, ulong *prot,
-> ulong *addr,
-> -			       ulong *log2size);
-> -
->  	/** Write a character to the platform console output */
->  	void (*console_putc)(char ch);
->  	/** Read a character from the platform console input */
-> @@ -456,47 +447,6 @@ static inline int sbi_platform_misa_xlen(const
-> struct sbi_platform *plat)
->  	return -1;
->  }
->  
-> -/**
-> - * Get the number of PMP regions of a HART
-> - *
-> - * @param plat pointer to struct sbi_platform
-> - * @param hartid HART ID
-> - *
-> - * @return number of PMP regions
-> - */
-> -static inline u32 sbi_platform_pmp_region_count(const struct
-> sbi_platform *plat,
-> -						u32 hartid)
-> -{
-> -	if (plat && sbi_platform_ops(plat)->pmp_region_count)
-> -		return sbi_platform_ops(plat)-
-> >pmp_region_count(hartid);
-> -	return 0;
-> -}
-> -
-> -/**
-> - * Get PMP regions details (namely: protection, base address,
-> - * and size) of a HART
-> - *
-> - * @param plat pointer to struct sbi_platform
-> - * @param hartid HART ID
-> - * @param index index of PMP region for which we want details
-> - * @param prot output pointer for PMP region protection
-> - * @param addr output pointer for PMP region base address
-> - * @param log2size output pointer for log-of-2 PMP region size
-> - *
-> - * @return 0 on success and negative error code on failure
-> - */
-> -static inline int sbi_platform_pmp_region_info(const struct
-> sbi_platform *plat,
-> -						u32 hartid, u32 index,
-> -						ulong *prot, ulong
-> *addr,
-> -						ulong *log2size)
-> -{
-> -	if (plat && sbi_platform_ops(plat)->pmp_region_info)
-> -		return sbi_platform_ops(plat)->pmp_region_info(hartid,
-> index,
-> -							       prot,
-> addr,
-> -							       log2size
-> );
-> -	return 0;
-> -}
-> -
->  /**
->   * Write a character to the platform console output
->   *
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 0ba68f0..9207f4c 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -45,6 +45,7 @@ void sbi_hart_pmp_dump(struct sbi_scratch
+> *scratch);
+>  int  sbi_hart_pmp_check_addr(struct sbi_scratch *scratch,
+>  			     unsigned long daddr, unsigned long mode,
+>  			     unsigned long attr);
+> +int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
+>  bool sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long
+> feature);
+>  void sbi_hart_get_features_str(struct sbi_scratch *scratch,
+>  			       char *features_str, int nfstr);
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 55a04da..edf79b7 100644
+> index edf79b7..7244f1c 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -226,10 +226,8 @@ int sbi_hart_pmp_check_addr(struct sbi_scratch
+> @@ -224,7 +224,7 @@ int sbi_hart_pmp_check_addr(struct sbi_scratch
 > *scratch,
+>  	return SBI_OK;
+>  }
 >  
->  static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+> -static int pmp_init(struct sbi_scratch *scratch, u32 hartid)
+> +int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
 >  {
-> -	u32 i, pmp_idx = 0, pmp_count, count;
-> +	u32 pmp_idx = 0;
+>  	u32 pmp_idx = 0;
 >  	unsigned long fw_start, fw_size_log2;
-> -	ulong prot, addr, log2size;
-> -	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> @@ -462,7 +462,7 @@ int sbi_hart_init(struct sbi_scratch *scratch,
+> u32 hartid, bool cold_boot)
+>  	if (rc)
+>  		return rc;
 >  
->  	if (!sbi_hart_pmp_count(scratch))
->  		return 0;
-> @@ -239,16 +237,6 @@ static int pmp_init(struct sbi_scratch *scratch,
-> u32 hartid)
->  	fw_start = scratch->fw_start & ~((1UL << fw_size_log2) - 1UL);
->  	pmp_set(pmp_idx++, 0, fw_start, fw_size_log2);
+> -	return pmp_init(scratch, hartid);
+> +	return 0;
+>  }
 >  
-> -	/* Platform specific PMP regions */
-> -	count = sbi_platform_pmp_region_count(plat, hartid);
-> -	pmp_count = sbi_hart_pmp_count(scratch);
-> -	for (i = 0; i < count && pmp_idx < (pmp_count - 1); i++) {
-> -		if (sbi_platform_pmp_region_info(plat, hartid, i,
-> &prot, &addr,
-> -						 &log2size))
-> -			continue;
-> -		pmp_set(pmp_idx++, prot, addr, log2size);
-> -	}
-> -
->  	/*
->  	 * Default PMP region for allowing S-mode and U-mode access to
->  	 * memory not covered by:
+>  void __attribute__((noreturn)) sbi_hart_hang(void)
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 65d81ba..85a5f13 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -210,6 +210,10 @@ static void __noreturn init_coldboot(struct
+> sbi_scratch *scratch, u32 hartid)
+>  	if (rc)
+>  		sbi_hart_hang();
+>  
+> +	rc = sbi_hart_pmp_configure(scratch);
+> +	if (rc)
+> +		sbi_hart_hang();
+> +
+>  	rc = sbi_platform_final_init(plat, TRUE);
+>  	if (rc)
+>  		sbi_hart_hang();
+> @@ -266,6 +270,10 @@ static void __noreturn init_warmboot(struct
+> sbi_scratch *scratch, u32 hartid)
+>  	if (rc)
+>  		sbi_hart_hang();
+>  
+> +	rc = sbi_hart_pmp_configure(scratch);
+> +	if (rc)
+> +		sbi_hart_hang();
+> +
+>  	rc = sbi_platform_final_init(plat, FALSE);
+>  	if (rc)
+>  		sbi_hart_hang();
