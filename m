@@ -1,11 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Mon, 19 Oct 2020 04:17:35 +0000
-Subject: [PATCH v2 5/5] platform: kendryte/k210: Add some padding for FDT
- fixups
-In-Reply-To: <20201018051449.2368918-6-anup.patel@wdc.com>
-References: <20201018051449.2368918-1-anup.patel@wdc.com>
- <20201018051449.2368918-6-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201BDF435AB8A2A64792F128D1E0@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Mon, 19 Oct 2020 05:20:27 +0000
+Subject: [PATCH v2 14/16] lib: sbi: Configure PMP based on domain memory
+ regions
+In-Reply-To: <CAOnJCU+K785u1bOktzZR3os8caN6tYQm_cf=ScUvZfU1MxwKpA@mail.gmail.com>
+References: <20201015132700.2232820-1-anup.patel@wdc.com>
+ <20201015132700.2232820-15-anup.patel@wdc.com>
+ <CAOnJCU+K785u1bOktzZR3os8caN6tYQm_cf=ScUvZfU1MxwKpA@mail.gmail.com>
+Message-ID: <DM6PR04MB62018719A2E97F6A7D87B8208D1E0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,42 +16,111 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Anup Patel <Anup.Patel@wdc.com>
-> Sent: 18 October 2020 10:45
-> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>
-> Cc: Damien Le Moal <Damien.LeMoal@wdc.com>; Anup Patel
-> <anup@brainfault.org>; opensbi at lists.infradead.org; Anup Patel
-> <Anup.Patel@wdc.com>
-> Subject: [PATCH v2 5/5] platform: kendryte/k210: Add some padding for FDT
-> fixups
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 19 October 2020 05:11
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH v2 14/16] lib: sbi: Configure PMP based on domain
+> memory regions
 > 
-> The Kendryte K210 platform has built-in DTB and does not provides
-> FW_PAYLOAD_FDT_ADDR. This means the FDT fixups will be done on the
-> built-in DTB in absence of FW_PAYLOAD_FDT_ADDR. This patch adds some
-> padding in built-in DTB for FDT fixups.
+> On Thu, Oct 15, 2020 at 6:28 AM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > The PMP configuration on each HART should be only based on the memory
+> > regions of the assigned domain. This patch updates the
+> > sbi_hart_pmp_configure() function accordingly.
+> >
 > 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  platform/kendryte/k210/objects.mk | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/platform/kendryte/k210/objects.mk
-> b/platform/kendryte/k210/objects.mk
-> index 106f9f2..b74da74 100644
-> --- a/platform/kendryte/k210/objects.mk
-> +++ b/platform/kendryte/k210/objects.mk
-> @@ -11,3 +11,4 @@ platform-objs-y += platform.o
-> 
->  platform-objs-y += k210.o
->  platform-varprefix-k210.o = dt_k210
-> +platform-padding-k210.o = 2048
-> --
-> 2.25.1
+> The commit should be more verbose in explaining that the root domain
+> memory region already contains the firmware PMP region. That's why we
+> just need to configure the domain memory regions.
 
-Applied this patch to the riscv/opensbi repo
+Not just root domain, all non-root domains should also have a memory region
+to protect the firmware.
+
+I will update the commit description accordingly.
+
+> 
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  lib/sbi/sbi_hart.c | 37 ++++++++++++++++++++++---------------
+> >  1 file changed, 22 insertions(+), 15 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index
+> > ea5d479..1871a1e 100644
+> > --- a/lib/sbi/sbi_hart.c
+> > +++ b/lib/sbi/sbi_hart.c
+> > @@ -13,6 +13,7 @@
+> >  #include <sbi/riscv_fp.h>
+> >  #include <sbi/sbi_bitops.h>
+> >  #include <sbi/sbi_console.h>
+> > +#include <sbi/sbi_domain.h>
+> >  #include <sbi/sbi_csr_detect.h>
+> >  #include <sbi/sbi_error.h>
+> >  #include <sbi/sbi_hart.h>
+> > @@ -184,24 +185,30 @@ void sbi_hart_pmp_dump(struct sbi_scratch
+> > *scratch)
+> >
+> >  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)  {
+> > -       u32 pmp_idx = 0;
+> > -       unsigned long fw_start, fw_size_log2;
+> > +       struct sbi_domain_memregion *reg;
+> > +       struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> > +       unsigned int pmp_idx = 0, pmp_flags;
+> > +       unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+> >
+> > -       if (!sbi_hart_pmp_count(scratch))
+> > +       if (!pmp_count)
+> >                 return 0;
+> >
+> > -       /* Firmware PMP region to protect OpenSBI firmware */
+> > -       fw_size_log2 = log2roundup(scratch->fw_size);
+> > -       fw_start = scratch->fw_start & ~((1UL << fw_size_log2) - 1UL);
+> > -       pmp_set(pmp_idx++, 0, fw_start, fw_size_log2);
+> > -
+> > -       /*
+> > -        * Default PMP region for allowing S-mode and U-mode access to
+> > -        * memory not covered by:
+> > -        * 1) Firmware PMP region
+> > -        * 2) Platform specific PMP regions
+> > -        */
+> > -       pmp_set(pmp_idx++, PMP_R | PMP_W | PMP_X, 0, __riscv_xlen);
+> > +       sbi_domain_for_each_memregion(dom, reg) {
+> > +               if (pmp_count <= pmp_idx)
+> > +                       break;
+> > +
+> > +               pmp_flags = 0;
+> > +               if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
+> > +                       pmp_flags |= PMP_R;
+> > +               if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
+> > +                       pmp_flags |= PMP_W;
+> > +               if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
+> > +                       pmp_flags |= PMP_X;
+> > +               if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
+> > +                       pmp_flags |= PMP_L;
+> > +
+> > +               pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
+> > +       }
+> >
+> >         return 0;
+> >  }
+> > --
+> > 2.25.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Otherwise, looks good.
+> 
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+> 
+> --
+> Regards,
+> Atish
 
 Regards,
 Anup
-
