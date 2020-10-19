@@ -1,91 +1,145 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Tue, 20 Oct 2020 00:05:07 +0100
-Subject: [PATCH] Makefile: Don't specify mabi or march
-In-Reply-To: <27758a2d4af9da67e8740577cc71d0595bbb6f11.camel@wdc.com>
-References: <20201019224108.99481-1-alistair.francis@wdc.com>
- <86597E3E-0796-48AA-9FB1-665A2E7A9102@jrtc27.com>
- <27758a2d4af9da67e8740577cc71d0595bbb6f11.camel@wdc.com>
-Message-ID: <9CE3772E-7817-45AB-BF84-304E0FCA3423@jrtc27.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Mon, 19 Oct 2020 16:14:33 -0700
+Subject: [PATCH v3 08/16] lib: sbi: Extend sbi_hsm_hart_start() for domains
+In-Reply-To: <20201019125453.2460105-9-anup.patel@wdc.com>
+References: <20201019125453.2460105-1-anup.patel@wdc.com>
+ <20201019125453.2460105-9-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKxC4woAh9oTaHZOHVyawiatr4nAZnBOxJOrb12Zfsz0g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 20 Oct 2020, at 00:02, Alistair Francis <alistair.francis@wdc.com> wrote:
-> 
-> On Mon, 2020-10-19 at 23:56 +0100, Jessica Clarke wrote:
->> On 19 Oct 2020, at 23:41, Alistair Francis <alistair.francis@wdc.com>
->> wrote:
->>> To avoid
->>>   can't link double-float modules with soft-float modules
->>> errors when building 32-bit openSBI don't specify mabi or march.
->> 
->> What happens if you want to build for a different ABI or ISA string
->> deliberately? Especially with something like Clang where every
->> compiler
->> is a cross-compiler. Users should be able to specify an ABI or ISA
->> string if they want and have it honoured, either via
->> PLATFORM_RISCV_ABI/ISA or by using += for CFLAGS everywhere rather
->> than
->> overwriting it entirely (which is the more standard thing to do for
->> software that isn't RISC-V-specific).
-> 
-> A user could do that by specifying their own CFLAGS when building to
-> allow them to specify a ISA or ABI.
+On Mon, Oct 19, 2020 at 5:55 AM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> The sbi_hsm_hart_start() should consider the domain under which we
+> are trying to start the HART. This will help ensure that HART A can
+> start HART B only if both HARTs A and B belong to the same domain.
+>
+> We also have a special case when we bring-up boot HART of non-root
+> domains in sbi_domain_finalize() where we should skip domain checks
+> in sbi_hsm_hart_start(). To achieve this, sbi_hsm_hart_start() should
+> do domain checks only when domain parameter is non-NULL.
+>
+> This patch extends sbi_hsm_hart_start() as-per above.
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  include/sbi/sbi_hsm.h   |  5 +++--
+>  lib/sbi/sbi_domain.c    |  6 ++++--
+>  lib/sbi/sbi_ecall_hsm.c |  4 ++--
+>  lib/sbi/sbi_hsm.c       | 16 ++++++++--------
+>  4 files changed, 17 insertions(+), 14 deletions(-)
+>
+> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+> index 296b267..4823383 100644
+> --- a/include/sbi/sbi_hsm.h
+> +++ b/include/sbi/sbi_hsm.h
+> @@ -25,8 +25,9 @@ struct sbi_scratch;
+>  int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+>  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
+>
+> -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> -                      ulong saddr, ulong smode, ulong priv);
+> +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+> +                      const struct sbi_domain *dom,
+> +                      u32 hartid, ulong saddr, ulong smode, ulong priv);
+>  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+>  int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+>  int sbi_hsm_hart_state_to_status(int state);
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index ed0053f..2b6fa79 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -324,8 +324,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+>                         scratch->next_mode = dom->next_mode;
+>                         scratch->next_arg1 = dom->next_arg1;
+>                 } else {
+> -                       rc = sbi_hsm_hart_start(scratch, dhart, dom->next_addr,
+> -                                       dom->next_mode, dom->next_arg1);
+> +                       rc = sbi_hsm_hart_start(scratch, NULL, dhart,
+> +                                               dom->next_addr,
+> +                                               dom->next_mode,
+> +                                               dom->next_arg1);
+>                         if (rc)
+>                                 return rc;
+>                 }
+> diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
+> index 3698a41..376740c 100644
+> --- a/lib/sbi/sbi_ecall_hsm.c
+> +++ b/lib/sbi/sbi_ecall_hsm.c
+> @@ -28,8 +28,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+>         case SBI_EXT_HSM_HART_START:
+>                 smode = csr_read(CSR_MSTATUS);
+>                 smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> -               ret = sbi_hsm_hart_start(scratch, args[0], args[1],
+> -                                        smode, args[2]);
+> +               ret = sbi_hsm_hart_start(scratch, sbi_domain_thishart_ptr(),
+> +                                        args[0], args[1], smode, args[2]);
+>                 break;
+>         case SBI_EXT_HSM_HART_STOP:
+>                 ret = sbi_hsm_hart_stop(scratch, TRUE);
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 65e7f3d..8ecf90f 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -205,10 +205,10 @@ fail_exit:
+>         sbi_hart_hang();
+>  }
+>
+> -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+> -                      ulong saddr, ulong smode, ulong priv)
+> +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+> +                      const struct sbi_domain *dom,
+> +                      u32 hartid, ulong saddr, ulong smode, ulong priv)
+>  {
+> -       int rc;
+>         unsigned long init_count;
+>         unsigned int hstate;
+>         struct sbi_scratch *rscratch;
+> @@ -217,6 +217,11 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+>
+>         if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
+>                 return SBI_EINVAL;
 
-Makefile:196:CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-strict-aliasing -O2
+We don't support M-mode as the next mode yet. Thus, this check can be
+updated to reflect that.
 
-That doesn't work so well with user-supplied CFLAGS.
+> +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
+> +               return SBI_EINVAL;
+> +       if (dom && !sbi_domain_check_addr(dom, saddr, smode,
+> +                                         SBI_DOMAIN_EXECUTE))
+> +               return SBI_EINVAL;
+>
+>         rscratch = sbi_hartid_to_scratch(hartid);
+>         if (!rscratch)
+> @@ -234,11 +239,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+>         if (hstate != SBI_HART_STOPPED)
+>                 return SBI_EINVAL;
+>
+> -       rc = sbi_hart_pmp_check_addr(scratch, saddr, smode, PMP_X);
+> -       if (rc)
+> -               return rc;
+> -       //TODO: We also need to check saddr for valid physical address as well.
+> -
+>         init_count = sbi_init_count(hartid);
+>         rscratch->next_arg1 = priv;
+>         rscratch->next_addr = saddr;
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-> Currently no platform set PLATFORM_RISCV_ABI as it defaults to ilp32 or
-> lp64.
+Apart from that,
 
-We do. We have new ABIs for our extension (see cheri-cpu.org).
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
-> No platform also sets PLATFORM_RISCV_ISA which is always rv32/64imafdc.
-
-We do.
-
-Jess
-
->>> Signed-off-by: Alistair Francis <alistair.francis@wdc.com>
->>> ---
->>> Makefile | 2 --
->>> 1 file changed, 2 deletions(-)
->>> 
->>> diff --git a/Makefile b/Makefile
->>> index a231881..3f819d9 100644
->>> --- a/Makefile
->>> +++ b/Makefile
->>> @@ -196,7 +196,6 @@ GENFLAGS	+=	$(firmware-genflags-y)
->>> CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib
->>> -fno-strict-aliasing -O2
->>> CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-
->>> sibling-calls
->>> CFLAGS		+=	-mno-save-restore -mstrict-align
->>> -CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI)
->>> -march=$(PLATFORM_RISCV_ISA)
->>> CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
->>> CFLAGS		+=	$(GENFLAGS)
->>> CFLAGS		+=	$(platform-cflags-y)
->>> @@ -210,7 +209,6 @@ CPPFLAGS	+=	$(firmware-cppflags-y)
->>> ASFLAGS		=	-g -Wall -nostdlib -D__ASSEMBLY__
->>> ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-
->>> sibling-calls
->>> ASFLAGS		+=	-mno-save-restore -mstrict-align
->>> -ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI)
->>> -march=$(PLATFORM_RISCV_ISA)
->>> ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
->>> ASFLAGS		+=	$(GENFLAGS)
->>> ASFLAGS		+=	$(platform-asflags-y)
->>> -- 
->>> 2.28.0
->>> 
->>> 
->>> -- 
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
-
+-- 
+Regards,
+Atish
 
