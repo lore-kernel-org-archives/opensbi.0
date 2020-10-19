@@ -1,296 +1,171 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 19 Oct 2020 18:24:52 +0530
-Subject: [PATCH v3 15/16] lib: sbi: Display domain details in boot prints
+Date: Mon, 19 Oct 2020 18:24:53 +0530
+Subject: [PATCH v3 16/16] docs: Add initial documentation for domain support
 In-Reply-To: <20201019125453.2460105-1-anup.patel@wdc.com>
 References: <20201019125453.2460105-1-anup.patel@wdc.com>
-Message-ID: <20201019125453.2460105-16-anup.patel@wdc.com>
+Message-ID: <20201019125453.2460105-17-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We extend boot prints to display details of each domain. In the
-process, we remove sbi_hart_pmp_dump() because it shows redundant
-information which domain details already show.
+We add initial documentation for OpenSBI domain support to help
+RISC-V platform vendors achieve system-level partitioning.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_domain.h |  6 +++
- include/sbi/sbi_hart.h   |  4 +-
- lib/sbi/sbi_domain.c     | 94 ++++++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_hart.c       | 44 +++++--------------
- lib/sbi/sbi_init.c       | 27 +++++++-----
- 5 files changed, 127 insertions(+), 48 deletions(-)
+ README.md              |   3 ++
+ docs/domain_support.md | 106 +++++++++++++++++++++++++++++++++++++++++
+ docs/doxygen.cfg       |   1 +
+ 3 files changed, 110 insertions(+)
+ create mode 100644 docs/domain_support.md
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 4bb08dc..6f90b26 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -138,6 +138,12 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
- 			   unsigned long addr, unsigned long mode,
- 			   unsigned long access_flags);
+diff --git a/README.md b/README.md
+index bd41ba3..03c02fb 100644
+--- a/README.md
++++ b/README.md
+@@ -225,6 +225,8 @@ Detailed documentation of various aspects of OpenSBI can be found under the
+ * [Platform Documentation]: Documentation of the platforms currently supported.
+ * [Firmware Documentation]: Documentation for the different types of firmware
+   examples build supported by OpenSBI.
++* [Domain Support]: Documentation for the OpenSBI domain support which helps
++  users achieve system-level partitioning using OpenSBI.
  
-+/** Dump domain details on the console */
-+void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
+ OpenSBI source code is also well documented. For source level documentation,
+ doxygen style is used. Please refer to the [Doxygen manual] for details on this
+@@ -278,6 +280,7 @@ make I=<install_directory> install_docs
+ [Platform Support Guide]: docs/platform_guide.md
+ [Platform Documentation]: docs/platform/platform.md
+ [Firmware Documentation]: docs/firmware/fw.md
++[Domain Support]: docs/domain_support.md
+ [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+ [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+ [third party notices]: ThirdPartyNotices.md
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+new file mode 100644
+index 0000000..53967dd
+--- /dev/null
++++ b/docs/domain_support.md
+@@ -0,0 +1,106 @@
++OpenSBI Domain Support
++======================
 +
-+/** Dump all domain details on the console */
-+void sbi_domain_dump_all(const char *suffix);
++An OpenSBI domain is a system-level partition (subset) of underlying hardware
++having it's own memory regions (RAM and MMIO devices) and HARTs. The OpenSBI
++will try to achieve secure isolation between domains using RISC-V platform
++features such as PMP, ePMP, IOPMP, SiFive Shield, etc.
 +
- /** Finalize domain tables and startup non-root domains */
- int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid);
- 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 79d745a..3ac1500 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -36,9 +36,9 @@ static inline ulong sbi_hart_expected_trap_addr(void)
- }
- 
- unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
--void sbi_hart_delegation_dump(struct sbi_scratch *scratch);
-+void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
-+			      const char *prefix, const char *suffix);
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
--void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
- bool sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
- void sbi_hart_get_features_str(struct sbi_scratch *scratch,
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 2b6fa79..43c0599 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <sbi/riscv_asm.h>
-+#include <sbi/sbi_console.h>
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_hsm.h>
-@@ -243,6 +244,99 @@ static int sanitize_domain(const struct sbi_platform *plat,
- 	return 0;
- }
- 
-+void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
-+{
-+	u32 i, k;
-+	unsigned long rstart, rend;
-+	struct sbi_domain_memregion *reg;
++Important entities which help implement OpenSBI domain support are:
 +
-+	sbi_printf("Domain%d Name        %s: %s\n",
-+		   dom->index, suffix, dom->name);
++* **struct sbi_domain_memregion** - Representation of a domain memory region
++* **struct sbi_hartmask** - Representation of domain HART set
++* **struct sbi_domain** - Representation of a domain instance
 +
-+	sbi_printf("Domain%d Boot HART   %s: %d\n",
-+		   dom->index, suffix, dom->boot_hartid);
++Each HART of a RISC-V platform must have an OpenSBI domain assigned to it.
++The OpenSBI platform support is responsible for populating domains and
++providing HART id to domain mapping. The OpenSBI domain support will by
++default assign **the ROOT domain** to all HARTs of a RISC-V platform so
++it is not mandatory for the OpenSBI platform support to populate domains.
 +
-+	k = 0;
-+	sbi_printf("Domain%d HARTs       %s: ", dom->index, suffix);
-+	sbi_hartmask_for_each_hart(i, dom->possible_harts)
-+		sbi_printf("%s%d%s", (k++) ? "," : "",
-+			   i, sbi_domain_is_assigned_hart(dom, i) ? "*" : "");
-+	sbi_printf("\n");
++Domain Memory Region
++--------------------
 +
-+	i = 0;
-+	sbi_domain_for_each_memregion(dom, reg) {
-+		rstart = reg->base;
-+		rend = (reg->order < __riscv_xlen) ?
-+			rstart + ((1UL << reg->order) - 1) : -1UL;
++A domain memory region is represented by **struct sbi_domain_memregion** in
++OpenSBI and has following details:
 +
-+#if __riscv_xlen == 32
-+		sbi_printf("Domain%d Region%02d    %s: 0x%08lx-0x%08lx ",
-+#else
-+		sbi_printf("Domain%d Region%02d    %s: 0x%016lx-0x%016lx ",
-+#endif
-+			   dom->index, i, suffix, rstart, rend);
++* **order** - The size of a memory region is **2 ^ order** where **order**
++  must be **3 <= order <= __riscv_xlen**
++* **base** - The base address of a memory region is **2 ^ order**
++  aligned start address
++* **flags** - The flags of a memory region represent memory type (i.e.
++  RAM or MMIO) and allowed accesses (i.e. READ, WRITE, EXECUTE, etc)
 +
-+		k = 0;
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
-+			sbi_printf("%cM", (k++) ? ',' : '(');
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
-+			sbi_printf("%cI", (k++) ? ',' : '(');
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
-+			sbi_printf("%cR", (k++) ? ',' : '(');
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
-+			sbi_printf("%cW", (k++) ? ',' : '(');
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
-+			sbi_printf("%cX", (k++) ? ',' : '(');
-+		sbi_printf("%s\n", (k++) ? ")" : "()");
++Domain Instance
++---------------
 +
-+		i++;
-+	}
++A domain instance is represented by **struct sbi_domain** in OpenSBI and
++has following details:
 +
-+#if __riscv_xlen == 32
-+	sbi_printf("Domain%d Next Address%s: 0x%08lx\n",
-+#else
-+	sbi_printf("Domain%d Next Address%s: 0x%016lx\n",
-+#endif
-+		   dom->index, suffix, dom->next_addr);
++* **index** - Logical index of this domain
++* **name** - Name of this domain
++* **assigned_harts** - HARTs assigned to this domain
++* **possible_harts** - HARTs possible in this domain
++* **regions** - Array of memory regions terminated by a memory region
++  with order zero
++* **boot_hartid** - HART id of the HART booting this domain. The domain
++  boot HART will be started at boot-time if boot HART is a possible and
++  assigned for this domain.
++* **next_addr** - Address of the next booting stage for this domain
++* **next_arg1** - Arg1 (or 'a1' register) of the next booting stage for
++  this domain
++* **next_mode** - Priviledge mode of the next booting stage for this
++  domain. This can be either S-mode or U-mode.
++* **system_reset_allowed** - Is domain allowed to reset the system?
 +
-+#if __riscv_xlen == 32
-+	sbi_printf("Domain%d Next Arg1   %s: 0x%08lx\n",
-+#else
-+	sbi_printf("Domain%d Next Arg1   %s: 0x%016lx\n",
-+#endif
-+		   dom->index, suffix, dom->next_arg1);
++The memory regions represented by **regions** in **struct sbi_domain** have
++following additional constraints to align with RISC-V PMP requirements:
 +
-+	sbi_printf("Domain%d Next Mode   %s: ", dom->index, suffix);
-+	switch (dom->next_mode) {
-+	case PRV_M:
-+		sbi_printf("M-mode\n");
-+		break;
-+	case PRV_S:
-+		sbi_printf("S-mode\n");
-+		break;
-+	case PRV_U:
-+		sbi_printf("U-mode\n");
-+		break;
-+	default:
-+		sbi_printf("Unknown\n");
-+		break;
-+	};
++* A memory region to protect OpenSBI firmware from S-mode and U-mode
++  should always be present
++* For two overlapping memory regions, one should be sub-region of another
++* Two overlapping memory regions should not be of same size
++* Two overlapping memory regions cannot have same flags
++* Memory access checks on overlapping address should prefer smallest
++  overlapping memory region flags.
 +
-+	sbi_printf("Domain%d SysReset    %s: %s\n",
-+		   dom->index, suffix, (dom->system_reset_allowed) ? "yes" : "no");
-+}
++ROOT Domain
++-----------
 +
-+void sbi_domain_dump_all(const char *suffix)
-+{
-+	u32 i;
-+	const struct sbi_domain *dom;
++**The ROOT domain** is the default OpenSBI domain which is assigned by
++default to all HARTs of a RISC-V platform. The OpenSBI domain support
++will hand-craft **the ROOT domain** very early@boot-time in the
++following manner:
 +
-+	sbi_domain_for_each(i, dom) {
-+		sbi_domain_dump(dom, suffix);
-+		sbi_printf("\n");
-+	}
-+}
++* **index** - Logical index of the ROOT domain is always zero
++* **name** - Name of the ROOT domain is "root"
++* **assigned_harts** - At boot-time all valid HARTs of a RISC-V platform
++  are assigned the ROOT domain which changes later based on OpenSBI
++  platform support
++* **possible_harts** - All valid HARTs of a RISC-V platform are possible
++  HARTs of the ROOT domain
++* **regions** - Two memory regions available to the ROOT domain:
++  **A)** A memory region to protect OpenSBI firmware from S-mode and U-mode
++  **B)** A memory region of **order=__riscv_xlen** allowing S-mode and
++  U-mode access to full memory address space
++* **boot_hartid** - Coldboot HART is the HART booting the ROOT domain
++* **next_addr** - Next booting stage address in coldboot HART scratch
++  space is the next address for the ROOT domain
++* **next_arg1** - Next booting stage arg1 in coldboot HART scratch space
++  is the next arg1 for the ROOT domain
++* **next_mode** - Next booting stage mode in coldboot HART scratch space
++  is the next mode for the ROOT domain
++* **system_reset_allowed** - The ROOT domain is allowed to reset the system
 +
- int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
- {
- 	int rc;
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 1871a1e..ff18c9d 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -123,18 +123,23 @@ static int delegate_traps(struct sbi_scratch *scratch)
- 	return 0;
- }
- 
--void sbi_hart_delegation_dump(struct sbi_scratch *scratch)
-+void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
-+			      const char *prefix, const char *suffix)
- {
- 	if (!misa_extension('S'))
- 		/* No delegation possible as mideleg does not exist*/
- 		return;
- 
- #if __riscv_xlen == 32
--	sbi_printf("MIDELEG : 0x%08lx\n", csr_read(CSR_MIDELEG));
--	sbi_printf("MEDELEG : 0x%08lx\n", csr_read(CSR_MEDELEG));
-+	sbi_printf("%sMIDELEG%s: 0x%08lx\n",
-+		   prefix, suffix, csr_read(CSR_MIDELEG));
-+	sbi_printf("%sMEDELEG%s: 0x%08lx\n",
-+		   prefix, suffix, csr_read(CSR_MEDELEG));
- #else
--	sbi_printf("MIDELEG : 0x%016lx\n", csr_read(CSR_MIDELEG));
--	sbi_printf("MEDELEG : 0x%016lx\n", csr_read(CSR_MEDELEG));
-+	sbi_printf("%sMIDELEG%s: 0x%016lx\n",
-+		   prefix, suffix, csr_read(CSR_MIDELEG));
-+	sbi_printf("%sMEDELEG%s: 0x%016lx\n",
-+		   prefix, suffix, csr_read(CSR_MEDELEG));
- #endif
- }
- 
-@@ -154,35 +159,6 @@ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
- 	return hfeatures->pmp_count;
- }
- 
--void sbi_hart_pmp_dump(struct sbi_scratch *scratch)
--{
--	unsigned long prot, addr, size, log2size;
--	unsigned int i, pmp_count;
--
--	pmp_count = sbi_hart_pmp_count(scratch);
--	for (i = 0; i < pmp_count; i++) {
--		pmp_get(i, &prot, &addr, &log2size);
--		if (!(prot & PMP_A))
--			continue;
--		size = (log2size < __riscv_xlen) ? 1UL << log2size : 0;
--#if __riscv_xlen == 32
--		sbi_printf("PMP%d    : 0x%08lx-0x%08lx (A",
--#else
--		sbi_printf("PMP%d    : 0x%016lx-0x%016lx (A",
--#endif
--			   i, addr, addr + size - 1);
--		if (prot & PMP_L)
--			sbi_printf(",L");
--		if (prot & PMP_R)
--			sbi_printf(",R");
--		if (prot & PMP_W)
--			sbi_printf(",W");
--		if (prot & PMP_X)
--			sbi_printf(",X");
--		sbi_printf(")\n");
--	}
--}
--
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- {
- 	struct sbi_domain_memregion *reg;
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 406cb3f..5151d36 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -39,6 +39,7 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
- {
- 	int xlen;
- 	char str[128];
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
- #ifdef OPENSBI_VERSION_GIT
-@@ -64,27 +65,29 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_printf("Platform HART Count : %u\n",
- 		   sbi_platform_hart_count(plat));
- 
--	/* Boot HART details */
--	sbi_printf("Boot HART ID        : %u\n", hartid);
--	misa_string(xlen, str, sizeof(str));
--	sbi_printf("Boot HART ISA       : %s\n", str);
--	sbi_hart_get_features_str(scratch, str, sizeof(str));
--	sbi_printf("BOOT HART Features  : %s\n", str);
--	sbi_printf("BOOT HART PMP Count : %d\n", sbi_hart_pmp_count(scratch));
--	sbi_printf("BOOT HART MHPM Count: %d\n", sbi_hart_mhpm_count(scratch));
--
- 	/* Firmware details */
- 	sbi_printf("Firmware Base       : 0x%lx\n", scratch->fw_start);
- 	sbi_printf("Firmware Size       : %d KB\n",
- 		   (u32)(scratch->fw_size / 1024));
- 
--	/* Generic details */
-+	/* SBI details */
- 	sbi_printf("Runtime SBI Version : %d.%d\n",
- 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
- 	sbi_printf("\n");
- 
--	sbi_hart_delegation_dump(scratch);
--	sbi_hart_pmp_dump(scratch);
-+	/* Domain details */
-+	sbi_domain_dump_all("");
++Domain Effects
++--------------
 +
-+	/* Boot HART details */
-+	sbi_printf("Boot HART ID        : %u\n", hartid);
-+	sbi_printf("Boot HART Domain    : %s\n", dom->name);
-+	misa_string(xlen, str, sizeof(str));
-+	sbi_printf("Boot HART ISA       : %s\n", str);
-+	sbi_hart_get_features_str(scratch, str, sizeof(str));
-+	sbi_printf("Boot HART Features  : %s\n", str);
-+	sbi_printf("Boot HART PMP Count : %d\n", sbi_hart_pmp_count(scratch));
-+	sbi_printf("Boot HART MHPM Count: %d\n", sbi_hart_mhpm_count(scratch));
-+	sbi_hart_delegation_dump(scratch, "Boot HART ", "   ");
- }
- 
- static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER;
++Few noteworthy effects of a system partitioned into domains are as follows:
++
++* At any point in time, a HART is running in exactly one OpenSBI domain context
++* The SBI IPI and RFENCE calls from HART A are restricted to the HARTs in
++  domain assigned to HART A
++* The SBI HSM calls which try to change/read state of HART B from HART A will
++  only work if both HART A and HART B are assigned same domain
++* A HART running in S-mode or U-mode can only access memory based on the
++  memory regions of the domain assigned to the HART
+diff --git a/docs/doxygen.cfg b/docs/doxygen.cfg
+index dbf8ef9..82f31a7 100644
+--- a/docs/doxygen.cfg
++++ b/docs/doxygen.cfg
+@@ -795,6 +795,7 @@ INPUT                  = @@SRC_DIR@@/README.md \
+                          @@SRC_DIR@@/docs/platform_guide.md \
+                          @@SRC_DIR@@/docs/platform_requirements.md \
+                          @@SRC_DIR@@/docs/library_usage.md \
++                         @@SRC_DIR@@/docs/domain_support.md \
+                          @@SRC_DIR@@/docs/firmware \
+                          @@SRC_DIR@@/docs/platform \
+                          @@SRC_DIR@@/include \
 -- 
 2.25.1
 
