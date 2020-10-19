@@ -1,238 +1,124 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 19 Oct 2020 18:24:44 +0530
-Subject: [PATCH v3 07/16] lib: sbi: Extend sbi_hsm_hart_started_mask() for
- domains
+Date: Mon, 19 Oct 2020 18:24:45 +0530
+Subject: [PATCH v3 08/16] lib: sbi: Extend sbi_hsm_hart_start() for domains
 In-Reply-To: <20201019125453.2460105-1-anup.patel@wdc.com>
 References: <20201019125453.2460105-1-anup.patel@wdc.com>
-Message-ID: <20201019125453.2460105-8-anup.patel@wdc.com>
+Message-ID: <20201019125453.2460105-9-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_hsm_hart_started_mask() API should take one more parameter
-to allow caller specify domain under which started_mask is being
-generated. Further, the sbi_hsm_hart_started_mask() depends on
-sbi_hsm_hart_get_state() which also should return HART state under
-specified domain.
+The sbi_hsm_hart_start() should consider the domain under which we
+are trying to start the HART. This will help ensure that HART A can
+start HART B only if both HARTs A and B belong to the same domain.
 
-This patch updates both sbi_hsm_hart_started_mask() and
-sbi_hsm_hart_get_state() as-per above.
+We also have a special case when we bring-up boot HART of non-root
+domains in sbi_domain_finalize() where we should skip domain checks
+in sbi_hsm_hart_start(). To achieve this, sbi_hsm_hart_start() should
+do domain checks only when domain parameter is non-NULL.
+
+This patch extends sbi_hsm_hart_start() as-per above.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_hsm.h      |  7 ++++---
- lib/sbi/sbi_ecall_hsm.c    |  4 +++-
- lib/sbi/sbi_ecall_legacy.c |  4 +++-
- lib/sbi/sbi_hsm.c          | 17 ++++++++++-------
- lib/sbi/sbi_ipi.c          |  6 ++++--
- lib/sbi/sbi_system.c       |  4 +++-
- 6 files changed, 27 insertions(+), 15 deletions(-)
+ include/sbi/sbi_hsm.h   |  5 +++--
+ lib/sbi/sbi_domain.c    |  6 ++++--
+ lib/sbi/sbi_ecall_hsm.c |  4 ++--
+ lib/sbi/sbi_hsm.c       | 16 ++++++++--------
+ 4 files changed, 17 insertions(+), 14 deletions(-)
 
 diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index 18d129b..296b267 100644
+index 296b267..4823383 100644
 --- a/include/sbi/sbi_hsm.h
 +++ b/include/sbi/sbi_hsm.h
-@@ -19,6 +19,7 @@
- #define SBI_HART_STARTED	3
- #define SBI_HART_UNKNOWN	4
- 
-+struct sbi_domain;
- struct sbi_scratch;
- 
+@@ -25,8 +25,9 @@ struct sbi_scratch;
  int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
-@@ -27,10 +28,10 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
- int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
- 		       ulong saddr, ulong smode, ulong priv);
- int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
--int sbi_hsm_hart_get_state(u32 hartid);
-+int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
- int sbi_hsm_hart_state_to_status(int state);
--bool sbi_hsm_hart_started(u32 hartid);
--int sbi_hsm_hart_started_mask(ulong hbase, ulong *out_hmask);
-+int sbi_hsm_hart_started_mask(const struct sbi_domain *dom,
-+			      ulong hbase, ulong *out_hmask);
- void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
  
- #endif
+-int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+-		       ulong saddr, ulong smode, ulong priv);
++int sbi_hsm_hart_start(struct sbi_scratch *scratch,
++		       const struct sbi_domain *dom,
++		       u32 hartid, ulong saddr, ulong smode, ulong priv);
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+ int sbi_hsm_hart_state_to_status(int state);
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index ed0053f..2b6fa79 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -324,8 +324,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ 			scratch->next_mode = dom->next_mode;
+ 			scratch->next_arg1 = dom->next_arg1;
+ 		} else {
+-			rc = sbi_hsm_hart_start(scratch, dhart, dom->next_addr,
+-					dom->next_mode, dom->next_arg1);
++			rc = sbi_hsm_hart_start(scratch, NULL, dhart,
++						dom->next_addr,
++						dom->next_mode,
++						dom->next_arg1);
+ 			if (rc)
+ 				return rc;
+ 		}
 diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
-index 992c93a..3698a41 100644
+index 3698a41..376740c 100644
 --- a/lib/sbi/sbi_ecall_hsm.c
 +++ b/lib/sbi/sbi_ecall_hsm.c
-@@ -7,6 +7,7 @@
-  *   Atish Patra <atish.patra@wdc.com>
-  */
- 
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_ecall.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
-@@ -34,7 +35,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+@@ -28,8 +28,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+ 	case SBI_EXT_HSM_HART_START:
+ 		smode = csr_read(CSR_MSTATUS);
+ 		smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+-		ret = sbi_hsm_hart_start(scratch, args[0], args[1],
+-					 smode, args[2]);
++		ret = sbi_hsm_hart_start(scratch, sbi_domain_thishart_ptr(),
++					 args[0], args[1], smode, args[2]);
+ 		break;
+ 	case SBI_EXT_HSM_HART_STOP:
  		ret = sbi_hsm_hart_stop(scratch, TRUE);
- 		break;
- 	case SBI_EXT_HSM_HART_GET_STATUS:
--		hstate = sbi_hsm_hart_get_state(args[0]);
-+		hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(),
-+						args[0]);
- 		ret = sbi_hsm_hart_state_to_status(hstate);
- 		break;
- 	default:
-diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-index 3bfe749..909cbe3 100644
---- a/lib/sbi/sbi_ecall_legacy.c
-+++ b/lib/sbi/sbi_ecall_legacy.c
-@@ -10,6 +10,7 @@
- 
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_ecall.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
-@@ -33,7 +34,8 @@ static int sbi_load_hart_mask_unpriv(ulong *pmask, ulong *hmask,
- 		if (uptrap->cause)
- 			return SBI_ETRAP;
- 	} else {
--		sbi_hsm_hart_started_mask(0, &mask);
-+		sbi_hsm_hart_started_mask(sbi_domain_thishart_ptr(),
-+					  0, &mask);
- 	}
- 	*hmask = mask;
- 
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 8c1b7b0..65e7f3d 100644
+index 65e7f3d..8ecf90f 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -13,6 +13,7 @@
- #include <sbi/riscv_atomic.h>
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_hart.h>
-@@ -56,13 +57,13 @@ int sbi_hsm_hart_state_to_status(int state)
- 	return ret;
+@@ -205,10 +205,10 @@ fail_exit:
+ 	sbi_hart_hang();
  }
  
--int sbi_hsm_hart_get_state(u32 hartid)
-+int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+-int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+-		       ulong saddr, ulong smode, ulong priv)
++int sbi_hsm_hart_start(struct sbi_scratch *scratch,
++		       const struct sbi_domain *dom,
++		       u32 hartid, ulong saddr, ulong smode, ulong priv)
  {
- 	struct sbi_hsm_data *hdata;
- 	struct sbi_scratch *scratch;
+-	int rc;
+ 	unsigned long init_count;
+ 	unsigned int hstate;
+ 	struct sbi_scratch *rscratch;
+@@ -217,6 +217,11 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
  
- 	scratch = sbi_hartid_to_scratch(hartid);
--	if (!scratch)
-+	if (!scratch || !sbi_domain_is_assigned_hart(dom, hartid))
- 		return SBI_HART_UNKNOWN;
+ 	if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
+ 		return SBI_EINVAL;
++	if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
++		return SBI_EINVAL;
++	if (dom && !sbi_domain_check_addr(dom, saddr, smode,
++					  SBI_DOMAIN_EXECUTE))
++		return SBI_EINVAL;
  
- 	hdata = sbi_scratch_offset_ptr(scratch, hart_data_offset);
-@@ -70,9 +71,9 @@ int sbi_hsm_hart_get_state(u32 hartid)
- 	return atomic_read(&hdata->state);
- }
- 
--bool sbi_hsm_hart_started(u32 hartid)
-+static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
- {
--	if (sbi_hsm_hart_get_state(hartid) == SBI_HART_STARTED)
-+	if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HART_STARTED)
- 		return TRUE;
- 	else
- 		return FALSE;
-@@ -80,12 +81,14 @@ bool sbi_hsm_hart_started(u32 hartid)
- 
- /**
-  * Get ulong HART mask for given HART base ID
-+ * @param dom the domain to be used for output HART mask
-  * @param hbase the HART base ID
-  * @param out_hmask the output ulong HART mask
-  * @return 0 on success and SBI_Exxx (< 0) on failure
-  * Note: the output HART mask will be set to zero on failure as well.
-  */
--int sbi_hsm_hart_started_mask(ulong hbase, ulong *out_hmask)
-+int sbi_hsm_hart_started_mask(const struct sbi_domain *dom,
-+			      ulong hbase, ulong *out_hmask)
- {
- 	ulong i;
- 	ulong hcount = sbi_scratch_last_hartid() + 1;
-@@ -97,7 +100,7 @@ int sbi_hsm_hart_started_mask(ulong hbase, ulong *out_hmask)
- 		hcount = BITS_PER_LONG;
- 
- 	for (i = hbase; i < hcount; i++) {
--		if (sbi_hsm_hart_get_state(i) == SBI_HART_STARTED)
-+		if (sbi_hsm_hart_get_state(dom, i) == SBI_HART_STARTED)
- 			*out_hmask |= 1UL << (i - hbase);
- 	}
- 
-@@ -259,7 +262,7 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 
--	if (!sbi_hsm_hart_started(hartid))
-+	if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
+ 	rscratch = sbi_hartid_to_scratch(hartid);
+ 	if (!rscratch)
+@@ -234,11 +239,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
+ 	if (hstate != SBI_HART_STOPPED)
  		return SBI_EINVAL;
  
- 	oldstate = atomic_cmpxchg(&hdata->state, SBI_HART_STARTED,
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index a27dea0..4347832 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -12,6 +12,7 @@
- #include <sbi/riscv_atomic.h>
- #include <sbi/riscv_barrier.h>
- #include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hsm.h>
-@@ -77,10 +78,11 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- {
- 	int rc;
- 	ulong i, m;
-+	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
- 	if (hbase != -1UL) {
--		rc = sbi_hsm_hart_started_mask(hbase, &m);
-+		rc = sbi_hsm_hart_started_mask(dom, hbase, &m);
- 		if (rc)
- 			return rc;
- 		m &= hmask;
-@@ -92,7 +94,7 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- 		}
- 	} else {
- 		hbase = 0;
--		while (!sbi_hsm_hart_started_mask(hbase, &m)) {
-+		while (!sbi_hsm_hart_started_mask(dom, hbase, &m)) {
- 			/* Send IPIs */
- 			for (i = hbase; m; i++, m >>= 1) {
- 				if (m & 1UL)
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index 6f7be14..a938003 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -10,6 +10,7 @@
- 
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_platform.h>
-@@ -21,10 +22,11 @@ void __noreturn sbi_system_reset(u32 platform_reset_type)
- {
- 	ulong hbase = 0, hmask;
- 	u32 cur_hartid = current_hartid();
-+	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
- 	/* Send HALT IPI to every hart other than the current hart */
--	while (!sbi_hsm_hart_started_mask(hbase, &hmask)) {
-+	while (!sbi_hsm_hart_started_mask(dom, hbase, &hmask)) {
- 		if (hbase <= cur_hartid)
- 			hmask &= ~(1UL << (cur_hartid - hbase));
- 		if (hmask)
+-	rc = sbi_hart_pmp_check_addr(scratch, saddr, smode, PMP_X);
+-	if (rc)
+-		return rc;
+-	//TODO: We also need to check saddr for valid physical address as well.
+-
+ 	init_count = sbi_init_count(hartid);
+ 	rscratch->next_arg1 = priv;
+ 	rscratch->next_addr = saddr;
 -- 
 2.25.1
 
