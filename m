@@ -1,60 +1,85 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Tue, 20 Oct 2020 15:09:15 +0530
-Subject: [PATCH v4 01/16] include: sbi: Remove redundant includes from
- sbi_platform.h
-In-Reply-To: <20201020093930.2551352-1-anup.patel@wdc.com>
-References: <20201020093930.2551352-1-anup.patel@wdc.com>
-Message-ID: <20201020093930.2551352-2-anup.patel@wdc.com>
+Date: Tue, 20 Oct 2020 15:09:14 +0530
+Subject: [PATCH v4 00/16] OpenSBI domain support
+Message-ID: <20201020093930.2551352-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_ecall.h and sbi_trap.h are not required to be included in
-sbi_platform.h hence we remove it. This way sources requiring
-these headers will have to explicitly include it thereby reducing
-implicit includes.
+This series extends OpenSBI to provide system-level partitioning where each
+logical system-level partition is referred to as OpenSBI domain. The last
+patch of this series provides documentation for OpenSBI domain support.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
----
- include/sbi/sbi_platform.h | 4 ++--
- lib/sbi/sbi_hart.c         | 1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+It will be responsibility of OpenSBI platform support to populate OpenSBI
+domains based on use-case of platform vendor.
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 8087148..f51e36a 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -40,12 +40,12 @@
- 
- #ifndef __ASSEMBLY__
- 
--#include <sbi/sbi_ecall.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_scratch.h>
--#include <sbi/sbi_trap.h>
- #include <sbi/sbi_version.h>
- 
-+struct sbi_trap_info;
-+
- /** Possible feature flags of a platform */
- enum sbi_platform_features {
- 	/** Platform has timer value */
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 6413194..55a04da 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -19,6 +19,7 @@
- #include <sbi/sbi_math.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_string.h>
-+#include <sbi/sbi_trap.h>
- 
- extern void __sbi_expected_trap(void);
- extern void __sbi_expected_trap_hext(void);
+We will be having separate series to extend OpenSBI generic platform so that
+OpenSBI generic platform can populate OpenSBI domains from DTB passed by the
+previous booting stage which in-turn provides more configurability to the
+previous booting stage.
+
+These patches are also available in domains_v4 branch at
+https://github.com/avpatel/opensbi.git
+
+Changes since v3:
+ - Typo fixes in PATCH8 and PATCH16
+
+Changes since v2:
+ - Updated commit description of PATCH14
+ - Simplified sbi_domain_check_addr() in PATCH6 using separate access types
+
+Changes since v1:
+ - Updated PATCH subject in PATCH5
+ - Updated PATCH6 to allow next stage mode as S-mode or U-mode only
+ - Added SBI_DOMAIN_MAX_INDEX define in PATCH6
+ - Renamed sbi_domain_assigned_hart to sbi_domain_is_assigned_hart in PATCH6
+ - Renamed sbi_domain_assigned_hartmask to sbi_domain_get_assigned_hartmask
+   in PATCH6
+ - Addressed nit comments in PATCH16
+
+Anup Patel (16):
+  include: sbi: Remove redundant includes from sbi_platform.h
+  include: sbi: Remove pmp_region callbacks from sbi_platform_operations
+  lib: sbi: Configure PMP late in coldboot and warmboot path
+  lib: sbi: Remove redundant hartid parameter from sbi_hart_init()
+  include: sbi: Make hartmask pointer const in sbi_hartmask_test_hart()
+  lib: sbi: Add initial domain support
+  lib: sbi: Extend sbi_hsm_hart_started_mask() for domains
+  lib: sbi: Extend sbi_hsm_hart_start() for domains
+  lib: sbi: Optimize sbi_hsm_hart_started_mask() implementation
+  lib: sbi: Extend sbi_system_reset() for domains
+  lib: utils: Update fdt_reserved_memory_fixup() to use current domain
+  lib: utils: Update fdt_cpu_fixup() to use current domain
+  lib: sbi: Remove redundant sbi_hart_pmp_xyz() functions
+  lib: sbi: Configure PMP based on domain memory regions
+  lib: sbi: Display domain details in boot prints
+  docs: Add initial documentation for domain support
+
+ README.md                  |   3 +
+ docs/domain_support.md     | 106 +++++++++
+ docs/doxygen.cfg           |   1 +
+ include/sbi/sbi_domain.h   | 153 ++++++++++++
+ include/sbi/sbi_hart.h     |  13 +-
+ include/sbi/sbi_hartmask.h |   2 +-
+ include/sbi/sbi_hsm.h      |  12 +-
+ include/sbi/sbi_platform.h |  56 +----
+ lib/sbi/objects.mk         |   1 +
+ lib/sbi/sbi_domain.c       | 476 +++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_ecall_hsm.c    |   8 +-
+ lib/sbi/sbi_ecall_legacy.c |   4 +-
+ lib/sbi/sbi_hart.c         | 152 ++++--------
+ lib/sbi/sbi_hsm.c          |  62 +++--
+ lib/sbi/sbi_init.c         |  59 +++--
+ lib/sbi/sbi_ipi.c          |   6 +-
+ lib/sbi/sbi_system.c       |  11 +-
+ lib/utils/fdt/fdt_fixup.c  |  55 ++---
+ 18 files changed, 933 insertions(+), 247 deletions(-)
+ create mode 100644 docs/domain_support.md
+ create mode 100644 include/sbi/sbi_domain.h
+ create mode 100644 lib/sbi/sbi_domain.c
+
 -- 
 2.25.1
 
