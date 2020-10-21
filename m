@@ -1,10 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 21 Oct 2020 07:05:58 +0000
-Subject: [PATCH v4 08/16] lib: sbi: Extend sbi_hsm_hart_start() for domains
-In-Reply-To: <20201020093930.2551352-9-anup.patel@wdc.com>
+Date: Wed, 21 Oct 2020 07:06:09 +0000
+Subject: [PATCH v4 09/16] lib: sbi: Optimize sbi_hsm_hart_started_mask()
+ implementation
+In-Reply-To: <20201020093930.2551352-10-anup.patel@wdc.com>
 References: <20201020093930.2551352-1-anup.patel@wdc.com>
- <20201020093930.2551352-9-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201BADB630304C7C70400BA8D1C0@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201020093930.2551352-10-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB62015406845EC7403B1846588D1C0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,124 +21,85 @@ Content-Transfer-Encoding: 7bit
 > <Alistair.Francis@wdc.com>
 > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
 > Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v4 08/16] lib: sbi: Extend sbi_hsm_hart_start() for domains
+> Subject: [PATCH v4 09/16] lib: sbi: Optimize sbi_hsm_hart_started_mask()
+> implementation
 > 
-> The sbi_hsm_hart_start() should consider the domain under which we are
-> trying to start the HART. This will help ensure that HART A can start HART B
-> only if both HARTs A and B belong to the same domain.
+> Instead of calling sbi_hsm_hart_get_state() in a loop, we can simply call a
+> new inline __sbi_hsm_hart_get_state() which only takes "hartid"
+> and enforce domain checks using sbi_domain_assigned_hartmask().
 > 
-> We also have a special case when we bring-up boot HART of non-root
-> domains in sbi_domain_finalize() where we should skip domain checks in
-> sbi_hsm_hart_start(). To achieve this, sbi_hsm_hart_start() should do
-> domain checks only when domain parameter is non-NULL.
-> 
-> This patch extends sbi_hsm_hart_start() as-per above.
+> This patch optimizes sbi_hsm_hart_started_mask() as-per above.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  include/sbi/sbi_hsm.h   |  5 +++--
->  lib/sbi/sbi_domain.c    |  6 ++++--
->  lib/sbi/sbi_ecall_hsm.c |  4 ++--
->  lib/sbi/sbi_hsm.c       | 19 ++++++++++---------
->  4 files changed, 19 insertions(+), 15 deletions(-)
+>  lib/sbi/sbi_hsm.c | 34 ++++++++++++++++++++++------------
+>  1 file changed, 22 insertions(+), 12 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h index
-> 296b267..4823383 100644
-> --- a/include/sbi/sbi_hsm.h
-> +++ b/include/sbi/sbi_hsm.h
-> @@ -25,8 +25,9 @@ struct sbi_scratch;
->  int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
-> void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
-> 
-> -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> -		       ulong saddr, ulong smode, ulong priv);
-> +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
-> +		       const struct sbi_domain *dom,
-> +		       u32 hartid, ulong saddr, ulong smode, ulong priv);
->  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);  int
-> sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);  int
-> sbi_hsm_hart_state_to_status(int state); diff --git a/lib/sbi/sbi_domain.c
-> b/lib/sbi/sbi_domain.c index 86dfefd..9bde5fb 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -324,8 +324,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
-> u32 cold_hartid)
->  			scratch->next_mode = dom->next_mode;
->  			scratch->next_arg1 = dom->next_arg1;
->  		} else {
-> -			rc = sbi_hsm_hart_start(scratch, dhart, dom-
-> >next_addr,
-> -					dom->next_mode, dom-
-> >next_arg1);
-> +			rc = sbi_hsm_hart_start(scratch, NULL, dhart,
-> +						dom->next_addr,
-> +						dom->next_mode,
-> +						dom->next_arg1);
->  			if (rc)
->  				return rc;
->  		}
-> diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c index
-> 3698a41..376740c 100644
-> --- a/lib/sbi/sbi_ecall_hsm.c
-> +++ b/lib/sbi/sbi_ecall_hsm.c
-> @@ -28,8 +28,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid,
-> unsigned long funcid,
->  	case SBI_EXT_HSM_HART_START:
->  		smode = csr_read(CSR_MSTATUS);
->  		smode = (smode & MSTATUS_MPP) >>
-> MSTATUS_MPP_SHIFT;
-> -		ret = sbi_hsm_hart_start(scratch, args[0], args[1],
-> -					 smode, args[2]);
-> +		ret = sbi_hsm_hart_start(scratch, sbi_domain_thishart_ptr(),
-> +					 args[0], args[1], smode, args[2]);
->  		break;
->  	case SBI_EXT_HSM_HART_STOP:
->  		ret = sbi_hsm_hart_stop(scratch, TRUE); diff --git
-> a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c index 65e7f3d..8121efb 100644
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c index 8121efb..e1b2b2c
+> 100644
 > --- a/lib/sbi/sbi_hsm.c
 > +++ b/lib/sbi/sbi_hsm.c
-> @@ -205,17 +205,23 @@ fail_exit:
->  	sbi_hart_hang();
+> @@ -57,20 +57,27 @@ int sbi_hsm_hart_state_to_status(int state)
+>  	return ret;
 >  }
 > 
-> -int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
-> -		       ulong saddr, ulong smode, ulong priv)
-> +int sbi_hsm_hart_start(struct sbi_scratch *scratch,
-> +		       const struct sbi_domain *dom,
-> +		       u32 hartid, ulong saddr, ulong smode, ulong priv)
+> -int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+> +static inline int __sbi_hsm_hart_get_state(u32 hartid)
 >  {
-> -	int rc;
->  	unsigned long init_count;
->  	unsigned int hstate;
->  	struct sbi_scratch *rscratch;
 >  	struct sbi_hsm_data *hdata;
->  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>  	struct sbi_scratch *scratch;
 > 
-> -	if (smode != PRV_M && smode != PRV_S && smode != PRV_U)
-> +	/* For now, we only allow start mode to be S-mode or U-mode. */
-> +	if (smode != PRV_S && smode != PRV_U)
-> +		return SBI_EINVAL;
-> +	if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
-> +		return SBI_EINVAL;
-> +	if (dom && !sbi_domain_check_addr(dom, saddr, smode,
-> +					  SBI_DOMAIN_EXECUTE))
->  		return SBI_EINVAL;
+>  	scratch = sbi_hartid_to_scratch(hartid);
+> -	if (!scratch || !sbi_domain_is_assigned_hart(dom, hartid))
+> +	if (!scratch)
+>  		return SBI_HART_UNKNOWN;
 > 
->  	rscratch = sbi_hartid_to_scratch(hartid); @@ -234,11 +240,6 @@ int
-> sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,
->  	if (hstate != SBI_HART_STOPPED)
->  		return SBI_EINVAL;
-> 
-> -	rc = sbi_hart_pmp_check_addr(scratch, saddr, smode, PMP_X);
-> -	if (rc)
-> -		return rc;
-> -	//TODO: We also need to check saddr for valid physical address as
-> well.
+>  	hdata = sbi_scratch_offset_ptr(scratch, hart_data_offset);
 > -
->  	init_count = sbi_init_count(hartid);
->  	rscratch->next_arg1 = priv;
->  	rscratch->next_addr = saddr;
+>  	return atomic_read(&hdata->state);
+>  }
+> 
+> +int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid) {
+> +	if (!sbi_domain_is_assigned_hart(dom, hartid))
+> +		return SBI_HART_UNKNOWN;
+> +
+> +	return __sbi_hsm_hart_get_state(hartid); }
+> +
+>  static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
+> {
+>  	if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HART_STARTED)
+> @@ -90,18 +97,21 @@ static bool sbi_hsm_hart_started(const struct
+> sbi_domain *dom, u32 hartid)  int sbi_hsm_hart_started_mask(const struct
+> sbi_domain *dom,
+>  			      ulong hbase, ulong *out_hmask)  {
+> -	ulong i;
+> -	ulong hcount = sbi_scratch_last_hartid() + 1;
+> +	ulong i, hmask, dmask;
+> +	ulong hend = sbi_scratch_last_hartid() + 1;
+> 
+>  	*out_hmask = 0;
+> -	if (hcount <= hbase)
+> +	if (hend <= hbase)
+>  		return SBI_EINVAL;
+> -	if (BITS_PER_LONG < (hcount - hbase))
+> -		hcount = BITS_PER_LONG;
+> -
+> -	for (i = hbase; i < hcount; i++) {
+> -		if (sbi_hsm_hart_get_state(dom, i) == SBI_HART_STARTED)
+> -			*out_hmask |= 1UL << (i - hbase);
+> +	if (BITS_PER_LONG < (hend - hbase))
+> +		hend = hbase + BITS_PER_LONG;
+> +
+> +	dmask = sbi_domain_get_assigned_hartmask(dom, hbase);
+> +	for (i = hbase; i < hend; i++) {
+> +		hmask = 1UL << (i - hbase);
+> +		if ((dmask & hmask) &&
+> +		    (__sbi_hsm_hart_get_state(i) == SBI_HART_STARTED))
+> +			*out_hmask |= hmask;
+>  	}
+> 
+>  	return 0;
 > --
 > 2.25.1
 
