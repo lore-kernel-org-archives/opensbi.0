@@ -1,10 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 21 Oct 2020 07:06:19 +0000
-Subject: [PATCH v4 10/16] lib: sbi: Extend sbi_system_reset() for domains
-In-Reply-To: <20201020093930.2551352-11-anup.patel@wdc.com>
+Date: Wed, 21 Oct 2020 07:06:34 +0000
+Subject: [PATCH v4 11/16] lib: utils: Update fdt_reserved_memory_fixup()
+ to use current domain
+In-Reply-To: <20201020093930.2551352-12-anup.patel@wdc.com>
 References: <20201020093930.2551352-1-anup.patel@wdc.com>
- <20201020093930.2551352-11-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB62010E279A28953DE13CAEAB8D1C0@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201020093930.2551352-12-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB62016236B3BCD0B78B0B5B988D1C0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,38 +21,123 @@ Content-Transfer-Encoding: 7bit
 > <Alistair.Francis@wdc.com>
 > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
 > Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v4 10/16] lib: sbi: Extend sbi_system_reset() for domains
+> Subject: [PATCH v4 11/16] lib: utils: Update fdt_reserved_memory_fixup() to
+> use current domain
 > 
-> The sbi_system_reset() should issue platform system reset only if domain of
-> current HART is allowed to do system reset.
+> Now that each HART is mapped to a domain having a set of memory regions,
+> we update fdt_reserved_memory_fixup() to use domain memory regions
+> for adding reserved memory nodes in device tree.
 > 
-> This patch extends sbi_system_reset() as-per above.
+> We also change reserved memory node name prefix from "mmode_pmp"
+> to "mmode_resv" because domain memory regions can impact other
+> hardware configurations (such as IOPMP, etc) along with PMP.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/sbi/sbi_system.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+>  lib/utils/fdt/fdt_fixup.c | 47 ++++++++++++++++++---------------------
+>  1 file changed, 22 insertions(+), 25 deletions(-)
 > 
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c index
-> a938003..96290b3 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -37,9 +37,10 @@ void __noreturn sbi_system_reset(u32
-> platform_reset_type)
->  	/* Stop current HART */
->  	sbi_hsm_hart_stop(scratch, FALSE);
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c index
+> 8f554e1..e9e1dff 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -9,6 +9,7 @@
 > 
-> -	/* Platform specific reset */
-> -	sbi_platform_system_reset(sbi_platform_ptr(scratch),
-> -				  platform_reset_type);
-> +	/* Platform specific reset if domain allowed system reset */
-> +	if (dom->system_reset_allowed)
-> +		sbi_platform_system_reset(sbi_platform_ptr(scratch),
-> +					  platform_reset_type);
+>  #include <libfdt.h>
+>  #include <sbi/sbi_console.h>
+> +#include <sbi/sbi_domain.h>
+>  #include <sbi/sbi_math.h>
+>  #include <sbi/sbi_hart.h>
+>  #include <sbi/sbi_platform.h>
+> @@ -97,11 +98,11 @@ static int fdt_resv_memory_update_node(void *fdt,
+> unsigned long addr,
 > 
->  	/* If platform specific reset did not work then do sbi_exit() */
->  	sbi_exit(scratch);
+>  	if (na > 1 && addr_high)
+>  		sbi_snprintf(name, sizeof(name),
+> -			     "mmode_pmp%d@%x,%x", index,
+> +			     "mmode_resv%d@%x,%x", index,
+>  			     addr_high, addr_low);
+>  	else
+>  		sbi_snprintf(name, sizeof(name),
+> -			     "mmode_pmp%d@%x", index,
+> +			     "mmode_resv%d@%x", index,
+>  			     addr_low);
+> 
+>  	subnode = fdt_add_subnode(fdt, parent, name); @@ -153,10
+> +154,11 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned
+> long addr,
+>   */
+>  int fdt_reserved_memory_fixup(void *fdt)  {
+> +	struct sbi_domain_memregion *reg;
+> +	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>  	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> -	unsigned long prot, addr, size;
+> -	int parent, i, j;
+> -	int err;
+> +	unsigned long addr, size;
+> +	int err, parent, i;
+>  	int na = fdt_address_cells(fdt, 0);
+>  	int ns = fdt_size_cells(fdt, 0);
+> 
+> @@ -203,34 +205,29 @@ int fdt_reserved_memory_fixup(void *fdt)
+>  	 * We assume the given device tree does not contain any memory
+> region
+>  	 * child node protected by PMP. Normally PMP programming
+> happens at
+>  	 * M-mode firmware. The memory space used by OpenSBI is
+> protected.
+> -	 * Some additional memory spaces may be protected by platform
+> codes.
+> +	 * Some additional memory spaces may be protected by domain
+> memory
+> +	 * regions.
+>  	 *
+>  	 * With above assumption, we create child nodes directly.
+>  	 */
+> 
+> -	if (!sbi_hart_pmp_count(scratch)) {
+> -		/*
+> -		 * Update the DT with firmware start & size even if PMP is
+> not
+> -		 * supported. This makes sure that supervisor OS is always
+> -		 * aware of OpenSBI resident memory area.
+> -		 */
+> -		addr = scratch->fw_start & ~(scratch->fw_size - 1UL);
+> -		size = (1UL << log2roundup(scratch->fw_size));
+> -		return fdt_resv_memory_update_node(fdt, addr, size,
+> -						   0, parent, true);
+> -	}
+> -
+> -	for (i = 0, j = 0; i < sbi_hart_pmp_count(scratch); i++) {
+> -		err = sbi_hart_pmp_get(scratch, i, &prot, &addr, &size);
+> -		if (err)
+> +	i = 0;
+> +	sbi_domain_for_each_memregion(dom, reg) {
+> +		/* Ignore MMIO or READABLE or WRITABLE or EXECUTABLE
+> regions */
+> +		if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
+> +			continue;
+> +		if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
+>  			continue;
+> -		if (!(prot & PMP_A))
+> +		if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
+>  			continue;
+> -		if (prot & (PMP_R | PMP_W | PMP_X))
+> +		if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
+>  			continue;
+> 
+> -		fdt_resv_memory_update_node(fdt, addr, size, j, parent,
+> false);
+> -		j++;
+> +		addr = reg->base;
+> +		size = 1UL << reg->order;
+> +		fdt_resv_memory_update_node(fdt, addr, size, i, parent,
+> +			(sbi_hart_pmp_count(scratch)) ? false : true);
+> +		i++;
+>  	}
+> 
+>  	return 0;
 > --
 > 2.25.1
 
