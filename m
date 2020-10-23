@@ -1,9 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 23 Oct 2020 06:12:14 +0000
-Subject: [PATCH v2] lib: utils: Implement "ranges" property parsing
-In-Reply-To: <20201021003913.2376881-1-atish.patra@wdc.com>
-References: <20201021003913.2376881-1-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB62017535D13AEBC9A1BF2A708D1A0@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Fri, 23 Oct 2020 06:21:22 +0000
+Subject: [PATCH v2 1/2] lib: sbi: Check pmp range granularity and size
+ before setting pmp
+In-Reply-To: <20201021005754.2386272-2-atish.patra@wdc.com>
+References: <20201021005754.2386272-1-atish.patra@wdc.com>
+ <20201021005754.2386272-2-atish.patra@wdc.com>
+Message-ID: <DM6PR04MB6201191E8E90A628B32831D48D1A0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,106 +16,175 @@ Content-Transfer-Encoding: 7bit
 
 > -----Original Message-----
 > From: Atish Patra <atish.patra@wdc.com>
-> Sent: 21 October 2020 06:09
+> Sent: 21 October 2020 06:28
 > To: opensbi at lists.infradead.org
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2] lib: utils: Implement "ranges" property parsing
+> Subject: [PATCH v2 1/2] lib: sbi: Check pmp range granularity and size before
+> setting pmp
+
+I think the subject should be:
+"lib: sbi: Detect PMP granularity and number of address bits"
+
 > 
-> The "reg" property in a device node may not be the correct address always.
-> If a parent node defines a "ranges" property, the child address need to be
-> translated with respect to parents address. If the ranges property is not
-> present, it will just use 1:1 translation.
+> As per RISC-V privilege specification, a platform may choose to implement a
+> coarser granularity scheme for PMP addresses. In that case, we shouldn't
+> allow any pmp region size smaller than the platform supports. A platform
+> may not also implement all the bits for a PMP address specified in the priv
+> specification.
+> 
+> The pmp range granularity and size is dynamically detected while detecting
+
+Rephrase this to:
+"... and address bits should be detected dynamically before detecting PMP
+regions."
+
+> pmp support. Any pmp modification request beyond these values will not
+> succeed.
 > 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > ---
-> Changes from v1->v2:
-> 1. Improved the range parsing by supporting multiple parent nodes.
-> ---
->  lib/utils/fdt/fdt_helper.c | 49
-> ++++++++++++++++++++++++++++++++++++--
->  1 file changed, 47 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_hart.h |  2 ++
+>  lib/sbi/sbi_hart.c     | 56 ++++++++++++++++++++++++++++++++++++++---
+> -
+>  2 files changed, 53 insertions(+), 5 deletions(-)
 > 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c index
-> aec73a0598d7..90d55dcd8e71 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -71,10 +71,47 @@ int fdt_find_match(void *fdt, int startoff,
->  	return SBI_ENODEV;
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h index
+> 3ac150036c79..c1baae57d898 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -39,6 +39,8 @@ unsigned int sbi_hart_mhpm_count(struct sbi_scratch
+> *scratch);  void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+>  			      const char *prefix, const char *suffix);  unsigned
+> int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+> +unsigned long sbi_hart_pmp_gran(struct sbi_scratch *scratch); unsigned
+> +int sbi_hart_pmp_sz_bits(struct sbi_scratch *scratch);
+
+Rename these functions to:
+sbi_hart_pmp_granularity()
+sbi_hart_pmp_addrbits()
+
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch);  bool
+> sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
+> void sbi_hart_get_features_str(struct sbi_scratch *scratch, diff --git
+> a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index 8ded82841d82..5acb02aecc11
+> 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -30,6 +30,8 @@ void (*sbi_hart_expected_trap)(void) =
+> &__sbi_expected_trap;  struct hart_features {
+>  	unsigned long features;
+>  	unsigned int pmp_count;
+> +	unsigned int pmp_sz_bits;
+
+Rename pmp_sz_bits to pmp_addr_bits.
+
+> +	unsigned long pmp_gran;
+>  	unsigned int mhpm_count;
+>  };
+>  static unsigned long hart_features_offset; @@ -159,16 +161,36 @@
+> unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
+>  	return hfeatures->pmp_count;
 >  }
 > 
-> +int fdt_translate_address(void *fdt, uint64_t reg, int parent, unsigned
-> +long *addr) {
-
-If fdt_translate_address() is a public function then it should be declared
-in fdt_helper.h otherwise make it static.
-
-> +	int i, rlen;
-> +	int cell_addr, cell_size;
-> +	const fdt32_t *ranges;
-> +	uint64_t offset = 0, caddr = 0, paddr = 0, rsize = 0;
+> +unsigned long sbi_hart_pmp_gran(struct sbi_scratch *scratch) {
+> +	struct hart_features *hfeatures =
+> +			sbi_scratch_offset_ptr(scratch,
+> hart_features_offset);
 > +
-> +	cell_addr = fdt_address_cells(fdt, parent);
-> +	if (cell_addr < 1)
-> +		return SBI_ENODEV;
-> +
-> +	cell_size = fdt_size_cells(fdt, parent);
-> +	if (cell_size < 0)
-> +		return SBI_ENODEV;
-> +
-> +	ranges = fdt_getprop(fdt, parent, "ranges", &rlen);
-> +	if (ranges && rlen > 0) {
-> +		for (i = 0; i < cell_addr; i++)
-> +			caddr = (caddr << 32) | fdt32_to_cpu(*ranges++);
-> +		for (i = 0; i < cell_addr; i++)
-> +			paddr = (paddr << 32) | fdt32_to_cpu(*ranges++);
-> +		for (i = 0; i < cell_size; i++)
-> +			rsize = (rsize << 32) | fdt32_to_cpu(*ranges++);
-> +		if (reg < caddr || caddr >= (reg + rsize )) {
-> +			sbi_printf("invalid address translation\n");
-> +			return SBI_ENODEV;
-> +		}
-> +		offset = reg - caddr;
-> +		*addr = paddr + offset;
-> +	} else {
-> +		/* No translation required */
-> +		*addr = reg;
-> +	}
-> +
-> +	return 0;
+> +	return hfeatures->pmp_gran;
 > +}
 > +
->  int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
->  			   unsigned long *size)
->  {
-> -	int parent, len, i;
-> +	int parent, len, i, rc;
->  	int cell_addr, cell_size;
->  	const fdt32_t *prop_addr, *prop_size;
->  	uint64_t temp = 0;
-> @@ -98,7 +135,15 @@ int fdt_get_node_addr_size(void *fdt, int node,
-> unsigned long *addr,
->  	if (addr) {
->  		for (i = 0; i < cell_addr; i++)
->  			temp = (temp << 32) | fdt32_to_cpu(*prop_addr++);
-> -		*addr = temp;
-> +		do {
-> +			if (parent < 0)
-> +				break;
-> +			rc  = fdt_translate_address(fdt, temp, parent, addr);
-> +			if (rc)
-> +				break;
-> +			parent = fdt_parent_offset(fdt, parent);
-> +			temp = *addr;
-> +		} while (1);
->  	}
->  	temp = 0;
+> +unsigned int sbi_hart_pmp_sz_bits(struct sbi_scratch *scratch) {
+> +	struct hart_features *hfeatures =
+> +			sbi_scratch_offset_ptr(scratch,
+> hart_features_offset);
+> +
+> +	return hfeatures->pmp_sz_bits;
+> +}
+> +
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)  {
+>  	struct sbi_domain_memregion *reg;
+>  	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> -	unsigned int pmp_idx = 0, pmp_flags;
+> +	unsigned int pmp_idx = 0, pmp_flags, pmp_bits;
+>  	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+> +	unsigned long pmp_addr, pmp_gran_log2;
 > 
+>  	if (!pmp_count)
+>  		return 0;
+> 
+> +	pmp_gran_log2 = log2roundup(sbi_hart_pmp_gran(scratch));
+> +	pmp_bits = sbi_hart_pmp_sz_bits(scratch);
+> +
+>  	sbi_domain_for_each_memregion(dom, reg) {
+>  		if (pmp_count <= pmp_idx)
+>  			break;
+> @@ -183,7 +205,9 @@ int sbi_hart_pmp_configure(struct sbi_scratch
+> *scratch)
+>  		if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
+>  			pmp_flags |= PMP_L;
+> 
+> -		pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
+> +		pmp_addr =  reg->base >> PMP_SHIFT;
+> +		if (pmp_gran_log2 <= reg->order &&  pmp_addr < (1UL <<
+> pmp_bits))
+> +			pmp_set(pmp_idx++, pmp_flags, reg->base, reg-
+> >order);
+>  	}
+> 
+>  	return 0;
+> @@ -282,11 +306,26 @@ done:
+>  		sbi_strncpy(features_str, "none", nfstr);  }
+> 
+> +static unsigned long hart_pmp_get_allowed_addr(void) {
+> +	unsigned long val = 0;
+> +	struct sbi_trap_info trap = {0};
+> +
+> +	csr_write_allowed(CSR_PMPADDR0, (ulong)&trap,
+> PMP_ADDR_MASK);			\
+> +	if (!trap.cause) {
+> +		val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
+> +		if (trap.cause)
+> +			val = 0;
+> +	}
+> +
+> +	return val;
+> +}
+> +
+>  static void hart_detect_features(struct sbi_scratch *scratch)  {
+>  	struct sbi_trap_info trap = {0};
+>  	struct hart_features *hfeatures;
+> -	unsigned long val;
+> +	unsigned long val, msb, lsb;
+> 
+>  	/* Reset hart features */
+>  	hfeatures = sbi_scratch_offset_ptr(scratch, hart_features_offset);
+> @@ -332,8 +371,15 @@ static void hart_detect_features(struct sbi_scratch
+> *scratch)
+>  	__check_csr_32(__csr + 0, __rdonly, __wrval, __field, __skip)	\
+>  	__check_csr_32(__csr + 32, __rdonly, __wrval, __field, __skip)
+> 
+> -	/* Detect number of PMP regions */
+> -	__check_csr_64(CSR_PMPADDR0, 0, 1UL, pmp_count, __pmp_skip);
+> +	/* Detect number of PMP regions. At least PMPADDR0 should be
+> implemented*/
+> +	val = hart_pmp_get_allowed_addr();
+> +	if (val) {
+> +		lsb = __ffs(val);
+> +		msb = __fls(val);
+> +		hfeatures->pmp_gran =  1 << (lsb + 2);
+> +		hfeatures->pmp_sz_bits = msb + 1;
+> +		__check_csr_64(CSR_PMPADDR0, 0, val, pmp_count,
+> __pmp_skip);
+
+Move the comment "Detect number of PMP regions" before __check_csr_64().
+
+> +	}
+>  __pmp_skip:
+> 
+>  	/* Detect number of MHPM counters */
 > --
 > 2.25.1
-
-Apart from above looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
 Regards,
 Anup
