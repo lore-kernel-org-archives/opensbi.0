@@ -1,52 +1,94 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Fri, 23 Oct 2020 15:47:12 -0700
-Subject: [PATCH v3 2/2] lib: sbi: Improve boot time print with additional PMP
- information
-In-Reply-To: <20201023224712.3837103-1-atish.patra@wdc.com>
-References: <20201023224712.3837103-1-atish.patra@wdc.com>
-Message-ID: <20201023224712.3837103-3-atish.patra@wdc.com>
+Date: Fri, 23 Oct 2020 15:47:39 -0700
+Subject: [PATCH v3] lib: utils: Implement "ranges" property parsing
+Message-ID: <20201023224739.3837478-1-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We know about pmp granularity and number of bits supported by PMP.
-Show those information in the boot time info print
+The "reg" property in a device node may not be the correct address always.
+If a parent node defines a "ranges" property, the child address need to be
+translated with respect to parents address. If the ranges property is not
+present, it will just use 1:1 translation.
 
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 ---
- lib/sbi/sbi_init.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ lib/utils/fdt/fdt_helper.c | 50 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 48 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 318163602e4a..f9a88ec8e6a6 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -79,14 +79,17 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_domain_dump_all("");
- 
- 	/* Boot HART details */
--	sbi_printf("Boot HART ID        : %u\n", hartid);
--	sbi_printf("Boot HART Domain    : %s\n", dom->name);
-+	sbi_printf("Boot HART ID              : %u\n", hartid);
-+	sbi_printf("Boot HART Domain          : %s\n", dom->name);
- 	misa_string(xlen, str, sizeof(str));
--	sbi_printf("Boot HART ISA       : %s\n", str);
-+	sbi_printf("Boot HART ISA             : %s\n", str);
- 	sbi_hart_get_features_str(scratch, str, sizeof(str));
--	sbi_printf("Boot HART Features  : %s\n", str);
--	sbi_printf("Boot HART PMP Count : %d\n", sbi_hart_pmp_count(scratch));
--	sbi_printf("Boot HART MHPM Count: %d\n", sbi_hart_mhpm_count(scratch));
-+	sbi_printf("Boot HART Features        : %s\n", str);
-+	sbi_printf("Boot HART PMP Count       : %d\n", sbi_hart_pmp_count(scratch));
-+	sbi_printf("Boot HART PMP Granularity : %lu\n", sbi_hart_pmp_granularity(scratch));
-+	sbi_printf("Boot HART PMP Address bits: %d\n", sbi_hart_pmp_addrbits(scratch));
-+	sbi_printf("Boot HART MHPM Count      : %d\n", sbi_hart_mhpm_count(scratch));
-+	sbi_printf("Boot HART MHPM Count      : %d\n", sbi_hart_mhpm_count(scratch));
- 	sbi_hart_delegation_dump(scratch, "Boot HART ", "   ");
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index aec73a0598d7..bf19ff92d5bd 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -71,10 +71,48 @@ int fdt_find_match(void *fdt, int startoff,
+ 	return SBI_ENODEV;
  }
+ 
++static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
++				 unsigned long *addr)
++{
++	int i, rlen;
++	int cell_addr, cell_size;
++	const fdt32_t *ranges;
++	uint64_t offset = 0, caddr = 0, paddr = 0, rsize = 0;
++
++	cell_addr = fdt_address_cells(fdt, parent);
++	if (cell_addr < 1)
++		return SBI_ENODEV;
++
++	cell_size = fdt_size_cells(fdt, parent);
++	if (cell_size < 0)
++		return SBI_ENODEV;
++
++	ranges = fdt_getprop(fdt, parent, "ranges", &rlen);
++	if (ranges && rlen > 0) {
++		for (i = 0; i < cell_addr; i++)
++			caddr = (caddr << 32) | fdt32_to_cpu(*ranges++);
++		for (i = 0; i < cell_addr; i++)
++			paddr = (paddr << 32) | fdt32_to_cpu(*ranges++);
++		for (i = 0; i < cell_size; i++)
++			rsize = (rsize << 32) | fdt32_to_cpu(*ranges++);
++		if (reg < caddr || caddr >= (reg + rsize )) {
++			sbi_printf("invalid address translation\n");
++			return SBI_ENODEV;
++		}
++		offset = reg - caddr;
++		*addr = paddr + offset;
++	} else {
++		/* No translation required */
++		*addr = reg;
++	}
++
++	return 0;
++}
++
+ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
+ 			   unsigned long *size)
+ {
+-	int parent, len, i;
++	int parent, len, i, rc;
+ 	int cell_addr, cell_size;
+ 	const fdt32_t *prop_addr, *prop_size;
+ 	uint64_t temp = 0;
+@@ -98,7 +136,15 @@ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
+ 	if (addr) {
+ 		for (i = 0; i < cell_addr; i++)
+ 			temp = (temp << 32) | fdt32_to_cpu(*prop_addr++);
+-		*addr = temp;
++		do {
++			if (parent < 0)
++				break;
++			rc  = fdt_translate_address(fdt, temp, parent, addr);
++			if (rc)
++				break;
++			parent = fdt_parent_offset(fdt, parent);
++			temp = *addr;
++		} while (1);
+ 	}
+ 	temp = 0;
  
 -- 
 2.25.1
