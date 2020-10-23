@@ -1,11 +1,9 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 23 Oct 2020 09:52:12 +0000
-Subject: [PATCH v2 2/2] lib: sbi: Improve boot time print with additional
- PMP information
-In-Reply-To: <20201021005754.2386272-3-atish.patra@wdc.com>
+Date: Fri, 23 Oct 2020 09:53:51 +0000
+Subject: [PATCH v2 0/2] Improve PMP feature detection
+In-Reply-To: <20201021005754.2386272-1-atish.patra@wdc.com>
 References: <20201021005754.2386272-1-atish.patra@wdc.com>
- <20201021005754.2386272-3-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB62018CF6433D3E70E3F8167D8D1A0@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <DM6PR04MB62019C1E9AF8FABC00EE00F08D1A0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -19,61 +17,38 @@ Content-Transfer-Encoding: 7bit
 > Sent: 21 October 2020 06:28
 > To: opensbi at lists.infradead.org
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2 2/2] lib: sbi: Improve boot time print with additional PMP
-> information
+> Subject: [PATCH v2 0/2] Improve PMP feature detection
 > 
-> We know about pmp granularity and number of bits supported by PMP.
-> Show those information in the boot time info print
+> This series improves the PMP detection by detecting the minimum
+> granularity and address size supported by the platform. It prevents any pmp
+> region writes that are not supported by platform leading to more robust and
+> secure implementation.
 > 
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  lib/sbi/sbi_init.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
-> 318163602e4a..bd9a3a88b655 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -79,14 +79,17 @@ static void sbi_boot_prints(struct sbi_scratch
-> *scratch, u32 hartid)
->  	sbi_domain_dump_all("");
-> 
->  	/* Boot HART details */
-> -	sbi_printf("Boot HART ID        : %u\n", hartid);
-> -	sbi_printf("Boot HART Domain    : %s\n", dom->name);
-> +	sbi_printf("Boot HART ID              : %u\n", hartid);
-> +	sbi_printf("Boot HART Domain          : %s\n", dom->name);
->  	misa_string(xlen, str, sizeof(str));
-> -	sbi_printf("Boot HART ISA       : %s\n", str);
-> +	sbi_printf("Boot HART ISA             : %s\n", str);
->  	sbi_hart_get_features_str(scratch, str, sizeof(str));
-> -	sbi_printf("Boot HART Features  : %s\n", str);
-> -	sbi_printf("Boot HART PMP Count : %d\n",
-> sbi_hart_pmp_count(scratch));
-> -	sbi_printf("Boot HART MHPM Count: %d\n",
-> sbi_hart_mhpm_count(scratch));
-> +	sbi_printf("Boot HART Features        : %s\n", str);
-> +	sbi_printf("Boot HART PMP Count       : %d\n",
-> sbi_hart_pmp_count(scratch));
-> +	sbi_printf("Boot HART PMP Granularity : %lu\n",
-> sbi_hart_pmp_gran(scratch));
-> +	sbi_printf("Boot HART PMP Address bits: %d\n",
-> sbi_hart_pmp_sz_bits(scratch));
-> +	sbi_printf("Boot HART MHPM Count      : %d\n",
-> sbi_hart_mhpm_count(scratch));
-> +	sbi_printf("Boot HART MHPM Count      : %d\n",
-> sbi_hart_mhpm_count(scratch));
->  	sbi_hart_delegation_dump(scratch, "Boot HART ", "   ");
->  }
-> 
-> --
-> 2.25.1
+> Tested generic platform for following boards:
+> 1. Qemu
+> 2. HiFive Unleashed
+> 3. OmniXtend
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Make sure you test on QEMU RV32 as well.
 
 Regards,
 Anup
+
+> 
+> Changes from v1->v2:
+> 1. Implement pmp address size computation.
+> 2. Improve pmp granularity detection mechanism.
+> 
+> Atish Patra (2):
+> lib: sbi: Check pmp range granularity and size before setting pmp
+> lib: sbi: Improve boot time print with additional PMP information
+> 
+> include/sbi/sbi_hart.h |  2 ++
+> lib/sbi/sbi_hart.c     | 56 ++++++++++++++++++++++++++++++++++++++----
+> lib/sbi/sbi_init.c     | 15 ++++++-----
+> 3 files changed, 62 insertions(+), 11 deletions(-)
+> 
+> --
+> 2.25.1
 
 
