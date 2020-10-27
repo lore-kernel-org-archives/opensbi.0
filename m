@@ -1,78 +1,49 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 27 Oct 2020 07:41:37 +0000
-Subject: [PATCH v4 2/2] lib: sbi: Improve boot time print with additional
- PMP information
-In-Reply-To: <20201026210334.782098-3-atish.patra@wdc.com>
-References: <20201026210334.782098-1-atish.patra@wdc.com>
- <20201026210334.782098-3-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB6201983BDE2BD2FA6D560C938D160@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Vincent Chen <vincent.chen@sifive.com>
+Date: Tue, 27 Oct 2020 15:54:23 +0800
+Subject: [PATCH] lib: sbi: Fix PMP entry detetcion mechanism
+Message-ID: <1603785263-11304-1-git-send-email-vincent.chen@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+The granularity of PMP access control settings is platform-specific. If
+the granularity is greater than 4 bytes, the current mechanism will not
+work because the return value will be forced to be granularity alignment
+so that the returned value is not equal to the written value. This patch
+writes PMP_ADDR_MASK to each PMP addr registers and checks the return
+value that is unequaled to zero to identify whether this PMP entry is
+support or not.
 
+Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
+---
+ lib/sbi/sbi_hart.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> -----Original Message-----
-> From: Atish Patra <atish.patra@wdc.com>
-> Sent: 27 October 2020 02:34
-> To: opensbi at lists.infradead.org
-> Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v4 2/2] lib: sbi: Improve boot time print with additional PMP
-> information
-> 
-> We know about pmp granularity and number of bits supported by PMP.
-> Show those information in the boot time info print
-> 
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  lib/sbi/sbi_init.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
-> 318163602e4a..f9a88ec8e6a6 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -79,14 +79,17 @@ static void sbi_boot_prints(struct sbi_scratch
-> *scratch, u32 hartid)
->  	sbi_domain_dump_all("");
-> 
->  	/* Boot HART details */
-> -	sbi_printf("Boot HART ID        : %u\n", hartid);
-> -	sbi_printf("Boot HART Domain    : %s\n", dom->name);
-> +	sbi_printf("Boot HART ID              : %u\n", hartid);
-> +	sbi_printf("Boot HART Domain          : %s\n", dom->name);
->  	misa_string(xlen, str, sizeof(str));
-> -	sbi_printf("Boot HART ISA       : %s\n", str);
-> +	sbi_printf("Boot HART ISA             : %s\n", str);
->  	sbi_hart_get_features_str(scratch, str, sizeof(str));
-> -	sbi_printf("Boot HART Features  : %s\n", str);
-> -	sbi_printf("Boot HART PMP Count : %d\n",
-> sbi_hart_pmp_count(scratch));
-> -	sbi_printf("Boot HART MHPM Count: %d\n",
-> sbi_hart_mhpm_count(scratch));
-> +	sbi_printf("Boot HART Features        : %s\n", str);
-> +	sbi_printf("Boot HART PMP Count       : %d\n",
-> sbi_hart_pmp_count(scratch));
-> +	sbi_printf("Boot HART PMP Granularity : %lu\n",
-> sbi_hart_pmp_granularity(scratch));
-> +	sbi_printf("Boot HART PMP Address bits: %d\n",
-> sbi_hart_pmp_addrbits(scratch));
-> +	sbi_printf("Boot HART MHPM Count      : %d\n",
-> sbi_hart_mhpm_count(scratch));
-> +	sbi_printf("Boot HART MHPM Count      : %d\n",
-> sbi_hart_mhpm_count(scratch));
->  	sbi_hart_delegation_dump(scratch, "Boot HART ", "   ");
->  }
-> 
-> --
-> 2.25.1
-
-Applied this patch to the riscv/opensbi repo
-
-Thanks,
-Anup
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6413194..42c4f51 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -372,7 +372,7 @@ static void hart_detect_features(struct sbi_scratch *scratch)
+ 		} else {						\
+ 			csr_write_allowed(__csr, (ulong)&trap, __wrval);\
+ 			if (!trap.cause) {				\
+-				if (csr_swap(__csr, val) == __wrval)	\
++				if (csr_swap(__csr, val))		\
+ 					(hfeatures->__field)++;		\
+ 				else					\
+ 					goto __skip;			\
+@@ -403,7 +403,7 @@ static void hart_detect_features(struct sbi_scratch *scratch)
+ 	__check_csr_32(__csr + 32, __rdonly, __wrval, __field, __skip)
+ 
+ 	/* Detect number of PMP regions */
+-	__check_csr_64(CSR_PMPADDR0, 0, 1UL, pmp_count, __pmp_skip);
++	__check_csr_64(CSR_PMPADDR0, 0, PMP_ADDR_MASK, pmp_count, __pmp_skip);
+ __pmp_skip:
+ 
+ 	/* Detect number of MHPM counters */
+-- 
+2.7.4
 
 
