@@ -1,46 +1,73 @@
-From: Vincent Chen <vincent.chen@sifive.com>
-Date: Tue, 27 Oct 2020 17:25:33 +0800
-Subject: [PATCH] lib: sbi: Fix PMP entry detetcion mechanism
-In-Reply-To: <DM6PR04MB6201491124FD2FF8D2DE70DB8D160@DM6PR04MB6201.namprd04.prod.outlook.com>
-References: <1603785263-11304-1-git-send-email-vincent.chen@sifive.com>
- <DM6PR04MB6201491124FD2FF8D2DE70DB8D160@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <CABvJ_xhhj7HXYJqGpCeNsW8St62XDUy50uJ8HFXeO9tiT=Mf9Q@mail.gmail.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Thu, 29 Oct 2020 14:28:40 +0530
+Subject: [PATCH] Makefile: Add option to use toolchain default ABI and ISA
+ string
+Message-ID: <20201029085840.2862264-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 27, 2020 at 4:03 PM Anup Patel <Anup.Patel@wdc.com> wrote:
->
->
->
-> > -----Original Message-----
-> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Vincent
-> > Chen
-> > Sent: 27 October 2020 13:24
-> > To: opensbi at lists.infradead.org
-> > Cc: vincent.chen at sifive.com
-> > Subject: [PATCH] lib: sbi: Fix PMP entry detetcion mechanism
-> >
-> > The granularity of PMP access control settings is platform-specific. If the
-> > granularity is greater than 4 bytes, the current mechanism will not work
-> > because the return value will be forced to be granularity alignment so that
-> > the returned value is not equal to the written value. This patch writes
-> > PMP_ADDR_MASK to each PMP addr registers and checks the return value
-> > that is unequaled to zero to identify whether this PMP entry is support or
-> > not.
->
-> This was initially fixed by Pragnesh for SiFive Unleashed platform and finally
-> it has been fixed correctly by Atish.
->
-> Can you try latest OpenSBI repo ?
->
-> Regards,
-> Anup
->
+When PLATFORM_RISCV_ABI and PLATFORM_RISCV_ISA are not specified,
+we force "-mabi=lp64 -march=rv64gc" for RV64 and force "-mabi=ilp32
+-march=rv32gc" for RV32. This can prevent users from using the
+toolchain default "-mabi" and "-march" options.
 
-Sure, Thanks.
-Regards,
-Vincent
+To allow using toolchain defaults, we add compile-time option
+PLATFORM_RISCV_TOOLCHAIN_DEFAULT which when enabled forces the
+top-level makefile to use toolchain default ABI and ISA string.
+
+To enable the option, pass "PLATFORM_RISCV_TOOLCHAIN_DEFAULT=1"
+to top-level make.
+
+Reported-by: Alistair Francis <alistair.francis@wdc.com>
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ Makefile | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index a231881..d6f097d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -94,6 +94,8 @@ DTC		=	dtc
+ 
+ # Guess the compillers xlen
+ OPENSBI_CC_XLEN := $(shell TMP=`$(CC) -dumpmachine | sed 's/riscv\([0-9][0-9]\).*/\1/'`; echo $${TMP})
++OPENSBI_CC_ABI := $(shell TMP=`$(CC) -v 2>&1 | sed -n 's/.*\(with\-abi=\([a-zA-Z0-9]*\)\).*/\2/p'`; echo $${TMP})
++OPENSBI_CC_ISA := $(shell TMP=`$(CC) -v 2>&1 | sed -n 's/.*\(with\-arch=\([a-zA-Z0-9]*\)\).*/\2/p'`; echo $${TMP})
+ 
+ # Setup platform XLEN
+ ifndef PLATFORM_RISCV_XLEN
+@@ -143,14 +145,22 @@ deps-y+=$(firmware-objs-path-y:.o=.dep)
+ 
+ # Setup platform ABI, ISA and Code Model
+ ifndef PLATFORM_RISCV_ABI
+-  ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-    PLATFORM_RISCV_ABI = ilp$(PLATFORM_RISCV_XLEN)
++  ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
++    ifeq ($(PLATFORM_RISCV_XLEN), 32)
++      PLATFORM_RISCV_ABI = ilp$(PLATFORM_RISCV_XLEN)
++    else
++      PLATFORM_RISCV_ABI = lp$(PLATFORM_RISCV_XLEN)
++    endif
+   else
+-    PLATFORM_RISCV_ABI = lp$(PLATFORM_RISCV_XLEN)
++    PLATFORM_RISCV_ABI = $(OPENSBI_CC_ABI)
+   endif
+ endif
+ ifndef PLATFORM_RISCV_ISA
+-  PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
++  ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
++    PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
++  else
++    PLATFORM_RISCV_ISA = $(OPENSBI_CC_ISA)
++  endif
+ endif
+ ifndef PLATFORM_RISCV_CODE_MODEL
+   PLATFORM_RISCV_CODE_MODEL = medany
+-- 
+2.25.1
+
 
