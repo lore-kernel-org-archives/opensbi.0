@@ -1,97 +1,189 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Mon, 2 Nov 2020 04:05:49 +0000
-Subject: [PATCH] Makefile: Add option to use toolchain default ABI and ISA
- string
-In-Reply-To: <4dd3a26644edddb0bb93a20d08d1a035bf98a7ea.camel@wdc.com>
-References: <20201029085840.2862264-1-anup.patel@wdc.com>
- <4dd3a26644edddb0bb93a20d08d1a035bf98a7ea.camel@wdc.com>
-Message-ID: <DM6PR04MB620186747F142FDCA422FDD98D100@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed,  4 Nov 2020 15:35:54 +0530
+Subject: [PATCH] lib: sbi: Improve boot prints in cold boot sequence
+Message-ID: <20201104100554.3044339-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Currently, we have all boot prints at the end of cold boot sequence
+which means if there is any failure in cold boot sequence before
+boot prints then we don't get any print.
+
+This patch improves boot prints in cold boot sequence as follows:
+1. We divide the boot prints into multiple parts and print it
+   from different locations after sbi_console_init()
+2. We throw an error print if there is any failure in cold boot
+   sequence after sbi_console_init()
+
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ lib/sbi/sbi_init.c | 90 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 69 insertions(+), 21 deletions(-)
+
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 15ae9da..253bcfb 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -35,12 +35,10 @@
+ 	"        | |\n"                                     \
+ 	"        |_|\n\n"
+ 
+-static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
++static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+ {
+-	int xlen;
+-	char str[128];
+-	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
++		return;
+ 
+ #ifdef OPENSBI_VERSION_GIT
+ 	sbi_printf("\nOpenSBI %s\n", OPENSBI_VERSION_GIT);
+@@ -50,13 +48,15 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+ #endif
+ 
+ 	sbi_printf(BANNER);
++}
+ 
+-	/* Determine MISA XLEN and MISA string */
+-	xlen = misa_xlen();
+-	if (xlen < 1) {
+-		sbi_printf("Error %d getting MISA XLEN\n", xlen);
+-		sbi_hart_hang();
+-	}
++static void sbi_boot_print_general(struct sbi_scratch *scratch)
++{
++	char str[128];
++	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++
++	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
++		return;
+ 
+ 	/* Platform details */
+ 	sbi_printf("Platform Name             : %s\n",
+@@ -75,9 +75,32 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+ 	sbi_printf("Runtime SBI Version       : %d.%d\n",
+ 		   sbi_ecall_version_major(), sbi_ecall_version_minor());
+ 	sbi_printf("\n");
++}
++
++static void sbi_boot_print_domains(struct sbi_scratch *scratch)
++{
++	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
++		return;
+ 
+ 	/* Domain details */
+ 	sbi_domain_dump_all("      ");
++}
++
++static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
++{
++	int xlen;
++	char str[128];
++	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
++
++	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
++		return;
++
++	/* Determine MISA XLEN and MISA string */
++	xlen = misa_xlen();
++	if (xlen < 1) {
++		sbi_printf("Error %d getting MISA XLEN\n", xlen);
++		sbi_hart_hang();
++	}
+ 
+ 	/* Boot HART details */
+ 	sbi_printf("Boot HART ID              : %u\n", hartid);
+@@ -208,25 +231,40 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	if (rc)
+ 		sbi_hart_hang();
+ 
++	sbi_boot_print_banner(scratch);
++
+ 	rc = sbi_platform_irqchip_init(plat, TRUE);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: platorm irqchip init failed (error %d)\n",
++			   __func__, rc);
+ 		sbi_hart_hang();
++	}
+ 
+ 	rc = sbi_ipi_init(scratch, TRUE);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: ipi init failed (error %d)\n", __func__, rc);
+ 		sbi_hart_hang();
++	}
+ 
+ 	rc = sbi_tlb_init(scratch, TRUE);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: tlb init failed (error %d)\n", __func__, rc);
+ 		sbi_hart_hang();
++	}
+ 
+ 	rc = sbi_timer_init(scratch, TRUE);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: timer init failed (error %d)\n", __func__, rc);
+ 		sbi_hart_hang();
++	}
+ 
+ 	rc = sbi_ecall_init();
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: ecall init failed (error %d)\n", __func__, rc);
+ 		sbi_hart_hang();
++	}
++
++	sbi_boot_print_general(scratch);
+ 
+ 	/*
+ 	 * Note: Finalize domains after HSM initialization so that we
+@@ -235,23 +273,33 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	 * that we use correct domain for configuring PMP.
+ 	 */
+ 	rc = sbi_domain_finalize(scratch, hartid);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: domain finalize failed (error %d)\n",
++			   __func__, rc);
+ 		sbi_hart_hang();
++	}
++
++	sbi_boot_print_domains(scratch);
+ 
+ 	rc = sbi_hart_pmp_configure(scratch);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: PMP configure failed (error %d)\n",
++			   __func__, rc);
+ 		sbi_hart_hang();
++	}
+ 
+ 	/*
+ 	 * Note: Platform final initialization should be last so that
+ 	 * it sees correct domain assignment and PMP configuration.
+ 	 */
+ 	rc = sbi_platform_final_init(plat, TRUE);
+-	if (rc)
++	if (rc) {
++		sbi_printf("%s: platform final init failed (error %d)\n",
++			   __func__, rc);
+ 		sbi_hart_hang();
++	}
+ 
+-	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
+-		sbi_boot_prints(scratch, hartid);
++	sbi_boot_print_hart(scratch, hartid);
+ 
+ 	wake_coldboot_harts(scratch, hartid);
+ 
+-- 
+2.25.1
 
 
-> -----Original Message-----
-> From: Alistair Francis <Alistair.Francis@wdc.com>
-> Sent: 29 October 2020 22:39
-> To: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
-> <Anup.Patel@wdc.com>
-> Cc: anup at brainfault.org; opensbi at lists.infradead.org
-> Subject: Re: [PATCH] Makefile: Add option to use toolchain default ABI and
-> ISA string
-> 
-> On Thu, 2020-10-29 at 14:28 +0530, Anup Patel wrote:
-> > When PLATFORM_RISCV_ABI and PLATFORM_RISCV_ISA are not specified,
-> we
-> > force "-mabi=lp64 -march=rv64gc" for RV64 and force "-mabi=ilp32
-> > -march=rv32gc" for RV32. This can prevent users from using the
-> > toolchain default "-mabi" and "-march" options.
-> >
-> > To allow using toolchain defaults, we add compile-time option
-> > PLATFORM_RISCV_TOOLCHAIN_DEFAULT which when enabled forces the
-> > top-level makefile to use toolchain default ABI and ISA string.
-> >
-> > To enable the option, pass "PLATFORM_RISCV_TOOLCHAIN_DEFAULT=1"
-> > to top-level make.
-> >
-> > Reported-by: Alistair Francis <alistair.francis@wdc.com>
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> 
-> Thanks!
-> 
-> Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
-> 
-> Alistair
-> 
-> > ---
-> >  Makefile | 18 ++++++++++++++----
-> >  1 file changed, 14 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/Makefile b/Makefile
-> > index a231881..d6f097d 100644
-> > --- a/Makefile
-> > +++ b/Makefile
-> > @@ -94,6 +94,8 @@ DTC		=	dtc
-> >
-> >  # Guess the compillers xlen
-> >  OPENSBI_CC_XLEN := $(shell TMP=`$(CC) -dumpmachine | sed
-> > 's/riscv\([0-9][0-9]\).*/\1/'`; echo $${TMP})
-> > +OPENSBI_CC_ABI := $(shell TMP=`$(CC) -v 2>&1 | sed -n 's/.*\(with\-
-> > abi=\([a-zA-Z0-9]*\)\).*/\2/p'`; echo $${TMP})
-> > +OPENSBI_CC_ISA := $(shell TMP=`$(CC) -v 2>&1 | sed -n 's/.*\(with\-
-> > arch=\([a-zA-Z0-9]*\)\).*/\2/p'`; echo $${TMP})
-> >
-> >  # Setup platform XLEN
-> >  ifndef PLATFORM_RISCV_XLEN
-> > @@ -143,14 +145,22 @@ deps-y+=$(firmware-objs-path-y:.o=.dep)
-> >
-> >  # Setup platform ABI, ISA and Code Model  ifndef PLATFORM_RISCV_ABI
-> > -  ifeq ($(PLATFORM_RISCV_XLEN), 32)
-> > -    PLATFORM_RISCV_ABI = ilp$(PLATFORM_RISCV_XLEN)
-> > +  ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> > +    ifeq ($(PLATFORM_RISCV_XLEN), 32)
-> > +      PLATFORM_RISCV_ABI = ilp$(PLATFORM_RISCV_XLEN)
-> > +    else
-> > +      PLATFORM_RISCV_ABI = lp$(PLATFORM_RISCV_XLEN)
-> > +    endif
-> >    else
-> > -    PLATFORM_RISCV_ABI = lp$(PLATFORM_RISCV_XLEN)
-> > +    PLATFORM_RISCV_ABI = $(OPENSBI_CC_ABI)
-> >    endif
-> >  endif
-> >  ifndef PLATFORM_RISCV_ISA
-> > -  PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
-> > +  ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> > +    PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc  else
-> > +    PLATFORM_RISCV_ISA = $(OPENSBI_CC_ISA)  endif
-> >  endif
-> >  ifndef PLATFORM_RISCV_CODE_MODEL
-> >    PLATFORM_RISCV_CODE_MODEL = medany
-
-Applied this patch to the riscv/opensbi repo
-
-Regards,
-Anup
