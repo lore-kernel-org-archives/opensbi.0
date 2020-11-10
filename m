@@ -1,215 +1,243 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Wed, 4 Nov 2020 21:30:14 -0800
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Tue, 10 Nov 2020 04:55:01 +0000
 Subject: [PATCH] lib: sbi: Improve boot prints in cold boot sequence
-In-Reply-To: <20201104100554.3044339-1-anup.patel@wdc.com>
+In-Reply-To: <CAOnJCUJ=DoDxqUUZUZ6GuRb6XCuhFE-J1p4w4qCFdq+Cu4ak8g@mail.gmail.com>
 References: <20201104100554.3044339-1-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJ=DoDxqUUZUZ6GuRb6XCuhFE-J1p4w4qCFdq+Cu4ak8g@mail.gmail.com>
+ <CAOnJCUJ=DoDxqUUZUZ6GuRb6XCuhFE-J1p4w4qCFdq+Cu4ak8g@mail.gmail.com>
+Message-ID: <DM6PR04MB62016057B1261117B036A71E8DE90@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 4, 2020 at 2:06 AM Anup Patel <anup.patel@wdc.com> wrote:
->
-> Currently, we have all boot prints at the end of cold boot sequence
-> which means if there is any failure in cold boot sequence before
-> boot prints then we don't get any print.
->
-> This patch improves boot prints in cold boot sequence as follows:
-> 1. We divide the boot prints into multiple parts and print it
->    from different locations after sbi_console_init()
-> 2. We throw an error print if there is any failure in cold boot
->    sequence after sbi_console_init()
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  lib/sbi/sbi_init.c | 90 +++++++++++++++++++++++++++++++++++-----------
->  1 file changed, 69 insertions(+), 21 deletions(-)
->
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 15ae9da..253bcfb 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -35,12 +35,10 @@
->         "        | |\n"                                     \
->         "        |_|\n\n"
->
-> -static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
-> +static void sbi_boot_print_banner(struct sbi_scratch *scratch)
->  {
-> -       int xlen;
-> -       char str[128];
-> -       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +               return;
->
 
-This is performed multiple times in every print function. Maybe just
-put it in a static variable
-or pass it into each function instead of dereferencing & and operation
-every time ?
 
->  #ifdef OPENSBI_VERSION_GIT
->         sbi_printf("\nOpenSBI %s\n", OPENSBI_VERSION_GIT);
-> @@ -50,13 +48,15 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
->  #endif
->
->         sbi_printf(BANNER);
-> +}
->
-> -       /* Determine MISA XLEN and MISA string */
-> -       xlen = misa_xlen();
-> -       if (xlen < 1) {
-> -               sbi_printf("Error %d getting MISA XLEN\n", xlen);
-> -               sbi_hart_hang();
-> -       }
-> +static void sbi_boot_print_general(struct sbi_scratch *scratch)
-> +{
-> +       char str[128];
-> +       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> +
-> +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +               return;
->
->         /* Platform details */
->         sbi_printf("Platform Name             : %s\n",
-> @@ -75,9 +75,32 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
->         sbi_printf("Runtime SBI Version       : %d.%d\n",
->                    sbi_ecall_version_major(), sbi_ecall_version_minor());
->         sbi_printf("\n");
-> +}
-> +
-> +static void sbi_boot_print_domains(struct sbi_scratch *scratch)
-> +{
-> +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +               return;
->
->         /* Domain details */
->         sbi_domain_dump_all("      ");
-> +}
-> +
-> +static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
-> +{
-> +       int xlen;
-> +       char str[128];
-> +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> +
-> +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +               return;
-> +
-> +       /* Determine MISA XLEN and MISA string */
-> +       xlen = misa_xlen();
-> +       if (xlen < 1) {
-> +               sbi_printf("Error %d getting MISA XLEN\n", xlen);
-> +               sbi_hart_hang();
-> +       }
->
->         /* Boot HART details */
->         sbi_printf("Boot HART ID              : %u\n", hartid);
-> @@ -208,25 +231,40 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->         if (rc)
->                 sbi_hart_hang();
->
-> +       sbi_boot_print_banner(scratch);
-> +
->         rc = sbi_platform_irqchip_init(plat, TRUE);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: platorm irqchip init failed (error %d)\n",
+> -----Original Message-----
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 05 November 2020 11:00
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH] lib: sbi: Improve boot prints in cold boot sequence
+> 
+> On Wed, Nov 4, 2020 at 2:06 AM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > Currently, we have all boot prints at the end of cold boot sequence
+> > which means if there is any failure in cold boot sequence before boot
+> > prints then we don't get any print.
+> >
+> > This patch improves boot prints in cold boot sequence as follows:
+> > 1. We divide the boot prints into multiple parts and print it
+> >    from different locations after sbi_console_init() 2. We throw an
+> > error print if there is any failure in cold boot
+> >    sequence after sbi_console_init()
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  lib/sbi/sbi_init.c | 90
+> > +++++++++++++++++++++++++++++++++++-----------
+> >  1 file changed, 69 insertions(+), 21 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
+> > 15ae9da..253bcfb 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -35,12 +35,10 @@
+> >         "        | |\n"                                     \
+> >         "        |_|\n\n"
+> >
+> > -static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
+> > +static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+> >  {
+> > -       int xlen;
+> > -       char str[128];
+> > -       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> > -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> > +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
+> > +               return;
+> >
+> 
+> This is performed multiple times in every print function. Maybe just put it in a
+> static variable or pass it into each function instead of dereferencing & and
+> operation every time ?
 
-/platorm/platform/
+Some of the sbi_boot_print_xyz() functions need "scratch" pointer for other
+reasons so for such functions static variable or function parameter would be
+redundant. I suggest we stay with current approach. Is it okay ??
 
-> +                          __func__, rc);
->                 sbi_hart_hang();
-> +       }
->
->         rc = sbi_ipi_init(scratch, TRUE);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: ipi init failed (error %d)\n", __func__, rc);
->                 sbi_hart_hang();
-> +       }
->
->         rc = sbi_tlb_init(scratch, TRUE);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: tlb init failed (error %d)\n", __func__, rc);
->                 sbi_hart_hang();
-> +       }
->
->         rc = sbi_timer_init(scratch, TRUE);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: timer init failed (error %d)\n", __func__, rc);
->                 sbi_hart_hang();
-> +       }
->
->         rc = sbi_ecall_init();
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: ecall init failed (error %d)\n", __func__, rc);
->                 sbi_hart_hang();
-> +       }
-> +
-> +       sbi_boot_print_general(scratch);
->
->         /*
->          * Note: Finalize domains after HSM initialization so that we
-> @@ -235,23 +273,33 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->          * that we use correct domain for configuring PMP.
->          */
->         rc = sbi_domain_finalize(scratch, hartid);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: domain finalize failed (error %d)\n",
-> +                          __func__, rc);
->                 sbi_hart_hang();
-> +       }
-> +
-> +       sbi_boot_print_domains(scratch);
->
->         rc = sbi_hart_pmp_configure(scratch);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: PMP configure failed (error %d)\n",
-> +                          __func__, rc);
->                 sbi_hart_hang();
-> +       }
->
->         /*
->          * Note: Platform final initialization should be last so that
->          * it sees correct domain assignment and PMP configuration.
->          */
->         rc = sbi_platform_final_init(plat, TRUE);
-> -       if (rc)
-> +       if (rc) {
-> +               sbi_printf("%s: platform final init failed (error %d)\n",
-> +                          __func__, rc);
->                 sbi_hart_hang();
-> +       }
->
-> -       if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
-> -               sbi_boot_prints(scratch, hartid);
-> +       sbi_boot_print_hart(scratch, hartid);
->
->         wake_coldboot_harts(scratch, hartid);
->
+> 
+> >  #ifdef OPENSBI_VERSION_GIT
+> >         sbi_printf("\nOpenSBI %s\n", OPENSBI_VERSION_GIT); @@ -50,13
+> > +48,15 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32
+> > hartid)  #endif
+> >
+> >         sbi_printf(BANNER);
+> > +}
+> >
+> > -       /* Determine MISA XLEN and MISA string */
+> > -       xlen = misa_xlen();
+> > -       if (xlen < 1) {
+> > -               sbi_printf("Error %d getting MISA XLEN\n", xlen);
+> > -               sbi_hart_hang();
+> > -       }
+> > +static void sbi_boot_print_general(struct sbi_scratch *scratch) {
+> > +       char str[128];
+> > +       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> > +
+> > +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
+> > +               return;
+> >
+> >         /* Platform details */
+> >         sbi_printf("Platform Name             : %s\n",
+> > @@ -75,9 +75,32 @@ static void sbi_boot_prints(struct sbi_scratch
+> *scratch, u32 hartid)
+> >         sbi_printf("Runtime SBI Version       : %d.%d\n",
+> >                    sbi_ecall_version_major(), sbi_ecall_version_minor());
+> >         sbi_printf("\n");
+> > +}
+> > +
+> > +static void sbi_boot_print_domains(struct sbi_scratch *scratch) {
+> > +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
+> > +               return;
+> >
+> >         /* Domain details */
+> >         sbi_domain_dump_all("      ");
+> > +}
+> > +
+> > +static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32
+> > +hartid) {
+> > +       int xlen;
+> > +       char str[128];
+> > +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> > +
+> > +       if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
+> > +               return;
+> > +
+> > +       /* Determine MISA XLEN and MISA string */
+> > +       xlen = misa_xlen();
+> > +       if (xlen < 1) {
+> > +               sbi_printf("Error %d getting MISA XLEN\n", xlen);
+> > +               sbi_hart_hang();
+> > +       }
+> >
+> >         /* Boot HART details */
+> >         sbi_printf("Boot HART ID              : %u\n", hartid);
+> > @@ -208,25 +231,40 @@ static void __noreturn init_coldboot(struct
+> sbi_scratch *scratch, u32 hartid)
+> >         if (rc)
+> >                 sbi_hart_hang();
+> >
+> > +       sbi_boot_print_banner(scratch);
+> > +
+> >         rc = sbi_platform_irqchip_init(plat, TRUE);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: platorm irqchip init failed (error
+> > + %d)\n",
+> 
+> /platorm/platform/
+
+Okay, will update.
+
+> 
+> > +                          __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> >
+> >         rc = sbi_ipi_init(scratch, TRUE);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: ipi init failed (error %d)\n",
+> > + __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> >
+> >         rc = sbi_tlb_init(scratch, TRUE);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: tlb init failed (error %d)\n",
+> > + __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> >
+> >         rc = sbi_timer_init(scratch, TRUE);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: timer init failed (error %d)\n",
+> > + __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> >
+> >         rc = sbi_ecall_init();
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: ecall init failed (error %d)\n",
+> > + __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> > +
+> > +       sbi_boot_print_general(scratch);
+> >
+> >         /*
+> >          * Note: Finalize domains after HSM initialization so that we
+> > @@ -235,23 +273,33 @@ static void __noreturn init_coldboot(struct
+> sbi_scratch *scratch, u32 hartid)
+> >          * that we use correct domain for configuring PMP.
+> >          */
+> >         rc = sbi_domain_finalize(scratch, hartid);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: domain finalize failed (error %d)\n",
+> > +                          __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> > +
+> > +       sbi_boot_print_domains(scratch);
+> >
+> >         rc = sbi_hart_pmp_configure(scratch);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: PMP configure failed (error %d)\n",
+> > +                          __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> >
+> >         /*
+> >          * Note: Platform final initialization should be last so that
+> >          * it sees correct domain assignment and PMP configuration.
+> >          */
+> >         rc = sbi_platform_final_init(plat, TRUE);
+> > -       if (rc)
+> > +       if (rc) {
+> > +               sbi_printf("%s: platform final init failed (error %d)\n",
+> > +                          __func__, rc);
+> >                 sbi_hart_hang();
+> > +       }
+> >
+> > -       if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
+> > -               sbi_boot_prints(scratch, hartid);
+> > +       sbi_boot_print_hart(scratch, hartid);
+> >
+> >         wake_coldboot_harts(scratch, hartid);
+> >
+> > --
+> > 2.25.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Apart from that, LGTM.
+> 
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+> 
 > --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Regards,
+> Atish
 
-Apart from that, LGTM.
-
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-
--- 
-Regards,
-Atish
-
+Thanks,
+Anup
