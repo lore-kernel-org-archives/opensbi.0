@@ -1,42 +1,153 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 21 Nov 2020 15:17:50 +0530
-Subject: [PATCH 05/11] include: sbi: Use lower bits for domain memory region
- permissions
+Date: Sat, 21 Nov 2020 15:17:52 +0530
+Subject: [PATCH 07/11] lib: sbi: Add error prints in sbi_domain_finalize()
 In-Reply-To: <20201121094756.4154728-1-anup.patel@wdc.com>
 References: <20201121094756.4154728-1-anup.patel@wdc.com>
-Message-ID: <20201121094756.4154728-6-anup.patel@wdc.com>
+Message-ID: <20201121094756.4154728-8-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We should use lower bits for domain memory region access permissions
-and higher bits for other domain memory region attributes. This helps
-us use same bit assignment for parsing domain memory region access
-permissions from device tree.
+We add error prints in sbi_domain_finalize() and sanitize_domain()
+to help debug domain configuration issues.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_domain.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_domain.c | 63 ++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 52 insertions(+), 11 deletions(-)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 6f90b26..a7cb61e 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -39,8 +39,10 @@ struct sbi_domain_memregion {
- #define SBI_DOMAIN_MEMREGION_READABLE		(1UL << 0)
- #define SBI_DOMAIN_MEMREGION_WRITEABLE		(1UL << 1)
- #define SBI_DOMAIN_MEMREGION_EXECUTABLE		(1UL << 2)
--#define SBI_DOMAIN_MEMREGION_MMIO		(1UL << 3)
--#define SBI_DOMAIN_MEMREGION_MMODE		(1UL << 4)
-+#define SBI_DOMAIN_MEMREGION_MMODE		(1UL << 3)
-+#define SBI_DOMAIN_MEMREGION_ACCESS_MASK	(0xfUL)
-+
-+#define SBI_DOMAIN_MEMREGION_MMIO		(1UL << 31)
- 	unsigned long flags;
- };
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 1b50604..639e016 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -174,19 +174,33 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 	struct sbi_domain_memregion treg, *reg, *reg1;
+ 
+ 	/* Check possible HARTs */
+-	if (!dom->possible_harts)
++	if (!dom->possible_harts) {
++		sbi_printf("%s: %s possible HART mask is NULL\n",
++			   __func__, dom->name);
+ 		return SBI_EINVAL;
++	}
+ 	sbi_hartmask_for_each_hart(i, dom->possible_harts) {
+-		if (sbi_platform_hart_invalid(plat, i))
++		if (sbi_platform_hart_invalid(plat, i)) {
++			sbi_printf("%s: %s possible HART mask has invalid "
++				   "hart %d\n", __func__, dom->name, i);
+ 			return SBI_EINVAL;
++		}
+ 	};
+ 
+ 	/* Check memory regions */
+-	if (!dom->regions)
++	if (!dom->regions) {
++		sbi_printf("%s: %s regions is NULL\n",
++			   __func__, dom->name);
+ 		return SBI_EINVAL;
++	}
+ 	sbi_domain_for_each_memregion(dom, reg) {
+-		if (!is_region_valid(reg))
++		if (!is_region_valid(reg)) {
++			sbi_printf("%s: %s has invalid region base=0x%lx "
++				   "order=%lu flags=0x%lx\n", __func__,
++				   dom->name, reg->base, reg->order,
++				   reg->flags);
+ 			return SBI_EINVAL;
++		}
+ 	}
+ 
+ 	/* Count memory regions and check presence of firmware region */
+@@ -199,8 +213,11 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 			have_fw_reg = TRUE;
+ 		count++;
+ 	}
+-	if (!have_fw_reg)
++	if (!have_fw_reg) {
++		sbi_printf("%s: %s does not have firmware region\n",
++			   __func__, dom->name);
+ 		return SBI_EINVAL;
++	}
+ 
+ 	/* Sort the memory regions */
+ 	for (i = 0; i < (count - 1); i++) {
+@@ -208,8 +225,15 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 		for (j = i + 1; j < count; j++) {
+ 			reg1 = &dom->regions[j];
+ 
+-			if (is_region_conflict(reg1, reg))
++			if (is_region_conflict(reg1, reg)) {
++				sbi_printf("%s: %s conflict between regions "
++					"(base=0x%lx order=%lu flags=0x%lx) and "
++					"(base=0x%lx order=%lu flags=0x%lx)\n",
++					__func__, dom->name,
++					reg->base, reg->order, reg->flags,
++					reg1->base, reg1->order, reg1->flags);
+ 				return SBI_EINVAL;
++			}
+ 
+ 			if (!is_region_before(reg1, reg))
+ 				continue;
+@@ -233,13 +257,19 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 	 * protect M-mode context and enforce checks on memory accesses.
+ 	 */
+ 	if (dom->next_mode != PRV_S &&
+-	    dom->next_mode != PRV_U)
++	    dom->next_mode != PRV_U) {
++		sbi_printf("%s: %s invalid next booting stage mode 0x%lx\n",
++			   __func__, dom->name, dom->next_mode);
+ 		return SBI_EINVAL;
++	}
+ 
+ 	/* Check next address and next mode*/
+ 	if (!sbi_domain_check_addr(dom, dom->next_addr, dom->next_mode,
+-				   SBI_DOMAIN_EXECUTE))
++				   SBI_DOMAIN_EXECUTE)) {
++		sbi_printf("%s: %s next booting stage addres 0x%lx can't "
++			   "execute\n", __func__, dom->name, dom->next_addr);
+ 		return SBI_EINVAL;
++	}
+ 
+ 	return 0;
+ }
+@@ -371,13 +401,20 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ 			 * Ensure that we have room for Domain Index to
+ 			 * HART ID mapping
+ 			 */
+-			if (SBI_DOMAIN_MAX_INDEX <= domain_count)
++			if (SBI_DOMAIN_MAX_INDEX <= domain_count) {
++				sbi_printf("%s: No room for %s\n",
++					   __func__, dom->name);
+ 				return SBI_ENOSPC;
++			}
+ 
+ 			/* Sanitize discovered domain */
+ 			rc = sanitize_domain(plat, dom);
+-			if (rc)
++			if (rc) {
++				sbi_printf("%s: sanity checks failed for"
++					   " %s (error %d)\n", __func__,
++					   dom->name, rc);
+ 				return rc;
++			}
+ 
+ 			/* Assign index to domain */
+ 			dom->index = domain_count++;
+@@ -437,8 +474,12 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ 						dom->next_addr,
+ 						dom->next_mode,
+ 						dom->next_arg1);
+-			if (rc)
++			if (rc) {
++				sbi_printf("%s: failed to start boot HART %d"
++					   " for %s (error %d)\n", __func__,
++					   dhart, dom->name, rc);
+ 				return rc;
++			}
+ 		}
+ 	}
  
 -- 
 2.25.1
