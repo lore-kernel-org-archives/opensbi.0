@@ -1,208 +1,55 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 11 Nov 2020 03:55:26 +0000
-Subject: [PATCH v2] lib: sbi: Improve boot prints in cold boot sequence
-In-Reply-To: <20201110050746.3751911-1-anup.patel@wdc.com>
-References: <20201110050746.3751911-1-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201F7286DDDAD331F7D6F908DE80@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Sat, 21 Nov 2020 15:17:45 +0530
+Subject: [PATCH 00/11] OpenSBI domain configuration using device tree
+Message-ID: <20201121094756.4154728-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+This series adds mechanism to configure/populate OpenSBI domains from
+device tree passed in the platform support. The generic platform is
+totally device tree based platform so generic platform is the first
+platform providing OpenSBI domain configuration using device tree.
 
+To test this series, we created two domains: trusted-domain (cpu0)
+and untrusted-domain (cpu1, cpu2, cpu3, cpu4) on QEMU sifive_u machine.
+The trusted-domain ran a baremetal hello world application using UART1
+whereas untrusted-domain ran Linux kernel with UART0 as console. The
+device tree configuration for this test case is provided as example
+in docs/domain_support.md.
 
-> -----Original Message-----
-> From: Anup Patel <Anup.Patel@wdc.com>
-> Sent: 10 November 2020 10:38
-> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>
-> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
-> Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2] lib: sbi: Improve boot prints in cold boot sequence
-> 
-> Currently, we have all boot prints at the end of cold boot sequence which
-> means if there is any failure in cold boot sequence before boot prints then
-> we don't get any print.
-> 
-> This patch improves boot prints in cold boot sequence as follows:
-> 1. We divide the boot prints into multiple parts and print it
->    from different locations after sbi_console_init() 2. We throw an error print
-> if there is any failure in cold boot
->    sequence after sbi_console_init()
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  lib/sbi/sbi_init.c | 90 +++++++++++++++++++++++++++++++++++-----------
->  1 file changed, 69 insertions(+), 21 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index 15ae9da..0e82458 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -35,12 +35,10 @@
->  	"        | |\n"                                     \
->  	"        |_|\n\n"
-> 
-> -static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
-> +static void sbi_boot_print_banner(struct sbi_scratch *scratch)
->  {
-> -	int xlen;
-> -	char str[128];
-> -	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> -	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> +	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +		return;
-> 
->  #ifdef OPENSBI_VERSION_GIT
->  	sbi_printf("\nOpenSBI %s\n", OPENSBI_VERSION_GIT); @@ -50,13
-> +48,15 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32
-> hartid)  #endif
-> 
->  	sbi_printf(BANNER);
-> +}
-> 
-> -	/* Determine MISA XLEN and MISA string */
-> -	xlen = misa_xlen();
-> -	if (xlen < 1) {
-> -		sbi_printf("Error %d getting MISA XLEN\n", xlen);
-> -		sbi_hart_hang();
-> -	}
-> +static void sbi_boot_print_general(struct sbi_scratch *scratch) {
-> +	char str[128];
-> +	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> +
-> +	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +		return;
-> 
->  	/* Platform details */
->  	sbi_printf("Platform Name             : %s\n",
-> @@ -75,9 +75,32 @@ static void sbi_boot_prints(struct sbi_scratch *scratch,
-> u32 hartid)
->  	sbi_printf("Runtime SBI Version       : %d.%d\n",
->  		   sbi_ecall_version_major(), sbi_ecall_version_minor());
->  	sbi_printf("\n");
-> +}
-> +
-> +static void sbi_boot_print_domains(struct sbi_scratch *scratch) {
-> +	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +		return;
-> 
->  	/* Domain details */
->  	sbi_domain_dump_all("      ");
-> +}
-> +
-> +static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32
-> +hartid) {
-> +	int xlen;
-> +	char str[128];
-> +	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> +
-> +	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> +		return;
-> +
-> +	/* Determine MISA XLEN and MISA string */
-> +	xlen = misa_xlen();
-> +	if (xlen < 1) {
-> +		sbi_printf("Error %d getting MISA XLEN\n", xlen);
-> +		sbi_hart_hang();
-> +	}
-> 
->  	/* Boot HART details */
->  	sbi_printf("Boot HART ID              : %u\n", hartid);
-> @@ -208,25 +231,40 @@ static void __noreturn init_coldboot(struct
-> sbi_scratch *scratch, u32 hartid)
->  	if (rc)
->  		sbi_hart_hang();
-> 
-> +	sbi_boot_print_banner(scratch);
-> +
->  	rc = sbi_platform_irqchip_init(plat, TRUE);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: platform irqchip init failed (error %d)\n",
-> +			   __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> 
->  	rc = sbi_ipi_init(scratch, TRUE);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: ipi init failed (error %d)\n", __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> 
->  	rc = sbi_tlb_init(scratch, TRUE);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: tlb init failed (error %d)\n", __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> 
->  	rc = sbi_timer_init(scratch, TRUE);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: timer init failed (error %d)\n", __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> 
->  	rc = sbi_ecall_init();
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: ecall init failed (error %d)\n", __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> +
-> +	sbi_boot_print_general(scratch);
-> 
->  	/*
->  	 * Note: Finalize domains after HSM initialization so that we @@ -
-> 235,23 +273,33 @@ static void __noreturn init_coldboot(struct sbi_scratch
-> *scratch, u32 hartid)
->  	 * that we use correct domain for configuring PMP.
->  	 */
->  	rc = sbi_domain_finalize(scratch, hartid);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: domain finalize failed (error %d)\n",
-> +			   __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> +
-> +	sbi_boot_print_domains(scratch);
-> 
->  	rc = sbi_hart_pmp_configure(scratch);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: PMP configure failed (error %d)\n",
-> +			   __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> 
->  	/*
->  	 * Note: Platform final initialization should be last so that
->  	 * it sees correct domain assignment and PMP configuration.
->  	 */
->  	rc = sbi_platform_final_init(plat, TRUE);
-> -	if (rc)
-> +	if (rc) {
-> +		sbi_printf("%s: platform final init failed (error %d)\n",
-> +			   __func__, rc);
->  		sbi_hart_hang();
-> +	}
-> 
-> -	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
-> -		sbi_boot_prints(scratch, hartid);
-> +	sbi_boot_print_hart(scratch, hartid);
-> 
->  	wake_coldboot_harts(scratch, hartid);
-> 
-> --
-> 2.25.1
+These patches can also be found in domains_dtb_v1 branch at:
+https://github.com/avpatel/opensbi.git
 
-Applied this patch to the riscv/opensbi repo
+Anup Patel (11):
+  lib: sbi: Fix sbi_hart_switch_mode() for u-mode
+  lib: sbi: Fix typo in sbi_domain_finalize()
+  lib: sbi: Fix domain_count check in sbi_domain_finalize()
+  lib: sbi: Auto start domain only if boot HART within limits
+  include: sbi: Use lower bits for domain memory region permissions
+  lib: sbi: Override domain boot HART when coldboot HART assigned to it
+  lib: sbi: Add error prints in sbi_domain_finalize()
+  include: sbi: Add domains_init() platform operation
+  docs: Add domain device tree binding documentation
+  lib: utils: Add helper routines to populate domains from FDT
+  platform: generic: Populate domains from FDT
 
-Regards,
-Anup
+ docs/domain_support.md             | 186 ++++++++++++
+ include/sbi/sbi_domain.h           |   6 +-
+ include/sbi/sbi_platform.h         |  16 ++
+ include/sbi_utils/fdt/fdt_domain.h |  80 ++++++
+ lib/sbi/sbi_domain.c               |  90 +++++-
+ lib/sbi/sbi_hart.c                 |   8 +-
+ lib/utils/fdt/fdt_domain.c         | 444 +++++++++++++++++++++++++++++
+ lib/utils/fdt/objects.mk           |   1 +
+ platform/generic/platform.c        |   9 +
+ 9 files changed, 822 insertions(+), 18 deletions(-)
+ create mode 100644 include/sbi_utils/fdt/fdt_domain.h
+ create mode 100644 lib/utils/fdt/fdt_domain.c
+
+-- 
+2.25.1
 
 
