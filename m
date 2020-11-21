@@ -1,37 +1,39 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 21 Nov 2020 15:17:48 +0530
-Subject: [PATCH 03/11] lib: sbi: Fix domain_count check in
- sbi_domain_finalize()
+Date: Sat, 21 Nov 2020 15:17:49 +0530
+Subject: [PATCH 04/11] lib: sbi: Auto start domain only if boot HART within
+ limits
 In-Reply-To: <20201121094756.4154728-1-anup.patel@wdc.com>
 References: <20201121094756.4154728-1-anup.patel@wdc.com>
-Message-ID: <20201121094756.4154728-4-anup.patel@wdc.com>
+Message-ID: <20201121094756.4154728-5-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The domain_count check in sbi_domain_finalize() for newly discovered
-domain is incorrect and should be reversed.
+The sbi_domain_finalize() should auto start a domain only if the
+boot HART is withing limits (i.e. less than SBI_HARTMASK_MAX_BITS).
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- lib/sbi/sbi_domain.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sbi/sbi_domain.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 4c98a1b..ac920b8 100644
+index ac920b8..ecb098c 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
-@@ -371,7 +371,7 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
- 			 * Ensure that we have room for Domain Index to
- 			 * HART ID mapping
- 			 */
--			if (domain_count <= SBI_DOMAIN_MAX_INDEX)
-+			if (SBI_DOMAIN_MAX_INDEX <= domain_count)
- 				return SBI_ENOSPC;
+@@ -403,6 +403,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ 		/* Domain boot HART */
+ 		dhart = dom->boot_hartid;
  
- 			/* Sanitize discovered domain */
++		/* Ignore of boot HART is off limits */
++		if (SBI_HARTMASK_MAX_BITS <= dhart)
++			continue;
++
+ 		/* Ignore if boot HART not possible for this domain */
+ 		if (!sbi_hartmask_test_hart(dhart, dom->possible_harts))
+ 			continue;
 -- 
 2.25.1
 
