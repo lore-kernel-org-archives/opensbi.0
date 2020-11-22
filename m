@@ -1,579 +1,186 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 21 Nov 2020 15:17:55 +0530
-Subject: [PATCH 10/11] lib: utils: Add helper routines to populate domains
- from FDT
-In-Reply-To: <20201121094756.4154728-1-anup.patel@wdc.com>
-References: <20201121094756.4154728-1-anup.patel@wdc.com>
-Message-ID: <20201121094756.4154728-11-anup.patel@wdc.com>
+Date: Sun, 22 Nov 2020 12:02:34 +0530
+Subject: [PATCH] firmware: fw_base: Optimize trap handler for RV32 systems
+Message-ID: <20201122063234.4192311-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add various helper routines to populate domains, iterate domains,
-iterate domain memregions, and parse HART to domain assignment from
-the FDT.
+On RV32 systems, we have two CSRs for M-mode status (MSTATUS and
+MSTATUSH) when H-extension is implemented. This means we have to
+save/restore MSTATUSH for RV32 systems only when H-extension is
+implemented. The current _trap_handler() has extra instructions
+(roughly 10) to conditional save/restore of MSTATUSH CSR.
 
-These helper routines can be used by platform support code and FDT
-fixup code.
+These extra instructions in RV32 _trap_handler() can be avoided
+if we create separate low-level trap handler for RV32 systems
+having H-extension. This patch optimizes low-level trap handler
+for RV32 systems accordingly.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi_utils/fdt/fdt_domain.h |  80 ++++++
- lib/utils/fdt/fdt_domain.c         | 444 +++++++++++++++++++++++++++++
- lib/utils/fdt/objects.mk           |   1 +
- 3 files changed, 525 insertions(+)
- create mode 100644 include/sbi_utils/fdt/fdt_domain.h
- create mode 100644 lib/utils/fdt/fdt_domain.c
+ firmware/fw_base.S | 87 ++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 68 insertions(+), 19 deletions(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_domain.h b/include/sbi_utils/fdt/fdt_domain.h
-new file mode 100644
-index 0000000..2c874e5
---- /dev/null
-+++ b/include/sbi_utils/fdt/fdt_domain.h
-@@ -0,0 +1,80 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * fdt_domain.c - Flat Device Tree Domain helper routines
-+ *
-+ * Copyright (c) 2020 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#ifndef __FDT_DOMAIN_H__
-+#define __FDT_DOMAIN_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+struct sbi_domain;
-+
-+/**
-+ * Iterate over each domains in device tree
-+ *
-+ * @param fdt device tree blob
-+ * @param opaque private pointer for each iteration
-+ * @param fn callback function for each iteration
-+ */
-+void fdt_iterate_each_domain(void *fdt, void *opaque,
-+			     void (*fn)(void *fdt, int domain_offset,
-+					void *opaque));
-+
-+/**
-+ * Iterate over each memregion of a domain in device tree
-+ *
-+ * @param fdt device tree blob
-+ * @param domain_offset domain DT node offset
-+ * @param opaque private pointer for each iteration
-+ * @param fn callback function for each iteration
-+ */
-+void fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
-+				void (*fn)(void *fdt, int domain_offset,
-+					   int region_offset, u32 region_access,
-+					   void *opaque));
-+
-+/**
-+ * Fix up the domain configuration in the device tree
-+ *
-+ * This routine:
-+ * 1. Disables MMIO devices not accessible to the coldboot HART domain
-+ * 2. Removes "opensbi-domain" DT property from CPU DT nodes
-+ * 3. Removes domain configuration DT node under /chosen DT node
-+ *
-+ * It is recommended that platform support call this function in
-+ * their final_init() platform operation.
-+ *
-+ * @param fdt device tree blob
-+ */
-+void fdt_domain_fixup(void *fdt);
-+
-+/**
-+ * Get domain instance for given HART
-+ *
-+ * Note: Domains should to be populated before using this function.
-+ *
-+ * @param hartid the HART for which domain instance is needed
-+ *
-+ * @return pointer to domain instance on success and NULL on failure
-+ */
-+struct sbi_domain *fdt_domain_get(u32 hartid);
-+
-+/**
-+ * Populate domains from device tree
-+ *
-+ * It is recommended that platform support call this function in
-+ * their domains_init() platform operation.
-+ *
-+ * @param fdt device tree blob
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int fdt_domains_populate(void *fdt);
-+
-+#endif /* __FDT_DOMAIN_H__ */
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-new file mode 100644
-index 0000000..3027b39
---- /dev/null
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -0,0 +1,444 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * fdt_domain.c - Flat Device Tree Domain helper routines
-+ *
-+ * Copyright (c) 2020 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hartmask.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi_utils/fdt/fdt_domain.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+void fdt_iterate_each_domain(void *fdt, void *opaque,
-+			     void (*fn)(void *fdt, int domain_offset,
-+					void *opaque))
-+{
-+	int doffset, poffset;
-+
-+	if (!fdt || !fn)
-+		return;
-+
-+	poffset = fdt_path_offset(fdt, "/chosen");
-+	if (poffset < 0)
-+		return;
-+	poffset = fdt_node_offset_by_compatible(fdt, poffset,
-+						"opensbi,domain,config");
-+	if (poffset < 0)
-+		return;
-+
-+	fdt_for_each_subnode(doffset, fdt, poffset) {
-+		if (fdt_node_check_compatible(fdt, doffset,
-+					      "opensbi,domain,instance"))
-+			continue;
-+
-+		fn(fdt, doffset, opaque);
-+	}
-+}
-+
-+void fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
-+				void (*fn)(void *fdt, int domain_offset,
-+					   int region_offset, u32 region_access,
-+					   void *opaque))
-+{
-+	u32 i, rcount;
-+	int len, region_offset;
-+	const u32 *regions;
-+
-+	if (!fdt || (domain_offset < 0) || !fn)
-+		return;
-+
-+	if (fdt_node_check_compatible(fdt, domain_offset,
-+				      "opensbi,domain,instance"))
-+		return;
-+
-+	regions = fdt_getprop(fdt, domain_offset, "regions", &len);
-+	if (!regions)
-+		return;
-+
-+	rcount = (u32)len / (sizeof(u32) * 2);
-+	for (i = 0; i < rcount; i++) {
-+		region_offset = fdt_node_offset_by_phandle(fdt,
-+						fdt32_to_cpu(regions[2 * i]));
-+		if (region_offset < 0)
-+			continue;
-+
-+		if (fdt_node_check_compatible(fdt, region_offset,
-+					      "opensbi,domain,memregion"))
-+			continue;
-+
-+		fn(fdt, domain_offset, region_offset,
-+		   fdt32_to_cpu(regions[(2 * i) + 1]), opaque);
-+	}
-+}
-+
-+struct __fixup_find_domain_offset_info {
-+	const char *name;
-+	int *doffset;
-+};
-+
-+static void __fixup_find_domain_offset(void *fdt, int doff, void *p)
-+{
-+	struct __fixup_find_domain_offset_info *fdo = p;
-+
-+	if (sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
-+		return;
-+
-+	*fdo->doffset = doff;
-+}
-+
-+#define DISABLE_DEVICES_MASK	(SBI_DOMAIN_MEMREGION_READABLE | \
-+				 SBI_DOMAIN_MEMREGION_WRITEABLE | \
-+				 SBI_DOMAIN_MEMREGION_EXECUTABLE)
-+
-+static void __fixup_count_disable_devices(void *fdt, int doff, int roff,
-+					  u32 perm, void *p)
-+{
-+	int len;
-+	u32 *dcount = p;
-+
-+	if (perm & DISABLE_DEVICES_MASK)
-+		return;
-+
-+	len = 0;
-+	if (fdt_getprop(fdt, roff, "devices", &len))
-+		*dcount += len / sizeof(u32);
-+}
-+
-+static void __fixup_disable_devices(void *fdt, int doff, int roff,
-+				    u32 raccess, void *p)
-+{
-+	int i, len, coff;
-+	const u32 *devices;
-+
-+	if (raccess & DISABLE_DEVICES_MASK)
-+		return;
-+
-+	len = 0;
-+	devices = fdt_getprop(fdt, roff, "devices", &len);
-+	if (!devices)
-+		return;
-+	len = len / sizeof(u32);
-+
-+	for (i = 0; i < len; i++) {
-+		coff = fdt_node_offset_by_phandle(fdt,
-+					fdt32_to_cpu(devices[i]));
-+		if (coff < 0)
-+			continue;
-+
-+		fdt_setprop_string(fdt, coff, "status", "disabled");
-+	}
-+}
-+
-+void fdt_domain_fixup(void *fdt)
-+{
-+	u32 i, dcount;
-+	int err, poffset, doffset;
-+	struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	struct __fixup_find_domain_offset_info fdo;
-+
-+	/* Remove the domain assignment DT property from CPU DT nodes */
-+	poffset = fdt_path_offset(fdt, "/cpus");
-+	if (poffset < 0)
-+		return;
-+	fdt_for_each_subnode(doffset, fdt, poffset) {
-+		err = fdt_parse_hart_id(fdt, doffset, &i);
-+		if (err)
-+			continue;
-+
-+		fdt_nop_property(fdt, doffset, "opensbi-domain");
-+	}
-+
-+	/* Skip device disable for root domain */
-+	if (!dom->index)
-+		goto skip_device_disable;
-+
-+	/* Find current domain DT node */
-+	doffset = -1;
-+	fdo.name = dom->name;
-+	fdo.doffset = &doffset;
-+	fdt_iterate_each_domain(fdt, &fdo, __fixup_find_domain_offset);
-+	if (doffset < 0)
-+		goto skip_device_disable;
-+
-+	/* Count current domain device DT nodes to be disabled */
-+	dcount = 0;
-+	fdt_iterate_each_memregion(fdt, doffset, &dcount,
-+				   __fixup_count_disable_devices);
-+	if (!dcount)
-+		goto skip_device_disable;
-+
-+	/* Expand FDT based on device DT nodes to be disabled */
-+	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + dcount * 32);
-+	if (err < 0)
-+		return;
-+
-+	/* Again find current domain DT node */
-+	doffset = -1;
-+	fdo.name = dom->name;
-+	fdo.doffset = &doffset;
-+	fdt_iterate_each_domain(fdt, &fdo, __fixup_find_domain_offset);
-+	if (doffset < 0)
-+		goto skip_device_disable;
-+
-+	/* Disable device DT nodes for current domain */
-+	fdt_iterate_each_memregion(fdt, doffset, NULL,
-+				   __fixup_disable_devices);
-+skip_device_disable:
-+
-+	/* Remove the OpenSBI domain config DT node */
-+	poffset = fdt_path_offset(fdt, "/chosen");
-+	if (poffset < 0)
-+		return;
-+	poffset = fdt_node_offset_by_compatible(fdt, poffset,
-+						"opensbi,domain,config");
-+	if (poffset < 0)
-+		return;
-+	fdt_nop_node(fdt, poffset);
-+}
-+
-+static struct sbi_domain *fdt_hartid_to_domain[SBI_HARTMASK_MAX_BITS];
-+
-+#define FDT_DOMAIN_MAX_COUNT		8
-+#define FDT_DOMAIN_REGION_MAX_COUNT	16
-+
-+static u32 fdt_domains_count;
-+static struct sbi_domain fdt_domains[FDT_DOMAIN_MAX_COUNT];
-+static struct sbi_hartmask fdt_masks[FDT_DOMAIN_MAX_COUNT];
-+static struct sbi_domain_memregion
-+	fdt_regions[FDT_DOMAIN_MAX_COUNT][FDT_DOMAIN_REGION_MAX_COUNT + 2];
-+
-+struct sbi_domain *fdt_domain_get(u32 hartid)
-+{
-+	if (SBI_HARTMASK_MAX_BITS <= hartid)
-+		return NULL;
-+	return fdt_hartid_to_domain[hartid];
-+}
-+
-+static void __fdt_region(void *fdt, int domain_offset,
-+			 int region_offset, u32 region_access,
-+			 void *opaque)
-+{
-+	int len;
-+	u32 val32;
-+	u64 val64;
-+	const u32 *val;
-+	u32 *region_count = opaque;
-+	struct sbi_domain_memregion *region;
-+
-+	/* Find next region of the domain */
-+	if (FDT_DOMAIN_REGION_MAX_COUNT <= *region_count)
-+		return;
-+	region = &fdt_regions[fdt_domains_count][*region_count];
-+
-+	/* Read "base" DT property */
-+	val = fdt_getprop(fdt, region_offset, "base", &len);
-+	if (!val && len >= 8)
-+		return;
-+	val64 = fdt32_to_cpu(val[0]);
-+	val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
-+	region->base = val64;
-+
-+	/* Read "order" DT property */
-+	val = fdt_getprop(fdt, region_offset, "order", &len);
-+	if (!val && len >= 4)
-+		return;
-+	val32 = fdt32_to_cpu(*val);
-+	if (val32 < 3 || __riscv_xlen < val32)
-+		return;
-+	region->order = val32;
-+
-+	/* Read "mmio" DT property */
-+	region->flags = region_access & SBI_DOMAIN_MEMREGION_ACCESS_MASK;
-+	if (fdt_get_property(fdt, region_offset, "mmio", NULL))
-+		region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
-+
-+	(*region_count)++;
-+}
-+
-+static void __fdt_domain(void *fdt, int domain_offset, void *opaque)
-+{
-+	u32 val32;
-+	u64 val64;
-+	const u32 *val;
-+	struct sbi_domain *dom;
-+	struct sbi_hartmask *mask;
-+	int i, err, len, cpu_offset;
-+	int *cold_domain_offset = opaque;
-+	struct sbi_domain_memregion *regions;
-+
-+	/* Sanity check on maximum domains we can handle */
-+	if (FDT_DOMAIN_MAX_COUNT <= fdt_domains_count)
-+		return;
-+	dom = &fdt_domains[fdt_domains_count];
-+	mask = &fdt_masks[fdt_domains_count];
-+	regions = &fdt_regions[fdt_domains_count][0];
-+
-+	/* Read DT node name */
-+	sbi_strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
-+		    sizeof(dom->name));
-+	dom->name[sizeof(dom->name) - 1] = '\0';
-+
-+	/* Setup possible HARTs mask */
-+	SBI_HARTMASK_INIT(mask);
-+	dom->possible_harts = mask;
-+	val = fdt_getprop(fdt, domain_offset, "possible-harts", &len);
-+	len = len / sizeof(u32);
-+	if (val && len) {
-+		for (i = 0; i < len; i++) {
-+			cpu_offset = fdt_node_offset_by_phandle(fdt,
-+							fdt32_to_cpu(val[i]));
-+			if (cpu_offset < 0)
-+				continue;
-+
-+			err = fdt_parse_hart_id(fdt, cpu_offset, &val32);
-+			if (err)
-+				continue;
-+
-+			sbi_hartmask_set_hart(val32, mask);
-+		}
-+	}
-+
-+	/* Setup memregions from DT */
-+	val32 = 0;
-+	sbi_memset(regions, 0,
-+		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT + 2));
-+	dom->regions = regions;
-+	fdt_iterate_each_memregion(fdt, domain_offset, &val32, __fdt_region);
-+	sbi_domain_memregion_initfw(&regions[val32]);
-+
-+	/* Read "boot-hartid" DT property */
-+	val32 = -1U;
-+	val = fdt_getprop(fdt, domain_offset, "boot-hart", &len);
-+	if (val && len >= 4) {
-+		cpu_offset = fdt_node_offset_by_phandle(fdt,
-+							 fdt32_to_cpu(*val));
-+		if (cpu_offset >= 0)
-+			fdt_parse_hart_id(fdt, cpu_offset, &val32);
-+	} else {
-+		if (domain_offset == *cold_domain_offset)
-+			val32 = current_hartid();
-+	}
-+	dom->boot_hartid = val32;
-+
-+	/* Read "next-arg1" DT property */
-+	val64 = 0;
-+	val = fdt_getprop(fdt, domain_offset, "next-arg1", &len);
-+	if (val && len >= 8) {
-+		val64 = fdt32_to_cpu(val[0]);
-+		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
-+	} else {
-+		if (domain_offset == *cold_domain_offset)
-+			val64 = sbi_scratch_thishart_ptr()->next_arg1;
-+	}
-+	dom->next_arg1 = val64;
-+
-+	/* Read "next-addr" DT property */
-+	val64 = 0;
-+	val = fdt_getprop(fdt, domain_offset, "next-addr", &len);
-+	if (val && len >= 8) {
-+		val64 = fdt32_to_cpu(val[0]);
-+		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
-+	} else {
-+		if (domain_offset == *cold_domain_offset)
-+			val64 = sbi_scratch_thishart_ptr()->next_addr;
-+	}
-+	dom->next_addr = val64;
-+
-+	/* Read "next-mode" DT property */
-+	val32 = 0x1;
-+	val = fdt_getprop(fdt, domain_offset, "next-mode", &len);
-+	if (val && len >= 4) {
-+		val32 = fdt32_to_cpu(val[0]);
-+		if (val32 != 0x0 && val32 != 0x1)
-+			val32 = 0x1;
-+	} else {
-+		if (domain_offset == *cold_domain_offset)
-+			val32 = sbi_scratch_thishart_ptr()->next_mode;
-+	}
-+	dom->next_mode = val32;
-+
-+	/* Read "system-reset-allowed" DT property */
-+	if (fdt_get_property(fdt, domain_offset,
-+			     "system-reset-allowed", NULL))
-+		dom->system_reset_allowed = TRUE;
-+	else
-+		dom->system_reset_allowed = FALSE;
-+
-+	/* Increment domains count */
-+	fdt_domains_count++;
-+}
-+
-+int fdt_domains_populate(void *fdt)
-+{
-+	const u32 *val;
-+	int cold_domain_offset;
-+	u32 i, hartid, cold_hartid;
-+	int err, len, cpus_offset, cpu_offset, domain_offset;
-+
-+	/* Sanity checks */
-+	if (!fdt)
-+		return SBI_EINVAL;
-+
-+	/* Find /cpus DT node */
-+	cpus_offset = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_offset < 0)
-+		return cpus_offset;
-+
-+	/* Find coldboot HART domain DT node offset */
-+	cold_domain_offset = -1;
-+	cold_hartid = current_hartid();
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+		if (err)
-+			continue;
-+
-+		if (hartid != cold_hartid)
-+			continue;
-+
-+		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
-+		if (val && len >= 4)
-+			cold_domain_offset = fdt_node_offset_by_phandle(fdt,
-+							   fdt32_to_cpu(*val));
-+
-+		break;
-+	}
-+
-+	/* Iterate over each domain in FDT and populate details */
-+	fdt_iterate_each_domain(fdt, &cold_domain_offset, __fdt_domain);
-+
-+	/* HART to domain assignment based on CPU DT nodes*/
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+		if (err)
-+			continue;
-+
-+		if (SBI_HARTMASK_MAX_BITS <= hartid)
-+			continue;
-+
-+		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
-+		if (!val || len < 4)
-+			continue;
-+
-+		domain_offset = fdt_node_offset_by_phandle(fdt,
-+							   fdt32_to_cpu(*val));
-+		if (domain_offset < 0)
-+			continue;
-+
-+		for (i = 0; i < fdt_domains_count; i++) {
-+			if (!sbi_strcmp(fdt_domains[i].name,
-+				fdt_get_name(fdt, domain_offset, NULL))) {
-+				fdt_hartid_to_domain[hartid] = &fdt_domains[i];
-+				break;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-diff --git a/lib/utils/fdt/objects.mk b/lib/utils/fdt/objects.mk
-index b860a83..d9f1eae 100644
---- a/lib/utils/fdt/objects.mk
-+++ b/lib/utils/fdt/objects.mk
-@@ -4,5 +4,6 @@
- # Copyright (C) 2020 Bin Meng <bmeng.cn@gmail.com>
- #
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 1d9b375..fb504e8 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -413,6 +413,14 @@ _start_warm:
  
-+libsbiutils-objs-y += fdt/fdt_domain.o
- libsbiutils-objs-y += fdt/fdt_helper.o
- libsbiutils-objs-y += fdt/fdt_fixup.o
+ 	/* Setup trap handler */
+ 	la	a4, _trap_handler
++#if __riscv_xlen == 32
++	csrr	a5, CSR_MISA
++	srli	a5, a5, ('H' - 'A')
++	andi	a5, a5, 0x1
++	beq	a5, zero, _skip_trap_handler_rv32_hyp
++	la	a4, _trap_handler_rv32_hyp
++_skip_trap_handler_rv32_hyp:
++#endif
+ 	csrw	CSR_MTVEC, a4
+ 
+ 	/* Initialize SBI runtime */
+@@ -476,10 +484,7 @@ fw_platform_init:
+ 	add	a0, a1, zero
+ 	ret
+ 
+-	.section .entry, "ax", %progbits
+-	.align 3
+-	.globl _trap_handler
+-_trap_handler:
++.macro	TRAP_SAVE_AND_SETUP_SP_T0
+ 	/* Swap TP and MSCRATCH */
+ 	csrrw	tp, CSR_MSCRATCH, tp
+ 
+@@ -519,23 +524,23 @@ _trap_handler:
+ 
+ 	/* Swap TP and MSCRATCH */
+ 	csrrw	tp, CSR_MSCRATCH, tp
++.endm
+ 
++.macro	TRAP_SAVE_MEPC_MSTATUS have_mstatush
+ 	/* Save MEPC and MSTATUS CSRs */
+ 	csrr	t0, CSR_MEPC
+ 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
+ 	csrr	t0, CSR_MSTATUS
+ 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
+-	REG_S	zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+-#if __riscv_xlen == 32
+-	csrr	t0, CSR_MISA
+-	srli	t0, t0, ('H' - 'A')
+-	andi	t0, t0, 0x1
+-	beq	t0, zero, _skip_mstatush_save
++	.if \have_mstatush
+ 	csrr	t0, CSR_MSTATUSH
+ 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+-_skip_mstatush_save:
+-#endif
++	.else
++	REG_S	zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
++	.endif
++.endm
+ 
++.macro	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+ 	/* Save all general regisers except SP and T0 */
+ 	REG_S	zero, SBI_TRAP_REGS_OFFSET(zero)(sp)
+ 	REG_S	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
+@@ -567,11 +572,15 @@ _skip_mstatush_save:
+ 	REG_S	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
+ 	REG_S	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
+ 	REG_S	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
++.endm
+ 
++.macro	TRAP_CALL_C_ROUTINE
+ 	/* Call C routine */
+ 	add	a0, sp, zero
+ 	call	sbi_trap_handler
++.endm
+ 
++.macro	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
+ 	/* Restore all general regisers except SP and T0 */
+ 	REG_L	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
+ 	REG_L	gp, SBI_TRAP_REGS_OFFSET(gp)(sp)
+@@ -602,30 +611,70 @@ _skip_mstatush_save:
+ 	REG_L	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
+ 	REG_L	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
+ 	REG_L	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
++.endm
+ 
++.macro	TRAP_RESTORE_MEPC_MSTATUS have_mstatush
+ 	/* Restore MEPC and MSTATUS CSRs */
+ 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
+ 	csrw	CSR_MEPC, t0
+ 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
+ 	csrw	CSR_MSTATUS, t0
+-#if __riscv_xlen == 32
+-	csrr	t0, CSR_MISA
+-	srli	t0, t0, ('H' - 'A')
+-	andi	t0, t0, 0x1
+-	beq	t0, zero, _skip_mstatush_restore
++	.if \have_mstatush
+ 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+ 	csrw	CSR_MSTATUSH, t0
+-_skip_mstatush_restore:
+-#endif
++	.endif
++.endm
+ 
++.macro TRAP_RESTORE_SP_T0
+ 	/* Restore T0 */
+ 	REG_L	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
+ 
+ 	/* Restore SP */
+ 	REG_L	sp, SBI_TRAP_REGS_OFFSET(sp)(sp)
++.endm
++
++	.section .entry, "ax", %progbits
++	.align 3
++	.globl _trap_handler
++_trap_handler:
++	TRAP_SAVE_AND_SETUP_SP_T0
++
++	TRAP_SAVE_MEPC_MSTATUS 0
++
++	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
++
++	TRAP_CALL_C_ROUTINE
++
++	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
++
++	TRAP_RESTORE_MEPC_MSTATUS 0
++
++	TRAP_RESTORE_SP_T0
+ 
+ 	mret
+ 
++#if __riscv_xlen == 32
++	.section .entry, "ax", %progbits
++	.align 3
++	.globl _trap_handler_rv32_hyp
++_trap_handler_rv32_hyp:
++	TRAP_SAVE_AND_SETUP_SP_T0
++
++	TRAP_SAVE_MEPC_MSTATUS 1
++
++	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
++
++	TRAP_CALL_C_ROUTINE
++
++	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
++
++	TRAP_RESTORE_MEPC_MSTATUS 1
++
++	TRAP_RESTORE_SP_T0
++
++	mret
++#endif
++
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+ 	.globl _reset_regs
 -- 
 2.25.1
 
