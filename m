@@ -1,186 +1,53 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sun, 22 Nov 2020 12:02:34 +0530
-Subject: [PATCH] firmware: fw_base: Optimize trap handler for RV32 systems
-Message-ID: <20201122063234.4192311-1-anup.patel@wdc.com>
+Date: Wed, 25 Nov 2020 10:46:43 +0530
+Subject: [PATCH v3 1/5] include: sbi: Add SBI SRST extension related defines
+In-Reply-To: <20201125051647.295472-1-anup.patel@wdc.com>
+References: <20201125051647.295472-1-anup.patel@wdc.com>
+Message-ID: <20201125051647.295472-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On RV32 systems, we have two CSRs for M-mode status (MSTATUS and
-MSTATUSH) when H-extension is implemented. This means we have to
-save/restore MSTATUSH for RV32 systems only when H-extension is
-implemented. The current _trap_handler() has extra instructions
-(roughly 10) to conditional save/restore of MSTATUSH CSR.
-
-These extra instructions in RV32 _trap_handler() can be avoided
-if we create separate low-level trap handler for RV32 systems
-having H-extension. This patch optimizes low-level trap handler
-for RV32 systems accordingly.
+We extend the SBI ecall interface header for the SBI SRST extension
+recently accepted in SBI specification v0.3-draft.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- firmware/fw_base.S | 87 ++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 68 insertions(+), 19 deletions(-)
+ include/sbi/sbi_ecall_interface.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 1d9b375..fb504e8 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -413,6 +413,14 @@ _start_warm:
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index af30500..002c6f9 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -27,6 +27,7 @@
+ #define SBI_EXT_IPI				0x735049
+ #define SBI_EXT_RFENCE				0x52464E43
+ #define SBI_EXT_HSM				0x48534D
++#define SBI_EXT_SRST				0x53525354
  
- 	/* Setup trap handler */
- 	la	a4, _trap_handler
-+#if __riscv_xlen == 32
-+	csrr	a5, CSR_MISA
-+	srli	a5, a5, ('H' - 'A')
-+	andi	a5, a5, 0x1
-+	beq	a5, zero, _skip_trap_handler_rv32_hyp
-+	la	a4, _trap_handler_rv32_hyp
-+_skip_trap_handler_rv32_hyp:
-+#endif
- 	csrw	CSR_MTVEC, a4
+ /* SBI function IDs for BASE extension*/
+ #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
+@@ -62,6 +63,17 @@
+ #define SBI_HSM_HART_STATUS_START_PENDING	0x2
+ #define SBI_HSM_HART_STATUS_STOP_PENDING	0x3
  
- 	/* Initialize SBI runtime */
-@@ -476,10 +484,7 @@ fw_platform_init:
- 	add	a0, a1, zero
- 	ret
- 
--	.section .entry, "ax", %progbits
--	.align 3
--	.globl _trap_handler
--_trap_handler:
-+.macro	TRAP_SAVE_AND_SETUP_SP_T0
- 	/* Swap TP and MSCRATCH */
- 	csrrw	tp, CSR_MSCRATCH, tp
- 
-@@ -519,23 +524,23 @@ _trap_handler:
- 
- 	/* Swap TP and MSCRATCH */
- 	csrrw	tp, CSR_MSCRATCH, tp
-+.endm
- 
-+.macro	TRAP_SAVE_MEPC_MSTATUS have_mstatush
- 	/* Save MEPC and MSTATUS CSRs */
- 	csrr	t0, CSR_MEPC
- 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
- 	csrr	t0, CSR_MSTATUS
- 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
--	REG_S	zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
--#if __riscv_xlen == 32
--	csrr	t0, CSR_MISA
--	srli	t0, t0, ('H' - 'A')
--	andi	t0, t0, 0x1
--	beq	t0, zero, _skip_mstatush_save
-+	.if \have_mstatush
- 	csrr	t0, CSR_MSTATUSH
- 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
--_skip_mstatush_save:
--#endif
-+	.else
-+	REG_S	zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
-+	.endif
-+.endm
- 
-+.macro	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
- 	/* Save all general regisers except SP and T0 */
- 	REG_S	zero, SBI_TRAP_REGS_OFFSET(zero)(sp)
- 	REG_S	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
-@@ -567,11 +572,15 @@ _skip_mstatush_save:
- 	REG_S	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
- 	REG_S	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
- 	REG_S	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
-+.endm
- 
-+.macro	TRAP_CALL_C_ROUTINE
- 	/* Call C routine */
- 	add	a0, sp, zero
- 	call	sbi_trap_handler
-+.endm
- 
-+.macro	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
- 	/* Restore all general regisers except SP and T0 */
- 	REG_L	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
- 	REG_L	gp, SBI_TRAP_REGS_OFFSET(gp)(sp)
-@@ -602,30 +611,70 @@ _skip_mstatush_save:
- 	REG_L	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
- 	REG_L	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
- 	REG_L	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
-+.endm
- 
-+.macro	TRAP_RESTORE_MEPC_MSTATUS have_mstatush
- 	/* Restore MEPC and MSTATUS CSRs */
- 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
- 	csrw	CSR_MEPC, t0
- 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
- 	csrw	CSR_MSTATUS, t0
--#if __riscv_xlen == 32
--	csrr	t0, CSR_MISA
--	srli	t0, t0, ('H' - 'A')
--	andi	t0, t0, 0x1
--	beq	t0, zero, _skip_mstatush_restore
-+	.if \have_mstatush
- 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
- 	csrw	CSR_MSTATUSH, t0
--_skip_mstatush_restore:
--#endif
-+	.endif
-+.endm
- 
-+.macro TRAP_RESTORE_SP_T0
- 	/* Restore T0 */
- 	REG_L	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
- 
- 	/* Restore SP */
- 	REG_L	sp, SBI_TRAP_REGS_OFFSET(sp)(sp)
-+.endm
++/* SBI function IDs for SRST extension */
++#define SBI_EXT_SRST_RESET			0x0
 +
-+	.section .entry, "ax", %progbits
-+	.align 3
-+	.globl _trap_handler
-+_trap_handler:
-+	TRAP_SAVE_AND_SETUP_SP_T0
++#define SBI_SRST_RESET_TYPE_SHUTDOWN		0x0
++#define SBI_SRST_RESET_TYPE_COLD_REBOOT	0x1
++#define SBI_SRST_RESET_TYPE_WARM_REBOOT	0x2
++#define SBI_SRST_RESET_TYPE_LAST	SBI_SRST_RESET_TYPE_WARM_REBOOT
 +
-+	TRAP_SAVE_MEPC_MSTATUS 0
++#define SBI_SRST_RESET_REASON_NONE	0x0
++#define SBI_SRST_RESET_REASON_SYSFAIL	0x1
 +
-+	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
-+
-+	TRAP_CALL_C_ROUTINE
-+
-+	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-+
-+	TRAP_RESTORE_MEPC_MSTATUS 0
-+
-+	TRAP_RESTORE_SP_T0
- 
- 	mret
- 
-+#if __riscv_xlen == 32
-+	.section .entry, "ax", %progbits
-+	.align 3
-+	.globl _trap_handler_rv32_hyp
-+_trap_handler_rv32_hyp:
-+	TRAP_SAVE_AND_SETUP_SP_T0
-+
-+	TRAP_SAVE_MEPC_MSTATUS 1
-+
-+	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
-+
-+	TRAP_CALL_C_ROUTINE
-+
-+	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-+
-+	TRAP_RESTORE_MEPC_MSTATUS 1
-+
-+	TRAP_RESTORE_SP_T0
-+
-+	mret
-+#endif
-+
- 	.section .entry, "ax", %progbits
- 	.align 3
- 	.globl _reset_regs
+ #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
+ #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
+ #define SBI_SPEC_VERSION_MINOR_MASK		0xffffff
 -- 
 2.25.1
 
