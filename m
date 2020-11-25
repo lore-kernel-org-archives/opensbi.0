@@ -1,119 +1,167 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 25 Nov 2020 10:46:44 +0530
-Subject: [PATCH v3 2/5] include: sbi: Remove opensbi specific reset type
- defines
+Date: Wed, 25 Nov 2020 10:46:45 +0530
+Subject: [PATCH v3 3/5] platform: Remove dummy system reset functions
 In-Reply-To: <20201125051647.295472-1-anup.patel@wdc.com>
 References: <20201125051647.295472-1-anup.patel@wdc.com>
-Message-ID: <20201125051647.295472-3-anup.patel@wdc.com>
+Message-ID: <20201125051647.295472-4-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We can now use the standard SBI SRST extension reset types instead
-of the opensbi specific (SBI_PLATFORM_RESET_xyz) reset types hence
-remove related opensbi specific defines. The "platform_" prefix of
-the reset type parameter of sbi_system_reset() function should also
-be removed.
+Few platforms have dummy system reset functions so let's remove
+these dummy system reset functions to allow generic code deal
+with it in the right way.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_platform.h  | 4 +---
- include/sbi/sbi_system.h    | 2 +-
- lib/sbi/sbi_ecall_legacy.c  | 2 +-
- lib/sbi/sbi_system.c        | 4 ++--
- lib/utils/sys/sifive_test.c | 6 +++---
- 5 files changed, 8 insertions(+), 10 deletions(-)
+ platform/andes/ae350/platform.c    | 10 ----------
+ platform/fpga/ariane/platform.c    | 11 -----------
+ platform/fpga/openpiton/platform.c | 11 -----------
+ platform/kendryte/k210/platform.c  | 10 ----------
+ platform/sifive/fu540/platform.c   |  7 -------
+ 5 files changed, 49 deletions(-)
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 7a8c113..3f4a733 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -40,6 +40,7 @@
+diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
+index 954942c..6d6ce4e 100644
+--- a/platform/andes/ae350/platform.c
++++ b/platform/andes/ae350/platform.c
+@@ -114,14 +114,6 @@ static int ae350_timer_init(bool cold_boot)
+ 	return plmt_warm_timer_init();
+ }
  
- #ifndef __ASSEMBLY__
+-/* Reset the platform. */
+-static int ae350_system_reset(u32 type)
+-{
+-	/* For now nothing to do. */
+-	sbi_printf("System reset\n");
+-	return 0;
+-}
+-
+ /* Vendor-Specific SBI handler */
+ static int ae350_vendor_ext_provider(long extid, long funcid,
+ 	unsigned long *args, unsigned long *out_value,
+@@ -185,8 +177,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.timer_event_start = plmt_timer_event_start,
+ 	.timer_event_stop  = plmt_timer_event_stop,
  
-+#include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_version.h>
-@@ -139,9 +140,6 @@ struct sbi_platform_operations {
- 	int (*hart_stop)(void);
+-	.system_reset	 = ae350_system_reset,
+-
+ 	.vendor_ext_provider = ae350_vendor_ext_provider
+ };
  
- 	/** Reset the platform */
--#define SBI_PLATFORM_RESET_SHUTDOWN	0
--#define SBI_PLATFORM_RESET_COLD		1
--#define SBI_PLATFORM_RESET_WARM		2
- 	int (*system_reset)(u32 reset_type);
+diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
+index a4d437e..ea179e5 100644
+--- a/platform/fpga/ariane/platform.c
++++ b/platform/fpga/ariane/platform.c
+@@ -147,16 +147,6 @@ static int ariane_timer_init(bool cold_boot)
+ 	return clint_warm_timer_init();
+ }
  
- 	/** platform specific SBI extension implementation probe function */
-diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
-index d44ef12..309e263 100644
---- a/include/sbi/sbi_system.h
-+++ b/include/sbi/sbi_system.h
-@@ -12,6 +12,6 @@
+-/*
+- * Reset the ariane.
+- */
+-static int ariane_system_reset(u32 type)
+-{
+-	/* For now nothing to do. */
+-	sbi_printf("System reset\n");
+-	return 0;
+-}
+-
+ /*
+  * Platform descriptor.
+  */
+@@ -174,7 +164,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.timer_value = clint_timer_value,
+ 	.timer_event_start = clint_timer_event_start,
+ 	.timer_event_stop = clint_timer_event_stop,
+-	.system_reset = ariane_system_reset
+ };
  
- #include <sbi/sbi_types.h>
+ const struct sbi_platform platform = {
+diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+index 095004d..5eae477 100644
+--- a/platform/fpga/openpiton/platform.c
++++ b/platform/fpga/openpiton/platform.c
+@@ -173,16 +173,6 @@ static int openpiton_timer_init(bool cold_boot)
+ 	return clint_warm_timer_init();
+ }
  
--void __noreturn sbi_system_reset(u32 platform_reset_type);
-+void __noreturn sbi_system_reset(u32 reset_type);
+-/*
+- * Reset the openpiton.
+- */
+-static int openpiton_system_reset(u32 type)
+-{
+-	/* For now nothing to do. */
+-	sbi_printf("System reset\n");
+-	return 0;
+-}
+-
+ /*
+  * Platform descriptor.
+  */
+@@ -200,7 +190,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.timer_value = clint_timer_value,
+ 	.timer_event_start = clint_timer_event_start,
+ 	.timer_event_stop = clint_timer_event_stop,
+-	.system_reset = openpiton_system_reset
+ };
  
- #endif
-diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-index 909cbe3..683b8dc 100644
---- a/lib/sbi/sbi_ecall_legacy.c
-+++ b/lib/sbi/sbi_ecall_legacy.c
-@@ -103,7 +103,7 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 		}
- 		break;
- 	case SBI_EXT_0_1_SHUTDOWN:
--		sbi_system_reset(SBI_PLATFORM_RESET_SHUTDOWN);
-+		sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN);
- 		break;
- 	default:
- 		ret = SBI_ENOTSUPP;
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index 96290b3..2f1b7fb 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -18,7 +18,7 @@
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_init.h>
+ const struct sbi_platform platform = {
+diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
+index 75883ed..944b388 100644
+--- a/platform/kendryte/k210/platform.c
++++ b/platform/kendryte/k210/platform.c
+@@ -129,14 +129,6 @@ static int k210_timer_init(bool cold_boot)
+ 	return clint_warm_timer_init();
+ }
  
--void __noreturn sbi_system_reset(u32 platform_reset_type)
-+void __noreturn sbi_system_reset(u32 reset_type)
- {
- 	ulong hbase = 0, hmask;
- 	u32 cur_hartid = current_hartid();
-@@ -40,7 +40,7 @@ void __noreturn sbi_system_reset(u32 platform_reset_type)
- 	/* Platform specific reset if domain allowed system reset */
- 	if (dom->system_reset_allowed)
- 		sbi_platform_system_reset(sbi_platform_ptr(scratch),
--					  platform_reset_type);
-+					  reset_type);
+-static int k210_system_reset(u32 type)
+-{
+-	/* For now nothing to do. */
+-	sbi_printf("System reset\n");
+-
+-	return 0;
+-}
+-
+ const struct sbi_platform_operations platform_ops = {
+ 	.final_init	= k210_final_init,
  
- 	/* If platform specific reset did not work then do sbi_exit() */
- 	sbi_exit(scratch);
-diff --git a/lib/utils/sys/sifive_test.c b/lib/utils/sys/sifive_test.c
-index 15369da..06fbfb2 100644
---- a/lib/utils/sys/sifive_test.c
-+++ b/lib/utils/sys/sifive_test.c
-@@ -24,11 +24,11 @@ int sifive_test_system_reset(u32 type)
- 	 * was successful so that QEMU exits
- 	 */
- 	switch (type) {
--	case SBI_PLATFORM_RESET_SHUTDOWN:
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
- 		writew(FINISHER_PASS, sifive_test_base);
- 		break;
--	case SBI_PLATFORM_RESET_COLD:
--	case SBI_PLATFORM_RESET_WARM:
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
- 		writew(FINISHER_RESET, sifive_test_base);
- 		break;
- 	}
+@@ -154,8 +146,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.timer_value	   = clint_timer_value,
+ 	.timer_event_stop  = clint_timer_event_stop,
+ 	.timer_event_start = clint_timer_event_start,
+-
+-	.system_reset	 = k210_system_reset
+ };
+ 
+ const struct sbi_platform platform = {
+diff --git a/platform/sifive/fu540/platform.c b/platform/sifive/fu540/platform.c
+index 755e479..cdd8293 100644
+--- a/platform/sifive/fu540/platform.c
++++ b/platform/sifive/fu540/platform.c
+@@ -154,12 +154,6 @@ static u32 fu540_hart_index2id[FU540_HART_COUNT - 1] = {
+ 	[3] = 4,
+ };
+ 
+-static int fu540_system_reset(u32 type)
+-{
+-	/* For now nothing to do. */
+-	return 0;
+-}
+-
+ const struct sbi_platform_operations platform_ops = {
+ 	.final_init		= fu540_final_init,
+ 	.console_putc		= sifive_uart_putc,
+@@ -174,7 +168,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.timer_event_stop	= clint_timer_event_stop,
+ 	.timer_event_start	= clint_timer_event_start,
+ 	.timer_init		= fu540_timer_init,
+-	.system_reset		= fu540_system_reset
+ };
+ 
+ const struct sbi_platform platform = {
 -- 
 2.25.1
 
