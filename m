@@ -1,149 +1,85 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 30 Nov 2020 23:59:38 -0800
-Subject: [PATCH v3 5/5] lib: sbi: Implement System Reset (SRST) SBI
- extension
-In-Reply-To: <20201125051647.295472-6-anup.patel@wdc.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Tue, 1 Dec 2020 16:27:42 +0000
+Subject: [PATCH v3 1/5] include: sbi: Add SBI SRST extension related
+ defines
+In-Reply-To: <CAOnJCUKVU5cRD1KO3Yhm2x7K+NbDmLG=nDmvgwj57Y1r9ROGJg@mail.gmail.com>
 References: <20201125051647.295472-1-anup.patel@wdc.com>
- <20201125051647.295472-6-anup.patel@wdc.com>
-Message-ID: <CAOnJCU+_TMWZKznkBQbv8n3KYqTR02L5J+nrs8rs9-rcci73GQ@mail.gmail.com>
+ <20201125051647.295472-2-anup.patel@wdc.com>
+ <CAOnJCUKVU5cRD1KO3Yhm2x7K+NbDmLG=nDmvgwj57Y1r9ROGJg@mail.gmail.com>
+Message-ID: <DM6PR04MB62015E2C2419DE5DD7FEC8788DF40@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 24, 2020 at 9:17 PM Anup Patel <anup.patel@wdc.com> wrote:
->
-> The SBI SRST extension has been accepted and merged in the latest
-> SBI v0.3-draft specification.
-> (Refer, https://github.com/riscv/riscv-sbi-doc)
->
-> It allows to S-mode software to request system shutdown, cold reboot,
-> and warm reboot.
->
-> This patch implements SBI SRST extension as a replacement of the
-> legacy sbi_shutdown() call of SBI v0.1 specification.
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  include/sbi/sbi_ecall.h     |  1 +
->  lib/sbi/sbi_ecall.c         |  3 ++
->  lib/sbi/sbi_ecall_replace.c | 60 +++++++++++++++++++++++++++++++++++++
->  3 files changed, 64 insertions(+)
->
-> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> index 3273ba6..1ef86e2 100644
-> --- a/include/sbi/sbi_ecall.h
-> +++ b/include/sbi/sbi_ecall.h
-> @@ -37,6 +37,7 @@ extern struct sbi_ecall_extension ecall_rfence;
->  extern struct sbi_ecall_extension ecall_ipi;
->  extern struct sbi_ecall_extension ecall_vendor;
->  extern struct sbi_ecall_extension ecall_hsm;
-> +extern struct sbi_ecall_extension ecall_srst;
->
->  u16 sbi_ecall_version_major(void);
->
-> diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-> index 64c9933..6d41cff 100644
-> --- a/lib/sbi/sbi_ecall.c
-> +++ b/lib/sbi/sbi_ecall.c
-> @@ -167,6 +167,9 @@ int sbi_ecall_init(void)
->         if (ret)
->                 return ret;
->         ret = sbi_ecall_register_extension(&ecall_hsm);
-> +       if (ret)
-> +               return ret;
-> +       ret = sbi_ecall_register_extension(&ecall_srst);
->         if (ret)
->                 return ret;
->         ret = sbi_ecall_register_extension(&ecall_legacy);
-> diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
-> index e460c30..d06dfa2 100644
-> --- a/lib/sbi/sbi_ecall_replace.c
-> +++ b/lib/sbi/sbi_ecall_replace.c
-> @@ -14,6 +14,7 @@
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_ipi.h>
-> +#include <sbi/sbi_system.h>
->  #include <sbi/sbi_timer.h>
->  #include <sbi/sbi_tlb.h>
->
-> @@ -127,3 +128,62 @@ struct sbi_ecall_extension ecall_ipi = {
->         .extid_end = SBI_EXT_IPI,
->         .handle = sbi_ecall_ipi_handler,
->  };
-> +
-> +static int sbi_ecall_srst_handler(unsigned long extid, unsigned long funcid,
-> +                                 unsigned long *args, unsigned long *out_val,
-> +                                 struct sbi_trap_info *out_trap)
-> +{
-> +       if (funcid == SBI_EXT_SRST_RESET) {
-> +               if ((((u32)-1U) <= ((u64)args[0])) ||
-> +                   (((u32)-1U) <= ((u64)args[1])))
-> +                       return SBI_EINVAL;
-> +
-> +               switch (args[0]) {
-> +               case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +               case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +                       break;
-> +               default:
-> +                       return SBI_ENOTSUPP;
-> +               }
-> +
-> +               switch (args[1]) {
-> +               case SBI_SRST_RESET_REASON_NONE:
-> +               case SBI_SRST_RESET_REASON_SYSFAIL:
-> +                       break;
-> +               default:
-> +                       return SBI_ENOTSUPP;
-> +               }
-> +
-> +               if (sbi_system_reset_supported(args[0], args[1]))
-> +                       sbi_system_reset(args[0], args[1]);
-> +       }
-> +
-> +       return SBI_ENOTSUPP;
-> +}
-> +
-> +static int sbi_ecall_srst_probe(unsigned long extid, unsigned long *out_val)
-> +{
-> +       u32 type, count = 0;
-> +
-> +       /*
-> +        * At least one standard reset types should be supported by
-> +        * the platform for SBI SRST extension to be usable.
-> +        */
-> +
-> +       for (type = 0; type <= SBI_SRST_RESET_TYPE_LAST; type++) {
-> +               if (sbi_system_reset_supported(type,
-> +                                       SBI_SRST_RESET_REASON_NONE))
-> +                       count++;
-> +       }
-> +
-> +       *out_val = (count) ? 1 : 0;
-> +       return 0;
-> +}
-> +
-> +struct sbi_ecall_extension ecall_srst = {
-> +       .extid_start = SBI_EXT_SRST,
-> +       .extid_end = SBI_EXT_SRST,
-> +       .handle = sbi_ecall_srst_handler,
-> +       .probe = sbi_ecall_srst_probe,
-> +};
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
--- 
+> -----Original Message-----
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 01 December 2020 13:13
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH v3 1/5] include: sbi: Add SBI SRST extension related
+> defines
+> 
+> On Tue, Nov 24, 2020 at 9:17 PM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > We extend the SBI ecall interface header for the SBI SRST extension
+> > recently accepted in SBI specification v0.3-draft.
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  include/sbi/sbi_ecall_interface.h | 12 ++++++++++++
+> >  1 file changed, 12 insertions(+)
+> >
+> > diff --git a/include/sbi/sbi_ecall_interface.h
+> > b/include/sbi/sbi_ecall_interface.h
+> > index af30500..002c6f9 100644
+> > --- a/include/sbi/sbi_ecall_interface.h
+> > +++ b/include/sbi/sbi_ecall_interface.h
+> > @@ -27,6 +27,7 @@
+> >  #define SBI_EXT_IPI                            0x735049
+> >  #define SBI_EXT_RFENCE                         0x52464E43
+> >  #define SBI_EXT_HSM                            0x48534D
+> > +#define SBI_EXT_SRST                           0x53525354
+> >
+> >  /* SBI function IDs for BASE extension*/
+> >  #define SBI_EXT_BASE_GET_SPEC_VERSION          0x0
+> > @@ -62,6 +63,17 @@
+> >  #define SBI_HSM_HART_STATUS_START_PENDING      0x2
+> >  #define SBI_HSM_HART_STATUS_STOP_PENDING       0x3
+> >
+> > +/* SBI function IDs for SRST extension */
+> > +#define SBI_EXT_SRST_RESET                     0x0
+> > +
+> > +#define SBI_SRST_RESET_TYPE_SHUTDOWN           0x0
+> > +#define SBI_SRST_RESET_TYPE_COLD_REBOOT        0x1
+> > +#define SBI_SRST_RESET_TYPE_WARM_REBOOT        0x2
+> > +#define SBI_SRST_RESET_TYPE_LAST
+> SBI_SRST_RESET_TYPE_WARM_REBOOT
+> > +
+> > +#define SBI_SRST_RESET_REASON_NONE     0x0
+> > +#define SBI_SRST_RESET_REASON_SYSFAIL  0x1
+> > +
+> >  #define SBI_SPEC_VERSION_MAJOR_OFFSET          24
+> >  #define SBI_SPEC_VERSION_MAJOR_MASK            0x7f
+> >  #define SBI_SPEC_VERSION_MINOR_MASK            0xffffff
+> > --
+> > 2.25.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> 
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+
+Applied this patch to the riscv/opensbi repo
+
 Regards,
-Atish
-
+Anup
