@@ -1,12 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 1 Dec 2020 16:27:42 +0000
-Subject: [PATCH v3 1/5] include: sbi: Add SBI SRST extension related
+Date: Tue, 1 Dec 2020 16:28:07 +0000
+Subject: [PATCH v3 2/5] include: sbi: Remove opensbi specific reset type
  defines
-In-Reply-To: <CAOnJCUKVU5cRD1KO3Yhm2x7K+NbDmLG=nDmvgwj57Y1r9ROGJg@mail.gmail.com>
+In-Reply-To: <CAOnJCUKiyWZJqE6PBeq3bQCvBoujZP_b=QMjXrsN=LKggFe1sA@mail.gmail.com>
 References: <20201125051647.295472-1-anup.patel@wdc.com>
- <20201125051647.295472-2-anup.patel@wdc.com>
- <CAOnJCUKVU5cRD1KO3Yhm2x7K+NbDmLG=nDmvgwj57Y1r9ROGJg@mail.gmail.com>
-Message-ID: <DM6PR04MB62015E2C2419DE5DD7FEC8788DF40@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201125051647.295472-3-anup.patel@wdc.com>
+ <CAOnJCUKiyWZJqE6PBeq3bQCvBoujZP_b=QMjXrsN=LKggFe1sA@mail.gmail.com>
+Message-ID: <DM6PR04MB6201727D19079A82887A944D8DF40@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -17,56 +17,120 @@ Content-Transfer-Encoding: 7bit
 
 > -----Original Message-----
 > From: Atish Patra <atishp@atishpatra.org>
-> Sent: 01 December 2020 13:13
+> Sent: 01 December 2020 13:14
 > To: Anup Patel <Anup.Patel@wdc.com>
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
 > <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
 > <opensbi@lists.infradead.org>
-> Subject: Re: [PATCH v3 1/5] include: sbi: Add SBI SRST extension related
+> Subject: Re: [PATCH v3 2/5] include: sbi: Remove opensbi specific reset type
 > defines
 > 
 > On Tue, Nov 24, 2020 at 9:17 PM Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > We extend the SBI ecall interface header for the SBI SRST extension
-> > recently accepted in SBI specification v0.3-draft.
+> > We can now use the standard SBI SRST extension reset types instead of
+> > the opensbi specific (SBI_PLATFORM_RESET_xyz) reset types hence
+> remove
+> > related opensbi specific defines. The "platform_" prefix of the reset
+> > type parameter of sbi_system_reset() function should also be removed.
 > >
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > > ---
-> >  include/sbi/sbi_ecall_interface.h | 12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
+> >  include/sbi/sbi_platform.h  | 4 +---
+> >  include/sbi/sbi_system.h    | 2 +-
+> >  lib/sbi/sbi_ecall_legacy.c  | 2 +-
+> >  lib/sbi/sbi_system.c        | 4 ++--
+> >  lib/utils/sys/sifive_test.c | 6 +++---
+> >  5 files changed, 8 insertions(+), 10 deletions(-)
 > >
-> > diff --git a/include/sbi/sbi_ecall_interface.h
-> > b/include/sbi/sbi_ecall_interface.h
-> > index af30500..002c6f9 100644
-> > --- a/include/sbi/sbi_ecall_interface.h
-> > +++ b/include/sbi/sbi_ecall_interface.h
-> > @@ -27,6 +27,7 @@
-> >  #define SBI_EXT_IPI                            0x735049
-> >  #define SBI_EXT_RFENCE                         0x52464E43
-> >  #define SBI_EXT_HSM                            0x48534D
-> > +#define SBI_EXT_SRST                           0x53525354
+> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> > index 7a8c113..3f4a733 100644
+> > --- a/include/sbi/sbi_platform.h
+> > +++ b/include/sbi/sbi_platform.h
+> > @@ -40,6 +40,7 @@
 > >
-> >  /* SBI function IDs for BASE extension*/
-> >  #define SBI_EXT_BASE_GET_SPEC_VERSION          0x0
-> > @@ -62,6 +63,17 @@
-> >  #define SBI_HSM_HART_STATUS_START_PENDING      0x2
-> >  #define SBI_HSM_HART_STATUS_STOP_PENDING       0x3
+> >  #ifndef __ASSEMBLY__
 > >
-> > +/* SBI function IDs for SRST extension */
-> > +#define SBI_EXT_SRST_RESET                     0x0
-> > +
-> > +#define SBI_SRST_RESET_TYPE_SHUTDOWN           0x0
-> > +#define SBI_SRST_RESET_TYPE_COLD_REBOOT        0x1
-> > +#define SBI_SRST_RESET_TYPE_WARM_REBOOT        0x2
-> > +#define SBI_SRST_RESET_TYPE_LAST
-> SBI_SRST_RESET_TYPE_WARM_REBOOT
-> > +
-> > +#define SBI_SRST_RESET_REASON_NONE     0x0
-> > +#define SBI_SRST_RESET_REASON_SYSFAIL  0x1
-> > +
-> >  #define SBI_SPEC_VERSION_MAJOR_OFFSET          24
-> >  #define SBI_SPEC_VERSION_MAJOR_MASK            0x7f
-> >  #define SBI_SPEC_VERSION_MINOR_MASK            0xffffff
+> > +#include <sbi/sbi_ecall_interface.h>
+> >  #include <sbi/sbi_error.h>
+> >  #include <sbi/sbi_scratch.h>
+> >  #include <sbi/sbi_version.h>
+> > @@ -139,9 +140,6 @@ struct sbi_platform_operations {
+> >         int (*hart_stop)(void);
+> >
+> >         /** Reset the platform */
+> > -#define SBI_PLATFORM_RESET_SHUTDOWN    0
+> > -#define SBI_PLATFORM_RESET_COLD                1
+> > -#define SBI_PLATFORM_RESET_WARM                2
+> >         int (*system_reset)(u32 reset_type);
+> >
+> >         /** platform specific SBI extension implementation probe
+> > function */ diff --git a/include/sbi/sbi_system.h
+> > b/include/sbi/sbi_system.h index d44ef12..309e263 100644
+> > --- a/include/sbi/sbi_system.h
+> > +++ b/include/sbi/sbi_system.h
+> > @@ -12,6 +12,6 @@
+> >
+> >  #include <sbi/sbi_types.h>
+> >
+> > -void __noreturn sbi_system_reset(u32 platform_reset_type);
+> > +void __noreturn sbi_system_reset(u32 reset_type);
+> >
+> >  #endif
+> > diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
+> > index 909cbe3..683b8dc 100644
+> > --- a/lib/sbi/sbi_ecall_legacy.c
+> > +++ b/lib/sbi/sbi_ecall_legacy.c
+> > @@ -103,7 +103,7 @@ static int sbi_ecall_legacy_handler(unsigned long
+> extid, unsigned long funcid,
+> >                 }
+> >                 break;
+> >         case SBI_EXT_0_1_SHUTDOWN:
+> > -               sbi_system_reset(SBI_PLATFORM_RESET_SHUTDOWN);
+> > +               sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN);
+> >                 break;
+> >         default:
+> >                 ret = SBI_ENOTSUPP;
+> > diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c index
+> > 96290b3..2f1b7fb 100644
+> > --- a/lib/sbi/sbi_system.c
+> > +++ b/lib/sbi/sbi_system.c
+> > @@ -18,7 +18,7 @@
+> >  #include <sbi/sbi_ipi.h>
+> >  #include <sbi/sbi_init.h>
+> >
+> > -void __noreturn sbi_system_reset(u32 platform_reset_type)
+> > +void __noreturn sbi_system_reset(u32 reset_type)
+> >  {
+> >         ulong hbase = 0, hmask;
+> >         u32 cur_hartid = current_hartid(); @@ -40,7 +40,7 @@ void
+> > __noreturn sbi_system_reset(u32 platform_reset_type)
+> >         /* Platform specific reset if domain allowed system reset */
+> >         if (dom->system_reset_allowed)
+> >                 sbi_platform_system_reset(sbi_platform_ptr(scratch),
+> > -                                         platform_reset_type);
+> > +                                         reset_type);
+> >
+> >         /* If platform specific reset did not work then do sbi_exit() */
+> >         sbi_exit(scratch);
+> > diff --git a/lib/utils/sys/sifive_test.c b/lib/utils/sys/sifive_test.c
+> > index 15369da..06fbfb2 100644
+> > --- a/lib/utils/sys/sifive_test.c
+> > +++ b/lib/utils/sys/sifive_test.c
+> > @@ -24,11 +24,11 @@ int sifive_test_system_reset(u32 type)
+> >          * was successful so that QEMU exits
+> >          */
+> >         switch (type) {
+> > -       case SBI_PLATFORM_RESET_SHUTDOWN:
+> > +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> >                 writew(FINISHER_PASS, sifive_test_base);
+> >                 break;
+> > -       case SBI_PLATFORM_RESET_COLD:
+> > -       case SBI_PLATFORM_RESET_WARM:
+> > +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> > +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> >                 writew(FINISHER_RESET, sifive_test_base);
+> >                 break;
+> >         }
 > > --
 > > 2.25.1
 > >
