@@ -1,12 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 1 Dec 2020 16:29:02 +0000
-Subject: [PATCH v3 5/5] lib: sbi: Implement System Reset (SRST) SBI
- extension
-In-Reply-To: <CAOnJCU+_TMWZKznkBQbv8n3KYqTR02L5J+nrs8rs9-rcci73GQ@mail.gmail.com>
-References: <20201125051647.295472-1-anup.patel@wdc.com>
- <20201125051647.295472-6-anup.patel@wdc.com>
- <CAOnJCU+_TMWZKznkBQbv8n3KYqTR02L5J+nrs8rs9-rcci73GQ@mail.gmail.com>
-Message-ID: <DM6PR04MB6201367F54B8810FE6E3279D8DF40@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Tue, 1 Dec 2020 16:29:36 +0000
+Subject: [PATCH] firmware: fw_base: Optimize trap handler for RV32 systems
+In-Reply-To: <762f82df459f6c2d90e350650825e817994e600c.camel@wdc.com>
+References: <20201122063234.4192311-1-anup.patel@wdc.com>
+ <762f82df459f6c2d90e350650825e817994e600c.camel@wdc.com>
+Message-ID: <DM6PR04MB62015A0A63BD06C33DE3FB778DF40@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,145 +14,195 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Atish Patra <atishp@atishpatra.org>
-> Sent: 01 December 2020 13:30
-> To: Anup Patel <Anup.Patel@wdc.com>
-> Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
-> <opensbi@lists.infradead.org>
-> Subject: Re: [PATCH v3 5/5] lib: sbi: Implement System Reset (SRST) SBI
-> extension
+> From: Alistair Francis <Alistair.Francis@wdc.com>
+> Sent: 01 December 2020 07:27
+> To: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
+> <Anup.Patel@wdc.com>
+> Cc: anup at brainfault.org; opensbi at lists.infradead.org
+> Subject: Re: [PATCH] firmware: fw_base: Optimize trap handler for RV32
+> systems
 > 
-> On Tue, Nov 24, 2020 at 9:17 PM Anup Patel <anup.patel@wdc.com> wrote:
+> On Sun, 2020-11-22 at 12:02 +0530, Anup Patel wrote:
+> > On RV32 systems, we have two CSRs for M-mode status (MSTATUS and
+> > MSTATUSH) when H-extension is implemented. This means we have to
+> > save/restore MSTATUSH for RV32 systems only when H-extension is
+> > implemented. The current _trap_handler() has extra instructions
+> > (roughly 10) to conditional save/restore of MSTATUSH CSR.
 > >
-> > The SBI SRST extension has been accepted and merged in the latest SBI
-> > v0.3-draft specification.
-> > (Refer, https://github.com/riscv/riscv-sbi-doc)
-> >
-> > It allows to S-mode software to request system shutdown, cold reboot,
-> > and warm reboot.
-> >
-> > This patch implements SBI SRST extension as a replacement of the
-> > legacy sbi_shutdown() call of SBI v0.1 specification.
+> > These extra instructions in RV32 _trap_handler() can be avoided if we
+> > create separate low-level trap handler for RV32 systems having
+> > H-extension. This patch optimizes low-level trap handler for RV32
+> > systems accordingly.
 > >
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> 
+> Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+> 
+> Alistair
+> 
 > > ---
-> >  include/sbi/sbi_ecall.h     |  1 +
-> >  lib/sbi/sbi_ecall.c         |  3 ++
-> >  lib/sbi/sbi_ecall_replace.c | 60
-> > +++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 64 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h index
-> > 3273ba6..1ef86e2 100644
-> > --- a/include/sbi/sbi_ecall.h
-> > +++ b/include/sbi/sbi_ecall.h
-> > @@ -37,6 +37,7 @@ extern struct sbi_ecall_extension ecall_rfence;
-> > extern struct sbi_ecall_extension ecall_ipi;  extern struct
-> > sbi_ecall_extension ecall_vendor;  extern struct sbi_ecall_extension
-> > ecall_hsm;
-> > +extern struct sbi_ecall_extension ecall_srst;
-> >
-> >  u16 sbi_ecall_version_major(void);
-> >
-> > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c index
-> > 64c9933..6d41cff 100644
-> > --- a/lib/sbi/sbi_ecall.c
-> > +++ b/lib/sbi/sbi_ecall.c
-> > @@ -167,6 +167,9 @@ int sbi_ecall_init(void)
-> >         if (ret)
-> >                 return ret;
-> >         ret = sbi_ecall_register_extension(&ecall_hsm);
-> > +       if (ret)
-> > +               return ret;
-> > +       ret = sbi_ecall_register_extension(&ecall_srst);
-> >         if (ret)
-> >                 return ret;
-> >         ret = sbi_ecall_register_extension(&ecall_legacy);
-> > diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
-> > index e460c30..d06dfa2 100644
-> > --- a/lib/sbi/sbi_ecall_replace.c
-> > +++ b/lib/sbi/sbi_ecall_replace.c
-> > @@ -14,6 +14,7 @@
-> >  #include <sbi/sbi_error.h>
-> >  #include <sbi/sbi_hart.h>
-> >  #include <sbi/sbi_ipi.h>
-> > +#include <sbi/sbi_system.h>
-> >  #include <sbi/sbi_timer.h>
-> >  #include <sbi/sbi_tlb.h>
-> >
-> > @@ -127,3 +128,62 @@ struct sbi_ecall_extension ecall_ipi = {
-> >         .extid_end = SBI_EXT_IPI,
-> >         .handle = sbi_ecall_ipi_handler,  };
-> > +
-> > +static int sbi_ecall_srst_handler(unsigned long extid, unsigned long
-> funcid,
-> > +                                 unsigned long *args, unsigned long *out_val,
-> > +                                 struct sbi_trap_info *out_trap) {
-> > +       if (funcid == SBI_EXT_SRST_RESET) {
-> > +               if ((((u32)-1U) <= ((u64)args[0])) ||
-> > +                   (((u32)-1U) <= ((u64)args[1])))
-> > +                       return SBI_EINVAL;
-> > +
-> > +               switch (args[0]) {
-> > +               case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> > +               case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> > +               case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> > +                       break;
-> > +               default:
-> > +                       return SBI_ENOTSUPP;
-> > +               }
-> > +
-> > +               switch (args[1]) {
-> > +               case SBI_SRST_RESET_REASON_NONE:
-> > +               case SBI_SRST_RESET_REASON_SYSFAIL:
-> > +                       break;
-> > +               default:
-> > +                       return SBI_ENOTSUPP;
-> > +               }
-> > +
-> > +               if (sbi_system_reset_supported(args[0], args[1]))
-> > +                       sbi_system_reset(args[0], args[1]);
-> > +       }
-> > +
-> > +       return SBI_ENOTSUPP;
-> > +}
-> > +
-> > +static int sbi_ecall_srst_probe(unsigned long extid, unsigned long
-> > +*out_val) {
-> > +       u32 type, count = 0;
-> > +
-> > +       /*
-> > +        * At least one standard reset types should be supported by
-> > +        * the platform for SBI SRST extension to be usable.
-> > +        */
-> > +
-> > +       for (type = 0; type <= SBI_SRST_RESET_TYPE_LAST; type++) {
-> > +               if (sbi_system_reset_supported(type,
-> > +                                       SBI_SRST_RESET_REASON_NONE))
-> > +                       count++;
-> > +       }
-> > +
-> > +       *out_val = (count) ? 1 : 0;
-> > +       return 0;
-> > +}
-> > +
-> > +struct sbi_ecall_extension ecall_srst = {
-> > +       .extid_start = SBI_EXT_SRST,
-> > +       .extid_end = SBI_EXT_SRST,
-> > +       .handle = sbi_ecall_srst_handler,
-> > +       .probe = sbi_ecall_srst_probe, };
+> > ?firmware/fw_base.S | 87 ++++++++++++++++++++++++++++++++++++--
+> ------
 > > --
-> > 2.25.1
+> > ?1 file changed, 68 insertions(+), 19 deletions(-)
 > >
+> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S index
+> > 1d9b375..fb504e8 100644
+> > --- a/firmware/fw_base.S
+> > +++ b/firmware/fw_base.S
+> > @@ -413,6 +413,14 @@ _start_warm:
 > >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
-> 
-> 
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+> > ????????/* Setup trap handler */
+> > ????????la??????a4, _trap_handler
+> > +#if __riscv_xlen == 32
+> > +???????csrr????a5, CSR_MISA
+> > +???????srli????a5, a5, ('H' - 'A')
+> > +???????andi????a5, a5, 0x1
+> > +???????beq?????a5, zero, _skip_trap_handler_rv32_hyp
+> > +???????la??????a4, _trap_handler_rv32_hyp
+> > +_skip_trap_handler_rv32_hyp:
+> > +#endif
+> > ????????csrw????CSR_MTVEC, a4
+> >
+> > ????????/* Initialize SBI runtime */
+> > @@ -476,10 +484,7 @@ fw_platform_init:
+> > ????????add?????a0, a1, zero
+> > ????????ret
+> >
+> > -???????.section .entry, "ax", %progbits
+> > -???????.align 3
+> > -???????.globl _trap_handler
+> > -_trap_handler:
+> > +.macro?TRAP_SAVE_AND_SETUP_SP_T0
+> > ????????/* Swap TP and MSCRATCH */
+> > ????????csrrw???tp, CSR_MSCRATCH, tp
+> >
+> > @@ -519,23 +524,23 @@ _trap_handler:
+> >
+> > ????????/* Swap TP and MSCRATCH */
+> > ????????csrrw???tp, CSR_MSCRATCH, tp
+> > +.endm
+> >
+> > +.macro?TRAP_SAVE_MEPC_MSTATUS have_mstatush
+> > ????????/* Save MEPC and MSTATUS CSRs */
+> > ????????csrr????t0, CSR_MEPC
+> > ????????REG_S???t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
+> > ????????csrr????t0, CSR_MSTATUS
+> > ????????REG_S???t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
+> > -???????REG_S???zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+> > -#if __riscv_xlen == 32
+> > -???????csrr????t0, CSR_MISA
+> > -???????srli????t0, t0, ('H' - 'A')
+> > -???????andi????t0, t0, 0x1
+> > -???????beq?????t0, zero, _skip_mstatush_save
+> > +???????.if \have_mstatush
+> > ????????csrr????t0, CSR_MSTATUSH
+> > ????????REG_S???t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+> > -_skip_mstatush_save:
+> > -#endif
+> > +???????.else
+> > +???????REG_S???zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+> > +???????.endif
+> > +.endm
+> >
+> > +.macro?TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+> > ????????/* Save all general regisers except SP and T0 */
+> > ????????REG_S???zero, SBI_TRAP_REGS_OFFSET(zero)(sp)
+> > ????????REG_S???ra, SBI_TRAP_REGS_OFFSET(ra)(sp) @@ -567,11 +572,15 @@
+> > _skip_mstatush_save:
+> > ????????REG_S???t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
+> > ????????REG_S???t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
+> > ????????REG_S???t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
+> > +.endm
+> >
+> > +.macro?TRAP_CALL_C_ROUTINE
+> > ????????/* Call C routine */
+> > ????????add?????a0, sp, zero
+> > ????????call????sbi_trap_handler
+> > +.endm
+> >
+> > +.macro?TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
+> > ????????/* Restore all general regisers except SP and T0 */
+> > ????????REG_L???ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
+> > ????????REG_L???gp, SBI_TRAP_REGS_OFFSET(gp)(sp) @@ -602,30 +611,70 @@
+> > _skip_mstatush_save:
+> > ????????REG_L???t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
+> > ????????REG_L???t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
+> > ????????REG_L???t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
+> > +.endm
+> >
+> > +.macro?TRAP_RESTORE_MEPC_MSTATUS have_mstatush
+> > ????????/* Restore MEPC and MSTATUS CSRs */
+> > ????????REG_L???t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
+> > ????????csrw????CSR_MEPC, t0
+> > ????????REG_L???t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
+> > ????????csrw????CSR_MSTATUS, t0
+> > -#if __riscv_xlen == 32
+> > -???????csrr????t0, CSR_MISA
+> > -???????srli????t0, t0, ('H' - 'A')
+> > -???????andi????t0, t0, 0x1
+> > -???????beq?????t0, zero, _skip_mstatush_restore
+> > +???????.if \have_mstatush
+> > ????????REG_L???t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
+> > ????????csrw????CSR_MSTATUSH, t0
+> > -_skip_mstatush_restore:
+> > -#endif
+> > +???????.endif
+> > +.endm
+> >
+> > +.macro TRAP_RESTORE_SP_T0
+> > ????????/* Restore T0 */
+> > ????????REG_L???t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
+> >
+> > ????????/* Restore SP */
+> > ????????REG_L???sp, SBI_TRAP_REGS_OFFSET(sp)(sp)
+> > +.endm
+> > +
+> > +???????.section .entry, "ax", %progbits
+> > +???????.align 3
+> > +???????.globl _trap_handler
+> > +_trap_handler:
+> > +???????TRAP_SAVE_AND_SETUP_SP_T0
+> > +
+> > +???????TRAP_SAVE_MEPC_MSTATUS 0
+> > +
+> > +???????TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+> > +
+> > +???????TRAP_CALL_C_ROUTINE
+> > +
+> > +???????TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
+> > +
+> > +???????TRAP_RESTORE_MEPC_MSTATUS 0
+> > +
+> > +???????TRAP_RESTORE_SP_T0
+> >
+> > ????????mret
+> >
+> > +#if __riscv_xlen == 32
+> > +???????.section .entry, "ax", %progbits
+> > +???????.align 3
+> > +???????.globl _trap_handler_rv32_hyp
+> > +_trap_handler_rv32_hyp:
+> > +???????TRAP_SAVE_AND_SETUP_SP_T0
+> > +
+> > +???????TRAP_SAVE_MEPC_MSTATUS 1
+> > +
+> > +???????TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+> > +
+> > +???????TRAP_CALL_C_ROUTINE
+> > +
+> > +???????TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
+> > +
+> > +???????TRAP_RESTORE_MEPC_MSTATUS 1
+> > +
+> > +???????TRAP_RESTORE_SP_T0
+> > +
+> > +???????mret
+> > +#endif
+> > +
+> > ????????.section .entry, "ax", %progbits
+> > ????????.align 3
+> > ????????.globl _reset_regs
 
 Applied this patch to the riscv/opensbi repo
 
