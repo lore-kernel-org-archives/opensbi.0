@@ -1,42 +1,46 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 3 Dec 2020 15:57:19 -0800
-Subject: [PATCH 04/11] lib: sbi: Auto start domain only if boot HART
- within limits
-In-Reply-To: <20201121094756.4154728-5-anup.patel@wdc.com>
+Date: Thu, 3 Dec 2020 15:59:17 -0800
+Subject: [PATCH 05/11] include: sbi: Use lower bits for domain memory
+ region permissions
+In-Reply-To: <20201121094756.4154728-6-anup.patel@wdc.com>
 References: <20201121094756.4154728-1-anup.patel@wdc.com>
- <20201121094756.4154728-5-anup.patel@wdc.com>
-Message-ID: <CAOnJCULubE+UouGSNX3mrgHnvMjE6U6iBGuxvLf+4yJG5_RVnA@mail.gmail.com>
+ <20201121094756.4154728-6-anup.patel@wdc.com>
+Message-ID: <CAOnJCU+e8URp+sE5Pm1Jga4gc-MqsXTb0dQ0_SftBoqhqT=HWQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 21, 2020 at 2:52 PM Anup Patel <anup.patel@wdc.com> wrote:
+On Sat, Nov 21, 2020 at 2:53 PM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The sbi_domain_finalize() should auto start a domain only if the
-> boot HART is withing limits (i.e. less than SBI_HARTMASK_MAX_BITS).
+> We should use lower bits for domain memory region access permissions
+> and higher bits for other domain memory region attributes. This helps
+> us use same bit assignment for parsing domain memory region access
+> permissions from device tree.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  lib/sbi/sbi_domain.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  include/sbi/sbi_domain.h | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index ac920b8..ecb098c 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -403,6 +403,10 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
->                 /* Domain boot HART */
->                 dhart = dom->boot_hartid;
->
-> +               /* Ignore of boot HART is off limits */
-> +               if (SBI_HARTMASK_MAX_BITS <= dhart)
-> +                       continue;
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index 6f90b26..a7cb61e 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -39,8 +39,10 @@ struct sbi_domain_memregion {
+>  #define SBI_DOMAIN_MEMREGION_READABLE          (1UL << 0)
+>  #define SBI_DOMAIN_MEMREGION_WRITEABLE         (1UL << 1)
+>  #define SBI_DOMAIN_MEMREGION_EXECUTABLE                (1UL << 2)
+> -#define SBI_DOMAIN_MEMREGION_MMIO              (1UL << 3)
+> -#define SBI_DOMAIN_MEMREGION_MMODE             (1UL << 4)
+> +#define SBI_DOMAIN_MEMREGION_MMODE             (1UL << 3)
+> +#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0xfUL)
 > +
->                 /* Ignore if boot HART not possible for this domain */
->                 if (!sbi_hartmask_test_hart(dhart, dom->possible_harts))
->                         continue;
+> +#define SBI_DOMAIN_MEMREGION_MMIO              (1UL << 31)
+>         unsigned long flags;
+>  };
+>
 > --
 > 2.25.1
 >
