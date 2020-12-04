@@ -1,240 +1,581 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Fri,  4 Dec 2020 21:22:22 +0530
-Subject: [PATCH v2 09/11] docs: Add domain device tree binding documentation
+Date: Fri,  4 Dec 2020 21:22:23 +0530
+Subject: [PATCH v2 10/11] lib: utils: Add helper routines to populate domains
+ from FDT
 In-Reply-To: <20201204155224.733188-1-anup.patel@wdc.com>
 References: <20201204155224.733188-1-anup.patel@wdc.com>
-Message-ID: <20201204155224.733188-10-anup.patel@wdc.com>
+Message-ID: <20201204155224.733188-11-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds domain device tree binding documentation in the
-OpenSBI domain support documentation.
+We add various helper routines to populate domains, iterate domains,
+iterate domain memregions, and parse HART to domain assignment from
+the FDT.
+
+These helper routines can be used by platform support code and FDT
+fixup code.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 ---
- docs/domain_support.md | 208 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 208 insertions(+)
+ include/sbi_utils/fdt/fdt_domain.h |  80 ++++++
+ lib/utils/fdt/fdt_domain.c         | 445 +++++++++++++++++++++++++++++
+ lib/utils/fdt/objects.mk           |   1 +
+ 3 files changed, 526 insertions(+)
+ create mode 100644 include/sbi_utils/fdt/fdt_domain.h
+ create mode 100644 lib/utils/fdt/fdt_domain.c
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 04989df..73931f1 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -104,3 +104,211 @@ Few noteworthy effects of a system partitioned into domains are as follows:
-   only work if both HART A and HART B are assigned same domain
- * A HART running in S-mode or U-mode can only access memory based on the
-   memory regions of the domain assigned to the HART
+diff --git a/include/sbi_utils/fdt/fdt_domain.h b/include/sbi_utils/fdt/fdt_domain.h
+new file mode 100644
+index 0000000..3c02d56
+--- /dev/null
++++ b/include/sbi_utils/fdt/fdt_domain.h
+@@ -0,0 +1,80 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/*
++ * fdt_domain.c - Flat Device Tree Domain helper routines
++ *
++ * Copyright (c) 2020 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Anup Patel <anup.patel@wdc.com>
++ */
 +
-+Domain Device Tree Bindings
-+---------------------------
++#ifndef __FDT_DOMAIN_H__
++#define __FDT_DOMAIN_H__
 +
-+The OpenSBI domains can be described in the **device tree (DT) blob** (or
-+flattened device tree) passed to the OpenSBI firmwares by the previous
-+booting stage. This allows OpenSBI platform support to parse and populate
-+OpenSBI domains from the device tree blob (or flattened device tree).
++#include <sbi/sbi_types.h>
 +
-+### Domain Configuration Node
++struct sbi_domain;
 +
-+All OpenSBI domain description related DT nodes should be under the domain
-+configuration DT node. The **/chosen** DT node is the preferred parent of
-+the domain configuration DT node.
++/**
++ * Iterate over each domains in device tree
++ *
++ * @param fdt device tree blob
++ * @param opaque private pointer for each iteration
++ * @param fn callback function for each iteration
++ */
++void fdt_iterate_each_domain(void *fdt, void *opaque,
++			     void (*fn)(void *fdt, int domain_offset,
++					void *opaque));
 +
-+The DT properties of a domain configuration DT node are as follows:
++/**
++ * Iterate over each memregion of a domain in device tree
++ *
++ * @param fdt device tree blob
++ * @param domain_offset domain DT node offset
++ * @param opaque private pointer for each iteration
++ * @param fn callback function for each iteration
++ */
++void fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
++				void (*fn)(void *fdt, int domain_offset,
++					   int region_offset, u32 region_access,
++					   void *opaque));
 +
-+* **compatible** (Mandatory) - The compatible string of the domain
-+  configuration. This DT property should have value *"opensbi,domain,config"*
++/**
++ * Fix up the domain configuration in the device tree
++ *
++ * This routine:
++ * 1. Disables MMIO devices not accessible to the coldboot HART domain
++ * 2. Removes "opensbi-domain" DT property from CPU DT nodes
++ * 3. Removes domain configuration DT node under /chosen DT node
++ *
++ * It is recommended that platform support call this function in
++ * their final_init() platform operation.
++ *
++ * @param fdt device tree blob
++ */
++void fdt_domain_fixup(void *fdt);
 +
-+### Domain Memory Region Node
++/**
++ * Get domain instance for given HART
++ *
++ * Note: Domains should be populated before using this function.
++ *
++ * @param hartid the HART for which domain instance is needed
++ *
++ * @return pointer to domain instance on success and NULL on failure
++ */
++struct sbi_domain *fdt_domain_get(u32 hartid);
 +
-+The domain memory region DT node describes details of a memory region and
-+can be pointed by multiple domain instance DT nodes. The access permissions
-+of the memory region are specified separately in domain instance node.
++/**
++ * Populate domains from device tree
++ *
++ * It is recommended that platform support call this function in
++ * their domains_init() platform operation.
++ *
++ * @param fdt device tree blob
++ *
++ * @return 0 on success and negative error code on failure
++ */
++int fdt_domains_populate(void *fdt);
 +
-+The DT properties of a domain memory region DT node are as follows:
++#endif /* __FDT_DOMAIN_H__ */
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+new file mode 100644
+index 0000000..972a1f4
+--- /dev/null
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -0,0 +1,445 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/*
++ * fdt_domain.c - Flat Device Tree Domain helper routines
++ *
++ * Copyright (c) 2020 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Anup Patel <anup.patel@wdc.com>
++ */
 +
-+* **compatible** (Mandatory) - The compatible string of the domain memory
-+  region. This DT property should have value *"opensbi,domain,memregion"*
-+* **base** (Mandatory) - The base address of the domain memory region. This
-+  DT property should have a **2 ^ order** aligned 64 bit address (i.e. two
-+  DT cells).
-+* **order** (Mandatory) - The order of the domain memory region. This DT
-+  property should have a 32 bit value (i.e. one DT cell) in the range
-+  **3 <= order <= __riscv_xlen**.
-+* **mmio** (Optional) - A boolean flag representing whether the domain
-+  memory region is a memory-mapped I/O (MMIO) region.
-+* **devices** (Optional) - The list of device DT node phandles for devices
-+  which fall under this domain memory region.
++#include <libfdt.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_hartmask.h>
++#include <sbi/sbi_scratch.h>
++#include <sbi_utils/fdt/fdt_domain.h>
++#include <sbi_utils/fdt/fdt_helper.h>
 +
-+### Domain Instance Node
++void fdt_iterate_each_domain(void *fdt, void *opaque,
++			     void (*fn)(void *fdt, int domain_offset,
++					void *opaque))
++{
++	int doffset, poffset;
 +
-+The domain instance DT node describes set of possible HARTs, set of memory
-+regions, and other details of a domain instance.
++	if (!fdt || !fn)
++		return;
 +
-+The DT properties of a domain instance DT node are as follows:
++	poffset = fdt_path_offset(fdt, "/chosen");
++	if (poffset < 0)
++		return;
++	poffset = fdt_node_offset_by_compatible(fdt, poffset,
++						"opensbi,domain,config");
++	if (poffset < 0)
++		return;
 +
-+* **compatible** (Mandatory) - The compatible string of the domain instance.
-+  This DT property should have value *"opensbi,domain,instance"*
-+* **possible-harts** (Optional) - The list of CPU DT node phandles for the
-+  the domain instance. This list represents the possible HARTs of the
-+  domain instance.
-+* **regions** (Optional) - The list of domain memory region DT node phandle
-+  and access permissions for the domain instance. Each list entry is a pair
-+  of DT node phandle and access permissions. The access permissions are
-+  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
-+  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
-+* **boot-hart** (Optional) - The DT node phandle of the HART booting the
-+  domain instance. If coldboot HART is assigned to the domain instance then
-+  this DT property is ignored and the coldboot HART is assumed to be the
-+  boot HART of the domain instance.
-+* **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
-+  domain instance. If this DT property is not available and coldboot HART
-+  is not assigned to the domain instance then **0x0** is used as default
-+  value. If this DT property is not available and coldboot HART is assigned
-+  to the domain instance then **next booting stage arg1 of coldboot HART**
-+  is used as default value.
-+* **next-addr** (Optional) - The 64 bit next booting stage address for the
-+  domain instance. If this DT property is not available and coldboot HART
-+  is not assigned to the domain instance then **0x0** is used as default
-+  value. If this DT property is not available and coldboot HART is assigned
-+  to the domain instance then **next booting stage address of coldboot HART**
-+  is used as default value.
-+* **next-mode** (Optional) - The 32 bit next booting stage mode for the
-+  domain instance. The possible values of this DT property are: **0x1**
-+  (s-mode), and **0x0** (u-mode). If this DT property is not available
-+  and coldboot HART is not assigned to the domain instance then **0x1**
-+  is used as default value. If this DT property is not available and
-+  coldboot HART is assigned to the domain instance then **next booting
-+  stage mode of coldboot HART** is used as default value.
-+* **system-reset-allowed** (Optional) - A boolean flag representing
-+  whether the domain instance is allowed to do system reset.
++	fdt_for_each_subnode(doffset, fdt, poffset) {
++		if (fdt_node_check_compatible(fdt, doffset,
++					      "opensbi,domain,instance"))
++			continue;
 +
-+### Assigning HART To Domain Instance
++		fn(fdt, doffset, opaque);
++	}
++}
 +
-+By default, all HARTs are assigned to **the ROOT domain**. The OpenSBI
-+platform support can provide the HART to domain instance assignment using
-+platform specific callback.
++void fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
++				void (*fn)(void *fdt, int domain_offset,
++					   int region_offset, u32 region_access,
++					   void *opaque))
++{
++	u32 i, rcount;
++	int len, region_offset;
++	const u32 *regions;
 +
-+The HART to domain instance assignment can be parsed from the device tree
-+using optional DT property **opensbi,domain** in each CPU DT node. The
-+value of DT property **opensbi,domain** is the DT phandle of the domain
-+instance DT node. If **opensbi,domain** DT property is not specified then
-+corresponding HART is assigned to **the ROOT domain**.
++	if (!fdt || (domain_offset < 0) || !fn)
++		return;
 +
-+### Domain Configuration Only Accessible to OpenSBI
++	if (fdt_node_check_compatible(fdt, domain_offset,
++				      "opensbi,domain,instance"))
++		return;
 +
-+The software running inside a domain instance should only be aware of
-+devices and hardware resources accessible to itself.
++	regions = fdt_getprop(fdt, domain_offset, "regions", &len);
++	if (!regions)
++		return;
 +
-+To hide domain configuration from domain instances, the following should
-+be done:
++	rcount = (u32)len / (sizeof(u32) * 2);
++	for (i = 0; i < rcount; i++) {
++		region_offset = fdt_node_offset_by_phandle(fdt,
++						fdt32_to_cpu(regions[2 * i]));
++		if (region_offset < 0)
++			continue;
 +
-+* The previous booting stage should preferably provide a separate device
-+  tree for each domain instance and mention location of device tree in
-+  respective domain instance DT nodes using **next-arg1** DT property.
-+* If domain assigned to a HART does not have separate device tree then
-+  OpenSBI platform support should remove all domain configuration details
-+  from the device tree passed by previous booting stage before passing it
-+  to the next booting stage.
++		if (fdt_node_check_compatible(fdt, region_offset,
++					      "opensbi,domain,memregion"))
++			continue;
 +
-+### Example
++		fn(fdt, domain_offset, region_offset,
++		   fdt32_to_cpu(regions[(2 * i) + 1]), opaque);
++	}
++}
 +
-+```
-+    chosen {
-+        opensbi-domains {
-+            compatible = "opensbi,domain,config";
++struct __fixup_find_domain_offset_info {
++	const char *name;
++	int *doffset;
++};
 +
-+            tmem: tmem {
-+                compatible = "opensbi,domain,memregion";
-+                base = <0x0 0x80100000>;
-+                order = <20>;
-+            };
++static void __fixup_find_domain_offset(void *fdt, int doff, void *p)
++{
++	struct __fixup_find_domain_offset_info *fdo = p;
 +
-+            tuart: tuart {
-+                compatible = "opensbi,domain,memregion";
-+                base = <0x0 0x10011000>;
-+                order = <12>;
-+                mmio;
-+                devices = <&uart1>;
-+            };
++	if (sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
++		return;
 +
-+            allmem: allmem {
-+                compatible = "opensbi,domain,memregion";
-+                base = <0x0 0x0>;
-+                order = <64>;
-+            };
++	*fdo->doffset = doff;
++}
 +
-+            tdomain: trusted-domain {
-+                compatible = "opensbi,domain,instance";
-+                possible-harts = <&cpu0>;
-+                regions = <&tmem 0x7>, <&tuart 0x7>;
-+                boot-hart = <&cpu0>;
-+                next-arg1 = <0x0 0x0>;
-+                next-addr = <0x0 0x80100000>;
-+                next-mode = <0x0>;
-+                system-reset-allowed;
-+            };
++#define DISABLE_DEVICES_MASK	(SBI_DOMAIN_MEMREGION_READABLE | \
++				 SBI_DOMAIN_MEMREGION_WRITEABLE | \
++				 SBI_DOMAIN_MEMREGION_EXECUTABLE)
 +
-+            udomain: untrusted-domain {
-+                compatible = "opensbi,domain,instance";
-+                possible-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
-+                regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x7>;
-+            };
-+        };
-+    };
++static void __fixup_count_disable_devices(void *fdt, int doff, int roff,
++					  u32 perm, void *p)
++{
++	int len;
++	u32 *dcount = p;
 +
-+    cpus {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+        timebase-frequency = <10000000>;
++	if (perm & DISABLE_DEVICES_MASK)
++		return;
 +
-+        cpu0: cpu at 0 {
-+            device_type = "cpu";
-+            reg = <0x00>;
-+            compatible = "riscv";
-+            opensbi-domain = <&tdomain>;
-+            ...
-+        };
++	len = 0;
++	if (fdt_getprop(fdt, roff, "devices", &len))
++		*dcount += len / sizeof(u32);
++}
 +
-+        cpu1: cpu at 1 {
-+            device_type = "cpu";
-+            reg = <0x01>;
-+            compatible = "riscv";
-+            opensbi-domain = <&udomain>;
-+            ...
-+        };
++static void __fixup_disable_devices(void *fdt, int doff, int roff,
++				    u32 raccess, void *p)
++{
++	int i, len, coff;
++	const u32 *devices;
 +
-+        cpu2: cpu at 2 {
-+            device_type = "cpu";
-+            reg = <0x02>;
-+            compatible = "riscv";
-+            opensbi-domain = <&udomain>;
-+            ...
-+        };
++	if (raccess & DISABLE_DEVICES_MASK)
++		return;
 +
-+        cpu3: cpu at 3 {
-+            device_type = "cpu";
-+            reg = <0x03>;
-+            compatible = "riscv";
-+            opensbi-domain = <&udomain>;
-+            ...
-+        };
++	len = 0;
++	devices = fdt_getprop(fdt, roff, "devices", &len);
++	if (!devices)
++		return;
++	len = len / sizeof(u32);
 +
-+        cpu4: cpu at 4 {
-+            device_type = "cpu";
-+            reg = <0x04>;
-+            compatible = "riscv";
-+            opensbi-domain = <&udomain>;
-+            ...
-+        };
-+    };
++	for (i = 0; i < len; i++) {
++		coff = fdt_node_offset_by_phandle(fdt,
++					fdt32_to_cpu(devices[i]));
++		if (coff < 0)
++			continue;
 +
-+    uart1: serial at 10011000 {
-+        ...
-+    };
-+```
++		fdt_setprop_string(fdt, coff, "status", "disabled");
++	}
++}
++
++void fdt_domain_fixup(void *fdt)
++{
++	u32 i, dcount;
++	int err, poffset, doffset;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
++	struct __fixup_find_domain_offset_info fdo;
++
++	/* Remove the domain assignment DT property from CPU DT nodes */
++	poffset = fdt_path_offset(fdt, "/cpus");
++	if (poffset < 0)
++		return;
++	fdt_for_each_subnode(doffset, fdt, poffset) {
++		err = fdt_parse_hart_id(fdt, doffset, &i);
++		if (err)
++			continue;
++
++		fdt_nop_property(fdt, doffset, "opensbi-domain");
++	}
++
++	/* Skip device disable for root domain */
++	if (!dom->index)
++		goto skip_device_disable;
++
++	/* Find current domain DT node */
++	doffset = -1;
++	fdo.name = dom->name;
++	fdo.doffset = &doffset;
++	fdt_iterate_each_domain(fdt, &fdo, __fixup_find_domain_offset);
++	if (doffset < 0)
++		goto skip_device_disable;
++
++	/* Count current domain device DT nodes to be disabled */
++	dcount = 0;
++	fdt_iterate_each_memregion(fdt, doffset, &dcount,
++				   __fixup_count_disable_devices);
++	if (!dcount)
++		goto skip_device_disable;
++
++	/* Expand FDT based on device DT nodes to be disabled */
++	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + dcount * 32);
++	if (err < 0)
++		return;
++
++	/* Again find current domain DT node */
++	doffset = -1;
++	fdo.name = dom->name;
++	fdo.doffset = &doffset;
++	fdt_iterate_each_domain(fdt, &fdo, __fixup_find_domain_offset);
++	if (doffset < 0)
++		goto skip_device_disable;
++
++	/* Disable device DT nodes for current domain */
++	fdt_iterate_each_memregion(fdt, doffset, NULL,
++				   __fixup_disable_devices);
++skip_device_disable:
++
++	/* Remove the OpenSBI domain config DT node */
++	poffset = fdt_path_offset(fdt, "/chosen");
++	if (poffset < 0)
++		return;
++	poffset = fdt_node_offset_by_compatible(fdt, poffset,
++						"opensbi,domain,config");
++	if (poffset < 0)
++		return;
++	fdt_nop_node(fdt, poffset);
++}
++
++static struct sbi_domain *fdt_hartid_to_domain[SBI_HARTMASK_MAX_BITS];
++
++#define FDT_DOMAIN_MAX_COUNT		8
++#define FDT_DOMAIN_REGION_MAX_COUNT	16
++
++static u32 fdt_domains_count;
++static struct sbi_domain fdt_domains[FDT_DOMAIN_MAX_COUNT];
++static struct sbi_hartmask fdt_masks[FDT_DOMAIN_MAX_COUNT];
++static struct sbi_domain_memregion
++	fdt_regions[FDT_DOMAIN_MAX_COUNT][FDT_DOMAIN_REGION_MAX_COUNT + 2];
++
++struct sbi_domain *fdt_domain_get(u32 hartid)
++{
++	if (SBI_HARTMASK_MAX_BITS <= hartid)
++		return NULL;
++	return fdt_hartid_to_domain[hartid];
++}
++
++static void __fdt_parse_region(void *fdt, int domain_offset,
++			       int region_offset, u32 region_access,
++			       void *opaque)
++{
++	int len;
++	u32 val32;
++	u64 val64;
++	const u32 *val;
++	u32 *region_count = opaque;
++	struct sbi_domain_memregion *region;
++
++	/* Find next region of the domain */
++	if (FDT_DOMAIN_REGION_MAX_COUNT <= *region_count)
++		return;
++	region = &fdt_regions[fdt_domains_count][*region_count];
++
++	/* Read "base" DT property */
++	val = fdt_getprop(fdt, region_offset, "base", &len);
++	if (!val && len >= 8)
++		return;
++	val64 = fdt32_to_cpu(val[0]);
++	val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
++	region->base = val64;
++
++	/* Read "order" DT property */
++	val = fdt_getprop(fdt, region_offset, "order", &len);
++	if (!val && len >= 4)
++		return;
++	val32 = fdt32_to_cpu(*val);
++	if (val32 < 3 || __riscv_xlen < val32)
++		return;
++	region->order = val32;
++
++	/* Read "mmio" DT property */
++	region->flags = region_access & SBI_DOMAIN_MEMREGION_ACCESS_MASK;
++	if (fdt_get_property(fdt, region_offset, "mmio", NULL))
++		region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
++
++	(*region_count)++;
++}
++
++static void __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
++{
++	u32 val32;
++	u64 val64;
++	const u32 *val;
++	struct sbi_domain *dom;
++	struct sbi_hartmask *mask;
++	int i, err, len, cpu_offset;
++	int *cold_domain_offset = opaque;
++	struct sbi_domain_memregion *regions;
++
++	/* Sanity check on maximum domains we can handle */
++	if (FDT_DOMAIN_MAX_COUNT <= fdt_domains_count)
++		return;
++	dom = &fdt_domains[fdt_domains_count];
++	mask = &fdt_masks[fdt_domains_count];
++	regions = &fdt_regions[fdt_domains_count][0];
++
++	/* Read DT node name */
++	sbi_strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
++		    sizeof(dom->name));
++	dom->name[sizeof(dom->name) - 1] = '\0';
++
++	/* Setup possible HARTs mask */
++	SBI_HARTMASK_INIT(mask);
++	dom->possible_harts = mask;
++	val = fdt_getprop(fdt, domain_offset, "possible-harts", &len);
++	len = len / sizeof(u32);
++	if (val && len) {
++		for (i = 0; i < len; i++) {
++			cpu_offset = fdt_node_offset_by_phandle(fdt,
++							fdt32_to_cpu(val[i]));
++			if (cpu_offset < 0)
++				continue;
++
++			err = fdt_parse_hart_id(fdt, cpu_offset, &val32);
++			if (err)
++				continue;
++
++			sbi_hartmask_set_hart(val32, mask);
++		}
++	}
++
++	/* Setup memregions from DT */
++	val32 = 0;
++	sbi_memset(regions, 0,
++		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT + 2));
++	dom->regions = regions;
++	fdt_iterate_each_memregion(fdt, domain_offset, &val32,
++				   __fdt_parse_region);
++	sbi_domain_memregion_initfw(&regions[val32]);
++
++	/* Read "boot-hart" DT property */
++	val32 = -1U;
++	val = fdt_getprop(fdt, domain_offset, "boot-hart", &len);
++	if (val && len >= 4) {
++		cpu_offset = fdt_node_offset_by_phandle(fdt,
++							 fdt32_to_cpu(*val));
++		if (cpu_offset >= 0)
++			fdt_parse_hart_id(fdt, cpu_offset, &val32);
++	} else {
++		if (domain_offset == *cold_domain_offset)
++			val32 = current_hartid();
++	}
++	dom->boot_hartid = val32;
++
++	/* Read "next-arg1" DT property */
++	val64 = 0;
++	val = fdt_getprop(fdt, domain_offset, "next-arg1", &len);
++	if (val && len >= 8) {
++		val64 = fdt32_to_cpu(val[0]);
++		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
++	} else {
++		if (domain_offset == *cold_domain_offset)
++			val64 = sbi_scratch_thishart_ptr()->next_arg1;
++	}
++	dom->next_arg1 = val64;
++
++	/* Read "next-addr" DT property */
++	val64 = 0;
++	val = fdt_getprop(fdt, domain_offset, "next-addr", &len);
++	if (val && len >= 8) {
++		val64 = fdt32_to_cpu(val[0]);
++		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
++	} else {
++		if (domain_offset == *cold_domain_offset)
++			val64 = sbi_scratch_thishart_ptr()->next_addr;
++	}
++	dom->next_addr = val64;
++
++	/* Read "next-mode" DT property */
++	val32 = 0x1;
++	val = fdt_getprop(fdt, domain_offset, "next-mode", &len);
++	if (val && len >= 4) {
++		val32 = fdt32_to_cpu(val[0]);
++		if (val32 != 0x0 && val32 != 0x1)
++			val32 = 0x1;
++	} else {
++		if (domain_offset == *cold_domain_offset)
++			val32 = sbi_scratch_thishart_ptr()->next_mode;
++	}
++	dom->next_mode = val32;
++
++	/* Read "system-reset-allowed" DT property */
++	if (fdt_get_property(fdt, domain_offset,
++			     "system-reset-allowed", NULL))
++		dom->system_reset_allowed = TRUE;
++	else
++		dom->system_reset_allowed = FALSE;
++
++	/* Increment domains count */
++	fdt_domains_count++;
++}
++
++int fdt_domains_populate(void *fdt)
++{
++	const u32 *val;
++	int cold_domain_offset;
++	u32 i, hartid, cold_hartid;
++	int err, len, cpus_offset, cpu_offset, domain_offset;
++
++	/* Sanity checks */
++	if (!fdt)
++		return SBI_EINVAL;
++
++	/* Find /cpus DT node */
++	cpus_offset = fdt_path_offset(fdt, "/cpus");
++	if (cpus_offset < 0)
++		return cpus_offset;
++
++	/* Find coldboot HART domain DT node offset */
++	cold_domain_offset = -1;
++	cold_hartid = current_hartid();
++	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
++		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
++		if (err)
++			continue;
++
++		if (hartid != cold_hartid)
++			continue;
++
++		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
++		if (val && len >= 4)
++			cold_domain_offset = fdt_node_offset_by_phandle(fdt,
++							   fdt32_to_cpu(*val));
++
++		break;
++	}
++
++	/* Iterate over each domain in FDT and populate details */
++	fdt_iterate_each_domain(fdt, &cold_domain_offset, __fdt_parse_domain);
++
++	/* HART to domain assignment based on CPU DT nodes*/
++	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
++		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
++		if (err)
++			continue;
++
++		if (SBI_HARTMASK_MAX_BITS <= hartid)
++			continue;
++
++		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
++		if (!val || len < 4)
++			continue;
++
++		domain_offset = fdt_node_offset_by_phandle(fdt,
++							   fdt32_to_cpu(*val));
++		if (domain_offset < 0)
++			continue;
++
++		for (i = 0; i < fdt_domains_count; i++) {
++			if (!sbi_strcmp(fdt_domains[i].name,
++				fdt_get_name(fdt, domain_offset, NULL))) {
++				fdt_hartid_to_domain[hartid] = &fdt_domains[i];
++				break;
++			}
++		}
++	}
++
++	return 0;
++}
+diff --git a/lib/utils/fdt/objects.mk b/lib/utils/fdt/objects.mk
+index b860a83..d9f1eae 100644
+--- a/lib/utils/fdt/objects.mk
++++ b/lib/utils/fdt/objects.mk
+@@ -4,5 +4,6 @@
+ # Copyright (C) 2020 Bin Meng <bmeng.cn@gmail.com>
+ #
+ 
++libsbiutils-objs-y += fdt/fdt_domain.o
+ libsbiutils-objs-y += fdt/fdt_helper.o
+ libsbiutils-objs-y += fdt/fdt_fixup.o
 -- 
 2.25.1
 
