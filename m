@@ -1,10 +1,10 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 3 Dec 2020 22:27:05 -0800
-Subject: [PATCH 08/11] include: sbi: Add domains_init() platform operation
-In-Reply-To: <20201121094756.4154728-9-anup.patel@wdc.com>
+Date: Thu, 3 Dec 2020 22:27:29 -0800
+Subject: [PATCH 11/11] platform: generic: Populate domains from FDT
+In-Reply-To: <20201121094756.4154728-12-anup.patel@wdc.com>
 References: <20201121094756.4154728-1-anup.patel@wdc.com>
- <20201121094756.4154728-9-anup.patel@wdc.com>
-Message-ID: <CAOnJCULYwOMJ_L14NocsSVL7KfPVht1dP_DisazHH2wShDHsUg@mail.gmail.com>
+ <20201121094756.4154728-12-anup.patel@wdc.com>
+Message-ID: <CAOnJCULQKhRcM9Tjp1kx6zMJZDZonxHN-Hkv2GOxES63YU03kQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,75 +13,55 @@ Content-Transfer-Encoding: 7bit
 
 On Sat, Nov 21, 2020 at 2:53 PM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> We introduce domains_init() platform operation which can be used by
-> platform support to initialize/populate domains in the coldboot path.
+> The generic platform should populate domains from FDT using the
+> domain FDT helper routines.
 >
-> The domains_init() is called late in the coldboot sequence from the
-> sbi_domain_finalize() so sbi_printf() can be used by platform support
-> to print errors/warings at time of populating domains.
->
-
-/s/warings/warnings
-
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  include/sbi/sbi_platform.h | 16 ++++++++++++++++
->  lib/sbi/sbi_domain.c       |  8 ++++++++
->  2 files changed, 24 insertions(+)
+>  platform/generic/platform.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
 >
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index e1355d8..7a8c113 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -90,6 +90,8 @@ struct sbi_platform_operations {
->          */
->         int (*misa_get_xlen)(void);
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index d902e71..63c405a 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -13,6 +13,7 @@
+>  #include <sbi/sbi_hartmask.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_string.h>
+> +#include <sbi_utils/fdt/fdt_domain.h>
+>  #include <sbi_utils/fdt/fdt_fixup.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/irqchip/fdt_irqchip.h>
+> @@ -148,6 +149,7 @@ static int generic_final_init(bool cold_boot)
 >
-> +       /** Initialize (or populate) domains for the platform */
-> +       int (*domains_init)(void);
->         /** Get domain pointer for given HART id */
->         struct sbi_domain *(*domain_get)(u32 hartid);
+>         fdt_cpu_fixup(fdt);
+>         fdt_fixups(fdt);
+> +       fdt_domain_fixup(fdt);
 >
-> @@ -451,6 +453,20 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
->         return -1;
+>         if (generic_plat && generic_plat->fdt_fixup) {
+>                 rc = generic_plat->fdt_fixup(fdt, generic_plat_match);
+> @@ -170,6 +172,11 @@ static void generic_final_exit(void)
+>                 generic_plat->final_exit(generic_plat_match);
 >  }
 >
-> +/**
-> + * Initialize (or populate) domains for the platform
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +static inline int sbi_platform_domains_init(const struct sbi_platform *plat)
+> +static int generic_domains_init(void)
 > +{
-> +       if (plat && sbi_platform_ops(plat)->domains_init)
-> +               return sbi_platform_ops(plat)->domains_init();
-> +       return 0;
+> +       return fdt_domains_populate(sbi_scratch_thishart_arg1_ptr());
 > +}
 > +
->  /**
->   * Get domain pointer for given HART
->   *
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 639e016..1a3651b 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -375,6 +375,14 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
->         struct sbi_domain *dom, *tdom;
->         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->
-> +       /* Initialize domains for the platform */
-> +       rc = sbi_platform_domains_init(plat);
-> +       if (rc) {
-> +               sbi_printf("%s: platform domains_init() failed (error %d)\n",
-> +                          __func__, rc);
-> +               return rc;
-> +       }
-> +
->         /* Discover domains */
->         for (i = 0; i < SBI_HARTMASK_MAX_BITS; i++) {
->                 /* Ignore invalid HART */
+>  static u64 generic_tlbr_flush_limit(void)
+>  {
+>         if (generic_plat && generic_plat->tlbr_flush_limit)
+> @@ -190,6 +197,8 @@ const struct sbi_platform_operations platform_ops = {
+>         .final_init             = generic_final_init,
+>         .early_exit             = generic_early_exit,
+>         .final_exit             = generic_final_exit,
+> +       .domains_init           = generic_domains_init,
+> +       .domain_get             = fdt_domain_get,
+>         .console_putc           = fdt_serial_putc,
+>         .console_getc           = fdt_serial_getc,
+>         .console_init           = fdt_serial_init,
 > --
 > 2.25.1
 >
@@ -91,9 +71,10 @@ On Sat, Nov 21, 2020 at 2:53 PM Anup Patel <anup.patel@wdc.com> wrote:
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
+
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
---
+-- 
 Regards,
 Atish
 
