@@ -1,49 +1,83 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Fri,  4 Dec 2020 21:22:19 +0530
-Subject: [PATCH v2 06/11] lib: sbi: Override domain boot HART when coldboot
- HART assigned to it
+Date: Fri,  4 Dec 2020 21:22:21 +0530
+Subject: [PATCH v2 08/11] include: sbi: Add domains_init() platform operation
 In-Reply-To: <20201204155224.733188-1-anup.patel@wdc.com>
 References: <20201204155224.733188-1-anup.patel@wdc.com>
-Message-ID: <20201204155224.733188-7-anup.patel@wdc.com>
+Message-ID: <20201204155224.733188-9-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If coldboot HART is assigned to a domain then we should use coldboot
-HART as the boot HART of the domain. This allows coldboot HART to
-continue boot sequence even when it is assigned to some non-root domain.
+We introduce domains_init() platform operation which can be used by
+platform support to initialize/populate domains in the coldboot path.
+
+The domains_init() is called late in the coldboot sequence from the
+sbi_domain_finalize() so sbi_printf() can be used by platform support
+to print errors/warnings at time of populating domains.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/sbi_domain.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/sbi/sbi_platform.h | 16 ++++++++++++++++
+ lib/sbi/sbi_domain.c       |  8 ++++++++
+ 2 files changed, 24 insertions(+)
 
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index ee72323..3681a78 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -91,6 +91,8 @@ struct sbi_platform_operations {
+ 	 */
+ 	int (*misa_get_xlen)(void);
+ 
++	/** Initialize (or populate) domains for the platform */
++	int (*domains_init)(void);
+ 	/** Get domain pointer for given HART id */
+ 	struct sbi_domain *(*domain_get)(u32 hartid);
+ 
+@@ -451,6 +453,20 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
+ 	return -1;
+ }
+ 
++/**
++ * Initialize (or populate) domains for the platform
++ *
++ * @param plat pointer to struct sbi_platform
++ *
++ * @return 0 on success and negative error code on failure
++ */
++static inline int sbi_platform_domains_init(const struct sbi_platform *plat)
++{
++	if (plat && sbi_platform_ops(plat)->domains_init)
++		return sbi_platform_ops(plat)->domains_init();
++	return 0;
++}
++
+ /**
+  * Get domain pointer for given HART
+  *
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index ecb098c..1b50604 100644
+index 639e016..1a3651b 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
-@@ -395,6 +395,17 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
- 						&tdom->assigned_harts);
- 			hartid_to_domain_table[i] = dom;
- 			sbi_hartmask_set_hart(i, &dom->assigned_harts);
-+
-+			/*
-+			 * If cold boot HART is assigned to this domain then
-+			 * override boot HART of this domain.
-+			 */
-+			if (i == cold_hartid &&
-+			    dom->boot_hartid != cold_hartid) {
-+				sbi_printf("Domain%d Boot HARTID forced to"
-+					   " %d\n", dom->index, cold_hartid);
-+				dom->boot_hartid = cold_hartid;
-+			}
- 		}
- 	}
+@@ -375,6 +375,14 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	struct sbi_domain *dom, *tdom;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
++	/* Initialize domains for the platform */
++	rc = sbi_platform_domains_init(plat);
++	if (rc) {
++		sbi_printf("%s: platform domains_init() failed (error %d)\n",
++			   __func__, rc);
++		return rc;
++	}
++
+ 	/* Discover domains */
+ 	for (i = 0; i < SBI_HARTMASK_MAX_BITS; i++) {
+ 		/* Ignore invalid HART */
 -- 
 2.25.1
 
