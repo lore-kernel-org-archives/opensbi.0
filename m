@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 5 Dec 2020 09:50:18 +0000
-Subject: [PATCH v2 06/11] lib: sbi: Override domain boot HART when
- coldboot HART assigned to it
-In-Reply-To: <20201204155224.733188-7-anup.patel@wdc.com>
+Date: Sat, 5 Dec 2020 09:50:44 +0000
+Subject: [PATCH v2 07/11] lib: sbi: Add error prints in
+ sbi_domain_finalize()
+In-Reply-To: <20201204155224.733188-8-anup.patel@wdc.com>
 References: <20201204155224.733188-1-anup.patel@wdc.com>
- <20201204155224.733188-7-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201BC7FFB4B2AC356EEBCEF8DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201204155224.733188-8-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB6201FA29150F302F7BF351698DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -21,40 +21,157 @@ Content-Transfer-Encoding: 7bit
 > <Alistair.Francis@wdc.com>
 > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
 > Patel <Anup.Patel@wdc.com>; Alistair Francis <Alistair.Francis@wdc.com>
-> Subject: [PATCH v2 06/11] lib: sbi: Override domain boot HART when
-> coldboot HART assigned to it
+> Subject: [PATCH v2 07/11] lib: sbi: Add error prints in sbi_domain_finalize()
 > 
-> If coldboot HART is assigned to a domain then we should use coldboot HART
-> as the boot HART of the domain. This allows coldboot HART to continue boot
-> sequence even when it is assigned to some non-root domain.
+> We add error prints in sbi_domain_finalize() and sanitize_domain() to help
+> debug domain configuration issues.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/sbi/sbi_domain.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+>  lib/sbi/sbi_domain.c | 63 ++++++++++++++++++++++++++++++++++++-----
+> ---
+>  1 file changed, 52 insertions(+), 11 deletions(-)
 > 
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
-> ecb098c..1b50604 100644
+> 1b50604..639e016 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -395,6 +395,17 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
+> @@ -174,19 +174,33 @@ static int sanitize_domain(const struct sbi_platform
+> *plat,
+>  	struct sbi_domain_memregion treg, *reg, *reg1;
+> 
+>  	/* Check possible HARTs */
+> -	if (!dom->possible_harts)
+> +	if (!dom->possible_harts) {
+> +		sbi_printf("%s: %s possible HART mask is NULL\n",
+> +			   __func__, dom->name);
+>  		return SBI_EINVAL;
+> +	}
+>  	sbi_hartmask_for_each_hart(i, dom->possible_harts) {
+> -		if (sbi_platform_hart_invalid(plat, i))
+> +		if (sbi_platform_hart_invalid(plat, i)) {
+> +			sbi_printf("%s: %s possible HART mask has invalid "
+> +				   "hart %d\n", __func__, dom->name, i);
+>  			return SBI_EINVAL;
+> +		}
+>  	};
+> 
+>  	/* Check memory regions */
+> -	if (!dom->regions)
+> +	if (!dom->regions) {
+> +		sbi_printf("%s: %s regions is NULL\n",
+> +			   __func__, dom->name);
+>  		return SBI_EINVAL;
+> +	}
+>  	sbi_domain_for_each_memregion(dom, reg) {
+> -		if (!is_region_valid(reg))
+> +		if (!is_region_valid(reg)) {
+> +			sbi_printf("%s: %s has invalid region base=0x%lx "
+> +				   "order=%lu flags=0x%lx\n", __func__,
+> +				   dom->name, reg->base, reg->order,
+> +				   reg->flags);
+>  			return SBI_EINVAL;
+> +		}
+>  	}
+> 
+>  	/* Count memory regions and check presence of firmware region */
+> @@ -199,8 +213,11 @@ static int sanitize_domain(const struct sbi_platform
+> *plat,
+>  			have_fw_reg = TRUE;
+>  		count++;
+>  	}
+> -	if (!have_fw_reg)
+> +	if (!have_fw_reg) {
+> +		sbi_printf("%s: %s does not have firmware region\n",
+> +			   __func__, dom->name);
+>  		return SBI_EINVAL;
+> +	}
+> 
+>  	/* Sort the memory regions */
+>  	for (i = 0; i < (count - 1); i++) {
+> @@ -208,8 +225,15 @@ static int sanitize_domain(const struct sbi_platform
+> *plat,
+>  		for (j = i + 1; j < count; j++) {
+>  			reg1 = &dom->regions[j];
+> 
+> -			if (is_region_conflict(reg1, reg))
+> +			if (is_region_conflict(reg1, reg)) {
+> +				sbi_printf("%s: %s conflict between regions "
+> +					"(base=0x%lx order=%lu flags=0x%lx)
+> and "
+> +					"(base=0x%lx order=%lu
+> flags=0x%lx)\n",
+> +					__func__, dom->name,
+> +					reg->base, reg->order, reg->flags,
+> +					reg1->base, reg1->order, reg1-
+> >flags);
+>  				return SBI_EINVAL;
+> +			}
+> 
+>  			if (!is_region_before(reg1, reg))
+>  				continue;
+> @@ -233,13 +257,19 @@ static int sanitize_domain(const struct sbi_platform
+> *plat,
+>  	 * protect M-mode context and enforce checks on memory accesses.
+>  	 */
+>  	if (dom->next_mode != PRV_S &&
+> -	    dom->next_mode != PRV_U)
+> +	    dom->next_mode != PRV_U) {
+> +		sbi_printf("%s: %s invalid next booting stage mode 0x%lx\n",
+> +			   __func__, dom->name, dom->next_mode);
+>  		return SBI_EINVAL;
+> +	}
+> 
+>  	/* Check next address and next mode*/
+>  	if (!sbi_domain_check_addr(dom, dom->next_addr, dom-
+> >next_mode,
+> -				   SBI_DOMAIN_EXECUTE))
+> +				   SBI_DOMAIN_EXECUTE)) {
+> +		sbi_printf("%s: %s next booting stage addres 0x%lx can't "
+> +			   "execute\n", __func__, dom->name, dom-
+> >next_addr);
+>  		return SBI_EINVAL;
+> +	}
+> 
+>  	return 0;
+>  }
+> @@ -371,13 +401,20 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
 > u32 cold_hartid)
->  						&tdom->assigned_harts);
->  			hartid_to_domain_table[i] = dom;
->  			sbi_hartmask_set_hart(i, &dom->assigned_harts);
-> +
-> +			/*
-> +			 * If cold boot HART is assigned to this domain then
-> +			 * override boot HART of this domain.
-> +			 */
-> +			if (i == cold_hartid &&
-> +			    dom->boot_hartid != cold_hartid) {
-> +				sbi_printf("Domain%d Boot HARTID forced
-> to"
-> +					   " %d\n", dom->index, cold_hartid);
-> +				dom->boot_hartid = cold_hartid;
+>  			 * Ensure that we have room for Domain Index to
+>  			 * HART ID mapping
+>  			 */
+> -			if (SBI_DOMAIN_MAX_INDEX <= domain_count)
+> +			if (SBI_DOMAIN_MAX_INDEX <= domain_count) {
+> +				sbi_printf("%s: No room for %s\n",
+> +					   __func__, dom->name);
+>  				return SBI_ENOSPC;
+> +			}
+> 
+>  			/* Sanitize discovered domain */
+>  			rc = sanitize_domain(plat, dom);
+> -			if (rc)
+> +			if (rc) {
+> +				sbi_printf("%s: sanity checks failed for"
+> +					   " %s (error %d)\n", __func__,
+> +					   dom->name, rc);
+>  				return rc;
+> +			}
+> 
+>  			/* Assign index to domain */
+>  			dom->index = domain_count++;
+> @@ -437,8 +474,12 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
+> u32 cold_hartid)
+>  						dom->next_addr,
+>  						dom->next_mode,
+>  						dom->next_arg1);
+> -			if (rc)
+> +			if (rc) {
+> +				sbi_printf("%s: failed to start boot HART %d"
+> +					   " for %s (error %d)\n", __func__,
+> +					   dhart, dom->name, rc);
+>  				return rc;
 > +			}
 >  		}
 >  	}
