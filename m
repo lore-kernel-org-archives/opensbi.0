@@ -1,10 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 5 Dec 2020 09:49:40 +0000
-Subject: [PATCH v2 02/11] lib: sbi: Fix typo in sbi_domain_finalize()
-In-Reply-To: <20201204155224.733188-3-anup.patel@wdc.com>
+Date: Sat, 5 Dec 2020 09:49:45 +0000
+Subject: [PATCH v2 03/11] lib: sbi: Fix domain_count check in
+ sbi_domain_finalize()
+In-Reply-To: <20201204155224.733188-4-anup.patel@wdc.com>
 References: <20201204155224.733188-1-anup.patel@wdc.com>
- <20201204155224.733188-3-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201DE5C0D8CCADFBCCCEE9F8DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201204155224.733188-4-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB62010DBA4717D1FBCF2532478DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,38 +21,33 @@ Content-Transfer-Encoding: 7bit
 > <Alistair.Francis@wdc.com>
 > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
 > Patel <Anup.Patel@wdc.com>; Alistair Francis <Alistair.Francis@wdc.com>
-> Subject: [PATCH v2 02/11] lib: sbi: Fix typo in sbi_domain_finalize()
+> Subject: [PATCH v2 03/11] lib: sbi: Fix domain_count check in
+> sbi_domain_finalize()
 > 
-> There has been typo in automatic domain boot hart startup for non-root
-> domains so this patch fixes it.
+> The domain_count check in sbi_domain_finalize() for newly discovered
+> domain is incorrect and should be reversed.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/sbi/sbi_domain.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  lib/sbi/sbi_domain.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
-> d4b82fe..4c98a1b 100644
+> 4c98a1b..ac920b8 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -404,12 +404,12 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
+> @@ -371,7 +371,7 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
 > u32 cold_hartid)
->  		dhart = dom->boot_hartid;
+>  			 * Ensure that we have room for Domain Index to
+>  			 * HART ID mapping
+>  			 */
+> -			if (domain_count <= SBI_DOMAIN_MAX_INDEX)
+> +			if (SBI_DOMAIN_MAX_INDEX <= domain_count)
+>  				return SBI_ENOSPC;
 > 
->  		/* Ignore if boot HART not possible for this domain */
-> -		if (!sbi_hartmask_test_hart(i, dom->possible_harts))
-> +		if (!sbi_hartmask_test_hart(dhart, dom->possible_harts))
->  			continue;
-> 
->  		/* Ignore if boot HART assigned different domain */
->  		if (sbi_hartid_to_domain(dhart) != dom ||
-> -		    !sbi_hartmask_test_hart(i, &dom->assigned_harts))
-> +		    !sbi_hartmask_test_hart(dhart, &dom->assigned_harts))
->  			continue;
-> 
->  		/* Startup boot HART of domain */
+>  			/* Sanitize discovered domain */
 > --
 > 2.25.1
 
