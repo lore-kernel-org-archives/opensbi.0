@@ -1,10 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 5 Dec 2020 09:49:38 +0000
-Subject: [PATCH v2 01/11] lib: sbi: Fix sbi_hart_switch_mode() for u-mode
-In-Reply-To: <20201204155224.733188-2-anup.patel@wdc.com>
+Date: Sat, 5 Dec 2020 09:49:40 +0000
+Subject: [PATCH v2 02/11] lib: sbi: Fix typo in sbi_domain_finalize()
+In-Reply-To: <20201204155224.733188-3-anup.patel@wdc.com>
 References: <20201204155224.733188-1-anup.patel@wdc.com>
- <20201204155224.733188-2-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB620159836B3CE1D4585A94088DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201204155224.733188-3-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB6201DE5C0D8CCADFBCCCEE9F8DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,38 +20,38 @@ Content-Transfer-Encoding: 7bit
 > <Alistair.Francis@wdc.com>
 > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
 > Patel <Anup.Patel@wdc.com>; Alistair Francis <Alistair.Francis@wdc.com>
-> Subject: [PATCH v2 01/11] lib: sbi: Fix sbi_hart_switch_mode() for u-mode
+> Subject: [PATCH v2 02/11] lib: sbi: Fix typo in sbi_domain_finalize()
 > 
-> We should check and access N-extension CSRs in sbi_hart_switch_mode()
-> when next_mode is u-mode because N-extension is optional.
+> There has been typo in automatic domain boot hart startup for non-root
+> domains so this patch fixes it.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/sbi/sbi_hart.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
+>  lib/sbi/sbi_domain.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index 30d8aef..fc86e9f
-> 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -522,9 +522,11 @@ sbi_hart_switch_mode(unsigned long arg0,
-> unsigned long arg1,
->  		csr_write(CSR_SIE, 0);
->  		csr_write(CSR_SATP, 0);
->  	} else if (next_mode == PRV_U) {
-> -		csr_write(CSR_UTVEC, next_addr);
-> -		csr_write(CSR_USCRATCH, 0);
-> -		csr_write(CSR_UIE, 0);
-> +		if (misa_extension('N')) {
-> +			csr_write(CSR_UTVEC, next_addr);
-> +			csr_write(CSR_USCRATCH, 0);
-> +			csr_write(CSR_UIE, 0);
-> +		}
->  	}
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
+> d4b82fe..4c98a1b 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -404,12 +404,12 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
+> u32 cold_hartid)
+>  		dhart = dom->boot_hartid;
 > 
->  	register unsigned long a0 asm("a0") = arg0;
+>  		/* Ignore if boot HART not possible for this domain */
+> -		if (!sbi_hartmask_test_hart(i, dom->possible_harts))
+> +		if (!sbi_hartmask_test_hart(dhart, dom->possible_harts))
+>  			continue;
+> 
+>  		/* Ignore if boot HART assigned different domain */
+>  		if (sbi_hartid_to_domain(dhart) != dom ||
+> -		    !sbi_hartmask_test_hart(i, &dom->assigned_harts))
+> +		    !sbi_hartmask_test_hart(dhart, &dom->assigned_harts))
+>  			continue;
+> 
+>  		/* Startup boot HART of domain */
 > --
 > 2.25.1
 
