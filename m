@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 5 Dec 2020 09:50:44 +0000
-Subject: [PATCH v2 07/11] lib: sbi: Add error prints in
- sbi_domain_finalize()
-In-Reply-To: <20201204155224.733188-8-anup.patel@wdc.com>
+Date: Sat, 5 Dec 2020 09:50:46 +0000
+Subject: [PATCH v2 08/11] include: sbi: Add domains_init() platform
+ operation
+In-Reply-To: <20201204155224.733188-9-anup.patel@wdc.com>
 References: <20201204155224.733188-1-anup.patel@wdc.com>
- <20201204155224.733188-8-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201FA29150F302F7BF351698DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201204155224.733188-9-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB62011395FE4F182BB5571BB08DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -21,161 +21,77 @@ Content-Transfer-Encoding: 7bit
 > <Alistair.Francis@wdc.com>
 > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
 > Patel <Anup.Patel@wdc.com>; Alistair Francis <Alistair.Francis@wdc.com>
-> Subject: [PATCH v2 07/11] lib: sbi: Add error prints in sbi_domain_finalize()
+> Subject: [PATCH v2 08/11] include: sbi: Add domains_init() platform
+> operation
 > 
-> We add error prints in sbi_domain_finalize() and sanitize_domain() to help
-> debug domain configuration issues.
+> We introduce domains_init() platform operation which can be used by
+> platform support to initialize/populate domains in the coldboot path.
+> 
+> The domains_init() is called late in the coldboot sequence from the
+> sbi_domain_finalize() so sbi_printf() can be used by platform support to print
+> errors/warnings at time of populating domains.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/sbi/sbi_domain.c | 63 ++++++++++++++++++++++++++++++++++++-----
-> ---
->  1 file changed, 52 insertions(+), 11 deletions(-)
+>  include/sbi/sbi_platform.h | 16 ++++++++++++++++
+>  lib/sbi/sbi_domain.c       |  8 ++++++++
+>  2 files changed, 24 insertions(+)
 > 
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h index
+> ee72323..3681a78 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -91,6 +91,8 @@ struct sbi_platform_operations {
+>  	 */
+>  	int (*misa_get_xlen)(void);
+> 
+> +	/** Initialize (or populate) domains for the platform */
+> +	int (*domains_init)(void);
+>  	/** Get domain pointer for given HART id */
+>  	struct sbi_domain *(*domain_get)(u32 hartid);
+> 
+> @@ -451,6 +453,20 @@ static inline int sbi_platform_misa_xlen(const struct
+> sbi_platform *plat)
+>  	return -1;
+>  }
+> 
+> +/**
+> + * Initialize (or populate) domains for the platform
+> + *
+> + * @param plat pointer to struct sbi_platform
+> + *
+> + * @return 0 on success and negative error code on failure  */ static
+> +inline int sbi_platform_domains_init(const struct sbi_platform *plat) {
+> +	if (plat && sbi_platform_ops(plat)->domains_init)
+> +		return sbi_platform_ops(plat)->domains_init();
+> +	return 0;
+> +}
+> +
+>  /**
+>   * Get domain pointer for given HART
+>   *
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
-> 1b50604..639e016 100644
+> 639e016..1a3651b 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -174,19 +174,33 @@ static int sanitize_domain(const struct sbi_platform
-> *plat,
->  	struct sbi_domain_memregion treg, *reg, *reg1;
-> 
->  	/* Check possible HARTs */
-> -	if (!dom->possible_harts)
-> +	if (!dom->possible_harts) {
-> +		sbi_printf("%s: %s possible HART mask is NULL\n",
-> +			   __func__, dom->name);
->  		return SBI_EINVAL;
-> +	}
->  	sbi_hartmask_for_each_hart(i, dom->possible_harts) {
-> -		if (sbi_platform_hart_invalid(plat, i))
-> +		if (sbi_platform_hart_invalid(plat, i)) {
-> +			sbi_printf("%s: %s possible HART mask has invalid "
-> +				   "hart %d\n", __func__, dom->name, i);
->  			return SBI_EINVAL;
-> +		}
->  	};
-> 
->  	/* Check memory regions */
-> -	if (!dom->regions)
-> +	if (!dom->regions) {
-> +		sbi_printf("%s: %s regions is NULL\n",
-> +			   __func__, dom->name);
->  		return SBI_EINVAL;
-> +	}
->  	sbi_domain_for_each_memregion(dom, reg) {
-> -		if (!is_region_valid(reg))
-> +		if (!is_region_valid(reg)) {
-> +			sbi_printf("%s: %s has invalid region base=0x%lx "
-> +				   "order=%lu flags=0x%lx\n", __func__,
-> +				   dom->name, reg->base, reg->order,
-> +				   reg->flags);
->  			return SBI_EINVAL;
-> +		}
->  	}
-> 
->  	/* Count memory regions and check presence of firmware region */
-> @@ -199,8 +213,11 @@ static int sanitize_domain(const struct sbi_platform
-> *plat,
->  			have_fw_reg = TRUE;
->  		count++;
->  	}
-> -	if (!have_fw_reg)
-> +	if (!have_fw_reg) {
-> +		sbi_printf("%s: %s does not have firmware region\n",
-> +			   __func__, dom->name);
->  		return SBI_EINVAL;
-> +	}
-> 
->  	/* Sort the memory regions */
->  	for (i = 0; i < (count - 1); i++) {
-> @@ -208,8 +225,15 @@ static int sanitize_domain(const struct sbi_platform
-> *plat,
->  		for (j = i + 1; j < count; j++) {
->  			reg1 = &dom->regions[j];
-> 
-> -			if (is_region_conflict(reg1, reg))
-> +			if (is_region_conflict(reg1, reg)) {
-> +				sbi_printf("%s: %s conflict between regions "
-> +					"(base=0x%lx order=%lu flags=0x%lx)
-> and "
-> +					"(base=0x%lx order=%lu
-> flags=0x%lx)\n",
-> +					__func__, dom->name,
-> +					reg->base, reg->order, reg->flags,
-> +					reg1->base, reg1->order, reg1-
-> >flags);
->  				return SBI_EINVAL;
-> +			}
-> 
->  			if (!is_region_before(reg1, reg))
->  				continue;
-> @@ -233,13 +257,19 @@ static int sanitize_domain(const struct sbi_platform
-> *plat,
->  	 * protect M-mode context and enforce checks on memory accesses.
->  	 */
->  	if (dom->next_mode != PRV_S &&
-> -	    dom->next_mode != PRV_U)
-> +	    dom->next_mode != PRV_U) {
-> +		sbi_printf("%s: %s invalid next booting stage mode 0x%lx\n",
-> +			   __func__, dom->name, dom->next_mode);
->  		return SBI_EINVAL;
-> +	}
-> 
->  	/* Check next address and next mode*/
->  	if (!sbi_domain_check_addr(dom, dom->next_addr, dom-
-> >next_mode,
-> -				   SBI_DOMAIN_EXECUTE))
-> +				   SBI_DOMAIN_EXECUTE)) {
-> +		sbi_printf("%s: %s next booting stage addres 0x%lx can't "
-> +			   "execute\n", __func__, dom->name, dom-
-> >next_addr);
->  		return SBI_EINVAL;
-> +	}
-> 
->  	return 0;
->  }
-> @@ -371,13 +401,20 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
+> @@ -375,6 +375,14 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
 > u32 cold_hartid)
->  			 * Ensure that we have room for Domain Index to
->  			 * HART ID mapping
->  			 */
-> -			if (SBI_DOMAIN_MAX_INDEX <= domain_count)
-> +			if (SBI_DOMAIN_MAX_INDEX <= domain_count) {
-> +				sbi_printf("%s: No room for %s\n",
-> +					   __func__, dom->name);
->  				return SBI_ENOSPC;
-> +			}
+>  	struct sbi_domain *dom, *tdom;
+>  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 > 
->  			/* Sanitize discovered domain */
->  			rc = sanitize_domain(plat, dom);
-> -			if (rc)
-> +			if (rc) {
-> +				sbi_printf("%s: sanity checks failed for"
-> +					   " %s (error %d)\n", __func__,
-> +					   dom->name, rc);
->  				return rc;
-> +			}
-> 
->  			/* Assign index to domain */
->  			dom->index = domain_count++;
-> @@ -437,8 +474,12 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
-> u32 cold_hartid)
->  						dom->next_addr,
->  						dom->next_mode,
->  						dom->next_arg1);
-> -			if (rc)
-> +			if (rc) {
-> +				sbi_printf("%s: failed to start boot HART %d"
-> +					   " for %s (error %d)\n", __func__,
-> +					   dhart, dom->name, rc);
->  				return rc;
-> +			}
->  		}
->  	}
-> 
+> +	/* Initialize domains for the platform */
+> +	rc = sbi_platform_domains_init(plat);
+> +	if (rc) {
+> +		sbi_printf("%s: platform domains_init() failed (error %d)\n",
+> +			   __func__, rc);
+> +		return rc;
+> +	}
+> +
+>  	/* Discover domains */
+>  	for (i = 0; i < SBI_HARTMASK_MAX_BITS; i++) {
+>  		/* Ignore invalid HART */
 > --
 > 2.25.1
 
