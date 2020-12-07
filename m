@@ -1,82 +1,53 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 5 Dec 2020 09:51:55 +0000
-Subject: [PATCH v2 11/11] platform: generic: Populate domains from FDT
-In-Reply-To: <20201204155224.733188-12-anup.patel@wdc.com>
-References: <20201204155224.733188-1-anup.patel@wdc.com>
- <20201204155224.733188-12-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB620107DAB896ABA7000671758DF00@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Vijai Kumar K <vijai@behindbytes.com>
+Date: Mon,  7 Dec 2020 22:24:16 +0530
+Subject: [PATCH] lib: utils: Fix shakti uart implementation
+Message-ID: <20201207165416.7279-1-vijai@behindbytes.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Fix uart_putc implementation.
+Due to a bug in the IP, this went unnoticed.
+Use macros instead of magic numbers to make the code
+more readable.
 
+Signed-off-by: Vijai Kumar K <vijai@behindbytes.com>
+---
+ lib/utils/serial/shakti-uart.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-> -----Original Message-----
-> From: Anup Patel <Anup.Patel@wdc.com>
-> Sent: 04 December 2020 21:22
-> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>
-> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
-> Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2 11/11] platform: generic: Populate domains from FDT
-> 
-> The generic platform should populate domains from FDT using the domain
-> FDT helper routines.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  platform/generic/platform.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c index
-> abb696a..6c93a51 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -13,6 +13,7 @@
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi/sbi_platform.h>
->  #include <sbi/sbi_string.h>
-> +#include <sbi_utils/fdt/fdt_domain.h>
->  #include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/irqchip/fdt_irqchip.h> @@ -148,6 +149,7 @@ static int
-> generic_final_init(bool cold_boot)
-> 
->  	fdt_cpu_fixup(fdt);
->  	fdt_fixups(fdt);
-> +	fdt_domain_fixup(fdt);
-> 
->  	if (generic_plat && generic_plat->fdt_fixup) {
->  		rc = generic_plat->fdt_fixup(fdt, generic_plat_match); @@ -
-> 170,6 +172,11 @@ static void generic_final_exit(void)
->  		generic_plat->final_exit(generic_plat_match);
->  }
-> 
-> +static int generic_domains_init(void)
-> +{
-> +	return fdt_domains_populate(sbi_scratch_thishart_arg1_ptr());
-> +}
-> +
->  static u64 generic_tlbr_flush_limit(void)  {
->  	if (generic_plat && generic_plat->tlbr_flush_limit) @@ -202,6 +209,8
-> @@ const struct sbi_platform_operations platform_ops = {
->  	.final_init		= generic_final_init,
->  	.early_exit		= generic_early_exit,
->  	.final_exit		= generic_final_exit,
-> +	.domains_init		= generic_domains_init,
-> +	.domain_get		= fdt_domain_get,
->  	.console_putc		= fdt_serial_putc,
->  	.console_getc		= fdt_serial_getc,
->  	.console_init		= fdt_serial_init,
-> --
-> 2.25.1
+diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+index 493edcf..b2deb70 100644
+--- a/lib/utils/serial/shakti-uart.c
++++ b/lib/utils/serial/shakti-uart.c
+@@ -18,18 +18,21 @@
+ #define REG_IQ_CYCLES	0x1C
+ #define REG_RX_THRES	0x20
+ 
++#define UART_TX_FULL  0x2
++#define UART_RX_FULL  0x8
++
+ static volatile void *uart_base;
+ 
+ void shakti_uart_putc(char ch)
+ {
+-	while((readw(uart_base + REG_STATUS) & 0x2) == 0);
++	while((readw(uart_base + REG_STATUS) & UART_TX_FULL));
+ 	writeb(ch, uart_base + REG_TX);
+ }
+ 
+ int shakti_uart_getc(void)
+ {
+ 	u16 status = readw(uart_base + REG_STATUS);
+-	if (status & 0x8)
++	if (status & UART_RX_FULL)
+ 		return readb(uart_base + REG_RX);
+ 	return -1;
+ }
+-- 
+2.25.1
 
-Applied this patch to the riscv/opensbi repo.
-
-Regards,
-Anup
 
 
