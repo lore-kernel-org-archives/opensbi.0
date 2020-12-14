@@ -1,355 +1,129 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 14 Dec 2020 10:14:28 +0530
-Subject: [PATCH 1/4] lib: utils: Allow FDT domain iteration functions to fail
+Date: Mon, 14 Dec 2020 10:14:29 +0530
+Subject: [PATCH 2/4] lib: sbi: Add function to register new domain
 In-Reply-To: <20201214044431.76677-1-anup.patel@wdc.com>
 References: <20201214044431.76677-1-anup.patel@wdc.com>
-Message-ID: <20201214044431.76677-2-anup.patel@wdc.com>
+Message-ID: <20201214044431.76677-3-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We extend fdt_iterate_each_domain() and fdt_iterate_each_memregion()
-functions to allow underlying iteration function to fail. This will
-help us catch more domain misconfiguration issues at boot time.
+We add sbi_domain_register() function to help platform code register
+a new domain explicitly instead of depending on domain_get() platform
+callback. This function will eventually help us completely remove the
+domain_get() platform callback.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi_utils/fdt/fdt_domain.h |  18 +++--
- lib/utils/fdt/fdt_domain.c         | 115 +++++++++++++++++------------
- 2 files changed, 79 insertions(+), 54 deletions(-)
+ include/sbi/sbi_domain.h | 10 ++++++
+ lib/sbi/sbi_domain.c     | 71 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+)
 
-diff --git a/include/sbi_utils/fdt/fdt_domain.h b/include/sbi_utils/fdt/fdt_domain.h
-index 3c02d56..68daacc 100644
---- a/include/sbi_utils/fdt/fdt_domain.h
-+++ b/include/sbi_utils/fdt/fdt_domain.h
-@@ -21,10 +21,12 @@ struct sbi_domain;
-  * @param fdt device tree blob
-  * @param opaque private pointer for each iteration
-  * @param fn callback function for each iteration
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index a7cb61e..1f8b942 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -146,6 +146,16 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
+ /** Dump all domain details on the console */
+ void sbi_domain_dump_all(const char *suffix);
+ 
++/**
++ * Register a new domain
++ * @param dom pointer to domain
++ * @param assign_mask pointer to HART mask of HARTs assigned to the domain
 + *
 + * @return 0 on success and negative error code on failure
-  */
--void fdt_iterate_each_domain(void *fdt, void *opaque,
--			     void (*fn)(void *fdt, int domain_offset,
--					void *opaque));
-+int fdt_iterate_each_domain(void *fdt, void *opaque,
-+			    int (*fn)(void *fdt, int domain_offset,
-+				      void *opaque));
++ */
++int sbi_domain_register(struct sbi_domain *dom,
++			const struct sbi_hartmask *assign_mask);
++
+ /** Finalize domain tables and startup non-root domains */
+ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid);
  
- /**
-  * Iterate over each memregion of a domain in device tree
-@@ -33,11 +35,13 @@ void fdt_iterate_each_domain(void *fdt, void *opaque,
-  * @param domain_offset domain DT node offset
-  * @param opaque private pointer for each iteration
-  * @param fn callback function for each iteration
-+ *
-+ * @return 0 on success and negative error code on failure
-  */
--void fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
--				void (*fn)(void *fdt, int domain_offset,
--					   int region_offset, u32 region_access,
--					   void *opaque));
-+int fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
-+			       int (*fn)(void *fdt, int domain_offset,
-+					 int region_offset, u32 region_access,
-+					 void *opaque));
- 
- /**
-  * Fix up the domain configuration in the device tree
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 972a1f4..0352af5 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -16,66 +16,74 @@
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- 
--void fdt_iterate_each_domain(void *fdt, void *opaque,
--			     void (*fn)(void *fdt, int domain_offset,
--					void *opaque))
-+int fdt_iterate_each_domain(void *fdt, void *opaque,
-+			    int (*fn)(void *fdt, int domain_offset,
-+				       void *opaque))
- {
--	int doffset, poffset;
-+	int rc, doffset, poffset;
- 
- 	if (!fdt || !fn)
--		return;
-+		return SBI_EINVAL;
- 
- 	poffset = fdt_path_offset(fdt, "/chosen");
- 	if (poffset < 0)
--		return;
-+		return 0;
- 	poffset = fdt_node_offset_by_compatible(fdt, poffset,
- 						"opensbi,domain,config");
- 	if (poffset < 0)
--		return;
-+		return 0;
- 
- 	fdt_for_each_subnode(doffset, fdt, poffset) {
- 		if (fdt_node_check_compatible(fdt, doffset,
- 					      "opensbi,domain,instance"))
- 			continue;
- 
--		fn(fdt, doffset, opaque);
-+		rc = fn(fdt, doffset, opaque);
-+		if (rc)
-+			return rc;
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 1a3651b..d22fb90 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -367,6 +367,77 @@ void sbi_domain_dump_all(const char *suffix)
  	}
+ }
+ 
++int sbi_domain_register(struct sbi_domain *dom,
++			const struct sbi_hartmask *assign_mask)
++{
++	u32 i;
++	int rc;
++	struct sbi_domain *tdom;
++	u32 cold_hartid = current_hartid();
++	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
 +
-+	return 0;
- }
- 
--void fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
--				void (*fn)(void *fdt, int domain_offset,
--					   int region_offset, u32 region_access,
--					   void *opaque))
-+int fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
-+			       int (*fn)(void *fdt, int domain_offset,
-+					 int region_offset, u32 region_access,
-+					 void *opaque))
- {
- 	u32 i, rcount;
--	int len, region_offset;
-+	int rc, len, region_offset;
- 	const u32 *regions;
- 
- 	if (!fdt || (domain_offset < 0) || !fn)
--		return;
++	if (!dom || !assign_mask)
 +		return SBI_EINVAL;
- 
- 	if (fdt_node_check_compatible(fdt, domain_offset,
- 				      "opensbi,domain,instance"))
--		return;
-+		return SBI_EINVAL;
- 
- 	regions = fdt_getprop(fdt, domain_offset, "regions", &len);
- 	if (!regions)
--		return;
-+		return 0;
- 
- 	rcount = (u32)len / (sizeof(u32) * 2);
- 	for (i = 0; i < rcount; i++) {
- 		region_offset = fdt_node_offset_by_phandle(fdt,
- 						fdt32_to_cpu(regions[2 * i]));
- 		if (region_offset < 0)
--			continue;
-+			return region_offset;
- 
- 		if (fdt_node_check_compatible(fdt, region_offset,
- 					      "opensbi,domain,memregion"))
--			continue;
-+			return SBI_EINVAL;
- 
--		fn(fdt, domain_offset, region_offset,
--		   fdt32_to_cpu(regions[(2 * i) + 1]), opaque);
-+		rc = fn(fdt, domain_offset, region_offset,
-+			fdt32_to_cpu(regions[(2 * i) + 1]), opaque);
-+		if (rc)
-+			return rc;
- 	}
 +
-+	return 0;
- }
- 
- struct __fixup_find_domain_offset_info {
-@@ -83,57 +91,61 @@ struct __fixup_find_domain_offset_info {
- 	int *doffset;
- };
- 
--static void __fixup_find_domain_offset(void *fdt, int doff, void *p)
-+static int __fixup_find_domain_offset(void *fdt, int doff, void *p)
- {
- 	struct __fixup_find_domain_offset_info *fdo = p;
- 
--	if (sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
--		return;
-+	if (!sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
-+		*fdo->doffset = doff;
- 
--	*fdo->doffset = doff;
-+	return 0;
- }
- 
- #define DISABLE_DEVICES_MASK	(SBI_DOMAIN_MEMREGION_READABLE | \
- 				 SBI_DOMAIN_MEMREGION_WRITEABLE | \
- 				 SBI_DOMAIN_MEMREGION_EXECUTABLE)
- 
--static void __fixup_count_disable_devices(void *fdt, int doff, int roff,
--					  u32 perm, void *p)
-+static int __fixup_count_disable_devices(void *fdt, int doff, int roff,
-+					 u32 perm, void *p)
- {
- 	int len;
- 	u32 *dcount = p;
- 
- 	if (perm & DISABLE_DEVICES_MASK)
--		return;
-+		return 0;
- 
- 	len = 0;
- 	if (fdt_getprop(fdt, roff, "devices", &len))
- 		*dcount += len / sizeof(u32);
++	/* Check if domain already discovered */
++	sbi_domain_for_each(i, tdom) {
++		if (tdom == dom)
++			return SBI_EALREADY;
++	}
 +
-+	return 0;
- }
- 
--static void __fixup_disable_devices(void *fdt, int doff, int roff,
--				    u32 raccess, void *p)
-+static int __fixup_disable_devices(void *fdt, int doff, int roff,
-+				   u32 raccess, void *p)
- {
- 	int i, len, coff;
- 	const u32 *devices;
- 
- 	if (raccess & DISABLE_DEVICES_MASK)
--		return;
-+		return 0;
- 
- 	len = 0;
- 	devices = fdt_getprop(fdt, roff, "devices", &len);
- 	if (!devices)
--		return;
-+		return 0;
- 	len = len / sizeof(u32);
- 
- 	for (i = 0; i < len; i++) {
- 		coff = fdt_node_offset_by_phandle(fdt,
- 					fdt32_to_cpu(devices[i]));
- 		if (coff < 0)
--			continue;
-+			return coff;
- 
- 		fdt_setprop_string(fdt, coff, "status", "disabled");
- 	}
++	/*
++	 * Ensure that we have room for Domain Index to
++	 * HART ID mapping
++	 */
++	if (SBI_DOMAIN_MAX_INDEX <= domain_count) {
++		sbi_printf("%s: No room for %s\n",
++			   __func__, dom->name);
++		return SBI_ENOSPC;
++	}
 +
-+	return 0;
- }
- 
- void fdt_domain_fixup(void *fdt)
-@@ -221,9 +233,9 @@ struct sbi_domain *fdt_domain_get(u32 hartid)
- 	return fdt_hartid_to_domain[hartid];
- }
- 
--static void __fdt_parse_region(void *fdt, int domain_offset,
--			       int region_offset, u32 region_access,
--			       void *opaque)
-+static int __fdt_parse_region(void *fdt, int domain_offset,
-+			      int region_offset, u32 region_access,
-+			      void *opaque)
- {
- 	int len;
- 	u32 val32;
-@@ -234,13 +246,13 @@ static void __fdt_parse_region(void *fdt, int domain_offset,
- 
- 	/* Find next region of the domain */
- 	if (FDT_DOMAIN_REGION_MAX_COUNT <= *region_count)
--		return;
-+		return SBI_EINVAL;
- 	region = &fdt_regions[fdt_domains_count][*region_count];
- 
- 	/* Read "base" DT property */
- 	val = fdt_getprop(fdt, region_offset, "base", &len);
- 	if (!val && len >= 8)
--		return;
-+		return SBI_EINVAL;
- 	val64 = fdt32_to_cpu(val[0]);
- 	val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
- 	region->base = val64;
-@@ -248,10 +260,10 @@ static void __fdt_parse_region(void *fdt, int domain_offset,
- 	/* Read "order" DT property */
- 	val = fdt_getprop(fdt, region_offset, "order", &len);
- 	if (!val && len >= 4)
--		return;
-+		return SBI_EINVAL;
- 	val32 = fdt32_to_cpu(*val);
- 	if (val32 < 3 || __riscv_xlen < val32)
--		return;
-+		return SBI_EINVAL;
- 	region->order = val32;
- 
- 	/* Read "mmio" DT property */
-@@ -260,9 +272,11 @@ static void __fdt_parse_region(void *fdt, int domain_offset,
- 		region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
- 
- 	(*region_count)++;
-+
-+	return 0;
- }
- 
--static void __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
-+static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- {
- 	u32 val32;
- 	u64 val64;
-@@ -275,7 +289,7 @@ static void __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 
- 	/* Sanity check on maximum domains we can handle */
- 	if (FDT_DOMAIN_MAX_COUNT <= fdt_domains_count)
--		return;
-+		return SBI_EINVAL;
- 	dom = &fdt_domains[fdt_domains_count];
- 	mask = &fdt_masks[fdt_domains_count];
- 	regions = &fdt_regions[fdt_domains_count][0];
-@@ -295,11 +309,11 @@ static void __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 			cpu_offset = fdt_node_offset_by_phandle(fdt,
- 							fdt32_to_cpu(val[i]));
- 			if (cpu_offset < 0)
--				continue;
-+				return cpu_offset;
- 
- 			err = fdt_parse_hart_id(fdt, cpu_offset, &val32);
- 			if (err)
--				continue;
-+				return err;
- 
- 			sbi_hartmask_set_hart(val32, mask);
- 		}
-@@ -310,8 +324,10 @@ static void __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 	sbi_memset(regions, 0,
- 		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT + 2));
- 	dom->regions = regions;
--	fdt_iterate_each_memregion(fdt, domain_offset, &val32,
--				   __fdt_parse_region);
-+	err = fdt_iterate_each_memregion(fdt, domain_offset, &val32,
-+					 __fdt_parse_region);
-+	if (err)
-+		return err;
- 	sbi_domain_memregion_initfw(&regions[val32]);
- 
- 	/* Read "boot-hart" DT property */
-@@ -374,12 +390,14 @@ static void __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 
- 	/* Increment domains count */
- 	fdt_domains_count++;
-+
-+	return 0;
- }
- 
- int fdt_domains_populate(void *fdt)
- {
- 	const u32 *val;
--	int cold_domain_offset;
-+	int rc, cold_domain_offset;
- 	u32 i, hartid, cold_hartid;
- 	int err, len, cpus_offset, cpu_offset, domain_offset;
- 
-@@ -412,7 +430,10 @@ int fdt_domains_populate(void *fdt)
- 	}
- 
- 	/* Iterate over each domain in FDT and populate details */
--	fdt_iterate_each_domain(fdt, &cold_domain_offset, __fdt_parse_domain);
-+	rc = fdt_iterate_each_domain(fdt, &cold_domain_offset,
-+				     __fdt_parse_domain);
-+	if (rc)
++	/* Sanitize discovered domain */
++	rc = sanitize_domain(plat, dom);
++	if (rc) {
++		sbi_printf("%s: sanity checks failed for"
++			   " %s (error %d)\n", __func__,
++			   dom->name, rc);
 +		return rc;
- 
- 	/* HART to domain assignment based on CPU DT nodes*/
- 	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
++	}
++
++	/* Assign index to domain */
++	dom->index = domain_count++;
++	domidx_to_domain_table[dom->index] = dom;
++
++	/* Clear assigned HARTs of domain */
++	sbi_hartmask_clear_all(&dom->assigned_harts);
++
++	/* Assign domain to HART if HART is a possible HART */
++	sbi_hartmask_for_each_hart(i, assign_mask) {
++		if (!sbi_hartmask_test_hart(i, dom->possible_harts))
++			continue;
++
++		tdom = hartid_to_domain_table[i];
++		if (tdom)
++			sbi_hartmask_clear_hart(i,
++					&tdom->assigned_harts);
++		hartid_to_domain_table[i] = dom;
++		sbi_hartmask_set_hart(i, &dom->assigned_harts);
++
++		/*
++		 * If cold boot HART is assigned to this domain then
++		 * override boot HART of this domain.
++		 */
++		if (i == cold_hartid &&
++		    dom->boot_hartid != cold_hartid) {
++			sbi_printf("Domain%d Boot HARTID forced to"
++				   " %d\n", dom->index, cold_hartid);
++			dom->boot_hartid = cold_hartid;
++		}
++	}
++
++	return 0;
++}
++
+ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ {
+ 	int rc;
 -- 
 2.25.1
 
