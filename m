@@ -1,82 +1,37 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 16 Dec 2020 10:27:59 +0530
-Subject: [PATCH] lib: utils: Fix shakti uart implementation
-In-Reply-To: <1764089509b.8974ff6f44639.1467000852420876777@behindbytes.com>
-References: <20201207165416.7279-1-vijai@behindbytes.com>
- <16EAD3C7-4751-4F66-BBBD-7E91D2ACF459@jrtc27.com>
- <1764089509b.8974ff6f44639.1467000852420876777@behindbytes.com>
-Message-ID: <CAAhSdy1_aCV6kcH8SXBiA75v2_gg=YdNUWZXVSvdR-d-zaGzdw@mail.gmail.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Wed, 16 Dec 2020 17:15:33 +0800
+Subject: OpenSBI fw_dynamic firmware does not boot 32-bit kernel on QEMU 'virt'
+Message-ID: <CAEUhbmX1_3FTO4LwSN37p8itHhsLfUHaJF9qauESEx1E3B1UfA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 8, 2020 at 9:38 AM Vijai Kumar K <vijai@behindbytes.com> wrote:
->
-> Hi Jessica,
->
-> Thank you for reviewing the code. Please see the inline responses.
->
->
-> ---- On Mon, 07 Dec 2020 22:44:06 +0530 Jessica Clarke <jrtc27@jrtc27.com> wrote ----
->
->  > > On 7 Dec 2020, at 16:54, Vijai Kumar K <vijai@behindbytes.com> wrote:
->  > >
->  > > Fix uart_putc implementation.
->  > > Due to a bug in the IP, this went unnoticed.
->  > > Use macros instead of magic numbers to make the code
->  > > more readable.
->  >
->  > Yeah, using macros is good, but this patch isn't doing anything other
->  > than adding macros; there's no change of behaviour? Either you've
->  > missed something or your commit message needs to be fixed.
->
-> If you see we are dropping the "==0" comparison. That UART_TX_FULL
-> bit is set when TX is full. So that comparison is wrong and we are dropping
-> it.
->
->  >
->  > Also see below for a style comment.
->  >
->  > Jess
->  >
->  > > Signed-off-by: Vijai Kumar K <vijai@behindbytes.com>
->  > > ---
->  > > lib/utils/serial/shakti-uart.c | 7 +++++--
->  > > 1 file changed, 5 insertions(+), 2 deletions(-)
->  > >
->  > > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
->  > > index 493edcf..b2deb70 100644
->  > > --- a/lib/utils/serial/shakti-uart.c
->  > > +++ b/lib/utils/serial/shakti-uart.c
->  > > @@ -18,18 +18,21 @@
->  > > #define REG_IQ_CYCLES    0x1C
->  > > #define REG_RX_THRES    0x20
->  > >
->  > > +#define UART_TX_FULL  0x2
->  > > +#define UART_RX_FULL  0x8
->  > > +
->  > > static volatile void *uart_base;
->  > >
->  > > void shakti_uart_putc(char ch)
->  > > {
->  > > -    while((readw(uart_base + REG_STATUS) & 0x2) == 0);
->  > > +    while((readw(uart_base + REG_STATUS) & UART_TX_FULL));
->  >
->  > You should have a space after the while. Also, the existing style is to
->  > put the semicolon on a new line so it's not accidentally overlooked.
->
-> Got it. Will add the space. However, I don't see the style recommendation
-> for putting the semicolon in a new line. Have I overlooked it, or is it
-> just an undocumented practice or a personal taste?
+Hi,
 
-Yes, style documentation is not available yet.
+With latest QEMU HEAD, 32-bit kernel with the following kernel commit
+reverted [1]
 
-We are largely following Linux and U-Boot coding style.
+1bd14a66ee5200d6a24419cbd2e0a0fccd4da36f ("RISC-V: Remove any memblock
+representing unusable memory area")
 
-I will wait for your revised patch.
+still does not boot on QEMU 'virt'. However explicitly specifying
+-bios to use the fw_jump firmware will allow the kernel to boot.
+
+When QEMU switched OpenSBI from fw_jump to fw_dynamic during the 5.2.0
+development cycle, I remember at that time I tested this on 32-bit
+machine for both 'virt' and 'sifive_u'. See the following commit
+message as it indicated 32-bit testing.
+
+2cacd8414daf6a0643926392f05fd397ed1e9b66 "hw/riscv: Use pre-built bios
+image of generic platform for virt & sifive_u"
+
+I don't have too much time to do the debugging. I hope someone could
+pick this up and identify where the problem is.
+
+[1] http://lists.infradead.org/pipermail/linux-riscv/2020-December/003925.html
 
 Regards,
-Anup
+Bin
 
