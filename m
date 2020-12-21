@@ -1,44 +1,45 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 21 Dec 2020 09:35:23 +0530
-Subject: [PATCH] lib: sbi: Fix sign-extension in
+From: Anup Patel <anup.patel@wdc.com>
+Date: Mon, 21 Dec 2020 09:55:30 +0530
+Subject: [PATCH v2] lib: sbi: Fix sign-extension in
  sbi_misaligned_load_handler()
-In-Reply-To: <059D0B43-BF1F-41B4-B0AF-468AC400059D@jrtc27.com>
-References: <20201220041737.4113-1-anup.patel@wdc.com>
- <B5BC4C34-F6F9-436A-ABA7-151098881DEE@jrtc27.com>
- <059D0B43-BF1F-41B4-B0AF-468AC400059D@jrtc27.com>
-Message-ID: <CAAhSdy2CWriVu7WoCVAHQKHU-tqT+mSzsVMCm9VYtwczS=J72w@mail.gmail.com>
+Message-ID: <20201221042530.31523-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Dec 20, 2020 at 10:02 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> > On 20 Dec 2020, at 04:26, Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> >> --- a/lib/sbi/sbi_misaligned_ldst.c
-> >> +++ b/lib/sbi/sbi_misaligned_ldst.c
-> >> @@ -128,7 +128,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> >>      }
-> >>
-> >>      if (!fp)
-> >> -            SET_RD(insn, regs, val.data_ulong << shift >> shift);
-> >> +            SET_RD(insn, regs, (long)val.data_ulong << shift >> shift);
-> >
-> > Left-shifting is undefined behaviour if it sets the sign bit, so a
-> > standards-conforming C compiler is free to ignore the cast entirely
-> > and assume the intermediate left-shifted value is non-negative.
->
-> i.e. do the left shift and then cast, which reduces it (the cast, and
-> right-shifting a potentially-negative number) to implementation-defined
-> behaviour (that is two's complement arithmetic in the context of RISC-V
-> compilers, as desired).
+The misaligned load emulation does not sign-extend values correctly
+due to missing sign typecast in value passed to the SET_RD() macro.
 
-Sure, I will update.
+A very easy way to reproduce this issue is to load 16-bit value
+0xff1e from a byte aligned address using LH instruction on hardware
+lacking misaligned load/store.
 
-Anyways we need braces to make this more readable.
+This patch fixes sbi_misaligned_load_handler() for above issue.
 
-Regards,
-Anup
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+Changes since v1:
+ - Cast after left-shift and use braces.
+---
+ lib/sbi/sbi_misaligned_ldst.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+index 964a372..5057cb5 100644
+--- a/lib/sbi/sbi_misaligned_ldst.c
++++ b/lib/sbi/sbi_misaligned_ldst.c
+@@ -128,7 +128,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 	}
+ 
+ 	if (!fp)
+-		SET_RD(insn, regs, val.data_ulong << shift >> shift);
++		SET_RD(insn, regs, ((long)(val.data_ulong << shift)) >> shift);
+ #ifdef __riscv_flen
+ 	else if (len == 8)
+ 		SET_F64_RD(insn, regs, val.data_u64);
+-- 
+2.25.1
+
 
