@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 7 Jan 2021 04:32:45 +0000
-Subject: [PATCH 2/3] lib: sbi: Introduce sbi_trap_exit() API
-In-Reply-To: <CAOnJCULMar6X_nfOkPd6LSDF_uDYAuQV0Nh7VChj-xbtdbxjkA@mail.gmail.com>
+Date: Thu, 7 Jan 2021 04:33:13 +0000
+Subject: [PATCH 3/3] lib: sbi: Allow custom local TLB flush function
+In-Reply-To: <CAOnJCU+w8GT0K5BVup-+u_=7UjZv0rwYHOC5ogcfJ7tq4YOk6g@mail.gmail.com>
 References: <20201230033304.295706-1-anup.patel@wdc.com>
- <20201230033304.295706-3-anup.patel@wdc.com>
- <CAOnJCULMar6X_nfOkPd6LSDF_uDYAuQV0Nh7VChj-xbtdbxjkA@mail.gmail.com>
-Message-ID: <DM6PR04MB6201635A1AD04A1BE17B7E248DAF0@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20201230033304.295706-4-anup.patel@wdc.com>
+ <CAOnJCU+w8GT0K5BVup-+u_=7UjZv0rwYHOC5ogcfJ7tq4YOk6g@mail.gmail.com>
+Message-ID: <DM6PR04MB6201E14B00374637A29ACC9C8DAF0@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,193 +16,322 @@ Content-Transfer-Encoding: 7bit
 
 > -----Original Message-----
 > From: Atish Patra <atishp@atishpatra.org>
-> Sent: 06 January 2021 08:27
+> Sent: 06 January 2021 08:12
 > To: Anup Patel <Anup.Patel@wdc.com>
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
 > <Alistair.Francis@wdc.com>; Anup Patel <anup@brainfault.org>; OpenSBI
 > <opensbi@lists.infradead.org>
-> Subject: Re: [PATCH 2/3] lib: sbi: Introduce sbi_trap_exit() API
+> Subject: Re: [PATCH 3/3] lib: sbi: Allow custom local TLB flush function
 > 
-> On Tue, Dec 29, 2020 at 7:33 PM Anup Patel <anup.patel@wdc.com> wrote:
+> On Tue, Dec 29, 2020 at 7:34 PM Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > We introduce sbi_trap_exit() API which can help non-firmware (i.e.
-> > generic or platform) code to force exit trap/interrupt handling and
-> > resume execution at context pointed by parameter "const struct
-> > sbi_trap_regs *regs".
+> > Currently, we have fixed TLB flush types supported by the remote TLB
+> > library. This approach is not flexible and does not allow custom local
+> > TLB flush function. For example, after updating PMP entries on a set
+> > of HARTs at runtime, we have to flush TLB on these HARTs as well.
 > >
-> > This new sbi_trap_exit() API will help Keystone Enclave project to
-> > resume execution of enclave from custom SBI call handler.
+> > To support custom local TLB flush function, we replace the "type"
+> > field of "struct sbi_tlb_info" with a local TLB flush function
+> > pointer. We also provide definitions of standard TLB flush operations
+> > (such as fence_i, sfence.vma, hfence.vvma, hfence.gvma, etc).
 > >
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > > ---
-> >  firmware/fw_base.S        | 43
-> +++++++++++++++++++++++++++++++++++++++
-> >  include/sbi/sbi_scratch.h | 10 ++++++---
-> >  include/sbi/sbi_trap.h    |  2 ++
-> >  lib/sbi/sbi_trap.c        | 20 ++++++++++++++++++
-> >  4 files changed, 72 insertions(+), 3 deletions(-)
+> >  include/sbi/sbi_tlb.h       | 24 +++++++--------
+> >  lib/sbi/sbi_ecall_legacy.c  |  9 ++++--  lib/sbi/sbi_ecall_replace.c
+> > | 16 +++++-----
+> >  lib/sbi/sbi_tlb.c           | 59 +++++++++++--------------------------
+> >  4 files changed, 44 insertions(+), 64 deletions(-)
 > >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S index
-> > fb504e8..ab33e11 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -261,6 +261,9 @@ _scratch_init:
-> >         /* Store hartid-to-scratch function address in scratch space */
-> >         la      a4, _hartid_to_scratch
-> >         REG_S   a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
-> > +       /* Store trap-exit function address in scratch space */
-> > +       la      a4, _trap_exit
-> > +       REG_S   a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(tp)
-> >         /* Clear tmp0 in scratch space */
-> >         REG_S   zero, SBI_SCRATCH_TMP0_OFFSET(tp)
-> >         /* Store firmware options in scratch space */ @@ -423,6
-> > +426,18 @@ _skip_trap_handler_rv32_hyp:
-> >  #endif
-> >         csrw    CSR_MTVEC, a4
+> > diff --git a/include/sbi/sbi_tlb.h b/include/sbi/sbi_tlb.h index
+> > 6ee64a9..48f1962 100644
+> > --- a/include/sbi/sbi_tlb.h
+> > +++ b/include/sbi/sbi_tlb.h
+> > @@ -22,16 +22,6 @@
 > >
-> > +#if __riscv_xlen == 32
-> > +       /* Override trap exit for H-extension */
-> > +       csrr    a5, CSR_MISA
-> > +       srli    a5, a5, ('H' - 'A')
-> > +       andi    a5, a5, 0x1
-> > +       beq     a5, zero, _skip_trap_exit_rv32_hyp
-> > +       la      a4, _trap_exit_rv32_hyp
-> > +       csrr    a5, CSR_MSCRATCH
-> > +       REG_S   a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
-> > +_skip_trap_exit_rv32_hyp:
-> > +#endif
-> > +
-> >         /* Initialize SBI runtime */
-> >         csrr    a0, CSR_MSCRATCH
-> >         call    sbi_init
-> > @@ -653,6 +668,20 @@ _trap_handler:
+> >  #define SBI_TLB_FIFO_NUM_ENTRIES               8
 > >
-> >         mret
+> > -enum sbi_tlb_info_types {
+> > -       SBI_TLB_FLUSH_VMA,
+> > -       SBI_TLB_FLUSH_VMA_ASID,
+> > -       SBI_TLB_FLUSH_GVMA,
+> > -       SBI_TLB_FLUSH_GVMA_VMID,
+> > -       SBI_TLB_FLUSH_VVMA,
+> > -       SBI_TLB_FLUSH_VVMA_ASID,
+> > -       SBI_ITLB_FLUSH
+> > -};
+> > -
+> >  struct sbi_scratch;
 > >
-> > +       .section .entry, "ax", %progbits
-> > +       .align 3
-> > +       .globl _trap_exit
-> > +_trap_exit:
-> > +       add     sp, a0, zero
-> > +
-> > +       TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-> > +
-> > +       TRAP_RESTORE_MEPC_MSTATUS 0
-> > +
-> > +       TRAP_RESTORE_SP_T0
-> > +
-> > +       mret
-> > +
-> >  #if __riscv_xlen == 32
-> >         .section .entry, "ax", %progbits
-> >         .align 3
-> > @@ -673,6 +702,20 @@ _trap_handler_rv32_hyp:
-> >         TRAP_RESTORE_SP_T0
+> >  struct sbi_tlb_info {
+> > @@ -39,17 +29,25 @@ struct sbi_tlb_info {
+> >         unsigned long size;
+> >         unsigned long asid;
+> >         unsigned long vmid;
+> > -       unsigned long type;
+> > +       void (*local_fn)(struct sbi_tlb_info *tinfo);
+> >         struct sbi_hartmask smask;
+> >  };
 > >
-> >         mret
+> > -#define SBI_TLB_INFO_INIT(__p, __start, __size, __asid, __vmid,
+> > __type, __src) \
+> > +void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo); void
+> > +sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo); void
+> > +sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo); void
+> > +sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo); void
+> > +sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo); void
+> > +sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo); void
+> > +sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo);
 > > +
-> > +       .section .entry, "ax", %progbits
-> > +       .align 3
-> > +       .globl _trap_exit_rv32_hyp
-> > +_trap_exit_rv32_hyp:
-> > +       add     sp, a0, zero
-> > +
-> > +       TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-> > +
-> > +       TRAP_RESTORE_MEPC_MSTATUS 1
-> > +
-> > +       TRAP_RESTORE_SP_T0
-> > +
-> > +       mret
-> >  #endif
+> > +#define SBI_TLB_INFO_INIT(__p, __start, __size, __asid, __vmid,
+> > +__lfn, __src) \
+> >  do { \
+> >         (__p)->start = (__start); \
+> >         (__p)->size = (__size); \
+> >         (__p)->asid = (__asid); \
+> >         (__p)->vmid = (__vmid); \
+> > -       (__p)->type = (__type); \
+> > +       (__p)->local_fn = (__lfn); \
+> >         SBI_HARTMASK_INIT_EXCEPT(&(__p)->smask, (__src)); \  } while
+> > (0)
 > >
-> >         .section .entry, "ax", %progbits diff --git
-> > a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h index
-> > 9f3453d..e7079f5 100644
-> > --- a/include/sbi/sbi_scratch.h
-> > +++ b/include/sbi/sbi_scratch.h
-> > @@ -30,12 +30,14 @@
-> >  #define SBI_SCRATCH_PLATFORM_ADDR_OFFSET       (6 *
-> __SIZEOF_POINTER__)
-> >  /** Offset of hartid_to_scratch member in sbi_scratch */
-> >  #define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET   (7 *
-> __SIZEOF_POINTER__)
-> > +/** Offset of trap_exit member in sbi_scratch */
-> > +#define SBI_SCRATCH_TRAP_EXIT_OFFSET           (8 *
-> __SIZEOF_POINTER__)
-> >  /** Offset of tmp0 member in sbi_scratch */
-> > -#define SBI_SCRATCH_TMP0_OFFSET                        (8 *
-> __SIZEOF_POINTER__)
-> > +#define SBI_SCRATCH_TMP0_OFFSET                        (9 *
-> __SIZEOF_POINTER__)
-> >  /** Offset of options member in sbi_scratch */
-> > -#define SBI_SCRATCH_OPTIONS_OFFSET             (9 *
-> __SIZEOF_POINTER__)
-> > +#define SBI_SCRATCH_OPTIONS_OFFSET             (10 *
-> __SIZEOF_POINTER__)
-> >  /** Offset of extra space in sbi_scratch */
-> > -#define SBI_SCRATCH_EXTRA_SPACE_OFFSET         (10 *
-> __SIZEOF_POINTER__)
-> > +#define SBI_SCRATCH_EXTRA_SPACE_OFFSET         (11 *
-> __SIZEOF_POINTER__)
-> >  /** Maximum size of sbi_scratch (4KB) */
-> >  #define SBI_SCRATCH_SIZE                       (0x1000)
+> > diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
+> > index 8afeb00..1a7fe26 100644
+> > --- a/lib/sbi/sbi_ecall_legacy.c
+> > +++ b/lib/sbi/sbi_ecall_legacy.c
+> > @@ -80,7 +80,8 @@ static int sbi_ecall_legacy_handler(unsigned long
+> extid, unsigned long funcid,
+> >                                                 &hmask, out_trap);
+> >                 if (ret != SBI_ETRAP) {
+> >                         SBI_TLB_INFO_INIT(&tlb_info, 0, 0, 0, 0,
+> > -                                         SBI_ITLB_FLUSH, source_hart);
+> > +                                         sbi_tlb_local_fence_i,
+> > +                                         source_hart);
+> >                         ret = sbi_tlb_request(hmask, 0, &tlb_info);
+> >                 }
+> >                 break;
+> > @@ -89,7 +90,8 @@ static int sbi_ecall_legacy_handler(unsigned long
+> extid, unsigned long funcid,
+> >                                                 &hmask, out_trap);
+> >                 if (ret != SBI_ETRAP) {
+> >                         SBI_TLB_INFO_INIT(&tlb_info, regs->a1, regs->a2, 0, 0,
+> > -                                         SBI_TLB_FLUSH_VMA, source_hart);
+> > +                                         sbi_tlb_local_sfence_vma,
+> > +                                         source_hart);
+> >                         ret = sbi_tlb_request(hmask, 0, &tlb_info);
+> >                 }
+> >                 break;
+> > @@ -99,7 +101,8 @@ static int sbi_ecall_legacy_handler(unsigned long
+> extid, unsigned long funcid,
+> >                 if (ret != SBI_ETRAP) {
+> >                         SBI_TLB_INFO_INIT(&tlb_info, regs->a1,
+> >                                           regs->a2, regs->a3, 0,
+> > -                                         SBI_TLB_FLUSH_VMA_ASID, source_hart);
+> > +                                         sbi_tlb_local_sfence_vma_asid,
+> > +                                         source_hart);
+> >                         ret = sbi_tlb_request(hmask, 0, &tlb_info);
+> >                 }
+> >                 break;
+> > diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
+> > index a95821b..a7935d9 100644
+> > --- a/lib/sbi/sbi_ecall_replace.c
+> > +++ b/lib/sbi/sbi_ecall_replace.c
+> > @@ -62,41 +62,43 @@ static int sbi_ecall_rfence_handler(unsigned long
+> extid, unsigned long funcid,
+> >         switch (funcid) {
+> >         case SBI_EXT_RFENCE_REMOTE_FENCE_I:
+> >                 SBI_TLB_INFO_INIT(&tlb_info, 0, 0, 0, 0,
+> > -                                 SBI_ITLB_FLUSH, source_hart);
+> > +                                 sbi_tlb_local_fence_i, source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         case SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA:
+> >                 SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, 0,
+> > -                                 SBI_TLB_FLUSH_GVMA, source_hart);
+> > +                                 sbi_tlb_local_hfence_gvma,
+> > + source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         case SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA_VMID:
+> >                 SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, regs->a4,
+> > -                                 SBI_TLB_FLUSH_GVMA_VMID, source_hart);
+> > +                                 sbi_tlb_local_hfence_gvma_vmid,
+> > +                                 source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         case SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA:
+> >                 vmid = (csr_read(CSR_HGATP) & HGATP_VMID_MASK);
+> >                 vmid = vmid >> HGATP_VMID_SHIFT;
+> >                 SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, vmid,
+> > -                                 SBI_TLB_FLUSH_VVMA, source_hart);
+> > +                                 sbi_tlb_local_hfence_vvma,
+> > + source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         case SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA_ASID:
+> >                 vmid = (csr_read(CSR_HGATP) & HGATP_VMID_MASK);
+> >                 vmid = vmid >> HGATP_VMID_SHIFT;
+> >                 SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, regs->a4,
+> > -                                 vmid, SBI_TLB_FLUSH_VVMA_ASID, source_hart);
+> > +                                 vmid, sbi_tlb_local_hfence_vvma_asid,
+> > +                                 source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         case SBI_EXT_RFENCE_REMOTE_SFENCE_VMA:
+> >                 SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, 0,
+> > -                                 SBI_TLB_FLUSH_VMA, source_hart);
+> > +                                 sbi_tlb_local_sfence_vma,
+> > + source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         case SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID:
+> >                 SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, regs->a4, 0,
+> > -                                 SBI_TLB_FLUSH_VMA_ASID, source_hart);
+> > +                                 sbi_tlb_local_sfence_vma_asid,
+> > + source_hart);
+> >                 ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
+> >                 break;
+> >         default:
+> > diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c index
+> > c8e62cd..73f59e8 100644
+> > --- a/lib/sbi/sbi_tlb.c
+> > +++ b/lib/sbi/sbi_tlb.c
+> > @@ -32,7 +32,7 @@ static void sbi_tlb_flush_all(void)
+> >         __asm__ __volatile("sfence.vma");  }
 > >
-> > @@ -63,6 +65,8 @@ struct sbi_scratch {
-> >         unsigned long platform_addr;
-> >         /** Address of HART ID to sbi_scratch conversion function */
-> >         unsigned long hartid_to_scratch;
-> > +       /** Address of trap exit function */
-> > +       unsigned long trap_exit;
-> >         /** Temporary storage */
-> >         unsigned long tmp0;
-> >         /** Options for OpenSBI library */ diff --git
-> > a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h index
-> > 5d0962f..04001df 100644
-> > --- a/include/sbi/sbi_trap.h
-> > +++ b/include/sbi/sbi_trap.h
-> > @@ -207,6 +207,8 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> > -static void sbi_tlb_hfence_vvma(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo)
+> >  {
+> >         unsigned long start = tinfo->start;
+> >         unsigned long size  = tinfo->size; @@ -55,7 +55,7 @@ done:
+> >         csr_write(CSR_HGATP, hgatp);
+> >  }
 > >
-> >  void sbi_trap_handler(struct sbi_trap_regs *regs);
+> > -static void sbi_tlb_hfence_gvma(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
+> >  {
+> >         unsigned long start = tinfo->start;
+> >         unsigned long size  = tinfo->size; @@ -71,7 +71,7 @@ static
+> > void sbi_tlb_hfence_gvma(struct sbi_tlb_info *tinfo)
+> >         }
+> >  }
 > >
-> > +void __noreturn sbi_trap_exit(const struct sbi_trap_regs *regs);
+> > -static void sbi_tlb_sfence_vma(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo)
+> >  {
+> >         unsigned long start = tinfo->start;
+> >         unsigned long size  = tinfo->size; @@ -90,7 +90,7 @@ static
+> > void sbi_tlb_sfence_vma(struct sbi_tlb_info *tinfo)
+> >         }
+> >  }
+> >
+> > -static void sbi_tlb_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
+> >  {
+> >         unsigned long start = tinfo->start;
+> >         unsigned long size  = tinfo->size; @@ -119,7 +119,7 @@ done:
+> >         csr_write(CSR_HGATP, hgatp);
+> >  }
+> >
+> > -static void sbi_tlb_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+> >  {
+> >         unsigned long start = tinfo->start;
+> >         unsigned long size  = tinfo->size; @@ -141,7 +141,7 @@ static
+> > void sbi_tlb_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+> >         }
+> >  }
+> >
+> > -static void sbi_tlb_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+> >  {
+> >         unsigned long start = tinfo->start;
+> >         unsigned long size  = tinfo->size; @@ -170,35 +170,9 @@ static
+> > void sbi_tlb_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+> >         }
+> >  }
+> >
+> > -static void sbi_tlb_local_flush(struct sbi_tlb_info *tinfo)
+> > +void sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo)
+> >  {
+> > -       switch (tinfo->type) {
+> > -       case SBI_TLB_FLUSH_VMA:
+> > -               sbi_tlb_sfence_vma(tinfo);
+> > -               break;
+> > -       case SBI_TLB_FLUSH_VMA_ASID:
+> > -               sbi_tlb_sfence_vma_asid(tinfo);
+> > -               break;
+> > -       case SBI_TLB_FLUSH_GVMA:
+> > -               sbi_tlb_hfence_gvma(tinfo);
+> > -               break;
+> > -       case SBI_TLB_FLUSH_GVMA_VMID:
+> > -               sbi_tlb_hfence_gvma_vmid(tinfo);
+> > -               break;
+> > -       case SBI_TLB_FLUSH_VVMA:
+> > -               sbi_tlb_hfence_vvma(tinfo);
+> > -               break;
+> > -       case SBI_TLB_FLUSH_VVMA_ASID:
+> > -               sbi_tlb_hfence_vvma_asid(tinfo);
+> > -               break;
+> > -       case SBI_ITLB_FLUSH:
+> > -               __asm__ __volatile("fence.i");
+> > -               break;
+> > -       default:
+> > -               sbi_printf("Invalid tlb flush request type [%lu]\n",
+> > -                          tinfo->type);
+> > -       }
+> > -       return;
+> > +       __asm__ __volatile("fence.i");
+> >  }
+> >
+> >  static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo) @@
+> > -207,7 +181,7 @@ static void sbi_tlb_entry_process(struct sbi_tlb_info
+> *tinfo)
+> >         struct sbi_scratch *rscratch = NULL;
+> >         unsigned long *rtlb_sync = NULL;
+> >
+> > -       sbi_tlb_local_flush(tinfo);
+> > +       tinfo->local_fn(tinfo);
+> >
+> >         sbi_hartmask_for_each_hart(rhartid, &tinfo->smask) {
+> >                 rscratch = sbi_hartid_to_scratch(rhartid); @@ -316,13
+> > +290,13 @@ static int sbi_tlb_update_cb(void *in, void *data)
+> >         curr = (struct sbi_tlb_info *)data;
+> >         next = (struct sbi_tlb_info *)in;
+> >
+> > -       if (next->type == SBI_TLB_FLUSH_VMA_ASID &&
+> > -           curr->type == SBI_TLB_FLUSH_VMA_ASID) {
+> > +       if (next->local_fn == sbi_tlb_local_sfence_vma_asid &&
+> > +           curr->local_fn == sbi_tlb_local_sfence_vma_asid) {
+> >                 if (next->asid == curr->asid)
+> >                         ret = __sbi_tlb_range_check(curr, next);
+> > -       } else if (next->type == SBI_TLB_FLUSH_VMA &&
+> > -                  curr->type == SBI_TLB_FLUSH_VMA) {
+> > -                       ret = __sbi_tlb_range_check(curr, next);
+> > +       } else if (next->local_fn == sbi_tlb_local_sfence_vma &&
+> > +                  curr->local_fn == sbi_tlb_local_sfence_vma) {
+> > +               ret = __sbi_tlb_range_check(curr, next);
+> >         }
+> >
+> >         return ret;
+> > @@ -352,7 +326,7 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
+> >          * then just do a local flush and return;
+> >          */
+> >         if (remote_hartid == curr_hartid) {
+> > -               sbi_tlb_local_flush(tinfo);
+> > +               tinfo->local_fn(tinfo);
+> >                 return -1;
+> >         }
+> >
+> > @@ -391,6 +365,9 @@ static u32 tlb_event = SBI_IPI_EVENT_MAX;
+> >
+> >  int sbi_tlb_request(ulong hmask, ulong hbase, struct sbi_tlb_info
+> > *tinfo)  {
+> > +       if (!tinfo->local_fn)
+> > +               return SBI_EINVAL;
 > > +
-> >  #endif
+> >         return sbi_ipi_send_many(hmask, hbase, tlb_event, tinfo);  }
 > >
-> >  #endif
-> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c index
-> > db5aa2f..b7349d2 100644
-> > --- a/lib/sbi/sbi_trap.c
-> > +++ b/lib/sbi/sbi_trap.c
-> > @@ -16,6 +16,7 @@
-> >  #include <sbi/sbi_illegal_insn.h>
-> >  #include <sbi/sbi_ipi.h>
-> >  #include <sbi/sbi_misaligned_ldst.h>
-> > +#include <sbi/sbi_scratch.h>
-> >  #include <sbi/sbi_timer.h>
-> >  #include <sbi/sbi_trap.h>
-> >
-> > @@ -271,3 +272,22 @@ trap_error:
-> >         if (rc)
-> >                 sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst,
-> > regs);  }
-> > +
-> > +typedef void (*trap_exit_t)(const struct sbi_trap_regs *regs);
-> > +
-> > +/**
-> > + * Exit trap/interrupt handling
-> > + *
-> > + * This function is called by non-firmware code to abruptly exit
-> > + * trap/interrupt handling and resume execution at context pointed
-> > + * by given register state.
-> > + *
-> > + * @param regs pointer to register state  */ void __noreturn
-> > +sbi_trap_exit(const struct sbi_trap_regs *regs) {
-> > +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > +
-> > +       ((trap_exit_t)scratch->trap_exit)(regs);
-> > +       __builtin_unreachable();
-> > +}
 > > --
 > > 2.25.1
 > >
@@ -212,6 +341,7 @@ Content-Transfer-Encoding: 7bit
 > > opensbi at lists.infradead.org
 > > http://lists.infradead.org/mailman/listinfo/opensbi
 > 
+> Looks good.
 > 
 > Reviewed-by: Atish Patra <atish.patra@wdc.com>
 > 
