@@ -1,79 +1,119 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 7 Jan 2021 04:57:17 +0000
-Subject: [PATCH] lib: utils: Fix shakti uart implementation
-In-Reply-To: <20201207165416.7279-1-vijai@behindbytes.com>
-References: <20201207165416.7279-1-vijai@behindbytes.com>
-Message-ID: <DM6PR04MB6201B845AC1D6633E7D9C8588DAF0@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Fri,  8 Jan 2021 17:31:45 +0530
+Subject: [PATCH] lib: sbi: Allow platforms to provide root domain memory
+ regions
+Message-ID: <20210108120145.602453-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Currently, the root domain memory regions are fixed in generic code
+but some of the platforms may want to explicitly define memory regions
+for the root domain.
 
+This patch adds optional domains_root_regions() platform callback
+which platforms can use to provide platform specific root domain
+memory regions.
 
-> -----Original Message-----
-> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Vijai
-> Kumar K
-> Sent: 07 December 2020 22:24
-> To: opensbi at lists.infradead.org
-> Cc: Vijai Kumar K <vijai@behindbytes.com>
-> Subject: [PATCH] lib: utils: Fix shakti uart implementation
-> 
-> Fix uart_putc implementation.
-> Due to a bug in the IP, this went unnoticed.
-> Use macros instead of magic numbers to make the code more readable.
-> 
-> Signed-off-by: Vijai Kumar K <vijai@behindbytes.com>
-> ---
->  lib/utils/serial/shakti-uart.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c index
-> 493edcf..b2deb70 100644
-> --- a/lib/utils/serial/shakti-uart.c
-> +++ b/lib/utils/serial/shakti-uart.c
-> @@ -18,18 +18,21 @@
->  #define REG_IQ_CYCLES	0x1C
->  #define REG_RX_THRES	0x20
-> 
-> +#define UART_TX_FULL  0x2
-> +#define UART_RX_FULL  0x8
-> +
->  static volatile void *uart_base;
-> 
->  void shakti_uart_putc(char ch)
->  {
-> -	while((readw(uart_base + REG_STATUS) & 0x2) == 0);
-> +	while((readw(uart_base + REG_STATUS) & UART_TX_FULL));
->  	writeb(ch, uart_base + REG_TX);
->  }
-> 
->  int shakti_uart_getc(void)
->  {
->  	u16 status = readw(uart_base + REG_STATUS);
-> -	if (status & 0x8)
-> +	if (status & UART_RX_FULL)
->  		return readb(uart_base + REG_RX);
->  	return -1;
->  }
-> --
-> 2.25.1
-> 
-> 
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ include/sbi/sbi_platform.h | 20 +++++++++++++++++++-
+ lib/sbi/sbi_domain.c       | 16 ++++++++--------
+ 2 files changed, 27 insertions(+), 9 deletions(-)
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 7b8fe89..c252628 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -45,7 +45,7 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_version.h>
+ 
+-struct sbi_domain;
++struct sbi_domain_memregion;
+ struct sbi_trap_info;
+ struct sbi_trap_regs;
+ 
+@@ -92,6 +92,8 @@ struct sbi_platform_operations {
+ 	 */
+ 	int (*misa_get_xlen)(void);
+ 
++	/** Get platform specific root domain memory regions */
++	struct sbi_domain_memregion *(*domains_root_regions)(void);
+ 	/** Initialize (or populate) domains for the platform */
+ 	int (*domains_init)(void);
+ 
+@@ -452,6 +454,22 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
+ 	return -1;
+ }
+ 
++/**
++ * Get platform specific root domain memory regions
++ *
++ * @param plat pointer to struct sbi_platform
++ *
++ * @return an array of memory regions terminated by a region with order zero
++ * or NULL for no memory regions
++ */
++static inline struct sbi_domain_memregion *
++sbi_platform_domains_root_regions(const struct sbi_platform *plat)
++{
++	if (plat && sbi_platform_ops(plat)->domains_root_regions)
++		return sbi_platform_ops(plat)->domains_root_regions();
++	return NULL;
++}
++
+ /**
+  * Initialize (or populate) domains for the platform
+  *
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 6d4c608..195c941 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -496,6 +496,7 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ {
+ 	u32 i;
++	struct sbi_domain_memregion *memregs;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 
+ 	/* Root domain firmware memory region */
+@@ -514,6 +515,11 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	/* Root domain memory region end */
+ 	root_memregs[ROOT_END_REGION].order = 0;
+ 
++	/* Use platform specific root memory regions when available */
++	memregs = sbi_platform_domains_root_regions(plat);
++	if (memregs)
++		root.regions = memregs;
++
+ 	/* Root domain boot HART id is same as coldboot HART id */
+ 	root.boot_hartid = cold_hartid;
+ 
+@@ -522,18 +528,12 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	root.next_addr = scratch->next_addr;
+ 	root.next_mode = scratch->next_mode;
+ 
+-	/* Select root domain for all valid HARTs */
++	/* Root domain possible and assigned HARTs */
+ 	for (i = 0; i < SBI_HARTMASK_MAX_BITS; i++) {
+ 		if (sbi_platform_hart_invalid(plat, i))
+ 			continue;
+ 		sbi_hartmask_set_hart(i, &root_hmask);
+-		hartid_to_domain_table[i] = &root;
+-		sbi_hartmask_set_hart(i, &root.assigned_harts);
+ 	}
+ 
+-	/* Set root domain index */
+-	root.index = domain_count++;
+-	domidx_to_domain_table[root.index] = &root;
+-
+-	return 0;
++	return sbi_domain_register(&root, &root_hmask);
+ }
+-- 
+2.25.1
 
-I have taken care of style comment from Jessica at time of
-applying this patch.
-
-Applied this patch to riscv/opensbi repo.
-
-Thanks,
-Anup
 
