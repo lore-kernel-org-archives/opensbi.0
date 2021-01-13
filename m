@@ -1,57 +1,53 @@
-From: Alistair Francis <Alistair.Francis@wdc.com>
-Date: Wed, 13 Jan 2021 19:44:30 +0000
-Subject: [PATCH 3/3] include: sbi: Don't pack struct sbi_platform and
- sbi_platform_operations
-In-Reply-To: <20210113100657.809754-4-anup.patel@wdc.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Wed, 13 Jan 2021 15:17:44 -0800
+Subject: [PATCH 0/3] Avoid using packed structures
+In-Reply-To: <20210113100657.809754-1-anup.patel@wdc.com>
 References: <20210113100657.809754-1-anup.patel@wdc.com>
- <20210113100657.809754-4-anup.patel@wdc.com>
-Message-ID: <5ab4e3c38fd27d421aff4d99deb5167a38865b17.camel@wdc.com>
+Message-ID: <CAOnJCULk6a9b5i6r=6JxMtB8O==MtZmF+LPtNgRo_gGFDAO=Cw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 2021-01-13 at 15:36 +0530, Anup Patel wrote:
-> We don't need to pack struct sbi_platform and sbi_platform_operations
-> because GCC ensures member offsets match member data type
-> irrespective
-> to the target system (RV32 or RV64). This also allows GCC to generate
-> more optimized instruction sequence when accessing members of struct
-> sbi_platform and struct sbi_platform_operations.
-> 
-> Reported-by: Paul Campbell <taniwha@gmail.com>
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+On Wed, Jan 13, 2021 at 2:07 AM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> Currently, we are using packed structures wherever both C source and
+> assembly source access the structure. This causes GCC to generate
+> sub-optimal instructions when accessing members of packed structure
+> in C sources. As a result, we have bigger firmware binaries with
+> sub-optimal instructions in hot path.
+>
+> This series removes packing of structures wherever possible. Due to
+> this we have small firmware binaries with more optional instructions.
+>
+> These patches can also be found in nopacking_imp_v1 branch at:
+> https://github.com/avpatel/opensbi.git
+>
+> Anup Patel (3):
+>   include: sbi: No need to pack struct sbi_trap_regs
+>   include: sbi: No need to pack struct sbi_scratch
+>   include: sbi: Don't pack struct sbi_platform and
+>     sbi_platform_operations
+>
+>  include/sbi/sbi_platform.h | 4 ++--
+>  include/sbi/sbi_scratch.h  | 2 +-
+>  include/sbi/sbi_trap.h     | 2 +-
+>  3 files changed, 4 insertions(+), 4 deletions(-)
+>
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 
-Alistair
-
-> ---
-> ?include/sbi/sbi_platform.h | 4 ++--
-> ?1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index c252628..cc7e3ff 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -152,7 +152,7 @@ struct sbi_platform_operations {
-> ?????????????????????????????????? const struct sbi_trap_regs *regs,
-> ?????????????????????????????????? unsigned long *out_value,
-> ?????????????????????????????????? struct sbi_trap_info *out_trap);
-> -} __packed;
-> +};
-> ?
-> ?/** Platform default per-HART stack size for exception/interrupt
-> handling */
-> ?#define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE???8192
-> @@ -199,7 +199,7 @@ struct sbi_platform {
-> ???????? * 2. HART id < SBI_HARTMASK_MAX_BITS
-> ???????? */
-> ????????const u32 *hart_index2id;
-> -} __packed;
-> +};
-> ?
-> ?/** Get pointer to sbi_platform for sbi_scratch pointer */
-> ?#define sbi_platform_ptr(__s) \
+For the entire series:
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
+-- 
+Regards,
+Atish
 
