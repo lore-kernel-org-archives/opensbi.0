@@ -1,36 +1,39 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 13 Jan 2021 15:36:54 +0530
-Subject: [PATCH 0/3] Avoid using packed structures
-Message-ID: <20210113100657.809754-1-anup.patel@wdc.com>
+Date: Wed, 13 Jan 2021 15:36:55 +0530
+Subject: [PATCH 1/3] include: sbi: No need to pack struct sbi_trap_regs
+In-Reply-To: <20210113100657.809754-1-anup.patel@wdc.com>
+References: <20210113100657.809754-1-anup.patel@wdc.com>
+Message-ID: <20210113100657.809754-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, we are using packed structures wherever both C source and
-assembly source access the structure. This causes GCC to generate
-sub-optimal instructions when accessing members of packed structure
-in C sources. As a result, we have bigger firmware binaries with
-sub-optimal instructions in hot path.
+All members in struct sbi_trap_regs are of machine word size so
+no need to pack this structure. This also allows GCC to generate
+more optimized instruction sequence when accessing members of
+struct sbi_trap_regs.
 
-This series removes packing of structures wherever possible. Due to
-this we have small firmware binaries with more optional instructions.
+Reported-by: Paul Campbell <taniwha@gmail.com>
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ include/sbi/sbi_trap.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-These patches can also be found in nopacking_imp_v1 branch at:
-https://github.com/avpatel/opensbi.git
-
-Anup Patel (3):
-  include: sbi: No need to pack struct sbi_trap_regs
-  include: sbi: No need to pack struct sbi_scratch
-  include: sbi: Don't pack struct sbi_platform and
-    sbi_platform_operations
-
- include/sbi/sbi_platform.h | 4 ++--
- include/sbi/sbi_scratch.h  | 2 +-
- include/sbi/sbi_trap.h     | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
+diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+index 04001df..5fb94f9 100644
+--- a/include/sbi/sbi_trap.h
++++ b/include/sbi/sbi_trap.h
+@@ -186,7 +186,7 @@ struct sbi_trap_regs {
+ 	unsigned long mstatus;
+ 	/** mstatusH register state (only for 32-bit) */
+ 	unsigned long mstatusH;
+-} __packed;
++};
+ 
+ /** Representation of trap details */
+ struct sbi_trap_info {
 -- 
 2.25.1
 
