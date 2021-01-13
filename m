@@ -1,143 +1,37 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 13 Jan 2021 05:14:35 +0000
-Subject: [PATCH v2] lib: sbi: Allow platforms to provide root domain
- memory regions
-In-Reply-To: <20210112051946.767403-1-anup.patel@wdc.com>
-References: <20210112051946.767403-1-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB6201680E193A11CC486AEEE38DA90@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed, 13 Jan 2021 15:36:54 +0530
+Subject: [PATCH 0/3] Avoid using packed structures
+Message-ID: <20210113100657.809754-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Currently, we are using packed structures wherever both C source and
+assembly source access the structure. This causes GCC to generate
+sub-optimal instructions when accessing members of packed structure
+in C sources. As a result, we have bigger firmware binaries with
+sub-optimal instructions in hot path.
 
+This series removes packing of structures wherever possible. Due to
+this we have small firmware binaries with more optional instructions.
 
-> -----Original Message-----
-> From: Anup Patel <Anup.Patel@wdc.com>
-> Sent: 12 January 2021 10:50
-> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>
-> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
-> Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2] lib: sbi: Allow platforms to provide root domain memory
-> regions
-> 
-> Currently, the root domain memory regions are fixed in generic code but
-> some of the platforms may want to explicitly define memory regions for the
-> root domain.
-> 
-> This patch adds optional domains_root_regions() platform callback which
-> platforms can use to provide platform specific root domain memory regions.
-> Due to this changes, the root domain should also undergo all sanity checks
-> (just like regular domain) so we use
-> sbi_domain_register() to register root domain.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  include/sbi/sbi_platform.h | 20 +++++++++++++++++++-
->  lib/sbi/sbi_domain.c       | 16 ++++++++--------
->  2 files changed, 27 insertions(+), 9 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h index
-> 7b8fe89..c252628 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -45,7 +45,7 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_version.h>
-> 
-> -struct sbi_domain;
-> +struct sbi_domain_memregion;
->  struct sbi_trap_info;
->  struct sbi_trap_regs;
-> 
-> @@ -92,6 +92,8 @@ struct sbi_platform_operations {
->  	 */
->  	int (*misa_get_xlen)(void);
-> 
-> +	/** Get platform specific root domain memory regions */
-> +	struct sbi_domain_memregion *(*domains_root_regions)(void);
->  	/** Initialize (or populate) domains for the platform */
->  	int (*domains_init)(void);
-> 
-> @@ -452,6 +454,22 @@ static inline int sbi_platform_misa_xlen(const struct
-> sbi_platform *plat)
->  	return -1;
->  }
-> 
-> +/**
-> + * Get platform specific root domain memory regions
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + *
-> + * @return an array of memory regions terminated by a region with order
-> +zero
-> + * or NULL for no memory regions
-> + */
-> +static inline struct sbi_domain_memregion *
-> +sbi_platform_domains_root_regions(const struct sbi_platform *plat) {
-> +	if (plat && sbi_platform_ops(plat)->domains_root_regions)
-> +		return sbi_platform_ops(plat)->domains_root_regions();
-> +	return NULL;
-> +}
-> +
->  /**
->   * Initialize (or populate) domains for the platform
->   *
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
-> 6d4c608..195c941 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -496,6 +496,7 @@ int sbi_domain_finalize(struct sbi_scratch *scratch,
-> u32 cold_hartid)  int sbi_domain_init(struct sbi_scratch *scratch, u32
-> cold_hartid)  {
->  	u32 i;
-> +	struct sbi_domain_memregion *memregs;
->  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> 
->  	/* Root domain firmware memory region */ @@ -514,6 +515,11 @@
-> int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->  	/* Root domain memory region end */
->  	root_memregs[ROOT_END_REGION].order = 0;
-> 
-> +	/* Use platform specific root memory regions when available */
-> +	memregs = sbi_platform_domains_root_regions(plat);
-> +	if (memregs)
-> +		root.regions = memregs;
-> +
->  	/* Root domain boot HART id is same as coldboot HART id */
->  	root.boot_hartid = cold_hartid;
-> 
-> @@ -522,18 +528,12 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32
-> cold_hartid)
->  	root.next_addr = scratch->next_addr;
->  	root.next_mode = scratch->next_mode;
-> 
-> -	/* Select root domain for all valid HARTs */
-> +	/* Root domain possible and assigned HARTs */
->  	for (i = 0; i < SBI_HARTMASK_MAX_BITS; i++) {
->  		if (sbi_platform_hart_invalid(plat, i))
->  			continue;
->  		sbi_hartmask_set_hart(i, &root_hmask);
-> -		hartid_to_domain_table[i] = &root;
-> -		sbi_hartmask_set_hart(i, &root.assigned_harts);
->  	}
-> 
-> -	/* Set root domain index */
-> -	root.index = domain_count++;
-> -	domidx_to_domain_table[root.index] = &root;
-> -
-> -	return 0;
-> +	return sbi_domain_register(&root, &root_hmask);
->  }
-> --
-> 2.25.1
+These patches can also be found in nopacking_imp_v1 branch at:
+https://github.com/avpatel/opensbi.git
 
-Applied this patch to the riscv/opensbi repo
+Anup Patel (3):
+  include: sbi: No need to pack struct sbi_trap_regs
+  include: sbi: No need to pack struct sbi_scratch
+  include: sbi: Don't pack struct sbi_platform and
+    sbi_platform_operations
 
-Regards,
-Anup
+ include/sbi/sbi_platform.h | 4 ++--
+ include/sbi/sbi_scratch.h  | 2 +-
+ include/sbi/sbi_trap.h     | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+-- 
+2.25.1
 
 
