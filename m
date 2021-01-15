@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 15 Jan 2021 05:16:04 +0000
-Subject: [PATCH 1/3] include: sbi: No need to pack struct sbi_trap_regs
-In-Reply-To: <fe56588cf8741c7f72c7bca66ac249730f325c92.camel@wdc.com>
+Date: Fri, 15 Jan 2021 05:16:15 +0000
+Subject: [PATCH 2/3] include: sbi: No need to pack struct sbi_scratch
+In-Reply-To: <07d593bd32779db57abd0daa5c8cba707e79137e.camel@wdc.com>
 References: <20210113100657.809754-1-anup.patel@wdc.com>
- <20210113100657.809754-2-anup.patel@wdc.com>
- <fe56588cf8741c7f72c7bca66ac249730f325c92.camel@wdc.com>
-Message-ID: <DM6PR04MB6201D05E0C19BB5E213F43FD8DA70@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210113100657.809754-3-anup.patel@wdc.com>
+ <07d593bd32779db57abd0daa5c8cba707e79137e.camel@wdc.com>
+Message-ID: <DM6PR04MB620114F37EF0B3CCC18FD7B28DA70@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,13 +20,13 @@ Content-Transfer-Encoding: 7bit
 > To: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
 > <Anup.Patel@wdc.com>
 > Cc: anup at brainfault.org; opensbi at lists.infradead.org; taniwha at gmail.com
-> Subject: Re: [PATCH 1/3] include: sbi: No need to pack struct sbi_trap_regs
+> Subject: Re: [PATCH 2/3] include: sbi: No need to pack struct sbi_scratch
 > 
 > On Wed, 2021-01-13 at 15:36 +0530, Anup Patel wrote:
-> > All members in struct sbi_trap_regs are of machine word size so no
-> > need to pack this structure. This also allows GCC to generate more
+> > All members in struct sbi_scrach are of machine word size so no need
+> > to pack this structure. This also allows GCC to generate more
 > > optimized instruction sequence when accessing members of struct
-> > sbi_trap_regs.
+> > sbi_scratch.
 > >
 > > Reported-by: Paul Campbell <taniwha@gmail.com>
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
@@ -36,25 +36,24 @@ Content-Transfer-Encoding: 7bit
 > Alistair
 > 
 > > ---
-> > ?include/sbi/sbi_trap.h | 2 +-
+> > ?include/sbi/sbi_scratch.h | 2 +-
 > > ?1 file changed, 1 insertion(+), 1 deletion(-)
 > >
-> > diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h index
-> > 04001df..5fb94f9 100644
-> > --- a/include/sbi/sbi_trap.h
-> > +++ b/include/sbi/sbi_trap.h
-> > @@ -186,7 +186,7 @@ struct sbi_trap_regs {
-> > ????????unsigned long mstatus;
-> > ????????/** mstatusH register state (only for 32-bit) */
-> > ????????unsigned long mstatusH;
+> > diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> > index e7079f5..e35122b 100644
+> > --- a/include/sbi/sbi_scratch.h
+> > +++ b/include/sbi/sbi_scratch.h
+> > @@ -71,7 +71,7 @@ struct sbi_scratch {
+> > ????????unsigned long tmp0;
+> > ????????/** Options for OpenSBI library */
+> > ????????unsigned long options;
 > > -} __packed;
 > > +};
 > >
-> > ?/** Representation of trap details */
-> > ?struct sbi_trap_info {
+> > ?/** Possible options for OpenSBI library */
+> > ?enum sbi_scratch_options {
 
 Applied this patch to the riscv/opensbi repo
 
 Regards,
 Anup
-
