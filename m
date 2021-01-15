@@ -1,11 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 15 Jan 2021 05:16:15 +0000
-Subject: [PATCH 2/3] include: sbi: No need to pack struct sbi_scratch
-In-Reply-To: <07d593bd32779db57abd0daa5c8cba707e79137e.camel@wdc.com>
+Date: Fri, 15 Jan 2021 05:16:28 +0000
+Subject: [PATCH 3/3] include: sbi: Don't pack struct sbi_platform and
+ sbi_platform_operations
+In-Reply-To: <5ab4e3c38fd27d421aff4d99deb5167a38865b17.camel@wdc.com>
 References: <20210113100657.809754-1-anup.patel@wdc.com>
- <20210113100657.809754-3-anup.patel@wdc.com>
- <07d593bd32779db57abd0daa5c8cba707e79137e.camel@wdc.com>
-Message-ID: <DM6PR04MB620114F37EF0B3CCC18FD7B28DA70@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210113100657.809754-4-anup.patel@wdc.com>
+ <5ab4e3c38fd27d421aff4d99deb5167a38865b17.camel@wdc.com>
+Message-ID: <DM6PR04MB62018AFE66C4D6D4C89354578DA70@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,17 +17,20 @@ Content-Transfer-Encoding: 7bit
 
 > -----Original Message-----
 > From: Alistair Francis <Alistair.Francis@wdc.com>
-> Sent: 14 January 2021 01:14
+> Sent: 14 January 2021 01:15
 > To: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
 > <Anup.Patel@wdc.com>
 > Cc: anup at brainfault.org; opensbi at lists.infradead.org; taniwha at gmail.com
-> Subject: Re: [PATCH 2/3] include: sbi: No need to pack struct sbi_scratch
+> Subject: Re: [PATCH 3/3] include: sbi: Don't pack struct sbi_platform and
+> sbi_platform_operations
 > 
 > On Wed, 2021-01-13 at 15:36 +0530, Anup Patel wrote:
-> > All members in struct sbi_scrach are of machine word size so no need
-> > to pack this structure. This also allows GCC to generate more
-> > optimized instruction sequence when accessing members of struct
-> > sbi_scratch.
+> > We don't need to pack struct sbi_platform and sbi_platform_operations
+> > because GCC ensures member offsets match member data type
+> irrespective
+> > to the target system (RV32 or RV64). This also allows GCC to generate
+> > more optimized instruction sequence when accessing members of struct
+> > sbi_platform and struct sbi_platform_operations.
 > >
 > > Reported-by: Paul Campbell <taniwha@gmail.com>
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
@@ -36,24 +40,36 @@ Content-Transfer-Encoding: 7bit
 > Alistair
 > 
 > > ---
-> > ?include/sbi/sbi_scratch.h | 2 +-
-> > ?1 file changed, 1 insertion(+), 1 deletion(-)
+> > ?include/sbi/sbi_platform.h | 4 ++--
+> > ?1 file changed, 2 insertions(+), 2 deletions(-)
 > >
-> > diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> > index e7079f5..e35122b 100644
-> > --- a/include/sbi/sbi_scratch.h
-> > +++ b/include/sbi/sbi_scratch.h
-> > @@ -71,7 +71,7 @@ struct sbi_scratch {
-> > ????????unsigned long tmp0;
-> > ????????/** Options for OpenSBI library */
-> > ????????unsigned long options;
+> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> > index c252628..cc7e3ff 100644
+> > --- a/include/sbi/sbi_platform.h
+> > +++ b/include/sbi/sbi_platform.h
+> > @@ -152,7 +152,7 @@ struct sbi_platform_operations {
+> > ?????????????????????????????????? const struct sbi_trap_regs *regs,
+> > ?????????????????????????????????? unsigned long *out_value,
+> > ?????????????????????????????????? struct sbi_trap_info *out_trap); -}
+> > __packed;
+> > +};
+> >
+> > ?/** Platform default per-HART stack size for exception/interrupt
+> > handling */
+> > ?#define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE???8192 @@ -199,7
+> +199,7
+> > @@ struct sbi_platform {
+> > ???????? * 2. HART id < SBI_HARTMASK_MAX_BITS
+> > ???????? */
+> > ????????const u32 *hart_index2id;
 > > -} __packed;
 > > +};
 > >
-> > ?/** Possible options for OpenSBI library */
-> > ?enum sbi_scratch_options {
+> > ?/** Get pointer to sbi_platform for sbi_scratch pointer */
+> > ?#define sbi_platform_ptr(__s) \
 
 Applied this patch to the riscv/opensbi repo
 
 Regards,
 Anup
+
