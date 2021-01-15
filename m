@@ -1,53 +1,60 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Wed, 13 Jan 2021 15:17:44 -0800
-Subject: [PATCH 0/3] Avoid using packed structures
-In-Reply-To: <20210113100657.809754-1-anup.patel@wdc.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Fri, 15 Jan 2021 05:16:04 +0000
+Subject: [PATCH 1/3] include: sbi: No need to pack struct sbi_trap_regs
+In-Reply-To: <fe56588cf8741c7f72c7bca66ac249730f325c92.camel@wdc.com>
 References: <20210113100657.809754-1-anup.patel@wdc.com>
-Message-ID: <CAOnJCULk6a9b5i6r=6JxMtB8O==MtZmF+LPtNgRo_gGFDAO=Cw@mail.gmail.com>
+ <20210113100657.809754-2-anup.patel@wdc.com>
+ <fe56588cf8741c7f72c7bca66ac249730f325c92.camel@wdc.com>
+Message-ID: <DM6PR04MB6201D05E0C19BB5E213F43FD8DA70@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 13, 2021 at 2:07 AM Anup Patel <anup.patel@wdc.com> wrote:
->
-> Currently, we are using packed structures wherever both C source and
-> assembly source access the structure. This causes GCC to generate
-> sub-optimal instructions when accessing members of packed structure
-> in C sources. As a result, we have bigger firmware binaries with
-> sub-optimal instructions in hot path.
->
-> This series removes packing of structures wherever possible. Due to
-> this we have small firmware binaries with more optional instructions.
->
-> These patches can also be found in nopacking_imp_v1 branch at:
-> https://github.com/avpatel/opensbi.git
->
-> Anup Patel (3):
->   include: sbi: No need to pack struct sbi_trap_regs
->   include: sbi: No need to pack struct sbi_scratch
->   include: sbi: Don't pack struct sbi_platform and
->     sbi_platform_operations
->
->  include/sbi/sbi_platform.h | 4 ++--
->  include/sbi/sbi_scratch.h  | 2 +-
->  include/sbi/sbi_trap.h     | 2 +-
->  3 files changed, 4 insertions(+), 4 deletions(-)
->
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
-For the entire series:
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
--- 
+> -----Original Message-----
+> From: Alistair Francis <Alistair.Francis@wdc.com>
+> Sent: 14 January 2021 01:14
+> To: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
+> <Anup.Patel@wdc.com>
+> Cc: anup at brainfault.org; opensbi at lists.infradead.org; taniwha at gmail.com
+> Subject: Re: [PATCH 1/3] include: sbi: No need to pack struct sbi_trap_regs
+> 
+> On Wed, 2021-01-13 at 15:36 +0530, Anup Patel wrote:
+> > All members in struct sbi_trap_regs are of machine word size so no
+> > need to pack this structure. This also allows GCC to generate more
+> > optimized instruction sequence when accessing members of struct
+> > sbi_trap_regs.
+> >
+> > Reported-by: Paul Campbell <taniwha@gmail.com>
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> 
+> Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+> 
+> Alistair
+> 
+> > ---
+> > ?include/sbi/sbi_trap.h | 2 +-
+> > ?1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h index
+> > 04001df..5fb94f9 100644
+> > --- a/include/sbi/sbi_trap.h
+> > +++ b/include/sbi/sbi_trap.h
+> > @@ -186,7 +186,7 @@ struct sbi_trap_regs {
+> > ????????unsigned long mstatus;
+> > ????????/** mstatusH register state (only for 32-bit) */
+> > ????????unsigned long mstatusH;
+> > -} __packed;
+> > +};
+> >
+> > ?/** Representation of trap details */
+> > ?struct sbi_trap_info {
+
+Applied this patch to the riscv/opensbi repo
+
 Regards,
-Atish
+Anup
 
