@@ -1,75 +1,45 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 15 Jan 2021 05:16:28 +0000
-Subject: [PATCH 3/3] include: sbi: Don't pack struct sbi_platform and
- sbi_platform_operations
-In-Reply-To: <5ab4e3c38fd27d421aff4d99deb5167a38865b17.camel@wdc.com>
-References: <20210113100657.809754-1-anup.patel@wdc.com>
- <20210113100657.809754-4-anup.patel@wdc.com>
- <5ab4e3c38fd27d421aff4d99deb5167a38865b17.camel@wdc.com>
-Message-ID: <DM6PR04MB62018AFE66C4D6D4C89354578DA70@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Mon, 18 Jan 2021 09:34:25 +0530
+Subject: [PATCH] platform: template: Fix compile error
+Message-ID: <20210118040425.170292-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+This clint driver init functions were incorrectly used in
+template platform which resulted in compile error. This patch
+fixes clint driver function usage in template platform.
 
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ platform/template/platform.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> -----Original Message-----
-> From: Alistair Francis <Alistair.Francis@wdc.com>
-> Sent: 14 January 2021 01:15
-> To: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
-> <Anup.Patel@wdc.com>
-> Cc: anup at brainfault.org; opensbi at lists.infradead.org; taniwha at gmail.com
-> Subject: Re: [PATCH 3/3] include: sbi: Don't pack struct sbi_platform and
-> sbi_platform_operations
-> 
-> On Wed, 2021-01-13 at 15:36 +0530, Anup Patel wrote:
-> > We don't need to pack struct sbi_platform and sbi_platform_operations
-> > because GCC ensures member offsets match member data type
-> irrespective
-> > to the target system (RV32 or RV64). This also allows GCC to generate
-> > more optimized instruction sequence when accessing members of struct
-> > sbi_platform and struct sbi_platform_operations.
-> >
-> > Reported-by: Paul Campbell <taniwha@gmail.com>
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> 
-> Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
-> 
-> Alistair
-> 
-> > ---
-> > ?include/sbi/sbi_platform.h | 4 ++--
-> > ?1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> > index c252628..cc7e3ff 100644
-> > --- a/include/sbi/sbi_platform.h
-> > +++ b/include/sbi/sbi_platform.h
-> > @@ -152,7 +152,7 @@ struct sbi_platform_operations {
-> > ?????????????????????????????????? const struct sbi_trap_regs *regs,
-> > ?????????????????????????????????? unsigned long *out_value,
-> > ?????????????????????????????????? struct sbi_trap_info *out_trap); -}
-> > __packed;
-> > +};
-> >
-> > ?/** Platform default per-HART stack size for exception/interrupt
-> > handling */
-> > ?#define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE???8192 @@ -199,7
-> +199,7
-> > @@ struct sbi_platform {
-> > ???????? * 2. HART id < SBI_HARTMASK_MAX_BITS
-> > ???????? */
-> > ????????const u32 *hart_index2id;
-> > -} __packed;
-> > +};
-> >
-> > ?/** Get pointer to sbi_platform for sbi_scratch pointer */
-> > ?#define sbi_platform_ptr(__s) \
+diff --git a/platform/template/platform.c b/platform/template/platform.c
+index 758e95f..5bdb186 100644
+--- a/platform/template/platform.c
++++ b/platform/template/platform.c
+@@ -107,7 +107,7 @@ static int platform_ipi_init(bool cold_boot)
+ 
+ 	/* Example if the generic CLINT driver is used */
+ 	if (cold_boot) {
+-		ret = clint_cold_ipi_init(&clint, NULL);
++		ret = clint_cold_ipi_init(&clint);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -142,7 +142,7 @@ static int platform_timer_init(bool cold_boot)
+ 
+ 	/* Example if the generic CLINT driver is used */
+ 	if (cold_boot) {
+-		ret = clint_cold_timer_init(&clint);
++		ret = clint_cold_timer_init(&clint, NULL);
+ 		if (ret)
+ 			return ret;
+ 	}
+-- 
+2.25.1
 
-Applied this patch to the riscv/opensbi repo
-
-Regards,
-Anup
 
