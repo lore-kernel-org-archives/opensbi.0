@@ -1,113 +1,101 @@
-From: Heiko Stübner <heiko@sntech.de>
-Date: Thu, 29 Sep 2022 13:54:16 +0200
-Subject: [PATCH v4 3/5] lib: sbi_pmu: add override for counter data
-In-Reply-To: <CAOnJCUKKwy2_WdMKYkFeMnb68ay0FSmuhkiGaKXBqAJyFApoXA@mail.gmail.com>
-References: <20220926101607.731275-1-heiko@sntech.de> <20220926101607.731275-4-heiko@sntech.de> <CAOnJCUKKwy2_WdMKYkFeMnb68ay0FSmuhkiGaKXBqAJyFApoXA@mail.gmail.com>
-Message-ID: <2197780.iZASKD2KPV@diego>
+From: Vijai Kumar K <vijai@behindbytes.com>
+Date: Thu, 11 Feb 2021 07:08:36 +0530
+Subject: [PATCH] lib: utils: Fix shakti uart implementation
+In-Reply-To: <DM6PR04MB6201B845AC1D6633E7D9C8588DAF0@DM6PR04MB6201.namprd04.prod.outlook.com>
+References: <20201207165416.7279-1-vijai@behindbytes.com>
+ <DM6PR04MB6201B845AC1D6633E7D9C8588DAF0@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <1778ebd7394.1201e055317946.4205030000856071672@behindbytes.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Am Donnerstag, 29. September 2022, 10:28:57 CEST schrieb Atish Patra:
-> On Mon, Sep 26, 2022 at 3:18 AM Heiko Stuebner <heiko@sntech.de> wrote:
-> >
-> > In general counter-data is auto-detected but some platforms
-> > may implement counters in a way that breaks this detection.
-> >
-> > Implement an abstraction that those platforms can hook into
-> > and override the counter-data.
-> >
-> > Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-> > ---
-> >  include/sbi/sbi_pmu.h | 8 ++++++++
-> >  lib/sbi/sbi_hart.c    | 7 +++++++
-> >  lib/sbi/sbi_pmu.c     | 7 +++++++
-> >  3 files changed, 22 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> > index c365243..d257b14 100644
-> > --- a/include/sbi/sbi_pmu.h
-> > +++ b/include/sbi/sbi_pmu.h
-> > @@ -78,6 +78,11 @@ struct sbi_pmu_device {
-> >          * Custom function returning the machine-specific irq-bit.
-> >          */
-> >         int (*hw_counter_irq_bit)(void);
-> > +
-> > +       /**
-> > +        * Override autodetected counter data.
-> > +        */
-> > +       void (*hw_counter_data)(unsigned int *count, unsigned int *bits);
-> >  };
-> >
-> >  /** Get the PMU platform device */
-> > @@ -95,6 +100,9 @@ void sbi_pmu_exit(struct sbi_scratch *scratch);
-> >  /** Return the pmu irq bit depending on extension existence */
-> >  int sbi_pmu_irq_bit(void);
-> >
-> > +/** Allow non-standard platforms to override probed counter information */
-> > +void sbi_pmu_override_counter_data(unsigned int *count, unsigned int *bits);
-> > +
-> >  /**
-> >   * Add the hardware event to counter mapping information. This should be called
-> >   * from the platform code to update the mapping table.
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index 45fbcde..6506a19 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -632,6 +632,13 @@ __mhpm_skip:
-> >  #undef __check_csr_2
-> >  #undef __check_csr
-> >
-> > +       /**
-> > +        * Allow non-standard implementations to override the detected
-> > +        * values for number of counters and bits.
-> > +        */
-> > +       sbi_pmu_override_counter_data(&hfeatures->mhpm_count,
-> > +                                     &hfeatures->mhpm_bits);
-> > +
-> >         /* Detect if hart supports Priv v1.10 */
-> >         val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
-> >         if (!trap.cause)
-> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > index 91d9ccc..c8becf3 100644
-> > --- a/lib/sbi/sbi_pmu.c
-> > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -852,3 +852,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
-> >
-> >         return 0;
-> >  }
-> > +
-> > +void sbi_pmu_override_counter_data(unsigned int *count,
-> > +                                  unsigned int *bits)
-> > +{
-> > +       if (pmu_dev && pmu_dev->hw_counter_data)
-> > +               pmu_dev->hw_counter_data(count, bits);
-> > +}
-> > --
-> > 2.35.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
-> 
-> We may need similar functionality in the future as well where the
-> platform may override the hart feature details.
-> Should we pass the hfeatures in the extension_init callback so that a
-> specific platform override can access it ?
-
-you tell me :-) .
-
-I.e. I didn't want to expose the previously unexposed hfeatures struct
-(right now it's local to sbi_hart) but if it's ok to expose it, directly
-setting the hfeatures values of course makes a lot of sense also for
-future uses.
 
 
-Heiko
+
+---- On Thu, 07 Jan 2021 10:27:17 +0530 Anup Patel <Anup.Patel@wdc.com> wrote ----
+
+ > 
+ > 
+ > > -----Original Message----- 
+ > > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Vijai 
+ > > Kumar K 
+ > > Sent: 07 December 2020 22:24 
+ > > To: opensbi at lists.infradead.org 
+ > > Cc: Vijai Kumar K <vijai@behindbytes.com> 
+ > > Subject: [PATCH] lib: utils: Fix shakti uart implementation 
+ > > 
+ > > Fix uart_putc implementation. 
+ > > Due to a bug in the IP, this went unnoticed. 
+ > > Use macros instead of magic numbers to make the code more readable. 
+ > > 
+ > > Signed-off-by: Vijai Kumar K <vijai@behindbytes.com> 
+ > > --- 
+ > >  lib/utils/serial/shakti-uart.c | 7 +++++-- 
+ > >  1 file changed, 5 insertions(+), 2 deletions(-) 
+ > > 
+ > > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c index 
+ > > 493edcf..b2deb70 100644 
+ > > --- a/lib/utils/serial/shakti-uart.c 
+ > > +++ b/lib/utils/serial/shakti-uart.c 
+ > > @@ -18,18 +18,21 @@ 
+ > >  #define REG_IQ_CYCLES    0x1C 
+ > >  #define REG_RX_THRES    0x20 
+ > > 
+ > > +#define UART_TX_FULL  0x2 
+ > > +#define UART_RX_FULL  0x8 
+ > > + 
+ > >  static volatile void *uart_base; 
+ > > 
+ > >  void shakti_uart_putc(char ch) 
+ > >  { 
+ > > -    while((readw(uart_base + REG_STATUS) & 0x2) == 0); 
+ > > +    while((readw(uart_base + REG_STATUS) & UART_TX_FULL)); 
+ > >      writeb(ch, uart_base + REG_TX); 
+ > >  } 
+ > > 
+ > >  int shakti_uart_getc(void) 
+ > >  { 
+ > >      u16 status = readw(uart_base + REG_STATUS); 
+ > > -    if (status & 0x8) 
+ > > +    if (status & UART_RX_FULL) 
+ > >          return readb(uart_base + REG_RX); 
+ > >      return -1; 
+ > >  } 
+ > > -- 
+ > > 2.25.1 
+ > > 
+ > > 
+ > > 
+ > > -- 
+ > > opensbi mailing list 
+ > > opensbi at lists.infradead.org 
+ > > http://lists.infradead.org/mailman/listinfo/opensbi 
+ >  
+ > Reviewed-by: Anup Patel <anup.patel@wdc.com> 
+ >  
+ > I have taken care of style comment from Jessica at time of 
+ > applying this patch. 
+ >  
+ > Applied this patch to riscv/opensbi repo. 
+ >  
+ > Thanks, 
+ > Anup
+
+Thanks a lot Anup. Sorry for replying late on this. I was on vacation at that time and somehow missed following up on this.
+
+Best,
+Vijai
+
+
+ > 
+ > -- 
+ > opensbi mailing list 
+ > opensbi at lists.infradead.org 
+ > http://lists.infradead.org/mailman/listinfo/opensbi 
+ > 
+
 
 
 
