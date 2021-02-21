@@ -1,49 +1,68 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sun, 21 Feb 2021 14:23:11 +0530
-Subject: [RFC PATCH 00/10] SBI HSM suspend implementation
-Message-ID: <20210221085321.180602-1-anup.patel@wdc.com>
+Date: Sun, 21 Feb 2021 14:23:12 +0530
+Subject: [RFC PATCH 01/10] include: sbi: Simplify HSM state define names
+In-Reply-To: <20210221085321.180602-1-anup.patel@wdc.com>
+References: <20210221085321.180602-1-anup.patel@wdc.com>
+Message-ID: <20210221085321.180602-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series extends OpenSBI HSM implemenation to include HSM suspend
-function.
+We simplify HSM state define names so that these defines can directly
+replace SBI_HART_xyz defines used by SBI HSM implementation.
 
-These patches can be found in hsm_suspend_v1 branch at
-https://github.com/avpatel/opensbi
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ include/sbi/sbi_ecall_interface.h | 8 ++++----
+ lib/sbi/sbi_hsm.c                 | 8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-The proposed SBI HSM suspend definition can be found in hsm_suspend_v3
-branch at https://github.com/avpatel/riscv-sbi-doc
-
-Anup Patel (10):
-  include: sbi: Simplify HSM state define names
-  lib: sbi: Use SBI_HSM_STATE_xyz defines instead of SBI_STATE_xyz
-    defines
-  lib: sbi: Rename sbi_hsm_hart_started_mask() function
-  lib: sbi: Remove redundant sbi_hsm_hart_started() function
-  include: sbi: Add HSM suspend related defines
-  lib: sbi: Add sbi_hart_reinit() function
-  include: sbi: Add hart_suspend() platform callback
-  lib: sbi: Implement SBI HSM suspend function
-  include: sbi: Upgrade SBI implementation version to v0.3
-  lib: Remove redundant sbi_platform_ipi_clear() calls
-
- include/sbi/sbi_ecall.h           |   2 +-
- include/sbi/sbi_ecall_interface.h |  27 ++-
- include/sbi/sbi_hart.h            |   1 +
- include/sbi/sbi_hsm.h             |  16 +-
- include/sbi/sbi_platform.h        |  30 ++++
- lib/sbi/sbi_ecall_hsm.c           |  13 +-
- lib/sbi/sbi_ecall_legacy.c        |   4 +-
- lib/sbi/sbi_hart.c                |  29 ++--
- lib/sbi/sbi_hsm.c                 | 268 +++++++++++++++++++++++-------
- lib/sbi/sbi_init.c                |  49 +++++-
- lib/sbi/sbi_ipi.c                 |   9 +-
- lib/sbi/sbi_system.c              |   2 +-
- 12 files changed, 348 insertions(+), 102 deletions(-)
-
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index 002c6f9..b272213 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -58,10 +58,10 @@
+ #define SBI_EXT_HSM_HART_STOP			0x1
+ #define SBI_EXT_HSM_HART_GET_STATUS		0x2
+ 
+-#define SBI_HSM_HART_STATUS_STARTED		0x0
+-#define SBI_HSM_HART_STATUS_STOPPED		0x1
+-#define SBI_HSM_HART_STATUS_START_PENDING	0x2
+-#define SBI_HSM_HART_STATUS_STOP_PENDING	0x3
++#define SBI_HSM_STATE_STARTED			0x0
++#define SBI_HSM_STATE_STOPPED			0x1
++#define SBI_HSM_STATE_START_PENDING		0x2
++#define SBI_HSM_STATE_STOP_PENDING		0x3
+ 
+ /* SBI function IDs for SRST extension */
+ #define SBI_EXT_SRST_RESET			0x0
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index e1b2b2c..1722280 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -39,16 +39,16 @@ int sbi_hsm_hart_state_to_status(int state)
+ 
+ 	switch (state) {
+ 	case SBI_HART_STOPPED:
+-		ret = SBI_HSM_HART_STATUS_STOPPED;
++		ret = SBI_HSM_STATE_STOPPED;
+ 		break;
+ 	case SBI_HART_STOPPING:
+-		ret = SBI_HSM_HART_STATUS_STOP_PENDING;
++		ret = SBI_HSM_STATE_STOP_PENDING;
+ 		break;
+ 	case SBI_HART_STARTING:
+-		ret = SBI_HSM_HART_STATUS_START_PENDING;
++		ret = SBI_HSM_STATE_START_PENDING;
+ 		break;
+ 	case SBI_HART_STARTED:
+-		ret = SBI_HSM_HART_STATUS_STARTED;
++		ret = SBI_HSM_STATE_STARTED;
+ 		break;
+ 	default:
+ 		ret = SBI_EINVAL;
 -- 
 2.25.1
 
