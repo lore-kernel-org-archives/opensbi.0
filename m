@@ -1,56 +1,88 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sun, 21 Feb 2021 14:23:16 +0530
-Subject: [RFC PATCH 05/10] include: sbi: Add HSM suspend related defines
+Date: Sun, 21 Feb 2021 14:23:17 +0530
+Subject: [RFC PATCH 06/10] lib: sbi: Add sbi_hart_reinit() function
 In-Reply-To: <20210221085321.180602-1-anup.patel@wdc.com>
 References: <20210221085321.180602-1-anup.patel@wdc.com>
-Message-ID: <20210221085321.180602-6-anup.patel@wdc.com>
+Message-ID: <20210221085321.180602-7-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds SBI HSM suspend related defines to ecall interface
-header.
+We add sbi_hart_reinit() function which will re-initialize HART CSRs
+assuming HART features are already detected. This new function will
+be useful in re-initializing HART after it resumes from HSM SUSPENDED
+state.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_ecall_interface.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/sbi/sbi_hart.h |  1 +
+ lib/sbi/sbi_hart.c     | 29 +++++++++++++++++------------
+ 2 files changed, 18 insertions(+), 12 deletions(-)
 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index b272213..7fcb373 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -57,11 +57,28 @@
- #define SBI_EXT_HSM_HART_START			0x0
- #define SBI_EXT_HSM_HART_STOP			0x1
- #define SBI_EXT_HSM_HART_GET_STATUS		0x2
-+#define SBI_EXT_HSM_HART_SUSPEND		0x3
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index ec9e30f..031c7b0 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -27,6 +27,7 @@ enum sbi_hart_features {
  
- #define SBI_HSM_STATE_STARTED			0x0
- #define SBI_HSM_STATE_STOPPED			0x1
- #define SBI_HSM_STATE_START_PENDING		0x2
- #define SBI_HSM_STATE_STOP_PENDING		0x3
-+#define SBI_HSM_STATE_SUSPENDED			0x4
-+#define SBI_HSM_STATE_SUSPEND_PENDING		0x5
-+#define SBI_HSM_STATE_RESUME_PENDING		0x6
-+
-+#define SBI_HSM_SUSP_BASE_MASK			0x7fffffff
-+#define SBI_HSM_SUSP_NON_RET_BIT		0x80000000
-+#define SBI_HSM_SUSP_PLAT_BASE			0x10000000
-+
-+#define SBI_HSM_SUSPEND_RET_DEFAULT		0x00000000
-+#define SBI_HSM_SUSPEND_RET_PLATFORM		SBI_HSM_SUSP_PLAT_BASE
-+#define SBI_HSM_SUSPEND_RET_LAST		SBI_HSM_SUSP_BASE_MASK
-+#define SBI_HSM_SUSPEND_NON_RET_DEFAULT		SBI_HSM_SUSP_NON_RET_BIT
-+#define SBI_HSM_SUSPEND_NON_RET_PLATFORM	(SBI_HSM_SUSP_NON_RET_BIT | \
-+						 SBI_HSM_SUSP_PLAT_BASE)
-+#define SBI_HSM_SUSPEND_NON_RET_LAST		(SBI_HSM_SUSP_NON_RET_BIT | \
-+						 SBI_HSM_SUSP_BASE_MASK)
+ struct sbi_scratch;
  
- /* SBI function IDs for SRST extension */
- #define SBI_EXT_SRST_RESET			0x0
++int sbi_hart_reinit(struct sbi_scratch *scratch);
+ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
+ 
+ extern void (*sbi_hart_expected_trap)(void);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index fc86e9f..d91b08c 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -430,10 +430,25 @@ __mhpm_skip:
+ 		hfeatures->features |= SBI_HART_HAS_TIME;
+ }
+ 
+-int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
++int sbi_hart_reinit(struct sbi_scratch *scratch)
+ {
+ 	int rc;
+ 
++	mstatus_init(scratch);
++
++	rc = fp_init(scratch);
++	if (rc)
++		return rc;
++
++	rc = delegate_traps(scratch);
++	if (rc)
++		return rc;
++
++	return 0;
++}
++
++int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
++{
+ 	if (cold_boot) {
+ 		if (misa_extension('H'))
+ 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
+@@ -447,17 +462,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+ 
+ 	hart_detect_features(scratch);
+ 
+-	mstatus_init(scratch);
+-
+-	rc = fp_init(scratch);
+-	if (rc)
+-		return rc;
+-
+-	rc = delegate_traps(scratch);
+-	if (rc)
+-		return rc;
+-
+-	return 0;
++	return sbi_hart_reinit(scratch);
+ }
+ 
+ void __attribute__((noreturn)) sbi_hart_hang(void)
 -- 
 2.25.1
 
