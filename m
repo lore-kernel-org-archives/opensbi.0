@@ -1,102 +1,84 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Sun, 21 Feb 2021 14:23:21 +0530
-Subject: [RFC PATCH 10/10] lib: Remove redundant sbi_platform_ipi_clear() calls
-In-Reply-To: <20210221085321.180602-1-anup.patel@wdc.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Tue, 23 Feb 2021 15:00:26 -0800
+Subject: [RFC PATCH 01/10] include: sbi: Simplify HSM state define names
+In-Reply-To: <20210221085321.180602-2-anup.patel@wdc.com>
 References: <20210221085321.180602-1-anup.patel@wdc.com>
-Message-ID: <20210221085321.180602-11-anup.patel@wdc.com>
+ <20210221085321.180602-2-anup.patel@wdc.com>
+Message-ID: <CAOnJCU+2fzPcVp-=JTm9-94rzjKVeDO4pHr1Cv__pjXr9HiU5g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_platform_ipi_clear() called from wait_for_coldboot() and
-sbi_hsm_hart_wait() is redundant because IPI will be automatically
-cleared by sbi_platform_ipi_init() called from sbi_ipi_init().
+On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> We simplify HSM state define names so that these defines can directly
+> replace SBI_HART_xyz defines used by SBI HSM implementation.
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  include/sbi/sbi_ecall_interface.h | 8 ++++----
+>  lib/sbi/sbi_hsm.c                 | 8 ++++----
+>  2 files changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 002c6f9..b272213 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -58,10 +58,10 @@
+>  #define SBI_EXT_HSM_HART_STOP                  0x1
+>  #define SBI_EXT_HSM_HART_GET_STATUS            0x2
+>
+> -#define SBI_HSM_HART_STATUS_STARTED            0x0
+> -#define SBI_HSM_HART_STATUS_STOPPED            0x1
+> -#define SBI_HSM_HART_STATUS_START_PENDING      0x2
+> -#define SBI_HSM_HART_STATUS_STOP_PENDING       0x3
+> +#define SBI_HSM_STATE_STARTED                  0x0
+> +#define SBI_HSM_STATE_STOPPED                  0x1
+> +#define SBI_HSM_STATE_START_PENDING            0x2
+> +#define SBI_HSM_STATE_STOP_PENDING             0x3
+>
+>  /* SBI function IDs for SRST extension */
+>  #define SBI_EXT_SRST_RESET                     0x0
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index e1b2b2c..1722280 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -39,16 +39,16 @@ int sbi_hsm_hart_state_to_status(int state)
+>
+>         switch (state) {
+>         case SBI_HART_STOPPED:
+> -               ret = SBI_HSM_HART_STATUS_STOPPED;
+> +               ret = SBI_HSM_STATE_STOPPED;
+>                 break;
+>         case SBI_HART_STOPPING:
+> -               ret = SBI_HSM_HART_STATUS_STOP_PENDING;
+> +               ret = SBI_HSM_STATE_STOP_PENDING;
+>                 break;
+>         case SBI_HART_STARTING:
+> -               ret = SBI_HSM_HART_STATUS_START_PENDING;
+> +               ret = SBI_HSM_STATE_START_PENDING;
+>                 break;
+>         case SBI_HART_STARTED:
+> -               ret = SBI_HSM_HART_STATUS_STARTED;
+> +               ret = SBI_HSM_STATE_STARTED;
+>                 break;
+>         default:
+>                 ret = SBI_EINVAL;
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Further, wait_for_coldboot() is common for warm startup and warm
-resume path so the sbi_platform_ipi_clear() called in warm resume
-path cause resuming HART to miss an IPI injected other HART to
-wakeup the HART.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- lib/sbi/sbi_hsm.c  |  7 ++++---
- lib/sbi/sbi_init.c | 11 ++++++++---
- lib/sbi/sbi_ipi.c  |  5 ++++-
- 3 files changed, 16 insertions(+), 7 deletions(-)
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index b597265..643eba0 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -107,7 +107,6 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
- static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- {
- 	unsigned long saved_mie;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 	/* Save MIE CSR */
-@@ -124,8 +123,10 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- 	/* Restore MIE CSR */
- 	csr_write(CSR_MIE, saved_mie);
- 
--	/* Clear current HART IPI */
--	sbi_platform_ipi_clear(plat, hartid);
-+	/*
-+	 * No need to clear IPI here because the sbi_ipi_init() will
-+	 * clear it for current HART via sbi_platform_ipi_init().
-+	 */
- }
- 
- int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 1d4a838..4de2dfa 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -130,7 +130,6 @@ static unsigned long coldboot_done;
- static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- {
- 	unsigned long saved_mie, cmip;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
- 	/* Save MIE CSR */
- 	saved_mie = csr_read(CSR_MIE);
-@@ -167,8 +166,14 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	/* Restore MIE CSR */
- 	csr_write(CSR_MIE, saved_mie);
- 
--	/* Clear current HART IPI */
--	sbi_platform_ipi_clear(plat, hartid);
-+	/*
-+	 * The wait for coldboot is common for both warm startup and
-+	 * warm resume path so clearing IPI here would result in losing
-+	 * an IPI in warm resume path.
-+	 *
-+	 * Also, the sbi_platform_ipi_init() called from sbi_ipi_init()
-+	 * will automatically clear IPI for current HART.
-+	 */
- }
- 
- static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index a3a6ce6..b50735e 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -230,7 +230,10 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
- 	ipi_data->ipi_type = 0x00;
- 
--	/* Platform init */
-+	/*
-+	 * Initialize platform IPI support. This will also clear any
-+	 * pending IPIs for current/calling HART.
-+	 */
- 	ret = sbi_platform_ipi_init(sbi_platform_ptr(scratch), cold_boot);
- 	if (ret)
- 		return ret;
 -- 
-2.25.1
-
+Regards,
+Atish
 
