@@ -1,11 +1,10 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 23 Feb 2021 15:40:00 -0800
-Subject: [RFC PATCH 04/10] lib: sbi: Remove redundant
- sbi_hsm_hart_started() function
-In-Reply-To: <20210221085321.180602-5-anup.patel@wdc.com>
+Date: Tue, 23 Feb 2021 15:41:59 -0800
+Subject: [RFC PATCH 06/10] lib: sbi: Add sbi_hart_reinit() function
+In-Reply-To: <20210221085321.180602-7-anup.patel@wdc.com>
 References: <20210221085321.180602-1-anup.patel@wdc.com>
- <20210221085321.180602-5-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJ97rAxkEc3=en=VsrsNuVGjO8KU0DY+b26vsvbafbX2Q@mail.gmail.com>
+ <20210221085321.180602-7-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKzsKMrDG76RUj7yNA3y0r9RyDB7+F4oO-JdBJU_aKZng@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,65 +13,82 @@ Content-Transfer-Encoding: 7bit
 
 On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The sbi_hsm_hart_started() function is only used by sbi_hsm_hart_stop()
-> for checking state of calling HART and current domain assignment.
->
-> The atomic_cmpxchg() called by sbi_hsm_hart_stop() will check state of
-> calling hart anyway and domain assignment can be checked by other domain
-> function such as sbi_domain_is_assigned_hart().
->
-> This means sbi_hsm_hart_started() is redundant and can be removed.
+> We add sbi_hart_reinit() function which will re-initialize HART CSRs
+> assuming HART features are already detected. This new function will
+> be useful in re-initializing HART after it resumes from HSM SUSPENDED
+> state.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  lib/sbi/sbi_hsm.c | 11 ++---------
->  1 file changed, 2 insertions(+), 9 deletions(-)
+>  include/sbi/sbi_hart.h |  1 +
+>  lib/sbi/sbi_hart.c     | 29 +++++++++++++++++------------
+>  2 files changed, 18 insertions(+), 12 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index a81b821..732c400 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -54,14 +54,6 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
->         return __sbi_hsm_hart_get_state(hartid);
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index ec9e30f..031c7b0 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -27,6 +27,7 @@ enum sbi_hart_features {
+>
+>  struct sbi_scratch;
+>
+> +int sbi_hart_reinit(struct sbi_scratch *scratch);
+>  int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
+>
+>  extern void (*sbi_hart_expected_trap)(void);
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index fc86e9f..d91b08c 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -430,10 +430,25 @@ __mhpm_skip:
+>                 hfeatures->features |= SBI_HART_HAS_TIME;
 >  }
 >
-> -static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
-> -{
-> -       if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
-> -               return TRUE;
-> -       else
-> -               return FALSE;
-> -}
-> -
->  /**
->   * Get ulong HART mask for given HART base ID
->   * @param dom the domain to be used for output HART mask
-> @@ -248,10 +240,11 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+> -int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+> +int sbi_hart_reinit(struct sbi_scratch *scratch)
 >  {
->         int oldstate;
->         u32 hartid = current_hartid();
-> +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
->         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->                                                             hart_data_offset);
+>         int rc;
 >
-> -       if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
-> +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
->                 return SBI_EINVAL;
+> +       mstatus_init(scratch);
+> +
+> +       rc = fp_init(scratch);
+> +       if (rc)
+> +               return rc;
+> +
+> +       rc = delegate_traps(scratch);
+> +       if (rc)
+> +               return rc;
+> +
+> +       return 0;
+> +}
+> +
+> +int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+> +{
+>         if (cold_boot) {
+>                 if (misa_extension('H'))
+>                         sbi_hart_expected_trap = &__sbi_expected_trap_hext;
+> @@ -447,17 +462,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
 >
-
-Do we need  sbi_domain_is_assigned_hart given that hartid is current
-hartid and the domain is retrieved directly from
-hartid_to_domain_table.
-
->         oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+>         hart_detect_features(scratch);
+>
+> -       mstatus_init(scratch);
+> -
+> -       rc = fp_init(scratch);
+> -       if (rc)
+> -               return rc;
+> -
+> -       rc = delegate_traps(scratch);
+> -       if (rc)
+> -               return rc;
+> -
+> -       return 0;
+> +       return sbi_hart_reinit(scratch);
+>  }
+>
+>  void __attribute__((noreturn)) sbi_hart_hang(void)
 > --
 > 2.25.1
 >
-
-Thanks for the cleanup. What should be the correct error code returned
-from sbi_hsm_hart_stop if the current state is not STARTED ?
-it will be SBI_EDENIED(-4) but the spec says SBI_ERR_FAILED (-1)
-
 >
 > --
 > opensbi mailing list
@@ -80,6 +96,7 @@ it will be SBI_EDENIED(-4) but the spec says SBI_ERR_FAILED (-1)
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
 
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
 -- 
 Regards,
