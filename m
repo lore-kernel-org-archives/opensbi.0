@@ -1,11 +1,11 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 23 Feb 2021 15:11:15 -0800
-Subject: [RFC PATCH 03/10] lib: sbi: Rename sbi_hsm_hart_started_mask()
- function
-In-Reply-To: <20210221085321.180602-4-anup.patel@wdc.com>
+Date: Tue, 23 Feb 2021 15:40:00 -0800
+Subject: [RFC PATCH 04/10] lib: sbi: Remove redundant
+ sbi_hsm_hart_started() function
+In-Reply-To: <20210221085321.180602-5-anup.patel@wdc.com>
 References: <20210221085321.180602-1-anup.patel@wdc.com>
- <20210221085321.180602-4-anup.patel@wdc.com>
-Message-ID: <CAOnJCUKGY1C1zWAHSb=Zq52A=7YVnjqQJye4bwgWS8xP6tE9zw@mail.gmail.com>
+ <20210221085321.180602-5-anup.patel@wdc.com>
+Message-ID: <CAOnJCUJ97rAxkEc3=en=VsrsNuVGjO8KU0DY+b26vsvbafbX2Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,103 +14,65 @@ Content-Transfer-Encoding: 7bit
 
 On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> A hart can take interrupt in the new HSM states introduced by the
-> SBI HSM suspend function (such as SUSPENDED state) so we rename
-> sbi_hsm_hart_started_mask() to something more generic such as
-> sbi_hsm_hart_interruptible_mask().
+> The sbi_hsm_hart_started() function is only used by sbi_hsm_hart_stop()
+> for checking state of calling HART and current domain assignment.
+>
+> The atomic_cmpxchg() called by sbi_hsm_hart_stop() will check state of
+> calling hart anyway and domain assignment can be checked by other domain
+> function such as sbi_domain_is_assigned_hart().
+>
+> This means sbi_hsm_hart_started() is redundant and can be removed.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  include/sbi/sbi_hsm.h      | 4 ++--
->  lib/sbi/sbi_ecall_legacy.c | 4 ++--
->  lib/sbi/sbi_hsm.c          | 4 ++--
->  lib/sbi/sbi_ipi.c          | 4 ++--
->  lib/sbi/sbi_system.c       | 2 +-
->  5 files changed, 9 insertions(+), 9 deletions(-)
->
-> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-> index 69ddee7..4250515 100644
-> --- a/include/sbi/sbi_hsm.h
-> +++ b/include/sbi/sbi_hsm.h
-> @@ -23,8 +23,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->                        u32 hartid, ulong saddr, ulong smode, ulong priv);
->  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
->  int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
-> -int sbi_hsm_hart_started_mask(const struct sbi_domain *dom,
-> -                             ulong hbase, ulong *out_hmask);
-> +int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
-> +                                   ulong hbase, ulong *out_hmask);
->  void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
->
->  #endif
-> diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-> index 1a7fe26..e20de76 100644
-> --- a/lib/sbi/sbi_ecall_legacy.c
-> +++ b/lib/sbi/sbi_ecall_legacy.c
-> @@ -34,8 +34,8 @@ static int sbi_load_hart_mask_unpriv(ulong *pmask, ulong *hmask,
->                 if (uptrap->cause)
->                         return SBI_ETRAP;
->         } else {
-> -               sbi_hsm_hart_started_mask(sbi_domain_thishart_ptr(),
-> -                                         0, &mask);
-> +               sbi_hsm_hart_interruptible_mask(sbi_domain_thishart_ptr(),
-> +                                               0, &mask);
->         }
->         *hmask = mask;
+>  lib/sbi/sbi_hsm.c | 11 ++---------
+>  1 file changed, 2 insertions(+), 9 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 1f54c9d..a81b821 100644
+> index a81b821..732c400 100644
 > --- a/lib/sbi/sbi_hsm.c
 > +++ b/lib/sbi/sbi_hsm.c
-> @@ -70,8 +70,8 @@ static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
->   * @return 0 on success and SBI_Exxx (< 0) on failure
->   * Note: the output HART mask will be set to zero on failure as well.
->   */
-> -int sbi_hsm_hart_started_mask(const struct sbi_domain *dom,
-> -                             ulong hbase, ulong *out_hmask)
-> +int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
-> +                                   ulong hbase, ulong *out_hmask)
+> @@ -54,14 +54,6 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+>         return __sbi_hsm_hart_get_state(hartid);
+>  }
+>
+> -static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
+> -{
+> -       if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
+> -               return TRUE;
+> -       else
+> -               return FALSE;
+> -}
+> -
+>  /**
+>   * Get ulong HART mask for given HART base ID
+>   * @param dom the domain to be used for output HART mask
+> @@ -248,10 +240,11 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
 >  {
->         ulong i, hmask, dmask;
->         ulong hend = sbi_scratch_last_hartid() + 1;
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index 4347832..a3a6ce6 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -82,7 +82,7 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         int oldstate;
+>         u32 hartid = current_hartid();
+> +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
 >
->         if (hbase != -1UL) {
-> -               rc = sbi_hsm_hart_started_mask(dom, hbase, &m);
-> +               rc = sbi_hsm_hart_interruptible_mask(dom, hbase, &m);
->                 if (rc)
->                         return rc;
->                 m &= hmask;
-> @@ -94,7 +94,7 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
->                 }
->         } else {
->                 hbase = 0;
-> -               while (!sbi_hsm_hart_started_mask(dom, hbase, &m)) {
-> +               while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
->                         /* Send IPIs */
->                         for (i = hbase; m; i++, m >>= 1) {
->                                 if (m & 1UL)
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index 08a8b47..10915b4 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -35,7 +35,7 @@ void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason)
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> -       if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
+> +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
+>                 return SBI_EINVAL;
 >
->         /* Send HALT IPI to every hart other than the current hart */
-> -       while (!sbi_hsm_hart_started_mask(dom, hbase, &hmask)) {
-> +       while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &hmask)) {
->                 if (hbase <= cur_hartid)
->                         hmask &= ~(1UL << (cur_hartid - hbase));
->                 if (hmask)
+
+Do we need  sbi_domain_is_assigned_hart given that hartid is current
+hartid and the domain is retrieved directly from
+hartid_to_domain_table.
+
+>         oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
 > --
 > 2.25.1
 >
+
+Thanks for the cleanup. What should be the correct error code returned
+from sbi_hsm_hart_stop if the current state is not STARTED ?
+it will be SBI_EDENIED(-4) but the spec says SBI_ERR_FAILED (-1)
+
 >
 > --
 > opensbi mailing list
@@ -118,7 +80,6 @@ On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
 -- 
 Regards,
