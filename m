@@ -1,114 +1,57 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 24 Feb 2021 10:07:25 +0530
-Subject: [RFC PATCH 07/10] include: sbi: Add hart_suspend() platform
- callback
-In-Reply-To: <CAOnJCUKE4Vp7iv9ACMyRgOEfhLzrKv4sDwnEsXNwATETDxeWzA@mail.gmail.com>
-References: <20210221085321.180602-1-anup.patel@wdc.com>
- <20210221085321.180602-8-anup.patel@wdc.com>
- <CAOnJCUKE4Vp7iv9ACMyRgOEfhLzrKv4sDwnEsXNwATETDxeWzA@mail.gmail.com>
-Message-ID: <CAAhSdy2YXRgEhUdhz=U7k8uK2cyiBS+AC9_si3D=-9zSxbWKTg@mail.gmail.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed, 24 Feb 2021 16:01:52 +0530
+Subject: [RFC PATCH v2 00/11] SBI HSM suspend implementation
+Message-ID: <20210224103203.246229-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 24, 2021 at 5:16 AM Atish Patra <atishp@atishpatra.org> wrote:
->
-> On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
-> >
-> > We add hart_suspend() callback in platform operations which will
-> > be used by HSM implementation to enter retentive or non-retentive
-> > suspend state.
-> >
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > ---
-> >  include/sbi/sbi_platform.h | 30 ++++++++++++++++++++++++++++++
-> >  1 file changed, 30 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> > index cc7e3ff..ede3fb3 100644
-> > --- a/include/sbi/sbi_platform.h
-> > +++ b/include/sbi/sbi_platform.h
-> > @@ -139,6 +139,11 @@ struct sbi_platform_operations {
-> >          * return if success.
-> >          */
-> >         int (*hart_stop)(void);
-> > +       /**
-> > +        * Put the current hart in platform specific suspend (or low-power)
-> > +        * state.
-> > +        */
-> > +       int (*hart_suspend)(u32 suspend_type, ulong raddr);
-> >
->
-> suspend_type should be u32 or XLEN ? The spec mentioned both at
-> different places.
-> I noticed that it is defined as unsigned long in the next patch as well.
+From: Anup Patel <anup.patel@wddc.com>
 
-This applies to the reset_type parameter of sbi_system_reset() call as well.
+This series extends OpenSBI HSM implemenation to include HSM suspend
+function.
 
-Both suspend_type and reset_type are actually u32 so better to fix this in
-spec.
+These patches can be found in hsm_suspend_v2 branch at
+https://github.com/avpatel/opensbi
 
->
-> >         /* Check whether reset type and reason supported by the platform */
-> >         int (*system_reset_check)(u32 reset_type, u32 reset_reason);
-> > @@ -370,6 +375,31 @@ static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
-> >         return SBI_ENOTSUPP;
-> >  }
-> >
-> > +/**
-> > + * Put the current hart in platform specific suspend (or low-power) state.
-> > + *
-> > + * For successful retentive suspend, the call will return 0 when the hart
-> > + * resumes normal execution.
-> > + *
-> > + * For successful non-retentive suspend, the hart will resume from specified
-> > + * resume address
-> > + *
-> > + * @param plat pointer to struct sbi_platform
-> > + * @param suspend_type the type of suspend
-> > + * @param raddr physical address where the hart can resume in M-mode after
-> > + * non-retantive suspend
-> > + *
-> > + * @return 0 if sucessful and negative error code on failure
->
-> /s/sucessful/successful
+The proposed SBI HSM suspend definition can be found in hsm_suspend_v3
+branch at https://github.com/avpatel/riscv-sbi-doc
 
-Okay, will update.
+Changes since v1:
+ - Addressed Atish's comments in PATCH4 and PATCH7
+ - Added new PATCH5 to fix error codes returned by HSM start()/stop()
 
->
->
-> > + */
-> > +static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
-> > +                                           u32 suspend_type, ulong raddr)
-> > +{
-> > +       if (plat && sbi_platform_ops(plat)->hart_suspend)
-> > +               return sbi_platform_ops(plat)->hart_suspend(suspend_type,
-> > +                                                           raddr);
-> > +       return SBI_ENOTSUPP;
-> > +}
-> > +
-> >  /**
-> >   * Early initialization for current HART
-> >   *
-> > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
->
-> Other than that,
->
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
->
-> --
-> Regards,
-> Atish
+Anup Patel (11):
+  include: sbi: Simplify HSM state define names
+  lib: sbi: Use SBI_HSM_STATE_xyz defines instead of SBI_STATE_xyz
+    defines
+  lib: sbi: Rename sbi_hsm_hart_started_mask() function
+  lib: sbi: Remove redundant sbi_hsm_hart_started() function
+  lib: sbi: Fix error codes returned by HSM start() and stop() functions
+  include: sbi: Add HSM suspend related defines
+  lib: sbi: Add sbi_hart_reinit() function
+  include: sbi: Add hart_suspend() platform callback
+  lib: sbi: Implement SBI HSM suspend function
+  include: sbi: Upgrade SBI implementation version to v0.3
+  lib: Remove redundant sbi_platform_ipi_clear() calls
 
-Thanks,
-Anup
+ include/sbi/sbi_ecall.h           |   2 +-
+ include/sbi/sbi_ecall_interface.h |  27 ++-
+ include/sbi/sbi_hart.h            |   1 +
+ include/sbi/sbi_hsm.h             |  16 +-
+ include/sbi/sbi_platform.h        |  30 ++++
+ lib/sbi/sbi_ecall_hsm.c           |  13 +-
+ lib/sbi/sbi_ecall_legacy.c        |   4 +-
+ lib/sbi/sbi_hart.c                |  29 ++--
+ lib/sbi/sbi_hsm.c                 | 276 +++++++++++++++++++++++-------
+ lib/sbi/sbi_init.c                |  49 +++++-
+ lib/sbi/sbi_ipi.c                 |   9 +-
+ lib/sbi/sbi_system.c              |   2 +-
+ 12 files changed, 352 insertions(+), 106 deletions(-)
+
+-- 
+2.25.1
+
 
