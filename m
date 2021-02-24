@@ -1,89 +1,74 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 24 Feb 2021 16:01:59 +0530
-Subject: [RFC PATCH v2 07/11] lib: sbi: Add sbi_hart_reinit() function
+Date: Wed, 24 Feb 2021 16:02:00 +0530
+Subject: [RFC PATCH v2 08/11] include: sbi: Add hart_suspend() platform
+ callback
 In-Reply-To: <20210224103203.246229-1-anup.patel@wdc.com>
 References: <20210224103203.246229-1-anup.patel@wdc.com>
-Message-ID: <20210224103203.246229-8-anup.patel@wdc.com>
+Message-ID: <20210224103203.246229-9-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add sbi_hart_reinit() function which will re-initialize HART CSRs
-assuming HART features are already detected. This new function will
-be useful in re-initializing HART after it resumes from HSM SUSPENDED
-state.
+We add hart_suspend() callback in platform operations which will
+be used by HSM implementation to enter retentive or non-retentive
+suspend state.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/sbi_hart.h |  1 +
- lib/sbi/sbi_hart.c     | 29 +++++++++++++++++------------
- 2 files changed, 18 insertions(+), 12 deletions(-)
+ include/sbi/sbi_platform.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index ec9e30f..031c7b0 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -27,6 +27,7 @@ enum sbi_hart_features {
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index cc7e3ff..dadbc1e 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -139,6 +139,11 @@ struct sbi_platform_operations {
+ 	 * return if success.
+ 	 */
+ 	int (*hart_stop)(void);
++	/**
++	 * Put the current hart in platform specific suspend (or low-power)
++	 * state.
++	 */
++	int (*hart_suspend)(u32 suspend_type, ulong raddr);
  
- struct sbi_scratch;
- 
-+int sbi_hart_reinit(struct sbi_scratch *scratch);
- int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
- 
- extern void (*sbi_hart_expected_trap)(void);
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index fc86e9f..d91b08c 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -430,10 +430,25 @@ __mhpm_skip:
- 		hfeatures->features |= SBI_HART_HAS_TIME;
+ 	/* Check whether reset type and reason supported by the platform */
+ 	int (*system_reset_check)(u32 reset_type, u32 reset_reason);
+@@ -370,6 +375,31 @@ static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
+ 	return SBI_ENOTSUPP;
  }
  
--int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
-+int sbi_hart_reinit(struct sbi_scratch *scratch)
- {
- 	int rc;
- 
-+	mstatus_init(scratch);
-+
-+	rc = fp_init(scratch);
-+	if (rc)
-+		return rc;
-+
-+	rc = delegate_traps(scratch);
-+	if (rc)
-+		return rc;
-+
-+	return 0;
++/**
++ * Put the current hart in platform specific suspend (or low-power) state.
++ *
++ * For successful retentive suspend, the call will return 0 when the hart
++ * resumes normal execution.
++ *
++ * For successful non-retentive suspend, the hart will resume from specified
++ * resume address
++ *
++ * @param plat pointer to struct sbi_platform
++ * @param suspend_type the type of suspend
++ * @param raddr physical address where the hart can resume in M-mode after
++ * non-retantive suspend
++ *
++ * @return 0 if successful and negative error code on failure
++ */
++static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
++					    u32 suspend_type, ulong raddr)
++{
++	if (plat && sbi_platform_ops(plat)->hart_suspend)
++		return sbi_platform_ops(plat)->hart_suspend(suspend_type,
++							    raddr);
++	return SBI_ENOTSUPP;
 +}
 +
-+int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
-+{
- 	if (cold_boot) {
- 		if (misa_extension('H'))
- 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
-@@ -447,17 +462,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- 
- 	hart_detect_features(scratch);
- 
--	mstatus_init(scratch);
--
--	rc = fp_init(scratch);
--	if (rc)
--		return rc;
--
--	rc = delegate_traps(scratch);
--	if (rc)
--		return rc;
--
--	return 0;
-+	return sbi_hart_reinit(scratch);
- }
- 
- void __attribute__((noreturn)) sbi_hart_hang(void)
+ /**
+  * Early initialization for current HART
+  *
 -- 
 2.25.1
 
