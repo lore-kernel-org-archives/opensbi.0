@@ -1,65 +1,46 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 24 Feb 2021 16:01:56 +0530
-Subject: [RFC PATCH v2 04/11] lib: sbi: Remove redundant
- sbi_hsm_hart_started() function
+Date: Wed, 24 Feb 2021 16:01:57 +0530
+Subject: [RFC PATCH v2 05/11] lib: sbi: Fix error codes returned by HSM
+ start() and stop() functions
 In-Reply-To: <20210224103203.246229-1-anup.patel@wdc.com>
 References: <20210224103203.246229-1-anup.patel@wdc.com>
-Message-ID: <20210224103203.246229-5-anup.patel@wdc.com>
+Message-ID: <20210224103203.246229-6-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_hsm_hart_started() function is only used by sbi_hsm_hart_stop()
-for checking state of calling HART and current domain assignment.
-
-The atomic_cmpxchg() called by sbi_hsm_hart_stop() will check state of
-calling hart anyway and domain assignment can be checked by other domain
-function such as sbi_domain_is_assigned_hart().
-
-This means sbi_hsm_hart_started() is redundant and can be removed.
+The sbi_hsm_hart_start() and sbi_hsm_hart_stop() functions should
+only return error codes as defined by the SBI specification.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- lib/sbi/sbi_hsm.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ lib/sbi/sbi_hsm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index a81b821..10099c2 100644
+index 10099c2..63fa8c2 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -54,14 +54,6 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
- 	return __sbi_hsm_hart_get_state(hartid);
- }
- 
--static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
--{
--	if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
--		return TRUE;
--	else
--		return FALSE;
--}
--
- /**
-  * Get ulong HART mask for given HART base ID
-  * @param dom the domain to be used for output HART mask
-@@ -247,12 +239,12 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
- {
- 	int oldstate;
--	u32 hartid = current_hartid();
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 
--	if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
+@@ -202,7 +202,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 		return SBI_EINVAL;
+ 	if (dom && !sbi_domain_check_addr(dom, saddr, smode,
+ 					  SBI_DOMAIN_EXECUTE))
 -		return SBI_EINVAL;
-+	if (!dom)
-+		return SBI_EFAIL;
++		return SBI_EINVALID_ADDR;
  
- 	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
- 				  SBI_HSM_STATE_STOP_PENDING);
+ 	rscratch = sbi_hartid_to_scratch(hartid);
+ 	if (!rscratch)
+@@ -251,7 +251,7 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ 	if (oldstate != SBI_HSM_STATE_STARTED) {
+ 		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+ 			   __func__, oldstate);
+-		return SBI_EDENIED;
++		return SBI_EFAIL;
+ 	}
+ 
+ 	if (exitnow)
 -- 
 2.25.1
 
