@@ -1,118 +1,87 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 23 Feb 2021 15:50:52 -0800
-Subject: [RFC PATCH 10/10] lib: Remove redundant sbi_platform_ipi_clear()
- calls
-In-Reply-To: <20210221085321.180602-11-anup.patel@wdc.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 24 Feb 2021 10:00:40 +0530
+Subject: [RFC PATCH 04/10] lib: sbi: Remove redundant
+ sbi_hsm_hart_started() function
+In-Reply-To: <CAOnJCUJ97rAxkEc3=en=VsrsNuVGjO8KU0DY+b26vsvbafbX2Q@mail.gmail.com>
 References: <20210221085321.180602-1-anup.patel@wdc.com>
- <20210221085321.180602-11-anup.patel@wdc.com>
-Message-ID: <CAOnJCUKYckNvOihEZ01sOkbToxCYWzuCCZwte28AOnQSpgyMdA@mail.gmail.com>
+ <20210221085321.180602-5-anup.patel@wdc.com>
+ <CAOnJCUJ97rAxkEc3=en=VsrsNuVGjO8KU0DY+b26vsvbafbX2Q@mail.gmail.com>
+Message-ID: <CAAhSdy2OPf6oCsCQ1TV6sj20DU7MHy_jkPE_Tev4E5RKPg30pA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
+On Wed, Feb 24, 2021 at 5:10 AM Atish Patra <atishp@atishpatra.org> wrote:
 >
-> The sbi_platform_ipi_clear() called from wait_for_coldboot() and
-> sbi_hsm_hart_wait() is redundant because IPI will be automatically
-> cleared by sbi_platform_ipi_init() called from sbi_ipi_init().
+> On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > The sbi_hsm_hart_started() function is only used by sbi_hsm_hart_stop()
+> > for checking state of calling HART and current domain assignment.
+> >
+> > The atomic_cmpxchg() called by sbi_hsm_hart_stop() will check state of
+> > calling hart anyway and domain assignment can be checked by other domain
+> > function such as sbi_domain_is_assigned_hart().
+> >
+> > This means sbi_hsm_hart_started() is redundant and can be removed.
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  lib/sbi/sbi_hsm.c | 11 ++---------
+> >  1 file changed, 2 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> > index a81b821..732c400 100644
+> > --- a/lib/sbi/sbi_hsm.c
+> > +++ b/lib/sbi/sbi_hsm.c
+> > @@ -54,14 +54,6 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+> >         return __sbi_hsm_hart_get_state(hartid);
+> >  }
+> >
+> > -static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
+> > -{
+> > -       if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
+> > -               return TRUE;
+> > -       else
+> > -               return FALSE;
+> > -}
+> > -
+> >  /**
+> >   * Get ulong HART mask for given HART base ID
+> >   * @param dom the domain to be used for output HART mask
+> > @@ -248,10 +240,11 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+> >  {
+> >         int oldstate;
+> >         u32 hartid = current_hartid();
+> > +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> >         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+> >                                                             hart_data_offset);
+> >
+> > -       if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
+> > +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
+> >                 return SBI_EINVAL;
+> >
 >
-> Further, wait_for_coldboot() is common for warm startup and warm
-> resume path so the sbi_platform_ipi_clear() called in warm resume
-> path cause resuming HART to miss an IPI injected other HART to
-> wakeup the HART.
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  lib/sbi/sbi_hsm.c  |  7 ++++---
->  lib/sbi/sbi_init.c | 11 ++++++++---
->  lib/sbi/sbi_ipi.c  |  5 ++++-
->  3 files changed, 16 insertions(+), 7 deletions(-)
->
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index b597265..643eba0 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -107,7 +107,6 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
->  static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
->  {
->         unsigned long saved_mie;
-> -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->                                                             hart_data_offset);
->         /* Save MIE CSR */
-> @@ -124,8 +123,10 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
->         /* Restore MIE CSR */
->         csr_write(CSR_MIE, saved_mie);
->
-> -       /* Clear current HART IPI */
-> -       sbi_platform_ipi_clear(plat, hartid);
-> +       /*
-> +        * No need to clear IPI here because the sbi_ipi_init() will
-> +        * clear it for current HART via sbi_platform_ipi_init().
-> +        */
->  }
->
->  int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 1d4a838..4de2dfa 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -130,7 +130,6 @@ static unsigned long coldboot_done;
->  static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->  {
->         unsigned long saved_mie, cmip;
-> -       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->
->         /* Save MIE CSR */
->         saved_mie = csr_read(CSR_MIE);
-> @@ -167,8 +166,14 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->         /* Restore MIE CSR */
->         csr_write(CSR_MIE, saved_mie);
->
-> -       /* Clear current HART IPI */
-> -       sbi_platform_ipi_clear(plat, hartid);
-> +       /*
-> +        * The wait for coldboot is common for both warm startup and
-> +        * warm resume path so clearing IPI here would result in losing
-> +        * an IPI in warm resume path.
-> +        *
-> +        * Also, the sbi_platform_ipi_init() called from sbi_ipi_init()
-> +        * will automatically clear IPI for current HART.
-> +        */
->  }
->
->  static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index a3a6ce6..b50735e 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -230,7 +230,10 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
->         ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
->         ipi_data->ipi_type = 0x00;
->
-> -       /* Platform init */
-> +       /*
-> +        * Initialize platform IPI support. This will also clear any
-> +        * pending IPIs for current/calling HART.
-> +        */
->         ret = sbi_platform_ipi_init(sbi_platform_ptr(scratch), cold_boot);
->         if (ret)
->                 return ret;
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Do we need  sbi_domain_is_assigned_hart given that hartid is current
+> hartid and the domain is retrieved directly from
+> hartid_to_domain_table.
 
+Good catch, we don't need it. I will update in the next revision.
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
+>
+> >         oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+> > --
+> > 2.25.1
+> >
+>
+> Thanks for the cleanup. What should be the correct error code returned
+> from sbi_hsm_hart_stop if the current state is not STARTED ?
+> it will be SBI_EDENIED(-4) but the spec says SBI_ERR_FAILED (-1)
 
--- 
-Regards,
-Atish
+Yes, we should use SBI_EFAIL to be compliant with spec. I will update in
+the next revision.
+
+Thanks,
+Anup
 
