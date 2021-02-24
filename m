@@ -1,86 +1,113 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 24 Feb 2021 10:00:40 +0530
-Subject: [RFC PATCH 04/10] lib: sbi: Remove redundant
- sbi_hsm_hart_started() function
-In-Reply-To: <CAOnJCUJ97rAxkEc3=en=VsrsNuVGjO8KU0DY+b26vsvbafbX2Q@mail.gmail.com>
+Date: Wed, 24 Feb 2021 10:07:25 +0530
+Subject: [RFC PATCH 07/10] include: sbi: Add hart_suspend() platform
+ callback
+In-Reply-To: <CAOnJCUKE4Vp7iv9ACMyRgOEfhLzrKv4sDwnEsXNwATETDxeWzA@mail.gmail.com>
 References: <20210221085321.180602-1-anup.patel@wdc.com>
- <20210221085321.180602-5-anup.patel@wdc.com>
- <CAOnJCUJ97rAxkEc3=en=VsrsNuVGjO8KU0DY+b26vsvbafbX2Q@mail.gmail.com>
-Message-ID: <CAAhSdy2OPf6oCsCQ1TV6sj20DU7MHy_jkPE_Tev4E5RKPg30pA@mail.gmail.com>
+ <20210221085321.180602-8-anup.patel@wdc.com>
+ <CAOnJCUKE4Vp7iv9ACMyRgOEfhLzrKv4sDwnEsXNwATETDxeWzA@mail.gmail.com>
+Message-ID: <CAAhSdy2YXRgEhUdhz=U7k8uK2cyiBS+AC9_si3D=-9zSxbWKTg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 24, 2021 at 5:10 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Wed, Feb 24, 2021 at 5:16 AM Atish Patra <atishp@atishpatra.org> wrote:
 >
 > On Sun, Feb 21, 2021 at 12:54 AM Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > The sbi_hsm_hart_started() function is only used by sbi_hsm_hart_stop()
-> > for checking state of calling HART and current domain assignment.
-> >
-> > The atomic_cmpxchg() called by sbi_hsm_hart_stop() will check state of
-> > calling hart anyway and domain assignment can be checked by other domain
-> > function such as sbi_domain_is_assigned_hart().
-> >
-> > This means sbi_hsm_hart_started() is redundant and can be removed.
+> > We add hart_suspend() callback in platform operations which will
+> > be used by HSM implementation to enter retentive or non-retentive
+> > suspend state.
 > >
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > > ---
-> >  lib/sbi/sbi_hsm.c | 11 ++---------
-> >  1 file changed, 2 insertions(+), 9 deletions(-)
+> >  include/sbi/sbi_platform.h | 30 ++++++++++++++++++++++++++++++
+> >  1 file changed, 30 insertions(+)
 > >
-> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> > index a81b821..732c400 100644
-> > --- a/lib/sbi/sbi_hsm.c
-> > +++ b/lib/sbi/sbi_hsm.c
-> > @@ -54,14 +54,6 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
-> >         return __sbi_hsm_hart_get_state(hartid);
+> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> > index cc7e3ff..ede3fb3 100644
+> > --- a/include/sbi/sbi_platform.h
+> > +++ b/include/sbi/sbi_platform.h
+> > @@ -139,6 +139,11 @@ struct sbi_platform_operations {
+> >          * return if success.
+> >          */
+> >         int (*hart_stop)(void);
+> > +       /**
+> > +        * Put the current hart in platform specific suspend (or low-power)
+> > +        * state.
+> > +        */
+> > +       int (*hart_suspend)(u32 suspend_type, ulong raddr);
+> >
+>
+> suspend_type should be u32 or XLEN ? The spec mentioned both at
+> different places.
+> I noticed that it is defined as unsigned long in the next patch as well.
+
+This applies to the reset_type parameter of sbi_system_reset() call as well.
+
+Both suspend_type and reset_type are actually u32 so better to fix this in
+spec.
+
+>
+> >         /* Check whether reset type and reason supported by the platform */
+> >         int (*system_reset_check)(u32 reset_type, u32 reset_reason);
+> > @@ -370,6 +375,31 @@ static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
+> >         return SBI_ENOTSUPP;
 > >  }
 > >
-> > -static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
-> > -{
-> > -       if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
-> > -               return TRUE;
-> > -       else
-> > -               return FALSE;
-> > -}
-> > -
+> > +/**
+> > + * Put the current hart in platform specific suspend (or low-power) state.
+> > + *
+> > + * For successful retentive suspend, the call will return 0 when the hart
+> > + * resumes normal execution.
+> > + *
+> > + * For successful non-retentive suspend, the hart will resume from specified
+> > + * resume address
+> > + *
+> > + * @param plat pointer to struct sbi_platform
+> > + * @param suspend_type the type of suspend
+> > + * @param raddr physical address where the hart can resume in M-mode after
+> > + * non-retantive suspend
+> > + *
+> > + * @return 0 if sucessful and negative error code on failure
+>
+> /s/sucessful/successful
+
+Okay, will update.
+
+>
+>
+> > + */
+> > +static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
+> > +                                           u32 suspend_type, ulong raddr)
+> > +{
+> > +       if (plat && sbi_platform_ops(plat)->hart_suspend)
+> > +               return sbi_platform_ops(plat)->hart_suspend(suspend_type,
+> > +                                                           raddr);
+> > +       return SBI_ENOTSUPP;
+> > +}
+> > +
 > >  /**
-> >   * Get ulong HART mask for given HART base ID
-> >   * @param dom the domain to be used for output HART mask
-> > @@ -248,10 +240,11 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
-> >  {
-> >         int oldstate;
-> >         u32 hartid = current_hartid();
-> > +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> >         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> >                                                             hart_data_offset);
-> >
-> > -       if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
-> > +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
-> >                 return SBI_EINVAL;
-> >
->
-> Do we need  sbi_domain_is_assigned_hart given that hartid is current
-> hartid and the domain is retrieved directly from
-> hartid_to_domain_table.
-
-Good catch, we don't need it. I will update in the next revision.
-
->
-> >         oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+> >   * Early initialization for current HART
+> >   *
 > > --
 > > 2.25.1
 > >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 >
-> Thanks for the cleanup. What should be the correct error code returned
-> from sbi_hsm_hart_stop if the current state is not STARTED ?
-> it will be SBI_EDENIED(-4) but the spec says SBI_ERR_FAILED (-1)
-
-Yes, we should use SBI_EFAIL to be compliant with spec. I will update in
-the next revision.
+> Other than that,
+>
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+>
+> --
+> Regards,
+> Atish
 
 Thanks,
 Anup
