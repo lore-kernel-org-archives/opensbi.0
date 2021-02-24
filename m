@@ -1,46 +1,56 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 24 Feb 2021 16:01:57 +0530
-Subject: [RFC PATCH v2 05/11] lib: sbi: Fix error codes returned by HSM
- start() and stop() functions
+Date: Wed, 24 Feb 2021 16:01:58 +0530
+Subject: [RFC PATCH v2 06/11] include: sbi: Add HSM suspend related defines
 In-Reply-To: <20210224103203.246229-1-anup.patel@wdc.com>
 References: <20210224103203.246229-1-anup.patel@wdc.com>
-Message-ID: <20210224103203.246229-6-anup.patel@wdc.com>
+Message-ID: <20210224103203.246229-7-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_hsm_hart_start() and sbi_hsm_hart_stop() functions should
-only return error codes as defined by the SBI specification.
+This patch adds SBI HSM suspend related defines to ecall interface
+header.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- lib/sbi/sbi_hsm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/sbi/sbi_ecall_interface.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 10099c2..63fa8c2 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -202,7 +202,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		return SBI_EINVAL;
- 	if (dom && !sbi_domain_check_addr(dom, saddr, smode,
- 					  SBI_DOMAIN_EXECUTE))
--		return SBI_EINVAL;
-+		return SBI_EINVALID_ADDR;
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index b272213..7fcb373 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -57,11 +57,28 @@
+ #define SBI_EXT_HSM_HART_START			0x0
+ #define SBI_EXT_HSM_HART_STOP			0x1
+ #define SBI_EXT_HSM_HART_GET_STATUS		0x2
++#define SBI_EXT_HSM_HART_SUSPEND		0x3
  
- 	rscratch = sbi_hartid_to_scratch(hartid);
- 	if (!rscratch)
-@@ -251,7 +251,7 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
- 	if (oldstate != SBI_HSM_STATE_STARTED) {
- 		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
- 			   __func__, oldstate);
--		return SBI_EDENIED;
-+		return SBI_EFAIL;
- 	}
+ #define SBI_HSM_STATE_STARTED			0x0
+ #define SBI_HSM_STATE_STOPPED			0x1
+ #define SBI_HSM_STATE_START_PENDING		0x2
+ #define SBI_HSM_STATE_STOP_PENDING		0x3
++#define SBI_HSM_STATE_SUSPENDED			0x4
++#define SBI_HSM_STATE_SUSPEND_PENDING		0x5
++#define SBI_HSM_STATE_RESUME_PENDING		0x6
++
++#define SBI_HSM_SUSP_BASE_MASK			0x7fffffff
++#define SBI_HSM_SUSP_NON_RET_BIT		0x80000000
++#define SBI_HSM_SUSP_PLAT_BASE			0x10000000
++
++#define SBI_HSM_SUSPEND_RET_DEFAULT		0x00000000
++#define SBI_HSM_SUSPEND_RET_PLATFORM		SBI_HSM_SUSP_PLAT_BASE
++#define SBI_HSM_SUSPEND_RET_LAST		SBI_HSM_SUSP_BASE_MASK
++#define SBI_HSM_SUSPEND_NON_RET_DEFAULT		SBI_HSM_SUSP_NON_RET_BIT
++#define SBI_HSM_SUSPEND_NON_RET_PLATFORM	(SBI_HSM_SUSP_NON_RET_BIT | \
++						 SBI_HSM_SUSP_PLAT_BASE)
++#define SBI_HSM_SUSPEND_NON_RET_LAST		(SBI_HSM_SUSP_NON_RET_BIT | \
++						 SBI_HSM_SUSP_BASE_MASK)
  
- 	if (exitnow)
+ /* SBI function IDs for SRST extension */
+ #define SBI_EXT_SRST_RESET			0x0
 -- 
 2.25.1
 
