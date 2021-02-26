@@ -1,104 +1,83 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 24 Feb 2021 16:02:03 +0530
-Subject: [RFC PATCH v2 11/11] lib: Remove redundant sbi_platform_ipi_clear()
- calls
-In-Reply-To: <20210224103203.246229-1-anup.patel@wdc.com>
-References: <20210224103203.246229-1-anup.patel@wdc.com>
-Message-ID: <20210224103203.246229-12-anup.patel@wdc.com>
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 26 Feb 2021 00:41:19 +0000
+Subject: [PATCH 1/1] platform: implement K210 system reset
+Message-ID: <20210226004119.17716-1-xypron.glpk@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_platform_ipi_clear() called from wait_for_coldboot() and
-sbi_hsm_hart_wait() is redundant because IPI will be automatically
-cleared by sbi_platform_ipi_init() called from sbi_ipi_init().
+Implement rebooting the K210 via the system reset extension.
 
-Further, wait_for_coldboot() is common for warm startup and warm
-resume path so the sbi_platform_ipi_clear() called in warm resume
-path cause resuming HART to miss an IPI injected other HART to
-wakeup the HART.
+All reset types are treated in the same way.
+A request for shutdown results in a reboot.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/sbi/sbi_hsm.c  |  7 ++++---
- lib/sbi/sbi_init.c | 11 ++++++++---
- lib/sbi/sbi_ipi.c  |  5 ++++-
- 3 files changed, 16 insertions(+), 7 deletions(-)
+ platform/kendryte/k210/platform.c | 19 +++++++++++++++++++
+ platform/kendryte/k210/platform.h |  6 ++++++
+ 2 files changed, 25 insertions(+)
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 3be7f8a..e011069 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -107,7 +107,6 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
- static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- {
- 	unsigned long saved_mie;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 	/* Save MIE CSR */
-@@ -124,8 +123,10 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- 	/* Restore MIE CSR */
- 	csr_write(CSR_MIE, saved_mie);
- 
--	/* Clear current HART IPI */
--	sbi_platform_ipi_clear(plat, hartid);
-+	/*
-+	 * No need to clear IPI here because the sbi_ipi_init() will
-+	 * clear it for current HART via sbi_platform_ipi_init().
-+	 */
+diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
+index 944b388..cba8c7d 100644
+--- a/platform/kendryte/k210/platform.c
++++ b/platform/kendryte/k210/platform.c
+@@ -129,6 +129,22 @@ static int k210_timer_init(bool cold_boot)
+ 	return clint_warm_timer_init();
  }
- 
- int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 1d4a838..4de2dfa 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -130,7 +130,6 @@ static unsigned long coldboot_done;
- static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+
++static int k210_system_reset_check(u32 type, u32 reason)
++{
++	return 1;
++}
++
++static void k210_system_reset(u32 type, u32 reason)
++{
++	u32 val;
++
++	val = k210_read_sysreg(K210_RESET);
++	val |= 1;
++	k210_write_sysreg(val, K210_RESET);
++
++	while(1);
++}
++
+ const struct sbi_platform_operations platform_ops = {
+ 	.final_init	= k210_final_init,
+
+@@ -142,6 +158,9 @@ const struct sbi_platform_operations platform_ops = {
+ 	.ipi_send  = clint_ipi_send,
+ 	.ipi_clear = clint_ipi_clear,
+
++	.system_reset_check = k210_system_reset_check,
++	.system_reset = k210_system_reset,
++
+ 	.timer_init	   = k210_timer_init,
+ 	.timer_value	   = clint_timer_value,
+ 	.timer_event_stop  = clint_timer_event_stop,
+diff --git a/platform/kendryte/k210/platform.h b/platform/kendryte/k210/platform.h
+index 5269bc4..2946928 100644
+--- a/platform/kendryte/k210/platform.h
++++ b/platform/kendryte/k210/platform.h
+@@ -27,10 +27,16 @@
+ /* Registers */
+ #define K210_PLL0		0x08
+ #define K210_CLKSEL0		0x20
++#define K210_RESET		0x30
+
+ static inline u32 k210_read_sysreg(u32 reg)
  {
- 	unsigned long saved_mie, cmip;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
- 	/* Save MIE CSR */
- 	saved_mie = csr_read(CSR_MIE);
-@@ -167,8 +166,14 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	/* Restore MIE CSR */
- 	csr_write(CSR_MIE, saved_mie);
- 
--	/* Clear current HART IPI */
--	sbi_platform_ipi_clear(plat, hartid);
-+	/*
-+	 * The wait for coldboot is common for both warm startup and
-+	 * warm resume path so clearing IPI here would result in losing
-+	 * an IPI in warm resume path.
-+	 *
-+	 * Also, the sbi_platform_ipi_init() called from sbi_ipi_init()
-+	 * will automatically clear IPI for current HART.
-+	 */
+ 	return readl((volatile void *)(K210_SYSCTL_BASE_ADDR + reg));
  }
- 
- static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index a3a6ce6..b50735e 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -230,7 +230,10 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
- 	ipi_data->ipi_type = 0x00;
- 
--	/* Platform init */
-+	/*
-+	 * Initialize platform IPI support. This will also clear any
-+	 * pending IPIs for current/calling HART.
-+	 */
- 	ret = sbi_platform_ipi_init(sbi_platform_ptr(scratch), cold_boot);
- 	if (ret)
- 		return ret;
--- 
-2.25.1
+
++static inline void k210_write_sysreg(u32 val, u32 reg)
++{
++	writel(val, (volatile void *)(K210_SYSCTL_BASE_ADDR + reg));
++}
++
+ #endif /* _K210_PLATFORM_H_ */
+--
+2.30.0
 
 
