@@ -1,103 +1,68 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Wed,  3 Mar 2021 17:25:12 +0530
-Subject: [PATCH v3 11/11] lib: Remove redundant sbi_platform_ipi_clear() calls
-In-Reply-To: <20210303115512.470786-1-anup.patel@wdc.com>
-References: <20210303115512.470786-1-anup.patel@wdc.com>
-Message-ID: <20210303115512.470786-12-anup.patel@wdc.com>
+From: Vincent Chen <vincent.chen@sifive.com>
+Date: Tue,  2 Mar 2021 23:25:49 +0800
+Subject: [PATCH 0/3] Support position independent execution
+Message-ID: <1614698752-16085-1-git-send-email-vincent.chen@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_platform_ipi_clear() called from wait_for_coldboot() and
-sbi_hsm_hart_wait() is redundant because IPI will be automatically
-cleared by sbi_platform_ipi_init() called from sbi_ipi_init().
+This patch set enables OpenSBI to support position-independent execution
+so that one OpenSBI generic firmware can run on multiple platforms, even
+if they have different memory base addresses. However, the PIC code will
+decrease a bit of performance. The 2nd and 3rd patches are used to reduce
+this impact of the PIC.
 
-Further, wait_for_coldboot() is common for warm startup and warm
-resume path so the sbi_platform_ipi_clear() called in warm resume
-path cause resuming HART to miss an IPI injected other HART to
-wakeup the HART.
+The performance loss of PIC comes from two additional operations. One is
+from the symbol relocation in the beginning stage, and another one is
+from the GOT reference (auipc + load GOT) in the OpenSBI lifetime. The
+former only affects the boot time, but the latter will affect the
+performance of the OpenSBI payload such as the Linux kernel. After
+analyzing the fw_payload.elf of the generic platform, 27 symbols use the
+GOT reference method to get their address. Fortunately, 17 of these
+symbols are accessed once during the initialized step. Only the remaining
+10 symbols may be called repeatedly during the lifetime, which are
+1. hartid_to_domain_table
+2. hartid_to_scratch_table
+3. sbi_hart_expected_trap
+4. sbi_tlb_local_hfence_vvma
+5. sbi_tlb_local_hfence_gvma
+6. sbi_tlb_local_sfence_vma_asid
+7. sbi_tlb_local_fence_i
+8. sbi_tlb_local_hfence_gvma
+9. sbi_tlb_local_hfence_vvma
+10. sbi_tlb_local_sfence_vma
+From these 10 symbols, I think the IPI handler may be one of the critical
+and commonly used paths affected by the PIC mode. Therefore, I create two
+kernel modules, One keeps issuing the REMOTE_FENCE_I request and the other
+one keeps issuing REMOTE_SFENCE_VMA request. These two modules are executed
+on the unleashed board to measure the consumed time of the sbi_tlb_request().
+I found the PIC causes a 1.6% and 4.1% performance loss in addressing
+REMOTE_FENCE_I and REMOTE_SFENCE_VMA, respectively. In addition, to observe
+the impact of PIC mode in the general usage cases, I use SPEC2006 to
+benchmark performance. However, I could not observe any performance impact
+from the results. Based on the above two results, I think the performance
+impact of the PIC may not be obvious in general usage. Just in case, this
+patch still creates an FW_PIC option for users to configure the build options.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
----
- lib/sbi/sbi_hsm.c  |  7 ++++---
- lib/sbi/sbi_init.c | 11 ++++++++---
- lib/sbi/sbi_ipi.c  |  5 ++++-
- 3 files changed, 16 insertions(+), 7 deletions(-)
+Vincent Chen (3):
+  firmware: Support position independent execution
+  firmware: fw_base: Use lla to access the global symbols defined in
+    fw_base.S
+  firware: Use lla to access all global symbols
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index ace6a9d..bbc4ce9 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -107,7 +107,6 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
- static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- {
- 	unsigned long saved_mie;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 	/* Save MIE CSR */
-@@ -124,8 +123,10 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- 	/* Restore MIE CSR */
- 	csr_write(CSR_MIE, saved_mie);
- 
--	/* Clear current HART IPI */
--	sbi_platform_ipi_clear(plat, hartid);
-+	/*
-+	 * No need to clear IPI here because the sbi_ipi_init() will
-+	 * clear it for current HART via sbi_platform_ipi_init().
-+	 */
- }
- 
- int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 1d4a838..4de2dfa 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -130,7 +130,6 @@ static unsigned long coldboot_done;
- static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- {
- 	unsigned long saved_mie, cmip;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
- 	/* Save MIE CSR */
- 	saved_mie = csr_read(CSR_MIE);
-@@ -167,8 +166,14 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	/* Restore MIE CSR */
- 	csr_write(CSR_MIE, saved_mie);
- 
--	/* Clear current HART IPI */
--	sbi_platform_ipi_clear(plat, hartid);
-+	/*
-+	 * The wait for coldboot is common for both warm startup and
-+	 * warm resume path so clearing IPI here would result in losing
-+	 * an IPI in warm resume path.
-+	 *
-+	 * Also, the sbi_platform_ipi_init() called from sbi_ipi_init()
-+	 * will automatically clear IPI for current HART.
-+	 */
- }
- 
- static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index a3a6ce6..b50735e 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -230,7 +230,10 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
- 	ipi_data->ipi_type = 0x00;
- 
--	/* Platform init */
-+	/*
-+	 * Initialize platform IPI support. This will also clear any
-+	 * pending IPIs for current/calling HART.
-+	 */
- 	ret = sbi_platform_ipi_init(sbi_platform_ptr(scratch), cold_boot);
- 	if (ret)
- 		return ret;
+ Makefile                |  10 +++++
+ firmware/fw_base.S      | 116 ++++++++++++++++++++++++++++++++++++------------
+ firmware/fw_base.ldS    |  13 ++++++
+ firmware/fw_dynamic.S   |  18 ++++----
+ firmware/fw_jump.S      |  12 ++++-
+ firmware/fw_payload.S   |   8 +++-
+ include/sbi/riscv_elf.h |   9 ++++
+ 7 files changed, 147 insertions(+), 39 deletions(-)
+ create mode 100644 include/sbi/riscv_elf.h
+
 -- 
-2.25.1
+2.7.4
 
 
