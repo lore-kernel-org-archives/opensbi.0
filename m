@@ -1,114 +1,90 @@
-From: Vincent Chen <vincent.chen@sifive.com>
-Date: Tue,  2 Mar 2021 23:25:51 +0800
-Subject: [PATCH 2/3] firmware: fw_base: Use lla to access the global symbols
- defined in fw_base.S
-In-Reply-To: <1614698752-16085-1-git-send-email-vincent.chen@sifive.com>
-References: <1614698752-16085-1-git-send-email-vincent.chen@sifive.com>
-Message-ID: <1614698752-16085-3-git-send-email-vincent.chen@sifive.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed,  3 Mar 2021 17:25:08 +0530
+Subject: [PATCH v3 07/11] lib: sbi: Add sbi_hart_reinit() function
+In-Reply-To: <20210303115512.470786-1-anup.patel@wdc.com>
+References: <20210303115512.470786-1-anup.patel@wdc.com>
+Message-ID: <20210303115512.470786-8-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In fw_base.S, no matter where the symbols are defined, it always uses "la"
-to obtain the symbol address. In fact, if the access symbols are defined
-in fw_base.S, we also can use "lla" to get their address instead of "la".
-When fw_base.S is compiled as a PIC object, using "lla" can allow the
-assembler to use the PC-relative method to get the symbol address instead
-of GOT reference, thereby avoiding performance loss.
+We add sbi_hart_reinit() function which will re-initialize HART CSRs
+assuming HART features are already detected. This new function will
+be useful in re-initializing HART after it resumes from HSM SUSPENDED
+state.
 
-Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
 ---
- firmware/fw_base.S | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/sbi/sbi_hart.h |  1 +
+ lib/sbi/sbi_hart.c     | 29 +++++++++++++++++------------
+ 2 files changed, 18 insertions(+), 12 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 8f8e5dc..fe4af45 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -199,7 +199,7 @@ _relocate_done:
- 	 * Mark relocate copy done
- 	 * Use _boot_status copy relative to the load address
- 	 */
--	la	t0, _boot_status
-+	lla	t0, _boot_status
- #ifndef FW_PIC
- 	la	t1, _link_start
- 	REG_L	t1, 0(t1)
-@@ -227,7 +227,7 @@ _bss_zero:
- 	blt	s4, s5, _bss_zero
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index ec9e30f..031c7b0 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -27,6 +27,7 @@ enum sbi_hart_features {
  
- 	/* Setup temporary trap handler */
--	la	s4, _start_hang
-+	lla	s4, _start_hang
- 	csrw	CSR_MTVEC, s4
+ struct sbi_scratch;
  
- 	/* Setup temporary stack */
-@@ -311,16 +311,16 @@ _scratch_init:
- 	REG_S	a0, SBI_SCRATCH_NEXT_MODE_OFFSET(tp)
- 	MOV_3R	a0, s0, a1, s1, a2, s2
- 	/* Store warm_boot address in scratch space */
--	la	a4, _start_warm
-+	lla	a4, _start_warm
- 	REG_S	a4, SBI_SCRATCH_WARMBOOT_ADDR_OFFSET(tp)
- 	/* Store platform address in scratch space */
- 	la	a4, platform
- 	REG_S	a4, SBI_SCRATCH_PLATFORM_ADDR_OFFSET(tp)
- 	/* Store hartid-to-scratch function address in scratch space */
--	la	a4, _hartid_to_scratch
-+	lla	a4, _hartid_to_scratch
- 	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
- 	/* Store trap-exit function address in scratch space */
--	la	a4, _trap_exit
-+	lla	a4, _trap_exit
- 	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(tp)
- 	/* Clear tmp0 in scratch space */
- 	REG_S	zero, SBI_SCRATCH_TMP0_OFFSET(tp)
-@@ -401,7 +401,7 @@ _fdt_reloc_done:
++int sbi_hart_reinit(struct sbi_scratch *scratch);
+ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
  
- 	/* mark boot hart done */
- 	li	t0, BOOT_STATUS_BOOT_HART_DONE
--	la	t1, _boot_status
-+	lla	t1, _boot_status
- 	REG_S	t0, 0(t1)
- 	fence	rw, rw
- 	j	_start_warm
-@@ -409,7 +409,7 @@ _fdt_reloc_done:
- 	/* waiting for boot hart to be done (_boot_status == 2) */
- _wait_for_boot_hart:
- 	li	t0, BOOT_STATUS_BOOT_HART_DONE
--	la	t1, _boot_status
-+	lla	t1, _boot_status
- 	REG_L	t1, 0(t1)
- 	/* Reduce the bus traffic so that boot hart may proceed faster */
- 	nop
-@@ -473,13 +473,13 @@ _start_warm:
- 	add	sp, tp, zero
+ extern void (*sbi_hart_expected_trap)(void);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index fc86e9f..d91b08c 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -430,10 +430,25 @@ __mhpm_skip:
+ 		hfeatures->features |= SBI_HART_HAS_TIME;
+ }
  
- 	/* Setup trap handler */
--	la	a4, _trap_handler
-+	lla	a4, _trap_handler
- #if __riscv_xlen == 32
- 	csrr	a5, CSR_MISA
- 	srli	a5, a5, ('H' - 'A')
- 	andi	a5, a5, 0x1
- 	beq	a5, zero, _skip_trap_handler_rv32_hyp
--	la	a4, _trap_handler_rv32_hyp
-+	lla	a4, _trap_handler_rv32_hyp
- _skip_trap_handler_rv32_hyp:
- #endif
- 	csrw	CSR_MTVEC, a4
-@@ -490,7 +490,7 @@ _skip_trap_handler_rv32_hyp:
- 	srli	a5, a5, ('H' - 'A')
- 	andi	a5, a5, 0x1
- 	beq	a5, zero, _skip_trap_exit_rv32_hyp
--	la	a4, _trap_exit_rv32_hyp
-+	lla	a4, _trap_exit_rv32_hyp
- 	csrr	a5, CSR_MSCRATCH
- 	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
- _skip_trap_exit_rv32_hyp:
+-int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
++int sbi_hart_reinit(struct sbi_scratch *scratch)
+ {
+ 	int rc;
+ 
++	mstatus_init(scratch);
++
++	rc = fp_init(scratch);
++	if (rc)
++		return rc;
++
++	rc = delegate_traps(scratch);
++	if (rc)
++		return rc;
++
++	return 0;
++}
++
++int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
++{
+ 	if (cold_boot) {
+ 		if (misa_extension('H'))
+ 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
+@@ -447,17 +462,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+ 
+ 	hart_detect_features(scratch);
+ 
+-	mstatus_init(scratch);
+-
+-	rc = fp_init(scratch);
+-	if (rc)
+-		return rc;
+-
+-	rc = delegate_traps(scratch);
+-	if (rc)
+-		return rc;
+-
+-	return 0;
++	return sbi_hart_reinit(scratch);
+ }
+ 
+ void __attribute__((noreturn)) sbi_hart_hang(void)
 -- 
-2.7.4
+2.25.1
 
 
