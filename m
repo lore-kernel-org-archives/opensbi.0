@@ -1,73 +1,66 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed,  3 Mar 2021 17:25:09 +0530
-Subject: [PATCH v3 08/11] include: sbi: Add hart_suspend() platform callback
+Date: Wed,  3 Mar 2021 17:25:05 +0530
+Subject: [PATCH v3 04/11] lib: sbi: Remove redundant sbi_hsm_hart_started()
+ function
 In-Reply-To: <20210303115512.470786-1-anup.patel@wdc.com>
 References: <20210303115512.470786-1-anup.patel@wdc.com>
-Message-ID: <20210303115512.470786-9-anup.patel@wdc.com>
+Message-ID: <20210303115512.470786-5-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add hart_suspend() callback in platform operations which will
-be used by HSM implementation to enter retentive or non-retentive
-suspend state.
+The sbi_hsm_hart_started() function is only used by sbi_hsm_hart_stop()
+for checking state of calling HART and current domain assignment.
+
+The atomic_cmpxchg() called by sbi_hsm_hart_stop() will check state of
+calling hart anyway and domain assignment can be checked by other domain
+function such as sbi_domain_is_assigned_hart().
+
+This means sbi_hsm_hart_started() is redundant and can be removed.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/sbi_platform.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ lib/sbi/sbi_hsm.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index cc7e3ff..dadbc1e 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -139,6 +139,11 @@ struct sbi_platform_operations {
- 	 * return if success.
- 	 */
- 	int (*hart_stop)(void);
-+	/**
-+	 * Put the current hart in platform specific suspend (or low-power)
-+	 * state.
-+	 */
-+	int (*hart_suspend)(u32 suspend_type, ulong raddr);
- 
- 	/* Check whether reset type and reason supported by the platform */
- 	int (*system_reset_check)(u32 reset_type, u32 reset_reason);
-@@ -370,6 +375,31 @@ static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
- 	return SBI_ENOTSUPP;
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index a81b821..10099c2 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -54,14 +54,6 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+ 	return __sbi_hsm_hart_get_state(hartid);
  }
  
-+/**
-+ * Put the current hart in platform specific suspend (or low-power) state.
-+ *
-+ * For successful retentive suspend, the call will return 0 when the hart
-+ * resumes normal execution.
-+ *
-+ * For successful non-retentive suspend, the hart will resume from specified
-+ * resume address
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ * @param suspend_type the type of suspend
-+ * @param raddr physical address where the hart can resume in M-mode after
-+ * non-retantive suspend
-+ *
-+ * @return 0 if successful and negative error code on failure
-+ */
-+static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
-+					    u32 suspend_type, ulong raddr)
-+{
-+	if (plat && sbi_platform_ops(plat)->hart_suspend)
-+		return sbi_platform_ops(plat)->hart_suspend(suspend_type,
-+							    raddr);
-+	return SBI_ENOTSUPP;
-+}
-+
+-static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
+-{
+-	if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
+-		return TRUE;
+-	else
+-		return FALSE;
+-}
+-
  /**
-  * Early initialization for current HART
-  *
+  * Get ulong HART mask for given HART base ID
+  * @param dom the domain to be used for output HART mask
+@@ -247,12 +239,12 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ {
+ 	int oldstate;
+-	u32 hartid = current_hartid();
++	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+-	if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
+-		return SBI_EINVAL;
++	if (!dom)
++		return SBI_EFAIL;
+ 
+ 	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+ 				  SBI_HSM_STATE_STOP_PENDING);
 -- 
 2.25.1
 
