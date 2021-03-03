@@ -1,392 +1,131 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 3 Mar 2021 17:32:44 +0530
-Subject: [RFC PATCH v2 09/11] lib: sbi: Implement SBI HSM suspend function
-In-Reply-To: <CAOnJCUKGjC0m7ieGX5wSHPVQC5WM1jUHfPWasGX4_kTH62MR2A@mail.gmail.com>
-References: <20210224103203.246229-1-anup.patel@wdc.com>
- <20210224103203.246229-10-anup.patel@wdc.com>
- <CAOnJCUKGjC0m7ieGX5wSHPVQC5WM1jUHfPWasGX4_kTH62MR2A@mail.gmail.com>
-Message-ID: <CAAhSdy1GouLRY0ckggBnOE5P10-gNZPonLvK_BfLfWbT-LCNzg@mail.gmail.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Wed, 3 Mar 2021 03:18:09 +0000
+Subject: [PATCH v3 1/1] platform: implement K210 system reset
+In-Reply-To: <DM6PR04MB6201E45B6F8B0CFBCDA1A08D8D9D9@DM6PR04MB6201.namprd04.prod.outlook.com>
+References: <20210226092510.20716-1-xypron.glpk@gmx.de>
+ <DM6PR04MB6201E45B6F8B0CFBCDA1A08D8D9D9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <DM6PR04MB62012DAF022E5D100DC984D98D989@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 2, 2021 at 12:37 PM Atish Patra <atishp@atishpatra.org> wrote:
->
-> On Wed, Feb 24, 2021 at 2:33 AM Anup Patel <anup.patel@wdc.com> wrote:
-> >
-> > This patch implements the SBI HSM suspend function. Using this
-> > new SBI call, the S-mode software can put calling HART in platform
-> > specific suspend (i.e. low-power) state. For a successful retentive
-> > suspend, the SBI call will return without errors upon resuming
-> > whereas for a successful non-retentive suspend, the SBI call will
-> > resume from a user provided resume address.
-> >
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > ---
-> >  include/sbi/sbi_hsm.h   |   4 +
-> >  lib/sbi/sbi_ecall_hsm.c |   6 ++
-> >  lib/sbi/sbi_hsm.c       | 187 +++++++++++++++++++++++++++++++++++++++-
-> >  lib/sbi/sbi_init.c      |  38 +++++++-
-> >  4 files changed, 229 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-> > index 4250515..bf0c1a5 100644
-> > --- a/include/sbi/sbi_hsm.h
-> > +++ b/include/sbi/sbi_hsm.h
-> > @@ -22,6 +22,10 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
-> >                        const struct sbi_domain *dom,
-> >                        u32 hartid, ulong saddr, ulong smode, ulong priv);
-> >  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
-> > +void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
-> > +void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
-> > +int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
-> > +                        ulong raddr, ulong rmode, ulong priv);
-> >  int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
-> >  int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
-> >                                     ulong hbase, ulong *out_hmask);
-> > diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
-> > index 79a9f21..a4a0e58 100644
-> > --- a/lib/sbi/sbi_ecall_hsm.c
-> > +++ b/lib/sbi/sbi_ecall_hsm.c
-> > @@ -40,6 +40,12 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
-> >                 ret = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(),
-> >                                              regs->a0);
-> >                 break;
-> > +       case SBI_EXT_HSM_HART_SUSPEND:
-> > +               smode = csr_read(CSR_MSTATUS);
-> > +               smode = (smode & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-> > +               ret = sbi_hsm_hart_suspend(scratch, regs->a0, regs->a1,
-> > +                                          smode, regs->a2);
->
-> I think smode retrieval code is used in HSM_START as well. We can move
-> this portion to the top.
 
-Sure, I will update.
 
->
-> > +               break;
-> >         default:
-> >                 ret = SBI_ENOTSUPP;
-> >         };
-> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> > index 63fa8c2..3be7f8a 100644
-> > --- a/lib/sbi/sbi_hsm.c
-> > +++ b/lib/sbi/sbi_hsm.c
-> > @@ -31,6 +31,9 @@ static unsigned long hart_data_offset;
-> >  /** Per hart specific data to manage state transition **/
-> >  struct sbi_hsm_data {
-> >         atomic_t state;
-> > +       unsigned long suspend_type;
-> > +       unsigned long saved_mie;
-> > +       unsigned long saved_mip;
-> >  };
+> -----Original Message-----
+> From: Anup Patel
+> Sent: 26 February 2021 16:39
+> To: Heinrich Schuchardt <xypron.glpk@gmx.de>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Bin Meng <bmeng.cn@gmail.com>;
+> Damien Le Moal <Damien.LeMoal@wdc.com>; Jessica Clarke
+> <jrtc27@jrtc27.com>
+> Subject: RE: [PATCH v3 1/1] platform: implement K210 system reset
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> > Sent: 26 February 2021 14:55
+> > To: OpenSBI <opensbi@lists.infradead.org>
+> > Cc: Anup Patel <Anup.Patel@wdc.com>; Atish Patra
+> > <Atish.Patra@wdc.com>; Bin Meng <bmeng.cn@gmail.com>; Damien Le
+> Moal
+> > <Damien.LeMoal@wdc.com>; Jessica Clarke <jrtc27@jrtc27.com>; Heinrich
+> > Schuchardt <xypron.glpk@gmx.de>
+> > Subject: [PATCH v3 1/1] platform: implement K210 system reset
 > >
-> >  static inline int __sbi_hsm_hart_get_state(u32 hartid)
-> > @@ -65,6 +68,7 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
-> >  int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
-> >                                     ulong hbase, ulong *out_hmask)
-> >  {
-> > +       int hstate;
-> >         ulong i, hmask, dmask;
-> >         ulong hend = sbi_scratch_last_hartid() + 1;
+> > Implement rebooting the K210 via the system reset extension.
 > >
-> > @@ -77,9 +81,12 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
-> >         dmask = sbi_domain_get_assigned_hartmask(dom, hbase);
-> >         for (i = hbase; i < hend; i++) {
-> >                 hmask = 1UL << (i - hbase);
-> > -               if ((dmask & hmask) &&
-> > -                   (__sbi_hsm_hart_get_state(i) == SBI_HSM_STATE_STARTED))
-> > -                       *out_hmask |= hmask;
-> > +               if (dmask & hmask) {
-> > +                       hstate = __sbi_hsm_hart_get_state(i);
-> > +                       if (hstate == SBI_HSM_STATE_STARTED ||
-> > +                           hstate == SBI_HSM_STATE_SUSPENDED)
-> > +                               *out_hmask |= hmask;
-> > +               }
-> >         }
+> > All reset types are treated in the same way.
+> > A request for shutdown results in a reboot.
 > >
-> >         return 0;
-> > @@ -259,3 +266,177 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
-> >
-> >         return 0;
-> >  }
-> > +
-> > +static int __sbi_hsm_suspend_ret_default(struct sbi_scratch *scratch)
-> > +{
-> > +       /* Wait for interrupt */
-> > +       wfi();
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +static void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
-> > +{
-> > +       struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> > +                                                           hart_data_offset);
-> > +
-> > +       /*
-> > +        * We will be resuming in warm-boot path so the MIE and MIP CSRs
-> > +        * will be back to initial state. It is possible that HART has
-> > +        * configured timer event before going to suspend state so we
-> > +        * should save MIE and MIP CSRs and restore it after resuming.
-> > +        *
-> > +        * Further, the M-mode bits in MIP CSR are read-only and set by
-> > +        * external devices (such as interrupt controller) wherease all
->
-> /s/wherease/whereas
+> > Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> > Reviewed-by: Damien Le Moal <damien.lemoal@wdc.com>
+> 
+> Looks good to me.
+> 
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-Okay, I will update.
-
->
->
-> > +        * VS-mode bits in MIP are read-only alias of bits in HVIP CSR.
-> > +        *
-> > +        * This means we should only save/restore S-mode bits of MIP CSR
-> > +        * such as MIP.SSIP and MIP.STIP.
-> > +        */
-> > +
-> > +       hdata->saved_mie = csr_read(CSR_MIE);
-> > +       hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
-> > +}
-> > +
-> > +static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
-> > +{
-> > +       struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> > +                                                           hart_data_offset);
-> > +
-> > +       csr_write(CSR_MIE, hdata->saved_mie);
-> > +       csr_write(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
-> > +}
-> > +
-> > +static int __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
-> > +                                            ulong raddr)
-> > +{
-> > +       void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
-> > +
-> > +       /*
-> > +        * Save some of the M-mode CSRs which should be restored after
-> > +        * resuming from suspend state
-> > +        */
-> > +       __sbi_hsm_suspend_non_ret_save(scratch);
-> > +
-> > +       /* Wait for interrupt */
-> > +       wfi();
-> > +
-> > +       /*
-> > +        * Directly jump to warm reboot to simulate resume from a
-> > +        * non-retentive suspend.
-> > +        */
-> > +       jump_warmboot();
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
-> > +{
-> > +       int oldstate;
-> > +       struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> > +                                                           hart_data_offset);
-> > +
-> > +       /* If current HART was SUSPENDED then set RESUME_PENDING state */
-> > +       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
-> > +                       SBI_HSM_STATE_RESUME_PENDING);
-> > +       if (oldstate != SBI_HSM_STATE_SUSPENDED)
-> > +               sbi_hart_hang();
->
-> An error message describing the oldstate will be helpful here.
-
-Okay, I will add.
-
->
-> > +}
-> > +
-> > +void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
-> > +{
-> > +       u32 oldstate;
-> > +       struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> > +                                                           hart_data_offset);
-> > +
-> > +       /* If current HART was RESUME_PENDING then set STARTED state */
-> > +       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_RESUME_PENDING,
-> > +                                 SBI_HSM_STATE_STARTED);
-> > +       if (oldstate != SBI_HSM_STATE_RESUME_PENDING)
-> > +               sbi_hart_hang();
-> > +
-> An error message describing the oldstate will be helpful here.
-
-Okay, I will add.
-
->
-> > +       /*
-> > +        * Restore some of the M-mode CSRs which we are re-configured by
-> > +        * the warm-boot sequence.
-> > +        */
-> > +       __sbi_hsm_suspend_non_ret_restore(scratch);
-> > +}
-> > +
-> > +int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
-> > +                        ulong raddr, ulong rmode, ulong priv)
-> > +{
-> > +       int oldstate, ret;
-> > +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> > +       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> > +       struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> > +                                                           hart_data_offset);
-> > +
-> > +       /* For now, we only allow suspend from S-mode or U-mode. */
-> > +
-> > +       /* Sanity check on domain assigned to current HART */
-> > +       if (!dom)
-> > +               return SBI_EINVAL;
-> > +
-> > +       /* Sanity check on suspend type */
-> > +       if (SBI_HSM_SUSPEND_RET_DEFAULT < suspend_type &&
-> > +           suspend_type < SBI_HSM_SUSPEND_RET_PLATFORM)
-> > +               return SBI_EINVAL;
-> > +       if (SBI_HSM_SUSPEND_NON_RET_DEFAULT < suspend_type &&
-> > +           suspend_type < SBI_HSM_SUSPEND_NON_RET_PLATFORM)
-> > +               return SBI_EINVAL;
-> > +
-> > +       /* Additional sanity check for non-retentive suspend */
-> > +       if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
-> > +               if (rmode != PRV_S && rmode != PRV_U)
-> > +                       return SBI_EINVAL;
-> > +               if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
-> > +                                                 SBI_DOMAIN_EXECUTE))
-> > +                       return SBI_EINVALID_ADDR;
-> > +       }
-> > +
-> > +       /* Save the resume address and resume mode */
-> > +       scratch->next_arg1 = priv;
-> > +       scratch->next_addr = raddr;
-> > +       scratch->next_mode = rmode;
-> > +
-> > +       /* Directly move from STARTED to SUSPENDED state */
-> > +       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
-> > +                                 SBI_HSM_STATE_SUSPENDED);
-> > +       if (oldstate != SBI_HSM_STATE_STARTED) {
-> > +               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
-> > +                          __func__, oldstate);
-> > +               ret = SBI_EDENIED;
-> > +               goto fail_restore_state;
-> > +       }
-> > +
-> > +       /* Save the suspend type */
-> > +       hdata->suspend_type = suspend_type;
-> > +
-> > +       /* Try platform specific suspend */
-> > +       ret = sbi_platform_hart_suspend(plat, suspend_type,
-> > +                                       scratch->warmboot_addr);
-> > +       if (ret == SBI_ENOTSUPP) {
-> > +               /* Try generic implementation of default suspend types */
-> > +               if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT) {
-> > +                       ret = __sbi_hsm_suspend_ret_default(scratch);
-> > +               } else if (suspend_type == SBI_HSM_SUSPEND_NON_RET_DEFAULT) {
-> > +                       ret = __sbi_hsm_suspend_non_ret_default(scratch,
-> > +                                               scratch->warmboot_addr);
-> > +               }
-> > +       }
-> > +
-> > +fail_restore_state:
-> > +       /*
-> > +        * We might have successfully resumed from retentive suspend
-> > +        * or suspend failed. In both cases, we retore state of hart.
-> /retore/restore
-
-Okay, I will update.
-
->
-> > +        */
-> > +       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
-> > +                                 SBI_HSM_STATE_STARTED);
-> > +       if (oldstate != SBI_HSM_STATE_SUSPENDED) {
-> > +               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
-> > +                          __func__, oldstate);
-> > +               sbi_hart_hang();
-> > +       }
-> > +
-> > +       return ret;
-> > +}
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> > index 0e82458..1d4a838 100644
-> > --- a/lib/sbi/sbi_init.c
-> > +++ b/lib/sbi/sbi_init.c
-> > @@ -311,14 +311,12 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                              scratch->next_mode, FALSE);
-> >  }
-> >
-> > -static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
-> > +static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
-> >  {
-> >         int rc;
-> >         unsigned long *init_count;
-> >         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> >
-> > -       wait_for_coldboot(scratch, hartid);
-> > -
-> >         if (!init_count_offset)
-> >                 sbi_hart_hang();
-> >
-> > @@ -362,6 +360,40 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
-> >         (*init_count)++;
-> >
-> >         sbi_hsm_prepare_next_jump(scratch, hartid);
-> > +}
-> > +
-> > +static void init_warm_resume(struct sbi_scratch *scratch)
-> > +{
-> > +       int rc;
-> > +
-> > +       sbi_hsm_hart_resume_start(scratch);
-> > +
-> > +       rc = sbi_hart_reinit(scratch);
-> > +       if (rc)
-> > +               sbi_hart_hang();
-> > +
-> > +       rc = sbi_hart_pmp_configure(scratch);
-> > +       if (rc)
-> > +               sbi_hart_hang();
-> > +
-> > +       sbi_hsm_hart_resume_finish(scratch);
-> > +}
-> > +
-> > +static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
-> > +{
-> > +       int hstate;
-> > +
-> > +       wait_for_coldboot(scratch, hartid);
-> > +
-> > +       hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
-> > +       if (hstate < 0)
-> > +               sbi_hart_hang();
-> > +
-> > +       if (hstate == SBI_HSM_STATE_SUSPENDED)
-> > +               init_warm_resume(scratch);
-> > +       else
-> > +               init_warm_startup(scratch, hartid);
-> > +
-> >         sbi_hart_switch_mode(hartid, scratch->next_arg1,
-> >                              scratch->next_addr,
-> >                              scratch->next_mode, FALSE);
-> > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
->
-> Other than those nits, looks good.
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
->
->
-> --
-> Regards,
-> Atish
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
+
+> 
+> > ---
+> > v3:
+> > 	adjust formatting
+> > v2:
+> > 	use a constant for the reset bit mask
+> > ---
+> >  platform/kendryte/k210/platform.c | 19 +++++++++++++++++++
+> > platform/kendryte/k210/platform.h |  9 +++++++++
+> >  2 files changed, 28 insertions(+)
+> >
+> > diff --git a/platform/kendryte/k210/platform.c
+> > b/platform/kendryte/k210/platform.c
+> > index 944b388..0c50af5 100644
+> > --- a/platform/kendryte/k210/platform.c
+> > +++ b/platform/kendryte/k210/platform.c
+> > @@ -129,6 +129,22 @@ static int k210_timer_init(bool cold_boot)
+> >  	return clint_warm_timer_init();
+> >  }
+> >
+> > +static int k210_system_reset_check(u32 type, u32 reason) {
+> > +	return 1;
+> > +}
+> > +
+> > +static void k210_system_reset(u32 type, u32 reason) {
+> > +	u32 val;
+> > +
+> > +	val = k210_read_sysreg(K210_RESET);
+> > +	val |= K210_RESET_MASK;
+> > +	k210_write_sysreg(val, K210_RESET);
+> > +
+> > +	while (1);
+> > +}
+> > +
+> >  const struct sbi_platform_operations platform_ops = {
+> >  	.final_init	= k210_final_init,
+> >
+> > @@ -142,6 +158,9 @@ const struct sbi_platform_operations platform_ops
+> > = {
+> >  	.ipi_send  = clint_ipi_send,
+> >  	.ipi_clear = clint_ipi_clear,
+> >
+> > +	.system_reset_check	= k210_system_reset_check,
+> > +	.system_reset		= k210_system_reset,
+> > +
+> >  	.timer_init	   = k210_timer_init,
+> >  	.timer_value	   = clint_timer_value,
+> >  	.timer_event_stop  = clint_timer_event_stop, diff --git
+> > a/platform/kendryte/k210/platform.h
+> > b/platform/kendryte/k210/platform.h
+> > index 5269bc4..e425faf 100644
+> > --- a/platform/kendryte/k210/platform.h
+> > +++ b/platform/kendryte/k210/platform.h
+> > @@ -27,10 +27,19 @@
+> >  /* Registers */
+> >  #define K210_PLL0		0x08
+> >  #define K210_CLKSEL0		0x20
+> > +#define K210_RESET		0x30
+> > +
+> > +/* Register bit masks */
+> > +#define K210_RESET_MASK		0x01
+> >
+> >  static inline u32 k210_read_sysreg(u32 reg)  {
+> >  	return readl((volatile void *)(K210_SYSCTL_BASE_ADDR + reg));  }
+> >
+> > +static inline void k210_write_sysreg(u32 val, u32 reg) {
+> > +	writel(val, (volatile void *)(K210_SYSCTL_BASE_ADDR + reg)); }
+> > +
+> >  #endif /* _K210_PLATFORM_H_ */
+> > --
+> > 2.30.0
+> 
+> Regards,
+> Anup
+
 
