@@ -1,68 +1,232 @@
-From: Vincent Chen <vincent.chen@sifive.com>
-Date: Tue,  2 Mar 2021 23:25:49 +0800
-Subject: [PATCH 0/3] Support position independent execution
-Message-ID: <1614698752-16085-1-git-send-email-vincent.chen@sifive.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed,  3 Mar 2021 17:25:03 +0530
+Subject: [PATCH v3 02/11] lib: sbi: Use SBI_HSM_STATE_xyz defines instead of
+ SBI_STATE_xyz defines
+In-Reply-To: <20210303115512.470786-1-anup.patel@wdc.com>
+References: <20210303115512.470786-1-anup.patel@wdc.com>
+Message-ID: <20210303115512.470786-3-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch set enables OpenSBI to support position-independent execution
-so that one OpenSBI generic firmware can run on multiple platforms, even
-if they have different memory base addresses. However, the PIC code will
-decrease a bit of performance. The 2nd and 3rd patches are used to reduce
-this impact of the PIC.
+We replace the use of SBI_STATE_xyz defines with SBI_HSM_STATE_xyz
+defines because the HSM state defines are complete enough to implement
+HSM state machine in OpenSBI. As a result of this, we can now remove
+sbi_hsm_hart_state_to_status() function because it is now redundant
+and sbi_hsm_hart_get_state() can directly return HSM state or error.
 
-The performance loss of PIC comes from two additional operations. One is
-from the symbol relocation in the beginning stage, and another one is
-from the GOT reference (auipc + load GOT) in the OpenSBI lifetime. The
-former only affects the boot time, but the latter will affect the
-performance of the OpenSBI payload such as the Linux kernel. After
-analyzing the fw_payload.elf of the generic platform, 27 symbols use the
-GOT reference method to get their address. Fortunately, 17 of these
-symbols are accessed once during the initialized step. Only the remaining
-10 symbols may be called repeatedly during the lifetime, which are
-1. hartid_to_domain_table
-2. hartid_to_scratch_table
-3. sbi_hart_expected_trap
-4. sbi_tlb_local_hfence_vvma
-5. sbi_tlb_local_hfence_gvma
-6. sbi_tlb_local_sfence_vma_asid
-7. sbi_tlb_local_fence_i
-8. sbi_tlb_local_hfence_gvma
-9. sbi_tlb_local_hfence_vvma
-10. sbi_tlb_local_sfence_vma
-From these 10 symbols, I think the IPI handler may be one of the critical
-and commonly used paths affected by the PIC mode. Therefore, I create two
-kernel modules, One keeps issuing the REMOTE_FENCE_I request and the other
-one keeps issuing REMOTE_SFENCE_VMA request. These two modules are executed
-on the unleashed board to measure the consumed time of the sbi_tlb_request().
-I found the PIC causes a 1.6% and 4.1% performance loss in addressing
-REMOTE_FENCE_I and REMOTE_SFENCE_VMA, respectively. In addition, to observe
-the impact of PIC mode in the general usage cases, I use SPEC2006 to
-benchmark performance. However, I could not observe any performance impact
-from the results. Based on the above two results, I think the performance
-impact of the PIC may not be obvious in general usage. Just in case, this
-patch still creates an FW_PIC option for users to configure the build options.
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
+---
+ include/sbi/sbi_hsm.h   |  8 ------
+ lib/sbi/sbi_ecall_hsm.c |  7 ++---
+ lib/sbi/sbi_hsm.c       | 64 ++++++++++++++---------------------------
+ 3 files changed, 24 insertions(+), 55 deletions(-)
 
-Vincent Chen (3):
-  firmware: Support position independent execution
-  firmware: fw_base: Use lla to access the global symbols defined in
-    fw_base.S
-  firware: Use lla to access all global symbols
-
- Makefile                |  10 +++++
- firmware/fw_base.S      | 116 ++++++++++++++++++++++++++++++++++++------------
- firmware/fw_base.ldS    |  13 ++++++
- firmware/fw_dynamic.S   |  18 ++++----
- firmware/fw_jump.S      |  12 ++++-
- firmware/fw_payload.S   |   8 +++-
- include/sbi/riscv_elf.h |   9 ++++
- 7 files changed, 147 insertions(+), 39 deletions(-)
- create mode 100644 include/sbi/riscv_elf.h
-
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index 4823383..69ddee7 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -12,13 +12,6 @@
+ 
+ #include <sbi/sbi_types.h>
+ 
+-/** Hart state values **/
+-#define SBI_HART_STOPPED	0
+-#define SBI_HART_STOPPING	1
+-#define SBI_HART_STARTING	2
+-#define SBI_HART_STARTED	3
+-#define SBI_HART_UNKNOWN	4
+-
+ struct sbi_domain;
+ struct sbi_scratch;
+ 
+@@ -30,7 +23,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 		       u32 hartid, ulong saddr, ulong smode, ulong priv);
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+-int sbi_hsm_hart_state_to_status(int state);
+ int sbi_hsm_hart_started_mask(const struct sbi_domain *dom,
+ 			      ulong hbase, ulong *out_hmask);
+ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
+index df29d51..79a9f21 100644
+--- a/lib/sbi/sbi_ecall_hsm.c
++++ b/lib/sbi/sbi_ecall_hsm.c
+@@ -23,7 +23,7 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+ 				 struct sbi_trap_info *out_trap)
+ {
+ 	ulong smode;
+-	int ret = 0, hstate;
++	int ret = 0;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 
+ 	switch (funcid) {
+@@ -37,9 +37,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+ 		ret = sbi_hsm_hart_stop(scratch, TRUE);
+ 		break;
+ 	case SBI_EXT_HSM_HART_GET_STATUS:
+-		hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(),
+-						regs->a0);
+-		ret = sbi_hsm_hart_state_to_status(hstate);
++		ret = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(),
++					     regs->a0);
+ 		break;
+ 	default:
+ 		ret = SBI_ENOTSUPP;
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 1722280..1f54c9d 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -33,30 +33,6 @@ struct sbi_hsm_data {
+ 	atomic_t state;
+ };
+ 
+-int sbi_hsm_hart_state_to_status(int state)
+-{
+-	int ret;
+-
+-	switch (state) {
+-	case SBI_HART_STOPPED:
+-		ret = SBI_HSM_STATE_STOPPED;
+-		break;
+-	case SBI_HART_STOPPING:
+-		ret = SBI_HSM_STATE_STOP_PENDING;
+-		break;
+-	case SBI_HART_STARTING:
+-		ret = SBI_HSM_STATE_START_PENDING;
+-		break;
+-	case SBI_HART_STARTED:
+-		ret = SBI_HSM_STATE_STARTED;
+-		break;
+-	default:
+-		ret = SBI_EINVAL;
+-	}
+-
+-	return ret;
+-}
+-
+ static inline int __sbi_hsm_hart_get_state(u32 hartid)
+ {
+ 	struct sbi_hsm_data *hdata;
+@@ -64,7 +40,7 @@ static inline int __sbi_hsm_hart_get_state(u32 hartid)
+ 
+ 	scratch = sbi_hartid_to_scratch(hartid);
+ 	if (!scratch)
+-		return SBI_HART_UNKNOWN;
++		return SBI_EINVAL;
+ 
+ 	hdata = sbi_scratch_offset_ptr(scratch, hart_data_offset);
+ 	return atomic_read(&hdata->state);
+@@ -73,14 +49,14 @@ static inline int __sbi_hsm_hart_get_state(u32 hartid)
+ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+ {
+ 	if (!sbi_domain_is_assigned_hart(dom, hartid))
+-		return SBI_HART_UNKNOWN;
++		return SBI_EINVAL;
+ 
+ 	return __sbi_hsm_hart_get_state(hartid);
+ }
+ 
+ static bool sbi_hsm_hart_started(const struct sbi_domain *dom, u32 hartid)
+ {
+-	if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HART_STARTED)
++	if (sbi_hsm_hart_get_state(dom, hartid) == SBI_HSM_STATE_STARTED)
+ 		return TRUE;
+ 	else
+ 		return FALSE;
+@@ -110,7 +86,7 @@ int sbi_hsm_hart_started_mask(const struct sbi_domain *dom,
+ 	for (i = hbase; i < hend; i++) {
+ 		hmask = 1UL << (i - hbase);
+ 		if ((dmask & hmask) &&
+-		    (__sbi_hsm_hart_get_state(i) == SBI_HART_STARTED))
++		    (__sbi_hsm_hart_get_state(i) == SBI_HSM_STATE_STARTED))
+ 			*out_hmask |= hmask;
+ 	}
+ 
+@@ -123,9 +99,9 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HART_STARTING,
+-				  SBI_HART_STARTED);
+-	if (oldstate != SBI_HART_STARTING)
++	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_START_PENDING,
++				  SBI_HSM_STATE_STARTED);
++	if (oldstate != SBI_HSM_STATE_START_PENDING)
+ 		sbi_hart_hang();
+ }
+ 
+@@ -142,7 +118,7 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+ 	csr_set(CSR_MIE, MIP_MSIP);
+ 
+ 	/* Wait for hart_add call*/
+-	while (atomic_read(&hdata->state) != SBI_HART_STARTING) {
++	while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
+ 		wfi();
+ 	};
+ 
+@@ -174,7 +150,9 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+ 			hdata = sbi_scratch_offset_ptr(rscratch,
+ 						       hart_data_offset);
+ 			ATOMIC_INIT(&hdata->state,
+-			(i == hartid) ? SBI_HART_STARTING : SBI_HART_STOPPED);
++				    (i == hartid) ?
++				    SBI_HSM_STATE_START_PENDING :
++				    SBI_HSM_STATE_STOPPED);
+ 		}
+ 	} else {
+ 		sbi_hsm_hart_wait(scratch, hartid);
+@@ -191,9 +169,9 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+ 							    hart_data_offset);
+ 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+ 
+-	hstate = atomic_cmpxchg(&hdata->state, SBI_HART_STOPPING,
+-				SBI_HART_STOPPED);
+-	if (hstate != SBI_HART_STOPPING)
++	hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOP_PENDING,
++				SBI_HSM_STATE_STOPPED);
++	if (hstate != SBI_HSM_STATE_STOP_PENDING)
+ 		goto fail_exit;
+ 
+ 	if (sbi_platform_has_hart_hotplug(plat)) {
+@@ -238,16 +216,16 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 	if (!rscratch)
+ 		return SBI_EINVAL;
+ 	hdata = sbi_scratch_offset_ptr(rscratch, hart_data_offset);
+-	hstate = atomic_cmpxchg(&hdata->state, SBI_HART_STOPPED,
+-				SBI_HART_STARTING);
+-	if (hstate == SBI_HART_STARTED)
++	hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOPPED,
++				SBI_HSM_STATE_START_PENDING);
++	if (hstate == SBI_HSM_STATE_STARTED)
+ 		return SBI_EALREADY;
+ 
+ 	/**
+ 	 * if a hart is already transition to start or stop, another start call
+ 	 * is considered as invalid request.
+ 	 */
+-	if (hstate != SBI_HART_STOPPED)
++	if (hstate != SBI_HSM_STATE_STOPPED)
+ 		return SBI_EINVAL;
+ 
+ 	init_count = sbi_init_count(hartid);
+@@ -276,9 +254,9 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ 	if (!sbi_hsm_hart_started(sbi_domain_thishart_ptr(), hartid))
+ 		return SBI_EINVAL;
+ 
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HART_STARTED,
+-				  SBI_HART_STOPPING);
+-	if (oldstate != SBI_HART_STARTED) {
++	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
++				  SBI_HSM_STATE_STOP_PENDING);
++	if (oldstate != SBI_HSM_STATE_STARTED) {
+ 		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+ 			   __func__, oldstate);
+ 		return SBI_EDENIED;
 -- 
-2.7.4
+2.25.1
 
 
