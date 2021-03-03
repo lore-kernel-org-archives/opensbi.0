@@ -1,57 +1,73 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Wed,  3 Mar 2021 17:25:07 +0530
-Subject: [PATCH v3 06/11] include: sbi: Add HSM suspend related defines
+Date: Wed,  3 Mar 2021 17:25:09 +0530
+Subject: [PATCH v3 08/11] include: sbi: Add hart_suspend() platform callback
 In-Reply-To: <20210303115512.470786-1-anup.patel@wdc.com>
 References: <20210303115512.470786-1-anup.patel@wdc.com>
-Message-ID: <20210303115512.470786-7-anup.patel@wdc.com>
+Message-ID: <20210303115512.470786-9-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds SBI HSM suspend related defines to ecall interface
-header.
+We add hart_suspend() callback in platform operations which will
+be used by HSM implementation to enter retentive or non-retentive
+suspend state.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/sbi_ecall_interface.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/sbi/sbi_platform.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index b272213..7fcb373 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -57,11 +57,28 @@
- #define SBI_EXT_HSM_HART_START			0x0
- #define SBI_EXT_HSM_HART_STOP			0x1
- #define SBI_EXT_HSM_HART_GET_STATUS		0x2
-+#define SBI_EXT_HSM_HART_SUSPEND		0x3
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index cc7e3ff..dadbc1e 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -139,6 +139,11 @@ struct sbi_platform_operations {
+ 	 * return if success.
+ 	 */
+ 	int (*hart_stop)(void);
++	/**
++	 * Put the current hart in platform specific suspend (or low-power)
++	 * state.
++	 */
++	int (*hart_suspend)(u32 suspend_type, ulong raddr);
  
- #define SBI_HSM_STATE_STARTED			0x0
- #define SBI_HSM_STATE_STOPPED			0x1
- #define SBI_HSM_STATE_START_PENDING		0x2
- #define SBI_HSM_STATE_STOP_PENDING		0x3
-+#define SBI_HSM_STATE_SUSPENDED			0x4
-+#define SBI_HSM_STATE_SUSPEND_PENDING		0x5
-+#define SBI_HSM_STATE_RESUME_PENDING		0x6
-+
-+#define SBI_HSM_SUSP_BASE_MASK			0x7fffffff
-+#define SBI_HSM_SUSP_NON_RET_BIT		0x80000000
-+#define SBI_HSM_SUSP_PLAT_BASE			0x10000000
-+
-+#define SBI_HSM_SUSPEND_RET_DEFAULT		0x00000000
-+#define SBI_HSM_SUSPEND_RET_PLATFORM		SBI_HSM_SUSP_PLAT_BASE
-+#define SBI_HSM_SUSPEND_RET_LAST		SBI_HSM_SUSP_BASE_MASK
-+#define SBI_HSM_SUSPEND_NON_RET_DEFAULT		SBI_HSM_SUSP_NON_RET_BIT
-+#define SBI_HSM_SUSPEND_NON_RET_PLATFORM	(SBI_HSM_SUSP_NON_RET_BIT | \
-+						 SBI_HSM_SUSP_PLAT_BASE)
-+#define SBI_HSM_SUSPEND_NON_RET_LAST		(SBI_HSM_SUSP_NON_RET_BIT | \
-+						 SBI_HSM_SUSP_BASE_MASK)
+ 	/* Check whether reset type and reason supported by the platform */
+ 	int (*system_reset_check)(u32 reset_type, u32 reset_reason);
+@@ -370,6 +375,31 @@ static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
+ 	return SBI_ENOTSUPP;
+ }
  
- /* SBI function IDs for SRST extension */
- #define SBI_EXT_SRST_RESET			0x0
++/**
++ * Put the current hart in platform specific suspend (or low-power) state.
++ *
++ * For successful retentive suspend, the call will return 0 when the hart
++ * resumes normal execution.
++ *
++ * For successful non-retentive suspend, the hart will resume from specified
++ * resume address
++ *
++ * @param plat pointer to struct sbi_platform
++ * @param suspend_type the type of suspend
++ * @param raddr physical address where the hart can resume in M-mode after
++ * non-retantive suspend
++ *
++ * @return 0 if successful and negative error code on failure
++ */
++static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
++					    u32 suspend_type, ulong raddr)
++{
++	if (plat && sbi_platform_ops(plat)->hart_suspend)
++		return sbi_platform_ops(plat)->hart_suspend(suspend_type,
++							    raddr);
++	return SBI_ENOTSUPP;
++}
++
+ /**
+  * Early initialization for current HART
+  *
 -- 
 2.25.1
 
