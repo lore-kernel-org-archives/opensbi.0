@@ -1,47 +1,96 @@
-From: Vincent Chen <vincent.chen@sifive.com>
-Date: Thu, 4 Mar 2021 13:54:28 +0800
-Subject: [PATCH 1/3] firmware: Support position independent execution
-In-Reply-To: <B7312B20-B260-4544-B3CF-67EBF6C13AF2@jrtc27.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Thu, 4 Mar 2021 07:33:14 +0000
+Subject: [PATCH 0/3] Support position independent execution
+In-Reply-To: <1614698752-16085-1-git-send-email-vincent.chen@sifive.com>
 References: <1614698752-16085-1-git-send-email-vincent.chen@sifive.com>
- <1614698752-16085-2-git-send-email-vincent.chen@sifive.com>
- <B7312B20-B260-4544-B3CF-67EBF6C13AF2@jrtc27.com>
-Message-ID: <CABvJ_xhBPgrTsUZ-CzxGsq+w3vDFjHHTkPPcsU4QBv0w8W1GWg@mail.gmail.com>
+Message-ID: <DM6PR04MB6201F9DE09E3E2A522F407C28D979@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 4, 2021 at 2:22 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 2 Mar 2021, at 15:25, Vincent Chen <vincent.chen@sifive.com> wrote:
-> >
-> > Enable OpenSBI to support position independent execution. Because the
-> > position independent code will cause an additional GOT reference when
-> > accessing the global variables, it will reduce performance a bit. Therefore,
-> > the position independent execution is disabled by default. Users can
-> > through specifying "FW_PIC=y" on the make command to enable this feature.
-> >
-> > In theory, after enabling position-independent execution, the OpenSBI
-> > can run at arbitrary address with appropriate alignment. Therefore, the
-> > original relocation mechanism will be skipped. In other words, OpenSBI will
-> > directly run at the load address without any code movement.
-> >
-> > Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
-> > ---
-> > index ab33e11..8f8e5dc 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > +#ifdef FW_PIC
-> > +     .option pic
-> > +#endif
->
-> This should be implied if you use the right flags when assembling.
->
-> Jess
+Hi Vincent,
 
-You are right. The ".option pic" directive is unneeded if I add
-"-fpic" option to the ASFLAGS.
- I will modify it in my next version patch. Thank you very much for
-this suggestion.
+Overall the changes are in quite good shape.
+
+I have few high-level comments before I can review fw_base.S in detail:
+1) No need to change toplevel Makefile for appending compiler and linker
+    options. It is better to update $(firmware-genflags-y), $(firmware-cflags-y)
+    and $(firmware-ldflags-y) in firmware/objects.mk
+2) I would suggest to squash PATCH2 and PATCH3 into one PATCH and
+    make this PATCH as PATCH1
+3) The current PATCH1 can be PATCH2
+
+> -----Original Message-----
+> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Vincent
+> Chen
+> Sent: 02 March 2021 20:56
+> To: opensbi at lists.infradead.org
+> Cc: vincent.chen at sifive.com
+> Subject: [PATCH 0/3] Support position independent execution
+> 
+> This patch set enables OpenSBI to support position-independent execution
+> so that one OpenSBI generic firmware can run on multiple platforms, even if
+> they have different memory base addresses. However, the PIC code will
+> decrease a bit of performance. The 2nd and 3rd patches are used to reduce
+> this impact of the PIC.
+> 
+> The performance loss of PIC comes from two additional operations. One is
+> from the symbol relocation in the beginning stage, and another one is from
+> the GOT reference (auipc + load GOT) in the OpenSBI lifetime. The former
+> only affects the boot time, but the latter will affect the performance of the
+> OpenSBI payload such as the Linux kernel. After analyzing the fw_payload.elf
+> of the generic platform, 27 symbols use the GOT reference method to get
+> their address. Fortunately, 17 of these symbols are accessed once during the
+> initialized step. Only the remaining
+> 10 symbols may be called repeatedly during the lifetime, which are 1.
+> hartid_to_domain_table 2. hartid_to_scratch_table 3.
+> sbi_hart_expected_trap 4. sbi_tlb_local_hfence_vvma 5.
+> sbi_tlb_local_hfence_gvma 6. sbi_tlb_local_sfence_vma_asid 7.
+> sbi_tlb_local_fence_i 8. sbi_tlb_local_hfence_gvma 9.
+> sbi_tlb_local_hfence_vvma 10. sbi_tlb_local_sfence_vma From these 10
+> symbols, I think the IPI handler may be one of the critical and commonly used
+> paths affected by the PIC mode. Therefore, I create two kernel modules,
+> One keeps issuing the REMOTE_FENCE_I request and the other one keeps
+> issuing REMOTE_SFENCE_VMA request. These two modules are executed on
+> the unleashed board to measure the consumed time of the
+> sbi_tlb_request().
+> I found the PIC causes a 1.6% and 4.1% performance loss in addressing
+> REMOTE_FENCE_I and REMOTE_SFENCE_VMA, respectively. In addition, to
+> observe the impact of PIC mode in the general usage cases, I use SPEC2006
+> to benchmark performance. However, I could not observe any performance
+> impact from the results. Based on the above two results, I think the
+> performance impact of the PIC may not be obvious in general usage. Just in
+> case, this patch still creates an FW_PIC option for users to configure the build
+> options.
+> 
+> Vincent Chen (3):
+>   firmware: Support position independent execution
+>   firmware: fw_base: Use lla to access the global symbols defined in
+>     fw_base.S
+>   firware: Use lla to access all global symbols
+> 
+>  Makefile                |  10 +++++
+>  firmware/fw_base.S      | 116
+> ++++++++++++++++++++++++++++++++++++------------
+>  firmware/fw_base.ldS    |  13 ++++++
+>  firmware/fw_dynamic.S   |  18 ++++----
+>  firmware/fw_jump.S      |  12 ++++-
+>  firmware/fw_payload.S   |   8 +++-
+>  include/sbi/riscv_elf.h |   9 ++++
+>  7 files changed, 147 insertions(+), 39 deletions(-)  create mode 100644
+> include/sbi/riscv_elf.h
+> 
+> --
+> 2.7.4
+> 
+> 
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Anup
 
