@@ -1,7 +1,7 @@
 From: Marouene Boubakri <marouene.boubakri@nxp.com>
-Date: Fri, 12 Mar 2021 12:18:27 +0000
+Date: Fri, 12 Mar 2021 12:22:42 +0000
 Subject: [PATCH] include: headers: Replace __ASSEMBLY__ with __ASSEMBLER__
-Message-ID: <AM8PR04MB7780F56DF90E2BC14EC370DFFC6F9@AM8PR04MB7780.eurprd04.prod.outlook.com>
+Message-ID: <AM8PR04MB77803F79BC8AD2231DA3C6CBFC6F9@AM8PR04MB7780.eurprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,4 +18,4 @@ Name: 0001-include-headers-Replace-__ASSEMBLY__-with-__ASSEMBLE.patch
 Type: application/octet-stream
 Size: 4565 bytes
 Desc: 0001-include-headers-Replace-__ASSEMBLY__-with-__ASSEMBLE.patch
-URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20210312/e16a1e7a/attachment.obj>
+URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20210312/d436f09c/attachment-0001.obj>
