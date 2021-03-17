@@ -1,79 +1,77 @@
 From: Vincent Chen <vincent.chen@sifive.com>
-Date: Tue, 16 Mar 2021 12:58:43 +0800
-Subject: [PATCH v2 2/2] firmware: Support position independent execution
-In-Reply-To: <C7B7C40A-3FDC-4DF9-B6F1-E2BF70CC63B0@jrtc27.com>
-References: <1614935014-18600-1-git-send-email-vincent.chen@sifive.com>
- <1614935014-18600-3-git-send-email-vincent.chen@sifive.com>
- <CAAhSdy2tzZwMweDtUw2pdO=rt38wKKcWHfb8_EX1FsTW1ojdqA@mail.gmail.com>
- <CABvJ_xiWxKxv-mcQUARGcnpEjVhSN+NoE6cxNJxypFOjiJw4Xg@mail.gmail.com>
- <CAAhSdy2d2ruYJxMjJUASuZcD6CuK5njVw6vJtg=CrkxbWuP+hA@mail.gmail.com>
- <CABvJ_xht2mw7K06s_XUmkD2tYOBf+143jLg5miOBXabxU1AHJw@mail.gmail.com>
- <C7B7C40A-3FDC-4DF9-B6F1-E2BF70CC63B0@jrtc27.com>
-Message-ID: <CABvJ_xhOKbq6U27u4EnjKjfYeLUk16t9TMZmxc+G+xfE_2P8Jw@mail.gmail.com>
+Date: Wed, 17 Mar 2021 09:16:36 +0800
+Subject: [PATCH v3 0/2] Support position independent execution 
+Message-ID: <1615943798-14296-1-git-send-email-vincent.chen@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 16, 2021 at 10:40 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 16 Mar 2021, at 01:59, Vincent Chen <vincent.chen@sifive.com> wrote:
-> >
-> > On Mon, Mar 15, 2021 at 5:58 PM Anup Patel <anup@brainfault.org> wrote:
-> >>
-> >> On Mon, Mar 15, 2021 at 3:11 PM Vincent Chen <vincent.chen@sifive.com> wrote:
-> >>>
-> >>> On Sat, Mar 13, 2021 at 12:13 AM Anup Patel <anup@brainfault.org> wrote:
-> >>>>
-> >>>> On Fri, Mar 5, 2021 at 2:35 PM Vincent Chen <vincent.chen@sifive.com> wrote:
-> >>>>> diff --git a/firmware/fw_jump.S b/firmware/fw_jump.S
-> >>>>> index 5b24f8b..4fb3e0c 100644
-> >>>>> --- a/firmware/fw_jump.S
-> >>>>> +++ b/firmware/fw_jump.S
-> >>>>> @@ -46,6 +46,11 @@ fw_save_info:
-> >>>>> fw_next_arg1:
-> >>>>> #ifdef FW_JUMP_FDT_ADDR
-> >>>>>        li      a0, FW_JUMP_FDT_ADDR
-> >>>>> +#ifdef FW_PIC
-> >>>>> +       lla     a1, _runtime_offset
-> >>>>> +       REG_L   a1, (a1)
-> >>>>> +       add     a0, a0, a1
-> >>>>> +#endif
-> >>>>> #else
-> >>>>>        add     a0, a1, zero
-> >>>>> #endif
-> >>>>> @@ -61,6 +66,11 @@ fw_next_arg1:
-> >>>>> fw_next_addr:
-> >>>>>        lla     a0, _jump_addr
-> >>>>>        REG_L   a0, (a0)
-> >>>>> +#ifdef FW_PIC
-> >>>>> +       lla     a1, _runtime_offset
-> >>>>> +       REG_L   a1, (a1)
-> >>>>> +       add     a0, a0, a1
-> >>>>> +#endif
-> >>>>>        ret
-> >>>>
-> >>>> The changes in fw_next_addr() breaks the FW_JUMP when
-> >>>> FW_PIC=y because FW_JUMP assumes a compile-time
-> >>>> fixed address of next booting stage specified by FW_JUMP_ADDR.
-> >>>>
-> >>>> Similarly, when FW_JUMP_FDT_ADDR is defined FW_JUMP
-> >>>> will assume compile-time fixed address of FDT passed to
-> >>>> next booting stage.
-> >>>>
-> >>>> Please drop all changes from fw_jump.S
-> >>>>
-> >>> OK, I will drop it.
-> >
-> > Sorry, I forgot to ask a question. Does the assumption of  FW_JUMP
-> > also imply that FW_JUMP cannot support PIE mode, right?
->
-> No, you can have a PIE FW_JUMP OpenSBI. The problem is that you added relocbase
-> to FW_JUMP_ADDR and FW_JUMP_FDT_ADDR when those are platform-defined constants
-> regardless of where OpenSBI has been loaded, and so should remain unmodified.
->
-> Jess
->
-I got it. Thank you for your explanation.
+This patch set enables OpenSBI to support position-independent execution
+so that one OpenSBI generic firmware can run on multiple platforms, even
+if they have different memory base addresses. However, the PIC code will
+decrease a bit of performance.
+
+The performance loss of PIC comes from two additional operations. One is
+from the symbol relocation in the beginning stage, and another one is
+from the GOT reference (auipc + load GOT) in the OpenSBI lifetime. The
+former only affects the boot time, but the latter will affect the
+performance of the OpenSBI payload such as the Linux kernel. After
+analyzing the fw_payload.elf of the generic platform, 27 symbols use the
+GOT reference method to get their address. Fortunately, 17 of these
+symbols are accessed once during the initialized step. Only the remaining
+10 symbols may be called repeatedly during the lifetime, which are
+1. hartid_to_domain_table
+2. hartid_to_scratch_table
+3. sbi_hart_expected_trap
+4. sbi_tlb_local_hfence_vvma
+5. sbi_tlb_local_hfence_gvma
+6. sbi_tlb_local_sfence_vma_asid
+7. sbi_tlb_local_fence_i
+8. sbi_tlb_local_hfence_gvma
+9. sbi_tlb_local_hfence_vvma
+10. sbi_tlb_local_sfence_vma
+From these 10 symbols, I think the IPI handler may be one of the critical
+and commonly used paths affected by the PIC mode. Therefore, I create two
+kernel modules, One keeps issuing the REMOTE_FENCE_I request and the other
+one keeps issuing REMOTE_SFENCE_VMA request. These two modules are executed
+on the unleashed board to measure the consumed time of the sbi_tlb_request().
+I found the PIC causes a 1.6% and 4.1% performance loss in addressing
+REMOTE_FENCE_I and REMOTE_SFENCE_VMA, respectively. In addition, to observe
+the impact of PIC mode in the general usage cases, I use SPEC2006 to
+benchmark performance. However, I could not observe any performance impact
+from the results. Based on the above two results, I think the performance
+impact of the PIC may not be obvious in general usage. Just in case, this
+patch still creates an FW_PIC option for users to configure the build options.
+
+Changes from v2 patch:
+1. Drop the relocation in FW_JUMP_FDT_ADDR, FW_JUMP_ADDR and FW_PAYLOAD_FDT_ADDR.
+2. Code refinement
+
+Changes from v1 patch:
+1. Add -fpic to ASFLAGS and then remove the ".option pic" from fw_base.S
+2. Append the required flags to $(firmware-genflags-y), $(firmware-cflags-y)
+   and $(firmware-ldflags-y) instead of modifying top Makefile.
+3. Rearrange the patches
+
+Vincent Chen (2):
+  firmware: Use lla to access all global symbols
+  firmware: Support position independent execution
+
+ Makefile                      |   2 +-
+ firmware/fw_base.S            | 150 +++++++++++++++++++++++++++++-------------
+ firmware/fw_base.ldS          |  13 ++++
+ firmware/fw_dynamic.S         |  18 ++---
+ firmware/fw_jump.S            |   2 +-
+ firmware/fw_payload.S         |   2 +-
+ firmware/objects.mk           |   7 ++
+ firmware/payloads/test_head.S |  18 ++---
+ include/sbi/riscv_elf.h       |  14 ++++
+ 9 files changed, 160 insertions(+), 66 deletions(-)
+ create mode 100644 include/sbi/riscv_elf.h
+
+-- 
+2.7.4
+
 
