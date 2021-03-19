@@ -1,7 +1,7 @@
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Fri, 19 Mar 2021 10:45:46 +0100
-Subject: [PATCH v2 1/1] lib: sbi: illegal CSR 0x306 access in hpm_allowed()
-Message-ID: <20210319094546.13896-1-xypron.glpk@gmx.de>
+Date: Fri, 19 Mar 2021 11:04:50 +0100
+Subject: [PATCH v3 1/1] lib: sbi: illegal CSR 0x306 access in hpm_allowed()
+Message-ID: <20210319100450.15491-1-xypron.glpk@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -24,6 +24,8 @@ Likewise if CSR scounteren is not available we have to avoid reading CSR
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3:
+	remove NOT for SBI_HART_HAS_SCOUNTEREN
 v2:
 	consider scounteren (Xiang W)
 ---
@@ -53,7 +55,7 @@ index bee7761..c66b5d3 100644
 +		}
 +	}
 +	if (prev_mode == PRV_U) {
-+		if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
++		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
 +			cen &= csr_read(CSR_SCOUNTEREN);
 +		else
 +			cen = 0;
