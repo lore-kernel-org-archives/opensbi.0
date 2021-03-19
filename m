@@ -1,78 +1,83 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Fri, 19 Mar 2021 15:12:59 -0700
-Subject: [RFC 08/14] lib: sbi: Use csr_read/write_num to read/update PMU
- counters
+Date: Fri, 19 Mar 2021 15:13:00 -0700
+Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
 In-Reply-To: <20210319221305.2138412-1-atish.patra@wdc.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
-Message-ID: <20210319221305.2138412-9-atish.patra@wdc.com>
+Message-ID: <20210319221305.2138412-10-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, csr_read/write_num functions are used to read/write PMP related
-CSRs where CSR value is decided at runtime. Expand this function to include
-PMU related CSRs as well.
+A platform hook to initialize PMU allows platform vendors to provide
+their own mechanism to define pmu event-counter mappings in addition
+to the DT based approach.
+
+Another platform hook that allows platform vendors customize the
+final mhpmevent value configuration.
 
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/riscv_asm.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ include/sbi/sbi_platform.h | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 8c54c11147e7..4c24a5132195 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -118,6 +118,21 @@ unsigned long csr_read_num(int csr_num)
- 	switch (csr_num) {
- 	switchcase_csr_read_16(CSR_PMPCFG0, ret)
- 	switchcase_csr_read_64(CSR_PMPADDR0, ret)
-+	switchcase_csr_read(CSR_MCYCLE, ret)
-+	switchcase_csr_read(CSR_MINSTRET, ret)
-+	switchcase_csr_read(CSR_MHPMCOUNTER3, ret)
-+	switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
-+	switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
-+	switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
-+#if __riscv_xlen == 32
-+	switchcase_csr_read(CSR_MCYCLEH, ret)
-+	switchcase_csr_read(CSR_MINSTRETH, ret)
-+	switchcase_csr_read(CSR_MHPMCOUNTER3H, ret)
-+	switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
-+	switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
-+	switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
-+#endif
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index dadbc1e94e18..02773f672443 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -97,6 +97,11 @@ struct sbi_platform_operations {
+ 	/** Initialize (or populate) domains for the platform */
+ 	int (*domains_init)(void);
+ 
++	/** Initialize hw performance counters */
++	int (*pmu_init)(void);
 +
- 	default:
- 		break;
- 	};
-@@ -161,6 +176,26 @@ void csr_write_num(int csr_num, unsigned long val)
- 	switch (csr_num) {
- 	switchcase_csr_write_16(CSR_PMPCFG0, val)
- 	switchcase_csr_write_64(CSR_PMPADDR0, val)
-+	switchcase_csr_write(CSR_MCYCLE, val)
-+	switchcase_csr_write(CSR_MINSTRET, val)
-+	switchcase_csr_write(CSR_MHPMCOUNTER3, val)
-+	switchcase_csr_write_4(CSR_MHPMCOUNTER4, val)
-+	switchcase_csr_write_8(CSR_MHPMCOUNTER8, val)
-+	switchcase_csr_write_16(CSR_MHPMCOUNTER16, val)
-+#if __riscv_xlen == 32
-+	switchcase_csr_write(CSR_MCYCLEH, val)
-+	switchcase_csr_write(CSR_MINSTRETH, val)
-+	switchcase_csr_write(CSR_MHPMCOUNTER3H, val)
-+	switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
-+	switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
-+	switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
-+#endif
-+	switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
-+	switchcase_csr_write(CSR_MHPMEVENT3, val)
-+	switchcase_csr_write_4(CSR_MHPMEVENT4, val)
-+	switchcase_csr_write_8(CSR_MHPMEVENT8, val)
-+	switchcase_csr_write_16(CSR_MHPMEVENT16, val)
++	uint64_t (*get_mhpmevent_value)(uint32_t event_idx, uint64_t data);
 +
- 	default:
- 		break;
- 	};
+ 	/** Write a character to the platform console output */
+ 	void (*console_putc)(char ch);
+ 	/** Read a character from the platform console input */
+@@ -514,6 +519,39 @@ static inline int sbi_platform_domains_init(const struct sbi_platform *plat)
+ 	return 0;
+ }
+ 
++/**
++ * Setup hw PMU events for the platform
++ *
++ * @param plat pointer to struct sbi_platform
++ *
++ * @return 0 on success and negative error code on failure
++ */
++static inline int sbi_platform_pmu_init(const struct sbi_platform *plat)
++{
++	if (plat && sbi_platform_ops(plat)->pmu_init)
++		return sbi_platform_ops(plat)->pmu_init();
++	return 0;
++}
++
++/**
++ * Get the value to be written in mhpmeventx for event_idx
++ *
++ * @param plat pointer to struct sbi_platform
++ * @param event_idx ID of the PMU event
++ * @param data Additional configuration data passed from supervisor software
++ *
++ * @return expected value by the platform or 0 if platform doesn't know about
++ * the event
++ */
++static inline int sbi_platform_get_mhpmevent_value(const struct sbi_platform *plat,
++						   uint32_t event_idx, uint64_t data)
++{
++	if (plat && sbi_platform_ops(plat)->get_mhpmevent_value)
++		return sbi_platform_ops(plat)->get_mhpmevent_value(event_idx,
++								   data);
++	return 0;
++}
++
+ /**
+  * Write a character to the platform console output
+  *
 -- 
 2.25.1
 
