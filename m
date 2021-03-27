@@ -1,198 +1,50 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 23 Mar 2021 04:17:31 +0000
-Subject: [PATCH] include: headers: Replace __ASSEMBLY__ with __ASSEMBLER__
-In-Reply-To: <20210322103904.1113381-1-anup.patel@wdc.com>
-References: <20210322103904.1113381-1-anup.patel@wdc.com>
-Message-ID: <DM6PR04MB620188D84A118DE63EDD99F48D649@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Sat, 27 Mar 2021 13:05:25 +0800
+Subject: [PATCH 1/3] lib/utils: Support the official clint DT bindings
+Message-ID: <20210327050527.15955-1-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Linux kernel commit a2770b57d083 ("dt-bindings: timer: Add CLINT bindings")
+adds the official DT bindings for CLINT, which uses "sifive,clint0"
+as the compatible string. "riscv,clint0" is now legacy and has to
+be kept for backward compatibility of legacy systems.
 
+Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+---
 
-> -----Original Message-----
-> From: Anup Patel <Anup.Patel@wdc.com>
-> Sent: 22 March 2021 16:09
-> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> <Alistair.Francis@wdc.com>
-> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org;
-> Marouene Boubakri <marouene.boubakri@nxp.com>; Anup Patel
-> <Anup.Patel@wdc.com>
-> Subject: [PATCH] include: headers: Replace __ASSEMBLY__ with
-> __ASSEMBLER__
-> 
-> From: Marouene Boubakri <marouene.boubakri@nxp.com>
-> 
-> GCC has already a predefined macro __ASSEMBLER__ therefore, it can be
-> used without the need to define a new flag with -D__ASSEMBLY__.
-> This is useful when adding the library to projects having a build system such
-> one can build without the need to make changes.
-> THe build system does not use the Makefile in the sources tree.
-> 
-> Signed-off-by: Marouene Boubakri <marouene.boubakri@nxp.com>
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  Makefile                   |  2 +-
->  include/sbi/fw_dynamic.h   |  2 +-
->  include/sbi/riscv_asm.h    | 10 +++++-----
->  include/sbi/sbi_const.h    |  2 +-
->  include/sbi/sbi_platform.h |  2 +-
->  include/sbi/sbi_scratch.h  |  2 +-
->  include/sbi/sbi_trap.h     |  2 +-
->  lib/utils/libfdt/fdt.h     |  2 +-
->  8 files changed, 12 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index 038cc99..eeffe6b 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -217,7 +217,7 @@ CPPFLAGS	+=	$(GENFLAGS)
->  CPPFLAGS	+=	$(platform-cppflags-y)
->  CPPFLAGS	+=	$(firmware-cppflags-y)
-> 
-> -ASFLAGS		=	-g -Wall -nostdlib -D__ASSEMBLY__
-> +ASFLAGS		=	-g -Wall -nostdlib
->  ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-
-> sibling-calls
->  ASFLAGS		+=	-mno-save-restore -mstrict-align
->  ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -
-> march=$(PLATFORM_RISCV_ISA)
-> diff --git a/include/sbi/fw_dynamic.h b/include/sbi/fw_dynamic.h index
-> 3c08831..25c0eb8 100644
-> --- a/include/sbi/fw_dynamic.h
-> +++ b/include/sbi/fw_dynamic.h
-> @@ -40,7 +40,7 @@
-> 
->  /* clang-format on */
-> 
-> -#ifndef __ASSEMBLY__
-> +#ifndef __ASSEMBLER__
-> 
->  #include <sbi/sbi_types.h>
-> 
-> diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h index
-> 10f31a7..9fa0fe5 100644
-> --- a/include/sbi/riscv_asm.h
-> +++ b/include/sbi/riscv_asm.h
-> @@ -14,7 +14,7 @@
-> 
->  /* clang-format off */
-> 
-> -#ifdef __ASSEMBLY__
-> +#ifdef __ASSEMBLER__
->  #define __ASM_STR(x)	x
->  #else
->  #define __ASM_STR(x)	#x
-> @@ -38,7 +38,7 @@
->  #define LGREG		__REG_SEL(3, 2)
-> 
->  #if __SIZEOF_POINTER__ == 8
-> -#ifdef __ASSEMBLY__
-> +#ifdef __ASSEMBLER__
->  #define RISCV_PTR		.dword
->  #define RISCV_SZPTR		8
->  #define RISCV_LGPTR		3
-> @@ -48,7 +48,7 @@
->  #define RISCV_LGPTR		"3"
->  #endif
->  #elif __SIZEOF_POINTER__ == 4
-> -#ifdef __ASSEMBLY__
-> +#ifdef __ASSEMBLER__
->  #define RISCV_PTR		.word
->  #define RISCV_SZPTR		4
->  #define RISCV_LGPTR		2
-> @@ -79,7 +79,7 @@
-> 
->  /* clang-format on */
-> 
-> -#ifndef __ASSEMBLY__
-> +#ifndef __ASSEMBLER__
-> 
->  #define csr_swap(csr, val)                                              \
->  	({                                                              \
-> @@ -182,6 +182,6 @@ int pmp_set(unsigned int n, unsigned long prot,
-> unsigned long addr,  int pmp_get(unsigned int n, unsigned long *prot_out,
-> unsigned long *addr_out,
->  	    unsigned long *log2len);
-> 
-> -#endif /* !__ASSEMBLY__ */
-> +#endif /* !__ASSEMBLER__ */
-> 
->  #endif
-> diff --git a/include/sbi/sbi_const.h b/include/sbi/sbi_const.h index
-> 3786654..fc75f18 100644
-> --- a/include/sbi/sbi_const.h
-> +++ b/include/sbi/sbi_const.h
-> @@ -22,7 +22,7 @@
-> 
->  /* clang-format off */
-> 
-> -#ifdef __ASSEMBLY__
-> +#ifdef __ASSEMBLER__
->  #define _AC(X,Y)	X
->  #define _AT(T,X)	X
->  #else
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h index
-> dadbc1e..837a75d 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -38,7 +38,7 @@
-> 
->  #define SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT		(1UL
-> << 12)
-> 
-> -#ifndef __ASSEMBLY__
-> +#ifndef __ASSEMBLER__
-> 
->  #include <sbi/sbi_ecall_interface.h>
->  #include <sbi/sbi_error.h>
-> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h index
-> e35122b..e83b234 100644
-> --- a/include/sbi/sbi_scratch.h
-> +++ b/include/sbi/sbi_scratch.h
-> @@ -43,7 +43,7 @@
-> 
->  /* clang-format on */
-> 
-> -#ifndef __ASSEMBLY__
-> +#ifndef __ASSEMBLER__
-> 
->  #include <sbi/sbi_types.h>
-> 
-> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h index
-> 5fb94f9..070d000 100644
-> --- a/include/sbi/sbi_trap.h
-> +++ b/include/sbi/sbi_trap.h
-> @@ -110,7 +110,7 @@
->  /** Size (in bytes) of sbi_trap_info */  #define SBI_TRAP_INFO_SIZE
-> SBI_TRAP_INFO_OFFSET(last)
-> 
-> -#ifndef __ASSEMBLY__
-> +#ifndef __ASSEMBLER__
-> 
->  #include <sbi/sbi_types.h>
-> 
-> diff --git a/lib/utils/libfdt/fdt.h b/lib/utils/libfdt/fdt.h index f2e6880..57fe566
-> 100644
-> --- a/lib/utils/libfdt/fdt.h
-> +++ b/lib/utils/libfdt/fdt.h
-> @@ -7,7 +7,7 @@
->   * Copyright 2012 Kim Phillips, Freescale Semiconductor.
->   */
-> 
-> -#ifndef __ASSEMBLY__
-> +#ifndef __ASSEMBLER__
-> 
->  struct fdt_header {
->  	fdt32_t magic;			 /* magic word FDT_MAGIC */
-> --
-> 2.25.1
+ lib/utils/ipi/fdt_ipi_clint.c     | 1 +
+ lib/utils/timer/fdt_timer_clint.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
+diff --git a/lib/utils/ipi/fdt_ipi_clint.c b/lib/utils/ipi/fdt_ipi_clint.c
+index e992440..e799fd7 100644
+--- a/lib/utils/ipi/fdt_ipi_clint.c
++++ b/lib/utils/ipi/fdt_ipi_clint.c
+@@ -36,6 +36,7 @@ static int ipi_clint_cold_init(void *fdt, int nodeoff,
+ 
+ static const struct fdt_match ipi_clint_match[] = {
+ 	{ .compatible = "riscv,clint0" },
++	{ .compatible = "sifive,clint0" },
+ 	{ },
+ };
+ 
+diff --git a/lib/utils/timer/fdt_timer_clint.c b/lib/utils/timer/fdt_timer_clint.c
+index fe66708..6ba6c7b 100644
+--- a/lib/utils/timer/fdt_timer_clint.c
++++ b/lib/utils/timer/fdt_timer_clint.c
+@@ -38,6 +38,7 @@ static int timer_clint_cold_init(void *fdt, int nodeoff,
+ 
+ static const struct fdt_match timer_clint_match[] = {
+ 	{ .compatible = "riscv,clint0" },
++	{ .compatible = "sifive,clint0" },
+ 	{ },
+ };
+ 
+-- 
+2.25.1
 
 
