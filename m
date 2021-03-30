@@ -1,48 +1,30 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sat, 27 Mar 2021 13:05:27 +0800
-Subject: [PATCH 3/3] lib/utils: Support fixing up the official DT bindings of
- PLIC
-In-Reply-To: <20210327050527.15955-1-bmeng.cn@gmail.com>
-References: <20210327050527.15955-1-bmeng.cn@gmail.com>
-Message-ID: <20210327050527.15955-3-bmeng.cn@gmail.com>
+From: Xim <chenguokai17@mails.ucas.ac.cn>
+Date: Tue, 30 Mar 2021 10:44:04 +0800
+Subject: Floating point emulation support policy
+Message-ID: <EB123894-29D2-4EC4-88FA-D6CB975B0C98@mails.ucas.ac.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Current fdt_plic_fixup() only does necessary fix-up against the legacy
-"riscv,plic0" node. The upstream Linux kernel defines its official DT
-bindings which uses "sifive,plic-1.0.0" as the compatible string and
-we should check that first, and if not present fall back to legacy.
+Hi all,
 
-Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
----
+My institution wants to run GNU/Linux distributions on a RISC-V core without hardware floating point support. We used Berkeley Boot Loader (BBL) before which has a built-in support for soft floating point emulation. We are swtching to OpenSBI but no such emulations seem to exist in OpenSBI for now. I wonder if OpenSBI would be happy to accept a port of such functions.
 
- lib/utils/fdt/fdt_fixup.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index a306ff5..1465500 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -57,9 +57,12 @@ void fdt_plic_fixup(void *fdt)
- 	int i, cells_count;
- 	int plic_off;
- 
--	plic_off = fdt_node_offset_by_compatible(fdt, 0, "riscv,plic0");
--	if (plic_off < 0)
--		return;
-+	plic_off = fdt_node_offset_by_compatible(fdt, 0, "sifive,plic-1.0.0");
-+	if (plic_off < 0) {
-+		plic_off = fdt_node_offset_by_compatible(fdt, 0, "riscv,plic0");
-+		if (plic_off < 0)
-+			return;
-+	}
- 
- 	cells = (u32 *)fdt_getprop(fdt, plic_off,
- 				   "interrupts-extended", &cells_count);
--- 
-2.25.1
+Regards,
+Guokai Chen
+chenguokai17 at mails.ucas.ac.cn
 
 
+
+
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 833 bytes
+Desc: Message signed with OpenPGP
+URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20210330/67bf6e40/attachment.sig>
