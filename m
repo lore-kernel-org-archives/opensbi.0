@@ -1,12 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 1 Apr 2021 05:11:46 +0000
-Subject: [PATCH 3/3] lib/utils: Support fixing up the official DT bindings
- of PLIC
-In-Reply-To: <DM6PR04MB62019EF33857AFCB4E5CAC5B8D7C9@DM6PR04MB6201.namprd04.prod.outlook.com>
-References: <20210327050527.15955-1-bmeng.cn@gmail.com>
- <20210327050527.15955-3-bmeng.cn@gmail.com>
- <DM6PR04MB62019EF33857AFCB4E5CAC5B8D7C9@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <DM6PR04MB62010E6F3F2D88539A78CD648D7B9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Thu, 1 Apr 2021 05:35:14 +0000
+Subject: [PATCH] firware: optimize the exception exit code
+In-Reply-To: <DM6PR04MB6201E80E3F23AEA4DD8DDB118D7C9@DM6PR04MB6201.namprd04.prod.outlook.com>
+References: <20210330120735.22198-1-wxjstz@126.com>
+ <DM6PR04MB6201E80E3F23AEA4DD8DDB118D7C9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <DM6PR04MB6201DC3675B13BD2C9DEA9AC8D7B9@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -17,28 +15,25 @@ Content-Transfer-Encoding: 7bit
 
 > -----Original Message-----
 > From: Anup Patel
-> Sent: 31 March 2021 10:26
-> To: Bin Meng <bmeng.cn@gmail.com>; opensbi at lists.infradead.org
-> Subject: RE: [PATCH 3/3] lib/utils: Support fixing up the official DT bindings of
-> PLIC
+> Sent: 31 March 2021 10:29
+> To: wxjstz at 126.com; opensbi at lists.infradead.org
+> Subject: RE: [PATCH] firware: optimize the exception exit code
 > 
 > 
 > 
 > > -----Original Message-----
-> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Bin
-> > Meng
-> > Sent: 27 March 2021 10:35
+> > From: wxjstz at 126.com <wxjstz@126.com>
+> > Sent: 30 March 2021 17:38
 > > To: opensbi at lists.infradead.org
-> > Cc: Bin Meng <bmeng.cn@gmail.com>
-> > Subject: [PATCH 3/3] lib/utils: Support fixing up the official DT
-> > bindings of PLIC
+> > Cc: Anup Patel <Anup.Patel@wdc.com>; Xiang W <wxjstz@126.com>
+> > Subject: [PATCH] firware: optimize the exception exit code
 > >
-> > Current fdt_plic_fixup() only does necessary fix-up against the legacy
-> > "riscv,plic0" node. The upstream Linux kernel defines its official DT
-> > bindings which uses "sifive,plic-1.0.0" as the compatible string and
-> > we should check that first, and if not present fall back to legacy.
+> > From: Xiang W <wxjstz@126.com>
 > >
-> > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> > There are two copies of the same abnormal exit code, this patch
+> > deletes one
+> >
+> > Signed-off-by: Xiang W <wxjstz@126.com>
 > 
 > Looks good to me.
 > 
@@ -54,38 +49,112 @@ Anup
 > Anup
 > 
 > > ---
+> >  firmware/fw_base.S     | 24 ++----------------------
+> >  include/sbi/sbi_trap.h |  2 +-
+> >  lib/sbi/sbi_trap.c     |  5 +++--
+> >  3 files changed, 6 insertions(+), 25 deletions(-)
 > >
-> >  lib/utils/fdt/fdt_fixup.c | 9 ++++++---
-> >  1 file changed, 6 insertions(+), 3 deletions(-)
+> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S index
+> > 2ce3851..c897ed0 100644
+> > --- a/firmware/fw_base.S
+> > +++ b/firmware/fw_base.S
+> > @@ -711,6 +711,7 @@ fw_platform_init:
+> >  	.section .entry, "ax", %progbits
+> >  	.align 3
+> >  	.globl _trap_handler
+> > +	.globl _trap_exit
+> >  _trap_handler:
+> >  	TRAP_SAVE_AND_SETUP_SP_T0
 > >
-> > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> > index
-> > a306ff5..1465500 100644
-> > --- a/lib/utils/fdt/fdt_fixup.c
-> > +++ b/lib/utils/fdt/fdt_fixup.c
-> > @@ -57,9 +57,12 @@ void fdt_plic_fixup(void *fdt)
-> >  	int i, cells_count;
-> >  	int plic_off;
+> > @@ -720,17 +721,6 @@ _trap_handler:
 > >
-> > -	plic_off = fdt_node_offset_by_compatible(fdt, 0, "riscv,plic0");
-> > -	if (plic_off < 0)
+> >  	TRAP_CALL_C_ROUTINE
+> >
+> > -	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
+> > -
+> > -	TRAP_RESTORE_MEPC_MSTATUS 0
+> > -
+> > -	TRAP_RESTORE_SP_T0
+> > -
+> > -	mret
+> > -
+> > -	.section .entry, "ax", %progbits
+> > -	.align 3
+> > -	.globl _trap_exit
+> >  _trap_exit:
+> >  	add	sp, a0, zero
+> >
+> > @@ -746,6 +736,7 @@ _trap_exit:
+> >  	.section .entry, "ax", %progbits
+> >  	.align 3
+> >  	.globl _trap_handler_rv32_hyp
+> > +	.globl _trap_exit_rv32_hyp
+> >  _trap_handler_rv32_hyp:
+> >  	TRAP_SAVE_AND_SETUP_SP_T0
+> >
+> > @@ -755,17 +746,6 @@ _trap_handler_rv32_hyp:
+> >
+> >  	TRAP_CALL_C_ROUTINE
+> >
+> > -	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
+> > -
+> > -	TRAP_RESTORE_MEPC_MSTATUS 1
+> > -
+> > -	TRAP_RESTORE_SP_T0
+> > -
+> > -	mret
+> > -
+> > -	.section .entry, "ax", %progbits
+> > -	.align 3
+> > -	.globl _trap_exit_rv32_hyp
+> >  _trap_exit_rv32_hyp:
+> >  	add	sp, a0, zero
+> >
+> > diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h index
+> > 070d000..0ed10df 100644
+> > --- a/include/sbi/sbi_trap.h
+> > +++ b/include/sbi/sbi_trap.h
+> > @@ -205,7 +205,7 @@ struct sbi_trap_info {  int
+> > sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >  		      struct sbi_trap_info *trap);
+> >
+> > -void sbi_trap_handler(struct sbi_trap_regs *regs);
+> > +struct sbi_trap_regs* sbi_trap_handler(struct sbi_trap_regs *regs);
+> >
+> >  void __noreturn sbi_trap_exit(const struct sbi_trap_regs *regs);
+> >
+> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c index
+> > b7349d2..07d5acb
+> > 100644
+> > --- a/lib/sbi/sbi_trap.c
+> > +++ b/lib/sbi/sbi_trap.c
+> > @@ -210,7 +210,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >   *
+> >   * @param regs pointer to register state
+> >   */
+> > -void sbi_trap_handler(struct sbi_trap_regs *regs)
+> > +struct sbi_trap_regs* sbi_trap_handler(struct sbi_trap_regs *regs)
+> >  {
+> >  	int rc = SBI_ENOTSUPP;
+> >  	const char *msg = "trap handler failed"; @@ -236,7 +236,7 @@ void
+> > sbi_trap_handler(struct sbi_trap_regs *regs)
+> >  			msg = "unhandled external interrupt";
+> >  			goto trap_error;
+> >  		};
 > > -		return;
-> > +	plic_off = fdt_node_offset_by_compatible(fdt, 0, "sifive,plic-1.0.0");
-> > +	if (plic_off < 0) {
-> > +		plic_off = fdt_node_offset_by_compatible(fdt, 0,
-> > "riscv,plic0");
-> > +		if (plic_off < 0)
-> > +			return;
-> > +	}
+> > +		return regs;
+> >  	}
 > >
-> >  	cells = (u32 *)fdt_getprop(fdt, plic_off,
-> >  				   "interrupts-extended", &cells_count);
+> >  	switch (mcause) {
+> > @@ -271,6 +271,7 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
+> >  trap_error:
+> >  	if (rc)
+> >  		sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
+> > +	return regs;
+> >  }
+> >
+> >  typedef void (*trap_exit_t)(const struct sbi_trap_regs *regs);
 > > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> > 2.20.1
+
 
