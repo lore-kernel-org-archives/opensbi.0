@@ -1,182 +1,207 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Mon, 5 Apr 2021 10:18:17 +0000
-Subject: [PATCH] firmware: Remove redundant add instruction from trap
- restore path
-In-Reply-To: <fb1499595c7f7cb0bd531f2684f429b1d78028ce.camel@126.com>
-References: <20210401111945.318643-1-anup.patel@wdc.com>
- <fb1499595c7f7cb0bd531f2684f429b1d78028ce.camel@126.com>
-Message-ID: <MN2PR04MB6207385752415429C090B5688D779@MN2PR04MB6207.namprd04.prod.outlook.com>
+From: Christoph Muellner <cmuellner@linux.com>
+Date: Mon,  5 Apr 2021 16:47:27 +0200
+Subject: [PATCH v2] spinlocks: Replace test-and-set locks by ticket locks
+Message-ID: <20210405144727.89369-1-cmuellner@linux.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Test-and-set locks don't provide fairness and are non-deterministic
+(w.r.t. the prediction of the future holder of a lock).
+This can be a performance problem in case of lock contention.
 
+Let's change the implementation to use ticket locks, which guarantee
+a fair locking order (FIFO ordering).
 
-> -----Original Message-----
-> From: Xiang W <wxjstz@126.com>
-> Sent: 01 April 2021 17:44
-> To: Anup Patel <Anup.Patel@wdc.com>; Atish Patra
-> <Atish.Patra@wdc.com>; Alistair Francis <Alistair.Francis@wdc.com>
-> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org
-> Subject: Re: [PATCH] firmware: Remove redundant add instruction from trap
-> restore path
-> 
-> ? 2021-04-01?? 16:49 +0530?Anup Patel???
-> > The "add sp, a0, zero" instruction in the trap restore path is
-> > redundant and can be avoided if TRAP_RESTORE_xyz() assembly macros
-> use
-> > a0 as the base register instead of sp.
-> >
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > ---
-> >  firmware/fw_base.S | 88 ++++++++++++++++++++++--------------------
-> > ----
-> >  1 file changed, 42 insertions(+), 46 deletions(-)
-> >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S index
-> > c897ed0..a5ce946 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -655,57 +655,57 @@ fw_platform_init:
-> >  	call	sbi_trap_handler
-> >  .endm
-> >
-> > -.macro	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-> > -	/* Restore all general regisers except SP and T0 */
-> > -	REG_L	ra, SBI_TRAP_REGS_OFFSET(ra)(sp)
-> > -	REG_L	gp, SBI_TRAP_REGS_OFFSET(gp)(sp)
-> > -	REG_L	tp, SBI_TRAP_REGS_OFFSET(tp)(sp)
-> > -	REG_L	t1, SBI_TRAP_REGS_OFFSET(t1)(sp)
-> > -	REG_L	t2, SBI_TRAP_REGS_OFFSET(t2)(sp)
-> > -	REG_L	s0, SBI_TRAP_REGS_OFFSET(s0)(sp)
-> > -	REG_L	s1, SBI_TRAP_REGS_OFFSET(s1)(sp)
-> > -	REG_L	a0, SBI_TRAP_REGS_OFFSET(a0)(sp)
-> > -	REG_L	a1, SBI_TRAP_REGS_OFFSET(a1)(sp)
-> > -	REG_L	a2, SBI_TRAP_REGS_OFFSET(a2)(sp)
-> > -	REG_L	a3, SBI_TRAP_REGS_OFFSET(a3)(sp)
-> > -	REG_L	a4, SBI_TRAP_REGS_OFFSET(a4)(sp)
-> > -	REG_L	a5, SBI_TRAP_REGS_OFFSET(a5)(sp)
-> > -	REG_L	a6, SBI_TRAP_REGS_OFFSET(a6)(sp)
-> > -	REG_L	a7, SBI_TRAP_REGS_OFFSET(a7)(sp)
-> > -	REG_L	s2, SBI_TRAP_REGS_OFFSET(s2)(sp)
-> > -	REG_L	s3, SBI_TRAP_REGS_OFFSET(s3)(sp)
-> > -	REG_L	s4, SBI_TRAP_REGS_OFFSET(s4)(sp)
-> > -	REG_L	s5, SBI_TRAP_REGS_OFFSET(s5)(sp)
-> > -	REG_L	s6, SBI_TRAP_REGS_OFFSET(s6)(sp)
-> > -	REG_L	s7, SBI_TRAP_REGS_OFFSET(s7)(sp)
-> > -	REG_L	s8, SBI_TRAP_REGS_OFFSET(s8)(sp)
-> > -	REG_L	s9, SBI_TRAP_REGS_OFFSET(s9)(sp)
-> > -	REG_L	s10, SBI_TRAP_REGS_OFFSET(s10)(sp)
-> > -	REG_L	s11, SBI_TRAP_REGS_OFFSET(s11)(sp)
-> > -	REG_L	t3, SBI_TRAP_REGS_OFFSET(t3)(sp)
-> > -	REG_L	t4, SBI_TRAP_REGS_OFFSET(t4)(sp)
-> > -	REG_L	t5, SBI_TRAP_REGS_OFFSET(t5)(sp)
-> > -	REG_L	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
-> > +.macro	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-> > +	/* Restore all general regisers except A0 and T0 */
-> > +	REG_L	ra, SBI_TRAP_REGS_OFFSET(ra)(a0)
-> > +	REG_L	sp, SBI_TRAP_REGS_OFFSET(sp)(a0)
-> > +	REG_L	gp, SBI_TRAP_REGS_OFFSET(gp)(a0)
-> > +	REG_L	tp, SBI_TRAP_REGS_OFFSET(tp)(a0)
-> > +	REG_L	t1, SBI_TRAP_REGS_OFFSET(t1)(a0)
-> > +	REG_L	t2, SBI_TRAP_REGS_OFFSET(t2)(a0)
-> > +	REG_L	s0, SBI_TRAP_REGS_OFFSET(s0)(a0)
-> > +	REG_L	s1, SBI_TRAP_REGS_OFFSET(s1)(a0)
-> > +	REG_L	a1, SBI_TRAP_REGS_OFFSET(a1)(a0)
-> > +	REG_L	a2, SBI_TRAP_REGS_OFFSET(a2)(a0)
-> > +	REG_L	a3, SBI_TRAP_REGS_OFFSET(a3)(a0)
-> > +	REG_L	a4, SBI_TRAP_REGS_OFFSET(a4)(a0)
-> > +	REG_L	a5, SBI_TRAP_REGS_OFFSET(a5)(a0)
-> > +	REG_L	a6, SBI_TRAP_REGS_OFFSET(a6)(a0)
-> > +	REG_L	a7, SBI_TRAP_REGS_OFFSET(a7)(a0)
-> > +	REG_L	s2, SBI_TRAP_REGS_OFFSET(s2)(a0)
-> > +	REG_L	s3, SBI_TRAP_REGS_OFFSET(s3)(a0)
-> > +	REG_L	s4, SBI_TRAP_REGS_OFFSET(s4)(a0)
-> > +	REG_L	s5, SBI_TRAP_REGS_OFFSET(s5)(a0)
-> > +	REG_L	s6, SBI_TRAP_REGS_OFFSET(s6)(a0)
-> > +	REG_L	s7, SBI_TRAP_REGS_OFFSET(s7)(a0)
-> > +	REG_L	s8, SBI_TRAP_REGS_OFFSET(s8)(a0)
-> > +	REG_L	s9, SBI_TRAP_REGS_OFFSET(s9)(a0)
-> > +	REG_L	s10, SBI_TRAP_REGS_OFFSET(s10)(a0)
-> > +	REG_L	s11, SBI_TRAP_REGS_OFFSET(s11)(a0)
-> > +	REG_L	t3, SBI_TRAP_REGS_OFFSET(t3)(a0)
-> > +	REG_L	t4, SBI_TRAP_REGS_OFFSET(t4)(a0)
-> > +	REG_L	t5, SBI_TRAP_REGS_OFFSET(t5)(a0)
-> > +	REG_L	t6, SBI_TRAP_REGS_OFFSET(t6)(a0)
-> >  .endm
-> >
-> >  .macro	TRAP_RESTORE_MEPC_MSTATUS have_mstatush
-> >  	/* Restore MEPC and MSTATUS CSRs */
-> > -	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
-> > +	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-> >  	csrw	CSR_MEPC, t0
-> > -	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
-> > +	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
-> >  	csrw	CSR_MSTATUS, t0
-> >  	.if \have_mstatush
-> > -	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
-> > +	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(a0)
-> >  	csrw	CSR_MSTATUSH, t0
-> >  	.endif
-> >  .endm
-> >
-> > -.macro TRAP_RESTORE_SP_T0
-> > +.macro TRAP_RESTORE_A0_T0
-> >  	/* Restore T0 */
-> > -	REG_L	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
-> > +	REG_L	t0, SBI_TRAP_REGS_OFFSET(t0)(a0)
-> >
-> > -	/* Restore SP */
-> > -	REG_L	sp, SBI_TRAP_REGS_OFFSET(sp)(sp)
-> > +	/* Restore A0 */
-> > +	REG_L	a0, SBI_TRAP_REGS_OFFSET(a0)(a0)
-> >  .endm
-> >
-> >  	.section .entry, "ax", %progbits
-> > @@ -722,13 +722,11 @@ _trap_handler:
-> >  	TRAP_CALL_C_ROUTINE
-> >
-> >  _trap_exit:
-> > -	add	sp, a0, zero
-> > -
-> > -	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-> > +	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-> >
-> >  	TRAP_RESTORE_MEPC_MSTATUS 0
-> >
-> > -	TRAP_RESTORE_SP_T0
-> > +	TRAP_RESTORE_A0_T0
-> >
-> >  	mret
-> >
-> > @@ -747,13 +745,11 @@ _trap_handler_rv32_hyp:
-> >  	TRAP_CALL_C_ROUTINE
-> >
-> >  _trap_exit_rv32_hyp:
-> > -	add	sp, a0, zero
-> > -
-> > -	TRAP_RESTORE_GENERAL_REGS_EXCEPT_SP_T0
-> > +	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-> >
-> >  	TRAP_RESTORE_MEPC_MSTATUS 1
-> >
-> > -	TRAP_RESTORE_SP_T0
-> > +	TRAP_RESTORE_A0_T0
-> >
-> >  	mret
-> >  #endif
-> > --
-> > 2.25.1
-> >
-> >
-> Looks good to me.
-> 
-> Reviewed-by: Xiang W <wxjstz@126.com>
+Ticket locks have two counters 'owner' and 'next'.
+The counter 'owner' holds the ticket number of the current lock owner.
+The counter 'next' holds the latest free ticket number.
 
-Applied this patch to the riscv/opensbi repo
+The lock is free if both counters are equal. To acquire the lock, the
+'next' counter is atomically incremented to obtain a new ticket.
+The counter 'owner' is then polled until it becomes equal to the new
+ticket. To release a lock, one atomically increments the 'owner'
+counter.
 
-Regards,
-Anup
+The implementation uses a 32-bit wide struct, which consists of
+two 16-bit counters (owner and next). This is inspired by similar
+spinlock implementations on other architectures.
+
+Note, that RISC-V lacks sub-word atomics, therefore we need to
+circumvent this limitation with additional instructions.
+This implementation aims to reduce the instructions between the
+LR/SC pairs to minimize the chances of failing SCs. The cost of
+this approach is, that we spill more registers than necessary.
+
+This patch has been tested on RV64 and RV32 against self-written
+unit tests (to ensure the 16-bit overflow is correct) and against
+the Linux kernel (by exchanging the kernel's spinlock implementation
+with the one from this patch).
+
+Signed-off-by: Christoph Muellner <cmuellner@linux.com>
+---
+ include/sbi/riscv_locks.h | 33 ++++++++++++------
+ lib/sbi/riscv_locks.c     | 70 +++++++++++++++++++++++++++++----------
+ 2 files changed, 75 insertions(+), 28 deletions(-)
+
+diff --git a/include/sbi/riscv_locks.h b/include/sbi/riscv_locks.h
+index faa9676..492935f 100644
+--- a/include/sbi/riscv_locks.h
++++ b/include/sbi/riscv_locks.h
+@@ -2,26 +2,37 @@
+  * SPDX-License-Identifier: BSD-2-Clause
+  *
+  * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+- *
+- * Authors:
+- *   Anup Patel <anup.patel@wdc.com>
++ * Copyright (c) 2021 Christoph M?llner <cmuellner@linux.com>
+  */
+ 
+ #ifndef __RISCV_LOCKS_H__
+ #define __RISCV_LOCKS_H__
+ 
++#include <sbi/sbi_types.h>
++
++#define TICKET_SHIFT	16
++
+ typedef struct {
+-	volatile long lock;
+-} spinlock_t;
++#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
++       u16 next;
++       u16 owner;
++#else
++       u16 owner;
++       u16 next;
++#endif
++} __aligned(4) spinlock_t;
++
++#define __SPIN_LOCK_UNLOCKED	\
++	(spinlock_t) { 0, 0 }
+ 
+-#define __RISCV_SPIN_UNLOCKED 0
++#define SPIN_LOCK_INIT(x)	\
++	x = __SPIN_LOCK_UNLOCKED
+ 
+-#define SPIN_LOCK_INIT(x) (x).lock = __RISCV_SPIN_UNLOCKED
++#define SPIN_LOCK_INITIALIZER	\
++	__SPIN_LOCK_UNLOCKED
+ 
+-#define SPIN_LOCK_INITIALIZER                  \
+-	{                                      \
+-		.lock = __RISCV_SPIN_UNLOCKED, \
+-	}
++#define DEFINE_SPIN_LOCK(x)	\
++	spinlock_t SPIN_LOCK_INIT(x)
+ 
+ int spin_lock_check(spinlock_t *lock);
+ 
+diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
+index 4d1d9c0..04ee18a 100644
+--- a/lib/sbi/riscv_locks.c
++++ b/lib/sbi/riscv_locks.c
+@@ -2,44 +2,80 @@
+  * SPDX-License-Identifier: BSD-2-Clause
+  *
+  * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+- *
+- * Authors:
+- *   Anup Patel <anup.patel@wdc.com>
++ * Copyright (c) 2021 Christoph M?llner <cmuellner@linux.com>
+  */
+ 
+ #include <sbi/riscv_barrier.h>
+ #include <sbi/riscv_locks.h>
+ 
+-int spin_lock_check(spinlock_t *lock)
++static inline int spin_lock_unlocked(spinlock_t lock)
+ {
+-	return (lock->lock == __RISCV_SPIN_UNLOCKED) ? 0 : 1;
++        return lock.owner == lock.next;
++}
++
++bool spin_lock_check(spinlock_t *lock)
++{
++	RISCV_FENCE(r, rw);
++	return !spin_lock_unlocked(*lock);
+ }
+ 
+ int spin_trylock(spinlock_t *lock)
+ {
+-	int tmp = 1, busy;
++	unsigned long inc = 1u << TICKET_SHIFT;
++	unsigned long mask = 0xffffu << TICKET_SHIFT;
++	u32 l0, tmp1, tmp2;
+ 
+ 	__asm__ __volatile__(
+-		"	amoswap.w %0, %2, %1\n" RISCV_ACQUIRE_BARRIER
+-		: "=r"(busy), "+A"(lock->lock)
+-		: "r"(tmp)
++		/* Get the current lock counters. */
++		"1:	lr.w.aq	%0, %3\n"
++		"	slli	%2, %0, %6\n"
++		"	and	%2, %2, %5\n"
++		"	and	%1, %0, %5\n"
++		/* Is the lock free right now? */
++		"	bne	%1, %2, 2f\n"
++		"	add	%0, %0, %4\n"
++		/* Acquire the lock. */
++		"	sc.w.rl	%0, %0, %3\n"
++		"	bnez	%0, 1b\n"
++		"2:"
++		: "=&r"(l0), "=&r"(tmp1), "=&r"(tmp2), "+A"(*lock)
++		: "r"(inc), "r"(mask), "I"(TICKET_SHIFT)
+ 		: "memory");
+ 
+-	return !busy;
++	return !l0;
+ }
+ 
+ void spin_lock(spinlock_t *lock)
+ {
+-	while (1) {
+-		if (spin_lock_check(lock))
+-			continue;
++	unsigned long inc = 1u << TICKET_SHIFT;
++	unsigned long mask = 0xffffu;
++	u32 l0, tmp1, tmp2;
+ 
+-		if (spin_trylock(lock))
+-			break;
+-	}
++	__asm__ __volatile__(
++		/* Atomically increment the next ticket. */
++		"0:	lr.w.aq	%0, %3\n"
++		"	add	%1, %0, %4\n"
++		"	sc.w.rl	%2, %1, %3\n"
++		"	bnez	%2, 0b\n"
++
++		/* Did we get the lock? */
++		"	srli	%1, %0, %6\n"
++		"	and	%1, %1, %5\n"
++		"1:	and	%2, %0, %5\n"
++		"	beq	%1, %2, 2f\n"
++
++		/* No, let's spin on the lock. */
++		"	lw	%0, %3\n"
++		RISCV_ACQUIRE_BARRIER
++		"	j	1b\n"
++		"2:"
++		: "=&r"(l0), "=&r"(tmp1), "=&r"(tmp2), "+A"(*lock)
++		: "r"(inc), "r"(mask), "I"(TICKET_SHIFT)
++		: "memory");
+ }
+ 
+ void spin_unlock(spinlock_t *lock)
+ {
+-	__smp_store_release(&lock->lock, __RISCV_SPIN_UNLOCKED);
++	__smp_store_release(&lock->owner, lock->owner + 1);
+ }
++
+-- 
+2.30.2
+
 
