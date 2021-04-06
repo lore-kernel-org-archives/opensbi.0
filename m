@@ -1,9 +1,9 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 06 Apr 2021 09:42:52 +0800
+Date: Tue, 06 Apr 2021 09:46:25 +0800
 Subject: [PATCH v2] spinlocks: Replace test-and-set locks by ticket locks
 In-Reply-To: <20210405144727.89369-1-cmuellner@linux.com>
 References: <20210405144727.89369-1-cmuellner@linux.com>
-Message-ID: <9da3f51c5255668b581ee44208c5e1beefe5b2c9.camel@126.com>
+Message-ID: <6a5b1380f0e9962027d4f24dd01fe3bd72da4217.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -206,10 +206,8 @@ Content-Transfer-Encoding: 7bit
 > +	__smp_store_release(&lock->owner, lock->owner + 1);
 >  }
 > +
-This implementation does not increase the efficiency, next miss once,
-the next time you have to wait at least 65535 times
 
-The pseudo code I recommend is as follows
+Sorry, there is something wrong with the pseudo code
 
 typedef struct {
 	unsigned long owner;
@@ -219,7 +217,7 @@ typedef struct {
 void spin_lock(spinlock_t *lock)
 {
 	unsigned me = __atomic_add_fetch(&(lock->next), 1);
-	while (lock->owner != next)
+	while (lock->owner != me)
 		asm volatile("": : :"memory");
 }
 
