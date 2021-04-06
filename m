@@ -1,9 +1,9 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 06 Apr 2021 09:04:37 +0800
+Date: Tue, 06 Apr 2021 09:42:52 +0800
 Subject: [PATCH v2] spinlocks: Replace test-and-set locks by ticket locks
 In-Reply-To: <20210405144727.89369-1-cmuellner@linux.com>
 References: <20210405144727.89369-1-cmuellner@linux.com>
-Message-ID: <c2b6e57f9f0dca408807684b95ba78a405224f92.camel@126.com>
+Message-ID: <9da3f51c5255668b581ee44208c5e1beefe5b2c9.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -180,11 +180,6 @@ Content-Transfer-Encoding: 7bit
 > +	__asm__ __volatile__(
 > +		/* Atomically increment the next ticket. */
 > +		"0:	lr.w.aq	%0, %3\n"
-lost? 
-			add %2, %0, zero
-
-Regards,
-Xiang W
 > +		"	add	%1, %0, %4\n"
 > +		"	sc.w.rl	%2, %1, %3\n"
 > +		"	bnez	%2, 0b\n"
@@ -211,5 +206,27 @@ Xiang W
 > +	__smp_store_release(&lock->owner, lock->owner + 1);
 >  }
 > +
+This implementation does not increase the efficiency, next miss once,
+the next time you have to wait at least 65535 times
+
+The pseudo code I recommend is as follows
+
+typedef struct {
+	unsigned long owner;
+	unsigned long next;
+} spinlock_t;
+
+void spin_lock(spinlock_t *lock)
+{
+	unsigned me = __atomic_add_fetch(&(lock->next), 1);
+	while (lock->owner != next)
+		asm volatile("": : :"memory");
+}
+
+void ticket_unlock(spinlock_t *lock)
+{
+	asm volatile("": : :"memory");
+	lock->owner++;
+}
 
 
