@@ -1,9 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 6 Apr 2021 05:55:41 +0000
-Subject: [PATCH] lib: fix atomic_add_return
-In-Reply-To: <20210406033438.27687-1-wxjstz@126.com>
-References: <20210406033438.27687-1-wxjstz@126.com>
-Message-ID: <DM6PR04MB62016DCB5CE01FD474A776AB8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Thu, 8 Apr 2021 03:14:48 +0000
+Subject: [RFC 02/14] lib: sbi: Detect mcountinihibit support at runtime
+In-Reply-To: <20210319221305.2138412-3-atish.patra@wdc.com>
+References: <20210319221305.2138412-1-atish.patra@wdc.com>
+ <20210319221305.2138412-3-atish.patra@wdc.com>
+Message-ID: <DM6PR04MB6201C20783F80CC3A1A2275C8D749@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,66 +14,86 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Xiang W <wxjstz@126.com>
-> Sent: 06 April 2021 09:05
+> From: Atish Patra <atish.patra@wdc.com>
+> Sent: 20 March 2021 03:43
 > To: opensbi at lists.infradead.org
-> Cc: Anup Patel <Anup.Patel@wdc.com>; Xiang W <wxjstz@126.com>
-> Subject: [PATCH] lib: fix atomic_add_return
+> Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
+> Subject: [RFC 02/14] lib: sbi: Detect mcountinihibit support at runtime
 > 
-> unsigned length may be 4 bytes or 8 bytes, amoadd.w only applies to 4 bytes,
-> so submit this patch
+> RISC-V ISA specification v1.11 defined mcountinhibit CSR that allows software
+> to stop any counter from incrementing. The SBI PMU extension depends on
+> this CSR support in hardware.
 > 
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> Define mcountinhibit as a hart specific feature and detect it at runtime.
+> 
+> Signed-off-by: Atish Patra <atish.patra@wdc.com>
+> ---
+>  include/sbi/sbi_hart.h |  4 +++-
+>  lib/sbi/sbi_hart.c     | 12 ++++++++++++
+>  2 files changed, 15 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h index
+> 031c7b08a815..9e317c52008c 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -18,8 +18,10 @@ enum sbi_hart_features {
+>  	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
+>  	/** Hart has M-mode counter enable */
+>  	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
+> +	/** Hart has counter inhibit CSR */
+> +	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
+>  	/** HART has timer csr implementation in hardware */
+> -	SBI_HART_HAS_TIME = (1 << 2),
+> +	SBI_HART_HAS_TIME = (1 << 3),
+> 
+>  	/** Last index of Hart features*/
+>  	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME, diff --git
+> a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index d91b08cf1cec..0b3bb6237182
+> 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -259,6 +259,9 @@ static inline char
+> *sbi_hart_feature_id2string(unsigned long feature)
+>  	case SBI_HART_HAS_MCOUNTEREN:
+>  		fstr = "mcounteren";
+>  		break;
+> +	case SBI_HART_HAS_MCOUNTINHIBIT:
+> +		fstr = "mcountinhibit";
+> +		break;
+>  	case SBI_HART_HAS_TIME:
+>  		fstr = "time";
+>  		break;
+> @@ -423,6 +426,15 @@ __mhpm_skip:
+>  			hfeatures->features |=
+> SBI_HART_HAS_MCOUNTEREN;
+>  	}
+> 
+> +	/* Detect if hart supports MCOUNTINHIBIT feature */
+> +	trap.cause = 0;
 
-Good catch. This patch looks good to me.
+Don't need to set trap.cause here anymore.
+
+> +	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned
+> long)&trap);
+> +	if (!trap.cause) {
+> +		csr_write_allowed(CSR_MCOUNTINHIBIT, (unsigned
+> long)&trap, val);
+> +		if (!trap.cause)
+> +			hfeatures->features |=
+> SBI_HART_HAS_MCOUNTINHIBIT;
+> +	}
+> +
+>  	/* Detect if hart supports time CSR */
+>  	trap.cause = 0;
+>  	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+> --
+> 2.25.1
+
+Apart from above, looks good to me.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
 Regards,
 Anup
-
-> ---
->  lib/sbi/riscv_atomic.c | 18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
-> 
-> diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c index
-> 558bca8..528686f 100644
-> --- a/lib/sbi/riscv_atomic.c
-> +++ b/lib/sbi/riscv_atomic.c
-> @@ -28,25 +28,23 @@ void atomic_write(atomic_t *atom, long value)  long
-> atomic_add_return(atomic_t *atom, long value)  {
->  	long ret;
-> -
-> +#if __SIZEOF_LONG__ == 4
->  	__asm__ __volatile__("	amoadd.w.aqrl  %1, %2, %0"
->  			     : "+A"(atom->counter), "=r"(ret)
->  			     : "r"(value)
->  			     : "memory");
-> -
-> +#elif __SIZEOF_LONG__ == 8
-> +	__asm__ __volatile__("	amoadd.d.aqrl  %1, %2, %0"
-> +			     : "+A"(atom->counter), "=r"(ret)
-> +			     : "r"(value)
-> +			     : "memory");
-> +#endif
->  	return ret + value;
->  }
-> 
->  long atomic_sub_return(atomic_t *atom, long value)  {
-> -	long ret;
-> -
-> -	__asm__ __volatile__("	amoadd.w.aqrl  %1, %2, %0"
-> -			     : "+A"(atom->counter), "=r"(ret)
-> -			     : "r"(-value)
-> -			     : "memory");
-> -
-> -	return ret - value;
-> +	return atomic_add_return(atom, -value);
->  }
-> 
->  #define __axchg(ptr, new, size)
-> 		\
-> --
-> 2.20.1
 
 
