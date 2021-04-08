@@ -1,10 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 8 Apr 2021 03:25:27 +0000
-Subject: [RFC 06/14] include: Add a list empty check function
-In-Reply-To: <20210319221305.2138412-7-atish.patra@wdc.com>
+Date: Thu, 8 Apr 2021 03:25:58 +0000
+Subject: [RFC 07/14] lib: sbi: Remove redundant boot time print statement
+In-Reply-To: <20210319221305.2138412-8-atish.patra@wdc.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-7-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB62017CF10626ABA34BFE31798D749@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210319221305.2138412-8-atish.patra@wdc.com>
+Message-ID: <DM6PR04MB62015A3A20252C93845EF0088D749@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,11 +18,10 @@ Content-Transfer-Encoding: 7bit
 > Sent: 20 March 2021 03:43
 > To: opensbi at lists.infradead.org
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [RFC 06/14] include: Add a list empty check function
-> 
-> Implement a list helper function that checks for empty lists.
+> Subject: [RFC 07/14] lib: sbi: Remove redundant boot time print statement
 > 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
+
 
 Looks good to me.
 
@@ -32,30 +31,23 @@ Regards,
 Anup
 
 > ---
->  include/sbi/sbi_list.h | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+>  lib/sbi/sbi_init.c | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_list.h b/include/sbi/sbi_list.h index
-> 1174ad274c54..b1178dfc9b8e 100644
-> --- a/include/sbi/sbi_list.h
-> +++ b/include/sbi/sbi_list.h
-> @@ -43,6 +43,17 @@ static inline void __sbi_list_add(struct sbi_dlist *new,
->  	next->prev = new;
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
+> 4de2dfa7c99d..acc2a81a1b53 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -117,8 +117,6 @@ static void sbi_boot_print_hart(struct sbi_scratch
+> *scratch, u32 hartid)
+>  		   sbi_hart_pmp_addrbits(scratch));
+>  	sbi_printf("Boot HART MHPM Count      : %d\n",
+>  		   sbi_hart_mhpm_count(scratch));
+> -	sbi_printf("Boot HART MHPM Count      : %d\n",
+> -		   sbi_hart_mhpm_count(scratch));
+>  	sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
 >  }
 > 
-> +/**
-> + * Checks if the list is empty or not.
-> + * @param head List head
-> + *
-> + * Retruns TRUE if list is empty, FALSE otherwise.
-> + */
-> +static inline bool sbi_list_empty(struct sbi_dlist *head) {
-> +	return head->next == head;
-> +}
-> +
->  /**
->   * Adds the new node after the given head.
->   * @param new New node that needs to be added to list.
 > --
 > 2.25.1
 
