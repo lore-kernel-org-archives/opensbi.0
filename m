@@ -1,12 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 9 Apr 2021 13:47:02 +0000
-Subject: [PATCH v3 2/3] spinlocks: Allow direct initialization via
- SPIN_LOCK_INIT()
-In-Reply-To: <DM6PR04MB6201347845C43F332157038B8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Fri, 9 Apr 2021 13:47:51 +0000
+Subject: [PATCH v3 3/3] spinlocks: Replace test-and-set locks by ticket
+ locks
+In-Reply-To: <24e93d59b72fc9e4941a4eed7e8084a87e0d067a.camel@126.com>
 References: <20210406015354.332780-1-cmuellner@linux.com>
- <20210406015354.332780-3-cmuellner@linux.com>
- <DM6PR04MB6201347845C43F332157038B8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <DM6PR04MB62010C9D82DA0CEFE76D62948D739@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210406015354.332780-4-cmuellner@linux.com>
+ <24e93d59b72fc9e4941a4eed7e8084a87e0d067a.camel@126.com>
+Message-ID: <DM6PR04MB6201807781CC04CB49DA95938D739@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,84 +16,189 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Anup Patel
-> Sent: 06 April 2021 10:37
+> From: Xiang W <wxjstz@126.com>
+> Sent: 06 April 2021 11:20
 > To: Christoph Muellner <cmuellner@linux.com>;
-> opensbi at lists.infradead.org; Guo Ren <guoren@kernel.org>; Xiang W
-> <wxjstz@126.com>; Jessica Clarke <jrtc27@jrtc27.com>
-> Subject: RE: [PATCH v3 2/3] spinlocks: Allow direct initialization via
-> SPIN_LOCK_INIT()
+> opensbi at lists.infradead.org; Anup Patel <Anup.Patel@wdc.com>; Guo Ren
+> <guoren@kernel.org>; Jessica Clarke <jrtc27@jrtc27.com>
+> Subject: Re: [PATCH v3 3/3] spinlocks: Replace test-and-set locks by ticket
+> locks
 > 
-> 
-> 
-> > -----Original Message-----
-> > From: Christoph Muellner <cmuellner@linux.com>
-> > Sent: 06 April 2021 07:24
-> > To: opensbi at lists.infradead.org; Anup Patel <Anup.Patel@wdc.com>; Guo
-> > Ren <guoren@kernel.org>; Xiang W <wxjstz@126.com>; Jessica Clarke
-> > <jrtc27@jrtc27.com>
-> > Cc: Christoph Muellner <cmuellner@linux.com>
-> > Subject: [PATCH v3 2/3] spinlocks: Allow direct initialization via
-> > SPIN_LOCK_INIT()
+> ? 2021-04-06?? 03:53 +0200?Christoph Muellner???
+> > Replace the test-and-set spinlock implementation with ticket locks in
+> > order to get fairness (in form of FIFO order).
 > >
-> > The current implementation of SPIN_LOCK_INIT() provides the spinlock
-> > to be initialized as reference. This does not allow a direct
-> > initialization of the spinlock object at the creation site.
-> >
-> > Let's pass the spinlock directly instead (like Linux does as well) and
-> > adjust all users of the macro (in fact there is only one user).
+> > The implementation uses a 32-bit wide struct, which consists of two
+> > 16-bit counters (owner and next). This is inspired by similar spinlock
+> > implementations on other architectures.
+> > This allows that the code works for both, RV32 and RV64.
 > >
 > > Signed-off-by: Christoph Muellner <cmuellner@linux.com>
-> 
+> > ---
+> >  include/sbi/riscv_locks.h | 33 ++++++++++++-------
+> >  lib/sbi/riscv_locks.c     | 67 +++++++++++++++++++++++++++++------
+> > ----
+> >  2 files changed, 72 insertions(+), 28 deletions(-)
+> >
+> > diff --git a/include/sbi/riscv_locks.h b/include/sbi/riscv_locks.h
+> > index faa9676..492935f 100644
+> > --- a/include/sbi/riscv_locks.h
+> > +++ b/include/sbi/riscv_locks.h
+> > @@ -2,26 +2,37 @@
+> >   * SPDX-License-Identifier: BSD-2-Clause
+> >   *
+> >   * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+> > - *
+> > - * Authors:
+> > - *   Anup Patel <anup.patel@wdc.com>
+> > + * Copyright (c) 2021 Christoph M?llner <cmuellner@linux.com>
+> >   */
+> >
+> >  #ifndef __RISCV_LOCKS_H__
+> >  #define __RISCV_LOCKS_H__
+> >
+> > +#include <sbi/sbi_types.h>
+> > +
+> > +#define TICKET_SHIFT	16
+> > +
+> >  typedef struct {
+> > -	volatile long lock;
+> > -} spinlock_t;
+> > +#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+> > +       u16 next;
+> > +       u16 owner;
+> > +#else
+> > +       u16 owner;
+> > +       u16 next;
+> > +#endif
+> > +} __aligned(4) spinlock_t;
+> > +
+> > +#define __SPIN_LOCK_UNLOCKED	\
+> > +	(spinlock_t) { 0, 0 }
+> >
+> > -#define __RISCV_SPIN_UNLOCKED 0
+> > +#define SPIN_LOCK_INIT(x)	\
+> > +	x = __SPIN_LOCK_UNLOCKED
+> >
+> > -#define SPIN_LOCK_INIT(x) (x).lock = __RISCV_SPIN_UNLOCKED
+> > +#define SPIN_LOCK_INITIALIZER	\
+> > +	__SPIN_LOCK_UNLOCKED
+> >
+> > -#define SPIN_LOCK_INITIALIZER                  \
+> > -	{                                      \
+> > -		.lock = __RISCV_SPIN_UNLOCKED, \
+> > -	}
+> > +#define DEFINE_SPIN_LOCK(x)	\
+> > +	spinlock_t SPIN_LOCK_INIT(x)
+> >
+> >  int spin_lock_check(spinlock_t *lock);
+> >
+> > diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c index
+> > 4d1d9c0..7e607b0 100644
+> > --- a/lib/sbi/riscv_locks.c
+> > +++ b/lib/sbi/riscv_locks.c
+> > @@ -2,44 +2,77 @@
+> >   * SPDX-License-Identifier: BSD-2-Clause
+> >   *
+> >   * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+> > - *
+> > - * Authors:
+> > - *   Anup Patel <anup.patel@wdc.com>
+> > + * Copyright (c) 2021 Christoph M?llner <cmuellner@linux.com>
+> >   */
+> >
+> >  #include <sbi/riscv_barrier.h>
+> >  #include <sbi/riscv_locks.h>
+> >
+> > -int spin_lock_check(spinlock_t *lock)
+> > +static inline int spin_lock_unlocked(spinlock_t lock)
+> >  {
+> > -	return (lock->lock == __RISCV_SPIN_UNLOCKED) ? 0 : 1;
+> > +        return lock.owner == lock.next; }
+> > +
+> > +bool spin_lock_check(spinlock_t *lock) {
+> > +	RISCV_FENCE(r, rw);
+> > +	return !spin_lock_unlocked(*lock);
+> >  }
+> >
+> >  int spin_trylock(spinlock_t *lock)
+> >  {
+> > -	int tmp = 1, busy;
+> > +	unsigned long inc = 1u << TICKET_SHIFT;
+> > +	unsigned long mask = 0xffffu << TICKET_SHIFT;
+> > +	u32 l0, tmp1, tmp2;
+> >
+> >  	__asm__ __volatile__(
+> > -		"	amoswap.w %0, %2, %1\n"
+> RISCV_ACQUIRE_BARRIER
+> > -		: "=r"(busy), "+A"(lock->lock)
+> > -		: "r"(tmp)
+> > +		/* Get the current lock counters. */
+> > +		"1:	lr.w.aq	%0, %3\n"
+> > +		"	slli	%2, %0, %6\n"
+> > +		"	and	%2, %2, %5\n"
+> > +		"	and	%1, %0, %5\n"
+> > +		/* Is the lock free right now? */
+> > +		"	bne	%1, %2, 2f\n"
+> > +		"	add	%0, %0, %4\n"
+> > +		/* Acquire the lock. */
+> > +		"	sc.w.rl	%0, %0, %3\n"
+> > +		"	bnez	%0, 1b\n"
+> > +		"2:"
+> > +		: "=&r"(l0), "=&r"(tmp1), "=&r"(tmp2), "+A"(*lock)
+> > +		: "r"(inc), "r"(mask), "I"(TICKET_SHIFT)
+> >  		: "memory");
+> >
+> > -	return !busy;
+> > +	return !l0;
+> >  }
+> >
+> >  void spin_lock(spinlock_t *lock)
+> >  {
+> > -	while (1) {
+> > -		if (spin_lock_check(lock))
+> > -			continue;
+> > +	unsigned long inc = 1u << TICKET_SHIFT;
+> > +	unsigned long mask = 0xffffu;
+> > +	u32 l0, tmp1, tmp2;
+> >
+> > -		if (spin_trylock(lock))
+> > -			break;
+> > -	}
+> > +	__asm__ __volatile__(
+> > +		/* Atomically increment the next ticket. */
+> > +		"	amoadd.w.aqrl	%0, %4, %3\n"
+> > +
+> > +		/* Did we get the lock? */
+> > +		"	srli	%1, %0, %6\n"
+> > +		"	and	%1, %1, %5\n"
+> > +		"1:	and	%2, %0, %5\n"
+> > +		"	beq	%1, %2, 2f\n"
+> > +
+> > +		/* If not, then spin on the lock. */
+> > +		"	lw	%0, %3\n"
+> > +		RISCV_ACQUIRE_BARRIER
+> > +		"	j	1b\n"
+> > +		"2:"
+> > +		: "=&r"(l0), "=&r"(tmp1), "=&r"(tmp2), "+A"(*lock)
+> > +		: "r"(inc), "r"(mask), "I"(TICKET_SHIFT)
+> > +		: "memory");
+> >  }
+> >
+> >  void spin_unlock(spinlock_t *lock)
+> >  {
+> > -	__smp_store_release(&lock->lock, __RISCV_SPIN_UNLOCKED);
+> > +	__smp_store_release(&lock->owner, lock->owner + 1);
+> >  }
+> > +
 > Looks good to me.
 > 
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
-Replaced patch subject prefix "spinlocks:" with "lib: sbi:"
+Replaces patch subject prefix "spinlocks:" with "lib: sbi:"
 
 Applied this patch to the riscv/opensbi repo
 
 Regards,
 Anup
-
-> 
-> Thanks,
-> Anup
-> 
-> > ---
-> >  include/sbi/riscv_locks.h | 2 +-
-> >  lib/sbi/sbi_fifo.c        | 2 +-
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/include/sbi/riscv_locks.h b/include/sbi/riscv_locks.h
-> > index
-> > 55da7c0..faa9676 100644
-> > --- a/include/sbi/riscv_locks.h
-> > +++ b/include/sbi/riscv_locks.h
-> > @@ -16,7 +16,7 @@ typedef struct {
-> >
-> >  #define __RISCV_SPIN_UNLOCKED 0
-> >
-> > -#define SPIN_LOCK_INIT(_lptr) (_lptr)->lock = __RISCV_SPIN_UNLOCKED
-> > +#define SPIN_LOCK_INIT(x) (x).lock = __RISCV_SPIN_UNLOCKED
-> >
-> >  #define SPIN_LOCK_INITIALIZER                  \
-> >  	{                                      \
-> > diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c index
-> > 8d1dbf0..2a5c012
-> > 100644
-> > --- a/lib/sbi/sbi_fifo.c
-> > +++ b/lib/sbi/sbi_fifo.c
-> > @@ -18,7 +18,7 @@ void sbi_fifo_init(struct sbi_fifo *fifo, void
-> > *queue_mem, u16 entries,
-> >  	fifo->queue	  = queue_mem;
-> >  	fifo->num_entries = entries;
-> >  	fifo->entry_size  = entry_size;
-> > -	SPIN_LOCK_INIT(&fifo->qlock);
-> > +	SPIN_LOCK_INIT(fifo->qlock);
-> >  	fifo->avail = fifo->tail = 0;
-> >  	sbi_memset(fifo->queue, 0, (size_t)entries * entry_size);  }
-> > --
-> > 2.30.2
-
 
