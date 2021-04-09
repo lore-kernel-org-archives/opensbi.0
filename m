@@ -1,10 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 8 Apr 2021 03:29:58 +0000
-Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
-In-Reply-To: <20210319221305.2138412-10-atish.patra@wdc.com>
-References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-10-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB62010A6AA94E1D44ED6C20518D749@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Fri, 9 Apr 2021 13:46:25 +0000
+Subject: [PATCH v3 1/3] include: types: Add __aligned(x) to define the
+ minimum alignement
+In-Reply-To: <DM6PR04MB6201AC1EFFFBB8154192FA4C8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
+References: <20210406015354.332780-1-cmuellner@linux.com>
+ <20210406015354.332780-2-cmuellner@linux.com>
+ <DM6PR04MB6201AC1EFFFBB8154192FA4C8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <DM6PR04MB62011586680055A7ABD7153B8D739@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,96 +16,62 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Atish Patra <atish.patra@wdc.com>
-> Sent: 20 March 2021 03:43
-> To: opensbi at lists.infradead.org
-> Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
+> From: Anup Patel
+> Sent: 06 April 2021 10:36
+> To: Christoph Muellner <cmuellner@linux.com>;
+> opensbi at lists.infradead.org; Guo Ren <guoren@kernel.org>; Xiang W
+> <wxjstz@126.com>; Jessica Clarke <jrtc27@jrtc27.com>
+> Subject: RE: [PATCH v3 1/3] include: types: Add __aligned(x) to define the
+> minimum alignement
 > 
-> A platform hook to initialize PMU allows platform vendors to provide their
-> own mechanism to define pmu event-counter mappings in addition to the DT
-> based approach.
 > 
-> Another platform hook that allows platform vendors customize the final
-> mhpmevent value configuration.
 > 
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  include/sbi/sbi_platform.h | 38
-> ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 38 insertions(+)
+> > -----Original Message-----
+> > From: Christoph Muellner <cmuellner@linux.com>
+> > Sent: 06 April 2021 07:24
+> > To: opensbi at lists.infradead.org; Anup Patel <Anup.Patel@wdc.com>; Guo
+> > Ren <guoren@kernel.org>; Xiang W <wxjstz@126.com>; Jessica Clarke
+> > <jrtc27@jrtc27.com>
+> > Cc: Christoph Muellner <cmuellner@linux.com>
+> > Subject: [PATCH v3 1/3] include: types: Add __aligned(x) to define the
+> > minimum alignement
+> >
+> > The __aligned(x) macro is a common wrapper around compiler's aligned
+> > attribute, which allow to define the minimum alignement of a data
+> > type. Let's add this macro.
+> >
+> > Signed-off-by: Christoph Muellner <cmuellner@linux.com>
 > 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h index
-> dadbc1e94e18..02773f672443 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -97,6 +97,11 @@ struct sbi_platform_operations {
->  	/** Initialize (or populate) domains for the platform */
->  	int (*domains_init)(void);
+> Looks good to me.
 > 
-> +	/** Initialize hw performance counters */
-> +	int (*pmu_init)(void);
-> +
-> +	uint64_t (*get_mhpmevent_value)(uint32_t event_idx, uint64_t
-> data);
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-Rename get_mhpmevent_value() to pmu_xlate_to_mhpmevent() and
-add one line comment about this callback.
-
-> +
->  	/** Write a character to the platform console output */
->  	void (*console_putc)(char ch);
->  	/** Read a character from the platform console input */ @@ -514,6
-> +519,39 @@ static inline int sbi_platform_domains_init(const struct
-> sbi_platform *plat)
->  	return 0;
->  }
-> 
-> +/**
-> + * Setup hw PMU events for the platform
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + *
-> + * @return 0 on success and negative error code on failure  */ static
-> +inline int sbi_platform_pmu_init(const struct sbi_platform *plat) {
-> +	if (plat && sbi_platform_ops(plat)->pmu_init)
-> +		return sbi_platform_ops(plat)->pmu_init();
-> +	return 0;
-> +}
-> +
-> +/**
-> + * Get the value to be written in mhpmeventx for event_idx
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + * @param event_idx ID of the PMU event
-> + * @param data Additional configuration data passed from supervisor
-> +software
-> + *
-> + * @return expected value by the platform or 0 if platform doesn't know
-> +about
-> + * the event
-> + */
-> +static inline int sbi_platform_get_mhpmevent_value(const struct
-
-Rename this as-per above suggestion.
-
-> sbi_platform *plat,
-> +						   uint32_t event_idx,
-> uint64_t data) {
-> +	if (plat && sbi_platform_ops(plat)->get_mhpmevent_value)
-> +		return sbi_platform_ops(plat)-
-> >get_mhpmevent_value(event_idx,
-> +								   data);
-> +	return 0;
-> +}
-> +
->  /**
->   * Write a character to the platform console output
->   *
-> --
-> 2.25.1
+Applied this patch to the riscv/opensbi repo
 
 Regards,
 Anup
+
+> 
+> Thanks,
+> Anup
+> 
+> > ---
+> >  include/sbi/sbi_types.h | 1 +
+> >  1 file changed, 1 insertion(+)
+> >
+> > diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h index
+> > 0952d5c..38e3565 100644
+> > --- a/include/sbi/sbi_types.h
+> > +++ b/include/sbi/sbi_types.h
+> > @@ -63,6 +63,7 @@ typedef unsigned long		physical_size_t;
+> >
+> >  #define __packed		__attribute__((packed))
+> >  #define __noreturn		__attribute__((noreturn))
+> > +#define __aligned(x)		__attribute__((aligned(x)))
+> >
+> >  #define likely(x) __builtin_expect((x), 1)  #define unlikely(x)
+> > __builtin_expect((x), 0)
+> > --
+> > 2.30.2
 
 
