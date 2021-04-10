@@ -1,96 +1,40 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 9 Apr 2021 13:48:29 +0000
-Subject: [PATCH] lib: fix atomic_add_return
-In-Reply-To: <DM6PR04MB62016DCB5CE01FD474A776AB8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
-References: <20210406033438.27687-1-wxjstz@126.com>
- <DM6PR04MB62016DCB5CE01FD474A776AB8D769@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <DM6PR04MB62013633A0D13995E68C2BA08D739@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Sat, 10 Apr 2021 12:48:01 +0530
+Subject: [PATCH 0/7] Protect M-mode only MMIO devices
+Message-ID: <20210410071808.759856-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+We should protect the M-mode only MMIO devices (such as CLINT) using
+the OpenSBI domain support. This can be easily achieved by having APIs
+to allow platform support (and drivers) to add memregions for the root
+domain.
 
+This series extends OpenSBI domain support to protect M-mode only
+devices.
 
-> -----Original Message-----
-> From: Anup Patel
-> Sent: 06 April 2021 11:26
-> To: Xiang W <wxjstz@126.com>; opensbi at lists.infradead.org
-> Subject: RE: [PATCH] lib: fix atomic_add_return
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Xiang W <wxjstz@126.com>
-> > Sent: 06 April 2021 09:05
-> > To: opensbi at lists.infradead.org
-> > Cc: Anup Patel <Anup.Patel@wdc.com>; Xiang W <wxjstz@126.com>
-> > Subject: [PATCH] lib: fix atomic_add_return
-> >
-> > unsigned length may be 4 bytes or 8 bytes, amoadd.w only applies to 4
-> > bytes, so submit this patch
-> >
-> > Signed-off-by: Xiang W <wxjstz@126.com>
-> 
-> Good catch. This patch looks good to me.
-> 
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+These patches can be found in domain_root_region_v1 branch at:
+https://github.com/avpatel/opensbi
 
-Improved patch subject and commit description little bit
-at time of applying this patch.
+Anup Patel (7):
+  lib: sbi: Domains can be registered only before finalizing domains
+  lib: sbi: Add sbi_domain_memregion_init() API
+  lib: sbi: Add sbi_domain_root_add_memregion() API
+  lib: utils/sys: Add CLINT memregion in the root domain
+  lib: sbi: Make the root domain instance global variable
+  lib: utils: Copy over restricted root domain memregions to FDT domains
+  lib: sbi: Make sbi_domain_memregion_initfw() a local function
 
-Applied this patch to the riscv/opensbi repo
+ include/sbi/sbi_domain.h   |  29 ++++++++-
+ lib/sbi/sbi_domain.c       | 118 ++++++++++++++++++++++++++++++-------
+ lib/utils/fdt/fdt_domain.c |  26 ++++++--
+ lib/utils/sys/clint.c      |  17 +++++-
+ 4 files changed, 160 insertions(+), 30 deletions(-)
 
-Regards,
-Anup
-
-> 
-> Regards,
-> Anup
-> 
-> > ---
-> >  lib/sbi/riscv_atomic.c | 18 ++++++++----------
-> >  1 file changed, 8 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c index
-> > 558bca8..528686f 100644
-> > --- a/lib/sbi/riscv_atomic.c
-> > +++ b/lib/sbi/riscv_atomic.c
-> > @@ -28,25 +28,23 @@ void atomic_write(atomic_t *atom, long value)
-> > long atomic_add_return(atomic_t *atom, long value)  {
-> >  	long ret;
-> > -
-> > +#if __SIZEOF_LONG__ == 4
-> >  	__asm__ __volatile__("	amoadd.w.aqrl  %1, %2, %0"
-> >  			     : "+A"(atom->counter), "=r"(ret)
-> >  			     : "r"(value)
-> >  			     : "memory");
-> > -
-> > +#elif __SIZEOF_LONG__ == 8
-> > +	__asm__ __volatile__("	amoadd.d.aqrl  %1, %2, %0"
-> > +			     : "+A"(atom->counter), "=r"(ret)
-> > +			     : "r"(value)
-> > +			     : "memory");
-> > +#endif
-> >  	return ret + value;
-> >  }
-> >
-> >  long atomic_sub_return(atomic_t *atom, long value)  {
-> > -	long ret;
-> > -
-> > -	__asm__ __volatile__("	amoadd.w.aqrl  %1, %2, %0"
-> > -			     : "+A"(atom->counter), "=r"(ret)
-> > -			     : "r"(-value)
-> > -			     : "memory");
-> > -
-> > -	return ret - value;
-> > +	return atomic_add_return(atom, -value);
-> >  }
-> >
-> >  #define __axchg(ptr, new, size)
-> > 		\
-> > --
-> > 2.20.1
+-- 
+2.25.1
 
 
