@@ -1,61 +1,41 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 10 Apr 2021 12:48:08 +0530
-Subject: [PATCH 7/7] lib: sbi: Make sbi_domain_memregion_initfw() a local
- function
-In-Reply-To: <20210410071808.759856-1-anup.patel@wdc.com>
-References: <20210410071808.759856-1-anup.patel@wdc.com>
-Message-ID: <20210410071808.759856-8-anup.patel@wdc.com>
+From: hasheddan <georgedanielmangum@gmail.com>
+Date: Sat, 10 Apr 2021 07:08:03 -0500
+Subject: [PATCH] docs: fix link to OpenPiton documentation
+Message-ID: <20210410120803.238457-1-georgedanielmangum@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_domain_memregion_initfw() is no longer used outside
-sbi_domain.c so let's make it a local function.
+Updates link in platforms documentation to point to the correct
+OpenPiton document.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Signed-off-by: hasheddan <georgedanielmangum@gmail.com>
 ---
- include/sbi/sbi_domain.h | 3 ---
- lib/sbi/sbi_domain.c     | 4 ++--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ docs/platform/platform.md | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index ef53ca5..3de5e46 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -127,9 +127,6 @@ bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid);
- ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
- 				       ulong hbase);
+diff --git a/docs/platform/platform.md b/docs/platform/platform.md
+index 7f47068..8ee8754 100644
+--- a/docs/platform/platform.md
++++ b/docs/platform/platform.md
+@@ -36,7 +36,7 @@ OpenSBI currently supports the following virtual and hardware platforms:
  
--/** Initialize a domain memory region as firmware region */
--void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
--
- /**
-  * Initialize a domain memory region based on it's physical
-  * address and size.
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 5e3a30d..069e2a7 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -64,7 +64,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
- 	return ret;
- }
+ * **OpenPiton FPGA SoC**: Platform support OpenPiton research platform based
+   on ariane core. More details on this platform can be found in the file
+-  *[fpga_openpiton.md]*.
++  *[fpga-openpiton.md]*.
  
--void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg)
-+static void domain_memregion_initfw(struct sbi_domain_memregion *reg)
- {
- 	if (!reg)
- 		return;
-@@ -577,7 +577,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	/* Root domain firmware memory region */
- 	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size, 0,
- 				  &root_fw_region);
--	sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]);
-+	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
- 
- 	/* Root domain allow everything memory region */
- 	sbi_domain_memregion_init(0, ~0UL,
+ * **Shakti C-class SoC Platform**: Platform support for Shakti C-class
+   processor based SOCs. More details on this platform can be found in the
+@@ -55,5 +55,5 @@ facilitate the implementation.
+ [andes-ae350.md]: andes-ae350.md
+ [thead-c910.md]: thead-c910.md
+ [spike.md]: spike.md
+-[fpga_openpiton.md]: fpga_openpiton.md
++[fpga-openpiton.md]: fpga-openpiton.md
+ [shakti_cclass.md]: shakti_cclass.md
 -- 
 2.25.1
 
