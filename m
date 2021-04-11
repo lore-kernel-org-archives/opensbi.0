@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Apr 2021 15:50:16 +0800
-Subject: [PATCH 2/7] lib: sbi: Add sbi_domain_memregion_init() API
-In-Reply-To: <20210410071808.759856-3-anup.patel@wdc.com>
+Date: Sun, 11 Apr 2021 16:43:15 +0800
+Subject: [PATCH 3/7] lib: sbi: Add sbi_domain_root_add_memregion() API
+In-Reply-To: <20210410071808.759856-4-anup.patel@wdc.com>
 References: <20210410071808.759856-1-anup.patel@wdc.com>
- <20210410071808.759856-3-anup.patel@wdc.com>
-Message-ID: <a055ff7d7701b64d982922016658b51c748ed152.camel@126.com>
+ <20210410071808.759856-4-anup.patel@wdc.com>
+Message-ID: <9db9231d98fb96f7882c8400c2e30e9d5c612ea9.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,9 +12,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2021-04-10?? 12:48 +0530?Anup Patel???
-> This patch adds sbi_domain_memregion_init() helper API which can
-> be used by platform support to initialize a domain memory region
-> before adding it to the root domain.
+> We should allow platform support to add more root memory regions
+> before domains are finalized. This will help platform support to
+> protect critical M-mode only resources.
+> 
+> This patch adds sbi_domain_root_add_memregion() API for above
+> described purpose.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 looks good to me.
@@ -24,112 +27,154 @@ Reviewed-by: Xiang W <wxjstz@126.com>
 Regards,
 Xiang W
 > ---
->  include/sbi/sbi_domain.h | 14 +++++++++++++
->  lib/sbi/sbi_domain.c     | 45 ++++++++++++++++++++++++++++++++----
-> ----
->  2 files changed, 50 insertions(+), 9 deletions(-)
+>  include/sbi/sbi_domain.h | 11 +++++++
+>  lib/sbi/sbi_domain.c     | 62 +++++++++++++++++++++++++++++++++-----
+> --
+>  2 files changed, 62 insertions(+), 11 deletions(-)
 > 
 > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index 1f8b942..f9f4f7d 100644
+> index f9f4f7d..b5f2f38 100644
 > --- a/include/sbi/sbi_domain.h
 > +++ b/include/sbi/sbi_domain.h
-> @@ -127,6 +127,20 @@ ulong sbi_domain_get_assigned_hartmask(const
-> struct sbi_domain *dom,
->  /** Initialize a domain memory region as firmware region */
->  void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
+> @@ -170,6 +170,17 @@ void sbi_domain_dump_all(const char *suffix);
+>  int sbi_domain_register(struct sbi_domain *dom,
+>  			const struct sbi_hartmask *assign_mask);
 >  
 > +/**
-> + * Initialize a domain memory region based on it's physical
-> + * address and size.
+> + * Add a memory region to the root domain
+> + * @param reg pointer to the memory region to be added
+> + * @param skip_conflict do nothing if a conflicting region is
+> already
+> + * present in the root domain
 > + *
-> + * @param addr start physical address of memory region
-> + * @param size physical size of memory region
-> + * @param flags memory region flags
-> + * @param reg pointer to memory region being initialized
+> + * @return 0 on success and negative error code on failure
 > + */
-> +void sbi_domain_memregion_init(unsigned long addr,
-> +				unsigned long size,
-> +				unsigned long flags,
-> +				struct sbi_domain_memregion *reg);
+> +int sbi_domain_root_add_memregion(const struct sbi_domain_memregion
+> *reg,
+> +				   bool skip_conflict);
 > +
->  /**
->   * Check whether we can access specified address for given mode and
->   * memory region flags under a domain
+>  /** Finalize domain tables and startup non-root domains */
+>  int sbi_domain_finalize(struct sbi_scratch *scratch, u32
+> cold_hartid);
+>  
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 2849241..164f35c 100644
+> index 164f35c..8afdb5d 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -72,6 +72,35 @@ void sbi_domain_memregion_initfw(struct
+> @@ -24,10 +24,10 @@ static bool domain_finalized = false;
+>  
+>  static struct sbi_hartmask root_hmask = { 0 };
+>  
+> -#define ROOT_FW_REGION		0
+> -#define ROOT_ALL_REGION	1
+> -#define ROOT_END_REGION	2
+> -static struct sbi_domain_memregion root_memregs[ROOT_END_REGION + 1]
+> = { 0 };
+> +#define ROOT_REGION_MAX	16
+> +static u32 root_memregs_count = 0;
+> +static struct sbi_domain_memregion root_fw_region;
+> +static struct sbi_domain_memregion root_memregs[ROOT_REGION_MAX + 1]
+> = { 0 };
+>  
+>  static struct sbi_domain root = {
+>  	.name = "root",
+> @@ -69,7 +69,7 @@ void sbi_domain_memregion_initfw(struct
 > sbi_domain_memregion *reg)
->  	sbi_memcpy(reg, &root_memregs[ROOT_FW_REGION], sizeof(*reg));
+>  	if (!reg)
+>  		return;
+>  
+> -	sbi_memcpy(reg, &root_memregs[ROOT_FW_REGION], sizeof(*reg));
+> +	sbi_memcpy(reg, &root_fw_region, sizeof(*reg));
 >  }
 >  
-> +void sbi_domain_memregion_init(unsigned long addr,
-> +				unsigned long size,
-> +				unsigned long flags,
-> +				struct sbi_domain_memregion *reg)
+>  void sbi_domain_memregion_init(unsigned long addr,
+> @@ -236,9 +236,9 @@ static int sanitize_domain(const struct
+> sbi_platform *plat,
+>  	count = 0;
+>  	have_fw_reg = FALSE;
+>  	sbi_domain_for_each_memregion(dom, reg) {
+> -		if (reg->order == root_memregs[ROOT_FW_REGION].order &&
+> -		    reg->base == root_memregs[ROOT_FW_REGION].base &&
+> -		    reg->flags == root_memregs[ROOT_FW_REGION].flags)
+> +		if (reg->order == root_fw_region.order &&
+> +		    reg->base == root_fw_region.base &&
+> +		    reg->flags == root_fw_region.flags)
+>  			have_fw_reg = TRUE;
+>  		count++;
+>  	}
+> @@ -468,6 +468,45 @@ int sbi_domain_register(struct sbi_domain *dom,
+>  	return 0;
+>  }
+>  
+> +int sbi_domain_root_add_memregion(const struct sbi_domain_memregion
+> *reg,
+> +				   bool skip_conflict)
 > +{
-> +	unsigned long base = 0, order;
+> +	int rc;
+> +	struct sbi_domain_memregion *nreg;
+> +	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
 > +
-> +	for (order = log2roundup(size) ; order <= __riscv_xlen;
-> order++) {
-> +		if (order < __riscv_xlen) {
-> +			base = addr & ~((1UL << order) - 1UL);
-> +			if ((base <= addr) &&
-> +			    (addr < (base + (1UL << order))) &&
-> +			    (base <= (addr + size - 1UL)) &&
-> +			    ((addr + size - 1UL) < (base + (1UL <<
-> order))))
-> +				break;
-> +		} else {
-> +			base = 0;
-> +			break;
-> +		}
+> +	/* Sanity checks */
+> +	if (!reg || domain_finalized ||
+> +	    (root.regions != root_memregs) ||
+> +	    (ROOT_REGION_MAX <= root_memregs_count))
+> +		return SBI_EINVAL;
 > +
+> +	/* Check for conflicts */
+> +	sbi_domain_for_each_memregion(&root, nreg) {
+> +		if (is_region_conflict(reg, nreg))
+> +			return (skip_conflict) ? 0 : SBI_EINVAL;
 > +	}
 > +
-> +	if (reg) {
-> +		reg->base = base;
-> +		reg->order = order;
-> +		reg->flags = flags;
+> +	/* Append the region to root regions */
+> +	nreg = &root_memregs[root_memregs_count];
+> +	sbi_memcpy(nreg, reg, sizeof(*reg));
+> +	root_memregs_count++;
+> +	root_memregs[root_memregs_count].order = 0;
+> +
+> +	/* Sanitize the root domain so that root regions are sorted */
+> +	rc = sanitize_domain(plat, &root);
+> +	if (rc) {
+> +		sbi_printf("%s: sanity checks failed for"
+> +			   " %s (error %d)\n", __func__,
+> +			   root.name, rc);
+> +		nreg->order = 0;
+> +		root_memregs_count--;
+> +		return rc;
 > +	}
+> +
+> +	return 0;
 > +}
 > +
->  bool sbi_domain_check_addr(const struct sbi_domain *dom,
->  			   unsigned long addr, unsigned long mode,
->  			   unsigned long access_flags)
-> @@ -507,17 +536,15 @@ int sbi_domain_init(struct sbi_scratch
+>  int sbi_domain_finalize(struct sbi_scratch *scratch, u32
+> cold_hartid)
+>  {
+>  	int rc;
+> @@ -537,17 +576,18 @@ int sbi_domain_init(struct sbi_scratch
 > *scratch, u32 cold_hartid)
->  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 >  
 >  	/* Root domain firmware memory region */
-> -	root_memregs[ROOT_FW_REGION].order = log2roundup(scratch-
-> >fw_size);
-> -	root_memregs[ROOT_FW_REGION].base = scratch->fw_start &
-> -				~((1UL << root_memregs[0].order) -
-> 1UL);
-> -	root_memregs[ROOT_FW_REGION].flags = 0;
-> +	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
+>  	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
 > 0,
-> +				  &root_memregs[ROOT_FW_REGION]);
+> -				  &root_memregs[ROOT_FW_REGION]);
+> +				  &root_fw_region);
+> +	sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]
+> );
 >  
 >  	/* Root domain allow everything memory region */
-> -	root_memregs[ROOT_ALL_REGION].order = __riscv_xlen;
-> -	root_memregs[ROOT_ALL_REGION].base = 0;
-> -	root_memregs[ROOT_ALL_REGION].flags =
-> (SBI_DOMAIN_MEMREGION_READABLE |
-> -						SBI_DOMAIN_MEMREGION_WR
-> ITEABLE |
-> -						SBI_DOMAIN_MEMREGION_EX
-> ECUTABLE);
-> +	sbi_domain_memregion_init(0, ~0UL,
-> +				  (SBI_DOMAIN_MEMREGION_READABLE |
-> +				   SBI_DOMAIN_MEMREGION_WRITEABLE |
-> +				   SBI_DOMAIN_MEMREGION_EXECUTABLE),
-> +				  &root_memregs[ROOT_ALL_REGION]);
+>  	sbi_domain_memregion_init(0, ~0UL,
+>  				  (SBI_DOMAIN_MEMREGION_READABLE |
+>  				   SBI_DOMAIN_MEMREGION_WRITEABLE |
+>  				   SBI_DOMAIN_MEMREGION_EXECUTABLE),
+> -				  &root_memregs[ROOT_ALL_REGION]);
+> +				  &root_memregs[root_memregs_count++]);
 >  
 >  	/* Root domain memory region end */
->  	root_memregs[ROOT_END_REGION].order = 0;
+> -	root_memregs[ROOT_END_REGION].order = 0;
+> +	root_memregs[root_memregs_count].order = 0;
+>  
+>  	/* Use platform specific root memory regions when available */
+>  	memregs = sbi_platform_domains_root_regions(plat);
 > -- 
 > 2.25.1
 > 
