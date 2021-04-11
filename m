@@ -1,78 +1,71 @@
-From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Apr 2021 18:07:48 +0800
-Subject: [PATCH 7/7] lib: sbi: Make sbi_domain_memregion_initfw() a
- local function
-In-Reply-To: <20210410071808.759856-8-anup.patel@wdc.com>
+From: Alistair Francis <Alistair.Francis@wdc.com>
+Date: Sun, 11 Apr 2021 21:19:42 +0000
+Subject: [PATCH 1/7] lib: sbi: Domains can be registered only before
+ finalizing domains
+In-Reply-To: <20210410071808.759856-2-anup.patel@wdc.com>
 References: <20210410071808.759856-1-anup.patel@wdc.com>
- <20210410071808.759856-8-anup.patel@wdc.com>
-Message-ID: <608cf300bfbe938d12fd85598e4f0b65d939f434.camel@126.com>
+ <20210410071808.759856-2-anup.patel@wdc.com>
+Message-ID: <e9d9e4ac1ea8902fe1fd9771c3561a1c90e473f8.camel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-04-10?? 12:48 +0530?Anup Patel???
-> The sbi_domain_memregion_initfw() is no longer used outside
-> sbi_domain.c so let's make it a local function.
+On Sat, 2021-04-10 at 12:48 +0530, Anup Patel wrote:
+> The domains are boot-time system-level partitions so we should
+> allow platform support to register domains only before hart
+> domain assignments are finalized.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-looks good to me.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 
-Regards,
-Xiang W
+Alistair
+
 > ---
->  include/sbi/sbi_domain.h | 3 ---
->  lib/sbi/sbi_domain.c     | 4 ++--
->  2 files changed, 2 insertions(+), 5 deletions(-)
+> ?lib/sbi/sbi_domain.c | 11 +++++++++--
+> ?1 file changed, 9 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index ef53ca5..3de5e46 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -127,9 +127,6 @@ bool sbi_domain_is_assigned_hart(const struct
-> sbi_domain *dom, u32 hartid);
->  ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
->  				       ulong hbase);
->  
-> -/** Initialize a domain memory region as firmware region */
-> -void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
-> -
->  /**
->   * Initialize a domain memory region based on it's physical
->   * address and size.
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 5e3a30d..069e2a7 100644
+> index 195c941..2849241 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -64,7 +64,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct
-> sbi_domain *dom,
->  	return ret;
->  }
->  
-> -void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg)
-> +static void domain_memregion_initfw(struct sbi_domain_memregion
-> *reg)
->  {
->  	if (!reg)
->  		return;
-> @@ -577,7 +577,7 @@ int sbi_domain_init(struct sbi_scratch *scratch,
-> u32 cold_hartid)
->  	/* Root domain firmware memory region */
->  	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
-> 0,
->  				  &root_fw_region);
-> -	sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]
-> );
-> +	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
->  
->  	/* Root domain allow everything memory region */
->  	sbi_domain_memregion_init(0, ~0UL,
-> -- 
-> 2.25.1
-> 
-> 
-
+> @@ -19,8 +19,8 @@
+> ?
+> ?struct sbi_domain *hartid_to_domain_table[SBI_HARTMASK_MAX_BITS] = {
+> 0 };
+> ?struct sbi_domain *domidx_to_domain_table[SBI_DOMAIN_MAX_INDEX] = {
+> 0 };
+> -
+> ?static u32 domain_count = 0;
+> +static bool domain_finalized = false;
+> ?
+> ?static struct sbi_hartmask root_hmask = { 0 };
+> ?
+> @@ -376,7 +376,8 @@ int sbi_domain_register(struct sbi_domain *dom,
+> ????????u32 cold_hartid = current_hartid();
+> ????????const struct sbi_platform *plat =
+> sbi_platform_thishart_ptr();
+> ?
+> -???????if (!dom || !assign_mask)
+> +???????/* Sanity checks */
+> +???????if (!dom || !assign_mask || domain_finalized)
+> ????????????????return SBI_EINVAL;
+> ?
+> ????????/* Check if domain already discovered */
+> @@ -490,6 +491,12 @@ int sbi_domain_finalize(struct sbi_scratch
+> *scratch, u32 cold_hartid)
+> ????????????????}
+> ????????}
+> ?
+> +???????/*
+> +??????? * Set the finalized flag so that the root domain
+> +??????? * regions can't be changed.
+> +??????? */
+> +???????domain_finalized = true;
+> +
+> ????????return 0;
+> ?}
+> ?
 
