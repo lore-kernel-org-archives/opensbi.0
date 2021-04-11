@@ -1,11 +1,11 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Apr 2021 18:07:25 +0800
-Subject: [PATCH 6/7] lib: utils: Copy over restricted root domain
- memregions to FDT domains
-In-Reply-To: <20210410071808.759856-7-anup.patel@wdc.com>
+Date: Sun, 11 Apr 2021 18:07:48 +0800
+Subject: [PATCH 7/7] lib: sbi: Make sbi_domain_memregion_initfw() a
+ local function
+In-Reply-To: <20210410071808.759856-8-anup.patel@wdc.com>
 References: <20210410071808.759856-1-anup.patel@wdc.com>
- <20210410071808.759856-7-anup.patel@wdc.com>
-Message-ID: <f9c13d6cd7294ec9abd7e443b1c216cb89a1d648.camel@126.com>
+ <20210410071808.759856-8-anup.patel@wdc.com>
+Message-ID: <608cf300bfbe938d12fd85598e4f0b65d939f434.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,9 +13,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2021-04-10?? 12:48 +0530?Anup Patel???
-> We should copy over all restricted memregions from the root domain
-> to the domains populated from FDT. These restricted root memregions
-> are typically firmware memregion and M-mode only mmio memregions.
+> The sbi_domain_memregion_initfw() is no longer used outside
+> sbi_domain.c so let's make it a local function.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 looks good to me.
@@ -25,71 +24,52 @@ Reviewed-by: Xiang W <wxjstz@126.com>
 Regards,
 Xiang W
 > ---
->  lib/utils/fdt/fdt_domain.c | 26 ++++++++++++++++++++++----
->  1 file changed, 22 insertions(+), 4 deletions(-)
+>  include/sbi/sbi_domain.h | 3 ---
+>  lib/sbi/sbi_domain.c     | 4 ++--
+>  2 files changed, 2 insertions(+), 5 deletions(-)
 > 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 09615e5..95c195d 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -222,7 +222,7 @@ static u32 fdt_domains_count;
->  static struct sbi_domain fdt_domains[FDT_DOMAIN_MAX_COUNT];
->  static struct sbi_hartmask fdt_masks[FDT_DOMAIN_MAX_COUNT];
->  static struct sbi_domain_memregion
-> -	fdt_regions[FDT_DOMAIN_MAX_COUNT][FDT_DOMAIN_REGION_MAX_COUNT +
-> 2];
-> +	fdt_regions[FDT_DOMAIN_MAX_COUNT][FDT_DOMAIN_REGION_MAX_COUNT +
-> 1];
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index ef53ca5..3de5e46 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -127,9 +127,6 @@ bool sbi_domain_is_assigned_hart(const struct
+> sbi_domain *dom, u32 hartid);
+>  ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
+>  				       ulong hbase);
 >  
->  static int __fdt_parse_region(void *fdt, int domain_offset,
->  			      int region_offset, u32 region_access,
-> @@ -276,7 +276,7 @@ static int __fdt_parse_domain(void *fdt, int
-> domain_offset, void *opaque)
->  	struct sbi_hartmask *mask;
->  	struct sbi_hartmask assign_mask;
->  	int *cold_domain_offset = opaque;
-> -	struct sbi_domain_memregion *regions;
-> +	struct sbi_domain_memregion *reg, *regions;
->  	int i, err, len, cpus_offset, cpu_offset, doffset;
+> -/** Initialize a domain memory region as firmware region */
+> -void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
+> -
+>  /**
+>   * Initialize a domain memory region based on it's physical
+>   * address and size.
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 5e3a30d..069e2a7 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -64,7 +64,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct
+> sbi_domain *dom,
+>  	return ret;
+>  }
 >  
->  	/* Sanity check on maximum domains we can handle */
-> @@ -314,13 +314,31 @@ static int __fdt_parse_domain(void *fdt, int
-> domain_offset, void *opaque)
->  	/* Setup memregions from DT */
->  	val32 = 0;
->  	sbi_memset(regions, 0,
-> -		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT +
-> 2));
-> +		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT +
-> 1));
->  	dom->regions = regions;
->  	err = fdt_iterate_each_memregion(fdt, domain_offset, &val32,
->  					 __fdt_parse_region);
->  	if (err)
->  		return err;
-> -	sbi_domain_memregion_initfw(&regions[val32]);
-> +
-> +	/*
-> +	 * Copy over root domain memregions which don't allow
-> +	 * read, write and execute from lower privilege modes.
-> +	 *
-> +	 * These root domain memregions without read, write,
-> +	 * and execute permissions include:
-> +	 * 1) firmware region protecting the firmware memory
-> +	 * 2) mmio regions protecting M-mode only mmio devices
-> +	 */
-> +	sbi_domain_for_each_memregion(&root, reg) {
-> +		if ((reg->flags & SBI_DOMAIN_MEMREGION_READABLE) ||
-> +		    (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE) ||
-> +		    (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE))
-> +			continue;
-> +		if (FDT_DOMAIN_REGION_MAX_COUNT <= val32)
-> +			return SBI_EINVAL;
-> +		sbi_memcpy(&regions[val32++], reg, sizeof(*reg));
-> +	}
+> -void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg)
+> +static void domain_memregion_initfw(struct sbi_domain_memregion
+> *reg)
+>  {
+>  	if (!reg)
+>  		return;
+> @@ -577,7 +577,7 @@ int sbi_domain_init(struct sbi_scratch *scratch,
+> u32 cold_hartid)
+>  	/* Root domain firmware memory region */
+>  	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
+> 0,
+>  				  &root_fw_region);
+> -	sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]
+> );
+> +	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
 >  
->  	/* Read "boot-hart" DT property */
->  	val32 = -1U;
+>  	/* Root domain allow everything memory region */
+>  	sbi_domain_memregion_init(0, ~0UL,
 > -- 
 > 2.25.1
 > 
