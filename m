@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Apr 2021 16:43:15 +0800
-Subject: [PATCH 3/7] lib: sbi: Add sbi_domain_root_add_memregion() API
-In-Reply-To: <20210410071808.759856-4-anup.patel@wdc.com>
+Date: Sun, 11 Apr 2021 17:05:42 +0800
+Subject: [PATCH 4/7] lib: utils/sys: Add CLINT memregion in the root domain
+In-Reply-To: <20210410071808.759856-5-anup.patel@wdc.com>
 References: <20210410071808.759856-1-anup.patel@wdc.com>
- <20210410071808.759856-4-anup.patel@wdc.com>
-Message-ID: <9db9231d98fb96f7882c8400c2e30e9d5c612ea9.camel@126.com>
+ <20210410071808.759856-5-anup.patel@wdc.com>
+Message-ID: <f277ff1b39e108996d72315a3d1286aeb9943d44.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,169 +12,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2021-04-10?? 12:48 +0530?Anup Patel???
-> We should allow platform support to add more root memory regions
-> before domains are finalized. This will help platform support to
-> protect critical M-mode only resources.
-> 
-> This patch adds sbi_domain_root_add_memregion() API for above
-> described purpose.
+> The CLINT memory should not be accessed by the supervisor-mode
+> software so let's protect it by adding CLINT memregion to the
+> root domain.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-looks good to me.
+clint_cold_timer_init and clint_cold_ipi_init may use the same clint,
+which will call clint_add_root_memregion twice and generate an error.
+I suggest to separate
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+In clint_cold_timer_init execute
+sbi_domain_memregion_init(clint->addr, 0x4000,
+SBI_DOMAIN_MEMREGION_MMIO, &reg);
+
+In clint_cold_ipi_init execute
+sbi_domain_memregion_init(clint->addr + 0x4000, 0x8000,
+SBI_DOMAIN_MEMREGION_MMIO, &reg);
 
 Regards,
 Xiang W
 > ---
->  include/sbi/sbi_domain.h | 11 +++++++
->  lib/sbi/sbi_domain.c     | 62 +++++++++++++++++++++++++++++++++-----
-> --
->  2 files changed, 62 insertions(+), 11 deletions(-)
+>  lib/utils/sys/clint.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index f9f4f7d..b5f2f38 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -170,6 +170,17 @@ void sbi_domain_dump_all(const char *suffix);
->  int sbi_domain_register(struct sbi_domain *dom,
->  			const struct sbi_hartmask *assign_mask);
+> diff --git a/lib/utils/sys/clint.c b/lib/utils/sys/clint.c
+> index 7a392aa..fe98cc4 100644
+> --- a/lib/utils/sys/clint.c
+> +++ b/lib/utils/sys/clint.c
+> @@ -10,6 +10,7 @@
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_atomic.h>
+>  #include <sbi/riscv_io.h>
+> +#include <sbi/sbi_domain.h>
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_hartmask.h>
+>  #include <sbi_utils/sys/clint.h>
+> @@ -17,9 +18,19 @@
+>  #define CLINT_IPI_OFF		0
+>  #define CLINT_TIME_CMP_OFF	0x4000
+>  #define CLINT_TIME_VAL_OFF	0xbff8
+> +#define CLINT_SIZE		0xc000
 >  
-> +/**
-> + * Add a memory region to the root domain
-> + * @param reg pointer to the memory region to be added
-> + * @param skip_conflict do nothing if a conflicting region is
-> already
-> + * present in the root domain
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +int sbi_domain_root_add_memregion(const struct sbi_domain_memregion
-> *reg,
-> +				   bool skip_conflict);
-> +
->  /** Finalize domain tables and startup non-root domains */
->  int sbi_domain_finalize(struct sbi_scratch *scratch, u32
-> cold_hartid);
+>  static struct clint_data
+> *clint_ipi_hartid2data[SBI_HARTMASK_MAX_BITS];
 >  
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 164f35c..8afdb5d 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -24,10 +24,10 @@ static bool domain_finalized = false;
->  
->  static struct sbi_hartmask root_hmask = { 0 };
->  
-> -#define ROOT_FW_REGION		0
-> -#define ROOT_ALL_REGION	1
-> -#define ROOT_END_REGION	2
-> -static struct sbi_domain_memregion root_memregs[ROOT_END_REGION + 1]
-> = { 0 };
-> +#define ROOT_REGION_MAX	16
-> +static u32 root_memregs_count = 0;
-> +static struct sbi_domain_memregion root_fw_region;
-> +static struct sbi_domain_memregion root_memregs[ROOT_REGION_MAX + 1]
-> = { 0 };
->  
->  static struct sbi_domain root = {
->  	.name = "root",
-> @@ -69,7 +69,7 @@ void sbi_domain_memregion_initfw(struct
-> sbi_domain_memregion *reg)
->  	if (!reg)
->  		return;
->  
-> -	sbi_memcpy(reg, &root_memregs[ROOT_FW_REGION], sizeof(*reg));
-> +	sbi_memcpy(reg, &root_fw_region, sizeof(*reg));
->  }
->  
->  void sbi_domain_memregion_init(unsigned long addr,
-> @@ -236,9 +236,9 @@ static int sanitize_domain(const struct
-> sbi_platform *plat,
->  	count = 0;
->  	have_fw_reg = FALSE;
->  	sbi_domain_for_each_memregion(dom, reg) {
-> -		if (reg->order == root_memregs[ROOT_FW_REGION].order &&
-> -		    reg->base == root_memregs[ROOT_FW_REGION].base &&
-> -		    reg->flags == root_memregs[ROOT_FW_REGION].flags)
-> +		if (reg->order == root_fw_region.order &&
-> +		    reg->base == root_fw_region.base &&
-> +		    reg->flags == root_fw_region.flags)
->  			have_fw_reg = TRUE;
->  		count++;
->  	}
-> @@ -468,6 +468,45 @@ int sbi_domain_register(struct sbi_domain *dom,
->  	return 0;
->  }
->  
-> +int sbi_domain_root_add_memregion(const struct sbi_domain_memregion
-> *reg,
-> +				   bool skip_conflict)
+> +static int clint_add_root_memregion(struct clint_data *clint)
 > +{
-> +	int rc;
-> +	struct sbi_domain_memregion *nreg;
-> +	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+> +	struct sbi_domain_memregion reg;
 > +
-> +	/* Sanity checks */
-> +	if (!reg || domain_finalized ||
-> +	    (root.regions != root_memregs) ||
-> +	    (ROOT_REGION_MAX <= root_memregs_count))
-> +		return SBI_EINVAL;
-> +
-> +	/* Check for conflicts */
-> +	sbi_domain_for_each_memregion(&root, nreg) {
-> +		if (is_region_conflict(reg, nreg))
-> +			return (skip_conflict) ? 0 : SBI_EINVAL;
-> +	}
-> +
-> +	/* Append the region to root regions */
-> +	nreg = &root_memregs[root_memregs_count];
-> +	sbi_memcpy(nreg, reg, sizeof(*reg));
-> +	root_memregs_count++;
-> +	root_memregs[root_memregs_count].order = 0;
-> +
-> +	/* Sanitize the root domain so that root regions are sorted */
-> +	rc = sanitize_domain(plat, &root);
-> +	if (rc) {
-> +		sbi_printf("%s: sanity checks failed for"
-> +			   " %s (error %d)\n", __func__,
-> +			   root.name, rc);
-> +		nreg->order = 0;
-> +		root_memregs_count--;
-> +		return rc;
-> +	}
-> +
-> +	return 0;
+> +	sbi_domain_memregion_init(clint->addr, CLINT_SIZE,
+> +				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
+> +	return sbi_domain_root_add_memregion(&reg, true);
 > +}
 > +
->  int sbi_domain_finalize(struct sbi_scratch *scratch, u32
-> cold_hartid)
+>  void clint_ipi_send(u32 target_hart)
 >  {
->  	int rc;
-> @@ -537,17 +576,18 @@ int sbi_domain_init(struct sbi_scratch
-> *scratch, u32 cold_hartid)
+>  	struct clint_data *clint;
+> @@ -70,7 +81,8 @@ int clint_cold_ipi_init(struct clint_data *clint)
+>  	for (i = 0; i < clint->hart_count; i++)
+>  		clint_ipi_hartid2data[clint->first_hartid + i] = clint;
 >  
->  	/* Root domain firmware memory region */
->  	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
-> 0,
-> -				  &root_memregs[ROOT_FW_REGION]);
-> +				  &root_fw_region);
-> +	sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]
-> );
+> -	return 0;
+> +	/* Add CLINT region to the root domain */
+> +	return clint_add_root_memregion(clint);
+>  }
 >  
->  	/* Root domain allow everything memory region */
->  	sbi_domain_memregion_init(0, ~0UL,
->  				  (SBI_DOMAIN_MEMREGION_READABLE |
->  				   SBI_DOMAIN_MEMREGION_WRITEABLE |
->  				   SBI_DOMAIN_MEMREGION_EXECUTABLE),
-> -				  &root_memregs[ROOT_ALL_REGION]);
-> +				  &root_memregs[root_memregs_count++]);
+>  static struct clint_data
+> *clint_timer_hartid2data[SBI_HARTMASK_MAX_BITS];
+> @@ -199,5 +211,6 @@ int clint_cold_timer_init(struct clint_data
+> *clint,
+>  	for (i = 0; i < clint->hart_count; i++)
+>  		clint_timer_hartid2data[clint->first_hartid + i] =
+> clint;
 >  
->  	/* Root domain memory region end */
-> -	root_memregs[ROOT_END_REGION].order = 0;
-> +	root_memregs[root_memregs_count].order = 0;
->  
->  	/* Use platform specific root memory regions when available */
->  	memregs = sbi_platform_domains_root_regions(plat);
+> -	return 0;
+> +	/* Add CLINT region to the root domain */
+> +	return clint_add_root_memregion(clint);
+>  }
 > -- 
 > 2.25.1
 > 
