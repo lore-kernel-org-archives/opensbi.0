@@ -1,44 +1,54 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 12 Apr 2021 17:46:10 +0530
-Subject: [PATCH v2 0/7] Protect M-mode only MMIO devices
-Message-ID: <20210412121617.933493-1-anup.patel@wdc.com>
+Date: Mon, 12 Apr 2021 17:46:15 +0530
+Subject: [PATCH v2 5/7] lib: sbi: Make the root domain instance global variable
+In-Reply-To: <20210412121617.933493-1-anup.patel@wdc.com>
+References: <20210412121617.933493-1-anup.patel@wdc.com>
+Message-ID: <20210412121617.933493-6-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We should protect the M-mode only MMIO devices (such as CLINT) using
-the OpenSBI domain support. This can be easily achieved by having APIs
-to allow platform support (and drivers) to add memregions for the root
-domain.
+We make the the root domain instance global variable so that
+platform support and drivers can iterate over the root domain
+regions.
 
-This series extends OpenSBI domain support to protect M-mode only
-devices.
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+---
+ include/sbi/sbi_domain.h | 3 +++
+ lib/sbi/sbi_domain.c     | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-These patches can be found in domain_root_region_v2 branch at:
-https://github.com/avpatel/opensbi
-
-Changes since v2:
- - Improved sbi_domain_root_add_memregion() API to merge consecutive
-   memregions in PATCH3
- - Use updated sbi_domain_root_add_memregion() API in PATCH4 for CLINT
-
-Anup Patel (7):
-  lib: sbi: Domains can be registered only before finalizing domains
-  lib: sbi: Add sbi_domain_memregion_init() API
-  lib: sbi: Add sbi_domain_root_add_memregion() API
-  lib: utils/sys: Add CLINT memregion in the root domain
-  lib: sbi: Make the root domain instance global variable
-  lib: utils: Copy over restricted root domain memregions to FDT domains
-  lib: sbi: Make sbi_domain_memregion_initfw() a local function
-
- include/sbi/sbi_domain.h   |  26 ++++++-
- lib/sbi/sbi_domain.c       | 139 +++++++++++++++++++++++++++++++------
- lib/utils/fdt/fdt_domain.c |  26 +++++--
- lib/utils/sys/clint.c      |  29 +++++++-
- 4 files changed, 190 insertions(+), 30 deletions(-)
-
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 84d17da..27316de 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -80,6 +80,9 @@ struct sbi_domain {
+ 	bool system_reset_allowed;
+ };
+ 
++/** The root domain instance */
++extern struct sbi_domain root;
++
+ /** HART id to domain table */
+ extern struct sbi_domain *hartid_to_domain_table[];
+ 
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 4b5a89f..c95c3c3 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -29,7 +29,7 @@ static u32 root_memregs_count = 0;
+ static struct sbi_domain_memregion root_fw_region;
+ static struct sbi_domain_memregion root_memregs[ROOT_REGION_MAX + 1] = { 0 };
+ 
+-static struct sbi_domain root = {
++struct sbi_domain root = {
+ 	.name = "root",
+ 	.possible_harts = &root_hmask,
+ 	.regions = root_memregs,
 -- 
 2.25.1
 
