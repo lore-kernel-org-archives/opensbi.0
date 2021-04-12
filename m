@@ -1,97 +1,83 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 12 Apr 2021 17:46:14 +0530
-Subject: [PATCH v2 4/7] lib: utils/sys: Add CLINT memregion in the root domain
+Date: Mon, 12 Apr 2021 17:46:16 +0530
+Subject: [PATCH v2 6/7] lib: utils: Copy over restricted root domain
+ memregions to FDT domains
 In-Reply-To: <20210412121617.933493-1-anup.patel@wdc.com>
 References: <20210412121617.933493-1-anup.patel@wdc.com>
-Message-ID: <20210412121617.933493-5-anup.patel@wdc.com>
+Message-ID: <20210412121617.933493-7-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The CLINT memory should not be accessed by the supervisor-mode
-software so let's protect it by adding CLINT memregion to the
-root domain.
+We should copy over all restricted memregions from the root domain
+to the domains populated from FDT. These restricted root memregions
+are typically firmware memregion and M-mode only mmio memregions.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 ---
- lib/utils/sys/clint.c | 29 +++++++++++++++++++++++++++--
- 1 file changed, 27 insertions(+), 2 deletions(-)
+ lib/utils/fdt/fdt_domain.c | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/lib/utils/sys/clint.c b/lib/utils/sys/clint.c
-index 7a392aa..80e04fb 100644
---- a/lib/utils/sys/clint.c
-+++ b/lib/utils/sys/clint.c
-@@ -10,13 +10,19 @@
- #include <sbi/riscv_asm.h>
- #include <sbi/riscv_atomic.h>
- #include <sbi/riscv_io.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi_utils/sys/clint.h>
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 09615e5..95c195d 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -222,7 +222,7 @@ static u32 fdt_domains_count;
+ static struct sbi_domain fdt_domains[FDT_DOMAIN_MAX_COUNT];
+ static struct sbi_hartmask fdt_masks[FDT_DOMAIN_MAX_COUNT];
+ static struct sbi_domain_memregion
+-	fdt_regions[FDT_DOMAIN_MAX_COUNT][FDT_DOMAIN_REGION_MAX_COUNT + 2];
++	fdt_regions[FDT_DOMAIN_MAX_COUNT][FDT_DOMAIN_REGION_MAX_COUNT + 1];
  
- #define CLINT_IPI_OFF		0
-+#define CLINT_IPI_SIZE		0x4000
+ static int __fdt_parse_region(void *fdt, int domain_offset,
+ 			      int region_offset, u32 region_access,
+@@ -276,7 +276,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 	struct sbi_hartmask *mask;
+ 	struct sbi_hartmask assign_mask;
+ 	int *cold_domain_offset = opaque;
+-	struct sbi_domain_memregion *regions;
++	struct sbi_domain_memregion *reg, *regions;
+ 	int i, err, len, cpus_offset, cpu_offset, doffset;
+ 
+ 	/* Sanity check on maximum domains we can handle */
+@@ -314,13 +314,31 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 	/* Setup memregions from DT */
+ 	val32 = 0;
+ 	sbi_memset(regions, 0,
+-		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT + 2));
++		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT + 1));
+ 	dom->regions = regions;
+ 	err = fdt_iterate_each_memregion(fdt, domain_offset, &val32,
+ 					 __fdt_parse_region);
+ 	if (err)
+ 		return err;
+-	sbi_domain_memregion_initfw(&regions[val32]);
 +
- #define CLINT_TIME_CMP_OFF	0x4000
-+#define CLINT_TIME_CMP_SIZE	0x4000
-+
- #define CLINT_TIME_VAL_OFF	0xbff8
-+#define CLINT_TIME_VAL_SIZE	0x4000
++	/*
++	 * Copy over root domain memregions which don't allow
++	 * read, write and execute from lower privilege modes.
++	 *
++	 * These root domain memregions without read, write,
++	 * and execute permissions include:
++	 * 1) firmware region protecting the firmware memory
++	 * 2) mmio regions protecting M-mode only mmio devices
++	 */
++	sbi_domain_for_each_memregion(&root, reg) {
++		if ((reg->flags & SBI_DOMAIN_MEMREGION_READABLE) ||
++		    (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE) ||
++		    (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE))
++			continue;
++		if (FDT_DOMAIN_REGION_MAX_COUNT <= val32)
++			return SBI_EINVAL;
++		sbi_memcpy(&regions[val32++], reg, sizeof(*reg));
++	}
  
- static struct clint_data *clint_ipi_hartid2data[SBI_HARTMASK_MAX_BITS];
- 
-@@ -59,6 +65,7 @@ int clint_warm_ipi_init(void)
- int clint_cold_ipi_init(struct clint_data *clint)
- {
- 	u32 i;
-+	struct sbi_domain_memregion reg;
- 
- 	if (!clint)
- 		return SBI_EINVAL;
-@@ -70,7 +77,11 @@ int clint_cold_ipi_init(struct clint_data *clint)
- 	for (i = 0; i < clint->hart_count; i++)
- 		clint_ipi_hartid2data[clint->first_hartid + i] = clint;
- 
--	return 0;
-+	/* Add CLINT ipi region to the root domain */
-+	sbi_domain_memregion_init(clint->addr + CLINT_IPI_OFF,
-+				  CLINT_IPI_SIZE,
-+				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+	return sbi_domain_root_add_memregion(&reg);
- }
- 
- static struct clint_data *clint_timer_hartid2data[SBI_HARTMASK_MAX_BITS];
-@@ -174,6 +185,8 @@ int clint_cold_timer_init(struct clint_data *clint,
- 			  struct clint_data *reference)
- {
- 	u32 i;
-+	int rc;
-+	struct sbi_domain_memregion reg;
- 
- 	if (!clint)
- 		return SBI_EINVAL;
-@@ -199,5 +212,17 @@ int clint_cold_timer_init(struct clint_data *clint,
- 	for (i = 0; i < clint->hart_count; i++)
- 		clint_timer_hartid2data[clint->first_hartid + i] = clint;
- 
--	return 0;
-+	/* Add CLINT mtime region to the root domain */
-+	sbi_domain_memregion_init(clint->addr + CLINT_TIME_VAL_OFF,
-+				  CLINT_TIME_VAL_SIZE,
-+				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+	rc = sbi_domain_root_add_memregion(&reg);
-+	if (rc)
-+		return rc;
-+
-+	/* Add CLINT timecmp region to the root domain */
-+	sbi_domain_memregion_init(clint->addr + CLINT_TIME_CMP_OFF,
-+				  CLINT_TIME_CMP_SIZE,
-+				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+	return sbi_domain_root_add_memregion(&reg);
- }
+ 	/* Read "boot-hart" DT property */
+ 	val32 = -1U;
 -- 
 2.25.1
 
