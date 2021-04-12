@@ -1,71 +1,117 @@
-From: Alistair Francis <Alistair.Francis@wdc.com>
-Date: Sun, 11 Apr 2021 21:32:59 +0000
-Subject: [PATCH 7/7] lib: sbi: Make sbi_domain_memregion_initfw() a local
- function
-In-Reply-To: <20210410071808.759856-8-anup.patel@wdc.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 12 Apr 2021 10:53:58 +0530
+Subject: [PATCH 4/7] lib: utils/sys: Add CLINT memregion in the root domain
+In-Reply-To: <f277ff1b39e108996d72315a3d1286aeb9943d44.camel@126.com>
 References: <20210410071808.759856-1-anup.patel@wdc.com>
- <20210410071808.759856-8-anup.patel@wdc.com>
-Message-ID: <6a9bbd83f6188b7f6f71ce5ce9a98d1ac53d2701.camel@wdc.com>
+ <20210410071808.759856-5-anup.patel@wdc.com>
+ <f277ff1b39e108996d72315a3d1286aeb9943d44.camel@126.com>
+Message-ID: <CAAhSdy3RXmSTH78zMLtOPuLQqTzQRkFHmMcPWtOhN-jRBO7Sqg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, 2021-04-10 at 12:48 +0530, Anup Patel wrote:
-> The sbi_domain_memregion_initfw() is no longer used outside
-> sbi_domain.c so let's make it a local function.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+On Sun, Apr 11, 2021 at 2:35 PM Xiang W <wxjstz@126.com> wrote:
+>
+> ? 2021-04-10?? 12:48 +0530?Anup Patel???
+> > The CLINT memory should not be accessed by the supervisor-mode
+> > software so let's protect it by adding CLINT memregion to the
+> > root domain.
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> clint_cold_timer_init and clint_cold_ipi_init may use the same clint,
+> which will call clint_add_root_memregion twice and generate an error.
+> I suggest to separate
+>
+> In clint_cold_timer_init execute
+> sbi_domain_memregion_init(clint->addr, 0x4000,
+> SBI_DOMAIN_MEMREGION_MMIO, &reg);
+>
+> In clint_cold_ipi_init execute
+> sbi_domain_memregion_init(clint->addr + 0x4000, 0x8000,
+> SBI_DOMAIN_MEMREGION_MMIO, &reg);
 
-Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+I had though about this but the only issue in having two
+separate memregions for CLINT is that it will take-up more
+PMP CSRs. The "skip_conflt" flag was added as parameter
+to sbi_domain_root_add_memregion() so that CLINT driver
+can call it multiple time.
 
-Alistair
+I think we can have a better implementation of the
+sbi_domain_root_add_memregion() which will merge
+consecutive regions with matching flags. This will allow
+use to add separate regions for CLINT driver but
+sbi_domain_root_add_memregion() will merge them
+into single region.
 
-> ---
-> ?include/sbi/sbi_domain.h | 3 ---
-> ?lib/sbi/sbi_domain.c???? | 4 ++--
-> ?2 files changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index ef53ca5..3de5e46 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -127,9 +127,6 @@ bool sbi_domain_is_assigned_hart(const struct
-> sbi_domain *dom, u32 hartid);
-> ?ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
-> ?????????????????????????????????????? ulong hbase);
-> ?
-> -/** Initialize a domain memory region as firmware region */
-> -void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
-> -
-> ?/**
-> ? * Initialize a domain memory region based on it's physical
-> ? * address and size.
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 5e3a30d..069e2a7 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -64,7 +64,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct
-> sbi_domain *dom,
-> ????????return ret;
-> ?}
-> ?
-> -void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg)
-> +static void domain_memregion_initfw(struct sbi_domain_memregion *reg)
-> ?{
-> ????????if (!reg)
-> ????????????????return;
-> @@ -577,7 +577,7 @@ int sbi_domain_init(struct sbi_scratch *scratch,
-> u32 cold_hartid)
-> ????????/* Root domain firmware memory region */
-> ????????sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
-> 0,
-> ????????????????????????????????? &root_fw_region);
-> -
-> ???????sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]);
-> +???????domain_memregion_initfw(&root_memregs[root_memregs_count++]);
-> ?
-> ????????/* Root domain allow everything memory region */
-> ????????sbi_domain_memregion_init(0, ~0UL,
+Regards,
+Anup
+
+>
+> Regards,
+> Xiang W
+> > ---
+> >  lib/utils/sys/clint.c | 17 +++++++++++++++--
+> >  1 file changed, 15 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/lib/utils/sys/clint.c b/lib/utils/sys/clint.c
+> > index 7a392aa..fe98cc4 100644
+> > --- a/lib/utils/sys/clint.c
+> > +++ b/lib/utils/sys/clint.c
+> > @@ -10,6 +10,7 @@
+> >  #include <sbi/riscv_asm.h>
+> >  #include <sbi/riscv_atomic.h>
+> >  #include <sbi/riscv_io.h>
+> > +#include <sbi/sbi_domain.h>
+> >  #include <sbi/sbi_error.h>
+> >  #include <sbi/sbi_hartmask.h>
+> >  #include <sbi_utils/sys/clint.h>
+> > @@ -17,9 +18,19 @@
+> >  #define CLINT_IPI_OFF                0
+> >  #define CLINT_TIME_CMP_OFF   0x4000
+> >  #define CLINT_TIME_VAL_OFF   0xbff8
+> > +#define CLINT_SIZE           0xc000
+> >
+> >  static struct clint_data
+> > *clint_ipi_hartid2data[SBI_HARTMASK_MAX_BITS];
+> >
+> > +static int clint_add_root_memregion(struct clint_data *clint)
+> > +{
+> > +     struct sbi_domain_memregion reg;
+> > +
+> > +     sbi_domain_memregion_init(clint->addr, CLINT_SIZE,
+> > +                               SBI_DOMAIN_MEMREGION_MMIO, &reg);
+> > +     return sbi_domain_root_add_memregion(&reg, true);
+> > +}
+> > +
+> >  void clint_ipi_send(u32 target_hart)
+> >  {
+> >       struct clint_data *clint;
+> > @@ -70,7 +81,8 @@ int clint_cold_ipi_init(struct clint_data *clint)
+> >       for (i = 0; i < clint->hart_count; i++)
+> >               clint_ipi_hartid2data[clint->first_hartid + i] = clint;
+> >
+> > -     return 0;
+> > +     /* Add CLINT region to the root domain */
+> > +     return clint_add_root_memregion(clint);
+> >  }
+> >
+> >  static struct clint_data
+> > *clint_timer_hartid2data[SBI_HARTMASK_MAX_BITS];
+> > @@ -199,5 +211,6 @@ int clint_cold_timer_init(struct clint_data
+> > *clint,
+> >       for (i = 0; i < clint->hart_count; i++)
+> >               clint_timer_hartid2data[clint->first_hartid + i] =
+> > clint;
+> >
+> > -     return 0;
+> > +     /* Add CLINT region to the root domain */
+> > +     return clint_add_root_memregion(clint);
+> >  }
+> > --
+> > 2.25.1
+> >
+> >
+>
 
