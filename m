@@ -1,114 +1,143 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 13 Apr 2021 12:41:47 +0800
-Subject: [PATCH v2 4/7] lib: utils/sys: Add CLINT memregion in the root
- domain
-In-Reply-To: <20210412121617.933493-5-anup.patel@wdc.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Tue, 13 Apr 2021 05:23:37 +0000
+Subject: [PATCH v2 2/7] lib: sbi: Add sbi_domain_memregion_init() API
+In-Reply-To: <20210412121617.933493-3-anup.patel@wdc.com>
 References: <20210412121617.933493-1-anup.patel@wdc.com>
- <20210412121617.933493-5-anup.patel@wdc.com>
-Message-ID: <994aae8c7ac3e345b2a24252d96c2055c21bb7eb.camel@126.com>
+ <20210412121617.933493-3-anup.patel@wdc.com>
+Message-ID: <DM6PR04MB620157E58C917A89AD56D40F8D4F9@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-04-12?? 17:46 +0530?Anup Patel???
-> The CLINT memory should not be accessed by the supervisor-mode
-> software so let's protect it by adding CLINT memregion to the
-> root domain.
+
+
+> -----Original Message-----
+> From: Anup Patel <Anup.Patel@wdc.com>
+> Sent: 12 April 2021 17:46
+> To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>
+> Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Anup
+> Patel <Anup.Patel@wdc.com>; Xiang W <wxjstz@126.com>; Alistair Francis
+> <Alistair.Francis@wdc.com>
+> Subject: [PATCH v2 2/7] lib: sbi: Add sbi_domain_memregion_init() API
+> 
+> This patch adds sbi_domain_memregion_init() helper API which can be used
+> by platform support to initialize a domain memory region before adding it to
+> the root domain.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Looks good to me.
+> Reviewed-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Applied this patch to the riscv/opensbi repo.
 
 Regards,
-Xiang W
+Anup
+
 > ---
->  lib/utils/sys/clint.c | 29 +++++++++++++++++++++++++++--
->  1 file changed, 27 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_domain.h | 14 +++++++++++++
+>  lib/sbi/sbi_domain.c     | 45 ++++++++++++++++++++++++++++++++--------
+>  2 files changed, 50 insertions(+), 9 deletions(-)
 > 
-> diff --git a/lib/utils/sys/clint.c b/lib/utils/sys/clint.c
-> index 7a392aa..80e04fb 100644
-> --- a/lib/utils/sys/clint.c
-> +++ b/lib/utils/sys/clint.c
-> @@ -10,13 +10,19 @@
->  #include <sbi/riscv_asm.h>
->  #include <sbi/riscv_atomic.h>
->  #include <sbi/riscv_io.h>
-> +#include <sbi/sbi_domain.h>
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi_utils/sys/clint.h>
->  
->  #define CLINT_IPI_OFF		0
-> +#define CLINT_IPI_SIZE		0x4000
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h index
+> 1f8b942..f9f4f7d 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -127,6 +127,20 @@ ulong sbi_domain_get_assigned_hartmask(const
+> struct sbi_domain *dom,
+>  /** Initialize a domain memory region as firmware region */  void
+> sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
+> 
+> +/**
+> + * Initialize a domain memory region based on it's physical
+> + * address and size.
+> + *
+> + * @param addr start physical address of memory region
+> + * @param size physical size of memory region
+> + * @param flags memory region flags
+> + * @param reg pointer to memory region being initialized  */ void
+> +sbi_domain_memregion_init(unsigned long addr,
+> +				unsigned long size,
+> +				unsigned long flags,
+> +				struct sbi_domain_memregion *reg);
 > +
->  #define CLINT_TIME_CMP_OFF	0x4000
-> +#define CLINT_TIME_CMP_SIZE	0x4000
+>  /**
+>   * Check whether we can access specified address for given mode and
+>   * memory region flags under a domain
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
+> 2849241..164f35c 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -72,6 +72,35 @@ void sbi_domain_memregion_initfw(struct
+> sbi_domain_memregion *reg)
+>  	sbi_memcpy(reg, &root_memregs[ROOT_FW_REGION],
+> sizeof(*reg));  }
+> 
+> +void sbi_domain_memregion_init(unsigned long addr,
+> +				unsigned long size,
+> +				unsigned long flags,
+> +				struct sbi_domain_memregion *reg)
+> +{
+> +	unsigned long base = 0, order;
 > +
->  #define CLINT_TIME_VAL_OFF	0xbff8
-> +#define CLINT_TIME_VAL_SIZE	0x4000
->  
->  static struct clint_data
-> *clint_ipi_hartid2data[SBI_HARTMASK_MAX_BITS];
->  
-> @@ -59,6 +65,7 @@ int clint_warm_ipi_init(void)
->  int clint_cold_ipi_init(struct clint_data *clint)
->  {
->  	u32 i;
-> +	struct sbi_domain_memregion reg;
->  
->  	if (!clint)
->  		return SBI_EINVAL;
-> @@ -70,7 +77,11 @@ int clint_cold_ipi_init(struct clint_data *clint)
->  	for (i = 0; i < clint->hart_count; i++)
->  		clint_ipi_hartid2data[clint->first_hartid + i] = clint;
->  
-> -	return 0;
-> +	/* Add CLINT ipi region to the root domain */
-> +	sbi_domain_memregion_init(clint->addr + CLINT_IPI_OFF,
-> +				  CLINT_IPI_SIZE,
-> +				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-> +	return sbi_domain_root_add_memregion(&reg);
->  }
->  
->  static struct clint_data
-> *clint_timer_hartid2data[SBI_HARTMASK_MAX_BITS];
-> @@ -174,6 +185,8 @@ int clint_cold_timer_init(struct clint_data
-> *clint,
->  			  struct clint_data *reference)
->  {
->  	u32 i;
-> +	int rc;
-> +	struct sbi_domain_memregion reg;
->  
->  	if (!clint)
->  		return SBI_EINVAL;
-> @@ -199,5 +212,17 @@ int clint_cold_timer_init(struct clint_data
-> *clint,
->  	for (i = 0; i < clint->hart_count; i++)
->  		clint_timer_hartid2data[clint->first_hartid + i] =
-> clint;
->  
-> -	return 0;
-> +	/* Add CLINT mtime region to the root domain */
-> +	sbi_domain_memregion_init(clint->addr + CLINT_TIME_VAL_OFF,
-> +				  CLINT_TIME_VAL_SIZE,
-> +				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-> +	rc = sbi_domain_root_add_memregion(&reg);
-> +	if (rc)
-> +		return rc;
+> +	for (order = log2roundup(size) ; order <= __riscv_xlen; order++) {
+> +		if (order < __riscv_xlen) {
+> +			base = addr & ~((1UL << order) - 1UL);
+> +			if ((base <= addr) &&
+> +			    (addr < (base + (1UL << order))) &&
+> +			    (base <= (addr + size - 1UL)) &&
+> +			    ((addr + size - 1UL) < (base + (1UL << order))))
+> +				break;
+> +		} else {
+> +			base = 0;
+> +			break;
+> +		}
 > +
-> +	/* Add CLINT timecmp region to the root domain */
-> +	sbi_domain_memregion_init(clint->addr + CLINT_TIME_CMP_OFF,
-> +				  CLINT_TIME_CMP_SIZE,
-> +				  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-> +	return sbi_domain_root_add_memregion(&reg);
->  }
-> -- 
+> +	}
+> +
+> +	if (reg) {
+> +		reg->base = base;
+> +		reg->order = order;
+> +		reg->flags = flags;
+> +	}
+> +}
+> +
+>  bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>  			   unsigned long addr, unsigned long mode,
+>  			   unsigned long access_flags)
+> @@ -507,17 +536,15 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32
+> cold_hartid)
+>  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> 
+>  	/* Root domain firmware memory region */
+> -	root_memregs[ROOT_FW_REGION].order = log2roundup(scratch-
+> >fw_size);
+> -	root_memregs[ROOT_FW_REGION].base = scratch->fw_start &
+> -				~((1UL << root_memregs[0].order) - 1UL);
+> -	root_memregs[ROOT_FW_REGION].flags = 0;
+> +	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size, 0,
+> +				  &root_memregs[ROOT_FW_REGION]);
+> 
+>  	/* Root domain allow everything memory region */
+> -	root_memregs[ROOT_ALL_REGION].order = __riscv_xlen;
+> -	root_memregs[ROOT_ALL_REGION].base = 0;
+> -	root_memregs[ROOT_ALL_REGION].flags =
+> (SBI_DOMAIN_MEMREGION_READABLE |
+> -
+> 	SBI_DOMAIN_MEMREGION_WRITEABLE |
+> -
+> 	SBI_DOMAIN_MEMREGION_EXECUTABLE);
+> +	sbi_domain_memregion_init(0, ~0UL,
+> +				  (SBI_DOMAIN_MEMREGION_READABLE |
+> +				   SBI_DOMAIN_MEMREGION_WRITEABLE |
+> +				   SBI_DOMAIN_MEMREGION_EXECUTABLE),
+> +				  &root_memregs[ROOT_ALL_REGION]);
+> 
+>  	/* Root domain memory region end */
+>  	root_memregs[ROOT_END_REGION].order = 0;
+> --
 > 2.25.1
-> 
-> 
 
 
