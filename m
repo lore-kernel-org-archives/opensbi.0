@@ -1,64 +1,41 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 12 Apr 2021 17:46:17 +0530
-Subject: [PATCH v2 7/7] lib: sbi: Make sbi_domain_memregion_initfw() a local
- function
-In-Reply-To: <20210412121617.933493-1-anup.patel@wdc.com>
-References: <20210412121617.933493-1-anup.patel@wdc.com>
-Message-ID: <20210412121617.933493-8-anup.patel@wdc.com>
+From: guoren@kernel.org <guoren@kernel.org>
+Date: Tue, 13 Apr 2021 03:44:01 +0000
+Subject: [PATCH 1/2] lib: utils: Implement "64bit-mmio" property parsing
+Message-ID: <1618285442-84580-1-git-send-email-guoren@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_domain_memregion_initfw() is no longer used outside
-sbi_domain.c so let's make it a local function.
+From: Guo Ren <guoren@linux.alibaba.com>
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+Figure out CLINT has_64bit_mmio from DT node and using antonym for
+compatibility.
+
+Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+Cc: Anup Patel <anup.patel@wdc.com>
+Cc: Xiang W <wxjstz@126.com>
 ---
- include/sbi/sbi_domain.h | 3 ---
- lib/sbi/sbi_domain.c     | 4 ++--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ lib/utils/fdt/fdt_helper.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 27316de..15e3a53 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -127,9 +127,6 @@ bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid);
- ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
- 				       ulong hbase);
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index bf19ff9..909de01 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -442,8 +442,9 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
+ 	if (clint->hart_count < count)
+ 		clint->hart_count = count;
  
--/** Initialize a domain memory region as firmware region */
--void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg);
--
- /**
-  * Initialize a domain memory region based on it's physical
-  * address and size.
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index c95c3c3..69a3795 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -64,7 +64,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
- 	return ret;
+-	/* TODO: We should figure-out CLINT has_64bit_mmio from DT node */
+ 	clint->has_64bit_mmio = TRUE;
++	if (fdt_getprop(fdt, nodeoffset, "clint,has-no-64bit-mmio", &count))
++		clint->has_64bit_mmio = FALSE;
+ 
+ 	return 0;
  }
- 
--void sbi_domain_memregion_initfw(struct sbi_domain_memregion *reg)
-+static void domain_memregion_initfw(struct sbi_domain_memregion *reg)
- {
- 	if (!reg)
- 		return;
-@@ -598,7 +598,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	/* Root domain firmware memory region */
- 	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size, 0,
- 				  &root_fw_region);
--	sbi_domain_memregion_initfw(&root_memregs[root_memregs_count++]);
-+	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
- 
- 	/* Root domain allow everything memory region */
- 	sbi_domain_memregion_init(0, ~0UL,
 -- 
-2.25.1
+2.7.4
 
 
