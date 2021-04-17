@@ -1,26 +1,39 @@
 From: Guo Ren <guoren@kernel.org>
-Date: Sat, 17 Apr 2021 22:08:17 +0800
+Date: Sat, 17 Apr 2021 22:12:57 +0800
 Subject: [PATCH 2/2] lib: utils: reset: Add T-HEAD sample platform reset
  driver
-In-Reply-To: <4A4CD8B5-E5B6-493E-95EA-3485749059CB@jrtc27.com>
+In-Reply-To: <DM6PR04MB62012E67639F4261853EF5648D4B9@DM6PR04MB6201.namprd04.prod.outlook.com>
 References: <1618285442-84580-1-git-send-email-guoren@kernel.org>
  <1618285442-84580-2-git-send-email-guoren@kernel.org>
- <4A4CD8B5-E5B6-493E-95EA-3485749059CB@jrtc27.com>
-Message-ID: <CAJF2gTSCuSQnQZ2TOPg+5yrEe_s2=4+qY5Rs7dOOqW+XjwHwzg@mail.gmail.com>
+ <DM6PR04MB62012E67639F4261853EF5648D4B9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <CAJF2gTST0oyvo=Q+b6yCQwmdcmSjuzJhJuC+NSOqY5ON3TPUkw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Apr 17, 2021 at 7:50 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+Thx Anup,
+
+On Sat, Apr 17, 2021 at 7:35 PM Anup Patel <Anup.Patel@wdc.com> wrote:
 >
-> On 13 Apr 2021, at 04:44, guoren at kernel.org wrote:
+>
+>
+> > -----Original Message-----
+> > From: guoren at kernel.org <guoren@kernel.org>
+> > Sent: 13 April 2021 09:14
+> > To: guoren at kernel.org; Alistair Francis <Alistair.Francis@wdc.com>;
+> > anup at brainfault.org
+> > Cc: opensbi at lists.infradead.org; Guo Ren <guoren@linux.alibaba.com>;
+> > Anup Patel <Anup.Patel@wdc.com>; Atish Patra <Atish.Patra@wdc.com>;
+> > Xiang W <wxjstz@126.com>; Bin Meng <bmeng.cn@gmail.com>
+> > Subject: [PATCH 2/2] lib: utils: reset: Add T-HEAD sample platform reset
+> > driver
 > >
 > > From: Guo Ren <guoren@linux.alibaba.com>
 > >
-> > This driver is for T-HEAD test chip, fpga. It could work with
-> > all T-HEAD riscv processors: C9xx series.
+> > This driver is for T-HEAD test chip, fpga. It could work with all T-HEAD riscv
+> > processors: C9xx series.
 > >
 > > example1: (Using io-regs for reset)
 > > reset: reset-sample {
@@ -30,8 +43,7 @@ On Sat, Apr 17, 2021 at 7:50 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 > >       entry-cnt = <4>;
 > >       control-reg = <0xff 0xff015004>;
 > >       control-val = <0x1c>;
-> >       csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>;
-> > };
+> >       csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>; };
 > >
 > > example2: (Using csr-regs for reset)
 > > reset: reset-sample {
@@ -50,10 +62,11 @@ On Sat, Apr 17, 2021 at 7:50 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 > >       plic-delegate = <0xff 0xd81ffffc>;
 > > };
 > >
-> > After this patch, all T-HEAD c9xx would use platform/generic with fw_dynamic
-> > as default:
+> > After this patch, all T-HEAD c9xx would use platform/generic with
+> > fw_dynamic as default:
 > >
-> > CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic FW_PIC=y /usr/bin/make
+> > CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic FW_PIC=y
+> > /usr/bin/make
 > >
 > > dts full example:
 > >       cpus {
@@ -163,83 +176,57 @@ On Sat, Apr 17, 2021 at 7:50 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 > >       }
 > >
 > > The platform/thead will be deprecated.
->
-> This seems extremely complicated for just doing a reset, yet the reset itself
-> is just an ebreak?
-The ebreak is used to break down the gdb test, Jtag downloads the
-vmlinux, gdb continues..., when the test finished, we'll call poweroff
--> sbi_reset -> ebreak in Linux shell.
-
-Test script would come out :)
-
-> Is there any documentation for how this is meant to work
-> rather than just the above device tree spew, because right now it doesn?t make
-> any sense to me?
-We are a CPU vendor, not a soc vendor. So this is a sample for our
-customers to help them bring up basic system in a short time.
-
-Firstly, we give them a simple reset address, reset control address in
-SOC integration. So they needn't care about multi-harts boot code at
-first and all are controlled by the driver. For this we also design a
-fdt_reset_thead_asm.S for warm-init.
-
-If customers want to bring up basic Linux with our CPU in FPGA, zebu,
-Veloce, any emulators ... even any tapouted chips ... They just need
-devicetree + gdbinit.script + fw_dynamic.bin + Image without writing
-any bootloader codes.
-
-And fw_dynamic.bin + Image also could compatible with qemu +  platform
-generic boards (sifive board). A union opensbi & Linux is good idea
-for riscv Linux eco-systrem developement.
-
-That's the reason why we change into platform/generic.
-
->
-> Jess
->
+> >
 > > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 > > Cc: Anup Patel <anup.patel@wdc.com>
 > > Cc: Atish Patra <atish.patra@wdc.com>
 > > Cc: Xiang W <wxjstz@126.com>
 > > Cc: Bin Meng <bmeng.cn@gmail.com>
 > > ---
-> > lib/utils/reset/fdt_reset.c           |   2 +
-> > lib/utils/reset/fdt_reset_thead.c     | 117 ++++++++++++++++++++++++++++++++++
-> > lib/utils/reset/fdt_reset_thead.h     |  25 ++++++++
-> > lib/utils/reset/fdt_reset_thead_asm.S |  47 ++++++++++++++
-> > lib/utils/reset/objects.mk            |   2 +
-> > 5 files changed, 193 insertions(+)
-> > create mode 100644 lib/utils/reset/fdt_reset_thead.c
-> > create mode 100644 lib/utils/reset/fdt_reset_thead.h
-> > create mode 100644 lib/utils/reset/fdt_reset_thead_asm.S
+> >  lib/utils/reset/fdt_reset.c           |   2 +
+> >  lib/utils/reset/fdt_reset_thead.c     | 117
+> > ++++++++++++++++++++++++++++++++++
+> >  lib/utils/reset/fdt_reset_thead.h     |  25 ++++++++
+> >  lib/utils/reset/fdt_reset_thead_asm.S |  47 ++++++++++++++
+> >  lib/utils/reset/objects.mk            |   2 +
+> >  5 files changed, 193 insertions(+)
+> >  create mode 100644 lib/utils/reset/fdt_reset_thead.c  create mode 100644
+> > lib/utils/reset/fdt_reset_thead.h  create mode 100644
+> > lib/utils/reset/fdt_reset_thead_asm.S
 > >
-> > diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-> > index dead8a3..82532c2 100644
+> > diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c index
+> > dead8a3..82532c2 100644
 > > --- a/lib/utils/reset/fdt_reset.c
 > > +++ b/lib/utils/reset/fdt_reset.c
 > > @@ -13,10 +13,12 @@
 > >
-> > extern struct fdt_reset fdt_reset_sifive;
-> > extern struct fdt_reset fdt_reset_htif;
+> >  extern struct fdt_reset fdt_reset_sifive;  extern struct fdt_reset
+> > fdt_reset_htif;
 > > +extern struct fdt_reset fdt_reset_thead;
 > >
-> > static struct fdt_reset *reset_drivers[] = {
+> >  static struct fdt_reset *reset_drivers[] = {
 > >       &fdt_reset_sifive,
 > >       &fdt_reset_htif,
 > > +     &fdt_reset_thead,
-> > };
+> >  };
 > >
-> > static struct fdt_reset *current_driver = NULL;
-> > diff --git a/lib/utils/reset/fdt_reset_thead.c b/lib/utils/reset/fdt_reset_thead.c
+> >  static struct fdt_reset *current_driver = NULL; diff --git
+> > a/lib/utils/reset/fdt_reset_thead.c b/lib/utils/reset/fdt_reset_thead.c
 > > new file mode 100644
 > > index 0000000..12eb1fc
 > > --- /dev/null
 > > +++ b/lib/utils/reset/fdt_reset_thead.c
 > > @@ -0,0 +1,117 @@
 > > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + */
+> > + * SPDX-License-Identifier: BSD-2-Clause  */
 > > +
+>
+> Move most of the includes from fdt_reset_thead.h to here.
+>
+> Keep includes in fdt_reset_thead.h to minimum.
+Okay
+
+>
 > > +#include "fdt_reset_thead.h"
 > > +
 > > +struct custom_csr custom_csr[MAX_CUSTOM_CSR];
@@ -259,17 +246,23 @@ That's the reason why we change into platform/generic.
 > > +             smp_mb();
 > > +
 > > +             /* Write csr BIT[31 - 20] to __fdt_reset_thead_csrr */
-> > +             *(u32 *)&__fdt_reset_thead_csrr |= custom_csr[i].index << 20;
+> > +             *(u32 *)&__fdt_reset_thead_csrr |= custom_csr[i].index <<
+> > 20;
 > > +             smp_mb();
 > > +
 > > +             __asm__ __volatile__("fence.i\n":::"memory");
+>
+> Please add macro in sbi/riscv_barrier.h for this and use it here.
+Okay
+
+>
 > > +
 > > +             custom_csr[i].value = __fdt_reset_thead_csrr();
 > > +     }
 > > +}
 > > +
-> > +extern void __thead_pre_start_warm(void);
-> > +static int thead_reset_init(void *fdt, int nodeoff,
+> > +extern void __thead_pre_start_warm(void); static int
+> > +thead_reset_init(void *fdt, int nodeoff,
 > > +                              const struct fdt_match *match)
 > > +{
 > > +     void *p;
@@ -317,8 +310,10 @@ That's the reason why we change into platform/generic.
 > > +                     tmp = fdt32_to_cpu(*val_w);
 > > +
 > > +                     for (i = 0; i < tmp; i++) {
-> > +                             writel((u64)(&__thead_pre_start_warm), p + 8*i);
-> > +                             writel((u64)(&__thead_pre_start_warm) >> 32, p + 8*i + 4);
+> > +                             writel((u64)(&__thead_pre_start_warm), p +
+> > 8*i);
+> > +                             writel((u64)(&__thead_pre_start_warm) >>
+> > 32, p + 8*i + 4);
 > > +                     }
 > > +             }
 > > +
@@ -326,7 +321,8 @@ That's the reason why we change into platform/generic.
 > > +             if (len > 0 && val) {
 > > +                     p = (void *)fdt64_to_cpu(*val);
 > > +
-> > +                     val_w = fdt_getprop(fdt, nodeoff, "control-val", &len);
+> > +                     val_w = fdt_getprop(fdt, nodeoff, "control-val",
+> > &len);
 > > +                     if (len > 0 && val_w) {
 > > +                             tmp = fdt32_to_cpu(*val_w);
 > > +                             tmp |= readl(p);
@@ -338,9 +334,13 @@ That's the reason why we change into platform/generic.
 > > +     return 0;
 > > +}
 > > +
-> > +void thead_system_reset(u32 type, u32 reason)
-> > +{
+> > +void thead_system_reset(u32 type, u32 reason) {
 > > +     __asm__ __volatile__("ebreak\n");
+>
+> Add a macro in sbi/riscv_asm.h for "ebreak" and use it here.
+Okay
+
+>
 > > +}
 > > +
 > > +static const struct fdt_match thead_reset_match[] = {
@@ -352,16 +352,30 @@ That's the reason why we change into platform/generic.
 > > +     .match_table = thead_reset_match,
 > > +     .init = thead_reset_init,
 > > +     .system_reset = thead_system_reset
+>
+> We need system_reset_check() callback to be implemented here otherwise
+> your system_reset() callback will not be called.
+>
 > > +};
-> > diff --git a/lib/utils/reset/fdt_reset_thead.h b/lib/utils/reset/fdt_reset_thead.h
+> > diff --git a/lib/utils/reset/fdt_reset_thead.h
+> > b/lib/utils/reset/fdt_reset_thead.h
 > > new file mode 100644
 > > index 0000000..dbd76ad
 > > --- /dev/null
 > > +++ b/lib/utils/reset/fdt_reset_thead.h
 > > @@ -0,0 +1,25 @@
 > > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + */
+> > + * SPDX-License-Identifier: BSD-2-Clause  */
+>
+> Need header protection defines here.
+>
+> #ifndef __FDT_RESET_THEAD__
+> #define __FDT_RESET_THEAD__
+>
+> And one extra "#endif" at end of the file.
+Yes, I'll correct it.
+
+>
 > > +
 > > +#define MAX_CUSTOM_CSR       32
 > > +
@@ -381,18 +395,17 @@ That's the reason why we change into platform/generic.
 > > +
 > > +u64  __fdt_reset_thead_csrr(void);
 > > +
-> > +extern struct custom_csr custom_csr[MAX_CUSTOM_CSR];
-> > +extern u32 __reset_thead_csr_stub[];
-> > +#endif
-> > diff --git a/lib/utils/reset/fdt_reset_thead_asm.S b/lib/utils/reset/fdt_reset_thead_asm.S
+> > +extern struct custom_csr custom_csr[MAX_CUSTOM_CSR]; extern u32
+> > +__reset_thead_csr_stub[]; #endif
+> > diff --git a/lib/utils/reset/fdt_reset_thead_asm.S
+> > b/lib/utils/reset/fdt_reset_thead_asm.S
 > > new file mode 100644
 > > index 0000000..8237951
 > > --- /dev/null
 > > +++ b/lib/utils/reset/fdt_reset_thead_asm.S
 > > @@ -0,0 +1,47 @@
 > > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + */
+> > + * SPDX-License-Identifier: BSD-2-Clause  */
 > > +
 > > +#include <sbi/riscv_asm.h>
 > > +#include "fdt_reset_thead.h"
@@ -437,24 +450,20 @@ That's the reason why we change into platform/generic.
 > > +     csrw    0x7c2, t1
 > > +     fence rw,rw
 > > +     j _start_warm
-> > diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-> > index b447261..b6619f4 100644
+> > diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk index
+> > b447261..b6619f4 100644
 > > --- a/lib/utils/reset/objects.mk
 > > +++ b/lib/utils/reset/objects.mk
 > > @@ -10,3 +10,5 @@
-> > libsbiutils-objs-y += reset/fdt_reset.o
-> > libsbiutils-objs-y += reset/fdt_reset_htif.o
-> > libsbiutils-objs-y += reset/fdt_reset_sifive.o
-> > +libsbiutils-objs-y += reset/fdt_reset_thead.o
-> > +libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
+> >  libsbiutils-objs-y += reset/fdt_reset.o  libsbiutils-objs-y +=
+> > reset/fdt_reset_htif.o  libsbiutils-objs-y += reset/fdt_reset_sifive.o
+> > +libsbiutils-objs-y += reset/fdt_reset_thead.o libsbiutils-objs-y +=
+> > +reset/fdt_reset_thead_asm.o
 > > --
 > > 2.7.4
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
+> Regards,
+> Anup
 >
 
 
