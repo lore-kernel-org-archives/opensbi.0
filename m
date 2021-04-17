@@ -1,164 +1,466 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 17 Apr 2021 13:39:49 +0000
-Subject: [PATCH 1/2] lib: utils: Implement "64bit-mmio" property parsing
-In-Reply-To: <9922D7DE-1DEE-4D33-9619-D9D37F1F2139@jrtc27.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Sat, 17 Apr 2021 22:08:17 +0800
+Subject: [PATCH 2/2] lib: utils: reset: Add T-HEAD sample platform reset
+ driver
+In-Reply-To: <4A4CD8B5-E5B6-493E-95EA-3485749059CB@jrtc27.com>
 References: <1618285442-84580-1-git-send-email-guoren@kernel.org>
- <B636699C-B856-43E6-9FEC-44A62284E0B6@jrtc27.com>
- <CED1C4CB-F804-4548-8052-FD1251B7256F@jrtc27.com>
- <DM6PR04MB620101DC0E10E4D6148828D88D4B9@DM6PR04MB6201.namprd04.prod.outlook.com>
- <F0C72036-4A71-45F0-AF57-680693230A8E@jrtc27.com>
- <DM6PR04MB6201CB3C7B648E309E9EF2468D4B9@DM6PR04MB6201.namprd04.prod.outlook.com>
- <53CA1C62-04FF-4461-920C-3A907C3E65B8@jrtc27.com>
- <DM6PR04MB62016178E7C5C1A026C62B098D4B9@DM6PR04MB6201.namprd04.prod.outlook.com>
- <9922D7DE-1DEE-4D33-9619-D9D37F1F2139@jrtc27.com>
-Message-ID: <DM6PR04MB62011F0B716CF857642C1BA88D4B9@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <1618285442-84580-2-git-send-email-guoren@kernel.org>
+ <4A4CD8B5-E5B6-493E-95EA-3485749059CB@jrtc27.com>
+Message-ID: <CAJF2gTSCuSQnQZ2TOPg+5yrEe_s2=4+qY5Rs7dOOqW+XjwHwzg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On Sat, Apr 17, 2021 at 7:50 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+>
+> On 13 Apr 2021, at 04:44, guoren at kernel.org wrote:
+> >
+> > From: Guo Ren <guoren@linux.alibaba.com>
+> >
+> > This driver is for T-HEAD test chip, fpga. It could work with
+> > all T-HEAD riscv processors: C9xx series.
+> >
+> > example1: (Using io-regs for reset)
+> > reset: reset-sample {
+> >       compatible = "thead,reset-sample";
+> >       plic-delegate = <0xff 0xd81ffffc>;
+> >       entry-reg = <0xff 0xff019050>;
+> >       entry-cnt = <4>;
+> >       control-reg = <0xff 0xff015004>;
+> >       control-val = <0x1c>;
+> >       csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>;
+> > };
+> >
+> > example2: (Using csr-regs for reset)
+> > reset: reset-sample {
+> >       compatible = "thead,reset-sample";
+> >       plic-delegate = <0xff 0xd81ffffc>;
+> >       using-csr-reset;
+> >       csr-copy = <0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc
+> >                   0x3b0 0x3b1 0x3b2 0x3b3
+> >                   0x3b4 0x3b5 0x3b6 0x3b7
+> >                   0x3a0>;
+> > };
+> >
+> > example3: (Only delegate plic enable to S-mode)
+> > reset: reset-sample {
+> >       compatible = "thead,reset-sample";
+> >       plic-delegate = <0xff 0xd81ffffc>;
+> > };
+> >
+> > After this patch, all T-HEAD c9xx would use platform/generic with fw_dynamic
+> > as default:
+> >
+> > CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic FW_PIC=y /usr/bin/make
+> >
+> > dts full example:
+> >       cpus {
+> >               #address-cells = <1>;
+> >               #size-cells = <0>;
+> >               timebase-frequency = <0x2dc6c0>;
+> >               cpu at 0 {
+> >                       device_type = "cpu";
+> >                       reg = <0>;
+> >                       status = "okay";
+> >                       compatible = "riscv";
+> >                       riscv,isa = "rv64imafdcsu";
+> >                       mmu-type = "riscv,sv39";
+> >                       cpu0_intc: interrupt-controller {
+> >                               #interrupt-cells = <1>;
+> >                               compatible = "riscv,cpu-intc";
+> >                               interrupt-controller;
+> >                       };
+> >               };
+> >               cpu at 1 {
+> >                       device_type = "cpu";
+> >                       reg = <1>;
+> >                       status = "fail";
+> >                       compatible = "riscv";
+> >                       riscv,isa = "rv64imafdcsu";
+> >                       mmu-type = "riscv,sv39";
+> >                       cpu1_intc: interrupt-controller {
+> >                               #interrupt-cells = <1>;
+> >                               compatible = "riscv,cpu-intc";
+> >                               interrupt-controller;
+> >                       };
+> >               };
+> >               cpu at 2 {
+> >                       device_type = "cpu";
+> >                       reg = <2>;
+> >                       status = "fail";
+> >                       compatible = "riscv";
+> >                       riscv,isa = "rv64imafdcsu";
+> >                       mmu-type = "riscv,sv39";
+> >                       cpu2_intc: interrupt-controller {
+> >                               #interrupt-cells = <1>;
+> >                               compatible = "riscv,cpu-intc";
+> >                               interrupt-controller;
+> >                       };
+> >               };
+> >               cpu at 3 {
+> >                       device_type = "cpu";
+> >                       reg = <3>;
+> >                       status = "fail";
+> >                       compatible = "riscv";
+> >                       riscv,isa = "rv64imafdcsu";
+> >                       mmu-type = "riscv,sv39";
+> >                       cpu3_intc: interrupt-controller {
+> >                               #interrupt-cells = <1>;
+> >                               compatible = "riscv,cpu-intc";
+> >                               interrupt-controller;
+> >                       };
+> >               };
+> >       };
+> >
+> >       soc {
+> >               #address-cells = <2>;
+> >               #size-cells = <2>;
+> >               compatible = "simple-bus";
+> >               ranges;
+> >
+> >               reset: reset-sample {
+> >                       compatible = "thead,reset-sample";
+> >                       plic-delegate = <0xff 0xd81ffffc>;
+> >                       using-csr-reset;
+> >                       csr-copy = <
+> >                               0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc
+> >                               0x3b0 0x3b1 0x3b2 0x3b3
+> >                               0x3b4 0x3b5 0x3b6 0x3b7
+> >                               0x3a0
+> >                               >;
+> >               };
+> >
+> >               clint0: clint at ffdc000000 {
+> >                       compatible = "riscv,clint0";
+> >                       interrupts-extended = <
+> >                               &cpu0_intc  3 &cpu0_intc  7
+> >                               &cpu1_intc  3 &cpu1_intc  7
+> >                               &cpu2_intc  3 &cpu2_intc  7
+> >                               &cpu3_intc  3 &cpu3_intc  7
+> >                               &cpu4_intc  3 &cpu4_intc  7
+> >                               >;
+> >                       reg = <0xff 0xdc000000 0x0 0x04000000>;
+> >                       clint,has-no-64bit-mmio;
+> >               };
+> >
+> >               intc: interrupt-controller at ffd8000000 {
+> >                       #interrupt-cells = <1>;
+> >                       compatible = "riscv,plic0";
+> >                       interrupt-controller;
+> >                       interrupts-extended = <
+> >                               &cpu0_intc  0xffffffff &cpu0_intc  9
+> >                               &cpu1_intc  0xffffffff &cpu1_intc  9
+> >                               &cpu2_intc  0xffffffff &cpu2_intc  9
+> >                               &cpu3_intc  0xffffffff &cpu3_intc  9
+> >                               >;
+> >                       reg = <0xff 0xd8000000 0x0 0x04000000>;
+> >                       reg-names = "control";
+> >                       riscv,max-priority = <7>;
+> >                       riscv,ndev = <80>;
+> >               };
+> >       }
+> >
+> > The platform/thead will be deprecated.
+>
+> This seems extremely complicated for just doing a reset, yet the reset itself
+> is just an ebreak?
+The ebreak is used to break down the gdb test, Jtag downloads the
+vmlinux, gdb continues..., when the test finished, we'll call poweroff
+-> sbi_reset -> ebreak in Linux shell.
 
+Test script would come out :)
 
-> -----Original Message-----
-> From: Jessica Clarke <jrtc27@jrtc27.com>
-> Sent: 17 April 2021 19:04
-> To: Anup Patel <Anup.Patel@wdc.com>
-> Cc: guoren at kernel.org; Alistair Francis <Alistair.Francis@wdc.com>; Anup
-> Patel <anup@brainfault.org>; OpenSBI <opensbi@lists.infradead.org>; Guo
-> Ren <guoren@linux.alibaba.com>; Xiang W <wxjstz@126.com>
-> Subject: Re: [PATCH 1/2] lib: utils: Implement "64bit-mmio" property parsing
-> 
-> On 17 Apr 2021, at 14:32, Anup Patel <Anup.Patel@wdc.com> wrote:
+> Is there any documentation for how this is meant to work
+> rather than just the above device tree spew, because right now it doesn?t make
+> any sense to me?
+We are a CPU vendor, not a soc vendor. So this is a sample for our
+customers to help them bring up basic system in a short time.
+
+Firstly, we give them a simple reset address, reset control address in
+SOC integration. So they needn't care about multi-harts boot code at
+first and all are controlled by the driver. For this we also design a
+fdt_reset_thead_asm.S for warm-init.
+
+If customers want to bring up basic Linux with our CPU in FPGA, zebu,
+Veloce, any emulators ... even any tapouted chips ... They just need
+devicetree + gdbinit.script + fw_dynamic.bin + Image without writing
+any bootloader codes.
+
+And fw_dynamic.bin + Image also could compatible with qemu +  platform
+generic boards (sifive board). A union opensbi & Linux is good idea
+for riscv Linux eco-systrem developement.
+
+That's the reason why we change into platform/generic.
+
+>
+> Jess
+>
+> > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> > Cc: Anup Patel <anup.patel@wdc.com>
+> > Cc: Atish Patra <atish.patra@wdc.com>
+> > Cc: Xiang W <wxjstz@126.com>
+> > Cc: Bin Meng <bmeng.cn@gmail.com>
+> > ---
+> > lib/utils/reset/fdt_reset.c           |   2 +
+> > lib/utils/reset/fdt_reset_thead.c     | 117 ++++++++++++++++++++++++++++++++++
+> > lib/utils/reset/fdt_reset_thead.h     |  25 ++++++++
+> > lib/utils/reset/fdt_reset_thead_asm.S |  47 ++++++++++++++
+> > lib/utils/reset/objects.mk            |   2 +
+> > 5 files changed, 193 insertions(+)
+> > create mode 100644 lib/utils/reset/fdt_reset_thead.c
+> > create mode 100644 lib/utils/reset/fdt_reset_thead.h
+> > create mode 100644 lib/utils/reset/fdt_reset_thead_asm.S
+> >
+> > diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+> > index dead8a3..82532c2 100644
+> > --- a/lib/utils/reset/fdt_reset.c
+> > +++ b/lib/utils/reset/fdt_reset.c
+> > @@ -13,10 +13,12 @@
+> >
+> > extern struct fdt_reset fdt_reset_sifive;
+> > extern struct fdt_reset fdt_reset_htif;
+> > +extern struct fdt_reset fdt_reset_thead;
+> >
+> > static struct fdt_reset *reset_drivers[] = {
+> >       &fdt_reset_sifive,
+> >       &fdt_reset_htif,
+> > +     &fdt_reset_thead,
+> > };
+> >
+> > static struct fdt_reset *current_driver = NULL;
+> > diff --git a/lib/utils/reset/fdt_reset_thead.c b/lib/utils/reset/fdt_reset_thead.c
+> > new file mode 100644
+> > index 0000000..12eb1fc
+> > --- /dev/null
+> > +++ b/lib/utils/reset/fdt_reset_thead.c
+> > @@ -0,0 +1,117 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + */
+> > +
+> > +#include "fdt_reset_thead.h"
+> > +
+> > +struct custom_csr custom_csr[MAX_CUSTOM_CSR];
+> > +
+> > +#define CSR_OPCODE 0x39073
+> > +static void clone_csrs(int cnt)
+> > +{
+> > +     unsigned long i;
+> > +
+> > +     for (i = 0; i < cnt; i++) {
+> > +             /* Write csr BIT[31 - 20] to stub */
+> > +             __reset_thead_csr_stub[3*i + 1] =
+> > +                             CSR_OPCODE | (custom_csr[i].index << 20);
+> > +
+> > +             /* Mask csr BIT[31 - 20] */
+> > +             *(u32 *)&__fdt_reset_thead_csrr &= BIT(20) - 1;
+> > +             smp_mb();
+> > +
+> > +             /* Write csr BIT[31 - 20] to __fdt_reset_thead_csrr */
+> > +             *(u32 *)&__fdt_reset_thead_csrr |= custom_csr[i].index << 20;
+> > +             smp_mb();
+> > +
+> > +             __asm__ __volatile__("fence.i\n":::"memory");
+> > +
+> > +             custom_csr[i].value = __fdt_reset_thead_csrr();
+> > +     }
+> > +}
+> > +
+> > +extern void __thead_pre_start_warm(void);
+> > +static int thead_reset_init(void *fdt, int nodeoff,
+> > +                              const struct fdt_match *match)
+> > +{
+> > +     void *p;
+> > +     const fdt64_t *val;
+> > +     const fdt32_t *val_w;
+> > +     int len, i, cnt;
+> > +     u32 tmp = 0;
+> > +
+> > +     /* Prepare clone csrs */
+> > +     val_w = fdt_getprop(fdt, nodeoff, "csr-copy", &len);
+> > +     if (len > 0 && val_w) {
+> > +             cnt = len / sizeof(fdt32_t);
+> > +
+> > +             if (cnt > MAX_CUSTOM_CSR)
+> > +                     sbi_hart_hang();
+> > +
+> > +             for (i = 0; i < cnt; i++) {
+> > +                     custom_csr[i].index = fdt32_to_cpu(val_w[i]);
+> > +             }
+> > +     }
+> > +
+> > +     if (cnt)
+> > +             clone_csrs(cnt);
+> > +
+> > +     /* Delegate plic enable regs for S-mode */
+> > +     val = fdt_getprop(fdt, nodeoff, "plic-delegate", &len);
+> > +     if (len > 0 && val) {
+> > +             p = (void *)fdt64_to_cpu(*val);
+> > +             writel(BIT(0), p);
+> > +     }
+> > +
+> > +     /* Old reset method for secondary harts */
+> > +     if (fdt_getprop(fdt, nodeoff, "using-csr-reset", &len)) {
+> > +             csr_write(0x7c7, (u64)&__thead_pre_start_warm);
+> > +             csr_write(0x7c6, -1);
+> > +     }
+> > +
+> > +     /* Custom reset method for secondary harts */
+> > +     val = fdt_getprop(fdt, nodeoff, "entry-reg", &len);
+> > +     if (len > 0 && val) {
+> > +             p = (void *)fdt64_to_cpu(*val);
+> > +
+> > +             val_w = fdt_getprop(fdt, nodeoff, "entry-cnt", &len);
+> > +             if (len > 0 && val_w) {
+> > +                     tmp = fdt32_to_cpu(*val_w);
+> > +
+> > +                     for (i = 0; i < tmp; i++) {
+> > +                             writel((u64)(&__thead_pre_start_warm), p + 8*i);
+> > +                             writel((u64)(&__thead_pre_start_warm) >> 32, p + 8*i + 4);
+> > +                     }
+> > +             }
+> > +
+> > +             val = fdt_getprop(fdt, nodeoff, "control-reg", &len);
+> > +             if (len > 0 && val) {
+> > +                     p = (void *)fdt64_to_cpu(*val);
+> > +
+> > +                     val_w = fdt_getprop(fdt, nodeoff, "control-val", &len);
+> > +                     if (len > 0 && val_w) {
+> > +                             tmp = fdt32_to_cpu(*val_w);
+> > +                             tmp |= readl(p);
+> > +                             writel(tmp, p);
+> > +                     }
+> > +             }
+> > +     }
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +void thead_system_reset(u32 type, u32 reason)
+> > +{
+> > +     __asm__ __volatile__("ebreak\n");
+> > +}
+> > +
+> > +static const struct fdt_match thead_reset_match[] = {
+> > +     { .compatible = "thead,reset-sample" },
+> > +     { },
+> > +};
+> > +
+> > +struct fdt_reset fdt_reset_thead = {
+> > +     .match_table = thead_reset_match,
+> > +     .init = thead_reset_init,
+> > +     .system_reset = thead_system_reset
+> > +};
+> > diff --git a/lib/utils/reset/fdt_reset_thead.h b/lib/utils/reset/fdt_reset_thead.h
+> > new file mode 100644
+> > index 0000000..dbd76ad
+> > --- /dev/null
+> > +++ b/lib/utils/reset/fdt_reset_thead.h
+> > @@ -0,0 +1,25 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + */
+> > +
+> > +#define MAX_CUSTOM_CSR       32
+> > +
+> > +#ifndef __ASSEMBLER__
+> > +#include <libfdt.h>
+> > +#include <sbi/riscv_io.h>
+> > +#include <sbi/sbi_bitops.h>
+> > +#include <sbi/sbi_hart.h>
+> > +#include <sbi/sbi_scratch.h>
+> > +#include <sbi_utils/fdt/fdt_helper.h>
+> > +#include <sbi_utils/reset/fdt_reset.h>
+> > +
+> > +struct custom_csr {
+> > +     unsigned long index;
+> > +     unsigned long value;
+> > +};
+> > +
+> > +u64  __fdt_reset_thead_csrr(void);
+> > +
+> > +extern struct custom_csr custom_csr[MAX_CUSTOM_CSR];
+> > +extern u32 __reset_thead_csr_stub[];
+> > +#endif
+> > diff --git a/lib/utils/reset/fdt_reset_thead_asm.S b/lib/utils/reset/fdt_reset_thead_asm.S
+> > new file mode 100644
+> > index 0000000..8237951
+> > --- /dev/null
+> > +++ b/lib/utils/reset/fdt_reset_thead_asm.S
+> > @@ -0,0 +1,47 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + */
+> > +
+> > +#include <sbi/riscv_asm.h>
+> > +#include "fdt_reset_thead.h"
+> > +
+> > +/*
+> > + * csrrs rd, csr, rs1
+> > + * |31   20|19   15|14   12|11  7|6       0|
+> > + *    csr     rs1     010     rd   1110011
+> > + */
+> > +#define CSR_STUB     addi    x0, x0, 0
+> > +
+> > +     .option norvc
+> > +     .align 3
+> > +     .global __fdt_reset_thead_csrr
+> > +__fdt_reset_thead_csrr:
+> > +     csrrs a0, 0, x0
+> > +     ret
+> > +
+> > +     .align 3
+> > +     .global __thead_pre_start_warm
+> > +__thead_pre_start_warm:
+> > +     /*
+> > +      * Clear L1 cache & BTB & BHT ...
+> > +      */
+> > +     li      t1, 0x70013
+> > +     csrw    0x7c2, t1
+> > +     fence rw,rw
+> > +
+> > +     lla     t1, custom_csr
+> > +
+> > +     .global __reset_thead_csr_stub
+> > +__reset_thead_csr_stub:
+> > +.rept        MAX_CUSTOM_CSR
+> > +     REG_L   t2, 8(t1)
+> > +     CSR_STUB
+> > +     addi    t1, t1, 16
+> > +.endr
+> > +     /*
+> > +      * Clear L1 cache & BTB & BHT ...
+> > +      */
+> > +     li      t1, 0x70013
+> > +     csrw    0x7c2, t1
+> > +     fence rw,rw
+> > +     j _start_warm
+> > diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+> > index b447261..b6619f4 100644
+> > --- a/lib/utils/reset/objects.mk
+> > +++ b/lib/utils/reset/objects.mk
+> > @@ -10,3 +10,5 @@
+> > libsbiutils-objs-y += reset/fdt_reset.o
+> > libsbiutils-objs-y += reset/fdt_reset_htif.o
+> > libsbiutils-objs-y += reset/fdt_reset_sifive.o
+> > +libsbiutils-objs-y += reset/fdt_reset_thead.o
+> > +libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
+> > --
+> > 2.7.4
 > >
 > >
-> >
-> >> -----Original Message-----
-> >> From: Jessica Clarke <jrtc27@jrtc27.com>
-> >> Sent: 17 April 2021 18:58
-> >> To: Anup Patel <Anup.Patel@wdc.com>
-> >> Cc: guoren at kernel.org; Alistair Francis <Alistair.Francis@wdc.com>;
-> >> Anup Patel <anup@brainfault.org>; OpenSBI
-> >> <opensbi@lists.infradead.org>; Guo Ren <guoren@linux.alibaba.com>;
-> >> Xiang W <wxjstz@126.com>
-> >> Subject: Re: [PATCH 1/2] lib: utils: Implement "64bit-mmio" property
-> >> parsing
-> >>
-> >> On 17 Apr 2021, at 14:26, Anup Patel <Anup.Patel@wdc.com> wrote:
-> >>>
-> >>>
-> >>>
-> >>>> -----Original Message-----
-> >>>> From: Jessica Clarke <jrtc27@jrtc27.com>
-> >>>> Sent: 17 April 2021 18:47
-> >>>> To: Anup Patel <Anup.Patel@wdc.com>
-> >>>> Cc: guoren at kernel.org; Alistair Francis <Alistair.Francis@wdc.com>;
-> >>>> Anup Patel <anup@brainfault.org>; OpenSBI
-> >>>> <opensbi@lists.infradead.org>; Guo Ren <guoren@linux.alibaba.com>;
-> >>>> Xiang W <wxjstz@126.com>
-> >>>> Subject: Re: [PATCH 1/2] lib: utils: Implement "64bit-mmio"
-> >>>> property parsing
-> >>>>
-> >>>> On 17 Apr 2021, at 14:16, Anup Patel <Anup.Patel@wdc.com> wrote:
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>>> -----Original Message-----
-> >>>>>> From: Jessica Clarke <jrtc27@jrtc27.com>
-> >>>>>> Sent: 17 April 2021 17:16
-> >>>>>> To: guoren at kernel.org
-> >>>>>> Cc: Alistair Francis <Alistair.Francis@wdc.com>; Anup Patel
-> >>>>>> <anup@brainfault.org>; OpenSBI <opensbi@lists.infradead.org>;
-> Guo
-> >>>> Ren
-> >>>>>> <guoren@linux.alibaba.com>; Anup Patel <Anup.Patel@wdc.com>;
-> >> Xiang
-> >>>> W
-> >>>>>> <wxjstz@126.com>
-> >>>>>> Subject: Re: [PATCH 1/2] lib: utils: Implement "64bit-mmio"
-> >>>>>> property parsing
-> >>>>>>
-> >>>>>> On 17 Apr 2021, at 12:41, Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>>>>>>
-> >>>>>>> On 13 Apr 2021, at 04:44, guoren at kernel.org wrote:
-> >>>>>>>>
-> >>>>>>>> From: Guo Ren <guoren@linux.alibaba.com>
-> >>>>>>>>
-> >>>>>>>> Figure out CLINT has_64bit_mmio from DT node and using
-> antonym
-> >>>>>>>> for compatibility.
-> >>>>>>>>
-> >>>>>>>> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> >>>>>>>> Cc: Anup Patel <anup.patel@wdc.com>
-> >>>>>>>> Cc: Xiang W <wxjstz@126.com>
-> >>>>>>>> ---
-> >>>>>>>> lib/utils/fdt/fdt_helper.c | 3 ++-
-> >>>>>>>> 1 file changed, 2 insertions(+), 1 deletion(-)
-> >>>>>>>>
-> >>>>>>>> diff --git a/lib/utils/fdt/fdt_helper.c
-> >>>>>>>> b/lib/utils/fdt/fdt_helper.c index bf19ff9..909de01 100644
-> >>>>>>>> --- a/lib/utils/fdt/fdt_helper.c
-> >>>>>>>> +++ b/lib/utils/fdt/fdt_helper.c
-> >>>>>>>> @@ -442,8 +442,9 @@ int fdt_parse_clint_node(void *fdt, int
-> >>>>>> nodeoffset, bool for_timer,
-> >>>>>>>> 	if (clint->hart_count < count)
-> >>>>>>>> 		clint->hart_count = count;
-> >>>>>>>>
-> >>>>>>>> -	/* TODO: We should figure-out CLINT has_64bit_mmio from
-> >> DT node
-> >>>>>> */
-> >>>>>>>> 	clint->has_64bit_mmio = TRUE;
-> >>>>>>>> +	if (fdt_getprop(fdt, nodeoffset, "clint,has-no-64bit-mmio",
-> >>>>>>>> +&count))
-> >>>>>>>
-> >>>>>>> I do not see this specified in clint.yaml.
-> >>>>>>
-> >>>>>> Also, the RISC-V privileged is very clear:
-> >>>>>>
-> >>>>>>> For RV64, naturally aligned 64-bit memory accesses to the mtime
-> >>>>>>> and mtimecmp registers are atomic.
-> >>>>>>
-> >>>>>> So I would say your CLINT violates the spec and thus should not
-> >>>>>> claim to be a RISC-V or SiFive-compatible CLINT.
-> >>>>>
-> >>>>> There is no CLINT spec maintained by RISC-V international.
-> >>>>>
-> >>>>> All implementation have SiFive compatible CLINT or some variant of it.
-> >>>>
-> >>>> That was a quote from the ratified privileged spec. The memory
-> >>>> mapping may not be specified by RISC-V Intl, but the fact that
-> >>>> mtime(cmp) are 64-bit registers is very much specified.
-> >>>
-> >>> Yes, mtime(cmp) has to be a 64bit wide as-per ratified spec but the
-> >>> spec does not require 64bit MMIO to be supported for these MMIO
-> >> registers.
-> >>>
-> >>> In fact, for RV32 64bit MMIO is not possible at all because machine
-> >>> word is 32bits wide.
-> >>>
-> >>> The T-Head implementation does not violate the mtime(cmp)
-> >> requirements
-> >>> of ratified spec but it is certainly bit strange because they have a
-> >>> RV64 system but their custom CLINT only supports 32bit MMIO accesses.
-> >>
-> >> The quoted part of the spec says that, on RV64, aligned 64-bit
-> >> accesses are atomic. There is the clear implication there that 64-bit
-> accesses are allowed.
-> >> This is entirely a hardware bug that violates the spec.
-> >
-> > It does not say that aligned 64bit accesses have to be supported.
-> > There is no mandate in the statement.
-> >
-> > It only says if 64bit accesses are supported then they have to be atomic.
-> 
-> There is no ?if? in the spec, just that they *are*.
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
 
-The statement does not say that on RV64 we cannot use 32bit
-MMIO to access for mtime(cmp) which means that 64bit MMIO is
-is not mandatory for mtime(cmp).
 
-Further, the statement only tells of 64bit MMIO accesses on RV64
-are atomic. It tells nothing about 32bit MMIO accesses on RV64.
+-- 
+Best Regards
+ Guo Ren
 
-Regards,
-Anup
+ML: https://lore.kernel.org/linux-csky/
+
