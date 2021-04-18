@@ -1,99 +1,126 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Sun, 18 Apr 2021 10:19:11 +0800
-Subject: [PATCH 1/2] lib: utils: Implement "64bit-mmio" property parsing
-In-Reply-To: <4B38E6F7-BD21-4DE5-B34F-590532741346@jrtc27.com>
-References: <1618285442-84580-1-git-send-email-guoren@kernel.org>
- <B636699C-B856-43E6-9FEC-44A62284E0B6@jrtc27.com>
- <CED1C4CB-F804-4548-8052-FD1251B7256F@jrtc27.com>
- <CAJF2gTSYMHBeYqpEf=YGLxp57rMhApHVsW63aDq6ymVDutk2xg@mail.gmail.com>
- <4B38E6F7-BD21-4DE5-B34F-590532741346@jrtc27.com>
-Message-ID: <CAJF2gTQMHwZvPrGvhkPa=9f6SSuV+JUGy_AMLch5gj8eJDkiZw@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Sun, 18 Apr 2021 04:33:43 -0700
+Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
+In-Reply-To: <DM6PR04MB62010A6AA94E1D44ED6C20518D749@DM6PR04MB6201.namprd04.prod.outlook.com>
+References: <20210319221305.2138412-1-atish.patra@wdc.com>
+ <20210319221305.2138412-10-atish.patra@wdc.com>
+ <DM6PR04MB62010A6AA94E1D44ED6C20518D749@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <CAOnJCULDhomrBvpisLLdMtuNjmr5Vrg=tQAB=c8Yp4N2Ju1w+Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Apr 17, 2021 at 11:10 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Wed, Apr 7, 2021 at 8:30 PM Anup Patel <Anup.Patel@wdc.com> wrote:
 >
-> On 17 Apr 2021, at 15:24, Guo Ren <guoren@kernel.org> wrote:
-> >
-> > On Sat, Apr 17, 2021 at 7:45 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>
-> >> On 17 Apr 2021, at 12:41, Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>>
-> >>> On 13 Apr 2021, at 04:44, guoren at kernel.org wrote:
-> >>>>
-> >>>> From: Guo Ren <guoren@linux.alibaba.com>
-> >>>>
-> >>>> Figure out CLINT has_64bit_mmio from DT node and using antonym for
-> >>>> compatibility.
-> >>>>
-> >>>> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> >>>> Cc: Anup Patel <anup.patel@wdc.com>
-> >>>> Cc: Xiang W <wxjstz@126.com>
-> >>>> ---
-> >>>> lib/utils/fdt/fdt_helper.c | 3 ++-
-> >>>> 1 file changed, 2 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> >>>> index bf19ff9..909de01 100644
-> >>>> --- a/lib/utils/fdt/fdt_helper.c
-> >>>> +++ b/lib/utils/fdt/fdt_helper.c
-> >>>> @@ -442,8 +442,9 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
-> >>>>     if (clint->hart_count < count)
-> >>>>             clint->hart_count = count;
-> >>>>
-> >>>> -    /* TODO: We should figure-out CLINT has_64bit_mmio from DT node */
-> >>>>     clint->has_64bit_mmio = TRUE;
-> >>>> +    if (fdt_getprop(fdt, nodeoffset, "clint,has-no-64bit-mmio", &count))
-> >>>
-> >>> I do not see this specified in clint.yaml.
-> >>
-> >> Also, the RISC-V privileged is very clear:
-> >>
-> >>> For RV64, naturally aligned 64-bit memory accesses to the mtime and mtimecmp
-> >>> registers are atomic.
-> >>
-> >> So I would say your CLINT violates the spec and thus should not claim to be a
-> >> RISC-V or SiFive-compatible CLINT.
-> >>
-> >> Jess
-> >>
-> >
-> > Normal Linux use csr_read(CSR_TIME), and C9xx wouldn't support
-> > M-mode&MMU-less Linux. So the only sbi_set_timer would be affected.
-> >
-> > Because mmio-32bit is perfect with RV32, it wouldn't cause problems in
-> > the RV64 linux mmu s-mode system.
 >
-> That doesn?t change the fact that it violates the spec for RV64.
 >
-> Jess
+> > -----Original Message-----
+> > From: Atish Patra <atish.patra@wdc.com>
+> > Sent: 20 March 2021 03:43
+> > To: opensbi at lists.infradead.org
+> > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
+> > Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
+> >
+> > A platform hook to initialize PMU allows platform vendors to provide their
+> > own mechanism to define pmu event-counter mappings in addition to the DT
+> > based approach.
+> >
+> > Another platform hook that allows platform vendors customize the final
+> > mhpmevent value configuration.
+> >
+> > Signed-off-by: Atish Patra <atish.patra@wdc.com>
+> > ---
+> >  include/sbi/sbi_platform.h | 38
+> > ++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 38 insertions(+)
+> >
+> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h index
+> > dadbc1e94e18..02773f672443 100644
+> > --- a/include/sbi/sbi_platform.h
+> > +++ b/include/sbi/sbi_platform.h
+> > @@ -97,6 +97,11 @@ struct sbi_platform_operations {
+> >       /** Initialize (or populate) domains for the platform */
+> >       int (*domains_init)(void);
+> >
+> > +     /** Initialize hw performance counters */
+> > +     int (*pmu_init)(void);
+> > +
+> > +     uint64_t (*get_mhpmevent_value)(uint32_t event_idx, uint64_t
+> > data);
+>
+> Rename get_mhpmevent_value() to pmu_xlate_to_mhpmevent() and
+> add one line comment about this callback.
+>
+> > +
+> >       /** Write a character to the platform console output */
+> >       void (*console_putc)(char ch);
+> >       /** Read a character from the platform console input */ @@ -514,6
+> > +519,39 @@ static inline int sbi_platform_domains_init(const struct
+> > sbi_platform *plat)
+> >       return 0;
+> >  }
+> >
+> > +/**
+> > + * Setup hw PMU events for the platform
+> > + *
+> > + * @param plat pointer to struct sbi_platform
+> > + *
+> > + * @return 0 on success and negative error code on failure  */ static
+> > +inline int sbi_platform_pmu_init(const struct sbi_platform *plat) {
+> > +     if (plat && sbi_platform_ops(plat)->pmu_init)
+> > +             return sbi_platform_ops(plat)->pmu_init();
+> > +     return 0;
+> > +}
+> > +
+> > +/**
+> > + * Get the value to be written in mhpmeventx for event_idx
+> > + *
+> > + * @param plat pointer to struct sbi_platform
+> > + * @param event_idx ID of the PMU event
+> > + * @param data Additional configuration data passed from supervisor
+> > +software
+> > + *
+> > + * @return expected value by the platform or 0 if platform doesn't know
+> > +about
+> > + * the event
+> > + */
+> > +static inline int sbi_platform_get_mhpmevent_value(const struct
+>
+> Rename this as-per above suggestion.
 >
 
-"For RV64, naturally aligned 64-bit memory accesses to the mtime and
-mtimecmp registers are atomic."
-The sentence didn't enforce RV64 must use 64-bit memory accesses to
-mtime* regs. It says if you are using RV64 64-bit memory accesses,
-then it would be atomic and you needn't do it like in RV32.
+Sure. Will do.
 
-"Platforms provide a real-time counter, exposed as a memory-mapped
-machine-mode read-write register, time.".
-That means the soc vendor determines the data width of the IO
-interconnects. You know a lot of them just have a 32-bit APB on hand
-and easily reuse it.
+> > sbi_platform *plat,
+> > +                                                uint32_t event_idx,
+> > uint64_t data) {
+> > +     if (plat && sbi_platform_ops(plat)->get_mhpmevent_value)
+> > +             return sbi_platform_ops(plat)-
+> > >get_mhpmevent_value(event_idx,
+> > +                                                                data);
+> > +     return 0;
+> > +}
+> > +
+> >  /**
+> >   * Write a character to the platform console output
+> >   *
+> > --
+> > 2.25.1
+>
+> Regards,
+> Anup
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Conclude my views here:
- - RV64 using 32-bit memory accesses to mtime* doesn't violate spec.
- - Using 32-bit/64-bit IO access depends on platform integration, not
-CPU vendor. (Of cause, we could recommend them using 64-bit IO access)
- - Because 64-bit IO access always contains 32-bit IO access
-capability, that why our sample using 32-bit IO access as default.
+
 
 -- 
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+Regards,
+Atish
 
