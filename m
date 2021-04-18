@@ -1,18 +1,19 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Sun, 18 Apr 2021 04:33:43 -0700
-Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
-In-Reply-To: <DM6PR04MB62010A6AA94E1D44ED6C20518D749@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Sun, 18 Apr 2021 04:45:48 -0700
+Subject: [RFC 04/14] lib: sbi: Detect number of bits implemented in
+ mhpmcounter
+In-Reply-To: <DM6PR04MB6201F33509A4DA3112B881308D749@DM6PR04MB6201.namprd04.prod.outlook.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-10-atish.patra@wdc.com>
- <DM6PR04MB62010A6AA94E1D44ED6C20518D749@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <CAOnJCULDhomrBvpisLLdMtuNjmr5Vrg=tQAB=c8Yp4N2Ju1w+Q@mail.gmail.com>
+ <20210319221305.2138412-5-atish.patra@wdc.com>
+ <DM6PR04MB6201F33509A4DA3112B881308D749@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <CAOnJCUK3Dx4oHWEX0xUErgLzTqeE+Fiq==TcMzXiQTs4FpXNvw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Apr 7, 2021 at 8:30 PM Anup Patel <Anup.Patel@wdc.com> wrote:
+On Wed, Apr 7, 2021 at 8:22 PM Anup Patel <Anup.Patel@wdc.com> wrote:
 >
 >
 >
@@ -21,91 +22,153 @@ On Wed, Apr 7, 2021 at 8:30 PM Anup Patel <Anup.Patel@wdc.com> wrote:
 > > Sent: 20 March 2021 03:43
 > > To: opensbi at lists.infradead.org
 > > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> > Subject: [RFC 09/14] lib: sbi: Add PMU specific platform hooks
+> > Subject: [RFC 04/14] lib: sbi: Detect number of bits implemented in
+> > mhpmcounter
 > >
-> > A platform hook to initialize PMU allows platform vendors to provide their
-> > own mechanism to define pmu event-counter mappings in addition to the DT
-> > based approach.
+> > RISC-V privilege specification allows the implementation to have less than 64
+> > bits.
 > >
-> > Another platform hook that allows platform vendors customize the final
-> > mhpmevent value configuration.
+> > Add a function to detect the number of implemented bits in mhpmcounter
+> > dynamically at runtime.
 > >
 > > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > > ---
-> >  include/sbi/sbi_platform.h | 38
-> > ++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 38 insertions(+)
+> >  include/sbi/sbi_hart.h |  1 +
+> >  lib/sbi/sbi_hart.c     | 49
+> > ++++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 50 insertions(+)
 > >
-> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h index
-> > dadbc1e94e18..02773f672443 100644
-> > --- a/include/sbi/sbi_platform.h
-> > +++ b/include/sbi/sbi_platform.h
-> > @@ -97,6 +97,11 @@ struct sbi_platform_operations {
-> >       /** Initialize (or populate) domains for the platform */
-> >       int (*domains_init)(void);
+> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h index
+> > 9e317c52008c..5f23595ccb27 100644
+> > --- a/include/sbi/sbi_hart.h
+> > +++ b/include/sbi/sbi_hart.h
+> > @@ -44,6 +44,7 @@ void sbi_hart_delegation_dump(struct sbi_scratch
+> > *scratch,  unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+> > unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
+> > unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+> > +unsigned int sbi_hart_pmu_event_bits(struct sbi_scratch *scratch);
+> >  int sbi_hart_pmp_configure(struct sbi_scratch *scratch);  bool
+> > sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
+> > void sbi_hart_get_features_str(struct sbi_scratch *scratch, diff --git
+> > a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index ee11b2133d05..006ec830d86c
+> > 100644
+> > --- a/lib/sbi/sbi_hart.c
+> > +++ b/lib/sbi/sbi_hart.c
+> > @@ -33,6 +33,7 @@ struct hart_features {
+> >       unsigned int pmp_addr_bits;
+> >       unsigned long pmp_gran;
+> >       unsigned int mhpm_count;
+> > +     unsigned int pmu_bits;
+>
+> Rename pmu_bits to mhpm_bits for consistency.
+>
+> >  };
+> >  static unsigned long hart_features_offset;
 > >
-> > +     /** Initialize hw performance counters */
-> > +     int (*pmu_init)(void);
-> > +
-> > +     uint64_t (*get_mhpmevent_value)(uint32_t event_idx, uint64_t
-> > data);
->
-> Rename get_mhpmevent_value() to pmu_xlate_to_mhpmevent() and
-> add one line comment about this callback.
->
-> > +
-> >       /** Write a character to the platform console output */
-> >       void (*console_putc)(char ch);
-> >       /** Read a character from the platform console input */ @@ -514,6
-> > +519,39 @@ static inline int sbi_platform_domains_init(const struct
-> > sbi_platform *plat)
-> >       return 0;
+> > @@ -177,6 +178,14 @@ unsigned int sbi_hart_pmp_addrbits(struct
+> > sbi_scratch *scratch)
+> >       return hfeatures->pmp_addr_bits;
 > >  }
 > >
-> > +/**
-> > + * Setup hw PMU events for the platform
-> > + *
-> > + * @param plat pointer to struct sbi_platform
-> > + *
-> > + * @return 0 on success and negative error code on failure  */ static
-> > +inline int sbi_platform_pmu_init(const struct sbi_platform *plat) {
-> > +     if (plat && sbi_platform_ops(plat)->pmu_init)
-> > +             return sbi_platform_ops(plat)->pmu_init();
-> > +     return 0;
-> > +}
-> > +
-> > +/**
-> > + * Get the value to be written in mhpmeventx for event_idx
-> > + *
-> > + * @param plat pointer to struct sbi_platform
-> > + * @param event_idx ID of the PMU event
-> > + * @param data Additional configuration data passed from supervisor
-> > +software
-> > + *
-> > + * @return expected value by the platform or 0 if platform doesn't know
-> > +about
-> > + * the event
-> > + */
-> > +static inline int sbi_platform_get_mhpmevent_value(const struct
+> > +unsigned int sbi_hart_pmu_event_bits(struct sbi_scratch *scratch) {
 >
-> Rename this as-per above suggestion.
+> Rename sbi_hart_pmu_event_bits() to sbi_hart_mhpm_bits()
+> for consistency.
 >
 
-Sure. Will do.
+Will do.
 
-> > sbi_platform *plat,
-> > +                                                uint32_t event_idx,
-> > uint64_t data) {
-> > +     if (plat && sbi_platform_ops(plat)->get_mhpmevent_value)
-> > +             return sbi_platform_ops(plat)-
-> > >get_mhpmevent_value(event_idx,
-> > +                                                                data);
-> > +     return 0;
+> > +     struct hart_features *hfeatures =
+> > +                     sbi_scratch_offset_ptr(scratch,
+> > hart_features_offset);
+> > +
+> > +     return hfeatures->pmu_bits;
 > > +}
 > > +
-> >  /**
-> >   * Write a character to the platform console output
-> >   *
+> >  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)  {
+> >       struct sbi_domain_memregion *reg;
+> > @@ -330,6 +339,37 @@ static unsigned long
+> > hart_pmp_get_allowed_addr(void)
+> >       return val;
+> >  }
+> >
+> > +static int hart_pmu_get_allowed_bits(void) {
+> > +     unsigned long val = ~(0UL);
+> > +     struct sbi_trap_info trap = {0};
+> > +     int num_bits = 0;
+> > +
+> > +     /**
+> > +      * It is assumed that platforms will implement same number of bits
+> > for
+> > +      * all the performance counters including mcycle/minstret.
+> > +      */
+> > +     csr_write_allowed(CSR_MHPMCOUNTER3, (ulong)&trap, val);
+> > +     if (!trap.cause) {
+> > +             val = csr_read_allowed(CSR_MHPMCOUNTER3,
+> > (ulong)&trap);
+> > +             if (trap.cause)
+> > +                     num_bits = 0;
+>
+> Return 0 here instead of setting num_bits to zero.
+>
+
+ok.
+
+> > +     }
+> > +     num_bits = __fls(val) + 1;
+> > +#if __riscv_xlen == 32
+> > +     csr_write_allowed(CSR_MHPMCOUNTER3H, (ulong)&trap, val);
+> > +     if (!trap.cause) {
+> > +             val = csr_read_allowed(CSR_MHPMCOUNTER3H,
+> > (ulong)&trap);
+> > +             if (trap.cause)
+> > +                     num_bits = 0;
+>
+> Return num_bits here.
+>
+ok.
+> > +     }
+> > +     num_bits = __fls(val) + 1;
+>
+> This should be "num_bits += __fls(val) + 1;"
+>
+
+Ah yes. Thanks for pointing out this.
+
+> > +
+> > +#endif
+> > +
+> > +     return num_bits;
+> > +}
+> > +
+> >  static void hart_detect_features(struct sbi_scratch *scratch)  {
+> >       struct sbi_trap_info trap = {0};
+> > @@ -394,10 +434,19 @@ static void hart_detect_features(struct sbi_scratch
+> > *scratch)
+> >  __pmp_skip:
+> >
+> >       /* Detect number of MHPM counters */
+> > +     trap.cause = 0;
+> >       __check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count,
+> > __mhpm_skip);
+> > +     hfeatures->pmu_bits = hart_pmu_get_allowed_bits();
+> > +
+> >       __check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count,
+> > __mhpm_skip);
+> >       __check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count,
+> > __mhpm_skip);
+> >       __check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count,
+> > __mhpm_skip);
+> > +
+> > +     /**
+> > +      * No need to check for MHPMCOUNTERH for RV32 as they are
+> > expected to be
+> > +      * implemented if MHPMCOUNTER is implemented.
+> > +      */
+> > +
+> >  __mhpm_skip:
+> >
+> >  #undef __check_csr_64
 > > --
 > > 2.25.1
 >
