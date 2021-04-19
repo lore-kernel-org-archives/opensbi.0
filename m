@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 19 Apr 2021 11:40:46 +0800
-Subject: [RFC 02/14] lib: sbi: Detect mcountinihibit support at runtime
-In-Reply-To: <20210319221305.2138412-3-atish.patra@wdc.com>
+Date: Mon, 19 Apr 2021 11:46:15 +0800
+Subject: [RFC 03/14] lib: sbi: Remove stray '\' character
+In-Reply-To: <20210319221305.2138412-4-atish.patra@wdc.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-3-atish.patra@wdc.com>
-Message-ID: <1a090068e6393c29e52074123700fc8c88b2c596.camel@126.com>
+ <20210319221305.2138412-4-atish.patra@wdc.com>
+Message-ID: <311e6ad171c65dc0d44f2e9b2b5c1773218bc5ab.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,74 +12,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2021-03-19?? 15:12 -0700?Atish Patra???
-> RISC-V ISA specification v1.11 defined mcountinhibit CSR that allows
-> software to stop any counter from incrementing. The SBI PMU extension
-> depends on this CSR support in hardware.
-> 
-> Define mcountinhibit as a hart specific feature and detect it at
-> runtime.
-> 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  include/sbi/sbi_hart.h |  4 +++-
->  lib/sbi/sbi_hart.c     | 12 ++++++++++++
->  2 files changed, 15 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 031c7b08a815..9e317c52008c 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -18,8 +18,10 @@ enum sbi_hart_features {
->  	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
->  	/** Hart has M-mode counter enable */
->  	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
-> +	/** Hart has counter inhibit CSR */
-> +	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
->  	/** HART has timer csr implementation in hardware */
-> -	SBI_HART_HAS_TIME = (1 << 2),
-> +	SBI_HART_HAS_TIME = (1 << 3),
->  
->  	/** Last index of Hart features*/
->  	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index d91b08cf1cec..0b3bb6237182 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -259,6 +259,9 @@ static inline char
-> *sbi_hart_feature_id2string(unsigned long feature)
->  	case SBI_HART_HAS_MCOUNTEREN:
->  		fstr = "mcounteren";
->  		break;
-> +	case SBI_HART_HAS_MCOUNTINHIBIT:
-> +		fstr = "mcountinhibit";
-> +		break;
->  	case SBI_HART_HAS_TIME:
->  		fstr = "time";
->  		break;
-> @@ -423,6 +426,15 @@ __mhpm_skip:
->  			hfeatures->features |= SBI_HART_HAS_MCOUNTEREN;
->  	}
->  
-> +	/* Detect if hart supports MCOUNTINHIBIT feature */
-> +	trap.cause = 0;
-Remove this line
-trap.cause will be cleared by csr_read_allowed
+Look good to me.
+
+Reviewed-by: Xiang W <wxjstz@126.com>
 
 Regards,
 Xiang W
-> +	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned
-> long)&trap);
-> +	if (!trap.cause) {
-> +		csr_write_allowed(CSR_MCOUNTINHIBIT, (unsigned
-> long)&trap, val);
-> +		if (!trap.cause)
-> +			hfeatures->features |=
-> SBI_HART_HAS_MCOUNTINHIBIT;
-> +	}
-> +
->  	/* Detect if hart supports time CSR */
->  	trap.cause = 0;
->  	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+> ---
+>  lib/sbi/sbi_hart.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 0b3bb6237182..ee11b2133d05 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -320,7 +320,7 @@ static unsigned long
+> hart_pmp_get_allowed_addr(void)
+>  	unsigned long val = 0;
+>  	struct sbi_trap_info trap = {0};
+>  
+> -	csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);	
+> 		\
+> +	csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);
+>  	if (!trap.cause) {
+>  		val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
+>  		if (trap.cause)
 > -- 
 > 2.25.1
 > 
