@@ -1,11 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Mon, 19 Apr 2021 12:19:05 +0000
-Subject: [RFC 11/14] utils: fdt: Add fdt helper functions to parse PMU DT
- nodes
-In-Reply-To: <20210319221305.2138412-12-atish.patra@wdc.com>
+Date: Mon, 19 Apr 2021 12:23:07 +0000
+Subject: [RFC 12/14] lib: sbi: Implement SBI PMU extension
+In-Reply-To: <20210319221305.2138412-13-atish.patra@wdc.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-12-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB62011586F78E97B189D608198D499@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210319221305.2138412-13-atish.patra@wdc.com>
+Message-ID: <DM6PR04MB6201CFBA1FD789F80F1DA1C88D499@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -19,32 +18,89 @@ Content-Transfer-Encoding: 7bit
 > Sent: 20 March 2021 03:43
 > To: opensbi at lists.infradead.org
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [RFC 11/14] utils: fdt: Add fdt helper functions to parse PMU DT
-> nodes
+> Subject: [RFC 12/14] lib: sbi: Implement SBI PMU extension
 > 
-> The PMU DT node bindings are defined in docs/pmu_support.md Add few
-> fdt helper functions to parse the DT node and update the event-counter
-> mapping tables.
+> RISC-V SBI specfication 0.3 defines a PMU extension that allows supervisor
+> mode to start/stop/configure pmu related events. This patch implements all
+> of the functionality defined in the specification.
 > 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  include/sbi_utils/fdt/fdt_pmu.h |  46 +++++++++++++
->  lib/utils/fdt/fdt_fixup.c       |   2 +
->  lib/utils/fdt/fdt_pmu.c         | 110 ++++++++++++++++++++++++++++++++
->  lib/utils/fdt/objects.mk        |   1 +
->  4 files changed, 159 insertions(+)
->  create mode 100644 include/sbi_utils/fdt/fdt_pmu.h  create mode 100644
-> lib/utils/fdt/fdt_pmu.c
+>  include/sbi/sbi_ecall.h |  1 +
+>  lib/sbi/objects.mk      |  1 +
+>  lib/sbi/sbi_ecall.c     | 10 ++++++
+>  lib/sbi/sbi_ecall_pmu.c | 73
+> +++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 85 insertions(+)
+>  create mode 100644 lib/sbi/sbi_ecall_pmu.c
 > 
-> diff --git a/include/sbi_utils/fdt/fdt_pmu.h
-> b/include/sbi_utils/fdt/fdt_pmu.h new file mode 100644 index
-> 000000000000..2fa01edc0743
+> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h index
+> 63ef866ba2d4..9500d0430429 100644
+> --- a/include/sbi/sbi_ecall.h
+> +++ b/include/sbi/sbi_ecall.h
+> @@ -39,6 +39,7 @@ extern struct sbi_ecall_extension ecall_ipi;  extern
+> struct sbi_ecall_extension ecall_vendor;  extern struct sbi_ecall_extension
+> ecall_hsm;  extern struct sbi_ecall_extension ecall_srst;
+> +extern struct sbi_ecall_extension ecall_pmu;
+> 
+>  u16 sbi_ecall_version_major(void);
+> 
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk index
+> d9068b707854..7096f245ae0c 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -20,6 +20,7 @@ libsbi-objs-y += sbi_ecall.o  libsbi-objs-y +=
+> sbi_ecall_base.o  libsbi-objs-y += sbi_ecall_hsm.o  libsbi-objs-y +=
+> sbi_ecall_legacy.o
+> +libsbi-objs-y += sbi_ecall_pmu.o
+>  libsbi-objs-y += sbi_ecall_replace.o
+>  libsbi-objs-y += sbi_ecall_vendor.o
+>  libsbi-objs-y += sbi_emulate_csr.o
+> diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c index
+> e92a53930460..bd51c7f796b8 100644
+> --- a/lib/sbi/sbi_ecall.c
+> +++ b/lib/sbi/sbi_ecall.c
+> @@ -11,6 +11,8 @@
+>  #include <sbi/sbi_ecall.h>
+>  #include <sbi/sbi_ecall_interface.h>
+>  #include <sbi/sbi_error.h>
+> +#include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_trap.h>
+> 
+>  u16 sbi_ecall_version_major(void)
+> @@ -144,6 +146,7 @@ int sbi_ecall_handler(struct sbi_trap_regs *regs)  int
+> sbi_ecall_init(void)  {
+>  	int ret;
+> +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> 
+>  	/* The order of below registrations is performance optimized */
+>  	ret = sbi_ecall_register_extension(&ecall_time);
+> @@ -164,6 +167,13 @@ int sbi_ecall_init(void)
+>  	ret = sbi_ecall_register_extension(&ecall_srst);
+>  	if (ret)
+>  		return ret;
+> +
+
+Drop this new line here.
+
+> +	/* SBI PMU extension is useless without mcount inhibit features */
+> +	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
+> {
+> +		ret = sbi_ecall_register_extension(&ecall_pmu);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  	ret = sbi_ecall_register_extension(&ecall_legacy);
+>  	if (ret)
+>  		return ret;
+> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c new file mode
+> 100644 index 000000000000..6a473f733e64
 > --- /dev/null
-> +++ b/include/sbi_utils/fdt/fdt_pmu.h
-> @@ -0,0 +1,46 @@
-> +// SPDX-License-Identifier: BSD-2-Clause
+> +++ b/lib/sbi/sbi_ecall_pmu.c
+> @@ -0,0 +1,73 @@
 > +/*
-> + * fdt_pmu.c - Flat Device Tree PMU helper routines
+> + * SPDX-License-Identifier: BSD-2-Clause
 > + *
 > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
 > + *
@@ -52,212 +108,72 @@ Content-Transfer-Encoding: 7bit
 > + *   Atish Patra <atish.patra@wdc.com>
 > + */
 > +
-> +#ifndef __FDT_PMU_H__
-> +#define __FDT_PMU_H__
-> +
-> +#include <sbi/sbi_types.h>
-> +
-> +/**
-> + * Fix up the PMU node in the device tree
-> + *
-> + * This routine:
-> + * 1. Disables opensbi specific properties from the DT
-> + *
-> + * It is recommended that platform support call this function in
-> + * their final_init() platform operation.
-> + *
-> + * @param fdt device tree blob
-> + */
-> +void fdt_pmu_fixup(void *fdt);
-> +
-> +/**
-> + * Setup PMU data from device tree
-> + *
-> + * @param fdt device tree blob
-> + *
-> + * @return 0 on success and negative error code on failure  */ int
-> +fdt_pmu_setup(void *fdt);
-> +
-> +/**
-> + * Get the mhpmevent select value read from DT for a given event
-> + * @param event_idx Event ID of the given event
-> + *
-> + * @return The select value read from DT or 0 if given index was not
-> +found  */ uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
-> +
-> +#endif
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c index
-> eea450d80492..ab351e408c86 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -15,6 +15,7 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
->  #include <sbi_utils/fdt/fdt_fixup.h>
-> +#include <sbi_utils/fdt/fdt_pmu.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> 
->  void fdt_cpu_fixup(void *fdt)
-> @@ -260,6 +261,7 @@ void fdt_fixups(void *fdt)
->  	fdt_plic_fixup(fdt, "riscv,plic0");
-> 
->  	fdt_reserved_memory_fixup(fdt);
-> +	fdt_pmu_fixup(fdt);
->  }
-> 
-> 
-> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c new file mode
-> 100644 index 000000000000..5053ab7568d8
-> --- /dev/null
-> +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -0,0 +1,110 @@
-> +// SPDX-License-Identifier: BSD-2-Clause
-> +/*
-> + * fdt_pmu.c - Flat Device Tree PMU helper routines
-> + *
-> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *	Atish Patra <atish.patra@wdc.com>
-> + */
-> +
-> +#include <libfdt.h>
+> +#include <sbi/sbi_ecall.h>
+> +#include <sbi/sbi_ecall_interface.h>
 > +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_trap.h>
+> +#include <sbi/sbi_version.h>
 > +#include <sbi/sbi_pmu.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi/sbi_scratch.h>
+> +#include <sbi/riscv_asm.h>
 > +
-> +struct sbi_pmu_hw_event_select {
+> +static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
+> +				 const struct sbi_trap_regs *regs,
+> +				 unsigned long *out_val,
+> +				 struct sbi_trap_info *out_trap)
+> +{
+> +	int ret = 0;
+> +	uint64_t ival;
+> +
+> +	switch (funcid) {
+> +	case SBI_EXT_PMU_NUM_COUNTERS:
+> +		ret = sbi_pmu_num_ctr();
+> +		if (ret >= 0) {
+> +			*out_val = ret;
+> +			ret = 0;
+> +		}
+> +		break;
+> +	case SBI_EXT_PMU_COUNTER_GET_INFO:
+> +		ret = sbi_pmu_get_ctr_info(regs->a0, out_val);
+> +		break;
+> +	case SBI_EXT_PMU_COUNTER_CFG_MATCH:
+> +		ret = sbi_pmu_get_ctr_match(regs->a0, regs->a1, regs->a2,
+> +					    regs->a3, regs->a4);
 
-Rename this to "fdt_pmu_hw_event_select"
+You need to take case of RV32 calling convention for event_data here.
 
-> +	uint32_t eidx;
-> +	uint64_t select;
+> +		if (ret >= 0) {
+> +			*out_val = ret;
+> +			ret = 0;
+> +		}
+> +
+> +		break;
+> +	case SBI_EXT_PMU_COUNTER_FW_READ:
+> +		ret = sbi_pmu_read_ctr(regs->a0, out_val);
+> +		break;
+> +	case SBI_EXT_PMU_COUNTER_START:
+> +
+> +#if __riscv_xlen == 32
+> +		ival = ((uint64_t)regs->a1 << 32) | regs->a2; #else
+> +		ival = regs->a1;
+> +#endif
+> +		ret = sbi_pmu_start_ctr(regs->a0, ival);
+> +		break;
+> +	case SBI_EXT_PMU_COUNTER_STOP:
+> +		ret = sbi_pmu_stop_ctr(regs->a0, regs->a1);
+> +		break;
+> +	default:
+> +		ret = SBI_ENOTSUPP;
+> +	};
+> +
+> +	return ret;
+> +}
+> +
+> +struct sbi_ecall_extension ecall_pmu = {
+> +	.extid_start = SBI_EXT_PMU,
+> +	.extid_end = SBI_EXT_PMU,
+> +	.handle = sbi_ecall_pmu_handler,
 > +};
-> +
-> +static struct sbi_pmu_hw_event_select
-> +fdt_pmu_evt_select[SBI_PMU_HW_EVENT_MAX] = {0}; static uint32_t
-> +hw_event_count;
-
-You can have array size more than SBI_PMU_HW_EVENT_MAX
-because unlike generic code here it is mapping each event_idx
-to it's event selector.
-
-Maybe have separate define FDT_PMU_HW_EVENT_MAX ??
-
-> +
-> +uint64_t fdt_pmu_get_select_value(uint32_t event_idx) {
-> +	int i;
-> +	struct sbi_pmu_hw_event_select *event;
-> +
-> +	for (i = 0; i < SBI_PMU_HW_EVENT_MAX; i++) {
-> +		event = &fdt_pmu_evt_select[i];
-
-In future, we can have keep the array sorted and do
-binary search instead of sequential comparison.
-
-> +		if (event->eidx == event_idx)
-> +			return event->select;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int fdt_pmu_fixup(void *fdt)
-> +{
-> +	int pmu_offset;
-> +
-> +	if (!fdt)
-> +		return SBI_EINVAL;
-> +
-> +	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
-> +	if (pmu_offset < 0)
-> +		return SBI_EFAIL;
-> +
-> +	fdt_delprop(fdt, pmu_offset, "opensbi,event-to-counters");
-> +	fdt_delprop(fdt, pmu_offset, "opensbi,event-to-mhpmevent");
-> +	fdt_delprop(fdt, pmu_offset, "opensbi,raw-event-to-counters");
-> +
-> +	return 0;
-> +}
-> +
-> +int fdt_pmu_setup(void *fdt)
-> +{
-> +	int i, pmu_offset, len, result;
-> +	const u32 *event_val;
-> +	const u32 *event_ctr_map;
-> +	struct sbi_pmu_hw_event_select *event;
-> +	u32 event_idx_start, event_idx_end, ctr_map;
-> +
-> +	if (!fdt)
-> +		return SBI_EINVAL;
-> +
-> +	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
-> +	if (pmu_offset < 0)
-> +		return SBI_EFAIL;
-> +
-> +	event_ctr_map = fdt_getprop(fdt, pmu_offset, "opensbi,event-to-
-> counters", &len);
-> +	if (!event_ctr_map || len < 8)
-> +		return SBI_EFAIL;
-> +	len = len / (sizeof(u32) * 3);
-> +	for (i = 0; i < len; i++) {
-> +		event_idx_start = fdt32_to_cpu(event_ctr_map[3 * i]);
-> +		event_idx_end = fdt32_to_cpu(event_ctr_map[3 * i + 1]);
-> +		ctr_map = fdt32_to_cpu(event_ctr_map[3 * i + 2]);
-> +		sbi_pmu_add_hw_event_counter_map(event_idx_start,
-> event_idx_end, ctr_map);
-> +	}
-> +
-> +	event_val = fdt_getprop(fdt, pmu_offset, "opensbi,event-to-
-> mhpmevent", &len);
-> +	if (!event_val || len < 8)
-> +		return SBI_EFAIL;
-> +	len = len / (sizeof(u32) * 3);
-> +	for (i = 0; i < len; i++) {
-> +		event = &fdt_pmu_evt_select[hw_event_count];
-> +		event->eidx = fdt32_to_cpu(event_val[3 * i]);
-> +		event->select = fdt32_to_cpu(event_val[3 * i + 1]);
-> +		event->select = (event->select << 32) |
-> fdt32_to_cpu(event_val[3 * i + 2]);
-> +		hw_event_count++;
-> +	}
-> +
-> +	event_val = fdt_getprop(fdt, pmu_offset, "opensbi,raw-event-to-
-> counters", &len);
-> +	if (!event_val || len < 8)
-> +		return SBI_EFAIL;
-> +	len = len / (sizeof(u32) * 3);
-> +	for (i = 0; i < len; i++) {
-> +		event = &fdt_pmu_evt_select[hw_event_count];
-
-I think you don't need to add RAW event selectors to
-Fdt_pmu_evt_select[] array because you are already registering
-selector value with generic code.
-
-> +		event->eidx = SBI_PMU_EVENT_RAW_IDX;
-> +		event->select = fdt32_to_cpu(event_val[3 * i]);
-> +		event->select = (event->select << 32) |
-> fdt32_to_cpu(event_val[3 * i + 1]);
-> +		ctr_map = fdt32_to_cpu(event_val[3 * i + 2]);
-> +		result = sbi_pmu_add_raw_event_counter_map(event-
-> >select, ctr_map);
-> +		if (!result)
-> +			hw_event_count++;
-> +	}
-> +
-> +	return 0;
-> +}
-> diff --git a/lib/utils/fdt/objects.mk b/lib/utils/fdt/objects.mk index
-> d9f1eae19292..03800f96d74d 100644
-> --- a/lib/utils/fdt/objects.mk
-> +++ b/lib/utils/fdt/objects.mk
-> @@ -5,5 +5,6 @@
->  #
-> 
->  libsbiutils-objs-y += fdt/fdt_domain.o
-> +libsbiutils-objs-y += fdt/fdt_pmu.o
->  libsbiutils-objs-y += fdt/fdt_helper.o
->  libsbiutils-objs-y += fdt/fdt_fixup.o
 > --
 > 2.25.1
 
