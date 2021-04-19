@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 19 Apr 2021 11:46:15 +0800
-Subject: [RFC 03/14] lib: sbi: Remove stray '\' character
-In-Reply-To: <20210319221305.2138412-4-atish.patra@wdc.com>
+Date: Mon, 19 Apr 2021 11:55:04 +0800
+Subject: [RFC 06/14] include: Add a list empty check function
+In-Reply-To: <20210319221305.2138412-7-atish.patra@wdc.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-4-atish.patra@wdc.com>
-Message-ID: <311e6ad171c65dc0d44f2e9b2b5c1773218bc5ab.camel@126.com>
+ <20210319221305.2138412-7-atish.patra@wdc.com>
+Message-ID: <0299ea008e390fc1450952ba24d05566c1bbf076.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,32 +12,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2021-03-19?? 15:12 -0700?Atish Patra???
+> Implement a list helper function that checks for empty lists.
+> 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
-Look good to me.
+Looks good to me.
 
 Reviewed-by: Xiang W <wxjstz@126.com>
 
 Regards,
 Xiang W
 > ---
->  lib/sbi/sbi_hart.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  include/sbi/sbi_list.h | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 > 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 0b3bb6237182..ee11b2133d05 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -320,7 +320,7 @@ static unsigned long
-> hart_pmp_get_allowed_addr(void)
->  	unsigned long val = 0;
->  	struct sbi_trap_info trap = {0};
+> diff --git a/include/sbi/sbi_list.h b/include/sbi/sbi_list.h
+> index 1174ad274c54..b1178dfc9b8e 100644
+> --- a/include/sbi/sbi_list.h
+> +++ b/include/sbi/sbi_list.h
+> @@ -43,6 +43,17 @@ static inline void __sbi_list_add(struct sbi_dlist
+> *new,
+>  	next->prev = new;
+>  }
 >  
-> -	csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);	
-> 		\
-> +	csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);
->  	if (!trap.cause) {
->  		val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
->  		if (trap.cause)
+> +/**
+> + * Checks if the list is empty or not.
+> + * @param head List head
+> + *
+> + * Retruns TRUE if list is empty, FALSE otherwise.
+> + */
+> +static inline bool sbi_list_empty(struct sbi_dlist *head)
+> +{
+> +	return head->next == head;
+> +}
+> +
+>  /**
+>   * Adds the new node after the given head.
+>   * @param new New node that needs to be added to list.
 > -- 
 > 2.25.1
 > 
