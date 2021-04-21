@@ -1,99 +1,53 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Mon, 19 Apr 2021 12:39:23 +0000
-Subject: [RFC 14/14] platform: generic: Add PMU support
-In-Reply-To: <20210319221305.2138412-15-atish.patra@wdc.com>
-References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-15-atish.patra@wdc.com>
-Message-ID: <DM6PR04MB6201CCDA7E293B27D2B0A0688D499@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Wed, 21 Apr 2021 12:20:04 +0800
+Subject: [PATCH] docs/platform: sifive_fu540: Update U-Boot defconfig name
+Message-ID: <20210421042004.1209459-1-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+With latest U-Boot upstream (v2021.07 in development), the defconfig
+name has been changed to sifive_unleashed_defconfig. Update the doc.
 
+Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+---
 
-> -----Original Message-----
-> From: Atish Patra <atish.patra@wdc.com>
-> Sent: 20 March 2021 03:43
-> To: opensbi at lists.infradead.org
-> Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [RFC 14/14] platform: generic: Add PMU support
-> 
-> Add PMU support for generic platform. Generic platform solely relies on the
-> device tree to parse all pmu related information. If any event is not described
-> in device tree, generic platform will not support it.
-> 
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  platform/generic/platform.c | 32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
-> 
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c index
-> 8c1e06f1244c..03f8bca2cb2d 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -16,6 +16,7 @@
->  #include <sbi_utils/fdt/fdt_domain.h>
->  #include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/fdt/fdt_pmu.h>
->  #include <sbi_utils/irqchip/fdt_irqchip.h>  #include
-> <sbi_utils/serial/fdt_serial.h>  #include <sbi_utils/timer/fdt_timer.h> @@ -
-> 204,6 +205,35 @@ static void generic_system_reset(u32 reset_type, u32
-> reset_reason)
->  	fdt_system_reset(reset_type, reset_reason);  }
-> 
-> +static int generic_pmu_init(void)
-> +{
-> +	return fdt_pmu_setup(sbi_scratch_thishart_arg1_ptr());
-> +}
-> +
-> +static uint64_t generic_pmu_get_mhpmevent_value(uint32_t event_idx,
-> +						uint64_t data)
-> +{
-> +	uint64_t result = 0;
-> +
-> +
-> +	/* data is valid only for raw events and is equal to event selector */
-> +	if (event_idx == SBI_PMU_EVENT_RAW_IDX)
-> +		result = data;
-> +	else
-> +		result = fdt_pmu_get_select_value(event_idx);
-> +
-> +	/**
-> +	 * Generic platform follows the SBI specification recommendation to
-> +	 * compute the mhpmevent value i.e.
-> +	 * xyz[0:19]    : event_idx
-> +	 * xyz[20:XLEN] : event_data[0:(XLEN-20)]
-> +	 */
-> +	result = result << SBI_PMU_EVENT_IDX_OFFSET |
-> +		(event_idx & SBI_PMU_EVENT_IDX_MASK);
-> +
-> +	return result;
-> +}
-> +
->  const struct sbi_platform_operations platform_ops = {
->  	.early_init		= generic_early_init,
->  	.final_init		= generic_final_init,
-> @@ -219,6 +249,8 @@ const struct sbi_platform_operations platform_ops =
-> {
->  	.ipi_clear		= fdt_ipi_clear,
->  	.ipi_init		= fdt_ipi_init,
->  	.ipi_exit		= fdt_ipi_exit,
-> +	.pmu_init		= generic_pmu_init,
-> +	.get_mhpmevent_value    = generic_pmu_get_mhpmevent_value,
->  	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
->  	.timer_value		= fdt_timer_value,
->  	.timer_event_stop	= fdt_timer_event_stop,
-> --
-> 2.25.1
+ docs/platform/sifive_fu540.md | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Regards,
-Anup
+diff --git a/docs/platform/sifive_fu540.md b/docs/platform/sifive_fu540.md
+index b4d3c60..b38df47 100644
+--- a/docs/platform/sifive_fu540.md
++++ b/docs/platform/sifive_fu540.md
+@@ -42,7 +42,7 @@ make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/bo
+ 
+ The command-line example here assumes that U-Boot was compiled using the
+ sifive_fu540_defconfig configuration and with U-Boot v2020.01, and up to
+-v2020.07-rc3.
++v2021.04. sifive_unleashed_defconfig shall be used with v2021.07 or above.
+ 
+ ```
+ make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-boot_build_dir>/u-boot-dtb.bin
+@@ -153,11 +153,12 @@ This is because QEMU generates a device tree blob on the fly based on the
+ command line parameters and it's compatible with the one used in the upstream
+ Linux kernel.
+ 
+-When U-Boot v2020.01 (or higher) is used as the payload, as the SiFive FU540
++When U-Boot v2021.07 (or higher) is used as the payload, as the SiFive FU540
+ DTB for the real hardware is embedded in U-Boot binary itself, due to the same
+-reason above, we need to switch the U-Boot sifive_fu540_defconfig configuration
+-from **CONFIG_OF_SEPARATE** to **CONFIG_OF_PRIOR_STAGE** so that U-Boot uses the
+-DTB generated by QEMU, and u-boot.bin should be used as the payload image, like:
++reason above, we need to switch the U-Boot sifive_unleashed_defconfig
++configuration from **CONFIG_OF_SEPARATE** to **CONFIG_OF_PRIOR_STAGE** so that
++U-Boot uses the DTB generated by QEMU, and u-boot.bin should be used as the
++payload image, like:
+ 
+ ```
+ make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-boot_build_dir>/u-boot.bin
+-- 
+2.25.1
 
 
