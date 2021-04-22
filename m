@@ -1,86 +1,93 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Thu, 22 Apr 2021 16:50:17 +0530
-Subject: [PATCH 1/7] lib: sbi: Remove domains_root_regions() platform callback
-In-Reply-To: <20210422112023.670521-1-anup.patel@wdc.com>
-References: <20210422112023.670521-1-anup.patel@wdc.com>
-Message-ID: <20210422112023.670521-2-anup.patel@wdc.com>
+Date: Thu, 22 Apr 2021 16:50:16 +0530
+Subject: [PATCH 0/7] Simplify platform operations
+Message-ID: <20210422112023.670521-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We now have sbi_domain_root_add_memregion() which allows platform
-support to add root domain regions at boot-time so let's remove
-the domains_root_regions() platform callback which was added
-for this purpose.
+Currently, we have lot of operations to be provided by a platform
+support because we have quite a few platform operations meant for
+runtime functionality such as write a character to console, send
+IPI, start timer event, reset the system, start/stop HART, etc.
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- include/sbi/sbi_platform.h | 18 ------------------
- lib/sbi/sbi_domain.c       |  6 ------
- 2 files changed, 24 deletions(-)
+This series aims at simplifying the platform operations such that
+platform operation will mostly have initialization functions and
+runtime functionality will be registered by platform support (or
+drivers) as a abstract device to the generic OpenSBI library.
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 837a75d..6736169 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -92,8 +92,6 @@ struct sbi_platform_operations {
- 	 */
- 	int (*misa_get_xlen)(void);
- 
--	/** Get platform specific root domain memory regions */
--	struct sbi_domain_memregion *(*domains_root_regions)(void);
- 	/** Initialize (or populate) domains for the platform */
- 	int (*domains_init)(void);
- 
-@@ -484,22 +482,6 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
- 	return -1;
- }
- 
--/**
-- * Get platform specific root domain memory regions
-- *
-- * @param plat pointer to struct sbi_platform
-- *
-- * @return an array of memory regions terminated by a region with order zero
-- * or NULL for no memory regions
-- */
--static inline struct sbi_domain_memregion *
--sbi_platform_domains_root_regions(const struct sbi_platform *plat)
--{
--	if (plat && sbi_platform_ops(plat)->domains_root_regions)
--		return sbi_platform_ops(plat)->domains_root_regions();
--	return NULL;
--}
--
- /**
-  * Initialize (or populate) domains for the platform
-  *
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 69a3795..9a53542 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -592,7 +592,6 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
- int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- {
- 	u32 i;
--	struct sbi_domain_memregion *memregs;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
- 	/* Root domain firmware memory region */
-@@ -610,11 +609,6 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	/* Root domain memory region end */
- 	root_memregs[root_memregs_count].order = 0;
- 
--	/* Use platform specific root memory regions when available */
--	memregs = sbi_platform_domains_root_regions(plat);
--	if (memregs)
--		root.regions = memregs;
--
- 	/* Root domain boot HART id is same as coldboot HART id */
- 	root.boot_hartid = cold_hartid;
- 
+These patches can be found in plat_callback_imp_v1 branch at
+https://github.com/avpatel/opensbi
+
+Anup Patel (7):
+  lib: sbi: Remove domains_root_regions() platform callback
+  lib: sbi: Simplify console platform operations
+  lib: sbi: Simplify timer platform operations
+  lib: sbi: Simplify ipi platform operations
+  lib: sbi: Simplify system reset platform operations
+  lib: sbi: Simplify HSM platform operations
+  lib: sbi: Show devices provided by platform in boot prints
+
+ include/sbi/sbi_console.h                    |  15 ++
+ include/sbi/sbi_hsm.h                        |  31 +++
+ include/sbi/sbi_ipi.h                        |  18 ++
+ include/sbi/sbi_platform.h                   | 256 +------------------
+ include/sbi/sbi_system.h                     |  16 ++
+ include/sbi/sbi_timer.h                      |  21 ++
+ include/sbi_utils/ipi/fdt_ipi.h              |   6 -
+ include/sbi_utils/reset/fdt_reset.h          |   6 -
+ include/sbi_utils/serial/fdt_serial.h        |   6 -
+ include/sbi_utils/serial/shakti-uart.h       |   4 -
+ include/sbi_utils/serial/sifive-uart.h       |   4 -
+ include/sbi_utils/serial/uart8250.h          |   4 -
+ include/sbi_utils/sys/clint.h                |  10 -
+ include/sbi_utils/sys/htif.h                 |   8 +-
+ include/sbi_utils/sys/sifive_test.h          |   4 -
+ include/sbi_utils/timer/fdt_timer.h          |   9 -
+ lib/sbi/sbi_console.c                        |  31 ++-
+ lib/sbi/sbi_domain.c                         |   6 -
+ lib/sbi/sbi_hsm.c                            |  70 ++++-
+ lib/sbi/sbi_init.c                           |  24 +-
+ lib/sbi/sbi_ipi.c                            |  32 ++-
+ lib/sbi/sbi_platform.c                       |   9 -
+ lib/sbi/sbi_system.c                         |  25 +-
+ lib/sbi/sbi_timer.c                          |  55 ++--
+ lib/utils/ipi/fdt_ipi.c                      |  20 --
+ lib/utils/ipi/fdt_ipi_clint.c                |   2 -
+ lib/utils/reset/fdt_reset.c                  |  14 -
+ lib/utils/reset/fdt_reset_htif.c             |   9 +-
+ lib/utils/reset/fdt_reset_sifive.c           |   2 -
+ lib/utils/reset/fdt_reset_thead.c            |  34 ++-
+ lib/utils/serial/fdt_serial.c                |  21 --
+ lib/utils/serial/fdt_serial_htif.c           |  10 +-
+ lib/utils/serial/fdt_serial_shakti.c         |   4 +-
+ lib/utils/serial/fdt_serial_sifive.c         |   4 +-
+ lib/utils/serial/fdt_serial_uart8250.c       |   2 -
+ lib/utils/serial/shakti-uart.c               |  12 +-
+ lib/utils/serial/sifive-uart.c               |  12 +-
+ lib/utils/serial/uart8250.c                  |  13 +-
+ lib/utils/sys/clint.c                        |  42 ++-
+ lib/utils/sys/htif.c                         |  38 ++-
+ lib/utils/sys/sifive_test.c                  |  12 +-
+ lib/utils/timer/fdt_timer.c                  |  31 ---
+ lib/utils/timer/fdt_timer_clint.c            |   3 -
+ platform/andes/ae350/platform.c              |  16 +-
+ platform/andes/ae350/plmt.c                  |  16 +-
+ platform/andes/ae350/plmt.h                  |   6 -
+ platform/fpga/ariane/platform.c              |   7 -
+ platform/fpga/openpiton/platform.c           |   7 -
+ platform/generic/include/platform_override.h |   4 -
+ platform/generic/platform.c                  |  29 ---
+ platform/kendryte/k210/platform.c            |  61 +++--
+ platform/nuclei/ux600/platform.c             |  45 ++--
+ platform/sifive/fu540/platform.c             |   7 -
+ platform/template/platform.c                 |  88 +------
+ platform/thead/c910/platform.c               |  62 +++--
+ platform/thead/c910/platform.h               |   3 +-
+ 56 files changed, 550 insertions(+), 756 deletions(-)
+
 -- 
 2.25.1
 
