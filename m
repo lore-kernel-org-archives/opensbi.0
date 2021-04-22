@@ -1,429 +1,62 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Thu, 22 Apr 2021 16:50:22 +0530
-Subject: [PATCH 6/7] lib: sbi: Simplify HSM platform operations
+Date: Thu, 22 Apr 2021 16:50:23 +0530
+Subject: [PATCH 7/7] lib: sbi: Show devices provided by platform in boot prints
 In-Reply-To: <20210422112023.670521-1-anup.patel@wdc.com>
 References: <20210422112023.670521-1-anup.patel@wdc.com>
-Message-ID: <20210422112023.670521-7-anup.patel@wdc.com>
+Message-ID: <20210422112023.670521-8-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of having hsm_start(), hsm_stop() and hsm_suspend()
-callbacks in platform operations, it will be much simpler for
-HSM driver to directly register these operations as a device
-to the sbi_hsm implementation.
+We extend the boot-time prints to show various devices provided
+(or registered) by the platform support. This will help users
+verify hardware devices available for OpenSBI firmwares.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_hsm.h          | 31 +++++++++++++
- include/sbi/sbi_platform.h     | 83 +---------------------------------
- lib/sbi/sbi_hsm.c              | 68 +++++++++++++++++++++++-----
- lib/sbi/sbi_platform.c         |  6 ---
- platform/thead/c910/platform.c | 27 ++++++-----
- platform/thead/c910/platform.h |  3 +-
- 6 files changed, 105 insertions(+), 113 deletions(-)
+ lib/sbi/sbi_init.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index bf0c1a5..c16e871 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -12,9 +12,40 @@
- 
- #include <sbi/sbi_types.h>
- 
-+/** Hart state managment device */
-+struct sbi_hsm_device {
-+	/** Name of the hart state managment device */
-+	char name[32];
-+
-+	/** Start (or power-up) the given hart */
-+	int (*hart_start)(u32 hartid, ulong saddr);
-+
-+	/**
-+	 * Stop (or power-down) the current hart from running. This call
-+	 * doesn't expect to return if success.
-+	 */
-+	int (*hart_stop)(void);
-+
-+	/**
-+	 * Put the current hart in platform specific suspend (or low-power)
-+	 * state.
-+	 *
-+	 * For successful retentive suspend, the call will return 0 when
-+	 * the hart resumes normal execution.
-+	 *
-+	 * For successful non-retentive suspend, the hart will resume from
-+	 * specified resume address
-+	 */
-+	int (*hart_suspend)(u32 suspend_type, ulong raddr);
-+};
-+
- struct sbi_domain;
- struct sbi_scratch;
- 
-+const struct sbi_hsm_device *sbi_hsm_get_device(void);
-+
-+void sbi_hsm_set_device(const struct sbi_hsm_device *dev);
-+
- int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
- void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
- 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 921d39c..f8074d2 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -51,15 +51,11 @@ struct sbi_trap_regs;
- 
- /** Possible feature flags of a platform */
- enum sbi_platform_features {
--	/** Platform has HART hotplug support */
--	SBI_PLATFORM_HAS_HART_HOTPLUG = (1 << 0),
- 	/** Platform has fault delegation support */
- 	SBI_PLATFORM_HAS_MFAULTS_DELEGATION = (1 << 1),
--	/** Platform has custom secondary hart booting support */
--	SBI_PLATFORM_HAS_HART_SECONDARY_BOOT = (1 << 2),
- 
- 	/** Last index of Platform features*/
--	SBI_PLATFORM_HAS_LAST_FEATURE = SBI_PLATFORM_HAS_HART_SECONDARY_BOOT,
-+	SBI_PLATFORM_HAS_LAST_FEATURE = SBI_PLATFORM_HAS_MFAULTS_DELEGATION,
- };
- 
- /** Default feature set for a platform */
-@@ -114,19 +110,6 @@ struct sbi_platform_operations {
- 	/** Exit platform timer for current HART */
- 	void (*timer_exit)(void);
- 
--	/** Bringup the given hart */
--	int (*hart_start)(u32 hartid, ulong saddr);
--	/**
--	 * Stop the current hart from running. This call doesn't expect to
--	 * return if success.
--	 */
--	int (*hart_stop)(void);
--	/**
--	 * Put the current hart in platform specific suspend (or low-power)
--	 * state.
--	 */
--	int (*hart_suspend)(u32 suspend_type, ulong raddr);
--
- 	/** platform specific SBI extension implementation probe function */
- 	int (*vendor_ext_check)(long extid);
- 	/** platform specific SBI extension implementation provider */
-@@ -193,15 +176,9 @@ struct sbi_platform {
- #define sbi_platform_ops(__p) \
- 	((const struct sbi_platform_operations *)(__p)->platform_ops_addr)
- 
--/** Check whether the platform supports HART hotplug */
--#define sbi_platform_has_hart_hotplug(__p) \
--	((__p)->features & SBI_PLATFORM_HAS_HART_HOTPLUG)
- /** Check whether the platform supports fault delegation */
- #define sbi_platform_has_mfaults_delegation(__p) \
- 	((__p)->features & SBI_PLATFORM_HAS_MFAULTS_DELEGATION)
--/** Check whether the platform supports custom secondary hart booting support */
--#define sbi_platform_has_hart_secondary_boot(__p) \
--	((__p)->features & SBI_PLATFORM_HAS_HART_SECONDARY_BOOT)
- 
- /**
-  * Get HART index for the given HART
-@@ -316,64 +293,6 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
- 	return FALSE;
- }
- 
--/**
-- * Bringup a given hart from previous stage. Platform should implement this
-- * operation if they support a custom mechanism to start a hart. Otherwise,
-- * a generic WFI based approach will be used to start/stop a hart in OpenSBI.
-- *
-- * @param plat pointer to struct sbi_platform
-- * @param hartid HART id
-- * @param saddr M-mode start physical address for the HART
-- *
-- * @return 0 if sucessful and negative error code on failure
-- */
--static inline int sbi_platform_hart_start(const struct sbi_platform *plat,
--					  u32 hartid, ulong saddr)
--{
--	if (plat && sbi_platform_ops(plat)->hart_start)
--		return sbi_platform_ops(plat)->hart_start(hartid, saddr);
--	return SBI_ENOTSUPP;
--}
--
--/**
-- * Stop the current hart in OpenSBI.
-- *
-- * @param plat pointer to struct sbi_platform
-- *
-- * @return Negative error code on failure. It doesn't return on success.
-- */
--static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
--{
--	if (plat && sbi_platform_ops(plat)->hart_stop)
--		return sbi_platform_ops(plat)->hart_stop();
--	return SBI_ENOTSUPP;
--}
--
--/**
-- * Put the current hart in platform specific suspend (or low-power) state.
-- *
-- * For successful retentive suspend, the call will return 0 when the hart
-- * resumes normal execution.
-- *
-- * For successful non-retentive suspend, the hart will resume from specified
-- * resume address
-- *
-- * @param plat pointer to struct sbi_platform
-- * @param suspend_type the type of suspend
-- * @param raddr physical address where the hart can resume in M-mode after
-- * non-retantive suspend
-- *
-- * @return 0 if successful and negative error code on failure
-- */
--static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
--					    u32 suspend_type, ulong raddr)
--{
--	if (plat && sbi_platform_ops(plat)->hart_suspend)
--		return sbi_platform_ops(plat)->hart_suspend(suspend_type,
--							    raddr);
--	return SBI_ENOTSUPP;
--}
--
- /**
-  * Early initialization for current HART
-  *
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 64d299b..4662150 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -21,11 +21,12 @@
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_init.h>
- #include <sbi/sbi_ipi.h>
--#include <sbi/sbi_platform.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_timer.h>
- #include <sbi/sbi_console.h>
- 
-+static const struct sbi_hsm_device *hsm_dev = NULL;
- static unsigned long hart_data_offset;
- 
- /** Per hart specific data to manage state transition **/
-@@ -129,6 +130,54 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- 	 */
- }
- 
-+const struct sbi_hsm_device *sbi_hsm_get_device(void)
-+{
-+	return hsm_dev;
-+}
-+
-+void sbi_hsm_set_device(const struct sbi_hsm_device *dev)
-+{
-+	if (!dev || hsm_dev)
-+		return;
-+
-+	hsm_dev = dev;
-+}
-+
-+static bool hsm_device_has_hart_hotplug(void)
-+{
-+	if (hsm_dev && hsm_dev->hart_start && hsm_dev->hart_stop)
-+		return true;
-+	return false;
-+}
-+
-+static bool hsm_device_has_hart_secondary_boot(void)
-+{
-+	if (hsm_dev && hsm_dev->hart_start && !hsm_dev->hart_stop)
-+		return true;
-+	return false;
-+}
-+
-+static int hsm_device_hart_start(u32 hartid, ulong saddr)
-+{
-+	if (hsm_dev && hsm_dev->hart_start)
-+		return hsm_dev->hart_start(hartid, saddr);
-+	return SBI_ENOTSUPP;
-+}
-+
-+static int hsm_device_hart_stop(void)
-+{
-+	if (hsm_dev && hsm_dev->hart_stop)
-+		return hsm_dev->hart_stop();
-+	return SBI_ENOTSUPP;
-+}
-+
-+static int hsm_device_hart_suspend(u32 suspend_type, ulong raddr)
-+{
-+	if (hsm_dev && hsm_dev->hart_suspend)
-+		return hsm_dev->hart_suspend(suspend_type, raddr);
-+	return SBI_ENOTSUPP;
-+}
-+
- int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 7380d01..3f44a2b 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -53,6 +53,11 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+ static void sbi_boot_print_general(struct sbi_scratch *scratch)
  {
- 	u32 i;
-@@ -164,7 +213,6 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
- void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
- {
- 	u32 hstate;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
-@@ -174,8 +222,8 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
- 	if (hstate != SBI_HSM_STATE_STOP_PENDING)
- 		goto fail_exit;
+ 	char str[128];
++	const struct sbi_hsm_device *hdev;
++	const struct sbi_ipi_device *idev;
++	const struct sbi_timer_device *tdev;
++	const struct sbi_console_device *cdev;
++	const struct sbi_system_reset_device *srdev;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
--	if (sbi_platform_has_hart_hotplug(plat)) {
--		sbi_platform_hart_stop(plat);
-+	if (hsm_device_has_hart_hotplug()) {
-+		hsm_device_hart_stop();
- 		/* It should never reach here */
- 		goto fail_exit;
- 	}
-@@ -201,7 +249,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	unsigned int hstate;
- 	struct sbi_scratch *rscratch;
- 	struct sbi_hsm_data *hdata;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
+@@ -65,6 +70,21 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
+ 	sbi_printf("Platform Features         : %s\n", str);
+ 	sbi_printf("Platform HART Count       : %u\n",
+ 		   sbi_platform_hart_count(plat));
++	idev = sbi_ipi_get_device();
++	sbi_printf("Platform IPI Device       : %s\n",
++		   (idev) ? idev->name : "---");
++	tdev = sbi_timer_get_device();
++	sbi_printf("Platform Timer Device     : %s\n",
++		   (tdev) ? tdev->name : "---");
++	cdev = sbi_console_get_device();
++	sbi_printf("Platform Console Device   : %s\n",
++		   (cdev) ? cdev->name : "---");
++	hdev = sbi_hsm_get_device();
++	sbi_printf("Platform HSM Device       : %s\n",
++		   (hdev) ? hdev->name : "---");
++	srdev = sbi_system_reset_get_device();
++	sbi_printf("Platform SysReset Device  : %s\n",
++		   (srdev) ? srdev->name : "---");
  
- 	/* For now, we only allow start mode to be S-mode or U-mode. */
- 	if (smode != PRV_S && smode != PRV_U)
-@@ -233,10 +280,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	rscratch->next_addr = saddr;
- 	rscratch->next_mode = smode;
- 
--	if (sbi_platform_has_hart_hotplug(plat) ||
--	   (sbi_platform_has_hart_secondary_boot(plat) && !init_count)) {
--		return sbi_platform_hart_start(plat, hartid,
--					       scratch->warmboot_addr);
-+	if (hsm_device_has_hart_hotplug() ||
-+	   (hsm_device_has_hart_secondary_boot() && !init_count)) {
-+		return hsm_device_hart_start(hartid, scratch->warmboot_addr);
- 	} else {
- 		sbi_ipi_raw_send(hartid);
- 	}
-@@ -374,7 +420,6 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- {
- 	int oldstate, ret;
- 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 
-@@ -420,8 +465,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	hdata->suspend_type = suspend_type;
- 
- 	/* Try platform specific suspend */
--	ret = sbi_platform_hart_suspend(plat, suspend_type,
--					scratch->warmboot_addr);
-+	ret = hsm_device_hart_suspend(suspend_type, scratch->warmboot_addr);
- 	if (ret == SBI_ENOTSUPP) {
- 		/* Try generic implementation of default suspend types */
- 		if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT) {
-diff --git a/lib/sbi/sbi_platform.c b/lib/sbi/sbi_platform.c
-index e78119a..e8b94a3 100644
---- a/lib/sbi/sbi_platform.c
-+++ b/lib/sbi/sbi_platform.c
-@@ -19,15 +19,9 @@ static inline char *sbi_platform_feature_id2string(unsigned long feature)
- 		return NULL;
- 
- 	switch (feature) {
--	case SBI_PLATFORM_HAS_HART_HOTPLUG:
--		fstr = "hotplug";
--		break;
- 	case SBI_PLATFORM_HAS_MFAULTS_DELEGATION:
- 		fstr = "mfdeleg";
- 		break;
--	case SBI_PLATFORM_HAS_HART_SECONDARY_BOOT:
--		fstr = "sec_boot";
--		break;
- 	default:
- 		break;
- 	}
-diff --git a/platform/thead/c910/platform.c b/platform/thead/c910/platform.c
-index 8f8069c..8a9318c 100644
---- a/platform/thead/c910/platform.c
-+++ b/platform/thead/c910/platform.c
-@@ -7,6 +7,7 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_const.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hsm.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_system.h>
- #include <sbi_utils/irqchip/plic.h>
-@@ -39,6 +40,19 @@ static struct sbi_system_reset_device c910_reset = {
- 	.system_reset = c910_system_reset
- };
- 
-+static int c910_hart_start(u32 hartid, ulong saddr)
-+{
-+	csr_write(CSR_MRVBR, saddr);
-+	csr_write(CSR_MRMR, csr_read(CSR_MRMR) | (1 << hartid));
-+
-+	return 0;
-+}
-+
-+static struct sbi_hsm_device c910_hsm = {
-+	.name = "thead_c910_hsm",
-+	.hart_start = c910_hart_start
-+};
-+
- static int c910_early_init(bool cold_boot)
- {
- 	if (cold_boot) {
-@@ -63,6 +77,7 @@ static int c910_early_init(bool cold_boot)
- 		c910_regs.clint_base_addr =
- 			c910_regs.plic_base_addr + C910_PLIC_CLINT_OFFSET;
- 
-+		sbi_hsm_set_device(&c910_hsm);
- 		sbi_system_reset_set_device(&c910_reset);
- 	} else {
- 		/* Store to other core */
-@@ -127,14 +142,6 @@ static int c910_timer_init(bool cold_boot)
- 	return clint_warm_timer_init();
- }
- 
--int c910_hart_start(u32 hartid, ulong saddr)
--{
--	csr_write(CSR_MRVBR, saddr);
--	csr_write(CSR_MRMR, csr_read(CSR_MRMR) | (1 << hartid));
--
--	return 0;
--}
--
- const struct sbi_platform_operations platform_ops = {
- 	.early_init          = c910_early_init,
- 	.final_init          = c910_final_init,
-@@ -143,9 +150,7 @@ const struct sbi_platform_operations platform_ops = {
- 
- 	.ipi_init            = c910_ipi_init,
- 
--	.timer_init          = c910_timer_init,
--
--	.hart_start          = c910_hart_start,
-+	.timer_init          = c910_timer_init
- };
- 
- const struct sbi_platform platform = {
-diff --git a/platform/thead/c910/platform.h b/platform/thead/c910/platform.h
-index 354404e..880cb6b 100644
---- a/platform/thead/c910/platform.h
-+++ b/platform/thead/c910/platform.h
-@@ -8,8 +8,7 @@
- #define C910_HART_COUNT   16
- 
- #define SBI_THEAD_FEATURES	\
--	 (SBI_PLATFORM_HAS_MFAULTS_DELEGATION | \
--	 SBI_PLATFORM_HAS_HART_SECONDARY_BOOT)
-+	(SBI_PLATFORM_HAS_MFAULTS_DELEGATION)
- 
- #define CSR_MCOR         0x7c2
- #define CSR_MHCR         0x7c1
+ 	/* Firmware details */
+ 	sbi_printf("Firmware Base             : 0x%lx\n", scratch->fw_start);
 -- 
 2.25.1
 
