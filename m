@@ -1,760 +1,429 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Thu, 22 Apr 2021 16:50:21 +0530
-Subject: [PATCH 5/7] lib: sbi: Simplify system reset platform operations
+Date: Thu, 22 Apr 2021 16:50:22 +0530
+Subject: [PATCH 6/7] lib: sbi: Simplify HSM platform operations
 In-Reply-To: <20210422112023.670521-1-anup.patel@wdc.com>
 References: <20210422112023.670521-1-anup.patel@wdc.com>
-Message-ID: <20210422112023.670521-6-anup.patel@wdc.com>
+Message-ID: <20210422112023.670521-7-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of having system_reset_check() and system_reset() callbacks
-in platform operations, it will be much simpler for reset driver to
-directly register these operations as a device to the sbi_system
-implementation.
+Instead of having hsm_start(), hsm_stop() and hsm_suspend()
+callbacks in platform operations, it will be much simpler for
+HSM driver to directly register these operations as a device
+to the sbi_hsm implementation.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi/sbi_platform.h                   | 40 ---------------
- include/sbi/sbi_system.h                     | 16 ++++++
- include/sbi_utils/reset/fdt_reset.h          |  6 ---
- include/sbi_utils/sys/htif.h                 |  4 +-
- include/sbi_utils/sys/sifive_test.h          |  4 --
- lib/sbi/sbi_system.c                         | 25 ++++++++--
- lib/utils/reset/fdt_reset.c                  | 14 ------
- lib/utils/reset/fdt_reset_htif.c             |  9 +++-
- lib/utils/reset/fdt_reset_sifive.c           |  2 -
- lib/utils/reset/fdt_reset_thead.c            | 34 ++++++++-----
- lib/utils/sys/htif.c                         | 18 ++++++-
- lib/utils/sys/sifive_test.c                  | 12 ++++-
- platform/generic/include/platform_override.h |  4 --
- platform/generic/platform.c                  | 22 ---------
- platform/kendryte/k210/platform.c            | 52 +++++++++++++-------
- platform/nuclei/ux600/platform.c             | 38 ++++++++------
- platform/template/platform.c                 | 19 +------
- platform/thead/c910/platform.c               | 32 +++++++-----
- 18 files changed, 167 insertions(+), 184 deletions(-)
+ include/sbi/sbi_hsm.h          | 31 +++++++++++++
+ include/sbi/sbi_platform.h     | 83 +---------------------------------
+ lib/sbi/sbi_hsm.c              | 68 +++++++++++++++++++++++-----
+ lib/sbi/sbi_platform.c         |  6 ---
+ platform/thead/c910/platform.c | 27 ++++++-----
+ platform/thead/c910/platform.h |  3 +-
+ 6 files changed, 105 insertions(+), 113 deletions(-)
 
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index bf0c1a5..c16e871 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -12,9 +12,40 @@
+ 
+ #include <sbi/sbi_types.h>
+ 
++/** Hart state managment device */
++struct sbi_hsm_device {
++	/** Name of the hart state managment device */
++	char name[32];
++
++	/** Start (or power-up) the given hart */
++	int (*hart_start)(u32 hartid, ulong saddr);
++
++	/**
++	 * Stop (or power-down) the current hart from running. This call
++	 * doesn't expect to return if success.
++	 */
++	int (*hart_stop)(void);
++
++	/**
++	 * Put the current hart in platform specific suspend (or low-power)
++	 * state.
++	 *
++	 * For successful retentive suspend, the call will return 0 when
++	 * the hart resumes normal execution.
++	 *
++	 * For successful non-retentive suspend, the hart will resume from
++	 * specified resume address
++	 */
++	int (*hart_suspend)(u32 suspend_type, ulong raddr);
++};
++
+ struct sbi_domain;
+ struct sbi_scratch;
+ 
++const struct sbi_hsm_device *sbi_hsm_get_device(void);
++
++void sbi_hsm_set_device(const struct sbi_hsm_device *dev);
++
+ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
+ 
 diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 2756d73..921d39c 100644
+index 921d39c..f8074d2 100644
 --- a/include/sbi/sbi_platform.h
 +++ b/include/sbi/sbi_platform.h
-@@ -127,11 +127,6 @@ struct sbi_platform_operations {
- 	 */
- 	int (*hart_suspend)(u32 suspend_type, ulong raddr);
+@@ -51,15 +51,11 @@ struct sbi_trap_regs;
  
--	/* Check whether reset type and reason supported by the platform */
--	int (*system_reset_check)(u32 reset_type, u32 reset_reason);
--	/** Reset the platform */
--	void (*system_reset)(u32 reset_type, u32 reset_reason);
+ /** Possible feature flags of a platform */
+ enum sbi_platform_features {
+-	/** Platform has HART hotplug support */
+-	SBI_PLATFORM_HAS_HART_HOTPLUG = (1 << 0),
+ 	/** Platform has fault delegation support */
+ 	SBI_PLATFORM_HAS_MFAULTS_DELEGATION = (1 << 1),
+-	/** Platform has custom secondary hart booting support */
+-	SBI_PLATFORM_HAS_HART_SECONDARY_BOOT = (1 << 2),
+ 
+ 	/** Last index of Platform features*/
+-	SBI_PLATFORM_HAS_LAST_FEATURE = SBI_PLATFORM_HAS_HART_SECONDARY_BOOT,
++	SBI_PLATFORM_HAS_LAST_FEATURE = SBI_PLATFORM_HAS_MFAULTS_DELEGATION,
+ };
+ 
+ /** Default feature set for a platform */
+@@ -114,19 +110,6 @@ struct sbi_platform_operations {
+ 	/** Exit platform timer for current HART */
+ 	void (*timer_exit)(void);
+ 
+-	/** Bringup the given hart */
+-	int (*hart_start)(u32 hartid, ulong saddr);
+-	/**
+-	 * Stop the current hart from running. This call doesn't expect to
+-	 * return if success.
+-	 */
+-	int (*hart_stop)(void);
+-	/**
+-	 * Put the current hart in platform specific suspend (or low-power)
+-	 * state.
+-	 */
+-	int (*hart_suspend)(u32 suspend_type, ulong raddr);
 -
  	/** platform specific SBI extension implementation probe function */
  	int (*vendor_ext_check)(long extid);
  	/** platform specific SBI extension implementation provider */
-@@ -572,41 +567,6 @@ static inline void sbi_platform_timer_exit(const struct sbi_platform *plat)
- 		sbi_platform_ops(plat)->timer_exit();
+@@ -193,15 +176,9 @@ struct sbi_platform {
+ #define sbi_platform_ops(__p) \
+ 	((const struct sbi_platform_operations *)(__p)->platform_ops_addr)
+ 
+-/** Check whether the platform supports HART hotplug */
+-#define sbi_platform_has_hart_hotplug(__p) \
+-	((__p)->features & SBI_PLATFORM_HAS_HART_HOTPLUG)
+ /** Check whether the platform supports fault delegation */
+ #define sbi_platform_has_mfaults_delegation(__p) \
+ 	((__p)->features & SBI_PLATFORM_HAS_MFAULTS_DELEGATION)
+-/** Check whether the platform supports custom secondary hart booting support */
+-#define sbi_platform_has_hart_secondary_boot(__p) \
+-	((__p)->features & SBI_PLATFORM_HAS_HART_SECONDARY_BOOT)
+ 
+ /**
+  * Get HART index for the given HART
+@@ -316,64 +293,6 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
+ 	return FALSE;
  }
  
 -/**
-- * Check whether reset type and reason supported by the platform
+- * Bringup a given hart from previous stage. Platform should implement this
+- * operation if they support a custom mechanism to start a hart. Otherwise,
+- * a generic WFI based approach will be used to start/stop a hart in OpenSBI.
 - *
 - * @param plat pointer to struct sbi_platform
-- * @param reset_type type of reset
-- * @param reset_reason reason for reset
+- * @param hartid HART id
+- * @param saddr M-mode start physical address for the HART
 - *
-- * @return 0 if reset type and reason not supported and 1 if supported
+- * @return 0 if sucessful and negative error code on failure
 - */
--static inline int sbi_platform_system_reset_check(
--					    const struct sbi_platform *plat,
--					    u32 reset_type, u32 reset_reason)
+-static inline int sbi_platform_hart_start(const struct sbi_platform *plat,
+-					  u32 hartid, ulong saddr)
 -{
--	if (plat && sbi_platform_ops(plat)->system_reset_check)
--		return sbi_platform_ops(plat)->system_reset_check(reset_type,
--								  reset_reason);
--	return 0;
+-	if (plat && sbi_platform_ops(plat)->hart_start)
+-		return sbi_platform_ops(plat)->hart_start(hartid, saddr);
+-	return SBI_ENOTSUPP;
 -}
 -
 -/**
-- * Reset the platform
-- *
-- * This function will not return for supported reset type and reset reason
+- * Stop the current hart in OpenSBI.
 - *
 - * @param plat pointer to struct sbi_platform
-- * @param reset_type type of reset
-- * @param reset_reason reason for reset
+- *
+- * @return Negative error code on failure. It doesn't return on success.
 - */
--static inline void sbi_platform_system_reset(const struct sbi_platform *plat,
--					     u32 reset_type, u32 reset_reason)
+-static inline int sbi_platform_hart_stop(const struct sbi_platform *plat)
 -{
--	if (plat && sbi_platform_ops(plat)->system_reset)
--		sbi_platform_ops(plat)->system_reset(reset_type, reset_reason);
+-	if (plat && sbi_platform_ops(plat)->hart_stop)
+-		return sbi_platform_ops(plat)->hart_stop();
+-	return SBI_ENOTSUPP;
+-}
+-
+-/**
+- * Put the current hart in platform specific suspend (or low-power) state.
+- *
+- * For successful retentive suspend, the call will return 0 when the hart
+- * resumes normal execution.
+- *
+- * For successful non-retentive suspend, the hart will resume from specified
+- * resume address
+- *
+- * @param plat pointer to struct sbi_platform
+- * @param suspend_type the type of suspend
+- * @param raddr physical address where the hart can resume in M-mode after
+- * non-retantive suspend
+- *
+- * @return 0 if successful and negative error code on failure
+- */
+-static inline int sbi_platform_hart_suspend(const struct sbi_platform *plat,
+-					    u32 suspend_type, ulong raddr)
+-{
+-	if (plat && sbi_platform_ops(plat)->hart_suspend)
+-		return sbi_platform_ops(plat)->hart_suspend(suspend_type,
+-							    raddr);
+-	return SBI_ENOTSUPP;
 -}
 -
  /**
-  * Check if a vendor extension is implemented or not.
+  * Early initialization for current HART
   *
-diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
-index 34ba766..a9fa546 100644
---- a/include/sbi/sbi_system.h
-+++ b/include/sbi/sbi_system.h
-@@ -12,6 +12,22 @@
- 
- #include <sbi/sbi_types.h>
- 
-+/** System reset hardware device */
-+struct sbi_system_reset_device {
-+	/** Name of the system reset device */
-+	char name[32];
-+
-+	/* Check whether reset type and reason supported by the device */
-+	int (*system_reset_check)(u32 reset_type, u32 reset_reason);
-+
-+	/** Reset the system */
-+	void (*system_reset)(u32 reset_type, u32 reset_reason);
-+};
-+
-+const struct sbi_system_reset_device *sbi_system_reset_get_device(void);
-+
-+void sbi_system_reset_set_device(const struct sbi_system_reset_device *dev);
-+
- bool sbi_system_reset_supported(u32 reset_type, u32 reset_reason);
- 
- void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason);
-diff --git a/include/sbi_utils/reset/fdt_reset.h b/include/sbi_utils/reset/fdt_reset.h
-index cce441a..6d58697 100644
---- a/include/sbi_utils/reset/fdt_reset.h
-+++ b/include/sbi_utils/reset/fdt_reset.h
-@@ -15,14 +15,8 @@
- struct fdt_reset {
- 	const struct fdt_match *match_table;
- 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
--	int (*system_reset_check)(u32 reset_type, u32 reset_reason);
--	void (*system_reset)(u32 reset_type, u32 reset_reason);
- };
- 
--int fdt_system_reset_check(u32 reset_type, u32 reset_reason);
--
--void fdt_system_reset(u32 reset_type, u32 reset_reason);
--
- int fdt_reset_init(void);
- 
- #endif
-diff --git a/include/sbi_utils/sys/htif.h b/include/sbi_utils/sys/htif.h
-index 8073a44..9cc9634 100644
---- a/include/sbi_utils/sys/htif.h
-+++ b/include/sbi_utils/sys/htif.h
-@@ -12,8 +12,6 @@
- 
- int htif_serial_init(void);
- 
--int htif_system_reset_check(u32 type, u32 reason);
--
--void htif_system_reset(u32 type, u32 reason);
-+int htif_system_reset_init(void);
- 
- #endif
-diff --git a/include/sbi_utils/sys/sifive_test.h b/include/sbi_utils/sys/sifive_test.h
-index 958622e..0a09499 100644
---- a/include/sbi_utils/sys/sifive_test.h
-+++ b/include/sbi_utils/sys/sifive_test.h
-@@ -12,10 +12,6 @@
- 
- #include <sbi/sbi_types.h>
- 
--int sifive_test_system_reset_check(u32 type, u32 reason);
--
--void sifive_test_system_reset(u32 type, u32 reason);
--
- int sifive_test_init(unsigned long base);
- 
- #endif
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index 10915b4..479060b 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -18,10 +18,25 @@
- #include <sbi/sbi_ipi.h>
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 64d299b..4662150 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -21,11 +21,12 @@
+ #include <sbi/sbi_hsm.h>
  #include <sbi/sbi_init.h>
+ #include <sbi/sbi_ipi.h>
+-#include <sbi/sbi_platform.h>
++#include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_system.h>
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_console.h>
  
-+static const struct sbi_system_reset_device *reset_dev = NULL;
-+
-+const struct sbi_system_reset_device *sbi_system_reset_get_device(void)
++static const struct sbi_hsm_device *hsm_dev = NULL;
+ static unsigned long hart_data_offset;
+ 
+ /** Per hart specific data to manage state transition **/
+@@ -129,6 +130,54 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+ 	 */
+ }
+ 
++const struct sbi_hsm_device *sbi_hsm_get_device(void)
 +{
-+	return reset_dev;
++	return hsm_dev;
 +}
 +
-+void sbi_system_reset_set_device(const struct sbi_system_reset_device *dev)
++void sbi_hsm_set_device(const struct sbi_hsm_device *dev)
 +{
-+	if (!dev || reset_dev)
++	if (!dev || hsm_dev)
 +		return;
 +
-+	reset_dev = dev;
++	hsm_dev = dev;
 +}
 +
- bool sbi_system_reset_supported(u32 reset_type, u32 reset_reason)
- {
--	if (sbi_platform_system_reset_check(sbi_platform_thishart_ptr(),
--					    reset_type, reset_reason))
-+	if (reset_dev && reset_dev->system_reset_check &&
-+	    reset_dev->system_reset_check(reset_type, reset_reason))
- 		return TRUE;
- 
- 	return FALSE;
-@@ -47,9 +62,9 @@ void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason)
- 	sbi_hsm_hart_stop(scratch, FALSE);
- 
- 	/* Platform specific reset if domain allowed system reset */
--	if (dom->system_reset_allowed)
--		sbi_platform_system_reset(sbi_platform_ptr(scratch),
--					  reset_type, reset_reason);
-+	if (dom->system_reset_allowed &&
-+	    reset_dev && reset_dev->system_reset)
-+		reset_dev->system_reset(reset_type, reset_reason);
- 
- 	/* If platform specific reset did not work then do sbi_exit() */
- 	sbi_exit(scratch);
-diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-index 82532c2..b01b0d1 100644
---- a/lib/utils/reset/fdt_reset.c
-+++ b/lib/utils/reset/fdt_reset.c
-@@ -23,20 +23,6 @@ static struct fdt_reset *reset_drivers[] = {
- 
- static struct fdt_reset *current_driver = NULL;
- 
--int fdt_system_reset_check(u32 reset_type, u32 reset_reason)
--{
--	if (current_driver && current_driver->system_reset_check)
--		return current_driver->system_reset_check(reset_type,
--							  reset_reason);
--	return 0;
--}
--
--void fdt_system_reset(u32 reset_type, u32 reset_reason)
--{
--	if (current_driver && current_driver->system_reset)
--		current_driver->system_reset(reset_type, reset_reason);
--}
--
- int fdt_reset_init(void)
- {
- 	int pos, noff, rc;
-diff --git a/lib/utils/reset/fdt_reset_htif.c b/lib/utils/reset/fdt_reset_htif.c
-index 587e7d6..dd08660 100644
---- a/lib/utils/reset/fdt_reset_htif.c
-+++ b/lib/utils/reset/fdt_reset_htif.c
-@@ -11,6 +11,12 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/sys/htif.h>
- 
-+static int htif_reset_init(void *fdt, int nodeoff,
-+			   const struct fdt_match *match)
++static bool hsm_device_has_hart_hotplug(void)
 +{
-+	return htif_system_reset_init();
++	if (hsm_dev && hsm_dev->hart_start && hsm_dev->hart_stop)
++		return true;
++	return false;
 +}
 +
- static const struct fdt_match htif_reset_match[] = {
- 	{ .compatible = "ucb,htif0" },
- 	{ },
-@@ -18,6 +24,5 @@ static const struct fdt_match htif_reset_match[] = {
- 
- struct fdt_reset fdt_reset_htif = {
- 	.match_table = htif_reset_match,
--	.system_reset_check = htif_system_reset_check,
--	.system_reset = htif_system_reset
-+	.init = htif_reset_init
- };
-diff --git a/lib/utils/reset/fdt_reset_sifive.c b/lib/utils/reset/fdt_reset_sifive.c
-index 38b520c..928dee9 100644
---- a/lib/utils/reset/fdt_reset_sifive.c
-+++ b/lib/utils/reset/fdt_reset_sifive.c
-@@ -33,6 +33,4 @@ static const struct fdt_match sifive_test_reset_match[] = {
- struct fdt_reset fdt_reset_sifive = {
- 	.match_table = sifive_test_reset_match,
- 	.init = sifive_test_reset_init,
--	.system_reset_check = sifive_test_system_reset_check,
--	.system_reset = sifive_test_system_reset
- };
-diff --git a/lib/utils/reset/fdt_reset_thead.c b/lib/utils/reset/fdt_reset_thead.c
-index ea81fc9..95f8c36 100644
---- a/lib/utils/reset/fdt_reset_thead.c
-+++ b/lib/utils/reset/fdt_reset_thead.c
-@@ -7,8 +7,10 @@
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/reset/fdt_reset.h>
++static bool hsm_device_has_hart_secondary_boot(void)
++{
++	if (hsm_dev && hsm_dev->hart_start && !hsm_dev->hart_stop)
++		return true;
++	return false;
++}
 +
- #include "fdt_reset_thead.h"
++static int hsm_device_hart_start(u32 hartid, ulong saddr)
++{
++	if (hsm_dev && hsm_dev->hart_start)
++		return hsm_dev->hart_start(hartid, saddr);
++	return SBI_ENOTSUPP;
++}
++
++static int hsm_device_hart_stop(void)
++{
++	if (hsm_dev && hsm_dev->hart_stop)
++		return hsm_dev->hart_stop();
++	return SBI_ENOTSUPP;
++}
++
++static int hsm_device_hart_suspend(u32 suspend_type, ulong raddr)
++{
++	if (hsm_dev && hsm_dev->hart_suspend)
++		return hsm_dev->hart_suspend(suspend_type, raddr);
++	return SBI_ENOTSUPP;
++}
++
+ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+ {
+ 	u32 i;
+@@ -164,7 +213,6 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+ {
+ 	u32 hstate;
+-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+@@ -174,8 +222,8 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+ 	if (hstate != SBI_HSM_STATE_STOP_PENDING)
+ 		goto fail_exit;
  
- struct custom_csr custom_csr[MAX_CUSTOM_CSR];
-@@ -37,6 +39,22 @@ static void clone_csrs(int cnt)
+-	if (sbi_platform_has_hart_hotplug(plat)) {
+-		sbi_platform_hart_stop(plat);
++	if (hsm_device_has_hart_hotplug()) {
++		hsm_device_hart_stop();
+ 		/* It should never reach here */
+ 		goto fail_exit;
  	}
- }
+@@ -201,7 +249,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 	unsigned int hstate;
+ 	struct sbi_scratch *rscratch;
+ 	struct sbi_hsm_data *hdata;
+-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
-+static int thead_system_reset_check(u32 type, u32 reason)
-+{
-+	return 1;
-+}
-+
-+static void thead_system_reset(u32 type, u32 reason)
-+{
-+	ebreak();
-+}
-+
-+static struct sbi_system_reset_device thead_reset = {
-+	.name = "thead_reset",
-+	.system_reset_check = thead_system_reset_check,
-+	.system_reset = thead_system_reset
-+};
-+
- extern void __thead_pre_start_warm(void);
- static int thead_reset_init(void *fdt, int nodeoff,
- 				 const struct fdt_match *match)
-@@ -106,17 +124,9 @@ static int thead_reset_init(void *fdt, int nodeoff,
- 		}
+ 	/* For now, we only allow start mode to be S-mode or U-mode. */
+ 	if (smode != PRV_S && smode != PRV_U)
+@@ -233,10 +280,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 	rscratch->next_addr = saddr;
+ 	rscratch->next_mode = smode;
+ 
+-	if (sbi_platform_has_hart_hotplug(plat) ||
+-	   (sbi_platform_has_hart_secondary_boot(plat) && !init_count)) {
+-		return sbi_platform_hart_start(plat, hartid,
+-					       scratch->warmboot_addr);
++	if (hsm_device_has_hart_hotplug() ||
++	   (hsm_device_has_hart_secondary_boot() && !init_count)) {
++		return hsm_device_hart_start(hartid, scratch->warmboot_addr);
+ 	} else {
+ 		sbi_ipi_raw_send(hartid);
  	}
- 
--	return 0;
--}
--
--int thead_system_reset_check(u32 type, u32 reason)
--{
--	return 1;
--}
-+	sbi_system_reset_set_device(&thead_reset);
- 
--void thead_system_reset(u32 type, u32 reason)
--{
--	ebreak();
-+	return 0;
- }
- 
- static const struct fdt_match thead_reset_match[] = {
-@@ -126,7 +136,5 @@ static const struct fdt_match thead_reset_match[] = {
- 
- struct fdt_reset fdt_reset_thead = {
- 	.match_table = thead_reset_match,
--	.init = thead_reset_init,
--	.system_reset_check = thead_system_reset_check,
--	.system_reset = thead_system_reset
-+	.init = thead_reset_init
- };
-diff --git a/lib/utils/sys/htif.c b/lib/utils/sys/htif.c
-index 2fd38a7..330a9a6 100644
---- a/lib/utils/sys/htif.c
-+++ b/lib/utils/sys/htif.c
-@@ -7,6 +7,7 @@
- 
- #include <sbi/riscv_locks.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/sys/htif.h>
- 
- #define HTIF_DATA_BITS		48
-@@ -154,15 +155,28 @@ int htif_serial_init(void)
- 	return 0;
- }
- 
--int htif_system_reset_check(u32 type, u32 reason)
-+static int htif_system_reset_check(u32 type, u32 reason)
+@@ -374,7 +420,6 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
  {
- 	return 1;
- }
+ 	int oldstate, ret;
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
  
--void htif_system_reset(u32 type, u32 reason)
-+static void htif_system_reset(u32 type, u32 reason)
- {
- 	while (1) {
- 		fromhost = 0;
- 		tohost = 1;
+@@ -420,8 +465,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 	hdata->suspend_type = suspend_type;
+ 
+ 	/* Try platform specific suspend */
+-	ret = sbi_platform_hart_suspend(plat, suspend_type,
+-					scratch->warmboot_addr);
++	ret = hsm_device_hart_suspend(suspend_type, scratch->warmboot_addr);
+ 	if (ret == SBI_ENOTSUPP) {
+ 		/* Try generic implementation of default suspend types */
+ 		if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT) {
+diff --git a/lib/sbi/sbi_platform.c b/lib/sbi/sbi_platform.c
+index e78119a..e8b94a3 100644
+--- a/lib/sbi/sbi_platform.c
++++ b/lib/sbi/sbi_platform.c
+@@ -19,15 +19,9 @@ static inline char *sbi_platform_feature_id2string(unsigned long feature)
+ 		return NULL;
+ 
+ 	switch (feature) {
+-	case SBI_PLATFORM_HAS_HART_HOTPLUG:
+-		fstr = "hotplug";
+-		break;
+ 	case SBI_PLATFORM_HAS_MFAULTS_DELEGATION:
+ 		fstr = "mfdeleg";
+ 		break;
+-	case SBI_PLATFORM_HAS_HART_SECONDARY_BOOT:
+-		fstr = "sec_boot";
+-		break;
+ 	default:
+ 		break;
  	}
- }
-+
-+static struct sbi_system_reset_device htif_reset = {
-+	.name = "htif",
-+	.system_reset_check = htif_system_reset_check,
-+	.system_reset = htif_system_reset
-+};
-+
-+int htif_system_reset_init(void)
-+{
-+	sbi_system_reset_set_device(&htif_reset);
-+
-+	return 0;
-+}
-diff --git a/lib/utils/sys/sifive_test.c b/lib/utils/sys/sifive_test.c
-index fdf3169..4533954 100644
---- a/lib/utils/sys/sifive_test.c
-+++ b/lib/utils/sys/sifive_test.c
-@@ -9,6 +9,7 @@
- 
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/sys/sifive_test.h>
- 
- #define FINISHER_FAIL		0x3333
-@@ -17,7 +18,7 @@
- 
- static void *sifive_test_base;
- 
--int sifive_test_system_reset_check(u32 type, u32 reason)
-+static int sifive_test_system_reset_check(u32 type, u32 reason)
- {
- 	switch (type) {
- 	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-@@ -29,7 +30,7 @@ int sifive_test_system_reset_check(u32 type, u32 reason)
- 	return 0;
- }
- 
--void sifive_test_system_reset(u32 type, u32 reason)
-+static void sifive_test_system_reset(u32 type, u32 reason)
- {
- 	/*
- 	 * Tell the "finisher" that the simulation
-@@ -49,9 +50,16 @@ void sifive_test_system_reset(u32 type, u32 reason)
- 	}
- }
- 
-+static struct sbi_system_reset_device sifive_test_reset = {
-+	.name = "sifive_test",
-+	.system_reset_check = sifive_test_system_reset_check,
-+	.system_reset = sifive_test_system_reset
-+};
-+
- int sifive_test_init(unsigned long base)
- {
- 	sifive_test_base = (void *)base;
-+	sbi_system_reset_set_device(&sifive_test_reset);
- 
- 	return 0;
- }
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 77a90d6..4af8754 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -20,10 +20,6 @@ struct platform_override {
- 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
- 	void (*early_exit)(const struct fdt_match *match);
- 	void (*final_exit)(const struct fdt_match *match);
--	int (*system_reset_check)(u32 reset_type, u32 reset_reason,
--				  const struct fdt_match *match);
--	void (*system_reset)(u32 reset_type, u32 reset_reason,
--			     const struct fdt_match *match);
- 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
- };
- 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 4ae8b88..da0c1af 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -184,26 +184,6 @@ static u64 generic_tlbr_flush_limit(void)
- 	return SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT;
- }
- 
--static int generic_system_reset_check(u32 reset_type, u32 reset_reason)
--{
--	if (generic_plat && generic_plat->system_reset_check)
--		return generic_plat->system_reset_check(reset_type,
--							reset_reason,
--							generic_plat_match);
--	return fdt_system_reset_check(reset_type, reset_reason);
--}
--
--static void generic_system_reset(u32 reset_type, u32 reset_reason)
--{
--	if (generic_plat && generic_plat->system_reset) {
--		generic_plat->system_reset(reset_type, reset_reason,
--					   generic_plat_match);
--		return;
--	}
--
--	fdt_system_reset(reset_type, reset_reason);
--}
--
- const struct sbi_platform_operations platform_ops = {
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
-@@ -218,8 +198,6 @@ const struct sbi_platform_operations platform_ops = {
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
- 	.timer_init		= fdt_timer_init,
- 	.timer_exit		= fdt_timer_exit,
--	.system_reset_check	= generic_system_reset_check,
--	.system_reset		= generic_system_reset,
- };
- 
- struct sbi_platform platform = {
-diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
-index 4b89939..66a0392 100644
---- a/platform/kendryte/k210/platform.c
-+++ b/platform/kendryte/k210/platform.c
-@@ -12,6 +12,7 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_const.h>
- #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/irqchip/plic.h>
- #include <sbi_utils/serial/sifive-uart.h>
-@@ -68,6 +69,36 @@ static u32 k210_get_clk_freq(void)
- 	return pll0_freq / div;
- }
- 
-+static int k210_system_reset_check(u32 type, u32 reason)
-+{
-+	return 1;
-+}
-+
-+static void k210_system_reset(u32 type, u32 reason)
-+{
-+	u32 val;
-+
-+	val = k210_read_sysreg(K210_RESET);
-+	val |= K210_RESET_MASK;
-+	k210_write_sysreg(val, K210_RESET);
-+
-+	while (1);
-+}
-+
-+static struct sbi_system_reset_device k210_reset = {
-+	.name = "kendryte_k210_reset",
-+	.system_reset_check = k210_system_reset_check,
-+	.system_reset = k210_system_reset
-+};
-+
-+static int k210_early_init(bool cold_boot)
-+{
-+	if (cold_boot)
-+		sbi_system_reset_set_device(&k210_reset);
-+
-+	return 0;
-+}
-+
- static int k210_final_init(bool cold_boot)
- {
- 	void *fdt;
-@@ -129,23 +160,9 @@ static int k210_timer_init(bool cold_boot)
- 	return clint_warm_timer_init();
- }
- 
--static int k210_system_reset_check(u32 type, u32 reason)
--{
--	return 1;
--}
--
--static void k210_system_reset(u32 type, u32 reason)
--{
--	u32 val;
--
--	val = k210_read_sysreg(K210_RESET);
--	val |= K210_RESET_MASK;
--	k210_write_sysreg(val, K210_RESET);
--
--	while (1);
--}
--
- const struct sbi_platform_operations platform_ops = {
-+	.early_init	= k210_early_init,
-+
- 	.final_init	= k210_final_init,
- 
- 	.console_init	= k210_console_init,
-@@ -154,9 +171,6 @@ const struct sbi_platform_operations platform_ops = {
- 
- 	.ipi_init  = k210_ipi_init,
- 
--	.system_reset_check	= k210_system_reset_check,
--	.system_reset		= k210_system_reset,
--
- 	.timer_init	   = k210_timer_init,
- };
- 
-diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
-index ac81d03..5414316 100644
---- a/platform/nuclei/ux600/platform.c
-+++ b/platform/nuclei/ux600/platform.c
-@@ -15,6 +15,7 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_const.h>
- #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/irqchip/plic.h>
- #include <sbi_utils/serial/sifive-uart.h>
-@@ -104,10 +105,32 @@ static u32 ux600_get_clk_freq(void)
- 	return cpu_freq;
- }
- 
-+static int ux600_system_reset_check(u32 type, u32 reason)
-+{
-+	return 1;
-+}
-+
-+static void ux600_system_reset(u32 type, u32 reason)
-+{
-+	/* Reset system using MSFTRST register in Nuclei Timer. */
-+	writel(UX600_NUCLEI_TIMER_MSFTRST_KEY, (void *)(UX600_NUCLEI_TIMER_ADDR
-+					+ UX600_NUCLEI_TIMER_MSFTRST_OFS));
-+	while(1);
-+}
-+
-+static struct sbi_system_reset_device ux600_reset = {
-+	.name = "nuclei_ux600_reset",
-+	.system_reset_check = ux600_system_reset_check,
-+	.system_reset = ux600_system_reset
-+};
-+
- static int ux600_early_init(bool cold_boot)
- {
- 	u32 regval;
- 
-+	if (cold_boot)
-+		sbi_system_reset_set_device(&ux600_reset);
-+
- 	/* Measure CPU Frequency using Timer */
- 	ux600_clk_freq = ux600_get_clk_freq();
- 
-@@ -186,19 +209,6 @@ static int ux600_timer_init(bool cold_boot)
- 	return clint_warm_timer_init();
- }
- 
--static int ux600_system_reset_check(u32 type, u32 reason)
--{
--	return 1;
--}
--
--static void ux600_system_reset(u32 type, u32 reason)
--{
--	/* Reset system using MSFTRST register in Nuclei Timer. */
--	writel(UX600_NUCLEI_TIMER_MSFTRST_KEY, (void *)(UX600_NUCLEI_TIMER_ADDR
--					+ UX600_NUCLEI_TIMER_MSFTRST_OFS));
--	while(1);
--}
--
- const struct sbi_platform_operations platform_ops = {
- 	.early_init		= ux600_early_init,
- 	.final_init		= ux600_final_init,
-@@ -206,8 +216,6 @@ const struct sbi_platform_operations platform_ops = {
- 	.irqchip_init		= ux600_irqchip_init,
- 	.ipi_init		= ux600_ipi_init,
- 	.timer_init		= ux600_timer_init,
--	.system_reset_check	= ux600_system_reset_check,
--	.system_reset		= ux600_system_reset
- };
- 
- const struct sbi_platform platform = {
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index 04334b2..d407fd5 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -115,21 +115,6 @@ static int platform_timer_init(bool cold_boot)
- 	return clint_warm_timer_init();
- }
- 
--/*
-- * Check reset type and reason supported by the platform.
-- */
--static int platform_system_reset_check(u32 type, u32 reason)
--{
--	return 0;
--}
--
--/*
-- * Reset the platform.
-- */
--static void platform_system_reset(u32 type, u32 reason)
--{
--}
--
- /*
-  * Platform descriptor.
-  */
-@@ -139,9 +124,7 @@ const struct sbi_platform_operations platform_ops = {
- 	.console_init		= platform_console_init,
- 	.irqchip_init		= platform_irqchip_init,
- 	.ipi_init		= platform_ipi_init,
--	.timer_init		= platform_timer_init,
--	.system_reset_check	= platform_system_reset_check,
--	.system_reset		= platform_system_reset
-+	.timer_init		= platform_timer_init
- };
- const struct sbi_platform platform = {
- 	.opensbi_version	= OPENSBI_VERSION,
 diff --git a/platform/thead/c910/platform.c b/platform/thead/c910/platform.c
-index 352edb6..8f8069c 100644
+index 8f8069c..8a9318c 100644
 --- a/platform/thead/c910/platform.c
 +++ b/platform/thead/c910/platform.c
-@@ -8,6 +8,7 @@
+@@ -7,6 +7,7 @@
+ #include <sbi/sbi_console.h>
  #include <sbi/sbi_const.h>
  #include <sbi/sbi_hart.h>
++#include <sbi/sbi_hsm.h>
  #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_system.h>
+ #include <sbi/sbi_system.h>
  #include <sbi_utils/irqchip/plic.h>
- #include <sbi_utils/serial/uart8250.h>
- #include <sbi_utils/sys/clint.h>
-@@ -22,6 +23,22 @@ static struct clint_data clint = {
- 	.has_64bit_mmio = FALSE,
+@@ -39,6 +40,19 @@ static struct sbi_system_reset_device c910_reset = {
+ 	.system_reset = c910_system_reset
  };
  
-+static int c910_system_reset_check(u32 type, u32 reason)
++static int c910_hart_start(u32 hartid, ulong saddr)
 +{
-+	return 1;
++	csr_write(CSR_MRVBR, saddr);
++	csr_write(CSR_MRMR, csr_read(CSR_MRMR) | (1 << hartid));
++
++	return 0;
 +}
 +
-+static void c910_system_reset(u32 type, u32 reason)
-+{
-+	asm volatile ("ebreak");
-+}
-+
-+static struct sbi_system_reset_device c910_reset = {
-+	.name = "thead_c910_reset",
-+	.system_reset_check = c910_system_reset_check,
-+	.system_reset = c910_system_reset
++static struct sbi_hsm_device c910_hsm = {
++	.name = "thead_c910_hsm",
++	.hart_start = c910_hart_start
 +};
 +
  static int c910_early_init(bool cold_boot)
  {
  	if (cold_boot) {
-@@ -45,6 +62,8 @@ static int c910_early_init(bool cold_boot)
- 		c910_regs.plic_base_addr = csr_read(CSR_PLIC_BASE);
+@@ -63,6 +77,7 @@ static int c910_early_init(bool cold_boot)
  		c910_regs.clint_base_addr =
  			c910_regs.plic_base_addr + C910_PLIC_CLINT_OFFSET;
-+
-+		sbi_system_reset_set_device(&c910_reset);
+ 
++		sbi_hsm_set_device(&c910_hsm);
+ 		sbi_system_reset_set_device(&c910_reset);
  	} else {
  		/* Store to other core */
- 		csr_write(CSR_PMPADDR0, c910_regs.pmpaddr0);
-@@ -108,16 +127,6 @@ static int c910_timer_init(bool cold_boot)
+@@ -127,14 +142,6 @@ static int c910_timer_init(bool cold_boot)
  	return clint_warm_timer_init();
  }
  
--static int c910_system_reset_check(u32 type, u32 reason)
+-int c910_hart_start(u32 hartid, ulong saddr)
 -{
--	return 1;
+-	csr_write(CSR_MRVBR, saddr);
+-	csr_write(CSR_MRMR, csr_read(CSR_MRMR) | (1 << hartid));
+-
+-	return 0;
 -}
 -
--static void c910_system_reset(u32 type, u32 reason)
--{
--	asm volatile ("ebreak");
--}
--
- int c910_hart_start(u32 hartid, ulong saddr)
- {
- 	csr_write(CSR_MRVBR, saddr);
-@@ -136,9 +145,6 @@ const struct sbi_platform_operations platform_ops = {
+ const struct sbi_platform_operations platform_ops = {
+ 	.early_init          = c910_early_init,
+ 	.final_init          = c910_final_init,
+@@ -143,9 +150,7 @@ const struct sbi_platform_operations platform_ops = {
  
- 	.timer_init          = c910_timer_init,
+ 	.ipi_init            = c910_ipi_init,
  
--	.system_reset_check  = c910_system_reset_check,
--	.system_reset        = c910_system_reset,
+-	.timer_init          = c910_timer_init,
 -
- 	.hart_start          = c910_hart_start,
+-	.hart_start          = c910_hart_start,
++	.timer_init          = c910_timer_init
  };
  
+ const struct sbi_platform platform = {
+diff --git a/platform/thead/c910/platform.h b/platform/thead/c910/platform.h
+index 354404e..880cb6b 100644
+--- a/platform/thead/c910/platform.h
++++ b/platform/thead/c910/platform.h
+@@ -8,8 +8,7 @@
+ #define C910_HART_COUNT   16
+ 
+ #define SBI_THEAD_FEATURES	\
+-	 (SBI_PLATFORM_HAS_MFAULTS_DELEGATION | \
+-	 SBI_PLATFORM_HAS_HART_SECONDARY_BOOT)
++	(SBI_PLATFORM_HAS_MFAULTS_DELEGATION)
+ 
+ #define CSR_MCOR         0x7c2
+ #define CSR_MHCR         0x7c1
 -- 
 2.25.1
 
