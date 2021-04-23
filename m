@@ -1,102 +1,41 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 23 Apr 2021 15:12:50 +0800
-Subject: [PATCH 1/7] lib: sbi: Remove domains_root_regions() platform
- callback
-In-Reply-To: <20210422112023.670521-2-anup.patel@wdc.com>
-References: <20210422112023.670521-1-anup.patel@wdc.com>
- <20210422112023.670521-2-anup.patel@wdc.com>
-Message-ID: <eaed2e4e64af6a2ec001b7072f12fc5d09638c80.camel@126.com>
+From: guoren@kernel.org <guoren@kernel.org>
+Date: Fri, 23 Apr 2021 07:37:20 +0000
+Subject: [PATCH] platform: generic: Enable FW_PIC=y as default
+Message-ID: <1619163440-93918-1-git-send-email-guoren@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-04-22?? 16:50 +0530?Anup Patel???
-> We now have sbi_domain_root_add_memregion() which allows platform
-> support to add root domain regions at boot-time so let's remove
-> the domains_root_regions() platform callback which was added
-> for this purpose.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Look good to me.
+From: Guo Ren <guoren@linux.alibaba.com>
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Tested with qemu_rv32 & rv64, T-HEAD all hardwares. I think it's
+time to enable it as default.
 
-Regards,
-Xiang W
-> ---
->  include/sbi/sbi_platform.h | 18 ------------------
->  lib/sbi/sbi_domain.c       |  6 ------
->  2 files changed, 24 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 837a75d..6736169 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -92,8 +92,6 @@ struct sbi_platform_operations {
->  	 */
->  	int (*misa_get_xlen)(void);
->  
-> -	/** Get platform specific root domain memory regions */
-> -	struct sbi_domain_memregion *(*domains_root_regions)(void);
->  	/** Initialize (or populate) domains for the platform */
->  	int (*domains_init)(void);
->  
-> @@ -484,22 +482,6 @@ static inline int sbi_platform_misa_xlen(const
-> struct sbi_platform *plat)
->  	return -1;
->  }
->  
-> -/**
-> - * Get platform specific root domain memory regions
-> - *
-> - * @param plat pointer to struct sbi_platform
-> - *
-> - * @return an array of memory regions terminated by a region with
-> order zero
-> - * or NULL for no memory regions
-> - */
-> -static inline struct sbi_domain_memregion *
-> -sbi_platform_domains_root_regions(const struct sbi_platform *plat)
-> -{
-> -	if (plat && sbi_platform_ops(plat)->domains_root_regions)
-> -		return sbi_platform_ops(plat)->domains_root_regions();
-> -	return NULL;
-> -}
-> -
->  /**
->   * Initialize (or populate) domains for the platform
->   *
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 69a3795..9a53542 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -592,7 +592,6 @@ int sbi_domain_finalize(struct sbi_scratch
-> *scratch, u32 cold_hartid)
->  int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->  {
->  	u32 i;
-> -	struct sbi_domain_memregion *memregs;
->  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->  
->  	/* Root domain firmware memory region */
-> @@ -610,11 +609,6 @@ int sbi_domain_init(struct sbi_scratch *scratch,
-> u32 cold_hartid)
->  	/* Root domain memory region end */
->  	root_memregs[root_memregs_count].order = 0;
->  
-> -	/* Use platform specific root memory regions when available */
-> -	memregs = sbi_platform_domains_root_regions(plat);
-> -	if (memregs)
-> -		root.regions = memregs;
-> -
->  	/* Root domain boot HART id is same as coldboot HART id */
->  	root.boot_hartid = cold_hartid;
->  
-> -- 
-> 2.25.1
-> 
-> 
+Thx Vincent's commit: 0f20e8adcf42
+
+Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+Tested-by: Guo Ren <guoren@linux.alibaba.com>
+Cc: Anup Patel <anup.patel@wdc.com>
+Cc: Vincent Chen <vincent.chen@sifive.com>
+---
+ platform/generic/config.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/platform/generic/config.mk b/platform/generic/config.mk
+index 8151974..61015a0 100644
+--- a/platform/generic/config.mk
++++ b/platform/generic/config.mk
+@@ -21,6 +21,7 @@ platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
+ FW_TEXT_START=0x80000000
+ FW_DYNAMIC=y
+ FW_JUMP=y
++FW_PIC=y
+ ifeq ($(PLATFORM_RISCV_XLEN), 32)
+   # This needs to be 4MB aligned for 32-bit system
+   FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
+-- 
+2.7.4
 
 
