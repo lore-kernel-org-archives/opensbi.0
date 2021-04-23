@@ -1,48 +1,96 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 23 Apr 2021 13:20:21 +0800
-Subject: [PATCH] lib: sbi: Fix sbi_domain_root_add_memregion() for
- merging memregions
-In-Reply-To: <20210422114858.676105-1-anup.patel@wdc.com>
-References: <20210422114858.676105-1-anup.patel@wdc.com>
-Message-ID: <8c3916ce6c13d07d60d9c43b115a6296b501fd22.camel@126.com>
+From: Alistair Francis <Alistair.Francis@wdc.com>
+Date: Fri, 23 Apr 2021 06:13:30 +0000
+Subject: [PATCH 1/7] lib: sbi: Remove domains_root_regions() platform
+ callback
+In-Reply-To: <20210422112023.670521-2-anup.patel@wdc.com>
+References: <20210422112023.670521-1-anup.patel@wdc.com>
+ <20210422112023.670521-2-anup.patel@wdc.com>
+Message-ID: <5316803e9ea248d2de9be42e9c91099125fcedad.camel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-04-22?? 17:18 +0530?Anup Patel???
-> We should decrement root_memregs_count by one after merging two
-> memregions otherwise new memregion added after a merge will be
-> appended after last sentinel memregion of zero order.
+On Thu, 2021-04-22 at 16:50 +0530, Anup Patel wrote:
+> We now have sbi_domain_root_add_memregion() which allows platform
+> support to add root domain regions at boot-time so let's remove
+> the domains_root_regions() platform callback which was added
+> for this purpose.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Look good to me.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 
-Regards,
-Xiang W
+Alistair
+
 > ---
->  lib/sbi/sbi_domain.c | 1 +
->  1 file changed, 1 insertion(+)
+> ?include/sbi/sbi_platform.h | 18 ------------------
+> ?lib/sbi/sbi_domain.c?????? |? 6 ------
+> ?2 files changed, 24 deletions(-)
 > 
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index 837a75d..6736169 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -92,8 +92,6 @@ struct sbi_platform_operations {
+> ???????? */
+> ????????int (*misa_get_xlen)(void);
+> ?
+> -???????/** Get platform specific root domain memory regions */
+> -???????struct sbi_domain_memregion *(*domains_root_regions)(void);
+> ????????/** Initialize (or populate) domains for the platform */
+> ????????int (*domains_init)(void);
+> ?
+> @@ -484,22 +482,6 @@ static inline int sbi_platform_misa_xlen(const
+> struct sbi_platform *plat)
+> ????????return -1;
+> ?}
+> ?
+> -/**
+> - * Get platform specific root domain memory regions
+> - *
+> - * @param plat pointer to struct sbi_platform
+> - *
+> - * @return an array of memory regions terminated by a region with
+> order zero
+> - * or NULL for no memory regions
+> - */
+> -static inline struct sbi_domain_memregion *
+> -sbi_platform_domains_root_regions(const struct sbi_platform *plat)
+> -{
+> -???????if (plat && sbi_platform_ops(plat)->domains_root_regions)
+> -???????????????return sbi_platform_ops(plat)->domains_root_regions();
+> -???????return NULL;
+> -}
+> -
+> ?/**
+> ? * Initialize (or populate) domains for the platform
+> ? *
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 69a3795..1b2e6e3 100644
+> index 69a3795..9a53542 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -521,6 +521,7 @@ int sbi_domain_root_add_memregion(const struct
-> sbi_domain_memregion *reg)
->  					nreg1++;
->  				}
->  				reg_merged = true;
-> +				root_memregs_count--;
->  			}
->  		}
->  	} while (reg_merged);
-> -- 
-> 2.25.1
-> 
-> 
-
+> @@ -592,7 +592,6 @@ int sbi_domain_finalize(struct sbi_scratch
+> *scratch, u32 cold_hartid)
+> ?int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> ?{
+> ????????u32 i;
+> -???????struct sbi_domain_memregion *memregs;
+> ????????const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> ?
+> ????????/* Root domain firmware memory region */
+> @@ -610,11 +609,6 @@ int sbi_domain_init(struct sbi_scratch *scratch,
+> u32 cold_hartid)
+> ????????/* Root domain memory region end */
+> ????????root_memregs[root_memregs_count].order = 0;
+> ?
+> -???????/* Use platform specific root memory regions when available */
+> -???????memregs = sbi_platform_domains_root_regions(plat);
+> -???????if (memregs)
+> -???????????????root.regions = memregs;
+> -
+> ????????/* Root domain boot HART id is same as coldboot HART id */
+> ????????root.boot_hartid = cold_hartid;
+> ?
 
