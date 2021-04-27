@@ -1,71 +1,86 @@
-From: Alistair Francis <Alistair.Francis@wdc.com>
-Date: Mon, 26 Apr 2021 06:09:36 +0000
-Subject: [PATCH 7/7] lib: sbi: Show devices provided by platform in boot
- prints
-In-Reply-To: <20210422112023.670521-8-anup.patel@wdc.com>
-References: <20210422112023.670521-1-anup.patel@wdc.com>
- <20210422112023.670521-8-anup.patel@wdc.com>
-Message-ID: <b60b3ac7317a7d64eefe52a7db983c0495f9b56a.camel@wdc.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Tue, 27 Apr 2021 14:16:38 +0800
+Subject: [PATCH] platform: generic: Enable FW_PIC=y as default
+In-Reply-To: <CAAhSdy2a=VX_jZmaDyuFOr0a1wyzXaeQCo8GiOEU4M6ECJxsBg@mail.gmail.com>
+References: <1619163440-93918-1-git-send-email-guoren@kernel.org>
+ <CAAhSdy2a=VX_jZmaDyuFOr0a1wyzXaeQCo8GiOEU4M6ECJxsBg@mail.gmail.com>
+Message-ID: <CAJF2gTQ3ObkghFHa0453UNMeSM6zQM9kHArx087XrxF-UynJdw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, 2021-04-22 at 16:50 +0530, Anup Patel wrote:
-> We extend the boot-time prints to show various devices provided
-> (or registered) by the platform support. This will help users
-> verify hardware devices available for OpenSBI firmwares.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+On Sun, Apr 25, 2021 at 1:03 PM Anup Patel <anup@brainfault.org> wrote:
+>
+> On Fri, Apr 23, 2021 at 1:08 PM <guoren@kernel.org> wrote:
+> >
+> > From: Guo Ren <guoren@linux.alibaba.com>
+> >
+> > Tested with qemu_rv32 & rv64, T-HEAD all hardwares. I think it's
+> > time to enable it as default.
+> >
+> > Thx Vincent's commit: 0f20e8adcf42
+> >
+> > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> > Tested-by: Guo Ren <guoren@linux.alibaba.com>
+> > Cc: Anup Patel <anup.patel@wdc.com>
+> > Cc: Vincent Chen <vincent.chen@sifive.com>
+>
+> Enabling FW_PIC by default only for generic platform breaks the
+> compilation binary tarball using scripts/create-binary-archive.sh
+>
+> I would suggest to have it globally enabled by default using
+> below change. The platform support or users can explicitly
+> disable it using "FW_PIC=n" in make command-line.
+>
+> diff --git a/firmware/objects.mk b/firmware/objects.mk
+> index c1f632e..ce91c2f 100644
+> --- a/firmware/objects.mk
+> +++ b/firmware/objects.mk
+> @@ -13,6 +13,10 @@ firmware-cflags-y +=
+>  firmware-asflags-y +=
+>  firmware-ldflags-y +=
+>
+> +ifndef FW_PIC
+> +FW_PIC := y
+> +endif
+> +
+>  ifeq ($(FW_PIC),y)
+>  firmware-genflags-y += -DFW_PIC
+>  firmware-asflags-y  += -fpic
 
-Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+Okay
 
-Alistair
+>
+> Regards,
+> Anup
+>
+> > ---
+> >  platform/generic/config.mk | 1 +
+> >  1 file changed, 1 insertion(+)
+> >
+> > diff --git a/platform/generic/config.mk b/platform/generic/config.mk
+> > index 8151974..61015a0 100644
+> > --- a/platform/generic/config.mk
+> > +++ b/platform/generic/config.mk
+> > @@ -21,6 +21,7 @@ platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
+> >  FW_TEXT_START=0x80000000
+> >  FW_DYNAMIC=y
+> >  FW_JUMP=y
+> > +FW_PIC=y
+> >  ifeq ($(PLATFORM_RISCV_XLEN), 32)
+> >    # This needs to be 4MB aligned for 32-bit system
+> >    FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
+> > --
+> > 2.7.4
+> >
 
-> ---
-> ?lib/sbi/sbi_init.c | 20 ++++++++++++++++++++
-> ?1 file changed, 20 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 7380d01..3f44a2b 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -53,6 +53,11 @@ static void sbi_boot_print_banner(struct sbi_scratch
-> *scratch)
-> ?static void sbi_boot_print_general(struct sbi_scratch *scratch)
-> ?{
-> ????????char str[128];
-> +???????const struct sbi_hsm_device *hdev;
-> +???????const struct sbi_ipi_device *idev;
-> +???????const struct sbi_timer_device *tdev;
-> +???????const struct sbi_console_device *cdev;
-> +???????const struct sbi_system_reset_device *srdev;
-> ????????const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> ?
-> ????????if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
-> @@ -65,6 +70,21 @@ static void sbi_boot_print_general(struct
-> sbi_scratch *scratch)
-> ????????sbi_printf("Platform Features???????? : %s\n", str);
-> ????????sbi_printf("Platform HART Count?????? : %u\n",
-> ?????????????????? sbi_platform_hart_count(plat));
-> +???????idev = sbi_ipi_get_device();
-> +???????sbi_printf("Platform IPI Device?????? : %s\n",
-> +????????????????? (idev) ? idev->name : "---");
-> +???????tdev = sbi_timer_get_device();
-> +???????sbi_printf("Platform Timer Device???? : %s\n",
-> +????????????????? (tdev) ? tdev->name : "---");
-> +???????cdev = sbi_console_get_device();
-> +???????sbi_printf("Platform Console Device?? : %s\n",
-> +????????????????? (cdev) ? cdev->name : "---");
-> +???????hdev = sbi_hsm_get_device();
-> +???????sbi_printf("Platform HSM Device?????? : %s\n",
-> +????????????????? (hdev) ? hdev->name : "---");
-> +???????srdev = sbi_system_reset_get_device();
-> +???????sbi_printf("Platform SysReset Device? : %s\n",
-> +????????????????? (srdev) ? srdev->name : "---");
-> ?
-> ????????/* Firmware details */
-> ????????sbi_printf("Firmware Base???????????? : 0x%lx\n", scratch-
-> >fw_start);
+
+
+-- 
+Best Regards
+ Guo Ren
+
+ML: https://lore.kernel.org/linux-csky/
 
