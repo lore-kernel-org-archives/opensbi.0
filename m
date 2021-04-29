@@ -1,291 +1,255 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 29 Apr 2021 18:16:09 +0800
-Subject: [PATCH 3/3] platform: Remove sifive/fu540 platform
-In-Reply-To: <20210429101609.1459066-1-bmeng.cn@gmail.com>
-References: <20210429101609.1459066-1-bmeng.cn@gmail.com>
-Message-ID: <20210429101609.1459066-3-bmeng.cn@gmail.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Thu, 29 Apr 2021 20:29:00 +0800
+Subject: [PATCH RFC] platform: generic: How to add custom extensions for
+ sbi_call?
+In-Reply-To: <8E302D03-4E72-46A4-BE59-0A33D8016001@jrtc27.com>
+References: <1619618066-11406-1-git-send-email-guoren@kernel.org>
+ <CAJF2gTTrcfR5iNXNOxooTe6q2oB=PQhr6yKNU+C+8iaPbcj1KQ@mail.gmail.com>
+ <8E302D03-4E72-46A4-BE59-0A33D8016001@jrtc27.com>
+Message-ID: <CAJF2gTSJjyYRduoCZnmoWr0Q=Y8mOuh1B71iyVEvND9fgaAUHQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Now that SiFive HiFive Unleashed board is using the generic platform
-support in OpenSBI, let's remove the old non-generic one.
+On Thu, Apr 29, 2021 at 10:03 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+>
+> On 29 Apr 2021, at 02:54, Guo Ren <guoren@kernel.org> wrote:
+> >
+> > @Anup Patel @Atish Patra @Alistair Francis
+> >
+> > Could we add a fdt_vendor_ext_provider for generic? How do you think?
+>
+> IMO we should be very reluctant to allow vendors to add extensions to OpenSBI,
+> as the whole point of SBI is to abstract away the platform, not expose
+> platform-specific details. But on a technical level, yes, you could have
+> extensions be conditional on the FDT.
+>
+> In this particular case, you don?t want a vendor extension. Configuring the
+> M-mode-only HPM CSRs is a problem shared by all implementations of the current
+> privileged architecture that include performance counters, as the current
+> privileged ISA is woefully deficient. This should be solved in a standardised
+> way, not with some random vendor extension.
+I agree with you. But I need to find a solution to fit the "real chip"
+requirement.
 
-Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
----
+>
+> Jess
+>
+> > On Wed, Apr 28, 2021 at 9:55 PM <guoren@kernel.org> wrote:
+> >>
+> >> From: Guo Ren <guoren@linux.alibaba.com>
+> >>
+> >> Here is the sample of thead PMU sbi implementation, it could work
+> >> with linux perf record:
+> >>
+> >> https://github.com/c-sky/csky-linux/blob/linux-5.10.4/drivers/perf/thead_c900_pmu.c
+> >>
+> >> It support perf record with hardware event.
+> >>
+> >> How to support this in platform/generic?
+> >>
+> >> Thx
+> >>
+> >> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> >> Cc: Anup Patel <anup.patel@wdc.com>
+> >> ---
+> >> platform/generic/platform.c | 159 ++++++++++++++++++++++++++++++++++++++++++++
+> >> 1 file changed, 159 insertions(+)
+> >>
+> >> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> >> index 7581556..52084dd 100644
+> >> --- a/platform/generic/platform.c
+> >> +++ b/platform/generic/platform.c
+> >> @@ -206,7 +206,166 @@ static void generic_system_reset(u32 reset_type, u32 reset_reason)
+> >>        writew(0x5555, (void *)0x100000); // qemu poweroff
+> >> }
+> >>
+> >> +#include <sbi/sbi_trap.h>
+> >> +#define CSR_MCOUNTERWEN  0x7c9
+> >> +static void sbi_thead_pmu_init(void)
+> >> +{
+> >> +       unsigned long interrupts;
+> >> +
+> >> +       interrupts = csr_read(CSR_MIDELEG) | (1 << 17);
+> >> +       csr_write(CSR_MIDELEG, interrupts);
+> >> +
+> >> +       /* CSR_MCOUNTEREN has already been set in mstatus_init() */
+> >> +       csr_write(CSR_MCOUNTERWEN, 0xffffffff);
+> >> +       csr_write(CSR_MHPMEVENT3, 1);
+> >> +       csr_write(CSR_MHPMEVENT4, 2);
+> >> +       csr_write(CSR_MHPMEVENT5, 3);
+> >> +       csr_write(CSR_MHPMEVENT6, 4);
+> >> +       csr_write(CSR_MHPMEVENT7, 5);
+> >> +       csr_write(CSR_MHPMEVENT8, 6);
+> >> +       csr_write(CSR_MHPMEVENT9, 7);
+> >> +       csr_write(CSR_MHPMEVENT10, 8);
+> >> +       csr_write(CSR_MHPMEVENT11, 9);
+> >> +       csr_write(CSR_MHPMEVENT12, 10);
+> >> +       csr_write(CSR_MHPMEVENT13, 11);
+> >> +       csr_write(CSR_MHPMEVENT14, 12);
+> >> +       csr_write(CSR_MHPMEVENT15, 13);
+> >> +       csr_write(CSR_MHPMEVENT16, 14);
+> >> +       csr_write(CSR_MHPMEVENT17, 15);
+> >> +       csr_write(CSR_MHPMEVENT18, 16);
+> >> +       csr_write(CSR_MHPMEVENT19, 17);
+> >> +       csr_write(CSR_MHPMEVENT20, 18);
+> >> +       csr_write(CSR_MHPMEVENT21, 19);
+> >> +       csr_write(CSR_MHPMEVENT22, 20);
+> >> +       csr_write(CSR_MHPMEVENT23, 21);
+> >> +       csr_write(CSR_MHPMEVENT24, 22);
+> >> +       csr_write(CSR_MHPMEVENT25, 23);
+> >> +       csr_write(CSR_MHPMEVENT26, 24);
+> >> +       csr_write(CSR_MHPMEVENT27, 25);
+> >> +       csr_write(CSR_MHPMEVENT28, 26);
+> >> +}
+> >> +
+> >> +static void sbi_thead_pmu_map(unsigned long idx, unsigned long event_id)
+> >> +{
+> >> +       switch (idx) {
+> >> +       case 3:
+> >> +               csr_write(CSR_MHPMEVENT3, event_id);
+> >> +               break;
+> >> +       case 4:
+> >> +               csr_write(CSR_MHPMEVENT4, event_id);
+> >> +               break;
+> >> +       case 5:
+> >> +               csr_write(CSR_MHPMEVENT5, event_id);
+> >> +               break;
+> >> +       case 6:
+> >> +               csr_write(CSR_MHPMEVENT6, event_id);
+> >> +               break;
+> >> +       case 7:
+> >> +               csr_write(CSR_MHPMEVENT7, event_id);
+> >> +               break;
+> >> +       case 8:
+> >> +               csr_write(CSR_MHPMEVENT8, event_id);
+> >> +               break;
+> >> +       case 9:
+> >> +               csr_write(CSR_MHPMEVENT9, event_id);
+> >> +               break;
+> >> +       case 10:
+> >> +               csr_write(CSR_MHPMEVENT10, event_id);
+> >> +               break;
+> >> +       case 11:
+> >> +               csr_write(CSR_MHPMEVENT11, event_id);
+> >> +               break;
+> >> +       case 12:
+> >> +               csr_write(CSR_MHPMEVENT12, event_id);
+> >> +               break;
+> >> +       case 13:
+> >> +               csr_write(CSR_MHPMEVENT13, event_id);
+> >> +               break;
+> >> +       case 14:
+> >> +               csr_write(CSR_MHPMEVENT14, event_id);
+> >> +               break;
+> >> +       case 15:
+> >> +               csr_write(CSR_MHPMEVENT15, event_id);
+> >> +               break;
+> >> +       case 16:
+> >> +               csr_write(CSR_MHPMEVENT16, event_id);
+> >> +               break;
+> >> +       case 17:
+> >> +               csr_write(CSR_MHPMEVENT17, event_id);
+> >> +               break;
+> >> +       case 18:
+> >> +               csr_write(CSR_MHPMEVENT18, event_id);
+> >> +               break;
+> >> +       case 19:
+> >> +               csr_write(CSR_MHPMEVENT19, event_id);
+> >> +               break;
+> >> +       case 20:
+> >> +               csr_write(CSR_MHPMEVENT20, event_id);
+> >> +               break;
+> >> +       case 21:
+> >> +               csr_write(CSR_MHPMEVENT21, event_id);
+> >> +               break;
+> >> +       case 22:
+> >> +               csr_write(CSR_MHPMEVENT22, event_id);
+> >> +               break;
+> >> +       case 23:
+> >> +               csr_write(CSR_MHPMEVENT23, event_id);
+> >> +               break;
+> >> +       case 24:
+> >> +               csr_write(CSR_MHPMEVENT24, event_id);
+> >> +               break;
+> >> +       case 25:
+> >> +               csr_write(CSR_MHPMEVENT25, event_id);
+> >> +               break;
+> >> +       case 26:
+> >> +               csr_write(CSR_MHPMEVENT26, event_id);
+> >> +               break;
+> >> +       case 27:
+> >> +               csr_write(CSR_MHPMEVENT27, event_id);
+> >> +               break;
+> >> +       case 28:
+> >> +               csr_write(CSR_MHPMEVENT28, event_id);
+> >> +               break;
+> >> +       case 29:
+> >> +               csr_write(CSR_MHPMEVENT29, event_id);
+> >> +               break;
+> >> +       case 30:
+> >> +               csr_write(CSR_MHPMEVENT30, event_id);
+> >> +               break;
+> >> +       case 31:
+> >> +               csr_write(CSR_MHPMEVENT31, event_id);
+> >> +               break;
+> >> +       }
+> >> +}
+> >> +
+> >> +static void sbi_thead_pmu_set(unsigned long type, unsigned long idx, unsigned long event_id)
+> >> +{
+> >> +       switch (type) {
+> >> +       case 2:
+> >> +               sbi_thead_pmu_map(idx, event_id);
+> >> +               break;
+> >> +       default:
+> >> +               sbi_thead_pmu_init();
+> >> +               break;
+> >> +       }
+> >> +}
+> >> +
+> >> +static int thead_vendor_ext_provider(long extid, long funcid,
+> >> +       const struct sbi_trap_regs *regs, unsigned long *out_value,
+> >> +       struct sbi_trap_info *out_trap)
+> >> +{
+> >> +       switch (extid) {
+> >> +       case 0x09000001:
+> >> +               sbi_thead_pmu_set(regs->a0, regs->a1, regs->a2);
+> >> +               break;
+> >> +       default:
+> >> +               sbi_hart_hang();
+> >> +       }
+> >> +       return 0;
+> >> +}
+> >> +
+> >> const struct sbi_platform_operations platform_ops = {
+> >> +       .vendor_ext_provider    = thead_vendor_ext_provider,
+> >>        .early_init             = generic_early_init,
+> >>        .final_init             = generic_final_init,
+> >>        .early_exit             = generic_early_exit,
+> >> --
+> >> 2.7.4
+> >>
+> >
+> >
+> > --
+> > Best Regards
+> > Guo Ren
+> >
+> > ML: https://lore.kernel.org/linux-csky/
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
 
- platform/sifive/fu540/config.mk  |  40 -------
- platform/sifive/fu540/objects.mk |  10 --
- platform/sifive/fu540/platform.c | 175 -------------------------------
- scripts/create-binary-archive.sh |   2 -
- 4 files changed, 227 deletions(-)
- delete mode 100644 platform/sifive/fu540/config.mk
- delete mode 100644 platform/sifive/fu540/objects.mk
- delete mode 100644 platform/sifive/fu540/platform.c
 
-diff --git a/platform/sifive/fu540/config.mk b/platform/sifive/fu540/config.mk
-deleted file mode 100644
-index 23169b1..0000000
---- a/platform/sifive/fu540/config.mk
-+++ /dev/null
-@@ -1,40 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Western Digital Corporation or its affiliates.
--#
--# Authors:
--#   Atish Patra <atish.patra@wdc.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Command for platform specific "make run"
--platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M sifive_u -m 256M \
--  -nographic -bios $(build_dir)/platform/sifive/fu540/firmware/fw_payload.elf
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_DYNAMIC=y
--FW_JUMP=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  # This needs to be 4MB aligned for 32-bit system
--  FW_JUMP_ADDR=0x80400000
--else
--  # This needs to be 2MB aligned for 64-bit system
--  FW_JUMP_ADDR=0x80200000
--endif
--FW_JUMP_FDT_ADDR=0x88000000
--FW_PAYLOAD=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  # This needs to be 4MB aligned for 32-bit system
--  FW_PAYLOAD_OFFSET=0x400000
--else
--  # This needs to be 2MB aligned for 64-bit system
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=0x88000000
-diff --git a/platform/sifive/fu540/objects.mk b/platform/sifive/fu540/objects.mk
-deleted file mode 100644
-index e0d0585..0000000
---- a/platform/sifive/fu540/objects.mk
-+++ /dev/null
-@@ -1,10 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Western Digital Corporation or its affiliates.
--#
--# Authors:
--#   Atish Patra <atish.patra@wdc.com>
--#
--
--platform-objs-y += platform.o
-diff --git a/platform/sifive/fu540/platform.c b/platform/sifive/fu540/platform.c
-deleted file mode 100644
-index a17034d..0000000
---- a/platform/sifive/fu540/platform.c
-+++ /dev/null
-@@ -1,175 +0,0 @@
--/*
-- * SPDX-License-Identifier: BSD-2-Clause
-- *
-- * Copyright (c) 2019 Western Digital Corporation or its affiliates.
-- *
-- * Authors:
-- *   Atish Patra <atish.patra@wdc.com>
-- */
--
--#include <libfdt.h>
--#include <sbi/riscv_asm.h>
--#include <sbi/riscv_io.h>
--#include <sbi/riscv_encoding.h>
--#include <sbi/sbi_console.h>
--#include <sbi/sbi_const.h>
--#include <sbi/sbi_platform.h>
--#include <sbi_utils/fdt/fdt_fixup.h>
--#include <sbi_utils/irqchip/plic.h>
--#include <sbi_utils/serial/sifive-uart.h>
--#include <sbi_utils/sys/clint.h>
--
--/* clang-format off */
--
--#define FU540_HART_COUNT			5
--
--#define FU540_SYS_CLK				1000000000
--
--#define FU540_CLINT_ADDR			0x2000000
--
--#define FU540_PLIC_ADDR				0xc000000
--#define FU540_PLIC_NUM_SOURCES			0x35
--#define FU540_PLIC_NUM_PRIORITIES		7
--
--#define FU540_UART0_ADDR			0x10010000
--#define FU540_UART1_ADDR			0x10011000
--#define FU540_UART_BAUDRATE			115200
--
--/* PRCI clock related macros */
--//TODO: Do we need a separate driver for this ?
--#define FU540_PRCI_BASE_ADDR			0x10000000
--#define FU540_PRCI_CLKMUXSTATUSREG		0x002C
--#define FU540_PRCI_CLKMUX_STATUS_TLCLKSEL	(0x1 << 1)
--
--/* Full tlb flush always */
--#define FU540_TLB_RANGE_FLUSH_LIMIT		0
--
--/* clang-format on */
--
--static struct plic_data plic = {
--	.addr = FU540_PLIC_ADDR,
--	.num_src = FU540_PLIC_NUM_SOURCES,
--};
--
--static struct clint_data clint = {
--	.addr = FU540_CLINT_ADDR,
--	.first_hartid = 0,
--	.hart_count = FU540_HART_COUNT,
--	.has_64bit_mmio = TRUE,
--};
--
--static void fu540_modify_dt(void *fdt)
--{
--	fdt_cpu_fixup(fdt);
--
--	fdt_fixups(fdt);
--
--	/*
--	 * SiFive Freedom U540 has an erratum that prevents S-mode software
--	 * to access a PMP protected region using 1GB page table mapping, so
--	 * always add the no-map attribute on this platform.
--	 */
--	fdt_reserved_memory_nomap_fixup(fdt);
--}
--
--static int fu540_final_init(bool cold_boot)
--{
--	void *fdt;
--
--	if (!cold_boot)
--		return 0;
--
--	fdt = sbi_scratch_thishart_arg1_ptr();
--	fu540_modify_dt(fdt);
--
--	return 0;
--}
--
--static int fu540_console_init(void)
--{
--	unsigned long peri_in_freq;
--
--	if (readl((volatile void *)FU540_PRCI_BASE_ADDR +
--		  FU540_PRCI_CLKMUXSTATUSREG) &
--	    FU540_PRCI_CLKMUX_STATUS_TLCLKSEL) {
--		peri_in_freq = FU540_SYS_CLK;
--	} else {
--		peri_in_freq = FU540_SYS_CLK / 2;
--	}
--
--	return sifive_uart_init(FU540_UART0_ADDR, peri_in_freq,
--				FU540_UART_BAUDRATE);
--}
--
--static int fu540_irqchip_init(bool cold_boot)
--{
--	int rc;
--	u32 hartid = current_hartid();
--
--	if (cold_boot) {
--		rc = plic_cold_irqchip_init(&plic);
--		if (rc)
--			return rc;
--	}
--
--	return plic_warm_irqchip_init(&plic, (hartid) ? (2 * hartid - 1) : 0,
--				      (hartid) ? (2 * hartid) : -1);
--}
--
--static int fu540_ipi_init(bool cold_boot)
--{
--	int rc;
--
--	if (cold_boot) {
--		rc = clint_cold_ipi_init(&clint);
--		if (rc)
--			return rc;
--	}
--
--	return clint_warm_ipi_init();
--}
--
--static u64 fu540_get_tlbr_flush_limit(void)
--{
--	return FU540_TLB_RANGE_FLUSH_LIMIT;
--}
--
--static int fu540_timer_init(bool cold_boot)
--{
--	int rc;
--
--	if (cold_boot) {
--		rc = clint_cold_timer_init(&clint, NULL);
--		if (rc)
--			return rc;
--	}
--
--	return clint_warm_timer_init();
--}
--
--static u32 fu540_hart_index2id[FU540_HART_COUNT - 1] = {
--	[0] = 1,
--	[1] = 2,
--	[2] = 3,
--	[3] = 4,
--};
--
--const struct sbi_platform_operations platform_ops = {
--	.final_init		= fu540_final_init,
--	.console_init		= fu540_console_init,
--	.irqchip_init		= fu540_irqchip_init,
--	.ipi_init		= fu540_ipi_init,
--	.get_tlbr_flush_limit	= fu540_get_tlbr_flush_limit,
--	.timer_init		= fu540_timer_init,
--};
--
--const struct sbi_platform platform = {
--	.opensbi_version	= OPENSBI_VERSION,
--	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
--	.name			= "SiFive Freedom U540",
--	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
--	.hart_count		= (FU540_HART_COUNT - 1),
--	.hart_index2id		= fu540_hart_index2id,
--	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
--	.platform_ops_addr	= (unsigned long)&platform_ops
--};
-diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
-index a8bd335..43c5452 100755
---- a/scripts/create-binary-archive.sh
-+++ b/scripts/create-binary-archive.sh
-@@ -95,12 +95,10 @@ build_opensbi() {
- 	case "${BUILD_RISCV_XLEN}" in
- 	32)
- 		# Setup 32-bit platform list
--		BUILD_PLATFORM_SUBDIR=("sifive/fu540")
- 		BUILD_PLATFORM_SUBDIR+=("generic")
- 		;;
- 	64)
- 		# Setup 64-bit platform list
--		BUILD_PLATFORM_SUBDIR=("sifive/fu540")
- 		BUILD_PLATFORM_SUBDIR+=("nuclei/ux600")
- 		BUILD_PLATFORM_SUBDIR+=("kendryte/k210")
- 		BUILD_PLATFORM_SUBDIR+=("fpga/ariane")
 -- 
-2.25.1
+Best Regards
+ Guo Ren
 
+ML: https://lore.kernel.org/linux-csky/
 
