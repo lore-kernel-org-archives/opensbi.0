@@ -1,298 +1,203 @@
-From: Daniel Cederman <cederman@gaisler.com>
-Date: Fri, 30 Apr 2021 08:35:56 +0200
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Fri, 30 Apr 2021 17:16:28 +0800
 Subject: [PATCH 1/1] lib: utils/serial: Add support for Gaisler APBUART
-Message-ID: <20210430063556.4153719-1-cederman@gaisler.com>
+In-Reply-To: <20210430063556.4153719-1-cederman@gaisler.com>
+References: <20210430063556.4153719-1-cederman@gaisler.com>
+Message-ID: <CAEUhbmVcLuuJ+yCjBj8O_LdK_etN0+BU+auU3FPVL23Gb3876w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds support for the UART used by the NOEL-V processor.
+On Fri, Apr 30, 2021 at 2:37 PM Daniel Cederman <cederman@gaisler.com> wrote:
+>
+> This patch adds support for the UART used by the NOEL-V processor.
+>
+> Cobham Gaisler's NOEL-V RISC-V processor IP is available under GPL
+> and commercial license and is described in more detail at
+> https://www.gaisler.com/noelv.
+>
+> Signed-off-by: Daniel Cederman <cederman@gaisler.com>
+> ---
+>  include/sbi_utils/fdt/fdt_helper.h      |  3 +
+>  include/sbi_utils/serial/gaisler-uart.h | 17 +++++
+>  lib/utils/fdt/fdt_helper.c              | 40 ++++++++++++
+>  lib/utils/serial/fdt_serial.c           |  2 +
+>  lib/utils/serial/fdt_serial_gaisler.c   | 35 ++++++++++
+>  lib/utils/serial/gaisler-uart.c         | 86 +++++++++++++++++++++++++
+>  lib/utils/serial/objects.mk             |  2 +
+>  7 files changed, 185 insertions(+)
+>  create mode 100644 include/sbi_utils/serial/gaisler-uart.h
+>  create mode 100644 lib/utils/serial/fdt_serial_gaisler.c
+>  create mode 100644 lib/utils/serial/gaisler-uart.c
+>
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index f5222de..c89f2e6 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -39,6 +39,9 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
+>
+>  int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
+>
+> +int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+> +                               struct platform_uart_data *uart);
+> +
+>  int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+>                                struct platform_uart_data *uart);
+>
+> diff --git a/include/sbi_utils/serial/gaisler-uart.h b/include/sbi_utils/serial/gaisler-uart.h
+> new file mode 100644
+> index 0000000..11d1f20
+> --- /dev/null
+> +++ b/include/sbi_utils/serial/gaisler-uart.h
+> @@ -0,0 +1,17 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Cobham Gaisler AB.
+> + *
+> + * Authors:
+> + *   Daniel Cederman <cederman@gaisler.com>
+> + */
+> +
+> +#ifndef __SERIAL_GAISLER_APBUART_H__
+> +#define __SERIAL_GAISLER_APBUART_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
+> +
+> +#endif
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index 909de01..9143e44 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -26,6 +26,8 @@
+>  #define DEFAULT_SIFIVE_UART_REG_SHIFT          0
+>  #define DEFAULT_SIFIVE_UART_REG_IO_WIDTH       4
+>
+> +#define DEFAULT_GAISLER_UART_REG_IO_WIDTH      4
+> +
+>  #define DEFAULT_SHAKTI_UART_FREQ               50000000
+>  #define DEFAULT_SHAKTI_UART_BAUD               115200
+>
+> @@ -213,6 +215,44 @@ int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
+>         return 0;
+>  }
+>
+> +int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+> +                               struct platform_uart_data *uart)
+> +{
+> +       int len, rc;
+> +       const fdt32_t *val;
+> +       unsigned long reg_addr, reg_size;
+> +
+> +       if (nodeoffset < 0 || !uart || !fdt)
+> +               return SBI_ENODEV;
+> +
+> +       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
+> +       if (rc < 0 || !reg_addr || !reg_size)
+> +               return SBI_ENODEV;
+> +       uart->addr = reg_addr;
+> +
+> +       /**
+> +        * UART address is mandatory. clock-frequency and current-speed
+> +        * may not be present. Don't return error.
+> +        */
+> +       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
+> +       if (len > 0 && val)
+> +               uart->freq = fdt32_to_cpu(*val);
+> +       else
+> +               uart->freq = DEFAULT_UART_FREQ;
+> +
+> +       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
+> +       if (len > 0 && val)
+> +               uart->baud = fdt32_to_cpu(*val);
+> +       else
+> +               uart->baud = DEFAULT_UART_BAUD;
+> +
+> +       /* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
+> +       uart->reg_shift    = DEFAULT_UART_REG_SHIFT;
+> +       uart->reg_io_width = DEFAULT_GAISLER_UART_REG_IO_WIDTH;
+> +
+> +       return 0;
+> +}
+> +
+>  int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+>                                struct platform_uart_data *uart)
+>  {
+> diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
+> index 43c55e8..bad3387 100644
+> --- a/lib/utils/serial/fdt_serial.c
+> +++ b/lib/utils/serial/fdt_serial.c
+> @@ -16,12 +16,14 @@ extern struct fdt_serial fdt_serial_uart8250;
+>  extern struct fdt_serial fdt_serial_sifive;
+>  extern struct fdt_serial fdt_serial_htif;
+>  extern struct fdt_serial fdt_serial_shakti;
+> +extern struct fdt_serial fdt_serial_gaisler;
+>
+>  static struct fdt_serial *serial_drivers[] = {
+>         &fdt_serial_uart8250,
+>         &fdt_serial_sifive,
+>         &fdt_serial_htif,
+>         &fdt_serial_shakti,
+> +       &fdt_serial_gaisler
+>  };
+>
+>  static struct fdt_serial dummy = {
+> diff --git a/lib/utils/serial/fdt_serial_gaisler.c b/lib/utils/serial/fdt_serial_gaisler.c
+> new file mode 100644
+> index 0000000..9a9f9a8
+> --- /dev/null
+> +++ b/lib/utils/serial/fdt_serial_gaisler.c
+> @@ -0,0 +1,35 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Cobham Gaisler AB.
+> + *
+> + * Authors:
+> + *   Daniel Cederman <cederman@gaisler.com>
+> + */
+> +
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/serial/fdt_serial.h>
+> +#include <sbi_utils/serial/gaisler-uart.h>
+> +
+> +static int serial_gaisler_init(void *fdt, int nodeoff,
+> +                              const struct fdt_match *match)
+> +{
+> +       int rc;
+> +       struct platform_uart_data uart;
+> +
+> +       rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
+> +       if (rc)
+> +               return rc;
+> +
+> +       return gaisler_uart_init(uart.addr, uart.freq, uart.baud);
+> +}
+> +
+> +static const struct fdt_match serial_gaisler_match[] = {
+> +       { .compatible = "gaisler,apbuart" },
 
-Cobham Gaisler's NOEL-V RISC-V processor IP is available under GPL
-and commercial license and is described in more detail at
-https://www.gaisler.com/noelv.
+Is this an approved compatible string? I did not find such in the
+upstream Linux kernel.
 
-Signed-off-by: Daniel Cederman <cederman@gaisler.com>
----
- include/sbi_utils/fdt/fdt_helper.h      |  3 +
- include/sbi_utils/serial/gaisler-uart.h | 17 +++++
- lib/utils/fdt/fdt_helper.c              | 40 ++++++++++++
- lib/utils/serial/fdt_serial.c           |  2 +
- lib/utils/serial/fdt_serial_gaisler.c   | 35 ++++++++++
- lib/utils/serial/gaisler-uart.c         | 86 +++++++++++++++++++++++++
- lib/utils/serial/objects.mk             |  2 +
- 7 files changed, 185 insertions(+)
- create mode 100644 include/sbi_utils/serial/gaisler-uart.h
- create mode 100644 lib/utils/serial/fdt_serial_gaisler.c
- create mode 100644 lib/utils/serial/gaisler-uart.c
+> +       {},
+> +};
+> +
+> +struct fdt_serial fdt_serial_gaisler = {
+> +       .match_table = serial_gaisler_match,
+> +       .init = serial_gaisler_init
+> +};
+> diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c
+> new file mode 100644
+> index 0000000..49298e9
+> --- /dev/null
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index f5222de..c89f2e6 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -39,6 +39,9 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
- 
- int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
- 
-+int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-+				struct platform_uart_data *uart);
-+
- int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
- 			       struct platform_uart_data *uart);
- 
-diff --git a/include/sbi_utils/serial/gaisler-uart.h b/include/sbi_utils/serial/gaisler-uart.h
-new file mode 100644
-index 0000000..11d1f20
---- /dev/null
-+++ b/include/sbi_utils/serial/gaisler-uart.h
-@@ -0,0 +1,17 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Cobham Gaisler AB.
-+ *
-+ * Authors:
-+ *   Daniel Cederman <cederman@gaisler.com>
-+ */
-+
-+#ifndef __SERIAL_GAISLER_APBUART_H__
-+#define __SERIAL_GAISLER_APBUART_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
-+
-+#endif
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 909de01..9143e44 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -26,6 +26,8 @@
- #define DEFAULT_SIFIVE_UART_REG_SHIFT		0
- #define DEFAULT_SIFIVE_UART_REG_IO_WIDTH	4
- 
-+#define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
-+
- #define DEFAULT_SHAKTI_UART_FREQ		50000000
- #define DEFAULT_SHAKTI_UART_BAUD		115200
- 
-@@ -213,6 +215,44 @@ int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
- 	return 0;
- }
- 
-+int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-+				struct platform_uart_data *uart)
-+{
-+	int len, rc;
-+	const fdt32_t *val;
-+	unsigned long reg_addr, reg_size;
-+
-+	if (nodeoffset < 0 || !uart || !fdt)
-+		return SBI_ENODEV;
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-+	if (rc < 0 || !reg_addr || !reg_size)
-+		return SBI_ENODEV;
-+	uart->addr = reg_addr;
-+
-+	/**
-+	 * UART address is mandatory. clock-frequency and current-speed
-+	 * may not be present. Don't return error.
-+	 */
-+	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
-+	if (len > 0 && val)
-+		uart->freq = fdt32_to_cpu(*val);
-+	else
-+		uart->freq = DEFAULT_UART_FREQ;
-+
-+	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-+	if (len > 0 && val)
-+		uart->baud = fdt32_to_cpu(*val);
-+	else
-+		uart->baud = DEFAULT_UART_BAUD;
-+
-+	/* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
-+	uart->reg_shift	   = DEFAULT_UART_REG_SHIFT;
-+	uart->reg_io_width = DEFAULT_GAISLER_UART_REG_IO_WIDTH;
-+
-+	return 0;
-+}
-+
- int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
- 			       struct platform_uart_data *uart)
- {
-diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
-index 43c55e8..bad3387 100644
---- a/lib/utils/serial/fdt_serial.c
-+++ b/lib/utils/serial/fdt_serial.c
-@@ -16,12 +16,14 @@ extern struct fdt_serial fdt_serial_uart8250;
- extern struct fdt_serial fdt_serial_sifive;
- extern struct fdt_serial fdt_serial_htif;
- extern struct fdt_serial fdt_serial_shakti;
-+extern struct fdt_serial fdt_serial_gaisler;
- 
- static struct fdt_serial *serial_drivers[] = {
- 	&fdt_serial_uart8250,
- 	&fdt_serial_sifive,
- 	&fdt_serial_htif,
- 	&fdt_serial_shakti,
-+	&fdt_serial_gaisler
- };
- 
- static struct fdt_serial dummy = {
-diff --git a/lib/utils/serial/fdt_serial_gaisler.c b/lib/utils/serial/fdt_serial_gaisler.c
-new file mode 100644
-index 0000000..9a9f9a8
---- /dev/null
-+++ b/lib/utils/serial/fdt_serial_gaisler.c
-@@ -0,0 +1,35 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Cobham Gaisler AB.
-+ *
-+ * Authors:
-+ *   Daniel Cederman <cederman@gaisler.com>
-+ */
-+
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/serial/fdt_serial.h>
-+#include <sbi_utils/serial/gaisler-uart.h>
-+
-+static int serial_gaisler_init(void *fdt, int nodeoff,
-+			       const struct fdt_match *match)
-+{
-+	int rc;
-+	struct platform_uart_data uart;
-+
-+	rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
-+	if (rc)
-+		return rc;
-+
-+	return gaisler_uart_init(uart.addr, uart.freq, uart.baud);
-+}
-+
-+static const struct fdt_match serial_gaisler_match[] = {
-+	{ .compatible = "gaisler,apbuart" },
-+	{},
-+};
-+
-+struct fdt_serial fdt_serial_gaisler = {
-+	.match_table = serial_gaisler_match,
-+	.init = serial_gaisler_init
-+};
-diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c
-new file mode 100644
-index 0000000..49298e9
---- /dev/null
-+++ b/lib/utils/serial/gaisler-uart.c
-@@ -0,0 +1,86 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Cobham Gaisler AB.
-+ *
-+ * Authors:
-+ *   Daniel Cederman <cederman@gaisler.com>
-+ */
-+
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi_utils/serial/gaisler-uart.h>
-+
-+/* clang-format off */
-+
-+#define UART_REG_DATA		0
-+#define UART_REG_STATUS		1
-+#define UART_REG_CTRL		2
-+#define UART_REG_SCALER		3
-+
-+#define UART_DATA_DATA		0x000000ff
-+#define UART_STATUS_FIFOFULL	0x00000200
-+#define UART_STATUS_DATAREADY	0x00000001
-+
-+#define UART_CTRL_DB		(1<<11)
-+#define UART_CTRL_FL		(1<<6)
-+#define UART_CTRL_TE		(1<<1)
-+#define UART_CTRL_RE		(1<<0)
-+
-+/* clang-format on */
-+
-+static volatile void *uart_base;
-+
-+static u32 get_reg(u32 num)
-+{
-+	return readl(uart_base + (num * 0x4));
-+}
-+
-+static void set_reg(u32 num, u32 val)
-+{
-+	writel(val, uart_base + (num * 0x4));
-+}
-+
-+static void gaisler_uart_putc(char ch)
-+{
-+	while (get_reg(UART_REG_STATUS) & UART_STATUS_FIFOFULL)
-+		;
-+
-+	set_reg(UART_REG_DATA, ch);
-+}
-+
-+static int gaisler_uart_getc(void)
-+{
-+	u32 ret = get_reg(UART_REG_STATUS);
-+	if (!(ret & UART_STATUS_DATAREADY))
-+		return -1;
-+	return get_reg(UART_REG_DATA) & UART_DATA_DATA;
-+}
-+
-+static struct sbi_console_device gaisler_console = {
-+	.name	      = "gaisler_uart",
-+	.console_putc = gaisler_uart_putc,
-+	.console_getc = gaisler_uart_getc
-+};
-+
-+int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-+{
-+	u32 ctrl;
-+
-+	uart_base = (volatile void *)base;
-+
-+	/* Configure baudrate */
-+	if (in_freq)
-+		set_reg(UART_REG_SCALER, in_freq / (baudrate * 8 + 7));
-+
-+	ctrl = get_reg(UART_REG_CTRL);
-+	/* Preserve debug mode and flow control */
-+	ctrl &= (UART_CTRL_DB | UART_CTRL_FL);
-+	/* Enable TX and RX */
-+	ctrl |= UART_CTRL_TE | UART_CTRL_RE;
-+	set_reg(UART_REG_CTRL, ctrl);
-+
-+	sbi_console_set_device(&gaisler_console);
-+
-+	return 0;
-+}
-diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-index c0746f0..9fb0902 100644
---- a/lib/utils/serial/objects.mk
-+++ b/lib/utils/serial/objects.mk
-@@ -8,10 +8,12 @@
- #
- 
- libsbiutils-objs-y += serial/fdt_serial.o
-+libsbiutils-objs-y += serial/fdt_serial_gaisler.o
- libsbiutils-objs-y += serial/fdt_serial_htif.o
- libsbiutils-objs-y += serial/fdt_serial_shakti.o
- libsbiutils-objs-y += serial/fdt_serial_sifive.o
- libsbiutils-objs-y += serial/fdt_serial_uart8250.o
-+libsbiutils-objs-y += serial/gaisler-uart.o
- libsbiutils-objs-y += serial/shakti-uart.o
- libsbiutils-objs-y += serial/sifive-uart.o
- libsbiutils-objs-y += serial/uart8250.o
--- 
-2.25.1
+[snip]
 
+Regards,
+Bin
 
