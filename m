@@ -1,309 +1,328 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 4 May 2021 03:42:39 +0000
-Subject: [PATCH 3/3] platform: Remove sifive/fu540 platform
-In-Reply-To: <20210429101609.1459066-3-bmeng.cn@gmail.com>
-References: <20210429101609.1459066-1-bmeng.cn@gmail.com>
- <20210429101609.1459066-3-bmeng.cn@gmail.com>
-Message-ID: <DM6PR04MB6201B2AE2336EFAB567D01D18D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Tue, 4 May 2021 03:45:58 +0000
+Subject: [PATCH 1/1] lib: utils/serial: Add support for Gaisler APBUART
+In-Reply-To: <20210430063556.4153719-1-cederman@gaisler.com>
+References: <20210430063556.4153719-1-cederman@gaisler.com>
+Message-ID: <DM6PR04MB6201013CA513476C5E9933E48D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-+David
+
 
 > -----Original Message-----
-> From: Bin Meng <bmeng.cn@gmail.com>
-> Sent: 29 April 2021 15:46
-> To: Anup Patel <Anup.Patel@wdc.com>; opensbi at lists.infradead.org
-> Subject: [PATCH 3/3] platform: Remove sifive/fu540 platform
+> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Daniel
+> Cederman
+> Sent: 30 April 2021 12:06
+> To: opensbi at lists.infradead.org
+> Cc: daniel at gaisler.com
+> Subject: [PATCH 1/1] lib: utils/serial: Add support for Gaisler APBUART
 > 
-> Now that SiFive HiFive Unleashed board is using the generic platform support
-> in OpenSBI, let's remove the old non-generic one.
+> This patch adds support for the UART used by the NOEL-V processor.
 > 
-> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> Cobham Gaisler's NOEL-V RISC-V processor IP is available under GPL and
+> commercial license and is described in more detail at
+> https://www.gaisler.com/noelv.
+> 
+> Signed-off-by: Daniel Cederman <cederman@gaisler.com>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-@David Abdurachmanov I hope this is okay ??
+> ---
+>  include/sbi_utils/fdt/fdt_helper.h      |  3 +
+>  include/sbi_utils/serial/gaisler-uart.h | 17 +++++
+>  lib/utils/fdt/fdt_helper.c              | 40 ++++++++++++
+>  lib/utils/serial/fdt_serial.c           |  2 +
+>  lib/utils/serial/fdt_serial_gaisler.c   | 35 ++++++++++
+>  lib/utils/serial/gaisler-uart.c         | 86 +++++++++++++++++++++++++
+>  lib/utils/serial/objects.mk             |  2 +
+>  7 files changed, 185 insertions(+)
+>  create mode 100644 include/sbi_utils/serial/gaisler-uart.h
+>  create mode 100644 lib/utils/serial/fdt_serial_gaisler.c
+>  create mode 100644 lib/utils/serial/gaisler-uart.c
+> 
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h
+> b/include/sbi_utils/fdt/fdt_helper.h
+> index f5222de..c89f2e6 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -39,6 +39,9 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32
+> *hartid);
+> 
+>  int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
+> 
+> +int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+> +				struct platform_uart_data *uart);
+> +
+>  int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+>  			       struct platform_uart_data *uart);
+> 
+> diff --git a/include/sbi_utils/serial/gaisler-uart.h
+> b/include/sbi_utils/serial/gaisler-uart.h
+> new file mode 100644
+> index 0000000..11d1f20
+> --- /dev/null
+> +++ b/include/sbi_utils/serial/gaisler-uart.h
+> @@ -0,0 +1,17 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Cobham Gaisler AB.
+> + *
+> + * Authors:
+> + *   Daniel Cederman <cederman@gaisler.com>
+> + */
+> +
+> +#ifndef __SERIAL_GAISLER_APBUART_H__
+> +#define __SERIAL_GAISLER_APBUART_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
+> +
+> +#endif
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c index
+> 909de01..9143e44 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -26,6 +26,8 @@
+>  #define DEFAULT_SIFIVE_UART_REG_SHIFT		0
+>  #define DEFAULT_SIFIVE_UART_REG_IO_WIDTH	4
+> 
+> +#define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
+> +
+>  #define DEFAULT_SHAKTI_UART_FREQ		50000000
+>  #define DEFAULT_SHAKTI_UART_BAUD		115200
+> 
+> @@ -213,6 +215,44 @@ int fdt_parse_max_hart_id(void *fdt, u32
+> *max_hartid)
+>  	return 0;
+>  }
+> 
+> +int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+> +				struct platform_uart_data *uart)
+> +{
+> +	int len, rc;
+> +	const fdt32_t *val;
+> +	unsigned long reg_addr, reg_size;
+> +
+> +	if (nodeoffset < 0 || !uart || !fdt)
+> +		return SBI_ENODEV;
+> +
+> +	rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr,
+> &reg_size);
+> +	if (rc < 0 || !reg_addr || !reg_size)
+> +		return SBI_ENODEV;
+> +	uart->addr = reg_addr;
+> +
+> +	/**
+> +	 * UART address is mandatory. clock-frequency and current-speed
+> +	 * may not be present. Don't return error.
+> +	 */
+> +	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency",
+> &len);
+> +	if (len > 0 && val)
+> +		uart->freq = fdt32_to_cpu(*val);
+> +	else
+> +		uart->freq = DEFAULT_UART_FREQ;
+> +
+> +	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed",
+> &len);
+> +	if (len > 0 && val)
+> +		uart->baud = fdt32_to_cpu(*val);
+> +	else
+> +		uart->baud = DEFAULT_UART_BAUD;
+> +
+> +	/* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
+> +	uart->reg_shift	   = DEFAULT_UART_REG_SHIFT;
+> +	uart->reg_io_width = DEFAULT_GAISLER_UART_REG_IO_WIDTH;
+> +
+> +	return 0;
+> +}
+> +
+>  int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+>  			       struct platform_uart_data *uart)  { diff --git
+> a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c index
+> 43c55e8..bad3387 100644
+> --- a/lib/utils/serial/fdt_serial.c
+> +++ b/lib/utils/serial/fdt_serial.c
+> @@ -16,12 +16,14 @@ extern struct fdt_serial fdt_serial_uart8250;  extern
+> struct fdt_serial fdt_serial_sifive;  extern struct fdt_serial fdt_serial_htif;
+> extern struct fdt_serial fdt_serial_shakti;
+> +extern struct fdt_serial fdt_serial_gaisler;
+> 
+>  static struct fdt_serial *serial_drivers[] = {
+>  	&fdt_serial_uart8250,
+>  	&fdt_serial_sifive,
+>  	&fdt_serial_htif,
+>  	&fdt_serial_shakti,
+> +	&fdt_serial_gaisler
+>  };
+> 
+>  static struct fdt_serial dummy = {
+> diff --git a/lib/utils/serial/fdt_serial_gaisler.c
+> b/lib/utils/serial/fdt_serial_gaisler.c
+> new file mode 100644
+> index 0000000..9a9f9a8
+> --- /dev/null
+> +++ b/lib/utils/serial/fdt_serial_gaisler.c
+> @@ -0,0 +1,35 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Cobham Gaisler AB.
+> + *
+> + * Authors:
+> + *   Daniel Cederman <cederman@gaisler.com>
+> + */
+> +
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/serial/fdt_serial.h> #include
+> +<sbi_utils/serial/gaisler-uart.h>
+> +
+> +static int serial_gaisler_init(void *fdt, int nodeoff,
+> +			       const struct fdt_match *match) {
+> +	int rc;
+> +	struct platform_uart_data uart;
+> +
+> +	rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return gaisler_uart_init(uart.addr, uart.freq, uart.baud); }
+> +
+> +static const struct fdt_match serial_gaisler_match[] = {
+> +	{ .compatible = "gaisler,apbuart" },
+
+We do have compatible strings in OpenSBI which are not standardized by
+Linux DT bindings so this compatible string is okay for now.
+
+It is very important that whenever Linux DT bindings are accepted, we
+add the accepted compatible string here as well.
 
 Regards,
 Anup
 
-> ---
+> +	{},
+> +};
+> +
+> +struct fdt_serial fdt_serial_gaisler = {
+> +	.match_table = serial_gaisler_match,
+> +	.init = serial_gaisler_init
+> +};
+> diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c new file
+> mode 100644 index 0000000..49298e9
+> --- /dev/null
+> +++ b/lib/utils/serial/gaisler-uart.c
+> @@ -0,0 +1,86 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Cobham Gaisler AB.
+> + *
+> + * Authors:
+> + *   Daniel Cederman <cederman@gaisler.com>
+> + */
+> +
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi_utils/serial/gaisler-uart.h>
+> +
+> +/* clang-format off */
+> +
+> +#define UART_REG_DATA		0
+> +#define UART_REG_STATUS		1
+> +#define UART_REG_CTRL		2
+> +#define UART_REG_SCALER		3
+> +
+> +#define UART_DATA_DATA		0x000000ff
+> +#define UART_STATUS_FIFOFULL	0x00000200
+> +#define UART_STATUS_DATAREADY	0x00000001
+> +
+> +#define UART_CTRL_DB		(1<<11)
+> +#define UART_CTRL_FL		(1<<6)
+> +#define UART_CTRL_TE		(1<<1)
+> +#define UART_CTRL_RE		(1<<0)
+> +
+> +/* clang-format on */
+> +
+> +static volatile void *uart_base;
+> +
+> +static u32 get_reg(u32 num)
+> +{
+> +	return readl(uart_base + (num * 0x4)); }
+> +
+> +static void set_reg(u32 num, u32 val)
+> +{
+> +	writel(val, uart_base + (num * 0x4));
+> +}
+> +
+> +static void gaisler_uart_putc(char ch)
+> +{
+> +	while (get_reg(UART_REG_STATUS) & UART_STATUS_FIFOFULL)
+> +		;
+> +
+> +	set_reg(UART_REG_DATA, ch);
+> +}
+> +
+> +static int gaisler_uart_getc(void)
+> +{
+> +	u32 ret = get_reg(UART_REG_STATUS);
+> +	if (!(ret & UART_STATUS_DATAREADY))
+> +		return -1;
+> +	return get_reg(UART_REG_DATA) & UART_DATA_DATA; }
+> +
+> +static struct sbi_console_device gaisler_console = {
+> +	.name	      = "gaisler_uart",
+> +	.console_putc = gaisler_uart_putc,
+> +	.console_getc = gaisler_uart_getc
+> +};
+> +
+> +int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate) {
+> +	u32 ctrl;
+> +
+> +	uart_base = (volatile void *)base;
+> +
+> +	/* Configure baudrate */
+> +	if (in_freq)
+> +		set_reg(UART_REG_SCALER, in_freq / (baudrate * 8 + 7));
+> +
+> +	ctrl = get_reg(UART_REG_CTRL);
+> +	/* Preserve debug mode and flow control */
+> +	ctrl &= (UART_CTRL_DB | UART_CTRL_FL);
+> +	/* Enable TX and RX */
+> +	ctrl |= UART_CTRL_TE | UART_CTRL_RE;
+> +	set_reg(UART_REG_CTRL, ctrl);
+> +
+> +	sbi_console_set_device(&gaisler_console);
+> +
+> +	return 0;
+> +}
+> diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk index
+> c0746f0..9fb0902 100644
+> --- a/lib/utils/serial/objects.mk
+> +++ b/lib/utils/serial/objects.mk
+> @@ -8,10 +8,12 @@
+>  #
 > 
->  platform/sifive/fu540/config.mk  |  40 -------
-> platform/sifive/fu540/objects.mk |  10 --  platform/sifive/fu540/platform.c |
-> 175 -------------------------------
->  scripts/create-binary-archive.sh |   2 -
->  4 files changed, 227 deletions(-)
->  delete mode 100644 platform/sifive/fu540/config.mk  delete mode 100644
-> platform/sifive/fu540/objects.mk  delete mode 100644
-> platform/sifive/fu540/platform.c
-> 
-> diff --git a/platform/sifive/fu540/config.mk
-> b/platform/sifive/fu540/config.mk deleted file mode 100644 index
-> 23169b1..0000000
-> --- a/platform/sifive/fu540/config.mk
-> +++ /dev/null
-> @@ -1,40 +0,0 @@
-> -#
-> -# SPDX-License-Identifier: BSD-2-Clause -# -# Copyright (c) 2019 Western
-> Digital Corporation or its affiliates.
-> -#
-> -# Authors:
-> -#   Atish Patra <atish.patra@wdc.com>
-> -#
-> -
-> -# Compiler flags
-> -platform-cppflags-y =
-> -platform-cflags-y =
-> -platform-asflags-y =
-> -platform-ldflags-y =
-> -
-> -# Command for platform specific "make run"
-> -platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M
-> sifive_u -m 256M \
-> -  -nographic -bios
-> $(build_dir)/platform/sifive/fu540/firmware/fw_payload.elf
-> -
-> -# Blobs to build
-> -FW_TEXT_START=0x80000000
-> -FW_DYNAMIC=y
-> -FW_JUMP=y
-> -ifeq ($(PLATFORM_RISCV_XLEN), 32)
-> -  # This needs to be 4MB aligned for 32-bit system
-> -  FW_JUMP_ADDR=0x80400000
-> -else
-> -  # This needs to be 2MB aligned for 64-bit system
-> -  FW_JUMP_ADDR=0x80200000
-> -endif
-> -FW_JUMP_FDT_ADDR=0x88000000
-> -FW_PAYLOAD=y
-> -ifeq ($(PLATFORM_RISCV_XLEN), 32)
-> -  # This needs to be 4MB aligned for 32-bit system
-> -  FW_PAYLOAD_OFFSET=0x400000
-> -else
-> -  # This needs to be 2MB aligned for 64-bit system
-> -  FW_PAYLOAD_OFFSET=0x200000
-> -endif
-> -FW_PAYLOAD_FDT_ADDR=0x88000000
-> diff --git a/platform/sifive/fu540/objects.mk
-> b/platform/sifive/fu540/objects.mk
-> deleted file mode 100644
-> index e0d0585..0000000
-> --- a/platform/sifive/fu540/objects.mk
-> +++ /dev/null
-> @@ -1,10 +0,0 @@
-> -#
-> -# SPDX-License-Identifier: BSD-2-Clause -# -# Copyright (c) 2019 Western
-> Digital Corporation or its affiliates.
-> -#
-> -# Authors:
-> -#   Atish Patra <atish.patra@wdc.com>
-> -#
-> -
-> -platform-objs-y += platform.o
-> diff --git a/platform/sifive/fu540/platform.c
-> b/platform/sifive/fu540/platform.c
-> deleted file mode 100644
-> index a17034d..0000000
-> --- a/platform/sifive/fu540/platform.c
-> +++ /dev/null
-> @@ -1,175 +0,0 @@
-> -/*
-> - * SPDX-License-Identifier: BSD-2-Clause
-> - *
-> - * Copyright (c) 2019 Western Digital Corporation or its affiliates.
-> - *
-> - * Authors:
-> - *   Atish Patra <atish.patra@wdc.com>
-> - */
-> -
-> -#include <libfdt.h>
-> -#include <sbi/riscv_asm.h>
-> -#include <sbi/riscv_io.h>
-> -#include <sbi/riscv_encoding.h>
-> -#include <sbi/sbi_console.h>
-> -#include <sbi/sbi_const.h>
-> -#include <sbi/sbi_platform.h>
-> -#include <sbi_utils/fdt/fdt_fixup.h>
-> -#include <sbi_utils/irqchip/plic.h>
-> -#include <sbi_utils/serial/sifive-uart.h> -#include <sbi_utils/sys/clint.h>
-> -
-> -/* clang-format off */
-> -
-> -#define FU540_HART_COUNT			5
-> -
-> -#define FU540_SYS_CLK				1000000000
-> -
-> -#define FU540_CLINT_ADDR			0x2000000
-> -
-> -#define FU540_PLIC_ADDR				0xc000000
-> -#define FU540_PLIC_NUM_SOURCES			0x35
-> -#define FU540_PLIC_NUM_PRIORITIES		7
-> -
-> -#define FU540_UART0_ADDR			0x10010000
-> -#define FU540_UART1_ADDR			0x10011000
-> -#define FU540_UART_BAUDRATE			115200
-> -
-> -/* PRCI clock related macros */
-> -//TODO: Do we need a separate driver for this ?
-> -#define FU540_PRCI_BASE_ADDR			0x10000000
-> -#define FU540_PRCI_CLKMUXSTATUSREG		0x002C
-> -#define FU540_PRCI_CLKMUX_STATUS_TLCLKSEL	(0x1 << 1)
-> -
-> -/* Full tlb flush always */
-> -#define FU540_TLB_RANGE_FLUSH_LIMIT		0
-> -
-> -/* clang-format on */
-> -
-> -static struct plic_data plic = {
-> -	.addr = FU540_PLIC_ADDR,
-> -	.num_src = FU540_PLIC_NUM_SOURCES,
-> -};
-> -
-> -static struct clint_data clint = {
-> -	.addr = FU540_CLINT_ADDR,
-> -	.first_hartid = 0,
-> -	.hart_count = FU540_HART_COUNT,
-> -	.has_64bit_mmio = TRUE,
-> -};
-> -
-> -static void fu540_modify_dt(void *fdt)
-> -{
-> -	fdt_cpu_fixup(fdt);
-> -
-> -	fdt_fixups(fdt);
-> -
-> -	/*
-> -	 * SiFive Freedom U540 has an erratum that prevents S-mode
-> software
-> -	 * to access a PMP protected region using 1GB page table mapping,
-> so
-> -	 * always add the no-map attribute on this platform.
-> -	 */
-> -	fdt_reserved_memory_nomap_fixup(fdt);
-> -}
-> -
-> -static int fu540_final_init(bool cold_boot) -{
-> -	void *fdt;
-> -
-> -	if (!cold_boot)
-> -		return 0;
-> -
-> -	fdt = sbi_scratch_thishart_arg1_ptr();
-> -	fu540_modify_dt(fdt);
-> -
-> -	return 0;
-> -}
-> -
-> -static int fu540_console_init(void)
-> -{
-> -	unsigned long peri_in_freq;
-> -
-> -	if (readl((volatile void *)FU540_PRCI_BASE_ADDR +
-> -		  FU540_PRCI_CLKMUXSTATUSREG) &
-> -	    FU540_PRCI_CLKMUX_STATUS_TLCLKSEL) {
-> -		peri_in_freq = FU540_SYS_CLK;
-> -	} else {
-> -		peri_in_freq = FU540_SYS_CLK / 2;
-> -	}
-> -
-> -	return sifive_uart_init(FU540_UART0_ADDR, peri_in_freq,
-> -				FU540_UART_BAUDRATE);
-> -}
-> -
-> -static int fu540_irqchip_init(bool cold_boot) -{
-> -	int rc;
-> -	u32 hartid = current_hartid();
-> -
-> -	if (cold_boot) {
-> -		rc = plic_cold_irqchip_init(&plic);
-> -		if (rc)
-> -			return rc;
-> -	}
-> -
-> -	return plic_warm_irqchip_init(&plic, (hartid) ? (2 * hartid - 1) : 0,
-> -				      (hartid) ? (2 * hartid) : -1);
-> -}
-> -
-> -static int fu540_ipi_init(bool cold_boot) -{
-> -	int rc;
-> -
-> -	if (cold_boot) {
-> -		rc = clint_cold_ipi_init(&clint);
-> -		if (rc)
-> -			return rc;
-> -	}
-> -
-> -	return clint_warm_ipi_init();
-> -}
-> -
-> -static u64 fu540_get_tlbr_flush_limit(void) -{
-> -	return FU540_TLB_RANGE_FLUSH_LIMIT;
-> -}
-> -
-> -static int fu540_timer_init(bool cold_boot) -{
-> -	int rc;
-> -
-> -	if (cold_boot) {
-> -		rc = clint_cold_timer_init(&clint, NULL);
-> -		if (rc)
-> -			return rc;
-> -	}
-> -
-> -	return clint_warm_timer_init();
-> -}
-> -
-> -static u32 fu540_hart_index2id[FU540_HART_COUNT - 1] = {
-> -	[0] = 1,
-> -	[1] = 2,
-> -	[2] = 3,
-> -	[3] = 4,
-> -};
-> -
-> -const struct sbi_platform_operations platform_ops = {
-> -	.final_init		= fu540_final_init,
-> -	.console_init		= fu540_console_init,
-> -	.irqchip_init		= fu540_irqchip_init,
-> -	.ipi_init		= fu540_ipi_init,
-> -	.get_tlbr_flush_limit	= fu540_get_tlbr_flush_limit,
-> -	.timer_init		= fu540_timer_init,
-> -};
-> -
-> -const struct sbi_platform platform = {
-> -	.opensbi_version	= OPENSBI_VERSION,
-> -	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
-> -	.name			= "SiFive Freedom U540",
-> -	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-> -	.hart_count		= (FU540_HART_COUNT - 1),
-> -	.hart_index2id		= fu540_hart_index2id,
-> -	.hart_stack_size	=
-> SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-> -	.platform_ops_addr	= (unsigned long)&platform_ops
-> -};
-> diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
-> index a8bd335..43c5452 100755
-> --- a/scripts/create-binary-archive.sh
-> +++ b/scripts/create-binary-archive.sh
-> @@ -95,12 +95,10 @@ build_opensbi() {
->  	case "${BUILD_RISCV_XLEN}" in
->  	32)
->  		# Setup 32-bit platform list
-> -		BUILD_PLATFORM_SUBDIR=("sifive/fu540")
->  		BUILD_PLATFORM_SUBDIR+=("generic")
->  		;;
->  	64)
->  		# Setup 64-bit platform list
-> -		BUILD_PLATFORM_SUBDIR=("sifive/fu540")
->  		BUILD_PLATFORM_SUBDIR+=("nuclei/ux600")
->  		BUILD_PLATFORM_SUBDIR+=("kendryte/k210")
->  		BUILD_PLATFORM_SUBDIR+=("fpga/ariane")
+>  libsbiutils-objs-y += serial/fdt_serial.o
+> +libsbiutils-objs-y += serial/fdt_serial_gaisler.o
+>  libsbiutils-objs-y += serial/fdt_serial_htif.o  libsbiutils-objs-y +=
+> serial/fdt_serial_shakti.o  libsbiutils-objs-y += serial/fdt_serial_sifive.o
+> libsbiutils-objs-y += serial/fdt_serial_uart8250.o
+> +libsbiutils-objs-y += serial/gaisler-uart.o
+>  libsbiutils-objs-y += serial/shakti-uart.o  libsbiutils-objs-y += serial/sifive-
+> uart.o  libsbiutils-objs-y += serial/uart8250.o
 > --
 > 2.25.1
-
+> 
+> 
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
