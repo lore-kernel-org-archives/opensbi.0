@@ -1,146 +1,308 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 4 May 2021 03:40:51 +0000
-Subject: [PATCH 2/3] docs: platform: Describe sifive_fu540 as supported
- generic platform
-In-Reply-To: <20210429101609.1459066-2-bmeng.cn@gmail.com>
+Date: Tue, 4 May 2021 03:42:39 +0000
+Subject: [PATCH 3/3] platform: Remove sifive/fu540 platform
+In-Reply-To: <20210429101609.1459066-3-bmeng.cn@gmail.com>
 References: <20210429101609.1459066-1-bmeng.cn@gmail.com>
- <20210429101609.1459066-2-bmeng.cn@gmail.com>
-Message-ID: <DM6PR04MB620142AF80726AC8DC5B2CA38D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210429101609.1459066-3-bmeng.cn@gmail.com>
+Message-ID: <DM6PR04MB6201B2AE2336EFAB567D01D18D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
++David
 
 > -----Original Message-----
 > From: Bin Meng <bmeng.cn@gmail.com>
 > Sent: 29 April 2021 15:46
 > To: Anup Patel <Anup.Patel@wdc.com>; opensbi at lists.infradead.org
-> Subject: [PATCH 2/3] docs: platform: Describe sifive_fu540 as supported
-> generic platform
+> Subject: [PATCH 3/3] platform: Remove sifive/fu540 platform
 > 
-> The upstream U-Boot/QEMU have been using generic platform for SiFive
-> HiFive Unleashed board for some time. Let's document sifive_fu540 as one
-> of the supported targets for "generic" platform.
+> Now that SiFive HiFive Unleashed board is using the generic platform support
+> in OpenSBI, let's remove the old non-generic one.
 > 
 > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
-
-Thanks for updating this.
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+@David Abdurachmanov I hope this is okay ??
 
 Regards,
 Anup
 
 > ---
 > 
->  docs/platform/generic.md      |  2 ++
->  docs/platform/sifive_fu540.md | 16 ++++++++--------
->  2 files changed, 10 insertions(+), 8 deletions(-)
+>  platform/sifive/fu540/config.mk  |  40 -------
+> platform/sifive/fu540/objects.mk |  10 --  platform/sifive/fu540/platform.c |
+> 175 -------------------------------
+>  scripts/create-binary-archive.sh |   2 -
+>  4 files changed, 227 deletions(-)
+>  delete mode 100644 platform/sifive/fu540/config.mk  delete mode 100644
+> platform/sifive/fu540/objects.mk  delete mode 100644
+> platform/sifive/fu540/platform.c
 > 
-> diff --git a/docs/platform/generic.md b/docs/platform/generic.md index
-> e0bf8fe..73a8afa 100644
-> --- a/docs/platform/generic.md
-> +++ b/docs/platform/generic.md
-> @@ -47,10 +47,12 @@ RISC-V Platforms Using Generic Platform
-> 
->  * **QEMU RISC-V Virt Machine** (*[qemu_virt.md]*)
->  * **Shakti C-class SoC Platform** (*[shakti_cclass.md]*)
-> +* **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
->  * **Spike** (*[spike.md]*)
->  * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
-> 
->  [qemu_virt.md]: qemu_virt.md
->  [shakti_cclass.md]: shakti_cclass.md
-> +[sifive_fu540.md]: sifive_fu540.md
->  [spike.md]: spike.md
->  [thead-c9xx.md]: thead-c9xx.md
-> diff --git a/docs/platform/sifive_fu540.md b/docs/platform/sifive_fu540.md
-> index b38df47..5cbca21 100644
-> --- a/docs/platform/sifive_fu540.md
-> +++ b/docs/platform/sifive_fu540.md
-> @@ -8,7 +8,7 @@ With QEMU v4.2 or above release, the 'sifive_u' machine
-> can be used to test  OpenSBI image built for the real hardware as well.
-> 
->  To build platform specific library and firmwares, provide the
-> -*PLATFORM=sifive/fu540* parameter to the top level `make` command.
-> +*PLATFORM=generic* parameter to the top level `make` command.
-> 
->  Platform Options
->  ----------------
-> @@ -32,10 +32,10 @@ To use Linux v5.2 (or higher), the pre-built DTB (DT
-> binary) from Linux v5.2  the compile time option *FW_FDT_PATH*.
-> 
->  ```
-> -make PLATFORM=sifive/fu540
-> FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
-> +make PLATFORM=generic
-> +FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
->  or
->  (For Linux v5.2 or higher)
-> -make PLATFORM=sifive/fu540
-> FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
-> FW_FDT_PATH=<hifive-unleashed-a00.dtb path from Linux kernel>
-> +make PLATFORM=generic
-> +FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
-> +FW_FDT_PATH=<hifive-unleashed-a00.dtb path from Linux kernel>
->  ```
-> 
->  **U-Boot Payload**
-> @@ -45,7 +45,7 @@ sifive_fu540_defconfig configuration and with U-Boot
-> v2020.01, and up to  v2021.04. sifive_unleashed_defconfig shall be used with
-> v2021.07 or above.
-> 
->  ```
-> -make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-boot_build_dir>/u-
-> boot-dtb.bin
-> +make PLATFORM=generic FW_PAYLOAD_PATH=<u-boot_build_dir>/u-
-> boot-dtb.bin
->  ```
->  For U-Boot v2020.07-rc4 or later releases, SPL support was added in U-Boot.
->  Please refer to the detailed U-Boot booting guide available at [U-Boot].
-> @@ -64,7 +64,7 @@ That's why the generated firmware binary in above
-> steps should be copied to  the partition of the sdcard with above GUID.
-> 
->  ```
-> -dd if=build/platform/sifive/fu540/firmware/fw_payload.bin
-> of=/dev/disk2s1 bs=1024
-> +dd if=build/platform/generic/firmware/fw_payload.bin of=/dev/disk2s1
-> +bs=1024
->  ```
-> 
->  In my case, it is the first partition is **disk2s1** that has been formatted
-> @@ -161,7 +161,7 @@ U-Boot uses the DTB generated by QEMU, and u-
-> boot.bin should be used as the  payload image, like:
-> 
->  ```
-> -make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-boot_build_dir>/u-
-> boot.bin
-> +make PLATFORM=generic FW_PAYLOAD_PATH=<u-boot_build_dir>/u-
-> boot.bin
->  ```
-> 
->  U-Boot v2020.07 release added SPL support to SiFive HiFive Unleashed
-> board, @@ -179,12 +179,12 @@ The above errors can be safely ignored as
-> we don't run U-Boot SPL under QEMU.
->  Run:
->  ```
->  qemu-system-riscv64 -M sifive_u -m 256M -nographic \
-> -	-bios build/platform/sifive/fu540/firmware/fw_payload.bin
-> +	-bios build/platform/generic/firmware/fw_payload.bin
->  ```
->  or
->  ```
->  qemu-system-riscv64 -M sifive_u -m 256M -nographic \
-> -	-bios build/platform/sifive/fu540/firmware/fw_jump.bin \
-> +	-bios build/platform/generic/firmware/fw_jump.bin \
->  	-kernel <uboot_build_dir>/u-boot.bin
->  ```
-> 
+> diff --git a/platform/sifive/fu540/config.mk
+> b/platform/sifive/fu540/config.mk deleted file mode 100644 index
+> 23169b1..0000000
+> --- a/platform/sifive/fu540/config.mk
+> +++ /dev/null
+> @@ -1,40 +0,0 @@
+> -#
+> -# SPDX-License-Identifier: BSD-2-Clause -# -# Copyright (c) 2019 Western
+> Digital Corporation or its affiliates.
+> -#
+> -# Authors:
+> -#   Atish Patra <atish.patra@wdc.com>
+> -#
+> -
+> -# Compiler flags
+> -platform-cppflags-y =
+> -platform-cflags-y =
+> -platform-asflags-y =
+> -platform-ldflags-y =
+> -
+> -# Command for platform specific "make run"
+> -platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M
+> sifive_u -m 256M \
+> -  -nographic -bios
+> $(build_dir)/platform/sifive/fu540/firmware/fw_payload.elf
+> -
+> -# Blobs to build
+> -FW_TEXT_START=0x80000000
+> -FW_DYNAMIC=y
+> -FW_JUMP=y
+> -ifeq ($(PLATFORM_RISCV_XLEN), 32)
+> -  # This needs to be 4MB aligned for 32-bit system
+> -  FW_JUMP_ADDR=0x80400000
+> -else
+> -  # This needs to be 2MB aligned for 64-bit system
+> -  FW_JUMP_ADDR=0x80200000
+> -endif
+> -FW_JUMP_FDT_ADDR=0x88000000
+> -FW_PAYLOAD=y
+> -ifeq ($(PLATFORM_RISCV_XLEN), 32)
+> -  # This needs to be 4MB aligned for 32-bit system
+> -  FW_PAYLOAD_OFFSET=0x400000
+> -else
+> -  # This needs to be 2MB aligned for 64-bit system
+> -  FW_PAYLOAD_OFFSET=0x200000
+> -endif
+> -FW_PAYLOAD_FDT_ADDR=0x88000000
+> diff --git a/platform/sifive/fu540/objects.mk
+> b/platform/sifive/fu540/objects.mk
+> deleted file mode 100644
+> index e0d0585..0000000
+> --- a/platform/sifive/fu540/objects.mk
+> +++ /dev/null
+> @@ -1,10 +0,0 @@
+> -#
+> -# SPDX-License-Identifier: BSD-2-Clause -# -# Copyright (c) 2019 Western
+> Digital Corporation or its affiliates.
+> -#
+> -# Authors:
+> -#   Atish Patra <atish.patra@wdc.com>
+> -#
+> -
+> -platform-objs-y += platform.o
+> diff --git a/platform/sifive/fu540/platform.c
+> b/platform/sifive/fu540/platform.c
+> deleted file mode 100644
+> index a17034d..0000000
+> --- a/platform/sifive/fu540/platform.c
+> +++ /dev/null
+> @@ -1,175 +0,0 @@
+> -/*
+> - * SPDX-License-Identifier: BSD-2-Clause
+> - *
+> - * Copyright (c) 2019 Western Digital Corporation or its affiliates.
+> - *
+> - * Authors:
+> - *   Atish Patra <atish.patra@wdc.com>
+> - */
+> -
+> -#include <libfdt.h>
+> -#include <sbi/riscv_asm.h>
+> -#include <sbi/riscv_io.h>
+> -#include <sbi/riscv_encoding.h>
+> -#include <sbi/sbi_console.h>
+> -#include <sbi/sbi_const.h>
+> -#include <sbi/sbi_platform.h>
+> -#include <sbi_utils/fdt/fdt_fixup.h>
+> -#include <sbi_utils/irqchip/plic.h>
+> -#include <sbi_utils/serial/sifive-uart.h> -#include <sbi_utils/sys/clint.h>
+> -
+> -/* clang-format off */
+> -
+> -#define FU540_HART_COUNT			5
+> -
+> -#define FU540_SYS_CLK				1000000000
+> -
+> -#define FU540_CLINT_ADDR			0x2000000
+> -
+> -#define FU540_PLIC_ADDR				0xc000000
+> -#define FU540_PLIC_NUM_SOURCES			0x35
+> -#define FU540_PLIC_NUM_PRIORITIES		7
+> -
+> -#define FU540_UART0_ADDR			0x10010000
+> -#define FU540_UART1_ADDR			0x10011000
+> -#define FU540_UART_BAUDRATE			115200
+> -
+> -/* PRCI clock related macros */
+> -//TODO: Do we need a separate driver for this ?
+> -#define FU540_PRCI_BASE_ADDR			0x10000000
+> -#define FU540_PRCI_CLKMUXSTATUSREG		0x002C
+> -#define FU540_PRCI_CLKMUX_STATUS_TLCLKSEL	(0x1 << 1)
+> -
+> -/* Full tlb flush always */
+> -#define FU540_TLB_RANGE_FLUSH_LIMIT		0
+> -
+> -/* clang-format on */
+> -
+> -static struct plic_data plic = {
+> -	.addr = FU540_PLIC_ADDR,
+> -	.num_src = FU540_PLIC_NUM_SOURCES,
+> -};
+> -
+> -static struct clint_data clint = {
+> -	.addr = FU540_CLINT_ADDR,
+> -	.first_hartid = 0,
+> -	.hart_count = FU540_HART_COUNT,
+> -	.has_64bit_mmio = TRUE,
+> -};
+> -
+> -static void fu540_modify_dt(void *fdt)
+> -{
+> -	fdt_cpu_fixup(fdt);
+> -
+> -	fdt_fixups(fdt);
+> -
+> -	/*
+> -	 * SiFive Freedom U540 has an erratum that prevents S-mode
+> software
+> -	 * to access a PMP protected region using 1GB page table mapping,
+> so
+> -	 * always add the no-map attribute on this platform.
+> -	 */
+> -	fdt_reserved_memory_nomap_fixup(fdt);
+> -}
+> -
+> -static int fu540_final_init(bool cold_boot) -{
+> -	void *fdt;
+> -
+> -	if (!cold_boot)
+> -		return 0;
+> -
+> -	fdt = sbi_scratch_thishart_arg1_ptr();
+> -	fu540_modify_dt(fdt);
+> -
+> -	return 0;
+> -}
+> -
+> -static int fu540_console_init(void)
+> -{
+> -	unsigned long peri_in_freq;
+> -
+> -	if (readl((volatile void *)FU540_PRCI_BASE_ADDR +
+> -		  FU540_PRCI_CLKMUXSTATUSREG) &
+> -	    FU540_PRCI_CLKMUX_STATUS_TLCLKSEL) {
+> -		peri_in_freq = FU540_SYS_CLK;
+> -	} else {
+> -		peri_in_freq = FU540_SYS_CLK / 2;
+> -	}
+> -
+> -	return sifive_uart_init(FU540_UART0_ADDR, peri_in_freq,
+> -				FU540_UART_BAUDRATE);
+> -}
+> -
+> -static int fu540_irqchip_init(bool cold_boot) -{
+> -	int rc;
+> -	u32 hartid = current_hartid();
+> -
+> -	if (cold_boot) {
+> -		rc = plic_cold_irqchip_init(&plic);
+> -		if (rc)
+> -			return rc;
+> -	}
+> -
+> -	return plic_warm_irqchip_init(&plic, (hartid) ? (2 * hartid - 1) : 0,
+> -				      (hartid) ? (2 * hartid) : -1);
+> -}
+> -
+> -static int fu540_ipi_init(bool cold_boot) -{
+> -	int rc;
+> -
+> -	if (cold_boot) {
+> -		rc = clint_cold_ipi_init(&clint);
+> -		if (rc)
+> -			return rc;
+> -	}
+> -
+> -	return clint_warm_ipi_init();
+> -}
+> -
+> -static u64 fu540_get_tlbr_flush_limit(void) -{
+> -	return FU540_TLB_RANGE_FLUSH_LIMIT;
+> -}
+> -
+> -static int fu540_timer_init(bool cold_boot) -{
+> -	int rc;
+> -
+> -	if (cold_boot) {
+> -		rc = clint_cold_timer_init(&clint, NULL);
+> -		if (rc)
+> -			return rc;
+> -	}
+> -
+> -	return clint_warm_timer_init();
+> -}
+> -
+> -static u32 fu540_hart_index2id[FU540_HART_COUNT - 1] = {
+> -	[0] = 1,
+> -	[1] = 2,
+> -	[2] = 3,
+> -	[3] = 4,
+> -};
+> -
+> -const struct sbi_platform_operations platform_ops = {
+> -	.final_init		= fu540_final_init,
+> -	.console_init		= fu540_console_init,
+> -	.irqchip_init		= fu540_irqchip_init,
+> -	.ipi_init		= fu540_ipi_init,
+> -	.get_tlbr_flush_limit	= fu540_get_tlbr_flush_limit,
+> -	.timer_init		= fu540_timer_init,
+> -};
+> -
+> -const struct sbi_platform platform = {
+> -	.opensbi_version	= OPENSBI_VERSION,
+> -	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
+> -	.name			= "SiFive Freedom U540",
+> -	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
+> -	.hart_count		= (FU540_HART_COUNT - 1),
+> -	.hart_index2id		= fu540_hart_index2id,
+> -	.hart_stack_size	=
+> SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
+> -	.platform_ops_addr	= (unsigned long)&platform_ops
+> -};
+> diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
+> index a8bd335..43c5452 100755
+> --- a/scripts/create-binary-archive.sh
+> +++ b/scripts/create-binary-archive.sh
+> @@ -95,12 +95,10 @@ build_opensbi() {
+>  	case "${BUILD_RISCV_XLEN}" in
+>  	32)
+>  		# Setup 32-bit platform list
+> -		BUILD_PLATFORM_SUBDIR=("sifive/fu540")
+>  		BUILD_PLATFORM_SUBDIR+=("generic")
+>  		;;
+>  	64)
+>  		# Setup 64-bit platform list
+> -		BUILD_PLATFORM_SUBDIR=("sifive/fu540")
+>  		BUILD_PLATFORM_SUBDIR+=("nuclei/ux600")
+>  		BUILD_PLATFORM_SUBDIR+=("kendryte/k210")
+>  		BUILD_PLATFORM_SUBDIR+=("fpga/ariane")
 > --
 > 2.25.1
 
