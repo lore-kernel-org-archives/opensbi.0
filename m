@@ -1,10 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 6 May 2021 09:09:02 +0000
-Subject: [PATCH 1/3] docs: platform: Sort platform names
-In-Reply-To: <DM6PR04MB6201E116F7A5C3BD656072638D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Date: Thu, 6 May 2021 09:09:17 +0000
+Subject: [PATCH 2/3] docs: platform: Describe sifive_fu540 as supported
+ generic platform
+In-Reply-To: <DM6PR04MB620142AF80726AC8DC5B2CA38D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
 References: <20210429101609.1459066-1-bmeng.cn@gmail.com>
- <DM6PR04MB6201E116F7A5C3BD656072638D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <DM6PR04MB6201F1EF74C5B25B1679CF5F8D589@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <20210429101609.1459066-2-bmeng.cn@gmail.com>
+ <DM6PR04MB620142AF80726AC8DC5B2CA38D5A9@DM6PR04MB6201.namprd04.prod.outlook.com>
+Message-ID: <DM6PR04MB6201A5F6EA4ED44F1969B9E98D589@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,9 +17,10 @@ Content-Transfer-Encoding: 7bit
 
 > -----Original Message-----
 > From: Anup Patel
-> Sent: 04 May 2021 09:10
+> Sent: 04 May 2021 09:11
 > To: Bin Meng <bmeng.cn@gmail.com>; opensbi at lists.infradead.org
-> Subject: RE: [PATCH 1/3] docs: platform: Sort platform names
+> Subject: RE: [PATCH 2/3] docs: platform: Describe sifive_fu540 as supported
+> generic platform
 > 
 > 
 > 
@@ -25,48 +28,141 @@ Content-Transfer-Encoding: 7bit
 > > From: Bin Meng <bmeng.cn@gmail.com>
 > > Sent: 29 April 2021 15:46
 > > To: Anup Patel <Anup.Patel@wdc.com>; opensbi at lists.infradead.org
-> > Subject: [PATCH 1/3] docs: platform: Sort platform names
+> > Subject: [PATCH 2/3] docs: platform: Describe sifive_fu540 as
+> > supported generic platform
 > >
-> > Let's sort the platform names in alphabetical order.
+> > The upstream U-Boot/QEMU have been using generic platform for SiFive
+> > HiFive Unleashed board for some time. Let's document sifive_fu540 as
+> > one of the supported targets for "generic" platform.
 > >
 > > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> 
+> Thanks for updating this.
 > 
 > Looks good to me.
 > 
 > Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> 
 
 Applied this patch to the riscv/opensbi repo
 
 Regards,
 Anup
 
-> 
 > Regards,
 > Anup
 > 
 > > ---
 > >
-> >  docs/platform/generic.md | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >  docs/platform/generic.md      |  2 ++
+> >  docs/platform/sifive_fu540.md | 16 ++++++++--------
+> >  2 files changed, 10 insertions(+), 8 deletions(-)
 > >
 > > diff --git a/docs/platform/generic.md b/docs/platform/generic.md index
-> > 8c3b0dd..e0bf8fe 100644
+> > e0bf8fe..73a8afa 100644
 > > --- a/docs/platform/generic.md
 > > +++ b/docs/platform/generic.md
-> > @@ -46,11 +46,11 @@ RISC-V Platforms Using Generic Platform
-> >  ---------------------------------------
+> > @@ -47,10 +47,12 @@ RISC-V Platforms Using Generic Platform
 > >
 > >  * **QEMU RISC-V Virt Machine** (*[qemu_virt.md]*)
-> > -* **Spike** (*[spike.md]*)
 > >  * **Shakti C-class SoC Platform** (*[shakti_cclass.md]*)
-> > +* **Spike** (*[spike.md]*)
+> > +* **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
+> >  * **Spike** (*[spike.md]*)
 > >  * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
 > >
 > >  [qemu_virt.md]: qemu_virt.md
-> > -[spike.md]: spike.md
 > >  [shakti_cclass.md]: shakti_cclass.md
-> > +[spike.md]: spike.md
+> > +[sifive_fu540.md]: sifive_fu540.md
+> >  [spike.md]: spike.md
 > >  [thead-c9xx.md]: thead-c9xx.md
+> > diff --git a/docs/platform/sifive_fu540.md
+> > b/docs/platform/sifive_fu540.md index b38df47..5cbca21 100644
+> > --- a/docs/platform/sifive_fu540.md
+> > +++ b/docs/platform/sifive_fu540.md
+> > @@ -8,7 +8,7 @@ With QEMU v4.2 or above release, the 'sifive_u'
+> > machine can be used to test  OpenSBI image built for the real hardware as
+> well.
+> >
+> >  To build platform specific library and firmwares, provide the
+> > -*PLATFORM=sifive/fu540* parameter to the top level `make` command.
+> > +*PLATFORM=generic* parameter to the top level `make` command.
+> >
+> >  Platform Options
+> >  ----------------
+> > @@ -32,10 +32,10 @@ To use Linux v5.2 (or higher), the pre-built DTB
+> > (DT
+> > binary) from Linux v5.2  the compile time option *FW_FDT_PATH*.
+> >
+> >  ```
+> > -make PLATFORM=sifive/fu540
+> > FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
+> > +make PLATFORM=generic
+> > +FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
+> >  or
+> >  (For Linux v5.2 or higher)
+> > -make PLATFORM=sifive/fu540
+> > FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
+> > FW_FDT_PATH=<hifive-unleashed-a00.dtb path from Linux kernel>
+> > +make PLATFORM=generic
+> > +FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image
+> > +FW_FDT_PATH=<hifive-unleashed-a00.dtb path from Linux kernel>
+> >  ```
+> >
+> >  **U-Boot Payload**
+> > @@ -45,7 +45,7 @@ sifive_fu540_defconfig configuration and with U-Boot
+> > v2020.01, and up to  v2021.04. sifive_unleashed_defconfig shall be
+> > used with
+> > v2021.07 or above.
+> >
+> >  ```
+> > -make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-
+> boot_build_dir>/u-
+> > boot-dtb.bin
+> > +make PLATFORM=generic FW_PAYLOAD_PATH=<u-boot_build_dir>/u-
+> > boot-dtb.bin
+> >  ```
+> >  For U-Boot v2020.07-rc4 or later releases, SPL support was added in U-
+> Boot.
+> >  Please refer to the detailed U-Boot booting guide available at [U-Boot].
+> > @@ -64,7 +64,7 @@ That's why the generated firmware binary in above
+> > steps should be copied to  the partition of the sdcard with above GUID.
+> >
+> >  ```
+> > -dd if=build/platform/sifive/fu540/firmware/fw_payload.bin
+> > of=/dev/disk2s1 bs=1024
+> > +dd if=build/platform/generic/firmware/fw_payload.bin of=/dev/disk2s1
+> > +bs=1024
+> >  ```
+> >
+> >  In my case, it is the first partition is **disk2s1** that has been
+> > formatted @@ -161,7 +161,7 @@ U-Boot uses the DTB generated by
+> QEMU,
+> > and u- boot.bin should be used as the  payload image, like:
+> >
+> >  ```
+> > -make PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=<u-
+> boot_build_dir>/u-
+> > boot.bin
+> > +make PLATFORM=generic FW_PAYLOAD_PATH=<u-boot_build_dir>/u-
+> > boot.bin
+> >  ```
+> >
+> >  U-Boot v2020.07 release added SPL support to SiFive HiFive Unleashed
+> > board, @@ -179,12 +179,12 @@ The above errors can be safely ignored as
+> > we don't run U-Boot SPL under QEMU.
+> >  Run:
+> >  ```
+> >  qemu-system-riscv64 -M sifive_u -m 256M -nographic \
+> > -	-bios build/platform/sifive/fu540/firmware/fw_payload.bin
+> > +	-bios build/platform/generic/firmware/fw_payload.bin
+> >  ```
+> >  or
+> >  ```
+> >  qemu-system-riscv64 -M sifive_u -m 256M -nographic \
+> > -	-bios build/platform/sifive/fu540/firmware/fw_jump.bin \
+> > +	-bios build/platform/generic/firmware/fw_jump.bin \
+> >  	-kernel <uboot_build_dir>/u-boot.bin  ```
+> >
 > > --
 > > 2.25.1
 
