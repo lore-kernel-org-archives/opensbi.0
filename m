@@ -1,293 +1,347 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 10 May 2021 18:12:54 -0700
-Subject: [RFC 11/14] utils: fdt: Add fdt helper functions to parse PMU DT
- nodes
-In-Reply-To: <DM6PR04MB62011586F78E97B189D608198D499@DM6PR04MB6201.namprd04.prod.outlook.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Tue, 11 May 2021 08:08:37 +0000
+Subject: [RFC 13/14] lib: sbi: Implement firmware counters
+In-Reply-To: <CAOnJCU+oxHX3KTcFrdvupxYkkuVdas=S7qiLMLU86t7xGaxF9A@mail.gmail.com>
 References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-12-atish.patra@wdc.com>
- <DM6PR04MB62011586F78E97B189D608198D499@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <CAOnJCUKgV6Tm4Fn=vCd_vQNSC4143tufnzR3UNXJFYirCyMAiA@mail.gmail.com>
+ <20210319221305.2138412-14-atish.patra@wdc.com>
+ <DM6PR04MB6201D26D3F38F246C96B3E0A8D499@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <CAOnJCU+oxHX3KTcFrdvupxYkkuVdas=S7qiLMLU86t7xGaxF9A@mail.gmail.com>
+Message-ID: <DM6PR04MB6201681C2E4C9E2DDDAD528E8D539@DM6PR04MB6201.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Apr 19, 2021 at 5:19 AM Anup Patel <Anup.Patel@wdc.com> wrote:
->
->
->
-> > -----Original Message-----
-> > From: Atish Patra <atish.patra@wdc.com>
-> > Sent: 20 March 2021 03:43
-> > To: opensbi at lists.infradead.org
-> > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> > Subject: [RFC 11/14] utils: fdt: Add fdt helper functions to parse PMU DT
-> > nodes
-> >
-> > The PMU DT node bindings are defined in docs/pmu_support.md Add few
-> > fdt helper functions to parse the DT node and update the event-counter
-> > mapping tables.
-> >
-> > Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> > ---
-> >  include/sbi_utils/fdt/fdt_pmu.h |  46 +++++++++++++
-> >  lib/utils/fdt/fdt_fixup.c       |   2 +
-> >  lib/utils/fdt/fdt_pmu.c         | 110 ++++++++++++++++++++++++++++++++
-> >  lib/utils/fdt/objects.mk        |   1 +
-> >  4 files changed, 159 insertions(+)
-> >  create mode 100644 include/sbi_utils/fdt/fdt_pmu.h  create mode 100644
-> > lib/utils/fdt/fdt_pmu.c
-> >
-> > diff --git a/include/sbi_utils/fdt/fdt_pmu.h
-> > b/include/sbi_utils/fdt/fdt_pmu.h new file mode 100644 index
-> > 000000000000..2fa01edc0743
-> > --- /dev/null
-> > +++ b/include/sbi_utils/fdt/fdt_pmu.h
-> > @@ -0,0 +1,46 @@
-> > +// SPDX-License-Identifier: BSD-2-Clause
-> > +/*
-> > + * fdt_pmu.c - Flat Device Tree PMU helper routines
-> > + *
-> > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> > + *
-> > + * Authors:
-> > + *   Atish Patra <atish.patra@wdc.com>
-> > + */
-> > +
-> > +#ifndef __FDT_PMU_H__
-> > +#define __FDT_PMU_H__
-> > +
-> > +#include <sbi/sbi_types.h>
-> > +
-> > +/**
-> > + * Fix up the PMU node in the device tree
-> > + *
-> > + * This routine:
-> > + * 1. Disables opensbi specific properties from the DT
-> > + *
-> > + * It is recommended that platform support call this function in
-> > + * their final_init() platform operation.
-> > + *
-> > + * @param fdt device tree blob
-> > + */
-> > +void fdt_pmu_fixup(void *fdt);
-> > +
-> > +/**
-> > + * Setup PMU data from device tree
-> > + *
-> > + * @param fdt device tree blob
-> > + *
-> > + * @return 0 on success and negative error code on failure  */ int
-> > +fdt_pmu_setup(void *fdt);
-> > +
-> > +/**
-> > + * Get the mhpmevent select value read from DT for a given event
-> > + * @param event_idx Event ID of the given event
-> > + *
-> > + * @return The select value read from DT or 0 if given index was not
-> > +found  */ uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
-> > +
-> > +#endif
-> > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c index
-> > eea450d80492..ab351e408c86 100644
-> > --- a/lib/utils/fdt/fdt_fixup.c
-> > +++ b/lib/utils/fdt/fdt_fixup.c
-> > @@ -15,6 +15,7 @@
-> >  #include <sbi/sbi_scratch.h>
-> >  #include <sbi/sbi_string.h>
-> >  #include <sbi_utils/fdt/fdt_fixup.h>
-> > +#include <sbi_utils/fdt/fdt_pmu.h>
-> >  #include <sbi_utils/fdt/fdt_helper.h>
-> >
-> >  void fdt_cpu_fixup(void *fdt)
-> > @@ -260,6 +261,7 @@ void fdt_fixups(void *fdt)
-> >       fdt_plic_fixup(fdt, "riscv,plic0");
-> >
-> >       fdt_reserved_memory_fixup(fdt);
-> > +     fdt_pmu_fixup(fdt);
-> >  }
+
+
+> -----Original Message-----
+> From: Atish Patra <atishp@atishpatra.org>
+> Sent: 11 May 2021 00:29
+> To: Anup Patel <Anup.Patel@wdc.com>
+> Cc: Atish Patra <Atish.Patra@wdc.com>; opensbi at lists.infradead.org
+> Subject: Re: [RFC 13/14] lib: sbi: Implement firmware counters
+> 
+> On Mon, Apr 19, 2021 at 5:37 AM Anup Patel <Anup.Patel@wdc.com> wrote:
 > >
 > >
-> > diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c new file mode
-> > 100644 index 000000000000..5053ab7568d8
-> > --- /dev/null
-> > +++ b/lib/utils/fdt/fdt_pmu.c
-> > @@ -0,0 +1,110 @@
-> > +// SPDX-License-Identifier: BSD-2-Clause
-> > +/*
-> > + * fdt_pmu.c - Flat Device Tree PMU helper routines
-> > + *
-> > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> > + *
-> > + * Authors:
-> > + *   Atish Patra <atish.patra@wdc.com>
-> > + */
-> > +
-> > +#include <libfdt.h>
-> > +#include <sbi/sbi_error.h>
-> > +#include <sbi/sbi_pmu.h>
-> > +#include <sbi_utils/fdt/fdt_helper.h>
-> > +
-> > +struct sbi_pmu_hw_event_select {
->
-> Rename this to "fdt_pmu_hw_event_select"
->
-
-Done.
-
-> > +     uint32_t eidx;
-> > +     uint64_t select;
-> > +};
-> > +
-> > +static struct sbi_pmu_hw_event_select
-> > +fdt_pmu_evt_select[SBI_PMU_HW_EVENT_MAX] = {0}; static uint32_t
-> > +hw_event_count;
->
-> You can have array size more than SBI_PMU_HW_EVENT_MAX
-> because unlike generic code here it is mapping each event_idx
-> to it's event selector.
->
-> Maybe have separate define FDT_PMU_HW_EVENT_MAX ??
->
-
-Sure. How about defining FDT_PMU_HW_EVENT_MAX as 2 * SBI_PMU_HW_EVENT_MAX.
-
-> > +
-> > +uint64_t fdt_pmu_get_select_value(uint32_t event_idx) {
-> > +     int i;
-> > +     struct sbi_pmu_hw_event_select *event;
-> > +
-> > +     for (i = 0; i < SBI_PMU_HW_EVENT_MAX; i++) {
-> > +             event = &fdt_pmu_evt_select[i];
->
-> In future, we can have keep the array sorted and do
-> binary search instead of sequential comparison.
->
-
-Sure.
-
-> > +             if (event->eidx == event_idx)
-> > +                     return event->select;
-> > +     }
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +int fdt_pmu_fixup(void *fdt)
-> > +{
-> > +     int pmu_offset;
-> > +
-> > +     if (!fdt)
-> > +             return SBI_EINVAL;
-> > +
-> > +     pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
-> > +     if (pmu_offset < 0)
-> > +             return SBI_EFAIL;
-> > +
-> > +     fdt_delprop(fdt, pmu_offset, "opensbi,event-to-counters");
-> > +     fdt_delprop(fdt, pmu_offset, "opensbi,event-to-mhpmevent");
-> > +     fdt_delprop(fdt, pmu_offset, "opensbi,raw-event-to-counters");
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +int fdt_pmu_setup(void *fdt)
-> > +{
-> > +     int i, pmu_offset, len, result;
-> > +     const u32 *event_val;
-> > +     const u32 *event_ctr_map;
-> > +     struct sbi_pmu_hw_event_select *event;
-> > +     u32 event_idx_start, event_idx_end, ctr_map;
-> > +
-> > +     if (!fdt)
-> > +             return SBI_EINVAL;
-> > +
-> > +     pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
-> > +     if (pmu_offset < 0)
-> > +             return SBI_EFAIL;
-> > +
-> > +     event_ctr_map = fdt_getprop(fdt, pmu_offset, "opensbi,event-to-
-> > counters", &len);
-> > +     if (!event_ctr_map || len < 8)
-> > +             return SBI_EFAIL;
-> > +     len = len / (sizeof(u32) * 3);
-> > +     for (i = 0; i < len; i++) {
-> > +             event_idx_start = fdt32_to_cpu(event_ctr_map[3 * i]);
-> > +             event_idx_end = fdt32_to_cpu(event_ctr_map[3 * i + 1]);
-> > +             ctr_map = fdt32_to_cpu(event_ctr_map[3 * i + 2]);
-> > +             sbi_pmu_add_hw_event_counter_map(event_idx_start,
-> > event_idx_end, ctr_map);
-> > +     }
-> > +
-> > +     event_val = fdt_getprop(fdt, pmu_offset, "opensbi,event-to-
-> > mhpmevent", &len);
-> > +     if (!event_val || len < 8)
-> > +             return SBI_EFAIL;
-> > +     len = len / (sizeof(u32) * 3);
-> > +     for (i = 0; i < len; i++) {
-> > +             event = &fdt_pmu_evt_select[hw_event_count];
-> > +             event->eidx = fdt32_to_cpu(event_val[3 * i]);
-> > +             event->select = fdt32_to_cpu(event_val[3 * i + 1]);
-> > +             event->select = (event->select << 32) |
-> > fdt32_to_cpu(event_val[3 * i + 2]);
-> > +             hw_event_count++;
-> > +     }
-> > +
-> > +     event_val = fdt_getprop(fdt, pmu_offset, "opensbi,raw-event-to-
-> > counters", &len);
-> > +     if (!event_val || len < 8)
-> > +             return SBI_EFAIL;
-> > +     len = len / (sizeof(u32) * 3);
-> > +     for (i = 0; i < len; i++) {
-> > +             event = &fdt_pmu_evt_select[hw_event_count];
->
-> I think you don't need to add RAW event selectors to
-> Fdt_pmu_evt_select[] array because you are already registering
-> selector value with generic code.
->
-
-Correct. I have removed it.
-
-> > +             event->eidx = SBI_PMU_EVENT_RAW_IDX;
-> > +             event->select = fdt32_to_cpu(event_val[3 * i]);
-> > +             event->select = (event->select << 32) |
-> > fdt32_to_cpu(event_val[3 * i + 1]);
-> > +             ctr_map = fdt32_to_cpu(event_val[3 * i + 2]);
-> > +             result = sbi_pmu_add_raw_event_counter_map(event-
-> > >select, ctr_map);
-> > +             if (!result)
-> > +                     hw_event_count++;
-> > +     }
-> > +
-> > +     return 0;
-> > +}
-> > diff --git a/lib/utils/fdt/objects.mk b/lib/utils/fdt/objects.mk index
-> > d9f1eae19292..03800f96d74d 100644
-> > --- a/lib/utils/fdt/objects.mk
-> > +++ b/lib/utils/fdt/objects.mk
-> > @@ -5,5 +5,6 @@
-> >  #
 > >
-> >  libsbiutils-objs-y += fdt/fdt_domain.o
-> > +libsbiutils-objs-y += fdt/fdt_pmu.o
-> >  libsbiutils-objs-y += fdt/fdt_helper.o
-> >  libsbiutils-objs-y += fdt/fdt_fixup.o
+> > > -----Original Message-----
+> > > From: Atish Patra <atish.patra@wdc.com>
+> > > Sent: 20 March 2021 03:43
+> > > To: opensbi at lists.infradead.org
+> > > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel
+> > > <Anup.Patel@wdc.com>
+> > > Subject: [RFC 13/14] lib: sbi: Implement firmware counters
+> > >
+> > > RISC-V SBI v0.3 specification defines a set of firmware events that
+> > > can provide additional information about the current firmware
+> > > context. All of the firmware event monitoring are enabled now. The
+> > > firmware events must be defined as raw perf event with MSB set as
+> specified in the specification.
+> > >
+> > > Signed-off-by: Atish Patra <atish.patra@wdc.com>
+> > > ---
+> > >  include/sbi/sbi_tlb.h       |  1 +
+> > >  lib/sbi/sbi_ecall_replace.c |  2 ++
+> > >  lib/sbi/sbi_ipi.c           |  7 +++++++
+> > >  lib/sbi/sbi_tlb.c           | 36 ++++++++++++++++++++++++++++++++++++
+> > >  lib/sbi/sbi_trap.c          |  9 +++++++++
+> > >  5 files changed, 55 insertions(+)
+> > >
+> > > diff --git a/include/sbi/sbi_tlb.h b/include/sbi/sbi_tlb.h index
+> > > 48f1962d7dcf..680fcc758072 100644
+> > > --- a/include/sbi/sbi_tlb.h
+> > > +++ b/include/sbi/sbi_tlb.h
+> > > @@ -33,6 +33,7 @@ struct sbi_tlb_info {
+> > >       struct sbi_hartmask smask;
+> > >  };
+> > >
+> > > +void sbi_tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data);
+> > >  void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo);  void
+> > > sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo);  void
+> > > sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo); diff --git
+> > > a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c index
+> > > a7935d97300d..83544bb6e05f 100644
+> > > --- a/lib/sbi/sbi_ecall_replace.c
+> > > +++ b/lib/sbi/sbi_ecall_replace.c
+> > > @@ -14,6 +14,7 @@
+> > >  #include <sbi/sbi_error.h>
+> > >  #include <sbi/sbi_hart.h>
+> > >  #include <sbi/sbi_ipi.h>
+> > > +#include <sbi/sbi_pmu.h>
+> > >  #include <sbi/sbi_system.h>
+> > >  #include <sbi/sbi_timer.h>
+> > >  #include <sbi/sbi_tlb.h>
+> > > @@ -27,6 +28,7 @@ static int sbi_ecall_time_handler(unsigned long
+> > > extid, unsigned long funcid,
+> > >       int ret = 0;
+> > >
+> > >       if (funcid == SBI_EXT_TIME_SET_TIMER) {
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_SET_TIMER);
+> >
+> > This one I am not sure.
+> >
+> > May be we should call sbi_pmu_incr_fw_ctr() from
+> > sbi_timer_event_start() ?? No ??
+> >
+> 
+> Sure.
+> 
+> > >  #if __riscv_xlen == 32
+> > >               sbi_timer_event_start((((u64)regs->a1 << 32) |
+> > > (u64)regs-
+> > > >a0));  #else diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> > > >index
+> > > b50735e4099a..cd998ac7acfa 100644
+> > > --- a/lib/sbi/sbi_ipi.c
+> > > +++ b/lib/sbi/sbi_ipi.c
+> > > @@ -19,6 +19,9 @@
+> > >  #include <sbi/sbi_init.h>
+> > >  #include <sbi/sbi_ipi.h>
+> > >  #include <sbi/sbi_platform.h>
+> > > +#include <sbi/sbi_pmu.h>
+> > > +#include <sbi/sbi_string.h>
+> > > +#include <sbi/sbi_tlb.h>
+> > >
+> > >  struct sbi_ipi_data {
+> > >       unsigned long ipi_type;
+> > > @@ -61,6 +64,10 @@ static int sbi_ipi_send(struct sbi_scratch
+> > > *scratch, u32 remote_hartid,
+> > >        */
+> > >       atomic_raw_set_bit(event, &ipi_data->ipi_type);
+> > >       smp_wmb();
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_IPI_SENT);
+> > > +     if (sbi_strncmp(ipi_ops->name, "IPI_TLB", 7))
+> > > +             sbi_tlb_pmu_incr_fw_ctr(data);
+> > > +
+> > >       sbi_platform_ipi_send(plat, remote_hartid);
+> > >
+> > >       if (ipi_ops->sync)
+> > > diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c index
+> > > 73f59e8681e2..36b21a74a713 100644
+> > > --- a/lib/sbi/sbi_tlb.c
+> > > +++ b/lib/sbi/sbi_tlb.c
+> > > @@ -21,6 +21,7 @@
+> > >  #include <sbi/sbi_string.h>
+> > >  #include <sbi/sbi_console.h>
+> > >  #include <sbi/sbi_platform.h>
+> > > +#include <sbi/sbi_pmu.h>
+> > >
+> > >  static unsigned long tlb_sync_off;
+> > >  static unsigned long tlb_fifo_off;
+> > > @@ -39,6 +40,8 @@ void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info
+> > > *tinfo)
+> > >       unsigned long vmid  = tinfo->vmid;
+> > >       unsigned long i, hgatp;
+> > >
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_VVMA_RCVD);
+> > > +
+> > >       hgatp = csr_swap(CSR_HGATP,
+> > >                        (vmid << HGATP_VMID_SHIFT) &
+> > > HGATP_VMID_MASK);
+> > >
+> > > @@ -61,6 +64,8 @@ void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info
+> > > *tinfo)
+> > >       unsigned long size  = tinfo->size;
+> > >       unsigned long i;
+> > >
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_GVMA_RCVD);
+> > > +
+> > >       if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+> > >               __sbi_hfence_gvma_all();
+> > >               return;
+> > > @@ -77,6 +82,8 @@ void sbi_tlb_local_sfence_vma(struct sbi_tlb_info
+> > > *tinfo)
+> > >       unsigned long size  = tinfo->size;
+> > >       unsigned long i;
+> > >
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_SFENCE_VMA_RCVD);
+> > > +
+> > >       if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+> > >               sbi_tlb_flush_all();
+> > >               return;
+> > > @@ -98,6 +105,8 @@ void sbi_tlb_local_hfence_vvma_asid(struct
+> > > sbi_tlb_info *tinfo)
+> > >       unsigned long vmid  = tinfo->vmid;
+> > >       unsigned long i, hgatp;
+> > >
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_VVMA_ASID_RCVD);
+> > > +
+> > >       hgatp = csr_swap(CSR_HGATP,
+> > >                        (vmid << HGATP_VMID_SHIFT) &
+> > > HGATP_VMID_MASK);
+> > >
+> > > @@ -126,6 +135,8 @@ void sbi_tlb_local_hfence_gvma_vmid(struct
+> > > sbi_tlb_info *tinfo)
+> > >       unsigned long vmid  = tinfo->vmid;
+> > >       unsigned long i;
+> > >
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_GVMA_VMID_RCVD);
+> > > +
+> > >       if (start == 0 && size == 0) {
+> > >               __sbi_hfence_gvma_all();
+> > >               return;
+> > > @@ -148,6 +159,8 @@ void sbi_tlb_local_sfence_vma_asid(struct
+> > > sbi_tlb_info *tinfo)
+> > >       unsigned long asid  = tinfo->asid;
+> > >       unsigned long i;
+> > >
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_SFENCE_VMA_ASID_RCVD);
+> > > +
+> > >       if (start == 0 && size == 0) {
+> > >               sbi_tlb_flush_all();
+> > >               return;
+> > > @@ -172,9 +185,32 @@ void sbi_tlb_local_sfence_vma_asid(struct
+> > > sbi_tlb_info *tinfo)
+> > >
+> > >  void sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo)  {
+> > > +     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_FENCE_I_RECVD);
+> > > +
+> > >       __asm__ __volatile("fence.i");  }
+> > >
+> > > +void sbi_tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data) {
+> > > +     if (unlikely(!data))
+> > > +             return;
+> > > +
+> > > +     if (data->local_fn == sbi_tlb_local_fence_i)
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_FENCE_I_SENT);
+> > > +     else if (data->local_fn == sbi_tlb_local_sfence_vma)
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_SFENCE_VMA_SENT);
+> > > +     else if (data->local_fn == sbi_tlb_local_sfence_vma_asid)
+> > > +
+> > >       sbi_pmu_incr_fw_ctr(SBI_PMU_FW_SFENCE_VMA_ASID_SENT);
+> > > +     else if (data->local_fn == sbi_tlb_local_hfence_gvma)
+> > > +
+> > >       sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_GVMA_SENT);
+> > > +     else if (data->local_fn == sbi_tlb_local_hfence_gvma_vmid)
+> > > +
+> > >       sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_GVMA_VMID_SENT);
+> > > +     else if (data->local_fn == sbi_tlb_local_hfence_vvma)
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_VVMA_SENT);
+> > > +     else if (data->local_fn == sbi_tlb_local_hfence_vvma_asid)
+> > > +
+> > >       sbi_pmu_incr_fw_ctr(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
+> > > +}
+> > > +
+> >
+> > Drop the sbi_tlb_pmu_incr_fw_ctr() function and call
+> > sbi_pmu_incr_fw_ctr() from sbi_tlb_request() function.
+> >
+> 
+> sbi_tlb_pmu_incr_fw_ctr is called from sbi_ipi_send so that every request to
+> other hart are counted.
+> If we invoke sbi_pmu_incr_fw_ctr from sbi_tlb_request, we will be counting
+> only 1 for every request from the supervisor.
+> 
+> Did I misunderstand the purpose of the tlb specific firmware counters ?
+
+The sbi_ipi_send() is for sending any kind of IPIs and remote TLB request is
+just one type of IPI request.
+
+For example, we will be having inter-domain messaging using the
+sbi_ipi_send() as well so if sbi_tlb_pmu_incr_fw_ctr() Is called from
+sbi_ipi_send() then it will unnecessary increment TLB events.
+
+> 
+> 
+> > >  static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)  {
+> > >       u32 rhartid;
+> > > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c index
+> > > b7349d2c914e..3b540ea7f76c 100644
+> > > --- a/lib/sbi/sbi_trap.c
+> > > +++ b/lib/sbi/sbi_trap.c
+> > > @@ -16,6 +16,7 @@
+> > >  #include <sbi/sbi_illegal_insn.h>
+> > >  #include <sbi/sbi_ipi.h>
+> > >  #include <sbi/sbi_misaligned_ldst.h>
+> > > +#include <sbi/sbi_pmu.h>
+> > >  #include <sbi/sbi_scratch.h>
+> > >  #include <sbi/sbi_timer.h>
+> > >  #include <sbi/sbi_trap.h>
+> > > @@ -230,6 +231,7 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
+> > >                       sbi_timer_process();
+> > >                       break;
+> > >               case IRQ_M_SOFT:
+> > > +                     sbi_pmu_incr_fw_ctr(SBI_PMU_FW_IPI_RECVD);
+> > >                       sbi_ipi_process();
+> >
+> > Move sbi_pmu_incr_fw_ctr() call to sbi_ipi_process()
+> >
+> > >                       break;
+> > >               default:
+> > > @@ -241,14 +243,17 @@ void sbi_trap_handler(struct sbi_trap_regs
+> > > *regs)
+> > >
+> > >       switch (mcause) {
+> > >       case CAUSE_ILLEGAL_INSTRUCTION:
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_ILLEGAL_INSN);
+> >
+> > Move sbi_pmu_incr_fw_ctr() call to sbi_illegal_insn_handler()
+> >
+> Done.
+> 
+> > >               rc  = sbi_illegal_insn_handler(mtval, regs);
+> > >               msg = "illegal instruction handler failed";
+> > >               break;
+> > >       case CAUSE_MISALIGNED_LOAD:
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_MISALIGNED_LOAD);
+> > >               rc = sbi_misaligned_load_handler(mtval, mtval2,
+> > > mtinst, regs);
+> >
+> > Same as above.
+> >
+> Done.
+> 
+> > >               msg = "misaligned load handler failed";
+> > >               break;
+> > >       case CAUSE_MISALIGNED_STORE:
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_MISALIGNED_STORE);
+> > >               rc  = sbi_misaligned_store_handler(mtval, mtval2,
+> > > mtinst, regs);
+> >
+> > Same as above.
+> >
+> Done.
+> 
+> > >               msg = "misaligned store handler failed";
+> > >               break;
+> > > @@ -257,6 +262,10 @@ void sbi_trap_handler(struct sbi_trap_regs
+> *regs)
+> > >               rc  = sbi_ecall_handler(regs);
+> > >               msg = "ecall handler failed";
+> > >               break;
+> > > +     case CAUSE_LOAD_ACCESS:
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_ACCESS_LOAD);
+> > > +     case CAUSE_STORE_ACCESS:
+> > > +             sbi_pmu_incr_fw_ctr(SBI_PMU_FW_ACCESS_STORE);
+> >
+> > These ones are fine over here at the moment but eventually we might
+> > have separate access fault handling file.
+> >
+> 
+> ok.
+> 
+> > >       default:
+> > >               /* If the trap came from S or U mode, redirect it there */
+> > >               trap.epc = regs->mepc;
+> > > --
+> > > 2.25.1
+> >
+> > Regards,
+> > Anup
+> >
+> >
 > > --
-> > 2.25.1
->
-> Regards,
-> Anup
->
->
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> 
+> 
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Regards,
+> Atish
 
-
-
--- 
 Regards,
-Atish
-
+Anup
