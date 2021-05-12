@@ -1,44 +1,49 @@
-From: Daniel Schaefer <git@danielschaefer.me>
-Date: Wed, 12 May 2021 19:12:47 +0800
-Subject: [PATCH v1 1/1] lib: utils: Include sbi_strings.h directly
-Message-ID: <20210512111247.28416-1-git@danielschaefer.me>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Wed, 12 May 2021 14:31:55 +0000
+Subject: spin_lock_check has different signatures
+In-Reply-To: <d8f94296-67d5-dcc6-c6cb-001a4b86563a@danielschaefer.me>
+References: <d8f94296-67d5-dcc6-c6cb-001a4b86563a@danielschaefer.me>
+Message-ID: <CO6PR04MB7812833E0120164E371C385E8D529@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Daniel Schaefer <daniel.schaefer@hpe.com>
 
-This file uses `sbi_strncpy`, `sbi_strncmp` and `sbi_memset`, which are
-defined in `sbi_strings.h`.
 
-It should already be transitively included via `#include
-<sbi/sbi_scratch.h>` but my toolchain doesn't do that for some reason.
-Perhaps because the functions that refer to them are `static`?
+> -----Original Message-----
+> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Daniel
+> Schaefer
+> Sent: 12 May 2021 16:37
+> To: opensbi at lists.infradead.org
+> Cc: Chang, Abner (HPS SW/FW Technologist) <abner.chang@hpe.com>
+> Subject: spin_lock_check has different signatures
+> 
+> Hi,
+> 
+> spin_lock_check has different signatures in the C and in the H file.
+> 
+> See lib/sbi/riscv_locks.c
+> 
+> bool spin_lock_check(spinlock_t *lock)
+> 
+> and include/sbi/riscv_locks.h
+> 
+> int spin_lock_check(spinlock_t *lock);
+> 
+> Some related functions also seem to return a value that should be boolean
+> but are not.
+> Especially spin_lock_unlocked returns an int and is used as return value for
+> spin_lock_check.
+> 
+> So spin_lock_check and spin_lock_unlocked should return bool.
+> spin_trylock probably also.
 
-Anyways, it would be good to directly reference the header here.
+Yes, good catch. This seems to be missed out in the patch reviews.
 
-Cc: Abner Chang <abner.chang@hpe.com>
-Cc: Anup Patel <anup.patel@wdc.com>
-Signed-off-by: Daniel Schaefer <git@danielschaefer.me>
----
- lib/utils/fdt/fdt_domain.c | 1 +
- 1 file changed, 1 insertion(+)
+Please go ahead and send patch to fix this.
 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 95c195d65238..b2b5f6196a1a 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_string.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- 
--- 
-2.30.1
-
+Regards,
+Anup
 
