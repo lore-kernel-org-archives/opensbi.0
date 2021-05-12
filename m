@@ -1,989 +1,128 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 11 May 2021 16:58:13 -0700
-Subject: [RFC 10/14] lib: sbi: Add PMU support
-In-Reply-To: <DM6PR04MB6201350106B6E65F84C862CE8D499@DM6PR04MB6201.namprd04.prod.outlook.com>
-References: <20210319221305.2138412-1-atish.patra@wdc.com>
- <20210319221305.2138412-11-atish.patra@wdc.com>
- <DM6PR04MB6201350106B6E65F84C862CE8D499@DM6PR04MB6201.namprd04.prod.outlook.com>
-Message-ID: <CAOnJCU+hM-3JJo=gxNSfk0R7SNo3D69dHc8Kw8KfC8VBmri_aQ@mail.gmail.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Wed, 12 May 2021 11:33:32 +0800
+Subject: [PATCH] utils: irqchip: plic: Using 1 as default priority value
+In-Reply-To: <CAOnJCUJFpaZ8GjDmLA2ctJdWXqWGzy_OtRN+3CDCLOu95vTyDg@mail.gmail.com>
+References: <1619232227-97067-1-git-send-email-guoren@kernel.org>
+ <DM6PR04MB62015CAA39939B037A6C1CB68D449@DM6PR04MB6201.namprd04.prod.outlook.com>
+ <CAJF2gTS4ZNJ6iWA9Rbp6zCqE1w5FsZw9Q5b4MP7JByJSYRwcNQ@mail.gmail.com>
+ <CAOnJCUJFpaZ8GjDmLA2ctJdWXqWGzy_OtRN+3CDCLOu95vTyDg@mail.gmail.com>
+Message-ID: <CAJF2gTR3vtRedKzBmcScfoeDUOJN+UrfKGqpjrKfux5eKqLmNA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Apr 19, 2021 at 4:45 AM Anup Patel <Anup.Patel@wdc.com> wrote:
+On Wed, May 12, 2021 at 3:10 AM Atish Patra <atishp@atishpatra.org> wrote:
 >
+> On Sat, Apr 24, 2021 at 12:07 AM Guo Ren <guoren@kernel.org> wrote:
+> >
+> > Hi Anup,
+> >
+> > On Sat, Apr 24, 2021 at 12:04 PM Anup Patel <Anup.Patel@wdc.com> wrote:
+> > >
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: guoren at kernel.org <guoren@kernel.org>
+> > > > Sent: 24 April 2021 08:14
+> > > > To: guoren at kernel.org; anup at brainfault.org
+> > > > Cc: opensbi at lists.infradead.org; Guo Ren <guoren@linux.alibaba.com>;
+> > > > Anup Patel <Anup.Patel@wdc.com>
+> > > > Subject: [PATCH] utils: irqchip: plic: Using 1 as default priority value
+> > > >
+> > > > From: Guo Ren <guoren@linux.alibaba.com>
+> > > >
+> > > > In linux plic drivers:
+> > > > static inline void plic_irq_toggle(const struct cpumask *mask,
+> > > >                                  struct irq_data *d, int enable)
+> > > > {
+> > > >       int cpu;
+> > > >       struct plic_priv *priv = irq_data_get_irq_chip_data(d);
+> > > >
+> > > >       writel(enable, priv->regs + PRIORITY_BASE + d->hwirq *
+> > > > PRIORITY_PER_ID);
+> > > >
+> > > > It sets PRIORITY in enable/disable irq, but not during init.
+> > > > Actually, priority is no use at all and just keep them the same is enough.
+> > > >
+> > > > The motivation of my patch: When we want to run 2 different Linux OS in the
+> > > > same SMP system, the second Linux cold boot will flush all priority to zero
+> > > > and the patch is to solve the problem.
+> > >
+> > > Don't create separate OpenSBI instances for 2 different OSes.
+> > >
+> > > The OpenSBI domain support allows you to create 2 different domains
+> > > for each Linux. Please checkout recent YouTube video on OpenSBI domains
+> > I agree with the idea of OpenSBI domains, but it isn't related to the patch.
+> >
+> > What we've done in a 4 cores SMP with 8GB memory system is:
+> >
+> >  - "hart0 + hart1, with memory 0 - 4GB" run linux1 + opensbi1
+> >  - "hart2 + hart3" with memory 4GB - 8GB run linux2 + opensbi2
+> >
+> > They are physical separated in memory and CPUs, but plic is shared.
+> > Current opensbi + Linux almost could natively support this kind of
+> > simple scenario, but this patch.
+> >
 >
->
-> > -----Original Message-----
-> > From: Atish Patra <atish.patra@wdc.com>
-> > Sent: 20 March 2021 03:43
-> > To: opensbi at lists.infradead.org
-> > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> > Subject: [RFC 10/14] lib: sbi: Add PMU support
-> >
-> > RISC-V SBI v0.3 specification defined a PMU extension to
-> > configure/start/stop the hardware/firmware pmu events.
-> >
-> > Implement PMU support in OpenSBI library. The implementation is agnostic
-> > of event to counter mapping & mhpmevent value configuration. That means,
-> > it expects platform hooks will be used to set up the mapping and provide the
-> > mhpmevent value at runtime.
-> >
-> > Signed-off-by: Atish Patra <atish.patra@wdc.com>
->
-> Please check the revised v5 PMU specification patch. I had changed
-> event_data usage for RAW events.
->
-> > ---
-> >  include/sbi/sbi_ecall_interface.h | 129 +++++++-
-> >  include/sbi/sbi_error.h           |   2 +
-> >  include/sbi/sbi_pmu.h             |  71 ++++
-> >  lib/sbi/objects.mk                |   1 +
-> >  lib/sbi/sbi_hart.c                |   1 +
-> >  lib/sbi/sbi_init.c                |   9 +
-> >  lib/sbi/sbi_pmu.c                 | 534 ++++++++++++++++++++++++++++++
-> >  7 files changed, 746 insertions(+), 1 deletion(-)  create mode 100644
-> > include/sbi/sbi_pmu.h  create mode 100644 lib/sbi/sbi_pmu.c
-> >
-> > diff --git a/include/sbi/sbi_ecall_interface.h
-> > b/include/sbi/sbi_ecall_interface.h
-> > index 559a33e7ced0..63b1ca7c75b4 100644
-> > --- a/include/sbi/sbi_ecall_interface.h
-> > +++ b/include/sbi/sbi_ecall_interface.h
-> > @@ -28,6 +28,7 @@
-> >  #define SBI_EXT_RFENCE                               0x52464E43
-> >  #define SBI_EXT_HSM                          0x48534D
-> >  #define SBI_EXT_SRST                         0x53525354
-> > +#define SBI_EXT_PMU                          0x504D55
-> >
-> >  /* SBI function IDs for BASE extension*/
-> >  #define SBI_EXT_BASE_GET_SPEC_VERSION                0x0
-> > @@ -91,6 +92,130 @@
-> >  #define SBI_SRST_RESET_REASON_NONE   0x0
-> >  #define SBI_SRST_RESET_REASON_SYSFAIL        0x1
-> >
-> > +/* SBI function IDs for PMU extension */
-> > +#define SBI_EXT_PMU_NUM_COUNTERS     0x0
-> > +#define SBI_EXT_PMU_COUNTER_GET_INFO 0x1
-> > +#define SBI_EXT_PMU_COUNTER_CFG_MATCH        0x2
-> > +#define SBI_EXT_PMU_COUNTER_FW_READ  0x3
-> > +#define SBI_EXT_PMU_COUNTER_START    0x4
-> > +#define SBI_EXT_PMU_COUNTER_STOP     0x5
-> > +
-> > +/** General pmu event codes specified in SBI PMU extension */ enum
-> > +sbi_pmu_hw_generic_events_t {
-> > +     SBI_PMU_HW_NO_EVENT = 0,
-> > +     SBI_PMU_HW_CPU_CYCLES,
-> > +     SBI_PMU_HW_INSTRUCTIONS,
-> > +     SBI_PMU_HW_CACHE_REFERENCES,
-> > +     SBI_PMU_HW_CACHE_MISSES,
-> > +     SBI_PMU_HW_BRANCH_INSTRUCTIONS,
-> > +     SBI_PMU_HW_BRANCH_MISSES,
-> > +     SBI_PMU_HW_BUS_CYCLES,
-> > +     SBI_PMU_HW_STALLED_CYCLES_FRONTEND,
-> > +     SBI_PMU_HW_STALLED_CYCLES_BACKEND,
-> > +     SBI_PMU_HW_REF_CPU_CYCLES,
-> > +
-> > +     SBI_PMU_HW_GENERIC_MAX,
-> > +};
-> > +
-> > +/**
-> > + * Generalized hardware cache events:
-> > + *
-> > + *       { L1-D, L1-I, LLC, ITLB, DTLB, BPU, NODE } x
-> > + *       { read, write, prefetch } x
-> > + *       { accesses, misses }
-> > + */
-> > +enum sbi_pmu_hw_cache_id {
-> > +     SBI_PMU_HW_CACHE_L1D            = 0,
-> > +     SBI_PMU_HW_CACHE_L1I            = 1,
-> > +     SBI_PMU_HW_CACHE_LL             = 2,
-> > +     SBI_PMU_HW_CACHE_DTLB           = 3,
-> > +     SBI_PMU_HW_CACHE_ITLB           = 4,
-> > +     SBI_PMU_HW_CACHE_BPU            = 5,
-> > +     SBI_PMU_HW_CACHE_NODE           = 6,
-> > +
-> > +     SBI_PMU_HW_CACHE_MAX,
-> > +};
-> > +
-> > +enum sbi_pmu_hw_cache_op_id {
-> > +     SBI_PMU_HW_CACHE_OP_READ        = 0,
-> > +     SBI_PMU_HW_CACHE_OP_WRITE       = 1,
-> > +     SBI_PMU_HW_CACHE_OP_PREFETCH    = 2,
-> > +
-> > +     SBI_PMU_HW_CACHE_OP_MAX,
-> > +};
-> > +
-> > +enum sbi_pmu_hw_cache_op_result_id {
-> > +     SBI_PMU_HW_CACHE_RESULT_ACCESS  = 0,
-> > +     SBI_PMU_HW_CACHE_RESULT_MISS    = 1,
-> > +
-> > +     SBI_PMU_HW_CACHE_RESULT_MAX,
-> > +};
-> > +
-> > +/**
-> > + * Special "firmware" events provided by the OpenSBI, even if the
-> > +hardware
-> > + * does not support performance events. These events are encoded as a
-> > +raw
-> > + * event type in Linux kernel perf framework.
-> > + */
-> > +enum sbi_pmu_fw_event_code_id {
-> > +     SBI_PMU_FW_MISALIGNED_LOAD      = 0,
-> > +     SBI_PMU_FW_MISALIGNED_STORE     = 1,
-> > +     SBI_PMU_FW_ACCESS_LOAD          = 2,
-> > +     SBI_PMU_FW_ACCESS_STORE         = 3,
-> > +     SBI_PMU_FW_ILLEGAL_INSN         = 4,
-> > +     SBI_PMU_FW_SET_TIMER            = 5,
-> > +     SBI_PMU_FW_IPI_SENT             = 6,
-> > +     SBI_PMU_FW_IPI_RECVD            = 7,
-> > +     SBI_PMU_FW_FENCE_I_SENT         = 8,
-> > +     SBI_PMU_FW_FENCE_I_RECVD        = 9,
-> > +     SBI_PMU_FW_SFENCE_VMA_SENT      = 10,
-> > +     SBI_PMU_FW_SFENCE_VMA_RCVD      = 11,
-> > +     SBI_PMU_FW_SFENCE_VMA_ASID_SENT = 12,
-> > +     SBI_PMU_FW_SFENCE_VMA_ASID_RCVD = 13,
-> > +
-> > +     SBI_PMU_FW_HFENCE_GVMA_SENT     = 14,
-> > +     SBI_PMU_FW_HFENCE_GVMA_RCVD     = 15,
-> > +     SBI_PMU_FW_HFENCE_GVMA_VMID_SENT = 16,
-> > +     SBI_PMU_FW_HFENCE_GVMA_VMID_RCVD = 17,
-> > +
-> > +     SBI_PMU_FW_HFENCE_VVMA_SENT     = 18,
-> > +     SBI_PMU_FW_HFENCE_VVMA_RCVD     = 19,
-> > +     SBI_PMU_FW_HFENCE_VVMA_ASID_SENT = 20,
-> > +     SBI_PMU_FW_HFENCE_VVMA_ASID_RCVD = 21,
-> > +     SBI_PMU_FW_MAX,
-> > +};
-> > +
-> > +/** SBI PMU event idx type */
-> > +enum sbi_pmu_event_type_id {
-> > +     SBI_PMU_EVENT_TYPE_HW                           = 0x0,
-> > +     SBI_PMU_EVENT_TYPE_HW_CACHE                     = 0x1,
-> > +     SBI_PMU_EVENT_TYPE_HW_RAW                       = 0x2,
-> > +     SBI_PMU_EVENT_TYPE_FW                           = 0xf,
-> > +     SBI_PMU_EVENT_TYPE_MAX,
-> > +};
-> > +
-> > +/** SBI PMU counter type */
-> > +enum sbi_pmu_ctr_type {
-> > +     SBI_PMU_CTR_TYPE_HW = 0,
-> > +     SBI_PMU_CTR_TYPE_FW,
-> > +};
-> > +
-> > +/* Helper macros to decode event idx */ #define
-> > +SBI_PMU_EVENT_IDX_OFFSET 20 #define SBI_PMU_EVENT_IDX_MASK
-> > 0xFFFFF
-> > +#define SBI_PMU_EVENT_IDX_CODE_MASK 0xFFFF #define
-> > +SBI_PMU_EVENT_IDX_TYPE_MASK 0xF0000 #define
-> > SBI_PMU_EVENT_RAW_IDX
-> > +0x20000
-> > +
-> > +#define SBI_PMU_EVENT_IDX_INVALID 0xFFFFFFFF
-> > +
-> > +/* Flags defined for config matching function */ #define
-> > +SBI_PMU_CFG_FLAG_AUTOSTART 0x1 #define
-> > SBI_PMU_CFG_FLAG_SKIPMATCH 0x2
-> > +
-> > +/* Flags defined for counter stop function */ #define
-> > +SBI_PMU_STOP_FLAG_RESET 0x1
-> > +
-> > +/* SBI base specification related macros */
-> >  #define SBI_SPEC_VERSION_MAJOR_OFFSET                24
-> >  #define SBI_SPEC_VERSION_MAJOR_MASK          0x7f
-> >  #define SBI_SPEC_VERSION_MINOR_MASK          0xffffff
-> > @@ -107,8 +232,10 @@
-> >  #define SBI_ERR_DENIED                               -4
-> >  #define SBI_ERR_INVALID_ADDRESS                      -5
-> >  #define SBI_ERR_ALREADY_AVAILABLE            -6
-> > +#define SBI_ERR_ALREADY_STARTED                      -7
-> > +#define SBI_ERR_ALREADY_STOPPED                      -8
-> >
-> > -#define SBI_LAST_ERR
-> >       SBI_ERR_ALREADY_AVAILABLE
-> > +#define SBI_LAST_ERR
-> >       SBI_ERR_ALREADY_STOPPED
-> >
-> >  /* clang-format on */
-> >
-> > diff --git a/include/sbi/sbi_error.h b/include/sbi/sbi_error.h index
-> > 3655d122006b..dd65e14b6fcd 100644
-> > --- a/include/sbi/sbi_error.h
-> > +++ b/include/sbi/sbi_error.h
-> > @@ -21,6 +21,8 @@
-> >  #define SBI_EDENIED          SBI_ERR_DENIED
-> >  #define SBI_EINVALID_ADDR    SBI_ERR_INVALID_ADDRESS
-> >  #define SBI_EALREADY         SBI_ERR_ALREADY_AVAILABLE
-> > +#define SBI_EALREADY_STARTED SBI_ERR_ALREADY_STARTED
-> > +#define SBI_EALREADY_STOPPED SBI_ERR_ALREADY_STOPPED
-> >
-> >  #define SBI_ENODEV           -1000
-> >  #define SBI_ENOSYS           -1001
-> > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h new file mode
-> > 100644 index 000000000000..b6f25de44c6c
-> > --- /dev/null
-> > +++ b/include/sbi/sbi_pmu.h
-> > @@ -0,0 +1,71 @@
-> > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + *
-> > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> > + *
-> > + * Authors:
-> > + *   Atish Patra <atish.patra@wdc.com>
-> > + */
-> > +
-> > +#ifndef __SBI_PMU_H__
-> > +#define __SBI_PMU_H__
-> > +
-> > +#include <sbi/sbi_types.h>
-> > +#include <sbi/sbi_hartmask.h>
-> > +#include <sbi/sbi_scratch.h>
-> > +#include <sbi/sbi_ecall_interface.h>
-> > +
-> > +/* Event related macros */
-> > +/* Maximum number of hardware events that can mapped by OpenSBI */
-> > +#define SBI_PMU_HW_EVENT_MAX 64
-> > +
-> > +/* Maximum number of firmware events that can mapped by OpenSBI */
-> > +#define SBI_PMU_FW_EVENT_MAX 32
-> > +
-> > +/* Counter related macros */
-> > +#define SBI_PMU_FW_CTR_MAX 16
-> > +#define SBI_PMU_HW_CTR_MAX 32
-> > +#define SBI_PMU_CTR_MAX         (SBI_PMU_HW_CTR_MAX +
-> > SBI_PMU_FW_CTR_MAX)
-> > +
-> > +/** Initialize PMU */
-> > +int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
-> > +
-> > +/** Reset PMU during hart exit */
-> > +void sbi_pmu_exit(struct sbi_scratch *scratch);
-> > +
-> > +/**
-> > + * Add the hardware event to counter mapping information. This should
-> > +be called
-> > + * from the platform code to update the mapping table.
-> > + * @param eidx_start Start of the event idx range for supported counters
-> > + * @param eidx_end   End of the event idx range for supported counters
-> > + * @param cmap       A bitmap representing counters supporting the event
-> > range
-> > + * @return 0 on success, error otherwise.
-> > + */
-> > +int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end,
-> > u32
-> > +cmap);
-> > +
-> > +/**
-> > + * Add the raw hardware event selector and supported counter
-> > +information. This
-> > + * should be called from the platform code to update the mapping table.
-> > + * @param info  a pointer to the hardware event info
-> > + * @return 0 on success, error otherwise.
-> > + */
-> > +
-> > +int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap);
-> > +
-> > +int sbi_pmu_read_ctr(uint32_t cidx, unsigned long *cval);
-> > +
-> > +int sbi_pmu_stop_ctr(uint32_t cidx, bool bReset);
-> > +
-> > +int sbi_pmu_start_ctr(uint32_t cidx, uint64_t ival);
-> > +
-> > +int sbi_pmu_get_ctr_info(uint32_t cidx, unsigned long *ctr_info);
-> > +
-> > +unsigned long sbi_pmu_num_ctr(void);
-> > +
-> > +int sbi_pmu_get_ctr_match(unsigned long cidx_base, unsigned long
-> > cidx_mask,
-> > +                       unsigned long event_idx, uint64_t event_info,
-> > +                       unsigned long flags);
-> > +
-> > +int sbi_pmu_incr_fw_ctr(enum sbi_pmu_fw_event_code_id fw_id);
-> > +
-> > +#endif
-> > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk index
-> > 6f2c06f5b501..d9068b707854 100644
-> > --- a/lib/sbi/objects.mk
-> > +++ b/lib/sbi/objects.mk
-> > @@ -33,6 +33,7 @@ libsbi-objs-y += sbi_init.o  libsbi-objs-y += sbi_ipi.o
-> > libsbi-objs-y += sbi_misaligned_ldst.o  libsbi-objs-y += sbi_platform.o
-> > +libsbi-objs-y += sbi_pmu.o
-> >  libsbi-objs-y += sbi_scratch.o
-> >  libsbi-objs-y += sbi_string.o
-> >  libsbi-objs-y += sbi_system.o
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index
-> > b87d1dbedc0b..2d155c6b6bf4 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -17,6 +17,7 @@
-> >  #include <sbi/sbi_csr_detect.h>
-> >  #include <sbi/sbi_error.h>
-> >  #include <sbi/sbi_hart.h>
-> > +#include <sbi/sbi_pmu.h>
-> >  #include <sbi/sbi_math.h>
-> >  #include <sbi/sbi_platform.h>
-> >  #include <sbi/sbi_string.h>
->
-> Drop this change from lib/sbi/sbi_hart.c
->
+> I am just curious about the use case. Why do you need to run two
+> different linux instances ?
+Just for customer security needs, they want two memory regions are
+totally separated.
 
-Done.
-
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
-> > acc2a81a1b53..7362430716e6 100644
-> > --- a/lib/sbi/sbi_init.c
-> > +++ b/lib/sbi/sbi_init.c
-> > @@ -19,6 +19,7 @@
-> >  #include <sbi/sbi_hsm.h>
-> >  #include <sbi/sbi_ipi.h>
-> >  #include <sbi/sbi_platform.h>
-> > +#include <sbi/sbi_pmu.h>
-> >  #include <sbi/sbi_system.h>
-> >  #include <sbi/sbi_string.h>
-> >  #include <sbi/sbi_timer.h>
-> > @@ -234,6 +235,8 @@ static void __noreturn init_coldboot(struct
-> > sbi_scratch *scratch, u32 hartid)
-> >       if (rc)
-> >               sbi_hart_hang();
+>
+> > >
+> > > Regards,
+> > > Anup
+> > >
+> > > >
+> > > > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> > > > Cc: Anup Patel <anup.patel@wdc.com>
+> > > > ---
+> > > >  lib/utils/irqchip/plic.c | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > >
+> > > > diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c index
+> > > > 7665c62..70e89a6 100644
+> > > > --- a/lib/utils/irqchip/plic.c
+> > > > +++ b/lib/utils/irqchip/plic.c
+> > > > @@ -94,7 +94,7 @@ int plic_cold_irqchip_init(struct plic_data *plic)
+> > > >
+> > > >       /* Configure default priorities of all IRQs */
+> > > >       for (i = 1; i <= plic->num_src; i++)
+> > > > -             plic_set_priority(plic, i, 0);
+> > > > +             plic_set_priority(plic, i, 1);
+> > > >
+> > > >       return 0;
+> > > >  }
+> > > > --
+> > > > 2.7.4
+> > >
 > >
-> > +     sbi_pmu_init(scratch, TRUE);
-> > +
-> >       sbi_boot_print_banner(scratch);
 > >
-> >       rc = sbi_platform_irqchip_init(plat, TRUE); @@ -335,6 +338,8 @@
-> > static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
-> >       if (rc)
-> >               sbi_hart_hang();
-> >
-> > +     sbi_pmu_init(scratch, FALSE);
-> > +
-> >       rc = sbi_platform_irqchip_init(plat, FALSE);
-> >       if (rc)
-> >               sbi_hart_hang();
-> > @@ -375,6 +380,8 @@ static void init_warm_resume(struct sbi_scratch
-> > *scratch)
-> >       if (rc)
-> >               sbi_hart_hang();
-> >
-> > +     sbi_pmu_init(scratch, FALSE);
-> > +
-> >       rc = sbi_hart_pmp_configure(scratch);
-> >       if (rc)
-> >               sbi_hart_hang();
-> > @@ -498,6 +505,8 @@ void __noreturn sbi_exit(struct sbi_scratch *scratch)
-> >
-> >       sbi_platform_early_exit(plat);
-> >
-> > +     sbi_pmu_exit(scratch);
-> > +
-> >       sbi_timer_exit(scratch);
-> >
-> >       sbi_ipi_exit(scratch);
-> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c new file mode 100644 index
-> > 000000000000..904b583fc7d6
-> > --- /dev/null
-> > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -0,0 +1,534 @@
-> > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + *
-> > + * Copyright (c) 2020 Western Digital Corporation or its affiliates.
->
-> Should be 2021 instead of 2020
->
-
-Done.
-
-> > + *
-> > + * Authors:
-> > + *   Atish Patra <atish.patra@wdc.com>
-> > + */
-> > +
-> > +#include <sbi/riscv_asm.h>
-> > +#include <sbi/sbi_bitops.h>
-> > +#include <sbi/sbi_console.h>
-> > +#include <sbi/sbi_hart.h>
-> > +#include <sbi/sbi_platform.h>
-> > +#include <sbi/sbi_pmu.h>
-> > +#include <sbi/sbi_scratch.h>
-> > +#include <sbi/sbi_string.h>
-> > +
-> > +/** Information about hardware counters */ struct sbi_pmu_hw_event {
-> > +     unsigned long counters;
-> > +     unsigned long start_idx;
-> > +     unsigned long end_idx;
-> > +     /* Event selector value used only for raw events */
-> > +     uint64_t select;
-> > +};
-> > +
-> > +/** Representation of a firmware event */ struct sbi_pmu_fw_event {
-> > +
-> > +     /* Event associated with the particular counter */
-> > +     unsigned long event_idx;
-> > +
-> > +     /* Current value of the counter */
-> > +     unsigned long curr_count;
-> > +
-> > +     /* A flag indicating pmu event monitoring is started */
-> > +     bool bStarted;
-> > +};
-> > +
-> > +/* Information about PMU counters as per SBI specification */ union
-> > +sbi_pmu_ctr_info {
-> > +     unsigned long value;
-> > +     struct {
-> > +             unsigned long csr:12;
-> > +             unsigned long width:6;
-> > +#if __riscv_xlen == 32
-> > +             unsigned long reserved:13;
-> > +#else
-> > +             unsigned long reserved:45;
-> > +#endif
-> > +             unsigned long type:1;
-> > +     };
-> > +};
-> > +
-> > +/* Mapping between event range and possible counters  */ static struct
-> > +sbi_pmu_hw_event hw_event_map[SBI_PMU_HW_EVENT_MAX] = {0};
->
-> In future, you can keep this array sorted so that you can do binary search
-> based on "event_idx".
->
-
-Sure.
-
-> > +
-> > +/* counter to enabled event mapping */
-> > +static uint32_t
-> > active_events[SBI_HARTMASK_MAX_BITS][SBI_PMU_HW_CTR_MAX
-> > ++ SBI_PMU_FW_CTR_MAX];
-> > +
-> > +/* Contains all the information about firmwares events */ static struct
-> > +sbi_pmu_fw_event
-> > +fw_event_map[SBI_HARTMASK_MAX_BITS][SBI_PMU_FW_EVENT_MAX]
-> > = {0};
-> > +
-> > +/* Maximum number of hardware events available */ static uint32_t
-> > +num_hw_events;
-> > +/* Maximum number of hardware counters available */ static uint32_t
-> > +num_hw_ctrs;
-> > +
-> > +/* Maximum number of counters available */ static uint32_t total_ctrs;
-> > +
-> > +/* Helper macros to retrieve event idx and code type */ #define
-> > +get_cidx_type(x) ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> 16) #define
-> > +get_cidx_code(x) (x & SBI_PMU_EVENT_IDX_CODE_MASK)
-> > +
-> > +/**
-> > + * Perform a sanity check on event & counter mappings with event range
-> > +overlap check
-> > + * @param evtA Pointer to the existing hw event structure
-> > + * @param evtB Pointer to the new hw event structure
-> > + *
-> > + * Return FALSE if the range doesn't overlap, TRUE otherwise  */ static
-> > +bool pmu_event_range_overlap(struct sbi_pmu_hw_event *evtA,
-> > +                                 struct sbi_pmu_hw_event *evtB)
-> > +{
-> > +     /* check if the range of events overlap with a previous entry */
-> > +     if (((evtA->end_idx < evtB->start_idx) && (evtA->end_idx < evtB-
-> > >end_idx)) ||
-> > +        ((evtA->start_idx > evtB->start_idx) && (evtA->start_idx > evtB-
-> > >end_idx)))
-> > +             return FALSE;
-> > +     return TRUE;
-> > +}
-> > +
-> > +static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
-> > +                                  uint64_t select_val)
-> > +{
-> > +
-> > +     if (evt->select == select_val)
-> > +             return TRUE;
-> > +
-> > +     return FALSE;
-> > +}
-> > +
-> > +static int pmu_validate_ctr(uint32_t cidx, uint32_t *event_idx_code) {
-> > +     uint32_t event_idx_val;
-> > +     uint32_t event_idx_type;
-> > +     u32 hartid = current_hartid();
-> > +
-> > +     event_idx_val = active_events[hartid][cidx];
-> > +
-> > +     if (cidx >= total_ctrs || (event_idx_val ==
-> > SBI_PMU_EVENT_IDX_INVALID))
-> > +             return SBI_EINVAL;
-> > +
-> > +     event_idx_type = get_cidx_type(event_idx_val);
-> > +     if (event_idx_type >= SBI_PMU_EVENT_TYPE_MAX)
-> > +             return SBI_EINVAL;
-> > +
-> > +     *event_idx_code = get_cidx_code(event_idx_val);
-> > +
-> > +     return event_idx_type;
-> > +}
-> > +
-> > +static int sbi_pmu_read_fw_ctr(uint32_t cidx, unsigned long *cval,
-> > +                            uint32_t fw_evt_code)
->
-> For consistency, name this function pmu_read_fw_ctr()
->
-> This way local (or static) function names will have just "pmu_" prefix
-> and public function names will have "sbi_pmu_" prefix.
->
-
-Yes. That was the convention I followed for every other function.
-These two are left by mistake. Thanks for pointing it out. Fixed.
-
-> > +{
-> > +     u32 hartid = current_hartid();
-> > +     struct sbi_pmu_fw_event fevent;
-> > +
-> > +     fevent = fw_event_map[hartid][fw_evt_code];
-> > +     *cval = fevent.curr_count;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +/* Add a hardware counter read for completeness for future purpose */
-> > +static int sbi_pmu_read_hw_ctr(uint32_t cidx, uint64_t *cval) { #if
->
-> Same as above.
->
-> > +__riscv_xlen == 32
-> > +     uint32_t temp, temph = 0;
-> > +
-> > +     temp = csr_read_num(CSR_MCYCLE + cidx);
-> > +     temph = csr_read_num(CSR_MCYCLEH + cidx);
-> > +     *cval = ((uint64_t)temph << 32) | temp; #else
-> > +     *cval = csr_read_num(CSR_MCYCLE + cidx); #endif
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +int sbi_pmu_read_ctr(uint32_t cidx, unsigned long *cval) {
-> > +     int event_idx_type;
-> > +     uint32_t event_code;
-> > +     uint64_t cval64;
-> > +
-> > +     event_idx_type = pmu_validate_ctr(cidx, &event_code);
-> > +     if (event_idx_type < 0)
-> > +             return SBI_EINVAL;
-> > +     else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
-> > +             sbi_pmu_read_fw_ctr(cidx, cval, event_code);
-> > +     else
-> > +             sbi_pmu_read_hw_ctr(cidx, &cval64);
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32
-> > cmap,
-> > +                             uint64_t select)
-> > +{
-> > +     int i = 0;
-> > +     bool is_overlap;
-> > +     struct sbi_pmu_hw_event *event =
-> > &hw_event_map[num_hw_events];
-> > +
-> > +     /* The first two counters are reserved by priv spec */
-> > +     if ((eidx_start == SBI_PMU_HW_CPU_CYCLES && cmap != 0x1) ||
-> > +         (eidx_start == SBI_PMU_HW_INSTRUCTIONS && cmap != 0x4) ||
-> > +         (eidx_start > SBI_PMU_HW_INSTRUCTIONS && cmap < 0x08))
-> > +             return SBI_EDENIED;
-> > +
-> > +     if (num_hw_events >= SBI_PMU_HW_EVENT_MAX - 1) {
-> > +             sbi_printf("Can not handle more than %d perf events\n",
-> > +                         SBI_PMU_HW_EVENT_MAX);
-> > +             return SBI_EFAIL;
-> > +     }
-> > +
-> > +     event->start_idx = eidx_start;
-> > +     event->end_idx = eidx_end;
-> > +     event->counters = cmap;
-> > +     event->select = select;
-> > +
-> > +     /* Sanity check */
-> > +     for (i = 0; i < num_hw_events; i++) {
-> > +             if (eidx_start == SBI_PMU_EVENT_RAW_IDX)
-> > +             /* All raw events have same event idx. Just do sanity check
-> > on select */
-> > +                     is_overlap =
-> > pmu_event_select_overlap(&hw_event_map[i], select);
-> > +             else
-> > +                     is_overlap =
-> > pmu_event_range_overlap(&hw_event_map[i], event);
-> > +             if (is_overlap)
-> > +                     return SBI_EINVALID_ADDR;
-> > +     }
-> > +     num_hw_events++;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +/**
-> > + * Logical counter ids are assigned to hardware counters are assigned
-> > consecutively.
-> > + * E.g. counter0 must count MCYCLE where counter2 must count minstret.
-> > +Similarly,
-> > + * counterX will mhpmcounterX.
-> > + */
-> > +int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end,
-> > u32
-> > +cmap) {
-> > +     if ((eidx_start > eidx_end) || eidx_start ==
-> > SBI_PMU_EVENT_RAW_IDX ||
-> > +          eidx_end == SBI_PMU_EVENT_RAW_IDX)
-> > +             return SBI_EINVAL;
-> > +
-> > +     return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0); }
-> > +
-> > +int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap) {
-> > +     return pmu_add_hw_event_map(SBI_PMU_EVENT_RAW_IDX,
-> > +                                 SBI_PMU_EVENT_RAW_IDX, cmap, select);
-> > }
-> > +
-> > +static int pmu_start_hw_ctr(uint32_t cidx, uint64_t ival) {
-> > +     unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
-> > +     unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
-> > +
-> > +     if (cidx > num_hw_ctrs)
-> > +             return SBI_EINVAL;
-> > +
-> > +     if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt))
-> > +             return SBI_EALREADY_STARTED;
-> > +
-> > +     __set_bit(cidx, &mctr_en);
-> > +     __clear_bit(cidx, &mctr_inhbt);
-> > +
-> > +     csr_write(CSR_MCOUNTEREN, mctr_en);
-> > +     csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
-> > +
-> > +#if __riscv_xlen == 32
-> > +     csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
-> > +     csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG); #else
-> > +     csr_write_num(CSR_MCYCLE + cidx, ival); #endif
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static int pmu_start_fw_ctr(uint32_t cidx, uint64_t ival, uint32_t
-> > +fw_evt_code) {
-> > +     u32 hartid = current_hartid();
-> > +     struct sbi_pmu_fw_event *fevent;
-> > +
-> > +     fevent = &fw_event_map[hartid][fw_evt_code];
-> > +     fevent->curr_count = ival;
-> > +     fevent->bStarted = TRUE;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +int sbi_pmu_start_ctr(uint32_t cidx, uint64_t ival) {
-> > +     int event_idx_type;
-> > +     uint32_t event_code;
-> > +
-> > +     event_idx_type = pmu_validate_ctr(cidx, &event_code);
-> > +     if (event_idx_type < 0)
-> > +             return SBI_EINVAL;
-> > +     else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
-> > +             return pmu_start_fw_ctr(cidx, ival, event_code);
-> > +     else
-> > +             return pmu_start_hw_ctr(cidx, ival);
-> > +}
-> > +
-> > +static int pmu_stop_hw_ctr(uint32_t cidx) {
-> > +     unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
-> > +     unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
-> > +
-> > +     if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt)) {
-> > +             __set_bit(cidx, &mctr_inhbt);
-> > +             __clear_bit(cidx, &mctr_en);
-> > +             csr_write(CSR_MCOUNTEREN, mctr_en);
-> > +             csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
-> > +             return 0;
-> > +     } else
-> > +             return SBI_EALREADY_STOPPED;
-> > +}
-> > +
-> > +static int pmu_stop_fw_ctr(uint32_t cidx, uint32_t fw_evt_code) {
-> > +     u32 hartid = current_hartid();
-> > +
-> > +     fw_event_map[hartid][fw_evt_code].bStarted = FALSE;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +int sbi_pmu_stop_ctr(uint32_t cidx, bool bReset) {
-> > +     u32 hartid = current_hartid();
-> > +     int ret, event_idx_type;
-> > +     uint32_t event_code;
-> > +
-> > +     event_idx_type = pmu_validate_ctr(cidx, &event_code);
-> > +     if (event_idx_type < 0)
-> > +             return SBI_EINVAL;
-> > +
-> > +     else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
-> > +             ret = pmu_stop_fw_ctr(cidx, event_code);
-> > +     else
-> > +             ret = pmu_stop_hw_ctr(cidx);
-> > +
-> > +     if (!ret && bReset)
-> > +             active_events[hartid][cidx] =
-> > SBI_PMU_EVENT_IDX_INVALID;
-> > +
-> > +     return ret;
-> > +}
-> > +
-> > +static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event
-> > *hw_evt, int ctr_idx,
-> > +                                 unsigned long eindex, uint64_t data) {
-> > +     struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > +     const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> > +     uint64_t mhpmevent_val;
-> > +
-> > +     /* Get the final mhpmevent value to be written from platform */
-> > +     mhpmevent_val = sbi_platform_get_mhpmevent_value(plat,
-> > eindex, data);
-> > +
-> > +     if (!mhpmevent_val || ctr_idx < 3 || ctr_idx >=
-> > SBI_PMU_HW_CTR_MAX)
-> > +             return SBI_EFAIL;
-> > +
-> > +     csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, mhpmevent_val);
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static int pmu_find_hw_ctr(unsigned long cbase, unsigned long cmask,
-> > +                        unsigned long event_idx, uint64_t data) {
-> > +     unsigned long ctr_mask;
-> > +     int i, ret = 0, ctr_idx = SBI_ENOTSUPP;
-> > +     struct sbi_pmu_hw_event *temp;
-> > +     unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
-> > +     unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
-> > +     int evt_idx_code = get_cidx_code(event_idx);
-> > +
-> > +     if (cbase > num_hw_ctrs)
-> > +             return SBI_EINVAL;
-> > +
-> > +     for (i = 0; i < num_hw_events; i++) {
-> > +             temp = &hw_event_map[i];
-> > +             if ((temp->start_idx > event_idx && event_idx < temp-
-> > >end_idx) ||
-> > +                 (temp->start_idx < event_idx && event_idx > temp-
-> > >end_idx))
-> > +                     continue;
-> > +
-> > +             /* For raw events, event data is used as the select value */
-> > +             if ((event_idx == SBI_PMU_EVENT_RAW_IDX) && temp-
-> > >select != data)
-> > +                     continue;
-> > +
-> > +             ctr_mask = temp->counters & (cmask << cbase);
-> > +             for_each_set_bit_from(cbase, &ctr_mask,
-> > SBI_PMU_HW_CTR_MAX) {
-> > +                     if (!__test_bit(cbase, &mctr_en) &&
-> > +                         __test_bit(cbase, &mctr_inhbt)) {
-> > +                             ctr_idx = cbase;
-> > +                             break;
-> > +                     }
-> > +             }
-> > +     }
-> > +
-> > +     if (ctr_idx == SBI_ENOTSUPP)
-> > +             return SBI_EFAIL;
-> > +
-> > +     /* No need to update the  event selectors for fixed events */
-> > +     if (evt_idx_code != SBI_PMU_HW_CPU_CYCLES &&
-> > +         evt_idx_code != SBI_PMU_HW_INSTRUCTIONS)
-> > +             ret = pmu_update_hw_mhpmevent(temp, ctr_idx,
-> > event_idx, data);
-> > +
-> > +     if (!ret)
-> > +             ret = ctr_idx;
-> > +
-> > +     return ret;
-> > +}
-> > +
-> > +
-> > +/**
-> > + * Any firmware counter can map to any firmware event.
-> > + * Thus, select the first available fw counter after sanity
-> > + * check.
-> > + */
-> > +static int pmu_find_fw_ctr(unsigned long cbase, unsigned long cmask,
-> > +u32 hartid) {
-> > +     int i = 0;
-> > +     int fw_base;
-> > +     unsigned long ctr_mask = cmask << cbase;
-> > +
-> > +     if (cbase <= num_hw_ctrs)
-> > +             fw_base = num_hw_ctrs + 1;
-> > +     else
-> > +             fw_base = cbase;
-> > +
-> > +     for (i = fw_base; i < total_ctrs; i++)
-> > +             if ((active_events[hartid][i] ==
-> > SBI_PMU_EVENT_IDX_INVALID) &&
-> > +                 ((1UL << i) & ctr_mask))
-> > +                     return i;
-> > +
-> > +     return SBI_ENOTSUPP;
-> > +}
-> > +
-> > +int sbi_pmu_get_ctr_match(unsigned long cidx_base, unsigned long
-> > cidx_mask,
-> > +                       unsigned long event_idx, uint64_t event_data,
-> > +                       unsigned long flags)
-> > +{
-> > +     int ctr_idx = SBI_ENOTSUPP;
-> > +     u32 hartid = current_hartid();
-> > +     int event_type = get_cidx_type(event_idx);
-> > +
-> > +     if (cidx_base >= total_ctrs || event_type >=
-> > SBI_PMU_EVENT_TYPE_MAX)
-> > +             return SBI_EINVAL;
-> > +
-> > +     if (event_type == SBI_PMU_EVENT_TYPE_FW) {
-> > +             /* Any firmware counter can be used track any firmware
-> > event */
-> > +             ctr_idx = pmu_find_fw_ctr(cidx_base, cidx_mask, hartid);
-> > +     } else {
-> > +             ctr_idx = pmu_find_hw_ctr(cidx_base, cidx_mask,
-> > event_idx, event_data);
-> > +     }
-> > +
-> > +     if (ctr_idx < 0)
-> > +             return SBI_ENOTSUPP;
-> > +
-> > +     active_events[hartid][ctr_idx] = event_idx;
-> > +
-> > +     return ctr_idx;
-> > +}
-> > +
-> > +inline int sbi_pmu_incr_fw_ctr(enum sbi_pmu_fw_event_code_id fw_id) {
-> > +     u32 hartid = current_hartid();
-> > +     struct sbi_pmu_fw_event *fevent;
-> > +
-> > +     if (unlikely(fw_id >= SBI_PMU_FW_MAX))
-> > +             return SBI_EINVAL;
-> > +
-> > +     fevent = &fw_event_map[hartid][fw_id];
-> > +
-> > +     /* PMU counters will be only enabled during performance debugging
-> > */
-> > +     if (unlikely(fevent->bStarted))
-> > +             fevent->curr_count++;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +unsigned long sbi_pmu_num_ctr(void)
-> > +{
-> > +     return (num_hw_ctrs + SBI_PMU_FW_CTR_MAX); }
-> > +
-> > +int sbi_pmu_get_ctr_info(uint32_t cidx, unsigned long *ctr_info) {
-> > +     union sbi_pmu_ctr_info cinfo = {0};
-> > +     struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > +
-> > +     /* Sanity check. Counter1 is not mapped at all */
-> > +     if (cidx > total_ctrs || cidx == 1)
-> > +             return SBI_EINVAL;
-> > +
-> > +     /* We have 31 HW counters with 31 being the last
-> > index(MHPMCOUNTER31) */
-> > +     if (cidx <= num_hw_ctrs) {
-> > +             cinfo.type = SBI_PMU_CTR_TYPE_HW;
-> > +             cinfo.csr = CSR_CYCLE + cidx;
-> > +             /* mcycle & minstret are always 64 bit */
-> > +             if (cidx == 0 || cidx == 2)
-> > +                     cinfo.width = 63;
-> > +             else
-> > +                     cinfo.width = sbi_hart_pmu_event_bits(scratch);
-> > +     } else {
-> > +             /* it's a firmware counter */
-> > +             cinfo.type = SBI_PMU_CTR_TYPE_FW;
-> > +             /* Firmware counters are XLEN bits wide */
-> > +             cinfo.width = BITS_PER_LONG - 1;
-> > +     }
-> > +
-> > +     *ctr_info = cinfo.value;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +
-> > +static void pmu_reset_event_map(u32 hartid) {
-> > +     int j;
-> > +
-> > +     /* Initialize the counter to event mapping table */
-> > +     for (j = 0; j < total_ctrs; j++)
-> > +             active_events[hartid][j] = SBI_PMU_EVENT_IDX_INVALID;
-> > +     for (j = 0; j < SBI_PMU_FW_CTR_MAX; j++)
-> > +             sbi_memset(&fw_event_map[hartid][j], 0,
-> > +                        sizeof(struct sbi_pmu_fw_event)); }
-> > +
-> > +void sbi_pmu_exit(struct sbi_scratch *scratch) {
-> > +     u32 hartid = current_hartid();
-> > +
-> > +     pmu_reset_event_map(hartid);
->
-> We should also disable counters in MCOUNTINHIBIT and MCOUNTEN CSRs
-> for current HART in sbi_pmu_exit().
->
-
-Done.
-
-> > +}
-> > +
-> > +int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot) {
-> > +     const struct sbi_platform *plat;
-> > +
-> > +     if (!sbi_hart_has_feature(scratch,
-> > SBI_HART_HAS_MCOUNTINHIBIT))
-> > +             return SBI_ENOTSUPP;
-> > +
-> > +     if (cold_boot) {
-> > +             plat = sbi_platform_ptr(scratch);
-> > +             /* Initialize hw pmu events */
-> > +             sbi_platform_pmu_init(plat);
-> > +
-> > +             /* mcycle & minstret is available always */
-> > +             num_hw_ctrs = sbi_hart_mhpm_count(scratch) + 2;
-> > +             total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
-> > +     }
-> > +
-> > +     pmu_reset_event_map(current_hartid());
->
-> Same as above.
->
-
-This is during init path. We have already reset the counters in
-mstatus_init. Correct ?
-
-> > +
-> > +     return 0;
-> > +}
 > > --
-> > 2.25.1
+> > Best Regards
+> >  Guo Ren
+> >
+> > ML: https://lore.kernel.org/linux-csky/
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 >
-> Overall, this patch is in good shape apart from minor comments above.
 >
-> Regards,
-> Anup
 >
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Regards,
+> Atish
 
 
 
 -- 
-Regards,
-Atish
+Best Regards
+ Guo Ren
+
+ML: https://lore.kernel.org/linux-csky/
 
