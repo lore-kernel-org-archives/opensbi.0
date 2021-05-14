@@ -1,73 +1,68 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Fri, 14 May 2021 10:17:55 +0800
-Subject: [PATCH] lib: utils/serial: Support Synopsys DesignWare APB UART
-In-Reply-To: <EDA30902-60C6-4F68-A27A-17EB13775BF9@jrtc27.com>
-References: <20210514011613.2183141-1-bmeng.cn@gmail.com>
- <297EBE3C-8771-4815-A942-0B95A67115CB@jrtc27.com>
- <CAEUhbmVXOq8GjXCw6BmrV6NMenRtXQLV=mWepgeRWj444pLNBw@mail.gmail.com>
- <EDA30902-60C6-4F68-A27A-17EB13775BF9@jrtc27.com>
-Message-ID: <CAEUhbmXnSrSXpcd0sW9JWSD1pGmNVrmCuZEOuVoJD5ziRGrzCg@mail.gmail.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Fri, 14 May 2021 11:34:47 +0000
+Subject: [PATCH v1 1/1] lib: utils: Include sbi_strings.h directly
+In-Reply-To: <20210512111247.28416-1-git@danielschaefer.me>
+References: <20210512111247.28416-1-git@danielschaefer.me>
+Message-ID: <CO6PR04MB7812D52B786C19DA454CFDBB8D509@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, May 14, 2021 at 9:59 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 14 May 2021, at 02:27, Bin Meng <bmeng.cn@gmail.com> wrote:
-> >
-> > On Fri, May 14, 2021 at 9:19 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>
-> >> On 14 May 2021, at 02:16, Bin Meng <bmeng.cn@gmail.com> wrote:
-> >>>
-> >>> Synopsys DesignWare APB UART is seen on the StarFive JH7100 SoC.
-> >>> Its programming interface is compatible with the existing 8250
-> >>> UART driver. Simply add its compatible string to the driver makes
-> >>> it work with the StarFive JH7100 SoC on a BeagleV board.
-> >>>
-> >>> With this patch, the generic platform firmware can be used out of
-> >>> the box on the BeagleV board.
-> >>>
-> >>> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
-> >>> ---
-> >>>
-> >>> lib/utils/serial/fdt_serial_uart8250.c | 1 +
-> >>> 1 file changed, 1 insertion(+)
-> >>>
-> >>> diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
-> >>> index 918193a..36f364c 100644
-> >>> --- a/lib/utils/serial/fdt_serial_uart8250.c
-> >>> +++ b/lib/utils/serial/fdt_serial_uart8250.c
-> >>> @@ -28,6 +28,7 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
-> >>> static const struct fdt_match serial_uart8250_match[] = {
-> >>>      { .compatible = "ns16550" },
-> >>>      { .compatible = "ns16550a" },
-> >>> +     { .compatible = "snps,dw-apb-uart" },
-> >>
-> >> If it?s compatible, why does it not use
-> >>
-> >>  compatible = ?snps,dw-apb-uart?, ?ns16550?;
-> >>
-> >> or similar in its FDT?
-> >
-> > Good question. By looking at the Linux kernel driver, it is supported
-> > as a variant of 8250 (drivers/tty/serial/8250/8250_dw.c).
-> >
-> > I have not looked into details, but I suspect there are some minor
-> > oddities which matter for the kernel. The existing driver is enough to
-> > make OpenSBI happy.
->
-> It seems there are various additional clocks and resets you may need to handle
-> (baudclk is required, apb_pclk is optional and there?s an optional reset too).
-> For this particular board the FDT has a them clocks as all fixed-clock, but in
-> general this is not a correct implementation of the driver, as the clocks must
-> be enabled when attaching.
 
-I don't think OpenSBI needs to handle the clock and reset of each
-peripheral in its driver. Such should to be done in the bootloader,
-i.e.: U-Boot SPL.
+
+> -----Original Message-----
+> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Daniel
+> Schaefer
+> Sent: 12 May 2021 16:43
+> To: opensbi at lists.infradead.org
+> Cc: Abner Chang <abner.chang@hpe.com>; Anup Patel
+> <Anup.Patel@wdc.com>
+> Subject: [PATCH v1 1/1] lib: utils: Include sbi_strings.h directly
+> 
+> From: Daniel Schaefer <daniel.schaefer@hpe.com>
+> 
+> This file uses `sbi_strncpy`, `sbi_strncmp` and `sbi_memset`, which are
+> defined in `sbi_strings.h`.
+> 
+> It should already be transitively included via `#include <sbi/sbi_scratch.h>`
+> but my toolchain doesn't do that for some reason.
+> Perhaps because the functions that refer to them are `static`?
+
+Can you try renaming __STRING_H__ to __SBI_STRING_H__ in sbi_string.h ?
 
 Regards,
-Bin
+Anup
+
+> 
+> Anyways, it would be good to directly reference the header here.
+> 
+> Cc: Abner Chang <abner.chang@hpe.com>
+> Cc: Anup Patel <anup.patel@wdc.com>
+> Signed-off-by: Daniel Schaefer <git@danielschaefer.me>
+> ---
+>  lib/utils/fdt/fdt_domain.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c index
+> 95c195d65238..b2b5f6196a1a 100644
+> --- a/lib/utils/fdt/fdt_domain.c
+> +++ b/lib/utils/fdt/fdt_domain.c
+> @@ -13,6 +13,7 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_hartmask.h>
+>  #include <sbi/sbi_scratch.h>
+> +#include <sbi/sbi_string.h>
+>  #include <sbi_utils/fdt/fdt_domain.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+> 
+> --
+> 2.30.1
+> 
+> 
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
