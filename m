@@ -1,9 +1,9 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 14 May 2021 11:34:47 +0000
-Subject: [PATCH v1 1/1] lib: utils: Include sbi_strings.h directly
-In-Reply-To: <20210512111247.28416-1-git@danielschaefer.me>
-References: <20210512111247.28416-1-git@danielschaefer.me>
-Message-ID: <CO6PR04MB7812D52B786C19DA454CFDBB8D509@CO6PR04MB7812.namprd04.prod.outlook.com>
+Date: Fri, 14 May 2021 11:42:24 +0000
+Subject: [PATCH v1 1/1] lib: sbi: Have spinlock checks return bool
+In-Reply-To: <20210513045235.1602-1-git@danielschaefer.me>
+References: <20210513045235.1602-1-git@danielschaefer.me>
+Message-ID: <CO6PR04MB7812EC333A770FC1CC26794D8D509@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,48 +15,83 @@ Content-Transfer-Encoding: 7bit
 > -----Original Message-----
 > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Daniel
 > Schaefer
-> Sent: 12 May 2021 16:43
+> Sent: 13 May 2021 10:23
 > To: opensbi at lists.infradead.org
 > Cc: Abner Chang <abner.chang@hpe.com>; Anup Patel
 > <Anup.Patel@wdc.com>
-> Subject: [PATCH v1 1/1] lib: utils: Include sbi_strings.h directly
+> Subject: [PATCH v1 1/1] lib: sbi: Have spinlock checks return bool
 > 
-> From: Daniel Schaefer <daniel.schaefer@hpe.com>
+> spin_lock_check already returned bool in the source file but not in the
+> header. With some toolchains that causes an error, as it should.
 > 
-> This file uses `sbi_strncpy`, `sbi_strncmp` and `sbi_memset`, which are
-> defined in `sbi_strings.h`.
-> 
-> It should already be transitively included via `#include <sbi/sbi_scratch.h>`
-> but my toolchain doesn't do that for some reason.
-> Perhaps because the functions that refer to them are `static`?
-
-Can you try renaming __STRING_H__ to __SBI_STRING_H__ in sbi_string.h ?
-
-Regards,
-Anup
-
-> 
-> Anyways, it would be good to directly reference the header here.
+> Because it and related functions all essentially return a bool, we can use this
+> opportunity to change them.
 > 
 > Cc: Abner Chang <abner.chang@hpe.com>
 > Cc: Anup Patel <anup.patel@wdc.com>
 > Signed-off-by: Daniel Schaefer <git@danielschaefer.me>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+Applied this patch to the riscv/opensbi repo
+
+Thanks,
+Anup
+
 > ---
->  lib/utils/fdt/fdt_domain.c | 1 +
->  1 file changed, 1 insertion(+)
+>  include/sbi/riscv_locks.h | 4 ++--
+>  lib/sbi/riscv_locks.c     | 6 +++---
+>  2 files changed, 5 insertions(+), 5 deletions(-)
 > 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c index
-> 95c195d65238..b2b5f6196a1a 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -13,6 +13,7 @@
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi/sbi_scratch.h>
-> +#include <sbi/sbi_string.h>
->  #include <sbi_utils/fdt/fdt_domain.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
+> diff --git a/include/sbi/riscv_locks.h b/include/sbi/riscv_locks.h index
+> 492935f5d60b..38d9cbeb7b2a 100644
+> --- a/include/sbi/riscv_locks.h
+> +++ b/include/sbi/riscv_locks.h
+> @@ -34,9 +34,9 @@ typedef struct {
+>  #define DEFINE_SPIN_LOCK(x)	\
+>  	spinlock_t SPIN_LOCK_INIT(x)
 > 
+> -int spin_lock_check(spinlock_t *lock);
+> +bool spin_lock_check(spinlock_t *lock);
+> 
+> -int spin_trylock(spinlock_t *lock);
+> +bool spin_trylock(spinlock_t *lock);
+> 
+>  void spin_lock(spinlock_t *lock);
+> 
+> diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c index
+> 75b443bd35b8..acab7769240b 100644
+> --- a/lib/sbi/riscv_locks.c
+> +++ b/lib/sbi/riscv_locks.c
+> @@ -8,7 +8,7 @@
+>  #include <sbi/riscv_barrier.h>
+>  #include <sbi/riscv_locks.h>
+> 
+> -static inline int spin_lock_unlocked(spinlock_t lock)
+> +static inline bool spin_lock_unlocked(spinlock_t lock)
+>  {
+>  	return lock.owner == lock.next;
+>  }
+> @@ -19,7 +19,7 @@ bool spin_lock_check(spinlock_t *lock)
+>  	return !spin_lock_unlocked(*lock);
+>  }
+> 
+> -int spin_trylock(spinlock_t *lock)
+> +bool spin_trylock(spinlock_t *lock)
+>  {
+>  	unsigned long inc = 1u << TICKET_SHIFT;
+>  	unsigned long mask = 0xffffu << TICKET_SHIFT; @@ -42,7 +42,7 @@
+> int spin_trylock(spinlock_t *lock)
+>  		: "r"(inc), "r"(mask), "I"(TICKET_SHIFT)
+>  		: "memory");
+> 
+> -	return !l0;
+> +	return l0 == 0;
+>  }
+> 
+>  void spin_lock(spinlock_t *lock)
 > --
 > 2.30.1
 > 
