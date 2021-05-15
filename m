@@ -1,150 +1,194 @@
-From: Charles Papon <charles.papon.90@gmail.com>
-Date: Sat, 15 May 2021 17:23:06 +0200
-Subject: lib: fix GET_FXX_REG assembly
-In-Reply-To: <8A96D44F-AC5D-4944-8C94-05BD993B585C@jrtc27.com>
-References: <CAMabmMKe_NtVyDZzdb0tCtHOe5odtVVq-kZr_=1LdtrF8xC7eA@mail.gmail.com>
- <CAMabmMKLPgJnXTPXVB2Go4vNJrAkZ=KqarvAph0964QAPpY_Kw@mail.gmail.com>
- <8A96D44F-AC5D-4944-8C94-05BD993B585C@jrtc27.com>
-Message-ID: <CAMabmMJERFPnCgNNf82WvYCp_ufdW6AD1h7PQ+1E3naDFF7HFA@mail.gmail.com>
+From: Chang, Abner (HPS SW/FW Technologist) <abner.chang@hpe.com>
+Date: Sat, 15 May 2021 15:29:31 +0000
+Subject: Why does the firmware memory region have no permissions?
+In-Reply-To: <CO6PR04MB7812E3CDA9050A101202C8648D2F9@CO6PR04MB7812.namprd04.prod.outlook.com>
+References: <669a1252-0717-20ce-3741-213beb13cc00@danielschaefer.me>
+ <b095eb4a-5193-be54-afc2-6c4c11347a36@danielschaefer.me>
+ <CO6PR04MB781291099CDAFBE5EF3C23E68D509@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <CO6PR04MB7812EBE9A040A32228EC902B8D509@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <CS1PR8401MB11440E829F8DB27D81FBDAEEFF2F9@CS1PR8401MB1144.NAMPRD84.PROD.OUTLOOK.COM>
+ <CO6PR04MB7812E3CDA9050A101202C8648D2F9@CO6PR04MB7812.namprd04.prod.outlook.com>
+Message-ID: <CS1PR8401MB11446244ADD0617F41205E46FF2F9@CS1PR8401MB1144.NAMPRD84.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hoo right, i forced a0 on the wrong variable. this was misleading. I
-have a patch for that, but now i see that RV64 do not use the memory
-to get the FPU register value :
-# define get_f64(which) fmv.x.d a0, which; jr t0
 
-So right, that patch isn't the good one XD
 
-> The only bug in the existing code is that it needs to grow separate offset and __val variables like SET_F64_REG in order to handle RV32 correctly
+> -----Original Message-----
+> From: Anup Patel [mailto:Anup.Patel at wdc.com]
+> Sent: Saturday, May 15, 2021 4:09 PM
+> To: Chang, Abner (HPS SW/FW Technologist) <abner.chang@hpe.com>; Daniel
+> Schaefer <daniel@danielschaefer.me>
+> Cc: opensbi at lists.infradead.org
+> Subject: RE: Why does the firmware memory region have no permissions?
+> 
+> Hi Abner,
+> 
+> > -----Original Message-----
+> > From: Chang, Abner (HPS SW/FW Technologist) <abner.chang@hpe.com>
+> > Sent: 15 May 2021 11:47
+> > To: Anup Patel <Anup.Patel@wdc.com>; Daniel Schaefer
+> > <daniel@danielschaefer.me>
+> > Cc: opensbi at lists.infradead.org
+> > Subject: RE: Why does the firmware memory region have no permissions?
+> >
+> >
+> >
+> > > -----Original Message-----
+> > > From: Anup Patel [mailto:Anup.Patel at wdc.com]
+> > > Sent: Friday, May 14, 2021 7:58 PM
+> > > To: Daniel Schaefer <daniel@danielschaefer.me>
+> > > Cc: opensbi at lists.infradead.org; Chang, Abner (HPS SW/FW Technologist)
+> > > <abner.chang@hpe.com>
+> > > Subject: RE: Why does the firmware memory region have no permissions?
+> > >
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: Anup Patel
+> > > > Sent: 14 May 2021 17:22
+> > > > To: Daniel Schaefer <daniel@danielschaefer.me>
+> > > > Cc: opensbi at lists.infradead.org; Chang, Abner (HPS SW/FW
+> > > > Technologist) <abner.chang@hpe.com>
+> > > > Subject: RE: Why does the firmware memory region have no
+> > permissions?
+> > > >
+> > > >
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of
+> > > > > Daniel Schaefer
+> > > > > Sent: 13 May 2021 10:26
+> > > > > To: Anup Patel <Anup.Patel@wdc.com>
+> > > > > Cc: opensbi at lists.infradead.org; Chang, Abner (HPS SW/FW
+> > > > > Technologist) <abner.chang@hpe.com>
+> > > > > Subject: Why does the firmware memory region have no permissions?
+> > > > >
+> > > > > Whoops, put CC as subject...
+> > > > >
+> > > > > On 5/12/21 6:20 PM, Daniel Schaefer wrote:
+> > > > > > Hi Anup,
+> > > > > >
+> > > > > > I'm in the process of upgrading EDKII to OpenSBI 0.9 and using
+> > > > > > the Generic
+> > > > > Platform.
+> > > > > >
+> > > > > > Previously we were doing sbi_init with M-Mode, adding our SBI
+> > > > > > extension and then calling sbi_switch_mode to switch to S-Mode.
+> > > > > > Now sbi_init disallows initializing to M-Mode, so I'm directly
+> > > > > > switching to S-Mode. It seems that even from S-Mode I can
+> > > > > > register our SBI
+> > > > > extension with sbi_ecall_register_extension.
+> > > > > > Is that correct?
+> > > >
+> > > > The OpenSBI sources are meant to run only from M-mode so we cannot
+> > > > register SBI extension using sbi_ecall_register_extension().
+> > > >
+> > > > The  sbi_switch_mode() is not stricter due to OpenSBI domain support.
+> > >
+> > > The sbi_hart_switch_mode() is fine. It's the sbi_domain_init() which
+> > > is enforcing next booting stage to be at lower privilege for root domain.
+> > >
+> > > For time being, you can try removing checks on "dom->next_mode"
+> > > in sanitize_domain()
+> >
+> > Hi Anup, I think we currently skip that check for moving on the edk2 boot
+> > process. So do you have plan to remove this check? Or any alternative?
+> > I think it is unnecessary having this check on the next privilege mode. That
+> > should be at OEM discretion of which privilege mode to run their next
+> > firmware stage based on the platform design?
+> 
+> This is an important check required by OpenSBI domain support so that
+> next booting stage cannot tamper with PMP configuration (and other
+> security configuration) done by OpenSBI.
 
-What do you mean by grow ? stack allocation ?
+I understand the importance of not giving any chance to tamper PMP setting, however this could be the responsibility of the next boot phase before OS. OpenSBI as the early phase boot firmware should be generally provide SBIs to platform variants, and have the flexibility to hand off to either M-mode or S-mode firmware (Actually I don't think OpenSBI should handle this). Platform code is provided by OEM/vendor, OpenSBI should allow it if platform code says I would like to run my next phase firmware in M-mode. We restrict the privilege phase for the next phase in OpenSBI also not compliant with the UEFI spec which says UEFI RISC-V firmware could be executed in either M-mode or S-mode. Some EFI driver may be loaded in S-mode but provide the M-mode code such as management mode, the Platform Runtime Mechanism or some other use cases. The next firmware has the responsibility to switch to S-mode when handoff to OS or software if the platform design requires that (I remember we have the similar sentence in riscv-platform-spec). EDK2 code can't just remove the check "dom->next_mode", we use OpenSBI without any changes.
 
-On Sat, May 15, 2021 at 3:32 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 15 May 2021, at 13:06, Charles Papon <charles.papon.90@gmail.com> wrote:
+> 
+> I am still worried about the custom SBI extension required by EDK2. This
+> will not work when running EDK2 inside Guest/VM because Guest/VM
+> boots in VS-mode and the SBI calls are provided by hypervisors (KVM,
+> Xvisor, etc). I think you should revisit EDK2 boot-flow to make it
+> compatible with virtualization and OpenSBI domains.
+
+Ok, I will revisit this. Thanks for the reminder.
+
+Regards,
+Abner
+> 
+> Regards,
+> Anup
+> 
 > >
-> > The previous implementation was producing some broken assembly. See
-> > github #212 for more details
-> >
-> > PR : https://github.com/riscv/opensbi/pull/214
-> >
-> > ---
-> > include/sbi/riscv_fp.h | 32 ++++++++++++++++----------------
-> > 1 file changed, 16 insertions(+), 16 deletions(-)
-> >
-> > diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
-> > index a685884..b2c0636 100644
-> > --- a/include/sbi/riscv_fp.h
-> > +++ b/include/sbi/riscv_fp.h
-> > @@ -21,14 +21,14 @@
-> >
-> > #ifdef __riscv_flen
-> >
-> > -#define GET_F32_REG(insn, pos, regs)
-> >                                  \
-> > - ({
-> >                           \
-> > - register s32 value asm("a0") =
-> >                   \
-> > - SHIFT_RIGHT(insn, (pos)-3) & 0xf8;
-> >           \
-> > - ulong tmp;
-> >                   \
-> > - asm("1: auipc %0, %%pcrel_hi(get_f32_reg); add %0, %0, %1; jalr t0,
-> > %0, %%pcrel_lo(1b)" \
-> > -    : "=&r"(tmp), "+&r"(value)::"t0");
-> >                  \
-> > - value;
-> >                   \
-> > +#define GET_F32_REG(insn, pos, regs)
-> >                                   \
-> > + ({
-> >                                \
-> > + register ulong rf_address asm("a0") = SHIFT_RIGHT(insn, (pos)-3) &
-> > 0xf8;                         \
-> > + ulong tmp;
-> >                            \
-> > + volatile u32 value;
-> >                            \
-> > + asm volatile("1: auipc %0, %%pcrel_hi(get_f32_reg); add %0, %0, %2;
-> > jalr t0, %0, %%pcrel_lo(1b)" \
-> > + : "=&r"(tmp) : "r"(&value), "r"(rf_address)  :"t0");
-> >                        \
-> > + value;
-> >                            \
-> >  })
-> > #define SET_F32_REG(insn, pos, regs, val)
-> >                                      \
-> >  ({
-> >                               \
-> > @@ -42,14 +42,14 @@
-> >  : "t0");
-> >               \
-> >  })
-> > #define init_fp_reg(i) SET_F32_REG((i) << 3, 3, 0, 0)
-> > -#define GET_F64_REG(insn, pos, regs)
-> >                                  \
-> > - ({
-> >                           \
-> > - register ulong value asm("a0") =
-> >                   \
-> > - SHIFT_RIGHT(insn, (pos)-3) & 0xf8;
-> >           \
-> > - ulong tmp;
-> >                   \
-> > - asm("1: auipc %0, %%pcrel_hi(get_f64_reg); add %0, %0, %1; jalr t0,
-> > %0, %%pcrel_lo(1b)" \
-> > -    : "=&r"(tmp), "+&r"(value)::"t0");
-> >                  \
-> > - sizeof(ulong) == 4 ? *(int64_t *)value : (int64_t)value;
-> >                   \
-> > +#define GET_F64_REG(insn, pos, regs)
-> >                                    \
-> > + ({
-> >                                 \
-> > + register ulong rf_address asm("a0") = SHIFT_RIGHT(insn, (pos)-3) &
-> > 0xf8;                          \
-> > + ulong tmp;
-> >                             \
-> > + volatile u64 value;
-> >                             \
-> > + asm volatile("1: auipc %0, %%pcrel_hi(get_f64_reg); add %0, %0, %2;
-> > jalr t0, %0, %%pcrel_lo(1b)"  \
-> > + : "=&r"(tmp) : "r"(&value), "r"(rf_address)  :"t0");
-> >                         \
-> > + value;
-> >                             \
-> >  })
-> > #define SET_F64_REG(insn, pos, regs, val)
-> >                                      \
-> >  ({
->
-> This patch is wrong for numerous reasons:
->
-> 1. The volatile is unnecessary as loads have side-effects modelled by the
->    constraints; only stores need volatile.
->
-> 2. Similarly, value does not need to be volatile.
->
-> 3. But value doesn?t even need to exist.
->
-> 4. You?ve lost the clobber on a0 through the old value.
->
-> 5. Your formatting of the constraints is wrong.
->
-> 6. GET_F64_REG is now even more broken on RV32. It won?t crash, but you?re
->    reading a completely random uninitialised value from value.
->
-> On RV32, get_f64_reg expects a0 to be a pointer to a u64 and will store the
-> 64-bit value there. The only bug in the existing code is that it needs to grow
-> separate offset and __val variables like SET_F64_REG in order to handle RV32
-> correctly. You have not fixed that bug, but you have also introduced many
-> additional problems.
->
-> Jess
->
+> > Thanks and regards,
+> > Abner
+> > >
+> > > >
+> > > > Next booting stage has to run from lower privilege mode (S-mode or
+> > > > U-
+> > > > mode) otherwise OpenSBI cannot protect itself from next booting
+> > > > stage if it starts in M-mode.
+> > > >
+> > > > > >
+> > > > > > However, sbi_init when directly initializing to S-Mode checks
+> > > > > > that the
+> > > > > start_address is executable.
+> > > > > > So I'm wondering why the FW region isn't set as executable in
+> > OpenSBI?
+> > > > > > How do other FWs like U-Boot get around this?
+> > > > > >
+> > > > > >
+> > > > >
+> > > >
+> > https://github.com/riscv/opensbi/commit/b1678af210dc4b4e6d586d6d9661
+> > > > 7
+> > > > > e
+> > > > > > 9641618994#diff-
+> > > > > 6e8e352a8a90ba5a7adbb58a806ed9b6404c2c67db416332f9c05a
+> > > > > > 6b322eecd6R346
+> > > > > >
+> > > > > > If I try to set my own regions by adding .domains_root_regions I
+> > > > > > get another error because OpenSBI checks that I have a region
+> > > > > > that is the same as the FW region added by OpenSBI. If I
+> > > > > > duplicate the FW region and mark the first one as executable I
+> > > > > > can pass the executable check and also the check that there's an FW
+> > region.
+> > > > > > Additionally we have to manually call pmp_set in our custom
+> > > > > > platform to make the FW region RWX.
+> > > > > >
+> > > > > > That seems like a workaround, however. Do you have any
+> > > > > > suggestion to
+> > > > > properly fix it?
+> > > > > > I'm sure we're misunderstand something.
+> > > >
+> > > > I suggest two things:
+> > > > 1) Register your custom SBI extension from M-mode only before
+> > > > switching to S-mode
+> > > > 2) Make sure that fw_start and fw_size set in the sbi_scratch for
+> > > > each HART only point to the M-mode code and data. Preferably have
+> > > > S-mode code and data not linked in the same binary as M-mode code and
+> > data.
+> > > >
+> > > > > >
+> > > > > > For context: We're writing the start addr and size of our FW
+> > > > > > image into the scratch space before OpenSBI is initialized.
+> > > > > > Therefore we're expecting it to set the PMP settings correctly.
+> > > > > >
+> > > > > > Please check out my workaround commit:
+> > > > > > https://github.com/riscv/riscv-edk2-platforms/commit/a5ac63096ca
+> > > > > > 5da7
+> > > > > > 95
+> > > > > > 042baf650170643fe219cab
+> > > > > >
+> > > > > > Thanks,
+> > > > > > Daniel
+> > > >
+> > > > Regards
+> > > > Anup
+> > >
+> > > Regards,
+> > > Anup
 
