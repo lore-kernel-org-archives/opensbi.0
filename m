@@ -1,61 +1,91 @@
 From: Chang, Abner (HPS SW/FW Technologist) <abner.chang@hpe.com>
-Date: Tue, 18 May 2021 00:36:50 +0000
-Subject: [PATCH v1 1/3] lib: utils: Add macro to libfdt_env.h for strncpy
-In-Reply-To: <94d2a372d500c14d89e6797da2f09f9b211a3969.camel@126.com>
+Date: Tue, 18 May 2021 00:36:24 +0000
+Subject: [PATCH v1 2/3] lib: fdt: Don't use sbi_string functions
+In-Reply-To: <1000a99faae4bc0d72d67a4ff06501bc52ce669f.camel@126.com>
 References: <20210517113319.25855-1-daniel.schaefer@hpe.com>
- <20210517113319.25855-2-daniel.schaefer@hpe.com>
- <94d2a372d500c14d89e6797da2f09f9b211a3969.camel@126.com>
-Message-ID: <CS1PR8401MB1144C3DB71CC0E7169739752FF2C9@CS1PR8401MB1144.NAMPRD84.PROD.OUTLOOK.COM>
+ <20210517113319.25855-3-daniel.schaefer@hpe.com>
+ <1000a99faae4bc0d72d67a4ff06501bc52ce669f.camel@126.com>
+Message-ID: <CS1PR8401MB1144559EFCB1A5FCC4E3BDFBFF2C9@CS1PR8401MB1144.NAMPRD84.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+After addressing Xiang's comment.
+
 Reviewed-by: Abner Chang <abner.chang@hpe.com>
 
 > -----Original Message-----
 > From: Xiang W [mailto:wxjstz at 126.com]
-> Sent: Monday, May 17, 2021 9:48 PM
+> Sent: Monday, May 17, 2021 9:54 PM
 > To: Schaefer, Daniel <daniel.schaefer@hpe.com>; opensbi at lists.infradead.org
 > Cc: Chang, Abner (HPS SW/FW Technologist) <abner.chang@hpe.com>; Anup
 > Patel <Anup.Patel@wdc.com>
-> Subject: Re: [PATCH v1 1/3] lib: utils: Add macro to libfdt_env.h for strncpy
+> Subject: Re: [PATCH v1 2/3] lib: fdt: Don't use sbi_string functions
 > 
 > ? 2021-05-17?? 19:33 +0800?Daniel Schaefer???
-> > Just like 2845d2d2cf4fb74a89452ba223995aa4a118c07e
+> > When SBI is built by external firmware, we need to use their
+> > functions,
+> > defined in libfdt_env.h.
+> > Just like 2cfd2fc9048806353298a1b967abf985901e36e8
 > >
 > > Cc: Abner Chang <abner.chang@hpe.com>
 > > Cc: Anup Patel <Anup.Patel@wdc.com>
 > > Signed-off-by: Daniel Schaefer <daniel.schaefer@hpe.com>
 > Look good to me.
-> This description doesn't look very clear.
 > 
-> I recommend reword:
-> 
-> lib: utils: Add a macro in libfdt_env.h for strncpy
-> 
-> This commit add a macro to replace strncpy with sbi_strncpy.
+> but lost sbi_memcpy in line 340.
 > 
 > Regards
 > Xiang W
 > > ---
-> >  lib/utils/libfdt/libfdt_env.h | 1 +
-> >  1 file changed, 1 insertion(+)
+> >  lib/utils/fdt/fdt_domain.c | 7 ++++---
+> >  1 file changed, 4 insertions(+), 3 deletions(-)
 > >
-> > diff --git a/lib/utils/libfdt/libfdt_env.h
-> > b/lib/utils/libfdt/libfdt_env.h
-> > index bc3e7588660a..f9d9c6783c52 100644
-> > --- a/lib/utils/libfdt/libfdt_env.h
-> > +++ b/lib/utils/libfdt/libfdt_env.h
-> > @@ -31,6 +31,7 @@
-> >  #define strchr		sbi_strchr
-> >  #define strrchr		sbi_strrchr
-> >  #define strcpy		sbi_strcpy
-> > +#define strncpy		sbi_strncpy
-> >  #define strcmp		sbi_strcmp
-> >  #define strncmp		sbi_strncmp
-> >  #define strlen		sbi_strlen
+> > diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+> > index 95c195d65238..c1f6a8c8a10b 100644
+> > --- a/lib/utils/fdt/fdt_domain.c
+> > +++ b/lib/utils/fdt/fdt_domain.c
+> > @@ -9,6 +9,7 @@
+> >   */
+> >
+> >  #include <libfdt.h>
+> > +#include <libfdt_env.h>
+> >  #include <sbi/sbi_domain.h>
+> >  #include <sbi/sbi_error.h>
+> >  #include <sbi/sbi_hartmask.h>
+> > @@ -95,7 +96,7 @@ static int __fixup_find_domain_offset(void *fdt,
+> > int doff, void *p)
+> >  {
+> >  	struct __fixup_find_domain_offset_info *fdo = p;
+> >
+> > -	if (!sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
+> > +	if (!strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
+> >  		*fdo->doffset = doff;
+> >
+> >  	return 0;
+> > @@ -287,7 +288,7 @@ static int __fdt_parse_domain(void *fdt, int
+> > domain_offset, void *opaque)
+> >  	regions = &fdt_regions[fdt_domains_count][0];
+> >
+> >  	/* Read DT node name */
+> > -	sbi_strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
+> > +	strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
+> >  		    sizeof(dom->name));
+> >  	dom->name[sizeof(dom->name) - 1] = '\0';
+> >
+> > @@ -313,7 +314,7 @@ static int __fdt_parse_domain(void *fdt, int
+> > domain_offset, void *opaque)
+> >
+> >  	/* Setup memregions from DT */
+> >  	val32 = 0;
+> > -	sbi_memset(regions, 0,
+> > +	memset(regions, 0,
+> >  		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT +
+> > 1));
+> >  	dom->regions = regions;
+> >  	err = fdt_iterate_each_memregion(fdt, domain_offset, &val32,
 > > --
 > > 2.30.1
 > >
