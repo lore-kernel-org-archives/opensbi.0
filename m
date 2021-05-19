@@ -1,86 +1,97 @@
-From: Schaefer, Daniel <daniel.schaefer@hpe.com>
-Date: Tue, 18 May 2021 00:58:34 +0000
-Subject: [PATCH v1 2/3] lib: fdt: Don't use sbi_string functions
-In-Reply-To: <1000a99faae4bc0d72d67a4ff06501bc52ce669f.camel@126.com>
-References: <20210517113319.25855-1-daniel.schaefer@hpe.com>
- <20210517113319.25855-3-daniel.schaefer@hpe.com>
- <1000a99faae4bc0d72d67a4ff06501bc52ce669f.camel@126.com>
-Message-ID: <e91d2b89-8ab2-870c-d435-132b37b2bdc1@hpe.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Wed, 19 May 2021 06:35:13 +0000
+Subject: [PATCH] lib: utils/serial: Support Synopsys DesignWare APB UART
+In-Reply-To: <CAEUhbmXnSrSXpcd0sW9JWSD1pGmNVrmCuZEOuVoJD5ziRGrzCg@mail.gmail.com>
+References: <20210514011613.2183141-1-bmeng.cn@gmail.com>
+ <297EBE3C-8771-4815-A942-0B95A67115CB@jrtc27.com>
+ <CAEUhbmVXOq8GjXCw6BmrV6NMenRtXQLV=mWepgeRWj444pLNBw@mail.gmail.com>
+ <EDA30902-60C6-4F68-A27A-17EB13775BF9@jrtc27.com>
+ <CAEUhbmXnSrSXpcd0sW9JWSD1pGmNVrmCuZEOuVoJD5ziRGrzCg@mail.gmail.com>
+Message-ID: <CO6PR04MB7812DD766195A19FC18DEB988D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 5/17/21 9:54 PM, Xiang W wrote:
-> ? 2021-05-17?? 19:33 +0800?Daniel Schaefer???
->> When SBI is built by external firmware, we need to use their
->> functions,
->> defined in libfdt_env.h.
->> Just like 2cfd2fc9048806353298a1b967abf985901e36e8
->>
->> Cc: Abner Chang <abner.chang@hpe.com>
->> Cc: Anup Patel <Anup.Patel@wdc.com>
->> Signed-off-by: Daniel Schaefer <daniel.schaefer@hpe.com>
-> Look good to me.
+
+
+> -----Original Message-----
+> From: Bin Meng <bmeng.cn@gmail.com>
+> Sent: 14 May 2021 07:48
+> To: Jessica Clarke <jrtc27@jrtc27.com>
+> Cc: Anup Patel <Anup.Patel@wdc.com>; OpenSBI
+> <opensbi@lists.infradead.org>
+> Subject: Re: [PATCH] lib: utils/serial: Support Synopsys DesignWare APB
+> UART
 > 
-> but lost sbi_memcpy in line 340.
-
-Oh, good catch, thanks! I had made the changes based on v0.9 originally.
-I'll send out another series.
-
-> Regards
-> Xiang W
->> ---
->>  lib/utils/fdt/fdt_domain.c | 7 ++++---
->>  1 file changed, 4 insertions(+), 3 deletions(-)
->>
->> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
->> index 95c195d65238..c1f6a8c8a10b 100644
->> --- a/lib/utils/fdt/fdt_domain.c
->> +++ b/lib/utils/fdt/fdt_domain.c
->> @@ -9,6 +9,7 @@
->>   */
->>  
->>  #include <libfdt.h>
->> +#include <libfdt_env.h>
->>  #include <sbi/sbi_domain.h>
->>  #include <sbi/sbi_error.h>
->>  #include <sbi/sbi_hartmask.h>
->> @@ -95,7 +96,7 @@ static int __fixup_find_domain_offset(void *fdt,
->> int doff, void *p)
->>  {
->>  	struct __fixup_find_domain_offset_info *fdo = p;
->>  
->> -	if (!sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
->> +	if (!strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
->>  		*fdo->doffset = doff;
->>  
->>  	return 0;
->> @@ -287,7 +288,7 @@ static int __fdt_parse_domain(void *fdt, int
->> domain_offset, void *opaque)
->>  	regions = &fdt_regions[fdt_domains_count][0];
->>  
->>  	/* Read DT node name */
->> -	sbi_strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
->> +	strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
->>  		    sizeof(dom->name));
->>  	dom->name[sizeof(dom->name) - 1] = '\0';
->>  
->> @@ -313,7 +314,7 @@ static int __fdt_parse_domain(void *fdt, int
->> domain_offset, void *opaque)
->>  
->>  	/* Setup memregions from DT */
->>  	val32 = 0;
->> -	sbi_memset(regions, 0,
->> +	memset(regions, 0,
->>  		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT +
->> 1));
->>  	dom->regions = regions;
->>  	err = fdt_iterate_each_memregion(fdt, domain_offset, &val32,
->> -- 
->> 2.30.1
->>
->>
+> On Fri, May 14, 2021 at 9:59 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >
+> > On 14 May 2021, at 02:27, Bin Meng <bmeng.cn@gmail.com> wrote:
+> > >
+> > > On Fri, May 14, 2021 at 9:19 AM Jessica Clarke <jrtc27@jrtc27.com>
+> wrote:
+> > >>
+> > >> On 14 May 2021, at 02:16, Bin Meng <bmeng.cn@gmail.com> wrote:
+> > >>>
+> > >>> Synopsys DesignWare APB UART is seen on the StarFive JH7100 SoC.
+> > >>> Its programming interface is compatible with the existing 8250
+> > >>> UART driver. Simply add its compatible string to the driver makes
+> > >>> it work with the StarFive JH7100 SoC on a BeagleV board.
+> > >>>
+> > >>> With this patch, the generic platform firmware can be used out of
+> > >>> the box on the BeagleV board.
+> > >>>
+> > >>> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> > >>> ---
+> > >>>
+> > >>> lib/utils/serial/fdt_serial_uart8250.c | 1 +
+> > >>> 1 file changed, 1 insertion(+)
+> > >>>
+> > >>> diff --git a/lib/utils/serial/fdt_serial_uart8250.c
+> > >>> b/lib/utils/serial/fdt_serial_uart8250.c
+> > >>> index 918193a..36f364c 100644
+> > >>> --- a/lib/utils/serial/fdt_serial_uart8250.c
+> > >>> +++ b/lib/utils/serial/fdt_serial_uart8250.c
+> > >>> @@ -28,6 +28,7 @@ static int serial_uart8250_init(void *fdt, int
+> > >>> nodeoff, static const struct fdt_match serial_uart8250_match[] = {
+> > >>>      { .compatible = "ns16550" },
+> > >>>      { .compatible = "ns16550a" },
+> > >>> +     { .compatible = "snps,dw-apb-uart" },
+> > >>
+> > >> If it?s compatible, why does it not use
+> > >>
+> > >>  compatible = ?snps,dw-apb-uart?, ?ns16550?;
+> > >>
+> > >> or similar in its FDT?
+> > >
+> > > Good question. By looking at the Linux kernel driver, it is
+> > > supported as a variant of 8250 (drivers/tty/serial/8250/8250_dw.c).
+> > >
+> > > I have not looked into details, but I suspect there are some minor
+> > > oddities which matter for the kernel. The existing driver is enough
+> > > to make OpenSBI happy.
+> >
+> > It seems there are various additional clocks and resets you may need
+> > to handle (baudclk is required, apb_pclk is optional and there?s an optional
+> reset too).
+> > For this particular board the FDT has a them clocks as all
+> > fixed-clock, but in general this is not a correct implementation of
+> > the driver, as the clocks must be enabled when attaching.
 > 
+> I don't think OpenSBI needs to handle the clock and reset of each peripheral
+> in its driver. Such should to be done in the bootloader,
+> i.e.: U-Boot SPL.
 
+Most likely, we will not require to handle clock and reset of each
+peripheral. At least, the previous booting stage should set the
+"clock-frequency" DT property in UART DT node to be used as console.
+
+Regarding this patch, I am fine with it because the 8250 DT bindings
+doesn?t mandate "ns16550" string to be always there. We lot of
+ARM64 DTS files having just "snps,dw-apb-uart" as compatible string.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+Regards,
+Anup
