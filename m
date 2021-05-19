@@ -1,10 +1,12 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 19 May 2021 12:52:50 +0000
-Subject: [PATCH v2 3/3] lib: utils: Replace strcmp with strncmp
-In-Reply-To: <20210519075410.8520-4-daniel.schaefer@hpe.com>
+Date: Wed, 19 May 2021 12:54:24 +0000
+Subject: [PATCH v2 1/3] lib: utils: Add strncpy macro to libfdt_env.h
+In-Reply-To: <CO6PR04MB7812C7B65D8475E9682CFAA08D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
 References: <20210519075410.8520-1-daniel.schaefer@hpe.com>
- <20210519075410.8520-4-daniel.schaefer@hpe.com>
-Message-ID: <CO6PR04MB781235EE01AD3E06AE6C5B8A8D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <20210519075410.8520-2-daniel.schaefer@hpe.com>
+ <e14b8291aeddae5fac55973a7695608b2c66d082.camel@126.com>
+ <CO6PR04MB7812C7B65D8475E9682CFAA08D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
+Message-ID: <CO6PR04MB7812662BE27AE493AA9F32AA8D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,45 +16,70 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: Daniel Schaefer <daniel.schaefer@hpe.com>
-> Sent: 19 May 2021 13:24
-> To: opensbi at lists.infradead.org
-> Cc: Abner Chang <abner.chang@hpe.com>; Anup Patel
-> <Anup.Patel@wdc.com>; Xiang W <wxjstz@126.com>
-> Subject: [PATCH v2 3/3] lib: utils: Replace strcmp with strncmp
-> 
+> From: Anup Patel
+> Sent: 19 May 2021 18:22
+> To: Xiang W <wxjstz@126.com>; Daniel Schaefer
+> <daniel.schaefer@hpe.com>; opensbi at lists.infradead.org
 > Cc: Abner Chang <abner.chang@hpe.com>
-> Cc: Anup Patel <Anup.Patel@wdc.com>
-> Signed-off-by: Daniel Schaefer <daniel.schaefer@hpe.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Abner Chang <abner.chang@hpe.com>
+> Subject: RE: [PATCH v2 1/3] lib: utils: Add strncpy macro to libfdt_env.h
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Xiang W <wxjstz@126.com>
+> > Sent: 19 May 2021 14:08
+> > To: Daniel Schaefer <daniel.schaefer@hpe.com>;
+> > opensbi at lists.infradead.org
+> > Cc: Abner Chang <abner.chang@hpe.com>; Anup Patel
+> <Anup.Patel@wdc.com>
+> > Subject: Re: [PATCH v2 1/3] lib: utils: Add strncpy macro to
+> > libfdt_env.h
+> >
+> > ? 2021-05-19?? 15:54 +0800?Daniel Schaefer???
+> > > Just like 2845d2d2cf4fb74a89452ba223995aa4a118c07e
+> > > we want to use sbi_strncpy as strncpy in the OpenSBI implementation
+> > > for libfdt.
+> > >
+> > > Cc: Abner Chang <abner.chang@hpe.com>
+> > > Cc: Anup Patel <Anup.Patel@wdc.com>
+> > > Signed-off-by: Daniel Schaefer <daniel.schaefer@hpe.com>
+> > > Reviewed-by: Abner Chang <abner.chang@hpe.com>
+> >
+> > Reviewed-by: Xiang W <wxjstz@126.com>
+> 
+> Looks good to me.
+> 
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-Looks good to me. I have added some commit description
-at time of merging this patch.
+Forgot to mention that I have applied this patch to the riscv/opensbi repo.
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Regards,
+Thanks,
 Anup
-> ---
->  lib/utils/fdt/fdt_domain.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c index
-> fc8ad423eb88..676c75790829 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -96,7 +96,7 @@ static int __fixup_find_domain_offset(void *fdt, int
-> doff, void *p)  {
->  	struct __fixup_find_domain_offset_info *fdo = p;
-> 
-> -	if (!strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
-> +	if (!strncmp(fdo->name, fdt_get_name(fdt, doff, NULL),
-> +strlen(fdo->name)))
->  		*fdo->doffset = doff;
-> 
->  	return 0;
-> --
-> 2.30.1
 
+> 
+> Regards,
+> Anup
+> 
+> >
+> > > ---
+> > >  lib/utils/libfdt/libfdt_env.h | 1 +
+> > >  1 file changed, 1 insertion(+)
+> > >
+> > > diff --git a/lib/utils/libfdt/libfdt_env.h
+> > > b/lib/utils/libfdt/libfdt_env.h index bc3e7588660a..f9d9c6783c52
+> > > 100644
+> > > --- a/lib/utils/libfdt/libfdt_env.h
+> > > +++ b/lib/utils/libfdt/libfdt_env.h
+> > > @@ -31,6 +31,7 @@
+> > >  #define strchr		sbi_strchr
+> > >  #define strrchr		sbi_strrchr
+> > >  #define strcpy		sbi_strcpy
+> > > +#define strncpy		sbi_strncpy
+> > >  #define strcmp		sbi_strcmp
+> > >  #define strncmp		sbi_strncmp
+> > >  #define strlen		sbi_strlen
+> > > --
+> > > 2.30.1
+> > >
+> > >
 
