@@ -1,75 +1,37 @@
 From: Daniel Schaefer <daniel.schaefer@hpe.com>
-Date: Wed, 19 May 2021 15:54:09 +0800
-Subject: [PATCH v2 2/3] lib: fdt: Don't use sbi_string functions
+Date: Wed, 19 May 2021 15:54:10 +0800
+Subject: [PATCH v2 3/3] lib: utils: Replace strcmp with strncmp
 In-Reply-To: <20210519075410.8520-1-daniel.schaefer@hpe.com>
 References: <20210519075410.8520-1-daniel.schaefer@hpe.com>
-Message-ID: <20210519075410.8520-3-daniel.schaefer@hpe.com>
+Message-ID: <20210519075410.8520-4-daniel.schaefer@hpe.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When SBI is built by external firmware, we need to use their functions,
-defined in libfdt_env.h.
-Just like 2cfd2fc9048806353298a1b967abf985901e36e8
-
 Cc: Abner Chang <abner.chang@hpe.com>
 Cc: Anup Patel <Anup.Patel@wdc.com>
 Signed-off-by: Daniel Schaefer <daniel.schaefer@hpe.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Abner Chang <abner.chang@hpe.com>
 ---
- lib/utils/fdt/fdt_domain.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ lib/utils/fdt/fdt_domain.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 95c195d65238..fc8ad423eb88 100644
+index fc8ad423eb88..676c75790829 100644
 --- a/lib/utils/fdt/fdt_domain.c
 +++ b/lib/utils/fdt/fdt_domain.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <libfdt.h>
-+#include <libfdt_env.h>
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hartmask.h>
-@@ -95,7 +96,7 @@ static int __fixup_find_domain_offset(void *fdt, int doff, void *p)
+@@ -96,7 +96,7 @@ static int __fixup_find_domain_offset(void *fdt, int doff, void *p)
  {
  	struct __fixup_find_domain_offset_info *fdo = p;
  
--	if (!sbi_strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
-+	if (!strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
+-	if (!strcmp(fdo->name, fdt_get_name(fdt, doff, NULL)))
++	if (!strncmp(fdo->name, fdt_get_name(fdt, doff, NULL), strlen(fdo->name)))
  		*fdo->doffset = doff;
  
  	return 0;
-@@ -287,7 +288,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 	regions = &fdt_regions[fdt_domains_count][0];
- 
- 	/* Read DT node name */
--	sbi_strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
-+	strncpy(dom->name, fdt_get_name(fdt, domain_offset, NULL),
- 		    sizeof(dom->name));
- 	dom->name[sizeof(dom->name) - 1] = '\0';
- 
-@@ -313,7 +314,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 
- 	/* Setup memregions from DT */
- 	val32 = 0;
--	sbi_memset(regions, 0,
-+	memset(regions, 0,
- 		   sizeof(*regions) * (FDT_DOMAIN_REGION_MAX_COUNT + 1));
- 	dom->regions = regions;
- 	err = fdt_iterate_each_memregion(fdt, domain_offset, &val32,
-@@ -337,7 +338,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 			continue;
- 		if (FDT_DOMAIN_REGION_MAX_COUNT <= val32)
- 			return SBI_EINVAL;
--		sbi_memcpy(&regions[val32++], reg, sizeof(*reg));
-+		memcpy(&regions[val32++], reg, sizeof(*reg));
- 	}
- 
- 	/* Read "boot-hart" DT property */
 -- 
 2.30.1
 
