@@ -1,10 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Wed, 19 May 2021 11:10:56 +0000
-Subject: [PATCH] Makefile: unconditionally disable SSP
-In-Reply-To: <2c8a933bae5cbe989227f44b52b451acd09b5ecf.camel@126.com>
-References: <20210515081638.2361496-1-fontaine.fabrice@gmail.com>
- <2c8a933bae5cbe989227f44b52b451acd09b5ecf.camel@126.com>
-Message-ID: <CO6PR04MB7812F94B43E6DD3399E1BDC18D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
+Date: Wed, 19 May 2021 12:51:34 +0000
+Subject: [PATCH v2 1/3] lib: utils: Add strncpy macro to libfdt_env.h
+In-Reply-To: <e14b8291aeddae5fac55973a7695608b2c66d082.camel@126.com>
+References: <20210519075410.8520-1-daniel.schaefer@hpe.com>
+ <20210519075410.8520-2-daniel.schaefer@hpe.com>
+ <e14b8291aeddae5fac55973a7695608b2c66d082.camel@126.com>
+Message-ID: <CO6PR04MB7812C7B65D8475E9682CFAA08D2B9@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,59 +15,53 @@ Content-Transfer-Encoding: 7bit
 
 
 > -----Original Message-----
-> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Xiang W
-> Sent: 15 May 2021 17:37
-> To: Fabrice Fontaine <fontaine.fabrice@gmail.com>;
+> From: Xiang W <wxjstz@126.com>
+> Sent: 19 May 2021 14:08
+> To: Daniel Schaefer <daniel.schaefer@hpe.com>;
 > opensbi at lists.infradead.org
-> Subject: Re: [PATCH] Makefile: unconditionally disable SSP
+> Cc: Abner Chang <abner.chang@hpe.com>; Anup Patel
+> <Anup.Patel@wdc.com>
+> Subject: Re: [PATCH v2 1/3] lib: utils: Add strncpy macro to libfdt_env.h
 > 
-> ? 2021-05-15?? 10:16 +0200?Fabrice Fontaine???
-> > Though -nostdlib is passed in CFLAGS, -fno-stack-protector must also
-> > be passed to avoid linking errors related to undefined references to
-> > '__stack_chk_guard' and '__stack_chk_fail' if toolchain enforces
-> > -fstack-protector.
+> ? 2021-05-19?? 15:54 +0800?Daniel Schaefer???
+> > Just like 2845d2d2cf4fb74a89452ba223995aa4a118c07e
+> > we want to use sbi_strncpy as strncpy in the OpenSBI implementation
+> > for libfdt.
 > >
-> > Fixes:
-> >  - https://gitlab.com/kubu93/buildroot/-/jobs/1247043359
-> >
+> > Cc: Abner Chang <abner.chang@hpe.com>
+> > Cc: Anup Patel <Anup.Patel@wdc.com>
+> > Signed-off-by: Daniel Schaefer <daniel.schaefer@hpe.com>
+> > Reviewed-by: Abner Chang <abner.chang@hpe.com>
 > 
 > Reviewed-by: Xiang W <wxjstz@126.com>
 
-Applied this patch to the riscv/opensbi repo.
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
 Regards,
 Anup
 
 > 
-> > Signed-off-by: Fabrice Fontaine <fontaine.fabrice@gmail.com>
 > > ---
-> >  Makefile | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >  lib/utils/libfdt/libfdt_env.h | 1 +
+> >  1 file changed, 1 insertion(+)
 > >
-> > diff --git a/Makefile b/Makefile
-> > index eeffe6b..6b64205 100644
-> > --- a/Makefile
-> > +++ b/Makefile
-> > @@ -203,7 +203,7 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
-> >  GENFLAGS	+=	$(platform-genflags-y)
-> >  GENFLAGS	+=	$(firmware-genflags-y)
-> >
-> > -CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib
-> > -fno-strict-aliasing -O2
-> > +CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib
-> > -fno-stack-protector -fno-strict-aliasing -O2
-> >  CFLAGS		+=	-fno-omit-frame-pointer -fno-
-> > optimize-sibling-calls
-> >  CFLAGS		+=	-mno-save-restore -mstrict-align
-> >  CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI)
-> > -march=$(PLATFORM_RISCV_ISA)
+> > diff --git a/lib/utils/libfdt/libfdt_env.h
+> > b/lib/utils/libfdt/libfdt_env.h index bc3e7588660a..f9d9c6783c52
+> > 100644
+> > --- a/lib/utils/libfdt/libfdt_env.h
+> > +++ b/lib/utils/libfdt/libfdt_env.h
+> > @@ -31,6 +31,7 @@
+> >  #define strchr		sbi_strchr
+> >  #define strrchr		sbi_strrchr
+> >  #define strcpy		sbi_strcpy
+> > +#define strncpy		sbi_strncpy
+> >  #define strcmp		sbi_strcmp
+> >  #define strncmp		sbi_strncmp
+> >  #define strlen		sbi_strlen
 > > --
-> > 2.30.2
+> > 2.30.1
 > >
 > >
-> 
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+
