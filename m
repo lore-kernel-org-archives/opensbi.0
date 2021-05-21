@@ -1,54 +1,50 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 20 May 2021 22:46:48 -0700
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 21 May 2021 14:38:52 +0800
 Subject: [PATCH 1/2] lib: Check region base for merging in
  sbi_domain_root_add_memregion()
 In-Reply-To: <20210520155912.1336836-2-anup.patel@wdc.com>
 References: <20210520155912.1336836-1-anup.patel@wdc.com>
  <20210520155912.1336836-2-anup.patel@wdc.com>
-Message-ID: <CAOnJCU+jGr7wDj=Cr4-zSqni+jXZ597oAuOc2sHZXRgqD8xn-w@mail.gmail.com>
+Message-ID: <1e046228abff570adaa5ecd3da2f2107396b89cd.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, May 20, 2021 at 9:01 AM Anup Patel <anup.patel@wdc.com> wrote:
->
+? 2021-05-20?? 21:29 +0530?Anup Patel???
 > We can merge region B onto region A only if base of region A is
 > aligned to region A order + 1.
->
+> 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+
+Reviewed-by: Xiang W <wxjstz@126.com>
+
 > ---
 >  lib/sbi/sbi_domain.c | 3 ++-
 >  1 file changed, 2 insertions(+), 1 deletion(-)
->
+> 
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
 > index 84f30b9..3096af0 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -511,7 +511,8 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->                         if (!nreg1->order)
->                                 continue;
->
-> -                       if ((nreg->base + BIT(nreg->order)) == nreg1->base &&
-> +                       if (!(nreg->base & (BIT(nreg->order + 1) - 1)) &&
-> +                           (nreg->base + BIT(nreg->order)) == nreg1->base &&
->                             nreg->order == nreg1->order &&
->                             nreg->flags == nreg1->flags) {
->                                 nreg->order++;
-> --
+> @@ -511,7 +511,8 @@ int sbi_domain_root_add_memregion(const struct
+> sbi_domain_memregion *reg)
+>  			if (!nreg1->order)
+>  				continue;
+>  
+> -			if ((nreg->base + BIT(nreg->order)) == nreg1-
+> >base &&
+> +			if (!(nreg->base & (BIT(nreg->order + 1) - 1))
+> &&
+> +			    (nreg->base + BIT(nreg->order)) == nreg1-
+> >base &&
+>  			    nreg->order == nreg1->order &&
+>  			    nreg->flags == nreg1->flags) {
+>  				nreg->order++;
+> -- 
 > 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> 
 
-
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-
--- 
-Regards,
-Atish
 
