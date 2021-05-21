@@ -1,11 +1,11 @@
 From: Xiang W <wxjstz@126.com>
-Date: Fri, 21 May 2021 14:38:52 +0800
-Subject: [PATCH 1/2] lib: Check region base for merging in
- sbi_domain_root_add_memregion()
-In-Reply-To: <20210520155912.1336836-2-anup.patel@wdc.com>
+Date: Fri, 21 May 2021 14:39:09 +0800
+Subject: [PATCH 2/2] lib: utils: Try other FDT drivers when we see
+ SBI_ENODEV
+In-Reply-To: <20210520155912.1336836-3-anup.patel@wdc.com>
 References: <20210520155912.1336836-1-anup.patel@wdc.com>
- <20210520155912.1336836-2-anup.patel@wdc.com>
-Message-ID: <1e046228abff570adaa5ecd3da2f2107396b89cd.camel@126.com>
+ <20210520155912.1336836-3-anup.patel@wdc.com>
+Message-ID: <d17bd7fbc2423486fa0f5946e8c736bb57d177eb.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,35 +13,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2021-05-20?? 21:29 +0530?Anup Patel???
-> We can merge region B onto region A only if base of region A is
-> aligned to region A order + 1.
+> We should try other FDT drivers when we see SBI_ENODEV returned
+> by cold_init() of FDT driver.
 > 
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 
 Reviewed-by: Xiang W <wxjstz@126.com>
 
 > ---
->  lib/sbi/sbi_domain.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  lib/utils/ipi/fdt_ipi.c         | 3 +++
+>  lib/utils/irqchip/fdt_irqchip.c | 3 +++
+>  lib/utils/reset/fdt_reset.c     | 3 +++
+>  lib/utils/serial/fdt_serial.c   | 5 +++++
+>  lib/utils/timer/fdt_timer.c     | 3 +++
+>  5 files changed, 17 insertions(+)
 > 
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 84f30b9..3096af0 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -511,7 +511,8 @@ int sbi_domain_root_add_memregion(const struct
-> sbi_domain_memregion *reg)
->  			if (!nreg1->order)
->  				continue;
+> diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+> index efca37e..3932f50 100644
+> --- a/lib/utils/ipi/fdt_ipi.c
+> +++ b/lib/utils/ipi/fdt_ipi.c
+> @@ -7,6 +7,7 @@
+>   *   Anup Patel <anup.patel@wdc.com>
+>   */
 >  
-> -			if ((nreg->base + BIT(nreg->order)) == nreg1-
-> >base &&
-> +			if (!(nreg->base & (BIT(nreg->order + 1) - 1))
-> &&
-> +			    (nreg->base + BIT(nreg->order)) == nreg1-
-> >base &&
->  			    nreg->order == nreg1->order &&
->  			    nreg->flags == nreg1->flags) {
->  				nreg->order++;
+> +#include <sbi/sbi_error.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/ipi/fdt_ipi.h>
+> @@ -54,6 +55,8 @@ static int fdt_ipi_cold_init(void)
+>  					drv->match_table, &match)) >=
+> 0) {
+>  			if (drv->cold_init) {
+>  				rc = drv->cold_init(fdt, noff, match);
+> +				if (rc == SBI_ENODEV)
+> +					continue;
+>  				if (rc)
+>  					return rc;
+>  			}
+> diff --git a/lib/utils/irqchip/fdt_irqchip.c
+> b/lib/utils/irqchip/fdt_irqchip.c
+> index 3630be6..1306d50 100644
+> --- a/lib/utils/irqchip/fdt_irqchip.c
+> +++ b/lib/utils/irqchip/fdt_irqchip.c
+> @@ -7,6 +7,7 @@
+>   *   Anup Patel <anup.patel@wdc.com>
+>   */
+>  
+> +#include <sbi/sbi_error.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/irqchip/fdt_irqchip.h>
+> @@ -47,6 +48,8 @@ static int fdt_irqchip_cold_init(void)
+>  					drv->match_table, &match)) >=
+> 0) {
+>  			if (drv->cold_init) {
+>  				rc = drv->cold_init(fdt, noff, match);
+> +				if (rc == SBI_ENODEV)
+> +					continue;
+>  				if (rc)
+>  					return rc;
+>  			}
+> diff --git a/lib/utils/reset/fdt_reset.c
+> b/lib/utils/reset/fdt_reset.c
+> index b01b0d1..1d687dc 100644
+> --- a/lib/utils/reset/fdt_reset.c
+> +++ b/lib/utils/reset/fdt_reset.c
+> @@ -7,6 +7,7 @@
+>   *   Anup Patel <anup.patel@wdc.com>
+>   */
+>  
+> +#include <sbi/sbi_error.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/reset/fdt_reset.h>
+> @@ -39,6 +40,8 @@ int fdt_reset_init(void)
+>  
+>  		if (drv->init) {
+>  			rc = drv->init(fdt, noff, match);
+> +			if (rc == SBI_ENODEV)
+> +				continue;
+>  			if (rc)
+>  				return rc;
+>  		}
+> diff --git a/lib/utils/serial/fdt_serial.c
+> b/lib/utils/serial/fdt_serial.c
+> index bad3387..25982ec 100644
+> --- a/lib/utils/serial/fdt_serial.c
+> +++ b/lib/utils/serial/fdt_serial.c
+> @@ -8,6 +8,7 @@
+>   */
+>  
+>  #include <libfdt.h>
+> +#include <sbi/sbi_error.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/serial/fdt_serial.h>
+> @@ -59,6 +60,8 @@ int fdt_serial_init(void)
+>  
+>  		if (drv->init) {
+>  			rc = drv->init(fdt, noff, match);
+> +			if (rc == SBI_ENODEV)
+> +				continue;
+>  			if (rc)
+>  				return rc;
+>  		}
+> @@ -80,6 +83,8 @@ int fdt_serial_init(void)
+>  
+>  		if (drv->init) {
+>  			rc = drv->init(fdt, noff, match);
+> +			if (rc == SBI_ENODEV)
+> +				continue;
+>  			if (rc)
+>  				return rc;
+>  		}
+> diff --git a/lib/utils/timer/fdt_timer.c
+> b/lib/utils/timer/fdt_timer.c
+> index 92198cd..1fad42c 100644
+> --- a/lib/utils/timer/fdt_timer.c
+> +++ b/lib/utils/timer/fdt_timer.c
+> @@ -7,6 +7,7 @@
+>   *   Anup Patel <anup.patel@wdc.com>
+>   */
+>  
+> +#include <sbi/sbi_error.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/timer/fdt_timer.h>
+> @@ -54,6 +55,8 @@ static int fdt_timer_cold_init(void)
+>  					drv->match_table, &match)) >=
+> 0) {
+>  			if (drv->cold_init) {
+>  				rc = drv->cold_init(fdt, noff, match);
+> +				if (rc == SBI_ENODEV)
+> +					continue;
+>  				if (rc)
+>  					return rc;
+>  			}
 > -- 
 > 2.25.1
 > 
