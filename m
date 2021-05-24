@@ -1,157 +1,54 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 21 May 2021 14:39:09 +0800
-Subject: [PATCH 2/2] lib: utils: Try other FDT drivers when we see
- SBI_ENODEV
-In-Reply-To: <20210520155912.1336836-3-anup.patel@wdc.com>
-References: <20210520155912.1336836-1-anup.patel@wdc.com>
- <20210520155912.1336836-3-anup.patel@wdc.com>
-Message-ID: <d17bd7fbc2423486fa0f5946e8c736bb57d177eb.camel@126.com>
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 24 May 2021 15:19:53 +0200
+Subject: [RFC 1/1] lib/utils: consider ':' in stdout-path
+Message-ID: <20210524131953.200555-1-xypron.glpk@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-05-20?? 21:29 +0530?Anup Patel???
-> We should try other FDT drivers when we see SBI_ENODEV returned
-> by cold_init() of FDT driver.
-> 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+The value of the /chosen/stdout-path devicetree property is used to
+determine the UART used by openSBI. According to the devicetree
+specification the value may contain a hyphen, e.g.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+	chosen {
+????????????????stdout-path = "/serial at f00:115200";
+????????};
 
-> ---
->  lib/utils/ipi/fdt_ipi.c         | 3 +++
->  lib/utils/irqchip/fdt_irqchip.c | 3 +++
->  lib/utils/reset/fdt_reset.c     | 3 +++
->  lib/utils/serial/fdt_serial.c   | 5 +++++
->  lib/utils/timer/fdt_timer.c     | 3 +++
->  5 files changed, 17 insertions(+)
-> 
-> diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
-> index efca37e..3932f50 100644
-> --- a/lib/utils/ipi/fdt_ipi.c
-> +++ b/lib/utils/ipi/fdt_ipi.c
-> @@ -7,6 +7,7 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->  
-> +#include <sbi/sbi_error.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/ipi/fdt_ipi.h>
-> @@ -54,6 +55,8 @@ static int fdt_ipi_cold_init(void)
->  					drv->match_table, &match)) >=
-> 0) {
->  			if (drv->cold_init) {
->  				rc = drv->cold_init(fdt, noff, match);
-> +				if (rc == SBI_ENODEV)
-> +					continue;
->  				if (rc)
->  					return rc;
->  			}
-> diff --git a/lib/utils/irqchip/fdt_irqchip.c
-> b/lib/utils/irqchip/fdt_irqchip.c
-> index 3630be6..1306d50 100644
-> --- a/lib/utils/irqchip/fdt_irqchip.c
-> +++ b/lib/utils/irqchip/fdt_irqchip.c
-> @@ -7,6 +7,7 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->  
-> +#include <sbi/sbi_error.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/irqchip/fdt_irqchip.h>
-> @@ -47,6 +48,8 @@ static int fdt_irqchip_cold_init(void)
->  					drv->match_table, &match)) >=
-> 0) {
->  			if (drv->cold_init) {
->  				rc = drv->cold_init(fdt, noff, match);
-> +				if (rc == SBI_ENODEV)
-> +					continue;
->  				if (rc)
->  					return rc;
->  			}
-> diff --git a/lib/utils/reset/fdt_reset.c
-> b/lib/utils/reset/fdt_reset.c
-> index b01b0d1..1d687dc 100644
-> --- a/lib/utils/reset/fdt_reset.c
-> +++ b/lib/utils/reset/fdt_reset.c
-> @@ -7,6 +7,7 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->  
-> +#include <sbi/sbi_error.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/reset/fdt_reset.h>
-> @@ -39,6 +40,8 @@ int fdt_reset_init(void)
->  
->  		if (drv->init) {
->  			rc = drv->init(fdt, noff, match);
-> +			if (rc == SBI_ENODEV)
-> +				continue;
->  			if (rc)
->  				return rc;
->  		}
-> diff --git a/lib/utils/serial/fdt_serial.c
-> b/lib/utils/serial/fdt_serial.c
-> index bad3387..25982ec 100644
-> --- a/lib/utils/serial/fdt_serial.c
-> +++ b/lib/utils/serial/fdt_serial.c
-> @@ -8,6 +8,7 @@
->   */
->  
->  #include <libfdt.h>
-> +#include <sbi/sbi_error.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/serial/fdt_serial.h>
-> @@ -59,6 +60,8 @@ int fdt_serial_init(void)
->  
->  		if (drv->init) {
->  			rc = drv->init(fdt, noff, match);
-> +			if (rc == SBI_ENODEV)
-> +				continue;
->  			if (rc)
->  				return rc;
->  		}
-> @@ -80,6 +83,8 @@ int fdt_serial_init(void)
->  
->  		if (drv->init) {
->  			rc = drv->init(fdt, noff, match);
-> +			if (rc == SBI_ENODEV)
-> +				continue;
->  			if (rc)
->  				return rc;
->  		}
-> diff --git a/lib/utils/timer/fdt_timer.c
-> b/lib/utils/timer/fdt_timer.c
-> index 92198cd..1fad42c 100644
-> --- a/lib/utils/timer/fdt_timer.c
-> +++ b/lib/utils/timer/fdt_timer.c
-> @@ -7,6 +7,7 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->  
-> +#include <sbi/sbi_error.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/timer/fdt_timer.h>
-> @@ -54,6 +55,8 @@ static int fdt_timer_cold_init(void)
->  					drv->match_table, &match)) >=
-> 0) {
->  			if (drv->cold_init) {
->  				rc = drv->cold_init(fdt, noff, match);
-> +				if (rc == SBI_ENODEV)
-> +					continue;
->  				if (rc)
->  					return rc;
->  			}
-> -- 
-> 2.25.1
-> 
-> 
+If the character ':' is present, it terminates the path of the device.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+Is it allowable to temporarily change the device-tree here?
+Or should we use sbi_scratch_alloc_offset() and copy the string?
+---
+ lib/utils/serial/fdt_serial.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
+index 25982ec..d1b762c 100644
+--- a/lib/utils/serial/fdt_serial.c
++++ b/lib/utils/serial/fdt_serial.c
+@@ -46,8 +46,16 @@ int fdt_serial_init(void)
+ 	coff = fdt_path_offset(fdt, "/chosen");
+ 	if (-1 < coff) {
+ 		prop = fdt_getprop(fdt, coff, "stdout-path", &len);
+-		if (prop && len)
++		if (prop && len) {
++			char *s;
++
++			s = strchr(prop, ':');
++			if (s)
++				*s = 0;
+ 			noff = fdt_path_offset(fdt, prop);
++			if (s)
++				*s = ':';
++		}
+ 	}
+
+ 	/* First check DT node pointed by stdout-path */
+--
+2.30.2
 
 
