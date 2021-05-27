@@ -1,180 +1,79 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Wed, 26 May 2021 17:30:43 -0700
-Subject: [PATCH v2 14/15] lib:sbi:tlb: Improve function naming
+Date: Wed, 26 May 2021 17:30:44 -0700
+Subject: [PATCH v2 15/15] platform: generic: Add PMU support
 In-Reply-To: <20210527003044.889681-1-atish.patra@wdc.com>
 References: <20210527003044.889681-1-atish.patra@wdc.com>
-Message-ID: <20210527003044.889681-15-atish.patra@wdc.com>
+Message-ID: <20210527003044.889681-16-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Follow the standard conventon for static function names:
-
-	All global functions should be start with sbi_<module name>_
-	All static functions should be start with <module name>_
+Add PMU support for generic platform. Generic platform solely relies on
+the device tree to parse all pmu related information. If any event is
+not described in device tree, generic platform will not support it.
 
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/sbi_tlb.c | 40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ platform/generic/platform.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index 6e9e4f0b1916..bddf2654005e 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -28,7 +28,7 @@ static unsigned long tlb_fifo_off;
- static unsigned long tlb_fifo_mem_off;
- static unsigned long tlb_range_flush_limit;
- 
--static void sbi_tlb_flush_all(void)
-+static void tlb_flush_all(void)
- {
- 	__asm__ __volatile("sfence.vma");
- }
-@@ -85,7 +85,7 @@ void sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo)
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_RCVD);
- 
- 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
--		sbi_tlb_flush_all();
-+		tlb_flush_all();
- 		return;
- 	}
- 
-@@ -162,7 +162,7 @@ void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_RCVD);
- 
- 	if (start == 0 && size == 0) {
--		sbi_tlb_flush_all();
-+		tlb_flush_all();
- 		return;
- 	}
- 
-@@ -211,7 +211,7 @@ static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data)
- 		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index da0c1af8f92e..44a9c73fba0c 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -16,6 +16,7 @@
+ #include <sbi_utils/fdt/fdt_domain.h>
+ #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_pmu.h>
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/serial/fdt_serial.h>
+ #include <sbi_utils/timer/fdt_timer.h>
+@@ -184,6 +185,33 @@ static u64 generic_tlbr_flush_limit(void)
+ 	return SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT;
  }
  
--static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)
-+static void tlb_entry_process(struct sbi_tlb_info *tinfo)
- {
- 	u32 rhartid;
- 	struct sbi_scratch *rscratch = NULL;
-@@ -229,7 +229,7 @@ static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)
- 	}
- }
- 
--static void sbi_tlb_process_count(struct sbi_scratch *scratch, int count)
-+static void tlb_process_count(struct sbi_scratch *scratch, int count)
- {
- 	struct sbi_tlb_info tinfo;
- 	u32 deq_count = 0;
-@@ -237,7 +237,7 @@ static void sbi_tlb_process_count(struct sbi_scratch *scratch, int count)
- 			sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
- 
- 	while (!sbi_fifo_dequeue(tlb_fifo, &tinfo)) {
--		sbi_tlb_entry_process(&tinfo);
-+		tlb_entry_process(&tinfo);
- 		deq_count++;
- 		if (deq_count > count)
- 			break;
-@@ -245,17 +245,17 @@ static void sbi_tlb_process_count(struct sbi_scratch *scratch, int count)
- 	}
- }
- 
--static void sbi_tlb_process(struct sbi_scratch *scratch)
-+static void tlb_process(struct sbi_scratch *scratch)
- {
- 	struct sbi_tlb_info tinfo;
- 	struct sbi_fifo *tlb_fifo =
- 			sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
- 
- 	while (!sbi_fifo_dequeue(tlb_fifo, &tinfo))
--		sbi_tlb_entry_process(&tinfo);
-+		tlb_entry_process(&tinfo);
- }
- 
--static void sbi_tlb_sync(struct sbi_scratch *scratch)
-+static void tlb_sync(struct sbi_scratch *scratch)
- {
- 	unsigned long *tlb_sync =
- 			sbi_scratch_offset_ptr(scratch, tlb_sync_off);
-@@ -265,13 +265,13 @@ static void sbi_tlb_sync(struct sbi_scratch *scratch)
- 		 * While we are waiting for remote hart to set the sync,
- 		 * consume fifo requests to avoid deadlock.
- 		 */
--		sbi_tlb_process_count(scratch, 1);
-+		tlb_process_count(scratch, 1);
- 	}
- 
- 	return;
- }
- 
--static inline int __sbi_tlb_range_check(struct sbi_tlb_info *curr,
-+static inline int tlb_range_check(struct sbi_tlb_info *curr,
- 					struct sbi_tlb_info *next)
- {
- 	unsigned long curr_end;
-@@ -314,7 +314,7 @@ static inline int __sbi_tlb_range_check(struct sbi_tlb_info *curr,
-  *	before continuing the while loop. This method is preferred over wfi/ipi because
-  *	of MMIO cost involved in later method.
-  */
--static int sbi_tlb_update_cb(void *in, void *data)
-+static int tlb_update_cb(void *in, void *data)
- {
- 	struct sbi_tlb_info *curr;
- 	struct sbi_tlb_info *next;
-@@ -329,16 +329,16 @@ static int sbi_tlb_update_cb(void *in, void *data)
- 	if (next->local_fn == sbi_tlb_local_sfence_vma_asid &&
- 	    curr->local_fn == sbi_tlb_local_sfence_vma_asid) {
- 		if (next->asid == curr->asid)
--			ret = __sbi_tlb_range_check(curr, next);
-+			ret = tlb_range_check(curr, next);
- 	} else if (next->local_fn == sbi_tlb_local_sfence_vma &&
- 		   curr->local_fn == sbi_tlb_local_sfence_vma) {
--		ret = __sbi_tlb_range_check(curr, next);
-+		ret = tlb_range_check(curr, next);
- 	}
- 
- 	return ret;
- }
- 
--static int sbi_tlb_update(struct sbi_scratch *scratch,
-+static int tlb_update(struct sbi_scratch *scratch,
- 			  struct sbi_scratch *remote_scratch,
- 			  u32 remote_hartid, void *data)
- {
-@@ -368,7 +368,7 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
- 
- 	tlb_fifo_r = sbi_scratch_offset_ptr(remote_scratch, tlb_fifo_off);
- 
--	ret = sbi_fifo_inplace_update(tlb_fifo_r, data, sbi_tlb_update_cb);
-+	ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
- 	if (ret != SBI_FIFO_UNCHANGED) {
- 		return 1;
- 	}
-@@ -382,7 +382,7 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
- 		 * TODO: Introduce a wait/wakeup event mechanism to handle
- 		 * this properly.
- 		 */
--		sbi_tlb_process_count(scratch, 1);
-+		tlb_process_count(scratch, 1);
- 		sbi_dprintf("hart%d: hart%d tlb fifo full\n",
- 			    curr_hartid, remote_hartid);
- 	}
-@@ -392,9 +392,9 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
- 
- static struct sbi_ipi_event_ops tlb_ops = {
- 	.name = "IPI_TLB",
--	.update = sbi_tlb_update,
--	.sync = sbi_tlb_sync,
--	.process = sbi_tlb_process,
-+	.update = tlb_update,
-+	.sync = tlb_sync,
-+	.process = tlb_process,
- };
- 
- static u32 tlb_event = SBI_IPI_EVENT_MAX;
++static int generic_pmu_init(void)
++{
++	return fdt_pmu_setup(sbi_scratch_thishart_arg1_ptr());
++}
++
++static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
++					       uint64_t data)
++{
++	uint64_t evt_val = 0;
++
++	/* data is valid only for raw events and is equal to event selector */
++	if (event_idx == SBI_PMU_EVENT_RAW_IDX)
++		evt_val = data;
++	else {
++		/**
++		 * Generic platform follows the SBI specification recommendation
++		 * i.e. zero extended event_idx is used as mhpmevent value for
++		 * hardware general/cache events if platform does't define one.
++		 */
++		evt_val = fdt_pmu_get_select_value(event_idx);
++		if (!evt_val)
++			evt_val = (uint64_t)event_idx;
++	}
++
++	return evt_val;
++}
++
+ const struct sbi_platform_operations platform_ops = {
+ 	.early_init		= generic_early_init,
+ 	.final_init		= generic_final_init,
+@@ -195,6 +223,8 @@ const struct sbi_platform_operations platform_ops = {
+ 	.irqchip_exit		= fdt_irqchip_exit,
+ 	.ipi_init		= fdt_ipi_init,
+ 	.ipi_exit		= fdt_ipi_exit,
++	.pmu_init		= generic_pmu_init,
++	.pmu_xlate_to_mhpmevent = generic_pmu_xlate_to_mhpmevent,
+ 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
+ 	.timer_init		= fdt_timer_init,
+ 	.timer_exit		= fdt_timer_exit,
 -- 
 2.25.1
 
