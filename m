@@ -1,65 +1,46 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Wed, 26 May 2021 17:30:34 -0700
-Subject: [PATCH v2 05/15] lib: sbi: Disable m/scounteren & enable mcountinhibit
+Date: Wed, 26 May 2021 17:30:35 -0700
+Subject: [PATCH v2 06/15] include: Add a list empty check function
 In-Reply-To: <20210527003044.889681-1-atish.patra@wdc.com>
 References: <20210527003044.889681-1-atish.patra@wdc.com>
-Message-ID: <20210527003044.889681-6-atish.patra@wdc.com>
+Message-ID: <20210527003044.889681-7-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, all bits in mcountern are enabled unconditionally at
-boot time. With SBI PMU extension, this should enabled only during
-performance monitoring for a particular event except the TM bit. However,
-this is done only if mcountinhibit is implemented because the supervisor
-mode can not start/stop any event without mcountinhibit.
-
-Similarly, supervisor should take care enabling scounteren which allows
-U-mode to access pmu counters. Disable all bits in scounteren in M-mode.
+Implement a list helper function that checks for empty lists.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/sbi_hart.c | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ include/sbi/sbi_list.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 0d5b7b8d3509..9f1ee20fa978 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -51,12 +51,26 @@ static void mstatus_init(struct sbi_scratch *scratch)
+diff --git a/include/sbi/sbi_list.h b/include/sbi/sbi_list.h
+index 1174ad274c54..b1178dfc9b8e 100644
+--- a/include/sbi/sbi_list.h
++++ b/include/sbi/sbi_list.h
+@@ -43,6 +43,17 @@ static inline void __sbi_list_add(struct sbi_dlist *new,
+ 	next->prev = new;
+ }
  
- 	csr_write(CSR_MSTATUS, mstatus_val);
- 
--	/* Enable user/supervisor use of perf counters */
-+	/* Disable user mode usage of perf counters */
- 	if (misa_extension('S') &&
- 	    sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
--		csr_write(CSR_SCOUNTEREN, -1);
--	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN))
--		csr_write(CSR_MCOUNTEREN, -1);
-+		csr_write(CSR_SCOUNTEREN, 0);
++/**
++ * Checks if the list is empty or not.
++ * @param head List head
++ *
++ * Retruns TRUE if list is empty, FALSE otherwise.
++ */
++static inline bool sbi_list_empty(struct sbi_dlist *head)
++{
++	return head->next == head;
++}
 +
-+	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN)) {
-+		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-+			/**
-+			 * Just enable TM bit now. All other counters will be
-+			 * enabled at runtime after S-mode request
-+			 */
-+			csr_write(CSR_MCOUNTEREN, 2);
-+		else
-+			/* Supervisor mode usage are enabled by default */
-+			csr_write(CSR_MCOUNTEREN, -1);
-+	}
-+
-+	/* Counters will start running at runtime after S-mode request */
-+	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-+		csr_write(CSR_MCOUNTINHIBIT, -1);
- 
- 	/* Disable all interrupts */
- 	csr_write(CSR_MIE, 0);
+ /**
+  * Adds the new node after the given head.
+  * @param new New node that needs to be added to list.
 -- 
 2.25.1
 
