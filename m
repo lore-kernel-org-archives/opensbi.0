@@ -1,117 +1,73 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Wed, 26 May 2021 17:30:30 -0700
-Subject: [PATCH v2 01/15] docs: Add device tree bindings for SBI PMU extension
+Date: Wed, 26 May 2021 17:30:31 -0700
+Subject: [PATCH v2 02/15] lib: sbi: Detect mcountinihibit support at runtime
 In-Reply-To: <20210527003044.889681-1-atish.patra@wdc.com>
 References: <20210527003044.889681-1-atish.patra@wdc.com>
-Message-ID: <20210527003044.889681-2-atish.patra@wdc.com>
+Message-ID: <20210527003044.889681-3-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-SBI PMU extension requires a firmware to be aware of the event to
-counter/mhpmevent mappings supported by the hardware. One approach
-is to encode that information in the device tree.
+RISC-V ISA specification v1.11 defined mcountinhibit CSR that allows
+software to stop any counter from incrementing. The SBI PMU extension
+depends on this CSR support in hardware.
 
-Define a device tree binding that allows a hardware to describe
-all the PMU mappings required in concise format.
+Define mcountinhibit as a hart specific feature and detect it at runtime.
 
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- docs/pmu_support.md | 83 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 83 insertions(+)
- create mode 100644 docs/pmu_support.md
+ include/sbi/sbi_hart.h |  4 +++-
+ lib/sbi/sbi_hart.c     | 11 +++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-new file mode 100644
-index 000000000000..8535a1dccbeb
---- /dev/null
-+++ b/docs/pmu_support.md
-@@ -0,0 +1,83 @@
-+OpenSBI SBI PMU extension support
-+==================================
-+SBI PMU extension supports allow supervisor software to configure/start/stop
-+any performance counter at anytime. Thus, an user can leverage full
-+capability of performance analysis tools such as perf if SBI PMU extension is
-+enabled. The OpenSBI implementation makes the following assumptions about the
-+hardware platform.
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 031c7b08a815..9e317c52008c 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -18,8 +18,10 @@ enum sbi_hart_features {
+ 	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
+ 	/** Hart has M-mode counter enable */
+ 	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
++	/** Hart has counter inhibit CSR */
++	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
+ 	/** HART has timer csr implementation in hardware */
+-	SBI_HART_HAS_TIME = (1 << 2),
++	SBI_HART_HAS_TIME = (1 << 3),
+ 
+ 	/** Last index of Hart features*/
+ 	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index de59b1431b5b..8fae20891bde 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -259,6 +259,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+ 	case SBI_HART_HAS_MCOUNTEREN:
+ 		fstr = "mcounteren";
+ 		break;
++	case SBI_HART_HAS_MCOUNTINHIBIT:
++		fstr = "mcountinhibit";
++		break;
+ 	case SBI_HART_HAS_TIME:
+ 		fstr = "time";
+ 		break;
+@@ -421,6 +424,14 @@ __mhpm_skip:
+ 			hfeatures->features |= SBI_HART_HAS_MCOUNTEREN;
+ 	}
+ 
++	/* Detect if hart supports MCOUNTINHIBIT feature */
++	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap);
++	if (!trap.cause) {
++		csr_write_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap, val);
++		if (!trap.cause)
++			hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
++	}
 +
-+ * MCOUNTINHIBIT CSR must be implemented in the hardware. Otherwise, SBI PMU
-+extension will not be enabled.
-+
-+ * The platform must provide information about PMU event to counter mapping
-+via device tree or platform specific hooks. Otherwise, SBI PMU extension will
-+not be enabled.
-+
-+ * The platforms should provide information about the PMU event selector values
-+that should be encoded in the expected value of MHPMEVENTx while configuring
-+MHPMCOUNTERx for that specific event. This can be done via a device tree or
-+platform specific hooks. The exact value to be written to he MHPMEVENTx is
-+completely platform specific. Generic platform writes a default value <xyz> to
-+the MHPMEVENTx CSR where <xyz> is formatted as described below.
-+```
-+  	xyz[0:19]    : event_idx
-+        xyz[20:XLEN] : event_data[0:(XLEN-20)]
-+
-+```
-+
-+SBI PMU Device Tree Bindings
-+----------------------------
-+
-+Platforms may choose to describe PMU event selector and event to counter mapping
-+values via device tree. The following sections describes the PMU DT node
-+bindings in details.
-+
-+* **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
-+This DT property must have the value **riscv,pmu**.
-+
-+* **opensbi,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
-+between a PMU event and the event selector value that platform expects to be
-+written to the MHPMEVENTx CSR for that event. The mapping is encoded in a
-+table format where each row represents an event. The first column represent the
-+event idx where the 2nd & 3rd column represent the event selector value that
-+should be encoded in the expected value to be written in MHPMEVENTx.
-+This property shouldn't encode any raw hardware event.
-+
-+* **opensbi,event-to-counters**(Optional) - It represents a MANY-to-MANY
-+mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
-+that can be used to monitor these range of events. The information is encoded in
-+a table format where each row represent a certain range of events and
-+corresponding counters. The first column represents starting of the pmu event id
-+and 2nd column represents the end of the pmu event id. The third column
-+represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
-+event-to-mhpmevent is present. Otherwise, it can be omitted. This property
-+shouldn't encode any raw event.
-+
-+* **opensbi,raw-event-to-counters**(Optional) - It represents an ONE-to-MANY
-+mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
-+be used to monitor that raw event. The information is encoded in a table format
-+where each raw represent a specific raw event. The first column stores the
-+expected event selector value that should be encoded in the expected value to be
-+written in MHPMEVENTx. The second column stores a bitmap of all the MHPMCOUNTERx
-+that can be used for monitoring the specified event.
-+
-+*Note:* A platform may choose to provide the mapping between event & counters
-+via platform hooks rather than the device tree.
-+
-+### Example
-+
-+```
-+pmu {
-+      compatible 			= "riscv,pmu";
-+      interrupts 			= <0x100>;
-+      interrupt-parent 			= <&plic>
-+      opensbi,event-to-mhpmevent 	= <0x0000B  0x0000 0x0001>,
-+      opensbi,event-to-counters 	= <0x00001 0x00001 0x00000001>,
-+      					  <0x00002 0x00002 0x00000004>,
-+      					  <0x00003 0x0000A 0x00000ff8>,
-+      				 	  <0x10000 0x10033 0x000ff000>,
-+      opensbi,raw-event-to-counters 	= <0x0000 0x0002 0x00000f8>,
-+					  <0x0000 0x0003 0x00000ff0>,
-+};
-+
-+```
+ 	/* Detect if hart supports time CSR */
+ 	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+ 	if (!trap.cause)
 -- 
 2.25.1
 
