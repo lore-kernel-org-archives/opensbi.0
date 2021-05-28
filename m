@@ -1,60 +1,84 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 28 May 2021 16:59:26 +0100
-Subject: [PATCH 1/1] docs: debugging OpenSBI
-In-Reply-To: <20210528101617.31237-1-xypron.glpk@gmx.de>
-References: <20210528101617.31237-1-xypron.glpk@gmx.de>
-Message-ID: <D5A43496-05E7-413D-B3B5-89DBE6AF7486@jrtc27.com>
+From: Mitchell Horne <mhorne063@gmail.com>
+Date: Fri, 28 May 2021 13:00:54 -0300
+Subject: [PATCH v2 05/15] lib: sbi: Disable m/scounteren & enable
+ mcountinhibit
+In-Reply-To: <CAOnJCU+Ogd0F9J2oG-7SveeNTi+ozyVHTD9iWXeSPGnL4j1QUA@mail.gmail.com>
+References: <20210527003044.889681-1-atish.patra@wdc.com>
+ <20210527003044.889681-6-atish.patra@wdc.com>
+ <FD4B53F2-A813-49D8-AB08-A38BE3A6BF2C@jrtc27.com>
+ <CAOnJCUKAkMb=pg_1e1OUsp5UXrKgV72nFBTfoVJn==_cQffJQQ@mail.gmail.com>
+ <B004F75E-695F-420F-8AD9-B324B0E1FCC2@jrtc27.com>
+ <CAOnJCU+Ogd0F9J2oG-7SveeNTi+ozyVHTD9iWXeSPGnL4j1QUA@mail.gmail.com>
+Message-ID: <CADeAsy0HqPEP2Vd0-K8qQLehhC7d17V23FeWvdw9C+v-eEAj=w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 28 May 2021, at 11:16, Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> 
-> Describe how to debug OpenSBI on QEMU with GDB.
-> 
-> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-> ---
-> docs/platform/qemu_virt.md | 24 ++++++++++++++++++++++++
-> 1 file changed, 24 insertions(+)
-> 
-> diff --git a/docs/platform/qemu_virt.md b/docs/platform/qemu_virt.md
-> index 2777148..de7a028 100644
-> --- a/docs/platform/qemu_virt.md
-> +++ b/docs/platform/qemu_virt.md
-> @@ -147,3 +147,27 @@ qemu-system-riscv32 -M virt -m 256M -nographic \
-> 	-device virtio-blk-device,drive=hd0 \
-> 	-append "root=/dev/vda rw console=ttyS0"
-> ```
-> +
-> +Debugging with GDB
-> +------------------
-> +
-> +In a first console start OpenSBI with QEMU:
-> +
-> +```
-> +qemu-system-riscv64 -M virt -m 256M -nographic \
-> +	-bios build/platform/generic/firmware/fw_payload.bin \
-> +	-gdb tcp::1234 \
-> +	-S
-> +
-> +```
-> +
-> +Parameter *-gdb tcp::1234* specifies 1234 as the debug port.
-> +Parameter *-S* lets QEMU wait at the first instruction.
-> +
-> +In a second console start GDB:
-> +
-> +```
-> +gdb-multiarch build/platform/generic/firmware/fw_payload.elf \
-> +	-ex 'target remote localhost:1234'
+On Fri, May 28, 2021 at 12:46 PM Atish Patra <atishp@atishpatra.org> wrote:
+>
+> On Thu, May 27, 2021 at 3:15 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >
+> > On 27 May 2021, at 23:06, Atish Patra <atishp@atishpatra.org> wrote:
+> > >
+> > > On Wed, May 26, 2021 at 5:36 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> > >>
+> > >> On 27 May 2021, at 01:30, Atish Patra <atish.patra@wdc.com> wrote:
+> > >>>
+> > >>> Currently, all bits in mcountern are enabled unconditionally at
+> > >>> boot time. With SBI PMU extension, this should enabled only during
+> > >>> performance monitoring for a particular event except the TM bit. However,
+> > >>> this is done only if mcountinhibit is implemented because the supervisor
+> > >>> mode can not start/stop any event without mcountinhibit.
+> > >>>
+> > >>> Similarly, supervisor should take care enabling scounteren which allows
+> > >>> U-mode to access pmu counters. Disable all bits in scounteren in M-mode.
+> > >>
+> > >> Turning off CY or IR seems like a bad idea to me. Similarly, all of CY, IR and
+> > >> TM should be enabled in scounteren by default, this is just needlessly hostile.
+> > >
+> > > This happens only if the platform supports mcountinhibit. As per the
+> > > priv spec, no counter should run unless the corresponding bit in
+> > > mcountinhibit
+> > > is cleared. This patch just follows the spec.
+> >
+> > I don?t understand your reply. The privileged spec just says how the CSRs
+> > behave, it doesn?t say that you need to make an SBI call (which isn?t part of
+> > the privileged spec) for cycle and instret to count. Requiring that is
+> > unnecessarily hostile; in practice, everything will want those two counters to
+> > be enabled, because arbitrary userspace software wants to use them.
+>
+> That's a security risk. One rogue process can have access to cycle &
+> instructions of the entire kernel & M-mode firmware.
 
-This is rather presumptuous about what the user?s gdb is. More often than not
-they probably have a triple-prefixed gdb, not a gdb-multiarch. I would just
-leave it as gdb and let them figure out what that means for them, maybe with a
-note that they should make sure to use a gdb that?s built with RISC-V support.
+For the uninformed (me), can you elaborate on this risk?
 
-Jess
-
+> The counters should report a value only if it is being asked to
+> start/stop a userspace application (e.g. perf).
+>
+> We can keep CY & IR bits enabled in OpenSBI but it must be disabled by
+> the Linux kernel PMU driver by default.
+> The effect will remain the same.
+>
+> Once sscopmf is implemented, there is a plan to set MINH bit always so
+> that supervisor/userspace don't know how many cycles
+> are spent while running OpenSBI.
+>
+> They should
+> > never be disabled by OpenSBI unless S-mode explicitly asks for them to be
+> > disabled.
+> >
+> > Jess
+> >
+>
+>
+> --
+> Regards,
+> Atish
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
