@@ -1,81 +1,91 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 28 May 2021 09:12:45 -0700
-Subject: [PATCH v2 1/1] lib/utils: consider ':' in stdout-path
-In-Reply-To: <20210528101549.31097-1-xypron.glpk@gmx.de>
-References: <20210528101549.31097-1-xypron.glpk@gmx.de>
-Message-ID: <CAOnJCUJ7+VdSYfH7hfR82SNqpgCE3+Nu9tDqQwsGfdJ_JmGGKw@mail.gmail.com>
+Date: Fri, 28 May 2021 09:21:08 -0700
+Subject: [PATCH v2 05/15] lib: sbi: Disable m/scounteren & enable
+ mcountinhibit
+In-Reply-To: <BB058F44-8EA9-4975-8EBB-18C38026D161@jrtc27.com>
+References: <20210527003044.889681-1-atish.patra@wdc.com>
+ <20210527003044.889681-6-atish.patra@wdc.com>
+ <FD4B53F2-A813-49D8-AB08-A38BE3A6BF2C@jrtc27.com>
+ <CAOnJCUKAkMb=pg_1e1OUsp5UXrKgV72nFBTfoVJn==_cQffJQQ@mail.gmail.com>
+ <B004F75E-695F-420F-8AD9-B324B0E1FCC2@jrtc27.com>
+ <CAOnJCU+Ogd0F9J2oG-7SveeNTi+ozyVHTD9iWXeSPGnL4j1QUA@mail.gmail.com>
+ <BB058F44-8EA9-4975-8EBB-18C38026D161@jrtc27.com>
+Message-ID: <CAOnJCUKSYEi+saLCG5ZLMEToMQ3TmWJiJEnsdaj6E4=7DCGLdg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, May 28, 2021 at 4:08 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+On Fri, May 28, 2021 at 8:53 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
-> The value of the /chosen/stdout-path devicetree property is used to
-> determine the UART used by openSBI. According to the devicetree
-> specification the value may contain a hyphen, e.g.
+> On 28 May 2021, at 16:45, Atish Patra <atishp@atishpatra.org> wrote:
+> >
+> > On Thu, May 27, 2021 at 3:15 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >>
+> >> On 27 May 2021, at 23:06, Atish Patra <atishp@atishpatra.org> wrote:
+> >>>
+> >>> On Wed, May 26, 2021 at 5:36 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >>>>
+> >>>> On 27 May 2021, at 01:30, Atish Patra <atish.patra@wdc.com> wrote:
+> >>>>>
+> >>>>> Currently, all bits in mcountern are enabled unconditionally at
+> >>>>> boot time. With SBI PMU extension, this should enabled only during
+> >>>>> performance monitoring for a particular event except the TM bit. However,
+> >>>>> this is done only if mcountinhibit is implemented because the supervisor
+> >>>>> mode can not start/stop any event without mcountinhibit.
+> >>>>>
+> >>>>> Similarly, supervisor should take care enabling scounteren which allows
+> >>>>> U-mode to access pmu counters. Disable all bits in scounteren in M-mode.
+> >>>>
+> >>>> Turning off CY or IR seems like a bad idea to me. Similarly, all of CY, IR and
+> >>>> TM should be enabled in scounteren by default, this is just needlessly hostile.
+> >>>
+> >>> This happens only if the platform supports mcountinhibit. As per the
+> >>> priv spec, no counter should run unless the corresponding bit in
+> >>> mcountinhibit
+> >>> is cleared. This patch just follows the spec.
+> >>
+> >> I don?t understand your reply. The privileged spec just says how the CSRs
+> >> behave, it doesn?t say that you need to make an SBI call (which isn?t part of
+> >> the privileged spec) for cycle and instret to count. Requiring that is
+> >> unnecessarily hostile; in practice, everything will want those two counters to
+> >> be enabled, because arbitrary userspace software wants to use them.
+> >
+> > That's a security risk. One rogue process can have access to cycle &
+> > instructions of the entire kernel & M-mode firmware.
+> > The counters should report a value only if it is being asked to
+> > start/stop a userspace application (e.g. perf).
+> >
+> > We can keep CY & IR bits enabled in OpenSBI but it must be disabled by
+> > the Linux kernel PMU driver by default.
+> > The effect will remain the same.
+> >
+> > Once sscopmf is implemented, there is a plan to set MINH bit always so
+> > that supervisor/userspace don't know how many cycles
+> > are spent while running OpenSBI.
 >
->         chosen {
->                 stdout-path = "/serial at f00:115200";
->         };
+> That side-channel will always exist by measuring time. This just breaks valid
+> use-cases in the name of ?security?.
 >
-> If the character ':' is present, it terminates the path of the device.
+> __builtin_readcyclecounter is a thing and needs to work otherwise you *will*
+> break software. At the end of the day I don?t care what you do in the Linux
+> kernel, but I do care what gets done in the platform firmware that breaks
+> existing 3rd-party userspace software on FreeBSD.
 >
-> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-> ---
-> v2:
->         add a comment describing why the DT is changed in place
-> ---
->  lib/utils/serial/fdt_serial.c | 22 +++++++++++++++++++++-
->  1 file changed, 21 insertions(+), 1 deletion(-)
->
-> diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
-> index 25982ec..83a1f95 100644
-> --- a/lib/utils/serial/fdt_serial.c
-> +++ b/lib/utils/serial/fdt_serial.c
-> @@ -46,8 +46,28 @@ int fdt_serial_init(void)
->         coff = fdt_path_offset(fdt, "/chosen");
->         if (-1 < coff) {
->                 prop = fdt_getprop(fdt, coff, "stdout-path", &len);
-> -               if (prop && len)
-> +               if (prop && len) {
-> +                       char *s;
-> +
-> +                       /*
-> +                        * The device path may be followed by ':' and
-> +                        * parameters. Truncate the path accordingly.
-> +                        *
-> +                        * Scratch memory is very limited. As long as we cannot
-> +                        * free scratch memory it is preferable to avoid its
-> +                        * usage. Hence the devicetree is modified in place.
-> +                        *
 
-I think we can use fdt_path_offset_namelen instead ?
+Ahh okay. I didn't know about __builtin_readcyclecounter.
+Ofcourse, we can't break userspace. I will revise the patch to enable CY & IR.
 
-> +                        * TODO:
-> +                        * Use a copy in scratch memory once
-> +                        * sbi_scratch_free_offset() is properly implemented.
-> +                        */
-> +                       s = strchr(prop, ':');
-> +                       if (s)
-> +                               *s = 0;
->                         noff = fdt_path_offset(fdt, prop);
-> +                       if (s)
-> +                               *s = ':';
-> +               }
->         }
->
->         /* First check DT node pointed by stdout-path */
-> --
-> 2.32.0.rc0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+I will check if Linux user space has such a requirement too.
 
+What about a setting MINH bit in sscofpmf extension[1] implementation?
+Does __builtin_readcyclecounter expect to report the counter for all the modes ?
+
+[1] https://lists.riscv.org/g/tech-privileged/message/452?p=,,,20,0,0,0::Created,,fast+track,20,2,20,80278800
+
+> Jess
+>
 
 
 -- 
