@@ -1,46 +1,27 @@
-From: Atish Patra <atish.patra@wdc.com>
-Date: Tue,  1 Jun 2021 18:42:01 -0700
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Wed, 2 Jun 2021 02:54:44 +0100
 Subject: [PATCH] firmware: Do not allow harts with different XLEN to boot
-Message-ID: <20210602014201.246899-1-atish.patra@wdc.com>
+In-Reply-To: <20210602014201.246899-1-atish.patra@wdc.com>
+References: <20210602014201.246899-1-atish.patra@wdc.com>
+Message-ID: <85A3CECC-5E4B-4A0B-A93A-DC36E5E12504@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-OpenSBI is built separately for RV32/RV64. Thus, it shouldn't try to boot
-harts with a different XLEN compared to what it is compiled with.
+On 2 Jun 2021, at 02:42, Atish Patra <atish.patra@wdc.com> wrote:
+> 
+> OpenSBI is built separately for RV32/RV64. Thus, it shouldn't try to boot
+> harts with a different XLEN compared to what it is compiled with.
+> 
+> This patch fixes the issue observed in beagleV which has two U74(RV64) and
+> one E24 (RV32) harts.
 
-This patch fixes the issue observed in beagleV which has two U74(RV64) and
-one E24 (RV32) harts.
+Is this really necessary? Can the different clusters not boot different
+OpenSBIs? This is a really gross hack for what seems like a stupid
+hardware decision if they both blindly load and run from the same place.
 
-Signed-off-by: Atish Patra <atish.patra@wdc.com>
----
- firmware/fw_base.S | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index a5ce946aa3fe..ae12a126ca66 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -47,6 +47,16 @@
- 	.globl _start
- 	.globl _start_warm
- _start:
-+	csrr   t0, misa
-+	slti   t1, t0, 0
-+	slli   t1, t1, 1
-+	slli   t0, t0, 1
-+	slti   t0, t0, 0
-+	add    t2, t0, t1
-+	li     t3, __riscv_xlen
-+	srli   t3, t3, 5
-+	bne    t2, t3, _start_hang
-+
- 	/* Find preferred boot HART id */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
- 	call	fw_boot_hart
--- 
-2.31.1
+Jess
 
 
