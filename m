@@ -1,42 +1,50 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Fri,  4 Jun 2021 23:35:45 +0800
-Subject: [PATCH v2 4/4] platform: andes/ae350: Drop plicsw_ipi_sync()
-In-Reply-To: <20210604153545.18949-1-bmeng.cn@gmail.com>
-References: <20210604153545.18949-1-bmeng.cn@gmail.com>
-Message-ID: <20210604153545.18949-4-bmeng.cn@gmail.com>
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat,  5 Jun 2021 14:22:43 +0200
+Subject: [PATCH 1/1] lib: sbi_scratch: zero out scratch memory on all harts
+Message-ID: <20210605122243.20277-1-xypron.glpk@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-plicsw_ipi_sync() is a forward declaration but without the actual
-implementation. Drop it.
+In sbi_scratch_init() we determine the last hart. The index of the last
+hart cannot exceed SBI_HARTMASK_MAX_BITS - 1. We should not initialize
+last_hartid_having_scratch to a higher number to avoid buffer overflows
+when using this value before calling sbi_scratch_init().
 
-Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+When allocating scratch memory in sbi_scratch_alloc_offset() we zero out
+the allocated memory for all harts except for the last one. We should not
+skip the last hart.
 
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+ lib/sbi/sbi_scratch.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Changes in v2:
-- new patch: Drop plicsw_ipi_sync()
+diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+index 7cf5b43..87b34c6 100644
+--- a/lib/sbi/sbi_scratch.c
++++ b/lib/sbi/sbi_scratch.c
+@@ -14,7 +14,7 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
 
- platform/andes/ae350/plicsw.h | 2 --
- 1 file changed, 2 deletions(-)
+-u32 last_hartid_having_scratch = SBI_HARTMASK_MAX_BITS;
++u32 last_hartid_having_scratch = SBI_HARTMASK_MAX_BITS - 1;
+ struct sbi_scratch *hartid_to_scratch_table[SBI_HARTMASK_MAX_BITS] = { 0 };
 
-diff --git a/platform/andes/ae350/plicsw.h b/platform/andes/ae350/plicsw.h
-index 8be6194..58728f6 100644
---- a/platform/andes/ae350/plicsw.h
-+++ b/platform/andes/ae350/plicsw.h
-@@ -35,8 +35,6 @@ struct plicsw {
- 
- void plicsw_ipi_send(u32 target_hart);
- 
--void plicsw_ipi_sync(u32 target_hart);
--
- void plicsw_ipi_clear(u32 target_hart);
- 
- int plicsw_warm_ipi_init(void);
--- 
-2.25.1
+ static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+@@ -74,7 +74,7 @@ done:
+ 	spin_unlock(&extra_lock);
+
+ 	if (ret) {
+-		for (i = 0; i < sbi_scratch_last_hartid(); i++) {
++		for (i = 0; i <= sbi_scratch_last_hartid(); i++) {
+ 			rscratch = sbi_hartid_to_scratch(i);
+ 			if (!rscratch)
+ 				continue;
+--
+2.30.2
 
 
