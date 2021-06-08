@@ -1,150 +1,77 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 07 Jun 2021 16:19:37 +0800
-Subject: [PATCH v2 04/15] lib: sbi: Detect number of bits implemented in
- mhpmcounter
-In-Reply-To: <20210527003044.889681-5-atish.patra@wdc.com>
-References: <20210527003044.889681-1-atish.patra@wdc.com>
- <20210527003044.889681-5-atish.patra@wdc.com>
-Message-ID: <423e00af86cbae607350763cfc468e4f52a9b9fb.camel@126.com>
+From: Axel Heider <axelheider@gmx.de>
+Date: Tue, 8 Jun 2021 03:43:46 +0200
+Subject: OpenSBI HSM extension: change MMU state (enable, disable)
+Message-ID: <4ac424c6-1a8c-4627-8eee-656cd59746e0@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-05-26???? 17:30 -0700?Atish Patra???
-> RISC-V privilege specification allows the implementation to have less
-> than 64 bits.
-> 
-> Add a function to detect the number of implemented bits in
-> mhpmcounter
-> dynamically at runtime.
-> 
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
-> ?include/sbi/sbi_hart.h |? 1 +
-> ?lib/sbi/sbi_hart.c???? | 49
-> ++++++++++++++++++++++++++++++++++++++++++
-> ?2 files changed, 50 insertions(+)
-> 
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 9e317c52008c..0c18ef9325b2 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -44,6 +44,7 @@ void sbi_hart_delegation_dump(struct sbi_scratch
-> *scratch,
-> ?unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
-> ?unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
-> ?unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
-> +unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
-> ?int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
-> ?bool sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long
-> feature);
-> ?void sbi_hart_get_features_str(struct sbi_scratch *scratch,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index e5e5781ff412..0d5b7b8d3509 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -33,6 +33,7 @@ struct hart_features {
-> ????????unsigned int pmp_addr_bits;
-> ????????unsigned long pmp_gran;
-> ????????unsigned int mhpm_count;
-> +???????unsigned int mhpm_bits;
-> ?};
-> ?static unsigned long hart_features_offset;
-> ?
-> @@ -177,6 +178,14 @@ unsigned int sbi_hart_pmp_addrbits(struct
-> sbi_scratch *scratch)
-> ????????return hfeatures->pmp_addr_bits;
-> ?}
-> ?
-> +unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
-> +{
-> +???????struct hart_features *hfeatures =
-> +???????????????????????sbi_scratch_offset_ptr(scratch,
-> hart_features_offset);
-> +
-> +???????return hfeatures->mhpm_bits;
-> +}
-> +
-> ?int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
-> ?{
-> ????????struct sbi_domain_memregion *reg;
-> @@ -330,6 +339,37 @@ static unsigned long
-> hart_pmp_get_allowed_addr(void)
-> ????????return val;
-> ?}
-> ?
-> +static int hart_pmu_get_allowed_bits(void)
-> +{
-> +???????unsigned long val = ~(0UL);
-> +???????struct sbi_trap_info trap = {0};
-> +???????int num_bits = 0;
-> +
-> +???????/**
-> +??????? * It is assumed that platforms will implement same number of
-> bits for
-> +??????? * all the performance counters including mcycle/minstret.
-> +??????? */
-> +???????csr_write_allowed(CSR_MHPMCOUNTER3, (ulong)&trap, val);
-> +???????if (!trap.cause) {
-> +???????????????val = csr_read_allowed(CSR_MHPMCOUNTER3,
-> (ulong)&trap);
-> +???????????????if (trap.cause)
-> +???????????????????????return 0;
-> +???????}
-> +???????num_bits = __fls(val) + 1;
-> +#if __riscv_xlen == 32
-> +???????csr_write_allowed(CSR_MHPMCOUNTER3H, (ulong)&trap, val);
-> +???????if (!trap.cause) {
-> +???????????????val = csr_read_allowed(CSR_MHPMCOUNTER3H,
-> (ulong)&trap);
-> +???????????????if (trap.cause)
-> +???????????????????????return num_bits;
-> +???????}
-> +???????num_bits += __fls(val) + 1;
-> +
-> +#endif
-> +
-> +???????return num_bits;
-> +}
-> +
-> ?static void hart_detect_features(struct sbi_scratch *scratch)
-> ?{
-> ????????struct sbi_trap_info trap = {0};
-> @@ -394,10 +434,19 @@ static void hart_detect_features(struct
-> sbi_scratch *scratch)
-> ?__pmp_skip:
-> ?
-> ????????/* Detect number of MHPM counters */
-> +???????trap.cause = 0;
-The previous line can be deleted
+Hi,
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ????????__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count,
-> __mhpm_skip);
-> +???????hfeatures->mhpm_bits = hart_pmu_get_allowed_bits();
-> +
-> ????????__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count,
-> __mhpm_skip);
-> ????????__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count,
-> __mhpm_skip);
-> ????????__check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count,
-> __mhpm_skip);
-> +
-> +???????/**
-> +??????? * No need to check for MHPMCOUNTERH for RV32 as they are
-> expected to be
-> +??????? * implemented if MHPMCOUNTER is implemented.
-> +??????? */
-> +
-> ?__mhpm_skip:
-> ?
-> ?#undef __check_csr_64
-> -- 
-> 2.25.1
-> 
-> 
+I would like to discuss adding a new function to the
+HSM extension that allows changing the MMU state of a
+hart. The proposed interface is:
 
+ ID: SBI_EXT_HSM_HART_CHANGE_MMU
+
+ parameter 0: new satp value to set
+ parameter 1: PC to use when returning from SBI call
+ parameter 1: SP to use when returning form SBI call
+ parameter 1: a generic context value put in a0
+               when returning from SBI call. So PC can
+               point to a function and a0 is its
+               parameter
+
+Obviously, the call is only allowed when coming from
+S-Mode. It is intended to be used by the OS or boot loader
+during core/hart setup.
+
+The rational for this call is that it provides a convenient
+way for a bootloader or early OS init code to enable the
+MMU without having to ensure a 1:1 mapping is in place.
+Instead, one would just set up the MMU tables and then call
+this SBI to atomically enable the MMU and continue
+execution at a specific virtual address. Since the new SP
+can be set also, enabling the MMU can be done in pure C
+code, there is no need for any asm stubs. Passing an
+argument in a0 provides a way to pass on a context - which
+may not have an immediate use case, but in general it's
+not bad to have this mechanism.
+As a side effect, the MMU can be disabled also with this
+call, but I have rarely seen a need for this.
+
+For ages (on ARM) I've been wondering why there is no
+such mechanism implemented in the core. Enabling the MMU
+always seems to be a painful thing as there it no atomic
+"enable and continue at x". There are some tricks to
+achieve this, but usually they smell like exploring the
+edge of the specs. My assumption so far was, that silicon
+space is just too specious to implement this, because it's
+just used at boot and it's just for the benefit of a few
+boot loader developers. With multi-core system where cores
+are powered up and down, there a few more use cases for
+this convenience function showed up, but still - the core
+did not provide anything.
+But now with M-Mode and SBI, there is a way to nicely
+implement this in software now. It does not cost much and
+in the long run makes writing boot loaders on RISC-V a
+bit easier.
+Another advantage of this SBI call is, that it can take
+care of highly core specific maintained activities like
+cleaning of TLBs, caches, branch predictors, pipeline
+states ... all that stuff which potentially differs from
+core to core and even from revision to revision. And that
+a boot loader would have to take care of. Now this can
+be hidden nicely in the SBI and turning on the MMU gets as
+easy as powering core up and down. Of course, this assumes
+that the core vendor provides the proper SBI implementation
+(or documentation). But once this is in the specs, that
+should happens naturally over time.
+
+So, I'd be interested in your thoughts about my proposal.
+
+Axel
 
 
