@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 08 Jun 2021 19:29:21 +0800
+Date: Tue, 08 Jun 2021 19:38:08 +0800
 Subject: [PATCH v2 10/15] lib: sbi: Add PMU support
 In-Reply-To: <20210527003044.889681-11-atish.patra@wdc.com>
 References: <20210527003044.889681-1-atish.patra@wdc.com>
  <20210527003044.889681-11-atish.patra@wdc.com>
-Message-ID: <18703169395b3b94a2e4b39de9dce859f13cdc73.camel@126.com>
+Message-ID: <5f5a581a4042a1bfbc46deedee847f9cbccc13b9.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -533,19 +533,6 @@ Content-Transfer-Encoding: 7bit
 > +???????temp = csr_read_num(CSR_MCYCLE + cidx);
 > +???????temph = csr_read_num(CSR_MCYCLEH + cidx);
 > +???????*cval = ((uint64_t)temph << 32) | temp;
-
-The code for reading the timer is recommended to be changed to the
-following to prevent large discrepancies in the reading of the counter
-value
-
-	do {
-		temph = csr_read_num(CSR_MCYCLEH + cidx);
-		temp = csr_read_num(CSR_MCYCLE + cidx);
-	} while(temph != csr_read_num(CSR_MCYCLEH + cidx));
-	*cval = ((uint64_t)temph << 32) | temp;
-
-Reviewed-by: Xiang W <wxjstz@126.com>
-
 > +#else
 > +???????*cval = csr_read_num(CSR_MCYCLE + cidx);
 > +#endif
@@ -645,6 +632,14 @@ Reviewed-by: Xiang W <wxjstz@126.com>
 > +#if __riscv_xlen == 32
 > +???????csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
 > +???????csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
+
+The above code is recommended to be modified to:
+	csr_write_num(CSR_MCYCLE + cidx, 0);
+	csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
+	csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
+
+Regards,
+Xiang W
 > +#else
 > +???????csr_write_num(CSR_MCYCLE + cidx, ival);
 > +#endif
