@@ -1,10 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 11 Jun 2021 05:54:11 +0000
-Subject: [PATCH v2 2/4] docs/platform: andes-ae350: Fix missing spaces
-In-Reply-To: <20210604153545.18949-2-bmeng.cn@gmail.com>
+Date: Fri, 11 Jun 2021 05:54:34 +0000
+Subject: [PATCH v2 4/4] platform: andes/ae350: Drop plicsw_ipi_sync()
+In-Reply-To: <20210604153545.18949-4-bmeng.cn@gmail.com>
 References: <20210604153545.18949-1-bmeng.cn@gmail.com>
- <20210604153545.18949-2-bmeng.cn@gmail.com>
-Message-ID: <CO6PR04MB7812B85A66DBE7F6BB2CF5EB8D349@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <20210604153545.18949-4-bmeng.cn@gmail.com>
+Message-ID: <CO6PR04MB7812F362220B762A485F63A28D349@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,11 +18,13 @@ Content-Transfer-Encoding: 7bit
 > Sent: 04 June 2021 21:06
 > To: Anup Patel <Anup.Patel@wdc.com>; opensbi at lists.infradead.org
 > Cc: Bin Meng <bmeng.cn@gmail.com>
-> Subject: [PATCH v2 2/4] docs/platform: andes-ae350: Fix missing spaces
+> Subject: [PATCH v2 4/4] platform: andes/ae350: Drop plicsw_ipi_sync()
 > 
-> Fix several places in the docmentation that are missing spaces.
+> plicsw_ipi_sync() is a forward declaration but without the actual
+> implementation. Drop it.
 > 
 > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> 
 
 Looks good to me.
 
@@ -35,30 +37,25 @@ Anup
 
 > ---
 > 
-> (no changes since v1)
+> Changes in v2:
+> - new patch: Drop plicsw_ipi_sync()
 > 
->  docs/platform/andes-ae350.md | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  platform/andes/ae350/plicsw.h | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
-> index 46889a1..1cf83cf 100644
-> --- a/docs/platform/andes-ae350.md
-> +++ b/docs/platform/andes-ae350.md
-> @@ -1,9 +1,9 @@
->  Andes AE350 SoC Platform
->  ========================
->  The AE350 AXI/AHB-based platform N25(F)/NX25(F)/D25F/A25/AX25 CPU
-> with level-one -memories,interrupt controller, debug module, AXI and AHB
-> Bus Matrix Controller, -AXI-to-AHB Bridge and a collection of
-> fundamentalAHB/APB bus IP components -pre-integrated together as a
-> system design.The high-quality and configurable
-> +memories, interrupt controller, debug module, AXI and AHB Bus Matrix
-> +Controller, AXI-to-AHB Bridge and a collection of fundamental AHB/APB
-> +bus IP components pre-integrated together as a system design. The
-> +high-quality and configurable
->  AHB/APB IPs suites a majority embedded systems, and the verified platform
-> serves  as a starting point to jump start SoC designs.
+> diff --git a/platform/andes/ae350/plicsw.h b/platform/andes/ae350/plicsw.h
+> index 8be6194..58728f6 100644
+> --- a/platform/andes/ae350/plicsw.h
+> +++ b/platform/andes/ae350/plicsw.h
+> @@ -35,8 +35,6 @@ struct plicsw {
 > 
+>  void plicsw_ipi_send(u32 target_hart);
+> 
+> -void plicsw_ipi_sync(u32 target_hart);
+> -
+>  void plicsw_ipi_clear(u32 target_hart);
+> 
+>  int plicsw_warm_ipi_init(void);
 > --
 > 2.25.1
 
