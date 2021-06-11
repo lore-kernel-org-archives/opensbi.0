@@ -1,10 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 11 Jun 2021 05:53:58 +0000
-Subject: [PATCH v2 3/4] platform: andes/ae350: Drop plicsw_get_pending()
-In-Reply-To: <20210604153545.18949-3-bmeng.cn@gmail.com>
+Date: Fri, 11 Jun 2021 05:54:11 +0000
+Subject: [PATCH v2 2/4] docs/platform: andes-ae350: Fix missing spaces
+In-Reply-To: <20210604153545.18949-2-bmeng.cn@gmail.com>
 References: <20210604153545.18949-1-bmeng.cn@gmail.com>
- <20210604153545.18949-3-bmeng.cn@gmail.com>
-Message-ID: <CO6PR04MB78128221B6725DDECAAD40988D349@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <20210604153545.18949-2-bmeng.cn@gmail.com>
+Message-ID: <CO6PR04MB7812B85A66DBE7F6BB2CF5EB8D349@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,12 +18,11 @@ Content-Transfer-Encoding: 7bit
 > Sent: 04 June 2021 21:06
 > To: Anup Patel <Anup.Patel@wdc.com>; opensbi at lists.infradead.org
 > Cc: Bin Meng <bmeng.cn@gmail.com>
-> Subject: [PATCH v2 3/4] platform: andes/ae350: Drop plicsw_get_pending()
+> Subject: [PATCH v2 2/4] docs/platform: andes-ae350: Fix missing spaces
 > 
-> This is not used anywhere. Drop it.
+> Fix several places in the docmentation that are missing spaces.
 > 
 > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
-> 
 
 Looks good to me.
 
@@ -36,27 +35,30 @@ Anup
 
 > ---
 > 
-> Changes in v2:
-> - new patch: Drop plicsw_get_pending()
+> (no changes since v1)
 > 
->  platform/andes/ae350/plicsw.c | 6 ------
->  1 file changed, 6 deletions(-)
+>  docs/platform/andes-ae350.md | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> diff --git a/platform/andes/ae350/plicsw.c b/platform/andes/ae350/plicsw.c
-> index 4df7317..edbbb11 100644
-> --- a/platform/andes/ae350/plicsw.c
-> +++ b/platform/andes/ae350/plicsw.c
-> @@ -33,12 +33,6 @@ static inline void plicsw_complete(void)
->  	writel(source, plicsw_dev[source_hart].plicsw_claim);
->  }
+> diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
+> index 46889a1..1cf83cf 100644
+> --- a/docs/platform/andes-ae350.md
+> +++ b/docs/platform/andes-ae350.md
+> @@ -1,9 +1,9 @@
+>  Andes AE350 SoC Platform
+>  ========================
+>  The AE350 AXI/AHB-based platform N25(F)/NX25(F)/D25F/A25/AX25 CPU
+> with level-one -memories,interrupt controller, debug module, AXI and AHB
+> Bus Matrix Controller, -AXI-to-AHB Bridge and a collection of
+> fundamentalAHB/APB bus IP components -pre-integrated together as a
+> system design.The high-quality and configurable
+> +memories, interrupt controller, debug module, AXI and AHB Bus Matrix
+> +Controller, AXI-to-AHB Bridge and a collection of fundamental AHB/APB
+> +bus IP components pre-integrated together as a system design. The
+> +high-quality and configurable
+>  AHB/APB IPs suites a majority embedded systems, and the verified platform
+> serves  as a starting point to jump start SoC designs.
 > 
-> -static inline u32 plicsw_get_pending(u32 source_hart, u32 target_hart) -{
-> -	return readl(plicsw_dev[source_hart].plicsw_pending)
-> -	       & (PLICSW_HART_MASK >> target_hart);
-> -}
-> -
->  static inline void plic_sw_pending(u32 target_hart)  {
->  	/*
 > --
 > 2.25.1
 
