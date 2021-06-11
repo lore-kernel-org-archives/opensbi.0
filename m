@@ -1,9 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Fri, 11 Jun 2021 05:53:45 +0000
-Subject: [PATCH v2 1/4] platform: andes/ae350: Cosmetic fixes in plicsw.c
-In-Reply-To: <20210604153545.18949-1-bmeng.cn@gmail.com>
+Date: Fri, 11 Jun 2021 05:53:58 +0000
+Subject: [PATCH v2 3/4] platform: andes/ae350: Drop plicsw_get_pending()
+In-Reply-To: <20210604153545.18949-3-bmeng.cn@gmail.com>
 References: <20210604153545.18949-1-bmeng.cn@gmail.com>
-Message-ID: <CO6PR04MB781229C9FF8DA78D4D8A271D8D349@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <20210604153545.18949-3-bmeng.cn@gmail.com>
+Message-ID: <CO6PR04MB78128221B6725DDECAAD40988D349@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -17,13 +18,12 @@ Content-Transfer-Encoding: 7bit
 > Sent: 04 June 2021 21:06
 > To: Anup Patel <Anup.Patel@wdc.com>; opensbi at lists.infradead.org
 > Cc: Bin Meng <bmeng.cn@gmail.com>
-> Subject: [PATCH v2 1/4] platform: andes/ae350: Cosmetic fixes in plicsw.c
+> Subject: [PATCH v2 3/4] platform: andes/ae350: Drop plicsw_get_pending()
 > 
-> - %s/CLINT/PLICSW
-> - replace '.' with a space
-> - add a space around * in plicsw_cold_ipi_init()
+> This is not used anywhere. Drop it.
 > 
 > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> 
 
 Looks good to me.
 
@@ -34,45 +34,29 @@ Applied this patch to the riscv/opensbi repo
 Thanks,
 Anup
 
-> 
 > ---
 > 
 > Changes in v2:
-> - andex => andes in the commit title
-> - add a space around *
+> - new patch: Drop plicsw_get_pending()
 > 
->  platform/andes/ae350/plicsw.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  platform/andes/ae350/plicsw.c | 6 ------
+>  1 file changed, 6 deletions(-)
 > 
 > diff --git a/platform/andes/ae350/plicsw.c b/platform/andes/ae350/plicsw.c
-> index d07df28..4df7317 100644
+> index 4df7317..edbbb11 100644
 > --- a/platform/andes/ae350/plicsw.c
 > +++ b/platform/andes/ae350/plicsw.c
-> @@ -83,7 +83,7 @@ void plicsw_ipi_clear(u32 target_hart)
->  	if (plicsw_ipi_hart_count <= target_hart)
->  		return;
-> 
-> -	/* Clear CLINT IPI */
-> +	/* Clear PLICSW IPI */
->  	plicsw_claim();
->  	plicsw_complete();
+> @@ -33,12 +33,6 @@ static inline void plicsw_complete(void)
+>  	writel(source, plicsw_dev[source_hart].plicsw_claim);
 >  }
-> @@ -108,10 +108,10 @@ int plicsw_cold_ipi_init(unsigned long base, u32
-> hart_count)
->  	/* Setup source priority */
->  	uint32_t *priority = (void *)base + PLICSW_PRIORITY_BASE;
 > 
-> -	for (int i = 0; i < AE350_HART_COUNT*PLICSW_PENDING_PER_HART;
-> i++)
-> +	for (int i = 0; i < AE350_HART_COUNT *
-> PLICSW_PENDING_PER_HART; i++)
->  		writel(1, &priority[i]);
-> 
-> -	/* Setup target enable.*/
-> +	/* Setup target enable */
->  	uint32_t enable_mask = PLICSW_HART_MASK;
-> 
->  	for (int i = 0; i < AE350_HART_COUNT; i++) {
+> -static inline u32 plicsw_get_pending(u32 source_hart, u32 target_hart) -{
+> -	return readl(plicsw_dev[source_hart].plicsw_pending)
+> -	       & (PLICSW_HART_MASK >> target_hart);
+> -}
+> -
+>  static inline void plic_sw_pending(u32 target_hart)  {
+>  	/*
 > --
 > 2.25.1
 
