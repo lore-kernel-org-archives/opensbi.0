@@ -1,33 +1,108 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 12 Jun 2021 21:33:17 +0530
-Subject: [PATCH 2/6] lib: utils/ipi: Add ACLINT MSWI library
+Date: Sat, 12 Jun 2021 21:33:19 +0530
+Subject: [PATCH 4/6] lib: utils/ipi: Add FDT based ACLINT MSWI IPI driver
 In-Reply-To: <20210612160321.330638-1-anup.patel@wdc.com>
 References: <20210612160321.330638-1-anup.patel@wdc.com>
-Message-ID: <20210612160321.330638-3-anup.patel@wdc.com>
+Message-ID: <20210612160321.330638-5-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add common ACLINT MSWI library similar to the CLINT library
-so that OpenSBI platforms can use it.
+We add a new FDT based ACLINT MSWI IPI driver which works for
+both CLINT device and standalone ACLINT MSWI device.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi_utils/ipi/aclint_mswi.h |  33 +++++++++
- lib/utils/ipi/aclint_mswi.c         | 100 ++++++++++++++++++++++++++++
- lib/utils/ipi/objects.mk            |   1 +
- 3 files changed, 134 insertions(+)
- create mode 100644 include/sbi_utils/ipi/aclint_mswi.h
- create mode 100644 lib/utils/ipi/aclint_mswi.c
+ lib/utils/ipi/fdt_ipi.c       |  4 +--
+ lib/utils/ipi/fdt_ipi_clint.c | 51 --------------------------
+ lib/utils/ipi/fdt_ipi_mswi.c  | 67 +++++++++++++++++++++++++++++++++++
+ lib/utils/ipi/objects.mk      |  2 +-
+ 4 files changed, 70 insertions(+), 54 deletions(-)
+ delete mode 100644 lib/utils/ipi/fdt_ipi_clint.c
+ create mode 100644 lib/utils/ipi/fdt_ipi_mswi.c
 
-diff --git a/include/sbi_utils/ipi/aclint_mswi.h b/include/sbi_utils/ipi/aclint_mswi.h
+diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+index 3932f50..ed56e49 100644
+--- a/lib/utils/ipi/fdt_ipi.c
++++ b/lib/utils/ipi/fdt_ipi.c
+@@ -12,10 +12,10 @@
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/ipi/fdt_ipi.h>
+ 
+-extern struct fdt_ipi fdt_ipi_clint;
++extern struct fdt_ipi fdt_ipi_mswi;
+ 
+ static struct fdt_ipi *ipi_drivers[] = {
+-	&fdt_ipi_clint
++	&fdt_ipi_mswi
+ };
+ 
+ static struct fdt_ipi dummy = {
+diff --git a/lib/utils/ipi/fdt_ipi_clint.c b/lib/utils/ipi/fdt_ipi_clint.c
+deleted file mode 100644
+index c97d3a9..0000000
+--- a/lib/utils/ipi/fdt_ipi_clint.c
++++ /dev/null
+@@ -1,51 +0,0 @@
+-/*
+- * SPDX-License-Identifier: BSD-2-Clause
+- *
+- * Copyright (c) 2020 Western Digital Corporation or its affiliates.
+- *
+- * Authors:
+- *   Anup Patel <anup.patel@wdc.com>
+- */
+-
+-#include <sbi/sbi_error.h>
+-#include <sbi_utils/fdt/fdt_helper.h>
+-#include <sbi_utils/ipi/fdt_ipi.h>
+-#include <sbi_utils/sys/clint.h>
+-
+-#define CLINT_IPI_MAX_NR			16
+-
+-static unsigned long clint_ipi_count = 0;
+-static struct clint_data clint_ipi[CLINT_IPI_MAX_NR];
+-
+-static int ipi_clint_cold_init(void *fdt, int nodeoff,
+-			       const struct fdt_match *match)
+-{
+-	int rc;
+-	unsigned long cisize;
+-	struct clint_data *ci;
+-
+-	if (CLINT_IPI_MAX_NR <= clint_ipi_count)
+-		return SBI_ENOSPC;
+-	ci = &clint_ipi[clint_ipi_count++];
+-
+-	rc = fdt_parse_aclint_node(fdt, nodeoff, FALSE, &ci->addr, &cisize,
+-				   &ci->first_hartid, &ci->hart_count);
+-	if (rc)
+-		return rc;
+-	ci->has_64bit_mmio = false;
+-
+-	return clint_cold_ipi_init(ci);
+-}
+-
+-static const struct fdt_match ipi_clint_match[] = {
+-	{ .compatible = "riscv,clint0" },
+-	{ .compatible = "sifive,clint0" },
+-	{ },
+-};
+-
+-struct fdt_ipi fdt_ipi_clint = {
+-	.match_table = ipi_clint_match,
+-	.cold_init = ipi_clint_cold_init,
+-	.warm_init = clint_warm_ipi_init,
+-	.exit = NULL,
+-};
+diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
 new file mode 100644
-index 0000000..e373a8c
+index 0000000..306a25b
 --- /dev/null
-+++ b/include/sbi_utils/ipi/aclint_mswi.h
-@@ -0,0 +1,33 @@
++++ b/lib/utils/ipi/fdt_ipi_mswi.c
+@@ -0,0 +1,67 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -37,145 +112,75 @@ index 0000000..e373a8c
 + *   Anup Patel <anup.patel@wdc.com>
 + */
 +
-+#ifndef __IPI_ACLINT_MSWI_H__
-+#define __IPI_ACLINT_MSWI_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+#define ACLINT_MSWI_ALIGN		0x1000
-+#define ACLINT_MSWI_SIZE		0x4000
-+#define ACLINT_MSWI_MAX_HARTS		4095
-+
-+#define CLINT_MSWI_OFFSET		0x0000
-+
-+struct aclint_mswi_data {
-+	/* Public details */
-+	unsigned long addr;
-+	unsigned long size;
-+	u32 first_hartid;
-+	u32 hart_count;
-+};
-+
-+int aclint_mswi_warm_init(void);
-+
-+int aclint_mswi_cold_init(struct aclint_mswi_data *mswi);
-+
-+#endif
-diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-new file mode 100644
-index 0000000..8360ae6
---- /dev/null
-+++ b/lib/utils/ipi/aclint_mswi.c
-@@ -0,0 +1,100 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <sbi/riscv_asm.h>
-+#include <sbi/riscv_atomic.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_domain.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hartmask.h>
-+#include <sbi/sbi_ipi.h>
-+#include <sbi/sbi_timer.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/ipi/fdt_ipi.h>
 +#include <sbi_utils/ipi/aclint_mswi.h>
 +
-+static struct aclint_mswi_data *mswi_hartid2data[SBI_HARTMASK_MAX_BITS];
++#define MSWI_MAX_NR			16
 +
-+static void mswi_ipi_send(u32 target_hart)
++static unsigned long mswi_count = 0;
++static struct aclint_mswi_data mswi[MSWI_MAX_NR];
++
++static int ipi_mswi_cold_init(void *fdt, int nodeoff,
++			      const struct fdt_match *match)
 +{
-+	u32 *msip;
-+	struct aclint_mswi_data *mswi;
-+
-+	if (SBI_HARTMASK_MAX_BITS <= target_hart)
-+		return;
-+	mswi = mswi_hartid2data[target_hart];
-+	if (!mswi)
-+		return;
-+
-+	/* Set CLINT IPI */
-+	msip = (void *)mswi->addr;
-+	writel(1, &msip[target_hart - mswi->first_hartid]);
-+}
-+
-+static void mswi_ipi_clear(u32 target_hart)
-+{
-+	u32 *msip;
-+	struct aclint_mswi_data *mswi;
-+
-+	if (SBI_HARTMASK_MAX_BITS <= target_hart)
-+		return;
-+	mswi = mswi_hartid2data[target_hart];
-+	if (!mswi)
-+		return;
-+
-+	/* Clear CLINT IPI */
-+	msip = (void *)mswi->addr;
-+	writel(0, &msip[target_hart - mswi->first_hartid]);
-+}
-+
-+static struct sbi_ipi_device aclint_mswi = {
-+	.name = "aclint-mswi",
-+	.ipi_send = mswi_ipi_send,
-+	.ipi_clear = mswi_ipi_clear
-+};
-+
-+int aclint_mswi_warm_init(void)
-+{
-+	/* Clear IPI for current HART */
-+	mswi_ipi_clear(current_hartid());
-+
-+	return 0;
-+}
-+
-+int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
-+{
-+	u32 i;
 +	int rc;
-+	unsigned long pos, region_size;
-+	struct sbi_domain_memregion reg;
++	unsigned long offset;
++	struct aclint_mswi_data *ms;
 +
-+	/* Sanity checks */
-+	if (!mswi || (mswi->addr & (ACLINT_MSWI_ALIGN - 1)) ||
-+	    (mswi->size < ACLINT_MSWI_SIZE) ||
-+	    (mswi->first_hartid >= SBI_HARTMASK_MAX_BITS) ||
-+	    (mswi->hart_count > ACLINT_MSWI_MAX_HARTS))
-+		return SBI_EINVAL;
++	if (MSWI_MAX_NR <= mswi_count)
++		return SBI_ENOSPC;
++	ms = &mswi[mswi_count];
 +
-+	/* Update MSWI hartid table */
-+	for (i = 0; i < mswi->hart_count; i++)
-+		mswi_hartid2data[mswi->first_hartid + i] = mswi;
++	rc = fdt_parse_aclint_node(fdt, nodeoff, FALSE, &ms->addr, &ms->size,
++				   &ms->first_hartid, &ms->hart_count);
++	if (rc)
++		return rc;
 +
-+	/* Add MSWI regions to the root domain */
-+	for (pos = 0; pos < mswi->size; pos += ACLINT_MSWI_ALIGN) {
-+		region_size = ((mswi->size - pos) < ACLINT_MSWI_ALIGN) ?
-+			      (mswi->size - pos) : ACLINT_MSWI_ALIGN;
-+		sbi_domain_memregion_init(mswi->addr + pos, region_size,
-+					  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+		rc = sbi_domain_root_add_memregion(&reg);
-+		if (rc)
-+			return rc;
++	if (match->data) {
++		/* Adjust MSWI address and size for CLINT device */
++		offset = *((unsigned long *)match->data);
++		ms->addr += offset;
++		if ((ms->size - offset) < ACLINT_MSWI_SIZE)
++			return SBI_EINVAL;
++		ms->size = ACLINT_MSWI_SIZE;
 +	}
 +
-+	sbi_ipi_set_device(&aclint_mswi);
++	rc = aclint_mswi_cold_init(ms);
++	if (rc)
++		return rc;
 +
++	mswi_count++;
 +	return 0;
 +}
++
++static unsigned long clint_offset = CLINT_MSWI_OFFSET;
++
++static const struct fdt_match ipi_mswi_match[] = {
++	{ .compatible = "riscv,clint0", .data = &clint_offset },
++	{ .compatible = "sifive,clint0", .data = &clint_offset },
++	{ .compatible = "riscv,aclint-mswi" },
++	{ },
++};
++
++struct fdt_ipi fdt_ipi_mswi = {
++	.match_table = ipi_mswi_match,
++	.cold_init = ipi_mswi_cold_init,
++	.warm_init = aclint_mswi_warm_init,
++	.exit = NULL,
++};
 diff --git a/lib/utils/ipi/objects.mk b/lib/utils/ipi/objects.mk
-index 0071957..cc77808 100644
+index cc77808..effbedd 100644
 --- a/lib/utils/ipi/objects.mk
 +++ b/lib/utils/ipi/objects.mk
-@@ -9,3 +9,4 @@
+@@ -8,5 +8,5 @@
+ #
  
  libsbiutils-objs-y += ipi/fdt_ipi.o
- libsbiutils-objs-y += ipi/fdt_ipi_clint.o
-+libsbiutils-objs-y += ipi/aclint_mswi.o
+-libsbiutils-objs-y += ipi/fdt_ipi_clint.o
++libsbiutils-objs-y += ipi/fdt_ipi_mswi.o
+ libsbiutils-objs-y += ipi/aclint_mswi.o
 -- 
 2.25.1
 
