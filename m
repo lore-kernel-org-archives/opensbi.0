@@ -1,108 +1,74 @@
-From: Charles Papon <charles.papon.90@gmail.com>
-Date: Sat, 12 Jun 2021 13:24:49 +0200
-Subject: [PATCH v3] lib: sbi: Fix GET_F64_REG inline assembly
-In-Reply-To: <CO6PR04MB781222AD631F442FCE938A758D339@CO6PR04MB7812.namprd04.prod.outlook.com>
-References: <20210612043131.156280-1-anup.patel@wdc.com>
- <CO6PR04MB781222AD631F442FCE938A758D339@CO6PR04MB7812.namprd04.prod.outlook.com>
-Message-ID: <CAMabmMJHG7R3zp7buZ7dftWOdmm1GFjLh10uG16gsD0ZUmCKOA@mail.gmail.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Sat, 12 Jun 2021 21:33:15 +0530
+Subject: [PATCH 0/6] RISC-V ACLINT Support
+Message-ID: <20210612160321.330638-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+The RISC-V Advanced Core Local Interruptor (ACLINT) is an improvement
+over the SiFive CLINT but also maintains backward compatibility with
+the SiFive CLINT.
 
-Thanks for the fix :)
-Charles
+Latest RISC-V ACLINT specification (will be frozen in a month) can be
+found at:
+https://github.com/riscv/riscv-aclint/blob/main/riscv-aclint.adoc
 
-On Sat, Jun 12, 2021 at 6:34 AM Anup Patel <Anup.Patel@wdc.com> wrote:
->
-> Hi Charles,
->
-> > -----Original Message-----
-> > From: Anup Patel <Anup.Patel@wdc.com>
-> > Sent: 12 June 2021 10:02
-> > To: Atish Patra <Atish.Patra@wdc.com>; Alistair Francis
-> > <Alistair.Francis@wdc.com>
-> > Cc: Anup Patel <anup@brainfault.org>; opensbi at lists.infradead.org; Charles
-> > Papon <charles.papon.90@gmail.com>; Anup Patel <Anup.Patel@wdc.com>
-> > Subject: [PATCH v3] lib: sbi: Fix GET_F64_REG inline assembly
-> >
-> > From: Charles Papon <charles.papon.90@gmail.com>
-> >
-> > Current, GET_F64_REG() macro does not generate correct inline assembly for
-> > the RV32 systems. This patch provides separate definitions of GET_F64_REG()
-> > macro for RV32 and RV64 systems.
-> >
-> > Signed-off-by: Charles Papon <charles.papon.90@gmail.com>
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > ---
-> >  include/sbi/riscv_fp.h | 19 ++++++++++++++++---
-> >  1 file changed, 16 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h index
-> > a685884..b3dc08b 100644
-> > --- a/include/sbi/riscv_fp.h
-> > +++ b/include/sbi/riscv_fp.h
-> > @@ -42,15 +42,28 @@
-> >                       : "t0");                                                                            \
-> >       })
-> >  #define init_fp_reg(i) SET_F32_REG((i) << 3, 3, 0, 0)
-> > +
-> > +#if __riscv_xlen == 64
-> >  #define GET_F64_REG(insn, pos, regs)
-> > \
-> >       ({                                                                                              \
-> > -             register ulong value asm("a0") =
-> > \
-> > -                     SHIFT_RIGHT(insn, (pos)-3) & 0xf8;
-> > \
-> > +             register ulong value asm("a0") = SHIFT_RIGHT(insn, (pos)-3) &
-> > 0xf8;                     \
-> >               ulong tmp;                                                                              \
-> >               asm("1: auipc %0, %%pcrel_hi(get_f64_reg); add %0, %0, %1;
-> > jalr t0, %0, %%pcrel_lo(1b)" \
-> >                   : "=&r"(tmp), "+&r"(value)::"t0");
-> > \
-> > -             sizeof(ulong) == 4 ? *(int64_t *)value : (int64_t)value;
-> > \
-> > +             value;                                                                                  \
-> >       })
-> > +#else
-> > +#define GET_F64_REG(insn, pos, regs)
-> > \
-> > +     ({                                                                                               \
-> > +             u64 value;                                                                               \
-> > +             ulong offset = SHIFT_RIGHT(insn, (pos)-3) & 0xf8;
-> > \
-> > +             register ulong ptr asm("a0") = (ulong)&value;
-> > \
-> > +             asm ("1: auipc t1, %%pcrel_hi(get_f64_reg); add t1, t1, %2;
-> > jalr t0, t1, %%pcrel_lo(1b)" \
-> > +                 : "=m"(value) : "r"(ptr), "r"(offset) : "t0", "t1");
-> > \
-> > +             value;                                                                                   \
-> > +     })
-> > +#endif
-> > +
-> >  #define SET_F64_REG(insn, pos, regs, val)
-> > \
-> >       ({                                                                                                  \
-> >               uint64_t __val = (val);
-> > \
-> > --
-> > 2.25.1
->
-> This is same patch which you posted last.
->
-> I have fixed patch subject, patch description, and other minor nits.
->
-> I have tested in on QEMU RV64 and QEMU RV32.
->
-> Applied this patch on the riscv/opensbi repo.
->
-> Thanks,
-> Anup
->
+This series adds RISC-V ACLINT support to OpenSBI and can be found in
+the riscv_aclint_v1 branch at:
+https://github.com/avpatel/qemu.git
+
+To test series, we require QEMU and Linux with ACLINT support which
+can be found in riscv_aclint_v1 branch at:
+https://github.com/avpatel/qemu.git
+https://github.com/avpatel/linux.git
+
+Anup Patel (6):
+  lib: utils/timer: Add ACLINT MTIMER library
+  lib: utils/ipi: Add ACLINT MSWI library
+  lib: utils: Add FDT parsing API common for both ACLINT and CLINT
+  lib: utils/ipi: Add FDT based ACLINT MSWI IPI driver
+  lib: utils/timer: Add FDT based ACLINT MTIMER driver
+  platform: Replace CLINT library usage with ACLINT library
+
+ include/sbi_utils/fdt/fdt_helper.h      |   7 +-
+ include/sbi_utils/ipi/aclint_mswi.h     |  33 +++
+ include/sbi_utils/sys/clint.h           |  41 ----
+ include/sbi_utils/timer/aclint_mtimer.h |  41 ++++
+ lib/utils/fdt/fdt_helper.c              |  31 ++-
+ lib/utils/ipi/aclint_mswi.c             | 100 +++++++++
+ lib/utils/ipi/fdt_ipi.c                 |   4 +-
+ lib/utils/ipi/fdt_ipi_clint.c           |  48 -----
+ lib/utils/ipi/fdt_ipi_mswi.c            |  67 +++++++
+ lib/utils/ipi/objects.mk                |   3 +-
+ lib/utils/sys/clint.c                   | 256 ------------------------
+ lib/utils/sys/objects.mk                |   1 -
+ lib/utils/timer/aclint_mtimer.c         | 180 +++++++++++++++++
+ lib/utils/timer/fdt_timer.c             |   4 +-
+ lib/utils/timer/fdt_timer_clint.c       |  50 -----
+ lib/utils/timer/fdt_timer_mtimer.c      |  74 +++++++
+ lib/utils/timer/objects.mk              |   3 +-
+ platform/fpga/ariane/platform.c         |  26 ++-
+ platform/fpga/openpiton/platform.c      |  32 ++-
+ platform/kendryte/k210/platform.c       |  23 ++-
+ platform/kendryte/k210/platform.h       |   3 +
+ platform/nuclei/ux600/platform.c        |  27 ++-
+ platform/template/platform.c            |  30 ++-
+ 23 files changed, 623 insertions(+), 461 deletions(-)
+ create mode 100644 include/sbi_utils/ipi/aclint_mswi.h
+ delete mode 100644 include/sbi_utils/sys/clint.h
+ create mode 100644 include/sbi_utils/timer/aclint_mtimer.h
+ create mode 100644 lib/utils/ipi/aclint_mswi.c
+ delete mode 100644 lib/utils/ipi/fdt_ipi_clint.c
+ create mode 100644 lib/utils/ipi/fdt_ipi_mswi.c
+ delete mode 100644 lib/utils/sys/clint.c
+ create mode 100644 lib/utils/timer/aclint_mtimer.c
+ delete mode 100644 lib/utils/timer/fdt_timer_clint.c
+ create mode 100644 lib/utils/timer/fdt_timer_mtimer.c
+
+-- 
+2.25.1
+
 
