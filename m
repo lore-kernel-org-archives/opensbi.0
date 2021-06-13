@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sun, 13 Jun 2021 04:01:03 +0000
-Subject: [PATCH v2 01/15] docs: Add device tree bindings for SBI PMU
- extension
-In-Reply-To: <20210527003044.889681-2-atish.patra@wdc.com>
+Date: Sun, 13 Jun 2021 04:04:15 +0000
+Subject: [PATCH v2 04/15] lib: sbi: Detect number of bits implemented in
+ mhpmcounter
+In-Reply-To: <20210527003044.889681-5-atish.patra@wdc.com>
 References: <20210527003044.889681-1-atish.patra@wdc.com>
- <20210527003044.889681-2-atish.patra@wdc.com>
-Message-ID: <CO6PR04MB7812030B73495E474DF774558D329@CO6PR04MB7812.namprd04.prod.outlook.com>
+ <20210527003044.889681-5-atish.patra@wdc.com>
+Message-ID: <CO6PR04MB7812995DA283C8C402F120698D329@CO6PR04MB7812.namprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -19,19 +19,18 @@ Content-Transfer-Encoding: 7bit
 > Sent: 27 May 2021 06:01
 > To: opensbi at lists.infradead.org
 > Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2 01/15] docs: Add device tree bindings for SBI PMU
-> extension
+> Subject: [PATCH v2 04/15] lib: sbi: Detect number of bits implemented in
+> mhpmcounter
 > 
-> SBI PMU extension requires a firmware to be aware of the event to
-> counter/mhpmevent mappings supported by the hardware. One approach is
-> to encode that information in the device tree.
+> RISC-V privilege specification allows the implementation to have less than 64
+> bits.
 > 
-> Define a device tree binding that allows a hardware to describe all the PMU
-> mappings required in concise format.
+> Add a function to detect the number of implemented bits in mhpmcounter
+> dynamically at runtime.
 > 
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 
-Looks good to me.
+No comments other than what Xiang already commented.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
@@ -39,107 +38,115 @@ Regards,
 Anup
 
 > ---
->  docs/pmu_support.md | 83
-> +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 83 insertions(+)
->  create mode 100644 docs/pmu_support.md
+>  include/sbi/sbi_hart.h |  1 +
+>  lib/sbi/sbi_hart.c     | 49
+> ++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 50 insertions(+)
 > 
-> diff --git a/docs/pmu_support.md b/docs/pmu_support.md new file mode
-> 100644 index 000000000000..8535a1dccbeb
-> --- /dev/null
-> +++ b/docs/pmu_support.md
-> @@ -0,0 +1,83 @@
-> +OpenSBI SBI PMU extension support
-> +==================================
-> +SBI PMU extension supports allow supervisor software to
-> +configure/start/stop any performance counter at anytime. Thus, an user
-> +can leverage full capability of performance analysis tools such as perf
-> +if SBI PMU extension is enabled. The OpenSBI implementation makes the
-> +following assumptions about the hardware platform.
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h index
+> 9e317c52008c..0c18ef9325b2 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -44,6 +44,7 @@ void sbi_hart_delegation_dump(struct sbi_scratch
+> *scratch,  unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+> unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
+> unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+> +unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch);  bool
+> sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
+> void sbi_hart_get_features_str(struct sbi_scratch *scratch, diff --git
+> a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c index e5e5781ff412..0d5b7b8d3509
+> 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -33,6 +33,7 @@ struct hart_features {
+>  	unsigned int pmp_addr_bits;
+>  	unsigned long pmp_gran;
+>  	unsigned int mhpm_count;
+> +	unsigned int mhpm_bits;
+>  };
+>  static unsigned long hart_features_offset;
+> 
+> @@ -177,6 +178,14 @@ unsigned int sbi_hart_pmp_addrbits(struct
+> sbi_scratch *scratch)
+>  	return hfeatures->pmp_addr_bits;
+>  }
+> 
+> +unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch) {
+> +	struct hart_features *hfeatures =
+> +			sbi_scratch_offset_ptr(scratch, hart_features_offset);
 > +
-> + * MCOUNTINHIBIT CSR must be implemented in the hardware. Otherwise,
-> +SBI PMU extension will not be enabled.
+> +	return hfeatures->mhpm_bits;
+> +}
 > +
-> + * The platform must provide information about PMU event to counter
-> +mapping via device tree or platform specific hooks. Otherwise, SBI PMU
-> +extension will not be enabled.
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)  {
+>  	struct sbi_domain_memregion *reg;
+> @@ -330,6 +339,37 @@ static unsigned long
+> hart_pmp_get_allowed_addr(void)
+>  	return val;
+>  }
+> 
+> +static int hart_pmu_get_allowed_bits(void) {
+> +	unsigned long val = ~(0UL);
+> +	struct sbi_trap_info trap = {0};
+> +	int num_bits = 0;
 > +
-> + * The platforms should provide information about the PMU event
-> +selector values that should be encoded in the expected value of
-> +MHPMEVENTx while configuring MHPMCOUNTERx for that specific event.
-> This
-> +can be done via a device tree or platform specific hooks. The exact
-> +value to be written to he MHPMEVENTx is completely platform specific.
-> +Generic platform writes a default value <xyz> to the MHPMEVENTx CSR
-> where <xyz> is formatted as described below.
-> +```
-> +  	xyz[0:19]    : event_idx
-> +        xyz[20:XLEN] : event_data[0:(XLEN-20)]
+> +	/**
+> +	 * It is assumed that platforms will implement same number of bits
+> for
+> +	 * all the performance counters including mcycle/minstret.
+> +	 */
+> +	csr_write_allowed(CSR_MHPMCOUNTER3, (ulong)&trap, val);
+> +	if (!trap.cause) {
+> +		val = csr_read_allowed(CSR_MHPMCOUNTER3,
+> (ulong)&trap);
+> +		if (trap.cause)
+> +			return 0;
+> +	}
+> +	num_bits = __fls(val) + 1;
+> +#if __riscv_xlen == 32
+> +	csr_write_allowed(CSR_MHPMCOUNTER3H, (ulong)&trap, val);
+> +	if (!trap.cause) {
+> +		val = csr_read_allowed(CSR_MHPMCOUNTER3H,
+> (ulong)&trap);
+> +		if (trap.cause)
+> +			return num_bits;
+> +	}
+> +	num_bits += __fls(val) + 1;
 > +
-> +```
+> +#endif
 > +
-> +SBI PMU Device Tree Bindings
-> +----------------------------
+> +	return num_bits;
+> +}
 > +
-> +Platforms may choose to describe PMU event selector and event to
-> +counter mapping values via device tree. The following sections
-> +describes the PMU DT node bindings in details.
+>  static void hart_detect_features(struct sbi_scratch *scratch)  {
+>  	struct sbi_trap_info trap = {0};
+> @@ -394,10 +434,19 @@ static void hart_detect_features(struct sbi_scratch
+> *scratch)
+>  __pmp_skip:
+> 
+>  	/* Detect number of MHPM counters */
+> +	trap.cause = 0;
+>  	__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count,
+> __mhpm_skip);
+> +	hfeatures->mhpm_bits = hart_pmu_get_allowed_bits();
 > +
-> +* **compatible** (Mandatory) - The compatible string of SBI PMU device
-> tree node.
-> +This DT property must have the value **riscv,pmu**.
+>  	__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count,
+> __mhpm_skip);
+>  	__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count,
+> __mhpm_skip);
+>  	__check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count,
+> __mhpm_skip);
 > +
-> +* **opensbi,event-to-mhpmevent**(Optional) - It represents an
-> +ONE-to-ONE mapping between a PMU event and the event selector value
-> +that platform expects to be written to the MHPMEVENTx CSR for that
-> +event. The mapping is encoded in a table format where each row
-> +represents an event. The first column represent the event idx where the
-> +2nd & 3rd column represent the event selector value that should be
-> encoded in the expected value to be written in MHPMEVENTx.
-> +This property shouldn't encode any raw hardware event.
+> +	/**
+> +	 * No need to check for MHPMCOUNTERH for RV32 as they are
+> expected to be
+> +	 * implemented if MHPMCOUNTER is implemented.
+> +	 */
 > +
-> +* **opensbi,event-to-counters**(Optional) - It represents a
-> +MANY-to-MANY mapping between a range of events and all the
-> MHPMCOUNTERx
-> +in a bitmap format that can be used to monitor these range of events.
-> +The information is encoded in a table format where each row represent a
-> +certain range of events and corresponding counters. The first column
-> +represents starting of the pmu event id and 2nd column represents the
-> +end of the pmu event id. The third column represent a bitmap of all the
-> +MHPMCOUNTERx. This property is mandatory if event-to-mhpmevent is
-> +present. Otherwise, it can be omitted. This property shouldn't encode any
-> raw event.
-> +
-> +* **opensbi,raw-event-to-counters**(Optional) - It represents an
-> +ONE-to-MANY mapping between a raw event and all the MHPMCOUNTERx in
-> a
-> +bitmap format that can be used to monitor that raw event. The
-> +information is encoded in a table format where each raw represent a
-> +specific raw event. The first column stores the expected event selector
-> +value that should be encoded in the expected value to be written in
-> +MHPMEVENTx. The second column stores a bitmap of all the
-> MHPMCOUNTERx that can be used for monitoring the specified event.
-> +
-> +*Note:* A platform may choose to provide the mapping between event &
-> +counters via platform hooks rather than the device tree.
-> +
-> +### Example
-> +
-> +```
-> +pmu {
-> +      compatible 			= "riscv,pmu";
-> +      interrupts 			= <0x100>;
-> +      interrupt-parent 			= <&plic>
-> +      opensbi,event-to-mhpmevent 	= <0x0000B  0x0000 0x0001>,
-> +      opensbi,event-to-counters 	= <0x00001 0x00001 0x00000001>,
-> +      					  <0x00002 0x00002 0x00000004>,
-> +      					  <0x00003 0x0000A 0x00000ff8>,
-> +      				 	  <0x10000 0x10033 0x000ff000>,
-> +      opensbi,raw-event-to-counters 	= <0x0000 0x0002 0x00000f8>,
-> +					  <0x0000 0x0003 0x00000ff0>,
-> +};
-> +
-> +```
+>  __mhpm_skip:
+> 
+>  #undef __check_csr_64
 > --
 > 2.25.1
 
