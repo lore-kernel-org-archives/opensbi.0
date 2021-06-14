@@ -1,208 +1,275 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sun, 13 Jun 2021 05:44:28 +0000
-Subject: [PATCH v2 14/15] lib:sbi:tlb: Improve function naming
-In-Reply-To: <20210527003044.889681-15-atish.patra@wdc.com>
-References: <20210527003044.889681-1-atish.patra@wdc.com>
- <20210527003044.889681-15-atish.patra@wdc.com>
-Message-ID: <CO6PR04MB7812E4958D827048FF80D0DE8D329@CO6PR04MB7812.namprd04.prod.outlook.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Mon, 14 Jun 2021 21:04:44 +0800
+Subject: [PATCH 1/6] lib: utils/timer: Add ACLINT MTIMER library
+In-Reply-To: <20210612160321.330638-2-anup.patel@wdc.com>
+References: <20210612160321.330638-1-anup.patel@wdc.com>
+ <20210612160321.330638-2-anup.patel@wdc.com>
+Message-ID: <CAEUhbmWOx0wUz2Qg-7wCdVWeXqn8KcDDcVRDiDPw8kR_KoVT4Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-> -----Original Message-----
-> From: Atish Patra <atish.patra@wdc.com>
-> Sent: 27 May 2021 06:01
-> To: opensbi at lists.infradead.org
-> Cc: Atish Patra <Atish.Patra@wdc.com>; Anup Patel <Anup.Patel@wdc.com>
-> Subject: [PATCH v2 14/15] lib:sbi:tlb: Improve function naming
-> 
-> Follow the standard conventon for static function names:
-> 
-> 	All global functions should be start with sbi_<module name>_
-> 	All static functions should be start with <module name>_
-> 
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Regards,
-Anup
-
+On Sun, Jun 13, 2021 at 12:04 AM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> We add common ACLINT MTIMER library similar to the CLINT library
+> so that OpenSBI platforms can use it.
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  lib/sbi/sbi_tlb.c | 40 ++++++++++++++++++++--------------------
->  1 file changed, 20 insertions(+), 20 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c index
-> 6e9e4f0b1916..bddf2654005e 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -28,7 +28,7 @@ static unsigned long tlb_fifo_off;  static unsigned long
-> tlb_fifo_mem_off;  static unsigned long tlb_range_flush_limit;
-> 
-> -static void sbi_tlb_flush_all(void)
-> +static void tlb_flush_all(void)
->  {
->  	__asm__ __volatile("sfence.vma");
->  }
-> @@ -85,7 +85,7 @@ void sbi_tlb_local_sfence_vma(struct sbi_tlb_info
-> *tinfo)
->  	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_RCVD);
-> 
->  	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
-> -		sbi_tlb_flush_all();
-> +		tlb_flush_all();
->  		return;
->  	}
-> 
-> @@ -162,7 +162,7 @@ void sbi_tlb_local_sfence_vma_asid(struct
-> sbi_tlb_info *tinfo)
->  	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_RCVD);
-> 
->  	if (start == 0 && size == 0) {
-> -		sbi_tlb_flush_all();
-> +		tlb_flush_all();
->  		return;
->  	}
-> 
-> @@ -211,7 +211,7 @@ static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info
-> *data)
-> 
-> 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
->  }
-> 
-> -static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)
-> +static void tlb_entry_process(struct sbi_tlb_info *tinfo)
->  {
->  	u32 rhartid;
->  	struct sbi_scratch *rscratch = NULL;
-> @@ -229,7 +229,7 @@ static void sbi_tlb_entry_process(struct sbi_tlb_info
-> *tinfo)
->  	}
->  }
-> 
-> -static void sbi_tlb_process_count(struct sbi_scratch *scratch, int count)
-> +static void tlb_process_count(struct sbi_scratch *scratch, int count)
->  {
->  	struct sbi_tlb_info tinfo;
->  	u32 deq_count = 0;
-> @@ -237,7 +237,7 @@ static void sbi_tlb_process_count(struct sbi_scratch
-> *scratch, int count)
->  			sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
-> 
->  	while (!sbi_fifo_dequeue(tlb_fifo, &tinfo)) {
-> -		sbi_tlb_entry_process(&tinfo);
-> +		tlb_entry_process(&tinfo);
->  		deq_count++;
->  		if (deq_count > count)
->  			break;
-> @@ -245,17 +245,17 @@ static void sbi_tlb_process_count(struct
-> sbi_scratch *scratch, int count)
->  	}
->  }
-> 
-> -static void sbi_tlb_process(struct sbi_scratch *scratch)
-> +static void tlb_process(struct sbi_scratch *scratch)
->  {
->  	struct sbi_tlb_info tinfo;
->  	struct sbi_fifo *tlb_fifo =
->  			sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
-> 
->  	while (!sbi_fifo_dequeue(tlb_fifo, &tinfo))
-> -		sbi_tlb_entry_process(&tinfo);
-> +		tlb_entry_process(&tinfo);
->  }
-> 
-> -static void sbi_tlb_sync(struct sbi_scratch *scratch)
-> +static void tlb_sync(struct sbi_scratch *scratch)
->  {
->  	unsigned long *tlb_sync =
->  			sbi_scratch_offset_ptr(scratch, tlb_sync_off); @@ -
-> 265,13 +265,13 @@ static void sbi_tlb_sync(struct sbi_scratch *scratch)
->  		 * While we are waiting for remote hart to set the sync,
->  		 * consume fifo requests to avoid deadlock.
->  		 */
-> -		sbi_tlb_process_count(scratch, 1);
-> +		tlb_process_count(scratch, 1);
->  	}
-> 
->  	return;
->  }
-> 
-> -static inline int __sbi_tlb_range_check(struct sbi_tlb_info *curr,
-> +static inline int tlb_range_check(struct sbi_tlb_info *curr,
->  					struct sbi_tlb_info *next)
->  {
->  	unsigned long curr_end;
-> @@ -314,7 +314,7 @@ static inline int __sbi_tlb_range_check(struct
-> sbi_tlb_info *curr,
->   *	before continuing the while loop. This method is preferred over
-> wfi/ipi because
->   *	of MMIO cost involved in later method.
->   */
-> -static int sbi_tlb_update_cb(void *in, void *data)
-> +static int tlb_update_cb(void *in, void *data)
->  {
->  	struct sbi_tlb_info *curr;
->  	struct sbi_tlb_info *next;
-> @@ -329,16 +329,16 @@ static int sbi_tlb_update_cb(void *in, void *data)
->  	if (next->local_fn == sbi_tlb_local_sfence_vma_asid &&
->  	    curr->local_fn == sbi_tlb_local_sfence_vma_asid) {
->  		if (next->asid == curr->asid)
-> -			ret = __sbi_tlb_range_check(curr, next);
-> +			ret = tlb_range_check(curr, next);
->  	} else if (next->local_fn == sbi_tlb_local_sfence_vma &&
->  		   curr->local_fn == sbi_tlb_local_sfence_vma) {
-> -		ret = __sbi_tlb_range_check(curr, next);
-> +		ret = tlb_range_check(curr, next);
->  	}
-> 
->  	return ret;
->  }
-> 
-> -static int sbi_tlb_update(struct sbi_scratch *scratch,
-> +static int tlb_update(struct sbi_scratch *scratch,
->  			  struct sbi_scratch *remote_scratch,
->  			  u32 remote_hartid, void *data)
->  {
-> @@ -368,7 +368,7 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
-> 
->  	tlb_fifo_r = sbi_scratch_offset_ptr(remote_scratch, tlb_fifo_off);
-> 
-> -	ret = sbi_fifo_inplace_update(tlb_fifo_r, data, sbi_tlb_update_cb);
-> +	ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
->  	if (ret != SBI_FIFO_UNCHANGED) {
->  		return 1;
->  	}
-> @@ -382,7 +382,7 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
->  		 * TODO: Introduce a wait/wakeup event mechanism to
-> handle
->  		 * this properly.
->  		 */
-> -		sbi_tlb_process_count(scratch, 1);
-> +		tlb_process_count(scratch, 1);
->  		sbi_dprintf("hart%d: hart%d tlb fifo full\n",
->  			    curr_hartid, remote_hartid);
->  	}
-> @@ -392,9 +392,9 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
-> 
->  static struct sbi_ipi_event_ops tlb_ops = {
->  	.name = "IPI_TLB",
-> -	.update = sbi_tlb_update,
-> -	.sync = sbi_tlb_sync,
-> -	.process = sbi_tlb_process,
-> +	.update = tlb_update,
-> +	.sync = tlb_sync,
-> +	.process = tlb_process,
->  };
-> 
->  static u32 tlb_event = SBI_IPI_EVENT_MAX;
-> --
-> 2.25.1
+>  include/sbi_utils/timer/aclint_mtimer.h |  41 ++++++
+>  lib/utils/timer/aclint_mtimer.c         | 180 ++++++++++++++++++++++++
+>  lib/utils/timer/objects.mk              |   1 +
+>  3 files changed, 222 insertions(+)
+>  create mode 100644 include/sbi_utils/timer/aclint_mtimer.h
+>  create mode 100644 lib/utils/timer/aclint_mtimer.c
+>
+> diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+> new file mode 100644
+> index 0000000..510bfa9
+> --- /dev/null
+> +++ b/include/sbi_utils/timer/aclint_mtimer.h
+> @@ -0,0 +1,41 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *   Anup Patel <anup.patel@wdc.com>
+> + */
+> +
+> +#ifndef __TIMER_ACLINT_MTIMER_H__
+> +#define __TIMER_ACLINT_MTIMER_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +#define ACLINT_MTIMER_ALIGN            0x1000
+> +#define ACLINT_MTIMER_SIZE             0x8000
+> +#define ACLINT_MTIMER_MAX_HARTS        4095
+> +
+> +#define CLINT_MTIMER_OFFSET            0x4000
+> +
+> +struct aclint_mtimer_data {
+> +       /* Public details */
+> +       unsigned long addr;
+> +       unsigned long size;
+> +       u32 first_hartid;
+> +       u32 hart_count;
+> +       bool has_64bit_mmio;
+> +       /* Private details (initialized and used by ACLINT MTIMER library) */
+> +       struct aclint_mtimer_data *time_delta_reference;
+> +       unsigned long time_delta_computed;
+> +       u64 time_delta;
+> +       u64 (*time_rd)(volatile u64 *addr);
+> +       void (*time_wr)(u64 value, volatile u64 *addr);
+> +};
+> +
+> +int aclint_mtimer_warm_init(void);
+> +
+> +int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> +                           struct aclint_mtimer_data *reference);
+> +
+> +#endif
+> diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+> new file mode 100644
+> index 0000000..2c64ca8
+> --- /dev/null
+> +++ b/lib/utils/timer/aclint_mtimer.c
+> @@ -0,0 +1,180 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *   Anup Patel <anup.patel@wdc.com>
+> + */
+> +
+> +#include <sbi/riscv_asm.h>
+> +#include <sbi/riscv_atomic.h>
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_hartmask.h>
+> +#include <sbi/sbi_ipi.h>
+> +#include <sbi/sbi_timer.h>
+> +#include <sbi_utils/timer/aclint_mtimer.h>
+> +
+> +#define MTIMER_CMP_OFF         0x0000
+> +#define MTIMER_VAL_OFF         0x7ff8
+> +
+> +static struct aclint_mtimer_data *mtimer_hartid2data[SBI_HARTMASK_MAX_BITS];
+> +
+> +#if __riscv_xlen != 32
+> +static u64 mtimer_time_rd64(volatile u64 *addr)
+> +{
+> +       return readq_relaxed(addr);
+> +}
+> +
+> +static void mtimer_time_wr64(u64 value, volatile u64 *addr)
+> +{
+> +       writeq_relaxed(value, addr);
+> +}
+> +#endif
+> +
+> +static u64 mtimer_time_rd32(volatile u64 *addr)
+> +{
+> +       u32 lo, hi;
+> +
+> +       do {
+> +               hi = readl_relaxed((u32 *)addr + 1);
+> +               lo = readl_relaxed((u32 *)addr);
+> +       } while (hi != readl_relaxed((u32 *)addr + 1));
+> +
+> +       return ((u64)hi << 32) | (u64)lo;
+> +}
+> +
+> +static void mtimer_time_wr32(u64 value, volatile u64 *addr)
+> +{
+> +       u32 mask = -1U;
+> +
+> +       writel_relaxed(value & mask, (void *)(addr));
+> +       writel_relaxed(value >> 32, (void *)(addr) + 0x04);
+> +}
+> +
+> +static u64 mtimer_value(void)
+> +{
+> +       struct aclint_mtimer_data *mt = mtimer_hartid2data[current_hartid()];
+> +       u64 *time_val = ((void *)mt->addr) + MTIMER_VAL_OFF;
+> +
+> +       /* Read MTIMER Time Value */
+> +       return mt->time_rd(time_val) + mt->time_delta;
+> +}
+> +
+> +static void mtimer_event_stop(void)
+> +{
+> +       u32 target_hart = current_hartid();
+> +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> +       u64 *time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
+> +
+> +       /* Clear MTIMER Time Compare */
+> +       mt->time_wr(-1ULL, &time_cmp[target_hart - mt->first_hartid]);
+> +}
+> +
+> +static void mtimer_event_start(u64 next_event)
+> +{
+> +       u32 target_hart = current_hartid();
+> +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> +       u64 *time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
+> +
+> +       /* Program MTIMER Time Compare */
+> +       mt->time_wr(next_event - mt->time_delta,
+> +                   &time_cmp[target_hart - mt->first_hartid]);
+> +}
+> +
+> +static struct sbi_timer_device mtimer = {
+> +       .name = "aclint-mtimer",
+> +       .timer_value = mtimer_value,
+> +       .timer_event_start = mtimer_event_start,
+> +       .timer_event_stop = mtimer_event_stop
+> +};
+> +
+> +int aclint_mtimer_warm_init(void)
+> +{
+> +       u64 v1, v2, mv;
+> +       u32 target_hart = current_hartid();
+> +       struct aclint_mtimer_data *reference;
+> +       u64 *mt_time_val, *mt_time_cmp, *ref_time_val;
+> +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> +
+> +       if (!mt)
+> +               return SBI_ENODEV;
+> +
+> +       /*
+> +        * Compute delta if reference available
+> +        *
+> +        * We deliberately compute time_delta in warm init so that time_delta
+> +        * is computed on a HART which is going to use given MTIMER. We use
+> +        * atomic flag timer_delta_computed to ensure that only one HART does
+> +        * time_delta computation.
+> +        */
+> +       if (mt->time_delta_reference) {
+> +               reference = mt->time_delta_reference;
+> +               mt_time_val = (void *)mt->addr + MTIMER_VAL_OFF;
+> +               ref_time_val = (void *)reference->addr + MTIMER_VAL_OFF;
+> +               if (!atomic_raw_xchg_ulong(&mt->time_delta_computed, 1)) {
+> +                       v1 = mt->time_rd(mt_time_val);
+> +                       mv = reference->time_rd(ref_time_val);
+> +                       v2 = mt->time_rd(mt_time_val);
+> +                       mt->time_delta = mv - ((v1 / 2) + (v2 / 2));
+> +               }
+> +       }
+> +
+> +       /* Clear Time Compare */
+> +       mt_time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
+> +       mt->time_wr(-1ULL, &mt_time_cmp[target_hart - mt->first_hartid]);
+> +
+> +       return 0;
+> +}
+> +
+> +int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> +                           struct aclint_mtimer_data *reference)
+> +{
+> +       u32 i;
+> +       int rc;
+> +       unsigned long pos, region_size;
+> +       struct sbi_domain_memregion reg;
+> +
+> +       /* Sanity checks */
+> +       if (!mt || (mt->addr & (ACLINT_MTIMER_ALIGN - 1)) ||
+> +           (mt->size < ACLINT_MTIMER_SIZE) ||
+> +           (mt->first_hartid >= SBI_HARTMASK_MAX_BITS) ||
+> +           (mt->hart_count > ACLINT_MTIMER_MAX_HARTS))
+> +               return SBI_EINVAL;
+> +
+> +       /* Initialize private data */
+> +       mt->time_delta_reference = reference;
+> +       mt->time_delta_computed = 0;
+> +       mt->time_delta = 0;
+> +       mt->time_rd = mtimer_time_rd32;
+> +       mt->time_wr = mtimer_time_wr32;
+> +
+> +       /* Override read/write accessors for 64bit MMIO */
+> +#if __riscv_xlen != 32
+> +       if (mt->has_64bit_mmio) {
+> +               mt->time_rd = mtimer_time_rd64;
+> +               mt->time_wr = mtimer_time_wr64;
+> +       }
+> +#endif
+> +
+> +       /* Update MTIMER hartid table */
+> +       for (i = 0; i < mt->hart_count; i++)
+> +               mtimer_hartid2data[mt->first_hartid + i] = mt;
+> +
+> +       /* Add MTIMER regions to the root domain */
+> +       for (pos = 0; pos < mt->size; pos += ACLINT_MTIMER_ALIGN) {
+> +               region_size = ((mt->size - pos) < ACLINT_MTIMER_ALIGN) ?
+> +                             (mt->size - pos) : ACLINT_MTIMER_ALIGN;
+> +               sbi_domain_memregion_init(mt->addr + pos, region_size,
+> +                                         SBI_DOMAIN_MEMREGION_MMIO, &reg);
+> +               rc = sbi_domain_root_add_memregion(&reg);
+> +               if (rc)
+> +                       return rc;
+> +       }
+> +
+> +       sbi_timer_set_device(&mtimer);
+> +
+> +       return 0;
+> +}
+> diff --git a/lib/utils/timer/objects.mk b/lib/utils/timer/objects.mk
+> index 1b84e92..f8e3931 100644
+> --- a/lib/utils/timer/objects.mk
+> +++ b/lib/utils/timer/objects.mk
+> @@ -9,3 +9,4 @@
+>
+>  libsbiutils-objs-y += timer/fdt_timer.o
+>  libsbiutils-objs-y += timer/fdt_timer_clint.o
+> +libsbiutils-objs-y += timer/aclint_mtimer.o
 
+nits: insert this by following the alphabetical order
+
+Otherwise,
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
