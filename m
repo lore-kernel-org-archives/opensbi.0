@@ -1,11 +1,10 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 14 Jun 2021 21:04:54 +0800
-Subject: [PATCH 3/6] lib: utils: Add FDT parsing API common for both
- ACLINT and CLINT
-In-Reply-To: <20210612160321.330638-4-anup.patel@wdc.com>
+Date: Mon, 14 Jun 2021 21:04:58 +0800
+Subject: [PATCH 4/6] lib: utils/ipi: Add FDT based ACLINT MSWI IPI driver
+In-Reply-To: <20210612160321.330638-5-anup.patel@wdc.com>
 References: <20210612160321.330638-1-anup.patel@wdc.com>
- <20210612160321.330638-4-anup.patel@wdc.com>
-Message-ID: <CAEUhbmUhxJ1hWYjJnL=y2FN4iuRis1G2f=zt_o-dO05aRJqW5Q@mail.gmail.com>
+ <20210612160321.330638-5-anup.patel@wdc.com>
+Message-ID: <CAEUhbmUo5dXYJ10MMXV+d3rKE3ezOeoyhvKjqWBK7vb9RDxuhA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,191 +13,19 @@ Content-Transfer-Encoding: 7bit
 
 On Sun, Jun 13, 2021 at 12:04 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> We add fdt_parse_aclint_node() which is can parse both ACLINT and
-
-which can
-
-> CLINT DT nodes. This means fdt_parse_clint_node() is not required
-> anymore so we remove it as well.
+> We add a new FDT based ACLINT MSWI IPI driver which works for
+> both CLINT device and standalone ACLINT MSWI device.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  include/sbi_utils/fdt/fdt_helper.h |  7 +++----
->  lib/utils/fdt/fdt_helper.c         | 31 +++++++++++++++---------------
->  lib/utils/ipi/fdt_ipi_clint.c      |  5 ++++-
->  lib/utils/timer/fdt_timer_clint.c  |  9 ++++++++-
->  4 files changed, 30 insertions(+), 22 deletions(-)
->
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index c89f2e6..871f9b9 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -60,10 +60,9 @@ int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic);
->
->  int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat);
->
-> -struct clint_data;
-> -
-> -int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
-> -                        struct clint_data *clint);
-> +int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
-> +                         unsigned long *out_addr, unsigned long *out_size,
-> +                         u32 *out_first_hartid, u32 *out_hart_count);
->
->  int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
->                           const char *compatible);
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 9143e44..de77196 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -14,7 +14,6 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/irqchip/plic.h>
-> -#include <sbi_utils/sys/clint.h>
->
->  #define DEFAULT_UART_FREQ              0
->  #define DEFAULT_UART_BAUD              115200
-> @@ -421,8 +420,9 @@ int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat)
->         return fdt_parse_plic_node(fdt, nodeoffset, plic);
->  }
->
-> -int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
-> -                        struct clint_data *clint)
-> +int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
-> +                         unsigned long *out_addr, unsigned long *out_size,
-> +                         u32 *out_first_hartid, u32 *out_hart_count)
->  {
->         const fdt32_t *val;
->         unsigned long reg_addr, reg_size;
-> @@ -430,22 +430,25 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
->         u32 phandle, hwirq, hartid, first_hartid, last_hartid;
->         u32 match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
->
-> -       if (nodeoffset < 0 || !clint || !fdt)
-> -               return SBI_ENODEV;
-> +       if (nodeoffset < 0 || !fdt ||
-> +           !out_addr || !out_size ||
-> +           !out_first_hartid || !out_hart_count)
-> +               return SBI_EINVAL;
->
->         rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
->         if (rc < 0 || !reg_addr || !reg_size)
->                 return SBI_ENODEV;
-> -       clint->addr = reg_addr;
-> +       *out_addr = reg_addr;
-> +       *out_size = reg_size;
->
->         val = fdt_getprop(fdt, nodeoffset, "interrupts-extended", &count);
->         if (!val || count < sizeof(fdt32_t))
-> -               return SBI_EINVAL;
-> +               return SBI_ENODEV;
->         count = count / sizeof(fdt32_t);
->
->         first_hartid = -1U;
->         last_hartid = 0;
-> -       clint->hart_count = 0;
-> +       *out_hart_count = 0;
->         for (i = 0; i < count; i += 2) {
->                 phandle = fdt32_to_cpu(val[i]);
->                 hwirq = fdt32_to_cpu(val[i + 1]);
-> @@ -470,21 +473,17 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
->                                 first_hartid = hartid;
->                         if (hartid > last_hartid)
->                                 last_hartid = hartid;
-> -                       clint->hart_count++;
-> +                       (*out_hart_count)++;
->                 }
->         }
->
->         if ((last_hartid < first_hartid) || first_hartid == -1U)
->                 return SBI_ENODEV;
->
-> -       clint->first_hartid = first_hartid;
-> +       *out_first_hartid = first_hartid;
->         count = last_hartid - first_hartid + 1;
-> -       if (clint->hart_count < count)
-> -               clint->hart_count = count;
-> -
-> -       clint->has_64bit_mmio = TRUE;
-> -       if (fdt_getprop(fdt, nodeoffset, "clint,has-no-64bit-mmio", &count))
-> -               clint->has_64bit_mmio = FALSE;
-> +       if (*out_hart_count < count)
-> +               *out_hart_count = count;
->
->         return 0;
->  }
-> diff --git a/lib/utils/ipi/fdt_ipi_clint.c b/lib/utils/ipi/fdt_ipi_clint.c
-> index 529f978..c97d3a9 100644
-> --- a/lib/utils/ipi/fdt_ipi_clint.c
-> +++ b/lib/utils/ipi/fdt_ipi_clint.c
-> @@ -21,15 +21,18 @@ static int ipi_clint_cold_init(void *fdt, int nodeoff,
->                                const struct fdt_match *match)
->  {
->         int rc;
-> +       unsigned long cisize;
->         struct clint_data *ci;
->
->         if (CLINT_IPI_MAX_NR <= clint_ipi_count)
->                 return SBI_ENOSPC;
->         ci = &clint_ipi[clint_ipi_count++];
->
-> -       rc = fdt_parse_clint_node(fdt, nodeoff, FALSE, ci);
-> +       rc = fdt_parse_aclint_node(fdt, nodeoff, FALSE, &ci->addr, &cisize,
-
-nits: use false
-
-> +                                  &ci->first_hartid, &ci->hart_count);
->         if (rc)
->                 return rc;
-> +       ci->has_64bit_mmio = false;
->
->         return clint_cold_ipi_init(ci);
->  }
-> diff --git a/lib/utils/timer/fdt_timer_clint.c b/lib/utils/timer/fdt_timer_clint.c
-> index 0352e53..9c84c3b 100644
-> --- a/lib/utils/timer/fdt_timer_clint.c
-> +++ b/lib/utils/timer/fdt_timer_clint.c
-> @@ -7,6 +7,7 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->
-> +#include <libfdt.h>
->  #include <sbi/sbi_error.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/timer/fdt_timer.h>
-> @@ -21,6 +22,7 @@ static int timer_clint_cold_init(void *fdt, int nodeoff,
->                                   const struct fdt_match *match)
->  {
->         int rc;
-> +       unsigned long ctsize;
->         struct clint_data *ct, *ctmaster = NULL;
->
->         if (CLINT_TIMER_MAX_NR <= clint_timer_count)
-> @@ -29,10 +31,15 @@ static int timer_clint_cold_init(void *fdt, int nodeoff,
->         if (1 < clint_timer_count)
->                 ctmaster = &clint_timer[0];
->
-> -       rc = fdt_parse_clint_node(fdt, nodeoff, TRUE, ct);
-> +       rc = fdt_parse_aclint_node(fdt, nodeoff, TRUE, &ct->addr, &ctsize,
-
-nits: use true
-
-> +                                  &ct->first_hartid, &ct->hart_count);
->         if (rc)
->                 return rc;
->
-> +       ct->has_64bit_mmio = true;
-> +       if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
-> +               ct->has_64bit_mmio = FALSE;
-
-nits: use false
-
-> +
->         return clint_cold_timer_init(ct, ctmaster);
->  }
+>  lib/utils/ipi/fdt_ipi.c       |  4 +--
+>  lib/utils/ipi/fdt_ipi_clint.c | 51 --------------------------
+>  lib/utils/ipi/fdt_ipi_mswi.c  | 67 +++++++++++++++++++++++++++++++++++
+>  lib/utils/ipi/objects.mk      |  2 +-
+>  4 files changed, 70 insertions(+), 54 deletions(-)
+>  delete mode 100644 lib/utils/ipi/fdt_ipi_clint.c
+>  create mode 100644 lib/utils/ipi/fdt_ipi_mswi.c
 >
 
-Otherwise,
 Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
