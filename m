@@ -1,18 +1,18 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 18 Jun 2021 17:08:22 -0700
+Date: Fri, 18 Jun 2021 17:53:16 -0700
 Subject: [PATCH v2 10/15] lib: sbi: Add PMU support
-In-Reply-To: <5f5a581a4042a1bfbc46deedee847f9cbccc13b9.camel@126.com>
+In-Reply-To: <9577c9b94c007b800930abc75524b0605341b914.camel@126.com>
 References: <20210527003044.889681-1-atish.patra@wdc.com>
  <20210527003044.889681-11-atish.patra@wdc.com>
- <5f5a581a4042a1bfbc46deedee847f9cbccc13b9.camel@126.com>
-Message-ID: <CAOnJCULHfiTcO3zteAsW=v=bdKceHXVV5Z44x_VBhvn7u9Ya4w@mail.gmail.com>
+ <9577c9b94c007b800930abc75524b0605341b914.camel@126.com>
+Message-ID: <CAOnJCUKP1PFgc98crerbPmGhBde7i+UecRkyiFBgdyNsexFjJQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 8, 2021 at 4:59 AM Xiang W <wxjstz@126.com> wrote:
+On Thu, Jun 10, 2021 at 12:27 AM Xiang W <wxjstz@126.com> wrote:
 >
 > ? 2021-05-26???? 17:30 -0700?Atish Patra???
 > > RISC-V SBI v0.3 specification defined a PMU extension to
@@ -479,6 +479,15 @@ On Tue, Jun 8, 2021 at 4:59 AM Xiang W <wxjstz@126.com> wrote:
 > > evtB->end_idx)) ||
 > > +          ((evtA->start_idx > evtB->start_idx) && (evtA->start_idx >
 > > evtB->end_idx)))
+> Because start_idx is always less than or equal to end_idx, the above
+> condition can be simplified to?
+>
+>                     if (evtA->end_idx < evtB->start_idx
+>                         || evtA->start_idx > evtB->end_idx)
+>
+
+Sure. Thanks for the review.
+
 > > +               return FALSE;
 > > +       return TRUE;
 > > +}
@@ -574,6 +583,25 @@ On Tue, Jun 8, 2021 at 4:59 AM Xiang W <wxjstz@126.com> wrote:
 > > +           (eidx_start == SBI_PMU_HW_INSTRUCTIONS && cmap != 0x4) ||
 > > +           (eidx_start > SBI_PMU_HW_INSTRUCTIONS && cmap < 0x08))
 > > +               return SBI_EDENIED;
+> Should we add restriction eidx_start <= eidx_end
+>
+
+Yeah. I will add that in v3.
+
+> can cmap have a gaps?
+
+Yes. But the example is not valid because the cmap is a bitmap of all
+the counters
+that can be programmed to monitor specified events between eidx_start
+and eidx_end.
+In this example, cmap can't handle SBI_PMU_HW_CPU_CYCLES/INSTRUCTIONS.
+
+> The above test may not be appropriate.
+> ex:
+>         eidx_start = SBI_PMU_HW_CPU_CYCLES
+>         eidx_end   = 8
+>         cmap       = 0xd0
+>
 > > +
 > > +       if (num_hw_events >= SBI_PMU_HW_EVENT_MAX - 1) {
 > > +               sbi_printf("Can not handle more than %d perf
@@ -635,17 +663,6 @@ On Tue, Jun 8, 2021 at 4:59 AM Xiang W <wxjstz@126.com> wrote:
 > > +#if __riscv_xlen == 32
 > > +       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
 > > +       csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
->
-> The above code is recommended to be modified to:
->         csr_write_num(CSR_MCYCLE + cidx, 0);
->         csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
->         csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
->
-
-why ?
-
-> Regards,
-> Xiang W
 > > +#else
 > > +       csr_write_num(CSR_MCYCLE + cidx, ival);
 > > +#endif
@@ -903,6 +920,12 @@ why ?
 > > +       /* Do a basic sanity check of counter base & mask */
 > > +       if (cidx_base >= total_ctrs || __fls(tmp) >= total_ctrs ||
 > > +           event_type >= SBI_PMU_EVENT_TYPE_MAX)
+> We can remove cidx_base >= total_ctrs, because __fls(tmp) always large
+> then cidx_base
+>
+
+Correct. Removed in v3. Thanks.
+
 > > +               return SBI_EINVAL;
 > > +
 > > +       if (flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) {
