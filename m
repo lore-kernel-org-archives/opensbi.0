@@ -1,10 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 22 Jun 2021 15:00:17 +0000
-Subject: [PATCH 1/1] lib: sign conflict in sbi_tlb_entry_process()
-In-Reply-To: <7ee398bac890aa3df905608a8583167c1aae4875.camel@126.com>
-References: <20210621195010.33557-1-xypron.glpk@gmx.de>
- <7ee398bac890aa3df905608a8583167c1aae4875.camel@126.com>
-Message-ID: <DC2C8C3C-E6A4-4A8C-B038-3C298D4C110C@wdc.com>
+Date: Tue, 22 Jun 2021 15:00:55 +0000
+Subject: [PATCH 1/1] lib: sign conflict in wake_coldboot_harts()
+In-Reply-To: <559b27560791d7387f04105482b203396595b2ed.camel@126.com>
+References: <20210621193754.31845-1-xypron.glpk@gmx.de>
+ <559b27560791d7387f04105482b203396595b2ed.camel@126.com>
+Message-ID: <C4037A00-0FD5-4F9F-A3B4-1555A22DCC42@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,16 +13,19 @@ Content-Transfer-Encoding: 7bit
 
 
 
-?On 22/06/21, 12:12 PM, "Xiang W" <wxjstz@126.com> wrote:
+?On 22/06/21, 12:13 PM, "Xiang W" <wxjstz@126.com> wrote:
 
-    ? 2021-06-21???? 21:50 +0200?Heinrich Schuchardt???
-    > Compiling sbi_tlb_entry_process() with GCC 11 and -Wextra yields:
+    ? 2021-06-21???? 21:37 +0200?Heinrich Schuchardt???
+    > Compiling wake_coldboot_harts() with GCC 11 and -Wextra yields:
     > 
-    > lib/sbi/sbi_tlb.c: In function ?sbi_tlb_process_count?:
-    > lib/sbi/sbi_tlb.c:206:31:
+    > lib/sbi/sbi_init.c:208:27:
     > error: comparison of integer expressions of different signedness:
-    > ?u32? {aka ?unsigned int?} and ?int? [-Werror=sign-compare]
-    >   206 |                 if (deq_count > count)
+    > ?int? and ?u32? {aka ?unsigned int?} [-Werror=sign-compare]
+    >   208 |         for (int i = 0; i <= sbi_scratch_last_hartid(); i++)
+    > {
+    >       |                           ^~
+    > 
+    > Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
     > 
     Reviewed-by: Xiang W <wxjstz@126.com>
 
@@ -31,32 +34,24 @@ Applied this patch to the riscv/opensbi repo.
 Regards,
 Anup
 
-    > Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
     > ---
-    >  lib/sbi/sbi_tlb.c | 5 +++--
-    >  1 file changed, 3 insertions(+), 2 deletions(-)
+    >  lib/sbi/sbi_init.c | 2 +-
+    >  1 file changed, 1 insertion(+), 1 deletion(-)
     > 
-    > diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-    > index 2ba1b7b..8bbe92b 100644
-    > --- a/lib/sbi/sbi_tlb.c
-    > +++ b/lib/sbi/sbi_tlb.c
-    > @@ -193,10 +193,11 @@ static void sbi_tlb_entry_process(struct
-    > sbi_tlb_info *tinfo)
-    >         }
-    >  }
+    > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+    > index b158314..e396d95 100644
+    > --- a/lib/sbi/sbi_init.c
+    > +++ b/lib/sbi/sbi_init.c
+    > @@ -205,7 +205,7 @@ static void wake_coldboot_harts(struct
+    > sbi_scratch *scratch, u32 hartid)
+    >         spin_lock(&coldboot_lock);
     > 
-    > -static void sbi_tlb_process_count(struct sbi_scratch *scratch, int
-    > count)
-    > +static void sbi_tlb_process_count(struct sbi_scratch *scratch,
-    > +                                 unsigned int count)
-    >  {
-    >         struct sbi_tlb_info tinfo;
-    > -       u32 deq_count = 0;
-    > +       unsigned int deq_count = 0;
-    >         struct sbi_fifo *tlb_fifo =
-    >                         sbi_scratch_offset_ptr(scratch,
-    > tlb_fifo_off);
-    > 
+    >         /* Send an IPI to all HARTs waiting for coldboot */
+    > -       for (int i = 0; i <= sbi_scratch_last_hartid(); i++) {
+    > +       for (u32 i = 0; i <= sbi_scratch_last_hartid(); i++) {
+    >                 if ((i != hartid) &&
+    >                     sbi_hartmask_test_hart(i, &coldboot_wait_hmask))
+    >                         sbi_ipi_raw_send(i);
     > --
     > 2.30.2
     > 
