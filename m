@@ -1,10 +1,10 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Tue, 22 Jun 2021 15:00:55 +0000
-Subject: [PATCH 1/1] lib: sign conflict in wake_coldboot_harts()
-In-Reply-To: <559b27560791d7387f04105482b203396595b2ed.camel@126.com>
-References: <20210621193754.31845-1-xypron.glpk@gmx.de>
- <559b27560791d7387f04105482b203396595b2ed.camel@126.com>
-Message-ID: <C4037A00-0FD5-4F9F-A3B4-1555A22DCC42@wdc.com>
+Date: Tue, 22 Jun 2021 15:02:08 +0000
+Subject: [PATCH 1/1] lib: simplify sbi_fifo_inplace_update()
+In-Reply-To: <d0eae4a1323baf358b8db6902accbb8a51d09dfb.camel@126.com>
+References: <20210621190316.25463-1-xypron.glpk@gmx.de>
+ <d0eae4a1323baf358b8db6902accbb8a51d09dfb.camel@126.com>
+Message-ID: <94C5BA35-8019-47DB-819B-AC61337C47BE@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,20 +13,14 @@ Content-Transfer-Encoding: 7bit
 
 
 
-?On 22/06/21, 12:13 PM, "Xiang W" <wxjstz@126.com> wrote:
+?On 22/06/21, 12:14 PM, "opensbi on behalf of Xiang W" <opensbi-bounces at lists.infradead.org on behalf of wxjstz@126.com> wrote:
 
-    ? 2021-06-21???? 21:37 +0200?Heinrich Schuchardt???
-    > Compiling wake_coldboot_harts() with GCC 11 and -Wextra yields:
+    ? 2021-06-21???? 21:03 +0200?Heinrich Schuchardt???
+    > Don't assign an unused value to variable index.
     > 
-    > lib/sbi/sbi_init.c:208:27:
-    > error: comparison of integer expressions of different signedness:
-    > ?int? and ?u32? {aka ?unsigned int?} [-Werror=sign-compare]
-    >   208 |         for (int i = 0; i <= sbi_scratch_last_hartid(); i++)
-    > {
-    >       |                           ^~
+    > Use operator '-=' where applicable.
     > 
     > Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-    > 
     Reviewed-by: Xiang W <wxjstz@126.com>
 
 Applied this patch to the riscv/opensbi repo.
@@ -35,27 +29,42 @@ Regards,
 Anup
 
     > ---
-    >  lib/sbi/sbi_init.c | 2 +-
-    >  1 file changed, 1 insertion(+), 1 deletion(-)
+    >  lib/sbi/sbi_fifo.c | 4 ++--
+    >  1 file changed, 2 insertions(+), 2 deletions(-)
     > 
-    > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-    > index b158314..e396d95 100644
-    > --- a/lib/sbi/sbi_init.c
-    > +++ b/lib/sbi/sbi_init.c
-    > @@ -205,7 +205,7 @@ static void wake_coldboot_harts(struct
-    > sbi_scratch *scratch, u32 hartid)
-    >         spin_lock(&coldboot_lock);
+    > diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c
+    > index 2a5c012..b2395f3 100644
+    > --- a/lib/sbi/sbi_fifo.c
+    > +++ b/lib/sbi/sbi_fifo.c
+    > @@ -118,7 +118,7 @@ bool sbi_fifo_reset(struct sbi_fifo *fifo)
+    >  int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
+    >                             int (*fptr)(void *in, void *data))
+    >  {
+    > -       int i, index = 0;
+    > +       int i, index;
+    >         int ret = SBI_FIFO_UNCHANGED;
+    >         void *entry;
     > 
-    >         /* Send an IPI to all HARTs waiting for coldboot */
-    > -       for (int i = 0; i <= sbi_scratch_last_hartid(); i++) {
-    > +       for (u32 i = 0; i <= sbi_scratch_last_hartid(); i++) {
-    >                 if ((i != hartid) &&
-    >                     sbi_hartmask_test_hart(i, &coldboot_wait_hmask))
-    >                         sbi_ipi_raw_send(i);
+    > @@ -135,7 +135,7 @@ int sbi_fifo_inplace_update(struct sbi_fifo
+    > *fifo, void *in,
+    >         for (i = 0; i < fifo->avail; i++) {
+    >                 index = fifo->tail + i;
+    >                 if (index >= fifo->num_entries)
+    > -                       index = index - fifo->num_entries;
+    > +                       index -= fifo->num_entries;
+    >                 entry = (void *)fifo->queue + (u32)index * fifo-
+    > >entry_size;
+    >                 ret = fptr(in, entry);
+    > 
     > --
     > 2.30.2
     > 
     > 
 
 
+
+    -- 
+    opensbi mailing list
+    opensbi at lists.infradead.org
+    http://lists.infradead.org/mailman/listinfo/opensbi
 
