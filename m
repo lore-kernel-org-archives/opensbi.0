@@ -1,435 +1,284 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 23 Jun 2021 10:13:23 +0530
-Subject: [PATCH 1/1] lib: sbi_scratch: re-implement scratch memory
- allocator
-In-Reply-To: <779f28a30f0aaa9820de17150bf8c2fbd479de76.camel@126.com>
-References: <20210608203046.105890-1-xypron.glpk@gmx.de>
- <779f28a30f0aaa9820de17150bf8c2fbd479de76.camel@126.com>
-Message-ID: <CAAhSdy2rQirjTpHQGdr5m8fC2VVAWNQwkOUH9FCN-bHNmcXeww@mail.gmail.com>
+Date: Wed, 23 Jun 2021 10:31:49 +0530
+Subject: [PATCH 1/6] lib: utils/timer: Add ACLINT MTIMER library
+In-Reply-To: <CAEUhbmWOx0wUz2Qg-7wCdVWeXqn8KcDDcVRDiDPw8kR_KoVT4Q@mail.gmail.com>
+References: <20210612160321.330638-1-anup.patel@wdc.com>
+ <20210612160321.330638-2-anup.patel@wdc.com>
+ <CAEUhbmWOx0wUz2Qg-7wCdVWeXqn8KcDDcVRDiDPw8kR_KoVT4Q@mail.gmail.com>
+Message-ID: <CAAhSdy2XzHiVVg0=yNQxJCMQ6t7P0B13GBX7_x_Rr4bhWVD2-g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 23, 2021 at 10:02 AM Xiang W <wxjstz@126.com> wrote:
+On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> ? 2021-06-08???? 22:30 +0200?Heinrich Schuchardt???
-> > Up to now we could allocated scratch memory but not deallocate it.
+> On Sun, Jun 13, 2021 at 12:04 AM Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > Provide a best fit memory allocator.
+> > We add common ACLINT MTIMER library similar to the CLINT library
+> > so that OpenSBI platforms can use it.
 > >
-> > Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  include/sbi_utils/timer/aclint_mtimer.h |  41 ++++++
+> >  lib/utils/timer/aclint_mtimer.c         | 180 ++++++++++++++++++++++++
+> >  lib/utils/timer/objects.mk              |   1 +
+> >  3 files changed, 222 insertions(+)
+> >  create mode 100644 include/sbi_utils/timer/aclint_mtimer.h
+> >  create mode 100644 lib/utils/timer/aclint_mtimer.c
+> >
+> > diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+> > new file mode 100644
+> > index 0000000..510bfa9
+> > --- /dev/null
+> > +++ b/include/sbi_utils/timer/aclint_mtimer.h
+> > @@ -0,0 +1,41 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> > + *
+> > + * Authors:
+> > + *   Anup Patel <anup.patel@wdc.com>
+> > + */
+> > +
+> > +#ifndef __TIMER_ACLINT_MTIMER_H__
+> > +#define __TIMER_ACLINT_MTIMER_H__
+> > +
+> > +#include <sbi/sbi_types.h>
+> > +
+> > +#define ACLINT_MTIMER_ALIGN            0x1000
+> > +#define ACLINT_MTIMER_SIZE             0x8000
+> > +#define ACLINT_MTIMER_MAX_HARTS        4095
+> > +
+> > +#define CLINT_MTIMER_OFFSET            0x4000
+> > +
+> > +struct aclint_mtimer_data {
+> > +       /* Public details */
+> > +       unsigned long addr;
+> > +       unsigned long size;
+> > +       u32 first_hartid;
+> > +       u32 hart_count;
+> > +       bool has_64bit_mmio;
+> > +       /* Private details (initialized and used by ACLINT MTIMER library) */
+> > +       struct aclint_mtimer_data *time_delta_reference;
+> > +       unsigned long time_delta_computed;
+> > +       u64 time_delta;
+> > +       u64 (*time_rd)(volatile u64 *addr);
+> > +       void (*time_wr)(u64 value, volatile u64 *addr);
+> > +};
+> > +
+> > +int aclint_mtimer_warm_init(void);
+> > +
+> > +int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> > +                           struct aclint_mtimer_data *reference);
+> > +
+> > +#endif
+> > diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+> > new file mode 100644
+> > index 0000000..2c64ca8
+> > --- /dev/null
+> > +++ b/lib/utils/timer/aclint_mtimer.c
+> > @@ -0,0 +1,180 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> > + *
+> > + * Authors:
+> > + *   Anup Patel <anup.patel@wdc.com>
+> > + */
+> > +
+> > +#include <sbi/riscv_asm.h>
+> > +#include <sbi/riscv_atomic.h>
+> > +#include <sbi/riscv_io.h>
+> > +#include <sbi/sbi_domain.h>
+> > +#include <sbi/sbi_error.h>
+> > +#include <sbi/sbi_hartmask.h>
+> > +#include <sbi/sbi_ipi.h>
+> > +#include <sbi/sbi_timer.h>
+> > +#include <sbi_utils/timer/aclint_mtimer.h>
+> > +
+> > +#define MTIMER_CMP_OFF         0x0000
+> > +#define MTIMER_VAL_OFF         0x7ff8
+> > +
+> > +static struct aclint_mtimer_data *mtimer_hartid2data[SBI_HARTMASK_MAX_BITS];
+> > +
+> > +#if __riscv_xlen != 32
+> > +static u64 mtimer_time_rd64(volatile u64 *addr)
+> > +{
+> > +       return readq_relaxed(addr);
+> > +}
+> > +
+> > +static void mtimer_time_wr64(u64 value, volatile u64 *addr)
+> > +{
+> > +       writeq_relaxed(value, addr);
+> > +}
+> > +#endif
+> > +
+> > +static u64 mtimer_time_rd32(volatile u64 *addr)
+> > +{
+> > +       u32 lo, hi;
+> > +
+> > +       do {
+> > +               hi = readl_relaxed((u32 *)addr + 1);
+> > +               lo = readl_relaxed((u32 *)addr);
+> > +       } while (hi != readl_relaxed((u32 *)addr + 1));
+> > +
+> > +       return ((u64)hi << 32) | (u64)lo;
+> > +}
+> > +
+> > +static void mtimer_time_wr32(u64 value, volatile u64 *addr)
+> > +{
+> > +       u32 mask = -1U;
+> > +
+> > +       writel_relaxed(value & mask, (void *)(addr));
+> > +       writel_relaxed(value >> 32, (void *)(addr) + 0x04);
+> > +}
+> > +
+> > +static u64 mtimer_value(void)
+> > +{
+> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[current_hartid()];
+> > +       u64 *time_val = ((void *)mt->addr) + MTIMER_VAL_OFF;
+> > +
+> > +       /* Read MTIMER Time Value */
+> > +       return mt->time_rd(time_val) + mt->time_delta;
+> > +}
+> > +
+> > +static void mtimer_event_stop(void)
+> > +{
+> > +       u32 target_hart = current_hartid();
+> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> > +       u64 *time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
+> > +
+> > +       /* Clear MTIMER Time Compare */
+> > +       mt->time_wr(-1ULL, &time_cmp[target_hart - mt->first_hartid]);
+> > +}
+> > +
+> > +static void mtimer_event_start(u64 next_event)
+> > +{
+> > +       u32 target_hart = current_hartid();
+> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> > +       u64 *time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
+> > +
+> > +       /* Program MTIMER Time Compare */
+> > +       mt->time_wr(next_event - mt->time_delta,
+> > +                   &time_cmp[target_hart - mt->first_hartid]);
+> > +}
+> > +
+> > +static struct sbi_timer_device mtimer = {
+> > +       .name = "aclint-mtimer",
+> > +       .timer_value = mtimer_value,
+> > +       .timer_event_start = mtimer_event_start,
+> > +       .timer_event_stop = mtimer_event_stop
+> > +};
+> > +
+> > +int aclint_mtimer_warm_init(void)
+> > +{
+> > +       u64 v1, v2, mv;
+> > +       u32 target_hart = current_hartid();
+> > +       struct aclint_mtimer_data *reference;
+> > +       u64 *mt_time_val, *mt_time_cmp, *ref_time_val;
+> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> > +
+> > +       if (!mt)
+> > +               return SBI_ENODEV;
+> > +
+> > +       /*
+> > +        * Compute delta if reference available
+> > +        *
+> > +        * We deliberately compute time_delta in warm init so that time_delta
+> > +        * is computed on a HART which is going to use given MTIMER. We use
+> > +        * atomic flag timer_delta_computed to ensure that only one HART does
+> > +        * time_delta computation.
+> > +        */
+> > +       if (mt->time_delta_reference) {
+> > +               reference = mt->time_delta_reference;
+> > +               mt_time_val = (void *)mt->addr + MTIMER_VAL_OFF;
+> > +               ref_time_val = (void *)reference->addr + MTIMER_VAL_OFF;
+> > +               if (!atomic_raw_xchg_ulong(&mt->time_delta_computed, 1)) {
+> > +                       v1 = mt->time_rd(mt_time_val);
+> > +                       mv = reference->time_rd(ref_time_val);
+> > +                       v2 = mt->time_rd(mt_time_val);
+> > +                       mt->time_delta = mv - ((v1 / 2) + (v2 / 2));
+> > +               }
+> > +       }
+> > +
+> > +       /* Clear Time Compare */
+> > +       mt_time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
+> > +       mt->time_wr(-1ULL, &mt_time_cmp[target_hart - mt->first_hartid]);
+> > +
+> > +       return 0;
+> > +}
+> > +
+> > +int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> > +                           struct aclint_mtimer_data *reference)
+> > +{
+> > +       u32 i;
+> > +       int rc;
+> > +       unsigned long pos, region_size;
+> > +       struct sbi_domain_memregion reg;
+> > +
+> > +       /* Sanity checks */
+> > +       if (!mt || (mt->addr & (ACLINT_MTIMER_ALIGN - 1)) ||
+> > +           (mt->size < ACLINT_MTIMER_SIZE) ||
+> > +           (mt->first_hartid >= SBI_HARTMASK_MAX_BITS) ||
+> > +           (mt->hart_count > ACLINT_MTIMER_MAX_HARTS))
+> > +               return SBI_EINVAL;
+> > +
+> > +       /* Initialize private data */
+> > +       mt->time_delta_reference = reference;
+> > +       mt->time_delta_computed = 0;
+> > +       mt->time_delta = 0;
+> > +       mt->time_rd = mtimer_time_rd32;
+> > +       mt->time_wr = mtimer_time_wr32;
+> > +
+> > +       /* Override read/write accessors for 64bit MMIO */
+> > +#if __riscv_xlen != 32
+> > +       if (mt->has_64bit_mmio) {
+> > +               mt->time_rd = mtimer_time_rd64;
+> > +               mt->time_wr = mtimer_time_wr64;
+> > +       }
+> > +#endif
+> > +
+> > +       /* Update MTIMER hartid table */
+> > +       for (i = 0; i < mt->hart_count; i++)
+> > +               mtimer_hartid2data[mt->first_hartid + i] = mt;
+> > +
+> > +       /* Add MTIMER regions to the root domain */
+> > +       for (pos = 0; pos < mt->size; pos += ACLINT_MTIMER_ALIGN) {
+> > +               region_size = ((mt->size - pos) < ACLINT_MTIMER_ALIGN) ?
+> > +                             (mt->size - pos) : ACLINT_MTIMER_ALIGN;
+> > +               sbi_domain_memregion_init(mt->addr + pos, region_size,
+> > +                                         SBI_DOMAIN_MEMREGION_MMIO, &reg);
+> > +               rc = sbi_domain_root_add_memregion(&reg);
+> > +               if (rc)
+> > +                       return rc;
+> > +       }
+> > +
+> > +       sbi_timer_set_device(&mtimer);
+> > +
+> > +       return 0;
+> > +}
+> > diff --git a/lib/utils/timer/objects.mk b/lib/utils/timer/objects.mk
+> > index 1b84e92..f8e3931 100644
+> > --- a/lib/utils/timer/objects.mk
+> > +++ b/lib/utils/timer/objects.mk
+> > @@ -9,3 +9,4 @@
+> >
+> >  libsbiutils-objs-y += timer/fdt_timer.o
+> >  libsbiutils-objs-y += timer/fdt_timer_clint.o
+> > +libsbiutils-objs-y += timer/aclint_mtimer.o
 >
-> sbi_scratch_alloc_offset is currently only used to expand the
-> sbi_scratch data structure, and does not need to dynamically release
-> memory. Such modification will increase memory consumption. If you want
-> to add alloc and free, you should add a section for heap in the link
-> script
+> nits: insert this by following the alphabetical order
 
-The sbi_scratch space is per-HART (or per-CPU) space and is very
-different from a global heap space. The sbi_scratch will usually be
-a small resource but we still need to manage it hence this patch.
+Okay, will update.
 
-Having a global heap space in OpenSBI is a separate topic and
-till now we have avoided adding a heap space to keep the runtime
-memory usage low. Let's see how long we can continue without
-a global heap space.
+>
+> Otherwise,
+> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
 Regards,
 Anup
-
->
-> Regards,
-> Xiang W
-> > ---
-> >  include/sbi/sbi_scratch.h |  52 +++++++++-
-> >  include/sbi/sbi_types.h   |   2 +
-> >  lib/sbi/sbi_scratch.c     | 203 +++++++++++++++++++++++++++++++-----
-> > --
-> >  3 files changed, 218 insertions(+), 39 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> > index 186a40c..f9ea434 100644
-> > --- a/include/sbi/sbi_scratch.h
-> > +++ b/include/sbi/sbi_scratch.h
-> > @@ -36,10 +36,10 @@
-> >  #define SBI_SCRATCH_TMP0_OFFSET                        (9 *
-> > __SIZEOF_POINTER__)
-> >  /** Offset of options member in sbi_scratch */
-> >  #define SBI_SCRATCH_OPTIONS_OFFSET             (10 *
-> > __SIZEOF_POINTER__)
-> > -/** Offset of extra space in sbi_scratch */
-> > -#define SBI_SCRATCH_EXTRA_SPACE_OFFSET         (11 *
-> > __SIZEOF_POINTER__)
-> >  /** Maximum size of sbi_scratch (4KB) */
-> >  #define SBI_SCRATCH_SIZE                       (0x1000)
-> > +/** Offset of field mem in the sbi_mem_alloc structure */
-> > +#define SBI_SCRATCH_ALLOC_SIZE (offsetof(struct sbi_scratch_alloc,
-> > mem))
-> >
-> >  /* clang-format on */
-> >
-> > @@ -47,6 +47,49 @@
-> >
-> >  #include <sbi/sbi_types.h>
-> >
-> > +/**
-> > + * struct sbi_scratch_alloc - memory allocation
-> > + *
-> > + * This structure describes a block of allocated or free memory.
-> > + * The fields @prev and @next are only used for free blocks.
-> > + */
-> > +struct sbi_scratch_alloc {
-> > +       /**
-> > +        * @prev_size: size of previous memory block
-> > +        *
-> > +        * If the bit 0 is zero the memory is available.
-> > +        * If the bit 0 is non-zero the memory is allocated.
-> > +        */
-> > +       unsigned int prev_size;
-> > +       /**
-> > +        * @size: size of memory block
-> > +        *
-> > +        * If the bit 0 is zero the memory is available.
-> > +        * If the bit 0 is non-zero the memory is allocated.
-> > +        */
-> > +       unsigned int size;
-> > +
-> > +       union {
-> > +               /**
-> > +                * @mem: allocated memory
-> > +                *
-> > +                * The macro SBI_SCRATCH_ALLOC_SIZE provides the
-> > offset of @mem
-> > +                * in the sbi_mem_alloc structure.
-> > +                */
-> > +               unsigned char mem[0];
-> > +               struct {
-> > +                       /**
-> > +                        * @prev: offset of preceeding block in free
-> > block list
-> > +                        */
-> > +                       unsigned int prev;
-> > +                       /**
-> > +                        * @next: offset of succceeding block in free
-> > block list
-> > +                        */
-> > +                       unsigned int next;
-> > +               };
-> > +       };
-> > +} __aligned(2 * sizeof(int));
-> > +
-> >  /** Representation of per-HART scratch space */
-> >  struct sbi_scratch {
-> >         /** Start (or base) address of firmware linked to OpenSBI
-> > library */
-> > @@ -71,6 +114,8 @@ struct sbi_scratch {
-> >         unsigned long tmp0;
-> >         /** Options for OpenSBI library */
-> >         unsigned long options;
-> > +       /** Start of scratch memory allocation list */
-> > +       struct sbi_scratch_alloc mem;
-> >  };
-> >
-> >  /** Possible options for OpenSBI library */
-> > @@ -95,8 +140,7 @@ int sbi_scratch_init(struct sbi_scratch *scratch);
-> >  /**
-> >   * Allocate from extra space in sbi_scratch
-> >   *
-> > - * @return zero on failure and non-zero (>=
-> > SBI_SCRATCH_EXTRA_SPACE_OFFSET)
-> > - * on success
-> > + * @return zero on failure and non-zero on success
-> >   */
-> >  unsigned long sbi_scratch_alloc_offset(unsigned long size);
-> >
-> > diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
-> > index 38e3565..2050265 100644
-> > --- a/include/sbi/sbi_types.h
-> > +++ b/include/sbi/sbi_types.h
-> > @@ -88,6 +88,8 @@ typedef unsigned long         physical_size_t;
-> >  #define STR(x) XSTR(x)
-> >  #define XSTR(x) #x
-> >
-> > +#define ALIGN(x, a) ((typeof(x))((unsigned long)(x + (a - 1)) & ~(a
-> > - 1)))
-> > +
-> >  #define ROUNDUP(a, b) ((((a)-1) / (b) + 1) * (b))
-> >  #define ROUNDDOWN(a, b) ((a) / (b) * (b))
-> >
-> > diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> > index 87b34c6..4c59c62 100644
-> > --- a/lib/sbi/sbi_scratch.c
-> > +++ b/lib/sbi/sbi_scratch.c
-> > @@ -18,10 +18,16 @@ u32 last_hartid_having_scratch =
-> > SBI_HARTMASK_MAX_BITS - 1;
-> >  struct sbi_scratch *hartid_to_scratch_table[SBI_HARTMASK_MAX_BITS] =
-> > { 0 };
-> >
-> >  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
-> > -static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
-> > +static unsigned int first_free;
-> >
-> >  typedef struct sbi_scratch *(*hartid2scratch)(ulong hartid, ulong
-> > hartindex);
-> >
-> > +/**
-> > + * sbi_scratch_init() - initialize scratch table and allocator
-> > + *
-> > + * @scratch:   pointer to table
-> > + * Return:     0 on success
-> > + */
-> >  int sbi_scratch_init(struct sbi_scratch *scratch)
-> >  {
-> >         u32 i;
-> > @@ -37,63 +43,190 @@ int sbi_scratch_init(struct sbi_scratch
-> > *scratch)
-> >                         last_hartid_having_scratch = i;
-> >         }
-> >
-> > +       /* Initialize memory allocation block list */
-> > +       scratch = sbi_hartid_to_scratch(last_hartid_having_scratch);
-> > +
-> > +       scratch->mem.prev_size = (2 * sizeof(unsigned int)) | 1U;
-> > +       scratch->mem.size = SBI_SCRATCH_SIZE -
-> > +                           offsetof(struct sbi_scratch, mem.mem);
-> > +       first_free = offsetof(struct sbi_scratch, mem);
-> > +       scratch->mem.prev = 0;
-> > +       scratch->mem.next = 0;
-> > +
-> >         return 0;
-> >  }
-> >
-> > +/**
-> > + * sbi_scratch_alloc_offset() - allocate scratch memory
-> > + *
-> > + * @size:      requested size
-> > + * Return:     offset of allocated block on succcess, 0 on failure
-> > + */
-> >  unsigned long sbi_scratch_alloc_offset(unsigned long size)
-> >  {
-> > -       u32 i;
-> > -       void *ptr;
-> > -       unsigned long ret = 0;
-> > -       struct sbi_scratch *rscratch;
-> > +       unsigned long ret;
-> > +       unsigned int best_size = ~0U;
-> > +       struct sbi_scratch_alloc *best = NULL;
-> > +       struct sbi_scratch *scratch =
-> > +               sbi_hartid_to_scratch(last_hartid_having_scratch);
-> > +       unsigned int next;
-> > +       struct sbi_scratch_alloc *current;
-> > +       struct sbi_scratch_alloc *pred, *succ;
-> > +       struct sbi_scratch_alloc *end =
-> > +               (void *)((char *)scratch + SBI_SCRATCH_SIZE);
-> >
-> >         /*
-> > -        * We have a simple brain-dead allocator which never expects
-> > -        * anything to be free-ed hence it keeps incrementing the
-> > -        * next allocation offset until it runs-out of space.
-> > -        *
-> > -        * In future, we will have more sophisticated allocator which
-> > -        * will allow us to re-claim free-ed space.
-> > +        * When allocating zero bytes we still need space
-> > +        * for the prev and next fields.
-> >          */
-> > -
-> >         if (!size)
-> > +               size = 1;
-> > +       size = ALIGN(size, 2 * sizeof(unsigned int));
-> > +
-> > +       spin_lock(&extra_lock);
-> > +
-> > +       /* Find best fitting free block */
-> > +       for (next = first_free; next; next = current->next) {
-> > +               current = (void *)((char *)scratch + next);
-> > +               if (current->size > best_size || current->size <
-> > size)
-> > +                       continue;
-> > +               best_size = current->size;
-> > +               best = current;
-> > +       }
-> > +       if (!best) {
-> > +               spin_unlock(&extra_lock);
-> >                 return 0;
-> > +       }
-> >
-> > -       if (size & (__SIZEOF_POINTER__ - 1))
-> > -               size = (size & ~(__SIZEOF_POINTER__ - 1)) +
-> > __SIZEOF_POINTER__;
-> > +       /* Update free list */
-> > +       if (best->prev)
-> > +               pred = (void *)((char *)scratch + best->prev);
-> > +       else
-> > +               pred = NULL;
-> > +       if (best->next)
-> > +               succ = (void *)((char *)scratch + best->next);
-> > +       else
-> > +               succ = NULL;
-> > +
-> > +       if (best->size > size + SBI_SCRATCH_ALLOC_SIZE) {
-> > +               /* Split block, use the lower part for allocation. */
-> > +               current = (struct sbi_scratch_alloc *)&best-
-> > >mem[size];
-> > +               next = (char *)current - (char *)scratch;
-> > +               current->size = best->size - size -
-> > +                               SBI_SCRATCH_ALLOC_SIZE;
-> > +               current->prev = best->prev;
-> > +               current->next = best->next;
-> > +               current->prev_size = size | 1U;
-> > +               best->size = size;
-> > +               if (succ)
-> > +                       succ->prev = next;
-> > +       } else {
-> > +               next = best->next;
-> > +               if (succ)
-> > +                       succ->prev = best->prev;
-> > +               current = best;
-> > +       }
-> >
-> > -       spin_lock(&extra_lock);
-> > +       if (pred)
-> > +               pred->next = next;
-> > +       else
-> > +               first_free = next;
-> >
-> > -       if (SBI_SCRATCH_SIZE < (extra_offset + size))
-> > -               goto done;
-> > +       /* Update memory block list */
-> > +       succ = (struct sbi_scratch_alloc *)&current->mem[current-
-> > >size];
-> >
-> > -       ret = extra_offset;
-> > -       extra_offset += size;
-> > +       best->size |= 1U;
-> >
-> > -done:
-> > -       spin_unlock(&extra_lock);
-> > +       if (succ < end)
-> > +               succ->prev_size = current->size;
-> >
-> > -       if (ret) {
-> > -               for (i = 0; i <= sbi_scratch_last_hartid(); i++) {
-> > -                       rscratch = sbi_hartid_to_scratch(i);
-> > -                       if (!rscratch)
-> > -                               continue;
-> > -                       ptr = sbi_scratch_offset_ptr(rscratch, ret);
-> > -                       sbi_memset(ptr, 0, size);
-> > -               }
-> > +       ret =  best->mem - (unsigned char *)scratch;
-> > +
-> > +       /* Erase allocated scratch memory */
-> > +       for (unsigned int i = 0; i <= last_hartid_having_scratch;
-> > i++) {
-> > +               void *ptr;
-> > +               struct sbi_scratch *rscratch;
-> > +
-> > +               rscratch = sbi_hartid_to_scratch(i);
-> > +               if (!rscratch)
-> > +                       continue;
-> > +               ptr = sbi_scratch_offset_ptr(rscratch, ret);
-> > +               sbi_memset(ptr, 0, size);
-> >         }
-> >
-> > +       spin_unlock(&extra_lock);
-> > +
-> >         return ret;
-> >  }
-> >
-> > +/**
-> > + * sbi_scratch_free_offset() - free scratch memory
-> > + *
-> > + * @offset:    offset to memory to be freed
-> > + */
-> >  void sbi_scratch_free_offset(unsigned long offset)
-> >  {
-> > -       if ((offset < SBI_SCRATCH_EXTRA_SPACE_OFFSET) ||
-> > -           (SBI_SCRATCH_SIZE <= offset))
-> > +       struct sbi_scratch *scratch =
-> > +               sbi_hartid_to_scratch(last_hartid_having_scratch);
-> > +       struct sbi_scratch_alloc *freed = (void *)((unsigned char
-> > *)scratch +
-> > +                                     offset -
-> > SBI_SCRATCH_ALLOC_SIZE);
-> > +       struct sbi_scratch_alloc *pred, *succ;
-> > +       struct sbi_scratch_alloc *end =
-> > +               (void *)((char *)scratch + SBI_SCRATCH_SIZE);
-> > +
-> > +       spin_lock(&extra_lock);
-> > +
-> > +       if (!offset || !(freed->size & 1U)) {
-> > +               spin_unlock(&extra_lock);
-> >                 return;
-> > +       }
-> >
-> > -       /*
-> > -        * We don't actually free-up because it's a simple
-> > -        * brain-dead allocator.
-> > -        */
-> > +       /* Mark block as free */
-> > +       freed->size &= ~1U;
-> > +
-> > +       pred = (struct sbi_scratch_alloc *)((char *)freed -
-> > +              (freed->prev_size & ~1U) - SBI_SCRATCH_ALLOC_SIZE);
-> > +       if (pred >= &scratch->mem && !(pred->size & 1U)) {
-> > +               /* Coalesce free blocks */
-> > +               pred->size += freed->size + SBI_SCRATCH_ALLOC_SIZE;
-> > +               freed = pred;
-> > +       } else {
-> > +               /* Insert at start of free list */
-> > +               if (first_free) {
-> > +                       succ = (void *)((char *)scratch +
-> > first_free);
-> > +                       succ->prev = offset - SBI_SCRATCH_ALLOC_SIZE;
-> > +               }
-> > +               freed->next = first_free;
-> > +               freed->prev = 0;
-> > +               first_free = offset - SBI_SCRATCH_ALLOC_SIZE;
-> > +       }
-> > +
-> > +       succ = (struct sbi_scratch_alloc *)&freed->mem[freed->size &
-> > ~1U];
-> > +       if (succ < end) {
-> > +               if (!(succ->size & 1U)) {
-> > +                       struct sbi_scratch_alloc *succ2;
-> > +
-> > +                       /* Coalesce free blocks */
-> > +                       succ2 = (struct sbi_scratch_alloc *)
-> > +                               &succ->mem[succ->size & ~1U];
-> > +                       freed->size += SBI_SCRATCH_ALLOC_SIZE + succ-
-> > >size;
-> > +                       if (succ2 < end)
-> > +                               succ2->prev_size = freed->size;
-> > +
-> > +                       /* Remove successor from free list */
-> > +                       if (succ->prev) {
-> > +                               pred = (void *)((char *)scratch +
-> > succ->prev);
-> > +                               pred->next = succ->next;
-> > +                       } else {
-> > +                               first_free = succ->next;
-> > +                       }
-> > +                       if (succ->next) {
-> > +                               succ2 = (void *)((char *)scratch +
-> > succ->next);
-> > +                               succ2->prev = succ->prev;
-> > +                       }
-> > +               } else {
-> > +                       succ->prev_size = freed->size;
-> > +               }
-> > +       }
-> > +       spin_unlock(&extra_lock);
-> >  }
-> > --
-> > 2.30.2
-> >
-> >
->
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
