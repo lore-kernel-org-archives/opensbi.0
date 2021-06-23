@@ -1,34 +1,35 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 23 Jun 2021 10:31:49 +0530
+Date: Wed, 23 Jun 2021 10:35:37 +0530
 Subject: [PATCH 1/6] lib: utils/timer: Add ACLINT MTIMER library
-In-Reply-To: <CAEUhbmWOx0wUz2Qg-7wCdVWeXqn8KcDDcVRDiDPw8kR_KoVT4Q@mail.gmail.com>
+In-Reply-To: <5bb9d2e11d8a3a05ed1f8e185b7779b5c3bf87c6.camel@126.com>
 References: <20210612160321.330638-1-anup.patel@wdc.com>
  <20210612160321.330638-2-anup.patel@wdc.com>
- <CAEUhbmWOx0wUz2Qg-7wCdVWeXqn8KcDDcVRDiDPw8kR_KoVT4Q@mail.gmail.com>
-Message-ID: <CAAhSdy2XzHiVVg0=yNQxJCMQ6t7P0B13GBX7_x_Rr4bhWVD2-g@mail.gmail.com>
+ <5bb9d2e11d8a3a05ed1f8e185b7779b5c3bf87c6.camel@126.com>
+Message-ID: <CAAhSdy2dpc8eznU8TyeTZw2v0ST46Q_ZDF1kwP2oYrmP-wWFXA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Mon, Jun 14, 2021 at 8:17 PM Xiang W <wxjstz@126.com> wrote:
 >
-> On Sun, Jun 13, 2021 at 12:04 AM Anup Patel <anup.patel@wdc.com> wrote:
-> >
+> ? 2021-06-12???? 21:33 +0530?Anup Patel???
 > > We add common ACLINT MTIMER library similar to the CLINT library
 > > so that OpenSBI platforms can use it.
 > >
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > > ---
 > >  include/sbi_utils/timer/aclint_mtimer.h |  41 ++++++
-> >  lib/utils/timer/aclint_mtimer.c         | 180 ++++++++++++++++++++++++
+> >  lib/utils/timer/aclint_mtimer.c         | 180
+> > ++++++++++++++++++++++++
 > >  lib/utils/timer/objects.mk              |   1 +
 > >  3 files changed, 222 insertions(+)
 > >  create mode 100644 include/sbi_utils/timer/aclint_mtimer.h
 > >  create mode 100644 lib/utils/timer/aclint_mtimer.c
 > >
-> > diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+> > diff --git a/include/sbi_utils/timer/aclint_mtimer.h
+> > b/include/sbi_utils/timer/aclint_mtimer.h
 > > new file mode 100644
 > > index 0000000..510bfa9
 > > --- /dev/null
@@ -61,7 +62,8 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +       u32 first_hartid;
 > > +       u32 hart_count;
 > > +       bool has_64bit_mmio;
-> > +       /* Private details (initialized and used by ACLINT MTIMER library) */
+> > +       /* Private details (initialized and used by ACLINT MTIMER
+> > library) */
 > > +       struct aclint_mtimer_data *time_delta_reference;
 > > +       unsigned long time_delta_computed;
 > > +       u64 time_delta;
@@ -75,7 +77,8 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +                           struct aclint_mtimer_data *reference);
 > > +
 > > +#endif
-> > diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+> > diff --git a/lib/utils/timer/aclint_mtimer.c
+> > b/lib/utils/timer/aclint_mtimer.c
 > > new file mode 100644
 > > index 0000000..2c64ca8
 > > --- /dev/null
@@ -103,7 +106,8 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +#define MTIMER_CMP_OFF         0x0000
 > > +#define MTIMER_VAL_OFF         0x7ff8
 > > +
-> > +static struct aclint_mtimer_data *mtimer_hartid2data[SBI_HARTMASK_MAX_BITS];
+> > +static struct aclint_mtimer_data
+> > *mtimer_hartid2data[SBI_HARTMASK_MAX_BITS];
 > > +
 > > +#if __riscv_xlen != 32
 > > +static u64 mtimer_time_rd64(volatile u64 *addr)
@@ -135,11 +139,30 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +
 > > +       writel_relaxed(value & mask, (void *)(addr));
 > > +       writel_relaxed(value >> 32, (void *)(addr) + 0x04);
+> I recommend writing like this
+>         writel_relaxed(0, (void *)(addr));
+>         writel_relaxed(value >> 32, (void *)(addr) + 0x04);
+>         writel_relaxed(value & mask, (void *)(addr));
+
+Yes, certainly this is more appropriate sequence but the
+RISC-V privilege spec says to write -1U instead of 0 in
+the first write.
+
+Refer, "section 3.2.1 Machine Timer Registers (mtime and
+mtimecmp)" in the RISC-V privilege spec.
+
+>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+
+Regards,
+Anup
+
 > > +}
 > > +
 > > +static u64 mtimer_value(void)
 > > +{
-> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[current_hartid()];
+> > +       struct aclint_mtimer_data *mt =
+> > mtimer_hartid2data[current_hartid()];
 > > +       u64 *time_val = ((void *)mt->addr) + MTIMER_VAL_OFF;
 > > +
 > > +       /* Read MTIMER Time Value */
@@ -149,17 +172,20 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +static void mtimer_event_stop(void)
 > > +{
 > > +       u32 target_hart = current_hartid();
-> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> > +       struct aclint_mtimer_data *mt =
+> > mtimer_hartid2data[target_hart];
 > > +       u64 *time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
 > > +
 > > +       /* Clear MTIMER Time Compare */
-> > +       mt->time_wr(-1ULL, &time_cmp[target_hart - mt->first_hartid]);
+> > +       mt->time_wr(-1ULL, &time_cmp[target_hart - mt-
+> > >first_hartid]);
 > > +}
 > > +
 > > +static void mtimer_event_start(u64 next_event)
 > > +{
 > > +       u32 target_hart = current_hartid();
-> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> > +       struct aclint_mtimer_data *mt =
+> > mtimer_hartid2data[target_hart];
 > > +       u64 *time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
 > > +
 > > +       /* Program MTIMER Time Compare */
@@ -180,7 +206,8 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +       u32 target_hart = current_hartid();
 > > +       struct aclint_mtimer_data *reference;
 > > +       u64 *mt_time_val, *mt_time_cmp, *ref_time_val;
-> > +       struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+> > +       struct aclint_mtimer_data *mt =
+> > mtimer_hartid2data[target_hart];
 > > +
 > > +       if (!mt)
 > > +               return SBI_ENODEV;
@@ -188,16 +215,21 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +       /*
 > > +        * Compute delta if reference available
 > > +        *
-> > +        * We deliberately compute time_delta in warm init so that time_delta
-> > +        * is computed on a HART which is going to use given MTIMER. We use
-> > +        * atomic flag timer_delta_computed to ensure that only one HART does
+> > +        * We deliberately compute time_delta in warm init so that
+> > time_delta
+> > +        * is computed on a HART which is going to use given MTIMER.
+> > We use
+> > +        * atomic flag timer_delta_computed to ensure that only one
+> > HART does
 > > +        * time_delta computation.
 > > +        */
 > > +       if (mt->time_delta_reference) {
 > > +               reference = mt->time_delta_reference;
 > > +               mt_time_val = (void *)mt->addr + MTIMER_VAL_OFF;
-> > +               ref_time_val = (void *)reference->addr + MTIMER_VAL_OFF;
-> > +               if (!atomic_raw_xchg_ulong(&mt->time_delta_computed, 1)) {
+> > +               ref_time_val = (void *)reference->addr +
+> > MTIMER_VAL_OFF;
+> > +               if (!atomic_raw_xchg_ulong(&mt->time_delta_computed,
+> > 1)) {
 > > +                       v1 = mt->time_rd(mt_time_val);
 > > +                       mv = reference->time_rd(ref_time_val);
 > > +                       v2 = mt->time_rd(mt_time_val);
@@ -207,7 +239,8 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +
 > > +       /* Clear Time Compare */
 > > +       mt_time_cmp = (void *)mt->addr + MTIMER_CMP_OFF;
-> > +       mt->time_wr(-1ULL, &mt_time_cmp[target_hart - mt->first_hartid]);
+> > +       mt->time_wr(-1ULL, &mt_time_cmp[target_hart - mt-
+> > >first_hartid]);
 > > +
 > > +       return 0;
 > > +}
@@ -248,10 +281,13 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > +
 > > +       /* Add MTIMER regions to the root domain */
 > > +       for (pos = 0; pos < mt->size; pos += ACLINT_MTIMER_ALIGN) {
-> > +               region_size = ((mt->size - pos) < ACLINT_MTIMER_ALIGN) ?
+> > +               region_size = ((mt->size - pos) <
+> > ACLINT_MTIMER_ALIGN) ?
 > > +                             (mt->size - pos) : ACLINT_MTIMER_ALIGN;
-> > +               sbi_domain_memregion_init(mt->addr + pos, region_size,
-> > +                                         SBI_DOMAIN_MEMREGION_MMIO, &reg);
+> > +               sbi_domain_memregion_init(mt->addr + pos,
+> > region_size,
+> > +                                         SBI_DOMAIN_MEMREGION_MMIO,
+> > &reg);
 > > +               rc = sbi_domain_root_add_memregion(&reg);
 > > +               if (rc)
 > > +                       return rc;
@@ -270,15 +306,10 @@ On Mon, Jun 14, 2021 at 6:34 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > >  libsbiutils-objs-y += timer/fdt_timer.o
 > >  libsbiutils-objs-y += timer/fdt_timer_clint.o
 > > +libsbiutils-objs-y += timer/aclint_mtimer.o
+> > --
+> > 2.25.1
+> >
+> >
 >
-> nits: insert this by following the alphabetical order
-
-Okay, will update.
-
 >
-> Otherwise,
-> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
-
-Regards,
-Anup
 
