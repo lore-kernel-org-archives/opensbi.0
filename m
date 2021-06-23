@@ -1,12 +1,12 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 23 Jun 2021 16:47:33 +0800
+Date: Wed, 23 Jun 2021 17:06:33 +0800
 Subject: [PATCH 1/6] lib: utils/timer: Add ACLINT MTIMER library
 In-Reply-To: <CAAhSdy2dpc8eznU8TyeTZw2v0ST46Q_ZDF1kwP2oYrmP-wWFXA@mail.gmail.com>
 References: <20210612160321.330638-1-anup.patel@wdc.com>
  <20210612160321.330638-2-anup.patel@wdc.com>
  <5bb9d2e11d8a3a05ed1f8e185b7779b5c3bf87c6.camel@126.com>
  <CAAhSdy2dpc8eznU8TyeTZw2v0ST46Q_ZDF1kwP2oYrmP-wWFXA@mail.gmail.com>
-Message-ID: <2bffc9f99d6ba904cd60e937856b0f9756fb12eb.camel@126.com>
+Message-ID: <1bf6cf48fc95735f999431978dad7c195c1d407e.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -156,8 +156,11 @@ Content-Transfer-Encoding: 7bit
 > Refer, "section 3.2.1 Machine Timer Registers (mtime and
 > mtimecmp)" in the RISC-V privilege spec.
 > 
-Low 32bit write 0 is to prevent low 32bit carry to high 32bit. Write -1
-will make this situation easier
+The example in the manual is to prevent MTIMECMP from less than the
+original value or less than the value to be written. And MTIMECMP is
+not a counter and does not change. My suggestion is to prevent changes
+during write, causing the value of the counter and expected
+inconsistency after writing completion.
 
 Regards,
 Xiang W
