@@ -1,11 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Thu, 24 Jun 2021 04:38:38 +0000
-Subject: [PATCH v3 4/6] lib: utils/ipi: Add FDT based ACLINT MSWI IPI
+Date: Thu, 24 Jun 2021 04:38:48 +0000
+Subject: [PATCH v3 5/6] lib: utils/timer: Add FDT based ACLINT MTIMER
  driver
-In-Reply-To: <20210624043019.498627-5-anup.patel@wdc.com>
+In-Reply-To: <20210624043019.498627-6-anup.patel@wdc.com>
 References: <20210624043019.498627-1-anup.patel@wdc.com>
- <20210624043019.498627-5-anup.patel@wdc.com>
-Message-ID: <1246A760-0FBE-488C-BBB1-E787D6363151@wdc.com>
+ <20210624043019.498627-6-anup.patel@wdc.com>
+Message-ID: <E878ABAD-58A9-40F3-8F0D-FFE75DCBD7E6@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,8 +16,8 @@ Content-Transfer-Encoding: 7bit
 
 ?On 24/06/21, 10:00 AM, "Anup Patel" <Anup.Patel@wdc.com> wrote:
 
-    We add a new FDT based ACLINT MSWI IPI driver which works for both
-    CLINT device and standalone ACLINT MSWI device.
+    We add a new FDT based ACLINT MTIMER driver which works for
+    both CLINT device and standalone ACLINT MTIMER device.
 
     Signed-off-by: Anup Patel <anup.patel@wdc.com>
     Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
@@ -29,37 +29,37 @@ Regards,
 Anup
 
     ---
-     lib/utils/ipi/fdt_ipi.c       |  4 +--
-     lib/utils/ipi/fdt_ipi_clint.c | 51 --------------------------
-     lib/utils/ipi/fdt_ipi_mswi.c  | 67 +++++++++++++++++++++++++++++++++++
-     lib/utils/ipi/objects.mk      |  2 +-
-     4 files changed, 70 insertions(+), 54 deletions(-)
-     delete mode 100644 lib/utils/ipi/fdt_ipi_clint.c
-     create mode 100644 lib/utils/ipi/fdt_ipi_mswi.c
+     lib/utils/timer/fdt_timer.c        |  4 +-
+     lib/utils/timer/fdt_timer_clint.c  | 57 -----------------------
+     lib/utils/timer/fdt_timer_mtimer.c | 74 ++++++++++++++++++++++++++++++
+     lib/utils/timer/objects.mk         |  2 +-
+     4 files changed, 77 insertions(+), 60 deletions(-)
+     delete mode 100644 lib/utils/timer/fdt_timer_clint.c
+     create mode 100644 lib/utils/timer/fdt_timer_mtimer.c
 
-    diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
-    index 3932f50..ed56e49 100644
-    --- a/lib/utils/ipi/fdt_ipi.c
-    +++ b/lib/utils/ipi/fdt_ipi.c
+    diff --git a/lib/utils/timer/fdt_timer.c b/lib/utils/timer/fdt_timer.c
+    index 1fad42c..148c05e 100644
+    --- a/lib/utils/timer/fdt_timer.c
+    +++ b/lib/utils/timer/fdt_timer.c
     @@ -12,10 +12,10 @@
      #include <sbi_utils/fdt/fdt_helper.h>
-     #include <sbi_utils/ipi/fdt_ipi.h>
+     #include <sbi_utils/timer/fdt_timer.h>
 
-    -extern struct fdt_ipi fdt_ipi_clint;
-    +extern struct fdt_ipi fdt_ipi_mswi;
+    -extern struct fdt_timer fdt_timer_clint;
+    +extern struct fdt_timer fdt_timer_mtimer;
 
-     static struct fdt_ipi *ipi_drivers[] = {
-    -	&fdt_ipi_clint
-    +	&fdt_ipi_mswi
+     static struct fdt_timer *timer_drivers[] = {
+    -	&fdt_timer_clint
+    +	&fdt_timer_mtimer
      };
 
-     static struct fdt_ipi dummy = {
-    diff --git a/lib/utils/ipi/fdt_ipi_clint.c b/lib/utils/ipi/fdt_ipi_clint.c
+     static struct fdt_timer dummy = {
+    diff --git a/lib/utils/timer/fdt_timer_clint.c b/lib/utils/timer/fdt_timer_clint.c
     deleted file mode 100644
-    index ce0ca8e..0000000
-    --- a/lib/utils/ipi/fdt_ipi_clint.c
+    index 63d6586..0000000
+    --- a/lib/utils/timer/fdt_timer_clint.c
     +++ /dev/null
-    @@ -1,51 +0,0 @@
+    @@ -1,57 +0,0 @@
     -/*
     - * SPDX-License-Identifier: BSD-2-Clause
     - *
@@ -69,54 +69,60 @@ Anup
     - *   Anup Patel <anup.patel@wdc.com>
     - */
     -
+    -#include <libfdt.h>
     -#include <sbi/sbi_error.h>
     -#include <sbi_utils/fdt/fdt_helper.h>
-    -#include <sbi_utils/ipi/fdt_ipi.h>
+    -#include <sbi_utils/timer/fdt_timer.h>
     -#include <sbi_utils/sys/clint.h>
     -
-    -#define CLINT_IPI_MAX_NR			16
+    -#define CLINT_TIMER_MAX_NR			16
     -
-    -static unsigned long clint_ipi_count = 0;
-    -static struct clint_data clint_ipi[CLINT_IPI_MAX_NR];
+    -static unsigned long clint_timer_count = 0;
+    -static struct clint_data clint_timer[CLINT_TIMER_MAX_NR];
     -
-    -static int ipi_clint_cold_init(void *fdt, int nodeoff,
-    -			       const struct fdt_match *match)
+    -static int timer_clint_cold_init(void *fdt, int nodeoff,
+    -				  const struct fdt_match *match)
     -{
     -	int rc;
-    -	unsigned long cisize;
-    -	struct clint_data *ci;
+    -	unsigned long ctsize;
+    -	struct clint_data *ct, *ctmaster = NULL;
     -
-    -	if (CLINT_IPI_MAX_NR <= clint_ipi_count)
+    -	if (CLINT_TIMER_MAX_NR <= clint_timer_count)
     -		return SBI_ENOSPC;
-    -	ci = &clint_ipi[clint_ipi_count++];
+    -	ct = &clint_timer[clint_timer_count++];
+    -	if (1 < clint_timer_count)
+    -		ctmaster = &clint_timer[0];
     -
-    -	rc = fdt_parse_aclint_node(fdt, nodeoff, false, &ci->addr, &cisize,
-    -				   &ci->first_hartid, &ci->hart_count);
+    -	rc = fdt_parse_aclint_node(fdt, nodeoff, true, &ct->addr, &ctsize,
+    -				   &ct->first_hartid, &ct->hart_count);
     -	if (rc)
     -		return rc;
-    -	ci->has_64bit_mmio = false;
     -
-    -	return clint_cold_ipi_init(ci);
+    -	ct->has_64bit_mmio = true;
+    -	if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
+    -		ct->has_64bit_mmio = false;
+    -
+    -	return clint_cold_timer_init(ct, ctmaster);
     -}
     -
-    -static const struct fdt_match ipi_clint_match[] = {
+    -static const struct fdt_match timer_clint_match[] = {
     -	{ .compatible = "riscv,clint0" },
     -	{ .compatible = "sifive,clint0" },
     -	{ },
     -};
     -
-    -struct fdt_ipi fdt_ipi_clint = {
-    -	.match_table = ipi_clint_match,
-    -	.cold_init = ipi_clint_cold_init,
-    -	.warm_init = clint_warm_ipi_init,
+    -struct fdt_timer fdt_timer_clint = {
+    -	.match_table = timer_clint_match,
+    -	.cold_init = timer_clint_cold_init,
+    -	.warm_init = clint_warm_timer_init,
     -	.exit = NULL,
     -};
-    diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+    diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
     new file mode 100644
-    index 0000000..f119f9c
+    index 0000000..4907428
     --- /dev/null
-    +++ b/lib/utils/ipi/fdt_ipi_mswi.c
-    @@ -0,0 +1,67 @@
+    +++ b/lib/utils/timer/fdt_timer_mtimer.c
+    @@ -0,0 +1,74 @@
     +/*
     + * SPDX-License-Identifier: BSD-2-Clause
     + *
@@ -126,74 +132,81 @@ Anup
     + *   Anup Patel <anup.patel@wdc.com>
     + */
     +
+    +#include <libfdt.h>
     +#include <sbi/sbi_error.h>
     +#include <sbi_utils/fdt/fdt_helper.h>
-    +#include <sbi_utils/ipi/fdt_ipi.h>
-    +#include <sbi_utils/ipi/aclint_mswi.h>
+    +#include <sbi_utils/timer/fdt_timer.h>
+    +#include <sbi_utils/timer/aclint_mtimer.h>
     +
-    +#define MSWI_MAX_NR			16
+    +#define MTIMER_MAX_NR			16
     +
-    +static unsigned long mswi_count = 0;
-    +static struct aclint_mswi_data mswi[MSWI_MAX_NR];
+    +static unsigned long mtimer_count = 0;
+    +static struct aclint_mtimer_data mtimer[MTIMER_MAX_NR];
     +
-    +static int ipi_mswi_cold_init(void *fdt, int nodeoff,
-    +			      const struct fdt_match *match)
+    +static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+    +				  const struct fdt_match *match)
     +{
     +	int rc;
     +	unsigned long offset;
-    +	struct aclint_mswi_data *ms;
+    +	struct aclint_mtimer_data *mt, *mtmaster = NULL;
     +
-    +	if (MSWI_MAX_NR <= mswi_count)
+    +	if (MTIMER_MAX_NR <= mtimer_count)
     +		return SBI_ENOSPC;
-    +	ms = &mswi[mswi_count];
+    +	mt = &mtimer[mtimer_count];
+    +	if (0 < mtimer_count)
+    +		mtmaster = &mtimer[0];
     +
-    +	rc = fdt_parse_aclint_node(fdt, nodeoff, false, &ms->addr, &ms->size,
-    +				   &ms->first_hartid, &ms->hart_count);
+    +	rc = fdt_parse_aclint_node(fdt, nodeoff, true, &mt->addr, &mt->size,
+    +				   &mt->first_hartid, &mt->hart_count);
     +	if (rc)
     +		return rc;
+    +	mt->has_64bit_mmio = true;
     +
     +	if (match->data) {
-    +		/* Adjust MSWI address and size for CLINT device */
+    +		/* Adjust MTIMER address and size for CLINT device */
     +		offset = *((unsigned long *)match->data);
-    +		ms->addr += offset;
-    +		if ((ms->size - offset) < ACLINT_MSWI_SIZE)
+    +		mt->addr += offset;
+    +		if ((mt->size - offset) < ACLINT_MTIMER_SIZE)
     +			return SBI_EINVAL;
-    +		ms->size = ACLINT_MSWI_SIZE;
+    +		mt->size -= offset;
+    +		/* Parse additional CLINT properties */
+    +		if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
+    +			mt->has_64bit_mmio = false;
     +	}
     +
-    +	rc = aclint_mswi_cold_init(ms);
+    +	rc = aclint_mtimer_cold_init(mt, mtmaster);
     +	if (rc)
     +		return rc;
     +
-    +	mswi_count++;
+    +	mtimer_count++;
     +	return 0;
     +}
     +
-    +static unsigned long clint_offset = CLINT_MSWI_OFFSET;
+    +static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
     +
-    +static const struct fdt_match ipi_mswi_match[] = {
+    +static const struct fdt_match timer_mtimer_match[] = {
     +	{ .compatible = "riscv,clint0", .data = &clint_offset },
     +	{ .compatible = "sifive,clint0", .data = &clint_offset },
-    +	{ .compatible = "riscv,aclint-mswi" },
+    +	{ .compatible = "riscv,aclint-mtimer" },
     +	{ },
     +};
     +
-    +struct fdt_ipi fdt_ipi_mswi = {
-    +	.match_table = ipi_mswi_match,
-    +	.cold_init = ipi_mswi_cold_init,
-    +	.warm_init = aclint_mswi_warm_init,
+    +struct fdt_timer fdt_timer_mtimer = {
+    +	.match_table = timer_mtimer_match,
+    +	.cold_init = timer_mtimer_cold_init,
+    +	.warm_init = aclint_mtimer_warm_init,
     +	.exit = NULL,
     +};
-    diff --git a/lib/utils/ipi/objects.mk b/lib/utils/ipi/objects.mk
-    index 7e37816..129eea8 100644
-    --- a/lib/utils/ipi/objects.mk
-    +++ b/lib/utils/ipi/objects.mk
+    diff --git a/lib/utils/timer/objects.mk b/lib/utils/timer/objects.mk
+    index 1d8b1e5..12cffcf 100644
+    --- a/lib/utils/timer/objects.mk
+    +++ b/lib/utils/timer/objects.mk
     @@ -9,4 +9,4 @@
 
-     libsbiutils-objs-y += ipi/aclint_mswi.o
-     libsbiutils-objs-y += ipi/fdt_ipi.o
-    -libsbiutils-objs-y += ipi/fdt_ipi_clint.o
-    +libsbiutils-objs-y += ipi/fdt_ipi_mswi.o
+     libsbiutils-objs-y += timer/aclint_mtimer.o
+     libsbiutils-objs-y += timer/fdt_timer.o
+    -libsbiutils-objs-y += timer/fdt_timer_clint.o
+    +libsbiutils-objs-y += timer/fdt_timer_mtimer.o
     -- 
     2.25.1
 
