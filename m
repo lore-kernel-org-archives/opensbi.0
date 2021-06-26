@@ -1,73 +1,71 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Fri, 25 Jun 2021 17:57:08 -0700
-Subject: [PATCH v3 02/15] lib: sbi: Detect mcountinihibit support at runtime
+Date: Fri, 25 Jun 2021 17:57:11 -0700
+Subject: [PATCH v3 05/15] lib: sbi: Disable m/scounteren & enable mcountinhibit
 In-Reply-To: <20210626005721.3600114-1-atish.patra@wdc.com>
 References: <20210626005721.3600114-1-atish.patra@wdc.com>
-Message-ID: <20210626005721.3600114-3-atish.patra@wdc.com>
+Message-ID: <20210626005721.3600114-6-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-RISC-V ISA specification v1.11 defined mcountinhibit CSR that allows
-software to stop any counter from incrementing. The SBI PMU extension
-depends on this CSR support in hardware.
+Currently, all bits in mcountern are enabled unconditionally at
+boot time. With SBI PMU extension, all the programmable counters should enabled
+only during performance monitoring for a particular event. However,
+this is done only if mcountinhibit is implemented because the supervisor
+mode can not start/stop any event without mcountinhibit.
 
-Define mcountinhibit as a hart specific feature and detect it at runtime.
+Similarly, supervisor should take care enabling scounteren which allows
+U-mode to access programmable pmu counters. All the non-programmable ones
+(CY, TM, IR) should be enabled in M-mode because some userspace may rely on
+builtins such as __builtin_readcyclecounter. Supervisor OS can still disable
+them during initial configuration.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/sbi_hart.h |  4 +++-
- lib/sbi/sbi_hart.c     | 11 +++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_hart.c | 25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 031c7b08a815..9e317c52008c 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -18,8 +18,10 @@ enum sbi_hart_features {
- 	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
- 	/** Hart has M-mode counter enable */
- 	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
-+	/** Hart has counter inhibit CSR */
-+	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
- 	/** HART has timer csr implementation in hardware */
--	SBI_HART_HAS_TIME = (1 << 2),
-+	SBI_HART_HAS_TIME = (1 << 3),
- 
- 	/** Last index of Hart features*/
- 	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 56878b47624e..0bd1db1ab85e 100644
+index e8cd0421b5e6..6254452e11bb 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -259,6 +259,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
- 	case SBI_HART_HAS_MCOUNTEREN:
- 		fstr = "mcounteren";
- 		break;
-+	case SBI_HART_HAS_MCOUNTINHIBIT:
-+		fstr = "mcountinhibit";
-+		break;
- 	case SBI_HART_HAS_TIME:
- 		fstr = "time";
- 		break;
-@@ -421,6 +424,14 @@ __mhpm_skip:
- 			hfeatures->features |= SBI_HART_HAS_MCOUNTEREN;
- 	}
+@@ -51,12 +51,29 @@ static void mstatus_init(struct sbi_scratch *scratch)
  
-+	/* Detect if hart supports MCOUNTINHIBIT feature */
-+	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap);
-+	if (!trap.cause) {
-+		csr_write_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap, val);
-+		if (!trap.cause)
-+			hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
+ 	csr_write(CSR_MSTATUS, mstatus_val);
+ 
+-	/* Enable user/supervisor use of perf counters */
++	/* Disable user mode usage of all perf counters except default ones (CY, TM, IR) */
+ 	if (misa_extension('S') &&
+ 	    sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
+-		csr_write(CSR_SCOUNTEREN, -1);
+-	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN))
+-		csr_write(CSR_MCOUNTEREN, -1);
++		csr_write(CSR_SCOUNTEREN, 7);
++
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN)) {
++		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++			/**
++			 * Just enable the default counters (CY, TM, IR) because
++			 * some OS (e.g FreeBSD) expect them to be enabled.
++			 *
++			 * All other counters will be enabled at runtime after
++			 * S-mode request.
++			 */
++			csr_write(CSR_MCOUNTEREN, 7);
++		else
++			/* Supervisor mode usage are enabled by default */
++			csr_write(CSR_MCOUNTEREN, -1);
 +	}
 +
- 	/* Detect if hart supports time CSR */
- 	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
- 	if (!trap.cause)
++	/* All programmable counters will start running at runtime after S-mode request */
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++		csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+ 
+ 	/* Disable all interrupts */
+ 	csr_write(CSR_MIE, 0);
 -- 
 2.25.1
 
