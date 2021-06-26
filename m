@@ -1,102 +1,126 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Fri, 25 Jun 2021 17:57:06 -0700
-Subject: [PATCH v3 00/15] SBI PMU extension support
-Message-ID: <20210626005721.3600114-1-atish.patra@wdc.com>
+Date: Fri, 25 Jun 2021 17:57:10 -0700
+Subject: [PATCH v3 04/15] lib: sbi: Detect number of bits implemented in
+ mhpmcounter
+In-Reply-To: <20210626005721.3600114-1-atish.patra@wdc.com>
+References: <20210626005721.3600114-1-atish.patra@wdc.com>
+Message-ID: <20210626005721.3600114-5-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The latest version of the SBI specification includes a Performance Monitoring
-Unit(PMU) extension[1] which allows the supervisor to start/stop/configure
-various PMU events. This series implements the SBI PMU extension in OpenSBI.
+RISC-V privilege specification allows the implementation to have less
+than 64 bits.
 
-It doesn't implement the bits required to support "Sscof" extension yet. That
-will be added later along with qemu support. This series can be found at github[4]
-as well. It has been tested with Linux kernel patches[3] for different
-hardware/firmware events on Qemu.
+Add a function to detect the number of implemented bits in mhpmcounter
+dynamically at runtime.
 
-This patch requires basic QEMU support series[2] to work. As the Qemu did not
-support mhpmevent/mhpmcounter before this series, these changes are not backward
-compatible to avoid code churn. Anybody who wants to use perf must include
-Qemu, OpenSBI, Linux kernel patches.
+Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Signed-off-by: Atish Patra <atish.patra@wdc.com>
+---
+ include/sbi/sbi_hart.h |  1 +
+ lib/sbi/sbi_hart.c     | 48 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
-[1] https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc
-[2] https://github.com/atishp04/qemu/tree/riscv_pmu_v1
-[3] https://github.com/atishp04/linux/tree/riscv_pmu_v3 
-[4] https://github.com/atishp04/opensbi/tree/riscv_pmu_v3 
-
-Changes from v2->v3:
-1. Fixed several small fixes in sbi_pmu.c
-2. Added additional sanity check for TM bit.
-3. Minor fixes in firmware counter patch.
-4. Return failure during probe for PMU extension if mcountinhibit is not available
-5. Enable the cycle and instruction counter by default.
-
-Changes from v1->v2:
-1. Addressed all the comments from v1.
-2. Improved the series by following latest SBI PMU extension[1]
-
-Atish Patra (5):
-utils: fdt: Add fdt helper functions to parse PMU DT nodes
-lib: sbi: Implement SBI PMU extension
-lib: sbi: Implement firmware counters
-lib:sbi:tlb: Improve function naming
-platform: generic: Add PMU support
-
-Atish Patra (15):
-docs: Add device tree bindings for SBI PMU extension
-lib: sbi: Detect mcountinihibit support at runtime
-lib: sbi: Remove stray '' character
-lib: sbi: Detect number of bits implemented in mhpmcounter
-lib: sbi: Disable m/scounteren & enable mcountinhibit
-include: Add a list empty check function
-lib: sbi: Remove redundant boot time print statement
-lib: sbi: Use csr_read/write_num to read/update PMU counters
-lib: sbi: Add PMU specific platform hooks
-lib: sbi: Add PMU support
-utils: fdt: Add fdt helper functions to parse PMU DT nodes
-lib: sbi: Implement SBI PMU extension
-lib: sbi: Implement firmware counters
-lib:sbi:tlb: Improve function naming
-platform: generic: Add PMU support
-
-docs/pmu_support.md               |  83 ++++
-include/sbi/sbi_ecall.h           |   1 +
-include/sbi/sbi_ecall_interface.h | 138 ++++++-
-include/sbi/sbi_error.h           |   2 +
-include/sbi/sbi_hart.h            |   5 +-
-include/sbi/sbi_list.h            |  11 +
-include/sbi/sbi_platform.h        |  39 ++
-include/sbi/sbi_pmu.h             |  73 ++++
-include/sbi_utils/fdt/fdt_pmu.h   |  46 +++
-lib/sbi/objects.mk                |   2 +
-lib/sbi/riscv_asm.c               |  35 ++
-lib/sbi/sbi_ecall.c               |   5 +
-lib/sbi/sbi_ecall_pmu.c           |  93 +++++
-lib/sbi/sbi_hart.c                |  86 ++++-
-lib/sbi/sbi_illegal_insn.c        |   2 +
-lib/sbi/sbi_init.c                |  11 +-
-lib/sbi/sbi_ipi.c                 |   6 +
-lib/sbi/sbi_misaligned_ldst.c     |   5 +
-lib/sbi/sbi_pmu.c                 | 620 ++++++++++++++++++++++++++++++
-lib/sbi/sbi_timer.c               |   2 +
-lib/sbi/sbi_tlb.c                 |  79 +++-
-lib/sbi/sbi_trap.c                |   7 +
-lib/utils/fdt/fdt_fixup.c         |   2 +
-lib/utils/fdt/fdt_pmu.c           | 111 ++++++
-lib/utils/fdt/objects.mk          |   1 +
-platform/generic/platform.c       |  30 ++
-26 files changed, 1465 insertions(+), 30 deletions(-)
-create mode 100644 docs/pmu_support.md
-create mode 100644 include/sbi/sbi_pmu.h
-create mode 100644 include/sbi_utils/fdt/fdt_pmu.h
-create mode 100644 lib/sbi/sbi_ecall_pmu.c
-create mode 100644 lib/sbi/sbi_pmu.c
-create mode 100644 lib/utils/fdt/fdt_pmu.c
-
---
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 9e317c52008c..0c18ef9325b2 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -44,6 +44,7 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+ unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
++unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
+ bool sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
+ void sbi_hart_get_features_str(struct sbi_scratch *scratch,
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 9c01cf75c0bb..e8cd0421b5e6 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -33,6 +33,7 @@ struct hart_features {
+ 	unsigned int pmp_addr_bits;
+ 	unsigned long pmp_gran;
+ 	unsigned int mhpm_count;
++	unsigned int mhpm_bits;
+ };
+ static unsigned long hart_features_offset;
+ 
+@@ -177,6 +178,14 @@ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
+ 	return hfeatures->pmp_addr_bits;
+ }
+ 
++unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
++{
++	struct hart_features *hfeatures =
++			sbi_scratch_offset_ptr(scratch, hart_features_offset);
++
++	return hfeatures->mhpm_bits;
++}
++
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_domain_memregion *reg;
+@@ -330,6 +339,37 @@ static unsigned long hart_pmp_get_allowed_addr(void)
+ 	return val;
+ }
+ 
++static int hart_pmu_get_allowed_bits(void)
++{
++	unsigned long val = ~(0UL);
++	struct sbi_trap_info trap = {0};
++	int num_bits = 0;
++
++	/**
++	 * It is assumed that platforms will implement same number of bits for
++	 * all the performance counters including mcycle/minstret.
++	 */
++	csr_write_allowed(CSR_MHPMCOUNTER3, (ulong)&trap, val);
++	if (!trap.cause) {
++		val = csr_read_allowed(CSR_MHPMCOUNTER3, (ulong)&trap);
++		if (trap.cause)
++			return 0;
++	}
++	num_bits = __fls(val) + 1;
++#if __riscv_xlen == 32
++	csr_write_allowed(CSR_MHPMCOUNTER3H, (ulong)&trap, val);
++	if (!trap.cause) {
++		val = csr_read_allowed(CSR_MHPMCOUNTER3H, (ulong)&trap);
++		if (trap.cause)
++			return num_bits;
++	}
++	num_bits += __fls(val) + 1;
++
++#endif
++
++	return num_bits;
++}
++
+ static void hart_detect_features(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_trap_info trap = {0};
+@@ -395,9 +435,17 @@ __pmp_skip:
+ 
+ 	/* Detect number of MHPM counters */
+ 	__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count, __mhpm_skip);
++	hfeatures->mhpm_bits = hart_pmu_get_allowed_bits();
++
+ 	__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count, __mhpm_skip);
+ 	__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count, __mhpm_skip);
+ 	__check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count, __mhpm_skip);
++
++	/**
++	 * No need to check for MHPMCOUNTERH for RV32 as they are expected to be
++	 * implemented if MHPMCOUNTER is implemented.
++	 */
++
+ __mhpm_skip:
+ 
+ #undef __check_csr_64
+-- 
 2.25.1
 
 
