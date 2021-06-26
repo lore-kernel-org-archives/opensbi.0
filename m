@@ -1,81 +1,124 @@
-From: Atish Patra <atish.patra@wdc.com>
-Date: Fri, 25 Jun 2021 17:57:21 -0700
-Subject: [PATCH v3 15/15] platform: generic: Add PMU support
-In-Reply-To: <20210626005721.3600114-1-atish.patra@wdc.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Sat, 26 Jun 2021 02:01:15 +0100
+Subject: [PATCH v3 01/15] docs: Add device tree bindings for SBI PMU
+ extension
+In-Reply-To: <20210626005721.3600114-2-atish.patra@wdc.com>
 References: <20210626005721.3600114-1-atish.patra@wdc.com>
-Message-ID: <20210626005721.3600114-16-atish.patra@wdc.com>
+ <20210626005721.3600114-2-atish.patra@wdc.com>
+Message-ID: <A08D8045-12C6-489C-87C9-EF76B29598B0@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PMU support for generic platform. Generic platform solely relies on
-the device tree to parse all pmu related information. If any event is
-not described in device tree, generic platform will not support it.
+On 26 Jun 2021, at 01:57, Atish Patra <atish.patra@wdc.com> wrote:
+> 
+> SBI PMU extension requires a firmware to be aware of the event to
+> counter/mhpmevent mappings supported by the hardware. One approach
+> is to encode that information in the device tree.
+> 
+> Define a device tree binding that allows a hardware to describe
+> all the PMU mappings required in concise format.
+> 
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> Signed-off-by: Atish Patra <atish.patra@wdc.com>
+> ---
+> docs/pmu_support.md | 83 +++++++++++++++++++++++++++++++++++++++++++++
+> 1 file changed, 83 insertions(+)
+> create mode 100644 docs/pmu_support.md
+> 
+> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> new file mode 100644
+> index 000000000000..8535a1dccbeb
+> --- /dev/null
+> +++ b/docs/pmu_support.md
+> @@ -0,0 +1,83 @@
+> +OpenSBI SBI PMU extension support
+> +==================================
+> +SBI PMU extension supports allow supervisor software to configure/start/stop
+> +any performance counter at anytime. Thus, an user can leverage full
+> +capability of performance analysis tools such as perf if SBI PMU extension is
+> +enabled. The OpenSBI implementation makes the following assumptions about the
+> +hardware platform.
+> +
+> + * MCOUNTINHIBIT CSR must be implemented in the hardware. Otherwise, SBI PMU
+> +extension will not be enabled.
+> +
+> + * The platform must provide information about PMU event to counter mapping
+> +via device tree or platform specific hooks. Otherwise, SBI PMU extension will
+> +not be enabled.
+> +
+> + * The platforms should provide information about the PMU event selector values
+> +that should be encoded in the expected value of MHPMEVENTx while configuring
+> +MHPMCOUNTERx for that specific event. This can be done via a device tree or
+> +platform specific hooks. The exact value to be written to he MHPMEVENTx is
+> +completely platform specific. Generic platform writes a default value <xyz> to
+> +the MHPMEVENTx CSR where <xyz> is formatted as described below.
+> +```
+> +  	xyz[0:19]    : event_idx
+> +        xyz[20:XLEN] : event_data[0:(XLEN-20)]
+> +
+> +```
+> +
+> +SBI PMU Device Tree Bindings
+> +----------------------------
+> +
+> +Platforms may choose to describe PMU event selector and event to counter mapping
+> +values via device tree. The following sections describes the PMU DT node
+> +bindings in details.
+> +
+> +* **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
+> +This DT property must have the value **riscv,pmu**.
+> +
+> +* **opensbi,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
+> +between a PMU event and the event selector value that platform expects to be
+> +written to the MHPMEVENTx CSR for that event. The mapping is encoded in a
+> +table format where each row represents an event. The first column represent the
+> +event idx where the 2nd & 3rd column represent the event selector value that
+> +should be encoded in the expected value to be written in MHPMEVENTx.
+> +This property shouldn't encode any raw hardware event.
+> +
+> +* **opensbi,event-to-counters**(Optional) - It represents a MANY-to-MANY
+> +mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
+> +that can be used to monitor these range of events. The information is encoded in
+> +a table format where each row represent a certain range of events and
+> +corresponding counters. The first column represents starting of the pmu event id
+> +and 2nd column represents the end of the pmu event id. The third column
+> +represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
+> +event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+> +shouldn't encode any raw event.
+> +
+> +* **opensbi,raw-event-to-counters**(Optional) - It represents an ONE-to-MANY
+> +mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
+> +be used to monitor that raw event. The information is encoded in a table format
+> +where each raw represent a specific raw event. The first column stores the
+> +expected event selector value that should be encoded in the expected value to be
+> +written in MHPMEVENTx. The second column stores a bitmap of all the MHPMCOUNTERx
+> +that can be used for monitoring the specified event.
+> +
+> +*Note:* A platform may choose to provide the mapping between event & counters
+> +via platform hooks rather than the device tree.
+> +
+> +### Example
+> +
+> +```
+> +pmu {
+> +      compatible 			= "riscv,pmu";
+> +      interrupts 			= <0x100>;
+> +      interrupt-parent 			= <&plic>
+> +      opensbi,event-to-mhpmevent 	= <0x0000B  0x0000 0x0001>,
+> +      opensbi,event-to-counters 	= <0x00001 0x00001 0x00000001>,
+> +      					  <0x00002 0x00002 0x00000004>,
+> +      					  <0x00003 0x0000A 0x00000ff8>,
+> +      				 	  <0x10000 0x10033 0x000ff000>,
+> +      opensbi,raw-event-to-counters 	= <0x0000 0x0002 0x00000f8>,
+> +					  <0x0000 0x0003 0x00000ff0>,
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-Signed-off-by: Atish Patra <atish.patra@wdc.com>
----
- platform/generic/platform.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+If this is a generic specification then the node name should not
+include the implementation-specific opensbi string in the name. If this
+is not a generic specification then it should not be in riscv-sbi-doc.
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index da0c1af8f92e..44a9c73fba0c 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -16,6 +16,7 @@
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/fdt/fdt_pmu.h>
- #include <sbi_utils/irqchip/fdt_irqchip.h>
- #include <sbi_utils/serial/fdt_serial.h>
- #include <sbi_utils/timer/fdt_timer.h>
-@@ -184,6 +185,33 @@ static u64 generic_tlbr_flush_limit(void)
- 	return SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT;
- }
- 
-+static int generic_pmu_init(void)
-+{
-+	return fdt_pmu_setup(sbi_scratch_thishart_arg1_ptr());
-+}
-+
-+static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
-+					       uint64_t data)
-+{
-+	uint64_t evt_val = 0;
-+
-+	/* data is valid only for raw events and is equal to event selector */
-+	if (event_idx == SBI_PMU_EVENT_RAW_IDX)
-+		evt_val = data;
-+	else {
-+		/**
-+		 * Generic platform follows the SBI specification recommendation
-+		 * i.e. zero extended event_idx is used as mhpmevent value for
-+		 * hardware general/cache events if platform does't define one.
-+		 */
-+		evt_val = fdt_pmu_get_select_value(event_idx);
-+		if (!evt_val)
-+			evt_val = (uint64_t)event_idx;
-+	}
-+
-+	return evt_val;
-+}
-+
- const struct sbi_platform_operations platform_ops = {
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
-@@ -195,6 +223,8 @@ const struct sbi_platform_operations platform_ops = {
- 	.irqchip_exit		= fdt_irqchip_exit,
- 	.ipi_init		= fdt_ipi_init,
- 	.ipi_exit		= fdt_ipi_exit,
-+	.pmu_init		= generic_pmu_init,
-+	.pmu_xlate_to_mhpmevent = generic_pmu_xlate_to_mhpmevent,
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
- 	.timer_init		= fdt_timer_init,
- 	.timer_exit		= fdt_timer_exit,
--- 
-2.25.1
+Jess
 
 
