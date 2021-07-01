@@ -1,75 +1,133 @@
 From: Green Wan <green.wan@sifive.com>
-Date: Thu,  1 Jul 2021 15:39:55 +0800
-Subject: [RFC PATCH 1/4] lib: utils: reset: unify naming of 'sifive_test'
- device
+Date: Thu,  1 Jul 2021 15:39:56 +0800
+Subject: [RFC PATCH 2/4] lib: utils: add GPIO and poweroff parsing
 In-Reply-To: <20210701073958.15558-1-green.wan@sifive.com>
 References: <20210701073958.15558-1-green.wan@sifive.com>
-Message-ID: <20210701073958.15558-2-green.wan@sifive.com>
+Message-ID: <20210701073958.15558-3-green.wan@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Unify all the file and function names of 'sifive_test' device, to use
-the same prefix. This is also a preparatory patch for upcoming sifive
-reset device.
+Add support for GPIO and 'gpio-poweroff' in DT.
 
 Signed-off-by: Green Wan <green.wan@sifive.com>
 ---
- lib/utils/reset/fdt_reset.c                                   | 4 ++--
- .../reset/{fdt_reset_sifive.c => fdt_reset_sifive_test.c}     | 2 +-
- lib/utils/reset/objects.mk                                    | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
- rename lib/utils/reset/{fdt_reset_sifive.c => fdt_reset_sifive_test.c} (94%)
+ include/sbi_utils/fdt/fdt_helper.h | 21 ++++++++++++
+ lib/utils/fdt/fdt_helper.c         | 51 +++++++++++++++++++++++++++++-
+ 2 files changed, 71 insertions(+), 1 deletion(-)
 
-diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-index 1d687dc..48a49fb 100644
---- a/lib/utils/reset/fdt_reset.c
-+++ b/lib/utils/reset/fdt_reset.c
-@@ -12,12 +12,12 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/reset/fdt_reset.h>
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 871f9b9..1c50368 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -12,6 +12,17 @@
  
--extern struct fdt_reset fdt_reset_sifive;
-+extern struct fdt_reset fdt_reset_sifive_test;
- extern struct fdt_reset fdt_reset_htif;
- extern struct fdt_reset fdt_reset_thead;
+ #include <sbi/sbi_types.h>
  
- static struct fdt_reset *reset_drivers[] = {
--	&fdt_reset_sifive,
-+	&fdt_reset_sifive_test,
- 	&fdt_reset_htif,
- 	&fdt_reset_thead,
- };
-diff --git a/lib/utils/reset/fdt_reset_sifive.c b/lib/utils/reset/fdt_reset_sifive_test.c
-similarity index 94%
-rename from lib/utils/reset/fdt_reset_sifive.c
-rename to lib/utils/reset/fdt_reset_sifive_test.c
-index 928dee9..f98f03d 100644
---- a/lib/utils/reset/fdt_reset_sifive.c
-+++ b/lib/utils/reset/fdt_reset_sifive_test.c
-@@ -30,7 +30,7 @@ static const struct fdt_match sifive_test_reset_match[] = {
- 	{ },
++enum gpio_output_type {
++	GPIO_ACTIVE_HIGH = 0,
++	GPIO_ACTIVE_LOW,
++};
++
++struct poweroff_gpio {
++	unsigned int act_delay;			/* in ms */
++	int gpio;				/* GPIO No */
++	enum gpio_output_type output_type;	/* output type */
++};
++
+ struct fdt_match {
+ 	const char *compatible;
+ 	void *data;
+@@ -25,6 +36,10 @@ struct platform_uart_data {
+ 	unsigned long reg_io_width;
  };
  
--struct fdt_reset fdt_reset_sifive = {
-+struct fdt_reset fdt_reset_sifive_test = {
- 	.match_table = sifive_test_reset_match,
- 	.init = sifive_test_reset_init,
- };
-diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-index b6619f4..bf005e8 100644
---- a/lib/utils/reset/objects.mk
-+++ b/lib/utils/reset/objects.mk
-@@ -9,6 +9,6 @@
++struct platform_gpio_data {
++	unsigned long addr;
++};
++
+ const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
+ 				       const struct fdt_match *match_table);
  
- libsbiutils-objs-y += reset/fdt_reset.o
- libsbiutils-objs-y += reset/fdt_reset_htif.o
--libsbiutils-objs-y += reset/fdt_reset_sifive.o
-+libsbiutils-objs-y += reset/fdt_reset_sifive_test.o
- libsbiutils-objs-y += reset/fdt_reset_thead.o
- libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
+@@ -67,4 +82,10 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
+ int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
+ 			  const char *compatible);
+ 
++int fdt_parse_gpio_pwroff(void *fdt, struct poweroff_gpio *pwroff,
++			  const char *compatible);
++
++int fdt_parse_gpio_node(void *fdt, int nodeoffset,
++			struct platform_gpio_data *gpio);
++
+ #endif /* __FDT_HELPER_H__ */
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index de77196..a7e8f58 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -5,7 +5,6 @@
+  *
+  * Copyright (C) 2020 Bin Meng <bmeng.cn@gmail.com>
+  */
+-
+ #include <libfdt.h>
+ #include <sbi/riscv_asm.h>
+ #include <sbi/sbi_console.h>
+@@ -503,3 +502,53 @@ int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
+ 
+ 	return 0;
+ }
++
++int fdt_parse_gpio_pwroff(void *fdt, struct poweroff_gpio *pwroff,
++			  const char *compatible)
++{
++	int pwroff_offset;
++
++	pwroff_offset = fdt_path_offset(fdt, compatible);
++	if (pwroff_offset >= 0) {
++		int len;
++		const char *pwroff_cmpt;
++
++		pwroff_cmpt = fdt_getprop(fdt, pwroff_offset, "compatible", &len);
++
++		if (pwroff_cmpt && !sbi_strcmp("gpio-poweroff", pwroff_cmpt)) {
++			const fdt32_t *val;
++
++			val = fdt_getprop(fdt, pwroff_offset,
++					  "active-delay-ms", &len);
++			if (val)
++				pwroff->act_delay = fdt32_to_cpu(*val);
++
++			val = fdt_getprop(fdt, pwroff_offset, "gpios", &len);
++			if (val) {
++				pwroff->gpio = fdt32_to_cpu(val[1]);
++				pwroff->output_type = fdt32_to_cpu(val[2]);
++
++				return 0;
++			}
++		}
++	}
++
++	return SBI_EINVAL;
++}
++
++int fdt_parse_gpio_node(void *fdt, int nodeoffset,
++			struct platform_gpio_data *gpio)
++{
++	int rc;
++	unsigned long reg_addr, reg_size;
++
++	if (nodeoffset < 0 || !gpio || !fdt)
++		return SBI_ENODEV;
++
++	rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
++	if (rc < 0 || !reg_addr || !reg_size)
++		return SBI_ENODEV;
++	gpio->addr = reg_addr;
++
++	return 0;
++}
 -- 
 2.17.1
 
