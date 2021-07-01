@@ -1,60 +1,75 @@
 From: Green Wan <green.wan@sifive.com>
-Date: Thu,  1 Jul 2021 15:39:54 +0800
-Subject: [RFC PATCH 0/4] add sifive reset device
-Message-ID: <20210701073958.15558-1-green.wan@sifive.com>
+Date: Thu,  1 Jul 2021 15:39:55 +0800
+Subject: [RFC PATCH 1/4] lib: utils: reset: unify naming of 'sifive_test'
+ device
+In-Reply-To: <20210701073958.15558-1-green.wan@sifive.com>
+References: <20210701073958.15558-1-green.wan@sifive.com>
+Message-ID: <20210701073958.15558-2-green.wan@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-To enable reset device for SiFive Unmatched board, the patchset starts
-with a preparetory patch [1/4] to unify the file and function names of
-current 'sifive_test' reset device.
+Unify all the file and function names of 'sifive_test' device, to use
+the same prefix. This is also a preparatory patch for upcoming sifive
+reset device.
 
-Then, adding 'gpio-poweroff' DT parsing and a gpio output interface to
-lib/utils in patch [2/4] and [3/4].
+Signed-off-by: Green Wan <green.wan@sifive.com>
+---
+ lib/utils/reset/fdt_reset.c                                   | 4 ++--
+ .../reset/{fdt_reset_sifive.c => fdt_reset_sifive_test.c}     | 2 +-
+ lib/utils/reset/objects.mk                                    | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+ rename lib/utils/reset/{fdt_reset_sifive.c => fdt_reset_sifive_test.c} (94%)
 
-The reset device 'sifive_reset' is added in the last patch [4/4].
-
-'sifive_reset' device uses gpio_direction_output() to do the reset.
-The entry point for GPIO initialization must be initialized first and
-is placed at patform/generic/platform.c.
-
-Current GPIO interface is simple and only ouput control callback is
-available.
-
-Green Wan (4):
-  lib: utils: reset: unify naming of 'sifive_test' device
-  lib: utils: add GPIO and poweroff parsing
-  lib: utils: add gpio generic interface
-  lib: utils: add sifive reset device
-
- include/sbi/sbi_gpio.h                  | 23 ++++++++
- include/sbi_utils/fdt/fdt_helper.h      | 21 ++++++++
- include/sbi_utils/gpio/fdt_gpio.h       | 32 +++++++++++
- include/sbi_utils/sys/sifive_reset.h    | 18 +++++++
- lib/utils/fdt/fdt_helper.c              | 51 +++++++++++++++++-
- lib/utils/gpio/fdt_gpio.c               | 55 +++++++++++++++++++
- lib/utils/gpio/objects.mk               | 11 ++++
- lib/utils/gpio/sifive_gpio.c            | 70 +++++++++++++++++++++++++
- lib/utils/reset/fdt_reset.c             |  2 +
- lib/utils/reset/fdt_reset_sifive.c      | 37 ++++++++-----
- lib/utils/reset/fdt_reset_sifive_test.c | 36 +++++++++++++
- lib/utils/reset/objects.mk              |  1 +
- lib/utils/sys/objects.mk                |  1 +
- lib/utils/sys/sifive_reset.c            | 66 +++++++++++++++++++++++
- platform/generic/platform.c             |  3 ++
- 15 files changed, 413 insertions(+), 14 deletions(-)
- create mode 100644 include/sbi/sbi_gpio.h
- create mode 100644 include/sbi_utils/gpio/fdt_gpio.h
- create mode 100644 include/sbi_utils/sys/sifive_reset.h
- create mode 100644 lib/utils/gpio/fdt_gpio.c
- create mode 100644 lib/utils/gpio/objects.mk
- create mode 100644 lib/utils/gpio/sifive_gpio.c
- create mode 100644 lib/utils/reset/fdt_reset_sifive_test.c
- create mode 100644 lib/utils/sys/sifive_reset.c
-
+diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+index 1d687dc..48a49fb 100644
+--- a/lib/utils/reset/fdt_reset.c
++++ b/lib/utils/reset/fdt_reset.c
+@@ -12,12 +12,12 @@
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/reset/fdt_reset.h>
+ 
+-extern struct fdt_reset fdt_reset_sifive;
++extern struct fdt_reset fdt_reset_sifive_test;
+ extern struct fdt_reset fdt_reset_htif;
+ extern struct fdt_reset fdt_reset_thead;
+ 
+ static struct fdt_reset *reset_drivers[] = {
+-	&fdt_reset_sifive,
++	&fdt_reset_sifive_test,
+ 	&fdt_reset_htif,
+ 	&fdt_reset_thead,
+ };
+diff --git a/lib/utils/reset/fdt_reset_sifive.c b/lib/utils/reset/fdt_reset_sifive_test.c
+similarity index 94%
+rename from lib/utils/reset/fdt_reset_sifive.c
+rename to lib/utils/reset/fdt_reset_sifive_test.c
+index 928dee9..f98f03d 100644
+--- a/lib/utils/reset/fdt_reset_sifive.c
++++ b/lib/utils/reset/fdt_reset_sifive_test.c
+@@ -30,7 +30,7 @@ static const struct fdt_match sifive_test_reset_match[] = {
+ 	{ },
+ };
+ 
+-struct fdt_reset fdt_reset_sifive = {
++struct fdt_reset fdt_reset_sifive_test = {
+ 	.match_table = sifive_test_reset_match,
+ 	.init = sifive_test_reset_init,
+ };
+diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+index b6619f4..bf005e8 100644
+--- a/lib/utils/reset/objects.mk
++++ b/lib/utils/reset/objects.mk
+@@ -9,6 +9,6 @@
+ 
+ libsbiutils-objs-y += reset/fdt_reset.o
+ libsbiutils-objs-y += reset/fdt_reset_htif.o
+-libsbiutils-objs-y += reset/fdt_reset_sifive.o
++libsbiutils-objs-y += reset/fdt_reset_sifive_test.o
+ libsbiutils-objs-y += reset/fdt_reset_thead.o
+ libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
 -- 
 2.17.1
 
