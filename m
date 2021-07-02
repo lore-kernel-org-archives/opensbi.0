@@ -1,231 +1,115 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 1 Jul 2021 22:00:04 +0800
-Subject: [RFC PATCH 4/4] lib: utils: add sifive reset device
-In-Reply-To: <20210701073958.15558-5-green.wan@sifive.com>
-References: <20210701073958.15558-1-green.wan@sifive.com>
- <20210701073958.15558-5-green.wan@sifive.com>
-Message-ID: <CAEUhbmVSVxOJLWEsuF8hfdqxRA8PiNSNpAC==HUZ0bM+mHJYjg@mail.gmail.com>
+From: Atish Patra <atish.patra@wdc.com>
+Date: Fri,  2 Jul 2021 11:01:05 -0700
+Subject: [PATCH v4 01/15] docs: Add device tree bindings for SBI PMU extension
+In-Reply-To: <20210702180119.912898-1-atish.patra@wdc.com>
+References: <20210702180119.912898-1-atish.patra@wdc.com>
+Message-ID: <20210702180119.912898-2-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 1, 2021 at 5:02 PM Green Wan <green.wan@sifive.com> wrote:
->
-> Add sifive reset device based on DT binding as below.
->
->         gpio-poweroff {
->                 compatible = "gpio-poweroff";
->                 gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
->         };
->
-> Signed-off-by: Green Wan <green.wan@sifive.com>
-> ---
->  include/sbi_utils/sys/sifive_reset.h | 18 ++++++++
->  lib/utils/reset/fdt_reset.c          |  2 +
->  lib/utils/reset/fdt_reset_sifive.c   | 47 ++++++++++++++++++++
->  lib/utils/reset/objects.mk           |  1 +
->  lib/utils/sys/objects.mk             |  1 +
->  lib/utils/sys/sifive_reset.c         | 66 ++++++++++++++++++++++++++++
->  6 files changed, 135 insertions(+)
->  create mode 100644 include/sbi_utils/sys/sifive_reset.h
->  create mode 100644 lib/utils/reset/fdt_reset_sifive.c
->  create mode 100644 lib/utils/sys/sifive_reset.c
->
-> diff --git a/include/sbi_utils/sys/sifive_reset.h b/include/sbi_utils/sys/sifive_reset.h
-> new file mode 100644
-> index 0000000..357fa8c
-> --- /dev/null
-> +++ b/include/sbi_utils/sys/sifive_reset.h
-> @@ -0,0 +1,18 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 SiFive
-> + *
-> + * Authors:
-> + *   Green Wan <green.wan@sifive.com>
-> + */
-> +
-> +#ifndef __SYS_SIFIVE_RESET_H__
-> +#define __SYS_SIFIVE_RESET_H__
-> +
-> +#include <sbi/sbi_types.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +
-> +int sifive_reset_init_gpio(struct poweroff_gpio *ppwroff);
-> +
-> +#endif
-> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-> index 48a49fb..f3978b3 100644
-> --- a/lib/utils/reset/fdt_reset.c
-> +++ b/lib/utils/reset/fdt_reset.c
-> @@ -13,11 +13,13 @@
->  #include <sbi_utils/reset/fdt_reset.h>
->
->  extern struct fdt_reset fdt_reset_sifive_test;
-> +extern struct fdt_reset fdt_reset_sifive;
->  extern struct fdt_reset fdt_reset_htif;
->  extern struct fdt_reset fdt_reset_thead;
->
->  static struct fdt_reset *reset_drivers[] = {
->         &fdt_reset_sifive_test,
-> +       &fdt_reset_sifive,
->         &fdt_reset_htif,
->         &fdt_reset_thead,
->  };
-> diff --git a/lib/utils/reset/fdt_reset_sifive.c b/lib/utils/reset/fdt_reset_sifive.c
-> new file mode 100644
-> index 0000000..b5f3b1b
-> --- /dev/null
-> +++ b/lib/utils/reset/fdt_reset_sifive.c
+SBI PMU extension requires a firmware to be aware of the event to
+counter/mhpmevent mappings supported by the hardware. One approach
+is to encode that information in the device tree.
 
-I think this file should be renamed to fdt_reset_gpio, and used by any
-platform that implements /gpio-poweroff or /gpio-restart.
+Define a device tree binding that allows a hardware to describe
+all the PMU mappings required in concise format.
 
-> @@ -0,0 +1,47 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 SiFive
-> + *
-> + * Authors:
-> + *   Green Wan <green.wan@sifive.com>
-> + */
-> +
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_platform.h>
-> +#include <sbi/sbi_scratch.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/gpio/fdt_gpio.h>
-> +#include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/sys/sifive_reset.h>
-> +
-> +static struct poweroff_gpio pwroff = {
-> +       .act_delay = 100,
-> +       .gpio = -1,
-> +       .output_type = GPIO_ACTIVE_LOW,
-> +};
-> +
-> +static int sifive_reset_init(void *fdt, int nodeoff,
-> +                            const struct fdt_match *match)
-> +{
-> +       int rc;
-> +
-> +       rc = fdt_parse_gpio_pwroff(fdt, &pwroff, "/gpio-poweroff");
-> +       if (rc) {
-> +               sbi_printf("Warning: no gpio-poweroff definition in DT\n");
-> +
-> +               return rc;
-> +       }
-> +
-> +       return sifive_reset_init_gpio(&pwroff);
-> +}
-> +
-> +static const struct fdt_match sifive_reset_match[] = {
-> +       { .compatible = "gpio-poweroff" },
-> +       { },
-> +};
-> +
-> +struct fdt_reset fdt_reset_sifive = {
-> +       .match_table = sifive_reset_match,
-> +       .init = sifive_reset_init,
-> +};
-> diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-> index bf005e8..1196e30 100644
-> --- a/lib/utils/reset/objects.mk
-> +++ b/lib/utils/reset/objects.mk
-> @@ -10,5 +10,6 @@
->  libsbiutils-objs-y += reset/fdt_reset.o
->  libsbiutils-objs-y += reset/fdt_reset_htif.o
->  libsbiutils-objs-y += reset/fdt_reset_sifive_test.o
-> +libsbiutils-objs-y += reset/fdt_reset_sifive.o
->  libsbiutils-objs-y += reset/fdt_reset_thead.o
->  libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
-> diff --git a/lib/utils/sys/objects.mk b/lib/utils/sys/objects.mk
-> index 06be322..ad75f62 100644
-> --- a/lib/utils/sys/objects.mk
-> +++ b/lib/utils/sys/objects.mk
-> @@ -9,3 +9,4 @@
->
->  libsbiutils-objs-y += sys/htif.o
->  libsbiutils-objs-y += sys/sifive_test.o
-> +libsbiutils-objs-y += sys/sifive_reset.o
-> diff --git a/lib/utils/sys/sifive_reset.c b/lib/utils/sys/sifive_reset.c
-> new file mode 100644
-> index 0000000..d086363
-> --- /dev/null
-> +++ b/lib/utils/sys/sifive_reset.c
-> @@ -0,0 +1,66 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 SiFive
-> + *
-> + * Authors:
-> + *   Green Wan <green.wan@sifive.com>
-> + */
-> +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_ecall_interface.h>
-> +#include <sbi/sbi_platform.h>
-> +#include <sbi/sbi_system.h>
-> +#include <sbi_utils/gpio/fdt_gpio.h>
-> +#include <sbi_utils/sys/sifive_reset.h>
-> +
-> +static struct poweroff_gpio *ppwroff;
-> +
-> +static int sifive_system_reset_check(u32 type, u32 reason)
-> +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +               return 1;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static void sifive_system_reset(u32 type, u32 reason)
-> +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               if (!ppwroff || ppwroff->gpio < 0)
-> +                       return;
-> +
-> +               if (ppwroff->output_type == GPIO_ACTIVE_LOW)
-> +                       gpio_direction_output(ppwroff->gpio, 0);
-> +               else
-> +                       gpio_direction_output(ppwroff->gpio, 1);
-> +
-> +               /* if success, power is off now. */
-> +               while (1)
-> +                       wfi();
-> +
-> +               break;
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +               break;
-> +       }
-> +}
-> +
-> +static struct sbi_system_reset_device sifive_reset = {
-> +       .name = "sifive_reset",
-> +       .system_reset_check = sifive_system_reset_check,
-> +       .system_reset = sifive_system_reset
-> +};
-> +
-> +int sifive_reset_init_gpio(struct poweroff_gpio *gpio)
-> +{
-> +       ppwroff = gpio;
-> +       sbi_system_reset_set_device(&sifive_reset);
-> +       return 0;
-> +}
-> --
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Signed-off-by: Atish Patra <atish.patra@wdc.com>
+---
+ docs/pmu_support.md | 79 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
+ create mode 100644 docs/pmu_support.md
 
-Regards,
-Bin
+diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+new file mode 100644
+index 000000000000..f6b208aa8aa8
+--- /dev/null
++++ b/docs/pmu_support.md
+@@ -0,0 +1,79 @@
++OpenSBI SBI PMU extension support
++==================================
++SBI PMU extension supports allow supervisor software to configure/start/stop
++any performance counter at anytime. Thus, an user can leverage full
++capability of performance analysis tools such as perf if SBI PMU extension is
++enabled. The OpenSBI implementation makes the following assumptions about the
++hardware platform.
++
++ * MCOUNTINHIBIT CSR must be implemented in the hardware. Otherwise, SBI PMU
++extension will not be enabled.
++
++ * The platform must provide information about PMU event to counter mapping
++via device tree or platform specific hooks. Otherwise, SBI PMU extension will
++not be enabled.
++
++ * The platforms should provide information about the PMU event selector values
++that should be encoded in the expected value of MHPMEVENTx while configuring
++MHPMCOUNTERx for that specific event. This can be done via a device tree or
++platform specific hooks. The exact value to be written to he MHPMEVENTx is
++completely depends on platform. Generic platform writes the zero-extended event_idx
++as the expected value for hardware cache/generic events as suggested by the SBI
++specification.
++
++SBI PMU Device Tree Bindings
++----------------------------
++
++Platforms may choose to describe PMU event selector and event to counter mapping
++values via device tree. The following sections describes the PMU DT node
++bindings in details.
++
++* **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
++This DT property must have the value **riscv,pmu**.
++
++* **opensbi,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
++between a PMU event and the event selector value that platform expects to be
++written to the MHPMEVENTx CSR for that event. The mapping is encoded in a
++table format where each row represents an event. The first column represent the
++event idx where the 2nd & 3rd column represent the event selector value that
++should be encoded in the expected value to be written in MHPMEVENTx.
++This property shouldn't encode any raw hardware event.
++
++* **opensbi,event-to-counters**(Optional) - It represents a MANY-to-MANY
++mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
++that can be used to monitor these range of events. The information is encoded in
++a table format where each row represent a certain range of events and
++corresponding counters. The first column represents starting of the pmu event id
++and 2nd column represents the end of the pmu event id. The third column
++represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
++event-to-mhpmevent is present. Otherwise, it can be omitted. This property
++shouldn't encode any raw event.
++
++* **opensbi,raw-event-to-counters**(Optional) - It represents an ONE-to-MANY
++mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
++be used to monitor that raw event. The information is encoded in a table format
++where each raw represent a specific raw event. The first column stores the
++expected event selector value that should be encoded in the expected value to be
++written in MHPMEVENTx. The second column stores a bitmap of all the MHPMCOUNTERx
++that can be used for monitoring the specified event.
++
++*Note:* A platform may choose to provide the mapping between event & counters
++via platform hooks rather than the device tree.
++
++### Example
++
++```
++pmu {
++      compatible 			= "riscv,pmu";
++      interrupts 			= <0x100>;
++      interrupt-parent 			= <&plic>
++      opensbi,event-to-mhpmevent 	= <0x0000B  0x0000 0x0001>,
++      opensbi,event-to-counters 	= <0x00001 0x00001 0x00000001>,
++      					  <0x00002 0x00002 0x00000004>,
++      					  <0x00003 0x0000A 0x00000ff8>,
++      				 	  <0x10000 0x10033 0x000ff000>,
++      opensbi,raw-event-to-counters 	= <0x0000 0x0002 0x00000f8>,
++					  <0x0000 0x0003 0x00000ff0>,
++};
++
++```
+-- 
+2.31.1
+
 
