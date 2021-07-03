@@ -1,58 +1,60 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun, 4 Jul 2021 00:13:28 +0800
-Subject: undefined reference to `__dyn_sym_start' since commit
- bf3ef53bb7f5 ("firmware: Enable FW_PIC by default")
-In-Reply-To: <00eeaf45-1291-4c03-a504-ee1aeb8d9ee7@gmx.de>
-References: <056b2e37-0806-216d-18e7-6f7807ad90e9@gmx.de>
- <CAEUhbmUeAQ3M5zOeZWn_7G3MXBWT6c_V+sWCUuCPFzQn0ogteg@mail.gmail.com>
- <00eeaf45-1291-4c03-a504-ee1aeb8d9ee7@gmx.de>
-Message-ID: <CAEUhbmXQMHkDwJRovFLxCx_GdgpUpMwuwzdcmHQENH1435PKBg@mail.gmail.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Sat,  3 Jul 2021 18:56:05 +0100
+Subject: [PATCH 0/2] Fully support standalone Clang/LLVM toolchains
+Message-ID: <20210703175607.92532-1-jrtc27@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 3, 2021 at 11:58 PM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
->
-> On 7/3/21 5:07 PM, Bin Meng wrote:
-> > On Sat, Jul 3, 2021 at 7:37 PM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >>
-> >> make \
-> >>           PLATFORM=kendryte/k210 \
-> >>           FW_PAYLOAD=y \
-> >>           FW_PAYLOAD_OFFSET=0x20000 \
-> >>           FW_PAYLOAD_PATH=u-boot-dtb.bin
-> >>
-> >> fails with
-> >
-> > I don't see any problem with building it with current opensbi/master.
-> > I am using GCC 10.2.0.
->
-> The missing symbols are created by a linker script. So I guess the
-> important thing is the linker version.
->
-> My tools are
->
-> riscv64-linux-gnu-gcc (Debian 10.2.1-6) 10.2.1 20210110
-> GNU ld (GNU Binutils for Debian) 2.35.2
->
-> on an *aarch64* Debian Bullseye system.
->
-> I am on commit a731c7e36988c33.
+This patch series is comprised of two parts.
 
-I have:
+The first patch adds build system support for using Clang and LLVM
+binutils, provided your Clang is able to locate a libgcc.a in its search
+path.
 
-GCC 10.2.0
-GNU ld 2.34
+However, pure LLVM toolchains do not use libgcc, they use compiler-rt
+(libclang_rt.builtins.<arch>.a). We could change the Makefile to not
+hard-code -lgcc and instead use -print-libgcc-file-name, but that still
+requires a bare metal compiler-rt built for the right -march/-mabi to be
+present, which is often not the case. Moreover, we need very little from
+libgcc/compiler-rt; RV64 needs nothing, and RV32 only needs 64-bit
+division. Thus, the second patch vendors part of FreeBSD's libquad and
+stops linking against libgcc entirely, allowing OpenSBI to be built with
+just a cross-compiler. This means that building with any distro-provided
+LLVM just works, as does compiling with the system Clang compiler and
+LLD linker on FreeBSD without any external packages needed (beyond GNU
+make).
 
-on my x86 machine, and could not reproduce this on the same commit.
+Jessica Clarke (2):
+  Makefile: Support building with Clang and LLVM binutils
+  Drop dependency on libgcc by importing part of FreeBSD's libquad
 
->
-> On an amd64 system with the same software release I am not able to
-> reproduce the problem.
->
+ Makefile                              |  59 ++++--
+ lib/utils/libquad/divdi3.c            |  64 ++++++
+ lib/utils/libquad/include/limits.h    |  12 ++
+ lib/utils/libquad/include/sys/cdefs.h |  12 ++
+ lib/utils/libquad/include/sys/types.h |  25 +++
+ lib/utils/libquad/moddi3.c            |  66 ++++++
+ lib/utils/libquad/objects.mk          |  14 ++
+ lib/utils/libquad/qdivrem.c           | 278 ++++++++++++++++++++++++++
+ lib/utils/libquad/quad.h              | 105 ++++++++++
+ lib/utils/libquad/udivdi3.c           |  52 +++++
+ lib/utils/libquad/umoddi3.c           |  54 +++++
+ 11 files changed, 729 insertions(+), 12 deletions(-)
+ create mode 100644 lib/utils/libquad/divdi3.c
+ create mode 100644 lib/utils/libquad/include/limits.h
+ create mode 100644 lib/utils/libquad/include/sys/cdefs.h
+ create mode 100644 lib/utils/libquad/include/sys/types.h
+ create mode 100644 lib/utils/libquad/moddi3.c
+ create mode 100644 lib/utils/libquad/objects.mk
+ create mode 100644 lib/utils/libquad/qdivrem.c
+ create mode 100644 lib/utils/libquad/quad.h
+ create mode 100644 lib/utils/libquad/udivdi3.c
+ create mode 100644 lib/utils/libquad/umoddi3.c
 
-Regards,
-Bin
+-- 
+2.31.0
+
 
