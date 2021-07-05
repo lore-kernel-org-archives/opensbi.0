@@ -1,36 +1,57 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun,  4 Jul 2021 23:01:13 +0800
-Subject: [PATCH] platform: generic: Terminate platform.name with null
-Message-ID: <20210704150113.21531-1-bmeng.cn@gmail.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Mon, 5 Jul 2021 02:56:33 +0100
+Subject: [RFC PATCH 3/4] lib: utils: add gpio generic interface
+In-Reply-To: <20210701073958.15558-4-green.wan@sifive.com>
+References: <20210701073958.15558-1-green.wan@sifive.com>
+ <20210701073958.15558-4-green.wan@sifive.com>
+Message-ID: <F89BC455-515F-4FAD-ABCE-B7BC55B1A2ED@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-fw_platform_init() fills platform.name without considering the
-ending null character. Fix it.
+On 1 Jul 2021, at 08:39, Green Wan <green.wan@sifive.com> wrote:
+> 
+> Add generic interface for GPIO driver and add SiFive GPIO
+> driver as an example. Currently, driver supports gpio output
+> function only.
+> 
+> lib/utils/gpio/fdt_gpio.c:
+>  - contains GPIO generic interfaces.
+> 
+> lib/utils/gpio/sifive_gpio.c:
+>  - contains sifive GPIO driver.
+> 
+> platform/generic/platform.c:
+>  - add entry of gpio init
+> 
+> Signed-off-by: Green Wan <green.wan@sifive.com>
+> ---
+> include/sbi/sbi_gpio.h            | 23 ++++++++++
+> include/sbi_utils/gpio/fdt_gpio.h | 32 ++++++++++++++
+> lib/utils/gpio/fdt_gpio.c         | 55 ++++++++++++++++++++++++
+> lib/utils/gpio/objects.mk         | 11 +++++
+> lib/utils/gpio/sifive_gpio.c      | 70 +++++++++++++++++++++++++++++++
+> platform/generic/platform.c       |  3 ++
+> 6 files changed, 194 insertions(+)
+> create mode 100644 include/sbi/sbi_gpio.h
+> create mode 100644 include/sbi_utils/gpio/fdt_gpio.h
+> create mode 100644 lib/utils/gpio/fdt_gpio.c
+> create mode 100644 lib/utils/gpio/objects.mk
+> create mode 100644 lib/utils/gpio/sifive_gpio.c
+> 
+> diff --git a/include/sbi/sbi_gpio.h b/include/sbi/sbi_gpio.h
+> new file mode 100644
+> index 0000000..67ef9a9
+> --- /dev/null
+> +++ b/include/sbi/sbi_gpio.h
+> @@ -0,0 +1,23 @@
+> +/*
+> + * SPDX-License-Identifier: GPL 2.0+
 
-Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
----
+These files being GPL'ed isn?t going to fly.
 
- platform/generic/platform.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index da0c1af..79d5230 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -85,7 +85,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 
- 	model = fdt_getprop(fdt, root_offset, "model", &len);
- 	if (model)
--		sbi_strncpy(platform.name, model, sizeof(platform.name));
-+		sbi_strncpy(platform.name, model, sizeof(platform.name) - 1);
- 
- 	if (generic_plat && generic_plat->features)
- 		platform.features = generic_plat->features(generic_plat_match);
--- 
-2.25.1
+Jess
 
 
