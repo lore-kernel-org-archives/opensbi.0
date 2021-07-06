@@ -1,54 +1,65 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 6 Jul 2021 11:00:37 +0530
-Subject: [PATCH] docs/platform: thead-c9xx: Remove FW_PIC=y
-In-Reply-To: <20210703150929.19154-1-bmeng.cn@gmail.com>
-References: <20210703150929.19154-1-bmeng.cn@gmail.com>
-Message-ID: <CAAhSdy2VCr7E83EWCrivsLqLa4C_YkG4_jp2-fqt26+2+nQW_A@mail.gmail.com>
+Date: Tue, 6 Jul 2021 12:17:40 +0530
+Subject: [PATCH 0/2] Fully support standalone Clang/LLVM toolchains
+In-Reply-To: <CAEUhbmU65LjUkaDwZve=vj5EqSTYO5yJUAKf8_3Eq85LF-b_1Q@mail.gmail.com>
+References: <20210703175607.92532-1-jrtc27@jrtc27.com>
+ <CAEUhbmU65LjUkaDwZve=vj5EqSTYO5yJUAKf8_3Eq85LF-b_1Q@mail.gmail.com>
+Message-ID: <CAAhSdy1UqFK872A4YOscv5_k6+2S0Q-_Ehg143GFpTMgorRydg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 3, 2021 at 8:39 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Mon, Jul 5, 2021 at 6:45 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> FW_PIC is on by default. Hence no need to explicitly require it.
+> On Sun, Jul 4, 2021 at 1:56 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >
+> > This patch series is comprised of two parts.
+> >
+> > The first patch adds build system support for using Clang and LLVM
+> > binutils, provided your Clang is able to locate a libgcc.a in its search
+> > path.
+> >
+> > However, pure LLVM toolchains do not use libgcc, they use compiler-rt
+> > (libclang_rt.builtins.<arch>.a). We could change the Makefile to not
+> > hard-code -lgcc and instead use -print-libgcc-file-name, but that still
+> > requires a bare metal compiler-rt built for the right -march/-mabi to be
+> > present, which is often not the case. Moreover, we need very little from
+> > libgcc/compiler-rt; RV64 needs nothing, and RV32 only needs 64-bit
+> > division. Thus, the second patch vendors part of FreeBSD's libquad and
+> > stops linking against libgcc entirely, allowing OpenSBI to be built with
+> > just a cross-compiler. This means that building with any distro-provided
+> > LLVM just works, as does compiling with the system Clang compiler and
+> > LLD linker on FreeBSD without any external packages needed (beyond GNU
+> > make).
 >
-> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> I am concerned about removing libgcc. If we want to support running
+> OpenSBI on a processor without M extension, it would require us to
+> link with libgcc, or compiler-rt.
 
-Looks good to me.
+We have mandated rv32ima or rv64ima as minimal requirement in
+docs/platform_requirements.md. The 'I', 'M' and 'A' are very fundamental
+extensions and we don't want to emulate these extensions in OpenSBI.
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Further, a platform must support rv32gc or rv64gc to have platform
+firmware binaries as-part of OpenSBI release tarball. If a platform
+supports rv32ima or rv64ima but does not support rv32gc or rv64gc
+then users have to compile platform firmware binaries from sources.
 
-Applied this patch to the riscv/opensbi repo.
+I think we are okay removing dependency on libgcc. since it allows
+us to have llvm toolchain support in OpenSBI. Overall, I am quite
+happy with this series.
+
+Is there a pre-built llvm risc-v toolchain ?? or steps to create one ??
+
+The BSD-2-clause is compatible with the BSD-3-clause used by
+PATCH2. Am I correct ?
+
+I hope we don't need to specifically mention anything in the
+"Copyright and License" section of the top-level README.md
+for BSD-3-clause licensed code ??
 
 Regards,
 Anup
-
-> ---
->
->  docs/platform/thead-c9xx.md | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
-> index 8f1021a..c0daeb7 100644
-> --- a/docs/platform/thead-c9xx.md
-> +++ b/docs/platform/thead-c9xx.md
-> @@ -16,7 +16,7 @@ The *T-HEAD C9xx* does not have any platform-specific compile options
->  because it use generic platform.
->
->  ```
-> -CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic FW_PIC=y /usr/bin/make
-> +CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic /usr/bin/make
->  ```
->
->  The *T-HEAD C9xx* DTB provided to OpenSBI generic firmwares will usually have
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
