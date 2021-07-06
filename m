@@ -1,97 +1,197 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 6 Jul 2021 12:47:02 +0530
-Subject: [PATCH 0/2] Fully support standalone Clang/LLVM toolchains
-In-Reply-To: <CAEUhbmVn9egqR-FvJE9aL1dZrJ5c-YYV-s18fpCmrQ9rCP_tSw@mail.gmail.com>
+Date: Tue, 6 Jul 2021 14:03:30 +0530
+Subject: [PATCH 1/2] Makefile: Support building with Clang and LLVM
+ binutils
+In-Reply-To: <CAEUhbmV_0-01B7x750yyDd_A9k91TPjtN0Jn6BfeE1u43FqQJQ@mail.gmail.com>
 References: <20210703175607.92532-1-jrtc27@jrtc27.com>
- <CAEUhbmU65LjUkaDwZve=vj5EqSTYO5yJUAKf8_3Eq85LF-b_1Q@mail.gmail.com>
- <CAAhSdy1UqFK872A4YOscv5_k6+2S0Q-_Ehg143GFpTMgorRydg@mail.gmail.com>
- <CAEUhbmVn9egqR-FvJE9aL1dZrJ5c-YYV-s18fpCmrQ9rCP_tSw@mail.gmail.com>
-Message-ID: <CAAhSdy2PhD4QZ69Lbj5OFwOD6qHKVrzSOsG3MimmsA=RKzhB5g@mail.gmail.com>
+ <20210703175607.92532-2-jrtc27@jrtc27.com>
+ <CAEUhbmV_0-01B7x750yyDd_A9k91TPjtN0Jn6BfeE1u43FqQJQ@mail.gmail.com>
+Message-ID: <CAAhSdy23rk=i3uk=LbmYZmv+3ZfG75+1vTTpPv4fr_-H7aMuOA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 6, 2021 at 12:33 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Mon, Jul 5, 2021 at 6:35 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> On Tue, Jul 6, 2021 at 2:47 PM Anup Patel <anup@brainfault.org> wrote:
+> On Sun, Jul 4, 2021 at 1:56 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 > >
-> > On Mon, Jul 5, 2021 at 6:45 PM Bin Meng <bmeng.cn@gmail.com> wrote:
-> > >
-> > > On Sun, Jul 4, 2021 at 1:56 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> > > >
-> > > > This patch series is comprised of two parts.
-> > > >
-> > > > The first patch adds build system support for using Clang and LLVM
-> > > > binutils, provided your Clang is able to locate a libgcc.a in its search
-> > > > path.
-> > > >
-> > > > However, pure LLVM toolchains do not use libgcc, they use compiler-rt
-> > > > (libclang_rt.builtins.<arch>.a). We could change the Makefile to not
-> > > > hard-code -lgcc and instead use -print-libgcc-file-name, but that still
-> > > > requires a bare metal compiler-rt built for the right -march/-mabi to be
-> > > > present, which is often not the case. Moreover, we need very little from
-> > > > libgcc/compiler-rt; RV64 needs nothing, and RV32 only needs 64-bit
-> > > > division. Thus, the second patch vendors part of FreeBSD's libquad and
-> > > > stops linking against libgcc entirely, allowing OpenSBI to be built with
-> > > > just a cross-compiler. This means that building with any distro-provided
-> > > > LLVM just works, as does compiling with the system Clang compiler and
-> > > > LLD linker on FreeBSD without any external packages needed (beyond GNU
-> > > > make).
-> > >
-> > > I am concerned about removing libgcc. If we want to support running
-> > > OpenSBI on a processor without M extension, it would require us to
-> > > link with libgcc, or compiler-rt.
+> > This is intended to mirror the Linux kernel. Building with CC=clang will
+> > use Clang as the compiler but default to using the existing binutils.
+> > Building with LLVM=1 will default to using Clang and LLVM binutils.
 > >
-> > We have mandated rv32ima or rv64ima as minimal requirement in
-> > docs/platform_requirements.md. The 'I', 'M' and 'A' are very fundamental
-> > extensions and we don't want to emulate these extensions in OpenSBI.
+> > Note that the ifdef CROSS_COMPILE is removed, since it served little
+> > purpose. Variables assigned with = are still overridable on the command
+> > line, the only difference compared with ?= is whether environment
+> > variables also override them, but that's not something Kbuild-using
+> > projects usually support (at least Linux and U-Boot both unconditionally
+> > use = like this now does).
 > >
 >
-> I don't understand why we have to emulate 'M' or 'A' in OpenSBI. It's
-> perfectly okay to run OpenSBI in a uniprocessor environment, all the
-> way up to the operating system which is configured to UP mode. No 'A'
-> extension will be used in the software stack hence no need to emulate
-> 'A'.
+> Please update the documentation for how to use LLVM to build as well.
 
-There was a proposal in the past to have 'A' emulated in OpenSBI
-using LR/SC instructions so we had to define a minimal requirement
-from platform support in OpenSBI.
+Yes, we will need some documentation about building with LLVM. If you don't
+want to add it as part of this series then some of us can add it separately.
 
-The rv32ima and rv64ima requirements came as a subset of
-requirements enforced by general purpose OSes (like Linux). In fact,
-Linux RISC-V makefile mandates rv32ima or rv64ima as minimal
-requirement and there is "NO WAY" to disable 'A' for Linux RISC-V.
+>
+> > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
+> > ---
+> >  Makefile | 59 ++++++++++++++++++++++++++++++++++++++++++++------------
+> >  1 file changed, 47 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/Makefile b/Makefile
+> > index 6b64205..40bcab6 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -76,26 +76,47 @@ OPENSBI_VERSION_MINOR=`grep "define OPENSBI_VERSION_MINOR" $(include_dir)/sbi/sb
+> >  OPENSBI_VERSION_GIT=$(shell if [ -d $(src_dir)/.git ]; then git describe 2> /dev/null; fi)
+> >
+> >  # Setup compilation commands
+> > -ifdef CROSS_COMPILE
+> > +ifneq ($(LLVM),)
+> > +CC             =       clang
+> > +AR             =       llvm-ar
+> > +LD             =       ld.lld
+> > +OBJCOPY                =       llvm-objcopy
+> > +else
+> >  CC             =       $(CROSS_COMPILE)gcc
+> > -CPP            =       $(CROSS_COMPILE)cpp
+> >  AR             =       $(CROSS_COMPILE)ar
+> >  LD             =       $(CROSS_COMPILE)ld
+> >  OBJCOPY                =       $(CROSS_COMPILE)objcopy
+> > -else
+> > -CC             ?=      gcc
+> > -CPP            ?=      cpp
+> > -AR             ?=      ar
+> > -LD             ?=      ld
+> > -OBJCOPY                ?=      objcopy
+> >  endif
+> > +CPP            =       $(CC) -E
+> >  AS             =       $(CC)
+> >  DTC            =       dtc
 
-I think it makes sense to mandate 'A' for UP systems as well because
-'A' instructions can be used by user-space apps on UP systems for
-inter-thread synchronization. If 'A' is not mandated for a UP system
-then user-space apps will have to detect and use 'A' instructions or
-LR/SC whichever is available.
+There were build issues reported by yocto folks so we had to
+bring-in "?=" assignments.
+
+How about this ....
+
+ifneq ($(LLVM),)
+CC             =       clang
+AR             =       llvm-ar
+LD             =       ld.lld
+OBJCOPY                =       llvm-objcopy
+else
+CC             ?=       $(CROSS_COMPILE)gcc
+AR             ?=       $(CROSS_COMPILE)ar
+LD             ?=       $(CROSS_COMPILE)ld
+OBJCOPY               ?=       $(CROSS_COMPILE)objcopy
+endif
+CPP         =   $(CC) -E
+
+> >
+> > -# Guess the compillers xlen
+> > -OPENSBI_CC_XLEN := $(shell TMP=`$(CC) -dumpmachine | sed 's/riscv\([0-9][0-9]\).*/\1/'`; echo $${TMP})
+> > +ifneq ($(shell $(CC) --version 2>&1 | head -n 1 | grep clang),)
+> > +CC_IS_CLANG    =       y
+> > +else
+> > +CC_IS_CLANG    =       n
+> > +endif
+> > +
+> > +ifneq ($(shell $(LD) --version 2>&1 | head -n 1 | grep LLD),)
+> > +LD_IS_LLD      =       y
+> > +else
+> > +LD_IS_LLD      =       n
+> > +endif
+> > +
+> > +ifeq ($(CC_IS_CLANG),y)
+> > +ifneq ($(CROSS_COMPILE),)
+> > +CLANG_TARGET   =       -target $(notdir $(CROSS_COMPILE:%-=%))
+> > +endif
+> > +endif
+> > +
+> > +# Guess the compiler's XLEN
+> > +OPENSBI_CC_XLEN := $(shell TMP=`$(CC) $(CLANG_TARGET) -dumpmachine | sed 's/riscv\([0-9][0-9]\).*/\1/'`; echo $${TMP})
+> > +
+> > +# Guess the compiler's ABI and ISA
+> > +ifneq ($(CC_IS_CLANG),y)
+> >  OPENSBI_CC_ABI := $(shell TMP=`$(CC) -v 2>&1 | sed -n 's/.*\(with\-abi=\([a-zA-Z0-9]*\)\).*/\2/p'`; echo $${TMP})
+> >  OPENSBI_CC_ISA := $(shell TMP=`$(CC) -v 2>&1 | sed -n 's/.*\(with\-arch=\([a-zA-Z0-9]*\)\).*/\2/p'`; echo $${TMP})
+> > +endif
+> >
+> >  # Setup platform XLEN
+> >  ifndef PLATFORM_RISCV_XLEN
+> > @@ -194,7 +215,11 @@ else
+> >  endif
+> >
+> >  # Setup compilation commands flags
+> > -GENFLAGS       =       -I$(platform_src_dir)/include
+> > +ifeq ($(CC_IS_CLANG),y)
+> > +GENFLAGS       +=      $(CLANG_TARGET)
+> > +GENFLAGS       +=      -Wno-unused-command-line-argument
+> > +endif
+> > +GENFLAGS       +=      -I$(platform_src_dir)/include
+> >  GENFLAGS       +=      -I$(include_dir)
+> >  ifneq ($(OPENSBI_VERSION_GIT),)
+> >  GENFLAGS       +=      -DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
+> > @@ -208,6 +233,9 @@ CFLAGS              +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls
+> >  CFLAGS         +=      -mno-save-restore -mstrict-align
+> >  CFLAGS         +=      -mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+> >  CFLAGS         +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> > +ifeq ($(LD_IS_LLD),y)
+> > +CFLAGS         +=      -mno-relax
+> > +endif
+> >  CFLAGS         +=      $(GENFLAGS)
+> >  CFLAGS         +=      $(platform-cflags-y)
+> >  CFLAGS         +=      -fno-pie -no-pie
+> > @@ -222,18 +250,25 @@ ASFLAGS           +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls
+> >  ASFLAGS                +=      -mno-save-restore -mstrict-align
+> >  ASFLAGS                +=      -mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+> >  ASFLAGS                +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> > +ifeq ($(LD_IS_LLD),y)
+> > +ASFLAGS                +=      -mno-relax
+> > +endif
+> >  ASFLAGS                +=      $(GENFLAGS)
+> >  ASFLAGS                +=      $(platform-asflags-y)
+> >  ASFLAGS                +=      $(firmware-asflags-y)
+> >
+> >  ARFLAGS                =       rcs
+> >
+> > -ELFFLAGS       +=      -Wl,--build-id=none -N -static-libgcc -lgcc
+> > +ELFFLAGS       +=      -Wl,--build-id=none -Wl,-N -static-libgcc -lgcc
+>
+> This looks like an irrelevant bug fix?
+
+I think it makes sense to keep this change here because it is required for
+clang support and this patch adds clang support.
+
+It will be certainly good to have one sentence in the commit description
+describing this change. No need to have a separate patch for this change.
 
 Regards,
 Anup
 
+
 >
-> > Further, a platform must support rv32gc or rv64gc to have platform
-> > firmware binaries as-part of OpenSBI release tarball. If a platform
-> > supports rv32ima or rv64ima but does not support rv32gc or rv64gc
-> > then users have to compile platform firmware binaries from sources.
+> >  ELFFLAGS       +=      $(platform-ldflags-y)
+> >  ELFFLAGS       +=      $(firmware-ldflags-y)
 > >
-> > I think we are okay removing dependency on libgcc. since it allows
-> > us to have llvm toolchain support in OpenSBI. Overall, I am quite
-> > happy with this series.
+> >  MERGEFLAGS     +=      -r
+> > +ifeq ($(LD_IS_LLD),y)
+> > +MERGEFLAGS     +=      -b elf
+> > +else
+> >  MERGEFLAGS     +=      -b elf$(PLATFORM_RISCV_XLEN)-littleriscv
+> > +endif
+> >  MERGEFLAGS     +=      -m elf$(PLATFORM_RISCV_XLEN)lriscv
 > >
-> > Is there a pre-built llvm risc-v toolchain ?? or steps to create one ??
-> >
-> > The BSD-2-clause is compatible with the BSD-3-clause used by
-> > PATCH2. Am I correct ?
-> >
-> > I hope we don't need to specifically mention anything in the
-> > "Copyright and License" section of the top-level README.md
-> > for BSD-3-clause licensed code ??
+> >  DTSCPPFLAGS    =       $(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assembler-with-cpp
+> > --
 >
 > Regards,
 > Bin
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
