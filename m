@@ -1,11 +1,11 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 9 Jul 2021 11:20:08 -0700
-Subject: [PATCH v2 1/6] lib: utils/fdt: Add fdt_parse_phandle_with_args()
- API
-In-Reply-To: <20210709131059.1502293-2-anup.patel@wdc.com>
+Date: Fri, 9 Jul 2021 11:55:13 -0700
+Subject: [PATCH v2 2/6] lib: utils/gpio: Add generic GPIO configuration
+ library
+In-Reply-To: <20210709131059.1502293-3-anup.patel@wdc.com>
 References: <20210709131059.1502293-1-anup.patel@wdc.com>
- <20210709131059.1502293-2-anup.patel@wdc.com>
-Message-ID: <CAOnJCUKSuRifLDWTyBfexy9Ac3dUPBXdBmU-9JioXXbiPSyBMw@mail.gmail.com>
+ <20210709131059.1502293-3-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKEuKyJxrrHKXQEyPPcZqm5t2jshH4X666R-Lh+hwv=0g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,103 +14,272 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Jul 9, 2021 at 6:11 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The libfdt project does not have a generic API to parse phandle
-> with args from a DT node so we add fdt_parse_phandle_with_args()
-> for this purpose. This new API will be useful to FDT based drivers.
+> We add generic GPIO configuration library which is independent of
+> hardware description format (FDT or ACPI). The OpenSBI platform
+> support or GPIO drivers can register GPIO chip instances which
+> can be discovered and used by different GPIO clients. Each GPIO
+> chip instance has a unique ID which can be used by GPIO clients
+> to lookup GPIO chip instance.
 >
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  include/sbi_utils/fdt/fdt_helper.h | 11 +++++++
->  lib/utils/fdt/fdt_helper.c         | 47 ++++++++++++++++++++++++++++++
->  2 files changed, 58 insertions(+)
+>  include/sbi_utils/gpio/gpio.h |  99 +++++++++++++++++++++++++++++
+>  lib/utils/gpio/gpio.c         | 116 ++++++++++++++++++++++++++++++++++
+>  lib/utils/gpio/objects.mk     |  10 +++
+>  3 files changed, 225 insertions(+)
+>  create mode 100644 include/sbi_utils/gpio/gpio.h
+>  create mode 100644 lib/utils/gpio/gpio.c
+>  create mode 100644 lib/utils/gpio/objects.mk
 >
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 871f9b9..55b9382 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -17,6 +17,13 @@ struct fdt_match {
->         void *data;
->  };
->
-> +#define FDT_MAX_PHANDLE_ARGS 16
-> +struct fdt_phandle_args {
-> +       int node_offset;
-> +       int args_count;
-> +       u32 args[FDT_MAX_PHANDLE_ARGS];
+> diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+> new file mode 100644
+> index 0000000..167d11a
+> --- /dev/null
+> +++ b/include/sbi_utils/gpio/gpio.h
+> @@ -0,0 +1,99 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *   Anup Patel <anup.patel@wdc.com>
+> + */
+> +
+> +#ifndef __GPIO_H__
+> +#define __GPIO_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +#define GPIO_LINE_DIRECTION_IN 1
+> +#define GPIO_LINE_DIRECTION_OUT        0
+> +
+> +/** Representation of a GPIO pin */
+> +struct gpio_pin {
+> +       /** Pointer to the GPIO chip */
+> +       struct gpio_chip *chip;
+> +       /** Identification of GPIO pin within GPIO chip */
+> +       unsigned int offset;
+> +       /**
+> +        * Additional configuration flags of the GPIO pin desired
+> +        * by GPIO clients.
+> +        *
+> +        * NOTE: GPIO chip can have custom configuration flags.
+> +        */
+> +       unsigned int flags;
+> +#define GPIO_FLAG_ACTIVE_LOW   0x1
+> +#define GPIO_FLAG_SINGLE_ENDED 0x2
+> +#define GPIO_FLAG_OPEN_DRAIN   0x4
+> +#define GPIO_FLAG_TRANSITORY   0x8
+> +#define GPIO_FLAG_PULL_UP      0x10
+> +#define GPIO_FLAG_PULL_DOWN    0x20
 > +};
 > +
->  struct platform_uart_data {
->         unsigned long addr;
->         unsigned long freq;
-> @@ -32,6 +39,10 @@ int fdt_find_match(void *fdt, int startoff,
->                    const struct fdt_match *match_table,
->                    const struct fdt_match **out_match);
->
-> +int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
-> +                               const char *prop, const char *cells_prop,
-> +                               int index, struct fdt_phandle_args *out_args);
+> +/** Representation of a GPIO chip */
+> +struct gpio_chip {
+> +       /** Pointer to GPIO driver owning this GPIO chip */
+> +       void *driver;
+> +       /** Uniquie ID of the GPIO chip assigned by the driver */
+> +       unsigned int id;
+> +       /** Number of GPIOs supported by the GPIO chip */
+> +       unsigned int ngpio;
+> +       /**
+> +        * Get current direction of GPIO pin
+> +        *
+> +        * @return 0=output, 1=input, or negative error
+> +        */
+> +       int (*get_direction)(struct gpio_pin *gp);
+> +       /**
+> +        * Set input direction of GPIO pin
+> +        *
+> +        * @return 0 on success and negative error code on failure
+> +        */
+> +       int (*direction_input)(struct gpio_pin *gp);
+> +       /**
+> +        * Set output direction of GPIO pin with given output value
+> +        *
+> +        * @return 0 on success and negative error code on failure
+> +        */
+> +       int (*direction_output)(struct gpio_pin *gp, int value);
+> +       /**
+> +        * Get current value of GPIO pin
+> +        *
+> +        * @return 0=low, 1=high, or negative error
+> +        */
+> +       int (*get)(struct gpio_pin *gp);
+> +       /** Set output value for GPIO pin */
+> +       void (*set)(struct gpio_pin *gp, int value);
+> +};
 > +
->  int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
->                            unsigned long *size);
->
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index de77196..a970c0f 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -72,6 +72,53 @@ int fdt_find_match(void *fdt, int startoff,
->         return SBI_ENODEV;
->  }
->
-> +int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
-> +                               const char *prop, const char *cells_prop,
-> +                               int index, struct fdt_phandle_args *out_args)
+
+Is there a reason not to add an "addr" property here ?
+We don't have to define sifive_gpio_chip in that case. We can get rid
+of the static allocation of sifive_gpio_chip_array as well.
+
+
+> +/** Find a registered GPIO chip */
+> +struct gpio_chip *gpio_chip_find(unsigned int id);
+> +
+> +/** Register GPIO chip */
+> +int gpio_chip_add(struct gpio_chip *gc);
+> +
+> +/** Un-register GPIO chip */
+> +void gpio_chip_remove(struct gpio_chip *gc);
+> +
+> +/** Get current direction of GPIO pin */
+> +int gpio_get_direction(struct gpio_pin *gp);
+> +
+> +/** Set input direction of GPIO pin */
+> +int gpio_direction_input(struct gpio_pin *gp);
+> +
+> +/** Set output direction of GPIO pin */
+> +int gpio_direction_output(struct gpio_pin *gp, int value);
+> +
+> +/** Get current value of GPIO pin */
+> +int gpio_get(struct gpio_pin *gp);
+> +
+> +/** Set output value of GPIO pin */
+> +int gpio_set(struct gpio_pin *gp, int value);
+> +
+> +#endif
+> diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
+> new file mode 100644
+> index 0000000..fb30c0f
+> --- /dev/null
+> +++ b/lib/utils/gpio/gpio.c
+> @@ -0,0 +1,116 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *   Anup Patel <anup.patel@wdc.com>
+> + */
+> +
+> +#include <sbi/sbi_error.h>
+> +#include <sbi_utils/gpio/gpio.h>
+> +
+> +#define GPIO_CHIP_MAX          16
+> +
+> +static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
+> +
+> +struct gpio_chip *gpio_chip_find(unsigned int id)
 > +{
-> +       u32 i, pcells;
-> +       int len, pnodeoff;
-> +       const fdt32_t *list, *list_end, *val;
+> +       unsigned int i;
+> +       struct gpio_chip *ret = NULL;
 > +
-> +       if (!fdt || (nodeoff < 0) || !prop || !cells_prop || !out_args)
-> +               return SBI_EINVAL;
-> +
-> +       list = fdt_getprop(fdt, nodeoff, prop, &len);
-> +       if (!list)
-> +               return SBI_ENOENT;
-> +       list_end = list + (len / sizeof(*list));
-> +
-> +       while (list < list_end) {
-> +               pnodeoff = fdt_node_offset_by_phandle(fdt,
-> +                                               fdt32_to_cpu(*list));
-> +               if (pnodeoff < 0)
-> +                       return pnodeoff;
-> +               list++;
-> +
-> +               val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
-> +               if (!val)
-> +                       return SBI_ENOENT;
-> +               pcells = fdt32_to_cpu(*val);
-> +               if (FDT_MAX_PHANDLE_ARGS < pcells)
-> +                       return SBI_EINVAL;
-> +               if (list + pcells > list_end)
-> +                       return SBI_ENOENT;
-> +
-> +               if (index > 0) {
-> +                       list += pcells;
-> +                       index--;
-> +               } else {
-> +                       out_args->node_offset = pnodeoff;
-> +                       out_args->args_count = pcells;
-> +                       for (i = 0; i < pcells; i++)
-> +                               out_args->args[i] = fdt32_to_cpu(list[i]);
-> +                       return 0;
+> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> +               if (gc_array[i] && gc_array[i]->id == id) {
+> +                       ret = gc_array[i];
+> +                       break;
 > +               }
 > +       }
 > +
-> +       return SBI_ENOENT;
+> +       return ret;
 > +}
 > +
->  static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
->                                  unsigned long *addr)
->  {
+> +int gpio_chip_add(struct gpio_chip *gc)
+> +{
+> +       int i, ret = SBI_ENOSPC;
+> +
+> +       if (!gc)
+> +               return SBI_EINVAL;
+> +       if (gpio_chip_find(gc->id))
+> +               return SBI_EALREADY;
+> +
+> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> +               if (!gc_array[i]) {
+> +                       gc_array[i] = gc;
+> +                       ret = 0;
+> +                       break;
+> +               }
+> +       }
+> +
+> +       return ret;
+> +}
+> +
+> +void gpio_chip_remove(struct gpio_chip *gc)
+> +{
+> +       int i;
+> +
+> +       if (!gc)
+> +               return;
+> +
+> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> +               if (gc_array[i] == gc) {
+> +                       gc_array[i] = NULL;
+> +                       break;
+> +               }
+> +       }
+> +}
+> +
+> +int gpio_get_direction(struct gpio_pin *gp)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->get_direction)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->get_direction(gp);
+> +}
+> +
+> +int gpio_direction_input(struct gpio_pin *gp)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->direction_input)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->direction_input(gp);
+> +}
+> +
+> +int gpio_direction_output(struct gpio_pin *gp, int value)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->direction_output)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->direction_output(gp, value);
+> +}
+> +
+> +int gpio_get(struct gpio_pin *gp)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->get)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->get(gp);
+> +}
+> +
+> +int gpio_set(struct gpio_pin *gp, int value)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->set)
+> +               return SBI_ENOSYS;
+> +
+> +       gp->chip->set(gp, value);
+> +       return 0;
+> +}
+> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+> new file mode 100644
+> index 0000000..e99a895
+> --- /dev/null
+> +++ b/lib/utils/gpio/objects.mk
+> @@ -0,0 +1,10 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +# Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> +#
+> +# Authors:
+> +#   Anup Patel <anup.patel@wdc.com>
+> +#
+> +
+> +libsbiutils-objs-y += gpio/gpio.o
 > --
 > 2.25.1
 >
@@ -120,7 +289,6 @@ On Fri, Jul 9, 2021 at 6:11 AM Anup Patel <anup.patel@wdc.com> wrote:
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
 
 -- 
