@@ -1,53 +1,47 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Fri, 9 Jul 2021 18:05:39 +0800
-Subject: [PATCH v3 1/3] fw_base: Don't mark fw_platform_init as both
- global and weak
-In-Reply-To: <0DE0BB9C-1422-40CA-9D1F-59805DF4A438@jrtc27.com>
+Date: Fri, 9 Jul 2021 18:27:55 +0800
+Subject: [PATCH v3 2/3] Makefile: Support building with Clang and LLVM
+ binutils
+In-Reply-To: <20210709041213.11883-3-jrtc27@jrtc27.com>
 References: <20210709041213.11883-1-jrtc27@jrtc27.com>
- <20210709041213.11883-2-jrtc27@jrtc27.com>
- <0DE0BB9C-1422-40CA-9D1F-59805DF4A438@jrtc27.com>
-Message-ID: <CAEUhbmX83p0Odfvbceo7KWQ6WLi+1=1fVyJ6NPpmoNKw1k0wHA@mail.gmail.com>
+ <20210709041213.11883-3-jrtc27@jrtc27.com>
+Message-ID: <CAEUhbmWX0zhXsMEWu8KzTZGt89ppCa4C8NgyTo=E7X9_A4jPsw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 9, 2021 at 12:14 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Fri, Jul 9, 2021 at 12:12 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
-> On 9 Jul 2021, at 05:12, Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> > These are mutually exclusive. GNU as and LLVM both let later binding
-> > directives override earlier ones so this works as intended, but LLVM 12
-> > turned this into a warning as there's no good reason to do such a thing
-> > and could be a potential bug. Thus, remove the redundant and incorrect
-> > .globl directive for fw_platform_init.
+> This is intended to mirror the Linux kernel. Building with CC=clang will
+> use Clang as the compiler but default to using the existing binutils.
+> Building with LLVM=1 will default to using Clang and LLVM binutils.
+>
+> Whilst GCC will accept the -N linker option and forward it on to the
+> linker, Clang will not, and so in order to support both compilers we
+> must use -Wl, to forward it to the linker as is required for most other
+> linker options.
 >
 > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
+> ---
+>  Makefile  | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++-----
+>  README.md | 43 ++++++++++++++++++++++++++++++++++--
+>  2 files changed, 100 insertions(+), 8 deletions(-)
 >
 
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
-Tested-by: Bin Meng <bmeng.cn@gmail.com>
+Hardcoding "-target" to riscv64-unknown-elf, and building with clang
+and gnu ld, I got:
 
-> *Sigh*, not that this patch is at all interesting copyright-wise...
->
-> Jess
->
-> > ---
-> > firmware/fw_base.S | 1 -
-> > 1 file changed, 1 deletion(-)
-> >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> > index a5ce946..ee2a51b 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -553,7 +553,6 @@ _start_hang:
-> >
-> >       .section .entry, "ax", %progbits
-> >       .align 3
-> > -     .globl fw_platform_init
-> >       .weak fw_platform_init
-> > fw_platform_init:
-> >       add     a0, a1, zero
-> > --
+$ make CC=clang CROSS_COMPILE=riscv64-linux- PLATFORM=generic
+
+ ELF       platform/generic/firmware/payloads/test.elf
+/usr/bin/ld.bfd: cannot represent machine `riscv'
+clang-12: error: ld.lld command failed with exit code 1 (use -v to see
+invocation)
+make: *** [Makefile:404:
+opensbi/build/platform/generic/firmware/payloads/test.elf] Error 1
+
+Regards,
+Bin
 
