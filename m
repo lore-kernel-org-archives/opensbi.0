@@ -1,218 +1,112 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Fri,  9 Jul 2021 18:40:56 +0530
-Subject: [PATCH v2 3/6] lib: utils/gpio: Add simple FDT based GPIO framework
+Date: Fri,  9 Jul 2021 18:40:54 +0530
+Subject: [PATCH v2 1/6] lib: utils/fdt: Add fdt_parse_phandle_with_args() API
 In-Reply-To: <20210709131059.1502293-1-anup.patel@wdc.com>
 References: <20210709131059.1502293-1-anup.patel@wdc.com>
-Message-ID: <20210709131059.1502293-4-anup.patel@wdc.com>
+Message-ID: <20210709131059.1502293-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add a simple FDT based GPIO framework which is built on top
-of generic GPIO library. The phandle of FDT GPIO chip DT node
-is treated as unique GPIO chip ID required by the generic GPIO
-library. The FDT based GPIO chip drivers will be probed on-demand
-from fdt_gpio_pin_get() called by the GPIO client drivers.
+The libfdt project does not have a generic API to parse phandle
+with args from a DT node so we add fdt_parse_phandle_with_args()
+for this purpose. This new API will be useful to FDT based drivers.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi_utils/gpio/fdt_gpio.h |  34 ++++++++
- lib/utils/gpio/fdt_gpio.c         | 132 ++++++++++++++++++++++++++++++
- lib/utils/gpio/objects.mk         |   1 +
- 3 files changed, 167 insertions(+)
- create mode 100644 include/sbi_utils/gpio/fdt_gpio.h
- create mode 100644 lib/utils/gpio/fdt_gpio.c
+ include/sbi_utils/fdt/fdt_helper.h | 11 +++++++
+ lib/utils/fdt/fdt_helper.c         | 47 ++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
 
-diff --git a/include/sbi_utils/gpio/fdt_gpio.h b/include/sbi_utils/gpio/fdt_gpio.h
-new file mode 100644
-index 0000000..19e1b58
---- /dev/null
-+++ b/include/sbi_utils/gpio/fdt_gpio.h
-@@ -0,0 +1,34 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#ifndef __FDT_GPIO_H__
-+#define __FDT_GPIO_H__
-+
-+#include <sbi_utils/gpio/gpio.h>
-+
-+/** FDT based GPIO driver */
-+struct fdt_gpio {
-+	const struct fdt_match *match_table;
-+	int (*xlate)(struct gpio_chip *chip,
-+		     const struct fdt_phandle_args *pargs,
-+		     struct gpio_pin *out_pin);
-+	int (*init)(void *fdt, int nodeoff, u32 phandle,
-+		    const struct fdt_match *match);
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 871f9b9..55b9382 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -17,6 +17,13 @@ struct fdt_match {
+ 	void *data;
+ };
+ 
++#define FDT_MAX_PHANDLE_ARGS 16
++struct fdt_phandle_args {
++	int node_offset;
++	int args_count;
++	u32 args[FDT_MAX_PHANDLE_ARGS];
 +};
 +
-+/** Get a GPIO pin using "gpios" DT property of client DT node */
-+int fdt_gpio_pin_get(void *fdt, int nodeoff, int index,
-+		     struct gpio_pin *out_pin);
+ struct platform_uart_data {
+ 	unsigned long addr;
+ 	unsigned long freq;
+@@ -32,6 +39,10 @@ int fdt_find_match(void *fdt, int startoff,
+ 		   const struct fdt_match *match_table,
+ 		   const struct fdt_match **out_match);
+ 
++int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
++				const char *prop, const char *cells_prop,
++				int index, struct fdt_phandle_args *out_args);
 +
-+/** Simple xlate function to convert two GPIO FDT cells into GPIO pin */
-+int fdt_gpio_simple_xlate(struct gpio_chip *chip,
-+			  const struct fdt_phandle_args *pargs,
-+			  struct gpio_pin *out_pin);
-+
-+#endif
-diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
-new file mode 100644
-index 0000000..bff391f
---- /dev/null
-+++ b/lib/utils/gpio/fdt_gpio.c
-@@ -0,0 +1,132 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/gpio/fdt_gpio.h>
-+
-+static struct fdt_gpio *gpio_drivers[] = {
-+};
-+
-+static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
+ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
+ 			   unsigned long *size);
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index de77196..a970c0f 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -72,6 +72,53 @@ int fdt_find_match(void *fdt, int startoff,
+ 	return SBI_ENODEV;
+ }
+ 
++int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
++				const char *prop, const char *cells_prop,
++				int index, struct fdt_phandle_args *out_args)
 +{
-+	int pos;
++	u32 i, pcells;
++	int len, pnodeoff;
++	const fdt32_t *list, *list_end, *val;
 +
-+	if (!chip)
-+		return NULL;
-+
-+	for (pos = 0; pos < array_size(gpio_drivers); pos++) {
-+		if (chip->driver == gpio_drivers[pos])
-+			return gpio_drivers[pos];
-+	}
-+
-+	return NULL;
-+}
-+
-+static int fdt_gpio_init(void *fdt, u32 phandle)
-+{
-+	int pos, nodeoff, rc;
-+	struct fdt_gpio *drv;
-+	const struct fdt_match *match;
-+
-+	/* Find node offset */
-+	nodeoff = fdt_node_offset_by_phandle(fdt, phandle);
-+	if (nodeoff < 0)
-+		return nodeoff;
-+
-+	/* Check "gpio-controller" property */
-+	if (!fdt_getprop(fdt, nodeoff, "gpio-controller", &rc))
++	if (!fdt || (nodeoff < 0) || !prop || !cells_prop || !out_args)
 +		return SBI_EINVAL;
 +
-+	/* Try all GPIO drivers one-by-one */
-+	for (pos = 0; pos < array_size(gpio_drivers); pos++) {
-+		drv = gpio_drivers[pos];
++	list = fdt_getprop(fdt, nodeoff, prop, &len);
++	if (!list)
++		return SBI_ENOENT;
++	list_end = list + (len / sizeof(*list));
 +
-+		match = fdt_match_node(fdt, nodeoff, drv->match_table);
-+		if (match && drv->init) {
-+			rc = drv->init(fdt, nodeoff, phandle, match);
-+			if (rc == SBI_ENODEV)
-+				continue;
-+			if (rc)
-+				return rc;
++	while (list < list_end) {
++		pnodeoff = fdt_node_offset_by_phandle(fdt,
++						fdt32_to_cpu(*list));
++		if (pnodeoff < 0)
++			return pnodeoff;
++		list++;
++
++		val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
++		if (!val)
++			return SBI_ENOENT;
++		pcells = fdt32_to_cpu(*val);
++		if (FDT_MAX_PHANDLE_ARGS < pcells)
++			return SBI_EINVAL;
++		if (list + pcells > list_end)
++			return SBI_ENOENT;
++
++		if (index > 0) {
++			list += pcells;
++			index--;
++		} else {
++			out_args->node_offset = pnodeoff;
++			out_args->args_count = pcells;
++			for (i = 0; i < pcells; i++)
++				out_args->args[i] = fdt32_to_cpu(list[i]);
 +			return 0;
 +		}
 +	}
 +
-+	return SBI_ENOSYS;
++	return SBI_ENOENT;
 +}
 +
-+static int fdt_gpio_chip_find(void *fdt, u32 phandle,
-+			      struct gpio_chip **out_chip)
-+{
-+	int rc;
-+	struct gpio_chip *chip = gpio_chip_find(phandle);
-+
-+	if (!chip) {
-+		/* GPIO chip not found so initialize matching driver */
-+		rc = fdt_gpio_init(fdt, phandle);
-+		if (rc)
-+			return rc;
-+
-+		/* Try to find GPIO chip again */
-+		chip = gpio_chip_find(phandle);
-+		if (!chip)
-+			return SBI_ENOSYS;
-+	}
-+
-+	if (out_chip)
-+		*out_chip = chip;
-+
-+	return 0;
-+}
-+
-+int fdt_gpio_pin_get(void *fdt, int nodeoff, int index,
-+		     struct gpio_pin *out_pin)
-+{
-+	int rc;
-+	u32 phandle;
-+	struct fdt_gpio *drv;
-+	struct gpio_chip *chip = NULL;
-+	struct fdt_phandle_args pargs;
-+
-+	if (!fdt || (nodeoff < 0) || (index < 0) || !out_pin)
-+		return SBI_EINVAL;
-+
-+	pargs.node_offset = pargs.args_count = 0;
-+	rc = fdt_parse_phandle_with_args(fdt, nodeoff,
-+					 "gpios", "#gpio-cells",
-+					 index, &pargs);
-+	if (rc)
-+		return rc;
-+
-+	phandle = fdt_get_phandle(fdt, pargs.node_offset);
-+	rc = fdt_gpio_chip_find(fdt, phandle, &chip);
-+	if (rc)
-+		return rc;
-+
-+	drv = fdt_gpio_driver(chip);
-+	if (!drv || !drv->xlate)
-+		return SBI_ENOSYS;
-+
-+	return drv->xlate(chip, &pargs, out_pin);
-+}
-+
-+int fdt_gpio_simple_xlate(struct gpio_chip *chip,
-+			  const struct fdt_phandle_args *pargs,
-+			  struct gpio_pin *out_pin)
-+{
-+	if ((pargs->args_count < 2) || (chip->ngpio <= pargs->args[0]))
-+		return SBI_EINVAL;
-+
-+	out_pin->chip = chip;
-+	out_pin->offset = pargs->args[0];
-+	out_pin->flags = pargs->args[1];
-+	return 0;
-+}
-diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-index e99a895..dade45e 100644
---- a/lib/utils/gpio/objects.mk
-+++ b/lib/utils/gpio/objects.mk
-@@ -7,4 +7,5 @@
- #   Anup Patel <anup.patel@wdc.com>
- #
- 
-+libsbiutils-objs-y += gpio/fdt_gpio.o
- libsbiutils-objs-y += gpio/gpio.o
+ static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
+ 				 unsigned long *addr)
+ {
 -- 
 2.25.1
 
