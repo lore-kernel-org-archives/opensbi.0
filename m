@@ -1,53 +1,115 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 9 Jul 2021 15:25:33 +0100
-Subject: [PATCH v3 0/3] Fully support standalone Clang/LLVM toolchains
-In-Reply-To: <5e2079547e08b8847488d404a396e6dc7820f7e6.camel@126.com>
-References: <20210709041213.11883-1-jrtc27@jrtc27.com>
- <1480faa5d70aca5788d8a5f0909aeba9f737b230.camel@126.com>
- <F28A4A8F-EC89-484F-9CF3-522CC3237FBC@jrtc27.com>
- <5e2079547e08b8847488d404a396e6dc7820f7e6.camel@126.com>
-Message-ID: <E7D244BE-B58D-4534-8BFC-CF4268C334E6@jrtc27.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Fri, 9 Jul 2021 22:28:42 +0800
+Subject: [PATCH v2 6/6] lib: utils/fdt: Disable GPIO restart and poweroff
+ nodes in fdt_fixups()
+In-Reply-To: <20210709131059.1502293-7-anup.patel@wdc.com>
+References: <20210709131059.1502293-1-anup.patel@wdc.com>
+ <20210709131059.1502293-7-anup.patel@wdc.com>
+Message-ID: <CAEUhbmWoPE62NGrYbLy8s8n6thJN9bPAybiLsYukbVn0DBLyDQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9 Jul 2021, at 15:23, Xiang W <wxjstz@126.com> wrote:
-> 
-> ? 2021-07-09???? 14:49 +0100?Jessica Clarke???
->> On 9 Jul 2021, at 14:46, Xiang W <wxjstz@126.com> wrote:
->>> 
->>> ? 2021-07-09???? 05:12 +0100?Jessica Clarke???
->>> I tested these patches. Some bugs reported
->>> 
->>> ld.lld: error: can't create dynamic relocation R_RISCV_32 against
->>> symbol: _fw_start in readonly segment; recompile object files with
->>> -
->>> fPIC or pass '-Wl,-z,notext' to allow text relocations in the
->>> output
->>>>>> defined in
->>> /home/merle/workspaces/opensbi/build/platform/generic/firmware/fw_d
->>> ynam
->>> ic.elf.ld:9
->>>>>> referenced by fw_base.S:502
->>> (/home/merle/workspaces/opensbi/firmware/fw_base.S:502)
->>>>>> 
->>> /home/merle/workspaces/opensbi/build/platform/generic/firmware/fw_d
->>> ynam
->>> ic.o:(.entry+0x3BC)
->> 
->> This was reported by Bin. Don?t use a Linux triple for something
->> that?s
->> neither the Linux kernel nor a Linux userspace executable/library.
->> 
->> Jess
-> 
-> Linux triple?
+On Fri, Jul 9, 2021 at 9:13 PM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> We now have SBI SRST extension provided via generic GPIO restart and
+> poweroff similar to Linux kernel so let's disable corresponding
+> device tree nodes in fdt_fixups().
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  include/sbi_utils/fdt/fdt_fixup.h | 17 +++++++++++++++--
+>  lib/utils/fdt/fdt_fixup.c         | 25 +++++++++++++++++++++++--
+>  2 files changed, 38 insertions(+), 4 deletions(-)
+>
+> diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
+> index c38e5d9..cc86440 100644
+> --- a/include/sbi_utils/fdt/fdt_fixup.h
+> +++ b/include/sbi_utils/fdt/fdt_fixup.h
+> @@ -21,6 +21,18 @@
+>   */
+>  void fdt_cpu_fixup(void *fdt);
+>
+> +/**
+> + * Fix up the GPIO restart and poweroff nodes in the device tree
+> + *
+> + * This routine disabls the GPIO restart and poweroff nodes in the device
 
-That error looks like you built with CROSS_COMPILE=riscv64-linux- or
-similar. What exactly did you run?
+typo: disables
 
-Jess
+> + * tree because OpenSBI provides SBI SRST extension based on it.
+> + *
+> + * It is recommended that platform codes call this helper in their final_init()
+> + *
+> + * @param fdt: device tree blob
+> + */
+> +void fdt_gpio_reset_fixup(void *fdt);
+> +
+>  /**
+>   * Fix up the PLIC node in the device tree
+>   *
+> @@ -64,8 +76,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt);
+>   * General device tree fix-up
+>   *
+>   * This routine do all required device tree fix-ups for a typical platform.
+> - * It fixes up the PLIC node and the reserved memory node in the device tree
+> - * by calling the corresponding helper routines to accomplish the task.
+> + * It fixes up the GPIO restart/poweroff node, PLIC node and the reserved
+> + * memory node in the device tree by calling the corresponding helper
+> + * routines to accomplish the task.
+>   *
+>   * It is recommended that platform codes call this helper in their final_init()
+>   *
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index 1465500..52d1a0e 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -51,6 +51,27 @@ void fdt_cpu_fixup(void *fdt)
+>         }
+>  }
+>
+> +void fdt_gpio_reset_fixup(void *fdt)
+> +{
+> +       int err, nodeoff;
+> +
+> +       nodeoff = fdt_node_offset_by_compatible(fdt, 0, "gpio-poweroff");
+> +       if (nodeoff >= 0) {
+> +               err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+> +               if (err < 0)
+> +                       return;
+> +               fdt_setprop_string(fdt, nodeoff, "status", "disabled");
 
+For OS that already supports gpio-poweroff/restart natively in the
+kernel, but has not yet to support SBI SRST extension, this change
+suddenly breaks them.
+
+> +       }
+> +
+> +       nodeoff = fdt_node_offset_by_compatible(fdt, 0, "gpio-restart");
+> +       if (nodeoff >= 0) {
+> +               err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+> +               if (err < 0)
+> +                       return;
+> +               fdt_setprop_string(fdt, nodeoff, "status", "disabled");
+> +       }
+> +}
+> +
+>  void fdt_plic_fixup(void *fdt)
+>  {
+>         u32 *cells;
+> @@ -260,9 +281,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
+>
+>  void fdt_fixups(void *fdt)
+>  {
+> +       fdt_gpio_reset_fixup(fdt);
+> +
+>         fdt_plic_fixup(fdt);
+>
+>         fdt_reserved_memory_fixup(fdt);
+>  }
+
+Regards,
+Bin
 
