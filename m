@@ -1,37 +1,37 @@
 From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri,  9 Jul 2021 20:34:21 +0100
-Subject: [PATCH v4 3/5] firmware: Explicitly pass -pie to the linker,
- not just the driver
+Date: Fri,  9 Jul 2021 20:34:19 +0100
+Subject: [PATCH v4 1/5] fw_base: Don't mark fw_platform_init as both global
+ and weak
 In-Reply-To: <20210709193423.29712-1-jrtc27@jrtc27.com>
 References: <20210709193423.29712-1-jrtc27@jrtc27.com>
-Message-ID: <20210709193423.29712-4-jrtc27@jrtc27.com>
+Message-ID: <20210709193423.29712-2-jrtc27@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When using Clang with a bare-metal triple, -pie does not get passed to
-the linker as it's not normally a thing that makes sense. However, in
-our case it is, and manually forwarding it on works as desired, so do so
-to fully support FW_PIC with Clang, including when linking with LLD.
+These are mutually exclusive. GNU as and LLVM both let later binding
+directives override earlier ones so this works as intended, but LLVM 12
+turned this into a warning as there's no good reason to do such a thing
+and could be a potential bug. Thus, remove the redundant and incorrect
+.globl directive for fw_platform_init.
 ---
- firmware/objects.mk | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ firmware/fw_base.S | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/firmware/objects.mk b/firmware/objects.mk
-index ce91c2f..3bc83cd 100644
---- a/firmware/objects.mk
-+++ b/firmware/objects.mk
-@@ -21,7 +21,7 @@ ifeq ($(FW_PIC),y)
- firmware-genflags-y +=	-DFW_PIC
- firmware-asflags-y  +=	-fpic
- firmware-cflags-y   +=	-fPIE -pie
--firmware-ldflags-y  +=  -Wl,--no-dynamic-linker
-+firmware-ldflags-y  +=  -Wl,--no-dynamic-linker -Wl,-pie
- endif
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index a5ce946..ee2a51b 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -553,7 +553,6 @@ _start_hang:
  
- ifdef FW_TEXT_START
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+-	.globl fw_platform_init
+ 	.weak fw_platform_init
+ fw_platform_init:
+ 	add	a0, a1, zero
 -- 
 2.31.0
 
