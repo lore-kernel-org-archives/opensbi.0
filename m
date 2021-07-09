@@ -1,275 +1,150 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Fri,  9 Jul 2021 18:40:55 +0530
-Subject: [PATCH v2 2/6] lib: utils/gpio: Add generic GPIO configuration library
+Date: Fri,  9 Jul 2021 18:40:57 +0530
+Subject: [PATCH v2 4/6] lib: utils/gpio: Add minimal SiFive GPIO driver
 In-Reply-To: <20210709131059.1502293-1-anup.patel@wdc.com>
 References: <20210709131059.1502293-1-anup.patel@wdc.com>
-Message-ID: <20210709131059.1502293-3-anup.patel@wdc.com>
+Message-ID: <20210709131059.1502293-5-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add generic GPIO configuration library which is independent of
-hardware description format (FDT or ACPI). The OpenSBI platform
-support or GPIO drivers can register GPIO chip instances which
-can be discovered and used by different GPIO clients. Each GPIO
-chip instance has a unique ID which can be used by GPIO clients
-to lookup GPIO chip instance.
+From: Green Wan <green.wan@sifive.com>
 
+We add a minimal SiFive GPIO driver so that we can do GPIO based
+system power-off and reset.
+
+Signed-off-by: Green Wan <green.wan@sifive.com>
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- include/sbi_utils/gpio/gpio.h |  99 +++++++++++++++++++++++++++++
- lib/utils/gpio/gpio.c         | 116 ++++++++++++++++++++++++++++++++++
- lib/utils/gpio/objects.mk     |  10 +++
- 3 files changed, 225 insertions(+)
- create mode 100644 include/sbi_utils/gpio/gpio.h
- create mode 100644 lib/utils/gpio/gpio.c
- create mode 100644 lib/utils/gpio/objects.mk
+ lib/utils/gpio/fdt_gpio.c        |  3 ++
+ lib/utils/gpio/fdt_gpio_sifive.c | 90 ++++++++++++++++++++++++++++++++
+ lib/utils/gpio/objects.mk        |  1 +
+ 3 files changed, 94 insertions(+)
+ create mode 100644 lib/utils/gpio/fdt_gpio_sifive.c
 
-diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
+index bff391f..297b248 100644
+--- a/lib/utils/gpio/fdt_gpio.c
++++ b/lib/utils/gpio/fdt_gpio.c
+@@ -12,7 +12,10 @@
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/gpio/fdt_gpio.h>
+ 
++extern struct fdt_gpio fdt_gpio_sifive;
++
+ static struct fdt_gpio *gpio_drivers[] = {
++	&fdt_gpio_sifive
+ };
+ 
+ static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
+diff --git a/lib/utils/gpio/fdt_gpio_sifive.c b/lib/utils/gpio/fdt_gpio_sifive.c
 new file mode 100644
-index 0000000..167d11a
+index 0000000..5941c94
 --- /dev/null
-+++ b/include/sbi_utils/gpio/gpio.h
-@@ -0,0 +1,99 @@
++++ b/lib/utils/gpio/fdt_gpio_sifive.c
+@@ -0,0 +1,90 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
++ * Copyright (c) 2021 SiFive
 + *
 + * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
++ *   Green Wan <green.wan@sifive.com>
 + */
 +
-+#ifndef __GPIO_H__
-+#define __GPIO_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+#define GPIO_LINE_DIRECTION_IN	1
-+#define GPIO_LINE_DIRECTION_OUT	0
-+
-+/** Representation of a GPIO pin */
-+struct gpio_pin {
-+	/** Pointer to the GPIO chip */
-+	struct gpio_chip *chip;
-+	/** Identification of GPIO pin within GPIO chip */
-+	unsigned int offset;
-+	/**
-+	 * Additional configuration flags of the GPIO pin desired
-+	 * by GPIO clients.
-+	 *
-+	 * NOTE: GPIO chip can have custom configuration flags.
-+	 */
-+	unsigned int flags;
-+#define GPIO_FLAG_ACTIVE_LOW	0x1
-+#define GPIO_FLAG_SINGLE_ENDED	0x2
-+#define GPIO_FLAG_OPEN_DRAIN	0x4
-+#define GPIO_FLAG_TRANSITORY	0x8
-+#define GPIO_FLAG_PULL_UP	0x10
-+#define GPIO_FLAG_PULL_DOWN	0x20
-+};
-+
-+/** Representation of a GPIO chip */
-+struct gpio_chip {
-+	/** Pointer to GPIO driver owning this GPIO chip */
-+	void *driver;
-+	/** Uniquie ID of the GPIO chip assigned by the driver */
-+	unsigned int id;
-+	/** Number of GPIOs supported by the GPIO chip */
-+	unsigned int ngpio;
-+	/**
-+	 * Get current direction of GPIO pin
-+	 *
-+	 * @return 0=output, 1=input, or negative error
-+	 */
-+	int (*get_direction)(struct gpio_pin *gp);
-+	/**
-+	 * Set input direction of GPIO pin
-+	 *
-+	 * @return 0 on success and negative error code on failure
-+	 */
-+	int (*direction_input)(struct gpio_pin *gp);
-+	/**
-+	 * Set output direction of GPIO pin with given output value
-+	 *
-+	 * @return 0 on success and negative error code on failure
-+	 */
-+	int (*direction_output)(struct gpio_pin *gp, int value);
-+	/**
-+	 * Get current value of GPIO pin
-+	 *
-+	 * @return 0=low, 1=high, or negative error
-+	 */
-+	int (*get)(struct gpio_pin *gp);
-+	/** Set output value for GPIO pin */
-+	void (*set)(struct gpio_pin *gp, int value);
-+};
-+
-+/** Find a registered GPIO chip */
-+struct gpio_chip *gpio_chip_find(unsigned int id);
-+
-+/** Register GPIO chip */
-+int gpio_chip_add(struct gpio_chip *gc);
-+
-+/** Un-register GPIO chip */
-+void gpio_chip_remove(struct gpio_chip *gc);
-+
-+/** Get current direction of GPIO pin */
-+int gpio_get_direction(struct gpio_pin *gp);
-+
-+/** Set input direction of GPIO pin */
-+int gpio_direction_input(struct gpio_pin *gp);
-+
-+/** Set output direction of GPIO pin */
-+int gpio_direction_output(struct gpio_pin *gp, int value);
-+
-+/** Get current value of GPIO pin */
-+int gpio_get(struct gpio_pin *gp);
-+
-+/** Set output value of GPIO pin */
-+int gpio_set(struct gpio_pin *gp, int value);
-+
-+#endif
-diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
-new file mode 100644
-index 0000000..fb30c0f
---- /dev/null
-+++ b/lib/utils/gpio/gpio.c
-@@ -0,0 +1,116 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
++#include <sbi/riscv_io.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi_utils/gpio/gpio.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/gpio/fdt_gpio.h>
 +
-+#define GPIO_CHIP_MAX		16
++#define SIFIVE_GPIO_CHIP_MAX	2
 +
-+static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
++#define SIFIVE_GPIO_PINS_MIN	1
++#define SIFIVE_GPIO_PINS_MAX	32
++#define SIFIVE_GPIO_PINS_DEF	16
 +
-+struct gpio_chip *gpio_chip_find(unsigned int id)
++#define SIFIVE_GPIO_OUTEN	0x8
++#define SIFIVE_GPIO_OUTVAL	0xc
++#define SIFIVE_GPIO_BIT(b)	(1U << (b))
++
++struct sifive_gpio_chip {
++	unsigned long addr;
++	struct gpio_chip chip;
++};
++
++static unsigned int sifive_gpio_chip_count;
++static struct sifive_gpio_chip sifive_gpio_chip_array[SIFIVE_GPIO_CHIP_MAX];
++
++static int sifive_gpio_direction_output(struct gpio_pin *gp, int value)
 +{
-+	unsigned int i;
-+	struct gpio_chip *ret = NULL;
++	unsigned int v;
++	struct sifive_gpio_chip *chip =
++		container_of(gp->chip, struct sifive_gpio_chip, chip);
 +
-+	for (i = 0; i < GPIO_CHIP_MAX; i++) {
-+		if (gc_array[i] && gc_array[i]->id == id) {
-+			ret = gc_array[i];
-+			break;
-+		}
-+	}
++	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTEN));
++	v |= SIFIVE_GPIO_BIT(gp->offset);
++	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTEN));
 +
-+	return ret;
-+}
++	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
++	if (!value)
++		v &= ~SIFIVE_GPIO_BIT(gp->offset);
++	else
++		v |= SIFIVE_GPIO_BIT(gp->offset);
++	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
 +
-+int gpio_chip_add(struct gpio_chip *gc)
-+{
-+	int i, ret = SBI_ENOSPC;
-+
-+	if (!gc)
-+		return SBI_EINVAL;
-+	if (gpio_chip_find(gc->id))
-+		return SBI_EALREADY;
-+
-+	for (i = 0; i < GPIO_CHIP_MAX; i++) {
-+		if (!gc_array[i]) {
-+			gc_array[i] = gc;
-+			ret = 0;
-+			break;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+void gpio_chip_remove(struct gpio_chip *gc)
-+{
-+	int i;
-+
-+	if (!gc)
-+		return;
-+
-+	for (i = 0; i < GPIO_CHIP_MAX; i++) {
-+		if (gc_array[i] == gc) {
-+			gc_array[i] = NULL;
-+			break;
-+		}
-+	}
-+}
-+
-+int gpio_get_direction(struct gpio_pin *gp)
-+{
-+	if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-+		return SBI_EINVAL;
-+	if (!gp->chip->get_direction)
-+		return SBI_ENOSYS;
-+
-+	return gp->chip->get_direction(gp);
-+}
-+
-+int gpio_direction_input(struct gpio_pin *gp)
-+{
-+	if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-+		return SBI_EINVAL;
-+	if (!gp->chip->direction_input)
-+		return SBI_ENOSYS;
-+
-+	return gp->chip->direction_input(gp);
-+}
-+
-+int gpio_direction_output(struct gpio_pin *gp, int value)
-+{
-+	if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-+		return SBI_EINVAL;
-+	if (!gp->chip->direction_output)
-+		return SBI_ENOSYS;
-+
-+	return gp->chip->direction_output(gp, value);
-+}
-+
-+int gpio_get(struct gpio_pin *gp)
-+{
-+	if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-+		return SBI_EINVAL;
-+	if (!gp->chip->get)
-+		return SBI_ENOSYS;
-+
-+	return gp->chip->get(gp);
-+}
-+
-+int gpio_set(struct gpio_pin *gp, int value)
-+{
-+	if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-+		return SBI_EINVAL;
-+	if (!gp->chip->set)
-+		return SBI_ENOSYS;
-+
-+	gp->chip->set(gp, value);
 +	return 0;
 +}
-diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-new file mode 100644
-index 0000000..e99a895
---- /dev/null
-+++ b/lib/utils/gpio/objects.mk
-@@ -0,0 +1,10 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+#
-+# Authors:
-+#   Anup Patel <anup.patel@wdc.com>
-+#
 +
-+libsbiutils-objs-y += gpio/gpio.o
++extern struct fdt_gpio fdt_gpio_sifive;
++
++static int sifive_gpio_init(void *fdt, int nodeoff, u32 phandle,
++			    const struct fdt_match *match)
++{
++	int rc;
++	struct sifive_gpio_chip *chip;
++
++	if (SIFIVE_GPIO_CHIP_MAX <= sifive_gpio_chip_count)
++		return SBI_ENOSPC;
++	chip = &sifive_gpio_chip_array[sifive_gpio_chip_count];
++
++	rc = fdt_get_node_addr_size(fdt, nodeoff, &chip->addr, NULL);
++	if (rc)
++		return rc;
++
++	chip->chip.driver = &fdt_gpio_sifive;
++	chip->chip.id = phandle;
++	chip->chip.ngpio = SIFIVE_GPIO_PINS_DEF;
++	chip->chip.direction_output = sifive_gpio_direction_output;
++	rc = gpio_chip_add(&chip->chip);
++	if (rc)
++		return rc;
++
++	sifive_gpio_chip_count++;
++	return 0;
++}
++
++static const struct fdt_match sifive_gpio_match[] = {
++	{ .compatible = "sifive,gpio0" },
++	{ },
++};
++
++struct fdt_gpio fdt_gpio_sifive = {
++	.match_table = sifive_gpio_match,
++	.xlate = fdt_gpio_simple_xlate,
++	.init = sifive_gpio_init,
++};
+diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+index dade45e..8eb7736 100644
+--- a/lib/utils/gpio/objects.mk
++++ b/lib/utils/gpio/objects.mk
+@@ -8,4 +8,5 @@
+ #
+ 
+ libsbiutils-objs-y += gpio/fdt_gpio.o
++libsbiutils-objs-y += gpio/fdt_gpio_sifive.o
+ libsbiutils-objs-y += gpio/gpio.o
 -- 
 2.25.1
 
