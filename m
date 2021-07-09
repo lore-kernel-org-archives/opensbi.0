@@ -1,225 +1,125 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 9 Jul 2021 12:05:41 -0700
-Subject: [PATCH v2 3/6] lib: utils/gpio: Add simple FDT based GPIO
- framework
-In-Reply-To: <20210709131059.1502293-4-anup.patel@wdc.com>
+Date: Fri, 9 Jul 2021 12:09:14 -0700
+Subject: [PATCH v2 6/6] lib: utils/fdt: Disable GPIO restart and poweroff
+ nodes in fdt_fixups()
+In-Reply-To: <CAEUhbmWoPE62NGrYbLy8s8n6thJN9bPAybiLsYukbVn0DBLyDQ@mail.gmail.com>
 References: <20210709131059.1502293-1-anup.patel@wdc.com>
- <20210709131059.1502293-4-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJ4dUovUHeJfCJ+GKJxBRV+CaHSqXVsYs8xCJBJY97vfw@mail.gmail.com>
+ <20210709131059.1502293-7-anup.patel@wdc.com>
+ <CAEUhbmWoPE62NGrYbLy8s8n6thJN9bPAybiLsYukbVn0DBLyDQ@mail.gmail.com>
+Message-ID: <CAOnJCULxbLb8e7X2RgxGXEGFMFYfkRTWqKMHhnwJz95niSL7-g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 9, 2021 at 6:11 AM Anup Patel <anup.patel@wdc.com> wrote:
+On Fri, Jul 9, 2021 at 7:29 AM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> We add a simple FDT based GPIO framework which is built on top
-> of generic GPIO library. The phandle of FDT GPIO chip DT node
-> is treated as unique GPIO chip ID required by the generic GPIO
-> library. The FDT based GPIO chip drivers will be probed on-demand
-> from fdt_gpio_pin_get() called by the GPIO client drivers.
+> On Fri, Jul 9, 2021 at 9:13 PM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > We now have SBI SRST extension provided via generic GPIO restart and
+> > poweroff similar to Linux kernel so let's disable corresponding
+> > device tree nodes in fdt_fixups().
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > ---
+> >  include/sbi_utils/fdt/fdt_fixup.h | 17 +++++++++++++++--
+> >  lib/utils/fdt/fdt_fixup.c         | 25 +++++++++++++++++++++++--
+> >  2 files changed, 38 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
+> > index c38e5d9..cc86440 100644
+> > --- a/include/sbi_utils/fdt/fdt_fixup.h
+> > +++ b/include/sbi_utils/fdt/fdt_fixup.h
+> > @@ -21,6 +21,18 @@
+> >   */
+> >  void fdt_cpu_fixup(void *fdt);
+> >
+> > +/**
+> > + * Fix up the GPIO restart and poweroff nodes in the device tree
+> > + *
+> > + * This routine disabls the GPIO restart and poweroff nodes in the device
 >
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  include/sbi_utils/gpio/fdt_gpio.h |  34 ++++++++
->  lib/utils/gpio/fdt_gpio.c         | 132 ++++++++++++++++++++++++++++++
->  lib/utils/gpio/objects.mk         |   1 +
->  3 files changed, 167 insertions(+)
->  create mode 100644 include/sbi_utils/gpio/fdt_gpio.h
->  create mode 100644 lib/utils/gpio/fdt_gpio.c
+> typo: disables
 >
-> diff --git a/include/sbi_utils/gpio/fdt_gpio.h b/include/sbi_utils/gpio/fdt_gpio.h
-> new file mode 100644
-> index 0000000..19e1b58
-> --- /dev/null
-> +++ b/include/sbi_utils/gpio/fdt_gpio.h
-> @@ -0,0 +1,34 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Anup Patel <anup.patel@wdc.com>
-> + */
-> +
-> +#ifndef __FDT_GPIO_H__
-> +#define __FDT_GPIO_H__
-> +
-> +#include <sbi_utils/gpio/gpio.h>
-> +
-> +/** FDT based GPIO driver */
-> +struct fdt_gpio {
-> +       const struct fdt_match *match_table;
-> +       int (*xlate)(struct gpio_chip *chip,
-> +                    const struct fdt_phandle_args *pargs,
-> +                    struct gpio_pin *out_pin);
-> +       int (*init)(void *fdt, int nodeoff, u32 phandle,
-> +                   const struct fdt_match *match);
-> +};
-> +
-> +/** Get a GPIO pin using "gpios" DT property of client DT node */
-> +int fdt_gpio_pin_get(void *fdt, int nodeoff, int index,
-> +                    struct gpio_pin *out_pin);
-> +
-> +/** Simple xlate function to convert two GPIO FDT cells into GPIO pin */
-> +int fdt_gpio_simple_xlate(struct gpio_chip *chip,
-> +                         const struct fdt_phandle_args *pargs,
-> +                         struct gpio_pin *out_pin);
-> +
-> +#endif
-> diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
-> new file mode 100644
-> index 0000000..bff391f
-> --- /dev/null
-> +++ b/lib/utils/gpio/fdt_gpio.c
-> @@ -0,0 +1,132 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Anup Patel <anup.patel@wdc.com>
-> + */
-> +
-> +#include <libfdt.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/gpio/fdt_gpio.h>
-> +
-> +static struct fdt_gpio *gpio_drivers[] = {
-> +};
-> +
-> +static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
-> +{
-> +       int pos;
-> +
-> +       if (!chip)
-> +               return NULL;
-> +
-> +       for (pos = 0; pos < array_size(gpio_drivers); pos++) {
-> +               if (chip->driver == gpio_drivers[pos])
-> +                       return gpio_drivers[pos];
-> +       }
-> +
-> +       return NULL;
-> +}
-> +
-> +static int fdt_gpio_init(void *fdt, u32 phandle)
-> +{
-> +       int pos, nodeoff, rc;
-> +       struct fdt_gpio *drv;
-> +       const struct fdt_match *match;
-> +
-> +       /* Find node offset */
-> +       nodeoff = fdt_node_offset_by_phandle(fdt, phandle);
-> +       if (nodeoff < 0)
-> +               return nodeoff;
-> +
-> +       /* Check "gpio-controller" property */
-> +       if (!fdt_getprop(fdt, nodeoff, "gpio-controller", &rc))
-> +               return SBI_EINVAL;
-> +
-> +       /* Try all GPIO drivers one-by-one */
-> +       for (pos = 0; pos < array_size(gpio_drivers); pos++) {
-> +               drv = gpio_drivers[pos];
-> +
-> +               match = fdt_match_node(fdt, nodeoff, drv->match_table);
-> +               if (match && drv->init) {
-> +                       rc = drv->init(fdt, nodeoff, phandle, match);
-> +                       if (rc == SBI_ENODEV)
-> +                               continue;
-> +                       if (rc)
-> +                               return rc;
-> +                       return 0;
-> +               }
-> +       }
-> +
-> +       return SBI_ENOSYS;
-> +}
-> +
-> +static int fdt_gpio_chip_find(void *fdt, u32 phandle,
-> +                             struct gpio_chip **out_chip)
-> +{
-> +       int rc;
-> +       struct gpio_chip *chip = gpio_chip_find(phandle);
-> +
-> +       if (!chip) {
-> +               /* GPIO chip not found so initialize matching driver */
-> +               rc = fdt_gpio_init(fdt, phandle);
-> +               if (rc)
-> +                       return rc;
-> +
-> +               /* Try to find GPIO chip again */
-> +               chip = gpio_chip_find(phandle);
-> +               if (!chip)
-> +                       return SBI_ENOSYS;
-> +       }
-> +
-> +       if (out_chip)
-> +               *out_chip = chip;
-> +
-> +       return 0;
-> +}
-> +
-> +int fdt_gpio_pin_get(void *fdt, int nodeoff, int index,
-> +                    struct gpio_pin *out_pin)
-> +{
-> +       int rc;
-> +       u32 phandle;
-> +       struct fdt_gpio *drv;
-> +       struct gpio_chip *chip = NULL;
-> +       struct fdt_phandle_args pargs;
-> +
-> +       if (!fdt || (nodeoff < 0) || (index < 0) || !out_pin)
-> +               return SBI_EINVAL;
-> +
-> +       pargs.node_offset = pargs.args_count = 0;
-> +       rc = fdt_parse_phandle_with_args(fdt, nodeoff,
-> +                                        "gpios", "#gpio-cells",
-> +                                        index, &pargs);
-> +       if (rc)
-> +               return rc;
-> +
-> +       phandle = fdt_get_phandle(fdt, pargs.node_offset);
-> +       rc = fdt_gpio_chip_find(fdt, phandle, &chip);
-> +       if (rc)
-> +               return rc;
-> +
-> +       drv = fdt_gpio_driver(chip);
-> +       if (!drv || !drv->xlate)
-> +               return SBI_ENOSYS;
-> +
-> +       return drv->xlate(chip, &pargs, out_pin);
-> +}
-> +
-> +int fdt_gpio_simple_xlate(struct gpio_chip *chip,
-> +                         const struct fdt_phandle_args *pargs,
-> +                         struct gpio_pin *out_pin)
-> +{
-> +       if ((pargs->args_count < 2) || (chip->ngpio <= pargs->args[0]))
-> +               return SBI_EINVAL;
-> +
-> +       out_pin->chip = chip;
-> +       out_pin->offset = pargs->args[0];
-> +       out_pin->flags = pargs->args[1];
-> +       return 0;
-> +}
-> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-> index e99a895..dade45e 100644
-> --- a/lib/utils/gpio/objects.mk
-> +++ b/lib/utils/gpio/objects.mk
-> @@ -7,4 +7,5 @@
->  #   Anup Patel <anup.patel@wdc.com>
->  #
+> > + * tree because OpenSBI provides SBI SRST extension based on it.
+> > + *
+> > + * It is recommended that platform codes call this helper in their final_init()
+> > + *
+> > + * @param fdt: device tree blob
+> > + */
+> > +void fdt_gpio_reset_fixup(void *fdt);
+> > +
+> >  /**
+> >   * Fix up the PLIC node in the device tree
+> >   *
+> > @@ -64,8 +76,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt);
+> >   * General device tree fix-up
+> >   *
+> >   * This routine do all required device tree fix-ups for a typical platform.
+> > - * It fixes up the PLIC node and the reserved memory node in the device tree
+> > - * by calling the corresponding helper routines to accomplish the task.
+> > + * It fixes up the GPIO restart/poweroff node, PLIC node and the reserved
+> > + * memory node in the device tree by calling the corresponding helper
+> > + * routines to accomplish the task.
+> >   *
+> >   * It is recommended that platform codes call this helper in their final_init()
+> >   *
+> > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> > index 1465500..52d1a0e 100644
+> > --- a/lib/utils/fdt/fdt_fixup.c
+> > +++ b/lib/utils/fdt/fdt_fixup.c
+> > @@ -51,6 +51,27 @@ void fdt_cpu_fixup(void *fdt)
+> >         }
+> >  }
+> >
+> > +void fdt_gpio_reset_fixup(void *fdt)
+> > +{
+> > +       int err, nodeoff;
+> > +
+> > +       nodeoff = fdt_node_offset_by_compatible(fdt, 0, "gpio-poweroff");
+> > +       if (nodeoff >= 0) {
+> > +               err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+> > +               if (err < 0)
+> > +                       return;
+> > +               fdt_setprop_string(fdt, nodeoff, "status", "disabled");
 >
-> +libsbiutils-objs-y += gpio/fdt_gpio.o
->  libsbiutils-objs-y += gpio/gpio.o
-> --
-> 2.25.1
+> For OS that already supports gpio-poweroff/restart natively in the
+> kernel, but has not yet to support SBI SRST extension, this change
+> suddenly breaks them.
 >
+
+I agree. In addition to that, SRST extension is optional. So we
+shouldn't disable the
+DT node assuming that the OS will use SRST extension to restart/poweroff.
+
+> > +       }
+> > +
+> > +       nodeoff = fdt_node_offset_by_compatible(fdt, 0, "gpio-restart");
+> > +       if (nodeoff >= 0) {
+> > +               err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+> > +               if (err < 0)
+> > +                       return;
+> > +               fdt_setprop_string(fdt, nodeoff, "status", "disabled");
+> > +       }
+> > +}
+> > +
+> >  void fdt_plic_fixup(void *fdt)
+> >  {
+> >         u32 *cells;
+> > @@ -260,9 +281,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
+> >
+> >  void fdt_fixups(void *fdt)
+> >  {
+> > +       fdt_gpio_reset_fixup(fdt);
+> > +
+> >         fdt_plic_fixup(fdt);
+> >
+> >         fdt_reserved_memory_fixup(fdt);
+> >  }
+>
+> Regards,
+> Bin
 >
 > --
 > opensbi mailing list
@@ -227,7 +127,6 @@ On Fri, Jul 9, 2021 at 6:11 AM Anup Patel <anup.patel@wdc.com> wrote:
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
 -- 
 Regards,
