@@ -1,54 +1,116 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 9 Jul 2021 09:50:36 -0700
-Subject: [PATCH] firmware: Minor optimization in _scratch_init()
-In-Reply-To: <20210708133511.9198-1-bmeng.cn@gmail.com>
-References: <20210708133511.9198-1-bmeng.cn@gmail.com>
-Message-ID: <CAOnJCULkDt5ih9sc9q0nxXdn95T0V5b9EM_vg3Xk-2H67a3N+w@mail.gmail.com>
+Date: Fri, 9 Jul 2021 11:20:08 -0700
+Subject: [PATCH v2 1/6] lib: utils/fdt: Add fdt_parse_phandle_with_args()
+ API
+In-Reply-To: <20210709131059.1502293-2-anup.patel@wdc.com>
+References: <20210709131059.1502293-1-anup.patel@wdc.com>
+ <20210709131059.1502293-2-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKSuRifLDWTyBfexy9Ac3dUPBXdBmU-9JioXXbiPSyBMw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 8, 2021 at 6:35 AM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Fri, Jul 9, 2021 at 6:11 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> Before entering _scratch_init(), register t3 already holds a copy
-> of the firmware end address, hence there is no need to calculate
-> it again. This reduces 3 instructions in each _scratch_init() loop.
+> The libfdt project does not have a generic API to parse phandle
+> with args from a DT node so we add fdt_parse_phandle_with_args()
+> for this purpose. This new API will be useful to FDT based drivers.
 >
-> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
+>  include/sbi_utils/fdt/fdt_helper.h | 11 +++++++
+>  lib/utils/fdt/fdt_helper.c         | 47 ++++++++++++++++++++++++++++++
+>  2 files changed, 58 insertions(+)
 >
->  firmware/fw_base.S | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index 871f9b9..55b9382 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -17,6 +17,13 @@ struct fdt_match {
+>         void *data;
+>  };
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index a5ce946..e35f18e 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -287,10 +287,7 @@ _scratch_init:
->         /* Initialize scratch space */
->         /* Store fw_start and fw_size in scratch space */
->         lla     a4, _fw_start
-> -       lla     a5, _fw_end
-> -       mul     t0, s7, s8
-> -       add     a5, a5, t0
-> -       sub     a5, a5, a4
-> +       sub     a5, t3, a4
-
-It saves 3 instructions during boot but uses a temporary register (t3)
-which was not computed in this block.
-The first instruction of the loop also uses t3 to save tp. Can you add
-a comment in the beginning of the loop
-saying that all the registers that are critical for _scratch_init loop ?
-
-This will remind the future developers that they shouldn't touch these
-register inside the loop.
-
-
->         REG_S   a4, SBI_SCRATCH_FW_START_OFFSET(tp)
->         REG_S   a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
->         /* Store next arg1 in scratch space */
+> +#define FDT_MAX_PHANDLE_ARGS 16
+> +struct fdt_phandle_args {
+> +       int node_offset;
+> +       int args_count;
+> +       u32 args[FDT_MAX_PHANDLE_ARGS];
+> +};
+> +
+>  struct platform_uart_data {
+>         unsigned long addr;
+>         unsigned long freq;
+> @@ -32,6 +39,10 @@ int fdt_find_match(void *fdt, int startoff,
+>                    const struct fdt_match *match_table,
+>                    const struct fdt_match **out_match);
+>
+> +int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+> +                               const char *prop, const char *cells_prop,
+> +                               int index, struct fdt_phandle_args *out_args);
+> +
+>  int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
+>                            unsigned long *size);
+>
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index de77196..a970c0f 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -72,6 +72,53 @@ int fdt_find_match(void *fdt, int startoff,
+>         return SBI_ENODEV;
+>  }
+>
+> +int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+> +                               const char *prop, const char *cells_prop,
+> +                               int index, struct fdt_phandle_args *out_args)
+> +{
+> +       u32 i, pcells;
+> +       int len, pnodeoff;
+> +       const fdt32_t *list, *list_end, *val;
+> +
+> +       if (!fdt || (nodeoff < 0) || !prop || !cells_prop || !out_args)
+> +               return SBI_EINVAL;
+> +
+> +       list = fdt_getprop(fdt, nodeoff, prop, &len);
+> +       if (!list)
+> +               return SBI_ENOENT;
+> +       list_end = list + (len / sizeof(*list));
+> +
+> +       while (list < list_end) {
+> +               pnodeoff = fdt_node_offset_by_phandle(fdt,
+> +                                               fdt32_to_cpu(*list));
+> +               if (pnodeoff < 0)
+> +                       return pnodeoff;
+> +               list++;
+> +
+> +               val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
+> +               if (!val)
+> +                       return SBI_ENOENT;
+> +               pcells = fdt32_to_cpu(*val);
+> +               if (FDT_MAX_PHANDLE_ARGS < pcells)
+> +                       return SBI_EINVAL;
+> +               if (list + pcells > list_end)
+> +                       return SBI_ENOENT;
+> +
+> +               if (index > 0) {
+> +                       list += pcells;
+> +                       index--;
+> +               } else {
+> +                       out_args->node_offset = pnodeoff;
+> +                       out_args->args_count = pcells;
+> +                       for (i = 0; i < pcells; i++)
+> +                               out_args->args[i] = fdt32_to_cpu(list[i]);
+> +                       return 0;
+> +               }
+> +       }
+> +
+> +       return SBI_ENOENT;
+> +}
+> +
+>  static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
+>                                  unsigned long *addr)
+>  {
 > --
 > 2.25.1
 >
@@ -58,11 +120,10 @@ register inside the loop.
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
-Otherwise, looks good to me.
-
 Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
---
+
+-- 
 Regards,
 Atish
 
