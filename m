@@ -1,125 +1,111 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 10 Jul 2021 20:26:29 +0530
-Subject: [PATCH v4 3/5] firmware: Explicitly pass -pie to the linker, not
- just the driver
-In-Reply-To: <CAEUhbmVq3RvoODpThpVE4OrrvaRnETsCoM6fcVG+NUriO4s_pQ@mail.gmail.com>
-References: <20210709193423.29712-1-jrtc27@jrtc27.com>
- <20210709193423.29712-4-jrtc27@jrtc27.com>
- <CAEUhbmVDAY8Puuro=m+nVBhR8pbXPYgB-1PHjEd3tKGvNCB03w@mail.gmail.com>
- <CAEUhbmWJafiTvJzMb1xo=6_7UFEToJDUwytTFBmiRXzVfZ8YPA@mail.gmail.com>
- <CAAhSdy12gSm9ZJktj4ZUskTOoGVAJ8xdqANkU3ci2q8_mstVnw@mail.gmail.com>
- <CAEUhbmXWJmkGqrHR31qZUYQBpD4qE8WFmKSZa20T_5_DUR0x7w@mail.gmail.com>
- <CAAhSdy0amqzkzWVSmMitPO18OzZ62MeX8rHqM=OjCX-L_cTH6w@mail.gmail.com>
- <CAEUhbmVq3RvoODpThpVE4OrrvaRnETsCoM6fcVG+NUriO4s_pQ@mail.gmail.com>
-Message-ID: <CAAhSdy0idH74dSeEw2P+MfQU=TDwpYN6VNhZYLO5=GGwd_8xSg@mail.gmail.com>
+From: Atish Patra <atish.patra@wdc.com>
+Date: Sat, 10 Jul 2021 09:18:01 -0700
+Subject: [PATCH v5 00/15] SBI PMU extension support
+Message-ID: <20210710161816.632364-1-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 10, 2021 at 7:13 PM Bin Meng <bmeng.cn@gmail.com> wrote:
->
-> On Sat, Jul 10, 2021 at 9:38 PM Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Sat, Jul 10, 2021 at 6:13 PM Bin Meng <bmeng.cn@gmail.com> wrote:
-> > >
-> > > Hi Anup,
-> > >
-> > > On Sat, Jul 10, 2021 at 6:42 PM Anup Patel <anup@brainfault.org> wrote:
-> > > >
-> > > > Hi Bin,
-> > > >
-> > > > On Sat, Jul 10, 2021 at 2:23 PM Bin Meng <bmeng.cn@gmail.com> wrote:
-> > > > >
-> > > > > On Sat, Jul 10, 2021 at 10:56 AM Bin Meng <bmeng.cn@gmail.com> wrote:
-> > > > > >
-> > > > > > On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> > > > > > >
-> > > > > > > When using Clang with a bare-metal triple, -pie does not get passed to
-> > > > > > > the linker as it's not normally a thing that makes sense. However, in
-> > > > > > > our case it is, and manually forwarding it on works as desired, so do so
-> > > > > > > to fully support FW_PIC with Clang, including when linking with LLD.
-> > > > > > > ---
-> > > > > > >  firmware/objects.mk | 2 +-
-> > > > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > > > > >
-> > > > > > > diff --git a/firmware/objects.mk b/firmware/objects.mk
-> > > > > > > index ce91c2f..3bc83cd 100644
-> > > > > > > --- a/firmware/objects.mk
-> > > > > > > +++ b/firmware/objects.mk
-> > > > > > > @@ -21,7 +21,7 @@ ifeq ($(FW_PIC),y)
-> > > > > > >  firmware-genflags-y += -DFW_PIC
-> > > > > > >  firmware-asflags-y  += -fpic
-> > > > > > >  firmware-cflags-y   += -fPIE -pie
-> > > > > > > -firmware-ldflags-y  +=  -Wl,--no-dynamic-linker
-> > > > > > > +firmware-ldflags-y  +=  -Wl,--no-dynamic-linker -Wl,-pie
-> > > > > > >  endif
-> > > > > >
-> > > > > > Does this manual forwarding also work for GNU ld? If so, I think we
-> > > > > > don't need to detect bare-metal triple and turn off FW_PIC in
-> > > > > > Makefile?
-> > > > >
-> > > > > I just built a riscv64-unknown-elf-gcc toolchain and used it to build
-> > > > > the current HEAD of opensbi/master. Indeed it's broken that pie is not
-> > > > > supported with the bare-metal triple.
-> > > > >
-> > > > > The GNU ld simply complains:
-> > > > >
-> > > > >  ELF       platform/generic/firmware/payloads/test.elf
-> > > > > /opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld.bfd:
-> > > > > -pie not supported
-> > > >
-> > > > The firmware/objects.mk is doing the following:
-> > > >
-> > > > ifndef FW_PIC
-> > > > FW_PIC := y
-> > > > endif
-> > > >
-> > > > Instead of above, we should set FW_PIC=y only when the underlying
-> > > > toolchain supports pie.
-> > > >
-> > >
-> > > Agree.
-> > >
-> > > > We need a patch for this to be merged before we can merge this
-> > > > series. Can you send such a patch ? If not then I can send it.
-> > >
-> > > Do you have some reliable ways to check whether a toolchain supports PIE?
-> >
-> > How about checking "-linux-" in CROSS_COMPILE prefix ? If it's available then
-> > we set FW_PIC=y else we set FW_PIC=n.
->
-> That works for cross-compile toolchains. But how about native
-> toolchains (building OpenSBI on a RISC-V machine)?
+The latest version of the SBI specification includes a Performance Monitoring
+Unit(PMU) extension[1] which allows the supervisor to start/stop/configure
+various PMU events. This series implements the SBI PMU extension in OpenSBI.
 
-Yes, it will not work for native compilation of OpenSBI.
+It doesn't implement the bits required to support "Sscof" extension yet. That
+will be added later along with qemu support. This series can be found at github[4]
+as well. It has been tested with Linux kernel patches[3] for different
+hardware/firmware events on Qemu.
 
->
-> > I did not find any info in the "${CROSS_COMPILE}gcc -v" output.
->
-> Me neither.
->
-> >
-> > Maybe also add some comment in objects.mk that GCC bare-metal toolchain
-> > does not have PIE enabled.
->
-> Or we can just document if using bare-metal toolchain FW_PIC has to be
-> set to n in the build.
+This patch requires basic QEMU support series[2] to work. As the Qemu did not
+support mhpmevent/mhpmcounter before this series, these changes are not backward
+compatible to avoid code churn. Anybody who wants to use perf must include
+Qemu, OpenSBI, Linux kernel patches.
 
-Sounds good.
+[1] https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc
+[2] https://github.com/atishp04/qemu/tree/riscv_pmu_v1
+[3] https://github.com/atishp04/linux/tree/riscv_pmu_v3 
+[4] https://github.com/atishp04/opensbi/tree/riscv_pmu_v5 
 
-We should document it under section "Required Toolchain" of top-level
-README.md. Basically, we prefer toolchains with PIE support and for
-toolchains not having PIE users have to pass the "FW_PIC=n" option.
+Changes from v4->v5:
+1. Modified the DT binding to have generic names.
 
-Also, we should replace references of bare-metal toolchain prefix with
-linux toolchain prefix everywhere in documentation.
+Changes from v3->v4:
+1. Fixed the return code from sbi_pmu_init.
+2. Changed the few pmu structures to have uint32_t instead of unsigned long to
+   save bss.
+3. Dropped the redundant header includes from patch 12.
 
-Regards,
-Anup
+Changes from v2->v3:
+1. Fixed several small fixes in sbi_pmu.c
+2. Added additional sanity check for TM bit.
+3. Minor fixes in firmware counter patch.
+4. Return failure during probe for PMU extension if mcountinhibit is not available
+5. Enable the cycle and instruction counter by default.
 
->
-> Regards,
-> Bin
+Changes from v1->v2:
+1. Addressed all the comments from v1.
+2. Improved the series by following latest SBI PMU extension[1]
+
+Atish Patra (5):
+utils: fdt: Add fdt helper functions to parse PMU DT nodes
+lib: sbi: Implement SBI PMU extension
+lib: sbi: Implement firmware counters
+lib:sbi:tlb: Improve function naming
+platform: generic: Add PMU support
+
+Atish Patra (15):
+docs: Add device tree bindings for SBI PMU extension
+lib: sbi: Detect mcountinihibit support at runtime
+lib: sbi: Remove stray '' character
+lib: sbi: Detect number of bits implemented in mhpmcounter
+lib: sbi: Disable m/scounteren & enable mcountinhibit
+include: Add a list empty check function
+lib: sbi: Remove redundant boot time print statement
+lib: sbi: Use csr_read/write_num to read/update PMU counters
+lib: sbi: Add PMU specific platform hooks
+lib: sbi: Add PMU support
+utils: fdt: Add fdt helper functions to parse PMU DT nodes
+lib: sbi: Implement SBI PMU extension
+lib: sbi: Implement firmware counters
+lib:sbi:tlb: Improve function naming
+platform: generic: Add PMU support
+
+docs/pmu_support.md               |  79 ++++
+include/sbi/sbi_ecall.h           |   1 +
+include/sbi/sbi_ecall_interface.h | 138 ++++++-
+include/sbi/sbi_error.h           |   2 +
+include/sbi/sbi_hart.h            |   5 +-
+include/sbi/sbi_list.h            |  11 +
+include/sbi/sbi_platform.h        |  39 ++
+include/sbi/sbi_pmu.h             |  73 ++++
+include/sbi_utils/fdt/fdt_pmu.h   |  46 +++
+lib/sbi/objects.mk                |   2 +
+lib/sbi/riscv_asm.c               |  35 ++
+lib/sbi/sbi_ecall.c               |   3 +
+lib/sbi/sbi_ecall_pmu.c           |  93 +++++
+lib/sbi/sbi_hart.c                |  86 ++++-
+lib/sbi/sbi_illegal_insn.c        |   2 +
+lib/sbi/sbi_init.c                |  13 +-
+lib/sbi/sbi_ipi.c                 |   6 +
+lib/sbi/sbi_misaligned_ldst.c     |   5 +
+lib/sbi/sbi_pmu.c                 | 620 ++++++++++++++++++++++++++++++
+lib/sbi/sbi_timer.c               |   2 +
+lib/sbi/sbi_tlb.c                 |  79 +++-
+lib/sbi/sbi_trap.c                |   7 +
+lib/utils/fdt/fdt_fixup.c         |   2 +
+lib/utils/fdt/fdt_pmu.c           | 111 ++++++
+lib/utils/fdt/objects.mk          |   1 +
+platform/generic/platform.c       |  30 ++
+26 files changed, 1461 insertions(+), 30 deletions(-)
+create mode 100644 docs/pmu_support.md
+create mode 100644 include/sbi/sbi_pmu.h
+create mode 100644 include/sbi_utils/fdt/fdt_pmu.h
+create mode 100644 lib/sbi/sbi_ecall_pmu.c
+create mode 100644 lib/sbi/sbi_pmu.c
+create mode 100644 lib/utils/fdt/fdt_pmu.c
+
+--
+2.31.1
+
 
