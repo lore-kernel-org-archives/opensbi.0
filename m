@@ -1,73 +1,97 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sat, 10 Jul 2021 21:30:20 +0800
-Subject: [PATCH] firmware: Minor optimization in _scratch_init()
-In-Reply-To: <CAOnJCULkDt5ih9sc9q0nxXdn95T0V5b9EM_vg3Xk-2H67a3N+w@mail.gmail.com>
-References: <20210708133511.9198-1-bmeng.cn@gmail.com>
- <CAOnJCULkDt5ih9sc9q0nxXdn95T0V5b9EM_vg3Xk-2H67a3N+w@mail.gmail.com>
-Message-ID: <CAEUhbmWvj85dh5EMu2TOqfUhd-BhwDUKKRUJkt1NrFymYovNeg@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 10 Jul 2021 19:08:26 +0530
+Subject: [PATCH v4 3/5] firmware: Explicitly pass -pie to the linker, not
+ just the driver
+In-Reply-To: <CAEUhbmXWJmkGqrHR31qZUYQBpD4qE8WFmKSZa20T_5_DUR0x7w@mail.gmail.com>
+References: <20210709193423.29712-1-jrtc27@jrtc27.com>
+ <20210709193423.29712-4-jrtc27@jrtc27.com>
+ <CAEUhbmVDAY8Puuro=m+nVBhR8pbXPYgB-1PHjEd3tKGvNCB03w@mail.gmail.com>
+ <CAEUhbmWJafiTvJzMb1xo=6_7UFEToJDUwytTFBmiRXzVfZ8YPA@mail.gmail.com>
+ <CAAhSdy12gSm9ZJktj4ZUskTOoGVAJ8xdqANkU3ci2q8_mstVnw@mail.gmail.com>
+ <CAEUhbmXWJmkGqrHR31qZUYQBpD4qE8WFmKSZa20T_5_DUR0x7w@mail.gmail.com>
+Message-ID: <CAAhSdy0amqzkzWVSmMitPO18OzZ62MeX8rHqM=OjCX-L_cTH6w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 10, 2021 at 12:50 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Sat, Jul 10, 2021 at 6:13 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> On Thu, Jul 8, 2021 at 6:35 AM Bin Meng <bmeng.cn@gmail.com> wrote:
-> >
-> > Before entering _scratch_init(), register t3 already holds a copy
-> > of the firmware end address, hence there is no need to calculate
-> > it again. This reduces 3 instructions in each _scratch_init() loop.
-> >
-> > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
-> > ---
-> >
-> >  firmware/fw_base.S | 5 +----
-> >  1 file changed, 1 insertion(+), 4 deletions(-)
-> >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> > index a5ce946..e35f18e 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -287,10 +287,7 @@ _scratch_init:
-> >         /* Initialize scratch space */
-> >         /* Store fw_start and fw_size in scratch space */
-> >         lla     a4, _fw_start
-> > -       lla     a5, _fw_end
-> > -       mul     t0, s7, s8
-> > -       add     a5, a5, t0
-> > -       sub     a5, a5, a4
-> > +       sub     a5, t3, a4
+> Hi Anup,
 >
-> It saves 3 instructions during boot but uses a temporary register (t3)
-> which was not computed in this block.
-> The first instruction of the loop also uses t3 to save tp. Can you add
-> a comment in the beginning of the loop
-> saying that all the registers that are critical for _scratch_init loop ?
+> On Sat, Jul 10, 2021 at 6:42 PM Anup Patel <anup@brainfault.org> wrote:
+> >
+> > Hi Bin,
+> >
+> > On Sat, Jul 10, 2021 at 2:23 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+> > >
+> > > On Sat, Jul 10, 2021 at 10:56 AM Bin Meng <bmeng.cn@gmail.com> wrote:
+> > > >
+> > > > On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> > > > >
+> > > > > When using Clang with a bare-metal triple, -pie does not get passed to
+> > > > > the linker as it's not normally a thing that makes sense. However, in
+> > > > > our case it is, and manually forwarding it on works as desired, so do so
+> > > > > to fully support FW_PIC with Clang, including when linking with LLD.
+> > > > > ---
+> > > > >  firmware/objects.mk | 2 +-
+> > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > >
+> > > > > diff --git a/firmware/objects.mk b/firmware/objects.mk
+> > > > > index ce91c2f..3bc83cd 100644
+> > > > > --- a/firmware/objects.mk
+> > > > > +++ b/firmware/objects.mk
+> > > > > @@ -21,7 +21,7 @@ ifeq ($(FW_PIC),y)
+> > > > >  firmware-genflags-y += -DFW_PIC
+> > > > >  firmware-asflags-y  += -fpic
+> > > > >  firmware-cflags-y   += -fPIE -pie
+> > > > > -firmware-ldflags-y  +=  -Wl,--no-dynamic-linker
+> > > > > +firmware-ldflags-y  +=  -Wl,--no-dynamic-linker -Wl,-pie
+> > > > >  endif
+> > > >
+> > > > Does this manual forwarding also work for GNU ld? If so, I think we
+> > > > don't need to detect bare-metal triple and turn off FW_PIC in
+> > > > Makefile?
+> > >
+> > > I just built a riscv64-unknown-elf-gcc toolchain and used it to build
+> > > the current HEAD of opensbi/master. Indeed it's broken that pie is not
+> > > supported with the bare-metal triple.
+> > >
+> > > The GNU ld simply complains:
+> > >
+> > >  ELF       platform/generic/firmware/payloads/test.elf
+> > > /opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld.bfd:
+> > > -pie not supported
+> >
+> > The firmware/objects.mk is doing the following:
+> >
+> > ifndef FW_PIC
+> > FW_PIC := y
+> > endif
+> >
+> > Instead of above, we should set FW_PIC=y only when the underlying
+> > toolchain supports pie.
+> >
 >
-> This will remind the future developers that they shouldn't touch these
-> register inside the loop.
+> Agree.
+>
+> > We need a patch for this to be merged before we can merge this
+> > series. Can you send such a patch ? If not then I can send it.
+>
+> Do you have some reliable ways to check whether a toolchain supports PIE?
 
-Sure, will add a comment in v2.
+How about checking "-linux-" in CROSS_COMPILE prefix ? If it's available then
+we set FW_PIC=y else we set FW_PIC=n. I did not find any info in the
+"${CROSS_COMPILE}gcc -v" output.
 
->
->
-> >         REG_S   a4, SBI_SCRATCH_FW_START_OFFSET(tp)
-> >         REG_S   a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
-> >         /* Store next arg1 in scratch space */
-> > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
->
-> Otherwise, looks good to me.
->
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+Maybe also add some comment in objects.mk that GCC bare-metal toolchain
+does not have PIE enabled.
 
 Regards,
-Bin
+Anup
+
+>
+> Regards,
+> Bin
 
