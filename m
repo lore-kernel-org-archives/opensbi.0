@@ -1,97 +1,106 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 10 Jul 2021 19:08:26 +0530
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Sat, 10 Jul 2021 21:43:39 +0800
 Subject: [PATCH v4 3/5] firmware: Explicitly pass -pie to the linker, not
  just the driver
-In-Reply-To: <CAEUhbmXWJmkGqrHR31qZUYQBpD4qE8WFmKSZa20T_5_DUR0x7w@mail.gmail.com>
+In-Reply-To: <CAAhSdy0amqzkzWVSmMitPO18OzZ62MeX8rHqM=OjCX-L_cTH6w@mail.gmail.com>
 References: <20210709193423.29712-1-jrtc27@jrtc27.com>
  <20210709193423.29712-4-jrtc27@jrtc27.com>
  <CAEUhbmVDAY8Puuro=m+nVBhR8pbXPYgB-1PHjEd3tKGvNCB03w@mail.gmail.com>
  <CAEUhbmWJafiTvJzMb1xo=6_7UFEToJDUwytTFBmiRXzVfZ8YPA@mail.gmail.com>
  <CAAhSdy12gSm9ZJktj4ZUskTOoGVAJ8xdqANkU3ci2q8_mstVnw@mail.gmail.com>
  <CAEUhbmXWJmkGqrHR31qZUYQBpD4qE8WFmKSZa20T_5_DUR0x7w@mail.gmail.com>
-Message-ID: <CAAhSdy0amqzkzWVSmMitPO18OzZ62MeX8rHqM=OjCX-L_cTH6w@mail.gmail.com>
+ <CAAhSdy0amqzkzWVSmMitPO18OzZ62MeX8rHqM=OjCX-L_cTH6w@mail.gmail.com>
+Message-ID: <CAEUhbmVq3RvoODpThpVE4OrrvaRnETsCoM6fcVG+NUriO4s_pQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 10, 2021 at 6:13 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Sat, Jul 10, 2021 at 9:38 PM Anup Patel <anup@brainfault.org> wrote:
 >
-> Hi Anup,
->
-> On Sat, Jul 10, 2021 at 6:42 PM Anup Patel <anup@brainfault.org> wrote:
+> On Sat, Jul 10, 2021 at 6:13 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > >
-> > Hi Bin,
+> > Hi Anup,
 > >
-> > On Sat, Jul 10, 2021 at 2:23 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+> > On Sat, Jul 10, 2021 at 6:42 PM Anup Patel <anup@brainfault.org> wrote:
 > > >
-> > > On Sat, Jul 10, 2021 at 10:56 AM Bin Meng <bmeng.cn@gmail.com> wrote:
+> > > Hi Bin,
+> > >
+> > > On Sat, Jul 10, 2021 at 2:23 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > > >
-> > > > On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> > > > On Sat, Jul 10, 2021 at 10:56 AM Bin Meng <bmeng.cn@gmail.com> wrote:
 > > > > >
-> > > > > When using Clang with a bare-metal triple, -pie does not get passed to
-> > > > > the linker as it's not normally a thing that makes sense. However, in
-> > > > > our case it is, and manually forwarding it on works as desired, so do so
-> > > > > to fully support FW_PIC with Clang, including when linking with LLD.
-> > > > > ---
-> > > > >  firmware/objects.mk | 2 +-
-> > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > > On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> > > > > >
+> > > > > > When using Clang with a bare-metal triple, -pie does not get passed to
+> > > > > > the linker as it's not normally a thing that makes sense. However, in
+> > > > > > our case it is, and manually forwarding it on works as desired, so do so
+> > > > > > to fully support FW_PIC with Clang, including when linking with LLD.
+> > > > > > ---
+> > > > > >  firmware/objects.mk | 2 +-
+> > > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > > >
+> > > > > > diff --git a/firmware/objects.mk b/firmware/objects.mk
+> > > > > > index ce91c2f..3bc83cd 100644
+> > > > > > --- a/firmware/objects.mk
+> > > > > > +++ b/firmware/objects.mk
+> > > > > > @@ -21,7 +21,7 @@ ifeq ($(FW_PIC),y)
+> > > > > >  firmware-genflags-y += -DFW_PIC
+> > > > > >  firmware-asflags-y  += -fpic
+> > > > > >  firmware-cflags-y   += -fPIE -pie
+> > > > > > -firmware-ldflags-y  +=  -Wl,--no-dynamic-linker
+> > > > > > +firmware-ldflags-y  +=  -Wl,--no-dynamic-linker -Wl,-pie
+> > > > > >  endif
 > > > > >
-> > > > > diff --git a/firmware/objects.mk b/firmware/objects.mk
-> > > > > index ce91c2f..3bc83cd 100644
-> > > > > --- a/firmware/objects.mk
-> > > > > +++ b/firmware/objects.mk
-> > > > > @@ -21,7 +21,7 @@ ifeq ($(FW_PIC),y)
-> > > > >  firmware-genflags-y += -DFW_PIC
-> > > > >  firmware-asflags-y  += -fpic
-> > > > >  firmware-cflags-y   += -fPIE -pie
-> > > > > -firmware-ldflags-y  +=  -Wl,--no-dynamic-linker
-> > > > > +firmware-ldflags-y  +=  -Wl,--no-dynamic-linker -Wl,-pie
-> > > > >  endif
+> > > > > Does this manual forwarding also work for GNU ld? If so, I think we
+> > > > > don't need to detect bare-metal triple and turn off FW_PIC in
+> > > > > Makefile?
 > > > >
-> > > > Does this manual forwarding also work for GNU ld? If so, I think we
-> > > > don't need to detect bare-metal triple and turn off FW_PIC in
-> > > > Makefile?
+> > > > I just built a riscv64-unknown-elf-gcc toolchain and used it to build
+> > > > the current HEAD of opensbi/master. Indeed it's broken that pie is not
+> > > > supported with the bare-metal triple.
+> > > >
+> > > > The GNU ld simply complains:
+> > > >
+> > > >  ELF       platform/generic/firmware/payloads/test.elf
+> > > > /opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld.bfd:
+> > > > -pie not supported
 > > >
-> > > I just built a riscv64-unknown-elf-gcc toolchain and used it to build
-> > > the current HEAD of opensbi/master. Indeed it's broken that pie is not
-> > > supported with the bare-metal triple.
+> > > The firmware/objects.mk is doing the following:
 > > >
-> > > The GNU ld simply complains:
+> > > ifndef FW_PIC
+> > > FW_PIC := y
+> > > endif
 > > >
-> > >  ELF       platform/generic/firmware/payloads/test.elf
-> > > /opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld.bfd:
-> > > -pie not supported
+> > > Instead of above, we should set FW_PIC=y only when the underlying
+> > > toolchain supports pie.
+> > >
 > >
-> > The firmware/objects.mk is doing the following:
+> > Agree.
 > >
-> > ifndef FW_PIC
-> > FW_PIC := y
-> > endif
+> > > We need a patch for this to be merged before we can merge this
+> > > series. Can you send such a patch ? If not then I can send it.
 > >
-> > Instead of above, we should set FW_PIC=y only when the underlying
-> > toolchain supports pie.
-> >
+> > Do you have some reliable ways to check whether a toolchain supports PIE?
 >
-> Agree.
->
-> > We need a patch for this to be merged before we can merge this
-> > series. Can you send such a patch ? If not then I can send it.
->
-> Do you have some reliable ways to check whether a toolchain supports PIE?
+> How about checking "-linux-" in CROSS_COMPILE prefix ? If it's available then
+> we set FW_PIC=y else we set FW_PIC=n.
 
-How about checking "-linux-" in CROSS_COMPILE prefix ? If it's available then
-we set FW_PIC=y else we set FW_PIC=n. I did not find any info in the
-"${CROSS_COMPILE}gcc -v" output.
+That works for cross-compile toolchains. But how about native
+toolchains (building OpenSBI on a RISC-V machine)?
 
-Maybe also add some comment in objects.mk that GCC bare-metal toolchain
-does not have PIE enabled.
+> I did not find any info in the "${CROSS_COMPILE}gcc -v" output.
+
+Me neither.
+
+>
+> Maybe also add some comment in objects.mk that GCC bare-metal toolchain
+> does not have PIE enabled.
+
+Or we can just document if using bare-metal toolchain FW_PIC has to be
+set to n in the build.
 
 Regards,
-Anup
-
->
-> Regards,
-> Bin
+Bin
 
