@@ -1,180 +1,266 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Sat, 10 Jul 2021 09:18:13 -0700
-Subject: [PATCH v5 12/15] lib: sbi: Implement SBI PMU extension
+Date: Sat, 10 Jul 2021 09:18:14 -0700
+Subject: [PATCH v5 13/15] lib: sbi: Implement firmware counters
 In-Reply-To: <20210710161816.632364-1-atish.patra@wdc.com>
 References: <20210710161816.632364-1-atish.patra@wdc.com>
-Message-ID: <20210710161816.632364-13-atish.patra@wdc.com>
+Message-ID: <20210710161816.632364-14-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-RISC-V SBI specfication 0.3 defines a PMU extension that allows supervisor
-mode to start/stop/configure pmu related events. This patch implements
-all of the functionality defined in the specification.
+RISC-V SBI v0.3 specification defines a set of firmware events that can
+provide additional information about the current firmware context. All
+of the firmware event monitoring are enabled now. The firmware
+events must be defined as raw perf event with MSB set as specified in the
+specification.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/sbi_ecall.h |  1 +
- lib/sbi/objects.mk      |  1 +
- lib/sbi/sbi_ecall.c     |  3 ++
- lib/sbi/sbi_ecall_pmu.c | 93 +++++++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_pmu.c       |  2 +-
- 5 files changed, 99 insertions(+), 1 deletion(-)
- create mode 100644 lib/sbi/sbi_ecall_pmu.c
+ lib/sbi/sbi_illegal_insn.c    |  2 ++
+ lib/sbi/sbi_ipi.c             |  6 ++++++
+ lib/sbi/sbi_misaligned_ldst.c |  5 +++++
+ lib/sbi/sbi_timer.c           |  2 ++
+ lib/sbi/sbi_tlb.c             | 38 +++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_trap.c            |  7 +++++++
+ 6 files changed, 60 insertions(+)
 
-diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-index 63ef866ba2d4..9500d0430429 100644
---- a/include/sbi/sbi_ecall.h
-+++ b/include/sbi/sbi_ecall.h
-@@ -39,6 +39,7 @@ extern struct sbi_ecall_extension ecall_ipi;
- extern struct sbi_ecall_extension ecall_vendor;
- extern struct sbi_ecall_extension ecall_hsm;
- extern struct sbi_ecall_extension ecall_srst;
-+extern struct sbi_ecall_extension ecall_pmu;
- 
- u16 sbi_ecall_version_major(void);
- 
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index d9068b707854..7096f245ae0c 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -20,6 +20,7 @@ libsbi-objs-y += sbi_ecall.o
- libsbi-objs-y += sbi_ecall_base.o
- libsbi-objs-y += sbi_ecall_hsm.o
- libsbi-objs-y += sbi_ecall_legacy.o
-+libsbi-objs-y += sbi_ecall_pmu.o
- libsbi-objs-y += sbi_ecall_replace.o
- libsbi-objs-y += sbi_ecall_vendor.o
- libsbi-objs-y += sbi_emulate_csr.o
-diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-index e92a53930460..ce021eba7d91 100644
---- a/lib/sbi/sbi_ecall.c
-+++ b/lib/sbi/sbi_ecall.c
-@@ -162,6 +162,9 @@ int sbi_ecall_init(void)
- 	if (ret)
- 		return ret;
- 	ret = sbi_ecall_register_extension(&ecall_srst);
-+	if (ret)
-+		return ret;
-+	ret = sbi_ecall_register_extension(&ecall_pmu);
- 	if (ret)
- 		return ret;
- 	ret = sbi_ecall_register_extension(&ecall_legacy);
-diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-new file mode 100644
-index 000000000000..39d3857680c1
---- /dev/null
-+++ b/lib/sbi/sbi_ecall_pmu.c
-@@ -0,0 +1,93 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Atish Patra <atish.patra@wdc.com>
-+ */
-+
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_trap.h>
-+#include <sbi/sbi_version.h>
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index 9af3d24d797e..bfe7d6195898 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -13,6 +13,7 @@
+ #include <sbi/sbi_emulate_csr.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_illegal_insn.h>
 +#include <sbi/sbi_pmu.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/riscv_asm.h>
-+
-+static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
-+				 const struct sbi_trap_regs *regs,
-+				 unsigned long *out_val,
-+				 struct sbi_trap_info *out_trap)
-+{
-+	int ret = 0;
-+	uint64_t temp;
-+
-+	switch (funcid) {
-+	case SBI_EXT_PMU_NUM_COUNTERS:
-+		ret = sbi_pmu_num_ctr();
-+		if (ret >= 0) {
-+			*out_val = ret;
-+			ret = 0;
-+		}
-+		break;
-+	case SBI_EXT_PMU_COUNTER_GET_INFO:
-+		ret = sbi_pmu_ctr_get_info(regs->a0, out_val);
-+		break;
-+	case SBI_EXT_PMU_COUNTER_CFG_MATCH:
-+#if __riscv_xlen == 32
-+		temp = ((uint64_t)regs->a5 << 32) | regs->a4;
-+#else
-+		temp = regs->a4;
-+#endif
-+		ret = sbi_pmu_ctr_cfg_match(regs->a0, regs->a1, regs->a2,
-+					    regs->a3, temp);
-+		if (ret >= 0) {
-+			*out_val = ret;
-+			ret = 0;
-+		}
-+
-+		break;
-+	case SBI_EXT_PMU_COUNTER_FW_READ:
-+		ret = sbi_pmu_ctr_read(regs->a0, out_val);
-+		break;
-+	case SBI_EXT_PMU_COUNTER_START:
-+
-+#if __riscv_xlen == 32
-+		temp = ((uint64_t)regs->a4 << 32) | regs->a3;
-+#else
-+		temp = regs->a3;
-+#endif
-+		ret = sbi_pmu_ctr_start(regs->a0, regs->a1, regs->a2, temp);
-+		break;
-+	case SBI_EXT_PMU_COUNTER_STOP:
-+		ret = sbi_pmu_ctr_stop(regs->a0, regs->a1, regs->a2);
-+		break;
-+	default:
-+		ret = SBI_ENOTSUPP;
-+	};
-+
-+	return ret;
-+}
-+
-+static int sbi_ecall_pmu_probe(unsigned long extid, unsigned long *out_val)
-+{
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	/* SBI PMU extension is useless without mcount inhibit features */
-+	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-+		*out_val = 1;
-+	else
-+		*out_val = 0;
-+
-+	return 0;
-+}
-+
-+struct sbi_ecall_extension ecall_pmu = {
-+	.extid_start = SBI_EXT_PMU,
-+	.extid_end = SBI_EXT_PMU,
-+	.handle = sbi_ecall_pmu_handler,
-+	.probe = sbi_ecall_pmu_probe,
-+};
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index d01e248fb47a..4092e6fa00cf 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -375,7 +375,7 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
- 	if (!mhpmevent_val || ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
- 		return SBI_EFAIL;
+ #include <sbi/sbi_trap.h>
+ #include <sbi/sbi_unpriv.h>
  
--	/* TODO: The upper 8 bits of mhpmevent is reserved by sscofpmf extension.
-+	/* TODO: The upper 16 bits of mhpmevent is reserved by sscofpmf extension.
- 	 * Update those bits based on the flags received from supervisor.
- 	 * The OVF bit also should be cleared here in case it was not cleared
- 	 * during event stop.
+@@ -129,6 +130,7 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+ 	 * instruction trap.
+ 	 */
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ILLEGAL_INSN);
+ 	if (unlikely((insn & 3) != 3)) {
+ 		insn = sbi_get_insn(regs->mepc, &uptrap);
+ 		if (uptrap.cause) {
+diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+index 75f86d8e76f3..1014909bcfa3 100644
+--- a/lib/sbi/sbi_ipi.c
++++ b/lib/sbi/sbi_ipi.c
+@@ -19,6 +19,9 @@
+ #include <sbi/sbi_init.h>
+ #include <sbi/sbi_ipi.h>
+ #include <sbi/sbi_platform.h>
++#include <sbi/sbi_pmu.h>
++#include <sbi/sbi_string.h>
++#include <sbi/sbi_tlb.h>
+ 
+ struct sbi_ipi_data {
+ 	unsigned long ipi_type;
+@@ -64,6 +67,8 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
+ 	if (ipi_dev && ipi_dev->ipi_send)
+ 		ipi_dev->ipi_send(remote_hartid);
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
++
+ 	if (ipi_ops->sync)
+ 		ipi_ops->sync(scratch);
+ 
+@@ -183,6 +188,7 @@ void sbi_ipi_process(void)
+ 			sbi_scratch_offset_ptr(scratch, ipi_data_off);
+ 	u32 hartid = current_hartid();
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
+ 	if (ipi_dev && ipi_dev->ipi_clear)
+ 		ipi_dev->ipi_clear(hartid);
+ 
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+index 5057cb5ecd58..c879ce72f61a 100644
+--- a/lib/sbi/sbi_misaligned_ldst.c
++++ b/lib/sbi/sbi_misaligned_ldst.c
+@@ -12,6 +12,7 @@
+ #include <sbi/riscv_fp.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_misaligned_ldst.h>
++#include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_trap.h>
+ #include <sbi/sbi_unpriv.h>
+ 
+@@ -29,6 +30,8 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 	struct sbi_trap_info uptrap;
+ 	int i, fp = 0, shift = 0, len = 0;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
++
+ 	if (tinst & 0x1) {
+ 		/*
+ 		 * Bit[0] == 1 implies trapped instruction value is
+@@ -149,6 +152,8 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 	struct sbi_trap_info uptrap;
+ 	int i, len = 0;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
++
+ 	if (tinst & 0x1) {
+ 		/*
+ 		 * Bit[0] == 1 implies trapped instruction value is
+diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+index 77d6f95032a7..275950125baf 100644
+--- a/lib/sbi/sbi_timer.c
++++ b/lib/sbi/sbi_timer.c
+@@ -12,6 +12,7 @@
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_platform.h>
++#include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_timer.h>
+ 
+@@ -88,6 +89,7 @@ void sbi_timer_set_delta_upper(ulong delta_upper)
+ 
+ void sbi_timer_event_start(u64 next_event)
+ {
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SET_TIMER);
+ 	if (timer_dev && timer_dev->timer_event_start)
+ 		timer_dev->timer_event_start(next_event);
+ 	csr_clear(CSR_MIP, MIP_STIP);
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index 8bbe92b0978e..1a9cb1d2b5df 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -21,6 +21,7 @@
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_console.h>
+ #include <sbi/sbi_platform.h>
++#include <sbi/sbi_pmu.h>
+ 
+ static unsigned long tlb_sync_off;
+ static unsigned long tlb_fifo_off;
+@@ -39,6 +40,8 @@ void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo)
+ 	unsigned long vmid  = tinfo->vmid;
+ 	unsigned long i, hgatp;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_RCVD);
++
+ 	hgatp = csr_swap(CSR_HGATP,
+ 			 (vmid << HGATP_VMID_SHIFT) & HGATP_VMID_MASK);
+ 
+@@ -61,6 +64,8 @@ void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
+ 	unsigned long size  = tinfo->size;
+ 	unsigned long i;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_RCVD);
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_gvma_all();
+ 		return;
+@@ -77,6 +82,8 @@ void sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo)
+ 	unsigned long size  = tinfo->size;
+ 	unsigned long i;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_RCVD);
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		sbi_tlb_flush_all();
+ 		return;
+@@ -98,6 +105,8 @@ void sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
+ 	unsigned long vmid  = tinfo->vmid;
+ 	unsigned long i, hgatp;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_RCVD);
++
+ 	hgatp = csr_swap(CSR_HGATP,
+ 			 (vmid << HGATP_VMID_SHIFT) & HGATP_VMID_MASK);
+ 
+@@ -126,6 +135,8 @@ void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+ 	unsigned long vmid  = tinfo->vmid;
+ 	unsigned long i;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_VMID_RCVD);
++
+ 	if (start == 0 && size == 0) {
+ 		__sbi_hfence_gvma_all();
+ 		return;
+@@ -148,6 +159,8 @@ void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+ 	unsigned long asid  = tinfo->asid;
+ 	unsigned long i;
+ 
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_RCVD);
++
+ 	if (start == 0 && size == 0) {
+ 		sbi_tlb_flush_all();
+ 		return;
+@@ -172,9 +185,32 @@ void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+ 
+ void sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo)
+ {
++	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_FENCE_I_RECVD);
++
+ 	__asm__ __volatile("fence.i");
+ }
+ 
++static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data)
++{
++	if (unlikely(!data))
++		return;
++
++	if (data->local_fn == sbi_tlb_local_fence_i)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_FENCE_I_SENT);
++	else if (data->local_fn == sbi_tlb_local_sfence_vma)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_SENT);
++	else if (data->local_fn == sbi_tlb_local_sfence_vma_asid)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_SENT);
++	else if (data->local_fn == sbi_tlb_local_hfence_gvma)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_SENT);
++	else if (data->local_fn == sbi_tlb_local_hfence_gvma_vmid)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_VMID_SENT);
++	else if (data->local_fn == sbi_tlb_local_hfence_vvma)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_SENT);
++	else if (data->local_fn == sbi_tlb_local_hfence_vvma_asid)
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
++}
++
+ static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)
+ {
+ 	u32 rhartid;
+@@ -369,6 +405,8 @@ int sbi_tlb_request(ulong hmask, ulong hbase, struct sbi_tlb_info *tinfo)
+ 	if (!tinfo->local_fn)
+ 		return SBI_EINVAL;
+ 
++	tlb_pmu_incr_fw_ctr(tinfo);
++
+ 	return sbi_ipi_send_many(hmask, hbase, tlb_event, tinfo);
+ }
+ 
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index 1ba649074b75..5781fea2a115 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -16,6 +16,7 @@
+ #include <sbi/sbi_illegal_insn.h>
+ #include <sbi/sbi_ipi.h>
+ #include <sbi/sbi_misaligned_ldst.h>
++#include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_trap.h>
+@@ -257,6 +258,12 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+ 		rc  = sbi_ecall_handler(regs);
+ 		msg = "ecall handler failed";
+ 		break;
++	case CAUSE_LOAD_ACCESS:
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_LOAD);
++		break;
++	case CAUSE_STORE_ACCESS:
++		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_STORE);
++		break;
+ 	default:
+ 		/* If the trap came from S or U mode, redirect it there */
+ 		trap.epc = regs->mepc;
 -- 
 2.31.1
 
