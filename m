@@ -1,292 +1,158 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Sat, 10 Jul 2021 09:20:48 -0700
-Subject: [PATCH v3 2/5] lib: utils/gpio: Add generic GPIO configuration
- library
-In-Reply-To: <20210710055827.1535906-3-anup.patel@wdc.com>
-References: <20210710055827.1535906-1-anup.patel@wdc.com>
- <20210710055827.1535906-3-anup.patel@wdc.com>
-Message-ID: <CAOnJCUKYNBm3KW0bg2qjwsrQ2kUaftBRnZ=vd3NTGWTVU808Mg@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Sun, 11 Jul 2021 02:07:28 +0800
+Subject: [PATCH v4 3/5] firmware: Explicitly pass -pie to the linker,
+ not just the driver
+In-Reply-To: <CAAhSdy0idH74dSeEw2P+MfQU=TDwpYN6VNhZYLO5=GGwd_8xSg@mail.gmail.com>
+References: <20210709193423.29712-1-jrtc27@jrtc27.com>
+ <20210709193423.29712-4-jrtc27@jrtc27.com>
+ <CAEUhbmVDAY8Puuro=m+nVBhR8pbXPYgB-1PHjEd3tKGvNCB03w@mail.gmail.com>
+ <CAEUhbmWJafiTvJzMb1xo=6_7UFEToJDUwytTFBmiRXzVfZ8YPA@mail.gmail.com>
+ <CAAhSdy12gSm9ZJktj4ZUskTOoGVAJ8xdqANkU3ci2q8_mstVnw@mail.gmail.com>
+ <CAEUhbmXWJmkGqrHR31qZUYQBpD4qE8WFmKSZa20T_5_DUR0x7w@mail.gmail.com>
+ <CAAhSdy0amqzkzWVSmMitPO18OzZ62MeX8rHqM=OjCX-L_cTH6w@mail.gmail.com>
+ <CAEUhbmVq3RvoODpThpVE4OrrvaRnETsCoM6fcVG+NUriO4s_pQ@mail.gmail.com>
+ <CAAhSdy0idH74dSeEw2P+MfQU=TDwpYN6VNhZYLO5=GGwd_8xSg@mail.gmail.com>
+Message-ID: <fabaeba32875baacbf86635a145564d98f4822fe.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 9, 2021 at 10:59 PM Anup Patel <anup.patel@wdc.com> wrote:
->
-> We add generic GPIO configuration library which is independent of
-> hardware description format (FDT or ACPI). The OpenSBI platform
-> support or GPIO drivers can register GPIO chip instances which
-> can be discovered and used by different GPIO clients. Each GPIO
-> chip instance has a unique ID which can be used by GPIO clients
-> to lookup GPIO chip instance.
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  include/sbi_utils/gpio/gpio.h |  99 +++++++++++++++++++++++++++++
->  lib/utils/gpio/gpio.c         | 116 ++++++++++++++++++++++++++++++++++
->  lib/utils/gpio/objects.mk     |  10 +++
->  3 files changed, 225 insertions(+)
->  create mode 100644 include/sbi_utils/gpio/gpio.h
->  create mode 100644 lib/utils/gpio/gpio.c
->  create mode 100644 lib/utils/gpio/objects.mk
->
-> diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
-> new file mode 100644
-> index 0000000..167d11a
-> --- /dev/null
-> +++ b/include/sbi_utils/gpio/gpio.h
-> @@ -0,0 +1,99 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Anup Patel <anup.patel@wdc.com>
-> + */
-> +
-> +#ifndef __GPIO_H__
-> +#define __GPIO_H__
-> +
-> +#include <sbi/sbi_types.h>
-> +
-> +#define GPIO_LINE_DIRECTION_IN 1
-> +#define GPIO_LINE_DIRECTION_OUT        0
-> +
-> +/** Representation of a GPIO pin */
-> +struct gpio_pin {
-> +       /** Pointer to the GPIO chip */
-> +       struct gpio_chip *chip;
-> +       /** Identification of GPIO pin within GPIO chip */
-> +       unsigned int offset;
-> +       /**
-> +        * Additional configuration flags of the GPIO pin desired
-> +        * by GPIO clients.
-> +        *
-> +        * NOTE: GPIO chip can have custom configuration flags.
-> +        */
-> +       unsigned int flags;
-> +#define GPIO_FLAG_ACTIVE_LOW   0x1
-> +#define GPIO_FLAG_SINGLE_ENDED 0x2
-> +#define GPIO_FLAG_OPEN_DRAIN   0x4
-> +#define GPIO_FLAG_TRANSITORY   0x8
-> +#define GPIO_FLAG_PULL_UP      0x10
-> +#define GPIO_FLAG_PULL_DOWN    0x20
-> +};
-> +
-> +/** Representation of a GPIO chip */
-> +struct gpio_chip {
-> +       /** Pointer to GPIO driver owning this GPIO chip */
-> +       void *driver;
-> +       /** Uniquie ID of the GPIO chip assigned by the driver */
-> +       unsigned int id;
-> +       /** Number of GPIOs supported by the GPIO chip */
-> +       unsigned int ngpio;
-> +       /**
-> +        * Get current direction of GPIO pin
-> +        *
-> +        * @return 0=output, 1=input, or negative error
-> +        */
-> +       int (*get_direction)(struct gpio_pin *gp);
-> +       /**
-> +        * Set input direction of GPIO pin
-> +        *
-> +        * @return 0 on success and negative error code on failure
-> +        */
-> +       int (*direction_input)(struct gpio_pin *gp);
-> +       /**
-> +        * Set output direction of GPIO pin with given output value
-> +        *
-> +        * @return 0 on success and negative error code on failure
-> +        */
-> +       int (*direction_output)(struct gpio_pin *gp, int value);
-> +       /**
-> +        * Get current value of GPIO pin
-> +        *
-> +        * @return 0=low, 1=high, or negative error
-> +        */
-> +       int (*get)(struct gpio_pin *gp);
-> +       /** Set output value for GPIO pin */
-> +       void (*set)(struct gpio_pin *gp, int value);
-> +};
-> +
-> +/** Find a registered GPIO chip */
-> +struct gpio_chip *gpio_chip_find(unsigned int id);
-> +
-> +/** Register GPIO chip */
-> +int gpio_chip_add(struct gpio_chip *gc);
-> +
-> +/** Un-register GPIO chip */
-> +void gpio_chip_remove(struct gpio_chip *gc);
-> +
-> +/** Get current direction of GPIO pin */
-> +int gpio_get_direction(struct gpio_pin *gp);
-> +
-> +/** Set input direction of GPIO pin */
-> +int gpio_direction_input(struct gpio_pin *gp);
-> +
-> +/** Set output direction of GPIO pin */
-> +int gpio_direction_output(struct gpio_pin *gp, int value);
-> +
-> +/** Get current value of GPIO pin */
-> +int gpio_get(struct gpio_pin *gp);
-> +
-> +/** Set output value of GPIO pin */
-> +int gpio_set(struct gpio_pin *gp, int value);
-> +
-> +#endif
-> diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
-> new file mode 100644
-> index 0000000..fb30c0f
-> --- /dev/null
-> +++ b/lib/utils/gpio/gpio.c
-> @@ -0,0 +1,116 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Anup Patel <anup.patel@wdc.com>
-> + */
-> +
-> +#include <sbi/sbi_error.h>
-> +#include <sbi_utils/gpio/gpio.h>
-> +
-> +#define GPIO_CHIP_MAX          16
-> +
-> +static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
-> +
-> +struct gpio_chip *gpio_chip_find(unsigned int id)
-> +{
-> +       unsigned int i;
-> +       struct gpio_chip *ret = NULL;
-> +
-> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
-> +               if (gc_array[i] && gc_array[i]->id == id) {
-> +                       ret = gc_array[i];
-> +                       break;
-> +               }
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +int gpio_chip_add(struct gpio_chip *gc)
-> +{
-> +       int i, ret = SBI_ENOSPC;
-> +
-> +       if (!gc)
-> +               return SBI_EINVAL;
-> +       if (gpio_chip_find(gc->id))
-> +               return SBI_EALREADY;
-> +
-> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
-> +               if (!gc_array[i]) {
-> +                       gc_array[i] = gc;
-> +                       ret = 0;
-> +                       break;
-> +               }
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +void gpio_chip_remove(struct gpio_chip *gc)
-> +{
-> +       int i;
-> +
-> +       if (!gc)
-> +               return;
-> +
-> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
-> +               if (gc_array[i] == gc) {
-> +                       gc_array[i] = NULL;
-> +                       break;
-> +               }
-> +       }
-> +}
-> +
-> +int gpio_get_direction(struct gpio_pin *gp)
-> +{
-> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-> +               return SBI_EINVAL;
-> +       if (!gp->chip->get_direction)
-> +               return SBI_ENOSYS;
-> +
-> +       return gp->chip->get_direction(gp);
-> +}
-> +
-> +int gpio_direction_input(struct gpio_pin *gp)
-> +{
-> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-> +               return SBI_EINVAL;
-> +       if (!gp->chip->direction_input)
-> +               return SBI_ENOSYS;
-> +
-> +       return gp->chip->direction_input(gp);
-> +}
-> +
-> +int gpio_direction_output(struct gpio_pin *gp, int value)
-> +{
-> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-> +               return SBI_EINVAL;
-> +       if (!gp->chip->direction_output)
-> +               return SBI_ENOSYS;
-> +
-> +       return gp->chip->direction_output(gp, value);
-> +}
-> +
-> +int gpio_get(struct gpio_pin *gp)
-> +{
-> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-> +               return SBI_EINVAL;
-> +       if (!gp->chip->get)
-> +               return SBI_ENOSYS;
-> +
-> +       return gp->chip->get(gp);
-> +}
-> +
-> +int gpio_set(struct gpio_pin *gp, int value)
-> +{
-> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-> +               return SBI_EINVAL;
-> +       if (!gp->chip->set)
-> +               return SBI_ENOSYS;
-> +
-> +       gp->chip->set(gp, value);
-> +       return 0;
-> +}
-> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-> new file mode 100644
-> index 0000000..e99a895
-> --- /dev/null
-> +++ b/lib/utils/gpio/objects.mk
-> @@ -0,0 +1,10 @@
-> +#
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +#
-> +# Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> +#
-> +# Authors:
-> +#   Anup Patel <anup.patel@wdc.com>
-> +#
-> +
-> +libsbiutils-objs-y += gpio/gpio.o
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+? 2021-07-10???? 20:26 +0530?Anup Patel???
+> On Sat, Jul 10, 2021 at 7:13 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+> > 
+> > On Sat, Jul 10, 2021 at 9:38 PM Anup Patel <anup@brainfault.org>
+> > wrote:
+> > > 
+> > > On Sat, Jul 10, 2021 at 6:13 PM Bin Meng <bmeng.cn@gmail.com>
+> > > wrote:
+> > > > 
+> > > > Hi Anup,
+> > > > 
+> > > > On Sat, Jul 10, 2021 at 6:42 PM Anup Patel
+> > > > <anup@brainfault.org> wrote:
+> > > > > 
+> > > > > Hi Bin,
+> > > > > 
+> > > > > On Sat, Jul 10, 2021 at 2:23 PM Bin Meng <bmeng.cn@gmail.com>
+> > > > > wrote:
+> > > > > > 
+> > > > > > On Sat, Jul 10, 2021 at 10:56 AM Bin Meng <
+> > > > > > bmeng.cn at gmail.com> wrote:
+> > > > > > > 
+> > > > > > > On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <
+> > > > > > > jrtc27 at jrtc27.com> wrote:
+> > > > > > > > 
+> > > > > > > > When using Clang with a bare-metal triple, -pie does
+> > > > > > > > not get passed to
+> > > > > > > > the linker as it's not normally a thing that makes
+> > > > > > > > sense. However, in
+> > > > > > > > our case it is, and manually forwarding it on works as
+> > > > > > > > desired, so do so
+> > > > > > > > to fully support FW_PIC with Clang, including when
+> > > > > > > > linking with LLD.
+> > > > > > > > ---
+> > > > > > > > ?firmware/objects.mk | 2 +-
+> > > > > > > > ?1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > > > > > 
+> > > > > > > > diff --git a/firmware/objects.mk b/firmware/objects.mk
+> > > > > > > > index ce91c2f..3bc83cd 100644
+> > > > > > > > --- a/firmware/objects.mk
+> > > > > > > > +++ b/firmware/objects.mk
+> > > > > > > > @@ -21,7 +21,7 @@ ifeq ($(FW_PIC),y)
+> > > > > > > > ?firmware-genflags-y += -DFW_PIC
+> > > > > > > > ?firmware-asflags-y? += -fpic
+> > > > > > > > ?firmware-cflags-y?? += -fPIE -pie
+> > > > > > > > -firmware-ldflags-y? +=? -Wl,--no-dynamic-linker
+> > > > > > > > +firmware-ldflags-y? +=? -Wl,--no-dynamic-linker -Wl,-
+> > > > > > > > pie
+> > > > > > > > ?endif
+> > > > > > > 
+> > > > > > > Does this manual forwarding also work for GNU ld? If so,
+> > > > > > > I think we
+> > > > > > > don't need to detect bare-metal triple and turn off
+> > > > > > > FW_PIC in
+> > > > > > > Makefile?
+> > > > > > 
+> > > > > > I just built a riscv64-unknown-elf-gcc toolchain and used
+> > > > > > it to build
+> > > > > > the current HEAD of opensbi/master. Indeed it's broken that
+> > > > > > pie is not
+> > > > > > supported with the bare-metal triple.
+> > > > > > 
+> > > > > > The GNU ld simply complains:
+> > > > > > 
+> > > > > > ?ELF?????? platform/generic/firmware/payloads/test.elf
+> > > > > > /opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-
+> > > > > > elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld.bfd:
+> > > > > > -pie not supported
+> > > > > 
+> > > > > The firmware/objects.mk is doing the following:
+> > > > > 
+> > > > > ifndef FW_PIC
+> > > > > FW_PIC := y
+> > > > > endif
+> > > > > 
+> > > > > Instead of above, we should set FW_PIC=y only when the
+> > > > > underlying
+> > > > > toolchain supports pie.
+> > > > > 
+> > > > 
+> > > > Agree.
+> > > > 
+> > > > > We need a patch for this to be merged before we can merge
+> > > > > this
+> > > > > series. Can you send such a patch ? If not then I can send
+> > > > > it.
+> > > > 
+> > > > Do you have some reliable ways to check whether a toolchain
+> > > > supports PIE?
+> > > 
+> > > How about checking "-linux-" in CROSS_COMPILE prefix ? If it's
+> > > available then
+> > > we set FW_PIC=y else we set FW_PIC=n.
+> > 
+> > That works for cross-compile toolchains. But how about native
+> > toolchains (building OpenSBI on a RISC-V machine)?
+> 
+> Yes, it will not work for native compilation of OpenSBI.
+> 
+> > 
+> > > I did not find any info in the "${CROSS_COMPILE}gcc -v" output.
+> > 
+> > Me neither.
+> > 
+> > > 
+> > > Maybe also add some comment in objects.mk that GCC bare-metal
+> > > toolchain
+> > > does not have PIE enabled.
+> > 
+> > Or we can just document if using bare-metal toolchain FW_PIC has to
+> > be
+> > set to n in the build.
+> 
+> Sounds good.
+> 
+> We should document it under section "Required Toolchain" of top-level
+> README.md. Basically, we prefer toolchains with PIE support and for
+> toolchains not having PIE users have to pass the "FW_PIC=n" option.
+> 
+> Also, we should replace references of bare-metal toolchain prefix
+> with
+> linux toolchain prefix everywhere in documentation.
+> 
+> Regards,
+> Anup
+We can add the following code to the makefile to detect pie support
+
+pie_support=$(shell $(CC) -nostdlib -fPIE -Wl,-pie /dev/null
+2>/dev/null && echo y || echo n)
+> 
+> > 
+> > Regards,
+> > Bin
+> 
 
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-
--- 
-Regards,
-Atish
 
