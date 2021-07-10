@@ -1,61 +1,54 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sat, 10 Jul 2021 22:00:31 +0800
-Subject: [PATCH v2] firmware: Minor optimization in _scratch_init()
-Message-ID: <20210710140031.911-1-bmeng.cn@gmail.com>
+Date: Sat, 10 Jul 2021 22:28:20 +0800
+Subject: [PATCH 1/2] firmware: Remove the unhelpful alignment codes before fdt
+ relocation
+Message-ID: <20210710142821.4168-1-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Before entering _scratch_init(), register t3 already holds a copy
-of the firmware end address, hence there is no need to calculate
-it again. This reduces 3 instructions in each _scratch_init() loop.
+If the device tree is at an address that is not __SIZEOF_POINTER__
+aligned, the fdt relocation code tries to align both source and
+destination address to __SIZEOF_POINTER__ before the memory copy.
+But such alignment can lead to unexpected results if either source
+or destination address is not aligned.
+
+In fact libfdt requires that the device tree must be at an 8-byte
+aligned address. Hence remove the unhelpful alignment codes.
 
 Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-
 ---
 
-Changes in v2:
-- add a comment block before _scratch_init() documenting all registers
-  used in the loop block
-
- firmware/fw_base.S | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ firmware/fw_base.S | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index a5ce946..8e40562 100644
+index 8e40562..abf21cd 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -278,6 +278,14 @@ _bss_zero:
- 	/* hartid 0 is mandated by ISA */
- 	li	t1, 0
- _scratch_init:
-+	/*
-+	 * The following registers hold values that are computed before
-+	 * entering this block, and should remain unchanged.
-+	 *
-+	 * t3 -> the firmware end address
-+	 * s7 -> HART count
-+	 * s8 -> HART stack size
-+	 */
- 	add	tp, t3, zero
- 	mul	a5, s8, t1
- 	sub	tp, tp, a5
-@@ -287,10 +295,7 @@ _scratch_init:
- 	/* Initialize scratch space */
- 	/* Store fw_start and fw_size in scratch space */
- 	lla	a4, _fw_start
--	lla	a5, _fw_end
--	mul	t0, s7, s8
--	add	a5, a5, t0
--	sub	a5, a5, a4
-+	sub	a5, t3, a4
- 	REG_S	a4, SBI_SCRATCH_FW_START_OFFSET(tp)
- 	REG_S	a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
- 	/* Store next arg1 in scratch space */
+@@ -349,8 +349,7 @@ _scratch_init:
+ 	 * previous booting stage.
+ 	 */
+ 	beqz	a1, _fdt_reloc_done
+-	/* Mask values in a3 and a4 */
+-	li	a3, ~(__SIZEOF_POINTER__ - 1)
++	/* Mask values in a4 */
+ 	li	a4, 0xff
+ 	/* t1 = destination FDT start address */
+ 	MOV_3R	s0, a0, s1, a1, s2, a2
+@@ -359,10 +358,8 @@ _scratch_init:
+ 	MOV_3R	a0, s0, a1, s1, a2, s2
+ 	beqz	t1, _fdt_reloc_done
+ 	beq	t1, a1, _fdt_reloc_done
+-	and	t1, t1, a3
+ 	/* t0 = source FDT start address */
+ 	add	t0, a1, zero
+-	and	t0, t0, a3
+ 	/* t2 = source FDT size in big-endian */
+ #if __riscv_xlen == 64
+ 	lwu	t2, 4(t0)
 -- 
 2.25.1
 
