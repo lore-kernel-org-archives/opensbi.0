@@ -1,12 +1,11 @@
 From: Anup Patel <Anup.Patel@wdc.com>
-Date: Sat, 10 Jul 2021 05:07:17 +0000
-Subject: [PATCH v2 2/6] lib: utils/gpio: Add generic GPIO configuration
- library
-In-Reply-To: <CAOnJCUKEuKyJxrrHKXQEyPPcZqm5t2jshH4X666R-Lh+hwv=0g@mail.gmail.com>
+Date: Sat, 10 Jul 2021 05:10:20 +0000
+Subject: [PATCH v2 5/6] lib: utils/reset: Add generic GPIO reset driver
+In-Reply-To: <CAOnJCU+wQ8QBJt+oY3P0Dr=Qtx+gojZHzaKamRNG-HH-G-r24g@mail.gmail.com>
 References: <20210709131059.1502293-1-anup.patel@wdc.com>
- <20210709131059.1502293-3-anup.patel@wdc.com>
- <CAOnJCUKEuKyJxrrHKXQEyPPcZqm5t2jshH4X666R-Lh+hwv=0g@mail.gmail.com>
-Message-ID: <2CAB5D7E-41BF-4272-8874-3EB19D4EE628@wdc.com>
+ <20210709131059.1502293-6-anup.patel@wdc.com>
+ <CAOnJCU+wQ8QBJt+oY3P0Dr=Qtx+gojZHzaKamRNG-HH-G-r24g@mail.gmail.com>
+Message-ID: <5240C325-514A-4F32-B65A-303CA4ABC355@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,287 +14,215 @@ Content-Transfer-Encoding: 7bit
 
 
 
-?On 10/07/21, 12:25 AM, "Atish Patra" <atishp@atishpatra.org> wrote:
+?On 10/07/21, 1:01 AM, "Atish Patra" <atishp@atishpatra.org> wrote:
 
     On Fri, Jul 9, 2021 at 6:11 AM Anup Patel <anup.patel@wdc.com> wrote:
     >
-    > We add generic GPIO configuration library which is independent of
-    > hardware description format (FDT or ACPI). The OpenSBI platform
-    > support or GPIO drivers can register GPIO chip instances which
-    > can be discovered and used by different GPIO clients. Each GPIO
-    > chip instance has a unique ID which can be used by GPIO clients
-    > to lookup GPIO chip instance.
+    > From: Green Wan <green.wan@sifive.com>
+    >
+    > We add generic GPIO reset driver inspired from gpio-restart
+    > and gpio-poweroff drivers of Linux kernel.
     >
     > Signed-off-by: Anup Patel <anup.patel@wdc.com>
     > ---
-    >  include/sbi_utils/gpio/gpio.h |  99 +++++++++++++++++++++++++++++
-    >  lib/utils/gpio/gpio.c         | 116 ++++++++++++++++++++++++++++++++++
-    >  lib/utils/gpio/objects.mk     |  10 +++
-    >  3 files changed, 225 insertions(+)
-    >  create mode 100644 include/sbi_utils/gpio/gpio.h
-    >  create mode 100644 lib/utils/gpio/gpio.c
-    >  create mode 100644 lib/utils/gpio/objects.mk
+    >  lib/utils/reset/fdt_reset.c      |   2 +
+    >  lib/utils/reset/fdt_reset_gpio.c | 146 +++++++++++++++++++++++++++++++
+    >  lib/utils/reset/objects.mk       |   1 +
+    >  3 files changed, 149 insertions(+)
+    >  create mode 100644 lib/utils/reset/fdt_reset_gpio.c
     >
-    > diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+    > diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+    > index 48a49fb..aa5f59f 100644
+    > --- a/lib/utils/reset/fdt_reset.c
+    > +++ b/lib/utils/reset/fdt_reset.c
+    > @@ -12,11 +12,13 @@
+    >  #include <sbi_utils/fdt/fdt_helper.h>
+    >  #include <sbi_utils/reset/fdt_reset.h>
+    >
+    > +extern struct fdt_reset fdt_reset_gpio;
+    >  extern struct fdt_reset fdt_reset_sifive_test;
+    >  extern struct fdt_reset fdt_reset_htif;
+    >  extern struct fdt_reset fdt_reset_thead;
+    >
+    >  static struct fdt_reset *reset_drivers[] = {
+    > +       &fdt_reset_gpio,
+    >         &fdt_reset_sifive_test,
+    >         &fdt_reset_htif,
+    >         &fdt_reset_thead,
+    > diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
     > new file mode 100644
-    > index 0000000..167d11a
+    > index 0000000..a315ec9
     > --- /dev/null
-    > +++ b/include/sbi_utils/gpio/gpio.h
-    > @@ -0,0 +1,99 @@
+    > +++ b/lib/utils/reset/fdt_reset_gpio.c
+    > @@ -0,0 +1,146 @@
     > +/*
     > + * SPDX-License-Identifier: BSD-2-Clause
     > + *
+    > + * Copyright (c) 2021 SiFive
     > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
     > + *
     > + * Authors:
+    > + *   Green Wan <green.wan@sifive.com>
     > + *   Anup Patel <anup.patel@wdc.com>
     > + */
     > +
-    > +#ifndef __GPIO_H__
-    > +#define __GPIO_H__
+    > +#include <libfdt.h>
+    > +#include <sbi/sbi_ecall_interface.h>
+    > +#include <sbi/sbi_hart.h>
+    > +#include <sbi/sbi_system.h>
+    > +#include <sbi_utils/fdt/fdt_helper.h>
+    > +#include <sbi_utils/gpio/fdt_gpio.h>
+    > +#include <sbi_utils/reset/fdt_reset.h>
     > +
-    > +#include <sbi/sbi_types.h>
+    > +static u32 poweroff_active_delay = 100;
+    > +static u32 poweroff_inactive_delay = 100;
+    > +static struct gpio_pin poweroff_pin;
     > +
-    > +#define GPIO_LINE_DIRECTION_IN 1
-    > +#define GPIO_LINE_DIRECTION_OUT        0
+    > +static u32 restart_active_delay = 100;
+    > +static u32 restart_inactive_delay = 100;
+    > +static struct gpio_pin restart_pin;
     > +
-    > +/** Representation of a GPIO pin */
-    > +struct gpio_pin {
-    > +       /** Pointer to the GPIO chip */
-    > +       struct gpio_chip *chip;
-    > +       /** Identification of GPIO pin within GPIO chip */
-    > +       unsigned int offset;
-    > +       /**
-    > +        * Additional configuration flags of the GPIO pin desired
-    > +        * by GPIO clients.
-    > +        *
-    > +        * NOTE: GPIO chip can have custom configuration flags.
-    > +        */
-    > +       unsigned int flags;
-    > +#define GPIO_FLAG_ACTIVE_LOW   0x1
-    > +#define GPIO_FLAG_SINGLE_ENDED 0x2
-    > +#define GPIO_FLAG_OPEN_DRAIN   0x4
-    > +#define GPIO_FLAG_TRANSITORY   0x8
-    > +#define GPIO_FLAG_PULL_UP      0x10
-    > +#define GPIO_FLAG_PULL_DOWN    0x20
-    > +};
-    > +
-    > +/** Representation of a GPIO chip */
-    > +struct gpio_chip {
-    > +       /** Pointer to GPIO driver owning this GPIO chip */
-    > +       void *driver;
-    > +       /** Uniquie ID of the GPIO chip assigned by the driver */
-    > +       unsigned int id;
-    > +       /** Number of GPIOs supported by the GPIO chip */
-    > +       unsigned int ngpio;
-    > +       /**
-    > +        * Get current direction of GPIO pin
-    > +        *
-    > +        * @return 0=output, 1=input, or negative error
-    > +        */
-    > +       int (*get_direction)(struct gpio_pin *gp);
-    > +       /**
-    > +        * Set input direction of GPIO pin
-    > +        *
-    > +        * @return 0 on success and negative error code on failure
-    > +        */
-    > +       int (*direction_input)(struct gpio_pin *gp);
-    > +       /**
-    > +        * Set output direction of GPIO pin with given output value
-    > +        *
-    > +        * @return 0 on success and negative error code on failure
-    > +        */
-    > +       int (*direction_output)(struct gpio_pin *gp, int value);
-    > +       /**
-    > +        * Get current value of GPIO pin
-    > +        *
-    > +        * @return 0=low, 1=high, or negative error
-    > +        */
-    > +       int (*get)(struct gpio_pin *gp);
-    > +       /** Set output value for GPIO pin */
-    > +       void (*set)(struct gpio_pin *gp, int value);
-    > +};
-    > +
-
-    Is there a reason not to add an "addr" property here ?
-    We don't have to define sifive_gpio_chip in that case. We can get rid
-    of the static allocation of sifive_gpio_chip_array as well.
-
-Yes, not having any GPIO controller specific details in "struct gpio_chip"
-is intentional. The "struct gpio_chip" is only an interface (or base class)
-whereas each GPIO controller driver will implemented a struct which
-extends "struct gpio_chip" so GPIO controller specific details in the
-struct introduced by GPIO controller driver.
-
-Further, the generic gpio/gpio.c only has an array of "struct gpio_chip *"
-(i.e. pointer array) so the GPIO controller driver will anyway have to
-create an instance of "struct gpio_chip" for registering it with generic
-gpio/gpio.c
-
-
-    > +/** Find a registered GPIO chip */
-    > +struct gpio_chip *gpio_chip_find(unsigned int id);
-    > +
-    > +/** Register GPIO chip */
-    > +int gpio_chip_add(struct gpio_chip *gc);
-    > +
-    > +/** Un-register GPIO chip */
-    > +void gpio_chip_remove(struct gpio_chip *gc);
-    > +
-    > +/** Get current direction of GPIO pin */
-    > +int gpio_get_direction(struct gpio_pin *gp);
-    > +
-    > +/** Set input direction of GPIO pin */
-    > +int gpio_direction_input(struct gpio_pin *gp);
-    > +
-    > +/** Set output direction of GPIO pin */
-    > +int gpio_direction_output(struct gpio_pin *gp, int value);
-    > +
-    > +/** Get current value of GPIO pin */
-    > +int gpio_get(struct gpio_pin *gp);
-    > +
-    > +/** Set output value of GPIO pin */
-    > +int gpio_set(struct gpio_pin *gp, int value);
-    > +
-    > +#endif
-    > diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
-    > new file mode 100644
-    > index 0000000..fb30c0f
-    > --- /dev/null
-    > +++ b/lib/utils/gpio/gpio.c
-    > @@ -0,0 +1,116 @@
-    > +/*
-    > + * SPDX-License-Identifier: BSD-2-Clause
-    > + *
-    > + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-    > + *
-    > + * Authors:
-    > + *   Anup Patel <anup.patel@wdc.com>
-    > + */
-    > +
-    > +#include <sbi/sbi_error.h>
-    > +#include <sbi_utils/gpio/gpio.h>
-    > +
-    > +#define GPIO_CHIP_MAX          16
-    > +
-    > +static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
-    > +
-    > +struct gpio_chip *gpio_chip_find(unsigned int id)
+    > +/* Custom mdelay function until we have a generic mdelay() API */
+    > +static void gpio_mdelay(unsigned long msecs)
     > +{
-    > +       unsigned int i;
-    > +       struct gpio_chip *ret = NULL;
+    > +       volatile int i;
+    > +       while (msecs--)
+    > +               for (i = 0; i < 10000; i++) ;
+    > +}
     > +
-    > +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
-    > +               if (gc_array[i] && gc_array[i]->id == id) {
-    > +                       ret = gc_array[i];
-    > +                       break;
-    > +               }
+    > +static int gpio_system_reset_check(u32 type, u32 reason)
+    > +{
+    > +       switch (type) {
+    > +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+    > +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+    > +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+    > +               return 1;
     > +       }
     > +
-    > +       return ret;
-    > +}
-    > +
-    > +int gpio_chip_add(struct gpio_chip *gc)
-    > +{
-    > +       int i, ret = SBI_ENOSPC;
-    > +
-    > +       if (!gc)
-    > +               return SBI_EINVAL;
-    > +       if (gpio_chip_find(gc->id))
-    > +               return SBI_EALREADY;
-    > +
-    > +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
-    > +               if (!gc_array[i]) {
-    > +                       gc_array[i] = gc;
-    > +                       ret = 0;
-    > +                       break;
-    > +               }
-    > +       }
-    > +
-    > +       return ret;
-    > +}
-    > +
-    > +void gpio_chip_remove(struct gpio_chip *gc)
-    > +{
-    > +       int i;
-    > +
-    > +       if (!gc)
-    > +               return;
-    > +
-    > +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
-    > +               if (gc_array[i] == gc) {
-    > +                       gc_array[i] = NULL;
-    > +                       break;
-    > +               }
-    > +       }
-    > +}
-    > +
-    > +int gpio_get_direction(struct gpio_pin *gp)
-    > +{
-    > +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-    > +               return SBI_EINVAL;
-    > +       if (!gp->chip->get_direction)
-    > +               return SBI_ENOSYS;
-    > +
-    > +       return gp->chip->get_direction(gp);
-    > +}
-    > +
-    > +int gpio_direction_input(struct gpio_pin *gp)
-    > +{
-    > +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-    > +               return SBI_EINVAL;
-    > +       if (!gp->chip->direction_input)
-    > +               return SBI_ENOSYS;
-    > +
-    > +       return gp->chip->direction_input(gp);
-    > +}
-    > +
-    > +int gpio_direction_output(struct gpio_pin *gp, int value)
-    > +{
-    > +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-    > +               return SBI_EINVAL;
-    > +       if (!gp->chip->direction_output)
-    > +               return SBI_ENOSYS;
-    > +
-    > +       return gp->chip->direction_output(gp, value);
-    > +}
-    > +
-    > +int gpio_get(struct gpio_pin *gp)
-    > +{
-    > +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-    > +               return SBI_EINVAL;
-    > +       if (!gp->chip->get)
-    > +               return SBI_ENOSYS;
-    > +
-    > +       return gp->chip->get(gp);
-    > +}
-    > +
-    > +int gpio_set(struct gpio_pin *gp, int value)
-    > +{
-    > +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
-    > +               return SBI_EINVAL;
-    > +       if (!gp->chip->set)
-    > +               return SBI_ENOSYS;
-    > +
-    > +       gp->chip->set(gp, value);
     > +       return 0;
     > +}
-    > diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-    > new file mode 100644
-    > index 0000000..e99a895
-    > --- /dev/null
-    > +++ b/lib/utils/gpio/objects.mk
-    > @@ -0,0 +1,10 @@
-    > +#
-    > +# SPDX-License-Identifier: BSD-2-Clause
-    > +#
-    > +# Copyright (c) 2021 Western Digital Corporation or its affiliates.
-    > +#
-    > +# Authors:
-    > +#   Anup Patel <anup.patel@wdc.com>
-    > +#
     > +
-    > +libsbiutils-objs-y += gpio/gpio.o
+    > +static void gpio_system_reset(u32 type, u32 reason)
+    > +{
+    > +       struct gpio_pin *pin = NULL;
+    > +       u32 active_delay = 0, inactive_delay = 0;
+    > +
+    > +       switch (type) {
+    > +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+    > +               pin = &poweroff_pin;
+    > +               active_delay = poweroff_active_delay;
+    > +               inactive_delay = poweroff_inactive_delay;
+    > +               break;
+    > +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+    > +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+    > +               pin = &restart_pin;
+    > +               active_delay = restart_active_delay;
+    > +               inactive_delay = restart_inactive_delay;
+    > +               break;
+    > +       }
+    > +
+    > +       if (pin) {
+    > +               /* drive it active, also inactive->active edge */
+    > +               gpio_direction_output(pin, 1);
+    > +               gpio_mdelay(active_delay);
+    > +
+    > +               /* drive inactive, also active->inactive edge */
+    > +               gpio_set(pin, 0);
+    > +               gpio_mdelay(inactive_delay);
+    > +
+    > +               /* drive it active, also inactive->active edge */
+    > +               gpio_set(pin, 1);
+    > +
+    > +               /* hang !!! */
+    > +               sbi_hart_hang();
+    > +       }
+    > +}
+    > +
+    > +static struct sbi_system_reset_device gpio_reset = {
+    > +       .name = "gpio",
+    > +       .system_reset_check = gpio_system_reset_check,
+    > +       .system_reset = gpio_system_reset
+    > +};
+    > +
+    > +static int gpio_reset_init(void *fdt, int nodeoff,
+    > +                          const struct fdt_match *match)
+    > +{
+    > +       int rc, len;
+    > +       const fdt32_t *val;
+    > +       bool is_restart = (ulong)match->data;
+    > +
+    > +       rc = fdt_gpio_pin_get(fdt, nodeoff, 0,
+    > +                             (is_restart) ? &restart_pin : &poweroff_pin);
+    > +       if (rc)
+    > +               return rc;
+    > +
+    > +       if (is_restart) {
+    > +               if (fdt_getprop(fdt, nodeoff, "open-source", &len)) {
+    > +                       rc = gpio_direction_input(&restart_pin);
+    > +                       if (rc)
+    > +                               return rc;
+    > +               }
+    > +
+    > +               val = fdt_getprop(fdt, nodeoff, "active-delay-ms", &len);
+    > +               if (len > 0)
+    > +                       restart_active_delay = fdt32_to_cpu(*val);
+    > +
+    > +               val = fdt_getprop(fdt, nodeoff, "inactive-delay-ms", &len);
+    > +               if (len > 0)
+    > +                       restart_inactive_delay = fdt32_to_cpu(*val);
+    > +       } else {
+    > +               if (fdt_getprop(fdt, nodeoff, "input", &len)) {
+    > +                       rc = gpio_direction_input(&poweroff_pin);
+    > +                       if (rc)
+    > +                               return rc;
+    > +               }
+    > +
+    > +               val = fdt_getprop(fdt, nodeoff, "active-delay-ms", &len);
+    > +               if (len > 0)
+    > +                       poweroff_active_delay = fdt32_to_cpu(*val);
+    > +
+    > +               val = fdt_getprop(fdt, nodeoff, "inactive-delay-ms", &len);
+    > +               if (len > 0)
+    > +                       poweroff_inactive_delay = fdt32_to_cpu(*val);
+
+    Just a personal preference:
+    These two fdt_getprop can be done outside of the if else block and
+    assignment inside it.
+
+Sure, I will update.
+
+Regards,
+Anup
+
+    > +       }
+    > +
+    > +       sbi_system_reset_set_device(&gpio_reset);
+    > +
+    > +       return 0;
+    > +}
+    > +
+    > +static const struct fdt_match gpio_reset_match[] = {
+    > +       { .compatible = "gpio-poweroff", .data = (void *)FALSE },
+    > +       { .compatible = "gpio-restart", .data = (void *)TRUE },
+    > +       { },
+    > +};
+    > +
+    > +struct fdt_reset fdt_reset_gpio = {
+    > +       .match_table = gpio_reset_match,
+    > +       .init = gpio_reset_init,
+    > +};
+    > diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+    > index 672aad9..4215396 100644
+    > --- a/lib/utils/reset/objects.mk
+    > +++ b/lib/utils/reset/objects.mk
+    > @@ -8,6 +8,7 @@
+    >  #
+    >
+    >  libsbiutils-objs-y += reset/fdt_reset.o
+    > +libsbiutils-objs-y += reset/fdt_reset_gpio.o
+    >  libsbiutils-objs-y += reset/fdt_reset_htif.o
+    >  libsbiutils-objs-y += reset/fdt_reset_thead.o
+    >  libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
     > --
     > 2.25.1
     >
@@ -305,12 +232,11 @@ gpio/gpio.c
     > opensbi at lists.infradead.org
     > http://lists.infradead.org/mailman/listinfo/opensbi
 
+    Otherwise, it looks
+    Reviewed-by: Atish Patra <atish.patra@wdc.com> good to me.
 
 
     -- 
     Regards,
     Atish
-
-Regards,
-Anup
 
