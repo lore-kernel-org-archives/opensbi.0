@@ -1,81 +1,292 @@
-From: Atish Patra <atish.patra@wdc.com>
-Date: Sat, 10 Jul 2021 09:18:16 -0700
-Subject: [PATCH v5 15/15] platform: generic: Add PMU support
-In-Reply-To: <20210710161816.632364-1-atish.patra@wdc.com>
-References: <20210710161816.632364-1-atish.patra@wdc.com>
-Message-ID: <20210710161816.632364-16-atish.patra@wdc.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Sat, 10 Jul 2021 09:20:48 -0700
+Subject: [PATCH v3 2/5] lib: utils/gpio: Add generic GPIO configuration
+ library
+In-Reply-To: <20210710055827.1535906-3-anup.patel@wdc.com>
+References: <20210710055827.1535906-1-anup.patel@wdc.com>
+ <20210710055827.1535906-3-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKYNBm3KW0bg2qjwsrQ2kUaftBRnZ=vd3NTGWTVU808Mg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PMU support for generic platform. Generic platform solely relies on
-the device tree to parse all pmu related information. If any event is
-not described in device tree, generic platform will not support it.
+On Fri, Jul 9, 2021 at 10:59 PM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> We add generic GPIO configuration library which is independent of
+> hardware description format (FDT or ACPI). The OpenSBI platform
+> support or GPIO drivers can register GPIO chip instances which
+> can be discovered and used by different GPIO clients. Each GPIO
+> chip instance has a unique ID which can be used by GPIO clients
+> to lookup GPIO chip instance.
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  include/sbi_utils/gpio/gpio.h |  99 +++++++++++++++++++++++++++++
+>  lib/utils/gpio/gpio.c         | 116 ++++++++++++++++++++++++++++++++++
+>  lib/utils/gpio/objects.mk     |  10 +++
+>  3 files changed, 225 insertions(+)
+>  create mode 100644 include/sbi_utils/gpio/gpio.h
+>  create mode 100644 lib/utils/gpio/gpio.c
+>  create mode 100644 lib/utils/gpio/objects.mk
+>
+> diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+> new file mode 100644
+> index 0000000..167d11a
+> --- /dev/null
+> +++ b/include/sbi_utils/gpio/gpio.h
+> @@ -0,0 +1,99 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *   Anup Patel <anup.patel@wdc.com>
+> + */
+> +
+> +#ifndef __GPIO_H__
+> +#define __GPIO_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +#define GPIO_LINE_DIRECTION_IN 1
+> +#define GPIO_LINE_DIRECTION_OUT        0
+> +
+> +/** Representation of a GPIO pin */
+> +struct gpio_pin {
+> +       /** Pointer to the GPIO chip */
+> +       struct gpio_chip *chip;
+> +       /** Identification of GPIO pin within GPIO chip */
+> +       unsigned int offset;
+> +       /**
+> +        * Additional configuration flags of the GPIO pin desired
+> +        * by GPIO clients.
+> +        *
+> +        * NOTE: GPIO chip can have custom configuration flags.
+> +        */
+> +       unsigned int flags;
+> +#define GPIO_FLAG_ACTIVE_LOW   0x1
+> +#define GPIO_FLAG_SINGLE_ENDED 0x2
+> +#define GPIO_FLAG_OPEN_DRAIN   0x4
+> +#define GPIO_FLAG_TRANSITORY   0x8
+> +#define GPIO_FLAG_PULL_UP      0x10
+> +#define GPIO_FLAG_PULL_DOWN    0x20
+> +};
+> +
+> +/** Representation of a GPIO chip */
+> +struct gpio_chip {
+> +       /** Pointer to GPIO driver owning this GPIO chip */
+> +       void *driver;
+> +       /** Uniquie ID of the GPIO chip assigned by the driver */
+> +       unsigned int id;
+> +       /** Number of GPIOs supported by the GPIO chip */
+> +       unsigned int ngpio;
+> +       /**
+> +        * Get current direction of GPIO pin
+> +        *
+> +        * @return 0=output, 1=input, or negative error
+> +        */
+> +       int (*get_direction)(struct gpio_pin *gp);
+> +       /**
+> +        * Set input direction of GPIO pin
+> +        *
+> +        * @return 0 on success and negative error code on failure
+> +        */
+> +       int (*direction_input)(struct gpio_pin *gp);
+> +       /**
+> +        * Set output direction of GPIO pin with given output value
+> +        *
+> +        * @return 0 on success and negative error code on failure
+> +        */
+> +       int (*direction_output)(struct gpio_pin *gp, int value);
+> +       /**
+> +        * Get current value of GPIO pin
+> +        *
+> +        * @return 0=low, 1=high, or negative error
+> +        */
+> +       int (*get)(struct gpio_pin *gp);
+> +       /** Set output value for GPIO pin */
+> +       void (*set)(struct gpio_pin *gp, int value);
+> +};
+> +
+> +/** Find a registered GPIO chip */
+> +struct gpio_chip *gpio_chip_find(unsigned int id);
+> +
+> +/** Register GPIO chip */
+> +int gpio_chip_add(struct gpio_chip *gc);
+> +
+> +/** Un-register GPIO chip */
+> +void gpio_chip_remove(struct gpio_chip *gc);
+> +
+> +/** Get current direction of GPIO pin */
+> +int gpio_get_direction(struct gpio_pin *gp);
+> +
+> +/** Set input direction of GPIO pin */
+> +int gpio_direction_input(struct gpio_pin *gp);
+> +
+> +/** Set output direction of GPIO pin */
+> +int gpio_direction_output(struct gpio_pin *gp, int value);
+> +
+> +/** Get current value of GPIO pin */
+> +int gpio_get(struct gpio_pin *gp);
+> +
+> +/** Set output value of GPIO pin */
+> +int gpio_set(struct gpio_pin *gp, int value);
+> +
+> +#endif
+> diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
+> new file mode 100644
+> index 0000000..fb30c0f
+> --- /dev/null
+> +++ b/lib/utils/gpio/gpio.c
+> @@ -0,0 +1,116 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *   Anup Patel <anup.patel@wdc.com>
+> + */
+> +
+> +#include <sbi/sbi_error.h>
+> +#include <sbi_utils/gpio/gpio.h>
+> +
+> +#define GPIO_CHIP_MAX          16
+> +
+> +static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
+> +
+> +struct gpio_chip *gpio_chip_find(unsigned int id)
+> +{
+> +       unsigned int i;
+> +       struct gpio_chip *ret = NULL;
+> +
+> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> +               if (gc_array[i] && gc_array[i]->id == id) {
+> +                       ret = gc_array[i];
+> +                       break;
+> +               }
+> +       }
+> +
+> +       return ret;
+> +}
+> +
+> +int gpio_chip_add(struct gpio_chip *gc)
+> +{
+> +       int i, ret = SBI_ENOSPC;
+> +
+> +       if (!gc)
+> +               return SBI_EINVAL;
+> +       if (gpio_chip_find(gc->id))
+> +               return SBI_EALREADY;
+> +
+> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> +               if (!gc_array[i]) {
+> +                       gc_array[i] = gc;
+> +                       ret = 0;
+> +                       break;
+> +               }
+> +       }
+> +
+> +       return ret;
+> +}
+> +
+> +void gpio_chip_remove(struct gpio_chip *gc)
+> +{
+> +       int i;
+> +
+> +       if (!gc)
+> +               return;
+> +
+> +       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> +               if (gc_array[i] == gc) {
+> +                       gc_array[i] = NULL;
+> +                       break;
+> +               }
+> +       }
+> +}
+> +
+> +int gpio_get_direction(struct gpio_pin *gp)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->get_direction)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->get_direction(gp);
+> +}
+> +
+> +int gpio_direction_input(struct gpio_pin *gp)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->direction_input)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->direction_input(gp);
+> +}
+> +
+> +int gpio_direction_output(struct gpio_pin *gp, int value)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->direction_output)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->direction_output(gp, value);
+> +}
+> +
+> +int gpio_get(struct gpio_pin *gp)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->get)
+> +               return SBI_ENOSYS;
+> +
+> +       return gp->chip->get(gp);
+> +}
+> +
+> +int gpio_set(struct gpio_pin *gp, int value)
+> +{
+> +       if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
+> +               return SBI_EINVAL;
+> +       if (!gp->chip->set)
+> +               return SBI_ENOSYS;
+> +
+> +       gp->chip->set(gp, value);
+> +       return 0;
+> +}
+> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+> new file mode 100644
+> index 0000000..e99a895
+> --- /dev/null
+> +++ b/lib/utils/gpio/objects.mk
+> @@ -0,0 +1,10 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +# Copyright (c) 2021 Western Digital Corporation or its affiliates.
+> +#
+> +# Authors:
+> +#   Anup Patel <anup.patel@wdc.com>
+> +#
+> +
+> +libsbiutils-objs-y += gpio/gpio.o
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-Signed-off-by: Atish Patra <atish.patra@wdc.com>
----
- platform/generic/platform.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index da0c1af8f92e..44a9c73fba0c 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -16,6 +16,7 @@
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/fdt/fdt_pmu.h>
- #include <sbi_utils/irqchip/fdt_irqchip.h>
- #include <sbi_utils/serial/fdt_serial.h>
- #include <sbi_utils/timer/fdt_timer.h>
-@@ -184,6 +185,33 @@ static u64 generic_tlbr_flush_limit(void)
- 	return SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT;
- }
- 
-+static int generic_pmu_init(void)
-+{
-+	return fdt_pmu_setup(sbi_scratch_thishart_arg1_ptr());
-+}
-+
-+static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
-+					       uint64_t data)
-+{
-+	uint64_t evt_val = 0;
-+
-+	/* data is valid only for raw events and is equal to event selector */
-+	if (event_idx == SBI_PMU_EVENT_RAW_IDX)
-+		evt_val = data;
-+	else {
-+		/**
-+		 * Generic platform follows the SBI specification recommendation
-+		 * i.e. zero extended event_idx is used as mhpmevent value for
-+		 * hardware general/cache events if platform does't define one.
-+		 */
-+		evt_val = fdt_pmu_get_select_value(event_idx);
-+		if (!evt_val)
-+			evt_val = (uint64_t)event_idx;
-+	}
-+
-+	return evt_val;
-+}
-+
- const struct sbi_platform_operations platform_ops = {
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
-@@ -195,6 +223,8 @@ const struct sbi_platform_operations platform_ops = {
- 	.irqchip_exit		= fdt_irqchip_exit,
- 	.ipi_init		= fdt_ipi_init,
- 	.ipi_exit		= fdt_ipi_exit,
-+	.pmu_init		= generic_pmu_init,
-+	.pmu_xlate_to_mhpmevent = generic_pmu_xlate_to_mhpmevent,
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
- 	.timer_init		= fdt_timer_init,
- 	.timer_exit		= fdt_timer_exit,
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
+
 -- 
-2.31.1
-
+Regards,
+Atish
 
