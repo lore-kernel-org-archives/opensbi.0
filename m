@@ -1,54 +1,63 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sat, 10 Jul 2021 22:28:20 +0800
-Subject: [PATCH 1/2] firmware: Remove the unhelpful alignment codes before fdt
- relocation
-Message-ID: <20210710142821.4168-1-bmeng.cn@gmail.com>
+Date: Sat, 10 Jul 2021 22:28:21 +0800
+Subject: [PATCH 2/2] docs: firmware: Document parameters passed to firmware
+ and alignment requirement
+In-Reply-To: <20210710142821.4168-1-bmeng.cn@gmail.com>
+References: <20210710142821.4168-1-bmeng.cn@gmail.com>
+Message-ID: <20210710142821.4168-2-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If the device tree is at an address that is not __SIZEOF_POINTER__
-aligned, the fdt relocation code tries to align both source and
-destination address to __SIZEOF_POINTER__ before the memory copy.
-But such alignment can lead to unexpected results if either source
-or destination address is not aligned.
+This updates documentation to describe parameters passed to firmware
+from previous booting stage, and corresponding address alignment
+requirement.
 
-In fact libfdt requires that the device tree must be at an 8-byte
-aligned address. Hence remove the unhelpful alignment codes.
+This also fixes a typo in fw_dynamic.md (it's => its).
 
 Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
 ---
 
- firmware/fw_base.S | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ docs/firmware/fw.md         | 7 +++++++
+ docs/firmware/fw_dynamic.md | 5 +++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 8e40562..abf21cd 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -349,8 +349,7 @@ _scratch_init:
- 	 * previous booting stage.
- 	 */
- 	beqz	a1, _fdt_reloc_done
--	/* Mask values in a3 and a4 */
--	li	a3, ~(__SIZEOF_POINTER__ - 1)
-+	/* Mask values in a4 */
- 	li	a4, 0xff
- 	/* t1 = destination FDT start address */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
-@@ -359,10 +358,8 @@ _scratch_init:
- 	MOV_3R	a0, s0, a1, s1, a2, s2
- 	beqz	t1, _fdt_reloc_done
- 	beq	t1, a1, _fdt_reloc_done
--	and	t1, t1, a3
- 	/* t0 = source FDT start address */
- 	add	t0, a1, zero
--	and	t0, t0, a3
- 	/* t2 = source FDT size in big-endian */
- #if __riscv_xlen == 64
- 	lwu	t2, 4(t0)
+diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
+index cc0cc9e..a3bb70c 100644
+--- a/docs/firmware/fw.md
++++ b/docs/firmware/fw.md
+@@ -9,6 +9,13 @@ OpenSBI generic library code. The supported firmwares type will differ in how
+ the arguments passed by the platform early boot stage are handled, as well as
+ how the boot stage following the firmware will be handled and executed.
+ 
++The previous booting stage will pass information via the following registers
++of RISC-V CPU:
++
++* hartid via *a0* register
++* device tree blob address in memory via *a1* register. The address must be
++  aligned to 8 bytes.
++
+ OpenSBI currently supports three different types of firmwares.
+ 
+ Firmware with Dynamic Information (*FW_DYNAMIC*)
+diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
+index 01f43f9..7b9b192 100644
+--- a/docs/firmware/fw_dynamic.md
++++ b/docs/firmware/fw_dynamic.md
+@@ -6,8 +6,9 @@ information about next booting stage (e.g. a bootloader or an OS) and runtime
+ OpenSBI library options from previous booting stage.
+ 
+ The previous booting stage will pass information to *FW_DYNAMIC* by creating
+-*struct fw_dynamic_info* in memory and passing it's address to *FW_DYNAMIC*
+-via *a2* register of RISC-V CPU.
++*struct fw_dynamic_info* in memory and passing its address to *FW_DYNAMIC*
++via *a2* register of RISC-V CPU. The address must be aligned to 8 bytes on
++RV64 and 4 bytes on RV32.
+ 
+ A *FW_DYNAMIC* firmware is particularly useful when the booting stage executed
+ prior to OpenSBI firmware is capable of loading both the OpenSBI firmware and
 -- 
 2.25.1
 
