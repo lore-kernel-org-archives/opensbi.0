@@ -1,49 +1,60 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Jul 2021 03:11:31 +0800
+Date: Sun, 11 Jul 2021 03:14:21 +0800
 Subject: [PATCH] firmware: Detect whether the toolchain supports pie and
  automatically disable the FW_PIC option
-In-Reply-To: <B7B8F84A-F69C-43B4-95B1-347D0841680D@jrtc27.com>
-References: <20210710182146.148767-1-wxjstz@126.com>
- <B7B8F84A-F69C-43B4-95B1-347D0841680D@jrtc27.com>
-Message-ID: <a9f78f257459a7a37b14d480095a194f459bffb7.camel@126.com>
+Message-ID: <20210710191421.164771-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-07-10???? 19:24 +0100?Jessica Clarke???
-> On 10 Jul 2021, at 19:21, Xiang W <wxjstz@126.com> wrote:
-> > 
-> > Signed-off-by: Xiang W <wxjstz@126.com>
-> > ---
-> > firmware/objects.mk | 4 ++++
-> > 1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/firmware/objects.mk b/firmware/objects.mk
-> > index ce91c2f..96a8d7d 100644
-> > --- a/firmware/objects.mk
-> > +++ b/firmware/objects.mk
-> > @@ -17,6 +17,10 @@ ifndef FW_PIC
-> > FW_PIC := y
-> > endif
-> > 
-> > +ifeq ($(FW_PIC),y)
-> > +FW_PIC := $(shell $(CC) -nostdlib -fPIE -Wl,-pie /dev/null? -o
-> > /dev/null 2>/dev/null && echo y || echo n)
-> > +endif
-> 
-> /dev/null is not a valid object. This always gives n.
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ firmware/objects.mk         |  4 +++-
+ scripts/toolchain-check-pie | 16 ++++++++++++++++
+ 2 files changed, 19 insertions(+), 1 deletion(-)
+ create mode 100755 scripts/toolchain-check-pie
 
-Yes, you are right. We still need a simple test file. This can run just
-by luck. The command I actually ran did have an error output, but the
-return value was exactly 0.
-
-/usr/lib/gcc-cross/riscv64-linux-gnu/10/../../../../riscv64-linux-
-gnu/bin/ld: warning: cannot find entry symbol _start; not setting start
-address
-> 
-> Jess
-
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index ce91c2f..020e1a9 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -16,7 +16,9 @@ firmware-ldflags-y +=
+ ifndef FW_PIC
+ FW_PIC := y
+ endif
+-
++ifeq ($(FW_PIC),y)
++FW_PIC := $(shell scripts/toolchain-check-pie $(CC))
++endif
+ ifeq ($(FW_PIC),y)
+ firmware-genflags-y +=	-DFW_PIC
+ firmware-asflags-y  +=	-fpic
+diff --git a/scripts/toolchain-check-pie b/scripts/toolchain-check-pie
+new file mode 100755
+index 0000000..14ad6d1
+--- /dev/null
++++ b/scripts/toolchain-check-pie
+@@ -0,0 +1,16 @@
++#! /bin/bash
++
++CC=$1
++f=$(mktemp)
++mv ${f} ${f}.s
++
++cat << EOF >${f}.s
++	.section .entry, "ax", %progbits
++	.align 3
++	.globl _start
++_start:
++    j   _start
++EOF
++
++${CC}  -nostdlib -fPIE -Wl,-pie ${f}.s -o /dev/null 2>/dev/null && echo y || echo n
++rm ${f}.s
+\ No newline at end of file
+-- 
+2.30.2
 
 
