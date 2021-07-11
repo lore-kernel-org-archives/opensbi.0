@@ -1,10 +1,12 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 11 Jul 2021 11:56:44 +0530
-Subject: [PATCH 1/2] docs: Correct a typo in platform_guide.md
-In-Reply-To: <785345cb43450baf94b66795557a0f3d3a67cb60.camel@126.com>
+Date: Sun, 11 Jul 2021 12:03:09 +0530
+Subject: [PATCH 2/2] docs: Make <xyz> visible in the rendered platform
+ guide
+In-Reply-To: <850fe527d6eb5d4f8804fec477b70617bcd7a9cf.camel@126.com>
 References: <20210708110729.7136-1-bmeng.cn@gmail.com>
- <785345cb43450baf94b66795557a0f3d3a67cb60.camel@126.com>
-Message-ID: <CAAhSdy1vanDWvfXBsRqLKVdDcRgHLSsHgdUp+s8NOt7Dy-_cyQ@mail.gmail.com>
+ <20210708110729.7136-2-bmeng.cn@gmail.com>
+ <850fe527d6eb5d4f8804fec477b70617bcd7a9cf.camel@126.com>
+Message-ID: <CAAhSdy3a4=DHjgLTw40S_T5kiN5M_-oKVW=zEJ4DeZuW7sv4Ag@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,7 +16,8 @@ Content-Transfer-Encoding: 7bit
 On Thu, Jul 8, 2021 at 5:36 PM Xiang W <wxjstz@126.com> wrote:
 >
 > ? 2021-07-08???? 19:07 +0800?Bin Meng???
-> > It's riscv-pk, not riskv-pk.
+> > At present in the rendered platform guide, all instances of <xyz>
+> > are missing. Use &lt; and &gt; to replace <> to make them visible.
 > >
 > > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
 > Reviewed-by: Xiang W <wxjstz@126.com>
@@ -28,26 +31,49 @@ Anup
 
 > > ---
 > >
-> >  docs/platform_guide.md | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >  docs/platform_guide.md | 16 ++++++++--------
+> >  1 file changed, 8 insertions(+), 8 deletions(-)
 > >
 > > diff --git a/docs/platform_guide.md b/docs/platform_guide.md
-> > index 7920fac..df90c6b 100644
+> > index df90c6b..b6c2c2e 100644
 > > --- a/docs/platform_guide.md
 > > +++ b/docs/platform_guide.md
-> > @@ -17,7 +17,7 @@ the supported platforms. These firmwares are linked
-> > against *libplatsbi.a*.
-> >  Firmware binaries are installed in
-> >  *<install_directory>/platform/<platform_subdir>/bin*. These
-> > firmwares can be
-> >  used as executable runtime firmwares on the supported platforms as a
-> > replacement
-> > -for the legacy *riskv-pk* boot loader (BBL).
-> > +for the legacy *riscv-pk* boot loader (BBL).
+> > @@ -25,18 +25,18 @@ APIs is available in the file
+> > *include/sbi/sbi_platform.h*.
+> >  Adding support for a new platform
+> >  ---------------------------------
 > >
-> >  A complete doxygen-style documentation of *struct sbi_platform* and
-> > related
-> >  APIs is available in the file *include/sbi/sbi_platform.h*.
+> > -Support for a new platform named *<xyz>* can be added as follows:
+> > +Support for a new platform named *&lt;xyz&gt;* can be added as
+> > follows:
+> >
+> > -1. Create a directory named *<xyz>* under the *platform/* directory.
+> > +1. Create a directory named *&lt;xyz&gt;* under the *platform/*
+> > directory.
+> >  2. Create a platform configuration file named *config.mk* under the
+> > -   *platform/<xyz>/* directory. This configuration file will provide
+> > +   *platform/&lt;xyz&gt;/* directory. This configuration file will
+> > provide
+> >     compiler flags, and select firmware options.
+> > -3. Create a *platform/<xyz>/objects.mk* file for listing the
+> > +3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the
+> >     platform-specific object files to be compiled.
+> > -4. Create a *platform/<xyz>/platform.c* file providing a *struct
+> > sbi_platform*
+> > -   instance.
+> > +4. Create a *platform/&lt;xyz&gt;/platform.c* file providing a
+> > +   *struct sbi_platform* instance.
+> >
+> >  A platform support code template is available under the
+> > *platform/template*
+> >  directory. Copying this directory and its content as a new directory
+> > named
+> > -*<xyz>* under the *platform/* directory will create all the files
+> > mentioned
+> > -above.
+> > +*&lt;xyz&gt;* under the *platform/* directory will create all the
+> > files
+> > +mentioned above.
 > > --
 > > 2.25.1
 > >
