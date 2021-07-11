@@ -1,53 +1,42 @@
 From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Sun, 11 Jul 2021 03:28:22 +0100
-Subject: [PATCH v5 4/6] firmware: Only default FW_PIC to y if supported
+Date: Sun, 11 Jul 2021 03:28:20 +0100
+Subject: [PATCH v5 2/6] fw_base: Put data in .data rather than .text
 In-Reply-To: <20210711022824.29915-1-jrtc27@jrtc27.com>
 References: <20210711022824.29915-1-jrtc27@jrtc27.com>
-Message-ID: <20210711022824.29915-5-jrtc27@jrtc27.com>
+Message-ID: <20210711022824.29915-3-jrtc27@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Bare-metal GNU ld does not support PIE, so if using it this will result
-in a failure to build. Instead, default to FW_PIC=n if not supported.
-Note that an explicit FW_PIC=y is not overriden, to ensure the build
-fails rather than silently producing a position-dependent binary.
+The -N linker option is supposed to make .text writable, but GNU ld and
+LLD differ in interpreting what that means. GNU ld will happily let you
+have relocations in it, but LLD will see that the input section is
+read-only (even though the output section is writable) and give an
+error. It's unclear if either of them intend to have that behaviour in
+this edge case, but regardless there's no reason not to just put the
+data in a writable .data section.
 
 Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+Tested-by: Bin Meng <bmeng.cn@gmail.com>
 ---
- Makefile            | 3 +++
- firmware/objects.mk | 2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ firmware/fw_base.S | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Makefile b/Makefile
-index 6b64205..ba06313 100644
---- a/Makefile
-+++ b/Makefile
-@@ -106,6 +106,9 @@ ifndef PLATFORM_RISCV_XLEN
-   endif
- endif
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index ee2a51b..f8aea05 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -501,6 +501,7 @@ _skip_trap_exit_rv32_hyp:
+ 	/* We don't expect to reach here hence just hang */
+ 	j	_start_hang
  
-+# Check whether the linker supports creating PIEs
-+OPENSBI_LD_PIE := $(shell $(CC) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
-+
- # Setup list of objects.mk files
- ifdef PLATFORM
- platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
-diff --git a/firmware/objects.mk b/firmware/objects.mk
-index 3bc83cd..8da7ca3 100644
---- a/firmware/objects.mk
-+++ b/firmware/objects.mk
-@@ -14,7 +14,7 @@ firmware-asflags-y +=
- firmware-ldflags-y +=
- 
- ifndef FW_PIC
--FW_PIC := y
-+FW_PIC := $(OPENSBI_LD_PIE)
- endif
- 
- ifeq ($(FW_PIC),y)
++	.data
+ 	.align 3
+ #ifdef FW_PIC
+ _runtime_offset:
 -- 
 2.31.0
 
