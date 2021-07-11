@@ -1,92 +1,59 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun, 11 Jul 2021 21:53:29 +0800
-Subject: [PATCH v4 4/5] Makefile: Support building with Clang and LLVM
- binutils
-In-Reply-To: <CAEUhbmVWVAMbJDC4J2DtYTP+Ji7RimRhpdZ3eApdM7H+LomkBQ@mail.gmail.com>
-References: <20210709193423.29712-1-jrtc27@jrtc27.com>
- <20210709193423.29712-5-jrtc27@jrtc27.com>
- <CAEUhbmVWVAMbJDC4J2DtYTP+Ji7RimRhpdZ3eApdM7H+LomkBQ@mail.gmail.com>
-Message-ID: <CAEUhbmUCS16Sbqw7m9yGX1+oVLuzoo2-M4pG-ikp8xujv3kSFg@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Sun, 11 Jul 2021 07:15:23 -0700
+Subject: [PATCH] lib: sbi: Fix sbi_pmu_exit() for systems not having
+ MCOUNTINHIBIT csr
+In-Reply-To: <20210711090315.1644931-1-anup.patel@wdc.com>
+References: <20210711090315.1644931-1-anup.patel@wdc.com>
+Message-ID: <CAOnJCUKfORt_=yySLSV=0HyocNMmP97R9Hdb_59VB2Ko7TKHPQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 10, 2021 at 9:23 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Sun, Jul 11, 2021 at 2:03 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> > This is intended to mirror the Linux kernel. Building with CC=clang will
-> > use Clang as the compiler but default to using the existing binutils.
-> > Building with LLVM=1 will default to using Clang and LLVM binutils.
-> >
-> > Whilst GCC will accept the -N linker option and forward it on to the
-> > linker, Clang will not, and so in order to support both compilers we
-> > must use -Wl, to forward it to the linker as is required for most other
-> > linker options.
-> >
-> > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
-> > ---
-> >  Makefile  | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++-----
-> >  README.md | 43 ++++++++++++++++++++++++++++++++++--
-> >  2 files changed, 100 insertions(+), 8 deletions(-)
-> >
+> The sbi_pmu_exit() crashes on systems not having MCOUNTINHIBIT csr
+> so to fix this we check SBI_HART_HAS_MCOUNTINHIBIT feature in
+> sbi_pmu_exit() and do nothing if it is not available.
 >
-> Here are test results:
+> Fixes: 13d40f21d588 ("lib: sbi: Add PMU support")
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> ---
+>  lib/sbi/sbi_pmu.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 >
-> Building with "riscv64-linux-gcc",
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 4092e6f..c276a46 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -583,6 +583,10 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
+>  {
+>         u32 hartid = current_hartid();
 >
-> $ file build/platform/generic/firmware/fw_dynamic.elf
-> build/platform/generic/firmware/fw_dynamic.elf: ELF 64-bit LSB
-> executable, UCB RISC-V, version 1 (SYSV), dynamically linked, with
-> debug_info, not stripped
->
-> $ riscv64-linux-readelf -r build/platform/generic/firmware/fw_dynamic.elf
-> Relocation section '.rela.dyn' at offset 0x140f8 contains 184 entries:
->   Offset          Info           Type           Sym. Value    Sym. Name + Addend
-> 000080013090  000000000003 R_RISCV_RELATIVE                     80000db4
-> ...
-> 000080013628  000200000002 R_RISCV_64        0000000080013720
-> fdt_serial_uart8250 + 0
-> 000080013830  000d00000002 R_RISCV_64        00000000800138d8
-> fdt_reset_sifive_test + 0
->
-> Building with "LLVM=1",
->
-> $ file build/platform/generic/firmware/fw_dynamic.elf
-> build/platform/generic/firmware/fw_dynamic.elf: ELF 64-bit LSB shared
-> object, UCB RISC-V, version 1 (SYSV), dynamically linked, with
-> debug_info, not stripped
->
-> $ riscv64-linux-readelf -r build/platform/generic/firmware/fw_dynamic.elf
-> Relocation section '.rela.dyn' at offset 0x17d98 contains 188 entries:
->   Offset          Info           Type           Sym. Value    Sym. Name + Addend
-> 000080017000  000000000003 R_RISCV_RELATIVE                     8000b680
-> 000080017030  000000000003 R_RISCV_RELATIVE                     8001b1b8
-> ...
-> 000080017c90  000000000003 R_RISCV_RELATIVE                     80017628
->
-> There are two differences:
->
-> 1. LLVM toolchain generates a "shared object" firmware image, while
-> GCC generates "executable".
-> 2. LLVM one has 4 more entries in .rela.dyn than the GCC. All entries
-> of LLVM have the R_RISCV_RELATIVE type, but GCC one has two R_RISCV_64
-> entries.
+> +       /* SBI PMU is not supported if mcountinhibit is not available */
+> +       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
+> +               return;
+> +
 
-Do you have any explanations on these 2 differences? Are these
-possible toolchain bugs?
+Arrgh. Apologies for overlooking this while testing.
+Thanks for the quick fix.
 
+>         csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+>         csr_write(CSR_MCOUNTEREN, 7);
+>         pmu_reset_event_map(hartid);
+> --
+> 2.25.1
 >
-> I am not sure whether GCC / LLVM is doing things correctly for the
-> above 2 differences. fw_dynamic image of both can boot to S-mode
-> U-Boot on QEMU 'virt' though.
 >
-> Using clang and GNU binutils, fw_dynamic image does not boot on QEMU
-> 'virt', as reported before.
-> $ make CC=clang CROSS_COMPILE=riscv64-linux- PLATFORM=generic
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
+
+
+-- 
 Regards,
-Bin
+Atish
 
