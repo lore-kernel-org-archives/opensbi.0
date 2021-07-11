@@ -1,23 +1,21 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 11 Jul 2021 12:03:09 +0530
-Subject: [PATCH 2/2] docs: Make <xyz> visible in the rendered platform
- guide
-In-Reply-To: <850fe527d6eb5d4f8804fec477b70617bcd7a9cf.camel@126.com>
-References: <20210708110729.7136-1-bmeng.cn@gmail.com>
- <20210708110729.7136-2-bmeng.cn@gmail.com>
- <850fe527d6eb5d4f8804fec477b70617bcd7a9cf.camel@126.com>
-Message-ID: <CAAhSdy3a4=DHjgLTw40S_T5kiN5M_-oKVW=zEJ4DeZuW7sv4Ag@mail.gmail.com>
+Date: Sun, 11 Jul 2021 14:22:15 +0530
+Subject: [PATCH] firmware: Remove the sanity checks in fw_save_info()
+In-Reply-To: <e4d6b1558041ad557a69255421442f82dd8a6571.camel@126.com>
+References: <20210707100021.4532-1-bmeng.cn@gmail.com>
+ <e4d6b1558041ad557a69255421442f82dd8a6571.camel@126.com>
+Message-ID: <CAAhSdy18+X=qF91ccSQLYDxP_HP1CynQJQrxjwv2Ny6rGZiLyA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 8, 2021 at 5:36 PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Jul 8, 2021 at 6:16 AM Xiang W <wxjstz@126.com> wrote:
 >
-> ? 2021-07-08???? 19:07 +0800?Bin Meng???
-> > At present in the rendered platform guide, all instances of <xyz>
-> > are missing. Use &lt; and &gt; to replace <> to make them visible.
+> ? 2021-07-07???? 18:00 +0800?Bin Meng???
+> > The sanity checks on the magic and version was already done in
+> > fw_boot_hart(), which happens before fw_save_info() is called.
 > >
 > > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
 > Reviewed-by: Xiang W <wxjstz@126.com>
@@ -31,49 +29,28 @@ Anup
 
 > > ---
 > >
-> >  docs/platform_guide.md | 16 ++++++++--------
-> >  1 file changed, 8 insertions(+), 8 deletions(-)
+> >  firmware/fw_dynamic.S | 8 --------
+> >  1 file changed, 8 deletions(-)
 > >
-> > diff --git a/docs/platform_guide.md b/docs/platform_guide.md
-> > index df90c6b..b6c2c2e 100644
-> > --- a/docs/platform_guide.md
-> > +++ b/docs/platform_guide.md
-> > @@ -25,18 +25,18 @@ APIs is available in the file
-> > *include/sbi/sbi_platform.h*.
-> >  Adding support for a new platform
-> >  ---------------------------------
+> > diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
+> > index 2b7ec3b..2b60196 100644
+> > --- a/firmware/fw_dynamic.S
+> > +++ b/firmware/fw_dynamic.S
+> > @@ -57,14 +57,6 @@ fw_save_info:
+> >         lla     a4, _dynamic_next_arg1
+> >         REG_S   a1, (a4)
 > >
-> > -Support for a new platform named *<xyz>* can be added as follows:
-> > +Support for a new platform named *&lt;xyz&gt;* can be added as
-> > follows:
-> >
-> > -1. Create a directory named *<xyz>* under the *platform/* directory.
-> > +1. Create a directory named *&lt;xyz&gt;* under the *platform/*
-> > directory.
-> >  2. Create a platform configuration file named *config.mk* under the
-> > -   *platform/<xyz>/* directory. This configuration file will provide
-> > +   *platform/&lt;xyz&gt;/* directory. This configuration file will
-> > provide
-> >     compiler flags, and select firmware options.
-> > -3. Create a *platform/<xyz>/objects.mk* file for listing the
-> > +3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the
-> >     platform-specific object files to be compiled.
-> > -4. Create a *platform/<xyz>/platform.c* file providing a *struct
-> > sbi_platform*
-> > -   instance.
-> > +4. Create a *platform/&lt;xyz&gt;/platform.c* file providing a
-> > +   *struct sbi_platform* instance.
-> >
-> >  A platform support code template is available under the
-> > *platform/template*
-> >  directory. Copying this directory and its content as a new directory
-> > named
-> > -*<xyz>* under the *platform/* directory will create all the files
-> > mentioned
-> > -above.
-> > +*&lt;xyz&gt;* under the *platform/* directory will create all the
-> > files
-> > +mentioned above.
+> > -       /* Sanity checks */
+> > -       li      a4, FW_DYNAMIC_INFO_MAGIC_VALUE
+> > -       REG_L   a3, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
+> > -       bne     a3, a4, _bad_dynamic_info
+> > -       li      a4, FW_DYNAMIC_INFO_VERSION_MAX
+> > -       REG_L   a3, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+> > -       bgt     a3, a4, _bad_dynamic_info
+> > -
+> >         /* Save version == 0x1 fields */
+> >         lla     a4, _dynamic_next_addr
+> >         REG_L   a3, FW_DYNAMIC_INFO_NEXT_ADDR_OFFSET(a2)
 > > --
 > > 2.25.1
 > >
