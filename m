@@ -1,10 +1,11 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun, 11 Jul 2021 20:37:42 +0800
-Subject: [PATCH v5 4/6] firmware: Only default FW_PIC to y if supported
-In-Reply-To: <20210711022824.29915-5-jrtc27@jrtc27.com>
+Date: Sun, 11 Jul 2021 21:05:16 +0800
+Subject: [PATCH v5 3/6] firmware: Explicitly pass -pie to the linker, not
+ just the driver
+In-Reply-To: <20210711022824.29915-4-jrtc27@jrtc27.com>
 References: <20210711022824.29915-1-jrtc27@jrtc27.com>
- <20210711022824.29915-5-jrtc27@jrtc27.com>
-Message-ID: <CAEUhbmXNoej5kJNXxG4=ZKvBEQwta7fq--=1i=ZtCTrbMUBHSw@mail.gmail.com>
+ <20210711022824.29915-4-jrtc27@jrtc27.com>
+Message-ID: <CAEUhbmW3SgKdTLMRcQd9=ZT4m=nBF5FU2obXJbuno3zTKzi56Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,21 +14,43 @@ Content-Transfer-Encoding: 7bit
 
 On Sun, Jul 11, 2021 at 10:29 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
-> Bare-metal GNU ld does not support PIE, so if using it this will result
-> in a failure to build. Instead, default to FW_PIC=n if not supported.
-> Note that an explicit FW_PIC=y is not overriden, to ensure the build
+> When using Clang with a bare-metal triple, -pie does not get passed to
+> the linker as it's not normally a thing that makes sense, unlike GCC
+> which will unconditionally forward it on and potentially result in a
 
-typo: overridden
+It seems GCC driver does not unconditionally forward it to the linker, see:
 
-> fails rather than silently producing a position-dependent binary.
+$ riscv64-unknown-elf-gcc -fPIE -nostdlib -x c /dev/null -o /dev/null
+2>&1 && echo y
+/opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld:
+warning: cannot find entry symbol _start; defaulting to
+0000000000010040
+y
+
+But
+
+$ riscv64-unknown-elf-gcc -fPIE -nostdlib -Wl,-pie -x c /dev/null -o
+/dev/null 2>&1 && echo y
+/opt/riscv-unknown-elf/lib/gcc/riscv64-unknown-elf/10.1.0/../../../../riscv64-unknown-elf/bin/ld:
+-pie not supported
+collect2: error: ld returned 1 exit status
+
+So regarding bare-metal triple, GCC driver and  clang driver behave
+the same way. It's just GNU bare-metal ld does not support PIE, while
+LLD supports.
+
+So we need to revise the above commit message.
+
+> linker error. However, LLD does support it, and manually forwarding it
+> on works as desired, so do so to fully support FW_PIC with Clang and
+> LLD.
 >
 > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
 > ---
->  Makefile            | 3 +++
 >  firmware/objects.mk | 2 +-
->  2 files changed, 4 insertions(+), 1 deletion(-)
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
-Tested-by: Bin Meng <bmeng.cn@gmail.com>
+Regards,
+Bin
 
