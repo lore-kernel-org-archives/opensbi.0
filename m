@@ -1,53 +1,32 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 11 Jul 2021 14:35:58 +0530
-Subject: [PATCH] lib: sbi: Fix sbi_pmu_exit() for systems not having
- MCOUNTINHIBIT csr
-In-Reply-To: <20210711090315.1644931-1-anup.patel@wdc.com>
-References: <20210711090315.1644931-1-anup.patel@wdc.com>
-Message-ID: <CAAhSdy0SQCfy_6AAcvO6=5DUTgDuc5o4esubesYwGifO1Hi+zg@mail.gmail.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Sun, 11 Jul 2021 20:15:09 +0800
+Subject: [PATCH v5 3/6] firmware: Explicitly pass -pie to the linker, not
+ just the driver
+In-Reply-To: <20210711022824.29915-4-jrtc27@jrtc27.com>
+References: <20210711022824.29915-1-jrtc27@jrtc27.com>
+ <20210711022824.29915-4-jrtc27@jrtc27.com>
+Message-ID: <CAEUhbmX5iPaHNHOrYM2SG5JjDG=9bxKABK8v2oE6LizEJpy+rw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jul 11, 2021 at 2:33 PM Anup Patel <anup.patel@wdc.com> wrote:
+On Sun, Jul 11, 2021 at 10:29 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
-> The sbi_pmu_exit() crashes on systems not having MCOUNTINHIBIT csr
-> so to fix this we check SBI_HART_HAS_MCOUNTINHIBIT feature in
-> sbi_pmu_exit() and do nothing if it is not available.
+> When using Clang with a bare-metal triple, -pie does not get passed to
+> the linker as it's not normally a thing that makes sense, unlike GCC
+> which will unconditionally forward it on and potentially result in a
+> linker error. However, LLD does support it, and manually forwarding it
+> on works as desired, so do so to fully support FW_PIC with Clang and
+> LLD.
 >
-> Fixes: 13d40f21d588 ("lib: sbi: Add PMU support")
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-
-Merging this patch immediately, because SBI HSM stop, SBI shutdown,
-and SBI reboot is broken due to sbi_pmu_exit() crashing.
-
-Applied this patch to the riscv/opensbi repo.
-
-Regards,
-Anup
-
+> Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
 > ---
->  lib/sbi/sbi_pmu.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  firmware/objects.mk | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 4092e6f..c276a46 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -583,6 +583,10 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
->  {
->         u32 hartid = current_hartid();
->
-> +       /* SBI PMU is not supported if mcountinhibit is not available */
-> +       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> +               return;
-> +
->         csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
->         csr_write(CSR_MCOUNTEREN, 7);
->         pmu_reset_event_map(hartid);
-> --
-> 2.25.1
->
+
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+Tested-by: Bin Meng <bmeng.cn@gmail.com>
 
