@@ -1,82 +1,29 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 12 Jul 2021 00:32:18 +0800
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Sun, 11 Jul 2021 17:34:54 +0100
 Subject: [PATCH] README: Update toolchain information
-Message-ID: <20210711163218.11422-1-bmeng.cn@gmail.com>
+In-Reply-To: <20210711163218.11422-1-bmeng.cn@gmail.com>
+References: <20210711163218.11422-1-bmeng.cn@gmail.com>
+Message-ID: <3B02175B-3C29-4FFD-A575-FBEE7DEE2DAA@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Recent FW_PIC=y changes actually require toolchains with PIE support
-and it is on by default. Existing doc uses a bare-metal toolchain as
-examples but it does not support PIE.
+On 11 Jul 2021, at 17:32, Bin Meng <bmeng.cn@gmail.com> wrote:
+> 
+> Recent FW_PIC=y changes actually require toolchains with PIE support
+> and it is on by default. Existing doc uses a bare-metal toolchain as
+> examples but it does not support PIE.
+> 
+> Replace references of bare-metal toolchain prefix with linux toolchain
+> prefix everywhere in documentation.
 
-Replace references of bare-metal toolchain prefix with linux toolchain
-prefix everywhere in documentation.
+LLVM toolchains should continue to prefer bare-metal triples. Please
+also include riscv64-unknown-freebsd- as an alternative to
+riscv64-linux-gnu- so there is no bias towards Linux, as is often
+unfortunately seen in the RISC-V world.
 
-Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
----
-
- README.md | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/README.md b/README.md
-index b296f00..b0246fc 100644
---- a/README.md
-+++ b/README.md
-@@ -104,6 +104,12 @@ LLVM/Clang toolchain due to LLVM's ability to support multiple backends in the
- same binary, so is often an easy way to obtain a working cross-compilation
- toolchain.
- 
-+Basically, we prefer toolchains with PIE support like *riscv64-linux-gcc* as
-+it generates Position Independent Executable firmware images that can run at
-+arbitrary address with appropriate alignment. If a bare-metal toolchain (e.g.
-+*riscv64-unknown-elf-gcc*) is used, static linked firmware images are generated
-+instead.
-+
- Please note that only a 64-bit version of the toolchain is available in
- the Bootlin toolchain repository for now.
- 
-@@ -116,7 +122,7 @@ architecture than RISC-V.
- 
- For cross-compiling, the environment variable *CROSS_COMPILE* must be defined
- to specify the name prefix of the RISC-V compiler toolchain executables, e.g.
--*riscv64-unknown-elf-* if the gcc executable used is *riscv64-unknown-elf-gcc*.
-+*riscv64-linux-* if the gcc executable used is *riscv64-linux-gcc*.
- 
- To build *libsbi.a* simply execute:
- ```
-@@ -192,16 +198,16 @@ Building 32-bit / 64-bit OpenSBI Images
- ---------------------------------------
- By default, building OpenSBI generates 32-bit or 64-bit images based on the
- supplied RISC-V cross-compile toolchain. For example if *CROSS_COMPILE* is set
--to *riscv64-unknown-elf-*, 64-bit OpenSBI images will be generated. If building
-+to *riscv64-linux-*, 64-bit OpenSBI images will be generated. If building
- 32-bit OpenSBI images, *CROSS_COMPILE* should be set to a toolchain that is
--pre-configured to generate 32-bit RISC-V codes, like *riscv32-unknown-elf-*.
-+pre-configured to generate 32-bit RISC-V codes, like *riscv32-linux-*.
- 
- However it's possible to explicitly specify the image bits we want to build with
- a given RISC-V toolchain. This can be done by setting the environment variable
- *PLATFORM_RISCV_XLEN* to the desired width, for example:
- 
- ```
--export CROSS_COMPILE=riscv64-unknown-elf-
-+export CROSS_COMPILE=riscv64-linux-
- export PLATFORM_RISCV_XLEN=32
- ```
- 
-@@ -235,7 +241,7 @@ valid triple.
- These can also be mixed; for example using a GCC cross-compiler but LLVM
- binutils would be:
- ```
--make CC=riscv64-unknown-elf-gcc LLVM=1
-+make CC=riscv64-linux-gcc LLVM=1
- ```
- 
- These variables must be passed for all the make invocations described in this
--- 
-2.25.1
+Jess
 
 
