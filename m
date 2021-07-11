@@ -1,41 +1,53 @@
 From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Sun, 11 Jul 2021 03:28:19 +0100
-Subject: [PATCH v5 1/6] fw_base: Don't mark fw_platform_init as both global
- and weak
+Date: Sun, 11 Jul 2021 03:28:22 +0100
+Subject: [PATCH v5 4/6] firmware: Only default FW_PIC to y if supported
 In-Reply-To: <20210711022824.29915-1-jrtc27@jrtc27.com>
 References: <20210711022824.29915-1-jrtc27@jrtc27.com>
-Message-ID: <20210711022824.29915-2-jrtc27@jrtc27.com>
+Message-ID: <20210711022824.29915-5-jrtc27@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-These are mutually exclusive. GNU as and LLVM both let later binding
-directives override earlier ones so this works as intended, but LLVM 12
-turned this into a warning as there's no good reason to do such a thing
-and could be a potential bug. Thus, remove the redundant and incorrect
-.globl directive for fw_platform_init.
+Bare-metal GNU ld does not support PIE, so if using it this will result
+in a failure to build. Instead, default to FW_PIC=n if not supported.
+Note that an explicit FW_PIC=y is not overriden, to ensure the build
+fails rather than silently producing a position-dependent binary.
 
 Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
-Tested-by: Bin Meng <bmeng.cn@gmail.com>
 ---
- firmware/fw_base.S | 1 -
- 1 file changed, 1 deletion(-)
+ Makefile            | 3 +++
+ firmware/objects.mk | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index a5ce946..ee2a51b 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -553,7 +553,6 @@ _start_hang:
+diff --git a/Makefile b/Makefile
+index 6b64205..ba06313 100644
+--- a/Makefile
++++ b/Makefile
+@@ -106,6 +106,9 @@ ifndef PLATFORM_RISCV_XLEN
+   endif
+ endif
  
- 	.section .entry, "ax", %progbits
- 	.align 3
--	.globl fw_platform_init
- 	.weak fw_platform_init
- fw_platform_init:
- 	add	a0, a1, zero
++# Check whether the linker supports creating PIEs
++OPENSBI_LD_PIE := $(shell $(CC) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
++
+ # Setup list of objects.mk files
+ ifdef PLATFORM
+ platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index 3bc83cd..8da7ca3 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -14,7 +14,7 @@ firmware-asflags-y +=
+ firmware-ldflags-y +=
+ 
+ ifndef FW_PIC
+-FW_PIC := y
++FW_PIC := $(OPENSBI_LD_PIE)
+ endif
+ 
+ ifeq ($(FW_PIC),y)
 -- 
 2.31.0
 
