@@ -1,85 +1,40 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 11 Jul 2021 14:22:54 +0530
-Subject: [PATCH] firmware: Define a macro for version of struct
- fw_dynamic_info
-In-Reply-To: <057a4e920bd5f452a5ed845563aabb04bfc71326.camel@126.com>
-References: <20210707082241.2587-1-bmeng.cn@gmail.com>
- <057a4e920bd5f452a5ed845563aabb04bfc71326.camel@126.com>
-Message-ID: <CAAhSdy2bFYy6o0ynoTuKZrm5M3UM2jZoduEeNC4Y7WajXsGfSA@mail.gmail.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Sun, 11 Jul 2021 14:33:15 +0530
+Subject: [PATCH] lib: sbi: Fix sbi_pmu_exit() for systems not having
+ MCOUNTINHIBIT csr
+Message-ID: <20210711090315.1644931-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 8, 2021 at 6:17 AM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2021-07-07???? 16:22 +0800?Bin Meng???
-> > Avoid using a magic number, instead use a macro for the version of
-> > struct fw_dynamic_info.
-> >
-> > Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+The sbi_pmu_exit() crashes on systems not having MCOUNTINHIBIT csr
+so to fix this we check SBI_HART_HAS_MCOUNTINHIBIT feature in
+sbi_pmu_exit() and do nothing if it is not available.
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Fixes: 13d40f21d588 ("lib: sbi: Add PMU support")
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ lib/sbi/sbi_pmu.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Applied this patch to the riscv/opensbi repo.
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 4092e6f..c276a46 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -583,6 +583,10 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
+ {
+ 	u32 hartid = current_hartid();
+ 
++	/* SBI PMU is not supported if mcountinhibit is not available */
++	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++		return;
++
+ 	csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+ 	csr_write(CSR_MCOUNTEREN, 7);
+ 	pmu_reset_event_map(hartid);
+-- 
+2.25.1
 
-Thanks,
-Anup
-
-> > ---
-> >
-> >  firmware/fw_dynamic.S    | 4 ++--
-> >  include/sbi/fw_dynamic.h | 3 ++-
-> >  2 files changed, 4 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
-> > index 0705e63..2b7ec3b 100644
-> > --- a/firmware/fw_dynamic.S
-> > +++ b/firmware/fw_dynamic.S
-> > @@ -36,7 +36,7 @@ fw_boot_hart:
-> >         bgt     a0, a1, _bad_dynamic_info
-> >
-> >         /* Read boot HART id */
-> > -       li      a1, 0x2
-> > +       li      a1, FW_DYNAMIC_INFO_VERSION_2
-> >         blt     a0, a1, 2f
-> >         REG_L   a0, FW_DYNAMIC_INFO_BOOT_HART_OFFSET(a2)
-> >         ret
-> > @@ -77,7 +77,7 @@ fw_save_info:
-> >         REG_S   a3, (a4)
-> >
-> >         /* Save version == 0x2 fields */
-> > -       li      a4, 0x2
-> > +       li      a4, FW_DYNAMIC_INFO_VERSION_2
-> >         REG_L   a3, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
-> >         blt     a3, a4, 2f
-> >         lla     a4, _dynamic_boot_hart
-> > diff --git a/include/sbi/fw_dynamic.h b/include/sbi/fw_dynamic.h
-> > index 25c0eb8..a07266e 100644
-> > --- a/include/sbi/fw_dynamic.h
-> > +++ b/include/sbi/fw_dynamic.h
-> > @@ -31,7 +31,8 @@
-> >  #define FW_DYNAMIC_INFO_MAGIC_VALUE            0x4942534f
-> >
-> >  /** Maximum supported info version */
-> > -#define FW_DYNAMIC_INFO_VERSION_MAX            0x2
-> > +#define FW_DYNAMIC_INFO_VERSION_2              0x2
-> > +#define
-> > FW_DYNAMIC_INFO_VERSION_MAX            FW_DYNAMIC_INFO_VERSION_2
-> >
-> >  /** Possible next mode values */
-> >  #define FW_DYNAMIC_INFO_NEXT_MODE_U            0x0
-> > --
-> > 2.25.1
-> >
-> >
->
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
