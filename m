@@ -1,64 +1,55 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Jul 2021 12:03:33 +0800
-Subject: [PATCH v5 4/6] firmware: Only default FW_PIC to y if supported
-In-Reply-To: <20210711022824.29915-5-jrtc27@jrtc27.com>
-References: <20210711022824.29915-1-jrtc27@jrtc27.com>
- <20210711022824.29915-5-jrtc27@jrtc27.com>
-Message-ID: <a205ebc96c1ad4b16f0c9d229d03aa9fda30c8ba.camel@126.com>
+Date: Sun, 11 Jul 2021 12:16:50 +0800
+Subject: [PATCH v5] firmware: Detect whether the toolchain supports pie and
+ automatically disable the FW_PIC option
+Message-ID: <20210711041650.217653-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-07-11???? 03:28 +0100?Jessica Clarke???
-> Bare-metal GNU ld does not support PIE, so if using it this will
-> result
-> in a failure to build. Instead, default to FW_PIC=n if not supported.
-> Note that an explicit FW_PIC=y is not overriden, to ensure the build
-> fails rather than silently producing a position-dependent binary.
-> 
-> Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
-> ---
-> ?Makefile??????????? | 3 +++
-> ?firmware/objects.mk | 2 +-
-> ?2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index 6b64205..ba06313 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -106,6 +106,9 @@ ifndef PLATFORM_RISCV_XLEN
-> ?? endif
-> ?endif
-> ?
-> +# Check whether the linker supports creating PIEs
-> +OPENSBI_LD_PIE := $(shell $(CC) -fPIE -nostdlib -Wl,-pie -x c
-> /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
-For llvm, --target and -fuse-ld need to be added here. Otherwise, this
-will detect the host instead of what you want
-> +
-> ?# Setup list of objects.mk files
-> ?ifdef PLATFORM
-> ?platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then
-> find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
-> diff --git a/firmware/objects.mk b/firmware/objects.mk
-> index 3bc83cd..8da7ca3 100644
-> --- a/firmware/objects.mk
-> +++ b/firmware/objects.mk
-> @@ -14,7 +14,7 @@ firmware-asflags-y +=
-> ?firmware-ldflags-y +=
-> ?
-> ?ifndef FW_PIC
-> -FW_PIC := y
-> +FW_PIC := $(OPENSBI_LD_PIE)
-> ?endif
-> ?
-> ?ifeq ($(FW_PIC),y)
-> -- 
-> 2.31.0
-> 
-> 
+The previous version opensbi enable the FW_PIC option by default, but
+not all toolchains can support pie. This makes some toolchain report erroes
+when compiling. This patch whill check whether the toolchain supports FW_PIC
+and disable FW_PIC.
 
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ firmware/objects.mk         | 4 ++++
+ scripts/toolchain-check-pie | 7 +++++++
+ 2 files changed, 11 insertions(+)
+ create mode 100755 scripts/toolchain-check-pie
+
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index ce91c2f..f8ee394 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -17,6 +17,10 @@ ifndef FW_PIC
+ FW_PIC := y
+ endif
+ 
++ifeq ($(FW_PIC),y)
++FW_PIC := $(shell scripts/toolchain-check-pie $(CC))
++endif
++
+ ifeq ($(FW_PIC),y)
+ firmware-genflags-y +=	-DFW_PIC
+ firmware-asflags-y  +=	-fpic
+diff --git a/scripts/toolchain-check-pie b/scripts/toolchain-check-pie
+new file mode 100755
+index 0000000..559dc42
+--- /dev/null
++++ b/scripts/toolchain-check-pie
+@@ -0,0 +1,7 @@
++#! /bin/bash
++
++if ${1} --version | head -n 1 | grep clang 2>&1 >/dev/null; then
++	printf "void _start() {}" | ${1} --target=riscv64 -fuse-ld=lld -mno-relax -nostdlib -fPIE -Wl,-pie -xc - -o /dev/null 2>/dev/null && echo y || echo n
++else
++	printf "void _start() {}" | ${1} -nostdlib -fPIE -Wl,-pie -xc - -o /dev/null 2>/dev/null && echo y || echo n
++fi
+-- 
+2.30.2
 
 
