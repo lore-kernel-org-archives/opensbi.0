@@ -1,61 +1,42 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun, 11 Jul 2021 09:56:40 +0800
-Subject: [PATCH] firmware: Detect whether the toolchain supports pie and
- automatically disable the FW_PIC option
-In-Reply-To: <20210710202710.192820-1-wxjstz@126.com>
-References: <20210710202710.192820-1-wxjstz@126.com>
-Message-ID: <CAEUhbmUiEh8JKyH6N0Cpbvm1OUyJa4d+eKZG-+rG6UojMNZRmg@mail.gmail.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Sun, 11 Jul 2021 03:28:19 +0100
+Subject: [PATCH v5 1/6] fw_base: Don't mark fw_platform_init as both global
+ and weak
+In-Reply-To: <20210711022824.29915-1-jrtc27@jrtc27.com>
+References: <20210711022824.29915-1-jrtc27@jrtc27.com>
+Message-ID: <20210711022824.29915-2-jrtc27@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jul 11, 2021 at 4:27 AM Xiang W <wxjstz@126.com> wrote:
+These are mutually exclusive. GNU as and LLVM both let later binding
+directives override earlier ones so this works as intended, but LLVM 12
+turned this into a warning as there's no good reason to do such a thing
+and could be a potential bug. Thus, remove the redundant and incorrect
+.globl directive for fw_platform_init.
 
-Please write something in the commit message to explain why are we doing this.
+Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+Tested-by: Bin Meng <bmeng.cn@gmail.com>
+---
+ firmware/fw_base.S | 1 -
+ 1 file changed, 1 deletion(-)
 
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  firmware/objects.mk         | 4 +++-
->  scripts/toolchain-check-pie | 7 +++++++
->  2 files changed, 10 insertions(+), 1 deletion(-)
->  create mode 100755 scripts/toolchain-check-pie
->
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index a5ce946..ee2a51b 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -553,7 +553,6 @@ _start_hang:
+ 
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+-	.globl fw_platform_init
+ 	.weak fw_platform_init
+ fw_platform_init:
+ 	add	a0, a1, zero
+-- 
+2.31.0
 
-Please append a patch version in the email title. This way it's easy
-to know which patch is the latest version.
-
-> diff --git a/firmware/objects.mk b/firmware/objects.mk
-> index ce91c2f..020e1a9 100644
-> --- a/firmware/objects.mk
-> +++ b/firmware/objects.mk
-> @@ -16,7 +16,9 @@ firmware-ldflags-y +=
->  ifndef FW_PIC
->  FW_PIC := y
->  endif
-> -
-> +ifeq ($(FW_PIC),y)
-> +FW_PIC := $(shell scripts/toolchain-check-pie $(CC))
-> +endif
->  ifeq ($(FW_PIC),y)
->  firmware-genflags-y += -DFW_PIC
->  firmware-asflags-y  += -fpic
-> diff --git a/scripts/toolchain-check-pie b/scripts/toolchain-check-pie
-> new file mode 100755
-> index 0000000..779c0ee
-> --- /dev/null
-> +++ b/scripts/toolchain-check-pie
-> @@ -0,0 +1,7 @@
-> +#! /bin/bash
-> +
-> +if ${1} --version | head -n 1 | grep clang 2>&1 >/dev/null; then
-> +       echo void _start\(\) \{\} | ${1} --target=riscv64 -fuse-ld=lld -mno-relax -nostdlib -fPIE -Wl,-pie -xc - -o /dev/null 2>/dev/null && echo y || echo n
-> +else
-> +       echo void _start\(\) \{\} | ${1} -nostdlib -fPIE -Wl,-pie -xc - -o /dev/null 2>/dev/null && echo y || echo n
-> +fi
-
-Regards,
-Bin
 
