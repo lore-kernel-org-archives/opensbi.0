@@ -1,65 +1,51 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 12 Jul 2021 09:27:48 +0800
-Subject: [PATCH v5] firmware: Detect whether the toolchain supports pie
- and automatically disable the FW_PIC option
-In-Reply-To: <20210711041650.217653-1-wxjstz@126.com>
-References: <20210711041650.217653-1-wxjstz@126.com>
-Message-ID: <3b9f1a8efc6d6762cb26cad5266e2bdc56a34c76.camel@126.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Mon, 12 Jul 2021 09:50:07 +0800
+Subject: [PATCH] Makefile: Pass "-Wa,
+ -mno-relax" to manually forward it to the GNU assembler when linking
+ with LLD
+Message-ID: <20210712015007.9946-1-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-07-11???? 12:16 +0800?Xiang W???
-> The previous version opensbi enable the FW_PIC option by default, but
-> not all toolchains can support pie. This makes some toolchain report
-> erroes
-> when compiling. This patch whill check whether the toolchain supports
-> FW_PIC
-> and disable FW_PIC.
-> 
-> Signed-off-by: Xiang W <wxjstz@126.com>
-This patch can be discarded, Jessica Clarke has implemented this
-feature
-> ---
-> ?firmware/objects.mk???????? | 4 ++++
-> ?scripts/toolchain-check-pie | 7 +++++++
-> ?2 files changed, 11 insertions(+)
-> ?create mode 100755 scripts/toolchain-check-pie
-> 
-> diff --git a/firmware/objects.mk b/firmware/objects.mk
-> index ce91c2f..f8ee394 100644
-> --- a/firmware/objects.mk
-> +++ b/firmware/objects.mk
-> @@ -17,6 +17,10 @@ ifndef FW_PIC
-> ?FW_PIC := y
-> ?endif
-> ?
-> +ifeq ($(FW_PIC),y)
-> +FW_PIC := $(shell scripts/toolchain-check-pie $(CC))
-> +endif
-> +
-> ?ifeq ($(FW_PIC),y)
-> ?firmware-genflags-y +=?-DFW_PIC
-> ?firmware-asflags-y? +=?-fpic
-> diff --git a/scripts/toolchain-check-pie b/scripts/toolchain-check-
-> pie
-> new file mode 100755
-> index 0000000..559dc42
-> --- /dev/null
-> +++ b/scripts/toolchain-check-pie
-> @@ -0,0 +1,7 @@
-> +#! /bin/bash
-> +
-> +if ${1} --version | head -n 1 | grep clang 2>&1 >/dev/null; then
-> +???????printf "void _start() {}" | ${1} --target=riscv64 -fuse-
-> ld=lld -mno-relax -nostdlib -fPIE -Wl,-pie -xc - -o /dev/null
-> 2>/dev/null && echo y || echo n
-> +else
-> +???????printf "void _start() {}" | ${1} -nostdlib -fPIE -Wl,-pie -xc
-> - -o /dev/null 2>/dev/null && echo y || echo n
-> +fi
+When generating code with -mno-relax, GCC puts .option norelax in
+the generated assembly, and so doesn?t bother passing on -mno-relax
+to the assembler. This has the unfortunate effect that, when using
+GCC to assemble hand-written assembly, -mno-relax does nothing,
+and we have to pass -Wa,-mno-relax to manually forward it to the
+assembler.
 
+This is an old GCC bug that was fixed [1] recently. For the time
+being, let's pass "-Wa,-mno-relax" to ASFLAGS for the GCC + LLD
+combination to work, e.g.:
+
+  $ make CC=riscv64-unknown-elf-gcc LLVM=1 PLATFORM=generic
+
+[1] https://github.com/gcc-mirror/gcc/commit/3b0a7d624e64eeb81e4d5e8c62c46d86ef521857
+
+Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+---
+
+ Makefile | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 129b8ed..d9bb925 100644
+--- a/Makefile
++++ b/Makefile
+@@ -272,6 +272,9 @@ ASFLAGS		+=	-mno-save-restore -mstrict-align
+ ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+ ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ ASFLAGS		+=	$(RELAX_FLAG)
++ifeq ($(CC_IS_CLANG)$(LD_IS_LLD),ny)
++ASFLAGS		+=	-Wa,-mno-relax
++endif
+ ASFLAGS		+=	$(GENFLAGS)
+ ASFLAGS		+=	$(platform-asflags-y)
+ ASFLAGS		+=	$(firmware-asflags-y)
+-- 
+2.25.1
 
 
