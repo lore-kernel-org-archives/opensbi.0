@@ -1,81 +1,52 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 12 Jul 2021 12:26:24 +0800
-Subject: [PATCH v5 6/6] Drop dependency on libgcc by importing part of
- FreeBSD's libquad
-In-Reply-To: <CAAhSdy03QCnSvtOucipCAN7KCKxfP-TVYE-q-7ZjZH_yk2YjBg@mail.gmail.com>
-References: <20210711022824.29915-1-jrtc27@jrtc27.com>
- <20210711022824.29915-7-jrtc27@jrtc27.com>
- <CAAhSdy0H1=P=SQKwbE+=mJq6N4gz3jOBeoZoLhZ989Xo2gMTKA@mail.gmail.com>
- <CAEUhbmW2D95JkeALZm2itrVTTC9GHfcOA-LNERVgQjy5yzVjLQ@mail.gmail.com>
- <CAAhSdy2KGnpETXwS9SBt_X42QO6Em81toymhNEduNxfnLGwdbA@mail.gmail.com>
- <CAEUhbmUYTDPCKFyU=zr7PrEe8LX4EsmMJG4_GpsuEchw1-z5Mg@mail.gmail.com>
- <CAAhSdy03QCnSvtOucipCAN7KCKxfP-TVYE-q-7ZjZH_yk2YjBg@mail.gmail.com>
-Message-ID: <CAEUhbmX5aFW7C2HWndPzRY+y9+WsJoViyf4M8oAGR4riyrctdA@mail.gmail.com>
+From: Alex Richardson <Alexander.Richardson@cl.cam.ac.uk>
+Date: Mon, 12 Jul 2021 10:24:05 +0100
+Subject: [PATCH 1/1] firware: use __SIZEOF_LONG__ for field offsets in
+ fw_dynamic.h
+Message-ID: <20210712092405.6772-1-Alexander.Richardson@cl.cam.ac.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 12, 2021 at 12:22 PM Anup Patel <anup@brainfault.org> wrote:
->
-> On Mon, Jul 12, 2021 at 9:36 AM Bin Meng <bmeng.cn@gmail.com> wrote:
-> >
-> > Hi Anup,
-> >
-> > On Mon, Jul 12, 2021 at 12:02 PM Anup Patel <anup@brainfault.org> wrote:
-> > >
-> > > On Mon, Jul 12, 2021 at 9:25 AM Bin Meng <bmeng.cn@gmail.com> wrote:
-> > > >
-> > > > On Sun, Jul 11, 2021 at 11:46 PM Anup Patel <anup@brainfault.org> wrote:
-> > > > >
-> > > > > On Sun, Jul 11, 2021 at 7:58 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> > > > > >
-> > > > > > We only need libgcc for 64-bit division on RV32. Whilst GCC toolchains
-> > > > > > bundle libgcc, Clang toolchains tend not to ship libclang_rt.builtins
-> > > > > > given every compiler is a cross-compiler for every target and so you
-> > > > > > would need a silly number of builds of it, with only the native library
-> > > > > > available; only vendor-provided Clang toolchains specifically for bare
-> > > > > > metal cross-compiling are likely to provide it.
-> > > > > >
-> > > > > > Thus, import part of FreeBSD's implementation of the division support
-> > > > > > functions needed and stop linking against libgcc.
-> > > > > >
-> > > > > > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
-> > > > >
-> > > > > I tried this patch with GCC linux toolchain and U-Boot SPL and it worked
-> > > > > fine for me. Other please try LLVM and bare-metal toolchain at your end
-> > > > > and if you see any issue then please send a fix patch.
-> > > > >
-> > > > > Reviewed-by: Anup Patel <anup.patel@wdc.com>
-> > > > > Tested-by: Anup Patel <anup.patel@wdc.com>
-> > > > >
-> > > > > Applied this patch to the riscv/opensbi repo.
-> > > > >
-> > > > > @Bin Meng Can you also try RV32 U-Boot SPL ? I did not try that.
-> > > >
-> > > > It seems RV32 U-Boot SPL is broken, that it does not boot occasionally.
-> > > >
-> > > > But this has nothing to do with the LLVM changes in this series. It
-> > > > was due to upstream libfdt changes. I have sent a patch on the U-Boot
-> > > > side. Booting S-mode U-Boot directly is not affected.
-> > >
-> > > Yes, it's not related to this series. In fact, it is not related to
-> > > FW_PIC at all.
-> >
-> > Correct.
-> >
-> > > I did little digging. It seems OpenSBI gets corrupted FDT from U-Boot SPL
-> > > RV32. The fw_platform_init() get's stuck very early because it is not able to
-> > > find nodeoffset of "/" path in FDT.
-> >
-> > Yeah, that's because fdt_ro_probe_() returns -FDT_ERR_ALIGNMENT hence
-> > fw_platform_init() gets stuck.
->
-> Ahh, it seems your patch is not part of U-Boot-2021.07
+The fields are of type unsigned long and are not pointers. While this
+happens to be the same for RV32/RV64, it is not correct when compiling
+for a CHERI-RISC-V system where pointers are twice the size of long.
 
-Unfortunately we missed the 2021.07 train :(
+Signed-off-by: Alex Richardson <Alexander.Richardson@cl.cam.ac.uk>
+---
+ include/sbi/fw_dynamic.h | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Regards,
-Bin
+diff --git a/include/sbi/fw_dynamic.h b/include/sbi/fw_dynamic.h
+index a07266e..dea207b 100644
+--- a/include/sbi/fw_dynamic.h
++++ b/include/sbi/fw_dynamic.h
+@@ -15,17 +15,17 @@
+ /* clang-format off */
+ 
+ /** Offset of magic member in fw_dynamic_info */
+-#define FW_DYNAMIC_INFO_MAGIC_OFFSET		(0 * __SIZEOF_POINTER__)
++#define FW_DYNAMIC_INFO_MAGIC_OFFSET		(0 * __SIZEOF_LONG__)
+ /** Offset of version member in fw_dynamic_info */
+-#define FW_DYNAMIC_INFO_VERSION_OFFSET		(1 * __SIZEOF_POINTER__)
++#define FW_DYNAMIC_INFO_VERSION_OFFSET		(1 * __SIZEOF_LONG__)
+ /** Offset of next_addr member in fw_dynamic_info (version >= 1) */
+-#define FW_DYNAMIC_INFO_NEXT_ADDR_OFFSET	(2 * __SIZEOF_POINTER__)
++#define FW_DYNAMIC_INFO_NEXT_ADDR_OFFSET	(2 * __SIZEOF_LONG__)
+ /** Offset of next_mode member in fw_dynamic_info  (version >= 1) */
+-#define FW_DYNAMIC_INFO_NEXT_MODE_OFFSET	(3 * __SIZEOF_POINTER__)
++#define FW_DYNAMIC_INFO_NEXT_MODE_OFFSET	(3 * __SIZEOF_LONG__)
+ /** Offset of options member in fw_dynamic_info  (version >= 1) */
+-#define FW_DYNAMIC_INFO_OPTIONS_OFFSET		(4 * __SIZEOF_POINTER__)
++#define FW_DYNAMIC_INFO_OPTIONS_OFFSET		(4 * __SIZEOF_LONG__)
+ /** Offset of boot_hart member in fw_dynamic_info  (version >= 2) */
+-#define FW_DYNAMIC_INFO_BOOT_HART_OFFSET	(5 * __SIZEOF_POINTER__)
++#define FW_DYNAMIC_INFO_BOOT_HART_OFFSET	(5 * __SIZEOF_LONG__)
+ 
+ /** Expected value of info magic ('OSBI' ascii string in hex) */
+ #define FW_DYNAMIC_INFO_MAGIC_VALUE		0x4942534f
+-- 
+2.32.0
+
 
