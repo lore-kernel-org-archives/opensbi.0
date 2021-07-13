@@ -1,163 +1,204 @@
 From: Green Wan <green.wan@sifive.com>
-Date: Tue, 13 Jul 2021 11:23:44 +0800
-Subject: [PATCH v4 4/5] lib: utils/gpio: Add minimal SiFive GPIO driver
+Date: Tue, 13 Jul 2021 11:23:45 +0800
+Subject: [PATCH v4 5/5] lib: utils/reset: Add generic GPIO reset driver
 In-Reply-To: <20210713032345.2571-1-green.wan@sifive.com>
 References: <20210713032345.2571-1-green.wan@sifive.com>
-Message-ID: <20210713032345.2571-5-green.wan@sifive.com>
+Message-ID: <20210713032345.2571-6-green.wan@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add a minimal SiFive GPIO driver so that we can do GPIO based
-system power-off and reset.
+We add generic GPIO reset driver inspired from gpio-restart
+and gpio-poweroff drivers of Linux kernel.
 
 Signed-off-by: Green Wan <green.wan@sifive.com>
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- lib/utils/gpio/fdt_gpio.c        |   3 +
- lib/utils/gpio/fdt_gpio_sifive.c | 105 +++++++++++++++++++++++++++++++
- lib/utils/gpio/objects.mk        |   1 +
- 3 files changed, 109 insertions(+)
- create mode 100644 lib/utils/gpio/fdt_gpio_sifive.c
+ lib/utils/reset/fdt_reset.c      |   2 +
+ lib/utils/reset/fdt_reset_gpio.c | 141 +++++++++++++++++++++++++++++++
+ lib/utils/reset/objects.mk       |   1 +
+ 3 files changed, 144 insertions(+)
+ create mode 100644 lib/utils/reset/fdt_reset_gpio.c
 
-diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
-index bff391f..297b248 100644
---- a/lib/utils/gpio/fdt_gpio.c
-+++ b/lib/utils/gpio/fdt_gpio.c
-@@ -12,7 +12,10 @@
+diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+index 48a49fb..aa5f59f 100644
+--- a/lib/utils/reset/fdt_reset.c
++++ b/lib/utils/reset/fdt_reset.c
+@@ -12,11 +12,13 @@
  #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/gpio/fdt_gpio.h>
+ #include <sbi_utils/reset/fdt_reset.h>
  
-+extern struct fdt_gpio fdt_gpio_sifive;
-+
- static struct fdt_gpio *gpio_drivers[] = {
-+	&fdt_gpio_sifive
- };
++extern struct fdt_reset fdt_reset_gpio;
+ extern struct fdt_reset fdt_reset_sifive_test;
+ extern struct fdt_reset fdt_reset_htif;
+ extern struct fdt_reset fdt_reset_thead;
  
- static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
-diff --git a/lib/utils/gpio/fdt_gpio_sifive.c b/lib/utils/gpio/fdt_gpio_sifive.c
+ static struct fdt_reset *reset_drivers[] = {
++	&fdt_reset_gpio,
+ 	&fdt_reset_sifive_test,
+ 	&fdt_reset_htif,
+ 	&fdt_reset_thead,
+diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
 new file mode 100644
-index 0000000..abc9d72
+index 0000000..7e0eb74
 --- /dev/null
-+++ b/lib/utils/gpio/fdt_gpio_sifive.c
-@@ -0,0 +1,105 @@
++++ b/lib/utils/reset/fdt_reset_gpio.c
+@@ -0,0 +1,141 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2021 SiFive
++ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
 + *
 + * Authors:
 + *   Green Wan <green.wan@sifive.com>
++ *   Anup Patel <anup.patel@wdc.com>
 + */
 +
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_error.h>
++#include <libfdt.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_ecall_interface.h>
++#include <sbi/sbi_hart.h>
++#include <sbi/sbi_system.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
 +#include <sbi_utils/gpio/fdt_gpio.h>
++#include <sbi_utils/reset/fdt_reset.h>
 +
-+#define SIFIVE_GPIO_CHIP_MAX	2
-+
-+#define SIFIVE_GPIO_PINS_MIN	1
-+#define SIFIVE_GPIO_PINS_MAX	32
-+#define SIFIVE_GPIO_PINS_DEF	16
-+
-+#define SIFIVE_GPIO_OUTEN	0x8
-+#define SIFIVE_GPIO_OUTVAL	0xc
-+#define SIFIVE_GPIO_BIT(b)	(1U << (b))
-+
-+struct sifive_gpio_chip {
-+	unsigned long addr;
-+	struct gpio_chip chip;
++struct gpio_reset {
++	struct gpio_pin pin;
++	u32 active_delay;
++	u32 inactive_delay;
 +};
 +
-+static unsigned int sifive_gpio_chip_count;
-+static struct sifive_gpio_chip sifive_gpio_chip_array[SIFIVE_GPIO_CHIP_MAX];
++static struct gpio_reset poweroff = {
++	.active_delay = 100,
++	.inactive_delay = 100
++};
 +
-+static int sifive_gpio_direction_output(struct gpio_pin *gp, int value)
++static struct gpio_reset restart = {
++	.active_delay = 100,
++	.inactive_delay = 100
++};
++
++/* Custom mdelay function until we have a generic mdelay() API */
++static void gpio_mdelay(unsigned long msecs)
 +{
-+	unsigned int v;
-+	struct sifive_gpio_chip *chip =
-+		container_of(gp->chip, struct sifive_gpio_chip, chip);
++	volatile int i;
++	while (msecs--)
++		for (i = 0; i < 100000; i++) ;
++}
 +
-+	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTEN));
-+	v |= SIFIVE_GPIO_BIT(gp->offset);
-+	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTEN));
-+
-+	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
-+	if (!value)
-+		v &= ~SIFIVE_GPIO_BIT(gp->offset);
-+	else
-+		v |= SIFIVE_GPIO_BIT(gp->offset);
-+	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
++static int gpio_system_reset_check(u32 type, u32 reason)
++{
++	switch (type) {
++	case SBI_SRST_RESET_TYPE_SHUTDOWN:
++	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
++	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
++		return 1;
++	}
 +
 +	return 0;
 +}
 +
-+static void sifive_gpio_set(struct gpio_pin *gp, int value)
++static void gpio_system_reset(u32 type, u32 reason)
 +{
-+	unsigned int v;
-+	struct sifive_gpio_chip *chip =
-+		container_of(gp->chip, struct sifive_gpio_chip, chip);
++	struct gpio_reset *reset = NULL;
 +
-+	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
-+	if (!value)
-+		v &= ~SIFIVE_GPIO_BIT(gp->offset);
-+	else
-+		v |= SIFIVE_GPIO_BIT(gp->offset);
-+	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
++	switch (type) {
++	case SBI_SRST_RESET_TYPE_SHUTDOWN:
++		reset = &poweroff;
++		break;
++	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
++	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
++		reset = &restart;
++		break;
++	}
++
++	if (reset) {
++		if (!reset->pin.chip) {
++			sbi_printf("%s: gpio pin not available\n", __func__);
++			goto skip_reset;
++		}
++
++		/* drive it active, also inactive->active edge */
++		gpio_direction_output(&reset->pin, 1);
++		gpio_mdelay(reset->active_delay);
++
++		/* drive inactive, also active->inactive edge */
++		gpio_set(&reset->pin, 0);
++		gpio_mdelay(reset->inactive_delay);
++
++		/* drive it active, also inactive->active edge */
++		gpio_set(&reset->pin, 1);
++
++skip_reset:
++		/* hang !!! */
++		sbi_hart_hang();
++	}
 +}
 +
-+extern struct fdt_gpio fdt_gpio_sifive;
++static struct sbi_system_reset_device gpio_reset = {
++	.name = "gpio-reset",
++	.system_reset_check = gpio_system_reset_check,
++	.system_reset = gpio_system_reset
++};
 +
-+static int sifive_gpio_init(void *fdt, int nodeoff, u32 phandle,
-+			    const struct fdt_match *match)
++static int gpio_reset_init(void *fdt, int nodeoff,
++			   const struct fdt_match *match)
 +{
-+	int rc;
-+	struct sifive_gpio_chip *chip;
++	int rc, len;
++	const fdt32_t *val;
++	bool is_restart = (ulong)match->data;
++	const char *dir_prop = (is_restart) ? "open-source" : "input";
++	struct gpio_reset *reset = (is_restart) ? &restart : &poweroff;
 +
-+	if (SIFIVE_GPIO_CHIP_MAX <= sifive_gpio_chip_count)
-+		return SBI_ENOSPC;
-+	chip = &sifive_gpio_chip_array[sifive_gpio_chip_count];
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, &chip->addr, NULL);
++	rc = fdt_gpio_pin_get(fdt, nodeoff, 0, &reset->pin);
 +	if (rc)
 +		return rc;
 +
-+	chip->chip.driver = &fdt_gpio_sifive;
-+	chip->chip.id = phandle;
-+	chip->chip.ngpio = SIFIVE_GPIO_PINS_DEF;
-+	chip->chip.direction_output = sifive_gpio_direction_output;
-+	chip->chip.set = sifive_gpio_set;
-+	rc = gpio_chip_add(&chip->chip);
-+	if (rc)
-+		return rc;
++	if (fdt_getprop(fdt, nodeoff, dir_prop, &len)) {
++		rc = gpio_direction_input(&reset->pin);
++		if (rc)
++			return rc;
++	}
 +
-+	sifive_gpio_chip_count++;
++	val = fdt_getprop(fdt, nodeoff, "active-delay-ms", &len);
++	if (len > 0)
++		reset->active_delay = fdt32_to_cpu(*val);
++
++	val = fdt_getprop(fdt, nodeoff, "inactive-delay-ms", &len);
++	if (len > 0)
++		reset->inactive_delay = fdt32_to_cpu(*val);
++
++	sbi_system_reset_set_device(&gpio_reset);
++
 +	return 0;
 +}
 +
-+static const struct fdt_match sifive_gpio_match[] = {
-+	{ .compatible = "sifive,gpio0" },
++static const struct fdt_match gpio_reset_match[] = {
++	{ .compatible = "gpio-poweroff", .data = (void *)FALSE },
++	{ .compatible = "gpio-restart", .data = (void *)TRUE },
 +	{ },
 +};
 +
-+struct fdt_gpio fdt_gpio_sifive = {
-+	.match_table = sifive_gpio_match,
-+	.xlate = fdt_gpio_simple_xlate,
-+	.init = sifive_gpio_init,
++struct fdt_reset fdt_reset_gpio = {
++	.match_table = gpio_reset_match,
++	.init = gpio_reset_init,
 +};
-diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-index dade45e..8eb7736 100644
---- a/lib/utils/gpio/objects.mk
-+++ b/lib/utils/gpio/objects.mk
-@@ -8,4 +8,5 @@
+diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+index 672aad9..4215396 100644
+--- a/lib/utils/reset/objects.mk
++++ b/lib/utils/reset/objects.mk
+@@ -8,6 +8,7 @@
  #
  
- libsbiutils-objs-y += gpio/fdt_gpio.o
-+libsbiutils-objs-y += gpio/fdt_gpio_sifive.o
- libsbiutils-objs-y += gpio/gpio.o
+ libsbiutils-objs-y += reset/fdt_reset.o
++libsbiutils-objs-y += reset/fdt_reset_gpio.o
+ libsbiutils-objs-y += reset/fdt_reset_htif.o
+ libsbiutils-objs-y += reset/fdt_reset_thead.o
+ libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
 -- 
 2.17.1
 
