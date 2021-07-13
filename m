@@ -1,60 +1,115 @@
 From: Green Wan <green.wan@sifive.com>
-Date: Tue, 13 Jul 2021 11:23:40 +0800
-Subject: [PATCH v4 0/5] GPIO reset support
-Message-ID: <20210713032345.2571-1-green.wan@sifive.com>
+Date: Tue, 13 Jul 2021 11:23:41 +0800
+Subject: [PATCH v4 1/5] lib: utils/fdt: Add fdt_parse_phandle_with_args() API
+In-Reply-To: <20210713032345.2571-1-green.wan@sifive.com>
+References: <20210713032345.2571-1-green.wan@sifive.com>
+Message-ID: <20210713032345.2571-2-green.wan@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series adds generic GPIO reset (poweroff/restart) support which is
-required by SiFive platforms.
+From: Anup Patel <anup.patel@wdc.com>
 
-These patches is on top of gpio_reset_v3 branch at:
-https://github.com/avpatel/opensbi.git
+The libfdt project does not have a generic API to parse phandle
+with args from a DT node so we add fdt_parse_phandle_with_args()
+for this purpose. This new API will be useful to FDT based drivers.
 
-Changes since v4:
- - Added set() implementation
- - Adjust mdelay loop count to '100000'
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Atish Patra <atish.patra@wdc.com>
+---
+ include/sbi_utils/fdt/fdt_helper.h | 11 +++++++
+ lib/utils/fdt/fdt_helper.c         | 47 ++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
 
-Changes since v3:
- - Simplified GPIO reset driver in PATCH5
- - Dropped PATCH6
-
-Changes since v2:
- - Re-designed the GPIO framework to probe GPIO drivers on demand
-   and avoid touching generic OpenSBI library.
-
-Anup Patel (3):
-  lib: utils/fdt: Add fdt_parse_phandle_with_args() API
-  lib: utils/gpio: Add generic GPIO configuration library
-  lib: utils/gpio: Add simple FDT based GPIO framework
-
-Green Wan (2):
-  lib: utils/gpio: Add minimal SiFive GPIO driver
-  lib: utils/reset: Add generic GPIO reset driver
-
- include/sbi_utils/fdt/fdt_helper.h |  11 +++
- include/sbi_utils/gpio/fdt_gpio.h  |  34 +++++++
- include/sbi_utils/gpio/gpio.h      |  99 ++++++++++++++++++++
- lib/utils/fdt/fdt_helper.c         |  47 ++++++++++
- lib/utils/gpio/fdt_gpio.c          | 135 +++++++++++++++++++++++++++
- lib/utils/gpio/fdt_gpio_sifive.c   | 105 +++++++++++++++++++++
- lib/utils/gpio/gpio.c              | 116 ++++++++++++++++++++++++
- lib/utils/gpio/objects.mk          |  12 +++
- lib/utils/reset/fdt_reset.c        |   2 +
- lib/utils/reset/fdt_reset_gpio.c   | 141 +++++++++++++++++++++++++++++
- lib/utils/reset/objects.mk         |   1 +
- 11 files changed, 703 insertions(+)
- create mode 100644 include/sbi_utils/gpio/fdt_gpio.h
- create mode 100644 include/sbi_utils/gpio/gpio.h
- create mode 100644 lib/utils/gpio/fdt_gpio.c
- create mode 100644 lib/utils/gpio/fdt_gpio_sifive.c
- create mode 100644 lib/utils/gpio/gpio.c
- create mode 100644 lib/utils/gpio/objects.mk
- create mode 100644 lib/utils/reset/fdt_reset_gpio.c
-
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 871f9b9..55b9382 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -17,6 +17,13 @@ struct fdt_match {
+ 	void *data;
+ };
+ 
++#define FDT_MAX_PHANDLE_ARGS 16
++struct fdt_phandle_args {
++	int node_offset;
++	int args_count;
++	u32 args[FDT_MAX_PHANDLE_ARGS];
++};
++
+ struct platform_uart_data {
+ 	unsigned long addr;
+ 	unsigned long freq;
+@@ -32,6 +39,10 @@ int fdt_find_match(void *fdt, int startoff,
+ 		   const struct fdt_match *match_table,
+ 		   const struct fdt_match **out_match);
+ 
++int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
++				const char *prop, const char *cells_prop,
++				int index, struct fdt_phandle_args *out_args);
++
+ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
+ 			   unsigned long *size);
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index de77196..a970c0f 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -72,6 +72,53 @@ int fdt_find_match(void *fdt, int startoff,
+ 	return SBI_ENODEV;
+ }
+ 
++int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
++				const char *prop, const char *cells_prop,
++				int index, struct fdt_phandle_args *out_args)
++{
++	u32 i, pcells;
++	int len, pnodeoff;
++	const fdt32_t *list, *list_end, *val;
++
++	if (!fdt || (nodeoff < 0) || !prop || !cells_prop || !out_args)
++		return SBI_EINVAL;
++
++	list = fdt_getprop(fdt, nodeoff, prop, &len);
++	if (!list)
++		return SBI_ENOENT;
++	list_end = list + (len / sizeof(*list));
++
++	while (list < list_end) {
++		pnodeoff = fdt_node_offset_by_phandle(fdt,
++						fdt32_to_cpu(*list));
++		if (pnodeoff < 0)
++			return pnodeoff;
++		list++;
++
++		val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
++		if (!val)
++			return SBI_ENOENT;
++		pcells = fdt32_to_cpu(*val);
++		if (FDT_MAX_PHANDLE_ARGS < pcells)
++			return SBI_EINVAL;
++		if (list + pcells > list_end)
++			return SBI_ENOENT;
++
++		if (index > 0) {
++			list += pcells;
++			index--;
++		} else {
++			out_args->node_offset = pnodeoff;
++			out_args->args_count = pcells;
++			for (i = 0; i < pcells; i++)
++				out_args->args[i] = fdt32_to_cpu(list[i]);
++			return 0;
++		}
++	}
++
++	return SBI_ENOENT;
++}
++
+ static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
+ 				 unsigned long *addr)
+ {
 -- 
 2.17.1
 
