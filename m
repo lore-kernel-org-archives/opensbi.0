@@ -1,163 +1,60 @@
 From: Green Wan <green.wan@sifive.com>
-Date: Tue, 13 Jul 2021 10:26:48 +0800
-Subject: [PATCH v4 4/5] lib: utils/gpio: Add minimal SiFive GPIO driver
-In-Reply-To: <20210713022649.25227-1-green.wan@sifive.com>
-References: <20210713022649.25227-1-green.wan@sifive.com>
-Message-ID: <20210713022649.25227-5-green.wan@sifive.com>
+Date: Tue, 13 Jul 2021 11:23:40 +0800
+Subject: [PATCH v4 0/5] GPIO reset support
+Message-ID: <20210713032345.2571-1-green.wan@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add a minimal SiFive GPIO driver so that we can do GPIO based
-system power-off and reset.
+This series adds generic GPIO reset (poweroff/restart) support which is
+required by SiFive platforms.
 
-Signed-off-by: Green Wan <green.wan@sifive.com>
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- lib/utils/gpio/fdt_gpio.c        |   3 +
- lib/utils/gpio/fdt_gpio_sifive.c | 105 +++++++++++++++++++++++++++++++
- lib/utils/gpio/objects.mk        |   1 +
- 3 files changed, 109 insertions(+)
+These patches is on top of gpio_reset_v3 branch at:
+https://github.com/avpatel/opensbi.git
+
+Changes since v4:
+ - Added set() implementation
+ - Adjust mdelay loop count to '100000'
+
+Changes since v3:
+ - Simplified GPIO reset driver in PATCH5
+ - Dropped PATCH6
+
+Changes since v2:
+ - Re-designed the GPIO framework to probe GPIO drivers on demand
+   and avoid touching generic OpenSBI library.
+
+Anup Patel (3):
+  lib: utils/fdt: Add fdt_parse_phandle_with_args() API
+  lib: utils/gpio: Add generic GPIO configuration library
+  lib: utils/gpio: Add simple FDT based GPIO framework
+
+Green Wan (2):
+  lib: utils/gpio: Add minimal SiFive GPIO driver
+  lib: utils/reset: Add generic GPIO reset driver
+
+ include/sbi_utils/fdt/fdt_helper.h |  11 +++
+ include/sbi_utils/gpio/fdt_gpio.h  |  34 +++++++
+ include/sbi_utils/gpio/gpio.h      |  99 ++++++++++++++++++++
+ lib/utils/fdt/fdt_helper.c         |  47 ++++++++++
+ lib/utils/gpio/fdt_gpio.c          | 135 +++++++++++++++++++++++++++
+ lib/utils/gpio/fdt_gpio_sifive.c   | 105 +++++++++++++++++++++
+ lib/utils/gpio/gpio.c              | 116 ++++++++++++++++++++++++
+ lib/utils/gpio/objects.mk          |  12 +++
+ lib/utils/reset/fdt_reset.c        |   2 +
+ lib/utils/reset/fdt_reset_gpio.c   | 141 +++++++++++++++++++++++++++++
+ lib/utils/reset/objects.mk         |   1 +
+ 11 files changed, 703 insertions(+)
+ create mode 100644 include/sbi_utils/gpio/fdt_gpio.h
+ create mode 100644 include/sbi_utils/gpio/gpio.h
+ create mode 100644 lib/utils/gpio/fdt_gpio.c
  create mode 100644 lib/utils/gpio/fdt_gpio_sifive.c
+ create mode 100644 lib/utils/gpio/gpio.c
+ create mode 100644 lib/utils/gpio/objects.mk
+ create mode 100644 lib/utils/reset/fdt_reset_gpio.c
 
-diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
-index bff391f..297b248 100644
---- a/lib/utils/gpio/fdt_gpio.c
-+++ b/lib/utils/gpio/fdt_gpio.c
-@@ -12,7 +12,10 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/gpio/fdt_gpio.h>
- 
-+extern struct fdt_gpio fdt_gpio_sifive;
-+
- static struct fdt_gpio *gpio_drivers[] = {
-+	&fdt_gpio_sifive
- };
- 
- static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
-diff --git a/lib/utils/gpio/fdt_gpio_sifive.c b/lib/utils/gpio/fdt_gpio_sifive.c
-new file mode 100644
-index 0000000..abc9d72
---- /dev/null
-+++ b/lib/utils/gpio/fdt_gpio_sifive.c
-@@ -0,0 +1,105 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 SiFive
-+ *
-+ * Authors:
-+ *   Green Wan <green.wan@sifive.com>
-+ */
-+
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/gpio/fdt_gpio.h>
-+
-+#define SIFIVE_GPIO_CHIP_MAX	2
-+
-+#define SIFIVE_GPIO_PINS_MIN	1
-+#define SIFIVE_GPIO_PINS_MAX	32
-+#define SIFIVE_GPIO_PINS_DEF	16
-+
-+#define SIFIVE_GPIO_OUTEN	0x8
-+#define SIFIVE_GPIO_OUTVAL	0xc
-+#define SIFIVE_GPIO_BIT(b)	(1U << (b))
-+
-+struct sifive_gpio_chip {
-+	unsigned long addr;
-+	struct gpio_chip chip;
-+};
-+
-+static unsigned int sifive_gpio_chip_count;
-+static struct sifive_gpio_chip sifive_gpio_chip_array[SIFIVE_GPIO_CHIP_MAX];
-+
-+static int sifive_gpio_direction_output(struct gpio_pin *gp, int value)
-+{
-+	unsigned int v;
-+	struct sifive_gpio_chip *chip =
-+		container_of(gp->chip, struct sifive_gpio_chip, chip);
-+
-+	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTEN));
-+	v |= SIFIVE_GPIO_BIT(gp->offset);
-+	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTEN));
-+
-+	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
-+	if (!value)
-+		v &= ~SIFIVE_GPIO_BIT(gp->offset);
-+	else
-+		v |= SIFIVE_GPIO_BIT(gp->offset);
-+	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
-+
-+	return 0;
-+}
-+
-+static void sifive_gpio_set(struct gpio_pin *gp, int value)
-+{
-+	unsigned int v;
-+	struct sifive_gpio_chip *chip =
-+		container_of(gp->chip, struct sifive_gpio_chip, chip);
-+
-+	v = readl((volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
-+	if (!value)
-+		v &= ~SIFIVE_GPIO_BIT(gp->offset);
-+	else
-+		v |= SIFIVE_GPIO_BIT(gp->offset);
-+	writel(v, (volatile void *)(chip->addr + SIFIVE_GPIO_OUTVAL));
-+}
-+
-+extern struct fdt_gpio fdt_gpio_sifive;
-+
-+static int sifive_gpio_init(void *fdt, int nodeoff, u32 phandle,
-+			    const struct fdt_match *match)
-+{
-+	int rc;
-+	struct sifive_gpio_chip *chip;
-+
-+	if (SIFIVE_GPIO_CHIP_MAX <= sifive_gpio_chip_count)
-+		return SBI_ENOSPC;
-+	chip = &sifive_gpio_chip_array[sifive_gpio_chip_count];
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, &chip->addr, NULL);
-+	if (rc)
-+		return rc;
-+
-+	chip->chip.driver = &fdt_gpio_sifive;
-+	chip->chip.id = phandle;
-+	chip->chip.ngpio = SIFIVE_GPIO_PINS_DEF;
-+	chip->chip.direction_output = sifive_gpio_direction_output;
-+	chip->chip.set = sifive_gpio_set;
-+	rc = gpio_chip_add(&chip->chip);
-+	if (rc)
-+		return rc;
-+
-+	sifive_gpio_chip_count++;
-+	return 0;
-+}
-+
-+static const struct fdt_match sifive_gpio_match[] = {
-+	{ .compatible = "sifive,gpio0" },
-+	{ },
-+};
-+
-+struct fdt_gpio fdt_gpio_sifive = {
-+	.match_table = sifive_gpio_match,
-+	.xlate = fdt_gpio_simple_xlate,
-+	.init = sifive_gpio_init,
-+};
-diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-index dade45e..8eb7736 100644
---- a/lib/utils/gpio/objects.mk
-+++ b/lib/utils/gpio/objects.mk
-@@ -8,4 +8,5 @@
- #
- 
- libsbiutils-objs-y += gpio/fdt_gpio.o
-+libsbiutils-objs-y += gpio/fdt_gpio_sifive.o
- libsbiutils-objs-y += gpio/gpio.o
 -- 
 2.17.1
 
