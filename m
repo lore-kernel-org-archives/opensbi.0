@@ -1,205 +1,66 @@
-From: Green Wan <green.wan@sifive.com>
-Date: Tue, 13 Jul 2021 11:23:45 +0800
-Subject: [PATCH v4 5/5] lib: utils/reset: Add generic GPIO reset driver
-In-Reply-To: <20210713032345.2571-1-green.wan@sifive.com>
-References: <20210713032345.2571-1-green.wan@sifive.com>
-Message-ID: <20210713032345.2571-6-green.wan@sifive.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 14 Jul 2021 15:14:39 +0800
+Subject: [PATCH] firmware: use _fw_start for load address
+Message-ID: <20210714071439.38674-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add generic GPIO reset driver inspired from gpio-restart
-and gpio-poweroff drivers of Linux kernel.
+The previous code uses _start as the load address, this default .entry is
+the first segment, using _fw_start does not need to make this assumption.
 
-Signed-off-by: Green Wan <green.wan@sifive.com>
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/utils/reset/fdt_reset.c      |   2 +
- lib/utils/reset/fdt_reset_gpio.c | 141 +++++++++++++++++++++++++++++++
- lib/utils/reset/objects.mk       |   1 +
- 3 files changed, 144 insertions(+)
- create mode 100644 lib/utils/reset/fdt_reset_gpio.c
+ firmware/fw_base.S   | 6 +++---
+ firmware/fw_base.ldS | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-index 48a49fb..aa5f59f 100644
---- a/lib/utils/reset/fdt_reset.c
-+++ b/lib/utils/reset/fdt_reset.c
-@@ -12,11 +12,13 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/reset/fdt_reset.h>
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 928ca91..63408d1 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -65,14 +65,14 @@ _try_lottery:
  
-+extern struct fdt_reset fdt_reset_gpio;
- extern struct fdt_reset fdt_reset_sifive_test;
- extern struct fdt_reset fdt_reset_htif;
- extern struct fdt_reset fdt_reset_thead;
+ 	/* Save load address */
+ 	lla	t0, _load_start
+-	lla	t1, _start
++	lla	t1, _fw_start
+ 	REG_S	t1, 0(t0)
  
- static struct fdt_reset *reset_drivers[] = {
-+	&fdt_reset_gpio,
- 	&fdt_reset_sifive_test,
- 	&fdt_reset_htif,
- 	&fdt_reset_thead,
-diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-new file mode 100644
-index 0000000..7e0eb74
---- /dev/null
-+++ b/lib/utils/reset/fdt_reset_gpio.c
-@@ -0,0 +1,141 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 SiFive
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Green Wan <green.wan@sifive.com>
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/gpio/fdt_gpio.h>
-+#include <sbi_utils/reset/fdt_reset.h>
-+
-+struct gpio_reset {
-+	struct gpio_pin pin;
-+	u32 active_delay;
-+	u32 inactive_delay;
-+};
-+
-+static struct gpio_reset poweroff = {
-+	.active_delay = 100,
-+	.inactive_delay = 100
-+};
-+
-+static struct gpio_reset restart = {
-+	.active_delay = 100,
-+	.inactive_delay = 100
-+};
-+
-+/* Custom mdelay function until we have a generic mdelay() API */
-+static void gpio_mdelay(unsigned long msecs)
-+{
-+	volatile int i;
-+	while (msecs--)
-+		for (i = 0; i < 100000; i++) ;
-+}
-+
-+static int gpio_system_reset_check(u32 type, u32 reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void gpio_system_reset(u32 type, u32 reason)
-+{
-+	struct gpio_reset *reset = NULL;
-+
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+		reset = &poweroff;
-+		break;
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		reset = &restart;
-+		break;
-+	}
-+
-+	if (reset) {
-+		if (!reset->pin.chip) {
-+			sbi_printf("%s: gpio pin not available\n", __func__);
-+			goto skip_reset;
-+		}
-+
-+		/* drive it active, also inactive->active edge */
-+		gpio_direction_output(&reset->pin, 1);
-+		gpio_mdelay(reset->active_delay);
-+
-+		/* drive inactive, also active->inactive edge */
-+		gpio_set(&reset->pin, 0);
-+		gpio_mdelay(reset->inactive_delay);
-+
-+		/* drive it active, also inactive->active edge */
-+		gpio_set(&reset->pin, 1);
-+
-+skip_reset:
-+		/* hang !!! */
-+		sbi_hart_hang();
-+	}
-+}
-+
-+static struct sbi_system_reset_device gpio_reset = {
-+	.name = "gpio-reset",
-+	.system_reset_check = gpio_system_reset_check,
-+	.system_reset = gpio_system_reset
-+};
-+
-+static int gpio_reset_init(void *fdt, int nodeoff,
-+			   const struct fdt_match *match)
-+{
-+	int rc, len;
-+	const fdt32_t *val;
-+	bool is_restart = (ulong)match->data;
-+	const char *dir_prop = (is_restart) ? "open-source" : "input";
-+	struct gpio_reset *reset = (is_restart) ? &restart : &poweroff;
-+
-+	rc = fdt_gpio_pin_get(fdt, nodeoff, 0, &reset->pin);
-+	if (rc)
-+		return rc;
-+
-+	if (fdt_getprop(fdt, nodeoff, dir_prop, &len)) {
-+		rc = gpio_direction_input(&reset->pin);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	val = fdt_getprop(fdt, nodeoff, "active-delay-ms", &len);
-+	if (len > 0)
-+		reset->active_delay = fdt32_to_cpu(*val);
-+
-+	val = fdt_getprop(fdt, nodeoff, "inactive-delay-ms", &len);
-+	if (len > 0)
-+		reset->inactive_delay = fdt32_to_cpu(*val);
-+
-+	sbi_system_reset_set_device(&gpio_reset);
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match gpio_reset_match[] = {
-+	{ .compatible = "gpio-poweroff", .data = (void *)FALSE },
-+	{ .compatible = "gpio-restart", .data = (void *)TRUE },
-+	{ },
-+};
-+
-+struct fdt_reset fdt_reset_gpio = {
-+	.match_table = gpio_reset_match,
-+	.init = gpio_reset_init,
-+};
-diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-index 672aad9..4215396 100644
---- a/lib/utils/reset/objects.mk
-+++ b/lib/utils/reset/objects.mk
-@@ -8,6 +8,7 @@
- #
+ #ifdef FW_PIC
+ 	/* relocate the global table content */
+ 	lla	t0, _link_start
+ 	REG_L	t0, 0(t0)
+-	/* t1 shall has the address of _start */
++	/* t1 shall has the address of _fw_start */
+ 	sub	t2, t1, t0
+ 	lla	t3, _runtime_offset
+ 	REG_S	t2, (t3)
+@@ -172,7 +172,7 @@ _relocate_copy_to_upper_loop:
+ 	blt	t0, t1, _relocate_copy_to_upper_loop
+ 	jr	t4
+ _wait_relocate_copy_done:
+-	lla	t0, _start
++	lla	t0, _fw_start
+ 	lla	t1, _link_start
+ 	REG_L	t1, 0(t1)
+ 	beq	t0, t1, _wait_for_boot_hart
+diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+index 0d222da..0738767 100644
+--- a/firmware/fw_base.ldS
++++ b/firmware/fw_base.ldS
+@@ -8,7 +8,7 @@
+  */
  
- libsbiutils-objs-y += reset/fdt_reset.o
-+libsbiutils-objs-y += reset/fdt_reset_gpio.o
- libsbiutils-objs-y += reset/fdt_reset_htif.o
- libsbiutils-objs-y += reset/fdt_reset_thead.o
- libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
+ 	. = FW_TEXT_START;
+-
++	/* don't add any section between FW_TEXT_START and _fw_start */
+ 	PROVIDE(_fw_start = .);
+ 
+ 	. = ALIGN(0x1000); /* Need this to create proper sections */
 -- 
-2.17.1
+2.30.2
 
 
