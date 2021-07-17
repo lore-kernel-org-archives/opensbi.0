@@ -1,23 +1,35 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 17 Jul 2021 17:46:31 +0530
-Subject: [PATCH] docs: firmware: Document FW_PIC compile time option
-In-Reply-To: <20210712004802.23368-1-bmeng.cn@gmail.com>
-References: <20210712004802.23368-1-bmeng.cn@gmail.com>
-Message-ID: <CAAhSdy3PGjheStnEnU-hvmgTbB7yyWg_H2Y760xKK8ORY7z_+g@mail.gmail.com>
+Date: Sat, 17 Jul 2021 17:47:27 +0530
+Subject: [PATCH 1/1] firware: use __SIZEOF_LONG__ for field offsets in
+ fw_dynamic.h
+In-Reply-To: <CAEUhbmX1tNa5NRjxfhiYMX0eoy_1iqKyURQJDkiyUCEGODY=fg@mail.gmail.com>
+References: <20210712092405.6772-1-Alexander.Richardson@cl.cam.ac.uk>
+ <CAEUhbmX1tNa5NRjxfhiYMX0eoy_1iqKyURQJDkiyUCEGODY=fg@mail.gmail.com>
+Message-ID: <CAAhSdy1HhNybVefGag=zszJiAnUBOcPW3Y5qKHQ+k2PvP3ORVA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 12, 2021 at 6:18 AM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Mon, Jul 12, 2021 at 6:38 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> FW_PIC=y is on by default, but the doc is missing when this was
-> introduced. Add some description for it.
+> On Mon, Jul 12, 2021 at 5:25 PM Alex Richardson
+> <Alexander.Richardson@cl.cam.ac.uk> wrote:
+> >
+> > The fields are of type unsigned long and are not pointers. While this
+> > happens to be the same for RV32/RV64, it is not correct when compiling
+> > for a CHERI-RISC-V system where pointers are twice the size of long.
+> >
+> > Signed-off-by: Alex Richardson <Alexander.Richardson@cl.cam.ac.uk>
+> > ---
+> >  include/sbi/fw_dynamic.h | 12 ++++++------
+> >  1 file changed, 6 insertions(+), 6 deletions(-)
+> >
 >
-> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
-Thanks for adding this.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
@@ -26,31 +38,6 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
-> ---
->
->  docs/firmware/fw.md | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
-> index a3bb70c..db9a31c 100644
-> --- a/docs/firmware/fw.md
-> +++ b/docs/firmware/fw.md
-> @@ -69,6 +69,12 @@ parameters:
->    argument by the prior booting stage.
->  * **FW_FDT_PADDING** - Optional zero bytes padding to the embedded flattened
->    device tree binary file specified by **FW_FDT_PATH** option.
-> +* **FW_PIC** - "FW_PIC=y" generates position independent executable firmware
-> +  images. OpenSBI can run at arbitrary address with appropriate alignment.
-> +  Therefore, the original relocation mechanism ("FW_PIC=n") will be skipped.
-> +  In other words, OpenSBI will directly run at the load address without any
-> +  code movement. This option requires a toolchain with PIE support, and it
-> +  is on by default.
->
->  Additionally, each firmware type as a set of type specific configuration
->  parameters. Detailed information for each firmware type can be found in the
-> --
-> 2.25.1
->
 >
 > --
 > opensbi mailing list
