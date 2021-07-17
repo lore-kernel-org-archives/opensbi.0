@@ -1,33 +1,22 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 17 Jul 2021 17:47:27 +0530
-Subject: [PATCH 1/1] firware: use __SIZEOF_LONG__ for field offsets in
- fw_dynamic.h
-In-Reply-To: <CAEUhbmX1tNa5NRjxfhiYMX0eoy_1iqKyURQJDkiyUCEGODY=fg@mail.gmail.com>
-References: <20210712092405.6772-1-Alexander.Richardson@cl.cam.ac.uk>
- <CAEUhbmX1tNa5NRjxfhiYMX0eoy_1iqKyURQJDkiyUCEGODY=fg@mail.gmail.com>
-Message-ID: <CAAhSdy1HhNybVefGag=zszJiAnUBOcPW3Y5qKHQ+k2PvP3ORVA@mail.gmail.com>
+Date: Sat, 17 Jul 2021 18:22:36 +0530
+Subject: [PATCH 1/1] include: types: Use __builtin_offsetof when supported
+In-Reply-To: <20210712123959.58251-1-Alexander.Richardson@cl.cam.ac.uk>
+References: <20210712123959.58251-1-Alexander.Richardson@cl.cam.ac.uk>
+Message-ID: <CAAhSdy3D5mu1Y5Zz_z9rVz5j65KS_K4+yS8G5VeCNR-g-oU8Zw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 12, 2021 at 6:38 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+On Mon, Jul 12, 2021 at 6:10 PM Alex Richardson
+<Alexander.Richardson@cl.cam.ac.uk> wrote:
 >
-> On Mon, Jul 12, 2021 at 5:25 PM Alex Richardson
-> <Alexander.Richardson@cl.cam.ac.uk> wrote:
-> >
-> > The fields are of type unsigned long and are not pointers. While this
-> > happens to be the same for RV32/RV64, it is not correct when compiling
-> > for a CHERI-RISC-V system where pointers are twice the size of long.
-> >
-> > Signed-off-by: Alex Richardson <Alexander.Richardson@cl.cam.ac.uk>
-> > ---
-> >  include/sbi/fw_dynamic.h | 12 ++++++------
-> >  1 file changed, 6 insertions(+), 6 deletions(-)
-> >
+> Clang provides a __builtin_offsetof which can be detected using
+> __has_builtin().
 >
-> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+> Signed-off-by: Alex Richardson <Alexander.Richardson@cl.cam.ac.uk>
 
 Looks good to me.
 
@@ -38,6 +27,33 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
+> ---
+>  include/sbi/sbi_types.h | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
+> index 38e3565..7fb1af7 100644
+> --- a/include/sbi/sbi_types.h
+> +++ b/include/sbi/sbi_types.h
+> @@ -68,8 +68,14 @@ typedef unsigned long                physical_size_t;
+>  #define likely(x) __builtin_expect((x), 1)
+>  #define unlikely(x) __builtin_expect((x), 0)
+>
+> +#ifndef __has_builtin
+> +#define __has_builtin(...) 0
+> +#endif
+> +
+>  #undef offsetof
+> -#ifdef __compiler_offsetof
+> +#if __has_builtin(__builtin_offsetof)
+> +#define offsetof(TYPE, MEMBER) __builtin_offsetof(TYPE,MEMBER)
+> +#elif defined(__compiler_offsetof)
+>  #define offsetof(TYPE, MEMBER) __compiler_offsetof(TYPE,MEMBER)
+>  #else
+>  #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+> --
+> 2.32.0
+>
 >
 > --
 > opensbi mailing list
