@@ -1,66 +1,131 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 14 Jul 2021 15:14:39 +0800
-Subject: [PATCH] firmware: use _fw_start for load address
-Message-ID: <20210714071439.38674-1-wxjstz@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 17 Jul 2021 14:16:25 +0530
+Subject: [PATCH v4 1/5] lib: utils/fdt: Add fdt_parse_phandle_with_args()
+ API
+In-Reply-To: <20210713032345.2571-2-green.wan@sifive.com>
+References: <20210713032345.2571-1-green.wan@sifive.com>
+ <20210713032345.2571-2-green.wan@sifive.com>
+Message-ID: <CAAhSdy3R-bZw9ipV4ngiFN4+4abM_5snv4K0BjLECTc3DhuvFQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The previous code uses _start as the load address, this default .entry is
-the first segment, using _fw_start does not need to make this assumption.
+On Tue, Jul 13, 2021 at 8:54 AM Green Wan <green.wan@sifive.com> wrote:
+>
+> From: Anup Patel <anup.patel@wdc.com>
+>
+> The libfdt project does not have a generic API to parse phandle
+> with args from a DT node so we add fdt_parse_phandle_with_args()
+> for this purpose. This new API will be useful to FDT based drivers.
+>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- firmware/fw_base.S   | 6 +++---
- firmware/fw_base.ldS | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Applied this patch to the riscv/opensbi repo
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 928ca91..63408d1 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -65,14 +65,14 @@ _try_lottery:
- 
- 	/* Save load address */
- 	lla	t0, _load_start
--	lla	t1, _start
-+	lla	t1, _fw_start
- 	REG_S	t1, 0(t0)
- 
- #ifdef FW_PIC
- 	/* relocate the global table content */
- 	lla	t0, _link_start
- 	REG_L	t0, 0(t0)
--	/* t1 shall has the address of _start */
-+	/* t1 shall has the address of _fw_start */
- 	sub	t2, t1, t0
- 	lla	t3, _runtime_offset
- 	REG_S	t2, (t3)
-@@ -172,7 +172,7 @@ _relocate_copy_to_upper_loop:
- 	blt	t0, t1, _relocate_copy_to_upper_loop
- 	jr	t4
- _wait_relocate_copy_done:
--	lla	t0, _start
-+	lla	t0, _fw_start
- 	lla	t1, _link_start
- 	REG_L	t1, 0(t1)
- 	beq	t0, t1, _wait_for_boot_hart
-diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-index 0d222da..0738767 100644
---- a/firmware/fw_base.ldS
-+++ b/firmware/fw_base.ldS
-@@ -8,7 +8,7 @@
-  */
- 
- 	. = FW_TEXT_START;
--
-+	/* don't add any section between FW_TEXT_START and _fw_start */
- 	PROVIDE(_fw_start = .);
- 
- 	. = ALIGN(0x1000); /* Need this to create proper sections */
--- 
-2.30.2
+Thanks,
+Anup
 
+> ---
+>  include/sbi_utils/fdt/fdt_helper.h | 11 +++++++
+>  lib/utils/fdt/fdt_helper.c         | 47 ++++++++++++++++++++++++++++++
+>  2 files changed, 58 insertions(+)
+>
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index 871f9b9..55b9382 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -17,6 +17,13 @@ struct fdt_match {
+>         void *data;
+>  };
+>
+> +#define FDT_MAX_PHANDLE_ARGS 16
+> +struct fdt_phandle_args {
+> +       int node_offset;
+> +       int args_count;
+> +       u32 args[FDT_MAX_PHANDLE_ARGS];
+> +};
+> +
+>  struct platform_uart_data {
+>         unsigned long addr;
+>         unsigned long freq;
+> @@ -32,6 +39,10 @@ int fdt_find_match(void *fdt, int startoff,
+>                    const struct fdt_match *match_table,
+>                    const struct fdt_match **out_match);
+>
+> +int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+> +                               const char *prop, const char *cells_prop,
+> +                               int index, struct fdt_phandle_args *out_args);
+> +
+>  int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
+>                            unsigned long *size);
+>
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index de77196..a970c0f 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -72,6 +72,53 @@ int fdt_find_match(void *fdt, int startoff,
+>         return SBI_ENODEV;
+>  }
+>
+> +int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+> +                               const char *prop, const char *cells_prop,
+> +                               int index, struct fdt_phandle_args *out_args)
+> +{
+> +       u32 i, pcells;
+> +       int len, pnodeoff;
+> +       const fdt32_t *list, *list_end, *val;
+> +
+> +       if (!fdt || (nodeoff < 0) || !prop || !cells_prop || !out_args)
+> +               return SBI_EINVAL;
+> +
+> +       list = fdt_getprop(fdt, nodeoff, prop, &len);
+> +       if (!list)
+> +               return SBI_ENOENT;
+> +       list_end = list + (len / sizeof(*list));
+> +
+> +       while (list < list_end) {
+> +               pnodeoff = fdt_node_offset_by_phandle(fdt,
+> +                                               fdt32_to_cpu(*list));
+> +               if (pnodeoff < 0)
+> +                       return pnodeoff;
+> +               list++;
+> +
+> +               val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
+> +               if (!val)
+> +                       return SBI_ENOENT;
+> +               pcells = fdt32_to_cpu(*val);
+> +               if (FDT_MAX_PHANDLE_ARGS < pcells)
+> +                       return SBI_EINVAL;
+> +               if (list + pcells > list_end)
+> +                       return SBI_ENOENT;
+> +
+> +               if (index > 0) {
+> +                       list += pcells;
+> +                       index--;
+> +               } else {
+> +                       out_args->node_offset = pnodeoff;
+> +                       out_args->args_count = pcells;
+> +                       for (i = 0; i < pcells; i++)
+> +                               out_args->args[i] = fdt32_to_cpu(list[i]);
+> +                       return 0;
+> +               }
+> +       }
+> +
+> +       return SBI_ENOENT;
+> +}
+> +
+>  static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
+>                                  unsigned long *addr)
+>  {
+> --
+> 2.17.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
