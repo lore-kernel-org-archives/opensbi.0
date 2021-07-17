@@ -1,217 +1,71 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 17 Jul 2021 14:19:51 +0530
-Subject: [PATCH v4 5/5] lib: utils/reset: Add generic GPIO reset driver
-In-Reply-To: <20210713032345.2571-6-green.wan@sifive.com>
-References: <20210713032345.2571-1-green.wan@sifive.com>
- <20210713032345.2571-6-green.wan@sifive.com>
-Message-ID: <CAAhSdy0Xvr9oeCFqtrLh7qyepLZ-Zy5iKy28Et+GQK-AKu2T_Q@mail.gmail.com>
+Date: Sat, 17 Jul 2021 17:27:22 +0530
+Subject: [PATCH 1/2] firmware: Remove the unhelpful alignment codes before
+ fdt relocation
+In-Reply-To: <20210710142821.4168-1-bmeng.cn@gmail.com>
+References: <20210710142821.4168-1-bmeng.cn@gmail.com>
+Message-ID: <CAAhSdy3dcrEvZ6XLsVGfZ1+fDtg4eY-DXgCS=os8dX=f1ws3EQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 13, 2021 at 8:54 AM Green Wan <green.wan@sifive.com> wrote:
+On Sat, Jul 10, 2021 at 7:58 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> We add generic GPIO reset driver inspired from gpio-restart
-> and gpio-poweroff drivers of Linux kernel.
+> If the device tree is at an address that is not __SIZEOF_POINTER__
+> aligned, the fdt relocation code tries to align both source and
+> destination address to __SIZEOF_POINTER__ before the memory copy.
+> But such alignment can lead to unexpected results if either source
+> or destination address is not aligned.
 >
-> Signed-off-by: Green Wan <green.wan@sifive.com>
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> In fact libfdt requires that the device tree must be at an 8-byte
+> aligned address. Hence remove the unhelpful alignment codes.
+>
+> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
 
-I have added a missing reviewed-by from Atish at time of merging.
+With libfdt checking alignment of FDT address, we certainly don't
+need any alignment check or adjustment in FDT relocation
 
-Applied this patch to the riscv/opensbi repo
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
 > ---
->  lib/utils/reset/fdt_reset.c      |   2 +
->  lib/utils/reset/fdt_reset_gpio.c | 141 +++++++++++++++++++++++++++++++
->  lib/utils/reset/objects.mk       |   1 +
->  3 files changed, 144 insertions(+)
->  create mode 100644 lib/utils/reset/fdt_reset_gpio.c
 >
-> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-> index 48a49fb..aa5f59f 100644
-> --- a/lib/utils/reset/fdt_reset.c
-> +++ b/lib/utils/reset/fdt_reset.c
-> @@ -12,11 +12,13 @@
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/reset/fdt_reset.h>
+>  firmware/fw_base.S | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
 >
-> +extern struct fdt_reset fdt_reset_gpio;
->  extern struct fdt_reset fdt_reset_sifive_test;
->  extern struct fdt_reset fdt_reset_htif;
->  extern struct fdt_reset fdt_reset_thead;
->
->  static struct fdt_reset *reset_drivers[] = {
-> +       &fdt_reset_gpio,
->         &fdt_reset_sifive_test,
->         &fdt_reset_htif,
->         &fdt_reset_thead,
-> diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-> new file mode 100644
-> index 0000000..7e0eb74
-> --- /dev/null
-> +++ b/lib/utils/reset/fdt_reset_gpio.c
-> @@ -0,0 +1,141 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 SiFive
-> + * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Green Wan <green.wan@sifive.com>
-> + *   Anup Patel <anup.patel@wdc.com>
-> + */
-> +
-> +#include <libfdt.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_ecall_interface.h>
-> +#include <sbi/sbi_hart.h>
-> +#include <sbi/sbi_system.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/gpio/fdt_gpio.h>
-> +#include <sbi_utils/reset/fdt_reset.h>
-> +
-> +struct gpio_reset {
-> +       struct gpio_pin pin;
-> +       u32 active_delay;
-> +       u32 inactive_delay;
-> +};
-> +
-> +static struct gpio_reset poweroff = {
-> +       .active_delay = 100,
-> +       .inactive_delay = 100
-> +};
-> +
-> +static struct gpio_reset restart = {
-> +       .active_delay = 100,
-> +       .inactive_delay = 100
-> +};
-> +
-> +/* Custom mdelay function until we have a generic mdelay() API */
-> +static void gpio_mdelay(unsigned long msecs)
-> +{
-> +       volatile int i;
-> +       while (msecs--)
-> +               for (i = 0; i < 100000; i++) ;
-> +}
-> +
-> +static int gpio_system_reset_check(u32 type, u32 reason)
-> +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +               return 1;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static void gpio_system_reset(u32 type, u32 reason)
-> +{
-> +       struct gpio_reset *reset = NULL;
-> +
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               reset = &poweroff;
-> +               break;
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +               reset = &restart;
-> +               break;
-> +       }
-> +
-> +       if (reset) {
-> +               if (!reset->pin.chip) {
-> +                       sbi_printf("%s: gpio pin not available\n", __func__);
-> +                       goto skip_reset;
-> +               }
-> +
-> +               /* drive it active, also inactive->active edge */
-> +               gpio_direction_output(&reset->pin, 1);
-> +               gpio_mdelay(reset->active_delay);
-> +
-> +               /* drive inactive, also active->inactive edge */
-> +               gpio_set(&reset->pin, 0);
-> +               gpio_mdelay(reset->inactive_delay);
-> +
-> +               /* drive it active, also inactive->active edge */
-> +               gpio_set(&reset->pin, 1);
-> +
-> +skip_reset:
-> +               /* hang !!! */
-> +               sbi_hart_hang();
-> +       }
-> +}
-> +
-> +static struct sbi_system_reset_device gpio_reset = {
-> +       .name = "gpio-reset",
-> +       .system_reset_check = gpio_system_reset_check,
-> +       .system_reset = gpio_system_reset
-> +};
-> +
-> +static int gpio_reset_init(void *fdt, int nodeoff,
-> +                          const struct fdt_match *match)
-> +{
-> +       int rc, len;
-> +       const fdt32_t *val;
-> +       bool is_restart = (ulong)match->data;
-> +       const char *dir_prop = (is_restart) ? "open-source" : "input";
-> +       struct gpio_reset *reset = (is_restart) ? &restart : &poweroff;
-> +
-> +       rc = fdt_gpio_pin_get(fdt, nodeoff, 0, &reset->pin);
-> +       if (rc)
-> +               return rc;
-> +
-> +       if (fdt_getprop(fdt, nodeoff, dir_prop, &len)) {
-> +               rc = gpio_direction_input(&reset->pin);
-> +               if (rc)
-> +                       return rc;
-> +       }
-> +
-> +       val = fdt_getprop(fdt, nodeoff, "active-delay-ms", &len);
-> +       if (len > 0)
-> +               reset->active_delay = fdt32_to_cpu(*val);
-> +
-> +       val = fdt_getprop(fdt, nodeoff, "inactive-delay-ms", &len);
-> +       if (len > 0)
-> +               reset->inactive_delay = fdt32_to_cpu(*val);
-> +
-> +       sbi_system_reset_set_device(&gpio_reset);
-> +
-> +       return 0;
-> +}
-> +
-> +static const struct fdt_match gpio_reset_match[] = {
-> +       { .compatible = "gpio-poweroff", .data = (void *)FALSE },
-> +       { .compatible = "gpio-restart", .data = (void *)TRUE },
-> +       { },
-> +};
-> +
-> +struct fdt_reset fdt_reset_gpio = {
-> +       .match_table = gpio_reset_match,
-> +       .init = gpio_reset_init,
-> +};
-> diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-> index 672aad9..4215396 100644
-> --- a/lib/utils/reset/objects.mk
-> +++ b/lib/utils/reset/objects.mk
-> @@ -8,6 +8,7 @@
->  #
->
->  libsbiutils-objs-y += reset/fdt_reset.o
-> +libsbiutils-objs-y += reset/fdt_reset_gpio.o
->  libsbiutils-objs-y += reset/fdt_reset_htif.o
->  libsbiutils-objs-y += reset/fdt_reset_thead.o
->  libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 8e40562..abf21cd 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -349,8 +349,7 @@ _scratch_init:
+>          * previous booting stage.
+>          */
+>         beqz    a1, _fdt_reloc_done
+> -       /* Mask values in a3 and a4 */
+> -       li      a3, ~(__SIZEOF_POINTER__ - 1)
+> +       /* Mask values in a4 */
+>         li      a4, 0xff
+>         /* t1 = destination FDT start address */
+>         MOV_3R  s0, a0, s1, a1, s2, a2
+> @@ -359,10 +358,8 @@ _scratch_init:
+>         MOV_3R  a0, s0, a1, s1, a2, s2
+>         beqz    t1, _fdt_reloc_done
+>         beq     t1, a1, _fdt_reloc_done
+> -       and     t1, t1, a3
+>         /* t0 = source FDT start address */
+>         add     t0, a1, zero
+> -       and     t0, t0, a3
+>         /* t2 = source FDT size in big-endian */
+>  #if __riscv_xlen == 64
+>         lwu     t2, 4(t0)
 > --
-> 2.17.1
+> 2.25.1
 >
 >
 > --
