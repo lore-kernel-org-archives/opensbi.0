@@ -1,24 +1,33 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 17 Jul 2021 18:22:36 +0530
-Subject: [PATCH 1/1] include: types: Use __builtin_offsetof when supported
-In-Reply-To: <20210712123959.58251-1-Alexander.Richardson@cl.cam.ac.uk>
-References: <20210712123959.58251-1-Alexander.Richardson@cl.cam.ac.uk>
-Message-ID: <CAAhSdy3D5mu1Y5Zz_z9rVz5j65KS_K4+yS8G5VeCNR-g-oU8Zw@mail.gmail.com>
+Date: Sat, 17 Jul 2021 18:39:13 +0530
+Subject: [PATCH v3] README: Update toolchain information
+In-Reply-To: <20210712012016.29362-1-bmeng.cn@gmail.com>
+References: <20210712012016.29362-1-bmeng.cn@gmail.com>
+Message-ID: <CAAhSdy1-NihFVvrpDetrFVGJoJ7e4rMii87yaSNLEWfcU+8kAA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 12, 2021 at 6:10 PM Alex Richardson
-<Alexander.Richardson@cl.cam.ac.uk> wrote:
+On Mon, Jul 12, 2021 at 6:50 AM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> Clang provides a __builtin_offsetof which can be detected using
-> __has_builtin().
+> Recent FW_PIC=y changes actually require toolchains with PIE support
+> and it is on by default. Existing doc uses a GNU bare-metal toolchain
+> as examples but it does not support PIE.
 >
-> Signed-off-by: Alex Richardson <Alexander.Richardson@cl.cam.ac.uk>
+> Replace references of bare-metal toolchain prefix with Linux toolchain
+> prefix everywhere in documentation.
+>
+> Also indicate that "riscv64-unknown-freebsd-" as an alternative to
+> "riscv64-linux-" GNU toolchain.
+>
+> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
 
-Looks good to me.
+Overall looks good but in future we will have to again update this
+when GCC bare-metal toolchain starts supporting PIE. Also, we might
+to clarify that GCC multilib toolchain also work perfectly fine for both
+RV32 and RV64.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
@@ -27,32 +36,77 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
+>
 > ---
->  include/sbi/sbi_types.h | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
 >
-> diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
-> index 38e3565..7fb1af7 100644
-> --- a/include/sbi/sbi_types.h
-> +++ b/include/sbi/sbi_types.h
-> @@ -68,8 +68,14 @@ typedef unsigned long                physical_size_t;
->  #define likely(x) __builtin_expect((x), 1)
->  #define unlikely(x) __builtin_expect((x), 0)
+> Changes in v3:
+> - Use "riscv*-linux-gnu-" intead of "riscv*-linux"
 >
-> +#ifndef __has_builtin
-> +#define __has_builtin(...) 0
-> +#endif
+> Changes in v2:
+> - Include "riscv64-unknown-freebsd-" as an alternative
+>
+>  README.md | 18 +++++++++++++-----
+>  1 file changed, 13 insertions(+), 5 deletions(-)
+>
+> diff --git a/README.md b/README.md
+> index b296f00..9fdf097 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -104,6 +104,14 @@ LLVM/Clang toolchain due to LLVM's ability to support multiple backends in the
+>  same binary, so is often an easy way to obtain a working cross-compilation
+>  toolchain.
+>
+> +Basically, we prefer toolchains with Position Independent Executable (PIE)
+> +support like *riscv64-linux-gnu-gcc*, *riscv64-unknown-freebsd-gcc*, or
+> +*Clang/LLVM* as they generate PIE firmware images that can run at arbitrary
+> +address with appropriate alignment. If a bare-metal GNU toolchain (e.g.
+> +*riscv64-unknown-elf-gcc*) is used, static linked firmware images are
+> +generated instead. *Clang/LLVM* can still generate PIE images if a bare-metal
+> +triple is used (e.g. *-target riscv64-unknown-elf*).
 > +
->  #undef offsetof
-> -#ifdef __compiler_offsetof
-> +#if __has_builtin(__builtin_offsetof)
-> +#define offsetof(TYPE, MEMBER) __builtin_offsetof(TYPE,MEMBER)
-> +#elif defined(__compiler_offsetof)
->  #define offsetof(TYPE, MEMBER) __compiler_offsetof(TYPE,MEMBER)
->  #else
->  #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+>  Please note that only a 64-bit version of the toolchain is available in
+>  the Bootlin toolchain repository for now.
+>
+> @@ -116,7 +124,7 @@ architecture than RISC-V.
+>
+>  For cross-compiling, the environment variable *CROSS_COMPILE* must be defined
+>  to specify the name prefix of the RISC-V compiler toolchain executables, e.g.
+> -*riscv64-unknown-elf-* if the gcc executable used is *riscv64-unknown-elf-gcc*.
+> +*riscv64-linux-gnu-* if the gcc executable used is *riscv64-linux-gnu-gcc*.
+>
+>  To build *libsbi.a* simply execute:
+>  ```
+> @@ -192,16 +200,16 @@ Building 32-bit / 64-bit OpenSBI Images
+>  ---------------------------------------
+>  By default, building OpenSBI generates 32-bit or 64-bit images based on the
+>  supplied RISC-V cross-compile toolchain. For example if *CROSS_COMPILE* is set
+> -to *riscv64-unknown-elf-*, 64-bit OpenSBI images will be generated. If building
+> +to *riscv64-linux-gnu-*, 64-bit OpenSBI images will be generated. If building
+>  32-bit OpenSBI images, *CROSS_COMPILE* should be set to a toolchain that is
+> -pre-configured to generate 32-bit RISC-V codes, like *riscv32-unknown-elf-*.
+> +pre-configured to generate 32-bit RISC-V codes, like *riscv32-linux-gnu-*.
+>
+>  However it's possible to explicitly specify the image bits we want to build with
+>  a given RISC-V toolchain. This can be done by setting the environment variable
+>  *PLATFORM_RISCV_XLEN* to the desired width, for example:
+>
+>  ```
+> -export CROSS_COMPILE=riscv64-unknown-elf-
+> +export CROSS_COMPILE=riscv64-linux-gnu-
+>  export PLATFORM_RISCV_XLEN=32
+>  ```
+>
+> @@ -235,7 +243,7 @@ valid triple.
+>  These can also be mixed; for example using a GCC cross-compiler but LLVM
+>  binutils would be:
+>  ```
+> -make CC=riscv64-unknown-elf-gcc LLVM=1
+> +make CC=riscv64-linux-gnu-gcc LLVM=1
+>  ```
+>
+>  These variables must be passed for all the make invocations described in this
 > --
-> 2.32.0
+> 2.25.1
 >
 >
 > --
