@@ -1,116 +1,98 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 17 Jul 2021 18:39:13 +0530
-Subject: [PATCH v3] README: Update toolchain information
-In-Reply-To: <20210712012016.29362-1-bmeng.cn@gmail.com>
-References: <20210712012016.29362-1-bmeng.cn@gmail.com>
-Message-ID: <CAAhSdy1-NihFVvrpDetrFVGJoJ7e4rMii87yaSNLEWfcU+8kAA@mail.gmail.com>
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 20 Jul 2021 19:02:39 +0200
+Subject: [PATCH] generic: fu740: add workaround for CIP-1200 errata
+Message-ID: <20210720170239.25804-1-xypron.glpk@gmx.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 12, 2021 at 6:50 AM Bin Meng <bmeng.cn@gmail.com> wrote:
->
-> Recent FW_PIC=y changes actually require toolchains with PIE support
-> and it is on by default. Existing doc uses a GNU bare-metal toolchain
-> as examples but it does not support PIE.
->
-> Replace references of bare-metal toolchain prefix with Linux toolchain
-> prefix everywhere in documentation.
->
-> Also indicate that "riscv64-unknown-freebsd-" as an alternative to
-> "riscv64-linux-" GNU toolchain.
->
-> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+From: David Abdurachmanov <david.abdurachmanov@sifive.com>
 
-Overall looks good but in future we will have to again update this
-when GCC bare-metal toolchain starts supporting PIE. Also, we might
-to clarify that GCC multilib toolchain also work perfectly fine for both
-RV32 and RV64.
+Instruction TLB can fail to respect a non-global SFENCE thus we need to
+flush the TLB using SFENCE.VMA x0, x0
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+See full description of CIP-1200 in Errata_FU740-C000_20210205 from
+https://www.sifive.com/boards/hifive-unmatched
 
-Applied this patch to the riscv/opensbi repo.
+Signed-off-by: David Abdurachmanov <david.abdurachmanov@sifive.com>
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+ platform/generic/objects.mk     |  1 +
+ platform/generic/platform.c     |  2 ++
+ platform/generic/sifive_fu740.c | 36 +++++++++++++++++++++++++++++++++
+ 3 files changed, 39 insertions(+)
+ create mode 100644 platform/generic/sifive_fu740.c
 
-Thanks,
-Anup
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index d6c8a42..cb15a18 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -9,3 +9,4 @@
 
->
-> ---
->
-> Changes in v3:
-> - Use "riscv*-linux-gnu-" intead of "riscv*-linux"
->
-> Changes in v2:
-> - Include "riscv64-unknown-freebsd-" as an alternative
->
->  README.md | 18 +++++++++++++-----
->  1 file changed, 13 insertions(+), 5 deletions(-)
->
-> diff --git a/README.md b/README.md
-> index b296f00..9fdf097 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -104,6 +104,14 @@ LLVM/Clang toolchain due to LLVM's ability to support multiple backends in the
->  same binary, so is often an easy way to obtain a working cross-compilation
->  toolchain.
->
-> +Basically, we prefer toolchains with Position Independent Executable (PIE)
-> +support like *riscv64-linux-gnu-gcc*, *riscv64-unknown-freebsd-gcc*, or
-> +*Clang/LLVM* as they generate PIE firmware images that can run at arbitrary
-> +address with appropriate alignment. If a bare-metal GNU toolchain (e.g.
-> +*riscv64-unknown-elf-gcc*) is used, static linked firmware images are
-> +generated instead. *Clang/LLVM* can still generate PIE images if a bare-metal
-> +triple is used (e.g. *-target riscv64-unknown-elf*).
-> +
->  Please note that only a 64-bit version of the toolchain is available in
->  the Bootlin toolchain repository for now.
->
-> @@ -116,7 +124,7 @@ architecture than RISC-V.
->
->  For cross-compiling, the environment variable *CROSS_COMPILE* must be defined
->  to specify the name prefix of the RISC-V compiler toolchain executables, e.g.
-> -*riscv64-unknown-elf-* if the gcc executable used is *riscv64-unknown-elf-gcc*.
-> +*riscv64-linux-gnu-* if the gcc executable used is *riscv64-linux-gnu-gcc*.
->
->  To build *libsbi.a* simply execute:
->  ```
-> @@ -192,16 +200,16 @@ Building 32-bit / 64-bit OpenSBI Images
->  ---------------------------------------
->  By default, building OpenSBI generates 32-bit or 64-bit images based on the
->  supplied RISC-V cross-compile toolchain. For example if *CROSS_COMPILE* is set
-> -to *riscv64-unknown-elf-*, 64-bit OpenSBI images will be generated. If building
-> +to *riscv64-linux-gnu-*, 64-bit OpenSBI images will be generated. If building
->  32-bit OpenSBI images, *CROSS_COMPILE* should be set to a toolchain that is
-> -pre-configured to generate 32-bit RISC-V codes, like *riscv32-unknown-elf-*.
-> +pre-configured to generate 32-bit RISC-V codes, like *riscv32-linux-gnu-*.
->
->  However it's possible to explicitly specify the image bits we want to build with
->  a given RISC-V toolchain. This can be done by setting the environment variable
->  *PLATFORM_RISCV_XLEN* to the desired width, for example:
->
->  ```
-> -export CROSS_COMPILE=riscv64-unknown-elf-
-> +export CROSS_COMPILE=riscv64-linux-gnu-
->  export PLATFORM_RISCV_XLEN=32
->  ```
->
-> @@ -235,7 +243,7 @@ valid triple.
->  These can also be mixed; for example using a GCC cross-compiler but LLVM
->  binutils would be:
->  ```
-> -make CC=riscv64-unknown-elf-gcc LLVM=1
-> +make CC=riscv64-linux-gnu-gcc LLVM=1
->  ```
->
->  These variables must be passed for all the make invocations described in this
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+ platform-objs-y += platform.o
+ platform-objs-y += sifive_fu540.o
++platform-objs-y += sifive_fu740.o
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 8c1e06f..2d5e930 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -23,9 +23,11 @@
+ #include <sbi_utils/reset/fdt_reset.h>
+
+ extern const struct platform_override sifive_fu540;
++extern const struct platform_override sifive_fu740;
+
+ static const struct platform_override *special_platforms[] = {
+ 	&sifive_fu540,
++	&sifive_fu740,
+ };
+
+ static const struct platform_override *generic_plat = NULL;
+diff --git a/platform/generic/sifive_fu740.c b/platform/generic/sifive_fu740.c
+new file mode 100644
+index 0000000..c8325d3
+--- /dev/null
++++ b/platform/generic/sifive_fu740.c
+@@ -0,0 +1,36 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2021 SiFive
++ *
++ * Authors:
++ *   David Abdurachmanov <david.abdurachmanov@sifive.com>
++ */
++
++#include <platform_override.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_fixup.h>
++
++static u64 sifive_fu740_tlbr_flush_limit(const struct fdt_match *match)
++{
++	/*
++	 * Needed to address CIP-1200 errata on SiFive FU740
++	 * Title: Instruction TLB can fail to respect a non-global SFENCE
++	 * Workaround: Flush the TLB using SFENCE.VMA x0, x0
++	 * See Errata_FU740-C000_20210205 from
++	 * https://www.sifive.com/boards/hifive-unmatched
++	 */
++	return 0;
++}
++
++static const struct fdt_match sifive_fu740_match[] = {
++	{ .compatible = "sifive,fu740" },
++	{ .compatible = "sifive,fu740-c000" },
++	{ .compatible = "sifive,hifive-unmatched-a00" },
++	{ },
++};
++
++const struct platform_override sifive_fu740 = {
++	.match_table = sifive_fu740_match,
++	.tlbr_flush_limit = sifive_fu740_tlbr_flush_limit,
++};
+--
+2.29.2
+
 
