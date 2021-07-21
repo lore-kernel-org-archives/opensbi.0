@@ -1,98 +1,131 @@
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Tue, 20 Jul 2021 19:02:39 +0200
-Subject: [PATCH] generic: fu740: add workaround for CIP-1200 errata
-Message-ID: <20210720170239.25804-1-xypron.glpk@gmx.de>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Wed, 21 Jul 2021 06:49:01 +0100
+Subject: [PATCH v4 4/5] Makefile: Support building with Clang and LLVM
+ binutils
+In-Reply-To: <CAEUhbmUCS16Sbqw7m9yGX1+oVLuzoo2-M4pG-ikp8xujv3kSFg@mail.gmail.com>
+References: <20210709193423.29712-1-jrtc27@jrtc27.com>
+ <20210709193423.29712-5-jrtc27@jrtc27.com>
+ <CAEUhbmVWVAMbJDC4J2DtYTP+Ji7RimRhpdZ3eApdM7H+LomkBQ@mail.gmail.com>
+ <CAEUhbmUCS16Sbqw7m9yGX1+oVLuzoo2-M4pG-ikp8xujv3kSFg@mail.gmail.com>
+Message-ID: <02C50B21-C5E1-4FEA-A796-9A3BBE195DA3@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: David Abdurachmanov <david.abdurachmanov@sifive.com>
+On 11 Jul 2021, at 14:53, Bin Meng <bmeng.cn@gmail.com> wrote:
+> 
+> On Sat, Jul 10, 2021 at 9:23 PM Bin Meng <bmeng.cn@gmail.com> wrote:
+>> 
+>> On Sat, Jul 10, 2021 at 3:35 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+>>> 
+>>> This is intended to mirror the Linux kernel. Building with CC=clang will
+>>> use Clang as the compiler but default to using the existing binutils.
+>>> Building with LLVM=1 will default to using Clang and LLVM binutils.
+>>> 
+>>> Whilst GCC will accept the -N linker option and forward it on to the
+>>> linker, Clang will not, and so in order to support both compilers we
+>>> must use -Wl, to forward it to the linker as is required for most other
+>>> linker options.
+>>> 
+>>> Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
+>>> ---
+>>> Makefile  | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++-----
+>>> README.md | 43 ++++++++++++++++++++++++++++++++++--
+>>> 2 files changed, 100 insertions(+), 8 deletions(-)
+>>> 
+>> 
+>> Here are test results:
+>> 
+>> Building with "riscv64-linux-gcc",
+>> 
+>> $ file build/platform/generic/firmware/fw_dynamic.elf
+>> build/platform/generic/firmware/fw_dynamic.elf: ELF 64-bit LSB
+>> executable, UCB RISC-V, version 1 (SYSV), dynamically linked, with
+>> debug_info, not stripped
+>> 
+>> $ riscv64-linux-readelf -r build/platform/generic/firmware/fw_dynamic.elf
+>> Relocation section '.rela.dyn' at offset 0x140f8 contains 184 entries:
+>>  Offset          Info           Type           Sym. Value    Sym. Name + Addend
+>> 000080013090  000000000003 R_RISCV_RELATIVE                     80000db4
+>> ...
+>> 000080013628  000200000002 R_RISCV_64        0000000080013720
+>> fdt_serial_uart8250 + 0
+>> 000080013830  000d00000002 R_RISCV_64        00000000800138d8
+>> fdt_reset_sifive_test + 0
+>> 
+>> Building with "LLVM=1",
+>> 
+>> $ file build/platform/generic/firmware/fw_dynamic.elf
+>> build/platform/generic/firmware/fw_dynamic.elf: ELF 64-bit LSB shared
+>> object, UCB RISC-V, version 1 (SYSV), dynamically linked, with
+>> debug_info, not stripped
+>> 
+>> $ riscv64-linux-readelf -r build/platform/generic/firmware/fw_dynamic.elf
+>> Relocation section '.rela.dyn' at offset 0x17d98 contains 188 entries:
+>>  Offset          Info           Type           Sym. Value    Sym. Name + Addend
+>> 000080017000  000000000003 R_RISCV_RELATIVE                     8000b680
+>> 000080017030  000000000003 R_RISCV_RELATIVE                     8001b1b8
+>> ...
+>> 000080017c90  000000000003 R_RISCV_RELATIVE                     80017628
+>> 
+>> There are two differences:
+>> 
+>> 1. LLVM toolchain generates a "shared object" firmware image, while
+>> GCC generates "executable".
+>> 2. LLVM one has 4 more entries in .rela.dyn than the GCC. All entries
+>> of LLVM have the R_RISCV_RELATIVE type, but GCC one has two R_RISCV_64
+>> entries.
+> 
+> Do you have any explanations on these 2 differences? Are these
+> possible toolchain bugs?
 
-Instruction TLB can fail to respect a non-global SFENCE thus we need to
-flush the TLB using SFENCE.VMA x0, x0
+[Hm, I composed this on the 11th but seems I never sent it...]
 
-See full description of CIP-1200 in Errata_FU740-C000_20210205 from
-https://www.sifive.com/boards/hifive-unmatched
+The first one smells to me like GNU ld is wrong, as executables are
+inherently not position-independent, PIEs are always shared objects,
+and I?m pretty sure that?s true of the recent -static-pie support too.
+In practice for our use cases it doesn?t matter though. It seems this
+is yet another undocumented, likely unintended (as it?s a very old
+legacy, and mostly unused, option) consequence of using -N/--omagic (in
+that it just blindly sets various flags internally and nobody thought
+about whether that made sense once -pie was added). Incidentally, I
+don?t think we actually need -N/--omagic any more, but that?s a
+separate thing.
 
-Signed-off-by: David Abdurachmanov <david.abdurachmanov@sifive.com>
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
----
- platform/generic/objects.mk     |  1 +
- platform/generic/platform.c     |  2 ++
- platform/generic/sifive_fu740.c | 36 +++++++++++++++++++++++++++++++++
- 3 files changed, 39 insertions(+)
- create mode 100644 platform/generic/sifive_fu740.c
+For the minor difference in number of relocations, that probably just
+comes down to minor codegen differences and I wouldn?t worry about it;
+with a large enough code base small differences are to be expected.
 
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index d6c8a42..cb15a18 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -9,3 +9,4 @@
+As for R_RISCV_64, there?s no reason for GNU ld to emit R_RISCV_64
+here. It?s technically correct but entirely unnecessary (and can break
+legitimate code that assumes only R_RISCV_RELATIVE gets emitted, which
+*should* be the case; kernel and run-time linker self-relocation code,
+that looks a lot like what OpenSBI is doing here, often likes to assume
+that, possibly with R_RISCV_IRELATIVE too if IFUNCs are used). I see it
+locally for fdt_serial_uart8250 and fdt_reset_sifive which should in no
+way be special, there?s nothing stopping those being evaluated at link
+time and leaving R_RISCV_RELATIVE to adjust them at run time as needed
+like with all the other symbols.
 
- platform-objs-y += platform.o
- platform-objs-y += sifive_fu540.o
-+platform-objs-y += sifive_fu740.o
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 8c1e06f..2d5e930 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -23,9 +23,11 @@
- #include <sbi_utils/reset/fdt_reset.h>
+So I?d regard -N + -pie giving EXEC not DYN, and R_RISCV_64 being
+emitted here, as being GNU ld sort-of-bugs, albeit with the former
+being extremely ill-defined over what that combination means (beyond
+?it does what it does?), with LLD?s output for both being what I would
+expect.
 
- extern const struct platform_override sifive_fu540;
-+extern const struct platform_override sifive_fu740;
+Jess
 
- static const struct platform_override *special_platforms[] = {
- 	&sifive_fu540,
-+	&sifive_fu740,
- };
-
- static const struct platform_override *generic_plat = NULL;
-diff --git a/platform/generic/sifive_fu740.c b/platform/generic/sifive_fu740.c
-new file mode 100644
-index 0000000..c8325d3
---- /dev/null
-+++ b/platform/generic/sifive_fu740.c
-@@ -0,0 +1,36 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 SiFive
-+ *
-+ * Authors:
-+ *   David Abdurachmanov <david.abdurachmanov@sifive.com>
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/fdt/fdt_fixup.h>
-+
-+static u64 sifive_fu740_tlbr_flush_limit(const struct fdt_match *match)
-+{
-+	/*
-+	 * Needed to address CIP-1200 errata on SiFive FU740
-+	 * Title: Instruction TLB can fail to respect a non-global SFENCE
-+	 * Workaround: Flush the TLB using SFENCE.VMA x0, x0
-+	 * See Errata_FU740-C000_20210205 from
-+	 * https://www.sifive.com/boards/hifive-unmatched
-+	 */
-+	return 0;
-+}
-+
-+static const struct fdt_match sifive_fu740_match[] = {
-+	{ .compatible = "sifive,fu740" },
-+	{ .compatible = "sifive,fu740-c000" },
-+	{ .compatible = "sifive,hifive-unmatched-a00" },
-+	{ },
-+};
-+
-+const struct platform_override sifive_fu740 = {
-+	.match_table = sifive_fu740_match,
-+	.tlbr_flush_limit = sifive_fu740_tlbr_flush_limit,
-+};
---
-2.29.2
+>> I am not sure whether GCC / LLVM is doing things correctly for the
+>> above 2 differences. fw_dynamic image of both can boot to S-mode
+>> U-Boot on QEMU 'virt' though.
+>> 
+>> Using clang and GNU binutils, fw_dynamic image does not boot on QEMU
+>> 'virt', as reported before.
+>> $ make CC=clang CROSS_COMPILE=riscv64-linux- PLATFORM=generic
+> 
+> Regards,
+> Bin
 
 
