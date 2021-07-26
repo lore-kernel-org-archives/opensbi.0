@@ -1,76 +1,38 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 27 Jul 2021 17:24:04 +0530
-Subject: [PATCH 1/2] lib: utils: remove unused variable in fdt_reset_init
-In-Reply-To: <CAOnJCUJovjqcSCqh8EaK-a30LO=rSC3CdSTQuXfvx=_D3SEsrw@mail.gmail.com>
-References: <20210722105359.18622-1-xypron.glpk@gmx.de>
- <20210722105359.18622-2-xypron.glpk@gmx.de>
- <CAOnJCUJovjqcSCqh8EaK-a30LO=rSC3CdSTQuXfvx=_D3SEsrw@mail.gmail.com>
-Message-ID: <CAAhSdy35SP8cTJ3NkHUUAEabjZQwZDALaWmnqM5ho81zFZPawg@mail.gmail.com>
+From: Dong Du <ddnirvana1@gmail.com>
+Date: Tue, 27 Jul 2021 00:41:11 +0800
+Subject: [PATCH] lib: sbi: Fix bug in strncmp function
+Message-ID: <20210726164111.17320-1-ddnirvana1@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 23, 2021 at 12:46 AM Atish Patra <atishp@atishpatra.org> wrote:
->
-> On Thu, Jul 22, 2021 at 3:54 AM Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> >
-> > The value of variable current_driver is unused. Remove the variable.
-> >
-> > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+From: Dong Du <dd_nirvana@sjtu.edu.cn>
 
-If possible please use same email in From: and Signed-off-by:
+strncmp should return 0 when the count is 0.
+Fix the issue in sbi_strncmp.
 
-> > ---
-> >  lib/utils/reset/fdt_reset.c | 3 ---
-> >  1 file changed, 3 deletions(-)
-> >
-> > diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-> > index aa5f59f..87f925c 100644
-> > --- a/lib/utils/reset/fdt_reset.c
-> > +++ b/lib/utils/reset/fdt_reset.c
-> > @@ -24,8 +24,6 @@ static struct fdt_reset *reset_drivers[] = {
-> >         &fdt_reset_thead,
-> >  };
-> >
-> > -static struct fdt_reset *current_driver = NULL;
-> > -
-> >  int fdt_reset_init(void)
-> >  {
-> >         int pos, noff, rc;
-> > @@ -47,7 +45,6 @@ int fdt_reset_init(void)
-> >                         if (rc)
-> >                                 return rc;
-> >                 }
-> > -               current_driver = drv;
-> >                 break;
-> >         }
-> >
-> > --
-> > 2.30.2
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
->
->
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+Signed-off-by: Dong Du <ddnirvana1@gmail.com>
+---
+ lib/sbi/sbi_string.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Applied this patch to the riscv/opensbi repo.
+diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
+index 7805ba4..f93ed5f 100644
+--- a/lib/sbi/sbi_string.c
++++ b/lib/sbi/sbi_string.c
+@@ -29,6 +29,9 @@ int sbi_strcmp(const char *a, const char *b)
+ 
+ int sbi_strncmp(const char *a, const char *b, size_t count)
+ {
++	if (!count)
++		return 0;
++
+ 	/* search first diff or end of string */
+ 	for (; count > 0 && *a == *b && *a != '\0'; a++, b++, count--)
+ 		;
+-- 
+2.31.1
 
-Thanks,
-Anup
-
->
-> --
-> Regards,
-> Atish
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
