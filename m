@@ -1,26 +1,36 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 27 Jul 2021 17:02:53 +0530
-Subject: [PATCH] firmware: use _fw_start for load address
-In-Reply-To: <20210714071439.38674-1-wxjstz@126.com>
-References: <20210714071439.38674-1-wxjstz@126.com>
-Message-ID: <CAAhSdy0ig7tXVbHOzh8tTuYtyFxu4a-WLX_OhQ-TNw7ORKFeKA@mail.gmail.com>
+Date: Tue, 27 Jul 2021 17:03:56 +0530
+Subject: [PATCH v2] Makefile: Manually forward RELAX_FLAG to the GNU
+ assembler when linking with LLD
+In-Reply-To: <20210712021253.15777-1-bmeng.cn@gmail.com>
+References: <20210712021253.15777-1-bmeng.cn@gmail.com>
+Message-ID: <CAAhSdy2=x5MXBGyKpCk1ryw6cNxFhoZ2Va1fyytzQZH-d2fkjA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 14, 2021 at 12:44 PM Xiang W <wxjstz@126.com> wrote:
+On Mon, Jul 12, 2021 at 7:43 AM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> The previous code uses _start as the load address, this default .entry is
-> the first segment, using _fw_start does not need to make this assumption.
+> When generating code with -mno-relax, GCC puts .option norelax in
+> the generated assembly, and so doesn?t bother passing on -mno-relax
+> to the assembler. This has the unfortunate effect that, when using
+> GCC to assemble hand-written assembly, -mno-relax does nothing,
+> and we have to pass -Wa,-mno-relax to manually forward it to the
+> assembler.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> This is an old GCC bug that was fixed [1] recently. For the time
+> being, let's pass "-Wa,-mno-relax" to ASFLAGS for the GCC + LLD
+> combination to work, e.g.:
+>
+>   $ make CC=riscv64-unknown-elf-gcc LLVM=1 PLATFORM=generic
+>
+> [1] https://github.com/gcc-mirror/gcc/commit/3b0a7d624e64eeb81e4d5e8c62c46d86ef521857
+>
+> Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
 
-Overall, I am fine with this patch but firmware flat binaries need to have
-_start at the very beginning otherwise none of the firmware flat binaries
-will work hence the assumption about _start being at beginning made
-sense.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
@@ -29,56 +39,33 @@ Applied this patch to the riscv/opensbi repo.
 Regards,
 Anup
 
+>
 > ---
->  firmware/fw_base.S   | 6 +++---
->  firmware/fw_base.ldS | 2 +-
->  2 files changed, 4 insertions(+), 4 deletions(-)
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 928ca91..63408d1 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -65,14 +65,14 @@ _try_lottery:
+> Changes in v2:
+> - Use Jessica's suggestion
 >
->         /* Save load address */
->         lla     t0, _load_start
-> -       lla     t1, _start
-> +       lla     t1, _fw_start
->         REG_S   t1, 0(t0)
+>  Makefile | 5 +++++
+>  1 file changed, 5 insertions(+)
 >
->  #ifdef FW_PIC
->         /* relocate the global table content */
->         lla     t0, _link_start
->         REG_L   t0, 0(t0)
-> -       /* t1 shall has the address of _start */
-> +       /* t1 shall has the address of _fw_start */
->         sub     t2, t1, t0
->         lla     t3, _runtime_offset
->         REG_S   t2, (t3)
-> @@ -172,7 +172,7 @@ _relocate_copy_to_upper_loop:
->         blt     t0, t1, _relocate_copy_to_upper_loop
->         jr      t4
->  _wait_relocate_copy_done:
-> -       lla     t0, _start
-> +       lla     t0, _fw_start
->         lla     t1, _link_start
->         REG_L   t1, 0(t1)
->         beq     t0, t1, _wait_for_boot_hart
-> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-> index 0d222da..0738767 100644
-> --- a/firmware/fw_base.ldS
-> +++ b/firmware/fw_base.ldS
-> @@ -8,7 +8,7 @@
->   */
->
->         . = FW_TEXT_START;
-> -
-> +       /* don't add any section between FW_TEXT_START and _fw_start */
->         PROVIDE(_fw_start = .);
->
->         . = ALIGN(0x1000); /* Need this to create proper sections */
+> diff --git a/Makefile b/Makefile
+> index 129b8ed..16d9dca 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -272,6 +272,11 @@ ASFLAGS            +=      -mno-save-restore -mstrict-align
+>  ASFLAGS                +=      -mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+>  ASFLAGS                +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+>  ASFLAGS                +=      $(RELAX_FLAG)
+> +ifneq ($(CC_IS_CLANG),y)
+> +ifneq ($(RELAX_FLAG),)
+> +ASFLAGS                +=      -Wa,$(RELAX_FLAG)
+> +endif
+> +endif
+>  ASFLAGS                +=      $(GENFLAGS)
+>  ASFLAGS                +=      $(platform-asflags-y)
+>  ASFLAGS                +=      $(firmware-asflags-y)
 > --
-> 2.30.2
+> 2.25.1
 >
 >
 > --
