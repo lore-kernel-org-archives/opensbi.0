@@ -1,38 +1,88 @@
-From: Dong Du <Dd_nirvana@sjtu.edu.cn>
-Date: Tue, 27 Jul 2021 14:08:35 +0800
-Subject: [PATCH] lib: sbi: Fix bug in strncmp function
-Message-ID: <20210727060835.23080-1-Dd_nirvana@sjtu.edu.cn>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 27 Jul 2021 17:02:53 +0530
+Subject: [PATCH] firmware: use _fw_start for load address
+In-Reply-To: <20210714071439.38674-1-wxjstz@126.com>
+References: <20210714071439.38674-1-wxjstz@126.com>
+Message-ID: <CAAhSdy0ig7tXVbHOzh8tTuYtyFxu4a-WLX_OhQ-TNw7ORKFeKA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Dong Du <dd_nirvana@sjtu.edu.cn>
+On Wed, Jul 14, 2021 at 12:44 PM Xiang W <wxjstz@126.com> wrote:
+>
+> The previous code uses _start as the load address, this default .entry is
+> the first segment, using _fw_start does not need to make this assumption.
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-strncmp should return 0 when the count is 0.
-Fix the issue in sbi_strncmp.
+Overall, I am fine with this patch but firmware flat binaries need to have
+_start at the very beginning otherwise none of the firmware flat binaries
+will work hence the assumption about _start being at beginning made
+sense.
 
-Signed-off-by: Dong Du <ddnirvana1@gmail.com>
----
- lib/sbi/sbi_string.c | 3 +++
- 1 file changed, 3 insertions(+)
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
-index 7805ba4..f93ed5f 100644
---- a/lib/sbi/sbi_string.c
-+++ b/lib/sbi/sbi_string.c
-@@ -29,6 +29,9 @@ int sbi_strcmp(const char *a, const char *b)
- 
- int sbi_strncmp(const char *a, const char *b, size_t count)
- {
-+	if (!count)
-+		return 0;
-+
- 	/* search first diff or end of string */
- 	for (; count > 0 && *a == *b && *a != '\0'; a++, b++, count--)
- 		;
--- 
-2.31.1
+Applied this patch to the riscv/opensbi repo.
 
+Regards,
+Anup
+
+> ---
+>  firmware/fw_base.S   | 6 +++---
+>  firmware/fw_base.ldS | 2 +-
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 928ca91..63408d1 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -65,14 +65,14 @@ _try_lottery:
+>
+>         /* Save load address */
+>         lla     t0, _load_start
+> -       lla     t1, _start
+> +       lla     t1, _fw_start
+>         REG_S   t1, 0(t0)
+>
+>  #ifdef FW_PIC
+>         /* relocate the global table content */
+>         lla     t0, _link_start
+>         REG_L   t0, 0(t0)
+> -       /* t1 shall has the address of _start */
+> +       /* t1 shall has the address of _fw_start */
+>         sub     t2, t1, t0
+>         lla     t3, _runtime_offset
+>         REG_S   t2, (t3)
+> @@ -172,7 +172,7 @@ _relocate_copy_to_upper_loop:
+>         blt     t0, t1, _relocate_copy_to_upper_loop
+>         jr      t4
+>  _wait_relocate_copy_done:
+> -       lla     t0, _start
+> +       lla     t0, _fw_start
+>         lla     t1, _link_start
+>         REG_L   t1, 0(t1)
+>         beq     t0, t1, _wait_for_boot_hart
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index 0d222da..0738767 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -8,7 +8,7 @@
+>   */
+>
+>         . = FW_TEXT_START;
+> -
+> +       /* don't add any section between FW_TEXT_START and _fw_start */
+>         PROVIDE(_fw_start = .);
+>
+>         . = ALIGN(0x1000); /* Need this to create proper sections */
+> --
+> 2.30.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
