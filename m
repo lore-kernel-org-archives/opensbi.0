@@ -1,63 +1,76 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 2 Aug 2021 12:49:25 -0700
-Subject: [PATCH 4/5] lib: utils/timer: Allow ACLINT MTIMER supporting only
- 32-bit MMIO
-In-Reply-To: <20210724122503.2486624-5-anup.patel@wdc.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Thu, 5 Aug 2021 14:29:30 +0800
+Subject: [PATCH 1/5] lib: utils/timer: Allow separate base addresses for
+ MTIME and MTIMECMP
+In-Reply-To: <20210724122503.2486624-2-anup.patel@wdc.com>
 References: <20210724122503.2486624-1-anup.patel@wdc.com>
- <20210724122503.2486624-5-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJovbgfLGuCQtYbRBDWsM0o8SXqjFkb3gCbsSzW7SSQzg@mail.gmail.com>
+ <20210724122503.2486624-2-anup.patel@wdc.com>
+Message-ID: <CAEUhbmWPQU-xhzS6USZoj6FSw0ut--rvD=uY3ORpkuNd7KoWAw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 24, 2021 at 5:25 AM Anup Patel <anup.patel@wdc.com> wrote:
+On Sat, Jul 24, 2021 at 8:26 PM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> We can have ACLINT MTIMER devices which only support 32-bit MMIO
-> accesses on RV64 system so this patch adds a boolean DT property
-> "mtimer,no-64bit-mmio" to detect this from MTIMER DT node.
+> We extend the ACLINT library to support separate base addresses
+> for MTIME and MTIMECMP registers.
 >
-
-Where is this property documented ? I couldn't find it in your v3
-aclint patch [1].
-Did I miss something?
-
-I also think "mtimer,32bit-mmio" may be a better choice than
-"mtimer,no-64bit-mmio"
-
-[1]https://github.com/avpatel/linux/commits/riscv_aclint_v3
 > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > ---
->  lib/utils/timer/fdt_timer_mtimer.c | 3 +++
->  1 file changed, 3 insertions(+)
+>  include/sbi_utils/timer/aclint_mtimer.h | 19 ++++--
+>  lib/utils/timer/aclint_mtimer.c         | 77 +++++++++++++++++++------
+>  lib/utils/timer/fdt_timer_mtimer.c      | 16 +++--
+>  platform/fpga/ariane/platform.c         |  8 ++-
+>  platform/fpga/openpiton/platform.c      | 13 ++++-
+>  platform/kendryte/k210/platform.c       |  8 ++-
+>  platform/nuclei/ux600/platform.c        |  8 ++-
+>  platform/template/platform.c            |  8 ++-
+>  8 files changed, 116 insertions(+), 41 deletions(-)
 >
-> diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-> index b08ed38..15a36ed 100644
-> --- a/lib/utils/timer/fdt_timer_mtimer.c
-> +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> @@ -58,6 +58,9 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
->                 mt->mtime_size = size[0];
->                 mt->mtimecmp_addr = addr[1];
->                 mt->mtimecmp_size = size[1];
-> +               /* Parse additional ACLINT MTIMER properties */
-> +               if (fdt_getprop(fdt, nodeoff, "mtimer,no-64bit-mmio", &rc))
-> +                       mt->has_64bit_mmio = false;
->         }
+> diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+> index 62aa086..54eb238 100644
+> --- a/include/sbi_utils/timer/aclint_mtimer.h
+> +++ b/include/sbi_utils/timer/aclint_mtimer.h
+> @@ -12,16 +12,25 @@
 >
->         rc = aclint_mtimer_cold_init(mt, mtmaster);
-> --
-> 2.25.1
+>  #include <sbi/sbi_types.h>
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> -#define ACLINT_MTIMER_ALIGN            0x1000
+> -#define ACLINT_MTIMER_SIZE             0x8000
+> -#define ACLINT_MTIMER_MAX_HARTS        4095
+> +#define ACLINT_MTIME_ALIGN                     0x8
+> +#define ACLINT_MTIMECMP_ALIGN                  0x8
+> +#define ACLINT_MTIMER_MAX_HARTS                4095
+> +
+> +#define ACLINT_DEFAULT_MTIME_OFFSET    0x7ff8
+> +#define ACLINT_DEFAULT_MTIME_SIZE      0x8
+> +#define ACLINT_DEFAULT_MTIMECMP_OFFSET 0x0000
+> +#define ACLINT_DEFAULT_MTIMECMP_SIZE   0x7ff8
+> +#define ACLINT_DEFAULT_MTIMER_SIZE     0x8000
+> +#define ACLINT_DEFAULT_MTIMER_ALIGN    0x1000
 
+It is confusing to have some macros be defined as MTIME while some
+others with MTIMER. Can we keep them consistent?
 
+>
+>  #define CLINT_MTIMER_OFFSET            0x4000
+>
+>  struct aclint_mtimer_data {
+>         /* Public details */
+> -       unsigned long addr;
+> -       unsigned long size;
+> +       unsigned long mtime_addr;
+> +       unsigned long mtime_size;
+> +       unsigned long mtimecmp_addr;
+> +       unsigned long mtimecmp_size;
+>         u32 first_hartid;
+>         u32 hart_count;
+>         bool has_64bit_mmio;
 
--- 
+[snip]
+
 Regards,
-Atish
+Bin
 
