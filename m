@@ -1,189 +1,66 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 7 Aug 2021 18:17:33 +0530
-Subject: [PATCH 2/5] lib: utils: Extend fdt_get_node_addr_size() for
- multiple register sets
-In-Reply-To: <CAOnJCUL-g2HDPSzbvL3an6iwUK4mp944JOhUY7EWH1JqXyXKNg@mail.gmail.com>
+Date: Sat, 7 Aug 2021 18:47:33 +0530
+Subject: [PATCH 4/5] lib: utils/timer: Allow ACLINT MTIMER supporting only
+ 32-bit MMIO
+In-Reply-To: <CAOnJCUJovbgfLGuCQtYbRBDWsM0o8SXqjFkb3gCbsSzW7SSQzg@mail.gmail.com>
 References: <20210724122503.2486624-1-anup.patel@wdc.com>
- <20210724122503.2486624-3-anup.patel@wdc.com>
- <CAOnJCUL-g2HDPSzbvL3an6iwUK4mp944JOhUY7EWH1JqXyXKNg@mail.gmail.com>
-Message-ID: <CAAhSdy3Zrfrq7jJJzbXMV-=vVkLTzwg3=-jTjJP7bJS=2=7a5w@mail.gmail.com>
+ <20210724122503.2486624-5-anup.patel@wdc.com>
+ <CAOnJCUJovbgfLGuCQtYbRBDWsM0o8SXqjFkb3gCbsSzW7SSQzg@mail.gmail.com>
+Message-ID: <CAAhSdy2nzPuNXFvJPMUn_=wpp83SeUpZps8_AWCcHBEBqz2XTw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 3, 2021 at 1:10 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Tue, Aug 3, 2021 at 1:19 AM Atish Patra <atishp@atishpatra.org> wrote:
 >
 > On Sat, Jul 24, 2021 at 5:25 AM Anup Patel <anup.patel@wdc.com> wrote:
 > >
-> > We add "set" parameter to fdt_get_node_addr_size() API so that
-> > calling function can specify index of desired register set. This
-> > will allow fdt_get_node_addr_size() to handle DT nodes with
-> > multiple register sets.
+> > We can have ACLINT MTIMER devices which only support 32-bit MMIO
+> > accesses on RV64 system so this patch adds a boolean DT property
+> > "mtimer,no-64bit-mmio" to detect this from MTIMER DT node.
 > >
 >
-> IMHO, index would be a better name for the parameter.
+> Where is this property documented ? I couldn't find it in your v3
+> aclint patch [1].
+> Did I miss something?
 
-Okay, I will use index as parameter name.
+I have updated DT bindings in linux v3 series. Please check again.
+
+>
+> I also think "mtimer,32bit-mmio" may be a better choice than
+> "mtimer,no-64bit-mmio"
+>
+> [1]https://github.com/avpatel/linux/commits/riscv_aclint_v3
+
+Actually, "mtimer,no-64bit-mmio" is more appropriate because
+all registers of MTIMER are 64-bits wide so by default RV64
+systems should support 64-bit MMIO for MTIMER. In fact, most
+existing RV64 systems do support 64-bit MMIO for MTIMER.
 
 Regards,
 Anup
 
->
 > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > > ---
-> >  include/sbi_utils/fdt/fdt_helper.h      |  3 ++-
-> >  lib/utils/fdt/fdt_helper.c              | 31 ++++++++++++++++++-------
-> >  lib/utils/gpio/fdt_gpio_sifive.c        |  2 +-
-> >  lib/utils/reset/fdt_reset_sifive_test.c |  2 +-
-> >  4 files changed, 27 insertions(+), 11 deletions(-)
+> >  lib/utils/timer/fdt_timer_mtimer.c | 3 +++
+> >  1 file changed, 3 insertions(+)
 > >
-> > diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> > index 55b9382..0445e36 100644
-> > --- a/include/sbi_utils/fdt/fdt_helper.h
-> > +++ b/include/sbi_utils/fdt/fdt_helper.h
-> > @@ -43,7 +43,8 @@ int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
-> >                                 const char *prop, const char *cells_prop,
-> >                                 int index, struct fdt_phandle_args *out_args);
+> > diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+> > index b08ed38..15a36ed 100644
+> > --- a/lib/utils/timer/fdt_timer_mtimer.c
+> > +++ b/lib/utils/timer/fdt_timer_mtimer.c
+> > @@ -58,6 +58,9 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+> >                 mt->mtime_size = size[0];
+> >                 mt->mtimecmp_addr = addr[1];
+> >                 mt->mtimecmp_size = size[1];
+> > +               /* Parse additional ACLINT MTIMER properties */
+> > +               if (fdt_getprop(fdt, nodeoff, "mtimer,no-64bit-mmio", &rc))
+> > +                       mt->has_64bit_mmio = false;
+> >         }
 > >
-> > -int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-> > +int fdt_get_node_addr_size(void *fdt, int node, int set,
-> > +                          unsigned long *addr,
-> >                            unsigned long *size);
-> >
-> >  int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
-> > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> > index a970c0f..a992911 100644
-> > --- a/lib/utils/fdt/fdt_helper.c
-> > +++ b/lib/utils/fdt/fdt_helper.c
-> > @@ -157,7 +157,8 @@ static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
-> >         return 0;
-> >  }
-> >
-> > -int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-> > +int fdt_get_node_addr_size(void *fdt, int node, int set,
-> > +                          unsigned long *addr,
-> >                            unsigned long *size)
-> >  {
-> >         int parent, len, i, rc;
-> > @@ -165,6 +166,9 @@ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-> >         const fdt32_t *prop_addr, *prop_size;
-> >         uint64_t temp = 0;
-> >
-> > +       if (!fdt || node < 0 || set < 0)
-> > +               return SBI_EINVAL;
-> > +
-> >         parent = fdt_parent_offset(fdt, node);
-> >         if (parent < 0)
-> >                 return parent;
-> > @@ -179,6 +183,11 @@ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-> >         prop_addr = fdt_getprop(fdt, node, "reg", &len);
-> >         if (!prop_addr)
-> >                 return SBI_ENODEV;
-> > +
-> > +       if ((len / sizeof(u32)) <= (set * (cell_addr + cell_size)))
-> > +               return SBI_EINVAL;
-> > +
-> > +       prop_addr = prop_addr + (set * (cell_addr + cell_size));
-> >         prop_size = prop_addr + cell_addr;
-> >
-> >         if (addr) {
-> > @@ -271,7 +280,8 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-> >         if (nodeoffset < 0 || !uart || !fdt)
-> >                 return SBI_ENODEV;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > +                                   &reg_addr, &reg_size);
-> >         if (rc < 0 || !reg_addr || !reg_size)
-> >                 return SBI_ENODEV;
-> >         uart->addr = reg_addr;
-> > @@ -309,7 +319,8 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
-> >         if (nodeoffset < 0 || !uart || !fdt)
-> >                 return SBI_ENODEV;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > +                                   &reg_addr, &reg_size);
-> >         if (rc < 0 || !reg_addr || !reg_size)
-> >                 return SBI_ENODEV;
-> >         uart->addr = reg_addr;
-> > @@ -343,7 +354,8 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
-> >         if (nodeoffset < 0 || !uart || !fdt)
-> >                 return SBI_ENODEV;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > +                                   &reg_addr, &reg_size);
-> >         if (rc < 0 || !reg_addr || !reg_size)
-> >                 return SBI_ENODEV;
-> >         uart->addr = reg_addr;
-> > @@ -381,7 +393,8 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
-> >         if (nodeoffset < 0 || !uart || !fdt)
-> >                 return SBI_ENODEV;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > +                                   &reg_addr, &reg_size);
-> >         if (rc < 0 || !reg_addr || !reg_size)
-> >                 return SBI_ENODEV;
-> >         uart->addr = reg_addr;
-> > @@ -441,7 +454,8 @@ int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic)
-> >         if (nodeoffset < 0 || !plic || !fdt)
-> >                 return SBI_ENODEV;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > +                                   &reg_addr, &reg_size);
-> >         if (rc < 0 || !reg_addr || !reg_size)
-> >                 return SBI_ENODEV;
-> >         plic->addr = reg_addr;
-> > @@ -482,7 +496,8 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
-> >             !out_first_hartid || !out_hart_count)
-> >                 return SBI_EINVAL;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, &reg_addr, &reg_size);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > +                                   &reg_addr, &reg_size);
-> >         if (rc < 0 || !reg_addr || !reg_size)
-> >                 return SBI_ENODEV;
-> >         *out_addr = reg_addr;
-> > @@ -544,7 +559,7 @@ int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
-> >         if (nodeoffset < 0)
-> >                 return nodeoffset;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, addr, NULL);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0, addr, NULL);
-> >         if (rc < 0 || !addr)
-> >                 return SBI_ENODEV;
-> >
-> > diff --git a/lib/utils/gpio/fdt_gpio_sifive.c b/lib/utils/gpio/fdt_gpio_sifive.c
-> > index abc9d72..bbddd58 100644
-> > --- a/lib/utils/gpio/fdt_gpio_sifive.c
-> > +++ b/lib/utils/gpio/fdt_gpio_sifive.c
-> > @@ -76,7 +76,7 @@ static int sifive_gpio_init(void *fdt, int nodeoff, u32 phandle,
-> >                 return SBI_ENOSPC;
-> >         chip = &sifive_gpio_chip_array[sifive_gpio_chip_count];
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoff, &chip->addr, NULL);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &chip->addr, NULL);
-> >         if (rc)
-> >                 return rc;
-> >
-> > diff --git a/lib/utils/reset/fdt_reset_sifive_test.c b/lib/utils/reset/fdt_reset_sifive_test.c
-> > index f98f03d..b0b7dbb 100644
-> > --- a/lib/utils/reset/fdt_reset_sifive_test.c
-> > +++ b/lib/utils/reset/fdt_reset_sifive_test.c
-> > @@ -18,7 +18,7 @@ static int sifive_test_reset_init(void *fdt, int nodeoff,
-> >         int rc;
-> >         unsigned long addr;
-> >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoff, &addr, NULL);
-> > +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> >         if (rc)
-> >                 return rc;
-> >
+> >         rc = aclint_mtimer_cold_init(mt, mtmaster);
 > > --
 > > 2.25.1
 > >
@@ -193,9 +70,7 @@ Anup
 > > opensbi at lists.infradead.org
 > > http://lists.infradead.org/mailman/listinfo/opensbi
 >
-> Other than that, looks good.
 >
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
 >
 > --
 > Regards,
