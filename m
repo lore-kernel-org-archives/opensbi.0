@@ -1,51 +1,63 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 16 Aug 2021 17:06:37 -0700
-Subject: [PATCH] lib: sbi_trap: Restore redirect for access faults
-In-Reply-To: <20210814134147.14056-1-samuel@sholland.org>
-References: <20210814134147.14056-1-samuel@sholland.org>
-Message-ID: <CAOnJCU+uqPpr-f4-_qK3_spkq3iXbTVPCX9_-9VjAm38nrJCng@mail.gmail.com>
+Date: Mon, 16 Aug 2021 17:10:38 -0700
+Subject: [PATCH] payloads/test: Add support for SBI v0.2 ecalls
+In-Reply-To: <20210814135210.17729-1-samuel@sholland.org>
+References: <20210814135210.17729-1-samuel@sholland.org>
+Message-ID: <CAOnJCUKZzpZ5pKbg8vGnUifjtAbJfbvYnTHrAxjidAqS7GkxjQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Aug 14, 2021 at 6:42 AM Samuel Holland <samuel@sholland.org> wrote:
+On Sat, Aug 14, 2021 at 6:52 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> commit 764a17d852a8 ("lib: sbi: Implement firmware counters") added
-> switch cases for CAUSE_LOAD_ACCESS and CAUSE_STORE_ACCESS. This caused
-> them to stop being redirected to U or S mode, as that is handled in the
-> default switch case. As a result, an error in userspace could cause the
-> system to hang. Fix this by allowing the acces fault case to fall
-> through to the default case.
-
-Thanks for catching this.
-
+> It can be useful to make SBI v0.2 or newer ecalls from this payload
+> for testing purposes. To support this, convert the macros to use the
+> extension/function parameter convention.
 >
 > Signed-off-by: Samuel Holland <samuel@sholland.org>
 > ---
->  lib/sbi/sbi_trap.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
+>  firmware/payloads/test_main.c | 15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index 5781fea..8d20e04 100644
-> --- a/lib/sbi/sbi_trap.c
-> +++ b/lib/sbi/sbi_trap.c
-> @@ -259,11 +259,10 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
->                 msg = "ecall handler failed";
->                 break;
->         case CAUSE_LOAD_ACCESS:
-> -               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_LOAD);
-> -               break;
->         case CAUSE_STORE_ACCESS:
-> -               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_STORE);
-> -               break;
-> +               sbi_pmu_ctr_incr_fw(mcause == CAUSE_LOAD_ACCESS ?
-> +                       SBI_PMU_FW_ACCESS_LOAD : SBI_PMU_FW_ACCESS_STORE);
-> +               /* fallthrough */
->         default:
->                 /* If the trap came from S or U mode, redirect it there */
->                 trap.epc = regs->mepc;
+> diff --git a/firmware/payloads/test_main.c b/firmware/payloads/test_main.c
+> index 0d65930..ae2ed4f 100644
+> --- a/firmware/payloads/test_main.c
+> +++ b/firmware/payloads/test_main.c
+> @@ -9,24 +9,25 @@
+>
+>  #include <sbi/sbi_ecall_interface.h>
+>
+> -#define SBI_ECALL(__num, __a0, __a1, __a2)                                    \
+> +#define SBI_ECALL(__eid, __fid, __a0, __a1, __a2)                             \
+>         ({                                                                    \
+>                 register unsigned long a0 asm("a0") = (unsigned long)(__a0);  \
+>                 register unsigned long a1 asm("a1") = (unsigned long)(__a1);  \
+>                 register unsigned long a2 asm("a2") = (unsigned long)(__a2);  \
+> -               register unsigned long a7 asm("a7") = (unsigned long)(__num); \
+> +               register unsigned long a6 asm("a6") = (unsigned long)(__fid); \
+> +               register unsigned long a7 asm("a7") = (unsigned long)(__eid); \
+>                 asm volatile("ecall"                                          \
+>                              : "+r"(a0)                                       \
+> -                            : "r"(a1), "r"(a2), "r"(a7)                      \
+> +                            : "r"(a1), "r"(a2), "r"(a6), "r"(a7)             \
+>                              : "memory");                                     \
+>                 a0;                                                           \
+>         })
+>
+> -#define SBI_ECALL_0(__num) SBI_ECALL(__num, 0, 0, 0)
+> -#define SBI_ECALL_1(__num, __a0) SBI_ECALL(__num, __a0, 0, 0)
+> -#define SBI_ECALL_2(__num, __a0, __a1) SBI_ECALL(__num, __a0, __a1, 0)
+> +#define SBI_ECALL_0(__eid, __fid) SBI_ECALL(__eid, __fid, 0, 0, 0)
+> +#define SBI_ECALL_1(__eid, __fid, __a0) SBI_ECALL(__eid, __fid, __a0, 0, 0)
+> +#define SBI_ECALL_2(__eid, __fid, __a0, __a1) SBI_ECALL(__eid, __fid, __a0, __a1, 0)
+>
+> -#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_EXT_0_1_CONSOLE_PUTCHAR, (c))
+> +#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_EXT_0_1_CONSOLE_PUTCHAR, 0, (c))
+>
+>  static inline void sbi_ecall_console_puts(const char *str)
+>  {
 > --
 > 2.31.1
 >
