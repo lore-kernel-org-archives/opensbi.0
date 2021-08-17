@@ -1,63 +1,43 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 16 Aug 2021 17:10:38 -0700
-Subject: [PATCH] payloads/test: Add support for SBI v0.2 ecalls
-In-Reply-To: <20210814135210.17729-1-samuel@sholland.org>
-References: <20210814135210.17729-1-samuel@sholland.org>
-Message-ID: <CAOnJCUKZzpZ5pKbg8vGnUifjtAbJfbvYnTHrAxjidAqS7GkxjQ@mail.gmail.com>
+Date: Mon, 16 Aug 2021 17:22:05 -0700
+Subject: [PATCH] lib: sbi: Fix bug in sbi_ecall_rfence that misses checking
+In-Reply-To: <20210813123300.26085-1-Dd_nirvana@sjtu.edu.cn>
+References: <20210813123300.26085-1-Dd_nirvana@sjtu.edu.cn>
+Message-ID: <CAOnJCULR-KCvf4A8SZZB31A5_rfK-=Z-onW_Ypgp00o9eHWUVQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Aug 14, 2021 at 6:52 AM Samuel Holland <samuel@sholland.org> wrote:
+On Fri, Aug 13, 2021 at 5:34 AM Dong Du <Dd_nirvana@sjtu.edu.cn> wrote:
 >
-> It can be useful to make SBI v0.2 or newer ecalls from this payload
-> for testing purposes. To support this, convert the macros to use the
-> extension/function parameter convention.
+> In sbi_ecall_rfence_handler, it will compare the funcid with REMOTE_HFENCE_GVMA and
+> REMOTE_HFENCE_VVMA_ASID.
+> And then check whether the misa includes H-extension.
+> This checking is incomplete which misses REMOTE_HFENCE_GVMA_VMID and REMOTE_HFENCE_VVMA.
+> Fix the issue by updating the checking range.
 >
-> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 > ---
->  firmware/payloads/test_main.c | 15 ++++++++-------
->  1 file changed, 8 insertions(+), 7 deletions(-)
+>  lib/sbi/sbi_ecall_replace.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/firmware/payloads/test_main.c b/firmware/payloads/test_main.c
-> index 0d65930..ae2ed4f 100644
-> --- a/firmware/payloads/test_main.c
-> +++ b/firmware/payloads/test_main.c
-> @@ -9,24 +9,25 @@
+> diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
+> index a7935d9..5d24565 100644
+> --- a/lib/sbi/sbi_ecall_replace.c
+> +++ b/lib/sbi/sbi_ecall_replace.c
+> @@ -54,8 +54,8 @@ static int sbi_ecall_rfence_handler(unsigned long extid, unsigned long funcid,
+>         struct sbi_tlb_info tlb_info;
+>         u32 source_hart = current_hartid();
 >
->  #include <sbi/sbi_ecall_interface.h>
+> -       if (funcid >= SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA &&
+> -           funcid <= SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA_ASID)
+> +       if (funcid >= SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA_VMID &&
+> +           funcid <= SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA)
+>                 if (!misa_extension('H'))
+>                         return SBI_ENOTSUPP;
 >
-> -#define SBI_ECALL(__num, __a0, __a1, __a2)                                    \
-> +#define SBI_ECALL(__eid, __fid, __a0, __a1, __a2)                             \
->         ({                                                                    \
->                 register unsigned long a0 asm("a0") = (unsigned long)(__a0);  \
->                 register unsigned long a1 asm("a1") = (unsigned long)(__a1);  \
->                 register unsigned long a2 asm("a2") = (unsigned long)(__a2);  \
-> -               register unsigned long a7 asm("a7") = (unsigned long)(__num); \
-> +               register unsigned long a6 asm("a6") = (unsigned long)(__fid); \
-> +               register unsigned long a7 asm("a7") = (unsigned long)(__eid); \
->                 asm volatile("ecall"                                          \
->                              : "+r"(a0)                                       \
-> -                            : "r"(a1), "r"(a2), "r"(a7)                      \
-> +                            : "r"(a1), "r"(a2), "r"(a6), "r"(a7)             \
->                              : "memory");                                     \
->                 a0;                                                           \
->         })
->
-> -#define SBI_ECALL_0(__num) SBI_ECALL(__num, 0, 0, 0)
-> -#define SBI_ECALL_1(__num, __a0) SBI_ECALL(__num, __a0, 0, 0)
-> -#define SBI_ECALL_2(__num, __a0, __a1) SBI_ECALL(__num, __a0, __a1, 0)
-> +#define SBI_ECALL_0(__eid, __fid) SBI_ECALL(__eid, __fid, 0, 0, 0)
-> +#define SBI_ECALL_1(__eid, __fid, __a0) SBI_ECALL(__eid, __fid, __a0, 0, 0)
-> +#define SBI_ECALL_2(__eid, __fid, __a0, __a1) SBI_ECALL(__eid, __fid, __a0, __a1, 0)
->
-> -#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_EXT_0_1_CONSOLE_PUTCHAR, (c))
-> +#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_EXT_0_1_CONSOLE_PUTCHAR, 0, (c))
->
->  static inline void sbi_ecall_console_puts(const char *str)
->  {
 > --
 > 2.31.1
 >
