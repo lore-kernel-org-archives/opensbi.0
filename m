@@ -1,38 +1,74 @@
 From: Dong Du <Dd_nirvana@sjtu.edu.cn>
-Date: Fri, 27 Aug 2021 17:35:03 +0800
-Subject: [PATCH] lib: sbi: protect dprintf output with spinlock
-Message-ID: <20210827093503.16916-1-Dd_nirvana@sjtu.edu.cn>
+Date: Fri, 27 Aug 2021 22:46:28 +0800
+Subject: [PATCH] lib: sbi: Checking fifo validness in sbi_fifo_is_empty and
+ is_full
+Message-ID: <20210827144628.29728-1-Dd_nirvana@sjtu.edu.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Avoid getting messages from multiple harts (using dprintf and printf) concurrently
-with a spinlock serializaing calls to sbi_dprintf() with sbi_printf() and sbi_puts()
+As other exported fifo functions, we should check whether the fifo is
+valid in sbi_fifo_is_empty and sbi_fifo_is_full.
+To this end, this patch changes the retval from bool to int, and the
+two functions will return SBI_EINVAL in the case the fifo is invalid.
 
 Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 ---
- lib/sbi/sbi_console.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/sbi/sbi_fifo.h |  4 ++--
+ lib/sbi/sbi_fifo.c     | 10 ++++++++--
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index b54f7a2..850af04 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -386,10 +386,12 @@ int sbi_dprintf(const char *format, ...)
- 	int retval = 0;
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
-+	spin_lock(&console_out_lock);
- 	va_start(args, format);
- 	if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS)
- 		retval = print(NULL, NULL, format, args);
- 	va_end(args);
-+	spin_unlock(&console_out_lock);
- 
- 	return retval;
+diff --git a/include/sbi/sbi_fifo.h b/include/sbi/sbi_fifo.h
+index bc8f8f6..1a85f07 100644
+--- a/include/sbi/sbi_fifo.h
++++ b/include/sbi/sbi_fifo.h
+@@ -33,8 +33,8 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data);
+ int sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data);
+ void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem, u16 entries,
+ 		   u16 entry_size);
+-bool sbi_fifo_is_empty(struct sbi_fifo *fifo);
+-bool sbi_fifo_is_full(struct sbi_fifo *fifo);
++int sbi_fifo_is_empty(struct sbi_fifo *fifo);
++int sbi_fifo_is_full(struct sbi_fifo *fifo);
+ int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
+ 			    int (*fptr)(void *in, void *data));
+ u16 sbi_fifo_avail(struct sbi_fifo *fifo);
+diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c
+index b2395f3..589cc18 100644
+--- a/lib/sbi/sbi_fifo.c
++++ b/lib/sbi/sbi_fifo.c
+@@ -43,10 +43,13 @@ u16 sbi_fifo_avail(struct sbi_fifo *fifo)
+ 	return ret;
  }
+ 
+-bool sbi_fifo_is_full(struct sbi_fifo *fifo)
++int sbi_fifo_is_full(struct sbi_fifo *fifo)
+ {
+ 	bool ret;
+ 
++	if (!fifo)
++		return SBI_EINVAL;
++
+ 	spin_lock(&fifo->qlock);
+ 	ret = __sbi_fifo_is_full(fifo);
+ 	spin_unlock(&fifo->qlock);
+@@ -75,10 +78,13 @@ static inline bool __sbi_fifo_is_empty(struct sbi_fifo *fifo)
+ 	return (fifo->avail == 0) ? TRUE : FALSE;
+ }
+ 
+-bool sbi_fifo_is_empty(struct sbi_fifo *fifo)
++int sbi_fifo_is_empty(struct sbi_fifo *fifo)
+ {
+ 	bool ret;
+ 
++	if (!fifo)
++		return SBI_EINVAL;
++
+ 	spin_lock(&fifo->qlock);
+ 	ret = __sbi_fifo_is_empty(fifo);
+ 	spin_unlock(&fifo->qlock);
 -- 
 2.31.1
 
