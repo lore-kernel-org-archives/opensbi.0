@@ -1,35 +1,39 @@
-From: Rahul Pathak <rpathak@ventanamicro.com>
-Date: Thu, 26 Aug 2021 15:24:18 +0530
-Subject: [PATCH] lib: sbi: Correct typo in faults delegation CSR name
-Message-ID: <20210826095417.135448-1-rpathak@ventanamicro.com>
+From: Dong Du <Dd_nirvana@sjtu.edu.cn>
+Date: Fri, 27 Aug 2021 17:35:03 +0800
+Subject: [PATCH] lib: sbi: protect dprintf output with spinlock
+Message-ID: <20210827093503.16916-1-Dd_nirvana@sjtu.edu.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Correcting the name of faults delegation CSR
-%s/mfdeleg/medeleg
+Avoid getting messages from multiple harts (using dprintf and printf) concurrently
+with a spinlock serializaing calls to sbi_dprintf() with sbi_printf() and sbi_puts()
 
-Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 ---
- lib/sbi/sbi_platform.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sbi/sbi_console.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/lib/sbi/sbi_platform.c b/lib/sbi/sbi_platform.c
-index e8b94a3..99bd8f5 100644
---- a/lib/sbi/sbi_platform.c
-+++ b/lib/sbi/sbi_platform.c
-@@ -20,7 +20,7 @@ static inline char *sbi_platform_feature_id2string(unsigned long feature)
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index b54f7a2..850af04 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -386,10 +386,12 @@ int sbi_dprintf(const char *format, ...)
+ 	int retval = 0;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
  
- 	switch (feature) {
- 	case SBI_PLATFORM_HAS_MFAULTS_DELEGATION:
--		fstr = "mfdeleg";
-+		fstr = "medeleg";
- 		break;
- 	default:
- 		break;
++	spin_lock(&console_out_lock);
+ 	va_start(args, format);
+ 	if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS)
+ 		retval = print(NULL, NULL, format, args);
+ 	va_end(args);
++	spin_unlock(&console_out_lock);
+ 
+ 	return retval;
+ }
 -- 
-2.25.1
+2.31.1
 
 
