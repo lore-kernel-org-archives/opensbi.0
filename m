@@ -1,74 +1,39 @@
 From: Dong Du <Dd_nirvana@sjtu.edu.cn>
-Date: Fri, 27 Aug 2021 22:46:28 +0800
-Subject: [PATCH] lib: sbi: Checking fifo validness in sbi_fifo_is_empty and
- is_full
-Message-ID: <20210827144628.29728-1-Dd_nirvana@sjtu.edu.cn>
+Date: Sat, 28 Aug 2021 14:45:02 +0800
+Subject: [PATCH v2] lib: sbi: protect dprintf output with spinlock
+Message-ID: <20210828064502.7227-1-Dd_nirvana@sjtu.edu.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-As other exported fifo functions, we should check whether the fifo is
-valid in sbi_fifo_is_empty and sbi_fifo_is_full.
-To this end, this patch changes the retval from bool to int, and the
-two functions will return SBI_EINVAL in the case the fifo is invalid.
+Avoid getting messages from multiple harts (using dprintf and printf)
+concurrently with a spinlock serializaing calls to sbi_dprintf(),
+sbi_printf() and sbi_puts()
 
 Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 ---
- include/sbi/sbi_fifo.h |  4 ++--
- lib/sbi/sbi_fifo.c     | 10 ++++++++--
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ lib/sbi/sbi_console.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/sbi_fifo.h b/include/sbi/sbi_fifo.h
-index bc8f8f6..1a85f07 100644
---- a/include/sbi/sbi_fifo.h
-+++ b/include/sbi/sbi_fifo.h
-@@ -33,8 +33,8 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data);
- int sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data);
- void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem, u16 entries,
- 		   u16 entry_size);
--bool sbi_fifo_is_empty(struct sbi_fifo *fifo);
--bool sbi_fifo_is_full(struct sbi_fifo *fifo);
-+int sbi_fifo_is_empty(struct sbi_fifo *fifo);
-+int sbi_fifo_is_full(struct sbi_fifo *fifo);
- int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
- 			    int (*fptr)(void *in, void *data));
- u16 sbi_fifo_avail(struct sbi_fifo *fifo);
-diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c
-index b2395f3..589cc18 100644
---- a/lib/sbi/sbi_fifo.c
-+++ b/lib/sbi/sbi_fifo.c
-@@ -43,10 +43,13 @@ u16 sbi_fifo_avail(struct sbi_fifo *fifo)
- 	return ret;
- }
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index b54f7a2..29eede3 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -387,8 +387,11 @@ int sbi_dprintf(const char *format, ...)
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
  
--bool sbi_fifo_is_full(struct sbi_fifo *fifo)
-+int sbi_fifo_is_full(struct sbi_fifo *fifo)
- {
- 	bool ret;
+ 	va_start(args, format);
+-	if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS)
++	if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS) {
++		spin_lock(&console_out_lock);
+ 		retval = print(NULL, NULL, format, args);
++		spin_unlock(&console_out_lock);
++	}
+ 	va_end(args);
  
-+	if (!fifo)
-+		return SBI_EINVAL;
-+
- 	spin_lock(&fifo->qlock);
- 	ret = __sbi_fifo_is_full(fifo);
- 	spin_unlock(&fifo->qlock);
-@@ -75,10 +78,13 @@ static inline bool __sbi_fifo_is_empty(struct sbi_fifo *fifo)
- 	return (fifo->avail == 0) ? TRUE : FALSE;
- }
- 
--bool sbi_fifo_is_empty(struct sbi_fifo *fifo)
-+int sbi_fifo_is_empty(struct sbi_fifo *fifo)
- {
- 	bool ret;
- 
-+	if (!fifo)
-+		return SBI_EINVAL;
-+
- 	spin_lock(&fifo->qlock);
- 	ret = __sbi_fifo_is_empty(fifo);
- 	spin_unlock(&fifo->qlock);
+ 	return retval;
 -- 
 2.31.1
 
