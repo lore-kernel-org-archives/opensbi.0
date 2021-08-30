@@ -1,69 +1,50 @@
-From: Anup Patel <Anup.Patel@wdc.com>
-Date: Mon, 30 Aug 2021 03:56:27 +0000
-Subject: [PATCH v2] lib: sbi: protect dprintf output with spinlock
-In-Reply-To: <8e0a879265c7817ba07e6e64353d81a2816b46b2.camel@126.com>
-References: <20210828064502.7227-1-Dd_nirvana@sjtu.edu.cn>
- <8e0a879265c7817ba07e6e64353d81a2816b46b2.camel@126.com>
-Message-ID: <397FF35B-066C-4490-9D98-016571D66BF7@wdc.com>
+From: Dong Du <Dd_nirvana@sjtu.edu.cn>
+Date: Mon, 30 Aug 2021 21:59:14 +0800
+Subject: [PATCH] lib: sbi: Refine the way to construct platform features
+Message-ID: <20210830135914.15395-1-Dd_nirvana@sjtu.edu.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+sbi_platform_get_features_str() uses sbi_snprintf() to construct the
+features_str. However, it passes the wrong length value (i.e., the nfstr),
+which should be (nfstr-offset) as the starting point of str (i.e., features_str + offset)
+changes.
+This commit also checks the return value of snprintf, and handles the corner case
+that the string buffer is full.
 
+Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+---
+ lib/sbi/sbi_platform.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-?On 30/08/21, 8:20 AM, "opensbi on behalf of Xiang W" <opensbi-bounces at lists.infradead.org on behalf of wxjstz@126.com> wrote:
+diff --git a/lib/sbi/sbi_platform.c b/lib/sbi/sbi_platform.c
+index 99bd8f5..56c37aa 100644
+--- a/lib/sbi/sbi_platform.c
++++ b/lib/sbi/sbi_platform.c
+@@ -48,9 +48,17 @@ void sbi_platform_get_features_str(const struct sbi_platform *plat,
+ 		if (features & feat) {
+ 			temp = sbi_platform_feature_id2string(feat);
+ 			if (temp) {
+-				sbi_snprintf(features_str + offset, nfstr,
++				int len = sbi_snprintf(features_str + offset, nfstr - offset,
+ 					     "%s,", temp);
+-				offset = offset + sbi_strlen(temp) + 1;
++				if (len < 0)
++					break;
++
++				if (offset + len >= nfstr) {
++					// No more space for features
++					offset = nfstr;
++					break;
++				} else
++					offset = offset + len;
+ 			}
+ 		}
+ 		feat = feat << 1;
+-- 
+2.31.1
 
-    ? 2021-08-28???? 14:45 +0800?Dong Du???
-    > Avoid getting messages from multiple harts (using dprintf and printf)
-    > concurrently with a spinlock serializaing calls to sbi_dprintf(),
-    > sbi_printf() and sbi_puts()
-    > 
-    > Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
-
-    look good to me.
-    Reviewed-by: Xiang W <wxjstz@126.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-    > ---
-    >  lib/sbi/sbi_console.c | 5 ++++-
-    >  1 file changed, 4 insertions(+), 1 deletion(-)
-    > 
-    > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-    > index b54f7a2..29eede3 100644
-    > --- a/lib/sbi/sbi_console.c
-    > +++ b/lib/sbi/sbi_console.c
-    > @@ -387,8 +387,11 @@ int sbi_dprintf(const char *format, ...)
-    >         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-    >  
-    >         va_start(args, format);
-    > -       if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS)
-    > +       if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS) {
-    > +               spin_lock(&console_out_lock);
-    >                 retval = print(NULL, NULL, format, args);
-    > +               spin_unlock(&console_out_lock);
-    > +       }
-    >         va_end(args);
-    >  
-    >         return retval;
-    > -- 
-    > 2.31.1
-    > 
-    > 
-
-
-
-    -- 
-    opensbi mailing list
-    opensbi at lists.infradead.org
-    http://lists.infradead.org/mailman/listinfo/opensbi
 
