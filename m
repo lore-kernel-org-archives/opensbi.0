@@ -1,66 +1,58 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Tue, 31 Aug 2021 19:09:27 +0200
-Subject: [RFC 1/1] fw_base: header for vendor information
-Message-ID: <20210831170927.93019-1-heinrich.schuchardt@canonical.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Wed, 1 Sep 2021 06:15:54 +0800
+Subject: [PATCH] lib: sbi: Refine the way to construct platform features
+In-Reply-To: <20210830135914.15395-1-Dd_nirvana@sjtu.edu.cn>
+References: <20210830135914.15395-1-Dd_nirvana@sjtu.edu.cn>
+Message-ID: <CAEUhbmXEUOdW6M-tA3SnwK2jzYpvu_nVwmrk9DQErSPvHjj5UQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-To implement secure boot OpenSBI should provide a well defined header
-structure with reserved space in which a vendor can place information
-related to a signature that the boot ROM code can check.
+On Mon, Aug 30, 2021 at 10:00 PM Dong Du <Dd_nirvana@sjtu.edu.cn> wrote:
+>
+> sbi_platform_get_features_str() uses sbi_snprintf() to construct the
+> features_str. However, it passes the wrong length value (i.e., the nfstr),
+> which should be (nfstr-offset) as the starting point of str (i.e., features_str + offset)
+> changes.
+> This commit also checks the return value of snprintf, and handles the corner case
+> that the string buffer is full.
+>
+> Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> ---
+>  lib/sbi/sbi_platform.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_platform.c b/lib/sbi/sbi_platform.c
+> index 99bd8f5..56c37aa 100644
+> --- a/lib/sbi/sbi_platform.c
+> +++ b/lib/sbi/sbi_platform.c
+> @@ -48,9 +48,17 @@ void sbi_platform_get_features_str(const struct sbi_platform *plat,
+>                 if (features & feat) {
+>                         temp = sbi_platform_feature_id2string(feat);
+>                         if (temp) {
+> -                               sbi_snprintf(features_str + offset, nfstr,
+> +                               int len = sbi_snprintf(features_str + offset, nfstr - offset,
+>                                              "%s,", temp);
+> -                               offset = offset + sbi_strlen(temp) + 1;
+> +                               if (len < 0)
+> +                                       break;
+> +
+> +                               if (offset + len >= nfstr) {
+> +                                       // No more space for features
 
-Typically this space will be used to add
+Use /* */ style
 
-* vendor magic
-* type of signature
-* offset to signature
+> +                                       offset = nfstr;
+> +                                       break;
+> +                               } else
+> +                                       offset = offset + len;
+>                         }
+>                 }
+>                 feat = feat << 1;
+>
 
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
----
-Ideally such a header would be standardized. This would allow alternative
-firmware to be validated by the same boot ROM.
-
-Could this be a topic for the platform specification?
-
-Best regards
-
-Heinrich
----
- firmware/fw_base.S | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 1569e60..e2cc5cb 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_trap.h>
-+#include <sbi/sbi_version.h>
- 
- #define BOOT_STATUS_RELOCATE_DONE	1
- #define BOOT_STATUS_BOOT_HART_DONE	2
-@@ -47,6 +48,15 @@
- 	.globl _start
- 	.globl _start_warm
- _start:
-+	j	_real_start
-+	.align	2
-+	.ascii	"OpenSBI\0"
-+	.short	OPENSBI_VERSION_MAJOR
-+	.short  OPENSBI_VERSION_MINOR
-+	/* Space reserved for vendor information, e.g. offset to a signature */
-+	.long	0
-+	.skip	12
-+_real_start:
- 	/* Find preferred boot HART id */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
- 	call	fw_boot_hart
--- 
-2.30.2
-
+Regards,
+Bin
 
