@@ -1,62 +1,105 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 31 Aug 2023 11:39:29 +0800
-Subject: [RFC PATCH 1/2] ilib: sbi: add sbi_platform_hart_index2id
-In-Reply-To: <20230831033930.694299-1-wxjstz@126.com>
-References: <20230831033930.694299-1-wxjstz@126.com>
-Message-ID: <20230831033930.694299-2-wxjstz@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 3 Sep 2021 12:04:48 +0530
+Subject: [PATCH] lib: sbi: Checking fifo validness in sbi_fifo_is_empty
+ and is_full
+In-Reply-To: <CAOnJCUK_ad-aNWKrLEd2UKxDP-s09tXgkDG89ATH_gtwJB7HCw@mail.gmail.com>
+References: <20210827144628.29728-1-Dd_nirvana@sjtu.edu.cn>
+ <CAOnJCUK_ad-aNWKrLEd2UKxDP-s09tXgkDG89ATH_gtwJB7HCw@mail.gmail.com>
+Message-ID: <CAAhSdy1EqTEbp5MoOfbjSMd4nNFpzZVu2PfAvCKY=Wb-DfLD1A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add sbi_platform_hart_index2id to find hart index by hartid.
+On Tue, Aug 31, 2021 at 2:52 AM Atish Patra <atishp@atishpatra.org> wrote:
+>
+> On Fri, Aug 27, 2021 at 7:47 AM Dong Du <Dd_nirvana@sjtu.edu.cn> wrote:
+> >
+> > As other exported fifo functions, we should check whether the fifo is
+> > valid in sbi_fifo_is_empty and sbi_fifo_is_full.
+> > To this end, this patch changes the retval from bool to int, and the
+> > two functions will return SBI_EINVAL in the case the fifo is invalid.
+> >
+> > Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> > ---
+> >  include/sbi/sbi_fifo.h |  4 ++--
+> >  lib/sbi/sbi_fifo.c     | 10 ++++++++--
+> >  2 files changed, 10 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_fifo.h b/include/sbi/sbi_fifo.h
+> > index bc8f8f6..1a85f07 100644
+> > --- a/include/sbi/sbi_fifo.h
+> > +++ b/include/sbi/sbi_fifo.h
+> > @@ -33,8 +33,8 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data);
+> >  int sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data);
+> >  void sbi_fifo_init(struct sbi_fifo *fifo, void *queue_mem, u16 entries,
+> >                    u16 entry_size);
+> > -bool sbi_fifo_is_empty(struct sbi_fifo *fifo);
+> > -bool sbi_fifo_is_full(struct sbi_fifo *fifo);
+> > +int sbi_fifo_is_empty(struct sbi_fifo *fifo);
+> > +int sbi_fifo_is_full(struct sbi_fifo *fifo);
+> >  int sbi_fifo_inplace_update(struct sbi_fifo *fifo, void *in,
+> >                             int (*fptr)(void *in, void *data));
+> >  u16 sbi_fifo_avail(struct sbi_fifo *fifo);
+> > diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c
+> > index b2395f3..589cc18 100644
+> > --- a/lib/sbi/sbi_fifo.c
+> > +++ b/lib/sbi/sbi_fifo.c
+> > @@ -43,10 +43,13 @@ u16 sbi_fifo_avail(struct sbi_fifo *fifo)
+> >         return ret;
+> >  }
+> >
+> > -bool sbi_fifo_is_full(struct sbi_fifo *fifo)
+> > +int sbi_fifo_is_full(struct sbi_fifo *fifo)
+> >  {
+> >         bool ret;
+> >
+> > +       if (!fifo)
+> > +               return SBI_EINVAL;
+> > +
+> >         spin_lock(&fifo->qlock);
+> >         ret = __sbi_fifo_is_full(fifo);
+> >         spin_unlock(&fifo->qlock);
+> > @@ -75,10 +78,13 @@ static inline bool __sbi_fifo_is_empty(struct sbi_fifo *fifo)
+> >         return (fifo->avail == 0) ? TRUE : FALSE;
+> >  }
+> >
+> > -bool sbi_fifo_is_empty(struct sbi_fifo *fifo)
+> > +int sbi_fifo_is_empty(struct sbi_fifo *fifo)
+> >  {
+> >         bool ret;
+> >
+> > +       if (!fifo)
+> > +               return SBI_EINVAL;
+> > +
+> >         spin_lock(&fifo->qlock);
+> >         ret = __sbi_fifo_is_empty(fifo);
+> >         spin_unlock(&fifo->qlock);
+> > --
+> > 2.31.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>
+> Reviewed-by: Atish Patra <atish.patra@wdc.com>
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- include/sbi/sbi_platform.h | 10 ++++++++++
- lib/sbi/sbi_platform.c     |  9 +++++++++
- 2 files changed, 19 insertions(+)
+Applied this patch to the riscv/opensbi repo.
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 3e9616f..6df5d8b 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -268,6 +268,16 @@ _Static_assert(
-  */
- u32 sbi_platform_hart_index(const struct sbi_platform *plat, u32 hartid);
- 
-+/**
-+ * Get HART id for the given index
-+ *
-+ * @param plat porinter to struct sbi_platform
-+ * @param index HART index
-+ *
-+ * @return -1U is invalid value
-+*/
-+u32 sbi_platform_hart_index2id(const struct sbi_platform *plat, u32 index);
-+
- /**
-  * Get the platform features in string format
-  *
-diff --git a/lib/sbi/sbi_platform.c b/lib/sbi/sbi_platform.c
-index 445a8c1..25bbf99 100644
---- a/lib/sbi/sbi_platform.c
-+++ b/lib/sbi/sbi_platform.c
-@@ -88,3 +88,12 @@ u32 sbi_platform_hart_index(const struct sbi_platform *plat, u32 hartid)
- 
- 	return hartid;
- }
-+
-+u32 sbi_platform_hart_index2id(const struct sbi_platform *plat, u32 index)
-+{
-+	if (!plat || index >= plat->hart_count)
-+		return -1U;
-+	if (plat->hart_index2id)
-+		return plat->hart_index2id[index];
-+	return index;
-+}
--- 
-2.40.1
+Thanks,
+Anup
 
+>
+> --
+> Regards,
+> Atish
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
