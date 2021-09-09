@@ -1,59 +1,129 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Thu,  9 Sep 2021 13:40:26 -0700
-Subject: [RFC PATCH 4/9] lib: sbi: Delegate PMU counter overflow interrupt to
- S mode
+Date: Thu,  9 Sep 2021 13:40:28 -0700
+Subject: [RFC PATCH 6/9] lib: sbi: Always enable access for all counters
 In-Reply-To: <20210909204031.1239254-1-atish.patra@wdc.com>
 References: <20210909204031.1239254-1-atish.patra@wdc.com>
-Message-ID: <20210909204031.1239254-5-atish.patra@wdc.com>
+Message-ID: <20210909204031.1239254-7-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We don't handle PMU counters for now. Delete the overflow counter to
-S-mode always.
+OpenSBI doesn't use any counters for its own usage. Thus, all the counters
+can be made accessible for lower privilege mode always. However, the
+mcountinhibit must be set so that the counter don't increment.
+As a result, we don't have enable/disable mcounteren at every start/stop.
 
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/riscv_encoding.h | 2 ++
- lib/sbi/sbi_hart.c           | 3 +++
- 2 files changed, 5 insertions(+)
+ lib/sbi/sbi_hart.c | 17 +++++------------
+ lib/sbi/sbi_pmu.c  | 17 +++++------------
+ 2 files changed, 10 insertions(+), 24 deletions(-)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index f01c6cf0264d..c2cf0f4d69f4 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -86,6 +86,7 @@
- #define IRQ_VS_EXT			10
- #define IRQ_M_EXT			11
- #define IRQ_S_GEXT			12
-+#define IRQ_PMU_OVF			13
- 
- #define MIP_SSIP			(_UL(1) << IRQ_S_SOFT)
- #define MIP_VSSIP			(_UL(1) << IRQ_VS_SOFT)
-@@ -97,6 +98,7 @@
- #define MIP_VSEIP			(_UL(1) << IRQ_VS_EXT)
- #define MIP_MEIP			(_UL(1) << IRQ_M_EXT)
- #define MIP_SGEIP			(_UL(1) << IRQ_S_GEXT)
-+#define MIP_LCOFIP			(_UL(1) << IRQ_PMU_OVF)
- 
- #define SIP_SSIP			MIP_SSIP
- #define SIP_STIP			MIP_STIP
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 44b8dfd1b551..6076bea2470d 100644
+index 6076bea2470d..7ea089bc158e 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -115,6 +115,9 @@ static int delegate_traps(struct sbi_scratch *scratch)
+@@ -57,18 +57,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 		csr_write(CSR_SCOUNTEREN, 7);
  
- 	/* Send M-mode interrupts and most exceptions to S-mode */
- 	interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
-+	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF))
-+		interrupts |= MIP_LCOFIP;
-+
- 	exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
- 		     (1U << CAUSE_USER_ECALL);
- 	if (sbi_platform_has_mfaults_delegation(plat))
+ 	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN)) {
+-		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
+-			/**
+-			 * Just enable the default counters (CY, TM, IR) because
+-			 * some OS (e.g FreeBSD) expect them to be enabled.
+-			 *
+-			 * All other counters will be enabled at runtime after
+-			 * S-mode request.
+-			 */
+-			csr_write(CSR_MCOUNTEREN, 7);
+-		else
+-			/* Supervisor mode usage are enabled by default */
+-			csr_write(CSR_MCOUNTEREN, -1);
++		/* OpenSBI doesn't use any PMU counters in M-mode.
++		 * Supervisor mode usage for all counters are enabled by default
++		 * But counters will not run until mcountinhibit is set.
++		 */
++		csr_write(CSR_MCOUNTEREN, -1);
+ 	}
+ 
+ 	/* All programmable counters will start running at runtime after S-mode request */
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index bbbd033b4cfe..dbad4478e7e7 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -275,22 +275,20 @@ static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
+ 
+ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
+ {
+-	unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
+ 
+ 	/* Make sure the counter index lies within the range and is not TM bit */
+ 	if (cidx > num_hw_ctrs || cidx == 1)
+ 		return SBI_EINVAL;
+ 
+-	if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt))
++	if (!__test_bit(cidx, &mctr_inhbt))
+ 		return SBI_EALREADY_STARTED;
+ 
+-	__set_bit(cidx, &mctr_en);
+ 	__clear_bit(cidx, &mctr_inhbt);
+ 
+ 	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF))
+ 		pmu_ctr_enable_irq_hw(cidx);
+-	csr_write(CSR_MCOUNTEREN, mctr_en);
+ 	csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
+ 
+ 	if (ival_update)
+@@ -344,17 +342,14 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+ 
+ static int pmu_ctr_stop_hw(uint32_t cidx)
+ {
+-	unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
+ 	unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
+ 
+ 	/* Make sure the counter index lies within the range and is not TM bit */
+ 	if (cidx > num_hw_ctrs || cidx == 1)
+ 		return SBI_EINVAL;
+ 
+-	if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt)) {
++	if (!__test_bit(cidx, &mctr_inhbt)) {
+ 		__set_bit(cidx, &mctr_inhbt);
+-		__clear_bit(cidx, &mctr_en);
+-		csr_write(CSR_MCOUNTEREN, mctr_en);
+ 		csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
+ 		return 0;
+ 	} else
+@@ -447,7 +442,6 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+ 	unsigned long ctr_mask;
+ 	int i, ret = 0, ctr_idx = SBI_ENOTSUPP;
+ 	struct sbi_pmu_hw_event *temp;
+-	unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
+ 	unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
+ 	int evt_idx_code = get_cidx_code(event_idx);
+ 
+@@ -472,8 +466,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+ 
+ 		ctr_mask = temp->counters & (cmask << cbase);
+ 		for_each_set_bit_from(cbase, &ctr_mask, SBI_PMU_HW_CTR_MAX) {
+-			if (!__test_bit(cbase, &mctr_en) &&
+-			    __test_bit(cbase, &mctr_inhbt)) {
++			if (__test_bit(cbase, &mctr_inhbt)) {
+ 				ctr_idx = cbase;
+ 				break;
+ 			}
+@@ -645,7 +638,7 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
+ 		return;
+ 
+ 	csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+-	csr_write(CSR_MCOUNTEREN, 7);
++	csr_write(CSR_MCOUNTEREN, -1);
+ 	pmu_reset_event_map(hartid);
+ }
+ 
 -- 
 2.31.1
 
