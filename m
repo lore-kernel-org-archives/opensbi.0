@@ -1,66 +1,28 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 15 Sep 2021 14:51:28 +0530
-Subject: [PATCH 5/5] lib: utils/reset: use sbi_timer_mdelay() in gpio reset
- driver
-In-Reply-To: <20210915092128.1029868-1-anup.patel@wdc.com>
-References: <20210915092128.1029868-1-anup.patel@wdc.com>
-Message-ID: <20210915092128.1029868-6-anup.patel@wdc.com>
+From: Andreas Schwab <schwab@linux-m68k.org>
+Date: Wed, 15 Sep 2021 11:27:13 +0200
+Subject: [PATCH V2 1/2] lib: sbi: add some macros to detect BUG at runtime
+In-Reply-To: <20210915090330.23354-1-wxjstz@126.com> (Xiang W.'s message of
+ "Wed, 15 Sep 2021 17:03:29 +0800")
+References: <20210915090330.23354-1-wxjstz@126.com>
+Message-ID: <87wnni42a6.fsf@igel.home>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We should use sbi_timer_mdelay() instead of custom gpio_mdelay() in
-the gpio reset driver.
+On Sep 15 2021, Xiang W wrote:
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- lib/utils/reset/fdt_reset_gpio.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+> +#define BUG_ON(cond) do { \
+> +	if (!(cond))	\
+> +		BUG(); \
 
-diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-index 77e308a..30127f5 100644
---- a/lib/utils/reset/fdt_reset_gpio.c
-+++ b/lib/utils/reset/fdt_reset_gpio.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_system.h>
-+#include <sbi/sbi_timer.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/gpio/fdt_gpio.h>
- #include <sbi_utils/reset/fdt_reset.h>
-@@ -34,14 +35,6 @@ static struct gpio_reset restart = {
- 	.inactive_delay = 100
- };
- 
--/* Custom mdelay function until we have a generic mdelay() API */
--static void gpio_mdelay(unsigned long msecs)
--{
--	volatile int i;
--	while (msecs--)
--		for (i = 0; i < 100000; i++) ;
--}
--
- static int gpio_system_reset_check(u32 type, u32 reason)
- {
- 	switch (type) {
-@@ -76,11 +69,11 @@ static void gpio_system_reset(u32 type, u32 reason)
- 
- 		/* drive it active, also inactive->active edge */
- 		gpio_direction_output(&reset->pin, 1);
--		gpio_mdelay(reset->active_delay);
-+		sbi_timer_mdelay(reset->active_delay);
- 
- 		/* drive inactive, also active->inactive edge */
- 		gpio_set(&reset->pin, 0);
--		gpio_mdelay(reset->inactive_delay);
-+		sbi_timer_mdelay(reset->inactive_delay);
- 
- 		/* drive it active, also inactive->active edge */
- 		gpio_set(&reset->pin, 1);
+Isn't that backwards?
+
+Andreas.
+
 -- 
-2.25.1
-
+Andreas Schwab, schwab at linux-m68k.org
+GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
+"And now for something completely different."
 
