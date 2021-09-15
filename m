@@ -1,58 +1,90 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 15 Sep 2021 21:53:51 +0800
-Subject: [PATCH V3 2/2] lib: sbi: Add runtime bug detection for
- csr_read_num/csr_write_num/misa_string
-In-Reply-To: <20210915135351.34295-1-wxjstz@126.com>
-References: <20210915135351.34295-1-wxjstz@126.com>
-Message-ID: <20210915135351.34295-2-wxjstz@126.com>
+Date: Wed, 15 Sep 2021 21:56:33 +0800
+Subject: [PATCH V2 1/2] lib: sbi: add some macros to detect BUG at runtime
+In-Reply-To: <1921219929.1011531.1631709579523.JavaMail.zimbra@sjtu.edu.cn>
+References: <20210915090330.23354-1-wxjstz@126.com>
+ <1921219929.1011531.1631709579523.JavaMail.zimbra@sjtu.edu.cn>
+Message-ID: <7544ae324eca8c0b916911283c28dede8ca2cd87.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/riscv_asm.c | 4 ++++
- 1 file changed, 4 insertions(+)
+? 2021-09-15???? 20:39 +0800??????
+> 
+> 
+> ----- Original Message -----
+> > From: "Xiang W" <wxjstz@126.com>
+> > To: "opensbi" <opensbi@lists.infradead.org>
+> > Cc: "atish patra" <atish.patra@wdc.com>, "anup patel" <
+> > anup.patel at wdc.com>, "Xiang W" <wxjstz@126.com>
+> > Sent: Wednesday, September 15, 2021 5:03:29 PM
+> > Subject: [PATCH V2 1/2] lib: sbi: add some macros to detect BUG at
+> > runtime
+> 
+> > Two macros are mainly added. One is called BUG(), which is used to
+> > put
+> > in unreachable branches. One named BUG_ON, used for assertion.
+> > 
+> > Signed-off-by: Xiang W <wxjstz@126.com>
+> > ---
+> > include/sbi/sbi_console.h | 13 +++++++++++++
+> > 1 file changed, 13 insertions(+)
+> > 
+> > diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
+> > index e24ba5f..e75a279 100644
+> > --- a/include/sbi/sbi_console.h
+> > +++ b/include/sbi/sbi_console.h
+> > @@ -11,6 +11,7 @@
+> > #define __SBI_CONSOLE_H__
+> > 
+> > #include <sbi/sbi_types.h>
+> > +#include <sbi/riscv_asm.h>
+> > 
+> > struct sbi_console_device {
+> > ????????/** Name of the console device */
+> > @@ -51,4 +52,16 @@ struct sbi_scratch;
+> > 
+> > int sbi_console_init(struct sbi_scratch *scratch);
+> > 
+> > +#define BUG() do { \
+> > +???????sbi_printf("BUG: failure at %s:%d/%s()!\n", __FILE__,
+> > __LINE__, __func__); \
+> > +???????while (1)???????\
+> > +???????????????wfi();??\
+> > +???????__builtin_unreachable(); \
+> > +} while (0)
+> > +
+> > +#define BUG_ON(cond) do { \
+> > +???????if (!(cond))????\
+> > +???????????????BUG(); \
+> > +} while (0)
+> > +
+> 
+> If the BUG_ON has a similar semantics as BUG_ON in Linux, it should
+> be:
+> ? + if (cond)???\
+> ? +?????????????BUG(); \
+> 
+I want to implement BUG_ON like assert. If the meaning of linux is like
+this, I think it can be used as a reference
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 4c24a51..281e50a 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -11,6 +11,7 @@
- #include <sbi/riscv_encoding.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_console.h>
- 
- /* determine CPU extension, return non-zero support */
- int misa_extension_imp(char ext)
-@@ -75,6 +76,7 @@ void misa_string(int xlen, char *out, unsigned int out_sz)
- 			out[pos++] = '8';
- 			break;
- 		default:
-+			BUG();
- 			return;
- 		}
- 	}
-@@ -134,6 +136,7 @@ unsigned long csr_read_num(int csr_num)
- #endif
- 
- 	default:
-+		BUG();
- 		break;
- 	};
- 
-@@ -197,6 +200,7 @@ void csr_write_num(int csr_num, unsigned long val)
- 	switchcase_csr_write_16(CSR_MHPMEVENT16, val)
- 
- 	default:
-+		BUG();
- 		break;
- 	};
- 
--- 
-2.30.2
+Regards?
+Xiang W
+> > #endif
+> > --
+> > 2.30.2
+> > 
+> > 
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Regards,
+> Dong
+> 
+
 
 
