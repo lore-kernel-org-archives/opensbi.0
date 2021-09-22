@@ -1,64 +1,87 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 22 Sep 2021 13:29:58 +0530
-Subject: [PATCH] lib: sbi: fix ctz bug
-In-Reply-To: <CAAhSdy38eg+DjoxaCJTK-Z+y8cK3TcJr68JUJpynea7Z8CRjeg@mail.gmail.com>
-References: <20210915065052.14980-1-wxjstz@126.com>
- <CAEUhbmUTK9BWS1wjdY11TXhwz44Ag+L4=r33NWM-3HL2AMZ9Sw@mail.gmail.com>
- <CAAhSdy38eg+DjoxaCJTK-Z+y8cK3TcJr68JUJpynea7Z8CRjeg@mail.gmail.com>
-Message-ID: <CAAhSdy0Kg8Sqn610v2On0dSkJDVR4FmDjiv0GabWEbHix0NxMQ@mail.gmail.com>
+Date: Wed, 22 Sep 2021 13:44:54 +0530
+Subject: [PATCH V4 1/2] lib: sbi: add some macros to detect BUG at runtime
+In-Reply-To: <20210916043250.8656-1-wxjstz@126.com>
+References: <20210916043250.8656-1-wxjstz@126.com>
+Message-ID: <CAAhSdy2nHdmF4oqU0xu5uAmQbT8iSsVuKu4gu0ZY=hQ0BzRjzw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 22, 2021 at 1:26 PM Anup Patel <anup@brainfault.org> wrote:
+On Thu, Sep 16, 2021 at 10:03 AM Xiang W <wxjstz@126.com> wrote:
 >
-> On Wed, Sep 15, 2021 at 1:02 PM Bin Meng <bmeng.cn@gmail.com> wrote:
-> >
-> > On Wed, Sep 15, 2021 at 2:51 PM Xiang W <wxjstz@126.com> wrote:
-> > >
-> > > The original version of ctz will cause an endless loop, if the parameter
-> > > passed in is 0. This commit fixes this bug.
-> > >
-> > > Signed-off-by: Xiang W <wxjstz@126.com>
-> > > ---
-> > >  lib/sbi/riscv_asm.c | 3 +++
-> > >  1 file changed, 3 insertions(+)
-> > >
-> > > diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> > > index 4c24a51..d7b9b2b 100644
-> > > --- a/lib/sbi/riscv_asm.c
-> > > +++ b/lib/sbi/riscv_asm.c
-> > > @@ -213,6 +213,9 @@ static unsigned long ctz(unsigned long x)
-> > >  {
-> > >         unsigned long ret = 0;
-> > >
-> > > +       if (x == 0)
-> > > +               return 8 * sizeof(x);
-> > > +
-> > >         while (!(x & 1UL)) {
-> > >                 ret++;
-> > >                 x = x >> 1;
-> >
-> > Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+> Three macros are added. One is called BUG, which is used to put in an
+> unreachable branch. One is called BUG_ON, which is used to check bugs
+> and assert conditions are opposite. One is called SBI_ASSERT, used for
+> assertion checking.
 >
-> Looks good to me.
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> ---
+>  include/sbi/sbi_console.h | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
 >
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
+> index e24ba5f..05d2f57 100644
+> --- a/include/sbi/sbi_console.h
+> +++ b/include/sbi/sbi_console.h
+> @@ -11,6 +11,8 @@
+>  #define __SBI_CONSOLE_H__
+>
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/riscv_asm.h>
 
-Applied this to the riscv/opensbi repo as well.
+Including "sbi/riscv_asm.h" is redundant with the use of sbi_hart_hang().
+
+> +#include <sbi/sbi_hart.h>
+>
+>  struct sbi_console_device {
+>         /** Name of the console device */
+> @@ -51,4 +53,21 @@ struct sbi_scratch;
+>
+>  int sbi_console_init(struct sbi_scratch *scratch);
+>
+> +#define BUG() do { \
+> +       sbi_printf("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __func__); \
+
+This line should be within 80 characters.
+
+> +       sbi_hart_hang(); \
+> +} while (0)
+> +
+> +#define BUG_ON(cond) do { \
+> +       if (cond)       \
+> +               BUG();  \
+> +} while (0)
+> +
+> +#define SBI_ASSERT(cond) do { \
+> +       if (!(cond)) { \
+> +               sbi_printf("ASSERT: %s:%d/%s(): Assertion `%s` failed.\n", __FILE__,__LINE__,__func__, #cond);\
+
+same as above.
+
+> +               sbi_hart_hang(); \
+> +       } \
+> +} while (0)
+> +
+>  #endif
+> --
+> 2.30.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Otherwise, this patch looks good.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+I have taken care of the above minor comments while merging this
+patch. Applied this patch to the riscv/opensbi repo.
 
 Regards,
 Anup
-
->
-> Regards,
-> Anup
->
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
 
