@@ -1,27 +1,55 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 16 Sep 2021 15:33:31 +0800
-Subject: [PATCH 5/5] lib: utils/reset: use sbi_timer_mdelay() in gpio
- reset driver
-In-Reply-To: <20210915092128.1029868-6-anup.patel@wdc.com>
-References: <20210915092128.1029868-1-anup.patel@wdc.com>
- <20210915092128.1029868-6-anup.patel@wdc.com>
-Message-ID: <CAEUhbmUH3RFvH40OsqZsA4Cpm2WTMQZ5njHE1n5_JuDNg8p58g@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 22 Sep 2021 13:26:11 +0530
+Subject: [PATCH] lib: sbi: fix ctz bug
+In-Reply-To: <CAEUhbmUTK9BWS1wjdY11TXhwz44Ag+L4=r33NWM-3HL2AMZ9Sw@mail.gmail.com>
+References: <20210915065052.14980-1-wxjstz@126.com>
+ <CAEUhbmUTK9BWS1wjdY11TXhwz44Ag+L4=r33NWM-3HL2AMZ9Sw@mail.gmail.com>
+Message-ID: <CAAhSdy38eg+DjoxaCJTK-Z+y8cK3TcJr68JUJpynea7Z8CRjeg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 15, 2021 at 5:22 PM Anup Patel <anup.patel@wdc.com> wrote:
+On Wed, Sep 15, 2021 at 1:02 PM Bin Meng <bmeng.cn@gmail.com> wrote:
 >
-> We should use sbi_timer_mdelay() instead of custom gpio_mdelay() in
-> the gpio reset driver.
+> On Wed, Sep 15, 2021 at 2:51 PM Xiang W <wxjstz@126.com> wrote:
+> >
+> > The original version of ctz will cause an endless loop, if the parameter
+> > passed in is 0. This commit fixes this bug.
+> >
+> > Signed-off-by: Xiang W <wxjstz@126.com>
+> > ---
+> >  lib/sbi/riscv_asm.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> >
+> > diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+> > index 4c24a51..d7b9b2b 100644
+> > --- a/lib/sbi/riscv_asm.c
+> > +++ b/lib/sbi/riscv_asm.c
+> > @@ -213,6 +213,9 @@ static unsigned long ctz(unsigned long x)
+> >  {
+> >         unsigned long ret = 0;
+> >
+> > +       if (x == 0)
+> > +               return 8 * sizeof(x);
+> > +
+> >         while (!(x & 1UL)) {
+> >                 ret++;
+> >                 x = x >> 1;
 >
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  lib/utils/reset/fdt_reset_gpio.c | 13 +++----------
->  1 file changed, 3 insertions(+), 10 deletions(-)
->
+> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+Regards,
+Anup
+
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
