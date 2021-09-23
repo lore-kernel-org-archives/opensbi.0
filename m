@@ -1,152 +1,77 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 23 Sep 2021 11:18:52 +0530
-Subject: [RFC PATCH 6/9] lib: sbi: Always enable access for all counters
-In-Reply-To: <20210909204031.1239254-7-atish.patra@wdc.com>
-References: <20210909204031.1239254-1-atish.patra@wdc.com>
- <20210909204031.1239254-7-atish.patra@wdc.com>
-Message-ID: <CAAhSdy3cgc82mV-aPzpGcyA82VRAzbg9pikkzrtK8qZTvf+Hsw@mail.gmail.com>
+From: Leo Liang <ycliang@andestech.com>
+Date: Thu, 23 Sep 2021 15:15:00 +0800
+Subject: [PATCH 2/2] platform/ae350: Initialize Coherent Manager as early
+ as possible
+In-Reply-To: <CAAhSdy3CNkb=2k2O6jLYyT-bsg9re4vEAFFoyto-5ANPc_Bw5Q@mail.gmail.com>
+References: <20210923022957.17840-1-ycliang@andestech.com>
+ <3430C8B0-C750-4F0A-A6D3-905450C463EC@jrtc27.com>
+ <CAAhSdy3CNkb=2k2O6jLYyT-bsg9re4vEAFFoyto-5ANPc_Bw5Q@mail.gmail.com>
+Message-ID: <YUwpdEw1+uH4zevn@ubuntu02>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 10, 2021 at 2:11 AM Atish Patra <atish.patra@wdc.com> wrote:
->
-> OpenSBI doesn't use any counters for its own usage. Thus, all the counters
-> can be made accessible for lower privilege mode always. However, the
-> mcountinhibit must be set so that the counter don't increment.
-> As a result, we don't have enable/disable mcounteren at every start/stop.
->
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
->  lib/sbi/sbi_hart.c | 17 +++++------------
->  lib/sbi/sbi_pmu.c  | 17 +++++------------
->  2 files changed, 10 insertions(+), 24 deletions(-)
->
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 6076bea2470d..7ea089bc158e 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -57,18 +57,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
->                 csr_write(CSR_SCOUNTEREN, 7);
->
->         if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN)) {
-> -               if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> -                       /**
-> -                        * Just enable the default counters (CY, TM, IR) because
-> -                        * some OS (e.g FreeBSD) expect them to be enabled.
-> -                        *
-> -                        * All other counters will be enabled at runtime after
-> -                        * S-mode request.
-> -                        */
-> -                       csr_write(CSR_MCOUNTEREN, 7);
-> -               else
-> -                       /* Supervisor mode usage are enabled by default */
-> -                       csr_write(CSR_MCOUNTEREN, -1);
-> +               /* OpenSBI doesn't use any PMU counters in M-mode.
-> +                * Supervisor mode usage for all counters are enabled by default
-> +                * But counters will not run until mcountinhibit is set.
-> +                */
-> +               csr_write(CSR_MCOUNTEREN, -1);
+On Thu, Sep 23, 2021 at 10:06:34AM +0530, Anup Patel wrote:
+> On Thu, Sep 23, 2021 at 8:06 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >
+> > On 23 Sep 2021, at 03:29, Leo Yu-Chi Liang <ycliang@andestech.com> wrote:
+> > >
+> > > Coherent Manager will guarantee cache coherency as well as
+> > > the correctness of atomic extension instruction on Andes 45 series on ae350.
+> > >
+> > > This feature needs to be enabled before the first
+> > > A extension instruction, thus initialize it as early as possible.
+> >
+> > Why should this be OpenSBI?s responsibility, rather than in whatever
+> > firmware you have running before OpenSBI that does whatever low-level
+> > platform initialisation is needed like DRAM training (which so far has
+> > been kept out of OpenSBI)? This kind of thing makes it impossible to
+> > use a generic OpenSBI image, unlike other platforms that have moved
+> > towards supporting that. Especially as you explicitly mention U-Boot
+> > here, its SPL is the ideal place for this kind of thing, not in OpenSBI.
+> 
+> I share the same concern. This kind of very early platform specific HART
+> initialization makes it impossible for platforms to eventually use generic
+> platform firmwares.
+> 
+> Further, I see that this is being done in the _start() path and not in the
+> _start_warm() path so HART hotplug will not be able to do this kind
+> of very early platform specific HART initialization.
+> 
+> Is this for a FPGA platform where there is no booting stage before
+> OpenSBI firmware ? If yes then can this very early platform init be
+> done in the FPGA boot-up scripts ?
+> 
+> If there is no other way then I am afraid Andes platform won't benefit
+> from generic platform firmwares and Andes will end-up maintaining
+> their own OpenSBI platform support.
+> 
+> Regards,
+> Anup
+> 
 
-Move the comment block out of the "if" statement and remove braces
-around "if" statement.
+Hi Anup and Jess,
 
->         }
->
->         /* All programmable counters will start running at runtime after S-mode request */
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index bbbd033b4cfe..dbad4478e7e7 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -275,22 +275,20 @@ static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
->
->  static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
->  {
-> -       unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+Thanks for the explanation and sorry for forgetting to prepand a RFC
+before "PATCH" to clarify this is just a RFC patch.
 
-I think there is some patch break-up issue. This line should be part of
-previous patch.
+Yes, we are developing on a FPGA platform without prior boot stage
+before OpenSBI, and we can actually do that in a boot up script.
 
-Make sure that each patch does not break compilation and if possible
-also ensure each patch is bisectable.
+As this kind of approach would draw too much concern, I will drop them.
+Thanks again for the comment.
 
->         unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
->
->         /* Make sure the counter index lies within the range and is not TM bit */
->         if (cidx > num_hw_ctrs || cidx == 1)
->                 return SBI_EINVAL;
->
-> -       if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt))
-> +       if (!__test_bit(cidx, &mctr_inhbt))
->                 return SBI_EALREADY_STARTED;
->
-> -       __set_bit(cidx, &mctr_en);
->         __clear_bit(cidx, &mctr_inhbt);
->
->         if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF))
->                 pmu_ctr_enable_irq_hw(cidx);
-> -       csr_write(CSR_MCOUNTEREN, mctr_en);
->         csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
->
->         if (ival_update)
-> @@ -344,17 +342,14 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
->
->  static int pmu_ctr_stop_hw(uint32_t cidx)
->  {
-> -       unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
->         unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
->
->         /* Make sure the counter index lies within the range and is not TM bit */
->         if (cidx > num_hw_ctrs || cidx == 1)
->                 return SBI_EINVAL;
->
-> -       if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt)) {
-> +       if (!__test_bit(cidx, &mctr_inhbt)) {
->                 __set_bit(cidx, &mctr_inhbt);
-> -               __clear_bit(cidx, &mctr_en);
-> -               csr_write(CSR_MCOUNTEREN, mctr_en);
->                 csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
->                 return 0;
->         } else
-> @@ -447,7 +442,6 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
->         unsigned long ctr_mask;
->         int i, ret = 0, ctr_idx = SBI_ENOTSUPP;
->         struct sbi_pmu_hw_event *temp;
-> -       unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
->         unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
->         int evt_idx_code = get_cidx_code(event_idx);
->
-> @@ -472,8 +466,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
->
->                 ctr_mask = temp->counters & (cmask << cbase);
->                 for_each_set_bit_from(cbase, &ctr_mask, SBI_PMU_HW_CTR_MAX) {
-> -                       if (!__test_bit(cbase, &mctr_en) &&
-> -                           __test_bit(cbase, &mctr_inhbt)) {
-> +                       if (__test_bit(cbase, &mctr_inhbt)) {
->                                 ctr_idx = cbase;
->                                 break;
->                         }
-> @@ -645,7 +638,7 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
->                 return;
->
->         csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
-> -       csr_write(CSR_MCOUNTEREN, 7);
-> +       csr_write(CSR_MCOUNTEREN, -1);
->         pmu_reset_event_map(hartid);
->  }
->
-> --
-> 2.31.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Best regards,
+Leo
 
-Regards,
-Anup
+> >
+> > Jess
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
