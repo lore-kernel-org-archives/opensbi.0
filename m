@@ -1,9 +1,9 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Fri, 24 Sep 2021 14:33:44 +0300
-Subject: [PATCH 1/4] lib: utils/i2c: Add generic I2C configuration library
+Date: Fri, 24 Sep 2021 14:33:45 +0300
+Subject: [PATCH 2/4] lib: utils/gpio: Add simple FDT based I2C framework
 In-Reply-To: <20210924113347.3576-1-nikita.shubin@maquefel.me>
 References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
-Message-ID: <20210924113347.3576-2-nikita.shubin@maquefel.me>
+Message-ID: <20210924113347.3576-3-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,26 +12,26 @@ Content-Transfer-Encoding: 7bit
 
 From: Nikita Shubin <n.shubin@yadro.com>
 
-Helper library to keep track of registered I2C adapters,
-identified by dts offset, basic send/read functions and
-adapter configuration (enable, set dividers, etc...).
+FDT based I2C framework on the top of I2C library.
+
+The drivers are probed on demand by fdt_i2c_adapter_get
+function.
 
 Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 ---
- include/sbi_utils/i2c/i2c.h |  65 +++++++++++++++++++++++
- lib/utils/i2c/i2c.c         | 102 ++++++++++++++++++++++++++++++++++++
- lib/utils/i2c/objects.mk    |  10 ++++
- 3 files changed, 177 insertions(+)
- create mode 100644 include/sbi_utils/i2c/i2c.h
- create mode 100644 lib/utils/i2c/i2c.c
- create mode 100644 lib/utils/i2c/objects.mk
+ include/sbi_utils/i2c/fdt_i2c.h |  26 ++++++++
+ lib/utils/i2c/fdt_i2c.c         | 107 ++++++++++++++++++++++++++++++++
+ lib/utils/i2c/objects.mk        |   1 +
+ 3 files changed, 134 insertions(+)
+ create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
+ create mode 100644 lib/utils/i2c/fdt_i2c.c
 
-diff --git a/include/sbi_utils/i2c/i2c.h b/include/sbi_utils/i2c/i2c.h
+diff --git a/include/sbi_utils/i2c/fdt_i2c.h b/include/sbi_utils/i2c/fdt_i2c.h
 new file mode 100644
-index 0000000..86dd582
+index 0000000..1f41a0f
 --- /dev/null
-+++ b/include/sbi_utils/i2c/i2c.h
-@@ -0,0 +1,65 @@
++++ b/include/sbi_utils/i2c/fdt_i2c.h
+@@ -0,0 +1,26 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -41,68 +41,29 @@ index 0000000..86dd582
 + *   Nikita Shubin <nshubin@yadro.com>
 + */
 +
-+#ifndef __I2C_H__
-+#define __I2C_H__
++#ifndef __FDT_I2C_H__
++#define __FDT_I2C_H__
 +
-+#include <sbi/sbi_types.h>
++#include <sbi_utils/i2c/i2c.h>
 +
-+/** Representation of a I2C adapter */
-+struct i2c_adapter {
-+	/** Pointer to I2C driver owning this I2C adapter */
-+	void *driver;
-+
-+	/** Uniquie ID of the I2C adapter assigned by the driver */
-+	int id;
-+
-+	/**
-+	 * Configure I2C adapter
-+	 *
-+	 * Enable, set dividers, etc...
-+	 *
-+	 * @return 0 on success and negative error code on failure
-+	 */
-+	int (*configure)(struct i2c_adapter *ia);
-+
-+	/**
-+	 * Send byte to given address, register
-+	 *
-+	 * @return 0 on success and negative error code on failure
-+	 */
-+	int (*send)(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t value);
-+
-+	/**
-+	 * Read byte from given address, register
-+	 *
-+	 * @return 0 on success and negative error code on failure
-+	 */
-+	int (*read)(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t *value);
++/** FDT based I2C adapter driver */
++struct fdt_i2c_adapter {
++	const struct fdt_match *match_table;
++	int (*init)(void *fdt, int nodeoff,
++		    const struct fdt_match *match);
 +};
 +
-+/** Find a registered I2C adapter */
-+struct i2c_adapter *i2c_adapter_find(int id);
-+
-+/** Register I2C adapter */
-+int i2c_adapter_add(struct i2c_adapter *ia);
-+
-+/** Un-register I2C adapter */
-+void i2c_adapter_remove(struct i2c_adapter *ia);
-+
-+/** Configure I2C adapter prior to send/read */
-+int i2c_adapter_configure(struct i2c_adapter *ia);
-+
-+/** Send to device on I2C adapter bus */
-+int i2c_adapter_send(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t value);
-+
-+/** Read from device on I2C adapter bus */
-+int i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t *value);
++/** Get I2C adapter identified by nodeoff */
++int fdt_i2c_adapter_get(void *fdt, int nodeoff,
++			struct i2c_adapter **out_adapter);
 +
 +#endif
-diff --git a/lib/utils/i2c/i2c.c b/lib/utils/i2c/i2c.c
+diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
 new file mode 100644
-index 0000000..9bcb129
+index 0000000..27e28a4
 --- /dev/null
-+++ b/lib/utils/i2c/i2c.c
-@@ -0,0 +1,102 @@
++++ b/lib/utils/i2c/fdt_i2c.c
+@@ -0,0 +1,107 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -111,116 +72,114 @@ index 0000000..9bcb129
 + * Authors:
 + *   Nikita Shubin <nshubin@yadro.com>
 + *
-+ * derivate: lib/utils/gpio/gpio.c
++ * derivate: lib/utils/gpio/fdt_gpio.c
 + * Authors:
 + *   Anup Patel <anup.patel@wdc.com>
 + */
 +
++#include <libfdt.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi_utils/i2c/i2c.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/i2c/fdt_i2c.h>
 +
-+#define I2C_ADAPTER_MAX		16
++#include <sbi/sbi_console.h>
 +
-+static struct i2c_adapter *i2c_array[I2C_ADAPTER_MAX];
++static struct fdt_i2c_adapter *i2c_adapter_drivers[] = {
++};
 +
-+struct i2c_adapter *i2c_adapter_find(int id)
++static struct fdt_i2c_adapter *fdt_i2c_adapter_driver(struct i2c_adapter *adapter)
 +{
-+	unsigned int i;
-+	struct i2c_adapter *ret = NULL;
++	int pos;
 +
-+	for (i = 0; i < I2C_ADAPTER_MAX; i++) {
-+		if (i2c_array[i] && i2c_array[i]->id == id) {
-+			ret = i2c_array[i];
-+			break;
++	if (!adapter)
++		return NULL;
++
++	for (pos = 0; pos < array_size(i2c_adapter_drivers); pos++) {
++		if (adapter->driver == i2c_adapter_drivers[pos])
++			return i2c_adapter_drivers[pos];
++	}
++
++	return NULL;
++}
++
++static int fdt_i2c_adapter_init(void *fdt, int nodeoff)
++{
++	int pos, rc;
++	struct fdt_i2c_adapter *drv;
++	const struct fdt_match *match;
++
++	/* Try all I2C drivers one-by-one */
++	for (pos = 0; pos < array_size(i2c_adapter_drivers); pos++) {
++		drv = i2c_adapter_drivers[pos];
++		match = fdt_match_node(fdt, nodeoff, drv->match_table);
++		if (match && drv->init) {
++			rc = drv->init(fdt, nodeoff, match);
++			if (rc == SBI_ENODEV)
++				continue;
++			if (rc)
++				return rc;
++			return 0;
 +		}
 +	}
 +
-+	return ret;
++	return SBI_ENOSYS;
 +}
 +
-+int i2c_adapter_add(struct i2c_adapter *ia)
++static int fdt_i2c_adapter_find(void *fdt, int nodeoff,
++				struct i2c_adapter **out_adapter)
 +{
-+	int i, ret = SBI_ENOSPC;
++	int rc;
++	struct i2c_adapter *adapter = i2c_adapter_find(nodeoff);
 +
-+	if (!ia)
-+		return SBI_EINVAL;
-+	if (i2c_adapter_find(ia->id))
-+		return SBI_EALREADY;
++	if (!adapter) {
++		/* I2C adapter not found so initialize matching driver */
++		rc = fdt_i2c_adapter_init(fdt, nodeoff);
++		if (rc)
++			return rc;
 +
-+	for (i = 0; i < I2C_ADAPTER_MAX; i++) {
-+		if (!i2c_array[i]) {
-+			i2c_array[i] = ia;
-+			ret = 0;
-+			break;
-+		}
++		/* Try to find I2C adapter again */
++		adapter = i2c_adapter_find(nodeoff);
++		if (!adapter)
++			return SBI_ENOSYS;
 +	}
 +
-+	return ret;
++	if (out_adapter)
++		*out_adapter = adapter;
++
++	return 0;
 +}
 +
-+void i2c_adapter_remove(struct i2c_adapter *ia)
++int fdt_i2c_adapter_get(void *fdt, int nodeoff,
++			struct i2c_adapter **out_adapter)
 +{
-+	int i;
++	int rc;
++	struct i2c_adapter *adapter;
++	struct fdt_i2c_adapter *drv;
 +
-+	if (!ia)
-+		return;
-+
-+	for (i = 0; i < I2C_ADAPTER_MAX; i++) {
-+		if (i2c_array[i] == ia) {
-+			i2c_array[i] = NULL;
-+			break;
-+		}
-+	}
-+}
-+
-+int i2c_adapter_configure(struct i2c_adapter *ia)
-+{
-+	if (!ia)
++	if (!fdt || (nodeoff < 0) || !out_adapter)
 +		return SBI_EINVAL;
-+	if (!ia->configure)
-+		return 0;
 +
-+	return ia->configure(ia);
-+}
++	rc = fdt_i2c_adapter_find(fdt, nodeoff, &adapter);
++	if (rc)
++		return rc;
 +
-+int i2c_adapter_send(struct i2c_adapter *ia, uint8_t addr,
-+		     uint8_t reg, uint8_t value)
-+{
-+	if (!ia)
-+		return SBI_EINVAL;
-+	if (!ia->send)
++	drv = fdt_i2c_adapter_driver(adapter);
++	if (!drv)
 +		return SBI_ENOSYS;
 +
-+	return ia->send(ia, addr, reg, value);
-+}
++	*out_adapter = adapter;
 +
-+
-+int i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr,
-+		     uint8_t reg, uint8_t *value)
-+{
-+	if (!ia)
-+		return SBI_EINVAL;
-+	if (!ia->read)
-+		return SBI_ENOSYS;
-+
-+	return ia->read(ia, addr, reg, value);
++	return 0;
 +}
 diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-new file mode 100644
-index 0000000..16a70da
---- /dev/null
+index 16a70da..06baa65 100644
+--- a/lib/utils/i2c/objects.mk
 +++ b/lib/utils/i2c/objects.mk
-@@ -0,0 +1,10 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (c) 2021 YADRO
-+#
-+# Authors:
-+#   Nikita Shubin <nshubin@yadro.com>
-+#
-+
-+libsbiutils-objs-y += i2c/i2c.o
+@@ -8,3 +8,4 @@
+ #
+ 
+ libsbiutils-objs-y += i2c/i2c.o
++libsbiutils-objs-y += i2c/fdt_i2c.o
 -- 
 2.31.1
 
