@@ -1,350 +1,184 @@
-From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Fri, 24 Sep 2021 14:33:46 +0300
-Subject: [PATCH 3/4] lib: utils/gpio: Add minimal SiFive I2C driver
-In-Reply-To: <20210924113347.3576-1-nikita.shubin@maquefel.me>
-References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
-Message-ID: <20210924113347.3576-4-nikita.shubin@maquefel.me>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 24 Sep 2021 18:53:49 +0530
+Subject: [PATCH] Makefile: Add build time and compiler info string.
+In-Reply-To: <20210923155520.1208341-1-wefu@redhat.com>
+References: <20210923155520.1208341-1-wefu@redhat.com>
+Message-ID: <CAAhSdy3Q1zTWfqVs5oT3s8J9JziaRb+w-JtijycXgDqxGW=L3A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Nikita Shubin <n.shubin@yadro.com>
+On Thu, Sep 23, 2021 at 9:29 PM <wefu@redhat.com> wrote:
+>
+> From: Wei Fu <wefu@redhat.com>
+>
+> When we are doing opensbi development, we want to know the build time
+> and compiler info for debug purpose.
+> To enable this message, please add "BUILD_INFO=y" , like:
+>
+> ```
+> make BUILD_INFO=y
+> ```
+>
+> NOTE: `BUILD_INFO=y` will violate "reproducible builds".
+> So it's ONLY for development and debug purpose, and should NEVER be used
+> in a real product.
+>
+> Signed-off-by: Wei Fu <wefu@redhat.com>
+> ---
+>  Makefile           | 21 ++++++++++++++++++++-
+>  README.md          | 16 ++++++++++++++++
+>  lib/sbi/sbi_init.c |  4 ++++
+>  3 files changed, 40 insertions(+), 1 deletion(-)
+>
+> diff --git a/Makefile b/Makefile
+> index 16d9dca..c678a1e 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -6,7 +6,7 @@
+>  # Authors:
+>  #   Anup Patel <anup.patel@wdc.com>
+>  #
+> -
 
-Minimum SiFive I2C driver to read/send bytes over I2C bus.
+Don't remove empty line from here.
 
-This allows querying information and perform operation of onboard PMIC,
-as well as power-off and reset.
+> +BUILD_INFO ?= n
 
-Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
----
- lib/utils/i2c/fdt_i2c.c        |   3 +
- lib/utils/i2c/fdt_i2c_sifive.c | 289 +++++++++++++++++++++++++++++++++
- lib/utils/i2c/objects.mk       |   1 +
- 3 files changed, 293 insertions(+)
- create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
+Move this line below before it's first use.
 
-diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
-index 27e28a4..46434da 100644
---- a/lib/utils/i2c/fdt_i2c.c
-+++ b/lib/utils/i2c/fdt_i2c.c
-@@ -18,7 +18,10 @@
- 
- #include <sbi/sbi_console.h>
- 
-+extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
-+
- static struct fdt_i2c_adapter *i2c_adapter_drivers[] = {
-+	&fdt_i2c_adapter_sifive
- };
- 
- static struct fdt_i2c_adapter *fdt_i2c_adapter_driver(struct i2c_adapter *adapter)
-diff --git a/lib/utils/i2c/fdt_i2c_sifive.c b/lib/utils/i2c/fdt_i2c_sifive.c
-new file mode 100644
-index 0000000..ff294f4
---- /dev/null
-+++ b/lib/utils/i2c/fdt_i2c_sifive.c
-@@ -0,0 +1,289 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 YADRO
-+ *
-+ * Authors:
-+ *   Nikita Shubin <nshubin@yadro.com>
-+ */
-+
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/i2c/fdt_i2c.h>
-+
-+#include <sbi/riscv_asm.h>
-+#include <sbi/riscv_encoding.h>
-+
-+#define SIFIVE_I2C_ADAPTER_MAX	2
-+
-+#define SIFIVE_I2C_PRELO	0x00
-+#define SIFIVE_I2C_PREHI	0x04
-+#define SIFIVE_I2C_CTR		0x08
-+#define SIFIVE_I2C_TXR		0x00c
-+#define SIFIVE_I2C_RXR		SIFIVE_I2C_TXR
-+#define SIFIVE_I2C_CR		0x010
-+#define SIFIVE_I2C_SR		SIFIVE_I2C_CR
-+
-+#define SIFIVE_I2C_CTR_IEN	(1 << 6)
-+#define SIFIVE_I2C_CTR_EN	(1 << 7)
-+
-+#define SIFIVE_I2C_CMD_IACK	(1 << 0)
-+#define SIFIVE_I2C_CMD_ACK	(1 << 3)
-+#define SIFIVE_I2C_CMD_WR	(1 << 4)
-+#define SIFIVE_I2C_CMD_RD	(1 << 5)
-+#define SIFIVE_I2C_CMD_STO	(1 << 6)
-+#define SIFIVE_I2C_CMD_STA	(1 << 7)
-+
-+#define SIFIVE_I2C_STATUS_IF	(1 << 0)
-+#define SIFIVE_I2C_STATUS_TIP	(1 << 1)
-+#define SIFIVE_I2C_STATUS_AL	(1 << 5)
-+#define SIFIVE_I2C_STATUS_BUSY	(1 << 6)
-+#define SIFIVE_I2C_STATUS_RXACK	(1 << 7)
-+
-+#define SIFIVE_I2C_WRITE_BIT	(0 << 0)
-+#define SIFIVE_I2C_READ_BIT	(1 << 0)
-+
-+struct sifive_i2c_adapter {
-+	unsigned long addr;
-+	struct i2c_adapter adapter;
-+};
-+
-+static unsigned int sifive_i2c_adapter_count;
-+static struct sifive_i2c_adapter sifive_i2c_adapter_array[SIFIVE_I2C_ADAPTER_MAX];
-+
-+extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
-+
-+static inline void setreg(struct sifive_i2c_adapter *adap, int reg, u8 value)
-+{
-+	writel(value, (volatile void *)adap->addr + reg);
-+}
-+
-+static inline u8 getreg(struct sifive_i2c_adapter *adap, int reg)
-+{
-+	return readl((volatile void *)adap->addr + reg);
-+}
-+
-+static int sifive_i2c_adapter_rxack(struct sifive_i2c_adapter *adap)
-+{
-+	uint8_t val = getreg(adap, SIFIVE_I2C_SR);
-+
-+	if (val & SIFIVE_I2C_STATUS_RXACK)
-+		return SBI_EIO;
-+
-+	return 0;
-+}
-+
-+static inline void wait_cycles(unsigned long cycles)
-+{
-+	csr_write(CSR_MCYCLE, 0);
-+	while
-+		(cycles > csr_read_num(CSR_MCYCLE));
-+}
-+
-+static int sifive_i2c_adapter_poll(struct sifive_i2c_adapter *adap, uint32_t mask)
-+{
-+	int max_retry = 5;
-+	uint8_t val;
-+
-+	do {
-+		val = getreg(adap, SIFIVE_I2C_SR);
-+		wait_cycles(100000);
-+	} while ((val & mask) && (max_retry--) > 0);
-+
-+	if (max_retry <= 0)
-+		return SBI_ETIMEDOUT;
-+
-+	return 0;
-+}
-+
-+#define sifive_i2c_adapter_poll_tip(adap) sifive_i2c_adapter_poll(adap, SIFIVE_I2C_STATUS_TIP)
-+#define sifive_i2c_adapter_poll_busy(adap) sifive_i2c_adapter_poll(adap, SIFIVE_I2C_STATUS_BUSY)
-+
-+static int sifive_i2c_adapter_start(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t bit)
-+{
-+	uint8_t val = (addr << 1) | bit;
-+
-+	setreg(adap, SIFIVE_I2C_TXR, val);
-+	val = SIFIVE_I2C_CMD_STA | SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK;
-+	setreg(adap, SIFIVE_I2C_CR, val);
-+
-+	return sifive_i2c_adapter_poll_tip(adap);
-+}
-+
-+static int sifive_i2c_adapter_sendb(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t reg, uint8_t value)
-+{
-+	int rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_WRITE_BIT);
-+
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	/* set register address */
-+	setreg(adap, SIFIVE_I2C_TXR, reg);
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	/* set value */
-+	setreg(adap, SIFIVE_I2C_TXR, value);
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STO | SIFIVE_I2C_CMD_IACK);
-+
-+	/* poll BUSY instead of ACK*/
-+	rc = sifive_i2c_adapter_poll_busy(adap);
-+	if (rc)
-+		return rc;
-+
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_IACK);
-+
-+	return 0;
-+}
-+
-+static int sifive_i2c_adapter_readb(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t reg, uint8_t *value)
-+{
-+	int rc;
-+	uint8_t val;
-+
-+	rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_WRITE_BIT);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	setreg(adap, SIFIVE_I2C_TXR, reg);
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	/* setting addr with high 0 bit */
-+	val = (addr << 1) | SIFIVE_I2C_READ_BIT;
-+	setreg(adap, SIFIVE_I2C_TXR, val);
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STA | SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_ACK | SIFIVE_I2C_CMD_RD | SIFIVE_I2C_CMD_IACK);
-+
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	*value = getreg(adap, SIFIVE_I2C_RXR);
-+
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STO | SIFIVE_I2C_CMD_IACK);
-+	rc = sifive_i2c_adapter_poll_busy(adap);
-+	if (rc)
-+		return rc;
-+
-+	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_IACK);
-+
-+	return 0;
-+}
-+
-+static int sifive_i2c_adapter_send(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t value)
-+{
-+	struct sifive_i2c_adapter *adapter =
-+		container_of(ia, struct sifive_i2c_adapter, adapter);
-+
-+	return sifive_i2c_adapter_sendb(adapter, addr, reg, value);
-+}
-+
-+static int sifive_i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t *value)
-+{
-+	int rc;
-+	uint8_t val;
-+	struct sifive_i2c_adapter *adapter =
-+		container_of(ia, struct sifive_i2c_adapter, adapter);
-+
-+	rc = sifive_i2c_adapter_readb(adapter, addr, reg, &val);
-+	if (rc)
-+		return rc;
-+
-+	if (value)
-+		*value = val;
-+
-+	return 0;
-+}
-+
-+static int sifive_i2c_adapter_configure(struct i2c_adapter *ia)
-+{
-+	struct sifive_i2c_adapter *adap =
-+		container_of(ia, struct sifive_i2c_adapter, adapter);
-+
-+	/* enable controller/disable interrupts */
-+	setreg(adap, SIFIVE_I2C_CTR, SIFIVE_I2C_CTR_EN);
-+
-+	return 0;
-+}
-+
-+static int sifive_i2c_init(void *fdt, int nodeoff,
-+			    const struct fdt_match *match)
-+{
-+	int rc;
-+	struct sifive_i2c_adapter *adapter;
-+	uint64_t addr;
-+
-+	if (sifive_i2c_adapter_count >= SIFIVE_I2C_ADAPTER_MAX)
-+		return SBI_ENOSPC;
-+
-+	adapter = &sifive_i2c_adapter_array[sifive_i2c_adapter_count];
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-+	if (rc)
-+		return rc;
-+
-+	adapter->addr = addr;
-+	adapter->adapter.driver = &fdt_i2c_adapter_sifive;
-+	adapter->adapter.id = nodeoff;
-+	adapter->adapter.send = sifive_i2c_adapter_send;
-+	adapter->adapter.read = sifive_i2c_adapter_read;
-+	adapter->adapter.configure = sifive_i2c_adapter_configure;
-+	rc = i2c_adapter_add(&adapter->adapter);
-+	if (rc)
-+		return rc;
-+
-+	sifive_i2c_adapter_count++;
-+	return 0;
-+}
-+
-+static const struct fdt_match sifive_i2c_match[] = {
-+	{ .compatible = "sifive,i2c0" },
-+	{ },
-+};
-+
-+struct fdt_i2c_adapter fdt_i2c_adapter_sifive = {
-+	.match_table = sifive_i2c_match,
-+	.init = sifive_i2c_init,
-+};
-diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-index 06baa65..d52ab18 100644
---- a/lib/utils/i2c/objects.mk
-+++ b/lib/utils/i2c/objects.mk
-@@ -9,3 +9,4 @@
- 
- libsbiutils-objs-y += i2c/i2c.o
- libsbiutils-objs-y += i2c/fdt_i2c.o
-+libsbiutils-objs-y += i2c/fdt_i2c_sifive.o
--- 
-2.31.1
+>  # Select Make Options:
+>  # o  Do not use make's built-in rules
+>  # o  Do not print "Entering directory ...";
+> @@ -150,6 +150,11 @@ endif
+>  # Check whether the linker supports creating PIEs
+>  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+>
 
+Add single-line comment something like:
+"# Build info details"
+
+> +ifeq ($(BUILD_INFO),y)
+> +OPENSBI_BUILD_TS=$(shell date)
+> +OPENSBI_COMPILER_VERSION_TEXT=$(shell $(CC) -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$$//')
+> +endif
+
+s/OPENSBI_BUILD_TS/OPENSBI_BUILD_TIME_STAMP/
+s/OPENSBI_COMPILER_VERSION/OPENSBI_BUILD_COMPILER_VERSION
+
+Also, please verify COMPILER_VERSION detection with LLVM
+as well. (@Bin suggestions ??)
+
+> +
+>  # Setup list of objects.mk files
+>  ifdef PLATFORM
+>  platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
+> @@ -247,6 +252,11 @@ GENFLAGS   +=      -I$(include_dir)
+>  ifneq ($(OPENSBI_VERSION_GIT),)
+>  GENFLAGS       +=      -DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
+>  endif
+> +ifeq ($(BUILD_INFO),y)
+> +GENFLAGS       +=      -DBUILD_INFO
+
+I guess we don't need to pass this define if we check
+OPENSBI_BUILD_xyz defines separately in sbi_init.c
+
+> +GENFLAGS       +=      -DOPENSBI_BUILD_TS="\"$(OPENSBI_BUILD_TS)\""
+> +GENFLAGS       +=      -DOPENSBI_COMPILER_VERSION_TEXT="\"$(OPENSBI_COMPILER_VERSION_TEXT)\""
+
+Re-name this as suggested above.
+
+> +endif
+>  GENFLAGS       +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
+> @@ -398,6 +408,12 @@ $(build_dir)/%.dep: $(src_dir)/%.c
+>  $(build_dir)/%.o: $(src_dir)/%.c
+>         $(call compile_cc,$@,$<)
+>
+> +ifeq ($(BUILD_INFO),y)
+> +$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
+> +       $(call compile_cc,$@,$<)
+> +       $(warning 'BUILD_INFO=y' violates 'reproducible builds', for DEBUG ONLY.)
+> +endif
+> +
+>  $(build_dir)/%.dep: $(src_dir)/%.S
+>         $(call compile_as_dep,$@,$<)
+>
+> @@ -551,3 +567,6 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
+>         $(if $(V), @echo " RM        $(install_root_dir_default)")
+>         $(CMD_PREFIX)rm -rf $(install_root_dir_default)
+>  endif
+> +
+> +.PHONY: FORCE
+> +FORCE:
+> diff --git a/README.md b/README.md
+> index 9fdf097..68a4902 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -254,6 +254,21 @@ to produce broken binaries with missing relocations; it is therefore currently
+>  recommended that this combination be avoided or *FW_PIC=n* be used to disable
+>  building OpenSBI as a position-independent binary.
+>
+> +Building with timestamp and compiler info
+> +------------------------
+> +
+> +When doing development, we may want to know the build time and compiler info
+> +for debug purpose. OpenSBI can also be built with timestamp and compiler info.
+> +To build with those info and print it out at boot time, we can just simply add
+> +`BUILD_INFO=y`, like:
+> +```
+> +make BUILD_INFO=y
+> +```
+> +
+> +NOTE: Using `BUILD_INFO=y` will violate [reproducible builds]. This definition
+> +is ONLY for development and debug purpose. It should NEVER be used in a real
+> +product.
+> +
+>  Contributing to OpenSBI
+>  -----------------------
+>
+> @@ -336,3 +351,4 @@ make I=<install_directory> install_docs
+>  [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+>  [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+>  [third party notices]: ThirdPartyNotices.md
+> +[reproducible builds]: https://reproducible-builds.org
+> \ No newline at end of file
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 6ef8742..7311c13 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -48,6 +48,10 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+>                    OPENSBI_VERSION_MINOR);
+>  #endif
+>
+> +#ifdef BUILD_INFO
+> +       sbi_printf("Build time: %s.\n", OPENSBI_BUILD_TS);
+> +       sbi_printf("Compiler: %s.\n", OPENSBI_COMPILER_VERSION_TEXT);
+> +#endif
+
+As mentioned above, we can directly check
+OPENSBI_BUILD_xyz defines instead of BUILD_INFO.
+
+Also, use "Build compiler:" instead of "Compile:" in
+sbi_printf().
+
+>         sbi_printf(BANNER);
+>  }
+>
+> --
+> 2.25.4
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Apart from the above nits, looks good to me.
+
+Regards,
+Anup
 
