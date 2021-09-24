@@ -1,184 +1,244 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 24 Sep 2021 18:53:49 +0530
-Subject: [PATCH] Makefile: Add build time and compiler info string.
-In-Reply-To: <20210923155520.1208341-1-wefu@redhat.com>
-References: <20210923155520.1208341-1-wefu@redhat.com>
-Message-ID: <CAAhSdy3Q1zTWfqVs5oT3s8J9JziaRb+w-JtijycXgDqxGW=L3A@mail.gmail.com>
+Date: Fri, 24 Sep 2021 21:15:51 +0530
+Subject: [RFC PATCH 5/9] lib:sbi: Support sscof extension in OpenSBI
+In-Reply-To: <CAAhSdy07w8VN_6dTY=m08i2otcODi-pGH6YdzMPFwQfqPAnEig@mail.gmail.com>
+References: <20210909204031.1239254-1-atish.patra@wdc.com>
+ <20210909204031.1239254-6-atish.patra@wdc.com>
+ <CAAhSdy07w8VN_6dTY=m08i2otcODi-pGH6YdzMPFwQfqPAnEig@mail.gmail.com>
+Message-ID: <CAAhSdy1v3rm3B8pWNUugCUH3VUb9s1-Me2RB+K16Z13EMLH89A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Sep 23, 2021 at 9:29 PM <wefu@redhat.com> wrote:
+On Thu, Sep 23, 2021 at 11:12 AM Anup Patel <anup@brainfault.org> wrote:
 >
-> From: Wei Fu <wefu@redhat.com>
+> On Fri, Sep 10, 2021 at 2:10 AM Atish Patra <atish.patra@wdc.com> wrote:
+> >
+> > This patch adds sscof extension in pmu module which includes
+> > following things.
+> >
+> > 1. Enable overflow irq when starting a counter.
+> > 2. Setting the correct event filters passed from supervisor.
+> > 3. Delegating the overflow interrupt to the supervisor.
+> > 4. Add RV32 support for sscof.
+> >
+> > Signed-off-by: Atish Patra <atish.patra@wdc.com>
+> > ---
+> >  include/sbi/riscv_encoding.h | 19 ++++++++
+> >  lib/sbi/sbi_pmu.c            | 85 ++++++++++++++++++++++++++++++------
+> >  2 files changed, 90 insertions(+), 14 deletions(-)
+> >
+> > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> > index c2cf0f4d69f4..f71412eae563 100644
+> > --- a/include/sbi/riscv_encoding.h
+> > +++ b/include/sbi/riscv_encoding.h
+> > @@ -173,6 +173,25 @@
+> >  #define HGATP_MODE_SHIFT               HGATP32_MODE_SHIFT
+> >  #endif
+> >
+> > +#if __riscv_xlen == 64
+> > +#define MHPMEVENT_OF                   (_UL(1) << 63)
+> > +#define MHPMEVENT_MINH                 (_UL(1) << 62)
+> > +#define MHPMEVENT_SINH                 (_UL(1) << 61)
+> > +#define MHPMEVENT_UINH                 (_UL(1) << 60)
+> > +#define MHPMEVENT_VSINH                        (_UL(1) << 59)
+> > +#define MHPMEVENT_VUINH                        (_UL(1) << 58)
+> > +#else
+> > +#define MHPMEVENT_OF                   (_ULL(1) << 63)
+> > +#define MHPMEVENT_MINH                 (_ULL(1) << 62)
+> > +#define MHPMEVENT_SINH                 (_ULL(1) << 61)
+> > +#define MHPMEVENT_UINH                 (_ULL(1) << 60)
+> > +#define MHPMEVENT_VSINH                        (_ULL(1) << 59)
+> > +#define MHPMEVENT_VUINH                        (_ULL(1) << 58)
 >
-> When we are doing opensbi development, we want to know the build time
-> and compiler info for debug purpose.
-> To enable this message, please add "BUILD_INFO=y" , like:
+> These defines are misleading because filter bits are in MHPMEVENTHx CSRs.
 >
-> ```
-> make BUILD_INFO=y
-> ```
+> Try to keep the riscv_encoding.h closer to the priv spec.
 >
-> NOTE: `BUILD_INFO=y` will violate "reproducible builds".
-> So it's ONLY for development and debug purpose, and should NEVER be used
-> in a real product.
+> > +
+> > +#define MHPMEVENTH_OF                  (_UL(1) << 31)
+> > +#endif
+> > +
+> > +#define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
+> >  /* ===== User-level CSRs ===== */
+> >
+> >  /* User Trap Setup (N-extension) */
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index c276a46e2876..bbbd033b4cfe 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -226,11 +226,47 @@ int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap)
+> >                                     SBI_PMU_EVENT_RAW_IDX, cmap, select);
+> >  }
+> >
+> > +static int pmu_ctr_enable_irq_hw(int ctr_idx)
+> > +{
+> > +       unsigned long mhpmevent_csr;
+> > +       unsigned long mhpmevent_curr;
+> > +       unsigned long mip_val;
+> > +       unsigned long of_mask;
+> > +
+> > +       if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> > +               return SBI_EFAIL;
+> > +
+> > +#if __riscv_xlen == 32
+> > +       mhpmevent_csr = CSR_MHPMEVENT3H  + ctr_idx - 3;
+> > +       of_mask = ~MHPMEVENTH_OF;
+> > +#else
+> > +       mhpmevent_csr = CSR_MCOUNTINHIBIT + ctr_idx;
+> > +       of_mask = ~MHPMEVENT_OF;
+> > +#endif
+> > +
+> > +       mhpmevent_curr = csr_read_num(mhpmevent_csr);
+> > +       mip_val = csr_read(CSR_MIP);
+> > +       /**
+> > +        * Clear out the OF bit so that next interrupt can be enabled.
+> > +        * This should be done only when the corresponding overflow interrupt
+> > +        * bit is cleared. That indicates that software has already handled the
+> > +        * previous interrupts or the hardware yet to set an overflow interrupt.
+> > +        * Otherwise, there will be race conditions where we may clear the bit
+> > +        * the software is yet to handle the interrupt.
+> > +        */
+> > +       if (!(mip_val & MIP_LCOFIP)) {
+> > +               mhpmevent_curr &= of_mask;
+> > +               csr_write_num(mhpmevent_csr, mhpmevent_curr);
+> > +       }
 >
-> Signed-off-by: Wei Fu <wefu@redhat.com>
-> ---
->  Makefile           | 21 ++++++++++++++++++++-
->  README.md          | 16 ++++++++++++++++
->  lib/sbi/sbi_init.c |  4 ++++
->  3 files changed, 40 insertions(+), 1 deletion(-)
+> This needs to change as well.
 >
-> diff --git a/Makefile b/Makefile
-> index 16d9dca..c678a1e 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -6,7 +6,7 @@
->  # Authors:
->  #   Anup Patel <anup.patel@wdc.com>
->  #
-> -
+> We should program mhpmenventh CSRs under "#ifdef" for RV32.
 
-Don't remove empty line from here.
-
-> +BUILD_INFO ?= n
-
-Move this line below before it's first use.
-
->  # Select Make Options:
->  # o  Do not use make's built-in rules
->  # o  Do not print "Entering directory ...";
-> @@ -150,6 +150,11 @@ endif
->  # Check whether the linker supports creating PIEs
->  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
->
-
-Add single-line comment something like:
-"# Build info details"
-
-> +ifeq ($(BUILD_INFO),y)
-> +OPENSBI_BUILD_TS=$(shell date)
-> +OPENSBI_COMPILER_VERSION_TEXT=$(shell $(CC) -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$$//')
-> +endif
-
-s/OPENSBI_BUILD_TS/OPENSBI_BUILD_TIME_STAMP/
-s/OPENSBI_COMPILER_VERSION/OPENSBI_BUILD_COMPILER_VERSION
-
-Also, please verify COMPILER_VERSION detection with LLVM
-as well. (@Bin suggestions ??)
-
-> +
->  # Setup list of objects.mk files
->  ifdef PLATFORM
->  platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
-> @@ -247,6 +252,11 @@ GENFLAGS   +=      -I$(include_dir)
->  ifneq ($(OPENSBI_VERSION_GIT),)
->  GENFLAGS       +=      -DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
->  endif
-> +ifeq ($(BUILD_INFO),y)
-> +GENFLAGS       +=      -DBUILD_INFO
-
-I guess we don't need to pass this define if we check
-OPENSBI_BUILD_xyz defines separately in sbi_init.c
-
-> +GENFLAGS       +=      -DOPENSBI_BUILD_TS="\"$(OPENSBI_BUILD_TS)\""
-> +GENFLAGS       +=      -DOPENSBI_COMPILER_VERSION_TEXT="\"$(OPENSBI_COMPILER_VERSION_TEXT)\""
-
-Re-name this as suggested above.
-
-> +endif
->  GENFLAGS       +=      $(libsbiutils-genflags-y)
->  GENFLAGS       +=      $(platform-genflags-y)
->  GENFLAGS       +=      $(firmware-genflags-y)
-> @@ -398,6 +408,12 @@ $(build_dir)/%.dep: $(src_dir)/%.c
->  $(build_dir)/%.o: $(src_dir)/%.c
->         $(call compile_cc,$@,$<)
->
-> +ifeq ($(BUILD_INFO),y)
-> +$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
-> +       $(call compile_cc,$@,$<)
-> +       $(warning 'BUILD_INFO=y' violates 'reproducible builds', for DEBUG ONLY.)
-> +endif
-> +
->  $(build_dir)/%.dep: $(src_dir)/%.S
->         $(call compile_as_dep,$@,$<)
->
-> @@ -551,3 +567,6 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
->         $(if $(V), @echo " RM        $(install_root_dir_default)")
->         $(CMD_PREFIX)rm -rf $(install_root_dir_default)
->  endif
-> +
-> +.PHONY: FORCE
-> +FORCE:
-> diff --git a/README.md b/README.md
-> index 9fdf097..68a4902 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -254,6 +254,21 @@ to produce broken binaries with missing relocations; it is therefore currently
->  recommended that this combination be avoided or *FW_PIC=n* be used to disable
->  building OpenSBI as a position-independent binary.
->
-> +Building with timestamp and compiler info
-> +------------------------
-> +
-> +When doing development, we may want to know the build time and compiler info
-> +for debug purpose. OpenSBI can also be built with timestamp and compiler info.
-> +To build with those info and print it out at boot time, we can just simply add
-> +`BUILD_INFO=y`, like:
-> +```
-> +make BUILD_INFO=y
-> +```
-> +
-> +NOTE: Using `BUILD_INFO=y` will violate [reproducible builds]. This definition
-> +is ONLY for development and debug purpose. It should NEVER be used in a real
-> +product.
-> +
->  Contributing to OpenSBI
->  -----------------------
->
-> @@ -336,3 +351,4 @@ make I=<install_directory> install_docs
->  [Doxygen manual]: http://www.doxygen.nl/manual/index.html
->  [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
->  [third party notices]: ThirdPartyNotices.md
-> +[reproducible builds]: https://reproducible-builds.org
-> \ No newline at end of file
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 6ef8742..7311c13 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -48,6 +48,10 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
->                    OPENSBI_VERSION_MINOR);
->  #endif
->
-> +#ifdef BUILD_INFO
-> +       sbi_printf("Build time: %s.\n", OPENSBI_BUILD_TS);
-> +       sbi_printf("Compiler: %s.\n", OPENSBI_COMPILER_VERSION_TEXT);
-> +#endif
-
-As mentioned above, we can directly check
-OPENSBI_BUILD_xyz defines instead of BUILD_INFO.
-
-Also, use "Build compiler:" instead of "Compile:" in
-sbi_printf().
-
->         sbi_printf(BANNER);
->  }
->
-> --
-> 2.25.4
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-Apart from the above nits, looks good to me.
+Ignore this comment. I misread csr_write_num() as csr_write().
 
 Regards,
 Anup
+
+>
+> > +
+> > +       return 0;
+> > +}
+> > +
+> >  static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
+> >  {
+> >  #if __riscv_xlen == 32
+> >         csr_write_num(CSR_MCYCLE + cidx, 0);
+> > -       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
+> > +       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFFFFFF);
+> >         csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
+> >  #else
+> >         csr_write_num(CSR_MCYCLE + cidx, ival);
+> > @@ -252,12 +288,14 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
+> >         __set_bit(cidx, &mctr_en);
+> >         __clear_bit(cidx, &mctr_inhbt);
+> >
+> > -       if (ival_update)
+> > -               pmu_ctr_write_hw(cidx, ival);
+> > -
+> > +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF))
+> > +               pmu_ctr_enable_irq_hw(cidx);
+> >         csr_write(CSR_MCOUNTEREN, mctr_en);
+> >         csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
+> >
+> > +       if (ival_update)
+> > +               pmu_ctr_write_hw(cidx, ival);
+> > +
+> >         return 0;
+> >  }
+> >
+> > @@ -326,7 +364,6 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
+> >  static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
+> >  {
+> >         u32 hartid = current_hartid();
+> > -
+> >         fw_event_map[hartid][fw_evt_code].bStarted = FALSE;
+> >
+> >         return 0;
+> > @@ -362,8 +399,21 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+> >         return ret;
+> >  }
+> >
+> > +static void pmu_update_inhibit_flags(unsigned long flags, uint64_t *mhpmevent_val)
+> > +{
+> > +       if (flags & SBI_PMU_CFG_FLAG_SET_VUINH)
+> > +               *mhpmevent_val |= MHPMEVENT_VUINH;
+> > +       if (flags & SBI_PMU_CFG_FLAG_SET_VSINH)
+> > +               *mhpmevent_val |= MHPMEVENT_VSINH;
+> > +       if (flags & SBI_PMU_CFG_FLAG_SET_UINH)
+> > +               *mhpmevent_val |= MHPMEVENT_UINH;
+> > +       if (flags & SBI_PMU_CFG_FLAG_SET_SINH)
+> > +               *mhpmevent_val |= MHPMEVENT_SINH;
+> > +}
+> > +
+> >  static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+> > -                                   unsigned long eindex, uint64_t data)
+> > +                                  unsigned long flags, unsigned long eindex,
+> > +                                  uint64_t data)
+> >  {
+> >         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> >         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> > @@ -375,17 +425,23 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+> >         if (!mhpmevent_val || ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> >                 return SBI_EFAIL;
+> >
+> > -       /* TODO: The upper 16 bits of mhpmevent is reserved by sscofpmf extension.
+> > -        * Update those bits based on the flags received from supervisor.
+> > -        * The OVF bit also should be cleared here in case it was not cleared
+> > -        * during event stop.
+> > -        */
+> > +       /* Always clear the OVF bit and inhibit countin of events in M-mode */
+> > +       mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
+>
+> I think this line has more than 80 characters.
+>
+> > +
+> > +       /* Update the inhibit flags based on inhibit flags received from supervisor */
+> > +       pmu_update_inhibit_flags(flags, &mhpmevent_val);
+> > +
+> > +#if __riscv_xlen == 32
+> > +       csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, mhpmevent_val & 0xFFFFFFFF);
+> > +       csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, mhpmevent_val >> BITS_PER_LONG);
+> > +#else
+> >         csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, mhpmevent_val);
+> > +#endif
+> >
+> >         return 0;
+> >  }
+> >
+> > -static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask,
+> > +static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned long flags,
+> >                            unsigned long event_idx, uint64_t data)
+> >  {
+> >         unsigned long ctr_mask;
+> > @@ -427,7 +483,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask,
+> >         if (ctr_idx == SBI_ENOTSUPP)
+> >                 return SBI_EFAIL;
+> >
+> > -       ret = pmu_update_hw_mhpmevent(temp, ctr_idx, event_idx, data);
+> > +       ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
+> >
+> >         if (!ret)
+> >                 ret = ctr_idx;
+> > @@ -490,7 +546,8 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+> >                 /* Any firmware counter can be used track any firmware event */
+> >                 ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask, hartid);
+> >         } else {
+> > -               ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, event_idx, event_data);
+> > +               ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, flags, event_idx,
+> > +                                         event_data);
+> >         }
+> >
+> >         if (ctr_idx < 0)
+> > --
+> > 2.31.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
+> Regards,
+> Anup
 
