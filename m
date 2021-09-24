@@ -1,67 +1,76 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Fri, 24 Sep 2021 08:56:42 +0530
-Subject: [PATCH v2 5/5] lib: utils/reset: use sbi_timer_mdelay() in gpio reset
- driver
-In-Reply-To: <20210924032642.1220557-1-anup.patel@wdc.com>
-References: <20210924032642.1220557-1-anup.patel@wdc.com>
-Message-ID: <20210924032642.1220557-6-anup.patel@wdc.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Fri, 24 Sep 2021 14:33:43 +0300
+Subject: [PATCH 0/4] reboot SiFive Unmatched via PMIC
+Message-ID: <20210924113347.3576-1-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We should use sbi_timer_mdelay() instead of custom gpio_mdelay() in
-the gpio reset driver.
+From: Nikita Shubin <n.shubin@yadro.com>
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
----
- lib/utils/reset/fdt_reset_gpio.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+This series introduce rebooting via i2c PMIC, currently on
+SiFive Unmatched board.
 
-diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-index 77e308a..30127f5 100644
---- a/lib/utils/reset/fdt_reset_gpio.c
-+++ b/lib/utils/reset/fdt_reset_gpio.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_system.h>
-+#include <sbi/sbi_timer.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/gpio/fdt_gpio.h>
- #include <sbi_utils/reset/fdt_reset.h>
-@@ -34,14 +35,6 @@ static struct gpio_reset restart = {
- 	.inactive_delay = 100
- };
- 
--/* Custom mdelay function until we have a generic mdelay() API */
--static void gpio_mdelay(unsigned long msecs)
--{
--	volatile int i;
--	while (msecs--)
--		for (i = 0; i < 100000; i++) ;
--}
--
- static int gpio_system_reset_check(u32 type, u32 reason)
- {
- 	switch (type) {
-@@ -76,11 +69,11 @@ static void gpio_system_reset(u32 type, u32 reason)
- 
- 		/* drive it active, also inactive->active edge */
- 		gpio_direction_output(&reset->pin, 1);
--		gpio_mdelay(reset->active_delay);
-+		sbi_timer_mdelay(reset->active_delay);
- 
- 		/* drive inactive, also active->inactive edge */
- 		gpio_set(&reset->pin, 0);
--		gpio_mdelay(reset->inactive_delay);
-+		sbi_timer_mdelay(reset->inactive_delay);
- 
- 		/* drive it active, also inactive->active edge */
- 		gpio_set(&reset->pin, 1);
+teseted via Linux with reset extension and direct ecall from 
+u-boot.
+
+With this it becomes possible to reboot/shutdown the board 
+if Linux or u-boot is accompanied with OpenSBI reset extension.
+
+"gpio-poweroff" is required to be removed from u-boot dts file, as
+it overrides fdt_reset_da9063.
+
+fdt_reset_da9063 is loaded if "dlg,da9063" is present in device tree.
+
+Moreover it's look like we require a convenient "sleep" functionality,
+currently i've implemented sleep via CSR_MCYCLE, assuming we don't normally
+communicate with device while operational only on start/shutdown.
+
+```
+static inline void wait_cycles(unsigned long cycles)
+{
+	csr_write(CSR_MCYCLE, 0);
+	while (cycles > csr_read_num(CSR_MCYCLE));
+}
+```
+
+The original sequence was discovered by Alexandre Ghiti posted a patch on 
+linux-riscv mail-lists.
+
+https://patchwork.kernel.org/project/linux-riscv/patch/20210921053356.1705833-1-alexandre.ghiti at canonical.com/
+
+These magick numbers are readed as:
+- select PAGE0
+- set WAKE_UP bit in CONTROL_A reg
+- mask setting POWER1, POWER domain and STANDBY, and poweroff SYSTEM domain
+
+Nikita Shubin (4):
+  lib: utils/i2c: Add generic I2C configuration library
+  lib: utils/gpio: Add simple FDT based I2C framework
+  lib: utils/gpio: Add minimal SiFive I2C driver
+  lib: utils/reset: Add generic da9063 reset driver
+
+ include/sbi_utils/i2c/fdt_i2c.h    |  26 +++
+ include/sbi_utils/i2c/i2c.h        |  65 +++++++
+ lib/utils/i2c/fdt_i2c.c            | 110 +++++++++++
+ lib/utils/i2c/fdt_i2c_sifive.c     | 289 +++++++++++++++++++++++++++++
+ lib/utils/i2c/i2c.c                | 102 ++++++++++
+ lib/utils/i2c/objects.mk           |  12 ++
+ lib/utils/reset/fdt_reset.c        |   2 +
+ lib/utils/reset/fdt_reset_da9063.c | 203 ++++++++++++++++++++
+ lib/utils/reset/objects.mk         |   1 +
+ 9 files changed, 810 insertions(+)
+ create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
+ create mode 100644 include/sbi_utils/i2c/i2c.h
+ create mode 100644 lib/utils/i2c/fdt_i2c.c
+ create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
+ create mode 100644 lib/utils/i2c/i2c.c
+ create mode 100644 lib/utils/i2c/objects.mk
+ create mode 100644 lib/utils/reset/fdt_reset_da9063.c
+
 -- 
-2.25.1
+2.31.1
 
 
