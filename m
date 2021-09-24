@@ -1,9 +1,9 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Fri, 24 Sep 2021 14:33:47 +0300
-Subject: [PATCH 4/4] lib: utils/reset: Add generic da9063 reset driver
+Date: Fri, 24 Sep 2021 14:33:46 +0300
+Subject: [PATCH 3/4] lib: utils/gpio: Add minimal SiFive I2C driver
 In-Reply-To: <20210924113347.3576-1-nikita.shubin@maquefel.me>
 References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
-Message-ID: <20210924113347.3576-5-nikita.shubin@maquefel.me>
+Message-ID: <20210924113347.3576-4-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,52 +12,40 @@ Content-Transfer-Encoding: 7bit
 
 From: Nikita Shubin <n.shubin@yadro.com>
 
-da9063 PMIC can be used to reset/shutdown the
-Sifive Unmatched board.
+Minimum SiFive I2C driver to read/send bytes over I2C bus.
 
-shutdown is done simply by writing SHUDOWN bit to
-DA9063_REG_CONTROL_F register.
-
-reset via setting WAKEUP bit in DA9063_REG_CONTROL_F
-register followed by masking POWER and POWER1 domains
-and setting STANDBY bit in DA9063_REG_CONTROL_A,
-originally discovered by Alexandre Ghiti on linux-riscv
-maillists.
+This allows querying information and perform operation of onboard PMIC,
+as well as power-off and reset.
 
 Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 ---
- lib/utils/reset/fdt_reset.c        |   2 +
- lib/utils/reset/fdt_reset_da9063.c | 203 +++++++++++++++++++++++++++++
- lib/utils/reset/objects.mk         |   1 +
- 3 files changed, 206 insertions(+)
- create mode 100644 lib/utils/reset/fdt_reset_da9063.c
+ lib/utils/i2c/fdt_i2c.c        |   3 +
+ lib/utils/i2c/fdt_i2c_sifive.c | 289 +++++++++++++++++++++++++++++++++
+ lib/utils/i2c/objects.mk       |   1 +
+ 3 files changed, 293 insertions(+)
+ create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
 
-diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-index 168bb0c..92f37b0 100644
---- a/lib/utils/reset/fdt_reset.c
-+++ b/lib/utils/reset/fdt_reset.c
-@@ -18,6 +18,7 @@ extern struct fdt_reset fdt_reset_htif;
- extern struct fdt_reset fdt_reset_sifive_test;
- extern struct fdt_reset fdt_reset_sunxi_wdt;
- extern struct fdt_reset fdt_reset_thead;
-+extern struct fdt_reset fdt_reset_da9063;
+diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
+index 27e28a4..46434da 100644
+--- a/lib/utils/i2c/fdt_i2c.c
++++ b/lib/utils/i2c/fdt_i2c.c
+@@ -18,7 +18,10 @@
  
- static struct fdt_reset *reset_drivers[] = {
- 	&fdt_poweroff_gpio,
-@@ -26,6 +27,7 @@ static struct fdt_reset *reset_drivers[] = {
- 	&fdt_reset_sifive_test,
- 	&fdt_reset_sunxi_wdt,
- 	&fdt_reset_thead,
-+	&fdt_reset_da9063,
+ #include <sbi/sbi_console.h>
+ 
++extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
++
+ static struct fdt_i2c_adapter *i2c_adapter_drivers[] = {
++	&fdt_i2c_adapter_sifive
  };
  
- int fdt_reset_init(void)
-diff --git a/lib/utils/reset/fdt_reset_da9063.c b/lib/utils/reset/fdt_reset_da9063.c
+ static struct fdt_i2c_adapter *fdt_i2c_adapter_driver(struct i2c_adapter *adapter)
+diff --git a/lib/utils/i2c/fdt_i2c_sifive.c b/lib/utils/i2c/fdt_i2c_sifive.c
 new file mode 100644
-index 0000000..6c96968
+index 0000000..ff294f4
 --- /dev/null
-+++ b/lib/utils/reset/fdt_reset_da9063.c
-@@ -0,0 +1,203 @@
++++ b/lib/utils/i2c/fdt_i2c_sifive.c
+@@ -0,0 +1,289 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -67,209 +55,295 @@ index 0000000..6c96968
 + *   Nikita Shubin <nshubin@yadro.com>
 + */
 +
-+#include <libfdt.h>
++#include <sbi/riscv_io.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_system.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
 +#include <sbi_utils/i2c/fdt_i2c.h>
-+#include <sbi_utils/reset/fdt_reset.h>
 +
-+#define DA9063_REG_PAGE_CON		0x00
-+#define DA9063_REG_CONTROL_A		0x0e
-+#define DA9063_REG_CONTROL_C		0x10
-+#define DA9063_REG_CONTROL_F		0x13
-+#define DA9063_REG_DEVICE_ID		0x81
++#include <sbi/riscv_asm.h>
++#include <sbi/riscv_encoding.h>
 +
-+#define DA9063_CONTROL_A_CP_EN		(1 << 7)
-+#define DA9063_CONTROL_A_M_POWER1_EN	(1 << 6)
-+#define DA9063_CONTROL_A_M_POWER_EN	(1 << 5)
-+#define DA9063_CONTROL_A_M_SYSTEM_EN	(1 << 4)
-+#define DA9063_CONTROL_A_STANDBY	(1 << 3)
-+#define DA9063_CONTROL_A_POWER1_EN	(1 << 2)
-+#define DA9063_CONTROL_A_POWER_EN	(1 << 1)
-+#define DA9063_CONTROL_A_SYSTEM_EN	(1 << 0)
++#define SIFIVE_I2C_ADAPTER_MAX	2
 +
-+#define DA9063_CONTROL_F_WAKEUP		(1 << 2)
-+#define DA9063_CONTROL_F_SHUTDOWN	(1 << 1)
-+#define DA9063_CONTROL_F_WATCHDOG	(1 << 0)
++#define SIFIVE_I2C_PRELO	0x00
++#define SIFIVE_I2C_PREHI	0x04
++#define SIFIVE_I2C_CTR		0x08
++#define SIFIVE_I2C_TXR		0x00c
++#define SIFIVE_I2C_RXR		SIFIVE_I2C_TXR
++#define SIFIVE_I2C_CR		0x010
++#define SIFIVE_I2C_SR		SIFIVE_I2C_CR
 +
-+#define DA9063_CONTROL_C_DEF_SUPPLY	(1 << 7)
-+#define DA9063_CONTROL_C_SLEW_RATE	(1 << 4)
-+#define DA9063_CONTROL_C_OTPREAD_EN	(1 << 3)
-+#define DA9063_CONTROL_C_AUTO_BOOT	(1 << 2)
-+#define DA9063_CONTROL_C_DEBOUNCING	(1 << 0)
++#define SIFIVE_I2C_CTR_IEN	(1 << 6)
++#define SIFIVE_I2C_CTR_EN	(1 << 7)
 +
-+#define PMIC_CHIP_ID_DA9063		0x61
++#define SIFIVE_I2C_CMD_IACK	(1 << 0)
++#define SIFIVE_I2C_CMD_ACK	(1 << 3)
++#define SIFIVE_I2C_CMD_WR	(1 << 4)
++#define SIFIVE_I2C_CMD_RD	(1 << 5)
++#define SIFIVE_I2C_CMD_STO	(1 << 6)
++#define SIFIVE_I2C_CMD_STA	(1 << 7)
 +
-+static struct {
-+	struct i2c_adapter *adapter;
-+	uint32_t reg;
-+	int last_error;
-+} da9063;
++#define SIFIVE_I2C_STATUS_IF	(1 << 0)
++#define SIFIVE_I2C_STATUS_TIP	(1 << 1)
++#define SIFIVE_I2C_STATUS_AL	(1 << 5)
++#define SIFIVE_I2C_STATUS_BUSY	(1 << 6)
++#define SIFIVE_I2C_STATUS_RXACK	(1 << 7)
 +
++#define SIFIVE_I2C_WRITE_BIT	(0 << 0)
++#define SIFIVE_I2C_READ_BIT	(1 << 0)
 +
-+
-+static int da9063_system_reset_check(u32 type, u32 reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static inline int da9063_sanity_check(struct i2c_adapter *adap, uint32_t reg)
-+{
-+	uint8_t val;
-+	int rc = i2c_adapter_send(adap, reg, DA9063_REG_PAGE_CON, 0x02);
-+
-+	if (rc)
-+		return rc;
-+
-+	/* check set page*/
-+	rc = i2c_adapter_read(adap, reg, 0x0, &val);
-+	if (rc)
-+		return rc;
-+
-+	if (val != 0x02)
-+		return SBI_ENODEV;
-+
-+	/* read and check device id */
-+	rc = i2c_adapter_read(adap, reg, DA9063_REG_DEVICE_ID, &val);
-+	if (rc)
-+		return rc;
-+
-+	if (val != PMIC_CHIP_ID_DA9063)
-+		return SBI_ENODEV;
-+
-+	return 0;
-+}
-+
-+static inline int da9063_shutdown(struct i2c_adapter *adap, uint32_t reg)
-+{
-+	int rc = i2c_adapter_send(adap, da9063.reg, DA9063_REG_PAGE_CON, 0x00);
-+
-+	if (rc)
-+		return rc;
-+
-+	return i2c_adapter_send(adap, da9063.reg,
-+				DA9063_REG_CONTROL_F, DA9063_CONTROL_F_SHUTDOWN);
-+}
-+
-+static inline int da9063_reset(struct i2c_adapter *adap, uint32_t reg)
-+{
-+	int rc = i2c_adapter_send(adap, da9063.reg, DA9063_REG_PAGE_CON, 0x00);
-+
-+	if (rc)
-+		return rc;
-+
-+	rc = i2c_adapter_send(adap, da9063.reg,
-+			      DA9063_REG_CONTROL_F, DA9063_CONTROL_F_WAKEUP);
-+	if (rc)
-+		return rc;
-+
-+	return i2c_adapter_send(adap, da9063.reg,
-+				DA9063_REG_CONTROL_A,
-+				DA9063_CONTROL_A_M_POWER1_EN |
-+				DA9063_CONTROL_A_M_POWER_EN |
-+				DA9063_CONTROL_A_STANDBY);
-+}
-+
-+static void da9063_system_reset(u32 type, u32 reason)
-+{
-+	struct i2c_adapter *adap = da9063.adapter;
-+	uint32_t reg = da9063.reg;
-+	int rc;
-+
-+	if (adap) {
-+		/* may include clock init */
-+		i2c_adapter_configure(adap);
-+
-+		/* sanity check */
-+		rc = da9063_sanity_check(adap, reg);
-+		if (rc) {
-+			sbi_printf("%s: chip is not da9063 PMIC\n", __func__);
-+			goto skip_reset;
-+		}
-+
-+		switch (type) {
-+		case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+			da9063_shutdown(adap, reg);
-+			break;
-+		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+			da9063_reset(adap, reg);
-+			break;
-+		}
-+
-+		while
-+			(1);
-+
-+skip_reset:
-+		sbi_hart_hang();
-+	}
-+}
-+
-+static struct sbi_system_reset_device da9063_reset_i2c = {
-+	.name = "da9063-reset",
-+	.system_reset_check = da9063_system_reset_check,
-+	.system_reset = da9063_system_reset
++struct sifive_i2c_adapter {
++	unsigned long addr;
++	struct i2c_adapter adapter;
 +};
 +
-+static int da9063_reset_init(void *fdt, int nodeoff,
-+			   const struct fdt_match *match)
++static unsigned int sifive_i2c_adapter_count;
++static struct sifive_i2c_adapter sifive_i2c_adapter_array[SIFIVE_I2C_ADAPTER_MAX];
++
++extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
++
++static inline void setreg(struct sifive_i2c_adapter *adap, int reg, u8 value)
 +{
-+	int rc, i2c_bus;
-+	struct i2c_adapter *adapter;
-+	uint64_t addr;
++	writel(value, (volatile void *)adap->addr + reg);
++}
 +
-+	/* find i2c bus parent node */
-+	i2c_bus = fdt_parent_offset(fdt, nodeoff);
-+	if (i2c_bus < 0)
-+		return i2c_bus;
++static inline u8 getreg(struct sifive_i2c_adapter *adap, int reg)
++{
++	return readl((volatile void *)adap->addr + reg);
++}
 +
-+	/* i2c adapter get */
-+	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
++static int sifive_i2c_adapter_rxack(struct sifive_i2c_adapter *adap)
++{
++	uint8_t val = getreg(adap, SIFIVE_I2C_SR);
++
++	if (val & SIFIVE_I2C_STATUS_RXACK)
++		return SBI_EIO;
++
++	return 0;
++}
++
++static inline void wait_cycles(unsigned long cycles)
++{
++	csr_write(CSR_MCYCLE, 0);
++	while
++		(cycles > csr_read_num(CSR_MCYCLE));
++}
++
++static int sifive_i2c_adapter_poll(struct sifive_i2c_adapter *adap, uint32_t mask)
++{
++	int max_retry = 5;
++	uint8_t val;
++
++	do {
++		val = getreg(adap, SIFIVE_I2C_SR);
++		wait_cycles(100000);
++	} while ((val & mask) && (max_retry--) > 0);
++
++	if (max_retry <= 0)
++		return SBI_ETIMEDOUT;
++
++	return 0;
++}
++
++#define sifive_i2c_adapter_poll_tip(adap) sifive_i2c_adapter_poll(adap, SIFIVE_I2C_STATUS_TIP)
++#define sifive_i2c_adapter_poll_busy(adap) sifive_i2c_adapter_poll(adap, SIFIVE_I2C_STATUS_BUSY)
++
++static int sifive_i2c_adapter_start(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t bit)
++{
++	uint8_t val = (addr << 1) | bit;
++
++	setreg(adap, SIFIVE_I2C_TXR, val);
++	val = SIFIVE_I2C_CMD_STA | SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK;
++	setreg(adap, SIFIVE_I2C_CR, val);
++
++	return sifive_i2c_adapter_poll_tip(adap);
++}
++
++static int sifive_i2c_adapter_sendb(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t reg, uint8_t value)
++{
++	int rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_WRITE_BIT);
++
 +	if (rc)
 +		return rc;
 +
-+	da9063.adapter = adapter;
++	rc = sifive_i2c_adapter_rxack(adap);
++	if (rc)
++		return rc;
++
++	/* set register address */
++	setreg(adap, SIFIVE_I2C_TXR, reg);
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
++	rc = sifive_i2c_adapter_poll_tip(adap);
++	if (rc)
++		return rc;
++
++	rc = sifive_i2c_adapter_rxack(adap);
++	if (rc)
++		return rc;
++
++	/* set value */
++	setreg(adap, SIFIVE_I2C_TXR, value);
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
++
++	rc = sifive_i2c_adapter_poll_tip(adap);
++	if (rc)
++		return rc;
++
++	rc = sifive_i2c_adapter_rxack(adap);
++	if (rc)
++		return rc;
++
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STO | SIFIVE_I2C_CMD_IACK);
++
++	/* poll BUSY instead of ACK*/
++	rc = sifive_i2c_adapter_poll_busy(adap);
++	if (rc)
++		return rc;
++
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_IACK);
++
++	return 0;
++}
++
++static int sifive_i2c_adapter_readb(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t reg, uint8_t *value)
++{
++	int rc;
++	uint8_t val;
++
++	rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_WRITE_BIT);
++	if (rc)
++		return rc;
++
++	rc = sifive_i2c_adapter_rxack(adap);
++	if (rc)
++		return rc;
++
++	setreg(adap, SIFIVE_I2C_TXR, reg);
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
++
++	rc = sifive_i2c_adapter_poll_tip(adap);
++	if (rc)
++		return rc;
++
++	rc = sifive_i2c_adapter_rxack(adap);
++	if (rc)
++		return rc;
++
++	/* setting addr with high 0 bit */
++	val = (addr << 1) | SIFIVE_I2C_READ_BIT;
++	setreg(adap, SIFIVE_I2C_TXR, val);
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STA | SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
++
++	rc = sifive_i2c_adapter_poll_tip(adap);
++	if (rc)
++		return rc;
++
++	rc = sifive_i2c_adapter_rxack(adap);
++	if (rc)
++		return rc;
++
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_ACK | SIFIVE_I2C_CMD_RD | SIFIVE_I2C_CMD_IACK);
++
++	rc = sifive_i2c_adapter_poll_tip(adap);
++	if (rc)
++		return rc;
++
++	*value = getreg(adap, SIFIVE_I2C_RXR);
++
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STO | SIFIVE_I2C_CMD_IACK);
++	rc = sifive_i2c_adapter_poll_busy(adap);
++	if (rc)
++		return rc;
++
++	setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_IACK);
++
++	return 0;
++}
++
++static int sifive_i2c_adapter_send(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t value)
++{
++	struct sifive_i2c_adapter *adapter =
++		container_of(ia, struct sifive_i2c_adapter, adapter);
++
++	return sifive_i2c_adapter_sendb(adapter, addr, reg, value);
++}
++
++static int sifive_i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr, uint8_t reg, uint8_t *value)
++{
++	int rc;
++	uint8_t val;
++	struct sifive_i2c_adapter *adapter =
++		container_of(ia, struct sifive_i2c_adapter, adapter);
++
++	rc = sifive_i2c_adapter_readb(adapter, addr, reg, &val);
++	if (rc)
++		return rc;
++
++	if (value)
++		*value = val;
++
++	return 0;
++}
++
++static int sifive_i2c_adapter_configure(struct i2c_adapter *ia)
++{
++	struct sifive_i2c_adapter *adap =
++		container_of(ia, struct sifive_i2c_adapter, adapter);
++
++	/* enable controller/disable interrupts */
++	setreg(adap, SIFIVE_I2C_CTR, SIFIVE_I2C_CTR_EN);
++
++	return 0;
++}
++
++static int sifive_i2c_init(void *fdt, int nodeoff,
++			    const struct fdt_match *match)
++{
++	int rc;
++	struct sifive_i2c_adapter *adapter;
++	uint64_t addr;
++
++	if (sifive_i2c_adapter_count >= SIFIVE_I2C_ADAPTER_MAX)
++		return SBI_ENOSPC;
++
++	adapter = &sifive_i2c_adapter_array[sifive_i2c_adapter_count];
 +
 +	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
 +	if (rc)
 +		return rc;
 +
-+	da9063.reg = addr;
++	adapter->addr = addr;
++	adapter->adapter.driver = &fdt_i2c_adapter_sifive;
++	adapter->adapter.id = nodeoff;
++	adapter->adapter.send = sifive_i2c_adapter_send;
++	adapter->adapter.read = sifive_i2c_adapter_read;
++	adapter->adapter.configure = sifive_i2c_adapter_configure;
++	rc = i2c_adapter_add(&adapter->adapter);
++	if (rc)
++		return rc;
 +
-+	sbi_system_reset_set_device(&da9063_reset_i2c);
-+
++	sifive_i2c_adapter_count++;
 +	return 0;
 +}
 +
-+static const struct fdt_match da9063_reset_match[] = {
-+	{ .compatible = "dlg,da9063", .data = (void *)TRUE },
++static const struct fdt_match sifive_i2c_match[] = {
++	{ .compatible = "sifive,i2c0" },
 +	{ },
 +};
 +
-+struct fdt_reset fdt_reset_da9063 = {
-+	.match_table = da9063_reset_match,
-+	.init = da9063_reset_init,
++struct fdt_i2c_adapter fdt_i2c_adapter_sifive = {
++	.match_table = sifive_i2c_match,
++	.init = sifive_i2c_init,
 +};
-diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-index 6c95db3..cfe4c09 100644
---- a/lib/utils/reset/objects.mk
-+++ b/lib/utils/reset/objects.mk
-@@ -14,3 +14,4 @@ libsbiutils-objs-y += reset/fdt_reset_sifive_test.o
- libsbiutils-objs-y += reset/fdt_reset_sunxi_wdt.o
- libsbiutils-objs-y += reset/fdt_reset_thead.o
- libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
-+libsbiutils-objs-y += reset/fdt_reset_da9063.o
+diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
+index 06baa65..d52ab18 100644
+--- a/lib/utils/i2c/objects.mk
++++ b/lib/utils/i2c/objects.mk
+@@ -9,3 +9,4 @@
+ 
+ libsbiutils-objs-y += i2c/i2c.o
+ libsbiutils-objs-y += i2c/fdt_i2c.o
++libsbiutils-objs-y += i2c/fdt_i2c_sifive.o
 -- 
 2.31.1
 
