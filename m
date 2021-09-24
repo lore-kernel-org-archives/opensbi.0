@@ -1,5 +1,5 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Fri, 24 Sep 2021 19:20:31 +0300
+Date: Fri, 24 Sep 2021 19:36:26 +0300
 Subject: [PATCH 0/4] reboot SiFive Unmatched via PMIC
 In-Reply-To: <CAAhSdy3DLHwm=sdTB=M5wVpDxMYQrLbBVE0dU6fkVCnmjEGpWA@mail.gmail.com>
 References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
@@ -7,7 +7,7 @@ References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
  <AE4ED4C2-7921-4CF2-A813-FDF25778F855@wdc.com>
  <20210924190641.0da298f4@redslave.neermore.group>
  <CAAhSdy3DLHwm=sdTB=M5wVpDxMYQrLbBVE0dU6fkVCnmjEGpWA@mail.gmail.com>
-Message-ID: <20210924192031.4ef0dd8d@redslave.neermore.group>
+Message-ID: <20210924193626.3058099c@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -41,7 +41,9 @@ Anup Patel <anup@brainfault.org> wrote:
 > 
 > Can you elaborate further ?
 
-Of course, why not.
+I noticed that if no reset driver is present at all the board won't
+boot, but looking into the code - may be it's just in case drv->init
+return an error, i will look further into it.
 
 Yours,
 Nikita Shubin
