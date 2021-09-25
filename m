@@ -1,108 +1,66 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Sat, 25 Sep 2021 10:07:34 +0530
-Subject: [PATCH v3 4/5] lib: sbi: Add generic timer delay loop function
+Date: Sat, 25 Sep 2021 10:07:35 +0530
+Subject: [PATCH v3 5/5] lib: utils/reset: use sbi_timer_mdelay() in gpio reset
+ driver
 In-Reply-To: <20210925043735.686518-1-anup.patel@wdc.com>
 References: <20210925043735.686518-1-anup.patel@wdc.com>
-Message-ID: <20210925043735.686518-5-anup.patel@wdc.com>
+Message-ID: <20210925043735.686518-6-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We now have frequency of the timer device provided by the platform
-support so we can emulate desired delay using a loop where the number
-loop iterations are based on timer frequency.
-
-This patch provides sbi_timer_delay_loop() for above purpose.
+We should use sbi_timer_mdelay() instead of custom gpio_mdelay() in
+the gpio reset driver.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 ---
- include/sbi/sbi_timer.h | 16 ++++++++++++++++
- lib/sbi/sbi_timer.c     | 34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+ lib/utils/reset/fdt_reset_gpio.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/include/sbi/sbi_timer.h b/include/sbi/sbi_timer.h
-index 211e83d..63ef1af 100644
---- a/include/sbi/sbi_timer.h
-+++ b/include/sbi/sbi_timer.h
-@@ -32,6 +32,22 @@ struct sbi_timer_device {
- 
- struct sbi_scratch;
- 
-+/** Generic delay loop of desired granularity */
-+void sbi_timer_delay_loop(ulong units, u64 unit_freq,
-+			  void (*delay_fn)(void *), void *opaque);
-+
-+/** Provide delay in terms of milliseconds */
-+static inline void sbi_timer_mdelay(ulong msecs)
-+{
-+	sbi_timer_delay_loop(msecs, 1000, NULL, NULL);
-+}
-+
-+/** Provide delay in terms of microseconds */
-+static inline void sbi_timer_udelay(ulong usecs)
-+{
-+	sbi_timer_delay_loop(usecs, 1000000, NULL, NULL);
-+}
-+
- /** Get timer value for current HART */
- u64 sbi_timer_value(void);
- 
-diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
-index 2759501..acdba92 100644
---- a/lib/sbi/sbi_timer.c
-+++ b/lib/sbi/sbi_timer.c
-@@ -8,7 +8,9 @@
-  */
- 
- #include <sbi/riscv_asm.h>
-+#include <sbi/riscv_barrier.h>
- #include <sbi/riscv_encoding.h>
-+#include <sbi/sbi_console.h>
- #include <sbi/sbi_error.h>
+diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
+index 77e308a..30127f5 100644
+--- a/lib/utils/reset/fdt_reset_gpio.c
++++ b/lib/utils/reset/fdt_reset_gpio.c
+@@ -14,6 +14,7 @@
+ #include <sbi/sbi_ecall_interface.h>
  #include <sbi/sbi_hart.h>
- #include <sbi/sbi_platform.h>
-@@ -47,6 +49,38 @@ static u64 get_platform_ticks(void)
- 	return timer_dev->timer_value();
- }
+ #include <sbi/sbi_system.h>
++#include <sbi/sbi_timer.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/gpio/fdt_gpio.h>
+ #include <sbi_utils/reset/fdt_reset.h>
+@@ -34,14 +35,6 @@ static struct gpio_reset restart = {
+ 	.inactive_delay = 100
+ };
  
-+static void nop_delay_fn(void *opaque)
-+{
-+	cpu_relax();
-+}
-+
-+void sbi_timer_delay_loop(ulong units, u64 unit_freq,
-+			  void (*delay_fn)(void *), void *opaque)
-+{
-+	u64 start_val, delta;
-+
-+	/* Do nothing if we don't have timer device */
-+	if (!timer_dev || !get_time_val) {
-+		sbi_printf("%s: called without timer device\n", __func__);
-+		return;
-+	}
-+
-+	/* Save starting timer value */
-+	start_val = get_time_val();
-+
-+	/* Compute desired timer value delta */
-+	delta = ((u64)timer_dev->timer_freq * (u64)units);
-+	delta = delta / unit_freq;
-+
-+	/* Use NOP delay function if delay function not available */
-+	if (!delay_fn)
-+		delay_fn = nop_delay_fn;
-+
-+	/* Busy loop until desired timer value delta reached */
-+	while ((get_time_val() - start_val) < delta)
-+		delay_fn(opaque);
-+}
-+
- u64 sbi_timer_value(void)
+-/* Custom mdelay function until we have a generic mdelay() API */
+-static void gpio_mdelay(unsigned long msecs)
+-{
+-	volatile int i;
+-	while (msecs--)
+-		for (i = 0; i < 100000; i++) ;
+-}
+-
+ static int gpio_system_reset_check(u32 type, u32 reason)
  {
- 	if (get_time_val)
+ 	switch (type) {
+@@ -76,11 +69,11 @@ static void gpio_system_reset(u32 type, u32 reason)
+ 
+ 		/* drive it active, also inactive->active edge */
+ 		gpio_direction_output(&reset->pin, 1);
+-		gpio_mdelay(reset->active_delay);
++		sbi_timer_mdelay(reset->active_delay);
+ 
+ 		/* drive inactive, also active->inactive edge */
+ 		gpio_set(&reset->pin, 0);
+-		gpio_mdelay(reset->inactive_delay);
++		sbi_timer_mdelay(reset->inactive_delay);
+ 
+ 		/* drive it active, also inactive->active edge */
+ 		gpio_set(&reset->pin, 1);
 -- 
 2.25.1
 
