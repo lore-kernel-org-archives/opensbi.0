@@ -1,73 +1,67 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sat, 25 Sep 2021 15:29:03 +0800
-Subject: [PATCH v3 5/5] lib: utils/reset: use sbi_timer_mdelay() in gpio
- reset driver
-In-Reply-To: <20210925043735.686518-6-anup.patel@wdc.com>
-References: <20210925043735.686518-1-anup.patel@wdc.com>
- <20210925043735.686518-6-anup.patel@wdc.com>
-Message-ID: <45902f3dffd92dd45c56181b4bb0748ee3b6092a.camel@126.com>
+Date: Sat, 25 Sep 2021 15:46:42 +0800
+Subject: [PATCH 1/2] lib: sbi: Introduce early hart initialization scheme
+In-Reply-To: <20210923022839.17777-1-ycliang@andestech.com>
+References: <20210923022839.17777-1-ycliang@andestech.com>
+Message-ID: <1fdd83b77e99ade5faf95e379b399970fa02577d.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-09-25???? 10:07 +0530?Anup Patel???
-> We should use sbi_timer_mdelay() instead of custom gpio_mdelay() in
-> the gpio reset driver.
+? 2021-09-23???? 10:28 +0800?Leo Yu-Chi Liang???
+> Referencing U-Boot (edd9ad81 riscv: cpu: Add callback to init each
+> core)
+> Introduce a callback function for each hart to do its own
+> initialization
+> as early as possible.
 > 
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
+> Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 > ---
-> ?lib/utils/reset/fdt_reset_gpio.c | 13 +++----------
-> ?1 file changed, 3 insertions(+), 10 deletions(-)
+> ?firmware/fw_base.S | 6 ++++++
+> ?lib/sbi/sbi_init.c | 4 ++++
+> ?2 files changed, 10 insertions(+)
 > 
-> diff --git a/lib/utils/reset/fdt_reset_gpio.c
-> b/lib/utils/reset/fdt_reset_gpio.c
-> index 77e308a..30127f5 100644
-> --- a/lib/utils/reset/fdt_reset_gpio.c
-> +++ b/lib/utils/reset/fdt_reset_gpio.c
-> @@ -14,6 +14,7 @@
-> ?#include <sbi/sbi_ecall_interface.h>
-> ?#include <sbi/sbi_hart.h>
-> ?#include <sbi/sbi_system.h>
-> +#include <sbi/sbi_timer.h>
-> ?#include <sbi_utils/fdt/fdt_helper.h>
-> ?#include <sbi_utils/gpio/fdt_gpio.h>
-> ?#include <sbi_utils/reset/fdt_reset.h>
-> @@ -34,14 +35,6 @@ static struct gpio_reset restart = {
-> ????????.inactive_delay = 100
-> ?};
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 1569e60..dfbe7d7 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -47,6 +47,12 @@
+> ????????.globl _start
+> ????????.globl _start_warm
+> ?_start:
+> +???????/* Setup temporary stack */
+> +???????lla?????s4, _fw_end
+> +???????li??????s5, (SBI_SCRATCH_SIZE * 2)
+> +???????add?????sp, s4, s5
+> +???????/* call harts_early_init */
+> +???????call harts_early_init
+This will destroy the parameters (a0/a1/a2) that the firmware passed to
+opensbi in the previous stage. And here, the stack pointers of multiple
+cores are set to the same memory address, which may cause  memory
+conflicts. 
+
+Regards,
+Xiang W
+> ????????/* Find preferred boot HART id */
+> ????????MOV_3R??s0, a0, s1, a1, s2, a2
+> ????????call????fw_boot_hart
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 6ef8742..02acac0 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -536,3 +536,7 @@ void __noreturn sbi_exit(struct sbi_scratch
+> *scratch)
 > ?
-> -/* Custom mdelay function until we have a generic mdelay() API */
-> -static void gpio_mdelay(unsigned long msecs)
-> -{
-> -???????volatile int i;
-> -???????while (msecs--)
-> -???????????????for (i = 0; i < 100000; i++) ;
-> -}
-> -
-> ?static int gpio_system_reset_check(u32 type, u32 reason)
-> ?{
-> ????????switch (type) {
-> @@ -76,11 +69,11 @@ static void gpio_system_reset(u32 type, u32
-> reason)
-> ?
-> ????????????????/* drive it active, also inactive->active edge */
-> ????????????????gpio_direction_output(&reset->pin, 1);
-> -???????????????gpio_mdelay(reset->active_delay);
-> +???????????????sbi_timer_mdelay(reset->active_delay);
-> ?
-> ????????????????/* drive inactive, also active->inactive edge */
-> ????????????????gpio_set(&reset->pin, 0);
-> -???????????????gpio_mdelay(reset->inactive_delay);
-> +???????????????sbi_timer_mdelay(reset->inactive_delay);
-> ?
-> ????????????????/* drive it active, also inactive->active edge */
-> ????????????????gpio_set(&reset->pin, 1);
+> ????????sbi_hsm_exit(scratch);
+> ?}
+> +
+> +__attribute__((weak)) void harts_early_init(void)
+> +{
+> +}
 > -- 
-> 2.25.1
+> 2.17.0
 > 
 > 
 
