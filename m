@@ -1,51 +1,34 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Tue, 28 Sep 2021 13:56:24 +0300
-Subject: [PATCH 4/4] lib: utils/reset: Add generic da9063 reset driver
-In-Reply-To: <ff4dc88f-ff92-4300-29d5-d998c991731a@ghiti.fr>
+Date: Tue, 28 Sep 2021 14:07:54 +0300
+Subject: [PATCH 1/4] lib: utils/i2c: Add generic I2C configuration library
+In-Reply-To: <bd47f16d6e6a80b26a57d10a18ff2372b8620987.camel@126.com>
 References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
- <20210924113347.3576-5-nikita.shubin@maquefel.me>
- <ff4dc88f-ff92-4300-29d5-d998c991731a@ghiti.fr>
-Message-ID: <20210928135624.157a4ced@redslave.neermore.group>
+ <20210924113347.3576-2-nikita.shubin@maquefel.me>
+ <bd47f16d6e6a80b26a57d10a18ff2372b8620987.camel@126.com>
+Message-ID: <20210928140754.5b4a5f23@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hello Alexander!
+Hello Xiang!
 
-On Mon, 27 Sep 2021 17:42:24 +0200
-Alexandre ghiti <alex@ghiti.fr> wrote:
+On Sat, 25 Sep 2021 12:19:43 +0800
+Xiang W <wxjstz@126.com> wrote:
 
-> On 9/24/21 1:33 PM, Nikita Shubin wrote:
-> > From: Nikita Shubin <n.shubin@yadro.com>
-> >
-> > da9063 PMIC can be used to reset/shutdown the
-> > Sifive Unmatched board.
-> >
-> > shutdown is done simply by writing SHUDOWN bit to
-> > DA9063_REG_CONTROL_F register.  
-> 
-> 
-> s/SHUDOWN/SHUTDOWN
-> 
-> 
-> >
-> > reset via setting WAKEUP bit in DA9063_REG_CONTROL_F
-> > register followed by masking POWER and POWER1 domains
-> > and setting STANDBY bit in DA9063_REG_CONTROL_A,
-> > originally discovered by Alexandre Ghiti on linux-riscv
-> > maillists.  
-> 
-> 
-> Someone from Dialog answered this patch and will get back to us after
-> talking to the hardware team.
+> > +
+> > +#include <sbi/sbi_error.h>
+> > +#include <sbi_utils/i2c/i2c.h>
+> > +
+> > +#define I2C_ADAPTER_MAX????????????????16  
+> If it is implemented through a linked list, there will be no limit on
+> the number
 
-You mean Adam Thomson - right ? Looking forward to his answer. Anyway
-it seems that reseting via watchdog is a more reliable way to him. May
-this is really a better way.
+You are proposing double linked lists like in Linux/BSD? That makes
+sense.
+
 
 Yours,
 Nikita Shubin
-
 
