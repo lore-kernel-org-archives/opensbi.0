@@ -1,44 +1,33 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Tue, 28 Sep 2021 13:32:50 +0300
-Subject: [PATCH 0/4] reboot SiFive Unmatched via PMIC
-In-Reply-To: <05f7cf09-a0a4-0f53-6e82-5d0873cf430f@canonical.com>
+Date: Tue, 28 Sep 2021 13:51:45 +0300
+Subject: [PATCH 1/4] lib: utils/i2c: Add generic I2C configuration library
+In-Reply-To: <fabe3560-316c-2f62-6867-f4fc6768d15c@ghiti.fr>
 References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
- <CAEUhbmWUiTWuVNxEDo3mRCAh2KBfYs8Y46egsAoNenKy=wVa8w@mail.gmail.com>
- <05f7cf09-a0a4-0f53-6e82-5d0873cf430f@canonical.com>
-Message-ID: <20210928133250.086db2c4@redslave.neermore.group>
+ <20210924113347.3576-2-nikita.shubin@maquefel.me>
+ <fabe3560-316c-2f62-6867-f4fc6768d15c@ghiti.fr>
+Message-ID: <20210928135145.5acef307@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hello Heinrich,
+Hi Alexander,
 
-On Sat, 25 Sep 2021 10:11:29 +0200
-Heinrich Schuchardt <heinrich.schuchardt@canonical.com> wrote:
+Thank you for your attention.
 
-> At some point we will have to decide on a configuration system to
-> enable only those drivers that are needed for the current hardware. 
-> Unfortunately we cannot reuse Linux Kconfig as our license is BSD-2.
-> 
+On Mon, 27 Sep 2021 17:41:18 +0200
+Alexandre ghiti <alex@ghiti.fr> wrote:
 
-Actually KConfig license does not apply to the code it is building and
-configuring. 
+> And I don't think the configure callback is even needed: it should be
+> done at the initialization of the adapter, in its own driver, I don't
+> think the device should care about that.
 
-
-> Currently if a reset driver fails it simply ends up hanging in an 
-> endless loop.
-> 
-> The SiFive Unmatched will use GPIO for poweroff and I2C for reset.
-> 
-> We need the ability to iterate through multiple reset drivers. If 
-> resetting is not possible, we should return to the caller with an
-> error code.
-
-How it is supposed to return to Linux kernel reset handler for example
-and for what ? Could you please explain in detail ?
+As long as i2c frame is supposed to do something more complicated then
+sending a few bytes at the very end and even, may be, at the start of
+booting, it is definitely required to configure - setup clocks, enable
+the device.
 
 Yours,
 Nikita Shubin
-
 
