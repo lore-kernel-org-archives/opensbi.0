@@ -1,122 +1,68 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 29 Sep 2021 09:46:55 +0530
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Wed, 29 Sep 2021 09:01:54 +0200
 Subject: [PATCH 1/1] lib: utils: identify supported GPIO reset methods
-In-Reply-To: <20210928114246.46596-1-heinrich.schuchardt@canonical.com>
+In-Reply-To: <CAAhSdy1oEFKw6iE0Dc=cmRjhQWV_i6JvaB6u4P3ayWzKKXiXNw@mail.gmail.com>
 References: <20210928114246.46596-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy1oEFKw6iE0Dc=cmRjhQWV_i6JvaB6u4P3ayWzKKXiXNw@mail.gmail.com>
+ <CAAhSdy1oEFKw6iE0Dc=cmRjhQWV_i6JvaB6u4P3ayWzKKXiXNw@mail.gmail.com>
+Message-ID: <627f1941-3e57-cf92-5e74-eebf0036ebc1@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-+Nikita
 
-On Tue, Sep 28, 2021 at 5:13 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
->
-> The GPIO reset driver supports reset and poweroff. But not all boards
-> support both. gpio_system_reset_check() must detect this situation.
->
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
-Looks good to me.
+On 9/29/21 6:16 AM, Anup Patel wrote:
+> +Nikita
+> 
+> On Tue, Sep 28, 2021 at 5:13 PM Heinrich Schuchardt
+> <heinrich.schuchardt@canonical.com> wrote:
+>>
+>> The GPIO reset driver supports reset and poweroff. But not all boards
+>> support both. gpio_system_reset_check() must detect this situation.
+>>
+>> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> 
+> Looks good to me.
+> 
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> 
+> I had mentioned on the PMIC reset series that we need to improve
+> the sbi_system.h device registration such that reset drivers can
+> register a reset device for a range of reset types. This will allow
+> separate reset drivers (e.g. PMIC+GPIO) for SiFive Unmatched.
+> Also, reset_check() callback will not be required anymore.
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Hello Anup,
 
-I had mentioned on the PMIC reset series that we need to improve
-the sbi_system.h device registration such that reset drivers can
-register a reset device for a range of reset types. This will allow
-separate reset drivers (e.g. PMIC+GPIO) for SiFive Unmatched.
-Also, reset_check() callback will not be required anymore.
+thanks for reviewing.
 
-Regards,
-Anup
+Currently we keep a list of drivers in a static array. As we are 
+acquiring more and drivers I would like to move to linker generated 
+lists as Linux and U-Boot use the for enumerating drivers.
 
-> ---
->  lib/utils/reset/fdt_reset_gpio.c | 44 +++++++++++++++-----------------
->  1 file changed, 21 insertions(+), 23 deletions(-)
->
-> diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-> index 30127f5..77e4d0e 100644
-> --- a/lib/utils/reset/fdt_reset_gpio.c
-> +++ b/lib/utils/reset/fdt_reset_gpio.c
-> @@ -35,21 +35,9 @@ static struct gpio_reset restart = {
->         .inactive_delay = 100
->  };
->
-> -static int gpio_system_reset_check(u32 type, u32 reason)
-> -{
-> -       switch (type) {
-> -       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> -       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> -       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> -               return 1;
-> -       }
-> -
-> -       return 0;
-> -}
-> -
-> -static void gpio_system_reset(u32 type, u32 reason)
-> +static struct gpio_reset *gpio_get_reset_settings(u32 type)
->  {
-> -       struct gpio_reset *reset = NULL;
-> +       struct gpio_reset *reset;
->
->         switch (type) {
->         case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> @@ -59,14 +47,26 @@ static void gpio_system_reset(u32 type, u32 reason)
->         case SBI_SRST_RESET_TYPE_WARM_REBOOT:
->                 reset = &restart;
->                 break;
-> +       default:
-> +               reset = NULL;
->         }
->
-> -       if (reset) {
-> -               if (!reset->pin.chip) {
-> -                       sbi_printf("%s: gpio pin not available\n", __func__);
-> -                       goto skip_reset;
-> -               }
-> +       if (reset && !reset->pin.chip)
-> +               reset = NULL;
-> +
-> +       return reset;
-> +}
-> +
-> +static int gpio_system_reset_check(u32 type, u32 reason)
-> +{
-> +       return !!gpio_get_reset_settings(type);
-> +}
-> +
-> +static void gpio_system_reset(u32 type, u32 reason)
-> +{
-> +       struct gpio_reset *reset = gpio_get_reset_settings(type);
->
-> +       if (reset) {
->                 /* drive it active, also inactive->active edge */
->                 gpio_direction_output(&reset->pin, 1);
->                 sbi_timer_mdelay(reset->active_delay);
-> @@ -77,11 +77,9 @@ static void gpio_system_reset(u32 type, u32 reason)
->
->                 /* drive it active, also inactive->active edge */
->                 gpio_set(&reset->pin, 1);
-> -
-> -skip_reset:
-> -               /* hang !!! */
-> -               sbi_hart_hang();
->         }
-> +       /* hang !!! */
-> +       sbi_hart_hang();
->  }
->
->  static struct sbi_system_reset_device gpio_reset = {
-> --
-> 2.32.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+So a driver could look like:
+
+int drv1_check(unsigned int type, unsigned int reason) {...}
+
+void drv1_reset(unsigned int type, unsigned int reason) {...}
+
+SRST_DRIVER(drv1) = {
+         .name = "driver_1",
+         .check = drv1_check,
+         .reset = drv1_reset,
+};
+
+The linker will create a list of all SRST_DRIVER() instances over which 
+we can iterate in our code.
+
+Does this make sense to you?
+
+Example code is available in
+https://github.com/xypron/linker_generated_lists
+
+Best regards
+
+Heinrich
 
