@@ -1,70 +1,92 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed, 29 Sep 2021 14:03:19 +0200
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 29 Sep 2021 18:08:04 +0530
 Subject: [PATCH 1/1] lib: utils: identify supported GPIO reset methods
-In-Reply-To: <20210929121411.4af6684d@redslave.neermore.group>
+In-Reply-To: <627f1941-3e57-cf92-5e74-eebf0036ebc1@canonical.com>
 References: <20210928114246.46596-1-heinrich.schuchardt@canonical.com>
  <CAAhSdy1oEFKw6iE0Dc=cmRjhQWV_i6JvaB6u4P3ayWzKKXiXNw@mail.gmail.com>
- <20210929121411.4af6684d@redslave.neermore.group>
-Message-ID: <e747166b-0f6e-3a48-5dbc-8831aa4abbcb@canonical.com>
+ <627f1941-3e57-cf92-5e74-eebf0036ebc1@canonical.com>
+Message-ID: <CAAhSdy0nhv5B4DUFEr+OB68z7w7ZmqYoQDoBJ6jz3MK2mxD+OQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9/29/21 11:14, Nikita Shubin wrote:
-> On Wed, 29 Sep 2021 09:46:55 +0530
-> Anup Patel <anup@brainfault.org> wrote:
-> 
->> +Nikita
->>
->> On Tue, Sep 28, 2021 at 5:13 PM Heinrich Schuchardt
->> <heinrich.schuchardt@canonical.com> wrote:
->>>
->>> The GPIO reset driver supports reset and poweroff. But not all
->>> boards support both. gpio_system_reset_check() must detect this
->>> situation.
->>>
->>> Signed-off-by: Heinrich Schuchardt
->>> <heinrich.schuchardt@canonical.com>
->>
->> Looks good to me.
->>
->> Reviewed-by: Anup Patel <anup.patel@wdc.com>
->>
->> I had mentioned on the PMIC reset series that we need to improve
->> the sbi_system.h device registration such that reset drivers can
->> register a reset device for a range of reset types. This will allow
->> separate reset drivers (e.g. PMIC+GPIO) for SiFive Unmatched.
->> Also, reset_check() callback will not be required anymore.
->>
->> Regards,
->> Anup
-> 
-> Looks good to me, however
-> 
->>> +       /* hang !!! */
->>> +       sbi_hart_hang();
->>>   }
-> 
-> Heinrich do we really need to hang here ?
-> 
-> Despite the gpio_system_reset should never reach the end of function,
-> i remember you talked something about returning from function back to
-> the sbi_system_reset.
+On Wed, Sep 29, 2021 at 12:31 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
+>
+>
+>
+> On 9/29/21 6:16 AM, Anup Patel wrote:
+> > +Nikita
+> >
+> > On Tue, Sep 28, 2021 at 5:13 PM Heinrich Schuchardt
+> > <heinrich.schuchardt@canonical.com> wrote:
+> >>
+> >> The GPIO reset driver supports reset and poweroff. But not all boards
+> >> support both. gpio_system_reset_check() must detect this situation.
+> >>
+> >> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> >
+> > Looks good to me.
+> >
+> > Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> >
+> > I had mentioned on the PMIC reset series that we need to improve
+> > the sbi_system.h device registration such that reset drivers can
+> > register a reset device for a range of reset types. This will allow
+> > separate reset drivers (e.g. PMIC+GPIO) for SiFive Unmatched.
+> > Also, reset_check() callback will not be required anymore.
+>
+> Hello Anup,
+>
+> thanks for reviewing.
+>
+> Currently we keep a list of drivers in a static array. As we are
+> acquiring more and drivers I would like to move to linker generated
+> lists as Linux and U-Boot use the for enumerating drivers.
+>
+> So a driver could look like:
+>
+> int drv1_check(unsigned int type, unsigned int reason) {...}
+>
+> void drv1_reset(unsigned int type, unsigned int reason) {...}
+>
+> SRST_DRIVER(drv1) = {
+>          .name = "driver_1",
+>          .check = drv1_check,
+>          .reset = drv1_reset,
+> };
+>
+> The linker will create a list of all SRST_DRIVER() instances over which
+> we can iterate in our code.
+>
+> Does this make sense to you?
+>
+> Example code is available in
+> https://github.com/xypron/linker_generated_lists
 
-Thanks for reviewing.
+I certainly like the Linker list approach. In fact, I have
+implemented something similar in-past for Xvisor built-in
+modules.
 
-As we are calling the check function before invoking the reset function 
-this hang will only be running until the power supply is drained.
+We can go ahead with Linker list approach with
+following considerations:
+1) The generic SBI library (i.e lib/sbi and include/sbi/
+directories) should not use linker list because we have
+couple of projects (e.g. Microchip HSS and EDK2)
+which directly link with the OpenSBI generic library
+instead of using OpenSBI firmwares.
+2) This should only impact FDT based drivers in
+SBI utils (i.e. lib/utils and include/sbi_utils directories).
 
-A calling function is defined as __no_return. Once we correct the whole 
-reset driver framework as proposed by Anup we have to remove the 
-sbi_hart_hang() here and in other drivers. We then need a small wait 
-here and shall return SBI_EFAIL in the most improbable case.
+Basically, all FDT based driver frameworks under
+lib/utils can happily move to the Linker list approach
+so that we don't have to maintain various xyz_drivers[]
+arrays across different FDT based driver frameworks.
 
-Best regards
+Agree ??
 
-Heinrich
-
+Regards,
+Anup
 
