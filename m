@@ -1,57 +1,70 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Wed, 29 Sep 2021 12:14:11 +0300
-Subject: [PATCH 1/1] lib: utils: identify supported GPIO reset methods
-In-Reply-To: <CAAhSdy1oEFKw6iE0Dc=cmRjhQWV_i6JvaB6u4P3ayWzKKXiXNw@mail.gmail.com>
-References: <20210928114246.46596-1-heinrich.schuchardt@canonical.com>
- <CAAhSdy1oEFKw6iE0Dc=cmRjhQWV_i6JvaB6u4P3ayWzKKXiXNw@mail.gmail.com>
-Message-ID: <20210929121411.4af6684d@redslave.neermore.group>
+Date: Wed, 29 Sep 2021 12:41:51 +0300
+Subject: [RFC PATCH 2/2] lib: sbi: add priority for reset handler
+In-Reply-To: <20210929094151.26639-1-nikita.shubin@maquefel.me>
+References: <20210929094151.26639-1-nikita.shubin@maquefel.me>
+Message-ID: <20210929094151.26639-3-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 29 Sep 2021 09:46:55 +0530
-Anup Patel <anup@brainfault.org> wrote:
+From: Nikita Shubin <n.shubin@yadro.com>
 
-> +Nikita
-> 
-> On Tue, Sep 28, 2021 at 5:13 PM Heinrich Schuchardt
-> <heinrich.schuchardt@canonical.com> wrote:
-> >
-> > The GPIO reset driver supports reset and poweroff. But not all
-> > boards support both. gpio_system_reset_check() must detect this
-> > situation.
-> >
-> > Signed-off-by: Heinrich Schuchardt
-> > <heinrich.schuchardt@canonical.com>  
-> 
-> Looks good to me.
-> 
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
-> 
-> I had mentioned on the PMIC reset series that we need to improve
-> the sbi_system.h device registration such that reset drivers can
-> register a reset device for a range of reset types. This will allow
-> separate reset drivers (e.g. PMIC+GPIO) for SiFive Unmatched.
-> Also, reset_check() callback will not be required anymore.
-> 
-> Regards,
-> Anup
+Let's make system_reset_check returning priority instead of only
+true/false. In that case 0 - means not supported, and anything above
+means priority that makes existing reset handlers being used in first
+place, unless it is decided to lower their priority.
 
-Looks good to me, however
+The handler with the least priority wins.
 
-> > +       /* hang !!! */
-> > +       sbi_hart_hang();
-> >  }
+Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+---
+ lib/sbi/sbi_system.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-Heinrich do we really need to hang here ?
-
-Despite the gpio_system_reset should never reach the end of function, 
-i remember you talked something about returning from function back to
-the sbi_system_reset.
-
-Yours,
-Nikita Shubin
+diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+index 92bc0ac..a82c4ef 100644
+--- a/lib/sbi/sbi_system.c
++++ b/lib/sbi/sbi_system.c
+@@ -55,6 +55,8 @@ void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason)
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	struct sbi_dlist *pos;
++	struct sbi_system_reset_device *reset_dev = 0;
++	int priority = 255;
+ 
+ 	/* Send HALT IPI to every hart other than the current hart */
+ 	while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &hmask)) {
+@@ -70,12 +72,22 @@ void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason)
+ 
+ 	/* Check each reset device registered for supported reset type */
+ 	sbi_list_for_each(pos, &(reset_devices_list)) {
+-		struct sbi_system_reset_device *dev =
+-			to_system_reset_device(pos);
+-		if (dev->system_reset_check(reset_type, reset_reason))
+-			dev->system_reset(reset_type, reset_reason);
++		struct sbi_system_reset_device *dev
++			= to_system_reset_device(pos);
++		int status = dev->system_reset_check(reset_type, reset_reason);
++
++		if (status == 0)
++			continue;
++
++		if (status < priority) {
++			reset_dev = dev;
++			priority = status;
++		}
+ 	}
+ 
++	if (reset_dev)
++		reset_dev->system_reset(reset_type, reset_reason);
++
+ 	/* If platform specific reset did not work then do sbi_exit() */
+ 	sbi_exit(scratch);
+ }
+-- 
+2.31.1
 
 
