@@ -1,117 +1,189 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 29 Sep 2021 18:16:37 +0530
-Subject: [PATCH 0/4] reboot SiFive Unmatched via PMIC
-In-Reply-To: <05f7cf09-a0a4-0f53-6e82-5d0873cf430f@canonical.com>
-References: <20210924113347.3576-1-nikita.shubin@maquefel.me>
- <CAEUhbmWUiTWuVNxEDo3mRCAh2KBfYs8Y46egsAoNenKy=wVa8w@mail.gmail.com>
- <05f7cf09-a0a4-0f53-6e82-5d0873cf430f@canonical.com>
-Message-ID: <CAAhSdy0b1m=8VRjKU95AF-cAO_UnTvHo_WUv=6GCvMSsAcNmxw@mail.gmail.com>
+From: Fu Wei <tekkamanninja@gmail.com>
+Date: Wed, 29 Sep 2021 21:36:44 +0800
+Subject: [PATCH V2] Makefile: Add build time and compiler info string.
+In-Reply-To: <9813c535-6ad3-43b0-a643-e6dbd9d5bca5@www.fastmail.com>
+References: <20210929101945.186736-1-tekkamanninja@gmail.com>
+ <9813c535-6ad3-43b0-a643-e6dbd9d5bca5@www.fastmail.com>
+Message-ID: <CA+HMz3iKz0Yf+=1+BMckRkCgV8XA_nBiNQVaeXsm-hSSetVG6w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Sep 25, 2021 at 1:41 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+Hi Alistair
+
+Great thanks for your review!
+
+
+Alistair <alistair@alistair23.me> ?2021?9?29??? ??6:50???
 >
->
->
-> On 9/25/21 3:10 AM, Bin Meng wrote:
-> > On Fri, Sep 24, 2021 at 7:34 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
-> >>
-> >> From: Nikita Shubin <n.shubin@yadro.com>
-> >>
-> >> This series introduce rebooting via i2c PMIC, currently on
-> >> SiFive Unmatched board.
-> >>
-> >> teseted via Linux with reset extension and direct ecall from
-> >> u-boot.
-> >>
-> >> With this it becomes possible to reboot/shutdown the board
-> >> if Linux or u-boot is accompanied with OpenSBI reset extension.
-> >>
-> >> "gpio-poweroff" is required to be removed from u-boot dts file, as
-> >> it overrides fdt_reset_da9063.
-> >>
-> >> fdt_reset_da9063 is loaded if "dlg,da9063" is present in device tree.
-> >>
-> >> Moreover it's look like we require a convenient "sleep" functionality,
-> >> currently i've implemented sleep via CSR_MCYCLE, assuming we don't normally
-> >> communicate with device while operational only on start/shutdown.
-> >>
-> >> ```
-> >> static inline void wait_cycles(unsigned long cycles)
-> >> {
-> >>          csr_write(CSR_MCYCLE, 0);
-> >>          while (cycles > csr_read_num(CSR_MCYCLE));
-> >> }
-> >> ```
-> >>
-> >> The original sequence was discovered by Alexandre Ghiti posted a patch on
-> >> linux-riscv mail-lists.
-> >>
-> >> https://patchwork.kernel.org/project/linux-riscv/patch/20210921053356.1705833-1-alexandre.ghiti at canonical.com/
-> >>
-> >> These magick numbers are readed as:
-> >> - select PAGE0
-> >> - set WAKE_UP bit in CONTROL_A reg
-> >> - mask setting POWER1, POWER domain and STANDBY, and poweroff SYSTEM domain
-> >>
-> >> Nikita Shubin (4):
-> >>    lib: utils/i2c: Add generic I2C configuration library
-> >>    lib: utils/gpio: Add simple FDT based I2C framework
-> >>    lib: utils/gpio: Add minimal SiFive I2C driver
-> >>    lib: utils/reset: Add generic da9063 reset driver
-> >>
+> On Wed, Sep 29, 2021, at 8:19 PM, tekkamanninja at gmail.com wrote:
+> > From: Wei Fu <wefu@redhat.com>
 > >
-> > It looks like we will end up having lots of reset drivers in OpenSBI
-> > in the future, no surprise, as this is what the spec requires, sigh.
+> > When we are doing opensbi development, we want to know the build time
+> > and compiler info for debug purpose.
+> > To enable this message, please add "BUILD_INFO=y" , like:
+> >
+> > ```
+> > make BUILD_INFO=y
+> > ```
+> >
+> > NOTE: `BUILD_INFO=y` will violate "reproducible builds".
+> > So it's ONLY for development and debug purpose, and should NEVER be used
+> > in a real product.
 >
-> At some point we will have to decide on a configuration system to enable
-> only those drivers that are needed for the current hardware.
-> Unfortunately we cannot reuse Linux Kconfig as our license is BSD-2.
-
-Yes, eventually we will need some kind of Kconfig-like approach where
-each platform will mandatorily have a "defconfig" and few other custom
-"xyz-defconfig" files. The generic platform "defconfig" will have most
-drivers enabled by default but users can create custom defconfigs for
-generic platform and restrict the number of drivers compiled and linked
-to firmwares.
-
-If we can't re-use Linux Kconfig then probably we might need to write
-a simple config tool just for the OpenSBI project.
-
+> Thanks for the patch!
 >
-> Currently if a reset driver fails it simply ends up hanging in an
-> endless loop.
->
-> The SiFive Unmatched will use GPIO for poweroff and I2C for reset.
->
-> We need the ability to iterate through multiple reset drivers. If
-> resetting is not possible, we should return to the caller with an error
-> code.
+> I don't think we need to say NEVER, there are lots of products that don't use reproducible builds :)
 
-Yes, we can do this in generic SBI library sbi_system.c
+Sure , s/NEVER/NOT/, or maybe
 
-Regards,
-Anup
+So it's ONLY for development and debug purpose, and should NOT be used
+in a product which follows "reproducible builds".
 
->
-> Best regards
->
-> Heinrich
+
 >
 > >
-> > Alexandre Ghiti has posted U-Boot patches to reset Unmatched via PMIC as well.
-> > http://patchwork.ozlabs.org/project/uboot/patch/20210924084231.3311216-5-alexandre.ghiti at canonical.com/
+> > Signed-off-by: Wei Fu <wefu@redhat.com>
+> > ---
+> > Makefile           | 22 ++++++++++++++++++++++
+> > README.md          | 23 +++++++++++++++++++++++
+> > lib/sbi/sbi_init.c |  8 ++++++++
+> > 3 files changed, 53 insertions(+)
 > >
-> > Regards,
-> > Bin
+> > diff --git a/Makefile b/Makefile
+> > index 16d9dca..a794c8d 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -150,6 +150,15 @@ endif
+> > # Check whether the linker supports creating PIEs
+> > OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
 > >
+> > +# Build Info:
+> > +# OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+> > +# OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+> > +BUILD_INFO ?= n
+> > +ifeq ($(BUILD_INFO),y)
+> > +OPENSBI_BUILD_TIME_STAMP=$(shell date)
+> > +OPENSBI_BUILD_COMPILER_VERSION=$(shell $(CC) -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$$//')
+> > +endif
+> > +
+> > # Setup list of objects.mk files
+> > ifdef PLATFORM
+> > platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
+> > @@ -247,6 +256,10 @@ GENFLAGS += -I$(include_dir)
+> > ifneq ($(OPENSBI_VERSION_GIT),)
+> > GENFLAGS += -DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
+> > endif
+> > +ifeq ($(BUILD_INFO),y)
+> > +GENFLAGS += -DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
+> > +GENFLAGS += -DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
+> > +endif
+> > GENFLAGS += $(libsbiutils-genflags-y)
+> > GENFLAGS += $(platform-genflags-y)
+> > GENFLAGS += $(firmware-genflags-y)
+> > @@ -398,6 +411,12 @@ $(build_dir)/%.dep: $(src_dir)/%.c
+> > $(build_dir)/%.o: $(src_dir)/%.c
+> > $(call compile_cc,$@,$<)
+> >
+> > +ifeq ($(BUILD_INFO),y)
+> > +$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
+> > + $(call compile_cc,$@,$<)
+> > + $(warning 'BUILD_INFO=y' violates 'reproducible builds', for DEBUG ONLY.)
+> > +endif
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Do we need this?
+
+yes, I have tested it. Without this, the time stamp will remain  the
+time been built after 'make clean'
+Because sbi_init.c may not been changed when you rebuild it .
+so this change is for recompiling sbi_init.c every time , then
+timestamp will be updated if you enable BUILD_INFO.
+
+(I have mentioned below in the document)
+But if you have used `BUILD_INFO=y`, and want to switch back to `BUILD_INFO=n`,
+you must do 'make clean' before the next build.
+
+>
+> > +
+> > $(build_dir)/%.dep: $(src_dir)/%.S
+> > $(call compile_as_dep,$@,$<)
+> >
+> > @@ -551,3 +570,6 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
+> > $(if $(V), @echo " RM        $(install_root_dir_default)")
+> > $(CMD_PREFIX)rm -rf $(install_root_dir_default)
+> > endif
+> > +
+> > +.PHONY: FORCE
+> > +FORCE:
+> > diff --git a/README.md b/README.md
+> > index 9fdf097..86faa74 100644
+> > --- a/README.md
+> > +++ b/README.md
+> > @@ -254,6 +254,28 @@ to produce broken binaries with missing relocations; it is therefore currently
+> > recommended that this combination be avoided or *FW_PIC=n* be used to disable
+> > building OpenSBI as a position-independent binary.
+> >
+> > +Building with timestamp and compiler info
+> > +------------------------
+> > +
+> > +When doing development, we may want to know the build time and compiler info
+> > +for debug purpose. OpenSBI can also be built with timestamp and compiler info.
+> > +To build with those info and print it out at boot time, we can just simply add
+> > +`BUILD_INFO=y`, like:
+> > +```
+> > +make BUILD_INFO=y
+> > +```
+> > +
+> > +But if you have used `BUILD_INFO=y`, and want to switch back to `BUILD_INFO=n`,
+> > +you must do
+> > +```
+> > +make clean
+> > +```
+> > +before the next build.
+> > +
+> > +NOTE: Using `BUILD_INFO=y` will violate [reproducible builds]. This definition
+> > +is ONLY for development and debug purpose. It should NEVER be used in a real
+> > +product.
+> > +
+> > Contributing to OpenSBI
+> > -----------------------
+> >
+> > @@ -336,3 +358,4 @@ make I=<install_directory> install_docs
+> > [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+> > [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+> > [third party notices]: ThirdPartyNotices.md
+> > +[reproducible builds]: https://reproducible-builds.org
+> > \ No newline at end of file
+>
+> Probably want a new line here.
+>
+> Otherwise looks good.
+>
+> Alistair
+>
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> > index f0eb365..ef00d9f 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -48,6 +48,14 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+> >    OPENSBI_VERSION_MINOR);
+> > #endif
+> >
+> > +#ifdef OPENSBI_BUILD_TIME_STAMP
+> > + sbi_printf("Build time: %s.\n", OPENSBI_BUILD_TIME_STAMP);
+> > +#endif
+> > +
+> > +#ifdef OPENSBI_BUILD_COMPILER_VERSION
+> > + sbi_printf("Build compiler: %s.\n", OPENSBI_BUILD_COMPILER_VERSION);
+> > +#endif
+> > +
+> > sbi_printf(BANNER);
+> > }
+> >
+> > --
+> > 2.25.4
+> >
+> >
 
