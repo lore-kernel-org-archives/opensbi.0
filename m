@@ -1,87 +1,68 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 30 Sep 2021 10:26:11 +0800
-Subject: [RFC PATCH 2/2] lib: sbi: add priority for reset handler
-In-Reply-To: <20210929094151.26639-3-nikita.shubin@maquefel.me>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 30 Sep 2021 09:06:29 +0530
+Subject: [RFC PATCH 0/2] system reset rework to list, priority
+In-Reply-To: <20210929094151.26639-1-nikita.shubin@maquefel.me>
 References: <20210929094151.26639-1-nikita.shubin@maquefel.me>
- <20210929094151.26639-3-nikita.shubin@maquefel.me>
-Message-ID: <a6330fd269b91f433da2fc56557e6ef4ae70d331.camel@126.com>
+Message-ID: <CAAhSdy0jqfwNNhcf=xfW8nC-dQQTh5dOXYqnAO2O6fGm5fEYWw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-09-29???? 12:41 +0300?Nikita Shubin???
+On Wed, Sep 29, 2021 at 3:12 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
+>
 > From: Nikita Shubin <n.shubin@yadro.com>
-> 
-> Let's make system_reset_check returning priority instead of only
-> true/false. In that case 0 - means not supported, and anything above
-> means priority that makes existing reset handlers being used in first
-> place, unless it is decided to lower their priority.
-> 
-> The handler with the least priority wins.
-> 
-> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
-Isn't this priority used to control the shutdown sequence of different
-areas? What is this usage scenario?
+>
+> Hi Anup.
+>
+> I decided to go as separate proposal for system reset, as i don't think
+> da9063 is really connected to this one.
+
+Overall the approach taken by this series is in right direction but need
+to address some comments.
+
+>
+> Let's rework our current sbi_system reset to support multiply reset
+> handlers.
+>
+> However there are some things to discuss. If we want priority handling like in Linux,
+> we need separate lists for each reset type and sort them on insertions.
+
+We don't need to have priority for each reset_type. I think priority per-device
+is sufficient. This way will have just one list of reset devices.
+
+>
+> If we go the way like in the second patch no separate lists are needed but we will lack
+> the ability to call them in chain.
+>
+> So what are your thoughts ?
+>
+> Nikita Shubin (2):
+>   lib: sbi: convert reset to list
+>   lib: sbi: add priority for reset handler
+>
+>  include/sbi/sbi_system.h              | 13 +++++--
+>  lib/sbi/sbi_init.c                    |  5 ++-
+>  lib/sbi/sbi_system.c                  | 50 +++++++++++++++++++--------
+>  lib/utils/reset/fdt_reset_gpio.c      |  2 +-
+>  lib/utils/reset/fdt_reset_sunxi_wdt.c |  2 +-
+>  lib/utils/reset/fdt_reset_thead.c     |  2 +-
+>  lib/utils/sys/htif.c                  |  2 +-
+>  lib/utils/sys/sifive_test.c           |  2 +-
+>  platform/kendryte/k210/platform.c     |  2 +-
+>  platform/nuclei/ux600/platform.c      |  2 +-
+>  10 files changed, 58 insertions(+), 24 deletions(-)
+>
+> --
+> 2.31.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
-Xiang W
-> ---
-> ?lib/sbi/sbi_system.c | 20 ++++++++++++++++----
-> ?1 file changed, 16 insertions(+), 4 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index 92bc0ac..a82c4ef 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -55,6 +55,8 @@ void __noreturn sbi_system_reset(u32 reset_type,
-> u32 reset_reason)
-> ????????struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> ????????struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> ????????struct sbi_dlist *pos;
-> +???????struct sbi_system_reset_device *reset_dev = 0;
-> +???????int priority = 255;
-> ?
-> ????????/* Send HALT IPI to every hart other than the current hart */
-> ????????while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &hmask))
-> {
-> @@ -70,12 +72,22 @@ void __noreturn sbi_system_reset(u32 reset_type,
-> u32 reset_reason)
-> ?
-> ????????/* Check each reset device registered for supported reset
-> type */
-> ????????sbi_list_for_each(pos, &(reset_devices_list)) {
-> -???????????????struct sbi_system_reset_device *dev =
-> -???????????????????????to_system_reset_device(pos);
-> -???????????????if (dev->system_reset_check(reset_type,
-> reset_reason))
-> -???????????????????????dev->system_reset(reset_type, reset_reason);
-> +???????????????struct sbi_system_reset_device *dev
-> +???????????????????????= to_system_reset_device(pos);
-> +???????????????int status = dev->system_reset_check(reset_type,
-> reset_reason);
-> +
-> +???????????????if (status == 0)
-> +???????????????????????continue;
-> +
-> +???????????????if (status < priority) {
-> +???????????????????????reset_dev = dev;
-> +???????????????????????priority = status;
-> +???????????????}
-> ????????}
-> ?
-> +???????if (reset_dev)
-> +???????????????reset_dev->system_reset(reset_type, reset_reason);
-> +
-> ????????/* If platform specific reset did not work then do sbi_exit()
-> */
-> ????????sbi_exit(scratch);
-> ?}
-> -- 
-> 2.31.1
-> 
-> 
-
-
+Anup
 
