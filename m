@@ -1,173 +1,85 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 30 Sep 2021 09:57:51 +0800
-Subject: [PATCH V3] Makefile: Add build time and compiler info string.
-In-Reply-To: <20210929180533.275413-1-tekkamanninja@gmail.com>
-References: <20210929180533.275413-1-tekkamanninja@gmail.com>
-Message-ID: <b406439f3dcfb7592f700c81123395f2748e3799.camel@126.com>
+Date: Thu, 30 Sep 2021 10:26:11 +0800
+Subject: [RFC PATCH 2/2] lib: sbi: add priority for reset handler
+In-Reply-To: <20210929094151.26639-3-nikita.shubin@maquefel.me>
+References: <20210929094151.26639-1-nikita.shubin@maquefel.me>
+ <20210929094151.26639-3-nikita.shubin@maquefel.me>
+Message-ID: <a6330fd269b91f433da2fc56557e6ef4ae70d331.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-09-30???? 02:05 +0800?tekkamanninja at gmail.com???
-> From: Wei Fu <wefu@redhat.com>
+? 2021-09-29???? 12:41 +0300?Nikita Shubin???
+> From: Nikita Shubin <n.shubin@yadro.com>
 > 
-> When we are doing opensbi development, we want to know the build time
-> and compiler info for debug purpose.
-> To enable this message, please add "BUILD_INFO=y" , like:
+> Let's make system_reset_check returning priority instead of only
+> true/false. In that case 0 - means not supported, and anything above
+> means priority that makes existing reset handlers being used in first
+> place, unless it is decided to lower their priority.
 > 
-> ```
-> make BUILD_INFO=y
-> ```
+> The handler with the least priority wins.
 > 
-> NOTE: `BUILD_INFO=y` will violate "reproducible builds".
-> So it's ONLY for development and debug purpose, and should NOT be
-> used
-> in a product which follows "reproducible builds".
-> 
-> Signed-off-by: Wei Fu <wefu@redhat.com>
-> ---
-> ?Makefile?????????? | 22 ++++++++++++++++++++++
-> ?README.md????????? | 23 +++++++++++++++++++++++
-> ?lib/sbi/sbi_init.c |? 8 ++++++++
-> ?3 files changed, 53 insertions(+)
-> 
-> diff --git a/Makefile b/Makefile
-> index 16d9dca..a794c8d 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -150,6 +150,15 @@ endif
-> ?# Check whether the linker supports creating PIEs
-> ?OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG)
-> $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null
-> >/dev/null 2>&1 && echo y || echo n)
-> ?
-> +# Build Info:
-> +# OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
-> +# OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
-> +BUILD_INFO ?= n
-> +ifeq ($(BUILD_INFO),y)
-> +OPENSBI_BUILD_TIME_STAMP=$(shell date)
-> +OPENSBI_BUILD_COMPILER_VERSION=$(shell $(CC) -v 2>&1 | grep '
-> version ' | sed 's/[[:space:]]*$$//')
-> +endif
-> +
-> ?# Setup list of objects.mk files
-> ?ifdef PLATFORM
-> ?platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then
-> find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
-> @@ -247,6 +256,10 @@ GENFLAGS???+=??????-I$(include_dir)
-> ?ifneq ($(OPENSBI_VERSION_GIT),)
-> ?GENFLAGS???????+=??????-
-> DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
-> ?endif
-> +ifeq ($(BUILD_INFO),y)
-> +GENFLAGS???????+=??????-
-> DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
-> +GENFLAGS???????+=??????-
-> DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\
-> ""
-> +endif
-> ?GENFLAGS???????+=??????$(libsbiutils-genflags-y)
-> ?GENFLAGS???????+=??????$(platform-genflags-y)
-> ?GENFLAGS???????+=??????$(firmware-genflags-y)
-> @@ -398,6 +411,12 @@ $(build_dir)/%.dep: $(src_dir)/%.c
-> ?$(build_dir)/%.o: $(src_dir)/%.c
-> ????????$(call compile_cc,$@,$<)
-> ?
-> +ifeq ($(BUILD_INFO),y)
-> +$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
-> +???????$(call compile_cc,$@,$<)
-> +???????$(warning 'BUILD_INFO=y' violates 'reproducible builds', for
-> DEBUG ONLY.)
-> +endif
-> +
-> ?$(build_dir)/%.dep: $(src_dir)/%.S
-> ????????$(call compile_as_dep,$@,$<)
-> ?
-> @@ -551,3 +570,6 @@ ifeq
-> ($(install_root_dir),$(install_root_dir_default)/usr)
-> ????????$(if $(V), @echo " RM??????? $(install_root_dir_default)")
-> ????????$(CMD_PREFIX)rm -rf $(install_root_dir_default)
-> ?endif
-> +
-> +.PHONY: FORCE
-> +FORCE:
-> diff --git a/README.md b/README.md
-> index 9fdf097..022ef84 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -254,6 +254,28 @@ to produce broken binaries with missing
-> relocations; it is therefore currently
-> ?recommended that this combination be avoided or *FW_PIC=n* be used
-> to disable
-> ?building OpenSBI as a position-independent binary.
-> ?
-> +Building with timestamp and compiler info
-> +------------------------
-> +
-> +When doing development, we may want to know the build time and
-> compiler info
-> +for debug purpose. OpenSBI can also be built with timestamp and
-> compiler info.
-> +To build with those info and print it out at boot time, we can just
-> simply add
-> +`BUILD_INFO=y`, like:
-> +```
-> +make BUILD_INFO=y
-> +```
-> +
-> +But if you have used `BUILD_INFO=y`, and want to switch back to
-> `BUILD_INFO=n`,
-> +you must do
-> +```
-> +make clean
-> +```
-> +before the next build.
-> +
-> +NOTE: Using `BUILD_INFO=y` will violate [reproducible builds]. This
-> definition
-> +is ONLY for development and debug purpose, and should NOT be used in
-> a product
-> +which follows "reproducible builds".
-> +
-> ?Contributing to OpenSBI
-> ?-----------------------
-> ?
-> @@ -336,3 +358,4 @@ make I=<install_directory> install_docs
-> ?[Doxygen manual]: http://www.doxygen.nl/manual/index.html
-> ?[Kendryte standalone SDK]: 
-> https://github.com/kendryte/kendryte-standalone-sdk
-> ?[third party notices]: ThirdPartyNotices.md
-> +[reproducible builds]: https://reproducible-builds.org
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index f0eb365..ef00d9f 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -48,6 +48,14 @@ static void sbi_boot_print_banner(struct
-> sbi_scratch *scratch)
-> ?????????????????? OPENSBI_VERSION_MINOR);
-> ?#endif
-> ?
-> +#ifdef OPENSBI_BUILD_TIME_STAMP
-> +???????sbi_printf("Build time: %s.\n", OPENSBI_BUILD_TIME_STAMP);
-> +#endif
-It is recommended to add a print commit id
+> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+Isn't this priority used to control the shutdown sequence of different
+areas? What is this usage scenario?
 
 Regards,
 Xiang W
-> +
-> +#ifdef OPENSBI_BUILD_COMPILER_VERSION
-> +???????sbi_printf("Build compiler: %s.\n",
-> OPENSBI_BUILD_COMPILER_VERSION);
-> +#endif
-> +
-> ????????sbi_printf(BANNER);
-> ?}
+> ---
+> ?lib/sbi/sbi_system.c | 20 ++++++++++++++++----
+> ?1 file changed, 16 insertions(+), 4 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+> index 92bc0ac..a82c4ef 100644
+> --- a/lib/sbi/sbi_system.c
+> +++ b/lib/sbi/sbi_system.c
+> @@ -55,6 +55,8 @@ void __noreturn sbi_system_reset(u32 reset_type,
+> u32 reset_reason)
+> ????????struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> ????????struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> ????????struct sbi_dlist *pos;
+> +???????struct sbi_system_reset_device *reset_dev = 0;
+> +???????int priority = 255;
 > ?
+> ????????/* Send HALT IPI to every hart other than the current hart */
+> ????????while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &hmask))
+> {
+> @@ -70,12 +72,22 @@ void __noreturn sbi_system_reset(u32 reset_type,
+> u32 reset_reason)
+> ?
+> ????????/* Check each reset device registered for supported reset
+> type */
+> ????????sbi_list_for_each(pos, &(reset_devices_list)) {
+> -???????????????struct sbi_system_reset_device *dev =
+> -???????????????????????to_system_reset_device(pos);
+> -???????????????if (dev->system_reset_check(reset_type,
+> reset_reason))
+> -???????????????????????dev->system_reset(reset_type, reset_reason);
+> +???????????????struct sbi_system_reset_device *dev
+> +???????????????????????= to_system_reset_device(pos);
+> +???????????????int status = dev->system_reset_check(reset_type,
+> reset_reason);
+> +
+> +???????????????if (status == 0)
+> +???????????????????????continue;
+> +
+> +???????????????if (status < priority) {
+> +???????????????????????reset_dev = dev;
+> +???????????????????????priority = status;
+> +???????????????}
+> ????????}
+> ?
+> +???????if (reset_dev)
+> +???????????????reset_dev->system_reset(reset_type, reset_reason);
+> +
+> ????????/* If platform specific reset did not work then do sbi_exit()
+> */
+> ????????sbi_exit(scratch);
+> ?}
 > -- 
-> 2.25.4
+> 2.31.1
 > 
 > 
 
