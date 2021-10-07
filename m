@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 7 Oct 2021 17:41:35 +0530
-Subject: [PATCH 2/2] lib: sbi: add priority for reset handler
-In-Reply-To: <20211001083117.2008-3-nikita.shubin@maquefel.me>
+Date: Thu, 7 Oct 2021 17:43:03 +0530
+Subject: [PATCH 0/2] system reset rework to list, priority
+In-Reply-To: <20211001083117.2008-1-nikita.shubin@maquefel.me>
 References: <20211001083117.2008-1-nikita.shubin@maquefel.me>
- <20211001083117.2008-3-nikita.shubin@maquefel.me>
-Message-ID: <CAAhSdy0_yox-jjB2qqEF1GDtZkviRhWRJMS4P_PetjOekaPWLg@mail.gmail.com>
+Message-ID: <CAAhSdy18BXn-aQaiuoBzNgBZ-DZ2iOAgqp9sEraYWnO-eMRksQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,65 +14,60 @@ On Fri, Oct 1, 2021 at 2:01 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
 >
 > From: Nikita Shubin <n.shubin@yadro.com>
 >
-> Let's make system_reset_check returning priority instead of only
-> true/false. In that case 0 - means not supported, and anything above
-> means priority that makes existing reset handlers being used in first
-> place, unless it is decided to lower their priority.
+> Reworking current sbi_system reset to support multiply reset handlers.
 >
-> The handler with the most priority wins.
+> There are situation possible when one reset handler is responsible for
+> shutdown and the other for reset, they can be both capable of reset/shutdown
+> but some are more desirable than others.
 >
-> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
-> ---
 > rfc -> v0:
+> lib: sbi: convert reset to list:
+> - restored dom->system_reset_allowed check
+> - removed reset devices iterations from sbi_system_reset, we rely on
+>   sbi_system_reset_get_device
+> - to_system_reset_device +static
+>
+> lib: sbi: add priority for reset handler:
 > - changed priority meaning to classic, the more the more prioritized
 > - moved all checks to sbi_system_reset
-> ---
->  lib/sbi/sbi_system.c | 23 +++++++++++++++++------
->  1 file changed, 17 insertions(+), 6 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index 6e6bb80..177f130 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -22,18 +22,29 @@ static SBI_LIST_HEAD(reset_devices_list);
+> Currently all reset devices have priority of 1 - the least priority,
+> as it wasn't supposed to have more than one handler before this patch,
+> it won't break anything.
 >
->  const struct sbi_system_reset_device *sbi_system_reset_get_device(u32 reset_type, u32 reset_reason)
->  {
-> -       struct sbi_system_reset_device *dev = 0;
-> +       struct sbi_system_reset_device *reset_dev = 0;
+> Tested with 2 reset handlers on Sifive Unmatched, gpio-poweroff responsible
+> for shutdown and da9063 responsible for reset:
+>
+> Platform Reboot Device    : da9063
+> Platform Shutdown Device  : gpio-reset
+>
+> Without da9063 it looks like:
+>
+> Platform Reboot Device    : ---
+> Platform Shutdown Device  : gpio-reset
 
-Better assign NULL here since this is a pointer.
+Overall this looks good. I will wait a couple of more days before merging this.
 
->         struct sbi_dlist *pos;
-> +       /** lowest priority - any non zero is our candidate */
-> +       int priority = 0;
+Regards,
+Anup
+
 >
->         /* Check each reset device registered for supported reset type */
->         sbi_list_for_each(pos, &(reset_devices_list)) {
-> -               dev = to_system_reset_device(pos);
-> -               if (dev->system_reset_check &&
-> -                       dev->system_reset_check(reset_type, reset_reason))
-> -                       break;
-> +               struct sbi_system_reset_device *dev =
-> +                       to_system_reset_device(pos);
-> +               if (dev->system_reset_check) {
-> +                       int status = dev->system_reset_check(reset_type, reset_reason);
-> +                       /** reset_type not supported */
-> +                       if (status == 0)
-> +                               continue;
-> +
-> +                       if (status > priority) {
-> +                               reset_dev = dev;
-> +                               priority = status;
-> +                       }
-> +               }
->         }
+> Nikita Shubin (2):
+>   lib: sbi: convert reset to list
+>   lib: sbi: add priority for reset handler
 >
-> -       return dev;
-> +       return reset_dev;
->  }
+>  include/sbi/sbi_system.h              | 13 ++++++--
+>  lib/sbi/sbi_init.c                    |  7 ++--
+>  lib/sbi/sbi_system.c                  | 47 +++++++++++++++++++--------
+>  lib/utils/reset/fdt_reset_gpio.c      |  2 +-
+>  lib/utils/reset/fdt_reset_sunxi_wdt.c |  2 +-
+>  lib/utils/reset/fdt_reset_thead.c     |  2 +-
+>  lib/utils/sys/htif.c                  |  2 +-
+>  lib/utils/sys/sifive_test.c           |  2 +-
+>  platform/kendryte/k210/platform.c     |  2 +-
+>  platform/nuclei/ux600/platform.c      |  2 +-
+>  10 files changed, 57 insertions(+), 24 deletions(-)
 >
->  void sbi_system_reset_add_device(struct sbi_system_reset_device *dev)
 > --
 > 2.31.1
 >
@@ -82,11 +76,4 @@ Better assign NULL here since this is a pointer.
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Apart from the minor comment above, it looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Regards,
-Anup
 
