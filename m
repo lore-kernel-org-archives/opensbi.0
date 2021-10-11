@@ -1,34 +1,57 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Oct 2021 13:40:47 +0530
-Subject: [PATCH] lib: sbi: Save context for all non-retentive suspend types
-In-Reply-To: <87ee8sov1l.fsf@igel.home>
-References: <20211011055552.1132025-1-anup.patel@wdc.com>
- <87ee8sov1l.fsf@igel.home>
-Message-ID: <CAAhSdy1S62t29SwJkChsPq5fReraAabgQE=_r=OrmyZ0dvdkhA@mail.gmail.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Mon, 11 Oct 2021 13:54:19 +0530
+Subject: [PATCH v2] lib: sbi: Save context for all non-retentive suspend types
+Message-ID: <20211011082419.1135425-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 11, 2021 at 1:25 PM Andreas Schwab <schwab@linux-m68k.org> wrote:
->
-> On Okt 11 2021, Anup Patel wrote:
->
-> > Instead of saving context only for default non-retentvie suspend,
->
-> Typo: retentive.
+Instead of saving context only for default non-retentive suspend,
+we should save context for all non-retentive suspend types.
 
-Thanks Andreas, I will update it soon.
+Fixes: 74756891cc35 ("lib: sbi: Implement SBI HSM suspend function")
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+Changes since v1:
+ - Fixed typo in commit description and improved it.
+---
+ lib/sbi/sbi_hsm.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-Regards,
-Anup
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 67890f3..ecd2e45 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -358,12 +358,6 @@ static int __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
+ {
+ 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+ 
+-	/*
+-	 * Save some of the M-mode CSRs which should be restored after
+-	 * resuming from suspend state
+-	 */
+-	__sbi_hsm_suspend_non_ret_save(scratch);
+-
+ 	/* Wait for interrupt */
+ 	wfi();
+ 
+@@ -463,6 +457,13 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 	/* Save the suspend type */
+ 	hdata->suspend_type = suspend_type;
+ 
++	/*
++	 * Save context which will be restored after resuming from
++	 * non-retentive suspend.
++	 */
++	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)
++		__sbi_hsm_suspend_non_ret_save(scratch);
++
+ 	/* Try platform specific suspend */
+ 	ret = hsm_device_hart_suspend(suspend_type, scratch->warmboot_addr);
+ 	if (ret == SBI_ENOTSUPP) {
+-- 
+2.25.1
 
->
-> Andreas.
->
-> --
-> Andreas Schwab, schwab at linux-m68k.org
-> GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
-> "And now for something completely different."
 
