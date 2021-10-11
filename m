@@ -1,54 +1,26 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Mon, 11 Oct 2021 11:25:52 +0530
+From: Andreas Schwab <schwab@linux-m68k.org>
+Date: Mon, 11 Oct 2021 09:55:02 +0200
 Subject: [PATCH] lib: sbi: Save context for all non-retentive suspend types
-Message-ID: <20211011055552.1132025-1-anup.patel@wdc.com>
+In-Reply-To: <20211011055552.1132025-1-anup.patel@wdc.com> (Anup Patel's
+ message of "Mon, 11 Oct 2021 11:25:52 +0530")
+References: <20211011055552.1132025-1-anup.patel@wdc.com>
+Message-ID: <87ee8sov1l.fsf@igel.home>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of saving context only for default non-retentvie suspend,
-we should save CSRs for both default and non-retentive suspend.
+On Okt 11 2021, Anup Patel wrote:
 
-Fixes: 74756891cc35 ("lib: sbi: Implement SBI HSM suspend function")
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- lib/sbi/sbi_hsm.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+> Instead of saving context only for default non-retentvie suspend,
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 67890f3..ecd2e45 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -358,12 +358,6 @@ static int __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
- {
- 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
- 
--	/*
--	 * Save some of the M-mode CSRs which should be restored after
--	 * resuming from suspend state
--	 */
--	__sbi_hsm_suspend_non_ret_save(scratch);
--
- 	/* Wait for interrupt */
- 	wfi();
- 
-@@ -463,6 +457,13 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	/* Save the suspend type */
- 	hdata->suspend_type = suspend_type;
- 
-+	/*
-+	 * Save context which will be restored after resuming from
-+	 * non-retentive suspend.
-+	 */
-+	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)
-+		__sbi_hsm_suspend_non_ret_save(scratch);
-+
- 	/* Try platform specific suspend */
- 	ret = hsm_device_hart_suspend(suspend_type, scratch->warmboot_addr);
- 	if (ret == SBI_ENOTSUPP) {
+Typo: retentive.
+
+Andreas.
+
 -- 
-2.25.1
-
+Andreas Schwab, schwab at linux-m68k.org
+GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
+"And now for something completely different."
 
