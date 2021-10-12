@@ -1,72 +1,37 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 12 Oct 2021 13:57:11 +0800
-Subject: [PATCH v2] lib: sbi: Save context for all non-retentive suspend
- types
-In-Reply-To: <20211011082419.1135425-1-anup.patel@wdc.com>
-References: <20211011082419.1135425-1-anup.patel@wdc.com>
-Message-ID: <e85f0b160477d43754b40cdb2b2a7cf92b220147.camel@126.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Tue, 12 Oct 2021 09:33:22 +0300
+Subject: [PATCH 2/2] lib: sbi: add priority for reset handler
+In-Reply-To: <CAAhSdy0J=ejXx-8ZT76+Nf7h5NUPXO=JFF06y84iL3J7Gg+0wQ@mail.gmail.com>
+References: <20211001083117.2008-1-nikita.shubin@maquefel.me>
+ <20211001083117.2008-3-nikita.shubin@maquefel.me>
+ <CAAhSdy0_yox-jjB2qqEF1GDtZkviRhWRJMS4P_PetjOekaPWLg@mail.gmail.com>
+ <CAAhSdy0J=ejXx-8ZT76+Nf7h5NUPXO=JFF06y84iL3J7Gg+0wQ@mail.gmail.com>
+Message-ID: <20211012093322.08c5534b@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-10-11???? 13:54 +0530?Anup Patel???
-> Instead of saving context only for default non-retentive suspend,
-> we should save context for all non-retentive suspend types.
-> 
-> Fixes: 74756891cc35 ("lib: sbi: Implement SBI HSM suspend function")
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Looks good to me.
+Hi Anup,
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> Changes since v1:
-> ?- Fixed typo in commit description and improved it.
-> ---
-> ?lib/sbi/sbi_hsm.c | 13 +++++++------
-> ?1 file changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 67890f3..ecd2e45 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -358,12 +358,6 @@ static int
-> __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
-> ?{
-> ????????void (*jump_warmboot)(void) = (void (*)(void))scratch-
-> >warmboot_addr;
-> ?
-> -???????/*
-> -??????? * Save some of the M-mode CSRs which should be restored
-> after
-> -??????? * resuming from suspend state
-> -??????? */
-> -???????__sbi_hsm_suspend_non_ret_save(scratch);
-> -
-> ????????/* Wait for interrupt */
-> ????????wfi();
-> ?
-> @@ -463,6 +457,13 @@ int sbi_hsm_hart_suspend(struct sbi_scratch
-> *scratch, u32 suspend_type,
-> ????????/* Save the suspend type */
-> ????????hdata->suspend_type = suspend_type;
-> ?
-> +???????/*
-> +??????? * Save context which will be restored after resuming from
-> +??????? * non-retentive suspend.
-> +??????? */
-> +???????if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)
-> +???????????????__sbi_hsm_suspend_non_ret_save(scratch);
-> +
-> ????????/* Try platform specific suspend */
-> ????????ret = hsm_device_hart_suspend(suspend_type, scratch-
-> >warmboot_addr);
-> ????????if (ret == SBI_ENOTSUPP) {
-> -- 
-> 2.25.1
-> 
-> 
+On Mon, 11 Oct 2021 10:38:36 +0530
+Anup Patel <anup@brainfault.org> wrote:
 
+> I have taken care of the comment above at time of merging this patch.
+> 
+> Applied this patch to the riscv/opensbi repo
+
+Thanks you for clearing out the mess, sorry i didn't react in time.
+
+> 
+> Thanks,
+> Anup
+> >
+> > Regards,
+> > Anup  
+
+Yours,
+Nikita Shubin
 
 
