@@ -1,37 +1,20 @@
-From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Tue, 12 Oct 2021 09:33:22 +0300
-Subject: [PATCH 2/2] lib: sbi: add priority for reset handler
-In-Reply-To: <CAAhSdy0J=ejXx-8ZT76+Nf7h5NUPXO=JFF06y84iL3J7Gg+0wQ@mail.gmail.com>
-References: <20211001083117.2008-1-nikita.shubin@maquefel.me>
- <20211001083117.2008-3-nikita.shubin@maquefel.me>
- <CAAhSdy0_yox-jjB2qqEF1GDtZkviRhWRJMS4P_PetjOekaPWLg@mail.gmail.com>
- <CAAhSdy0J=ejXx-8ZT76+Nf7h5NUPXO=JFF06y84iL3J7Gg+0wQ@mail.gmail.com>
-Message-ID: <20211012093322.08c5534b@redslave.neermore.group>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Tue, 12 Oct 2021 20:26:11 +0100
+Subject: Release Plans
+Message-ID: <1D58DF3B-D1B1-470A-A4FF-A4AD099921A8@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+Hi,
+The latest OpenSBI release is 0.9 from January. With SBI 0.3(.1) on the
+way and Unmatched support added since then, are there plans for a new
+release any time soon? We?d like to have a newer version in the FreeBSD
+ports tree so we can more easily provide updated firmware to Unmatched
+users.
 
-On Mon, 11 Oct 2021 10:38:36 +0530
-Anup Patel <anup@brainfault.org> wrote:
-
-> I have taken care of the comment above at time of merging this patch.
-> 
-> Applied this patch to the riscv/opensbi repo
-
-Thanks you for clearing out the mess, sorry i didn't react in time.
-
-> 
-> Thanks,
-> Anup
-> >
-> > Regards,
-> > Anup  
-
-Yours,
-Nikita Shubin
+Jess
 
 
