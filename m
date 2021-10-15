@@ -1,87 +1,79 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Fri, 15 Oct 2021 14:42:53 +0200
-Subject: [PATCH 1/1] dt-bindings: reg-io-width for SiFive CLINT
-In-Reply-To: <D976B0F9-6AE4-4C04-8D52-75B24D6E4359@jrtc27.com>
-References: <20211015100941.17621-1-heinrich.schuchardt@canonical.com>
- <CAEUhbmUSmi9mbiHpatBjGgRjrtyJPms9BRmyBPs5BWeVb7n1Nw@mail.gmail.com>
- <49af3dc8-0d1e-e82f-6df2-2bf8338acd3a@canonical.com>
- <D976B0F9-6AE4-4C04-8D52-75B24D6E4359@jrtc27.com>
-Message-ID: <081176c0-5938-df1a-7828-d9ee1c270cbf@canonical.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Fri, 15 Oct 2021 16:19:21 +0300
+Subject: [PATCH v2 1/5] lib: utils/reset: add priority to gpio reset
+In-Reply-To: <20211015131925.22585-1-nikita.shubin@maquefel.me>
+References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
+Message-ID: <20211015131925.22585-2-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10/15/21 14:15, Jessica Clarke wrote:
-> On 15 Oct 2021, at 12:54, Heinrich Schuchardt <heinrich.schuchardt@canonical.com> wrote:
->>
->> On 10/15/21 12:14, Bin Meng wrote:
->>> On Fri, Oct 15, 2021 at 6:09 PM Heinrich Schuchardt
->>> <heinrich.schuchardt@canonical.com> wrote:
->>>>
->>>> The CLINT in the T-HEAD 9xx processors do not support 64bit mmio access to
->>>> the MTIMER device. The current schema does not allow to specify this.
->>>>
->>>> OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to indicate the
->>>> restriction. Samuael Holland suggested in
->>>> lib: utils/timer: Use standard property to specify 32-bit I/O
->>>> https://github.com/smaeul/opensbi/commit/b95e9cf7cf93b0af16fc89204378bc59ff30008e
->>>> to use "reg-io-width = <4>;" as the reg-io-width property is generally used
->>>> in the devicetree schema for such a condition.
->>>>
->>>> A release candidate of the ACLINT specification is available at
->>>> https://github.com/riscv/riscv-aclint/releases
->>>>
->>>> Add reg-io-width as optional property to the SiFive Core Local Interruptor.
->>>>
->>>> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
->>>> ---
->>>>   Documentation/devicetree/bindings/timer/sifive,clint.yaml | 7 +++++++
->>>>   1 file changed, 7 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/timer/sifive,clint.yaml b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
->>>> index a35952f48742..266012d887b5 100644
->>>> --- a/Documentation/devicetree/bindings/timer/sifive,clint.yaml
->>>> +++ b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
->>>> @@ -41,6 +41,13 @@ properties:
->>>>     reg:
->>>>       maxItems: 1
->>>>
->>>> +  reg-io-width:
->>>> +    description: |
->>>> +      Some CLINT implementations, e.g. on the T-HEAD 9xx, only support
->>>> +      32bit access for MTIMER.
->>>> +    $ref: /schemas/types.yaml#/definitions/uint32
->>>> +    const: 4
->>> But this is not a "sifive,clint" anyway. Should there be a new
->>> dt-bindings for T-Head clint variant?
->>
->> I assume by new dt-bindings variant you mean: Add a new compatible string in Documentation/devicetree/bindings/timer/sifive,clint.yaml.
->>
->> The vendor Debian image uses:
->> compatible = "{allwinner,sun20i-d1-clint", "sifive,clint0?};
-> 
-> I assume Bin means to stop calling it a sifive,clint0 and instead have
-> something like
-> 
->      "allwinner,sun20i-d1-clint", "thead,clint0"
-> 
-> as is being done for their non-conforming PLIC. It?s worth pointing out
-> that the same is true here; the SiFive CLINT supports 64-bit accesses
-> on RV64, so this is not compatible with a SiFive CLINT. Moreover, the
-> RISC-V spec was clearly written in a way that intended 64-bit accesses
-> to be supported for RV64, though was not completely explicit about
-> that, which has now been resolved (see
-> https://github.com/riscv/riscv-isa-manual/issues/639), so this CLINT
-> violates the obvious intent of the pre-1.12 privileged specs (see
-> Andrew?s message in the issue, which agrees with my reading).
-> 
-> Jess
-> 
+From: Nikita Shubin <n.shubin@yadro.com>
 
-This comment is referring to the discussion in
+Make gpio_system_reset_check return priority instead of just true/false.
 
-https://lore.kernel.org/lkml/693a609c-4278-84ab-8a9b-448936bb13d0 at sholland.org/
+Make default 128 priority for reset/shutdown and ability to specify
+priority in device tree.
+
+Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+---
+ lib/utils/reset/fdt_reset_gpio.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
+index 4da1450..44b67d8 100644
+--- a/lib/utils/reset/fdt_reset_gpio.c
++++ b/lib/utils/reset/fdt_reset_gpio.c
+@@ -23,16 +23,19 @@ struct gpio_reset {
+ 	struct gpio_pin pin;
+ 	u32 active_delay;
+ 	u32 inactive_delay;
++	u8 priority;
+ };
+ 
+ static struct gpio_reset poweroff = {
+ 	.active_delay = 100,
+-	.inactive_delay = 100
++	.inactive_delay = 100,
++	.priority = 128
+ };
+ 
+ static struct gpio_reset restart = {
+ 	.active_delay = 100,
+-	.inactive_delay = 100
++	.inactive_delay = 100,
++	.priority = 128
+ };
+ 
+ static struct gpio_reset *gpio_get_reset_settings(u32 type)
+@@ -59,7 +62,12 @@ static struct gpio_reset *gpio_get_reset_settings(u32 type)
+ 
+ static int gpio_system_reset_check(u32 type, u32 reason)
+ {
+-	return !!gpio_get_reset_settings(type);
++	struct gpio_reset *reset = gpio_get_reset_settings(type);
++
++	if (reset)
++		return reset->priority;
++
++	return 0;
+ }
+ 
+ static void gpio_system_reset(u32 type, u32 reason)
+@@ -115,6 +123,10 @@ static int gpio_reset_init(void *fdt, int nodeoff,
+ 	if (len > 0)
+ 		reset->inactive_delay = fdt32_to_cpu(*val);
+ 
++	val = fdt_getprop(fdt, nodeoff, "priority", &len);
++	if (len > 0)
++		reset->priority = fdt32_to_cpu(*val);
++
+ 	sbi_system_reset_add_device(&gpio_reset);
+ 
+ 	return 0;
+-- 
+2.31.1
 
 
