@@ -1,9 +1,9 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Fri, 15 Oct 2021 16:19:24 +0300
-Subject: [PATCH v2 4/5] lib: utils/i2c: Add minimal SiFive I2C driver
+Date: Fri, 15 Oct 2021 16:19:23 +0300
+Subject: [PATCH v2 3/5] lib: utils/i2c: Add simple FDT based I2C framework
 In-Reply-To: <20211015131925.22585-1-nikita.shubin@maquefel.me>
 References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
-Message-ID: <20211015131925.22585-5-nikita.shubin@maquefel.me>
+Message-ID: <20211015131925.22585-4-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,47 +12,26 @@ Content-Transfer-Encoding: 7bit
 
 From: Nikita Shubin <n.shubin@yadro.com>
 
-Minimum SiFive I2C driver to read/send bytes over I2C bus.
+FDT based I2C framework on the top of I2C library.
 
-This allows querying information and perform operation of onboard PMIC,
-as well as power-off and reset.
+The drivers are probed on demand by fdt_i2c_adapter_get
+function.
 
 Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 ---
-v1 -> v2:
-- setreg/getreg add sifive_i2c_ prefix
-- use sbi_timer_mdelay for delay
-- renamed send to write
-- reworked read/write to support buffers
-- renamed read/write to smbus_read/smbus_write
----
- lib/utils/i2c/fdt_i2c.c        |   3 +
- lib/utils/i2c/fdt_i2c_sifive.c | 271 +++++++++++++++++++++++++++++++++
- lib/utils/i2c/objects.mk       |   1 +
- 3 files changed, 275 insertions(+)
- create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
+ include/sbi_utils/i2c/fdt_i2c.h |  26 ++++++++
+ lib/utils/i2c/fdt_i2c.c         | 108 ++++++++++++++++++++++++++++++++
+ lib/utils/i2c/objects.mk        |   1 +
+ 3 files changed, 135 insertions(+)
+ create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
+ create mode 100644 lib/utils/i2c/fdt_i2c.c
 
-diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
-index fce6d73..bbf9df6 100644
---- a/lib/utils/i2c/fdt_i2c.c
-+++ b/lib/utils/i2c/fdt_i2c.c
-@@ -18,7 +18,10 @@
- 
- #include <sbi/sbi_console.h>
- 
-+extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
-+
- static struct fdt_i2c_adapter *i2c_adapter_drivers[] = {
-+	&fdt_i2c_adapter_sifive
- };
- 
- static struct fdt_i2c_adapter
-diff --git a/lib/utils/i2c/fdt_i2c_sifive.c b/lib/utils/i2c/fdt_i2c_sifive.c
+diff --git a/include/sbi_utils/i2c/fdt_i2c.h b/include/sbi_utils/i2c/fdt_i2c.h
 new file mode 100644
-index 0000000..aeb67ee
+index 0000000..1f41a0f
 --- /dev/null
-+++ b/lib/utils/i2c/fdt_i2c_sifive.c
-@@ -0,0 +1,271 @@
++++ b/include/sbi_utils/i2c/fdt_i2c.h
+@@ -0,0 +1,26 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -62,277 +41,146 @@ index 0000000..aeb67ee
 + *   Nikita Shubin <nshubin@yadro.com>
 + */
 +
-+#include <sbi/riscv_io.h>
++#ifndef __FDT_I2C_H__
++#define __FDT_I2C_H__
++
++#include <sbi_utils/i2c/i2c.h>
++
++/** FDT based I2C adapter driver */
++struct fdt_i2c_adapter {
++	const struct fdt_match *match_table;
++	int (*init)(void *fdt, int nodeoff,
++		    const struct fdt_match *match);
++};
++
++/** Get I2C adapter identified by nodeoff */
++int fdt_i2c_adapter_get(void *fdt, int nodeoff,
++			struct i2c_adapter **out_adapter);
++
++#endif
+diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
+new file mode 100644
+index 0000000..fce6d73
+--- /dev/null
++++ b/lib/utils/i2c/fdt_i2c.c
+@@ -0,0 +1,108 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2021 YADRO
++ *
++ * Authors:
++ *   Nikita Shubin <nshubin@yadro.com>
++ *
++ * derivate: lib/utils/gpio/fdt_gpio.c
++ * Authors:
++ *   Anup Patel <anup.patel@wdc.com>
++ */
++
++#include <libfdt.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_timer.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
 +#include <sbi_utils/i2c/fdt_i2c.h>
 +
-+#define SIFIVE_I2C_ADAPTER_MAX	2
++#include <sbi/sbi_console.h>
 +
-+#define SIFIVE_I2C_PRELO	0x00
-+#define SIFIVE_I2C_PREHI	0x04
-+#define SIFIVE_I2C_CTR		0x08
-+#define SIFIVE_I2C_TXR		0x00c
-+#define SIFIVE_I2C_RXR		SIFIVE_I2C_TXR
-+#define SIFIVE_I2C_CR		0x010
-+#define SIFIVE_I2C_SR		SIFIVE_I2C_CR
-+
-+#define SIFIVE_I2C_CTR_IEN	(1 << 6)
-+#define SIFIVE_I2C_CTR_EN	(1 << 7)
-+
-+#define SIFIVE_I2C_CMD_IACK	(1 << 0)
-+#define SIFIVE_I2C_CMD_ACK	(1 << 3)
-+#define SIFIVE_I2C_CMD_WR	(1 << 4)
-+#define SIFIVE_I2C_CMD_RD	(1 << 5)
-+#define SIFIVE_I2C_CMD_STO	(1 << 6)
-+#define SIFIVE_I2C_CMD_STA	(1 << 7)
-+
-+#define SIFIVE_I2C_STATUS_IF	(1 << 0)
-+#define SIFIVE_I2C_STATUS_TIP	(1 << 1)
-+#define SIFIVE_I2C_STATUS_AL	(1 << 5)
-+#define SIFIVE_I2C_STATUS_BUSY	(1 << 6)
-+#define SIFIVE_I2C_STATUS_RXACK	(1 << 7)
-+
-+#define SIFIVE_I2C_WRITE_BIT	(0 << 0)
-+#define SIFIVE_I2C_READ_BIT	(1 << 0)
-+
-+struct sifive_i2c_adapter {
-+	unsigned long addr;
-+	struct i2c_adapter adapter;
++static struct fdt_i2c_adapter *i2c_adapter_drivers[] = {
 +};
 +
-+static unsigned int sifive_i2c_adapter_count;
-+static struct sifive_i2c_adapter sifive_i2c_adapter_array[SIFIVE_I2C_ADAPTER_MAX];
-+
-+extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
-+
-+static inline void sifive_i2c_setreg(struct sifive_i2c_adapter *adap,
-+				     int reg, u8 value)
++static struct fdt_i2c_adapter
++	*fdt_i2c_adapter_driver(struct i2c_adapter *adapter)
 +{
-+	writel(value, (volatile void *)adap->addr + reg);
-+}
++	int pos;
 +
-+static inline u8 sifive_i2c_getreg(struct sifive_i2c_adapter *adap, int reg)
-+{
-+	return readl((volatile void *)adap->addr + reg);
-+}
++	if (!adapter)
++		return NULL;
 +
-+static int sifive_i2c_adapter_rxack(struct sifive_i2c_adapter *adap)
-+{
-+	uint8_t val = sifive_i2c_getreg(adap, SIFIVE_I2C_SR);
-+
-+	if (val & SIFIVE_I2C_STATUS_RXACK)
-+		return SBI_EIO;
-+
-+	return 0;
-+}
-+
-+static int sifive_i2c_adapter_poll(struct sifive_i2c_adapter *adap, uint32_t mask)
-+{
-+	int max_retry = 5;
-+	uint8_t val;
-+
-+	do {
-+		val = sifive_i2c_getreg(adap, SIFIVE_I2C_SR);
-+		sbi_timer_mdelay(100);
-+	} while ((val & mask) && (max_retry--) > 0);
-+
-+	if (max_retry <= 0)
-+		return SBI_ETIMEDOUT;
-+
-+	return 0;
-+}
-+
-+#define sifive_i2c_adapter_poll_tip(adap) sifive_i2c_adapter_poll(adap, SIFIVE_I2C_STATUS_TIP)
-+#define sifive_i2c_adapter_poll_busy(adap) sifive_i2c_adapter_poll(adap, SIFIVE_I2C_STATUS_BUSY)
-+
-+static int sifive_i2c_adapter_start(struct sifive_i2c_adapter *adap, uint8_t addr, uint8_t bit)
-+{
-+	uint8_t val = (addr << 1) | bit;
-+
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_TXR, val);
-+	val = SIFIVE_I2C_CMD_STA | SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK;
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, val);
-+
-+	return sifive_i2c_adapter_poll_tip(adap);
-+}
-+
-+static int sifive_i2c_adapter_smbus_write(struct i2c_adapter *ia,
-+					uint8_t addr, uint8_t reg,
-+					uint8_t *buffer, int len)
-+{
-+	struct sifive_i2c_adapter *adap =
-+		container_of(ia, struct sifive_i2c_adapter, adapter);
-+	int rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_WRITE_BIT);
-+
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	/* set register address */
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_TXR, reg);
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	/* set value */
-+	while (len) {
-+		sifive_i2c_setreg(adap, SIFIVE_I2C_TXR, *buffer);
-+		sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+
-+		rc = sifive_i2c_adapter_poll_tip(adap);
-+		if (rc)
-+			return rc;
-+
-+		rc = sifive_i2c_adapter_rxack(adap);
-+		if (rc)
-+			return rc;
-+
-+		buffer++;
-+		len--;
++	for (pos = 0; pos < array_size(i2c_adapter_drivers); pos++) {
++		if (adapter->driver == i2c_adapter_drivers[pos])
++			return i2c_adapter_drivers[pos];
 +	}
 +
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STO | SIFIVE_I2C_CMD_IACK);
-+
-+	/* poll BUSY instead of ACK*/
-+	rc = sifive_i2c_adapter_poll_busy(adap);
-+	if (rc)
-+		return rc;
-+
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_IACK);
-+
-+	return 0;
++	return NULL;
 +}
 +
-+static int sifive_i2c_adapter_smbus_read(struct i2c_adapter *ia,
-+					uint8_t addr, uint8_t reg,
-+					uint8_t *buffer, int len)
++static int fdt_i2c_adapter_init(void *fdt, int nodeoff)
 +{
-+	struct sifive_i2c_adapter *adap =
-+		container_of(ia, struct sifive_i2c_adapter, adapter);
++	int pos, rc;
++	struct fdt_i2c_adapter *drv;
++	const struct fdt_match *match;
++
++	/* Try all I2C drivers one-by-one */
++	for (pos = 0; pos < array_size(i2c_adapter_drivers); pos++) {
++		drv = i2c_adapter_drivers[pos];
++		match = fdt_match_node(fdt, nodeoff, drv->match_table);
++		if (match && drv->init) {
++			rc = drv->init(fdt, nodeoff, match);
++			if (rc == SBI_ENODEV)
++				continue;
++			if (rc)
++				return rc;
++			return 0;
++		}
++	}
++
++	return SBI_ENOSYS;
++}
++
++static int fdt_i2c_adapter_find(void *fdt, int nodeoff,
++				struct i2c_adapter **out_adapter)
++{
 +	int rc;
++	struct i2c_adapter *adapter = i2c_adapter_find(nodeoff);
 +
-+	rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_WRITE_BIT);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_TXR, reg);
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_WR | SIFIVE_I2C_CMD_IACK);
-+
-+	rc = sifive_i2c_adapter_poll_tip(adap);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	/* setting addr with high 0 bit */
-+	rc = sifive_i2c_adapter_start(adap, addr, SIFIVE_I2C_READ_BIT);
-+	if (rc)
-+		return rc;
-+
-+	rc = sifive_i2c_adapter_rxack(adap);
-+	if (rc)
-+		return rc;
-+
-+	while (len) {
-+		if (len == 1)
-+			sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_ACK | SIFIVE_I2C_CMD_RD | SIFIVE_I2C_CMD_IACK);
-+		else
-+			sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_RD | SIFIVE_I2C_CMD_IACK);
-+
-+		rc = sifive_i2c_adapter_poll_tip(adap);
++	if (!adapter) {
++		/* I2C adapter not found so initialize matching driver */
++		rc = fdt_i2c_adapter_init(fdt, nodeoff);
 +		if (rc)
 +			return rc;
 +
-+		*buffer = sifive_i2c_getreg(adap, SIFIVE_I2C_RXR);
-+		buffer++;
-+		len--;
++		/* Try to find I2C adapter again */
++		adapter = i2c_adapter_find(nodeoff);
++		if (!adapter)
++			return SBI_ENOSYS;
 +	}
 +
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_STO | SIFIVE_I2C_CMD_IACK);
-+	rc = sifive_i2c_adapter_poll_busy(adap);
-+	if (rc)
-+		return rc;
-+
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CR, SIFIVE_I2C_CMD_IACK);
++	if (out_adapter)
++		*out_adapter = adapter;
 +
 +	return 0;
 +}
 +
-+static int sifive_i2c_adapter_configure(struct i2c_adapter *ia)
-+{
-+	struct sifive_i2c_adapter *adap =
-+		container_of(ia, struct sifive_i2c_adapter, adapter);
-+
-+	/* enable controller/disable interrupts */
-+	sifive_i2c_setreg(adap, SIFIVE_I2C_CTR, SIFIVE_I2C_CTR_EN);
-+
-+	return 0;
-+}
-+
-+static int sifive_i2c_init(void *fdt, int nodeoff,
-+			    const struct fdt_match *match)
++int fdt_i2c_adapter_get(void *fdt, int nodeoff,
++			struct i2c_adapter **out_adapter)
 +{
 +	int rc;
-+	struct sifive_i2c_adapter *adapter;
-+	uint64_t addr;
++	struct i2c_adapter *adapter;
++	struct fdt_i2c_adapter *drv;
 +
-+	if (sifive_i2c_adapter_count >= SIFIVE_I2C_ADAPTER_MAX)
-+		return SBI_ENOSPC;
++	if (!fdt || (nodeoff < 0) || !out_adapter)
++		return SBI_EINVAL;
 +
-+	adapter = &sifive_i2c_adapter_array[sifive_i2c_adapter_count];
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
++	rc = fdt_i2c_adapter_find(fdt, nodeoff, &adapter);
 +	if (rc)
 +		return rc;
 +
-+	adapter->addr = addr;
-+	adapter->adapter.driver = &fdt_i2c_adapter_sifive;
-+	adapter->adapter.id = nodeoff;
-+	adapter->adapter.smbus_write = sifive_i2c_adapter_smbus_write;
-+	adapter->adapter.smbus_read = sifive_i2c_adapter_smbus_read;
-+	adapter->adapter.configure = sifive_i2c_adapter_configure;
-+	rc = i2c_adapter_add(&adapter->adapter);
-+	if (rc)
-+		return rc;
++	drv = fdt_i2c_adapter_driver(adapter);
++	if (!drv)
++		return SBI_ENOSYS;
 +
-+	sifive_i2c_adapter_count++;
++	*out_adapter = adapter;
++
 +	return 0;
 +}
-+
-+static const struct fdt_match sifive_i2c_match[] = {
-+	{ .compatible = "sifive,i2c0" },
-+	{ },
-+};
-+
-+struct fdt_i2c_adapter fdt_i2c_adapter_sifive = {
-+	.match_table = sifive_i2c_match,
-+	.init = sifive_i2c_init,
-+};
 diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-index 06baa65..d52ab18 100644
+index 16a70da..06baa65 100644
 --- a/lib/utils/i2c/objects.mk
 +++ b/lib/utils/i2c/objects.mk
-@@ -9,3 +9,4 @@
+@@ -8,3 +8,4 @@
+ #
  
  libsbiutils-objs-y += i2c/i2c.o
- libsbiutils-objs-y += i2c/fdt_i2c.o
-+libsbiutils-objs-y += i2c/fdt_i2c_sifive.o
++libsbiutils-objs-y += i2c/fdt_i2c.o
 -- 
 2.31.1
 
