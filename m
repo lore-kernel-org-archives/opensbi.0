@@ -1,74 +1,57 @@
-From: Alexandre Ghiti <alexandre.ghiti@canonical.com>
-Date: Fri, 15 Oct 2021 17:05:57 +0200
-Subject: [PATCH v2 0/5] I2C framework, reboot Unmatched via PMIC
-In-Reply-To: <C568A103-AD25-43C3-AEB9-578F370AC54F@jrtc27.com>
-References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <F1939182-5A3F-47A7-840B-442FAB28E7A5@jrtc27.com>
- <1372921634305615@mail.yandex.ru>
- <32095245-4C98-4C9E-9DAF-68167106A968@jrtc27.com>
- <20211015170548.23b4b743@redslave.neermore.group>
- <C568A103-AD25-43C3-AEB9-578F370AC54F@jrtc27.com>
-Message-ID: <CA+zEjCvv68DEWx6PakCyWm0J+6LphF=S_aToZxw1W1vAKyGkLg@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Fri, 15 Oct 2021 12:45:19 -0700
+Subject: [OpenSBI] rfence related question
+In-Reply-To: <YWf7GLATY/YQUeq0@ubuntu02>
+References: <YWf7GLATY/YQUeq0@ubuntu02>
+Message-ID: <CAOnJCUJrnMi8zS-+8aAOdGQEn0YRBaUBn3xXH1LPQK2n_56anQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 15, 2021 at 4:31 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Thu, Oct 14, 2021 at 2:41 AM Leo Liang <ycliang@andestech.com> wrote:
 >
-> On 15 Oct 2021, at 15:05, Nikita Shubin <nikita.shubin@maquefel.me> wrote:
-> >
-> > On Fri, 15 Oct 2021 14:56:40 +0100
-> > Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> > Hello Jessica,
-> >
-> >> The chip is common for RTC, power management and watchdog
-> >> functionality. Using it to reboot in this manner is not, as evidenced
-> >> by the fact that Linux does not have a driver for doing so and the
-> >> hardware vendor is unsure of how it?s even working the way it is. I
-> >> hope this driver is never needed for future RISC-V hardware (and I
-> >> don?t quite understand how it ended up being needed for the Unmatched,
-> >> when the Unleashed had a gpio-restart device, though that lacked a
-> >> gpio-poweroff I believe; seems like a very strange oversight).
-> >>
-> >> Jess
-> >>
-> >
-> > Implementing SBC reset via Watchdog or PMIC is quite a common practice.
+> Hi,
 >
-> This sequence differs from the existing watchdog-based implementation
-> though, and to quote one of Dialog?s own engineers on LKML:
+> I am studying the rfence part of OpenSBI recently.
 >
-> > Personally, if it was possible I think the RTC approach would be best as it's a
-> > full reset and to me is far safer with regards to potential side effects, but as
-> > that's not on the table then this seems the only other approach in your case.
+> From what I understand the mechanism of the IPI framework is
+> to do "update" to update the IPI information for remote harts,
+> and then send IPI through "ipi_dev" device to remote harts sequentially.
 >
+> After the first IPI is sent (let's say from hart 0 to hart 1),
+> hart 0 waits in the "sync" for the remote hart(hart 1) to do "process".
+> Hart 0 waits until the per hart tlb_sync flag is set from the remote hart(hart1) after "process" is done,
+> and then keep on sending the next IPI to hart 2, and then hart 3 ... etc.
+>
+> If I understand it correctly, then would the following scenario have the possibility to occur?
+>
+> In Linux, Hart 0 executes remote I cache flush instruction and sends IPI to hart 1;
+> At the meantime, hart 2 executes the same instruction and tries to send IPI to hart 0.
+>
+> Both hart 0 and hart 2 step into m-mode, their mstatus.mie are disabled,
+> so, when hart 0 tries to send IPI to hart 2 and wait for the sync, deadlock happens.
+> Hart 0 is waiting for hart 2 and hart 2 is also waiting for hart 0 indefinitely because the interrupts being disabled.
+>
+> Is this case likely to happen?
 >
 
-I don't know if you followed the discussion Nikita here:
-https://patchwork.kernel.org/project/linux-riscv/patch/20210921053356.1705833-1-alexandre.ghiti at canonical.com/
+Nope because each hart uses a busy loop and consume the pending IPIs
 
-> This is why I am suggesting it not be a generic device tree thing, as
-> the vendor is basically saying it?s not a good option but the only
-> choice you have, so should be kept a quirk.
+https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/sbi_tlb.c#L268
 
-This is not the only choice and Adam admits he does not know the
-"side-effects" of a partial reset like the one implemented here. But
-to implement the solution he proposes, we need to sacrifice the RTC as
-it may override user configuration. Maybe it's better to make sure the
-reset works as expected at the expense of the RTC, that's an open
-question and today I would tend to listen to him :)
-
-Alex
-
->
-> Jess
->
+> Best regards,
+> Leo
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+
+
+-- 
+Regards,
+Atish
 
