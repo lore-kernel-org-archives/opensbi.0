@@ -1,104 +1,68 @@
-From: Dong Du <dd_nirvana@sjtu.edu.cn>
-Date: Sun, 17 Oct 2021 10:59:17 +0800 (CST)
-Subject: [PATCH] lib: sbi: sbi_system_reset() if not supported
-In-Reply-To: <20211015135041.36009-1-heinrich.schuchardt@canonical.com>
-References: <20211015135041.36009-1-heinrich.schuchardt@canonical.com>
-Message-ID: <1338104095.3179205.1634439557862.JavaMail.zimbra@sjtu.edu.cn>
+From: Xiang W <wxjstz@126.com>
+Date: Sun, 17 Oct 2021 15:54:38 +0800
+Subject: [PATCH 1/1] dt-bindings: reg-io-width for SiFive CLINT
+In-Reply-To: <20211015100941.17621-1-heinrich.schuchardt@canonical.com>
+References: <20211015100941.17621-1-heinrich.schuchardt@canonical.com>
+Message-ID: <2cca0c29a56fd8be0dc9b25f68f5c308484d093b.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-On Oct 15, 2021, at 9:50 PM, Heinrich Schuchardt heinrich.schuchardt at canonical.com wrote:
-
-> The SBI specification requires that if a reset type or reason is not
-> supported the system reset function returns SBI_ERR_NOT_SUPPORTED.
+? 2021-10-15???? 12:09 +0200?Heinrich Schuchardt???
+> The CLINT in the T-HEAD 9xx processors do not support 64bit mmio
+> access to
+> the MTIMER device. The current schema does not allow to specify this.
 > 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to
+> indicate the
+> restriction. Samuael Holland suggested in
+> lib: utils/timer: Use standard property to specify 32-bit I/O
+> https://github.com/smaeul/opensbi/commit/b95e9cf7cf93b0af16fc89204378bc59ff30008e
+> to use "reg-io-width = <4>;" as the reg-io-width property is
+> generally used
+> in the devicetree schema for such a condition.
+> 
+> A release candidate of the ACLINT specification is available at
+> https://github.com/riscv/riscv-aclint/releases
+> 
+> Add reg-io-width as optional property to the SiFive Core Local
+> Interruptor.
+> 
+> Signed-off-by: Heinrich Schuchardt
+> <heinrich.schuchardt@canonical.com>
 > ---
-> Yet another patch will be needed to return SBI_ERR_FAILED if the reset
-> did not succeed.
-> ---
-> include/sbi/sbi_system.h |  2 +-
-> lib/sbi/sbi_system.c     | 22 ++++++++++++++--------
-> 2 files changed, 15 insertions(+), 9 deletions(-)
+> ?Documentation/devicetree/bindings/timer/sifive,clint.yaml | 7
+> +++++++
+> ?1 file changed, 7 insertions(+)
 > 
-> diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
-> index 84c2813..3c98133 100644
-> --- a/include/sbi/sbi_system.h
-> +++ b/include/sbi/sbi_system.h
-> @@ -41,6 +41,6 @@ void sbi_system_reset_add_device(struct
-> sbi_system_reset_device *dev);
-> 
-> bool sbi_system_reset_supported(u32 reset_type, u32 reset_reason);
-> 
-> -void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason);
-> +void sbi_system_reset(u32 reset_type, u32 reset_reason);
-> 
-> #endif
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index 9cea3c0..5c328fb 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -62,12 +62,23 @@ bool sbi_system_reset_supported(u32 reset_type, u32
-> reset_reason)
-> 	return !!sbi_system_reset_get_device(reset_type, reset_reason);
-> }
-> 
-> -void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason)
-> +void sbi_system_reset(u32 reset_type, u32 reset_reason)
-> {
-> 	ulong hbase = 0, hmask;
-> 	u32 cur_hartid = current_hartid();
-> 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +	const struct sbi_system_reset_device *dev =
-> +		sbi_system_reset_get_device(reset_type, reset_reason);
+> diff --git
+> a/Documentation/devicetree/bindings/timer/sifive,clint.yaml
+> b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
+> index a35952f48742..266012d887b5 100644
+> --- a/Documentation/devicetree/bindings/timer/sifive,clint.yaml
+> +++ b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
+> @@ -41,6 +41,13 @@ properties:
+> ?? reg:
+> ???? maxItems: 1
+> ?
+> +? reg-io-width:
+> +??? description: |
+> +????? Some CLINT implementations, e.g. on the T-HEAD 9xx, only
+> support
+> +????? 32bit access for MTIMER.
+> +??? $ref: /schemas/types.yaml#/definitions/uint32
+> +??? const: 4
 > +
-> +	/* Check if domain allows system reset */
-> +	if (!dom->system_reset_allowed)
-> +		return;
-> +
-> +	/* Check if we have a reset device supporting the reset type */
-> +	dev = sbi_system_reset_get_device(reset_type, reset_reason);
-
-dev is already assigned and const.
-Just remove the line.
+> ?? interrupts-extended:
+> ???? minItems: 1
+> ?
+I think we can move has_64bit_mmio to fdt_match->data.This way we no
+longer rely on 'clint, has-no-64bit-mmio' or 'reg-io-width'
 
 Regards,
-Dong
+Xiang W
 
-> +	if (!dev)
-> +		return;
-> 
-> 	/* Send HALT IPI to every hart other than the current hart */
-> 	while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &hmask)) {
-> @@ -81,13 +92,8 @@ void __noreturn sbi_system_reset(u32 reset_type, u32
-> reset_reason)
-> 	/* Stop current HART */
-> 	sbi_hsm_hart_stop(scratch, FALSE);
-> 
-> -	/* Platform specific reset if domain allowed system reset */
-> -	if (dom->system_reset_allowed) {
-> -		const struct sbi_system_reset_device *dev =
-> -			sbi_system_reset_get_device(reset_type, reset_reason);
-> -		if (dev)
-> -			dev->system_reset(reset_type, reset_reason);
-> -	}
-> +	/* Execute platform specific reset */
-> +	dev->system_reset(reset_type, reset_reason);
-> 
-> 	/* If platform specific reset did not work then do sbi_exit() */
-> 	sbi_exit(scratch);
-> --
-> 2.32.0
-> 
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+
 
