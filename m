@@ -1,39 +1,70 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 18 Oct 2021 16:06:25 +0530
-Subject: [PATCH v5] Makefile: Add build time and compiler info string
-In-Reply-To: <87ilxufwzz.fsf@igel.home>
-References: <20211018041148.1343731-1-anup.patel@wdc.com>
- <CAEUhbmWt9sPua3iQhJxBR0UzDPGDyHJK7BOZv15g5qT5+Z6OXQ@mail.gmail.com>
- <CAAhSdy25Fp1pY0utamEd9sUfkPBhdBq3k8Rm61mdwayw-09bzQ@mail.gmail.com>
- <CAEUhbmXnpJCH9z8XoyG14s7YJ7L4wiKj--Z1YU1UgFz4J8irmQ@mail.gmail.com>
- <87h7dehj56.fsf@igel.home>
- <CAEUhbmV1PRz=h2B+uH6Vmnb9zsAdku6zH7KPp4iotLFsjWRkCQ@mail.gmail.com>
- <CAAhSdy1GSg34u3eGc5CQCuV+TuEXVj9aVHs12pUkDWt9r+N4HA@mail.gmail.com>
- <CAEUhbmW=+N4d2NJUedgLi1n=4j6sXHTeLTb2xn5w1-K=mrRA5Q@mail.gmail.com>
- <CAAhSdy10-JHm5vPOtZtmYS5ASR+dhvG=uWi7pARunENONP6xEQ@mail.gmail.com>
- <87ilxufwzz.fsf@igel.home>
-Message-ID: <CAAhSdy3HbhTBPYA182pDUk5qY7eJ5DvPqqqgkbK5K7oyjJLMLA@mail.gmail.com>
+Date: Mon, 18 Oct 2021 16:08:20 +0530
+Subject: [PATCH 1/1] lib: sbi: system reset with invalid parameters
+In-Reply-To: <e0c1fbc29f3b714b9b312212ed230445a80ad77d.camel@126.com>
+References: <20211015134221.35427-1-heinrich.schuchardt@canonical.com>
+ <e0c1fbc29f3b714b9b312212ed230445a80ad77d.camel@126.com>
+Message-ID: <CAAhSdy2EHScVwMvi9ampx7zLN3_dNFRjA-=FXZxzd54Vg_0_=g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 18, 2021 at 3:58 PM Andreas Schwab <schwab@linux-m68k.org> wrote:
+On Sat, Oct 16, 2021 at 12:44 PM Xiang W <wxjstz@126.com> wrote:
 >
-> On Okt 18 2021, Anup Patel wrote:
+> ? 2021-10-15???? 15:42 +0200?Heinrich Schuchardt???
+> > The SBI specification requires that sbi_system_reset() returns
+> > SBI_ERR_INVALID_PARAM if reset_type or reset_reason are not valid.
+> >
+> > Signed-off-by: Heinrich Schuchardt
+> > <heinrich.schuchardt@canonical.com>
 >
-> > Users will have to figure-out/remember a fixed build date when
-> > using SOURCE_DATA_EPOCH for reproducible builds whereas
-> > users don't need to do anything when BUILD_INFO is not defined.
->
-> Users who care about reproducible builds already know how to set
-> SOURCE_DATA_EPOCH.
->
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
-@Alistair Francis Are you okay removing BUILD_INFO and having it
-always enabled ?
+Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
+
+> > ---
+> >  lib/sbi/sbi_ecall_replace.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_ecall_replace.c
+> > b/lib/sbi/sbi_ecall_replace.c
+> > index 5d24565..93f44da 100644
+> > --- a/lib/sbi/sbi_ecall_replace.c
+> > +++ b/lib/sbi/sbi_ecall_replace.c
+> > @@ -151,7 +151,7 @@ static int sbi_ecall_srst_handler(unsigned long
+> > extid, unsigned long funcid,
+> >                 case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> >                         break;
+> >                 default:
+> > -                       return SBI_ENOTSUPP;
+> > +                       return SBI_EINVAL;
+> >                 }
+> >
+> >                 switch (regs->a1) {
+> > @@ -159,7 +159,7 @@ static int sbi_ecall_srst_handler(unsigned long
+> > extid, unsigned long funcid,
+> >                 case SBI_SRST_RESET_REASON_SYSFAIL:
+> >                         break;
+> >                 default:
+> > -                       return SBI_ENOTSUPP;
+> > +                       return SBI_EINVAL;
+> >                 }
+> >
+> >                 if (sbi_system_reset_supported(regs->a0, regs->a1))
+> > --
+> > 2.32.0
+> >
+> >
+>
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
