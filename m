@@ -1,88 +1,53 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 18 Oct 2021 10:03:04 +0530
-Subject: [PATCH v2 1/1] dt-bindings: reg-io-width for SiFive CLINT
-In-Reply-To: <20211015120735.27972-1-heinrich.schuchardt@canonical.com>
-References: <20211015120735.27972-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy3JU6jitTWFk4CVRG5Xc7P7ueZzd=xmnKBNpx8eGaR6hw@mail.gmail.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Mon, 18 Oct 2021 05:17:01 +0000
+Subject: PATCH for Issue 225
+In-Reply-To: <CAM0yjiSayXAvWG+6-su0HZNUw-TdB8CpZExGvwRfkRn0k472eA@mail.gmail.com>
+References: <CAM0yjiSayXAvWG+6-su0HZNUw-TdB8CpZExGvwRfkRn0k472eA@mail.gmail.com>
+Message-ID: <77762AB9-E2A2-41A4-A716-020CFB7AD5B0@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 15, 2021 at 5:37 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
->
-> The CLINT in the T-HEAD 9xx processors do not support 64bit mmio access to
-> the MTIMER device. The current schema does not allow to specify this.
->
-> OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to indicate the
-> restriction. Samuael Holland suggested in
-> lib: utils/timer: Use standard property to specify 32-bit I/O
-> https://github.com/smaeul/opensbi/commit/b95e9cf7cf93b0af16fc89204378bc59ff30008e
-> to use "reg-io-width = <4>;" as the reg-io-width property is generally used
-> in the devicetree schema for such a condition.
->
-> A release candidate of the ACLINT specification is available at
-> https://github.com/riscv/riscv-aclint/releases
->
-> Add reg-io-width as optional property to the SiFive Core Local Interruptor.
-> Add a new compatible string "allwinner,sun20i-d1-clint" for the CLINT of
-> the Allwinner D1 SoC.
->
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-> ---
->  .../devicetree/bindings/timer/sifive,clint.yaml     | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/timer/sifive,clint.yaml b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
-> index a35952f48742..d3b4c6844e2f 100644
-> --- a/Documentation/devicetree/bindings/timer/sifive,clint.yaml
-> +++ b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
-> @@ -26,6 +26,7 @@ properties:
->        - enum:
->            - sifive,fu540-c000-clint
->            - canaan,k210-clint
-> +          - allwinner,sun20i-d1-clint
->        - const: sifive,clint0
->
->      description:
-> @@ -33,14 +34,22 @@ properties:
->        Supported compatible strings are -
->        "sifive,fu540-c000-clint" for the SiFive CLINT v0 as integrated
->        onto the SiFive FU540 chip, "canaan,k210-clint" for the SiFive
-> -      CLINT v0 as integrated onto the Canaan Kendryte K210 chip, and
-> -      "sifive,clint0" for the SiFive CLINT v0 IP block with no chip
-> +      CLINT v0 as integrated onto the Canaan Kendryte K210 chip,
-> +      "allwinner,sun20i-d1-clint" for the CLINT in the Allwinner D1 SoC,
-> +      and "sifive,clint0" for the SiFive CLINT v0 IP block with no chip
->        integration tweaks.
->        Please refer to sifive-blocks-ip-versioning.txt for details
->
->    reg:
->      maxItems: 1
->
-> +  reg-io-width:
-> +    description: |
-> +      Some CLINT implementations, e.g. on the T-HEAD 9xx, only support
-> +      32bit access for MTIMER.
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +    const: 4
-> +
+Hi Vasan,
 
-Please drop the "reg-io-width" DT property.
+Only plain text emails are allowed in OpenSBI mailing list so please
+take care in future emails.
 
-Based on discussion on ACLINT MTIMER DT bindings, Rob suggested
-using implementation specific compatible string for detecting register IO
-width. We should follow the same strategy here as well.
+Please see further comments inline below...
 
 Regards,
 Anup
 
->    interrupts-extended:
->      minItems: 1
->
-> --
-> 2.32.0
->
+From: Vasan VS <vasan.vs@gmail.com>
+Date: Monday, 18 October 2021 at 1:32 AM
+To: Atish Patra <Atish.Patra@wdc.com>, Anup Patel <Anup.Patel@wdc.com>
+Cc: "opensbi at lists.infradead.org" <opensbi@lists.infradead.org>
+Subject: PATCH for Issue 225
+
+Please review the following fix for Issue #225 (https://github.com/riscv-software-src/opensbi/issues/225 )
+
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6254452..0659486 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -346,6 +346,7 @@ static unsigned long hart_pmp_get_allowed_addr(void)
+? unsigned long val = 0;
+? struct sbi_trap_info trap = {0};
+?
++ csr_write(CSR_PMPCFG0, 0);
+
+[Anup] Use csr_write_allowed() to set CSR_PMPCFG0 because PMP might
+not be preset. If you get trap while updating CSR_PMPCFG0 then return 0.
+
+? csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);
+? if (!trap.cause) {
+? val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
+
+
+
+Regards
+
+Vasan
 
