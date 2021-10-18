@@ -1,70 +1,81 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 18 Oct 2021 16:08:20 +0530
-Subject: [PATCH 1/1] lib: sbi: system reset with invalid parameters
-In-Reply-To: <e0c1fbc29f3b714b9b312212ed230445a80ad77d.camel@126.com>
-References: <20211015134221.35427-1-heinrich.schuchardt@canonical.com>
- <e0c1fbc29f3b714b9b312212ed230445a80ad77d.camel@126.com>
-Message-ID: <CAAhSdy2EHScVwMvi9ampx7zLN3_dNFRjA-=FXZxzd54Vg_0_=g@mail.gmail.com>
+Date: Mon, 18 Oct 2021 16:10:01 +0530
+Subject: [PATCH v2] lib: sbi: Save context for all non-retentive suspend
+ types
+In-Reply-To: <e85f0b160477d43754b40cdb2b2a7cf92b220147.camel@126.com>
+References: <20211011082419.1135425-1-anup.patel@wdc.com>
+ <e85f0b160477d43754b40cdb2b2a7cf92b220147.camel@126.com>
+Message-ID: <CAAhSdy1HzroA1AAtie0ZVdOmgwMfhJC4Km+XtGup2rgCOwK4HQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Oct 16, 2021 at 12:44 PM Xiang W <wxjstz@126.com> wrote:
+On Tue, Oct 12, 2021 at 11:28 AM Xiang W <wxjstz@126.com> wrote:
 >
-> ? 2021-10-15???? 15:42 +0200?Heinrich Schuchardt???
-> > The SBI specification requires that sbi_system_reset() returns
-> > SBI_ERR_INVALID_PARAM if reset_type or reset_reason are not valid.
+> ? 2021-10-11???? 13:54 +0530?Anup Patel???
+> > Instead of saving context only for default non-retentive suspend,
+> > we should save context for all non-retentive suspend types.
 > >
-> > Signed-off-by: Heinrich Schuchardt
-> > <heinrich.schuchardt@canonical.com>
+> > Fixes: 74756891cc35 ("lib: sbi: Implement SBI HSM suspend function")
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> Looks good to me.
 >
 > Reviewed-by: Xiang W <wxjstz@126.com>
 
 Applied this patch to the riscv/opensbi repo.
 
-Thanks,
+Regards,
 Anup
 
 > > ---
-> >  lib/sbi/sbi_ecall_replace.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > Changes since v1:
+> >  - Fixed typo in commit description and improved it.
+> > ---
+> >  lib/sbi/sbi_hsm.c | 13 +++++++------
+> >  1 file changed, 7 insertions(+), 6 deletions(-)
 > >
-> > diff --git a/lib/sbi/sbi_ecall_replace.c
-> > b/lib/sbi/sbi_ecall_replace.c
-> > index 5d24565..93f44da 100644
-> > --- a/lib/sbi/sbi_ecall_replace.c
-> > +++ b/lib/sbi/sbi_ecall_replace.c
-> > @@ -151,7 +151,7 @@ static int sbi_ecall_srst_handler(unsigned long
-> > extid, unsigned long funcid,
-> >                 case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> >                         break;
-> >                 default:
-> > -                       return SBI_ENOTSUPP;
-> > +                       return SBI_EINVAL;
-> >                 }
+> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> > index 67890f3..ecd2e45 100644
+> > --- a/lib/sbi/sbi_hsm.c
+> > +++ b/lib/sbi/sbi_hsm.c
+> > @@ -358,12 +358,6 @@ static int
+> > __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
+> >  {
+> >         void (*jump_warmboot)(void) = (void (*)(void))scratch-
+> > >warmboot_addr;
 > >
-> >                 switch (regs->a1) {
-> > @@ -159,7 +159,7 @@ static int sbi_ecall_srst_handler(unsigned long
-> > extid, unsigned long funcid,
-> >                 case SBI_SRST_RESET_REASON_SYSFAIL:
-> >                         break;
-> >                 default:
-> > -                       return SBI_ENOTSUPP;
-> > +                       return SBI_EINVAL;
-> >                 }
+> > -       /*
+> > -        * Save some of the M-mode CSRs which should be restored
+> > after
+> > -        * resuming from suspend state
+> > -        */
+> > -       __sbi_hsm_suspend_non_ret_save(scratch);
+> > -
+> >         /* Wait for interrupt */
+> >         wfi();
 > >
-> >                 if (sbi_system_reset_supported(regs->a0, regs->a1))
+> > @@ -463,6 +457,13 @@ int sbi_hsm_hart_suspend(struct sbi_scratch
+> > *scratch, u32 suspend_type,
+> >         /* Save the suspend type */
+> >         hdata->suspend_type = suspend_type;
+> >
+> > +       /*
+> > +        * Save context which will be restored after resuming from
+> > +        * non-retentive suspend.
+> > +        */
+> > +       if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)
+> > +               __sbi_hsm_suspend_non_ret_save(scratch);
+> > +
+> >         /* Try platform specific suspend */
+> >         ret = hsm_device_hart_suspend(suspend_type, scratch-
+> > >warmboot_addr);
+> >         if (ret == SBI_ENOTSUPP) {
 > > --
-> > 2.32.0
+> > 2.25.1
 > >
 > >
 >
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
