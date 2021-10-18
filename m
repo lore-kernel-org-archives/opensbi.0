@@ -1,11 +1,19 @@
 From: Peter Korsgaard <peter@korsgaard.com>
-Date: Mon, 18 Oct 2021 08:18:09 +0200
+Date: Mon, 18 Oct 2021 13:40:19 +0200
 Subject: [PATCH v5] Makefile: Add build time and compiler info string
-In-Reply-To: <CAEUhbmWt9sPua3iQhJxBR0UzDPGDyHJK7BOZv15g5qT5+Z6OXQ@mail.gmail.com>
- (Bin Meng's message of "Mon, 18 Oct 2021 13:57:33 +0800")
+In-Reply-To: <CAEUhbmVTNMp2Y5CCJNZZH4ph5tmBST5hkP6e+Xg8Cb9Sjxqt6g@mail.gmail.com>
+ (Bin Meng's message of "Mon, 18 Oct 2021 18:33:59 +0800")
 References: <20211018041148.1343731-1-anup.patel@wdc.com>
  <CAEUhbmWt9sPua3iQhJxBR0UzDPGDyHJK7BOZv15g5qT5+Z6OXQ@mail.gmail.com>
-Message-ID: <87y26qetzy.fsf@dell.be.48ers.dk>
+ <CAAhSdy25Fp1pY0utamEd9sUfkPBhdBq3k8Rm61mdwayw-09bzQ@mail.gmail.com>
+ <CAEUhbmXnpJCH9z8XoyG14s7YJ7L4wiKj--Z1YU1UgFz4J8irmQ@mail.gmail.com>
+ <87h7dehj56.fsf@igel.home>
+ <CAEUhbmV1PRz=h2B+uH6Vmnb9zsAdku6zH7KPp4iotLFsjWRkCQ@mail.gmail.com>
+ <CAAhSdy1GSg34u3eGc5CQCuV+TuEXVj9aVHs12pUkDWt9r+N4HA@mail.gmail.com>
+ <CAEUhbmW=+N4d2NJUedgLi1n=4j6sXHTeLTb2xn5w1-K=mrRA5Q@mail.gmail.com>
+ <CAAhSdy10-JHm5vPOtZtmYS5ASR+dhvG=uWi7pARunENONP6xEQ@mail.gmail.com>
+ <CAEUhbmVTNMp2Y5CCJNZZH4ph5tmBST5hkP6e+Xg8Cb9Sjxqt6g@mail.gmail.com>
+Message-ID: <87lf2qef30.fsf@dell.be.48ers.dk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,37 +22,20 @@ Content-Transfer-Encoding: 7bit
 
 >>>>> "Bin" == Bin Meng <bmeng.cn@gmail.com> writes:
 
- > Hi Anup,
- > On Mon, Oct 18, 2021 at 12:13 PM Anup Patel <anup.patel@wdc.com> wrote:
- >> 
- >> From: Wei Fu <wefu@redhat.com>
- >> 
- >> When we are doing opensbi development, we want to know the build time and
- >> compiler info for debug purpose.
- >> To enable this message, please add "BUILD_INFO=y", like:
- >> 
- >> ```
- >> make BUILD_INFO=y
- >> ```
- >> 
- >> NOTE: `BUILD_INFO=y` will violate "reproducible builds".
- >> So it's ONLY for development and debug purpose, and should NOT be used
- >> in a product which follows "reproducible builds".
+Hi,
 
- > As I pointed out in v4, with BUILD_INFO=y we can still achieve
- > reproducible builds with BUILD_DATE_EPOCH, so this statement is not
- > entirely true.
+ >> Users will have to figure-out/remember a fixed build date when
+ >> using SOURCE_DATA_EPOCH for reproducible builds whereas
+ >> users don't need to do anything when BUILD_INFO is not defined.
 
- > The question is whether we should just drop introducing BUILD_INFO and
- > turn this on for all builds. If reproducible builds is required,
- > define BUILD_DATE_EPOCH.
+ > This is not 100% true as with current OpenSBI we never claim its build
+ > is fully reproducible. For example, one can easily add __DATE__ to the
+ > source codes which will alter unless we provide SOURCE_DATA_EPOCH.
 
-Agreed, though BUILD_DATE_EPOCH seems to be specific to opensbi. Why was
-this changed from SOURCE_DATE_EPOCH? In Buildroot at least, we only set
-SOURCE_DATE_EPOCH when we want reproducible builds and the spec has
-explicit examples where it is used for the build timestamp:
+Notice that GCC >= 7 does in fact look for SOURCE_DATE_EPOCH in the
+environment and change the behaviour of the __DATE__ / __TIME__ macros:
 
-https://reproducible-builds.org/docs/source-date-epoch/
+https://gcc.gnu.org/onlinedocs/cpp/Environment-Variables.html
 
 -- 
 Bye, Peter Korsgaard
