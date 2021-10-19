@@ -1,81 +1,58 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 18 Oct 2021 16:10:01 +0530
-Subject: [PATCH v2] lib: sbi: Save context for all non-retentive suspend
- types
-In-Reply-To: <e85f0b160477d43754b40cdb2b2a7cf92b220147.camel@126.com>
-References: <20211011082419.1135425-1-anup.patel@wdc.com>
- <e85f0b160477d43754b40cdb2b2a7cf92b220147.camel@126.com>
-Message-ID: <CAAhSdy1HzroA1AAtie0ZVdOmgwMfhJC4Km+XtGup2rgCOwK4HQ@mail.gmail.com>
+From: Alistair Francis <Alistair.Francis@wdc.com>
+Date: Tue, 19 Oct 2021 00:23:07 +0000
+Subject: [PATCH v5] Makefile: Add build time and compiler info string
+In-Reply-To: <CAAhSdy3HbhTBPYA182pDUk5qY7eJ5DvPqqqgkbK5K7oyjJLMLA@mail.gmail.com>
+References: <20211018041148.1343731-1-anup.patel@wdc.com>
+ <CAEUhbmWt9sPua3iQhJxBR0UzDPGDyHJK7BOZv15g5qT5+Z6OXQ@mail.gmail.com>
+ <CAAhSdy25Fp1pY0utamEd9sUfkPBhdBq3k8Rm61mdwayw-09bzQ@mail.gmail.com>
+ <CAEUhbmXnpJCH9z8XoyG14s7YJ7L4wiKj--Z1YU1UgFz4J8irmQ@mail.gmail.com>
+ <87h7dehj56.fsf@igel.home>
+ <CAEUhbmV1PRz=h2B+uH6Vmnb9zsAdku6zH7KPp4iotLFsjWRkCQ@mail.gmail.com>
+ <CAAhSdy1GSg34u3eGc5CQCuV+TuEXVj9aVHs12pUkDWt9r+N4HA@mail.gmail.com>
+ <CAEUhbmW=+N4d2NJUedgLi1n=4j6sXHTeLTb2xn5w1-K=mrRA5Q@mail.gmail.com>
+ <CAAhSdy10-JHm5vPOtZtmYS5ASR+dhvG=uWi7pARunENONP6xEQ@mail.gmail.com>
+ <87ilxufwzz.fsf@igel.home>
+ <CAAhSdy3HbhTBPYA182pDUk5qY7eJ5DvPqqqgkbK5K7oyjJLMLA@mail.gmail.com>
+Message-ID: <23e07b61b8f79e4ac85c7894dc67ebf8da6ec62b.camel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 12, 2021 at 11:28 AM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2021-10-11???? 13:54 +0530?Anup Patel???
-> > Instead of saving context only for default non-retentive suspend,
-> > we should save context for all non-retentive suspend types.
-> >
-> > Fixes: 74756891cc35 ("lib: sbi: Implement SBI HSM suspend function")
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Looks good to me.
->
-> Reviewed-by: Xiang W <wxjstz@126.com>
+On Mon, 2021-10-18 at 16:06 +0530, Anup Patel wrote:
+> On Mon, Oct 18, 2021 at 3:58 PM Andreas Schwab <schwab@linux-m68k.org>
+> wrote:
+> > 
+> > On Okt 18 2021, Anup Patel wrote:
+> > 
+> > > Users will have to figure-out/remember a fixed build date when
+> > > using SOURCE_DATA_EPOCH for reproducible builds whereas
+> > > users don't need to do anything when BUILD_INFO is not defined.
+> > 
+> > Users who care about reproducible builds already know how to set
+> > SOURCE_DATA_EPOCH.
+> > 
+> 
+> @Alistair Francis Are you okay removing BUILD_INFO and having it
+> always enabled ?
 
-Applied this patch to the riscv/opensbi repo.
+I think it should be disabled by default.
 
-Regards,
-Anup
+We have not had a timestamp for awhile and it hasn't impacted people
+too much.
 
-> > ---
-> > Changes since v1:
-> >  - Fixed typo in commit description and improved it.
-> > ---
-> >  lib/sbi/sbi_hsm.c | 13 +++++++------
-> >  1 file changed, 7 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> > index 67890f3..ecd2e45 100644
-> > --- a/lib/sbi/sbi_hsm.c
-> > +++ b/lib/sbi/sbi_hsm.c
-> > @@ -358,12 +358,6 @@ static int
-> > __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
-> >  {
-> >         void (*jump_warmboot)(void) = (void (*)(void))scratch-
-> > >warmboot_addr;
-> >
-> > -       /*
-> > -        * Save some of the M-mode CSRs which should be restored
-> > after
-> > -        * resuming from suspend state
-> > -        */
-> > -       __sbi_hsm_suspend_non_ret_save(scratch);
-> > -
-> >         /* Wait for interrupt */
-> >         wfi();
-> >
-> > @@ -463,6 +457,13 @@ int sbi_hsm_hart_suspend(struct sbi_scratch
-> > *scratch, u32 suspend_type,
-> >         /* Save the suspend type */
-> >         hdata->suspend_type = suspend_type;
-> >
-> > +       /*
-> > +        * Save context which will be restored after resuming from
-> > +        * non-retentive suspend.
-> > +        */
-> > +       if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)
-> > +               __sbi_hsm_suspend_non_ret_save(scratch);
-> > +
-> >         /* Try platform specific suspend */
-> >         ret = hsm_device_hart_suspend(suspend_type, scratch-
-> > >warmboot_addr);
-> >         if (ret == SBI_ENOTSUPP) {
-> > --
-> > 2.25.1
-> >
-> >
->
->
+The reproducible build documentation specifically says that timestamps
+are best avoided (https://reproducible-builds.org/docs/timestamps/). I
+think they sum it up well that it doesn't add much value, except for a
+few specific circumstances.
+
+So I don't see a good justification for enabling it by default, even
+with SOURCE_DATE_EPOCH (good catch on the name chage, I missed that).
+
+Alistair
+
+> 
+> Regards,
+> Anup
 
