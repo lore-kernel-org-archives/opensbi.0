@@ -1,73 +1,65 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Tue, 19 Oct 2021 14:10:19 +0800
-Subject: [PATCH 1/1] dt-bindings: reg-io-width for SiFive CLINT
-In-Reply-To: <20211015100941.17621-1-heinrich.schuchardt@canonical.com>
-References: <20211015100941.17621-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAJF2gTTjhc2JvC9xdXf6DagMNR_sg41txjnw5Wn2NfJLXd7woA@mail.gmail.com>
+From: Leo Liang <ycliang@andestech.com>
+Date: Tue, 19 Oct 2021 16:55:04 +0800
+Subject: [OpenSBI] rfence related question
+In-Reply-To: <CAOnJCUJrnMi8zS-+8aAOdGQEn0YRBaUBn3xXH1LPQK2n_56anQ@mail.gmail.com>
+References: <YWf7GLATY/YQUeq0@ubuntu02>
+ <CAOnJCUJrnMi8zS-+8aAOdGQEn0YRBaUBn3xXH1LPQK2n_56anQ@mail.gmail.com>
+Message-ID: <YW6H6BqLTV1UyYto@ubuntu02>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 15, 2021 at 6:10 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Fri, Oct 15, 2021 at 12:45:19PM -0700, Atish Patra wrote:
+> On Thu, Oct 14, 2021 at 2:41 AM Leo Liang <ycliang@andestech.com> wrote:
+> >
+> > Hi,
+> >
+> > I am studying the rfence part of OpenSBI recently.
+> >
+> > From what I understand the mechanism of the IPI framework is
+> > to do "update" to update the IPI information for remote harts,
+> > and then send IPI through "ipi_dev" device to remote harts sequentially.
+> >
+> > After the first IPI is sent (let's say from hart 0 to hart 1),
+> > hart 0 waits in the "sync" for the remote hart(hart 1) to do "process".
+> > Hart 0 waits until the per hart tlb_sync flag is set from the remote hart(hart1) after "process" is done,
+> > and then keep on sending the next IPI to hart 2, and then hart 3 ... etc.
+> >
+> > If I understand it correctly, then would the following scenario have the possibility to occur?
+> >
+> > In Linux, Hart 0 executes remote I cache flush instruction and sends IPI to hart 1;
+> > At the meantime, hart 2 executes the same instruction and tries to send IPI to hart 0.
+> >
+> > Both hart 0 and hart 2 step into m-mode, their mstatus.mie are disabled,
+> > so, when hart 0 tries to send IPI to hart 2 and wait for the sync, deadlock happens.
+> > Hart 0 is waiting for hart 2 and hart 2 is also waiting for hart 0 indefinitely because the interrupts being disabled.
+> >
+> > Is this case likely to happen?
+> >
+> 
+> Nope because each hart uses a busy loop and consume the pending IPIs
+> 
+> https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/sbi_tlb.c#L268
 >
-> The CLINT in the T-HEAD 9xx processors do not support 64bit mmio access to
-> the MTIMER device. The current schema does not allow to specify this.
->
-> OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to indicate the
-> restriction. Samuael Holland suggested in
-> lib: utils/timer: Use standard property to specify 32-bit I/O
-> https://github.com/smaeul/opensbi/commit/b95e9cf7cf93b0af16fc89204378bc59ff30008e
-> to use "reg-io-width = <4>;" as the reg-io-width property is generally used
-> in the devicetree schema for such a condition.
->
-> A release candidate of the ACLINT specification is available at
-> https://github.com/riscv/riscv-aclint/releases
->
-> Add reg-io-width as optional property to the SiFive Core Local Interruptor.
->
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-> ---
->  Documentation/devicetree/bindings/timer/sifive,clint.yaml | 7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/timer/sifive,clint.yaml b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
-> index a35952f48742..266012d887b5 100644
-> --- a/Documentation/devicetree/bindings/timer/sifive,clint.yaml
-> +++ b/Documentation/devicetree/bindings/timer/sifive,clint.yaml
-> @@ -41,6 +41,13 @@ properties:
->    reg:
->      maxItems: 1
->
-> +  reg-io-width:
-> +    description: |
-> +      Some CLINT implementations, e.g. on the T-HEAD 9xx, only support
+Hi Atish,
 
-         ^^^^^^^^^^^ -> allwinner d1, new version of our processors
-would support 64bit access
-> +      32bit access for MTIMER.
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +    const: 4
-> +
->    interrupts-extended:
->      minItems: 1
->
-> --
-> 2.32.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Got it! Thanks for the pointer!
 
-
-
--- 
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+Best regards,
+Leo
+> > Best regards,
+> > Leo
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> 
+> 
+> -- 
+> Regards,
+> Atish
 
