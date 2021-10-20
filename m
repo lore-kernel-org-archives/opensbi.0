@@ -1,126 +1,112 @@
-From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Wed, 20 Oct 2021 12:00:46 +0300
-Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
-In-Reply-To: <CA+zEjCsszR-AW8Cbm=Pu2qLE85QfrtrFk-D-TO=8F9T3EDxA9Q@mail.gmail.com>
-References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <20211015131925.22585-6-nikita.shubin@maquefel.me>
- <CA+zEjCvAaecMmN-HDUVw7Sqb89tRtC-3vFQQYb1xSboCJnkRww@mail.gmail.com>
- <20211020100016.350f1379@redslave.neermore.group>
- <CA+zEjCsszR-AW8Cbm=Pu2qLE85QfrtrFk-D-TO=8F9T3EDxA9Q@mail.gmail.com>
-Message-ID: <20211020120046.066ac625@redslave.neermore.group>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Wed, 20 Oct 2021 11:36:03 +0200
+Subject: [PATCH 1/1] dt-bindings: T-HEAD CLINT
+Message-ID: <20211020093603.28653-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 20 Oct 2021 10:33:26 +0200
-Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
+The CLINT in the T-HEAD 9xx CPUs is similar to the SiFive CLINT but does
+not support 64bit mmio access to the MTIMER device.
 
-> On Wed, Oct 20, 2021 at 9:00 AM Nikita Shubin
-> <nikita.shubin@maquefel.me> wrote:
-> >
-> > Hello Alexandre!
-> >
-> > On Tue, 19 Oct 2021 14:39:16 +0200
-> > Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
-> >  
-> > > > +
-> > > > +static const struct fdt_match da9063_reset_match[] = {
-> > > > +       { .compatible = "da9063-reset", .data = (void *)TRUE },
-> > > > +       { },
-> > > > +};  
-> > >
-> > > Agree with Jessica here, as per Adam, the reset as we implement it
-> > > here should remain a board specific thing, so we should not rely
-> > > on this device tree node. I was hoping to make something that
-> > > would work in general for da9063 users, but no luck.
-> > >
-> > > And finally I think we should listen to Adam and go for a full
-> > > reset using the RTC, instead of the partial reset we implemented
-> > > here. We sacrifice the RTC but anyway, it was not even exposed in
-> > > the device tree, we should add a comment there so that people
-> > > don't get surprised if they enable it. I will post the right
-> > > sequence adapted to your sources soon.  
-> >
-> > Well the RTC is much more valuable than reset actually and used for
-> > many tests.
-> >
-> > Indeed da9063 reset can be moved totally to "platform" code, but do
-> > you think that leaving users with hard-coded reset cutting them off
-> > from RTC and no other possibility, other than fixing OpenSBI code
-> > in-place is really a good option ?
-> >
-> > With DTS approuch it can be as simple as removing the da9063-reset
-> > from DTS file.
-> >  
-> 
-> Arf, I change my mind every two days regarding this...I'm just trying
-> to have a reliable reset, and to quote Adam below, the reset as
-> implemented here is only partial:
-> 
-> "With the sequence you provided this is only a partial reset whereby
-> all of the output rails are sequenced down then up again and restored
-> to OTP voltages. However the remainder of the chip settings aren't
-> reset as this isn't a true reset of the device going through full
-> reload from OTP, so for example settings of regulator mode GPIO
-> states, or IRQ mask bits would persist on the restart, which could
-> have implications on system operation."
+OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to indicate the
+restriction and the "sifive,cling0" compatible string. An OpenSBI
+patch suggested to use "reg-io-width = <4>;" as the reg-io-width property
+is generally used in the devicetree schema for such a condition.
 
-Actually i don't think battling over a board which isn't supposed to be
-more than a development board and won't be massed used makes any sense.
+As the design is not SiFive based it is preferable to apply a compatible
+string identifying T-HEAD instead.
 
-It's more like QoL for those who are currently porting software or
-experimenting with RISC-V.
+Add a new yaml file describing the T-HEAD CLINT.
 
-Before this we used openocd reset, which can be greatly automated with
-expect.
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+@Palmer, @Anup
+I copied you as maintainers from sifive,clint.yaml. Please, indicate if
+this should be changed.
 
-> 
-> I imagine the partial reset could have side-effects on the RTC
-> configuration too. So we might end up with a partial reset and a
-> broken RTC...
-> 
+For the prior discussion see:
+https://lore.kernel.org/all/20211015100941.17621-1-heinrich.schuchardt at canonical.com/
+https://lore.kernel.org/all/20211015120735.27972-1-heinrich.schuchardt at canonical.com/
 
-Well we should really investigate this.
+A release candidate of the ACLINT specification is available at
+https://github.com/riscv/riscv-aclint/releases
+---
+ .../bindings/timer/thead,clint.yaml           | 62 +++++++++++++++++++
+ 1 file changed, 62 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/timer/thead,clint.yaml
 
-As well as i don't quite understand this "sacrifice RTC" thing.
-
-> and again from Adam:
-> 
-> "Personally, if it was possible I think the RTC approach would be
-> best as it's a full reset and to me is far safer with regards to
-> potential side effects"
-> 
-> 
-> > >
-> > > Thanks,
-> > >
-> > > Alex
-> > >
-> > >  
-> > > > +
-> > > > +struct fdt_reset fdt_reset_da9063 = {
-> > > > +       .match_table = da9063_reset_match,
-> > > > +       .init = da9063_reset_init,
-> > > > +};
-> > > > diff --git a/lib/utils/reset/objects.mk
-> > > > b/lib/utils/reset/objects.mk index 6c95db3..cfe4c09 100644
-> > > > --- a/lib/utils/reset/objects.mk
-> > > > +++ b/lib/utils/reset/objects.mk
-> > > > @@ -14,3 +14,4 @@ libsbiutils-objs-y +=
-> > > > reset/fdt_reset_sifive_test.o libsbiutils-objs-y +=
-> > > > reset/fdt_reset_sunxi_wdt.o libsbiutils-objs-y +=
-> > > > reset/fdt_reset_thead.o libsbiutils-objs-y +=
-> > > > reset/fdt_reset_thead_asm.o +libsbiutils-objs-y +=
-> > > > reset/fdt_reset_da9063.o --
-> > > > 2.31.1
-> > > >
-> > > >
-> > > > --
-> > > > opensbi mailing list
-> > > > opensbi at lists.infradead.org
-> > > > http://lists.infradead.org/mailman/listinfo/opensbi  
-> >  
+diff --git a/Documentation/devicetree/bindings/timer/thead,clint.yaml b/Documentation/devicetree/bindings/timer/thead,clint.yaml
+new file mode 100644
+index 000000000000..02463fb2043a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/timer/thead,clint.yaml
+@@ -0,0 +1,62 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/timer/thead,clint.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: SiFive Core Local Interruptor
++
++maintainers:
++  - Palmer Dabbelt <palmer@dabbelt.com>
++  - Anup Patel <anup.patel@wdc.com>
++
++description:
++  T-HEAD (and other RISC-V) SOCs include an implementation of the T-HEAD
++  Core Local Interruptor (CLINT) for M-mode timer and M-mode inter-processor
++  interrupts. It directly connects to the timer and inter-processor interrupt
++  lines of various HARTs (or CPUs) so RISC-V per-HART (or per-CPU) local
++  interrupt controller is the parent interrupt controller for CLINT device.
++  The clock frequency of the CLINT is specified via "timebase-frequency" DT
++  property of "/cpus" DT node. The "timebase-frequency" DT property is
++  described in Documentation/devicetree/bindings/riscv/cpus.yaml
++
++properties:
++  compatible:
++    items:
++      - const:
++          - allwinner,sun20i-d1-clint
++      - const:
++          - thead,clint0
++
++    description:
++      Should be "<vendor>,<chip>-clint" and "thead,clint<version>" for
++      the T-HEAD derived CLINTs.
++      Supported compatible strings are -
++      "allwinner,sun20i-d1-clint" for the CLINT in the Allwinner D1 SoC
++      and "thead,clint0" for the T-HEAD IP block with no chip
++      integration tweaks.
++
++  reg:
++    maxItems: 1
++
++  interrupts-extended:
++    minItems: 1
++
++additionalProperties: false
++
++required:
++  - compatible
++  - reg
++  - interrupts-extended
++
++examples:
++  - |
++    timer at 2000000 {
++      compatible = "allwinner,sun20i-d1-clint", "thead,clint0";
++      interrupts-extended = <&cpu1intc 3 &cpu1intc 7
++                             &cpu2intc 3 &cpu2intc 7
++                             &cpu3intc 3 &cpu3intc 7
++                             &cpu4intc 3 &cpu4intc 7>;
++       reg = <0x2000000 0x10000>;
++    };
++...
+-- 
+2.32.0
 
 
