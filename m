@@ -1,310 +1,97 @@
 From: Alexandre Ghiti <alexandre.ghiti@canonical.com>
-Date: Wed, 20 Oct 2021 10:19:43 +0200
-Subject: [PATCH v2 2/5] lib: utils/i2c: Add generic I2C configuration
- library
-In-Reply-To: <20211020094134.6200acb1@redslave.neermore.group>
+Date: Wed, 20 Oct 2021 10:33:26 +0200
+Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
+In-Reply-To: <20211020100016.350f1379@redslave.neermore.group>
 References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <20211015131925.22585-3-nikita.shubin@maquefel.me>
- <CA+zEjCuqpvsM2D839yRZv0g8icoXg2wKKUuBzMv3fQT05gGptg@mail.gmail.com>
- <20211020094134.6200acb1@redslave.neermore.group>
-Message-ID: <CA+zEjCs9bZbhphcUCbSfKH5PtgSbYLEmVhoKk2YgzqWPEkqdhg@mail.gmail.com>
+ <20211015131925.22585-6-nikita.shubin@maquefel.me>
+ <CA+zEjCvAaecMmN-HDUVw7Sqb89tRtC-3vFQQYb1xSboCJnkRww@mail.gmail.com>
+ <20211020100016.350f1379@redslave.neermore.group>
+Message-ID: <CA+zEjCsszR-AW8Cbm=Pu2qLE85QfrtrFk-D-TO=8F9T3EDxA9Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 20, 2021 at 8:41 AM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
+On Wed, Oct 20, 2021 at 9:00 AM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
 >
 > Hello Alexandre!
 >
-> On Tue, 19 Oct 2021 14:04:28 +0200
+> On Tue, 19 Oct 2021 14:39:16 +0200
 > Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
 >
-> > On Fri, Oct 15, 2021 at 3:20 PM Nikita Shubin
-> > <nikita.shubin@maquefel.me> wrote:>
-> > > From: Nikita Shubin <n.shubin@yadro.com>
-> > >
-> > > Helper library to keep track of registered I2C adapters,
-> > > identified by dts offset, basic send/read functions and
-> > > adapter configuration (enable, set dividers, etc...).
-> > >
-> > > Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
-> > > ---
-> > > v1 -> v2:
-> > > - switch to lists instead of array
-> > > - rename send to write
-> > > - use buffers instead of single byte
-> > > - add single byte read/write
-> > > ---
-> > >  include/sbi_utils/i2c/i2c.h | 99
-> > > +++++++++++++++++++++++++++++++++++++ lib/utils/i2c/i2c.c         |
-> > > 85 +++++++++++++++++++++++++++++++ lib/utils/i2c/objects.mk    | 10
-> > > ++++ 3 files changed, 194 insertions(+)
-> > >  create mode 100644 include/sbi_utils/i2c/i2c.h
-> > >  create mode 100644 lib/utils/i2c/i2c.c
-> > >  create mode 100644 lib/utils/i2c/objects.mk
-> > >
-> > > diff --git a/include/sbi_utils/i2c/i2c.h
-> > > b/include/sbi_utils/i2c/i2c.h new file mode 100644
-> > > index 0000000..76cdb66
-> > > --- /dev/null
-> > > +++ b/include/sbi_utils/i2c/i2c.h
-> > > @@ -0,0 +1,99 @@
-> > > +/*
-> > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > + *
-> > > + * Copyright (c) 2021 YADRO
-> > > + *
-> > > + * Authors:
-> > > + *   Nikita Shubin <nshubin@yadro.com>
-> > > + */
 > > > +
-> > > +#ifndef __I2C_H__
-> > > +#define __I2C_H__
-> > > +
-> > > +#include <sbi/sbi_types.h>
-> > > +#include <sbi/sbi_list.h>
-> > > +
-> > > +/** Representation of a I2C adapter */
-> > > +struct i2c_adapter {
-> > > +       /** Pointer to I2C driver owning this I2C adapter */
-> > > +       void *driver;
-> > > +
-> > > +       /** Unique ID of the I2C adapter assigned by the driver */
-> > > +       int id;
-> > > +
-> > > +       /**
-> > > +        * Configure I2C adapter
-> > > +        *
-> > > +        * Enable, set dividers, etc...
-> > > +        *
-> > > +        * @return 0 on success and negative error code on failure
-> > > +        */
-> > > +       int (*configure)(struct i2c_adapter *ia);
-> > > +
-> > > +       /**
-> > > +        * Send buffer to given address, register
-> > > +        *
-> > > +        * @return 0 on success and negative error code on failure
-> > > +        */
-> > > +       int (*smbus_write)(struct i2c_adapter *ia, uint8_t addr,
-> > > uint8_t reg,
-> > > +                   uint8_t *buffer, int len);
-> >
-> > Why did you rename those functions with smbus prefix? And I would use
-> > size_t for the len argument.
->
-> Cause, i think, actually specifying a register to read/write as a part
-> of transaction is an smbus thing, as i stated in cover letter, raw
-> read/write i2c don't use repeated start.
-
-Ok!
-
->
-> And may be size_t indeed.
->
-> >
-> > > +
-> > > +       /**
-> > > +        * Read buffer from given address, register
-> > > +        *
-> > > +        * @return 0 on success and negative error code on failure
-> > > +        */
-> > > +       int (*smbus_read)(struct i2c_adapter *ia, uint8_t addr,
-> > > uint8_t reg,
-> > > +                   uint8_t *buffer, int len);
-> > > +
-> > > +       /** List */
-> > > +       struct sbi_dlist node;
+> > > +static const struct fdt_match da9063_reset_match[] = {
+> > > +       { .compatible = "da9063-reset", .data = (void *)TRUE },
+> > > +       { },
 > > > +};
-> > > +
-> > > +static inline struct i2c_adapter *to_i2c_adapter(struct sbi_dlist
-> > > *node) +{
-> > > +       return container_of(node, struct i2c_adapter, node);
-> > > +}
-> > > +
-> > > +/** Find a registered I2C adapter */
-> > > +struct i2c_adapter *i2c_adapter_find(int id);
-> > > +
-> > > +/** Register I2C adapter */
-> > > +int i2c_adapter_add(struct i2c_adapter *ia);
-> > > +
-> > > +/** Un-register I2C adapter */
-> > > +void i2c_adapter_remove(struct i2c_adapter *ia);
-> > > +
-> > > +/** Configure I2C adapter prior to send/read */
-> > > +int i2c_adapter_configure(struct i2c_adapter *ia);
-> > > +
-> > > +/** Write to device on I2C adapter bus */
-> > > +int i2c_adapter_smbus_write(struct i2c_adapter *ia, uint8_t addr,
-> > > +                       uint8_t reg, uint8_t *buffer, int len);
-> > > +
-> > > +/** Read from device on I2C adapter bus */
-> > > +int i2c_adapter_smbus_read(struct i2c_adapter *ia, uint8_t addr,
-> > > +                       uint8_t reg, uint8_t *buffer, int len);
-> > > +
-> > > +/** Write single byte from device on I2C adapter bus */
-> > > +static inline int i2c_adapter_smbus_reg_write(struct i2c_adapter
-> > > *ia,
-> > > +                               uint8_t addr, uint8_t reg, uint8_t
-> > > val) +{
-> > > +       return i2c_adapter_smbus_write(ia, addr, reg, &val, 1);
-> > > +}
-> > > +
-> > > +/** Read single byte from device on I2C adapter bus */
-> > > +static inline int i2c_adapter_smbus_reg_read(struct i2c_adapter
-> > > *ia,
-> > > +                               uint8_t addr, uint8_t reg, uint8_t
-> > > *val) +{
-> > > +       uint8_t buf;
-> > > +       int ret = i2c_adapter_smbus_read(ia, addr, reg, &buf, 1);
-> > > +
-> > > +       if (ret)
-> > > +               return ret;
-> > > +
-> > > +       *val = buf;
-> > > +       return 0;
-> > > +}
 > >
-> > Nice to add the helpers, though I'm not sure "reg_read" is the right
-> > suffix as it may not be quite explicit: what about simply read_byte?
+> > Agree with Jessica here, as per Adam, the reset as we implement it
+> > here should remain a board specific thing, so we should not rely on
+> > this device tree node. I was hoping to make something that would work
+> > in general for da9063 users, but no luck.
+> >
+> > And finally I think we should listen to Adam and go for a full reset
+> > using the RTC, instead of the partial reset we implemented here. We
+> > sacrifice the RTC but anyway, it was not even exposed in the device
+> > tree, we should add a comment there so that people don't get surprised
+> > if they enable it. I will post the right sequence adapted to your
+> > sources soon.
 >
-> I think byte_read/byte_write should be "raw" and omit the
-> uint8_t reg and have naming like:
+> Well the RTC is much more valuable than reset actually and used for
+> many tests.
 >
-> i2c_adapter_byte_read
-> i2c_adapter_byte_write
+> Indeed da9063 reset can be moved totally to "platform" code, but do you
+> think that leaving users with hard-coded reset cutting them off from RTC
+> and no other possibility, other than fixing OpenSBI code in-place is
+> really a good option ?
 >
-> Without smbus prefix, but that's a bit different story.
+> With DTS approuch it can be as simple as removing the da9063-reset from
+> DTS file.
+>
 
-As I'm far from being an i2c/smbus expert, are we sure the value of a
-register always holds in an uint8_t?
+Arf, I change my mind every two days regarding this...I'm just trying
+to have a reliable reset, and to quote Adam below, the reset as
+implemented here is only partial:
 
->
->
+"With the sequence you provided this is only a partial reset whereby all of the
+output rails are sequenced down then up again and restored to OTP voltages.
+However the remainder of the chip settings aren't reset as this isn't a true
+reset of the device going through full reload from OTP, so for example settings
+of regulator mode GPIO states, or IRQ mask bits would persist on the restart,
+which could have implications on system operation."
+
+I imagine the partial reset could have side-effects on the RTC
+configuration too. So we might end up with a partial reset and a
+broken RTC...
+
+and again from Adam:
+
+"Personally, if it was possible I think the RTC approach would be best as it's a
+full reset and to me is far safer with regards to potential side effects"
+
+
 > >
-> > > +
-> > > +#endif
-> > > diff --git a/lib/utils/i2c/i2c.c b/lib/utils/i2c/i2c.c
-> > > new file mode 100644
-> > > index 0000000..d23ac91
-> > > --- /dev/null
-> > > +++ b/lib/utils/i2c/i2c.c
-> > > @@ -0,0 +1,85 @@
-> > > +/*
-> > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > + *
-> > > + * Copyright (c) 2021 YADRO
-> > > + *
-> > > + * Authors:
-> > > + *   Nikita Shubin <nshubin@yadro.com>
-> > > + *
-> > > + * derivate: lib/utils/gpio/gpio.c
-> > > + * Authors:
-> > > + *   Anup Patel <anup.patel@wdc.com>
-> > > + */
-> > > +
-> > > +#include <sbi/sbi_error.h>
-> > > +#include <sbi_utils/i2c/i2c.h>
-> > > +
-> > > +static SBI_LIST_HEAD(i2c_adapters_list);
-> > > +
-> > > +struct i2c_adapter *i2c_adapter_find(int id)
-> > > +{
-> > > +       struct sbi_dlist *pos;
-> > > +
-> > > +       sbi_list_for_each(pos, &(i2c_adapters_list)) {
-> > > +               struct i2c_adapter *adap = to_i2c_adapter(pos);
-> > > +
-> > > +               if (adap->id == id)
-> > > +                       return adap;
-> > > +       }
-> > > +
-> > > +       return NULL;
-> > > +}
-> > > +
-> > > +int i2c_adapter_add(struct i2c_adapter *ia)
-> > > +{
-> > > +       if (!ia)
-> > > +               return SBI_EINVAL;
-> > > +
-> > > +       if (i2c_adapter_find(ia->id))
-> > > +               return SBI_EALREADY;
-> > > +
-> > > +       sbi_list_add(&(ia->node), &(i2c_adapters_list));
-> > > +
-> > > +       return 0;
-> > > +}
-> > > +
-> > > +void i2c_adapter_remove(struct i2c_adapter *ia)
-> > > +{
-> > > +       if (!ia)
-> > > +               return;
-> > > +
-> > > +       sbi_list_del(&(ia->node));
-> > > +}
-> > > +
-> > > +int i2c_adapter_configure(struct i2c_adapter *ia)
-> > > +{
-> > > +       if (!ia)
-> > > +               return SBI_EINVAL;
-> > > +       if (!ia->configure)
-> > > +               return 0;
-> > > +
-> > > +       return ia->configure(ia);
-> > > +}
-> > > +
-> > > +int i2c_adapter_smbus_write(struct i2c_adapter *ia, uint8_t addr,
-> > > +                       uint8_t reg, uint8_t *buffer, int len)
-> > > +{
-> > > +       if (!ia)
-> > > +               return SBI_EINVAL;
-> > > +       if (!ia->smbus_write)
-> > > +               return SBI_ENOSYS;
-> > > +
-> > > +       return ia->smbus_write(ia, addr, reg, buffer, len);
-> > > +}
-> > > +
-> > > +
-> > > +int i2c_adapter_smbus_read(struct i2c_adapter *ia, uint8_t addr,
-> > > +                    uint8_t reg, uint8_t *buffer, int len)
-> > > +{
-> > > +       if (!ia)
-> > > +               return SBI_EINVAL;
-> > > +       if (!ia->smbus_read)
-> > > +               return SBI_ENOSYS;
-> > > +
-> > > +       return ia->smbus_read(ia, addr, reg, buffer, len);
-> > > +}
-> >
-> > Again, I don't find those helpers really useful, IMO the adapter
-> > should be hidden from the device, see my previous review. But you can
-> > convince me we don't need it, I'm open to hearing what you think :)
->
-> let's move this to 0 patch disucssion.
->
+> > Thanks,
 > >
 > > Alex
 > >
 > >
-> > > diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-> > > new file mode 100644
-> > > index 0000000..16a70da
-> > > --- /dev/null
-> > > +++ b/lib/utils/i2c/objects.mk
-> > > @@ -0,0 +1,10 @@
-> > > +#
-> > > +# SPDX-License-Identifier: BSD-2-Clause
-> > > +#
-> > > +# Copyright (c) 2021 YADRO
-> > > +#
-> > > +# Authors:
-> > > +#   Nikita Shubin <nshubin@yadro.com>
-> > > +#
 > > > +
-> > > +libsbiutils-objs-y += i2c/i2c.o
-> > > --
+> > > +struct fdt_reset fdt_reset_da9063 = {
+> > > +       .match_table = da9063_reset_match,
+> > > +       .init = da9063_reset_init,
+> > > +};
+> > > diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+> > > index 6c95db3..cfe4c09 100644
+> > > --- a/lib/utils/reset/objects.mk
+> > > +++ b/lib/utils/reset/objects.mk
+> > > @@ -14,3 +14,4 @@ libsbiutils-objs-y +=
+> > > reset/fdt_reset_sifive_test.o libsbiutils-objs-y +=
+> > > reset/fdt_reset_sunxi_wdt.o libsbiutils-objs-y +=
+> > > reset/fdt_reset_thead.o libsbiutils-objs-y +=
+> > > reset/fdt_reset_thead_asm.o +libsbiutils-objs-y +=
+> > > reset/fdt_reset_da9063.o --
 > > > 2.31.1
 > > >
 > > >
