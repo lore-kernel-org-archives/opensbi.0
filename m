@@ -1,112 +1,166 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed, 20 Oct 2021 11:36:03 +0200
-Subject: [PATCH 1/1] dt-bindings: T-HEAD CLINT
-Message-ID: <20211020093603.28653-1-heinrich.schuchardt@canonical.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed, 20 Oct 2021 15:14:06 +0530
+Subject: [PATCH v6] Makefile: Add build time and compiler info string
+Message-ID: <20211020094406.1393760-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The CLINT in the T-HEAD 9xx CPUs is similar to the SiFive CLINT but does
-not support 64bit mmio access to the MTIMER device.
+From: Wei Fu <wefu@redhat.com>
 
-OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to indicate the
-restriction and the "sifive,cling0" compatible string. An OpenSBI
-patch suggested to use "reg-io-width = <4>;" as the reg-io-width property
-is generally used in the devicetree schema for such a condition.
+When we are doing opensbi development, we want to know the build time
+and compiler info for debug purpose.
 
-As the design is not SiFive based it is preferable to apply a compatible
-string identifying T-HEAD instead.
+To enable this message, please add "BUILD_INFO=y", like:
 
-Add a new yaml file describing the T-HEAD CLINT.
+```
+make BUILD_INFO=y
+```
 
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will
+violate "reproducible builds". So it's ONLY for development and debug
+purpose, and should NOT be used in a product which follows "reproducible
+builds".
+
+Signed-off-by: Wei Fu <wefu@redhat.com>
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
 ---
-@Palmer, @Anup
-I copied you as maintainers from sifive,clint.yaml. Please, indicate if
-this should be changed.
-
-For the prior discussion see:
-https://lore.kernel.org/all/20211015100941.17621-1-heinrich.schuchardt at canonical.com/
-https://lore.kernel.org/all/20211015120735.27972-1-heinrich.schuchardt at canonical.com/
-
-A release candidate of the ACLINT specification is available at
-https://github.com/riscv/riscv-aclint/releases
+Changes since v5:
+ - BUILD_DATE_EPOCH is non-standard name so rename it back to
+   SOURCE_DATE_EPOCH
+ - Updated README.md and commit description to clearly state when
+   BUILD_INFO=y violates reprodcible builds
+Changes since v4:
+ - Updated build date format to +%Y-%m-%d %H:%M:%S %z
+ - Rename SOURCE_DATE_EPOCH to BUILD_DATE_EPOCH
 ---
- .../bindings/timer/thead,clint.yaml           | 62 +++++++++++++++++++
- 1 file changed, 62 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/timer/thead,clint.yaml
+ Makefile           | 31 +++++++++++++++++++++++++++++++
+ README.md          | 24 ++++++++++++++++++++++++
+ lib/sbi/sbi_init.c |  8 ++++++++
+ 3 files changed, 63 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/timer/thead,clint.yaml b/Documentation/devicetree/bindings/timer/thead,clint.yaml
-new file mode 100644
-index 000000000000..02463fb2043a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/timer/thead,clint.yaml
-@@ -0,0 +1,62 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/timer/thead,clint.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/Makefile b/Makefile
+index 16d9dca..8623c1c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -150,6 +150,25 @@ endif
+ # Check whether the linker supports creating PIEs
+ OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+ 
++# Build Info:
++# OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
++# OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
++BUILD_INFO ?= n
++ifeq ($(BUILD_INFO),y)
++OPENSBI_BUILD_DATE_FMT = +%Y-%m-%d %H:%M:%S %z
++ifdef SOURCE_DATE_EPOCH
++	OPENSBI_BUILD_TIME_STAMP ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" \
++		"$(OPENSBI_BUILD_DATE_FMT)" 2>/dev/null || \
++		date -u -r "$(SOURCE_DATE_EPOCH)" \
++		"$(OPENSBI_BUILD_DATE_FMT)" 2>/dev/null || \
++		date -u "$(OPENSBI_BUILD_DATE_FMT)")
++else
++	OPENSBI_BUILD_TIME_STAMP ?= $(shell date "$(OPENSBI_BUILD_DATE_FMT)")
++endif
++OPENSBI_BUILD_COMPILER_VERSION=$(shell $(CC) -v 2>&1 | grep ' version ' | \
++	sed 's/[[:space:]]*$$//')
++endif
 +
-+title: SiFive Core Local Interruptor
+ # Setup list of objects.mk files
+ ifdef PLATFORM
+ platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
+@@ -247,6 +266,10 @@ GENFLAGS	+=	-I$(include_dir)
+ ifneq ($(OPENSBI_VERSION_GIT),)
+ GENFLAGS	+=	-DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
+ endif
++ifeq ($(BUILD_INFO),y)
++GENFLAGS	+=	-DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
++GENFLAGS	+=	-DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
++endif
+ GENFLAGS	+=	$(libsbiutils-genflags-y)
+ GENFLAGS	+=	$(platform-genflags-y)
+ GENFLAGS	+=	$(firmware-genflags-y)
+@@ -398,6 +421,11 @@ $(build_dir)/%.dep: $(src_dir)/%.c
+ $(build_dir)/%.o: $(src_dir)/%.c
+ 	$(call compile_cc,$@,$<)
+ 
++ifeq ($(BUILD_INFO),y)
++$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
++	$(call compile_cc,$@,$<)
++endif
 +
-+maintainers:
-+  - Palmer Dabbelt <palmer@dabbelt.com>
-+  - Anup Patel <anup.patel@wdc.com>
+ $(build_dir)/%.dep: $(src_dir)/%.S
+ 	$(call compile_as_dep,$@,$<)
+ 
+@@ -551,3 +579,6 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
+ 	$(if $(V), @echo " RM        $(install_root_dir_default)")
+ 	$(CMD_PREFIX)rm -rf $(install_root_dir_default)
+ endif
 +
-+description:
-+  T-HEAD (and other RISC-V) SOCs include an implementation of the T-HEAD
-+  Core Local Interruptor (CLINT) for M-mode timer and M-mode inter-processor
-+  interrupts. It directly connects to the timer and inter-processor interrupt
-+  lines of various HARTs (or CPUs) so RISC-V per-HART (or per-CPU) local
-+  interrupt controller is the parent interrupt controller for CLINT device.
-+  The clock frequency of the CLINT is specified via "timebase-frequency" DT
-+  property of "/cpus" DT node. The "timebase-frequency" DT property is
-+  described in Documentation/devicetree/bindings/riscv/cpus.yaml
++.PHONY: FORCE
++FORCE:
+diff --git a/README.md b/README.md
+index 9fdf097..54fabe4 100644
+--- a/README.md
++++ b/README.md
+@@ -254,6 +254,29 @@ to produce broken binaries with missing relocations; it is therefore currently
+ recommended that this combination be avoided or *FW_PIC=n* be used to disable
+ building OpenSBI as a position-independent binary.
+ 
++Building with timestamp and compiler info
++-----------------------------------------
 +
-+properties:
-+  compatible:
-+    items:
-+      - const:
-+          - allwinner,sun20i-d1-clint
-+      - const:
-+          - thead,clint0
++When doing development, we may want to know the build time and compiler info
++for debug purpose. OpenSBI can also be built with timestamp and compiler info.
++To build with those info and print it out@boot time, we can just simply add
++`BUILD_INFO=y`, like:
++```
++make BUILD_INFO=y
++```
 +
-+    description:
-+      Should be "<vendor>,<chip>-clint" and "thead,clint<version>" for
-+      the T-HEAD derived CLINTs.
-+      Supported compatible strings are -
-+      "allwinner,sun20i-d1-clint" for the CLINT in the Allwinner D1 SoC
-+      and "thead,clint0" for the T-HEAD IP block with no chip
-+      integration tweaks.
++But if you have used `BUILD_INFO=y`, and want to switch back to `BUILD_INFO=n`,
++you must do
++```
++make clean
++```
++before the next build.
 +
-+  reg:
-+    maxItems: 1
++NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will violate
++[reproducible builds]. This definition is ONLY for development and debug
++purpose, and should NOT be used in a product which follows "reproducible
++builds".
 +
-+  interrupts-extended:
-+    minItems: 1
+ Contributing to OpenSBI
+ -----------------------
+ 
+@@ -336,3 +359,4 @@ make I=<install_directory> install_docs
+ [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+ [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+ [third party notices]: ThirdPartyNotices.md
++[reproducible builds]: https://reproducible-builds.org
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 843659e..b1c7cf0 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -48,6 +48,14 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+ 		   OPENSBI_VERSION_MINOR);
+ #endif
+ 
++#ifdef OPENSBI_BUILD_TIME_STAMP
++	sbi_printf("Build time: %s\n", OPENSBI_BUILD_TIME_STAMP);
++#endif
 +
-+additionalProperties: false
++#ifdef OPENSBI_BUILD_COMPILER_VERSION
++	sbi_printf("Build compiler: %s\n", OPENSBI_BUILD_COMPILER_VERSION);
++#endif
 +
-+required:
-+  - compatible
-+  - reg
-+  - interrupts-extended
-+
-+examples:
-+  - |
-+    timer at 2000000 {
-+      compatible = "allwinner,sun20i-d1-clint", "thead,clint0";
-+      interrupts-extended = <&cpu1intc 3 &cpu1intc 7
-+                             &cpu2intc 3 &cpu2intc 7
-+                             &cpu3intc 3 &cpu3intc 7
-+                             &cpu4intc 3 &cpu4intc 7>;
-+       reg = <0x2000000 0x10000>;
-+    };
-+...
+ 	sbi_printf(BANNER);
+ }
+ 
 -- 
-2.32.0
+2.25.1
 
 
