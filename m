@@ -1,154 +1,169 @@
-From: Samuel Holland <samuel@sholland.org>
-Date: Tue, 19 Oct 2021 20:58:38 -0500
-Subject: [RFC PATCH 2/2] lib: utils/timer: Add a separate compatible for the
- D1 CLINT
-In-Reply-To: <20211020015838.45399-1-samuel@sholland.org>
+From: Guo Ren <guoren@kernel.org>
+Date: Wed, 20 Oct 2021 11:10:41 +0800
+Subject: [RFC PATCH 2/2] lib: utils/timer: Add a separate compatible for
+ the D1 CLINT
+In-Reply-To: <20211020015838.45399-3-samuel@sholland.org>
 References: <20211020015838.45399-1-samuel@sholland.org>
-Message-ID: <20211020015838.45399-3-samuel@sholland.org>
+ <20211020015838.45399-3-samuel@sholland.org>
+Message-ID: <CAJF2gTQQAkaroGW4xG--Srzn_Jk1Ou+g5=hYqr_ickk+6LZHSA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
-MMIO access. A property was added to support this quirk (and that
-property was copied to the ACLINT MTIMER code). However, since this
-difference in behavior makes the D1 CLINT incompatible with the SiFive
-CLINT's programming interface, a better solution is to use a separate
-compatible string.
+On Wed, Oct 20, 2021 at 9:58 AM Samuel Holland <samuel@sholland.org> wrote:
+>
+> The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
+> MMIO access. A property was added to support this quirk (and that
+> property was copied to the ACLINT MTIMER code). However, since this
+> difference in behavior makes the D1 CLINT incompatible with the SiFive
+> CLINT's programming interface, a better solution is to use a separate
+> compatible string.
+>
+> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> ---
+>  docs/platform/thead-c9xx.md        |  4 +--
+>  lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
+>  lib/utils/timer/fdt_timer_mtimer.c | 39 +++++++++++++++++++-----------
+>  3 files changed, 27 insertions(+), 17 deletions(-)
+>
+> diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
+> index 3490ed5..ced784d 100644
+> --- a/docs/platform/thead-c9xx.md
+> +++ b/docs/platform/thead-c9xx.md
+> @@ -52,12 +52,11 @@ DTS Example1: (Single core, eg: Allwinner D1 - c906)
+>                 ranges;
+>
+>                 clint0: clint at 14000000 {
+> -                       compatible = "riscv,clint0";
+> +                       compatible = "allwinner,sun20i-d1-clint";
+>                         interrupts-extended = <
+>                                 &cpu0_intc  3 &cpu0_intc  7
+>                                 >;
+>                         reg = <0x0 0x14000000 0x0 0x04000000>;
+> -                       clint,has-no-64bit-mmio;
+>                 };
+>
+>                 intc: interrupt-controller at 10000000 {
+> @@ -163,7 +162,6 @@ DTS Example2: (Multi cores with soc reset-regs)
+>                                 &cpu4_intc  3 &cpu4_intc  7
+>                                 >;
+>                         reg = <0xff 0xdc000000 0x0 0x04000000>;
+> -                       clint,has-no-64bit-mmio;
+Could we still keep clint,has-no-64bit-mmio for compatible? It has
+been widely used in our customers' dts.
 
-Signed-off-by: Samuel Holland <samuel@sholland.org>
----
- docs/platform/thead-c9xx.md        |  4 +--
- lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
- lib/utils/timer/fdt_timer_mtimer.c | 39 +++++++++++++++++++-----------
- 3 files changed, 27 insertions(+), 17 deletions(-)
+>                 };
+>
+>                 intc: interrupt-controller at ffd8000000 {
+> diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+> index 0176941..af69e16 100644
+> --- a/lib/utils/ipi/fdt_ipi_mswi.c
+> +++ b/lib/utils/ipi/fdt_ipi_mswi.c
+> @@ -54,6 +54,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
+>  static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
+>
+>  static const struct fdt_match ipi_mswi_match[] = {
+> +       { .compatible = "allwinner,sun20i-d1-clint", .data = &clint_offset },
+>         { .compatible = "riscv,clint0", .data = &clint_offset },
+>         { .compatible = "sifive,clint0", .data = &clint_offset },
+>         { .compatible = "riscv,aclint-mswi" },
+> diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+> index 1ad8508..e140567 100644
+> --- a/lib/utils/timer/fdt_timer_mtimer.c
+> +++ b/lib/utils/timer/fdt_timer_mtimer.c
+> @@ -15,6 +15,11 @@
+>
+>  #define MTIMER_MAX_NR                  16
+>
+> +struct timer_mtimer_quirks {
+> +       unsigned int    mtime_offset;
+> +       bool            has_64bit_mmio;
+> +};
+> +
+>  static unsigned long mtimer_count = 0;
+>  static struct aclint_mtimer_data mtimer[MTIMER_MAX_NR];
+>  static struct aclint_mtimer_data *mt_reference = NULL;
+> @@ -23,7 +28,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>                                   const struct fdt_match *match)
+>  {
+>         int i, rc;
+> -       unsigned long offset, addr[2], size[2];
+> +       unsigned long addr[2], size[2];
+>         struct aclint_mtimer_data *mt;
+>
+>         if (MTIMER_MAX_NR <= mtimer_count)
+> @@ -43,28 +48,25 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>                 return rc;
+>
+>         if (match->data) { /* SiFive CLINT */
+> +               const struct timer_mtimer_quirks *quirks = match->data;
+> +
+>                 /* Set CLINT addresses */
+>                 mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
+>                 mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
+>                 mt->mtime_addr = addr[0] + ACLINT_DEFAULT_MTIME_OFFSET;
+>                 mt->mtime_size = size[0] - mt->mtimecmp_size;
+>                 /* Adjust MTIMER address and size for CLINT device */
+> -               offset = *((unsigned long *)match->data);
+> -               mt->mtime_addr += offset;
+> -               mt->mtimecmp_addr += offset;
+> -               mt->mtime_size -= offset;
+> -               /* Parse additional CLINT properties */
+> -               if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
+> -                       mt->has_64bit_mmio = false;
+> +               mt->mtime_addr += quirks->mtime_offset;
+> +               mt->mtimecmp_addr += quirks->mtime_offset;
+> +               mt->mtime_size -= quirks->mtime_offset;
+> +               /* Apply additional CLINT quirks */
+> +               mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>         } else { /* RISC-V ACLINT MTIMER */
+>                 /* Set ACLINT MTIMER addresses */
+>                 mt->mtime_addr = addr[0];
+>                 mt->mtime_size = size[0];
+>                 mt->mtimecmp_addr = addr[1];
+>                 mt->mtimecmp_size = size[1];
+> -               /* Parse additional ACLINT MTIMER properties */
+> -               if (fdt_getprop(fdt, nodeoff, "mtimer,no-64bit-mmio", &rc))
+> -                       mt->has_64bit_mmio = false;
+Dito.
 
-diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
-index 3490ed5..ced784d 100644
---- a/docs/platform/thead-c9xx.md
-+++ b/docs/platform/thead-c9xx.md
-@@ -52,12 +52,11 @@ DTS Example1: (Single core, eg: Allwinner D1 - c906)
- 		ranges;
- 
- 		clint0: clint at 14000000 {
--			compatible = "riscv,clint0";
-+			compatible = "allwinner,sun20i-d1-clint";
- 			interrupts-extended = <
- 				&cpu0_intc  3 &cpu0_intc  7
- 				>;
- 			reg = <0x0 0x14000000 0x0 0x04000000>;
--			clint,has-no-64bit-mmio;
- 		};
- 
- 		intc: interrupt-controller at 10000000 {
-@@ -163,7 +162,6 @@ DTS Example2: (Multi cores with soc reset-regs)
- 				&cpu4_intc  3 &cpu4_intc  7
- 				>;
- 			reg = <0xff 0xdc000000 0x0 0x04000000>;
--			clint,has-no-64bit-mmio;
- 		};
- 
- 		intc: interrupt-controller at ffd8000000 {
-diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
-index 0176941..af69e16 100644
---- a/lib/utils/ipi/fdt_ipi_mswi.c
-+++ b/lib/utils/ipi/fdt_ipi_mswi.c
-@@ -54,6 +54,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
- static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
- 
- static const struct fdt_match ipi_mswi_match[] = {
-+	{ .compatible = "allwinner,sun20i-d1-clint", .data = &clint_offset },
- 	{ .compatible = "riscv,clint0", .data = &clint_offset },
- 	{ .compatible = "sifive,clint0", .data = &clint_offset },
- 	{ .compatible = "riscv,aclint-mswi" },
-diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-index 1ad8508..e140567 100644
---- a/lib/utils/timer/fdt_timer_mtimer.c
-+++ b/lib/utils/timer/fdt_timer_mtimer.c
-@@ -15,6 +15,11 @@
- 
- #define MTIMER_MAX_NR			16
- 
-+struct timer_mtimer_quirks {
-+	unsigned int	mtime_offset;
-+	bool		has_64bit_mmio;
-+};
-+
- static unsigned long mtimer_count = 0;
- static struct aclint_mtimer_data mtimer[MTIMER_MAX_NR];
- static struct aclint_mtimer_data *mt_reference = NULL;
-@@ -23,7 +28,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 				  const struct fdt_match *match)
- {
- 	int i, rc;
--	unsigned long offset, addr[2], size[2];
-+	unsigned long addr[2], size[2];
- 	struct aclint_mtimer_data *mt;
- 
- 	if (MTIMER_MAX_NR <= mtimer_count)
-@@ -43,28 +48,25 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 		return rc;
- 
- 	if (match->data) { /* SiFive CLINT */
-+		const struct timer_mtimer_quirks *quirks = match->data;
-+
- 		/* Set CLINT addresses */
- 		mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
- 		mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
- 		mt->mtime_addr = addr[0] + ACLINT_DEFAULT_MTIME_OFFSET;
- 		mt->mtime_size = size[0] - mt->mtimecmp_size;
- 		/* Adjust MTIMER address and size for CLINT device */
--		offset = *((unsigned long *)match->data);
--		mt->mtime_addr += offset;
--		mt->mtimecmp_addr += offset;
--		mt->mtime_size -= offset;
--		/* Parse additional CLINT properties */
--		if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
--			mt->has_64bit_mmio = false;
-+		mt->mtime_addr += quirks->mtime_offset;
-+		mt->mtimecmp_addr += quirks->mtime_offset;
-+		mt->mtime_size -= quirks->mtime_offset;
-+		/* Apply additional CLINT quirks */
-+		mt->has_64bit_mmio = quirks->has_64bit_mmio;
- 	} else { /* RISC-V ACLINT MTIMER */
- 		/* Set ACLINT MTIMER addresses */
- 		mt->mtime_addr = addr[0];
- 		mt->mtime_size = size[0];
- 		mt->mtimecmp_addr = addr[1];
- 		mt->mtimecmp_size = size[1];
--		/* Parse additional ACLINT MTIMER properties */
--		if (fdt_getprop(fdt, nodeoff, "mtimer,no-64bit-mmio", &rc))
--			mt->has_64bit_mmio = false;
- 	}
- 
- 	/* Check if MTIMER device has shared MTIME address */
-@@ -107,11 +109,20 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 	return 0;
- }
- 
--static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
-+static const struct timer_mtimer_quirks d1_clint_quirks = {
-+	.mtime_offset	= CLINT_MTIMER_OFFSET,
-+	.has_64bit_mmio	= false,
-+};
-+
-+static const struct timer_mtimer_quirks sifive_clint_quirks = {
-+	.mtime_offset	= CLINT_MTIMER_OFFSET,
-+	.has_64bit_mmio	= true,
-+};
- 
- static const struct fdt_match timer_mtimer_match[] = {
--	{ .compatible = "riscv,clint0", .data = &clint_offset },
--	{ .compatible = "sifive,clint0", .data = &clint_offset },
-+	{ .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
-+	{ .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
-+	{ .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
- 	{ .compatible = "riscv,aclint-mtimer" },
- 	{ },
- };
+>         }
+>
+>         /* Check if MTIMER device has shared MTIME address */
+> @@ -107,11 +109,20 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>         return 0;
+>  }
+>
+> -static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
+> +static const struct timer_mtimer_quirks d1_clint_quirks = {
+> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
+> +       .has_64bit_mmio = false,
+> +};
+> +
+> +static const struct timer_mtimer_quirks sifive_clint_quirks = {
+> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
+> +       .has_64bit_mmio = true,
+> +};
+>
+>  static const struct fdt_match timer_mtimer_match[] = {
+> -       { .compatible = "riscv,clint0", .data = &clint_offset },
+> -       { .compatible = "sifive,clint0", .data = &clint_offset },
+> +       { .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
+> +       { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+> +       { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+>         { .compatible = "riscv,aclint-mtimer" },
+>         { },
+>  };
+> --
+> 2.32.0
+>
+
+
 -- 
-2.32.0
+Best Regards
+ Guo Ren
 
+ML: https://lore.kernel.org/linux-csky/
 
