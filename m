@@ -1,103 +1,247 @@
-From: Alexandre Ghiti <alexandre.ghiti@canonical.com>
-Date: Wed, 20 Oct 2021 10:33:26 +0200
-Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
-In-Reply-To: <20211020100016.350f1379@redslave.neermore.group>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Wed, 20 Oct 2021 11:42:46 +0300
+Subject: [PATCH v2 0/5] I2C framework, reboot Unmatched via PMIC
+In-Reply-To: <CA+zEjCvUMDf=tY5WgD-C45tmiU+kLRh=0ySimdEu82V6jB0ubA@mail.gmail.com>
 References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <20211015131925.22585-6-nikita.shubin@maquefel.me>
- <CA+zEjCvAaecMmN-HDUVw7Sqb89tRtC-3vFQQYb1xSboCJnkRww@mail.gmail.com>
- <20211020100016.350f1379@redslave.neermore.group>
-Message-ID: <CA+zEjCsszR-AW8Cbm=Pu2qLE85QfrtrFk-D-TO=8F9T3EDxA9Q@mail.gmail.com>
+ <CA+zEjCvAEjfZaQ4P21=y_yLP15pFVm+znGUGrPMPxH7TCGq-RA@mail.gmail.com>
+ <20211020102609.683006bc@redslave.neermore.group>
+ <CA+zEjCvUMDf=tY5WgD-C45tmiU+kLRh=0ySimdEu82V6jB0ubA@mail.gmail.com>
+Message-ID: <20211020114246.1c73571d@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 20, 2021 at 9:00 AM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
->
-> Hello Alexandre!
->
-> On Tue, 19 Oct 2021 14:39:16 +0200
-> Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
->
-> > > +
-> > > +static const struct fdt_match da9063_reset_match[] = {
-> > > +       { .compatible = "da9063-reset", .data = (void *)TRUE },
-> > > +       { },
-> > > +};
-> >
-> > Agree with Jessica here, as per Adam, the reset as we implement it
-> > here should remain a board specific thing, so we should not rely on
-> > this device tree node. I was hoping to make something that would work
-> > in general for da9063 users, but no luck.
-> >
-> > And finally I think we should listen to Adam and go for a full reset
-> > using the RTC, instead of the partial reset we implemented here. We
-> > sacrifice the RTC but anyway, it was not even exposed in the device
-> > tree, we should add a comment there so that people don't get surprised
-> > if they enable it. I will post the right sequence adapted to your
-> > sources soon.
->
-> Well the RTC is much more valuable than reset actually and used for
-> many tests.
->
-> Indeed da9063 reset can be moved totally to "platform" code, but do you
-> think that leaving users with hard-coded reset cutting them off from RTC
-> and no other possibility, other than fixing OpenSBI code in-place is
-> really a good option ?
->
-> With DTS approuch it can be as simple as removing the da9063-reset from
-> DTS file.
->
-
-Arf, I change my mind every two days regarding this...I'm just trying
-to have a reliable reset, and to quote Adam below, the reset as
-implemented here is only partial:
-
-"With the sequence you provided this is only a partial reset whereby all of the
-output rails are sequenced down then up again and restored to OTP voltages.
-However the remainder of the chip settings aren't reset as this isn't a true
-reset of the device going through full reload from OTP, so for example settings
-of regulator mode GPIO states, or IRQ mask bits would persist on the restart,
-which could have implications on system operation."
-
-I imagine the partial reset could have side-effects on the RTC
-configuration too. So we might end up with a partial reset and a
-broken RTC...
-
-and again from Adam:
-
-"Personally, if it was possible I think the RTC approach would be best as it's a
-full reset and to me is far safer with regards to potential side effects"
-
+On Wed, 20 Oct 2021 10:11:56 +0200
+Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
 
 > >
-> > Thanks,
-> >
-> > Alex
-> >
-> >
-> > > +
-> > > +struct fdt_reset fdt_reset_da9063 = {
-> > > +       .match_table = da9063_reset_match,
-> > > +       .init = da9063_reset_init,
-> > > +};
-> > > diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-> > > index 6c95db3..cfe4c09 100644
-> > > --- a/lib/utils/reset/objects.mk
-> > > +++ b/lib/utils/reset/objects.mk
-> > > @@ -14,3 +14,4 @@ libsbiutils-objs-y +=
-> > > reset/fdt_reset_sifive_test.o libsbiutils-objs-y +=
-> > > reset/fdt_reset_sunxi_wdt.o libsbiutils-objs-y +=
-> > > reset/fdt_reset_thead.o libsbiutils-objs-y +=
-> > > reset/fdt_reset_thead_asm.o +libsbiutils-objs-y +=
-> > > reset/fdt_reset_da9063.o --
-> > > 2.31.1
+> > It part of driver responsibility to enable clocks it requires,
+> > cause if not is required nobody will enable them.  
+> 
+> I understand that but why couldn't this configuration be done in the
+> adapter driver instead of the da9063 driver? At the initialization of
+> the adapter driver, or at each beginning of a write sequence...etc.
+> 
+
+I think we should stick to "don't touch until you really need", that's
+why we shouldn't do it in driver init, we can enable clocks on unused
+bus which will lead to more power consumption, and other's won't be
+aware that it needs to be gated off (and even so it's need to gated on
+once again).
+
+Also it's really good to disable interrupts when you don't need them.
+
+Doing it every read/write seems quite wrong to me, that's why i decided
+to add a separate method for such tasks.
+
+> >  
+> > >  
+> > > >  
+> > > > > Establishing the link between the i2c device and its adapter
+> > > > > should somehow be implicitly done by the i2c library, IMO the
+> > > > > device should not care about its controller.  
+> > > >
+> > > > And how do you think it will look like ? In out case it's not a
+> > > > separate driver/client entity but all togather for simplicity.  
 > > >
+> > > In  fdt_i2c_adapter_get, instead of passing a pointer to a struct
+> > > i2c_adapter, we could pass a i2c_device structure which would get
+> > > filled automatically with its adapter chip. But that implies
+> > > introducing this i2c_device like I mentioned in the previous
+> > > review :) In addition, I took a look at the gpio library and they
+> > > did it this way too.
 > > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
->
+> > > Again, I don't see why the driver developer should care about its
+> > > adapter since everything could be done behind the scenes for him.
+> > >  
+> >
+> > Are you suggesting to separate the da9063_reset into client/driver
+> > parts ? Don't you think that it will add unnecessary complicity if
+> > our case ?  
+> 
+> To make sure we understand each other, find below a diff of what it
+> would look like the way I imagine it. It just makes the notion of
+> adapter disappear from the i2c device driver, that's all. This is what
+> is done in openSBI with gpio_pin structure, in Linux here
+> https://www.kernel.org/doc/html/latest/i2c/writing-clients.html#smbus-communication.
+> 
+> diff --git a/include/sbi_utils/i2c/i2c.h b/include/sbi_utils/i2c/i2c.h
+> index 76cdb66..0f1671e 100644
+> --- a/include/sbi_utils/i2c/i2c.h
+> +++ b/include/sbi_utils/i2c/i2c.h
+> @@ -50,6 +50,10 @@ struct i2c_adapter {
+>         struct sbi_dlist node;
+>  };
+> 
+> +struct i2c_device {
+> +       struct i2c_adapter *adap;
+> +};
+> +
+>  static inline struct i2c_adapter *to_i2c_adapter(struct sbi_dlist
+> *node) {
+>         return container_of(node, struct i2c_adapter, node);
+> diff --git a/lib/utils/i2c/i2c.c b/lib/utils/i2c/i2c.c
+> index d23ac91..9c64d09 100644
+> --- a/lib/utils/i2c/i2c.c
+> +++ b/lib/utils/i2c/i2c.c
+> @@ -61,25 +61,25 @@ int i2c_adapter_configure(struct i2c_adapter *ia)
+>         return ia->configure(ia);
+>  }
+> 
+> -int i2c_adapter_smbus_write(struct i2c_adapter *ia, uint8_t addr,
+> +int i2c_smbus_write(struct i2c_device *dev, uint8_t addr,
+>                         uint8_t reg, uint8_t *buffer, int len)
+>  {
+> -       if (!ia)
+> +       if (!dev)
+>                 return SBI_EINVAL;
+> -       if (!ia->smbus_write)
+> +       if (!dev->adap || !dev->adap->smbus_write)
+>                 return SBI_ENOSYS;
+> 
+> -       return ia->smbus_write(ia, addr, reg, buffer, len);
+> +       return dev->adap->smbus_write(dev, addr, reg, buffer, len);
+>  }
+> 
+> 
+> -int i2c_adapter_smbus_read(struct i2c_adapter *ia, uint8_t addr,
+> +int i2c_smbus_read(struct i2c_device *dev, uint8_t addr,
+>                      uint8_t reg, uint8_t *buffer, int len)
+>  {
+> -       if (!ia)
+> +       if (!dev)
+>                 return SBI_EINVAL;
+> -       if (!ia->smbus_read)
+> +       if (!dev->adap || !dev->adap->smbus_read)
+>                 return SBI_ENOSYS;
+> 
+> -       return ia->smbus_read(ia, addr, reg, buffer, len);
+> +       return dev->adap->smbus_read(dev, addr, reg, buffer, len);
+>  }
+> diff --git a/lib/utils/reset/fdt_reset_da9063.c
+> b/lib/utils/reset/fdt_reset_da9063.c
+> index e3c9ced..a14d941 100644
+> --- a/lib/utils/reset/fdt_reset_da9063.c
+> +++ b/lib/utils/reset/fdt_reset_da9063.c
+> @@ -45,7 +45,7 @@
+>  #define PMIC_CHIP_ID_DA9063            0x61
+> 
+>  static struct {
+> -       struct i2c_adapter *adapter;
+> +       struct i2c_device *dev;
+>         uint32_t reg;
+>         u8 priority;
+>  } da9063 = {
+> @@ -103,20 +103,20 @@ static inline int da9063_shutdown(struct
+> i2c_adapter *adap, uint32_t reg)
+>                                 DA9063_REG_CONTROL_F,
+> DA9063_CONTROL_F_SHUTDOWN);
+>  }
+> 
+> -static inline int da9063_reset(struct i2c_adapter *adap, uint32_t
+> reg) +static inline int da9063_reset(struct i2c_device *dev, uint32_t
+> reg) {
+> -       int rc = i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +       int rc = i2c_smbus_reg_write(dev, da9063.reg,
+>                                         DA9063_REG_PAGE_CON, 0x00);
+> 
+>         if (rc)
+>                 return rc;
+> 
+> -       rc = i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +       rc = i2c_smbus_reg_write(dev, da9063.reg,
+>                               DA9063_REG_CONTROL_F,
+> DA9063_CONTROL_F_WAKEUP); if (rc)
+>                 return rc;
+> 
+> -       return i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +       return i2c_smbus_reg_write(dev, da9063.reg,
+>                                 DA9063_REG_CONTROL_A,
+>                                 DA9063_CONTROL_A_M_POWER1_EN |
+>                                 DA9063_CONTROL_A_M_POWER_EN |
+> @@ -169,7 +169,6 @@ static int da9063_reset_init(void *fdt, int
+> nodeoff, {
+>         int rc, i2c_dev, i2c_bus, len;
+>         const fdt32_t *val;
+> -       struct i2c_adapter *adapter;
+>         uint64_t addr;
+> 
+>         /* find dlg,da9063 parent node */
+> @@ -192,12 +191,10 @@ static int da9063_reset_init(void *fdt, int
+> nodeoff, return i2c_bus;
+> 
+>         /* i2c adapter get */
+> -       rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
+> +       rc = fdt_i2c_adapter_get(fdt, i2c_bus, &da9063.dev);
+>         if (rc)
+>                 return rc;
+> 
+> -       da9063.adapter = adapter;
+> -
+>         sbi_system_reset_add_device(&da9063_reset_i2c);
+> 
+>         return 0;
+> 
+
+So you indeed suggesting to add one level of abstraction.
+
+I don't see any strong benefit from this.
+
+Who will take care of device creation/initialisation in this case - the
+adapter ?
+
+> 
+> >
+> > Linux i2c_client has a reference to the adapter it's sitting on:
+> > https://elixir.bootlin.com/linux/v5.15-rc6/source/include/linux/i2c.h#L336
+> >
+> > u-boot is relying on some "default" i2c adapter/bus ideed, but if we
+> > look on:
+> >
+> > https://elixir.bootlin.com/u-boot/latest/source/include/i2c.h#L718
+> >
+> > We see it's rather complex and hard to understand.
+> >
+> >
+> >  
+> > >  
+> > > >
+> > > > Nikita Shubin (5):
+> > > >   lib: utils/reset: add priority to gpio reset
+> > > >   lib: utils/i2c: Add generic I2C configuration library
+> > > >   lib: utils/i2c: Add simple FDT based I2C framework
+> > > >   lib: utils/i2c: Add minimal SiFive I2C driver
+> > > >   lib: utils/reset: Add generic da9063 reset driver
+> > > >
+> > > >  include/sbi_utils/i2c/fdt_i2c.h    |  26 +++
+> > > >  include/sbi_utils/i2c/i2c.h        |  99 +++++++++++
+> > > >  lib/utils/i2c/fdt_i2c.c            | 111 ++++++++++++
+> > > >  lib/utils/i2c/fdt_i2c_sifive.c     | 271
+> > > > +++++++++++++++++++++++++++++ lib/utils/i2c/i2c.c
+> > > >  | 85 +++++++++ lib/utils/i2c/objects.mk           |  12 ++
+> > > >  lib/utils/reset/fdt_reset.c        |   2 +
+> > > >  lib/utils/reset/fdt_reset_da9063.c | 214
+> > > > +++++++++++++++++++++++ lib/utils/reset/fdt_reset_gpio.c   |
+> > > > 18 +- lib/utils/reset/objects.mk         |   1 +
+> > > >  10 files changed, 836 insertions(+), 3 deletions(-)
+> > > >  create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
+> > > >  create mode 100644 include/sbi_utils/i2c/i2c.h
+> > > >  create mode 100644 lib/utils/i2c/fdt_i2c.c
+> > > >  create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
+> > > >  create mode 100644 lib/utils/i2c/i2c.c
+> > > >  create mode 100644 lib/utils/i2c/objects.mk
+> > > >  create mode 100644 lib/utils/reset/fdt_reset_da9063.c
+> > > >
+> > > > --
+> > > > 2.31.1
+> > > >
+> > > >
+> > > > --
+> > > > opensbi mailing list
+> > > > opensbi at lists.infradead.org
+> > > > http://lists.infradead.org/mailman/listinfo/opensbi  
+> >  
+
 
