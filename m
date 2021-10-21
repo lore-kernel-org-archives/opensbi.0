@@ -1,125 +1,195 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Thu, 21 Oct 2021 11:20:19 +0530
-Subject: [PATCH] lib: utils/reset: Register separate GPIO system reset devices
-Message-ID: <20211021055019.1450208-1-anup.patel@wdc.com>
+From: Fu Wei <tekkamanninja@gmail.com>
+Date: Thu, 21 Oct 2021 15:40:41 +0800
+Subject: [PATCH v6] Makefile: Add build time and compiler info string
+In-Reply-To: <CAAhSdy2NwMuaORJBB1YMNXe2+joUvw7K69XRu8fGgCywFcYiFA@mail.gmail.com>
+References: <20211020094406.1393760-1-anup.patel@wdc.com>
+ <CAAhSdy2NwMuaORJBB1YMNXe2+joUvw7K69XRu8fGgCywFcYiFA@mail.gmail.com>
+Message-ID: <CA+HMz3iQECkP0tji64QT5DQ+6Pw-3iv5mLuMCHO53tGhWJiynQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Now that sbi_system support multiple system reset devices, we should
-register separate devices for GPIO restart and GPIO poweroff because
-DT describes these as separate devices with different compatible
-strings.
+Hi Anup,
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- lib/utils/reset/fdt_reset_gpio.c | 60 ++++++++++++++++++++++----------
- 1 file changed, 41 insertions(+), 19 deletions(-)
+Great thanks for all your help!
 
-diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-index 4da1450..302035b 100644
---- a/lib/utils/reset/fdt_reset_gpio.c
-+++ b/lib/utils/reset/fdt_reset_gpio.c
-@@ -35,20 +35,20 @@ static struct gpio_reset restart = {
- 	.inactive_delay = 100
- };
- 
--static struct gpio_reset *gpio_get_reset_settings(u32 type)
-+static struct gpio_reset *gpio_reset_get(bool is_restart, u32 type)
- {
--	struct gpio_reset *reset;
-+	struct gpio_reset *reset = NULL;
- 
- 	switch (type) {
- 	case SBI_SRST_RESET_TYPE_SHUTDOWN:
--		reset = &poweroff;
-+		if (!is_restart)
-+			reset = &poweroff;
- 		break;
- 	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
- 	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
--		reset = &restart;
-+		if (is_restart)
-+			reset = &restart;
- 		break;
--	default:
--		reset = NULL;
- 	}
- 
- 	if (reset && !reset->pin.chip)
-@@ -57,15 +57,8 @@ static struct gpio_reset *gpio_get_reset_settings(u32 type)
- 	return reset;
- }
- 
--static int gpio_system_reset_check(u32 type, u32 reason)
-+static void gpio_reset_exec(struct gpio_reset *reset)
- {
--	return !!gpio_get_reset_settings(type);
--}
--
--static void gpio_system_reset(u32 type, u32 reason)
--{
--	struct gpio_reset *reset = gpio_get_reset_settings(type);
--
- 	if (reset) {
- 		/* drive it active, also inactive->active edge */
- 		gpio_direction_output(&reset->pin, 1);
-@@ -82,10 +75,36 @@ static void gpio_system_reset(u32 type, u32 reason)
- 	sbi_hart_hang();
- }
- 
--static struct sbi_system_reset_device gpio_reset = {
--	.name = "gpio-reset",
--	.system_reset_check = gpio_system_reset_check,
--	.system_reset = gpio_system_reset
-+static int gpio_system_poweroff_check(u32 type, u32 reason)
-+{
-+	return !!gpio_reset_get(FALSE, type);
-+}
-+
-+static void gpio_system_poweroff(u32 type, u32 reason)
-+{
-+	gpio_reset_exec(gpio_reset_get(FALSE, type));
-+}
-+
-+static struct sbi_system_reset_device gpio_poweroff = {
-+	.name = "gpio-poweroff",
-+	.system_reset_check = gpio_system_poweroff_check,
-+	.system_reset = gpio_system_poweroff
-+};
-+
-+static int gpio_system_restart_check(u32 type, u32 reason)
-+{
-+	return !!gpio_reset_get(TRUE, type);
-+}
-+
-+static void gpio_system_restart(u32 type, u32 reason)
-+{
-+	gpio_reset_exec(gpio_reset_get(TRUE, type));
-+}
-+
-+static struct sbi_system_reset_device gpio_restart = {
-+	.name = "gpio-restart",
-+	.system_reset_check = gpio_system_restart_check,
-+	.system_reset = gpio_system_restart
- };
- 
- static int gpio_reset_init(void *fdt, int nodeoff,
-@@ -115,7 +134,10 @@ static int gpio_reset_init(void *fdt, int nodeoff,
- 	if (len > 0)
- 		reset->inactive_delay = fdt32_to_cpu(*val);
- 
--	sbi_system_reset_add_device(&gpio_reset);
-+	if (is_restart)
-+		sbi_system_reset_add_device(&gpio_restart);
-+	else
-+		sbi_system_reset_add_device(&gpio_poweroff);
- 
- 	return 0;
- }
--- 
-2.25.1
+I was busy on some RISCV koji project, and was distracted for some
+days. I do apologize.
 
+Great thanks for all your great efforts to post two more version for it !
+
+Great thanks ! :-)
+
+Anup Patel <anup@brainfault.org> ?2021?10?21??? ??12:07???
+>
+> On Wed, Oct 20, 2021 at 3:14 PM Anup Patel <anup.patel@wdc.com> wrote:
+> >
+> > From: Wei Fu <wefu@redhat.com>
+> >
+> > When we are doing opensbi development, we want to know the build time
+> > and compiler info for debug purpose.
+> >
+> > To enable this message, please add "BUILD_INFO=y", like:
+> >
+> > ```
+> > make BUILD_INFO=y
+> > ```
+> >
+> > NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will
+> > violate "reproducible builds". So it's ONLY for development and debug
+> > purpose, and should NOT be used in a product which follows "reproducible
+> > builds".
+> >
+> > Signed-off-by: Wei Fu <wefu@redhat.com>
+> > Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> > Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+>
+> Applied this patch to the riscv/opensbi repo
+>
+> Regards,
+> Anup
+>
+> > ---
+> > Changes since v5:
+> >  - BUILD_DATE_EPOCH is non-standard name so rename it back to
+> >    SOURCE_DATE_EPOCH
+> >  - Updated README.md and commit description to clearly state when
+> >    BUILD_INFO=y violates reprodcible builds
+> > Changes since v4:
+> >  - Updated build date format to +%Y-%m-%d %H:%M:%S %z
+> >  - Rename SOURCE_DATE_EPOCH to BUILD_DATE_EPOCH
+> > ---
+> >  Makefile           | 31 +++++++++++++++++++++++++++++++
+> >  README.md          | 24 ++++++++++++++++++++++++
+> >  lib/sbi/sbi_init.c |  8 ++++++++
+> >  3 files changed, 63 insertions(+)
+> >
+> > diff --git a/Makefile b/Makefile
+> > index 16d9dca..8623c1c 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -150,6 +150,25 @@ endif
+> >  # Check whether the linker supports creating PIEs
+> >  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+> >
+> > +# Build Info:
+> > +# OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+> > +# OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+> > +BUILD_INFO ?= n
+> > +ifeq ($(BUILD_INFO),y)
+> > +OPENSBI_BUILD_DATE_FMT = +%Y-%m-%d %H:%M:%S %z
+> > +ifdef SOURCE_DATE_EPOCH
+> > +       OPENSBI_BUILD_TIME_STAMP ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" \
+> > +               "$(OPENSBI_BUILD_DATE_FMT)" 2>/dev/null || \
+> > +               date -u -r "$(SOURCE_DATE_EPOCH)" \
+> > +               "$(OPENSBI_BUILD_DATE_FMT)" 2>/dev/null || \
+> > +               date -u "$(OPENSBI_BUILD_DATE_FMT)")
+> > +else
+> > +       OPENSBI_BUILD_TIME_STAMP ?= $(shell date "$(OPENSBI_BUILD_DATE_FMT)")
+> > +endif
+> > +OPENSBI_BUILD_COMPILER_VERSION=$(shell $(CC) -v 2>&1 | grep ' version ' | \
+> > +       sed 's/[[:space:]]*$$//')
+> > +endif
+> > +
+> >  # Setup list of objects.mk files
+> >  ifdef PLATFORM
+> >  platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
+> > @@ -247,6 +266,10 @@ GENFLAGS   +=      -I$(include_dir)
+> >  ifneq ($(OPENSBI_VERSION_GIT),)
+> >  GENFLAGS       +=      -DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
+> >  endif
+> > +ifeq ($(BUILD_INFO),y)
+> > +GENFLAGS       +=      -DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
+> > +GENFLAGS       +=      -DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
+> > +endif
+> >  GENFLAGS       +=      $(libsbiutils-genflags-y)
+> >  GENFLAGS       +=      $(platform-genflags-y)
+> >  GENFLAGS       +=      $(firmware-genflags-y)
+> > @@ -398,6 +421,11 @@ $(build_dir)/%.dep: $(src_dir)/%.c
+> >  $(build_dir)/%.o: $(src_dir)/%.c
+> >         $(call compile_cc,$@,$<)
+> >
+> > +ifeq ($(BUILD_INFO),y)
+> > +$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
+> > +       $(call compile_cc,$@,$<)
+> > +endif
+> > +
+> >  $(build_dir)/%.dep: $(src_dir)/%.S
+> >         $(call compile_as_dep,$@,$<)
+> >
+> > @@ -551,3 +579,6 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
+> >         $(if $(V), @echo " RM        $(install_root_dir_default)")
+> >         $(CMD_PREFIX)rm -rf $(install_root_dir_default)
+> >  endif
+> > +
+> > +.PHONY: FORCE
+> > +FORCE:
+> > diff --git a/README.md b/README.md
+> > index 9fdf097..54fabe4 100644
+> > --- a/README.md
+> > +++ b/README.md
+> > @@ -254,6 +254,29 @@ to produce broken binaries with missing relocations; it is therefore currently
+> >  recommended that this combination be avoided or *FW_PIC=n* be used to disable
+> >  building OpenSBI as a position-independent binary.
+> >
+> > +Building with timestamp and compiler info
+> > +-----------------------------------------
+> > +
+> > +When doing development, we may want to know the build time and compiler info
+> > +for debug purpose. OpenSBI can also be built with timestamp and compiler info.
+> > +To build with those info and print it out at boot time, we can just simply add
+> > +`BUILD_INFO=y`, like:
+> > +```
+> > +make BUILD_INFO=y
+> > +```
+> > +
+> > +But if you have used `BUILD_INFO=y`, and want to switch back to `BUILD_INFO=n`,
+> > +you must do
+> > +```
+> > +make clean
+> > +```
+> > +before the next build.
+> > +
+> > +NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will violate
+> > +[reproducible builds]. This definition is ONLY for development and debug
+> > +purpose, and should NOT be used in a product which follows "reproducible
+> > +builds".
+> > +
+> >  Contributing to OpenSBI
+> >  -----------------------
+> >
+> > @@ -336,3 +359,4 @@ make I=<install_directory> install_docs
+> >  [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+> >  [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+> >  [third party notices]: ThirdPartyNotices.md
+> > +[reproducible builds]: https://reproducible-builds.org
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> > index 843659e..b1c7cf0 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -48,6 +48,14 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+> >                    OPENSBI_VERSION_MINOR);
+> >  #endif
+> >
+> > +#ifdef OPENSBI_BUILD_TIME_STAMP
+> > +       sbi_printf("Build time: %s\n", OPENSBI_BUILD_TIME_STAMP);
+> > +#endif
+> > +
+> > +#ifdef OPENSBI_BUILD_COMPILER_VERSION
+> > +       sbi_printf("Build compiler: %s\n", OPENSBI_BUILD_COMPILER_VERSION);
+> > +#endif
+> > +
+> >         sbi_printf(BANNER);
+> >  }
+> >
+> > --
+> > 2.25.1
+> >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
