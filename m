@@ -1,76 +1,176 @@
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 20 Oct 2021 08:50:23 -0500
-Subject: [PATCH 1/1] dt-bindings: T-HEAD CLINT
-In-Reply-To: <20211020093603.28653-1-heinrich.schuchardt@canonical.com>
-References: <20211020093603.28653-1-heinrich.schuchardt@canonical.com>
-Message-ID: <1634737823.662456.2259916.nullmailer@robh.at.kernel.org>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 21 Oct 2021 09:36:05 +0530
+Subject: [PATCH v6] Makefile: Add build time and compiler info string
+In-Reply-To: <20211020094406.1393760-1-anup.patel@wdc.com>
+References: <20211020094406.1393760-1-anup.patel@wdc.com>
+Message-ID: <CAAhSdy2NwMuaORJBB1YMNXe2+joUvw7K69XRu8fGgCywFcYiFA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 20 Oct 2021 11:36:03 +0200, Heinrich Schuchardt wrote:
-> The CLINT in the T-HEAD 9xx CPUs is similar to the SiFive CLINT but does
-> not support 64bit mmio access to the MTIMER device.
-> 
-> OpenSBI currently uses a property 'clint,has-no-64bit-mmio' to indicate the
-> restriction and the "sifive,cling0" compatible string. An OpenSBI
-> patch suggested to use "reg-io-width = <4>;" as the reg-io-width property
-> is generally used in the devicetree schema for such a condition.
-> 
-> As the design is not SiFive based it is preferable to apply a compatible
-> string identifying T-HEAD instead.
-> 
-> Add a new yaml file describing the T-HEAD CLINT.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+On Wed, Oct 20, 2021 at 3:14 PM Anup Patel <anup.patel@wdc.com> wrote:
+>
+> From: Wei Fu <wefu@redhat.com>
+>
+> When we are doing opensbi development, we want to know the build time
+> and compiler info for debug purpose.
+>
+> To enable this message, please add "BUILD_INFO=y", like:
+>
+> ```
+> make BUILD_INFO=y
+> ```
+>
+> NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will
+> violate "reproducible builds". So it's ONLY for development and debug
+> purpose, and should NOT be used in a product which follows "reproducible
+> builds".
+>
+> Signed-off-by: Wei Fu <wefu@redhat.com>
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> Reviewed-by: Alistair Francis <alistair.francis@wdc.com>
+
+Applied this patch to the riscv/opensbi repo
+
+Regards,
+Anup
+
 > ---
-> @Palmer, @Anup
-> I copied you as maintainers from sifive,clint.yaml. Please, indicate if
-> this should be changed.
-> 
-> For the prior discussion see:
-> https://lore.kernel.org/all/20211015100941.17621-1-heinrich.schuchardt at canonical.com/
-> https://lore.kernel.org/all/20211015120735.27972-1-heinrich.schuchardt at canonical.com/
-> 
-> A release candidate of the ACLINT specification is available at
-> https://github.com/riscv/riscv-aclint/releases
+> Changes since v5:
+>  - BUILD_DATE_EPOCH is non-standard name so rename it back to
+>    SOURCE_DATE_EPOCH
+>  - Updated README.md and commit description to clearly state when
+>    BUILD_INFO=y violates reprodcible builds
+> Changes since v4:
+>  - Updated build date format to +%Y-%m-%d %H:%M:%S %z
+>  - Rename SOURCE_DATE_EPOCH to BUILD_DATE_EPOCH
 > ---
->  .../bindings/timer/thead,clint.yaml           | 62 +++++++++++++++++++
->  1 file changed, 62 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/timer/thead,clint.yaml
-> 
-
-My bot found errors running 'make DT_CHECKER_FLAGS=-m dt_binding_check'
-on your patch (DT_CHECKER_FLAGS is new in v5.13):
-
-yamllint warnings/errors:
-
-dtschema/dtc warnings/errors:
-/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/timer/thead,clint.yaml: properties:compatible:items: 'oneOf' conditional failed, one must be fixed:
-	[{'const': ['allwinner,sun20i-d1-clint']}, {'const': ['thead,clint0']}] is not of type 'object'
-	['allwinner,sun20i-d1-clint'] is not of type 'string'
-	['thead,clint0'] is not of type 'string'
-	from schema $id: http://devicetree.org/meta-schemas/string-array.yaml#
-/builds/robherring/linux-dt-review/Documentation/devicetree/bindings/timer/thead,clint.yaml: ignoring, error in schema: properties: compatible: items
-warning: no schema found in file: ./Documentation/devicetree/bindings/timer/thead,clint.yaml
-Documentation/devicetree/bindings/timer/thead,clint.example.dt.yaml:0:0: /example-0/timer at 2000000: failed to match any schema with compatible: ['allwinner,sun20i-d1-clint', 'thead,clint0']
-Documentation/devicetree/bindings/timer/thead,clint.example.dt.yaml:0:0: /example-0/timer at 2000000: failed to match any schema with compatible: ['allwinner,sun20i-d1-clint', 'thead,clint0']
-
-doc reference errors (make refcheckdocs):
-
-See https://patchwork.ozlabs.org/patch/1543771
-
-This check can fail if there are any dependencies. The base for a patch
-series is generally the most recent rc1.
-
-If you already ran 'make dt_binding_check' and didn't see the above
-error(s), then make sure 'yamllint' is installed and dt-schema is up to
-date:
-
-pip3 install dtschema --upgrade
-
-Please check and re-submit.
-
+>  Makefile           | 31 +++++++++++++++++++++++++++++++
+>  README.md          | 24 ++++++++++++++++++++++++
+>  lib/sbi/sbi_init.c |  8 ++++++++
+>  3 files changed, 63 insertions(+)
+>
+> diff --git a/Makefile b/Makefile
+> index 16d9dca..8623c1c 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -150,6 +150,25 @@ endif
+>  # Check whether the linker supports creating PIEs
+>  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+>
+> +# Build Info:
+> +# OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+> +# OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+> +BUILD_INFO ?= n
+> +ifeq ($(BUILD_INFO),y)
+> +OPENSBI_BUILD_DATE_FMT = +%Y-%m-%d %H:%M:%S %z
+> +ifdef SOURCE_DATE_EPOCH
+> +       OPENSBI_BUILD_TIME_STAMP ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" \
+> +               "$(OPENSBI_BUILD_DATE_FMT)" 2>/dev/null || \
+> +               date -u -r "$(SOURCE_DATE_EPOCH)" \
+> +               "$(OPENSBI_BUILD_DATE_FMT)" 2>/dev/null || \
+> +               date -u "$(OPENSBI_BUILD_DATE_FMT)")
+> +else
+> +       OPENSBI_BUILD_TIME_STAMP ?= $(shell date "$(OPENSBI_BUILD_DATE_FMT)")
+> +endif
+> +OPENSBI_BUILD_COMPILER_VERSION=$(shell $(CC) -v 2>&1 | grep ' version ' | \
+> +       sed 's/[[:space:]]*$$//')
+> +endif
+> +
+>  # Setup list of objects.mk files
+>  ifdef PLATFORM
+>  platform-object-mks=$(shell if [ -d $(platform_src_dir)/ ]; then find $(platform_src_dir) -iname "objects.mk" | sort -r; fi)
+> @@ -247,6 +266,10 @@ GENFLAGS   +=      -I$(include_dir)
+>  ifneq ($(OPENSBI_VERSION_GIT),)
+>  GENFLAGS       +=      -DOPENSBI_VERSION_GIT="\"$(OPENSBI_VERSION_GIT)\""
+>  endif
+> +ifeq ($(BUILD_INFO),y)
+> +GENFLAGS       +=      -DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
+> +GENFLAGS       +=      -DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
+> +endif
+>  GENFLAGS       +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
+> @@ -398,6 +421,11 @@ $(build_dir)/%.dep: $(src_dir)/%.c
+>  $(build_dir)/%.o: $(src_dir)/%.c
+>         $(call compile_cc,$@,$<)
+>
+> +ifeq ($(BUILD_INFO),y)
+> +$(build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
+> +       $(call compile_cc,$@,$<)
+> +endif
+> +
+>  $(build_dir)/%.dep: $(src_dir)/%.S
+>         $(call compile_as_dep,$@,$<)
+>
+> @@ -551,3 +579,6 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
+>         $(if $(V), @echo " RM        $(install_root_dir_default)")
+>         $(CMD_PREFIX)rm -rf $(install_root_dir_default)
+>  endif
+> +
+> +.PHONY: FORCE
+> +FORCE:
+> diff --git a/README.md b/README.md
+> index 9fdf097..54fabe4 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -254,6 +254,29 @@ to produce broken binaries with missing relocations; it is therefore currently
+>  recommended that this combination be avoided or *FW_PIC=n* be used to disable
+>  building OpenSBI as a position-independent binary.
+>
+> +Building with timestamp and compiler info
+> +-----------------------------------------
+> +
+> +When doing development, we may want to know the build time and compiler info
+> +for debug purpose. OpenSBI can also be built with timestamp and compiler info.
+> +To build with those info and print it out at boot time, we can just simply add
+> +`BUILD_INFO=y`, like:
+> +```
+> +make BUILD_INFO=y
+> +```
+> +
+> +But if you have used `BUILD_INFO=y`, and want to switch back to `BUILD_INFO=n`,
+> +you must do
+> +```
+> +make clean
+> +```
+> +before the next build.
+> +
+> +NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will violate
+> +[reproducible builds]. This definition is ONLY for development and debug
+> +purpose, and should NOT be used in a product which follows "reproducible
+> +builds".
+> +
+>  Contributing to OpenSBI
+>  -----------------------
+>
+> @@ -336,3 +359,4 @@ make I=<install_directory> install_docs
+>  [Doxygen manual]: http://www.doxygen.nl/manual/index.html
+>  [Kendryte standalone SDK]: https://github.com/kendryte/kendryte-standalone-sdk
+>  [third party notices]: ThirdPartyNotices.md
+> +[reproducible builds]: https://reproducible-builds.org
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 843659e..b1c7cf0 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -48,6 +48,14 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+>                    OPENSBI_VERSION_MINOR);
+>  #endif
+>
+> +#ifdef OPENSBI_BUILD_TIME_STAMP
+> +       sbi_printf("Build time: %s\n", OPENSBI_BUILD_TIME_STAMP);
+> +#endif
+> +
+> +#ifdef OPENSBI_BUILD_COMPILER_VERSION
+> +       sbi_printf("Build compiler: %s\n", OPENSBI_BUILD_COMPILER_VERSION);
+> +#endif
+> +
+>         sbi_printf(BANNER);
+>  }
+>
+> --
+> 2.25.1
+>
 
