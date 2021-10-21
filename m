@@ -1,170 +1,143 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 21 Oct 2021 10:10:08 +0530
-Subject: [PATCH v2] lib: utils/irqchip: Automatically delegate T-HEAD PLIC
- access
-In-Reply-To: <20211018053350.39184-1-samuel@sholland.org>
-References: <20211018053350.39184-1-samuel@sholland.org>
-Message-ID: <CAAhSdy0y4LXy0NCZMo+r7_YWJRp5D+1C3eNt9huk7S8UGzFF6Q@mail.gmail.com>
+From: Alexandre Ghiti <alexandre.ghiti@canonical.com>
+Date: Thu, 21 Oct 2021 06:40:54 +0200
+Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
+In-Reply-To: <20211020120046.066ac625@redslave.neermore.group>
+References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
+ <20211015131925.22585-6-nikita.shubin@maquefel.me>
+ <CA+zEjCvAaecMmN-HDUVw7Sqb89tRtC-3vFQQYb1xSboCJnkRww@mail.gmail.com>
+ <20211020100016.350f1379@redslave.neermore.group>
+ <CA+zEjCsszR-AW8Cbm=Pu2qLE85QfrtrFk-D-TO=8F9T3EDxA9Q@mail.gmail.com>
+ <20211020120046.066ac625@redslave.neermore.group>
+Message-ID: <CA+zEjCveNdzJX50MgSewCpO5dfKF_8vSYQj-_VH3cSUxOa+i=Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 18, 2021 at 11:04 AM Samuel Holland <samuel@sholland.org> wrote:
+On Wed, Oct 20, 2021 at 11:00 AM Nikita Shubin
+<nikita.shubin@maquefel.me> wrote:
 >
-> The T-HEAD PLIC implementation requires setting a delegation bit
-> to allow access from S-mode. Now that the T-HEAD PLIC has its own
-> compatible string, set this bit automatically from the PLIC driver,
-> instead of reaching into the PLIC's MMIO space from another driver.
+> On Wed, 20 Oct 2021 10:33:26 +0200
+> Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
 >
-> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> > On Wed, Oct 20, 2021 at 9:00 AM Nikita Shubin
+> > <nikita.shubin@maquefel.me> wrote:
+> > >
+> > > Hello Alexandre!
+> > >
+> > > On Tue, 19 Oct 2021 14:39:16 +0200
+> > > Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
+> > >
+> > > > > +
+> > > > > +static const struct fdt_match da9063_reset_match[] = {
+> > > > > +       { .compatible = "da9063-reset", .data = (void *)TRUE },
+> > > > > +       { },
+> > > > > +};
+> > > >
+> > > > Agree with Jessica here, as per Adam, the reset as we implement it
+> > > > here should remain a board specific thing, so we should not rely
+> > > > on this device tree node. I was hoping to make something that
+> > > > would work in general for da9063 users, but no luck.
+> > > >
+> > > > And finally I think we should listen to Adam and go for a full
+> > > > reset using the RTC, instead of the partial reset we implemented
+> > > > here. We sacrifice the RTC but anyway, it was not even exposed in
+> > > > the device tree, we should add a comment there so that people
+> > > > don't get surprised if they enable it. I will post the right
+> > > > sequence adapted to your sources soon.
+> > >
+> > > Well the RTC is much more valuable than reset actually and used for
+> > > many tests.
+> > >
+> > > Indeed da9063 reset can be moved totally to "platform" code, but do
+> > > you think that leaving users with hard-coded reset cutting them off
+> > > from RTC and no other possibility, other than fixing OpenSBI code
+> > > in-place is really a good option ?
+> > >
+> > > With DTS approuch it can be as simple as removing the da9063-reset
+> > > from DTS file.
+> > >
+> >
+> > Arf, I change my mind every two days regarding this...I'm just trying
+> > to have a reliable reset, and to quote Adam below, the reset as
+> > implemented here is only partial:
+> >
+> > "With the sequence you provided this is only a partial reset whereby
+> > all of the output rails are sequenced down then up again and restored
+> > to OTP voltages. However the remainder of the chip settings aren't
+> > reset as this isn't a true reset of the device going through full
+> > reload from OTP, so for example settings of regulator mode GPIO
+> > states, or IRQ mask bits would persist on the restart, which could
+> > have implications on system operation."
 >
-> ---
+> Actually i don't think battling over a board which isn't supposed to be
+> more than a development board and won't be massed used makes any sense.
 >
-> Changes in v2:
->  - Use the thead,c900-plic compatible instead of the D1 compatible.
->  - Also apply this change to other T-HEAD device tree examples.
->  - Remove the plic-delegate code from the thead,reset-sample driver.
->  - Drop the return value from thead_plic_plat_init().
+> It's more like QoL for those who are currently porting software or
+> experimenting with RISC-V.
+>
+> Before this we used openocd reset, which can be greatly automated with
+> expect.
+>
+> >
+> > I imagine the partial reset could have side-effects on the RTC
+> > configuration too. So we might end up with a partial reset and a
+> > broken RTC...
+> >
+>
+> Well we should really investigate this.
+>
+> As well as i don't quite understand this "sacrifice RTC" thing.
 
-Looks good to me.
+To use the RTC for the reset, the cleanest solution is to set a
+one-shot alarm which could have been already programmed by the user.
+There is also the periodic tick which may or not clobber
+user-specified registers and is way simpler to implement.
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Applied this patch to the riscv/opensbi repo.
+I gave you all the input I had from Dialog, the choice is up to you
+now, we spent enough time on this already.
 
 Thanks,
-Anup
+
+Alex
 
 >
-> The compatible string is added in the patch series here:
-> https://lore.kernel.org/linux-riscv/20211016032200.2869998-1-guoren at kernel.org/T/
-> ---
->  docs/platform/thead-c9xx.md          | 12 +++---------
->  lib/utils/irqchip/fdt_irqchip_plic.c | 15 +++++++++++++++
->  lib/utils/reset/fdt_reset_thead.c    |  8 --------
->  3 files changed, 18 insertions(+), 17 deletions(-)
+> > and again from Adam:
+> >
+> > "Personally, if it was possible I think the RTC approach would be
+> > best as it's a full reset and to me is far safer with regards to
+> > potential side effects"
+> >
+> >
+> > > >
+> > > > Thanks,
+> > > >
+> > > > Alex
+> > > >
+> > > >
+> > > > > +
+> > > > > +struct fdt_reset fdt_reset_da9063 = {
+> > > > > +       .match_table = da9063_reset_match,
+> > > > > +       .init = da9063_reset_init,
+> > > > > +};
+> > > > > diff --git a/lib/utils/reset/objects.mk
+> > > > > b/lib/utils/reset/objects.mk index 6c95db3..cfe4c09 100644
+> > > > > --- a/lib/utils/reset/objects.mk
+> > > > > +++ b/lib/utils/reset/objects.mk
+> > > > > @@ -14,3 +14,4 @@ libsbiutils-objs-y +=
+> > > > > reset/fdt_reset_sifive_test.o libsbiutils-objs-y +=
+> > > > > reset/fdt_reset_sunxi_wdt.o libsbiutils-objs-y +=
+> > > > > reset/fdt_reset_thead.o libsbiutils-objs-y +=
+> > > > > reset/fdt_reset_thead_asm.o +libsbiutils-objs-y +=
+> > > > > reset/fdt_reset_da9063.o --
+> > > > > 2.31.1
+> > > > >
+> > > > >
+> > > > > --
+> > > > > opensbi mailing list
+> > > > > opensbi at lists.infradead.org
+> > > > > http://lists.infradead.org/mailman/listinfo/opensbi
+> > >
 >
-> diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
-> index c0daeb7..3490ed5 100644
-> --- a/docs/platform/thead-c9xx.md
-> +++ b/docs/platform/thead-c9xx.md
-> @@ -51,11 +51,6 @@ DTS Example1: (Single core, eg: Allwinner D1 - c906)
->                 compatible = "simple-bus";
->                 ranges;
->
-> -               reset: reset-sample {
-> -                       compatible = "thead,reset-sample";
-> -                       plic-delegate = <0x0 0x101ffffc>;
-> -               };
-> -
->                 clint0: clint at 14000000 {
->                         compatible = "riscv,clint0";
->                         interrupts-extended = <
-> @@ -67,7 +62,8 @@ DTS Example1: (Single core, eg: Allwinner D1 - c906)
->
->                 intc: interrupt-controller at 10000000 {
->                         #interrupt-cells = <1>;
-> -                       compatible = "riscv,plic0";
-> +                       compatible = "allwinner,sun20i-d1-plic",
-> +                                    "thead,c900-plic";
->                         interrupt-controller;
->                         interrupts-extended = <
->                                 &cpu0_intc  0xffffffff &cpu0_intc  9
-> @@ -150,7 +146,6 @@ DTS Example2: (Multi cores with soc reset-regs)
->
->                 reset: reset-sample {
->                         compatible = "thead,reset-sample";
-> -                       plic-delegate = <0xff 0xd81ffffc>;
->                         entry-reg = <0xff 0xff019050>;
->                         entry-cnt = <4>;
->                         control-reg = <0xff 0xff015004>;
-> @@ -173,7 +168,7 @@ DTS Example2: (Multi cores with soc reset-regs)
->
->                 intc: interrupt-controller at ffd8000000 {
->                         #interrupt-cells = <1>;
-> -                       compatible = "riscv,plic0";
-> +                       compatible = "thead,c900-plic";
->                         interrupt-controller;
->                         interrupts-extended = <
->                                 &cpu0_intc  0xffffffff &cpu0_intc  9
-> @@ -194,7 +189,6 @@ DTS Example2: (Multi cores with old reset csrs)
->  ```
->         reset: reset-sample {
->                 compatible = "thead,reset-sample";
-> -               plic-delegate = <0xff 0xd81ffffc>;
->                 using-csr-reset;
->                 csr-copy = <0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc
->                             0x3b0 0x3b1 0x3b2 0x3b3
-> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-> index 18d2797..8d375be 100644
-> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
-> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-> @@ -9,6 +9,7 @@
->
->  #include <libfdt.h>
->  #include <sbi/riscv_asm.h>
-> +#include <sbi/riscv_io.h>
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> @@ -91,6 +92,11 @@ static int irqchip_plic_cold_init(void *fdt, int nodeoff,
->         if (rc)
->                 return rc;
->
-> +       if (match->data) {
-> +               void (*plic_plat_init)(struct plic_data *) = match->data;
-> +               plic_plat_init(pd);
-> +       }
-> +
->         rc = plic_cold_irqchip_init(pd);
->         if (rc)
->                 return rc;
-> @@ -106,9 +112,18 @@ static int irqchip_plic_cold_init(void *fdt, int nodeoff,
->         return irqchip_plic_update_hartid_table(fdt, nodeoff, pd);
->  }
->
-> +#define THEAD_PLIC_CTRL_REG 0x1ffffc
-> +
-> +static void thead_plic_plat_init(struct plic_data *pd)
-> +{
-> +       writel_relaxed(BIT(0), (void *)pd->addr + THEAD_PLIC_CTRL_REG);
-> +}
-> +
->  static const struct fdt_match irqchip_plic_match[] = {
->         { .compatible = "riscv,plic0" },
->         { .compatible = "sifive,plic-1.0.0" },
-> +       { .compatible = "thead,c900-plic",
-> +         .data = thead_plic_plat_init },
->         { },
->  };
->
-> diff --git a/lib/utils/reset/fdt_reset_thead.c b/lib/utils/reset/fdt_reset_thead.c
-> index 750b7aa..d491687 100644
-> --- a/lib/utils/reset/fdt_reset_thead.c
-> +++ b/lib/utils/reset/fdt_reset_thead.c
-> @@ -82,14 +82,6 @@ static int thead_reset_init(void *fdt, int nodeoff,
->                         clone_csrs(cnt);
->         }
->
-> -
-> -       /* Delegate plic enable regs for S-mode */
-> -       val = fdt_getprop(fdt, nodeoff, "plic-delegate", &len);
-> -       if (len > 0 && val) {
-> -               p = (void *)(ulong)fdt64_to_cpu(*val);
-> -               writel(BIT(0), p);
-> -       }
-> -
->         /* Old reset method for secondary harts */
->         if (fdt_getprop(fdt, nodeoff, "using-csr-reset", &len)) {
->                 csr_write(0x7c7, (ulong)&__thead_pre_start_warm);
-> --
-> 2.32.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
