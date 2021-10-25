@@ -1,63 +1,60 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Mon, 25 Oct 2021 12:44:47 -0700
-Subject: [PATCH v2 02/10] lib: sbi: Use csr_read/write_num for mhpmevent[h]
- csrs as well
+Date: Mon, 25 Oct 2021 12:44:49 -0700
+Subject: [PATCH v2 04/10] lib: sbi: Delegate PMU counter overflow interrupt to
+ S mode
 In-Reply-To: <20211025194455.232828-1-atish.patra@wdc.com>
 References: <20211025194455.232828-1-atish.patra@wdc.com>
-Message-ID: <20211025194455.232828-3-atish.patra@wdc.com>
+Message-ID: <20211025194455.232828-5-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sscof extension introduces mhpmeventh csrs to handle filtering
-/overflow bits in RV32. Add the support to read/write them.
+OpenSBI doesn't handle PMU counters for now. Delete the overflow counter to
+S-mode always.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/riscv_asm.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/sbi/riscv_encoding.h | 2 ++
+ lib/sbi/sbi_hart.c           | 3 +++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 4c24a5132195..ea6dd0837774 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -124,6 +124,11 @@ unsigned long csr_read_num(int csr_num)
- 	switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
- 	switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
- 	switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
-+	switchcase_csr_read(CSR_MCOUNTINHIBIT, ret)
-+	switchcase_csr_read(CSR_MHPMEVENT3, ret)
-+	switchcase_csr_read_4(CSR_MHPMEVENT4, ret)
-+	switchcase_csr_read_8(CSR_MHPMEVENT8, ret)
-+	switchcase_csr_read_16(CSR_MHPMEVENT16, ret)
- #if __riscv_xlen == 32
- 	switchcase_csr_read(CSR_MCYCLEH, ret)
- 	switchcase_csr_read(CSR_MINSTRETH, ret)
-@@ -131,6 +136,10 @@ unsigned long csr_read_num(int csr_num)
- 	switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
- 	switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
- 	switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
-+	switchcase_csr_read(CSR_MHPMEVENT3H, ret)
-+	switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
-+	switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
-+	switchcase_csr_read_16(CSR_MHPMEVENT16H, ret)
- #endif
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 14caa95d66de..ca6343537eba 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -86,6 +86,7 @@
+ #define IRQ_VS_EXT			10
+ #define IRQ_M_EXT			11
+ #define IRQ_S_GEXT			12
++#define IRQ_PMU_OVF			13
  
- 	default:
-@@ -189,6 +198,10 @@ void csr_write_num(int csr_num, unsigned long val)
- 	switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
- 	switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
- 	switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
-+	switchcase_csr_write(CSR_MHPMEVENT3H, val)
-+	switchcase_csr_write_4(CSR_MHPMEVENT4H, val)
-+	switchcase_csr_write_8(CSR_MHPMEVENT8H, val)
-+	switchcase_csr_write_16(CSR_MHPMEVENT16H, val)
- #endif
- 	switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
- 	switchcase_csr_write(CSR_MHPMEVENT3, val)
+ #define MIP_SSIP			(_UL(1) << IRQ_S_SOFT)
+ #define MIP_VSSIP			(_UL(1) << IRQ_VS_SOFT)
+@@ -97,6 +98,7 @@
+ #define MIP_VSEIP			(_UL(1) << IRQ_VS_EXT)
+ #define MIP_MEIP			(_UL(1) << IRQ_M_EXT)
+ #define MIP_SGEIP			(_UL(1) << IRQ_S_GEXT)
++#define MIP_LCOFIP			(_UL(1) << IRQ_PMU_OVF)
+ 
+ #define SIP_SSIP			MIP_SSIP
+ #define SIP_STIP			MIP_STIP
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 44b8dfd1b551..6076bea2470d 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -115,6 +115,9 @@ static int delegate_traps(struct sbi_scratch *scratch)
+ 
+ 	/* Send M-mode interrupts and most exceptions to S-mode */
+ 	interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF))
++		interrupts |= MIP_LCOFIP;
++
+ 	exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
+ 		     (1U << CAUSE_USER_ECALL);
+ 	if (sbi_platform_has_mfaults_delegation(plat))
 -- 
 2.31.1
 
