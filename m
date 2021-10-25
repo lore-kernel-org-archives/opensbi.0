@@ -1,88 +1,105 @@
-From: Dong Du <Dd_nirvana@sjtu.edu.cn>
-Date: Mon, 25 Oct 2021 16:06:15 +0800
-Subject: [PATCH] lib: sbi: Refine addr format in sbi_printf
-Message-ID: <20211025080615.4881-1-Dd_nirvana@sjtu.edu.cn>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 25 Oct 2021 13:48:57 +0530
+Subject: Release Plans
+In-Reply-To: <CAOnJCUJMdzbcyvoGZzexcZFMr2T-3E3YYDATRN3MP6OMmuAP=A@mail.gmail.com>
+References: <1D58DF3B-D1B1-470A-A4FF-A4AD099921A8@jrtc27.com>
+ <CAAhSdy0KtNaMvuX3KH5D0B86RRvXzNcqM-UaPDGDpgMvkotutg@mail.gmail.com>
+ <CAEUhbmXiXyAmedkUPRcSjzbF4fD2FTd=jNguDbgM20QdSjE_JQ@mail.gmail.com>
+ <8f2c510a-3eb8-e06e-a7b4-f2cc6a329396@ghiti.fr>
+ <CAOnJCUJMdzbcyvoGZzexcZFMr2T-3E3YYDATRN3MP6OMmuAP=A@mail.gmail.com>
+Message-ID: <CAAhSdy029UEKiEStEQHA0d8Q=PQr30qJf5N5pCS5bCuvZ=e8qg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Although we have PRILX to help us print unsigned long without
-considering the 32bit/64bit differences, there are still some
-places using 08lx and 016lx manually --- leading to redundant code.
+On Thu, Oct 14, 2021 at 3:05 AM Atish Patra <atishp@atishpatra.org> wrote:
+>
+> On Wed, Oct 13, 2021 at 5:41 AM Alexandre ghiti <alex@ghiti.fr> wrote:
+> >
+> > Hi Anup, Bin,
+> >
+> > On 10/13/21 9:48 AM, Bin Meng wrote:
+> > > Hi Anup,
+> > >
+> > > On Wed, Oct 13, 2021 at 2:03 PM Anup Patel <anup@brainfault.org> wrote:
+> > >> Hi Jessica,
+> > >>
+> > >> On Wed, Oct 13, 2021 at 12:56 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> > >>> Hi,
+> > >>> The latest OpenSBI release is 0.9 from January. With SBI 0.3(.1) on the
+> > >>> way and Unmatched support added since then, are there plans for a new
+> > >>> release any time soon? We?d like to have a newer version in the FreeBSD
+> > >>> ports tree so we can more easily provide updated firmware to Unmatched
+> > >>> users.
+> > >> Next release will be OpenSBI v1.0 (having SBI v0.3 implementation) and
+> > >> we can target this sometime in Nov 2021.
+> > > If possible can we release OpenSBI v1.0 before QEMU 6.2.0 soft freeze
+> > > (Nov 02) or hard freeze (Nov 09) so that it can be integrated into
+> > > QEMU 6.2.0.
+> > >
+> > >> We wanted to make SBI v0.3 fully stable for existing boards (particularly
+> > >> SiFive unmatched) before releasing OpenSBI hence the delay. We are
+> > >> almost there with few pending changes for SBI PMU and reset driver
+> > >> improvements.
+> > >>
+> > >> Post OpenSBI v1.0 release, we want to have more predictable release
+> > >> cycles (which we will document as well). I would like to have a release
+> > >> cycle which is realistic and agreed by most people over here.
+> > > Agree.
+> > >
+> > >> Thoughts or Suggestions ??
+> > > I suggest we align this with QEMU release cadence for easier
+> > > integration with QEMU. +Alistair Francis
+> >
+> >
+> > I think lots of bigger projects depend on openSBI (ex: QEMU 4-month,
+> > Ubuntu 6-month, Fedora 6-month) and to accommodate them all, taking a
+> > rather quick release cycle could be interesting: 2-3 months :)
+>
+> It all depends on how many features we add to OpenSBI in 2-3 months.
+> We definitely added
+> enough features to warrant a release. We are just waiting for SBI
+> specification to be called frozen
+> as per the oficial process[1] which was defined recently.
+>
+> [1] https://docs.google.com/document/d/1A4gZlXXFT_a9QGzlc9g2RHg853e6ZDB59coANEYN3Aw/edit
 
-This commit fixes the issue by using PRILX all the time.
+Based on experience till now, I am leaning towards a half-yearly release
+cycle. Past few years, we were releasing OpenSBI quite frequently but
+sometimes releases had below 50 commits.
 
-Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
----
- lib/sbi/sbi_domain.c | 18 +++---------------
- lib/sbi/sbi_hart.c   | 11 ++---------
- 2 files changed, 5 insertions(+), 24 deletions(-)
+I suggest that every year we release in June and December. Also,
+to do a release we should require at least 50 commits. In future, if
+commit rate increases then we will move to 3-releases per-year (i.e.
+every 4 months).
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 3096af0..33d7ad5 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -328,11 +328,7 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 		rend = (reg->order < __riscv_xlen) ?
- 			rstart + ((1UL << reg->order) - 1) : -1UL;
- 
--#if __riscv_xlen == 32
--		sbi_printf("Domain%d Region%02d    %s: 0x%08lx-0x%08lx ",
--#else
--		sbi_printf("Domain%d Region%02d    %s: 0x%016lx-0x%016lx ",
--#endif
-+		sbi_printf("Domain%d Region%02d    %s: 0x%" PRILX "-0x%" PRILX " ",
- 			   dom->index, i, suffix, rstart, rend);
- 
- 		k = 0;
-@@ -351,18 +347,10 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 		i++;
- 	}
- 
--#if __riscv_xlen == 32
--	sbi_printf("Domain%d Next Address%s: 0x%08lx\n",
--#else
--	sbi_printf("Domain%d Next Address%s: 0x%016lx\n",
--#endif
-+	sbi_printf("Domain%d Next Address%s: 0x%" PRILX "\n",
- 		   dom->index, suffix, dom->next_addr);
- 
--#if __riscv_xlen == 32
--	sbi_printf("Domain%d Next Arg1   %s: 0x%08lx\n",
--#else
--	sbi_printf("Domain%d Next Arg1   %s: 0x%016lx\n",
--#endif
-+	sbi_printf("Domain%d Next Arg1   %s: 0x%" PRILX "\n",
- 		   dom->index, suffix, dom->next_arg1);
- 
- 	sbi_printf("Domain%d Next Mode   %s: ", dom->index, suffix);
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 6254452..8eb0c38 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -150,17 +150,10 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
- 		/* No delegation possible as mideleg does not exist*/
- 		return;
- 
--#if __riscv_xlen == 32
--	sbi_printf("%sMIDELEG%s: 0x%08lx\n",
-+	sbi_printf("%sMIDELEG%s: 0x%" PRILX "\n",
- 		   prefix, suffix, csr_read(CSR_MIDELEG));
--	sbi_printf("%sMEDELEG%s: 0x%08lx\n",
-+	sbi_printf("%sMEDELEG%s: 0x%" PRILX "\n",
- 		   prefix, suffix, csr_read(CSR_MEDELEG));
--#else
--	sbi_printf("%sMIDELEG%s: 0x%016lx\n",
--		   prefix, suffix, csr_read(CSR_MIDELEG));
--	sbi_printf("%sMEDELEG%s: 0x%016lx\n",
--		   prefix, suffix, csr_read(CSR_MEDELEG));
--#endif
- }
- 
- unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
--- 
-2.31.1
+Does this sound okay ??
 
+Regards,
+Anup
+
+> >
+> > Alex
+> >
+> >
+> > >
+> > > Regards,
+> > > Bin
+> > >
+> > > Regards,
+> > > Bin
+> > >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>
+>
+> --
+> Regards,
+> Atish
 
