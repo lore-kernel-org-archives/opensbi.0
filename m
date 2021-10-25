@@ -1,76 +1,63 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Mon, 25 Oct 2021 12:44:48 -0700
-Subject: [PATCH v2 03/10] lib: sbi: Detect SSCOF extension at run time
+Date: Mon, 25 Oct 2021 12:44:53 -0700
+Subject: [PATCH v2 08/10] lib: sbi: Reset the mhpmevent value upon counter
+ reset
 In-Reply-To: <20211025194455.232828-1-atish.patra@wdc.com>
 References: <20211025194455.232828-1-atish.patra@wdc.com>
-Message-ID: <20211025194455.232828-4-atish.patra@wdc.com>
+Message-ID: <20211025194455.232828-9-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-SSCOF ISA extension introduces PMU counter overflow and filtering support.
-It introduces a read only `scountovf` csr that can be used to detect if
-a hart supports this extension at runtime. However, this feature is only
-useful if the hart already supports mcounteren and mcountinhibit.
-
-Add a dynamic detection mechanism and boot time print message if sscof
-is present.
+The hardware solely relies on the event selector value in mhpmevent
+to figure out what event to monitor using that counter. It should be
+reset when counter reset happens.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- include/sbi/sbi_hart.h |  4 +++-
- lib/sbi/sbi_hart.c     | 12 ++++++++++++
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_pmu.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 0c18ef9325b2..580a7989a4de 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -20,8 +20,10 @@ enum sbi_hart_features {
- 	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
- 	/** Hart has counter inhibit CSR */
- 	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
-+	/** Hart has sscofpmf extension */
-+	SBI_HART_HAS_SSCOF = (1 << 3),
- 	/** HART has timer csr implementation in hardware */
--	SBI_HART_HAS_TIME = (1 << 3),
-+	SBI_HART_HAS_TIME = (1 << 4),
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 9d97014eed88..2d1de1d58f3b 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -368,6 +368,20 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
+ 	return 0;
+ }
  
- 	/** Last index of Hart features*/
- 	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 6254452e11bb..44b8dfd1b551 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -288,6 +288,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
- 	case SBI_HART_HAS_MCOUNTINHIBIT:
- 		fstr = "mcountinhibit";
- 		break;
-+	case SBI_HART_HAS_SSCOF:
-+		fstr = "sscof";
-+		break;
- 	case SBI_HART_HAS_TIME:
- 		fstr = "time";
- 		break;
-@@ -497,6 +500,15 @@ __mhpm_skip:
- 			hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
++static int pmu_reset_hw_mhpmevent(int ctr_idx)
++{
++	if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
++		return SBI_EFAIL;
++#if __riscv_xlen == 32
++	csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, 0);
++	csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, 0);
++#else
++	csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, 0);
++#endif
++
++	return 0;
++}
++
+ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+ 		     unsigned long flag)
+ {
+@@ -391,8 +405,10 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+ 		else
+ 			ret = pmu_ctr_stop_hw(cbase);
+ 
+-		if (!ret && (flag & SBI_PMU_STOP_FLAG_RESET))
++		if (flag & SBI_PMU_STOP_FLAG_RESET) {
+ 			active_events[hartid][cbase] = SBI_PMU_EVENT_IDX_INVALID;
++			pmu_reset_hw_mhpmevent(cbase);
++		}
  	}
  
-+	/* Counter overflow/filtering is not useful without mcounter/inhibit */
-+	if (hfeatures->features & SBI_HART_HAS_MCOUNTINHIBIT &&
-+	    hfeatures->features & SBI_HART_HAS_MCOUNTEREN) {
-+		/* Detect if hart supports sscofpmf */
-+		csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
-+		if (!trap.cause)
-+			hfeatures->features |= SBI_HART_HAS_SSCOF;
-+	}
-+
- 	/* Detect if hart supports time CSR */
- 	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
- 	if (!trap.cause)
+ 	return ret;
 -- 
 2.31.1
 
