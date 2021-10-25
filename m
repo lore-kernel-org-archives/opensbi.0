@@ -1,133 +1,63 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Mon, 25 Oct 2021 12:44:51 -0700
-Subject: [PATCH v2 06/10] lib: sbi: Always enable access for all counters
+Date: Mon, 25 Oct 2021 12:44:47 -0700
+Subject: [PATCH v2 02/10] lib: sbi: Use csr_read/write_num for mhpmevent[h]
+ csrs as well
 In-Reply-To: <20211025194455.232828-1-atish.patra@wdc.com>
 References: <20211025194455.232828-1-atish.patra@wdc.com>
-Message-ID: <20211025194455.232828-7-atish.patra@wdc.com>
+Message-ID: <20211025194455.232828-3-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-OpenSBI doesn't use any counters for its own usage. Thus, all the counters
-can be made accessible for lower privilege mode always. However, the
-mcountinhibit must be set so that the counter don't increment.
-As a result, we don't have enable/disable mcounteren at every start/stop.
+The sscof extension introduces mhpmeventh csrs to handle filtering
+/overflow bits in RV32. Add the support to read/write them.
 
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/sbi_hart.c | 21 +++++++--------------
- lib/sbi/sbi_pmu.c  | 16 ++++------------
- 2 files changed, 11 insertions(+), 26 deletions(-)
+ lib/sbi/riscv_asm.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 6076bea2470d..8c7870b735ee 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -56,20 +56,13 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 	    sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
- 		csr_write(CSR_SCOUNTEREN, 7);
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 4c24a5132195..ea6dd0837774 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -124,6 +124,11 @@ unsigned long csr_read_num(int csr_num)
+ 	switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
+ 	switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
+ 	switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
++	switchcase_csr_read(CSR_MCOUNTINHIBIT, ret)
++	switchcase_csr_read(CSR_MHPMEVENT3, ret)
++	switchcase_csr_read_4(CSR_MHPMEVENT4, ret)
++	switchcase_csr_read_8(CSR_MHPMEVENT8, ret)
++	switchcase_csr_read_16(CSR_MHPMEVENT16, ret)
+ #if __riscv_xlen == 32
+ 	switchcase_csr_read(CSR_MCYCLEH, ret)
+ 	switchcase_csr_read(CSR_MINSTRETH, ret)
+@@ -131,6 +136,10 @@ unsigned long csr_read_num(int csr_num)
+ 	switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
+ 	switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
+ 	switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
++	switchcase_csr_read(CSR_MHPMEVENT3H, ret)
++	switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
++	switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
++	switchcase_csr_read_16(CSR_MHPMEVENT16H, ret)
+ #endif
  
--	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN)) {
--		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
--			/**
--			 * Just enable the default counters (CY, TM, IR) because
--			 * some OS (e.g FreeBSD) expect them to be enabled.
--			 *
--			 * All other counters will be enabled at runtime after
--			 * S-mode request.
--			 */
--			csr_write(CSR_MCOUNTEREN, 7);
--		else
--			/* Supervisor mode usage are enabled by default */
--			csr_write(CSR_MCOUNTEREN, -1);
--	}
-+	/**
-+	 * OpenSBI doesn't use any PMU counters in M-mode.
-+	 * Supervisor mode usage for all counters are enabled by default
-+	 * But counters will not run until mcountinhibit is set.
-+	 */
-+	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN))
-+		csr_write(CSR_MCOUNTEREN, -1);
- 
- 	/* All programmable counters will start running at runtime after S-mode request */
- 	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 4214b8e9026f..b7bd120a6f68 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -275,7 +275,6 @@ static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
- 
- static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
- {
--	unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
- 	unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
-@@ -283,15 +282,13 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
- 	if (cidx > num_hw_ctrs || cidx == 1)
- 		return SBI_EINVAL;
- 
--	if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt))
-+	if (!__test_bit(cidx, &mctr_inhbt))
- 		return SBI_EALREADY_STARTED;
- 
--	__set_bit(cidx, &mctr_en);
- 	__clear_bit(cidx, &mctr_inhbt);
- 
- 	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF))
- 		pmu_ctr_enable_irq_hw(cidx);
--	csr_write(CSR_MCOUNTEREN, mctr_en);
- 	csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
- 
- 	if (ival_update)
-@@ -345,17 +342,14 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
- 
- static int pmu_ctr_stop_hw(uint32_t cidx)
- {
--	unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
- 	unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
- 
- 	/* Make sure the counter index lies within the range and is not TM bit */
- 	if (cidx > num_hw_ctrs || cidx == 1)
- 		return SBI_EINVAL;
- 
--	if (__test_bit(cidx, &mctr_en) && !__test_bit(cidx, &mctr_inhbt)) {
-+	if (!__test_bit(cidx, &mctr_inhbt)) {
- 		__set_bit(cidx, &mctr_inhbt);
--		__clear_bit(cidx, &mctr_en);
--		csr_write(CSR_MCOUNTEREN, mctr_en);
- 		csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
- 		return 0;
- 	} else
-@@ -448,7 +442,6 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
- 	unsigned long ctr_mask;
- 	int i, ret = 0, ctr_idx = SBI_ENOTSUPP;
- 	struct sbi_pmu_hw_event *temp;
--	unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
- 	unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
- 	int evt_idx_code = get_cidx_code(event_idx);
- 
-@@ -473,8 +466,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
- 
- 		ctr_mask = temp->counters & (cmask << cbase);
- 		for_each_set_bit_from(cbase, &ctr_mask, SBI_PMU_HW_CTR_MAX) {
--			if (!__test_bit(cbase, &mctr_en) &&
--			    __test_bit(cbase, &mctr_inhbt)) {
-+			if (__test_bit(cbase, &mctr_inhbt)) {
- 				ctr_idx = cbase;
- 				break;
- 			}
-@@ -646,7 +638,7 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
- 		return;
- 
- 	csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
--	csr_write(CSR_MCOUNTEREN, 7);
-+	csr_write(CSR_MCOUNTEREN, -1);
- 	pmu_reset_event_map(hartid);
- }
- 
+ 	default:
+@@ -189,6 +198,10 @@ void csr_write_num(int csr_num, unsigned long val)
+ 	switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
+ 	switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
+ 	switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
++	switchcase_csr_write(CSR_MHPMEVENT3H, val)
++	switchcase_csr_write_4(CSR_MHPMEVENT4H, val)
++	switchcase_csr_write_8(CSR_MHPMEVENT8H, val)
++	switchcase_csr_write_16(CSR_MHPMEVENT16H, val)
+ #endif
+ 	switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
+ 	switchcase_csr_write(CSR_MHPMEVENT3, val)
 -- 
 2.31.1
 
