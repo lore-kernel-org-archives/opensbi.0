@@ -1,59 +1,88 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 25 Oct 2021 15:04:10 +0800
-Subject: [PATCH V2 2/2] lib: utils:/gpio: Move the invert logic of ACTIVE_LOW
- to gpio
-In-Reply-To: <20211025070410.1228846-1-wxjstz@126.com>
-References: <20211025070410.1228846-1-wxjstz@126.com>
-Message-ID: <20211025070410.1228846-3-wxjstz@126.com>
+From: Dong Du <Dd_nirvana@sjtu.edu.cn>
+Date: Mon, 25 Oct 2021 16:06:15 +0800
+Subject: [PATCH] lib: sbi: Refine addr format in sbi_printf
+Message-ID: <20211025080615.4881-1-Dd_nirvana@sjtu.edu.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In order to reduce the repetitive code of the driver, move the invert
-logic of ACTIVE_LOW to gpio
+Although we have PRILX to help us print unsigned long without
+considering the 32bit/64bit differences, there are still some
+places using 08lx and 016lx manually --- leading to redundant code.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
+This commit fixes the issue by using PRILX all the time.
+
+Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 ---
- lib/utils/gpio/gpio.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_domain.c | 18 +++---------------
+ lib/sbi/sbi_hart.c   | 11 ++---------
+ 2 files changed, 5 insertions(+), 24 deletions(-)
 
-diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
-index fb30c0f..e7d1bed 100644
---- a/lib/utils/gpio/gpio.c
-+++ b/lib/utils/gpio/gpio.c
-@@ -91,17 +91,20 @@ int gpio_direction_output(struct gpio_pin *gp, int value)
- 	if (!gp->chip->direction_output)
- 		return SBI_ENOSYS;
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 3096af0..33d7ad5 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -328,11 +328,7 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+ 		rend = (reg->order < __riscv_xlen) ?
+ 			rstart + ((1UL << reg->order) - 1) : -1UL;
  
-+	value = (gp->flags & GPIO_FLAG_ACTIVE_LOW) ? !value : value;
- 	return gp->chip->direction_output(gp, value);
+-#if __riscv_xlen == 32
+-		sbi_printf("Domain%d Region%02d    %s: 0x%08lx-0x%08lx ",
+-#else
+-		sbi_printf("Domain%d Region%02d    %s: 0x%016lx-0x%016lx ",
+-#endif
++		sbi_printf("Domain%d Region%02d    %s: 0x%" PRILX "-0x%" PRILX " ",
+ 			   dom->index, i, suffix, rstart, rend);
+ 
+ 		k = 0;
+@@ -351,18 +347,10 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+ 		i++;
+ 	}
+ 
+-#if __riscv_xlen == 32
+-	sbi_printf("Domain%d Next Address%s: 0x%08lx\n",
+-#else
+-	sbi_printf("Domain%d Next Address%s: 0x%016lx\n",
+-#endif
++	sbi_printf("Domain%d Next Address%s: 0x%" PRILX "\n",
+ 		   dom->index, suffix, dom->next_addr);
+ 
+-#if __riscv_xlen == 32
+-	sbi_printf("Domain%d Next Arg1   %s: 0x%08lx\n",
+-#else
+-	sbi_printf("Domain%d Next Arg1   %s: 0x%016lx\n",
+-#endif
++	sbi_printf("Domain%d Next Arg1   %s: 0x%" PRILX "\n",
+ 		   dom->index, suffix, dom->next_arg1);
+ 
+ 	sbi_printf("Domain%d Next Mode   %s: ", dom->index, suffix);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6254452..8eb0c38 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -150,17 +150,10 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+ 		/* No delegation possible as mideleg does not exist*/
+ 		return;
+ 
+-#if __riscv_xlen == 32
+-	sbi_printf("%sMIDELEG%s: 0x%08lx\n",
++	sbi_printf("%sMIDELEG%s: 0x%" PRILX "\n",
+ 		   prefix, suffix, csr_read(CSR_MIDELEG));
+-	sbi_printf("%sMEDELEG%s: 0x%08lx\n",
++	sbi_printf("%sMEDELEG%s: 0x%" PRILX "\n",
+ 		   prefix, suffix, csr_read(CSR_MEDELEG));
+-#else
+-	sbi_printf("%sMIDELEG%s: 0x%016lx\n",
+-		   prefix, suffix, csr_read(CSR_MIDELEG));
+-	sbi_printf("%sMEDELEG%s: 0x%016lx\n",
+-		   prefix, suffix, csr_read(CSR_MEDELEG));
+-#endif
  }
  
- int gpio_get(struct gpio_pin *gp)
- {
-+	int value;
- 	if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
- 		return SBI_EINVAL;
- 	if (!gp->chip->get)
- 		return SBI_ENOSYS;
- 
--	return gp->chip->get(gp);
-+	value = gp->chip->get(gp);
-+	return (gp->flags & GPIO_FLAG_ACTIVE_LOW) ? !value : value;
- }
- 
- int gpio_set(struct gpio_pin *gp, int value)
-@@ -111,6 +114,7 @@ int gpio_set(struct gpio_pin *gp, int value)
- 	if (!gp->chip->set)
- 		return SBI_ENOSYS;
- 
-+	value = (gp->flags & GPIO_FLAG_ACTIVE_LOW) ? !value : value;
- 	gp->chip->set(gp, value);
- 	return 0;
- }
+ unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
 -- 
-2.30.2
+2.31.1
 
 
