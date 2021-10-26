@@ -1,54 +1,51 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Tue, 26 Oct 2021 15:48:19 +0200
-Subject: [PATCH v3 0/3] lib: sbi: error handling in fdt_reset_init()
-Message-ID: <20211026134822.28220-1-heinrich.schuchardt@canonical.com>
+Date: Tue, 26 Oct 2021 15:48:20 +0200
+Subject: [PATCH v3 1/3] lib: sbi: move sbi_boot_print_general()
+In-Reply-To: <20211026134822.28220-1-heinrich.schuchardt@canonical.com>
+References: <20211026134822.28220-1-heinrich.schuchardt@canonical.com>
+Message-ID: <20211026134822.28220-2-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A failure to initialize a reset driver should not stop booting. Yet we
-should print an error message in such a case. This requires to move
-the initialization of reset drivers to after sbi_console_init() and to
-move printing the probed drivers to after the final initialization.
+Moving the sbi_boot_print_general() call after the
+sbi_platform_final_init() call allows to print devices initialized in the
+latter.
 
-With the series applied the output including an error message will
-look like:
-
-    ...
-    Domain0 Next Arg1         : 0x0000000080299f10
-    Domain0 Next Mode         : S-mode
-    Domain0 SysReset          : yes
-
-    fdt_reset_init: da9063-reset init failed, -1001
-    Platform Name             : SiFive HiFive Unmatched A00
-    Platform Features         : medeleg
-    Platform HART Count       : 5
-    Platform IPI Device       : aclint-mswi
-    Platform Timer Device     : aclint-mtimer @ 1000000Hz
-    Platform Console Device   : sifive_uart
-    Platform HSM Device       : ---
-    Platform Reboot Device    : ---
-    Platform Shutdown Device  : gpio-reset
-    ...
-
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
 v3:
-	fix sign of SBI_ENODEV in fdt_reset_init()
+	no change
 v2:
-	add error output
+	new patch
+---
+ lib/sbi/sbi_init.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Heinrich Schuchardt (3):
-  lib: sbi: move sbi_boot_print_general()
-  platform: generic: move fdt_reset_init to final_init
-  lib: sbi: error handling in fdt_reset_init()
-
- include/sbi_utils/reset/fdt_reset.h |  5 ++++-
- lib/sbi/sbi_init.c                  |  4 ++--
- lib/utils/reset/fdt_reset.c         | 13 ++++++-------
- platform/generic/platform.c         | 15 +++++----------
- 4 files changed, 17 insertions(+), 20 deletions(-)
-
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index b1c7cf0..18eb0d7 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -301,8 +301,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
+ 
+-	sbi_boot_print_general(scratch);
+-
+ 	/*
+ 	 * Note: Finalize domains after HSM initialization so that we
+ 	 * can startup non-root domains.
+@@ -336,6 +334,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
+ 
++	sbi_boot_print_general(scratch);
++
+ 	sbi_boot_print_hart(scratch, hartid);
+ 
+ 	wake_coldboot_harts(scratch, hartid);
 -- 
 2.32.0
 
