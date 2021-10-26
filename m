@@ -1,65 +1,119 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Tue, 26 Oct 2021 14:16:26 +0200
-Subject: [PATCH v2 2/3] platform: generic: move fdt_reset_init to final_init
-In-Reply-To: <20211026121627.18760-1-heinrich.schuchardt@canonical.com>
-References: <20211026121627.18760-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20211026121627.18760-3-heinrich.schuchardt@canonical.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 26 Oct 2021 20:19:10 +0800
+Subject: [PATCH] lib: sbi: Fix GPA passed to __sbi_hfence_gvma_xyz()
+ functions
+In-Reply-To: <20211026114805.2043389-1-anup.patel@wdc.com>
+References: <20211026114805.2043389-1-anup.patel@wdc.com>
+Message-ID: <0f6d1a6d330c9fbf0dc3cc392c4482e2dd6780f3.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the fdt_reset_init() invocation from generic_early_init() to
-generic_final_init(). This allows to print error messages.
+? 2021-10-26???? 17:18 +0530?Anup Patel???
+> The parameter passed to HFENCE.GVMA instruction in rs1 register
+> is guest physical address right shifted by 2 (i.e. divided by 4).
+> 
+> Unfortunately, we overlooked the semantics of rs1 registers for
+> HFENCE.GVMA instruction and never right shifted guest physical
+> address by 2. This issue did not manifest for hypervisors till
+> now because all H-extension implementations (such as QEMU, Spike,
+> Rocket Core FPGA, etc) we tried till now were conservatively
+> flushing everything upon any HFENCE.GVMA instruction.
+> 
+> This patch fixes GPA passed to __sbi_hfence_gvma_vmid_gpa()
+> and __sbi_hfence_gvma_gpa() functions.
+> 
+> Fixes: 331ff6a162c1 ("lib: Support stage1 and stage2 tlb flushing")
+> Reported-by: Ian Huang <ihuang@ventanamicro.com>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+We can keep the api unchanged and add a shift instruction in
+__sbi_hfence_gvma_vmid_gpa/__sbi_hfence_gvma_gpa
 
-Ignore the return value of fdt_reset_init() as we should not stop booting
-due to failure to initialize reset drivers.
+srli	a0,a0,2
 
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
----
-v2:
-	new patch
----
- platform/generic/platform.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+Regards,
+Xiang W
+> ---
+> ?include/sbi/sbi_hfence.h | 5 +++--
+> ?lib/sbi/sbi_hfence.S???? | 4 ++--
+> ?lib/sbi/sbi_tlb.c??????? | 4 ++--
+> ?3 files changed, 7 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_hfence.h b/include/sbi/sbi_hfence.h
+> index 4420f27..d3958f1 100644
+> --- a/include/sbi/sbi_hfence.h
+> +++ b/include/sbi/sbi_hfence.h
+> @@ -12,13 +12,14 @@
+> ?#define __SBI_FENCE_H__
+> ?
+> ?/** Invalidate Stage2 TLBs for given VMID and guest physical address
+> */
+> -void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa, unsigned long
+> vmid);
+> +void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa_divby_4,
+> +???????????????????????????????unsigned long vmid);
+> ?
+> ?/** Invalidate Stage2 TLBs for given VMID */
+> ?void __sbi_hfence_gvma_vmid(unsigned long vmid);
+> ?
+> ?/** Invalidate Stage2 TLBs for given guest physical address */
+> -void __sbi_hfence_gvma_gpa(unsigned long gpa);
+> +void __sbi_hfence_gvma_gpa(unsigned long gpa_divby_4);
+> ?
+> ?/** Invalidate all possible Stage2 TLBs */
+> ?void __sbi_hfence_gvma_all(void);
+> diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
+> index d05becb..e11e650 100644
+> --- a/lib/sbi/sbi_hfence.S
+> +++ b/lib/sbi/sbi_hfence.S
+> @@ -27,7 +27,7 @@
+> ????????.global __sbi_hfence_gvma_vmid_gpa
+> ?__sbi_hfence_gvma_vmid_gpa:
+> ????????/*
+> -??????? * rs1 = a0 (GPA)
+> +??????? * rs1 = a0 (GPA >> 2)
+> ???????? * rs2 = a1 (VMID)
+> ???????? * HFENCE.GVMA a0, a1
+> ???????? * 0110001 01011 01010 000 00000 1110011
+> @@ -51,7 +51,7 @@ __sbi_hfence_gvma_vmid:
+> ????????.global __sbi_hfence_gvma_gpa
+> ?__sbi_hfence_gvma_gpa:
+> ????????/*
+> -??????? * rs1 = a0 (GPA)
+> +??????? * rs1 = a0 (GPA >> 2)
+> ???????? * rs2 = zero
+> ???????? * HFENCE.GVMA a0
+> ???????? * 0110001 00000 01010 000 00000 1110011
+> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+> index efa74a7..4c142ea 100644
+> --- a/lib/sbi/sbi_tlb.c
+> +++ b/lib/sbi/sbi_tlb.c
+> @@ -72,7 +72,7 @@ void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info
+> *tinfo)
+> ????????}
+> ?
+> ????????for (i = 0; i < size; i += PAGE_SIZE) {
+> -???????????????__sbi_hfence_gvma_gpa(start+i);
+> +???????????????__sbi_hfence_gvma_gpa((start + i) >> 2);
+> ????????}
+> ?}
+> ?
+> @@ -148,7 +148,7 @@ void sbi_tlb_local_hfence_gvma_vmid(struct
+> sbi_tlb_info *tinfo)
+> ????????}
+> ?
+> ????????for (i = 0; i < size; i += PAGE_SIZE) {
+> -???????????????__sbi_hfence_gvma_vmid_gpa(start + i, vmid);
+> +???????????????__sbi_hfence_gvma_vmid_gpa((start + i) >> 2, vmid);
+> ????????}
+> ?}
+> ?
+> -- 
+> 2.25.1
+> 
+> 
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 0757d87..8d4e41a 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -120,18 +120,10 @@ fail:
- 
- static int generic_early_init(bool cold_boot)
- {
--	int rc;
--
--	if (generic_plat && generic_plat->early_init) {
--		rc = generic_plat->early_init(cold_boot, generic_plat_match);
--		if (rc)
--			return rc;
--	}
--
--	if (!cold_boot)
-+	if (!generic_plat || !generic_plat->early_init)
- 		return 0;
- 
--	return fdt_reset_init();
-+	return generic_plat->early_init(cold_boot, generic_plat_match);
- }
- 
- static int generic_final_init(bool cold_boot)
-@@ -139,6 +131,9 @@ static int generic_final_init(bool cold_boot)
- 	void *fdt;
- 	int rc;
- 
-+	if (cold_boot)
-+		fdt_reset_init();
-+
- 	if (generic_plat && generic_plat->final_init) {
- 		rc = generic_plat->final_init(cold_boot, generic_plat_match);
- 		if (rc)
--- 
-2.32.0
 
 
