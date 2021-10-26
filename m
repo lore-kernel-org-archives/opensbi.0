@@ -1,144 +1,107 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 26 Oct 2021 20:35:42 +0800
-Subject: [PATCH] lib: sbi: Fix GPA passed to __sbi_hfence_gvma_xyz()
- functions
-In-Reply-To: <CAAhSdy3qxbFsfhrseEtsvXhN4d0qApyqY6OMy3e8vzomUWQWBQ@mail.gmail.com>
-References: <20211026114805.2043389-1-anup.patel@wdc.com>
- <0f6d1a6d330c9fbf0dc3cc392c4482e2dd6780f3.camel@126.com>
- <CAAhSdy3qxbFsfhrseEtsvXhN4d0qApyqY6OMy3e8vzomUWQWBQ@mail.gmail.com>
-Message-ID: <52dbe3b8ef687b0947652b436cc5a89c477d92b4.camel@126.com>
+From: Dong Du <dd_nirvana@sjtu.edu.cn>
+Date: Tue, 26 Oct 2021 21:40:07 +0800 (CST)
+Subject: [PATCH v2 3/3] lib: sbi: error handling in fdt_reset_init()
+In-Reply-To: <20211026121627.18760-4-heinrich.schuchardt@canonical.com>
+References: <20211026121627.18760-1-heinrich.schuchardt@canonical.com>
+ <20211026121627.18760-4-heinrich.schuchardt@canonical.com>
+Message-ID: <1467865005.239144.1635255607361.JavaMail.zimbra@sjtu.edu.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-10-26???? 17:55 +0530?Anup Patel???
-> On Tue, Oct 26, 2021 at 5:49 PM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > ? 2021-10-26???? 17:18 +0530?Anup Patel???
-> > > The parameter passed to HFENCE.GVMA instruction in rs1 register
-> > > is guest physical address right shifted by 2 (i.e. divided by 4).
-> > > 
-> > > Unfortunately, we overlooked the semantics of rs1 registers for
-> > > HFENCE.GVMA instruction and never right shifted guest physical
-> > > address by 2. This issue did not manifest for hypervisors till
-> > > now because all H-extension implementations (such as QEMU, Spike,
-> > > Rocket Core FPGA, etc) we tried till now were conservatively
-> > > flushing everything upon any HFENCE.GVMA instruction.
-> > > 
-> > > This patch fixes GPA passed to __sbi_hfence_gvma_vmid_gpa()
-> > > and __sbi_hfence_gvma_gpa() functions.
-> > > 
-> > > Fixes: 331ff6a162c1 ("lib: Support stage1 and stage2 tlb
-> > > flushing")
-> > > Reported-by: Ian Huang <ihuang@ventanamicro.com>
-> > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > We can keep the api unchanged and add a shift instruction in
-> > __sbi_hfence_gvma_vmid_gpa/__sbi_hfence_gvma_gpa
-> 
-> That's not a good idea because __sbi_hfence_xyz() functions are
-> substitute for missing H-extension support in GCC assembler.
-> 
-> In future these __sbi_hfence_xyz() will be replaced with inline
-> assembly but we will have to specify minimum required GCC
-> and LLVM versions for compiling OpenSBI.
-Thanks, very helpful explanation
-
-Reviewed-by: Xiang W <wxjstz@126.com>
-> 
-> Regards,
-> Anup
-> 
-> > 
-> > srli??? a0,a0,2
-> > 
-> > Regards,
-> > Xiang W
-> > > ---
-> > > ?include/sbi/sbi_hfence.h | 5 +++--
-> > > ?lib/sbi/sbi_hfence.S???? | 4 ++--
-> > > ?lib/sbi/sbi_tlb.c??????? | 4 ++--
-> > > ?3 files changed, 7 insertions(+), 6 deletions(-)
-> > > 
-> > > diff --git a/include/sbi/sbi_hfence.h b/include/sbi/sbi_hfence.h
-> > > index 4420f27..d3958f1 100644
-> > > --- a/include/sbi/sbi_hfence.h
-> > > +++ b/include/sbi/sbi_hfence.h
-> > > @@ -12,13 +12,14 @@
-> > > ?#define __SBI_FENCE_H__
-> > > 
-> > > ?/** Invalidate Stage2 TLBs for given VMID and guest physical
-> > > address
-> > > */
-> > > -void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa, unsigned long
-> > > vmid);
-> > > +void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa_divby_4,
-> > > +?????????????????????????????? unsigned long vmid);
-> > > 
-> > > ?/** Invalidate Stage2 TLBs for given VMID */
-> > > ?void __sbi_hfence_gvma_vmid(unsigned long vmid);
-> > > 
-> > > ?/** Invalidate Stage2 TLBs for given guest physical address */
-> > > -void __sbi_hfence_gvma_gpa(unsigned long gpa);
-> > > +void __sbi_hfence_gvma_gpa(unsigned long gpa_divby_4);
-> > > 
-> > > ?/** Invalidate all possible Stage2 TLBs */
-> > > ?void __sbi_hfence_gvma_all(void);
-> > > diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
-> > > index d05becb..e11e650 100644
-> > > --- a/lib/sbi/sbi_hfence.S
-> > > +++ b/lib/sbi/sbi_hfence.S
-> > > @@ -27,7 +27,7 @@
-> > > ??????? .global __sbi_hfence_gvma_vmid_gpa
-> > > ?__sbi_hfence_gvma_vmid_gpa:
-> > > ??????? /*
-> > > -??????? * rs1 = a0 (GPA)
-> > > +??????? * rs1 = a0 (GPA >> 2)
-> > > ???????? * rs2 = a1 (VMID)
-> > > ???????? * HFENCE.GVMA a0, a1
-> > > ???????? * 0110001 01011 01010 000 00000 1110011
-> > > @@ -51,7 +51,7 @@ __sbi_hfence_gvma_vmid:
-> > > ??????? .global __sbi_hfence_gvma_gpa
-> > > ?__sbi_hfence_gvma_gpa:
-> > > ??????? /*
-> > > -??????? * rs1 = a0 (GPA)
-> > > +??????? * rs1 = a0 (GPA >> 2)
-> > > ???????? * rs2 = zero
-> > > ???????? * HFENCE.GVMA a0
-> > > ???????? * 0110001 00000 01010 000 00000 1110011
-> > > diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> > > index efa74a7..4c142ea 100644
-> > > --- a/lib/sbi/sbi_tlb.c
-> > > +++ b/lib/sbi/sbi_tlb.c
-> > > @@ -72,7 +72,7 @@ void sbi_tlb_local_hfence_gvma(struct
-> > > sbi_tlb_info
-> > > *tinfo)
-> > > ??????? }
-> > > 
-> > > ??????? for (i = 0; i < size; i += PAGE_SIZE) {
-> > > -?????????????? __sbi_hfence_gvma_gpa(start+i);
-> > > +?????????????? __sbi_hfence_gvma_gpa((start + i) >> 2);
-> > > ??????? }
-> > > ?}
-> > > 
-> > > @@ -148,7 +148,7 @@ void sbi_tlb_local_hfence_gvma_vmid(struct
-> > > sbi_tlb_info *tinfo)
-> > > ??????? }
-> > > 
-> > > ??????? for (i = 0; i < size; i += PAGE_SIZE) {
-> > > -?????????????? __sbi_hfence_gvma_vmid_gpa(start + i, vmid);
-> > > +?????????????? __sbi_hfence_gvma_vmid_gpa((start + i) >> 2,
-> > > vmid);
-> > > ??????? }
-> > > ?}
-> > > 
-> > > --
-> > > 2.25.1
-> > > 
-> > > 
-> > 
-> > 
 
 
+On Oct 26, 2021, at 8:16 PM, Heinrich Schuchardt heinrich.schuchardt at canonical.com wrote:
+
+> The initialization of a reset driver may fail for various reasons, like
+> a PMIC based reset driver not finding the required I2C driver. The return
+> code of the init routine may take other error values than -ENODEV.
+> 
+> If the initialization of a reset driver fails, this should not lead to the
+> board hanging. It is enough that the reset driver does not call
+> sbi_system_reset_add_device() to avoid invoking the driver for a device
+> that could not be initialized.
+> 
+> Change the return type of fdt_reset_init() to void.
+> Print a message if an error occurs.
+> 
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> ---
+> v2:
+>	provide an error message
+> ---
+> include/sbi_utils/reset/fdt_reset.h |  5 ++++-
+> lib/utils/reset/fdt_reset.c         | 13 ++++++-------
+> 2 files changed, 10 insertions(+), 8 deletions(-)
+> 
+> diff --git a/include/sbi_utils/reset/fdt_reset.h
+> b/include/sbi_utils/reset/fdt_reset.h
+> index 6d58697..49214ff 100644
+> --- a/include/sbi_utils/reset/fdt_reset.h
+> +++ b/include/sbi_utils/reset/fdt_reset.h
+> @@ -17,6 +17,9 @@ struct fdt_reset {
+> 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
+> };
+> 
+> -int fdt_reset_init(void);
+> +/**
+> + * fdt_reset_init() - initialize reset drivers based on the device-tree
+> + */
+> +void fdt_reset_init(void);
+> 
+> #endif
+> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+> index 168bb0c..fa2e81e 100644
+> --- a/lib/utils/reset/fdt_reset.c
+> +++ b/lib/utils/reset/fdt_reset.c
+> @@ -7,6 +7,7 @@
+>  *   Anup Patel <anup.patel@wdc.com>
+>  */
+> 
+> +#include <sbi/sbi_console.h>
+> #include <sbi/sbi_error.h>
+> #include <sbi/sbi_scratch.h>
+> #include <sbi_utils/fdt/fdt_helper.h>
+> @@ -28,7 +29,7 @@ static struct fdt_reset *reset_drivers[] = {
+> 	&fdt_reset_thead,
+> };
+> 
+> -int fdt_reset_init(void)
+> +void fdt_reset_init(void)
+> {
+> 	int pos, noff, rc;
+> 	struct fdt_reset *drv;
+> @@ -44,12 +45,10 @@ int fdt_reset_init(void)
+> 
+> 		if (drv->init) {
+> 			rc = drv->init(fdt, noff, match);
+> -			if (rc == SBI_ENODEV)
+> -				continue;
+> -			if (rc)
+> -				return rc;
+> +			if (rc && rc != -SBI_ENODEV) {
+
+Shouldn't this be SBI_ENODEV instead of -SBI_ENODEV?
+
+Regards,
+Dong
+
+> +				sbi_printf("%s: %s init failed, %d\n",
+> +					   __func__, match->compatible, rc);
+> +			}
+> 		}
+> 	}
+> -
+> -	return 0;
+> }
+> --
+> 2.32.0
+> 
+> 
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
