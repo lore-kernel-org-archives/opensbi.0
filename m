@@ -1,161 +1,320 @@
-From: Alexandre Ghiti <alexandre.ghiti@canonical.com>
-Date: Tue, 26 Oct 2021 08:34:17 +0200
-Subject: [PATCH v2 0/5] I2C framework, reboot Unmatched via PMIC
-In-Reply-To: <20211020091720.2ab43230@redslave.neermore.group>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Tue, 26 Oct 2021 10:04:17 +0200
+Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
+In-Reply-To: <20211015131925.22585-6-nikita.shubin@maquefel.me>
 References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <CA+zEjCuiEH0YRTztbo5MiV+6mP-Aivuot9gsPKYNyvypeiT80Q@mail.gmail.com>
- <20211020091720.2ab43230@redslave.neermore.group>
-Message-ID: <CA+zEjCubCEaVxYif-3JWgyrb5E7yecS8_CaHou0LfiKP_5toFA@mail.gmail.com>
+ <20211015131925.22585-6-nikita.shubin@maquefel.me>
+Message-ID: <24ca9d4a-02c0-0d03-58da-3510162df2be@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 20, 2021 at 8:17 AM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
->
-> Hello Alexandre!
->
-> On Wed, 20 Oct 2021 06:59:25 +0200
-> Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
->
-> > On Fri, Oct 15, 2021 at 3:20 PM Nikita Shubin
-> > <nikita.shubin@maquefel.me> wrote:
-> > >
-> > > From: Nikita Shubin <n.shubin@yadro.com>
-> > >
-> > > This series introduce rebooting via i2c da9063 PMIC, currently on
-> > > SiFive Unmatched board.
-> > >
-> > > "gpio-poweroff" remains with default priority of 128 - default
-> > > priority, da9063 is 1 by default the least priority.
-> > >
-> > > da9063-reset {
-> > >         compatible = "da9063-reset";
-> > >         priority = <1>;
-> > > };
-> > >
-> > > Is required to be added as a child node of PMIC.
-> > >
-> > > tested via Linux and U-Boot with reset extension:
-> > >
-> > > OpenSBI:
-> > > Platform Reboot Device    : da9063-reset
-> > > Platform Shutdown Device  : gpio-reset
-> > >
-> > > v1 -> v2:
-> > > Added:
-> > > lib: sbi: add priority for reset handler
-> > >
-> > > Renamed read/write to smbus_write/smbus_read, as actually this
-> > > is not a "raw" read/write but a one with a register address
-> > > provided, later a "raw" version will be need but currently i don't
-> > > have anything to test it.
-> > >
-> > > To Xiang W:
-> > > I have analized your proposal of switching to sbi_list,
-> > > and switched i2c adapters array to list. Unfortunately
-> > > to switch drivers we require "init" functions.
-> > >
-> > > to Alexander Ghiti:
-> > >
-> > > > No need for the struct i2c_adapter argument as it is globally
-> > > > accessible.
-> > >
-> > > It looks like a more clean and reusable way to me, let's here more
-> > > opinions
-> > > > Why should the da9063 device care about the adapter configuration
-> > > > here? I think It should just rely on an already
-> > > > configured/initialized i2c controller.
-> > >
-> > > With clocks init added to sifive_i2c configure it can become usable
-> > > even if nobody cared about controller initialization.
-> > >
-> > > > Establishing the link between the i2c device and its adapter
-> > > > should somehow be implicitly done by the i2c library, IMO the
-> > > > device should not care about its controller.
-> > >
-> > > And how do you think it will look like ? In out case it's not a
-> > > separate driver/client entity but all togather for simplicity.
-> > >
-> > > Nikita Shubin (5):
-> > >   lib: utils/reset: add priority to gpio reset
-> > >   lib: utils/i2c: Add generic I2C configuration library
-> > >   lib: utils/i2c: Add simple FDT based I2C framework
-> > >   lib: utils/i2c: Add minimal SiFive I2C driver
-> > >   lib: utils/reset: Add generic da9063 reset driver
-> > >
-> > >  include/sbi_utils/i2c/fdt_i2c.h    |  26 +++
-> > >  include/sbi_utils/i2c/i2c.h        |  99 +++++++++++
-> > >  lib/utils/i2c/fdt_i2c.c            | 111 ++++++++++++
-> > >  lib/utils/i2c/fdt_i2c_sifive.c     | 271
-> > > +++++++++++++++++++++++++++++ lib/utils/i2c/i2c.c                |
-> > > 85 +++++++++ lib/utils/i2c/objects.mk           |  12 ++
-> > >  lib/utils/reset/fdt_reset.c        |   2 +
-> > >  lib/utils/reset/fdt_reset_da9063.c | 214 +++++++++++++++++++++++
-> > >  lib/utils/reset/fdt_reset_gpio.c   |  18 +-
-> > >  lib/utils/reset/objects.mk         |   1 +
-> > >  10 files changed, 836 insertions(+), 3 deletions(-)
-> > >  create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
-> > >  create mode 100644 include/sbi_utils/i2c/i2c.h
-> > >  create mode 100644 lib/utils/i2c/fdt_i2c.c
-> > >  create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
-> > >  create mode 100644 lib/utils/i2c/i2c.c
-> > >  create mode 100644 lib/utils/i2c/objects.mk
-> > >  create mode 100644 lib/utils/reset/fdt_reset_da9063.c
-> > >
-> > > --
-> > > 2.31.1
-> > >
-> >
-> > I'm testing your patchset and although it seems to work from Linux, it
-> > fails when used from u-boot at the first smbus_write in
-> > da9063_sanity_check. Maybe it relies on some initialization done by
-> > the Linux driver?
-> >
->
-> That's sound strange becouse i explicitly tested with u-boot SBI
-> extension, well in fact i tested mostly via u-boot because it's quicker
-> than booting Linux.
->
-> Do you have CONFIG_SYS_I2C_OCORES enabled ?
->
-> I tested on u-boot v2021.07 with Sifive Unmatched patches and SBI reset
-> extension applied. May it is time for configure ;) ?
->
-> Sharing my u-boot branch:
-> https://github.com/maquefel/u-boot/tree/yadro/riscv/unmatched-v2021.07
+On 10/15/21 15:19, Nikita Shubin wrote:
+> From: Nikita Shubin <n.shubin@yadro.com>
+> 
+> da9063 PMIC can be used to reset/shutdown the
+> Sifive Unmatched board.
+> 
+> shutdown is done simply by writing SHUTDOWN bit to
+> DA9063_REG_CONTROL_F register.
+> 
+> reset via setting WAKEUP bit in DA9063_REG_CONTROL_F
+> register followed by masking POWER and POWER1 domains
+> and setting STANDBY bit in DA9063_REG_CONTROL_A,
+> originally discovered by Alexandre Ghiti on linux-riscv
+> maillists.
+> 
+> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+> ---
+> v1 -> v2:
+> - changed to sub dts node da9063-reset instead of relying on dlg,da9063
+> - added priority dts node
+> - return priority system_reset_check either readed from dts or default 1
+> ---
+>   lib/utils/reset/fdt_reset.c        |   2 +
+>   lib/utils/reset/fdt_reset_da9063.c | 214 +++++++++++++++++++++++++++++
+>   lib/utils/reset/objects.mk         |   1 +
+>   3 files changed, 217 insertions(+)
+>   create mode 100644 lib/utils/reset/fdt_reset_da9063.c
+> 
+> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+> index 168bb0c..92f37b0 100644
+> --- a/lib/utils/reset/fdt_reset.c
+> +++ b/lib/utils/reset/fdt_reset.c
+> @@ -18,6 +18,7 @@ extern struct fdt_reset fdt_reset_htif;
+>   extern struct fdt_reset fdt_reset_sifive_test;
+>   extern struct fdt_reset fdt_reset_sunxi_wdt;
+>   extern struct fdt_reset fdt_reset_thead;
+> +extern struct fdt_reset fdt_reset_da9063;
+>   
+>   static struct fdt_reset *reset_drivers[] = {
+>   	&fdt_poweroff_gpio,
+> @@ -26,6 +27,7 @@ static struct fdt_reset *reset_drivers[] = {
+>   	&fdt_reset_sifive_test,
+>   	&fdt_reset_sunxi_wdt,
+>   	&fdt_reset_thead,
+> +	&fdt_reset_da9063,
+>   };
+>   
+>   int fdt_reset_init(void)
+> diff --git a/lib/utils/reset/fdt_reset_da9063.c b/lib/utils/reset/fdt_reset_da9063.c
+> new file mode 100644
+> index 0000000..e3c9ced
+> --- /dev/null
+> +++ b/lib/utils/reset/fdt_reset_da9063.c
+> @@ -0,0 +1,214 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 YADRO
+> + *
+> + * Authors:
+> + *   Nikita Shubin <nshubin@yadro.com>
+> + */
+> +
+> +#include <libfdt.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_ecall_interface.h>
+> +#include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_system.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/i2c/fdt_i2c.h>
+> +#include <sbi_utils/reset/fdt_reset.h>
+> +
+> +#define DA9063_REG_PAGE_CON		0x00
+> +#define DA9063_REG_CONTROL_A		0x0e
+> +#define DA9063_REG_CONTROL_C		0x10
+> +#define DA9063_REG_CONTROL_F		0x13
+> +#define DA9063_REG_DEVICE_ID		0x81
+> +
+> +#define DA9063_CONTROL_A_CP_EN		(1 << 7)
+> +#define DA9063_CONTROL_A_M_POWER1_EN	(1 << 6)
+> +#define DA9063_CONTROL_A_M_POWER_EN	(1 << 5)
+> +#define DA9063_CONTROL_A_M_SYSTEM_EN	(1 << 4)
+> +#define DA9063_CONTROL_A_STANDBY	(1 << 3)
+> +#define DA9063_CONTROL_A_POWER1_EN	(1 << 2)
+> +#define DA9063_CONTROL_A_POWER_EN	(1 << 1)
+> +#define DA9063_CONTROL_A_SYSTEM_EN	(1 << 0)
+> +
+> +#define DA9063_CONTROL_F_WAKEUP		(1 << 2)
+> +#define DA9063_CONTROL_F_SHUTDOWN	(1 << 1)
+> +#define DA9063_CONTROL_F_WATCHDOG	(1 << 0)
+> +
+> +#define DA9063_CONTROL_C_DEF_SUPPLY	(1 << 7)
+> +#define DA9063_CONTROL_C_SLEW_RATE	(1 << 4)
+> +#define DA9063_CONTROL_C_OTPREAD_EN	(1 << 3)
+> +#define DA9063_CONTROL_C_AUTO_BOOT	(1 << 2)
+> +#define DA9063_CONTROL_C_DEBOUNCING	(1 << 0)
+> +
+> +#define PMIC_CHIP_ID_DA9063		0x61
+> +
+> +static struct {
+> +	struct i2c_adapter *adapter;
+> +	uint32_t reg;
+> +	u8 priority;
+> +} da9063 = {
+> +	.priority = 1
 
-That's weird, it still does not work for me from u-boot with the following:
+This value should be 0 until da9063_reset_init() succees. See comments 
+below.
 
-- openSBI: https://github.com/AlexGhiti/opensbi/tree/int/alex/nikita_pmic_reset_v2
-- u-boot: https://github.com/maquefel/u-boot/tree/yadro/riscv/unmatched-v2021.07
+> +};
+> +
+> +static int da9063_system_reset_check(u32 type, u32 reason)
+> +{
+> +	switch (type) {
+> +	case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> +		return da9063.priority;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static inline int da9063_sanity_check(struct i2c_adapter *adap, uint32_t reg)
+> +{
+> +	uint8_t val;
+> +	int rc = i2c_adapter_smbus_reg_write(adap, reg, DA9063_REG_PAGE_CON, 0x02);
+> +
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* check set page*/
+> +	rc = i2c_adapter_smbus_reg_read(adap, reg, 0x0, &val);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (val != 0x02)
+> +		return SBI_ENODEV;
+> +
+> +	/* read and check device id */
+> +	rc = i2c_adapter_smbus_reg_read(adap, reg, DA9063_REG_DEVICE_ID, &val);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (val != PMIC_CHIP_ID_DA9063)
+> +		return SBI_ENODEV;
+> +
+> +	return 0;
+> +}
+> +
+> +static inline int da9063_shutdown(struct i2c_adapter *adap, uint32_t reg)
+> +{
+> +	int rc = i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +					DA9063_REG_PAGE_CON, 0x00);
+> +
+> +	if (rc)
+> +		return rc;
+> +
+> +	return i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +				DA9063_REG_CONTROL_F, DA9063_CONTROL_F_SHUTDOWN);
+> +}
+> +
+> +static inline int da9063_reset(struct i2c_adapter *adap, uint32_t reg)
+> +{
+> +	int rc = i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +					DA9063_REG_PAGE_CON, 0x00);
+> +
+> +	if (rc)
+> +		return rc;
+> +
+> +	rc = i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +			      DA9063_REG_CONTROL_F, DA9063_CONTROL_F_WAKEUP);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return i2c_adapter_smbus_reg_write(adap, da9063.reg,
+> +				DA9063_REG_CONTROL_A,
+> +				DA9063_CONTROL_A_M_POWER1_EN |
+> +				DA9063_CONTROL_A_M_POWER_EN |
+> +				DA9063_CONTROL_A_STANDBY);
+> +}
+> +
+> +static void da9063_system_reset(u32 type, u32 reason)
+> +{
+> +	struct i2c_adapter *adap = da9063.adapter;
+> +	uint32_t reg = da9063.reg;
+> +	int rc;
+> +
+> +	if (adap) {
+> +		/* may include clock init */
+> +		i2c_adapter_configure(adap);
+> +
+> +		/* sanity check */
+> +		rc = da9063_sanity_check(adap, reg);
+> +		if (rc) {
+> +			sbi_printf("%s: chip is not da9063 PMIC\n", __func__);
+> +			goto skip_reset;
+> +		}
+> +
+> +		switch (type) {
+> +		case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +			da9063_shutdown(adap, reg);
+> +			break;
+> +		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> +			da9063_reset(adap, reg);
+> +			break;
+> +		}
+> +
+> +		while
+> +			(1);
+> +skip_reset:
+> +	}
+> +
+> +	sbi_hart_hang();
+> +}
+> +
+> +static struct sbi_system_reset_device da9063_reset_i2c = {
+> +	.name = "da9063-reset",
+> +	.system_reset_check = da9063_system_reset_check,
+> +	.system_reset = da9063_system_reset
+> +};
+> +
+> +static int da9063_reset_init(void *fdt, int nodeoff,
+> +			   const struct fdt_match *match)
+> +{
+> +	int rc, i2c_dev, i2c_bus, len;
+> +	const fdt32_t *val;
+> +	struct i2c_adapter *adapter;
+> +	uint64_t addr;
+> +
+> +	/* find dlg,da9063 parent node */
+> +	i2c_dev = fdt_parent_offset(fdt, nodeoff);
+> +	if (i2c_dev < 0)
+> +		return i2c_dev;
+> +
+> +	rc = fdt_get_node_addr_size(fdt, i2c_dev, 0, &addr, NULL);
+> +	if (rc)
+> +		return rc;
 
-And this fails this way:
+If you return anything but -ENODEV or 0 to fdt_reset_init(), 
+fdt_reset_init will return a non-zero return value and the board will 
+hang without any console message.
 
-=> reset
-resetting ...
-da9063_system_reset: chip is not da9063 PMIC
+I see the following alternative solutions:
 
-Alex
+1) Move the initialization of the console before all other devices and 
+provide error messages.
+
+2) Return -ENODEV if the problem does not require hanging.
+
+3) Let fdt_reset_init() just continue in case of any initialization error.
+
+1) makes sense anyway. But hanging is a bad idea.
+2) and 3) require that system_reset_check return 0 if the initialization 
+failed.
+
+Best regards
+
+Heinrich
 
 
+> +
+> +	da9063.reg = addr;
+> +	val = fdt_getprop(fdt, nodeoff, "priority", &len);
+> +	if (len > 0)
+> +		da9063.priority = fdt32_to_cpu(*val);
+> +
+> +	/* find i2c bus parent node */
+> +	i2c_bus = fdt_parent_offset(fdt, i2c_dev);
+> +	if (i2c_bus < 0)
+> +		return i2c_bus;
+> +
+> +	/* i2c adapter get */
+> +	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
+> +	if (rc)
+> +		return rc;
+> +
+> +	da9063.adapter = adapter;
+> +
+> +	sbi_system_reset_add_device(&da9063_reset_i2c);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct fdt_match da9063_reset_match[] = {
+> +	{ .compatible = "da9063-reset", .data = (void *)TRUE },
+> +	{ },
+> +};
+> +
+> +struct fdt_reset fdt_reset_da9063 = {
+> +	.match_table = da9063_reset_match,
+> +	.init = da9063_reset_init,
+> +};
+> diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+> index 6c95db3..cfe4c09 100644
+> --- a/lib/utils/reset/objects.mk
+> +++ b/lib/utils/reset/objects.mk
+> @@ -14,3 +14,4 @@ libsbiutils-objs-y += reset/fdt_reset_sifive_test.o
+>   libsbiutils-objs-y += reset/fdt_reset_sunxi_wdt.o
+>   libsbiutils-objs-y += reset/fdt_reset_thead.o
+>   libsbiutils-objs-y += reset/fdt_reset_thead_asm.o
+> +libsbiutils-objs-y += reset/fdt_reset_da9063.o
+> 
 
-
-
-
-
->
->
-> > Thanks,
-> >
-> > Alex
-> >
-> >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
->
 
