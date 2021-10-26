@@ -1,66 +1,91 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Tue, 26 Oct 2021 15:48:21 +0200
-Subject: [PATCH v2 2/3] platform: generic: move fdt_reset_init to final_init
+Date: Tue, 26 Oct 2021 15:48:22 +0200
+Subject: [PATCH v2 3/3] lib: sbi: error handling in fdt_reset_init()
 In-Reply-To: <20211026134822.28220-1-heinrich.schuchardt@canonical.com>
 References: <20211026134822.28220-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20211026134822.28220-3-heinrich.schuchardt@canonical.com>
+Message-ID: <20211026134822.28220-4-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the fdt_reset_init() invocation from generic_early_init() to
-generic_final_init(). This allows to print error messages.
+The initialization of a reset driver may fail for various reasons, like
+a PMIC based reset driver not finding the required I2C driver. The return
+code of the init routine may take other error values than -ENODEV.
 
-Ignore the return value of fdt_reset_init() as we should not stop booting
-due to failure to initialize reset drivers.
+If the initialization of a reset driver fails, this should not lead to the
+board hanging. It is enough that the reset driver does not call
+sbi_system_reset_add_device() to avoid invoking the driver for a device
+that could not be initialized.
+
+Change the return type of fdt_reset_init() to void.
+Print a message if an error occurs.
 
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
 v3:
-	no change
+	fix sign of SBI_ENODEV in fdt_reset_init()
 v2:
-	new patch
+	provide an error message
 ---
- platform/generic/platform.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ include/sbi_utils/reset/fdt_reset.h |  5 ++++-
+ lib/utils/reset/fdt_reset.c         | 13 ++++++-------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 0757d87..8d4e41a 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -120,18 +120,10 @@ fail:
+diff --git a/include/sbi_utils/reset/fdt_reset.h b/include/sbi_utils/reset/fdt_reset.h
+index 6d58697..49214ff 100644
+--- a/include/sbi_utils/reset/fdt_reset.h
++++ b/include/sbi_utils/reset/fdt_reset.h
+@@ -17,6 +17,9 @@ struct fdt_reset {
+ 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
+ };
  
- static int generic_early_init(bool cold_boot)
+-int fdt_reset_init(void);
++/**
++ * fdt_reset_init() - initialize reset drivers based on the device-tree
++ */
++void fdt_reset_init(void);
+ 
+ #endif
+diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+index 168bb0c..fa2e81e 100644
+--- a/lib/utils/reset/fdt_reset.c
++++ b/lib/utils/reset/fdt_reset.c
+@@ -7,6 +7,7 @@
+  *   Anup Patel <anup.patel@wdc.com>
+  */
+ 
++#include <sbi/sbi_console.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+@@ -28,7 +29,7 @@ static struct fdt_reset *reset_drivers[] = {
+ 	&fdt_reset_thead,
+ };
+ 
+-int fdt_reset_init(void)
++void fdt_reset_init(void)
  {
--	int rc;
--
--	if (generic_plat && generic_plat->early_init) {
--		rc = generic_plat->early_init(cold_boot, generic_plat_match);
--		if (rc)
--			return rc;
--	}
--
--	if (!cold_boot)
-+	if (!generic_plat || !generic_plat->early_init)
- 		return 0;
+ 	int pos, noff, rc;
+ 	struct fdt_reset *drv;
+@@ -44,12 +45,10 @@ int fdt_reset_init(void)
  
--	return fdt_reset_init();
-+	return generic_plat->early_init(cold_boot, generic_plat_match);
+ 		if (drv->init) {
+ 			rc = drv->init(fdt, noff, match);
+-			if (rc == SBI_ENODEV)
+-				continue;
+-			if (rc)
+-				return rc;
++			if (rc && rc != SBI_ENODEV) {
++				sbi_printf("%s: %s init failed, %d\n",
++					   __func__, match->compatible, rc);
++			}
+ 		}
+ 	}
+-
+-	return 0;
  }
- 
- static int generic_final_init(bool cold_boot)
-@@ -139,6 +131,9 @@ static int generic_final_init(bool cold_boot)
- 	void *fdt;
- 	int rc;
- 
-+	if (cold_boot)
-+		fdt_reset_init();
-+
- 	if (generic_plat && generic_plat->final_init) {
- 		rc = generic_plat->final_init(cold_boot, generic_plat_match);
- 		if (rc)
 -- 
 2.32.0
 
