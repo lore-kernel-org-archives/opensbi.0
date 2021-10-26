@@ -1,51 +1,69 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Tue, 26 Oct 2021 11:40:13 +0200
-Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
-In-Reply-To: <24ca9d4a-02c0-0d03-58da-3510162df2be@canonical.com>
-References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <20211015131925.22585-6-nikita.shubin@maquefel.me>
- <24ca9d4a-02c0-0d03-58da-3510162df2be@canonical.com>
-Message-ID: <9953e984-dffa-400a-259f-b82a19d06a6f@canonical.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 26 Oct 2021 15:17:40 +0530
+Subject: [PATCH 1/1] lib: utils/reset: error handling in fdt_reset_init()
+In-Reply-To: <20211026082525.10070-1-heinrich.schuchardt@canonical.com>
+References: <20211026082525.10070-1-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy2vtAxbM81tXKdr3y=4nv9_rXTtsThJGXN-hPLygD65-g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10/26/21 10:04, Heinrich Schuchardt wrote:
-> On 10/15/21 15:19, Nikita Shubin wrote:
->> From: Nikita Shubin <n.shubin@yadro.com>
->>
->> da9063 PMIC can be used to reset/shutdown the
->> Sifive Unmatched board.
->>
->> shutdown is done simply by writing SHUTDOWN bit to
->> DA9063_REG_CONTROL_F register.
->>
->> reset via setting WAKEUP bit in DA9063_REG_CONTROL_F
->> register followed by masking POWER and POWER1 domains
->> and setting STANDBY bit in DA9063_REG_CONTROL_A,
->> originally discovered by Alexandre Ghiti on linux-riscv
->> maillists.
->>
->> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+On Tue, Oct 26, 2021 at 1:55 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
+>
+> The initialization of a reset driver may fail for various reasons, like
+> a PMIC based reset driver not finding the required I2C driver. The return
+> code of the init routine may take other error values than -ENODEV.
+>
+> If the initialization of a reset driver fails, this should not lead to the
+> board hanging. It is enough that the reset driver does not call
+> sbi_system_reset_add_device() to avoid invoking the driver for a device
+> that could not be initialized.
+>
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> ---
+>  lib/utils/reset/fdt_reset.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+>
+> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+> index 92f37b0..e1d6fdc 100644
+> --- a/lib/utils/reset/fdt_reset.c
+> +++ b/lib/utils/reset/fdt_reset.c
+> @@ -46,10 +46,11 @@ int fdt_reset_init(void)
+>
+>                 if (drv->init) {
+>                         rc = drv->init(fdt, noff, match);
+> -                       if (rc == SBI_ENODEV)
+> -                               continue;
+> -                       if (rc)
+> -                               return rc;
+> +                       /*
+> +                        * The driver will not call
+> +                        * sbi_system_reset_add_device() in case of an error.
+> +                        * Hence any error shall be ignored here.
+> +                        */
 
-Alexandre and I had the same finding for the driver:
+Just a minor suggestion, how about having an error print
+for "rc && rc != SBI_ENODEV" ?
 
-Reset works fine after a hard reset (via the reset button) when coming 
-from Linux.
+>                 }
+>         }
+>
+> --
+> 2.32.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-After a poweroff reset in U-Boot does not work.
+Otherwise it looks good to me.
 
-Our expectation is that OpenSBI ensures that the SBI system reset 
-extension works upon entry into the next firmware stage without 
-requiring any further initialization by that software.
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-When a reset is requested you should make not presumption about the 
-state of the system. Simply fully initialize the da9063 state to 
-guarantee a successful reset.
-
-Best regards
-
-Heinrich
+Regards,
+Anup
 
