@@ -1,101 +1,53 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Tue, 26 Oct 2021 17:18:05 +0530
-Subject: [PATCH] lib: sbi: Fix GPA passed to __sbi_hfence_gvma_xyz() functions
-Message-ID: <20211026114805.2043389-1-anup.patel@wdc.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Tue, 26 Oct 2021 14:16:24 +0200
+Subject: [PATCH v2 0/3] lib: sbi: error handling in fdt_reset_init()
+Message-ID: <20211026121627.18760-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The parameter passed to HFENCE.GVMA instruction in rs1 register
-is guest physical address right shifted by 2 (i.e. divided by 4).
+A failure to initialize a reset driver should not stop booting. Yet we
+should print an error message in such a case. This requires to move
+the initialization of reset drivers to after sbi_console_init() and to
+move printing the probed drivers to after the final initialization.
 
-Unfortunately, we overlooked the semantics of rs1 registers for
-HFENCE.GVMA instruction and never right shifted guest physical
-address by 2. This issue did not manifest for hypervisors till
-now because all H-extension implementations (such as QEMU, Spike,
-Rocket Core FPGA, etc) we tried till now were conservatively
-flushing everything upon any HFENCE.GVMA instruction.
+With the series applied the output including an error message will
+look like:
 
-This patch fixes GPA passed to __sbi_hfence_gvma_vmid_gpa()
-and __sbi_hfence_gvma_gpa() functions.
+    ...
+    Domain0 Next Arg1         : 0x0000000080299f10
+    Domain0 Next Mode         : S-mode
+    Domain0 SysReset          : yes
 
-Fixes: 331ff6a162c1 ("lib: Support stage1 and stage2 tlb flushing")
-Reported-by: Ian Huang <ihuang@ventanamicro.com>
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
----
- include/sbi/sbi_hfence.h | 5 +++--
- lib/sbi/sbi_hfence.S     | 4 ++--
- lib/sbi/sbi_tlb.c        | 4 ++--
- 3 files changed, 7 insertions(+), 6 deletions(-)
+    fdt_reset_init: da9063-reset init failed, -1001
+    Platform Name             : SiFive HiFive Unmatched A00
+    Platform Features         : medeleg
+    Platform HART Count       : 5
+    Platform IPI Device       : aclint-mswi
+    Platform Timer Device     : aclint-mtimer @ 1000000Hz
+    Platform Console Device   : sifive_uart
+    Platform HSM Device       : ---
+    Platform Reboot Device    : ---
+    Platform Shutdown Device  : gpio-reset
+    ...
 
-diff --git a/include/sbi/sbi_hfence.h b/include/sbi/sbi_hfence.h
-index 4420f27..d3958f1 100644
---- a/include/sbi/sbi_hfence.h
-+++ b/include/sbi/sbi_hfence.h
-@@ -12,13 +12,14 @@
- #define __SBI_FENCE_H__
- 
- /** Invalidate Stage2 TLBs for given VMID and guest physical address */
--void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa, unsigned long vmid);
-+void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa_divby_4,
-+				unsigned long vmid);
- 
- /** Invalidate Stage2 TLBs for given VMID */
- void __sbi_hfence_gvma_vmid(unsigned long vmid);
- 
- /** Invalidate Stage2 TLBs for given guest physical address */
--void __sbi_hfence_gvma_gpa(unsigned long gpa);
-+void __sbi_hfence_gvma_gpa(unsigned long gpa_divby_4);
- 
- /** Invalidate all possible Stage2 TLBs */
- void __sbi_hfence_gvma_all(void);
-diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
-index d05becb..e11e650 100644
---- a/lib/sbi/sbi_hfence.S
-+++ b/lib/sbi/sbi_hfence.S
-@@ -27,7 +27,7 @@
- 	.global __sbi_hfence_gvma_vmid_gpa
- __sbi_hfence_gvma_vmid_gpa:
- 	/*
--	 * rs1 = a0 (GPA)
-+	 * rs1 = a0 (GPA >> 2)
- 	 * rs2 = a1 (VMID)
- 	 * HFENCE.GVMA a0, a1
- 	 * 0110001 01011 01010 000 00000 1110011
-@@ -51,7 +51,7 @@ __sbi_hfence_gvma_vmid:
- 	.global __sbi_hfence_gvma_gpa
- __sbi_hfence_gvma_gpa:
- 	/*
--	 * rs1 = a0 (GPA)
-+	 * rs1 = a0 (GPA >> 2)
- 	 * rs2 = zero
- 	 * HFENCE.GVMA a0
- 	 * 0110001 00000 01010 000 00000 1110011
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index efa74a7..4c142ea 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -72,7 +72,7 @@ void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
- 	}
- 
- 	for (i = 0; i < size; i += PAGE_SIZE) {
--		__sbi_hfence_gvma_gpa(start+i);
-+		__sbi_hfence_gvma_gpa((start + i) >> 2);
- 	}
- }
- 
-@@ -148,7 +148,7 @@ void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
- 	}
- 
- 	for (i = 0; i < size; i += PAGE_SIZE) {
--		__sbi_hfence_gvma_vmid_gpa(start + i, vmid);
-+		__sbi_hfence_gvma_vmid_gpa((start + i) >> 2, vmid);
- 	}
- }
- 
+v2:
+	add error output
+
+Heinrich Schuchardt (3):
+  lib: sbi: move sbi_boot_print_general()
+  platform: generic: move fdt_reset_init to final_init
+  lib: sbi: error handling in fdt_reset_init()
+
+ include/sbi_utils/reset/fdt_reset.h |  5 ++++-
+ lib/sbi/sbi_init.c                  |  4 ++--
+ lib/utils/reset/fdt_reset.c         | 13 ++++++-------
+ platform/generic/platform.c         | 15 +++++----------
+ 4 files changed, 17 insertions(+), 20 deletions(-)
+
 -- 
-2.25.1
+2.32.0
 
 
