@@ -1,119 +1,61 @@
-From: Dong Du <dd_nirvana@sjtu.edu.cn>
-Date: Tue, 26 Oct 2021 21:59:53 +0800 (CST)
-Subject: [PATCH] lib: sbi: Fix GPA passed to __sbi_hfence_gvma_xyz()
- functions
-In-Reply-To: <20211026114805.2043389-1-anup.patel@wdc.com>
-References: <20211026114805.2043389-1-anup.patel@wdc.com>
-Message-ID: <558623613.246330.1635256793764.JavaMail.zimbra@sjtu.edu.cn>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Tue, 26 Oct 2021 17:17:58 +0300
+Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
+In-Reply-To: <9953e984-dffa-400a-259f-b82a19d06a6f@canonical.com>
+References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
+ <20211015131925.22585-6-nikita.shubin@maquefel.me>
+ <24ca9d4a-02c0-0d03-58da-3510162df2be@canonical.com>
+ <9953e984-dffa-400a-259f-b82a19d06a6f@canonical.com>
+Message-ID: <20211026171758.18e54e37@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Hello Heinrich.
 
+On Tue, 26 Oct 2021 11:40:13 +0200
+Heinrich Schuchardt <heinrich.schuchardt@canonical.com> wrote:
 
-On Oct 26, 2021, at 7:48 PM, anup patel anup.patel at wdc.com wrote:
+> On 10/26/21 10:04, Heinrich Schuchardt wrote:
+> > On 10/15/21 15:19, Nikita Shubin wrote:  
+> >> From: Nikita Shubin <n.shubin@yadro.com>
+> >>
+> >> da9063 PMIC can be used to reset/shutdown the
+> >> Sifive Unmatched board.
+> >>
+> >> shutdown is done simply by writing SHUTDOWN bit to
+> >> DA9063_REG_CONTROL_F register.
+> >>
+> >> reset via setting WAKEUP bit in DA9063_REG_CONTROL_F
+> >> register followed by masking POWER and POWER1 domains
+> >> and setting STANDBY bit in DA9063_REG_CONTROL_A,
+> >> originally discovered by Alexandre Ghiti on linux-riscv
+> >> maillists.
+> >>
+> >> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>  
+> 
+> Alexandre and I had the same finding for the driver:
+> 
+> Reset works fine after a hard reset (via the reset button) when
+> coming from Linux.
+> 
+> After a poweroff reset in U-Boot does not work.
 
-> The parameter passed to HFENCE.GVMA instruction in rs1 register
-> is guest physical address right shifted by 2 (i.e. divided by 4).
-> 
-> Unfortunately, we overlooked the semantics of rs1 registers for
-> HFENCE.GVMA instruction and never right shifted guest physical
-> address by 2. This issue did not manifest for hypervisors till
-> now because all H-extension implementations (such as QEMU, Spike,
-> Rocket Core FPGA, etc) we tried till now were conservatively
-> flushing everything upon any HFENCE.GVMA instruction.
-> 
-> This patch fixes GPA passed to __sbi_hfence_gvma_vmid_gpa()
-> and __sbi_hfence_gvma_gpa() functions.
-> 
-> Fixes: 331ff6a162c1 ("lib: Support stage1 and stage2 tlb flushing")
-> Reported-by: Ian Huang <ihuang@ventanamicro.com>
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Thank you for testing!
 
-Looks good to me.
+> 
+> Our expectation is that OpenSBI ensures that the SBI system reset 
+> extension works upon entry into the next firmware stage without 
+> requiring any further initialization by that software.
+> 
+> When a reset is requested you should make not presumption about the 
+> state of the system. Simply fully initialize the da9063 state to 
+> guarantee a successful reset.
 
-Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+I think you are right and we shouldn't rely on someone already
+initialized it for us. 
 
-> ---
-> include/sbi/sbi_hfence.h | 5 +++--
-> lib/sbi/sbi_hfence.S     | 4 ++--
-> lib/sbi/sbi_tlb.c        | 4 ++--
-> 3 files changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_hfence.h b/include/sbi/sbi_hfence.h
-> index 4420f27..d3958f1 100644
-> --- a/include/sbi/sbi_hfence.h
-> +++ b/include/sbi/sbi_hfence.h
-> @@ -12,13 +12,14 @@
-> #define __SBI_FENCE_H__
-> 
-> /** Invalidate Stage2 TLBs for given VMID and guest physical address */
-> -void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa, unsigned long vmid);
-> +void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa_divby_4,
-> +				unsigned long vmid);
-> 
-> /** Invalidate Stage2 TLBs for given VMID */
-> void __sbi_hfence_gvma_vmid(unsigned long vmid);
-> 
-> /** Invalidate Stage2 TLBs for given guest physical address */
-> -void __sbi_hfence_gvma_gpa(unsigned long gpa);
-> +void __sbi_hfence_gvma_gpa(unsigned long gpa_divby_4);
-> 
-> /** Invalidate all possible Stage2 TLBs */
-> void __sbi_hfence_gvma_all(void);
-> diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
-> index d05becb..e11e650 100644
-> --- a/lib/sbi/sbi_hfence.S
-> +++ b/lib/sbi/sbi_hfence.S
-> @@ -27,7 +27,7 @@
-> 	.global __sbi_hfence_gvma_vmid_gpa
-> __sbi_hfence_gvma_vmid_gpa:
-> 	/*
-> -	 * rs1 = a0 (GPA)
-> +	 * rs1 = a0 (GPA >> 2)
-> 	 * rs2 = a1 (VMID)
-> 	 * HFENCE.GVMA a0, a1
-> 	 * 0110001 01011 01010 000 00000 1110011
-> @@ -51,7 +51,7 @@ __sbi_hfence_gvma_vmid:
-> 	.global __sbi_hfence_gvma_gpa
-> __sbi_hfence_gvma_gpa:
-> 	/*
-> -	 * rs1 = a0 (GPA)
-> +	 * rs1 = a0 (GPA >> 2)
-> 	 * rs2 = zero
-> 	 * HFENCE.GVMA a0
-> 	 * 0110001 00000 01010 000 00000 1110011
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> index efa74a7..4c142ea 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -72,7 +72,7 @@ void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
-> 	}
-> 
-> 	for (i = 0; i < size; i += PAGE_SIZE) {
-> -		__sbi_hfence_gvma_gpa(start+i);
-> +		__sbi_hfence_gvma_gpa((start + i) >> 2);
-> 	}
-> }
-> 
-> @@ -148,7 +148,7 @@ void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info
-> *tinfo)
-> 	}
-> 
-> 	for (i = 0; i < size; i += PAGE_SIZE) {
-> -		__sbi_hfence_gvma_vmid_gpa(start + i, vmid);
-> +		__sbi_hfence_gvma_vmid_gpa((start + i) >> 2, vmid);
-> 	}
-> }
-> 
-> --
-> 2.25.1
-> 
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Indeed i should investigate and expiriment some more.
 
