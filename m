@@ -1,203 +1,161 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 26 Oct 2021 11:43:08 +0800
-Subject: [PATCH] lib: utils:/gpio: Improve the sifive gpio driver
-In-Reply-To: <CAJivOr6nxhb+_dKuX5QNa2SYf0T1Q-bstj4ms1eKOyQAvXz4Wg@mail.gmail.com>
-References: <20211025031249.1072726-1-wxjstz@126.com>
- <CAAhSdy1E2wrXVW+OAZLUvb7MBsD=wkxGTdrZKt7F+ORUFKEy4g@mail.gmail.com>
- <CAAhSdy2B_rPQN0aVH_2hzC2cavJfy7QGVvdtpOrdzkvaPGtz5g@mail.gmail.com>
- <CAJivOr6nxhb+_dKuX5QNa2SYf0T1Q-bstj4ms1eKOyQAvXz4Wg@mail.gmail.com>
-Message-ID: <dcd75d2fb10803a3f8e82f005bc1cccb8e8cb6f4.camel@126.com>
+From: Alexandre Ghiti <alexandre.ghiti@canonical.com>
+Date: Tue, 26 Oct 2021 08:34:17 +0200
+Subject: [PATCH v2 0/5] I2C framework, reboot Unmatched via PMIC
+In-Reply-To: <20211020091720.2ab43230@redslave.neermore.group>
+References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
+ <CA+zEjCuiEH0YRTztbo5MiV+6mP-Aivuot9gsPKYNyvypeiT80Q@mail.gmail.com>
+ <20211020091720.2ab43230@redslave.neermore.group>
+Message-ID: <CA+zEjCubCEaVxYif-3JWgyrb5E7yecS8_CaHou0LfiKP_5toFA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-10-26???? 10:33 +0800?Green Wan???
-> + Andy (he is reviewing the patch and verifying the patch afterward)
-> 
-> Sorry for replying late. I just found the email was blocked and never
-> being sent yesterday.
-> 
-> Hi Xiang,
-> 
-> Could you share how you verify the patch? QEMU?
-The changes I made through the datasheet without tested.
+On Wed, Oct 20, 2021 at 8:17 AM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
+>
+> Hello Alexandre!
+>
+> On Wed, 20 Oct 2021 06:59:25 +0200
+> Alexandre Ghiti <alexandre.ghiti@canonical.com> wrote:
+>
+> > On Fri, Oct 15, 2021 at 3:20 PM Nikita Shubin
+> > <nikita.shubin@maquefel.me> wrote:
+> > >
+> > > From: Nikita Shubin <n.shubin@yadro.com>
+> > >
+> > > This series introduce rebooting via i2c da9063 PMIC, currently on
+> > > SiFive Unmatched board.
+> > >
+> > > "gpio-poweroff" remains with default priority of 128 - default
+> > > priority, da9063 is 1 by default the least priority.
+> > >
+> > > da9063-reset {
+> > >         compatible = "da9063-reset";
+> > >         priority = <1>;
+> > > };
+> > >
+> > > Is required to be added as a child node of PMIC.
+> > >
+> > > tested via Linux and U-Boot with reset extension:
+> > >
+> > > OpenSBI:
+> > > Platform Reboot Device    : da9063-reset
+> > > Platform Shutdown Device  : gpio-reset
+> > >
+> > > v1 -> v2:
+> > > Added:
+> > > lib: sbi: add priority for reset handler
+> > >
+> > > Renamed read/write to smbus_write/smbus_read, as actually this
+> > > is not a "raw" read/write but a one with a register address
+> > > provided, later a "raw" version will be need but currently i don't
+> > > have anything to test it.
+> > >
+> > > To Xiang W:
+> > > I have analized your proposal of switching to sbi_list,
+> > > and switched i2c adapters array to list. Unfortunately
+> > > to switch drivers we require "init" functions.
+> > >
+> > > to Alexander Ghiti:
+> > >
+> > > > No need for the struct i2c_adapter argument as it is globally
+> > > > accessible.
+> > >
+> > > It looks like a more clean and reusable way to me, let's here more
+> > > opinions
+> > > > Why should the da9063 device care about the adapter configuration
+> > > > here? I think It should just rely on an already
+> > > > configured/initialized i2c controller.
+> > >
+> > > With clocks init added to sifive_i2c configure it can become usable
+> > > even if nobody cared about controller initialization.
+> > >
+> > > > Establishing the link between the i2c device and its adapter
+> > > > should somehow be implicitly done by the i2c library, IMO the
+> > > > device should not care about its controller.
+> > >
+> > > And how do you think it will look like ? In out case it's not a
+> > > separate driver/client entity but all togather for simplicity.
+> > >
+> > > Nikita Shubin (5):
+> > >   lib: utils/reset: add priority to gpio reset
+> > >   lib: utils/i2c: Add generic I2C configuration library
+> > >   lib: utils/i2c: Add simple FDT based I2C framework
+> > >   lib: utils/i2c: Add minimal SiFive I2C driver
+> > >   lib: utils/reset: Add generic da9063 reset driver
+> > >
+> > >  include/sbi_utils/i2c/fdt_i2c.h    |  26 +++
+> > >  include/sbi_utils/i2c/i2c.h        |  99 +++++++++++
+> > >  lib/utils/i2c/fdt_i2c.c            | 111 ++++++++++++
+> > >  lib/utils/i2c/fdt_i2c_sifive.c     | 271
+> > > +++++++++++++++++++++++++++++ lib/utils/i2c/i2c.c                |
+> > > 85 +++++++++ lib/utils/i2c/objects.mk           |  12 ++
+> > >  lib/utils/reset/fdt_reset.c        |   2 +
+> > >  lib/utils/reset/fdt_reset_da9063.c | 214 +++++++++++++++++++++++
+> > >  lib/utils/reset/fdt_reset_gpio.c   |  18 +-
+> > >  lib/utils/reset/objects.mk         |   1 +
+> > >  10 files changed, 836 insertions(+), 3 deletions(-)
+> > >  create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
+> > >  create mode 100644 include/sbi_utils/i2c/i2c.h
+> > >  create mode 100644 lib/utils/i2c/fdt_i2c.c
+> > >  create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
+> > >  create mode 100644 lib/utils/i2c/i2c.c
+> > >  create mode 100644 lib/utils/i2c/objects.mk
+> > >  create mode 100644 lib/utils/reset/fdt_reset_da9063.c
+> > >
+> > > --
+> > > 2.31.1
+> > >
+> >
+> > I'm testing your patchset and although it seems to work from Linux, it
+> > fails when used from u-boot at the first smbus_write in
+> > da9063_sanity_check. Maybe it relies on some initialization done by
+> > the Linux driver?
+> >
+>
+> That's sound strange becouse i explicitly tested with u-boot SBI
+> extension, well in fact i tested mostly via u-boot because it's quicker
+> than booting Linux.
+>
+> Do you have CONFIG_SYS_I2C_OCORES enabled ?
+>
+> I tested on u-boot v2021.07 with Sifive Unmatched patches and SBI reset
+> extension applied. May it is time for configure ;) ?
+>
+> Sharing my u-boot branch:
+> https://github.com/maquefel/u-boot/tree/yadro/riscv/unmatched-v2021.07
 
-Regards,
-Xiang W
-> 
-> Hi Anup,
-> 
-> I checked the v2 patch below. It looks good to me.
-> http://lists.infradead.org/pipermail/opensbi/2021-October/001934.html
-> 
-> As for the active_low logic, should we put more description to
-> include/sbi_utils/gpio/gpio.h? Explicitly define the function set the
-> GPIO pin value with/without ACTIVE_LOW status. something like below:
-> 
-> -??????? * Get current value of GPIO pin
-> +??????? * Get current value of GPIO pin. Take its ACTIVE_LOW status
-> into account. */
-> 
-> On Mon, Oct 25, 2021 at 11:49 AM Anup Patel <anup@brainfault.org>
-> wrote:
-> > 
-> > Oops, forgot to CC. Sorry for the noise.
-> > 
-> > On Mon, Oct 25, 2021 at 9:17 AM Anup Patel <anup@brainfault.org>
-> > wrote:
-> > > 
-> > > +Green Wan? +Vincent Chen
-> > > 
-> > > On Mon, Oct 25, 2021 at 8:43 AM Xiang W <wxjstz@126.com> wrote:
-> > > > 
-> > > > 1. Add input support
-> > > > 2. Add pull-up support
-> > > > 3. Add ACTIVE_LOW support
-> > > > 
-> > > > Signed-off-by: Xiang W <wxjstz@126.com>
-> > > 
-> > > @Green/Vincent, it would be great if you can review this patch ?
-> > > 
-> > > Regards,
-> > > Anup
-> > > 
-> > > > ---
-> > > > ?lib/utils/gpio/fdt_gpio_sifive.c | 55
-> > > > ++++++++++++++++++++++++++++++++
-> > > > ?1 file changed, 55 insertions(+)
-> > > > 
-> > > > diff --git a/lib/utils/gpio/fdt_gpio_sifive.c
-> > > > b/lib/utils/gpio/fdt_gpio_sifive.c
-> > > > index 677f0fa..d113195 100644
-> > > > --- a/lib/utils/gpio/fdt_gpio_sifive.c
-> > > > +++ b/lib/utils/gpio/fdt_gpio_sifive.c
-> > > > @@ -18,8 +18,12 @@
-> > > > ?#define SIFIVE_GPIO_PINS_MAX?? 32
-> > > > ?#define SIFIVE_GPIO_PINS_DEF?? 16
-> > > > 
-> > > > +#define SIFIVE_GPIO_INPUTVAL?? 0x00
-> > > > +#define SIFIVE_GPIO_INPUTEN??? 0x04
-> > > > ?#define SIFIVE_GPIO_OUTEN????? 0x8
-> > > > ?#define SIFIVE_GPIO_OUTVAL???? 0xc
-> > > > +#define SIFIVE_GPIO_PUE??????????????? 0x10
-> > > > +#define SIFIVE_GPIO_OUTXOR???? 0x40
-> > > > ?#define SIFIVE_GPIO_BIT(b)???? (1U << (b))
-> > > > 
-> > > > ?struct sifive_gpio_chip {
-> > > > @@ -40,6 +44,20 @@ static int
-> > > > sifive_gpio_direction_output(struct gpio_pin *gp, int value)
-> > > > ??????? v |= SIFIVE_GPIO_BIT(gp->offset);
-> > > > ??????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTEN));
-> > > > 
-> > > > +?????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTXOR));
-> > > > +?????? if (gp->flags & GPIO_FLAG_ACTIVE_LOW)
-> > > > +?????????????? v |= SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? else
-> > > > +?????????????? v &= ~SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTXOR));
-> > > > +
-> > > > +?????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_PUE));
-> > > > +?????? if (gp->flags & GPIO_FLAG_PULL_UP)
-> > > > +?????????????? v |= SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? else
-> > > > +?????????????? v &= ~SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_PUE));
-> > > > +
-> > > > ??????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTVAL));
-> > > > ??????? if (!value)
-> > > > ??????????????? v &= ~SIFIVE_GPIO_BIT(gp->offset);
-> > > > @@ -50,6 +68,30 @@ static int
-> > > > sifive_gpio_direction_output(struct gpio_pin *gp, int value)
-> > > > ??????? return 0;
-> > > > ?}
-> > > > 
-> > > > +static int sifive_gpio_direction_input(struct gpio_pin *gp)
-> > > > +{
-> > > > +?????? unsigned int v;
-> > > > +?????? struct sifive_gpio_chip *chip =
-> > > > +?????????????? container_of(gp->chip, struct sifive_gpio_chip,
-> > > > chip);
-> > > > +
-> > > > +?????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTEN));
-> > > > +?????? v &= ~SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTEN));
-> > > > +
-> > > > +?????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_INPUTEN));
-> > > > +?????? v |= SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_INPUTEN));
-> > > > +
-> > > > +?????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_PUE));
-> > > > +?????? if (gp->flags & GPIO_FLAG_PULL_UP)
-> > > > +?????????????? v |= SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? else
-> > > > +?????????????? v &= ~SIFIVE_GPIO_BIT(gp->offset);
-> > > > +?????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_PUE));
-> > > > +
-> > > > +?????? return 0;
-> > > > +}
-> > > > +
-> > > > ?static void sifive_gpio_set(struct gpio_pin *gp, int value)
-> > > > ?{
-> > > > ??????? unsigned int v;
-> > > > @@ -64,6 +106,17 @@ static void sifive_gpio_set(struct gpio_pin
-> > > > *gp, int value)
-> > > > ??????? writel(v, (volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_OUTVAL));
-> > > > ?}
-> > > > 
-> > > > +static int sifive_gpio_get(struct gpio_pin *gp)
-> > > > +{
-> > > > +?????? unsigned int v, invert;
-> > > > +?????? struct sifive_gpio_chip *chip =
-> > > > +?????????????? container_of(gp->chip, struct sifive_gpio_chip,
-> > > > chip);
-> > > > +?????? v = readl((volatile void *)(chip->addr +
-> > > > SIFIVE_GPIO_INPUTVAL));
-> > > > +?????? v = !!(v & SIFIVE_GPIO_BIT(gp->offset));
-> > > > +?????? invert = !!(gp->flags & GPIO_FLAG_ACTIVE_LOW);
-> > > > +?????? return v ^ invert;
-> > > > +}
-> > > > +
-> > > > ?extern struct fdt_gpio fdt_gpio_sifive;
-> > > > 
-> > > > ?static int sifive_gpio_init(void *fdt, int nodeoff, u32
-> > > > phandle,
-> > > > @@ -86,7 +139,9 @@ static int sifive_gpio_init(void *fdt, int
-> > > > nodeoff, u32 phandle,
-> > > > ??????? chip->chip.id = phandle;
-> > > > ??????? chip->chip.ngpio = SIFIVE_GPIO_PINS_DEF;
-> > > > ??????? chip->chip.direction_output =
-> > > > sifive_gpio_direction_output;
-> > > > +?????? chip->chip.direction_input =
-> > > > sifive_gpio_direction_input;
-> > > > ??????? chip->chip.set = sifive_gpio_set;
-> > > > +?????? chip->chip.get = sifive_gpio_get;
-> > > > ??????? rc = gpio_chip_add(&chip->chip);
-> > > > ??????? if (rc)
-> > > > ??????????????? return rc;
-> > > > --
-> > > > 2.30.2
-> > > > 
-> > > > 
-> > > > --
-> > > > opensbi mailing list
-> > > > opensbi at lists.infradead.org
-> > > > http://lists.infradead.org/mailman/listinfo/opensbi
-> 
+That's weird, it still does not work for me from u-boot with the following:
+
+- openSBI: https://github.com/AlexGhiti/opensbi/tree/int/alex/nikita_pmic_reset_v2
+- u-boot: https://github.com/maquefel/u-boot/tree/yadro/riscv/unmatched-v2021.07
+
+And this fails this way:
+
+=> reset
+resetting ...
+da9063_system_reset: chip is not da9063 PMIC
+
+Alex
 
 
+
+
+
+
+
+>
+>
+> > Thanks,
+> >
+> > Alex
+> >
+> >
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
+>
 
