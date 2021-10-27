@@ -1,112 +1,57 @@
-From: Dong Du <dd_nirvana@sjtu.edu.cn>
-Date: Wed, 27 Oct 2021 23:09:32 +0800 (CST)
-Subject: [PATCH v2 3/3] lib: sbi: error handling in fdt_reset_init()
-In-Reply-To: <20211026134822.28220-4-heinrich.schuchardt@canonical.com>
-References: <20211026134822.28220-1-heinrich.schuchardt@canonical.com>
- <20211026134822.28220-4-heinrich.schuchardt@canonical.com>
-Message-ID: <864132199.779352.1635347372360.JavaMail.zimbra@sjtu.edu.cn>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Wed, 27 Oct 2021 17:22:03 +0200
+Subject: [PATCH v4 0/3] lib: sbi: error handling in fdt_reset_init()
+Message-ID: <20211027152206.68913-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+A failure to initialize a reset driver should not stop booting. Yet we
+should print an error message in such a case. This requires to move
+the initialization of reset drivers to after sbi_console_init() and to
+move printing the probed drivers to after the final initialization.
 
+With the series applied the output including an error message will
+look like:
 
-On Oct 26, 2021, at 9:48 PM, Heinrich Schuchardt heinrich.schuchardt at canonical.com wrote:
+    ...
+    Domain0 Next Arg1         : 0x0000000080299f10
+    Domain0 Next Mode         : S-mode
+    Domain0 SysReset          : yes
 
-> The initialization of a reset driver may fail for various reasons, like
-> a PMIC based reset driver not finding the required I2C driver. The return
-> code of the init routine may take other error values than -ENODEV.
-> 
-> If the initialization of a reset driver fails, this should not lead to the
-> board hanging. It is enough that the reset driver does not call
-> sbi_system_reset_add_device() to avoid invoking the driver for a device
-> that could not be initialized.
-> 
-> Change the return type of fdt_reset_init() to void.
-> Print a message if an error occurs.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-> ---
-> v3:
->	fix sign of SBI_ENODEV in fdt_reset_init()
-> v2:
->	provide an error message
-> ---
+    fdt_reset_init: da9063-reset init failed, -1001
+    Platform Name             : SiFive HiFive Unmatched A00
+    Platform Features         : medeleg
+    Platform HART Count       : 5
+    Platform IPI Device       : aclint-mswi
+    Platform Timer Device     : aclint-mtimer @ 1000000Hz
+    Platform Console Device   : sifive_uart
+    Platform HSM Device       : ---
+    Platform Reboot Device    : ---
+    Platform Shutdown Device  : gpio-reset
+    ...
 
-Minors on the title: should be PATCH v3 instead of v2.
+v4:
+	add a comment
+v3:
+	fix sign of SBI_ENODEV in fdt_reset_init()
+v2:
+	add error output
 
-It would be helpful to add comments to clarify that fdt_reset_init is assumed
-to be invoked in final_init instead of early_init.
-Besides the minor suggestion, looks good to me.
+Heinrich Schuchardt (3):
+  lib: sbi: move sbi_boot_print_general()
+  platform: generic: move fdt_reset_init to final_init
+  lib: sbi: error handling in fdt_reset_init()
 
-Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+ include/sbi_utils/reset/fdt_reset.h |  7 ++++++-
+ lib/sbi/sbi_init.c                  |  4 ++--
+ lib/utils/reset/fdt_reset.c         | 13 ++++++-------
+ platform/generic/platform.c         | 15 +++++----------
+ 4 files changed, 19 insertions(+), 20 deletions(-)
 
-> include/sbi_utils/reset/fdt_reset.h |  5 ++++-
-> lib/utils/reset/fdt_reset.c         | 13 ++++++-------
-> 2 files changed, 10 insertions(+), 8 deletions(-)
-> 
-> diff --git a/include/sbi_utils/reset/fdt_reset.h
-> b/include/sbi_utils/reset/fdt_reset.h
-> index 6d58697..49214ff 100644
-> --- a/include/sbi_utils/reset/fdt_reset.h
-> +++ b/include/sbi_utils/reset/fdt_reset.h
-> @@ -17,6 +17,9 @@ struct fdt_reset {
-> 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
-> };
-> 
-> -int fdt_reset_init(void);
-> +/**
-> + * fdt_reset_init() - initialize reset drivers based on the device-tree
-> + */
-> +void fdt_reset_init(void);
-> 
-> #endif
-> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-> index 168bb0c..fa2e81e 100644
-> --- a/lib/utils/reset/fdt_reset.c
-> +++ b/lib/utils/reset/fdt_reset.c
-> @@ -7,6 +7,7 @@
->  *   Anup Patel <anup.patel@wdc.com>
->  */
-> 
-> +#include <sbi/sbi_console.h>
-> #include <sbi/sbi_error.h>
-> #include <sbi/sbi_scratch.h>
-> #include <sbi_utils/fdt/fdt_helper.h>
-> @@ -28,7 +29,7 @@ static struct fdt_reset *reset_drivers[] = {
-> 	&fdt_reset_thead,
-> };
-> 
-> -int fdt_reset_init(void)
-> +void fdt_reset_init(void)
-> {
-> 	int pos, noff, rc;
-> 	struct fdt_reset *drv;
-> @@ -44,12 +45,10 @@ int fdt_reset_init(void)
-> 
-> 		if (drv->init) {
-> 			rc = drv->init(fdt, noff, match);
-> -			if (rc == SBI_ENODEV)
-> -				continue;
-> -			if (rc)
-> -				return rc;
-> +			if (rc && rc != SBI_ENODEV) {
-> +				sbi_printf("%s: %s init failed, %d\n",
-> +					   __func__, match->compatible, rc);
-> +			}
-> 		}
-> 	}
-> -
-> -	return 0;
-> }
-> --
-> 2.32.0
-> 
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+-- 
+2.32.0
+
 
