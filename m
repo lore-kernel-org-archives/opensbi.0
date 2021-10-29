@@ -1,70 +1,103 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed, 27 Oct 2021 17:22:05 +0200
-Subject: [PATCH v4 2/3] platform: generic: move fdt_reset_init to final_init
-In-Reply-To: <20211027152206.68913-1-heinrich.schuchardt@canonical.com>
-References: <20211027152206.68913-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20211027152206.68913-3-heinrich.schuchardt@canonical.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Fri, 29 Oct 2021 21:46:12 +0800
+Subject: [PATCH] lib: sbi: Emulate debug CSR read/write
+Message-ID: <20211029134612.23513-1-bmeng.cn@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the fdt_reset_init() invocation from generic_early_init() to
-generic_final_init(). This allows to print error messages.
+From: Bin Meng <bin.meng@windriver.com>
 
-Ignore the return value of fdt_reset_init() as we should not stop booting
-due to failure to initialize reset drivers.
+Trap-n-emulate debug CSR read/write, which is needed by S-mode
+software to implement the self-hosted debugger functionality.
 
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+Since these CSRs might be optional, use CSR detect read/write,
+and redirect the illegal instruction exception if unavailable.
+
+Signed-off-by: Bin Meng <bin.meng@windriver.com>
 ---
-v4:
-	no change
-v3:
-	no change
-v2:
-	new patch
----
- platform/generic/platform.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 0757d87..8d4e41a 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -120,18 +120,10 @@ fail:
+ lib/sbi/sbi_emulate_csr.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
+index dbb1755..b2893f2 100644
+--- a/lib/sbi/sbi_emulate_csr.c
++++ b/lib/sbi/sbi_emulate_csr.c
+@@ -11,6 +11,7 @@
+ #include <sbi/riscv_encoding.h>
+ #include <sbi/sbi_bitops.h>
+ #include <sbi/sbi_console.h>
++#include <sbi/sbi_csr_detect.h>
+ #include <sbi/sbi_emulate_csr.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
+@@ -53,6 +54,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+ #else
+ 	bool virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
+ #endif
++	struct sbi_trap_info trap = {0};
  
- static int generic_early_init(bool cold_boot)
- {
--	int rc;
--
--	if (generic_plat && generic_plat->early_init) {
--		rc = generic_plat->early_init(cold_boot, generic_plat_match);
--		if (rc)
--			return rc;
--	}
--
--	if (!cold_boot)
-+	if (!generic_plat || !generic_plat->early_init)
- 		return 0;
+ 	switch (csr_num) {
+ 	case CSR_HTIMEDELTA:
+@@ -146,6 +148,22 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+ #undef switchcase_hpm_2
+ #undef switchcase_hpm
  
--	return fdt_reset_init();
-+	return generic_plat->early_init(cold_boot, generic_plat_match);
- }
- 
- static int generic_final_init(bool cold_boot)
-@@ -139,6 +131,9 @@ static int generic_final_init(bool cold_boot)
- 	void *fdt;
- 	int rc;
- 
-+	if (cold_boot)
-+		fdt_reset_init();
++#define switchcase_debug(__csr)						\
++	case __csr:							\
++		if (prev_mode == PRV_U)					\
++			return SBI_ENOTSUPP;				\
++		*csr_val = csr_read_allowed(__csr, (ulong)&trap);	\
++		if (trap.cause)						\
++			return SBI_ENOTSUPP;				\
++		break;
 +
- 	if (generic_plat && generic_plat->final_init) {
- 		rc = generic_plat->final_init(cold_boot, generic_plat_match);
- 		if (rc)
++	switchcase_debug(CSR_TSELECT)
++	switchcase_debug(CSR_TDATA1)
++	switchcase_debug(CSR_TDATA2)
++	switchcase_debug(CSR_TDATA3)
++
++#undef switchcase_debug
++
+ 	default:
+ 		ret = SBI_ENOTSUPP;
+ 		break;
+@@ -168,6 +186,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+ #else
+ 	bool virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
+ #endif
++	struct sbi_trap_info trap = {0};
+ 
+ 	switch (csr_num) {
+ 	case CSR_HTIMEDELTA:
+@@ -184,6 +203,23 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+ 			ret = SBI_ENOTSUPP;
+ 		break;
+ #endif
++
++#define switchcase_debug(__csr)						\
++	case __csr:							\
++		if (prev_mode == PRV_U)					\
++			return SBI_ENOTSUPP;				\
++		csr_write_allowed(__csr, (ulong)&trap, csr_val);	\
++		if (trap.cause)						\
++			return SBI_ENOTSUPP;				\
++		break;
++
++	switchcase_debug(CSR_TSELECT)
++	switchcase_debug(CSR_TDATA1)
++	switchcase_debug(CSR_TDATA2)
++	switchcase_debug(CSR_TDATA3)
++
++#undef switchcase_debug
++
+ 	default:
+ 		ret = SBI_ENOTSUPP;
+ 		break;
 -- 
-2.32.0
+2.25.1
 
 
