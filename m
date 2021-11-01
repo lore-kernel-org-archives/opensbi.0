@@ -1,156 +1,60 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 1 Nov 2021 12:14:51 +0530
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Mon, 1 Nov 2021 14:55:58 +0800
 Subject: [PATCH] lib: sbi: Emulate debug CSR read/write
-In-Reply-To: <349ae26f5f3dad1e7ff193fdbd8855755951981c.camel@126.com>
+In-Reply-To: <CAAhSdy2DiExhJizT0Eg-vS9eg0UPQhZhud=LUtvy4EthWQvYdw@mail.gmail.com>
 References: <20211029134612.23513-1-bmeng.cn@gmail.com>
  <349ae26f5f3dad1e7ff193fdbd8855755951981c.camel@126.com>
-Message-ID: <CAAhSdy2DiExhJizT0Eg-vS9eg0UPQhZhud=LUtvy4EthWQvYdw@mail.gmail.com>
+ <CAAhSdy2DiExhJizT0Eg-vS9eg0UPQhZhud=LUtvy4EthWQvYdw@mail.gmail.com>
+Message-ID: <CAEUhbmXBo9sLZGSkjAfq_QFxs-kEgOod=g+PjgLQgH5WLSVroA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Oct 31, 2021 at 12:40 PM Xiang W <wxjstz@126.com> wrote:
+On Mon, Nov 1, 2021 at 2:45 PM Anup Patel <anup@brainfault.org> wrote:
 >
-> ? 2021-10-29???? 21:46 +0800?Bin Meng???
-> > From: Bin Meng <bin.meng@windriver.com>
+> On Sun, Oct 31, 2021 at 12:40 PM Xiang W <wxjstz@126.com> wrote:
 > >
-> > Trap-n-emulate debug CSR read/write, which is needed by S-mode
-> > software to implement the self-hosted debugger functionality.
-> >
-> > Since these CSRs might be optional, use CSR detect read/write,
-> > and redirect the illegal instruction exception if unavailable.
-> >
-> > Signed-off-by: Bin Meng <bin.meng@windriver.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+> > ? 2021-10-29???? 21:46 +0800?Bin Meng???
+> > > From: Bin Meng <bin.meng@windriver.com>
+> > >
+> > > Trap-n-emulate debug CSR read/write, which is needed by S-mode
+> > > software to implement the self-hosted debugger functionality.
+> > >
+> > > Since these CSRs might be optional, use CSR detect read/write,
+> > > and redirect the illegal instruction exception if unavailable.
+> > >
+> > > Signed-off-by: Bin Meng <bin.meng@windriver.com>
+> > Reviewed-by: Xiang W <wxjstz@126.com>
+>
+> Directly exposing machine-mode CSRs via CSR emulation is not
+> acceptable. The S-mode should only be accessing CSRs meant
+> for S-mode. If required we should define SBI extension and use
+> that program debug CSRs from S-mode.
+>
+> Further, directly using csr_read/write_allowed() in CSR emulation
+> is also not appropriate because these calls are slower compared
+> to regular csr_read/write().
 
-Directly exposing machine-mode CSRs via CSR emulation is not
-acceptable. The S-mode should only be accessing CSRs meant
-for S-mode. If required we should define SBI extension and use
-that program debug CSRs from S-mode.
+I am afraid they have to be. Even if we use SBI to abstract the
+register programming, it still may need to use the _allowed version
+for the tdata1/2/3 access as these registers may not be available for
+a specific trigger and may cause illegal instruction for one trigger
+but not another.
 
-Further, directly using csr_read/write_allowed() in CSR emulation
-is also not appropriate because these calls are slower compared
-to regular csr_read/write().
+>
+> I suggest the following:
+> 1) Define SBI debug extension
+> 2) Have a patch to detect debug CSRs in hart_detect_features()
+> 3) Implement SBI debug extension in OpenSBI
 
-I suggest the following:
-1) Define SBI debug extension
-2) Have a patch to detect debug CSRs in hart_detect_features()
-3) Implement SBI debug extension in OpenSBI
+The RISC-V debug spec is very loose (or flexible) in defining what
+capabilities are to be provided by the hardware, so it becomes quite
+complicated to provide a complete SBI mapping to what the hardware can
+provide. I feel the best way is to expose such to S-mode and have
+S-mode to directly program these debug registers.
 
 Regards,
-Anup
-
-> > ---
-> >
-> >  lib/sbi/sbi_emulate_csr.c | 36 ++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 36 insertions(+)
-> >
-> > diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-> > index dbb1755..b2893f2 100644
-> > --- a/lib/sbi/sbi_emulate_csr.c
-> > +++ b/lib/sbi/sbi_emulate_csr.c
-> > @@ -11,6 +11,7 @@
-> >  #include <sbi/riscv_encoding.h>
-> >  #include <sbi/sbi_bitops.h>
-> >  #include <sbi/sbi_console.h>
-> > +#include <sbi/sbi_csr_detect.h>
-> >  #include <sbi/sbi_emulate_csr.h>
-> >  #include <sbi/sbi_error.h>
-> >  #include <sbi/sbi_hart.h>
-> > @@ -53,6 +54,7 @@ int sbi_emulate_csr_read(int csr_num, struct
-> > sbi_trap_regs *regs,
-> >  #else
-> >         bool virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
-> >  #endif
-> > +       struct sbi_trap_info trap = {0};
-> >
-> >         switch (csr_num) {
-> >         case CSR_HTIMEDELTA:
-> > @@ -146,6 +148,22 @@ int sbi_emulate_csr_read(int csr_num, struct
-> > sbi_trap_regs *regs,
-> >  #undef switchcase_hpm_2
-> >  #undef switchcase_hpm
-> >
-> > +#define
-> > switchcase_debug(__csr)
-> >   \
-> > +       case
-> > __csr:                                                     \
-> > +               if (prev_mode ==
-> > PRV_U)                                 \
-> > +                       return
-> > SBI_ENOTSUPP;                            \
-> > +               *csr_val = csr_read_allowed(__csr,
-> > (ulong)&trap);       \
-> > +               if
-> > (trap.cause)                                         \
-> > +                       return
-> > SBI_ENOTSUPP;                            \
-> > +               break;
-> > +
-> > +       switchcase_debug(CSR_TSELECT)
-> > +       switchcase_debug(CSR_TDATA1)
-> > +       switchcase_debug(CSR_TDATA2)
-> > +       switchcase_debug(CSR_TDATA3)
-> > +
-> > +#undef switchcase_debug
-> > +
-> >         default:
-> >                 ret = SBI_ENOTSUPP;
-> >                 break;
-> > @@ -168,6 +186,7 @@ int sbi_emulate_csr_write(int csr_num, struct
-> > sbi_trap_regs *regs,
-> >  #else
-> >         bool virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
-> >  #endif
-> > +       struct sbi_trap_info trap = {0};
-> >
-> >         switch (csr_num) {
-> >         case CSR_HTIMEDELTA:
-> > @@ -184,6 +203,23 @@ int sbi_emulate_csr_write(int csr_num, struct
-> > sbi_trap_regs *regs,
-> >                         ret = SBI_ENOTSUPP;
-> >                 break;
-> >  #endif
-> > +
-> > +#define
-> > switchcase_debug(__csr)
-> >   \
-> > +       case
-> > __csr:                                                     \
-> > +               if (prev_mode ==
-> > PRV_U)                                 \
-> > +                       return
-> > SBI_ENOTSUPP;                            \
-> > +               csr_write_allowed(__csr, (ulong)&trap,
-> > csr_val);        \
-> > +               if
-> > (trap.cause)                                         \
-> > +                       return
-> > SBI_ENOTSUPP;                            \
-> > +               break;
-> > +
-> > +       switchcase_debug(CSR_TSELECT)
-> > +       switchcase_debug(CSR_TDATA1)
-> > +       switchcase_debug(CSR_TDATA2)
-> > +       switchcase_debug(CSR_TDATA3)
-> > +
-> > +#undef switchcase_debug
-> > +
-> >         default:
-> >                 ret = SBI_ENOTSUPP;
-> >                 break;
-> > --
-> > 2.25.1
-> >
-> >
->
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Bin
 
