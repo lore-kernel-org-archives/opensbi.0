@@ -1,96 +1,130 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 1 Nov 2021 16:20:26 +0800
-Subject: [PATCH] lib: sbi: Emulate debug CSR read/write
-In-Reply-To: <CAAhSdy1+HbRfeXY0rwXp1=VcsK33Tp-mDaCKW=hdui+gx-_K-g@mail.gmail.com>
-References: <20211029134612.23513-1-bmeng.cn@gmail.com>
- <349ae26f5f3dad1e7ff193fdbd8855755951981c.camel@126.com>
- <CAAhSdy2DiExhJizT0Eg-vS9eg0UPQhZhud=LUtvy4EthWQvYdw@mail.gmail.com>
- <CAEUhbmXBo9sLZGSkjAfq_QFxs-kEgOod=g+PjgLQgH5WLSVroA@mail.gmail.com>
- <CAAhSdy1+HbRfeXY0rwXp1=VcsK33Tp-mDaCKW=hdui+gx-_K-g@mail.gmail.com>
-Message-ID: <CAEUhbmU2tprx7NfMkGVQWdKLN8yA2u24xBhZJ+WoG13wSRcXoA@mail.gmail.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Mon,  1 Nov 2021 14:50:23 +0300
+Subject: [PATCH] lib: utils/gpio: use list for drivers
+Message-ID: <20211101115023.13414-1-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 1, 2021 at 3:52 PM Anup Patel <anup@brainfault.org> wrote:
->
-> On Mon, Nov 1, 2021 at 12:26 PM Bin Meng <bmeng.cn@gmail.com> wrote:
-> >
-> > On Mon, Nov 1, 2021 at 2:45 PM Anup Patel <anup@brainfault.org> wrote:
-> > >
-> > > On Sun, Oct 31, 2021 at 12:40 PM Xiang W <wxjstz@126.com> wrote:
-> > > >
-> > > > ? 2021-10-29???? 21:46 +0800?Bin Meng???
-> > > > > From: Bin Meng <bin.meng@windriver.com>
-> > > > >
-> > > > > Trap-n-emulate debug CSR read/write, which is needed by S-mode
-> > > > > software to implement the self-hosted debugger functionality.
-> > > > >
-> > > > > Since these CSRs might be optional, use CSR detect read/write,
-> > > > > and redirect the illegal instruction exception if unavailable.
-> > > > >
-> > > > > Signed-off-by: Bin Meng <bin.meng@windriver.com>
-> > > > Reviewed-by: Xiang W <wxjstz@126.com>
-> > >
-> > > Directly exposing machine-mode CSRs via CSR emulation is not
-> > > acceptable. The S-mode should only be accessing CSRs meant
-> > > for S-mode. If required we should define SBI extension and use
-> > > that program debug CSRs from S-mode.
-> > >
-> > > Further, directly using csr_read/write_allowed() in CSR emulation
-> > > is also not appropriate because these calls are slower compared
-> > > to regular csr_read/write().
-> >
-> > I am afraid they have to be. Even if we use SBI to abstract the
-> > register programming, it still may need to use the _allowed version
-> > for the tdata1/2/3 access as these registers may not be available for
-> > a specific trigger and may cause illegal instruction for one trigger
-> > but not another.
->
-> Why can't we discover/know the conditions in which some of the
-> CSRs trigger illegal instruction ?
+From: Nikita Shubin <n.shubin@yadro.com>
 
-Not possible now with current latest priv & debug spec, neither on the
-real hardware (SiFive U54/U74). Maybe via mconfigptr in the future.
+Convert static array to sbi_list.
 
-> This still seems like HACK which is trying to avoid getting into
-> details of debug capabilities.
->
-> >
-> > >
-> > > I suggest the following:
-> > > 1) Define SBI debug extension
-> > > 2) Have a patch to detect debug CSRs in hart_detect_features()
-> > > 3) Implement SBI debug extension in OpenSBI
-> >
-> > The RISC-V debug spec is very loose (or flexible) in defining what
-> > capabilities are to be provided by the hardware, so it becomes quite
-> > complicated to provide a complete SBI mapping to what the hardware can
-> > provide. I feel the best way is to expose such to S-mode and have
-> > S-mode to directly program these debug registers.
->
-> Flexibility and modularity is nature of RISC-V but this does not mean
-> we should not put efforts in defining proper abstraction. The best
-> example is SBI PMU extension where platforms have lot of flexibility
-> in implementation but the SBI PMU tries it's best to standardize the
-> interface.
->
-> Allowing direct access to M-mode CSRs from S-mode is not the
-> right way to go. What if VS-mode accesses this M-mode CSRs
-> which will now trap to M-mode ? What about nested virtualization ?
+This removes size limitation, makes add/remove more efficent and
+saves space.
 
-The breakpoint trap needs to be delegated to VS-mode anyway. This
-delegation should be done regardless how this is implemented.
+Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+---
+ include/sbi_utils/gpio/gpio.h |  8 +++++++
+ lib/utils/gpio/gpio.c         | 42 ++++++++++-------------------------
+ 2 files changed, 20 insertions(+), 30 deletions(-)
 
-> We can discover the debug capabilities in some way and present
-> a standard SBI debug interface to S-mode. We can also ensure
-> that SBI debug interface is virtualization friendly so that VS-mode
-> can also happily use it running under a hypervisor.
+diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+index 167d11a..7a3d8bb 100644
+--- a/include/sbi_utils/gpio/gpio.h
++++ b/include/sbi_utils/gpio/gpio.h
+@@ -11,6 +11,7 @@
+ #define __GPIO_H__
+ 
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_list.h>
+ 
+ #define GPIO_LINE_DIRECTION_IN	1
+ #define GPIO_LINE_DIRECTION_OUT	0
+@@ -70,8 +71,15 @@ struct gpio_chip {
+ 	int (*get)(struct gpio_pin *gp);
+ 	/** Set output value for GPIO pin */
+ 	void (*set)(struct gpio_pin *gp, int value);
++	/** List */
++	struct sbi_dlist node;
+ };
+ 
++static inline struct gpio_chip *to_gpio_chip(struct sbi_dlist *node)
++{
++	return container_of(node, struct gpio_chip, node);
++}
++
+ /** Find a registered GPIO chip */
+ struct gpio_chip *gpio_chip_find(unsigned int id);
+ 
+diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
+index fb30c0f..3a3a6b2 100644
+--- a/lib/utils/gpio/gpio.c
++++ b/lib/utils/gpio/gpio.c
+@@ -10,58 +10,40 @@
+ #include <sbi/sbi_error.h>
+ #include <sbi_utils/gpio/gpio.h>
+ 
+-#define GPIO_CHIP_MAX		16
+-
+-static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
++static SBI_LIST_HEAD(gpio_chip_list);
+ 
+ struct gpio_chip *gpio_chip_find(unsigned int id)
+ {
+-	unsigned int i;
+-	struct gpio_chip *ret = NULL;
+-
+-	for (i = 0; i < GPIO_CHIP_MAX; i++) {
+-		if (gc_array[i] && gc_array[i]->id == id) {
+-			ret = gc_array[i];
+-			break;
+-		}
++	struct sbi_dlist *pos;
++
++	sbi_list_for_each(pos, &(gpio_chip_list)) {
++		struct gpio_chip *chip = to_gpio_chip(pos);
++
++		if (chip->id == id)
++			return chip;
+ 	}
+ 
+-	return ret;
++	return NULL;
+ }
+ 
+ int gpio_chip_add(struct gpio_chip *gc)
+ {
+-	int i, ret = SBI_ENOSPC;
+-
+ 	if (!gc)
+ 		return SBI_EINVAL;
+ 	if (gpio_chip_find(gc->id))
+ 		return SBI_EALREADY;
+ 
+-	for (i = 0; i < GPIO_CHIP_MAX; i++) {
+-		if (!gc_array[i]) {
+-			gc_array[i] = gc;
+-			ret = 0;
+-			break;
+-		}
+-	}
++	sbi_list_add(&(gc->node), &(gpio_chip_list));
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ void gpio_chip_remove(struct gpio_chip *gc)
+ {
+-	int i;
+-
+ 	if (!gc)
+ 		return;
+ 
+-	for (i = 0; i < GPIO_CHIP_MAX; i++) {
+-		if (gc_array[i] == gc) {
+-			gc_array[i] = NULL;
+-			break;
+-		}
+-	}
++	sbi_list_del(&(gc->node));
+ }
+ 
+ int gpio_get_direction(struct gpio_pin *gp)
+-- 
+2.31.1
 
-Will need some time to think about the SBI debug interface.
-
-Regards,
-Bin
 
