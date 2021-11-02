@@ -1,128 +1,150 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 2 Nov 2021 16:07:12 +0530
-Subject: [PATCH] lib: sbi: Fix GPA passed to __sbi_hfence_gvma_xyz()
- functions
-In-Reply-To: <558623613.246330.1635256793764.JavaMail.zimbra@sjtu.edu.cn>
-References: <20211026114805.2043389-1-anup.patel@wdc.com>
- <558623613.246330.1635256793764.JavaMail.zimbra@sjtu.edu.cn>
-Message-ID: <CAAhSdy0WrN9LCdA1D+aBF4NPZgEB4uF6=1TU6=1W2xRMJX2Fhw@mail.gmail.com>
+Date: Tue, 2 Nov 2021 16:14:45 +0530
+Subject: [PATCH] lib: utils/gpio: use list for drivers
+In-Reply-To: <20211101115023.13414-1-nikita.shubin@maquefel.me>
+References: <20211101115023.13414-1-nikita.shubin@maquefel.me>
+Message-ID: <CAAhSdy303gLCDNQUxiCMe-gdErsE6wyA2hrYKb96mGRKY+wrBA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 26, 2021 at 7:29 PM Dong Du <dd_nirvana@sjtu.edu.cn> wrote:
+On Mon, Nov 1, 2021 at 5:20 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
 >
+> From: Nikita Shubin <n.shubin@yadro.com>
 >
+> Convert static array to sbi_list.
 >
-> On Oct 26, 2021, at 7:48 PM, anup patel anup.patel at wdc.com wrote:
->
-> > The parameter passed to HFENCE.GVMA instruction in rs1 register
-> > is guest physical address right shifted by 2 (i.e. divided by 4).
-> >
-> > Unfortunately, we overlooked the semantics of rs1 registers for
-> > HFENCE.GVMA instruction and never right shifted guest physical
-> > address by 2. This issue did not manifest for hypervisors till
-> > now because all H-extension implementations (such as QEMU, Spike,
-> > Rocket Core FPGA, etc) we tried till now were conservatively
-> > flushing everything upon any HFENCE.GVMA instruction.
-> >
-> > This patch fixes GPA passed to __sbi_hfence_gvma_vmid_gpa()
-> > and __sbi_hfence_gvma_gpa() functions.
-> >
-> > Fixes: 331ff6a162c1 ("lib: Support stage1 and stage2 tlb flushing")
-> > Reported-by: Ian Huang <ihuang@ventanamicro.com>
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
->
-> Looks good to me.
->
-> Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> This removes size limitation, makes add/remove more efficent and
+> saves space.
 
-Applied this patch to the riscv/opensbi repo
+s/efficent/efficient/
+
+>
+> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+
+Otherwise it looks good to me.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
 Regards,
 Anup
 
+> ---
+>  include/sbi_utils/gpio/gpio.h |  8 +++++++
+>  lib/utils/gpio/gpio.c         | 42 ++++++++++-------------------------
+>  2 files changed, 20 insertions(+), 30 deletions(-)
 >
-> > ---
-> > include/sbi/sbi_hfence.h | 5 +++--
-> > lib/sbi/sbi_hfence.S     | 4 ++--
-> > lib/sbi/sbi_tlb.c        | 4 ++--
-> > 3 files changed, 7 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_hfence.h b/include/sbi/sbi_hfence.h
-> > index 4420f27..d3958f1 100644
-> > --- a/include/sbi/sbi_hfence.h
-> > +++ b/include/sbi/sbi_hfence.h
-> > @@ -12,13 +12,14 @@
-> > #define __SBI_FENCE_H__
-> >
-> > /** Invalidate Stage2 TLBs for given VMID and guest physical address */
-> > -void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa, unsigned long vmid);
-> > +void __sbi_hfence_gvma_vmid_gpa(unsigned long gpa_divby_4,
-> > +                             unsigned long vmid);
-> >
-> > /** Invalidate Stage2 TLBs for given VMID */
-> > void __sbi_hfence_gvma_vmid(unsigned long vmid);
-> >
-> > /** Invalidate Stage2 TLBs for given guest physical address */
-> > -void __sbi_hfence_gvma_gpa(unsigned long gpa);
-> > +void __sbi_hfence_gvma_gpa(unsigned long gpa_divby_4);
-> >
-> > /** Invalidate all possible Stage2 TLBs */
-> > void __sbi_hfence_gvma_all(void);
-> > diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
-> > index d05becb..e11e650 100644
-> > --- a/lib/sbi/sbi_hfence.S
-> > +++ b/lib/sbi/sbi_hfence.S
-> > @@ -27,7 +27,7 @@
-> >       .global __sbi_hfence_gvma_vmid_gpa
-> > __sbi_hfence_gvma_vmid_gpa:
-> >       /*
-> > -      * rs1 = a0 (GPA)
-> > +      * rs1 = a0 (GPA >> 2)
-> >        * rs2 = a1 (VMID)
-> >        * HFENCE.GVMA a0, a1
-> >        * 0110001 01011 01010 000 00000 1110011
-> > @@ -51,7 +51,7 @@ __sbi_hfence_gvma_vmid:
-> >       .global __sbi_hfence_gvma_gpa
-> > __sbi_hfence_gvma_gpa:
-> >       /*
-> > -      * rs1 = a0 (GPA)
-> > +      * rs1 = a0 (GPA >> 2)
-> >        * rs2 = zero
-> >        * HFENCE.GVMA a0
-> >        * 0110001 00000 01010 000 00000 1110011
-> > diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> > index efa74a7..4c142ea 100644
-> > --- a/lib/sbi/sbi_tlb.c
-> > +++ b/lib/sbi/sbi_tlb.c
-> > @@ -72,7 +72,7 @@ void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
-> >       }
-> >
-> >       for (i = 0; i < size; i += PAGE_SIZE) {
-> > -             __sbi_hfence_gvma_gpa(start+i);
-> > +             __sbi_hfence_gvma_gpa((start + i) >> 2);
-> >       }
-> > }
-> >
-> > @@ -148,7 +148,7 @@ void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info
-> > *tinfo)
-> >       }
-> >
-> >       for (i = 0; i < size; i += PAGE_SIZE) {
-> > -             __sbi_hfence_gvma_vmid_gpa(start + i, vmid);
-> > +             __sbi_hfence_gvma_vmid_gpa((start + i) >> 2, vmid);
-> >       }
-> > }
-> >
-> > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+> index 167d11a..7a3d8bb 100644
+> --- a/include/sbi_utils/gpio/gpio.h
+> +++ b/include/sbi_utils/gpio/gpio.h
+> @@ -11,6 +11,7 @@
+>  #define __GPIO_H__
+>
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/sbi_list.h>
+>
+>  #define GPIO_LINE_DIRECTION_IN 1
+>  #define GPIO_LINE_DIRECTION_OUT        0
+> @@ -70,8 +71,15 @@ struct gpio_chip {
+>         int (*get)(struct gpio_pin *gp);
+>         /** Set output value for GPIO pin */
+>         void (*set)(struct gpio_pin *gp, int value);
+> +       /** List */
+> +       struct sbi_dlist node;
+>  };
+>
+> +static inline struct gpio_chip *to_gpio_chip(struct sbi_dlist *node)
+> +{
+> +       return container_of(node, struct gpio_chip, node);
+> +}
+> +
+>  /** Find a registered GPIO chip */
+>  struct gpio_chip *gpio_chip_find(unsigned int id);
+>
+> diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
+> index fb30c0f..3a3a6b2 100644
+> --- a/lib/utils/gpio/gpio.c
+> +++ b/lib/utils/gpio/gpio.c
+> @@ -10,58 +10,40 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi_utils/gpio/gpio.h>
+>
+> -#define GPIO_CHIP_MAX          16
+> -
+> -static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
+> +static SBI_LIST_HEAD(gpio_chip_list);
+>
+>  struct gpio_chip *gpio_chip_find(unsigned int id)
+>  {
+> -       unsigned int i;
+> -       struct gpio_chip *ret = NULL;
+> -
+> -       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> -               if (gc_array[i] && gc_array[i]->id == id) {
+> -                       ret = gc_array[i];
+> -                       break;
+> -               }
+> +       struct sbi_dlist *pos;
+> +
+> +       sbi_list_for_each(pos, &(gpio_chip_list)) {
+> +               struct gpio_chip *chip = to_gpio_chip(pos);
+> +
+> +               if (chip->id == id)
+> +                       return chip;
+>         }
+>
+> -       return ret;
+> +       return NULL;
+>  }
+>
+>  int gpio_chip_add(struct gpio_chip *gc)
+>  {
+> -       int i, ret = SBI_ENOSPC;
+> -
+>         if (!gc)
+>                 return SBI_EINVAL;
+>         if (gpio_chip_find(gc->id))
+>                 return SBI_EALREADY;
+>
+> -       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> -               if (!gc_array[i]) {
+> -                       gc_array[i] = gc;
+> -                       ret = 0;
+> -                       break;
+> -               }
+> -       }
+> +       sbi_list_add(&(gc->node), &(gpio_chip_list));
+>
+> -       return ret;
+> +       return 0;
+>  }
+>
+>  void gpio_chip_remove(struct gpio_chip *gc)
+>  {
+> -       int i;
+> -
+>         if (!gc)
+>                 return;
+>
+> -       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> -               if (gc_array[i] == gc) {
+> -                       gc_array[i] = NULL;
+> -                       break;
+> -               }
+> -       }
+> +       sbi_list_del(&(gc->node));
+>  }
+>
+>  int gpio_get_direction(struct gpio_pin *gp)
+> --
+> 2.31.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
