@@ -1,151 +1,107 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 2 Nov 2021 10:35:53 +0530
-Subject: [PATCH] lib: utils/reset: Register separate GPIO system reset
- devices
-In-Reply-To: <2084535172.7325862.1635081473944.JavaMail.zimbra@sjtu.edu.cn>
-References: <20211021055019.1450208-1-anup.patel@wdc.com>
- <2084535172.7325862.1635081473944.JavaMail.zimbra@sjtu.edu.cn>
-Message-ID: <CAAhSdy2WdO7g+uOr7BF-C-O-j9K9P0FGEB5-T8mnS7PebNHprg@mail.gmail.com>
+Date: Tue, 2 Nov 2021 10:45:31 +0530
+Subject: [PATCH] lib: sbi: Refine addr format in sbi_printf
+In-Reply-To: <20211025080615.4881-1-Dd_nirvana@sjtu.edu.cn>
+References: <20211025080615.4881-1-Dd_nirvana@sjtu.edu.cn>
+Message-ID: <CAAhSdy0_iScA3d3WzwZeWHC3qYNQd5TwLn3MzeHYStHPwtSv6g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Oct 24, 2021 at 6:47 PM Dong Du <dd_nirvana@sjtu.edu.cn> wrote:
+On Mon, Oct 25, 2021 at 1:38 PM Dong Du <Dd_nirvana@sjtu.edu.cn> wrote:
 >
+> Although we have PRILX to help us print unsigned long without
+> considering the 32bit/64bit differences, there are still some
+> places using 08lx and 016lx manually --- leading to redundant code.
 >
+> This commit fixes the issue by using PRILX all the time.
 >
-> On Oct 21, 2021, at 1:50 PM, anup patel anup.patel at wdc.com wrote:
->
-> > Now that sbi_system support multiple system reset devices, we should
-> > register separate devices for GPIO restart and GPIO poweroff because
-> > DT describes these as separate devices with different compatible
-> > strings.
-> >
-> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
->
-> Looks good to me.
->
-> Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
 Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
+> ---
+>  lib/sbi/sbi_domain.c | 18 +++---------------
+>  lib/sbi/sbi_hart.c   | 11 ++---------
+>  2 files changed, 5 insertions(+), 24 deletions(-)
 >
-> > ---
-> > lib/utils/reset/fdt_reset_gpio.c | 60 ++++++++++++++++++++++----------
-> > 1 file changed, 41 insertions(+), 19 deletions(-)
-> >
-> > diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-> > index 4da1450..302035b 100644
-> > --- a/lib/utils/reset/fdt_reset_gpio.c
-> > +++ b/lib/utils/reset/fdt_reset_gpio.c
-> > @@ -35,20 +35,20 @@ static struct gpio_reset restart = {
-> >       .inactive_delay = 100
-> > };
-> >
-> > -static struct gpio_reset *gpio_get_reset_settings(u32 type)
-> > +static struct gpio_reset *gpio_reset_get(bool is_restart, u32 type)
-> > {
-> > -     struct gpio_reset *reset;
-> > +     struct gpio_reset *reset = NULL;
-> >
-> >       switch (type) {
-> >       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> > -             reset = &poweroff;
-> > +             if (!is_restart)
-> > +                     reset = &poweroff;
-> >               break;
-> >       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> >       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> > -             reset = &restart;
-> > +             if (is_restart)
-> > +                     reset = &restart;
-> >               break;
-> > -     default:
-> > -             reset = NULL;
-> >       }
-> >
-> >       if (reset && !reset->pin.chip)
-> > @@ -57,15 +57,8 @@ static struct gpio_reset *gpio_get_reset_settings(u32 type)
-> >       return reset;
-> > }
-> >
-> > -static int gpio_system_reset_check(u32 type, u32 reason)
-> > +static void gpio_reset_exec(struct gpio_reset *reset)
-> > {
-> > -     return !!gpio_get_reset_settings(type);
-> > -}
-> > -
-> > -static void gpio_system_reset(u32 type, u32 reason)
-> > -{
-> > -     struct gpio_reset *reset = gpio_get_reset_settings(type);
-> > -
-> >       if (reset) {
-> >               /* drive it active, also inactive->active edge */
-> >               gpio_direction_output(&reset->pin, 1);
-> > @@ -82,10 +75,36 @@ static void gpio_system_reset(u32 type, u32 reason)
-> >       sbi_hart_hang();
-> > }
-> >
-> > -static struct sbi_system_reset_device gpio_reset = {
-> > -     .name = "gpio-reset",
-> > -     .system_reset_check = gpio_system_reset_check,
-> > -     .system_reset = gpio_system_reset
-> > +static int gpio_system_poweroff_check(u32 type, u32 reason)
-> > +{
-> > +     return !!gpio_reset_get(FALSE, type);
-> > +}
-> > +
-> > +static void gpio_system_poweroff(u32 type, u32 reason)
-> > +{
-> > +     gpio_reset_exec(gpio_reset_get(FALSE, type));
-> > +}
-> > +
-> > +static struct sbi_system_reset_device gpio_poweroff = {
-> > +     .name = "gpio-poweroff",
-> > +     .system_reset_check = gpio_system_poweroff_check,
-> > +     .system_reset = gpio_system_poweroff
-> > +};
-> > +
-> > +static int gpio_system_restart_check(u32 type, u32 reason)
-> > +{
-> > +     return !!gpio_reset_get(TRUE, type);
-> > +}
-> > +
-> > +static void gpio_system_restart(u32 type, u32 reason)
-> > +{
-> > +     gpio_reset_exec(gpio_reset_get(TRUE, type));
-> > +}
-> > +
-> > +static struct sbi_system_reset_device gpio_restart = {
-> > +     .name = "gpio-restart",
-> > +     .system_reset_check = gpio_system_restart_check,
-> > +     .system_reset = gpio_system_restart
-> > };
-> >
-> > static int gpio_reset_init(void *fdt, int nodeoff,
-> > @@ -115,7 +134,10 @@ static int gpio_reset_init(void *fdt, int nodeoff,
-> >       if (len > 0)
-> >               reset->inactive_delay = fdt32_to_cpu(*val);
-> >
-> > -     sbi_system_reset_add_device(&gpio_reset);
-> > +     if (is_restart)
-> > +             sbi_system_reset_add_device(&gpio_restart);
-> > +     else
-> > +             sbi_system_reset_add_device(&gpio_poweroff);
-> >
-> >       return 0;
-> > }
-> > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 3096af0..33d7ad5 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -328,11 +328,7 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+>                 rend = (reg->order < __riscv_xlen) ?
+>                         rstart + ((1UL << reg->order) - 1) : -1UL;
+>
+> -#if __riscv_xlen == 32
+> -               sbi_printf("Domain%d Region%02d    %s: 0x%08lx-0x%08lx ",
+> -#else
+> -               sbi_printf("Domain%d Region%02d    %s: 0x%016lx-0x%016lx ",
+> -#endif
+> +               sbi_printf("Domain%d Region%02d    %s: 0x%" PRILX "-0x%" PRILX " ",
+>                            dom->index, i, suffix, rstart, rend);
+>
+>                 k = 0;
+> @@ -351,18 +347,10 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+>                 i++;
+>         }
+>
+> -#if __riscv_xlen == 32
+> -       sbi_printf("Domain%d Next Address%s: 0x%08lx\n",
+> -#else
+> -       sbi_printf("Domain%d Next Address%s: 0x%016lx\n",
+> -#endif
+> +       sbi_printf("Domain%d Next Address%s: 0x%" PRILX "\n",
+>                    dom->index, suffix, dom->next_addr);
+>
+> -#if __riscv_xlen == 32
+> -       sbi_printf("Domain%d Next Arg1   %s: 0x%08lx\n",
+> -#else
+> -       sbi_printf("Domain%d Next Arg1   %s: 0x%016lx\n",
+> -#endif
+> +       sbi_printf("Domain%d Next Arg1   %s: 0x%" PRILX "\n",
+>                    dom->index, suffix, dom->next_arg1);
+>
+>         sbi_printf("Domain%d Next Mode   %s: ", dom->index, suffix);
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 6254452..8eb0c38 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -150,17 +150,10 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+>                 /* No delegation possible as mideleg does not exist*/
+>                 return;
+>
+> -#if __riscv_xlen == 32
+> -       sbi_printf("%sMIDELEG%s: 0x%08lx\n",
+> +       sbi_printf("%sMIDELEG%s: 0x%" PRILX "\n",
+>                    prefix, suffix, csr_read(CSR_MIDELEG));
+> -       sbi_printf("%sMEDELEG%s: 0x%08lx\n",
+> +       sbi_printf("%sMEDELEG%s: 0x%" PRILX "\n",
+>                    prefix, suffix, csr_read(CSR_MEDELEG));
+> -#else
+> -       sbi_printf("%sMIDELEG%s: 0x%016lx\n",
+> -                  prefix, suffix, csr_read(CSR_MIDELEG));
+> -       sbi_printf("%sMEDELEG%s: 0x%016lx\n",
+> -                  prefix, suffix, csr_read(CSR_MEDELEG));
+> -#endif
+>  }
+>
+>  unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
+> --
+> 2.31.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
