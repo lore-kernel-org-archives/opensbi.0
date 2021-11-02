@@ -1,134 +1,65 @@
-From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Tue,  2 Nov 2021 17:39:11 +0300
-Subject: [PATCH v2] lib: utils/gpio: use list for drivers
-In-Reply-To: <20211101115023.13414-1-nikita.shubin@maquefel.me>
-References: <20211101115023.13414-1-nikita.shubin@maquefel.me>
-Message-ID: <20211102143911.30184-1-nikita.shubin@maquefel.me>
+From: Atish Patra <atish.patra@wdc.com>
+Date: Tue,  2 Nov 2021 08:09:49 -0700
+Subject: [PATCH v3 01/11] riscv: Add new CSRs introduced by Sscofpmf extension
+In-Reply-To: <20211102150959.492991-1-atish.patra@wdc.com>
+References: <20211102150959.492991-1-atish.patra@wdc.com>
+Message-ID: <20211102150959.492991-2-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Nikita Shubin <n.shubin@yadro.com>
-
-Convert static array to sbi_list.
-
-This removes size limitation, makes add/remove more efficient and
-saves space.
-
-Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
-v1 -> v2:
-fixed typo
----
- include/sbi_utils/gpio/gpio.h |  8 +++++++
- lib/utils/gpio/gpio.c         | 42 ++++++++++-------------------------
- 2 files changed, 20 insertions(+), 30 deletions(-)
+ include/sbi/riscv_encoding.h | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
-index 167d11a..7a3d8bb 100644
---- a/include/sbi_utils/gpio/gpio.h
-+++ b/include/sbi_utils/gpio/gpio.h
-@@ -11,6 +11,7 @@
- #define __GPIO_H__
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index e1d0b463c668..14caa95d66de 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -516,6 +516,40 @@
+ #define CSR_MHPMEVENT30			0x33e
+ #define CSR_MHPMEVENT31			0x33f
  
- #include <sbi/sbi_types.h>
-+#include <sbi/sbi_list.h>
- 
- #define GPIO_LINE_DIRECTION_IN	1
- #define GPIO_LINE_DIRECTION_OUT	0
-@@ -70,8 +71,15 @@ struct gpio_chip {
- 	int (*get)(struct gpio_pin *gp);
- 	/** Set output value for GPIO pin */
- 	void (*set)(struct gpio_pin *gp, int value);
-+	/** List */
-+	struct sbi_dlist node;
- };
- 
-+static inline struct gpio_chip *to_gpio_chip(struct sbi_dlist *node)
-+{
-+	return container_of(node, struct gpio_chip, node);
-+}
++/* For RV32 */
++#define CSR_MHPMEVENT3H			0x723
++#define CSR_MHPMEVENT4H			0x724
++#define CSR_MHPMEVENT5H			0x725
++#define CSR_MHPMEVENT6H			0x726
++#define CSR_MHPMEVENT7H			0x727
++#define CSR_MHPMEVENT8H			0x728
++#define CSR_MHPMEVENT9H			0x729
++#define CSR_MHPMEVENT10H		0x72a
++#define CSR_MHPMEVENT11H		0x72b
++#define CSR_MHPMEVENT12H		0x72c
++#define CSR_MHPMEVENT13H		0x72d
++#define CSR_MHPMEVENT14H		0x72e
++#define CSR_MHPMEVENT15H		0x72f
++#define CSR_MHPMEVENT16H		0x730
++#define CSR_MHPMEVENT17H		0x731
++#define CSR_MHPMEVENT18H		0x732
++#define CSR_MHPMEVENT19H		0x733
++#define CSR_MHPMEVENT20H		0x734
++#define CSR_MHPMEVENT21H		0x735
++#define CSR_MHPMEVENT22H		0x736
++#define CSR_MHPMEVENT23H		0x737
++#define CSR_MHPMEVENT24H		0x738
++#define CSR_MHPMEVENT25H		0x739
++#define CSR_MHPMEVENT26H		0x73a
++#define CSR_MHPMEVENT27H		0x73b
++#define CSR_MHPMEVENT28H		0x73c
++#define CSR_MHPMEVENT29H		0x73d
++#define CSR_MHPMEVENT30H		0x73e
++#define CSR_MHPMEVENT31H		0x73f
 +
- /** Find a registered GPIO chip */
- struct gpio_chip *gpio_chip_find(unsigned int id);
- 
-diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
-index fb30c0f..3a3a6b2 100644
---- a/lib/utils/gpio/gpio.c
-+++ b/lib/utils/gpio/gpio.c
-@@ -10,58 +10,40 @@
- #include <sbi/sbi_error.h>
- #include <sbi_utils/gpio/gpio.h>
- 
--#define GPIO_CHIP_MAX		16
--
--static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
-+static SBI_LIST_HEAD(gpio_chip_list);
- 
- struct gpio_chip *gpio_chip_find(unsigned int id)
- {
--	unsigned int i;
--	struct gpio_chip *ret = NULL;
--
--	for (i = 0; i < GPIO_CHIP_MAX; i++) {
--		if (gc_array[i] && gc_array[i]->id == id) {
--			ret = gc_array[i];
--			break;
--		}
-+	struct sbi_dlist *pos;
++/* Counter Overflow CSR */
++#define CSR_SCOUNTOVF			0xda0
 +
-+	sbi_list_for_each(pos, &(gpio_chip_list)) {
-+		struct gpio_chip *chip = to_gpio_chip(pos);
-+
-+		if (chip->id == id)
-+			return chip;
- 	}
- 
--	return ret;
-+	return NULL;
- }
- 
- int gpio_chip_add(struct gpio_chip *gc)
- {
--	int i, ret = SBI_ENOSPC;
--
- 	if (!gc)
- 		return SBI_EINVAL;
- 	if (gpio_chip_find(gc->id))
- 		return SBI_EALREADY;
- 
--	for (i = 0; i < GPIO_CHIP_MAX; i++) {
--		if (!gc_array[i]) {
--			gc_array[i] = gc;
--			ret = 0;
--			break;
--		}
--	}
-+	sbi_list_add(&(gc->node), &(gpio_chip_list));
- 
--	return ret;
-+	return 0;
- }
- 
- void gpio_chip_remove(struct gpio_chip *gc)
- {
--	int i;
--
- 	if (!gc)
- 		return;
- 
--	for (i = 0; i < GPIO_CHIP_MAX; i++) {
--		if (gc_array[i] == gc) {
--			gc_array[i] = NULL;
--			break;
--		}
--	}
-+	sbi_list_del(&(gc->node));
- }
- 
- int gpio_get_direction(struct gpio_pin *gp)
+ /* Debug/Trace Registers */
+ #define CSR_TSELECT			0x7a0
+ #define CSR_TDATA1			0x7a1
 -- 
 2.31.1
 
