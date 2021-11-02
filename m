@@ -1,26 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 2 Nov 2021 10:45:31 +0530
-Subject: [PATCH] lib: sbi: Refine addr format in sbi_printf
-In-Reply-To: <20211025080615.4881-1-Dd_nirvana@sjtu.edu.cn>
-References: <20211025080615.4881-1-Dd_nirvana@sjtu.edu.cn>
-Message-ID: <CAAhSdy0_iScA3d3WzwZeWHC3qYNQd5TwLn3MzeHYStHPwtSv6g@mail.gmail.com>
+Date: Tue, 2 Nov 2021 15:41:36 +0530
+Subject: [PATCH] include: sbi_utils: Introduce an helper to get fdt base
+ address
+In-Reply-To: <20211027074336.1798579-1-alexandre.ghiti@canonical.com>
+References: <20211027074336.1798579-1-alexandre.ghiti@canonical.com>
+Message-ID: <CAAhSdy09Y0b6h=GwEipUDjD=WBKm4nn1mnkFAP44Pw=sTKA=BA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 25, 2021 at 1:38 PM Dong Du <Dd_nirvana@sjtu.edu.cn> wrote:
+On Wed, Oct 27, 2021 at 1:13 PM Alexandre Ghiti
+<alexandre.ghiti@canonical.com> wrote:
 >
-> Although we have PRILX to help us print unsigned long without
-> considering the 32bit/64bit differences, there are still some
-> places using 08lx and 016lx manually --- leading to redundant code.
+> This simply adds an helper to get fdt address which is more explicit than
+> sbi_scratch_thishart_arg1_ptr.
 >
-> This commit fixes the issue by using PRILX all the time.
->
-> Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> Signed-off-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
 
-Looks good to me.
+Some of the sources were missing "#include <sbi_utils/fdt/fdt_helper.h>",
+I have taken care of this while merging this patch.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
@@ -30,74 +30,214 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_domain.c | 18 +++---------------
->  lib/sbi/sbi_hart.c   | 11 ++---------
->  2 files changed, 5 insertions(+), 24 deletions(-)
+>  include/sbi_utils/fdt/fdt_helper.h | 6 ++++++
+>  lib/utils/ipi/fdt_ipi.c            | 2 +-
+>  lib/utils/irqchip/fdt_irqchip.c    | 2 +-
+>  lib/utils/reset/fdt_reset.c        | 2 +-
+>  lib/utils/serial/fdt_serial.c      | 2 +-
+>  lib/utils/timer/fdt_timer.c        | 2 +-
+>  platform/andes/ae350/platform.c    | 2 +-
+>  platform/fpga/ariane/platform.c    | 2 +-
+>  platform/fpga/openpiton/platform.c | 4 ++--
+>  platform/generic/platform.c        | 6 +++---
+>  platform/kendryte/k210/platform.c  | 2 +-
+>  platform/nuclei/ux600/platform.c   | 2 +-
+>  12 files changed, 20 insertions(+), 14 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 3096af0..33d7ad5 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -328,11 +328,7 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
->                 rend = (reg->order < __riscv_xlen) ?
->                         rstart + ((1UL << reg->order) - 1) : -1UL;
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index 5cb7340..24fee7a 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -11,6 +11,7 @@
+>  #define __FDT_HELPER_H__
 >
-> -#if __riscv_xlen == 32
-> -               sbi_printf("Domain%d Region%02d    %s: 0x%08lx-0x%08lx ",
-> -#else
-> -               sbi_printf("Domain%d Region%02d    %s: 0x%016lx-0x%016lx ",
-> -#endif
-> +               sbi_printf("Domain%d Region%02d    %s: 0x%" PRILX "-0x%" PRILX " ",
->                            dom->index, i, suffix, rstart, rend);
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/sbi_scratch.h>
 >
->                 k = 0;
-> @@ -351,18 +347,10 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
->                 i++;
->         }
+>  struct fdt_match {
+>         const char *compatible;
+> @@ -81,4 +82,9 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
+>  int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
+>                           const char *compatible);
 >
-> -#if __riscv_xlen == 32
-> -       sbi_printf("Domain%d Next Address%s: 0x%08lx\n",
-> -#else
-> -       sbi_printf("Domain%d Next Address%s: 0x%016lx\n",
-> -#endif
-> +       sbi_printf("Domain%d Next Address%s: 0x%" PRILX "\n",
->                    dom->index, suffix, dom->next_addr);
+> +static inline void *fdt_get_address(void)
+> +{
+> +       return sbi_scratch_thishart_arg1_ptr();
+> +}
+> +
+>  #endif /* __FDT_HELPER_H__ */
+> diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+> index ed56e49..91f116f 100644
+> --- a/lib/utils/ipi/fdt_ipi.c
+> +++ b/lib/utils/ipi/fdt_ipi.c
+> @@ -45,7 +45,7 @@ static int fdt_ipi_cold_init(void)
+>         int pos, noff, rc;
+>         struct fdt_ipi *drv;
+>         const struct fdt_match *match;
+> -       void *fdt = sbi_scratch_thishart_arg1_ptr();
+> +       void *fdt = fdt_get_address();
 >
-> -#if __riscv_xlen == 32
-> -       sbi_printf("Domain%d Next Arg1   %s: 0x%08lx\n",
-> -#else
-> -       sbi_printf("Domain%d Next Arg1   %s: 0x%016lx\n",
-> -#endif
-> +       sbi_printf("Domain%d Next Arg1   %s: 0x%" PRILX "\n",
->                    dom->index, suffix, dom->next_arg1);
+>         for (pos = 0; pos < array_size(ipi_drivers); pos++) {
+>                 drv = ipi_drivers[pos];
+> diff --git a/lib/utils/irqchip/fdt_irqchip.c b/lib/utils/irqchip/fdt_irqchip.c
+> index 1306d50..8dda661 100644
+> --- a/lib/utils/irqchip/fdt_irqchip.c
+> +++ b/lib/utils/irqchip/fdt_irqchip.c
+> @@ -38,7 +38,7 @@ static int fdt_irqchip_cold_init(void)
+>         int pos, noff, rc;
+>         struct fdt_irqchip *drv;
+>         const struct fdt_match *match;
+> -       void *fdt = sbi_scratch_thishart_arg1_ptr();
+> +       void *fdt = fdt_get_address();
 >
->         sbi_printf("Domain%d Next Mode   %s: ", dom->index, suffix);
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 6254452..8eb0c38 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -150,17 +150,10 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
->                 /* No delegation possible as mideleg does not exist*/
->                 return;
+>         for (pos = 0; pos < array_size(irqchip_drivers); pos++) {
+>                 drv = irqchip_drivers[pos];
+> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+> index 92f37b0..488ac76 100644
+> --- a/lib/utils/reset/fdt_reset.c
+> +++ b/lib/utils/reset/fdt_reset.c
+> @@ -35,7 +35,7 @@ int fdt_reset_init(void)
+>         int pos, noff, rc;
+>         struct fdt_reset *drv;
+>         const struct fdt_match *match;
+> -       void *fdt = sbi_scratch_thishart_arg1_ptr();
+> +       void *fdt = fdt_get_address();
 >
-> -#if __riscv_xlen == 32
-> -       sbi_printf("%sMIDELEG%s: 0x%08lx\n",
-> +       sbi_printf("%sMIDELEG%s: 0x%" PRILX "\n",
->                    prefix, suffix, csr_read(CSR_MIDELEG));
-> -       sbi_printf("%sMEDELEG%s: 0x%08lx\n",
-> +       sbi_printf("%sMEDELEG%s: 0x%" PRILX "\n",
->                    prefix, suffix, csr_read(CSR_MEDELEG));
-> -#else
-> -       sbi_printf("%sMIDELEG%s: 0x%016lx\n",
-> -                  prefix, suffix, csr_read(CSR_MIDELEG));
-> -       sbi_printf("%sMEDELEG%s: 0x%016lx\n",
-> -                  prefix, suffix, csr_read(CSR_MEDELEG));
-> -#endif
+>         for (pos = 0; pos < array_size(reset_drivers); pos++) {
+>                 drv = reset_drivers[pos];
+> diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
+> index 1d1eba8..cedda04 100644
+> --- a/lib/utils/serial/fdt_serial.c
+> +++ b/lib/utils/serial/fdt_serial.c
+> @@ -40,7 +40,7 @@ int fdt_serial_init(void)
+>         struct fdt_serial *drv;
+>         const struct fdt_match *match;
+>         int pos, noff = -1, len, coff, rc;
+> -       void *fdt = sbi_scratch_thishart_arg1_ptr();
+> +       void *fdt = fdt_get_address();
+>
+>         /* Find offset of node pointed to by stdout-path */
+>         coff = fdt_path_offset(fdt, "/chosen");
+> diff --git a/lib/utils/timer/fdt_timer.c b/lib/utils/timer/fdt_timer.c
+> index 148c05e..781bb63 100644
+> --- a/lib/utils/timer/fdt_timer.c
+> +++ b/lib/utils/timer/fdt_timer.c
+> @@ -45,7 +45,7 @@ static int fdt_timer_cold_init(void)
+>         int pos, noff, rc;
+>         struct fdt_timer *drv;
+>         const struct fdt_match *match;
+> -       void *fdt = sbi_scratch_thishart_arg1_ptr();
+> +       void *fdt = fdt_get_address();
+>
+>         for (pos = 0; pos < array_size(timer_drivers); pos++) {
+>                 drv = timer_drivers[pos];
+> diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
+> index ae4ef71..b351694 100644
+> --- a/platform/andes/ae350/platform.c
+> +++ b/platform/andes/ae350/platform.c
+> @@ -55,7 +55,7 @@ static int ae350_final_init(bool cold_boot)
+>         if (!cold_boot)
+>                 return 0;
+>
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>         fdt_fixups(fdt);
+>
+>         return 0;
+> diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
+> index 5acc446..84e2bf8 100644
+> --- a/platform/fpga/ariane/platform.c
+> +++ b/platform/fpga/ariane/platform.c
+> @@ -76,7 +76,7 @@ static int ariane_final_init(bool cold_boot)
+>         if (!cold_boot)
+>                 return 0;
+>
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>         fdt_fixups(fdt);
+>
+>         return 0;
+> diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+> index 924053e..59c6702 100644
+> --- a/platform/fpga/openpiton/platform.c
+> +++ b/platform/fpga/openpiton/platform.c
+> @@ -76,7 +76,7 @@ static int openpiton_early_init(bool cold_boot)
+>
+>         if (!cold_boot)
+>                 return 0;
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>
+>         rc = fdt_parse_uart8250(fdt, &uart_data, "ns16550");
+>         if (!rc)
+> @@ -112,7 +112,7 @@ static int openpiton_final_init(bool cold_boot)
+>         if (!cold_boot)
+>                 return 0;
+>
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>         fdt_fixups(fdt);
+>
+>         return 0;
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 0757d87..276f64e 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -148,7 +148,7 @@ static int generic_final_init(bool cold_boot)
+>         if (!cold_boot)
+>                 return 0;
+>
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>
+>         fdt_cpu_fixup(fdt);
+>         fdt_fixups(fdt);
+> @@ -177,7 +177,7 @@ static void generic_final_exit(void)
+>
+>  static int generic_domains_init(void)
+>  {
+> -       return fdt_domains_populate(sbi_scratch_thishart_arg1_ptr());
+> +       return fdt_domains_populate(fdt_get_address());
 >  }
 >
->  unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
+>  static u64 generic_tlbr_flush_limit(void)
+> @@ -189,7 +189,7 @@ static u64 generic_tlbr_flush_limit(void)
+>
+>  static int generic_pmu_init(void)
+>  {
+> -       return fdt_pmu_setup(sbi_scratch_thishart_arg1_ptr());
+> +       return fdt_pmu_setup(fdt_get_address());
+>  }
+>
+>  static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+> diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
+> index e7caec3..5d35ed4 100644
+> --- a/platform/kendryte/k210/platform.c
+> +++ b/platform/kendryte/k210/platform.c
+> @@ -120,7 +120,7 @@ static int k210_final_init(bool cold_boot)
+>         if (!cold_boot)
+>                 return 0;
+>
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>
+>         fdt_cpu_fixup(fdt);
+>         fdt_fixups(fdt);
+> diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
+> index 6f87cf8..3300061 100644
+> --- a/platform/nuclei/ux600/platform.c
+> +++ b/platform/nuclei/ux600/platform.c
+> @@ -175,7 +175,7 @@ static int ux600_final_init(bool cold_boot)
+>         if (!cold_boot)
+>                 return 0;
+>
+> -       fdt = sbi_scratch_thishart_arg1_ptr();
+> +       fdt = fdt_get_address();
+>         ux600_modify_dt(fdt);
+>
+>         return 0;
 > --
-> 2.31.1
+> 2.30.2
 >
 >
 > --
