@@ -1,11 +1,11 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 3 Nov 2021 16:40:02 +0530
-Subject: [PATCH v3 10/11] lib: sbi: Enable PMU extension for platforms
- without mcountinhibit
-In-Reply-To: <20211102150959.492991-11-atish.patra@wdc.com>
+Date: Wed, 3 Nov 2021 16:50:01 +0530
+Subject: [PATCH v3 11/11] lib: utils: Rename the prefix in PMU DT
+ properties
+In-Reply-To: <20211102150959.492991-12-atish.patra@wdc.com>
 References: <20211102150959.492991-1-atish.patra@wdc.com>
- <20211102150959.492991-11-atish.patra@wdc.com>
-Message-ID: <CAAhSdy3XJwxzp7Wy4329mfhcrHqmsw2yQAQaGcyeU+d-K7xbiA@mail.gmail.com>
+ <20211102150959.492991-12-atish.patra@wdc.com>
+Message-ID: <CAAhSdy2L-RXSNTQrEPU-PwTZy8OO+6141P9-UfVdWfj8QvZTxA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,28 +14,13 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Nov 2, 2021 at 8:40 PM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> Some platforms such as hifive unmatched doesn't implement mcountinhibit
-> csr. However, it has hardware events that can monitored using 2 hpmcounter
-
-s/that can monitored/that can be monitored
-
-> it has (i.e. mhpmcounter3 & mhpmcounter4).
->
-> Currently, PMU extension disabled if mcountinhibit is present. That's not
-
-s/extension disabled if mcountinhibit is present/extension is disabled
-if mcountinhibit is absent/
-
-> really necessary as long as the supervisor OS keeps track of the delta
-> value of the counters. Without mcountinhibit, the delta value won't be
-> entirely accurate because the counters are freely running. However, that
-> should be fine to produce an approximate counter value which can help
-> performance analysis. Perf sampling won't work though as sscof extension
-> is not present in hifive unmatched.
+> As per the DT schema rules, the prefix should be vendor. As the PMU
+> properties are generic for all vendors, change the prefix to riscv
+> instead of pmu.
 >
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 
-Otherwise it looks good to me.
+Thanks for fixing this.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
@@ -43,187 +28,101 @@ Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_ecall_pmu.c | 10 ++-------
->  lib/sbi/sbi_pmu.c       | 50 ++++++++++++++++++++++++++++-------------
->  lib/utils/fdt/fdt_pmu.c |  4 ++++
->  3 files changed, 40 insertions(+), 24 deletions(-)
+>  docs/pmu_support.md     | 12 ++++++------
+>  lib/utils/fdt/fdt_pmu.c | 12 ++++++------
+>  2 files changed, 12 insertions(+), 12 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-> index 39d3857680c1..9ee9e81802e7 100644
-> --- a/lib/sbi/sbi_ecall_pmu.c
-> +++ b/lib/sbi/sbi_ecall_pmu.c
-> @@ -74,14 +74,8 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
+> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> index 6533c99f8997..a60b75cf9efa 100644
+> --- a/docs/pmu_support.md
+> +++ b/docs/pmu_support.md
+> @@ -31,7 +31,7 @@ bindings in details.
+>  * **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
+>  This DT property must have the value **riscv,pmu**.
 >
->  static int sbi_ecall_pmu_probe(unsigned long extid, unsigned long *out_val)
->  {
-> -       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> -
-> -       /* SBI PMU extension is useless without mcount inhibit features */
-> -       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> -               *out_val = 1;
-> -       else
-> -               *out_val = 0;
-> -
-> +       /* PMU extension is always enabled */
-> +       *out_val = 1;
->         return 0;
->  }
+> -* **pmu,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
+> +* **riscv,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
+>  between a PMU event and the event selector value that platform expects to be
+>  written to the MHPMEVENTx CSR for that event. The mapping is encoded in a
+>  table format where each row represents an event. The first column represent the
+> @@ -39,7 +39,7 @@ event idx where the 2nd & 3rd column represent the event selector value that
+>  should be encoded in the expected value to be written in MHPMEVENTx.
+>  This property shouldn't encode any raw hardware event.
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index d728529488dc..6948a712f739 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -279,13 +279,21 @@ static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
+> -* **pmu,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
+> +* **riscv,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
+>  mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
+>  that can be used to monitor these range of events. The information is encoded in
+>  a table format where each row represent a certain range of events and
+> @@ -49,7 +49,7 @@ represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
+>  event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+>  shouldn't encode any raw event.
 >
->  static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
->  {
-> -       unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +       unsigned long mctr_inhbt;
+> -* **pmu,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+> +* **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+>  mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
+>  be used to monitor that raw event. The information is encoded in a table format
+>  where each raw represent a specific raw event. The first column stores the
+> @@ -67,12 +67,12 @@ pmu {
+>         compatible                      = "riscv,pmu";
+>         interrupts                      = <0x100>;
+>         interrupt-parent                        = <&plic>
+> -       pmu,event-to-mhpmevent          = <0x0000B  0x0000 0x0001>,
+> -       pmu,event-to-mhpmcounters       = <0x00001 0x00001 0x00000001>,
+> +       riscv,event-to-mhpmevent                = <0x0000B  0x0000 0x0001>,
+> +       riscv,event-to-mhpmcounters     = <0x00001 0x00001 0x00000001>,
+>                                                   <0x00002 0x00002 0x00000004>,
+>                                                   <0x00003 0x0000A 0x00000ff8>,
+>                                                   <0x10000 0x10033 0x000ff000>,
+> -       pmu,raw-event-to-mhpmcounters   = <0x0000 0x0002 0x00000f8>,
+> +       riscv,raw-event-to-mhpmcounters         = <0x0000 0x0002 0x00000f8>,
+>                                           <0x0000 0x0003 0x00000ff0>,
+>  };
 >
->         /* Make sure the counter index lies within the range and is not TM bit */
->         if (cidx > num_hw_ctrs || cidx == 1)
->                 return SBI_EINVAL;
->
-> +       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> +               goto skip_inhbit_update;
-> +
-> +       /*
-> +        * Some of the hardware may not support mcountinhibit but perf stat
-> +        * still can work if supervisor mode programs the initial value.
-> +        */
-> +       mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
->         if (!__test_bit(cidx, &mctr_inhbt))
->                 return SBI_EALREADY_STARTED;
->
-> @@ -295,6 +303,7 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
->                 pmu_ctr_enable_irq_hw(cidx);
->         csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
->
-> +skip_inhbit_update:
->         if (ival_update)
->                 pmu_ctr_write_hw(cidx, ival);
->
-> @@ -390,6 +399,7 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
->         int event_idx_type;
->         uint32_t event_code;
->         unsigned long ctr_mask = cmask << cbase;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->
->         if (__fls(ctr_mask) >= total_ctrs)
->                 return SBI_EINVAL;
-> @@ -402,8 +412,10 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
->
->                 else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
->                         ret = pmu_ctr_stop_fw(cbase, event_code);
-> -               else
-> +               else if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
->                         ret = pmu_ctr_stop_hw(cbase);
-> +               else
-> +                       ret = 0;
->
->                 if (flag & SBI_PMU_STOP_FLAG_RESET) {
->                         active_events[hartid][cbase] = SBI_PMU_EVENT_IDX_INVALID;
-> @@ -473,7 +485,8 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
->         unsigned long ctr_mask;
->         int i, ret = 0, fixed_ctr, ctr_idx = SBI_ENOTSUPP;
->         struct sbi_pmu_hw_event *temp;
-> -       unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
-> +       unsigned long mctr_inhbt;
-> +       u32 hartid = current_hartid();
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->         bool sscof_present = sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOF);
->
-> @@ -488,6 +501,8 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
->         if (fixed_ctr >= 0 && !sscof_present)
->                 return fixed_ctr;
->
-> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> +               mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
->         for (i = 0; i < num_hw_events; i++) {
->                 temp = &hw_event_map[i];
->                 if ((temp->start_idx > event_idx && event_idx < temp->end_idx) ||
-> @@ -499,12 +514,21 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
->                         continue;
->
->                 /* Fixed counters should not be part of the search */
-> -               ctr_mask = temp->counters & (cmask << cbase) & (~SBI_PMU_FIXED_CTR_MASK);
-> +               ctr_mask = temp->counters & (cmask << cbase) &
-> +                          (~SBI_PMU_FIXED_CTR_MASK);
->                 for_each_set_bit_from(cbase, &ctr_mask, SBI_PMU_HW_CTR_MAX) {
-> -                       if (__test_bit(cbase, &mctr_inhbt)) {
-> -                               ctr_idx = cbase;
-> -                               break;
-> -                       }
-> +                       /**
-> +                        * Some of the platform may not support mcountinhibit.
-> +                        * Checking the active_events is enough for them
-> +                        */
-> +                       if (active_events[hartid][cbase] != SBI_PMU_EVENT_IDX_INVALID)
-> +                               continue;
-> +                       /* If mcountinhibit is supported, the bit must be enabled */
-> +                       if ((sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT)) &&
-> +                           !__test_bit(cbase, &mctr_inhbt))
-> +                               continue;
-> +                       /* We found a valid counter that is not started yet.*/
-> +                       ctr_idx = cbase;
->                 }
->         }
->
-> @@ -676,11 +700,9 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
->  {
->         u32 hartid = current_hartid();
->
-> -       /* SBI PMU is not supported if mcountinhibit is not available */
-> -       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> -               return;
-> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> +               csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
->
-> -       csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
->         csr_write(CSR_MCOUNTEREN, -1);
->         pmu_reset_event_map(hartid);
->  }
-> @@ -690,10 +712,6 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
->         const struct sbi_platform *plat;
->         u32 hartid = current_hartid();
->
-> -       /* SBI PMU is not supported if mcountinhibit is not available */
-> -       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> -               return 0;
-> -
->         if (cold_boot) {
->                 plat = sbi_platform_ptr(scratch);
->                 /* Initialize hw pmu events */
 > diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> index 9ebf1c225017..4d86e775bcdb 100644
+> index 4d86e775bcdb..32c0729c78aa 100644
 > --- a/lib/utils/fdt/fdt_pmu.c
 > +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -9,6 +9,7 @@
->   */
+> @@ -50,9 +50,9 @@ int fdt_pmu_fixup(void *fdt)
+>         if (pmu_offset < 0)
+>                 return SBI_EFAIL;
 >
->  #include <libfdt.h>
-> +#include <sbi/sbi_hart.h>
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_pmu.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> @@ -40,6 +41,7 @@ uint64_t fdt_pmu_get_select_value(uint32_t event_idx)
->  int fdt_pmu_fixup(void *fdt)
->  {
->         int pmu_offset;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> -       fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters");
+> -       fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmevent");
+> -       fdt_delprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters");
+> +       fdt_delprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters");
+> +       fdt_delprop(fdt, pmu_offset, "riscv,event-to-mhpmevent");
+> +       fdt_delprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters");
+>         if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
+>                 fdt_delprop(fdt, pmu_offset, "interrupts-extended");
 >
->         if (!fdt)
->                 return SBI_EINVAL;
-> @@ -51,6 +53,8 @@ int fdt_pmu_fixup(void *fdt)
->         fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters");
->         fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmevent");
->         fdt_delprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters");
-> +       if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> +               fdt_delprop(fdt, pmu_offset, "interrupts-extended");
+> @@ -75,7 +75,7 @@ int fdt_pmu_setup(void *fdt)
+>         if (pmu_offset < 0)
+>                 return SBI_EFAIL;
 >
->         return 0;
->  }
+> -       event_ctr_map = fdt_getprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters", &len);
+> +       event_ctr_map = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters", &len);
+>         if (!event_ctr_map || len < 8)
+>                 return SBI_EFAIL;
+>         len = len / (sizeof(u32) * 3);
+> @@ -86,7 +86,7 @@ int fdt_pmu_setup(void *fdt)
+>                 sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
+>         }
+>
+> -       event_val = fdt_getprop(fdt, pmu_offset, "pmu,event-to-mhpmevent", &len);
+> +       event_val = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmevent", &len);
+>         if (!event_val || len < 8)
+>                 return SBI_EFAIL;
+>         len = len / (sizeof(u32) * 3);
+> @@ -98,7 +98,7 @@ int fdt_pmu_setup(void *fdt)
+>                 hw_event_count++;
+>         }
+>
+> -       event_val = fdt_getprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters", &len);
+> +       event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
+>         if (!event_val || len < 8)
+>                 return SBI_EFAIL;
+>         len = len / (sizeof(u32) * 3);
 > --
 > 2.31.1
 >
