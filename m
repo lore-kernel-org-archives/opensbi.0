@@ -1,69 +1,83 @@
-From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Wed, 3 Nov 2021 15:13:35 +0300
-Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
-In-Reply-To: <1faef420-1516-fee0-058a-210176ab4703@canonical.com>
-References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <20211015131925.22585-6-nikita.shubin@maquefel.me>
- <24ca9d4a-02c0-0d03-58da-3510162df2be@canonical.com>
- <9953e984-dffa-400a-259f-b82a19d06a6f@canonical.com>
- <20211103105940.4c20e7bc@redslave.neermore.group>
- <1faef420-1516-fee0-058a-210176ab4703@canonical.com>
-Message-ID: <20211103151335.303fea96@redslave.neermore.group>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 3 Nov 2021 18:56:02 +0530
+Subject: [PATCH v4 2/3] platform: generic: move fdt_reset_init to
+ final_init
+In-Reply-To: <20211027152206.68913-3-heinrich.schuchardt@canonical.com>
+References: <20211027152206.68913-1-heinrich.schuchardt@canonical.com>
+ <20211027152206.68913-3-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy3u4h6FMmw9DLE4Qc-0z-6KpZb+ytE=Qt0yeF-q=bvm5w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 3 Nov 2021 13:07:29 +0100
-Heinrich Schuchardt <heinrich.schuchardt@canonical.com> wrote:
+On Wed, Oct 27, 2021 at 8:52 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
+>
+> Move the fdt_reset_init() invocation from generic_early_init() to
+> generic_final_init(). This allows to print error messages.
+>
+> Ignore the return value of fdt_reset_init() as we should not stop booting
+> due to failure to initialize reset drivers.
+>
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 
-> > After rebooting with Linux reboot:  
-> > => reset  
-> > resetting ...
-> > 
-> > All okay and that's means that it's not a full reset, I2C was
-> > initialised by linux, and not resetted.  
-> 
-> Doesn't this imply that the I2C initialization code should be added
-> to OpenSBI?
-> 
+Looks good to me.
 
-Without any doubt.
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
-> Best regards
-> 
-> Heinrich
-> 
-> > 
-> > However if we arm the clock and go shutdown:
-> > 
-> > sh -c "echo `date '+%s' -d '+ 1 minutes'` >
-> > /sys/class/rtc/rtc0/wakealarm" shutdown
-> > shutdown
-> > 
-> > We get:  
-> > => reset  
-> > resetting ...
-> > da9063_system_reset: chip is not da9063 PMIC
-> > 
-> > So "reset" with RTC is indeed a full reset...
-> > 
-> > All above also means that "sacrificing" RTC means sacrificing user
-> > setted wakeup ALARM's.
-> > 
-> > May be it's worth splitting reset into WARM_REBOOT, COLD_REBOOT with
-> > WARM reboot is going through method proposed by Alexandre and COLD
-> > reboot via RTC, and explicitly specify that COLD reboot WILL
-> > overwrite ALARM setting ?
-> > 
-> > What do you think about this ?
-> >   
-> >>
-> >> Best regards
-> >>
-> >> Heinrich  
-> >   
-> 
+Regards,
+Anup
 
+> ---
+> v4:
+>         no change
+> v3:
+>         no change
+> v2:
+>         new patch
+> ---
+>  platform/generic/platform.c | 15 +++++----------
+>  1 file changed, 5 insertions(+), 10 deletions(-)
+>
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 0757d87..8d4e41a 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -120,18 +120,10 @@ fail:
+>
+>  static int generic_early_init(bool cold_boot)
+>  {
+> -       int rc;
+> -
+> -       if (generic_plat && generic_plat->early_init) {
+> -               rc = generic_plat->early_init(cold_boot, generic_plat_match);
+> -               if (rc)
+> -                       return rc;
+> -       }
+> -
+> -       if (!cold_boot)
+> +       if (!generic_plat || !generic_plat->early_init)
+>                 return 0;
+>
+> -       return fdt_reset_init();
+> +       return generic_plat->early_init(cold_boot, generic_plat_match);
+>  }
+>
+>  static int generic_final_init(bool cold_boot)
+> @@ -139,6 +131,9 @@ static int generic_final_init(bool cold_boot)
+>         void *fdt;
+>         int rc;
+>
+> +       if (cold_boot)
+> +               fdt_reset_init();
+> +
+>         if (generic_plat && generic_plat->final_init) {
+>                 rc = generic_plat->final_init(cold_boot, generic_plat_match);
+>                 if (rc)
+> --
+> 2.32.0
+>
 
