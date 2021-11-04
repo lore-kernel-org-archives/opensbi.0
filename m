@@ -1,86 +1,61 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 4 Nov 2021 18:36:39 +0530
-Subject: [PATCH v2 5/5] lib: utils/reset: Add generic da9063 reset driver
-In-Reply-To: <20211103151335.303fea96@redslave.neermore.group>
-References: <20211015131925.22585-1-nikita.shubin@maquefel.me>
- <20211015131925.22585-6-nikita.shubin@maquefel.me>
- <24ca9d4a-02c0-0d03-58da-3510162df2be@canonical.com>
- <9953e984-dffa-400a-259f-b82a19d06a6f@canonical.com>
- <20211103105940.4c20e7bc@redslave.neermore.group>
- <1faef420-1516-fee0-058a-210176ab4703@canonical.com>
- <20211103151335.303fea96@redslave.neermore.group>
-Message-ID: <CAAhSdy0FfXYyf4iu8NLiDkZ4hyPW57kePiicJ7ALCFxVxZJJVw@mail.gmail.com>
+From: Peter Korsgaard <peter@korsgaard.com>
+Date: Thu, 04 Nov 2021 15:24:22 +0100
+Subject: [PATCH v2] lib: utils/irqchip: Automatically delegate T-HEAD PLIC
+ access
+In-Reply-To: <CAAhSdy0y4LXy0NCZMo+r7_YWJRp5D+1C3eNt9huk7S8UGzFF6Q@mail.gmail.com>
+ (Anup Patel's message of "Thu, 21 Oct 2021 10:10:08 +0530")
+References: <20211018053350.39184-1-samuel@sholland.org>
+ <CAAhSdy0y4LXy0NCZMo+r7_YWJRp5D+1C3eNt9huk7S8UGzFF6Q@mail.gmail.com>
+Message-ID: <87v918hucp.fsf@dell.be.48ers.dk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 3, 2021 at 5:43 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
->
-> On Wed, 3 Nov 2021 13:07:29 +0100
-> Heinrich Schuchardt <heinrich.schuchardt@canonical.com> wrote:
->
-> > > After rebooting with Linux reboot:
-> > > => reset
-> > > resetting ...
-> > >
-> > > All okay and that's means that it's not a full reset, I2C was
-> > > initialised by linux, and not resetted.
-> >
-> > Doesn't this imply that the I2C initialization code should be added
-> > to OpenSBI?
-> >
->
-> Without any doubt.
+>>>>> "Anup" == Anup Patel <anup@brainfault.org> writes:
 
-I am okay having a simple I2C initialization.
+Hi,
 
-This series will be the last thing for OpenSBI v1.0 release
-so please update this series soon.
+ > On Mon, Oct 18, 2021 at 11:04 AM Samuel Holland <samuel@sholland.org> wrote:
+ >> 
+ >> The T-HEAD PLIC implementation requires setting a delegation bit
+ >> to allow access from S-mode. Now that the T-HEAD PLIC has its own
+ >> compatible string, set this bit automatically from the PLIC driver,
+ >> instead of reaching into the PLIC's MMIO space from another driver.
+ >> 
+ >> Signed-off-by: Samuel Holland <samuel@sholland.org>
+ >> 
+ >> ---
+ >> 
+ >> Changes in v2:
+ >> - Use the thead,c900-plic compatible instead of the D1 compatible.
+ >> - Also apply this change to other T-HEAD device tree examples.
+ >> - Remove the plic-delegate code from the thead,reset-sample driver.
+ >> - Drop the return value from thead_plic_plat_init().
 
-Regards,
-Anup
+ > Looks good to me.
 
->
-> > Best regards
-> >
-> > Heinrich
-> >
-> > >
-> > > However if we arm the clock and go shutdown:
-> > >
-> > > sh -c "echo `date '+%s' -d '+ 1 minutes'` >
-> > > /sys/class/rtc/rtc0/wakealarm" shutdown
-> > > shutdown
-> > >
-> > > We get:
-> > > => reset
-> > > resetting ...
-> > > da9063_system_reset: chip is not da9063 PMIC
-> > >
-> > > So "reset" with RTC is indeed a full reset...
-> > >
-> > > All above also means that "sacrificing" RTC means sacrificing user
-> > > setted wakeup ALARM's.
-> > >
-> > > May be it's worth splitting reset into WARM_REBOOT, COLD_REBOOT with
-> > > WARM reboot is going through method proposed by Alexandre and COLD
-> > > reboot via RTC, and explicitly specify that COLD reboot WILL
-> > > overwrite ALARM setting ?
-> > >
-> > > What do you think about this ?
-> > >
-> > >>
-> > >> Best regards
-> > >>
-> > >> Heinrich
-> > >
-> >
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+ > Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+ > Applied this patch to the riscv/opensbi repo.
+
+..
+
+ >> static const struct fdt_match irqchip_plic_match[] = {
+ >> { .compatible = "riscv,plic0" },
+ >> { .compatible = "sifive,plic-1.0.0" },
+ >> +       { .compatible = "thead,c900-plic",
+ >> +         .data = thead_plic_plat_init },
+ >> { },
+ >> };
+
+Sorry, old thread but I just noticed now that the thead,c900-plic
+compatible should ideally have been before the sifive one, so DTBs with
+both compatibles behave correctly (drivers are matched according to the
+order of the driver compatible, NOT the order of the compatible in the
+DTB).
+
+-- 
+Bye, Peter Korsgaard
 
