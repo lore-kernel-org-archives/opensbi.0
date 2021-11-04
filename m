@@ -1,11 +1,10 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 4 Nov 2021 10:56:38 +0800
-Subject: [PATCH v3 02/11] lib: sbi: Use csr_read/write_num for
- mhpmevent[h] csrs as well
-In-Reply-To: <20211102150959.492991-3-atish.patra@wdc.com>
+Date: Thu, 4 Nov 2021 11:06:04 +0800
+Subject: [PATCH v3 03/11] lib: sbi: Detect SSCOF extension at run time
+In-Reply-To: <20211102150959.492991-4-atish.patra@wdc.com>
 References: <20211102150959.492991-1-atish.patra@wdc.com>
- <20211102150959.492991-3-atish.patra@wdc.com>
-Message-ID: <CAEUhbmXf-weJj_b2W8xB9EnRBOD=LzaY7qGNjV8=icZojr6X9w@mail.gmail.com>
+ <20211102150959.492991-4-atish.patra@wdc.com>
+Message-ID: <CAEUhbmVNOKEcDN_YwHoD63ntfkZa+QL2gHnsgKYcXwZ1BeP7nQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,62 +13,80 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Nov 2, 2021 at 11:11 PM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> The sscof extension introduces mhpmeventh csrs to handle filtering
-> /overflow bits in RV32. Add the support to read/write them.
+> SSCOF ISA extension introduces PMU counter overflow and filtering support.
+
+nits: the official name is Sscofpmf, so we should stick to using it
+consistently, and the correct capital/lower case (please fix this
+globally in this series)
+
+> It introduces a read only `scountovf` csr that can be used to detect if
+> a hart supports this extension at runtime. However, this feature is only
+> useful if the hart already supports mcounteren and mcountinhibit.
+>
+> Add a dynamic detection mechanism and boot time print message if scoff
+
+nits: Sscofpmf
+
+> is present.
 >
 > Reviewed-by: Anup Patel <anup.patel@wdc.com>
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  lib/sbi/riscv_asm.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
+>  include/sbi/sbi_hart.h |  4 +++-
+>  lib/sbi/sbi_hart.c     | 12 ++++++++++++
+>  2 files changed, 15 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> index 4c24a5132195..ea6dd0837774 100644
-> --- a/lib/sbi/riscv_asm.c
-> +++ b/lib/sbi/riscv_asm.c
-> @@ -124,6 +124,11 @@ unsigned long csr_read_num(int csr_num)
->         switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
->         switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
->         switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
-> +       switchcase_csr_read(CSR_MCOUNTINHIBIT, ret)
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 0c18ef9325b2..580a7989a4de 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -20,8 +20,10 @@ enum sbi_hart_features {
+>         SBI_HART_HAS_MCOUNTEREN = (1 << 1),
+>         /** Hart has counter inhibit CSR */
+>         SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
+> +       /** Hart has sscofpmf extension */
+> +       SBI_HART_HAS_SSCOF = (1 << 3),
 
-nits: this does not belong to this patch, as the commit message does
-not mention it.
+Should it be named as HAS_SSCOFPMF ?
 
-Either split this to another commit, or mention it in the commit
-message that this is being added too.
-
-> +       switchcase_csr_read(CSR_MHPMEVENT3, ret)
-> +       switchcase_csr_read_4(CSR_MHPMEVENT4, ret)
-> +       switchcase_csr_read_8(CSR_MHPMEVENT8, ret)
-> +       switchcase_csr_read_16(CSR_MHPMEVENT16, ret)
->  #if __riscv_xlen == 32
->         switchcase_csr_read(CSR_MCYCLEH, ret)
->         switchcase_csr_read(CSR_MINSTRETH, ret)
-> @@ -131,6 +136,10 @@ unsigned long csr_read_num(int csr_num)
->         switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
->         switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
->         switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
-> +       switchcase_csr_read(CSR_MHPMEVENT3H, ret)
-> +       switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
-> +       switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
-> +       switchcase_csr_read_16(CSR_MHPMEVENT16H, ret)
->  #endif
+>         /** HART has timer csr implementation in hardware */
+> -       SBI_HART_HAS_TIME = (1 << 3),
+> +       SBI_HART_HAS_TIME = (1 << 4),
 >
->         default:
-> @@ -189,6 +198,10 @@ void csr_write_num(int csr_num, unsigned long val)
->         switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
->         switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
->         switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
-> +       switchcase_csr_write(CSR_MHPMEVENT3H, val)
-> +       switchcase_csr_write_4(CSR_MHPMEVENT4H, val)
-> +       switchcase_csr_write_8(CSR_MHPMEVENT8H, val)
-> +       switchcase_csr_write_16(CSR_MHPMEVENT16H, val)
->  #endif
->         switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
->         switchcase_csr_write(CSR_MHPMEVENT3, val)
+>         /** Last index of Hart features*/
+>         SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 6254452e11bb..44b8dfd1b551 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -288,6 +288,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+>         case SBI_HART_HAS_MCOUNTINHIBIT:
+>                 fstr = "mcountinhibit";
+>                 break;
+> +       case SBI_HART_HAS_SSCOF:
+> +               fstr = "sscof";
+> +               break;
+>         case SBI_HART_HAS_TIME:
+>                 fstr = "time";
+>                 break;
+> @@ -497,6 +500,15 @@ __mhpm_skip:
+>                         hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
+>         }
+>
+> +       /* Counter overflow/filtering is not useful without mcounter/inhibit */
+> +       if (hfeatures->features & SBI_HART_HAS_MCOUNTINHIBIT &&
+> +           hfeatures->features & SBI_HART_HAS_MCOUNTEREN) {
+> +               /* Detect if hart supports sscofpmf */
+> +               csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
+> +               if (!trap.cause)
+> +                       hfeatures->features |= SBI_HART_HAS_SSCOF;
+> +       }
+> +
+>         /* Detect if hart supports time CSR */
+>         csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+>         if (!trap.cause)
 > --
 
-Otherwise,
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+Regards,
+Bin
 
