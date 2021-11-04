@@ -1,110 +1,28 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 3 Nov 2021 18:58:17 +0530
-Subject: [PATCH v4 3/3] lib: sbi: error handling in fdt_reset_init()
-In-Reply-To: <20211027152206.68913-4-heinrich.schuchardt@canonical.com>
-References: <20211027152206.68913-1-heinrich.schuchardt@canonical.com>
- <20211027152206.68913-4-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy3TWhMzAsDeCM9SnWWaECj8Taq_G6Ac2gW3efXGoarw3g@mail.gmail.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Thu, 4 Nov 2021 10:02:25 +0800
+Subject: [PATCH v3 01/11] riscv: Add new CSRs introduced by Sscofpmf
+ extension
+In-Reply-To: <20211102150959.492991-2-atish.patra@wdc.com>
+References: <20211102150959.492991-1-atish.patra@wdc.com>
+ <20211102150959.492991-2-atish.patra@wdc.com>
+Message-ID: <CAEUhbmX8PqFpT4rR-W4dVjqbQhgm6RzU+uPmOG-0wBY6yKbVFw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 27, 2021 at 8:52 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Tue, Nov 2, 2021 at 11:11 PM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> The initialization of a reset driver may fail for various reasons, like
-> a PMIC based reset driver not finding the required I2C driver. The return
-> code of the init routine may take other error values than -ENODEV.
->
-> If the initialization of a reset driver fails, this should not lead to the
-> board hanging. It is enough that the reset driver does not call
-> sbi_system_reset_add_device() to avoid invoking the driver for a device
-> that could not be initialized.
->
-> Change the return type of fdt_reset_init() to void.
-> Print a message if an error occurs.
->
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-> Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 
-Looks good to me.
+It would be good to put the Sscovpmf spec link in the commit message,
+so that people know where to find the spec, (at the time being).
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Regards,
-Anup
-
+> Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > ---
-> v4:
->         add a code comment indicating that fdt_reset_init() is invoke
->         in final init
-> v3:
->         fix sign of SBI_ENODEV in fdt_reset_init()
-> v2:
->         provide an error message
-> ---
->  include/sbi_utils/reset/fdt_reset.h |  7 ++++++-
->  lib/utils/reset/fdt_reset.c         | 13 ++++++-------
->  2 files changed, 12 insertions(+), 8 deletions(-)
+>  include/sbi/riscv_encoding.h | 34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
 >
-> diff --git a/include/sbi_utils/reset/fdt_reset.h b/include/sbi_utils/reset/fdt_reset.h
-> index 6d58697..49214ff 100644
-> --- a/include/sbi_utils/reset/fdt_reset.h
-> +++ b/include/sbi_utils/reset/fdt_reset.h
-> @@ -17,6 +17,11 @@ struct fdt_reset {
->         int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
->  };
->
-> -int fdt_reset_init(void);
-> +/**
-> + * fdt_reset_init() - initialize reset drivers based on the device-tree
-> + *
-> + * This function shall be invoked in final init.
-> + */
-> +void fdt_reset_init(void);
->
->  #endif
-> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-> index 168bb0c..fa2e81e 100644
-> --- a/lib/utils/reset/fdt_reset.c
-> +++ b/lib/utils/reset/fdt_reset.c
-> @@ -7,6 +7,7 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->
-> +#include <sbi/sbi_console.h>
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> @@ -28,7 +29,7 @@ static struct fdt_reset *reset_drivers[] = {
->         &fdt_reset_thead,
->  };
->
-> -int fdt_reset_init(void)
-> +void fdt_reset_init(void)
->  {
->         int pos, noff, rc;
->         struct fdt_reset *drv;
-> @@ -44,12 +45,10 @@ int fdt_reset_init(void)
->
->                 if (drv->init) {
->                         rc = drv->init(fdt, noff, match);
-> -                       if (rc == SBI_ENODEV)
-> -                               continue;
-> -                       if (rc)
-> -                               return rc;
-> +                       if (rc && rc != SBI_ENODEV) {
-> +                               sbi_printf("%s: %s init failed, %d\n",
-> +                                          __func__, match->compatible, rc);
-> +                       }
->                 }
->         }
-> -
-> -       return 0;
->  }
-> --
-> 2.32.0
->
+
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
