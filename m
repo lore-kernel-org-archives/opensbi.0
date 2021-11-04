@@ -1,78 +1,153 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 4 Nov 2021 17:24:43 +0800
-Subject: [PATCH v3 00/11] Sscof extension support
-In-Reply-To: <20211102150959.492991-1-atish.patra@wdc.com>
-References: <20211102150959.492991-1-atish.patra@wdc.com>
-Message-ID: <CAEUhbmVPf_SWNdW_2cU33s4Jnsjw+HHbkHOhJORtQ1oXEwA7oA@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 4 Nov 2021 18:28:37 +0530
+Subject: [PATCH v2] lib: utils/gpio: use list for drivers
+In-Reply-To: <20211102143911.30184-1-nikita.shubin@maquefel.me>
+References: <20211101115023.13414-1-nikita.shubin@maquefel.me>
+ <20211102143911.30184-1-nikita.shubin@maquefel.me>
+Message-ID: <CAAhSdy1qY0eHTp0s_5cqvAnNa86cwvYvapBCh+x2zYXMuCgyHw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 2, 2021 at 11:11 PM Atish Patra <atish.patra@wdc.com> wrote:
+On Tue, Nov 2, 2021 at 8:09 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
 >
-> The Sscofpmf extension [1] ('Ss' for Privileged arch and Supervisor-level
-> extensions, and 'cofpmf' for Count OverFlow and Privilege Mode Filtering)
-> allows the perf like tool to handle overflow interrupts and filtering support.
+> From: Nikita Shubin <n.shubin@yadro.com>
 >
-> This series implements all the bits required to support "Sscof" extension and
-> few other fixes. This series can be found at github[4] as well.
-> It has been tested with Linux kernel patches[3] for different hardware/firmware
-> events on Qemu.
+> Convert static array to sbi_list.
 >
-> This patch requires QEMU support series[2] to work. As the Qemu did not
-> support mhpmevent/mhpmcounter before this series, these changes are not backward
-> compatible to avoid code churn. Anybody who wants to use perf must include
-> Qemu, OpenSBI, Linux kernel patches.
+> This removes size limitation, makes add/remove more efficient and
+> saves space.
 >
-> Tested on both Qemu and HiFive unmatched.
->
-> Changes from v2->v3:
-> 1. Rename the DT prefix to riscv instead of PMU.
->
-> Changes from v1->v2:
-> 1. Addressed all the comments on v1.
-> 2. Relaxed the mcountinhibit restriction for PMU extension enablement.
-> 3. Delete the interrupt node in DT if sscof extension is not present.
->
-> [1] https://drive.google.com/file/d/171j4jFjIkKdj5LWcExphq4xG_2sihbfd/edit
-> https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc
+> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 
-This link looks unnecessary.
+Please keep Reviewed-by tags provided by others in subsequent
+patch revisions. It helps me decide whether patch is good to be
+merged or not.
 
-> [2] https://github.com/atishp04/qemu/tree/riscv_pmu_v3
-> [3] https://github.com/atishp04/linux/tree/riscv_pmu_v4
+Applied this patch to the riscv/opensbi repo.
 
-This link is 404.
+Thanks,
+Anup
 
-> [4] https://github.com/atishp04/opensbi/tree/pmu_sscofpmf_v3
+> ---
+> v1 -> v2:
+> fixed typo
+> ---
+>  include/sbi_utils/gpio/gpio.h |  8 +++++++
+>  lib/utils/gpio/gpio.c         | 42 ++++++++++-------------------------
+>  2 files changed, 20 insertions(+), 30 deletions(-)
 >
-> Atish Patra (11):
-> riscv: Add new CSRs introduced by Sscofpmf extension
-> lib: sbi: Use csr_read/write_num for mhpmevent[h] csrs as well
-> lib: sbi: Detect SSCOF extension at run time
-> lib: sbi: Delegate PMU counter overflow interrupt to S mode
-> lib: sbi: Support sscof extension in OpenSBI
-> lib: sbi: Always enable access for all counters
-> lib: sbi: Allow programmable counters to monitor cycle/instret events
-> lib: sbi: Reset the mhpmevent value upon counter reset
-> lib: sbi: Counter info width should be zero indexed
-> lib: sbi: Enable PMU extension for platforms without mcountinhibit
-> lib: utils: Rename the prefix in PMU DT properties
+> diff --git a/include/sbi_utils/gpio/gpio.h b/include/sbi_utils/gpio/gpio.h
+> index 167d11a..7a3d8bb 100644
+> --- a/include/sbi_utils/gpio/gpio.h
+> +++ b/include/sbi_utils/gpio/gpio.h
+> @@ -11,6 +11,7 @@
+>  #define __GPIO_H__
 >
-> docs/pmu_support.md          |  12 +-
-> include/sbi/riscv_encoding.h |  60 ++++++++++
-> include/sbi/sbi_hart.h       |   4 +-
-> include/sbi/sbi_pmu.h        |   1 +
-> lib/sbi/riscv_asm.c          |  13 ++
-> lib/sbi/sbi_ecall_pmu.c      |  10 +-
-> lib/sbi/sbi_hart.c           |  36 +++---
-> lib/sbi/sbi_pmu.c            | 225 ++++++++++++++++++++++++++---------
-> lib/utils/fdt/fdt_pmu.c      |  16 ++-
-> 9 files changed, 285 insertions(+), 92 deletions(-)
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/sbi_list.h>
 >
-
-Regards,
-Bin
+>  #define GPIO_LINE_DIRECTION_IN 1
+>  #define GPIO_LINE_DIRECTION_OUT        0
+> @@ -70,8 +71,15 @@ struct gpio_chip {
+>         int (*get)(struct gpio_pin *gp);
+>         /** Set output value for GPIO pin */
+>         void (*set)(struct gpio_pin *gp, int value);
+> +       /** List */
+> +       struct sbi_dlist node;
+>  };
+>
+> +static inline struct gpio_chip *to_gpio_chip(struct sbi_dlist *node)
+> +{
+> +       return container_of(node, struct gpio_chip, node);
+> +}
+> +
+>  /** Find a registered GPIO chip */
+>  struct gpio_chip *gpio_chip_find(unsigned int id);
+>
+> diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
+> index fb30c0f..3a3a6b2 100644
+> --- a/lib/utils/gpio/gpio.c
+> +++ b/lib/utils/gpio/gpio.c
+> @@ -10,58 +10,40 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi_utils/gpio/gpio.h>
+>
+> -#define GPIO_CHIP_MAX          16
+> -
+> -static struct gpio_chip *gc_array[GPIO_CHIP_MAX];
+> +static SBI_LIST_HEAD(gpio_chip_list);
+>
+>  struct gpio_chip *gpio_chip_find(unsigned int id)
+>  {
+> -       unsigned int i;
+> -       struct gpio_chip *ret = NULL;
+> -
+> -       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> -               if (gc_array[i] && gc_array[i]->id == id) {
+> -                       ret = gc_array[i];
+> -                       break;
+> -               }
+> +       struct sbi_dlist *pos;
+> +
+> +       sbi_list_for_each(pos, &(gpio_chip_list)) {
+> +               struct gpio_chip *chip = to_gpio_chip(pos);
+> +
+> +               if (chip->id == id)
+> +                       return chip;
+>         }
+>
+> -       return ret;
+> +       return NULL;
+>  }
+>
+>  int gpio_chip_add(struct gpio_chip *gc)
+>  {
+> -       int i, ret = SBI_ENOSPC;
+> -
+>         if (!gc)
+>                 return SBI_EINVAL;
+>         if (gpio_chip_find(gc->id))
+>                 return SBI_EALREADY;
+>
+> -       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> -               if (!gc_array[i]) {
+> -                       gc_array[i] = gc;
+> -                       ret = 0;
+> -                       break;
+> -               }
+> -       }
+> +       sbi_list_add(&(gc->node), &(gpio_chip_list));
+>
+> -       return ret;
+> +       return 0;
+>  }
+>
+>  void gpio_chip_remove(struct gpio_chip *gc)
+>  {
+> -       int i;
+> -
+>         if (!gc)
+>                 return;
+>
+> -       for (i = 0; i < GPIO_CHIP_MAX; i++) {
+> -               if (gc_array[i] == gc) {
+> -                       gc_array[i] = NULL;
+> -                       break;
+> -               }
+> -       }
+> +       sbi_list_del(&(gc->node));
+>  }
+>
+>  int gpio_get_direction(struct gpio_pin *gp)
+> --
+> 2.31.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
