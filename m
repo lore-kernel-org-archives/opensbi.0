@@ -1,80 +1,66 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 4 Nov 2021 20:06:01 +0530
-Subject: [PATCH v2] lib: utils/irqchip: Automatically delegate T-HEAD PLIC
- access
-In-Reply-To: <87v918hucp.fsf@dell.be.48ers.dk>
-References: <20211018053350.39184-1-samuel@sholland.org>
- <CAAhSdy0y4LXy0NCZMo+r7_YWJRp5D+1C3eNt9huk7S8UGzFF6Q@mail.gmail.com>
- <87v918hucp.fsf@dell.be.48ers.dk>
-Message-ID: <CAAhSdy2ZXWZP2bGEmicWrs7zUWPc-kMgsUMC6v5qJ3Y_NnJkFw@mail.gmail.com>
+Date: Thu, 4 Nov 2021 20:13:48 +0530
+Subject: [PATCH v4 1/3] lib: sbi: move sbi_boot_print_general()
+In-Reply-To: <20211027152206.68913-2-heinrich.schuchardt@canonical.com>
+References: <20211027152206.68913-1-heinrich.schuchardt@canonical.com>
+ <20211027152206.68913-2-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy1=P5OkG_thFo8QfDYkYTh2fVm43a2VkgZ1tUpcnhrJqA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 4, 2021 at 7:54 PM Peter Korsgaard <peter@korsgaard.com> wrote:
+On Wed, Oct 27, 2021 at 8:52 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
 >
-> >>>>> "Anup" == Anup Patel <anup@brainfault.org> writes:
+> Moving the sbi_boot_print_general() call after the
+> sbi_platform_final_init() call allows to print devices initialized in the
+> latter.
 >
-> Hi,
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> ---
+> v4:
+>         no change
+> v3:
+>         no change
+> v2:
+>         new patch
+> ---
+>  lib/sbi/sbi_init.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
->  > On Mon, Oct 18, 2021 at 11:04 AM Samuel Holland <samuel@sholland.org> wrote:
->  >>
->  >> The T-HEAD PLIC implementation requires setting a delegation bit
->  >> to allow access from S-mode. Now that the T-HEAD PLIC has its own
->  >> compatible string, set this bit automatically from the PLIC driver,
->  >> instead of reaching into the PLIC's MMIO space from another driver.
->  >>
->  >> Signed-off-by: Samuel Holland <samuel@sholland.org>
->  >>
->  >> ---
->  >>
->  >> Changes in v2:
->  >> - Use the thead,c900-plic compatible instead of the D1 compatible.
->  >> - Also apply this change to other T-HEAD device tree examples.
->  >> - Remove the plic-delegate code from the thead,reset-sample driver.
->  >> - Drop the return value from thead_plic_plat_init().
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index b1c7cf0..18eb0d7 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -301,8 +301,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
 >
->  > Looks good to me.
+> -       sbi_boot_print_general(scratch);
+> -
+>         /*
+>          * Note: Finalize domains after HSM initialization so that we
+>          * can startup non-root domains.
+> @@ -336,6 +334,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
 >
->  > Reviewed-by: Anup Patel <anup.patel@wdc.com>
->
->  > Applied this patch to the riscv/opensbi repo.
->
-> ..
->
->  >> static const struct fdt_match irqchip_plic_match[] = {
->  >> { .compatible = "riscv,plic0" },
->  >> { .compatible = "sifive,plic-1.0.0" },
->  >> +       { .compatible = "thead,c900-plic",
->  >> +         .data = thead_plic_plat_init },
->  >> { },
->  >> };
->
-> Sorry, old thread but I just noticed now that the thead,c900-plic
-> compatible should ideally have been before the sifive one, so DTBs with
-> both compatibles behave correctly (drivers are matched according to the
-> order of the driver compatible, NOT the order of the compatible in the
-> DTB).
+> +       sbi_boot_print_general(scratch);
+> +
 
-Based on discussions on LKML, the T-HEAD PLIC is not compliant with
-RISC-V PLIC (and SiFive PLIC) so SiFive compatible string should not
-be used for any T-HEAD C9xx based board.
-
-@Guo Ren I see that you have dropped the DT bindings patch in your
-recent patch. You need to include the DT bindings patch in your kernel
-series.
+I would suggest moving sbi_boot_print_domains() here as well
+so that the order of prints is the same as the previous.
 
 Regards,
 Anup
 
+>         sbi_boot_print_hart(scratch, hartid);
 >
+>         wake_coldboot_harts(scratch, hartid);
 > --
-> Bye, Peter Korsgaard
+> 2.32.0
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
