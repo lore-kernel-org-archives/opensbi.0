@@ -1,11 +1,11 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Thu, 4 Nov 2021 16:36:46 +0800
-Subject: [PATCH v3 07/11] lib: sbi: Allow programmable counters to monitor
- cycle/instret events
-In-Reply-To: <20211102150959.492991-8-atish.patra@wdc.com>
+Date: Thu, 4 Nov 2021 16:41:49 +0800
+Subject: [PATCH v3 08/11] lib: sbi: Reset the mhpmevent value upon counter
+ reset
+In-Reply-To: <20211102150959.492991-9-atish.patra@wdc.com>
 References: <20211102150959.492991-1-atish.patra@wdc.com>
- <20211102150959.492991-8-atish.patra@wdc.com>
-Message-ID: <CAEUhbmWm0HNJMu_5XknfuxfdNAE7RYEWru9XhLMmy49bBHj_fQ@mail.gmail.com>
+ <20211102150959.492991-9-atish.patra@wdc.com>
+Message-ID: <CAEUhbmVejey5PFwVPUSnXvY5V_sTQCsgO_1=Rc3YNYDOhgjq9g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,17 +14,60 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Nov 2, 2021 at 11:11 PM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> A platform may use programmable counters for cycle/instret events.
-> The priv spec allows that provided that cycle/instret also report those
-> events in addition to the programmable counters. We should allow that
-> functionality in OpenSBI.
+> The hardware solely relies on the event selector value in mhpmevent
+> to figure out what event to monitor using that counter. It should be
+> reset when counter reset happens.
 >
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 > ---
->  include/sbi/sbi_pmu.h |  1 +
->  lib/sbi/sbi_pmu.c     | 59 +++++++++++++++++++++++++++++++------------
->  2 files changed, 44 insertions(+), 16 deletions(-)
+>  lib/sbi/sbi_pmu.c | 18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+>
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 9d97014eed88..2d1de1d58f3b 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -368,6 +368,20 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
+>         return 0;
+>  }
+>
+> +static int pmu_reset_hw_mhpmevent(int ctr_idx)
+> +{
+> +       if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> +               return SBI_EFAIL;
+> +#if __riscv_xlen == 32
+> +       csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, 0);
+> +       csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, 0);
+
+nits: like the comments mentioned in previous patches, the same logic
+can be used to calculate the CSR number for both 32 and 64-bits
+
+> +#else
+> +       csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, 0);
+> +#endif
+> +
+> +       return 0;
+> +}
+> +
+>  int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+>                      unsigned long flag)
+>  {
+> @@ -391,8 +405,10 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+>                 else
+>                         ret = pmu_ctr_stop_hw(cbase);
+>
+> -               if (!ret && (flag & SBI_PMU_STOP_FLAG_RESET))
+> +               if (flag & SBI_PMU_STOP_FLAG_RESET) {
+>                         active_events[hartid][cbase] = SBI_PMU_EVENT_IDX_INVALID;
+> +                       pmu_reset_hw_mhpmevent(cbase);
+> +               }
+>         }
+>
+>         return ret;
+> --
 >
 
+Otherwise,
 Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
