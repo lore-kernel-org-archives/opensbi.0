@@ -1,16 +1,16 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 5 Nov 2021 08:40:43 +0530
+From: Atish Patra <atishp@atishpatra.org>
+Date: Fri, 5 Nov 2021 11:29:46 -0700
 Subject: [PATCH] lib: pmu: support the event ID encoded by a bitmap.
 In-Reply-To: <20211105013301.27656-1-vincent.chen@sifive.com>
 References: <20211105013301.27656-1-vincent.chen@sifive.com>
-Message-ID: <CAAhSdy1caONMtG9SPbPpB7ForDThii-oJyOuXztmXr=tGCuf1Q@mail.gmail.com>
+Message-ID: <CAOnJCUL+2VZi4qXP75Kpqg-KRmjc-B1b3dp82E7j-ynN5R0L5g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Nov 5, 2021 at 7:03 AM Vincent Chen <vincent.chen@sifive.com> wrote:
+On Thu, Nov 4, 2021 at 6:33 PM Vincent Chen <vincent.chen@sifive.com> wrote:
 >
 > RISC-V privilege specification does not specify how to encode the event ID.
 > Therefore, each platform is allowed to customize its own encoding rule.
@@ -27,28 +27,17 @@ On Fri, Nov 5, 2021 at 7:03 AM Vincent Chen <vincent.chen@sifive.com> wrote:
 > It indicates which bits in the 1st column are encoded by a bitmap. If a
 > platform directly encoded every pmu event as a number, in this case, the
 > value of bitmap_region will be 0. The 3rd column (32bit) is the counter map
-
-I feel the definition of "bitmap_region" is counter intuitive.
-
-How about the following ?
-<column1 64bit> <column2 64bit> <column3 32bit>
-selector_match   selector_mask     counter_map
-
-Using above the comparison of RAW event is simplified as follows:
-if ((event_data & selector_mask) == selector_match) {
-    ...
-}
-
-In other words, "selector_mask" definition is the reverse of the
-"bitmap_region" proposed by this patch.
-
-Regards,
-Anup
-
 > used to describe which mhpmcounters support the raw events. All the
 > modifications in this patch are all based on the above change in
 > "pmu,raw-event-to-mhpmcounters".
 >
+
+Thanks for the quick turnaround with this patch. Few broad comments.
+
+1. docs/pmu_support.adoc with the new binding is missing.
+2. You may want to post the U-Boot DT updates as well
+so that it is easier for other developers to use perf on HiFive Unmatched.
+
 > Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
 > ---
 >  include/sbi/sbi_pmu.h   |  2 +-
@@ -212,4 +201,10 @@ Anup
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+
+
+-- 
+Regards,
+Atish
 
