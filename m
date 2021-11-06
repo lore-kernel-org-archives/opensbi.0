@@ -1,100 +1,82 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Sat,  6 Nov 2021 10:54:51 +0100
-Subject: [PATCH v5 3/3] lib: sbi: error handling in fdt_reset_init()
-In-Reply-To: <20211106095451.13200-1-heinrich.schuchardt@canonical.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 6 Nov 2021 16:14:20 +0530
+Subject: [PATCH v5 1/3] lib: sbi: move sbi_boot_print_general()
+In-Reply-To: <20211106095451.13200-2-heinrich.schuchardt@canonical.com>
 References: <20211106095451.13200-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20211106095451.13200-4-heinrich.schuchardt@canonical.com>
+ <20211106095451.13200-2-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy2oEpwnnHR=JypWwtyD_un8i320rU2=xaowzq5i+SVa2A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The initialization of a reset driver may fail for various reasons, like
-a PMIC based reset driver not finding the required I2C driver. The return
-code of the init routine may take other error values than -ENODEV.
+On Sat, Nov 6, 2021 at 3:24 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
+>
+> Moving the sbi_boot_print_general() call after the
+> sbi_platform_final_init() call allows to print devices initialized in the
+> latter.
+>
+> To keep the overall print sequence the same also move
+> sbi_boot_print_domains().
+>
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
-If the initialization of a reset driver fails, this should not lead to the
-board hanging. It is enough that the reset driver does not call
-sbi_system_reset_add_device() to avoid invoking the driver for a device
-that could not be initialized.
+Looks good to me.
 
-Change the return type of fdt_reset_init() to void.
-Print a message if an error occurs.
-
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
----
-v5:
-	no change
-v4:
-        add a code comment indicating that fdt_reset_init() is invoke
-        in final init
-v3:
-        fix sign of SBI_ENODEV in fdt_reset_init()
-v2:
----
- include/sbi_utils/reset/fdt_reset.h |  7 ++++++-
- lib/utils/reset/fdt_reset.c         | 13 ++++++-------
- 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/include/sbi_utils/reset/fdt_reset.h b/include/sbi_utils/reset/fdt_reset.h
-index 6d58697..46167b9 100644
---- a/include/sbi_utils/reset/fdt_reset.h
-+++ b/include/sbi_utils/reset/fdt_reset.h
-@@ -17,6 +17,11 @@ struct fdt_reset {
- 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
- };
- 
--int fdt_reset_init(void);
-+/**
-+ * fdt_reset_init() - initialize reset drivers based on the device-tree
-+ *
-+ * This function shall be invoked in final init.
-+ */
-+void fdt_reset_init(void);
- 
- #endif
-diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-index 168bb0c..9bd727a 100644
---- a/lib/utils/reset/fdt_reset.c
-+++ b/lib/utils/reset/fdt_reset.c
-@@ -7,6 +7,7 @@
-  *   Anup Patel <anup.patel@wdc.com>
-  */
- 
-+#include <sbi/sbi_console.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -28,7 +29,7 @@ static struct fdt_reset *reset_drivers[] = {
- 	&fdt_reset_thead,
- };
- 
--int fdt_reset_init(void)
-+void fdt_reset_init(void)
- {
- 	int pos, noff, rc;
- 	struct fdt_reset *drv;
-@@ -44,12 +45,10 @@ int fdt_reset_init(void)
- 
- 		if (drv->init) {
- 			rc = drv->init(fdt, noff, match);
--			if (rc == SBI_ENODEV)
--				continue;
--			if (rc)
--				return rc;
-+			if (rc && rc != SBI_ENODEV) {
-+				sbi_printf("%s: %s init failed, %d\n",
-+					   __func__, match->compatible, rc);
-+			}
- 		}
- 	}
--
--	return 0;
- }
--- 
-2.32.0
+Regards,
+Anup
 
+> ---
+> v5:
+>         move sbi_boot_print_domains() too
+> v4:
+>         no change
+> v3:
+>         no change
+> v2:
+>         new patch
+> ---
+>  lib/sbi/sbi_init.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 843659e..765c7b6 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -293,8 +293,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
+>
+> -       sbi_boot_print_general(scratch);
+> -
+>         /*
+>          * Note: Finalize domains after HSM initialization so that we
+>          * can startup non-root domains.
+> @@ -308,8 +306,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
+>
+> -       sbi_boot_print_domains(scratch);
+> -
+>         rc = sbi_hart_pmp_configure(scratch);
+>         if (rc) {
+>                 sbi_printf("%s: PMP configure failed (error %d)\n",
+> @@ -328,6 +324,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
+>
+> +       sbi_boot_print_general(scratch);
+> +
+> +       sbi_boot_print_domains(scratch);
+> +
+>         sbi_boot_print_hart(scratch, hartid);
+>
+>         wake_coldboot_harts(scratch, hartid);
+> --
+> 2.32.0
+>
 
