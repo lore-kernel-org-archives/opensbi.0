@@ -1,135 +1,70 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 6 Nov 2021 10:24:17 +0530
-Subject: [PATCH v4 11/11] lib: utils: Rename the prefix in PMU DT
- properties
-In-Reply-To: <20211105220527.2771269-12-atish.patra@wdc.com>
-References: <20211105220527.2771269-1-atish.patra@wdc.com>
- <20211105220527.2771269-12-atish.patra@wdc.com>
-Message-ID: <CAAhSdy08ejZXS3K0176h1gvgX7Q00JYAHXWKoWgBvdFaQqEHLQ@mail.gmail.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Sat,  6 Nov 2021 10:54:49 +0100
+Subject: [PATCH v5 1/3] lib: sbi: move sbi_boot_print_general()
+In-Reply-To: <20211106095451.13200-1-heinrich.schuchardt@canonical.com>
+References: <20211106095451.13200-1-heinrich.schuchardt@canonical.com>
+Message-ID: <20211106095451.13200-2-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 6, 2021 at 3:35 AM Atish Patra <atish.patra@wdc.com> wrote:
->
-> As per the DT schema rules, the prefix should be vendor. As the PMU
-> properties are generic for all vendors, change the prefix to riscv
-> instead of pmu.
->
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
+Moving the sbi_boot_print_general() call after the
+sbi_platform_final_init() call allows to print devices initialized in the
+latter.
 
-I had already reviewed this patch. Please preserve
-reviewed-by tags.
+To keep the overall print sequence the same also move
+sbi_boot_print_domains().
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+v5:
+	move sbi_boot_print_domains() too
+v4:
+        no change
+v3:
+        no change
+v2:
+        new patch
+---
+ lib/sbi/sbi_init.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Regards,
-Anup
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 843659e..765c7b6 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -293,8 +293,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
+ 
+-	sbi_boot_print_general(scratch);
+-
+ 	/*
+ 	 * Note: Finalize domains after HSM initialization so that we
+ 	 * can startup non-root domains.
+@@ -308,8 +306,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
+ 
+-	sbi_boot_print_domains(scratch);
+-
+ 	rc = sbi_hart_pmp_configure(scratch);
+ 	if (rc) {
+ 		sbi_printf("%s: PMP configure failed (error %d)\n",
+@@ -328,6 +324,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
+ 
++	sbi_boot_print_general(scratch);
++
++	sbi_boot_print_domains(scratch);
++
+ 	sbi_boot_print_hart(scratch, hartid);
+ 
+ 	wake_coldboot_harts(scratch, hartid);
+-- 
+2.32.0
 
-> ---
->  docs/pmu_support.md     | 12 ++++++------
->  lib/utils/fdt/fdt_pmu.c | 12 ++++++------
->  2 files changed, 12 insertions(+), 12 deletions(-)
->
-> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-> index 6533c99f8997..a60b75cf9efa 100644
-> --- a/docs/pmu_support.md
-> +++ b/docs/pmu_support.md
-> @@ -31,7 +31,7 @@ bindings in details.
->  * **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
->  This DT property must have the value **riscv,pmu**.
->
-> -* **pmu,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
-> +* **riscv,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
->  between a PMU event and the event selector value that platform expects to be
->  written to the MHPMEVENTx CSR for that event. The mapping is encoded in a
->  table format where each row represents an event. The first column represent the
-> @@ -39,7 +39,7 @@ event idx where the 2nd & 3rd column represent the event selector value that
->  should be encoded in the expected value to be written in MHPMEVENTx.
->  This property shouldn't encode any raw hardware event.
->
-> -* **pmu,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
-> +* **riscv,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
->  mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
->  that can be used to monitor these range of events. The information is encoded in
->  a table format where each row represent a certain range of events and
-> @@ -49,7 +49,7 @@ represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
->  event-to-mhpmevent is present. Otherwise, it can be omitted. This property
->  shouldn't encode any raw event.
->
-> -* **pmu,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
-> +* **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
->  mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
->  be used to monitor that raw event. The information is encoded in a table format
->  where each raw represent a specific raw event. The first column stores the
-> @@ -67,12 +67,12 @@ pmu {
->         compatible                      = "riscv,pmu";
->         interrupts                      = <0x100>;
->         interrupt-parent                        = <&plic>
-> -       pmu,event-to-mhpmevent          = <0x0000B  0x0000 0x0001>,
-> -       pmu,event-to-mhpmcounters       = <0x00001 0x00001 0x00000001>,
-> +       riscv,event-to-mhpmevent                = <0x0000B  0x0000 0x0001>,
-> +       riscv,event-to-mhpmcounters     = <0x00001 0x00001 0x00000001>,
->                                                   <0x00002 0x00002 0x00000004>,
->                                                   <0x00003 0x0000A 0x00000ff8>,
->                                                   <0x10000 0x10033 0x000ff000>,
-> -       pmu,raw-event-to-mhpmcounters   = <0x0000 0x0002 0x00000f8>,
-> +       riscv,raw-event-to-mhpmcounters         = <0x0000 0x0002 0x00000f8>,
->                                           <0x0000 0x0003 0x00000ff0>,
->  };
->
-> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> index 09c83c816f23..529ee420554f 100644
-> --- a/lib/utils/fdt/fdt_pmu.c
-> +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -50,9 +50,9 @@ int fdt_pmu_fixup(void *fdt)
->         if (pmu_offset < 0)
->                 return SBI_EFAIL;
->
-> -       fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters");
-> -       fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmevent");
-> -       fdt_delprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters");
-> +       fdt_delprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters");
-> +       fdt_delprop(fdt, pmu_offset, "riscv,event-to-mhpmevent");
-> +       fdt_delprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters");
->         if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
->                 fdt_delprop(fdt, pmu_offset, "interrupts-extended");
->
-> @@ -75,7 +75,7 @@ int fdt_pmu_setup(void *fdt)
->         if (pmu_offset < 0)
->                 return SBI_EFAIL;
->
-> -       event_ctr_map = fdt_getprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters", &len);
-> +       event_ctr_map = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters", &len);
->         if (!event_ctr_map || len < 8)
->                 return SBI_EFAIL;
->         len = len / (sizeof(u32) * 3);
-> @@ -86,7 +86,7 @@ int fdt_pmu_setup(void *fdt)
->                 sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
->         }
->
-> -       event_val = fdt_getprop(fdt, pmu_offset, "pmu,event-to-mhpmevent", &len);
-> +       event_val = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmevent", &len);
->         if (!event_val || len < 8)
->                 return SBI_EFAIL;
->         len = len / (sizeof(u32) * 3);
-> @@ -98,7 +98,7 @@ int fdt_pmu_setup(void *fdt)
->                 hw_event_count++;
->         }
->
-> -       event_val = fdt_getprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters", &len);
-> +       event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
->         if (!event_val || len < 8)
->                 return SBI_EFAIL;
->         len = len / (sizeof(u32) * 3);
-> --
-> 2.31.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
