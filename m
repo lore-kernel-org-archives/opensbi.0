@@ -1,10 +1,11 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 6 Nov 2021 10:23:46 +0530
-Subject: [PATCH v4 05/11] lib: sbi: Support sscofpmf extension in OpenSBI
-In-Reply-To: <20211105220527.2771269-6-atish.patra@wdc.com>
+Date: Sat, 6 Nov 2021 10:24:17 +0530
+Subject: [PATCH v4 11/11] lib: utils: Rename the prefix in PMU DT
+ properties
+In-Reply-To: <20211105220527.2771269-12-atish.patra@wdc.com>
 References: <20211105220527.2771269-1-atish.patra@wdc.com>
- <20211105220527.2771269-6-atish.patra@wdc.com>
-Message-ID: <CAAhSdy1j2tDEcenZKYz0gmUGKDMC37dBwomcRqETRbccSx-Aww@mail.gmail.com>
+ <20211105220527.2771269-12-atish.patra@wdc.com>
+Message-ID: <CAAhSdy08ejZXS3K0176h1gvgX7Q00JYAHXWKoWgBvdFaQqEHLQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,13 +14,9 @@ Content-Transfer-Encoding: 7bit
 
 On Sat, Nov 6, 2021 at 3:35 AM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> This patch adds sscofpmf extension in pmu module which includes
-> following things.
->
-> 1. Enable overflow irq when starting a counter.
-> 2. Setting the correct event filters passed from supervisor.
-> 3. Delegating the overflow interrupt to the supervisor.
-> 4. Add RV32 support for sscofpmf.
+> As per the DT schema rules, the prefix should be vendor. As the PMU
+> properties are generic for all vendors, change the prefix to riscv
+> instead of pmu.
 >
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 
@@ -32,206 +29,101 @@ Regards,
 Anup
 
 > ---
->  include/sbi/riscv_encoding.h | 25 ++++++++++
->  lib/sbi/sbi_pmu.c            | 88 ++++++++++++++++++++++++++++++------
->  2 files changed, 98 insertions(+), 15 deletions(-)
+>  docs/pmu_support.md     | 12 ++++++------
+>  lib/utils/fdt/fdt_pmu.c | 12 ++++++------
+>  2 files changed, 12 insertions(+), 12 deletions(-)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index ca6343537eba..8a29f8e05c9a 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -173,6 +173,31 @@
->  #define HGATP_MODE_SHIFT               HGATP32_MODE_SHIFT
->  #endif
+> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> index 6533c99f8997..a60b75cf9efa 100644
+> --- a/docs/pmu_support.md
+> +++ b/docs/pmu_support.md
+> @@ -31,7 +31,7 @@ bindings in details.
+>  * **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
+>  This DT property must have the value **riscv,pmu**.
 >
-> +#if __riscv_xlen == 64
-> +#define MHPMEVENT_OF                   (_UL(1) << 63)
-> +#define MHPMEVENT_MINH                 (_UL(1) << 62)
-> +#define MHPMEVENT_SINH                 (_UL(1) << 61)
-> +#define MHPMEVENT_UINH                 (_UL(1) << 60)
-> +#define MHPMEVENT_VSINH                        (_UL(1) << 59)
-> +#define MHPMEVENT_VUINH                        (_UL(1) << 58)
-> +#else
-> +#define MHPMEVENTH_OF                  (_UL(1) << 31)
-> +#define MHPMEVENTH_MINH                        (_ULL(1) << 30)
-> +#define MHPMEVENTH_SINH                        (_ULL(1) << 29)
-> +#define MHPMEVENTH_UINH                        (_ULL(1) << 28)
-> +#define MHPMEVENTH_VSINH               (_ULL(1) << 27)
-> +#define MHPMEVENTH_VUINH               (_ULL(1) << 26)
-> +
-> +#define MHPMEVENT_MINH                 (MHPMEVENTH_MINH << 32)
-> +#define MHPMEVENT_SINH                 (MHPMEVENTH_SINH << 32)
-> +#define MHPMEVENT_UINH                 (MHPMEVENTH_UINH << 32)
-> +#define MHPMEVENT_VSINH                        (MHPMEVENTH_VSINH << 32)
-> +#define MHPMEVENT_VUINH                        (MHPMEVENTH_VUINH << 32)
-> +
-> +#endif
-> +
-> +#define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
-> +
->  /* ===== User-level CSRs ===== */
+> -* **pmu,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
+> +* **riscv,event-to-mhpmevent**(Optional) - It represents an ONE-to-ONE mapping
+>  between a PMU event and the event selector value that platform expects to be
+>  written to the MHPMEVENTx CSR for that event. The mapping is encoded in a
+>  table format where each row represents an event. The first column represent the
+> @@ -39,7 +39,7 @@ event idx where the 2nd & 3rd column represent the event selector value that
+>  should be encoded in the expected value to be written in MHPMEVENTx.
+>  This property shouldn't encode any raw hardware event.
 >
->  /* User Trap Setup (N-extension) */
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index c276a46e2876..38c4f0fe560f 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -226,11 +226,47 @@ int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap)
->                                     SBI_PMU_EVENT_RAW_IDX, cmap, select);
->  }
+> -* **pmu,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
+> +* **riscv,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
+>  mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
+>  that can be used to monitor these range of events. The information is encoded in
+>  a table format where each row represent a certain range of events and
+> @@ -49,7 +49,7 @@ represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
+>  event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+>  shouldn't encode any raw event.
 >
-> +static int pmu_ctr_enable_irq_hw(int ctr_idx)
-> +{
-> +       unsigned long mhpmevent_csr;
-> +       unsigned long mhpmevent_curr;
-> +       unsigned long mip_val;
-> +       unsigned long of_mask;
-> +
-> +       if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
-> +               return SBI_EFAIL;
-> +
-> +#if __riscv_xlen == 32
-> +       mhpmevent_csr = CSR_MHPMEVENT3H  + ctr_idx - 3;
-> +       of_mask = ~MHPMEVENTH_OF;
-> +#else
-> +       mhpmevent_csr = CSR_MHPMEVENT3 + ctr_idx - 3;
-> +       of_mask = ~MHPMEVENT_OF;
-> +#endif
-> +
-> +       mhpmevent_curr = csr_read_num(mhpmevent_csr);
-> +       mip_val = csr_read(CSR_MIP);
-> +       /**
-> +        * Clear out the OF bit so that next interrupt can be enabled.
-> +        * This should be done only when the corresponding overflow interrupt
-> +        * bit is cleared. That indicates that software has already handled the
-> +        * previous interrupts or the hardware yet to set an overflow interrupt.
-> +        * Otherwise, there will be race conditions where we may clear the bit
-> +        * the software is yet to handle the interrupt.
-> +        */
-> +       if (!(mip_val & MIP_LCOFIP)) {
-> +               mhpmevent_curr &= of_mask;
-> +               csr_write_num(mhpmevent_csr, mhpmevent_curr);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
->  {
->  #if __riscv_xlen == 32
->         csr_write_num(CSR_MCYCLE + cidx, 0);
-> -       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
-> +       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFFFFFF);
->         csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
->  #else
->         csr_write_num(CSR_MCYCLE + cidx, ival);
-> @@ -241,6 +277,7 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
->  {
->         unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
->         unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> -* **pmu,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+> +* **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+>  mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
+>  be used to monitor that raw event. The information is encoded in a table format
+>  where each raw represent a specific raw event. The first column stores the
+> @@ -67,12 +67,12 @@ pmu {
+>         compatible                      = "riscv,pmu";
+>         interrupts                      = <0x100>;
+>         interrupt-parent                        = <&plic>
+> -       pmu,event-to-mhpmevent          = <0x0000B  0x0000 0x0001>,
+> -       pmu,event-to-mhpmcounters       = <0x00001 0x00001 0x00000001>,
+> +       riscv,event-to-mhpmevent                = <0x0000B  0x0000 0x0001>,
+> +       riscv,event-to-mhpmcounters     = <0x00001 0x00001 0x00000001>,
+>                                                   <0x00002 0x00002 0x00000004>,
+>                                                   <0x00003 0x0000A 0x00000ff8>,
+>                                                   <0x10000 0x10033 0x000ff000>,
+> -       pmu,raw-event-to-mhpmcounters   = <0x0000 0x0002 0x00000f8>,
+> +       riscv,raw-event-to-mhpmcounters         = <0x0000 0x0002 0x00000f8>,
+>                                           <0x0000 0x0003 0x00000ff0>,
+>  };
 >
->         /* Make sure the counter index lies within the range and is not TM bit */
->         if (cidx > num_hw_ctrs || cidx == 1)
-> @@ -252,12 +289,14 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
->         __set_bit(cidx, &mctr_en);
->         __clear_bit(cidx, &mctr_inhbt);
->
-> -       if (ival_update)
-> -               pmu_ctr_write_hw(cidx, ival);
-> -
-> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
-> +               pmu_ctr_enable_irq_hw(cidx);
->         csr_write(CSR_MCOUNTEREN, mctr_en);
->         csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
->
-> +       if (ival_update)
-> +               pmu_ctr_write_hw(cidx, ival);
-> +
->         return 0;
->  }
->
-> @@ -326,7 +365,6 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
->  static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
->  {
->         u32 hartid = current_hartid();
-> -
->         fw_event_map[hartid][fw_evt_code].bStarted = FALSE;
->
->         return 0;
-> @@ -362,8 +400,21 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
->         return ret;
->  }
->
-> +static void pmu_update_inhibit_flags(unsigned long flags, uint64_t *mhpmevent_val)
-> +{
-> +       if (flags & SBI_PMU_CFG_FLAG_SET_VUINH)
-> +               *mhpmevent_val |= MHPMEVENT_VUINH;
-> +       if (flags & SBI_PMU_CFG_FLAG_SET_VSINH)
-> +               *mhpmevent_val |= MHPMEVENT_VSINH;
-> +       if (flags & SBI_PMU_CFG_FLAG_SET_UINH)
-> +               *mhpmevent_val |= MHPMEVENT_UINH;
-> +       if (flags & SBI_PMU_CFG_FLAG_SET_SINH)
-> +               *mhpmevent_val |= MHPMEVENT_SINH;
-> +}
-> +
->  static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
-> -                                   unsigned long eindex, uint64_t data)
-> +                                  unsigned long flags, unsigned long eindex,
-> +                                  uint64_t data)
->  {
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> @@ -375,17 +426,23 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
->         if (!mhpmevent_val || ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> index 09c83c816f23..529ee420554f 100644
+> --- a/lib/utils/fdt/fdt_pmu.c
+> +++ b/lib/utils/fdt/fdt_pmu.c
+> @@ -50,9 +50,9 @@ int fdt_pmu_fixup(void *fdt)
+>         if (pmu_offset < 0)
 >                 return SBI_EFAIL;
 >
-> -       /* TODO: The upper 16 bits of mhpmevent is reserved by sscofpmf extension.
-> -        * Update those bits based on the flags received from supervisor.
-> -        * The OVF bit also should be cleared here in case it was not cleared
-> -        * during event stop.
-> -        */
-> -       csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, mhpmevent_val);
-> +       /* Always clear the OVF bit and inhibit countin of events in M-mode */
-> +       mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
-> +
-> +       /* Update the inhibit flags based on inhibit flags received from supervisor */
-> +       pmu_update_inhibit_flags(flags, &mhpmevent_val);
-> +
-> +#if __riscv_xlen == 32
-> +       csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
-> +       csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, mhpmevent_val >> BITS_PER_LONG);
-> +#else
-> +       csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val);
-> +#endif
+> -       fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters");
+> -       fdt_delprop(fdt, pmu_offset, "pmu,event-to-mhpmevent");
+> -       fdt_delprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters");
+> +       fdt_delprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters");
+> +       fdt_delprop(fdt, pmu_offset, "riscv,event-to-mhpmevent");
+> +       fdt_delprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters");
+>         if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
+>                 fdt_delprop(fdt, pmu_offset, "interrupts-extended");
 >
->         return 0;
->  }
->
-> -static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask,
-> +static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned long flags,
->                            unsigned long event_idx, uint64_t data)
->  {
->         unsigned long ctr_mask;
-> @@ -427,7 +484,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask,
->         if (ctr_idx == SBI_ENOTSUPP)
+> @@ -75,7 +75,7 @@ int fdt_pmu_setup(void *fdt)
+>         if (pmu_offset < 0)
 >                 return SBI_EFAIL;
 >
-> -       ret = pmu_update_hw_mhpmevent(temp, ctr_idx, event_idx, data);
-> +       ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
->
->         if (!ret)
->                 ret = ctr_idx;
-> @@ -490,7 +547,8 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
->                 /* Any firmware counter can be used track any firmware event */
->                 ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask, hartid);
->         } else {
-> -               ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, event_idx, event_data);
-> +               ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, flags, event_idx,
-> +                                         event_data);
+> -       event_ctr_map = fdt_getprop(fdt, pmu_offset, "pmu,event-to-mhpmcounters", &len);
+> +       event_ctr_map = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters", &len);
+>         if (!event_ctr_map || len < 8)
+>                 return SBI_EFAIL;
+>         len = len / (sizeof(u32) * 3);
+> @@ -86,7 +86,7 @@ int fdt_pmu_setup(void *fdt)
+>                 sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
 >         }
 >
->         if (ctr_idx < 0)
+> -       event_val = fdt_getprop(fdt, pmu_offset, "pmu,event-to-mhpmevent", &len);
+> +       event_val = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmevent", &len);
+>         if (!event_val || len < 8)
+>                 return SBI_EFAIL;
+>         len = len / (sizeof(u32) * 3);
+> @@ -98,7 +98,7 @@ int fdt_pmu_setup(void *fdt)
+>                 hw_event_count++;
+>         }
+>
+> -       event_val = fdt_getprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters", &len);
+> +       event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
+>         if (!event_val || len < 8)
+>                 return SBI_EFAIL;
+>         len = len / (sizeof(u32) * 3);
 > --
 > 2.31.1
 >
