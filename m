@@ -1,218 +1,243 @@
-From: Vincent Chen <vincent.chen@sifive.com>
-Date: Sat, 6 Nov 2021 09:17:27 +0800
-Subject: [PATCH] lib: pmu: support the event ID encoded by a bitmap.
-In-Reply-To: <CAOnJCUL+2VZi4qXP75Kpqg-KRmjc-B1b3dp82E7j-ynN5R0L5g@mail.gmail.com>
-References: <20211105013301.27656-1-vincent.chen@sifive.com>
- <CAOnJCUL+2VZi4qXP75Kpqg-KRmjc-B1b3dp82E7j-ynN5R0L5g@mail.gmail.com>
-Message-ID: <CABvJ_xhi8gnAurFTPK5i1Ta_C=LrZQ9hhE90Bd6L-VEWuRKeCA@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 6 Nov 2021 10:23:46 +0530
+Subject: [PATCH v4 05/11] lib: sbi: Support sscofpmf extension in OpenSBI
+In-Reply-To: <20211105220527.2771269-6-atish.patra@wdc.com>
+References: <20211105220527.2771269-1-atish.patra@wdc.com>
+ <20211105220527.2771269-6-atish.patra@wdc.com>
+Message-ID: <CAAhSdy1j2tDEcenZKYz0gmUGKDMC37dBwomcRqETRbccSx-Aww@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 6, 2021 at 2:29 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Sat, Nov 6, 2021 at 3:35 AM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> On Thu, Nov 4, 2021 at 6:33 PM Vincent Chen <vincent.chen@sifive.com> wrote:
-> >
-> > RISC-V privilege specification does not specify how to encode the event ID.
-> > Therefore, each platform is allowed to customize its own encoding rule.
-> > The common encoding methods are as follow, directly assigning a number to an
-> > event, or every bit in the mphmevent CSR controls one specified event or
-> > mixes the above two methods.
-> >
-> > To enable OpenSBI to support the above three encoding methods simultaneously,
-> > this patch modifies the content of "pmu,raw-event-to-mhpmcounters". The
-> > "pmu,raw-event-to-mhpmcounters" still describes the one or multiple raw
-> > events that could be counted by which mhpmcounters. But, the column number
-> > of "pmu,raw-event-to-mhpmcounters" is extended from 2 to 3. The 1st column
-> > (64bit) is the ID of the raw events. The 2nd column (64bit) is bitmap_region.
-> > It indicates which bits in the 1st column are encoded by a bitmap. If a
-> > platform directly encoded every pmu event as a number, in this case, the
-> > value of bitmap_region will be 0. The 3rd column (32bit) is the counter map
-> > used to describe which mhpmcounters support the raw events. All the
-> > modifications in this patch are all based on the above change in
-> > "pmu,raw-event-to-mhpmcounters".
-> >
+> This patch adds sscofpmf extension in pmu module which includes
+> following things.
 >
-> Thanks for the quick turnaround with this patch. Few broad comments.
+> 1. Enable overflow irq when starting a counter.
+> 2. Setting the correct event filters passed from supervisor.
+> 3. Delegating the overflow interrupt to the supervisor.
+> 4. Add RV32 support for sscofpmf.
 >
-> 1. docs/pmu_support.adoc with the new binding is missing.
-> 2. You may want to post the U-Boot DT updates as well
-> so that it is easier for other developers to use perf on HiFive Unmatched.
->
+> Signed-off-by: Atish Patra <atish.patra@wdc.com>
 
-The suggestion is good for me. I will add the above stuff in my next
-version patch.
-Thank you.
+I had already reviewed this patch. Please preserve
+reviewed-by tags.
 
-> > Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
-> > ---
-> >  include/sbi/sbi_pmu.h   |  2 +-
-> >  lib/sbi/sbi_pmu.c       | 34 ++++++++++++++++++++++++----------
-> >  lib/utils/fdt/fdt_pmu.c | 16 +++++++++-------
-> >  3 files changed, 34 insertions(+), 18 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> > index f018556..d1e27bd 100644
-> > --- a/include/sbi/sbi_pmu.h
-> > +++ b/include/sbi/sbi_pmu.h
-> > @@ -51,7 +51,7 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap);
-> >   * @return 0 on success, error otherwise.
-> >   */
-> >
-> > -int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap);
-> > +int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t bitmap_region, u32 cmap);
-> >
-> >  int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval);
-> >
-> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > index 6948a71..eb59baf 100644
-> > --- a/lib/sbi/sbi_pmu.c
-> > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -23,6 +23,13 @@ struct sbi_pmu_hw_event {
-> >         uint32_t end_idx;
-> >         /* Event selector value used only for raw events */
-> >         uint64_t select;
-> > +       /* A event selector value may be formed by a number and
-> > +        * a bitmap. The bitmap_region is used to indicate which bits
-> > +        * are encoded by a bitamp. When the value of bitmap_region
-> > +        * is zero, it means that the encoding methods of this select
-> > +        * value is to use a number directly.
-> > +        */
-> > +       uint64_t bitmap_region;
-> >  };
-> >
-> >  /** Representation of a firmware event */
-> > @@ -91,9 +98,9 @@ static bool pmu_event_range_overlap(struct sbi_pmu_hw_event *evtA,
-> >  }
-> >
-> >  static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
-> > -                                    uint64_t select_val)
-> > +                                    uint64_t select_val, uint64_t bitmap_region)
-> >  {
-> > -       if (evt->select == select_val)
-> > +       if ((evt->select == select_val) && (evt->bitmap_region == bitmap_region))
-> >                 return TRUE;
-> >
-> >         return FALSE;
-> > @@ -168,7 +175,7 @@ int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval)
-> >  }
-> >
-> >  static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
-> > -                               uint64_t select)
-> > +                               uint64_t select, uint64_t bitmap_region)
-> >  {
-> >         int i = 0;
-> >         bool is_overlap;
-> > @@ -191,13 +198,14 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
-> >         for (i = 0; i < num_hw_events; i++) {
-> >                 if (eidx_start == SBI_PMU_EVENT_RAW_IDX)
-> >                 /* All raw events have same event idx. Just do sanity check on select */
-> > -                       is_overlap = pmu_event_select_overlap(&hw_event_map[i], select);
-> > +                       is_overlap = pmu_event_select_overlap(&hw_event_map[i], select, bitmap_region);
-> >                 else
-> >                         is_overlap = pmu_event_range_overlap(&hw_event_map[i], event);
-> >                 if (is_overlap)
-> >                         goto reset_event;
-> >         }
-> >
-> > +       event->bitmap_region = bitmap_region;
-> >         event->counters = cmap;
-> >         event->select = select;
-> >         num_hw_events++;
-> > @@ -221,13 +229,13 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap)
-> >              eidx_end == SBI_PMU_EVENT_RAW_IDX)
-> >                 return SBI_EINVAL;
-> >
-> > -       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0);
-> > +       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0, 0);
-> >  }
-> >
-> > -int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap)
-> > +int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t bitmap_region, u32 cmap)
-> >  {
-> >         return pmu_add_hw_event_map(SBI_PMU_EVENT_RAW_IDX,
-> > -                                   SBI_PMU_EVENT_RAW_IDX, cmap, select);
-> > +                                   SBI_PMU_EVENT_RAW_IDX, cmap, select, bitmap_region);
-> >  }
-> >
-> >  static int pmu_ctr_enable_irq_hw(int ctr_idx)
-> > @@ -510,9 +518,16 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
-> >                         continue;
-> >
-> >                 /* For raw events, event data is used as the select value */
-> > -               if ((event_idx == SBI_PMU_EVENT_RAW_IDX) && temp->select != data)
-> > -                       continue;
-> > +               if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
-> > +                       uint64_t bitmap_region = temp->bitmap_region;
-> >
-> > +                       /* Check the bit filed encoded by a real number */
-> > +                       if ((temp->select & ~bitmap_region) != (data & ~bitmap_region))
-> > +                               continue;
-> > +                       /* Check the bit filed encoded by a bitmap */
-> > +                       else if ((temp->select & bitmap_region & data) != (bitmap_region & data))
-> > +                               continue;
-> > +               }
-> >                 /* Fixed counters should not be part of the search */
-> >                 ctr_mask = temp->counters & (cmask << cbase) &
-> >                            (~SBI_PMU_FIXED_CTR_MASK);
-> > @@ -542,7 +557,6 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
-> >                 else
-> >                         return SBI_EFAIL;
-> >         }
-> > -
-> >         ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
-> >
-> >         if (!ret)
-> > diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> > index 4d86e77..28bac76 100644
-> > --- a/lib/utils/fdt/fdt_pmu.c
-> > +++ b/lib/utils/fdt/fdt_pmu.c
-> > @@ -65,7 +65,7 @@ int fdt_pmu_setup(void *fdt)
-> >         const u32 *event_val;
-> >         const u32 *event_ctr_map;
-> >         struct fdt_pmu_hw_event_select *event;
-> > -       uint64_t raw_selector;
-> > +       uint64_t raw_selector, bitmap_region;
-> >         u32 event_idx_start, event_idx_end, ctr_map;
-> >
-> >         if (!fdt)
-> > @@ -99,14 +99,16 @@ int fdt_pmu_setup(void *fdt)
-> >         }
-> >
-> >         event_val = fdt_getprop(fdt, pmu_offset, "pmu,raw-event-to-mhpmcounters", &len);
-> > -       if (!event_val || len < 8)
-> > +       if (!event_val || len < 20)
-> >                 return SBI_EFAIL;
-> > -       len = len / (sizeof(u32) * 3);
-> > +       len = len / (sizeof(u32) * 5);
-> >         for (i = 0; i < len; i++) {
-> > -               raw_selector = fdt32_to_cpu(event_val[3 * i]);
-> > -               raw_selector = (raw_selector << 32) | fdt32_to_cpu(event_val[3 * i + 1]);
-> > -               ctr_map = fdt32_to_cpu(event_val[3 * i + 2]);
-> > -               result = sbi_pmu_add_raw_event_counter_map(raw_selector, ctr_map);
-> > +               raw_selector = fdt32_to_cpu(event_val[5 * i]);
-> > +               raw_selector = (raw_selector << 32) | fdt32_to_cpu(event_val[5 * i + 1]);
-> > +               bitmap_region = fdt32_to_cpu(event_val[5 * i + 2]);
-> > +               bitmap_region = (bitmap_region  << 32) | fdt32_to_cpu(event_val[5 * i + 3]);
-> > +               ctr_map = fdt32_to_cpu(event_val[5 * i + 4]);
-> > +               result = sbi_pmu_add_raw_event_counter_map(raw_selector, bitmap_region, ctr_map);
-> >                 if (!result)
-> >                         hw_event_count++;
-> >         }
-> > --
-> > 2.17.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+Regards,
+Anup
+
+> ---
+>  include/sbi/riscv_encoding.h | 25 ++++++++++
+>  lib/sbi/sbi_pmu.c            | 88 ++++++++++++++++++++++++++++++------
+>  2 files changed, 98 insertions(+), 15 deletions(-)
 >
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index ca6343537eba..8a29f8e05c9a 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -173,6 +173,31 @@
+>  #define HGATP_MODE_SHIFT               HGATP32_MODE_SHIFT
+>  #endif
+>
+> +#if __riscv_xlen == 64
+> +#define MHPMEVENT_OF                   (_UL(1) << 63)
+> +#define MHPMEVENT_MINH                 (_UL(1) << 62)
+> +#define MHPMEVENT_SINH                 (_UL(1) << 61)
+> +#define MHPMEVENT_UINH                 (_UL(1) << 60)
+> +#define MHPMEVENT_VSINH                        (_UL(1) << 59)
+> +#define MHPMEVENT_VUINH                        (_UL(1) << 58)
+> +#else
+> +#define MHPMEVENTH_OF                  (_UL(1) << 31)
+> +#define MHPMEVENTH_MINH                        (_ULL(1) << 30)
+> +#define MHPMEVENTH_SINH                        (_ULL(1) << 29)
+> +#define MHPMEVENTH_UINH                        (_ULL(1) << 28)
+> +#define MHPMEVENTH_VSINH               (_ULL(1) << 27)
+> +#define MHPMEVENTH_VUINH               (_ULL(1) << 26)
+> +
+> +#define MHPMEVENT_MINH                 (MHPMEVENTH_MINH << 32)
+> +#define MHPMEVENT_SINH                 (MHPMEVENTH_SINH << 32)
+> +#define MHPMEVENT_UINH                 (MHPMEVENTH_UINH << 32)
+> +#define MHPMEVENT_VSINH                        (MHPMEVENTH_VSINH << 32)
+> +#define MHPMEVENT_VUINH                        (MHPMEVENTH_VUINH << 32)
+> +
+> +#endif
+> +
+> +#define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
+> +
+>  /* ===== User-level CSRs ===== */
+>
+>  /* User Trap Setup (N-extension) */
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index c276a46e2876..38c4f0fe560f 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -226,11 +226,47 @@ int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap)
+>                                     SBI_PMU_EVENT_RAW_IDX, cmap, select);
+>  }
+>
+> +static int pmu_ctr_enable_irq_hw(int ctr_idx)
+> +{
+> +       unsigned long mhpmevent_csr;
+> +       unsigned long mhpmevent_curr;
+> +       unsigned long mip_val;
+> +       unsigned long of_mask;
+> +
+> +       if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> +               return SBI_EFAIL;
+> +
+> +#if __riscv_xlen == 32
+> +       mhpmevent_csr = CSR_MHPMEVENT3H  + ctr_idx - 3;
+> +       of_mask = ~MHPMEVENTH_OF;
+> +#else
+> +       mhpmevent_csr = CSR_MHPMEVENT3 + ctr_idx - 3;
+> +       of_mask = ~MHPMEVENT_OF;
+> +#endif
+> +
+> +       mhpmevent_curr = csr_read_num(mhpmevent_csr);
+> +       mip_val = csr_read(CSR_MIP);
+> +       /**
+> +        * Clear out the OF bit so that next interrupt can be enabled.
+> +        * This should be done only when the corresponding overflow interrupt
+> +        * bit is cleared. That indicates that software has already handled the
+> +        * previous interrupts or the hardware yet to set an overflow interrupt.
+> +        * Otherwise, there will be race conditions where we may clear the bit
+> +        * the software is yet to handle the interrupt.
+> +        */
+> +       if (!(mip_val & MIP_LCOFIP)) {
+> +               mhpmevent_curr &= of_mask;
+> +               csr_write_num(mhpmevent_csr, mhpmevent_curr);
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
+>  {
+>  #if __riscv_xlen == 32
+>         csr_write_num(CSR_MCYCLE + cidx, 0);
+> -       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
+> +       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFFFFFF);
+>         csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
+>  #else
+>         csr_write_num(CSR_MCYCLE + cidx, ival);
+> @@ -241,6 +277,7 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
+>  {
+>         unsigned long mctr_en = csr_read(CSR_MCOUNTEREN);
+>         unsigned long mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>
+>         /* Make sure the counter index lies within the range and is not TM bit */
+>         if (cidx > num_hw_ctrs || cidx == 1)
+> @@ -252,12 +289,14 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
+>         __set_bit(cidx, &mctr_en);
+>         __clear_bit(cidx, &mctr_inhbt);
+>
+> -       if (ival_update)
+> -               pmu_ctr_write_hw(cidx, ival);
+> -
+> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
+> +               pmu_ctr_enable_irq_hw(cidx);
+>         csr_write(CSR_MCOUNTEREN, mctr_en);
+>         csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
+>
+> +       if (ival_update)
+> +               pmu_ctr_write_hw(cidx, ival);
+> +
+>         return 0;
+>  }
+>
+> @@ -326,7 +365,6 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
+>  static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
+>  {
+>         u32 hartid = current_hartid();
+> -
+>         fw_event_map[hartid][fw_evt_code].bStarted = FALSE;
+>
+>         return 0;
+> @@ -362,8 +400,21 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+>         return ret;
+>  }
+>
+> +static void pmu_update_inhibit_flags(unsigned long flags, uint64_t *mhpmevent_val)
+> +{
+> +       if (flags & SBI_PMU_CFG_FLAG_SET_VUINH)
+> +               *mhpmevent_val |= MHPMEVENT_VUINH;
+> +       if (flags & SBI_PMU_CFG_FLAG_SET_VSINH)
+> +               *mhpmevent_val |= MHPMEVENT_VSINH;
+> +       if (flags & SBI_PMU_CFG_FLAG_SET_UINH)
+> +               *mhpmevent_val |= MHPMEVENT_UINH;
+> +       if (flags & SBI_PMU_CFG_FLAG_SET_SINH)
+> +               *mhpmevent_val |= MHPMEVENT_SINH;
+> +}
+> +
+>  static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+> -                                   unsigned long eindex, uint64_t data)
+> +                                  unsigned long flags, unsigned long eindex,
+> +                                  uint64_t data)
+>  {
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> @@ -375,17 +426,23 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+>         if (!mhpmevent_val || ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+>                 return SBI_EFAIL;
+>
+> -       /* TODO: The upper 16 bits of mhpmevent is reserved by sscofpmf extension.
+> -        * Update those bits based on the flags received from supervisor.
+> -        * The OVF bit also should be cleared here in case it was not cleared
+> -        * during event stop.
+> -        */
+> -       csr_write_num(CSR_MCOUNTINHIBIT + ctr_idx, mhpmevent_val);
+> +       /* Always clear the OVF bit and inhibit countin of events in M-mode */
+> +       mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
+> +
+> +       /* Update the inhibit flags based on inhibit flags received from supervisor */
+> +       pmu_update_inhibit_flags(flags, &mhpmevent_val);
+> +
+> +#if __riscv_xlen == 32
+> +       csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
+> +       csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, mhpmevent_val >> BITS_PER_LONG);
+> +#else
+> +       csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val);
+> +#endif
+>
+>         return 0;
+>  }
+>
+> -static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask,
+> +static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned long flags,
+>                            unsigned long event_idx, uint64_t data)
+>  {
+>         unsigned long ctr_mask;
+> @@ -427,7 +484,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask,
+>         if (ctr_idx == SBI_ENOTSUPP)
+>                 return SBI_EFAIL;
+>
+> -       ret = pmu_update_hw_mhpmevent(temp, ctr_idx, event_idx, data);
+> +       ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
+>
+>         if (!ret)
+>                 ret = ctr_idx;
+> @@ -490,7 +547,8 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+>                 /* Any firmware counter can be used track any firmware event */
+>                 ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask, hartid);
+>         } else {
+> -               ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, event_idx, event_data);
+> +               ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, flags, event_idx,
+> +                                         event_data);
+>         }
+>
+>         if (ctr_idx < 0)
+> --
+> 2.31.1
 >
 >
 > --
-> Regards,
-> Atish
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
