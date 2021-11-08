@@ -1,66 +1,77 @@
 From: Atish Patra <atish.patra@wdc.com>
-Date: Mon,  8 Nov 2021 10:52:57 -0800
-Subject: [PATCH v5 02/12] lib: sbi: Update csr_read/write_num for PMU
+Date: Mon,  8 Nov 2021 10:52:58 -0800
+Subject: [PATCH v5 03/12] lib: sbi: Detect Sscofpmf extension at run time
 In-Reply-To: <20211108185307.389145-1-atish.patra@wdc.com>
 References: <20211108185307.389145-1-atish.patra@wdc.com>
-Message-ID: <20211108185307.389145-3-atish.patra@wdc.com>
+Message-ID: <20211108185307.389145-4-atish.patra@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The Sscofpmf extension introduces mhpmevent[h] csrs to handle filtering
-/overflow bits in RV32. There is no way to read/write mcountinhibit
-using mcountinhibit csr using a variable.
+Sscofpmf ISA extension introduces PMU counter overflow and filtering support.
+It introduces a read only `scountovf` csr that can be used to detect if
+a hart supports this extension at runtime. However, this feature is only
+useful if the hart already supports mcounteren and mcountinhibit.
 
-Updated the support to read/write mhpmevent[h] and mcountinhibit csr.
+Add a dynamic detection mechanism and boot time print message if sscofpmf
+is present.
 
 Reviewed-by: Anup Patel <anup.patel@wdc.com>
 Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 Signed-off-by: Atish Patra <atish.patra@wdc.com>
 ---
- lib/sbi/riscv_asm.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/sbi/sbi_hart.h |  4 +++-
+ lib/sbi/sbi_hart.c     | 12 ++++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 4c24a5132195..ea6dd0837774 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -124,6 +124,11 @@ unsigned long csr_read_num(int csr_num)
- 	switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
- 	switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
- 	switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
-+	switchcase_csr_read(CSR_MCOUNTINHIBIT, ret)
-+	switchcase_csr_read(CSR_MHPMEVENT3, ret)
-+	switchcase_csr_read_4(CSR_MHPMEVENT4, ret)
-+	switchcase_csr_read_8(CSR_MHPMEVENT8, ret)
-+	switchcase_csr_read_16(CSR_MHPMEVENT16, ret)
- #if __riscv_xlen == 32
- 	switchcase_csr_read(CSR_MCYCLEH, ret)
- 	switchcase_csr_read(CSR_MINSTRETH, ret)
-@@ -131,6 +136,10 @@ unsigned long csr_read_num(int csr_num)
- 	switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
- 	switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
- 	switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
-+	switchcase_csr_read(CSR_MHPMEVENT3H, ret)
-+	switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
-+	switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
-+	switchcase_csr_read_16(CSR_MHPMEVENT16H, ret)
- #endif
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 0c18ef9325b2..d2db9d6e1fa1 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -20,8 +20,10 @@ enum sbi_hart_features {
+ 	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
+ 	/** Hart has counter inhibit CSR */
+ 	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
++	/** Hart has sscofpmf extension */
++	SBI_HART_HAS_SSCOFPMF = (1 << 3),
+ 	/** HART has timer csr implementation in hardware */
+-	SBI_HART_HAS_TIME = (1 << 3),
++	SBI_HART_HAS_TIME = (1 << 4),
  
- 	default:
-@@ -189,6 +198,10 @@ void csr_write_num(int csr_num, unsigned long val)
- 	switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
- 	switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
- 	switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
-+	switchcase_csr_write(CSR_MHPMEVENT3H, val)
-+	switchcase_csr_write_4(CSR_MHPMEVENT4H, val)
-+	switchcase_csr_write_8(CSR_MHPMEVENT8H, val)
-+	switchcase_csr_write_16(CSR_MHPMEVENT16H, val)
- #endif
- 	switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
- 	switchcase_csr_write(CSR_MHPMEVENT3, val)
+ 	/** Last index of Hart features*/
+ 	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6254452e11bb..1d73cd73b166 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -288,6 +288,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+ 	case SBI_HART_HAS_MCOUNTINHIBIT:
+ 		fstr = "mcountinhibit";
+ 		break;
++	case SBI_HART_HAS_SSCOFPMF:
++		fstr = "sscofpmf";
++		break;
+ 	case SBI_HART_HAS_TIME:
+ 		fstr = "time";
+ 		break;
+@@ -497,6 +500,15 @@ __mhpm_skip:
+ 			hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
+ 	}
+ 
++	/* Counter overflow/filtering is not useful without mcounter/inhibit */
++	if (hfeatures->features & SBI_HART_HAS_MCOUNTINHIBIT &&
++	    hfeatures->features & SBI_HART_HAS_MCOUNTEREN) {
++		/* Detect if hart supports sscofpmf */
++		csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
++		if (!trap.cause)
++			hfeatures->features |= SBI_HART_HAS_SSCOFPMF;
++	}
++
+ 	/* Detect if hart supports time CSR */
+ 	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+ 	if (!trap.cause)
 -- 
 2.31.1
 
