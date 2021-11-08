@@ -1,55 +1,31 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 08 Nov 2021 17:04:20 +0800
-Subject: [PATCH] lib: sbi: Fix PMP address bits detection
-In-Reply-To: <20211108050646.2895200-1-anup.patel@wdc.com>
-References: <20211108050646.2895200-1-anup.patel@wdc.com>
-Message-ID: <f0a8a1548d59a730821bdcb628197f0723f564b0.camel@126.com>
+Date: Mon,  8 Nov 2021 17:43:03 +0800
+Subject: [PATCH] lib: sbi: fix pmp_set: clear A befor setting
+Message-ID: <20211108094303.76907-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-11-08???? 10:36 +0530?Anup Patel???
-> From: Vasan VS <vasan.vs@gmail.com>
-> 
-> We should ensure that pmpcfg0.pmp0cfg is set to zero before using
-> pmpaddr0 CSR for detecting implemented PMP address bits.
-Why? Disable PMP? Prevent the generated PMP from affecting program
-execution? If so, I think the PMP configuration should be backed up
-first, then tested, and finally restored
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/riscv_asm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Regards,
-Xiang W
-> 
-> Fixes: bf21632860b4 ("lib: sbi: Detect PMP granularity and number
-> of address bits")
-> Signed-off-by: Vasan VS <vasan.vs@gmail.com>
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
-> ?lib/sbi/sbi_hart.c | 4 ++++
-> ?1 file changed, 4 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 8eb0c38..366066b 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -339,6 +339,10 @@ static unsigned long
-> hart_pmp_get_allowed_addr(void)
-> ????????unsigned long val = 0;
-> ????????struct sbi_trap_info trap = {0};
-> ?
-> +???????csr_write_allowed(CSR_PMPCFG0, (ulong)&trap, 0);
-> +???????if (trap.cause)
-> +???????????????return 0;
-> +
-> ????????csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);
-> ????????if (!trap.cause) {
-> ????????????????val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
-> -- 
-> 2.25.1
-> 
-> 
-
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index f6b8c8e..845039c 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -255,6 +255,7 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 		return SBI_ENOTSUPP;
+ 
+ 	/* encode PMP config */
++	prot &= ~PMP_A;
+ 	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
+ 	cfgmask = ~(0xffUL << pmpcfg_shift);
+ 	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
+-- 
+2.30.2
 
 
