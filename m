@@ -1,33 +1,28 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 8 Nov 2021 10:57:03 +0530
-Subject: [PATCH v5 1/3] lib: sbi: move sbi_boot_print_general()
-In-Reply-To: <CAAhSdy2oEpwnnHR=JypWwtyD_un8i320rU2=xaowzq5i+SVa2A@mail.gmail.com>
+Date: Mon, 8 Nov 2021 10:57:33 +0530
+Subject: [PATCH v5 2/3] platform: generic: move fdt_reset_init to
+ final_init
+In-Reply-To: <20211106095451.13200-3-heinrich.schuchardt@canonical.com>
 References: <20211106095451.13200-1-heinrich.schuchardt@canonical.com>
- <20211106095451.13200-2-heinrich.schuchardt@canonical.com>
- <CAAhSdy2oEpwnnHR=JypWwtyD_un8i320rU2=xaowzq5i+SVa2A@mail.gmail.com>
-Message-ID: <CAAhSdy1DSrGFobVhEOeuZotDeTwa2CRfZK4eCcvtBzoeNsmxMQ@mail.gmail.com>
+ <20211106095451.13200-3-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy2kJJ93VHkSw_zCvPBfVyOuGR2onXLPWXZEz7JV9DSXMQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 6, 2021 at 4:14 PM Anup Patel <anup@brainfault.org> wrote:
+On Sat, Nov 6, 2021 at 3:24 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
 >
-> On Sat, Nov 6, 2021 at 3:24 PM Heinrich Schuchardt
-> <heinrich.schuchardt@canonical.com> wrote:
-> >
-> > Moving the sbi_boot_print_general() call after the
-> > sbi_platform_final_init() call allows to print devices initialized in the
-> > latter.
-> >
-> > To keep the overall print sequence the same also move
-> > sbi_boot_print_domains().
-> >
-> > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Move the fdt_reset_init() invocation from generic_early_init() to
+> generic_final_init(). This allows to print error messages.
 >
-> Looks good to me.
+> Ignore the return value of fdt_reset_init() as we should not stop booting
+> due to failure to initialize reset drivers.
 >
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
 > Reviewed-by: Anup Patel <anup.patel@wdc.com>
 
 Applied this patch to the riscv/opensbi repo
@@ -35,57 +30,55 @@ Applied this patch to the riscv/opensbi repo
 Thanks,
 Anup
 
+> ---
+> v5:
+>         no change
+> v4:
+>         no change
+> v3:
+>         no change
+> v2:
+>         new patch
+> ---
+>  platform/generic/platform.c | 15 +++++----------
+>  1 file changed, 5 insertions(+), 10 deletions(-)
 >
-> Regards,
-> Anup
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 0757d87..8d4e41a 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -120,18 +120,10 @@ fail:
 >
-> > ---
-> > v5:
-> >         move sbi_boot_print_domains() too
-> > v4:
-> >         no change
-> > v3:
-> >         no change
-> > v2:
-> >         new patch
-> > ---
-> >  lib/sbi/sbi_init.c | 8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> > index 843659e..765c7b6 100644
-> > --- a/lib/sbi/sbi_init.c
-> > +++ b/lib/sbi/sbi_init.c
-> > @@ -293,8 +293,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                 sbi_hart_hang();
-> >         }
-> >
-> > -       sbi_boot_print_general(scratch);
-> > -
-> >         /*
-> >          * Note: Finalize domains after HSM initialization so that we
-> >          * can startup non-root domains.
-> > @@ -308,8 +306,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                 sbi_hart_hang();
-> >         }
-> >
-> > -       sbi_boot_print_domains(scratch);
-> > -
-> >         rc = sbi_hart_pmp_configure(scratch);
-> >         if (rc) {
-> >                 sbi_printf("%s: PMP configure failed (error %d)\n",
-> > @@ -328,6 +324,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                 sbi_hart_hang();
-> >         }
-> >
-> > +       sbi_boot_print_general(scratch);
-> > +
-> > +       sbi_boot_print_domains(scratch);
-> > +
-> >         sbi_boot_print_hart(scratch, hartid);
-> >
-> >         wake_coldboot_harts(scratch, hartid);
-> > --
-> > 2.32.0
-> >
+>  static int generic_early_init(bool cold_boot)
+>  {
+> -       int rc;
+> -
+> -       if (generic_plat && generic_plat->early_init) {
+> -               rc = generic_plat->early_init(cold_boot, generic_plat_match);
+> -               if (rc)
+> -                       return rc;
+> -       }
+> -
+> -       if (!cold_boot)
+> +       if (!generic_plat || !generic_plat->early_init)
+>                 return 0;
+>
+> -       return fdt_reset_init();
+> +       return generic_plat->early_init(cold_boot, generic_plat_match);
+>  }
+>
+>  static int generic_final_init(bool cold_boot)
+> @@ -139,6 +131,9 @@ static int generic_final_init(bool cold_boot)
+>         void *fdt;
+>         int rc;
+>
+> +       if (cold_boot)
+> +               fdt_reset_init();
+> +
+>         if (generic_plat && generic_plat->final_init) {
+>                 rc = generic_plat->final_init(cold_boot, generic_plat_match);
+>                 if (rc)
+> --
+> 2.32.0
+>
 
