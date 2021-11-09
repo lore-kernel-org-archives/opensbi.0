@@ -1,57 +1,58 @@
-From: Dong Du <dd_nirvana@sjtu.edu.cn>
-Date: Tue, 9 Nov 2021 13:47:38 +0800 (CST)
-Subject: [PATCH] lib: sbi: Fix PMP address bits detection
-In-Reply-To: <20211108050646.2895200-1-anup.patel@wdc.com>
-References: <20211108050646.2895200-1-anup.patel@wdc.com>
-Message-ID: <1716562904.5739932.1636436858027.JavaMail.zimbra@sjtu.edu.cn>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Tue,  9 Nov 2021 15:41:23 +0300
+Subject: [PATCH v3 1/6] lib: utils/reset: add priority to gpio reset
+In-Reply-To: <20211109124128.19666-1-nikita.shubin@maquefel.me>
+References: <20211109124128.19666-1-nikita.shubin@maquefel.me>
+Message-ID: <20211109124128.19666-2-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+From: Nikita Shubin <n.shubin@yadro.com>
 
-On Nov 8, 2021, at 1:06 PM, anup patel anup.patel at wdc.com wrote:
+Make gpio_system_reset_check return priority instead of just true/false.
 
-> From: Vasan VS <vasan.vs@gmail.com>
-> 
-> We should ensure that pmpcfg0.pmp0cfg is set to zero before using
-> pmpaddr0 CSR for detecting implemented PMP address bits.
-> 
-> Fixes: bf21632860b4 ("lib: sbi: Detect PMP granularity and number
-> of address bits")
-> Signed-off-by: Vasan VS <vasan.vs@gmail.com>
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
+Make default 128 priority for reset/shutdown.
 
-Looks good to me.
+Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+---
+v2->v3:
+- dropped dts priority
+---
+ lib/utils/reset/fdt_reset_gpio.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
+index 302035b..d28b6f5 100644
+--- a/lib/utils/reset/fdt_reset_gpio.c
++++ b/lib/utils/reset/fdt_reset_gpio.c
+@@ -77,7 +77,10 @@ static void gpio_reset_exec(struct gpio_reset *reset)
+ 
+ static int gpio_system_poweroff_check(u32 type, u32 reason)
+ {
+-	return !!gpio_reset_get(FALSE, type);
++	if (gpio_reset_get(FALSE, type))
++		return 128;
++
++	return 0;
+ }
+ 
+ static void gpio_system_poweroff(u32 type, u32 reason)
+@@ -93,7 +96,10 @@ static struct sbi_system_reset_device gpio_poweroff = {
+ 
+ static int gpio_system_restart_check(u32 type, u32 reason)
+ {
+-	return !!gpio_reset_get(TRUE, type);
++	if (gpio_reset_get(TRUE, type))
++		return 128;
++
++	return 0;
+ }
+ 
+ static void gpio_system_restart(u32 type, u32 reason)
+-- 
+2.31.1
 
-> lib/sbi/sbi_hart.c | 4 ++++
-> 1 file changed, 4 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 8eb0c38..366066b 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -339,6 +339,10 @@ static unsigned long hart_pmp_get_allowed_addr(void)
-> 	unsigned long val = 0;
-> 	struct sbi_trap_info trap = {0};
-> 
-> +	csr_write_allowed(CSR_PMPCFG0, (ulong)&trap, 0);
-> +	if (trap.cause)
-> +		return 0;
-> +
-> 	csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);
-> 	if (!trap.cause) {
-> 		val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
-> --
-> 2.25.1
-> 
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
