@@ -1,9 +1,7 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Tue,  9 Nov 2021 15:41:23 +0300
-Subject: [PATCH v3 1/6] lib: utils/reset: add priority to gpio reset
-In-Reply-To: <20211109124128.19666-1-nikita.shubin@maquefel.me>
-References: <20211109124128.19666-1-nikita.shubin@maquefel.me>
-Message-ID: <20211109124128.19666-2-nikita.shubin@maquefel.me>
+Date: Tue,  9 Nov 2021 15:41:22 +0300
+Subject: [PATCH v3 0/6] I2C framework, reboot Unmatched via PMIC
+Message-ID: <20211109124128.19666-1-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,46 +10,79 @@ Content-Transfer-Encoding: 7bit
 
 From: Nikita Shubin <n.shubin@yadro.com>
 
-Make gpio_system_reset_check return priority instead of just true/false.
+This series introduce rebooting via i2c da9063 PMIC, currently on
+SiFive Unmatched board.
 
-Make default 128 priority for reset/shutdown.
+"gpio-poweroff", "gpio-reset" remains with default priority of 128 - default priority,
+da9063 is 1 by default the least priority for shutdown and highest priority for
+reset.
 
-Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
----
+da9063 resides in platform/generic code and is used only for sifive_fu740, in case if 
+da9063 is found in device tree.
+
+Alexandre, Heinrich and Anup, the reason of "da9063_system_reset: chip is not 
+da9063 PMIC" wasn't the initialization, the peripheral clocks are initiated by ZSBL,
+the reason was incorrect timeouts in sifive_i2c_adapter_poll (100ms is really too much, 
+my bad), with polling reworked everything is working smooth regardless of 
+last reset type.
+
+The RTC ALARM reboot seems working, but implementing it in OpenSBI will require a 
+full-scale calendar logic (for day/month correct rollover) which is undesirable, also 
+we sacrifice the ability to wake up on ALARM.
+
+I am currently experimentings with TICK ALARM approach which should behave just like 
+the ALARM one, but i get wierd results with board being powered off and then preventing 
+the onKEY power it back again (turns off shortly after key pressed), 
+until cable plugged/unplugged (the BATTERY is missing).
+
+It looks like OTP settings are messing with logic, a comment from SiFive is really 
+needed.
+
+So we should currently stick to approuch proposed by Alexandre it hasn't failed 
+me so far.
+
 v2->v3:
-- dropped dts priority
----
- lib/utils/reset/fdt_reset_gpio.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+- new "lib: utils/reset: separate driver init func" patch
+- dropped separate DT bindings for da9063
+- dropped priority bindings
+- moved fdt_reset_da9063 to generic platform code
+- fdt_reset_da9063 is instatated by sifive_fu740 final init
 
-diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-index 302035b..d28b6f5 100644
---- a/lib/utils/reset/fdt_reset_gpio.c
-+++ b/lib/utils/reset/fdt_reset_gpio.c
-@@ -77,7 +77,10 @@ static void gpio_reset_exec(struct gpio_reset *reset)
- 
- static int gpio_system_poweroff_check(u32 type, u32 reason)
- {
--	return !!gpio_reset_get(FALSE, type);
-+	if (gpio_reset_get(FALSE, type))
-+		return 128;
-+
-+	return 0;
- }
- 
- static void gpio_system_poweroff(u32 type, u32 reason)
-@@ -93,7 +96,10 @@ static struct sbi_system_reset_device gpio_poweroff = {
- 
- static int gpio_system_restart_check(u32 type, u32 reason)
- {
--	return !!gpio_reset_get(TRUE, type);
-+	if (gpio_reset_get(TRUE, type))
-+		return 128;
-+
-+	return 0;
- }
- 
- static void gpio_system_restart(u32 type, u32 reason)
+Alexandre Ghiti:
+- removed fdt_i2c_adapter_driver
+- fixed sifive_i2c_setreg/sifive_i2c_getreg to use uint8_t for reg
+- dropped configure method
+- dropped unneeded register's defines
+
+Nikita Shubin (6):
+  lib: utils/reset: add priority to gpio reset
+  lib: utils/reset: separate driver init func
+  lib: utils/i2c: Add generic I2C configuration library
+  lib: utils/i2c: Add simple FDT based I2C framework
+  lib: utils/i2c: Add minimal SiFive I2C driver
+  platform: sifive_fu740: add platform reset driver
+
+ include/sbi_utils/i2c/fdt_i2c.h     |  26 +++
+ include/sbi_utils/i2c/i2c.h         |  85 +++++++++
+ include/sbi_utils/reset/fdt_reset.h |   5 +
+ lib/utils/i2c/fdt_i2c.c             |  90 ++++++++++
+ lib/utils/i2c/fdt_i2c_sifive.c      | 262 ++++++++++++++++++++++++++++
+ lib/utils/i2c/i2c.c                 |  75 ++++++++
+ lib/utils/i2c/objects.mk            |  12 ++
+ lib/utils/reset/fdt_reset.c         |  37 ++--
+ lib/utils/reset/fdt_reset_gpio.c    |  10 +-
+ platform/generic/fdt_reset_da9063.c | 186 ++++++++++++++++++++
+ platform/generic/objects.mk         |   1 +
+ platform/generic/sifive_fu740.c     |  22 +++
+ 12 files changed, 793 insertions(+), 18 deletions(-)
+ create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
+ create mode 100644 include/sbi_utils/i2c/i2c.h
+ create mode 100644 lib/utils/i2c/fdt_i2c.c
+ create mode 100644 lib/utils/i2c/fdt_i2c_sifive.c
+ create mode 100644 lib/utils/i2c/i2c.c
+ create mode 100644 lib/utils/i2c/objects.mk
+ create mode 100644 platform/generic/fdt_reset_da9063.c
+
 -- 
 2.31.1
 
