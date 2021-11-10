@@ -1,9 +1,9 @@
 From: Nikita Shubin <nikita.shubin@maquefel.me>
-Date: Wed, 10 Nov 2021 12:42:28 +0300
-Subject: [PATCH v4 4/6] lib: utils/i2c: Add simple FDT based I2C framework
+Date: Wed, 10 Nov 2021 12:42:26 +0300
+Subject: [PATCH v4 2/6] lib: utils/reset: separate driver init func
 In-Reply-To: <20211110094230.5243-1-nikita.shubin@maquefel.me>
 References: <20211110094230.5243-1-nikita.shubin@maquefel.me>
-Message-ID: <20211110094230.5243-5-nikita.shubin@maquefel.me>
+Message-ID: <20211110094230.5243-3-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,160 +12,86 @@ Content-Transfer-Encoding: 7bit
 
 From: Nikita Shubin <n.shubin@yadro.com>
 
-FDT based I2C framework on the top of I2C library.
-
-The drivers are probed on demand by fdt_i2c_adapter_get
-function.
+Move driver init code to separate function, so it can be reused
+elsewhere.
 
 Tested-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 Reviewed-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
 Tested-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
 Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 ---
-v3->v4:
-- fixed inaccurate configure remove, leaked into patch 0004
----
- include/sbi_utils/i2c/fdt_i2c.h | 26 ++++++++++
- lib/utils/i2c/fdt_i2c.c         | 87 +++++++++++++++++++++++++++++++++
- lib/utils/i2c/objects.mk        |  1 +
- 3 files changed, 114 insertions(+)
- create mode 100644 include/sbi_utils/i2c/fdt_i2c.h
- create mode 100644 lib/utils/i2c/fdt_i2c.c
+ include/sbi_utils/reset/fdt_reset.h |  5 ++++
+ lib/utils/reset/fdt_reset.c         | 37 ++++++++++++++++-------------
+ 2 files changed, 26 insertions(+), 16 deletions(-)
 
-diff --git a/include/sbi_utils/i2c/fdt_i2c.h b/include/sbi_utils/i2c/fdt_i2c.h
-new file mode 100644
-index 0000000..1f41a0f
---- /dev/null
-+++ b/include/sbi_utils/i2c/fdt_i2c.h
-@@ -0,0 +1,26 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 YADRO
-+ *
-+ * Authors:
-+ *   Nikita Shubin <n.shubin@yadro.com>
-+ */
-+
-+#ifndef __FDT_I2C_H__
-+#define __FDT_I2C_H__
-+
-+#include <sbi_utils/i2c/i2c.h>
-+
-+/** FDT based I2C adapter driver */
-+struct fdt_i2c_adapter {
-+	const struct fdt_match *match_table;
-+	int (*init)(void *fdt, int nodeoff,
-+		    const struct fdt_match *match);
-+};
-+
-+/** Get I2C adapter identified by nodeoff */
-+int fdt_i2c_adapter_get(void *fdt, int nodeoff,
-+			struct i2c_adapter **out_adapter);
-+
-+#endif
-diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
-new file mode 100644
-index 0000000..3182f56
---- /dev/null
-+++ b/lib/utils/i2c/fdt_i2c.c
-@@ -0,0 +1,87 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 YADRO
-+ *
-+ * Authors:
-+ *   Nikita Shubin <n.shubin@yadro.com>
-+ *
-+ * derivate: lib/utils/gpio/fdt_gpio.c
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/i2c/fdt_i2c.h>
-+
-+#include <sbi/sbi_console.h>
-+
-+static struct fdt_i2c_adapter *i2c_adapter_drivers[] = {
-+};
-+
-+static int fdt_i2c_adapter_init(void *fdt, int nodeoff)
-+{
-+	int pos, rc;
-+	struct fdt_i2c_adapter *drv;
-+	const struct fdt_match *match;
-+
-+	/* Try all I2C drivers one-by-one */
-+	for (pos = 0; pos < array_size(i2c_adapter_drivers); pos++) {
-+		drv = i2c_adapter_drivers[pos];
-+		match = fdt_match_node(fdt, nodeoff, drv->match_table);
-+		if (match && drv->init) {
-+			rc = drv->init(fdt, nodeoff, match);
-+			if (rc == SBI_ENODEV)
-+				continue;
-+			if (rc)
-+				return rc;
-+			return 0;
-+		}
-+	}
-+
-+	return SBI_ENOSYS;
-+}
-+
-+static int fdt_i2c_adapter_find(void *fdt, int nodeoff,
-+				struct i2c_adapter **out_adapter)
-+{
-+	int rc;
-+	struct i2c_adapter *adapter = i2c_adapter_find(nodeoff);
-+
-+	if (!adapter) {
-+		/* I2C adapter not found so initialize matching driver */
-+		rc = fdt_i2c_adapter_init(fdt, nodeoff);
-+		if (rc)
-+			return rc;
-+
-+		/* Try to find I2C adapter again */
-+		adapter = i2c_adapter_find(nodeoff);
-+		if (!adapter)
-+			return SBI_ENOSYS;
-+	}
-+
-+	if (out_adapter)
-+		*out_adapter = adapter;
-+
-+	return 0;
-+}
-+
-+int fdt_i2c_adapter_get(void *fdt, int nodeoff,
-+			struct i2c_adapter **out_adapter)
-+{
-+	int rc;
-+	struct i2c_adapter *adapter;
-+
-+	if (!fdt || (nodeoff < 0) || !out_adapter)
-+		return SBI_EINVAL;
-+
-+	rc = fdt_i2c_adapter_find(fdt, nodeoff, &adapter);
-+	if (rc)
-+		return rc;
-+
-+	*out_adapter = adapter;
-+
-+	return 0;
-+}
-diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-index 16a70da..06baa65 100644
---- a/lib/utils/i2c/objects.mk
-+++ b/lib/utils/i2c/objects.mk
-@@ -8,3 +8,4 @@
- #
+diff --git a/include/sbi_utils/reset/fdt_reset.h b/include/sbi_utils/reset/fdt_reset.h
+index 46167b9..e7f7350 100644
+--- a/include/sbi_utils/reset/fdt_reset.h
++++ b/include/sbi_utils/reset/fdt_reset.h
+@@ -17,6 +17,11 @@ struct fdt_reset {
+ 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
+ };
  
- libsbiutils-objs-y += i2c/i2c.o
-+libsbiutils-objs-y += i2c/fdt_i2c.o
++/**
++ * fdt_reset_driver_init() - initialize reset driver based on the device-tree
++ */
++int fdt_reset_driver_init(void *fdt, struct fdt_reset *drv);
++
+ /**
+  * fdt_reset_init() - initialize reset drivers based on the device-tree
+  *
+diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+index f4befa2..66281cb 100644
+--- a/lib/utils/reset/fdt_reset.c
++++ b/lib/utils/reset/fdt_reset.c
+@@ -29,26 +29,31 @@ static struct fdt_reset *reset_drivers[] = {
+ 	&fdt_reset_thead,
+ };
+ 
+-void fdt_reset_init(void)
++int fdt_reset_driver_init(void *fdt, struct fdt_reset *drv)
+ {
+-	int pos, noff, rc;
+-	struct fdt_reset *drv;
++	int noff, rc = SBI_ENODEV;
+ 	const struct fdt_match *match;
+-	void *fdt = fdt_get_address();
+-
+-	for (pos = 0; pos < array_size(reset_drivers); pos++) {
+-		drv = reset_drivers[pos];
+ 
+-		noff = fdt_find_match(fdt, -1, drv->match_table, &match);
+-		if (noff < 0)
+-			continue;
++	noff = fdt_find_match(fdt, -1, drv->match_table, &match);
++	if (noff < 0)
++		return SBI_ENODEV;
+ 
+-		if (drv->init) {
+-			rc = drv->init(fdt, noff, match);
+-			if (rc && rc != SBI_ENODEV) {
+-				sbi_printf("%s: %s init failed, %d\n",
+-					   __func__, match->compatible, rc);
+-			}
++	if (drv->init) {
++		rc = drv->init(fdt, noff, match);
++		if (rc && rc != SBI_ENODEV) {
++			sbi_printf("%s: %s init failed, %d\n",
++				   __func__, match->compatible, rc);
+ 		}
+ 	}
++
++	return rc;
++}
++
++void fdt_reset_init(void)
++{
++	int pos;
++	void *fdt = fdt_get_address();
++
++	for (pos = 0; pos < array_size(reset_drivers); pos++)
++		fdt_reset_driver_init(fdt, reset_drivers[pos]);
+ }
 -- 
 2.31.1
 
