@@ -1,276 +1,249 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed, 10 Nov 2021 11:11:04 +0100
-Subject: [PATCH v4] platform: sifive_fu740: add platform reset driver
-In-Reply-To: <20211110094230.5243-7-nikita.shubin@maquefel.me>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 10 Nov 2021 21:01:39 +0800
+Subject: [PATCH v4 3/6] lib: utils/i2c: Add generic I2C configuration
+ library
+In-Reply-To: <20211110094230.5243-4-nikita.shubin@maquefel.me>
 References: <20211110094230.5243-1-nikita.shubin@maquefel.me>
- <20211110094230.5243-7-nikita.shubin@maquefel.me>
-Message-ID: <de4b6dfc-993e-61ee-4b7b-260d372f592a@canonical.com>
+ <20211110094230.5243-4-nikita.shubin@maquefel.me>
+Message-ID: <8bef823514bd1af5dbdd9bf4904d79c215ba7f0a.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 11/10/21 10:42, Nikita Shubin wrote:
+? 2021-11-10???? 12:42 +0300?Nikita Shubin???
 > From: Nikita Shubin <n.shubin@yadro.com>
 > 
-> da9063 PMIC can be used to reset/shutdown the
-> Sifive Unmatched board.
-> 
-> shutdown is done simply by writing SHUTDOWN bit to
-> DA9063_REG_CONTROL_F register.
-> 
-> reset via setting WAKEUP bit in DA9063_REG_CONTROL_F
-> register followed by masking POWER and POWER1 domains
-> and setting STANDBY bit in DA9063_REG_CONTROL_A,
-> originally discovered by Alexandre Ghiti on linux-riscv
-> maillists.
+> Helper library to keep track of registered I2C adapters,
+> identified by dts offset, basic send/read functions and
+> adapter configuration (enable, set dividers, etc...).
 > 
 > Tested-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 > Reviewed-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
 > Tested-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
-
-I would not copy Tested-by: and Reviewed-by: if a patch has changed 
-significantly (e.g. putting the code into other files).
-
-For patches 1-5 the only differences are fixed comment typos. There it 
-is ok for me to copy the Reviewed-by:.
-
-I have tested the new series and found no issues.
-
-Tested-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-
 > Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+The i2c bus does not define register-related operations, these
+interfaces should be renamed smbus
+
+Regards,
+Xiang W
 > ---
 > v3->v4:
-> - moved all code to generic/sifive_fu740.c
+> - fixed typo in include/sbi_utils/i2c/i2c.h
+> - fixed inaccurate configure remove, leaked into patch 0004
 > ---
->   platform/generic/sifive_fu740.c | 192 ++++++++++++++++++++++++++++++++
->   1 file changed, 192 insertions(+)
+> ?include/sbi_utils/i2c/i2c.h | 85
+> +++++++++++++++++++++++++++++++++++++
+> ?lib/utils/i2c/i2c.c???????? | 75 ++++++++++++++++++++++++++++++++
+> ?lib/utils/i2c/objects.mk??? | 10 +++++
+> ?3 files changed, 170 insertions(+)
+> ?create mode 100644 include/sbi_utils/i2c/i2c.h
+> ?create mode 100644 lib/utils/i2c/i2c.c
+> ?create mode 100644 lib/utils/i2c/objects.mk
 > 
-> diff --git a/platform/generic/sifive_fu740.c b/platform/generic/sifive_fu740.c
-> index c8325d3..dde5926 100644
-> --- a/platform/generic/sifive_fu740.c
-> +++ b/platform/generic/sifive_fu740.c
-> @@ -2,14 +2,190 @@
->    * SPDX-License-Identifier: BSD-2-Clause
->    *
->    * Copyright (c) 2021 SiFive
+> diff --git a/include/sbi_utils/i2c/i2c.h
+> b/include/sbi_utils/i2c/i2c.h
+> new file mode 100644
+> index 0000000..79aeeb5
+> --- /dev/null
+> +++ b/include/sbi_utils/i2c/i2c.h
+> @@ -0,0 +1,85 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
 > + * Copyright (c) 2021 YADRO
->    *
->    * Authors:
->    *   David Abdurachmanov <david.abdurachmanov@sifive.com>
-> + *   Nikita Shubin <n.shubin@yadro.com>
->    */
->   
->   #include <platform_override.h>
-> +#include <libfdt.h>
+> + *
+> + * Authors:
+> + *?? Nikita Shubin <n.shubin@yadro.com>
+> + */
+> +
+> +#ifndef __I2C_H__
+> +#define __I2C_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_list.h>
+> +
+> +/** Representation of a I2C adapter */
+> +struct i2c_adapter {
+> +???????/** Pointer to I2C driver owning this I2C adapter */
+> +???????void *driver;
+> +
+> +???????/** Unique ID of the I2C adapter assigned by the driver */
+> +???????int id;
+> +
+> +???????/**
+> +??????? * Send buffer to given address, register
+> +??????? *
+> +??????? * @return 0 on success and negative error code on failure
+> +??????? */
+> +???????int (*write)(struct i2c_adapter *ia, uint8_t addr, uint8_t
+> reg,
+> +?????????????????? uint8_t *buffer, int len);
+> +
+> +???????/**
+> +??????? * Read buffer from given address, register
+> +??????? *
+> +??????? * @return 0 on success and negative error code on failure
+> +??????? */
+> +???????int (*read)(struct i2c_adapter *ia, uint8_t addr, uint8_t
+> reg,
+> +?????????????????? uint8_t *buffer, int len);
+> +
+> +???????/** List */
+> +???????struct sbi_dlist node;
+> +};
+> +
+> +static inline struct i2c_adapter *to_i2c_adapter(struct sbi_dlist
+> *node)
+> +{
+> +???????return container_of(node, struct i2c_adapter, node);
+> +}
+> +
+> +/** Find a registered I2C adapter */
+> +struct i2c_adapter *i2c_adapter_find(int id);
+> +
+> +/** Register I2C adapter */
+> +int i2c_adapter_add(struct i2c_adapter *ia);
+> +
+> +/** Un-register I2C adapter */
+> +void i2c_adapter_remove(struct i2c_adapter *ia);
+> +
+> +/** Send to device on I2C adapter bus */
+> +int i2c_adapter_write(struct i2c_adapter *ia, uint8_t addr, uint8_t
+> reg,
+> +???????????????????? uint8_t *buffer, int len);
+> +
+> +/** Read from device on I2C adapter bus */
+> +int i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr, uint8_t
+> reg,
+> +??????????????????? uint8_t *buffer, int len);
+> +
+> +static inline int i2c_adapter_reg_write(struct i2c_adapter *ia,
+> uint8_t addr,
+> +??????????????????????????????? uint8_t reg, uint8_t val)
+> +{
+> +???????return i2c_adapter_write(ia, addr, reg, &val, 1);
+> +}
+> +
+> +static inline int i2c_adapter_reg_read(struct i2c_adapter *ia,
+> uint8_t addr,
+> +????????????????????????????????????? uint8_t reg, uint8_t *val)
+> +{
+> +???????uint8_t buf;
+> +???????int ret = i2c_adapter_read(ia, addr, reg, &buf, 1);
+> +
+> +???????if (ret)
+> +???????????????return ret;
+> +
+> +???????*val = buf;
+> +???????return 0;
+> +}
+> +
+> +#endif
+> diff --git a/lib/utils/i2c/i2c.c b/lib/utils/i2c/i2c.c
+> new file mode 100644
+> index 0000000..1f5072c
+> --- /dev/null
+> +++ b/lib/utils/i2c/i2c.c
+> @@ -0,0 +1,75 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2021 YADRO
+> + *
+> + * Authors:
+> + *?? Nikita Shubin <n.shubin@yadro.com>
+> + *
+> + * derivate: lib/utils/gpio/gpio.c
+> + * Authors:
+> + *?? Anup Patel <anup.patel@wdc.com>
+> + */
+> +
 > +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_system.h>
-> +#include <sbi/sbi_console.h>
->   #include <sbi_utils/fdt/fdt_helper.h>
->   #include <sbi_utils/fdt/fdt_fixup.h>
-> +#include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/i2c/fdt_i2c.h>
+> +#include <sbi_utils/i2c/i2c.h>
 > +
-> +#define DA9063_REG_PAGE_CON		0x00
-> +#define DA9063_REG_CONTROL_A		0x0e
-> +#define DA9063_REG_CONTROL_F		0x13
-> +#define DA9063_REG_DEVICE_ID		0x81
+> +static SBI_LIST_HEAD(i2c_adapters_list);
 > +
-> +#define DA9063_CONTROL_A_M_POWER1_EN	(1 << 6)
-> +#define DA9063_CONTROL_A_M_POWER_EN	(1 << 5)
-> +#define DA9063_CONTROL_A_STANDBY	(1 << 3)
-> +
-> +#define DA9063_CONTROL_F_WAKEUP	(1 << 2)
-> +#define DA9063_CONTROL_F_SHUTDOWN	(1 << 1)
-> +
-> +#define PMIC_CHIP_ID_DA9063		0x61
-> +
-> +static struct {
-> +	struct i2c_adapter *adapter;
-> +	uint32_t reg;
-> +} da9063;
-> +
-> +static int da9063_system_reset_check(u32 type, u32 reason)
+> +struct i2c_adapter *i2c_adapter_find(int id)
 > +{
-> +	switch (type) {
-> +	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +		return 1;
-> +	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +		return 255;
-> +	}
+> +???????struct sbi_dlist *pos;
 > +
-> +	return 0;
+> +???????sbi_list_for_each(pos, &(i2c_adapters_list)) {
+> +???????????????struct i2c_adapter *adap = to_i2c_adapter(pos);
+> +
+> +???????????????if (adap->id == id)
+> +???????????????????????return adap;
+> +???????}
+> +
+> +???????return NULL;
 > +}
 > +
-> +static inline int da9063_sanity_check(struct i2c_adapter *adap, uint32_t reg)
+> +int i2c_adapter_add(struct i2c_adapter *ia)
 > +{
-> +	uint8_t val;
-> +	int rc = i2c_adapter_reg_write(adap, reg, DA9063_REG_PAGE_CON, 0x02);
+> +???????if (!ia)
+> +???????????????return SBI_EINVAL;
 > +
-> +	if (rc)
-> +		return rc;
+> +???????if (i2c_adapter_find(ia->id))
+> +???????????????return SBI_EALREADY;
 > +
-> +	/* check set page*/
-> +	rc = i2c_adapter_reg_read(adap, reg, 0x0, &val);
-> +	if (rc)
-> +		return rc;
+> +???????sbi_list_add(&(ia->node), &(i2c_adapters_list));
 > +
-> +	if (val != 0x02)
-> +		return SBI_ENODEV;
-> +
-> +	/* read and check device id */
-> +	rc = i2c_adapter_reg_read(adap, reg, DA9063_REG_DEVICE_ID, &val);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (val != PMIC_CHIP_ID_DA9063)
-> +		return SBI_ENODEV;
-> +
-> +	return 0;
+> +???????return 0;
 > +}
 > +
-> +static inline int da9063_shutdown(struct i2c_adapter *adap, uint32_t reg)
+> +void i2c_adapter_remove(struct i2c_adapter *ia)
 > +{
-> +	int rc = i2c_adapter_reg_write(adap, da9063.reg, DA9063_REG_PAGE_CON, 0x00);
+> +???????if (!ia)
+> +???????????????return;
 > +
-> +	if (rc)
-> +		return rc;
-> +
-> +	return i2c_adapter_reg_write(adap, da9063.reg,
-> +				     DA9063_REG_CONTROL_F, DA9063_CONTROL_F_SHUTDOWN);
+> +???????sbi_list_del(&(ia->node));
 > +}
 > +
-> +static inline int da9063_reset(struct i2c_adapter *adap, uint32_t reg)
+> +int i2c_adapter_write(struct i2c_adapter *ia, uint8_t addr, uint8_t
+> reg,
+> +??????????????????? uint8_t *buffer, int len)
 > +{
-> +	int rc = i2c_adapter_reg_write(adap, da9063.reg, DA9063_REG_PAGE_CON, 0x00);
+> +???????if (!ia)
+> +???????????????return SBI_EINVAL;
+> +???????if (!ia->write)
+> +???????????????return SBI_ENOSYS;
 > +
-> +	if (rc)
-> +		return rc;
-> +
-> +	rc = i2c_adapter_reg_write(adap, da9063.reg,
-> +				   DA9063_REG_CONTROL_F, DA9063_CONTROL_F_WAKEUP);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return i2c_adapter_reg_write(adap, da9063.reg,
-> +				DA9063_REG_CONTROL_A,
-> +				DA9063_CONTROL_A_M_POWER1_EN |
-> +				DA9063_CONTROL_A_M_POWER_EN |
-> +				DA9063_CONTROL_A_STANDBY);
+> +???????return ia->write(ia, addr, reg, buffer, len);
 > +}
 > +
-> +static void da9063_system_reset(u32 type, u32 reason)
+> +
+> +int i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr, uint8_t
+> reg,
+> +??????????????????? uint8_t *buffer, int len)
 > +{
-> +	struct i2c_adapter *adap = da9063.adapter;
-> +	uint32_t reg = da9063.reg;
-> +	int rc;
+> +???????if (!ia)
+> +???????????????return SBI_EINVAL;
+> +???????if (!ia->read)
+> +???????????????return SBI_ENOSYS;
 > +
-> +	if (adap) {
-> +		/* sanity check */
-> +		rc = da9063_sanity_check(adap, reg);
-> +		if (rc) {
-> +			sbi_printf("%s: chip is not da9063 PMIC\n", __func__);
-> +			goto skip_reset;
-> +		}
-> +
-> +		switch (type) {
-> +		case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +			da9063_shutdown(adap, reg);
-> +			break;
-> +		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +			da9063_reset(adap, reg);
-> +			break;
-> +		}
-> +
-> +		while
-> +			(1);
-> +skip_reset:
-> +	}
-> +
-> +	sbi_hart_hang();
+> +???????return ia->read(ia, addr, reg, buffer, len);
 > +}
+> diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
+> new file mode 100644
+> index 0000000..16a70da
+> --- /dev/null
+> +++ b/lib/utils/i2c/objects.mk
+> @@ -0,0 +1,10 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +# Copyright (c) 2021 YADRO
+> +#
+> +# Authors:
+> +#?? Nikita Shubin <n.shubin@yadro.com>
+> +#
 > +
-> +static struct sbi_system_reset_device da9063_reset_i2c = {
-> +	.name = "da9063-reset",
-> +	.system_reset_check = da9063_system_reset_check,
-> +	.system_reset = da9063_system_reset
-> +};
-> +
-> +static int da9063_reset_init(void *fdt, int nodeoff,
-> +			     const struct fdt_match *match)
-> +{
-> +	int rc, i2c_bus;
-> +	struct i2c_adapter *adapter;
-> +	uint64_t addr;
-> +
-> +	/* we are dlg,da9063 node */
-> +	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> +	if (rc)
-> +		return rc;
-> +
-> +	da9063.reg = addr;
-> +
-> +	/* find i2c bus parent node */
-> +	i2c_bus = fdt_parent_offset(fdt, nodeoff);
-> +	if (i2c_bus < 0)
-> +		return i2c_bus;
-> +
-> +	/* i2c adapter get */
-> +	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
-> +	if (rc)
-> +		return rc;
-> +
-> +	da9063.adapter = adapter;
-> +
-> +	sbi_system_reset_add_device(&da9063_reset_i2c);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct fdt_match da9063_reset_match[] = {
-> +	{ .compatible = "dlg,da9063", .data = (void *)TRUE },
-> +	{ },
-> +};
-> +
-> +struct fdt_reset fdt_reset_da9063 = {
-> +	.match_table = da9063_reset_match,
-> +	.init = da9063_reset_init,
-> +};
->   
->   static u64 sifive_fu740_tlbr_flush_limit(const struct fdt_match *match)
->   {
-> @@ -23,6 +199,21 @@ static u64 sifive_fu740_tlbr_flush_limit(const struct fdt_match *match)
->   	return 0;
->   }
->   
-> +static int sifive_fu740_final_init(bool cold_boot, const struct fdt_match *)
-> +{
-> +	int rc;
-> +	void *fdt = fdt_get_address();
-> +
-> +	if (cold_boot) {
-> +		rc = fdt_reset_driver_init(fdt, &fdt_reset_da9063);
-> +		if (rc)
-> +			sbi_printf("%s: failed to find da9063 for reset\n",
-> +				   __func__);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->   static const struct fdt_match sifive_fu740_match[] = {
->   	{ .compatible = "sifive,fu740" },
->   	{ .compatible = "sifive,fu740-c000" },
-> @@ -33,4 +224,5 @@ static const struct fdt_match sifive_fu740_match[] = {
->   const struct platform_override sifive_fu740 = {
->   	.match_table = sifive_fu740_match,
->   	.tlbr_flush_limit = sifive_fu740_tlbr_flush_limit,
-> +	.final_init = sifive_fu740_final_init,
->   };
+> +libsbiutils-objs-y += i2c/i2c.o
+> -- 
+> 2.31.1
 > 
+> 
+
 
 
