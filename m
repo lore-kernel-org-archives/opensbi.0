@@ -1,58 +1,52 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 11 Nov 2021 18:20:39 +0530
-Subject: [PATCH v5 12/12] lib: sbi: Fix initial value mask while updating
- the counters
-In-Reply-To: <20211108185307.389145-13-atish.patra@wdc.com>
-References: <20211108185307.389145-1-atish.patra@wdc.com>
- <20211108185307.389145-13-atish.patra@wdc.com>
-Message-ID: <CAAhSdy3kzB4UXsz96ae=2QzLJNuk0-yyYOD-bFuEDBJW6zKdAA@mail.gmail.com>
+Date: Thu, 11 Nov 2021 18:30:49 +0530
+Subject: [PATCH] lib: sbi: Fix PMP address bits detection
+In-Reply-To: <20211108050646.2895200-1-anup.patel@wdc.com>
+References: <20211108050646.2895200-1-anup.patel@wdc.com>
+Message-ID: <CAAhSdy3cyFn1NyGidu+RtqBT5YPuBVrS4dZ3TNT7Yc7+gpR=+A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 9, 2021 at 12:23 AM Atish Patra <atish.patra@wdc.com> wrote:
+On Mon, Nov 8, 2021 at 10:37 AM Anup Patel <anup.patel@wdc.com> wrote:
 >
-> The first 32 bits of the initial value for the counter should be
-> preserved while updating the mhpmcounter for 32bit.
+> From: Vasan VS <vasan.vs@gmail.com>
 >
-> Fixes: 13d40f21d588e ("lib: sbi: Add PMU support")
+> We should ensure that pmpcfg0.pmp0cfg is set to zero before using
+> pmpaddr0 CSR for detecting implemented PMP address bits.
 >
-> Signed-off-by: Atish Patra <atish.patra@wdc.com>
+> Fixes: bf21632860b4 ("lib: sbi: Detect PMP granularity and number
+> of address bits")
+> Signed-off-by: Vasan VS <vasan.vs@gmail.com>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
 
-Looks good to me.
+Applied this patch to the riscv/opensbi repo
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_pmu.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  lib/sbi/sbi_hart.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index e0303a7b19e6..a0eb3592967d 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -270,7 +270,7 @@ static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
->  {
->  #if __riscv_xlen == 32
->         csr_write_num(CSR_MCYCLE + cidx, 0);
-> -       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFF);
-> +       csr_write_num(CSR_MCYCLE + cidx, ival & 0xFFFFFFFF);
->         csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
->  #else
->         csr_write_num(CSR_MCYCLE + cidx, ival);
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 8eb0c38..366066b 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -339,6 +339,10 @@ static unsigned long hart_pmp_get_allowed_addr(void)
+>         unsigned long val = 0;
+>         struct sbi_trap_info trap = {0};
+>
+> +       csr_write_allowed(CSR_PMPCFG0, (ulong)&trap, 0);
+> +       if (trap.cause)
+> +               return 0;
+> +
+>         csr_write_allowed(CSR_PMPADDR0, (ulong)&trap, PMP_ADDR_MASK);
+>         if (!trap.cause) {
+>                 val = csr_read_allowed(CSR_PMPADDR0, (ulong)&trap);
 > --
-> 2.31.1
+> 2.25.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
