@@ -1,11 +1,11 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 11 Nov 2021 18:17:23 +0530
-Subject: [PATCH v5 08/12] lib: sbi: Reset the mhpmevent value upon counter
- reset
-In-Reply-To: <20211108185307.389145-9-atish.patra@wdc.com>
+Date: Thu, 11 Nov 2021 18:17:49 +0530
+Subject: [PATCH v5 09/12] lib: sbi: Counter info width should be zero
+ indexed
+In-Reply-To: <20211108185307.389145-10-atish.patra@wdc.com>
 References: <20211108185307.389145-1-atish.patra@wdc.com>
- <20211108185307.389145-9-atish.patra@wdc.com>
-Message-ID: <CAAhSdy0bi6n_p6J5wKDeQgXSrE_-wLTwX2e60MLExJ9sOrRv4Q@mail.gmail.com>
+ <20211108185307.389145-10-atish.patra@wdc.com>
+Message-ID: <CAAhSdy1QyvMXW=5Sihxi8S1Sd9yQAe+EpFwo+N-WHpWmSYFwig@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,12 +14,14 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Nov 9, 2021 at 12:23 AM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> The hardware solely relies on the event selector value in mhpmevent
-> to figure out what event to monitor using that counter. It should be
-> reset when counter reset happens.
+> The mhpm bits represent the number of bits available in mhpmcounter
+> while counter width describes a zero indexed value. Fix the counter width
+> calculation.
 >
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> Fixes: 13d40f21d588 ("lib: sbi: Add PMU support")
+>
 > Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 
 Applied this patch to the riscv/opensbi repo.
@@ -28,46 +30,22 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_pmu.c | 18 +++++++++++++++++-
->  1 file changed, 17 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_pmu.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 818b87555e69..1bb3e49412b7 100644
+> index 1bb3e49412b7..da8a37b1d34b 100644
 > --- a/lib/sbi/sbi_pmu.c
 > +++ b/lib/sbi/sbi_pmu.c
-> @@ -369,6 +369,20 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
->         return 0;
->  }
->
-> +static int pmu_reset_hw_mhpmevent(int ctr_idx)
-> +{
-> +       if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
-> +               return SBI_EFAIL;
-> +#if __riscv_xlen == 32
-> +       csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, 0);
-> +       csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, 0);
-> +#else
-> +       csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, 0);
-> +#endif
-> +
-> +       return 0;
-> +}
-> +
->  int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
->                      unsigned long flag)
->  {
-> @@ -392,8 +406,10 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+> @@ -649,7 +649,7 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+>                 if (cidx == 0 || cidx == 2)
+>                         cinfo.width = 63;
 >                 else
->                         ret = pmu_ctr_stop_hw(cbase);
->
-> -               if (!ret && (flag & SBI_PMU_STOP_FLAG_RESET))
-> +               if (flag & SBI_PMU_STOP_FLAG_RESET) {
->                         active_events[hartid][cbase] = SBI_PMU_EVENT_IDX_INVALID;
-> +                       pmu_reset_hw_mhpmevent(cbase);
-> +               }
->         }
->
->         return ret;
+> -                       cinfo.width = sbi_hart_mhpm_bits(scratch);
+> +                       cinfo.width = sbi_hart_mhpm_bits(scratch) - 1;
+>         } else {
+>                 /* it's a firmware counter */
+>                 cinfo.type = SBI_PMU_CTR_TYPE_FW;
 > --
 > 2.31.1
 >
