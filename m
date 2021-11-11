@@ -1,10 +1,11 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 11 Nov 2021 18:13:13 +0530
-Subject: [PATCH v5 03/12] lib: sbi: Detect Sscofpmf extension at run time
-In-Reply-To: <20211108185307.389145-4-atish.patra@wdc.com>
+Date: Thu, 11 Nov 2021 18:14:14 +0530
+Subject: [PATCH v5 04/12] lib: sbi: Delegate PMU counter overflow
+ interrupt to S mode
+In-Reply-To: <20211108185307.389145-5-atish.patra@wdc.com>
 References: <20211108185307.389145-1-atish.patra@wdc.com>
- <20211108185307.389145-4-atish.patra@wdc.com>
-Message-ID: <CAAhSdy0u7r077E9X1x9YY9JTS_ZTcf0WaNpk59nJVP6GyKa4zQ@mail.gmail.com>
+ <20211108185307.389145-5-atish.patra@wdc.com>
+Message-ID: <CAAhSdy2D2yKMBt=gbNkmXpQc_FMF-S9pN6cjAak303zSm=bSmA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,16 +14,12 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Nov 9, 2021 at 12:23 AM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> Sscofpmf ISA extension introduces PMU counter overflow and filtering support.
-> It introduces a read only `scountovf` csr that can be used to detect if
-> a hart supports this extension at runtime. However, this feature is only
-> useful if the hart already supports mcounteren and mcountinhibit.
+> OpenSBI doesn't handle PMU counters for now.
 >
-> Add a dynamic detection mechanism and boot time print message if sscofpmf
-> is present.
+> Delegate the overflow counter to S-mode always.
 >
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 > Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+> Reviewed-by: Anup Patel <anup.patel@wdc.com>
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
 
 Applied this patch to the riscv/opensbi repo.
@@ -31,56 +28,44 @@ Thanks,
 Anup
 
 > ---
->  include/sbi/sbi_hart.h |  4 +++-
->  lib/sbi/sbi_hart.c     | 12 ++++++++++++
->  2 files changed, 15 insertions(+), 1 deletion(-)
+>  include/sbi/riscv_encoding.h | 2 ++
+>  lib/sbi/sbi_hart.c           | 3 +++
+>  2 files changed, 5 insertions(+)
 >
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 0c18ef9325b2..d2db9d6e1fa1 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -20,8 +20,10 @@ enum sbi_hart_features {
->         SBI_HART_HAS_MCOUNTEREN = (1 << 1),
->         /** Hart has counter inhibit CSR */
->         SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
-> +       /** Hart has sscofpmf extension */
-> +       SBI_HART_HAS_SSCOFPMF = (1 << 3),
->         /** HART has timer csr implementation in hardware */
-> -       SBI_HART_HAS_TIME = (1 << 3),
-> +       SBI_HART_HAS_TIME = (1 << 4),
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 14caa95d66de..ca6343537eba 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -86,6 +86,7 @@
+>  #define IRQ_VS_EXT                     10
+>  #define IRQ_M_EXT                      11
+>  #define IRQ_S_GEXT                     12
+> +#define IRQ_PMU_OVF                    13
 >
->         /** Last index of Hart features*/
->         SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+>  #define MIP_SSIP                       (_UL(1) << IRQ_S_SOFT)
+>  #define MIP_VSSIP                      (_UL(1) << IRQ_VS_SOFT)
+> @@ -97,6 +98,7 @@
+>  #define MIP_VSEIP                      (_UL(1) << IRQ_VS_EXT)
+>  #define MIP_MEIP                       (_UL(1) << IRQ_M_EXT)
+>  #define MIP_SGEIP                      (_UL(1) << IRQ_S_GEXT)
+> +#define MIP_LCOFIP                     (_UL(1) << IRQ_PMU_OVF)
+>
+>  #define SIP_SSIP                       MIP_SSIP
+>  #define SIP_STIP                       MIP_STIP
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 6254452e11bb..1d73cd73b166 100644
+> index 1d73cd73b166..fccd19b7eb31 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -288,6 +288,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
->         case SBI_HART_HAS_MCOUNTINHIBIT:
->                 fstr = "mcountinhibit";
->                 break;
-> +       case SBI_HART_HAS_SSCOFPMF:
-> +               fstr = "sscofpmf";
-> +               break;
->         case SBI_HART_HAS_TIME:
->                 fstr = "time";
->                 break;
-> @@ -497,6 +500,15 @@ __mhpm_skip:
->                         hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
->         }
+> @@ -115,6 +115,9 @@ static int delegate_traps(struct sbi_scratch *scratch)
 >
-> +       /* Counter overflow/filtering is not useful without mcounter/inhibit */
-> +       if (hfeatures->features & SBI_HART_HAS_MCOUNTINHIBIT &&
-> +           hfeatures->features & SBI_HART_HAS_MCOUNTEREN) {
-> +               /* Detect if hart supports sscofpmf */
-> +               csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
-> +               if (!trap.cause)
-> +                       hfeatures->features |= SBI_HART_HAS_SSCOFPMF;
-> +       }
+>         /* Send M-mode interrupts and most exceptions to S-mode */
+>         interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
+> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
+> +               interrupts |= MIP_LCOFIP;
 > +
->         /* Detect if hart supports time CSR */
->         csr_read_allowed(CSR_TIME, (unsigned long)&trap);
->         if (!trap.cause)
+>         exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
+>                      (1U << CAUSE_USER_ECALL);
+>         if (sbi_platform_has_mfaults_delegation(plat))
 > --
 > 2.31.1
 >
