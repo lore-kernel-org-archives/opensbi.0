@@ -1,108 +1,309 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 12 Nov 2021 00:47:03 +0800
-Subject: [PATCH] lib: sbi: Fix PMP address bits detection
-In-Reply-To: <CAAhSdy0AhhBrY1q2POt8GfFkZCRVfQtJmOHs63=L2Oujqij+EQ@mail.gmail.com>
-References: <20211108050646.2895200-1-anup.patel@wdc.com>
- <f0a8a1548d59a730821bdcb628197f0723f564b0.camel@126.com>
- <CAAhSdy0FkP+xtsoEAj2ECcqTKs5RaKTq5o_qPR3jBBXkdQZDmA@mail.gmail.com>
- <e58c790f8f54522f62ab342787d7edae1eb34ddb.camel@126.com>
- <CAAhSdy0AhhBrY1q2POt8GfFkZCRVfQtJmOHs63=L2Oujqij+EQ@mail.gmail.com>
-Message-ID: <a487db8e7bb69bc4c6dacdf874030edfb907f206.camel@126.com>
+From: Gabriel L. Somlo <gsomlo@gmail.com>
+Date: Thu, 11 Nov 2021 16:07:33 -0500
+Subject: [PATCH v1] lib: utils: Add LiteX UART support
+In-Reply-To: <FE5F1FA9-862D-4436-A6CE-59D3F35BA9DD@jrtc27.com>
+References: <20211110230459.1853691-1-gsomlo@gmail.com>
+ <FE5F1FA9-862D-4436-A6CE-59D3F35BA9DD@jrtc27.com>
+Message-ID: <YY2GFb7HClG8Zbqb@glsvmlin.ini.cmu.edu>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-11-11???? 21:01 +0530?Anup Patel???
-> On Thu, Nov 11, 2021 at 8:48 PM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > ? 2021-11-11???? 18:38 +0530?Anup Patel???
-> > > On Mon, Nov 8, 2021 at 2:35 PM Xiang W <wxjstz@126.com> wrote:
-> > > > 
-> > > > ? 2021-11-08???? 10:36 +0530?Anup Patel???
-> > > > > From: Vasan VS <vasan.vs@gmail.com>
-> > > > > 
-> > > > > We should ensure that pmpcfg0.pmp0cfg is set to zero before
-> > > > > using
-> > > > > pmpaddr0 CSR for detecting implemented PMP address bits.
-> > > > Why? Disable PMP? Prevent the generated PMP from affecting
-> > > > program
-> > > > execution? If so, I think the PMP configuration should be
-> > > > backed up
-> > > > first, then tested, and finally restored
-> > > 
-> > > We don't need to save/restore PMP configuration here because it
-> > > is
-> > > very early during HART feature detection.
-> > > 
-> > > For the rest refer,
-> > > https://github.com/riscv-software-src/opensbi/issues/225
-> > > 
-> > > Regards,
-> > > Anup
-> > 
-> > This code will be executed after each warm boot, pmpcfg0 may be
-> > locked,
-> > and writing 0 may not work. I suggest to make this code execute
-> > once
-> > through a static variable
-> 
-> No need for a static variable, we can just check "hfeatures-
-> >pmp_addr_bits"
-> to be zero before calling hart_pmp_get_allowed_addr().
-> 
-Yes, good idea
+Hi Jess, thanks for the feedback. I'll work that into a v2 to be
+tested and emailed out later this evening. I've realized there's
+also a bit of additional cleanup I could do, see inline below.
 
-Regards,
-Xiang W
-> Regards,
-> Anup
-> 
-> > 
-> > Regards,
-> > Xiang W
-> > > 
-> > > > 
-> > > > Regards,
-> > > > Xiang W
-> > > > > 
-> > > > > Fixes: bf21632860b4 ("lib: sbi: Detect PMP granularity and
-> > > > > number
-> > > > > of address bits")
-> > > > > Signed-off-by: Vasan VS <vasan.vs@gmail.com>
-> > > > > Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> > > > > ---
-> > > > > ?lib/sbi/sbi_hart.c | 4 ++++
-> > > > > ?1 file changed, 4 insertions(+)
-> > > > > 
-> > > > > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > > > > index 8eb0c38..366066b 100644
-> > > > > --- a/lib/sbi/sbi_hart.c
-> > > > > +++ b/lib/sbi/sbi_hart.c
-> > > > > @@ -339,6 +339,10 @@ static unsigned long
-> > > > > hart_pmp_get_allowed_addr(void)
-> > > > > ??????? unsigned long val = 0;
-> > > > > ??????? struct sbi_trap_info trap = {0};
-> > > > > 
-> > > > > +?????? csr_write_allowed(CSR_PMPCFG0, (ulong)&trap, 0);
-> > > > > +?????? if (trap.cause)
-> > > > > +?????????????? return 0;
-> > > > > +
-> > > > > ??????? csr_write_allowed(CSR_PMPADDR0, (ulong)&trap,
-> > > > > PMP_ADDR_MASK);
-> > > > > ??????? if (!trap.cause) {
-> > > > > ??????????????? val = csr_read_allowed(CSR_PMPADDR0,
-> > > > > (ulong)&trap);
-> > > > > --
-> > > > > 2.25.1
-> > > > > 
-> > > > > 
-> > > > 
-> > > > 
-> > 
-> > 
-> 
+Thanks,
+--Gabriel
 
+On Thu, Nov 11, 2021 at 03:31:11PM +0000, Jessica Clarke wrote:
+> On 10 Nov 2021, at 23:04, Gabriel Somlo <gsomlo@gmail.com> wrote:
+> > 
+> > The LiteX SoC framework (https://github.com/enjoy-digital/litex)
+> > provides a wide range of building blocks that allow creation of
+> > full FPGA based systems. CPU options supported by LiteX span
+> > several RISC-V models, including Rocket (64-bit) and VexRiscv
+> > (32-bit).
+> > 
+> > This patch adds support for detecting and provisioning LiteX's
+> > UART based on its FDT info (detailed in the Linux sources at
+> > Documentation/devicetree/bindings/serial/litex,liteuart.yaml).
+> > 
+> > Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
+> > ---
+> > 
+> > See https://github.com/litex-hub/linux-on-litex-rocket for instructions
+> > on how to build a LiteX+Rocket bitstream for e.g. the nexys4ddr (Xilinx
+> > Artix7 FPGA dev board), and https://pastebin.com/nu1dSE16 for a demo of
+> > the board booting a linux payload via opensbi, using this patch.
+> > 
+> > Thanks for your consideration,
+> >  --Gabriel
+> > 
+> > include/sbi_utils/fdt/fdt_helper.h    |  3 ++
+> > include/sbi_utils/serial/litex-uart.h | 17 +++++++
+> > lib/utils/fdt/fdt_helper.c            | 28 ++++++++++++
+> > lib/utils/serial/fdt_serial.c         |  2 +
+> > lib/utils/serial/fdt_serial_litex.c   | 35 +++++++++++++++
+> > lib/utils/serial/litex-uart.c         | 64 +++++++++++++++++++++++++++
+> > lib/utils/serial/objects.mk           |  2 +
+> > 7 files changed, 151 insertions(+)
+> > create mode 100644 include/sbi_utils/serial/litex-uart.h
+> > create mode 100644 lib/utils/serial/fdt_serial_litex.c
+> > create mode 100644 lib/utils/serial/litex-uart.c
+> > 
+> > diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> > index 24fee7a..5f75f07 100644
+> > --- a/include/sbi_utils/fdt/fdt_helper.h
+> > +++ b/include/sbi_utils/fdt/fdt_helper.h
+> > @@ -62,6 +62,9 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+> > int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
+> > 			       struct platform_uart_data *uart);
+> > 
+> > +int fdt_parse_litex_uart_node(void *fdt, int nodeoffset,
+> > +			      struct platform_uart_data *uart);
+> > +
+> > int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
+> > 			    struct platform_uart_data *uart);
+> > 
+> > diff --git a/include/sbi_utils/serial/litex-uart.h b/include/sbi_utils/serial/litex-uart.h
+> > new file mode 100644
+> > index 0000000..002b525
+> > --- /dev/null
+> > +++ b/include/sbi_utils/serial/litex-uart.h
+> > @@ -0,0 +1,17 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2021 Gabriel Somlo
+> > + *
+> > + * Authors:
+> > + *   Gabriel Somlo <gsomlo@gmail.com>
+> > + */
+> > +
+> > +#ifndef __SERIAL_LITEX_UART_H__
+> > +#define __SERIAL_LITEX_UART_H__
+> > +
+> > +#include <sbi/sbi_types.h>
+> > +
+> > +int litex_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
+LiteX UART doesn't need `in_freq` and `baudrate`, so I'll remove the
+parameters.
 
+> > +
+> > +#endif
+> > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> > index 5bf4021..3ba78e5 100644
+> > --- a/lib/utils/fdt/fdt_helper.c
+> > +++ b/lib/utils/fdt/fdt_helper.c
+> > @@ -25,6 +25,11 @@
+> > #define DEFAULT_SIFIVE_UART_REG_SHIFT		0
+> > #define DEFAULT_SIFIVE_UART_REG_IO_WIDTH	4
+> > 
+> > +#define DEFAULT_LITEX_UART_FREQ			0
+> > +#define DEFAULT_LITEX_UART_BAUD			115200
+> > +#define DEFAULT_LITEX_UART_REG_SHIFT		0
+> > +#define DEFAULT_LITEX_UART_REG_IO_WIDTH		4
+> > +
+
+^^^ These aren't actually used by the LiteX UART ip block, so I'll get rid
+of them.
+
+> > #define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
+> > 
+> > #define DEFAULT_SHAKTI_UART_FREQ		50000000
+> > @@ -403,6 +408,29 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
+> > 	return 0;
+> > }
+> > 
+> > +int fdt_parse_litex_uart_node(void *fdt, int nodeoffset,
+> > +			      struct platform_uart_data *uart)
+> > +{
+> > +	int rc;
+> > +	uint64_t reg_addr, reg_size;
+> > +
+> > +	if (nodeoffset < 0 || !uart || !fdt)
+> > +		return SBI_ENODEV;
+> > +
+> > +	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0, &reg_addr, &reg_size);
+> > +	if (rc < 0 || !reg_addr || !reg_size)
+> > +		return SBI_ENODEV;
+> > +	uart->addr = reg_addr;
+> > +
+
+> > +	/* For LiteX UART, the following properties are ignored */
+> > +	uart->freq = DEFAULT_LITEX_UART_FREQ;
+> > +	uart->baud = DEFAULT_LITEX_UART_BAUD;
+> > +	uart->reg_shift = DEFAULT_LITEX_UART_REG_SHIFT;
+> > +	uart->reg_io_width = DEFAULT_LITEX_UART_REG_IO_WIDTH;
+... ditto here ^^^^
+
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
+> > 			    struct platform_uart_data *uart)
+> > {
+> > diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
+> > index cedda04..f73d26a 100644
+> > --- a/lib/utils/serial/fdt_serial.c
+> > +++ b/lib/utils/serial/fdt_serial.c
+> > @@ -15,6 +15,7 @@
+> > 
+> > extern struct fdt_serial fdt_serial_uart8250;
+> > extern struct fdt_serial fdt_serial_sifive;
+> > +extern struct fdt_serial fdt_serial_litex;
+> > extern struct fdt_serial fdt_serial_htif;
+> > extern struct fdt_serial fdt_serial_shakti;
+> > extern struct fdt_serial fdt_serial_gaisler;
+> > @@ -22,6 +23,7 @@ extern struct fdt_serial fdt_serial_gaisler;
+> > static struct fdt_serial *serial_drivers[] = {
+> > 	&fdt_serial_uart8250,
+> > 	&fdt_serial_sifive,
+> > +	&fdt_serial_litex,
+> > 	&fdt_serial_htif,
+> > 	&fdt_serial_shakti,
+> > 	&fdt_serial_gaisler
+> > diff --git a/lib/utils/serial/fdt_serial_litex.c b/lib/utils/serial/fdt_serial_litex.c
+> > new file mode 100644
+> > index 0000000..fda5746
+> > --- /dev/null
+> > +++ b/lib/utils/serial/fdt_serial_litex.c
+> > @@ -0,0 +1,35 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2021 Gabriel Somlo
+> > + *
+> > + * Authors:
+> > + *   Gabriel Somlo <gsomlo@gmail.com>
+> > + */
+> > +
+> > +#include <sbi_utils/fdt/fdt_helper.h>
+> > +#include <sbi_utils/serial/fdt_serial.h>
+> > +#include <sbi_utils/serial/litex-uart.h>
+> > +
+> > +static int serial_litex_init(void *fdt, int nodeoff,
+> > +				const struct fdt_match *match)
+> > +{
+> > +	int rc;
+> > +	struct platform_uart_data uart;
+> > +
+> > +	rc = fdt_parse_litex_uart_node(fdt, nodeoff, &uart);
+> > +	if (rc)
+> > +		return rc;
+> > +
+> > +	return litex_uart_init(uart.addr, uart.freq, uart.baud);
+... and here, lose `freq` and `baud`;
+
+> > +}
+> > +
+> > +static const struct fdt_match serial_litex_match[] = {
+> > +	{ .compatible = "litex,liteuart" },
+> > +	{ },
+> > +};
+> > +
+> > +struct fdt_serial fdt_serial_litex = {
+> > +	.match_table = serial_litex_match,
+> > +	.init = serial_litex_init
+> > +};
+> > diff --git a/lib/utils/serial/litex-uart.c b/lib/utils/serial/litex-uart.c
+> > new file mode 100644
+> > index 0000000..e6afa53
+> > --- /dev/null
+> > +++ b/lib/utils/serial/litex-uart.c
+> > @@ -0,0 +1,64 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2021 Gabriel Somlo
+> > + *
+> > + * Authors:
+> > + *   Gabriel Somlo <gsomlo@gmail.com>
+> > + */
+> > +
+> > +#include <sbi/riscv_io.h>
+> > +#include <sbi/sbi_console.h>
+> > +#include <sbi_utils/serial/litex-uart.h>
+> > +
+> > +/* clang-format off */
+> > +
+> > +#define UART_REG_RXTX		0
+> > +#define UART_REG_TXFULL		1
+> > +#define UART_REG_RXEMPTY	2
+> > +#define UART_REG_EV_STATUS	3
+> > +#define UART_REG_EV_PENDING	4
+> > +#define UART_REG_EV_ENABLE	5
+> > +
+> > +/* clang-format on */
+> > +
+> > +static volatile void *uart_base;
+> > +
+> > +static u32 get_reg(u32 num)
+> > +{
+> > +	return readl(uart_base + (num * 0x4));
+> 
+> Arithmetic on void * is a GNU extension, and the parens aren?t needed.
+Got it, thanks!
+
+> 
+> > +}
+> > +
+> > +static void set_reg(u32 num, u32 val)
+> > +{
+> > +	writel(val, uart_base + (num * 0x4));
+> > +}
+> > +
+> > +static void litex_uart_putc(char ch)
+> > +{
+> > +	while ((get_reg(UART_REG_TXFULL) & 0x01));
+> > +	set_reg(UART_REG_RXTX, ch);
+> > +}
+> > +
+> > +static int litex_uart_getc(void)
+> > +{
+> > +	int ret = -1;
+> > +	if (!(get_reg(UART_REG_RXEMPTY) & 0x01)) {
+> > +		ret = get_reg(UART_REG_RXTX);
+> > +		set_reg(UART_REG_EV_PENDING, 0x02); /* ack UART_EV_RX */
+> > +	}
+> > +	return ret;
+> > +}
+> > +
+> > +static struct sbi_console_device litex_console = {
+> > +	.name = "litex_uart",
+> > +	.console_putc = litex_uart_putc,
+> > +	.console_getc = litex_uart_getc
+> > +};
+> > +
+> > +int litex_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+... again, get rid of `in_freq` and `baudrate`
+
+> > +{
+> > +	uart_base = (volatile void *)base;
+> > +	sbi_console_set_device(&litex_console);
+> > +	return 0;
+> > +}
+> > diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+> > index 9fb0902..4f751ba 100644
+> > --- a/lib/utils/serial/objects.mk
+> > +++ b/lib/utils/serial/objects.mk
+> > @@ -12,8 +12,10 @@ libsbiutils-objs-y += serial/fdt_serial_gaisler.o
+> > libsbiutils-objs-y += serial/fdt_serial_htif.o
+> > libsbiutils-objs-y += serial/fdt_serial_shakti.o
+> > libsbiutils-objs-y += serial/fdt_serial_sifive.o
+> > +libsbiutils-objs-y += serial/fdt_serial_litex.o
+> > libsbiutils-objs-y += serial/fdt_serial_uart8250.o
+> > libsbiutils-objs-y += serial/gaisler-uart.o
+> > libsbiutils-objs-y += serial/shakti-uart.o
+> > libsbiutils-objs-y += serial/sifive-uart.o
+> > +libsbiutils-objs-y += serial/litex-uart.o
+> > libsbiutils-objs-y += serial/uart8250.o
+> > -- 
+> > 2.31.1
+> > 
+> 
 
