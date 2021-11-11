@@ -1,11 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 11 Nov 2021 18:11:55 +0530
-Subject: [PATCH v5 01/12] riscv: Add new CSRs introduced by Sscofpmf[1]
- extension
-In-Reply-To: <20211108185307.389145-2-atish.patra@wdc.com>
+Date: Thu, 11 Nov 2021 18:12:31 +0530
+Subject: [PATCH v5 02/12] lib: sbi: Update csr_read/write_num for PMU
+In-Reply-To: <20211108185307.389145-3-atish.patra@wdc.com>
 References: <20211108185307.389145-1-atish.patra@wdc.com>
- <20211108185307.389145-2-atish.patra@wdc.com>
-Message-ID: <CAAhSdy3C-bLaTX0ayHb_vc90xQ1pba6rXtDMdLTSpi2sK81B5Q@mail.gmail.com>
+ <20211108185307.389145-3-atish.patra@wdc.com>
+Message-ID: <CAAhSdy3Ss+LCO0Te4H2VXyJcPSRBMWqFVKag2zLHux65pak=7Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,67 +13,63 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Nov 9, 2021 at 12:23 AM Atish Patra <atish.patra@wdc.com> wrote:
 >
-> [1] https://drive.google.com/file/d/1KcjgbLM5L1ZKY8934aJl8aQwGlMz6Cbo/view
+> The Sscofpmf extension introduces mhpmevent[h] csrs to handle filtering
+> /overflow bits in RV32. There is no way to read/write mcountinhibit
+> using mcountinhibit csr using a variable.
 >
-> Reviewed-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+> Updated the support to read/write mhpmevent[h] and mcountinhibit csr.
+>
 > Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 > Signed-off-by: Atish Patra <atish.patra@wdc.com>
-> ---
 
 Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
->  include/sbi/riscv_encoding.h | 34 ++++++++++++++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
+> ---
+>  lib/sbi/riscv_asm.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index e1d0b463c668..14caa95d66de 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -516,6 +516,40 @@
->  #define CSR_MHPMEVENT30                        0x33e
->  #define CSR_MHPMEVENT31                        0x33f
+> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+> index 4c24a5132195..ea6dd0837774 100644
+> --- a/lib/sbi/riscv_asm.c
+> +++ b/lib/sbi/riscv_asm.c
+> @@ -124,6 +124,11 @@ unsigned long csr_read_num(int csr_num)
+>         switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
+>         switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
+>         switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
+> +       switchcase_csr_read(CSR_MCOUNTINHIBIT, ret)
+> +       switchcase_csr_read(CSR_MHPMEVENT3, ret)
+> +       switchcase_csr_read_4(CSR_MHPMEVENT4, ret)
+> +       switchcase_csr_read_8(CSR_MHPMEVENT8, ret)
+> +       switchcase_csr_read_16(CSR_MHPMEVENT16, ret)
+>  #if __riscv_xlen == 32
+>         switchcase_csr_read(CSR_MCYCLEH, ret)
+>         switchcase_csr_read(CSR_MINSTRETH, ret)
+> @@ -131,6 +136,10 @@ unsigned long csr_read_num(int csr_num)
+>         switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
+>         switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
+>         switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
+> +       switchcase_csr_read(CSR_MHPMEVENT3H, ret)
+> +       switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
+> +       switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
+> +       switchcase_csr_read_16(CSR_MHPMEVENT16H, ret)
+>  #endif
 >
-> +/* For RV32 */
-> +#define CSR_MHPMEVENT3H                        0x723
-> +#define CSR_MHPMEVENT4H                        0x724
-> +#define CSR_MHPMEVENT5H                        0x725
-> +#define CSR_MHPMEVENT6H                        0x726
-> +#define CSR_MHPMEVENT7H                        0x727
-> +#define CSR_MHPMEVENT8H                        0x728
-> +#define CSR_MHPMEVENT9H                        0x729
-> +#define CSR_MHPMEVENT10H               0x72a
-> +#define CSR_MHPMEVENT11H               0x72b
-> +#define CSR_MHPMEVENT12H               0x72c
-> +#define CSR_MHPMEVENT13H               0x72d
-> +#define CSR_MHPMEVENT14H               0x72e
-> +#define CSR_MHPMEVENT15H               0x72f
-> +#define CSR_MHPMEVENT16H               0x730
-> +#define CSR_MHPMEVENT17H               0x731
-> +#define CSR_MHPMEVENT18H               0x732
-> +#define CSR_MHPMEVENT19H               0x733
-> +#define CSR_MHPMEVENT20H               0x734
-> +#define CSR_MHPMEVENT21H               0x735
-> +#define CSR_MHPMEVENT22H               0x736
-> +#define CSR_MHPMEVENT23H               0x737
-> +#define CSR_MHPMEVENT24H               0x738
-> +#define CSR_MHPMEVENT25H               0x739
-> +#define CSR_MHPMEVENT26H               0x73a
-> +#define CSR_MHPMEVENT27H               0x73b
-> +#define CSR_MHPMEVENT28H               0x73c
-> +#define CSR_MHPMEVENT29H               0x73d
-> +#define CSR_MHPMEVENT30H               0x73e
-> +#define CSR_MHPMEVENT31H               0x73f
-> +
-> +/* Counter Overflow CSR */
-> +#define CSR_SCOUNTOVF                  0xda0
-> +
->  /* Debug/Trace Registers */
->  #define CSR_TSELECT                    0x7a0
->  #define CSR_TDATA1                     0x7a1
+>         default:
+> @@ -189,6 +198,10 @@ void csr_write_num(int csr_num, unsigned long val)
+>         switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
+>         switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
+>         switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
+> +       switchcase_csr_write(CSR_MHPMEVENT3H, val)
+> +       switchcase_csr_write_4(CSR_MHPMEVENT4H, val)
+> +       switchcase_csr_write_8(CSR_MHPMEVENT8H, val)
+> +       switchcase_csr_write_16(CSR_MHPMEVENT16H, val)
+>  #endif
+>         switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
+>         switchcase_csr_write(CSR_MHPMEVENT3, val)
 > --
 > 2.31.1
 >
