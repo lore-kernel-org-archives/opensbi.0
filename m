@@ -1,45 +1,73 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 12 Nov 2021 12:22:05 +0530
-Subject: [PATCH] lib: sbi: fix pmp_set: clear A befor setting
-In-Reply-To: <20211108094303.76907-1-wxjstz@126.com>
-References: <20211108094303.76907-1-wxjstz@126.com>
-Message-ID: <CAAhSdy29p9aNX279SgJYeognii9qfeHV3LOAVsiKpwUhmP3Sag@mail.gmail.com>
+Date: Fri, 12 Nov 2021 14:58:30 +0530
+Subject: [PATCH] lib: sbi: Fix pmp_set/pmp_get to use sbi_hart_pmp_count
+ to get the number of pmp
+In-Reply-To: <20211108100242.79845-1-wxjstz@126.com>
+References: <20211108100242.79845-1-wxjstz@126.com>
+Message-ID: <CAAhSdy16V+yshzSYQ6+-oqm8DapgR4MfrXRQ=rxZWkNmMn9pmQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 8, 2021 at 3:13 PM Xiang W <wxjstz@126.com> wrote:
+On Mon, Nov 8, 2021 at 3:33 PM Xiang W <wxjstz@126.com> wrote:
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 
-Overall patch looks good but I have updated the patch subject and
-added a one line commit description.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
-
-Applied this patch to the riscv/opensbi repo
-
-Thanks,
-Anup
-
 > ---
->  lib/sbi/riscv_asm.c | 1 +
->  1 file changed, 1 insertion(+)
+>  lib/sbi/riscv_asm.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 >
 > diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> index f6b8c8e..845039c 100644
+> index f6b8c8e..2d64592 100644
 > --- a/lib/sbi/riscv_asm.c
 > +++ b/lib/sbi/riscv_asm.c
-> @@ -255,6 +255,7 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
->                 return SBI_ENOTSUPP;
+> @@ -12,6 +12,8 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_console.h>
+> +#include <sbi/sbi_scratch.h>
+> +#include <sbi/sbi_hart.h>
 >
->         /* encode PMP config */
-> +       prot &= ~PMP_A;
->         prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
->         cfgmask = ~(0xffUL << pmpcfg_shift);
->         pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
+>  /* determine CPU extension, return non-zero support */
+>  int misa_extension_imp(char ext)
+> @@ -234,9 +236,11 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+>         int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+>         unsigned long cfgmask, pmpcfg;
+>         unsigned long addrmask, pmpaddr;
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +       unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+
+This seems redundant because the caller of these functions already
+ensures "n" to be within limits (i.e. less than sbi_hart_pmp_count(scratch)).
+
+That's why we are only checking PMP_COUNT so that we don't access
+invalid CSR number.
+
+Regards,
+Anup
+
+>
+>         /* check parameters */
+> -       if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
+> +       if (n >= pmp_count || log2len > __riscv_xlen || log2len < PMP_SHIFT)
+>                 return SBI_EINVAL;
+>
+>         /* calculate PMP register and offset */
+> @@ -286,9 +290,11 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+>         int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+>         unsigned long cfgmask, pmpcfg, prot;
+>         unsigned long t1, addr, len;
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +       unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+>
+>         /* check parameters */
+> -       if (n >= PMP_COUNT || !prot_out || !addr_out || !log2len)
+> +       if (n >= pmp_count || !prot_out || !addr_out || !log2len)
+>                 return SBI_EINVAL;
+>         *prot_out = *addr_out = *log2len = 0;
+>
 > --
 > 2.30.2
 >
