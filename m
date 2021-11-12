@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 12 Nov 2021 10:32:38 +0530
-Subject: [PATCH v4 1/6] lib: utils/reset: add priority to gpio reset
-In-Reply-To: <20211110094230.5243-2-nikita.shubin@maquefel.me>
+Date: Fri, 12 Nov 2021 10:33:04 +0530
+Subject: [PATCH v4 2/6] lib: utils/reset: separate driver init func
+In-Reply-To: <20211110094230.5243-3-nikita.shubin@maquefel.me>
 References: <20211110094230.5243-1-nikita.shubin@maquefel.me>
- <20211110094230.5243-2-nikita.shubin@maquefel.me>
-Message-ID: <CAAhSdy337PLCvnVrk4Je3YAvJG4mFKF1MbAGaT71n0YeodgpaQ@mail.gmail.com>
+ <20211110094230.5243-3-nikita.shubin@maquefel.me>
+Message-ID: <CAAhSdy2yDS3VkAPaeYL8bmjSeO5rLi-CzMU3vBLquAmQs1-hqQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,9 +15,8 @@ On Wed, Nov 10, 2021 at 3:12 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
 >
 > From: Nikita Shubin <n.shubin@yadro.com>
 >
-> Make gpio_system_reset_check return priority instead of just true/false.
->
-> Make default 128 priority for reset/shutdown.
+> Move driver init code to separate function, so it can be reused
+> elsewhere.
 >
 > Tested-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 > Reviewed-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
@@ -30,37 +29,78 @@ Thanks,
 Anup
 
 > ---
->  lib/utils/reset/fdt_reset_gpio.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
+>  include/sbi_utils/reset/fdt_reset.h |  5 ++++
+>  lib/utils/reset/fdt_reset.c         | 37 ++++++++++++++++-------------
+>  2 files changed, 26 insertions(+), 16 deletions(-)
 >
-> diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-> index 302035b..d28b6f5 100644
-> --- a/lib/utils/reset/fdt_reset_gpio.c
-> +++ b/lib/utils/reset/fdt_reset_gpio.c
-> @@ -77,7 +77,10 @@ static void gpio_reset_exec(struct gpio_reset *reset)
+> diff --git a/include/sbi_utils/reset/fdt_reset.h b/include/sbi_utils/reset/fdt_reset.h
+> index 46167b9..e7f7350 100644
+> --- a/include/sbi_utils/reset/fdt_reset.h
+> +++ b/include/sbi_utils/reset/fdt_reset.h
+> @@ -17,6 +17,11 @@ struct fdt_reset {
+>         int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
+>  };
 >
->  static int gpio_system_poweroff_check(u32 type, u32 reason)
->  {
-> -       return !!gpio_reset_get(FALSE, type);
-> +       if (gpio_reset_get(FALSE, type))
-> +               return 128;
+> +/**
+> + * fdt_reset_driver_init() - initialize reset driver based on the device-tree
+> + */
+> +int fdt_reset_driver_init(void *fdt, struct fdt_reset *drv);
 > +
-> +       return 0;
->  }
+>  /**
+>   * fdt_reset_init() - initialize reset drivers based on the device-tree
+>   *
+> diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
+> index f4befa2..66281cb 100644
+> --- a/lib/utils/reset/fdt_reset.c
+> +++ b/lib/utils/reset/fdt_reset.c
+> @@ -29,26 +29,31 @@ static struct fdt_reset *reset_drivers[] = {
+>         &fdt_reset_thead,
+>  };
 >
->  static void gpio_system_poweroff(u32 type, u32 reason)
-> @@ -93,7 +96,10 @@ static struct sbi_system_reset_device gpio_poweroff = {
->
->  static int gpio_system_restart_check(u32 type, u32 reason)
+> -void fdt_reset_init(void)
+> +int fdt_reset_driver_init(void *fdt, struct fdt_reset *drv)
 >  {
-> -       return !!gpio_reset_get(TRUE, type);
-> +       if (gpio_reset_get(TRUE, type))
-> +               return 128;
-> +
-> +       return 0;
->  }
+> -       int pos, noff, rc;
+> -       struct fdt_reset *drv;
+> +       int noff, rc = SBI_ENODEV;
+>         const struct fdt_match *match;
+> -       void *fdt = fdt_get_address();
+> -
+> -       for (pos = 0; pos < array_size(reset_drivers); pos++) {
+> -               drv = reset_drivers[pos];
 >
->  static void gpio_system_restart(u32 type, u32 reason)
+> -               noff = fdt_find_match(fdt, -1, drv->match_table, &match);
+> -               if (noff < 0)
+> -                       continue;
+> +       noff = fdt_find_match(fdt, -1, drv->match_table, &match);
+> +       if (noff < 0)
+> +               return SBI_ENODEV;
+>
+> -               if (drv->init) {
+> -                       rc = drv->init(fdt, noff, match);
+> -                       if (rc && rc != SBI_ENODEV) {
+> -                               sbi_printf("%s: %s init failed, %d\n",
+> -                                          __func__, match->compatible, rc);
+> -                       }
+> +       if (drv->init) {
+> +               rc = drv->init(fdt, noff, match);
+> +               if (rc && rc != SBI_ENODEV) {
+> +                       sbi_printf("%s: %s init failed, %d\n",
+> +                                  __func__, match->compatible, rc);
+>                 }
+>         }
+> +
+> +       return rc;
+> +}
+> +
+> +void fdt_reset_init(void)
+> +{
+> +       int pos;
+> +       void *fdt = fdt_get_address();
+> +
+> +       for (pos = 0; pos < array_size(reset_drivers); pos++)
+> +               fdt_reset_driver_init(fdt, reset_drivers[pos]);
+>  }
 > --
 > 2.31.1
 >
