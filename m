@@ -1,294 +1,72 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 12 Nov 2021 01:26:43 +0000
-Subject: [PATCH v2] lib: utils: Add LiteX UART support
-In-Reply-To: <20211112011710.1994602-1-gsomlo@gmail.com>
-References: <20211112011710.1994602-1-gsomlo@gmail.com>
-Message-ID: <BFA63DEC-ADA2-4FEE-BB71-D8C91549AFB7@jrtc27.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 12 Nov 2021 10:32:38 +0530
+Subject: [PATCH v4 1/6] lib: utils/reset: add priority to gpio reset
+In-Reply-To: <20211110094230.5243-2-nikita.shubin@maquefel.me>
+References: <20211110094230.5243-1-nikita.shubin@maquefel.me>
+ <20211110094230.5243-2-nikita.shubin@maquefel.me>
+Message-ID: <CAAhSdy337PLCvnVrk4Je3YAvJG4mFKF1MbAGaT71n0YeodgpaQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 12 Nov 2021, at 01:17, Gabriel Somlo <gsomlo@gmail.com> wrote:
-> 
-> The LiteX SoC framework (https://github.com/enjoy-digital/litex)
-> provides a wide range of building blocks that allow creation of
-> full FPGA based systems. CPU options supported by LiteX span
-> several RISC-V models, including Rocket (64-bit) and VexRiscv
-> (32-bit).
+On Wed, Nov 10, 2021 at 3:12 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
+>
+> From: Nikita Shubin <n.shubin@yadro.com>
+>
+> Make gpio_system_reset_check return priority instead of just true/false.
+>
+> Make default 128 priority for reset/shutdown.
+>
+> Tested-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Reviewed-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
+> Tested-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
+> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 
-Most of this is utterly irrelevant. LiteX is a SoC framework that
-provides a UART, that?s all one needs to know to understand this patch.
+Applied this patch to the riscv/opensbi repo.
 
-> This patch adds support for detecting and provisioning LiteX's
-> UART based on its FDT info (detailed in the Linux sources at
-> Documentation/devicetree/bindings/serial/litex,liteuart.yaml).
-> 
-> Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
+Thanks,
+Anup
+
 > ---
-> 
-> New in v2:
-> 	- remove properties (and parameters) not actually used by the
-> 	  LiteX UART
-> 	- remove redundant parentheses from pointer arithmetic
-> 	  (thanks jrtc27!)
-> 
->> See https://github.com/litex-hub/linux-on-litex-rocket for instructions
->> on how to build a LiteX+Rocket bitstream for e.g. the nexys4ddr (Xilinx
->> Artix7 FPGA dev board), and https://pastebin.com/nu1dSE16 for a demo of
->> the board booting a linux payload via opensbi, using this patch.
-> 
-> include/sbi_utils/fdt/fdt_helper.h    |  3 ++
-> include/sbi_utils/serial/litex-uart.h | 17 +++++++
-> lib/utils/fdt/fdt_helper.c            | 19 ++++++++
-> lib/utils/serial/fdt_serial.c         |  2 +
-> lib/utils/serial/fdt_serial_litex.c   | 35 +++++++++++++++
-> lib/utils/serial/litex-uart.c         | 64 +++++++++++++++++++++++++++
-> lib/utils/serial/objects.mk           |  2 +
-> 7 files changed, 142 insertions(+)
-> create mode 100644 include/sbi_utils/serial/litex-uart.h
-> create mode 100644 lib/utils/serial/fdt_serial_litex.c
-> create mode 100644 lib/utils/serial/litex-uart.c
-> 
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 24fee7a..5f75f07 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -62,6 +62,9 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
-> int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
-> 			       struct platform_uart_data *uart);
-> 
-> +int fdt_parse_litex_uart_node(void *fdt, int nodeoffset,
-> +			      struct platform_uart_data *uart);
+>  lib/utils/reset/fdt_reset_gpio.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
+> index 302035b..d28b6f5 100644
+> --- a/lib/utils/reset/fdt_reset_gpio.c
+> +++ b/lib/utils/reset/fdt_reset_gpio.c
+> @@ -77,7 +77,10 @@ static void gpio_reset_exec(struct gpio_reset *reset)
+>
+>  static int gpio_system_poweroff_check(u32 type, u32 reason)
+>  {
+> -       return !!gpio_reset_get(FALSE, type);
+> +       if (gpio_reset_get(FALSE, type))
+> +               return 128;
 > +
-> int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
-> 			    struct platform_uart_data *uart);
-> 
-> diff --git a/include/sbi_utils/serial/litex-uart.h b/include/sbi_utils/serial/litex-uart.h
-> new file mode 100644
-> index 0000000..91ab644
-> --- /dev/null
-> +++ b/include/sbi_utils/serial/litex-uart.h
-> @@ -0,0 +1,17 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Gabriel Somlo
-> + *
-> + * Authors:
-> + *   Gabriel Somlo <gsomlo@gmail.com>
-> + */
+> +       return 0;
+>  }
+>
+>  static void gpio_system_poweroff(u32 type, u32 reason)
+> @@ -93,7 +96,10 @@ static struct sbi_system_reset_device gpio_poweroff = {
+>
+>  static int gpio_system_restart_check(u32 type, u32 reason)
+>  {
+> -       return !!gpio_reset_get(TRUE, type);
+> +       if (gpio_reset_get(TRUE, type))
+> +               return 128;
 > +
-> +#ifndef __SERIAL_LITEX_UART_H__
-> +#define __SERIAL_LITEX_UART_H__
-> +
-> +#include <sbi/sbi_types.h>
-> +
-> +int litex_uart_init(unsigned long base);
-> +
-> +#endif
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 5bf4021..a42f53b 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -403,6 +403,25 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
-> 	return 0;
-> }
-> 
-> +int fdt_parse_litex_uart_node(void *fdt, int nodeoffset,
-> +			      struct platform_uart_data *uart)
-> +{
-> +	int rc;
-> +	uint64_t reg_addr, reg_size;
-> +
-> +	if (nodeoffset < 0 || !uart || !fdt)
-> +		return SBI_ENODEV;
-> +
-> +	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0, &reg_addr, &reg_size);
-> +	if (rc < 0 || !reg_addr || !reg_size)
-> +		return SBI_ENODEV;
-> +	uart->addr = reg_addr;
-> +
-> +	/* LiteX UART has no further configurable properties */
-> +
-> +	return 0;
-> +}
-> +
-> int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
-> 			    struct platform_uart_data *uart)
-> {
-> diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
-> index cedda04..f73d26a 100644
-> --- a/lib/utils/serial/fdt_serial.c
-> +++ b/lib/utils/serial/fdt_serial.c
-> @@ -15,6 +15,7 @@
-> 
-> extern struct fdt_serial fdt_serial_uart8250;
-> extern struct fdt_serial fdt_serial_sifive;
-> +extern struct fdt_serial fdt_serial_litex;
-> extern struct fdt_serial fdt_serial_htif;
-> extern struct fdt_serial fdt_serial_shakti;
-> extern struct fdt_serial fdt_serial_gaisler;
-> @@ -22,6 +23,7 @@ extern struct fdt_serial fdt_serial_gaisler;
-> static struct fdt_serial *serial_drivers[] = {
-> 	&fdt_serial_uart8250,
-> 	&fdt_serial_sifive,
-> +	&fdt_serial_litex,
-> 	&fdt_serial_htif,
-> 	&fdt_serial_shakti,
-> 	&fdt_serial_gaisler
-> diff --git a/lib/utils/serial/fdt_serial_litex.c b/lib/utils/serial/fdt_serial_litex.c
-> new file mode 100644
-> index 0000000..f9495dc
-> --- /dev/null
-> +++ b/lib/utils/serial/fdt_serial_litex.c
-> @@ -0,0 +1,35 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Gabriel Somlo
-> + *
-> + * Authors:
-> + *   Gabriel Somlo <gsomlo@gmail.com>
-> + */
-> +
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/serial/fdt_serial.h>
-> +#include <sbi_utils/serial/litex-uart.h>
-> +
-> +static int serial_litex_init(void *fdt, int nodeoff,
-> +				const struct fdt_match *match)
-
-This does not line up.
-
-> +{
-> +	int rc;
-> +	struct platform_uart_data uart;
-> +
-> +	rc = fdt_parse_litex_uart_node(fdt, nodeoff, &uart);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return litex_uart_init(uart.addr);
-> +}
-> +
-> +static const struct fdt_match serial_litex_match[] = {
-> +	{ .compatible = "litex,liteuart" },
-> +	{ },
-> +};
-> +
-> +struct fdt_serial fdt_serial_litex = {
-> +	.match_table = serial_litex_match,
-> +	.init = serial_litex_init
-> +};
-> diff --git a/lib/utils/serial/litex-uart.c b/lib/utils/serial/litex-uart.c
-> new file mode 100644
-> index 0000000..a9b821a
-> --- /dev/null
-> +++ b/lib/utils/serial/litex-uart.c
-> @@ -0,0 +1,64 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2021 Gabriel Somlo
-> + *
-> + * Authors:
-> + *   Gabriel Somlo <gsomlo@gmail.com>
-> + */
-> +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi_utils/serial/litex-uart.h>
-> +
-> +/* clang-format off */
-> +
-> +#define UART_REG_RXTX		0
-> +#define UART_REG_TXFULL		1
-> +#define UART_REG_RXEMPTY	2
-> +#define UART_REG_EV_STATUS	3
-> +#define UART_REG_EV_PENDING	4
-> +#define UART_REG_EV_ENABLE	5
-> +
-> +/* clang-format on */
-> +
-> +static volatile void *uart_base;
-> +
-> +static u32 get_reg(u32 num)
-
-Are these actually 32-bit registers, or are they 8-bit registers with a
-stride of 32? If the latter, you should be using u8 for their values.
-
-> +{
-> +	return readl(uart_base + num * 0x4);
-
-These still use non-standard void pointer arithmetic.
-
-> +}
-> +
-> +static void set_reg(u32 num, u32 val)
-> +{
-> +	writel(val, uart_base + num * 0x4);
-> +}
-> +
-> +static void litex_uart_putc(char ch)
-> +{
-> +	while ((get_reg(UART_REG_TXFULL) & 0x01));
-
-Are the other bits defined to be zero? Based on the name it seems like
-the & 0x01 is unnecessary.
-
-> +	set_reg(UART_REG_RXTX, ch);
-> +}
-> +
-> +static int litex_uart_getc(void)
-> +{
-> +	int ret = -1;
-> +	if (!(get_reg(UART_REG_RXEMPTY) & 0x01)) {
-
-Ditto.
-
-> +		ret = get_reg(UART_REG_RXTX);
-> +		set_reg(UART_REG_EV_PENDING, 0x02); /* ack UART_EV_RX */
-
-Define a constant for this rather than using a magic number and a
-comment?
-
-Jess
-
-> +	}
-> +	return ret;
-> +}
-> +
-> +static struct sbi_console_device litex_console = {
-> +	.name = "litex_uart",
-> +	.console_putc = litex_uart_putc,
-> +	.console_getc = litex_uart_getc
-> +};
-> +
-> +int litex_uart_init(unsigned long base)
-> +{
-> +	uart_base = (volatile void *)base;
-> +	sbi_console_set_device(&litex_console);
-> +	return 0;
-> +}
-> diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-> index 9fb0902..4f751ba 100644
-> --- a/lib/utils/serial/objects.mk
-> +++ b/lib/utils/serial/objects.mk
-> @@ -12,8 +12,10 @@ libsbiutils-objs-y += serial/fdt_serial_gaisler.o
-> libsbiutils-objs-y += serial/fdt_serial_htif.o
-> libsbiutils-objs-y += serial/fdt_serial_shakti.o
-> libsbiutils-objs-y += serial/fdt_serial_sifive.o
-> +libsbiutils-objs-y += serial/fdt_serial_litex.o
-> libsbiutils-objs-y += serial/fdt_serial_uart8250.o
-> libsbiutils-objs-y += serial/gaisler-uart.o
-> libsbiutils-objs-y += serial/shakti-uart.o
-> libsbiutils-objs-y += serial/sifive-uart.o
-> +libsbiutils-objs-y += serial/litex-uart.o
-> libsbiutils-objs-y += serial/uart8250.o
-> -- 
+> +       return 0;
+>  }
+>
+>  static void gpio_system_restart(u32 type, u32 reason)
+> --
 > 2.31.1
-> 
-
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
