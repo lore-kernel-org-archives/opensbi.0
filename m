@@ -1,316 +1,81 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 14 Nov 2021 09:32:22 +0800
-Subject: [PATCH v3] lib: utils: Add LiteX UART support
-In-Reply-To: <YZA3GaMNOc0WBuBU@errol.ini.cmu.edu>
-References: <YZA3GaMNOc0WBuBU@errol.ini.cmu.edu>
-Message-ID: <8e8e187b8a8462c9ba64e40147e16547990d51ea.camel@126.com>
+Date: Sun, 14 Nov 2021 09:49:14 +0800
+Subject: [PATCH] lib: utils/serial: Modify uart_getc to a blocking function
+In-Reply-To: <170BB07D-DC33-4A66-8387-486D25A8E043@jrtc27.com>
+References: <20211113070622.90364-1-wxjstz@126.com>
+ <81552989-313B-46A5-9C21-DFF37C527C06@jrtc27.com>
+ <3c0b5c46afeb692a8d98da4e9645f114251a5db2.camel@126.com>
+ <170BB07D-DC33-4A66-8387-486D25A8E043@jrtc27.com>
+Message-ID: <0230b37b0cd301ee09035029a6331106d803541c.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-11-13???? 17:07 -0500?Gabriel L. Somlo???
-> Hi Xiang,
-> 
-> On Sat, 13 Nov 2021 13:57:03 +0800, wxjstz at 126.com?wrote:
-> > ? 2021-11-12???? 10:03 -0500?Gabriel Somlo???
-> > > This patch adds support for the UART provided by the LiteX
-> > > SoC framework (https://github.com/enjoy-digital/litex),
-> > > based its FDT info described in the Linux sources at
-> > > Documentation/devicetree/bindings/serial/litex,liteuart.yaml).
-> > > 
-> > > Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
-> > > ---
-> > > 
-> > > New in v3:
-> > > ????????- less verbose / more concise commit blurb :)
-> > > ????????- fixed serial_litex_init() alignment
-> > > ????????- fixed `uart_base` pointer arithmetic
-> > > ????????- treat single-bit registers as Boolean
-> > > ????????- removed access to `event` (irq-related) register
-> > > ????????? (not needed since UART is operated in polling mode)
-> > > 
-> > > > New in v2:
-> > > > ????????- remove properties (and parameters) not actually used
-> > > > by the
-> > > > ????????? LiteX UART
-> > > > ????????- remove redundant parentheses from pointer arithmetic
-> > > > ????????? (thanks jrtc27!)
+? 2021-11-14???? 00:31 +0000?Jessica Clarke???
+> On 14 Nov 2021, at 00:23, Xiang W <wxjstz@126.com> wrote:
+> > ? 2021-11-13???? 22:11 +0000?Jessica Clarke???
+> > > On 13 Nov 2021, at 07:06, Xiang W <wxjstz@126.com> wrote:
 > > > > 
-> > > > > See https://github.com/litex-hub/linux-on-litex-rocket?for
-> > > > > instructions
-> > > > > on how to build a LiteX+Rocket bitstream for e.g. the
-> > > > > nexys4ddr (Xilinx
-> > > > > Artix7 FPGA dev board), and https://pastebin.com/nu1dSE16?for
-> > > > > a demo of
-> > > > > the board booting a linux payload via opensbi, using this
-> > > > > patch.
+> > > > If uart_getc is non-blocking, if the sending end is faster than
+> > > > the
+> > > > receiving end, the data received by some functions(sbi_gets) is
+> > > > incomplete
 > > > 
-> > > include/sbi_utils/fdt/fdt_helper.h??? |? 3 ++
-> > > include/sbi_utils/serial/litex-uart.h | 17 ++++++++
-> > > lib/utils/fdt/fdt_helper.c??????????? | 19 ++++++++
-> > > lib/utils/serial/fdt_serial.c???????? |? 2 +
-> > > lib/utils/serial/fdt_serial_litex.c?? | 35 +++++++++++++++
-> > > lib/utils/serial/litex-uart.c???????? | 62
-> > > +++++++++++++++++++++++++++
-> > > lib/utils/serial/objects.mk?????????? |? 2 +
-> > > 7 files changed, 140 insertions(+)
-> > > create mode 100644 include/sbi_utils/serial/litex-uart.h
-> > > create mode 100644 lib/utils/serial/fdt_serial_litex.c
-> > > create mode 100644 lib/utils/serial/litex-uart.c
+> > > Without hardware flow control this is always going to be true.
+> > > Making
+> > > getc blocking does not change that. Moreover, making it blocking
+> > > means
+> > > there is no longer a way to poll, whereas having it be non-
+> > > blocking
+> > > means you can poll, and if you want to make it blocking you can
+> > > always
+> > > put a loop in the caller (which also avoids putting it in every
+> > > single
+> > > driver).
 > > > 
-> > > diff --git a/include/sbi_utils/fdt/fdt_helper.h
-> > > b/include/sbi_utils/fdt/fdt_helper.h
-> > > index 24fee7a..5f75f07 100644
-> > > --- a/include/sbi_utils/fdt/fdt_helper.h
-> > > +++ b/include/sbi_utils/fdt/fdt_helper.h
-> > > @@ -62,6 +62,9 @@ int fdt_parse_shakti_uart_node(void *fdt, int
-> > > nodeoffset,
-> > > int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
-> > > ?????????????????????????????? struct platform_uart_data *uart);
-> > > 
-> > > +int fdt_parse_litex_uart_node(void *fdt, int nodeoffset,
-> > > +???????????????????????????? struct platform_uart_data *uart);
-> > > +
-> > > int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
-> > > ??????????????????????????? struct platform_uart_data *uart);
-> > > 
-> > > diff --git a/include/sbi_utils/serial/litex-uart.h
-> > > b/include/sbi_utils/serial/litex-uart.h
-> > > new file mode 100644
-> > > index 0000000..91ab644
-> > > --- /dev/null
-> > > +++ b/include/sbi_utils/serial/litex-uart.h
-> > > @@ -0,0 +1,17 @@
-> > > +/*
-> > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > + *
-> > > + * Copyright (c) 2021 Gabriel Somlo
-> > > + *
-> > > + * Authors:
-> > > + *?? Gabriel Somlo <gsomlo@gmail.com>
-> > > + */
-> > > +
-> > > +#ifndef __SERIAL_LITEX_UART_H__
-> > > +#define __SERIAL_LITEX_UART_H__
-> > > +
-> > > +#include <sbi/sbi_types.h>
-> > > +
-> > > +int litex_uart_init(unsigned long base);
-> > > +
-> > > +#endif
-> > > diff --git a/lib/utils/fdt/fdt_helper.c
-> > > b/lib/utils/fdt/fdt_helper.c
-> > > index 5bf4021..a42f53b 100644
-> > > --- a/lib/utils/fdt/fdt_helper.c
-> > > +++ b/lib/utils/fdt/fdt_helper.c
-> > > @@ -403,6 +403,25 @@ int fdt_parse_sifive_uart_node(void *fdt,
-> > > int nodeoffset,
-> > > ????????return 0;
-> > > }
-> > > 
-> > > +int fdt_parse_litex_uart_node(void *fdt, int nodeoffset,
-> > > +???????????????????????????? struct platform_uart_data *uart)
-> > > +{
-> > > +???????int rc;
-> > > +???????uint64_t reg_addr, reg_size;
-> > > +
-> > > +???????if (nodeoffset < 0 || !uart || !fdt)
-> > > +???????????????return SBI_ENODEV;
-> > > +
-> > > +???????rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > > &reg_addr, &reg_size);
-> > > +???????if (rc < 0 || !reg_addr || !reg_size)
-> > > +???????????????return SBI_ENODEV;
-> > > +???????uart->addr = reg_addr;
-> > > +
-> > > +???????/* LiteX UART has no further configurable properties */
-> > > +
-> > > +???????return 0;
-> > > +}
-> > > +
-> > > int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
-> > > ??????????????????????????? struct platform_uart_data *uart)
-> > > {
-> > > diff --git a/lib/utils/serial/fdt_serial.c
-> > > b/lib/utils/serial/fdt_serial.c
-> > > index cedda04..f73d26a 100644
-> > > --- a/lib/utils/serial/fdt_serial.c
-> > > +++ b/lib/utils/serial/fdt_serial.c
-> > > @@ -15,6 +15,7 @@
-> > > 
-> > > extern struct fdt_serial fdt_serial_uart8250;
-> > > extern struct fdt_serial fdt_serial_sifive;
-> > > +extern struct fdt_serial fdt_serial_litex;
-> > > extern struct fdt_serial fdt_serial_htif;
-> > > extern struct fdt_serial fdt_serial_shakti;
-> > > extern struct fdt_serial fdt_serial_gaisler;
-> > > @@ -22,6 +23,7 @@ extern struct fdt_serial fdt_serial_gaisler;
-> > > static struct fdt_serial *serial_drivers[] = {
-> > > ????????&fdt_serial_uart8250,
-> > > ????????&fdt_serial_sifive,
-> > > +???????&fdt_serial_litex,
-> > > ????????&fdt_serial_htif,
-> > > ????????&fdt_serial_shakti,
-> > > ????????&fdt_serial_gaisler
-> > > diff --git a/lib/utils/serial/fdt_serial_litex.c
-> > > b/lib/utils/serial/fdt_serial_litex.c
-> > > new file mode 100644
-> > > index 0000000..0fa5777
-> > > --- /dev/null
-> > > +++ b/lib/utils/serial/fdt_serial_litex.c
-> > > @@ -0,0 +1,35 @@
-> > > +/*
-> > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > + *
-> > > + * Copyright (c) 2021 Gabriel Somlo
-> > > + *
-> > > + * Authors:
-> > > + *?? Gabriel Somlo <gsomlo@gmail.com>
-> > > + */
-> > > +
-> > > +#include <sbi_utils/fdt/fdt_helper.h>
-> > > +#include <sbi_utils/serial/fdt_serial.h>
-> > > +#include <sbi_utils/serial/litex-uart.h>
-> > > +
-> > > +static int serial_litex_init(void *fdt, int nodeoff,
-> > > +??????????????????????????? const struct fdt_match *match)
-> > > +{
-> > > +???????int rc;
-> > > +???????struct platform_uart_data uart;
-> > > +
-> > > +???????rc = fdt_parse_litex_uart_node(fdt, nodeoff, &uart);
-> > > +???????if (rc)
-> > > +???????????????return rc;
-> > > +
-> > > +???????return litex_uart_init(uart.addr);
-> > > +}
-> > > +
-> > > +static const struct fdt_match serial_litex_match[] = {
-> > > +???????{ .compatible = "litex,liteuart" },
-> > > +???????{ },
-> > > +};
-> > > +
-> > > +struct fdt_serial fdt_serial_litex = {
-> > > +???????.match_table = serial_litex_match,
-> > > +???????.init = serial_litex_init
-> > > +};
-> > > diff --git a/lib/utils/serial/litex-uart.c
-> > > b/lib/utils/serial/litex-uart.c
-> > > new file mode 100644
-> > > index 0000000..e35fbe8
-> > > --- /dev/null
-> > > +++ b/lib/utils/serial/litex-uart.c
-> > > @@ -0,0 +1,62 @@
-> > > +/*
-> > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > + *
-> > > + * Copyright (c) 2021 Gabriel Somlo
-> > > + *
-> > > + * Authors:
-> > > + *?? Gabriel Somlo <gsomlo@gmail.com>
-> > > + */
-> > > +
-> > > +#include <sbi/riscv_io.h>
-> > > +#include <sbi/sbi_console.h>
-> > > +#include <sbi_utils/serial/litex-uart.h>
-> > > +
-> > > +/* clang-format off */
-> > > +
-> > > +#define UART_REG_RXTX??????????0
-> > > +#define UART_REG_TXFULL????????????????1
-> > > +#define UART_REG_RXEMPTY???????2
-> > > +#define UART_REG_EV_STATUS?????3
-> > > +#define UART_REG_EV_PENDING????4
-> > > +#define UART_REG_EV_ENABLE?????5
-> > > +
-> > > +/* clang-format on */
-> > > +
-> > > +static volatile u32 *uart_base;
-> > > +
-> > > +static u8 get_reg(u8 reg)
-> > > +{
-> > > +???????return readb(uart_base + reg);
-> > > +}
-> > > +
-> > > +static void set_reg(u8 reg, u8 val)
-> > > +{
-> > > +???????writeb(val, uart_base + reg);
-> > > +}
-> > > +
-> > > +static void litex_uart_putc(char ch)
-> > > +{
-> > > +???????while (get_reg(UART_REG_TXFULL));
-> > > +???????set_reg(UART_REG_RXTX, ch);
-> > > +}
-> > > +
-> > > +static int litex_uart_getc(void)
-> > > +{
-> > We should wait here before reading
+> > > Also, this breaks the SBI getchar call; it?s supposed to be
+> > > non-blocking, but this makes it blocking, so it is impossible for
+> > > an
+> > > OS
+> > > to poll the SBI console.
+> > 
+> > uart get does not support and returns the same value without
+> > receiving
+> > data. So polling will also cause problems
+> > 
+> > int sbi_getc(void)
+> > {
+> > ????????if (console_dev && console_dev->console_getc)
+> > ????????????????// Return -1 without valid data
+> > ????????????????return console_dev->console_getc();
+> > ????????return -1;
+Hi, Jess
+
+Can we return SBI_ENOTSUPP(-2) here to identify that
+console_dev->console_getc is not implemented.
+> > }
 > 
-> Wait for what condition, and/or for how long?
+> I do not understand what you are saying. There is no problem here. If
+> there is no character available, either because there is no UART or
+> because the UART?s receive buffer has been drained, the OS is told
+> there is no character. What?s wrong with that?
 > 
-> Are you perhaps referring to your recently submitted patch at
-> https://lists.infradead.org/pipermail/opensbi/2021-November/002174.html
-> ??
-> (where you suggest we should loop or block until a character becomes
-> available, instead of returning -1)?
-I am sorry for the wrong advice I provided.
+> The only problem I can see is that BBL returns 0 when there is no
+> UART
+> and -1 when there?s a UART but no character available, so this is not
+> a
+> correct implementation of the legacy SBI, but probably a more
+> sensible
+> interface given 0 is a valid character.
+I think 0 is not a good idea. The value obtained by getc is 0-255,
+which includes 0.
 
 Regards,
 Xiang W
+> Jess
 > 
-> If that's the case, I should probably wait until your patch is
-> applied
-> upstream (hopefully soon :) ), before re-submitting a v4 of LiteX
-> UART
-> with similar modifications.
-> 
-> Otherwise, please clarify.
-> 
-> Thanks much,
-> --Gabriel
-> 
-> > Regards,
-> > Xiang W
-> > > +???????if (get_reg(UART_REG_RXEMPTY))
-> > > +???????????????return -1;
-> > > +???????else
-> > > +???????????????return get_reg(UART_REG_RXTX);
-> > > +}
-> > > +
-> > > +static struct sbi_console_device litex_console = {
-> > > +???????.name = "litex_uart",
-> > > +???????.console_putc = litex_uart_putc,
-> > > +???????.console_getc = litex_uart_getc
-> > > +};
-> > > +
-> > > +int litex_uart_init(unsigned long base)
-> > > +{
-> > > +???????uart_base = (volatile u32 *)base;
-> > > +???????sbi_console_set_device(&litex_console);
-> > > +???????return 0;
-> > > +}
-> > > diff --git a/lib/utils/serial/objects.mk
-> > > b/lib/utils/serial/objects.mk
-> > > index 9fb0902..4f751ba 100644
-> > > --- a/lib/utils/serial/objects.mk
-> > > +++ b/lib/utils/serial/objects.mk
-> > > @@ -12,8 +12,10 @@ libsbiutils-objs-y +=
-> > > serial/fdt_serial_gaisler.o
-> > > libsbiutils-objs-y += serial/fdt_serial_htif.o
-> > > libsbiutils-objs-y += serial/fdt_serial_shakti.o
-> > > libsbiutils-objs-y += serial/fdt_serial_sifive.o
-> > > +libsbiutils-objs-y += serial/fdt_serial_litex.o
-> > > libsbiutils-objs-y += serial/fdt_serial_uart8250.o
-> > > libsbiutils-objs-y += serial/gaisler-uart.o
-> > > libsbiutils-objs-y += serial/shakti-uart.o
-> > > libsbiutils-objs-y += serial/sifive-uart.o
-> > > +libsbiutils-objs-y += serial/litex-uart.o
-> > > libsbiutils-objs-y += serial/uart8250.o
-> > > -- 
-> > > 2.31.1
 > 
 
 
