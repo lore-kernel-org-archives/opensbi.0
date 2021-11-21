@@ -1,24 +1,27 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 Nov 2021 00:36:06 +0800
-Subject: [PATCH] lib/sbi/sbi_domain.c: Fix spelling of "address".
-In-Reply-To: <878rxkrkpn.fsf@yucca>
-References: <878rxkrkpn.fsf@yucca>
-Message-ID: <51656fe948bd8dcf067def33daaaa7c378e9d3b4.camel@126.com>
+Date: Mon, 22 Nov 2021 00:40:00 +0800
+Subject: [PATCH] reproducible builds: strip embedded file paths
+In-Reply-To: <874k89kl8o.fsf@ponder>
+References: <874k89kl8o.fsf@ponder>
+Message-ID: <8607f8cc66989b754056f4396c16178bdc23c48a.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-11-19???? 11:47 -0800?Vagrant Cascadian???
-> Also submitted as:
-> https://github.com/riscv-software-src/opensbi/pull/230
+? 2021-11-18???? 17:05 -0800?Vagrant Cascadian???
 > 
-You may need to configure git send-email. This is convenient for
-everyone to review through the mailing list.
+> Unfortunately, the use of __FILE__ can embed the absolute build path
+> in
+> the resulting binary, resulting in different binaries depending on
+> which
+> path the build was performed in.
 
-This patch look good to me.
+Under what scenarios will absolute paths be embed.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Regards,
+Xiang W
+
 
 
