@@ -1,49 +1,52 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 25 Nov 2021 23:22:53 +0800
-Subject: [PATCH] lib: sbi: Fix missing space
-In-Reply-To: <20211125100016.31773-1-nikita.shubin@maquefel.me>
-References: <20211125100016.31773-1-nikita.shubin@maquefel.me>
-Message-ID: <0a99114fe94dfcc7742d2bab840470800b3f694e.camel@126.com>
+Date: Thu, 25 Nov 2021 23:35:33 +0800
+Subject: [PATCH] lib: sbi: Resolve the uninitialized complaint in sbi_pmu
+In-Reply-To: <20211125103817.6018-1-Dd_nirvana@sjtu.edu.cn>
+References: <20211125103817.6018-1-Dd_nirvana@sjtu.edu.cn>
+Message-ID: <b556ea59f5ddbd64bc6590f18bdfd867f099bf26.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-11-25???? 13:00 +0300?Nikita Shubin???
-> From: Nikita Shubin <n.shubin@yadro.com>
+? 2021-11-25???? 18:38 +0800?Dong Du???
+> A recent commit (b28f0700) turns to read from CSR_MCOUNTINHIBIT after
+> checking the SBI_HART_HAS_MCOUNTINHIBIT HART feature, which leaves
+> the
+> mctr_inhbt uninitialized in pmu_ctr_find_hw().
+> As a result, compiler will complain:
+> error: 'mctr_inhbt' may be used uninitialized in this function.
 > 
-> Fix missing space in sbi_hart_pmp_configure
-> error printing.
+> This commit resolves the issue by assigning an initial value to
+> mctr_inhbt.
 > 
-> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
-Look good to me
+> Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+SBI_HART_HAS_MCOUNTINHIBIT has been tested before accessing mctr_inhbt,
+so there is no need to initialize
 
-Reviewed-by: Xiang w <wxjstz@126.com>
+Regards,
+Xiang W
 > ---
-> ?lib/sbi/sbi_hart.c | 2 +-
+> ?lib/sbi/sbi_pmu.c | 2 +-
 > ?1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 76ed678..d9a15d9 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -226,7 +226,7 @@ int sbi_hart_pmp_configure(struct sbi_scratch
-> *scratch)
-> ????????????????????????pmp_set(pmp_idx++, pmp_flags, reg->base, reg-
-> >order);
-> ????????????????else {
-> ????????????????????????sbi_printf("Can not configure pmp for domain
-> %s", dom->name);
-> -???????????????????????sbi_printf("because memory region address %lx
-> or size %lx is not in range\n",
-> +???????????????????????sbi_printf(" because memory region address
-> %lx or size %lx is not in range\n",
-> ??????????????????????????????????? reg->base, reg->order);
-> ????????????????}
-> ????????}
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index a0eb359..5950a20 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -489,7 +489,7 @@ static int pmu_ctr_find_hw(unsigned long cbase,
+> unsigned long cmask, unsigned lo
+> ????????unsigned long ctr_mask;
+> ????????int i, ret = 0, fixed_ctr, ctr_idx = SBI_ENOTSUPP;
+> ????????struct sbi_pmu_hw_event *temp;
+> -???????unsigned long mctr_inhbt;
+> +???????unsigned long mctr_inhbt = 0;
+> ????????u32 hartid = current_hartid();
+> ????????struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> ?
 > -- 
-> 2.31.1
+> 2.33.1
 > 
 > 
 
