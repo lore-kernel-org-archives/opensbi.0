@@ -1,50 +1,91 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 26 Nov 2021 20:25:38 +0800
-Subject: [PATCH] lib: sbi: Resolve the uninitialized complaint in sbi_pmu
-In-Reply-To: <20211125103817.6018-1-Dd_nirvana@sjtu.edu.cn>
-References: <20211125103817.6018-1-Dd_nirvana@sjtu.edu.cn>
-Message-ID: <983fc9b94228bc93abc13385c06a1d5784dd9700.camel@126.com>
+From: Vagrant Cascadian <vagrant@reproducible-builds.org>
+Date: Fri, 26 Nov 2021 17:48:11 -0800
+Subject: [PATCH] reproducible builds: strip embedded file paths
+In-Reply-To: <25ea5b58027e51df4f1399f667d14606b7a4f7b4.camel@126.com>
+References: <874k89kl8o.fsf@ponder>
+ <8607f8cc66989b754056f4396c16178bdc23c48a.camel@126.com>
+ <875ysl2u59.fsf@ponder>
+ <be5f7d5821b498554ce426153b98e7077881a5ec.camel@126.com>
+ <87mtlwsuvh.fsf@ponder>
+ <CAAhSdy0vAGNZKV76aosJh84vpVn8hQ4EbfGEeYSn1YzUN4+AHg@mail.gmail.com>
+ <25ea5b58027e51df4f1399f667d14606b7a4f7b4.camel@126.com>
+Message-ID: <877dcuweqs.fsf@ponder>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-11-25???? 18:38 +0800?Dong Du???
-> A recent commit (b28f0700) turns to read from CSR_MCOUNTINHIBIT after
-> checking the SBI_HART_HAS_MCOUNTINHIBIT HART feature, which leaves
-> the
-> mctr_inhbt uninitialized in pmu_ctr_find_hw().
-> As a result, compiler will complain:
-> error: 'mctr_inhbt' may be used uninitialized in this function.
-> 
-> This commit resolves the issue by assigning an initial value to
-> mctr_inhbt.
-> 
-> Signed-off-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?lib/sbi/sbi_pmu.c | 2 +-
-> ?1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index a0eb359..5950a20 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -489,7 +489,7 @@ static int pmu_ctr_find_hw(unsigned long cbase,
-> unsigned long cmask, unsigned lo
-> ????????unsigned long ctr_mask;
-> ????????int i, ret = 0, fixed_ctr, ctr_idx = SBI_ENOTSUPP;
-> ????????struct sbi_pmu_hw_event *temp;
-> -???????unsigned long mctr_inhbt;
-> +???????unsigned long mctr_inhbt = 0;
-> ????????u32 hartid = current_hartid();
-> ????????struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> ?
-> -- 
-> 2.33.1
-> 
-> 
+On 2021-11-22, Xiang W. wrote:
+> ? 2021-11-22???? 10:13 +0530?Anup Patel???
+>> On Mon, Nov 22, 2021 at 10:02 AM Vagrant Cascadian
+>> <vagrant@reproducible-builds.org> wrote:
+>> > 
+>> > On 2021-11-22, Xiang W. wrote:
+>> > > ? 2021-11-21???? 11:20 -0800?Vagrant Cascadian???
+>> > > > of the directories below, I built using the same toolchain from
+>> > > > the same git commit...
+>> > > > 
+>> > > > $ cd /home/vagrant/src/opensbi/opensbi1
+>> > > > $ CROSS_COMPILE=riscv64-linux-gnu- make V=1 FW_PAYLOAD=n
+>> > > > PLATFORM=generic
+>> > > > ...
+>> > > > $ strings build/platform/generic/firmware/fw_dynamic.bin | grep
+>> > > > /home/vagrant
+>> > > > /home/vagrant/src/opensbi/opensbi1/lib/sbi/riscv_asm.c
+>> > ...
+>> > > This is because the source file uses the absolute path when
+>> > > compiling,
+>> > > you can use the relative path by modifying the Makefile
+>> > > 
+>> > > diff --git a/Makefile b/Makefile
+>> > > index 8623c1c..d017534 100644
+>> > > --- a/Makefile
+>> > > +++ b/Makefile
+>> > > @@ -361,7 +361,7 @@ compile_cc_dep = $(CMD_PREFIX)mkdir -p
+>> > > `dirname
+>> > > $(1)`; \
+>> > > ???????????? -MM $(2) >> $(1) || rm -f $(1)
+>> > > ?compile_cc = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+>> > > ?????????? echo " CC??????? $(subst $(build_dir)/,,$(1))"; \
+>> > > -????????? $(CC) $(CFLAGS) $(call dynamic_flags,$(1),$(2)) -c
+>> > > $(2) -
+>> > > o $(1)
+>> > > +????????? $(CC) $(CFLAGS) $(call dynamic_flags,$(1),$(2)) -c
+>> > > $(subst $(src_dir)/,,$(2)) -o $(1)
+>> > > ?compile_as_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+>> > > ?????????? echo " AS-DEP??? $(subst $(build_dir)/,,$(1))"; \
+>> > > ?????????? printf %s `dirname $(1)`/ > $(1) && \
+>> > 
+>> > That solves the issue and is probably better than passing more
+>> > compiler
+>> > arguments, thanks!
+>> 
+>> This will only work if we are compiling from the OpenSBI source
+>> directory
+>> itself. What if users compile OpenSBI with a different current
+>> directory
+>> using "make -C <opensbi_source_path>". I guess passing compiler
+>> argument will allow "make -C <opensbi_source_path>".
+>
+> make -C <directory> will switch the path to <directory> first, so the
+> result is the same.
+
+Any outstanding concerns with proposing the patch by Xiang W to pass
+relative directories instead of the original patch I submitted?
+
+Should it be submitted by Xiang W or should I merge the commit message
+from the original patch and submit it myself?
+
+Thanks!
 
 
-
+live well,
+  vagrant
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 227 bytes
+Desc: not available
+URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20211126/7eb1c7fd/attachment.sig>
