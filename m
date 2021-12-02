@@ -1,204 +1,263 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 2 Dec 2021 08:52:44 +0530
-Subject: [PATCH v2] lib: sbi: Improve fatal error handling
-In-Reply-To: <CAOnJCUJK_GB_noFjvkdVyMTMrpAOPThLd8SeMF681S03wWHwaQ@mail.gmail.com>
-References: <20211130055244.505091-1-anup.patel@wdc.com>
- <CAOnJCUJK_GB_noFjvkdVyMTMrpAOPThLd8SeMF681S03wWHwaQ@mail.gmail.com>
-Message-ID: <CAAhSdy2_ArADjLfwJ5d3EniXzxsiQGCiXeSgmVFW2LS6CHjZ_g@mail.gmail.com>
+Date: Thu, 2 Dec 2021 09:13:06 +0530
+Subject: [PATCH v4] lib: pmu: support the event ID encoded by a bitmap.
+In-Reply-To: <20211202014542.1888295-1-atishp@rivosinc.com>
+References: <20211202014542.1888295-1-atishp@rivosinc.com>
+Message-ID: <CAAhSdy1e30U9otzJ_xgDjM4F+dk2O5MgeCmG2aOwCteP_xBT4Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 1, 2021 at 3:23 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Thu, Dec 2, 2021 at 7:16 AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> On Mon, Nov 29, 2021 at 9:53 PM Anup Patel <anup.patel@wdc.com> wrote:
-> >
-> > From: Jessica Clarke <jrtc27@jrtc27.com>
-> >
-> > BUG and BUG_ON are not informative and are rather lazy interfaces, only
-> > telling the user that something went wrong in a given function, but not
-> > what, requiring the user to find the sources corresponding to their
-> > firmware (which may not be available) and figure out how that BUG(_ON)
-> > was hit. Even SBI_ASSERT in its current form, which does include the
-> > condition that triggered it in the output, isn't necessarily very
-> > informative. In some cases, the error may be fixable by the user, but
-> > they need to know the problem in order to have any hope of fixing it.
-> > It's also a nuisance for developers, whose development trees may have
-> > changed significantly since the release in question being used, and so
-> > line numbers can make it harder for them to understand which error case
-> > a user has hit.
-> >
-> > This patch introduces a new sbi_panic function which is printf-like,
-> > allowing detailed error messages to be printed to the console. BUG and
-> > BUG_ON are removed, since the former is just a worse form of sbi_panic
-> > and the latter is a worse version of SBI_ASSERT. Finally, SBI_ASSERT is
-> > augmented to take a set of arguments to pass to sbi_panic on failure,
-> > used like so (sbi_boot_print_hart's current error case, which currently
-> > manually calls sbi_printf and sbi_hart_hang):
-> >
-> >   SBI_ASSERT(xlen >= 1, ("Error %d getting MISA XLEN\n", xlen));
-> >
-> > The existing users of BUG are replaced with calls to sbi_panic along
-> > with informative error messages. BUG_ON and SBI_ASSERT were unused (and,
-> > in the case of SBI_ASSERT, remain unused).
-> >
-> > Many existing users of sbi_hart_hang should be converted to use either
-> > sbi_panic or SBI_ASSERT after this commit.
-> >
-> > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
-> > Reviewed-by: Anup Patel <anup.patel@wdc.com>
-> > Reviewed-by: Xiang W <wxjstz@126.com>
-> > ---
-> > Changes since v1:
-> > - Update patch suject
-> > - Fixed typo in patch description
-> > - Remove "#include <sbi/sbi_hart.h>" from sbi_console.h
-> > ---
-> >  include/sbi/sbi_console.h       | 23 +++++------------------
-> >  lib/sbi/riscv_asm.c             |  7 ++++---
-> >  lib/sbi/sbi_console.c           | 14 ++++++++++++++
-> >  platform/generic/sifive_fu740.c |  1 +
-> >  4 files changed, 24 insertions(+), 21 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
-> > index 28b4a79..e15b55d 100644
-> > --- a/include/sbi/sbi_console.h
-> > +++ b/include/sbi/sbi_console.h
-> > @@ -11,7 +11,6 @@
-> >  #define __SBI_CONSOLE_H__
-> >
-> >  #include <sbi/sbi_types.h>
-> > -#include <sbi/sbi_hart.h>
-> >
-> >  struct sbi_console_device {
-> >         /** Name of the console device */
-> > @@ -44,6 +43,8 @@ int __printf(1, 2) sbi_printf(const char *format, ...);
-> >
-> >  int __printf(1, 2) sbi_dprintf(const char *format, ...);
-> >
-> > +void __printf(1, 2) __attribute__((noreturn)) sbi_panic(const char *format, ...);
-> > +
-> >  const struct sbi_console_device *sbi_console_get_device(void);
-> >
-> >  void sbi_console_set_device(const struct sbi_console_device *dev);
-> > @@ -52,23 +53,9 @@ struct sbi_scratch;
-> >
-> >  int sbi_console_init(struct sbi_scratch *scratch);
-> >
-> > -#define BUG() do { \
-> > -       sbi_printf("BUG: failure at %s:%d/%s()!\n", \
-> > -                  __FILE__, __LINE__, __func__); \
-> > -       sbi_hart_hang(); \
-> > -} while (0)
-> > -
-> > -#define BUG_ON(cond) do { \
-> > -       if (cond)       \
-> > -               BUG();  \
-> > -} while (0)
-> > -
-> > -#define SBI_ASSERT(cond) do { \
-> > -       if (!(cond)) { \
-> > -               sbi_printf("ASSERT: %s:%d/%s(): Assertion `%s` failed.\n", \
-> > -                          __FILE__,__LINE__,__func__, #cond);\
-> > -               sbi_hart_hang(); \
-> > -       } \
-> > +#define SBI_ASSERT(cond, args) do { \
-> > +       if (unlikely(!(cond))) \
-> > +               sbi_panic args; \
-> >  } while (0)
-> >
-> >  #endif
-> > diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> > index 1642ac6..2e2e148 100644
-> > --- a/lib/sbi/riscv_asm.c
-> > +++ b/lib/sbi/riscv_asm.c
-> > @@ -76,7 +76,8 @@ void misa_string(int xlen, char *out, unsigned int out_sz)
-> >                         out[pos++] = '8';
-> >                         break;
-> >                 default:
-> > -                       BUG();
-> > +                       sbi_panic("%s: Unknown misa.MXL encoding %d",
-> > +                                  __func__, xlen);
-> >                         return;
-> >                 }
-> >         }
-> > @@ -145,7 +146,7 @@ unsigned long csr_read_num(int csr_num)
-> >  #endif
-> >
-> >         default:
-> > -               BUG();
-> > +               sbi_panic("%s: Unknown CSR %#x", __func__, csr_num);
-> >                 break;
-> >         };
-> >
-> > @@ -213,7 +214,7 @@ void csr_write_num(int csr_num, unsigned long val)
-> >         switchcase_csr_write_16(CSR_MHPMEVENT16, val)
-> >
-> >         default:
-> > -               BUG();
-> > +               sbi_panic("%s: Unknown CSR %#x", __func__, csr_num);
-> >                 break;
-> >         };
-> >
-> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> > index 29eede3..34c843d 100644
-> > --- a/lib/sbi/sbi_console.c
-> > +++ b/lib/sbi/sbi_console.c
-> > @@ -9,6 +9,7 @@
-> >
-> >  #include <sbi/riscv_locks.h>
-> >  #include <sbi/sbi_console.h>
-> > +#include <sbi/sbi_hart.h>
-> >  #include <sbi/sbi_platform.h>
-> >  #include <sbi/sbi_scratch.h>
-> >
-> > @@ -397,6 +398,19 @@ int sbi_dprintf(const char *format, ...)
-> >         return retval;
-> >  }
-> >
-> > +void sbi_panic(const char *format, ...)
-> > +{
-> > +       va_list args;
-> > +
-> > +       spin_lock(&console_out_lock);
-> > +       va_start(args, format);
-> > +       print(NULL, NULL, format, args);
-> > +       va_end(args);
-> > +       spin_unlock(&console_out_lock);
-> > +
-> > +       sbi_hart_hang();
-> > +}
-> > +
-> >  const struct sbi_console_device *sbi_console_get_device(void)
-> >  {
-> >         return console_dev;
-> > diff --git a/platform/generic/sifive_fu740.c b/platform/generic/sifive_fu740.c
-> > index 3152152..333b3fb 100644
-> > --- a/platform/generic/sifive_fu740.c
-> > +++ b/platform/generic/sifive_fu740.c
-> > @@ -12,6 +12,7 @@
-> >  #include <platform_override.h>
-> >  #include <libfdt.h>
-> >  #include <sbi/sbi_error.h>
-> > +#include <sbi/sbi_hart.h>
-> >  #include <sbi/sbi_system.h>
-> >  #include <sbi/sbi_console.h>
-> >  #include <sbi_utils/fdt/fdt_helper.h>
-> > --
-> > 2.25.1
-> >
+> From: Vincent Chen <vincent.chen@sifive.com>
 >
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> RISC-V privilege specification does not specify how to encode the event ID.
+> Therefore, each platform is allowed to customize its own encoding rule.
+> The common encoding methods are as follow, directly assigning a number to an
+> event, or every bit in the mphmevent CSR controls one specified event or
+> mixes the above two methods.
+>
+> To enable OpenSBI to support the above three encoding methods simultaneously,
+> this patch repurpose the dt property "riscv,raw-event-to-mhpmcounters". The
+> "riscv,raw-event-to-mhpmcounters" will describes the one or multiple raw
+> events that could be counted by a set of counters. But, the column number
+> of "riscv,raw-event-to-mhpmcounters" is extended from 2 to 3. The 1st column
+> (64bit) is the ID of the raw events. The 2nd column (64bit) represents a
+> select_mask now to represent the bits used for event ID encoding.
+> If a platform directly encodes each raw PMU event as a unique ID,
+> the value of select_mask will be 0xffffffff_ffffffff.
+>
+> Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
+> Signed-off-by: Atish Patra<atishp@rivosinc.com>
 
-Applied this patch to the riscv/opensbi repo
+Looks good to me.
 
-Thanks,
+Reviewed-by: Anup Patel <anup.patel@wdc.com>
+
+Regards,
 Anup
 
+> ---
+> Changes from v3->v4:
+> 1. Fixed few instances of pmu prefix.
+> 2. Improved the DT property description.
+> 3. Simplified *find_hw implementation by just masking the selector_mask to
+>    event_data and comparing it with the select value.
+> 4. Dropped the reviewed by recieved in PATCH 3 as the selector/mask scheme
+>    is changed in this patch.
+>
+> Changes from v2->v3:
+> 1. Rebased on top of the master which changed the dt property prefix to riscv.
+> 2. Fixed typos.
+> ---
+> ---
+>  docs/pmu_support.md     | 24 ++++++++++++++++--------
+>  include/sbi/sbi_pmu.h   |  2 +-
+>  lib/sbi/sbi_pmu.c       | 35 ++++++++++++++++++++++++-----------
+>  lib/utils/fdt/fdt_pmu.c | 16 +++++++++-------
+>  4 files changed, 50 insertions(+), 27 deletions(-)
+>
+> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> index a60b75cf9efa..b9803f643593 100644
+> --- a/docs/pmu_support.md
+> +++ b/docs/pmu_support.md
+> @@ -50,12 +50,20 @@ event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+>  shouldn't encode any raw event.
+>
+>  * **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+> -mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
+> -be used to monitor that raw event. The information is encoded in a table format
+> -where each raw represent a specific raw event. The first column stores the
+> -expected event selector value that should be encoded in the expected value to be
+> -written in MHPMEVENTx. The second column stores a bitmap of all the MHPMCOUNTERx
+> -that can be used for monitoring the specified event.
+> +or MANY-to-MANY mapping between the raw event(s) and all the MHPMCOUNTERx in
+> +a bitmap format that can be used to monitor that raw event, which depends on
+> +how the platform encodes the monitor events. Currently, only the following three
+> +encoding methods are supported, encoding each event as a number, using a bitmap
+> +to encode monitor events, and mixing the previous two methods. The information
+> +is encoded in a table format where each row represent the specific raw event(s).
+> +The first column represents a 64-bit selector value which can indicate an
+> +monitor event ID (encoded by a number) or an event set (encoded by a bitmap).
+> +In case of the latter, the lower bits used to encode a set of events should be
+> +set to zero. The second column is a 64-bit selector mask where any bits used
+> +for event encoding will be cleared. If a platform directly encodes each raw PMU
+> +event as a unique ID, the value of select_mask will be 0xffffffff_ffffffff.
+> +The third column represent a bitmap of all the MHPMCOUNTERx that can be used for
+> +monitoring the specified event(s).
+>
+>  *Note:* A platform may choose to provide the mapping between event & counters
+>  via platform hooks rather than the device tree.
+> @@ -72,8 +80,8 @@ pmu {
+>                                                   <0x00002 0x00002 0x00000004>,
+>                                                   <0x00003 0x0000A 0x00000ff8>,
+>                                                   <0x10000 0x10033 0x000ff000>,
+> -       riscv,raw-event-to-mhpmcounters         = <0x0000 0x0002 0x00000f8>,
+> -                                         <0x0000 0x0003 0x00000ff0>,
+> +       riscv,raw-event-to-mhpmcounters = <0x0000     0x0002 0xffffffff 0xffffffff 0x00000f8>,
+> +                                         <0xffffffff 0xfffffff0 0xffffffff 0xfffffff0 0x00000ff0>,
+>  };
+>
+>  ```
+> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> index f0185566cd6d..6a1c62ccfbef 100644
+> --- a/include/sbi/sbi_pmu.h
+> +++ b/include/sbi/sbi_pmu.h
+> @@ -51,7 +51,7 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap);
+>   * @return 0 on success, error otherwise.
+>   */
+>
+> -int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap);
+> +int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32 cmap);
+>
+>  int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval);
+>
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 5950a2001637..10668a358cb2 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -21,8 +21,16 @@ struct sbi_pmu_hw_event {
+>         uint32_t counters;
+>         uint32_t start_idx;
+>         uint32_t end_idx;
+> -       /* Event selector value used only for raw events */
+> +       /* Event selector value used only for raw events. The event select value
+> +        * can be a even id or a selector value for set of events encoded in few
+> +        * bits. In case latter, the bits used for encoding of the events should
+> +        * be zeroed out in the select value.
+> +        */
+>         uint64_t select;
+> +        /**
+> +         * The select_mask indicates which bits are encoded for the event(s).
+> +         */
+> +       uint64_t select_mask;
+>  };
+>
+>  /** Representation of a firmware event */
+> @@ -91,9 +99,9 @@ static bool pmu_event_range_overlap(struct sbi_pmu_hw_event *evtA,
+>  }
+>
+>  static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
+> -                                    uint64_t select_val)
+> +                                    uint64_t select_val, uint64_t select_mask)
+>  {
+> -       if (evt->select == select_val)
+> +       if ((evt->select == select_val) && (evt->select_mask == select_mask))
+>                 return TRUE;
+>
+>         return FALSE;
+> @@ -168,7 +176,7 @@ int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval)
+>  }
+>
+>  static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+> -                               uint64_t select)
+> +                               uint64_t select, uint64_t select_mask)
+>  {
+>         int i = 0;
+>         bool is_overlap;
+> @@ -191,13 +199,15 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+>         for (i = 0; i < num_hw_events; i++) {
+>                 if (eidx_start == SBI_PMU_EVENT_RAW_IDX)
+>                 /* All raw events have same event idx. Just do sanity check on select */
+> -                       is_overlap = pmu_event_select_overlap(&hw_event_map[i], select);
+> +                       is_overlap = pmu_event_select_overlap(&hw_event_map[i],
+> +                                                             select, select_mask);
+>                 else
+>                         is_overlap = pmu_event_range_overlap(&hw_event_map[i], event);
+>                 if (is_overlap)
+>                         goto reset_event;
+>         }
+>
+> +       event->select_mask = select_mask;
+>         event->counters = cmap;
+>         event->select = select;
+>         num_hw_events++;
+> @@ -221,13 +231,13 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap)
+>              eidx_end == SBI_PMU_EVENT_RAW_IDX)
+>                 return SBI_EINVAL;
+>
+> -       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0);
+> +       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0, 0);
+>  }
+>
+> -int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap)
+> +int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32 cmap)
+>  {
+>         return pmu_add_hw_event_map(SBI_PMU_EVENT_RAW_IDX,
+> -                                   SBI_PMU_EVENT_RAW_IDX, cmap, select);
+> +                                   SBI_PMU_EVENT_RAW_IDX, cmap, select, select_mask);
+>  }
+>
+>  static int pmu_ctr_enable_irq_hw(int ctr_idx)
+> @@ -514,9 +524,13 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+>                         continue;
+>
+>                 /* For raw events, event data is used as the select value */
+> -               if ((event_idx == SBI_PMU_EVENT_RAW_IDX) && temp->select != data)
+> -                       continue;
+> +               if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
+> +                       uint64_t select_mask = temp->select_mask;
+>
+> +                       /* The non-event map bits of data should match the selector */
+> +                       if (temp->select != (data & select_mask))
+> +                               continue;
+> +               }
+>                 /* Fixed counters should not be part of the search */
+>                 ctr_mask = temp->counters & (cmask << cbase) &
+>                            (~SBI_PMU_FIXED_CTR_MASK);
+> @@ -546,7 +560,6 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+>                 else
+>                         return SBI_EFAIL;
+>         }
+> -
+>         ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
+>
+>         if (!ret)
+> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> index 529ee420554f..a2b048f0ab29 100644
+> --- a/lib/utils/fdt/fdt_pmu.c
+> +++ b/lib/utils/fdt/fdt_pmu.c
+> @@ -65,7 +65,7 @@ int fdt_pmu_setup(void *fdt)
+>         const u32 *event_val;
+>         const u32 *event_ctr_map;
+>         struct fdt_pmu_hw_event_select *event;
+> -       uint64_t raw_selector;
+> +       uint64_t raw_selector, select_mask;
+>         u32 event_idx_start, event_idx_end, ctr_map;
+>
+>         if (!fdt)
+> @@ -99,14 +99,16 @@ int fdt_pmu_setup(void *fdt)
+>         }
+>
+>         event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
+> -       if (!event_val || len < 8)
+> +       if (!event_val || len < 20)
+>                 return SBI_EFAIL;
+> -       len = len / (sizeof(u32) * 3);
+> +       len = len / (sizeof(u32) * 5);
+>         for (i = 0; i < len; i++) {
+> -               raw_selector = fdt32_to_cpu(event_val[3 * i]);
+> -               raw_selector = (raw_selector << 32) | fdt32_to_cpu(event_val[3 * i + 1]);
+> -               ctr_map = fdt32_to_cpu(event_val[3 * i + 2]);
+> -               result = sbi_pmu_add_raw_event_counter_map(raw_selector, ctr_map);
+> +               raw_selector = fdt32_to_cpu(event_val[5 * i]);
+> +               raw_selector = (raw_selector << 32) | fdt32_to_cpu(event_val[5 * i + 1]);
+> +               select_mask = fdt32_to_cpu(event_val[5 * i + 2]);
+> +               select_mask = (select_mask  << 32) | fdt32_to_cpu(event_val[5 * i + 3]);
+> +               ctr_map = fdt32_to_cpu(event_val[5 * i + 4]);
+> +               result = sbi_pmu_add_raw_event_counter_map(raw_selector, select_mask, ctr_map);
+>                 if (!result)
+>                         hw_event_count++;
+>         }
+> --
+> 2.33.1
+>
 >
 > --
-> Regards,
-> Atish
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
