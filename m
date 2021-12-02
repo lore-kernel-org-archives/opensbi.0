@@ -1,34 +1,55 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Thu,  2 Dec 2021 14:04:38 +0530
-Subject: [PATCH v2 0/2] Misc compile error/warning fixes
-Message-ID: <20211202083440.656777-1-anup.patel@wdc.com>
+Date: Thu,  2 Dec 2021 14:04:39 +0530
+Subject: [PATCH v2 1/2] Makefile: Fix -mno-save-restore compile warning with
+ CLANG
+In-Reply-To: <20211202083440.656777-1-anup.patel@wdc.com>
+References: <20211202083440.656777-1-anup.patel@wdc.com>
+Message-ID: <20211202083440.656777-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series does few compile error/warning fixes which I discovered
-trying CLANG with OpenSBI.
+The riscv target of CLANG does not support -m(no-)save-restore option
+so we get compile warnings. This patch fixes compile warning by using
+-m(no-)save-restore option only for GCC.
 
-These patches can also be found in clang_fixes_v2 branch at:
-https://github.com/riscv-software-src/opensbi.git
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ Makefile | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-Changes since v1:
- - Use explicit inline macro sbi_trap_info_init() in PATCH2 for
-   initializing struct sbi_trap_info.
-
-Anup Patel (2):
-  Makefile: Fix -mno-save-restore compile warning with CLANG
-  lib: sbi: Fix compile errors using -Os option
-
- Makefile               | 12 ++++++++----
- include/sbi/sbi_trap.h |  9 +++++++++
- lib/sbi/riscv_asm.c    |  3 ++-
- lib/sbi/sbi_ecall.c    |  4 +++-
- lib/sbi/sbi_hart.c     | 12 +++++++++---
- 5 files changed, 31 insertions(+), 9 deletions(-)
-
+diff --git a/Makefile b/Makefile
+index 8623c1c..1e35dc0 100644
+--- a/Makefile
++++ b/Makefile
+@@ -275,8 +275,10 @@ GENFLAGS	+=	$(platform-genflags-y)
+ GENFLAGS	+=	$(firmware-genflags-y)
+ 
+ CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
+-CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+-CFLAGS		+=	-mno-save-restore -mstrict-align
++CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
++ifneq ($(CC_IS_CLANG),y)
++CFLAGS		+=	-mno-save-restore
++endif
+ CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+ CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ CFLAGS		+=	$(RELAX_FLAG)
+@@ -290,8 +292,10 @@ CPPFLAGS	+=	$(platform-cppflags-y)
+ CPPFLAGS	+=	$(firmware-cppflags-y)
+ 
+ ASFLAGS		=	-g -Wall -nostdlib
+-ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+-ASFLAGS		+=	-mno-save-restore -mstrict-align
++ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
++ifneq ($(CC_IS_CLANG),y)
++ASFLAGS		+=	-mno-save-restore
++endif
+ ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+ ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ ASFLAGS		+=	$(RELAX_FLAG)
 -- 
 2.25.1
 
