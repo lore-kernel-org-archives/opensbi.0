@@ -1,55 +1,68 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Thu,  2 Dec 2021 17:59:28 +0530
-Subject: [PATCH v3 1/2] Makefile: Fix -mno-save-restore compile warning with
- CLANG
+Date: Thu,  2 Dec 2021 17:59:29 +0530
+Subject: [PATCH v3 2/2] lib: sbi: Fix compile errors using -Os option
 In-Reply-To: <20211202122929.685756-1-anup.patel@wdc.com>
 References: <20211202122929.685756-1-anup.patel@wdc.com>
-Message-ID: <20211202122929.685756-2-anup.patel@wdc.com>
+Message-ID: <20211202122929.685756-3-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The riscv target of CLANG does not support -m(no-)save-restore option
-so we get compile warnings. This patch fixes compile warning by using
--m(no-)save-restore option only for GCC.
+When building with -Os option along with -ffreestanding, both GCC
+and clang will add implicit calls to memcpy() and memcpy() for stack
+variables initialized in declaration.
+
+The C standard as per Clause 4, the compiler cannot necessarily
+assume that anything beyond:
+
+ * float.h
+ * iso646.h
+ * limits.h
+ * stdalign.h
+ * stdarg.h
+ * stdbool.h
+ * stddef.h
+ * stdint.h
+ * stdnoreturn.h
+ * fenv.h
+ * math.h
+ * and the numeric conversion functions of stdlib.h.
+
+This patch maps memcpy() and memset() as weak-alias of sbi_memcpy()
+and sbi_memset() respectively so that implicit calls to memcpy()
+and memset() will compile properly.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 ---
- Makefile | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ lib/sbi/sbi_string.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/Makefile b/Makefile
-index 8623c1c..1e35dc0 100644
---- a/Makefile
-+++ b/Makefile
-@@ -275,8 +275,10 @@ GENFLAGS	+=	$(platform-genflags-y)
- GENFLAGS	+=	$(firmware-genflags-y)
+diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
+index c87bce9..c67c02e 100644
+--- a/lib/sbi/sbi_string.c
++++ b/lib/sbi/sbi_string.c
+@@ -122,6 +122,9 @@ void *sbi_memset(void *s, int c, size_t count)
+ 	return s;
+ }
  
- CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
--CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
--CFLAGS		+=	-mno-save-restore -mstrict-align
-+CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
-+ifneq ($(CC_IS_CLANG),y)
-+CFLAGS		+=	-mno-save-restore
-+endif
- CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
- CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
- CFLAGS		+=	$(RELAX_FLAG)
-@@ -290,8 +292,10 @@ CPPFLAGS	+=	$(platform-cppflags-y)
- CPPFLAGS	+=	$(firmware-cppflags-y)
++void *memset(void *s, int c, size_t count) \
++__attribute__((weak, alias("sbi_memset")));
++
+ void *sbi_memcpy(void *dest, const void *src, size_t count)
+ {
+ 	char *temp1	  = dest;
+@@ -135,6 +138,9 @@ void *sbi_memcpy(void *dest, const void *src, size_t count)
+ 	return dest;
+ }
  
- ASFLAGS		=	-g -Wall -nostdlib
--ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
--ASFLAGS		+=	-mno-save-restore -mstrict-align
-+ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
-+ifneq ($(CC_IS_CLANG),y)
-+ASFLAGS		+=	-mno-save-restore
-+endif
- ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
- ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
- ASFLAGS		+=	$(RELAX_FLAG)
++void *memcpy(void *dest, const void *src, size_t count) \
++__attribute__((weak, alias("sbi_memcpy")));
++
+ void *sbi_memmove(void *dest, const void *src, size_t count)
+ {
+ 	char *temp1	  = (char *)dest;
 -- 
 2.25.1
 
