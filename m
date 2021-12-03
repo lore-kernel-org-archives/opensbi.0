@@ -1,39 +1,59 @@
 From: Anup Patel <anup.patel@wdc.com>
-Date: Fri,  3 Dec 2021 10:33:32 +0530
-Subject: [PATCH v4 0/2] Misc compile error/warning fixes
-Message-ID: <20211203050334.729392-1-anup.patel@wdc.com>
+Date: Fri,  3 Dec 2021 10:33:33 +0530
+Subject: [PATCH v4 1/2] Makefile: Fix -msave-restore compile warning with
+ CLANG-10 (or lower)
+In-Reply-To: <20211203050334.729392-1-anup.patel@wdc.com>
+References: <20211203050334.729392-1-anup.patel@wdc.com>
+Message-ID: <20211203050334.729392-2-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series does few compile error/warning fixes which I discovered
-trying CLANG with OpenSBI.
+The riscv target of CLANG-10 (or lower) does not support the
+-m(no-)save-restore option so we get compile warnings. This patch
+fixes compile warning by using -m(no-)save-restore option only
+for GCC.
 
-These patches can also be found in clang_fixes_v4 branch at:
-https://github.com/riscv-software-src/opensbi.git
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+---
+ Makefile | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-Changes since v3:
- - Updated commit description of PATCH1 and PATCH2
- - Added a comment in Makefile for PATCH1
-
-Changes since v2:
- - Make memcpy() and memset() as weak-alias of sbi_memcpy() and
-   sbi_memset() respectively in PATCH2
-
-Changes since v1:
- - Use explicit inline macro sbi_trap_info_init() in PATCH2 for
-   initializing struct sbi_trap_info.
-
-Anup Patel (2):
-  Makefile: Fix -msave-restore compile warning with CLANG-10 (or lower)
-  lib: sbi: Fix compile errors using -Os option
-
- Makefile             | 14 ++++++++++----
- lib/sbi/sbi_string.c |  6 ++++++
- 2 files changed, 16 insertions(+), 4 deletions(-)
-
+diff --git a/Makefile b/Makefile
+index 8623c1c..d89a0c5 100644
+--- a/Makefile
++++ b/Makefile
+@@ -275,8 +275,11 @@ GENFLAGS	+=	$(platform-genflags-y)
+ GENFLAGS	+=	$(firmware-genflags-y)
+ 
+ CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
+-CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+-CFLAGS		+=	-mno-save-restore -mstrict-align
++CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
++# CLANG-10 (or lower) does not support -m(no-)save-restore option
++ifneq ($(CC_IS_CLANG),y)
++CFLAGS		+=	-mno-save-restore
++endif
+ CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+ CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ CFLAGS		+=	$(RELAX_FLAG)
+@@ -290,8 +293,11 @@ CPPFLAGS	+=	$(platform-cppflags-y)
+ CPPFLAGS	+=	$(firmware-cppflags-y)
+ 
+ ASFLAGS		=	-g -Wall -nostdlib
+-ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+-ASFLAGS		+=	-mno-save-restore -mstrict-align
++ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
++# CLANG-10 (or lower) does not support -m(no-)save-restore option
++ifneq ($(CC_IS_CLANG),y)
++ASFLAGS		+=	-mno-save-restore
++endif
+ ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+ ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ ASFLAGS		+=	$(RELAX_FLAG)
 -- 
 2.25.1
 
