@@ -1,59 +1,98 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 3 Dec 2021 09:58:06 +0530
-Subject: [PATCH 1/1] docs/platform: spike: Enhance Spike examples
-In-Reply-To: <92283da5b32c3fbec8f23df7bdb6f7c80ba435d6.1638493883.git.research_trasio@irq.a4lg.com>
-References: <cover.1638493883.git.research_trasio@irq.a4lg.com>
- <92283da5b32c3fbec8f23df7bdb6f7c80ba435d6.1638493883.git.research_trasio@irq.a4lg.com>
-Message-ID: <CAAhSdy0LMfBtT=h6MapsWkcxG77VEZX81bse9HT1pbVgBDN77w@mail.gmail.com>
+Date: Fri, 3 Dec 2021 10:00:50 +0530
+Subject: [PATCH v3 1/2] Makefile: Fix -mno-save-restore compile warning
+ with CLANG
+In-Reply-To: <7dfd90c711fd20dc0bcf07082a59c45d7f76ddcd.camel@126.com>
+References: <20211202122929.685756-1-anup.patel@wdc.com>
+ <20211202122929.685756-2-anup.patel@wdc.com>
+ <7dfd90c711fd20dc0bcf07082a59c45d7f76ddcd.camel@126.com>
+Message-ID: <CAAhSdy2fSfeyDMEYDkAFDfisu+nPApeXgitVUqBaJuPbOeg_+Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 3, 2021 at 6:44 AM Tsukasa OI <research_trasio@irq.a4lg.com> wrote:
+On Thu, Dec 2, 2021 at 7:58 PM Xiang W <wxjstz@126.com> wrote:
 >
-> This commit makes Spike usable as QEMU (in fact, those are based on
-> QEMU examples).
+> ? 2021-12-02???? 17:59 +0530?Anup Patel???
+> > The riscv target of CLANG does not support -m(no-)save-restore option
+> > so we get compile warnings. This patch fixes compile warning by using
+> > -m(no-)save-restore option only for GCC.
+> >
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 >
-> Signed-off-by: Tsukasa OI <research_trasio@irq.a4lg.com>
+> ?  /tmp clang -target riscv64 -mno-save-restore -O2 -S test.c
+> ?  /tmp clang -target riscv64 -msave-restore -O2 -S test.c
+> ?  /tmp clang --version
+> Debian clang version 11.0.1-2
+> Target: x86_64-pc-linux-gnu
+> Thread model: posix
+> InstalledDir: /usr/bin
+> ?  /tmp lsb_release -a
+> No LSB modules are available.
+> Distributor ID: Debian
+> Description:    Debian GNU/Linux 11 (bullseye)
+> Release:        11
+> Codename:       bullseye
+> ?  /tmp
+>
+> clang supports -m(no-)save-restore option on my computer
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+I am using clang package available on Ubuntu-20.04 LTS which
+is still at clang-10.
 
 Regards,
 Anup
 
-> ---
->  docs/platform/spike.md | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
 >
-> diff --git a/docs/platform/spike.md b/docs/platform/spike.md
-> index 79e2eb2..bde9e13 100644
-> --- a/docs/platform/spike.md
-> +++ b/docs/platform/spike.md
-> @@ -43,7 +43,18 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
+> Regards,
+> Xiang W
+> > ---
+> >  Makefile | 12 ++++++++----
+> >  1 file changed, 8 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/Makefile b/Makefile
+> > index 8623c1c..1e35dc0 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -275,8 +275,10 @@ GENFLAGS   +=      $(platform-genflags-y)
+> >  GENFLAGS       +=      $(firmware-genflags-y)
+> >
+> >  CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -
+> > fno-stack-protector -fno-strict-aliasing -O2
+> > -CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-
+> > sibling-calls
+> > -CFLAGS         +=      -mno-save-restore -mstrict-align
+> > +CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-
+> > sibling-calls -mstrict-align
+> > +ifneq ($(CC_IS_CLANG),y)
+> > +CFLAGS         +=      -mno-save-restore
+> > +endif
+> >  CFLAGS         +=      -mabi=$(PLATFORM_RISCV_ABI) -
+> > march=$(PLATFORM_RISCV_ISA)
+> >  CFLAGS         +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> >  CFLAGS         +=      $(RELAX_FLAG)
+> > @@ -290,8 +292,10 @@ CPPFLAGS   +=      $(platform-cppflags-y)
+> >  CPPFLAGS       +=      $(firmware-cppflags-y)
+> >
+> >  ASFLAGS                =       -g -Wall -nostdlib
+> > -ASFLAGS                +=      -fno-omit-frame-pointer -fno-
+> > optimize-sibling-calls
+> > -ASFLAGS                +=      -mno-save-restore -mstrict-align
+> > +ASFLAGS                +=      -fno-omit-frame-pointer -fno-
+> > optimize-sibling-calls -mstrict-align
+> > +ifneq ($(CC_IS_CLANG),y)
+> > +ASFLAGS                +=      -mno-save-restore
+> > +endif
+> >  ASFLAGS                +=      -mabi=$(PLATFORM_RISCV_ABI) -
+> > march=$(PLATFORM_RISCV_ISA)
+> >  ASFLAGS                +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> >  ASFLAGS                +=      $(RELAX_FLAG)
+> > --
+> > 2.25.1
+> >
+> >
 >
->  Run:
->  ```
-> -spike --initrd <path_to_cpio_ramdisk> build/platform/generic/firmware/fw_payload.elf
-> +spike -m256 \
-> +       --initrd <path_to_cpio_ramdisk> \
-> +       --bootargs 'root=/dev/ram rw console=hvc0 earlycon=sbi' \
-> +       build/platform/generic/firmware/fw_payload.elf
-> +```
-> +or
-> +```
-> +spike -m256 \
-> +       --kernel <linux_build_directory>/arch/riscv/boot/Image \
-> +       --initrd <path_to_cpio_ramdisk> \
-> +       --bootargs 'root=/dev/ram rw console=hvc0 earlycon=sbi' \
-> +       build/platform/generic/firmware/fw_jump.elf
->  ```
->
->  Execution on QEMU RISC-V 64-bit
-> --
-> 2.32.0
 >
 
