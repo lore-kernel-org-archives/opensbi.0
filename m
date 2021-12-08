@@ -1,50 +1,40 @@
-From: Vagrant Cascadian <vagrant@reproducible-builds.org>
-Date: Fri, 03 Dec 2021 12:43:30 -0800
-Subject: [PATCH v2] Makefile: Pass relative paths to the compiler.
-In-Reply-To: <CAAhSdy3LDXp0RfXKwKOPR1uFqbwq6P1HLq7AcVs-FwATPyX-ug@mail.gmail.com>
-References: <20211129015502.4767-1-vagrant@reproducible-builds.org>
- <CAAhSdy3LDXp0RfXKwKOPR1uFqbwq6P1HLq7AcVs-FwATPyX-ug@mail.gmail.com>
-Message-ID: <87r1atifm5.fsf@yucca>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Wed,  8 Dec 2021 14:16:54 +0300
+Subject: [PATCH] lib: pmu: check SSCOF before masking
+Message-ID: <20211208111654.25872-1-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2021-12-02, Anup Patel wrote:
-> On Mon, Nov 29, 2021 at 7:25 AM Vagrant Cascadian
-> <vagrant@reproducible-builds.org> wrote:
->>
->> Upstream commit 12753d22563f7d2d01f2c6644c7b66b06eb5c90f introduced
->> uses of __FILE__ which may result in the build path getting embedded
->> into the resulting binary.
->>
->> https://reproducible-builds.org/docs/build-path/
->>
->> Signed-off-by: Vagrant Cascadian <vagrant@reproducible-builds.org>
->> Cc: Xiang W <wxjstz@126.com>
->> Cc: Anup Patel <anup@brainfault.org>
->
-> Now that we have sbi_panic() and SBI_ASSERT() in-place (Jessica's patch), we
-> don't need to change the top-level Makefile because __FILE__ is not
-> used anywhere
-> in sources.
+From: Nikita Shubin <n.shubin@yadro.com>
 
-I can confirm that fixes the issue of embedded build paths.
+We should check if SSCOF extension is present,
+before applying inhibit mask and clearing overflow,
+otherwise undesirable value can be written
+in MHPMEVENT_N CSR.
+
+Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+---
+ lib/sbi/sbi_pmu.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 10668a3..5b845f8 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -467,7 +467,8 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 		return SBI_EFAIL;
+ 
+ 	/* Always clear the OVF bit and inhibit countin of events in M-mode */
+-	mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
++		mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
+ 
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+ 	pmu_update_inhibit_flags(flags, &mhpmevent_val);
+-- 
+2.31.1
 
 
-> Going forward, we should avoid taking patches that use __FILE__ so that we don't
-> break reproducible builds.
-
-Thanks for keeping reproducible builds in mind!
-
-
-live well,
-  vagrant
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 227 bytes
-Desc: not available
-URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20211203/d1985595/attachment.sig>
