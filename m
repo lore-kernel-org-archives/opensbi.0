@@ -1,68 +1,66 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 11 Dec 2021 16:33:09 +0530
-Subject: [PATCH 1/1] docs/platform: spike: Enhance Spike examples
-In-Reply-To: <CAAhSdy0LMfBtT=h6MapsWkcxG77VEZX81bse9HT1pbVgBDN77w@mail.gmail.com>
-References: <cover.1638493883.git.research_trasio@irq.a4lg.com>
- <92283da5b32c3fbec8f23df7bdb6f7c80ba435d6.1638493883.git.research_trasio@irq.a4lg.com>
- <CAAhSdy0LMfBtT=h6MapsWkcxG77VEZX81bse9HT1pbVgBDN77w@mail.gmail.com>
-Message-ID: <CAAhSdy242NiXC3Vw88cnGd0vXPP=2VxMiv4GxBAymULEn1cJ3Q@mail.gmail.com>
+Date: Sat, 11 Dec 2021 16:34:04 +0530
+Subject: [PATCH] lib: pmu: check SSCOF before masking
+In-Reply-To: <27220b7d8a555806f9cf1b66f7e507dfadf73916.camel@126.com>
+References: <20211208111654.25872-1-nikita.shubin@maquefel.me>
+ <27220b7d8a555806f9cf1b66f7e507dfadf73916.camel@126.com>
+Message-ID: <CAAhSdy2RLousCZ5mZ_WO_s6-j8FRL43+5KrM+B0coevyvQceEw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 3, 2021 at 9:58 AM Anup Patel <anup@brainfault.org> wrote:
+On Wed, Dec 8, 2021 at 5:21 PM Xiang W <wxjstz@126.com> wrote:
 >
-> On Fri, Dec 3, 2021 at 6:44 AM Tsukasa OI <research_trasio@irq.a4lg.com> wrote:
+> ? 2021-12-08???? 14:16 +0300?Nikita Shubin???
+> > From: Nikita Shubin <n.shubin@yadro.com>
 > >
-> > This commit makes Spike usable as QEMU (in fact, those are based on
-> > QEMU examples).
+> > We should check if SSCOF extension is present,
+> > before applying inhibit mask and clearing overflow,
+> > otherwise undesirable value can be written
+> > in MHPMEVENT_N CSR.
 > >
-> > Signed-off-by: Tsukasa OI <research_trasio@irq.a4lg.com>
->
-> Looks good to me.
->
-> Reviewed-by: Anup Patel <anup.patel@wdc.com>
+> > Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
 Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
->
-> Regards,
-> Anup
->
 > > ---
-> >  docs/platform/spike.md | 13 ++++++++++++-
-> >  1 file changed, 12 insertions(+), 1 deletion(-)
+> >  lib/sbi/sbi_pmu.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
 > >
-> > diff --git a/docs/platform/spike.md b/docs/platform/spike.md
-> > index 79e2eb2..bde9e13 100644
-> > --- a/docs/platform/spike.md
-> > +++ b/docs/platform/spike.md
-> > @@ -43,7 +43,18 @@ make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Im
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index 10668a3..5b845f8 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -467,7 +467,8 @@ static int pmu_update_hw_mhpmevent(struct
+> > sbi_pmu_hw_event *hw_evt, int ctr_idx,
+> >                 return SBI_EFAIL;
 > >
-> >  Run:
-> >  ```
-> > -spike --initrd <path_to_cpio_ramdisk> build/platform/generic/firmware/fw_payload.elf
-> > +spike -m256 \
-> > +       --initrd <path_to_cpio_ramdisk> \
-> > +       --bootargs 'root=/dev/ram rw console=hvc0 earlycon=sbi' \
-> > +       build/platform/generic/firmware/fw_payload.elf
-> > +```
-> > +or
-> > +```
-> > +spike -m256 \
-> > +       --kernel <linux_build_directory>/arch/riscv/boot/Image \
-> > +       --initrd <path_to_cpio_ramdisk> \
-> > +       --bootargs 'root=/dev/ram rw console=hvc0 earlycon=sbi' \
-> > +       build/platform/generic/firmware/fw_jump.elf
-> >  ```
+> >         /* Always clear the OVF bit and inhibit countin of events in
+> > M-mode */
+> > -       mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) |
+> > MHPMEVENT_MINH;
+> > +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
+> > +               mhpmevent_val = (mhpmevent_val &
+> > ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
 > >
-> >  Execution on QEMU RISC-V 64-bit
+> >         /* Update the inhibit flags based on inhibit flags received
+> > from supervisor */
+> >         pmu_update_inhibit_flags(flags, &mhpmevent_val);
 > > --
-> > 2.32.0
+> > 2.31.1
 > >
+> >
+>
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
