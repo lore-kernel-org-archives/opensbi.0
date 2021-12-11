@@ -1,66 +1,141 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 11 Dec 2021 16:34:04 +0530
-Subject: [PATCH] lib: pmu: check SSCOF before masking
-In-Reply-To: <27220b7d8a555806f9cf1b66f7e507dfadf73916.camel@126.com>
-References: <20211208111654.25872-1-nikita.shubin@maquefel.me>
- <27220b7d8a555806f9cf1b66f7e507dfadf73916.camel@126.com>
-Message-ID: <CAAhSdy2RLousCZ5mZ_WO_s6-j8FRL43+5KrM+B0coevyvQceEw@mail.gmail.com>
+Date: Sat, 11 Dec 2021 17:39:56 +0530
+Subject: [PATCH v4 1/2] Makefile: Fix -msave-restore compile warning with
+ CLANG-10 (or lower)
+In-Reply-To: <f37a60738d6b0e482d8555c8f65678764cfd0e52.camel@126.com>
+References: <20211203050334.729392-1-anup.patel@wdc.com>
+ <20211203050334.729392-2-anup.patel@wdc.com>
+ <f37a60738d6b0e482d8555c8f65678764cfd0e52.camel@126.com>
+Message-ID: <CAAhSdy10ZdGWEm8aqRP39ocOCA-fXx3dhTNP1zHp2QcEOzWwCg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 8, 2021 at 5:21 PM Xiang W <wxjstz@126.com> wrote:
+On Fri, Dec 3, 2021 at 6:41 PM Xiang W <wxjstz@126.com> wrote:
 >
-> ? 2021-12-08???? 14:16 +0300?Nikita Shubin???
-> > From: Nikita Shubin <n.shubin@yadro.com>
+> ? 2021-12-03???? 10:33 +0530?Anup Patel???
+> > The riscv target of CLANG-10 (or lower) does not support the
+> > -m(no-)save-restore option so we get compile warnings. This patch
+> > fixes compile warning by using -m(no-)save-restore option only
+> > for GCC.
 > >
-> > We should check if SSCOF extension is present,
-> > before applying inhibit mask and clearing overflow,
-> > otherwise undesirable value can be written
-> > in MHPMEVENT_N CSR.
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
+> > Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
+> > ---
+> >  Makefile | 14 ++++++++++----
+> >  1 file changed, 10 insertions(+), 4 deletions(-)
 > >
-> > Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+> > diff --git a/Makefile b/Makefile
+> > index 8623c1c..d89a0c5 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -275,8 +275,11 @@ GENFLAGS   +=      $(platform-genflags-y)
+> >  GENFLAGS       +=      $(firmware-genflags-y)
+> >
+> >  CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -
+> > fno-stack-protector -fno-strict-aliasing -O2
+> > -CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-
+> > sibling-calls
+> > -CFLAGS         +=      -mno-save-restore -mstrict-align
+> > +CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-
+> > sibling-calls -mstrict-align
+> > +# CLANG-10 (or lower) does not support -m(no-)save-restore option
+> > +ifneq ($(CC_IS_CLANG),y)
+> > +CFLAGS         +=      -mno-save-restore
+> > +endif
+> >  CFLAGS         +=      -mabi=$(PLATFORM_RISCV_ABI) -
+> > march=$(PLATFORM_RISCV_ISA)
+> >  CFLAGS         +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> >  CFLAGS         +=      $(RELAX_FLAG)
+> > @@ -290,8 +293,11 @@ CPPFLAGS   +=      $(platform-cppflags-y)
+> >  CPPFLAGS       +=      $(firmware-cppflags-y)
+> >
+> >  ASFLAGS                =       -g -Wall -nostdlib
+> > -ASFLAGS                +=      -fno-omit-frame-pointer -fno-
+> > optimize-sibling-calls
+> > -ASFLAGS                +=      -mno-save-restore -mstrict-align
+> > +ASFLAGS                +=      -fno-omit-frame-pointer -fno-
+> > optimize-sibling-calls -mstrict-align
+> > +# CLANG-10 (or lower) does not support -m(no-)save-restore option
+> > +ifneq ($(CC_IS_CLANG),y)
+> > +ASFLAGS                +=      -mno-save-restore
+> > +endif
+> >  ASFLAGS                +=      -mabi=$(PLATFORM_RISCV_ABI) -
+> > march=$(PLATFORM_RISCV_ISA)
+> >  ASFLAGS                +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> >  ASFLAGS                +=      $(RELAX_FLAG)
+> > --
+> > 2.25.1
+> >
+> >
+>
+> Maybe we can dynamically detect whether the toolchain supports
+> -m(no-)save-restore, just like we did before to detect whether ld
+> supports PIE
 
-Applied this patch to the riscv/opensbi repo.
+Thanks Xiang for this suggestion, I tried it but does not work with GCC.
 
-Thanks,
+For now, I will go ahead with v4 patch. You can try it separately and
+send incremental patch.
+
+Regards,
 Anup
 
-> > ---
-> >  lib/sbi/sbi_pmu.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > index 10668a3..5b845f8 100644
-> > --- a/lib/sbi/sbi_pmu.c
-> > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -467,7 +467,8 @@ static int pmu_update_hw_mhpmevent(struct
-> > sbi_pmu_hw_event *hw_evt, int ctr_idx,
-> >                 return SBI_EFAIL;
-> >
-> >         /* Always clear the OVF bit and inhibit countin of events in
-> > M-mode */
-> > -       mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) |
-> > MHPMEVENT_MINH;
-> > +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
-> > +               mhpmevent_val = (mhpmevent_val &
-> > ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
-> >
-> >         /* Update the inhibit flags based on inhibit flags received
-> > from supervisor */
-> >         pmu_update_inhibit_flags(flags, &mhpmevent_val);
-> > --
-> > 2.31.1
-> >
-> >
 >
+> diff --git a/Makefile b/Makefile
+> index 8623c1c..4b866ac 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -149,7 +149,7 @@ endif
 >
+>  # Check whether the linker supports creating PIEs
+>  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG)
+> $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null
+> >/dev/null 2>&1 && echo y || echo n)
+> -
+> +CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG)
+> $(USE_LD_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null
+> >/dev/null 2>&1 && echo y || echo n)
+>  # Build Info:
+>  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+>  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+> @@ -275,8 +275,10 @@ GENFLAGS   +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+>  CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-
+> stack-protector -fno-strict-aliasing -O2
+> -CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-
+> calls
+> -CFLAGS         +=      -mno-save-restore -mstrict-align
+> +CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-
+> calls -mstrict-align
+> +ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+> +CFLAGS         +=      -mno-save-restore
+> +endif
+>  CFLAGS         +=      -mabi=$(PLATFORM_RISCV_ABI) -
+> march=$(PLATFORM_RISCV_ISA)
+>  CFLAGS         +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+>  CFLAGS         +=      $(RELAX_FLAG)
+> @@ -290,8 +292,10 @@ CPPFLAGS   +=      $(platform-cppflags-y)
+>  CPPFLAGS       +=      $(firmware-cppflags-y)
+>
+>  ASFLAGS                =       -g -Wall -nostdlib
+> -ASFLAGS                +=      -fno-omit-frame-pointer -fno-optimize-
+> sibling-calls
+> -ASFLAGS                +=      -mno-save-restore -mstrict-align
+> +ASFLAGS                +=      -fno-omit-frame-pointer -fno-optimize-
+> sibling-calls -mstrict-align
+> +ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+> +ASFLAGS                +=      -mno-save-restore
+> +endif
+>  ASFLAGS                +=      -mabi=$(PLATFORM_RISCV_ABI) -
+> march=$(PLATFORM_RISCV_ISA)
+>  ASFLAGS                +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+>  ASFLAGS                +=      $(RELAX_FLAG)
+>
+> Regards,
+> Xiang W
+>
 
