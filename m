@@ -1,51 +1,57 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 17 Dec 2021 21:47:13 +0800
-Subject: [PATCH 1/1] lib: sbi: simplify pmp_set()
-In-Reply-To: <20211217131156.17573-1-heinrich.schuchardt@canonical.com>
-References: <20211217131156.17573-1-heinrich.schuchardt@canonical.com>
-Message-ID: <2b7ce1aa860834edb4341c9299606e354ff9244a.camel@126.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Fri, 17 Dec 2021 18:02:58 +0100
+Subject: [PATCH v2 1/1] lib: sbi: simplify pmp_set(), pmp_get()
+Message-ID: <20211217170258.7321-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2021-12-17???? 14:11 +0100?Heinrich Schuchardt???
-> pmpcfg_csr and pmpcfg_shift are only negative for an unexpected value
-> of
-> __riscv_xlen. We can immediately return in this case.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Look good to me
+pmpcfg_csr and pmpcfg_shift are only negative for an unexpected value of
+__riscv_xlen. We can immediately return in this case.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?lib/sbi/riscv_asm.c | 5 +----
-> ?1 file changed, 1 insertion(+), 4 deletions(-)
-> 
-> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> index 2e2e148..5e5b3d3 100644
-> --- a/lib/sbi/riscv_asm.c
-> +++ b/lib/sbi/riscv_asm.c
-> @@ -261,12 +261,9 @@ int pmp_set(unsigned int n, unsigned long prot,
-> unsigned long addr,
-> ????????pmpcfg_csr?? = (CSR_PMPCFG0 + (n >> 2)) & ~1;
-> ????????pmpcfg_shift = (n & 7) << 3;
-> ?#else
-> -???????pmpcfg_csr?? = -1;
-> -???????pmpcfg_shift = -1;
-> +???????return SBI_ENOTSUPP;
-> ?#endif
-> ????????pmpaddr_csr = CSR_PMPADDR0 + n;
-> -???????if (pmpcfg_csr < 0 || pmpcfg_shift < 0)
-> -???????????????return SBI_ENOTSUPP;
-> ?
-> ????????/* encode PMP config */
-> ????????prot &= ~PMP_A;
-> -- 
-> 2.33.1
-> 
-> 
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+v2:
+	adjust pmp_get too
+---
+ lib/sbi/riscv_asm.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 2e2e148..847bdba 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -261,12 +261,9 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+ 	pmpcfg_shift = (n & 7) << 3;
+ #else
+-	pmpcfg_csr   = -1;
+-	pmpcfg_shift = -1;
++	return SBI_ENOTSUPP;
+ #endif
+ 	pmpaddr_csr = CSR_PMPADDR0 + n;
+-	if (pmpcfg_csr < 0 || pmpcfg_shift < 0)
+-		return SBI_ENOTSUPP;
+ 
+ 	/* encode PMP config */
+ 	prot &= ~PMP_A;
+@@ -315,12 +312,9 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+ 	pmpcfg_shift = (n & 7) << 3;
+ #else
+-	pmpcfg_csr   = -1;
+-	pmpcfg_shift = -1;
++	return SBI_ENOTSUPP;
+ #endif
+ 	pmpaddr_csr = CSR_PMPADDR0 + n;
+-	if (pmpcfg_csr < 0 || pmpcfg_shift < 0)
+-		return SBI_ENOTSUPP;
+ 
+ 	/* decode PMP config */
+ 	cfgmask = (0xffUL << pmpcfg_shift);
+-- 
+2.33.1
 
 
