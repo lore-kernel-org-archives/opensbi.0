@@ -1,70 +1,76 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 22 Dec 2021 09:07:42 +0530
-Subject: [PATCH v2 1/1] lib: sbi: simplify pmp_set(), pmp_get()
-In-Reply-To: <20211217170258.7321-1-heinrich.schuchardt@canonical.com>
-References: <20211217170258.7321-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy3CTZRSR=KzkU0nBGrKr0LA-hL-b-Lh7V4aY-aGHezT=g@mail.gmail.com>
+From: Anup Patel <anup.patel@wdc.com>
+Date: Wed, 22 Dec 2021 18:14:44 +0530
+Subject: [PATCH] firmware: Move memcpy/memset mapping to fw_base.S
+Message-ID: <20211222124444.995355-1-anup.patel@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 17, 2021 at 10:33 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
->
-> pmpcfg_csr and pmpcfg_shift are only negative for an unexpected value of
-> __riscv_xlen. We can immediately return in this case.
->
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Some of the external firmwares using OpenSBI as library are facing
+issues with the weak memcpy() and memset() aliases in libsbi.a so
+we move these to fw_base.S. This way mapping of implicit memcpy()
+or memset() calls to sbi_memcpy() or sbi_memset() will only be done
+for OpenSBI firmwares.
+(Refer, https://github.com/riscv-software-src/opensbi/issues/234)
 
-Looks good to me.
+Signed-off-by: Anup Patel <anup.patel@wdc.com>
+---
+ firmware/fw_base.S   | 14 ++++++++++++++
+ lib/sbi/sbi_string.c |  6 ------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-Reviewed-by: Anup Patel <anup.patel@wdc.com>
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 1569e60..6197a7f 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -561,6 +561,20 @@ fw_platform_init:
+ 	add	a0, a1, zero
+ 	ret
+ 
++	/* Map implicit memcpy() added by compiler to sbi_memcpy() */
++	.section .text
++	.align 3
++	.globl memcpy
++memcpy:
++	j	sbi_memcpy
++
++	/* Map implicit memset() added by compiler to sbi_memset() */
++	.section .text
++	.align 3
++	.globl memset
++memset:
++	j	sbi_memset
++
+ .macro	TRAP_SAVE_AND_SETUP_SP_T0
+ 	/* Swap TP and MSCRATCH */
+ 	csrrw	tp, CSR_MSCRATCH, tp
+diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
+index c67c02e..c87bce9 100644
+--- a/lib/sbi/sbi_string.c
++++ b/lib/sbi/sbi_string.c
+@@ -122,9 +122,6 @@ void *sbi_memset(void *s, int c, size_t count)
+ 	return s;
+ }
+ 
+-void *memset(void *s, int c, size_t count) \
+-__attribute__((weak, alias("sbi_memset")));
+-
+ void *sbi_memcpy(void *dest, const void *src, size_t count)
+ {
+ 	char *temp1	  = dest;
+@@ -138,9 +135,6 @@ void *sbi_memcpy(void *dest, const void *src, size_t count)
+ 	return dest;
+ }
+ 
+-void *memcpy(void *dest, const void *src, size_t count) \
+-__attribute__((weak, alias("sbi_memcpy")));
+-
+ void *sbi_memmove(void *dest, const void *src, size_t count)
+ {
+ 	char *temp1	  = (char *)dest;
+-- 
+2.25.1
 
-Regards,
-Anup
-
-> ---
-> v2:
->         adjust pmp_get too
-> ---
->  lib/sbi/riscv_asm.c | 10 ++--------
->  1 file changed, 2 insertions(+), 8 deletions(-)
->
-> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> index 2e2e148..847bdba 100644
-> --- a/lib/sbi/riscv_asm.c
-> +++ b/lib/sbi/riscv_asm.c
-> @@ -261,12 +261,9 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
->         pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
->         pmpcfg_shift = (n & 7) << 3;
->  #else
-> -       pmpcfg_csr   = -1;
-> -       pmpcfg_shift = -1;
-> +       return SBI_ENOTSUPP;
->  #endif
->         pmpaddr_csr = CSR_PMPADDR0 + n;
-> -       if (pmpcfg_csr < 0 || pmpcfg_shift < 0)
-> -               return SBI_ENOTSUPP;
->
->         /* encode PMP config */
->         prot &= ~PMP_A;
-> @@ -315,12 +312,9 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
->         pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
->         pmpcfg_shift = (n & 7) << 3;
->  #else
-> -       pmpcfg_csr   = -1;
-> -       pmpcfg_shift = -1;
-> +       return SBI_ENOTSUPP;
->  #endif
->         pmpaddr_csr = CSR_PMPADDR0 + n;
-> -       if (pmpcfg_csr < 0 || pmpcfg_shift < 0)
-> -               return SBI_ENOTSUPP;
->
->         /* decode PMP config */
->         cfgmask = (0xffUL << pmpcfg_shift);
-> --
-> 2.33.1
->
 
