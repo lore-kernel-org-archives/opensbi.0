@@ -1,86 +1,49 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 23 Dec 2021 01:28:35 -0800
-Subject: [PATCH v2] firmware: Move memcpy/memset mapping to fw_base.S
-In-Reply-To: <20211223052712.1032855-1-anup.patel@wdc.com>
-References: <20211223052712.1032855-1-anup.patel@wdc.com>
-Message-ID: <CAOnJCU+pUvMcT+ci2sgx9QCXVi6MTnZy-ndhm5ee7nAerBw9Cg@mail.gmail.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Thu, 23 Dec 2021 12:09:08 +0100
+Subject: [PATCH 1/1] lib: define memmove(), memcmp() as aliases
+Message-ID: <20211223110908.9580-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 22, 2021 at 9:27 PM Anup Patel <anup.patel@wdc.com> wrote:
->
-> Some of the external firmwares using OpenSBI as library are facing
-> issues with the weak memcpy() and memset() aliases in libsbi.a so
-> we move these to fw_base.S. This way mapping of implicit memcpy()
-> or memset() calls to sbi_memcpy() or sbi_memset() will only be done
-> for OpenSBI firmwares.
-> (Refer, https://github.com/riscv-software-src/opensbi/issues/234)
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  firmware/fw_base.S   | 14 ++++++++++++++
->  lib/sbi/sbi_string.c |  6 ------
->  2 files changed, 14 insertions(+), 6 deletions(-)
->
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 1569e60..3669420 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -561,6 +561,20 @@ fw_platform_init:
->         add     a0, a1, zero
->         ret
->
-> +       /* Map implicit memcpy() added by compiler to sbi_memcpy() */
-> +       .section .text
-> +       .align 3
-> +       .globl memcpy
-> +memcpy:
-> +       tail    sbi_memcpy
-> +
-> +       /* Map implicit memset() added by compiler to sbi_memset() */
-> +       .section .text
-> +       .align 3
-> +       .globl memset
-> +memset:
-> +       tail    sbi_memset
-> +
->  .macro TRAP_SAVE_AND_SETUP_SP_T0
->         /* Swap TP and MSCRATCH */
->         csrrw   tp, CSR_MSCRATCH, tp
-> diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
-> index c67c02e..c87bce9 100644
-> --- a/lib/sbi/sbi_string.c
-> +++ b/lib/sbi/sbi_string.c
-> @@ -122,9 +122,6 @@ void *sbi_memset(void *s, int c, size_t count)
->         return s;
->  }
->
-> -void *memset(void *s, int c, size_t count) \
-> -__attribute__((weak, alias("sbi_memset")));
-> -
->  void *sbi_memcpy(void *dest, const void *src, size_t count)
->  {
->         char *temp1       = dest;
-> @@ -138,9 +135,6 @@ void *sbi_memcpy(void *dest, const void *src, size_t count)
->         return dest;
->  }
->
-> -void *memcpy(void *dest, const void *src, size_t count) \
-> -__attribute__((weak, alias("sbi_memcpy")));
-> -
->  void *sbi_memmove(void *dest, const void *src, size_t count)
->  {
->         char *temp1       = (char *)dest;
-> --
-> 2.25.1
->
+According to the GCC documentation the freestanding environment must provide
+memcpy(), memmove(), memset(), and memcmp(). We already have defined
+memcpy() and memset() as weak aliases for sbi_memcpy() and sbi_memset() in
+commit d249d6544c3c ("lib: sbi: Fix compile errors using -Os option").
+Do the same for memmove() and memcmp().
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+ lib/sbi/sbi_string.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
+diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
+index c67c02e..233be4e 100644
+--- a/lib/sbi/sbi_string.c
++++ b/lib/sbi/sbi_string.c
+@@ -167,6 +167,9 @@ void *sbi_memmove(void *dest, const void *src, size_t count)
+ 	return dest;
+ }
+ 
++void *memmove(void *dest, const void *src, size_t count) \
++__attribute__((weak, alias("sbi_memmove")));
++
+ int sbi_memcmp(const void *s1, const void *s2, size_t count)
+ {
+ 	const char *temp1 = s1;
+@@ -183,6 +186,9 @@ int sbi_memcmp(const void *s1, const void *s2, size_t count)
+ 		return 0;
+ }
+ 
++int memcmp(const void *s1, const void *s2, size_t count) \
++__attribute__((weak, alias("sbi_memcmp")));
++
+ void *sbi_memchr(const void *s, int c, size_t count)
+ {
+ 	const unsigned char *temp = s;
 -- 
-Regards,
-Atish
+2.33.1
+
 
