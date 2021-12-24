@@ -1,110 +1,37 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 24 Dec 2021 13:13:26 +0530
-Subject: [PATCH v3] firmware: Move memcpy/memset mapping to fw_base.S
-In-Reply-To: <20211223122704.1068096-1-anup.patel@wdc.com>
-References: <20211223122704.1068096-1-anup.patel@wdc.com>
-Message-ID: <CAAhSdy3e9tyDHQVPAjWocm=vSmwBbV1iCw4YOENDrBpi4VCROg@mail.gmail.com>
+From: Anup Patel <Anup.Patel@wdc.com>
+Date: Fri, 24 Dec 2021 12:28:51 +0000
+Subject: OpenSBI v1.0 Released
+Message-ID: <4A79977D-524C-47B9-893D-E6072CA3F52A@wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 23, 2021 at 5:57 PM Anup Patel <anup.patel@wdc.com> wrote:
->
-> Some of the external firmwares using OpenSBI as library are facing
-> issues with the weak memcpy() and memset() aliases in libsbi.a so
-> we move these to fw_base.S. This way mapping of implicit memcpy()
-> or memset() calls to sbi_memcpy() or sbi_memset() will only be done
-> for OpenSBI firmwares.
-> (Refer, https://github.com/riscv-software-src/opensbi/issues/234)
->
-> In addition, we also add memmove() and memcmp() mappings in fw_base.S
-> because as-per the GCC documentation the freestanding environment must
-> provide memcpy(), memmove(), memset(), and memcmp().
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Hi All,
 
-Applied this patch to the riscv/opensbi repo.
+The OpenSBI v1.0 is now available on GitHub at:
+https://github.com/riscv/opensbi/releases
 
-Regards,
-Anup
+This release has:
+* SBI HSM suspend as defined by SBI v0.3 specification
+* Position independent execution for firmware
+* Ticket based spinlocks
+* Simplified / reduced platform callbacks
+* ACLINT MTIMER and MSWI support
+* SBI PMU extension as defined by SBI v0.3 specification
+* Simple FDT based GPIO driver framework
+* Improved reset driver framework along with various reset drivers
+* Generic timer delay loop APIs
+* RISC-V Sscofpmf extension support
+* Simple FDT based I2C driver framework along with SiFive I2C driver
+* UART drivers for Gaisler and LiteX platforms
 
-> ---
-> Changes since v2:
->  - Added mapping for memmove() and memcmp() in fw_base.S
-> Changes since v1:
->  - Use "tail" in-place of "j" instruction in fw_base.S
-> ---
->  firmware/fw_base.S   | 28 ++++++++++++++++++++++++++++
->  lib/sbi/sbi_string.c |  6 ------
->  2 files changed, 28 insertions(+), 6 deletions(-)
->
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 1569e60..ab3e1b3 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -561,6 +561,34 @@ fw_platform_init:
->         add     a0, a1, zero
->         ret
->
-> +       /* Map implicit memcpy() added by compiler to sbi_memcpy() */
-> +       .section .text
-> +       .align 3
-> +       .globl memcpy
-> +memcpy:
-> +       tail    sbi_memcpy
-> +
-> +       /* Map implicit memset() added by compiler to sbi_memset() */
-> +       .section .text
-> +       .align 3
-> +       .globl memset
-> +memset:
-> +       tail    sbi_memset
-> +
-> +       /* Map implicit memmove() added by compiler to sbi_memmove() */
-> +       .section .text
-> +       .align 3
-> +       .globl memmove
-> +memmove:
-> +       tail    sbi_memmove
-> +
-> +       /* Map implicit memcmp() added by compiler to sbi_memcmp() */
-> +       .section .text
-> +       .align 3
-> +       .globl memcmp
-> +memcmp:
-> +       tail    sbi_memcmp
-> +
->  .macro TRAP_SAVE_AND_SETUP_SP_T0
->         /* Swap TP and MSCRATCH */
->         csrrw   tp, CSR_MSCRATCH, tp
-> diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
-> index c67c02e..c87bce9 100644
-> --- a/lib/sbi/sbi_string.c
-> +++ b/lib/sbi/sbi_string.c
-> @@ -122,9 +122,6 @@ void *sbi_memset(void *s, int c, size_t count)
->         return s;
->  }
->
-> -void *memset(void *s, int c, size_t count) \
-> -__attribute__((weak, alias("sbi_memset")));
-> -
->  void *sbi_memcpy(void *dest, const void *src, size_t count)
->  {
->         char *temp1       = dest;
-> @@ -138,9 +135,6 @@ void *sbi_memcpy(void *dest, const void *src, size_t count)
->         return dest;
->  }
->
-> -void *memcpy(void *dest, const void *src, size_t count) \
-> -__attribute__((weak, alias("sbi_memcpy")));
-> -
->  void *sbi_memmove(void *dest, const void *src, size_t count)
->  {
->         char *temp1       = (char *)dest;
-> --
-> 2.25.1
->
+Overall, this release completes a major milestone by implementing
+the SBI v0.3 specification along with various other improvements.
+
+Many thanks to everyone who has contributed to this release.
+
+Best Regards,
+Anup Patel
 
