@@ -1,106 +1,80 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  4 Jan 2022 15:43:15 +0530
-Subject: [PATCH 05/13] lib: utils/irqchip: Allow multiple FDT irqchip drivers
+Date: Tue,  4 Jan 2022 15:43:16 +0530
+Subject: [PATCH 06/13] include: sbi: Introduce nascent_init() platform callback
 In-Reply-To: <20220104101323.127564-1-apatel@ventanamicro.com>
 References: <20220104101323.127564-1-apatel@ventanamicro.com>
-Message-ID: <20220104101323.127564-3-apatel@ventanamicro.com>
+Message-ID: <20220104101323.127564-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We can have multiple FDT irqchip drivers to be probed when a RISC-V
-system has different types of interrupt controller in a hierarchy.
-
-This will be certainely the case when a RISC-V system has both
-RISC-V AIA IMSIC and RISC-V AIA APLIC implemented.
-
-We extend simple FDT irqchip framework to allow multiple FDT
-irqchip drivers to be used for same RISC-V platform.
+We introduce nascent_init() platform callback which will allow
+platforms to do very early initialization of platform specific
+per-HART CSRs and per-HART devices.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- lib/utils/irqchip/fdt_irqchip.c | 37 ++++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ include/sbi/sbi_platform.h | 17 +++++++++++++++++
+ lib/sbi/sbi_init.c         |  8 ++++++++
+ 2 files changed, 25 insertions(+)
 
-diff --git a/lib/utils/irqchip/fdt_irqchip.c b/lib/utils/irqchip/fdt_irqchip.c
-index 8dda661..bf6969a 100644
---- a/lib/utils/irqchip/fdt_irqchip.c
-+++ b/lib/utils/irqchip/fdt_irqchip.c
-@@ -18,23 +18,40 @@ static struct fdt_irqchip *irqchip_drivers[] = {
- 	&fdt_irqchip_plic
- };
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 4d192f2..e097785 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -64,6 +64,9 @@ enum sbi_platform_features {
  
--static struct fdt_irqchip *current_driver = NULL;
-+#define FDT_IRQCHIP_MAX_DRIVERS	8
+ /** Platform functions */
+ struct sbi_platform_operations {
++	/* Platform nascent initialization */
++	int (*nascent_init)(void);
 +
-+static struct fdt_irqchip *current_drivers[FDT_IRQCHIP_MAX_DRIVERS] = {0};
-+static int current_drivers_count;
- 
- void fdt_irqchip_exit(void)
- {
--	if (current_driver && current_driver->exit)
--		current_driver->exit();
-+	int i;
-+
-+	for (i = 0; i < current_drivers_count; i++) {
-+		if (!current_drivers[i] || !current_drivers[i]->exit)
-+			continue;
-+		current_drivers[i]->exit();
-+	}
+ 	/** Platform early initialization */
+ 	int (*early_init)(bool cold_boot);
+ 	/** Platform final initialization */
+@@ -299,6 +302,20 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
+ 	return FALSE;
  }
  
- static int fdt_irqchip_warm_init(void)
- {
--	if (current_driver && current_driver->warm_init)
--		return current_driver->warm_init();
-+	int i, rc;
++/**
++ * Nascent (very early) initialization for current HART
++ *
++ * @param plat pointer to struct sbi_platform
++ *
++ * @return 0 on success and negative error code on failure
++ */
++static inline int sbi_platform_nascent_init(const struct sbi_platform *plat)
++{
++	if (plat && sbi_platform_ops(plat)->nascent_init)
++		return sbi_platform_ops(plat)->nascent_init();
++	return 0;
++}
 +
-+	for (i = 0; i < current_drivers_count; i++) {
-+		if (!current_drivers[i] || !current_drivers[i]->warm_init)
-+			continue;
-+		rc = current_drivers[i]->warm_init();
-+		if (rc)
-+			return rc;
-+	}
+ /**
+  * Early initialization for current HART
+  *
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 83043c5..27d03a7 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -494,6 +494,14 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+ 	if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
+ 		coldboot = TRUE;
+ 
++	/*
++	 * Do platform specific nascent (very early) initialization so
++	 * that platform can initialize platform specific per-HART CSRs
++	 * or per-HART devices.
++	 */
++	if (sbi_platform_nascent_init(plat))
++		sbi_hart_hang();
 +
- 	return 0;
- }
- 
- static int fdt_irqchip_cold_init(void)
- {
-+	bool drv_added;
- 	int pos, noff, rc;
- 	struct fdt_irqchip *drv;
- 	const struct fdt_match *match;
-@@ -44,6 +61,7 @@ static int fdt_irqchip_cold_init(void)
- 		drv = irqchip_drivers[pos];
- 
- 		noff = -1;
-+		drv_added = false;
- 		while ((noff = fdt_find_match(fdt, noff,
- 					drv->match_table, &match)) >= 0) {
- 			if (drv->cold_init) {
-@@ -53,10 +71,15 @@ static int fdt_irqchip_cold_init(void)
- 				if (rc)
- 					return rc;
- 			}
--			current_driver = drv;
-+
-+			if (drv_added)
-+				continue;
-+
-+			current_drivers[current_drivers_count++] = drv;
-+			drv_added = true;
- 		}
- 
--		if (current_driver)
-+		if (FDT_IRQCHIP_MAX_DRIVERS <= current_drivers_count)
- 			break;
- 	}
- 
+ 	if (coldboot)
+ 		init_coldboot(scratch, hartid);
+ 	else
 -- 
 2.25.1
 
