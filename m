@@ -1,101 +1,106 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  4 Jan 2022 15:43:14 +0530
-Subject: [PATCH 04/13] lib: sbi: Add sbi_trap_set_external_irqfn() API
+Date: Tue,  4 Jan 2022 15:43:15 +0530
+Subject: [PATCH 05/13] lib: utils/irqchip: Allow multiple FDT irqchip drivers
 In-Reply-To: <20220104101323.127564-1-apatel@ventanamicro.com>
 References: <20220104101323.127564-1-apatel@ventanamicro.com>
-Message-ID: <20220104101323.127564-2-apatel@ventanamicro.com>
+Message-ID: <20220104101323.127564-3-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds sbi_trap_set_external_irqfn() API which can be used by
-OpenSBI platform code to set a callback function for external interrupts.
-The RISC-V AIA IMSIC driver will use this API to implement inter-processor
-interrupts on-top-of MSIs.
+We can have multiple FDT irqchip drivers to be probed when a RISC-V
+system has different types of interrupt controller in a hierarchy.
+
+This will be certainely the case when a RISC-V system has both
+RISC-V AIA IMSIC and RISC-V AIA APLIC implemented.
+
+We extend simple FDT irqchip framework to allow multiple FDT
+irqchip drivers to be used for same RISC-V platform.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_trap.h |  2 ++
- lib/sbi/sbi_trap.c     | 29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ lib/utils/irqchip/fdt_irqchip.c | 37 ++++++++++++++++++++++++++-------
+ 1 file changed, 30 insertions(+), 7 deletions(-)
 
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index d205056..4f611fa 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -205,6 +205,8 @@ struct sbi_trap_info {
- int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      struct sbi_trap_info *trap);
+diff --git a/lib/utils/irqchip/fdt_irqchip.c b/lib/utils/irqchip/fdt_irqchip.c
+index 8dda661..bf6969a 100644
+--- a/lib/utils/irqchip/fdt_irqchip.c
++++ b/lib/utils/irqchip/fdt_irqchip.c
+@@ -18,23 +18,40 @@ static struct fdt_irqchip *irqchip_drivers[] = {
+ 	&fdt_irqchip_plic
+ };
  
-+void sbi_trap_set_external_irqfn(int (*fn)(struct sbi_trap_regs *regs));
+-static struct fdt_irqchip *current_driver = NULL;
++#define FDT_IRQCHIP_MAX_DRIVERS	8
 +
- struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
++static struct fdt_irqchip *current_drivers[FDT_IRQCHIP_MAX_DRIVERS] = {0};
++static int current_drivers_count;
  
- void __noreturn sbi_trap_exit(const struct sbi_trap_regs *regs);
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index bc8961f..faab90a 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -195,6 +195,27 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+ void fdt_irqchip_exit(void)
+ {
+-	if (current_driver && current_driver->exit)
+-		current_driver->exit();
++	int i;
++
++	for (i = 0; i < current_drivers_count; i++) {
++		if (!current_drivers[i] || !current_drivers[i]->exit)
++			continue;
++		current_drivers[i]->exit();
++	}
+ }
+ 
+ static int fdt_irqchip_warm_init(void)
+ {
+-	if (current_driver && current_driver->warm_init)
+-		return current_driver->warm_init();
++	int i, rc;
++
++	for (i = 0; i < current_drivers_count; i++) {
++		if (!current_drivers[i] || !current_drivers[i]->warm_init)
++			continue;
++		rc = current_drivers[i]->warm_init();
++		if (rc)
++			return rc;
++	}
++
  	return 0;
  }
  
-+static int default_irqfn(struct sbi_trap_regs *regs)
-+{
-+	return SBI_ENODEV;
-+}
-+
-+static int (*ext_irqfn)(struct sbi_trap_regs *regs) = default_irqfn;
-+
-+/**
-+ * Set external irq handler function
-+ *
-+ * This function is called by OpenSBI platform code to set a handler for
-+ * external interrupts
-+ *
-+ * @param fn function pointer for handling external irqs
-+ */
-+void sbi_trap_set_external_irqfn(int (*fn)(struct sbi_trap_regs *regs))
-+{
-+	if (fn)
-+		ext_irqfn = fn;
-+}
-+
- static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+ static int fdt_irqchip_cold_init(void)
  {
- 	mcause &= ~(1UL << (__riscv_xlen - 1));
-@@ -205,6 +226,8 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
- 	case IRQ_M_SOFT:
- 		sbi_ipi_process();
- 		break;
-+	case IRQ_M_EXT:
-+		return ext_irqfn(regs);
- 	default:
- 		return SBI_ENOENT;
- 	};
-@@ -214,6 +237,7 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
++	bool drv_added;
+ 	int pos, noff, rc;
+ 	struct fdt_irqchip *drv;
+ 	const struct fdt_match *match;
+@@ -44,6 +61,7 @@ static int fdt_irqchip_cold_init(void)
+ 		drv = irqchip_drivers[pos];
  
- static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
- {
-+	int rc;
- 	unsigned long mtopi;
- 
- 	while ((mtopi = csr_read(CSR_MTOPI))) {
-@@ -225,6 +249,11 @@ static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
- 		case IRQ_M_SOFT:
- 			sbi_ipi_process();
- 			break;
-+		case IRQ_M_EXT:
-+			rc = ext_irqfn(regs);
-+			if (rc)
-+				return rc;
-+			break;
- 		default:
- 			return SBI_ENOENT;
+ 		noff = -1;
++		drv_added = false;
+ 		while ((noff = fdt_find_match(fdt, noff,
+ 					drv->match_table, &match)) >= 0) {
+ 			if (drv->cold_init) {
+@@ -53,10 +71,15 @@ static int fdt_irqchip_cold_init(void)
+ 				if (rc)
+ 					return rc;
+ 			}
+-			current_driver = drv;
++
++			if (drv_added)
++				continue;
++
++			current_drivers[current_drivers_count++] = drv;
++			drv_added = true;
  		}
+ 
+-		if (current_driver)
++		if (FDT_IRQCHIP_MAX_DRIVERS <= current_drivers_count)
+ 			break;
+ 	}
+ 
 -- 
 2.25.1
 
