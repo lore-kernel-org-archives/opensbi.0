@@ -1,359 +1,114 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  4 Jan 2022 15:43:19 +0530
-Subject: [PATCH 09/13] lib: utils/irqchip: Add FDT based driver for IMSIC
+Date: Tue,  4 Jan 2022 15:43:20 +0530
+Subject: [PATCH 10/13] lib: utils: Disable appropriate IMSIC DT nodes in
+ fdt_fixups()
 In-Reply-To: <20220104101323.127564-1-apatel@ventanamicro.com>
 References: <20220104101323.127564-1-apatel@ventanamicro.com>
-Message-ID: <20220104101323.127564-7-apatel@ventanamicro.com>
+Message-ID: <20220104101323.127564-8-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add simple FDT irqchip driver for IMSIC so that generic platform
-(and other FDT based platforms) can utilize common IMIC library.
+We should disable IMSIC DT nodes in fdt_fixups() which are not
+accessible to the next booting stage based on currently assigned
+domain.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi_utils/fdt/fdt_helper.h    |   6 ++
- lib/utils/fdt/fdt_helper.c            | 103 +++++++++++++++++++++++++
- lib/utils/irqchip/fdt_irqchip.c       |   2 +
- lib/utils/irqchip/fdt_irqchip_imsic.c | 106 ++++++++++++++++++++++++++
- lib/utils/irqchip/objects.mk          |   1 +
- platform/generic/platform.c           |  12 +++
- 6 files changed, 230 insertions(+)
- create mode 100644 lib/utils/irqchip/fdt_irqchip_imsic.c
+ include/sbi_utils/fdt/fdt_fixup.h | 17 ++++++++++++++--
+ lib/utils/fdt/fdt_fixup.c         | 32 +++++++++++++++++++++++++++++--
+ 2 files changed, 45 insertions(+), 4 deletions(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 24fee7a..4c8d29e 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -68,6 +68,12 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
- int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
- 		       const char *compatible);
+diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
+index c38e5d9..77575bb 100644
+--- a/include/sbi_utils/fdt/fdt_fixup.h
++++ b/include/sbi_utils/fdt/fdt_fixup.h
+@@ -21,6 +21,18 @@
+  */
+ void fdt_cpu_fixup(void *fdt);
  
-+struct imsic_data;
++/**
++ * Fix up the IMSIC nodes in the device tree
++ *
++ * This routine disables IMSIC nodes which are not accessible to the next
++ * booting stage based on currently assigned domain.
++ *
++ * It is recommended that platform codes call this helper in their final_init()
++ *
++ * @param fdt: device tree blob
++ */
++void fdt_imsic_fixup(void *fdt);
 +
-+bool fdt_check_imsic_mlevel(void *fdt);
-+
-+int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic);
-+
- struct plic_data;
- 
- int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic);
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 5bf4021..e2782b6 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/irqchip/imsic.h>
- #include <sbi_utils/irqchip/plic.h>
- 
- #define DEFAULT_UART_FREQ		0
-@@ -465,6 +466,108 @@ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
- 	return fdt_parse_uart8250_node(fdt, nodeoffset, uart);
+ /**
+  * Fix up the PLIC node in the device tree
+  *
+@@ -64,8 +76,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt);
+  * General device tree fix-up
+  *
+  * This routine do all required device tree fix-ups for a typical platform.
+- * It fixes up the PLIC node and the reserved memory node in the device tree
+- * by calling the corresponding helper routines to accomplish the task.
++ * It fixes up the PLIC node, IMSIC nodes, and the reserved memory node in
++ * the device tree by calling the corresponding helper routines to accomplish
++ * the task.
+  *
+  * It is recommended that platform codes call this helper in their final_init()
+  *
+diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+index ac01ba3..c2460b8 100644
+--- a/lib/utils/fdt/fdt_fixup.c
++++ b/lib/utils/fdt/fdt_fixup.c
+@@ -52,6 +52,34 @@ void fdt_cpu_fixup(void *fdt)
+ 	}
  }
  
-+bool fdt_check_imsic_mlevel(void *fdt)
-+{
-+	const fdt32_t *val;
-+	int i, len, noff = 0;
-+
-+	if (!fdt)
-+		return false;
-+
-+	while ((noff = fdt_node_offset_by_compatible(fdt, noff,
-+						     "riscv,imsics")) >= 0) {
-+		val = fdt_getprop(fdt, noff, "interrupts-extended", &len);
-+		if (val && len > sizeof(fdt32_t)) {
-+			len = len / sizeof(fdt32_t);
-+			for (i = 0; i < len; i += 2) {
-+				if (fdt32_to_cpu(val[i + 1]) == IRQ_M_EXT)
-+					return true;
-+			}
-+		}
-+	}
-+
-+	return false;
-+}
-+
-+int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic)
-+{
-+	const fdt32_t *val;
-+	struct imsic_regs *regs;
-+	uint64_t reg_addr, reg_size;
-+	int i, rc, len, nr_parent_irqs;
-+
-+	if (nodeoff < 0 || !imsic || !fdt)
-+		return SBI_ENODEV;
-+
-+	imsic->targets_mmode = false;
-+	val = fdt_getprop(fdt, nodeoff, "interrupts-extended", &len);
-+	if (val && len > sizeof(fdt32_t)) {
-+		len = len / sizeof(fdt32_t);
-+		nr_parent_irqs = len / 2;
-+		for (i = 0; i < len; i += 2) {
-+			if (fdt32_to_cpu(val[i + 1]) == IRQ_M_EXT) {
-+				imsic->targets_mmode = true;
-+				break;
-+			}
-+		}
-+	} else
-+		return SBI_EINVAL;
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,guest-index-bits", &len);
-+	if (val && len > 0)
-+		imsic->guest_index_bits = fdt32_to_cpu(*val);
-+	else
-+		imsic->guest_index_bits = 0;
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,hart-index-bits", &len);
-+	if (val && len > 0) {
-+		imsic->hart_index_bits = fdt32_to_cpu(*val);
-+	} else {
-+		imsic->hart_index_bits = __fls(nr_parent_irqs);
-+		if ((1UL << imsic->hart_index_bits) < nr_parent_irqs)
-+			imsic->hart_index_bits++;
-+	}
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,group-index-bits", &len);
-+	if (val && len > 0)
-+		imsic->group_index_bits = fdt32_to_cpu(*val);
-+	else
-+		imsic->group_index_bits = 0;
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,group-index-shift", &len);
-+	if (val && len > 0)
-+		imsic->group_index_shift = fdt32_to_cpu(*val);
-+	else
-+		imsic->group_index_shift = 2 * IMSIC_MMIO_PAGE_SHIFT;
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,num-ids", &len);
-+	if (val && len > 0)
-+		imsic->num_ids = fdt32_to_cpu(*val);
-+	else
-+		return SBI_EINVAL;
-+
-+	for (i = 0; i < IMSIC_MAX_REGS; i++) {
-+		regs = &imsic->regs[i];
-+		regs->addr = 0;
-+		regs->size = 0;
-+	}
-+
-+	for (i = 0; i < (IMSIC_MAX_REGS - 1); i++) {
-+		regs = &imsic->regs[i];
-+
-+		rc = fdt_get_node_addr_size(fdt, nodeoff, i,
-+					    &reg_addr, &reg_size);
-+		if (rc < 0 || !reg_addr || !reg_size)
-+			break;
-+		regs->addr = reg_addr;
-+		regs->size = reg_size;
-+	};
-+	if (!imsic->regs[0].size)
-+		return SBI_EINVAL;
-+
-+	return 0;
-+}
-+
- int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic)
- {
- 	int len, rc;
-diff --git a/lib/utils/irqchip/fdt_irqchip.c b/lib/utils/irqchip/fdt_irqchip.c
-index bf6969a..cf64a2e 100644
---- a/lib/utils/irqchip/fdt_irqchip.c
-+++ b/lib/utils/irqchip/fdt_irqchip.c
-@@ -12,9 +12,11 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/irqchip/fdt_irqchip.h>
- 
-+extern struct fdt_irqchip fdt_irqchip_imsic;
- extern struct fdt_irqchip fdt_irqchip_plic;
- 
- static struct fdt_irqchip *irqchip_drivers[] = {
-+	&fdt_irqchip_imsic,
- 	&fdt_irqchip_plic
- };
- 
-diff --git a/lib/utils/irqchip/fdt_irqchip_imsic.c b/lib/utils/irqchip/fdt_irqchip_imsic.c
-new file mode 100644
-index 0000000..b6962be
---- /dev/null
-+++ b/lib/utils/irqchip/fdt_irqchip_imsic.c
-@@ -0,0 +1,106 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2021 Western Digital Corporation or its affiliates.
-+ * Copyright (c) 2022 Ventana Micro Systems Inc.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/riscv_asm.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hartmask.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/irqchip/fdt_irqchip.h>
-+#include <sbi_utils/irqchip/imsic.h>
-+
-+#define IMSIC_MAX_NR			16
-+
-+static unsigned long imsic_count = 0;
-+static struct imsic_data imsic[IMSIC_MAX_NR];
-+
-+static int irqchip_imsic_update_hartid_table(void *fdt, int nodeoff,
-+					     struct imsic_data *id)
-+{
-+	const fdt32_t *val;
-+	u32 phandle, hwirq, hartid;
-+	int i, err, count, cpu_offset, cpu_intc_offset;
-+
-+	val = fdt_getprop(fdt, nodeoff, "interrupts-extended", &count);
-+	if (!val || count < sizeof(fdt32_t))
-+		return SBI_EINVAL;
-+	count = count / sizeof(fdt32_t);
-+
-+	for (i = 0; i < count; i += 2) {
-+		phandle = fdt32_to_cpu(val[i]);
-+		hwirq = fdt32_to_cpu(val[i + 1]);
-+
-+		cpu_intc_offset = fdt_node_offset_by_phandle(fdt, phandle);
-+		if (cpu_intc_offset < 0)
-+			continue;
-+
-+		cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-+		if (cpu_intc_offset < 0)
-+			continue;
-+
-+		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+		if (err)
-+			return SBI_EINVAL;
-+		if (SBI_HARTMASK_MAX_BITS <= hartid)
-+			return SBI_EINVAL;
-+
-+		switch (hwirq) {
-+		case IRQ_M_EXT:
-+			err = imsic_map_hartid_to_data(hartid, id, i / 2);
-+			if (err)
-+				return err;
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int irqchip_imsic_cold_init(void *fdt, int nodeoff,
-+				    const struct fdt_match *match)
++static void fdt_domain_based_fixup_one(void *fdt, int nodeoff)
 +{
 +	int rc;
-+	struct imsic_data *id;
++	uint64_t reg_addr, reg_size;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
 +
-+	if (IMSIC_MAX_NR <= imsic_count)
-+		return SBI_ENOSPC;
-+	id = &imsic[imsic_count];
++	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
++	if (rc < 0 || !reg_addr || !reg_size)
++		return;
 +
-+	rc = fdt_parse_imsic_node(fdt, nodeoff, id);
-+	if (rc)
-+		return rc;
-+	if (!id->targets_mmode)
-+		return 0;
-+
-+	rc = irqchip_imsic_update_hartid_table(fdt, nodeoff, id);
-+	if (rc)
-+		return rc;
-+
-+	rc = imsic_cold_irqchip_init(id);
-+	if (rc)
-+		return rc;
-+
-+	imsic_count++;
-+
-+	return 0;
++	if (!sbi_domain_check_addr(dom, reg_addr, dom->next_mode,
++				    SBI_DOMAIN_READ | SBI_DOMAIN_WRITE)) {
++		rc = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
++		if (rc < 0)
++			return;
++		fdt_setprop_string(fdt, nodeoff, "status", "disabled");
++	}
 +}
 +
-+static const struct fdt_match irqchip_imsic_match[] = {
-+	{ .compatible = "riscv,imsics" },
-+	{ },
-+};
-+
-+struct fdt_irqchip fdt_irqchip_imsic = {
-+	.match_table = irqchip_imsic_match,
-+	.cold_init = irqchip_imsic_cold_init,
-+	.warm_init = imsic_warm_irqchip_init,
-+};
-diff --git a/lib/utils/irqchip/objects.mk b/lib/utils/irqchip/objects.mk
-index 76a3c94..ae6f255 100644
---- a/lib/utils/irqchip/objects.mk
-+++ b/lib/utils/irqchip/objects.mk
-@@ -8,6 +8,7 @@
- #
- 
- libsbiutils-objs-y += irqchip/fdt_irqchip.o
-+libsbiutils-objs-y += irqchip/fdt_irqchip_imsic.o
- libsbiutils-objs-y += irqchip/fdt_irqchip_plic.o
- libsbiutils-objs-y += irqchip/imsic.o
- libsbiutils-objs-y += irqchip/plic.o
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index bc6e761..8a4fb70 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -18,6 +18,7 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/fdt/fdt_pmu.h>
- #include <sbi_utils/irqchip/fdt_irqchip.h>
-+#include <sbi_utils/irqchip/imsic.h>
- #include <sbi_utils/serial/fdt_serial.h>
- #include <sbi_utils/timer/fdt_timer.h>
- #include <sbi_utils/ipi/fdt_ipi.h>
-@@ -56,6 +57,7 @@ static void fw_platform_lookup_special(void *fdt, int root_offset)
- }
- 
- extern struct sbi_platform platform;
-+static bool platform_has_mlevel_imsic = false;
- static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
- 
- /*
-@@ -110,6 +112,8 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 
- 	platform.hart_count = hart_count;
- 
-+	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
-+
- 	/* Return original FDT pointer */
- 	return arg1;
- 
-@@ -118,6 +122,13 @@ fail:
- 		wfi();
- }
- 
-+static int generic_nascent_init(void)
++void fdt_imsic_fixup(void *fdt)
 +{
-+	if (platform_has_mlevel_imsic)
-+		imsic_local_irqchip_init();
-+	return 0;
++	int noff = 0;
++
++	while ((noff = fdt_node_offset_by_compatible(fdt, noff,
++						     "riscv,imsics")) >= 0)
++		fdt_domain_based_fixup_one(fdt, noff);
 +}
 +
- static int generic_early_init(bool cold_boot)
+ void fdt_plic_fixup(void *fdt)
  {
- 	if (!generic_plat || !generic_plat->early_init)
-@@ -210,6 +221,7 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
- }
+ 	u32 *cells;
+@@ -261,10 +289,10 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
  
- const struct sbi_platform_operations platform_ops = {
-+	.nascent_init		= generic_nascent_init,
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
- 	.early_exit		= generic_early_exit,
+ void fdt_fixups(void *fdt)
+ {
++	fdt_imsic_fixup(fdt);
++
+ 	fdt_plic_fixup(fdt);
+ 
+ 	fdt_reserved_memory_fixup(fdt);
+ 	fdt_pmu_fixup(fdt);
+ }
+-
+-
 -- 
 2.25.1
 
