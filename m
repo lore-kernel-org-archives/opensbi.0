@@ -1,51 +1,75 @@
 From: Atish Patra <atishp@rivosinc.com>
-Date: Fri,  7 Jan 2022 10:54:07 -0800
-Subject: [PATCH v1 1/3] lib: sbi: Map only the counters enabled in hardware
+Date: Fri,  7 Jan 2022 10:54:08 -0800
+Subject: [PATCH v1 2/3] lib: sbi: Disable interrupt during config matching
 In-Reply-To: <20220107185409.1172221-1-atishp@rivosinc.com>
 References: <20220107185409.1172221-1-atishp@rivosinc.com>
-Message-ID: <20220107185409.1172221-2-atishp@rivosinc.com>
+Message-ID: <20220107185409.1172221-3-atishp@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The counter mapping in DT may be incorrect if all the counters specified
-in the mapping are actually not physically present in the hardware.
-OpenSBI should only keep a mapping of counters enabled in hardware and
-defined in DT. This assume that all the programmable hpmcounters are
-consecutive as it doesn't make sense to build a system with sparse
-hpmcounters.
+PMU overflow interrupt should be disabled durinig initial configuration of
+counters. They should be enabled while starting counters.
+
+Fixes: 730f01bb41a6 ("lib: sbi: Support sscofpmf extension in OpenSBI")
 
 Signed-off-by: Atish Patra <atishp@rivosinc.com>
 ---
- lib/sbi/sbi_pmu.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/sbi/riscv_encoding.h |  3 ++-
+ lib/sbi/sbi_pmu.c            | 10 +++++++---
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 8a29f8e05c9a..ac8590d72e4f 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -181,13 +181,14 @@
+ #define MHPMEVENT_VSINH			(_UL(1) << 59)
+ #define MHPMEVENT_VUINH			(_UL(1) << 58)
+ #else
+-#define MHPMEVENTH_OF			(_UL(1) << 31)
++#define MHPMEVENTH_OF			(_ULL(1) << 31)
+ #define MHPMEVENTH_MINH			(_ULL(1) << 30)
+ #define MHPMEVENTH_SINH			(_ULL(1) << 29)
+ #define MHPMEVENTH_UINH			(_ULL(1) << 28)
+ #define MHPMEVENTH_VSINH		(_ULL(1) << 27)
+ #define MHPMEVENTH_VUINH		(_ULL(1) << 26)
+ 
++#define MHPMEVENT_OF			(MHPMEVENTH_OF << 32)
+ #define MHPMEVENT_MINH			(MHPMEVENTH_MINH << 32)
+ #define MHPMEVENT_SINH			(MHPMEVENTH_SINH << 32)
+ #define MHPMEVENT_UINH			(MHPMEVENTH_UINH << 32)
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 5b845f835e79..376afec13491 100644
+index 376afec13491..a209c8e266d6 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -181,6 +181,9 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
- 	int i = 0;
- 	bool is_overlap;
- 	struct sbi_pmu_hw_event *event = &hw_event_map[num_hw_events];
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	int hw_ctr_avail = sbi_hart_mhpm_count(scratch);
-+	uint32_t ctr_avail_mask = ((uint32_t)(~0) >> (32 - (hw_ctr_avail + 3)));
+@@ -256,7 +256,7 @@ static int pmu_ctr_enable_irq_hw(int ctr_idx)
  
- 	/* The first two counters are reserved by priv spec */
- 	if (eidx_start > SBI_PMU_HW_INSTRUCTIONS && (cmap & SBI_PMU_FIXED_CTR_MASK))
-@@ -208,7 +211,8 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
- 	}
+ #if __riscv_xlen == 32
+ 	mhpmevent_csr = CSR_MHPMEVENT3H  + ctr_idx - 3;
+-	of_mask = ~MHPMEVENTH_OF;
++	of_mask = (uint32_t)~MHPMEVENTH_OF;
+ #else
+ 	mhpmevent_csr = CSR_MHPMEVENT3 + ctr_idx - 3;
+ 	of_mask = ~MHPMEVENT_OF;
+@@ -470,9 +470,13 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 	if (!mhpmevent_val || ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+ 		return SBI_EFAIL;
  
- 	event->select_mask = select_mask;
--	event->counters = cmap;
-+	/* Map the only the counters that are available in the hardware */
-+	event->counters = cmap & ctr_avail_mask;
- 	event->select = select;
- 	num_hw_events++;
+-	/* Always clear the OVF bit and inhibit countin of events in M-mode */
++	/**
++	 * Always set the OVF bit(disable interrupts) and inhibit counting of
++	 * events in M-mode. The OVF bit should be enabled during the start call.
++	 */
+ 	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
+-		mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
++		mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) |
++				 MHPMEVENT_MINH | MHPMEVENT_OF;
  
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+ 	pmu_update_inhibit_flags(flags, &mhpmevent_val);
 -- 
 2.30.2
 
