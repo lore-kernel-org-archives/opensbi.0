@@ -1,259 +1,125 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 11 Jan 2022 18:19:10 +0530
-Subject: [PATCH v2 2/2] lib: utils/sys: Extend HTIF library to allow
- custom base address
-In-Reply-To: <CAOnJCU+tHY0QJ7uJ=X+vej2J6MyphApRykxwik1J=EhAG9a_kg@mail.gmail.com>
-References: <20220109152036.28666-1-apatel@ventanamicro.com>
- <20220109152036.28666-3-apatel@ventanamicro.com>
- <CAOnJCU+tHY0QJ7uJ=X+vej2J6MyphApRykxwik1J=EhAG9a_kg@mail.gmail.com>
-Message-ID: <CAAhSdy1oCdG9yUO6LFD4jqdNGZe3NdPP3Wz=OwRqss9OxNRU3g@mail.gmail.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Tue, 11 Jan 2022 17:25:10 +0300
+Subject: [PATCH v1 2/3] lib: sbi: Disable interrupt during config matching
+In-Reply-To: <CAOnJCUJE+QS=27bK88JO0EzE9zkGf6FZRU3nmPo+CB6oPd+xrA@mail.gmail.com>
+References: <20220107185409.1172221-1-atishp@rivosinc.com>
+ <20220107185409.1172221-3-atishp@rivosinc.com>
+ <20220108112404.7581b81b@redslave.neermore.group>
+ <CAOnJCUL86HTDS7k9WYMu50orLGZ6qmd-RXv3MpcRJgkiHin9_w@mail.gmail.com>
+ <20220110085646.5a9339c5@redslave.neermore.group>
+ <CAOnJCUJE+QS=27bK88JO0EzE9zkGf6FZRU3nmPo+CB6oPd+xrA@mail.gmail.com>
+Message-ID: <20220111172510.357b84d2@redslave.neermore.group>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 11, 2022 at 4:01 AM Atish Patra <atishp@atishpatra.org> wrote:
->
-> On Sun, Jan 9, 2022 at 7:20 AM Anup Patel <apatel@ventanamicro.com> wrote:
-> >
-> > Some of RISC-V emulators provide HTIF at fixed base address so for
-> > such emulators users have to hard-code HTIF base address in the
-> > linker script.
-> >
-> > To address this problem, we let users optionally provide fixed HTIF
-> > base address via platform support (or device tree).
-> >
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > Reviewed-by: Dong Du <Dd_nirvana@sjtu.edu.cn>
-> > ---
-> >  include/sbi_utils/sys/htif.h       |  8 ++-
-> >  lib/utils/reset/fdt_reset_htif.c   | 12 ++++-
-> >  lib/utils/serial/fdt_serial_htif.c | 12 ++++-
-> >  lib/utils/sys/htif.c               | 85 ++++++++++++++++++++++++++----
-> >  4 files changed, 103 insertions(+), 14 deletions(-)
-> >
-> > diff --git a/include/sbi_utils/sys/htif.h b/include/sbi_utils/sys/htif.h
-> > index 9cc9634..78784cf 100644
-> > --- a/include/sbi_utils/sys/htif.h
-> > +++ b/include/sbi_utils/sys/htif.h
-> > @@ -10,8 +10,12 @@
-> >
-> >  #include <sbi/sbi_types.h>
-> >
-> > -int htif_serial_init(void);
-> > +int htif_serial_init(bool custom_addr,
-> > +                    unsigned long custom_fromhost_addr,
-> > +                    unsigned long custom_tohost_addr);
-> >
-> > -int htif_system_reset_init(void);
-> > +int htif_system_reset_init(bool custom_addr,
-> > +                          unsigned long custom_fromhost_addr,
-> > +                          unsigned long custom_tohost_addr);
-> >
-> >  #endif
-> > diff --git a/lib/utils/reset/fdt_reset_htif.c b/lib/utils/reset/fdt_reset_htif.c
-> > index dd08660..2cc52dd 100644
-> > --- a/lib/utils/reset/fdt_reset_htif.c
-> > +++ b/lib/utils/reset/fdt_reset_htif.c
-> > @@ -14,7 +14,17 @@
-> >  static int htif_reset_init(void *fdt, int nodeoff,
-> >                            const struct fdt_match *match)
-> >  {
-> > -       return htif_system_reset_init();
-> > +       bool custom = false;
-> > +       uint64_t fromhost_addr = 0, tohost_addr = 0;
-> > +
-> > +       if (!fdt_get_node_addr_size(fdt, nodeoff, 0, &fromhost_addr, NULL)) {
-> > +               custom = true;
-> > +               tohost_addr = fromhost_addr + sizeof(uint64_t);
-> > +       }
-> > +
-> > +       fdt_get_node_addr_size(fdt, nodeoff, 1, &tohost_addr, NULL);
-> > +
-> > +       return htif_system_reset_init(custom, fromhost_addr, tohost_addr);
-> >  }
-> >
-> >  static const struct fdt_match htif_reset_match[] = {
-> > diff --git a/lib/utils/serial/fdt_serial_htif.c b/lib/utils/serial/fdt_serial_htif.c
-> > index fae55b8..61f66d6 100644
-> > --- a/lib/utils/serial/fdt_serial_htif.c
-> > +++ b/lib/utils/serial/fdt_serial_htif.c
-> > @@ -19,7 +19,17 @@ static const struct fdt_match serial_htif_match[] = {
-> >  static int serial_htif_init(void *fdt, int nodeoff,
-> >                             const struct fdt_match *match)
-> >  {
-> > -       return htif_serial_init();
-> > +       bool custom = false;
-> > +       uint64_t fromhost_addr = 0, tohost_addr = 0;
-> > +
-> > +       if (!fdt_get_node_addr_size(fdt, nodeoff, 0, &fromhost_addr, NULL)) {
-> > +               custom = true;
-> > +               tohost_addr = fromhost_addr + sizeof(uint64_t);
-> > +       }
-> > +
-> > +       fdt_get_node_addr_size(fdt, nodeoff, 1, &tohost_addr, NULL);
-> > +
-> > +       return htif_serial_init(custom, fromhost_addr, tohost_addr);
-> >  }
-> >
-> >  struct fdt_serial fdt_serial_htif = {
-> > diff --git a/lib/utils/sys/htif.c b/lib/utils/sys/htif.c
-> > index 7c69c7f..d7cbeaf 100644
-> > --- a/lib/utils/sys/htif.c
-> > +++ b/lib/utils/sys/htif.c
-> > @@ -7,6 +7,7 @@
-> >
-> >  #include <sbi/riscv_locks.h>
-> >  #include <sbi/sbi_console.h>
-> > +#include <sbi/sbi_error.h>
-> >  #include <sbi/sbi_system.h>
-> >  #include <sbi_utils/sys/htif.h>
-> >
-> > @@ -47,15 +48,46 @@
-> >
-> >  volatile uint64_t tohost __attribute__((section(".htif")));
-> >  volatile uint64_t fromhost __attribute__((section(".htif")));
-> > +
-> > +static uint64_t *htif_fromhost = NULL;
-> > +static uint64_t *htif_tohost = NULL;
-> > +static bool htif_custom = false;
-> > +
-> >  static int htif_console_buf;
-> >  static spinlock_t htif_lock = SPIN_LOCK_INITIALIZER;
-> >
-> > +static inline uint64_t __read_tohost(void)
-> > +{
-> > +       return (htif_custom) ? *htif_tohost : tohost;
-> > +}
-> > +
-> > +static inline void __write_tohost(uint64_t val)
-> > +{
-> > +       if (htif_custom)
-> > +               *htif_tohost = val;
-> > +       else
-> > +               tohost = val;
-> > +}
-> > +
-> > +static inline uint64_t __read_fromhost(void)
-> > +{
-> > +       return (htif_custom) ? *htif_fromhost : fromhost;
-> > +}
-> > +
-> > +static inline void __write_fromhost(uint64_t val)
-> > +{
-> > +       if (htif_custom)
-> > +               *htif_fromhost = val;
-> > +       else
-> > +               fromhost = val;
-> > +}
-> > +
-> >  static void __check_fromhost()
-> >  {
-> > -       uint64_t fh = fromhost;
-> > +       uint64_t fh = __read_fromhost();
-> >         if (!fh)
-> >                 return;
-> > -       fromhost = 0;
-> > +       __write_fromhost(0);
-> >
-> >         /* this should be from the console */
-> >         if (FROMHOST_DEV(fh) != HTIF_DEV_CONSOLE)
-> > @@ -73,9 +105,26 @@ static void __check_fromhost()
-> >
-> >  static void __set_tohost(uint64_t dev, uint64_t cmd, uint64_t data)
-> >  {
-> > -       while (tohost)
-> > +       while (__read_tohost())
-> >                 __check_fromhost();
-> > -       tohost = TOHOST_CMD(dev, cmd, data);
-> > +       __write_tohost(TOHOST_CMD(dev, cmd, data));
-> > +}
-> > +
-> > +static int set_custom_addr(bool custom_addr,
-> > +                          unsigned long custom_fromhost_addr,
-> > +                          unsigned long custom_tohost_addr)
-> > +{
-> > +       if (custom_addr) {
-> > +               if (htif_custom &&
-> > +                   ((custom_fromhost_addr != (unsigned long)htif_fromhost) ||
-> > +                    (custom_tohost_addr != (unsigned long)htif_tohost)))
-> > +                       return SBI_EINVAL;
-> > +               htif_fromhost = (uint64_t *)custom_fromhost_addr;
-> > +               htif_tohost = (uint64_t *)custom_tohost_addr;
-> > +               htif_custom = true;
-> > +       }
-> > +
-> > +       return 0;
-> >  }
-> >
-> >  #if __riscv_xlen == 32
-> > @@ -148,10 +197,18 @@ static struct sbi_console_device htif_console = {
-> >         .console_getc = htif_getc
-> >  };
-> >
-> > -int htif_serial_init(void)
-> > +int htif_serial_init(bool custom_addr,
-> > +                    unsigned long custom_fromhost_addr,
-> > +                    unsigned long custom_tohost_addr)
-> >  {
-> > -       sbi_console_set_device(&htif_console);
-> > +       int rc;
-> > +
-> > +       rc = set_custom_addr(custom_addr, custom_fromhost_addr,
-> > +                            custom_tohost_addr);
-> > +       if (rc)
-> > +               return rc;
-> >
-> > +       sbi_console_set_device(&htif_console);
-> >         return 0;
-> >  }
-> >
-> > @@ -163,8 +220,8 @@ static int htif_system_reset_check(u32 type, u32 reason)
-> >  static void htif_system_reset(u32 type, u32 reason)
-> >  {
-> >         while (1) {
-> > -               fromhost = 0;
-> > -               tohost = 1;
-> > +               __write_fromhost(0);
-> > +               __write_tohost(1);
-> >         }
-> >  }
-> >
-> > @@ -174,9 +231,17 @@ static struct sbi_system_reset_device htif_reset = {
-> >         .system_reset = htif_system_reset
-> >  };
-> >
-> > -int htif_system_reset_init(void)
-> > +int htif_system_reset_init(bool custom_addr,
-> > +                          unsigned long custom_fromhost_addr,
-> > +                          unsigned long custom_tohost_addr)
-> >  {
-> > -       sbi_system_reset_add_device(&htif_reset);
-> > +       int rc;
-> > +
-> > +       rc = set_custom_addr(custom_addr, custom_fromhost_addr,
-> > +                            custom_tohost_addr);
-> > +       if (rc)
-> > +               return rc;
-> >
-> > +       sbi_system_reset_add_device(&htif_reset);
-> >         return 0;
-> >  }
-> > --
-> > 2.25.1
-> >
->
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+On Mon, 10 Jan 2022 12:25:40 -0800
+Atish Patra <atishp@atishpatra.org> wrote:
 
-Applied this patch to the riscv/opensbi repo.
+> On Sun, Jan 9, 2022 at 9:56 PM Nikita Shubin
+> <nikita.shubin@maquefel.me> wrote:
+> >
+> > Hello Atish!
+> >
+> > On Sun, 9 Jan 2022 17:19:10 -0800
+> > Atish Patra <atishp@atishpatra.org> wrote:
+> >  
+> > > > > +      */
+> > > > >       if (sbi_hart_has_feature(scratch,
+> > > > > SBI_HART_HAS_SSCOFPMF))
+> > > > > -             mhpmevent_val = (mhpmevent_val &
+> > > > > ~MHPMEVENT_SSCOF_MASK) | MHPMEVENT_MINH;
+> > > > > +             mhpmevent_val = (mhpmevent_val &
+> > > > > ~MHPMEVENT_SSCOF_MASK) |
+> > > > > +                              MHPMEVENT_MINH | MHPMEVENT_OF;
+> > > > >  
+> > > >
+> > > > Is there some strong reason to inhibit M-Mode counting here or
+> > > > it is just a workaround until mode filtering support will come
+> > > > up ? 
+> > >
+> > > As a security reason, any perf analysis shouldn't allow inspecting
+> > > the M-mode for hardware counters.
+> > >  
+> >
+> > It looks a bit strange to me just to disable something that we have
+> > and it is working.
+> >  
+> 
+> We have privilege mode filtering working at S/U level because current
+> perf has options for that. However, profiling the highest privilege
+> mode(M-mode in RISC-V) is not an option for current
+> perf tool.
 
-Thanks,
-Anup
+I've already done a patch for this with new exclude_machine option,
+didn't sent it yet cause, it is totally useless without your pmu series
+merged.
 
->
->
-> --
-> Regards,
-> Atish
+> 
+> > May be it's worth considering putting control of such a behavior in
+> > FW_OPTIONS or a compile option ?
+> >
+> > I see strong benefits in being able to profile M-Mode also.
+> >  
+> 
+> Yes but with an user aware of doing that. That's why firmware events
+> are defined in the first place.
+> If we just enable the M-mode profiling by default without user
+> explicitly requesting for it, the profiling data
+> may be inaccurate as well apart from the security concerns.
+
+So inhibiting by default is really some kind of workaround. 
+
+> 
+> I was thinking about enabling M-mode profiling via the following
+> route:
+> 
+> 1. Add a firmware option to perf tool. At first iteration, it will be
+> a RISC-V specific option.
+> 2. If the user explicitly requests for firmware (M-mode in this case),
+> MINH bit should be cleared.
+> Otherwise, it should be enabled.
+> 
+> We should add this feature only after the kernel feature is accepted.
+> I am open to any other suggestions as well.
+
+I thought an opposite way first OpenSBI and PMU v5 accepted then perf
+tools :).
+
+I have something like this already, through i didn't find a good way to
+make it architecture specific.
+
+Okay - i'll fire an RFC then to collect comments, option is not RISC-V
+specific in my version, but harmless for machines without M-Mode.
+
+Than we can work a way to make it secure and available.
+
+> 
+> > > Privilege mode filtering is already supported in Qemu. You can set
+> > > exclude user/kernel
+> > > from perf command line for Qemu specific events (dTLB-load-misses,
+> > > dTLB-store-misses, iTLB-load-misses)
+> > >  
+> >
+> > I see now - didn't study your v5 series carefully enough.
+> >  
+> > > > >
+> > > > >       /* Update the inhibit flags based on inhibit flags
+> > > > > received from supervisor */ pmu_update_inhibit_flags(flags,
+> > > > > &mhpmevent_val);  
+> > > >
+> > > >
+> > > > --
+> > > > opensbi mailing list
+> > > > opensbi at lists.infradead.org
+> > > > http://lists.infradead.org/mailman/listinfo/opensbi  
+> > >
+> > >
+> > >  
+> >  
+> 
+> 
+
 
