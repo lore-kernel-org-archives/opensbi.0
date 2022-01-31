@@ -1,85 +1,63 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 31 Jan 2022 18:23:59 +0530
-Subject: [PATCH] Makefile: fix build with binutils 2.38
-In-Reply-To: <20220128173346.1863727-1-aurelien@aurel32.net>
-References: <20220128173346.1863727-1-aurelien@aurel32.net>
-Message-ID: <CAAhSdy3csfdZVqAVR9FQgrrBRcXHAy0cYMHwuKUiKgwkoqLwxw@mail.gmail.com>
+Date: Mon, 31 Jan 2022 18:26:45 +0530
+Subject: [PATCH v1 1/3] lib: sbi: Map only the counters enabled in hardware
+In-Reply-To: <20220107185409.1172221-2-atishp@rivosinc.com>
+References: <20220107185409.1172221-1-atishp@rivosinc.com>
+ <20220107185409.1172221-2-atishp@rivosinc.com>
+Message-ID: <CAAhSdy2ue2m=czFx=PRnhDo+tU_69Qrq0N5bLXrn5EHrj0VjNw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 28, 2022 at 11:04 PM Aurelien Jarno <aurelien@aurel32.net> wrote:
+On Sat, Jan 8, 2022 at 12:24 AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> From version 2.38, binutils default to ISA spec version 20191213. This
-> means that the csr read/write (csrr*/csrw*) instructions and fence.i
-> instruction has separated from the `I` extension, become two standalone
-> extensions: Zicsr and Zifencei. As the kernel uses those instruction,
-> this causes the following build failure:
+> The counter mapping in DT may be incorrect if all the counters specified
+> in the mapping are actually not physically present in the hardware.
+> OpenSBI should only keep a mapping of counters enabled in hardware and
+> defined in DT. This assume that all the programmable hpmcounters are
+> consecutive as it doesn't make sense to build a system with sparse
+> hpmcounters.
 >
->  CC        lib/sbi/sbi_tlb.o
-> <<BUILDDIR>>/lib/sbi/sbi_tlb.c: Assembler messages:
-> <<BUILDDIR>>/lib/sbi/sbi_tlb.c:190: Error: unrecognized opcode `fence.i'
-> make: *** [Makefile:431: <<BUILDDIR>>/build/lib/sbi/sbi_tlb.o] Error 1
->
-> The fix is to specify those extensions explicitly in -march. However as
-> older binutils version do not support this, we first need to detect
-> that.
->
-> Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-We will have to update docs/platform_requirements.md as well but
-this can be a separate patch.
-
 Regards,
 Anup
 
 > ---
->  Makefile | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_pmu.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 >
-> Changes v1 -> v2 following the review from Bin Men (thanks)!
-> - Fix typos
-> - Use grep to detect missing extensions for consistency with CC_SUPPORT_SAVE_RESTORE
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 5b845f835e79..376afec13491 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -181,6 +181,9 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+>         int i = 0;
+>         bool is_overlap;
+>         struct sbi_pmu_hw_event *event = &hw_event_map[num_hw_events];
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +       int hw_ctr_avail = sbi_hart_mhpm_count(scratch);
+> +       uint32_t ctr_avail_mask = ((uint32_t)(~0) >> (32 - (hw_ctr_avail + 3)));
 >
-> diff --git a/Makefile b/Makefile
-> index 062883e..717dffd 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -153,6 +153,9 @@ OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fP
->  # Check whether the compiler supports -m(no-)save-restore
->  CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
+>         /* The first two counters are reserved by priv spec */
+>         if (eidx_start > SBI_PMU_HW_INSTRUCTIONS && (cmap & SBI_PMU_FIXED_CTR_MASK))
+> @@ -208,7 +211,8 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+>         }
 >
-> +# Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
-> +CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(PLATFORM_RISCV_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
-> +
->  # Build Info:
->  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
->  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
-> @@ -223,7 +226,11 @@ ifndef PLATFORM_RISCV_ABI
->  endif
->  ifndef PLATFORM_RISCV_ISA
->    ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> -    PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
-> +    ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
-> +      PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc_zicsr_zifencei
-> +    else
-> +      PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
-> +    endif
->    else
->      PLATFORM_RISCV_ISA = $(OPENSBI_CC_ISA)
->    endif
-> --
-> 2.34.1
->
+>         event->select_mask = select_mask;
+> -       event->counters = cmap;
+> +       /* Map the only the counters that are available in the hardware */
+> +       event->counters = cmap & ctr_avail_mask;
+>         event->select = select;
+>         num_hw_events++;
 >
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 2.30.2
+>
 
