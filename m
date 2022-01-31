@@ -1,10 +1,11 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 31 Jan 2022 18:26:45 +0530
-Subject: [PATCH v1 1/3] lib: sbi: Map only the counters enabled in hardware
-In-Reply-To: <20220107185409.1172221-2-atishp@rivosinc.com>
+Date: Mon, 31 Jan 2022 18:30:50 +0530
+Subject: [PATCH v1 3/3] lib: sbi: Disable interrupt and inhibit counting
+ in M-mode during init
+In-Reply-To: <20220107185409.1172221-4-atishp@rivosinc.com>
 References: <20220107185409.1172221-1-atishp@rivosinc.com>
- <20220107185409.1172221-2-atishp@rivosinc.com>
-Message-ID: <CAAhSdy2ue2m=czFx=PRnhDo+tU_69Qrq0N5bLXrn5EHrj0VjNw@mail.gmail.com>
+ <20220107185409.1172221-4-atishp@rivosinc.com>
+Message-ID: <CAAhSdy1MHijJxGfMZS+kGxL-VKiQpy-0jYSK5YeTJWg2pC3DtA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,16 +14,18 @@ Content-Transfer-Encoding: 7bit
 
 On Sat, Jan 8, 2022 at 12:24 AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> The counter mapping in DT may be incorrect if all the counters specified
-> in the mapping are actually not physically present in the hardware.
-> OpenSBI should only keep a mapping of counters enabled in hardware and
-> defined in DT. This assume that all the programmable hpmcounters are
-> consecutive as it doesn't make sense to build a system with sparse
-> hpmcounters.
+> Currently, the mhpmevent CSRs are untouched during hart init during
+> cold/warm boot. Ideally, we should clear out all the bits except
+> overflow and MINH bit. That is required to disable overflow
+> interrupt and inhbit counting in M-mode to avoid any spurious
+
+s/inhbit/inhibit/
+
+> interrupts before perf start.
 >
 > Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
-Looks good to me.
+Apart from a minor comment above, it looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -30,32 +33,44 @@ Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_pmu.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_hart.c | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 5b845f835e79..376afec13491 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -181,6 +181,9 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
->         int i = 0;
->         bool is_overlap;
->         struct sbi_pmu_hw_event *event = &hw_event_map[num_hw_events];
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +       int hw_ctr_avail = sbi_hart_mhpm_count(scratch);
-> +       uint32_t ctr_avail_mask = ((uint32_t)(~0) >> (32 - (hw_ctr_avail + 3)));
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index d9a15d994a6b..0a651752cdda 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -40,6 +40,9 @@ static unsigned long hart_features_offset;
+>  static void mstatus_init(struct sbi_scratch *scratch)
+>  {
+>         unsigned long mstatus_val = 0;
+> +       int cidx;
+> +       unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+> +       uint64_t mhpmevent_init_val = 0;
 >
->         /* The first two counters are reserved by priv spec */
->         if (eidx_start > SBI_PMU_HW_INSTRUCTIONS && (cmap & SBI_PMU_FIXED_CTR_MASK))
-> @@ -208,7 +211,8 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
->         }
+>         /* Enable FPU */
+>         if (misa_extension('D') || misa_extension('F'))
+> @@ -68,6 +71,21 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>         if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
+>                 csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
 >
->         event->select_mask = select_mask;
-> -       event->counters = cmap;
-> +       /* Map the only the counters that are available in the hardware */
-> +       event->counters = cmap & ctr_avail_mask;
->         event->select = select;
->         num_hw_events++;
+> +       /**
+> +        * The mhpmeventn[h] CSR should be initialized with interrupt disabled
+> +        * and inhibited running in M-mode during init.
+> +        * To keep it simple, only contiguous mhpmcounters are supported as a
+> +        * platform with discontiguous mhpmcounters may not make much sense.
+> +        */
+> +       mhpmevent_init_val |= (MHPMEVENT_OF | MHPMEVENT_MINH);
+> +       for (cidx = 0; cidx < num_mhpm; cidx++) {
+> +#if __riscv_xlen == 32
+> +               csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val & 0xFFFFFFFF);
+> +               csr_write_num(CSR_MHPMEVENT3H + cidx, mhpmevent_init_val >> BITS_PER_LONG);
+> +#else
+> +               csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val);
+> +#endif
+> +       }
+>         /* Disable all interrupts */
+>         csr_write(CSR_MIE, 0);
 >
 > --
 > 2.30.2
