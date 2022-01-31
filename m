@@ -1,25 +1,24 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Mon, 31 Jan 2022 08:43:51 +0100
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 31 Jan 2022 18:23:59 +0530
 Subject: [PATCH] Makefile: fix build with binutils 2.38
 In-Reply-To: <20220128173346.1863727-1-aurelien@aurel32.net>
 References: <20220128173346.1863727-1-aurelien@aurel32.net>
-Message-ID: <caf7fe65-732e-f9cd-1e97-d681fe649311@ghiti.fr>
+Message-ID: <CAAhSdy3csfdZVqAVR9FQgrrBRcXHAy0cYMHwuKUiKgwkoqLwxw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Aur?lien,
-
-On 1/28/22 18:33, Aurelien Jarno wrote:
->  From version 2.38, binutils default to ISA spec version 20191213. This
+On Fri, Jan 28, 2022 at 11:04 PM Aurelien Jarno <aurelien@aurel32.net> wrote:
+>
+> From version 2.38, binutils default to ISA spec version 20191213. This
 > means that the csr read/write (csrr*/csrw*) instructions and fence.i
 > instruction has separated from the `I` extension, become two standalone
 > extensions: Zicsr and Zifencei. As the kernel uses those instruction,
 > this causes the following build failure:
 >
->   CC        lib/sbi/sbi_tlb.o
+>  CC        lib/sbi/sbi_tlb.o
 > <<BUILDDIR>>/lib/sbi/sbi_tlb.c: Assembler messages:
 > <<BUILDDIR>>/lib/sbi/sbi_tlb.c:190: Error: unrecognized opcode `fence.i'
 > make: *** [Makefile:431: <<BUILDDIR>>/build/lib/sbi/sbi_tlb.o] Error 1
@@ -29,9 +28,20 @@ On 1/28/22 18:33, Aurelien Jarno wrote:
 > that.
 >
 > Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+We will have to update docs/platform_requirements.md as well but
+this can be a separate patch.
+
+Regards,
+Anup
+
 > ---
->   Makefile | 9 ++++++++-
->   1 file changed, 8 insertions(+), 1 deletion(-)
+>  Makefile | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 >
 > Changes v1 -> v2 following the review from Bin Men (thanks)!
 > - Fix typos
@@ -42,36 +52,34 @@ On 1/28/22 18:33, Aurelien Jarno wrote:
 > --- a/Makefile
 > +++ b/Makefile
 > @@ -153,6 +153,9 @@ OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fP
->   # Check whether the compiler supports -m(no-)save-restore
->   CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
->   
+>  # Check whether the compiler supports -m(no-)save-restore
+>  CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
+>
 > +# Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
 > +CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(PLATFORM_RISCV_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
 > +
->   # Build Info:
->   # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
->   # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+>  # Build Info:
+>  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+>  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
 > @@ -223,7 +226,11 @@ ifndef PLATFORM_RISCV_ABI
->   endif
->   ifndef PLATFORM_RISCV_ISA
->     ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
+>  endif
+>  ifndef PLATFORM_RISCV_ISA
+>    ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
 > -    PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
 > +    ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
 > +      PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc_zicsr_zifencei
 > +    else
 > +      PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
 > +    endif
->     else
->       PLATFORM_RISCV_ISA = $(OPENSBI_CC_ISA)
->     endif
-
-
-You can add:
-
-Tested-by: Alexandre Ghiti <alexandre.ghiti@canonical.com>
-
-Thanks again for taking care of that,
-
-Alex
-
+>    else
+>      PLATFORM_RISCV_ISA = $(OPENSBI_CC_ISA)
+>    endif
+> --
+> 2.34.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
