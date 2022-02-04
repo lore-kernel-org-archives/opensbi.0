@@ -1,301 +1,72 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 1 Feb 2022 15:01:24 +0530
-Subject: [PATCH] lib: fix compilation when strings.h is included
-In-Reply-To: <CAA5uK6+dh2S3p7mRX5gUP-W-pSCY7shYuXWPq4x8S6pH0YLGpA@mail.gmail.com>
-References: <CAA5uK6+Utvb5V7wcrPoO5Syvsyvgr6o0C4uM1eMwQndY3xMbhQ@mail.gmail.com>
- <20220128071322.97275-1-petro.karashchenko@gmail.com>
- <CAA5uK6+dh2S3p7mRX5gUP-W-pSCY7shYuXWPq4x8S6pH0YLGpA@mail.gmail.com>
-Message-ID: <CAAhSdy0Ve_gp1MROqMu-Eh+ot-K+2GXk6D7rJdseMT9Ht=aNzw@mail.gmail.com>
+Date: Fri, 4 Feb 2022 10:16:40 +0530
+Subject: [PATCH v1 1/3] lib: sbi: Map only the counters enabled in hardware
+In-Reply-To: <CAAhSdy2ue2m=czFx=PRnhDo+tU_69Qrq0N5bLXrn5EHrj0VjNw@mail.gmail.com>
+References: <20220107185409.1172221-1-atishp@rivosinc.com>
+ <20220107185409.1172221-2-atishp@rivosinc.com>
+ <CAAhSdy2ue2m=czFx=PRnhDo+tU_69Qrq0N5bLXrn5EHrj0VjNw@mail.gmail.com>
+Message-ID: <CAAhSdy2oRrc_YhEWU_F9g-nShDOwXrQ562WZyTbL9XD_S3wEJA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 1, 2022 at 2:51 PM Petro Karashchenko
-<petro.karashchenko@gmail.com> wrote:
+On Mon, Jan 31, 2022 at 6:26 PM Anup Patel <anup@brainfault.org> wrote:
 >
-> Hi,
+> On Sat, Jan 8, 2022 at 12:24 AM Atish Patra <atishp@rivosinc.com> wrote:
+> >
+> > The counter mapping in DT may be incorrect if all the counters specified
+> > in the mapping are actually not physically present in the hardware.
+> > OpenSBI should only keep a mapping of counters enabled in hardware and
+> > defined in DT. This assume that all the programmable hpmcounters are
+> > consecutive as it doesn't make sense to build a system with sparse
+> > hpmcounters.
+> >
+> > Signed-off-by: Atish Patra <atishp@rivosinc.com>
 >
-> What is needed to get this patch merged? I've created
-> https://github.com/riscv-software-src/opensbi/pull/242 additionally to
-> this mailing thread, but maybe I'm missing some processes.
+> Looks good to me.
 >
-> Thank you in advance for a reply.
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Nothing needed from yourside. This looks good to me.
+Applied this patch to the riscv/openbis repo.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-I will merge it sometime this week.
-
-Thanks,
+Regards,
 Anup
 
 >
-> Best regards,
-> Petro
+> Regards,
+> Anup
 >
-> ??, 28 ???. 2022 ?. ? 09:14 Petro Karashchenko
-> <petro.karashchenko@gmail.com> ????:
-> >
-> > In a systems that provide strings.h and it is included
-> > together with sbi_bitops.h the compilation error appears.
-> > The ffs() and fls() are provided by strings.h
-> >
-> > Signed-off-by: Petro Karashchenko <petro.karashchenko@gmail.com>
 > > ---
-> >  include/sbi/sbi_bitops.h        | 82 +++------------------------------
-> >  lib/sbi/sbi_bitops.c            | 10 ++--
-> >  lib/sbi/sbi_hart.c              |  8 ++--
-> >  lib/sbi/sbi_pmu.c               |  6 +--
-> >  lib/utils/timer/aclint_mtimer.c |  2 +-
-> >  5 files changed, 19 insertions(+), 89 deletions(-)
+> >  lib/sbi/sbi_pmu.c | 6 +++++-
+> >  1 file changed, 5 insertions(+), 1 deletion(-)
 > >
-> > diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
-> > index 879430d..251e4d8 100644
-> > --- a/include/sbi/sbi_bitops.h
-> > +++ b/include/sbi/sbi_bitops.h
-> > @@ -37,47 +37,12 @@
-> >         (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
-> >
-> >  /**
-> > - * ffs - Find first bit set
-> > - * @x: the word to search
-> > - *
-> > - * This is defined the same way as
-> > - * the libc and compiler builtin ffs routines, therefore
-> > - * differs in spirit from the above ffz (man ffs).
-> > - */
-> > -static inline int ffs(int x)
-> > -{
-> > -       int r = 1;
-> > -
-> > -       if (!x)
-> > -               return 0;
-> > -       if (!(x & 0xffff)) {
-> > -               x >>= 16;
-> > -               r += 16;
-> > -       }
-> > -       if (!(x & 0xff)) {
-> > -               x >>= 8;
-> > -               r += 8;
-> > -       }
-> > -       if (!(x & 0xf)) {
-> > -               x >>= 4;
-> > -               r += 4;
-> > -       }
-> > -       if (!(x & 3)) {
-> > -               x >>= 2;
-> > -               r += 2;
-> > -       }
-> > -       if (!(x & 1))
-> > -               r += 1;
-> > -       return r;
-> > -}
-> > -
-> > -/**
-> > - * __ffs - find first bit in word.
-> > + * sbi_ffs - find first (less-significant) set bit in a long word.
-> >   * @word: The word to search
-> >   *
-> >   * Undefined if no bit exists, so code should check against 0 first.
-> >   */
-> > -static inline int __ffs(unsigned long word)
-> > +static inline int sbi_ffs(unsigned long word)
-> >  {
-> >         int num = 0;
-> >
-> > @@ -109,55 +74,20 @@ static inline int __ffs(unsigned long word)
-> >  }
-> >
-> >  /*
-> > - * ffz - find first zero in word.
-> > + * sbi_ffz - find first zero in word.
-> >   * @word: The word to search
-> >   *
-> >   * Undefined if no zero exists, so code should check against ~0UL first.
-> >   */
-> > -#define ffz(x) __ffs(~(x))
-> > -
-> > -/**
-> > - * fls - find last (most-significant) bit set
-> > - * @x: the word to search
-> > - *
-> > - * This is defined the same way as ffs.
-> > - * Note fls(0) = 0, fls(1) = 1, fls(0x80000000) = 32.
-> > - */
-> > -
-> > -static inline int fls(int x)
-> > -{
-> > -       int r = 32;
-> > -
-> > -       if (!x)
-> > -               return 0;
-> > -       if (!(x & 0xffff0000u)) {
-> > -               x <<= 16;
-> > -               r -= 16;
-> > -       }
-> > -       if (!(x & 0xff000000u)) {
-> > -               x <<= 8;
-> > -               r -= 8;
-> > -       }
-> > -       if (!(x & 0xf0000000u)) {
-> > -               x <<= 4;
-> > -               r -= 4;
-> > -       }
-> > -       if (!(x & 0xc0000000u)) {
-> > -               x <<= 2;
-> > -               r -= 2;
-> > -       }
-> > -       if (!(x & 0x80000000u))
-> > -               r -= 1;
-> > -       return r;
-> > -}
-> > +#define sbi_ffz(x) sbi_ffs(~(x))
-> >
-> >  /**
-> > - * __fls - find last (most-significant) set bit in a long word
-> > + * sbi_fls - find last (most-significant) set bit in a long word
-> >   * @word: the word to search
-> >   *
-> >   * Undefined if no set bit exists, so code should check against 0 first.
-> >   */
-> > -static inline unsigned long __fls(unsigned long word)
-> > +static inline unsigned long sbi_fls(unsigned long word)
-> >  {
-> >         int num = BITS_PER_LONG - 1;
-> >
-> > diff --git a/lib/sbi/sbi_bitops.c b/lib/sbi/sbi_bitops.c
-> > index de9d045..becea91 100644
-> > --- a/lib/sbi/sbi_bitops.c
-> > +++ b/lib/sbi/sbi_bitops.c
-> > @@ -39,7 +39,7 @@ unsigned long find_first_bit(const unsigned long *addr,
-> >         if (tmp == 0UL)         /* Are any bits set? */
-> >                 return result + size;   /* Nope. */
-> >  found:
-> > -       return result + __ffs(tmp);
-> > +       return result + sbi_ffs(tmp);
-> >  }
-> >
-> >  /**
-> > @@ -69,7 +69,7 @@ unsigned long find_first_zero_bit(const unsigned long *addr,
-> >         if (tmp == ~0UL)        /* Are any bits zero? */
-> >                 return result + size;   /* Nope. */
-> >  found:
-> > -       return result + ffz(tmp);
-> > +       return result + sbi_ffz(tmp);
-> >  }
-> >
-> >  /**
-> > @@ -100,7 +100,7 @@ unsigned long find_last_bit(const unsigned long *addr,
-> >                 tmp = addr[--words];
-> >                 if (tmp) {
-> >  found:
-> > -                       return words * BITS_PER_LONG + __fls(tmp);
-> > +                       return words * BITS_PER_LONG + sbi_fls(tmp);
-> >                 }
-> >         }
-> >
-> > @@ -150,7 +150,7 @@ found_first:
-> >         if (tmp == 0UL)         /* Are any bits set? */
-> >                 return result + size;   /* Nope. */
-> >  found_middle:
-> > -       return result + __ffs(tmp);
-> > +       return result + sbi_ffs(tmp);
-> >  }
-> >
-> >  /**
-> > @@ -196,5 +196,5 @@ found_first:
-> >         if (tmp == ~0UL)        /* Are any bits zero? */
-> >                 return result + size;   /* Nope. */
-> >  found_middle:
-> > -       return result + ffz(tmp);
-> > +       return result + sbi_ffz(tmp);
-> >  }
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index d9a15d9..7975347 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -368,7 +368,7 @@ static int hart_pmu_get_allowed_bits(void)
-> >                 if (trap.cause)
-> >                         return 0;
-> >         }
-> > -       num_bits = __fls(val) + 1;
-> > +       num_bits = sbi_fls(val) + 1;
-> >  #if __riscv_xlen == 32
-> >         csr_write_allowed(CSR_MHPMCOUNTER3H, (ulong)&trap, val);
-> >         if (!trap.cause) {
-> > @@ -376,7 +376,7 @@ static int hart_pmu_get_allowed_bits(void)
-> >                 if (trap.cause)
-> >                         return num_bits;
-> >         }
-> > -       num_bits += __fls(val) + 1;
-> > +       num_bits += sbi_fls(val) + 1;
-> >
-> >  #endif
-> >
-> > @@ -439,8 +439,8 @@ static void hart_detect_features(struct sbi_scratch *scratch)
-> >          */
-> >         val = hart_pmp_get_allowed_addr();
-> >         if (val) {
-> > -               hfeatures->pmp_gran =  1 << (__ffs(val) + 2);
-> > -               hfeatures->pmp_addr_bits = __fls(val) + 1;
-> > +               hfeatures->pmp_gran =  1 << (sbi_ffs(val) + 2);
-> > +               hfeatures->pmp_addr_bits = sbi_fls(val) + 1;
-> >                 /* Detect number of PMP regions. At least PMPADDR0 should be implemented*/
-> >                 __check_csr_64(CSR_PMPADDR0, 0, val, pmp_count, __pmp_skip);
-> >         }
 > > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > index 5b845f8..4280834 100644
+> > index 5b845f835e79..376afec13491 100644
 > > --- a/lib/sbi/sbi_pmu.c
 > > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -343,7 +343,7 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
-> >         int ret = SBI_EINVAL;
-> >         bool bUpdate = FALSE;
+> > @@ -181,6 +181,9 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+> >         int i = 0;
+> >         bool is_overlap;
+> >         struct sbi_pmu_hw_event *event = &hw_event_map[num_hw_events];
+> > +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> > +       int hw_ctr_avail = sbi_hart_mhpm_count(scratch);
+> > +       uint32_t ctr_avail_mask = ((uint32_t)(~0) >> (32 - (hw_ctr_avail + 3)));
 > >
-> > -       if (__fls(ctr_mask) >= total_ctrs)
-> > +       if (sbi_fls(ctr_mask) >= total_ctrs)
-> >                 return ret;
+> >         /* The first two counters are reserved by priv spec */
+> >         if (eidx_start > SBI_PMU_HW_INSTRUCTIONS && (cmap & SBI_PMU_FIXED_CTR_MASK))
+> > @@ -208,7 +211,8 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+> >         }
 > >
-> >         if (flags & SBI_PMU_START_FLAG_SET_INIT_VALUE)
-> > @@ -417,7 +417,7 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
-> >         uint32_t event_code;
-> >         unsigned long ctr_mask = cmask << cbase;
+> >         event->select_mask = select_mask;
+> > -       event->counters = cmap;
+> > +       /* Map the only the counters that are available in the hardware */
+> > +       event->counters = cmap & ctr_avail_mask;
+> >         event->select = select;
+> >         num_hw_events++;
 > >
-> > -       if (__fls(ctr_mask) >= total_ctrs)
-> > +       if (sbi_fls(ctr_mask) >= total_ctrs)
-> >                 return SBI_EINVAL;
-> >
-> >         for_each_set_bit_from(cbase, &ctr_mask, total_ctrs) {
-> > @@ -606,7 +606,7 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
-> >         unsigned long tmp = cidx_mask << cidx_base;
-> >
-> >         /* Do a basic sanity check of counter base & mask */
-> > -       if (__fls(tmp) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
-> > +       if (sbi_fls(tmp) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
-> >                 return SBI_EINVAL;
-> >
-> >         if (flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) {
-> > diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
-> > index 2532b63..a957b1c 100644
-> > --- a/lib/utils/timer/aclint_mtimer.c
-> > +++ b/lib/utils/timer/aclint_mtimer.c
-> > @@ -154,7 +154,7 @@ static int aclint_mtimer_add_regions(unsigned long addr, unsigned long size)
-> >         while (pos < end) {
-> >                 rsize = pos & (MTIMER_ADD_REGION_ALIGN - 1);
-> >                 if (rsize)
-> > -                       rsize = 1UL << __ffs(pos);
-> > +                       rsize = 1UL << sbi_ffs(pos);
-> >                 else
-> >                         rsize = ((end - pos) < MTIMER_ADD_REGION_ALIGN) ?
-> >                                 (end - pos) : MTIMER_ADD_REGION_ALIGN;
 > > --
-> > 2.32.0
+> > 2.30.2
 > >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
