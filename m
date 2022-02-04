@@ -1,89 +1,85 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 4 Feb 2022 10:17:39 +0530
-Subject: [PATCH v1 3/3] lib: sbi: Disable interrupt and inhibit counting
- in M-mode during init
-In-Reply-To: <CAAhSdy1MHijJxGfMZS+kGxL-VKiQpy-0jYSK5YeTJWg2pC3DtA@mail.gmail.com>
-References: <20220107185409.1172221-1-atishp@rivosinc.com>
- <20220107185409.1172221-4-atishp@rivosinc.com>
- <CAAhSdy1MHijJxGfMZS+kGxL-VKiQpy-0jYSK5YeTJWg2pC3DtA@mail.gmail.com>
-Message-ID: <CAAhSdy0b8qXZp_EMcQ4oRap9tyb6_jczFubPiYmF3v=jdkbj1g@mail.gmail.com>
+Date: Fri, 4 Feb 2022 11:00:10 +0530
+Subject: [PATCH] Makefile: fix build with binutils 2.38
+In-Reply-To: <20220128173346.1863727-1-aurelien@aurel32.net>
+References: <20220128173346.1863727-1-aurelien@aurel32.net>
+Message-ID: <CAAhSdy1Qsus0HayPL7sg-KPetFaCDYTV97HcopcRGyGFomcAPQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 31, 2022 at 6:30 PM Anup Patel <anup@brainfault.org> wrote:
+On Fri, Jan 28, 2022 at 11:04 PM Aurelien Jarno <aurelien@aurel32.net> wrote:
 >
-> On Sat, Jan 8, 2022 at 12:24 AM Atish Patra <atishp@rivosinc.com> wrote:
-> >
-> > Currently, the mhpmevent CSRs are untouched during hart init during
-> > cold/warm boot. Ideally, we should clear out all the bits except
-> > overflow and MINH bit. That is required to disable overflow
-> > interrupt and inhbit counting in M-mode to avoid any spurious
+> From version 2.38, binutils default to ISA spec version 20191213. This
+> means that the csr read/write (csrr*/csrw*) instructions and fence.i
+> instruction has separated from the `I` extension, become two standalone
+> extensions: Zicsr and Zifencei. As the kernel uses those instruction,
+> this causes the following build failure:
 >
-> s/inhbit/inhibit/
+>  CC        lib/sbi/sbi_tlb.o
+> <<BUILDDIR>>/lib/sbi/sbi_tlb.c: Assembler messages:
+> <<BUILDDIR>>/lib/sbi/sbi_tlb.c:190: Error: unrecognized opcode `fence.i'
+> make: *** [Makefile:431: <<BUILDDIR>>/build/lib/sbi/sbi_tlb.o] Error 1
 >
-> > interrupts before perf start.
-> >
-> > Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> The fix is to specify those extensions explicitly in -march. However as
+> older binutils version do not support this, we first need to detect
+> that.
 >
-> Apart from a minor comment above, it looks good to me.
+> Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+> ---
+>  Makefile | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 >
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Changes v1 -> v2 following the review from Bin Men (thanks)!
+> - Fix typos
+> - Use grep to detect missing extensions for consistency with CC_SUPPORT_SAVE_RESTORE
+>
+> diff --git a/Makefile b/Makefile
+> index 062883e..717dffd 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -153,6 +153,9 @@ OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fP
+>  # Check whether the compiler supports -m(no-)save-restore
+>  CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
+>
+> +# Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+> +CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(PLATFORM_RISCV_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
 
-I have taken care of the minor comment while merging this patch.
+If we are using a multilib RV64 toolchain to compile for RV32 then
+CC_SUPPORT_ZICSR_ZIFENCEI gets an incorrect value. We can fix
+this by using OPENSBI_CC_XLEN instead of PLATFORM_RISCV_XLEN
+in the command. I have taken care of it at the time of merging this patch.
 
-Applied this patch to the riscv/openbis repo.
+Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
+> +
+>  # Build Info:
+>  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+>  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+> @@ -223,7 +226,11 @@ ifndef PLATFORM_RISCV_ABI
+>  endif
+>  ifndef PLATFORM_RISCV_ISA
+>    ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
+> -    PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
+> +    ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
+> +      PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc_zicsr_zifencei
+> +    else
+> +      PLATFORM_RISCV_ISA = rv$(PLATFORM_RISCV_XLEN)imafdc
+> +    endif
+>    else
+>      PLATFORM_RISCV_ISA = $(OPENSBI_CC_ISA)
+>    endif
+> --
+> 2.34.1
 >
-> Regards,
-> Anup
 >
-> > ---
-> >  lib/sbi/sbi_hart.c | 18 ++++++++++++++++++
-> >  1 file changed, 18 insertions(+)
-> >
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index d9a15d994a6b..0a651752cdda 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -40,6 +40,9 @@ static unsigned long hart_features_offset;
-> >  static void mstatus_init(struct sbi_scratch *scratch)
-> >  {
-> >         unsigned long mstatus_val = 0;
-> > +       int cidx;
-> > +       unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
-> > +       uint64_t mhpmevent_init_val = 0;
-> >
-> >         /* Enable FPU */
-> >         if (misa_extension('D') || misa_extension('F'))
-> > @@ -68,6 +71,21 @@ static void mstatus_init(struct sbi_scratch *scratch)
-> >         if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
-> >                 csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
-> >
-> > +       /**
-> > +        * The mhpmeventn[h] CSR should be initialized with interrupt disabled
-> > +        * and inhibited running in M-mode during init.
-> > +        * To keep it simple, only contiguous mhpmcounters are supported as a
-> > +        * platform with discontiguous mhpmcounters may not make much sense.
-> > +        */
-> > +       mhpmevent_init_val |= (MHPMEVENT_OF | MHPMEVENT_MINH);
-> > +       for (cidx = 0; cidx < num_mhpm; cidx++) {
-> > +#if __riscv_xlen == 32
-> > +               csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val & 0xFFFFFFFF);
-> > +               csr_write_num(CSR_MHPMEVENT3H + cidx, mhpmevent_init_val >> BITS_PER_LONG);
-> > +#else
-> > +               csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val);
-> > +#endif
-> > +       }
-> >         /* Disable all interrupts */
-> >         csr_write(CSR_MIE, 0);
-> >
-> > --
-> > 2.30.2
-> >
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
