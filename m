@@ -1,11 +1,10 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Wed, 9 Feb 2022 08:31:55 -0800
-Subject: [PATCH v2 07/13] lib: sbi: Enable mie.MEIE bit for IPIs based on
- external interrupts.
-In-Reply-To: <20220209150441.121729-8-apatel@ventanamicro.com>
+Date: Wed, 9 Feb 2022 08:33:49 -0800
+Subject: [PATCH v2 02/13] lib: sbi: Detect AIA CSRs at boot-time
+In-Reply-To: <20220209150441.121729-3-apatel@ventanamicro.com>
 References: <20220209150441.121729-1-apatel@ventanamicro.com>
- <20220209150441.121729-8-apatel@ventanamicro.com>
-Message-ID: <CAOnJCUKNLsNf0YqAeW4uUDyZCc3wrmJruELDL0BcFr4ktN9iOw@mail.gmail.com>
+ <20220209150441.121729-3-apatel@ventanamicro.com>
+Message-ID: <CAOnJCUJhfE4eDHx2xp9PhtSacQK-QJPPZaWiQtE0gNwaJB7QZA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,85 +13,67 @@ Content-Transfer-Encoding: 7bit
 
 On Wed, Feb 9, 2022 at 7:05 AM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> We can have IPIs based on external interrupts provided by devices
-> such as AIA IMSIC so we should enable mie.MEIE bit at appropriate
-> places in generic library.
+> We extend HART feature detection to discover AIA CSRs at boot-time.
 >
-> Signed-off-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
->  lib/sbi/sbi_hsm.c  | 4 ++--
->  lib/sbi/sbi_init.c | 9 ++++++---
->  2 files changed, 8 insertions(+), 5 deletions(-)
+>  include/sbi/sbi_hart.h |  4 +++-
+>  lib/sbi/sbi_hart.c     | 11 +++++++++++
+>  2 files changed, 14 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index ecd2e45..c4d2c6d 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -113,8 +113,8 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
->         /* Save MIE CSR */
->         saved_mie = csr_read(CSR_MIE);
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index d2db9d6..a83b45b 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -24,9 +24,11 @@ enum sbi_hart_features {
+>         SBI_HART_HAS_SSCOFPMF = (1 << 3),
+>         /** HART has timer csr implementation in hardware */
+>         SBI_HART_HAS_TIME = (1 << 4),
+> +       /** HART has AIA local interrupt CSRs */
+> +       SBI_HART_HAS_AIA = (1 << 5),
 >
-> -       /* Set MSIE bit to receive IPI */
-> -       csr_set(CSR_MIE, MIP_MSIP);
-> +       /* Set MSIE and MEIE bits to receive IPI */
-> +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+>         /** Last index of Hart features*/
+> -       SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
+> +       SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_AIA,
+>  };
 >
->         /* Wait for hart_add call*/
->         while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 27d03a7..6876eb2 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -165,8 +165,8 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->         /* Save MIE CSR */
->         saved_mie = csr_read(CSR_MIE);
->
-> -       /* Set MSIE bit to receive IPI */
-> -       csr_set(CSR_MIE, MIP_MSIP);
-> +       /* Set MSIE and MEIE bits to receive IPI */
-> +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
->
->         /* Acquire coldboot lock */
->         spin_lock(&coldboot_lock);
-> @@ -182,7 +182,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
->                 do {
->                         wfi();
->                         cmip = csr_read(CSR_MIP);
-> -                } while (!(cmip & MIP_MSIP));
-> +                } while (!(cmip & (MIP_MSIP | MIP_MEIP)));
->         };
->
->         /* Acquire coldboot lock */
-> @@ -276,6 +276,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->                            __func__, rc);
->                 sbi_hart_hang();
+>  struct sbi_scratch;
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 36908b1..e028540 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -301,6 +301,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+>         case SBI_HART_HAS_TIME:
+>                 fstr = "time";
+>                 break;
+> +       case SBI_HART_HAS_AIA:
+> +               fstr = "aia";
+> +               break;
+>         default:
+>                 break;
 >         }
-> +       csr_set(CSR_MIE, MIP_MEIP);
+> @@ -524,6 +527,14 @@ __mhpm_skip:
+>         csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+>         if (!trap.cause)
+>                 hfeatures->features |= SBI_HART_HAS_TIME;
+> +
+> +       /* Detect if hart has AIA local interrupt CSRs */
+> +       csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
+> +       if (trap.cause)
+> +               goto __aia_skip;
+> +       hfeatures->features |= SBI_HART_HAS_AIA;
+> +__aia_skip:
+> +       return;
+>  }
 >
->         rc = sbi_ipi_init(scratch, TRUE);
->         if (rc) {
-> @@ -376,6 +377,7 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
->         rc = sbi_platform_irqchip_init(plat, FALSE);
->         if (rc)
->                 sbi_hart_hang();
-> +       csr_set(CSR_MIE, MIP_MEIP);
->
->         rc = sbi_ipi_init(scratch, FALSE);
->         if (rc)
-> @@ -550,6 +552,7 @@ void __noreturn sbi_exit(struct sbi_scratch *scratch)
->
->         sbi_ipi_exit(scratch);
->
-> +       csr_clear(CSR_MIE, MIP_MEIP);
->         sbi_platform_irqchip_exit(plat);
->
->         sbi_platform_final_exit(plat);
+>  int sbi_hart_reinit(struct sbi_scratch *scratch)
 > --
 > 2.25.1
 >
 
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
+
 
 -- 
 Regards,
