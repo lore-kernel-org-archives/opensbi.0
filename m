@@ -1,94 +1,100 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed,  9 Feb 2022 20:34:40 +0530
-Subject: [PATCH v2 13/13] lib: utils: Disable appropriate APLIC DT nodes in
- fdt_fixups()
-In-Reply-To: <20220209150441.121729-1-apatel@ventanamicro.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Wed, 9 Feb 2022 08:31:55 -0800
+Subject: [PATCH v2 07/13] lib: sbi: Enable mie.MEIE bit for IPIs based on
+ external interrupts.
+In-Reply-To: <20220209150441.121729-8-apatel@ventanamicro.com>
 References: <20220209150441.121729-1-apatel@ventanamicro.com>
-Message-ID: <20220209150441.121729-14-apatel@ventanamicro.com>
+ <20220209150441.121729-8-apatel@ventanamicro.com>
+Message-ID: <CAOnJCUKNLsNf0YqAeW4uUDyZCc3wrmJruELDL0BcFr4ktN9iOw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We should disable APLIC DT nodes in fdt_fixups() which are not
-accessible to the next booting stage based on currently assigned
-domain.
+On Wed, Feb 9, 2022 at 7:05 AM Anup Patel <apatel@ventanamicro.com> wrote:
+>
+> We can have IPIs based on external interrupts provided by devices
+> such as AIA IMSIC so we should enable mie.MEIE bit at appropriate
+> places in generic library.
+>
+> Signed-off-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  lib/sbi/sbi_hsm.c  | 4 ++--
+>  lib/sbi/sbi_init.c | 9 ++++++---
+>  2 files changed, 8 insertions(+), 5 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index ecd2e45..c4d2c6d 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -113,8 +113,8 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+>         /* Save MIE CSR */
+>         saved_mie = csr_read(CSR_MIE);
+>
+> -       /* Set MSIE bit to receive IPI */
+> -       csr_set(CSR_MIE, MIP_MSIP);
+> +       /* Set MSIE and MEIE bits to receive IPI */
+> +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+>
+>         /* Wait for hart_add call*/
+>         while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 27d03a7..6876eb2 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -165,8 +165,8 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>         /* Save MIE CSR */
+>         saved_mie = csr_read(CSR_MIE);
+>
+> -       /* Set MSIE bit to receive IPI */
+> -       csr_set(CSR_MIE, MIP_MSIP);
+> +       /* Set MSIE and MEIE bits to receive IPI */
+> +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+>
+>         /* Acquire coldboot lock */
+>         spin_lock(&coldboot_lock);
+> @@ -182,7 +182,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 do {
+>                         wfi();
+>                         cmip = csr_read(CSR_MIP);
+> -                } while (!(cmip & MIP_MSIP));
+> +                } while (!(cmip & (MIP_MSIP | MIP_MEIP)));
+>         };
+>
+>         /* Acquire coldboot lock */
+> @@ -276,6 +276,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                            __func__, rc);
+>                 sbi_hart_hang();
+>         }
+> +       csr_set(CSR_MIE, MIP_MEIP);
+>
+>         rc = sbi_ipi_init(scratch, TRUE);
+>         if (rc) {
+> @@ -376,6 +377,7 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+>         rc = sbi_platform_irqchip_init(plat, FALSE);
+>         if (rc)
+>                 sbi_hart_hang();
+> +       csr_set(CSR_MIE, MIP_MEIP);
+>
+>         rc = sbi_ipi_init(scratch, FALSE);
+>         if (rc)
+> @@ -550,6 +552,7 @@ void __noreturn sbi_exit(struct sbi_scratch *scratch)
+>
+>         sbi_ipi_exit(scratch);
+>
+> +       csr_clear(CSR_MIE, MIP_MEIP);
+>         sbi_platform_irqchip_exit(plat);
+>
+>         sbi_platform_final_exit(plat);
+> --
+> 2.25.1
+>
 
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
----
- include/sbi_utils/fdt/fdt_fixup.h | 18 +++++++++++++++---
- lib/utils/fdt/fdt_fixup.c         | 11 +++++++++++
- 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
-index 77575bb..fb076ba 100644
---- a/include/sbi_utils/fdt/fdt_fixup.h
-+++ b/include/sbi_utils/fdt/fdt_fixup.h
-@@ -21,6 +21,18 @@
-  */
- void fdt_cpu_fixup(void *fdt);
- 
-+/**
-+ * Fix up the APLIC nodes in the device tree
-+ *
-+ * This routine disables APLIC nodes which are not accessible to the next
-+ * booting stage based on currently assigned domain.
-+ *
-+ * It is recommended that platform codes call this helper in their final_init()
-+ *
-+ * @param fdt: device tree blob
-+ */
-+void fdt_aplic_fixup(void *fdt);
-+
- /**
-  * Fix up the IMSIC nodes in the device tree
-  *
-@@ -76,9 +88,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt);
-  * General device tree fix-up
-  *
-  * This routine do all required device tree fix-ups for a typical platform.
-- * It fixes up the PLIC node, IMSIC nodes, and the reserved memory node in
-- * the device tree by calling the corresponding helper routines to accomplish
-- * the task.
-+ * It fixes up the PLIC node, IMSIC nodes, APLIC nodes, and the reserved
-+ * memory node in the device tree by calling the corresponding helper
-+ * routines to accomplish the task.
-  *
-  * It is recommended that platform codes call this helper in their final_init()
-  *
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index c2460b8..a80bd82 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -71,6 +71,15 @@ static void fdt_domain_based_fixup_one(void *fdt, int nodeoff)
- 	}
- }
- 
-+void fdt_aplic_fixup(void *fdt)
-+{
-+	int noff = 0;
-+
-+	while ((noff = fdt_node_offset_by_compatible(fdt, noff,
-+						     "riscv,aplic")) >= 0)
-+		fdt_domain_based_fixup_one(fdt, noff);
-+}
-+
- void fdt_imsic_fixup(void *fdt)
- {
- 	int noff = 0;
-@@ -289,6 +298,8 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
- 
- void fdt_fixups(void *fdt)
- {
-+	fdt_aplic_fixup(fdt);
-+
- 	fdt_imsic_fixup(fdt);
- 
- 	fdt_plic_fixup(fdt);
 -- 
-2.25.1
-
+Regards,
+Atish
 
