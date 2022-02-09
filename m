@@ -1,115 +1,138 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 9 Feb 2022 18:00:45 +0530
-Subject: [PATCH 07/13] lib: sbi: Enable mie.MEIE bit for IPIs based on
- external interrupts.
-In-Reply-To: <CAOnJCUKH4=rGNpvAw-1W6M6n+EpYd5N2M1aTmm7MRG7s5S0aVQ@mail.gmail.com>
+Date: Wed, 9 Feb 2022 18:16:17 +0530
+Subject: [PATCH 10/13] lib: utils: Disable appropriate IMSIC DT nodes in
+ fdt_fixups()
+In-Reply-To: <CAOnJCUJQ1eo4rD9Xs0aNALZ1okwU=NuxoC+RmtTfYgHDEtL1YQ@mail.gmail.com>
 References: <20220104101323.127564-1-apatel@ventanamicro.com>
- <20220104101323.127564-5-apatel@ventanamicro.com>
- <CAOnJCUKH4=rGNpvAw-1W6M6n+EpYd5N2M1aTmm7MRG7s5S0aVQ@mail.gmail.com>
-Message-ID: <CAAhSdy1-ebUQvNVH2iRHsyiHtbmO=K9doAHpDSyE4RdAzu+N4g@mail.gmail.com>
+ <20220104101323.127564-8-apatel@ventanamicro.com>
+ <CAOnJCUJQ1eo4rD9Xs0aNALZ1okwU=NuxoC+RmtTfYgHDEtL1YQ@mail.gmail.com>
+Message-ID: <CAAhSdy1On8e1tgCSF1Ez9aNFUX9=Stt=t8gEpFRxZXYhw3xPCA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 8, 2022 at 2:33 PM Atish Patra <atishp@atishpatra.org> wrote:
+On Tue, Feb 8, 2022 at 2:43 PM Atish Patra <atishp@atishpatra.org> wrote:
 >
 > On Tue, Jan 4, 2022 at 2:13 AM Anup Patel <apatel@ventanamicro.com> wrote:
 > >
-> > We can have IPIs based on external interrupts provided by devices
-> > such as AIA IMSIC so we should enable mie.MEIE bit at appropriate
-> > places in generic library.
+> > We should disable IMSIC DT nodes in fdt_fixups() which are not
+> > accessible to the next booting stage based on currently assigned
+> > domain.
 > >
-> > Signed-off-by: Anup Patel <anup@brainfault.org>
+> > Signed-off-by: Anup Patel <anup.patel@wdc.com>
 > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > > ---
-> >  lib/sbi/sbi_hsm.c  | 4 ++--
-> >  lib/sbi/sbi_init.c | 9 ++++++---
-> >  2 files changed, 8 insertions(+), 5 deletions(-)
+> >  include/sbi_utils/fdt/fdt_fixup.h | 17 ++++++++++++++--
+> >  lib/utils/fdt/fdt_fixup.c         | 32 +++++++++++++++++++++++++++++--
+> >  2 files changed, 45 insertions(+), 4 deletions(-)
 > >
-> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> > index ecd2e45..c4d2c6d 100644
-> > --- a/lib/sbi/sbi_hsm.c
-> > +++ b/lib/sbi/sbi_hsm.c
-> > @@ -113,8 +113,8 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
-> >         /* Save MIE CSR */
-> >         saved_mie = csr_read(CSR_MIE);
+> > diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
+> > index c38e5d9..77575bb 100644
+> > --- a/include/sbi_utils/fdt/fdt_fixup.h
+> > +++ b/include/sbi_utils/fdt/fdt_fixup.h
+> > @@ -21,6 +21,18 @@
+> >   */
+> >  void fdt_cpu_fixup(void *fdt);
 > >
-> > -       /* Set MSIE bit to receive IPI */
-> > -       csr_set(CSR_MIE, MIP_MSIP);
-> > +       /* Set MSIE and MEIE bits to receive IPI */
-> > +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
-> >
-> >         /* Wait for hart_add call*/
-> >         while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> > index 27d03a7..6876eb2 100644
-> > --- a/lib/sbi/sbi_init.c
-> > +++ b/lib/sbi/sbi_init.c
-> > @@ -165,8 +165,8 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >         /* Save MIE CSR */
-> >         saved_mie = csr_read(CSR_MIE);
-> >
-> > -       /* Set MSIE bit to receive IPI */
-> > -       csr_set(CSR_MIE, MIP_MSIP);
-> > +       /* Set MSIE and MEIE bits to receive IPI */
-> > +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
-> >
-> >         /* Acquire coldboot lock */
-> >         spin_lock(&coldboot_lock);
-> > @@ -182,7 +182,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                 do {
-> >                         wfi();
-> >                         cmip = csr_read(CSR_MIP);
-> > -                } while (!(cmip & MIP_MSIP));
-> > +                } while (!(cmip & (MIP_MSIP | MIP_MEIP)));
-> >         };
-> >
-> >         /* Acquire coldboot lock */
-> > @@ -276,6 +276,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                            __func__, rc);
-> >                 sbi_hart_hang();
+> > +/**
+> > + * Fix up the IMSIC nodes in the device tree
+> > + *
+> > + * This routine disables IMSIC nodes which are not accessible to the next
+> > + * booting stage based on currently assigned domain.
+> > + *
+> > + * It is recommended that platform codes call this helper in their final_init()
+> > + *
+> > + * @param fdt: device tree blob
+> > + */
+> > +void fdt_imsic_fixup(void *fdt);
+> > +
+> >  /**
+> >   * Fix up the PLIC node in the device tree
+> >   *
+> > @@ -64,8 +76,9 @@ int fdt_reserved_memory_nomap_fixup(void *fdt);
+> >   * General device tree fix-up
+> >   *
+> >   * This routine do all required device tree fix-ups for a typical platform.
+> > - * It fixes up the PLIC node and the reserved memory node in the device tree
+> > - * by calling the corresponding helper routines to accomplish the task.
+> > + * It fixes up the PLIC node, IMSIC nodes, and the reserved memory node in
+> > + * the device tree by calling the corresponding helper routines to accomplish
+> > + * the task.
+> >   *
+> >   * It is recommended that platform codes call this helper in their final_init()
+> >   *
+> > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> > index ac01ba3..c2460b8 100644
+> > --- a/lib/utils/fdt/fdt_fixup.c
+> > +++ b/lib/utils/fdt/fdt_fixup.c
+> > @@ -52,6 +52,34 @@ void fdt_cpu_fixup(void *fdt)
 > >         }
-> > +       csr_set(CSR_MIE, MIP_MEIP);
+> >  }
 > >
+> > +static void fdt_domain_based_fixup_one(void *fdt, int nodeoff)
+> > +{
+> > +       int rc;
+> > +       uint64_t reg_addr, reg_size;
+> > +       struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> > +
+> > +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
+> > +       if (rc < 0 || !reg_addr || !reg_size)
+> > +               return;
+> > +
+> > +       if (!sbi_domain_check_addr(dom, reg_addr, dom->next_mode,
+> > +                                   SBI_DOMAIN_READ | SBI_DOMAIN_WRITE)) {
+> > +               rc = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
+> > +               if (rc < 0)
+> > +                       return;
+> > +               fdt_setprop_string(fdt, nodeoff, "status", "disabled");
+> > +       }
+> > +}
+> > +
 >
-> This is only required for IPIs with IMSIC devices.
-> Why not do it inside sbi_ipi_init along with MIP_MSIP set ?
+> This should be in a separate patch as it is a generic function and
+> doesn't match the commit text.
 
-Setting mie.MEIP does not fit in sbi_ipi_init() because in-future
-we might have a simple external interrupt handling framework in
-lib/sbi itself which can call sbi_platform_irqchip_init() and also
-set mie.MSIP bit.
-
-For now, let mie.MSIP bit setting be in lib/sbi/sbi_init.c. This will
-keep reminding us to move it in proper place.
+This is a static function only used here. If it were a public function
+then I would have moved it to a separate patch.
 
 Regards,
 Anup
 
 >
-> >         rc = sbi_ipi_init(scratch, TRUE);
-> >         if (rc) {
-> > @@ -376,6 +377,7 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
-> >         rc = sbi_platform_irqchip_init(plat, FALSE);
-> >         if (rc)
-> >                 sbi_hart_hang();
-> > +       csr_set(CSR_MIE, MIP_MEIP);
+> > +void fdt_imsic_fixup(void *fdt)
+> > +{
+> > +       int noff = 0;
+> > +
+> > +       while ((noff = fdt_node_offset_by_compatible(fdt, noff,
+> > +                                                    "riscv,imsics")) >= 0)
+> > +               fdt_domain_based_fixup_one(fdt, noff);
+> > +}
+> > +
+> >  void fdt_plic_fixup(void *fdt)
+> >  {
+> >         u32 *cells;
+> > @@ -261,10 +289,10 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
 > >
-> >         rc = sbi_ipi_init(scratch, FALSE);
-> >         if (rc)
-> > @@ -550,6 +552,7 @@ void __noreturn sbi_exit(struct sbi_scratch *scratch)
+> >  void fdt_fixups(void *fdt)
+> >  {
+> > +       fdt_imsic_fixup(fdt);
+> > +
+> >         fdt_plic_fixup(fdt);
 > >
-> >         sbi_ipi_exit(scratch);
-> >
-> > +       csr_clear(CSR_MIE, MIP_MEIP);
-> >         sbi_platform_irqchip_exit(plat);
-> >
-> >         sbi_platform_final_exit(plat);
+> >         fdt_reserved_memory_fixup(fdt);
+> >         fdt_pmu_fixup(fdt);
+> >  }
+> > -
+> > -
 > > --
 > > 2.25.1
 > >
+>
+> Otherwise, LGTM.
+>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
 >
 >
 > --
