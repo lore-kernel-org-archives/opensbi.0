@@ -1,70 +1,101 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed,  9 Feb 2022 20:34:29 +0530
-Subject: [PATCH v2 02/13] lib: sbi: Detect AIA CSRs at boot-time
+Date: Wed,  9 Feb 2022 20:34:30 +0530
+Subject: [PATCH v2 03/13] lib: sbi: Use AIA CSRs for local interrupts when
+ available
 In-Reply-To: <20220209150441.121729-1-apatel@ventanamicro.com>
 References: <20220209150441.121729-1-apatel@ventanamicro.com>
-Message-ID: <20220209150441.121729-3-apatel@ventanamicro.com>
+Message-ID: <20220209150441.121729-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We extend HART feature detection to discover AIA CSRs at boot-time.
+We should use AIA CSRs to process local interrupts whenever AIA
+is available.
 
 Signed-off-by: Anup Patel <anup.patel@wdc.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_hart.h |  4 +++-
- lib/sbi/sbi_hart.c     | 11 +++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_trap.c | 57 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 46 insertions(+), 11 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index d2db9d6..a83b45b 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -24,9 +24,11 @@ enum sbi_hart_features {
- 	SBI_HART_HAS_SSCOFPMF = (1 << 3),
- 	/** HART has timer csr implementation in hardware */
- 	SBI_HART_HAS_TIME = (1 << 4),
-+	/** HART has AIA local interrupt CSRs */
-+	SBI_HART_HAS_AIA = (1 << 5),
- 
- 	/** Last index of Hart features*/
--	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_TIME,
-+	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_AIA,
- };
- 
- struct sbi_scratch;
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 36908b1..e028540 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -301,6 +301,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
- 	case SBI_HART_HAS_TIME:
- 		fstr = "time";
- 		break;
-+	case SBI_HART_HAS_AIA:
-+		fstr = "aia";
-+		break;
- 	default:
- 		break;
- 	}
-@@ -524,6 +527,14 @@ __mhpm_skip:
- 	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
- 	if (!trap.cause)
- 		hfeatures->features |= SBI_HART_HAS_TIME;
-+
-+	/* Detect if hart has AIA local interrupt CSRs */
-+	csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
-+	if (trap.cause)
-+		goto __aia_skip;
-+	hfeatures->features |= SBI_HART_HAS_AIA;
-+__aia_skip:
-+	return;
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index 8d20e04..bc8961f 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -195,6 +195,44 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+ 	return 0;
  }
  
- int sbi_hart_reinit(struct sbi_scratch *scratch)
++static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
++{
++	mcause &= ~(1UL << (__riscv_xlen - 1));
++	switch (mcause) {
++	case IRQ_M_TIMER:
++		sbi_timer_process();
++		break;
++	case IRQ_M_SOFT:
++		sbi_ipi_process();
++		break;
++	default:
++		return SBI_ENOENT;
++	};
++
++	return 0;
++}
++
++static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
++{
++	unsigned long mtopi;
++
++	while ((mtopi = csr_read(CSR_MTOPI))) {
++		mtopi = mtopi >> TOPI_IID_SHIFT;
++		switch (mtopi) {
++		case IRQ_M_TIMER:
++			sbi_timer_process();
++			break;
++		case IRQ_M_SOFT:
++			sbi_ipi_process();
++			break;
++		default:
++			return SBI_ENOENT;
++		}
++	}
++
++	return 0;
++}
++
+ /**
+  * Handle trap/interrupt
+  *
+@@ -225,18 +263,15 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+ 	}
+ 
+ 	if (mcause & (1UL << (__riscv_xlen - 1))) {
+-		mcause &= ~(1UL << (__riscv_xlen - 1));
+-		switch (mcause) {
+-		case IRQ_M_TIMER:
+-			sbi_timer_process();
+-			break;
+-		case IRQ_M_SOFT:
+-			sbi_ipi_process();
+-			break;
+-		default:
+-			msg = "unhandled external interrupt";
++		if (sbi_hart_has_feature(sbi_scratch_thishart_ptr(),
++					 SBI_HART_HAS_AIA))
++			rc = sbi_trap_aia_irq(regs, mcause);
++		else
++			rc = sbi_trap_nonaia_irq(regs, mcause);
++		if (rc) {
++			msg = "unhandled local interrupt";
+ 			goto trap_error;
+-		};
++		}
+ 		return regs;
+ 	}
+ 
 -- 
 2.25.1
 
