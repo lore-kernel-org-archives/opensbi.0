@@ -1,25 +1,100 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 15 Feb 2022 20:46:31 +0530
-Subject: [PATCH v2 06/13] include: sbi: Introduce nascent_init() platform
- callback
-In-Reply-To: <20220209150441.121729-7-apatel@ventanamicro.com>
+Date: Tue, 15 Feb 2022 20:49:02 +0530
+Subject: [PATCH v2 07/13] lib: sbi: Enable mie.MEIE bit for IPIs based on
+ external interrupts.
+In-Reply-To: <CAOnJCUKNLsNf0YqAeW4uUDyZCc3wrmJruELDL0BcFr4ktN9iOw@mail.gmail.com>
 References: <20220209150441.121729-1-apatel@ventanamicro.com>
- <20220209150441.121729-7-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy1ghLAyOnh=A5gHG8jxNLbevHkmGK=VRwi9qDh51wp7Eg@mail.gmail.com>
+ <20220209150441.121729-8-apatel@ventanamicro.com>
+ <CAOnJCUKNLsNf0YqAeW4uUDyZCc3wrmJruELDL0BcFr4ktN9iOw@mail.gmail.com>
+Message-ID: <CAAhSdy1_N-YM+PZottLmn2wfBDjjvjh5FHVM18m01RZCw3CwZw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 9, 2022 at 8:35 PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Wed, Feb 9, 2022 at 10:02 PM Atish Patra <atishp@atishpatra.org> wrote:
 >
-> We introduce nascent_init() platform callback which will allow
-> platforms to do very early initialization of platform specific
-> per-HART CSRs and per-HART devices.
+> On Wed, Feb 9, 2022 at 7:05 AM Anup Patel <apatel@ventanamicro.com> wrote:
+> >
+> > We can have IPIs based on external interrupts provided by devices
+> > such as AIA IMSIC so we should enable mie.MEIE bit at appropriate
+> > places in generic library.
+> >
+> > Signed-off-by: Anup Patel <anup@brainfault.org>
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  lib/sbi/sbi_hsm.c  | 4 ++--
+> >  lib/sbi/sbi_init.c | 9 ++++++---
+> >  2 files changed, 8 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> > index ecd2e45..c4d2c6d 100644
+> > --- a/lib/sbi/sbi_hsm.c
+> > +++ b/lib/sbi/sbi_hsm.c
+> > @@ -113,8 +113,8 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+> >         /* Save MIE CSR */
+> >         saved_mie = csr_read(CSR_MIE);
+> >
+> > -       /* Set MSIE bit to receive IPI */
+> > -       csr_set(CSR_MIE, MIP_MSIP);
+> > +       /* Set MSIE and MEIE bits to receive IPI */
+> > +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+> >
+> >         /* Wait for hart_add call*/
+> >         while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> > index 27d03a7..6876eb2 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -165,8 +165,8 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >         /* Save MIE CSR */
+> >         saved_mie = csr_read(CSR_MIE);
+> >
+> > -       /* Set MSIE bit to receive IPI */
+> > -       csr_set(CSR_MIE, MIP_MSIP);
+> > +       /* Set MSIE and MEIE bits to receive IPI */
+> > +       csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+> >
+> >         /* Acquire coldboot lock */
+> >         spin_lock(&coldboot_lock);
+> > @@ -182,7 +182,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >                 do {
+> >                         wfi();
+> >                         cmip = csr_read(CSR_MIP);
+> > -                } while (!(cmip & MIP_MSIP));
+> > +                } while (!(cmip & (MIP_MSIP | MIP_MEIP)));
+> >         };
+> >
+> >         /* Acquire coldboot lock */
+> > @@ -276,6 +276,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >                            __func__, rc);
+> >                 sbi_hart_hang();
+> >         }
+> > +       csr_set(CSR_MIE, MIP_MEIP);
+> >
+> >         rc = sbi_ipi_init(scratch, TRUE);
+> >         if (rc) {
+> > @@ -376,6 +377,7 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+> >         rc = sbi_platform_irqchip_init(plat, FALSE);
+> >         if (rc)
+> >                 sbi_hart_hang();
+> > +       csr_set(CSR_MIE, MIP_MEIP);
+> >
+> >         rc = sbi_ipi_init(scratch, FALSE);
+> >         if (rc)
+> > @@ -550,6 +552,7 @@ void __noreturn sbi_exit(struct sbi_scratch *scratch)
+> >
+> >         sbi_ipi_exit(scratch);
+> >
+> > +       csr_clear(CSR_MIE, MIP_MEIP);
+> >         sbi_platform_irqchip_exit(plat);
+> >
+> >         sbi_platform_final_exit(plat);
+> > --
+> > 2.25.1
+> >
 >
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > Reviewed-by: Atish Patra <atishp@rivosinc.com>
 
 Applied this patch to the riscv/opensbi repo.
@@ -27,69 +102,8 @@ Applied this patch to the riscv/opensbi repo.
 Regards,
 Anup
 
-> ---
->  include/sbi/sbi_platform.h | 20 ++++++++++++++++++++
->  lib/sbi/sbi_init.c         |  8 ++++++++
->  2 files changed, 28 insertions(+)
 >
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 4d192f2..0b5ae4b 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -64,6 +64,9 @@ enum sbi_platform_features {
->
->  /** Platform functions */
->  struct sbi_platform_operations {
-> +       /* Platform nascent initialization */
-> +       int (*nascent_init)(void);
-> +
->         /** Platform early initialization */
->         int (*early_init)(bool cold_boot);
->         /** Platform final initialization */
-> @@ -299,6 +302,23 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
->         return FALSE;
->  }
->
-> +/**
-> + * Nascent (very early) initialization for current HART
-> + *
-> + * NOTE: This function can be used to do very early initialization of
-> + * platform specific per-HART CSRs and devices.
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +static inline int sbi_platform_nascent_init(const struct sbi_platform *plat)
-> +{
-> +       if (plat && sbi_platform_ops(plat)->nascent_init)
-> +               return sbi_platform_ops(plat)->nascent_init();
-> +       return 0;
-> +}
-> +
->  /**
->   * Early initialization for current HART
->   *
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 83043c5..27d03a7 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -494,6 +494,14 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
->         if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
->                 coldboot = TRUE;
->
-> +       /*
-> +        * Do platform specific nascent (very early) initialization so
-> +        * that platform can initialize platform specific per-HART CSRs
-> +        * or per-HART devices.
-> +        */
-> +       if (sbi_platform_nascent_init(plat))
-> +               sbi_hart_hang();
-> +
->         if (coldboot)
->                 init_coldboot(scratch, hartid);
->         else
 > --
-> 2.25.1
->
+> Regards,
+> Atish
 
