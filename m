@@ -1,78 +1,29 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 15 Feb 2022 21:42:59 +0530
-Subject: [PATCH 2/3] lib: sbi: verbose sbi_domain_root_add_memregion
-In-Reply-To: <20220211111155.16121-3-nikita.shubin@maquefel.me>
-References: <20220211111155.16121-1-nikita.shubin@maquefel.me>
- <20220211111155.16121-3-nikita.shubin@maquefel.me>
-Message-ID: <CAK9=C2WPNhwzfdAG7TDtViQ=XMSpz_G3AB2hfhufiG=5Sra2VA@mail.gmail.com>
+From: Petro Karashchenko <petro.karashchenko@gmail.com>
+Date: Thu, 17 Feb 2022 23:31:39 +0200
+Subject: riscv_encoding.h: double definition upon integration with other
+ projects
+Message-ID: <CAA5uK6JjGK2m-aRw-yi1KV9LkAay0BNisjyAxxfZp4uit9+-_Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 11, 2022 at 4:42 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
->
-> From: Nikita Shubin <n.shubin@yadro.com>
->
-> Be more verbose on region confict, print addresses in conflict.
->
-> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+Hello,
 
-Looks good to me.
+Recently the opensbi support was added to Apache NuttX project. But
+the integration didn't pass cleanly and currently require few
+workarounds to eliminate dozens of warnings. The reason for this is
+that internal NuttX header files have defines with the same names that
+are available in
+https://github.com/riscv-software-src/opensbi/blob/master/include/sbi/riscv_encoding.h
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+I want to ask the OpenSBI team for advice on what can be an optimal
+solution for such types of issues? Can we add "#ifndef" wrapper for
+defines in "riscv_encoding.h" so there will be no redefinition
+warnings or add "OPENSBI_" prefix? Do you see this as a reasonable
+solution?
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-> ---
->  include/sbi/sbi_domain.h | 4 +++-
->  lib/sbi/sbi_domain.c     | 8 ++++++--
->  2 files changed, 9 insertions(+), 3 deletions(-)
->
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index 15e3a53..b90f59c 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -174,7 +174,9 @@ int sbi_domain_register(struct sbi_domain *dom,
->   * Add a memory region to the root domain
->   * @param reg pointer to the memory region to be added
->   *
-> - * @return 0 on success and negative error code on failure
-> + * @return 0 on success
-> + * @return SBI_EALREADY if memory region conflicts with existing
-> + * @return SBI_EINVAL otherwise
->   */
->  int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg);
->
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index a1ac1bb..4e4c1e1 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -471,8 +471,12 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->
->         /* Check for conflicts */
->         sbi_domain_for_each_memregion(&root, nreg) {
-> -               if (is_region_conflict(reg, nreg))
-> -                       return SBI_EINVAL;
-> +               if (is_region_conflict(reg, nreg)) {
-> +                       sbi_printf("%s: is_region_conflict check failed"
-> +                       " 0x%lx conflicts existing 0x%lx\n", __func__,
-> +                                  reg->base, nreg->base);
-> +                       return SBI_EALREADY;
-> +               }
->         }
->
->         /* Append the memregion to root memregions */
-> --
-> 2.31.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Best regards,
+Petro
 
