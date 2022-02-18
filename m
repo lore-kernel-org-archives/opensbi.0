@@ -1,97 +1,69 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 18 Feb 2022 22:41:10 +0530
+Date: Fri, 18 Feb 2022 22:43:51 +0530
 Subject: [PATCH] lib: sbi: Enable M-mode external interrupt only for AIA
-In-Reply-To: <3F6B2BA1-72B1-4BDD-ACD5-ACD8A6CD0A45@jrtc27.com>
+In-Reply-To: <20220218165641.1811334-1-atishp@rivosinc.com>
 References: <20220218165641.1811334-1-atishp@rivosinc.com>
- <3F6B2BA1-72B1-4BDD-ACD5-ACD8A6CD0A45@jrtc27.com>
-Message-ID: <CAK9=C2WoMxWnMgDK2GVRm22EitSZBozhjnN7UNTW9Yy8QTGnuQ@mail.gmail.com>
+Message-ID: <CAK9=C2XXdWDvfiyBX0dt67sPPDJUG0dMskOPYG75VSyu85iaUw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 18, 2022 at 10:34 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Fri, Feb 18, 2022 at 10:27 PM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> On 18 Feb 2022, at 16:56, Atish Patra <atishp@rivosinc.com> wrote:
-> >
-> > Some platforms may inject spurious M-mode external interrupt if
-> > the external interrupt bit is enabled in mie. We really don't
-> > need to enable M-mode external interrupts for platforms without
-> > AIA. This issue is observed in HiFive unmatched.
-> >
-> > Keep the M-mode external interrupt disabled for non-AIA platforms.
+> Some platforms may inject spurious M-mode external interrupt if
+> the external interrupt bit is enabled in mie. We really don't
+> need to enable M-mode external interrupts for platforms without
+> AIA. This issue is observed in HiFive unmatched.
 >
-> Is this for UART1 (https://forums.sifive.com/t/spurious-interrupts-from-m-2-e-key-uart1/5478)?
+> Keep the M-mode external interrupt disabled for non-AIA platforms.
 >
-> Seems to be OpenSBI should not be enabling any external interrupts in
-> the PLIC that it doesn?t want, which should render this patch
-> unnecessary (though you could perhaps argue you still might as well not
-> unmask external interrupts if you don?t expect any). Otherwise you just
-> risk the same thing happening for AIA hardware and needing to do the
-> proper fix at a later date.
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> ---
+>  lib/sbi/sbi_init.c | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 6876eb2f0f22..76b7c5d953ec 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -276,7 +276,12 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                            __func__, rc);
+>                 sbi_hart_hang();
+>         }
+> -       csr_set(CSR_MIE, MIP_MEIP);
+> +       /**
+> +        * HiFive unmatched platform generates spurious interrupt if external
+> +        * interrupt is enabled in mie. Enable it only if AIA is present.
+> +        */
+> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
 
-On platforms with IMSIC, the IPIs are through IMSIC since there is no
-CLINT or MSWI on these platforms. To support IPIs over IMSIC, we have
-to enable external interrupt on platforms with IMSIC.
-
-Unfortunately, this leads to possible spurious interrupts on platforms
-(e.g. SiFive Unmatched) with traditional PLIC.
+Actually, we have to check for AIA IMSIC and not just AIA.
 
 Regards,
 Anup
 
+> +               csr_set(CSR_MIE, MIP_MEIP);
 >
-> As it stands this patch is quite dubious without further exploration
-> and explanation of where these external interrupts are coming from.
+>         rc = sbi_ipi_init(scratch, TRUE);
+>         if (rc) {
+> @@ -377,7 +382,12 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+>         rc = sbi_platform_irqchip_init(plat, FALSE);
+>         if (rc)
+>                 sbi_hart_hang();
+> -       csr_set(CSR_MIE, MIP_MEIP);
+> +       /**
+> +        * HiFive unmatched platform generates spurious interrupt if external
+> +        * interrupt is enabled in mie. Enable it only if AIA is present.
+> +        */
+> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
+> +               csr_set(CSR_MIE, MIP_MEIP);
 >
-> Jess
->
-> > Signed-off-by: Atish Patra <atishp@rivosinc.com>
-> > ---
-> > lib/sbi/sbi_init.c | 14 ++++++++++++--
-> > 1 file changed, 12 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> > index 6876eb2f0f22..76b7c5d953ec 100644
-> > --- a/lib/sbi/sbi_init.c
-> > +++ b/lib/sbi/sbi_init.c
-> > @@ -276,7 +276,12 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >                          __func__, rc);
-> >               sbi_hart_hang();
-> >       }
-> > -     csr_set(CSR_MIE, MIP_MEIP);
-> > +     /**
-> > +      * HiFive unmatched platform generates spurious interrupt if external
-> > +      * interrupt is enabled in mie. Enable it only if AIA is present.
-> > +      */
-> > +     if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
-> > +             csr_set(CSR_MIE, MIP_MEIP);
-> >
-> >       rc = sbi_ipi_init(scratch, TRUE);
-> >       if (rc) {
-> > @@ -377,7 +382,12 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
-> >       rc = sbi_platform_irqchip_init(plat, FALSE);
-> >       if (rc)
-> >               sbi_hart_hang();
-> > -     csr_set(CSR_MIE, MIP_MEIP);
-> > +     /**
-> > +      * HiFive unmatched platform generates spurious interrupt if external
-> > +      * interrupt is enabled in mie. Enable it only if AIA is present.
-> > +      */
-> > +     if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
-> > +             csr_set(CSR_MIE, MIP_MEIP);
-> >
-> >       rc = sbi_ipi_init(scratch, FALSE);
-> >       if (rc)
-> > --
-> > 2.30.2
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+>         rc = sbi_ipi_init(scratch, FALSE);
+>         if (rc)
+> --
+> 2.30.2
 >
 >
 > --
