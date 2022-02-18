@@ -1,19 +1,19 @@
-From: Atish Kumar Patra <atishp@rivosinc.com>
-Date: Fri, 18 Feb 2022 09:58:51 -0800
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Fri, 18 Feb 2022 23:29:11 +0530
 Subject: [PATCH] lib: sbi: Enable M-mode external interrupt only for AIA
 In-Reply-To: <150088D8-33AF-4598-87BE-98CD40222CDB@jrtc27.com>
 References: <20220218165641.1811334-1-atishp@rivosinc.com>
  <3F6B2BA1-72B1-4BDD-ACD5-ACD8A6CD0A45@jrtc27.com>
  <CAK9=C2WoMxWnMgDK2GVRm22EitSZBozhjnN7UNTW9Yy8QTGnuQ@mail.gmail.com>
  <150088D8-33AF-4598-87BE-98CD40222CDB@jrtc27.com>
-Message-ID: <CAHBxVyFtZNPikmOvjW4JkN4tW3QFY5CqUdD74BK9TKskXirRgA@mail.gmail.com>
+Message-ID: <CAK9=C2UwrQRGjO_a-=kUykxJDzNy6kPwkqMXZc8RMg4fUEUBTQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 18, 2022 at 9:47 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Fri, Feb 18, 2022 at 11:17 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
 > On 18 Feb 2022, at 17:11, Anup Patel <apatel@ventanamicro.com> wrote:
 > >
@@ -45,20 +45,16 @@ On Fri, Feb 18, 2022 at 9:47 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 > > (e.g. SiFive Unmatched) with traditional PLIC.
 >
 > Why? If you correctly configure the PLIC you shouldn?t get any, surely?
+
+We are definitely disabling interrupts for M-mode in PLIC but something
+is off. I certainly agree that we should investigate this issue in the PLIC
+driver but separately we should also ensure that mie.MEIE is enabled
+only for platforms requiring it.
+
+Regards,
+Anup
+
 >
-All M-mode interrupt contexts are disabled in PLIC.
-https://github.com/riscv-software-src/opensbi/blob/master/lib/utils/fdt/fdt_fixup.c#L114
-This code has been there from ages.
-
-The spurious external interrupt happens once Linux kernel invokes wfi.
-I am assuming this is a hardware
-bug where M-mode external interrupts are generated even if PLIC
-contexts are disabled.
-
-The issue only happens after the patch
-55e79f823dfa (lib: sbi: Enable mie.MEIE bit for IPIs based on external
-interrupts.)
-
 > Jess
 >
 > > Regards,
