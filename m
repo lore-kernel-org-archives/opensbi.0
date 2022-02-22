@@ -1,144 +1,270 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 18 Feb 2022 18:20:48 +0000
-Subject: [PATCH] lib: sbi: Enable M-mode external interrupt only for AIA
-In-Reply-To: <CAHBxVyFtZNPikmOvjW4JkN4tW3QFY5CqUdD74BK9TKskXirRgA@mail.gmail.com>
-References: <20220218165641.1811334-1-atishp@rivosinc.com>
- <3F6B2BA1-72B1-4BDD-ACD5-ACD8A6CD0A45@jrtc27.com>
- <CAK9=C2WoMxWnMgDK2GVRm22EitSZBozhjnN7UNTW9Yy8QTGnuQ@mail.gmail.com>
- <150088D8-33AF-4598-87BE-98CD40222CDB@jrtc27.com>
- <CAHBxVyFtZNPikmOvjW4JkN4tW3QFY5CqUdD74BK9TKskXirRgA@mail.gmail.com>
-Message-ID: <5B00E6D9-A00B-4AE9-81B6-C632C69E4B5D@jrtc27.com>
+From: Alistair Francis <alistair.francis@opensource.wdc.com>
+Date: Tue, 22 Feb 2022 11:47:07 +1000
+Subject: [PATCH] lib: utils: serial: Initial commit of xlnx-uartlite
+Message-ID: <20220222014707.2983794-1-alistair.francis@opensource.wdc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 18 Feb 2022, at 17:58, Atish Kumar Patra <atishp@rivosinc.com> wrote:
-> 
-> On Fri, Feb 18, 2022 at 9:47 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->> 
->> On 18 Feb 2022, at 17:11, Anup Patel <apatel@ventanamicro.com> wrote:
->>> 
->>> On Fri, Feb 18, 2022 at 10:34 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->>>> 
->>>> On 18 Feb 2022, at 16:56, Atish Patra <atishp@rivosinc.com> wrote:
->>>>> 
->>>>> Some platforms may inject spurious M-mode external interrupt if
->>>>> the external interrupt bit is enabled in mie. We really don't
->>>>> need to enable M-mode external interrupts for platforms without
->>>>> AIA. This issue is observed in HiFive unmatched.
->>>>> 
->>>>> Keep the M-mode external interrupt disabled for non-AIA platforms.
->>>> 
->>>> Is this for UART1 (https://forums.sifive.com/t/spurious-interrupts-from-m-2-e-key-uart1/5478)?
->>>> 
->>>> Seems to be OpenSBI should not be enabling any external interrupts in
->>>> the PLIC that it doesn?t want, which should render this patch
->>>> unnecessary (though you could perhaps argue you still might as well not
->>>> unmask external interrupts if you don?t expect any). Otherwise you just
->>>> risk the same thing happening for AIA hardware and needing to do the
->>>> proper fix at a later date.
->>> 
->>> On platforms with IMSIC, the IPIs are through IMSIC since there is no
->>> CLINT or MSWI on these platforms. To support IPIs over IMSIC, we have
->>> to enable external interrupt on platforms with IMSIC.
->>> 
->>> Unfortunately, this leads to possible spurious interrupts on platforms
->>> (e.g. SiFive Unmatched) with traditional PLIC.
->> 
->> Why? If you correctly configure the PLIC you shouldn?t get any, surely?
->> 
-> All M-mode interrupt contexts are disabled in PLIC.
-> https://github.com/riscv-software-src/opensbi/blob/master/lib/utils/fdt/fdt_fixup.c#L114
-> This code has been there from ages.
+From: Alistair Francis <alistair.francis@wdc.com>
 
-That doesn?t do anything to the PLIC. It just patches the device tree?s
-description of the PLIC. But ok, I found the code that clears the PLIC
-IE bits and sets the thresholds to the max of 7 (for SiFive?s
-implementation).
+Initial commit of the xlnx-uartlite device and FDT support. This was
+tested by running OpenSBI on a modified QEMU virt machine using the
+xlnx-uartlite for serial.
 
-Having said that, the device tree in U-Boot (even the -uboot variant)
-has the PLIC?s interrupts-extended property pre-mangled with -1 for the
-M-mode contexts. Is it possible that?s all that?s going on, and OpenSBI
-has no opportunity to initialise the PLIC, with
-plic_hartid2context[hartid][0] being left as 0 for every hart (i.e.
-mapping to the S core?s context)? The same also appears to be true for
-the fu540/unleashed device tree. Though why it?d only show up during
-WFI I can?t say.
+Signed-off-by: Alistair Francis <alistair.francis@wdc.com>
+---
+ include/sbi_utils/fdt/fdt_helper.h          |  3 +
+ include/sbi_utils/serial/xlnx_uartlite.h    | 17 ++++++
+ lib/utils/fdt/fdt_helper.c                  | 35 +++++++++++
+ lib/utils/serial/fdt_serial.c               |  4 +-
+ lib/utils/serial/fdt_serial_xlnx_uartlite.c | 36 +++++++++++
+ lib/utils/serial/objects.mk                 |  2 +
+ lib/utils/serial/xlnx-uartlite.c            | 68 +++++++++++++++++++++
+ 7 files changed, 164 insertions(+), 1 deletion(-)
+ create mode 100644 include/sbi_utils/serial/xlnx_uartlite.h
+ create mode 100644 lib/utils/serial/fdt_serial_xlnx_uartlite.c
+ create mode 100644 lib/utils/serial/xlnx-uartlite.c
 
-Jess
-
-> The spurious external interrupt happens once Linux kernel invokes wfi.
-> I am assuming this is a hardware
-> bug where M-mode external interrupts are generated even if PLIC
-> contexts are disabled.
-> 
-> The issue only happens after the patch
-> 55e79f823dfa (lib: sbi: Enable mie.MEIE bit for IPIs based on external
-> interrupts.)
-> 
->> Jess
->> 
->>> Regards,
->>> Anup
->>> 
->>>> 
->>>> As it stands this patch is quite dubious without further exploration
->>>> and explanation of where these external interrupts are coming from.
->>>> 
->>>> Jess
->>>> 
->>>>> Signed-off-by: Atish Patra <atishp@rivosinc.com>
->>>>> ---
->>>>> lib/sbi/sbi_init.c | 14 ++++++++++++--
->>>>> 1 file changed, 12 insertions(+), 2 deletions(-)
->>>>> 
->>>>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->>>>> index 6876eb2f0f22..76b7c5d953ec 100644
->>>>> --- a/lib/sbi/sbi_init.c
->>>>> +++ b/lib/sbi/sbi_init.c
->>>>> @@ -276,7 +276,12 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->>>>>                        __func__, rc);
->>>>>             sbi_hart_hang();
->>>>>     }
->>>>> -     csr_set(CSR_MIE, MIP_MEIP);
->>>>> +     /**
->>>>> +      * HiFive unmatched platform generates spurious interrupt if external
->>>>> +      * interrupt is enabled in mie. Enable it only if AIA is present.
->>>>> +      */
->>>>> +     if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
->>>>> +             csr_set(CSR_MIE, MIP_MEIP);
->>>>> 
->>>>>     rc = sbi_ipi_init(scratch, TRUE);
->>>>>     if (rc) {
->>>>> @@ -377,7 +382,12 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
->>>>>     rc = sbi_platform_irqchip_init(plat, FALSE);
->>>>>     if (rc)
->>>>>             sbi_hart_hang();
->>>>> -     csr_set(CSR_MIE, MIP_MEIP);
->>>>> +     /**
->>>>> +      * HiFive unmatched platform generates spurious interrupt if external
->>>>> +      * interrupt is enabled in mie. Enable it only if AIA is present.
->>>>> +      */
->>>>> +     if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
->>>>> +             csr_set(CSR_MIE, MIP_MEIP);
->>>>> 
->>>>>     rc = sbi_ipi_init(scratch, FALSE);
->>>>>     if (rc)
->>>>> --
->>>>> 2.30.2
->>>>> 
->>>>> 
->>>>> --
->>>>> opensbi mailing list
->>>>> opensbi at lists.infradead.org
->>>>> http://lists.infradead.org/mailman/listinfo/opensbi
->>>> 
->>>> 
->>>> --
->>>> opensbi mailing list
->>>> opensbi at lists.infradead.org
->>>> http://lists.infradead.org/mailman/listinfo/opensbi
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 1232b26..41ee826 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -68,6 +68,9 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
+ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
+ 		       const char *compatible);
+ 
++int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
++			       struct platform_uart_data *uart);
++
+ struct aplic_data;
+ 
+ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic);
+diff --git a/include/sbi_utils/serial/xlnx_uartlite.h b/include/sbi_utils/serial/xlnx_uartlite.h
+new file mode 100644
+index 0000000..2291e69
+--- /dev/null
++++ b/include/sbi_utils/serial/xlnx_uartlite.h
+@@ -0,0 +1,17 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Alistair Francis <alistair.francis@wdc.com>
++ */
++#ifndef __SERIAL_XLNX_UARTLITE_H__
++#define __SERIAL_XLNX_UARTLITE_H__
++
++#include <sbi/sbi_types.h>
++
++int xlnx_uartlite_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
++		  u32 reg_width);
++
++#endif
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 3a306cb..46ef340 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -467,6 +467,41 @@ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
+ 	return fdt_parse_uart8250_node(fdt, nodeoffset, uart);
+ }
+ 
++int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
++			       struct platform_uart_data *uart)
++{
++	int len, rc;
++	const fdt32_t *val;
++	uint64_t reg_addr, reg_size;
++
++	if (nodeoffset < 0 || !uart || !fdt)
++		return SBI_ENODEV;
++
++	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
++				    &reg_addr, &reg_size);
++	if (rc < 0 || !reg_addr || !reg_size)
++		return SBI_ENODEV;
++	uart->addr = reg_addr;
++
++	/**
++	 * UART address is mandaotry. clock-frequency and current-speed
++	 * may not be present. Don't return error.
++	 */
++	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
++	if (len > 0 && val)
++		uart->freq = fdt32_to_cpu(*val);
++	else
++		uart->freq = 125000000;
++
++	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
++	if (len > 0 && val)
++		uart->baud = fdt32_to_cpu(*val);
++	else
++		uart->baud = 19200;
++
++	return 0;
++}
++
+ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
+ {
+ 	bool child_found;
+diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
+index f73d26a..45aea4a 100644
+--- a/lib/utils/serial/fdt_serial.c
++++ b/lib/utils/serial/fdt_serial.c
+@@ -19,6 +19,7 @@ extern struct fdt_serial fdt_serial_litex;
+ extern struct fdt_serial fdt_serial_htif;
+ extern struct fdt_serial fdt_serial_shakti;
+ extern struct fdt_serial fdt_serial_gaisler;
++extern struct fdt_serial fdt_serial_xlnx_uartlite;
+ 
+ static struct fdt_serial *serial_drivers[] = {
+ 	&fdt_serial_uart8250,
+@@ -26,7 +27,8 @@ static struct fdt_serial *serial_drivers[] = {
+ 	&fdt_serial_litex,
+ 	&fdt_serial_htif,
+ 	&fdt_serial_shakti,
+-	&fdt_serial_gaisler
++	&fdt_serial_gaisler,
++	&fdt_serial_xlnx_uartlite,
+ };
+ 
+ static struct fdt_serial dummy = {
+diff --git a/lib/utils/serial/fdt_serial_xlnx_uartlite.c b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+new file mode 100644
+index 0000000..09ad20e
+--- /dev/null
++++ b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+@@ -0,0 +1,36 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Alistair Francis <alistair.francis@wdc.com>
++ */
++
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/serial/fdt_serial.h>
++#include <sbi_utils/serial/xlnx_uartlite.h>
++
++static int serial_xlnx_uartlite_init(void *fdt, int nodeoff,
++				const struct fdt_match *match)
++{
++	int rc;
++	struct platform_uart_data uart;
++
++	rc = fdt_parse_xlnx_uartlite_node(fdt, nodeoff, &uart);
++	if (rc)
++		return rc;
++
++	return xlnx_uartlite_init(uart.addr, uart.freq, uart.baud,
++			     uart.reg_shift, uart.reg_io_width);
++}
++
++static const struct fdt_match serial_xlnx_uartlite_match[] = {
++	{ .compatible = "xlnx,xps-uartlite-1.00.a" },
++	{ },
++};
++
++struct fdt_serial fdt_serial_xlnx_uartlite = {
++	.match_table = serial_xlnx_uartlite_match,
++	.init = serial_xlnx_uartlite_init,
++};
+diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+index 4f751ba..4fb9627 100644
+--- a/lib/utils/serial/objects.mk
++++ b/lib/utils/serial/objects.mk
+@@ -14,8 +14,10 @@ libsbiutils-objs-y += serial/fdt_serial_shakti.o
+ libsbiutils-objs-y += serial/fdt_serial_sifive.o
+ libsbiutils-objs-y += serial/fdt_serial_litex.o
+ libsbiutils-objs-y += serial/fdt_serial_uart8250.o
++libsbiutils-objs-y += serial/fdt_serial_xlnx_uartlite.o
+ libsbiutils-objs-y += serial/gaisler-uart.o
+ libsbiutils-objs-y += serial/shakti-uart.o
+ libsbiutils-objs-y += serial/sifive-uart.o
+ libsbiutils-objs-y += serial/litex-uart.o
+ libsbiutils-objs-y += serial/uart8250.o
++libsbiutils-objs-y += serial/xlnx-uartlite.o
+diff --git a/lib/utils/serial/xlnx-uartlite.c b/lib/utils/serial/xlnx-uartlite.c
+new file mode 100644
+index 0000000..caab6a8
+--- /dev/null
++++ b/lib/utils/serial/xlnx-uartlite.c
+@@ -0,0 +1,68 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Alistair Francis <alistair.francis@wdc.com>
++ */
++
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_console.h>
++#include <sbi_utils/serial/xlnx_uartlite.h>
++
++/* clang-format off */
++
++#define UART_RX_OFFSET		0x00
++#define UART_TX_OFFSET		0x04
++#define UART_STATUS_OFFSET	0x08
++# define UART_STATUS_RXVALID	0x01
++# define UART_STATUS_RXFULL	0x02
++# define UART_STATUS_TXEMPTY	0x04
++# define UART_STATUS_TXFULL	0x08
++# define UART_STATUS_IE	0x10
++# define UART_STATUS_OVERRUN	0x20
++# define UART_STATUS_FRAME	0x40
++# define UART_STATUS_PARITY	0x80
++#define UART_CTRL_OFFSET	0x0C
++# define UART_CTRL_RST_TX	0x01
++# define UART_CTRL_RST_RX	0x02
++# define UART_CTRL_IE		0x10
++
++/* clang-format on */
++
++static volatile char *xlnx_uartlite_base;
++
++static void xlnx_uartlite_putc(char ch)
++{
++	while((readb(xlnx_uartlite_base + UART_STATUS_OFFSET) & UART_STATUS_TXFULL))
++		;
++
++	writeb(ch, xlnx_uartlite_base + UART_TX_OFFSET);
++}
++
++static int xlnx_uartlite_getc(void)
++{
++	u16 status = readb(xlnx_uartlite_base + UART_STATUS_OFFSET);
++
++	if (status & UART_STATUS_RXVALID)
++		return readb(xlnx_uartlite_base + UART_RX_OFFSET);
++
++	return -1;
++}
++
++static struct sbi_console_device xlnx_uartlite_console = {
++	.name = "xlnx-uartlite",
++	.console_putc = xlnx_uartlite_putc,
++	.console_getc = xlnx_uartlite_getc
++};
++
++int xlnx_uartlite_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
++		  u32 reg_width)
++{
++	xlnx_uartlite_base = (volatile char *)base;
++
++	sbi_console_set_device(&xlnx_uartlite_console);
++
++	return 0;
++}
+-- 
+2.35.1
 
 
