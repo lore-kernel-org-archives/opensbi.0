@@ -1,319 +1,298 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 23 Feb 2022 13:15:37 +0800
-Subject: [PATCH] lib: sbi: Add a simple external interrupt handling
- framework
-In-Reply-To: <20220222081857.877561-1-apatel@ventanamicro.com>
-References: <20220222081857.877561-1-apatel@ventanamicro.com>
-Message-ID: <df13077891fc414cafc1d496c3fd7d8d181748b2.camel@126.com>
+Date: Wed, 23 Feb 2022 16:05:26 +0800
+Subject: [PATCH] lib: utils: serial: Initial commit of xlnx-uartlite
+In-Reply-To: <20220222014707.2983794-1-alistair.francis@opensource.wdc.com>
+References: <20220222014707.2983794-1-alistair.francis@opensource.wdc.com>
+Message-ID: <1cba95644d07f004a92a46049f967eff9d5d92b7.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-02-22???? 13:48 +0530?Anup Patel???
-> Currently, the external interrupt handling is scattered between
-> sbi_init and sbi_trap. This patch moves all external interrupt
-> handling into a simple framework called sbi_irqchip.
+? 2022-02-22???? 11:47 +1000?Alistair Francis???
+> From: Alistair Francis <alistair.francis@wdc.com>
 > 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-
-Look good to me.
-
-Reviewed-by: Xiang W <wxjstz@126.com>
+> Initial commit of the xlnx-uartlite device and FDT support. This was
+> tested by running OpenSBI on a modified QEMU virt machine using the
+> xlnx-uartlite for serial.
+> 
+> Signed-off-by: Alistair Francis <alistair.francis@wdc.com>
 > ---
-> ?include/sbi/sbi_irqchip.h | 44 +++++++++++++++++++++++++++++++
-> ?include/sbi/sbi_trap.h??? |? 2 --
-> ?lib/sbi/objects.mk??????? |? 1 +
-> ?lib/sbi/sbi_init.c??????? | 12 ++++-----
-> ?lib/sbi/sbi_irqchip.c???? | 54
-> +++++++++++++++++++++++++++++++++++++++
-> ?lib/sbi/sbi_trap.c??????? | 26 +++----------------
-> ?lib/utils/irqchip/imsic.c |? 4 +--
-> ?7 files changed, 109 insertions(+), 34 deletions(-)
-> ?create mode 100644 include/sbi/sbi_irqchip.h
-> ?create mode 100644 lib/sbi/sbi_irqchip.c
+> ?include/sbi_utils/fdt/fdt_helper.h????????? |? 3 +
+> ?include/sbi_utils/serial/xlnx_uartlite.h??? | 17 ++++++
+> ?lib/utils/fdt/fdt_helper.c????????????????? | 35 +++++++++++
+> ?lib/utils/serial/fdt_serial.c?????????????? |? 4 +-
+> ?lib/utils/serial/fdt_serial_xlnx_uartlite.c | 36 +++++++++++
+> ?lib/utils/serial/objects.mk???????????????? |? 2 +
+> ?lib/utils/serial/xlnx-uartlite.c??????????? | 68
+> +++++++++++++++++++++
+> ?7 files changed, 164 insertions(+), 1 deletion(-)
+> ?create mode 100644 include/sbi_utils/serial/xlnx_uartlite.h
+> ?create mode 100644 lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> ?create mode 100644 lib/utils/serial/xlnx-uartlite.c
 > 
-> diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h
+> b/include/sbi_utils/fdt/fdt_helper.h
+> index 1232b26..41ee826 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -68,6 +68,9 @@ int fdt_parse_uart8250_node(void *fdt, int
+> nodeoffset,
+> ?int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
+> ?????????????????????? const char *compatible);
+> ?
+> +int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
+> +????????????????????????????? struct platform_uart_data *uart);
+> +
+> ?struct aplic_data;
+> ?
+> ?int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data
+> *aplic);
+> diff --git a/include/sbi_utils/serial/xlnx_uartlite.h
+> b/include/sbi_utils/serial/xlnx_uartlite.h
 > new file mode 100644
-> index 0000000..6acc6e3
+> index 0000000..2291e69
 > --- /dev/null
-> +++ b/include/sbi/sbi_irqchip.h
-> @@ -0,0 +1,44 @@
+> +++ b/include/sbi_utils/serial/xlnx_uartlite.h
+> @@ -0,0 +1,17 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
-> + * Copyright (c) 2022 Ventana Micro Systems Inc.
+> + * Copyright (c) 2022 Western Digital Corporation or its affiliates.
 > + *
 > + * Authors:
-> + *?? Anup Patel <apatel@ventanamicro.com>
+> + *?? Alistair Francis <alistair.francis@wdc.com>
 > + */
-> +
-> +#ifndef __SBI_IRQCHIP_H__
-> +#define __SBI_IRQCHIP_H__
+> +#ifndef __SERIAL_XLNX_UARTLITE_H__
+> +#define __SERIAL_XLNX_UARTLITE_H__
 > +
 > +#include <sbi/sbi_types.h>
 > +
-> +struct sbi_scratch;
-> +struct sbi_trap_regs;
-> +
-> +/**
-> + * Set external interrupt handling function
-> + *
-> + * This function is called by OpenSBI platform code to set a handler
-> for
-> + * external interrupts
-> + *
-> + * @param fn function pointer for handling external irqs
-> + */
-> +void sbi_irqchip_set_irqfn(int (*fn)(struct sbi_trap_regs *regs));
-> +
-> +/**
-> + * Process external interrupts
-> + *
-> + * This function is called by sbi_trap_handler() to handle external
-> + * interrupts.
-> + *
-> + * @param regs pointer for trap registers
-> + */
-> +int sbi_irqchip_process(struct sbi_trap_regs *regs);
-> +
-> +/** Initialize interrupt controllers */
-> +int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot);
-> +
-> +/** Exit interrupt controllers */
-> +void sbi_irqchip_exit(struct sbi_scratch *scratch);
+> +int xlnx_uartlite_init(unsigned long base, u32 in_freq, u32 baudrate,
+> u32 reg_shift,
+> +???????????????? u32 reg_width);
 > +
 > +#endif
-> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-> index 4f611fa..d205056 100644
-> --- a/include/sbi/sbi_trap.h
-> +++ b/include/sbi/sbi_trap.h
-> @@ -205,8 +205,6 @@ struct sbi_trap_info {
-> ?int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> ????????????????????? struct sbi_trap_info *trap);
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index 3a306cb..46ef340 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -467,6 +467,41 @@ int fdt_parse_uart8250(void *fdt, struct
+> platform_uart_data *uart,
+> ????????return fdt_parse_uart8250_node(fdt, nodeoffset, uart);
+> ?}
 > ?
-> -void sbi_trap_set_external_irqfn(int (*fn)(struct sbi_trap_regs
-> *regs));
-> -
-> ?struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
-> ?
-> ?void __noreturn sbi_trap_exit(const struct sbi_trap_regs *regs);
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index 7096f24..1ed1983 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -32,6 +32,7 @@ libsbi-objs-y += sbi_hsm.o
-> ?libsbi-objs-y += sbi_illegal_insn.o
-> ?libsbi-objs-y += sbi_init.o
-> ?libsbi-objs-y += sbi_ipi.o
-> +libsbi-objs-y += sbi_irqchip.o
-> ?libsbi-objs-y += sbi_misaligned_ldst.o
-> ?libsbi-objs-y += sbi_platform.o
-> ?libsbi-objs-y += sbi_pmu.o
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 6876eb2..2b9e5ae 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -18,6 +18,7 @@
-> ?#include <sbi/sbi_hartmask.h>
-> ?#include <sbi/sbi_hsm.h>
-> ?#include <sbi/sbi_ipi.h>
-> +#include <sbi/sbi_irqchip.h>
-> ?#include <sbi/sbi_platform.h>
-> ?#include <sbi/sbi_pmu.h>
-> ?#include <sbi/sbi_system.h>
-> @@ -270,13 +271,12 @@ static void __noreturn init_coldboot(struct
-> sbi_scratch *scratch, u32 hartid)
-> ?
-> ????????sbi_boot_print_banner(scratch);
-> ?
-> -???????rc = sbi_platform_irqchip_init(plat, TRUE);
-> +???????rc = sbi_irqchip_init(scratch, TRUE);
-> ????????if (rc) {
-> -???????????????sbi_printf("%s: platform irqchip init failed (error
-> %d)\n",
-> +???????????????sbi_printf("%s: irqchip init failed (error %d)\n",
-> ?????????????????????????? __func__, rc);
-> ????????????????sbi_hart_hang();
-> ????????}
-> -???????csr_set(CSR_MIE, MIP_MEIP);
-> ?
-> ????????rc = sbi_ipi_init(scratch, TRUE);
-> ????????if (rc) {
-> @@ -374,10 +374,9 @@ static void init_warm_startup(struct sbi_scratch
-> *scratch, u32 hartid)
-> ????????if (rc)
-> ????????????????sbi_hart_hang();
-> ?
-> -???????rc = sbi_platform_irqchip_init(plat, FALSE);
-> +???????rc = sbi_irqchip_init(scratch, FALSE);
-> ????????if (rc)
-> ????????????????sbi_hart_hang();
-> -???????csr_set(CSR_MIE, MIP_MEIP);
-> ?
-> ????????rc = sbi_ipi_init(scratch, FALSE);
-> ????????if (rc)
-> @@ -552,8 +551,7 @@ void __noreturn sbi_exit(struct sbi_scratch
-> *scratch)
-> ?
-> ????????sbi_ipi_exit(scratch);
-> ?
-> -???????csr_clear(CSR_MIE, MIP_MEIP);
-> -???????sbi_platform_irqchip_exit(plat);
-> +???????sbi_irqchip_exit(scratch);
-> ?
-> ????????sbi_platform_final_exit(plat);
-> ?
-> diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
-> new file mode 100644
-> index 0000000..24128be
-> --- /dev/null
-> +++ b/lib/sbi/sbi_irqchip.c
-> @@ -0,0 +1,54 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 Ventana Micro Systems Inc.
-> + *
-> + * Authors:
-> + *?? Anup Patel <apatel@ventanamicro.com>
-> + */
-> +
-> +#include <sbi/sbi_irqchip.h>
-> +#include <sbi/sbi_platform.h>
-> +
-> +static int default_irqfn(struct sbi_trap_regs *regs)
+> +int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
+> +????????????????????????????? struct platform_uart_data *uart)
 > +{
-> +???????return SBI_ENODEV;
-> +}
+> +???????int len, rc;
+> +???????const fdt32_t *val;
+> +???????uint64_t reg_addr, reg_size;
 > +
-> +static int (*ext_irqfn)(struct sbi_trap_regs *regs) = default_irqfn;
+> +???????if (nodeoffset < 0 || !uart || !fdt)
+> +???????????????return SBI_ENODEV;
 > +
-> +void sbi_irqchip_set_irqfn(int (*fn)(struct sbi_trap_regs *regs))
-> +{
-> +???????if (fn)
-> +???????????????ext_irqfn = fn;
-> +}
+> +???????rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
+> +?????????????????????????????????? &reg_addr, &reg_size);
+> +???????if (rc < 0 || !reg_addr || !reg_size)
+> +???????????????return SBI_ENODEV;
+> +???????uart->addr = reg_addr;
+I checked that only reg_addr is used, the following code can be
+optimized.
 > +
-> +int sbi_irqchip_process(struct sbi_trap_regs *regs)
-> +{
-> +???????return ext_irqfn(regs);
-> +}
+> +???????/**
+> +??????? * UART address is mandaotry. clock-frequency and current-
+> speed
+> +??????? * may not be present. Don't return error.
+> +??????? */
+> +???????val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-
+> frequency", &len);
+> +???????if (len > 0 && val)
+> +???????????????uart->freq = fdt32_to_cpu(*val);
+> +???????else
+> +???????????????uart->freq = 125000000;
 > +
-> +int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot)
-> +{
-> +???????int rc;
-> +???????const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> +
-> +???????rc = sbi_platform_irqchip_init(plat, cold_boot);
-> +???????if (rc)
-> +???????????????return rc;
-> +
-> +???????if (ext_irqfn != default_irqfn)
-> +???????????????csr_set(CSR_MIE, MIP_MEIP);
+> +???????val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed",
+> &len);
+> +???????if (len > 0 && val)
+> +???????????????uart->baud = fdt32_to_cpu(*val);
+> +???????else
+> +???????????????uart->baud = 19200;
 > +
 > +???????return 0;
 > +}
 > +
-> +void sbi_irqchip_exit(struct sbi_scratch *scratch)
-> +{
-> +???????const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-> +
-> +???????if (ext_irqfn != default_irqfn)
-> +???????????????csr_clear(CSR_MIE, MIP_MEIP);
-> +
-> +???????sbi_platform_irqchip_exit(plat);
-> +}
-> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index faab90a..86bab6d 100644
-> --- a/lib/sbi/sbi_trap.c
-> +++ b/lib/sbi/sbi_trap.c
-> @@ -15,6 +15,7 @@
-> ?#include <sbi/sbi_hart.h>
-> ?#include <sbi/sbi_illegal_insn.h>
-> ?#include <sbi/sbi_ipi.h>
-> +#include <sbi/sbi_irqchip.h>
-> ?#include <sbi/sbi_misaligned_ldst.h>
-> ?#include <sbi/sbi_pmu.h>
-> ?#include <sbi/sbi_scratch.h>
-> @@ -195,27 +196,6 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> ????????return 0;
-> ?}
-> ?
-> -static int default_irqfn(struct sbi_trap_regs *regs)
-> -{
-> -???????return SBI_ENODEV;
-> -}
-> -
-> -static int (*ext_irqfn)(struct sbi_trap_regs *regs) = default_irqfn;
-> -
-> -/**
-> - * Set external irq handler function
-> - *
-> - * This function is called by OpenSBI platform code to set a handler
-> for
-> - * external interrupts
-> - *
-> - * @param fn function pointer for handling external irqs
-> - */
-> -void sbi_trap_set_external_irqfn(int (*fn)(struct sbi_trap_regs
-> *regs))
-> -{
-> -???????if (fn)
-> -???????????????ext_irqfn = fn;
-> -}
-> -
-> ?static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong
-> mcause)
+> ?int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data
+> *aplic)
 > ?{
-> ????????mcause &= ~(1UL << (__riscv_xlen - 1));
-> @@ -227,7 +207,7 @@ static int sbi_trap_nonaia_irq(struct
-> sbi_trap_regs *regs, ulong mcause)
-> ????????????????sbi_ipi_process();
-> ????????????????break;
-> ????????case IRQ_M_EXT:
-> -???????????????return ext_irqfn(regs);
-> +???????????????return sbi_irqchip_process(regs);
-> ????????default:
-> ????????????????return SBI_ENOENT;
-> ????????};
-> @@ -250,7 +230,7 @@ static int sbi_trap_aia_irq(struct sbi_trap_regs
-> *regs, ulong mcause)
-> ????????????????????????sbi_ipi_process();
-> ????????????????????????break;
-> ????????????????case IRQ_M_EXT:
-> -???????????????????????rc = ext_irqfn(regs);
-> +???????????????????????rc = sbi_irqchip_process(regs);
-> ????????????????????????if (rc)
-> ????????????????????????????????return rc;
-> ????????????????????????break;
-> diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-> index 123d01f..b29a1e9 100644
-> --- a/lib/utils/irqchip/imsic.c
-> +++ b/lib/utils/irqchip/imsic.c
-> @@ -15,8 +15,8 @@
-> ?#include <sbi/sbi_domain.h>
-> ?#include <sbi/sbi_hartmask.h>
-> ?#include <sbi/sbi_ipi.h>
-> +#include <sbi/sbi_irqchip.h>
-> ?#include <sbi/sbi_error.h>
-> -#include <sbi/sbi_trap.h>
-> ?#include <sbi_utils/irqchip/imsic.h>
+> ????????bool child_found;
+> diff --git a/lib/utils/serial/fdt_serial.c
+> b/lib/utils/serial/fdt_serial.c
+> index f73d26a..45aea4a 100644
+> --- a/lib/utils/serial/fdt_serial.c
+> +++ b/lib/utils/serial/fdt_serial.c
+> @@ -19,6 +19,7 @@ extern struct fdt_serial fdt_serial_litex;
+> ?extern struct fdt_serial fdt_serial_htif;
+> ?extern struct fdt_serial fdt_serial_shakti;
+> ?extern struct fdt_serial fdt_serial_gaisler;
+> +extern struct fdt_serial fdt_serial_xlnx_uartlite;
 > ?
-> ?#define IMSIC_MMIO_PAGE_LE?????????????0x00
-> @@ -268,7 +268,7 @@ int imsic_cold_irqchip_init(struct imsic_data
-> *imsic)
-> ????????????????return SBI_EINVAL;
+> ?static struct fdt_serial *serial_drivers[] = {
+> ????????&fdt_serial_uart8250,
+> @@ -26,7 +27,8 @@ static struct fdt_serial *serial_drivers[] = {
+> ????????&fdt_serial_litex,
+> ????????&fdt_serial_htif,
+> ????????&fdt_serial_shakti,
+> -???????&fdt_serial_gaisler
+> +???????&fdt_serial_gaisler,
+> +???????&fdt_serial_xlnx_uartlite,
+> ?};
 > ?
-> ????????/* Setup external interrupt function for IMSIC */
-> -???????sbi_trap_set_external_irqfn(imsic_external_irqfn);
-> +???????sbi_irqchip_set_irqfn(imsic_external_irqfn);
-> ?
-> ????????/* Add IMSIC regions to the root domain */
-> ????????for (i = 0; i < IMSIC_MAX_REGS && imsic->regs[i].size; i++) {
+> ?static struct fdt_serial dummy = {
+> diff --git a/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> new file mode 100644
+> index 0000000..09ad20e
+> --- /dev/null
+> +++ b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> @@ -0,0 +1,36 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *?? Alistair Francis <alistair.francis@wdc.com>
+> + */
+> +
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/serial/fdt_serial.h>
+> +#include <sbi_utils/serial/xlnx_uartlite.h>
+> +
+> +static int serial_xlnx_uartlite_init(void *fdt, int nodeoff,
+> +???????????????????????????????const struct fdt_match *match)
+> +{
+> +???????int rc;
+> +???????struct platform_uart_data uart;
+> +
+> +???????rc = fdt_parse_xlnx_uartlite_node(fdt, nodeoff, &uart);
+> +???????if (rc)
+> +???????????????return rc;
+> +
+> +???????return xlnx_uartlite_init(uart.addr, uart.freq, uart.baud,
+> +??????????????????????????? uart.reg_shift, uart.reg_io_width);
+> +}
+> +
+> +static const struct fdt_match serial_xlnx_uartlite_match[] = {
+> +???????{ .compatible = "xlnx,xps-uartlite-1.00.a" },
+> +???????{ },
+> +};
+> +
+> +struct fdt_serial fdt_serial_xlnx_uartlite = {
+> +???????.match_table = serial_xlnx_uartlite_match,
+> +???????.init = serial_xlnx_uartlite_init,
+> +};
+> diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+> index 4f751ba..4fb9627 100644
+> --- a/lib/utils/serial/objects.mk
+> +++ b/lib/utils/serial/objects.mk
+> @@ -14,8 +14,10 @@ libsbiutils-objs-y += serial/fdt_serial_shakti.o
+> ?libsbiutils-objs-y += serial/fdt_serial_sifive.o
+> ?libsbiutils-objs-y += serial/fdt_serial_litex.o
+> ?libsbiutils-objs-y += serial/fdt_serial_uart8250.o
+> +libsbiutils-objs-y += serial/fdt_serial_xlnx_uartlite.o
+> ?libsbiutils-objs-y += serial/gaisler-uart.o
+> ?libsbiutils-objs-y += serial/shakti-uart.o
+> ?libsbiutils-objs-y += serial/sifive-uart.o
+> ?libsbiutils-objs-y += serial/litex-uart.o
+> ?libsbiutils-objs-y += serial/uart8250.o
+> +libsbiutils-objs-y += serial/xlnx-uartlite.o
+> diff --git a/lib/utils/serial/xlnx-uartlite.c b/lib/utils/serial/xlnx-
+> uartlite.c
+> new file mode 100644
+> index 0000000..caab6a8
+> --- /dev/null
+> +++ b/lib/utils/serial/xlnx-uartlite.c
+> @@ -0,0 +1,68 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 Western Digital Corporation or its affiliates.
+> + *
+> + * Authors:
+> + *?? Alistair Francis <alistair.francis@wdc.com>
+> + */
+> +
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi_utils/serial/xlnx_uartlite.h>
+> +
+> +/* clang-format off */
+> +
+> +#define UART_RX_OFFSET?????????0x00
+> +#define UART_TX_OFFSET?????????0x04
+> +#define UART_STATUS_OFFSET?????0x08
+> +# define UART_STATUS_RXVALID???0x01
+> +# define UART_STATUS_RXFULL????0x02
+> +# define UART_STATUS_TXEMPTY???0x04
+> +# define UART_STATUS_TXFULL????0x08
+> +# define UART_STATUS_IE????????0x10
+> +# define UART_STATUS_OVERRUN???0x20
+> +# define UART_STATUS_FRAME?????0x40
+> +# define UART_STATUS_PARITY????0x80
+> +#define UART_CTRL_OFFSET???????0x0C
+> +# define UART_CTRL_RST_TX??????0x01
+> +# define UART_CTRL_RST_RX??????0x02
+> +# define UART_CTRL_IE??????????0x10
+> +
+> +/* clang-format on */
+> +
+> +static volatile char *xlnx_uartlite_base;
+> +
+> +static void xlnx_uartlite_putc(char ch)
+> +{
+> +???????while((readb(xlnx_uartlite_base + UART_STATUS_OFFSET) &
+> UART_STATUS_TXFULL))
+> +???????????????;
+> +
+> +???????writeb(ch, xlnx_uartlite_base + UART_TX_OFFSET);
+> +}
+> +
+> +static int xlnx_uartlite_getc(void)
+> +{
+> +???????u16 status = readb(xlnx_uartlite_base + UART_STATUS_OFFSET);
+> +
+> +???????if (status & UART_STATUS_RXVALID)
+> +???????????????return readb(xlnx_uartlite_base + UART_RX_OFFSET);
+> +
+> +???????return -1;
+> +}
+> +
+> +static struct sbi_console_device xlnx_uartlite_console = {
+> +???????.name = "xlnx-uartlite",
+> +???????.console_putc = xlnx_uartlite_putc,
+> +???????.console_getc = xlnx_uartlite_getc
+> +};
+> +
+> +int xlnx_uartlite_init(unsigned long base, u32 in_freq, u32 baudrate,
+> u32 reg_shift,
+> +???????????????? u32 reg_width)
+The function prototype can be simplified to:?
+int xlnx_uartlite_init(unsigned long base)
+> +{
+> +???????xlnx_uartlite_base = (volatile char *)base;
+> +
+> +???????sbi_console_set_device(&xlnx_uartlite_console);
+> +
+> +???????return 0;
+> +}
+
+Except for the above, Look good to me.
+
+Reviewed-by: Xiang W <wxjstz@126.com>
 > -- 
-> 2.25.1
+> 2.35.1
 > 
 > 
 
