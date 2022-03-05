@@ -1,125 +1,274 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 29 Apr 2022 21:21:51 +0530
-Subject: [PATCH 11/11] lib: sbi_platform: Add callback to populate HART
- extensions
-In-Reply-To: <20220429155151.314788-1-apatel@ventanamicro.com>
-References: <20220429155151.314788-1-apatel@ventanamicro.com>
-Message-ID: <20220429155151.314788-12-apatel@ventanamicro.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Sat, 5 Mar 2022 01:26:23 -0800
+Subject: [PATCH v1 2/2] lib: sbi: Implement Sstc extension
+In-Reply-To: <23FC9827-CE39-430A-B529-A17E39C2B6BD@jrtc27.com>
+References: <20220228082604.3649231-1-atishp@rivosinc.com>
+ <20220228082604.3649231-3-atishp@rivosinc.com>
+ <17C1041E-B6B4-406F-8DB7-B703F74E8400@jrtc27.com>
+ <CAHBxVyGvj+7Z=9mxdyayP-xc+=_QNRVznsqXX7wBPDCRecpxvQ@mail.gmail.com>
+ <490A275F-85D2-4A76-A105-0F5AC46C9414@jrtc27.com>
+ <CAHBxVyERWidrca9Vp9Jc14XYfkV1B9pPWVvrcY1ZgEBVxzHfjA@mail.gmail.com>
+ <23FC9827-CE39-430A-B529-A17E39C2B6BD@jrtc27.com>
+Message-ID: <CAOnJCU+xsqa263sJw8wjdWhn9=Hj6f-yeT2=L45z9Nd+y=suow@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add platform specific extensions_init() callback which allows
-platforms to populate HART extensions for each HART. For example,
-the generic platform can populate HART extensions from HART ISA
-string described in DeviceTree.
+On Mon, Feb 28, 2022 at 11:59 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+>
+> On 28 Feb 2022, at 19:51, Atish Kumar Patra <atishp@rivosinc.com> wrote:
+> >
+> > On Mon, Feb 28, 2022 at 11:42 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >>
+> >> On 28 Feb 2022, at 18:52, Atish Kumar Patra <atishp@rivosinc.com> wrote:
+> >>>
+> >>> On Mon, Feb 28, 2022 at 9:03 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >>>>
+> >>>> On 28 Feb 2022, at 08:26, Atish Patra <atishp@rivosinc.com> wrote:
+> >>>>>
+> >>>>> Recently, Sstc extension was ratified. It defines stimecmp which allows
+> >>>>> the supervisor mode to directly update the timecmp value without the
+> >>>>> need of the SBI call. The hardware also can inject the S-mode timer
+> >>>>> interrupt direclty to the supervisor without going through the M-mode.
+> >>>>> To maintain backward compatibility with the older software, SBI call
+> >>>>> now uses stimecmp directly if the hardware supports.
+> >>>>>
+> >>>>> Implement the Sstc extension.
+> >>>>>
+> >>>>> Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> >>>>
+> >>>> M-mode changing behaviour and clobbering S-mode state seems wrong; how
+> >>>> do you know Sstimecmp isn?t in use too?
+> >>>
+> >>> <Fixed Anup's email address>
+> >>>
+> >>> Because, S-mode will either use the stimecmp or SBI call. It will not
+> >>> use both randomly.
+> >>
+> >> S-mode can do what it likes. You?re changing semantics for an existing
+> >> interface from ?just injects a timer interrupt at the requested point?
+> >> to ?... and also clobbers S-mode-writable state?.
+> >>
+> >
+> > If S-mode does whatever it likes, it will end up in a suboptimal
+> > performance which nobody wants.
+> > I don't understand why or how S-mode would want to switch between
+> > stimecmp or SBI calls randomly.
+> >
+> > Do you have a use case in mind ?
+> >
+> >>> This is also suggested in the sstc spec[1] as well.
+> >>
+> >> This is non-normative and not up to that spec to decide.
+> >>
+> >
+> > Yes. But if both parties(S-mode & M-mode) have a sane implementation,
+> > it can result in a better performant system.
+>
+> I don?t care about use cases or ?sane? implementations, I care about
+> not doing things the spec doesn?t say will happen. M-mode state is
+> invisible to S-mode so does not need to be specified as being changed.
+> S-mode state is completely visible to, and controlled by, S-mode, so
+> changing it without the spec saying so (a spec you?ve frozen and want
+> to ratify) is totally wrong, regardless of whether ?sane? software
+> should care. The only way it?s allowed to mess with stimecmp from
+> M-mode is if you don't expose it at all to S-mode, which is clearly a
+> bad idea. So leave it alone, don?t change the semantics of existing
+> frozen interfaces, and avoid this unnecessary complexity in OpenSBI
+> that exists solely to make legacy software go faster.
+>
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- include/sbi/sbi_platform.h | 18 ++++++++++++++++++
- lib/sbi/sbi_hart.c         | 18 ++++++++++++++----
- 2 files changed, 32 insertions(+), 4 deletions(-)
+The Sstc spec also made STIP bit in mip as read only. Here is exact
+snippet from the spec
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 2c777ac..87024db 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -89,6 +89,9 @@ struct sbi_platform_operations {
- 	 */
- 	int (*misa_get_xlen)(void);
- 
-+	/** Initialize (or populate) HART extensions for the platform */
-+	int (*extensions_init)(void);
-+
- 	/** Initialize (or populate) domains for the platform */
- 	int (*domains_init)(void);
- 
-@@ -453,6 +456,21 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
- 	return -1;
- }
- 
-+/**
-+ * Initialize (or populate) HART extensions for the platform
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+static inline int sbi_platform_extensions_init(
-+					const struct sbi_platform *plat)
-+{
-+	if (plat && sbi_platform_ops(plat)->extensions_init)
-+		return sbi_platform_ops(plat)->extensions_init();
-+	return 0;
-+}
-+
- /**
-  * Initialize (or populate) domains for the platform
-  *
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 3fc8899..8284792 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -536,16 +536,17 @@ static int hart_pmu_get_allowed_bits(void)
- 	return num_bits;
- }
- 
--static void hart_detect_features(struct sbi_scratch *scratch)
-+static int hart_detect_features(struct sbi_scratch *scratch)
- {
- 	struct sbi_trap_info trap = {0};
- 	struct hart_features *hfeatures =
- 		sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 	unsigned long val, oldval;
-+	int rc;
- 
- 	/* If hart features already detected then do nothing */
- 	if (hfeatures->detected)
--		return;
-+		return 0;
- 
- 	/* Clear hart features */
- 	hfeatures->extensions = 0;
-@@ -680,10 +681,15 @@ __mhpm_skip:
- 					SBI_HART_EXT_SMSTATEEN, true);
- 	}
- 
-+	/* Let platform populate extensions */
-+	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
-+	if (rc)
-+		return rc;
-+
- 	/* Mark hart feature detection done */
- 	hfeatures->detected = true;
- 
--	return;
-+	return 0;
- }
- 
- int sbi_hart_reinit(struct sbi_scratch *scratch)
-@@ -705,6 +711,8 @@ int sbi_hart_reinit(struct sbi_scratch *scratch)
- 
- int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- {
-+	int rc;
-+
- 	if (cold_boot) {
- 		if (misa_extension('H'))
- 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
-@@ -715,7 +723,9 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- 			return SBI_ENOMEM;
- 	}
- 
--	hart_detect_features(scratch);
-+	rc = hart_detect_features(scratch);
-+	if (rc)
-+		return rc;
- 
- 	return sbi_hart_reinit(scratch);
- }
--- 
-2.34.1
+"If the stimecmp (supervisor-mode timer compare) register is implemented,
+STIP is read-only in mip and reflects the supervisor-level timer
+interrupt signal resulting from
+stimecmp."
 
+Thus, M-mode can't update the STIP bit if sstc is enabled.
+
+> Jess
+>
+> >>> In systems in which a supervisor execution environment (SEE) provides
+> >>> timer facilities via an SBI
+> >>> function call, this SBI call will continue to support requests to
+> >>> schedule a timer interrupt. The SEE
+> >>> will simply make use of stimecmp, changing its value as appropriate.
+> >>> This ensures compatibility
+> >>> with existing S-mode software that uses this SEE facility, while new
+> >>> S-mode software takes
+> >>> advantage of stimecmp directly.)
+> >>>
+> >>> [1] https://drive.google.com/file/d/1m84Re2yK8m_vbW7TspvevCDR82MOBaSX/view
+> >>>
+> >>>> It?s owned by S-mode, leave it
+> >>>> alone and use M-mode-only methods to implement the firmware calls.
+> >>>>
+> >>>> Jess
+> >>>>
+> >>>>> ---
+> >>>>> include/sbi/riscv_encoding.h |  4 ++++
+> >>>>> include/sbi/sbi_hart.h       |  4 +++-
+> >>>>> lib/sbi/sbi_hart.c           | 28 ++++++++++++++++++++++++++++
+> >>>>> lib/sbi/sbi_timer.c          | 25 ++++++++++++++++++++++---
+> >>>>> 4 files changed, 57 insertions(+), 4 deletions(-)
+> >>>>>
+> >>>>> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> >>>>> index c0020f43f022..cce66ddc8b12 100644
+> >>>>> --- a/include/sbi/riscv_encoding.h
+> >>>>> +++ b/include/sbi/riscv_encoding.h
+> >>>>> @@ -312,6 +312,10 @@
+> >>>>> #define CSR_STVAL                     0x143
+> >>>>> #define CSR_SIP                               0x144
+> >>>>>
+> >>>>> +/* Sstc extension */
+> >>>>> +#define CSR_STIMECMP                 0x14D
+> >>>>> +#define CSR_STIMECMPH                        0x15D
+> >>>>> +
+> >>>>> /* Supervisor Protection and Translation */
+> >>>>> #define CSR_SATP                      0x180
+> >>>>>
+> >>>>> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> >>>>> index 9e5a2b416017..93be7eddd6f1 100644
+> >>>>> --- a/include/sbi/sbi_hart.h
+> >>>>> +++ b/include/sbi/sbi_hart.h
+> >>>>> @@ -28,9 +28,11 @@ enum sbi_hart_features {
+> >>>>>     SBI_HART_HAS_AIA = (1 << 5),
+> >>>>>     /** HART has MENVCFG CSR */
+> >>>>>     SBI_HART_HAS_MENVCFG = (1 << 6),
+> >>>>> +     /** HART has SSTC extension implemented in hardware */
+> >>>>> +     SBI_HART_HAS_SSTC = (1 << 7),
+> >>>>>
+> >>>>>     /** Last index of Hart features*/
+> >>>>> -     SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_MENVCFG,
+> >>>>> +     SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_SSTC,
+> >>>>> };
+> >>>>>
+> >>>>> struct sbi_scratch;
+> >>>>> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> >>>>> index e08d9d32266a..8c9cad219c71 100644
+> >>>>> --- a/lib/sbi/sbi_hart.c
+> >>>>> +++ b/lib/sbi/sbi_hart.c
+> >>>>> @@ -43,6 +43,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+> >>>>>     int cidx;
+> >>>>>     unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+> >>>>>     uint64_t mhpmevent_init_val = 0;
+> >>>>> +     unsigned long menvcfg_val = 0;
+> >>>>>
+> >>>>>     /* Enable FPU */
+> >>>>>     if (misa_extension('D') || misa_extension('F'))
+> >>>>> @@ -54,6 +55,23 @@ static void mstatus_init(struct sbi_scratch *scratch)
+> >>>>>
+> >>>>>     csr_write(CSR_MSTATUS, mstatus_val);
+> >>>>>
+> >>>>> +     /*
+> >>>>> +      * The spec doesn't explicitly describe the reset value of menvcfg.
+> >>>>> +      * Enable access to stimecmp if sstc extension is present in the
+> >>>>> +      * hardware.
+> >>>>> +      */
+> >>>>> +     if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSTC)) {
+> >>>>> +#if __riscv_xlen == 32
+> >>>>> +             menvcfg_val = csr_read(CSR_MENVCFGH);
+> >>>>> +             menvcfg_val |= MENVCFGH_STCE;
+> >>>>> +             csr_write(CSR_MENVCFGH, menvcfg_val);
+> >>>>> +#else
+> >>>>> +             menvcfg_val = csr_read(CSR_MENVCFG);
+> >>>>> +             menvcfg_val |= MENVCFG_STCE;
+> >>>>> +             csr_write(CSR_MENVCFG, menvcfg_val);
+> >>>>> +#endif
+> >>>>> +     }
+> >>>>> +
+> >>>>>     /* Disable user mode usage of all perf counters except default ones (CY, TM, IR) */
+> >>>>>     if (misa_extension('S') &&
+> >>>>>         sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
+> >>>>> @@ -303,6 +321,8 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+> >>>>>             break;
+> >>>>>     case SBI_HART_HAS_AIA:
+> >>>>>             fstr = "aia";
+> >>>>> +     case SBI_HART_HAS_SSTC:
+> >>>>> +             fstr = "sstc";
+> >>>>>             break;
+> >>>>>     default:
+> >>>>>             break;
+> >>>>> @@ -533,6 +553,14 @@ __mhpm_skip:
+> >>>>>     if (!trap.cause)
+> >>>>>             hfeatures->features |= SBI_HART_HAS_MENVCFG;
+> >>>>>
+> >>>>> +     /**
+> >>>>> +      * Detect if hart supports stimecmp CSR(Sstc extension) and menvcfg is
+> >>>>> +      * implemented.
+> >>>>> +      */
+> >>>>> +     csr_read_allowed(CSR_STIMECMP, (unsigned long)&trap);
+> >>>>> +     if (!trap.cause && sbi_hart_has_feature(scratch, SBI_HART_HAS_MENVCFG))
+> >>>>> +             hfeatures->features |= SBI_HART_HAS_SSTC;
+> >>>>> +
+> >>>>>     /* Detect if hart has AIA local interrupt CSRs */
+> >>>>>     csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
+> >>>>>     if (trap.cause)
+> >>>>> diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> >>>>> index acdba922b1e9..c89c7ca51100 100644
+> >>>>> --- a/lib/sbi/sbi_timer.c
+> >>>>> +++ b/lib/sbi/sbi_timer.c
+> >>>>> @@ -124,16 +124,35 @@ void sbi_timer_set_delta_upper(ulong delta_upper)
+> >>>>> void sbi_timer_event_start(u64 next_event)
+> >>>>> {
+> >>>>>     sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SET_TIMER);
+> >>>>> -     if (timer_dev && timer_dev->timer_event_start)
+> >>>>> +
+> >>>>> +     /**
+> >>>>> +      * Update the stimecmp directly if available. This allows
+> >>>>> +      * the older software to leverage sstc extension on newer hardware.
+> >>>>> +      */
+> >>>>> +     if (sbi_hart_has_feature(sbi_scratch_thishart_ptr(), SBI_HART_HAS_SSTC)) {
+> >>>>> +#if __riscv_xlen == 32
+> >>>>> +             csr_write(CSR_STIMECMP, next_event & 0xFFFFFFFF);
+> >>>>> +             csr_write(CSR_STIMECMPH, next_event >> 32);
+> >>>>> +#else
+> >>>>> +             csr_write(CSR_STIMECMP, next_event);
+> >>>>> +#endif
+> >>>>> +     } else if (timer_dev && timer_dev->timer_event_start) {
+> >>>>>             timer_dev->timer_event_start(next_event);
+> >>>>> -     csr_clear(CSR_MIP, MIP_STIP);
+> >>>>> +             csr_clear(CSR_MIP, MIP_STIP);
+> >>>>> +     }
+> >>>>>     csr_set(CSR_MIE, MIP_MTIP);
+> >>>>> }
+> >>>>>
+> >>>>> void sbi_timer_process(void)
+> >>>>> {
+> >>>>>     csr_clear(CSR_MIE, MIP_MTIP);
+> >>>>> -     csr_set(CSR_MIP, MIP_STIP);
+> >>>>> +     /*
+> >>>>> +      * If sstc extension is available, supervisor can receive the timer
+> >>>>> +      * direclty without M-mode come in between. This function should
+> >>>>> +      * only invoked if M-mode programs the timer for its own purpose.
+> >>>>> +      */
+> >>>>> +     if (!sbi_hart_has_feature(sbi_scratch_thishart_ptr(), SBI_HART_HAS_SSTC))
+> >>>>> +             csr_set(CSR_MIP, MIP_STIP);
+> >>>>> }
+> >>>>>
+> >>>>> const struct sbi_timer_device *sbi_timer_get_device(void)
+> >>>>> --
+> >>>>> 2.30.2
+> >>>>>
+> >>>>>
+> >>>>> --
+> >>>>> opensbi mailing list
+> >>>>> opensbi at lists.infradead.org
+> >>>>> http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+
+
+--
+Regards,
+Atish
 
