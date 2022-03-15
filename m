@@ -1,46 +1,38 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 16 Mar 2022 00:22:38 +0800
-Subject: [PATCH 1/3] lib: pmp_set/pmp_get moved errors from runtime to compile
- time
-Message-ID: <20220315162240.40990-1-wxjstz@126.com>
+Date: Wed, 16 Mar 2022 00:22:39 +0800
+Subject: [PATCH 2/3] firmware: Fix code for accessing hart_count and
+ stack_size to be more flexible
+In-Reply-To: <20220315162240.40990-1-wxjstz@126.com>
+References: <20220315162240.40990-1-wxjstz@126.com>
+Message-ID: <20220315162240.40990-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-pmp_set/pmp_get calculates the location of the CSR register separately
-through conditional compilation. In the case of non-32-bit and 64-bit,
-we can report an error directly through #error without putting it at
-runtime
+lwu exists under the current rv64 and should also exist under the rv128
+in the future, so I modified the conditions of conditional compilation
+so that it can adapt to the future situation
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/riscv_asm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ firmware/fw_base.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 847bdba..5eab1ed 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -261,7 +261,7 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- 	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
- 	pmpcfg_shift = (n & 7) << 3;
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index ab3e1b3..07be4c4 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -259,7 +259,7 @@ _bss_zero:
+ 	 * s8 -> HART Stack Size
+ 	 */
+ 	lla	a4, platform
+-#if __riscv_xlen == 64
++#if __riscv_xlen > 32
+ 	lwu	s7, SBI_PLATFORM_HART_COUNT_OFFSET(a4)
+ 	lwu	s8, SBI_PLATFORM_HART_STACK_SIZE_OFFSET(a4)
  #else
--	return SBI_ENOTSUPP;
-+# error "Unexpected __riscv_xlen"
- #endif
- 	pmpaddr_csr = CSR_PMPADDR0 + n;
- 
-@@ -312,7 +312,7 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
- 	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
- 	pmpcfg_shift = (n & 7) << 3;
- #else
--	return SBI_ENOTSUPP;
-+# error "Unexpected __riscv_xlen"
- #endif
- 	pmpaddr_csr = CSR_PMPADDR0 + n;
- 
 -- 
 2.30.2
 
