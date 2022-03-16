@@ -1,90 +1,67 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 16 Mar 2022 12:35:14 +0800
-Subject: [PATCH] sbi: Prevent modification of struct sbi_scratch from
- affecting SBI_SCRATCH_xxx_OFFSET
-Message-ID: <20220316043514.64181-1-wxjstz@126.com>
+Date: Wed, 16 Mar 2022 12:49:42 +0800
+Subject: [PATCH] sbi: Prevent modification of struct fw_dynamic_info from
+ affecting FW_DYNAMIC_INFO_xxx_OFFSET
+Message-ID: <20220316044942.66140-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add static detection to prevent the modification of struct sbi_scratch
-from forgetting the modification of SBI_SCRATCH_xxx_OFFSET
+Add static detection to prevent the modification of struct fw_dynamic_info
+from forgetting the modification of FW_DYNAMIC_INFO_xxx_OFFSET
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi/sbi_scratch.h | 57 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ include/sbi/fw_dynamic.h | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index 0c27307..a3065e8 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -72,6 +72,63 @@ struct sbi_scratch {
- 	/** Options for OpenSBI library */
- 	unsigned long options;
- };
-+/** Prevent modification of struct sbi_scratch from affecting
-+ * SBI_SCRATCH_xxx_OFFSET */
+diff --git a/include/sbi/fw_dynamic.h b/include/sbi/fw_dynamic.h
+index dea207b..e38e688 100644
+--- a/include/sbi/fw_dynamic.h
++++ b/include/sbi/fw_dynamic.h
+@@ -74,7 +74,39 @@ struct fw_dynamic_info {
+ 	 */
+ 	unsigned long boot_hart;
+ } __packed;
+-
++/** Prevent modification of struct fw_dynamic_info from affecting
++ * FW_DYNAMIC_INFO_xxx_OFFSET */
 +_Static_assert(
-+	offsetof(struct sbi_scratch, fw_start)
-+		== SBI_SCRATCH_FW_START_OFFSET,
++	offsetof(struct fw_dynamic_info, magic)
++		== FW_DYNAMIC_INFO_MAGIC_OFFSET,
 +	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_FW_START_OFFSET");
++	"FW_DYNAMIC_INFO_MAGIC_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, fw_size)
-+		== SBI_SCRATCH_FW_SIZE_OFFSET,
++	offsetof(struct fw_dynamic_info, version)
++		== FW_DYNAMIC_INFO_VERSION_OFFSET,
 +	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_FW_SIZE_OFFSET");
++	"FW_DYNAMIC_INFO_VERSION_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, next_arg1)
-+		== SBI_SCRATCH_NEXT_ARG1_OFFSET,
++	offsetof(struct fw_dynamic_info, next_addr)
++		== FW_DYNAMIC_INFO_NEXT_ADDR_OFFSET,
 +	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_NEXT_ARG1_OFFSET");
++	"FW_DYNAMIC_INFO_NEXT_ADDR_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, next_addr)
-+		== SBI_SCRATCH_NEXT_ADDR_OFFSET,
++	offsetof(struct fw_dynamic_info, next_mode)
++		== FW_DYNAMIC_INFO_NEXT_MODE_OFFSET,
 +	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_NEXT_ADDR_OFFSET");
++	"FW_DYNAMIC_INFO_NEXT_MODE_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, next_mode)
-+		== SBI_SCRATCH_NEXT_MODE_OFFSET,
++	offsetof(struct fw_dynamic_info, options)
++		== FW_DYNAMIC_INFO_OPTIONS_OFFSET,
 +	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_NEXT_MODE_OFFSET");
++	"FW_DYNAMIC_INFO_OPTIONS_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, warmboot_addr)
-+		== SBI_SCRATCH_WARMBOOT_ADDR_OFFSET,
++	offsetof(struct fw_dynamic_info, boot_hart)
++		== FW_DYNAMIC_INFO_BOOT_HART_OFFSET,
 +	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_WARMBOOT_ADDR_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, platform_addr)
-+		== SBI_SCRATCH_PLATFORM_ADDR_OFFSET,
-+	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_PLATFORM_ADDR_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, hartid_to_scratch)
-+		== SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET,
-+	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, trap_exit)
-+		== SBI_SCRATCH_TRAP_EXIT_OFFSET,
-+	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_TRAP_EXIT_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, tmp0)
-+		== SBI_SCRATCH_TMP0_OFFSET,
-+	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_TMP0_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, options)
-+		== SBI_SCRATCH_OPTIONS_OFFSET,
-+	"struct sbi_platform definition has changed, please redefine "
-+	"SBI_SCRATCH_OPTIONS_OFFSET");
++	"FW_DYNAMIC_INFO_BOOT_HART_OFFSET");
++	
+ #endif
  
- /** Possible options for OpenSBI library */
- enum sbi_scratch_options {
+ #endif
 -- 
 2.30.2
 
