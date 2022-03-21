@@ -1,45 +1,59 @@
-From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Mon, 21 Mar 2022 10:45:28 +0530
-Subject: [RFC PATCH v1 3/3] lib: sbi: configure mstateen
-In-Reply-To: <20220321051528.20143-1-mchitale@ventanamicro.com>
-References: <20220321051528.20143-1-mchitale@ventanamicro.com>
-Message-ID: <20220321051528.20143-4-mchitale@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 21 Mar 2022 18:15:33 +0530
+Subject: [PATCH 1/3] lib: pmp_set/pmp_get moved errors from runtime to
+ compile time
+In-Reply-To: <20220315162240.40990-1-wxjstz@126.com>
+References: <20220315162240.40990-1-wxjstz@126.com>
+Message-ID: <CAAhSdy1pmeBDsv=AD4AYC-Oq1RfMdgtycQcb+hEaKsA3_YZfkw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When mstateen registers are implemented, the AIA related
-configurations need to be done in mstateen for the IMSIC
-initialization to succeed.
+On Tue, Mar 15, 2022 at 9:52 PM Xiang W <wxjstz@126.com> wrote:
+>
+> pmp_set/pmp_get calculates the location of the CSR register separately
+> through conditional compilation. In the case of non-32-bit and 64-bit,
+> we can report an error directly through #error without putting it at
+> runtime
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
----
- lib/sbi/sbi_hart.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Looks good to me.
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 9d0c435..f5c44e1 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -80,6 +80,15 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 			mstateen_val |= (1UL << SMSTATEEN0_HSENVCFG);
- 		else
- 			mstateen_val &= ~(1UL << SMSTATEEN0_HSENVCFG);
-+
-+		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
-+			mstateen_val |= (1UL << SMSTATEEN0_AIA |
-+					1UL << SMSTATEEN0_SVSLCT |
-+					1UL << SMSTATEEN0_IMSIC);
-+		else
-+			mstateen_val &= ~(1UL << SMSTATEEN0_AIA |
-+					1UL << SMSTATEEN0_SVSLCT |
-+					1UL << SMSTATEEN0_IMSIC);
- 		csr_write(CSR_MSTATEEN0, mstateen_val);
- 	}
- 
--- 
-2.17.1
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Regards,
+Anup
+
+> ---
+>  lib/sbi/riscv_asm.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+> index 847bdba..5eab1ed 100644
+> --- a/lib/sbi/riscv_asm.c
+> +++ b/lib/sbi/riscv_asm.c
+> @@ -261,7 +261,7 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+>         pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+>         pmpcfg_shift = (n & 7) << 3;
+>  #else
+> -       return SBI_ENOTSUPP;
+> +# error "Unexpected __riscv_xlen"
+>  #endif
+>         pmpaddr_csr = CSR_PMPADDR0 + n;
+>
+> @@ -312,7 +312,7 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+>         pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+>         pmpcfg_shift = (n & 7) << 3;
+>  #else
+> -       return SBI_ENOTSUPP;
+> +# error "Unexpected __riscv_xlen"
+>  #endif
+>         pmpaddr_csr = CSR_PMPADDR0 + n;
+>
+> --
+> 2.30.2
+>
 
