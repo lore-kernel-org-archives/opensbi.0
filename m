@@ -1,93 +1,101 @@
 From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Mon, 21 Mar 2022 10:45:26 +0530
-Subject: [RFC PATCH v1 1/3] lib: sbi: Add Smstateen extension defines
+Date: Mon, 21 Mar 2022 10:45:27 +0530
+Subject: [RFC PATCH v1 2/3] lib: sbi: Detect Smstateen CSRs at boot-time
 In-Reply-To: <20220321051528.20143-1-mchitale@ventanamicro.com>
 References: <20220321051528.20143-1-mchitale@ventanamicro.com>
-Message-ID: <20220321051528.20143-2-mchitale@ventanamicro.com>
+Message-ID: <20220321051528.20143-3-mchitale@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Smstateen extension provides a mechanism to plug potential
-covert channels which are opened by extensions that add to
-processor state that may not get context-switched.
+Extend HART feature detection to discover Smstateen CSRs at boot-time
+and configure mstateen envcfg bit depending on availability of
+menvcfg CSR.
 
 Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 ---
- include/sbi/riscv_encoding.h | 37 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ include/sbi/sbi_hart.h |  4 +++-
+ lib/sbi/sbi_hart.c     | 20 +++++++++++++++++++-
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index cce66dd..fefd3de 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -337,6 +337,12 @@
- #define CSR_SIEH			0x114
- #define CSR_SIPH			0x154
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 93be7ed..b5345f4 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -30,9 +30,11 @@ enum sbi_hart_features {
+ 	SBI_HART_HAS_MENVCFG = (1 << 6),
+ 	/** HART has SSTC extension implemented in hardware */
+ 	SBI_HART_HAS_SSTC = (1 << 7),
++	/** HART has mstateen CSR **/
++	SBI_HART_HAS_SMSTATEEN = (1 << 8),
  
-+/* Supervisor stateen CSRs */
-+#define CSR_SSTATEEN0       0x10C
-+#define CSR_SSTATEEN1       0x10D
-+#define CSR_SSTATEEN2       0x10E
-+#define CSR_SSTATEEN3       0x10F
+ 	/** Last index of Hart features*/
+-	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_SSTC,
++	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_SMSTATEEN,
+ };
+ 
+ struct sbi_scratch;
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 8c9cad2..9d0c435 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -44,6 +44,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 	unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+ 	uint64_t mhpmevent_init_val = 0;
+ 	unsigned long menvcfg_val = 0;
++	unsigned long mstateen_val = 0;
+ 
+ 	/* Enable FPU */
+ 	if (misa_extension('D') || misa_extension('F'))
+@@ -72,6 +73,16 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ #endif
+ 	}
+ 
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SMSTATEEN)) {
++		mstateen_val = csr_read(CSR_MSTATEEN0);
++		mstateen_val |= (1UL << SMSTATEEN_STATEN);
++		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MENVCFG))
++			mstateen_val |= (1UL << SMSTATEEN0_HSENVCFG);
++		else
++			mstateen_val &= ~(1UL << SMSTATEEN0_HSENVCFG);
++		csr_write(CSR_MSTATEEN0, mstateen_val);
++	}
 +
- /* ===== Hypervisor-level CSRs ===== */
+ 	/* Disable user mode usage of all perf counters except default ones (CY, TM, IR) */
+ 	if (misa_extension('S') &&
+ 	    sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
+@@ -324,6 +335,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+ 	case SBI_HART_HAS_SSTC:
+ 		fstr = "sstc";
+ 		break;
++	case SBI_HART_HAS_SMSTATEEN:
++		fstr = "smstateen";
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -552,7 +566,6 @@ __mhpm_skip:
+ 	csr_read_allowed(CSR_MENVCFG, (unsigned long)&trap);
+ 	if (!trap.cause)
+ 		hfeatures->features |= SBI_HART_HAS_MENVCFG;
+-
+ 	/**
+ 	 * Detect if hart supports stimecmp CSR(Sstc extension) and menvcfg is
+ 	 * implemented.
+@@ -561,6 +574,11 @@ __mhpm_skip:
+ 	if (!trap.cause && sbi_hart_has_feature(scratch, SBI_HART_HAS_MENVCFG))
+ 		hfeatures->features |= SBI_HART_HAS_SSTC;
  
- /* Hypervisor Trap Setup (H-extension) */
-@@ -401,6 +407,16 @@
- #define CSR_VSIEH			0x214
- #define CSR_VSIPH			0x254
- 
-+/* Hypervisor stateen CSRs */
-+#define CSR_HSTATEEN0       0x60C
-+#define CSR_HSTATEEN0H      0x61C
-+#define CSR_HSTATEEN1       0x60D
-+#define CSR_HSTATEEN1H      0x61D
-+#define CSR_HSTATEEN2       0x60E
-+#define CSR_HSTATEEN2H      0x61E
-+#define CSR_HSTATEEN3       0x60F
-+#define CSR_HSTATEEN3H      0x61F
++	/* Detect if hart supports mstateen CSRs */
++	val = csr_read_allowed(CSR_MSTATEEN0, (unsigned long)&trap);
++	if (!trap.cause)
++		hfeatures->features |= SBI_HART_HAS_SMSTATEEN;
 +
- /* ===== Machine-level CSRs ===== */
- 
- /* Machine Information Registers */
-@@ -674,6 +690,17 @@
- #define CSR_MVIEN			0x308
- #define CSR_MVIP			0x309
- 
-+/* Smstateen extension registers */
-+/* Machine stateen CSRs */
-+#define CSR_MSTATEEN0       0x30C
-+#define CSR_MSTATEEN0H      0x31C
-+#define CSR_MSTATEEN1       0x30D
-+#define CSR_MSTATEEN1H      0x31D
-+#define CSR_MSTATEEN2       0x30E
-+#define CSR_MSTATEEN2H      0x31E
-+#define CSR_MSTATEEN3       0x30F
-+#define CSR_MSTATEEN3H      0x31F
-+
- /* Machine-Level High-Half CSRs (AIA) */
- #define CSR_MIDELEGH			0x313
- #define CSR_MIEH			0x314
-@@ -703,6 +730,16 @@
- #define CAUSE_VIRTUAL_INST_FAULT	0x16
- #define CAUSE_STORE_GUEST_PAGE_FAULT	0x17
- 
-+/* Common defines for all smstateen */
-+#define SMSTATEEN_MAX_COUNT 4
-+#define SMSTATEEN0_CS       0
-+#define SMSTATEEN0_FCSR     0
-+#define SMSTATEEN0_IMSIC    58
-+#define SMSTATEEN0_AIA      59
-+#define SMSTATEEN0_SVSLCT   60
-+#define SMSTATEEN0_HSENVCFG 62
-+#define SMSTATEEN_STATEN    63
-+
- /* ===== Instruction Encodings ===== */
- 
- #define INSN_MATCH_LB			0x3
+ 	/* Detect if hart has AIA local interrupt CSRs */
+ 	csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
+ 	if (trap.cause)
 -- 
 2.17.1
 
