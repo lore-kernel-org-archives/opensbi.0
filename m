@@ -1,7 +1,7 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 27 Mar 2022 16:25:20 +0800
-Subject: [PATCH V4] include: Add check for offset fw_dynamic_info
-Message-ID: <20220327082520.66613-1-wxjstz@126.com>
+Date: Sun, 27 Mar 2022 16:29:43 +0800
+Subject: [PATCH V5] include: Add check for offset of fw_dynamic_info
+Message-ID: <20220327082943.66976-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,8 +13,10 @@ from forgetting the modification of FW_DYNAMIC_INFO_xxx_OFFSET
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
-V4 change:
-* comment style change
+V5 change:
+* reword commit message
+
+I'm sorry for my careless, change to much
 
  include/sbi/fw_dynamic.h | 34 ++++++++++++++++++++++++++++++++++
  1 file changed, 34 insertions(+)
