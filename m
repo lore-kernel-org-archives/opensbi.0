@@ -1,95 +1,86 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 27 Mar 2022 16:33:59 +0800
-Subject: [PATCH V3] include: Add check for offset of sbi_scratch
-Message-ID: <20220327083359.67711-1-wxjstz@126.com>
+Date: Sun, 27 Mar 2022 16:36:05 +0800
+Subject: [PATCH V2] include: Add check for offset of sbi_platform
+Message-ID: <20220327083605.68218-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add static detection to prevent the modification of struct sbi_scratch
-from forgetting the modification of SBI_SCRATCH_xxx_OFFSET
+Add static detection to prevent the modification of struct sbi_platform
+from forgetting the modification of SBI_PLATFORM_xxx_OFFSET
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
-V3 change:
+V2 change:
 * reword commit message
 * change comment style
 
- include/sbi/sbi_scratch.h | 59 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ include/sbi/sbi_platform.h | 50 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index 0c27307..b08cdea 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -72,6 +72,65 @@ struct sbi_scratch {
- 	/** Options for OpenSBI library */
- 	unsigned long options;
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 0b5ae4b..2c777ac 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -175,6 +175,56 @@ struct sbi_platform {
+ 	const u32 *hart_index2id;
  };
+ 
 +/**
-+ * Prevent modification of struct sbi_scratch from affecting
-+ * SBI_SCRATCH_xxx_OFFSET 
++ * Prevent modification of struct sbi_platform from affecting
++ * SBI_PLATFORM_xxx_OFFSET
 + */
 +_Static_assert(
-+	offsetof(struct sbi_scratch, fw_start)
-+		== SBI_SCRATCH_FW_START_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_FW_START_OFFSET");
++	offsetof(struct sbi_platform, opensbi_version)
++		== SBI_PLATFORM_OPENSBI_VERSION_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_OPENSBI_VERSION_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, fw_size)
-+		== SBI_SCRATCH_FW_SIZE_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_FW_SIZE_OFFSET");
++	offsetof(struct sbi_platform, platform_version)
++		== SBI_PLATFORM_VERSION_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_VERSION_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, next_arg1)
-+		== SBI_SCRATCH_NEXT_ARG1_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_NEXT_ARG1_OFFSET");
++	offsetof(struct sbi_platform, name)
++		== SBI_PLATFORM_NAME_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_NAME_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, next_addr)
-+		== SBI_SCRATCH_NEXT_ADDR_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_NEXT_ADDR_OFFSET");
++	offsetof(struct sbi_platform, features)
++		== SBI_PLATFORM_FEATURES_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_FEATURES_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, next_mode)
-+		== SBI_SCRATCH_NEXT_MODE_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_NEXT_MODE_OFFSET");
++	offsetof(struct sbi_platform, hart_count)
++		== SBI_PLATFORM_HART_COUNT_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_HART_COUNT_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, warmboot_addr)
-+		== SBI_SCRATCH_WARMBOOT_ADDR_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_WARMBOOT_ADDR_OFFSET");
++	offsetof(struct sbi_platform, hart_stack_size)
++		== SBI_PLATFORM_HART_STACK_SIZE_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_HART_STACK_SIZE_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, platform_addr)
-+		== SBI_SCRATCH_PLATFORM_ADDR_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_PLATFORM_ADDR_OFFSET");
++	offsetof(struct sbi_platform, platform_ops_addr)
++		== SBI_PLATFORM_OPS_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_OPS_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, hartid_to_scratch)
-+		== SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET");
++	offsetof(struct sbi_platform, firmware_context)
++		== SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET");
 +_Static_assert(
-+	offsetof(struct sbi_scratch, trap_exit)
-+		== SBI_SCRATCH_TRAP_EXIT_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_TRAP_EXIT_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, tmp0)
-+		== SBI_SCRATCH_TMP0_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_TMP0_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, options)
-+		== SBI_SCRATCH_OPTIONS_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_OPTIONS_OFFSET");
- 
- /** Possible options for OpenSBI library */
- enum sbi_scratch_options {
++	offsetof(struct sbi_platform, hart_index2id)
++		== SBI_PLATFORM_HART_INDEX2ID_OFFSET,
++	"struct sbi_platform definition has changed, please redefine "
++	"SBI_PLATFORM_HART_INDEX2ID_OFFSET");
++
+ /** Get pointer to sbi_platform for sbi_scratch pointer */
+ #define sbi_platform_ptr(__s) \
+ 	((const struct sbi_platform *)((__s)->platform_addr))
 -- 
 2.30.2
 
