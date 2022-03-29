@@ -1,70 +1,75 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 29 Mar 2022 21:22:16 +0530
-Subject: [PATCH 2/4] lib: sbi: Detect menvcfg CSR at boot time
+Date: Tue, 29 Mar 2022 21:22:17 +0530
+Subject: [PATCH 3/4] lib: sbi: Enable Zicbo[m|z] extensions in the menvcfg CSR
 In-Reply-To: <20220329155218.118580-1-apatel@ventanamicro.com>
 References: <20220329155218.118580-1-apatel@ventanamicro.com>
-Message-ID: <20220329155218.118580-3-apatel@ventanamicro.com>
+Message-ID: <20220329155218.118580-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Atish Patra <atishp@rivosinc.com>
+The bits to configure/enable Zicbo[m|z] extensions in the menvcfg
+CSR are WARL. We try to enable these bits irrespective whether
+these extensions are available or not because writes to these
+bits will be ignored if these extensions are not available.
 
-We add the menvcfg CSR as a HART feature and detect it at boot time
-using traping mechanism.
-
-Signed-off-by: Atish Patra <atishp@rivosinc.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_hart.h | 4 +++-
- lib/sbi/sbi_hart.c     | 9 +++++++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_hart.c | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index a83b45b..57f80bc 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -26,9 +26,11 @@ enum sbi_hart_features {
- 	SBI_HART_HAS_TIME = (1 << 4),
- 	/** HART has AIA local interrupt CSRs */
- 	SBI_HART_HAS_AIA = (1 << 5),
-+	/** HART has menvcfg CSR */
-+	SBI_HART_HAS_MENVCFG = (1 << 6),
- 
- 	/** Last index of Hart features*/
--	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_AIA,
-+	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_MENVCFG,
- };
- 
- struct sbi_scratch;
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index e028540..31c8f39 100644
+index 31c8f39..d2c7aba 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -304,6 +304,9 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
- 	case SBI_HART_HAS_AIA:
- 		fstr = "aia";
- 		break;
-+	case SBI_HART_HAS_MENVCFG:
-+		fstr = "menvcfg";
-+		break;
- 	default:
- 		break;
+@@ -39,7 +39,7 @@ static unsigned long hart_features_offset;
+ 
+ static void mstatus_init(struct sbi_scratch *scratch)
+ {
+-	unsigned long mstatus_val = 0;
++	unsigned long menvcfg_val, mstatus_val = 0;
+ 	int cidx;
+ 	unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+ 	uint64_t mhpmevent_init_val = 0;
+@@ -86,6 +86,37 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 		csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val);
+ #endif
  	}
-@@ -534,6 +537,12 @@ __mhpm_skip:
- 		goto __aia_skip;
- 	hfeatures->features |= SBI_HART_HAS_AIA;
- __aia_skip:
 +
-+	/* Detect if hart has menvcfg CSR */
-+	csr_read_allowed(CSR_MENVCFG, (unsigned long)&trap);
-+	if (!trap.cause)
-+		hfeatures->features |= SBI_HART_HAS_MENVCFG;
++	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MENVCFG)) {
++		menvcfg_val = csr_read(CSR_MENVCFG);
 +
- 	return;
- }
++		/*
++		 * Set menvcfg.CBZE == 1
++		 *
++		 * If Zicboz extension is not available then writes to
++		 * menvcfg.CBZE will be ignored because it is a WARL field.
++		 */
++		menvcfg_val |= ENVCFG_CBZE;
++
++		/*
++		 * Set menvcfg.CBCFE == 1
++		 *
++		 * If Zicbom extension is not available then writes to
++		 * menvcfg.CBCFE will be ignored because it is a WARL field.
++		 */
++		menvcfg_val |= ENVCFG_CBCFE;
++
++		/*
++		 * Set menvcfg.CBIE == 3
++		 *
++		 * If Zicbom extension is not available then writes to
++		 * menvcfg.CBIE will be ignored because it is a WARL field.
++		 */
++		menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
++
++		csr_write(CSR_MENVCFG, menvcfg_val);
++	}
++
+ 	/* Disable all interrupts */
+ 	csr_write(CSR_MIE, 0);
  
 -- 
 2.25.1
