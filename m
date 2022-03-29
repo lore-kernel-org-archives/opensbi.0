@@ -1,35 +1,83 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 29 Mar 2022 21:22:14 +0530
-Subject: [PATCH 0/4] Configure Zicbo[m|z] and Svpbmt in menvcfg CSR
-Message-ID: <20220329155218.118580-1-apatel@ventanamicro.com>
+Date: Tue, 29 Mar 2022 21:22:15 +0530
+Subject: [PATCH 1/4] include: Add defines for [m|h|s]envcfg CSRs
+In-Reply-To: <20220329155218.118580-1-apatel@ventanamicro.com>
+References: <20220329155218.118580-1-apatel@ventanamicro.com>
+Message-ID: <20220329155218.118580-2-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Lower privilege modes (S and U) can use Zicbo[m|z] and Svpbmt extensions
-only if these extensions are configured/enabled by M-mode firmware hence
-this series.
+The latest RISC-V privileged specification introduces xenvcfg CSRs
+to enable/disable certain features/extensions for lower privilege
+modes. This patch adds defines for these new [m|h|s]envcfg CSRs.
 
-The PATCH2 is adapted from Atish's Sstc series to avoid duplicate work.
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ include/sbi/riscv_encoding.h | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-These patches can be found in pbmt_cbo_v1 branch at:
-https://github.com/avpatel/opensbi.git
-
-Anup Patel (3):
-  include: Add defines for [m|h|s]envcfg CSRs
-  lib: sbi: Enable Zicbo[m|z] extensions in the menvcfg CSR
-  lib: sbi: Enable Svpbmt extension in the menvcfg CSR
-
-Atish Patra (1):
-  lib: sbi: Detect menvcfg CSR at boot time
-
- include/sbi/riscv_encoding.h | 27 +++++++++++++++++++
- include/sbi/sbi_hart.h       |  4 ++-
- lib/sbi/sbi_hart.c           | 52 +++++++++++++++++++++++++++++++++++-
- 3 files changed, 81 insertions(+), 2 deletions(-)
-
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 574d1c3..c02aa8f 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -203,6 +203,22 @@
+ 
+ #define MHPMEVENT_SSCOF_MASK		_ULL(0xFFFF000000000000)
+ 
++#if __riscv_xlen > 32
++#define ENVCFG_STCE			(_ULL(1) << 63)
++#define ENVCFG_PBMTE			(_ULL(1) << 62)
++#else
++#define ENVCFGH_STCE			(_UL(1) << 31)
++#define ENVCFGH_PBMTE			(_UL(1) << 30)
++#endif
++#define ENVCFG_CBZE			(_UL(1) << 7)
++#define ENVCFG_CBCFE			(_UL(1) << 6)
++#define ENVCFG_CBIE_SHIFT		4
++#define ENVCFG_CBIE			(_UL(0x3) << ENVCFG_CBIE_SHIFT)
++#define ENVCFG_CBIE_ILL			_UL(0x0)
++#define ENVCFG_CBIE_FLUSH		_UL(0x1)
++#define ENVCFG_CBIE_INV			_UL(0x3)
++#define ENVCFG_FIOM			_UL(0x1)
++
+ /* ===== User-level CSRs ===== */
+ 
+ /* User Trap Setup (N-extension) */
+@@ -298,6 +314,9 @@
+ #define CSR_STVEC			0x105
+ #define CSR_SCOUNTEREN			0x106
+ 
++/* Supervisor Configuration */
++#define CSR_SENVCFG			0x10a
++
+ /* Supervisor Trap Handling */
+ #define CSR_SSCRATCH			0x140
+ #define CSR_SEPC			0x141
+@@ -336,6 +355,10 @@
+ #define CSR_HCOUNTEREN			0x606
+ #define CSR_HGEIE			0x607
+ 
++/* Hypervisor Configuration */
++#define CSR_HENVCFG			0x60a
++#define CSR_HENVCFGH			0x61a
++
+ /* Hypervisor Trap Handling (H-extension) */
+ #define CSR_HTVAL			0x643
+ #define CSR_HIP				0x644
+@@ -408,6 +431,10 @@
+ #define CSR_MCOUNTEREN			0x306
+ #define CSR_MSTATUSH			0x310
+ 
++/* Machine Configuration */
++#define CSR_MENVCFG			0x30a
++#define CSR_MENVCFGH			0x31a
++
+ /* Machine Trap Handling */
+ #define CSR_MSCRATCH			0x340
+ #define CSR_MEPC			0x341
 -- 
 2.25.1
 
