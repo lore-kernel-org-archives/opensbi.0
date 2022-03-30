@@ -1,10 +1,11 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 29 Mar 2022 16:48:46 -0700
-Subject: [PATCH 1/4] include: Add defines for [m|h|s]envcfg CSRs
-In-Reply-To: <20220329155218.118580-2-apatel@ventanamicro.com>
+Date: Tue, 29 Mar 2022 17:04:46 -0700
+Subject: [PATCH 3/4] lib: sbi: Enable Zicbo[m|z] extensions in the menvcfg
+ CSR
+In-Reply-To: <20220329155218.118580-4-apatel@ventanamicro.com>
 References: <20220329155218.118580-1-apatel@ventanamicro.com>
- <20220329155218.118580-2-apatel@ventanamicro.com>
-Message-ID: <CAOnJCU+nGAtMimB3gFOQhDn6bMLJH=ujKOdFZuorXnzQe4EyBw@mail.gmail.com>
+ <20220329155218.118580-4-apatel@ventanamicro.com>
+Message-ID: <CAOnJCUKi_64Qon0s0983gwgA6TZRN=0YEBn_gOUY0JjALVkgPQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,74 +14,67 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Mar 29, 2022 at 8:53 AM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> The latest RISC-V privileged specification introduces xenvcfg CSRs
-> to enable/disable certain features/extensions for lower privilege
-> modes. This patch adds defines for these new [m|h|s]envcfg CSRs.
+> The bits to configure/enable Zicbo[m|z] extensions in the menvcfg
+> CSR are WARL. We try to enable these bits irrespective whether
+> these extensions are available or not because writes to these
+> bits will be ignored if these extensions are not available.
 >
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
->  include/sbi/riscv_encoding.h | 27 +++++++++++++++++++++++++++
->  1 file changed, 27 insertions(+)
+>  lib/sbi/sbi_hart.c | 33 ++++++++++++++++++++++++++++++++-
+>  1 file changed, 32 insertions(+), 1 deletion(-)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 574d1c3..c02aa8f 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -203,6 +203,22 @@
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 31c8f39..d2c7aba 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -39,7 +39,7 @@ static unsigned long hart_features_offset;
 >
->  #define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
->
-> +#if __riscv_xlen > 32
-> +#define ENVCFG_STCE                    (_ULL(1) << 63)
-> +#define ENVCFG_PBMTE                   (_ULL(1) << 62)
-> +#else
-> +#define ENVCFGH_STCE                   (_UL(1) << 31)
-> +#define ENVCFGH_PBMTE                  (_UL(1) << 30)
-> +#endif
-> +#define ENVCFG_CBZE                    (_UL(1) << 7)
-> +#define ENVCFG_CBCFE                   (_UL(1) << 6)
-> +#define ENVCFG_CBIE_SHIFT              4
-> +#define ENVCFG_CBIE                    (_UL(0x3) << ENVCFG_CBIE_SHIFT)
-> +#define ENVCFG_CBIE_ILL                        _UL(0x0)
-> +#define ENVCFG_CBIE_FLUSH              _UL(0x1)
-> +#define ENVCFG_CBIE_INV                        _UL(0x3)
-> +#define ENVCFG_FIOM                    _UL(0x1)
+>  static void mstatus_init(struct sbi_scratch *scratch)
+>  {
+> -       unsigned long mstatus_val = 0;
+> +       unsigned long menvcfg_val, mstatus_val = 0;
+>         int cidx;
+>         unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+>         uint64_t mhpmevent_init_val = 0;
+> @@ -86,6 +86,37 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                 csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val);
+>  #endif
+>         }
 > +
->  /* ===== User-level CSRs ===== */
->
->  /* User Trap Setup (N-extension) */
-> @@ -298,6 +314,9 @@
->  #define CSR_STVEC                      0x105
->  #define CSR_SCOUNTEREN                 0x106
->
-> +/* Supervisor Configuration */
-> +#define CSR_SENVCFG                    0x10a
+> +       if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MENVCFG)) {
+> +               menvcfg_val = csr_read(CSR_MENVCFG);
 > +
->  /* Supervisor Trap Handling */
->  #define CSR_SSCRATCH                   0x140
->  #define CSR_SEPC                       0x141
-> @@ -336,6 +355,10 @@
->  #define CSR_HCOUNTEREN                 0x606
->  #define CSR_HGEIE                      0x607
->
-> +/* Hypervisor Configuration */
-> +#define CSR_HENVCFG                    0x60a
-> +#define CSR_HENVCFGH                   0x61a
+> +               /*
+> +                * Set menvcfg.CBZE == 1
+> +                *
+> +                * If Zicboz extension is not available then writes to
+> +                * menvcfg.CBZE will be ignored because it is a WARL field.
+> +                */
+> +               menvcfg_val |= ENVCFG_CBZE;
 > +
->  /* Hypervisor Trap Handling (H-extension) */
->  #define CSR_HTVAL                      0x643
->  #define CSR_HIP                                0x644
-> @@ -408,6 +431,10 @@
->  #define CSR_MCOUNTEREN                 0x306
->  #define CSR_MSTATUSH                   0x310
->
-> +/* Machine Configuration */
-> +#define CSR_MENVCFG                    0x30a
-> +#define CSR_MENVCFGH                   0x31a
+> +               /*
+> +                * Set menvcfg.CBCFE == 1
+> +                *
+> +                * If Zicbom extension is not available then writes to
+> +                * menvcfg.CBCFE will be ignored because it is a WARL field.
+> +                */
+> +               menvcfg_val |= ENVCFG_CBCFE;
 > +
->  /* Machine Trap Handling */
->  #define CSR_MSCRATCH                   0x340
->  #define CSR_MEPC                       0x341
+> +               /*
+> +                * Set menvcfg.CBIE == 3
+> +                *
+> +                * If Zicbom extension is not available then writes to
+> +                * menvcfg.CBIE will be ignored because it is a WARL field.
+> +                */
+> +               menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
+> +
+> +               csr_write(CSR_MENVCFG, menvcfg_val);
+> +       }
+> +
+>         /* Disable all interrupts */
+>         csr_write(CSR_MIE, 0);
+>
 > --
 > 2.25.1
 >
