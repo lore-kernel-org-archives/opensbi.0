@@ -1,54 +1,82 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 29 Mar 2022 17:04:58 -0700
-Subject: [PATCH 4/4] lib: sbi: Enable Svpbmt extension in the menvcfg CSR
-In-Reply-To: <20220329155218.118580-5-apatel@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 30 Mar 2022 22:48:07 +0800
+Subject: [PATCH 2/4] lib: sbi: Detect menvcfg CSR at boot time
+In-Reply-To: <20220329155218.118580-3-apatel@ventanamicro.com>
 References: <20220329155218.118580-1-apatel@ventanamicro.com>
- <20220329155218.118580-5-apatel@ventanamicro.com>
-Message-ID: <CAOnJCUJuYXY1S6SZU+tCKiEHPe=30M_6EzKxZVoiKn4dsUiy9A@mail.gmail.com>
+ <20220329155218.118580-3-apatel@ventanamicro.com>
+Message-ID: <2f5a96a2e21dcad86d3570c7dc7bab4f16aae146.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 29, 2022 at 8:53 AM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> The menvcfg.PBMTE bit is read-only zero when Svpbmt extension is not
-> available so we try to enable menvcfg.PBMTE bit irrespective whether
-> Svpbmt is available or not.
->
+? 2022-03-29???? 21:22 +0530?Anup Patel???
+> From: Atish Patra <atishp@rivosinc.com>
+> 
+> We add the menvcfg CSR as a HART feature and detect it at boot time
+> using traping mechanism.
+> 
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+
+Regards,
+Xiang W
 > ---
->  lib/sbi/sbi_hart.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->
+> ?include/sbi/sbi_hart.h | 4 +++-
+> ?lib/sbi/sbi_hart.c???? | 9 +++++++++
+> ?2 files changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index a83b45b..57f80bc 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -26,9 +26,11 @@ enum sbi_hart_features {
+> ????????SBI_HART_HAS_TIME = (1 << 4),
+> ????????/** HART has AIA local interrupt CSRs */
+> ????????SBI_HART_HAS_AIA = (1 << 5),
+> +???????/** HART has menvcfg CSR */
+> +???????SBI_HART_HAS_MENVCFG = (1 << 6),
+> ?
+> ????????/** Last index of Hart features*/
+> -???????SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_AIA,
+> +???????SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_MENVCFG,
+> ?};
+> ?
+> ?struct sbi_scratch;
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index d2c7aba..6be9286 100644
+> index e028540..31c8f39 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -114,6 +114,16 @@ static void mstatus_init(struct sbi_scratch *scratch)
->                  */
->                 menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
->
-> +               /*
-> +                * Set menvcfg.PBMTE == 1 for RV64 or RV128
-> +                *
-> +                * If Svpbmt extension is not available then menvcfg.PBMTE
-> +                * will be read-only zero.
-> +                */
-> +#if __riscv_xlen > 32
-> +               menvcfg_val |= ENVCFG_PBMTE;
-> +#endif
+> @@ -304,6 +304,9 @@ static inline char
+> *sbi_hart_feature_id2string(unsigned long feature)
+> ????????case SBI_HART_HAS_AIA:
+> ????????????????fstr = "aia";
+> ????????????????break;
+> +???????case SBI_HART_HAS_MENVCFG:
+> +???????????????fstr = "menvcfg";
+> +???????????????break;
+> ????????default:
+> ????????????????break;
+> ????????}
+> @@ -534,6 +537,12 @@ __mhpm_skip:
+> ????????????????goto __aia_skip;
+> ????????hfeatures->features |= SBI_HART_HAS_AIA;
+> ?__aia_skip:
 > +
->                 csr_write(CSR_MENVCFG, menvcfg_val);
->         }
->
-> --
+> +???????/* Detect if hart has menvcfg CSR */
+> +???????csr_read_allowed(CSR_MENVCFG, (unsigned long)&trap);
+> +???????if (!trap.cause)
+> +???????????????hfeatures->features |= SBI_HART_HAS_MENVCFG;
+> +
+> ????????return;
+> ?}
+> ?
+> -- 
 > 2.25.1
->
+> 
+> 
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
--- 
-Regards,
-Atish
+
 
