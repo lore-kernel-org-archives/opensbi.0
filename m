@@ -1,57 +1,78 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 30 Mar 2022 22:49:59 +0800
-Subject: [PATCH 4/4] lib: sbi: Enable Svpbmt extension in the menvcfg CSR
-In-Reply-To: <20220329155218.118580-5-apatel@ventanamicro.com>
-References: <20220329155218.118580-1-apatel@ventanamicro.com>
- <20220329155218.118580-5-apatel@ventanamicro.com>
-Message-ID: <2790aba472449e27e0bcf97a553949aa8d5137e6.camel@126.com>
+From: Heiko Stuebner <heiko@sntech.de>
+Date: Fri,  1 Apr 2022 03:08:38 +0200
+Subject: [PATCH 1/2] platform: add a vendor_ext_provider override
+Message-ID: <20220401010839.1343551-1-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-03-29???? 21:22 +0530?Anup Patel???
-> The menvcfg.PBMTE bit is read-only zero when Svpbmt extension is not
-> available so we try to enable menvcfg.PBMTE bit irrespective whether
-> Svpbmt is available or not.
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
+The vendor_ext_provider is already meant to allow
+vendor extensions to ecalls, so allow fdt-matched
+platforms to define their own override.
 
-Regards,
-Xiang W
-> ---
-> ?lib/sbi/sbi_hart.c | 10 ++++++++++
-> ?1 file changed, 10 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index d2c7aba..6be9286 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -114,6 +114,16 @@ static void mstatus_init(struct sbi_scratch
-> *scratch)
-> ???????????????? */
-> ????????????????menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
-> ?
-> +???????????????/*
-> +??????????????? * Set menvcfg.PBMTE == 1 for RV64 or RV128
-> +??????????????? *
-> +??????????????? * If Svpbmt extension is not available then
-> menvcfg.PBMTE
-> +??????????????? * will be read-only zero.
-> +??????????????? */
-> +#if __riscv_xlen > 32
-> +???????????????menvcfg_val |= ENVCFG_PBMTE;
-> +#endif
-> +
-> ????????????????csr_write(CSR_MENVCFG, menvcfg_val);
-> ????????}
-> ?
-> -- 
-> 2.25.1
-> 
-> 
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ platform/generic/include/platform_override.h |  5 +++++
+ platform/generic/platform.c                  | 13 +++++++++++++
+ 2 files changed, 18 insertions(+)
 
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index 4af8754..3d41a19 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -10,6 +10,7 @@
+ #ifndef __PLATFORM_OVERRIDE_H__
+ #define __PLATFORM_OVERRIDE_H__
+ 
++#include <sbi/sbi_trap.h>
+ #include <sbi/sbi_types.h>
+ 
+ struct platform_override {
+@@ -21,6 +22,10 @@ struct platform_override {
+ 	void (*early_exit)(const struct fdt_match *match);
+ 	void (*final_exit)(const struct fdt_match *match);
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
++	int (*vendor_ext_provider)(long extid, long funcid,
++				   const struct sbi_trap_regs *regs,
++				   unsigned long *out_value,
++				   struct sbi_trap_info *out_trap);
+ };
+ 
+ #endif
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index bc6e761..f05da8e 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -209,6 +209,18 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+ 	return evt_val;
+ }
+ 
++static int generic_vendor_ext_provider(long extid, long funcid,
++				       const struct sbi_trap_regs *regs,
++				       unsigned long *out_value,
++				       struct sbi_trap_info *out_trap)
++{
++	if (generic_plat && generic_plat->vendor_ext_provider)
++		return generic_plat->vendor_ext_provider(extid, funcid, regs,
++							 out_value, out_trap);
++
++	return SBI_ENOTSUPP;
++}
++
+ const struct sbi_platform_operations platform_ops = {
+ 	.nascent_init		= generic_nascent_init,
+ 	.early_init		= generic_early_init,
+@@ -225,6 +237,7 @@ const struct sbi_platform_operations platform_ops = {
+ 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
+ 	.timer_init		= fdt_timer_init,
+ 	.timer_exit		= fdt_timer_exit,
++	.vendor_ext_provider	= generic_vendor_ext_provider,
+ };
+ 
+ struct sbi_platform platform = {
+-- 
+2.35.1
 
 
