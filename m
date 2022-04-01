@@ -1,108 +1,191 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 30 Jul 2021 16:16:02 +0530
-Subject: [PATCH 2/2] lib: utils: support both of gpio-poweroff, gpio-reset
-In-Reply-To: <b6d51cd4fb5f0a6cc3f2cec465be07c027d83853.camel@wdc.com>
-References: <20210722105359.18622-1-xypron.glpk@gmx.de>
- <20210722105359.18622-3-xypron.glpk@gmx.de>
- <b6d51cd4fb5f0a6cc3f2cec465be07c027d83853.camel@wdc.com>
-Message-ID: <CAAhSdy24ZUKLJXhrUYstfa3=QJLTWUZb8_ZaaH6bLQD6Ms1fMQ@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 01 Apr 2022 19:12:59 +0800
+Subject: [PATCH 2/2] platform: add thead-c9xx specific platform-overrides
+In-Reply-To: <20220401010839.1343551-2-heiko@sntech.de>
+References: <20220401010839.1343551-1-heiko@sntech.de>
+ <20220401010839.1343551-2-heiko@sntech.de>
+Message-ID: <5a26d702478e753402d7f335d3dc86c87c860583.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 23, 2021 at 12:49 AM Atish Patra <Atish.Patra@wdc.com> wrote:
->
-> On Thu, 2021-07-22 at 12:53 +0200, Heinrich Schuchardt wrote:
-> > The generic GPIO reset driver has two entries in the match table:
-> > "gpio-poweroff", "gpio-reset". Only the first entry is considered by
-> > fdt_reset_init().
-> >
-> > Define "gpio-poweroff" and "gpio-reset" as compatibility strings of
-> > two
-> > separate reset drivers. They still can share code.
-> >
-> > Fixes: e3d6919d10d7 ("lib: utils/reset: Add generic GPIO reset
-> > driver")
-> > Signed-off-by: Heinrich Schuchardt
-> > <heinrich.schuchardt@canonical.com>
-> > ---
-> >  lib/utils/reset/fdt_reset.c      |  3 ++-
-> >  lib/utils/reset/fdt_reset_gpio.c | 11 ++++++++++-
-> >  2 files changed, 12 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/lib/utils/reset/fdt_reset.c
-> > b/lib/utils/reset/fdt_reset.c
-> > index 87f925c..0d84dc2 100644
-> > --- a/lib/utils/reset/fdt_reset.c
-> > +++ b/lib/utils/reset/fdt_reset.c
-> > @@ -12,12 +12,14 @@
-> >  #include <sbi_utils/fdt/fdt_helper.h>
-> >  #include <sbi_utils/reset/fdt_reset.h>
-> >
-> > +extern struct fdt_reset fdt_poweroff_gpio;
-> >  extern struct fdt_reset fdt_reset_gpio;
-> >  extern struct fdt_reset fdt_reset_sifive_test;
-> >  extern struct fdt_reset fdt_reset_htif;
-> >  extern struct fdt_reset fdt_reset_thead;
-> >
-> >  static struct fdt_reset *reset_drivers[] = {
-> > +       &fdt_poweroff_gpio,
-> >         &fdt_reset_gpio,
-> >         &fdt_reset_sifive_test,
-> >         &fdt_reset_htif,
-> > @@ -45,7 +47,6 @@ int fdt_reset_init(void)
-> >                         if (rc)
-> >                                 return rc;
-> >                 }
-> > -               break;
-> >         }
-> >
-> >         return 0;
-> > diff --git a/lib/utils/reset/fdt_reset_gpio.c
-> > b/lib/utils/reset/fdt_reset_gpio.c
-> > index 7e0eb74..77e308a 100644
-> > --- a/lib/utils/reset/fdt_reset_gpio.c
-> > +++ b/lib/utils/reset/fdt_reset_gpio.c
-> > @@ -129,8 +129,17 @@ static int gpio_reset_init(void *fdt, int
-> > nodeoff,
-> >         return 0;
-> >  }
-> >
-> > -static const struct fdt_match gpio_reset_match[] = {
-> > +static const struct fdt_match gpio_poweroff_match[] = {
-> >         { .compatible = "gpio-poweroff", .data = (void *)FALSE },
-> > +       { },
-> > +};
-> > +
-> > +struct fdt_reset fdt_poweroff_gpio = {
-> > +       .match_table = gpio_poweroff_match,
-> > +       .init = gpio_reset_init,
-> > +};
-> > +
-> > +static const struct fdt_match gpio_reset_match[] = {
-> >         { .compatible = "gpio-restart", .data = (void *)TRUE },
-> >         { },
-> >  };
-> > --
-> > 2.30.2
-> >
-> Reviewed-by: Atish Patra <atish.patra@wdc.com>
+? 2022-04-01???? 03:08 +0200?Heiko Stuebner???
+> From: Guo Ren <guoren@linux.alibaba.com>
+> 
+> The PMU on T-Head C9xx SoCs works differently with additional
+> CSRs and needs additional vendor ecalls to function correctly
+> both for initializing and mapping events to counters.
+> 
+> Add a fdt-matched T-Head platform for this and
+> disable the SBI PMU extension for it.
+> 
+> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+> ---
+> ?lib/sbi/sbi_ecall_pmu.c?????? |? 7 +++
+> ?platform/generic/objects.mk?? |? 1 +
+> ?platform/generic/platform.c?? |? 2 +
+> ?platform/generic/thead_c9xx.c | 91
+> +++++++++++++++++++++++++++++++++++
+> ?4 files changed, 101 insertions(+)
+> ?create mode 100644 platform/generic/thead_c9xx.c
+> 
+> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
+> index 9ee9e81..5f6f7c9 100644
+> --- a/lib/sbi/sbi_ecall_pmu.c
+> +++ b/lib/sbi/sbi_ecall_pmu.c
+> @@ -76,6 +76,13 @@ static int sbi_ecall_pmu_probe(unsigned long extid,
+> unsigned long *out_val)
+> ?{
+> ????????/* PMU extension is always enabled */
+> ????????*out_val = 1;
+> +
+> +???????/* Some T-Head socs have a non-spec PMU */
+> +???????if (csr_read(CSR_MVENDORID) == 0x5b7 &&
+> +?????????? csr_read(CSR_MARCHID) == 0 &&
+> +?????????? csr_read(CSR_MIMPID) == 0)
+> +???????????????*out_val = 0;
+> +
+> ????????return 0;
+> ?}
+> ?
+> diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+> index cb15a18..0d6c228 100644
+> --- a/platform/generic/objects.mk
+> +++ b/platform/generic/objects.mk
+> @@ -10,3 +10,4 @@
+> ?platform-objs-y += platform.o
+> ?platform-objs-y += sifive_fu540.o
+> ?platform-objs-y += sifive_fu740.o
+> +platform-objs-y += thead_c9xx.o
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index f05da8e..1a797dc 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -25,10 +25,12 @@
+> ?
+> ?extern const struct platform_override sifive_fu540;
+> ?extern const struct platform_override sifive_fu740;
+> +extern const struct platform_override thead_c9xx;
+> ?
+> ?static const struct platform_override *special_platforms[] = {
+> ????????&sifive_fu540,
+> ????????&sifive_fu740,
+> +???????&thead_c9xx,
+> ?};
+> ?
+> ?static const struct platform_override *generic_plat = NULL;
+> diff --git a/platform/generic/thead_c9xx.c
+> b/platform/generic/thead_c9xx.c
+> new file mode 100644
+> index 0000000..782d4e7
+> --- /dev/null
+> +++ b/platform/generic/thead_c9xx.c
+> @@ -0,0 +1,91 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 Heiko Stuebner <heiko@sntech.de>
+> + *
+> + * Authors:
+> + *?? Heiko Stuebner <heiko@sntech.de>
+> + */
+> +
+> +#include <platform_override.h>
+> +#include <sbi/sbi_const.h>
+> +#include <sbi/sbi_trap.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/fdt/fdt_fixup.h>
+> +
+> +enum sbi_ext_thead_fid {
+> +???????SBI_EXT_THEAD_PMU_INIT = 0,
+> +???????SBI_EXT_THEAD_PMU_MAP,
+> +};
+> +
+> +#define CSR_MCOUNTERWEN????????0x7c9
+> +
+> +static void thead_c9xx_pmu_init(void)
+> +{
+> +???????unsigned long interrupts;
+> +
+> +???????interrupts = csr_read(CSR_MIDELEG) | (1 << 17);
+> +???????csr_write(CSR_MIDELEG, interrupts);
+> +
+> +???????/* CSR_MCOUNTEREN has already been set in mstatus_init() */
+> +???????csr_write(CSR_MCOUNTERWEN, 0xffffffff);
+> +???????csr_write(CSR_MHPMEVENT3, 1);
+> +???????csr_write(CSR_MHPMEVENT4, 2);
+> +???????csr_write(CSR_MHPMEVENT5, 3);
+> +???????csr_write(CSR_MHPMEVENT6, 4);
+> +???????csr_write(CSR_MHPMEVENT7, 5);
+> +???????csr_write(CSR_MHPMEVENT8, 6);
+> +???????csr_write(CSR_MHPMEVENT9, 7);
+> +???????csr_write(CSR_MHPMEVENT10, 8);
+> +???????csr_write(CSR_MHPMEVENT11, 9);
+> +???????csr_write(CSR_MHPMEVENT12, 10);
+> +???????csr_write(CSR_MHPMEVENT13, 11);
+> +???????csr_write(CSR_MHPMEVENT14, 12);
+> +???????csr_write(CSR_MHPMEVENT15, 13);
+> +???????csr_write(CSR_MHPMEVENT16, 14);
+> +???????csr_write(CSR_MHPMEVENT17, 15);
+> +???????csr_write(CSR_MHPMEVENT18, 16);
+> +???????csr_write(CSR_MHPMEVENT19, 17);
+> +???????csr_write(CSR_MHPMEVENT20, 18);
+> +???????csr_write(CSR_MHPMEVENT21, 19);
+> +???????csr_write(CSR_MHPMEVENT22, 20);
+> +???????csr_write(CSR_MHPMEVENT23, 21);
+> +???????csr_write(CSR_MHPMEVENT24, 22);
+> +???????csr_write(CSR_MHPMEVENT25, 23);
+> +???????csr_write(CSR_MHPMEVENT26, 24);
+> +???????csr_write(CSR_MHPMEVENT27, 25);
+> +???????csr_write(CSR_MHPMEVENT28, 26);
+> +}
+> +
+> +static void thead_c9xx_pmu_map(unsigned long idx, unsigned long
+> event_id)
+> +{
+> +???????if (idx >= 3 && idx <= 31)
+> +???????????????csr_write_num(CSR_MHPMEVENT3 + idx - 3, event_id);
+> +}
+> +
+> +#include <sbi/sbi_console.h>
+> +static int thead_c9xx_vendor_ext_provider(long extid, long funcid,
+> +???????????????????????????????????????? const struct sbi_trap_regs
+> *regs,
+> +???????????????????????????????????????? unsigned long *out_value,
+> +???????????????????????????????????????? struct sbi_trap_info
+> *out_trap)
+> +{
+No need to check extid?
 
-Forgot to reply here...
+Regards,
+Xiang W
+> +???????switch (funcid) {
+> +???????case SBI_EXT_THEAD_PMU_MAP:
+> +???????????????thead_c9xx_pmu_map(regs->a0, regs->a1);
+> +???????????????break;
+> +???????case SBI_EXT_THEAD_PMU_INIT:
+> +???????????????thead_c9xx_pmu_init();
+> +???????????????break;
+> +???????}
+> +???????return 0;
+> +}
+> +
+> +static const struct fdt_match thead_c9xx_match[] = {
+> +???????{ .compatible = "allwinner,sun20i-d1" },
+> +???????{ },
+> +};
+> +
+> +const struct platform_override thead_c9xx = {
+> +???????.match_table = thead_c9xx_match,
+> +???????.vendor_ext_provider = thead_c9xx_vendor_ext_provider,
+> +};
+> -- 
+> 2.35.1
+> 
+> 
 
-Applied this patch to the riscv/opensbi repo.
 
-Thanks,
-Anup
-
->
-> --
-> Regards,
-> Atish
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
