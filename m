@@ -1,77 +1,175 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Fri,  1 Apr 2022 03:08:38 +0200
-Subject: [PATCH 1/2] platform: add a vendor_ext_provider override
-Message-ID: <20220401010839.1343551-1-heiko@sntech.de>
+Date: Fri,  1 Apr 2022 03:08:39 +0200
+Subject: [PATCH 2/2] platform: add thead-c9xx specific platform-overrides
+In-Reply-To: <20220401010839.1343551-1-heiko@sntech.de>
+References: <20220401010839.1343551-1-heiko@sntech.de>
+Message-ID: <20220401010839.1343551-2-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The vendor_ext_provider is already meant to allow
-vendor extensions to ecalls, so allow fdt-matched
-platforms to define their own override.
+From: Guo Ren <guoren@linux.alibaba.com>
 
+The PMU on T-Head C9xx SoCs works differently with additional
+CSRs and needs additional vendor ecalls to function correctly
+both for initializing and mapping events to counters.
+
+Add a fdt-matched T-Head platform for this and
+disable the SBI PMU extension for it.
+
+Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 ---
- platform/generic/include/platform_override.h |  5 +++++
- platform/generic/platform.c                  | 13 +++++++++++++
- 2 files changed, 18 insertions(+)
+ lib/sbi/sbi_ecall_pmu.c       |  7 +++
+ platform/generic/objects.mk   |  1 +
+ platform/generic/platform.c   |  2 +
+ platform/generic/thead_c9xx.c | 91 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 101 insertions(+)
+ create mode 100644 platform/generic/thead_c9xx.c
 
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 4af8754..3d41a19 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -10,6 +10,7 @@
- #ifndef __PLATFORM_OVERRIDE_H__
- #define __PLATFORM_OVERRIDE_H__
- 
-+#include <sbi/sbi_trap.h>
- #include <sbi/sbi_types.h>
- 
- struct platform_override {
-@@ -21,6 +22,10 @@ struct platform_override {
- 	void (*early_exit)(const struct fdt_match *match);
- 	void (*final_exit)(const struct fdt_match *match);
- 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
-+	int (*vendor_ext_provider)(long extid, long funcid,
-+				   const struct sbi_trap_regs *regs,
-+				   unsigned long *out_value,
-+				   struct sbi_trap_info *out_trap);
- };
- 
- #endif
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index bc6e761..f05da8e 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -209,6 +209,18 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
- 	return evt_val;
+diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
+index 9ee9e81..5f6f7c9 100644
+--- a/lib/sbi/sbi_ecall_pmu.c
++++ b/lib/sbi/sbi_ecall_pmu.c
+@@ -76,6 +76,13 @@ static int sbi_ecall_pmu_probe(unsigned long extid, unsigned long *out_val)
+ {
+ 	/* PMU extension is always enabled */
+ 	*out_val = 1;
++
++	/* Some T-Head socs have a non-spec PMU */
++	if (csr_read(CSR_MVENDORID) == 0x5b7 &&
++	    csr_read(CSR_MARCHID) == 0 &&
++	    csr_read(CSR_MIMPID) == 0)
++		*out_val = 0;
++
+ 	return 0;
  }
  
-+static int generic_vendor_ext_provider(long extid, long funcid,
-+				       const struct sbi_trap_regs *regs,
-+				       unsigned long *out_value,
-+				       struct sbi_trap_info *out_trap)
-+{
-+	if (generic_plat && generic_plat->vendor_ext_provider)
-+		return generic_plat->vendor_ext_provider(extid, funcid, regs,
-+							 out_value, out_trap);
-+
-+	return SBI_ENOTSUPP;
-+}
-+
- const struct sbi_platform_operations platform_ops = {
- 	.nascent_init		= generic_nascent_init,
- 	.early_init		= generic_early_init,
-@@ -225,6 +237,7 @@ const struct sbi_platform_operations platform_ops = {
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
- 	.timer_init		= fdt_timer_init,
- 	.timer_exit		= fdt_timer_exit,
-+	.vendor_ext_provider	= generic_vendor_ext_provider,
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index cb15a18..0d6c228 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -10,3 +10,4 @@
+ platform-objs-y += platform.o
+ platform-objs-y += sifive_fu540.o
+ platform-objs-y += sifive_fu740.o
++platform-objs-y += thead_c9xx.o
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index f05da8e..1a797dc 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -25,10 +25,12 @@
+ 
+ extern const struct platform_override sifive_fu540;
+ extern const struct platform_override sifive_fu740;
++extern const struct platform_override thead_c9xx;
+ 
+ static const struct platform_override *special_platforms[] = {
+ 	&sifive_fu540,
+ 	&sifive_fu740,
++	&thead_c9xx,
  };
  
- struct sbi_platform platform = {
+ static const struct platform_override *generic_plat = NULL;
+diff --git a/platform/generic/thead_c9xx.c b/platform/generic/thead_c9xx.c
+new file mode 100644
+index 0000000..782d4e7
+--- /dev/null
++++ b/platform/generic/thead_c9xx.c
+@@ -0,0 +1,91 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Heiko Stuebner <heiko@sntech.de>
++ *
++ * Authors:
++ *   Heiko Stuebner <heiko@sntech.de>
++ */
++
++#include <platform_override.h>
++#include <sbi/sbi_const.h>
++#include <sbi/sbi_trap.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_fixup.h>
++
++enum sbi_ext_thead_fid {
++	SBI_EXT_THEAD_PMU_INIT = 0,
++	SBI_EXT_THEAD_PMU_MAP,
++};
++
++#define CSR_MCOUNTERWEN	0x7c9
++
++static void thead_c9xx_pmu_init(void)
++{
++	unsigned long interrupts;
++
++	interrupts = csr_read(CSR_MIDELEG) | (1 << 17);
++	csr_write(CSR_MIDELEG, interrupts);
++
++	/* CSR_MCOUNTEREN has already been set in mstatus_init() */
++	csr_write(CSR_MCOUNTERWEN, 0xffffffff);
++	csr_write(CSR_MHPMEVENT3, 1);
++	csr_write(CSR_MHPMEVENT4, 2);
++	csr_write(CSR_MHPMEVENT5, 3);
++	csr_write(CSR_MHPMEVENT6, 4);
++	csr_write(CSR_MHPMEVENT7, 5);
++	csr_write(CSR_MHPMEVENT8, 6);
++	csr_write(CSR_MHPMEVENT9, 7);
++	csr_write(CSR_MHPMEVENT10, 8);
++	csr_write(CSR_MHPMEVENT11, 9);
++	csr_write(CSR_MHPMEVENT12, 10);
++	csr_write(CSR_MHPMEVENT13, 11);
++	csr_write(CSR_MHPMEVENT14, 12);
++	csr_write(CSR_MHPMEVENT15, 13);
++	csr_write(CSR_MHPMEVENT16, 14);
++	csr_write(CSR_MHPMEVENT17, 15);
++	csr_write(CSR_MHPMEVENT18, 16);
++	csr_write(CSR_MHPMEVENT19, 17);
++	csr_write(CSR_MHPMEVENT20, 18);
++	csr_write(CSR_MHPMEVENT21, 19);
++	csr_write(CSR_MHPMEVENT22, 20);
++	csr_write(CSR_MHPMEVENT23, 21);
++	csr_write(CSR_MHPMEVENT24, 22);
++	csr_write(CSR_MHPMEVENT25, 23);
++	csr_write(CSR_MHPMEVENT26, 24);
++	csr_write(CSR_MHPMEVENT27, 25);
++	csr_write(CSR_MHPMEVENT28, 26);
++}
++
++static void thead_c9xx_pmu_map(unsigned long idx, unsigned long event_id)
++{
++	if (idx >= 3 && idx <= 31)
++		csr_write_num(CSR_MHPMEVENT3 + idx - 3, event_id);
++}
++
++#include <sbi/sbi_console.h>
++static int thead_c9xx_vendor_ext_provider(long extid, long funcid,
++					  const struct sbi_trap_regs *regs,
++					  unsigned long *out_value,
++					  struct sbi_trap_info *out_trap)
++{
++	switch (funcid) {
++	case SBI_EXT_THEAD_PMU_MAP:
++		thead_c9xx_pmu_map(regs->a0, regs->a1);
++		break;
++	case SBI_EXT_THEAD_PMU_INIT:
++		thead_c9xx_pmu_init();
++		break;
++	}
++	return 0;
++}
++
++static const struct fdt_match thead_c9xx_match[] = {
++	{ .compatible = "allwinner,sun20i-d1" },
++	{ },
++};
++
++const struct platform_override thead_c9xx = {
++	.match_table = thead_c9xx_match,
++	.vendor_ext_provider = thead_c9xx_vendor_ext_provider,
++};
 -- 
 2.35.1
 
