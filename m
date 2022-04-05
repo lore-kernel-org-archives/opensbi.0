@@ -1,212 +1,93 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 1 Apr 2022 09:39:35 -0700
-Subject: [PATCH 2/2] platform: add thead-c9xx specific platform-overrides
-In-Reply-To: <5a26d702478e753402d7f335d3dc86c87c860583.camel@126.com>
-References: <20220401010839.1343551-1-heiko@sntech.de>
- <20220401010839.1343551-2-heiko@sntech.de>
- <5a26d702478e753402d7f335d3dc86c87c860583.camel@126.com>
-Message-ID: <CAOnJCULYg1O-x0iTGgbnLp7ZE5MgDeroVX97_CL5gK3nH6tDWg@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 5 Apr 2022 08:57:12 +0530
+Subject: [PATCH 1/4] include: Add defines for [m|h|s]envcfg CSRs
+In-Reply-To: <20220329155218.118580-2-apatel@ventanamicro.com>
+References: <20220329155218.118580-1-apatel@ventanamicro.com>
+ <20220329155218.118580-2-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy1u9r3oj3M-C1=3d7kjAonMKOf8=-r1mT2+88kQtmmU_Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Apr 1, 2022 at 4:13 AM Xiang W <wxjstz@126.com> wrote:
+On Tue, Mar 29, 2022 at 9:23 PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> ? 2022-04-01???? 03:08 +0200?Heiko Stuebner???
-> > From: Guo Ren <guoren@linux.alibaba.com>
-> >
-> > The PMU on T-Head C9xx SoCs works differently with additional
-> > CSRs and needs additional vendor ecalls to function correctly
-> > both for initializing and mapping events to counters.
-> >
+> The latest RISC-V privileged specification introduces xenvcfg CSRs
+> to enable/disable certain features/extensions for lower privilege
+> modes. This patch adds defines for these new [m|h|s]envcfg CSRs.
+>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
-Do you have any link to PMU specification ?
-What is the plan for kernel patch that uses the vendor extension and
-reserved bit in all the interrupt related CSRs (17)?
-As per the AIA specification, any local interrupt > 16 should be
-handled through it. It's contradicting there as well.
+Applied this patch to the riscv/opensbi repo.
 
-> > Add a fdt-matched T-Head platform for this and
-> > disable the SBI PMU extension for it.
-> >
-> > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> > Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-> > ---
-> >  lib/sbi/sbi_ecall_pmu.c       |  7 +++
-> >  platform/generic/objects.mk   |  1 +
-> >  platform/generic/platform.c   |  2 +
-> >  platform/generic/thead_c9xx.c | 91
-> > +++++++++++++++++++++++++++++++++++
-> >  4 files changed, 101 insertions(+)
-> >  create mode 100644 platform/generic/thead_c9xx.c
-> >
-> > diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-> > index 9ee9e81..5f6f7c9 100644
-> > --- a/lib/sbi/sbi_ecall_pmu.c
-> > +++ b/lib/sbi/sbi_ecall_pmu.c
-> > @@ -76,6 +76,13 @@ static int sbi_ecall_pmu_probe(unsigned long extid,
-> > unsigned long *out_val)
-> >  {
-> >         /* PMU extension is always enabled */
-> >         *out_val = 1;
-> > +
-> > +       /* Some T-Head socs have a non-spec PMU */
-> > +       if (csr_read(CSR_MVENDORID) == 0x5b7 &&
-> > +           csr_read(CSR_MARCHID) == 0 &&
-> > +           csr_read(CSR_MIMPID) == 0)
-> > +               *out_val = 0;
-> > +
-> >         return 0;
-> >  }
-> >
-> > diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-> > index cb15a18..0d6c228 100644
-> > --- a/platform/generic/objects.mk
-> > +++ b/platform/generic/objects.mk
-> > @@ -10,3 +10,4 @@
-> >  platform-objs-y += platform.o
-> >  platform-objs-y += sifive_fu540.o
-> >  platform-objs-y += sifive_fu740.o
-> > +platform-objs-y += thead_c9xx.o
-> > diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> > index f05da8e..1a797dc 100644
-> > --- a/platform/generic/platform.c
-> > +++ b/platform/generic/platform.c
-> > @@ -25,10 +25,12 @@
-> >
-> >  extern const struct platform_override sifive_fu540;
-> >  extern const struct platform_override sifive_fu740;
-> > +extern const struct platform_override thead_c9xx;
-> >
-> >  static const struct platform_override *special_platforms[] = {
-> >         &sifive_fu540,
-> >         &sifive_fu740,
-> > +       &thead_c9xx,
-> >  };
-> >
-> >  static const struct platform_override *generic_plat = NULL;
-> > diff --git a/platform/generic/thead_c9xx.c
-> > b/platform/generic/thead_c9xx.c
-> > new file mode 100644
-> > index 0000000..782d4e7
-> > --- /dev/null
-> > +++ b/platform/generic/thead_c9xx.c
-> > @@ -0,0 +1,91 @@
-> > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + *
-> > + * Copyright (c) 2022 Heiko Stuebner <heiko@sntech.de>
-> > + *
-> > + * Authors:
-> > + *   Heiko Stuebner <heiko@sntech.de>
-> > + */
-> > +
-> > +#include <platform_override.h>
-> > +#include <sbi/sbi_const.h>
-> > +#include <sbi/sbi_trap.h>
-> > +#include <sbi_utils/fdt/fdt_helper.h>
-> > +#include <sbi_utils/fdt/fdt_fixup.h>
-> > +
-> > +enum sbi_ext_thead_fid {
-> > +       SBI_EXT_THEAD_PMU_INIT = 0,
-> > +       SBI_EXT_THEAD_PMU_MAP,
-> > +};
-> > +
-> > +#define CSR_MCOUNTERWEN        0x7c9
-> > +
-> > +static void thead_c9xx_pmu_init(void)
-> > +{
-> > +       unsigned long interrupts;
-> > +
-> > +       interrupts = csr_read(CSR_MIDELEG) | (1 << 17);
-> > +       csr_write(CSR_MIDELEG, interrupts);
-> > +
-> > +       /* CSR_MCOUNTEREN has already been set in mstatus_init() */
-> > +       csr_write(CSR_MCOUNTERWEN, 0xffffffff);
-> > +       csr_write(CSR_MHPMEVENT3, 1);
-> > +       csr_write(CSR_MHPMEVENT4, 2);
-> > +       csr_write(CSR_MHPMEVENT5, 3);
-> > +       csr_write(CSR_MHPMEVENT6, 4);
-> > +       csr_write(CSR_MHPMEVENT7, 5);
-> > +       csr_write(CSR_MHPMEVENT8, 6);
-> > +       csr_write(CSR_MHPMEVENT9, 7);
-> > +       csr_write(CSR_MHPMEVENT10, 8);
-> > +       csr_write(CSR_MHPMEVENT11, 9);
-> > +       csr_write(CSR_MHPMEVENT12, 10);
-> > +       csr_write(CSR_MHPMEVENT13, 11);
-> > +       csr_write(CSR_MHPMEVENT14, 12);
-> > +       csr_write(CSR_MHPMEVENT15, 13);
-> > +       csr_write(CSR_MHPMEVENT16, 14);
-> > +       csr_write(CSR_MHPMEVENT17, 15);
-> > +       csr_write(CSR_MHPMEVENT18, 16);
-> > +       csr_write(CSR_MHPMEVENT19, 17);
-> > +       csr_write(CSR_MHPMEVENT20, 18);
-> > +       csr_write(CSR_MHPMEVENT21, 19);
-> > +       csr_write(CSR_MHPMEVENT22, 20);
-> > +       csr_write(CSR_MHPMEVENT23, 21);
-> > +       csr_write(CSR_MHPMEVENT24, 22);
-> > +       csr_write(CSR_MHPMEVENT25, 23);
-> > +       csr_write(CSR_MHPMEVENT26, 24);
-> > +       csr_write(CSR_MHPMEVENT27, 25);
-> > +       csr_write(CSR_MHPMEVENT28, 26);
-> > +}
-> > +
-> > +static void thead_c9xx_pmu_map(unsigned long idx, unsigned long
-> > event_id)
-> > +{
-> > +       if (idx >= 3 && idx <= 31)
-> > +               csr_write_num(CSR_MHPMEVENT3 + idx - 3, event_id);
-> > +}
-> > +
-> > +#include <sbi/sbi_console.h>
-> > +static int thead_c9xx_vendor_ext_provider(long extid, long funcid,
-> > +                                         const struct sbi_trap_regs
-> > *regs,
-> > +                                         unsigned long *out_value,
-> > +                                         struct sbi_trap_info
-> > *out_trap)
-> > +{
-> No need to check extid?
+Thanks,
+Anup
+
+> ---
+>  include/sbi/riscv_encoding.h | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
 >
-> Regards,
-> Xiang W
-> > +       switch (funcid) {
-> > +       case SBI_EXT_THEAD_PMU_MAP:
-> > +               thead_c9xx_pmu_map(regs->a0, regs->a1);
-> > +               break;
-> > +       case SBI_EXT_THEAD_PMU_INIT:
-> > +               thead_c9xx_pmu_init();
-> > +               break;
-> > +       }
-> > +       return 0;
-> > +}
-> > +
-> > +static const struct fdt_match thead_c9xx_match[] = {
-> > +       { .compatible = "allwinner,sun20i-d1" },
-> > +       { },
-> > +};
-> > +
-> > +const struct platform_override thead_c9xx = {
-> > +       .match_table = thead_c9xx_match,
-> > +       .vendor_ext_provider = thead_c9xx_vendor_ext_provider,
-> > +};
-> > --
-> > 2.35.1
-> >
-> >
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 574d1c3..c02aa8f 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -203,6 +203,22 @@
 >
+>  #define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
 >
+> +#if __riscv_xlen > 32
+> +#define ENVCFG_STCE                    (_ULL(1) << 63)
+> +#define ENVCFG_PBMTE                   (_ULL(1) << 62)
+> +#else
+> +#define ENVCFGH_STCE                   (_UL(1) << 31)
+> +#define ENVCFGH_PBMTE                  (_UL(1) << 30)
+> +#endif
+> +#define ENVCFG_CBZE                    (_UL(1) << 7)
+> +#define ENVCFG_CBCFE                   (_UL(1) << 6)
+> +#define ENVCFG_CBIE_SHIFT              4
+> +#define ENVCFG_CBIE                    (_UL(0x3) << ENVCFG_CBIE_SHIFT)
+> +#define ENVCFG_CBIE_ILL                        _UL(0x0)
+> +#define ENVCFG_CBIE_FLUSH              _UL(0x1)
+> +#define ENVCFG_CBIE_INV                        _UL(0x3)
+> +#define ENVCFG_FIOM                    _UL(0x1)
+> +
+>  /* ===== User-level CSRs ===== */
 >
+>  /* User Trap Setup (N-extension) */
+> @@ -298,6 +314,9 @@
+>  #define CSR_STVEC                      0x105
+>  #define CSR_SCOUNTEREN                 0x106
+>
+> +/* Supervisor Configuration */
+> +#define CSR_SENVCFG                    0x10a
+> +
+>  /* Supervisor Trap Handling */
+>  #define CSR_SSCRATCH                   0x140
+>  #define CSR_SEPC                       0x141
+> @@ -336,6 +355,10 @@
+>  #define CSR_HCOUNTEREN                 0x606
+>  #define CSR_HGEIE                      0x607
+>
+> +/* Hypervisor Configuration */
+> +#define CSR_HENVCFG                    0x60a
+> +#define CSR_HENVCFGH                   0x61a
+> +
+>  /* Hypervisor Trap Handling (H-extension) */
+>  #define CSR_HTVAL                      0x643
+>  #define CSR_HIP                                0x644
+> @@ -408,6 +431,10 @@
+>  #define CSR_MCOUNTEREN                 0x306
+>  #define CSR_MSTATUSH                   0x310
+>
+> +/* Machine Configuration */
+> +#define CSR_MENVCFG                    0x30a
+> +#define CSR_MENVCFGH                   0x31a
+> +
+>  /* Machine Trap Handling */
+>  #define CSR_MSCRATCH                   0x340
+>  #define CSR_MEPC                       0x341
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-
-
--- 
-Regards,
-Atish
+> 2.25.1
+>
 
