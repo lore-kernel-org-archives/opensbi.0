@@ -1,55 +1,110 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 5 Apr 2022 08:58:16 +0530
-Subject: [PATCH 4/4] lib: sbi: Enable Svpbmt extension in the menvcfg CSR
-In-Reply-To: <20220329155218.118580-5-apatel@ventanamicro.com>
-References: <20220329155218.118580-1-apatel@ventanamicro.com>
- <20220329155218.118580-5-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy2gJ7MJKbMQ_PAM_VE4RZav1w=PdNcR-fR=hjYrydO29w@mail.gmail.com>
+Date: Tue, 5 Apr 2022 08:59:34 +0530
+Subject: [RFC PATCH v1 1/3] lib: sbi: Add Smstateen extension defines
+In-Reply-To: <20220321051528.20143-2-mchitale@ventanamicro.com>
+References: <20220321051528.20143-1-mchitale@ventanamicro.com>
+ <20220321051528.20143-2-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy2JPhwrQr1AoVng31c9YgqJ5Kr6L1r9P__YS4pCJw1QVg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 29, 2022 at 9:23 PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Mon, Mar 21, 2022 at 10:45 AM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
 >
-> The menvcfg.PBMTE bit is read-only zero when Svpbmt extension is not
-> available so we try to enable menvcfg.PBMTE bit irrespective whether
-> Svpbmt is available or not.
+> Smstateen extension provides a mechanism to plug potential
+> covert channels which are opened by extensions that add to
+> processor state that may not get context-switched.
 >
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 > ---
->  lib/sbi/sbi_hart.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
+>  include/sbi/riscv_encoding.h | 37 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 37 insertions(+)
 >
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index d2c7aba..6be9286 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -114,6 +114,16 @@ static void mstatus_init(struct sbi_scratch *scratch)
->                  */
->                 menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index cce66dd..fefd3de 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -337,6 +337,12 @@
+>  #define CSR_SIEH                       0x114
+>  #define CSR_SIPH                       0x154
 >
-> +               /*
-> +                * Set menvcfg.PBMTE == 1 for RV64 or RV128
-> +                *
-> +                * If Svpbmt extension is not available then menvcfg.PBMTE
-> +                * will be read-only zero.
-> +                */
-> +#if __riscv_xlen > 32
-> +               menvcfg_val |= ENVCFG_PBMTE;
-> +#endif
+> +/* Supervisor stateen CSRs */
+> +#define CSR_SSTATEEN0       0x10C
+> +#define CSR_SSTATEEN1       0x10D
+> +#define CSR_SSTATEEN2       0x10E
+> +#define CSR_SSTATEEN3       0x10F
 > +
->                 csr_write(CSR_MENVCFG, menvcfg_val);
->         }
+>  /* ===== Hypervisor-level CSRs ===== */
+>
+>  /* Hypervisor Trap Setup (H-extension) */
+> @@ -401,6 +407,16 @@
+>  #define CSR_VSIEH                      0x214
+>  #define CSR_VSIPH                      0x254
+>
+> +/* Hypervisor stateen CSRs */
+> +#define CSR_HSTATEEN0       0x60C
+> +#define CSR_HSTATEEN0H      0x61C
+> +#define CSR_HSTATEEN1       0x60D
+> +#define CSR_HSTATEEN1H      0x61D
+> +#define CSR_HSTATEEN2       0x60E
+> +#define CSR_HSTATEEN2H      0x61E
+> +#define CSR_HSTATEEN3       0x60F
+> +#define CSR_HSTATEEN3H      0x61F
+> +
+
+Please use tabs for indentation here and other places in this
+patch.
+
+>  /* ===== Machine-level CSRs ===== */
+>
+>  /* Machine Information Registers */
+> @@ -674,6 +690,17 @@
+>  #define CSR_MVIEN                      0x308
+>  #define CSR_MVIP                       0x309
+>
+> +/* Smstateen extension registers */
+> +/* Machine stateen CSRs */
+> +#define CSR_MSTATEEN0       0x30C
+> +#define CSR_MSTATEEN0H      0x31C
+> +#define CSR_MSTATEEN1       0x30D
+> +#define CSR_MSTATEEN1H      0x31D
+> +#define CSR_MSTATEEN2       0x30E
+> +#define CSR_MSTATEEN2H      0x31E
+> +#define CSR_MSTATEEN3       0x30F
+> +#define CSR_MSTATEEN3H      0x31F
+> +
+>  /* Machine-Level High-Half CSRs (AIA) */
+>  #define CSR_MIDELEGH                   0x313
+>  #define CSR_MIEH                       0x314
+> @@ -703,6 +730,16 @@
+>  #define CAUSE_VIRTUAL_INST_FAULT       0x16
+>  #define CAUSE_STORE_GUEST_PAGE_FAULT   0x17
+>
+> +/* Common defines for all smstateen */
+> +#define SMSTATEEN_MAX_COUNT 4
+> +#define SMSTATEEN0_CS       0
+> +#define SMSTATEEN0_FCSR     0
+> +#define SMSTATEEN0_IMSIC    58
+> +#define SMSTATEEN0_AIA      59
+> +#define SMSTATEEN0_SVSLCT   60
+> +#define SMSTATEEN0_HSENVCFG 62
+> +#define SMSTATEEN_STATEN    63
+> +
+>  /* ===== Instruction Encodings ===== */
+>
+>  #define INSN_MATCH_LB                  0x3
+> --
+> 2.17.1
+>
 >
 > --
-> 2.25.1
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Anup
 
