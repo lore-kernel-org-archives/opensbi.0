@@ -1,48 +1,115 @@
-From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Tue, 5 Apr 2022 16:35:22 +0530
-Subject: [PATCH v2 0/3] RISC-V Smstateen support
-In-Reply-To: <20220405104541.13185-1-mchitale@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 05 Apr 2022 23:55:28 +0800
+Subject: [PATCH v2 2/3] lib: sbi: Detect Smstateen CSRs at boot-time
+In-Reply-To: <20220405104541.13185-3-mchitale@ventanamicro.com>
 References: <20220405104541.13185-1-mchitale@ventanamicro.com>
-Message-ID: <CAN37VV68u0L7dmHueKYjiLgHA-xx2CsjSeQyVuFGp5tfh6w10g@mail.gmail.com>
+ <20220405104541.13185-3-mchitale@ventanamicro.com>
+Message-ID: <178af8079ff34a121e09a1e1b55262fd3201748a.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-There is a minor error in patch 2 of the series.
-Please ignore this version. I will send out a v3 with the fix.
+? 2022-04-05???? 16:15 +0530?Mayuresh Chitale???
+> Extend HART feature detection to discover Smstateen CSRs at boot-time
+> and configure mstateen envcfg bit depending on availability of
+> menvcfg CSR.
+> 
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+> ---
+> ?include/sbi/sbi_hart.h |? 4 +++-
+> ?lib/sbi/sbi_hart.c???? | 25 +++++++++++++++++++++++++
+> ?2 files changed, 28 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 57f80bc..be3ad9f 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -28,9 +28,11 @@ enum sbi_hart_features {
+> ????????SBI_HART_HAS_AIA = (1 << 5),
+> ????????/** HART has menvcfg CSR */
+> ????????SBI_HART_HAS_MENVCFG = (1 << 6),
+> +???????/** HART has mstateen CSR **/
+> +???????SBI_HART_HAS_SMSTATEEN = (1 << 7),
+> ?
+> ????????/** Last index of Hart features*/
+> -???????SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_MENVCFG,
+> +???????SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_SMSTATEEN,
+> ?};
+> ?
+> ?struct sbi_scratch;
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 6be9286..db08eaf 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -43,6 +43,7 @@ static void mstatus_init(struct sbi_scratch
+> *scratch)
+> ????????int cidx;
+> ????????unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+> ????????uint64_t mhpmevent_init_val = 0;
+> +???????unsigned long mstateen_val;
+mstateen_val should be 64bit, but long is 32bit under RV32, so the type
+of mstateen_val should be changed to uint64_t
 
-Thanks,
-Mayuresh.
-
-
-
-On Tue, Apr 5, 2022 at 4:15 PM Mayuresh Chitale
-<mchitale@ventanamicro.com> wrote:
->
-> This series adds support for the Smstateen specification which provides
-> a mechanism to plug potential covert channels which are opened by extensions
-> which add to processor state that may not get context-switched. Currently
-> access to AIA registers and *envcfg registers is controlled via
-> smstateen.
->
-> Changes in v2:
-> - Rebase on latest master branch
-> - Fix RV32 compilation issue
-> - Fix indentation issue
->
-> Mayuresh Chitale (3):
->   lib: sbi: Add Smstateen extension defines
->   lib: sbi: Detect Smstateen CSRs at boot-time
->   lib: irqchip/imsic: configure mstateen
->
->  include/sbi/riscv_encoding.h | 44 ++++++++++++++++++++++++++++++++++++
->  include/sbi/sbi_hart.h       |  4 +++-
->  lib/sbi/sbi_hart.c           | 31 +++++++++++++++++++++++++
->  3 files changed, 78 insertions(+), 1 deletion(-)
->
-> --
+Regards,
+Xiang W
+> ?
+> ????????/* Enable FPU */
+> ????????if (misa_extension('D') || misa_extension('F'))
+> @@ -87,6 +88,22 @@ static void mstatus_init(struct sbi_scratch
+> *scratch)
+> ?#endif
+> ????????}
+> ?
+> +???????if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SMSTATEEN)) {
+> +???????????????mstateen_val = csr_read(CSR_MSTATEEN0);
+> +#if __riscv_xlen == 32
+> +???????????????mstateen_val |= ((uint64_t)csr_read(CSR_MSTATEEN0H))
+> << 32;
+> +#endif
+> +???????????????mstateen_val |= SMSTATEEN_STATEN;
+> +???????????????if (sbi_hart_has_feature(scratch,
+> SBI_HART_HAS_MENVCFG))
+> +???????????????????????mstateen_val |= SMSTATEEN0_HSENVCFG;
+> +???????????????else
+> +???????????????????????mstateen_val &= ~SMSTATEEN0_HSENVCFG;
+> +???????????????csr_write(CSR_MSTATEEN0, mstateen_val);
+> +#if __riscv_xlen == 32
+> +???????????????csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
+> +#endif
+> +???????}
+> +
+> ????????if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MENVCFG)) {
+> ????????????????menvcfg_val = csr_read(CSR_MENVCFG);
+> ?
+> @@ -348,6 +365,9 @@ static inline char
+> *sbi_hart_feature_id2string(unsigned long feature)
+> ????????case SBI_HART_HAS_MENVCFG:
+> ????????????????fstr = "menvcfg";
+> ????????????????break;
+> +???????case SBI_HART_HAS_SMSTATEEN:
+> +???????????????fstr = "smstateen";
+> +???????????????break;
+> ????????default:
+> ????????????????break;
+> ????????}
+> @@ -584,6 +604,11 @@ __aia_skip:
+> ????????if (!trap.cause)
+> ????????????????hfeatures->features |= SBI_HART_HAS_MENVCFG;
+> ?
+> +???????/* Detect if hart supports mstateen CSRs */
+> +???????val = csr_read_allowed(CSR_MSTATEEN0, (unsigned long)&trap);
+> +???????if (!trap.cause)
+> +???????????????hfeatures->features |= SBI_HART_HAS_SMSTATEEN;
+> +
+> ????????return;
+> ?}
+> ?
+> -- 
 > 2.17.1
->
+> 
+> 
+
+
 
