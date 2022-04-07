@@ -1,53 +1,27 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 07 Apr 2022 17:55:39 +0800
-Subject: [PATCH v3 3/3] lib: irqchip/imsic: configure mstateen
-In-Reply-To: <20220406165741.663-4-mchitale@ventanamicro.com>
-References: <20220406165741.663-1-mchitale@ventanamicro.com>
- <20220406165741.663-4-mchitale@ventanamicro.com>
-Message-ID: <41b12f4376f5a71e0f157174423dd1f0e4d21644.camel@126.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Thu, 7 Apr 2022 20:37:10 +0200
+Subject: Handoff between secure firmware and non-secure Firmware via HOB lists
+Message-ID: <26856cc0-367d-6c50-06fb-f3a397c04867@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-04-06???? 22:27 +0530?Mayuresh Chitale???
-> When mstateen registers are implemented, the AIA related
-> configurations need to be done in mstateen for the IMSIC
-> initialization to succeed.
-> 
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
-Look good to me
+Currently the SBI specification defines how to hand device-trees from 
+the SEE to the S-mode firmware.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?lib/sbi/sbi_hart.c | 6 ++++++
-> ?1 file changed, 6 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index b0edf38..7b602c3 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -98,6 +98,12 @@ static void mstatus_init(struct sbi_scratch
-> *scratch)
-> ????????????????????????mstateen_val |= SMSTATEEN0_HSENVCFG;
-> ????????????????else
-> ????????????????????????mstateen_val &= ~SMSTATEEN0_HSENVCFG;
-> +???????????????if (sbi_hart_has_feature(scratch, SBI_HART_HAS_AIA))
-> +???????????????????????mstateen_val |= (SMSTATEEN0_AIA |
-> SMSTATEEN0_SVSLCT |
-> +???????????????????????????????????????SMSTATEEN0_IMSIC);
-> +???????????????else
-> +???????????????????????mstateen_val &= ~(SMSTATEEN0_AIA |
-> SMSTATEEN0_SVSLCT |
-> +???????????????????????????????????????SMSTATEEN0_IMSIC);
-> ????????????????csr_write(CSR_MSTATEEN0, mstateen_val);
-> ?#if __riscv_xlen == 32
-> ????????????????csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
-> -- 
-> 2.17.1
-> 
-> 
+In the context of Trusted Firmware A a document has been developed 
+describing what a more generic handover structure may look like that 
+will also encompass ACPI tables and additional information like TPM 
+measurements.
 
+https://developer.arm.com/documentation/den0135/a
 
+As probably EDK II and U-Boot will adopt parsing this structure it would 
+make sense to discuss if the same can be used in the RISC-V world too.
+
+Best regards
+
+Heinrich
 
