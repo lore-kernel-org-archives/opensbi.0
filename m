@@ -1,199 +1,120 @@
-From: Zong Li <zong.li@sifive.com>
-Date: Fri,  8 Apr 2022 07:36:28 +0000
-Subject: [PATCH] lib: utils/serial: support 'reg-offset' property
-Message-ID: <20220408073628.8962-1-zong.li@sifive.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 11 Apr 2022 08:41:45 +0530
+Subject: [PATCH v3 1/3] lib: sbi: Add Smstateen extension defines
+In-Reply-To: <20220406165741.663-2-mchitale@ventanamicro.com>
+References: <20220406165741.663-1-mchitale@ventanamicro.com>
+ <20220406165741.663-2-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy3xCyW5Q_-4fHN+eZoUmyBo_WdfAL6HiHUZmrHp==hZBQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-reg-offset property is used for offset to apply to the mapbase
-from the start of the registers in 8250 UART. In Linux kernel,
-it has been handled in 8250 UART driver.
+On Wed, Apr 6, 2022 at 10:28 PM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
+>
+> Smstateen extension provides a mechanism to plug potential
+> covert channels which are opened by extensions that add to
+> processor state that may not get context-switched.
+>
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 
-dt-bindinds:
-<linux>/Documentation/devicetree/bindings/serial/8250.yaml
+Looks good to me.
 
-Signed-off-by: Zong Li <zong.li@sifive.com>
----
- include/sbi_utils/fdt/fdt_helper.h     | 1 +
- include/sbi_utils/serial/uart8250.h    | 2 +-
- lib/utils/fdt/fdt_helper.c             | 7 +++++++
- lib/utils/serial/fdt_serial_uart8250.c | 3 ++-
- lib/utils/serial/uart8250.c            | 4 ++--
- platform/andes/ae350/platform.c        | 3 ++-
- platform/andes/ae350/platform.h        | 1 +
- platform/fpga/ariane/platform.c        | 4 +++-
- platform/fpga/openpiton/platform.c     | 4 +++-
- platform/template/platform.c           | 2 +-
- 10 files changed, 23 insertions(+), 8 deletions(-)
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 41ee826..2279f96 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -31,6 +31,7 @@ struct platform_uart_data {
- 	unsigned long baud;
- 	unsigned long reg_shift;
- 	unsigned long reg_io_width;
-+	unsigned long reg_offset;
- };
- 
- const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
-diff --git a/include/sbi_utils/serial/uart8250.h b/include/sbi_utils/serial/uart8250.h
-index 6b9b48b..d4a8c13 100644
---- a/include/sbi_utils/serial/uart8250.h
-+++ b/include/sbi_utils/serial/uart8250.h
-@@ -13,6 +13,6 @@
- #include <sbi/sbi_types.h>
- 
- int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
--		  u32 reg_width);
-+		  u32 reg_width, u32 reg_offset);
- 
- #endif
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 4dd0602..9a35969 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -21,6 +21,7 @@
- #define DEFAULT_UART_BAUD		115200
- #define DEFAULT_UART_REG_SHIFT		0
- #define DEFAULT_UART_REG_IO_WIDTH	1
-+#define DEFAULT_UART_REG_OFFSET		0
- 
- #define DEFAULT_SIFIVE_UART_FREQ		0
- #define DEFAULT_SIFIVE_UART_BAUD		115200
-@@ -449,6 +450,12 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
- 	else
- 		uart->reg_io_width = DEFAULT_UART_REG_IO_WIDTH;
- 
-+	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "reg-offset", &len);
-+	if (len > 0 && val)
-+		uart->reg_offset = fdt32_to_cpu(*val);
-+	else
-+		uart->reg_offset = DEFAULT_UART_REG_OFFSET;
-+
- 	return 0;
- }
- 
-diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
-index 36f364c..544b741 100644
---- a/lib/utils/serial/fdt_serial_uart8250.c
-+++ b/lib/utils/serial/fdt_serial_uart8250.c
-@@ -22,7 +22,8 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
- 		return rc;
- 
- 	return uart8250_init(uart.addr, uart.freq, uart.baud,
--			     uart.reg_shift, uart.reg_io_width);
-+			     uart.reg_shift, uart.reg_io_width,
-+			     uart.reg_offset);
- }
- 
- static const struct fdt_match serial_uart8250_match[] = {
-diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
-index 141bd45..38ea11a 100644
---- a/lib/utils/serial/uart8250.c
-+++ b/lib/utils/serial/uart8250.c
-@@ -91,11 +91,11 @@ static struct sbi_console_device uart8250_console = {
- };
- 
- int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
--		  u32 reg_width)
-+		  u32 reg_width, u32 reg_offset)
- {
- 	u16 bdiv;
- 
--	uart8250_base      = (volatile char *)base;
-+	uart8250_base      = (volatile char *)base + reg_offset;
- 	uart8250_reg_shift = reg_shift;
- 	uart8250_reg_width = reg_width;
- 	uart8250_in_freq   = in_freq;
-diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
-index 01232d0..6bd0a69 100644
---- a/platform/andes/ae350/platform.c
-+++ b/platform/andes/ae350/platform.c
-@@ -69,7 +69,8 @@ static int ae350_console_init(void)
- 			     AE350_UART_FREQUENCY,
- 			     AE350_UART_BAUDRATE,
- 			     AE350_UART_REG_SHIFT,
--			     AE350_UART_REG_WIDTH);
-+			     AE350_UART_REG_WIDTH,
-+			     AE350_UART_REG_OFFSET);
- }
- 
- /* Initialize the platform interrupt controller for current HART. */
-diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
-index f34ca0f..9b54816 100644
---- a/platform/andes/ae350/platform.h
-+++ b/platform/andes/ae350/platform.h
-@@ -28,6 +28,7 @@
- #define AE350_UART_BAUDRATE		38400
- #define AE350_UART_REG_SHIFT		2
- #define AE350_UART_REG_WIDTH		0
-+#define AE350_UART_REG_OFFSET		0
- 
- /*Memory and Miscellaneous Registers*/
- #define CSR_MILMB		0x7c0
-diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
-index c6f0ffd..3fdc03b 100644
---- a/platform/fpga/ariane/platform.c
-+++ b/platform/fpga/ariane/platform.c
-@@ -23,6 +23,7 @@
- #define ARIANE_UART_BAUDRATE			115200
- #define ARIANE_UART_REG_SHIFT			2
- #define ARIANE_UART_REG_WIDTH			4
-+#define ARIANE_UART_REG_OFFSET			0
- #define ARIANE_PLIC_ADDR			0xc000000
- #define ARIANE_PLIC_NUM_SOURCES			3
- #define ARIANE_HART_COUNT			1
-@@ -92,7 +93,8 @@ static int ariane_console_init(void)
- 			     ARIANE_UART_FREQ,
- 			     ARIANE_UART_BAUDRATE,
- 			     ARIANE_UART_REG_SHIFT,
--			     ARIANE_UART_REG_WIDTH);
-+			     ARIANE_UART_REG_WIDTH,
-+			     ARIANE_UART_REG_OFFSET);
- }
- 
- static int plic_ariane_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
-diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
-index 59c6702..15e289a 100644
---- a/platform/fpga/openpiton/platform.c
-+++ b/platform/fpga/openpiton/platform.c
-@@ -22,6 +22,7 @@
- #define OPENPITON_DEFAULT_UART_BAUDRATE		115200
- #define OPENPITON_DEFAULT_UART_REG_SHIFT	0
- #define OPENPITON_DEFAULT_UART_REG_WIDTH	1
-+#define OPENPITON_DEFAULT_UART_REG_OFFSET	0
- #define OPENPITON_DEFAULT_PLIC_ADDR		0xfff1100000
- #define OPENPITON_DEFAULT_PLIC_NUM_SOURCES	2
- #define OPENPITON_DEFAULT_HART_COUNT		3
-@@ -127,7 +128,8 @@ static int openpiton_console_init(void)
- 			     uart.freq,
- 			     uart.baud,
- 			     OPENPITON_DEFAULT_UART_REG_SHIFT,
--			     OPENPITON_DEFAULT_UART_REG_WIDTH);
-+			     OPENPITON_DEFAULT_UART_REG_WIDTH,
-+			     OPENPITON_DEFAULT_UART_REG_OFFSET);
- }
- 
- static int plic_openpiton_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index d6806e6..5524847 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -79,7 +79,7 @@ static int platform_console_init(void)
- {
- 	/* Example if the generic UART8250 driver is used */
- 	return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
--			     PLATFORM_UART_BAUDRATE, 0, 1);
-+			     PLATFORM_UART_BAUDRATE, 0, 1, 0);
- }
- 
- /*
--- 
-2.17.1
+Applied this patch to the riscv/opensbi repo.
 
+Thanks,
+Anup
+
+> ---
+>  include/sbi/riscv_encoding.h | 44 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
+>
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index c02aa8f..04d5621 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -345,6 +345,12 @@
+>  #define CSR_SIEH                       0x114
+>  #define CSR_SIPH                       0x154
+>
+> +/* Supervisor stateen CSRs */
+> +#define CSR_SSTATEEN0                  0x10C
+> +#define CSR_SSTATEEN1                  0x10D
+> +#define CSR_SSTATEEN2                  0x10E
+> +#define CSR_SSTATEEN3                  0x10F
+> +
+>  /* ===== Hypervisor-level CSRs ===== */
+>
+>  /* Hypervisor Trap Setup (H-extension) */
+> @@ -413,6 +419,16 @@
+>  #define CSR_VSIEH                      0x214
+>  #define CSR_VSIPH                      0x254
+>
+> +/* Hypervisor stateen CSRs */
+> +#define CSR_HSTATEEN0                  0x60C
+> +#define CSR_HSTATEEN0H                 0x61C
+> +#define CSR_HSTATEEN1                  0x60D
+> +#define CSR_HSTATEEN1H                 0x61D
+> +#define CSR_HSTATEEN2                  0x60E
+> +#define CSR_HSTATEEN2H                 0x61E
+> +#define CSR_HSTATEEN3                  0x60F
+> +#define CSR_HSTATEEN3H                 0x61F
+> +
+>  /* ===== Machine-level CSRs ===== */
+>
+>  /* Machine Information Registers */
+> @@ -686,6 +702,17 @@
+>  #define CSR_MVIEN                      0x308
+>  #define CSR_MVIP                       0x309
+>
+> +/* Smstateen extension registers */
+> +/* Machine stateen CSRs */
+> +#define CSR_MSTATEEN0                  0x30C
+> +#define CSR_MSTATEEN0H                 0x31C
+> +#define CSR_MSTATEEN1                  0x30D
+> +#define CSR_MSTATEEN1H                 0x31D
+> +#define CSR_MSTATEEN2                  0x30E
+> +#define CSR_MSTATEEN2H                 0x31E
+> +#define CSR_MSTATEEN3                  0x30F
+> +#define CSR_MSTATEEN3H                 0x31F
+> +
+>  /* Machine-Level High-Half CSRs (AIA) */
+>  #define CSR_MIDELEGH                   0x313
+>  #define CSR_MIEH                       0x314
+> @@ -715,6 +742,23 @@
+>  #define CAUSE_VIRTUAL_INST_FAULT       0x16
+>  #define CAUSE_STORE_GUEST_PAGE_FAULT   0x17
+>
+> +/* Common defines for all smstateen */
+> +#define SMSTATEEN_MAX_COUNT            4
+> +#define SMSTATEEN0_CS_SHIFT            0
+> +#define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
+> +#define SMSTATEEN0_FCSR_SHIFT          1
+> +#define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
+> +#define SMSTATEEN0_IMSIC_SHIFT         58
+> +#define SMSTATEEN0_IMSIC               (_ULL(1) << SMSTATEEN0_IMSIC_SHIFT)
+> +#define SMSTATEEN0_AIA_SHIFT           59
+> +#define SMSTATEEN0_AIA                 (_ULL(1) << SMSTATEEN0_AIA_SHIFT)
+> +#define SMSTATEEN0_SVSLCT_SHIFT                60
+> +#define SMSTATEEN0_SVSLCT              (_ULL(1) << SMSTATEEN0_SVSLCT_SHIFT)
+> +#define SMSTATEEN0_HSENVCFG_SHIFT      62
+> +#define SMSTATEEN0_HSENVCFG            (_ULL(1) << SMSTATEEN0_HSENVCFG_SHIFT)
+> +#define SMSTATEEN_STATEN_SHIFT         63
+> +#define SMSTATEEN_STATEN               (_ULL(1) << SMSTATEEN_STATEN_SHIFT)
+> +
+>  /* ===== Instruction Encodings ===== */
+>
+>  #define INSN_MATCH_LB                  0x3
+> --
+> 2.17.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
