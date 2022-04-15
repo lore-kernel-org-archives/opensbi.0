@@ -1,205 +1,295 @@
-From: Zong Li <zong.li@sifive.com>
-Date: Fri, 15 Apr 2022 02:24:20 +0000
-Subject: [PATCH v2] lib: utils/serial: support 'reg-offset' property
-Message-ID: <20220415022420.15642-1-zong.li@sifive.com>
+From: Vincent Chen <vincent.chen@sifive.com>
+Date: Fri, 15 Apr 2022 10:32:20 +0800
+Subject: [PATCH v4] lib: pmu: support the event ID encoded by a bitmap.
+In-Reply-To: <CABvJ_xiOdOUKx+ggcBDTotEvnk9v+cq=TL6t+ism6Dq_Nn2ZhA@mail.gmail.com>
+References: <20211202014517.1888248-1-atishp@rivosinc.com>
+ <CABvJ_xiOdOUKx+ggcBDTotEvnk9v+cq=TL6t+ism6Dq_Nn2ZhA@mail.gmail.com>
+Message-ID: <CABvJ_xgqR3khXjrqQdtdx8zckiioYszqJBk9Xxb=HCHrwWit-A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-reg-offset property is used for offset to apply to the mapbase
-from the start of the registers in 8250 UART. In Linux kernel,
-it has been handled in 8250 UART driver.
+On Fri, Apr 8, 2022 at 1:51 PM Vincent Chen <vincent.chen@sifive.com> wrote:
+>
+> On Thu, Dec 2, 2021 at 9:45 AM Atish Patra <atishp@rivosinc.com> wrote:
+> >
+> > From: Vincent Chen <vincent.chen@sifive.com>
+> >
+> > RISC-V privilege specification does not specify how to encode the event ID.
+> > Therefore, each platform is allowed to customize its own encoding rule.
+> > The common encoding methods are as follow, directly assigning a number to an
+> > event, or every bit in the mphmevent CSR controls one specified event or
+> > mixes the above two methods.
+> >
+> > To enable OpenSBI to support the above three encoding methods simultaneously,
+> > this patch repurpose the dt property "riscv,raw-event-to-mhpmcounters". The
+> > "riscv,raw-event-to-mhpmcounters" will describes the one or multiple raw
+> > events that could be counted by a set of counters. But, the column number
+> > of "riscv,raw-event-to-mhpmcounters" is extended from 2 to 3. The 1st column
+> > (64bit) is the ID of the raw events. The 2nd column (64bit) represents a
+> > select_mask now to represent the bits used for event ID encoding.
+> > If a platform directly encodes each raw PMU event as a unique ID,
+> > the value of select_mask will be 0xffffffff_ffffffff.
+> >
+> > Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
+> > Signed-off-by: Atish Patra<atishp@rivosinc.com>
+> > ---
+> > Changes from v3->v4:
+> > 1. Fixed few instances of pmu prefix.
+> > 2. Improved the DT property description.
+> > 3. Simplified *find_hw implementation by just masking the selector_mask to
+> >    event_data and comparing it with the select value.
+> > 4. Dropped the reviewed by recieved in PATCH 3 as the selector/mask scheme
+> >    is changed in this patch.
+> >
+> > Changes from v2->v3:
+> > 1. Rebased on top of the master which changed the dt property prefix to riscv.
+> > 2. Fixed typos.
+> > ---
+> > ---
+> >  docs/pmu_support.md     | 24 ++++++++++++++++--------
+> >  include/sbi/sbi_pmu.h   |  2 +-
+> >  lib/sbi/sbi_pmu.c       | 35 ++++++++++++++++++++++++-----------
+> >  lib/utils/fdt/fdt_pmu.c | 16 +++++++++-------
+> >  4 files changed, 50 insertions(+), 27 deletions(-)
+> >
+> > diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> > index a60b75cf9efa..b9803f643593 100644
+> > --- a/docs/pmu_support.md
+> > +++ b/docs/pmu_support.md
+> > @@ -50,12 +50,20 @@ event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+> >  shouldn't encode any raw event.
+> >
+> >  * **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+> > -mapping between a raw event and all the MHPMCOUNTERx in a bitmap format that can
+> > -be used to monitor that raw event. The information is encoded in a table format
+> > -where each raw represent a specific raw event. The first column stores the
+> > -expected event selector value that should be encoded in the expected value to be
+> > -written in MHPMEVENTx. The second column stores a bitmap of all the MHPMCOUNTERx
+> > -that can be used for monitoring the specified event.
+> > +or MANY-to-MANY mapping between the raw event(s) and all the MHPMCOUNTERx in
+> > +a bitmap format that can be used to monitor that raw event, which depends on
+> > +how the platform encodes the monitor events. Currently, only the following three
+> > +encoding methods are supported, encoding each event as a number, using a bitmap
+> > +to encode monitor events, and mixing the previous two methods. The information
+> > +is encoded in a table format where each row represent the specific raw event(s).
+> > +The first column represents a 64-bit selector value which can indicate an
+> > +monitor event ID (encoded by a number) or an event set (encoded by a bitmap).
+> > +In case of the latter, the lower bits used to encode a set of events should be
+> > +set to zero. The second column is a 64-bit selector mask where any bits used
+> > +for event encoding will be cleared. If a platform directly encodes each raw PMU
+> > +event as a unique ID, the value of select_mask will be 0xffffffff_ffffffff.
+> > +The third column represent a bitmap of all the MHPMCOUNTERx that can be used for
+> > +monitoring the specified event(s).
+> >
+> >  *Note:* A platform may choose to provide the mapping between event & counters
+> >  via platform hooks rather than the device tree.
+> > @@ -72,8 +80,8 @@ pmu {
+> >                                                   <0x00002 0x00002 0x00000004>,
+> >                                                   <0x00003 0x0000A 0x00000ff8>,
+> >                                                   <0x10000 0x10033 0x000ff000>,
+> > -       riscv,raw-event-to-mhpmcounters         = <0x0000 0x0002 0x00000f8>,
+> > -                                         <0x0000 0x0003 0x00000ff0>,
+> > +       riscv,raw-event-to-mhpmcounters = <0x0000     0x0002 0xffffffff 0xffffffff 0x00000f8>,
+> > +                                         <0xffffffff 0xfffffff0 0xffffffff 0xfffffff0 0x00000ff0>,
+> >  };
+> >
+> >  ```
+> > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> > index f0185566cd6d..6a1c62ccfbef 100644
+> > --- a/include/sbi/sbi_pmu.h
+> > +++ b/include/sbi/sbi_pmu.h
+> > @@ -51,7 +51,7 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap);
+> >   * @return 0 on success, error otherwise.
+> >   */
+> >
+> > -int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap);
+> > +int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32 cmap);
+> >
+> >  int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval);
+> >
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index 5950a2001637..10668a358cb2 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -21,8 +21,16 @@ struct sbi_pmu_hw_event {
+> >         uint32_t counters;
+> >         uint32_t start_idx;
+> >         uint32_t end_idx;
+> > -       /* Event selector value used only for raw events */
+> > +       /* Event selector value used only for raw events. The event select value
+> > +        * can be a even id or a selector value for set of events encoded in few
+> > +        * bits. In case latter, the bits used for encoding of the events should
+> > +        * be zeroed out in the select value.
+> > +        */
+> >         uint64_t select;
+> > +        /**
+> > +         * The select_mask indicates which bits are encoded for the event(s).
+> > +         */
+> > +       uint64_t select_mask;
+> >  };
+> >
+> >  /** Representation of a firmware event */
+> > @@ -91,9 +99,9 @@ static bool pmu_event_range_overlap(struct sbi_pmu_hw_event *evtA,
+> >  }
+> >
+> >  static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
+> > -                                    uint64_t select_val)
+> > +                                    uint64_t select_val, uint64_t select_mask)
+> >  {
+> > -       if (evt->select == select_val)
+> > +       if ((evt->select == select_val) && (evt->select_mask == select_mask))
+> >                 return TRUE;
+> >
+> >         return FALSE;
+> > @@ -168,7 +176,7 @@ int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval)
+> >  }
+> >
+> >  static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+> > -                               uint64_t select)
+> > +                               uint64_t select, uint64_t select_mask)
+> >  {
+> >         int i = 0;
+> >         bool is_overlap;
+> > @@ -191,13 +199,15 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+> >         for (i = 0; i < num_hw_events; i++) {
+> >                 if (eidx_start == SBI_PMU_EVENT_RAW_IDX)
+> >                 /* All raw events have same event idx. Just do sanity check on select */
+> > -                       is_overlap = pmu_event_select_overlap(&hw_event_map[i], select);
+> > +                       is_overlap = pmu_event_select_overlap(&hw_event_map[i],
+> > +                                                             select, select_mask);
+> >                 else
+> >                         is_overlap = pmu_event_range_overlap(&hw_event_map[i], event);
+> >                 if (is_overlap)
+> >                         goto reset_event;
+> >         }
+> >
+> > +       event->select_mask = select_mask;
+> >         event->counters = cmap;
+> >         event->select = select;
+> >         num_hw_events++;
+> > @@ -221,13 +231,13 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap)
+> >              eidx_end == SBI_PMU_EVENT_RAW_IDX)
+> >                 return SBI_EINVAL;
+> >
+> > -       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0);
+> > +       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0, 0);
+> >  }
+> >
+> > -int sbi_pmu_add_raw_event_counter_map(uint64_t select, u32 cmap)
+> > +int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32 cmap)
+> >  {
+> >         return pmu_add_hw_event_map(SBI_PMU_EVENT_RAW_IDX,
+> > -                                   SBI_PMU_EVENT_RAW_IDX, cmap, select);
+> > +                                   SBI_PMU_EVENT_RAW_IDX, cmap, select, select_mask);
+> >  }
+> >
+> >  static int pmu_ctr_enable_irq_hw(int ctr_idx)
+> > @@ -514,9 +524,13 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+> >                         continue;
+> >
+> >                 /* For raw events, event data is used as the select value */
+> > -               if ((event_idx == SBI_PMU_EVENT_RAW_IDX) && temp->select != data)
+> > -                       continue;
+> > +               if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
+> > +                       uint64_t select_mask = temp->select_mask;
+> >
+> > +                       /* The non-event map bits of data should match the selector */
+> > +                       if (temp->select != (data & select_mask))
+> > +                               continue;
+>
+> Dear Atish:
+> I am sorry that I didn't follow up on this change at that time, so
+> this is a late reply.
+> I found the v4 patch set lacks the following code which casues the
+> bitmap encoding feature not to work properly.
+>
+> + if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
+> + uint64_t select_mask = temp->select_mask;
+>
+> + /* Check the bit filed encoded by a real number */
+> + if ((temp->select & select_mask) != (data & select_mask))
+> + continue;
+> ********************************* Missing part
+> ********************************************
+> + /* Check the bit filed encoded by a bitmap */
+> + else if ((temp->select & ~select_mask & data) != (~select_mask & data))
+> + continue;
+> ***********************************************************************************************
+> + }
+> I found the above code exists in my v2 patch but was removed in your
+> v4 patch. I guess this might be an accident. If yes, I can send
+> another patch to add this code back. If not, please tell me the reason
+> and I need to come out with another solution to get the bitmap
+> encoding feature to work.
+>
+> Sorry again for the late reply.
+>
+> Regards,
+> Vincent
+>
+>
 
-dt-bindings:
-<linux>/Documentation/devicetree/bindings/serial/8250.yaml
+Hi Atish,
+This is a gentle ping. Do you have any idea about this?
+If not, I will revise this part code as my v2 patch and send it to the
+mailing list for review.
+Thank you.
 
-Signed-off-by: Zong Li <zong.li@sifive.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
+Best regards,
+Vincent
 
-Changed in v2:
- - Fix the typo
- - Rebased on the latest master
-
- include/sbi_utils/fdt/fdt_helper.h     | 1 +
- include/sbi_utils/serial/uart8250.h    | 2 +-
- lib/utils/fdt/fdt_helper.c             | 7 +++++++
- lib/utils/serial/fdt_serial_uart8250.c | 3 ++-
- lib/utils/serial/uart8250.c            | 4 ++--
- platform/andes/ae350/platform.c        | 3 ++-
- platform/andes/ae350/platform.h        | 1 +
- platform/fpga/ariane/platform.c        | 4 +++-
- platform/fpga/openpiton/platform.c     | 4 +++-
- platform/template/platform.c           | 2 +-
- 10 files changed, 23 insertions(+), 8 deletions(-)
-
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 41ee826..2279f96 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -31,6 +31,7 @@ struct platform_uart_data {
- 	unsigned long baud;
- 	unsigned long reg_shift;
- 	unsigned long reg_io_width;
-+	unsigned long reg_offset;
- };
- 
- const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
-diff --git a/include/sbi_utils/serial/uart8250.h b/include/sbi_utils/serial/uart8250.h
-index 6b9b48b..d4a8c13 100644
---- a/include/sbi_utils/serial/uart8250.h
-+++ b/include/sbi_utils/serial/uart8250.h
-@@ -13,6 +13,6 @@
- #include <sbi/sbi_types.h>
- 
- int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
--		  u32 reg_width);
-+		  u32 reg_width, u32 reg_offset);
- 
- #endif
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 4dd0602..9a35969 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -21,6 +21,7 @@
- #define DEFAULT_UART_BAUD		115200
- #define DEFAULT_UART_REG_SHIFT		0
- #define DEFAULT_UART_REG_IO_WIDTH	1
-+#define DEFAULT_UART_REG_OFFSET		0
- 
- #define DEFAULT_SIFIVE_UART_FREQ		0
- #define DEFAULT_SIFIVE_UART_BAUD		115200
-@@ -449,6 +450,12 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
- 	else
- 		uart->reg_io_width = DEFAULT_UART_REG_IO_WIDTH;
- 
-+	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "reg-offset", &len);
-+	if (len > 0 && val)
-+		uart->reg_offset = fdt32_to_cpu(*val);
-+	else
-+		uart->reg_offset = DEFAULT_UART_REG_OFFSET;
-+
- 	return 0;
- }
- 
-diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
-index 36f364c..544b741 100644
---- a/lib/utils/serial/fdt_serial_uart8250.c
-+++ b/lib/utils/serial/fdt_serial_uart8250.c
-@@ -22,7 +22,8 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
- 		return rc;
- 
- 	return uart8250_init(uart.addr, uart.freq, uart.baud,
--			     uart.reg_shift, uart.reg_io_width);
-+			     uart.reg_shift, uart.reg_io_width,
-+			     uart.reg_offset);
- }
- 
- static const struct fdt_match serial_uart8250_match[] = {
-diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
-index 141bd45..38ea11a 100644
---- a/lib/utils/serial/uart8250.c
-+++ b/lib/utils/serial/uart8250.c
-@@ -91,11 +91,11 @@ static struct sbi_console_device uart8250_console = {
- };
- 
- int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
--		  u32 reg_width)
-+		  u32 reg_width, u32 reg_offset)
- {
- 	u16 bdiv;
- 
--	uart8250_base      = (volatile char *)base;
-+	uart8250_base      = (volatile char *)base + reg_offset;
- 	uart8250_reg_shift = reg_shift;
- 	uart8250_reg_width = reg_width;
- 	uart8250_in_freq   = in_freq;
-diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
-index 01232d0..6bd0a69 100644
---- a/platform/andes/ae350/platform.c
-+++ b/platform/andes/ae350/platform.c
-@@ -69,7 +69,8 @@ static int ae350_console_init(void)
- 			     AE350_UART_FREQUENCY,
- 			     AE350_UART_BAUDRATE,
- 			     AE350_UART_REG_SHIFT,
--			     AE350_UART_REG_WIDTH);
-+			     AE350_UART_REG_WIDTH,
-+			     AE350_UART_REG_OFFSET);
- }
- 
- /* Initialize the platform interrupt controller for current HART. */
-diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
-index f34ca0f..9b54816 100644
---- a/platform/andes/ae350/platform.h
-+++ b/platform/andes/ae350/platform.h
-@@ -28,6 +28,7 @@
- #define AE350_UART_BAUDRATE		38400
- #define AE350_UART_REG_SHIFT		2
- #define AE350_UART_REG_WIDTH		0
-+#define AE350_UART_REG_OFFSET		0
- 
- /*Memory and Miscellaneous Registers*/
- #define CSR_MILMB		0x7c0
-diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
-index c6f0ffd..3fdc03b 100644
---- a/platform/fpga/ariane/platform.c
-+++ b/platform/fpga/ariane/platform.c
-@@ -23,6 +23,7 @@
- #define ARIANE_UART_BAUDRATE			115200
- #define ARIANE_UART_REG_SHIFT			2
- #define ARIANE_UART_REG_WIDTH			4
-+#define ARIANE_UART_REG_OFFSET			0
- #define ARIANE_PLIC_ADDR			0xc000000
- #define ARIANE_PLIC_NUM_SOURCES			3
- #define ARIANE_HART_COUNT			1
-@@ -92,7 +93,8 @@ static int ariane_console_init(void)
- 			     ARIANE_UART_FREQ,
- 			     ARIANE_UART_BAUDRATE,
- 			     ARIANE_UART_REG_SHIFT,
--			     ARIANE_UART_REG_WIDTH);
-+			     ARIANE_UART_REG_WIDTH,
-+			     ARIANE_UART_REG_OFFSET);
- }
- 
- static int plic_ariane_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
-diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
-index 59c6702..15e289a 100644
---- a/platform/fpga/openpiton/platform.c
-+++ b/platform/fpga/openpiton/platform.c
-@@ -22,6 +22,7 @@
- #define OPENPITON_DEFAULT_UART_BAUDRATE		115200
- #define OPENPITON_DEFAULT_UART_REG_SHIFT	0
- #define OPENPITON_DEFAULT_UART_REG_WIDTH	1
-+#define OPENPITON_DEFAULT_UART_REG_OFFSET	0
- #define OPENPITON_DEFAULT_PLIC_ADDR		0xfff1100000
- #define OPENPITON_DEFAULT_PLIC_NUM_SOURCES	2
- #define OPENPITON_DEFAULT_HART_COUNT		3
-@@ -127,7 +128,8 @@ static int openpiton_console_init(void)
- 			     uart.freq,
- 			     uart.baud,
- 			     OPENPITON_DEFAULT_UART_REG_SHIFT,
--			     OPENPITON_DEFAULT_UART_REG_WIDTH);
-+			     OPENPITON_DEFAULT_UART_REG_WIDTH,
-+			     OPENPITON_DEFAULT_UART_REG_OFFSET);
- }
- 
- static int plic_openpiton_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index d6806e6..5524847 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -79,7 +79,7 @@ static int platform_console_init(void)
- {
- 	/* Example if the generic UART8250 driver is used */
- 	return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
--			     PLATFORM_UART_BAUDRATE, 0, 1);
-+			     PLATFORM_UART_BAUDRATE, 0, 1, 0);
- }
- 
- /*
--- 
-2.17.1
-
+> > +               }
+> >                 /* Fixed counters should not be part of the search */
+> >                 ctr_mask = temp->counters & (cmask << cbase) &
+> >                            (~SBI_PMU_FIXED_CTR_MASK);
+> > @@ -546,7 +560,6 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+> >                 else
+> >                         return SBI_EFAIL;
+> >         }
+> > -
+> >         ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
+> >
+> >         if (!ret)
+> > diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> > index 529ee420554f..a2b048f0ab29 100644
+> > --- a/lib/utils/fdt/fdt_pmu.c
+> > +++ b/lib/utils/fdt/fdt_pmu.c
+> > @@ -65,7 +65,7 @@ int fdt_pmu_setup(void *fdt)
+> >         const u32 *event_val;
+> >         const u32 *event_ctr_map;
+> >         struct fdt_pmu_hw_event_select *event;
+> > -       uint64_t raw_selector;
+> > +       uint64_t raw_selector, select_mask;
+> >         u32 event_idx_start, event_idx_end, ctr_map;
+> >
+> >         if (!fdt)
+> > @@ -99,14 +99,16 @@ int fdt_pmu_setup(void *fdt)
+> >         }
+> >
+> >         event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
+> > -       if (!event_val || len < 8)
+> > +       if (!event_val || len < 20)
+> >                 return SBI_EFAIL;
+> > -       len = len / (sizeof(u32) * 3);
+> > +       len = len / (sizeof(u32) * 5);
+> >         for (i = 0; i < len; i++) {
+> > -               raw_selector = fdt32_to_cpu(event_val[3 * i]);
+> > -               raw_selector = (raw_selector << 32) | fdt32_to_cpu(event_val[3 * i + 1]);
+> > -               ctr_map = fdt32_to_cpu(event_val[3 * i + 2]);
+> > -               result = sbi_pmu_add_raw_event_counter_map(raw_selector, ctr_map);
+> > +               raw_selector = fdt32_to_cpu(event_val[5 * i]);
+> > +               raw_selector = (raw_selector << 32) | fdt32_to_cpu(event_val[5 * i + 1]);
+> > +               select_mask = fdt32_to_cpu(event_val[5 * i + 2]);
+> > +               select_mask = (select_mask  << 32) | fdt32_to_cpu(event_val[5 * i + 3]);
+> > +               ctr_map = fdt32_to_cpu(event_val[5 * i + 4]);
+> > +               result = sbi_pmu_add_raw_event_counter_map(raw_selector, select_mask, ctr_map);
+> >                 if (!result)
+> >                         hw_event_count++;
+> >         }
+> > --
+> > 2.33.1
+> >
 
