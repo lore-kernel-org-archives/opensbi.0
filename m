@@ -1,8 +1,8 @@
 From: Atish Patra <atishp@rivosinc.com>
-Date: Thu, 28 Apr 2022 10:25:22 -0700
-Subject: [PATCH] lib: sbi: Fix mhpmeventh access for rv32 in absence of
+Date: Thu, 28 Apr 2022 11:48:29 -0700
+Subject: [PATCH v2] lib: sbi: Fix mhpmeventh access for rv32 in absence of
  sscofpmf
-Message-ID: <20220428172522.998645-1-atishp@rivosinc.com>
+Message-ID: <20220428184829.1188183-1-atishp@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,24 +14,39 @@ accessed only if sscofpmf is present.
 
 Signed-off-by: Atish Patra <atishp@rivosinc.com>
 ---
- lib/sbi/sbi_pmu.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Changes from v1->V2:
+1. Fixed the compilation error in rv64
+---
+ lib/sbi/riscv_asm.c | 4 ++++
+ lib/sbi/sbi_pmu.c   | 8 ++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 5eab1ed5724f..ddc4c139b95e 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -139,6 +139,10 @@ unsigned long csr_read_num(int csr_num)
+ 	switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
+ 	switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
+ 	switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
++	/**
++	 * The CSR range MHPMEVENT[3-16]H are available only if sscofpmf
++	 * extension is present. The caller must ensure that.
++	 */
+ 	switchcase_csr_read(CSR_MHPMEVENT3H, ret)
+ 	switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
+ 	switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 7ea0ca5e2fa7..372423796cbf 100644
+index 7ea0ca5e2fa7..f458c6d4a221 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -400,11 +400,13 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t fw_evt_code)
- 
- static int pmu_reset_hw_mhpmevent(int ctr_idx)
- {
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	if (ctr_idx < 3 || ctr_idx >= SBI_PMU_HW_CTR_MAX)
+@@ -404,7 +404,9 @@ static int pmu_reset_hw_mhpmevent(int ctr_idx)
  		return SBI_EFAIL;
  #if __riscv_xlen == 32
  	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, 0);
 -	csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, 0);
-+	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
++	if (sbi_hart_has_feature(sbi_scratch_thishart_ptr(),
++                                 SBI_HART_HAS_SSCOFPMF))
 +		csr_write_num(CSR_MHPMEVENT3H + ctr_idx - 3, 0);
  #else
  	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, 0);
