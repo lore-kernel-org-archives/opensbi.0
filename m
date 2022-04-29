@@ -1,169 +1,163 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 29 Apr 2022 21:21:44 +0530
-Subject: [PATCH 04/11] lib: sbi: Remove MCOUNTEREN and SCOUNTEREN hart features
+Date: Fri, 29 Apr 2022 21:21:45 +0530
+Subject: [PATCH 05/11] lib: sbi: Remove MCOUNTINHIBT hart feature
 In-Reply-To: <20220429155151.314788-1-apatel@ventanamicro.com>
 References: <20220429155151.314788-1-apatel@ventanamicro.com>
-Message-ID: <20220429155151.314788-5-apatel@ventanamicro.com>
+Message-ID: <20220429155151.314788-6-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If a hart implements privileged spec v1.10 (or higher) then we can
-safely assume that [m|s]counteren CSR are present and we don't need
-MCOUNTEREN and SCOUNTEREN as hart features.
+If a hart implements privileged spec v1.11 (or higher) then we can
+safely assume that mcountinhibit CSR is present and we don't need
+MCOUNTINHIBT as a hart feature.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_hart.h    | 18 +++++++-----------
- lib/sbi/sbi_emulate_csr.c |  4 ++--
- lib/sbi/sbi_hart.c        | 29 +++++------------------------
- lib/sbi/sbi_pmu.c         |  3 ++-
- 4 files changed, 16 insertions(+), 38 deletions(-)
+ include/sbi/sbi_hart.h | 14 ++++++--------
+ lib/sbi/sbi_hart.c     | 23 ++++++++---------------
+ lib/sbi/sbi_pmu.c      | 10 +++++-----
+ 3 files changed, 19 insertions(+), 28 deletions(-)
 
 diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 3c37933..4665a62 100644
+index 4665a62..bc6b766 100644
 --- a/include/sbi/sbi_hart.h
 +++ b/include/sbi/sbi_hart.h
-@@ -26,24 +26,20 @@ enum sbi_hart_priv_versions {
+@@ -26,20 +26,18 @@ enum sbi_hart_priv_versions {
  
  /** Possible feature flags of a hart */
  enum sbi_hart_features {
--	/** Hart has S-mode counter enable */
--	SBI_HART_HAS_SCOUNTEREN = (1 << 0),
--	/** Hart has M-mode counter enable */
--	SBI_HART_HAS_MCOUNTEREN = (1 << 1),
- 	/** Hart has counter inhibit CSR */
--	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 2),
-+	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 0),
+-	/** Hart has counter inhibit CSR */
+-	SBI_HART_HAS_MCOUNTINHIBIT = (1 << 0),
  	/** Hart has sscofpmf extension */
--	SBI_HART_HAS_SSCOFPMF = (1 << 3),
-+	SBI_HART_HAS_SSCOFPMF = (1 << 1),
+-	SBI_HART_HAS_SSCOFPMF = (1 << 1),
++	SBI_HART_HAS_SSCOFPMF = (1 << 0),
  	/** HART has timer csr implementation in hardware */
--	SBI_HART_HAS_TIME = (1 << 4),
-+	SBI_HART_HAS_TIME = (1 << 2),
+-	SBI_HART_HAS_TIME = (1 << 2),
++	SBI_HART_HAS_TIME = (1 << 1),
  	/** HART has AIA local interrupt CSRs */
--	SBI_HART_HAS_AIA = (1 << 5),
-+	SBI_HART_HAS_AIA = (1 << 3),
+-	SBI_HART_HAS_AIA = (1 << 3),
++	SBI_HART_HAS_AIA = (1 << 2),
  	/** HART has menvcfg CSR */
--	SBI_HART_HAS_MENVCFG = (1 << 6),
-+	SBI_HART_HAS_MENVCFG = (1 << 4),
+-	SBI_HART_HAS_MENVCFG = (1 << 4),
++	SBI_HART_HAS_MENVCFG = (1 << 3),
  	/** HART has mstateen CSR **/
--	SBI_HART_HAS_SMSTATEEN = (1 << 7),
-+	SBI_HART_HAS_SMSTATEEN = (1 << 5),
+-	SBI_HART_HAS_SMSTATEEN = (1 << 5),
++	SBI_HART_HAS_SMSTATEEN = (1 << 4),
  	/** HART has SSTC extension implemented in hardware */
--	SBI_HART_HAS_SSTC = (1 << 8),
-+	SBI_HART_HAS_SSTC = (1 << 6),
+-	SBI_HART_HAS_SSTC = (1 << 6),
++	SBI_HART_HAS_SSTC = (1 << 5),
  
  	/** Last index of Hart features*/
  	SBI_HART_HAS_LAST_FEATURE = SBI_HART_HAS_SSTC,
-diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-index dbb1755..aec9d3c 100644
---- a/lib/sbi/sbi_emulate_csr.c
-+++ b/lib/sbi/sbi_emulate_csr.c
-@@ -24,7 +24,7 @@ static bool hpm_allowed(int hpm_num, ulong prev_mode, bool virt)
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
- 	if (prev_mode <= PRV_S) {
--		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN)) {
-+		if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10) {
- 			cen &= csr_read(CSR_MCOUNTEREN);
- 			if (virt)
- 				cen &= csr_read(CSR_HCOUNTEREN);
-@@ -33,7 +33,7 @@ static bool hpm_allowed(int hpm_num, ulong prev_mode, bool virt)
- 		}
- 	}
- 	if (prev_mode == PRV_U) {
--		if (sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
-+		if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
- 			cen &= csr_read(CSR_SCOUNTEREN);
- 		else
- 			cen = 0;
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index ed4e631..ed8a061 100644
+index ed8a061..0fe88cb 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -58,7 +58,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 
- 	/* Disable user mode usage of all perf counters except default ones (CY, TM, IR) */
- 	if (misa_extension('S') &&
--	    sbi_hart_has_feature(scratch, SBI_HART_HAS_SCOUNTEREN))
-+	    sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
- 		csr_write(CSR_SCOUNTEREN, 7);
- 
- 	/**
-@@ -66,7 +66,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 	 * Supervisor mode usage for all counters are enabled by default
- 	 * But counters will not run until mcountinhibit is set.
- 	 */
--	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTEREN))
-+	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
+@@ -70,7 +70,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
  		csr_write(CSR_MCOUNTEREN, -1);
  
- 	/* All programmable counters will start running at runtime after S-mode request */
-@@ -402,12 +402,6 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
+ 	/* All programmable counters will start running@runtime after S-mode request */
+-	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
+ 		csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+ 
+ 	/**
+@@ -402,9 +402,6 @@ static inline char *sbi_hart_feature_id2string(unsigned long feature)
  		return NULL;
  
  	switch (feature) {
--	case SBI_HART_HAS_SCOUNTEREN:
--		fstr = "scounteren";
+-	case SBI_HART_HAS_MCOUNTINHIBIT:
+-		fstr = "mcountinhibit";
 -		break;
--	case SBI_HART_HAS_MCOUNTEREN:
--		fstr = "mcounteren";
--		break;
- 	case SBI_HART_HAS_MCOUNTINHIBIT:
- 		fstr = "mcountinhibit";
+ 	case SBI_HART_HAS_SSCOFPMF:
+ 		fstr = "sscofpmf";
  		break;
-@@ -614,23 +608,10 @@ __mhpm_skip:
- #undef __check_csr_2
- #undef __check_csr
- 
--	/* Detect if hart supports SCOUNTEREN feature */
--	val = csr_read_allowed(CSR_SCOUNTEREN, (unsigned long)&trap);
--	if (!trap.cause) {
--		hfeatures->priv_version = SBI_HART_PRIV_VER_1_10;
--		csr_write_allowed(CSR_SCOUNTEREN, (unsigned long)&trap, val);
--		if (!trap.cause)
--			hfeatures->features |= SBI_HART_HAS_SCOUNTEREN;
--	}
--
--	/* Detect if hart supports MCOUNTEREN feature */
-+	/* Detect if hart supports Priv v1.10 */
- 	val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
--	if (!trap.cause) {
-+	if (!trap.cause)
+@@ -613,26 +610,22 @@ __mhpm_skip:
+ 	if (!trap.cause)
  		hfeatures->priv_version = SBI_HART_PRIV_VER_1_10;
--		csr_write_allowed(CSR_MCOUNTEREN, (unsigned long)&trap, val);
--		if (!trap.cause)
--			hfeatures->features |= SBI_HART_HAS_MCOUNTEREN;
--	}
  
- 	/* Detect if hart supports MCOUNTINHIBIT feature */
+-	/* Detect if hart supports MCOUNTINHIBIT feature */
++	/* Detect if hart supports Priv v1.11 */
  	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap);
-@@ -651,7 +632,7 @@ __mhpm_skip:
+-	if (!trap.cause) {
+-		csr_write_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap, val);
+-		if (!trap.cause) {
+-			hfeatures->priv_version = SBI_HART_PRIV_VER_1_11;
+-			hfeatures->features |= SBI_HART_HAS_MCOUNTINHIBIT;
+-		}
+-	}
++	if (!trap.cause &&
++	    (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_10))
++		hfeatures->priv_version = SBI_HART_PRIV_VER_1_11;
+ 
+ 	/* Detect if hart has menvcfg CSR */
+ 	csr_read_allowed(CSR_MENVCFG, (unsigned long)&trap);
+-	if (!trap.cause) {
++	if (!trap.cause &&
++	    (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11)) {
+ 		hfeatures->priv_version = SBI_HART_PRIV_VER_1_12;
+ 		hfeatures->features |= SBI_HART_HAS_MENVCFG;
+ 	}
  
  	/* Counter overflow/filtering is not useful without mcounter/inhibit */
- 	if (hfeatures->features & SBI_HART_HAS_MCOUNTINHIBIT &&
--	    hfeatures->features & SBI_HART_HAS_MCOUNTEREN) {
-+	    hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
+-	if (hfeatures->features & SBI_HART_HAS_MCOUNTINHIBIT &&
+-	    hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
++	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
  		/* Detect if hart supports sscofpmf */
  		csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
  		if (!trap.cause)
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 7ea0ca5..853229e 100644
+index 853229e..386bf4d 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -729,7 +729,8 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
- 	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
+@@ -300,7 +300,7 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
+ 	if (cidx > num_hw_ctrs || cidx == 1)
+ 		return SBI_EINVAL;
+ 
+-	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++	if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11)
+ 		goto skip_inhibit_update;
+ 
+ 	/*
+@@ -372,7 +372,7 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	unsigned long mctr_inhbt;
+ 
+-	if (!sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++	if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11)
+ 		return 0;
+ 
+ 	mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
+@@ -524,7 +524,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+ 	    !sbi_hart_has_feature(scratch, SBI_HART_HAS_SSCOFPMF))
+ 		return fixed_ctr;
+ 
+-	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
+ 		mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
+ 	for (i = 0; i < num_hw_events; i++) {
+ 		temp = &hw_event_map[i];
+@@ -551,7 +551,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+ 			if (active_events[hartid][cbase] != SBI_PMU_EVENT_IDX_INVALID)
+ 				continue;
+ 			/* If mcountinhibit is supported, the bit must be enabled */
+-			if ((sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT)) &&
++			if ((sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11) &&
+ 			    !__test_bit(cbase, &mctr_inhbt))
+ 				continue;
+ 			/* We found a valid counter that is not started yet */
+@@ -726,7 +726,7 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
+ {
+ 	u32 hartid = current_hartid();
+ 
+-	if (sbi_hart_has_feature(scratch, SBI_HART_HAS_MCOUNTINHIBIT))
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
  		csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
  
--	csr_write(CSR_MCOUNTEREN, -1);
-+	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
-+		csr_write(CSR_MCOUNTEREN, -1);
- 	pmu_reset_event_map(hartid);
- }
- 
+ 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
 -- 
 2.34.1
 
