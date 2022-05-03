@@ -1,69 +1,94 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  3 May 2022 09:07:59 +0530
-Subject: [PATCH 11/11] platform: generic: Move Sifive platform overrides into
- own directory
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Tue, 3 May 2022 04:42:02 +0100
+Subject: [PATCH 00/11] OpenSBI compile-time C arrays
 In-Reply-To: <20220503033759.544156-1-apatel@ventanamicro.com>
 References: <20220503033759.544156-1-apatel@ventanamicro.com>
-Message-ID: <20220503033759.544156-12-apatel@ventanamicro.com>
+Message-ID: <457774D8-5855-4B5A-BCC2-51D423C0E311@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Let us move SiFive platform overrides for FU540 and FU740 into a separate
-directory so better maintainability. Other SoC vendors can also create
-their own directory under platform/generic.
+On 3 May 2022, at 04:38, Anup Patel <apatel@ventanamicro.com> wrote:
+> 
+> ?This series aims at removing hard-coded C arrays for drivers and modules
+> in OpenSBI sources and replace it with dynamically generated arrays at
+> compile-time. External firmwares which use OpenSBI as library will have
+> to create these arrays separately because they typically don't use OpenSBI
+> build system.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- platform/generic/objects.mk                         | 6 ------
- platform/generic/{sifive_fu540.c => sifive/fu540.c} | 0
- platform/generic/{sifive_fu740.c => sifive/fu740.c} | 0
- platform/generic/sifive/objects.mk                  | 9 +++++++++
- 4 files changed, 9 insertions(+), 6 deletions(-)
- rename platform/generic/{sifive_fu540.c => sifive/fu540.c} (100%)
- rename platform/generic/{sifive_fu740.c => sifive/fu740.c} (100%)
- create mode 100644 platform/generic/sifive/objects.mk
+Why not use linker sets? No scripts needed.
 
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index 6f63e69..4907754 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -9,9 +9,3 @@
- 
- platform-objs-y += platform.o
- platform-objs-y += platform_override_modules.o
--
--carray-platform_override_modules-y += sifive_fu540
--platform-objs-y += sifive_fu540.o
--
--carray-platform_override_modules-y += sifive_fu740
--platform-objs-y += sifive_fu740.o
-diff --git a/platform/generic/sifive_fu540.c b/platform/generic/sifive/fu540.c
-similarity index 100%
-rename from platform/generic/sifive_fu540.c
-rename to platform/generic/sifive/fu540.c
-diff --git a/platform/generic/sifive_fu740.c b/platform/generic/sifive/fu740.c
-similarity index 100%
-rename from platform/generic/sifive_fu740.c
-rename to platform/generic/sifive/fu740.c
-diff --git a/platform/generic/sifive/objects.mk b/platform/generic/sifive/objects.mk
-new file mode 100644
-index 0000000..c17e2df
---- /dev/null
-+++ b/platform/generic/sifive/objects.mk
-@@ -0,0 +1,9 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+carray-platform_override_modules-y += sifive_fu540
-+platform-objs-y += sifive/fu540.o
-+
-+carray-platform_override_modules-y += sifive_fu740
-+platform-objs-y += sifive/fu740.o
--- 
-2.34.1
+Jess
 
+> These patches can also be found in generated_carray_v1 branch at:
+> https://github.com/avpatel/opensbi.git
+> 
+> Anup Patel (11):
+>  Makefile: Allow generated C source to be anywhere in build directory
+>  Makefile: Add support for generating C array at compile time
+>  lib: utils/reset: Generate FDT reset driver list at compile-time
+>  lib: utils/serial: Generate FDT serial driver list at compile-time
+>  lib: utils/timer: Generate FDT timer driver list at compile-time
+>  lib: utils/irqchip: Generate FDT irqchip driver list at compile-time
+>  lib: utils/ipi: Generate FDT ipi driver list at compile-time
+>  lib: utils/i2c: Generate FDT i2c adapter driver list at compile-time
+>  lib: utils/gpio: Generate FDT gpio driver list at compile-time
+>  platform: generic: Generate platform override module list at
+>    compile-time
+>  platform: generic: Move Sifive platform overrides into own directory
+> 
+> Makefile                                      | 17 +++-
+> include/sbi_utils/gpio/fdt_gpio.h             |  2 +
+> lib/utils/gpio/fdt_gpio.c                     | 18 ++---
+> lib/utils/gpio/fdt_gpio_drivers.carray        |  3 +
+> lib/utils/gpio/objects.mk                     |  4 +
+> lib/utils/i2c/fdt_i2c.c                       | 14 ++--
+> lib/utils/i2c/fdt_i2c_adapter_drivers.carray  |  3 +
+> lib/utils/i2c/objects.mk                      |  4 +
+> lib/utils/ipi/fdt_ipi.c                       | 12 ++-
+> lib/utils/ipi/fdt_ipi_drivers.carray          |  3 +
+> lib/utils/ipi/objects.mk                      |  4 +
+> lib/utils/irqchip/fdt_irqchip.c               | 16 ++--
+> lib/utils/irqchip/fdt_irqchip_drivers.carray  |  3 +
+> lib/utils/irqchip/objects.mk                  |  8 ++
+> lib/utils/reset/fdt_reset.c                   | 22 ++----
+> lib/utils/reset/fdt_reset_drivers.carray      |  3 +
+> lib/utils/reset/objects.mk                    | 12 +++
+> lib/utils/serial/fdt_serial.c                 | 28 ++-----
+> lib/utils/serial/fdt_serial_drivers.carray    |  3 +
+> lib/utils/serial/objects.mk                   | 16 ++++
+> lib/utils/timer/fdt_timer.c                   | 12 ++-
+> lib/utils/timer/fdt_timer_drivers.carray      |  3 +
+> lib/utils/timer/objects.mk                    |  4 +
+> platform/generic/objects.mk                   |  3 +-
+> platform/generic/platform.c                   | 14 ++--
+> .../generic/platform_override_modules.carray  |  3 +
+> .../{sifive_fu540.c => sifive/fu540.c}        |  0
+> .../{sifive_fu740.c => sifive/fu740.c}        |  0
+> platform/generic/sifive/objects.mk            |  9 +++
+> scripts/carray.sh                             | 77 +++++++++++++++++++
+> 30 files changed, 224 insertions(+), 96 deletions(-)
+> create mode 100644 lib/utils/gpio/fdt_gpio_drivers.carray
+> create mode 100644 lib/utils/i2c/fdt_i2c_adapter_drivers.carray
+> create mode 100644 lib/utils/ipi/fdt_ipi_drivers.carray
+> create mode 100644 lib/utils/irqchip/fdt_irqchip_drivers.carray
+> create mode 100644 lib/utils/reset/fdt_reset_drivers.carray
+> create mode 100644 lib/utils/serial/fdt_serial_drivers.carray
+> create mode 100644 lib/utils/timer/fdt_timer_drivers.carray
+> create mode 100644 platform/generic/platform_override_modules.carray
+> rename platform/generic/{sifive_fu540.c => sifive/fu540.c} (100%)
+> rename platform/generic/{sifive_fu740.c => sifive/fu740.c} (100%)
+> create mode 100644 platform/generic/sifive/objects.mk
+> create mode 100755 scripts/carray.sh
+> 
+> -- 
+> 2.34.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
