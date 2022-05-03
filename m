@@ -1,45 +1,81 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Thu, 30 Nov 2023 18:18:05 +0000
-Subject: [RFC PATCH 0/2] Add support for Supervisor Software Events
- extension
-In-Reply-To: <20231130091319.1223849-1-cleger@rivosinc.com>
-References: <20231130091319.1223849-1-cleger@rivosinc.com>
-Message-ID: <977FFDD0-F1AD-4E00-88BD-D9070ED8B1E9@jrtc27.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue,  3 May 2022 09:07:48 +0530
+Subject: [PATCH 00/11] OpenSBI compile-time C arrays
+Message-ID: <20220503033759.544156-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 30 Nov 2023, at 09:13, Cl?ment L?ger <cleger@rivosinc.com> wrote:
-> 
-> The SBI Supervisor Software Events (SSE) extensions provides a mechanism
-> to inject software events from an SBI implementation to supervisor
-> software such that it preempts all other supervisor level traps and
-> interrupts [1].
-> 
-> Various events are defined and can be send asynchronously to supervisor
-> software (RAS, PMU, DEBUG, Asynchronous page fault) from SBI as well
-> as platform specific events. Events can be either local (per-hart) or
-> global. Events can be nested on top of each other based on priority and
-> can interrupt the supervisor mode at any time.
-> 
-> This PR adds support for this extension. First commit modifies interrupts
-> handling to pass the sbi traps regs through interrupt handlers in order to inject
-> SSE events from this context. Second one add the SSE support itself.
-> 
-> A RFC for Linux which uses this extension is available at [2].
-> 
-> Link: https://lists.riscv.org/g/tech-prs/message/515 [
+This series aims at removing hard-coded C arrays for drivers and modules
+in OpenSBI sources and replace it with dynamically generated arrays at
+compile-time. External firmwares which use OpenSBI as library will have
+to create these arrays separately because they typically don't use OpenSBI
+build system.
 
-This is the proposal from many months ago which I objected to. Have
-there been any changes to the spec to not tie the SBI?s binary
-interface too closely to the ISA and preclude the existence of
-extensions that introduce new state SSE would need to save and restore?
-I was under the impression from your talk a few weeks ago at LPC, which
-even mentioned my comments explicitly, that was being worked on, yet
-here we are with a new patch that doesn?t change the spec one bit.
+These patches can also be found in generated_carray_v1 branch at:
+https://github.com/avpatel/opensbi.git
 
-Jess
+Anup Patel (11):
+  Makefile: Allow generated C source to be anywhere in build directory
+  Makefile: Add support for generating C array at compile time
+  lib: utils/reset: Generate FDT reset driver list at compile-time
+  lib: utils/serial: Generate FDT serial driver list at compile-time
+  lib: utils/timer: Generate FDT timer driver list at compile-time
+  lib: utils/irqchip: Generate FDT irqchip driver list at compile-time
+  lib: utils/ipi: Generate FDT ipi driver list at compile-time
+  lib: utils/i2c: Generate FDT i2c adapter driver list at compile-time
+  lib: utils/gpio: Generate FDT gpio driver list at compile-time
+  platform: generic: Generate platform override module list at
+    compile-time
+  platform: generic: Move Sifive platform overrides into own directory
+
+ Makefile                                      | 17 +++-
+ include/sbi_utils/gpio/fdt_gpio.h             |  2 +
+ lib/utils/gpio/fdt_gpio.c                     | 18 ++---
+ lib/utils/gpio/fdt_gpio_drivers.carray        |  3 +
+ lib/utils/gpio/objects.mk                     |  4 +
+ lib/utils/i2c/fdt_i2c.c                       | 14 ++--
+ lib/utils/i2c/fdt_i2c_adapter_drivers.carray  |  3 +
+ lib/utils/i2c/objects.mk                      |  4 +
+ lib/utils/ipi/fdt_ipi.c                       | 12 ++-
+ lib/utils/ipi/fdt_ipi_drivers.carray          |  3 +
+ lib/utils/ipi/objects.mk                      |  4 +
+ lib/utils/irqchip/fdt_irqchip.c               | 16 ++--
+ lib/utils/irqchip/fdt_irqchip_drivers.carray  |  3 +
+ lib/utils/irqchip/objects.mk                  |  8 ++
+ lib/utils/reset/fdt_reset.c                   | 22 ++----
+ lib/utils/reset/fdt_reset_drivers.carray      |  3 +
+ lib/utils/reset/objects.mk                    | 12 +++
+ lib/utils/serial/fdt_serial.c                 | 28 ++-----
+ lib/utils/serial/fdt_serial_drivers.carray    |  3 +
+ lib/utils/serial/objects.mk                   | 16 ++++
+ lib/utils/timer/fdt_timer.c                   | 12 ++-
+ lib/utils/timer/fdt_timer_drivers.carray      |  3 +
+ lib/utils/timer/objects.mk                    |  4 +
+ platform/generic/objects.mk                   |  3 +-
+ platform/generic/platform.c                   | 14 ++--
+ .../generic/platform_override_modules.carray  |  3 +
+ .../{sifive_fu540.c => sifive/fu540.c}        |  0
+ .../{sifive_fu740.c => sifive/fu740.c}        |  0
+ platform/generic/sifive/objects.mk            |  9 +++
+ scripts/carray.sh                             | 77 +++++++++++++++++++
+ 30 files changed, 224 insertions(+), 96 deletions(-)
+ create mode 100644 lib/utils/gpio/fdt_gpio_drivers.carray
+ create mode 100644 lib/utils/i2c/fdt_i2c_adapter_drivers.carray
+ create mode 100644 lib/utils/ipi/fdt_ipi_drivers.carray
+ create mode 100644 lib/utils/irqchip/fdt_irqchip_drivers.carray
+ create mode 100644 lib/utils/reset/fdt_reset_drivers.carray
+ create mode 100644 lib/utils/serial/fdt_serial_drivers.carray
+ create mode 100644 lib/utils/timer/fdt_timer_drivers.carray
+ create mode 100644 platform/generic/platform_override_modules.carray
+ rename platform/generic/{sifive_fu540.c => sifive/fu540.c} (100%)
+ rename platform/generic/{sifive_fu740.c => sifive/fu740.c} (100%)
+ create mode 100644 platform/generic/sifive/objects.mk
+ create mode 100755 scripts/carray.sh
+
+-- 
+2.34.1
 
 
