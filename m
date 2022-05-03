@@ -1,107 +1,83 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  3 May 2022 09:07:57 +0530
-Subject: [PATCH 09/11] lib: utils/gpio: Generate FDT gpio driver list at
- compile-time
+Date: Tue,  3 May 2022 09:07:58 +0530
+Subject: [PATCH 10/11] platform: generic: Generate platform override module
+ list at compile-time
 In-Reply-To: <20220503033759.544156-1-apatel@ventanamicro.com>
 References: <20220503033759.544156-1-apatel@ventanamicro.com>
-Message-ID: <20220503033759.544156-10-apatel@ventanamicro.com>
+Message-ID: <20220503033759.544156-11-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of having FDT gpio driver list hard-coded in the C source,
+Instead of having platform override module list hard-coded in the C source,
 we generate it using carray.sh at compile-time.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi_utils/gpio/fdt_gpio.h      |  2 ++
- lib/utils/gpio/fdt_gpio.c              | 18 ++++++++----------
- lib/utils/gpio/fdt_gpio_drivers.carray |  3 +++
- lib/utils/gpio/objects.mk              |  4 ++++
- 4 files changed, 17 insertions(+), 10 deletions(-)
- create mode 100644 lib/utils/gpio/fdt_gpio_drivers.carray
+ platform/generic/objects.mk                       |  5 +++++
+ platform/generic/platform.c                       | 14 +++++---------
+ platform/generic/platform_override_modules.carray |  3 +++
+ 3 files changed, 13 insertions(+), 9 deletions(-)
+ create mode 100644 platform/generic/platform_override_modules.carray
 
-diff --git a/include/sbi_utils/gpio/fdt_gpio.h b/include/sbi_utils/gpio/fdt_gpio.h
-index 19e1b58..ccbf2a1 100644
---- a/include/sbi_utils/gpio/fdt_gpio.h
-+++ b/include/sbi_utils/gpio/fdt_gpio.h
-@@ -12,6 +12,8 @@
- 
- #include <sbi_utils/gpio/gpio.h>
- 
-+struct fdt_phandle_args;
-+
- /** FDT based GPIO driver */
- struct fdt_gpio {
- 	const struct fdt_match *match_table;
-diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
-index 297b248..7258128 100644
---- a/lib/utils/gpio/fdt_gpio.c
-+++ b/lib/utils/gpio/fdt_gpio.c
-@@ -12,11 +12,9 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/gpio/fdt_gpio.h>
- 
--extern struct fdt_gpio fdt_gpio_sifive;
--
--static struct fdt_gpio *gpio_drivers[] = {
--	&fdt_gpio_sifive
--};
-+/* List of FDT gpio drivers generated at compile time */
-+extern struct fdt_gpio *fdt_gpio_drivers[];
-+extern unsigned long fdt_gpio_drivers_size;
- 
- static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
- {
-@@ -25,9 +23,9 @@ static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
- 	if (!chip)
- 		return NULL;
- 
--	for (pos = 0; pos < array_size(gpio_drivers); pos++) {
--		if (chip->driver == gpio_drivers[pos])
--			return gpio_drivers[pos];
-+	for (pos = 0; pos < fdt_gpio_drivers_size; pos++) {
-+		if (chip->driver == fdt_gpio_drivers[pos])
-+			return fdt_gpio_drivers[pos];
- 	}
- 
- 	return NULL;
-@@ -49,8 +47,8 @@ static int fdt_gpio_init(void *fdt, u32 phandle)
- 		return SBI_EINVAL;
- 
- 	/* Try all GPIO drivers one-by-one */
--	for (pos = 0; pos < array_size(gpio_drivers); pos++) {
--		drv = gpio_drivers[pos];
-+	for (pos = 0; pos < fdt_gpio_drivers_size; pos++) {
-+		drv = fdt_gpio_drivers[pos];
- 
- 		match = fdt_match_node(fdt, nodeoff, drv->match_table);
- 		if (match && drv->init) {
-diff --git a/lib/utils/gpio/fdt_gpio_drivers.carray b/lib/utils/gpio/fdt_gpio_drivers.carray
-new file mode 100644
-index 0000000..e863f1c
---- /dev/null
-+++ b/lib/utils/gpio/fdt_gpio_drivers.carray
-@@ -0,0 +1,3 @@
-+HEADER: sbi_utils/gpio/fdt_gpio.h
-+TYPE: struct fdt_gpio
-+NAME: fdt_gpio_drivers
-diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-index 8eb7736..a5e131b 100644
---- a/lib/utils/gpio/objects.mk
-+++ b/lib/utils/gpio/objects.mk
-@@ -8,5 +8,9 @@
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index cb15a18..6f63e69 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -8,5 +8,10 @@
  #
  
- libsbiutils-objs-y += gpio/fdt_gpio.o
-+libsbiutils-objs-y += gpio/fdt_gpio_drivers.o
+ platform-objs-y += platform.o
++platform-objs-y += platform_override_modules.o
 +
-+carray-fdt_gpio_drivers-y += fdt_gpio_sifive
- libsbiutils-objs-y += gpio/fdt_gpio_sifive.o
++carray-platform_override_modules-y += sifive_fu540
+ platform-objs-y += sifive_fu540.o
 +
- libsbiutils-objs-y += gpio/gpio.o
++carray-platform_override_modules-y += sifive_fu740
+ platform-objs-y += sifive_fu740.o
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 8a4fb70..35c5ee4 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -24,13 +24,9 @@
+ #include <sbi_utils/ipi/fdt_ipi.h>
+ #include <sbi_utils/reset/fdt_reset.h>
+ 
+-extern const struct platform_override sifive_fu540;
+-extern const struct platform_override sifive_fu740;
+-
+-static const struct platform_override *special_platforms[] = {
+-	&sifive_fu540,
+-	&sifive_fu740,
+-};
++/* List of platform override modules generated at compile time */
++extern const struct platform_override *platform_override_modules[];
++extern unsigned long platform_override_modules_size;
+ 
+ static const struct platform_override *generic_plat = NULL;
+ static const struct fdt_match *generic_plat_match = NULL;
+@@ -41,8 +37,8 @@ static void fw_platform_lookup_special(void *fdt, int root_offset)
+ 	const struct platform_override *plat;
+ 	const struct fdt_match *match;
+ 
+-	for (pos = 0; pos < array_size(special_platforms); pos++) {
+-		plat = special_platforms[pos];
++	for (pos = 0; pos < platform_override_modules_size; pos++) {
++		plat = platform_override_modules[pos];
+ 		if (!plat->match_table)
+ 			continue;
+ 
+diff --git a/platform/generic/platform_override_modules.carray b/platform/generic/platform_override_modules.carray
+new file mode 100644
+index 0000000..ab9d47f
+--- /dev/null
++++ b/platform/generic/platform_override_modules.carray
+@@ -0,0 +1,3 @@
++HEADER: platform_override.h
++TYPE: const struct platform_override
++NAME: platform_override_modules
 -- 
 2.34.1
 
