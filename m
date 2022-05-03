@@ -1,112 +1,136 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Tue, 3 May 2022 04:54:10 +0100
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 3 May 2022 09:34:29 +0530
 Subject: [PATCH 00/11] OpenSBI compile-time C arrays
-In-Reply-To: <CAK9=C2Xef=vN=qZjXRdSm5hrVQ0J3LbPXbeRUt4gp=WMG=fN=A@mail.gmail.com>
+In-Reply-To: <33D207B8-CB2D-4EB0-871F-6903F2855FB1@jrtc27.com>
 References: <CAK9=C2Xef=vN=qZjXRdSm5hrVQ0J3LbPXbeRUt4gp=WMG=fN=A@mail.gmail.com>
-Message-ID: <33D207B8-CB2D-4EB0-871F-6903F2855FB1@jrtc27.com>
+ <33D207B8-CB2D-4EB0-871F-6903F2855FB1@jrtc27.com>
+Message-ID: <CAK9=C2V7W7kS_sKVNJj7wEnAhM=btm7qbU6NUfynvNky3SvnyQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-[resent cc?ing list?]
+On Tue, May 3, 2022 at 9:24 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+>
+> [resent cc?ing list?]
+>
+> On 3 May 2022, at 04:52, Anup Patel <apatel@ventanamicro.com> wrote:
+> >
+> > ?On Tue, May 3, 2022 at 9:12 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> >>
+> >>> On 3 May 2022, at 04:38, Anup Patel <apatel@ventanamicro.com> wrote:
+> >>>
+> >>> ?This series aims at removing hard-coded C arrays for drivers and modules
+> >>> in OpenSBI sources and replace it with dynamically generated arrays at
+> >>> compile-time. External firmwares which use OpenSBI as library will have
+> >>> to create these arrays separately because they typically don't use OpenSBI
+> >>> build system.
+> >>
+> >> Why not use linker sets? No scripts needed.
+> >
+> > The problem is we can't assume anything about the build system of external
+> > firmware which use OpenSBI as library.
+>
+>
+> They require no build system support. Unlike your patch.
 
-On 3 May 2022, at 04:52, Anup Patel <apatel@ventanamicro.com> wrote:
-> 
-> ?On Tue, May 3, 2022 at 9:12 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->> 
->>> On 3 May 2022, at 04:38, Anup Patel <apatel@ventanamicro.com> wrote:
->>> 
->>> ?This series aims at removing hard-coded C arrays for drivers and modules
->>> in OpenSBI sources and replace it with dynamically generated arrays at
->>> compile-time. External firmwares which use OpenSBI as library will have
->>> to create these arrays separately because they typically don't use OpenSBI
->>> build system.
->> 
->> Why not use linker sets? No scripts needed.
-> 
-> The problem is we can't assume anything about the build system of external
-> firmware which use OpenSBI as library.
+With this series, they don't need to change anything in their build
+system. For example:
+1) If they want to use fdt_serial_uart8250.c then they directly use
+"struct fdt_serial fdt_serial_uart8250"
+2) If they want to use fdt_serial.c then they can create custom
+"struct fdt_serial *fdt_serial_drivers[]" with their desired drivers
+
+If we go with a separate linker section then external firmwares
+will also require a separate linker section. They will also need
+to take care of relocations and dynamic linking for this special
+linker section if the external firmware uses -fPIC.
+
+Regards,
+Anup
+
+"
 
 
-They require no build system support. Unlike your patch.
 
-Jess
 
-> Regards,
-> Anup
-> 
->> 
->> Jess
->> 
->>> These patches can also be found in generated_carray_v1 branch at:
->>> https://github.com/avpatel/opensbi.git
->>> 
->>> Anup Patel (11):
->>> Makefile: Allow generated C source to be anywhere in build directory
->>> Makefile: Add support for generating C array at compile time
->>> lib: utils/reset: Generate FDT reset driver list at compile-time
->>> lib: utils/serial: Generate FDT serial driver list at compile-time
->>> lib: utils/timer: Generate FDT timer driver list at compile-time
->>> lib: utils/irqchip: Generate FDT irqchip driver list at compile-time
->>> lib: utils/ipi: Generate FDT ipi driver list at compile-time
->>> lib: utils/i2c: Generate FDT i2c adapter driver list at compile-time
->>> lib: utils/gpio: Generate FDT gpio driver list at compile-time
->>> platform: generic: Generate platform override module list at
->>>   compile-time
->>> platform: generic: Move Sifive platform overrides into own directory
->>> 
->>> Makefile                                      | 17 +++-
->>> include/sbi_utils/gpio/fdt_gpio.h             |  2 +
->>> lib/utils/gpio/fdt_gpio.c                     | 18 ++---
->>> lib/utils/gpio/fdt_gpio_drivers.carray        |  3 +
->>> lib/utils/gpio/objects.mk                     |  4 +
->>> lib/utils/i2c/fdt_i2c.c                       | 14 ++--
->>> lib/utils/i2c/fdt_i2c_adapter_drivers.carray  |  3 +
->>> lib/utils/i2c/objects.mk                      |  4 +
->>> lib/utils/ipi/fdt_ipi.c                       | 12 ++-
->>> lib/utils/ipi/fdt_ipi_drivers.carray          |  3 +
->>> lib/utils/ipi/objects.mk                      |  4 +
->>> lib/utils/irqchip/fdt_irqchip.c               | 16 ++--
->>> lib/utils/irqchip/fdt_irqchip_drivers.carray  |  3 +
->>> lib/utils/irqchip/objects.mk                  |  8 ++
->>> lib/utils/reset/fdt_reset.c                   | 22 ++----
->>> lib/utils/reset/fdt_reset_drivers.carray      |  3 +
->>> lib/utils/reset/objects.mk                    | 12 +++
->>> lib/utils/serial/fdt_serial.c                 | 28 ++-----
->>> lib/utils/serial/fdt_serial_drivers.carray    |  3 +
->>> lib/utils/serial/objects.mk                   | 16 ++++
->>> lib/utils/timer/fdt_timer.c                   | 12 ++-
->>> lib/utils/timer/fdt_timer_drivers.carray      |  3 +
->>> lib/utils/timer/objects.mk                    |  4 +
->>> platform/generic/objects.mk                   |  3 +-
->>> platform/generic/platform.c                   | 14 ++--
->>> .../generic/platform_override_modules.carray  |  3 +
->>> .../{sifive_fu540.c => sifive/fu540.c}        |  0
->>> .../{sifive_fu740.c => sifive/fu740.c}        |  0
->>> platform/generic/sifive/objects.mk            |  9 +++
->>> scripts/carray.sh                             | 77 +++++++++++++++++++
->>> 30 files changed, 224 insertions(+), 96 deletions(-)
->>> create mode 100644 lib/utils/gpio/fdt_gpio_drivers.carray
->>> create mode 100644 lib/utils/i2c/fdt_i2c_adapter_drivers.carray
->>> create mode 100644 lib/utils/ipi/fdt_ipi_drivers.carray
->>> create mode 100644 lib/utils/irqchip/fdt_irqchip_drivers.carray
->>> create mode 100644 lib/utils/reset/fdt_reset_drivers.carray
->>> create mode 100644 lib/utils/serial/fdt_serial_drivers.carray
->>> create mode 100644 lib/utils/timer/fdt_timer_drivers.carray
->>> create mode 100644 platform/generic/platform_override_modules.carray
->>> rename platform/generic/{sifive_fu540.c => sifive/fu540.c} (100%)
->>> rename platform/generic/{sifive_fu740.c => sifive/fu740.c} (100%)
->>> create mode 100644 platform/generic/sifive/objects.mk
->>> create mode 100755 scripts/carray.sh
->>> 
->>> --
->>> 2.34.1
->>> 
->>> 
->>> --
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
+>
+> Jess
+>
+> > Regards,
+> > Anup
+> >
+> >>
+> >> Jess
+> >>
+> >>> These patches can also be found in generated_carray_v1 branch at:
+> >>> https://github.com/avpatel/opensbi.git
+> >>>
+> >>> Anup Patel (11):
+> >>> Makefile: Allow generated C source to be anywhere in build directory
+> >>> Makefile: Add support for generating C array at compile time
+> >>> lib: utils/reset: Generate FDT reset driver list at compile-time
+> >>> lib: utils/serial: Generate FDT serial driver list at compile-time
+> >>> lib: utils/timer: Generate FDT timer driver list at compile-time
+> >>> lib: utils/irqchip: Generate FDT irqchip driver list at compile-time
+> >>> lib: utils/ipi: Generate FDT ipi driver list at compile-time
+> >>> lib: utils/i2c: Generate FDT i2c adapter driver list at compile-time
+> >>> lib: utils/gpio: Generate FDT gpio driver list at compile-time
+> >>> platform: generic: Generate platform override module list at
+> >>>   compile-time
+> >>> platform: generic: Move Sifive platform overrides into own directory
+> >>>
+> >>> Makefile                                      | 17 +++-
+> >>> include/sbi_utils/gpio/fdt_gpio.h             |  2 +
+> >>> lib/utils/gpio/fdt_gpio.c                     | 18 ++---
+> >>> lib/utils/gpio/fdt_gpio_drivers.carray        |  3 +
+> >>> lib/utils/gpio/objects.mk                     |  4 +
+> >>> lib/utils/i2c/fdt_i2c.c                       | 14 ++--
+> >>> lib/utils/i2c/fdt_i2c_adapter_drivers.carray  |  3 +
+> >>> lib/utils/i2c/objects.mk                      |  4 +
+> >>> lib/utils/ipi/fdt_ipi.c                       | 12 ++-
+> >>> lib/utils/ipi/fdt_ipi_drivers.carray          |  3 +
+> >>> lib/utils/ipi/objects.mk                      |  4 +
+> >>> lib/utils/irqchip/fdt_irqchip.c               | 16 ++--
+> >>> lib/utils/irqchip/fdt_irqchip_drivers.carray  |  3 +
+> >>> lib/utils/irqchip/objects.mk                  |  8 ++
+> >>> lib/utils/reset/fdt_reset.c                   | 22 ++----
+> >>> lib/utils/reset/fdt_reset_drivers.carray      |  3 +
+> >>> lib/utils/reset/objects.mk                    | 12 +++
+> >>> lib/utils/serial/fdt_serial.c                 | 28 ++-----
+> >>> lib/utils/serial/fdt_serial_drivers.carray    |  3 +
+> >>> lib/utils/serial/objects.mk                   | 16 ++++
+> >>> lib/utils/timer/fdt_timer.c                   | 12 ++-
+> >>> lib/utils/timer/fdt_timer_drivers.carray      |  3 +
+> >>> lib/utils/timer/objects.mk                    |  4 +
+> >>> platform/generic/objects.mk                   |  3 +-
+> >>> platform/generic/platform.c                   | 14 ++--
+> >>> .../generic/platform_override_modules.carray  |  3 +
+> >>> .../{sifive_fu540.c => sifive/fu540.c}        |  0
+> >>> .../{sifive_fu740.c => sifive/fu740.c}        |  0
+> >>> platform/generic/sifive/objects.mk            |  9 +++
+> >>> scripts/carray.sh                             | 77 +++++++++++++++++++
+> >>> 30 files changed, 224 insertions(+), 96 deletions(-)
+> >>> create mode 100644 lib/utils/gpio/fdt_gpio_drivers.carray
+> >>> create mode 100644 lib/utils/i2c/fdt_i2c_adapter_drivers.carray
+> >>> create mode 100644 lib/utils/ipi/fdt_ipi_drivers.carray
+> >>> create mode 100644 lib/utils/irqchip/fdt_irqchip_drivers.carray
+> >>> create mode 100644 lib/utils/reset/fdt_reset_drivers.carray
+> >>> create mode 100644 lib/utils/serial/fdt_serial_drivers.carray
+> >>> create mode 100644 lib/utils/timer/fdt_timer_drivers.carray
+> >>> create mode 100644 platform/generic/platform_override_modules.carray
+> >>> rename platform/generic/{sifive_fu540.c => sifive/fu540.c} (100%)
+> >>> rename platform/generic/{sifive_fu740.c => sifive/fu740.c} (100%)
+> >>> create mode 100644 platform/generic/sifive/objects.mk
+> >>> create mode 100755 scripts/carray.sh
+> >>>
+> >>> --
+> >>> 2.34.1
+> >>>
+> >>>
+> >>> --
+> >>> opensbi mailing list
+> >>> opensbi at lists.infradead.org
+> >>> http://lists.infradead.org/mailman/listinfo/opensbi
 
