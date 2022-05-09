@@ -1,35 +1,25 @@
-From: Jan Remeš <jan.remes@codasip.com>
-Date: Mon, 9 May 2022 15:56:50 +0200
-Subject: [PATCH v2 3/3] platform: generic: check if CPU node is enabled
-Message-ID: <CALXH3=JWGjyi9YqviXdS473cb8NCab-FLx2D=erQJcJkQ88BhQ@mail.gmail.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Mon, 9 May 2022 21:58:25 +0800
+Subject: [PATCH] lib: utils/irqchip: fix typo when checking for CPU node
+In-Reply-To: <CALXH3=LymzDa6c7DjYSfqZFTU3eUFZa0QgYxw6OOc3_577hO9g@mail.gmail.com>
+References: <CALXH3=LymzDa6c7DjYSfqZFTU3eUFZa0QgYxw6OOc3_577hO9g@mail.gmail.com>
+Message-ID: <CAEUhbmW7jRD3KEBAp4xHy4O585aPdv05tM-5Z8+8Lt3ZrFN1Vw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Ignore CPU nodes in FDT which are not enabled.
+On Mon, May 9, 2022 at 8:44 PM Jan Reme? <jan.remes@codasip.com> wrote:
+>
+> Fix typo in irqchip_imsic_update_hartid_table() when checking for CPU
+> node.
+>
+> Signed-off-by: Jan Remes <jan.remes@codasip.com>
+> ---
+>  lib/utils/irqchip/fdt_irqchip_imsic.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
 
-Signed-off-by: Jan Remes <jan.remes@codasip.com>
----
- platform/generic/platform.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 8a4fb70..86db960 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -107,6 +107,9 @@ unsigned long fw_platform_init(unsigned long arg0,
-unsigned long arg1,
-         if (SBI_HARTMASK_MAX_BITS <= hartid)
-             continue;
-
-+        if (!fdt_node_is_enabled(fdt, cpu_offset))
-+            continue;
-+
-         generic_hart_index2id[hart_count++] = hartid;
-     }
-
--- 
-2.35.1
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
