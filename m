@@ -1,53 +1,30 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 May 2022 18:17:20 +0530
-Subject: [PATCH] lib: utils/irqchip: fix typo when checking for CPU node
-In-Reply-To: <CALXH3=LymzDa6c7DjYSfqZFTU3eUFZa0QgYxw6OOc3_577hO9g@mail.gmail.com>
-References: <CALXH3=LymzDa6c7DjYSfqZFTU3eUFZa0QgYxw6OOc3_577hO9g@mail.gmail.com>
-Message-ID: <CAAhSdy2_g1U_qaq=22G_8YOgsagyFjq07rKoAbjoOMf6+6Q0xA@mail.gmail.com>
+From: Jan Remeš <jan.remes@codasip.com>
+Date: Mon, 9 May 2022 15:46:21 +0200
+Subject: [PATCH v2 0/3] Honor FDT status property
+Message-ID: <CALXH3=KcYCwaVoofhHHeA_uVvHipiDmCkKv4r9w3FbeF4Z_Thg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 9, 2022 at 6:13 PM Jan Reme? <jan.remes@codasip.com> wrote:
->
-> Fix typo in irqchip_imsic_update_hartid_table() when checking for CPU
-> node.
->
-> Signed-off-by: Jan Remes <jan.remes@codasip.com>
+This series introduces a new function to check for the "status" property
+in the FDT nodes and uses it to ignore CPU nodes that are disabled.
 
-Looks good to me.
+Jan Remes (3):
+  lib: utils/fdt: introduce fdt_node_is_enabled()
+  lib: utils: check if CPU node is enabled
+  platform: generic: check if CPU node is enabled
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+ include/sbi_utils/fdt/fdt_helper.h    |  2 ++
+ lib/utils/fdt/fdt_domain.c            | 14 +++++++++++++-
+ lib/utils/fdt/fdt_fixup.c             |  3 +++
+ lib/utils/fdt/fdt_helper.c            | 24 ++++++++++++++++++++++++
+ lib/utils/irqchip/fdt_irqchip_imsic.c |  3 +++
+ lib/utils/irqchip/fdt_irqchip_plic.c  |  3 +++
+ platform/generic/platform.c           |  3 +++
+ 7 files changed, 51 insertions(+), 1 deletion(-)
 
-Regards,
-Anup
-
-> ---
->  lib/utils/irqchip/fdt_irqchip_imsic.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/lib/utils/irqchip/fdt_irqchip_imsic.c
-> b/lib/utils/irqchip/fdt_irqchip_imsic.c
-> index b6962be..6020ac0 100644
-> --- a/lib/utils/irqchip/fdt_irqchip_imsic.c
-> +++ b/lib/utils/irqchip/fdt_irqchip_imsic.c
-> @@ -42,7 +42,7 @@ static int irqchip_imsic_update_hartid_table(void
-> *fdt, int nodeoff,
->   continue;
->
->   cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-> - if (cpu_intc_offset < 0)
-> + if (cpu_offset < 0)
->   continue;
->
->   err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-> --
-> 2.35.1
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+-- 
+2.35.1
 
