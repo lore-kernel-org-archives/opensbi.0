@@ -1,92 +1,75 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 9 May 2022 10:29:17 -0700
-Subject: [PATCH 00/11] OpenSBI compile-time C arrays
-In-Reply-To: <20220503033759.544156-1-apatel@ventanamicro.com>
-References: <20220503033759.544156-1-apatel@ventanamicro.com>
-Message-ID: <CAOnJCUKdN7oPzfC7X2heSopSemcVkCEbZ0DoLqgSoyuG48vTaA@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 10 May 2022 14:08:34 +0800
+Subject: [PATCH v2 1/3] lib: utils/fdt: introduce fdt_node_is_enabled()
+In-Reply-To: <CALXH3=+tDJZpT0DDZbiB8aykdyPeMbdguwt-BsEGsPO0g6phig@mail.gmail.com>
+References: <CALXH3=+tDJZpT0DDZbiB8aykdyPeMbdguwt-BsEGsPO0g6phig@mail.gmail.com>
+Message-ID: <d3e7563ec740bfc5f21ea5ce1f8520462667069a.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 2, 2022 at 8:38 PM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> This series aims at removing hard-coded C arrays for drivers and modules
-> in OpenSBI sources and replace it with dynamically generated arrays at
-> compile-time. External firmwares which use OpenSBI as library will have
-> to create these arrays separately because they typically don't use OpenSBI
-> build system.
->
-> These patches can also be found in generated_carray_v1 branch at:
-> https://github.com/avpatel/opensbi.git
->
-> Anup Patel (11):
->   Makefile: Allow generated C source to be anywhere in build directory
->   Makefile: Add support for generating C array at compile time
->   lib: utils/reset: Generate FDT reset driver list at compile-time
->   lib: utils/serial: Generate FDT serial driver list at compile-time
->   lib: utils/timer: Generate FDT timer driver list at compile-time
->   lib: utils/irqchip: Generate FDT irqchip driver list at compile-time
->   lib: utils/ipi: Generate FDT ipi driver list at compile-time
->   lib: utils/i2c: Generate FDT i2c adapter driver list at compile-time
->   lib: utils/gpio: Generate FDT gpio driver list at compile-time
->   platform: generic: Generate platform override module list at
->     compile-time
->   platform: generic: Move Sifive platform overrides into own directory
->
->  Makefile                                      | 17 +++-
->  include/sbi_utils/gpio/fdt_gpio.h             |  2 +
->  lib/utils/gpio/fdt_gpio.c                     | 18 ++---
->  lib/utils/gpio/fdt_gpio_drivers.carray        |  3 +
->  lib/utils/gpio/objects.mk                     |  4 +
->  lib/utils/i2c/fdt_i2c.c                       | 14 ++--
->  lib/utils/i2c/fdt_i2c_adapter_drivers.carray  |  3 +
->  lib/utils/i2c/objects.mk                      |  4 +
->  lib/utils/ipi/fdt_ipi.c                       | 12 ++-
->  lib/utils/ipi/fdt_ipi_drivers.carray          |  3 +
->  lib/utils/ipi/objects.mk                      |  4 +
->  lib/utils/irqchip/fdt_irqchip.c               | 16 ++--
->  lib/utils/irqchip/fdt_irqchip_drivers.carray  |  3 +
->  lib/utils/irqchip/objects.mk                  |  8 ++
->  lib/utils/reset/fdt_reset.c                   | 22 ++----
->  lib/utils/reset/fdt_reset_drivers.carray      |  3 +
->  lib/utils/reset/objects.mk                    | 12 +++
->  lib/utils/serial/fdt_serial.c                 | 28 ++-----
->  lib/utils/serial/fdt_serial_drivers.carray    |  3 +
->  lib/utils/serial/objects.mk                   | 16 ++++
->  lib/utils/timer/fdt_timer.c                   | 12 ++-
->  lib/utils/timer/fdt_timer_drivers.carray      |  3 +
->  lib/utils/timer/objects.mk                    |  4 +
->  platform/generic/objects.mk                   |  3 +-
->  platform/generic/platform.c                   | 14 ++--
->  .../generic/platform_override_modules.carray  |  3 +
->  .../{sifive_fu540.c => sifive/fu540.c}        |  0
->  .../{sifive_fu740.c => sifive/fu740.c}        |  0
->  platform/generic/sifive/objects.mk            |  9 +++
->  scripts/carray.sh                             | 77 +++++++++++++++++++
->  30 files changed, 224 insertions(+), 96 deletions(-)
->  create mode 100644 lib/utils/gpio/fdt_gpio_drivers.carray
->  create mode 100644 lib/utils/i2c/fdt_i2c_adapter_drivers.carray
->  create mode 100644 lib/utils/ipi/fdt_ipi_drivers.carray
->  create mode 100644 lib/utils/irqchip/fdt_irqchip_drivers.carray
->  create mode 100644 lib/utils/reset/fdt_reset_drivers.carray
->  create mode 100644 lib/utils/serial/fdt_serial_drivers.carray
->  create mode 100644 lib/utils/timer/fdt_timer_drivers.carray
->  create mode 100644 platform/generic/platform_override_modules.carray
->  rename platform/generic/{sifive_fu540.c => sifive/fu540.c} (100%)
->  rename platform/generic/{sifive_fu740.c => sifive/fu740.c} (100%)
->  create mode 100644 platform/generic/sifive/objects.mk
->  create mode 100755 scripts/carray.sh
->
-> --
-> 2.34.1
->
+? 2022-05-09???? 15:55 +0200?Jan Reme????
+> If an FDT node contains a "status" property and this property is not
+> "ok" or "okay", this node should be ignored. Introduce a function that
+> checks this.
+> 
+> Signed-off-by: Jan Remes <jan.remes@codasip.com>
+Look good to me
 
-LGTM. For the remaining patches,
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+> ---
+> ?include/sbi_utils/fdt/fdt_helper.h |? 2 ++
+> ?lib/utils/fdt/fdt_helper.c???????? | 18 ++++++++++++++++++
+> ?2 files changed, 20 insertions(+)
+> 
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h
+> b/include/sbi_utils/fdt/fdt_helper.h
+> index 2279f96..a9c0a8a 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -48,6 +48,8 @@ int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+> ?int fdt_get_node_addr_size(void *fdt, int node, int index,
+> ??????????????? uint64_t *addr, uint64_t *size);
+> 
+> +bool fdt_node_is_enabled(void *fdt, int nodeoff);
+> +
+> ?int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
+> 
+> ?int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index 9a35969..3b45ae8 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -216,6 +216,24 @@ int fdt_get_node_addr_size(void *fdt, int node, int index,
+> ???? return 0;
+> ?}
+> 
+> +bool fdt_node_is_enabled(void *fdt, int nodeoff)
+> +{
+> +??? int len;
+> +??? const void *prop;
+> +
+> +??? prop = fdt_getprop(fdt, nodeoff, "status", &len);
+> +??? if (!prop)
+> +??????? return true;
+> +
+> +??? if (!strncmp(prop, "okay", strlen("okay")))
+> +??????? return true;
+> +
+> +??? if (!strncmp(prop, "ok", strlen("ok")))
+> +??????? return true;
+> +
+> +??? return false;
+> +}
+> +
+> ?int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
+> ?{
+> ???? int len;
+> -- 
+> 2.35.1
+> 
 
--- 
-Regards,
-Atish
+
 
