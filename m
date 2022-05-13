@@ -1,106 +1,50 @@
 From: Jan Remes <jan.remes@codasip.com>
-Date: Fri, 13 May 2022 12:58:41 +0200
-Subject: [PATCH v4 2/4] lib: utils: check if CPU node is enabled
+Date: Fri, 13 May 2022 12:58:43 +0200
+Subject: [PATCH v4 4/4] lib: utils/fdt: rename fdt_parse_max_hart_id
 In-Reply-To: <20220513105843.5139-1-jan.remes@codasip.com>
 References: <20220513105843.5139-1-jan.remes@codasip.com>
-Message-ID: <20220513105843.5139-3-jan.remes@codasip.com>
+Message-ID: <20220513105843.5139-5-jan.remes@codasip.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Ignore CPU nodes in FDT that are not enabled.
+The function returns the highest hart-id of the harts actually used in
+the system (enabled). Change the name to reflect this fact.
 
 Signed-off-by: Jan Remes <jan.remes@codasip.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/utils/fdt/fdt_domain.c | 14 +++++++++++++-
- lib/utils/fdt/fdt_fixup.c  |  3 +++
- lib/utils/fdt/fdt_helper.c |  3 +++
- 3 files changed, 19 insertions(+), 1 deletion(-)
+ include/sbi_utils/fdt/fdt_helper.h | 2 +-
+ lib/utils/fdt/fdt_helper.c         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 676c757..bd0eec3 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -165,6 +165,9 @@ void fdt_domain_fixup(void *fdt)
- 		if (err)
- 			continue;
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index a9c0a8a..74ea234 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -52,7 +52,7 @@ bool fdt_node_is_enabled(void *fdt, int nodeoff);
  
-+		if (!fdt_node_is_enabled(fdt, doffset))
-+			continue;
-+
- 		fdt_nop_property(fdt, doffset, "opensbi-domain");
- 	}
+ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
  
-@@ -308,6 +311,9 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 			if (err)
- 				return err;
+-int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
++int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid);
  
-+			if (!fdt_node_is_enabled(fdt, cpu_offset))
-+				continue;
-+
- 			sbi_hartmask_set_hart(val32, mask);
- 		}
- 	}
-@@ -347,7 +353,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 	if (val && len >= 4) {
- 		cpu_offset = fdt_node_offset_by_phandle(fdt,
- 							 fdt32_to_cpu(*val));
--		if (cpu_offset >= 0)
-+		if (cpu_offset >= 0 && fdt_node_is_enabled(fdt, cpu_offset))
- 			fdt_parse_hart_id(fdt, cpu_offset, &val32);
- 	} else {
- 		if (domain_offset == *cold_domain_offset)
-@@ -414,6 +420,9 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 		if (SBI_HARTMASK_MAX_BITS <= val32)
- 			continue;
+ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq);
  
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
-+
- 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
- 		if (!val || len < 4)
- 			return SBI_EINVAL;
-@@ -460,6 +469,9 @@ int fdt_domains_populate(void *fdt)
- 		if (hartid != cold_hartid)
- 			continue;
- 
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
-+
- 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
- 		if (val && len >= 4)
- 			cold_domain_offset = fdt_node_offset_by_phandle(fdt,
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index a80bd82..d1050bb 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -38,6 +38,9 @@ void fdt_cpu_fixup(void *fdt)
- 		if (err)
- 			continue;
- 
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
-+
- 		/*
- 		 * Disable a HART DT node if one of the following is true:
- 		 * 1. The HART is not assigned to the current domain
 diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 3b45ae8..5db3fbe 100644
+index 5db3fbe..2bdb1ef 100644
 --- a/lib/utils/fdt/fdt_helper.c
 +++ b/lib/utils/fdt/fdt_helper.c
-@@ -283,6 +283,9 @@ int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
- 		if (err)
- 			continue;
+@@ -262,7 +262,7 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
+ 	return 0;
+ }
  
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
-+
- 		if (hartid > *max_hartid)
- 			*max_hartid = hartid;
- 	}
+-int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
++int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid)
+ {
+ 	u32 hartid;
+ 	int err, cpu_offset, cpus_offset;
 -- 
 2.36.1
 
