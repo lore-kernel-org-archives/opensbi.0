@@ -1,38 +1,106 @@
 From: Jan Remes <jan.remes@codasip.com>
-Date: Fri, 13 May 2022 12:58:42 +0200
-Subject: [PATCH v4 3/4] platform: generic: check if CPU node is enabled
+Date: Fri, 13 May 2022 12:58:41 +0200
+Subject: [PATCH v4 2/4] lib: utils: check if CPU node is enabled
 In-Reply-To: <20220513105843.5139-1-jan.remes@codasip.com>
 References: <20220513105843.5139-1-jan.remes@codasip.com>
-Message-ID: <20220513105843.5139-4-jan.remes@codasip.com>
+Message-ID: <20220513105843.5139-3-jan.remes@codasip.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Ignore CPU nodes in FDT which are not enabled.
+Ignore CPU nodes in FDT that are not enabled.
 
 Signed-off-by: Jan Remes <jan.remes@codasip.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- platform/generic/platform.c | 3 +++
- 1 file changed, 3 insertions(+)
+ lib/utils/fdt/fdt_domain.c | 14 +++++++++++++-
+ lib/utils/fdt/fdt_fixup.c  |  3 +++
+ lib/utils/fdt/fdt_helper.c |  3 +++
+ 3 files changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 8a4fb70..86db960 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -107,6 +107,9 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 		if (SBI_HARTMASK_MAX_BITS <= hartid)
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 676c757..bd0eec3 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -165,6 +165,9 @@ void fdt_domain_fixup(void *fdt)
+ 		if (err)
+ 			continue;
+ 
++		if (!fdt_node_is_enabled(fdt, doffset))
++			continue;
++
+ 		fdt_nop_property(fdt, doffset, "opensbi-domain");
+ 	}
+ 
+@@ -308,6 +311,9 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 			if (err)
+ 				return err;
+ 
++			if (!fdt_node_is_enabled(fdt, cpu_offset))
++				continue;
++
+ 			sbi_hartmask_set_hart(val32, mask);
+ 		}
+ 	}
+@@ -347,7 +353,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 	if (val && len >= 4) {
+ 		cpu_offset = fdt_node_offset_by_phandle(fdt,
+ 							 fdt32_to_cpu(*val));
+-		if (cpu_offset >= 0)
++		if (cpu_offset >= 0 && fdt_node_is_enabled(fdt, cpu_offset))
+ 			fdt_parse_hart_id(fdt, cpu_offset, &val32);
+ 	} else {
+ 		if (domain_offset == *cold_domain_offset)
+@@ -414,6 +420,9 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 		if (SBI_HARTMASK_MAX_BITS <= val32)
  			continue;
  
 +		if (!fdt_node_is_enabled(fdt, cpu_offset))
 +			continue;
 +
- 		generic_hart_index2id[hart_count++] = hartid;
- 	}
+ 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
+ 		if (!val || len < 4)
+ 			return SBI_EINVAL;
+@@ -460,6 +469,9 @@ int fdt_domains_populate(void *fdt)
+ 		if (hartid != cold_hartid)
+ 			continue;
  
++		if (!fdt_node_is_enabled(fdt, cpu_offset))
++			continue;
++
+ 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
+ 		if (val && len >= 4)
+ 			cold_domain_offset = fdt_node_offset_by_phandle(fdt,
+diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+index a80bd82..d1050bb 100644
+--- a/lib/utils/fdt/fdt_fixup.c
++++ b/lib/utils/fdt/fdt_fixup.c
+@@ -38,6 +38,9 @@ void fdt_cpu_fixup(void *fdt)
+ 		if (err)
+ 			continue;
+ 
++		if (!fdt_node_is_enabled(fdt, cpu_offset))
++			continue;
++
+ 		/*
+ 		 * Disable a HART DT node if one of the following is true:
+ 		 * 1. The HART is not assigned to the current domain
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 3b45ae8..5db3fbe 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -283,6 +283,9 @@ int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
+ 		if (err)
+ 			continue;
+ 
++		if (!fdt_node_is_enabled(fdt, cpu_offset))
++			continue;
++
+ 		if (hartid > *max_hartid)
+ 			*max_hartid = hartid;
+ 	}
 -- 
 2.36.1
 
