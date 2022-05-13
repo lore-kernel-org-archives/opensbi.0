@@ -1,41 +1,69 @@
 From: Jan Remes <jan.remes@codasip.com>
-Date: Fri, 13 May 2022 12:58:39 +0200
-Subject: [PATCH v4 0/4] Honor FDT status property
-Message-ID: <20220513105843.5139-1-jan.remes@codasip.com>
+Date: Fri, 13 May 2022 12:58:40 +0200
+Subject: [PATCH v4 1/4] lib: utils/fdt: introduce fdt_node_is_enabled()
+In-Reply-To: <20220513105843.5139-1-jan.remes@codasip.com>
+References: <20220513105843.5139-1-jan.remes@codasip.com>
+Message-ID: <20220513105843.5139-2-jan.remes@codasip.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series introduces a new function to check for the "status" property
-in the FDT nodes and uses it to ignore CPU nodes that are disabled.
+If an FDT node contains a "status" property and this property is not
+"ok" or "okay", this node should be ignored. Introduce a function that
+checks this.
 
-Changes in v4:
-- Rename fdt_parse_max_hart_id to fdt_parse_max_enabled_hart_id
-- Assign correct Reviewed-by: tags
+Signed-off-by: Jan Remes <jan.remes@codasip.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+ include/sbi_utils/fdt/fdt_helper.h |  2 ++
+ lib/utils/fdt/fdt_helper.c         | 18 ++++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
-Changes in v3:
-- Don't check the property in PLIC/IMSIC/ACLINT drivers
-- Start writing this changelog
-
-Changes in v2:
-- Implement the functionality separately from fdt_parse_hart_id
-- Turn patch into proper series
-
-Jan Remes (4):
-  lib: utils/fdt: introduce fdt_node_is_enabled()
-  lib: utils: check if CPU node is enabled
-  platform: generic: check if CPU node is enabled
-  lib: utils/fdt: rename fdt_parse_max_hart_id
-
- include/sbi_utils/fdt/fdt_helper.h |  4 +++-
- lib/utils/fdt/fdt_domain.c         | 14 +++++++++++++-
- lib/utils/fdt/fdt_fixup.c          |  3 +++
- lib/utils/fdt/fdt_helper.c         | 23 ++++++++++++++++++++++-
- platform/generic/platform.c        |  3 +++
- 5 files changed, 44 insertions(+), 3 deletions(-)
-
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 2279f96..a9c0a8a 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -48,6 +48,8 @@ int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+ int fdt_get_node_addr_size(void *fdt, int node, int index,
+ 			   uint64_t *addr, uint64_t *size);
+ 
++bool fdt_node_is_enabled(void *fdt, int nodeoff);
++
+ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
+ 
+ int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 9a35969..3b45ae8 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -216,6 +216,24 @@ int fdt_get_node_addr_size(void *fdt, int node, int index,
+ 	return 0;
+ }
+ 
++bool fdt_node_is_enabled(void *fdt, int nodeoff)
++{
++	int len;
++	const void *prop;
++
++	prop = fdt_getprop(fdt, nodeoff, "status", &len);
++	if (!prop)
++		return true;
++
++	if (!strncmp(prop, "okay", strlen("okay")))
++		return true;
++
++	if (!strncmp(prop, "ok", strlen("ok")))
++		return true;
++
++	return false;
++}
++
+ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
+ {
+ 	int len;
 -- 
 2.36.1
 
