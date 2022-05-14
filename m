@@ -1,67 +1,79 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 13 May 2022 18:19:24 +0530
-Subject: [PATCH v4 4/4] lib: utils/fdt: rename fdt_parse_max_hart_id
-In-Reply-To: <20220513105843.5139-5-jan.remes@codasip.com>
+Date: Sat, 14 May 2022 15:16:22 +0530
+Subject: [PATCH v4 1/4] lib: utils/fdt: introduce fdt_node_is_enabled()
+In-Reply-To: <20220513105843.5139-2-jan.remes@codasip.com>
 References: <20220513105843.5139-1-jan.remes@codasip.com>
- <20220513105843.5139-5-jan.remes@codasip.com>
-Message-ID: <CAAhSdy1yDj37aJJJ+q-q=fHUXwFdJU9UtC8VdeDLN+XWSZKN-w@mail.gmail.com>
+ <20220513105843.5139-2-jan.remes@codasip.com>
+Message-ID: <CAAhSdy0_RJk0hXkwdfXW1sxH-RppJNeMVWSaOF_aNB1mZoV_nw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, May 13, 2022 at 4:29 PM Jan Remes <jan.remes@codasip.com> wrote:
+On Fri, May 13, 2022 at 4:28 PM Jan Remes <jan.remes@codasip.com> wrote:
 >
-> The function returns the highest hart-id of the harts actually used in
-> the system (enabled). Change the name to reflect this fact.
+> If an FDT node contains a "status" property and this property is not
+> "ok" or "okay", this node should be ignored. Introduce a function that
+> checks this.
 >
 > Signed-off-by: Jan Remes <jan.remes@codasip.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Looks good to me.
+Applied this patch to the riscv/opensbi repo.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
+Thanks,
 Anup
 
 > ---
->  include/sbi_utils/fdt/fdt_helper.h | 2 +-
->  lib/utils/fdt/fdt_helper.c         | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+>  include/sbi_utils/fdt/fdt_helper.h |  2 ++
+>  lib/utils/fdt/fdt_helper.c         | 18 ++++++++++++++++++
+>  2 files changed, 20 insertions(+)
 >
 > diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index a9c0a8a..74ea234 100644
+> index 2279f96..a9c0a8a 100644
 > --- a/include/sbi_utils/fdt/fdt_helper.h
 > +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -52,7 +52,7 @@ bool fdt_node_is_enabled(void *fdt, int nodeoff);
+> @@ -48,6 +48,8 @@ int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
+>  int fdt_get_node_addr_size(void *fdt, int node, int index,
+>                            uint64_t *addr, uint64_t *size);
 >
+> +bool fdt_node_is_enabled(void *fdt, int nodeoff);
+> +
 >  int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
 >
-> -int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
-> +int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid);
->
->  int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq);
->
+>  int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
 > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 5db3fbe..2bdb1ef 100644
+> index 9a35969..3b45ae8 100644
 > --- a/lib/utils/fdt/fdt_helper.c
 > +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -262,7 +262,7 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
+> @@ -216,6 +216,24 @@ int fdt_get_node_addr_size(void *fdt, int node, int index,
 >         return 0;
 >  }
 >
-> -int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
-> +int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid)
+> +bool fdt_node_is_enabled(void *fdt, int nodeoff)
+> +{
+> +       int len;
+> +       const void *prop;
+> +
+> +       prop = fdt_getprop(fdt, nodeoff, "status", &len);
+> +       if (!prop)
+> +               return true;
+> +
+> +       if (!strncmp(prop, "okay", strlen("okay")))
+> +               return true;
+> +
+> +       if (!strncmp(prop, "ok", strlen("ok")))
+> +               return true;
+> +
+> +       return false;
+> +}
+> +
+>  int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
 >  {
->         u32 hartid;
->         int err, cpu_offset, cpus_offset;
+>         int len;
 > --
 > 2.36.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
