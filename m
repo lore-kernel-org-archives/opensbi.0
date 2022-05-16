@@ -1,76 +1,44 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 14 May 2022 15:17:09 +0530
-Subject: [PATCH v4 4/4] lib: utils/fdt: rename fdt_parse_max_hart_id
-In-Reply-To: <CAAhSdy1yDj37aJJJ+q-q=fHUXwFdJU9UtC8VdeDLN+XWSZKN-w@mail.gmail.com>
-References: <20220513105843.5139-1-jan.remes@codasip.com>
- <20220513105843.5139-5-jan.remes@codasip.com>
- <CAAhSdy1yDj37aJJJ+q-q=fHUXwFdJU9UtC8VdeDLN+XWSZKN-w@mail.gmail.com>
-Message-ID: <CAAhSdy3NtXmhVRQFB+HPa9LfLw2sJUOvwmfhOTh3wp-iBHp7eA@mail.gmail.com>
+From: 陈纪源 <chen20010131@gmail.com>
+Date: Mon, 16 May 2022 18:24:34 +0800
+Subject: An Uart bug for sifive model
+Message-ID: <CAFNws9muz=6cSu+Y=cUo3RFd-RcgTytyX4T2ej_-T=x36hH_qg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, May 13, 2022 at 6:19 PM Anup Patel <anup@brainfault.org> wrote:
->
-> On Fri, May 13, 2022 at 4:29 PM Jan Remes <jan.remes@codasip.com> wrote:
-> >
-> > The function returns the highest hart-id of the harts actually used in
-> > the system (enabled). Change the name to reflect this fact.
-> >
-> > Signed-off-by: Jan Remes <jan.remes@codasip.com>
->
-> Looks good to me.
->
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+Hi,
+I recently use the opensbi as the bios on the sifive unmatched board.
+I use the ecall instruction (set register a0 to the character and
+register a7 to 2) to output a character, but failed. I read the source
+code and find the get character function sifive_uart_getc, it only
+receive one character from FIFO queue.
 
-Applied this patch to the riscv/opensbi repo.
+static int sifive_uart_getc(void)
+{
+    u32 ret = get_reg(UART_REG_RXFIFO);
+    if (!(ret & UART_RXFIFO_EMPTY))
+        return ret & UART_RXFIFO_DATA;
+    return -1;
+}
 
-Thanks,
-Anup
+Actually the get character process should be the same with the putchar
+process.When the kernel wait for one character, it should keep waiting
+until we type on the keyboard.The process should change like this:
 
->
-> Regards,
-> Anup
->
-> > ---
-> >  include/sbi_utils/fdt/fdt_helper.h | 2 +-
-> >  lib/utils/fdt/fdt_helper.c         | 2 +-
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> > index a9c0a8a..74ea234 100644
-> > --- a/include/sbi_utils/fdt/fdt_helper.h
-> > +++ b/include/sbi_utils/fdt/fdt_helper.h
-> > @@ -52,7 +52,7 @@ bool fdt_node_is_enabled(void *fdt, int nodeoff);
-> >
-> >  int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
-> >
-> > -int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid);
-> > +int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid);
-> >
-> >  int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq);
-> >
-> > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> > index 5db3fbe..2bdb1ef 100644
-> > --- a/lib/utils/fdt/fdt_helper.c
-> > +++ b/lib/utils/fdt/fdt_helper.c
-> > @@ -262,7 +262,7 @@ int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid)
-> >         return 0;
-> >  }
-> >
-> > -int fdt_parse_max_hart_id(void *fdt, u32 *max_hartid)
-> > +int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid)
-> >  {
-> >         u32 hartid;
-> >         int err, cpu_offset, cpus_offset;
-> > --
-> > 2.36.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+static int sifive_uart_getc(void)
+{
+    u32 ret = get_reg(UART_REG_RXFIFO);
+    while (ret & UART_RXFIFO_EMPTY) {
+        ret = get_reg(UART_REG_RXFIFO);
+    }
+    return ret & UART_RXFIFO_DATA;
+}
+
+If I have the wrong understanding of the uart, please let me know as
+soon as possible.
+
+Yours sincerely,
+ZergingChen3
 
