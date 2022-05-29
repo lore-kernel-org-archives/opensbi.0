@@ -1,63 +1,48 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 27 May 2022 01:23:41 +0800
-Subject: [PATCH v4] lib: sbi: fix system_opcode_insn
-In-Reply-To: <20220526141444.302078-1-wxjstz@126.com>
-References: <20220526141444.302078-1-wxjstz@126.com>
-Message-ID: <7efc95389bb039f210b35ddf95d624c4c6aae5cf.camel@126.com>
+From: Samuel Holland <samuel@sholland.org>
+Date: Sun, 29 May 2022 12:00:48 -0500
+Subject: [PATCH] lib: sbi_timer: Drop unnecessary get_platform_ticks wrapper
+Message-ID: <20220529170048.60646-1-samuel@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If the csr's operation comes from M mode, it should not be forwarded
-to low-privilege processing, this patch fixes this problem.
+The device's timer_value callback is already the right prototype to use
+for the get_time_val function pointer.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Samuel Holland <samuel@sholland.org>
 ---
-Changes in v4:
-- Improve print statement
 
-Changes in v3:
-- move checking prev_mode before sbi_emulate_csr_read and return
-failure by Anup's suggestion
+ lib/sbi/sbi_timer.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-Changes in v2:
-- add missing head file
-
- lib/sbi/sbi_illegal_insn.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-index bfe7d61..388ad55 100644
---- a/lib/sbi/sbi_illegal_insn.c
-+++ b/lib/sbi/sbi_illegal_insn.c
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_pmu.h>
- #include <sbi/sbi_trap.h>
- #include <sbi/sbi_unpriv.h>
-+#include <sbi/sbi_console.h>
+diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+index 353886f..b0a6e63 100644
+--- a/lib/sbi/sbi_timer.c
++++ b/lib/sbi/sbi_timer.c
+@@ -44,11 +44,6 @@ static u64 get_ticks(void)
+ }
+ #endif
  
- typedef int (*illegal_insn_func)(ulong insn, struct sbi_trap_regs *regs);
+-static u64 get_platform_ticks(void)
+-{
+-	return timer_dev->timer_value();
+-}
+-
+ static void nop_delay_fn(void *opaque)
+ {
+ 	cpu_relax();
+@@ -167,7 +162,7 @@ void sbi_timer_set_device(const struct sbi_timer_device *dev)
  
-@@ -37,8 +38,15 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
- 	int do_write, rs1_num = (insn >> 15) & 0x1f;
- 	ulong rs1_val = GET_RS1(insn, regs);
- 	int csr_num   = (u32)insn >> 20;
-+	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
- 	ulong csr_val, new_csr_val;
+ 	timer_dev = dev;
+ 	if (!get_time_val && timer_dev->timer_value)
+-		get_time_val = get_platform_ticks;
++		get_time_val = timer_dev->timer_value;
+ }
  
-+	if (prev_mode == PRV_M) {
-+		sbi_printf("%s: Failed to access CSR %#x from M-mode",
-+			__func__, csr_num);
-+		return SBI_EFAIL;
-+	}
-+
- 	/* TODO: Ensure that we got CSR read/write instruction */
- 
- 	if (sbi_emulate_csr_read(csr_num, regs, &csr_val))
+ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
 -- 
-2.30.2
+2.35.1
 
 
