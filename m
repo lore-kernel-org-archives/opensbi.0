@@ -1,68 +1,92 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 29 May 2022 13:25:30 -0500
-Subject: [PATCH 2/2] lib: sbi_illegal_insn: Add emulation for fence.tso
-In-Reply-To: <20220529182531.30377-1-samuel@sholland.org>
-References: <20220529182531.30377-1-samuel@sholland.org>
-Message-ID: <20220529182531.30377-2-samuel@sholland.org>
+Date: Sun, 29 May 2022 13:32:11 -0500
+Subject: [PATCH v2] lib: utils/fdt: Require match data to be const
+Message-ID: <20220529183211.34539-1-samuel@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-While OpenC906 appears to properly decode `fence.tso` as a fence
-instruction[1], the version of the C906 taped out in the Allwinner D1
-does not, and raises illegal instruction.
+Match data stores hardware attributes which do not change at runtime, so
+it does not need to be mutable. Make it const.
 
-Handle this errata by emulating `fence.tso` as `fence rw, rw`.
-
-[1]: https://github.com/T-head-Semi/openc906/blob/30827e7f/C906_RTL_FACTORY/gen_rtl/idu/rtl/aq_idu_id_decd.v#L2097
-
+Reviewed-by: Guo Ren <guoren@kernel.org>
+Reviewed-by: Xiang W <wxjstz@126.com>
 Signed-off-by: Samuel Holland <samuel@sholland.org>
 ---
 
- lib/sbi/sbi_illegal_insn.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+Changes in v2:
+ - Send separately from D1 CLINT patch
+ - Add Reviewed-by tags
 
-diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-index 39ef990..44c9385 100644
---- a/lib/sbi/sbi_illegal_insn.c
-+++ b/lib/sbi/sbi_illegal_insn.c
-@@ -8,6 +8,7 @@
-  */
+ include/sbi_utils/fdt/fdt_helper.h | 2 +-
+ lib/utils/ipi/fdt_ipi_mswi.c       | 2 +-
+ lib/utils/reset/fdt_reset_gpio.c   | 4 ++--
+ lib/utils/timer/fdt_timer_mtimer.c | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 74ea234..c60af35 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -15,7 +15,7 @@
  
- #include <sbi/riscv_asm.h>
-+#include <sbi/riscv_barrier.h>
- #include <sbi/riscv_encoding.h>
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_emulate_csr.h>
-@@ -32,6 +33,17 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
- 	return sbi_trap_redirect(regs, &trap);
+ struct fdt_match {
+ 	const char *compatible;
+-	void *data;
++	const void *data;
+ };
+ 
+ #define FDT_MAX_PHANDLE_ARGS 16
+diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+index 1f0fda7..0176941 100644
+--- a/lib/utils/ipi/fdt_ipi_mswi.c
++++ b/lib/utils/ipi/fdt_ipi_mswi.c
+@@ -51,7 +51,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
+ 	return 0;
  }
  
-+static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
-+{
-+	/* Errata workaround: emulate `fence.tso` as `fence rw, rw`. */
-+	if (insn == 0x8330000fUL) {
-+		smp_mb();
-+		return 0;
-+	}
-+
-+	return truly_illegal_insn(insn, regs);
-+}
-+
- static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
- {
- 	int do_write, rs1_num = (insn >> 15) & 0x1f;
-@@ -84,7 +96,7 @@ static const illegal_insn_func illegal_insn_table[32] = {
- 	truly_illegal_insn, /* 0 */
- 	truly_illegal_insn, /* 1 */
- 	truly_illegal_insn, /* 2 */
--	truly_illegal_insn, /* 3 */
-+	misc_mem_opcode_insn, /* 3 */
- 	truly_illegal_insn, /* 4 */
- 	truly_illegal_insn, /* 5 */
- 	truly_illegal_insn, /* 6 */
+-static unsigned long clint_offset = CLINT_MSWI_OFFSET;
++static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
+ 
+ static const struct fdt_match ipi_mswi_match[] = {
+ 	{ .compatible = "riscv,clint0", .data = &clint_offset },
+diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
+index d28b6f5..bd2c622 100644
+--- a/lib/utils/reset/fdt_reset_gpio.c
++++ b/lib/utils/reset/fdt_reset_gpio.c
+@@ -149,7 +149,7 @@ static int gpio_reset_init(void *fdt, int nodeoff,
+ }
+ 
+ static const struct fdt_match gpio_poweroff_match[] = {
+-	{ .compatible = "gpio-poweroff", .data = (void *)FALSE },
++	{ .compatible = "gpio-poweroff", .data = (const void *)FALSE },
+ 	{ },
+ };
+ 
+@@ -159,7 +159,7 @@ struct fdt_reset fdt_poweroff_gpio = {
+ };
+ 
+ static const struct fdt_match gpio_reset_match[] = {
+-	{ .compatible = "gpio-restart", .data = (void *)TRUE },
++	{ .compatible = "gpio-restart", .data = (const void *)TRUE },
+ 	{ },
+ };
+ 
+diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+index 1ad8508..82239d5 100644
+--- a/lib/utils/timer/fdt_timer_mtimer.c
++++ b/lib/utils/timer/fdt_timer_mtimer.c
+@@ -107,7 +107,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+ 	return 0;
+ }
+ 
+-static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
++static const unsigned long clint_offset = CLINT_MTIMER_OFFSET;
+ 
+ static const struct fdt_match timer_mtimer_match[] = {
+ 	{ .compatible = "riscv,clint0", .data = &clint_offset },
 -- 
 2.35.1
 
