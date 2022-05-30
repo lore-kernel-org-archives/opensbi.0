@@ -1,106 +1,59 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 30 May 2022 10:38:19 +0530
-Subject: [PATCH v2] lib: utils/fdt: Require match data to be const
-In-Reply-To: <20220529183211.34539-1-samuel@sholland.org>
-References: <20220529183211.34539-1-samuel@sholland.org>
-Message-ID: <CAAhSdy31CiCv+qoXwt13SkhFbCVC=c0uQgjC2B+5Li3QWMzPcg@mail.gmail.com>
+Date: Mon, 30 May 2022 10:48:40 +0530
+Subject: [PATCH] lib: sbi_timer: Drop unnecessary get_platform_ticks wrapper
+In-Reply-To: <20220529170048.60646-1-samuel@sholland.org>
+References: <20220529170048.60646-1-samuel@sholland.org>
+Message-ID: <CAAhSdy1=LbZCtVOiQG_E4MAHOTixMu2hsrG_jP=AcUL3NzgFNg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 30, 2022 at 12:02 AM Samuel Holland <samuel@sholland.org> wrote:
+On Sun, May 29, 2022 at 10:31 PM Samuel Holland <samuel@sholland.org> wrote:
 >
-> Match data stores hardware attributes which do not change at runtime, so
-> it does not need to be mutable. Make it const.
+> The device's timer_value callback is already the right prototype to use
+> for the get_time_val function pointer.
 >
-> Reviewed-by: Guo Ren <guoren@kernel.org>
-> Reviewed-by: Xiang W <wxjstz@126.com>
 > Signed-off-by: Samuel Holland <samuel@sholland.org>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
 > ---
 >
-> Changes in v2:
->  - Send separately from D1 CLINT patch
->  - Add Reviewed-by tags
+>  lib/sbi/sbi_timer.c | 7 +------
+>  1 file changed, 1 insertion(+), 6 deletions(-)
 >
->  include/sbi_utils/fdt/fdt_helper.h | 2 +-
->  lib/utils/ipi/fdt_ipi_mswi.c       | 2 +-
->  lib/utils/reset/fdt_reset_gpio.c   | 4 ++--
->  lib/utils/timer/fdt_timer_mtimer.c | 2 +-
->  4 files changed, 5 insertions(+), 5 deletions(-)
+> diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> index 353886f..b0a6e63 100644
+> --- a/lib/sbi/sbi_timer.c
+> +++ b/lib/sbi/sbi_timer.c
+> @@ -44,11 +44,6 @@ static u64 get_ticks(void)
+>  }
+>  #endif
 >
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 74ea234..c60af35 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -15,7 +15,7 @@
+> -static u64 get_platform_ticks(void)
+> -{
+> -       return timer_dev->timer_value();
+> -}
+> -
+>  static void nop_delay_fn(void *opaque)
+>  {
+>         cpu_relax();
+> @@ -167,7 +162,7 @@ void sbi_timer_set_device(const struct sbi_timer_device *dev)
 >
->  struct fdt_match {
->         const char *compatible;
-> -       void *data;
-> +       const void *data;
->  };
->
->  #define FDT_MAX_PHANDLE_ARGS 16
-> diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
-> index 1f0fda7..0176941 100644
-> --- a/lib/utils/ipi/fdt_ipi_mswi.c
-> +++ b/lib/utils/ipi/fdt_ipi_mswi.c
-> @@ -51,7 +51,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
->         return 0;
+>         timer_dev = dev;
+>         if (!get_time_val && timer_dev->timer_value)
+> -               get_time_val = get_platform_ticks;
+> +               get_time_val = timer_dev->timer_value;
 >  }
 >
-> -static unsigned long clint_offset = CLINT_MSWI_OFFSET;
-> +static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
->
->  static const struct fdt_match ipi_mswi_match[] = {
->         { .compatible = "riscv,clint0", .data = &clint_offset },
-> diff --git a/lib/utils/reset/fdt_reset_gpio.c b/lib/utils/reset/fdt_reset_gpio.c
-> index d28b6f5..bd2c622 100644
-> --- a/lib/utils/reset/fdt_reset_gpio.c
-> +++ b/lib/utils/reset/fdt_reset_gpio.c
-> @@ -149,7 +149,7 @@ static int gpio_reset_init(void *fdt, int nodeoff,
->  }
->
->  static const struct fdt_match gpio_poweroff_match[] = {
-> -       { .compatible = "gpio-poweroff", .data = (void *)FALSE },
-> +       { .compatible = "gpio-poweroff", .data = (const void *)FALSE },
->         { },
->  };
->
-> @@ -159,7 +159,7 @@ struct fdt_reset fdt_poweroff_gpio = {
->  };
->
->  static const struct fdt_match gpio_reset_match[] = {
-> -       { .compatible = "gpio-restart", .data = (void *)TRUE },
-> +       { .compatible = "gpio-restart", .data = (const void *)TRUE },
->         { },
->  };
->
-> diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-> index 1ad8508..82239d5 100644
-> --- a/lib/utils/timer/fdt_timer_mtimer.c
-> +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> @@ -107,7 +107,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
->         return 0;
->  }
->
-> -static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
-> +static const unsigned long clint_offset = CLINT_MTIMER_OFFSET;
->
->  static const struct fdt_match timer_mtimer_match[] = {
->         { .compatible = "riscv,clint0", .data = &clint_offset },
+>  int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
 > --
 > 2.35.1
 >
