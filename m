@@ -1,22 +1,18 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 29 May 2022 22:37:35 -0500
-Subject: [RFC PATCH v2 6/9] lib: irqchip/plic: Add priority save/restore helpers
+Date: Sun, 29 May 2022 22:37:37 -0500
+Subject: [RFC PATCH v2 8/9] lib: utils/irqchip: Add wrapper for T-HEAD PLIC delegation
 In-Reply-To: <20220530033738.27127-1-samuel@sholland.org>
 References: <20220530033738.27127-1-samuel@sholland.org>
-Message-ID: <20220530033738.27127-7-samuel@sholland.org>
+Message-ID: <20220530033738.27127-9-samuel@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-These can be used by platform code to save the PLIC priority state, if
-it would otherwise be lost during non-retentive suspend. The platform
-is responsible for allocating all necessary storage.
-
-As a space optimization, store the saved priority values as 8-bit
-integers, since that is large enough to hold any priority value on the
-relevant platforms.
+The delegation bit is lost along with the rest of the PLIC state when
+the CPU power domain in the Allwinner D1 is powered down, so the PLIC
+needs to be re-delegated to S-mode during the hart resume path.
 
 Signed-off-by: Samuel Holland <samuel@sholland.org>
 ---
@@ -24,63 +20,39 @@ Signed-off-by: Samuel Holland <samuel@sholland.org>
 Changes in v2:
  - New patch for v2
 
- include/sbi_utils/irqchip/plic.h |  4 ++++
- lib/utils/irqchip/plic.c         | 20 ++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ include/sbi_utils/irqchip/fdt_irqchip_plic.h | 2 ++
+ lib/utils/irqchip/fdt_irqchip_plic.c         | 7 +++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
-index 21b2266..566fd7a 100644
---- a/include/sbi_utils/irqchip/plic.h
-+++ b/include/sbi_utils/irqchip/plic.h
-@@ -17,6 +17,10 @@ struct plic_data {
- 	unsigned long num_src;
- };
+diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+index 66650a2..d1ab5bd 100644
+--- a/include/sbi_utils/irqchip/fdt_irqchip_plic.h
++++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+@@ -17,4 +17,6 @@ void irqchip_plic_context_save(u32 *enable, u32 *threshold);
  
-+void plic_priority_save(const struct plic_data *plic, u8 *priority);
-+
-+void plic_priority_restore(const struct plic_data *plic, const u8 *priority);
-+
- void plic_context_save(const struct plic_data *plic, int context_id,
- 		       u32 *enable, u32 *threshold);
+ void irqchip_plic_context_restore(const u32 *enable, u32 threshold);
  
-diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-index 0c64078..b0329b8 100644
---- a/lib/utils/irqchip/plic.c
-+++ b/lib/utils/irqchip/plic.c
-@@ -22,6 +22,13 @@
- #define PLIC_CONTEXT_BASE 0x200000
- #define PLIC_CONTEXT_STRIDE 0x1000
- 
-+static u32 plic_get_priority(const struct plic_data *plic, u32 source)
-+{
-+	volatile void *plic_priority = (char *)plic->addr +
-+			PLIC_PRIORITY_BASE + 4 * source;
-+	return readl(plic_priority);
-+}
++void thead_plic_restore(void);
 +
- static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
- {
- 	volatile void *plic_priority = (char *)plic->addr +
-@@ -29,6 +36,19 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
- 	writel(val, plic_priority);
+ #endif
+diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+index 37090d3..5589863 100644
+--- a/lib/utils/irqchip/fdt_irqchip_plic.c
++++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+@@ -151,6 +151,13 @@ static void thead_plic_plat_init(struct plic_data *pd)
+ 	writel_relaxed(BIT(0), (char *)pd->addr + THEAD_PLIC_CTRL_REG);
  }
  
-+/* So far, priorities on all consumers of these functions fit in 8 bits. */
-+void plic_priority_save(const struct plic_data *plic, u8 *priority)
++void thead_plic_restore(void)
 +{
-+	for (u32 i = 0; i < plic->num_src; i++)
-+		priority[i] = plic_get_priority(plic, i);
++	struct plic_data *plic = plic_hartid2data[current_hartid()];
++
++	thead_plic_plat_init(plic);
 +}
 +
-+void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
-+{
-+	for (u32 i = 0; i < plic->num_src; i++)
-+		plic_set_priority(plic, i, priority[i]);
-+}
-+
- static u32 plic_get_thresh(const struct plic_data *plic, u32 cntxid)
- {
- 	volatile void *plic_thresh;
+ static const struct fdt_match irqchip_plic_match[] = {
+ 	{ .compatible = "riscv,plic0" },
+ 	{ .compatible = "sifive,plic-1.0.0" },
 -- 
 2.35.1
 
