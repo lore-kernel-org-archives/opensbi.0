@@ -1,18 +1,18 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 29 May 2022 22:37:34 -0500
-Subject: [RFC PATCH v2 5/9] lib: irqchip/plic: Add context save/restore helpers
+Date: Sun, 29 May 2022 22:37:36 -0500
+Subject: [RFC PATCH v2 7/9] lib: utils/irqchip: Add FDT wrappers for PLIC save/restore functions
 In-Reply-To: <20220530033738.27127-1-samuel@sholland.org>
 References: <20220530033738.27127-1-samuel@sholland.org>
-Message-ID: <20220530033738.27127-6-samuel@sholland.org>
+Message-ID: <20220530033738.27127-8-samuel@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-These can be used by platform code to save the PLIC context state, if
-it would otherwise be lost during non-retentive suspend. The platform
-is responsible for allocating all necessary storage.
+These functions save/restore the state of the PLIC associated with the
+current hart. Only the S-mode context is saved/restored, under the
+assumption that none of the interrupts are enabled in M-mode anyway.
 
 Signed-off-by: Samuel Holland <samuel@sholland.org>
 ---
@@ -20,101 +20,80 @@ Signed-off-by: Samuel Holland <samuel@sholland.org>
 Changes in v2:
  - New patch for v2
 
- include/sbi_utils/irqchip/plic.h |  6 ++++
- lib/utils/irqchip/plic.c         | 51 ++++++++++++++++++++++++++++++--
- 2 files changed, 54 insertions(+), 3 deletions(-)
+ include/sbi_utils/irqchip/fdt_irqchip_plic.h | 20 ++++++++++++
+ lib/utils/irqchip/fdt_irqchip_plic.c         | 32 ++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
+ create mode 100644 include/sbi_utils/irqchip/fdt_irqchip_plic.h
 
-diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
-index 8f21af6..21b2266 100644
---- a/include/sbi_utils/irqchip/plic.h
-+++ b/include/sbi_utils/irqchip/plic.h
-@@ -17,6 +17,12 @@ struct plic_data {
- 	unsigned long num_src;
- };
- 
-+void plic_context_save(const struct plic_data *plic, int context_id,
-+		       u32 *enable, u32 *threshold);
+diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+new file mode 100644
+index 0000000..66650a2
+--- /dev/null
++++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+@@ -0,0 +1,20 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Samuel Holland <samuel@sholland.org>
++ */
 +
-+void plic_context_restore(const struct plic_data *plic, int context_id,
-+			  const u32 *enable, u32 threshold);
++#ifndef __IRQCHIP_FDT_IRQCHIP_PLIC_H__
++#define __IRQCHIP_FDT_IRQCHIP_PLIC_H__
 +
- int plic_context_init(const struct plic_data *plic, int context_id,
- 		      bool enable, u32 threshold);
++#include <sbi/sbi_types.h>
++
++void irqchip_plic_priority_save(u8 *priority);
++
++void irqchip_plic_priority_restore(const u8 *priority);
++
++void irqchip_plic_context_save(u32 *enable, u32 *threshold);
++
++void irqchip_plic_context_restore(const u32 *enable, u32 threshold);
++
++#endif
+diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+index b2d2a1b..37090d3 100644
+--- a/lib/utils/irqchip/fdt_irqchip_plic.c
++++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+@@ -24,6 +24,38 @@ static struct plic_data plic[PLIC_MAX_NR];
+ static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
+ static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2];
  
-diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-index 9bd3bf1..0c64078 100644
---- a/lib/utils/irqchip/plic.c
-+++ b/lib/utils/irqchip/plic.c
-@@ -29,6 +29,16 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
- 	writel(val, plic_priority);
- }
- 
-+static u32 plic_get_thresh(const struct plic_data *plic, u32 cntxid)
++void irqchip_plic_priority_save(u8 *priority)
 +{
-+	volatile void *plic_thresh;
++	struct plic_data *plic = plic_hartid2data[current_hartid()];
 +
-+	plic_thresh = (char *)plic->addr +
-+		      PLIC_CONTEXT_BASE + PLIC_CONTEXT_STRIDE * cntxid;
-+
-+	return readl(plic_thresh);
++	plic_priority_save(plic, priority);
 +}
 +
- static void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val)
++void irqchip_plic_priority_restore(const u8 *priority)
++{
++	struct plic_data *plic = plic_hartid2data[current_hartid()];
++
++	plic_priority_restore(plic, priority);
++}
++
++void irqchip_plic_context_save(u32 *enable, u32 *threshold)
++{
++	u32 hartid = current_hartid();
++
++	plic_context_save(plic_hartid2data[hartid],
++			  plic_hartid2context[hartid][1],
++			  enable, threshold);
++}
++
++void irqchip_plic_context_restore(const u32 *enable, u32 threshold)
++{
++	u32 hartid = current_hartid();
++
++	plic_context_restore(plic_hartid2data[hartid],
++			     plic_hartid2context[hartid][1],
++			     enable, threshold);
++}
++
+ static int irqchip_plic_warm_init(void)
  {
- 	volatile void *plic_thresh;
-@@ -38,14 +48,49 @@ static void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val)
- 	writel(val, plic_thresh);
- }
- 
-+static u32 plic_get_ie(const struct plic_data *plic, u32 cntxid,
-+		       u32 word_index)
-+{
-+	volatile void *plic_ie;
-+
-+	plic_ie = (char *)plic->addr +
-+		   PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid +
-+		   4 * word_index;
-+
-+	return readl(plic_ie);
-+}
-+
- static void plic_set_ie(const struct plic_data *plic, u32 cntxid,
- 			u32 word_index, u32 val)
- {
--	volatile char *plic_ie;
-+	volatile void *plic_ie;
- 
- 	plic_ie = (char *)plic->addr +
--		   PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid;
--	writel(val, plic_ie + word_index * 4);
-+		   PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid +
-+		   4 * word_index;
-+	writel(val, plic_ie);
-+}
-+
-+void plic_context_save(const struct plic_data *plic, int context_id,
-+		       u32 *enable, u32 *threshold)
-+{
-+	u32 ie_words = (plic->num_src + 31) / 32;
-+
-+	for (u32 i = 0; i < ie_words; i++)
-+		enable[i] = plic_get_ie(plic, context_id, i);
-+
-+	*threshold = plic_get_thresh(plic, context_id);
-+}
-+
-+void plic_context_restore(const struct plic_data *plic, int context_id,
-+			  const u32 *enable, u32 threshold)
-+{
-+	u32 ie_words = (plic->num_src + 31) / 32;
-+
-+	for (u32 i = 0; i < ie_words; i++)
-+		plic_set_ie(plic, context_id, i, enable[i]);
-+
-+	plic_set_thresh(plic, context_id, threshold);
- }
- 
- int plic_context_init(const struct plic_data *plic, int context_id,
+ 	u32 hartid = current_hartid();
 -- 
 2.35.1
 
