@@ -1,27 +1,21 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 29 May 2022 22:37:31 -0500
-Subject: [RFC PATCH v2 2/9] lib: sbi_hsm: Assume a consistent resume address
+Date: Sun, 29 May 2022 22:37:33 -0500
+Subject: [RFC PATCH v2 4/9] lib: irqchip/plic: Factor out a context init function
 In-Reply-To: <20220530033738.27127-1-samuel@sholland.org>
 References: <20220530033738.27127-1-samuel@sholland.org>
-Message-ID: <20220530033738.27127-3-samuel@sholland.org>
+Message-ID: <20220530033738.27127-5-samuel@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The suspend code needs to know the resume address for two reasons:
-  1) Programing some hardware register or management firmware. Here we
-     assume the hardware/firmware maintains its state between suspends,
-     so it only needs to be programmed once at startup.
-  2) When a non-retentive suspend request ends up being retentive, due
-     to lack of hardware support, pending interrupt, or for some other
-     reason. However, the behavior here is not platform-dependent, and
-     this can be handled in the generic hart suspend function.
-
-Since neither situation requires the platform-level suspend function to
-know the resume address, stop passing it to that function. Instead,
-handle the non-retentive to retentive situation generically.
+This simplifies both the callers and the callees by removing duplicated
+code and consolidating the error handling. It also fixes two bugs in the
+process:
+  1) ie_words was one too large when plic->num_src was a multiple of 32.
+  2) plic_set_ie takes a 32-bit mask, not a Boolean value, so the FPGA
+     platforms previously only enabled one out of every 32 interrupts.
 
 Signed-off-by: Samuel Holland <samuel@sholland.org>
 ---
@@ -29,111 +23,210 @@ Signed-off-by: Samuel Holland <samuel@sholland.org>
 Changes in v2:
  - New patch for v2
 
- include/sbi/sbi_hsm.h |  4 ++--
- lib/sbi/sbi_hsm.c     | 46 +++++++++++++++++++------------------------
- 2 files changed, 22 insertions(+), 28 deletions(-)
+ include/sbi_utils/irqchip/plic.h   |  8 ++---
+ lib/utils/irqchip/plic.c           | 55 ++++++++++++++++--------------
+ platform/fpga/ariane/platform.c    | 19 +++++------
+ platform/fpga/openpiton/platform.c | 19 +++++------
+ 4 files changed, 48 insertions(+), 53 deletions(-)
 
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index 6da8cee..d6cc468 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -34,9 +34,9 @@ struct sbi_hsm_device {
- 	 * the hart resumes normal execution.
- 	 *
- 	 * For successful non-retentive suspend, the hart will resume from
--	 * specified resume address
-+	 * the warm boot entry point.
- 	 */
--	int (*hart_suspend)(u32 suspend_type, ulong raddr);
-+	int (*hart_suspend)(u32 suspend_type);
+diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
+index 50be5df..8f21af6 100644
+--- a/include/sbi_utils/irqchip/plic.h
++++ b/include/sbi_utils/irqchip/plic.h
+@@ -17,14 +17,12 @@ struct plic_data {
+ 	unsigned long num_src;
+ };
  
- 	/**
- 	 * Perform platform-specific actions to resume from a suspended state.
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index a7b6a80..1165acc 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -171,10 +171,10 @@ static int hsm_device_hart_stop(void)
- 	return SBI_ENOTSUPP;
++int plic_context_init(const struct plic_data *plic, int context_id,
++		      bool enable, u32 threshold);
++
+ int plic_warm_irqchip_init(const struct plic_data *plic,
+ 			   int m_cntx_id, int s_cntx_id);
+ 
+ int plic_cold_irqchip_init(const struct plic_data *plic);
+ 
+-void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val);
+-
+-void plic_set_ie(const struct plic_data *plic, u32 cntxid,
+-		 u32 word_index, u32 val);
+-
+ #endif
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 4c334ec..9bd3bf1 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -5,6 +5,7 @@
+  *
+  * Authors:
+  *   Anup Patel <anup.patel@wdc.com>
++ *   Samuel Holland <samuel@sholland.org>
+  */
+ 
+ #include <sbi/riscv_io.h>
+@@ -28,61 +29,63 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+ 	writel(val, plic_priority);
  }
  
--static int hsm_device_hart_suspend(u32 suspend_type, ulong raddr)
-+static int hsm_device_hart_suspend(u32 suspend_type)
+-void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val)
++static void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val)
  {
- 	if (hsm_dev && hsm_dev->hart_suspend)
--		return hsm_dev->hart_suspend(suspend_type, raddr);
-+		return hsm_dev->hart_suspend(suspend_type);
- 	return SBI_ENOTSUPP;
+ 	volatile void *plic_thresh;
+ 
+-	if (!plic)
+-		return;
+-
+ 	plic_thresh = (char *)plic->addr +
+ 		      PLIC_CONTEXT_BASE + PLIC_CONTEXT_STRIDE * cntxid;
+ 	writel(val, plic_thresh);
  }
  
-@@ -319,7 +319,7 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+-void plic_set_ie(const struct plic_data *plic, u32 cntxid,
+-		 u32 word_index, u32 val)
++static void plic_set_ie(const struct plic_data *plic, u32 cntxid,
++			u32 word_index, u32 val)
+ {
+ 	volatile char *plic_ie;
+ 
+-	if (!plic)
+-		return;
+-
+ 	plic_ie = (char *)plic->addr +
+ 		   PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid;
+ 	writel(val, plic_ie + word_index * 4);
+ }
+ 
+-int plic_warm_irqchip_init(const struct plic_data *plic,
+-			   int m_cntx_id, int s_cntx_id)
++int plic_context_init(const struct plic_data *plic, int context_id,
++		      bool enable, u32 threshold)
+ {
+-	size_t i, ie_words;
++	u32 ie_words, ie_value;
+ 
+-	if (!plic)
++	if (!plic || context_id < 0)
+ 		return SBI_EINVAL;
+ 
+-	ie_words = plic->num_src / 32 + 1;
++	ie_words = (plic->num_src + 31) / 32;
++	ie_value = enable ? 0xffffffffU : 0U;
++
++	for (u32 i = 0; i < ie_words; i++)
++		plic_set_ie(plic, context_id, i, ie_value);
++
++	plic_set_thresh(plic, context_id, threshold);
++
++	return 0;
++}
++
++int plic_warm_irqchip_init(const struct plic_data *plic,
++			   int m_cntx_id, int s_cntx_id)
++{
++	int ret;
+ 
+ 	/* By default, disable all IRQs for M-mode of target HART */
+ 	if (m_cntx_id > -1) {
+-		for (i = 0; i < ie_words; i++)
+-			plic_set_ie(plic, m_cntx_id, i, 0);
++		ret = plic_context_init(plic, m_cntx_id, false, 0x7);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	/* By default, disable all IRQs for S-mode of target HART */
+ 	if (s_cntx_id > -1) {
+-		for (i = 0; i < ie_words; i++)
+-			plic_set_ie(plic, s_cntx_id, i, 0);
++		ret = plic_context_init(plic, m_cntx_id, false, 0x7);
++		if (ret)
++			return ret;
+ 	}
+ 
+-	/* By default, disable M-mode threshold */
+-	if (m_cntx_id > -1)
+-		plic_set_thresh(plic, m_cntx_id, 0x7);
+-
+-	/* By default, disable S-mode threshold */
+-	if (s_cntx_id > -1)
+-		plic_set_thresh(plic, s_cntx_id, 0x7);
+-
  	return 0;
  }
  
--static int __sbi_hsm_suspend_ret_default(struct sbi_scratch *scratch)
-+static int __sbi_hsm_suspend_default(struct sbi_scratch *scratch)
- {
- 	/* Wait for interrupt */
- 	wfi();
-@@ -359,23 +359,6 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
- 	csr_write(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
- }
+diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
+index 3fdc03b..56a666b 100644
+--- a/platform/fpga/ariane/platform.c
++++ b/platform/fpga/ariane/platform.c
+@@ -99,24 +99,21 @@ static int ariane_console_init(void)
  
--static int __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
--					     ulong raddr)
--{
--	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
--
--	/* Wait for interrupt */
--	wfi();
--
--	/*
--	 * Directly jump to warm reboot to simulate resume from a
--	 * non-retentive suspend.
--	 */
--	jump_warmboot();
--
--	return 0;
--}
--
- void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+ static int plic_ariane_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
  {
- 	int oldstate;
-@@ -473,17 +456,28 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 		__sbi_hsm_suspend_non_ret_save(scratch);
+-	size_t i, ie_words = ARIANE_PLIC_NUM_SOURCES / 32 + 1;
++	int ret;
  
- 	/* Try platform specific suspend */
--	ret = hsm_device_hart_suspend(suspend_type, scratch->warmboot_addr);
-+	ret = hsm_device_hart_suspend(suspend_type);
- 	if (ret == SBI_ENOTSUPP) {
- 		/* Try generic implementation of default suspend types */
--		if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT) {
--			ret = __sbi_hsm_suspend_ret_default(scratch);
--		} else if (suspend_type == SBI_HSM_SUSPEND_NON_RET_DEFAULT) {
--			ret = __sbi_hsm_suspend_non_ret_default(scratch,
--						scratch->warmboot_addr);
-+		if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT ||
-+		    suspend_type == SBI_HSM_SUSPEND_NON_RET_DEFAULT) {
-+			ret = __sbi_hsm_suspend_default(scratch);
- 		}
+ 	/* By default, enable all IRQs for M-mode of target HART */
+ 	if (m_cntx_id > -1) {
+-		for (i = 0; i < ie_words; i++)
+-			plic_set_ie(&plic, m_cntx_id, i, 1);
++		ret = plic_context_init(&plic, m_cntx_id, true, 0x1);
++		if (ret)
++			return ret;
  	}
++
+ 	/* Enable all IRQs for S-mode of target HART */
+ 	if (s_cntx_id > -1) {
+-		for (i = 0; i < ie_words; i++)
+-			plic_set_ie(&plic, s_cntx_id, i, 1);
++		ret = plic_context_init(&plic, s_cntx_id, true, 0x0);
++		if (ret)
++			return ret;
+ 	}
+-	/* By default, enable M-mode threshold */
+-	if (m_cntx_id > -1)
+-		plic_set_thresh(&plic, m_cntx_id, 1);
+-	/* By default, disable S-mode threshold */
+-	if (s_cntx_id > -1)
+-		plic_set_thresh(&plic, s_cntx_id, 0);
  
-+	/*
-+	 * The platform may have coordinated a retentive suspend, or it may
-+	 * have exited early from a non-retentive suspend. Either way, the
-+	 * caller is not expecting a successful return, so jump to the warm
-+	 * boot entry point to simulate resume from a non-retentive suspend.
-+	 */
-+	if (ret == 0 && (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)) {
-+		void (*jump_warmboot)(void) =
-+			(void (*)(void))scratch->warmboot_addr;
+ 	return 0;
+ }
+diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+index 15e289a..7ca2123 100644
+--- a/platform/fpga/openpiton/platform.c
++++ b/platform/fpga/openpiton/platform.c
+@@ -134,24 +134,21 @@ static int openpiton_console_init(void)
+ 
+ static int plic_openpiton_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
+ {
+-	size_t i, ie_words = plic.num_src / 32 + 1;
++	int ret;
+ 
+ 	/* By default, enable all IRQs for M-mode of target HART */
+ 	if (m_cntx_id > -1) {
+-		for (i = 0; i < ie_words; i++)
+-			plic_set_ie(&plic, m_cntx_id, i, 1);
++		ret = plic_context_init(&plic, m_cntx_id, true, 0x1);
++		if (ret)
++			return ret;
+ 	}
 +
-+		jump_warmboot();
-+	}
-+
- fail_restore_state:
- 	/*
- 	 * We might have successfully resumed from retentive suspend
+ 	/* Enable all IRQs for S-mode of target HART */
+ 	if (s_cntx_id > -1) {
+-		for (i = 0; i < ie_words; i++)
+-			plic_set_ie(&plic, s_cntx_id, i, 1);
++		ret = plic_context_init(&plic, s_cntx_id, true, 0x0);
++		if (ret)
++			return ret;
+ 	}
+-	/* By default, enable M-mode threshold */
+-	if (m_cntx_id > -1)
+-		plic_set_thresh(&plic, m_cntx_id, 1);
+-	/* By default, disable S-mode threshold */
+-	if (s_cntx_id > -1)
+-		plic_set_thresh(&plic, s_cntx_id, 0);
+ 
+ 	return 0;
+ }
 -- 
 2.35.1
 
