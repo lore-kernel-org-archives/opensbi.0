@@ -1,136 +1,82 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 1 Jun 2022 21:40:56 +0530
-Subject: console putchar/getchar ecalls and sbi v02
-In-Reply-To: <CALXH3=+c4hprea3M8mQGV_TzZ+yqeEbVa32DDSR58tnB-dgyCw@mail.gmail.com>
-References: <2594568.q0ZmV6gNhb@diego> <CAK9=C2XRBgtb--K8o7geFxWjvza6ztNX-oMObwVnsUYz28+0+Q@mail.gmail.com>
- <1848033.eGJsNajkDb@diego> <CAK9=C2XaYvXqkSeD8ieWYswTdgygVgXZF6PgdiUEqvG2eLAi_Q@mail.gmail.com>
- <CALXH3=+c4hprea3M8mQGV_TzZ+yqeEbVa32DDSR58tnB-dgyCw@mail.gmail.com>
-Message-ID: <CAK9=C2XBmJCpoghpgfVSaF7sm1sGRt=Op1wFsM585+YaR8V=UA@mail.gmail.com>
+Date: Wed, 1 Jun 2022 21:47:32 +0530
+Subject: SBI Debug Console Extension Proposal (Draft v1)
+Message-ID: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 1, 2022 at 9:16 PM Jan Reme? <jan.remes@codasip.com> wrote:
->
-> On Wed, Jun 1, 2022 at 5:22 PM Anup Patel <apatel@ventanamicro.com> wrote:
-> >
-> > On Wed, Jun 1, 2022 at 8:25 PM Heiko St?bner <heiko@sntech.de> wrote:
-> > >
-> > > Hi Anup,
-> > >
-> > > Am Mittwoch, 1. Juni 2022, 16:46:17 CEST schrieb Anup Patel:
-> > > > Hi Heiko,
-> > > >
-> > > > On Wed, Jun 1, 2022 at 8:00 PM Heiko St?bner <heiko@sntech.de> wrote:
-> > > > >
-> > > > > Hi,
-> > > > >
-> > > > > I just stumbled across the issue that the console_putchar and _getchar
-> > > > > ecalls are only part of the v0.1 specification and the spec states that
-> > > > > they "are expected to be deprecated; they have no replacement."
-> > > > >
-> > > > > As I was using that for their earlycon functionality for a bit and haven't
-> > > > > found the reasoning behind the deprecation so far, I guess I'm curious
-> > > > > why it is going away :-) .
-> > > > >
-> > > > > The commit adding the spec-note [0] also gives no explanation for it
-> > > > > and Google also wasn't helpful.
-> > > > >
-> > > > > Any hints?
-> > > >
-> > > > Almost all SBI v0.1 calls have been replaced by SBI v0.2 extensions,
-> > > > except console_putchar() and _getchar() calls.
-> > > >
-> > > > The console_putchar() was certainly quite useful for early prints but
-> > > > since it is going to be deprecated, we need something equivalent or
-> > > > better in the SBI spec.
-> > > >
-> > > > I do have a draft "SBI debug console" proposal which is based on
-> > > > shared memory and replaces the SBI v0.1 console_putchar(). I will
-> > > > send-out this proposal soon.
-> > >
-> > > Hmm, that sounds great for the earlycon-portion, but could you maybe
-> > > also think about a really simple putchar option like the current one?
-> > >
-> > > Background is that the current putchar works in all conditions, so even
-> > > in the earliest kernel startup code I could manually put in a
-> > > sbi_console_putchar() call to track down where a hang was.
-> > >
-> > > That even worked in the early startup assembly when doing the ecall
-> > > manually.
-> > >
-> > > This is extremely helpful when you are on "consumer-grade"
-> > > hardware were other debug options are somewhat limited.
-> >
-> > Setting up shared memory is really simple. In fact, it is just one
-> > additional call for assembly level debugging.
-> >
-> > Once the shared memory is set up, users can print any number
-> > of characters in one SBI call from assembly sources.
-> >
-> > Regards,
-> > Anup
-> >
-> There is value in putchar() that Just Works. But I guess it could be
-> implemented as a convenience macro/function on top of the
-> shared-memory ecall implementation?
->
-> Something like:
->
-> void *SBI_DEBUG_CONSOLE_MEM; /* Assumed pointer used for setting up
-> the shared memory */
->
-> void sbi_utils_putchar(char c)
-> {
->     char buffer[2];
->     void *oldbuf;
->
->     oldbuf = SBI_DEBUG_CONSOLE_MEM;
->     SBI_DEBUG_CONSOLE_MEM = buffer;
->     buffer[0] = c;
->     buffer[1] = '\0';
->     <call new ecall>
->
->     SBI_DEBUG_CONSOLE_MEM = oldbuf;
-> }
+Hi All,
 
-Seems like this is an interesting topic for many folks so, let
-me post my draft proposal in a few minutes.
+Below is the draft proposal for SBI Debug Console Extension.
 
-Regards,
+Please review it and provide feedback.
+
+Thanks,
 Anup
 
->
-> Regards,
->   Jan
->
-> > >
-> > >
-> > > Thanks
-> > > Heiko
-> > >
-> > >
-> > >
-> > > > >
-> > > > >
-> > > > > Thanks
-> > > > > Heiko
-> > > > >
-> > > > >
-> > > > >
-> > > > > [0] https://github.com/riscv-non-isa/riscv-sbi-doc/commit/705e9556d25dc070926b99f8ccbcdc5073407447
-> > > > >
-> > > > >
-> > > >
-> > >
-> > >
-> > >
-> > >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+Debug Console Extension (EID #0x4442434E "DBCN")
+================================================
+
+The debug console extension defines a generic mechanism for boot-time
+early prints from supervisor-mode software which allows users to catch
+boot-time issues in supervisor-mode software.
+
+This extension replaces legacy console putchar (EID #0x01) extension
+and it is better in following ways:
+1) It follows the new calling convention defined for SBI v1.0
+   (or higher).
+2) It is based on a shared memory area between SBI implementation
+   and supervisor-mode software so multiple characters can be
+   printed using a single SBI call.
+
+The supervisor-mode software must set the shared memory area before
+printing characters on the debug console. Also, all HARTs share the
+same shared memory area so only one HART needs to set it at boot-time.
+
+Function: Set Console Area (FID #0)
+-----------------------------------
+
+struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
+                                         unsigned long size)
+
+Set the shared memory area specified by `addr_div_by_2` and `size`
+parameters. The `addr_div_by_4` parameter is base address of the
+shared memory area right shifted by 2 whereas `size` parameter is
+the size of shared memory area in bytes.
+
+The shared memory area should be normal cacheable memory for the
+supervisor-mode software. Also, the shared memory area is global
+across all HARTs so SBI implementation must ensure atomicity in
+setting the shared memory area.
+
+Errors:
+SBI_SUCCESS                - Shared memory area set successfully.
+SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
+                          `addr_div_by_2` and `size` parameters
+                          is not normal cacheable memory or not
+                          accessible to supervisor-mode software.
+
+Function: Console Puts (FID #1)
+-------------------------------
+
+struct sbiret sbi_debug_console_puts(unsigned long area_offset,
+                                     unsigned long num_chars)
+
+Print the string specified by `area_offset` and `num_chars` on
+the debug console. The `area_offset` parameter is the start of
+string in the shard memory area whereas `num_chars` parameter
+is the number of characters (or bytes) in the string.
+
+This is a blocking SBI call and will only return after printing
+all characters of the string.
+
+Errors:
+SBI_SUCCESS                - Characters printed successfully.
+SBI_ERR_INVALID_ADDRESS    - The start of the string (i.e.
+                          `area_offset`) or end of the string
+                          (i.e. `area_offset + num_chars`) is
+                          outside shared memory area.
 
