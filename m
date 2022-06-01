@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 1 Jun 2022 18:26:57 +0530
-Subject: [RFC PATCH v2 5/9] lib: irqchip/plic: Add context save/restore helpers
-In-Reply-To: <20220530033738.27127-6-samuel@sholland.org>
-References: <20220530033738.27127-1-samuel@sholland.org> <20220530033738.27127-6-samuel@sholland.org>
-Message-ID: <CAAhSdy2qRdw-BXESa-3ZpvX=Ax2LbB6L4e1b8KnmF1J2r0-OKw@mail.gmail.com>
+Date: Wed, 1 Jun 2022 18:30:08 +0530
+Subject: [RFC PATCH v2 6/9] lib: irqchip/plic: Add priority save/restore helpers
+In-Reply-To: <20220530033738.27127-7-samuel@sholland.org>
+References: <20220530033738.27127-1-samuel@sholland.org> <20220530033738.27127-7-samuel@sholland.org>
+Message-ID: <CAAhSdy12bfaULJPpO6d-QtoUZuEv0Rq6u2KDnk0m-5w3__r8-w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,9 +12,13 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, May 30, 2022 at 9:07 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> These can be used by platform code to save the PLIC context state, if
+> These can be used by platform code to save the PLIC priority state, if
 > it would otherwise be lost during non-retentive suspend. The platform
 > is responsible for allocating all necessary storage.
+>
+> As a space optimization, store the saved priority values as 8-bit
+> integers, since that is large enough to hold any priority value on the
+> relevant platforms.
 >
 > Signed-off-by: Samuel Holland <samuel@sholland.org>
 
@@ -30,101 +34,63 @@ Anup
 > Changes in v2:
 >  - New patch for v2
 >
->  include/sbi_utils/irqchip/plic.h |  6 ++++
->  lib/utils/irqchip/plic.c         | 51 ++++++++++++++++++++++++++++++--
->  2 files changed, 54 insertions(+), 3 deletions(-)
+>  include/sbi_utils/irqchip/plic.h |  4 ++++
+>  lib/utils/irqchip/plic.c         | 20 ++++++++++++++++++++
+>  2 files changed, 24 insertions(+)
 >
 > diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
-> index 8f21af6..21b2266 100644
+> index 21b2266..566fd7a 100644
 > --- a/include/sbi_utils/irqchip/plic.h
 > +++ b/include/sbi_utils/irqchip/plic.h
-> @@ -17,6 +17,12 @@ struct plic_data {
+> @@ -17,6 +17,10 @@ struct plic_data {
 >         unsigned long num_src;
 >  };
 >
-> +void plic_context_save(const struct plic_data *plic, int context_id,
-> +                      u32 *enable, u32 *threshold);
+> +void plic_priority_save(const struct plic_data *plic, u8 *priority);
 > +
-> +void plic_context_restore(const struct plic_data *plic, int context_id,
-> +                         const u32 *enable, u32 threshold);
+> +void plic_priority_restore(const struct plic_data *plic, const u8 *priority);
 > +
->  int plic_context_init(const struct plic_data *plic, int context_id,
->                       bool enable, u32 threshold);
+>  void plic_context_save(const struct plic_data *plic, int context_id,
+>                        u32 *enable, u32 *threshold);
 >
 > diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-> index 9bd3bf1..0c64078 100644
+> index 0c64078..b0329b8 100644
 > --- a/lib/utils/irqchip/plic.c
 > +++ b/lib/utils/irqchip/plic.c
-> @@ -29,6 +29,16 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+> @@ -22,6 +22,13 @@
+>  #define PLIC_CONTEXT_BASE 0x200000
+>  #define PLIC_CONTEXT_STRIDE 0x1000
+>
+> +static u32 plic_get_priority(const struct plic_data *plic, u32 source)
+> +{
+> +       volatile void *plic_priority = (char *)plic->addr +
+> +                       PLIC_PRIORITY_BASE + 4 * source;
+> +       return readl(plic_priority);
+> +}
+> +
+>  static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+>  {
+>         volatile void *plic_priority = (char *)plic->addr +
+> @@ -29,6 +36,19 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
 >         writel(val, plic_priority);
 >  }
 >
-> +static u32 plic_get_thresh(const struct plic_data *plic, u32 cntxid)
+> +/* So far, priorities on all consumers of these functions fit in 8 bits. */
+> +void plic_priority_save(const struct plic_data *plic, u8 *priority)
 > +{
-> +       volatile void *plic_thresh;
-> +
-> +       plic_thresh = (char *)plic->addr +
-> +                     PLIC_CONTEXT_BASE + PLIC_CONTEXT_STRIDE * cntxid;
-> +
-> +       return readl(plic_thresh);
+> +       for (u32 i = 0; i < plic->num_src; i++)
+> +               priority[i] = plic_get_priority(plic, i);
 > +}
 > +
->  static void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val)
+> +void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
+> +{
+> +       for (u32 i = 0; i < plic->num_src; i++)
+> +               plic_set_priority(plic, i, priority[i]);
+> +}
+> +
+>  static u32 plic_get_thresh(const struct plic_data *plic, u32 cntxid)
 >  {
 >         volatile void *plic_thresh;
-> @@ -38,14 +48,49 @@ static void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val)
->         writel(val, plic_thresh);
->  }
->
-> +static u32 plic_get_ie(const struct plic_data *plic, u32 cntxid,
-> +                      u32 word_index)
-> +{
-> +       volatile void *plic_ie;
-> +
-> +       plic_ie = (char *)plic->addr +
-> +                  PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid +
-> +                  4 * word_index;
-> +
-> +       return readl(plic_ie);
-> +}
-> +
->  static void plic_set_ie(const struct plic_data *plic, u32 cntxid,
->                         u32 word_index, u32 val)
->  {
-> -       volatile char *plic_ie;
-> +       volatile void *plic_ie;
->
->         plic_ie = (char *)plic->addr +
-> -                  PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid;
-> -       writel(val, plic_ie + word_index * 4);
-> +                  PLIC_ENABLE_BASE + PLIC_ENABLE_STRIDE * cntxid +
-> +                  4 * word_index;
-> +       writel(val, plic_ie);
-> +}
-> +
-> +void plic_context_save(const struct plic_data *plic, int context_id,
-> +                      u32 *enable, u32 *threshold)
-> +{
-> +       u32 ie_words = (plic->num_src + 31) / 32;
-> +
-> +       for (u32 i = 0; i < ie_words; i++)
-> +               enable[i] = plic_get_ie(plic, context_id, i);
-> +
-> +       *threshold = plic_get_thresh(plic, context_id);
-> +}
-> +
-> +void plic_context_restore(const struct plic_data *plic, int context_id,
-> +                         const u32 *enable, u32 threshold)
-> +{
-> +       u32 ie_words = (plic->num_src + 31) / 32;
-> +
-> +       for (u32 i = 0; i < ie_words; i++)
-> +               plic_set_ie(plic, context_id, i, enable[i]);
-> +
-> +       plic_set_thresh(plic, context_id, threshold);
->  }
->
->  int plic_context_init(const struct plic_data *plic, int context_id,
 > --
 > 2.35.1
 >
