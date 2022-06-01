@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 1 Jun 2022 18:41:58 +0530
+Date: Wed, 1 Jun 2022 18:45:30 +0530
 Subject: [RFC PATCH v2 7/9] lib: utils/irqchip: Add FDT wrappers for PLIC
  save/restore functions
 In-Reply-To: <20220530033738.27127-8-samuel@sholland.org>
 References: <20220530033738.27127-1-samuel@sholland.org> <20220530033738.27127-8-samuel@sholland.org>
-Message-ID: <CAAhSdy0sFLLz50NWY0nsj6TrsP1REQXOAeRggFKGcQAz+1Tv0Q@mail.gmail.com>
+Message-ID: <CAAhSdy240crXp4VPQhG2-en4uv+v5oJy-HDhT6nBr7NYZ9jv-w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,13 +16,6 @@ On Mon, May 30, 2022 at 9:07 AM Samuel Holland <samuel@sholland.org> wrote:
 > These functions save/restore the state of the PLIC associated with the
 > current hart. Only the S-mode context is saved/restored, under the
 > assumption that none of the interrupts are enabled in M-mode anyway.
-
-Instead of saving/restoring only S-mode context, I suggest we can either:
-1) Save both M-mode and S-mode context
-2) Add "bool mmode" parameter to decide which context to save/restore
-
-I am inclined towards option#2 above.
-
 >
 > Signed-off-by: Samuel Holland <samuel@sholland.org>
 > ---
@@ -59,6 +52,13 @@ I am inclined towards option#2 above.
 > +void irqchip_plic_context_save(u32 *enable, u32 *threshold);
 > +
 > +void irqchip_plic_context_restore(const u32 *enable, u32 threshold);
+
+Since these functions are part of the FDT based PLIC driver, I suggest
+using "fdt_plic_" instead of "irqchip_plic_" prefix for function names.
+
+Regards,
+Anup
+
 > +
 > +#endif
 > diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
@@ -89,13 +89,6 @@ I am inclined towards option#2 above.
 > +
 > +       plic_context_save(plic_hartid2data[hartid],
 > +                         plic_hartid2context[hartid][1],
-
-Don't assume that plic_hartid2context[hartid][1] != NULL because some
-of the platforms such as SiFive FU540 and FU740 have core0 as a
-embedded microcontroller with only M-mode.
-
-Better to do nothing if plic_hartid2context[hartid][1] == NULL
-
 > +                         enable, threshold);
 > +}
 > +
@@ -105,9 +98,6 @@ Better to do nothing if plic_hartid2context[hartid][1] == NULL
 > +
 > +       plic_context_restore(plic_hartid2data[hartid],
 > +                            plic_hartid2context[hartid][1],
-
-Same comment as above.
-
 > +                            enable, threshold);
 > +}
 > +
@@ -122,7 +112,4 @@ Same comment as above.
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Regards,
-Anup
 
