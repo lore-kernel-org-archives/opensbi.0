@@ -1,89 +1,313 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 2 Jun 2022 20:47:51 +0530
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 03 Jun 2022 00:00:24 +0800
 Subject: [RISC-V] [tech-unixplatformspec] SBI Debug Console Extension
  Proposal (Draft v1)
-In-Reply-To: <YpjQkMhoKuoCj/Do@ved-XPS-8940>
+In-Reply-To: <CAK9=C2VAbPhscKAg+nP25-YrX0UadD6VBkNhqeic-LPQkvma1g@mail.gmail.com>
 References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
- <CAK9=C2XXu9JpdsTLFiamQkgj_P6titwAohPdgwWUCm-xN8A2kw@mail.gmail.com>
- <5091667.6fTUFtlzNn@diego> <3070891.fEcJ0Lxnt5@diego> <CAK9=C2WETO-XJxTg1_jCLWaxkMJ8ubKkpeg3xKNnUvtJicrjyA@mail.gmail.com>
- <CAG5apL1PfuCoYOVChaXO2wp93RnUifuxQZq1xebpNvH=BnXxrA@mail.gmail.com>
- <CAK9=C2XB3wBu0agiCfKZzN57waK6-0sq1emjwb2DG5m9V634xw@mail.gmail.com> <YpjQkMhoKuoCj/Do@ved-XPS-8940>
-Message-ID: <CAK9=C2UV4WT-wK0TQh2c1EUYMmSHm0rAgFFz7mtN75ZPQkjb-A@mail.gmail.com>
+	 <72af98ee-6bb4-542f-021d-66e9dd946226@canonical.com>
+	 <CAK9=C2WLZqkYsgZL5WCJGjWGK=YGV3f51d8yvD3ecx+JPURgpw@mail.gmail.com>
+	 <307d7e4e-62f8-8dec-8b09-ea69ca2c29d9@canonical.com>
+	 <CAK9=C2VAbPhscKAg+nP25-YrX0UadD6VBkNhqeic-LPQkvma1g@mail.gmail.com>
+Message-ID: <b5ed26a9242bf56c3addbb926cdd1ec9cba7b0d5.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 2, 2022 at 8:30 PM Ved Shanbhogue <ved@rivosinc.com> wrote:
->
-> On Thu, Jun 02, 2022 at 07:52:55PM +0530, Anup Patel wrote:
-> >On Thu, Jun 2, 2022 at 6:29 PM Ved Shanbhogue <ved@rivosinc.com> wrote:
-> >This is very slow for virtualized world particularly KVM RISC-V because each
-> >SBI v0.1 putchar() or getchar() will trap to KVM RISC-V and KVM RISC-V will
-> >forward it to user-space QEMU or KVMTOOL. This means each early print
-> >character using SBI v0.1 putchar() will go all the way to host user-space and
-> >come back. This is horribly slow for KVM Guest. This becomes further slower
-> >for nested virtualization.
-> >
-> Since this is for debug and really early phase debug till enough of the guest
-> boots up to use a VFIO based char driver provided by the VMM, I am not sure
-> that the slowness matters.
-> Even this SBI call I expected the VMM to intercept and if the VMM has all
-> emulation in the user space VMM - e.g. the console tty is open by the user
-> space VMM, I am not sure this would avoid that trip to user space.
-> If the motivation is primarily VM debug then perhaps a standardized set of
-> hypercalls implemented by KVM makes more sense than SBI calls that would
-> need to be built into the M-mode firmware?
+? 2022-06-02???? 18:29 +0530?Anup Patel???
+> On Thu, Jun 2, 2022 at 2:43 PM Heinrich Schuchardt
+> <heinrich.schuchardt@canonical.com> wrote:
+> > 
+> > On 6/2/22 10:44, Anup Patel wrote:
+> > > On Wed, Jun 1, 2022 at 11:59 PM Heinrich Schuchardt
+> > > <heinrich.schuchardt@canonical.com> wrote:
+> > > > 
+> > > > On 6/1/22 18:17, Anup Patel wrote:
+> > > > > Hi All,
+> > > > > 
+> > > > > Below is the draft proposal for SBI Debug Console Extension.
+> > > > > 
+> > > > > Please review it and provide feedback.
+> > > > > 
+> > > > > Thanks,
+> > > > > Anup
+> > > > > 
+> > > > > Debug Console Extension (EID #0x4442434E "DBCN")
+> > > > > ================================================
+> > > > > 
+> > > > > The debug console extension defines a generic mechanism for boot-time
+> > > > > early prints from supervisor-mode software which allows users to catch
+> > > > > boot-time issues in supervisor-mode software.
+> > > > > 
+> > > > > This extension replaces legacy console putchar (EID #0x01) extension
+> > > > > and it is better in following ways:
+> > > > 
+> > > > Thanks for starting to close this gap.
+> > > > 
+> > > > > 1) It follows the new calling convention defined for SBI v1.0
+> > > > > ???? (or higher).
+> > > > > 2) It is based on a shared memory area between SBI implementation
+> > > > > ???? and supervisor-mode software so multiple characters can be
+> > > > > ???? printed using a single SBI call.
+> > > > 
+> > > > I miss a discussion of the conflicts that can arise if the configuration
+> > > > of the serial console is changed by the caller.
+> > > > 
+> > > > Do we need an ecall that closes the SBI console to further access?
+> > > 
+> > > Usually, the serial port related code in M-mode firmware only uses
+> > > status and data registers so for most serial ports support the M-mode
+> > > firmware will adapt to serial port configuration changes.
+> > > 
+> > > In fact, this is why we never had a special SBI call for serial port
+> > > reconfiguration in legacy SBI v0.1 as well.
+> > > 
+> > > In case of virtualization, the serial port (or console) is emulated so
+> > > the special SBI call is not useful for virtualization.
+> > > 
+> > > > 
+> > > > > 
+> > > > > The supervisor-mode software must set the shared memory area before
+> > > > > printing characters on the debug console. Also, all HARTs share the
+> > > > > same shared memory area so only one HART needs to set it at boot-time.
+> > > > 
+> > > > Isn't it M-mode software that has to program the MMU to allow all harts
+> > > > in M-mode and S-mode access to the memory area? What is the S-mode
+> > > > software to do about the memory area prior to calling
+> > > > sbi_debug_console_set_area()?
+> > > 
+> > > Actually, it's the S-mode software which is voluntarily giving a portion of
+> > > its memory to be used as shared memory. The proposal only mandates
+> > > that whatever memory is selected by S-mode software should be a
+> > > regular cacheable memory (not IO memory). Also, if Svpbmt is available
+> > > then S-mode software should only use memory type 0 in the PTEs.
+> > > 
+> > > > 
+> > > > > 
+> > > > > Function: Set Console Area (FID #0)
+> > > > > -----------------------------------
+> > > > > 
+> > > > > struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
+> > > > > ?????????????????????????????????????????? unsigned long size)
+> > > > 
+> > > > The console output is needed on the very start of the S-mode software,
+> > > > before setting up anything.
+> > > > 
+> > > > Can we avoid this extra function?
+> > > > 
+> > > > Can we simply assume that the caller of sbi_debug_console_puts()
+> > > > provides a physical address pointer to a memory area that is suitable?
+> > > 
+> > > Theoretically, we can avoid the extra function to set shared memory area
+> > > but it will complicate things in future when we have supervisor software
+> > > encrypting it's own memory (using special ISA support) because in this
+> > > case supervisor software will have to unprotect memory every time the
+> > > sbi_debug_console_puts() is called and protect it again after the call.
+> > 
+> > Currently this function is just a nop(). It is not needed in this
+> > revision of the extension.
+> > 
+> > The function might be called repeatedly by different threads with
+> > different values. How do you want to keep track of all of these
+> > different areas?
+> 
+> The shared memory area in case of this SBI extension will be shared
+> across all HARTs so the SBI implementation will ensure atomicity
+> in setting/reading shared memory coordinates. This way multiple
+> HARTs can call the sbi_debug_console_set_area() but only the
+> last call will be in effect.
+> 
+> Following text in the proposal explains above:
+> "The supervisor-mode software must set the shared memory area before
+> printing characters on the debug console. Also, all HARTs share the
+> same shared memory area so only one HART needs to set it at boot-time."
+> 
+> Maybe this text is not giving a clear picture ?
 
-We have a requirement in the OS-A platform spec to mandate a particular type
-of UART for early prints but there were objections on selecting one type of UART
-over another.
+There is a strict calling order between the two APIs, which?
+adds to the complexity. If we pass the physical address directly
+to sbi_debug_console_puts will circumvent these problems.
 
-This SBI debug console extension is also a way to avoid standardizing a
-particular type of UART in OS-A platform spec.
-
->
-> >
-> >> I worry about bugs/security issues that can be caused by M-mode firmware accessing strings in untrusted memory.
-> >
-> >The VirtIO based para-virt devices rely heavily on shared memory so I think
-> >it is possible to address security concerns related to shared memory.
->
-> Yes, and now that I understand the motivation better why dont we define this
-> as a hypercall/pv-ops interface to a VMM than a SBI call to the M-mode
-> firmware and needing to build a virt-io like framework in firmware.
-
-The VirtIO framework has rings in shared memory but over here it is just
-shared memory without any formatted data structure.
-
->
-> >
-> >> The API as defined does not say whether the address is a virtual address or a physical address.
-> >
-> >It is a physical address. I will clarify this in Draft v2.
-> >
-> Thanks. I was not sure since we had all the discussion about Svpbmt.
->
-> >
-> >> Based on discussion it did not seem like it needs to be much fancier than this as this is for early OS/VMM code till it has enough functionality to directly interact with a uart.
-> >
-> >The goal of the shared memory based SBI call for early prints is to
-> >minimize the number of traps which in-turn helps virtualization to
-> >drastically reduce boot-time.
-> >
->
-> Understand that better now. But if that is the main motivation then
-> I am not understanding why we would want to push all of this into
-> M-mode firmware vs. defining a set of standardized pv-ops to be used
-> by guest OSes.
-
-The SBI debug console also provides a standard way of early prints for
-supervisor software running natively (directly under M-mode) irrespective
-of the type of UART/Console available on the console so it's not just
-for a virtualized world. Although, the virtualized world has an added
-performance advantage due to reduced traps.
+I would like to know the necessity of setting up shared memory first.
 
 Regards,
-Anup
+Xiang W
+> 
+> > 
+> > Memory shared between different security realms will arise in many
+> > different scenarios. As this is not console specific it should be in a
+> > separate extension. That extension should be defined once we have
+> > clarity about how security realms are managed.
+> 
+> In the case of this extension, the shared memory is global across all
+> HARTs and it mostly contains bytes to be printed. In case of steal
+> time accounting, the shared memory is separate for each HART and
+> it is a well-defined data structure.
+> 
+> Clearly, the usage of shared memory is extension specific.
+> 
+> The VirtIO devices are a good (and time tested) example of shared
+> memory based approaches. Over there as well, the shared memory
+> (i.e. various VirtIO rings) are setup by Guest and there is no central
+> pool of shared memory (i.e no dedicated VirtIO device managing
+> shared memory).
+> 
+> Similar to VirtIO world, we should let SBI extension define its own
+> shared memory usage and API.
+> 
+> Regards,
+> Anup
+> 
+> > 
+> > > 
+> > > > 
+> > > > > 
+> > > > > Set the shared memory area specified by `addr_div_by_2` and `size`
+> > > > 
+> > > > %s/addr_div_by_2/addr_div_by_4/
+> > > 
+> > > Okay, I will update.
+> > > 
+> > > > 
+> > > > > parameters. The `addr_div_by_4` parameter is base address of the
+> > > > 
+> > > > %s/is base/is the base/
+> > > 
+> > > Okay, I will update.
+> > > 
+> > > > 
+> > > > > shared memory area right shifted by 2 whereas `size` parameter is
+> > > > > the size of shared memory area in bytes.
+> > > > 
+> > > > Why shifting the address? I would prefer to keep it simple for the
+> > > > caller. If the alignment is not suitable, return an error.
+> > > > 
+> > > > But why is an alignment needed here at all? And why 4 aligned?
+> > > 
+> > > For RV32 S-mode, the physical address space is 34bits wide but
+> > > "unsigned long" is 32bits wide. This is because Sv32 PTEs allow
+> > > 34bits of PPN. In fact, even instructions such as HFENCE.GVMA
+> > > have this "address right shift by 2" requirement based on this rationale.
+> > > 
+> > > > 
+> > > > > 
+> > > > > The shared memory area should be normal cacheable memory for the
+> > > > > supervisor-mode software. Also, the shared memory area is global
+> > > > > across all HARTs so SBI implementation must ensure atomicity in
+> > > > > setting the shared memory area.
+> > > > > 
+> > > > > Errors:
+> > > > > SBI_SUCCESS??????????????? - Shared memory area set successfully.
+> > > > > SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
+> > > > > ??????????????????????????? `addr_div_by_2` and `size` parameters
+> > > > > ??????????????????????????? is not normal cacheable memory or not
+> > > > > ??????????????????????????? accessible to supervisor-mode software.
+> > > > > 
+> > > > > Function: Console Puts (FID #1)
+> > > > > -------------------------------
+> > > > > 
+> > > > > struct sbiret sbi_debug_console_puts(unsigned long area_offset,
+> > > > > ?????????????????????????????????????? unsigned long num_chars)
+> > > > 
+> > > > I would prefer to simply pass a physical address pointer here with no
+> > > > requirements on alignment. And no prior SBI call.
+> > 
+> > sbi_debug_console_set_area() might be called with different values by
+> > different threads. An offset is ambiguous as it does not define to which
+> > of the different shared areas it relates. Please, use a pointer.
+> > 
+> > > > 
+> > > > Do we need num_chars? Are we expecting to provide binary output? Using
+> > > > 0x00 as terminator would be adequate in most cases.
+> > > 
+> > > Bare-metal tests (or assembly sources) can print sub-strings from
+> > > a large per-populated string in shared memory. Assuming that string
+> > > is always terminated by 0x00 in sbi_debug_console_puts() will break
+> > > this flexibility.
+> > 
+> > OK
+> > 
+> > > 
+> > > > 
+> > > > What is the requirement on the console? Does it have to support 8bit
+> > > > output to allow for UTF-8?
+> > > 
+> > > We need to clarify this. Suggestions ?
+> > 
+> > The platform specification would be the right place to require 8-bit
+> > support for the console.
+> > 
+> > > 
+> > > > 
+> > > > Do we make any assumptions about encoding?
+> > > 
+> > > Same as above, this needs more clarification. Suggestions ?
+> > 
+> > We should add to the platform specification that UTF-8 output is assumed
+> > on the serial console.
+> > 
+> > > 
+> > > I am of the opinion to keep such encoding related assumptions to be
+> > > minimal.
+> > > 
+> > > > 
+> > > > How would we handle a console set up to 7bit + parity if a character >
+> > > > 0x7f is sent?
+> > > 
+> > > I would consider this to be part of the clarification we add for encoding.
+> > 
+> > We should state if extra bits are ignored or the bytes are not send.
+> > The easiest thing is to just ignore the extra bits. So let't state this
+> > here.
+> > 
+> > Best regards
+> > 
+> > Heinrich
+> > 
+> > > 
+> > > > 
+> > > > > 
+> > > > > Print the string specified by `area_offset` and `num_chars` on
+> > > > > the debug console. The `area_offset` parameter is the start of
+> > > > > string in the shard memory area whereas `num_chars` parameter
+> > > > 
+> > > > %s/shard/shared/
+> > > 
+> > > Okay, I will update.
+> > > 
+> > > > 
+> > > > > is the number of characters (or bytes) in the string.
+> > > > > 
+> > > > > This is a blocking SBI call and will only return after printing
+> > > > > all characters of the string.
+> > > > > 
+> > > > > Errors:
+> > > > > SBI_SUCCESS??????????????? - Characters printed successfully.
+> > > > > SBI_ERR_INVALID_ADDRESS??? - The start of the string (i.e.
+> > > > > ??????????????????????????? `area_offset`) or end of the string
+> > > > > ??????????????????????????? (i.e. `area_offset + num_chars`) is
+> > > > > ??????????????????????????? outside shared memory area.
+> > > > 
+> > > > There could be other reasons of failures:
+> > > > 
+> > > > * set up of the UART failed in OpenSBI
+> > > > * no UART defined in the device-tree
+> > > > * ...
+> > > > 
+> > > > So let us add SBI_ERR_FAILED to the list.
+> > > 
+> > > Okay, I will add.
+> > > 
+> > > > 
+> > > > Best regards
+> > > > 
+> > > > Heinrich
+> > > 
+> > > Regards,
+> > > Anup
+> > 
+> 
+
+
 
