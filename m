@@ -1,148 +1,111 @@
-From: Heiko Stübner <heiko@sntech.de>
-Date: Thu, 02 Jun 2022 11:28:28 +0200
-Subject: SBI Debug Console Extension Proposal (Draft v1)
-In-Reply-To: <5091667.6fTUFtlzNn@diego>
-References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com> <CAK9=C2XXu9JpdsTLFiamQkgj_P6titwAohPdgwWUCm-xN8A2kw@mail.gmail.com> <5091667.6fTUFtlzNn@diego>
-Message-ID: <3070891.fEcJ0Lxnt5@diego>
+From: Schwarz, Konrad <konrad.schwarz@siemens.com>
+Date: Thu, 2 Jun 2022 12:00:37 +0000
+Subject: [sig-hypervisors] SBI Debug Console Extension Proposal (Draft v1)
+In-Reply-To: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
+References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
+Message-ID: <dc89b97c48364769b1bf7bbc51dd440b@siemens.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Am Donnerstag, 2. Juni 2022, 10:50:56 CEST schrieb Heiko St?bner:
-> Am Donnerstag, 2. Juni 2022, 10:47:58 CEST schrieb Anup Patel:
-> > On Thu, Jun 2, 2022 at 12:02 AM Heiko St?bner <heiko@sntech.de> wrote:
-> > >
-> > > Hi Anup,
-> > >
-> > > Am Mittwoch, 1. Juni 2022, 18:17:32 CEST schrieb Anup Patel:
-> > > > Hi All,
-> > > >
-> > > > Below is the draft proposal for SBI Debug Console Extension.
-> > > >
-> > > > Please review it and provide feedback.
-> > > >
-> > > > Thanks,
-> > > > Anup
-> > > >
-> > > > Debug Console Extension (EID #0x4442434E "DBCN")
-> > > > ================================================
-> > > >
-> > > > The debug console extension defines a generic mechanism for boot-time
-> > > > early prints from supervisor-mode software which allows users to catch
-> > > > boot-time issues in supervisor-mode software.
-> > > >
-> > > > This extension replaces legacy console putchar (EID #0x01) extension
-> > > > and it is better in following ways:
-> > > > 1) It follows the new calling convention defined for SBI v1.0
-> > > >    (or higher).
-> > > > 2) It is based on a shared memory area between SBI implementation
-> > > >    and supervisor-mode software so multiple characters can be
-> > > >    printed using a single SBI call.
-> > > >
-> > > > The supervisor-mode software must set the shared memory area before
-> > > > printing characters on the debug console. Also, all HARTs share the
-> > > > same shared memory area so only one HART needs to set it at boot-time.
-> > > >
-> > > > Function: Set Console Area (FID #0)
-> > > > -----------------------------------
-> > > >
-> > > > struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
-> > > >                                          unsigned long size)
-> > > >
-> > > > Set the shared memory area specified by `addr_div_by_2` and `size`
-> > >
-> > > typo in the "div_by_2" (not 4 like below and in the function itself) ?
-> > >
-> > >
-> > > > parameters. The `addr_div_by_4` parameter is base address of the
-> > > > shared memory area right shifted by 2 whereas `size` parameter is
-> > > > the size of shared memory area in bytes.
-> > > >
-> > > > The shared memory area should be normal cacheable memory for the
-> > > > supervisor-mode software. Also, the shared memory area is global
-> > > > across all HARTs so SBI implementation must ensure atomicity in
-> > > > setting the shared memory area.
-> > > >
-> > > > Errors:
-> > > > SBI_SUCCESS                - Shared memory area set successfully.
-> > > > SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
-> > > >                           `addr_div_by_2` and `size` parameters
-> > > >                           is not normal cacheable memory or not
-> > > >                           accessible to supervisor-mode software.
-> > > >
-> > > > Function: Console Puts (FID #1)
-> > > > -------------------------------
-> > > >
-> > > > struct sbiret sbi_debug_console_puts(unsigned long area_offset,
-> > > >                                      unsigned long num_chars)
-> > > >
-> > > > Print the string specified by `area_offset` and `num_chars` on
-> > > > the debug console. The `area_offset` parameter is the start of
-> > > > string in the shard memory area whereas `num_chars` parameter
-> > > > is the number of characters (or bytes) in the string.
-> > > >
-> > > > This is a blocking SBI call and will only return after printing
-> > > > all characters of the string.
-> > > >
-> > > > Errors:
-> > > > SBI_SUCCESS                - Characters printed successfully.
-> > > > SBI_ERR_INVALID_ADDRESS    - The start of the string (i.e.
-> > > >                           `area_offset`) or end of the string
-> > > >                           (i.e. `area_offset + num_chars`) is
-> > > >                           outside shared memory area.
-> > >
-> > > This will vastly reduce the number of needed ecalls when outputting
-> > > characters, so this will probably improve performance quite a bit :-)
-> > >
-> > >
-> > > I guess I still would like to have an _additional_ single-character
-> > > putc call. As mentioned in the other thread [0], especially on consumer
-> > > hardware [where there is no elaborate debug infrastructure] this can
-> > > be a very handy debugging tool even in the earliest stages of a
-> > > booting kernel (both before relocation and even inside the startup
-> > > assembly).
-> > >
-> > > I.e. just doing a
-> > >         li a7, 1
-> > >         li a6, 0
-> > >         li a0, 36
-> > >         ecall
-> > >
-> > > in any kernel assembly will just output a "$" character right now, without
-> > > needing any preparation at all - same with using the current
-> > > sbi_console_putchar() directly in c-code.
-> > >
-> > > This _can_ be very helpful in some cases, so I guess it would be nice
-> > > to keep such a functionality around also in the new spec.
-> > 
-> > You can easily create multiple pre-populated strings using ".asciiz" in
-> > assembly sources. Just set the base address of pre-populated strings
-> > once on boot hart and print from anywhere using usual 4-5 instruction
-> > (similar to what posted above).
+Hi Anup,
+
+> From: sig-hypervisors at lists.riscv.org <sig-hypervisors@lists.riscv.org> On Behalf Of Anup Patel via
+> lists.riscv.org
+> Subject: [sig-hypervisors] SBI Debug Console Extension Proposal (Draft v1)
 > 
-> ok, sounds like a plan as well :-)
+> Below is the draft proposal for SBI Debug Console Extension.
 
-though, how does that relate to the time before MMU setup?
+Here are my thoughts:
 
-I.e. in response to Heinrich's mail you talk about svpbmt, so I guess you
-expect virtual memory there, so what is the expected value-type before
-the mmu is setup in S-mode ?
+* Guest memory access: I think this would be the first SBI extension to require access to
+  guest memory. This needs to be considered carefully, but I think the higher bandwidth afforded by
+  the interface is useful enough to allow this.
 
+* API:
+	* Currently, only a write interface is provided. It would be much better to have a
+	  read/write interface.
 
-> > > [0] http://lists.infradead.org/pipermail/opensbi/2022-June/002796.html
-> > >
-> > >
-> > >
-> > 
-> > Regards,
-> > Anup
-> > 
-> 
-> 
+        Benefits of this would be to allow a hypervisor to control an OS, e.g., for testing purposes
+        or to automate installation tasks.  Inter-guest communication could also be realized
+        via such an interface.
 
+	* As the relationship between SBI and OS is the same as OS and user process, an interface
+	  in the style of e.g., Unix IO is possible.
 
+        * Global shared memory buffer design and alternatives:
 
+        The API should have per read() or write() parameters for buffer address and length.
+	  This makes it easy for different parts of the OS kernel to output strings directly,
+	  without requiring thread synchronization of the shared buffer used by the present proposal.
+	  A single buffer (i.e., shared memory) will in most SW architectures require an
+	  extra copying of the formatted output string into the shared memory region, which
+	  would be avoided using per read()/write() call parameters.
+        The exact same argument applies to the SBI implementation: a multi-hart machine
+	  utilizing a single shared memory block to communicate with S-mode software
+        will require m-mode thread synchronization when accessing the block.
+        Having only a single shared memory block will lead to scaling problems
+        on high hart count machines.
 
+        I see no advantages of the proposed design to dedicate a block of memory to
+	  I/O in advance (and no modern API does this).
+        The SBI implementation will still need to be prepared to handle
+        access faults on each read and write call, there is no amortization of one-time costs
+	  regarding address translation or permission checking that I see.  In the H-extension,
+        the guest memory access instructions are as effective as possible, for M-mode code,
+        I'm sure that efficient access to S-mode virtual addresses is possible as well.
+        (Or the convention can be made that addresses are specified as guest-physical,
+        which should be avoided if efficient alternatives are available in RISC-V.
+        Note that the draft proposal does not speak of this at all).
+
+	  * Multiple device support: a parameter should be allocated to allow the OS to
+	  select which of possibly several output devices to utilize, like the "file
+	  descriptor" parameter of the POSIX read()/write() interface.
+
+	  This raises the question of binding these file descriptors to physical devices,
+        but a start could be made in analogy to Unix (again), where devices 0, 1, 2 are
+        assigned to standard in, standard out, and standard error, and in many cases
+        will be attached to the same physical device, and that are pre-opened when the
+	  OS starts. As in Unix, the semantics of these would be roughly defined,
+        but an OS could write out its boot logging strings to 2, and drive an interactive
+        console process (such as a shell) from 0 and 1.
+
+	  The question of binding string-valued names to file descriptor (open()) and
+	  closing them, etc., could be deferred to a later date and possibly
+        be implementation defined.
+
+        * Asynchronicity and flow control: Unix solves this (poorly) via select()
+        or the SIGIO signal.  If SBI introduces an interface for this, this will need to
+        co-exist with the OS scheduling that is largely driven by the interrupt controller,
+	  which is a hard thing to do.
+
+        I think that the SBI interface should
+	  be best effort, copying all data from the client immediately (as Unix does):
+        when buffer space in the SBI implementation is exhausted,
+        it should return short counts; if the SBI client is prepared to wait, a blocking
+	  flush call could be added, which returns when some measure space is
+        available in the SBI implementation's output buffers (or when input is available).
+        
+        The existing Unix interfaces for this can again be used as a guide; they
+        should be mature enough to cover all relevant cases.
+
+        For highest performance, an S-mode interrupt could be synthesized by the
+	  SBI implementation when buffer space is available.
+
+With best regards,
+Konrad Schwarz
+
+Siemens AG
+T CED SES-DE
+Otto-Hahn-Ring 6
+81739 Munich, Germany
+Phone: +49 (89) 7805-22579
+Fax.: +49 (89) 636-33045
+Mobile: +49 (1522) 8864636
+mailto:konrad.schwarz at siemens.com
+www.siemens.com
+
+Siemens Aktiengesellschaft: Chairman of the Supervisory Board: Jim Hagemann Snabe; Managing Board: Roland Busch, Chairman, President and Chief Executive Officer; Cedrik Neike, Matthias Rebellius, Ralf P. Thomas, Judith Wiese; Registered offices: Berlin and Munich, Germany; Commercial registries: Berlin-Charlottenburg, HRB 12300, Munich, HRB 6684; WEEE-Reg.-No. DE 23691322
 
