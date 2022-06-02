@@ -1,20 +1,21 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 2 Jun 2022 13:38:28 +0530
-Subject: [RISC-V] [tech-unixplatformspec] [sig-hypervisors] SBI Debug
- Console Extension Proposal (Draft v1)
-In-Reply-To: <20220601182126.xnv5w2y4yhy2s6tk@rivosinc.com>
+Date: Thu, 2 Jun 2022 14:14:36 +0530
+Subject: [RISC-V] [tech-unixplatformspec] SBI Debug Console Extension
+ Proposal (Draft v1)
+In-Reply-To: <72af98ee-6bb4-542f-021d-66e9dd946226@canonical.com>
 References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
- <20220601182126.xnv5w2y4yhy2s6tk@rivosinc.com>
-Message-ID: <CAK9=C2UpSB3GtRf9B-KU5m0Y=2=o7HvK6-q0kncF4X4=JRAdTw@mail.gmail.com>
+ <72af98ee-6bb4-542f-021d-66e9dd946226@canonical.com>
+Message-ID: <CAK9=C2WLZqkYsgZL5WCJGjWGK=YGV3f51d8yvD3ecx+JPURgpw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 1, 2022 at 11:51 PM Dylan Reid <dylan@rivosinc.com> wrote:
+On Wed, Jun 1, 2022 at 11:59 PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
 >
-> On Wed, Jun 01, 2022 at 09:47:32PM +0530, Anup Patel wrote:
+> On 6/1/22 18:17, Anup Patel wrote:
 > > Hi All,
 > >
 > > Below is the draft proposal for SBI Debug Console Extension.
@@ -34,28 +35,98 @@ On Wed, Jun 1, 2022 at 11:51 PM Dylan Reid <dylan@rivosinc.com> wrote:
 > > This extension replaces legacy console putchar (EID #0x01) extension
 > > and it is better in following ways:
 >
-> Thanks, it will be nice to drop putchar.
+> Thanks for starting to close this gap.
 >
 > > 1) It follows the new calling convention defined for SBI v1.0
-> >    (or higher).
+> >     (or higher).
 > > 2) It is based on a shared memory area between SBI implementation
-> >    and supervisor-mode software so multiple characters can be
-> >    printed using a single SBI call.
+> >     and supervisor-mode software so multiple characters can be
+> >     printed using a single SBI call.
+>
+> I miss a discussion of the conflicts that can arise if the configuration
+> of the serial console is changed by the caller.
+>
+> Do we need an ecall that closes the SBI console to further access?
+
+Usually, the serial port related code in M-mode firmware only uses
+status and data registers so for most serial ports support the M-mode
+firmware will adapt to serial port configuration changes.
+
+In fact, this is why we never had a special SBI call for serial port
+reconfiguration in legacy SBI v0.1 as well.
+
+In case of virtualization, the serial port (or console) is emulated so
+the special SBI call is not useful for virtualization.
+
+>
 > >
 > > The supervisor-mode software must set the shared memory area before
 > > printing characters on the debug console. Also, all HARTs share the
 > > same shared memory area so only one HART needs to set it at boot-time.
+>
+> Isn't it M-mode software that has to program the MMU to allow all harts
+> in M-mode and S-mode access to the memory area? What is the S-mode
+> software to do about the memory area prior to calling
+> sbi_debug_console_set_area()?
+
+Actually, it's the S-mode software which is voluntarily giving a portion of
+its memory to be used as shared memory. The proposal only mandates
+that whatever memory is selected by S-mode software should be a
+regular cacheable memory (not IO memory). Also, if Svpbmt is available
+then S-mode software should only use memory type 0 in the PTEs.
+
+>
 > >
 > > Function: Set Console Area (FID #0)
 > > -----------------------------------
 > >
 > > struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
-> >                                          unsigned long size)
+> >                                           unsigned long size)
+>
+> The console output is needed on the very start of the S-mode software,
+> before setting up anything.
+>
+> Can we avoid this extra function?
+>
+> Can we simply assume that the caller of sbi_debug_console_puts()
+> provides a physical address pointer to a memory area that is suitable?
+
+Theoretically, we can avoid the extra function to set shared memory area
+but it will complicate things in future when we have supervisor software
+encrypting it's own memory (using special ISA support) because in this
+case supervisor software will have to unprotect memory every time the
+sbi_debug_console_puts() is called and protect it again after the call.
+
+>
 > >
 > > Set the shared memory area specified by `addr_div_by_2` and `size`
+>
+> %s/addr_div_by_2/addr_div_by_4/
+
+Okay, I will update.
+
+>
 > > parameters. The `addr_div_by_4` parameter is base address of the
+>
+> %s/is base/is the base/
+
+Okay, I will update.
+
+>
 > > shared memory area right shifted by 2 whereas `size` parameter is
 > > the size of shared memory area in bytes.
+>
+> Why shifting the address? I would prefer to keep it simple for the
+> caller. If the alignment is not suitable, return an error.
+>
+> But why is an alignment needed here at all? And why 4 aligned?
+
+For RV32 S-mode, the physical address space is 34bits wide but
+"unsigned long" is 32bits wide. This is because Sv32 PTEs allow
+34bits of PPN. In fact, even instructions such as HFENCE.GVMA
+have this "address right shift by 2" requirement based on this rationale.
+
+>
 > >
 > > The shared memory area should be normal cacheable memory for the
 > > supervisor-mode software. Also, the shared memory area is global
@@ -65,52 +136,58 @@ On Wed, Jun 1, 2022 at 11:51 PM Dylan Reid <dylan@rivosinc.com> wrote:
 > > Errors:
 > > SBI_SUCCESS                - Shared memory area set successfully.
 > > SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
-> >                           `addr_div_by_2` and `size` parameters
-> >                           is not normal cacheable memory or not
-> >                           accessible to supervisor-mode software.
+> >                            `addr_div_by_2` and `size` parameters
+> >                            is not normal cacheable memory or not
+> >                            accessible to supervisor-mode software.
 > >
 > > Function: Console Puts (FID #1)
 > > -------------------------------
 > >
 > > struct sbiret sbi_debug_console_puts(unsigned long area_offset,
-> >                                      unsigned long num_chars)
+> >                                       unsigned long num_chars)
 >
-> What is the motivation for `area_offset`? Will the supervisor use
-> different offsets for different harts?
+> I would prefer to simply pass a physical address pointer here with no
+> requirements on alignment. And no prior SBI call.
+>
+> Do we need num_chars? Are we expecting to provide binary output? Using
+> 0x00 as terminator would be adequate in most cases.
 
-There are variety of ways in which supervisor software can use
-tarea_offset:
-1) Use lock to serialize access to shared memory and always
-use fixed offset (maybe zero) from all HARTs
-2) No lock to protect shared memory and instead each HART
-will use separate offsets to print
-
-In addition to above, bare-metal test code (or assembly sources)
-can have pre-populated strings (i.e. "PASS", "FAIL", "ERROR", etc)
-in shared memory and simply use different offsets to print different
-strings.
+Bare-metal tests (or assembly sources) can print sub-strings from
+a large per-populated string in shared memory. Assuming that string
+is always terminated by 0x00 in sbi_debug_console_puts() will break
+this flexibility.
 
 >
-> What are the advantages and disadvantages of the offset vs. using a ring
-> buffer for example?
+> What is the requirement on the console? Does it have to support 8bit
+> output to allow for UTF-8?
 
-Mandating a ring on shared memory will make things complicated
-for bare metal test code (or assembly sources). Also, there is no
-scheduler in M-mode firmware to have worker thread for consuming
-bytes from a ring.
+We need to clarify this. Suggestions ?
 
-The "area_offset" is relatively more flexible in this case because it
-allows sophisticated supervisor software to create ring on shared
-memory without the SBI implementation knowing about it where:
-1) The head & tail will be maintained by supervisor software
-2) supervisor software will have a consumer thread to consume
-bytes from ring and print using puts()
+>
+> Do we make any assumptions about encoding?
+
+Same as above, this needs more clarification. Suggestions ?
+
+I am of the opinion to keep such encoding related assumptions to be
+minimal.
+
+>
+> How would we handle a console set up to 7bit + parity if a character >
+> 0x7f is sent?
+
+I would consider this to be part of the clarification we add for encoding.
 
 >
 > >
 > > Print the string specified by `area_offset` and `num_chars` on
 > > the debug console. The `area_offset` parameter is the start of
 > > string in the shard memory area whereas `num_chars` parameter
+>
+> %s/shard/shared/
+
+Okay, I will update.
+
+>
 > > is the number of characters (or bytes) in the string.
 > >
 > > This is a blocking SBI call and will only return after printing
@@ -119,25 +196,24 @@ bytes from ring and print using puts()
 > > Errors:
 > > SBI_SUCCESS                - Characters printed successfully.
 > > SBI_ERR_INVALID_ADDRESS    - The start of the string (i.e.
-> >                           `area_offset`) or end of the string
-> >                           (i.e. `area_offset + num_chars`) is
-> >                           outside shared memory area.
-> >
-> >
-> >
-> >
-> >
+> >                            `area_offset`) or end of the string
+> >                            (i.e. `area_offset + num_chars`) is
+> >                            outside shared memory area.
 >
+> There could be other reasons of failures:
 >
-> -=-=-=-=-=-=-=-=-=-=-=-
-> Links: You receive all messages sent to this group.
-> View/Reply Online (#1709): https://lists.riscv.org/g/tech-unixplatformspec/message/1709
-> Mute This Topic: https://lists.riscv.org/mt/91482999/1774265
-> Group Owner: tech-unixplatformspec+owner at lists.riscv.org
-> Unsubscribe: https://lists.riscv.org/g/tech-unixplatformspec/unsub [apatel at ventanamicro.com]
-> -=-=-=-=-=-=-=-=-=-=-=-
+> * set up of the UART failed in OpenSBI
+> * no UART defined in the device-tree
+> * ...
 >
+> So let us add SBI_ERR_FAILED to the list.
+
+Okay, I will add.
+
 >
+> Best regards
+>
+> Heinrich
 
 Regards,
 Anup
