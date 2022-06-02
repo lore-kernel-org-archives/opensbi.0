@@ -1,9 +1,9 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 02 Jun 2022 11:43:43 +0800
+Date: Thu, 02 Jun 2022 12:37:46 +0800
 Subject: SBI Debug Console Extension Proposal (Draft v1)
 In-Reply-To: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
 References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
-Message-ID: <d40d2aafa18951be1021f7385d9e17614848d5a6.camel@126.com>
+Message-ID: <7a73635aff9396daa96f38fa48466bc4adbc9f1c.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -19,15 +19,6 @@ Content-Transfer-Encoding: 7bit
 > 
 > Thanks,
 > Anup
-The use of these two APIs is too complicated, and the supervisor-mode
-software needs to create a data structure to manage the Console Area.
-I recommend using the simpler interface:
-
-struct sbiret sbi_debug_console_puts(unsigned long addr,
-                                     unsigned long num_chars)
-
-Regards,
-Xiang W
 > 
 > Debug Console Extension (EID #0x4442434E "DBCN")
 > ================================================
@@ -71,6 +62,21 @@ Xiang W
 > ????????????????????????? is not normal cacheable memory or not
 > ????????????????????????? accessible to supervisor-mode software.
 > 
+
+Shared memory can be a single extension. The three interfaces are as follows
+
+/* The supervisor hands a piece of physical memory to sbi for shared memory */
+struct sbiret sbi_shared_memory_extrend(unsigned long addr, unsigned long size);
+
+
+/* The supervisor applies for a piece of physical memory from sbi */
+struct sbiret sbi_shared_memory_alloc(unsigned long size);
+
+
+/* The supervisor notifies sbi to release the requested memory */
+struct sbiret sbi_shared_memory_free(unsigned long addr);
+
+
 > Function: Console Puts (FID #1)
 > -------------------------------
 > 
