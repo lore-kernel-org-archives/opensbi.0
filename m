@@ -1,18 +1,16 @@
-From: Heiko Stübner <heiko@sntech.de>
-Date: Wed, 01 Jun 2022 20:32:51 +0200
+From: Xiang W <wxjstz@126.com>
+Date: Thu, 02 Jun 2022 11:43:43 +0800
 Subject: SBI Debug Console Extension Proposal (Draft v1)
 In-Reply-To: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
 References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
-Message-ID: <5286636.29KlJPOoH8@diego>
+Message-ID: <d40d2aafa18951be1021f7385d9e17614848d5a6.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
-
-Am Mittwoch, 1. Juni 2022, 18:17:32 CEST schrieb Anup Patel:
+? 2022-06-01???? 21:47 +0530?Anup Patel???
 > Hi All,
 > 
 > Below is the draft proposal for SBI Debug Console Extension.
@@ -21,6 +19,15 @@ Am Mittwoch, 1. Juni 2022, 18:17:32 CEST schrieb Anup Patel:
 > 
 > Thanks,
 > Anup
+The use of these two APIs is too complicated, and the supervisor-mode
+software needs to create a data structure to manage the Console Area.
+I recommend using the simpler interface:
+
+struct sbiret sbi_debug_console_puts(unsigned long addr,
+                                     unsigned long num_chars)
+
+Regards,
+Xiang W
 > 
 > Debug Console Extension (EID #0x4442434E "DBCN")
 > ================================================
@@ -32,10 +39,10 @@ Am Mittwoch, 1. Juni 2022, 18:17:32 CEST schrieb Anup Patel:
 > This extension replaces legacy console putchar (EID #0x01) extension
 > and it is better in following ways:
 > 1) It follows the new calling convention defined for SBI v1.0
->    (or higher).
+> ?? (or higher).
 > 2) It is based on a shared memory area between SBI implementation
->    and supervisor-mode software so multiple characters can be
->    printed using a single SBI call.
+> ?? and supervisor-mode software so multiple characters can be
+> ?? printed using a single SBI call.
 > 
 > The supervisor-mode software must set the shared memory area before
 > printing characters on the debug console. Also, all HARTs share the
@@ -45,13 +52,9 @@ Am Mittwoch, 1. Juni 2022, 18:17:32 CEST schrieb Anup Patel:
 > -----------------------------------
 > 
 > struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
->                                          unsigned long size)
+> ???????????????????????????????????????? unsigned long size)
 > 
 > Set the shared memory area specified by `addr_div_by_2` and `size`
-
-typo in the "div_by_2" (not 4 like below and in the function itself) ?
-
-
 > parameters. The `addr_div_by_4` parameter is base address of the
 > shared memory area right shifted by 2 whereas `size` parameter is
 > the size of shared memory area in bytes.
@@ -62,17 +65,17 @@ typo in the "div_by_2" (not 4 like below and in the function itself) ?
 > setting the shared memory area.
 > 
 > Errors:
-> SBI_SUCCESS                - Shared memory area set successfully.
+> SBI_SUCCESS??????????????? - Shared memory area set successfully.
 > SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
->                           `addr_div_by_2` and `size` parameters
->                           is not normal cacheable memory or not
->                           accessible to supervisor-mode software.
+> ????????????????????????? `addr_div_by_2` and `size` parameters
+> ????????????????????????? is not normal cacheable memory or not
+> ????????????????????????? accessible to supervisor-mode software.
 > 
 > Function: Console Puts (FID #1)
 > -------------------------------
 > 
 > struct sbiret sbi_debug_console_puts(unsigned long area_offset,
->                                      unsigned long num_chars)
+> ???????????????????????????????????? unsigned long num_chars)
 > 
 > Print the string specified by `area_offset` and `num_chars` on
 > the debug console. The `area_offset` parameter is the start of
@@ -83,43 +86,12 @@ typo in the "div_by_2" (not 4 like below and in the function itself) ?
 > all characters of the string.
 > 
 > Errors:
-> SBI_SUCCESS                - Characters printed successfully.
-> SBI_ERR_INVALID_ADDRESS    - The start of the string (i.e.
->                           `area_offset`) or end of the string
->                           (i.e. `area_offset + num_chars`) is
->                           outside shared memory area.
-
-This will vastly reduce the number of needed ecalls when outputting
-characters, so this will probably improve performance quite a bit :-)
-
-
-I guess I still would like to have an _additional_ single-character
-putc call. As mentioned in the other thread [0], especially on consumer
-hardware [where there is no elaborate debug infrastructure] this can
-be a very handy debugging tool even in the earliest stages of a
-booting kernel (both before relocation and even inside the startup
-assembly).
-
-I.e. just doing a
-	li a7, 1
-	li a6, 0
-	li a0, 36
-	ecall
-
-in any kernel assembly will just output a "$" character right now, without
-needing any preparation at all - same with using the current 
-sbi_console_putchar() directly in c-code.
-
-This _can_ be very helpful in some cases, so I guess it would be nice
-to keep such a functionality around also in the new spec.
-
-
-Thanks
-Heiko
-
-
-[0] http://lists.infradead.org/pipermail/opensbi/2022-June/002796.html
-
+> SBI_SUCCESS??????????????? - Characters printed successfully.
+> SBI_ERR_INVALID_ADDRESS??? - The start of the string (i.e.
+> ????????????????????????? `area_offset`) or end of the string
+> ????????????????????????? (i.e. `area_offset + num_chars`) is
+> ????????????????????????? outside shared memory area.
+> 
 
 
 
