@@ -1,123 +1,170 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 2 Jun 2022 18:02:54 +0530
+Date: Thu, 2 Jun 2022 18:13:17 +0530
 Subject: SBI Debug Console Extension Proposal (Draft v1)
-In-Reply-To: <7a73635aff9396daa96f38fa48466bc4adbc9f1c.camel@126.com>
+In-Reply-To: <3070891.fEcJ0Lxnt5@diego>
 References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
- <7a73635aff9396daa96f38fa48466bc4adbc9f1c.camel@126.com>
-Message-ID: <CAK9=C2XtKOyrjRFm7kmhamK=0Vv+NDQwr09kEUuzXs==zEaGMQ@mail.gmail.com>
+ <CAK9=C2XXu9JpdsTLFiamQkgj_P6titwAohPdgwWUCm-xN8A2kw@mail.gmail.com>
+ <5091667.6fTUFtlzNn@diego> <3070891.fEcJ0Lxnt5@diego>
+Message-ID: <CAK9=C2WETO-XJxTg1_jCLWaxkMJ8ubKkpeg3xKNnUvtJicrjyA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 2, 2022 at 10:08 AM Xiang W <wxjstz@126.com> wrote:
+On Thu, Jun 2, 2022 at 2:58 PM Heiko St?bner <heiko@sntech.de> wrote:
 >
-> ? 2022-06-01???? 21:47 +0530?Anup Patel???
-> > Hi All,
+> Am Donnerstag, 2. Juni 2022, 10:50:56 CEST schrieb Heiko St?bner:
+> > Am Donnerstag, 2. Juni 2022, 10:47:58 CEST schrieb Anup Patel:
+> > > On Thu, Jun 2, 2022 at 12:02 AM Heiko St?bner <heiko@sntech.de> wrote:
+> > > >
+> > > > Hi Anup,
+> > > >
+> > > > Am Mittwoch, 1. Juni 2022, 18:17:32 CEST schrieb Anup Patel:
+> > > > > Hi All,
+> > > > >
+> > > > > Below is the draft proposal for SBI Debug Console Extension.
+> > > > >
+> > > > > Please review it and provide feedback.
+> > > > >
+> > > > > Thanks,
+> > > > > Anup
+> > > > >
+> > > > > Debug Console Extension (EID #0x4442434E "DBCN")
+> > > > > ================================================
+> > > > >
+> > > > > The debug console extension defines a generic mechanism for boot-time
+> > > > > early prints from supervisor-mode software which allows users to catch
+> > > > > boot-time issues in supervisor-mode software.
+> > > > >
+> > > > > This extension replaces legacy console putchar (EID #0x01) extension
+> > > > > and it is better in following ways:
+> > > > > 1) It follows the new calling convention defined for SBI v1.0
+> > > > >    (or higher).
+> > > > > 2) It is based on a shared memory area between SBI implementation
+> > > > >    and supervisor-mode software so multiple characters can be
+> > > > >    printed using a single SBI call.
+> > > > >
+> > > > > The supervisor-mode software must set the shared memory area before
+> > > > > printing characters on the debug console. Also, all HARTs share the
+> > > > > same shared memory area so only one HART needs to set it at boot-time.
+> > > > >
+> > > > > Function: Set Console Area (FID #0)
+> > > > > -----------------------------------
+> > > > >
+> > > > > struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
+> > > > >                                          unsigned long size)
+> > > > >
+> > > > > Set the shared memory area specified by `addr_div_by_2` and `size`
+> > > >
+> > > > typo in the "div_by_2" (not 4 like below and in the function itself) ?
+> > > >
+> > > >
+> > > > > parameters. The `addr_div_by_4` parameter is base address of the
+> > > > > shared memory area right shifted by 2 whereas `size` parameter is
+> > > > > the size of shared memory area in bytes.
+> > > > >
+> > > > > The shared memory area should be normal cacheable memory for the
+> > > > > supervisor-mode software. Also, the shared memory area is global
+> > > > > across all HARTs so SBI implementation must ensure atomicity in
+> > > > > setting the shared memory area.
+> > > > >
+> > > > > Errors:
+> > > > > SBI_SUCCESS                - Shared memory area set successfully.
+> > > > > SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
+> > > > >                           `addr_div_by_2` and `size` parameters
+> > > > >                           is not normal cacheable memory or not
+> > > > >                           accessible to supervisor-mode software.
+> > > > >
+> > > > > Function: Console Puts (FID #1)
+> > > > > -------------------------------
+> > > > >
+> > > > > struct sbiret sbi_debug_console_puts(unsigned long area_offset,
+> > > > >                                      unsigned long num_chars)
+> > > > >
+> > > > > Print the string specified by `area_offset` and `num_chars` on
+> > > > > the debug console. The `area_offset` parameter is the start of
+> > > > > string in the shard memory area whereas `num_chars` parameter
+> > > > > is the number of characters (or bytes) in the string.
+> > > > >
+> > > > > This is a blocking SBI call and will only return after printing
+> > > > > all characters of the string.
+> > > > >
+> > > > > Errors:
+> > > > > SBI_SUCCESS                - Characters printed successfully.
+> > > > > SBI_ERR_INVALID_ADDRESS    - The start of the string (i.e.
+> > > > >                           `area_offset`) or end of the string
+> > > > >                           (i.e. `area_offset + num_chars`) is
+> > > > >                           outside shared memory area.
+> > > >
+> > > > This will vastly reduce the number of needed ecalls when outputting
+> > > > characters, so this will probably improve performance quite a bit :-)
+> > > >
+> > > >
+> > > > I guess I still would like to have an _additional_ single-character
+> > > > putc call. As mentioned in the other thread [0], especially on consumer
+> > > > hardware [where there is no elaborate debug infrastructure] this can
+> > > > be a very handy debugging tool even in the earliest stages of a
+> > > > booting kernel (both before relocation and even inside the startup
+> > > > assembly).
+> > > >
+> > > > I.e. just doing a
+> > > >         li a7, 1
+> > > >         li a6, 0
+> > > >         li a0, 36
+> > > >         ecall
+> > > >
+> > > > in any kernel assembly will just output a "$" character right now, without
+> > > > needing any preparation at all - same with using the current
+> > > > sbi_console_putchar() directly in c-code.
+> > > >
+> > > > This _can_ be very helpful in some cases, so I guess it would be nice
+> > > > to keep such a functionality around also in the new spec.
+> > >
+> > > You can easily create multiple pre-populated strings using ".asciiz" in
+> > > assembly sources. Just set the base address of pre-populated strings
+> > > once on boot hart and print from anywhere using usual 4-5 instruction
+> > > (similar to what posted above).
 > >
-> > Below is the draft proposal for SBI Debug Console Extension.
-> >
-> > Please review it and provide feedback.
-> >
-> > Thanks,
-> > Anup
-> >
-> > Debug Console Extension (EID #0x4442434E "DBCN")
-> > ================================================
-> >
-> > The debug console extension defines a generic mechanism for boot-time
-> > early prints from supervisor-mode software which allows users to catch
-> > boot-time issues in supervisor-mode software.
-> >
-> > This extension replaces legacy console putchar (EID #0x01) extension
-> > and it is better in following ways:
-> > 1) It follows the new calling convention defined for SBI v1.0
-> >    (or higher).
-> > 2) It is based on a shared memory area between SBI implementation
-> >    and supervisor-mode software so multiple characters can be
-> >    printed using a single SBI call.
-> >
-> > The supervisor-mode software must set the shared memory area before
-> > printing characters on the debug console. Also, all HARTs share the
-> > same shared memory area so only one HART needs to set it at boot-time.
-> >
-> > Function: Set Console Area (FID #0)
-> > -----------------------------------
-> >
-> > struct sbiret sbi_debug_console_set_area(unsigned long addr_div_by_4,
-> >                                          unsigned long size)
-> >
-> > Set the shared memory area specified by `addr_div_by_2` and `size`
-> > parameters. The `addr_div_by_4` parameter is base address of the
-> > shared memory area right shifted by 2 whereas `size` parameter is
-> > the size of shared memory area in bytes.
-> >
-> > The shared memory area should be normal cacheable memory for the
-> > supervisor-mode software. Also, the shared memory area is global
-> > across all HARTs so SBI implementation must ensure atomicity in
-> > setting the shared memory area.
-> >
-> > Errors:
-> > SBI_SUCCESS                - Shared memory area set successfully.
-> > SBI_ERR_INVALID_ADDRESS - The shared memory area pointed by
-> >                           `addr_div_by_2` and `size` parameters
-> >                           is not normal cacheable memory or not
-> >                           accessible to supervisor-mode software.
-> >
+> > ok, sounds like a plan as well :-)
 >
-> Shared memory can be a single extension. The three interfaces are as follows
+> though, how does that relate to the time before MMU setup?
 >
-> /* The supervisor hands a piece of physical memory to sbi for shared memory */
-> struct sbiret sbi_shared_memory_extrend(unsigned long addr, unsigned long size);
->
->
-> /* The supervisor applies for a piece of physical memory from sbi */
-> struct sbiret sbi_shared_memory_alloc(unsigned long size);
->
->
-> /* The supervisor notifies sbi to release the requested memory */
-> struct sbiret sbi_shared_memory_free(unsigned long addr);
+> I.e. in response to Heinrich's mail you talk about svpbmt, so I guess you
+> expect virtual memory there, so what is the expected value-type before
+> the mmu is setup in S-mode ?
 
-Clearly, if we have a separate SBI extension to manage shared memory
-then we will end-up with such memory management calls. Memory allocators
-are generally hard to get it right and this also adds lot of bookkeeping and
-state management in SBI implementations (e.g. OpenSBI, KVM RISC-V,
-and various hypervisors).
+The memory type should be 0 (i.e. PMA) for the shared memory between
+SBI implementation and supervisor software. Before MMU setup, the
+memory type is by default 0 (i.e. PMA) so we don't have to mandate
+any memory type for MMU disabled case.
 
-Further, some of the SBI extensions (such as Steal Time Accounting) will
-have separate shared memory for each HART whereas some (such as
-Debug Console) will have global shared memory for all HARTs.
+We only have issue on systems with Svpmbt where supervisor software
+can potentially map the shared memory as non-cacheable or IO (memory
+type != 0) using PTE memory type bits.
 
-For clean and modular SBI implementations, I would recommend that
-each SBI extension define its own shared memory setup API.
+In addition to above, a SBI implementation must ensure that the shared
+memory address provided by supervisor software is a regular memory
+(not MMIO device). This can be easily achieved in OpenSBI, KVM RISC-V,
+and various hypervisors.
 
 Regards,
 Anup
 
 >
 >
-> > Function: Console Puts (FID #1)
-> > -------------------------------
+> > > > [0] http://lists.infradead.org/pipermail/opensbi/2022-June/002796.html
+> > > >
+> > > >
+> > > >
+> > >
+> > > Regards,
+> > > Anup
+> > >
 > >
-> > struct sbiret sbi_debug_console_puts(unsigned long area_offset,
-> >                                      unsigned long num_chars)
 > >
-> > Print the string specified by `area_offset` and `num_chars` on
-> > the debug console. The `area_offset` parameter is the start of
-> > string in the shard memory area whereas `num_chars` parameter
-> > is the number of characters (or bytes) in the string.
-> >
-> > This is a blocking SBI call and will only return after printing
-> > all characters of the string.
-> >
-> > Errors:
-> > SBI_SUCCESS                - Characters printed successfully.
-> > SBI_ERR_INVALID_ADDRESS    - The start of the string (i.e.
-> >                           `area_offset`) or end of the string
-> >                           (i.e. `area_offset + num_chars`) is
-> >                           outside shared memory area.
-> >
+>
+>
 >
 >
 
