@@ -1,74 +1,47 @@
-From: Schwarz, Konrad <konrad.schwarz@siemens.com>
-Date: Sun, 5 Jun 2022 14:56:17 +0000
-Subject: [sig-hypervisors] [RISC-V] [tech-unixplatformspec] SBI Debug
- Console Extension Proposal (Draft v1)
-In-Reply-To: <bd57d6943d48cf9c7615ec1c043a323474e479ff.camel@wdc.com>
+From: Darius Rad <darius@bluespec.com>
+Date: Mon, 6 Jun 2022 06:50:02 -0400
+Subject: [RISC-V] [tech-unixplatformspec] SBI Debug Console Extension
+ Proposal (Draft v1)
+In-Reply-To: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
 References: <CAK9=C2UpWA1x6DT8jo8hxvsnPJVLPAUMDTzhY5bYayAENVHdDg@mail.gmail.com>
-	 <CAK9=C2XXu9JpdsTLFiamQkgj_P6titwAohPdgwWUCm-xN8A2kw@mail.gmail.com>
-	 <5091667.6fTUFtlzNn@diego> <3070891.fEcJ0Lxnt5@diego>
-	 <CAK9=C2WETO-XJxTg1_jCLWaxkMJ8ubKkpeg3xKNnUvtJicrjyA@mail.gmail.com>
-	 <CAG5apL1PfuCoYOVChaXO2wp93RnUifuxQZq1xebpNvH=BnXxrA@mail.gmail.com>
-	 <CAK9=C2XB3wBu0agiCfKZzN57waK6-0sq1emjwb2DG5m9V634xw@mail.gmail.com>
-	 <YpjQkMhoKuoCj/Do@ved-XPS-8940>
-	 <alpine.DEB.2.22.394.2206021240390.2783803@ubuntu-linux-20-04-desktop>
-	 <YpkXHYwhz8efa6ON@ved-XPS-8940>
-	 <alpine.DEB.2.22.394.2206021327250.2783803@ubuntu-linux-20-04-desktop>
-	 <CA+Qh7TnDUN4kBKJqkeSQoypTm71Sz8QhzqMSE9xVDrre_gGt8w@mail.gmail.com>
-	 <alpine.DEB.2.22.394.2206021354290.2783803@ubuntu-linux-20-04-desktop>
-	 <CAK9=C2XbTQysZghPa393A7R=y8OhD2Hyg_4iqxNsgJBAGj4O7Q@mail.gmail.com>
-	 <2f93033e0b07411e92384c00722eb742@siemens.com>
- <bd57d6943d48cf9c7615ec1c043a323474e479ff.camel@wdc.com>
-Message-ID: <d38afd171c164548a4f66e85fa1b9e50@siemens.com>
+Message-ID: <Yp3b2pjG/CgLV2Za@bruce.bluespec.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-
-> -----Original Message-----
-> From: Alistair Francis <Alistair.Francis@wdc.com>
-> Sent: Friday, June 3, 2022 10:47
-> > Consider the case where we have more VMs than physical UARTs -- this
-> > will actually be the norm in most deployments.
+On Wed, Jun 01, 2022 at 09:47:32PM +0530, Anup Patel wrote:
 > 
-> In this case you should use virtIO or some other more powerful
-> interface
+> Debug Console Extension (EID #0x4442434E "DBCN")
+> ================================================
 > 
-> >
-> > (To counter the argument that the hypervisor can provide virtual
-> > UARTs
-> > for its guests, note that a dedicated para-virtualized interface is
-> > much more
-> > efficient than trapping individual memory accesses to simulated HW
-> > registers).
+> The debug console extension defines a generic mechanism for boot-time
+> early prints from supervisor-mode software which allows users to catch
+> boot-time issues in supervisor-mode software.
 > 
-> Agreed, but tha seems up to the Hypervisor to implement an effient
-> virtual UART implementation. For example the Xen HYPERVISOR_console_io
-> that Stefano mentioned earlier. Plus then we can leverage existing
-> implementations insted of inveting a another virtual serial device.
-
-But this makes it incumbent on each hypervisor to provide such an
-interface, and requires each OS to provide drivers for each
-hypervisor it knows about.  You then have an N:M situation,
-which is bad for the RISC-V platform.
-
-> > By making the interface a bit richer, as discussed in my earlier
-> > proposal,
-> > a hypervisor can cover a much larger set of use cases.
+> This extension replaces legacy console putchar (EID #0x01) extension
+> and it is better in following ways:
+> 1) It follows the new calling convention defined for SBI v1.0
+>    (or higher).
+> 2) It is based on a shared memory area between SBI implementation
+>    and supervisor-mode software so multiple characters can be
+>    printed using a single SBI call.
 > 
-> Which we also then need to support in M-mode firmware. The more complex
-> the firmware becomes the more exposed it is.
+> The supervisor-mode software must set the shared memory area before
+> printing characters on the debug console. Also, all HARTs share the
+> same shared memory area so only one HART needs to set it at boot-time.
+> 
 
-The same argument applies to hypervisors. What fundamental difference
-between M-mode and HS-mode software is there that makes the risk
-so much different?
+It seems to me that the rationale and summary of the extension is
+insufficient, and non-normative commentary is lacking.  The ensuing mailing
+list discussion suggests that there are additional requirements and
+assumptions that influenced the design of the interface, but are not
+mentioned here.  It is important to document such information, in order to
+have a constructive discussion now, and also to preserve such information
+for readers in the future who may not have the benefit of reading the
+mailing list discussions.
 
-An implementation wishing to minimize its responsibilities can
-always return run-time errors for functionality it does not
-wish to support.
+// darius
 
--- 
-Konrad
+
