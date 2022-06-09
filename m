@@ -1,38 +1,54 @@
 From: dramforever <dramforever@live.com>
-Date: Thu,  9 Jun 2022 15:06:29 +0800
-Subject: [PATCH 0/3] Fixes for tval/tinst when using sbi_trap_redirect()
-Message-ID: <TYYP286MB1439F38753D033042F83C8E0C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Date: Thu,  9 Jun 2022 15:07:29 +0800
+Subject: [PATCH 1/3] include: sbi: Add mtinst/htinst psuedoinstructions
+In-Reply-To: <TYYP286MB1439F38753D033042F83C8E0C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB1439F38753D033042F83C8E0C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <TYYP286MB14399472C06DD67BB8C55351C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I went through usages of sbi_trap_redirect() and saw some cases where
-after redirecting, stval/htinst could be set to incorrect values. I
-tried fixing what I noticed.
+Add psuedoinstruction encodings written to mtinst/htinst for faults
+caused by implicit memory access for VS-stage address translation
 
-Note that these patches are *UNTESTED*.
+Signed-off-by: dramforever <dramforever@live.com>
+---
+ include/sbi/riscv_encoding.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-- For the htinst fixes, no current implementation (QEMU or Spike) of the
-  hypervisor extension writes mtinst/htinst to non-zero values, so the
-  code paths are unused.
-- The sbi_get_insn() fix requires a rare occasion where the instruction
-  is fetched normally then unmapped from memory before OpenSBI can load
-  it again, and I have not been reproduce.
-
-Please bear in mind when reviewing.
-
-dramforever (3):
-  include: sbi: Add mtinst/htinst psuedoinstructions
-  lib: sbi: Fixup tinst for exceptions in sbi_misaligned_*()
-  lib: sbi: Fix tval and tinst for sbi_get_insn()
-
- include/sbi/riscv_encoding.h  | 20 ++++++++++++++++++++
- lib/sbi/sbi_misaligned_ldst.c | 16 ++++++++++++++++
- lib/sbi/sbi_unpriv.c          |  8 +++++---
- 3 files changed, 41 insertions(+), 3 deletions(-)
-
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index a164768..2292858 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -841,6 +841,26 @@
+ #define INSN_MASK_FENCE_TSO		0xffffffff
+ #define INSN_MATCH_FENCE_TSO		0x8330000f
+ 
++#if __riscv_xlen == 64
++
++/* 64-bit read for VS-stage address translation (RV64) */
++#define INSN_PSEUDO_VS_LOAD		0x00003000
++
++/* 64-bit write for VS-stage address translation (RV64) */
++#define INSN_PSEUDO_VS_STORE	0x00003020
++
++#elif __riscv_xlen == 32
++
++/* 32-bit read for VS-stage address translation (RV32) */
++#define INSN_PSEUDO_VS_LOAD		0x00002000
++
++/* 32-bit write for VS-stage address translation (RV32) */
++#define INSN_PSEUDO_VS_STORE	0x00002020
++
++#else
++#error "Unexpected __riscv_xlen"
++#endif
++
+ #define INSN_16BIT_MASK			0x3
+ #define INSN_32BIT_MASK			0x1c
+ 
 -- 
 2.36.0
 
