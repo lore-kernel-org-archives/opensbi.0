@@ -1,28 +1,91 @@
-From: dram <dramforever@live.com>
-Date: Thu, 9 Jun 2022 20:06:13 +0800
-Subject: [PATCH 0/3] Fixes for tval/tinst when using sbi_trap_redirect()
-In-Reply-To: <CAK9=C2Uk=e4Hv=_VwWL9k0S=aNj450R=JNQUx-wbwFDwHS3heg@mail.gmail.com>
-References: <TYYP286MB1439F38753D033042F83C8E0C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <CAK9=C2Uk=e4Hv=_VwWL9k0S=aNj450R=JNQUx-wbwFDwHS3heg@mail.gmail.com>
-Message-ID: <TYYP286MB1439D89DE7AF6803C451904FC6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+From: Mayuresh Chitale <mchitale@ventanamicro.com>
+Date: Fri, 10 Jun 2022 10:19:20 +0530
+Subject: [PATCH] platform: generic: add overrides for vendor extensions
+Message-ID: <20220610044920.547047-1-mchitale@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Allow the vendor_ext_check and vendor_ext_provider APIs of the
+generic platform to be overridden by other platforms
 
->> Note that these patches are *UNTESTED*.
->>
->> - For the htinst fixes, no current implementation (QEMU or Spike) of the
->>   hypervisor extension writes mtinst/htinst to non-zero values, so the
->>   code paths are unused.
-> Can you test this series with QEMU nested virtualization fixes which
-> include mtinst/htinst emulation ?
-> https://lore.kernel.org/all/20220609033011.752714-1-apatel at ventanamicro.com/
-I just realized that QEMU does not raise misaligned exceptions, so even with
-these patches we still couldn't test the sbi_misaligned_*() patch. Do you have
-suggestions on how we can test misaligned load/store emulation?
+Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+---
+ platform/generic/include/platform_override.h |  7 ++++++
+ platform/generic/platform.c                  | 25 ++++++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index 4af8754..e55da25 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -11,6 +11,7 @@
+ #define __PLATFORM_OVERRIDE_H__
+ 
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_trap.h>
+ 
+ struct platform_override {
+ 	const struct fdt_match *match_table;
+@@ -21,6 +22,12 @@ struct platform_override {
+ 	void (*early_exit)(const struct fdt_match *match);
+ 	void (*final_exit)(const struct fdt_match *match);
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
++	int (*vendor_ext_check)(long extid, const struct fdt_match *match);
++	int (*vendor_ext_provider)(long extid, long funcid,
++				   const struct sbi_trap_regs *regs,
++				   unsigned long *out_value,
++				   struct sbi_trap_info *out_trap,
++				   const struct fdt_match *match);
+ };
+ 
+ #endif
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 7651273..bf93af6 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -168,6 +168,29 @@ static int generic_final_init(bool cold_boot)
+ 	return 0;
+ }
+ 
++static int generic_vendor_ext_check(long extid)
++{
++	if (generic_plat && generic_plat->vendor_ext_check)
++		return generic_plat->vendor_ext_check(extid,
++						      generic_plat_match);
++
++	return 0;
++}
++
++static int generic_vendor_ext_provider(long extid, long funcid,
++				       const struct sbi_trap_regs *regs,
++				       unsigned long *out_value,
++				       struct sbi_trap_info *out_trap)
++{
++	if (generic_plat && generic_plat->vendor_ext_provider) {
++		return generic_plat->vendor_ext_provider(extid, funcid, regs,
++							 out_value, out_trap,
++							 generic_plat_match);
++	}
++
++	return SBI_ENOTSUPP;
++}
++
+ static void generic_early_exit(void)
+ {
+ 	if (generic_plat && generic_plat->early_exit)
+@@ -236,6 +259,8 @@ const struct sbi_platform_operations platform_ops = {
+ 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
+ 	.timer_init		= fdt_timer_init,
+ 	.timer_exit		= fdt_timer_exit,
++	.vendor_ext_check	= generic_vendor_ext_check,
++	.vendor_ext_provider	= generic_vendor_ext_provider,
+ };
+ 
+ struct sbi_platform platform = {
+-- 
+2.25.1
 
 
