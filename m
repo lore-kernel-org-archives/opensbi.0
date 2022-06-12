@@ -1,91 +1,75 @@
-From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Fri, 10 Jun 2022 10:19:20 +0530
-Subject: [PATCH] platform: generic: add overrides for vendor extensions
-Message-ID: <20220610044920.547047-1-mchitale@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sun, 12 Jun 2022 09:53:29 +0530
+Subject: [RFC PATCH v2 8/9] lib: utils/irqchip: Add wrapper for T-HEAD
+ PLIC delegation
+In-Reply-To: <20220530033738.27127-9-samuel@sholland.org>
+References: <20220530033738.27127-1-samuel@sholland.org> <20220530033738.27127-9-samuel@sholland.org>
+Message-ID: <CAAhSdy0RDhK6G8AsSVaU5kQULVdc1Zcf0HJ9WmRii_iCSydAHQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Allow the vendor_ext_check and vendor_ext_provider APIs of the
-generic platform to be overridden by other platforms
+On Mon, May 30, 2022 at 9:07 AM Samuel Holland <samuel@sholland.org> wrote:
+>
+> The delegation bit is lost along with the rest of the PLIC state when
+> the CPU power domain in the Allwinner D1 is powered down, so the PLIC
+> needs to be re-delegated to S-mode during the hart resume path.
+>
+> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> ---
 
-Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
----
- platform/generic/include/platform_override.h |  7 ++++++
- platform/generic/platform.c                  | 25 ++++++++++++++++++++
- 2 files changed, 32 insertions(+)
+Looks good to me.
 
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 4af8754..e55da25 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -11,6 +11,7 @@
- #define __PLATFORM_OVERRIDE_H__
- 
- #include <sbi/sbi_types.h>
-+#include <sbi/sbi_trap.h>
- 
- struct platform_override {
- 	const struct fdt_match *match_table;
-@@ -21,6 +22,12 @@ struct platform_override {
- 	void (*early_exit)(const struct fdt_match *match);
- 	void (*final_exit)(const struct fdt_match *match);
- 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
-+	int (*vendor_ext_check)(long extid, const struct fdt_match *match);
-+	int (*vendor_ext_provider)(long extid, long funcid,
-+				   const struct sbi_trap_regs *regs,
-+				   unsigned long *out_value,
-+				   struct sbi_trap_info *out_trap,
-+				   const struct fdt_match *match);
- };
- 
- #endif
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 7651273..bf93af6 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -168,6 +168,29 @@ static int generic_final_init(bool cold_boot)
- 	return 0;
- }
- 
-+static int generic_vendor_ext_check(long extid)
-+{
-+	if (generic_plat && generic_plat->vendor_ext_check)
-+		return generic_plat->vendor_ext_check(extid,
-+						      generic_plat_match);
-+
-+	return 0;
-+}
-+
-+static int generic_vendor_ext_provider(long extid, long funcid,
-+				       const struct sbi_trap_regs *regs,
-+				       unsigned long *out_value,
-+				       struct sbi_trap_info *out_trap)
-+{
-+	if (generic_plat && generic_plat->vendor_ext_provider) {
-+		return generic_plat->vendor_ext_provider(extid, funcid, regs,
-+							 out_value, out_trap,
-+							 generic_plat_match);
-+	}
-+
-+	return SBI_ENOTSUPP;
-+}
-+
- static void generic_early_exit(void)
- {
- 	if (generic_plat && generic_plat->early_exit)
-@@ -236,6 +259,8 @@ const struct sbi_platform_operations platform_ops = {
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
- 	.timer_init		= fdt_timer_init,
- 	.timer_exit		= fdt_timer_exit,
-+	.vendor_ext_check	= generic_vendor_ext_check,
-+	.vendor_ext_provider	= generic_vendor_ext_provider,
- };
- 
- struct sbi_platform platform = {
--- 
-2.25.1
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Regards,
+Anup
+
+>
+> Changes in v2:
+>  - New patch for v2
+>
+>  include/sbi_utils/irqchip/fdt_irqchip_plic.h | 2 ++
+>  lib/utils/irqchip/fdt_irqchip_plic.c         | 7 +++++++
+>  2 files changed, 9 insertions(+)
+>
+> diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> index 66650a2..d1ab5bd 100644
+> --- a/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> +++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> @@ -17,4 +17,6 @@ void irqchip_plic_context_save(u32 *enable, u32 *threshold);
+>
+>  void irqchip_plic_context_restore(const u32 *enable, u32 threshold);
+>
+> +void thead_plic_restore(void);
+> +
+>  #endif
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index 37090d3..5589863 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -151,6 +151,13 @@ static void thead_plic_plat_init(struct plic_data *pd)
+>         writel_relaxed(BIT(0), (char *)pd->addr + THEAD_PLIC_CTRL_REG);
+>  }
+>
+> +void thead_plic_restore(void)
+> +{
+> +       struct plic_data *plic = plic_hartid2data[current_hartid()];
+> +
+> +       thead_plic_plat_init(plic);
+> +}
+> +
+>  static const struct fdt_match irqchip_plic_match[] = {
+>         { .compatible = "riscv,plic0" },
+>         { .compatible = "sifive,plic-1.0.0" },
+> --
+> 2.35.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
