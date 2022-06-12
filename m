@@ -1,109 +1,57 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 12 Jun 2022 10:00:51 +0530
-Subject: [PATCH] platform: generic: add overrides for vendor extensions
-In-Reply-To: <20220610044920.547047-1-mchitale@ventanamicro.com>
-References: <20220610044920.547047-1-mchitale@ventanamicro.com>
-Message-ID: <CAAhSdy3hRji-urK15oYTduEijVGUBPYi8XR4X3AY+uzzTLkXnQ@mail.gmail.com>
+From: dramforever <dramforever@live.com>
+Date: Sun, 12 Jun 2022 13:57:37 +0800
+Subject: [PATCH v2] lib: sbi_trap: Redirect exception based on hedeleg
+In-Reply-To: <TYYP286MB14397827A57ED2BA6AA100E3C6A49@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <TYYP286MB1439777CF535CC8DF8388B0CC6A89@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jun 10, 2022 at 10:20 AM Mayuresh Chitale
-<mchitale@ventanamicro.com> wrote:
->
-> Allow the vendor_ext_check and vendor_ext_provider APIs of the
-> generic platform to be overridden by other platforms
->
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+HS-mode software can choose what exceptions to delegate to VS-mode using
+the hedeleg CSR. Synthetic VS/VU-mode exceptions should also honor
+hedeleg. They should be redirected to VS-mode if and only if delegated
+by HS-mode.
 
-Looks good to me.
+Signed-off-by: dramforever <dramforever@live.com>
+---
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Changes since v1:
+ - Use BIT() macro instead of (1 << trap->cause)
 
-Regards,
-Anup
+ lib/sbi/sbi_trap.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-> ---
->  platform/generic/include/platform_override.h |  7 ++++++
->  platform/generic/platform.c                  | 25 ++++++++++++++++++++
->  2 files changed, 32 insertions(+)
->
-> diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-> index 4af8754..e55da25 100644
-> --- a/platform/generic/include/platform_override.h
-> +++ b/platform/generic/include/platform_override.h
-> @@ -11,6 +11,7 @@
->  #define __PLATFORM_OVERRIDE_H__
->
->  #include <sbi/sbi_types.h>
-> +#include <sbi/sbi_trap.h>
->
->  struct platform_override {
->         const struct fdt_match *match_table;
-> @@ -21,6 +22,12 @@ struct platform_override {
->         void (*early_exit)(const struct fdt_match *match);
->         void (*final_exit)(const struct fdt_match *match);
->         int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
-> +       int (*vendor_ext_check)(long extid, const struct fdt_match *match);
-> +       int (*vendor_ext_provider)(long extid, long funcid,
-> +                                  const struct sbi_trap_regs *regs,
-> +                                  unsigned long *out_value,
-> +                                  struct sbi_trap_info *out_trap,
-> +                                  const struct fdt_match *match);
->  };
->
->  #endif
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 7651273..bf93af6 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -168,6 +168,29 @@ static int generic_final_init(bool cold_boot)
->         return 0;
->  }
->
-> +static int generic_vendor_ext_check(long extid)
-> +{
-> +       if (generic_plat && generic_plat->vendor_ext_check)
-> +               return generic_plat->vendor_ext_check(extid,
-> +                                                     generic_plat_match);
-> +
-> +       return 0;
-> +}
-> +
-> +static int generic_vendor_ext_provider(long extid, long funcid,
-> +                                      const struct sbi_trap_regs *regs,
-> +                                      unsigned long *out_value,
-> +                                      struct sbi_trap_info *out_trap)
-> +{
-> +       if (generic_plat && generic_plat->vendor_ext_provider) {
-> +               return generic_plat->vendor_ext_provider(extid, funcid, regs,
-> +                                                        out_value, out_trap,
-> +                                                        generic_plat_match);
-> +       }
-> +
-> +       return SBI_ENOTSUPP;
-> +}
-> +
->  static void generic_early_exit(void)
->  {
->         if (generic_plat && generic_plat->early_exit)
-> @@ -236,6 +259,8 @@ const struct sbi_platform_operations platform_ops = {
->         .get_tlbr_flush_limit   = generic_tlbr_flush_limit,
->         .timer_init             = fdt_timer_init,
->         .timer_exit             = fdt_timer_exit,
-> +       .vendor_ext_check       = generic_vendor_ext_check,
-> +       .vendor_ext_provider    = generic_vendor_ext_provider,
->  };
->
->  struct sbi_platform platform = {
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index 2c509e5..a54a131 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -99,17 +99,14 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+ 	if (prev_mode != PRV_S && prev_mode != PRV_U)
+ 		return SBI_ENOTSUPP;
+ 
+-	/* For certain exceptions from VS/VU-mode we redirect to VS-mode */
++	/* If exceptions came from VS/VU-mode, redirect to VS-mode if
++	 * delegated in hedeleg
++	 */
+ 	if (misa_extension('H') && prev_virt) {
+-		switch (trap->cause) {
+-		case CAUSE_FETCH_PAGE_FAULT:
+-		case CAUSE_LOAD_PAGE_FAULT:
+-		case CAUSE_STORE_PAGE_FAULT:
++		if (trap->cause < __riscv_xlen &&
++		    csr_read(CSR_HEDELEG) & BIT(trap->cause)) {
+ 			next_virt = TRUE;
+-			break;
+-		default:
+-			break;
+-		};
++		}
+ 	}
+ 
+ 	/* Update MSTATUS MPV bits */
+-- 
+2.36.1
+
 
