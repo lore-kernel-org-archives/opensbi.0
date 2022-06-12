@@ -1,79 +1,71 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 12 Jun 2022 09:56:02 +0530
-Subject: [RFC PATCH v2 0/9] HSM implementation for Allwinner D1
-In-Reply-To: <20220530033738.27127-1-samuel@sholland.org>
-References: <20220530033738.27127-1-samuel@sholland.org>
-Message-ID: <CAAhSdy2U0gnkgGpoLFf=6KWf6bbMrMeDjo09QZggh=A_uG_Eiw@mail.gmail.com>
+Date: Sun, 12 Jun 2022 10:00:11 +0530
+Subject: [PATCH] lib: sbi_trap: Redirect exception based on hedeleg
+In-Reply-To: <TYYP286MB14397827A57ED2BA6AA100E3C6A49@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB14397827A57ED2BA6AA100E3C6A49@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <CAAhSdy1ip6n5B7yjnEQWAKv7m1AYA36--S4U79FBf3UU_NoDUQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 30, 2022 at 9:07 AM Samuel Holland <samuel@sholland.org> wrote:
+On Wed, Jun 8, 2022 at 3:01 PM dramforever <dramforever@live.com> wrote:
 >
-> This series adds a minimal working HSM implementation for the Allwinner
-> D1 SoC. It works with the Linux sbi_cpuidle driver. Even with canned
-> values for entry/exit latency, I am seeing 30-45 mW reduction in power
-> usage at idle.
+> HS-mode software can choose what exceptions to delegate to VS-mode using
+> the hedeleg CSR. Synthetic VS/VU-mode exceptions should also honor
+> hedeleg. They should be redirected to VS-mode if and only if delegated
+> by HS-mode.
 >
-> Since this is the first HSM driver submission, there is no example to
-> follow. I have updated the series based on the comments to the first
-> RFC. Still, comments welcome!
+> Signed-off-by: dramforever <dramforever@live.com>
+> ---
+>  lib/sbi/sbi_trap.c | 15 ++++++---------
+>  1 file changed, 6 insertions(+), 9 deletions(-)
 >
-> Regards,
-> Samuel
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index 2c509e5..effd456 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -99,17 +99,14 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+>         if (prev_mode != PRV_S && prev_mode != PRV_U)
+>                 return SBI_ENOTSUPP;
 >
-> Changes in v2:
->  - Rebase on top of the current master branch
->  - Use array_size() from sbi_types.h
->  - Use a separate variable for each CSR instead of an array
->  - Use the PLIC helpers added in earlier patches
->  - Use the saved SIE bits to program the wakeup interrupt mask
->  - Set the entry address only once during cold boot
->  - Use the generic implementation for retentive suspend
->  - Clean up/add comments throughout the HSM implementation
->
-> Samuel Holland (9):
->   lib: sbi_hsm: Call a device hook during hart resume
->   lib: sbi_hsm: Assume a consistent resume address
->   lib: irqchip/plic: Constify plic_data pointers
->   lib: irqchip/plic: Factor out a context init function
->   lib: irqchip/plic: Add context save/restore helpers
->   lib: irqchip/plic: Add priority save/restore helpers
->   lib: utils/irqchip: Add FDT wrappers for PLIC save/restore functions
->   lib: utils/irqchip: Add wrapper for T-HEAD PLIC delegation
->   platform: Add HSM implementation for Allwinner D1
+> -       /* For certain exceptions from VS/VU-mode we redirect to VS-mode */
+> +       /* If exceptions came from VS/VU-mode, redirect to VS-mode if
+> +        * delegated in hedeleg
+> +        */
+>         if (misa_extension('H') && prev_virt) {
+> -               switch (trap->cause) {
+> -               case CAUSE_FETCH_PAGE_FAULT:
+> -               case CAUSE_LOAD_PAGE_FAULT:
+> -               case CAUSE_STORE_PAGE_FAULT:
+> +               if (trap->cause < __riscv_xlen &&
+> +                   csr_read(CSR_HEDELEG) & (1 << trap->cause)) {
 
-Overall this series is in good shape except a minor comment in PATCH7.
+Use BIT(trap->cause) here.
 
-Please send v3.
-
-Thanks,
-Anup
-
+>                         next_virt = TRUE;
+> -                       break;
+> -               default:
+> -                       break;
+> -               };
+> +               }
+>         }
 >
->  include/sbi/sbi_hsm.h                        |  12 +-
->  include/sbi_utils/irqchip/fdt_irqchip_plic.h |  22 ++
->  include/sbi_utils/irqchip/plic.h             |  19 +-
->  lib/sbi/sbi_hsm.c                            |  54 ++---
->  lib/utils/irqchip/fdt_irqchip_plic.c         |  39 ++++
->  lib/utils/irqchip/plic.c                     | 125 ++++++++---
->  platform/fpga/ariane/platform.c              |  19 +-
->  platform/fpga/openpiton/platform.c           |  19 +-
->  platform/generic/allwinner/objects.mk        |   6 +
->  platform/generic/allwinner/sun20i-d1.c       | 210 +++++++++++++++++++
->  10 files changed, 442 insertions(+), 83 deletions(-)
->  create mode 100644 include/sbi_utils/irqchip/fdt_irqchip_plic.h
->  create mode 100644 platform/generic/allwinner/objects.mk
->  create mode 100644 platform/generic/allwinner/sun20i-d1.c
->
+>         /* Update MSTATUS MPV bits */
 > --
-> 2.35.1
+> 2.36.0
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Apart from a minor comment above, this looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
 
