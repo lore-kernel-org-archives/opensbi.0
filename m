@@ -1,279 +1,71 @@
-From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 12 Jun 2022 20:03:55 -0500
-Subject: [PATCH v3 9/9] platform: Add HSM implementation for Allwinner D1
-In-Reply-To: <20220613010355.28014-1-samuel@sholland.org>
-References: <20220613010355.28014-1-samuel@sholland.org>
-Message-ID: <20220613010355.28014-10-samuel@sholland.org>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 13 Jun 2022 11:16:47 +0530
+Subject: [PATCH v2] lib: sbi_trap: Redirect exception based on hedeleg
+In-Reply-To: <TYYP286MB1439777CF535CC8DF8388B0CC6A89@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB14397827A57ED2BA6AA100E3C6A49@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+ <TYYP286MB1439777CF535CC8DF8388B0CC6A89@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <CAAhSdy03B36sg3yUoYRpVA6RyaiKBR1uD0JzBxBcE0fuqr_fhg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Allwinner D1 contains a "PPU" power domain controller which can
-automatically power down/up the CPU power domain. This power domain
-includes the C906 core along with its CLINT and PLIC.
+On Sun, Jun 12, 2022 at 11:31 AM dramforever <dramforever@live.com> wrote:
+>
+> HS-mode software can choose what exceptions to delegate to VS-mode using
+> the hedeleg CSR. Synthetic VS/VU-mode exceptions should also honor
+> hedeleg. They should be redirected to VS-mode if and only if delegated
+> by HS-mode.
+>
+> Signed-off-by: dramforever <dramforever@live.com>
 
-This HSM implementation supports non-retentive hart suspend by:
-  1) Saving/restoring state that is lost during hart suspend,
-  2) Performing cache maintenance before/after hart suspend,
-  3) Configuring wakeup sources before hart suspend, and
-  4) Asking the PPU to power down the hart when it enters WFI.
+When posting new patch revisions, please add here "Reviewed-by" tags
+already obtained in previous revisions. This helps reviewers to know
+which patches are already reviewed.
 
-Since this HSM implementation is for a single-core SoC, it does not need
-to worry about concurrency or saving multiple instances of state.
+Applied this patch to the riscv/opensbi repo.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-Signed-off-by: Samuel Holland <samuel@sholland.org>
----
+Thanks,
+Anup
 
-(no changes since v2)
-
-Changes in v2:
- - Rebase on top of the current master branch
- - Use array_size() from sbi_types.h
- - Use a separate variable for each CSR instead of an array
- - Use the PLIC helpers added in earlier patches
- - Use the saved SIE bits to program the wakeup interrupt mask
- - Set the entry address only once during cold boot
- - Use the generic implementation for retentive suspend
- - Clean up/add comments throughout the HSM implementation
-
- platform/generic/allwinner/objects.mk  |   6 +
- platform/generic/allwinner/sun20i-d1.c | 210 +++++++++++++++++++++++++
- 2 files changed, 216 insertions(+)
- create mode 100644 platform/generic/allwinner/objects.mk
- create mode 100644 platform/generic/allwinner/sun20i-d1.c
-
-diff --git a/platform/generic/allwinner/objects.mk b/platform/generic/allwinner/objects.mk
-new file mode 100644
-index 0000000..9e36ab6
---- /dev/null
-+++ b/platform/generic/allwinner/objects.mk
-@@ -0,0 +1,6 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+carray-platform_override_modules-y += sun20i_d1
-+platform-objs-y += allwinner/sun20i-d1.o
-diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-new file mode 100644
-index 0000000..2de12e4
---- /dev/null
-+++ b/platform/generic/allwinner/sun20i-d1.c
-@@ -0,0 +1,210 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2022 Samuel Holland <samuel@sholland.org>
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/irqchip/fdt_irqchip_plic.h>
-+
-+#define SUN20I_D1_CCU_BASE		((void *)0x02001000)
-+#define SUN20I_D1_RISCV_CFG_BASE	((void *)0x06010000)
-+#define SUN20I_D1_PPU_BASE		((void *)0x07001000)
-+#define SUN20I_D1_PRCM_BASE		((void *)0x07010000)
-+
-+/*
-+ * CCU
-+ */
-+
-+#define CCU_BGR_ENABLE			(BIT(16) | BIT(0))
-+
-+#define RISCV_CFG_BGR_REG		0xd0c
-+#define PPU_BGR_REG			0x1ac
-+
-+/*
-+ * CSRs
-+ */
-+
-+#define CSR_MXSTATUS			0x7c0
-+#define CSR_MHCR			0x7c1
-+#define CSR_MCOR			0x7c2
-+#define CSR_MHINT			0x7c5
-+
-+static unsigned long csr_mxstatus;
-+static unsigned long csr_mhcr;
-+static unsigned long csr_mhint;
-+
-+static void sun20i_d1_csr_save(void)
-+{
-+	/* Save custom CSRs. */
-+	csr_mxstatus	= csr_read(CSR_MXSTATUS);
-+	csr_mhcr	= csr_read(CSR_MHCR);
-+	csr_mhint	= csr_read(CSR_MHINT);
-+
-+	/* Flush and disable caches. */
-+	csr_write(CSR_MCOR, 0x22);
-+	csr_write(CSR_MHCR, 0x0);
-+}
-+
-+static void sun20i_d1_csr_restore(void)
-+{
-+	/* Invalidate caches and the branch predictor. */
-+	csr_write(CSR_MCOR, 0x70013);
-+
-+	/* Restore custom CSRs, including the cache state. */
-+	csr_write(CSR_MXSTATUS,	csr_mxstatus);
-+	csr_write(CSR_MHCR,	csr_mhcr);
-+	csr_write(CSR_MHINT,	csr_mhint);
-+}
-+
-+/*
-+ * PLIC
-+ */
-+
-+#define PLIC_SOURCES			176
-+#define PLIC_IE_WORDS			((PLIC_SOURCES + 31) / 32)
-+
-+static u8 plic_priority[PLIC_SOURCES];
-+static u32 plic_sie[PLIC_IE_WORDS];
-+static u32 plic_threshold;
-+
-+static void sun20i_d1_plic_save(void)
-+{
-+	fdt_plic_context_save(true, plic_sie, &plic_threshold);
-+	fdt_plic_priority_save(plic_priority);
-+}
-+
-+static void sun20i_d1_plic_restore(void)
-+{
-+	thead_plic_restore();
-+	fdt_plic_priority_restore(plic_priority);
-+	fdt_plic_context_restore(true, plic_sie, plic_threshold);
-+}
-+
-+/*
-+ * PPU
-+ */
-+
-+#define PPU_PD_ACTIVE_CTRL		0x2c
-+
-+static void sun20i_d1_ppu_save(void)
-+{
-+	/* Enable MMIO access. Do not assume S-mode leaves the clock enabled. */
-+	writel_relaxed(CCU_BGR_ENABLE, SUN20I_D1_PRCM_BASE + PPU_BGR_REG);
-+
-+	/* Activate automatic power-down during the next WFI. */
-+	writel_relaxed(1, SUN20I_D1_PPU_BASE + PPU_PD_ACTIVE_CTRL);
-+}
-+
-+static void sun20i_d1_ppu_restore(void)
-+{
-+	/* Disable automatic power-down. */
-+	writel_relaxed(0, SUN20I_D1_PPU_BASE + PPU_PD_ACTIVE_CTRL);
-+}
-+
-+/*
-+ * RISCV_CFG
-+ */
-+
-+#define RESET_ENTRY_LO_REG		0x0004
-+#define RESET_ENTRY_HI_REG		0x0008
-+#define WAKEUP_EN_REG			0x0020
-+#define WAKEUP_MASK_REG(i)		(0x0024 + 4 * (i))
-+
-+static void sun20i_d1_riscv_cfg_save(void)
-+{
-+	/* Enable MMIO access. Do not assume S-mode leaves the clock enabled. */
-+	writel_relaxed(CCU_BGR_ENABLE, SUN20I_D1_CCU_BASE + RISCV_CFG_BGR_REG);
-+
-+	/*
-+	 * Copy the SIE bits to the wakeup registers. D1 has 160 "real"
-+	 * interrupt sources, numbered 16-175. These are the ones that map to
-+	 * the wakeup mask registers (the offset is for GIC compatibility). So
-+	 * copying SIE to the wakeup mask needs some bit manipulation.
-+	 */
-+	for (int i = 0; i < PLIC_IE_WORDS - 1; i++)
-+		writel_relaxed(plic_sie[i] >> 16 | plic_sie[i + 1] << 16,
-+			       SUN20I_D1_RISCV_CFG_BASE + WAKEUP_MASK_REG(i));
-+
-+	/* Enable PPU wakeup for interrupts. */
-+	writel_relaxed(1, SUN20I_D1_RISCV_CFG_BASE + WAKEUP_EN_REG);
-+}
-+
-+static void sun20i_d1_riscv_cfg_restore(void)
-+{
-+	/* Disable PPU wakeup for interrupts. */
-+	writel_relaxed(0, SUN20I_D1_RISCV_CFG_BASE + WAKEUP_EN_REG);
-+}
-+
-+static void sun20i_d1_riscv_cfg_init(void)
-+{
-+	unsigned long entry = sbi_hartid_to_scratch(0)->warmboot_addr;
-+
-+	/* Enable MMIO access. */
-+	writel_relaxed(CCU_BGR_ENABLE, SUN20I_D1_CCU_BASE + RISCV_CFG_BGR_REG);
-+
-+	/* Program the reset entry address. */
-+	writel_relaxed((u32)entry, SUN20I_D1_RISCV_CFG_BASE + RESET_ENTRY_LO_REG);
-+	writel_relaxed(entry >> 32, SUN20I_D1_RISCV_CFG_BASE + RESET_ENTRY_HI_REG);
-+}
-+
-+static int sun20i_d1_hart_suspend(u32 suspend_type)
-+{
-+	/* Use the generic code for retentive suspend. */
-+	if (!(suspend_type & SBI_HSM_SUSP_NON_RET_BIT))
-+		return SBI_ENOTSUPP;
-+
-+	sun20i_d1_plic_save();
-+	sun20i_d1_ppu_save();
-+	sun20i_d1_riscv_cfg_save();
-+	sun20i_d1_csr_save();
-+
-+	/*
-+	 * If no interrupt is pending, this will power down the CPU power
-+	 * domain. Otherwise, this will fall through, and the generic HSM
-+	 * code will jump to the resume address.
-+	 */
-+	wfi();
-+
-+	return 0;
-+}
-+
-+static void sun20i_d1_hart_resume(void)
-+{
-+	sun20i_d1_csr_restore();
-+	sun20i_d1_riscv_cfg_restore();
-+	sun20i_d1_ppu_restore();
-+	sun20i_d1_plic_restore();
-+}
-+
-+static const struct sbi_hsm_device sun20i_d1_ppu = {
-+	.name		= "sun20i-d1-ppu",
-+	.hart_suspend	= sun20i_d1_hart_suspend,
-+	.hart_resume	= sun20i_d1_hart_resume,
-+};
-+
-+static int sun20i_d1_final_init(bool cold_boot, const struct fdt_match *match)
-+{
-+	if (cold_boot) {
-+		sun20i_d1_riscv_cfg_init();
-+		sbi_hsm_set_device(&sun20i_d1_ppu);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match sun20i_d1_match[] = {
-+	{ .compatible = "allwinner,sun20i-d1" },
-+	{ },
-+};
-+
-+const struct platform_override sun20i_d1 = {
-+	.match_table	= sun20i_d1_match,
-+	.final_init	= sun20i_d1_final_init,
-+};
--- 
-2.35.1
-
+> ---
+>
+> Changes since v1:
+>  - Use BIT() macro instead of (1 << trap->cause)
+>
+>  lib/sbi/sbi_trap.c | 15 ++++++---------
+>  1 file changed, 6 insertions(+), 9 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index 2c509e5..a54a131 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -99,17 +99,14 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+>         if (prev_mode != PRV_S && prev_mode != PRV_U)
+>                 return SBI_ENOTSUPP;
+>
+> -       /* For certain exceptions from VS/VU-mode we redirect to VS-mode */
+> +       /* If exceptions came from VS/VU-mode, redirect to VS-mode if
+> +        * delegated in hedeleg
+> +        */
+>         if (misa_extension('H') && prev_virt) {
+> -               switch (trap->cause) {
+> -               case CAUSE_FETCH_PAGE_FAULT:
+> -               case CAUSE_LOAD_PAGE_FAULT:
+> -               case CAUSE_STORE_PAGE_FAULT:
+> +               if (trap->cause < __riscv_xlen &&
+> +                   csr_read(CSR_HEDELEG) & BIT(trap->cause)) {
+>                         next_virt = TRUE;
+> -                       break;
+> -               default:
+> -                       break;
+> -               };
+> +               }
+>         }
+>
+>         /* Update MSTATUS MPV bits */
+> --
+> 2.36.1
+>
 
