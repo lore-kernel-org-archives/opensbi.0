@@ -1,117 +1,121 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 13 Jun 2022 11:41:50 +0530
-Subject: [PATCH] platform: generic: add overrides for vendor extensions
-In-Reply-To: <CAAhSdy3hRji-urK15oYTduEijVGUBPYi8XR4X3AY+uzzTLkXnQ@mail.gmail.com>
-References: <20220610044920.547047-1-mchitale@ventanamicro.com> <CAAhSdy3hRji-urK15oYTduEijVGUBPYi8XR4X3AY+uzzTLkXnQ@mail.gmail.com>
-Message-ID: <CAAhSdy0PmmG7V9upm9WCurkFmuY3Y0dhn-gZJWECwEoq5U0Whw@mail.gmail.com>
+Date: Mon, 13 Jun 2022 11:50:57 +0530
+Subject: [PATCH v3 7/9] lib: utils/irqchip: Add FDT wrappers for PLIC
+ save/restore functions
+In-Reply-To: <20220613010355.28014-8-samuel@sholland.org>
+References: <20220613010355.28014-1-samuel@sholland.org> <20220613010355.28014-8-samuel@sholland.org>
+Message-ID: <CAAhSdy2TNtn1Tw4CM0oMOMMybVr3_p0euY49cAkoYLym9E1Szg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jun 12, 2022 at 10:00 AM Anup Patel <anup@brainfault.org> wrote:
+On Mon, Jun 13, 2022 at 6:34 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> On Fri, Jun 10, 2022 at 10:20 AM Mayuresh Chitale
-> <mchitale@ventanamicro.com> wrote:
-> >
-> > Allow the vendor_ext_check and vendor_ext_provider APIs of the
-> > generic platform to be overridden by other platforms
-> >
-> > Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+> These functions save/restore the state of the PLIC associated with the
+> current hart. The context save/restore functions only manipulate a
+> single context, since most likely the M-mode context is unused and does
+> not need to be saved.
 >
-> Looks good to me.
->
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Samuel Holland <samuel@sholland.org>
 
-Applied this patch to the riscv/opensbi repo.
+Looks good to me.
 
-Thanks,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
 Anup
 
+> ---
 >
-> Regards,
-> Anup
+> Changes in v3:
+>  - Rename irqchip_plic_* functions to fdt_plic_*
+>  - Add a "bool smode" parameter instead of hard coding the context ID
 >
-> > ---
-> >  platform/generic/include/platform_override.h |  7 ++++++
-> >  platform/generic/platform.c                  | 25 ++++++++++++++++++++
-> >  2 files changed, 32 insertions(+)
-> >
-> > diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-> > index 4af8754..e55da25 100644
-> > --- a/platform/generic/include/platform_override.h
-> > +++ b/platform/generic/include/platform_override.h
-> > @@ -11,6 +11,7 @@
-> >  #define __PLATFORM_OVERRIDE_H__
-> >
-> >  #include <sbi/sbi_types.h>
-> > +#include <sbi/sbi_trap.h>
-> >
-> >  struct platform_override {
-> >         const struct fdt_match *match_table;
-> > @@ -21,6 +22,12 @@ struct platform_override {
-> >         void (*early_exit)(const struct fdt_match *match);
-> >         void (*final_exit)(const struct fdt_match *match);
-> >         int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
-> > +       int (*vendor_ext_check)(long extid, const struct fdt_match *match);
-> > +       int (*vendor_ext_provider)(long extid, long funcid,
-> > +                                  const struct sbi_trap_regs *regs,
-> > +                                  unsigned long *out_value,
-> > +                                  struct sbi_trap_info *out_trap,
-> > +                                  const struct fdt_match *match);
-> >  };
-> >
-> >  #endif
-> > diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> > index 7651273..bf93af6 100644
-> > --- a/platform/generic/platform.c
-> > +++ b/platform/generic/platform.c
-> > @@ -168,6 +168,29 @@ static int generic_final_init(bool cold_boot)
-> >         return 0;
-> >  }
-> >
-> > +static int generic_vendor_ext_check(long extid)
-> > +{
-> > +       if (generic_plat && generic_plat->vendor_ext_check)
-> > +               return generic_plat->vendor_ext_check(extid,
-> > +                                                     generic_plat_match);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +static int generic_vendor_ext_provider(long extid, long funcid,
-> > +                                      const struct sbi_trap_regs *regs,
-> > +                                      unsigned long *out_value,
-> > +                                      struct sbi_trap_info *out_trap)
-> > +{
-> > +       if (generic_plat && generic_plat->vendor_ext_provider) {
-> > +               return generic_plat->vendor_ext_provider(extid, funcid, regs,
-> > +                                                        out_value, out_trap,
-> > +                                                        generic_plat_match);
-> > +       }
-> > +
-> > +       return SBI_ENOTSUPP;
-> > +}
-> > +
-> >  static void generic_early_exit(void)
-> >  {
-> >         if (generic_plat && generic_plat->early_exit)
-> > @@ -236,6 +259,8 @@ const struct sbi_platform_operations platform_ops = {
-> >         .get_tlbr_flush_limit   = generic_tlbr_flush_limit,
-> >         .timer_init             = fdt_timer_init,
-> >         .timer_exit             = fdt_timer_exit,
-> > +       .vendor_ext_check       = generic_vendor_ext_check,
-> > +       .vendor_ext_provider    = generic_vendor_ext_provider,
-> >  };
-> >
-> >  struct sbi_platform platform = {
-> > --
-> > 2.25.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> Changes in v2:
+>  - New patch for v2
+>
+>  include/sbi_utils/irqchip/fdt_irqchip_plic.h | 20 ++++++++++++
+>  lib/utils/irqchip/fdt_irqchip_plic.c         | 32 ++++++++++++++++++++
+>  2 files changed, 52 insertions(+)
+>  create mode 100644 include/sbi_utils/irqchip/fdt_irqchip_plic.h
+>
+> diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> new file mode 100644
+> index 0000000..f158b02
+> --- /dev/null
+> +++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> @@ -0,0 +1,20 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 Samuel Holland <samuel@sholland.org>
+> + */
+> +
+> +#ifndef __IRQCHIP_FDT_IRQCHIP_PLIC_H__
+> +#define __IRQCHIP_FDT_IRQCHIP_PLIC_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +void fdt_plic_priority_save(u8 *priority);
+> +
+> +void fdt_plic_priority_restore(const u8 *priority);
+> +
+> +void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold);
+> +
+> +void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold);
+> +
+> +#endif
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index b2d2a1b..89b12d4 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -24,6 +24,38 @@ static struct plic_data plic[PLIC_MAX_NR];
+>  static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
+>  static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2];
+>
+> +void fdt_plic_priority_save(u8 *priority)
+> +{
+> +       struct plic_data *plic = plic_hartid2data[current_hartid()];
+> +
+> +       plic_priority_save(plic, priority);
+> +}
+> +
+> +void fdt_plic_priority_restore(const u8 *priority)
+> +{
+> +       struct plic_data *plic = plic_hartid2data[current_hartid()];
+> +
+> +       plic_priority_restore(plic, priority);
+> +}
+> +
+> +void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold)
+> +{
+> +       u32 hartid = current_hartid();
+> +
+> +       plic_context_save(plic_hartid2data[hartid],
+> +                         plic_hartid2context[hartid][smode],
+> +                         enable, threshold);
+> +}
+> +
+> +void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold)
+> +{
+> +       u32 hartid = current_hartid();
+> +
+> +       plic_context_restore(plic_hartid2data[hartid],
+> +                            plic_hartid2context[hartid][smode],
+> +                            enable, threshold);
+> +}
+> +
+>  static int irqchip_plic_warm_init(void)
+>  {
+>         u32 hartid = current_hartid();
+> --
+> 2.35.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
