@@ -1,74 +1,143 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 12 Jun 2022 20:03:47 -0500
-Subject: [PATCH v3 1/9] lib: sbi_hsm: Call a device hook during hart resume
+Date: Sun, 12 Jun 2022 20:03:48 -0500
+Subject: [PATCH v3 2/9] lib: sbi_hsm: Assume a consistent resume address
 In-Reply-To: <20220613010355.28014-1-samuel@sholland.org>
 References: <20220613010355.28014-1-samuel@sholland.org>
-Message-ID: <20220613010355.28014-2-samuel@sholland.org>
+Message-ID: <20220613010355.28014-3-samuel@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Non-retentive suspend states may require platform-specific actions
-during resume. For example, firmware may need to save and restore the
-values of custom CSRs. Add a hook to support this.
+The suspend code needs to know the resume address for two reasons:
+  1) Programming some hardware register or management firmware. Here we
+     assume the hardware/firmware maintains its state between suspends,
+     so it only needs to be programmed once at startup.
+  2) When a non-retentive suspend request ends up being retentive, due
+     to lack of hardware support, pending interrupt, or for some other
+     reason. However, the behavior here is not platform-dependent, and
+     this can be handled in the generic hart suspend function.
+
+Since neither situation requires the platform-level suspend function to
+know the resume address, stop passing it to that function. Instead,
+handle the non-retentive to retentive situation generically.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 Signed-off-by: Samuel Holland <samuel@sholland.org>
 ---
 
-(no changes since v1)
+Changes in v3:
+ - Fix typo in commit message
 
- include/sbi/sbi_hsm.h | 8 ++++++++
- lib/sbi/sbi_hsm.c     | 8 ++++++++
- 2 files changed, 16 insertions(+)
+Changes in v2:
+ - New patch for v2
+
+ include/sbi/sbi_hsm.h |  4 ++--
+ lib/sbi/sbi_hsm.c     | 46 +++++++++++++++++++------------------------
+ 2 files changed, 22 insertions(+), 28 deletions(-)
 
 diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index c16e871..6da8cee 100644
+index 6da8cee..d6cc468 100644
 --- a/include/sbi/sbi_hsm.h
 +++ b/include/sbi/sbi_hsm.h
-@@ -37,6 +37,14 @@ struct sbi_hsm_device {
- 	 * specified resume address
+@@ -34,9 +34,9 @@ struct sbi_hsm_device {
+ 	 * the hart resumes normal execution.
+ 	 *
+ 	 * For successful non-retentive suspend, the hart will resume from
+-	 * specified resume address
++	 * the warm boot entry point.
  	 */
- 	int (*hart_suspend)(u32 suspend_type, ulong raddr);
-+
-+	/**
-+	 * Perform platform-specific actions to resume from a suspended state.
-+	 *
-+	 * This includes restoring any platform state that was lost during
-+	 * non-retentive suspend.
-+	 */
-+	void (*hart_resume)(void);
- };
+-	int (*hart_suspend)(u32 suspend_type, ulong raddr);
++	int (*hart_suspend)(u32 suspend_type);
  
- struct sbi_domain;
+ 	/**
+ 	 * Perform platform-specific actions to resume from a suspended state.
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index c4d2c6d..a7b6a80 100644
+index a7b6a80..1165acc 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -178,6 +178,12 @@ static int hsm_device_hart_suspend(u32 suspend_type, ulong raddr)
+@@ -171,10 +171,10 @@ static int hsm_device_hart_stop(void)
  	return SBI_ENOTSUPP;
  }
  
-+static void hsm_device_hart_resume(void)
-+{
-+	if (hsm_dev && hsm_dev->hart_resume)
-+		hsm_dev->hart_resume();
-+}
-+
- int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+-static int hsm_device_hart_suspend(u32 suspend_type, ulong raddr)
++static int hsm_device_hart_suspend(u32 suspend_type)
  {
- 	u32 i;
-@@ -384,6 +390,8 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
- 			   __func__, oldstate);
- 		sbi_hart_hang();
- 	}
-+
-+	hsm_device_hart_resume();
+ 	if (hsm_dev && hsm_dev->hart_suspend)
+-		return hsm_dev->hart_suspend(suspend_type, raddr);
++		return hsm_dev->hart_suspend(suspend_type);
+ 	return SBI_ENOTSUPP;
  }
  
- void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+@@ -319,7 +319,7 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ 	return 0;
+ }
+ 
+-static int __sbi_hsm_suspend_ret_default(struct sbi_scratch *scratch)
++static int __sbi_hsm_suspend_default(struct sbi_scratch *scratch)
+ {
+ 	/* Wait for interrupt */
+ 	wfi();
+@@ -359,23 +359,6 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+ 	csr_write(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
+ }
+ 
+-static int __sbi_hsm_suspend_non_ret_default(struct sbi_scratch *scratch,
+-					     ulong raddr)
+-{
+-	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+-
+-	/* Wait for interrupt */
+-	wfi();
+-
+-	/*
+-	 * Directly jump to warm reboot to simulate resume from a
+-	 * non-retentive suspend.
+-	 */
+-	jump_warmboot();
+-
+-	return 0;
+-}
+-
+ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+ {
+ 	int oldstate;
+@@ -473,17 +456,28 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 		__sbi_hsm_suspend_non_ret_save(scratch);
+ 
+ 	/* Try platform specific suspend */
+-	ret = hsm_device_hart_suspend(suspend_type, scratch->warmboot_addr);
++	ret = hsm_device_hart_suspend(suspend_type);
+ 	if (ret == SBI_ENOTSUPP) {
+ 		/* Try generic implementation of default suspend types */
+-		if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT) {
+-			ret = __sbi_hsm_suspend_ret_default(scratch);
+-		} else if (suspend_type == SBI_HSM_SUSPEND_NON_RET_DEFAULT) {
+-			ret = __sbi_hsm_suspend_non_ret_default(scratch,
+-						scratch->warmboot_addr);
++		if (suspend_type == SBI_HSM_SUSPEND_RET_DEFAULT ||
++		    suspend_type == SBI_HSM_SUSPEND_NON_RET_DEFAULT) {
++			ret = __sbi_hsm_suspend_default(scratch);
+ 		}
+ 	}
+ 
++	/*
++	 * The platform may have coordinated a retentive suspend, or it may
++	 * have exited early from a non-retentive suspend. Either way, the
++	 * caller is not expecting a successful return, so jump to the warm
++	 * boot entry point to simulate resume from a non-retentive suspend.
++	 */
++	if (ret == 0 && (suspend_type & SBI_HSM_SUSP_NON_RET_BIT)) {
++		void (*jump_warmboot)(void) =
++			(void (*)(void))scratch->warmboot_addr;
++
++		jump_warmboot();
++	}
++
+ fail_restore_state:
+ 	/*
+ 	 * We might have successfully resumed from retentive suspend
 -- 
 2.35.1
 
