@@ -1,330 +1,133 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 18 Jun 2022 15:52:03 +0530
-Subject: [PATCH 1/2] lib: utils/serial: add virtio mmio driver
-In-Reply-To: <20220612171822.148906-1-misterjdrg@gmail.com>
-References: <20220612171822.148906-1-misterjdrg@gmail.com>
-Message-ID: <CAAhSdy1rjztYmzNVjO+RGBy7xNSgBtQ60WMFAP6MeAvf7cH6VQ@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Mon, 20 Jun 2022 12:57:32 -0700
+Subject: [PATCH] lib: sbi: Fix version dependency for Sscofpmf
+In-Reply-To: <CAAhSdy32h8kvY5OLVQtUS7=m1Nx7Mpvi-u5-Gz1GTh2y4vNemg@mail.gmail.com>
+References: <20220613003838.13028-1-samuel@sholland.org> <CAAhSdy0Y49egjSeOfTC0OkSEmTf03EK1cHECi-ARjZj3oNtWaA@mail.gmail.com>
+ <97c665fe-7e52-cd56-c198-84e796fa8263@sholland.org> <CAAhSdy24ukPCh0LFOZVKtDyzHdxTWw348nhueQ-mUC5JyiLYAA@mail.gmail.com>
+ <ba9f1314-0988-6c90-3460-34d2f29157ab@sholland.org> <CAAhSdy32h8kvY5OLVQtUS7=m1Nx7Mpvi-u5-Gz1GTh2y4vNemg@mail.gmail.com>
+Message-ID: <CAOnJCUJN0sQ_BeRL+JqaJ6VZDResr1ooX+uf9PUNscAUh96dnQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jun 12, 2022 at 10:49 PM Bohdan Fedorov <misterjdrg@gmail.com> wrote:
+On Thu, Jun 16, 2022 at 11:44 PM Anup Patel <anup@brainfault.org> wrote:
 >
-> Simple virtio-console driver.
-> Useful for running opensbi in virtualized environments.
+> On Fri, Jun 17, 2022 at 10:49 AM Samuel Holland <samuel@sholland.org> wrote:
+> >
+> > On 6/16/22 11:56 PM, Anup Patel wrote:
+> > > On Fri, Jun 17, 2022 at 9:58 AM Samuel Holland <samuel@sholland.org> wrote:
+> > >>
+> > >> Hi Anup,
+> > >>
+> > >> On 6/16/22 11:12 PM, Anup Patel wrote:
+> > >>> On Mon, Jun 13, 2022 at 6:08 AM Samuel Holland <samuel@sholland.org> wrote:
+> > >>>>
+> > >>>> mcounteren was added in the privileged spec v1.10 and mcountinhibit was
+> > >>>> added in v1.11. Sscofpmf does not depend on anything in v1.12, so the
+> > >>>> minimum privileged spec version should have been v1.11.
+> > >>>>
+> > >>>> Fixes: d4b563c881d6 ("lib: sbi: Remove MCOUNTEREN and SCOUNTEREN hart features")
+> > >>>> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> > >>>
+> > >>> I think there is some confusion here.
+> > >>>
+> > >>> The mcounteren and mcountinhibit are not part of the Sscofpmf extension and
+> > >>> OpenSBI PMU implementation does support platforms without Sscofpmf.
+> > >>
+> > >> I am aware of that. I am referencing the comment on the previous line, and the
+> > >> code that was changed by the referenced commit. The code, as originally written,
+> > >> attempted to optimize out the Sscofpmf check based on the presence of those two
+> > >> CSRs.
+> > >>
+> > >> When the hart features were refactored, the CSR feature was replaced by the
+> > >> wrong version, i.e. the behavior was accidentally changed by the refactoring.
+> > >>
+> > >> This patch only attempts to restore the behavior from before the refactoring. If
+> > >> that behavior was wrong to start with, that is a different matter.
+> > >
+> > > I agree there is nothing in Sscofpmf which prevents a Priv v1.11 HART from
+> > > implementing it so this now becomes a strange choice on the OpenSBI side.
+> > >
+> > > IMO, the previous behaviour of detecting and using Sscofpmf irrespective
+> > > of the Priv spec version was wrong because Sscofpmf is defined assuming
+> > > Priv v1.12 spec. In fact, that's why Sscofpmf defines bits for filtering events
+> > > in VS/VU modes.
+> > >
+> > > Is there a case where we would need Sscofpmf for a Priv v1.11 HART ?
+> >
+> > I was attempting to add C906 PMU support as an errata on top of the standard
+> > extension, which is when I noticed this check. (C906 supports v1.11). However, I
+> > realized C906's custom overflow handling is different enough from Sscofpmf that
+> > I should implement it separately.
+> >
 
-The term "virtualized environments" can also mean Guest/VM
-(VS-mode) under a hypervisor. Most hypervisors (including KVM)
-don't emulate/virtualize M-mode for Guest/VM and instead the
-hypervisor will itself handle SBI calls coming from Guest/VM.
+Yes. It is completely different from Sscofpmf with many more CSRs.
 
-I assume the intention is to use OpenSBI under RISC-V system
-emulators, simulators, or ISS which uses VirtIO devices for I/O ??
-
+> > So I do not know if a v1.11+Sscofpmf case does or should exist. Maybe the check
+> > is correct now, in which case the comment is a bit misleading.
 >
-> dt-bindings:
-> <linux>/Documentation/devicetree/bindings/virtio/mmio.yaml
+> Instead of setting SSCOFPMF extension flag for C906, I suggest we extend
+> sbi_pmu.c using "struct sbi_pmu_overflow_ops" abstraction. The sbi_pmu.c
+> will have two implementations of "struct sbi_pmu_overflow_ops": 1) "dummy"
+> implementation which will be used when there is no HW counter overflow
+> support 2) "sscofpmf" implementation which will be used when HW support
+> Sscofpmf extension.
 >
-> Signed-off-by: Bohdan Fedorov <misterjdrg@gmail.com>
-> ---
->  include/sbi_utils/fdt/fdt_helper.h     |  3 +
->  include/sbi_utils/serial/virtio-uart.h | 19 +++++++
->  lib/utils/fdt/fdt_helper.c             | 18 ++++++
->  lib/utils/serial/fdt_serial_virtio.c   | 37 +++++++++++++
->  lib/utils/serial/objects.mk            |  4 ++
->  lib/utils/serial/virtio-uart.c         | 76 ++++++++++++++++++++++++++
->  6 files changed, 157 insertions(+)
->  create mode 100644 include/sbi_utils/serial/virtio-uart.h
->  create mode 100644 lib/utils/serial/fdt_serial_virtio.c
->  create mode 100644 lib/utils/serial/virtio-uart.c
-
-Please don't use the "virtio-uart" term instead use "virtio-console".
-
-The VirtIO spec allows different types of transports for accessing device
-config registers. The VirtIO MMIO is one of the possible transports and
-we might have PCIe or platform specific transports as well.
-
-I suggest the following refactoring of this patch:
-
-1) Add a include/sbi_utils/virtio/virtio.h header which defines an abstract
-    VirtIO device. This abstract VirtIO device will be instantiated by some
-    VirtIO transport code. The include/sbi_utils/virtio/virtio.h will have
-    something like below:
-
-    struct virtio_transport {
-        char name[32];
-        int (*write_config)(struct virtio_device *dev,
-                                    u32 offset, void *dst, u32 dst_len);
-        int (*read_config)(struct virtio_device *dev,
-                                     u32 offset, void *src, u32 src_len);
-    };
-
-    struct virtio_device {
-        char name[32];
-        struct virtio_transport *trans;
-    };
-
-    static inline int virtio_device_read_config(struct virtio_device *dev,
-
-u32 offset, void *dst, u32 dst_len)
-    {
-         ....
-    }
-
-    static inline int virtio_device_write_config(struct virtio_device *dev,
-
-u32 offset, void *dst, u32 dst_len)
-    {
-         ....
-    }
-
-2) Add include/sbi_utils/virtio/virtio-mmio.h and lib/utils/virtio/virtio-mmio.c
-    which help platforms to instantiate VirtIO device using MMIO transport.
-    The virtio-mmio.h and virtio-mmio.c can have just one function.
-
-    int virtio_mmio_setup(struct virtio_device *dev, const char *name,
-                                       unsigned long addr);
-
-3) The include/sbi_utils/serial/virtio-console.h and
-lib/utils/serial/virtio-console.c
-     should only use include/sbi_utils/virtio/virtio.h
-
-There can be separate patches for the above points as well.
-
+> The platform override for Allwinner D1 platform can provide its own
+> implementation of "struct sbi_pmu_overflow_ops".
 >
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index c60af35..80307bb 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -65,6 +65,9 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
->  int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
->                                struct platform_uart_data *uart);
->
-> +int fdt_parse_virtio_uart_node(void *fdt, int nodeoffset,
-> +                              struct platform_uart_data *uart);
-> +
->  int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
->                             struct platform_uart_data *uart);
->
-> diff --git a/include/sbi_utils/serial/virtio-uart.h b/include/sbi_utils/serial/virtio-uart.h
-> new file mode 100644
-> index 0000000..4fdfebc
-> --- /dev/null
-> +++ b/include/sbi_utils/serial/virtio-uart.h
-> @@ -0,0 +1,19 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2019 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Bohdan Fedorov <misterjdrg@gmail.com>
-> + *
-> + * Based on:
-> + *   sifive-uart
-> + */
-> +
-> +#ifndef __SERIAL_SIFIVE_UART_H__
-> +#define __SERIAL_SIFIVE_UART_H__
-> +
-> +
-> +int virtio_uart_init(unsigned long base);
-> +
-> +#endif
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 2bdb1ef..9bfd5e7 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -388,6 +388,24 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
->         return 0;
->  }
->
-> +int fdt_parse_virtio_uart_node(void *fdt, int nodeoffset,
-> +                              struct platform_uart_data *uart)
-> +{
-> +       int rc;
-> +       uint64_t reg_addr, reg_size;
-> +
-> +       if (nodeoffset < 0 || !uart || !fdt)
-> +               return SBI_ENODEV;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> +                                   &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_addr || !reg_size)
-> +               return SBI_ENODEV;
-> +       uart->addr = reg_addr;
-> +
-> +       return 0;
-> +}
-> +
 
-Please drop fdt_parse_virtio_uart_node() and instead directly
-use fdt_get_node_addr_size().
+IIRC, c906 PMU uses a different interrupt (not local) ID for overflow interrupt.
+Even though we make it configurable in OpenSBI with "struct
+sbi_pmu_overflow_ops"
+upstream drive won't support it in the current version.
 
->  int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
->                                struct platform_uart_data *uart)
->  {
-> diff --git a/lib/utils/serial/fdt_serial_virtio.c b/lib/utils/serial/fdt_serial_virtio.c
-> new file mode 100644
-> index 0000000..115c5ad
-> --- /dev/null
-> +++ b/lib/utils/serial/fdt_serial_virtio.c
-> @@ -0,0 +1,37 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2020 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Bohdan Fedorov <misterjdrg@gmail.com>
-> + *
-> + * Based on virtio-uart
-> + */
-> +
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/serial/fdt_serial.h>
-> +#include <sbi_utils/serial/virtio-uart.h>
-> +
-> +static int serial_virtio_init(void *fdt, int nodeoff,
-> +                               const struct fdt_match *match)
-> +{
-> +       int rc;
-> +       struct platform_uart_data uart;
-> +
-> +       rc = fdt_parse_virtio_uart_node(fdt, nodeoff, &uart);
-> +       if (rc)
-> +               return rc;
-> +
-> +       return virtio_uart_init(uart.addr);
-> +}
-> +
-> +static const struct fdt_match serial_virtio_match[] = {
-> +       { .compatible = "virtio,mmio" },
-> +       { },
-> +};
-> +
-> +struct fdt_serial fdt_serial_virtio = {
-> +       .match_table = serial_virtio_match,
-> +       .init = serial_virtio_init
-> +};
-> diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-> index d26a74e..60e829b 100644
-> --- a/lib/utils/serial/objects.mk
-> +++ b/lib/utils/serial/objects.mk
-> @@ -22,6 +22,9 @@ libsbiutils-objs-y += serial/fdt_serial_shakti.o
->  carray-fdt_serial_drivers-y += fdt_serial_sifive
->  libsbiutils-objs-y += serial/fdt_serial_sifive.o
+> Regards,
+> Anup
 >
-> +carray-fdt_serial_drivers-y += fdt_serial_virtio
-> +libsbiutils-objs-y += serial/fdt_serial_virtio.o
-> +
->  carray-fdt_serial_drivers-y += fdt_serial_litex
->  libsbiutils-objs-y += serial/fdt_serial_litex.o
->
-> @@ -34,6 +37,7 @@ libsbiutils-objs-y += serial/fdt_serial_xlnx_uartlite.o
->  libsbiutils-objs-y += serial/gaisler-uart.o
->  libsbiutils-objs-y += serial/shakti-uart.o
->  libsbiutils-objs-y += serial/sifive-uart.o
-> +libsbiutils-objs-y += serial/virtio-uart.o
->  libsbiutils-objs-y += serial/litex-uart.o
->  libsbiutils-objs-y += serial/uart8250.o
->  libsbiutils-objs-y += serial/xlnx-uartlite.o
-> diff --git a/lib/utils/serial/virtio-uart.c b/lib/utils/serial/virtio-uart.c
-> new file mode 100644
-> index 0000000..1d4266f
-> --- /dev/null
-> +++ b/lib/utils/serial/virtio-uart.c
-> @@ -0,0 +1,76 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2019 Western Digital Corporation or its affiliates.
-> + *
-> + * Authors:
-> + *   Bohdan Fedorov <misterjdrg@gmial.com>
-> + *
-> + * Based on:
-> + *   sifive-uart
-> + */
-> +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi_utils/serial/virtio-uart.h>
-> +
-> +/* clang-format off */
-> +
-> +#define VIRTIO_MAGIC                  0x0
-> +#define VIRTIO_MAGIC_VALUE            0x74726976
-> +#define VIRTIO_DEVICE_ID             0x8
-> +#define VIRTIO_DEVICE_ID_CONSOLE      0x3
-> +#define VIRTIO_CONSOLE_F_EMERG_WRITE  (1 << 2)
-> +#define VIRTIO_DEVICE_FEATURES               0x10
-> +#define VIRTIO_DEVICE_FEATURES_SEL    0x14
-> +#define VIRTIO_CONSOLE_EMERG_WR       0x108
-> +
-> +/* clang-format on */
-> +
-> +static volatile void *uart_base;
-> +
-> +static u32 get_reg(u32 off)
-> +{
-> +       return readl(uart_base + off);
-> +}
-> +
-> +static void set_reg(u32 off, u32 val)
-> +{
-> +       writel(val, uart_base + off);
-> +}
-> +
-> +static void virtio_uart_putc(char ch)
-> +{
-> +       set_reg(VIRTIO_CONSOLE_EMERG_WR, ch);
-> +}
-> +
-> +static struct sbi_console_device virtio_console = {
-> +       .name = "virtio_uart",
-> +       .console_putc = virtio_uart_putc,
-> +       .console_getc = NULL,
-> +};
-> +
-> +int virtio_uart_init(unsigned long base)
-> +{
-> +       uart_base = (volatile void *)base;
-> +
-> +       // Chech magic
-
-Please use "/* */" comments instead of "//".
-
-> +       if(get_reg(VIRTIO_MAGIC) != VIRTIO_MAGIC_VALUE) {
-> +               return SBI_ENODEV;
-> +       }
-> +
-> +       // Virtio device is console
-> +       if(get_reg(VIRTIO_DEVICE_ID) != VIRTIO_DEVICE_ID_CONSOLE) {
-> +               return SBI_ENODEV;
-> +       }
-> +
-> +       // Virtio console has emergency write feature
-> +       set_reg(VIRTIO_DEVICE_FEATURES_SEL, 0);
-> +       if((get_reg(VIRTIO_DEVICE_FEATURES) & VIRTIO_CONSOLE_F_EMERG_WRITE) == 0) {
-> +               return SBI_ENODEV;
-> +       }
-> +
-> +       sbi_console_set_device(&virtio_console);
-> +       return 0;
-> +}
-> --
-> 2.36.1
->
+> >
+> > Regards,
+> > Samuel
+> >
+> > >>>> ---
+> > >>>>
+> > >>>>  lib/sbi/sbi_hart.c | 2 +-
+> > >>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >>>>
+> > >>>> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> > >>>> index de86fee..5bc6d52 100644
+> > >>>> --- a/lib/sbi/sbi_hart.c
+> > >>>> +++ b/lib/sbi/sbi_hart.c
+> > >>>> @@ -645,7 +645,7 @@ __mhpm_skip:
+> > >>>>                 hfeatures->priv_version = SBI_HART_PRIV_VER_1_12;
+> > >>>>
+> > >>>>         /* Counter overflow/filtering is not useful without mcounter/inhibit */
+> > >>>> -       if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
+> > >>>> +       if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11) {
+> > >>>>                 /* Detect if hart supports sscofpmf */
+> > >>>>                 csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
+> > >>>>                 if (!trap.cause)
+> > >>>> --
+> > >>>> 2.35.1
+> > >>>>
+> > >>>>
+> > >>>> --
+> > >>>> opensbi mailing list
+> > >>>> opensbi at lists.infradead.org
+> > >>>> http://lists.infradead.org/mailman/listinfo/opensbi
+> > >>
+> >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
+
+
+-- 
 Regards,
-Anup
+Atish
 
