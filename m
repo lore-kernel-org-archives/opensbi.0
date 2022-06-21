@@ -1,203 +1,66 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 21 Jun 2022 10:24:06 +0530
+From: Samuel Holland <samuel@sholland.org>
+Date: Tue, 21 Jun 2022 00:20:50 -0500
 Subject: [RFC PATCH 2/2] lib: utils/timer: Add a separate compatible for
  the D1 CLINT
-In-Reply-To: <d57d4cb7-bf64-c1c8-a0bf-174e36207d3c@sholland.org>
-References: <20211020015838.45399-1-samuel@sholland.org> <20211020015838.45399-3-samuel@sholland.org>
- <CAAhSdy3r20Q4mBkTR58Befo+SYhsLx3ueq=MOb4UQXk3P=8F-w@mail.gmail.com> <d57d4cb7-bf64-c1c8-a0bf-174e36207d3c@sholland.org>
-Message-ID: <CAAhSdy0+2GY1U==iGHn5udFwSWUTEEKbtG=fSxu2vC4As1E2gg@mail.gmail.com>
+In-Reply-To: <CAAhSdy0+2GY1U==iGHn5udFwSWUTEEKbtG=fSxu2vC4As1E2gg@mail.gmail.com>
+References: <20211020015838.45399-1-samuel@sholland.org>
+ <20211020015838.45399-3-samuel@sholland.org>
+ <CAAhSdy3r20Q4mBkTR58Befo+SYhsLx3ueq=MOb4UQXk3P=8F-w@mail.gmail.com>
+ <d57d4cb7-bf64-c1c8-a0bf-174e36207d3c@sholland.org>
+ <CAAhSdy0+2GY1U==iGHn5udFwSWUTEEKbtG=fSxu2vC4As1E2gg@mail.gmail.com>
+Message-ID: <d9249dd3-ae0d-d2ff-f785-d2a1df2e6d45@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 21, 2022 at 10:13 AM Samuel Holland <samuel@sholland.org> wrote:
->
-> On 6/20/22 11:20 PM, Anup Patel wrote:
-> > On Wed, Oct 20, 2021 at 7:28 AM Samuel Holland <samuel@sholland.org> wrote:
-> >>
-> >> The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
-> >> MMIO access. A property was added to support this quirk (and that
-> >> property was copied to the ACLINT MTIMER code). However, since this
-> >> difference in behavior makes the D1 CLINT incompatible with the SiFive
-> >> CLINT's programming interface, a better solution is to use a separate
-> >> compatible string.
-> >>
-> >> Signed-off-by: Samuel Holland <samuel@sholland.org>
-> >
-> > Due to some unknown reason, this patch slipped through cracks and was
-> > never applied.
->
-> Oh, I intentionally did not send a new version of the series because I later
-> found out that C9xx CLINT has no mtime register at all[1][2]. The issue has
-> nothing to do with 64-bit vs 32-bit access. So this change is wrong; I will need
-> to send a follow-up removing the allwinner,sun20i-d1-clint compatibles.
+On 6/20/22 11:54 PM, Anup Patel wrote:
+> On Tue, Jun 21, 2022 at 10:13 AM Samuel Holland <samuel@sholland.org> wrote:
+>>
+>> On 6/20/22 11:20 PM, Anup Patel wrote:
+>>> On Wed, Oct 20, 2021 at 7:28 AM Samuel Holland <samuel@sholland.org> wrote:
+>>>>
+>>>> The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
+>>>> MMIO access. A property was added to support this quirk (and that
+>>>> property was copied to the ACLINT MTIMER code). However, since this
+>>>> difference in behavior makes the D1 CLINT incompatible with the SiFive
+>>>> CLINT's programming interface, a better solution is to use a separate
+>>>> compatible string.
+>>>>
+>>>> Signed-off-by: Samuel Holland <samuel@sholland.org>
+>>>
+>>> Due to some unknown reason, this patch slipped through cracks and was
+>>> never applied.
+>>
+>> Oh, I intentionally did not send a new version of the series because I later
+>> found out that C9xx CLINT has no mtime register at all[1][2]. The issue has
+>> nothing to do with 64-bit vs 32-bit access. So this change is wrong; I will need
+>> to send a follow-up removing the allwinner,sun20i-d1-clint compatibles.
+> 
+> I had tested on QEMU virt and sifive_u machine so at least this does not
+> break anything on QEMU and SiFive boards.
 
-I had tested on QEMU virt and sifive_u machine so at least this does not
-break anything on QEMU and SiFive boards.
+OK, I will send a follow-up patch tomorrow.
 
-Just a heads-up, we are planning to do OpenSBI v1.1 release sometime
-this week.
+> Just a heads-up, we are planning to do OpenSBI v1.1 release sometime
+> this week.
+> 
+> Do you have a list of things that are still missing to support upstream
+> OpenSBI on D1 board ?
 
-Do you have a list of things that are still missing to support upstream
-OpenSBI on D1 board ?
+D1 already has enough support to boot/run with v1.0.
+
+The only remaining functionality I know of is:
+ - CLINT, which needs a DT binding plus further driver changes, and
+ - PMU, which will be nontrivial to implement.
+
+Lack of CLINT driver is no real problem, because D1 has several other MMIO
+timers available, so the SBI timer extension is not even used right now.
+
+And the generic PMU code gracefully handles the lack of overflow interrupt
+support, so that can also be added later.
 
 Regards,
-Anup
-
->
-> Regards,
-> Samuel
->
-> [1]:
-> https://github.com/T-head-Semi/openc906/blob/main/C906_RTL_FACTORY/gen_rtl/clint/rtl/clint_func.v#L217
-> [2]:
-> https://github.com/T-head-Semi/openc910/blob/main/C910_RTL_FACTORY/gen_rtl/clint/rtl/ct_clint_func.v#L247
->
-> > Reviewed-by: Anup Patel <anup@brainfault.org>
-> >
-> > Applied this patch to the riscv/opensbi repo.
-> >
-> > Thanks,
-> > Anup
-> >
-> >> ---
-> >>  docs/platform/thead-c9xx.md        |  4 +--
-> >>  lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
-> >>  lib/utils/timer/fdt_timer_mtimer.c | 39 +++++++++++++++++++-----------
-> >>  3 files changed, 27 insertions(+), 17 deletions(-)
-> >>
-> >> diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
-> >> index 3490ed5..ced784d 100644
-> >> --- a/docs/platform/thead-c9xx.md
-> >> +++ b/docs/platform/thead-c9xx.md
-> >> @@ -52,12 +52,11 @@ DTS Example1: (Single core, eg: Allwinner D1 - c906)
-> >>                 ranges;
-> >>
-> >>                 clint0: clint at 14000000 {
-> >> -                       compatible = "riscv,clint0";
-> >> +                       compatible = "allwinner,sun20i-d1-clint";
-> >>                         interrupts-extended = <
-> >>                                 &cpu0_intc  3 &cpu0_intc  7
-> >>                                 >;
-> >>                         reg = <0x0 0x14000000 0x0 0x04000000>;
-> >> -                       clint,has-no-64bit-mmio;
-> >>                 };
-> >>
-> >>                 intc: interrupt-controller at 10000000 {
-> >> @@ -163,7 +162,6 @@ DTS Example2: (Multi cores with soc reset-regs)
-> >>                                 &cpu4_intc  3 &cpu4_intc  7
-> >>                                 >;
-> >>                         reg = <0xff 0xdc000000 0x0 0x04000000>;
-> >> -                       clint,has-no-64bit-mmio;
-> >>                 };
-> >>
-> >>                 intc: interrupt-controller at ffd8000000 {
-> >> diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
-> >> index 0176941..af69e16 100644
-> >> --- a/lib/utils/ipi/fdt_ipi_mswi.c
-> >> +++ b/lib/utils/ipi/fdt_ipi_mswi.c
-> >> @@ -54,6 +54,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
-> >>  static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
-> >>
-> >>  static const struct fdt_match ipi_mswi_match[] = {
-> >> +       { .compatible = "allwinner,sun20i-d1-clint", .data = &clint_offset },
-> >>         { .compatible = "riscv,clint0", .data = &clint_offset },
-> >>         { .compatible = "sifive,clint0", .data = &clint_offset },
-> >>         { .compatible = "riscv,aclint-mswi" },
-> >> diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-> >> index 1ad8508..e140567 100644
-> >> --- a/lib/utils/timer/fdt_timer_mtimer.c
-> >> +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> >> @@ -15,6 +15,11 @@
-> >>
-> >>  #define MTIMER_MAX_NR                  16
-> >>
-> >> +struct timer_mtimer_quirks {
-> >> +       unsigned int    mtime_offset;
-> >> +       bool            has_64bit_mmio;
-> >> +};
-> >> +
-> >>  static unsigned long mtimer_count = 0;
-> >>  static struct aclint_mtimer_data mtimer[MTIMER_MAX_NR];
-> >>  static struct aclint_mtimer_data *mt_reference = NULL;
-> >> @@ -23,7 +28,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
-> >>                                   const struct fdt_match *match)
-> >>  {
-> >>         int i, rc;
-> >> -       unsigned long offset, addr[2], size[2];
-> >> +       unsigned long addr[2], size[2];
-> >>         struct aclint_mtimer_data *mt;
-> >>
-> >>         if (MTIMER_MAX_NR <= mtimer_count)
-> >> @@ -43,28 +48,25 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
-> >>                 return rc;
-> >>
-> >>         if (match->data) { /* SiFive CLINT */
-> >> +               const struct timer_mtimer_quirks *quirks = match->data;
-> >> +
-> >>                 /* Set CLINT addresses */
-> >>                 mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
-> >>                 mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
-> >>                 mt->mtime_addr = addr[0] + ACLINT_DEFAULT_MTIME_OFFSET;
-> >>                 mt->mtime_size = size[0] - mt->mtimecmp_size;
-> >>                 /* Adjust MTIMER address and size for CLINT device */
-> >> -               offset = *((unsigned long *)match->data);
-> >> -               mt->mtime_addr += offset;
-> >> -               mt->mtimecmp_addr += offset;
-> >> -               mt->mtime_size -= offset;
-> >> -               /* Parse additional CLINT properties */
-> >> -               if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
-> >> -                       mt->has_64bit_mmio = false;
-> >> +               mt->mtime_addr += quirks->mtime_offset;
-> >> +               mt->mtimecmp_addr += quirks->mtime_offset;
-> >> +               mt->mtime_size -= quirks->mtime_offset;
-> >> +               /* Apply additional CLINT quirks */
-> >> +               mt->has_64bit_mmio = quirks->has_64bit_mmio;
-> >>         } else { /* RISC-V ACLINT MTIMER */
-> >>                 /* Set ACLINT MTIMER addresses */
-> >>                 mt->mtime_addr = addr[0];
-> >>                 mt->mtime_size = size[0];
-> >>                 mt->mtimecmp_addr = addr[1];
-> >>                 mt->mtimecmp_size = size[1];
-> >> -               /* Parse additional ACLINT MTIMER properties */
-> >> -               if (fdt_getprop(fdt, nodeoff, "mtimer,no-64bit-mmio", &rc))
-> >> -                       mt->has_64bit_mmio = false;
-> >>         }
-> >>
-> >>         /* Check if MTIMER device has shared MTIME address */
-> >> @@ -107,11 +109,20 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
-> >>         return 0;
-> >>  }
-> >>
-> >> -static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
-> >> +static const struct timer_mtimer_quirks d1_clint_quirks = {
-> >> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
-> >> +       .has_64bit_mmio = false,
-> >> +};
-> >> +
-> >> +static const struct timer_mtimer_quirks sifive_clint_quirks = {
-> >> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
-> >> +       .has_64bit_mmio = true,
-> >> +};
-> >>
-> >>  static const struct fdt_match timer_mtimer_match[] = {
-> >> -       { .compatible = "riscv,clint0", .data = &clint_offset },
-> >> -       { .compatible = "sifive,clint0", .data = &clint_offset },
-> >> +       { .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
-> >> +       { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
-> >> +       { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
-> >>         { .compatible = "riscv,aclint-mtimer" },
-> >>         { },
-> >>  };
-> >> --
-> >> 2.32.0
-> >>
-> >>
-> >> --
-> >> opensbi mailing list
-> >> opensbi at lists.infradead.org
-> >> http://lists.infradead.org/mailman/listinfo/opensbi
->
+Samuel
 
