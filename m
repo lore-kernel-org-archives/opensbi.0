@@ -1,197 +1,172 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 20 Jun 2022 12:59:54 -0700
-Subject: [PATCH] lib: utils: Remove CSRs that set/clear an IMSIC interrupt
- file bits
-In-Reply-To: <20220616115856.1073885-1-apatel@ventanamicro.com>
-References: <20220616115856.1073885-1-apatel@ventanamicro.com>
-Message-ID: <CAOnJCU+kdBHE0d0hZBo0K5yzL-VB5pQNtQt7y1XL0mwj8XQBxQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 21 Jun 2022 09:50:42 +0530
+Subject: [RFC PATCH 2/2] lib: utils/timer: Add a separate compatible for
+ the D1 CLINT
+In-Reply-To: <20211020015838.45399-3-samuel@sholland.org>
+References: <20211020015838.45399-1-samuel@sholland.org> <20211020015838.45399-3-samuel@sholland.org>
+Message-ID: <CAAhSdy3r20Q4mBkTR58Befo+SYhsLx3ueq=MOb4UQXk3P=8F-w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 16, 2022 at 4:59 AM Anup Patel <apatel@ventanamicro.com> wrote:
+On Wed, Oct 20, 2021 at 7:28 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> Based on architecture review committee feedback, the [m|s|vs]seteienum,
-> [m|s|vs]clreienum, [m|s|vs]seteipnum, and [m|s|vs]clreipnum CSRs are
-> removed in the latest AIA draft v0.3.0 specification.
-> (Refer, https://github.com/riscv/riscv-aia/releases/tag/0.3.0-draft.31)
+> The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
+> MMIO access. A property was added to support this quirk (and that
+> property was copied to the ACLINT MTIMER code). However, since this
+> difference in behavior makes the D1 CLINT incompatible with the SiFive
+> CLINT's programming interface, a better solution is to use a separate
+> compatible string.
 >
-> These CSRs were mostly for software convenience and software can always
-> use [m|s|vs]iselect and [m|s|vs]ireg CSRs to update the IMSIC interrupt
-> file bits.
->
-> We update the IMSIC programming as-per above to match the latest AIA
-> draft specification.
->
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Samuel Holland <samuel@sholland.org>
+
+Due to some unknown reason, this patch slipped through cracks and was
+never applied.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
 > ---
->  include/sbi/riscv_encoding.h | 24 +++--------------
->  lib/utils/irqchip/imsic.c    | 51 +++++++++++++++++++++++++++++++-----
->  2 files changed, 48 insertions(+), 27 deletions(-)
+>  docs/platform/thead-c9xx.md        |  4 +--
+>  lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
+>  lib/utils/timer/fdt_timer_mtimer.c | 39 +++++++++++++++++++-----------
+>  3 files changed, 27 insertions(+), 17 deletions(-)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index a164768..68b4a7f 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -336,14 +336,8 @@
->  #define CSR_SIREG                      0x151
+> diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
+> index 3490ed5..ced784d 100644
+> --- a/docs/platform/thead-c9xx.md
+> +++ b/docs/platform/thead-c9xx.md
+> @@ -52,12 +52,11 @@ DTS Example1: (Single core, eg: Allwinner D1 - c906)
+>                 ranges;
 >
->  /* Supervisor-Level Interrupts (AIA) */
-> -#define CSR_STOPI                      0xdb0
-> -
-> -/* Supervisor-Level IMSIC Interface (AIA) */
-> -#define CSR_SSETEIPNUM                 0x158
-> -#define CSR_SCLREIPNUM                 0x159
-> -#define CSR_SSETEIENUM                 0x15a
-> -#define CSR_SCLREIENUM                 0x15b
->  #define CSR_STOPEI                     0x15c
-> +#define CSR_STOPI                      0xdb0
+>                 clint0: clint at 14000000 {
+> -                       compatible = "riscv,clint0";
+> +                       compatible = "allwinner,sun20i-d1-clint";
+>                         interrupts-extended = <
+>                                 &cpu0_intc  3 &cpu0_intc  7
+>                                 >;
+>                         reg = <0x0 0x14000000 0x0 0x04000000>;
+> -                       clint,has-no-64bit-mmio;
+>                 };
 >
->  /* Supervisor-Level High-Half CSRs (AIA) */
->  #define CSR_SIEH                       0x114
-> @@ -405,14 +399,8 @@
->  #define CSR_VSIREG                     0x251
+>                 intc: interrupt-controller at 10000000 {
+> @@ -163,7 +162,6 @@ DTS Example2: (Multi cores with soc reset-regs)
+>                                 &cpu4_intc  3 &cpu4_intc  7
+>                                 >;
+>                         reg = <0xff 0xdc000000 0x0 0x04000000>;
+> -                       clint,has-no-64bit-mmio;
+>                 };
 >
->  /* VS-Level Interrupts (H-extension with AIA) */
-> -#define CSR_VSTOPI                     0xeb0
-> -
-> -/* VS-Level IMSIC Interface (H-extension with AIA) */
-> -#define CSR_VSSETEIPNUM                0x258
-> -#define CSR_VSCLREIPNUM                0x259
-> -#define CSR_VSSETEIENUM                0x25a
-> -#define CSR_VSCLREIENUM                0x25b
->  #define CSR_VSTOPEI                    0x25c
-> +#define CSR_VSTOPI                     0xeb0
+>                 intc: interrupt-controller at ffd8000000 {
+> diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+> index 0176941..af69e16 100644
+> --- a/lib/utils/ipi/fdt_ipi_mswi.c
+> +++ b/lib/utils/ipi/fdt_ipi_mswi.c
+> @@ -54,6 +54,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
+>  static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
 >
->  /* Hypervisor and VS-Level High-Half CSRs (H-extension with AIA) */
->  #define CSR_HIDELEGH                   0x613
-> @@ -693,14 +681,8 @@
->  #define CSR_MIREG                      0x351
+>  static const struct fdt_match ipi_mswi_match[] = {
+> +       { .compatible = "allwinner,sun20i-d1-clint", .data = &clint_offset },
+>         { .compatible = "riscv,clint0", .data = &clint_offset },
+>         { .compatible = "sifive,clint0", .data = &clint_offset },
+>         { .compatible = "riscv,aclint-mswi" },
+> diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+> index 1ad8508..e140567 100644
+> --- a/lib/utils/timer/fdt_timer_mtimer.c
+> +++ b/lib/utils/timer/fdt_timer_mtimer.c
+> @@ -15,6 +15,11 @@
 >
->  /* Machine-Level Interrupts (AIA) */
-> -#define CSR_MTOPI                      0xfb0
-> -
-> -/* Machine-Level IMSIC Interface (AIA) */
-> -#define CSR_MSETEIPNUM                 0x358
-> -#define CSR_MCLREIPNUM                 0x359
-> -#define CSR_MSETEIENUM                 0x35a
-> -#define CSR_MCLREIENUM                 0x35b
->  #define CSR_MTOPEI                     0x35c
-> +#define CSR_MTOPI                      0xfb0
+>  #define MTIMER_MAX_NR                  16
 >
->  /* Virtual Interrupts for Supervisor Level (AIA) */
->  #define CSR_MVIEN                      0x308
-> diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-> index b29a1e9..98f2cb6 100644
-> --- a/lib/utils/irqchip/imsic.c
-> +++ b/lib/utils/irqchip/imsic.c
-> @@ -38,10 +38,14 @@
->
->  #define IMSIC_EIP63                    0xbf
->
-> +#define IMSIC_EIPx_BITS                        32
+> +struct timer_mtimer_quirks {
+> +       unsigned int    mtime_offset;
+> +       bool            has_64bit_mmio;
+> +};
 > +
->  #define IMSIC_EIE0                     0xc0
->
->  #define IMSIC_EIE63                    0xff
->
-> +#define IMSIC_EIEx_BITS                        32
-> +
->  #define IMSIC_DISABLE_EIDELIVERY       0
->  #define IMSIC_ENABLE_EIDELIVERY                1
->  #define IMSIC_DISABLE_EITHRESHOLD      1
-> @@ -63,6 +67,18 @@ do { \
->         __v; \
->  })
->
-> +#define imsic_csr_set(__c, __v)                \
-> +do { \
-> +       csr_write(CSR_MISELECT, __c); \
-> +       csr_set(CSR_MIREG, __v); \
-> +} while (0)
-> +
-> +#define imsic_csr_clear(__c, __v)      \
-> +do { \
-> +       csr_write(CSR_MISELECT, __c); \
-> +       csr_clear(CSR_MIREG, __v); \
-> +} while (0)
-> +
->  static struct imsic_data *imsic_hartid2data[SBI_HARTMASK_MAX_BITS];
->  static int imsic_hartid2file[SBI_HARTMASK_MAX_BITS];
->
-> @@ -140,6 +156,31 @@ static struct sbi_ipi_device imsic_ipi_device = {
->         .ipi_send       = imsic_ipi_send
->  };
->
-> +static void imsic_local_eix_update(unsigned long base_id,
-> +                                  unsigned long num_id, bool pend, bool val)
-> +{
-> +       unsigned long i, isel, ireg;
-> +       unsigned long id = base_id, last_id = base_id + num_id;
-> +
-> +       while (id < last_id) {
-> +               isel = id / __riscv_xlen;
-> +               isel *= __riscv_xlen / IMSIC_EIPx_BITS;
-> +               isel += (pend) ? IMSIC_EIP0 : IMSIC_EIE0;
-> +
-> +               ireg = 0;
-> +               for (i = id & (__riscv_xlen - 1);
-> +                    (id < last_id) && (i < __riscv_xlen); i++) {
-> +                       ireg |= BIT(i);
-> +                       id++;
-> +               }
-> +
-> +               if (val)
-> +                       imsic_csr_set(isel, ireg);
-> +               else
-> +                       imsic_csr_clear(isel, ireg);
-> +       }
-> +}
-> +
->  void imsic_local_irqchip_init(void)
+>  static unsigned long mtimer_count = 0;
+>  static struct aclint_mtimer_data mtimer[MTIMER_MAX_NR];
+>  static struct aclint_mtimer_data *mt_reference = NULL;
+> @@ -23,7 +28,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>                                   const struct fdt_match *match)
 >  {
->         /*
-> @@ -158,12 +199,11 @@ void imsic_local_irqchip_init(void)
->         imsic_csr_write(IMSIC_EIDELIVERY, IMSIC_ENABLE_EIDELIVERY);
+>         int i, rc;
+> -       unsigned long offset, addr[2], size[2];
+> +       unsigned long addr[2], size[2];
+>         struct aclint_mtimer_data *mt;
 >
->         /* Enable IPI */
-> -       csr_write(CSR_MSETEIENUM, IMSIC_IPI_ID);
-> +       imsic_local_eix_update(IMSIC_IPI_ID, 1, false, true);
+>         if (MTIMER_MAX_NR <= mtimer_count)
+> @@ -43,28 +48,25 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>                 return rc;
+>
+>         if (match->data) { /* SiFive CLINT */
+> +               const struct timer_mtimer_quirks *quirks = match->data;
+> +
+>                 /* Set CLINT addresses */
+>                 mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
+>                 mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
+>                 mt->mtime_addr = addr[0] + ACLINT_DEFAULT_MTIME_OFFSET;
+>                 mt->mtime_size = size[0] - mt->mtimecmp_size;
+>                 /* Adjust MTIMER address and size for CLINT device */
+> -               offset = *((unsigned long *)match->data);
+> -               mt->mtime_addr += offset;
+> -               mt->mtimecmp_addr += offset;
+> -               mt->mtime_size -= offset;
+> -               /* Parse additional CLINT properties */
+> -               if (fdt_getprop(fdt, nodeoff, "clint,has-no-64bit-mmio", &rc))
+> -                       mt->has_64bit_mmio = false;
+> +               mt->mtime_addr += quirks->mtime_offset;
+> +               mt->mtimecmp_addr += quirks->mtime_offset;
+> +               mt->mtime_size -= quirks->mtime_offset;
+> +               /* Apply additional CLINT quirks */
+> +               mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>         } else { /* RISC-V ACLINT MTIMER */
+>                 /* Set ACLINT MTIMER addresses */
+>                 mt->mtime_addr = addr[0];
+>                 mt->mtime_size = size[0];
+>                 mt->mtimecmp_addr = addr[1];
+>                 mt->mtimecmp_size = size[1];
+> -               /* Parse additional ACLINT MTIMER properties */
+> -               if (fdt_getprop(fdt, nodeoff, "mtimer,no-64bit-mmio", &rc))
+> -                       mt->has_64bit_mmio = false;
+>         }
+>
+>         /* Check if MTIMER device has shared MTIME address */
+> @@ -107,11 +109,20 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>         return 0;
 >  }
 >
->  int imsic_warm_irqchip_init(void)
->  {
-> -       unsigned long i;
->         struct imsic_data *imsic = imsic_hartid2data[current_hartid()];
+> -static unsigned long clint_offset = CLINT_MTIMER_OFFSET;
+> +static const struct timer_mtimer_quirks d1_clint_quirks = {
+> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
+> +       .has_64bit_mmio = false,
+> +};
+> +
+> +static const struct timer_mtimer_quirks sifive_clint_quirks = {
+> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
+> +       .has_64bit_mmio = true,
+> +};
 >
->         /* Sanity checks */
-> @@ -171,11 +211,10 @@ int imsic_warm_irqchip_init(void)
->                 return SBI_EINVAL;
->
->         /* Disable all interrupts */
-> -       for (i = 1; i <= imsic->num_ids; i++)
-> -               csr_write(CSR_MCLREIENUM, i);
-> +       imsic_local_eix_update(1, imsic->num_ids, false, false);
->
-> -       /* Clear IPI */
-> -       csr_write(CSR_MCLREIPNUM, IMSIC_IPI_ID);
-> +       /* Clear IPI pending */
-> +       imsic_local_eix_update(IMSIC_IPI_ID, 1, true, false);
->
->         /* Local IMSIC initialization */
->         imsic_local_irqchip_init();
+>  static const struct fdt_match timer_mtimer_match[] = {
+> -       { .compatible = "riscv,clint0", .data = &clint_offset },
+> -       { .compatible = "sifive,clint0", .data = &clint_offset },
+> +       { .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
+> +       { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+> +       { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+>         { .compatible = "riscv,aclint-mtimer" },
+>         { },
+>  };
 > --
-> 2.34.1
+> 2.32.0
 >
-
-Looks good to me.
-
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
-
-
--- 
-Regards,
-Atish
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
