@@ -1,27 +1,29 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 21 Jun 2022 09:51:45 +0530
-Subject: [PATCH 2/3] lib: sbi: Fixup tinst for exceptions in sbi_misaligned_*()
-In-Reply-To: <CAAhSdy2T=tVgsxCPS+A36x39idwnSQSg+TbA_Bt11QthYSbg9w@mail.gmail.com>
+Date: Tue, 21 Jun 2022 09:52:03 +0530
+Subject: [PATCH 3/3] lib: sbi: Fix tval and tinst for sbi_get_insn()
+In-Reply-To: <CAAhSdy3oT8JNB2X8TG_xWE9qVuX-k4BRo-JHP3s_uiKnRKP11Q@mail.gmail.com>
 References: <TYYP286MB1439F38753D033042F83C8E0C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <TYYP286MB14399AD2F6CFFB0CECD334E9C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <CAAhSdy2T=tVgsxCPS+A36x39idwnSQSg+TbA_Bt11QthYSbg9w@mail.gmail.com>
-Message-ID: <CAAhSdy0_wCu+q7LtCGM2CVGRWjd4HHwguwwTgU=kuUGpKDmPSA@mail.gmail.com>
+ <TYYP286MB14393C382F94A378E9F529CDC6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+ <CAAhSdy3oT8JNB2X8TG_xWE9qVuX-k4BRo-JHP3s_uiKnRKP11Q@mail.gmail.com>
+Message-ID: <CAAhSdy20kgPonjvjVwRB853q7+_cOmQdA3t2Zeeh1NWbixjQ3g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jun 17, 2022 at 12:15 PM Anup Patel <anup@brainfault.org> wrote:
+On Sat, Jun 18, 2022 at 11:28 AM Anup Patel <anup@brainfault.org> wrote:
 >
 > On Thu, Jun 9, 2022 at 12:38 PM dramforever <dramforever@live.com> wrote:
 > >
-> > If there is an exception while emulating a misaligned load/store, fixup
-> > uptrap.tinst before redirecting. Otherwise, HS-mode software may receive
-> > an htinst describing the lbu/sb instruction that faulted during
-> > emulation[1].
+> > We should not change trap->tval to mepc because mtval already points to
+> > the faulting portion of the emulated instruction fetch, which is also
+> > what stval is expected to be.
 > >
-> > [1]: https://github.com/riscv-software-src/opensbi/issues/258
+> > In addition, htinst is only allowed to be zero for instruction access
+> > faults or page faults, and is only allowed to be zero or a
+> > psuedoinstruction for instruction guest-page faults. Fix trap->tinst for
+> > these cases.
 > >
 > > Signed-off-by: dramforever <dramforever@live.com>
 >
@@ -39,50 +41,34 @@ Anup
 > Anup
 >
 > > ---
-> >  lib/sbi/sbi_misaligned_ldst.c | 16 ++++++++++++++++
-> >  1 file changed, 16 insertions(+)
+> >  lib/sbi/sbi_unpriv.c | 8 +++++---
+> >  1 file changed, 5 insertions(+), 3 deletions(-)
 > >
-> > diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
-> > index c879ce7..fd11798 100644
-> > --- a/lib/sbi/sbi_misaligned_ldst.c
-> > +++ b/lib/sbi/sbi_misaligned_ldst.c
-> > @@ -22,6 +22,18 @@ union reg_data {
-> >         u64 data_u64;
-> >  };
-> >
-> > +static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
-> > +                                       ulong addr_offset)
-> > +{
-> > +       if (new_tinst == INSN_PSEUDO_VS_LOAD ||
-> > +           new_tinst == INSN_PSEUDO_VS_STORE)
-> > +               return new_tinst;
-> > +       else if (orig_tinst == 0)
-> > +               return 0UL;
-> > +       else
-> > +               return orig_tinst | (addr_offset << SH_RS1);
-> > +}
-> > +
-> >  int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> >                                 struct sbi_trap_regs *regs)
-> >  {
-> > @@ -126,6 +138,8 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> >                                                 &uptrap);
-> >                 if (uptrap.cause) {
-> >                         uptrap.epc = regs->mepc;
-> > +                       uptrap.tinst = sbi_misaligned_tinst_fixup(
-> > +                               tinst, uptrap.tinst, i);
-> >                         return sbi_trap_redirect(regs, &uptrap);
-> >                 }
-> >         }
-> > @@ -238,6 +252,8 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
-> >                              &uptrap);
-> >                 if (uptrap.cause) {
-> >                         uptrap.epc = regs->mepc;
-> > +                       uptrap.tinst = sbi_misaligned_tinst_fixup(
-> > +                               tinst, uptrap.tinst, i);
-> >                         return sbi_trap_redirect(regs, &uptrap);
-> >                 }
-> >         }
+> > diff --git a/lib/sbi/sbi_unpriv.c b/lib/sbi/sbi_unpriv.c
+> > index 73b530c..9a34a71 100644
+> > --- a/lib/sbi/sbi_unpriv.c
+> > +++ b/lib/sbi/sbi_unpriv.c
+> > @@ -149,15 +149,17 @@ ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap)
+> >         switch (trap->cause) {
+> >         case CAUSE_LOAD_ACCESS:
+> >                 trap->cause = CAUSE_FETCH_ACCESS;
+> > -               trap->tval = mepc;
+> > +               trap->tinst = 0UL;
+> >                 break;
+> >         case CAUSE_LOAD_PAGE_FAULT:
+> >                 trap->cause = CAUSE_FETCH_PAGE_FAULT;
+> > -               trap->tval = mepc;
+> > +               trap->tinst = 0UL;
+> >                 break;
+> >         case CAUSE_LOAD_GUEST_PAGE_FAULT:
+> >                 trap->cause = CAUSE_FETCH_GUEST_PAGE_FAULT;
+> > -               trap->tval = mepc;
+> > +               if (trap->tinst != INSN_PSEUDO_VS_LOAD &&
+> > +                   trap->tinst != INSN_PSEUDO_VS_STORE)
+> > +                       trap->tinst = 0UL;
+> >                 break;
+> >         default:
+> >                 break;
 > > --
 > > 2.36.0
 > >
