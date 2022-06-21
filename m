@@ -1,23 +1,27 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 21 Jun 2022 09:51:32 +0530
-Subject: [PATCH 1/3] include: sbi: Add mtinst/htinst psuedoinstructions
-In-Reply-To: <CAAhSdy1xmJi5AB59xxOFuK1dyuXKwE77r_KpkBoB4AX2=s3m2w@mail.gmail.com>
+Date: Tue, 21 Jun 2022 09:51:45 +0530
+Subject: [PATCH 2/3] lib: sbi: Fixup tinst for exceptions in sbi_misaligned_*()
+In-Reply-To: <CAAhSdy2T=tVgsxCPS+A36x39idwnSQSg+TbA_Bt11QthYSbg9w@mail.gmail.com>
 References: <TYYP286MB1439F38753D033042F83C8E0C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <TYYP286MB14399472C06DD67BB8C55351C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <CAAhSdy1xmJi5AB59xxOFuK1dyuXKwE77r_KpkBoB4AX2=s3m2w@mail.gmail.com>
-Message-ID: <CAAhSdy0DuE-k6xFM9mx9N=sK=kpGDNH=2TtDTYJKxw-YsNXsYA@mail.gmail.com>
+ <TYYP286MB14399AD2F6CFFB0CECD334E9C6A79@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+ <CAAhSdy2T=tVgsxCPS+A36x39idwnSQSg+TbA_Bt11QthYSbg9w@mail.gmail.com>
+Message-ID: <CAAhSdy0_wCu+q7LtCGM2CVGRWjd4HHwguwwTgU=kuUGpKDmPSA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jun 17, 2022 at 12:14 PM Anup Patel <anup@brainfault.org> wrote:
+On Fri, Jun 17, 2022 at 12:15 PM Anup Patel <anup@brainfault.org> wrote:
 >
 > On Thu, Jun 9, 2022 at 12:38 PM dramforever <dramforever@live.com> wrote:
 > >
-> > Add psuedoinstruction encodings written to mtinst/htinst for faults
-> > caused by implicit memory access for VS-stage address translation
+> > If there is an exception while emulating a misaligned load/store, fixup
+> > uptrap.tinst before redirecting. Otherwise, HS-mode software may receive
+> > an htinst describing the lbu/sb instruction that faulted during
+> > emulation[1].
+> >
+> > [1]: https://github.com/riscv-software-src/opensbi/issues/258
 > >
 > > Signed-off-by: dramforever <dramforever@live.com>
 >
@@ -35,40 +39,50 @@ Anup
 > Anup
 >
 > > ---
-> >  include/sbi/riscv_encoding.h | 20 ++++++++++++++++++++
-> >  1 file changed, 20 insertions(+)
+> >  lib/sbi/sbi_misaligned_ldst.c | 16 ++++++++++++++++
+> >  1 file changed, 16 insertions(+)
 > >
-> > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> > index a164768..2292858 100644
-> > --- a/include/sbi/riscv_encoding.h
-> > +++ b/include/sbi/riscv_encoding.h
-> > @@ -841,6 +841,26 @@
-> >  #define INSN_MASK_FENCE_TSO            0xffffffff
-> >  #define INSN_MATCH_FENCE_TSO           0x8330000f
+> > diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+> > index c879ce7..fd11798 100644
+> > --- a/lib/sbi/sbi_misaligned_ldst.c
+> > +++ b/lib/sbi/sbi_misaligned_ldst.c
+> > @@ -22,6 +22,18 @@ union reg_data {
+> >         u64 data_u64;
+> >  };
 > >
-> > +#if __riscv_xlen == 64
+> > +static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+> > +                                       ulong addr_offset)
+> > +{
+> > +       if (new_tinst == INSN_PSEUDO_VS_LOAD ||
+> > +           new_tinst == INSN_PSEUDO_VS_STORE)
+> > +               return new_tinst;
+> > +       else if (orig_tinst == 0)
+> > +               return 0UL;
+> > +       else
+> > +               return orig_tinst | (addr_offset << SH_RS1);
+> > +}
 > > +
-> > +/* 64-bit read for VS-stage address translation (RV64) */
-> > +#define INSN_PSEUDO_VS_LOAD            0x00003000
-> > +
-> > +/* 64-bit write for VS-stage address translation (RV64) */
-> > +#define INSN_PSEUDO_VS_STORE   0x00003020
-> > +
-> > +#elif __riscv_xlen == 32
-> > +
-> > +/* 32-bit read for VS-stage address translation (RV32) */
-> > +#define INSN_PSEUDO_VS_LOAD            0x00002000
-> > +
-> > +/* 32-bit write for VS-stage address translation (RV32) */
-> > +#define INSN_PSEUDO_VS_STORE   0x00002020
-> > +
-> > +#else
-> > +#error "Unexpected __riscv_xlen"
-> > +#endif
-> > +
-> >  #define INSN_16BIT_MASK                        0x3
-> >  #define INSN_32BIT_MASK                        0x1c
-> >
+> >  int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+> >                                 struct sbi_trap_regs *regs)
+> >  {
+> > @@ -126,6 +138,8 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+> >                                                 &uptrap);
+> >                 if (uptrap.cause) {
+> >                         uptrap.epc = regs->mepc;
+> > +                       uptrap.tinst = sbi_misaligned_tinst_fixup(
+> > +                               tinst, uptrap.tinst, i);
+> >                         return sbi_trap_redirect(regs, &uptrap);
+> >                 }
+> >         }
+> > @@ -238,6 +252,8 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+> >                              &uptrap);
+> >                 if (uptrap.cause) {
+> >                         uptrap.epc = regs->mepc;
+> > +                       uptrap.tinst = sbi_misaligned_tinst_fixup(
+> > +                               tinst, uptrap.tinst, i);
+> >                         return sbi_trap_redirect(regs, &uptrap);
+> >                 }
+> >         }
 > > --
 > > 2.36.0
 > >
