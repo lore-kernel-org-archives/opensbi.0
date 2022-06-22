@@ -1,237 +1,244 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 21 Jun 2022 23:53:16 +0800
-Subject: [PATCH v4] lib: sbi: Improve csr read and write
-In-Reply-To: <81DE08C6-50D4-4CC2-AE63-266D727F083F@jrtc27.com>
-References: <20220526144214.308921-1-wxjstz@126.com>
-	 <CAK9=C2U9KyVTJhXN9jOqqR7JMYz0Mn9ar=seXbPg1+UdHhhbpg@mail.gmail.com>
-	 <1e615125574b838bc99dd58239874fa2e1685bdb.camel@126.com>
-	 <81DE08C6-50D4-4CC2-AE63-266D727F083F@jrtc27.com>
-Message-ID: <eb75c146d4657e71ca67dce5517438e80f4af962.camel@126.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Wed, 22 Jun 2022 09:55:03 +0800
+Subject: [PATCH] lib: utils/mtimer: Add has_broken_mtime quirk
+In-Reply-To: <CAAhSdy2ugpwy8Dc++68CTEXsVMHLyxfrUE817cUyX5q7UP_wCQ@mail.gmail.com>
+References: <20220621131132.110311-1-apatel@ventanamicro.com>
+ <CAJF2gTTtjON3yUZ0btg1OuVVOZorhgwKrL4GrwViP6htOYxNgQ@mail.gmail.com> <CAAhSdy2ugpwy8Dc++68CTEXsVMHLyxfrUE817cUyX5q7UP_wCQ@mail.gmail.com>
+Message-ID: <CAJF2gTTbkK7ucQCMa3cR_arEP=Oq=OJepOYL=NH1-Ff4m3Mk_Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-05-26???? 16:28 +0100?Jessica Clarke???
-> On 26 May 2022, at 16:19, Xiang W <wxjstz@126.com> wrote:
-> > 
-> > ? 2022-05-26???? 20:35 +0530?Anup Patel???
-> > > On Thu, May 26, 2022 at 8:12 PM Xiang W <wxjstz@126.com> wrote:
-> > > > 
-> > > > Reduce the overhead of csr read and write code by producing a small
-> > > > piece of code to perform csr read and write.
-> > > > 
-> > > > Signed-off-by: Xiang W <wxjstz@126.com>
-> > > > ---
-> > > > Changes in v4:
-> > > > - add fence.i sync instruction memory
-> > > > 
-> > > > Changes in v3:
-> > > > - Prevent unnecessary optimizations by the compiler
-> > > > 
-> > > > Changes in v2:
-> > > > - Fix thread safety related bugs as suggested by Anup
-> > > > 
-> > > > lib/sbi/riscv_asm.c | 145 ++++----------------------------------------
-> > > > 1 file changed, 13 insertions(+), 132 deletions(-)
-> > > > 
-> > > > diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> > > > index a09cf78..452cb19 100644
-> > > > --- a/lib/sbi/riscv_asm.c
-> > > > +++ b/lib/sbi/riscv_asm.c
-> > > > @@ -9,6 +9,7 @@
-> > > > 
-> > > > #include <sbi/riscv_asm.h>
-> > > > #include <sbi/riscv_encoding.h>
-> > > > +#include <sbi/riscv_barrier.h>
-> > > > #include <sbi/sbi_error.h>
-> > > > #include <sbi/sbi_platform.h>
-> > > > #include <sbi/sbi_console.h>
-> > > > @@ -93,142 +94,22 @@ void misa_string(int xlen, char *out, unsigned int out_sz)
-> > > > 
-> > > > unsigned long csr_read_num(int csr_num)
-> > > > {
-> > > > -#define switchcase_csr_read(__csr_num, __val)? \
-> > > > -? case __csr_num:? \
-> > > > -? __val = csr_read(__csr_num);? \
-> > > > -? break;
-> > > > -#define switchcase_csr_read_2(__csr_num, __val)? \
-> > > > -? switchcase_csr_read(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_read(__csr_num + 1, __val)
-> > > > -#define switchcase_csr_read_4(__csr_num, __val)? \
-> > > > -? switchcase_csr_read_2(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_read_2(__csr_num + 2, __val)
-> > > > -#define switchcase_csr_read_8(__csr_num, __val)? \
-> > > > -? switchcase_csr_read_4(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_read_4(__csr_num + 4, __val)
-> > > > -#define switchcase_csr_read_16(__csr_num, __val)? \
-> > > > -? switchcase_csr_read_8(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_read_8(__csr_num + 8, __val)
-> > > > -#define switchcase_csr_read_32(__csr_num, __val)? \
-> > > > -? switchcase_csr_read_16(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_read_16(__csr_num + 16, __val)
-> > > > -#define switchcase_csr_read_64(__csr_num, __val)? \
-> > > > -? switchcase_csr_read_32(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_read_32(__csr_num + 32, __val)
-> > > > -
-> > > > -? unsigned long ret = 0;
-> > > > -
-> > > > -? switch (csr_num) {
-> > > > -? switchcase_csr_read_16(CSR_PMPCFG0, ret)
-> > > > -? switchcase_csr_read_64(CSR_PMPADDR0, ret)
-> > > > -? switchcase_csr_read(CSR_MCYCLE, ret)
-> > > > -? switchcase_csr_read(CSR_MINSTRET, ret)
-> > > > -? switchcase_csr_read(CSR_MHPMCOUNTER3, ret)
-> > > > -? switchcase_csr_read_4(CSR_MHPMCOUNTER4, ret)
-> > > > -? switchcase_csr_read_8(CSR_MHPMCOUNTER8, ret)
-> > > > -? switchcase_csr_read_16(CSR_MHPMCOUNTER16, ret)
-> > > > -? switchcase_csr_read(CSR_MCOUNTINHIBIT, ret)
-> > > > -? switchcase_csr_read(CSR_MHPMEVENT3, ret)
-> > > > -? switchcase_csr_read_4(CSR_MHPMEVENT4, ret)
-> > > > -? switchcase_csr_read_8(CSR_MHPMEVENT8, ret)
-> > > > -? switchcase_csr_read_16(CSR_MHPMEVENT16, ret)
-> > > > -#if __riscv_xlen == 32
-> > > > -? switchcase_csr_read(CSR_MCYCLEH, ret)
-> > > > -? switchcase_csr_read(CSR_MINSTRETH, ret)
-> > > > -? switchcase_csr_read(CSR_MHPMCOUNTER3H, ret)
-> > > > -? switchcase_csr_read_4(CSR_MHPMCOUNTER4H, ret)
-> > > > -? switchcase_csr_read_8(CSR_MHPMCOUNTER8H, ret)
-> > > > -? switchcase_csr_read_16(CSR_MHPMCOUNTER16H, ret)
-> > > > -? /**
-> > > > -? * The CSR range MHPMEVENT[3-16]H are available only if sscofpmf
-> > > > -? * extension is present. The caller must ensure that.
-> > > > -? */
-> > > > -? switchcase_csr_read(CSR_MHPMEVENT3H, ret)
-> > > > -? switchcase_csr_read_4(CSR_MHPMEVENT4H, ret)
-> > > > -? switchcase_csr_read_8(CSR_MHPMEVENT8H, ret)
-> > > > -? switchcase_csr_read_16(CSR_MHPMEVENT16H, ret)
-> > > > -#endif
-> > > > -
-> > > > -? default:
-> > > > -? sbi_panic("%s: Unknown CSR %#x", __func__, csr_num);
-> > > > -? break;
-> > > > -? };
-> > > > -
-> > > > -? return ret;
-> > > > -
-> > > > -#undef switchcase_csr_read_64
-> > > > -#undef switchcase_csr_read_32
-> > > > -#undef switchcase_csr_read_16
-> > > > -#undef switchcase_csr_read_8
-> > > > -#undef switchcase_csr_read_4
-> > > > -#undef switchcase_csr_read_2
-> > > > -#undef switchcase_csr_read
-> > > > +? volatile uint32_t opcode_buff[2];
-> > > > +? typedef unsigned long (*read_f)(void);
-> > > > +? opcode_buff[0] = (csr_num << 20) | 0x00002573; /* csrr a0, csr */
-> > > > +? opcode_buff[1] = 0x00008067; /* ret */
-> > > > +? RISCV_FENCE_I;
-> > > > +? return ((read_f)opcode_buff)();
-> > > > }
-> > > > 
-> > > > void csr_write_num(int csr_num, unsigned long val)
-> > > > {
-> > > > -#define switchcase_csr_write(__csr_num, __val)? \
-> > > > -? case __csr_num:? \
-> > > > -? csr_write(__csr_num, __val);? \
-> > > > -? break;
-> > > > -#define switchcase_csr_write_2(__csr_num, __val)? \
-> > > > -? switchcase_csr_write(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_write(__csr_num + 1, __val)
-> > > > -#define switchcase_csr_write_4(__csr_num, __val)? \
-> > > > -? switchcase_csr_write_2(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_write_2(__csr_num + 2, __val)
-> > > > -#define switchcase_csr_write_8(__csr_num, __val)? \
-> > > > -? switchcase_csr_write_4(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_write_4(__csr_num + 4, __val)
-> > > > -#define switchcase_csr_write_16(__csr_num, __val)? \
-> > > > -? switchcase_csr_write_8(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_write_8(__csr_num + 8, __val)
-> > > > -#define switchcase_csr_write_32(__csr_num, __val)? \
-> > > > -? switchcase_csr_write_16(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_write_16(__csr_num + 16, __val)
-> > > > -#define switchcase_csr_write_64(__csr_num, __val)? \
-> > > > -? switchcase_csr_write_32(__csr_num + 0, __val)? \
-> > > > -? switchcase_csr_write_32(__csr_num + 32, __val)
-> > > > -
-> > > > -? switch (csr_num) {
-> > > > -? switchcase_csr_write_16(CSR_PMPCFG0, val)
-> > > > -? switchcase_csr_write_64(CSR_PMPADDR0, val)
-> > > > -? switchcase_csr_write(CSR_MCYCLE, val)
-> > > > -? switchcase_csr_write(CSR_MINSTRET, val)
-> > > > -? switchcase_csr_write(CSR_MHPMCOUNTER3, val)
-> > > > -? switchcase_csr_write_4(CSR_MHPMCOUNTER4, val)
-> > > > -? switchcase_csr_write_8(CSR_MHPMCOUNTER8, val)
-> > > > -? switchcase_csr_write_16(CSR_MHPMCOUNTER16, val)
-> > > > -#if __riscv_xlen == 32
-> > > > -? switchcase_csr_write(CSR_MCYCLEH, val)
-> > > > -? switchcase_csr_write(CSR_MINSTRETH, val)
-> > > > -? switchcase_csr_write(CSR_MHPMCOUNTER3H, val)
-> > > > -? switchcase_csr_write_4(CSR_MHPMCOUNTER4H, val)
-> > > > -? switchcase_csr_write_8(CSR_MHPMCOUNTER8H, val)
-> > > > -? switchcase_csr_write_16(CSR_MHPMCOUNTER16H, val)
-> > > > -? switchcase_csr_write(CSR_MHPMEVENT3H, val)
-> > > > -? switchcase_csr_write_4(CSR_MHPMEVENT4H, val)
-> > > > -? switchcase_csr_write_8(CSR_MHPMEVENT8H, val)
-> > > > -? switchcase_csr_write_16(CSR_MHPMEVENT16H, val)
-> > > > -#endif
-> > > > -? switchcase_csr_write(CSR_MCOUNTINHIBIT, val)
-> > > > -? switchcase_csr_write(CSR_MHPMEVENT3, val)
-> > > > -? switchcase_csr_write_4(CSR_MHPMEVENT4, val)
-> > > > -? switchcase_csr_write_8(CSR_MHPMEVENT8, val)
-> > > > -? switchcase_csr_write_16(CSR_MHPMEVENT16, val)
-> > > > -
-> > > > -? default:
-> > > > -? sbi_panic("%s: Unknown CSR %#x", __func__, csr_num);
-> > > > -? break;
-> > > > -? };
-> > > > -
-> > > > -#undef switchcase_csr_write_64
-> > > > -#undef switchcase_csr_write_32
-> > > > -#undef switchcase_csr_write_16
-> > > > -#undef switchcase_csr_write_8
-> > > > -#undef switchcase_csr_write_4
-> > > > -#undef switchcase_csr_write_2
-> > > > -#undef switchcase_csr_write
-> > > > +? volatile uint32_t opcode_buff[2];
-> > > > +? typedef void (*write_f)(unsigned long val);
-> > > > +? opcode_buff[0] = (csr_num << 20) | 0x00051073; /* csrw csr, a0 */
-> > > > +? opcode_buff[1] = 0x00008067; /* ret */
-> > > > +? RISCV_FENCE_I;
-> > > 
-> > > I agree we need FENCE.I in the path but this is
-> > > like a big hammer in the execution path.
-> > > 
-> > > This is now much slower compared to the existing
-> > > approach because every CSR access using this
-> > > function will execute FENCE.I
-> > I passed the qemu test, and it can be run normally with
-> > or without fence.i. But I'm not sure if the exception
-> > happens on other platform or we have a more lightweight
-> > way.
-> 
-> There is not. Optimising this kind of bad practice code is not a goal
-> of modern architectures. After all, it totally precludes having W^X
-> protection in OpenSBI (e.g. via the PMP, or via CHERI), especially
-> executable stacks form a key part of *the* classic buffer overflow
-> shell code attack.
-> 
-> Jess
+On Tue, Jun 21, 2022 at 11:04 PM Anup Patel <anup@brainfault.org> wrote:
+>
+> On Tue, Jun 21, 2022 at 7:33 PM Guo Ren <guoren@kernel.org> wrote:
+> >
+> > On Tue, Jun 21, 2022 at 9:11 PM Anup Patel <apatel@ventanamicro.com> wrote:
+> > >
+> > > The Allwinner D1 SoC has custom CLINT implementation where the
+> > > MTIME register of the timer is not accessible as MMIO register
+> > > instead the time CSR is to be used as MTIME.
+> > >
+> > > We introduce "has_broken_mtime" quirk in MTIMER library and FDT
+> > > based MTIMER driver to address the Allwiner D1 situation. And
+> > > while we are here, let us extend the quirk mechanism in FDT based
+> > > MTIMER driver for both CLINT and ACLINT.
+> > >
+> > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > > ---
+> > >  include/sbi_utils/timer/aclint_mtimer.h |  1 +
+> > >  lib/utils/timer/aclint_mtimer.c         | 30 +++++++++++++++++++------
+> > >  lib/utils/timer/fdt_timer_mtimer.c      | 29 ++++++++++++++++++------
+> > >  3 files changed, 46 insertions(+), 14 deletions(-)
+> > >
+> > > diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+> > > index f02cc62..454a92f 100644
+> > > --- a/include/sbi_utils/timer/aclint_mtimer.h
+> > > +++ b/include/sbi_utils/timer/aclint_mtimer.h
+> > > @@ -32,6 +32,7 @@ struct aclint_mtimer_data {
+> > >         u32 first_hartid;
+> > >         u32 hart_count;
+> > >         bool has_64bit_mmio;
+> > > +       bool has_broken_mtime;
+> > >         bool has_shared_mtime;
+> > >         /* Private details (initialized and used by ACLINT MTIMER library) */
+> > >         struct aclint_mtimer_data *time_delta_reference;
+> > > diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+> > > index a957b1c..5db3120 100644
+> > > --- a/lib/utils/timer/aclint_mtimer.c
+> > > +++ b/lib/utils/timer/aclint_mtimer.c
+> > > @@ -60,6 +60,12 @@ static u64 mtimer_value(void)
+> > >         return mt->time_rd(time_val);
+> > >  }
+> > >
+> > > +static u64 mtimer_dummy_value(void)
+> > > +{
+> > > +       /* Dummy function for MTIMER devices with broken MTIME */
+> > Could we get value from CSR_TIME? (define CSR_TIME           0xc01)
+>
+> The lib/sbi/sbi_timer.c will use CSR_TIME whenever it is available so
+> we don't need to access it here.
+>
+> Maybe we can drop mtimer_dummy_value() and set
+> "mtimer.timer_value = NULL" when "has_broken_mtime = TRUE" ?
+Agree, that make code clean.
 
-Currently opensbi does not have strict RWX permission control. We only?
-need W and X permissions not to exist at the same time to avoid security
-risks. If opensbi has RWX permission control, we only need to change the
-permission of opcode_buff before and after running. The stack default is
-RW permission, we can change the permission of opcode_buff to RX before
-the call, and change the permission to RW after the call is completed.
+>
+> Can you try this patch on D1 ?
+I would, but I need to spend some time preparing the environment.
 
-I think these jobs can be put after opensbi has rwx permission control.
+>
+> Regards,
+> Anup
+>
+> >
+> > > +       return 0;
+> > > +}
+> > > +
+> > >  static void mtimer_event_stop(void)
+> > >  {
+> > >         u32 target_hart = current_hartid();
+> > > @@ -95,7 +101,9 @@ void aclint_mtimer_sync(struct aclint_mtimer_data *mt)
+> > >         struct aclint_mtimer_data *reference;
+> > >
+> > >         /* Sync-up non-shared MTIME if reference is available */
+> > > -       if (mt->has_shared_mtime || !mt->time_delta_reference)
+> > > +       if (mt->has_broken_mtime ||
+> > > +           mt->has_shared_mtime ||
+> > > +           !mt->time_delta_reference)
+> > >                 return;
+> > >
+> > >         reference = mt->time_delta_reference;
+> > > @@ -189,6 +197,10 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> > >         if (reference && mt->mtime_freq != reference->mtime_freq)
+> > >                 return SBI_EINVAL;
+> > >
+> > > +       /* Override timer_value() callback for broken MTIME */
+> > > +       if (mt->has_broken_mtime)
+> > > +               mtimer.timer_value = mtimer_dummy_value;
+> > > +
+> > >         /* Initialize private data */
+> > >         aclint_mtimer_set_reference(mt, reference);
+> > >         mt->time_rd = mtimer_time_rd32;
+> > > @@ -207,21 +219,25 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> > >                 mtimer_hartid2data[mt->first_hartid + i] = mt;
+> > >
+> > >         /* Add MTIMER regions to the root domain */
+> > > -       if (mt->mtime_addr == (mt->mtimecmp_addr + mt->mtimecmp_size)) {
+> > > +       if (!mt->has_broken_mtime &&
+> > > +           mt->mtime_addr == (mt->mtimecmp_addr + mt->mtimecmp_size)) {
+> > >                 rc = aclint_mtimer_add_regions(mt->mtimecmp_addr,
+> > >                                         mt->mtime_size + mt->mtimecmp_size);
+> > >                 if (rc)
+> > >                         return rc;
+> > > -       } else if (mt->mtimecmp_addr == (mt->mtime_addr + mt->mtime_size)) {
+> > > +       } else if (!mt->has_broken_mtime &&
+> > > +                  mt->mtimecmp_addr == (mt->mtime_addr + mt->mtime_size)) {
+> > >                 rc = aclint_mtimer_add_regions(mt->mtime_addr,
+> > >                                         mt->mtime_size + mt->mtimecmp_size);
+> > >                 if (rc)
+> > >                         return rc;
+> > >         } else {
+> > > -               rc = aclint_mtimer_add_regions(mt->mtime_addr,
+> > > -                                               mt->mtime_size);
+> > > -               if (rc)
+> > > -                       return rc;
+> > > +               if (!mt->has_broken_mtime) {
+> > > +                       rc = aclint_mtimer_add_regions(mt->mtime_addr,
+> > > +                                                       mt->mtime_size);
+> > > +                       if (rc)
+> > > +                               return rc;
+> > > +               }
+> > >
+> > >                 rc = aclint_mtimer_add_regions(mt->mtimecmp_addr,
+> > >                                                 mt->mtimecmp_size);
+> > > diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+> > > index e140567..bc547ac 100644
+> > > --- a/lib/utils/timer/fdt_timer_mtimer.c
+> > > +++ b/lib/utils/timer/fdt_timer_mtimer.c
+> > > @@ -16,8 +16,10 @@
+> > >  #define MTIMER_MAX_NR                  16
+> > >
+> > >  struct timer_mtimer_quirks {
+> > > +       bool            is_clint;
+> > >         unsigned int    mtime_offset;
+> > >         bool            has_64bit_mmio;
+> > > +       bool            has_broken_mtime;
+> > >  };
+> > >
+> > >  static unsigned long mtimer_count = 0;
+> > > @@ -30,6 +32,11 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+> > >         int i, rc;
+> > >         unsigned long addr[2], size[2];
+> > >         struct aclint_mtimer_data *mt;
+> > > +       const struct timer_mtimer_quirks *quirks;
+> > > +
+> > > +       if (!match->data)
+> > > +               return SBI_ENOSYS;
+> > > +       quirks = match->data;
+> > >
+> > >         if (MTIMER_MAX_NR <= mtimer_count)
+> > >                 return SBI_ENOSPC;
+> > > @@ -40,16 +47,15 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+> > >                                    &mt->first_hartid, &mt->hart_count);
+> > >         if (rc)
+> > >                 return rc;
+> > > -       mt->has_64bit_mmio = true;
+> > > +       mt->has_64bit_mmio = quirks->has_64bit_mmio;
+> > >         mt->has_shared_mtime = false;
+> > > +       mt->has_broken_mtime = quirks->has_broken_mtime;
+> > >
+> > >         rc = fdt_parse_timebase_frequency(fdt, &mt->mtime_freq);
+> > >         if (rc)
+> > >                 return rc;
+> > >
+> > > -       if (match->data) { /* SiFive CLINT */
+> > > -               const struct timer_mtimer_quirks *quirks = match->data;
+> > > -
+> > > +       if (quirks->is_clint) { /* SiFive CLINT */
+> > >                 /* Set CLINT addresses */
+> > >                 mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
+> > >                 mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
+> > > @@ -59,8 +65,6 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+> > >                 mt->mtime_addr += quirks->mtime_offset;
+> > >                 mt->mtimecmp_addr += quirks->mtime_offset;
+> > >                 mt->mtime_size -= quirks->mtime_offset;
+> > > -               /* Apply additional CLINT quirks */
+> > > -               mt->has_64bit_mmio = quirks->has_64bit_mmio;
+> > >         } else { /* RISC-V ACLINT MTIMER */
+> > >                 /* Set ACLINT MTIMER addresses */
+> > >                 mt->mtime_addr = addr[0];
+> > > @@ -110,20 +114,31 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+> > >  }
+> > >
+> > >  static const struct timer_mtimer_quirks d1_clint_quirks = {
+> > > +       .is_clint       = true,
+> > >         .mtime_offset   = CLINT_MTIMER_OFFSET,
+> > >         .has_64bit_mmio = false,
+> > > +       .has_broken_mtime = true,
+> > >  };
+> > >
+> > >  static const struct timer_mtimer_quirks sifive_clint_quirks = {
+> > > +       .is_clint       = true,
+> > >         .mtime_offset   = CLINT_MTIMER_OFFSET,
+> > >         .has_64bit_mmio = true,
+> > > +       .has_broken_mtime = false,
+> > > +};
+> > > +
+> > > +static const struct timer_mtimer_quirks aclint_quirks = {
+> > > +       .is_clint       = false,
+> > > +       .mtime_offset   = 0,
+> > > +       .has_64bit_mmio = true,
+> > > +       .has_broken_mtime = false,
+> > >  };
+> > >
+> > >  static const struct fdt_match timer_mtimer_match[] = {
+> > >         { .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
+> > >         { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+> > >         { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+> > > -       { .compatible = "riscv,aclint-mtimer" },
+> > > +       { .compatible = "riscv,aclint-mtimer", .data = &aclint_quirks },
+> > >         { },
+> > >  };
+> > >
+> > > --
+> > > 2.34.1
+> > >
+> >
+> >
+> > --
+> > Best Regards
+> >  Guo Ren
+> >
+> > ML: https://lore.kernel.org/linux-csky/
 
-Regards,
-Xiang W
-> 
-> 
 
 
+-- 
+Best Regards
+ Guo Ren
+
+ML: https://lore.kernel.org/linux-csky/
 
