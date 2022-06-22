@@ -1,27 +1,50 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 22 Jun 2022 11:00:33 +0530
-Subject: [PATCH] lib: irqchip/plic: fix typo in plic_warm_irqchip_init
-In-Reply-To: <CAAhSdy1=SS1bX_pujJZfJUqFaSkeSZCvEWs8zYXP=QKuW5YC-g@mail.gmail.com>
-References: <20220621120739.422990-1-jan.remes@codasip.com> <CAAhSdy1=SS1bX_pujJZfJUqFaSkeSZCvEWs8zYXP=QKuW5YC-g@mail.gmail.com>
-Message-ID: <CAAhSdy3NDG0uMK8+p+8b1BnyNod8PesxFoZPPf4A=P+G-Yznbg@mail.gmail.com>
+Date: Wed, 22 Jun 2022 11:00:52 +0530
+Subject: [PATCH] lib: utils/timer: Remove Allwinner D1 CLINT compatibles
+In-Reply-To: <CAAhSdy2qL6pUF+2KG-pZbByW3RKWk64gCm8Ugx15ShusTuHCDg@mail.gmail.com>
+References: <20220622045742.18200-1-samuel@sholland.org> <CAAhSdy2qL6pUF+2KG-pZbByW3RKWk64gCm8Ugx15ShusTuHCDg@mail.gmail.com>
+Message-ID: <CAAhSdy0yzHt8A_z0nkwh+sQx5Bz-7-16rpBpWjzcethVmjWajg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 22, 2022 at 10:27 AM Anup Patel <anup@brainfault.org> wrote:
+On Wed, Jun 22, 2022 at 10:47 AM Anup Patel <anup@brainfault.org> wrote:
 >
-> On Tue, Jun 21, 2022 at 5:38 PM Jan Remes <jan.remes@codasip.com> wrote:
+> On Wed, Jun 22, 2022 at 10:27 AM Samuel Holland <samuel@sholland.org> wrote:
 > >
-> > The second invocation of plic_context_init() incorrectly calls the
-> > function with m_cntx_id instead of s_cntx_id. This breaks systems which
-> > only have 1 external interrupt per hart.
+> > The allwinner,sun20i-d1-clint compatible string is not documented in any
+> > official binding, so it should not be used by drivers.
 > >
-> > Fixes: 8c362e7 ("lib: irqchip/plic: Factor out a context init function")
-> > Signed-off-by: Jan Remes <jan.remes@codasip.com>
+> > The MSWI in the D1 CLINT is compatible with the ACLINT specification, so
+> > it can take advantage of generic driver support. However, that is only
+> > possible if the MSWI and MTIMER are split into separate DT nodes. This
+> > means the final binding for this device is likely to be incompatible
+> > with what is implemented here.
 >
-> Looks good to me.
+> I don't think splitting D1 CLINT into two separate DT nodes is
+> wrong because traditionally CLINT has been a composite device
+> (consisting of a timer and IPI device).
+>
+> If you want resemblance of DT with HW then you can do something
+> like below:
+>
+> clint {
+>     mswi at abc {
+>         ...
+>     };
+>
+>     mtimer at xyz {
+>         ...
+>     };
+> };
+>
+> >
+> > Remove this compatible string from the driver to prevent it from
+> > appearing in a stable version and causing future issues.
+> >
+> > Signed-off-by: Samuel Holland <samuel@sholland.org>
 >
 > Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -34,29 +57,49 @@ Anup
 > Regards,
 > Anup
 >
+>
 > > ---
-> >  lib/utils/irqchip/plic.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
 > >
-> > diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-> > index 8c25b9d..73d7788 100644
-> > --- a/lib/utils/irqchip/plic.c
-> > +++ b/lib/utils/irqchip/plic.c
-> > @@ -145,7 +145,7 @@ int plic_warm_irqchip_init(const struct plic_data *plic,
+> >  lib/utils/ipi/fdt_ipi_mswi.c       | 1 -
+> >  lib/utils/timer/fdt_timer_mtimer.c | 6 ------
+> >  2 files changed, 7 deletions(-)
 > >
-> >         /* By default, disable all IRQs for S-mode of target HART */
-> >         if (s_cntx_id > -1) {
-> > -               ret = plic_context_init(plic, m_cntx_id, false, 0x7);
-> > +               ret = plic_context_init(plic, s_cntx_id, false, 0x7);
-> >                 if (ret)
-> >                         return ret;
-> >         }
+> > diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+> > index af69e16..0176941 100644
+> > --- a/lib/utils/ipi/fdt_ipi_mswi.c
+> > +++ b/lib/utils/ipi/fdt_ipi_mswi.c
+> > @@ -54,7 +54,6 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
+> >  static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
+> >
+> >  static const struct fdt_match ipi_mswi_match[] = {
+> > -       { .compatible = "allwinner,sun20i-d1-clint", .data = &clint_offset },
+> >         { .compatible = "riscv,clint0", .data = &clint_offset },
+> >         { .compatible = "sifive,clint0", .data = &clint_offset },
+> >         { .compatible = "riscv,aclint-mswi" },
+> > diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+> > index e140567..7b8546b 100644
+> > --- a/lib/utils/timer/fdt_timer_mtimer.c
+> > +++ b/lib/utils/timer/fdt_timer_mtimer.c
+> > @@ -109,18 +109,12 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+> >         return 0;
+> >  }
+> >
+> > -static const struct timer_mtimer_quirks d1_clint_quirks = {
+> > -       .mtime_offset   = CLINT_MTIMER_OFFSET,
+> > -       .has_64bit_mmio = false,
+> > -};
+> > -
+> >  static const struct timer_mtimer_quirks sifive_clint_quirks = {
+> >         .mtime_offset   = CLINT_MTIMER_OFFSET,
+> >         .has_64bit_mmio = true,
+> >  };
+> >
+> >  static const struct fdt_match timer_mtimer_match[] = {
+> > -       { .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
+> >         { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+> >         { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+> >         { .compatible = "riscv,aclint-mtimer" },
 > > --
-> > 2.36.1
+> > 2.35.1
 > >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
 
