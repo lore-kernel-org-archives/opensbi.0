@@ -1,105 +1,58 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 22 Jun 2022 11:00:52 +0530
-Subject: [PATCH] lib: utils/timer: Remove Allwinner D1 CLINT compatibles
-In-Reply-To: <CAAhSdy2qL6pUF+2KG-pZbByW3RKWk64gCm8Ugx15ShusTuHCDg@mail.gmail.com>
-References: <20220622045742.18200-1-samuel@sholland.org> <CAAhSdy2qL6pUF+2KG-pZbByW3RKWk64gCm8Ugx15ShusTuHCDg@mail.gmail.com>
-Message-ID: <CAAhSdy0yzHt8A_z0nkwh+sQx5Bz-7-16rpBpWjzcethVmjWajg@mail.gmail.com>
+From: Samuel Holland <samuel@sholland.org>
+Date: Wed, 22 Jun 2022 00:31:41 -0500
+Subject: [RFC PATCH 2/2] lib: utils/timer: Add a separate compatible for
+ the D1 CLINT
+In-Reply-To: <CAAhSdy3PJuAj-jY5ifJ_pRZXsH7zx07JMuBVCHBjoUUu=Tf=ZA@mail.gmail.com>
+References: <20211020015838.45399-1-samuel@sholland.org>
+ <20211020015838.45399-3-samuel@sholland.org>
+ <CAAhSdy3r20Q4mBkTR58Befo+SYhsLx3ueq=MOb4UQXk3P=8F-w@mail.gmail.com>
+ <d57d4cb7-bf64-c1c8-a0bf-174e36207d3c@sholland.org>
+ <CAAhSdy0+2GY1U==iGHn5udFwSWUTEEKbtG=fSxu2vC4As1E2gg@mail.gmail.com>
+ <d9249dd3-ae0d-d2ff-f785-d2a1df2e6d45@sholland.org>
+ <CAAhSdy3PJuAj-jY5ifJ_pRZXsH7zx07JMuBVCHBjoUUu=Tf=ZA@mail.gmail.com>
+Message-ID: <d38ecf54-2851-dfe6-6f22-d96cd62227cf@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 22, 2022 at 10:47 AM Anup Patel <anup@brainfault.org> wrote:
->
-> On Wed, Jun 22, 2022 at 10:27 AM Samuel Holland <samuel@sholland.org> wrote:
-> >
-> > The allwinner,sun20i-d1-clint compatible string is not documented in any
-> > official binding, so it should not be used by drivers.
-> >
-> > The MSWI in the D1 CLINT is compatible with the ACLINT specification, so
-> > it can take advantage of generic driver support. However, that is only
-> > possible if the MSWI and MTIMER are split into separate DT nodes. This
-> > means the final binding for this device is likely to be incompatible
-> > with what is implemented here.
->
-> I don't think splitting D1 CLINT into two separate DT nodes is
-> wrong because traditionally CLINT has been a composite device
-> (consisting of a timer and IPI device).
->
-> If you want resemblance of DT with HW then you can do something
-> like below:
->
-> clint {
->     mswi at abc {
->         ...
->     };
->
->     mtimer at xyz {
->         ...
->     };
-> };
->
-> >
-> > Remove this compatible string from the driver to prevent it from
-> > appearing in a stable version and causing future issues.
-> >
-> > Signed-off-by: Samuel Holland <samuel@sholland.org>
->
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+On 6/21/22 8:29 AM, Anup Patel wrote:
+> On Tue, Jun 21, 2022 at 10:50 AM Samuel Holland <samuel@sholland.org> wrote:
+>>
+>> On 6/20/22 11:54 PM, Anup Patel wrote:
+>>> On Tue, Jun 21, 2022 at 10:13 AM Samuel Holland <samuel@sholland.org> wrote:
+>>>>
+>>>> On 6/20/22 11:20 PM, Anup Patel wrote:
+>>>>> On Wed, Oct 20, 2021 at 7:28 AM Samuel Holland <samuel@sholland.org> wrote:
+>>>>>>
+>>>>>> The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
+>>>>>> MMIO access. A property was added to support this quirk (and that
+>>>>>> property was copied to the ACLINT MTIMER code). However, since this
+>>>>>> difference in behavior makes the D1 CLINT incompatible with the SiFive
+>>>>>> CLINT's programming interface, a better solution is to use a separate
+>>>>>> compatible string.
+>>>>>>
+>>>>>> Signed-off-by: Samuel Holland <samuel@sholland.org>
+>>>>>
+>>>>> Due to some unknown reason, this patch slipped through cracks and was
+>>>>> never applied.
+>>>>
+>>>> Oh, I intentionally did not send a new version of the series because I later
+>>>> found out that C9xx CLINT has no mtime register at all[1][2]. The issue has
+>>>> nothing to do with 64-bit vs 32-bit access. So this change is wrong; I will need
+>>>> to send a follow-up removing the allwinner,sun20i-d1-clint compatibles.
+>>>
+>>> I had tested on QEMU virt and sifive_u machine so at least this does not
+>>> break anything on QEMU and SiFive boards.
+>>
+>> OK, I will send a follow-up patch tomorrow.
+> 
+> Thanks. I was thinking of having a quirk in the mtimer driver for the D1 clint
+> situation. I sent a quirk patch but I have tested only on QEMU RV32 and RV64.
+I think your patch is what we want to do eventually, but I want to get the
+binding settled first.
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
->
-> Regards,
-> Anup
->
->
-> > ---
-> >
-> >  lib/utils/ipi/fdt_ipi_mswi.c       | 1 -
-> >  lib/utils/timer/fdt_timer_mtimer.c | 6 ------
-> >  2 files changed, 7 deletions(-)
-> >
-> > diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
-> > index af69e16..0176941 100644
-> > --- a/lib/utils/ipi/fdt_ipi_mswi.c
-> > +++ b/lib/utils/ipi/fdt_ipi_mswi.c
-> > @@ -54,7 +54,6 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
-> >  static const unsigned long clint_offset = CLINT_MSWI_OFFSET;
-> >
-> >  static const struct fdt_match ipi_mswi_match[] = {
-> > -       { .compatible = "allwinner,sun20i-d1-clint", .data = &clint_offset },
-> >         { .compatible = "riscv,clint0", .data = &clint_offset },
-> >         { .compatible = "sifive,clint0", .data = &clint_offset },
-> >         { .compatible = "riscv,aclint-mswi" },
-> > diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-> > index e140567..7b8546b 100644
-> > --- a/lib/utils/timer/fdt_timer_mtimer.c
-> > +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> > @@ -109,18 +109,12 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
-> >         return 0;
-> >  }
-> >
-> > -static const struct timer_mtimer_quirks d1_clint_quirks = {
-> > -       .mtime_offset   = CLINT_MTIMER_OFFSET,
-> > -       .has_64bit_mmio = false,
-> > -};
-> > -
-> >  static const struct timer_mtimer_quirks sifive_clint_quirks = {
-> >         .mtime_offset   = CLINT_MTIMER_OFFSET,
-> >         .has_64bit_mmio = true,
-> >  };
-> >
-> >  static const struct fdt_match timer_mtimer_match[] = {
-> > -       { .compatible = "allwinner,sun20i-d1-clint", .data = &d1_clint_quirks },
-> >         { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
-> >         { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
-> >         { .compatible = "riscv,aclint-mtimer" },
-> > --
-> > 2.35.1
-> >
+Regards,
+Samuel
 
