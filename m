@@ -1,58 +1,185 @@
-From: Samuel Holland <samuel@sholland.org>
-Date: Wed, 22 Jun 2022 00:31:41 -0500
-Subject: [RFC PATCH 2/2] lib: utils/timer: Add a separate compatible for
- the D1 CLINT
-In-Reply-To: <CAAhSdy3PJuAj-jY5ifJ_pRZXsH7zx07JMuBVCHBjoUUu=Tf=ZA@mail.gmail.com>
-References: <20211020015838.45399-1-samuel@sholland.org>
- <20211020015838.45399-3-samuel@sholland.org>
- <CAAhSdy3r20Q4mBkTR58Befo+SYhsLx3ueq=MOb4UQXk3P=8F-w@mail.gmail.com>
- <d57d4cb7-bf64-c1c8-a0bf-174e36207d3c@sholland.org>
- <CAAhSdy0+2GY1U==iGHn5udFwSWUTEEKbtG=fSxu2vC4As1E2gg@mail.gmail.com>
- <d9249dd3-ae0d-d2ff-f785-d2a1df2e6d45@sholland.org>
- <CAAhSdy3PJuAj-jY5ifJ_pRZXsH7zx07JMuBVCHBjoUUu=Tf=ZA@mail.gmail.com>
-Message-ID: <d38ecf54-2851-dfe6-6f22-d96cd62227cf@sholland.org>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Wed, 22 Jun 2022 11:14:23 +0530
+Subject: [PATCH v2] lib: utils/mtimer: Add has_broken_mtime quirk
+Message-ID: <20220622054423.182460-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 6/21/22 8:29 AM, Anup Patel wrote:
-> On Tue, Jun 21, 2022 at 10:50 AM Samuel Holland <samuel@sholland.org> wrote:
->>
->> On 6/20/22 11:54 PM, Anup Patel wrote:
->>> On Tue, Jun 21, 2022 at 10:13 AM Samuel Holland <samuel@sholland.org> wrote:
->>>>
->>>> On 6/20/22 11:20 PM, Anup Patel wrote:
->>>>> On Wed, Oct 20, 2021 at 7:28 AM Samuel Holland <samuel@sholland.org> wrote:
->>>>>>
->>>>>> The CLINT in the Allwinner D1 SoC apparently does not support 64-bit
->>>>>> MMIO access. A property was added to support this quirk (and that
->>>>>> property was copied to the ACLINT MTIMER code). However, since this
->>>>>> difference in behavior makes the D1 CLINT incompatible with the SiFive
->>>>>> CLINT's programming interface, a better solution is to use a separate
->>>>>> compatible string.
->>>>>>
->>>>>> Signed-off-by: Samuel Holland <samuel@sholland.org>
->>>>>
->>>>> Due to some unknown reason, this patch slipped through cracks and was
->>>>> never applied.
->>>>
->>>> Oh, I intentionally did not send a new version of the series because I later
->>>> found out that C9xx CLINT has no mtime register at all[1][2]. The issue has
->>>> nothing to do with 64-bit vs 32-bit access. So this change is wrong; I will need
->>>> to send a follow-up removing the allwinner,sun20i-d1-clint compatibles.
->>>
->>> I had tested on QEMU virt and sifive_u machine so at least this does not
->>> break anything on QEMU and SiFive boards.
->>
->> OK, I will send a follow-up patch tomorrow.
-> 
-> Thanks. I was thinking of having a quirk in the mtimer driver for the D1 clint
-> situation. I sent a quirk patch but I have tested only on QEMU RV32 and RV64.
-I think your patch is what we want to do eventually, but I want to get the
-binding settled first.
+The Allwinner D1 SoC has custom CLINT implementation where the
+MTIME register of the timer is not accessible as MMIO register
+instead the time CSR is to be used as MTIME.
 
-Regards,
-Samuel
+We introduce "has_broken_mtime" quirk in MTIMER library and FDT
+based MTIMER driver to address the Allwiner D1 situation. And
+while we are here, let us extend the quirk mechanism in FDT based
+MTIMER driver for both CLINT and ACLINT.
+
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+Changes since v1:
+ - Rebased on latest OpenSBI
+ - Removed mtimer_dummy_value() from aclint_mtimer.c
+---
+ include/sbi_utils/timer/aclint_mtimer.h |  1 +
+ lib/utils/timer/aclint_mtimer.c         | 24 +++++++++++++++-------
+ lib/utils/timer/fdt_timer_mtimer.c      | 27 ++++++++++++++++++-------
+ 3 files changed, 38 insertions(+), 14 deletions(-)
+
+diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+index f02cc62..454a92f 100644
+--- a/include/sbi_utils/timer/aclint_mtimer.h
++++ b/include/sbi_utils/timer/aclint_mtimer.h
+@@ -32,6 +32,7 @@ struct aclint_mtimer_data {
+ 	u32 first_hartid;
+ 	u32 hart_count;
+ 	bool has_64bit_mmio;
++	bool has_broken_mtime;
+ 	bool has_shared_mtime;
+ 	/* Private details (initialized and used by ACLINT MTIMER library) */
+ 	struct aclint_mtimer_data *time_delta_reference;
+diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+index a957b1c..cf492d1 100644
+--- a/lib/utils/timer/aclint_mtimer.c
++++ b/lib/utils/timer/aclint_mtimer.c
+@@ -95,7 +95,9 @@ void aclint_mtimer_sync(struct aclint_mtimer_data *mt)
+ 	struct aclint_mtimer_data *reference;
+ 
+ 	/* Sync-up non-shared MTIME if reference is available */
+-	if (mt->has_shared_mtime || !mt->time_delta_reference)
++	if (mt->has_broken_mtime ||
++	    mt->has_shared_mtime ||
++	    !mt->time_delta_reference)
+ 		return;
+ 
+ 	reference = mt->time_delta_reference;
+@@ -189,6 +191,10 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+ 	if (reference && mt->mtime_freq != reference->mtime_freq)
+ 		return SBI_EINVAL;
+ 
++	/* Set timer_value() callback to NULL for broken MTIME */
++	if (mt->has_broken_mtime)
++		mtimer.timer_value = NULL;
++
+ 	/* Initialize private data */
+ 	aclint_mtimer_set_reference(mt, reference);
+ 	mt->time_rd = mtimer_time_rd32;
+@@ -207,21 +213,25 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+ 		mtimer_hartid2data[mt->first_hartid + i] = mt;
+ 
+ 	/* Add MTIMER regions to the root domain */
+-	if (mt->mtime_addr == (mt->mtimecmp_addr + mt->mtimecmp_size)) {
++	if (!mt->has_broken_mtime &&
++	    mt->mtime_addr == (mt->mtimecmp_addr + mt->mtimecmp_size)) {
+ 		rc = aclint_mtimer_add_regions(mt->mtimecmp_addr,
+ 					mt->mtime_size + mt->mtimecmp_size);
+ 		if (rc)
+ 			return rc;
+-	} else if (mt->mtimecmp_addr == (mt->mtime_addr + mt->mtime_size)) {
++	} else if (!mt->has_broken_mtime &&
++		   mt->mtimecmp_addr == (mt->mtime_addr + mt->mtime_size)) {
+ 		rc = aclint_mtimer_add_regions(mt->mtime_addr,
+ 					mt->mtime_size + mt->mtimecmp_size);
+ 		if (rc)
+ 			return rc;
+ 	} else {
+-		rc = aclint_mtimer_add_regions(mt->mtime_addr,
+-						mt->mtime_size);
+-		if (rc)
+-			return rc;
++		if (!mt->has_broken_mtime) {
++			rc = aclint_mtimer_add_regions(mt->mtime_addr,
++							mt->mtime_size);
++			if (rc)
++				return rc;
++		}
+ 
+ 		rc = aclint_mtimer_add_regions(mt->mtimecmp_addr,
+ 						mt->mtimecmp_size);
+diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+index 7b8546b..41fe0a0 100644
+--- a/lib/utils/timer/fdt_timer_mtimer.c
++++ b/lib/utils/timer/fdt_timer_mtimer.c
+@@ -16,8 +16,10 @@
+ #define MTIMER_MAX_NR			16
+ 
+ struct timer_mtimer_quirks {
++	bool		is_clint;
+ 	unsigned int	mtime_offset;
+ 	bool		has_64bit_mmio;
++	bool		has_broken_mtime;
+ };
+ 
+ static unsigned long mtimer_count = 0;
+@@ -30,6 +32,11 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+ 	int i, rc;
+ 	unsigned long addr[2], size[2];
+ 	struct aclint_mtimer_data *mt;
++	const struct timer_mtimer_quirks *quirks;
++
++	if (!match->data)
++		return SBI_ENOSYS;
++	quirks = match->data;
+ 
+ 	if (MTIMER_MAX_NR <= mtimer_count)
+ 		return SBI_ENOSPC;
+@@ -40,16 +47,15 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+ 				   &mt->first_hartid, &mt->hart_count);
+ 	if (rc)
+ 		return rc;
+-	mt->has_64bit_mmio = true;
++	mt->has_64bit_mmio = quirks->has_64bit_mmio;
+ 	mt->has_shared_mtime = false;
++	mt->has_broken_mtime = quirks->has_broken_mtime;
+ 
+ 	rc = fdt_parse_timebase_frequency(fdt, &mt->mtime_freq);
+ 	if (rc)
+ 		return rc;
+ 
+-	if (match->data) { /* SiFive CLINT */
+-		const struct timer_mtimer_quirks *quirks = match->data;
+-
++	if (quirks->is_clint) { /* SiFive CLINT */
+ 		/* Set CLINT addresses */
+ 		mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
+ 		mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
+@@ -59,8 +65,6 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+ 		mt->mtime_addr += quirks->mtime_offset;
+ 		mt->mtimecmp_addr += quirks->mtime_offset;
+ 		mt->mtime_size -= quirks->mtime_offset;
+-		/* Apply additional CLINT quirks */
+-		mt->has_64bit_mmio = quirks->has_64bit_mmio;
+ 	} else { /* RISC-V ACLINT MTIMER */
+ 		/* Set ACLINT MTIMER addresses */
+ 		mt->mtime_addr = addr[0];
+@@ -110,14 +114,23 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+ }
+ 
+ static const struct timer_mtimer_quirks sifive_clint_quirks = {
++	.is_clint	= true,
+ 	.mtime_offset	= CLINT_MTIMER_OFFSET,
+ 	.has_64bit_mmio	= true,
++	.has_broken_mtime = false,
++};
++
++static const struct timer_mtimer_quirks aclint_quirks = {
++	.is_clint	= false,
++	.mtime_offset	= 0,
++	.has_64bit_mmio	= true,
++	.has_broken_mtime = false,
+ };
+ 
+ static const struct fdt_match timer_mtimer_match[] = {
+ 	{ .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+ 	{ .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+-	{ .compatible = "riscv,aclint-mtimer" },
++	{ .compatible = "riscv,aclint-mtimer", .data = &aclint_quirks },
+ 	{ },
+ };
+ 
+-- 
+2.34.1
+
 
