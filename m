@@ -1,83 +1,82 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 22 Jun 2022 17:21:52 +0530
-Subject: FDT based DesignWare I3C driver for the generic platform
-In-Reply-To: <CAAsT5XoYO1=mvDydx_XB8SS6-SAUi2=RqC4veV57TwN0LGdohw@mail.gmail.com>
-References: <CAAsT5XoYO1=mvDydx_XB8SS6-SAUi2=RqC4veV57TwN0LGdohw@mail.gmail.com>
-Message-ID: <CAK9=C2X-7Rt3bKSNRxPGzOU2azK0A2xSio2wAi_Cv2sn+QNHiA@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 22 Jun 2022 22:57:47 +0800
+Subject: [PATCH v4] lib: sbi: Improve csr read and write
+In-Reply-To: <TYYP286MB1439D9E3CB6446A5AA91353AC6B29@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <20220526144214.308921-1-wxjstz@126.com>
+	 <CAK9=C2U9KyVTJhXN9jOqqR7JMYz0Mn9ar=seXbPg1+UdHhhbpg@mail.gmail.com>
+	 <1e615125574b838bc99dd58239874fa2e1685bdb.camel@126.com>
+	 <81DE08C6-50D4-4CC2-AE63-266D727F083F@jrtc27.com>
+	 <eb75c146d4657e71ca67dce5517438e80f4af962.camel@126.com>
+	 <TYYP286MB1439D9E3CB6446A5AA91353AC6B29@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <9fd598b84978511bcaeb9c4384d0b0c958d55d47.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 22, 2022 at 3:07 PM Adnan Chowdhury
-<adnan.chowdhury@sifive.com> wrote:
->
-> Hello Team,
->
-> This is my first email to the list so please accept my apology if I'm
-> not clear about anything.
+? 2022-06-22???? 15:12 +0800?dramforever???
+> 
+> On 6/21/22 23:53, Xiang W wrote:
+> > ? 2022-05-26???? 16:28 +0100?Jessica Clarke???
+> > > On 26 May 2022, at 16:19, Xiang W <wxjstz@126.com> wrote:
+> > > > ? 2022-05-26???? 20:35 +0530?Anup Patel???
+> > > > > On Thu, May 26, 2022 at 8:12 PM Xiang W <wxjstz@126.com> wrote:
+> > > > > > <patch contents snipped>
+> > > > > I agree we need FENCE.I in the path but this is
+> > > > > like a big hammer in the execution path.
+> > > > > 
+> > > > > This is now much slower compared to the existing
+> > > > > approach because every CSR access using this
+> > > > > function will execute FENCE.I
+> > > > I passed the qemu test, and it can be run normally with
+> > > > or without fence.i. But I'm not sure if the exception
+> > > > happens on other platform or we have a more lightweight
+> > > > way.
+> > > There is not. Optimising this kind of bad practice code is not a goal
+> > > of modern architectures. After all, it totally precludes having W^X
+> > > protection in OpenSBI (e.g. via the PMP, or via CHERI), especially
+> > > executable stacks form a key part of *the* classic buffer overflow
+> > > shell code attack.
+> > > 
+> > > Jess
+> > Currently opensbi does not have strict RWX permission control. We only?
+> > need W and X permissions not to exist at the same time to avoid security
+> > risks. If opensbi has RWX permission control, we only need to change the
+> > permission of opcode_buff before and after running. The stack default is
+> > RW permission, we can change the permission of opcode_buff to RX before
+> > the call, and change the permission to RW after the call is completed.
+> > 
+> > I think these jobs can be put after opensbi has rwx permission control.
+> > 
+> > Regards,
+> > Xiang W
+> 
+> But in that case, wouldn't this codegen approach be even slower? Is
+> there any particular reason to believe that this will be faster than the
+> current switch-case? Some benchmark on existing silicon would be nice.
 
-No need to be apologetic for asking questions.
-
->
-> I've been working for an announced SoC. This piece of hardware comes
-> with a DesignWare I3C block. We'll be using OpenSBI in our software
-> stack for the SoC. The plan is to use OpenSBI's generic platform for
-> the project. I've written an FDT based I3C driver so that the
-
-That's really nice.
-
-I assume you need i3c for system reset or something else ?
-
-> DesignWare I3C can be used. I've implemented it in two parts:
->
-> - fdt_i3c.c/h: A generic FDT I3C module that parses the FDT for the
-> presence of I3C controllers.
-> - dwc_i3c.c/h: This module has all the necessary functions that can be
-> used in our project (namely I2C private read/write), and is expandable
-> for adding more functionalities in the future. It uses fdt_i3c.c/h.
-
-I think the i3c support can be similar to the OpenSBI i2c support:
-
-1) Simple i3c bus library (manage and find i3c buses)
-lib/utils/i3c/i3c.c
-include/sbi_utils/i3c/i3c.h
-
-2) FDT based i3c bus (find and initialize i3c buses from FDT)
-lib/utils/i3c/fdt_i3c.c
-include/sbi_utils/i3c/fdt_i3c.h
-
-The i3c bus instance is analogous to the i2c adapter instance but the
-major difference between i2c and i3c will be the APIs or operations
-supported for devices.
-
-Also, for every i3c bus instance the i3c.c will also register a corresponding
-i2c adapter instance so that various i2c devices can be accessed via i3c
-bus instance.
-
-The i3c.c/h and fdt_i3c.c/h should only add APIs or functions which are
-needed to keep the i3c support simple and minimalistic.
-
->
-> I need your feedback on whether it's a good idea to add these modules
-> to OpenSBI. If you think it's appropriate then I will send out the
-> patches. If you think it should be implemented differently, please
-> suggest that too.
-
-Sure, please send your patches to this list (using git send-email).
-
->
-> Thank you for your time and any valuable feedback on this.
->
-> Best Regards,
-> Adnan Rahman Chowdhury
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Yes, it will definitely be slower. This will only reduce the maintenance
+cost of csr_read_num/csr_write_num, without adding code to read a new csr.
 
 Regards,
-Anup
+Xiang W
+> 
+> The original implementation compiles down a jump table, with several
+> branches and bound checks at the beginning. It really is just a hunch,
+> but I find it difficult to be convinced how generating code could be faster.
+> 
+> Optimizing the current switch-case approach into a better jump table
+> seems to be the way to go here. Currently the compiler does not seem to
+> take advantage of the fact that every csr* instruction is exactly 4
+> bytes. There also seems to be a few extra instructions for dealing with
+> int instead of long, though I am not sure. Furthermore, having separate
+> functions for hpmcounter, pmpcfg, etc. might help with avoiding some
+> branches, and possibly also make code clearer at call site.
+> 
+> Regards,
+> dram
+> 
+
+
 
