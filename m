@@ -1,80 +1,44 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 1 Mar 2023 09:30:02 +0530
-Subject: [PATCH] make: Add a command line option for debugging OpenSBI
-In-Reply-To: <20230227023506.1818620-1-bmeng@tinylab.org>
-References: <20230227023506.1818620-1-bmeng@tinylab.org>
-Message-ID: <CAAhSdy2BhBHz6zA=Ni5YScQ21noxyn-HzygCd+om4OpsxjSUJQ@mail.gmail.com>
+From: Prasanna T <ptprasanna@gmail.com>
+Date: Fri,  1 Jul 2022 20:12:41 +0530
+Subject: Shakti-platform-UART-Update
+Message-ID: <20220701144241.9082-1-ptprasanna@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 27, 2023 at 8:05 AM Bin Meng <bmeng@tinylab.org> wrote:
->
-> Add a new make command line option "make DEBUG=1" to prevent compiler
-> optimizations using -O2.
->
-> Signed-off-by: Bin Meng <bmeng@tinylab.org>
+Please find the attached revised patch, with respect to the latest changes made. Have dealt other amendments through dts. A primary change that was made as part of this patch is follows.The age old version of UART was upgraded long back, but that was missed out in the code which we did updated now (The old version of UART is not supported anymore, hence removed the inline comment which is also outdated now), The current version is the only UART supported right now by Shakti
+---
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-> ---
->
->  Makefile  |  7 ++++++-
->  README.md | 13 +++++++++++++
->  2 files changed, 19 insertions(+), 1 deletion(-)
->
-> diff --git a/Makefile b/Makefile
-> index b20404f..a26a39b 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -331,7 +331,12 @@ GENFLAGS   +=      $(libsbiutils-genflags-y)
->  GENFLAGS       +=      $(platform-genflags-y)
->  GENFLAGS       +=      $(firmware-genflags-y)
->
-> -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
-> +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
-> +ifneq ($(DEBUG),)
-> +CFLAGS         +=      -O0
-> +else
-> +CFLAGS         +=      -O2
-> +endif
->  CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
->  # enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
->  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> diff --git a/README.md b/README.md
-> index 895bbf2..a6bcb0c 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -298,6 +298,19 @@ NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will violate
->  purpose, and should NOT be used in a product which follows "reproducible
->  builds".
->
-> +Building with optimization off for debugging
-> +--------------------------------------------
-> +
-> +When debugging OpenSBI, we may want to turn off the compiler optimization and
-> +make debugging produce the expected results for a better debugging experience.
-> +To build with optimization off we can just simply add `DEBUG=1`, like:
-> +```
-> +make DEBUG=1
-> +```
-> +
-> +This definition is ONLY for development and debug purpose, and should NOT be
-> +used in a product build.
-> +
->  Contributing to OpenSBI
->  -----------------------
->
-> --
-> 2.25.1
->
+diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+index 5f2fe75..122218b 100644
+--- a/lib/utils/serial/shakti-uart.c
++++ b/lib/utils/serial/shakti-uart.c
+@@ -19,21 +19,22 @@
+ #define REG_RX_THRES	0x20
+ 
+ #define UART_TX_FULL  0x2
++#define UART_RX_NOT_EMPTY 0x4
+ #define UART_RX_FULL  0x8
+ 
+ static volatile char *uart_base;
+ 
+ static void shakti_uart_putc(char ch)
+ {
+-	while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
++	while((readb(uart_base + REG_STATUS) & UART_TX_FULL))
+ 		;
+ 	writeb(ch, uart_base + REG_TX);
+ }
+ 
+ static int shakti_uart_getc(void)
+ {
+-	u16 status = readw(uart_base + REG_STATUS);
+-	if (status & UART_RX_FULL)
++	u16 status = readb(uart_base + REG_STATUS);
++	if (status & UART_RX_NOT_EMPTY)
+ 		return readb(uart_base + REG_RX);
+ 	return -1;
+ }
 
