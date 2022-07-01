@@ -1,88 +1,77 @@
-From: Adnan Rahman Chowdhury <adnan.chowdhury@sifive.com>
-Date: Thu, 30 Jun 2022 10:46:35 +0100
-Subject: [PATCH v2 1/1] lib: sbi_timer: Added a blocking wait function that waits until a certain condition is satisfied or timeout occurs
-In-Reply-To: <20220630094635.389645-1-adnan.chowdhury@sifive.com>
-References: <20220630094635.389645-1-adnan.chowdhury@sifive.com>
-Message-ID: <20220630094635.389645-2-adnan.chowdhury@sifive.com>
+From: Prasanna T <ptprasanna@gmail.com>
+Date: Fri,  1 Jul 2022 10:34:04 +0530
+Subject: [PATCH] Changes specific to Shakti uart
+Message-ID: <20220701050404.12688-1-ptprasanna@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Motivation: Suppose a peripheral needs to be configured to transmit
-data. There is an SFR bit which indicates that the peripheral is ready
-to transmit. The firmware should check the bit and will only transmit
-data when the peripheral is ready. When the firmware starts polling the
-SFR, the peripheral could be busy transmitting/receiving other data so
-the firmware must wait till that completes. Assuming that there is no
-other way, the firmware shouldn't wait indefinitely.
-
-The function sbi_timer_waitms_until() will constantly check whether a
-certain condition is satisfied, or timeout occurs. It can be used for
-the cases when a timeout is required.
-
-Signed-off-by: Adnan Rahman Chowdhury <adnan.chowdhury@sifive.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi/sbi_timer.h | 18 ++++++++++++++++++
- lib/sbi/sbi_timer.c     | 13 +++++++++++++
- 2 files changed, 31 insertions(+)
+ include/sbi_utils/serial/shakti-uart.h | 4 ++++
+ lib/utils/fdt/fdt_helper.c             | 2 +-
+ lib/utils/serial/shakti-uart.c         | 7 ++++---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/include/sbi/sbi_timer.h b/include/sbi/sbi_timer.h
-index 63ef1af..ac48e2b 100644
---- a/include/sbi/sbi_timer.h
-+++ b/include/sbi/sbi_timer.h
-@@ -48,6 +48,24 @@ static inline void sbi_timer_udelay(ulong usecs)
- 	sbi_timer_delay_loop(usecs, 1000000, NULL, NULL);
- }
+diff --git a/include/sbi_utils/serial/shakti-uart.h b/include/sbi_utils/serial/shakti-uart.h
+index bcb019e..08043be 100644
+--- a/include/sbi_utils/serial/shakti-uart.h
++++ b/include/sbi_utils/serial/shakti-uart.h
+@@ -9,6 +9,10 @@
  
-+/**
-+ * A blocking function that will wait until @p predicate returns true or
-+ * @p timeout_ms milliseconds elapsed. @p arg will be passed as argument to
-+ * @p predicate function.
-+ *
-+ * @param predicate Pointer to a function that returns true if certain
-+ * condition is met. It shouldn't block the code execution.
-+ * @param arg Argument to pass to @p predicate.
-+ * @param timeout_ms Timeout value in milliseconds. The function will return
-+ * false if @p timeout_ms time period elapsed but still @p predicate doesn't
-+ * return true.
-+ *
-+ * @return true if @p predicate returns true within @p timeout_ms, false
-+ * otherwise.
-+ */
-+bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
-+			    uint64_t timeout_ms);
+ #include <sbi/sbi_types.h>
+ 
++void shakti_uart_putc(char ch);
 +
- /** Get timer value for current HART */
- u64 sbi_timer_value(void);
- 
-diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
-index acdba92..649a4e6 100644
---- a/lib/sbi/sbi_timer.c
-+++ b/lib/sbi/sbi_timer.c
-@@ -81,6 +81,19 @@ void sbi_timer_delay_loop(ulong units, u64 unit_freq,
- 		delay_fn(opaque);
- }
- 
-+bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
-+			    uint64_t timeout_ms)
-+{
-+	uint64_t start_time = sbi_timer_value();
-+	uint64_t ticks =
-+		(sbi_timer_get_device()->timer_freq / 1000) *
-+		timeout_ms;
-+	while(!predicate(arg))
-+		if (sbi_timer_value() - start_time  >= ticks)
-+			return false;
-+	return true;
-+}
++int shakti_uart_getc(void);
 +
- u64 sbi_timer_value(void)
+ int shakti_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
+ 
+ #endif
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 2bdb1ef..40597e7 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -31,7 +31,7 @@
+ #define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
+ 
+ #define DEFAULT_SHAKTI_UART_FREQ		50000000
+-#define DEFAULT_SHAKTI_UART_BAUD		115200
++#define DEFAULT_SHAKTI_UART_BAUD		19200
+ 
+ const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
+ 				       const struct fdt_match *match_table)
+diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+index 5f2fe75..d3fd5f1 100644
+--- a/lib/utils/serial/shakti-uart.c
++++ b/lib/utils/serial/shakti-uart.c
+@@ -20,20 +20,21 @@
+ 
+ #define UART_TX_FULL  0x2
+ #define UART_RX_FULL  0x8
++#define UART_RX_NOT_EMPTY 0x4
+ 
+ static volatile char *uart_base;
+ 
+ static void shakti_uart_putc(char ch)
  {
- 	if (get_time_val)
+-	while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
++	while((readb(uart_base + REG_STATUS) & UART_TX_FULL))
+ 		;
+ 	writeb(ch, uart_base + REG_TX);
+ }
+ 
+ static int shakti_uart_getc(void)
+ {
+-	u16 status = readw(uart_base + REG_STATUS);
+-	if (status & UART_RX_FULL)
++	u16 status = readb(uart_base + REG_STATUS);
++	if (status & UART_RX_NOT_EMPTY) // MASKING 3rd bit for UARTv2. If UARTv1 use MASK UART_RX_FULL.
+ 		return readb(uart_base + REG_RX);
+ 	return -1;
+ }
 -- 
-2.30.2
+2.17.1
 
 
