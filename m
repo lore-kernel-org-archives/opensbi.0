@@ -1,57 +1,105 @@
-From: Xiang W <wxjstz@126.com>
-Date: Sat, 02 Jul 2022 13:59:59 +0800
-Subject: Shakti-platform-UART-Update
-In-Reply-To: <20220701144241.9082-1-ptprasanna@gmail.com>
-References: <20220701144241.9082-1-ptprasanna@gmail.com>
-Message-ID: <6e1ff68cbd22600374fb3f48a2bae821f7a7bf99.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 6 Jul 2022 08:53:53 +0530
+Subject: [PATCH v2 1/1] lib: sbi_timer: Added a blocking wait function
+ that waits until a certain condition is satisfied or timeout occurs
+In-Reply-To: <20220630094635.389645-2-adnan.chowdhury@sifive.com>
+References: <20220630094635.389645-1-adnan.chowdhury@sifive.com> <20220630094635.389645-2-adnan.chowdhury@sifive.com>
+Message-ID: <CAAhSdy3AHouZAfA17EEhD8Jy=0pgU5Psn2te9k7G3gzdjWUmyQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-07-01???? 20:12 +0530?Prasanna T???
-> Please find the attached revised patch, with respect to the latest changes made. Have dealt other amendments through dts. A primary change
-> that was made as part of this patch is follows.The age old version of UART was upgraded long back, but that was missed out in the code which
-> we did updated now (The old version of UART is not supported anymore, hence removed the inline comment which is also outdated now), The
-> current version is the only UART supported right now by Shakti
-> ---
-> 
-> diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> index 5f2fe75..122218b 100644
-> --- a/lib/utils/serial/shakti-uart.c
-> +++ b/lib/utils/serial/shakti-uart.c
-> @@ -19,21 +19,22 @@
-> ?#define REG_RX_THRES???0x20
-> ?
-> ?#define UART_TX_FULL? 0x2
-> +#define UART_RX_NOT_EMPTY 0x4
-> ?#define UART_RX_FULL? 0x8
-> ?
-> ?static volatile char *uart_base;
-> ?
-> ?static void shakti_uart_putc(char ch)
-> ?{
-> -???????while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
-> +???????while((readb(uart_base + REG_STATUS) & UART_TX_FULL))
-> ????????????????;
-> ????????writeb(ch, uart_base + REG_TX);
-> ?}
-> ?
-> ?static int shakti_uart_getc(void)
-> ?{
-> -???????u16 status = readw(uart_base + REG_STATUS);
-> -???????if (status & UART_RX_FULL)
-> +???????u16 status = readb(uart_base + REG_STATUS);
-readb return u8. So the type of 'status' needs to be u8.
+On Thu, Jun 30, 2022 at 3:16 PM Adnan Rahman Chowdhury
+<adnan.chowdhury@sifive.com> wrote:
+>
+> Motivation: Suppose a peripheral needs to be configured to transmit
+> data. There is an SFR bit which indicates that the peripheral is ready
+> to transmit. The firmware should check the bit and will only transmit
+> data when the peripheral is ready. When the firmware starts polling the
+> SFR, the peripheral could be busy transmitting/receiving other data so
+> the firmware must wait till that completes. Assuming that there is no
+> other way, the firmware shouldn't wait indefinitely.
+>
+> The function sbi_timer_waitms_until() will constantly check whether a
+> certain condition is satisfied, or timeout occurs. It can be used for
+> the cases when a timeout is required.
+>
+> Signed-off-by: Adnan Rahman Chowdhury <adnan.chowdhury@sifive.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
-Xiang W
-> +???????if (status & UART_RX_NOT_EMPTY)
-> ????????????????return readb(uart_base + REG_RX);
-> ????????return -1;
-> ?}
-> 
+Anup
 
-
+> ---
+>  include/sbi/sbi_timer.h | 18 ++++++++++++++++++
+>  lib/sbi/sbi_timer.c     | 13 +++++++++++++
+>  2 files changed, 31 insertions(+)
+>
+> diff --git a/include/sbi/sbi_timer.h b/include/sbi/sbi_timer.h
+> index 63ef1af..ac48e2b 100644
+> --- a/include/sbi/sbi_timer.h
+> +++ b/include/sbi/sbi_timer.h
+> @@ -48,6 +48,24 @@ static inline void sbi_timer_udelay(ulong usecs)
+>         sbi_timer_delay_loop(usecs, 1000000, NULL, NULL);
+>  }
+>
+> +/**
+> + * A blocking function that will wait until @p predicate returns true or
+> + * @p timeout_ms milliseconds elapsed. @p arg will be passed as argument to
+> + * @p predicate function.
+> + *
+> + * @param predicate Pointer to a function that returns true if certain
+> + * condition is met. It shouldn't block the code execution.
+> + * @param arg Argument to pass to @p predicate.
+> + * @param timeout_ms Timeout value in milliseconds. The function will return
+> + * false if @p timeout_ms time period elapsed but still @p predicate doesn't
+> + * return true.
+> + *
+> + * @return true if @p predicate returns true within @p timeout_ms, false
+> + * otherwise.
+> + */
+> +bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
+> +                           uint64_t timeout_ms);
+> +
+>  /** Get timer value for current HART */
+>  u64 sbi_timer_value(void);
+>
+> diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> index acdba92..649a4e6 100644
+> --- a/lib/sbi/sbi_timer.c
+> +++ b/lib/sbi/sbi_timer.c
+> @@ -81,6 +81,19 @@ void sbi_timer_delay_loop(ulong units, u64 unit_freq,
+>                 delay_fn(opaque);
+>  }
+>
+> +bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
+> +                           uint64_t timeout_ms)
+> +{
+> +       uint64_t start_time = sbi_timer_value();
+> +       uint64_t ticks =
+> +               (sbi_timer_get_device()->timer_freq / 1000) *
+> +               timeout_ms;
+> +       while(!predicate(arg))
+> +               if (sbi_timer_value() - start_time  >= ticks)
+> +                       return false;
+> +       return true;
+> +}
+> +
+>  u64 sbi_timer_value(void)
+>  {
+>         if (get_time_val)
+> --
+> 2.30.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
