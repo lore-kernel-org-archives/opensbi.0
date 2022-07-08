@@ -1,82 +1,116 @@
-From: Ben Dooks <ben.dooks@sifive.com>
-Date: Fri,  8 Jul 2022 10:27:29 +0100
-Subject: [PATCH] sbi: add check for ipi device for hsm start
-Message-ID: <20220708092729.246862-1-ben.dooks@sifive.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 8 Jul 2022 14:56:35 +0530
+Subject: [PATCH v2 1/1] lib: sbi_timer: Added a blocking wait function
+ that waits until a certain condition is satisfied or timeout occurs
+In-Reply-To: <CAAhSdy3AHouZAfA17EEhD8Jy=0pgU5Psn2te9k7G3gzdjWUmyQ@mail.gmail.com>
+References: <20220630094635.389645-1-adnan.chowdhury@sifive.com>
+ <20220630094635.389645-2-adnan.chowdhury@sifive.com> <CAAhSdy3AHouZAfA17EEhD8Jy=0pgU5Psn2te9k7G3gzdjWUmyQ@mail.gmail.com>
+Message-ID: <CAAhSdy3q3kNckaGO1Ora-YZ0kvZy5hwo+3Ln9H1doo--Y_EHKg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If the ecall SBI_EXT_HSM_HART_START is called it might try to wake the
-secondary hart using sbi_ipi_raw_send() to send an IPI to the hart.
-This can fail if there is no IPI device but no error is returned from
-sbi_ipi_raw_send() so the ecall returns as if the action completed and
-the caller continues without noticing (in the case of Linux it just hangs
-waiting for the secondary hart to become active)
+On Wed, Jul 6, 2022 at 8:53 AM Anup Patel <anup@brainfault.org> wrote:
+>
+> On Thu, Jun 30, 2022 at 3:16 PM Adnan Rahman Chowdhury
+> <adnan.chowdhury@sifive.com> wrote:
+> >
+> > Motivation: Suppose a peripheral needs to be configured to transmit
+> > data. There is an SFR bit which indicates that the peripheral is ready
+> > to transmit. The firmware should check the bit and will only transmit
+> > data when the peripheral is ready. When the firmware starts polling the
+> > SFR, the peripheral could be busy transmitting/receiving other data so
+> > the firmware must wait till that completes. Assuming that there is no
+> > other way, the firmware shouldn't wait indefinitely.
+> >
+> > The function sbi_timer_waitms_until() will constantly check whether a
+> > certain condition is satisfied, or timeout occurs. It can be used for
+> > the cases when a timeout is required.
+> >
+> > Signed-off-by: Adnan Rahman Chowdhury <adnan.chowdhury@sifive.com>
+> > Reviewed-by: Xiang W <wxjstz@126.com>
+>
+> Looks good to me.
+>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Fix this by changing sbi_ipi_raw_send() to return and error, and if an
-error is returned, then return it via SBI_EXT_HSM_HART_START call.
+I have shortened the patch subject at time of merging this patch.
 
-Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
----
- include/sbi/sbi_ipi.h |  2 +-
- lib/sbi/sbi_hsm.c     |  4 +++-
- lib/sbi/sbi_ipi.c     | 11 ++++++++---
- 3 files changed, 12 insertions(+), 5 deletions(-)
+Applied this patch to the riscv/opensbi repo
 
-diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-index fb7d658..f6ac807 100644
---- a/include/sbi/sbi_ipi.h
-+++ b/include/sbi/sbi_ipi.h
-@@ -75,7 +75,7 @@ int sbi_ipi_send_halt(ulong hmask, ulong hbase);
- 
- void sbi_ipi_process(void);
- 
--void sbi_ipi_raw_send(u32 target_hart);
-+int sbi_ipi_raw_send(u32 target_hart);
- 
- const struct sbi_ipi_device *sbi_ipi_get_device(void);
- 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 1165acc..836008f 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -289,7 +289,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	   (hsm_device_has_hart_secondary_boot() && !init_count)) {
- 		return hsm_device_hart_start(hartid, scratch->warmboot_addr);
- 	} else {
--		sbi_ipi_raw_send(hartid);
-+		int rc = sbi_ipi_raw_send(hartid);
-+		if (rc)
-+		    return rc;
- 	}
- 
- 	return 0;
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 1014909..c2ede2d 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -208,10 +208,15 @@ skip:
- 	};
- }
- 
--void sbi_ipi_raw_send(u32 target_hart)
-+int sbi_ipi_raw_send(u32 target_hart)
- {
--	if (ipi_dev && ipi_dev->ipi_send)
--		ipi_dev->ipi_send(target_hart);
-+	if (!ipi_dev)
-+		return SBI_EINVAL;
-+	if (!ipi_dev->ipi_send)
-+		return SBI_EINVAL;
-+
-+	ipi_dev->ipi_send(target_hart);
-+	return 0;
- }
- 
- const struct sbi_ipi_device *sbi_ipi_get_device(void)
--- 
-2.35.1
+Thanks,
+Anup
 
+>
+> Regards,
+> Anup
+>
+> > ---
+> >  include/sbi/sbi_timer.h | 18 ++++++++++++++++++
+> >  lib/sbi/sbi_timer.c     | 13 +++++++++++++
+> >  2 files changed, 31 insertions(+)
+> >
+> > diff --git a/include/sbi/sbi_timer.h b/include/sbi/sbi_timer.h
+> > index 63ef1af..ac48e2b 100644
+> > --- a/include/sbi/sbi_timer.h
+> > +++ b/include/sbi/sbi_timer.h
+> > @@ -48,6 +48,24 @@ static inline void sbi_timer_udelay(ulong usecs)
+> >         sbi_timer_delay_loop(usecs, 1000000, NULL, NULL);
+> >  }
+> >
+> > +/**
+> > + * A blocking function that will wait until @p predicate returns true or
+> > + * @p timeout_ms milliseconds elapsed. @p arg will be passed as argument to
+> > + * @p predicate function.
+> > + *
+> > + * @param predicate Pointer to a function that returns true if certain
+> > + * condition is met. It shouldn't block the code execution.
+> > + * @param arg Argument to pass to @p predicate.
+> > + * @param timeout_ms Timeout value in milliseconds. The function will return
+> > + * false if @p timeout_ms time period elapsed but still @p predicate doesn't
+> > + * return true.
+> > + *
+> > + * @return true if @p predicate returns true within @p timeout_ms, false
+> > + * otherwise.
+> > + */
+> > +bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
+> > +                           uint64_t timeout_ms);
+> > +
+> >  /** Get timer value for current HART */
+> >  u64 sbi_timer_value(void);
+> >
+> > diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> > index acdba92..649a4e6 100644
+> > --- a/lib/sbi/sbi_timer.c
+> > +++ b/lib/sbi/sbi_timer.c
+> > @@ -81,6 +81,19 @@ void sbi_timer_delay_loop(ulong units, u64 unit_freq,
+> >                 delay_fn(opaque);
+> >  }
+> >
+> > +bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
+> > +                           uint64_t timeout_ms)
+> > +{
+> > +       uint64_t start_time = sbi_timer_value();
+> > +       uint64_t ticks =
+> > +               (sbi_timer_get_device()->timer_freq / 1000) *
+> > +               timeout_ms;
+> > +       while(!predicate(arg))
+> > +               if (sbi_timer_value() - start_time  >= ticks)
+> > +                       return false;
+> > +       return true;
+> > +}
+> > +
+> >  u64 sbi_timer_value(void)
+> >  {
+> >         if (get_time_val)
+> > --
+> > 2.30.2
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
