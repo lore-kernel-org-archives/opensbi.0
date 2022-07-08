@@ -1,116 +1,72 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 8 Jul 2022 14:56:35 +0530
-Subject: [PATCH v2 1/1] lib: sbi_timer: Added a blocking wait function
- that waits until a certain condition is satisfied or timeout occurs
-In-Reply-To: <CAAhSdy3AHouZAfA17EEhD8Jy=0pgU5Psn2te9k7G3gzdjWUmyQ@mail.gmail.com>
-References: <20220630094635.389645-1-adnan.chowdhury@sifive.com>
- <20220630094635.389645-2-adnan.chowdhury@sifive.com> <CAAhSdy3AHouZAfA17EEhD8Jy=0pgU5Psn2te9k7G3gzdjWUmyQ@mail.gmail.com>
-Message-ID: <CAAhSdy3q3kNckaGO1Ora-YZ0kvZy5hwo+3Ln9H1doo--Y_EHKg@mail.gmail.com>
+Date: Fri, 8 Jul 2022 17:22:05 +0530
+Subject: Shakti-platform-UART-Update
+In-Reply-To: <20220701144241.9082-1-ptprasanna@gmail.com>
+References: <20220701144241.9082-1-ptprasanna@gmail.com>
+Message-ID: <CAAhSdy1A6oHXWMJnQacA3WrJ1j3DRV2HNEjAp653iZFSAaJmhA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 6, 2022 at 8:53 AM Anup Patel <anup@brainfault.org> wrote:
+On Fri, Jul 1, 2022 at 8:13 PM Prasanna T <ptprasanna@gmail.com> wrote:
 >
-> On Thu, Jun 30, 2022 at 3:16 PM Adnan Rahman Chowdhury
-> <adnan.chowdhury@sifive.com> wrote:
-> >
-> > Motivation: Suppose a peripheral needs to be configured to transmit
-> > data. There is an SFR bit which indicates that the peripheral is ready
-> > to transmit. The firmware should check the bit and will only transmit
-> > data when the peripheral is ready. When the firmware starts polling the
-> > SFR, the peripheral could be busy transmitting/receiving other data so
-> > the firmware must wait till that completes. Assuming that there is no
-> > other way, the firmware shouldn't wait indefinitely.
-> >
-> > The function sbi_timer_waitms_until() will constantly check whether a
-> > certain condition is satisfied, or timeout occurs. It can be used for
-> > the cases when a timeout is required.
-> >
-> > Signed-off-by: Adnan Rahman Chowdhury <adnan.chowdhury@sifive.com>
-> > Reviewed-by: Xiang W <wxjstz@126.com>
->
-> Looks good to me.
->
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Please find the attached revised patch, with respect to the latest changes made. Have dealt other amendments through dts. A primary change that was made as part of this patch is follows.The age old version of UART was upgraded long back, but that was missed out in the code which we did updated now (The old version of UART is not supported anymore, hence removed the inline comment which is also outdated now), The current version is the only UART supported right now by Shakti
 
-I have shortened the patch subject at time of merging this patch.
+The patch subject should be:
+lib: utils/serial: Update Shakti UART based on latest implementation
 
-Applied this patch to the riscv/opensbi repo
+The patch description should be simplified and each line should
+be less than 75 characters.
 
-Thanks,
+Also, a "Signed-off-by" is mandatory for each patch which is
+missing here.
+
+Further with every patch revision, you should use "--subject-prefix"
+parameter of "git format-patch". For example, to generate v3 patch
+you can do: git format-patch -M -C --subject-prefix="PATCH v3" ...
+
+I will send a PATCH v3 on your behalf but please take care next time.
+
+Regards,
 Anup
 
+> ---
 >
-> Regards,
-> Anup
+> diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+> index 5f2fe75..122218b 100644
+> --- a/lib/utils/serial/shakti-uart.c
+> +++ b/lib/utils/serial/shakti-uart.c
+> @@ -19,21 +19,22 @@
+>  #define REG_RX_THRES   0x20
 >
-> > ---
-> >  include/sbi/sbi_timer.h | 18 ++++++++++++++++++
-> >  lib/sbi/sbi_timer.c     | 13 +++++++++++++
-> >  2 files changed, 31 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_timer.h b/include/sbi/sbi_timer.h
-> > index 63ef1af..ac48e2b 100644
-> > --- a/include/sbi/sbi_timer.h
-> > +++ b/include/sbi/sbi_timer.h
-> > @@ -48,6 +48,24 @@ static inline void sbi_timer_udelay(ulong usecs)
-> >         sbi_timer_delay_loop(usecs, 1000000, NULL, NULL);
-> >  }
-> >
-> > +/**
-> > + * A blocking function that will wait until @p predicate returns true or
-> > + * @p timeout_ms milliseconds elapsed. @p arg will be passed as argument to
-> > + * @p predicate function.
-> > + *
-> > + * @param predicate Pointer to a function that returns true if certain
-> > + * condition is met. It shouldn't block the code execution.
-> > + * @param arg Argument to pass to @p predicate.
-> > + * @param timeout_ms Timeout value in milliseconds. The function will return
-> > + * false if @p timeout_ms time period elapsed but still @p predicate doesn't
-> > + * return true.
-> > + *
-> > + * @return true if @p predicate returns true within @p timeout_ms, false
-> > + * otherwise.
-> > + */
-> > +bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
-> > +                           uint64_t timeout_ms);
-> > +
-> >  /** Get timer value for current HART */
-> >  u64 sbi_timer_value(void);
-> >
-> > diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
-> > index acdba92..649a4e6 100644
-> > --- a/lib/sbi/sbi_timer.c
-> > +++ b/lib/sbi/sbi_timer.c
-> > @@ -81,6 +81,19 @@ void sbi_timer_delay_loop(ulong units, u64 unit_freq,
-> >                 delay_fn(opaque);
-> >  }
-> >
-> > +bool sbi_timer_waitms_until(bool (*predicate)(void *), void *arg,
-> > +                           uint64_t timeout_ms)
-> > +{
-> > +       uint64_t start_time = sbi_timer_value();
-> > +       uint64_t ticks =
-> > +               (sbi_timer_get_device()->timer_freq / 1000) *
-> > +               timeout_ms;
-> > +       while(!predicate(arg))
-> > +               if (sbi_timer_value() - start_time  >= ticks)
-> > +                       return false;
-> > +       return true;
-> > +}
-> > +
-> >  u64 sbi_timer_value(void)
-> >  {
-> >         if (get_time_val)
-> > --
-> > 2.30.2
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+>  #define UART_TX_FULL  0x2
+> +#define UART_RX_NOT_EMPTY 0x4
+>  #define UART_RX_FULL  0x8
+>
+>  static volatile char *uart_base;
+>
+>  static void shakti_uart_putc(char ch)
+>  {
+> -       while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
+> +       while((readb(uart_base + REG_STATUS) & UART_TX_FULL))
+>                 ;
+>         writeb(ch, uart_base + REG_TX);
+>  }
+>
+>  static int shakti_uart_getc(void)
+>  {
+> -       u16 status = readw(uart_base + REG_STATUS);
+> -       if (status & UART_RX_FULL)
+> +       u16 status = readb(uart_base + REG_STATUS);
+> +       if (status & UART_RX_NOT_EMPTY)
+>                 return readb(uart_base + REG_RX);
+>         return -1;
+>  }
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
