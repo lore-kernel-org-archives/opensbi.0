@@ -1,109 +1,84 @@
-From: Prasanna Thandabani <ptprasanna@gmail.com>
-Date: Sat, 9 Jul 2022 22:13:14 +0530
-Subject: [PATCH v3] lib: utils/serial: Update Shakti UART based on latest implementation
-In-Reply-To: <CAAhSdy17F5=jYBsZyYhcvcRt3Sp3zSO6r54yOPSBq8EtYZbUTw@mail.gmail.com>
-References: <20220708115244.556074-1-apatel@ventanamicro.com>
- <17C8D809-438B-4C78-B507-7AE6029CCD2A@jrtc27.com> <CAAhSdy17F5=jYBsZyYhcvcRt3Sp3zSO6r54yOPSBq8EtYZbUTw@mail.gmail.com>
-Message-ID: <CAKMAqee6_HmUJHi1NA9hgFgFXmdzNTSU2bGMB=bTciOVCd-XJg@mail.gmail.com>
+From: Ben Dooks <ben.dooks@sifive.com>
+Date: Mon, 11 Jul 2022 08:18:03 +0100
+Subject: [PATCH v2] lib: sbi: add check for ipi device for hsm start
+Message-ID: <20220711071803.408024-1-ben.dooks@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Yes Anup,
+If the ecall SBI_EXT_HSM_HART_START is called it might try to wake the
+secondary hart using sbi_ipi_raw_send() to send an IPI to the hart.
+This can fail if there is no IPI device but no error is returned from
+sbi_ipi_raw_send() so the ecall returns as if the action completed and
+the caller continues without noticing (in the case of Linux it just hangs
+waiting for the secondary hart to become active)
 
-That's right. The current UART is being used everywhere, and we have
-realised the gap in OpenSBI V1.1 release ( realised that we didn't
-update the OpenSBI Repo). Hence the patch.
+Fix this by changing sbi_ipi_raw_send() to return and error, and if an
+error is returned, then return it via SBI_EXT_HSM_HART_START call.
 
-Please let me know if more information would help.
+Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
+--
+Fixes for v2:
+- fixed title by adding lib: prefix
+- change two if() to one compound if()
+---
+ include/sbi/sbi_ipi.h | 2 +-
+ lib/sbi/sbi_hsm.c     | 4 +++-
+ lib/sbi/sbi_ipi.c     | 9 ++++++---
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-Thanks
-Prasanna
-----Resending on Plain Text Mode----
+diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
+index fb7d658..f6ac807 100644
+--- a/include/sbi/sbi_ipi.h
++++ b/include/sbi/sbi_ipi.h
+@@ -75,7 +75,7 @@ int sbi_ipi_send_halt(ulong hmask, ulong hbase);
+ 
+ void sbi_ipi_process(void);
+ 
+-void sbi_ipi_raw_send(u32 target_hart);
++int sbi_ipi_raw_send(u32 target_hart);
+ 
+ const struct sbi_ipi_device *sbi_ipi_get_device(void);
+ 
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 1165acc..836008f 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -289,7 +289,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 	   (hsm_device_has_hart_secondary_boot() && !init_count)) {
+ 		return hsm_device_hart_start(hartid, scratch->warmboot_addr);
+ 	} else {
+-		sbi_ipi_raw_send(hartid);
++		int rc = sbi_ipi_raw_send(hartid);
++		if (rc)
++		    return rc;
+ 	}
+ 
+ 	return 0;
+diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+index 1014909..7aafbbd 100644
+--- a/lib/sbi/sbi_ipi.c
++++ b/lib/sbi/sbi_ipi.c
+@@ -208,10 +208,13 @@ skip:
+ 	};
+ }
+ 
+-void sbi_ipi_raw_send(u32 target_hart)
++int sbi_ipi_raw_send(u32 target_hart)
+ {
+-	if (ipi_dev && ipi_dev->ipi_send)
+-		ipi_dev->ipi_send(target_hart);
++	if (!ipi_dev || !ipi_dev->ipi_send)
++		return SBI_EINVAL;
++
++	ipi_dev->ipi_send(target_hart);
++	return 0;
+ }
+ 
+ const struct sbi_ipi_device *sbi_ipi_get_device(void)
+-- 
+2.35.1
 
-
-On Fri, Jul 8, 2022 at 11:19 PM Anup Patel <anup@brainfault.org> wrote:
->
-> On Fri, Jul 8, 2022 at 11:11 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> > On 8 Jul 2022, at 12:52, Anup Patel <apatel@ventanamicro.com> wrote:
-> > >
-> > > From: Prasanna T <ptprasanna@gmail.com>
-> > >
-> > > The age old version of Shakti UART was upgraded long back, but we missed
-> > > updating the driver in OpenSBI. The old version of UART is not supported
-> > > anymore, hence removed the inline comment which is also outdated now.
-> >
-> > This part of the description is referencing a comment that was
-> > *introduced* by an earlier version of this patch; there is no comment
-> > in the source being removed and so this part of the commit message is
-> > inaccurate.
-> >
-> > I?m also rather concerned about reusing an existing compatible string
-> > for an incompatible device, it seems like even if you?re dropping
-> > support for an old UART the new one should have its own compatible with
-> > the version suffix bumped. They have versions in them for a reason.
->
-> My understanding is that they (Shakti folks) never used the old version
-> of UART on any actual silicon. It seems they are already using the newer
-> UART everywhere and they just forgot to change the code here.
->
-> @Prasanna Thandabani Is the above understanding correct ?
->
-> Regards,
-> Anup
->
-> >
-> > Jess
-> >
-> > > Signed-off-by: Prasanna T <ptprasanna@gmail.com>
-> > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > > ---
-> > > Changes since v2:
-> > > - Updated patch subject and description
-> > > - Minor fix in shakti_uart_getc()
-> > > ---
-> > > lib/utils/serial/shakti-uart.c | 6 +++---
-> > > 1 file changed, 3 insertions(+), 3 deletions(-)
-> > >
-> > > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> > > index 5f2fe75..3556935 100644
-> > > --- a/lib/utils/serial/shakti-uart.c
-> > > +++ b/lib/utils/serial/shakti-uart.c
-> > > @@ -19,21 +19,21 @@
-> > > #define REG_RX_THRES  0x20
-> > >
-> > > #define UART_TX_FULL  0x2
-> > > +#define UART_RX_NOT_EMPTY 0x4
-> > > #define UART_RX_FULL  0x8
-> > >
-> > > static volatile char *uart_base;
-> > >
-> > > static void shakti_uart_putc(char ch)
-> > > {
-> > > -     while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
-> > > +     while ((readb(uart_base + REG_STATUS) & UART_TX_FULL))
-> > >               ;
-> > >       writeb(ch, uart_base + REG_TX);
-> > > }
-> > >
-> > > static int shakti_uart_getc(void)
-> > > {
-> > > -     u16 status = readw(uart_base + REG_STATUS);
-> > > -     if (status & UART_RX_FULL)
-> > > +     if (readb(uart_base + REG_STATUS) & UART_RX_NOT_EMPTY)
-> > >               return readb(uart_base + REG_RX);
-> > >       return -1;
-> > > }
-> > > --
-> > > 2.34.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
 
