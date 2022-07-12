@@ -1,103 +1,516 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Jul 2022 15:43:59 +0530
-Subject: [PATCH v2] lib: sbi: add check for ipi device for hsm start
-In-Reply-To: <20220711071803.408024-1-ben.dooks@sifive.com>
-References: <20220711071803.408024-1-ben.dooks@sifive.com>
-Message-ID: <CAAhSdy2K01-mmW4BkbZMYtg6GPTm2sFgk=HzvUM4RxRxw_YgJg@mail.gmail.com>
+From: Ben Dooks <ben.dooks@sifive.com>
+Date: Tue, 12 Jul 2022 10:03:20 +0100
+Subject: [PATCH] platform: move da9063-reset driver to shareable code
+Message-ID: <20220712090320.564729-1-ben.dooks@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 11, 2022 at 12:52 PM Ben Dooks <ben.dooks@sifive.com> wrote:
->
-> If the ecall SBI_EXT_HSM_HART_START is called it might try to wake the
-> secondary hart using sbi_ipi_raw_send() to send an IPI to the hart.
-> This can fail if there is no IPI device but no error is returned from
-> sbi_ipi_raw_send() so the ecall returns as if the action completed and
-> the caller continues without noticing (in the case of Linux it just hangs
-> waiting for the secondary hart to become active)
->
-> Fix this by changing sbi_ipi_raw_send() to return and error, and if an
-> error is returned, then return it via SBI_EXT_HSM_HART_START call.
->
-> Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
+The da9063 reset code may be useful for other users, so move this
+out to a new file from the current sifive_fu740.c user. This can
+then be called from the relevant machines.
 
-Looks good to me.
+Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
+---
+ platform/generic/da9063_reset.c         | 229 ++++++++++++++++++++++++
+ platform/generic/include/da9063_reset.h |  14 ++
+ platform/generic/objects.mk             |   3 +
+ platform/generic/sifive/fu740.c         | 197 +-------------------
+ 4 files changed, 248 insertions(+), 195 deletions(-)
+ create mode 100644 platform/generic/da9063_reset.c
+ create mode 100644 platform/generic/include/da9063_reset.h
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+diff --git a/platform/generic/da9063_reset.c b/platform/generic/da9063_reset.c
+new file mode 100644
+index 0000000..50c987d
+--- /dev/null
++++ b/platform/generic/da9063_reset.c
+@@ -0,0 +1,229 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2021 SiFive
++ * Copyright (c) 2021 YADRO
++ *
++ * Split from sifive_fu740.c
++ *
++ * Authors:
++ *   David Abdurachmanov <david.abdurachmanov@sifive.com>
++ *   Nikita Shubin <n.shubin@yadro.com>
++ */
++
++#include <platform_override.h>
++#include <da9063_reset.h>
++#include <libfdt.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_hart.h>
++#include <sbi/sbi_system.h>
++#include <sbi/sbi_console.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_fixup.h>
++#include <sbi_utils/reset/fdt_reset.h>
++#include <sbi_utils/i2c/fdt_i2c.h>
++
++#define DA9063_REG_PAGE_CON		0x00
++#define DA9063_REG_CONTROL_A		0x0e
++#define DA9063_REG_CONTROL_D		0x11
++#define DA9063_REG_CONTROL_F		0x13
++#define DA9063_REG_DEVICE_ID		0x81
++
++#define DA9063_CONTROL_A_M_POWER1_EN	(1 << 6)
++#define DA9063_CONTROL_A_M_POWER_EN	(1 << 5)
++#define DA9063_CONTROL_A_STANDBY	(1 << 3)
++
++#define DA9063_CONTROL_D_TWDSCALE_MASK	0x07
++
++#define DA9063_CONTROL_F_WAKEUP	(1 << 2)
++#define DA9063_CONTROL_F_SHUTDOWN	(1 << 1)
++
++#define PMIC_CHIP_ID_DA9063		0x61
++
++static struct {
++	struct i2c_adapter *adapter;
++	uint32_t reg;
++} da9063;
++
++static int da9063_system_reset_check(u32 type, u32 reason)
++{
++	switch (type) {
++	case SBI_SRST_RESET_TYPE_SHUTDOWN:
++		return 1;
++	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
++	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
++		return 255;
++	}
++
++	return 0;
++}
++
++static inline int da9063_sanity_check(struct i2c_adapter *adap, uint32_t reg)
++{
++	uint8_t val;
++	int rc = i2c_adapter_reg_write(adap, reg, DA9063_REG_PAGE_CON, 0x02);
++
++	if (rc)
++		return rc;
++
++	/* check set page*/
++	rc = i2c_adapter_reg_read(adap, reg, 0x0, &val);
++	if (rc)
++		return rc;
++
++	if (val != 0x02)
++		return SBI_ENODEV;
++
++	/* read and check device id */
++	rc = i2c_adapter_reg_read(adap, reg, DA9063_REG_DEVICE_ID, &val);
++	if (rc)
++		return rc;
++
++	if (val != PMIC_CHIP_ID_DA9063)
++		return SBI_ENODEV;
++
++	return 0;
++}
++
++static inline int da9063_stop_watchdog(struct i2c_adapter *adap, uint32_t reg)
++{
++	uint8_t val;
++	int rc = i2c_adapter_reg_write(adap, reg,
++					DA9063_REG_PAGE_CON, 0x00);
++
++	if (rc)
++		return rc;
++
++	rc = i2c_adapter_reg_read(adap, reg, DA9063_REG_CONTROL_D, &val);
++	if (rc)
++		return rc;
++
++	if ((val & DA9063_CONTROL_D_TWDSCALE_MASK) == 0)
++		return 0;
++
++	val &= ~DA9063_CONTROL_D_TWDSCALE_MASK;
++
++	return i2c_adapter_reg_write(adap, reg, DA9063_REG_CONTROL_D, val);
++}
++
++static inline int da9063_shutdown(struct i2c_adapter *adap, uint32_t reg)
++{
++	int rc = i2c_adapter_reg_write(adap, reg,
++					DA9063_REG_PAGE_CON, 0x00);
++
++	if (rc)
++		return rc;
++
++	return i2c_adapter_reg_write(adap, reg,
++				     DA9063_REG_CONTROL_F,
++				     DA9063_CONTROL_F_SHUTDOWN);
++}
++
++static inline int da9063_reset(struct i2c_adapter *adap, uint32_t reg)
++{
++	int rc = i2c_adapter_reg_write(adap, reg,
++					DA9063_REG_PAGE_CON, 0x00);
++
++	if (rc)
++		return rc;
++
++	rc = i2c_adapter_reg_write(adap, reg,
++				   DA9063_REG_CONTROL_F,
++				   DA9063_CONTROL_F_WAKEUP);
++	if (rc)
++		return rc;
++
++	return i2c_adapter_reg_write(adap, reg,
++				DA9063_REG_CONTROL_A,
++				DA9063_CONTROL_A_M_POWER1_EN |
++				DA9063_CONTROL_A_M_POWER_EN |
++				DA9063_CONTROL_A_STANDBY);
++}
++
++static void da9063_system_reset(u32 type, u32 reason)
++{
++	struct i2c_adapter *adap = da9063.adapter;
++	uint32_t reg = da9063.reg;
++	int rc;
++
++	if (adap) {
++		/* sanity check */
++		rc = da9063_sanity_check(adap, reg);
++		if (rc) {
++			sbi_printf("%s: chip is not da9063 PMIC\n", __func__);
++			goto skip_reset;
++		}
++
++		switch (type) {
++		case SBI_SRST_RESET_TYPE_SHUTDOWN:
++			da9063_shutdown(adap, reg);
++			break;
++		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
++		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
++			da9063_stop_watchdog(adap, reg);
++			da9063_reset(adap, reg);
++			break;
++		}
++	}
++
++skip_reset:
++	sbi_hart_hang();
++}
++
++static struct sbi_system_reset_device da9063_reset_i2c = {
++	.name = "da9063-reset",
++	.system_reset_check = da9063_system_reset_check,
++	.system_reset = da9063_system_reset
++};
++
++static int da9063_reset_init(void *fdt, int nodeoff,
++			     const struct fdt_match *match)
++{
++	int rc, i2c_bus;
++	struct i2c_adapter *adapter;
++	uint64_t addr;
++
++	/* we are dlg,da9063 node */
++	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
++	if (rc)
++		return rc;
++
++	da9063.reg = addr;
++
++	/* find i2c bus parent node */
++	i2c_bus = fdt_parent_offset(fdt, nodeoff);
++	if (i2c_bus < 0)
++		return i2c_bus;
++
++	/* i2c adapter get */
++	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
++	if (rc)
++		return rc;
++
++	da9063.adapter = adapter;
++
++	sbi_system_reset_add_device(&da9063_reset_i2c);
++
++	return 0;
++}
++
++static const struct fdt_match da9063_reset_match[] = {
++	{ .compatible = "dlg,da9063", .data = (void *)TRUE },
++	{ },
++};
++
++static struct fdt_reset fdt_reset_da9063 = {
++	.match_table = da9063_reset_match,
++	.init = da9063_reset_init,
++};
++
++int da9063_reset_bind(void *fdt)
++{
++	int rc;
++
++	rc = fdt_reset_driver_init(fdt, &fdt_reset_da9063);
++	if (rc)
++		sbi_printf("error: failed to find da9063 for reset\n");
++	return rc;
++}
++
+diff --git a/platform/generic/include/da9063_reset.h b/platform/generic/include/da9063_reset.h
+new file mode 100644
+index 0000000..3075c25
+--- /dev/null
++++ b/platform/generic/include/da9063_reset.h
+@@ -0,0 +1,14 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2021 SiFive
++ * Copyright (c) 2021 YADRO
++ *
++ * Split from sifive_fu740.c
++ *
++ * Authors:
++ *   David Abdurachmanov <david.abdurachmanov@sifive.com>
++ *   Nikita Shubin <n.shubin@yadro.com>
++ */
++
++extern int da9063_reset_bind(void *fdt);
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index 4907754..465a2f6 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -9,3 +9,6 @@
+ 
+ platform-objs-y += platform.o
+ platform-objs-y += platform_override_modules.o
++
++platform-objs-y += da9063_reset.o
++
+diff --git a/platform/generic/sifive/fu740.c b/platform/generic/sifive/fu740.c
+index f595c04..7ba4162 100644
+--- a/platform/generic/sifive/fu740.c
++++ b/platform/generic/sifive/fu740.c
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <platform_override.h>
++#include <da9063_reset.h>
+ #include <libfdt.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
+@@ -20,200 +21,6 @@
+ #include <sbi_utils/reset/fdt_reset.h>
+ #include <sbi_utils/i2c/fdt_i2c.h>
+ 
+-#define DA9063_REG_PAGE_CON		0x00
+-#define DA9063_REG_CONTROL_A		0x0e
+-#define DA9063_REG_CONTROL_D		0x11
+-#define DA9063_REG_CONTROL_F		0x13
+-#define DA9063_REG_DEVICE_ID		0x81
+-
+-#define DA9063_CONTROL_A_M_POWER1_EN	(1 << 6)
+-#define DA9063_CONTROL_A_M_POWER_EN	(1 << 5)
+-#define DA9063_CONTROL_A_STANDBY	(1 << 3)
+-
+-#define DA9063_CONTROL_D_TWDSCALE_MASK	0x07
+-
+-#define DA9063_CONTROL_F_WAKEUP	(1 << 2)
+-#define DA9063_CONTROL_F_SHUTDOWN	(1 << 1)
+-
+-#define PMIC_CHIP_ID_DA9063		0x61
+-
+-static struct {
+-	struct i2c_adapter *adapter;
+-	uint32_t reg;
+-} da9063;
+-
+-static int da9063_system_reset_check(u32 type, u32 reason)
+-{
+-	switch (type) {
+-	case SBI_SRST_RESET_TYPE_SHUTDOWN:
+-		return 1;
+-	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+-	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+-		return 255;
+-	}
+-
+-	return 0;
+-}
+-
+-static inline int da9063_sanity_check(struct i2c_adapter *adap, uint32_t reg)
+-{
+-	uint8_t val;
+-	int rc = i2c_adapter_reg_write(adap, reg, DA9063_REG_PAGE_CON, 0x02);
+-
+-	if (rc)
+-		return rc;
+-
+-	/* check set page*/
+-	rc = i2c_adapter_reg_read(adap, reg, 0x0, &val);
+-	if (rc)
+-		return rc;
+-
+-	if (val != 0x02)
+-		return SBI_ENODEV;
+-
+-	/* read and check device id */
+-	rc = i2c_adapter_reg_read(adap, reg, DA9063_REG_DEVICE_ID, &val);
+-	if (rc)
+-		return rc;
+-
+-	if (val != PMIC_CHIP_ID_DA9063)
+-		return SBI_ENODEV;
+-
+-	return 0;
+-}
+-
+-static inline int da9063_stop_watchdog(struct i2c_adapter *adap, uint32_t reg)
+-{
+-	uint8_t val;
+-	int rc = i2c_adapter_reg_write(adap, reg,
+-					DA9063_REG_PAGE_CON, 0x00);
+-
+-	if (rc)
+-		return rc;
+-
+-	rc = i2c_adapter_reg_read(adap, reg, DA9063_REG_CONTROL_D, &val);
+-	if (rc)
+-		return rc;
+-
+-	if ((val & DA9063_CONTROL_D_TWDSCALE_MASK) == 0)
+-		return 0;
+-
+-	val &= ~DA9063_CONTROL_D_TWDSCALE_MASK;
+-
+-	return i2c_adapter_reg_write(adap, reg, DA9063_REG_CONTROL_D, val);
+-}
+-
+-static inline int da9063_shutdown(struct i2c_adapter *adap, uint32_t reg)
+-{
+-	int rc = i2c_adapter_reg_write(adap, reg,
+-					DA9063_REG_PAGE_CON, 0x00);
+-
+-	if (rc)
+-		return rc;
+-
+-	return i2c_adapter_reg_write(adap, reg,
+-				     DA9063_REG_CONTROL_F,
+-				     DA9063_CONTROL_F_SHUTDOWN);
+-}
+-
+-static inline int da9063_reset(struct i2c_adapter *adap, uint32_t reg)
+-{
+-	int rc = i2c_adapter_reg_write(adap, reg,
+-					DA9063_REG_PAGE_CON, 0x00);
+-
+-	if (rc)
+-		return rc;
+-
+-	rc = i2c_adapter_reg_write(adap, reg,
+-				   DA9063_REG_CONTROL_F,
+-				   DA9063_CONTROL_F_WAKEUP);
+-	if (rc)
+-		return rc;
+-
+-	return i2c_adapter_reg_write(adap, reg,
+-				DA9063_REG_CONTROL_A,
+-				DA9063_CONTROL_A_M_POWER1_EN |
+-				DA9063_CONTROL_A_M_POWER_EN |
+-				DA9063_CONTROL_A_STANDBY);
+-}
+-
+-static void da9063_system_reset(u32 type, u32 reason)
+-{
+-	struct i2c_adapter *adap = da9063.adapter;
+-	uint32_t reg = da9063.reg;
+-	int rc;
+-
+-	if (adap) {
+-		/* sanity check */
+-		rc = da9063_sanity_check(adap, reg);
+-		if (rc) {
+-			sbi_printf("%s: chip is not da9063 PMIC\n", __func__);
+-			goto skip_reset;
+-		}
+-
+-		switch (type) {
+-		case SBI_SRST_RESET_TYPE_SHUTDOWN:
+-			da9063_shutdown(adap, reg);
+-			break;
+-		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+-		case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+-			da9063_stop_watchdog(adap, reg);
+-			da9063_reset(adap, reg);
+-			break;
+-		}
+-	}
+-
+-skip_reset:
+-	sbi_hart_hang();
+-}
+-
+-static struct sbi_system_reset_device da9063_reset_i2c = {
+-	.name = "da9063-reset",
+-	.system_reset_check = da9063_system_reset_check,
+-	.system_reset = da9063_system_reset
+-};
+-
+-static int da9063_reset_init(void *fdt, int nodeoff,
+-			     const struct fdt_match *match)
+-{
+-	int rc, i2c_bus;
+-	struct i2c_adapter *adapter;
+-	uint64_t addr;
+-
+-	/* we are dlg,da9063 node */
+-	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+-	if (rc)
+-		return rc;
+-
+-	da9063.reg = addr;
+-
+-	/* find i2c bus parent node */
+-	i2c_bus = fdt_parent_offset(fdt, nodeoff);
+-	if (i2c_bus < 0)
+-		return i2c_bus;
+-
+-	/* i2c adapter get */
+-	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
+-	if (rc)
+-		return rc;
+-
+-	da9063.adapter = adapter;
+-
+-	sbi_system_reset_add_device(&da9063_reset_i2c);
+-
+-	return 0;
+-}
+-
+-static const struct fdt_match da9063_reset_match[] = {
+-	{ .compatible = "dlg,da9063", .data = (void *)TRUE },
+-	{ },
+-};
+-
+-struct fdt_reset fdt_reset_da9063 = {
+-	.match_table = da9063_reset_match,
+-	.init = da9063_reset_init,
+-};
+-
+ static u64 sifive_fu740_tlbr_flush_limit(const struct fdt_match *match)
+ {
+ 	/*
+@@ -233,7 +40,7 @@ static int sifive_fu740_final_init(bool cold_boot,
+ 	void *fdt = fdt_get_address();
+ 
+ 	if (cold_boot) {
+-		rc = fdt_reset_driver_init(fdt, &fdt_reset_da9063);
++		rc = da9063_reset_bind(fdt);
+ 		if (rc)
+ 			sbi_printf("%s: failed to find da9063 for reset\n",
+ 				   __func__);
+-- 
+2.35.1
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-> --
-> Fixes for v2:
-> - fixed title by adding lib: prefix
-> - change two if() to one compound if()
-> ---
->  include/sbi/sbi_ipi.h | 2 +-
->  lib/sbi/sbi_hsm.c     | 4 +++-
->  lib/sbi/sbi_ipi.c     | 9 ++++++---
->  3 files changed, 10 insertions(+), 5 deletions(-)
->
-> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-> index fb7d658..f6ac807 100644
-> --- a/include/sbi/sbi_ipi.h
-> +++ b/include/sbi/sbi_ipi.h
-> @@ -75,7 +75,7 @@ int sbi_ipi_send_halt(ulong hmask, ulong hbase);
->
->  void sbi_ipi_process(void);
->
-> -void sbi_ipi_raw_send(u32 target_hart);
-> +int sbi_ipi_raw_send(u32 target_hart);
->
->  const struct sbi_ipi_device *sbi_ipi_get_device(void);
->
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 1165acc..836008f 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -289,7 +289,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->            (hsm_device_has_hart_secondary_boot() && !init_count)) {
->                 return hsm_device_hart_start(hartid, scratch->warmboot_addr);
->         } else {
-> -               sbi_ipi_raw_send(hartid);
-> +               int rc = sbi_ipi_raw_send(hartid);
-> +               if (rc)
-> +                   return rc;
->         }
->
->         return 0;
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index 1014909..7aafbbd 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -208,10 +208,13 @@ skip:
->         };
->  }
->
-> -void sbi_ipi_raw_send(u32 target_hart)
-> +int sbi_ipi_raw_send(u32 target_hart)
->  {
-> -       if (ipi_dev && ipi_dev->ipi_send)
-> -               ipi_dev->ipi_send(target_hart);
-> +       if (!ipi_dev || !ipi_dev->ipi_send)
-> +               return SBI_EINVAL;
-> +
-> +       ipi_dev->ipi_send(target_hart);
-> +       return 0;
->  }
->
->  const struct sbi_ipi_device *sbi_ipi_get_device(void)
-> --
-> 2.35.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
