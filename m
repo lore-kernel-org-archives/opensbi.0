@@ -1,27 +1,27 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Tue, 12 Jul 2022 14:07:46 +0100
-Subject: [PATCH] platform: move da9063-reset driver to shareable code
-In-Reply-To: <20220712090320.564729-1-ben.dooks@sifive.com>
-References: <20220712090320.564729-1-ben.dooks@sifive.com>
-Message-ID: <70C6A544-CA69-44C4-837A-20450FF9DA86@jrtc27.com>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Tue, 12 Jul 2022 19:28:03 -0700 (PDT)
+Subject: Is anyone seeing OpenSBI v1.0 flakiness?
+Message-ID: <mhng-3a4b2b8b-da0b-4e32-875c-5f52dcc53f20@palmer-mbp2014>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 12 Jul 2022, at 10:03, Ben Dooks <ben.dooks@sifive.com> wrote:
-> 
-> The da9063 reset code may be useful for other users, so move this
-> out to a new file from the current sifive_fu740.c user. This can
-> then be called from the relevant machines.
+I recently bumped QEMU to v7.0.0 in my main test repos, which is causing 
+some flakiness: around 1% of kernels are failing to boot, it seems to 
+not really depend on the Kconfig or QEMU config (though I'm always 
+running virt tests).  It's just an early boot hang, I haven't poked 
+around much deeper as I've just been trying to bisect the problem.  I 
+think I've tracked this down to the OpenSBI update (from 0.9 to 1.0), 
+but it seems like the boot failures come and go so I'm not 100% sure on 
+that -- at least the commit before the OpenSBI update seems safe, I ran 
+about ten thousand boots without any issues.  That's about as far as 
+I've getten bisecting, the low failure rate is causing headaches.
 
-I sincerely hope not, the da9063 code is a massive hack to work around
-an extremely deficient design, one that removes a feature the previous
-generation had. Nobody should be looking at it as a feature they can
-take advantage of, they should have some form of dedicated reset
-hardware in the SoC itself.
-
-Jess
-
+I'm back on v6.1.0 so I can try and get some Linux code merged this 
+week, I'm way behind so I probably won't be able to look all that much.  
+I'm going to try and get OpenSBI master into my testing flow more 
+cleanly, but I figured I'd start a thread in case anyone else is seeing 
+issues.
 
