@@ -1,48 +1,61 @@
-From: gagachang <vivahavey@gmail.com>
-Date: Fri, 15 Jul 2022 00:20:59 +0800
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Thu, 14 Jul 2022 18:37:11 +0200
 Subject: [PATCH] lib: sbi_hart: Shorten the code to set MPV bit
-Message-ID: <20220714162059.3294-1-vivahavey@gmail.com>
+In-Reply-To: <20220714162059.3294-1-vivahavey@gmail.com>
+References: <20220714162059.3294-1-vivahavey@gmail.com>
+Message-ID: <20220714163711.2d5s22ewh7gdjf5z@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-MPV bit is set when the value of next_virt boolean variable equals
-true. Since the value of next_virt is either 0 or 1, we can set
-MPV bit without if-else logic.
+On Fri, Jul 15, 2022 at 12:20:59AM +0800, gagachang wrote:
+> MPV bit is set when the value of next_virt boolean variable equals
+> true. Since the value of next_virt is either 0 or 1, we can set
+> MPV bit without if-else logic.
+> 
+> Signed-off-by: Che-Chia Chang <alvinga@andestech.com>
+> ---
+>  lib/sbi/sbi_hart.c | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index de86fee..23ad341 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -769,18 +769,12 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
+>  #if __riscv_xlen == 32
+>  	if (misa_extension('H')) {
+>  		valH = csr_read(CSR_MSTATUSH);
+> -		if (next_virt)
+> -			valH = INSERT_FIELD(valH, MSTATUSH_MPV, 1);
+> -		else
+> -			valH = INSERT_FIELD(valH, MSTATUSH_MPV, 0);
+> +		valH = INSERT_FIELD(valH, MSTATUSH_MPV, next_virt);
+>  		csr_write(CSR_MSTATUSH, valH);
+>  	}
+>  #else
+>  	if (misa_extension('H')) {
+> -		if (next_virt)
+> -			val = INSERT_FIELD(val, MSTATUS_MPV, 1);
+> -		else
+> -			val = INSERT_FIELD(val, MSTATUS_MPV, 0);
+> +		val = INSERT_FIELD(val, MSTATUS_MPV, next_virt);
+>  	}
 
-Signed-off-by: Che-Chia Chang <alvinga@andestech.com>
----
- lib/sbi/sbi_hart.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+We can drop the {} here now too.
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index de86fee..23ad341 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -769,18 +769,12 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
- #if __riscv_xlen == 32
- 	if (misa_extension('H')) {
- 		valH = csr_read(CSR_MSTATUSH);
--		if (next_virt)
--			valH = INSERT_FIELD(valH, MSTATUSH_MPV, 1);
--		else
--			valH = INSERT_FIELD(valH, MSTATUSH_MPV, 0);
-+		valH = INSERT_FIELD(valH, MSTATUSH_MPV, next_virt);
- 		csr_write(CSR_MSTATUSH, valH);
- 	}
- #else
- 	if (misa_extension('H')) {
--		if (next_virt)
--			val = INSERT_FIELD(val, MSTATUS_MPV, 1);
--		else
--			val = INSERT_FIELD(val, MSTATUS_MPV, 0);
-+		val = INSERT_FIELD(val, MSTATUS_MPV, next_virt);
- 	}
- #endif
- 	csr_write(CSR_MSTATUS, val);
--- 
-2.25.1
+>  #endif
+>  	csr_write(CSR_MSTATUS, val);
+> -- 
+> 2.25.1
+>
 
+Otherwise
+
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+
+Thanks,
+drew
 
