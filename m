@@ -1,211 +1,65 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 18 Jul 2022 19:20:25 +0200
-Subject: [PATCH 1/4] lib: utils/fdt: Factor out common uart node code
+Date: Mon, 18 Jul 2022 19:20:27 +0200
+Subject: [PATCH 3/4] lib: serial: Clean up coding style in sifive-uart.c
 In-Reply-To: <20220718172028.2006166-1-ajones@ventanamicro.com>
 References: <20220718172028.2006166-1-ajones@ventanamicro.com>
-Message-ID: <20220718172028.2006166-2-ajones@ventanamicro.com>
+Message-ID: <20220718172028.2006166-4-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Factor out the common code used by the fdt UART node parsers,
-allowing us to drop duplicate code.
-
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/utils/fdt/fdt_helper.c | 131 +++++++++++--------------------------
- 1 file changed, 39 insertions(+), 92 deletions(-)
+ lib/utils/serial/sifive-uart.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 2bdb1ef23e55..c6abf804014d 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -314,8 +314,10 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
- 	return 0;
+diff --git a/lib/utils/serial/sifive-uart.c b/lib/utils/serial/sifive-uart.c
+index 9478a77f8054..7078611a5274 100644
+--- a/lib/utils/serial/sifive-uart.c
++++ b/lib/utils/serial/sifive-uart.c
+@@ -48,12 +48,12 @@ static inline unsigned int uart_min_clk_divisor(uint64_t in_freq,
+ 						uint64_t max_target_hz)
+ {
+ 	uint64_t quotient = (in_freq + max_target_hz - 1) / (max_target_hz);
++
+ 	/* Avoid underflow */
+-	if (quotient == 0) {
++	if (quotient == 0)
+ 		return 0;
+-	} else {
++	else
+ 		return quotient - 1;
+-	}
  }
  
--int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
--				struct platform_uart_data *uart)
-+static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
-+				      struct platform_uart_data *uart,
-+				      unsigned long default_freq,
-+				      unsigned long default_baud)
+ static u32 get_reg(u32 num)
+@@ -77,8 +77,10 @@ static void sifive_uart_putc(char ch)
+ static int sifive_uart_getc(void)
  {
- 	int len, rc;
- 	const fdt32_t *val;
-@@ -338,13 +340,28 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
- 	if (len > 0 && val)
- 		uart->freq = fdt32_to_cpu(*val);
- 	else
--		uart->freq = DEFAULT_UART_FREQ;
-+		uart->freq = default_freq;
- 
- 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
- 	if (len > 0 && val)
- 		uart->baud = fdt32_to_cpu(*val);
- 	else
--		uart->baud = DEFAULT_UART_BAUD;
-+		uart->baud = default_baud;
+ 	u32 ret = get_reg(UART_REG_RXFIFO);
 +
-+	return 0;
-+}
+ 	if (!(ret & UART_RXFIFO_EMPTY))
+ 		return ret & UART_RXFIFO_DATA;
 +
-+int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-+				struct platform_uart_data *uart)
-+{
-+	int rc;
-+
-+	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-+					DEFAULT_UART_FREQ,
-+					DEFAULT_UART_BAUD);
-+
-+	if (rc)
-+		return rc;
- 
- 	/* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
- 	uart->reg_shift	   = DEFAULT_UART_REG_SHIFT;
-@@ -356,69 +373,26 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
- int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
- 			       struct platform_uart_data *uart)
- {
--	int len, rc;
--	const fdt32_t *val;
--	uint64_t reg_addr, reg_size;
--
--	if (nodeoffset < 0 || !uart || !fdt)
--		return SBI_ENODEV;
--
--	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
--				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_addr || !reg_size)
--		return SBI_ENODEV;
--	uart->addr = reg_addr;
-+	int rc;
- 
--	/**
--	 * UART address is mandaotry. clock-frequency and current-speed
--	 * may not be present. Don't return error.
--	 */
--	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
--	if (len > 0 && val)
--		uart->freq = fdt32_to_cpu(*val);
--	else
--		uart->freq = DEFAULT_SHAKTI_UART_FREQ;
-+	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-+					DEFAULT_SHAKTI_UART_FREQ,
-+					DEFAULT_SHAKTI_UART_BAUD);
- 
--	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
--	if (len > 0 && val)
--		uart->baud = fdt32_to_cpu(*val);
--	else
--		uart->baud = DEFAULT_SHAKTI_UART_BAUD;
--
--	return 0;
-+	return rc ? : 0;
+ 	return -1;
  }
  
- int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
- 			       struct platform_uart_data *uart)
- {
--	int len, rc;
--	const fdt32_t *val;
--	uint64_t reg_addr, reg_size;
--
--	if (nodeoffset < 0 || !uart || !fdt)
--		return SBI_ENODEV;
--
--	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
--				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_addr || !reg_size)
--		return SBI_ENODEV;
--	uart->addr = reg_addr;
-+	int rc;
+@@ -97,10 +99,13 @@ int sifive_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+ 	/* Configure baudrate */
+ 	if (in_freq)
+ 		set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
++
+ 	/* Disable interrupts */
+ 	set_reg(UART_REG_IE, 0);
++
+ 	/* Enable TX */
+ 	set_reg(UART_REG_TXCTRL, UART_TXCTRL_TXEN);
++
+ 	/* Enable Rx */
+ 	set_reg(UART_REG_RXCTRL, UART_RXCTRL_RXEN);
  
--	/**
--	 * UART address is mandaotry. clock-frequency and current-speed
--	 * may not be present. Don't return error.
--	 */
--	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
--	if (len > 0 && val)
--		uart->freq = fdt32_to_cpu(*val);
--	else
--		uart->freq = DEFAULT_SIFIVE_UART_FREQ;
-+	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-+					DEFAULT_SIFIVE_UART_FREQ,
-+					DEFAULT_SIFIVE_UART_BAUD);
- 
--	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
--	if (len > 0 && val)
--		uart->baud = fdt32_to_cpu(*val);
--	else
--		uart->baud = DEFAULT_SIFIVE_UART_BAUD;
-+	if (rc)
-+		return rc;
- 
- 	/* For SiFive UART, the reg-shift and reg-io-width are fixed .*/
- 	uart->reg_shift = DEFAULT_SIFIVE_UART_REG_SHIFT;
-@@ -432,32 +406,13 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
- {
- 	int len, rc;
- 	const fdt32_t *val;
--	uint64_t reg_addr, reg_size;
--
--	if (nodeoffset < 0 || !uart || !fdt)
--		return SBI_ENODEV;
--
--	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
--				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_addr || !reg_size)
--		return SBI_ENODEV;
--	uart->addr = reg_addr;
- 
--	/**
--	 * UART address is mandaotry. clock-frequency and current-speed
--	 * may not be present. Don't return error.
--	 */
--	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
--	if (len > 0 && val)
--		uart->freq = fdt32_to_cpu(*val);
--	else
--		uart->freq = DEFAULT_UART_FREQ;
-+	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-+					DEFAULT_UART_FREQ,
-+					DEFAULT_UART_BAUD);
- 
--	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
--	if (len > 0 && val)
--		uart->baud = fdt32_to_cpu(*val);
--	else
--		uart->baud = DEFAULT_UART_BAUD;
-+	if (rc)
-+		return rc;
- 
- 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "reg-shift", &len);
- 	if (len > 0 && val)
-@@ -499,18 +454,10 @@ int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
- 			       struct platform_uart_data *uart)
- {
- 	int rc;
--	uint64_t reg_addr, reg_size;
- 
--	if (nodeoffset < 0 || !uart || !fdt)
--		return SBI_ENODEV;
-+	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
- 
--	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
--				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_addr || !reg_size)
--		return SBI_ENODEV;
--	uart->addr = reg_addr;
--
--	return 0;
-+	return rc ? : 0;
- }
- 
- int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
 -- 
 2.36.1
 
