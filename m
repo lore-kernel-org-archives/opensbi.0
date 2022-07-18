@@ -1,110 +1,101 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 18 Jul 2022 19:20:26 +0200
-Subject: [PATCH 2/4] lib: utils/serial: Initialize platform_uart_data to zero
+Date: Mon, 18 Jul 2022 19:20:28 +0200
+Subject: [PATCH 4/4] lib: utils/serial: Ensure baudrate is non-zero before using
 In-Reply-To: <20220718172028.2006166-1-ajones@ventanamicro.com>
 References: <20220718172028.2006166-1-ajones@ventanamicro.com>
-Message-ID: <20220718172028.2006166-3-ajones@ventanamicro.com>
+Message-ID: <20220718172028.2006166-5-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-While it doesn't look like there are any current cases of using
-uninitialized data, let's zero all the UART data members to be
-safe. Zero may not actually be better than a random number in
-some cases, so all structure members should still be validated
-before use, but at least zero is usually easier to debug than
-some random stack garbage...
+RISC-V doesn't generate exceptions on divide-by-zero, but the result,
+all bits set, is not likely what people expect either. In all cases
+where we divide by baudrate there's a chance it's zero (when the DT
+it came from is "bad"). To avoid difficult to debug situations, leave
+baudrate dependent registers alone when baudrate is zero, as, also in
+all cases, it appears we can skip initialization of those registers
+and still [hopefully] have a functioning UART.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/utils/serial/fdt_serial_gaisler.c       | 2 +-
- lib/utils/serial/fdt_serial_shakti.c        | 2 +-
- lib/utils/serial/fdt_serial_sifive.c        | 2 +-
- lib/utils/serial/fdt_serial_uart8250.c      | 2 +-
- lib/utils/serial/fdt_serial_xlnx_uartlite.c | 2 +-
- platform/fpga/openpiton/platform.c          | 2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+ lib/utils/serial/gaisler-uart.c | 2 +-
+ lib/utils/serial/shakti-uart.c  | 8 ++++++--
+ lib/utils/serial/sifive-uart.c  | 2 +-
+ lib/utils/serial/uart8250.c     | 7 +++++--
+ 4 files changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/lib/utils/serial/fdt_serial_gaisler.c b/lib/utils/serial/fdt_serial_gaisler.c
-index 9a9f9a8b7962..74988e34bcd8 100644
---- a/lib/utils/serial/fdt_serial_gaisler.c
-+++ b/lib/utils/serial/fdt_serial_gaisler.c
-@@ -15,7 +15,7 @@ static int serial_gaisler_init(void *fdt, int nodeoff,
- 			       const struct fdt_match *match)
- {
- 	int rc;
--	struct platform_uart_data uart;
-+	struct platform_uart_data uart = { 0 };
+diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c
+index 5f30ee43b719..eec75cca0c98 100644
+--- a/lib/utils/serial/gaisler-uart.c
++++ b/lib/utils/serial/gaisler-uart.c
+@@ -70,7 +70,7 @@ int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+ 	uart_base = (volatile char *)base;
  
- 	rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
- 	if (rc)
-diff --git a/lib/utils/serial/fdt_serial_shakti.c b/lib/utils/serial/fdt_serial_shakti.c
-index 4f91419ef53c..0e056303dbb5 100644
---- a/lib/utils/serial/fdt_serial_shakti.c
-+++ b/lib/utils/serial/fdt_serial_shakti.c
-@@ -13,7 +13,7 @@ static int serial_shakti_init(void *fdt, int nodeoff,
- 				const struct fdt_match *match)
- {
- 	int rc;
--	struct platform_uart_data uart;
-+	struct platform_uart_data uart = { 0 };
+ 	/* Configure baudrate */
+-	if (in_freq)
++	if (in_freq && baudrate)
+ 		set_reg(UART_REG_SCALER, in_freq / (baudrate * 8 + 7));
  
- 	rc = fdt_parse_shakti_uart_node(fdt, nodeoff, &uart);
- 	if (rc)
-diff --git a/lib/utils/serial/fdt_serial_sifive.c b/lib/utils/serial/fdt_serial_sifive.c
-index f4c833c1573d..3ca10913eee3 100644
---- a/lib/utils/serial/fdt_serial_sifive.c
-+++ b/lib/utils/serial/fdt_serial_sifive.c
-@@ -15,7 +15,7 @@ static int serial_sifive_init(void *fdt, int nodeoff,
- 				const struct fdt_match *match)
+ 	ctrl = get_reg(UART_REG_CTRL);
+diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+index 5f2fe75c9f33..2f09f141b9cf 100644
+--- a/lib/utils/serial/shakti-uart.c
++++ b/lib/utils/serial/shakti-uart.c
+@@ -47,8 +47,12 @@ static struct sbi_console_device shakti_console = {
+ int shakti_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
  {
- 	int rc;
--	struct platform_uart_data uart;
-+	struct platform_uart_data uart = { 0 };
+ 	uart_base = (volatile char *)base;
+-	u16 baud = (u16)(in_freq/(16 * baudrate));
+-	writew(baud, uart_base + REG_BAUD);
++	u16 baud;
++
++	if (baudrate) {
++		baud = (u16)(in_freq / (16 * baudrate));
++		writew(baud, uart_base + REG_BAUD);
++	}
  
- 	rc = fdt_parse_sifive_uart_node(fdt, nodeoff, &uart);
- 	if (rc)
-diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
-index 544b7416de42..0b95f2d9e44e 100644
---- a/lib/utils/serial/fdt_serial_uart8250.c
-+++ b/lib/utils/serial/fdt_serial_uart8250.c
-@@ -15,7 +15,7 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
- 				const struct fdt_match *match)
- {
- 	int rc;
--	struct platform_uart_data uart;
-+	struct platform_uart_data uart = { 0 };
+ 	sbi_console_set_device(&shakti_console);
  
- 	rc = fdt_parse_uart8250_node(fdt, nodeoff, &uart);
- 	if (rc)
-diff --git a/lib/utils/serial/fdt_serial_xlnx_uartlite.c b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
-index 466e16e82d8c..9f04aea3673b 100644
---- a/lib/utils/serial/fdt_serial_xlnx_uartlite.c
-+++ b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
-@@ -15,7 +15,7 @@ static int serial_xlnx_uartlite_init(void *fdt, int nodeoff,
- 				const struct fdt_match *match)
- {
- 	int rc;
--	struct platform_uart_data uart;
-+	struct platform_uart_data uart = { 0 };
+diff --git a/lib/utils/serial/sifive-uart.c b/lib/utils/serial/sifive-uart.c
+index 7078611a5274..3581d47a6d4b 100644
+--- a/lib/utils/serial/sifive-uart.c
++++ b/lib/utils/serial/sifive-uart.c
+@@ -97,7 +97,7 @@ int sifive_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+ 	uart_baudrate = baudrate;
  
- 	rc = fdt_parse_xlnx_uartlite_node(fdt, nodeoff, &uart);
- 	if (rc)
-diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
-index 7ca21236bfef..5ff7d200aba9 100644
---- a/platform/fpga/openpiton/platform.c
-+++ b/platform/fpga/openpiton/platform.c
-@@ -69,7 +69,7 @@ static struct aclint_mtimer_data mtimer = {
- static int openpiton_early_init(bool cold_boot)
+ 	/* Configure baudrate */
+-	if (in_freq)
++	if (in_freq && baudrate)
+ 		set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
+ 
+ 	/* Disable interrupts */
+diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
+index 38ea11af4d31..99bf1bf733f2 100644
+--- a/lib/utils/serial/uart8250.c
++++ b/lib/utils/serial/uart8250.c
+@@ -93,7 +93,7 @@ static struct sbi_console_device uart8250_console = {
+ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
+ 		  u32 reg_width, u32 reg_offset)
  {
- 	void *fdt;
--	struct platform_uart_data uart_data;
-+	struct platform_uart_data uart_data = { 0 };
- 	struct plic_data plic_data;
- 	unsigned long aclint_freq;
- 	uint64_t clint_addr;
+-	u16 bdiv;
++	u16 bdiv = 0;
+ 
+ 	uart8250_base      = (volatile char *)base + reg_offset;
+ 	uart8250_reg_shift = reg_shift;
+@@ -101,7 +101,10 @@ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
+ 	uart8250_in_freq   = in_freq;
+ 	uart8250_baudrate  = baudrate;
+ 
+-	bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) / (16 * uart8250_baudrate);
++	if (uart8250_baudrate) {
++		bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) /
++		       (16 * uart8250_baudrate);
++	}
+ 
+ 	/* Disable all interrupts */
+ 	set_reg(UART_IER_OFFSET, 0x00);
 -- 
 2.36.1
 
