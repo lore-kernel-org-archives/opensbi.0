@@ -1,112 +1,93 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 18 Jul 2022 20:26:07 +0530
-Subject: [PATCH v2 10/14] lib: utils/gpio: Use kconfig for enabling/disabling drivers
+Date: Mon, 18 Jul 2022 20:26:09 +0530
+Subject: [PATCH v2 12/14] platform: generic: Use kconfig for enabling/disabling overrides
 In-Reply-To: <20220718145611.2211638-1-apatel@ventanamicro.com>
 References: <20220718145611.2211638-1-apatel@ventanamicro.com>
-Message-ID: <20220718145611.2211638-11-apatel@ventanamicro.com>
+Message-ID: <20220718145611.2211638-13-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We update gpio drivers makefile to use kconfig for enabling/disabling
-drivers. To avoid compile errors, we also enable appropriate gpio
-drivers for each platform.
+We update generic platform to use kconfig for enabling/disabling
+platform overrides. We also enable all platform overrides in generic
+platform defconfig.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- lib/utils/Kconfig                  |  2 ++
- lib/utils/gpio/Kconfig             | 22 ++++++++++++++++++++++
- lib/utils/gpio/objects.mk          | 10 +++++-----
- lib/utils/reset/Kconfig            |  1 +
- platform/generic/configs/defconfig |  2 ++
- 5 files changed, 32 insertions(+), 5 deletions(-)
- create mode 100644 lib/utils/gpio/Kconfig
+ platform/generic/Kconfig              | 18 ++++++++++++++++++
+ platform/generic/allwinner/objects.mk |  4 ++--
+ platform/generic/configs/defconfig    |  3 +++
+ platform/generic/sifive/objects.mk    |  8 ++++----
+ 4 files changed, 27 insertions(+), 6 deletions(-)
 
-diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-index 52f28da..79b9c2c 100644
---- a/lib/utils/Kconfig
-+++ b/lib/utils/Kconfig
-@@ -2,6 +2,8 @@
- 
- menu "Utils and Drivers Support"
- 
-+source "$OPENSBI_SRC_DIR/lib/utils/gpio/Kconfig"
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index c1a77b3..c76bd12 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -6,3 +6,21 @@ config PLATFORM_GENERIC
+ 	select FDT_DOMAIN
+ 	select FDT_PMU
+ 	default y
 +
- source "$OPENSBI_SRC_DIR/lib/utils/i2c/Kconfig"
- 
- source "$OPENSBI_SRC_DIR/lib/utils/ipi/Kconfig"
-diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
-new file mode 100644
-index 0000000..daf7f91
---- /dev/null
-+++ b/lib/utils/gpio/Kconfig
-@@ -0,0 +1,22 @@
-+# SPDX-License-Identifier: BSD-2-Clause
++if PLATFORM_GENERIC
 +
-+menu "GPIO Support"
-+
-+config FDT_GPIO
-+	bool "FDT based GPIO drivers"
-+	select GPIO
++config PLATFORM_ALLWINNER_D1
++	bool "Allwinner D1 support"
++	depends on FDT_IRQCHIP_PLIC
 +	default n
 +
-+if FDT_GPIO
++config PLATFORM_SIFIVE_FU540
++	bool "SiFive FU540 support"
++	default n
 +
-+config FDT_GPIO_SIFIVE
-+	bool "SiFive GPIO FDT driver"
++config PLATFORM_SIFIVE_FU740
++	bool "SiFive FU740 support"
++	depends on FDT_RESET && FDT_I2C
 +	default n
 +
 +endif
-+
-+config GPIO
-+	bool "GPIO support"
-+	default n
-+
-+endmenu
-diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-index a5e131b..eedd699 100644
---- a/lib/utils/gpio/objects.mk
-+++ b/lib/utils/gpio/objects.mk
-@@ -7,10 +7,10 @@
- #   Anup Patel <anup.patel@wdc.com>
+diff --git a/platform/generic/allwinner/objects.mk b/platform/generic/allwinner/objects.mk
+index 9e36ab6..447cdf1 100644
+--- a/platform/generic/allwinner/objects.mk
++++ b/platform/generic/allwinner/objects.mk
+@@ -2,5 +2,5 @@
+ # SPDX-License-Identifier: BSD-2-Clause
  #
  
--libsbiutils-objs-y += gpio/fdt_gpio.o
--libsbiutils-objs-y += gpio/fdt_gpio_drivers.o
-+libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio.o
-+libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
- 
--carray-fdt_gpio_drivers-y += fdt_gpio_sifive
--libsbiutils-objs-y += gpio/fdt_gpio_sifive.o
-+carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
-+libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
- 
--libsbiutils-objs-y += gpio/gpio.o
-+libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
-diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
-index e7a71e3..71996cb 100644
---- a/lib/utils/reset/Kconfig
-+++ b/lib/utils/reset/Kconfig
-@@ -10,6 +10,7 @@ if FDT_RESET
- 
- config FDT_RESET_GPIO
- 	bool "GPIO FDT reset driver"
-+	depends on FDT_GPIO
- 	default n
- 
- config FDT_RESET_HTIF
+-carray-platform_override_modules-y += sun20i_d1
+-platform-objs-y += allwinner/sun20i-d1.o
++carray-platform_override_modules-$(CONFIG_PLATFORM_ALLWINNER_D1) += sun20i_d1
++platform-objs-$(CONFIG_PLATFORM_ALLWINNER_D1) += allwinner/sun20i-d1.o
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index c9c221e..d56cef2 100644
+index d56cef2..2a75394 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -1,3 +1,5 @@
-+CONFIG_FDT_GPIO=y
-+CONFIG_FDT_GPIO_SIFIVE=y
+@@ -1,3 +1,6 @@
++CONFIG_PLATFORM_ALLWINNER_D1=y
++CONFIG_PLATFORM_SIFIVE_FU540=y
++CONFIG_PLATFORM_SIFIVE_FU740=y
+ CONFIG_FDT_GPIO=y
+ CONFIG_FDT_GPIO_SIFIVE=y
  CONFIG_FDT_I2C=y
- CONFIG_FDT_I2C_SIFIVE=y
- CONFIG_FDT_IPI=y
+diff --git a/platform/generic/sifive/objects.mk b/platform/generic/sifive/objects.mk
+index c17e2df..d75e444 100644
+--- a/platform/generic/sifive/objects.mk
++++ b/platform/generic/sifive/objects.mk
+@@ -2,8 +2,8 @@
+ # SPDX-License-Identifier: BSD-2-Clause
+ #
+ 
+-carray-platform_override_modules-y += sifive_fu540
+-platform-objs-y += sifive/fu540.o
++carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive_fu540
++platform-objs-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive/fu540.o
+ 
+-carray-platform_override_modules-y += sifive_fu740
+-platform-objs-y += sifive/fu740.o
++carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_FU740) += sifive_fu740
++platform-objs-$(CONFIG_PLATFORM_SIFIVE_FU740) += sifive/fu740.o
 -- 
 2.34.1
 
