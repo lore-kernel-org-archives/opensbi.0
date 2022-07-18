@@ -1,37 +1,110 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 18 Jul 2022 19:20:24 +0200
-Subject: [PATCH 0/4] lib: utils/serial: Collection of UART code improvements
-Message-ID: <20220718172028.2006166-1-ajones@ventanamicro.com>
+Date: Mon, 18 Jul 2022 19:20:26 +0200
+Subject: [PATCH 2/4] lib: utils/serial: Initialize platform_uart_data to zero
+In-Reply-To: <20220718172028.2006166-1-ajones@ventanamicro.com>
+References: <20220718172028.2006166-1-ajones@ventanamicro.com>
+Message-ID: <20220718172028.2006166-3-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series is a collection of changes I made while reviewing the UART
-code. I've compile tested it and boot it on QEMU (which of course only
-tests uart8250). I did also pass in a DTB with 0 for 'current-speed' in
-the UART node and nothing interesting happened, so I guess that's good.
+While it doesn't look like there are any current cases of using
+uninitialized data, let's zero all the UART data members to be
+safe. Zero may not actually be better than a random number in
+some cases, so all structure members should still be validated
+before use, but at least zero is usually easier to debug than
+some random stack garbage...
 
-Andrew Jones (4):
-  lib: utils/fdt: Factor out common uart node code
-  lib: utils/serial: Initialize platform_uart_data to zero
-  lib: serial: Clean up coding style in sifive-uart.c
-  lib: utils/serial: Ensure baudrate is non-zero before using
+Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+---
+ lib/utils/serial/fdt_serial_gaisler.c       | 2 +-
+ lib/utils/serial/fdt_serial_shakti.c        | 2 +-
+ lib/utils/serial/fdt_serial_sifive.c        | 2 +-
+ lib/utils/serial/fdt_serial_uart8250.c      | 2 +-
+ lib/utils/serial/fdt_serial_xlnx_uartlite.c | 2 +-
+ platform/fpga/openpiton/platform.c          | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
- lib/utils/fdt/fdt_helper.c                  | 131 ++++++--------------
- lib/utils/serial/fdt_serial_gaisler.c       |   2 +-
- lib/utils/serial/fdt_serial_shakti.c        |   2 +-
- lib/utils/serial/fdt_serial_sifive.c        |   2 +-
- lib/utils/serial/fdt_serial_uart8250.c      |   2 +-
- lib/utils/serial/fdt_serial_xlnx_uartlite.c |   2 +-
- lib/utils/serial/gaisler-uart.c             |   2 +-
- lib/utils/serial/shakti-uart.c              |   8 +-
- lib/utils/serial/sifive-uart.c              |  13 +-
- lib/utils/serial/uart8250.c                 |   7 +-
- platform/fpga/openpiton/platform.c          |   2 +-
- 11 files changed, 66 insertions(+), 107 deletions(-)
-
+diff --git a/lib/utils/serial/fdt_serial_gaisler.c b/lib/utils/serial/fdt_serial_gaisler.c
+index 9a9f9a8b7962..74988e34bcd8 100644
+--- a/lib/utils/serial/fdt_serial_gaisler.c
++++ b/lib/utils/serial/fdt_serial_gaisler.c
+@@ -15,7 +15,7 @@ static int serial_gaisler_init(void *fdt, int nodeoff,
+ 			       const struct fdt_match *match)
+ {
+ 	int rc;
+-	struct platform_uart_data uart;
++	struct platform_uart_data uart = { 0 };
+ 
+ 	rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
+ 	if (rc)
+diff --git a/lib/utils/serial/fdt_serial_shakti.c b/lib/utils/serial/fdt_serial_shakti.c
+index 4f91419ef53c..0e056303dbb5 100644
+--- a/lib/utils/serial/fdt_serial_shakti.c
++++ b/lib/utils/serial/fdt_serial_shakti.c
+@@ -13,7 +13,7 @@ static int serial_shakti_init(void *fdt, int nodeoff,
+ 				const struct fdt_match *match)
+ {
+ 	int rc;
+-	struct platform_uart_data uart;
++	struct platform_uart_data uart = { 0 };
+ 
+ 	rc = fdt_parse_shakti_uart_node(fdt, nodeoff, &uart);
+ 	if (rc)
+diff --git a/lib/utils/serial/fdt_serial_sifive.c b/lib/utils/serial/fdt_serial_sifive.c
+index f4c833c1573d..3ca10913eee3 100644
+--- a/lib/utils/serial/fdt_serial_sifive.c
++++ b/lib/utils/serial/fdt_serial_sifive.c
+@@ -15,7 +15,7 @@ static int serial_sifive_init(void *fdt, int nodeoff,
+ 				const struct fdt_match *match)
+ {
+ 	int rc;
+-	struct platform_uart_data uart;
++	struct platform_uart_data uart = { 0 };
+ 
+ 	rc = fdt_parse_sifive_uart_node(fdt, nodeoff, &uart);
+ 	if (rc)
+diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
+index 544b7416de42..0b95f2d9e44e 100644
+--- a/lib/utils/serial/fdt_serial_uart8250.c
++++ b/lib/utils/serial/fdt_serial_uart8250.c
+@@ -15,7 +15,7 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
+ 				const struct fdt_match *match)
+ {
+ 	int rc;
+-	struct platform_uart_data uart;
++	struct platform_uart_data uart = { 0 };
+ 
+ 	rc = fdt_parse_uart8250_node(fdt, nodeoff, &uart);
+ 	if (rc)
+diff --git a/lib/utils/serial/fdt_serial_xlnx_uartlite.c b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+index 466e16e82d8c..9f04aea3673b 100644
+--- a/lib/utils/serial/fdt_serial_xlnx_uartlite.c
++++ b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+@@ -15,7 +15,7 @@ static int serial_xlnx_uartlite_init(void *fdt, int nodeoff,
+ 				const struct fdt_match *match)
+ {
+ 	int rc;
+-	struct platform_uart_data uart;
++	struct platform_uart_data uart = { 0 };
+ 
+ 	rc = fdt_parse_xlnx_uartlite_node(fdt, nodeoff, &uart);
+ 	if (rc)
+diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+index 7ca21236bfef..5ff7d200aba9 100644
+--- a/platform/fpga/openpiton/platform.c
++++ b/platform/fpga/openpiton/platform.c
+@@ -69,7 +69,7 @@ static struct aclint_mtimer_data mtimer = {
+ static int openpiton_early_init(bool cold_boot)
+ {
+ 	void *fdt;
+-	struct platform_uart_data uart_data;
++	struct platform_uart_data uart_data = { 0 };
+ 	struct plic_data plic_data;
+ 	unsigned long aclint_freq;
+ 	uint64_t clint_addr;
 -- 
 2.36.1
 
