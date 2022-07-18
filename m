@@ -1,353 +1,707 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 18 Jul 2022 20:26:08 +0530
-Subject: [PATCH v2 11/14] lib: utils/fdt: Use kconfig for enabling/disabling
+Date: Mon, 18 Jul 2022 20:26:10 +0530
+Subject: [PATCH v2 13/14] platform: Remove redundant config.mk from all platforms
 In-Reply-To: <20220718145611.2211638-1-apatel@ventanamicro.com>
 References: <20220718145611.2211638-1-apatel@ventanamicro.com>
-Message-ID: <20220718145611.2211638-12-apatel@ventanamicro.com>
+Message-ID: <20220718145611.2211638-14-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We update FDT support makefile to use kconfig for enabling/disabling.
-To avoid compilation errors, we also enable FDT for each platform.
+The options defined in config.mk can be specified in objects.mk of each
+platform so let us remove config.mk from all platforms.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi_utils/fdt/fdt_domain.h             |  9 +++++++++
- include/sbi_utils/fdt/fdt_pmu.h                | 10 ++++++++++
- lib/utils/Kconfig                              |  4 ++++
- lib/utils/fdt/Kconfig                          | 18 ++++++++++++++++++
- lib/utils/fdt/objects.mk                       |  8 ++++----
- lib/utils/gpio/Kconfig                         |  1 +
- lib/utils/i2c/Kconfig                          |  1 +
- lib/utils/ipi/Kconfig                          |  1 +
- lib/utils/irqchip/Kconfig                      |  1 +
- {platform/generic => lib/utils/libfdt}/Kconfig |  4 ++--
- lib/utils/libfdt/objects.mk                    |  4 ++--
- lib/utils/reset/Kconfig                        |  1 +
- lib/utils/serial/Kconfig                       |  1 +
- lib/utils/timer/Kconfig                        |  1 +
- platform/andes/ae350/Kconfig                   |  1 +
- platform/fpga/ariane/Kconfig                   |  1 +
- platform/fpga/openpiton/Kconfig                |  1 +
- platform/generic/Kconfig                       |  3 +++
- platform/kendryte/k210/Kconfig                 |  1 +
- platform/nuclei/ux600/Kconfig                  |  1 +
- platform/nuclei/ux600/platform.c               |  1 -
- 21 files changed, 64 insertions(+), 9 deletions(-)
- create mode 100644 lib/utils/fdt/Kconfig
- copy {platform/generic => lib/utils/libfdt}/Kconfig (57%)
+ Makefile                           |  4 +-
+ platform/andes/ae350/config.mk     | 36 --------------
+ platform/andes/ae350/objects.mk    | 29 +++++++++++
+ platform/fpga/ariane/config.mk     | 36 --------------
+ platform/fpga/ariane/objects.mk    | 35 ++++++++++++++
+ platform/fpga/openpiton/config.mk  | 35 --------------
+ platform/fpga/openpiton/objects.mk | 35 ++++++++++++++
+ platform/generic/config.mk         | 40 ----------------
+ platform/generic/objects.mk        | 33 +++++++++++++
+ platform/kendryte/k210/config.mk   | 19 --------
+ platform/kendryte/k210/objects.mk  | 12 +++++
+ platform/nuclei/ux600/config.mk    | 30 ------------
+ platform/nuclei/ux600/objects.mk   | 22 +++++++++
+ platform/template/config.mk        | 77 ------------------------------
+ platform/template/objects.mk       | 72 ++++++++++++++++++++++++++++
+ platform/template/platform.c       |  2 +-
+ 16 files changed, 240 insertions(+), 277 deletions(-)
+ delete mode 100644 platform/andes/ae350/config.mk
+ delete mode 100644 platform/fpga/ariane/config.mk
+ delete mode 100644 platform/fpga/openpiton/config.mk
+ delete mode 100644 platform/generic/config.mk
+ delete mode 100644 platform/kendryte/k210/config.mk
+ delete mode 100644 platform/nuclei/ux600/config.mk
+ delete mode 100644 platform/template/config.mk
 
-diff --git a/include/sbi_utils/fdt/fdt_domain.h b/include/sbi_utils/fdt/fdt_domain.h
-index 5448eb4..ee09d1b 100644
---- a/include/sbi_utils/fdt/fdt_domain.h
-+++ b/include/sbi_utils/fdt/fdt_domain.h
-@@ -13,6 +13,8 @@
+diff --git a/Makefile b/Makefile
+index 5fc67db..a6475a7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -203,7 +203,7 @@ firmware-object-mks=$(shell if [ -d $(firmware_dir) ]; then find $(firmware_dir)
+ .PHONY: all
+ all:
  
- #include <sbi/sbi_types.h>
+-# Include platform specific .config and config.mk
++# Include platform specific .config
+ ifdef PLATFORM
+ .PHONY: menuconfig
+ menuconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
+@@ -226,8 +226,6 @@ $(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(platform_
+ $(KCONFIG_AUTOCONF_CMD): $(KCONFIG_CONFIG)
+ include $(KCONFIG_CONFIG)
+ include $(KCONFIG_AUTOCONF_CMD)
+-
+-include $(platform_src_dir)/config.mk
+ endif
  
-+#ifdef CONFIG_FDT_DOMAIN
-+
- struct sbi_domain;
- 
- /**
-@@ -70,4 +72,11 @@ void fdt_domain_fixup(void *fdt);
-  */
- int fdt_domains_populate(void *fdt);
- 
-+#else
-+
-+static inline void fdt_domain_fixup(void *fdt) { }
-+static inline int fdt_domains_populate(void *fdt) { return 0; }
-+
-+#endif
-+
- #endif /* __FDT_DOMAIN_H__ */
-diff --git a/include/sbi_utils/fdt/fdt_pmu.h b/include/sbi_utils/fdt/fdt_pmu.h
-index 2fa01ed..c65cad7 100644
---- a/include/sbi_utils/fdt/fdt_pmu.h
-+++ b/include/sbi_utils/fdt/fdt_pmu.h
-@@ -13,6 +13,8 @@
- 
- #include <sbi/sbi_types.h>
- 
-+#ifdef CONFIG_FDT_PMU
-+
- /**
-  * Fix up the PMU node in the device tree
-  *
-@@ -43,4 +45,12 @@ int fdt_pmu_setup(void *fdt);
-  */
- uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
- 
-+#else
-+
-+static inline void fdt_pmu_fixup(void *fdt) { }
-+static inline int fdt_pmu_setup(void *fdt) { return 0; }
-+static inline uint64_t fdt_pmu_get_select_value(uint32_t event_idx) { return 0; }
-+
-+#endif
-+
- #endif
-diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-index 79b9c2c..a6e93e4 100644
---- a/lib/utils/Kconfig
-+++ b/lib/utils/Kconfig
-@@ -2,6 +2,8 @@
- 
- menu "Utils and Drivers Support"
- 
-+source "$OPENSBI_SRC_DIR/lib/utils/fdt/Kconfig"
-+
- source "$OPENSBI_SRC_DIR/lib/utils/gpio/Kconfig"
- 
- source "$OPENSBI_SRC_DIR/lib/utils/i2c/Kconfig"
-@@ -10,6 +12,8 @@ source "$OPENSBI_SRC_DIR/lib/utils/ipi/Kconfig"
- 
- source "$OPENSBI_SRC_DIR/lib/utils/irqchip/Kconfig"
- 
-+source "$OPENSBI_SRC_DIR/lib/utils/libfdt/Kconfig"
-+
- source "$OPENSBI_SRC_DIR/lib/utils/reset/Kconfig"
- 
- source "$OPENSBI_SRC_DIR/lib/utils/serial/Kconfig"
-diff --git a/lib/utils/fdt/Kconfig b/lib/utils/fdt/Kconfig
-new file mode 100644
-index 0000000..23b003b
---- /dev/null
-+++ b/lib/utils/fdt/Kconfig
-@@ -0,0 +1,18 @@
-+# SPDX-License-Identifier: BSD-2-Clause
-+
-+menuconfig FDT
-+	bool "Flattened Device Tree (FDT) support"
-+	select LIBFDT
-+	default n
-+
-+if FDT
-+
-+config FDT_DOMAIN
-+	bool "FDT domain support"
-+	default n
-+
-+config FDT_PMU
-+	bool "FDT performance monitoring unit (PMU) support"
-+	default n
-+
-+endif
-diff --git a/lib/utils/fdt/objects.mk b/lib/utils/fdt/objects.mk
-index 03800f9..5cede81 100644
---- a/lib/utils/fdt/objects.mk
-+++ b/lib/utils/fdt/objects.mk
-@@ -4,7 +4,7 @@
- # Copyright (C) 2020 Bin Meng <bmeng.cn@gmail.com>
+ # Include all object.mk files
+diff --git a/platform/andes/ae350/config.mk b/platform/andes/ae350/config.mk
+deleted file mode 100644
+index f555ef5..0000000
+--- a/platform/andes/ae350/config.mk
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (c) 2019 Andes Technology Corporation
+-#
+-# Authors:
+-#   Zong Li <zong@andestech.com>
+-#   Nylon Chen <nylon7@andestech.com>
+-
+-# Compiler flags
+-platform-cppflags-y =
+-platform-cflags-y =
+-platform-asflags-y =
+-platform-ldflags-y =
+-
+-# Blobs to build
+-FW_TEXT_START=0x00000000
+-
+-FW_DYNAMIC=y
+-
+-FW_JUMP=y
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-  FW_JUMP_ADDR=0x400000
+-else
+-  FW_JUMP_ADDR=0x200000
+-endif
+-FW_JUMP_FDT_ADDR=0x2000000
+-
+-FW_PAYLOAD=y
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-  FW_PAYLOAD_OFFSET=0x400000
+-else
+-  FW_PAYLOAD_OFFSET=0x200000
+-endif
+-
+-FW_PAYLOAD_FDT_ADDR=0x2000000
+diff --git a/platform/andes/ae350/objects.mk b/platform/andes/ae350/objects.mk
+index 5369677..80f0737 100644
+--- a/platform/andes/ae350/objects.mk
++++ b/platform/andes/ae350/objects.mk
+@@ -8,4 +8,33 @@
+ #   Nylon Chen <nylon7@andestech.com>
  #
  
--libsbiutils-objs-y += fdt/fdt_domain.o
--libsbiutils-objs-y += fdt/fdt_pmu.o
--libsbiutils-objs-y += fdt/fdt_helper.o
--libsbiutils-objs-y += fdt/fdt_fixup.o
-+libsbiutils-objs-$(CONFIG_FDT_DOMAIN) += fdt/fdt_domain.o
-+libsbiutils-objs-$(CONFIG_FDT_PMU) += fdt/fdt_pmu.o
-+libsbiutils-objs-$(CONFIG_FDT) += fdt/fdt_helper.o
-+libsbiutils-objs-$(CONFIG_FDT) += fdt/fdt_fixup.o
-diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
-index daf7f91..38a9d75 100644
---- a/lib/utils/gpio/Kconfig
-+++ b/lib/utils/gpio/Kconfig
-@@ -4,6 +4,7 @@ menu "GPIO Support"
++# Compiler flags
++platform-cppflags-y =
++platform-cflags-y =
++platform-asflags-y =
++platform-ldflags-y =
++
++# Objects to build
+ platform-objs-y += cache.o platform.o plicsw.o plmt.o
++
++# Blobs to build
++FW_TEXT_START=0x00000000
++
++FW_DYNAMIC=y
++
++FW_JUMP=y
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++  FW_JUMP_ADDR=0x400000
++else
++  FW_JUMP_ADDR=0x200000
++endif
++FW_JUMP_FDT_ADDR=0x2000000
++
++FW_PAYLOAD=y
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++  FW_PAYLOAD_OFFSET=0x400000
++else
++  FW_PAYLOAD_OFFSET=0x200000
++endif
++
++FW_PAYLOAD_FDT_ADDR=0x2000000
+diff --git a/platform/fpga/ariane/config.mk b/platform/fpga/ariane/config.mk
+deleted file mode 100644
+index 3556461..0000000
+--- a/platform/fpga/ariane/config.mk
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (C) 2019 FORTH-ICS/CARV
+-#		Panagiotis Peristerakis <perister@ics.forth.gr>
+-#
+-
+-#for more infos, check out /platform/template/config.mk
+-
+-PLATFORM_RISCV_XLEN = 64
+-
+-# Blobs to build
+-FW_TEXT_START=0x80000000
+-FW_JUMP=n
+-
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+- # This needs to be 4MB aligned for 32-bit support
+- FW_JUMP_ADDR=0x80400000
+- else
+- # This needs to be 2MB aligned for 64-bit support
+- FW_JUMP_ADDR=0x80200000
+- endif
+-FW_JUMP_FDT_ADDR=0x82200000
+-
+-# Firmware with payload configuration.
+-FW_PAYLOAD=y
+-
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-# This needs to be 4MB aligned for 32-bit support
+-  FW_PAYLOAD_OFFSET=0x400000
+-else
+-# This needs to be 2MB aligned for 64-bit support
+-  FW_PAYLOAD_OFFSET=0x200000
+-endif
+-FW_PAYLOAD_FDT_ADDR=0x82200000
+-FW_PAYLOAD_ALIGN=0x1000
+diff --git a/platform/fpga/ariane/objects.mk b/platform/fpga/ariane/objects.mk
+index 814e6da..83581ac 100644
+--- a/platform/fpga/ariane/objects.mk
++++ b/platform/fpga/ariane/objects.mk
+@@ -5,4 +5,39 @@
+ #		Panagiotis Peristerakis <perister@ics.forth.gr>
+ #
  
- config FDT_GPIO
- 	bool "FDT based GPIO drivers"
-+	depends on FDT
- 	select GPIO
- 	default n
++# Compiler flags
++platform-cppflags-y =
++platform-cflags-y =
++platform-asflags-y =
++platform-ldflags-y =
++
++# Object to build
+ platform-objs-y += platform.o
++
++PLATFORM_RISCV_XLEN = 64
++
++# Blobs to build
++FW_TEXT_START=0x80000000
++FW_JUMP=n
++
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++ # This needs to be 4MB aligned for 32-bit support
++ FW_JUMP_ADDR=0x80400000
++ else
++ # This needs to be 2MB aligned for 64-bit support
++ FW_JUMP_ADDR=0x80200000
++ endif
++FW_JUMP_FDT_ADDR=0x82200000
++
++# Firmware with payload configuration.
++FW_PAYLOAD=y
++
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++# This needs to be 4MB aligned for 32-bit support
++  FW_PAYLOAD_OFFSET=0x400000
++else
++# This needs to be 2MB aligned for 64-bit support
++  FW_PAYLOAD_OFFSET=0x200000
++endif
++FW_PAYLOAD_FDT_ADDR=0x82200000
++FW_PAYLOAD_ALIGN=0x1000
+diff --git a/platform/fpga/openpiton/config.mk b/platform/fpga/openpiton/config.mk
+deleted file mode 100644
+index a969b25..0000000
+--- a/platform/fpga/openpiton/config.mk
++++ /dev/null
+@@ -1,35 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (c) 2020 Western Digital Corporation or its affiliates.
+-#
+-
+-#for more infos, check out /platform/template/config.mk
+-
+-PLATFORM_RISCV_XLEN = 64
+-
+-# Blobs to build
+-FW_TEXT_START=0x80000000
+-FW_JUMP=n
+-
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+- # This needs to be 4MB aligned for 32-bit support
+- FW_JUMP_ADDR=0x80400000
+- else
+- # This needs to be 2MB aligned for 64-bit support
+- FW_JUMP_ADDR=0x80200000
+- endif
+-FW_JUMP_FDT_ADDR=0x82200000
+-
+-# Firmware with payload configuration.
+-FW_PAYLOAD=y
+-
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-# This needs to be 4MB aligned for 32-bit support
+-  FW_PAYLOAD_OFFSET=0x400000
+-else
+-# This needs to be 2MB aligned for 64-bit support
+-  FW_PAYLOAD_OFFSET=0x200000
+-endif
+-FW_PAYLOAD_FDT_ADDR=0x82200000
+-FW_PAYLOAD_ALIGN=0x1000
+diff --git a/platform/fpga/openpiton/objects.mk b/platform/fpga/openpiton/objects.mk
+index 30a3c4f..c8c345a 100644
+--- a/platform/fpga/openpiton/objects.mk
++++ b/platform/fpga/openpiton/objects.mk
+@@ -4,4 +4,39 @@
+ # Copyright (c) 2020 Western Digital Corporation or its affiliates.
+ #
  
-diff --git a/lib/utils/i2c/Kconfig b/lib/utils/i2c/Kconfig
-index 16c4453..46a3454 100644
---- a/lib/utils/i2c/Kconfig
-+++ b/lib/utils/i2c/Kconfig
-@@ -4,6 +4,7 @@ menu "I2C Support"
++# Compiler flags
++platform-cppflags-y =
++platform-cflags-y =
++platform-asflags-y =
++platform-ldflags-y =
++
++# Objects to build
+ platform-objs-y += platform.o
++
++PLATFORM_RISCV_XLEN = 64
++
++# Blobs to build
++FW_TEXT_START=0x80000000
++FW_JUMP=n
++
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++ # This needs to be 4MB aligned for 32-bit support
++ FW_JUMP_ADDR=0x80400000
++ else
++ # This needs to be 2MB aligned for 64-bit support
++ FW_JUMP_ADDR=0x80200000
++ endif
++FW_JUMP_FDT_ADDR=0x82200000
++
++# Firmware with payload configuration.
++FW_PAYLOAD=y
++
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++# This needs to be 4MB aligned for 32-bit support
++  FW_PAYLOAD_OFFSET=0x400000
++else
++# This needs to be 2MB aligned for 64-bit support
++  FW_PAYLOAD_OFFSET=0x200000
++endif
++FW_PAYLOAD_FDT_ADDR=0x82200000
++FW_PAYLOAD_ALIGN=0x1000
+diff --git a/platform/generic/config.mk b/platform/generic/config.mk
+deleted file mode 100644
+index 8151974..0000000
+--- a/platform/generic/config.mk
++++ /dev/null
+@@ -1,40 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (c) 2020 Western Digital Corporation or its affiliates.
+-#
+-# Authors:
+-#   Anup Patel <anup.patel@wdc.com>
+-#
+-
+-# Compiler flags
+-platform-cppflags-y =
+-platform-cflags-y =
+-platform-asflags-y =
+-platform-ldflags-y =
+-
+-# Command for platform specific "make run"
+-platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
+-  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
+-
+-# Blobs to build
+-FW_TEXT_START=0x80000000
+-FW_DYNAMIC=y
+-FW_JUMP=y
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-  # This needs to be 4MB aligned for 32-bit system
+-  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
+-else
+-  # This needs to be 2MB aligned for 64-bit system
+-  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
+-endif
+-FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
+-FW_PAYLOAD=y
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-  # This needs to be 4MB aligned for 32-bit system
+-  FW_PAYLOAD_OFFSET=0x400000
+-else
+-  # This needs to be 2MB aligned for 64-bit system
+-  FW_PAYLOAD_OFFSET=0x200000
+-endif
+-FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index 4907754..136853e 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -7,5 +7,38 @@
+ #   Anup Patel <anup.patel@wdc.com>
+ #
  
- config FDT_I2C
- 	bool "FDT based I2C drivers"
-+	depends on FDT
- 	select I2C
- 	default n
++# Compiler flags
++platform-cppflags-y =
++platform-cflags-y =
++platform-asflags-y =
++platform-ldflags-y =
++
++# Command for platform specific "make run"
++platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
++  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
++
++# Objects to build
+ platform-objs-y += platform.o
+ platform-objs-y += platform_override_modules.o
++
++# Blobs to build
++FW_TEXT_START=0x80000000
++FW_DYNAMIC=y
++FW_JUMP=y
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++  # This needs to be 4MB aligned for 32-bit system
++  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
++else
++  # This needs to be 2MB aligned for 64-bit system
++  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
++endif
++FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
++FW_PAYLOAD=y
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++  # This needs to be 4MB aligned for 32-bit system
++  FW_PAYLOAD_OFFSET=0x400000
++else
++  # This needs to be 2MB aligned for 64-bit system
++  FW_PAYLOAD_OFFSET=0x200000
++endif
++FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
+diff --git a/platform/kendryte/k210/config.mk b/platform/kendryte/k210/config.mk
+deleted file mode 100644
+index 8a9b814..0000000
+--- a/platform/kendryte/k210/config.mk
++++ /dev/null
+@@ -1,19 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (c) 2019 Western Digital Corporation or its affiliates.
+-#
+-# Authors:
+-#   Damien Le Moal <damien.lemoal@wdc.com>
+-#
+-
+-# Compiler flags
+-platform-cppflags-y =
+-platform-cflags-y =
+-platform-asflags-y =
+-platform-ldflags-y =
+-
+-# Blobs to build
+-FW_TEXT_START=0x80000000
+-FW_PAYLOAD=y
+-FW_PAYLOAD_ALIGN=0x1000
+diff --git a/platform/kendryte/k210/objects.mk b/platform/kendryte/k210/objects.mk
+index b74da74..1bfb898 100644
+--- a/platform/kendryte/k210/objects.mk
++++ b/platform/kendryte/k210/objects.mk
+@@ -7,8 +7,20 @@
+ #   Damien Le Moal <damien.lemoal@wdc.com>
+ #
  
-diff --git a/lib/utils/ipi/Kconfig b/lib/utils/ipi/Kconfig
-index c0634d3..efc8960 100644
---- a/lib/utils/ipi/Kconfig
-+++ b/lib/utils/ipi/Kconfig
-@@ -4,6 +4,7 @@ menu "IPI Device Support"
++# Compiler flags
++platform-cppflags-y =
++platform-cflags-y =
++platform-asflags-y =
++platform-ldflags-y =
++
++# Objects to build
+ platform-objs-y += platform.o
  
- config FDT_IPI
- 	bool "FDT based ipi drivers"
-+	depends on FDT
- 	default n
+ platform-objs-y += k210.o
+ platform-varprefix-k210.o = dt_k210
+ platform-padding-k210.o = 2048
++
++# Blobs to build
++FW_TEXT_START=0x80000000
++FW_PAYLOAD=y
++FW_PAYLOAD_ALIGN=0x1000
+diff --git a/platform/nuclei/ux600/config.mk b/platform/nuclei/ux600/config.mk
+deleted file mode 100644
+index dddcc4e..0000000
+--- a/platform/nuclei/ux600/config.mk
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (c) 2020 Nuclei Corporation or its affiliates.
+-#
+-# Authors:
+-#   lujun <lujun@nucleisys.com>
+-#   hqfang <578567190@qq.com>
+-#
+-
+-# Compiler flags
+-platform-cppflags-y =
+-platform-cflags-y =
+-platform-asflags-y =
+-platform-ldflags-y =
+-
+-# Command for platform specific "make run"
+-platform-runcmd = xl_spike \
+-  $(build_dir)/platform/nuclei/ux600/firmware/fw_payload.elf
+-
+-# Blobs to build
+-FW_TEXT_START=0xA0000000
+-FW_DYNAMIC=y
+-FW_JUMP=y
+-
+-FW_JUMP_ADDR=0xA0200000
+-FW_JUMP_FDT_ADDR=0xA8000000
+-FW_PAYLOAD=y
+-FW_PAYLOAD_OFFSET=0x200000
+-FW_PAYLOAD_FDT_ADDR=0xA8000000
+diff --git a/platform/nuclei/ux600/objects.mk b/platform/nuclei/ux600/objects.mk
+index 8c36c90..7c429e0 100644
+--- a/platform/nuclei/ux600/objects.mk
++++ b/platform/nuclei/ux600/objects.mk
+@@ -8,4 +8,26 @@
+ #   hqfang <578567190@qq.com>
+ #
  
- if FDT_IPI
-diff --git a/lib/utils/irqchip/Kconfig b/lib/utils/irqchip/Kconfig
-index 6a7e297..7a71388 100644
---- a/lib/utils/irqchip/Kconfig
-+++ b/lib/utils/irqchip/Kconfig
-@@ -4,6 +4,7 @@ menu "Interrupt Controller Support"
++# Compiler flags
++platform-cppflags-y =
++platform-cflags-y =
++platform-asflags-y =
++platform-ldflags-y =
++
++# Command for platform specific "make run"
++platform-runcmd = xl_spike \
++  $(build_dir)/platform/nuclei/ux600/firmware/fw_payload.elf
++
++# Objects to build
+ platform-objs-y += platform.o
++
++# Blobs to build
++FW_TEXT_START=0xA0000000
++FW_DYNAMIC=y
++FW_JUMP=y
++
++FW_JUMP_ADDR=0xA0200000
++FW_JUMP_FDT_ADDR=0xA8000000
++FW_PAYLOAD=y
++FW_PAYLOAD_OFFSET=0x200000
++FW_PAYLOAD_FDT_ADDR=0xA8000000
+diff --git a/platform/template/config.mk b/platform/template/config.mk
+deleted file mode 100644
+index f817342..0000000
+--- a/platform/template/config.mk
++++ /dev/null
+@@ -1,77 +0,0 @@
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-#
+-# Copyright (c) 2019 Western Digital Corporation or its affiliates.
+-#
+-
+-# Compiler pre-processor flags
+-platform-cppflags-y =
+-
+-# C Compiler and assembler flags.
+-platform-cflags-y =
+-platform-asflags-y =
+-
+-# Linker flags: additional libraries and object files that the platform
+-# code needs can be added here
+-platform-ldflags-y =
+-
+-#
+-# Command for platform specific "make run"
+-# Useful for development and debugging on plaftform simulator (such as QEMU)
+-#
+-# platform-runcmd = your_platform_run.sh
+-
+-#
+-# Platform RISC-V XLEN, ABI, ISA and Code Model configuration.
+-# These are optional parameters but platforms can optionaly provide it.
+-# Some of these are guessed based on GCC compiler capabilities
+-#
+-# PLATFORM_RISCV_XLEN = 64
+-# PLATFORM_RISCV_ABI = lp64
+-# PLATFORM_RISCV_ISA = rv64imafdc
+-# PLATFORM_RISCV_CODE_MODEL = medany
+-
+-# Firmware load address configuration. This is mandatory.
+-FW_TEXT_START=0x80000000
+-
+-# Optional parameter for path to external FDT
+-# FW_FDT_PATH="path to platform flattened device tree file"
+-
+-#
+-# Dynamic firmware configuration.
+-# Optional parameters are commented out. Uncomment and define these parameters
+-# as needed.
+-#
+-FW_DYNAMIC=<y|n>
+-
+-#
+-# Jump firmware configuration.
+-# Optional parameters are commented out. Uncomment and define these parameters
+-# as needed.
+-#
+-FW_JUMP=<y|n>
+-# This needs to be 4MB aligned for 32-bit support
+-# This needs to be 2MB aligned for 64-bit support
+-# ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-# FW_JUMP_ADDR=0x80400000
+-# else
+-# FW_JUMP_ADDR=0x80200000
+-# endif
+-# FW_JUMP_FDT_ADDR=0x82200000
+-
+-#
+-# Firmware with payload configuration.
+-# Optional parameters are commented out. Uncomment and define these parameters
+-# as needed.
+-#
+-FW_PAYLOAD=<y|n>
+-# This needs to be 4MB aligned for 32-bit support
+-# This needs to be 2MB aligned for 64-bit support
+-ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-FW_PAYLOAD_OFFSET=0x400000
+-else
+-FW_PAYLOAD_OFFSET=0x200000
+-endif
+-# FW_PAYLOAD_ALIGN=0x1000
+-# FW_PAYLOAD_PATH="path to next boot stage binary image file"
+-# FW_PAYLOAD_FDT_ADDR=0x82200000
+diff --git a/platform/template/objects.mk b/platform/template/objects.mk
+index caaec2b..0025928 100644
+--- a/platform/template/objects.mk
++++ b/platform/template/objects.mk
+@@ -4,6 +4,33 @@
+ # Copyright (c) 2019 Western Digital Corporation or its affiliates.
+ #
  
- config FDT_IRQCHIP
- 	bool "FDT based interrupt controller drivers"
-+	depends on FDT
- 	default n
++# Compiler pre-processor flags
++platform-cppflags-y =
++
++# C Compiler and assembler flags.
++platform-cflags-y =
++platform-asflags-y =
++
++# Linker flags: additional libraries and object files that the platform
++# code needs can be added here
++platform-ldflags-y =
++
++#
++# Command for platform specific "make run"
++# Useful for development and debugging on plaftform simulator (such as QEMU)
++#
++# platform-runcmd = your_platform_run.sh
++
++#
++# Platform RISC-V XLEN, ABI, ISA and Code Model configuration.
++# These are optional parameters but platforms can optionaly provide it.
++# Some of these are guessed based on GCC compiler capabilities
++#
++# PLATFORM_RISCV_XLEN = 64
++# PLATFORM_RISCV_ABI = lp64
++# PLATFORM_RISCV_ISA = rv64imafdc
++# PLATFORM_RISCV_CODE_MODEL = medany
++
+ # Space separated list of object file names to be compiled for the platform
+ platform-objs-y += platform.o
  
- if FDT_IRQCHIP
-diff --git a/platform/generic/Kconfig b/lib/utils/libfdt/Kconfig
-similarity index 57%
-copy from platform/generic/Kconfig
-copy to lib/utils/libfdt/Kconfig
-index 3eab282..d1cecf8 100644
---- a/platform/generic/Kconfig
-+++ b/lib/utils/libfdt/Kconfig
-@@ -1,5 +1,5 @@
- # SPDX-License-Identifier: BSD-2-Clause
+@@ -13,3 +40,48 @@ platform-objs-y += platform.o
+ # source file be in the form <dt file name>.dts
+ #
+ # platform-objs-y += <dt file name>.o
++
++# Firmware load address configuration. This is mandatory.
++FW_TEXT_START=0x80000000
++
++# Optional parameter for path to external FDT
++# FW_FDT_PATH="path to platform flattened device tree file"
++
++#
++# Dynamic firmware configuration.
++# Optional parameters are commented out. Uncomment and define these parameters
++# as needed.
++#
++FW_DYNAMIC=<y|n>
++
++#
++# Jump firmware configuration.
++# Optional parameters are commented out. Uncomment and define these parameters
++# as needed.
++#
++FW_JUMP=<y|n>
++# This needs to be 4MB aligned for 32-bit support
++# This needs to be 2MB aligned for 64-bit support
++# ifeq ($(PLATFORM_RISCV_XLEN), 32)
++# FW_JUMP_ADDR=0x80400000
++# else
++# FW_JUMP_ADDR=0x80200000
++# endif
++# FW_JUMP_FDT_ADDR=0x82200000
++
++#
++# Firmware with payload configuration.
++# Optional parameters are commented out. Uncomment and define these parameters
++# as needed.
++#
++FW_PAYLOAD=<y|n>
++# This needs to be 4MB aligned for 32-bit support
++# This needs to be 2MB aligned for 64-bit support
++ifeq ($(PLATFORM_RISCV_XLEN), 32)
++FW_PAYLOAD_OFFSET=0x400000
++else
++FW_PAYLOAD_OFFSET=0x200000
++endif
++# FW_PAYLOAD_ALIGN=0x1000
++# FW_PAYLOAD_PATH="path to next boot stage binary image file"
++# FW_PAYLOAD_FDT_ADDR=0x82200000
+diff --git a/platform/template/platform.c b/platform/template/platform.c
+index 5524847..f3802da 100644
+--- a/platform/template/platform.c
++++ b/platform/template/platform.c
+@@ -11,7 +11,7 @@
  
--config PLATFORM_GENERIC
-+config LIBFDT
- 	bool
--	default y
-+	default n
-diff --git a/lib/utils/libfdt/objects.mk b/lib/utils/libfdt/objects.mk
-index 8c060df..a5b4001 100644
---- a/lib/utils/libfdt/objects.mk
-+++ b/lib/utils/libfdt/objects.mk
-@@ -12,5 +12,5 @@ libfdt_files = fdt.o fdt_addresses.o fdt_check.o fdt_empty_tree.o fdt_ro.o fdt_r
- $(foreach file, $(libfdt_files), \
-         $(eval CFLAGS_$(file) = -I$(src)/../../utils/libfdt))
- 
--libsbiutils-objs-y += $(addprefix libfdt/,$(libfdt_files))
--libsbiutils-genflags-y  += -I$(libsbiutils_dir)/libfdt/
-+libsbiutils-objs-$(CONFIG_LIBFDT) += $(addprefix libfdt/,$(libfdt_files))
-+libsbiutils-genflags-$(CONFIG_LIBFDT)  += -I$(libsbiutils_dir)/libfdt/
-diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
-index 71996cb..2e83ff6 100644
---- a/lib/utils/reset/Kconfig
-+++ b/lib/utils/reset/Kconfig
-@@ -4,6 +4,7 @@ menu "System Reset Support"
- 
- config FDT_RESET
- 	bool "FDT based reset drivers"
-+	depends on FDT
- 	default n
- 
- if FDT_RESET
-diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
-index bf37e34..152060d 100644
---- a/lib/utils/serial/Kconfig
-+++ b/lib/utils/serial/Kconfig
-@@ -4,6 +4,7 @@ menu "Serial Device Support"
- 
- config FDT_SERIAL
- 	bool "FDT based serial drivers"
-+	depends on FDT
- 	default n
- 
- if FDT_SERIAL
-diff --git a/lib/utils/timer/Kconfig b/lib/utils/timer/Kconfig
-index 0a1c727..23c48c5 100644
---- a/lib/utils/timer/Kconfig
-+++ b/lib/utils/timer/Kconfig
-@@ -4,6 +4,7 @@ menu "Timer Device Support"
- 
- config FDT_TIMER
- 	bool "FDT based timer drivers"
-+	depends on FDT
- 	default n
- 
- if FDT_TIMER
-diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
-index 87deab0..d57f19f 100644
---- a/platform/andes/ae350/Kconfig
-+++ b/platform/andes/ae350/Kconfig
-@@ -2,6 +2,7 @@
- 
- config PLATFORM_ANDES_AE350
- 	bool
-+	select FDT
- 	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
- 	default y
-diff --git a/platform/fpga/ariane/Kconfig b/platform/fpga/ariane/Kconfig
-index 5a720d9..e1f118b 100644
---- a/platform/fpga/ariane/Kconfig
-+++ b/platform/fpga/ariane/Kconfig
-@@ -2,6 +2,7 @@
- 
- config PLATFORM_ARIANE_FPGA
- 	bool
-+	select FDT
- 	select IPI_MSWI
- 	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
-diff --git a/platform/fpga/openpiton/Kconfig b/platform/fpga/openpiton/Kconfig
-index 973906e..bc9c86e 100644
---- a/platform/fpga/openpiton/Kconfig
-+++ b/platform/fpga/openpiton/Kconfig
-@@ -2,6 +2,7 @@
- 
- config PLATFORM_OPENPITON_FPGA
- 	bool
-+	select FDT
- 	select IPI_MSWI
- 	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 3eab282..c1a77b3 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -2,4 +2,7 @@
- 
- config PLATFORM_GENERIC
- 	bool
-+	select FDT
-+	select FDT_DOMAIN
-+	select FDT_PMU
- 	default y
-diff --git a/platform/kendryte/k210/Kconfig b/platform/kendryte/k210/Kconfig
-index 2a1daaa..5bf5973 100644
---- a/platform/kendryte/k210/Kconfig
-+++ b/platform/kendryte/k210/Kconfig
-@@ -2,6 +2,7 @@
- 
- config PLATFORM_KENDRYTE_K210
- 	bool
-+	select FDT
- 	select IPI_MSWI
- 	select IRQCHIP_PLIC
- 	select SERIAL_SIFIVE
-diff --git a/platform/nuclei/ux600/Kconfig b/platform/nuclei/ux600/Kconfig
-index 464802e..84d74e8 100644
---- a/platform/nuclei/ux600/Kconfig
-+++ b/platform/nuclei/ux600/Kconfig
-@@ -2,6 +2,7 @@
- 
- config PLATFORM_NUCLEI_UX600
- 	bool
-+	select FDT
- 	select IPI_MSWI
- 	select IRQCHIP_PLIC
- 	select SERIAL_SIFIVE
-diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
-index 5498a1f..2b02734 100644
---- a/platform/nuclei/ux600/platform.c
-+++ b/platform/nuclei/ux600/platform.c
-@@ -8,7 +8,6 @@
-  *   hqfang <578567190@qq.com>
+ /*
+  * Include these files as needed.
+- * See config.mk PLATFORM_xxx configuration parameters.
++ * See objects.mk PLATFORM_xxx configuration parameters.
   */
- 
--#include <libfdt.h>
- #include <sbi/riscv_asm.h>
- #include <sbi/riscv_io.h>
- #include <sbi/riscv_encoding.h>
+ #include <sbi_utils/ipi/aclint_mswi.h>
+ #include <sbi_utils/irqchip/plic.h>
 -- 
 2.34.1
 
