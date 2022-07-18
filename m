@@ -1,152 +1,186 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Mon, 18 Jul 2022 19:39:23 +0100
-Subject: [PATCH 2/4] lib: utils/serial: Initialize platform_uart_data to
- zero
-In-Reply-To: <20220718183533.7pdyuyfpae6xjfxc@kamzik>
-References: <20220718172028.2006166-1-ajones@ventanamicro.com>
- <20220718172028.2006166-3-ajones@ventanamicro.com>
- <1D1800C8-676E-43E0-9F22-29DC5862E994@jrtc27.com>
- <20220718183533.7pdyuyfpae6xjfxc@kamzik>
-Message-ID: <CD32E693-6D4E-4F48-AE14-4F47A08AD491@jrtc27.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 18 Jul 2022 20:48:07 +0200
+Subject: [PATCH v2 00/14] OpenSBI Kconfig Support
+In-Reply-To: <20220718145611.2211638-1-apatel@ventanamicro.com>
+References: <20220718145611.2211638-1-apatel@ventanamicro.com>
+Message-ID: <20220718184807.dac3r5bvsublyj2n@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 18 Jul 2022, at 19:35, Andrew Jones <ajones@ventanamicro.com> wrote:
+On Mon, Jul 18, 2022 at 08:25:57PM +0530, Anup Patel wrote:
+> In future, we will see more drivers in OpenSBI for system reset, serial port,
+> power management, etc platform specific devices. We need platform specific
+> compile time configuration to allow users control the size of OpenSBI generic
+> firmware binaries by only enabling desired drivers. In other words, users
+> should be allowed to restrict the set of RISC-V platforms on which OpenSBI
+> generic firmwares built by them can run.
 > 
-> On Mon, Jul 18, 2022 at 06:42:40PM +0100, Jessica Clarke wrote:
->> On 18 Jul 2022, at 18:20, Andrew Jones <ajones@ventanamicro.com> wrote:
->>> 
->>> While it doesn't look like there are any current cases of using
->>> uninitialized data, let's zero all the UART data members to be
->>> safe. Zero may not actually be better than a random number in
->>> some cases, so all structure members should still be validated
->>> before use, but at least zero is usually easier to debug than
->>> some random stack garbage...
->> 
->> If fdt_parse_foo_uart_node leaves the platform_uart_data uninitialised
->> (at least, parts that matter) then that seems like a bug to me. This
->> just masks such bugs from any kind of sanitiser...
+> To address above, we add Kconfig support for OpenSBI platforms using the
+> kconfig-frontends project which is a standalone kconfig parser.
 > 
-> Hi Jess,
-> 
-> That's an interesting approach. Which tool(s) will point that out?
-> I just tried compiling with both gcc[1] and clang[2], noting that we
-> compile with -Wall, but neither complained when I purposely commented
-> out a used UART field.
-> 
-> [1] https://github.com/riscv/riscv-gnu-toolchain
-> [2] clang-14.0.0-1.fc36.x86_64
+> The kconfig-frontends is available as a package/receipe on various distros
+> (such as Debian, UBuntu, OpenSUSE, etc) and Yocto project.
 
-Like other sanitisers it needs some runtime support, but MSan, i.e.
--fsanitize=memory.
+Hi Anup,
 
-Jess
+It doesn't look like Fedora provides that package. Also, is the source
+for the packages of those other distros maintained? If I found the
+correct source, then it's [1], which hasn't had any attention in five
+years, even though there have been hundreds of commits to Linux's
+scripts/kconfig. I wonder if we shouldn't consider adopting
+scripts/minikconf.py from the QEMU sources and sticking to the kconfig
+language subset that parser supports?
 
-> Thanks,
-> drew
+[1] http://ymorin.is-a-geek.org/projects/kconfig-frontends
+
+Thanks,
+drew
+
 > 
->> 
->> Jess
->> 
->>> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
->>> ---
->>> lib/utils/serial/fdt_serial_gaisler.c       | 2 +-
->>> lib/utils/serial/fdt_serial_shakti.c        | 2 +-
->>> lib/utils/serial/fdt_serial_sifive.c        | 2 +-
->>> lib/utils/serial/fdt_serial_uart8250.c      | 2 +-
->>> lib/utils/serial/fdt_serial_xlnx_uartlite.c | 2 +-
->>> platform/fpga/openpiton/platform.c          | 2 +-
->>> 6 files changed, 6 insertions(+), 6 deletions(-)
->>> 
->>> diff --git a/lib/utils/serial/fdt_serial_gaisler.c b/lib/utils/serial/fdt_serial_gaisler.c
->>> index 9a9f9a8b7962..74988e34bcd8 100644
->>> --- a/lib/utils/serial/fdt_serial_gaisler.c
->>> +++ b/lib/utils/serial/fdt_serial_gaisler.c
->>> @@ -15,7 +15,7 @@ static int serial_gaisler_init(void *fdt, int nodeoff,
->>> 			       const struct fdt_match *match)
->>> {
->>> 	int rc;
->>> -	struct platform_uart_data uart;
->>> +	struct platform_uart_data uart = { 0 };
->>> 
->>> 	rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
->>> 	if (rc)
->>> diff --git a/lib/utils/serial/fdt_serial_shakti.c b/lib/utils/serial/fdt_serial_shakti.c
->>> index 4f91419ef53c..0e056303dbb5 100644
->>> --- a/lib/utils/serial/fdt_serial_shakti.c
->>> +++ b/lib/utils/serial/fdt_serial_shakti.c
->>> @@ -13,7 +13,7 @@ static int serial_shakti_init(void *fdt, int nodeoff,
->>> 				const struct fdt_match *match)
->>> {
->>> 	int rc;
->>> -	struct platform_uart_data uart;
->>> +	struct platform_uart_data uart = { 0 };
->>> 
->>> 	rc = fdt_parse_shakti_uart_node(fdt, nodeoff, &uart);
->>> 	if (rc)
->>> diff --git a/lib/utils/serial/fdt_serial_sifive.c b/lib/utils/serial/fdt_serial_sifive.c
->>> index f4c833c1573d..3ca10913eee3 100644
->>> --- a/lib/utils/serial/fdt_serial_sifive.c
->>> +++ b/lib/utils/serial/fdt_serial_sifive.c
->>> @@ -15,7 +15,7 @@ static int serial_sifive_init(void *fdt, int nodeoff,
->>> 				const struct fdt_match *match)
->>> {
->>> 	int rc;
->>> -	struct platform_uart_data uart;
->>> +	struct platform_uart_data uart = { 0 };
->>> 
->>> 	rc = fdt_parse_sifive_uart_node(fdt, nodeoff, &uart);
->>> 	if (rc)
->>> diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
->>> index 544b7416de42..0b95f2d9e44e 100644
->>> --- a/lib/utils/serial/fdt_serial_uart8250.c
->>> +++ b/lib/utils/serial/fdt_serial_uart8250.c
->>> @@ -15,7 +15,7 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
->>> 				const struct fdt_match *match)
->>> {
->>> 	int rc;
->>> -	struct platform_uart_data uart;
->>> +	struct platform_uart_data uart = { 0 };
->>> 
->>> 	rc = fdt_parse_uart8250_node(fdt, nodeoff, &uart);
->>> 	if (rc)
->>> diff --git a/lib/utils/serial/fdt_serial_xlnx_uartlite.c b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
->>> index 466e16e82d8c..9f04aea3673b 100644
->>> --- a/lib/utils/serial/fdt_serial_xlnx_uartlite.c
->>> +++ b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
->>> @@ -15,7 +15,7 @@ static int serial_xlnx_uartlite_init(void *fdt, int nodeoff,
->>> 				const struct fdt_match *match)
->>> {
->>> 	int rc;
->>> -	struct platform_uart_data uart;
->>> +	struct platform_uart_data uart = { 0 };
->>> 
->>> 	rc = fdt_parse_xlnx_uartlite_node(fdt, nodeoff, &uart);
->>> 	if (rc)
->>> diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
->>> index 7ca21236bfef..5ff7d200aba9 100644
->>> --- a/platform/fpga/openpiton/platform.c
->>> +++ b/platform/fpga/openpiton/platform.c
->>> @@ -69,7 +69,7 @@ static struct aclint_mtimer_data mtimer = {
->>> static int openpiton_early_init(bool cold_boot)
->>> {
->>> 	void *fdt;
->>> -	struct platform_uart_data uart_data;
->>> +	struct platform_uart_data uart_data = { 0 };
->>> 	struct plic_data plic_data;
->>> 	unsigned long aclint_freq;
->>> 	uint64_t clint_addr;
->>> -- 
->>> 2.36.1
->>> 
->>> 
->>> -- 
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
->> 
-
+> To try OpenSBI Kconfig support with generic platform, here are few
+> example commands:
+> make PLATFORM=generic             <-- builds OpenSBI using "defconfig"
+> make PLATFORM=generic menuconfig  <-- launches graphical interface for changes
+> 
+> These patches can also be found in the kconfig_v2 branch at:
+> https://github.com/avpatel/opensbi.git
+> 
+> Changes since v1:
+>  - Fix SPDX license specifier in new Kconfig files
+> 
+> Anup Patel (14):
+>   Makefile: Add initial kconfig support for each platform
+>   Makefile: Compile lib/utils sources separately for each platform
+>   lib: utils/serial: Use kconfig for enabling/disabling drivers
+>   lib: utils/reset: Use kconfig for enabling/disabling drivers
+>   lib: utils/sys: Use kconfig for enabling/disabling drivers
+>   lib: utils/timer: Use kconfig for enabling/disabling drivers
+>   lib: utils/ipi: Use kconfig for enabling/disabling drivers
+>   lib: utils/irqchip: Use kconfig for enabling/disabling drivers
+>   lib: utils/i2c: Use kconfig for enabling/disabling drivers
+>   lib: utils/gpio: Use kconfig for enabling/disabling drivers
+>   lib: utils/fdt: Use kconfig for enabling/disabling
+>   platform: generic: Use kconfig for enabling/disabling overrides
+>   platform: Remove redundant config.mk from all platforms
+>   docs: Update documentation for kconfig support
+> 
+>  Kconfig                                   |  23 +++++
+>  Makefile                                  | 102 ++++++++++++++++------
+>  README.md                                 |  25 +++++-
+>  docs/firmware/fw_dynamic.md               |   2 +-
+>  docs/firmware/fw_jump.md                  |   4 +-
+>  docs/firmware/fw_payload.md               |   4 +-
+>  docs/library_usage.md                     |   6 +-
+>  docs/platform/platform.md                 |   4 +-
+>  docs/platform_guide.md                    |   9 +-
+>  firmware/Kconfig                          |   1 +
+>  include/sbi_utils/fdt/fdt_domain.h        |   9 ++
+>  include/sbi_utils/fdt/fdt_pmu.h           |  10 +++
+>  include/sbi_utils/ipi/fdt_ipi.h           |   9 ++
+>  include/sbi_utils/irqchip/fdt_irqchip.h   |  10 +++
+>  include/sbi_utils/irqchip/imsic.h         |  10 +++
+>  include/sbi_utils/reset/fdt_reset.h       |  12 +++
+>  include/sbi_utils/serial/fdt_serial.h     |   8 ++
+>  include/sbi_utils/timer/fdt_timer.h       |   9 ++
+>  lib/utils/Kconfig                         |  25 ++++++
+>  lib/utils/fdt/Kconfig                     |  18 ++++
+>  lib/utils/fdt/objects.mk                  |   8 +-
+>  lib/utils/gpio/Kconfig                    |  23 +++++
+>  lib/utils/gpio/objects.mk                 |  10 +--
+>  lib/utils/i2c/Kconfig                     |  23 +++++
+>  lib/utils/i2c/objects.mk                  |  10 +--
+>  lib/utils/ipi/Kconfig                     |  23 +++++
+>  lib/utils/ipi/objects.mk                  |  10 +--
+>  lib/utils/irqchip/Kconfig                 |  41 +++++++++
+>  lib/utils/irqchip/objects.mk              |  22 ++---
+>  lib/utils/libfdt/Kconfig                  |   5 ++
+>  lib/utils/libfdt/objects.mk               |   4 +-
+>  lib/utils/reset/Kconfig                   |  37 ++++++++
+>  lib/utils/reset/objects.mk                |  28 +++---
+>  lib/utils/serial/Kconfig                  |  73 ++++++++++++++++
+>  lib/utils/serial/objects.mk               |  44 +++++-----
+>  lib/utils/sys/Kconfig                     |  13 +++
+>  lib/utils/sys/objects.mk                  |   4 +-
+>  lib/utils/timer/Kconfig                   |  23 +++++
+>  lib/utils/timer/objects.mk                |  10 +--
+>  platform/andes/ae350/Kconfig              |   8 ++
+>  platform/andes/ae350/config.mk            |  36 --------
+>  platform/andes/ae350/configs/defconfig    |   0
+>  platform/andes/ae350/objects.mk           |  29 ++++++
+>  platform/fpga/ariane/Kconfig              |  10 +++
+>  platform/fpga/ariane/config.mk            |  36 --------
+>  platform/fpga/ariane/configs/defconfig    |   0
+>  platform/fpga/ariane/objects.mk           |  35 ++++++++
+>  platform/fpga/openpiton/Kconfig           |  10 +++
+>  platform/fpga/openpiton/config.mk         |  35 --------
+>  platform/fpga/openpiton/configs/defconfig |   0
+>  platform/fpga/openpiton/objects.mk        |  35 ++++++++
+>  platform/generic/Kconfig                  |  26 ++++++
+>  platform/generic/allwinner/objects.mk     |   4 +-
+>  platform/generic/config.mk                |  40 ---------
+>  platform/generic/configs/defconfig        |  29 ++++++
+>  platform/generic/objects.mk               |  33 +++++++
+>  platform/generic/sifive/objects.mk        |   8 +-
+>  platform/kendryte/k210/Kconfig            |  10 +++
+>  platform/kendryte/k210/config.mk          |  19 ----
+>  platform/kendryte/k210/configs/defconfig  |   0
+>  platform/kendryte/k210/objects.mk         |  12 +++
+>  platform/nuclei/ux600/Kconfig             |  10 +++
+>  platform/nuclei/ux600/config.mk           |  30 -------
+>  platform/nuclei/ux600/configs/defconfig   |   0
+>  platform/nuclei/ux600/objects.mk          |  22 +++++
+>  platform/nuclei/ux600/platform.c          |   1 -
+>  platform/template/Kconfig                 |   9 ++
+>  platform/template/config.mk               |  77 ----------------
+>  platform/template/configs/defconfig       |   0
+>  platform/template/objects.mk              |  72 +++++++++++++++
+>  platform/template/platform.c              |   2 +-
+>  scripts/create-binary-archive.sh          |   2 +-
+>  72 files changed, 948 insertions(+), 403 deletions(-)
+>  create mode 100644 Kconfig
+>  create mode 100644 firmware/Kconfig
+>  create mode 100644 lib/utils/Kconfig
+>  create mode 100644 lib/utils/fdt/Kconfig
+>  create mode 100644 lib/utils/gpio/Kconfig
+>  create mode 100644 lib/utils/i2c/Kconfig
+>  create mode 100644 lib/utils/ipi/Kconfig
+>  create mode 100644 lib/utils/irqchip/Kconfig
+>  create mode 100644 lib/utils/libfdt/Kconfig
+>  create mode 100644 lib/utils/reset/Kconfig
+>  create mode 100644 lib/utils/serial/Kconfig
+>  create mode 100644 lib/utils/sys/Kconfig
+>  create mode 100644 lib/utils/timer/Kconfig
+>  create mode 100644 platform/andes/ae350/Kconfig
+>  delete mode 100644 platform/andes/ae350/config.mk
+>  create mode 100644 platform/andes/ae350/configs/defconfig
+>  create mode 100644 platform/fpga/ariane/Kconfig
+>  delete mode 100644 platform/fpga/ariane/config.mk
+>  create mode 100644 platform/fpga/ariane/configs/defconfig
+>  create mode 100644 platform/fpga/openpiton/Kconfig
+>  delete mode 100644 platform/fpga/openpiton/config.mk
+>  create mode 100644 platform/fpga/openpiton/configs/defconfig
+>  create mode 100644 platform/generic/Kconfig
+>  delete mode 100644 platform/generic/config.mk
+>  create mode 100644 platform/generic/configs/defconfig
+>  create mode 100644 platform/kendryte/k210/Kconfig
+>  delete mode 100644 platform/kendryte/k210/config.mk
+>  create mode 100644 platform/kendryte/k210/configs/defconfig
+>  create mode 100644 platform/nuclei/ux600/Kconfig
+>  delete mode 100644 platform/nuclei/ux600/config.mk
+>  create mode 100644 platform/nuclei/ux600/configs/defconfig
+>  create mode 100644 platform/template/Kconfig
+>  delete mode 100644 platform/template/config.mk
+>  create mode 100644 platform/template/configs/defconfig
+> 
+> -- 
+> 2.34.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
