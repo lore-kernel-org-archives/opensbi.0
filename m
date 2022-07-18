@@ -1,181 +1,281 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 18 Jul 2022 18:11:58 +0530
-Subject: [PATCH 02/14] Makefile: Compile lib/utils sources separately for each platform
+Date: Mon, 18 Jul 2022 18:11:59 +0530
+Subject: [PATCH 03/14] lib: utils/serial: Use kconfig for enabling/disabling drivers
 In-Reply-To: <20220718124210.2177576-1-apatel@ventanamicro.com>
 References: <20220718124210.2177576-1-apatel@ventanamicro.com>
-Message-ID: <20220718124210.2177576-3-apatel@ventanamicro.com>
+Message-ID: <20220718124210.2177576-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, if same build directory is used to compile two different
-platforms then lib/utils objects are shared for these platforms.
-
-We will be having platform specific configs to enable/disable drivers
-in lib/utils and select compile time options for lib/utils sources.
-This means lib/utils sources will now be compiled in a platform
-specific way.
-
-To tackle above, we update top-level Makefile as follows:
-1) Don't create libsbiutils.a anymore because this can't be shared
-   between platforms.
-2) Compile lib/utils sources separately for each platform.
-3) Add comments showing which make rules are for lib/sbi, lib/utils,
-   firmware, and platform sources.
+We update serial drivers makefile to use kconfig for enabling/disabling
+drivers. To avoid compile errors, we also enable appropriate serial
+drivers for each platform.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- Makefile                         | 48 ++++++++++++++++----------------
- docs/library_usage.md            |  6 +---
- scripts/create-binary-archive.sh |  2 +-
- 3 files changed, 26 insertions(+), 30 deletions(-)
+ include/sbi_utils/serial/fdt_serial.h |  8 +++
+ lib/utils/Kconfig                     |  6 +++
+ lib/utils/serial/Kconfig              | 71 +++++++++++++++++++++++++++
+ lib/utils/serial/objects.mk           | 44 ++++++++---------
+ platform/andes/ae350/Kconfig          |  1 +
+ platform/fpga/ariane/Kconfig          |  1 +
+ platform/fpga/openpiton/Kconfig       |  1 +
+ platform/generic/configs/defconfig    |  8 +++
+ platform/kendryte/k210/Kconfig        |  1 +
+ platform/nuclei/ux600/Kconfig         |  1 +
+ platform/template/Kconfig             |  1 +
+ 11 files changed, 121 insertions(+), 22 deletions(-)
+ create mode 100644 lib/utils/serial/Kconfig
 
-diff --git a/Makefile b/Makefile
-index 46c7c1c..5fc67db 100644
---- a/Makefile
-+++ b/Makefile
-@@ -240,8 +240,8 @@ include $(firmware-object-mks)
+diff --git a/include/sbi_utils/serial/fdt_serial.h b/include/sbi_utils/serial/fdt_serial.h
+index 6451c23..daa2e4f 100644
+--- a/include/sbi_utils/serial/fdt_serial.h
++++ b/include/sbi_utils/serial/fdt_serial.h
+@@ -12,6 +12,8 @@
  
- # Setup list of objects
- libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(build_dir)/lib/sbi/$(obj))
--libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(build_dir)/lib/utils/$(obj))
- ifdef PLATFORM
-+libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(platform_build_dir)/lib/utils/$(obj))
- platform-objs-path-y=$(foreach obj,$(platform-objs-y),$(platform_build_dir)/$(obj))
- firmware-bins-path-y=$(foreach bin,$(firmware-bins-y),$(platform_build_dir)/firmware/$(bin))
- endif
-@@ -458,7 +458,6 @@ compile_gen_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
- 	     echo "$(1:.dep=$(2)): $(3)" >> $(1)
+ #include <sbi/sbi_types.h>
  
- targets-y  = $(build_dir)/lib/libsbi.a
--targets-y  += $(build_dir)/lib/libsbiutils.a
- ifdef PLATFORM
- targets-y += $(platform_build_dir)/lib/libplatsbi.a
- endif
-@@ -471,12 +470,10 @@ all: $(targets-y)
- # Preserve all intermediate files
- .SECONDARY:
- 
-+# Rules for lib/sbi sources
- $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
- 	$(call compile_ar,$@,$^)
- 
--$(build_dir)/lib/libsbiutils.a: $(libsbi-objs-path-y) $(libsbiutils-objs-path-y)
--	$(call compile_ar,$@,$^)
--
- $(platform_build_dir)/lib/libplatsbi.a: $(libsbi-objs-path-y) $(libsbiutils-objs-path-y) $(platform-objs-path-y)
- 	$(call compile_ar,$@,$^)
- 
-@@ -500,22 +497,14 @@ $(build_dir)/%.dep: $(src_dir)/%.S
- $(build_dir)/%.o: $(src_dir)/%.S
- 	$(call compile_as,$@,$<)
- 
--$(build_dir)/%.dep: $(src_dir)/%.carray
-+# Rules for platform sources
-+$(platform_build_dir)/%.dep: $(platform_src_dir)/%.carray
- 	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
- 	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
- 
--$(build_dir)/%.c: $(src_dir)/%.carray
-+$(platform_build_dir)/%.c: $(platform_src_dir)/%.carray
- 	$(call compile_carray,$@,$<)
- 
--$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
--	$(call compile_objcopy,$@,$<)
--
--$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
--	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
--
--$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
--	$(call compile_cpp,$@,$<)
--
- $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c
- 	$(call compile_cc_dep,$@,$<)
- 
-@@ -539,6 +528,23 @@ $(platform_build_dir)/%.c: $(platform_build_dir)/%.dtb
- $(platform_build_dir)/%.dtb: $(platform_src_dir)/%.dts
- 	$(call compile_dts,$@,$<)
- 
-+# Rules for lib/utils and firmware sources
-+$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
-+	$(call compile_objcopy,$@,$<)
++#ifdef CONFIG_FDT_SERIAL
 +
-+$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
-+	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
+ struct fdt_serial {
+ 	const struct fdt_match *match_table;
+ 	int (*init)(void *fdt, int nodeoff, const struct fdt_match *match);
+@@ -19,4 +21,10 @@ struct fdt_serial {
+ 
+ int fdt_serial_init(void);
+ 
++#else
 +
-+$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
-+	$(call compile_cpp,$@,$<)
++static inline int fdt_serial_init(void) { return 0; }
 +
-+$(platform_build_dir)/%.dep: $(src_dir)/%.carray
-+	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
-+	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
++#endif
 +
-+$(platform_build_dir)/%.c: $(src_dir)/%.carray
-+	$(call compile_carray,$@,$<)
+ #endif
+diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
+index f66554c..464bd03 100644
+--- a/lib/utils/Kconfig
++++ b/lib/utils/Kconfig
+@@ -1 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
 +
- $(platform_build_dir)/%.dep: $(src_dir)/%.c
- 	$(call compile_cc_dep,$@,$<)
++menu "Utils and Drivers Support"
++
++source "$OPENSBI_SRC_DIR/lib/utils/serial/Kconfig"
++
++endmenu
+diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
+new file mode 100644
+index 0000000..9e6b6fc
+--- /dev/null
++++ b/lib/utils/serial/Kconfig
+@@ -0,0 +1,71 @@
++# SPDX-License-Identifier: GPL-2.0
++
++menu "Serial Device Support"
++
++config FDT_SERIAL
++	bool "FDT based serial drivers"
++	default n
++
++if FDT_SERIAL
++
++config FDT_SERIAL_GAISLER
++	bool "Gaisler UART FDT driver"
++	select SERIAL_GAISLER
++	default n
++
++config FDT_SERIAL_HTIF
++	bool "Host transfer interface (HTIF) UART FDT driver"
++	default n
++
++config FDT_SERIAL_SHAKTI
++	bool "Shakti UART FDT driver"
++	select SERIAL_SHAKTI
++	default n
++
++config FDT_SERIAL_SIFIVE
++	bool "SiFive UART FDT driver"
++	select SERIAL_SIFIVE
++	default n
++
++config FDT_SERIAL_LITEX
++	bool "LiteX UART FDT driver"
++	select SERIAL_LITEX
++	default n
++
++config FDT_SERIAL_UART8250
++	bool "8250 UART FDT driver"
++	select SERIAL_UART8250
++	default n
++
++config FDT_SERIAL_XILINX_UARTLITE
++	bool "Xilinx UART Lite FDT driver"
++	select SERIAL_XILINX_UARTLITE
++	default n
++
++endif
++
++config SERIAL_GAISLER
++	bool "Gaisler UART support"
++	default n
++
++config SERIAL_SHAKTI
++	bool "Shakti UART support"
++	default n
++
++config SERIAL_SIFIVE
++	bool "SiFive UART support"
++	default n
++
++config SERIAL_LITEX
++	bool "LiteX UART support"
++	default n
++
++config SERIAL_UART8250
++	bool "8250 UART support"
++	default n
++
++config SERIAL_XILINX_UARTLITE
++	bool "Xilinx UART Lite support"
++	default n
++
++endmenu
+diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+index d26a74e..fa9f5a3 100644
+--- a/lib/utils/serial/objects.mk
++++ b/lib/utils/serial/objects.mk
+@@ -7,33 +7,33 @@
+ #   Anup Patel <anup.patel@wdc.com>
+ #
  
-@@ -592,7 +598,6 @@ endif
- endif
+-libsbiutils-objs-y += serial/fdt_serial.o
+-libsbiutils-objs-y += serial/fdt_serial_drivers.o
++libsbiutils-objs-$(CONFIG_FDT_SERIAL) += serial/fdt_serial.o
++libsbiutils-objs-$(CONFIG_FDT_SERIAL) += serial/fdt_serial_drivers.o
  
- install_targets-y  = install_libsbi
--install_targets-y  += install_libsbiutils
- ifdef PLATFORM
- install_targets-y += install_libplatsbi
- install_targets-y += install_firmwares
-@@ -607,17 +612,12 @@ install_libsbi: $(build_dir)/lib/libsbi.a
- 	$(call inst_header_dir,$(install_root_dir)/$(install_include_path),$(include_dir)/sbi)
- 	$(call inst_file,$(install_root_dir)/$(install_lib_path)/libsbi.a,$(build_dir)/lib/libsbi.a)
+-carray-fdt_serial_drivers-y += fdt_serial_gaisler
+-libsbiutils-objs-y += serial/fdt_serial_gaisler.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_GAISLER) += fdt_serial_gaisler
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_GAISLER) += serial/fdt_serial_gaisler.o
  
--.PHONY: install_libsbiutils
--install_libsbiutils: $(build_dir)/lib/libsbiutils.a
--	$(call inst_header_dir,$(install_root_dir)/$(install_include_path),$(include_dir)/sbi_utils)
--	$(call inst_file,$(install_root_dir)/$(install_lib_path)/libsbiutils.a,$(build_dir)/lib/libsbiutils.a)
--
- .PHONY: install_libplatsbi
--install_libplatsbi: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a $(build_dir)/lib/libsbiutils.a
-+install_libplatsbi: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a
- 	$(call inst_file,$(install_root_dir)/$(install_lib_path)/opensbi/$(platform_subdir)/lib/libplatsbi.a,$(platform_build_dir)/lib/libplatsbi.a)
+-carray-fdt_serial_drivers-y += fdt_serial_htif
+-libsbiutils-objs-y += serial/fdt_serial_htif.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_HTIF) += fdt_serial_htif
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_HTIF) += serial/fdt_serial_htif.o
  
- .PHONY: install_firmwares
--install_firmwares: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a $(build_dir)/lib/libsbiutils.a $(firmware-bins-path-y)
-+install_firmwares: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a $(firmware-bins-path-y)
- 	$(call inst_file_list,$(install_root_dir),$(build_dir),$(install_firmware_path)/$(platform_subdir)/firmware,$(firmware-elfs-path-y))
- 	$(call inst_file_list,$(install_root_dir),$(build_dir),$(install_firmware_path)/$(platform_subdir)/firmware,$(firmware-bins-path-y))
+-carray-fdt_serial_drivers-y += fdt_serial_shakti
+-libsbiutils-objs-y += serial/fdt_serial_shakti.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_SHAKTI) += fdt_serial_shakti
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_SHAKTI) += serial/fdt_serial_shakti.o
  
-diff --git a/docs/library_usage.md b/docs/library_usage.md
-index ff99801..d5d2ba9 100644
---- a/docs/library_usage.md
-+++ b/docs/library_usage.md
-@@ -8,11 +8,7 @@ OpenSBI provides two types of static libraries:
-    hooks for the execution of this interface must be provided by the firmware or
-    bootloader linking with this library. This library is installed as
-    *<install_directory>/lib/libsbi.a*
--2. *libsbiutils.a* - A static library that will contain all common code required
--   by any platform supported in OpenSBI. It will be built by default and included
--   in libplatsbi.a. This library is installed as
--   *<install_directory>/lib/libsbiutils.a*.
--3. *libplatsbi.a* - An example platform-specific static library integrating
-+2. *libplatsbi.a* - An example platform-specific static library integrating
-    *libsbi.a* with platform-specific hooks. This library is available only for
-    the platforms supported by OpenSBI. This library is installed as
-    *<install_directory>/platform/<platform_subdir>/lib/libplatsbi.a*
-diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
-index 43c5452..261a45a 100755
---- a/scripts/create-binary-archive.sh
-+++ b/scripts/create-binary-archive.sh
-@@ -118,7 +118,7 @@ build_opensbi() {
- 	# Build and install generic library
- 	echo "Build and install generic library XLEN=${BUILD_RISCV_XLEN}"
- 	echo ""
--	make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi install_libsbiutils -j "${BUILD_NUM_THREADS}"
-+	make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi -j "${BUILD_NUM_THREADS}"
- 	echo ""
+-carray-fdt_serial_drivers-y += fdt_serial_sifive
+-libsbiutils-objs-y += serial/fdt_serial_sifive.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_SIFIVE) += fdt_serial_sifive
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_SIFIVE) += serial/fdt_serial_sifive.o
  
- 	# Build and install relevant platforms
+-carray-fdt_serial_drivers-y += fdt_serial_litex
+-libsbiutils-objs-y += serial/fdt_serial_litex.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_LITEX) += fdt_serial_litex
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_LITEX) += serial/fdt_serial_litex.o
+ 
+-carray-fdt_serial_drivers-y += fdt_serial_uart8250
+-libsbiutils-objs-y += serial/fdt_serial_uart8250.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_UART8250) += fdt_serial_uart8250
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_UART8250) += serial/fdt_serial_uart8250.o
+ 
+-carray-fdt_serial_drivers-y += fdt_serial_xlnx_uartlite
+-libsbiutils-objs-y += serial/fdt_serial_xlnx_uartlite.o
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += fdt_serial_xlnx_uartlite
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += serial/fdt_serial_xlnx_uartlite.o
+ 
+-libsbiutils-objs-y += serial/gaisler-uart.o
+-libsbiutils-objs-y += serial/shakti-uart.o
+-libsbiutils-objs-y += serial/sifive-uart.o
+-libsbiutils-objs-y += serial/litex-uart.o
+-libsbiutils-objs-y += serial/uart8250.o
+-libsbiutils-objs-y += serial/xlnx-uartlite.o
++libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
++libsbiutils-objs-$(CONFIG_SERIAL_SHAKTI) += serial/shakti-uart.o
++libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
++libsbiutils-objs-$(CONFIG_SERIAL_LITEX) += serial/litex-uart.o
++libsbiutils-objs-$(CONFIG_SERIAL_UART8250) += serial/uart8250.o
++libsbiutils-objs-$(CONFIG_SERIAL_XILINX_UARTLITE) += serial/xlnx-uartlite.o
+diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
+index 349c1d3..0048c1b 100644
+--- a/platform/andes/ae350/Kconfig
++++ b/platform/andes/ae350/Kconfig
+@@ -2,4 +2,5 @@
+ 
+ config PLATFORM_ANDES_AE350
+ 	bool
++	select SERIAL_UART8250
+ 	default y
+diff --git a/platform/fpga/ariane/Kconfig b/platform/fpga/ariane/Kconfig
+index 26f9beb..797af74 100644
+--- a/platform/fpga/ariane/Kconfig
++++ b/platform/fpga/ariane/Kconfig
+@@ -2,4 +2,5 @@
+ 
+ config PLATFORM_ARIANE_FPGA
+ 	bool
++	select SERIAL_UART8250
+ 	default y
+diff --git a/platform/fpga/openpiton/Kconfig b/platform/fpga/openpiton/Kconfig
+index 8bfa85a..09b658a 100644
+--- a/platform/fpga/openpiton/Kconfig
++++ b/platform/fpga/openpiton/Kconfig
+@@ -2,4 +2,5 @@
+ 
+ config PLATFORM_OPENPITON_FPGA
+ 	bool
++	select SERIAL_UART8250
+ 	default y
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index e69de29..ce70c59 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -0,0 +1,8 @@
++CONFIG_FDT_SERIAL=y
++CONFIG_FDT_SERIAL_GAISLER=y
++CONFIG_FDT_SERIAL_HTIF=y
++CONFIG_FDT_SERIAL_SHAKTI=y
++CONFIG_FDT_SERIAL_SIFIVE=y
++CONFIG_FDT_SERIAL_LITEX=y
++CONFIG_FDT_SERIAL_UART8250=y
++CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
+diff --git a/platform/kendryte/k210/Kconfig b/platform/kendryte/k210/Kconfig
+index 726423a..bc921c8 100644
+--- a/platform/kendryte/k210/Kconfig
++++ b/platform/kendryte/k210/Kconfig
+@@ -2,4 +2,5 @@
+ 
+ config PLATFORM_KENDRYTE_K210
+ 	bool
++	select SERIAL_SIFIVE
+ 	default y
+diff --git a/platform/nuclei/ux600/Kconfig b/platform/nuclei/ux600/Kconfig
+index bb8410f..c4da266 100644
+--- a/platform/nuclei/ux600/Kconfig
++++ b/platform/nuclei/ux600/Kconfig
+@@ -2,4 +2,5 @@
+ 
+ config PLATFORM_NUCLEI_UX600
+ 	bool
++	select SERIAL_SIFIVE
+ 	default y
+diff --git a/platform/template/Kconfig b/platform/template/Kconfig
+index bd95ea0..e01fb31 100644
+--- a/platform/template/Kconfig
++++ b/platform/template/Kconfig
+@@ -2,4 +2,5 @@
+ 
+ config PLATFORM_TEMPLATE
+ 	bool
++	select SERIAL_UART8250
+ 	default y
 -- 
 2.34.1
 
