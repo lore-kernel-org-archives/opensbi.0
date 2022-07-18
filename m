@@ -1,708 +1,323 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 18 Jul 2022 18:12:09 +0530
-Subject: [PATCH 13/14] platform: Remove redundant config.mk from all platforms
-In-Reply-To: <20220718124210.2177576-1-apatel@ventanamicro.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Mon, 18 Jul 2022 14:51:51 +0100
+Subject: [PATCH 01/14] Makefile: Add initial kconfig support for each
+ platform
+In-Reply-To: <20220718124210.2177576-2-apatel@ventanamicro.com>
 References: <20220718124210.2177576-1-apatel@ventanamicro.com>
-Message-ID: <20220718124210.2177576-14-apatel@ventanamicro.com>
+ <20220718124210.2177576-2-apatel@ventanamicro.com>
+Message-ID: <86B07F7B-2C14-4AFE-AC3D-934DE6F22F5B@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The options defined in config.mk can be specified in objects.mk of each
-platform so let us remove config.mk from all platforms.
+On 18 Jul 2022, at 13:41, Anup Patel <apatel@ventanamicro.com> wrote:
+> 
+> We extend the top-level makefile to allow kconfig based configuration
+> for each platform where each platform has it's own set of configs with
+> "defconfig" being the default config.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+> Kconfig                                   | 23 ++++++++++
+> Makefile                                  | 54 +++++++++++++++++++++--
+> firmware/Kconfig                          |  1 +
+> lib/utils/Kconfig                         |  1 +
+> platform/andes/ae350/Kconfig              |  5 +++
+> platform/andes/ae350/configs/defconfig    |  0
+> platform/fpga/ariane/Kconfig              |  5 +++
+> platform/fpga/ariane/configs/defconfig    |  0
+> platform/fpga/openpiton/Kconfig           |  5 +++
+> platform/fpga/openpiton/configs/defconfig |  0
+> platform/generic/Kconfig                  |  5 +++
+> platform/generic/configs/defconfig        |  0
+> platform/kendryte/k210/Kconfig            |  5 +++
+> platform/kendryte/k210/configs/defconfig  |  0
+> platform/nuclei/ux600/Kconfig             |  5 +++
+> platform/nuclei/ux600/configs/defconfig   |  0
+> platform/template/Kconfig                 |  5 +++
+> platform/template/configs/defconfig       |  0
+> 18 files changed, 111 insertions(+), 3 deletions(-)
+> create mode 100644 Kconfig
+> create mode 100644 firmware/Kconfig
+> create mode 100644 lib/utils/Kconfig
+> create mode 100644 platform/andes/ae350/Kconfig
+> create mode 100644 platform/andes/ae350/configs/defconfig
+> create mode 100644 platform/fpga/ariane/Kconfig
+> create mode 100644 platform/fpga/ariane/configs/defconfig
+> create mode 100644 platform/fpga/openpiton/Kconfig
+> create mode 100644 platform/fpga/openpiton/configs/defconfig
+> create mode 100644 platform/generic/Kconfig
+> create mode 100644 platform/generic/configs/defconfig
+> create mode 100644 platform/kendryte/k210/Kconfig
+> create mode 100644 platform/kendryte/k210/configs/defconfig
+> create mode 100644 platform/nuclei/ux600/Kconfig
+> create mode 100644 platform/nuclei/ux600/configs/defconfig
+> create mode 100644 platform/template/Kconfig
+> create mode 100644 platform/template/configs/defconfig
+> 
+> diff --git a/Kconfig b/Kconfig
+> new file mode 100644
+> index 0000000..b8615d2
+> --- /dev/null
+> +++ b/Kconfig
+> @@ -0,0 +1,23 @@
+> +# SPDX-License-Identifier: GPL-2.0
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- Makefile                           |  4 +-
- platform/andes/ae350/config.mk     | 36 --------------
- platform/andes/ae350/objects.mk    | 29 +++++++++++
- platform/fpga/ariane/config.mk     | 36 --------------
- platform/fpga/ariane/objects.mk    | 35 ++++++++++++++
- platform/fpga/openpiton/config.mk  | 35 --------------
- platform/fpga/openpiton/objects.mk | 35 ++++++++++++++
- platform/generic/config.mk         | 40 ----------------
- platform/generic/objects.mk        | 33 +++++++++++++
- platform/kendryte/k210/config.mk   | 19 --------
- platform/kendryte/k210/objects.mk  | 12 +++++
- platform/nuclei/ux600/config.mk    | 30 ------------
- platform/nuclei/ux600/objects.mk   | 22 +++++++++
- platform/template/config.mk        | 77 ------------------------------
- platform/template/objects.mk       | 72 ++++++++++++++++++++++++++++
- platform/template/platform.c       |  2 +-
- 16 files changed, 240 insertions(+), 277 deletions(-)
- delete mode 100644 platform/andes/ae350/config.mk
- delete mode 100644 platform/fpga/ariane/config.mk
- delete mode 100644 platform/fpga/openpiton/config.mk
- delete mode 100644 platform/generic/config.mk
- delete mode 100644 platform/kendryte/k210/config.mk
- delete mode 100644 platform/nuclei/ux600/config.mk
- delete mode 100644 platform/template/config.mk
+GPL in OpenSBI? I suspect you blindly copied this boilerplate from
+Linux (and repeated it everywhere)?..
 
-diff --git a/Makefile b/Makefile
-index 5fc67db..a6475a7 100644
---- a/Makefile
-+++ b/Makefile
-@@ -203,7 +203,7 @@ firmware-object-mks=$(shell if [ -d $(firmware_dir) ]; then find $(firmware_dir)
- .PHONY: all
- all:
- 
--# Include platform specific .config and config.mk
-+# Include platform specific .config
- ifdef PLATFORM
- .PHONY: menuconfig
- menuconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
-@@ -226,8 +226,6 @@ $(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(platform_
- $(KCONFIG_AUTOCONF_CMD): $(KCONFIG_CONFIG)
- include $(KCONFIG_CONFIG)
- include $(KCONFIG_AUTOCONF_CMD)
--
--include $(platform_src_dir)/config.mk
- endif
- 
- # Include all object.mk files
-diff --git a/platform/andes/ae350/config.mk b/platform/andes/ae350/config.mk
-deleted file mode 100644
-index f555ef5..0000000
---- a/platform/andes/ae350/config.mk
-+++ /dev/null
-@@ -1,36 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Andes Technology Corporation
--#
--# Authors:
--#   Zong Li <zong@andestech.com>
--#   Nylon Chen <nylon7@andestech.com>
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Blobs to build
--FW_TEXT_START=0x00000000
--
--FW_DYNAMIC=y
--
--FW_JUMP=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  FW_JUMP_ADDR=0x400000
--else
--  FW_JUMP_ADDR=0x200000
--endif
--FW_JUMP_FDT_ADDR=0x2000000
--
--FW_PAYLOAD=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  FW_PAYLOAD_OFFSET=0x400000
--else
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--
--FW_PAYLOAD_FDT_ADDR=0x2000000
-diff --git a/platform/andes/ae350/objects.mk b/platform/andes/ae350/objects.mk
-index 5369677..80f0737 100644
---- a/platform/andes/ae350/objects.mk
-+++ b/platform/andes/ae350/objects.mk
-@@ -8,4 +8,33 @@
- #   Nylon Chen <nylon7@andestech.com>
- #
- 
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Objects to build
- platform-objs-y += cache.o platform.o plicsw.o plmt.o
-+
-+# Blobs to build
-+FW_TEXT_START=0x00000000
-+
-+FW_DYNAMIC=y
-+
-+FW_JUMP=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  FW_JUMP_ADDR=0x400000
-+else
-+  FW_JUMP_ADDR=0x200000
-+endif
-+FW_JUMP_FDT_ADDR=0x2000000
-+
-+FW_PAYLOAD=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+
-+FW_PAYLOAD_FDT_ADDR=0x2000000
-diff --git a/platform/fpga/ariane/config.mk b/platform/fpga/ariane/config.mk
-deleted file mode 100644
-index 3556461..0000000
---- a/platform/fpga/ariane/config.mk
-+++ /dev/null
-@@ -1,36 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (C) 2019 FORTH-ICS/CARV
--#		Panagiotis Peristerakis <perister@ics.forth.gr>
--#
--
--#for more infos, check out /platform/template/config.mk
--
--PLATFORM_RISCV_XLEN = 64
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_JUMP=n
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
-- # This needs to be 4MB aligned for 32-bit support
-- FW_JUMP_ADDR=0x80400000
-- else
-- # This needs to be 2MB aligned for 64-bit support
-- FW_JUMP_ADDR=0x80200000
-- endif
--FW_JUMP_FDT_ADDR=0x82200000
--
--# Firmware with payload configuration.
--FW_PAYLOAD=y
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--# This needs to be 4MB aligned for 32-bit support
--  FW_PAYLOAD_OFFSET=0x400000
--else
--# This needs to be 2MB aligned for 64-bit support
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=0x82200000
--FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/fpga/ariane/objects.mk b/platform/fpga/ariane/objects.mk
-index 814e6da..83581ac 100644
---- a/platform/fpga/ariane/objects.mk
-+++ b/platform/fpga/ariane/objects.mk
-@@ -5,4 +5,39 @@
- #		Panagiotis Peristerakis <perister@ics.forth.gr>
- #
- 
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Object to build
- platform-objs-y += platform.o
-+
-+PLATFORM_RISCV_XLEN = 64
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_JUMP=n
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+ # This needs to be 4MB aligned for 32-bit support
-+ FW_JUMP_ADDR=0x80400000
-+ else
-+ # This needs to be 2MB aligned for 64-bit support
-+ FW_JUMP_ADDR=0x80200000
-+ endif
-+FW_JUMP_FDT_ADDR=0x82200000
-+
-+# Firmware with payload configuration.
-+FW_PAYLOAD=y
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+# This needs to be 4MB aligned for 32-bit support
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+# This needs to be 2MB aligned for 64-bit support
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+FW_PAYLOAD_FDT_ADDR=0x82200000
-+FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/fpga/openpiton/config.mk b/platform/fpga/openpiton/config.mk
-deleted file mode 100644
-index a969b25..0000000
---- a/platform/fpga/openpiton/config.mk
-+++ /dev/null
-@@ -1,35 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2020 Western Digital Corporation or its affiliates.
--#
--
--#for more infos, check out /platform/template/config.mk
--
--PLATFORM_RISCV_XLEN = 64
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_JUMP=n
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
-- # This needs to be 4MB aligned for 32-bit support
-- FW_JUMP_ADDR=0x80400000
-- else
-- # This needs to be 2MB aligned for 64-bit support
-- FW_JUMP_ADDR=0x80200000
-- endif
--FW_JUMP_FDT_ADDR=0x82200000
--
--# Firmware with payload configuration.
--FW_PAYLOAD=y
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--# This needs to be 4MB aligned for 32-bit support
--  FW_PAYLOAD_OFFSET=0x400000
--else
--# This needs to be 2MB aligned for 64-bit support
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=0x82200000
--FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/fpga/openpiton/objects.mk b/platform/fpga/openpiton/objects.mk
-index 30a3c4f..c8c345a 100644
---- a/platform/fpga/openpiton/objects.mk
-+++ b/platform/fpga/openpiton/objects.mk
-@@ -4,4 +4,39 @@
- # Copyright (c) 2020 Western Digital Corporation or its affiliates.
- #
- 
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Objects to build
- platform-objs-y += platform.o
-+
-+PLATFORM_RISCV_XLEN = 64
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_JUMP=n
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+ # This needs to be 4MB aligned for 32-bit support
-+ FW_JUMP_ADDR=0x80400000
-+ else
-+ # This needs to be 2MB aligned for 64-bit support
-+ FW_JUMP_ADDR=0x80200000
-+ endif
-+FW_JUMP_FDT_ADDR=0x82200000
-+
-+# Firmware with payload configuration.
-+FW_PAYLOAD=y
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+# This needs to be 4MB aligned for 32-bit support
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+# This needs to be 2MB aligned for 64-bit support
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+FW_PAYLOAD_FDT_ADDR=0x82200000
-+FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/generic/config.mk b/platform/generic/config.mk
-deleted file mode 100644
-index 8151974..0000000
---- a/platform/generic/config.mk
-+++ /dev/null
-@@ -1,40 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2020 Western Digital Corporation or its affiliates.
--#
--# Authors:
--#   Anup Patel <anup.patel@wdc.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Command for platform specific "make run"
--platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
--  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_DYNAMIC=y
--FW_JUMP=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  # This needs to be 4MB aligned for 32-bit system
--  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
--else
--  # This needs to be 2MB aligned for 64-bit system
--  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
--endif
--FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
--FW_PAYLOAD=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  # This needs to be 4MB aligned for 32-bit system
--  FW_PAYLOAD_OFFSET=0x400000
--else
--  # This needs to be 2MB aligned for 64-bit system
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index 4907754..136853e 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -7,5 +7,38 @@
- #   Anup Patel <anup.patel@wdc.com>
- #
- 
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Command for platform specific "make run"
-+platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
-+  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
-+
-+# Objects to build
- platform-objs-y += platform.o
- platform-objs-y += platform_override_modules.o
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_DYNAMIC=y
-+FW_JUMP=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  # This needs to be 4MB aligned for 32-bit system
-+  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
-+else
-+  # This needs to be 2MB aligned for 64-bit system
-+  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
-+endif
-+FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
-+FW_PAYLOAD=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  # This needs to be 4MB aligned for 32-bit system
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+  # This needs to be 2MB aligned for 64-bit system
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
-diff --git a/platform/kendryte/k210/config.mk b/platform/kendryte/k210/config.mk
-deleted file mode 100644
-index 8a9b814..0000000
---- a/platform/kendryte/k210/config.mk
-+++ /dev/null
-@@ -1,19 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Western Digital Corporation or its affiliates.
--#
--# Authors:
--#   Damien Le Moal <damien.lemoal@wdc.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_PAYLOAD=y
--FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/kendryte/k210/objects.mk b/platform/kendryte/k210/objects.mk
-index b74da74..1bfb898 100644
---- a/platform/kendryte/k210/objects.mk
-+++ b/platform/kendryte/k210/objects.mk
-@@ -7,8 +7,20 @@
- #   Damien Le Moal <damien.lemoal@wdc.com>
- #
- 
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Objects to build
- platform-objs-y += platform.o
- 
- platform-objs-y += k210.o
- platform-varprefix-k210.o = dt_k210
- platform-padding-k210.o = 2048
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_PAYLOAD=y
-+FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/nuclei/ux600/config.mk b/platform/nuclei/ux600/config.mk
-deleted file mode 100644
-index dddcc4e..0000000
---- a/platform/nuclei/ux600/config.mk
-+++ /dev/null
-@@ -1,30 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2020 Nuclei Corporation or its affiliates.
--#
--# Authors:
--#   lujun <lujun@nucleisys.com>
--#   hqfang <578567190@qq.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Command for platform specific "make run"
--platform-runcmd = xl_spike \
--  $(build_dir)/platform/nuclei/ux600/firmware/fw_payload.elf
--
--# Blobs to build
--FW_TEXT_START=0xA0000000
--FW_DYNAMIC=y
--FW_JUMP=y
--
--FW_JUMP_ADDR=0xA0200000
--FW_JUMP_FDT_ADDR=0xA8000000
--FW_PAYLOAD=y
--FW_PAYLOAD_OFFSET=0x200000
--FW_PAYLOAD_FDT_ADDR=0xA8000000
-diff --git a/platform/nuclei/ux600/objects.mk b/platform/nuclei/ux600/objects.mk
-index 8c36c90..7c429e0 100644
---- a/platform/nuclei/ux600/objects.mk
-+++ b/platform/nuclei/ux600/objects.mk
-@@ -8,4 +8,26 @@
- #   hqfang <578567190@qq.com>
- #
- 
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Command for platform specific "make run"
-+platform-runcmd = xl_spike \
-+  $(build_dir)/platform/nuclei/ux600/firmware/fw_payload.elf
-+
-+# Objects to build
- platform-objs-y += platform.o
-+
-+# Blobs to build
-+FW_TEXT_START=0xA0000000
-+FW_DYNAMIC=y
-+FW_JUMP=y
-+
-+FW_JUMP_ADDR=0xA0200000
-+FW_JUMP_FDT_ADDR=0xA8000000
-+FW_PAYLOAD=y
-+FW_PAYLOAD_OFFSET=0x200000
-+FW_PAYLOAD_FDT_ADDR=0xA8000000
-diff --git a/platform/template/config.mk b/platform/template/config.mk
-deleted file mode 100644
-index f817342..0000000
---- a/platform/template/config.mk
-+++ /dev/null
-@@ -1,77 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Western Digital Corporation or its affiliates.
--#
--
--# Compiler pre-processor flags
--platform-cppflags-y =
--
--# C Compiler and assembler flags.
--platform-cflags-y =
--platform-asflags-y =
--
--# Linker flags: additional libraries and object files that the platform
--# code needs can be added here
--platform-ldflags-y =
--
--#
--# Command for platform specific "make run"
--# Useful for development and debugging on plaftform simulator (such as QEMU)
--#
--# platform-runcmd = your_platform_run.sh
--
--#
--# Platform RISC-V XLEN, ABI, ISA and Code Model configuration.
--# These are optional parameters but platforms can optionaly provide it.
--# Some of these are guessed based on GCC compiler capabilities
--#
--# PLATFORM_RISCV_XLEN = 64
--# PLATFORM_RISCV_ABI = lp64
--# PLATFORM_RISCV_ISA = rv64imafdc
--# PLATFORM_RISCV_CODE_MODEL = medany
--
--# Firmware load address configuration. This is mandatory.
--FW_TEXT_START=0x80000000
--
--# Optional parameter for path to external FDT
--# FW_FDT_PATH="path to platform flattened device tree file"
--
--#
--# Dynamic firmware configuration.
--# Optional parameters are commented out. Uncomment and define these parameters
--# as needed.
--#
--FW_DYNAMIC=<y|n>
--
--#
--# Jump firmware configuration.
--# Optional parameters are commented out. Uncomment and define these parameters
--# as needed.
--#
--FW_JUMP=<y|n>
--# This needs to be 4MB aligned for 32-bit support
--# This needs to be 2MB aligned for 64-bit support
--# ifeq ($(PLATFORM_RISCV_XLEN), 32)
--# FW_JUMP_ADDR=0x80400000
--# else
--# FW_JUMP_ADDR=0x80200000
--# endif
--# FW_JUMP_FDT_ADDR=0x82200000
--
--#
--# Firmware with payload configuration.
--# Optional parameters are commented out. Uncomment and define these parameters
--# as needed.
--#
--FW_PAYLOAD=<y|n>
--# This needs to be 4MB aligned for 32-bit support
--# This needs to be 2MB aligned for 64-bit support
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--FW_PAYLOAD_OFFSET=0x400000
--else
--FW_PAYLOAD_OFFSET=0x200000
--endif
--# FW_PAYLOAD_ALIGN=0x1000
--# FW_PAYLOAD_PATH="path to next boot stage binary image file"
--# FW_PAYLOAD_FDT_ADDR=0x82200000
-diff --git a/platform/template/objects.mk b/platform/template/objects.mk
-index caaec2b..0025928 100644
---- a/platform/template/objects.mk
-+++ b/platform/template/objects.mk
-@@ -4,6 +4,33 @@
- # Copyright (c) 2019 Western Digital Corporation or its affiliates.
- #
- 
-+# Compiler pre-processor flags
-+platform-cppflags-y =
-+
-+# C Compiler and assembler flags.
-+platform-cflags-y =
-+platform-asflags-y =
-+
-+# Linker flags: additional libraries and object files that the platform
-+# code needs can be added here
-+platform-ldflags-y =
-+
-+#
-+# Command for platform specific "make run"
-+# Useful for development and debugging on plaftform simulator (such as QEMU)
-+#
-+# platform-runcmd = your_platform_run.sh
-+
-+#
-+# Platform RISC-V XLEN, ABI, ISA and Code Model configuration.
-+# These are optional parameters but platforms can optionaly provide it.
-+# Some of these are guessed based on GCC compiler capabilities
-+#
-+# PLATFORM_RISCV_XLEN = 64
-+# PLATFORM_RISCV_ABI = lp64
-+# PLATFORM_RISCV_ISA = rv64imafdc
-+# PLATFORM_RISCV_CODE_MODEL = medany
-+
- # Space separated list of object file names to be compiled for the platform
- platform-objs-y += platform.o
- 
-@@ -13,3 +40,48 @@ platform-objs-y += platform.o
- # source file be in the form <dt file name>.dts
- #
- # platform-objs-y += <dt file name>.o
-+
-+# Firmware load address configuration. This is mandatory.
-+FW_TEXT_START=0x80000000
-+
-+# Optional parameter for path to external FDT
-+# FW_FDT_PATH="path to platform flattened device tree file"
-+
-+#
-+# Dynamic firmware configuration.
-+# Optional parameters are commented out. Uncomment and define these parameters
-+# as needed.
-+#
-+FW_DYNAMIC=<y|n>
-+
-+#
-+# Jump firmware configuration.
-+# Optional parameters are commented out. Uncomment and define these parameters
-+# as needed.
-+#
-+FW_JUMP=<y|n>
-+# This needs to be 4MB aligned for 32-bit support
-+# This needs to be 2MB aligned for 64-bit support
-+# ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+# FW_JUMP_ADDR=0x80400000
-+# else
-+# FW_JUMP_ADDR=0x80200000
-+# endif
-+# FW_JUMP_FDT_ADDR=0x82200000
-+
-+#
-+# Firmware with payload configuration.
-+# Optional parameters are commented out. Uncomment and define these parameters
-+# as needed.
-+#
-+FW_PAYLOAD=<y|n>
-+# This needs to be 4MB aligned for 32-bit support
-+# This needs to be 2MB aligned for 64-bit support
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+FW_PAYLOAD_OFFSET=0x400000
-+else
-+FW_PAYLOAD_OFFSET=0x200000
-+endif
-+# FW_PAYLOAD_ALIGN=0x1000
-+# FW_PAYLOAD_PATH="path to next boot stage binary image file"
-+# FW_PAYLOAD_FDT_ADDR=0x82200000
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index 5524847..f3802da 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -11,7 +11,7 @@
- 
- /*
-  * Include these files as needed.
-- * See config.mk PLATFORM_xxx configuration parameters.
-+ * See objects.mk PLATFORM_xxx configuration parameters.
-  */
- #include <sbi_utils/ipi/aclint_mswi.h>
- #include <sbi_utils/irqchip/plic.h>
--- 
-2.34.1
+Jess
+
+> +mainmenu "OpenSBI $OPENSBI_PLATFORM Configuration"
+> +
+> +config OPENSBI_SRC_DIR
+> +	string
+> +	option env="OPENSBI_SRC_DIR"
+> +
+> +config OPENSBI_PLATFORM
+> +	string
+> +	option env="OPENSBI_PLATFORM"
+> +
+> +config OPENSBI_PLATFORM_SRC_DIR
+> +	string
+> +	option env="OPENSBI_PLATFORM_SRC_DIR"
+> +
+> +menu "Platform Options"
+> +source "$OPENSBI_PLATFORM_SRC_DIR/Kconfig"
+> +endmenu
+> +
+> +source "$OPENSBI_SRC_DIR/lib/utils/Kconfig"
+> +
+> +source "$OPENSBI_SRC_DIR/firmware/Kconfig"
+> diff --git a/Makefile b/Makefile
+> index f619ef7..46c7c1c 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -52,6 +52,9 @@ ifdef PLATFORM_DIR
+> else
+>  platform_parent_dir=$(src_dir)/platform
+> endif
+> +ifndef PLATFORM_DEFCONFIG
+> +PLATFORM_DEFCONFIG=defconfig
+> +endif
+> 
+> # Check if verbosity is ON for build process
+> CMD_PREFIX_DEFAULT := @
+> @@ -70,6 +73,19 @@ export libsbi_dir=$(CURDIR)/lib/sbi
+> export libsbiutils_dir=$(CURDIR)/lib/utils
+> export firmware_dir=$(CURDIR)/firmware
+> 
+> +# Setup variables for kconfig-frontends
+> +ifdef PLATFORM
+> +export KCONFIG_CONFIG=$(platform_build_dir)/.config
+> +export KCONFIG_AUTOCONFIG=$(platform_build_dir)/auto.conf
+> +export KCONFIG_TRISTATE=$(platform_build_dir)/tristate.conf
+> +export KCONFIG_AUTOHEADER=$(platform_build_dir)/autoconf.h
+> +export KCONFIG_AUTOCONF_CMD=$(platform_build_dir)/include/config/auto.conf.cmd
+> +# Additional exports for include paths in Kconfig files
+> +export OPENSBI_SRC_DIR=$(src_dir)
+> +export OPENSBI_PLATFORM=$(PLATFORM)
+> +export OPENSBI_PLATFORM_SRC_DIR=$(platform_src_dir)
+> +endif
+> +
+> # Find library version
+> OPENSBI_VERSION_MAJOR=`grep "define OPENSBI_VERSION_MAJOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MAJOR.*\([0-9][0-9]*\)/\1/'`
+> OPENSBI_VERSION_MINOR=`grep "define OPENSBI_VERSION_MINOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MINOR.*\([0-9][0-9]*\)/\1/'`
+> @@ -183,8 +199,34 @@ libsbi-object-mks=$(shell if [ -d $(libsbi_dir) ]; then find $(libsbi_dir) -inam
+> libsbiutils-object-mks=$(shell if [ -d $(libsbiutils_dir) ]; then find $(libsbiutils_dir) -iname "objects.mk" | sort -r; fi)
+> firmware-object-mks=$(shell if [ -d $(firmware_dir) ]; then find $(firmware_dir) -iname "objects.mk" | sort -r; fi)
+> 
+> -# Include platform specifig config.mk
+> +# The "make all" rule should always be first rule
+> +.PHONY: all
+> +all:
+> +
+> +# Include platform specific .config and config.mk
+> ifdef PLATFORM
+> +.PHONY: menuconfig
+> +menuconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
+> +	$(CMD_PREFIX)mkdir -p `dirname $(KCONFIG_CONFIG)`
+> +	$(CMD_PREFIX)mkdir -p `dirname $(KCONFIG_AUTOCONF_CMD)`
+> +	$(CMD_PREFIX)kconfig-mconf $(src_dir)/Kconfig
+> +	$(CMD_PREFIX)cd $(platform_build_dir) && kconfig-conf --silentoldconfig $(src_dir)/Kconfig
+> +
+> +.PHONY: savedefconfig
+> +savedefconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
+> +	$(CMD_PREFIX)mkdir -p `dirname $(KCONFIG_CONFIG)`
+> +	$(CMD_PREFIX)mkdir -p `dirname $(KCONFIG_AUTOCONF_CMD)`
+> +	$(CMD_PREFIX)kconfig-conf --savedefconfig `dirname $(KCONFIG_CONFIG)`/defconfig $(src_dir)/Kconfig
+> +
+> +$(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
+> +	$(CMD_PREFIX)mkdir -p `dirname $(KCONFIG_CONFIG)`
+> +	$(CMD_PREFIX)mkdir -p `dirname $(KCONFIG_AUTOCONF_CMD)`
+> +	$(CMD_PREFIX)cp -f $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(KCONFIG_CONFIG)
+> +	$(CMD_PREFIX)cd $(platform_build_dir) && kconfig-conf --silentoldconfig --olddefconfig $(src_dir)/Kconfig
+> +$(KCONFIG_AUTOCONF_CMD): $(KCONFIG_CONFIG)
+> +include $(KCONFIG_CONFIG)
+> +include $(KCONFIG_AUTOCONF_CMD)
+> +
+> include $(platform_src_dir)/config.mk
+> endif
+> 
+> @@ -280,6 +322,9 @@ ifeq ($(BUILD_INFO),y)
+> GENFLAGS	+=	-DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
+> GENFLAGS	+=	-DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
+> endif
+> +ifdef PLATFORM
+> +GENFLAGS	+=	-include $(KCONFIG_AUTOHEADER)
+> +endif
+> GENFLAGS	+=	$(libsbiutils-genflags-y)
+> GENFLAGS	+=	$(platform-genflags-y)
+> GENFLAGS	+=	$(firmware-genflags-y)
+> @@ -419,7 +464,7 @@ targets-y += $(platform_build_dir)/lib/libplatsbi.a
+> endif
+> targets-y += $(firmware-bins-path-y)
+> 
+> -# Default rule "make" should always be first rule
+> +# The default "make all" rule
+> .PHONY: all
+> all: $(targets-y)
+> 
+> @@ -456,7 +501,7 @@ $(build_dir)/%.o: $(src_dir)/%.S
+> 	$(call compile_as,$@,$<)
+> 
+> $(build_dir)/%.dep: $(src_dir)/%.carray
+> -	$(call compile_gen_dep,$@,.c,$<)
+> +	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
+> 	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
+> 
+> $(build_dir)/%.c: $(src_dir)/%.carray
+> @@ -523,6 +568,9 @@ docs: $(build_dir)/docs/latex/refman.pdf
+> # They should not be included for any "xxxconfig" or "xxxclean" rule
+> all-deps-1 = $(if $(findstring config,$(MAKECMDGOALS)),,$(deps-y))
+> all-deps-2 = $(if $(findstring clean,$(MAKECMDGOALS)),,$(all-deps-1))
+> +ifdef PLATFORM
+> +$(all-deps-2): | $(KCONFIG_CONFIG)
+> +endif
+> -include $(all-deps-2)
+> 
+> # Include external dependency of firmwares after default Makefile rules
+> diff --git a/firmware/Kconfig b/firmware/Kconfig
+> new file mode 100644
+> index 0000000..f66554c
+> --- /dev/null
+> +++ b/firmware/Kconfig
+> @@ -0,0 +1 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
+> new file mode 100644
+> index 0000000..f66554c
+> --- /dev/null
+> +++ b/lib/utils/Kconfig
+> @@ -0,0 +1 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
+> new file mode 100644
+> index 0000000..349c1d3
+> --- /dev/null
+> +++ b/platform/andes/ae350/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_ANDES_AE350
+> +	bool
+> +	default y
+> diff --git a/platform/andes/ae350/configs/defconfig b/platform/andes/ae350/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/fpga/ariane/Kconfig b/platform/fpga/ariane/Kconfig
+> new file mode 100644
+> index 0000000..26f9beb
+> --- /dev/null
+> +++ b/platform/fpga/ariane/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_ARIANE_FPGA
+> +	bool
+> +	default y
+> diff --git a/platform/fpga/ariane/configs/defconfig b/platform/fpga/ariane/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/fpga/openpiton/Kconfig b/platform/fpga/openpiton/Kconfig
+> new file mode 100644
+> index 0000000..8bfa85a
+> --- /dev/null
+> +++ b/platform/fpga/openpiton/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_OPENPITON_FPGA
+> +	bool
+> +	default y
+> diff --git a/platform/fpga/openpiton/configs/defconfig b/platform/fpga/openpiton/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+> new file mode 100644
+> index 0000000..a811a05
+> --- /dev/null
+> +++ b/platform/generic/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_GENERIC
+> +	bool
+> +	default y
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/kendryte/k210/Kconfig b/platform/kendryte/k210/Kconfig
+> new file mode 100644
+> index 0000000..726423a
+> --- /dev/null
+> +++ b/platform/kendryte/k210/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_KENDRYTE_K210
+> +	bool
+> +	default y
+> diff --git a/platform/kendryte/k210/configs/defconfig b/platform/kendryte/k210/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/nuclei/ux600/Kconfig b/platform/nuclei/ux600/Kconfig
+> new file mode 100644
+> index 0000000..bb8410f
+> --- /dev/null
+> +++ b/platform/nuclei/ux600/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_NUCLEI_UX600
+> +	bool
+> +	default y
+> diff --git a/platform/nuclei/ux600/configs/defconfig b/platform/nuclei/ux600/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/template/Kconfig b/platform/template/Kconfig
+> new file mode 100644
+> index 0000000..bd95ea0
+> --- /dev/null
+> +++ b/platform/template/Kconfig
+> @@ -0,0 +1,5 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +config PLATFORM_TEMPLATE
+> +	bool
+> +	default y
+> diff --git a/platform/template/configs/defconfig b/platform/template/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> -- 
+> 2.34.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
