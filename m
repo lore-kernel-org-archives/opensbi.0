@@ -1,16 +1,48 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Tue, 19 Jul 2022 09:02:35 +0200
+Date: Tue, 19 Jul 2022 09:10:29 +0200
 Subject: [PATCH 1/2] lib: sbi: Add the bound check for firmware events
 In-Reply-To: <20220718200458.3015600-1-atishp@rivosinc.com>
 References: <20220718200458.3015600-1-atishp@rivosinc.com>
-Message-ID: <20220719070235.yzfne4bwamh7a43n@kamzik>
+Message-ID: <20220719071029.te2tqptafw7kilxm@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 18, 2022 at 01:04:57PM -0700, Atish Patra wrote:
+
+Hi Atish,
+
+Top posting because there's no cover letter to reply to. While reviewing
+for this patch I see another buffer overrun possibility in
+pmu_ctr_validate()
+
+static int pmu_ctr_validate(uint32_t cidx, uint32_t *event_idx_code)
+{
+        uint32_t event_idx_val;
+        uint32_t event_idx_type;
+        u32 hartid = current_hartid();
+
+        event_idx_val = active_events[hartid][cidx]; <--- Here, because...
+
+...we have...
+
+int sbi_pmu_ctr_read(uint32_t cidx, unsigned long *cval)
+{
+        int event_idx_type;
+        uint32_t event_code;
+        uint64_t cval64;
+
+        event_idx_type = pmu_ctr_validate(cidx, &event_code);
+
+...where sbi_pmu_ctr_read() is called directly from the ecall handler
+passing a0 for cidx.
+
+Thanks,
+drew
+
+
+On Mon, Jul 18, 2022@01:04:57PM -0700, Atish Patra wrote:
 > Currently, there is no sanity check for firmware event code. We don't see
 > any issue as Linux kernel driver does a bound check on firmware events
 > already. However, OpenSBI can't assume sane supervisor mode software
@@ -34,26 +66,6 @@ On Mon, Jul 18, 2022 at 01:04:57PM -0700, Atish Patra wrote:
 > +	if ((event_idx_type == SBI_PMU_EVENT_TYPE_FW) &&
 > +	    (*event_idx_code >= SBI_PMU_FW_MAX))
 > +		return SBI_EINVAL;
-
-I think it would be better to only write *event_idx_code if we know
-it's valid. Actually, maybe at the start of pmu_ctr_validate() we
-should initialize it to something we know is invalid and then at the
-bottom write it after we're sure we have something worth writing.
-
-If pmu_ctr_validate() should be used to validate all event types, then
-shouldn't we have a switch here, something like...
-
-  switch (event_idx_type) {
-  case SBI_PMU_EVENT_TYPE_HW:
-    if (code >= SBI_PMU_HW_MAX)
-        return SBI_EINVAL;
-    break;
-  case SBI_PMU_EVENT_TYPE_HW_CACHE:
-    if (code >= SBI_PMU_HW_CACHE_MAX)
-        return SBI_EINVAL;
-    break;
-  ...
-
 >  
 >  	return event_idx_type;
 >  }
@@ -63,10 +75,6 @@ shouldn't we have a switch here, something like...
 >  		fw_evt_code = get_cidx_code(event_idx);
 > +		if (unlikely(fw_evt_code >= SBI_PMU_FW_MAX))
 > +			return SBI_ENOTSUPP;
-
-Validation buried down here is a bit scary. It would be much nicer if we
-could pull all the validation up to the ecall entry points.
-
 >  		fevent = &fw_event_map[hartid][fw_evt_code];
 >  		if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
 >  			fevent->curr_count = 0;
@@ -76,13 +84,6 @@ could pull all the validation up to the ecall entry points.
 >  		active_events[hartid][j] = SBI_PMU_EVENT_IDX_INVALID;
 > -	for (j = 0; j < SBI_PMU_FW_CTR_MAX; j++)
 > +	for (j = 0; j < SBI_PMU_FW_EVENT_MAX; j++)
-
-This change is not related to what the commit message is talking about,
-so it belongs in a separate patch.
-
-Thanks,
-drew
-
 >  		sbi_memset(&fw_event_map[hartid][j], 0,
 >  			   sizeof(struct sbi_pmu_fw_event));
 >  }
