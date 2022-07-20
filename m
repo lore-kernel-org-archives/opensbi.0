@@ -1,74 +1,74 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 20 Jul 2022 10:09:45 +0530
-Subject: [PATCH v2] lib: sbi_hart: Shorten the code to set MPV bit
-In-Reply-To: <20220714172941.2967-1-vivahavey@gmail.com>
-References: <20220714172941.2967-1-vivahavey@gmail.com>
-Message-ID: <CAAhSdy14uN93KeW5U79KNUeOYf3fHAf_NKKUmG12mOv8793LuA@mail.gmail.com>
+Date: Wed, 20 Jul 2022 10:12:49 +0530
+Subject: [PATCH v3] lib: utils/serial: Update Shakti UART based on latest implementation
+In-Reply-To: <20220708115244.556074-1-apatel@ventanamicro.com>
+References: <20220708115244.556074-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy1PGGVHcbEgNr3vhOntLyoGqXZH-_qz3WkfnEC_Muezzw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 14, 2022 at 11:00 PM gagachang <vivahavey@gmail.com> wrote:
+On Fri, Jul 8, 2022 at 5:23 PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> MPV bit is set when the value of next_virt boolean variable equals
-> true. Since the value of next_virt is either 0 or 1, we can set
-> MPV bit without if-else logic.
+> From: Prasanna T <ptprasanna@gmail.com>
 >
-> Signed-off-by: Che-Chia Chang <alvinga@andestech.com>
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> The age old version of Shakti UART was upgraded long back, but we missed
+> updating the driver in OpenSBI. The old version of UART is not supported
+> anymore, hence removed the inline comment which is also outdated now.
+>
+> Signed-off-by: Prasanna T <ptprasanna@gmail.com>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+@Prasanna, Please make sure that Shakti UART compatible string is
+documented in the upstream Linux kernel. This time it's okay since there
+is no HW with the old version of Shakti UART but subsequent changes to
+Shakti UART should require a new compatible string.
 
 Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
->
-> --
-> Change since v1:
-> - Drop the unnecessary brackets
 > ---
->  lib/sbi/sbi_hart.c | 13 +++----------
->  1 file changed, 3 insertions(+), 10 deletions(-)
+> Changes since v2:
+>  - Updated patch subject and description
+>  - Minor fix in shakti_uart_getc()
+> ---
+>  lib/utils/serial/shakti-uart.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index de86fee..67b685a 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -769,19 +769,12 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
->  #if __riscv_xlen == 32
->         if (misa_extension('H')) {
->                 valH = csr_read(CSR_MSTATUSH);
-> -               if (next_virt)
-> -                       valH = INSERT_FIELD(valH, MSTATUSH_MPV, 1);
-> -               else
-> -                       valH = INSERT_FIELD(valH, MSTATUSH_MPV, 0);
-> +               valH = INSERT_FIELD(valH, MSTATUSH_MPV, next_virt);
->                 csr_write(CSR_MSTATUSH, valH);
->         }
->  #else
-> -       if (misa_extension('H')) {
-> -               if (next_virt)
-> -                       val = INSERT_FIELD(val, MSTATUS_MPV, 1);
-> -               else
-> -                       val = INSERT_FIELD(val, MSTATUS_MPV, 0);
-> -       }
-> +       if (misa_extension('H'))
-> +               val = INSERT_FIELD(val, MSTATUS_MPV, next_virt);
->  #endif
->         csr_write(CSR_MSTATUS, val);
->         csr_write(CSR_MEPC, next_addr);
+> diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+> index 5f2fe75..3556935 100644
+> --- a/lib/utils/serial/shakti-uart.c
+> +++ b/lib/utils/serial/shakti-uart.c
+> @@ -19,21 +19,21 @@
+>  #define REG_RX_THRES   0x20
+>
+>  #define UART_TX_FULL  0x2
+> +#define UART_RX_NOT_EMPTY 0x4
+>  #define UART_RX_FULL  0x8
+>
+>  static volatile char *uart_base;
+>
+>  static void shakti_uart_putc(char ch)
+>  {
+> -       while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
+> +       while ((readb(uart_base + REG_STATUS) & UART_TX_FULL))
+>                 ;
+>         writeb(ch, uart_base + REG_TX);
+>  }
+>
+>  static int shakti_uart_getc(void)
+>  {
+> -       u16 status = readw(uart_base + REG_STATUS);
+> -       if (status & UART_RX_FULL)
+> +       if (readb(uart_base + REG_STATUS) & UART_RX_NOT_EMPTY)
+>                 return readb(uart_base + REG_RX);
+>         return -1;
+>  }
 > --
-> 2.25.1
+> 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
