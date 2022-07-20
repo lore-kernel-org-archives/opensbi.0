@@ -1,37 +1,74 @@
-From: Atish Patra <atishp@rivosinc.com>
-Date: Tue, 19 Jul 2022 15:46:15 -0700
-Subject: [PATCH v2  4/4] lib: sbi: Fix fw_event_map initialization
-In-Reply-To: <20220719224615.3080494-1-atishp@rivosinc.com>
-References: <20220719224615.3080494-1-atishp@rivosinc.com>
-Message-ID: <20220719224615.3080494-5-atishp@rivosinc.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 20 Jul 2022 10:09:45 +0530
+Subject: [PATCH v2] lib: sbi_hart: Shorten the code to set MPV bit
+In-Reply-To: <20220714172941.2967-1-vivahavey@gmail.com>
+References: <20220714172941.2967-1-vivahavey@gmail.com>
+Message-ID: <CAAhSdy14uN93KeW5U79KNUeOYf3fHAf_NKKUmG12mOv8793LuA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-fw_event_map represents array of firmware events. It should initialized
-for maximum number of firmware events not counters.
+On Thu, Jul 14, 2022 at 11:00 PM gagachang <vivahavey@gmail.com> wrote:
+>
+> MPV bit is set when the value of next_virt boolean variable equals
+> true. Since the value of next_virt is either 0 or 1, we can set
+> MPV bit without if-else logic.
+>
+> Signed-off-by: Che-Chia Chang <alvinga@andestech.com>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
-Signed-off-by: Atish Patra <atishp@rivosinc.com>
----
- lib/sbi/sbi_pmu.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Looks good to me.
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index a159d72ac6dc..a622054595c1 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -757,7 +757,7 @@ static void pmu_reset_event_map(u32 hartid)
- 	/* Initialize the counter to event mapping table */
- 	for (j = 3; j < total_ctrs; j++)
- 		active_events[hartid][j] = SBI_PMU_EVENT_IDX_INVALID;
--	for (j = 0; j < SBI_PMU_FW_CTR_MAX; j++)
-+	for (j = 0; j < SBI_PMU_FW_EVENT_MAX; j++)
- 		sbi_memset(&fw_event_map[hartid][j], 0,
- 			   sizeof(struct sbi_pmu_fw_event));
- }
--- 
-2.25.1
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+>
+> --
+> Change since v1:
+> - Drop the unnecessary brackets
+> ---
+>  lib/sbi/sbi_hart.c | 13 +++----------
+>  1 file changed, 3 insertions(+), 10 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index de86fee..67b685a 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -769,19 +769,12 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
+>  #if __riscv_xlen == 32
+>         if (misa_extension('H')) {
+>                 valH = csr_read(CSR_MSTATUSH);
+> -               if (next_virt)
+> -                       valH = INSERT_FIELD(valH, MSTATUSH_MPV, 1);
+> -               else
+> -                       valH = INSERT_FIELD(valH, MSTATUSH_MPV, 0);
+> +               valH = INSERT_FIELD(valH, MSTATUSH_MPV, next_virt);
+>                 csr_write(CSR_MSTATUSH, valH);
+>         }
+>  #else
+> -       if (misa_extension('H')) {
+> -               if (next_virt)
+> -                       val = INSERT_FIELD(val, MSTATUS_MPV, 1);
+> -               else
+> -                       val = INSERT_FIELD(val, MSTATUS_MPV, 0);
+> -       }
+> +       if (misa_extension('H'))
+> +               val = INSERT_FIELD(val, MSTATUS_MPV, next_virt);
+>  #endif
+>         csr_write(CSR_MSTATUS, val);
+>         csr_write(CSR_MEPC, next_addr);
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
