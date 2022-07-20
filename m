@@ -1,113 +1,94 @@
 From: Atish Patra <atishp@rivosinc.com>
-Date: Wed, 20 Jul 2022 14:50:32 -0700
-Subject: [PATCH v3  1/4] lib: sbi: Fix counter index sanity check
+Date: Wed, 20 Jul 2022 14:50:33 -0700
+Subject: [PATCH v3  2/4] lib: sbi: Add the bound check for events during config match
 In-Reply-To: <20220720215035.3453553-1-atishp@rivosinc.com>
 References: <20220720215035.3453553-1-atishp@rivosinc.com>
-Message-ID: <20220720215035.3453553-2-atishp@rivosinc.com>
+Message-ID: <20220720215035.3453553-3-atishp@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The current implementation computes the possible counter range
-by doing a left shift of counter base. However, this may overflow depending
-on the counter base value. In case of overflow, the highest counter id
-may be computed incorrectly. As per the SBI specification, the respective
-function should return an error if any of the counter is not valid.
+Currently, there is no sanity check for firmware event code. We don't see
+any issue as Linux kernel driver does a bound check on firmware events
+already. However, OpenSBI can't assume sane supervisor mode software
+always. Thus, an invalid event idx can cause a buffer overflow error.
+For hardware events, the match will fail for invalid event code anyways.
+However, a search is unecessary if event code is invalid.
 
-Fix the counter index check by avoiding left shifting while doing the
-sanity checks. Without the shift, the implementation just iterates
-over the counter mask and computes the correct counter index by adding
-the base to it.
+Add a event ID validation function to solve the issue.
 
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 Signed-off-by: Atish Patra <atishp@rivosinc.com>
 ---
- lib/sbi/sbi_pmu.c | 33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ lib/sbi/sbi_pmu.c | 46 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 44 insertions(+), 2 deletions(-)
 
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 3f5fd1031b25..31631a2fab80 100644
+index 31631a2fab80..bd1ef8665a70 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -343,25 +343,26 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+@@ -107,6 +107,44 @@ static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
+ 	return FALSE;
+ }
+ 
++static int pmu_event_validate(unsigned long event_idx)
++{
++	uint32_t event_idx_type = get_cidx_type(event_idx);
++	uint32_t event_idx_code = get_cidx_code(event_idx);
++	uint32_t event_idx_code_max = -1;
++	uint32_t cache_ops_result, cache_ops_id, cache_id;
++
++	switch(event_idx_type) {
++	case SBI_PMU_EVENT_TYPE_HW:
++		event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
++		break;
++	case SBI_PMU_EVENT_TYPE_FW:
++		event_idx_code_max = SBI_PMU_FW_MAX;
++		break;
++	case SBI_PMU_EVENT_TYPE_HW_CACHE:
++		cache_ops_result = event_idx_code & 0x1;
++		cache_ops_id = (event_idx_code & 0x06) >> 1;
++		cache_id = (event_idx_code & 0xfff8) >> 3;
++		if ((cache_ops_result < SBI_PMU_HW_CACHE_RESULT_MAX) &&
++		    (cache_ops_id < SBI_PMU_HW_CACHE_OP_MAX) &&
++		    (cache_id < SBI_PMU_HW_CACHE_MAX))
++			return event_idx_type;
++		else
++			return SBI_EINVAL;
++		break;
++	case SBI_PMU_EVENT_TYPE_HW_RAW:
++		event_idx_code_max = 1; // event_idx.code should be zero
++		break;
++	default:
++		return SBI_EINVAL;
++	}
++
++	if (event_idx_code < event_idx_code_max)
++		return event_idx_type;
++
++	return SBI_EINVAL;
++}
++
+ static int pmu_ctr_validate(uint32_t cidx, uint32_t *event_idx_code)
  {
- 	int event_idx_type;
- 	uint32_t event_code;
--	unsigned long ctr_mask = cmask << cbase;
- 	int ret = SBI_EINVAL;
- 	bool bUpdate = FALSE;
-+	int i, cidx;
- 
--	if (sbi_fls(ctr_mask) >= total_ctrs)
-+	if ((cbase + sbi_fls(cmask)) >= total_ctrs)
- 		return ret;
- 
- 	if (flags & SBI_PMU_START_FLAG_SET_INIT_VALUE)
- 		bUpdate = TRUE;
- 
--	for_each_set_bit_from(cbase, &ctr_mask, total_ctrs) {
--		event_idx_type = pmu_ctr_validate(cbase, &event_code);
-+	for_each_set_bit(i, &cmask, total_ctrs) {
-+		cidx = i + cbase;
-+		event_idx_type = pmu_ctr_validate(cidx, &event_code);
- 		if (event_idx_type < 0)
- 			/* Continue the start operation for other counters */
- 			continue;
- 		else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
--			ret = pmu_ctr_start_fw(cbase, event_code, ival, bUpdate);
-+			ret = pmu_ctr_start_fw(cidx, event_code, ival, bUpdate);
- 		else
--			ret = pmu_ctr_start_hw(cbase, ival, bUpdate);
-+			ret = pmu_ctr_start_hw(cidx, ival, bUpdate);
- 	}
- 
- 	return ret;
-@@ -421,25 +422,26 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
- 	int ret = SBI_EINVAL;
- 	int event_idx_type;
- 	uint32_t event_code;
--	unsigned long ctr_mask = cmask << cbase;
-+	int i, cidx;
- 
--	if (sbi_fls(ctr_mask) >= total_ctrs)
-+	if ((cbase + sbi_fls(cmask)) >= total_ctrs)
- 		return SBI_EINVAL;
- 
--	for_each_set_bit_from(cbase, &ctr_mask, total_ctrs) {
--		event_idx_type = pmu_ctr_validate(cbase, &event_code);
-+	for_each_set_bit(i, &cmask, total_ctrs) {
-+		cidx = i + cbase;
-+		event_idx_type = pmu_ctr_validate(cidx, &event_code);
- 		if (event_idx_type < 0)
- 			/* Continue the stop operation for other counters */
- 			continue;
- 
- 		else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
--			ret = pmu_ctr_stop_fw(cbase, event_code);
-+			ret = pmu_ctr_stop_fw(cidx, event_code);
- 		else
--			ret = pmu_ctr_stop_hw(cbase);
-+			ret = pmu_ctr_stop_hw(cidx);
- 
- 		if (flag & SBI_PMU_STOP_FLAG_RESET) {
--			active_events[hartid][cbase] = SBI_PMU_EVENT_IDX_INVALID;
--			pmu_reset_hw_mhpmevent(cbase);
-+			active_events[hartid][cidx] = SBI_PMU_EVENT_IDX_INVALID;
-+			pmu_reset_hw_mhpmevent(cidx);
- 		}
- 	}
- 
-@@ -615,10 +617,9 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
- 	int event_type = get_cidx_type(event_idx);
+ 	uint32_t event_idx_val;
+@@ -614,12 +652,16 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+ {
+ 	int ctr_idx = SBI_ENOTSUPP;
+ 	u32 hartid = current_hartid();
+-	int event_type = get_cidx_type(event_idx);
++	int event_type;
  	struct sbi_pmu_fw_event *fevent;
  	uint32_t fw_evt_code;
--	unsigned long tmp = cidx_mask << cidx_base;
  
  	/* Do a basic sanity check of counter base & mask */
--	if (sbi_fls(tmp) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
-+	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
+-	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
++	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
++		return SBI_EINVAL;
++
++	event_type = pmu_event_validate(event_idx);
++	if (event_type < 0)
  		return SBI_EINVAL;
  
  	if (flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) {
