@@ -1,321 +1,139 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 21 Jul 2022 00:01:09 +0800
-Subject: [PATCH v3 02/15] Makefile: Add initial kconfig support for each
- platform
-In-Reply-To: <20220719131837.2389630-3-apatel@ventanamicro.com>
-References: <20220719131837.2389630-1-apatel@ventanamicro.com>
-	 <20220719131837.2389630-3-apatel@ventanamicro.com>
-Message-ID: <740b3657b3fb01db3189a468f6aedaf94e0d9a9d.camel@126.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Wed, 20 Jul 2022 19:16:19 +0200
+Subject: [PATCH 4/4] lib: utils/serial: Ensure baudrate is non-zero
+ before using
+In-Reply-To: <a2f95ffcea25b6da6270c509e0dc7e5c64be7e92.camel@126.com>
+References: <20220718172028.2006166-1-ajones@ventanamicro.com>
+ <20220718172028.2006166-5-ajones@ventanamicro.com>
+ <a2f95ffcea25b6da6270c509e0dc7e5c64be7e92.camel@126.com>
+Message-ID: <20220720171619.rmaryfe3en2lftko@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-07-19???? 18:48 +0530?Anup Patel???
-> We extend the top-level makefile to allow kconfig based configuration
-> for each platform where each platform has it's own set of configs with
-> "defconfig" being the default config.
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
-> ?Kconfig?????????????????????????????????? | 23 ++++++++++
-> ?Makefile????????????????????????????????? | 56 +++++++++++++++++++++--
-> ?firmware/Kconfig????????????????????????? |? 1 +
-> ?lib/utils/Kconfig???????????????????????? |? 1 +
-> ?platform/andes/ae350/Kconfig????????????? |? 5 ++
-> ?platform/andes/ae350/configs/defconfig??? |? 0
-> ?platform/fpga/ariane/Kconfig????????????? |? 5 ++
-> ?platform/fpga/ariane/configs/defconfig??? |? 0
-> ?platform/fpga/openpiton/Kconfig?????????? |? 5 ++
-> ?platform/fpga/openpiton/configs/defconfig |? 0
-> ?platform/generic/Kconfig????????????????? |? 5 ++
-> ?platform/generic/configs/defconfig??????? |? 0
-> ?platform/kendryte/k210/Kconfig??????????? |? 5 ++
-> ?platform/kendryte/k210/configs/defconfig? |? 0
-> ?platform/nuclei/ux600/Kconfig???????????? |? 5 ++
-> ?platform/nuclei/ux600/configs/defconfig?? |? 0
-> ?platform/template/Kconfig???????????????? |? 5 ++
-> ?platform/template/configs/defconfig?????? |? 0
-> ?18 files changed, 113 insertions(+), 3 deletions(-)
-> ?create mode 100644 Kconfig
-> ?create mode 100644 firmware/Kconfig
-> ?create mode 100644 lib/utils/Kconfig
-> ?create mode 100644 platform/andes/ae350/Kconfig
-> ?create mode 100644 platform/andes/ae350/configs/defconfig
-> ?create mode 100644 platform/fpga/ariane/Kconfig
-> ?create mode 100644 platform/fpga/ariane/configs/defconfig
-> ?create mode 100644 platform/fpga/openpiton/Kconfig
-> ?create mode 100644 platform/fpga/openpiton/configs/defconfig
-> ?create mode 100644 platform/generic/Kconfig
-> ?create mode 100644 platform/generic/configs/defconfig
-> ?create mode 100644 platform/kendryte/k210/Kconfig
-> ?create mode 100644 platform/kendryte/k210/configs/defconfig
-> ?create mode 100644 platform/nuclei/ux600/Kconfig
-> ?create mode 100644 platform/nuclei/ux600/configs/defconfig
-> ?create mode 100644 platform/template/Kconfig
-> ?create mode 100644 platform/template/configs/defconfig
-> 
-> diff --git a/Kconfig b/Kconfig
-> new file mode 100644
-> index 0000000..b3213a9
-> --- /dev/null
-> +++ b/Kconfig
-> @@ -0,0 +1,23 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +mainmenu "OpenSBI $(OPENSBI_PLATFORM) Configuration"
-> +
-> +config OPENSBI_SRC_DIR
-> +???????string
-> +???????option env="OPENSBI_SRC_DIR"
-> +
-> +config OPENSBI_PLATFORM
-> +???????string
-> +???????option env="OPENSBI_PLATFORM"
-> +
-> +config OPENSBI_PLATFORM_SRC_DIR
-> +???????string
-> +???????option env="OPENSBI_PLATFORM_SRC_DIR"
-> +
-> +menu "Platform Options"
-> +source "$(OPENSBI_PLATFORM_SRC_DIR)/Kconfig"
-> +endmenu
-> +
-> +source "$(OPENSBI_SRC_DIR)/lib/utils/Kconfig"
-> +
-> +source "$(OPENSBI_SRC_DIR)/firmware/Kconfig"
-> diff --git a/Makefile b/Makefile
-> index f619ef7..c13495c 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -52,6 +52,9 @@ ifdef PLATFORM_DIR
-> ?else
-> ? platform_parent_dir=$(src_dir)/platform
-> ?endif
-> +ifndef PLATFORM_DEFCONFIG
-> +PLATFORM_DEFCONFIG=defconfig
-> +endif
-> ?
-> ?# Check if verbosity is ON for build process
-> ?CMD_PREFIX_DEFAULT := @
-> @@ -70,6 +73,20 @@ export libsbi_dir=$(CURDIR)/lib/sbi
-> ?export libsbiutils_dir=$(CURDIR)/lib/utils
-> ?export firmware_dir=$(CURDIR)/firmware
-> ?
-> +# Setup variables for kconfig
-> +ifdef PLATFORM
-> +export PYTHONDONTWRITEBYTECODE=1.
-There is an extra dot at the end of the line.
+On Wed, Jul 20, 2022 at 11:12:18PM +0800, Xiang W wrote:
+> ? 2022-07-18???? 19:20 +0200?Andrew Jones???
+> > RISC-V doesn't generate exceptions on divide-by-zero, but the result,
+> > all bits set, is not likely what people expect either. In all cases
+> > where we divide by baudrate there's a chance it's zero (when the DT
+> > it came from is "bad"). To avoid difficult to debug situations, leave
+> > baudrate dependent registers alone when baudrate is zero, as, also in
+> > all cases, it appears we can skip initialization of those registers
+> > and still [hopefully] have a functioning UART.
+> > 
+> > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> If the parameter is wrong we should skip initialization and should not
+> execute sbi_console_set_device.
 
-Regards,
-Xiang W
-> +export KCONFIG_DIR=$(platform_build_dir)/kconfig
-> +export KCONFIG_AUTOLIST=$(KCONFIG_DIR)/auto.list
-> +export KCONFIG_AUTOHEADER=$(KCONFIG_DIR)/autoconf.h
-> +export KCONFIG_AUTOCMD=$(KCONFIG_DIR)/auto.conf.cmd
-> +export KCONFIG_CONFIG=$(KCONFIG_DIR)/.config
-> +# Additional exports for include paths in Kconfig files
-> +export OPENSBI_SRC_DIR=$(src_dir)
-> +export OPENSBI_PLATFORM=$(PLATFORM)
-> +export OPENSBI_PLATFORM_SRC_DIR=$(platform_src_dir)
-> +endif
-> +
-> ?# Find library version
-> ?OPENSBI_VERSION_MAJOR=`grep "define OPENSBI_VERSION_MAJOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MAJOR.*\([0-9][0-9]*\)/\1/'`
-> ?OPENSBI_VERSION_MINOR=`grep "define OPENSBI_VERSION_MINOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MINOR.*\([0-9][0-9]*\)/\1/'`
-> @@ -183,8 +200,35 @@ libsbi-object-mks=$(shell if [ -d $(libsbi_dir) ]; then find $(libsbi_dir) -inam
-> ?libsbiutils-object-mks=$(shell if [ -d $(libsbiutils_dir) ]; then find $(libsbiutils_dir) -iname "objects.mk" | sort -r; fi)
-> ?firmware-object-mks=$(shell if [ -d $(firmware_dir) ]; then find $(firmware_dir) -iname "objects.mk" | sort -r; fi)
-> ?
-> -# Include platform specifig config.mk
-> +# The "make all" rule should always be first rule
-> +.PHONY: all
-> +all:
-> +
-> +# Include platform specific .config and config.mk
-> ?ifdef PLATFORM
-> +.PHONY: menuconfig
-> +menuconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
-> +???????$(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
-> +???????$(CMD_PREFIX)$(src_dir)/scripts/Kconfiglib/menuconfig.py $(src_dir)/Kconfig
-> +
-> +.PHONY: savedefconfig
-> +savedefconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
-> +???????$(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
-> +???????$(CMD_PREFIX)$(src_dir)/scripts/Kconfiglib/savedefconfig.py --kconfig $(src_dir)/Kconfig --out $(KCONFIG_DIR)/defconfig
-> +
-> +$(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
-> +???????$(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
-> +???????$(CMD_PREFIX)$(src_dir)/scripts/Kconfiglib/defconfig.py --kconfig $(src_dir)/Kconfig $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG)
-> +???????$(CMD_PREFIX)$(src_dir)/scripts/Kconfiglib/genconfig.py --header-path $(KCONFIG_AUTOHEADER) --sync-deps $(KCONFIG_DIR) --file-list
-> $(KCONFIG_AUTOLIST) $(src_dir)/Kconfig
-> +
-> +$(KCONFIG_AUTOCMD): $(KCONFIG_CONFIG)
-> +???????$(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
-> +???????$(CMD_PREFIX)echo -n "$(KCONFIG_CONFIG): " > $(KCONFIG_AUTOCMD)
-> +???????$(CMD_PREFIX)cat $(KCONFIG_AUTOLIST) | tr '\n' ' ' >> $(KCONFIG_AUTOCMD)
-> +
-> +include $(KCONFIG_CONFIG)
-> +include $(KCONFIG_AUTOCMD)
-> +
-> ?include $(platform_src_dir)/config.mk
-> ?endif
-> ?
-> @@ -280,6 +324,9 @@ ifeq ($(BUILD_INFO),y)
-> ?GENFLAGS???????+=??????-DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
-> ?GENFLAGS???????+=??????-DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
-> ?endif
-> +ifdef PLATFORM
-> +GENFLAGS???????+=??????-include $(KCONFIG_AUTOHEADER)
-> +endif
-> ?GENFLAGS???????+=??????$(libsbiutils-genflags-y)
-> ?GENFLAGS???????+=??????$(platform-genflags-y)
-> ?GENFLAGS???????+=??????$(firmware-genflags-y)
-> @@ -419,7 +466,7 @@ targets-y += $(platform_build_dir)/lib/libplatsbi.a
-> ?endif
-> ?targets-y += $(firmware-bins-path-y)
-> ?
-> -# Default rule "make" should always be first rule
-> +# The default "make all" rule
-> ?.PHONY: all
-> ?all: $(targets-y)
-> ?
-> @@ -456,7 +503,7 @@ $(build_dir)/%.o: $(src_dir)/%.S
-> ????????$(call compile_as,$@,$<)
-> ?
-> ?$(build_dir)/%.dep: $(src_dir)/%.carray
-> -???????$(call compile_gen_dep,$@,.c,$<)
-> +???????$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
-> ????????$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
-> ?
-> ?$(build_dir)/%.c: $(src_dir)/%.carray
-> @@ -523,6 +570,9 @@ docs: $(build_dir)/docs/latex/refman.pdf
-> ?# They should not be included for any "xxxconfig" or "xxxclean" rule
-> ?all-deps-1 = $(if $(findstring config,$(MAKECMDGOALS)),,$(deps-y))
-> ?all-deps-2 = $(if $(findstring clean,$(MAKECMDGOALS)),,$(all-deps-1))
-> +ifdef PLATFORM
-> +$(all-deps-2): | $(KCONFIG_CONFIG)
-> +endif
-> ?-include $(all-deps-2)
-> ?
-> ?# Include external dependency of firmwares after default Makefile rules
-> diff --git a/firmware/Kconfig b/firmware/Kconfig
-> new file mode 100644
-> index 0000000..d6e0506
-> --- /dev/null
-> +++ b/firmware/Kconfig
-> @@ -0,0 +1 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-> new file mode 100644
-> index 0000000..d6e0506
-> --- /dev/null
-> +++ b/lib/utils/Kconfig
-> @@ -0,0 +1 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
-> new file mode 100644
-> index 0000000..4b73c76
-> --- /dev/null
-> +++ b/platform/andes/ae350/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_ANDES_AE350
-> +???????bool
-> +???????default y
-> diff --git a/platform/andes/ae350/configs/defconfig b/platform/andes/ae350/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
-> diff --git a/platform/fpga/ariane/Kconfig b/platform/fpga/ariane/Kconfig
-> new file mode 100644
-> index 0000000..70d2004
-> --- /dev/null
-> +++ b/platform/fpga/ariane/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_ARIANE_FPGA
-> +???????bool
-> +???????default y
-> diff --git a/platform/fpga/ariane/configs/defconfig b/platform/fpga/ariane/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
-> diff --git a/platform/fpga/openpiton/Kconfig b/platform/fpga/openpiton/Kconfig
-> new file mode 100644
-> index 0000000..81e4b76
-> --- /dev/null
-> +++ b/platform/fpga/openpiton/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_OPENPITON_FPGA
-> +???????bool
-> +???????default y
-> diff --git a/platform/fpga/openpiton/configs/defconfig b/platform/fpga/openpiton/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> new file mode 100644
-> index 0000000..3eab282
-> --- /dev/null
-> +++ b/platform/generic/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_GENERIC
-> +???????bool
-> +???????default y
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
-> diff --git a/platform/kendryte/k210/Kconfig b/platform/kendryte/k210/Kconfig
-> new file mode 100644
-> index 0000000..889f16b
-> --- /dev/null
-> +++ b/platform/kendryte/k210/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_KENDRYTE_K210
-> +???????bool
-> +???????default y
-> diff --git a/platform/kendryte/k210/configs/defconfig b/platform/kendryte/k210/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
-> diff --git a/platform/nuclei/ux600/Kconfig b/platform/nuclei/ux600/Kconfig
-> new file mode 100644
-> index 0000000..c368ef4
-> --- /dev/null
-> +++ b/platform/nuclei/ux600/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_NUCLEI_UX600
-> +???????bool
-> +???????default y
-> diff --git a/platform/nuclei/ux600/configs/defconfig b/platform/nuclei/ux600/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
-> diff --git a/platform/template/Kconfig b/platform/template/Kconfig
-> new file mode 100644
-> index 0000000..b9c4350
-> --- /dev/null
-> +++ b/platform/template/Kconfig
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +
-> +config PLATFORM_TEMPLATE
-> +???????bool
-> +???????default y
-> diff --git a/platform/template/configs/defconfig b/platform/template/configs/defconfig
-> new file mode 100644
-> index 0000000..e69de29
+Hi Xiang,
+
+While there should be some DT validation somewhere that points out bad
+parameters, I don't think opensbi is the best place to do it, especially
+for UART configuration. While we certainly can't progress in all cases
+we detect bad input, in the case of a zero baudrate I believe we can, as
+it appears setting baudrate registers is typically optional for UARTs.
+
+We could also consider adding a log buffer which early init can write
+errors and warnings to. After the console has been initialized (with
+our best effort) we can then output all the errors and warnings from the
+log buffer. If we had something like that, then we could add a warning
+about the baudrate to that log along with warnings/errors for any other
+DT parameters we fail to validate but attempt to work around.
+
+Thanks,
+drew
+
+> 
+> Regards,
+> Xiang W
+> > ---
+> > ?lib/utils/serial/gaisler-uart.c | 2 +-
+> > ?lib/utils/serial/shakti-uart.c? | 8 ++++++--
+> > ?lib/utils/serial/sifive-uart.c? | 2 +-
+> > ?lib/utils/serial/uart8250.c???? | 7 +++++--
+> > ?4 files changed, 13 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c
+> > index 5f30ee43b719..eec75cca0c98 100644
+> > --- a/lib/utils/serial/gaisler-uart.c
+> > +++ b/lib/utils/serial/gaisler-uart.c
+> > @@ -70,7 +70,7 @@ int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+> > ????????uart_base = (volatile char *)base;
+> > ?
+> > ????????/* Configure baudrate */
+> > -???????if (in_freq)
+> > +???????if (in_freq && baudrate)
+> > ????????????????set_reg(UART_REG_SCALER, in_freq / (baudrate * 8 + 7));
+> > ?
+> > ????????ctrl = get_reg(UART_REG_CTRL);
+> > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+> > index 5f2fe75c9f33..2f09f141b9cf 100644
+> > --- a/lib/utils/serial/shakti-uart.c
+> > +++ b/lib/utils/serial/shakti-uart.c
+> > @@ -47,8 +47,12 @@ static struct sbi_console_device shakti_console = {
+> > ?int shakti_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+> > ?{
+> > ????????uart_base = (volatile char *)base;
+> > -???????u16 baud = (u16)(in_freq/(16 * baudrate));
+> > -???????writew(baud, uart_base + REG_BAUD);
+> > +???????u16 baud;
+> > +
+> > +???????if (baudrate) {
+> > +???????????????baud = (u16)(in_freq / (16 * baudrate));
+> > +???????????????writew(baud, uart_base + REG_BAUD);
+> > +???????}
+> > ?
+> > ????????sbi_console_set_device(&shakti_console);
+> > ?
+> > diff --git a/lib/utils/serial/sifive-uart.c b/lib/utils/serial/sifive-uart.c
+> > index 7078611a5274..3581d47a6d4b 100644
+> > --- a/lib/utils/serial/sifive-uart.c
+> > +++ b/lib/utils/serial/sifive-uart.c
+> > @@ -97,7 +97,7 @@ int sifive_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
+> > ????????uart_baudrate = baudrate;
+> > ?
+> > ????????/* Configure baudrate */
+> > -???????if (in_freq)
+> > +???????if (in_freq && baudrate)
+> > ????????????????set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
+> > ?
+> > ????????/* Disable interrupts */
+> > diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
+> > index 38ea11af4d31..99bf1bf733f2 100644
+> > --- a/lib/utils/serial/uart8250.c
+> > +++ b/lib/utils/serial/uart8250.c
+> > @@ -93,7 +93,7 @@ static struct sbi_console_device uart8250_console = {
+> > ?int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
+> > ????????????????? u32 reg_width, u32 reg_offset)
+> > ?{
+> > -???????u16 bdiv;
+> > +???????u16 bdiv = 0;
+> > ?
+> > ????????uart8250_base????? = (volatile char *)base + reg_offset;
+> > ????????uart8250_reg_shift = reg_shift;
+> > @@ -101,7 +101,10 @@ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
+> > ????????uart8250_in_freq?? = in_freq;
+> > ????????uart8250_baudrate? = baudrate;
+> > ?
+> > -???????bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) / (16 * uart8250_baudrate);
+> > +???????if (uart8250_baudrate) {
+> > +???????????????bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) /
+> > +????????????????????? (16 * uart8250_baudrate);
+> > +???????}
+> > ?
+> > ????????/* Disable all interrupts */
+> > ????????set_reg(UART_IER_OFFSET, 0x00);
+> > -- 
+> > 2.36.1
+> > 
+> > 
+> 
+> 
+> 
 > -- 
-> 2.34.1
-> 
-> 
-
-
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
