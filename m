@@ -1,74 +1,44 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 20 Jul 2022 10:12:49 +0530
-Subject: [PATCH v3] lib: utils/serial: Update Shakti UART based on latest implementation
-In-Reply-To: <20220708115244.556074-1-apatel@ventanamicro.com>
-References: <20220708115244.556074-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy1PGGVHcbEgNr3vhOntLyoGqXZH-_qz3WkfnEC_Muezzw@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Wed, 20 Jul 2022 08:51:10 +0200
+Subject: [PATCH v3 01/15] scripts: Add Kconfiglib v14.1.0 under scripts
+ directory
+In-Reply-To: <a6f86fe87536a22bd77d645fd29ddf32aa49cc98.camel@126.com>
+References: <20220719131837.2389630-1-apatel@ventanamicro.com>
+ <20220719131837.2389630-2-apatel@ventanamicro.com>
+ <a6f86fe87536a22bd77d645fd29ddf32aa49cc98.camel@126.com>
+Message-ID: <20220720065110.lh6rrc7t7xply7ha@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 8, 2022 at 5:23 PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Wed, Jul 20, 2022 at 01:28:55AM +0800, Xiang W wrote:
+> ? 2022-07-19???? 18:48 +0530?Anup Patel???
+> > We adopt Kconfiglib v14.1.0 sources under scripts directory so that
+> > top-level OpenSBI makefile can directly use Kconfiglib scripts without
+> > expecting users to install a particular version Kconfiglib on their
+> > build system.
+> > 
+> The introduction of kconfiglib is best to use git submodule, which is
+> convenient for later upgrade.
 >
-> From: Prasanna T <ptprasanna@gmail.com>
->
-> The age old version of Shakti UART was upgraded long back, but we missed
-> updating the driver in OpenSBI. The old version of UART is not supported
-> anymore, hence removed the inline comment which is also outdated now.
->
-> Signed-off-by: Prasanna T <ptprasanna@gmail.com>
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
-@Prasanna, Please make sure that Shakti UART compatible string is
-documented in the upstream Linux kernel. This time it's okay since there
-is no HW with the old version of Shakti UART but subsequent changes to
-Shakti UART should require a new compatible string.
+submodules are nifty, but add a burden on developers who frequently
+checkout older versions of the superproject, such as when bisecting,
+since manually running 'git submodule update' may be necessary after
+the checkouts. That probably wouldn't be the case for kconfiglib,
+since that project isn't getting updates (hasn't for 2.5 years) and
+opensbi would likely rarely update the version it tracks anyway, but
+that also means there's not much value in making it a submodule in
+the first place.
 
-Applied this patch to the riscv/opensbi repo.
+That said, it might be nice to only commit something like QEMU's
+minikconf.py to this repo, providing basic Kconfig/defconfig parsing,
+but no user interfaces, and then provide an option to support
+menuconfig, etc. by 'updating' a kconfiglib submodule to get the
+scripts it provides.
 
 Thanks,
-Anup
-
-> ---
-> Changes since v2:
->  - Updated patch subject and description
->  - Minor fix in shakti_uart_getc()
-> ---
->  lib/utils/serial/shakti-uart.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> index 5f2fe75..3556935 100644
-> --- a/lib/utils/serial/shakti-uart.c
-> +++ b/lib/utils/serial/shakti-uart.c
-> @@ -19,21 +19,21 @@
->  #define REG_RX_THRES   0x20
->
->  #define UART_TX_FULL  0x2
-> +#define UART_RX_NOT_EMPTY 0x4
->  #define UART_RX_FULL  0x8
->
->  static volatile char *uart_base;
->
->  static void shakti_uart_putc(char ch)
->  {
-> -       while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
-> +       while ((readb(uart_base + REG_STATUS) & UART_TX_FULL))
->                 ;
->         writeb(ch, uart_base + REG_TX);
->  }
->
->  static int shakti_uart_getc(void)
->  {
-> -       u16 status = readw(uart_base + REG_STATUS);
-> -       if (status & UART_RX_FULL)
-> +       if (readb(uart_base + REG_STATUS) & UART_RX_NOT_EMPTY)
->                 return readb(uart_base + REG_RX);
->         return -1;
->  }
-> --
-> 2.34.1
->
+drew
 
