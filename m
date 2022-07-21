@@ -1,176 +1,108 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Thu, 21 Jul 2022 07:35:57 +0200
-Subject: [PATCH 4/4] lib: utils/serial: Ensure baudrate is non-zero
- before using
-In-Reply-To: <70f832b65f372623a87098c501e08c0e50b11b4b.camel@126.com>
-References: <20220718172028.2006166-1-ajones@ventanamicro.com>
- <20220718172028.2006166-5-ajones@ventanamicro.com>
- <a2f95ffcea25b6da6270c509e0dc7e5c64be7e92.camel@126.com>
- <20220720171619.rmaryfe3en2lftko@kamzik>
- <70f832b65f372623a87098c501e08c0e50b11b4b.camel@126.com>
-Message-ID: <20220721053557.q5xgwsrihgj3mu7a@kamzik>
+Date: Thu, 21 Jul 2022 07:46:29 +0200
+Subject: [PATCH v3  2/4] lib: sbi: Add the bound check for events during
+ config match
+In-Reply-To: <20220720215035.3453553-3-atishp@rivosinc.com>
+References: <20220720215035.3453553-1-atishp@rivosinc.com>
+ <20220720215035.3453553-3-atishp@rivosinc.com>
+Message-ID: <20220721054629.lurwim3jm7ggr26h@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 21, 2022 at 01:25:44AM +0800, Xiang W wrote:
-> ? 2022-07-20???? 19:16 +0200?Andrew Jones???
-> > On Wed, Jul 20, 2022 at 11:12:18PM +0800, Xiang W wrote:
-> > > ? 2022-07-18???? 19:20 +0200?Andrew Jones???
-> > > > RISC-V doesn't generate exceptions on divide-by-zero, but the result,
-> > > > all bits set, is not likely what people expect either. In all cases
-> > > > where we divide by baudrate there's a chance it's zero (when the DT
-> > > > it came from is "bad"). To avoid difficult to debug situations, leave
-> > > > baudrate dependent registers alone when baudrate is zero, as, also in
-> > > > all cases, it appears we can skip initialization of those registers
-> > > > and still [hopefully] have a functioning UART.
-> > > > 
-> > > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-> > > If the parameter is wrong we should skip initialization and should not
-> > > execute sbi_console_set_device.
-> > 
-> > Hi Xiang,
-> > 
-> > While there should be some DT validation somewhere that points out bad
-> > parameters, I don't think opensbi is the best place to do it, especially
-> > for UART configuration. While we certainly can't progress in all cases
-> > we detect bad input, in the case of a zero baudrate I believe we can, as
-> > it appears setting baudrate registers is typically optional for UARTs.
-> > 
-> > We could also consider adding a log buffer which early init can write
-> > errors and warnings to. After the console has been initialized (with
-> > our best effort) we can then output all the errors and warnings from the
-> > log buffer. If we had something like that, then we could add a warning
-> > about the baudrate to that log along with warnings/errors for any other
-> > DT parameters we fail to validate but attempt to work around.
-> > 
-> > Thanks,
-> > drew
-> I mean:
+On Wed, Jul 20, 2022 at 02:50:33PM -0700, Atish Patra wrote:
+> Currently, there is no sanity check for firmware event code. We don't see
+> any issue as Linux kernel driver does a bound check on firmware events
+> already. However, OpenSBI can't assume sane supervisor mode software
+> always. Thus, an invalid event idx can cause a buffer overflow error.
+> For hardware events, the match will fail for invalid event code anyways.
+> However, a search is unecessary if event code is invalid.
 > 
-> int xxx_uart_init(...)
-> {
-> 	if (baudrate == 0)
-> 		return 0;
-> 	...
-> 	// console_dev should not be set because initialization failed
-> }
-
-I understood your suggestion, but I disagree. If it's possible to
-initialize a device without all information in the DT being present or
-valid, then, IMHO, opensbi should do so. Outputting errors/warnings
-is good, but giving up turns opensbi into a DT validator which it isn't
-well equipped to be. It's a particularly bad DT validator when parsing
-UART DT nodes or any other nodes before the console is available.
-
-I do agree that if we try to initialize the console despite detecting
-bad information in the DT that we risk not having a working console
-and not easily understanding why. I think the early log buffer I
-suggest above could help with that. When debugging the first thing one
-would do is to dump the contents of that buffer to see if any messages
-can point them in the right direction.
-
-I'll try to pull together some log buffer patches and post for
-discussion.
-
-Thanks,
-drew
-
+> Add a event ID validation function to solve the issue.
 > 
-> > 
-> > > 
-> > > Regards,
-> > > Xiang W
-> > > > ---
-> > > > ?lib/utils/serial/gaisler-uart.c | 2 +-
-> > > > ?lib/utils/serial/shakti-uart.c? | 8 ++++++--
-> > > > ?lib/utils/serial/sifive-uart.c? | 2 +-
-> > > > ?lib/utils/serial/uart8250.c???? | 7 +++++--
-> > > > ?4 files changed, 13 insertions(+), 6 deletions(-)
-> > > > 
-> > > > diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c
-> > > > index 5f30ee43b719..eec75cca0c98 100644
-> > > > --- a/lib/utils/serial/gaisler-uart.c
-> > > > +++ b/lib/utils/serial/gaisler-uart.c
-> > > > @@ -70,7 +70,7 @@ int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-> > > > ????????uart_base = (volatile char *)base;
-> > > > ?
-> > > > ????????/* Configure baudrate */
-> > > > -???????if (in_freq)
-> > > > +???????if (in_freq && baudrate)
-> > > > ????????????????set_reg(UART_REG_SCALER, in_freq / (baudrate * 8 + 7));
-> > > > ?
-> > > > ????????ctrl = get_reg(UART_REG_CTRL);
-> > > > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> > > > index 5f2fe75c9f33..2f09f141b9cf 100644
-> > > > --- a/lib/utils/serial/shakti-uart.c
-> > > > +++ b/lib/utils/serial/shakti-uart.c
-> > > > @@ -47,8 +47,12 @@ static struct sbi_console_device shakti_console = {
-> > > > ?int shakti_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-> > > > ?{
-> > > > ????????uart_base = (volatile char *)base;
-> > > > -???????u16 baud = (u16)(in_freq/(16 * baudrate));
-> > > > -???????writew(baud, uart_base + REG_BAUD);
-> > > > +???????u16 baud;
-> > > > +
-> > > > +???????if (baudrate) {
-> > > > +???????????????baud = (u16)(in_freq / (16 * baudrate));
-> > > > +???????????????writew(baud, uart_base + REG_BAUD);
-> > > > +???????}
-> > > > ?
-> > > > ????????sbi_console_set_device(&shakti_console);
-> > > > ?
-> > > > diff --git a/lib/utils/serial/sifive-uart.c b/lib/utils/serial/sifive-uart.c
-> > > > index 7078611a5274..3581d47a6d4b 100644
-> > > > --- a/lib/utils/serial/sifive-uart.c
-> > > > +++ b/lib/utils/serial/sifive-uart.c
-> > > > @@ -97,7 +97,7 @@ int sifive_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-> > > > ????????uart_baudrate = baudrate;
-> > > > ?
-> > > > ????????/* Configure baudrate */
-> > > > -???????if (in_freq)
-> > > > +???????if (in_freq && baudrate)
-> > > > ????????????????set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
-> > > > ?
-> > > > ????????/* Disable interrupts */
-> > > > diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
-> > > > index 38ea11af4d31..99bf1bf733f2 100644
-> > > > --- a/lib/utils/serial/uart8250.c
-> > > > +++ b/lib/utils/serial/uart8250.c
-> > > > @@ -93,7 +93,7 @@ static struct sbi_console_device uart8250_console = {
-> > > > ?int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
-> > > > ????????????????? u32 reg_width, u32 reg_offset)
-> > > > ?{
-> > > > -???????u16 bdiv;
-> > > > +???????u16 bdiv = 0;
-> > > > ?
-> > > > ????????uart8250_base????? = (volatile char *)base + reg_offset;
-> > > > ????????uart8250_reg_shift = reg_shift;
-> > > > @@ -101,7 +101,10 @@ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
-> > > > ????????uart8250_in_freq?? = in_freq;
-> > > > ????????uart8250_baudrate? = baudrate;
-> > > > ?
-> > > > -???????bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) / (16 * uart8250_baudrate);
-> > > > +???????if (uart8250_baudrate) {
-> > > > +???????????????bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) /
-> > > > +????????????????????? (16 * uart8250_baudrate);
-> > > > +???????}
-> > > > ?
-> > > > ????????/* Disable all interrupts */
-> > > > ????????set_reg(UART_IER_OFFSET, 0x00);
-> > > > -- 
-> > > > 2.36.1
-> > > > 
-> > > > 
-> > > 
-> > > 
-> > > 
-> > > -- 
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> ---
+>  lib/sbi/sbi_pmu.c | 46 ++++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 44 insertions(+), 2 deletions(-)
 > 
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 31631a2fab80..bd1ef8665a70 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -107,6 +107,44 @@ static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
+>  	return FALSE;
+>  }
+>  
+> +static int pmu_event_validate(unsigned long event_idx)
+> +{
+> +	uint32_t event_idx_type = get_cidx_type(event_idx);
+> +	uint32_t event_idx_code = get_cidx_code(event_idx);
+> +	uint32_t event_idx_code_max = -1;
+> +	uint32_t cache_ops_result, cache_ops_id, cache_id;
+> +
+> +	switch(event_idx_type) {
+> +	case SBI_PMU_EVENT_TYPE_HW:
+> +		event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
+> +		break;
+> +	case SBI_PMU_EVENT_TYPE_FW:
+> +		event_idx_code_max = SBI_PMU_FW_MAX;
+> +		break;
+> +	case SBI_PMU_EVENT_TYPE_HW_CACHE:
+> +		cache_ops_result = event_idx_code & 0x1;
+> +		cache_ops_id = (event_idx_code & 0x06) >> 1;
+> +		cache_id = (event_idx_code & 0xfff8) >> 3;
+
+It'd be nice to introduce helper macros for these.
+
+> +		if ((cache_ops_result < SBI_PMU_HW_CACHE_RESULT_MAX) &&
+> +		    (cache_ops_id < SBI_PMU_HW_CACHE_OP_MAX) &&
+> +		    (cache_id < SBI_PMU_HW_CACHE_MAX))
+> +			return event_idx_type;
+> +		else
+> +			return SBI_EINVAL;
+> +		break;
+> +	case SBI_PMU_EVENT_TYPE_HW_RAW:
+> +		event_idx_code_max = 1; // event_idx.code should be zero
+> +		break;
+> +	default:
+> +		return SBI_EINVAL;
+> +	}
+> +
+> +	if (event_idx_code < event_idx_code_max)
+> +		return event_idx_type;
+> +
+> +	return SBI_EINVAL;
+> +}
+> +
+>  static int pmu_ctr_validate(uint32_t cidx, uint32_t *event_idx_code)
+>  {
+>  	uint32_t event_idx_val;
+> @@ -614,12 +652,16 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+>  {
+>  	int ctr_idx = SBI_ENOTSUPP;
+>  	u32 hartid = current_hartid();
+> -	int event_type = get_cidx_type(event_idx);
+> +	int event_type;
+>  	struct sbi_pmu_fw_event *fevent;
+>  	uint32_t fw_evt_code;
+>  
+>  	/* Do a basic sanity check of counter base & mask */
+> -	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
+> +	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
+> +		return SBI_EINVAL;
+> +
+> +	event_type = pmu_event_validate(event_idx);
+> +	if (event_type < 0)
+>  		return SBI_EINVAL;
+>  
+>  	if (flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) {
+> -- 
+> 2.25.1
 > 
+
+Otherwise,
+
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
