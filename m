@@ -1,108 +1,83 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Thu, 21 Jul 2022 07:46:29 +0200
-Subject: [PATCH v3  2/4] lib: sbi: Add the bound check for events during
- config match
-In-Reply-To: <20220720215035.3453553-3-atishp@rivosinc.com>
-References: <20220720215035.3453553-1-atishp@rivosinc.com>
- <20220720215035.3453553-3-atishp@rivosinc.com>
-Message-ID: <20220721054629.lurwim3jm7ggr26h@kamzik>
+From: Prasanna Thandabani <ptprasanna@gmail.com>
+Date: Thu, 21 Jul 2022 12:29:11 +0530
+Subject: [PATCH v3] lib: utils/serial: Update Shakti UART based on latest implementation
+In-Reply-To: <CAAhSdy1PGGVHcbEgNr3vhOntLyoGqXZH-_qz3WkfnEC_Muezzw@mail.gmail.com>
+References: <20220708115244.556074-1-apatel@ventanamicro.com> <CAAhSdy1PGGVHcbEgNr3vhOntLyoGqXZH-_qz3WkfnEC_Muezzw@mail.gmail.com>
+Message-ID: <CAKMAqeePJr0pUObdtTHCsxTOtoZ7EQKZFV0qSTh=WieE9dhOXA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 20, 2022 at 02:50:33PM -0700, Atish Patra wrote:
-> Currently, there is no sanity check for firmware event code. We don't see
-> any issue as Linux kernel driver does a bound check on firmware events
-> already. However, OpenSBI can't assume sane supervisor mode software
-> always. Thus, an invalid event idx can cause a buffer overflow error.
-> For hardware events, the match will fail for invalid event code anyways.
-> However, a search is unecessary if event code is invalid.
-> 
-> Add a event ID validation function to solve the issue.
-> 
-> Signed-off-by: Atish Patra <atishp@rivosinc.com>
-> ---
->  lib/sbi/sbi_pmu.c | 46 ++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 44 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 31631a2fab80..bd1ef8665a70 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -107,6 +107,44 @@ static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
->  	return FALSE;
->  }
->  
-> +static int pmu_event_validate(unsigned long event_idx)
-> +{
-> +	uint32_t event_idx_type = get_cidx_type(event_idx);
-> +	uint32_t event_idx_code = get_cidx_code(event_idx);
-> +	uint32_t event_idx_code_max = -1;
-> +	uint32_t cache_ops_result, cache_ops_id, cache_id;
-> +
-> +	switch(event_idx_type) {
-> +	case SBI_PMU_EVENT_TYPE_HW:
-> +		event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
-> +		break;
-> +	case SBI_PMU_EVENT_TYPE_FW:
-> +		event_idx_code_max = SBI_PMU_FW_MAX;
-> +		break;
-> +	case SBI_PMU_EVENT_TYPE_HW_CACHE:
-> +		cache_ops_result = event_idx_code & 0x1;
-> +		cache_ops_id = (event_idx_code & 0x06) >> 1;
-> +		cache_id = (event_idx_code & 0xfff8) >> 3;
+Sure Anup,
 
-It'd be nice to introduce helper macros for these.
+That's the ideal way for a longer run. Thanks for applying the patch.
 
-> +		if ((cache_ops_result < SBI_PMU_HW_CACHE_RESULT_MAX) &&
-> +		    (cache_ops_id < SBI_PMU_HW_CACHE_OP_MAX) &&
-> +		    (cache_id < SBI_PMU_HW_CACHE_MAX))
-> +			return event_idx_type;
-> +		else
-> +			return SBI_EINVAL;
-> +		break;
-> +	case SBI_PMU_EVENT_TYPE_HW_RAW:
-> +		event_idx_code_max = 1; // event_idx.code should be zero
-> +		break;
-> +	default:
-> +		return SBI_EINVAL;
-> +	}
-> +
-> +	if (event_idx_code < event_idx_code_max)
-> +		return event_idx_type;
-> +
-> +	return SBI_EINVAL;
-> +}
-> +
->  static int pmu_ctr_validate(uint32_t cidx, uint32_t *event_idx_code)
->  {
->  	uint32_t event_idx_val;
-> @@ -614,12 +652,16 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
->  {
->  	int ctr_idx = SBI_ENOTSUPP;
->  	u32 hartid = current_hartid();
-> -	int event_type = get_cidx_type(event_idx);
-> +	int event_type;
->  	struct sbi_pmu_fw_event *fevent;
->  	uint32_t fw_evt_code;
->  
->  	/* Do a basic sanity check of counter base & mask */
-> -	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
-> +	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
-> +		return SBI_EINVAL;
-> +
-> +	event_type = pmu_event_validate(event_idx);
-> +	if (event_type < 0)
->  		return SBI_EINVAL;
->  
->  	if (flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) {
-> -- 
-> 2.25.1
-> 
+Thanks
+PT
 
-Otherwise,
-
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+On Wed, Jul 20, 2022 at 10:13 AM Anup Patel <anup@brainfault.org> wrote:
+>
+> On Fri, Jul 8, 2022 at 5:23 PM Anup Patel <apatel@ventanamicro.com> wrote:
+> >
+> > From: Prasanna T <ptprasanna@gmail.com>
+> >
+> > The age old version of Shakti UART was upgraded long back, but we missed
+> > updating the driver in OpenSBI. The old version of UART is not supported
+> > anymore, hence removed the inline comment which is also outdated now.
+> >
+> > Signed-off-by: Prasanna T <ptprasanna@gmail.com>
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+>
+> @Prasanna, Please make sure that Shakti UART compatible string is
+> documented in the upstream Linux kernel. This time it's okay since there
+> is no HW with the old version of Shakti UART but subsequent changes to
+> Shakti UART should require a new compatible string.
+>
+> Applied this patch to the riscv/opensbi repo.
+>
+> Thanks,
+> Anup
+>
+> > ---
+> > Changes since v2:
+> >  - Updated patch subject and description
+> >  - Minor fix in shakti_uart_getc()
+> > ---
+> >  lib/utils/serial/shakti-uart.c | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
+> > index 5f2fe75..3556935 100644
+> > --- a/lib/utils/serial/shakti-uart.c
+> > +++ b/lib/utils/serial/shakti-uart.c
+> > @@ -19,21 +19,21 @@
+> >  #define REG_RX_THRES   0x20
+> >
+> >  #define UART_TX_FULL  0x2
+> > +#define UART_RX_NOT_EMPTY 0x4
+> >  #define UART_RX_FULL  0x8
+> >
+> >  static volatile char *uart_base;
+> >
+> >  static void shakti_uart_putc(char ch)
+> >  {
+> > -       while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
+> > +       while ((readb(uart_base + REG_STATUS) & UART_TX_FULL))
+> >                 ;
+> >         writeb(ch, uart_base + REG_TX);
+> >  }
+> >
+> >  static int shakti_uart_getc(void)
+> >  {
+> > -       u16 status = readw(uart_base + REG_STATUS);
+> > -       if (status & UART_RX_FULL)
+> > +       if (readb(uart_base + REG_STATUS) & UART_RX_NOT_EMPTY)
+> >                 return readb(uart_base + REG_RX);
+> >         return -1;
+> >  }
+> > --
+> > 2.34.1
+> >
 
