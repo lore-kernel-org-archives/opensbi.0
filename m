@@ -1,83 +1,94 @@
-From: Prasanna Thandabani <ptprasanna@gmail.com>
-Date: Thu, 21 Jul 2022 12:29:11 +0530
-Subject: [PATCH v3] lib: utils/serial: Update Shakti UART based on latest implementation
-In-Reply-To: <CAAhSdy1PGGVHcbEgNr3vhOntLyoGqXZH-_qz3WkfnEC_Muezzw@mail.gmail.com>
-References: <20220708115244.556074-1-apatel@ventanamicro.com> <CAAhSdy1PGGVHcbEgNr3vhOntLyoGqXZH-_qz3WkfnEC_Muezzw@mail.gmail.com>
-Message-ID: <CAKMAqeePJr0pUObdtTHCsxTOtoZ7EQKZFV0qSTh=WieE9dhOXA@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 26 Jul 2022 13:25:22 +0200
+Subject: [PATCH] lib: sbi: Fix sbi_snprintf
+Message-ID: <20220726112522.5070-1-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Sure Anup,
+printc would happily write to 'out' even when 'out_len' was zero,
+potentially overflowing buffers. Rework printc to not do that and
+also ensure the null byte is written at the last position when
+necessary, as stated in the snprintf man page. Finally, ensure all
+writes to 'out' go through printc and rename a goto label which
+clashed with it.
 
-That's the ideal way for a longer run. Thanks for applying the patch.
+Fixes: 9e8ff05cb61f ("Initial commit.")
+Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+---
+ lib/sbi/sbi_console.c | 35 ++++++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
 
-Thanks
-PT
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index 34c843d3f9e3..47f361705fc7 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -76,20 +76,24 @@ typedef __builtin_va_list va_list;
+ 
+ static void printc(char **out, u32 *out_len, char ch)
+ {
+-	if (out) {
+-		if (*out) {
+-			if (out_len && (0 < *out_len)) {
+-				**out = ch;
+-				++(*out);
+-				(*out_len)--;
+-			} else {
+-				**out = ch;
+-				++(*out);
+-			}
+-		}
+-	} else {
++	if (!out) {
+ 		sbi_putc(ch);
++		return;
+ 	}
++
++	if (!*out)
++		return;
++
++	if (!out_len || *out_len > 1)
++		**out = ch;
++	else if (*out_len == 1)
++		**out = '\0';
++
++	if (out_len && *out_len > 0)
++		--(*out_len);
++
++	if (!out_len || *out_len > 0)
++		++(*out);
+ }
+ 
+ static int prints(char **out, u32 *out_len, const char *string, int width,
+@@ -193,7 +197,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 			if (*format == '\0')
+ 				break;
+ 			if (*format == '%')
+-				goto out;
++				goto literal;
+ 			/* Get flags */
+ 			if (*format == '-') {
+ 				++format;
+@@ -332,13 +336,14 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 				continue;
+ 			}
+ 		} else {
+-		out:
++literal:
+ 			printc(out, out_len, *format);
+ 			++pc;
+ 		}
+ 	}
++
+ 	if (out)
+-		**out = '\0';
++		printc(out, out_len, '\0');
+ 
+ 	return pc;
+ }
+-- 
+2.36.1
 
-On Wed, Jul 20, 2022 at 10:13 AM Anup Patel <anup@brainfault.org> wrote:
->
-> On Fri, Jul 8, 2022 at 5:23 PM Anup Patel <apatel@ventanamicro.com> wrote:
-> >
-> > From: Prasanna T <ptprasanna@gmail.com>
-> >
-> > The age old version of Shakti UART was upgraded long back, but we missed
-> > updating the driver in OpenSBI. The old version of UART is not supported
-> > anymore, hence removed the inline comment which is also outdated now.
-> >
-> > Signed-off-by: Prasanna T <ptprasanna@gmail.com>
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
->
-> @Prasanna, Please make sure that Shakti UART compatible string is
-> documented in the upstream Linux kernel. This time it's okay since there
-> is no HW with the old version of Shakti UART but subsequent changes to
-> Shakti UART should require a new compatible string.
->
-> Applied this patch to the riscv/opensbi repo.
->
-> Thanks,
-> Anup
->
-> > ---
-> > Changes since v2:
-> >  - Updated patch subject and description
-> >  - Minor fix in shakti_uart_getc()
-> > ---
-> >  lib/utils/serial/shakti-uart.c | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> > index 5f2fe75..3556935 100644
-> > --- a/lib/utils/serial/shakti-uart.c
-> > +++ b/lib/utils/serial/shakti-uart.c
-> > @@ -19,21 +19,21 @@
-> >  #define REG_RX_THRES   0x20
-> >
-> >  #define UART_TX_FULL  0x2
-> > +#define UART_RX_NOT_EMPTY 0x4
-> >  #define UART_RX_FULL  0x8
-> >
-> >  static volatile char *uart_base;
-> >
-> >  static void shakti_uart_putc(char ch)
-> >  {
-> > -       while((readw(uart_base + REG_STATUS) & UART_TX_FULL))
-> > +       while ((readb(uart_base + REG_STATUS) & UART_TX_FULL))
-> >                 ;
-> >         writeb(ch, uart_base + REG_TX);
-> >  }
-> >
-> >  static int shakti_uart_getc(void)
-> >  {
-> > -       u16 status = readw(uart_base + REG_STATUS);
-> > -       if (status & UART_RX_FULL)
-> > +       if (readb(uart_base + REG_STATUS) & UART_RX_NOT_EMPTY)
-> >                 return readb(uart_base + REG_RX);
-> >         return -1;
-> >  }
-> > --
-> > 2.34.1
-> >
 
