@@ -1,38 +1,128 @@
-From: dramforever <dramforever@live.com>
-Date: Wed, 27 Jul 2022 22:07:39 +0800
-Subject: [PATCH] lib: sbi: Fix printf handling of long long
-Message-ID: <TYYP286MB1439FD2B8C624B5346185D7DC6979@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Wed, 27 Jul 2022 16:17:47 +0200
+Subject: [PATCH v3] lib: sbi: Fix sbi_snprintf
+Message-ID: <20220727141747.4793-1-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Do not attempt to unnecessarily align va_list before reading long long
-arguments.
+printc would happily write to 'out' even when 'out_len' was zero,
+potentially overflowing buffers. Rework printc to not do that and
+also ensure the null byte is written at the last position when
+necessary, as stated in the snprintf man page. Also, panic if
+sprintf or snprintf are called with NULL output strings (except
+the special case of snprintf having a NULL output string and
+a zero output size, allowing it to be used to get the number of
+characters that would have been written). Finally, rename a
+goto label which clashed with 'out'.
 
-Signed-off-by: dramforever <dramforever@live.com>
+Fixes: 9e8ff05cb61f ("Initial commit.")
+Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/sbi/sbi_console.c | 5 -----
- 1 file changed, 5 deletions(-)
+
+v3:
+  - Add comment in printc stating our expectations of *out
+
+v2:
+  - Simply forbid *out == NULL by panicing when it's detected.
+    (The error message for snprintf has been split over two
+     lines to avoid going over 80 chars. I'd prefer error messages
+     not be split, but that seems like the general practice for
+     opensbi.)
+  - Drop some branches, particularly the extra 'if (out)' in print(),
+    by always writing a '\0' on each printc [Xiang W]
+
+
+ lib/sbi/sbi_console.c | 39 +++++++++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 16 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 34c843d..7af50e5 100644
+index 34c843d3f9e3..7b9be4a4667f 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -261,11 +261,6 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+@@ -76,20 +76,22 @@ typedef __builtin_va_list va_list;
+ 
+ static void printc(char **out, u32 *out_len, char ch)
+ {
+-	if (out) {
+-		if (*out) {
+-			if (out_len && (0 < *out_len)) {
+-				**out = ch;
+-				++(*out);
+-				(*out_len)--;
+-			} else {
+-				**out = ch;
+-				++(*out);
+-			}
+-		}
+-	} else {
++	if (!out) {
+ 		sbi_putc(ch);
++		return;
+ 	}
++
++	/*
++	 * The *printf entry point functions have enforced that (*out) can
++	 * only be null when out_len is non-null and its value is zero.
++	 */
++	if (!out_len || *out_len > 1) {
++		*(*out)++ = ch;
++		**out = '\0';
++	}
++
++	if (out_len && *out_len > 0)
++		--(*out_len);
+ }
+ 
+ static int prints(char **out, u32 *out_len, const char *string, int width,
+@@ -193,7 +195,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 			if (*format == '\0')
+ 				break;
+ 			if (*format == '%')
+-				goto out;
++				goto literal;
+ 			/* Get flags */
+ 			if (*format == '-') {
+ 				++format;
+@@ -332,13 +334,11 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
  				continue;
  			}
- 			if (*format == 'l' && *(format + 1) == 'l') {
--				while (acnt &
--				       (sizeof(unsigned long long) - 1)) {
--					va_arg(args, int);
--					acnt += sizeof(int);
--				}
- 				if (sizeof(unsigned long long) ==
- 				    sizeof(unsigned long)) {
- 					tmp = va_arg(args, unsigned long long);
+ 		} else {
+-		out:
++literal:
+ 			printc(out, out_len, *format);
+ 			++pc;
+ 		}
+ 	}
+-	if (out)
+-		**out = '\0';
+ 
+ 	return pc;
+ }
+@@ -348,6 +348,9 @@ int sbi_sprintf(char *out, const char *format, ...)
+ 	va_list args;
+ 	int retval;
+ 
++	if (unlikely(!out))
++		sbi_panic("sbi_sprintf called with NULL output string\n");
++
+ 	va_start(args, format);
+ 	retval = print(&out, NULL, format, args);
+ 	va_end(args);
+@@ -360,6 +363,10 @@ int sbi_snprintf(char *out, u32 out_sz, const char *format, ...)
+ 	va_list args;
+ 	int retval;
+ 
++	if (unlikely(!out && out_sz != 0))
++		sbi_panic("sbi_snprintf called with NULL output string and "
++			  "output size is not zero\n");
++
+ 	va_start(args, format);
+ 	retval = print(&out, &out_sz, format, args);
+ 	va_end(args);
 -- 
-2.37.0
+2.36.1
 
 
