@@ -1,26 +1,30 @@
-From: dramforever <dramforever@live.com>
-Date: Wed, 27 Jul 2022 22:51:39 +0800
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Wed, 27 Jul 2022 15:53:37 +0100
 Subject: [PATCH] lib: sbi: Fix printf handling of long long
 In-Reply-To: <AF7FE4B0-2DBE-4827-AC1C-05E6709784C5@jrtc27.com>
 References: <TYYP286MB1439FD2B8C624B5346185D7DC6979@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
  <20220727143254.kb7nrdccubbdzsxe@kamzik>
  <AF7FE4B0-2DBE-4827-AC1C-05E6709784C5@jrtc27.com>
-Message-ID: <TYYP286MB1439B3BB87F7CEB60F6D1A59C6979@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <6F9758F7-03BC-4703-BFBE-B70601785B92@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 7/27/22 22:48, Jessica Clarke wrote:
+On 27 Jul 2022, at 15:48, Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> 
 > On 27 Jul 2022, at 15:32, Andrew Jones <ajones@ventanamicro.com> wrote:
+>> 
 >> On Wed, Jul 27, 2022 at 10:07:39PM +0800, dramforever wrote:
 >>> Do not attempt to unnecessarily align va_list before reading long long
 >>> arguments.
+>> 
 >> Can you please elaborate on why it was presumed necessary once, but is now
 >> deemed not necessary?
+> 
 > Because of this nonsense that follows:
->
+> 
 > 	if (sizeof(unsigned long long) ==
 > 			sizeof(unsigned long)) {
 > 		tmp = va_arg(args, unsigned long long);
@@ -32,9 +36,14 @@ On 7/27/22 22:48, Jessica Clarke wrote:
 > 			va_arg(args, unsigned long);
 > 		acnt += 2*sizeof(unsigned long);
 > 	}
->
+> 
 > For RV64 the condition of the while is always false as variadic
-> arguments are already padded to 8 bytes. For RV32 the implementation of
+> arguments are already padded to 8 bytes.
+
+Uh I forgot to snip this sentence after my understanding evolved. This
+is false and contradicted by what I say later.
+
+> For RV32 the implementation of
 > va_arg will dynamically align the pointer to 8 bytes at run time
 > (mirroring what this loop does) so it would seem unnecessary, except
 > for the nonsense that follows. Since unsigned long is only 32-bit, it
@@ -48,24 +57,20 @@ On 7/27/22 22:48, Jessica Clarke wrote:
 > number of ints and then a long long the implementation will erroneously
 > skip an entry, which is presumably what resulted in this being found
 > and the patch in question.
-Yes, this was indeed how I've found out about it :)
+> 
 > This should all be changed to just reading an unsigned long long
 > because that will do the right thing (if not that is a serious compiler
 > bug), not try to buggily reimplement va_arg ABI lowering.
-
-Thanks for the tip. I'll send a v2 with this fix.
-
-dram
-
+> 
 > Note this code has existed right from 9e8ff05cb61f ("Initial commit.?).
->
+> 
 > Jess
->
+> 
 >>> Signed-off-by: dramforever <dramforever@live.com>
 >>> ---
 >>> lib/sbi/sbi_console.c | 5 -----
 >>> 1 file changed, 5 deletions(-)
->>>
+>>> 
 >>> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
 >>> index 34c843d..7af50e5 100644
 >>> --- a/lib/sbi/sbi_console.c
@@ -79,26 +84,30 @@ dram
 >>> -					va_arg(args, int);
 >>> -					acnt += sizeof(int);
 >>> -				}
+>> 
 >> I think this should generate a "set but not used" warning with clang, as
 >> this was the only place acnt was getting used. We can just remove all of
 >> it.
->>
+>> 
 >> Thanks,
 >> drew
->>
+>> 
 >>> 				if (sizeof(unsigned long long) ==
 >>> 				 sizeof(unsigned long)) {
 >>> 					tmp = va_arg(args, unsigned long long);
 >>> -- 
 >>> 2.37.0
->>>
->>>
+>>> 
+>>> 
 >>> -- 
 >>> opensbi mailing list
 >>> opensbi at lists.infradead.org
 >>> http://lists.infradead.org/mailman/listinfo/opensbi
+>> 
 >> -- 
 >> opensbi mailing list
 >> opensbi at lists.infradead.org
 >> http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+
 
