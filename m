@@ -1,126 +1,147 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 30 Jul 2022 15:51:02 +0530
-Subject: [PATCH 4/4] lib: utils/serial: Ensure baudrate is non-zero before using
-In-Reply-To: <CAAhSdy1=zo7HYCGe-W4TZjF4Lr+35NNXDEd6i+EQsiX6OJ4coQ@mail.gmail.com>
-References: <20220718172028.2006166-1-ajones@ventanamicro.com>
- <20220718172028.2006166-5-ajones@ventanamicro.com> <CAAhSdy1=zo7HYCGe-W4TZjF4Lr+35NNXDEd6i+EQsiX6OJ4coQ@mail.gmail.com>
-Message-ID: <CAAhSdy2nSQhEfpbYtAs3daAPyMPCPzF83cdWGeU+THyW=n6Nug@mail.gmail.com>
+Date: Sat, 30 Jul 2022 15:53:02 +0530
+Subject: [PATCH v3] lib: sbi: Fix sbi_snprintf
+In-Reply-To: <20220727141747.4793-1-ajones@ventanamicro.com>
+References: <20220727141747.4793-1-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy1=wcB4EDQxoU19XUV8f0QNBPuY7B_2aO-2b7ADAyt1sg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 30, 2022 at 11:01 AM Anup Patel <anup@brainfault.org> wrote:
+On Wed, Jul 27, 2022 at 7:47 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> On Mon, Jul 18, 2022 at 10:50 PM Andrew Jones <ajones@ventanamicro.com> wrote:
-> >
-> > RISC-V doesn't generate exceptions on divide-by-zero, but the result,
-> > all bits set, is not likely what people expect either. In all cases
-> > where we divide by baudrate there's a chance it's zero (when the DT
-> > it came from is "bad"). To avoid difficult to debug situations, leave
-> > baudrate dependent registers alone when baudrate is zero, as, also in
-> > all cases, it appears we can skip initialization of those registers
-> > and still [hopefully] have a functioning UART.
-> >
-> > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> printc would happily write to 'out' even when 'out_len' was zero,
+> potentially overflowing buffers. Rework printc to not do that and
+> also ensure the null byte is written at the last position when
+> necessary, as stated in the snprintf man page. Also, panic if
+> sprintf or snprintf are called with NULL output strings (except
+> the special case of snprintf having a NULL output string and
+> a zero output size, allowing it to be used to get the number of
+> characters that would have been written). Finally, rename a
+> goto label which clashed with 'out'.
 >
-> Looks good to me.
->
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Fixes: 9e8ff05cb61f ("Initial commit.")
+> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
+> ---
 >
-> Regards,
-> Anup
+> v3:
+>   - Add comment in printc stating our expectations of *out
 >
-> > ---
-> >  lib/utils/serial/gaisler-uart.c | 2 +-
-> >  lib/utils/serial/shakti-uart.c  | 8 ++++++--
-> >  lib/utils/serial/sifive-uart.c  | 2 +-
-> >  lib/utils/serial/uart8250.c     | 7 +++++--
-> >  4 files changed, 13 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/lib/utils/serial/gaisler-uart.c b/lib/utils/serial/gaisler-uart.c
-> > index 5f30ee43b719..eec75cca0c98 100644
-> > --- a/lib/utils/serial/gaisler-uart.c
-> > +++ b/lib/utils/serial/gaisler-uart.c
-> > @@ -70,7 +70,7 @@ int gaisler_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-> >         uart_base = (volatile char *)base;
-> >
-> >         /* Configure baudrate */
-> > -       if (in_freq)
-> > +       if (in_freq && baudrate)
-> >                 set_reg(UART_REG_SCALER, in_freq / (baudrate * 8 + 7));
-> >
-> >         ctrl = get_reg(UART_REG_CTRL);
-> > diff --git a/lib/utils/serial/shakti-uart.c b/lib/utils/serial/shakti-uart.c
-> > index 5f2fe75c9f33..2f09f141b9cf 100644
-> > --- a/lib/utils/serial/shakti-uart.c
-> > +++ b/lib/utils/serial/shakti-uart.c
-> > @@ -47,8 +47,12 @@ static struct sbi_console_device shakti_console = {
-> >  int shakti_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-> >  {
-> >         uart_base = (volatile char *)base;
-> > -       u16 baud = (u16)(in_freq/(16 * baudrate));
-> > -       writew(baud, uart_base + REG_BAUD);
-> > +       u16 baud;
-> > +
-> > +       if (baudrate) {
-> > +               baud = (u16)(in_freq / (16 * baudrate));
-> > +               writew(baud, uart_base + REG_BAUD);
-> > +       }
-> >
-> >         sbi_console_set_device(&shakti_console);
-> >
-> > diff --git a/lib/utils/serial/sifive-uart.c b/lib/utils/serial/sifive-uart.c
-> > index 7078611a5274..3581d47a6d4b 100644
-> > --- a/lib/utils/serial/sifive-uart.c
-> > +++ b/lib/utils/serial/sifive-uart.c
-> > @@ -97,7 +97,7 @@ int sifive_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
-> >         uart_baudrate = baudrate;
-> >
-> >         /* Configure baudrate */
-> > -       if (in_freq)
-> > +       if (in_freq && baudrate)
-> >                 set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
-> >
-> >         /* Disable interrupts */
-> > diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
-> > index 38ea11af4d31..99bf1bf733f2 100644
-> > --- a/lib/utils/serial/uart8250.c
-> > +++ b/lib/utils/serial/uart8250.c
-> > @@ -93,7 +93,7 @@ static struct sbi_console_device uart8250_console = {
-> >  int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
-> >                   u32 reg_width, u32 reg_offset)
-> >  {
-> > -       u16 bdiv;
-> > +       u16 bdiv = 0;
-> >
-> >         uart8250_base      = (volatile char *)base + reg_offset;
-> >         uart8250_reg_shift = reg_shift;
-> > @@ -101,7 +101,10 @@ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
-> >         uart8250_in_freq   = in_freq;
-> >         uart8250_baudrate  = baudrate;
-> >
-> > -       bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) / (16 * uart8250_baudrate);
-> > +       if (uart8250_baudrate) {
-> > +               bdiv = (uart8250_in_freq + 8 * uart8250_baudrate) /
-> > +                      (16 * uart8250_baudrate);
-> > +       }
-> >
-> >         /* Disable all interrupts */
-> >         set_reg(UART_IER_OFFSET, 0x00);
-> > --
-> > 2.36.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> v2:
+>   - Simply forbid *out == NULL by panicing when it's detected.
+>     (The error message for snprintf has been split over two
+>      lines to avoid going over 80 chars. I'd prefer error messages
+>      not be split, but that seems like the general practice for
+>      opensbi.)
+>   - Drop some branches, particularly the extra 'if (out)' in print(),
+>     by always writing a '\0' on each printc [Xiang W]
+>
+>
+>  lib/sbi/sbi_console.c | 39 +++++++++++++++++++++++----------------
+>  1 file changed, 23 insertions(+), 16 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index 34c843d3f9e3..7b9be4a4667f 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -76,20 +76,22 @@ typedef __builtin_va_list va_list;
+>
+>  static void printc(char **out, u32 *out_len, char ch)
+>  {
+> -       if (out) {
+> -               if (*out) {
+> -                       if (out_len && (0 < *out_len)) {
+> -                               **out = ch;
+> -                               ++(*out);
+> -                               (*out_len)--;
+> -                       } else {
+> -                               **out = ch;
+> -                               ++(*out);
+> -                       }
+> -               }
+> -       } else {
+> +       if (!out) {
+>                 sbi_putc(ch);
+> +               return;
+>         }
+> +
+> +       /*
+> +        * The *printf entry point functions have enforced that (*out) can
+> +        * only be null when out_len is non-null and its value is zero.
+> +        */
+> +       if (!out_len || *out_len > 1) {
+> +               *(*out)++ = ch;
+> +               **out = '\0';
+> +       }
+> +
+> +       if (out_len && *out_len > 0)
+> +               --(*out_len);
+>  }
+>
+>  static int prints(char **out, u32 *out_len, const char *string, int width,
+> @@ -193,7 +195,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+>                         if (*format == '\0')
+>                                 break;
+>                         if (*format == '%')
+> -                               goto out;
+> +                               goto literal;
+>                         /* Get flags */
+>                         if (*format == '-') {
+>                                 ++format;
+> @@ -332,13 +334,11 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+>                                 continue;
+>                         }
+>                 } else {
+> -               out:
+> +literal:
+>                         printc(out, out_len, *format);
+>                         ++pc;
+>                 }
+>         }
+> -       if (out)
+> -               **out = '\0';
+>
+>         return pc;
+>  }
+> @@ -348,6 +348,9 @@ int sbi_sprintf(char *out, const char *format, ...)
+>         va_list args;
+>         int retval;
+>
+> +       if (unlikely(!out))
+> +               sbi_panic("sbi_sprintf called with NULL output string\n");
+> +
+>         va_start(args, format);
+>         retval = print(&out, NULL, format, args);
+>         va_end(args);
+> @@ -360,6 +363,10 @@ int sbi_snprintf(char *out, u32 out_sz, const char *format, ...)
+>         va_list args;
+>         int retval;
+>
+> +       if (unlikely(!out && out_sz != 0))
+> +               sbi_panic("sbi_snprintf called with NULL output string and "
+> +                         "output size is not zero\n");
+> +
+>         va_start(args, format);
+>         retval = print(&out, &out_sz, format, args);
+>         va_end(args);
+> --
+> 2.36.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
