@@ -1,29 +1,30 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 30 Jul 2022 15:53:02 +0530
-Subject: [PATCH v3] lib: sbi: Fix sbi_snprintf
-In-Reply-To: <20220727141747.4793-1-ajones@ventanamicro.com>
-References: <20220727141747.4793-1-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy1=wcB4EDQxoU19XUV8f0QNBPuY7B_2aO-2b7ADAyt1sg@mail.gmail.com>
+Date: Sat, 30 Jul 2022 15:53:59 +0530
+Subject: [PATCH v3 1/4] lib: sbi: Fix counter index sanity check
+In-Reply-To: <20220720215035.3453553-2-atishp@rivosinc.com>
+References: <20220720215035.3453553-1-atishp@rivosinc.com> <20220720215035.3453553-2-atishp@rivosinc.com>
+Message-ID: <CAAhSdy0nmtmEDBY7QHn0WdZay-zZWdMTpy1_34N=wCXMwqR6fw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 27, 2022 at 7:47 PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Thu, Jul 21, 2022 at 3:20 AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> printc would happily write to 'out' even when 'out_len' was zero,
-> potentially overflowing buffers. Rework printc to not do that and
-> also ensure the null byte is written at the last position when
-> necessary, as stated in the snprintf man page. Also, panic if
-> sprintf or snprintf are called with NULL output strings (except
-> the special case of snprintf having a NULL output string and
-> a zero output size, allowing it to be used to get the number of
-> characters that would have been written). Finally, rename a
-> goto label which clashed with 'out'.
+> The current implementation computes the possible counter range
+> by doing a left shift of counter base. However, this may overflow depending
+> on the counter base value. In case of overflow, the highest counter id
+> may be computed incorrectly. As per the SBI specification, the respective
+> function should return an error if any of the counter is not valid.
 >
-> Fixes: 9e8ff05cb61f ("Initial commit.")
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> Fix the counter index check by avoiding left shifting while doing the
+> sanity checks. Without the shift, the implementation just iterates
+> over the counter mask and computes the correct counter index by adding
+> the base to it.
+>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
 Looks good to me.
 
@@ -35,113 +36,94 @@ Thanks,
 Anup
 
 > ---
+>  lib/sbi/sbi_pmu.c | 33 +++++++++++++++++----------------
+>  1 file changed, 17 insertions(+), 16 deletions(-)
 >
-> v3:
->   - Add comment in printc stating our expectations of *out
->
-> v2:
->   - Simply forbid *out == NULL by panicing when it's detected.
->     (The error message for snprintf has been split over two
->      lines to avoid going over 80 chars. I'd prefer error messages
->      not be split, but that seems like the general practice for
->      opensbi.)
->   - Drop some branches, particularly the extra 'if (out)' in print(),
->     by always writing a '\0' on each printc [Xiang W]
->
->
->  lib/sbi/sbi_console.c | 39 +++++++++++++++++++++++----------------
->  1 file changed, 23 insertions(+), 16 deletions(-)
->
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 34c843d3f9e3..7b9be4a4667f 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -76,20 +76,22 @@ typedef __builtin_va_list va_list;
->
->  static void printc(char **out, u32 *out_len, char ch)
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 3f5fd1031b25..31631a2fab80 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -343,25 +343,26 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
 >  {
-> -       if (out) {
-> -               if (*out) {
-> -                       if (out_len && (0 < *out_len)) {
-> -                               **out = ch;
-> -                               ++(*out);
-> -                               (*out_len)--;
-> -                       } else {
-> -                               **out = ch;
-> -                               ++(*out);
-> -                       }
-> -               }
-> -       } else {
-> +       if (!out) {
->                 sbi_putc(ch);
-> +               return;
->         }
-> +
-> +       /*
-> +        * The *printf entry point functions have enforced that (*out) can
-> +        * only be null when out_len is non-null and its value is zero.
-> +        */
-> +       if (!out_len || *out_len > 1) {
-> +               *(*out)++ = ch;
-> +               **out = '\0';
-> +       }
-> +
-> +       if (out_len && *out_len > 0)
-> +               --(*out_len);
->  }
+>         int event_idx_type;
+>         uint32_t event_code;
+> -       unsigned long ctr_mask = cmask << cbase;
+>         int ret = SBI_EINVAL;
+>         bool bUpdate = FALSE;
+> +       int i, cidx;
 >
->  static int prints(char **out, u32 *out_len, const char *string, int width,
-> @@ -193,7 +195,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->                         if (*format == '\0')
->                                 break;
->                         if (*format == '%')
-> -                               goto out;
-> +                               goto literal;
->                         /* Get flags */
->                         if (*format == '-') {
->                                 ++format;
-> @@ -332,13 +334,11 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->                                 continue;
->                         }
->                 } else {
-> -               out:
-> +literal:
->                         printc(out, out_len, *format);
->                         ++pc;
+> -       if (sbi_fls(ctr_mask) >= total_ctrs)
+> +       if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+>                 return ret;
+>
+>         if (flags & SBI_PMU_START_FLAG_SET_INIT_VALUE)
+>                 bUpdate = TRUE;
+>
+> -       for_each_set_bit_from(cbase, &ctr_mask, total_ctrs) {
+> -               event_idx_type = pmu_ctr_validate(cbase, &event_code);
+> +       for_each_set_bit(i, &cmask, total_ctrs) {
+> +               cidx = i + cbase;
+> +               event_idx_type = pmu_ctr_validate(cidx, &event_code);
+>                 if (event_idx_type < 0)
+>                         /* Continue the start operation for other counters */
+>                         continue;
+>                 else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
+> -                       ret = pmu_ctr_start_fw(cbase, event_code, ival, bUpdate);
+> +                       ret = pmu_ctr_start_fw(cidx, event_code, ival, bUpdate);
+>                 else
+> -                       ret = pmu_ctr_start_hw(cbase, ival, bUpdate);
+> +                       ret = pmu_ctr_start_hw(cidx, ival, bUpdate);
+>         }
+>
+>         return ret;
+> @@ -421,25 +422,26 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+>         int ret = SBI_EINVAL;
+>         int event_idx_type;
+>         uint32_t event_code;
+> -       unsigned long ctr_mask = cmask << cbase;
+> +       int i, cidx;
+>
+> -       if (sbi_fls(ctr_mask) >= total_ctrs)
+> +       if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+>                 return SBI_EINVAL;
+>
+> -       for_each_set_bit_from(cbase, &ctr_mask, total_ctrs) {
+> -               event_idx_type = pmu_ctr_validate(cbase, &event_code);
+> +       for_each_set_bit(i, &cmask, total_ctrs) {
+> +               cidx = i + cbase;
+> +               event_idx_type = pmu_ctr_validate(cidx, &event_code);
+>                 if (event_idx_type < 0)
+>                         /* Continue the stop operation for other counters */
+>                         continue;
+>
+>                 else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
+> -                       ret = pmu_ctr_stop_fw(cbase, event_code);
+> +                       ret = pmu_ctr_stop_fw(cidx, event_code);
+>                 else
+> -                       ret = pmu_ctr_stop_hw(cbase);
+> +                       ret = pmu_ctr_stop_hw(cidx);
+>
+>                 if (flag & SBI_PMU_STOP_FLAG_RESET) {
+> -                       active_events[hartid][cbase] = SBI_PMU_EVENT_IDX_INVALID;
+> -                       pmu_reset_hw_mhpmevent(cbase);
+> +                       active_events[hartid][cidx] = SBI_PMU_EVENT_IDX_INVALID;
+> +                       pmu_reset_hw_mhpmevent(cidx);
 >                 }
 >         }
-> -       if (out)
-> -               **out = '\0';
 >
->         return pc;
->  }
-> @@ -348,6 +348,9 @@ int sbi_sprintf(char *out, const char *format, ...)
->         va_list args;
->         int retval;
+> @@ -615,10 +617,9 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+>         int event_type = get_cidx_type(event_idx);
+>         struct sbi_pmu_fw_event *fevent;
+>         uint32_t fw_evt_code;
+> -       unsigned long tmp = cidx_mask << cidx_base;
 >
-> +       if (unlikely(!out))
-> +               sbi_panic("sbi_sprintf called with NULL output string\n");
-> +
->         va_start(args, format);
->         retval = print(&out, NULL, format, args);
->         va_end(args);
-> @@ -360,6 +363,10 @@ int sbi_snprintf(char *out, u32 out_sz, const char *format, ...)
->         va_list args;
->         int retval;
+>         /* Do a basic sanity check of counter base & mask */
+> -       if (sbi_fls(tmp) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
+> +       if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs || event_type >= SBI_PMU_EVENT_TYPE_MAX)
+>                 return SBI_EINVAL;
 >
-> +       if (unlikely(!out && out_sz != 0))
-> +               sbi_panic("sbi_snprintf called with NULL output string and "
-> +                         "output size is not zero\n");
-> +
->         va_start(args, format);
->         retval = print(&out, &out_sz, format, args);
->         va_end(args);
+>         if (flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) {
 > --
-> 2.36.1
+> 2.25.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
