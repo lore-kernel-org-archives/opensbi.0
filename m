@@ -1,22 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 30 Jul 2022 15:49:46 +0530
-Subject: [PATCH 1/4] lib: utils/fdt: Factor out common uart node code
-In-Reply-To: <CAAhSdy0Crf3puRUJehFaVc5TtSb7gyad26bR_DpQ5wnUr=aT1A@mail.gmail.com>
+Date: Sat, 30 Jul 2022 15:50:09 +0530
+Subject: [PATCH 2/4] lib: utils/serial: Initialize platform_uart_data to zero
+In-Reply-To: <CAAhSdy1m=ML9knL-mrBMwF5ByMu9pk4Mq6ey-DPj=JFBH7u2Kw@mail.gmail.com>
 References: <20220718172028.2006166-1-ajones@ventanamicro.com>
- <20220718172028.2006166-2-ajones@ventanamicro.com> <CAAhSdy0Crf3puRUJehFaVc5TtSb7gyad26bR_DpQ5wnUr=aT1A@mail.gmail.com>
-Message-ID: <CAAhSdy2GzcnFPF-gs44BVrbtNGPHJHVh5D6n7ZNukM8Nm3FuKQ@mail.gmail.com>
+ <20220718172028.2006166-3-ajones@ventanamicro.com> <CAAhSdy1m=ML9knL-mrBMwF5ByMu9pk4Mq6ey-DPj=JFBH7u2Kw@mail.gmail.com>
+Message-ID: <CAAhSdy0jFVoafmDvbk3YmbN_hKv01WPGp4rvjgSqVRgvpjcYGA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jul 30, 2022 at 10:54 AM Anup Patel <anup@brainfault.org> wrote:
+On Sat, Jul 30, 2022 at 10:55 AM Anup Patel <anup@brainfault.org> wrote:
 >
 > On Mon, Jul 18, 2022 at 10:50 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 > >
-> > Factor out the common code used by the fdt UART node parsers,
-> > allowing us to drop duplicate code.
+> > While it doesn't look like there are any current cases of using
+> > uninitialized data, let's zero all the UART data members to be
+> > safe. Zero may not actually be better than a random number in
+> > some cases, so all structure members should still be validated
+> > before use, but at least zero is usually easier to debug than
+> > some random stack garbage...
 > >
 > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 >
@@ -34,197 +38,92 @@ Anup
 > Anup
 >
 > > ---
-> >  lib/utils/fdt/fdt_helper.c | 131 +++++++++++--------------------------
-> >  1 file changed, 39 insertions(+), 92 deletions(-)
+> >  lib/utils/serial/fdt_serial_gaisler.c       | 2 +-
+> >  lib/utils/serial/fdt_serial_shakti.c        | 2 +-
+> >  lib/utils/serial/fdt_serial_sifive.c        | 2 +-
+> >  lib/utils/serial/fdt_serial_uart8250.c      | 2 +-
+> >  lib/utils/serial/fdt_serial_xlnx_uartlite.c | 2 +-
+> >  platform/fpga/openpiton/platform.c          | 2 +-
+> >  6 files changed, 6 insertions(+), 6 deletions(-)
 > >
-> > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> > index 2bdb1ef23e55..c6abf804014d 100644
-> > --- a/lib/utils/fdt/fdt_helper.c
-> > +++ b/lib/utils/fdt/fdt_helper.c
-> > @@ -314,8 +314,10 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
-> >         return 0;
-> >  }
-> >
-> > -int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-> > -                               struct platform_uart_data *uart)
-> > +static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
-> > +                                     struct platform_uart_data *uart,
-> > +                                     unsigned long default_freq,
-> > +                                     unsigned long default_baud)
-> >  {
-> >         int len, rc;
-> >         const fdt32_t *val;
-> > @@ -338,13 +340,28 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-> >         if (len > 0 && val)
-> >                 uart->freq = fdt32_to_cpu(*val);
-> >         else
-> > -               uart->freq = DEFAULT_UART_FREQ;
-> > +               uart->freq = default_freq;
-> >
-> >         val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-> >         if (len > 0 && val)
-> >                 uart->baud = fdt32_to_cpu(*val);
-> >         else
-> > -               uart->baud = DEFAULT_UART_BAUD;
-> > +               uart->baud = default_baud;
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-> > +                               struct platform_uart_data *uart)
-> > +{
-> > +       int rc;
-> > +
-> > +       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> > +                                       DEFAULT_UART_FREQ,
-> > +                                       DEFAULT_UART_BAUD);
-> > +
-> > +       if (rc)
-> > +               return rc;
-> >
-> >         /* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
-> >         uart->reg_shift    = DEFAULT_UART_REG_SHIFT;
-> > @@ -356,69 +373,26 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
-> >  int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
-> >                                struct platform_uart_data *uart)
-> >  {
-> > -       int len, rc;
-> > -       const fdt32_t *val;
-> > -       uint64_t reg_addr, reg_size;
-> > -
-> > -       if (nodeoffset < 0 || !uart || !fdt)
-> > -               return SBI_ENODEV;
-> > -
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > -                                   &reg_addr, &reg_size);
-> > -       if (rc < 0 || !reg_addr || !reg_size)
-> > -               return SBI_ENODEV;
-> > -       uart->addr = reg_addr;
-> > +       int rc;
-> >
-> > -       /**
-> > -        * UART address is mandaotry. clock-frequency and current-speed
-> > -        * may not be present. Don't return error.
-> > -        */
-> > -       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
-> > -       if (len > 0 && val)
-> > -               uart->freq = fdt32_to_cpu(*val);
-> > -       else
-> > -               uart->freq = DEFAULT_SHAKTI_UART_FREQ;
-> > +       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> > +                                       DEFAULT_SHAKTI_UART_FREQ,
-> > +                                       DEFAULT_SHAKTI_UART_BAUD);
-> >
-> > -       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-> > -       if (len > 0 && val)
-> > -               uart->baud = fdt32_to_cpu(*val);
-> > -       else
-> > -               uart->baud = DEFAULT_SHAKTI_UART_BAUD;
-> > -
-> > -       return 0;
-> > +       return rc ? : 0;
-> >  }
-> >
-> >  int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
-> >                                struct platform_uart_data *uart)
-> >  {
-> > -       int len, rc;
-> > -       const fdt32_t *val;
-> > -       uint64_t reg_addr, reg_size;
-> > -
-> > -       if (nodeoffset < 0 || !uart || !fdt)
-> > -               return SBI_ENODEV;
-> > -
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > -                                   &reg_addr, &reg_size);
-> > -       if (rc < 0 || !reg_addr || !reg_size)
-> > -               return SBI_ENODEV;
-> > -       uart->addr = reg_addr;
-> > +       int rc;
-> >
-> > -       /**
-> > -        * UART address is mandaotry. clock-frequency and current-speed
-> > -        * may not be present. Don't return error.
-> > -        */
-> > -       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
-> > -       if (len > 0 && val)
-> > -               uart->freq = fdt32_to_cpu(*val);
-> > -       else
-> > -               uart->freq = DEFAULT_SIFIVE_UART_FREQ;
-> > +       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> > +                                       DEFAULT_SIFIVE_UART_FREQ,
-> > +                                       DEFAULT_SIFIVE_UART_BAUD);
-> >
-> > -       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-> > -       if (len > 0 && val)
-> > -               uart->baud = fdt32_to_cpu(*val);
-> > -       else
-> > -               uart->baud = DEFAULT_SIFIVE_UART_BAUD;
-> > +       if (rc)
-> > +               return rc;
-> >
-> >         /* For SiFive UART, the reg-shift and reg-io-width are fixed .*/
-> >         uart->reg_shift = DEFAULT_SIFIVE_UART_REG_SHIFT;
-> > @@ -432,32 +406,13 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
-> >  {
-> >         int len, rc;
-> >         const fdt32_t *val;
-> > -       uint64_t reg_addr, reg_size;
-> > -
-> > -       if (nodeoffset < 0 || !uart || !fdt)
-> > -               return SBI_ENODEV;
-> > -
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > -                                   &reg_addr, &reg_size);
-> > -       if (rc < 0 || !reg_addr || !reg_size)
-> > -               return SBI_ENODEV;
-> > -       uart->addr = reg_addr;
-> >
-> > -       /**
-> > -        * UART address is mandaotry. clock-frequency and current-speed
-> > -        * may not be present. Don't return error.
-> > -        */
-> > -       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
-> > -       if (len > 0 && val)
-> > -               uart->freq = fdt32_to_cpu(*val);
-> > -       else
-> > -               uart->freq = DEFAULT_UART_FREQ;
-> > +       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> > +                                       DEFAULT_UART_FREQ,
-> > +                                       DEFAULT_UART_BAUD);
-> >
-> > -       val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-> > -       if (len > 0 && val)
-> > -               uart->baud = fdt32_to_cpu(*val);
-> > -       else
-> > -               uart->baud = DEFAULT_UART_BAUD;
-> > +       if (rc)
-> > +               return rc;
-> >
-> >         val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "reg-shift", &len);
-> >         if (len > 0 && val)
-> > @@ -499,18 +454,10 @@ int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
-> >                                struct platform_uart_data *uart)
+> > diff --git a/lib/utils/serial/fdt_serial_gaisler.c b/lib/utils/serial/fdt_serial_gaisler.c
+> > index 9a9f9a8b7962..74988e34bcd8 100644
+> > --- a/lib/utils/serial/fdt_serial_gaisler.c
+> > +++ b/lib/utils/serial/fdt_serial_gaisler.c
+> > @@ -15,7 +15,7 @@ static int serial_gaisler_init(void *fdt, int nodeoff,
+> >                                const struct fdt_match *match)
 > >  {
 > >         int rc;
-> > -       uint64_t reg_addr, reg_size;
+> > -       struct platform_uart_data uart;
+> > +       struct platform_uart_data uart = { 0 };
 > >
-> > -       if (nodeoffset < 0 || !uart || !fdt)
-> > -               return SBI_ENODEV;
-> > +       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
+> >         rc = fdt_parse_gaisler_uart_node(fdt, nodeoff, &uart);
+> >         if (rc)
+> > diff --git a/lib/utils/serial/fdt_serial_shakti.c b/lib/utils/serial/fdt_serial_shakti.c
+> > index 4f91419ef53c..0e056303dbb5 100644
+> > --- a/lib/utils/serial/fdt_serial_shakti.c
+> > +++ b/lib/utils/serial/fdt_serial_shakti.c
+> > @@ -13,7 +13,7 @@ static int serial_shakti_init(void *fdt, int nodeoff,
+> >                                 const struct fdt_match *match)
+> >  {
+> >         int rc;
+> > -       struct platform_uart_data uart;
+> > +       struct platform_uart_data uart = { 0 };
 > >
-> > -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> > -                                   &reg_addr, &reg_size);
-> > -       if (rc < 0 || !reg_addr || !reg_size)
-> > -               return SBI_ENODEV;
-> > -       uart->addr = reg_addr;
-> > -
-> > -       return 0;
-> > +       return rc ? : 0;
-> >  }
+> >         rc = fdt_parse_shakti_uart_node(fdt, nodeoff, &uart);
+> >         if (rc)
+> > diff --git a/lib/utils/serial/fdt_serial_sifive.c b/lib/utils/serial/fdt_serial_sifive.c
+> > index f4c833c1573d..3ca10913eee3 100644
+> > --- a/lib/utils/serial/fdt_serial_sifive.c
+> > +++ b/lib/utils/serial/fdt_serial_sifive.c
+> > @@ -15,7 +15,7 @@ static int serial_sifive_init(void *fdt, int nodeoff,
+> >                                 const struct fdt_match *match)
+> >  {
+> >         int rc;
+> > -       struct platform_uart_data uart;
+> > +       struct platform_uart_data uart = { 0 };
 > >
-> >  int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
+> >         rc = fdt_parse_sifive_uart_node(fdt, nodeoff, &uart);
+> >         if (rc)
+> > diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
+> > index 544b7416de42..0b95f2d9e44e 100644
+> > --- a/lib/utils/serial/fdt_serial_uart8250.c
+> > +++ b/lib/utils/serial/fdt_serial_uart8250.c
+> > @@ -15,7 +15,7 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
+> >                                 const struct fdt_match *match)
+> >  {
+> >         int rc;
+> > -       struct platform_uart_data uart;
+> > +       struct platform_uart_data uart = { 0 };
+> >
+> >         rc = fdt_parse_uart8250_node(fdt, nodeoff, &uart);
+> >         if (rc)
+> > diff --git a/lib/utils/serial/fdt_serial_xlnx_uartlite.c b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> > index 466e16e82d8c..9f04aea3673b 100644
+> > --- a/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> > +++ b/lib/utils/serial/fdt_serial_xlnx_uartlite.c
+> > @@ -15,7 +15,7 @@ static int serial_xlnx_uartlite_init(void *fdt, int nodeoff,
+> >                                 const struct fdt_match *match)
+> >  {
+> >         int rc;
+> > -       struct platform_uart_data uart;
+> > +       struct platform_uart_data uart = { 0 };
+> >
+> >         rc = fdt_parse_xlnx_uartlite_node(fdt, nodeoff, &uart);
+> >         if (rc)
+> > diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+> > index 7ca21236bfef..5ff7d200aba9 100644
+> > --- a/platform/fpga/openpiton/platform.c
+> > +++ b/platform/fpga/openpiton/platform.c
+> > @@ -69,7 +69,7 @@ static struct aclint_mtimer_data mtimer = {
+> >  static int openpiton_early_init(bool cold_boot)
+> >  {
+> >         void *fdt;
+> > -       struct platform_uart_data uart_data;
+> > +       struct platform_uart_data uart_data = { 0 };
+> >         struct plic_data plic_data;
+> >         unsigned long aclint_freq;
+> >         uint64_t clint_addr;
 > > --
 > > 2.36.1
 > >
