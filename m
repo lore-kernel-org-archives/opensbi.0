@@ -1,22 +1,46 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 30 Jul 2022 15:55:48 +0530
-Subject: [PATCH v3 4/4] lib: sbi: Fix fw_event_map initialization
-In-Reply-To: <20220720215035.3453553-5-atishp@rivosinc.com>
-References: <20220720215035.3453553-1-atishp@rivosinc.com> <20220720215035.3453553-5-atishp@rivosinc.com>
-Message-ID: <CAAhSdy1ZpRd3q6D50Gv1b5FwD_kqbGtpC4EsCV=BZxOMTnyaYA@mail.gmail.com>
+Date: Sat, 30 Jul 2022 15:57:34 +0530
+Subject: [PATCH v3] lib: sbi: Fix printf handling of long long
+In-Reply-To: <20220727164401.tjinf26ysa27j43y@kamzik>
+References: <TYYP286MB14396B0D3F810E64516CFE9DC6979@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+ <20220727164401.tjinf26ysa27j43y@kamzik>
+Message-ID: <CAAhSdy1NMe0yrA4ELi8Vkz2mSWXYjrnx5aevEq7zF2mFo=pgdg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 21, 2022 at 3:20 AM Atish Patra <atishp@rivosinc.com> wrote:
+On Wed, Jul 27, 2022 at 10:14 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> fw_event_map represents array of firmware events. It should initialized
-> for maximum number of firmware events not counters.
+> On Thu, Jul 28, 2022 at 12:30:05AM +0800, dramforever wrote:
+> > Read long long arguments directly using va_arg. Remove original hack for
+> > RV32 that read a long long arg as two long args.
+> >
+> > This un-breaks the case on RV64 where e.g. the long long is followed by
+> > an odd number of ints:
+> >
+> >     sbi_printf("%d %lld", (int) 1, (long long) 2LL);
+> >
+> > Also remove the acnt variable, which is now unused.
+> >
+> > Signed-off-by: dramforever <dramforever@live.com>
+> > ---
+> >
+> > Changes since v2:
+> >
+> > - Remove the acnt variable
+> >
+> > Changes since v1:
+> >
+> > - Removed hack that reads a long long as two longs
+> > - Better commit message
+> >
+> >  lib/sbi/sbi_console.c | 30 ++----------------------------
+> >  1 file changed, 2 insertions(+), 28 deletions(-)
+> >
 >
 > Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
 Looks good to me.
 
@@ -27,24 +51,9 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
-> ---
->  lib/sbi/sbi_pmu.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index ae3c00374058..b4342971bcf1 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -764,7 +764,7 @@ static void pmu_reset_event_map(u32 hartid)
->         /* Initialize the counter to event mapping table */
->         for (j = 3; j < total_ctrs; j++)
->                 active_events[hartid][j] = SBI_PMU_EVENT_IDX_INVALID;
-> -       for (j = 0; j < SBI_PMU_FW_CTR_MAX; j++)
-> +       for (j = 0; j < SBI_PMU_FW_EVENT_MAX; j++)
->                 sbi_memset(&fw_event_map[hartid][j], 0,
->                            sizeof(struct sbi_pmu_fw_event));
->  }
 > --
-> 2.25.1
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
