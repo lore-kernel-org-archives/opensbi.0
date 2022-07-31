@@ -1,707 +1,175 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 31 Jul 2022 10:26:52 +0530
-Subject: [PATCH v4 14/15] platform: Remove redundant config.mk from all platforms
+Date: Sun, 31 Jul 2022 10:26:53 +0530
+Subject: [PATCH v4 15/15] docs: Update documentation for kconfig support
 In-Reply-To: <20220731045653.165058-1-apatel@ventanamicro.com>
 References: <20220731045653.165058-1-apatel@ventanamicro.com>
-Message-ID: <20220731045653.165058-15-apatel@ventanamicro.com>
+Message-ID: <20220731045653.165058-16-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The options defined in config.mk can be specified in objects.mk of each
-platform so let us remove config.mk from all platforms.
+We update all documentation files to:
+1) Remove references to platform specific config.mk file since it is
+   has been removed.
+2) Add details about platform specific configs/defconfig and Kconfig
+   files mandatory for each platform.
+3) Add required packages in top-level README.md
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- Makefile                           |  4 +-
- platform/andes/ae350/config.mk     | 36 --------------
- platform/andes/ae350/objects.mk    | 29 +++++++++++
- platform/fpga/ariane/config.mk     | 36 --------------
- platform/fpga/ariane/objects.mk    | 35 ++++++++++++++
- platform/fpga/openpiton/config.mk  | 35 --------------
- platform/fpga/openpiton/objects.mk | 35 ++++++++++++++
- platform/generic/config.mk         | 40 ----------------
- platform/generic/objects.mk        | 33 +++++++++++++
- platform/kendryte/k210/config.mk   | 19 --------
- platform/kendryte/k210/objects.mk  | 12 +++++
- platform/nuclei/ux600/config.mk    | 30 ------------
- platform/nuclei/ux600/objects.mk   | 22 +++++++++
- platform/template/config.mk        | 77 ------------------------------
- platform/template/objects.mk       | 72 ++++++++++++++++++++++++++++
- platform/template/platform.c       |  2 +-
- 16 files changed, 240 insertions(+), 277 deletions(-)
- delete mode 100644 platform/andes/ae350/config.mk
- delete mode 100644 platform/fpga/ariane/config.mk
- delete mode 100644 platform/fpga/openpiton/config.mk
- delete mode 100644 platform/generic/config.mk
- delete mode 100644 platform/kendryte/k210/config.mk
- delete mode 100644 platform/nuclei/ux600/config.mk
- delete mode 100644 platform/template/config.mk
+ README.md                   | 25 +++++++++++++++++++++++--
+ docs/firmware/fw_dynamic.md |  2 +-
+ docs/firmware/fw_jump.md    |  4 ++--
+ docs/firmware/fw_payload.md |  4 ++--
+ docs/platform/platform.md   |  4 ++--
+ docs/platform_guide.md      |  9 +++++----
+ 6 files changed, 35 insertions(+), 13 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 820a137..e6406a8 100644
---- a/Makefile
-+++ b/Makefile
-@@ -204,7 +204,7 @@ firmware-object-mks=$(shell if [ -d $(firmware_dir) ]; then find $(firmware_dir)
- .PHONY: all
- all:
+diff --git a/README.md b/README.md
+index 54fabe4..67d491d 100644
+--- a/README.md
++++ b/README.md
+@@ -92,8 +92,8 @@ N.B. Any S-mode boot loader (i.e. U-Boot) doesn't need to support HSM extension,
+ as it doesn't need to boot all the harts. The operating system should be
+ capable enough to bring up all other non-booting harts using HSM extension.
  
--# Include platform specific .config and config.mk
-+# Include platform specific .config
- ifdef PLATFORM
- .PHONY: menuconfig
- menuconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
-@@ -228,8 +228,6 @@ $(KCONFIG_AUTOCMD): $(KCONFIG_CONFIG)
+-Required Toolchain
+-------------------
++Required Toolchain and Packages
++-------------------------------
  
- include $(KCONFIG_CONFIG)
- include $(KCONFIG_AUTOCMD)
--
--include $(platform_src_dir)/config.mk
- endif
+ OpenSBI can be compiled natively or cross-compiled on a x86 host. For
+ cross-compilation, you can build your own toolchain, download a prebuilt one
+@@ -115,6 +115,14 @@ triple is used (e.g. *-target riscv64-unknown-elf*).
+ Please note that only a 64-bit version of the toolchain is available in
+ the Bootlin toolchain repository for now.
  
- # Include all object.mk files
-diff --git a/platform/andes/ae350/config.mk b/platform/andes/ae350/config.mk
-deleted file mode 100644
-index f555ef5..0000000
---- a/platform/andes/ae350/config.mk
-+++ /dev/null
-@@ -1,36 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Andes Technology Corporation
--#
--# Authors:
--#   Zong Li <zong@andestech.com>
--#   Nylon Chen <nylon7@andestech.com>
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Blobs to build
--FW_TEXT_START=0x00000000
--
--FW_DYNAMIC=y
--
--FW_JUMP=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  FW_JUMP_ADDR=0x400000
--else
--  FW_JUMP_ADDR=0x200000
--endif
--FW_JUMP_FDT_ADDR=0x2000000
--
--FW_PAYLOAD=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  FW_PAYLOAD_OFFSET=0x400000
--else
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--
--FW_PAYLOAD_FDT_ADDR=0x2000000
-diff --git a/platform/andes/ae350/objects.mk b/platform/andes/ae350/objects.mk
-index 5369677..80f0737 100644
---- a/platform/andes/ae350/objects.mk
-+++ b/platform/andes/ae350/objects.mk
-@@ -8,4 +8,33 @@
- #   Nylon Chen <nylon7@andestech.com>
- #
++In addition to a toolchain, OpenSBI also requires following packages on
++the host:
++
++1. device-tree-compiler: The device tree compiler for compiling device
++   tree sources (DTS files).
++2. python3: The python 3.0 (or higher) language support for various
++   scripts.
++
+ Building and Installing the OpenSBI Platform-Independent Library
+ ----------------------------------------------------------------
  
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Objects to build
- platform-objs-y += cache.o platform.o plicsw.o plmt.o
-+
-+# Blobs to build
-+FW_TEXT_START=0x00000000
-+
-+FW_DYNAMIC=y
-+
-+FW_JUMP=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  FW_JUMP_ADDR=0x400000
-+else
-+  FW_JUMP_ADDR=0x200000
-+endif
-+FW_JUMP_FDT_ADDR=0x2000000
-+
-+FW_PAYLOAD=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+
-+FW_PAYLOAD_FDT_ADDR=0x2000000
-diff --git a/platform/fpga/ariane/config.mk b/platform/fpga/ariane/config.mk
-deleted file mode 100644
-index 3556461..0000000
---- a/platform/fpga/ariane/config.mk
-+++ /dev/null
-@@ -1,36 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (C) 2019 FORTH-ICS/CARV
--#		Panagiotis Peristerakis <perister@ics.forth.gr>
--#
--
--#for more infos, check out /platform/template/config.mk
--
--PLATFORM_RISCV_XLEN = 64
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_JUMP=n
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
-- # This needs to be 4MB aligned for 32-bit support
-- FW_JUMP_ADDR=0x80400000
-- else
-- # This needs to be 2MB aligned for 64-bit support
-- FW_JUMP_ADDR=0x80200000
-- endif
--FW_JUMP_FDT_ADDR=0x82200000
--
--# Firmware with payload configuration.
--FW_PAYLOAD=y
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--# This needs to be 4MB aligned for 32-bit support
--  FW_PAYLOAD_OFFSET=0x400000
--else
--# This needs to be 2MB aligned for 64-bit support
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=0x82200000
--FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/fpga/ariane/objects.mk b/platform/fpga/ariane/objects.mk
-index 814e6da..83581ac 100644
---- a/platform/fpga/ariane/objects.mk
-+++ b/platform/fpga/ariane/objects.mk
-@@ -5,4 +5,39 @@
- #		Panagiotis Peristerakis <perister@ics.forth.gr>
- #
+@@ -196,6 +204,19 @@ top-level make command line. These options, such as *PLATFORM_<xyz>* or
+ *docs/platform/<platform_name>.md* files and
+ *docs/firmware/<firmware_name>.md* files.
  
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
++All OpenSBI platforms support Kconfig style build-time configuration. Users
++can change the build-time configuration of a platform using a graphical
++interface as follows:
++```
++make PLATFORM=<platform_subdir> menuconfig
++```
 +
-+# Object to build
- platform-objs-y += platform.o
++Alternately, an OpenSBI platform can have multiple default configurations
++and users can select a custom default configuration as follows:
++```
++make PLATFORM=<platform_subdir> PLATFORM_DEFCONFIG=<platform_custom_defconfig>
++```
 +
-+PLATFORM_RISCV_XLEN = 64
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_JUMP=n
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+ # This needs to be 4MB aligned for 32-bit support
-+ FW_JUMP_ADDR=0x80400000
-+ else
-+ # This needs to be 2MB aligned for 64-bit support
-+ FW_JUMP_ADDR=0x80200000
-+ endif
-+FW_JUMP_FDT_ADDR=0x82200000
-+
-+# Firmware with payload configuration.
-+FW_PAYLOAD=y
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+# This needs to be 4MB aligned for 32-bit support
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+# This needs to be 2MB aligned for 64-bit support
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+FW_PAYLOAD_FDT_ADDR=0x82200000
-+FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/fpga/openpiton/config.mk b/platform/fpga/openpiton/config.mk
-deleted file mode 100644
-index a969b25..0000000
---- a/platform/fpga/openpiton/config.mk
-+++ /dev/null
-@@ -1,35 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2020 Western Digital Corporation or its affiliates.
--#
--
--#for more infos, check out /platform/template/config.mk
--
--PLATFORM_RISCV_XLEN = 64
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_JUMP=n
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
-- # This needs to be 4MB aligned for 32-bit support
-- FW_JUMP_ADDR=0x80400000
-- else
-- # This needs to be 2MB aligned for 64-bit support
-- FW_JUMP_ADDR=0x80200000
-- endif
--FW_JUMP_FDT_ADDR=0x82200000
--
--# Firmware with payload configuration.
--FW_PAYLOAD=y
--
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--# This needs to be 4MB aligned for 32-bit support
--  FW_PAYLOAD_OFFSET=0x400000
--else
--# This needs to be 2MB aligned for 64-bit support
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=0x82200000
--FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/fpga/openpiton/objects.mk b/platform/fpga/openpiton/objects.mk
-index 30a3c4f..c8c345a 100644
---- a/platform/fpga/openpiton/objects.mk
-+++ b/platform/fpga/openpiton/objects.mk
-@@ -4,4 +4,39 @@
- # Copyright (c) 2020 Western Digital Corporation or its affiliates.
- #
+ Building 32-bit / 64-bit OpenSBI Images
+ ---------------------------------------
+ By default, building OpenSBI generates 32-bit or 64-bit images based on the
+diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
+index 7b9b192..e251488 100644
+--- a/docs/firmware/fw_dynamic.md
++++ b/docs/firmware/fw_dynamic.md
+@@ -20,7 +20,7 @@ the booting stage binary to follow OpenSBI firmware.
+ A platform can enable *FW_DYNAMIC* firmware using any of the following methods.
  
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Objects to build
- platform-objs-y += platform.o
-+
-+PLATFORM_RISCV_XLEN = 64
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_JUMP=n
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+ # This needs to be 4MB aligned for 32-bit support
-+ FW_JUMP_ADDR=0x80400000
-+ else
-+ # This needs to be 2MB aligned for 64-bit support
-+ FW_JUMP_ADDR=0x80200000
-+ endif
-+FW_JUMP_FDT_ADDR=0x82200000
-+
-+# Firmware with payload configuration.
-+FW_PAYLOAD=y
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+# This needs to be 4MB aligned for 32-bit support
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+# This needs to be 2MB aligned for 64-bit support
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+FW_PAYLOAD_FDT_ADDR=0x82200000
-+FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/generic/config.mk b/platform/generic/config.mk
-deleted file mode 100644
-index 8151974..0000000
---- a/platform/generic/config.mk
-+++ /dev/null
-@@ -1,40 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2020 Western Digital Corporation or its affiliates.
--#
--# Authors:
--#   Anup Patel <anup.patel@wdc.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Command for platform specific "make run"
--platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
--  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_DYNAMIC=y
--FW_JUMP=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  # This needs to be 4MB aligned for 32-bit system
--  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
--else
--  # This needs to be 2MB aligned for 64-bit system
--  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
--endif
--FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
--FW_PAYLOAD=y
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--  # This needs to be 4MB aligned for 32-bit system
--  FW_PAYLOAD_OFFSET=0x400000
--else
--  # This needs to be 2MB aligned for 64-bit system
--  FW_PAYLOAD_OFFSET=0x200000
--endif
--FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index 4907754..136853e 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -7,5 +7,38 @@
- #   Anup Patel <anup.patel@wdc.com>
- #
+ 1. Specifying `FW_DYNAMIC=y` on the top level `make` command line.
+-2. Specifying `FW_DYNAMIC=y` in the target platform *config.mk* configuration
++2. Specifying `FW_DYNAMIC=y` in the target platform *objects.mk* configuration
+ file.
  
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Command for platform specific "make run"
-+platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
-+  -nographic -bios $(build_dir)/platform/generic/firmware/fw_payload.elf
-+
-+# Objects to build
- platform-objs-y += platform.o
- platform-objs-y += platform_override_modules.o
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_DYNAMIC=y
-+FW_JUMP=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  # This needs to be 4MB aligned for 32-bit system
-+  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x400000)))
-+else
-+  # This needs to be 2MB aligned for 64-bit system
-+  FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
-+endif
-+FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
-+FW_PAYLOAD=y
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+  # This needs to be 4MB aligned for 32-bit system
-+  FW_PAYLOAD_OFFSET=0x400000
-+else
-+  # This needs to be 2MB aligned for 64-bit system
-+  FW_PAYLOAD_OFFSET=0x200000
-+endif
-+FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
-diff --git a/platform/kendryte/k210/config.mk b/platform/kendryte/k210/config.mk
-deleted file mode 100644
-index 8a9b814..0000000
---- a/platform/kendryte/k210/config.mk
-+++ /dev/null
-@@ -1,19 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Western Digital Corporation or its affiliates.
--#
--# Authors:
--#   Damien Le Moal <damien.lemoal@wdc.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Blobs to build
--FW_TEXT_START=0x80000000
--FW_PAYLOAD=y
--FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/kendryte/k210/objects.mk b/platform/kendryte/k210/objects.mk
-index b74da74..1bfb898 100644
---- a/platform/kendryte/k210/objects.mk
-+++ b/platform/kendryte/k210/objects.mk
-@@ -7,8 +7,20 @@
- #   Damien Le Moal <damien.lemoal@wdc.com>
- #
+ The compiled *FW_DYNAMIC* firmware ELF file is named *fw_dynamic.elf*. It's
+diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
+index eea3013..35a4301 100644
+--- a/docs/firmware/fw_jump.md
++++ b/docs/firmware/fw_jump.md
+@@ -15,7 +15,7 @@ and the booting stage binary to follow the OpenSBI firmware.
+ A platform *FW_JUMP* firmware can be enabled by any of the following methods:
  
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Objects to build
- platform-objs-y += platform.o
+ 1. Specifying `FW_JUMP=y` on the top level `make` command line.
+-2. Specifying `FW_JUMP=y` in the target platform *config.mk* configuration file.
++2. Specifying `FW_JUMP=y` in the target platform *objects.mk* configuration file.
  
- platform-objs-y += k210.o
- platform-varprefix-k210.o = dt_k210
- platform-padding-k210.o = 2048
-+
-+# Blobs to build
-+FW_TEXT_START=0x80000000
-+FW_PAYLOAD=y
-+FW_PAYLOAD_ALIGN=0x1000
-diff --git a/platform/nuclei/ux600/config.mk b/platform/nuclei/ux600/config.mk
-deleted file mode 100644
-index dddcc4e..0000000
---- a/platform/nuclei/ux600/config.mk
-+++ /dev/null
-@@ -1,30 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2020 Nuclei Corporation or its affiliates.
--#
--# Authors:
--#   lujun <lujun@nucleisys.com>
--#   hqfang <578567190@qq.com>
--#
--
--# Compiler flags
--platform-cppflags-y =
--platform-cflags-y =
--platform-asflags-y =
--platform-ldflags-y =
--
--# Command for platform specific "make run"
--platform-runcmd = xl_spike \
--  $(build_dir)/platform/nuclei/ux600/firmware/fw_payload.elf
--
--# Blobs to build
--FW_TEXT_START=0xA0000000
--FW_DYNAMIC=y
--FW_JUMP=y
--
--FW_JUMP_ADDR=0xA0200000
--FW_JUMP_FDT_ADDR=0xA8000000
--FW_PAYLOAD=y
--FW_PAYLOAD_OFFSET=0x200000
--FW_PAYLOAD_FDT_ADDR=0xA8000000
-diff --git a/platform/nuclei/ux600/objects.mk b/platform/nuclei/ux600/objects.mk
-index 8c36c90..7c429e0 100644
---- a/platform/nuclei/ux600/objects.mk
-+++ b/platform/nuclei/ux600/objects.mk
-@@ -8,4 +8,26 @@
- #   hqfang <578567190@qq.com>
- #
+ The compiled *FW_JUMP* firmware ELF file is named *fw_jump.elf*. Its expanded
+ image file is *fw_jump.bin*. Both files are created in the platform-specific
+@@ -26,7 +26,7 @@ build directory under the *build/platform/<platform_subdir>/firmware* directory.
  
-+# Compiler flags
-+platform-cppflags-y =
-+platform-cflags-y =
-+platform-asflags-y =
-+platform-ldflags-y =
-+
-+# Command for platform specific "make run"
-+platform-runcmd = xl_spike \
-+  $(build_dir)/platform/nuclei/ux600/firmware/fw_payload.elf
-+
-+# Objects to build
- platform-objs-y += platform.o
-+
-+# Blobs to build
-+FW_TEXT_START=0xA0000000
-+FW_DYNAMIC=y
-+FW_JUMP=y
-+
-+FW_JUMP_ADDR=0xA0200000
-+FW_JUMP_FDT_ADDR=0xA8000000
-+FW_PAYLOAD=y
-+FW_PAYLOAD_OFFSET=0x200000
-+FW_PAYLOAD_FDT_ADDR=0xA8000000
-diff --git a/platform/template/config.mk b/platform/template/config.mk
-deleted file mode 100644
-index f817342..0000000
---- a/platform/template/config.mk
-+++ /dev/null
-@@ -1,77 +0,0 @@
--#
--# SPDX-License-Identifier: BSD-2-Clause
--#
--# Copyright (c) 2019 Western Digital Corporation or its affiliates.
--#
--
--# Compiler pre-processor flags
--platform-cppflags-y =
--
--# C Compiler and assembler flags.
--platform-cflags-y =
--platform-asflags-y =
--
--# Linker flags: additional libraries and object files that the platform
--# code needs can be added here
--platform-ldflags-y =
--
--#
--# Command for platform specific "make run"
--# Useful for development and debugging on plaftform simulator (such as QEMU)
--#
--# platform-runcmd = your_platform_run.sh
--
--#
--# Platform RISC-V XLEN, ABI, ISA and Code Model configuration.
--# These are optional parameters but platforms can optionaly provide it.
--# Some of these are guessed based on GCC compiler capabilities
--#
--# PLATFORM_RISCV_XLEN = 64
--# PLATFORM_RISCV_ABI = lp64
--# PLATFORM_RISCV_ISA = rv64imafdc
--# PLATFORM_RISCV_CODE_MODEL = medany
--
--# Firmware load address configuration. This is mandatory.
--FW_TEXT_START=0x80000000
--
--# Optional parameter for path to external FDT
--# FW_FDT_PATH="path to platform flattened device tree file"
--
--#
--# Dynamic firmware configuration.
--# Optional parameters are commented out. Uncomment and define these parameters
--# as needed.
--#
--FW_DYNAMIC=<y|n>
--
--#
--# Jump firmware configuration.
--# Optional parameters are commented out. Uncomment and define these parameters
--# as needed.
--#
--FW_JUMP=<y|n>
--# This needs to be 4MB aligned for 32-bit support
--# This needs to be 2MB aligned for 64-bit support
--# ifeq ($(PLATFORM_RISCV_XLEN), 32)
--# FW_JUMP_ADDR=0x80400000
--# else
--# FW_JUMP_ADDR=0x80200000
--# endif
--# FW_JUMP_FDT_ADDR=0x82200000
--
--#
--# Firmware with payload configuration.
--# Optional parameters are commented out. Uncomment and define these parameters
--# as needed.
--#
--FW_PAYLOAD=<y|n>
--# This needs to be 4MB aligned for 32-bit support
--# This needs to be 2MB aligned for 64-bit support
--ifeq ($(PLATFORM_RISCV_XLEN), 32)
--FW_PAYLOAD_OFFSET=0x400000
--else
--FW_PAYLOAD_OFFSET=0x200000
--endif
--# FW_PAYLOAD_ALIGN=0x1000
--# FW_PAYLOAD_PATH="path to next boot stage binary image file"
--# FW_PAYLOAD_FDT_ADDR=0x82200000
-diff --git a/platform/template/objects.mk b/platform/template/objects.mk
-index caaec2b..0025928 100644
---- a/platform/template/objects.mk
-+++ b/platform/template/objects.mk
-@@ -4,6 +4,33 @@
- # Copyright (c) 2019 Western Digital Corporation or its affiliates.
- #
+ To operate correctly, a *FW_JUMP* firmware requires some configuration
+ parameters to be defined using either the top level `make` command line or the
+-target platform *config.mk* configuration file. The possible parameters are as
++target platform *objects.mk* configuration file. The possible parameters are as
+ follows:
  
-+# Compiler pre-processor flags
-+platform-cppflags-y =
-+
-+# C Compiler and assembler flags.
-+platform-cflags-y =
-+platform-asflags-y =
-+
-+# Linker flags: additional libraries and object files that the platform
-+# code needs can be added here
-+platform-ldflags-y =
-+
-+#
-+# Command for platform specific "make run"
-+# Useful for development and debugging on plaftform simulator (such as QEMU)
-+#
-+# platform-runcmd = your_platform_run.sh
-+
-+#
-+# Platform RISC-V XLEN, ABI, ISA and Code Model configuration.
-+# These are optional parameters but platforms can optionaly provide it.
-+# Some of these are guessed based on GCC compiler capabilities
-+#
-+# PLATFORM_RISCV_XLEN = 64
-+# PLATFORM_RISCV_ABI = lp64
-+# PLATFORM_RISCV_ISA = rv64imafdc
-+# PLATFORM_RISCV_CODE_MODEL = medany
-+
- # Space separated list of object file names to be compiled for the platform
- platform-objs-y += platform.o
+ * **FW_JUMP_ADDR** - Address of the entry point of the booting stage to be
+diff --git a/docs/firmware/fw_payload.md b/docs/firmware/fw_payload.md
+index 0947448..3bb918f 100644
+--- a/docs/firmware/fw_payload.md
++++ b/docs/firmware/fw_payload.md
+@@ -20,7 +20,7 @@ Enabling *FW_PAYLOAD* compilation
+ The *FW_PAYLOAD* firmware can be enabled by any of the following methods:
  
-@@ -13,3 +40,48 @@ platform-objs-y += platform.o
- # source file be in the form <dt file name>.dts
- #
- # platform-objs-y += <dt file name>.o
-+
-+# Firmware load address configuration. This is mandatory.
-+FW_TEXT_START=0x80000000
-+
-+# Optional parameter for path to external FDT
-+# FW_FDT_PATH="path to platform flattened device tree file"
-+
-+#
-+# Dynamic firmware configuration.
-+# Optional parameters are commented out. Uncomment and define these parameters
-+# as needed.
-+#
-+FW_DYNAMIC=<y|n>
-+
-+#
-+# Jump firmware configuration.
-+# Optional parameters are commented out. Uncomment and define these parameters
-+# as needed.
-+#
-+FW_JUMP=<y|n>
-+# This needs to be 4MB aligned for 32-bit support
-+# This needs to be 2MB aligned for 64-bit support
-+# ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+# FW_JUMP_ADDR=0x80400000
-+# else
-+# FW_JUMP_ADDR=0x80200000
-+# endif
-+# FW_JUMP_FDT_ADDR=0x82200000
-+
-+#
-+# Firmware with payload configuration.
-+# Optional parameters are commented out. Uncomment and define these parameters
-+# as needed.
-+#
-+FW_PAYLOAD=<y|n>
-+# This needs to be 4MB aligned for 32-bit support
-+# This needs to be 2MB aligned for 64-bit support
-+ifeq ($(PLATFORM_RISCV_XLEN), 32)
-+FW_PAYLOAD_OFFSET=0x400000
-+else
-+FW_PAYLOAD_OFFSET=0x200000
-+endif
-+# FW_PAYLOAD_ALIGN=0x1000
-+# FW_PAYLOAD_PATH="path to next boot stage binary image file"
-+# FW_PAYLOAD_FDT_ADDR=0x82200000
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index 5524847..f3802da 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -11,7 +11,7 @@
+ 1. Specifying `FW_PAYLOAD=y` on the top level `make` command line.
+-2. Specifying `FW_PAYLOAD=y` in the target platform *config.mk* configuration
++2. Specifying `FW_PAYLOAD=y` in the target platform *objects.mk* configuration
+    file.
  
- /*
-  * Include these files as needed.
-- * See config.mk PLATFORM_xxx configuration parameters.
-+ * See objects.mk PLATFORM_xxx configuration parameters.
-  */
- #include <sbi_utils/ipi/aclint_mswi.h>
- #include <sbi_utils/irqchip/plic.h>
+ The compiled *FW_PAYLOAD* firmware ELF file is named *fw_jump.elf*. Its
+@@ -33,7 +33,7 @@ Configuration Options
+ 
+ A *FW_PAYLOAD* firmware is built according to configuration parameters and
+ options. These configuration parameters can be defined using either the top
+-level `make` command line or the target platform *config.mk* configuration
++level `make` command line or the target platform *objects.mk* configuration
+ file. The parameters currently defined are as follows:
+ 
+ * **FW_PAYLOAD_OFFSET** - Offset from *FW_TEXT_BASE* where the payload binary
+diff --git a/docs/platform/platform.md b/docs/platform/platform.md
+index cb4bec6..b726e1d 100644
+--- a/docs/platform/platform.md
++++ b/docs/platform/platform.md
+@@ -42,8 +42,8 @@ OpenSBI currently supports the following virtual and hardware platforms:
+ The code for these supported platforms can be used as example to implement
+ support for other platforms. The *platform/template* directory also provides
+ template files for implementing support for a new platform. The *object.mk*,
+-*config.mk* and *platform.c* template files provides enough comments to
+-facilitate the implementation.
++*Kconfig*, *configs/defconfig* and *platform.c* template files provides enough
++comments to facilitate the implementation.
+ 
+ [generic.md]: generic.md
+ [qemu_virt.md]: qemu_virt.md
+diff --git a/docs/platform_guide.md b/docs/platform_guide.md
+index b6c2c2e..8ac5aa0 100644
+--- a/docs/platform_guide.md
++++ b/docs/platform_guide.md
+@@ -28,11 +28,12 @@ Adding support for a new platform
+ Support for a new platform named *&lt;xyz&gt;* can be added as follows:
+ 
+ 1. Create a directory named *&lt;xyz&gt;* under the *platform/* directory.
+-2. Create a platform configuration file named *config.mk* under the
+-   *platform/&lt;xyz&gt;/* directory. This configuration file will provide
++2. Create a platform configuration files named *Kconfig* and *configs/defconfig*
++   under the *platform/&lt;xyz&gt;/* directory. This configuration files will
++   provide the build time configuration for the sources to be compiled.
++3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the platform
++   object files to be compiled. This file also provides platform-specific
+    compiler flags, and select firmware options.
+-3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the
+-   platform-specific object files to be compiled.
+ 4. Create a *platform/&lt;xyz&gt;/platform.c* file providing a
+    *struct sbi_platform* instance.
+ 
 -- 
 2.34.1
 
