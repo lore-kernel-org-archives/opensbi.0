@@ -1,52 +1,81 @@
-From: cmax@mailbox.org <cmax@mailbox.org>
-Date: Thu, 29 Feb 2024 17:02:17 +0100
-Subject: [PATCH v2] lib: sbi_domain: Fix PMP condition for addresses
-In-Reply-To: <272de5922603af4a3080eba37b2368bb8b3ead64.camel@126.com>
-References: <272de5922603af4a3080eba37b2368bb8b3ead64.camel@126.com>
-Message-ID: <20240229160432.6230-1-cmax@mailbox.org>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 1 Aug 2022 13:35:45 +0200
+Subject: [PATCH v4 00/15] OpenSBI Kconfig Support
+In-Reply-To: <20220731045653.165058-1-apatel@ventanamicro.com>
+References: <20220731045653.165058-1-apatel@ventanamicro.com>
+Message-ID: <20220801113545.wyy2eyndgcveoatv@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: max <cmax@mailbox.org>
+On Sun, Jul 31, 2022 at 10:26:38AM +0530, Anup Patel wrote:
+> In future, we will see more drivers in OpenSBI for system reset, serial port,
+> power management, etc platform specific devices. We need platform specific
+> compile time configuration to allow users control the size of OpenSBI generic
+> firmware binaries by only enabling desired drivers. In other words, users
+> should be allowed to restrict the set of RISC-V platforms on which OpenSBI
+> generic firmwares built by them can run.
+> 
+> To address above, we add Kconfig support for OpenSBI platforms using the
+> Kconfiglib project which is a standalone kconfig parser.
+> 
+> To try OpenSBI Kconfig support with generic platform, here are few
+> example commands:
+> make PLATFORM=generic             <-- builds OpenSBI using "defconfig"
+> make PLATFORM=generic menuconfig  <-- launches graphical interface for changes
+> 
+> These patches can also be found in the kconfig_v4 branch at:
+> https://github.com/avpatel/opensbi.git
+> 
+> Changes since v3:
+>  - Strip down the Kconfiglib sources added by PATCH1
+>  - Removed extra "." in the top-level Makefile updated by PATCH2
+> 
+> Changes since v2:
+>  - Use $(FOO) instead of $FOO to access FOO environment variable in
+>    Kconfig files.
+>  - Added a new PATCH1 to include Kconfiglib v14.1.0 sources under
+>    the scripts directory of OpenSBI.
+> 
+> Changes since v1:
+>  - Fix SPDX license specifier in new Kconfig files
+>
 
-In order to put an address/size into an NAPOT PMP region, the fw_start
-address needs to be aligned to the fw_rw_offset. Since the PMP address
-is already aligned to 4 byte by design, we have two more bits available.
+Hi Anup,
 
-Example:
-fw_start: 0x80040000
-fw_rw_offset:  0x00040000
-PMP address: 0x80040000 | (0x00040000 >> 2)
-fw_rw_offset is valid, but not in the current implementation
+I played with this a bit and noticed a new compiler warning when compiling
+with clang.
 
-Signed-off-by: max <cmax@mailbox.org>
----
-I updated to commit-msg to be more clear. I hope that clears it up.
-This is my first email patch, so I probably made some mistakes.
+...
+ GEN-DEP   platform/generic/platform_override_modules.dep
+ GEN-DEP   platform/generic/platform_override_modules.dep
+ CC-DEP    platform/generic/platform.dep
+/home/drew/code/github/opensbi/platform/generic/platform.c:10:10: fatal error: 'libfdt.h' file not found
+#include <libfdt.h>
+         ^~~~~~~~~~
+1 error generated.
+... 
 
-kind regards,
-Max
+I also noticed a bunch of directories and empty .h files (including
+libfdt.h) get added to build/platform/generic/kconfig/. That seems
+like a bug.
 
- lib/sbi/sbi_domain.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I also tested the new PLATFORM_DEFCONFIG make variable. I found I needed
+to specify a defconfig file by a relative path to
+platform/$PLATFORM/configs/. I think it would be more convenient if
+the path could be relative to the root where 'make' is run. And, also
+nice would be if it could be an absolute path. Currently an absolute path
+is still assumed to be relative to platform/$PLATFORM/configs/ resulting
+in something like platform/$PLATFORM/configs//$ABSOLUTE_PATH
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 4e9f742..94ee717 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -749,7 +749,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 		return SBI_EINVAL;
- 	}
- 
--	if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
-+	if ((scratch->fw_start & ((scratch->fw_rw_offset >> 2) - 1)) != 0) {
- 		sbi_printf("%s: fw_start and fw_rw_offset not aligned\n",
- 			   __func__);
- 		return SBI_EINVAL;
--- 
-2.44.0
+Finally, I find it a bit strange that we can now specifically configure
+the '"Generic" version 0.1' platform type but still end up with a
+'"Generic" version 0.1' platform type. I think we should allow, or
+even enforce, configured generic platforms to have new names and
+versions.
 
+Thanks,
+drew
 
