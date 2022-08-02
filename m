@@ -1,104 +1,200 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 2 Aug 2022 10:06:57 +0530
-Subject: [PATCH v4 00/15] OpenSBI Kconfig Support
-In-Reply-To: <20220801113545.wyy2eyndgcveoatv@kamzik>
-References: <20220731045653.165058-1-apatel@ventanamicro.com> <20220801113545.wyy2eyndgcveoatv@kamzik>
-Message-ID: <CAK9=C2UDqT6JwME8EdTyHjPqXwPdTG61BaqmcnhhrDOzvZqzJg@mail.gmail.com>
+Date: Tue,  2 Aug 2022 10:11:16 +0530
+Subject: [PATCH v5 00/16] OpenSBI Kconfig Support
+Message-ID: <20220802044132.280529-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Aug 1, 2022 at 5:05 PM Andrew Jones <ajones@ventanamicro.com> wrote:
->
-> On Sun, Jul 31, 2022 at 10:26:38AM +0530, Anup Patel wrote:
-> > In future, we will see more drivers in OpenSBI for system reset, serial port,
-> > power management, etc platform specific devices. We need platform specific
-> > compile time configuration to allow users control the size of OpenSBI generic
-> > firmware binaries by only enabling desired drivers. In other words, users
-> > should be allowed to restrict the set of RISC-V platforms on which OpenSBI
-> > generic firmwares built by them can run.
-> >
-> > To address above, we add Kconfig support for OpenSBI platforms using the
-> > Kconfiglib project which is a standalone kconfig parser.
-> >
-> > To try OpenSBI Kconfig support with generic platform, here are few
-> > example commands:
-> > make PLATFORM=generic             <-- builds OpenSBI using "defconfig"
-> > make PLATFORM=generic menuconfig  <-- launches graphical interface for changes
-> >
-> > These patches can also be found in the kconfig_v4 branch at:
-> > https://github.com/avpatel/opensbi.git
-> >
-> > Changes since v3:
-> >  - Strip down the Kconfiglib sources added by PATCH1
-> >  - Removed extra "." in the top-level Makefile updated by PATCH2
-> >
-> > Changes since v2:
-> >  - Use $(FOO) instead of $FOO to access FOO environment variable in
-> >    Kconfig files.
-> >  - Added a new PATCH1 to include Kconfiglib v14.1.0 sources under
-> >    the scripts directory of OpenSBI.
-> >
-> > Changes since v1:
-> >  - Fix SPDX license specifier in new Kconfig files
-> >
->
-> Hi Anup,
->
-> I played with this a bit and noticed a new compiler warning when compiling
-> with clang.
->
-> ...
->  GEN-DEP   platform/generic/platform_override_modules.dep
->  GEN-DEP   platform/generic/platform_override_modules.dep
->  CC-DEP    platform/generic/platform.dep
-> /home/drew/code/github/opensbi/platform/generic/platform.c:10:10: fatal error: 'libfdt.h' file not found
-> #include <libfdt.h>
->          ^~~~~~~~~~
-> 1 error generated.
-> ...
+In future, we will see more drivers in OpenSBI for system reset, serial port,
+power management, etc platform specific devices. We need platform specific
+compile time configuration to allow users control the size of OpenSBI generic
+firmware binaries by only enabling desired drivers. In other words, users
+should be allowed to restrict the set of RISC-V platforms on which OpenSBI
+generic firmwares built by them can run.
 
-Okay, I will fix this in the next revision.
+To address above, we add Kconfig support for OpenSBI platforms using the
+Kconfiglib project which is a standalone kconfig parser.
 
->
-> I also noticed a bunch of directories and empty .h files (including
-> libfdt.h) get added to build/platform/generic/kconfig/. That seems
-> like a bug.
+To try OpenSBI Kconfig support with generic platform, here are few
+example commands:
+make PLATFORM=generic             <-- builds OpenSBI using "defconfig"
+make PLATFORM=generic menuconfig  <-- launches graphical interface for changes
 
-Those empty generated headers are used by kconfiglib to track which
-kconfig option changed.
+These patches can also be found in the kconfig_v5 branch at:
+https://github.com/avpatel/opensbi.git
 
->
-> I also tested the new PLATFORM_DEFCONFIG make variable. I found I needed
-> to specify a defconfig file by a relative path to
-> platform/$PLATFORM/configs/. I think it would be more convenient if
-> the path could be relative to the root where 'make' is run. And, also
-> nice would be if it could be an absolute path. Currently an absolute path
-> is still assumed to be relative to platform/$PLATFORM/configs/ resulting
-> in something like platform/$PLATFORM/configs//$ABSOLUTE_PATH
+Changes since v4:
+ - Added separate PATCH14 to allow user change generic platform
+   version and default name.
+ - Fixed libfdt compiler error using LLVM in PATCH12
 
-This path is relative to platform directory because:
-1) defconfigs are separate for each platform
-2) OpenSBI supports out-of-tree platform directories as well. For example,
-   we can have some <xyz> platform outside OpenSBI sources so to
-   build such a platform we use "PLATFORM_DIR=<absolute_path_of_xyz>"
-   instead of "PLATFORM=xyz".
+Changes since v3:
+ - Strip down the Kconfiglib sources added by PATCH1
+ - Removed extra "." in the top-level Makefile updated by PATCH2
 
->
-> Finally, I find it a bit strange that we can now specifically configure
-> the '"Generic" version 0.1' platform type but still end up with a
-> '"Generic" version 0.1' platform type. I think we should allow, or
-> even enforce, configured generic platforms to have new names and
-> versions.
+Changes since v2:
+ - Use $(FOO) instead of $FOO to access FOO environment variable in
+   Kconfig files.
+ - Added a new PATCH1 to include Kconfiglib v14.1.0 sources under
+   the scripts directory of OpenSBI.
 
-Okay, I will add a separate patch for this in the next revision.
+Changes since v1:
+ - Fix SPDX license specifier in new Kconfig files
 
->
-> Thanks,
-> drew
+Anup Patel (16):
+  scripts: Add Kconfiglib v14.1.0 under scripts directory
+  Makefile: Add initial kconfig support for each platform
+  Makefile: Compile lib/utils sources separately for each platform
+  lib: utils/serial: Use kconfig for enabling/disabling drivers
+  lib: utils/reset: Use kconfig for enabling/disabling drivers
+  lib: utils/sys: Use kconfig for enabling/disabling drivers
+  lib: utils/timer: Use kconfig for enabling/disabling drivers
+  lib: utils/ipi: Use kconfig for enabling/disabling drivers
+  lib: utils/irqchip: Use kconfig for enabling/disabling drivers
+  lib: utils/i2c: Use kconfig for enabling/disabling drivers
+  lib: utils/gpio: Use kconfig for enabling/disabling drivers
+  lib: utils/fdt: Use kconfig for enabling/disabling
+  platform: generic: Use kconfig for enabling/disabling overrides
+  platform: generic: Use kconfig to set platform version and default
+    name
+  platform: Remove redundant config.mk from all platforms
+  docs: Update documentation for kconfig support
 
-Regards,
-Anup
+ Kconfig                                   |   23 +
+ Makefile                                  |  105 +-
+ README.md                                 |   25 +-
+ docs/firmware/fw_dynamic.md               |    2 +-
+ docs/firmware/fw_jump.md                  |    4 +-
+ docs/firmware/fw_payload.md               |    4 +-
+ docs/library_usage.md                     |    6 +-
+ docs/platform/platform.md                 |    4 +-
+ docs/platform_guide.md                    |    9 +-
+ firmware/Kconfig                          |    1 +
+ include/sbi_utils/fdt/fdt_domain.h        |    9 +
+ include/sbi_utils/fdt/fdt_pmu.h           |   10 +
+ include/sbi_utils/ipi/fdt_ipi.h           |    9 +
+ include/sbi_utils/irqchip/fdt_irqchip.h   |   10 +
+ include/sbi_utils/irqchip/imsic.h         |   10 +
+ include/sbi_utils/reset/fdt_reset.h       |   12 +
+ include/sbi_utils/serial/fdt_serial.h     |    8 +
+ include/sbi_utils/timer/fdt_timer.h       |    9 +
+ lib/utils/Kconfig                         |   25 +
+ lib/utils/fdt/Kconfig                     |   18 +
+ lib/utils/fdt/objects.mk                  |    8 +-
+ lib/utils/gpio/Kconfig                    |   23 +
+ lib/utils/gpio/objects.mk                 |   10 +-
+ lib/utils/i2c/Kconfig                     |   23 +
+ lib/utils/i2c/objects.mk                  |   10 +-
+ lib/utils/ipi/Kconfig                     |   23 +
+ lib/utils/ipi/objects.mk                  |   10 +-
+ lib/utils/irqchip/Kconfig                 |   41 +
+ lib/utils/irqchip/objects.mk              |   22 +-
+ lib/utils/libfdt/Kconfig                  |    5 +
+ lib/utils/libfdt/objects.mk               |    2 +-
+ lib/utils/reset/Kconfig                   |   37 +
+ lib/utils/reset/objects.mk                |   28 +-
+ lib/utils/serial/Kconfig                  |   73 +
+ lib/utils/serial/objects.mk               |   44 +-
+ lib/utils/sys/Kconfig                     |   13 +
+ lib/utils/sys/objects.mk                  |    4 +-
+ lib/utils/timer/Kconfig                   |   23 +
+ lib/utils/timer/objects.mk                |   10 +-
+ platform/andes/ae350/Kconfig              |    8 +
+ platform/andes/ae350/config.mk            |   36 -
+ platform/andes/ae350/configs/defconfig    |    0
+ platform/andes/ae350/objects.mk           |   29 +
+ platform/fpga/ariane/Kconfig              |   10 +
+ platform/fpga/ariane/config.mk            |   36 -
+ platform/fpga/ariane/configs/defconfig    |    0
+ platform/fpga/ariane/objects.mk           |   35 +
+ platform/fpga/openpiton/Kconfig           |   10 +
+ platform/fpga/openpiton/config.mk         |   35 -
+ platform/fpga/openpiton/configs/defconfig |    0
+ platform/fpga/openpiton/objects.mk        |   35 +
+ platform/generic/Kconfig                  |   40 +
+ platform/generic/allwinner/objects.mk     |    4 +-
+ platform/generic/config.mk                |   40 -
+ platform/generic/configs/defconfig        |   29 +
+ platform/generic/objects.mk               |   33 +
+ platform/generic/platform.c               |    6 +-
+ platform/generic/sifive/objects.mk        |    8 +-
+ platform/kendryte/k210/Kconfig            |   10 +
+ platform/kendryte/k210/config.mk          |   19 -
+ platform/kendryte/k210/configs/defconfig  |    0
+ platform/kendryte/k210/objects.mk         |   12 +
+ platform/nuclei/ux600/Kconfig             |   10 +
+ platform/nuclei/ux600/config.mk           |   30 -
+ platform/nuclei/ux600/configs/defconfig   |    0
+ platform/nuclei/ux600/objects.mk          |   22 +
+ platform/nuclei/ux600/platform.c          |    1 -
+ platform/template/Kconfig                 |    9 +
+ platform/template/config.mk               |   77 -
+ platform/template/configs/defconfig       |    0
+ platform/template/objects.mk              |   72 +
+ platform/template/platform.c              |    2 +-
+ scripts/Kconfiglib/LICENSE.txt            |    5 +
+ scripts/Kconfiglib/allnoconfig.py         |   45 +
+ scripts/Kconfiglib/allyesconfig.py        |   56 +
+ scripts/Kconfiglib/defconfig.py           |   43 +
+ scripts/Kconfiglib/genconfig.py           |  154 +
+ scripts/Kconfiglib/kconfiglib.py          | 7160 +++++++++++++++++++++
+ scripts/Kconfiglib/menuconfig.py          | 3278 ++++++++++
+ scripts/Kconfiglib/oldconfig.py           |  246 +
+ scripts/Kconfiglib/olddefconfig.py        |   28 +
+ scripts/Kconfiglib/savedefconfig.py       |   49 +
+ scripts/Kconfiglib/setconfig.py           |   92 +
+ scripts/create-binary-archive.sh          |    2 +-
+ 84 files changed, 12124 insertions(+), 404 deletions(-)
+ create mode 100644 Kconfig
+ create mode 100644 firmware/Kconfig
+ create mode 100644 lib/utils/Kconfig
+ create mode 100644 lib/utils/fdt/Kconfig
+ create mode 100644 lib/utils/gpio/Kconfig
+ create mode 100644 lib/utils/i2c/Kconfig
+ create mode 100644 lib/utils/ipi/Kconfig
+ create mode 100644 lib/utils/irqchip/Kconfig
+ create mode 100644 lib/utils/libfdt/Kconfig
+ create mode 100644 lib/utils/reset/Kconfig
+ create mode 100644 lib/utils/serial/Kconfig
+ create mode 100644 lib/utils/sys/Kconfig
+ create mode 100644 lib/utils/timer/Kconfig
+ create mode 100644 platform/andes/ae350/Kconfig
+ delete mode 100644 platform/andes/ae350/config.mk
+ create mode 100644 platform/andes/ae350/configs/defconfig
+ create mode 100644 platform/fpga/ariane/Kconfig
+ delete mode 100644 platform/fpga/ariane/config.mk
+ create mode 100644 platform/fpga/ariane/configs/defconfig
+ create mode 100644 platform/fpga/openpiton/Kconfig
+ delete mode 100644 platform/fpga/openpiton/config.mk
+ create mode 100644 platform/fpga/openpiton/configs/defconfig
+ create mode 100644 platform/generic/Kconfig
+ delete mode 100644 platform/generic/config.mk
+ create mode 100644 platform/generic/configs/defconfig
+ create mode 100644 platform/kendryte/k210/Kconfig
+ delete mode 100644 platform/kendryte/k210/config.mk
+ create mode 100644 platform/kendryte/k210/configs/defconfig
+ create mode 100644 platform/nuclei/ux600/Kconfig
+ delete mode 100644 platform/nuclei/ux600/config.mk
+ create mode 100644 platform/nuclei/ux600/configs/defconfig
+ create mode 100644 platform/template/Kconfig
+ delete mode 100644 platform/template/config.mk
+ create mode 100644 platform/template/configs/defconfig
+ create mode 100644 scripts/Kconfiglib/LICENSE.txt
+ create mode 100755 scripts/Kconfiglib/allnoconfig.py
+ create mode 100755 scripts/Kconfiglib/allyesconfig.py
+ create mode 100755 scripts/Kconfiglib/defconfig.py
+ create mode 100755 scripts/Kconfiglib/genconfig.py
+ create mode 100644 scripts/Kconfiglib/kconfiglib.py
+ create mode 100755 scripts/Kconfiglib/menuconfig.py
+ create mode 100755 scripts/Kconfiglib/oldconfig.py
+ create mode 100755 scripts/Kconfiglib/olddefconfig.py
+ create mode 100755 scripts/Kconfiglib/savedefconfig.py
+ create mode 100755 scripts/Kconfiglib/setconfig.py
+
+-- 
+2.34.1
+
 
