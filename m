@@ -1,60 +1,34 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Tue, 2 Aug 2022 10:19:44 +0200
-Subject: [PATCH v5 00/16] OpenSBI Kconfig Support
-In-Reply-To: <20220802044132.280529-1-apatel@ventanamicro.com>
-References: <20220802044132.280529-1-apatel@ventanamicro.com>
-Message-ID: <20220802081944.gxl6iaufskxmsodv@kamzik>
+From: dramforever <dramforever@live.com>
+Date: Wed,  3 Aug 2022 13:15:01 +0800
+Subject: [RFC PATCH 0/3] Set hstatus.GVA when redirecting traps
+Message-ID: <TYYP286MB143914043D5A77C568CDDE57C69C9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 02, 2022 at 10:11:16AM +0530, Anup Patel wrote:
-> In future, we will see more drivers in OpenSBI for system reset, serial port,
-> power management, etc platform specific devices. We need platform specific
-> compile time configuration to allow users control the size of OpenSBI generic
-> firmware binaries by only enabling desired drivers. In other words, users
-> should be allowed to restrict the set of RISC-V platforms on which OpenSBI
-> generic firmwares built by them can run.
-> 
-> To address above, we add Kconfig support for OpenSBI platforms using the
-> Kconfiglib project which is a standalone kconfig parser.
-> 
-> To try OpenSBI Kconfig support with generic platform, here are few
-> example commands:
-> make PLATFORM=generic             <-- builds OpenSBI using "defconfig"
-> make PLATFORM=generic menuconfig  <-- launches graphical interface for changes
-> 
-> These patches can also be found in the kconfig_v5 branch at:
-> https://github.com/avpatel/opensbi.git
-> 
-> Changes since v4:
->  - Added separate PATCH14 to allow user change generic platform
->    version and default name.
->  - Fixed libfdt compiler error using LLVM in PATCH12
-> 
-> Changes since v3:
->  - Strip down the Kconfiglib sources added by PATCH1
->  - Removed extra "." in the top-level Makefile updated by PATCH2
-> 
-> Changes since v2:
->  - Use $(FOO) instead of $FOO to access FOO environment variable in
->    Kconfig files.
->  - Added a new PATCH1 to include Kconfiglib v14.1.0 sources under
->    the scripts directory of OpenSBI.
-> 
-> Changes since v1:
->  - Fix SPDX license specifier in new Kconfig files
->
+The privileged spec says that on a trap to HS-mode, hstatus.GVA should
+be set to 1 if stval is written with a guest virtual address, and 0
+otherwise. This series implements setting hstatus.GVA in
+sbi_trap_redirect().
 
-Hi Anup,
+I'm submitting this as an RFC since this series changes sbi_trap_info to
+record mstatus.GVA, and later copy to hstatus.GVA, which might not be
+desirable or could be done in a better way.
 
-Besides my whining about not being able to provide an absolute path to
-PLATFORM_DEFCONFIG, this seems to work as advertised.
+dramforever (3):
+  include: Add mstatus[h].GVA encodings
+  lib: sbi_trap: Save mstatus.GVA in trap->gva
+  lib: sbi_trap: Set hstatus.GVA when redirecting
 
-Tested-by: Andrew Jones <ajones@ventanamicro.com>
+ include/sbi/riscv_encoding.h |  4 ++++
+ include/sbi/sbi_trap.h       |  6 +++++-
+ lib/sbi/sbi_expected_trap.S  | 14 ++++++++++++--
+ lib/sbi/sbi_trap.c           | 13 ++++++++-----
+ 4 files changed, 29 insertions(+), 8 deletions(-)
 
-Thanks,
-drew
+-- 
+2.37.1
+
 
