@@ -1,33 +1,39 @@
 From: dramforever <dramforever@live.com>
-Date: Wed,  3 Aug 2022 13:15:01 +0800
-Subject: [RFC PATCH 0/3] Set hstatus.GVA when redirecting traps
-Message-ID: <TYYP286MB143914043D5A77C568CDDE57C69C9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Date: Wed,  3 Aug 2022 13:16:50 +0800
+Subject: [RFC PATCH 1/3] include: Add mstatus[h].GVA encodings
+In-Reply-To: <TYYP286MB143914043D5A77C568CDDE57C69C9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB143914043D5A77C568CDDE57C69C9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <TYYP286MB14397B18A8B3A9D04105F211C69C9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The privileged spec says that on a trap to HS-mode, hstatus.GVA should
-be set to 1 if stval is written with a guest virtual address, and 0
-otherwise. This series implements setting hstatus.GVA in
-sbi_trap_redirect().
+Signed-off-by: dramforever <dramforever@live.com>
+---
+ include/sbi/riscv_encoding.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-I'm submitting this as an RFC since this series changes sbi_trap_info to
-record mstatus.GVA, and later copy to hstatus.GVA, which might not be
-desirable or could be done in a better way.
-
-dramforever (3):
-  include: Add mstatus[h].GVA encodings
-  lib: sbi_trap: Save mstatus.GVA in trap->gva
-  lib: sbi_trap: Set hstatus.GVA when redirecting
-
- include/sbi/riscv_encoding.h |  4 ++++
- include/sbi/sbi_trap.h       |  6 +++++-
- lib/sbi/sbi_expected_trap.S  | 14 ++++++++++++--
- lib/sbi/sbi_trap.c           | 13 ++++++++-----
- 4 files changed, 29 insertions(+), 8 deletions(-)
-
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 798afb7..8884301 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -38,10 +38,14 @@
+ #define MSTATUS_SXL			_ULL(0x0000000C00000000)
+ #define MSTATUS_SBE			_ULL(0x0000001000000000)
+ #define MSTATUS_MBE			_ULL(0x0000002000000000)
++#define MSTATUS_GVA			_ULL(0x0000004000000000)
++#define MSTATUS_GVA_SHIFT		38
+ #define MSTATUS_MPV			_ULL(0x0000008000000000)
+ #else
+ #define MSTATUSH_SBE			_UL(0x00000010)
+ #define MSTATUSH_MBE			_UL(0x00000020)
++#define MSTATUSH_GVA			_UL(0x00000040)
++#define MSTATUSH_GVA_SHIFT		6
+ #define MSTATUSH_MPV			_UL(0x00000080)
+ #endif
+ #define MSTATUS32_SD			_UL(0x80000000)
 -- 
 2.37.1
 
