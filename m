@@ -1,209 +1,182 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu,  4 Aug 2022 20:00:49 +0530
-Subject: [PATCH v7 00/17] OpenSBI Kconfig Support
-Message-ID: <20220804143106.64599-1-apatel@ventanamicro.com>
+Date: Thu,  4 Aug 2022 20:00:52 +0530
+Subject: [PATCH v7 03/17] Makefile: Compile lib/utils sources separately for each platform
+In-Reply-To: <20220804143106.64599-1-apatel@ventanamicro.com>
+References: <20220804143106.64599-1-apatel@ventanamicro.com>
+Message-ID: <20220804143106.64599-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In future, we will see more drivers in OpenSBI for system reset, serial port,
-power management, etc platform specific devices. We need platform specific
-compile time configuration to allow users control the size of OpenSBI generic
-firmware binaries by only enabling desired drivers. In other words, users
-should be allowed to restrict the set of RISC-V platforms on which OpenSBI
-generic firmwares built by them can run.
+Currently, if same build directory is used to compile two different
+platforms then lib/utils objects are shared for these platforms.
 
-To address above, we add Kconfig support for OpenSBI platforms using the
-Kconfiglib project which is a standalone kconfig parser.
+We will be having platform specific configs to enable/disable drivers
+in lib/utils and select compile time options for lib/utils sources.
+This means lib/utils sources will now be compiled in a platform
+specific way.
 
-To try OpenSBI Kconfig support with generic platform, here are few
-example commands:
-make PLATFORM=generic             <-- builds OpenSBI using "defconfig"
-make PLATFORM=generic menuconfig  <-- launches graphical interface for changes
+To tackle above, we update top-level Makefile as follows:
+1) Don't create libsbiutils.a anymore because this can't be shared
+   between platforms.
+2) Compile lib/utils sources separately for each platform.
+3) Add comments showing which make rules are for lib/sbi, lib/utils,
+   firmware, and platform sources.
 
-These patches can also be found in the kconfig_v7 branch at:
-https://github.com/avpatel/opensbi.git
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Tested-by: Andrew Jones <ajones@ventanamicro.com>
+---
+ Makefile                         | 48 ++++++++++++++++----------------
+ docs/library_usage.md            |  6 +---
+ scripts/create-binary-archive.sh |  2 +-
+ 3 files changed, 26 insertions(+), 30 deletions(-)
 
-Changes since v6:
- - Added comments in platform/template/Kconfig for PATCH2
- - Addressed Drew's comments in PATCH16 
-
-Changes since v5:
- - Updated kconfig symbol description in PATCH14
- - Included a typo fix for docs/platform/platform.md in PATCH16
- - Added separate PATCH17 for typo fix in top-level makefile
-
-Changes since v4:
- - Added separate PATCH14 to allow user change generic platform
-   version and default name.
- - Fixed libfdt compiler error using LLVM in PATCH12
-
-Changes since v3:
- - Strip down the Kconfiglib sources added by PATCH1
- - Removed extra "." in the top-level Makefile updated by PATCH2
-
-Changes since v2:
- - Use $(FOO) instead of $FOO to access FOO environment variable in
-   Kconfig files.
- - Added a new PATCH1 to include Kconfiglib v14.1.0 sources under
-   the scripts directory of OpenSBI.
-
-Changes since v1:
- - Fix SPDX license specifier in new Kconfig files
-
-Anup Patel (17):
-  scripts: Add Kconfiglib v14.1.0 under scripts directory
-  Makefile: Add initial kconfig support for each platform
-  Makefile: Compile lib/utils sources separately for each platform
-  lib: utils/serial: Use kconfig for enabling/disabling drivers
-  lib: utils/reset: Use kconfig for enabling/disabling drivers
-  lib: utils/sys: Use kconfig for enabling/disabling drivers
-  lib: utils/timer: Use kconfig for enabling/disabling drivers
-  lib: utils/ipi: Use kconfig for enabling/disabling drivers
-  lib: utils/irqchip: Use kconfig for enabling/disabling drivers
-  lib: utils/i2c: Use kconfig for enabling/disabling drivers
-  lib: utils/gpio: Use kconfig for enabling/disabling drivers
-  lib: utils/fdt: Use kconfig for enabling/disabling
-  platform: generic: Use kconfig for enabling/disabling overrides
-  platform: generic: Use kconfig to set platform version and default
-    name
-  platform: Remove redundant config.mk from all platforms
-  docs: Update documentation for kconfig support
-  Makefile: Fix typo related to object.mk
-
- Kconfig                                   |   23 +
- Makefile                                  |  107 +-
- README.md                                 |   25 +-
- docs/firmware/fw_dynamic.md               |    2 +-
- docs/firmware/fw_jump.md                  |    4 +-
- docs/firmware/fw_payload.md               |    4 +-
- docs/library_usage.md                     |    6 +-
- docs/platform/platform.md                 |    6 +-
- docs/platform_guide.md                    |    9 +-
- firmware/Kconfig                          |    1 +
- include/sbi_utils/fdt/fdt_domain.h        |    9 +
- include/sbi_utils/fdt/fdt_pmu.h           |   10 +
- include/sbi_utils/ipi/fdt_ipi.h           |    9 +
- include/sbi_utils/irqchip/fdt_irqchip.h   |   10 +
- include/sbi_utils/irqchip/imsic.h         |   10 +
- include/sbi_utils/reset/fdt_reset.h       |   12 +
- include/sbi_utils/serial/fdt_serial.h     |    8 +
- include/sbi_utils/timer/fdt_timer.h       |    9 +
- lib/utils/Kconfig                         |   25 +
- lib/utils/fdt/Kconfig                     |   18 +
- lib/utils/fdt/objects.mk                  |    8 +-
- lib/utils/gpio/Kconfig                    |   23 +
- lib/utils/gpio/objects.mk                 |   10 +-
- lib/utils/i2c/Kconfig                     |   23 +
- lib/utils/i2c/objects.mk                  |   10 +-
- lib/utils/ipi/Kconfig                     |   23 +
- lib/utils/ipi/objects.mk                  |   10 +-
- lib/utils/irqchip/Kconfig                 |   41 +
- lib/utils/irqchip/objects.mk              |   22 +-
- lib/utils/libfdt/Kconfig                  |    5 +
- lib/utils/libfdt/objects.mk               |    2 +-
- lib/utils/reset/Kconfig                   |   37 +
- lib/utils/reset/objects.mk                |   28 +-
- lib/utils/serial/Kconfig                  |   73 +
- lib/utils/serial/objects.mk               |   44 +-
- lib/utils/sys/Kconfig                     |   13 +
- lib/utils/sys/objects.mk                  |    4 +-
- lib/utils/timer/Kconfig                   |   23 +
- lib/utils/timer/objects.mk                |   10 +-
- platform/andes/ae350/Kconfig              |    8 +
- platform/andes/ae350/config.mk            |   36 -
- platform/andes/ae350/configs/defconfig    |    0
- platform/andes/ae350/objects.mk           |   29 +
- platform/fpga/ariane/Kconfig              |   10 +
- platform/fpga/ariane/config.mk            |   36 -
- platform/fpga/ariane/configs/defconfig    |    0
- platform/fpga/ariane/objects.mk           |   35 +
- platform/fpga/openpiton/Kconfig           |   10 +
- platform/fpga/openpiton/config.mk         |   35 -
- platform/fpga/openpiton/configs/defconfig |    0
- platform/fpga/openpiton/objects.mk        |   35 +
- platform/generic/Kconfig                  |   40 +
- platform/generic/allwinner/objects.mk     |    4 +-
- platform/generic/config.mk                |   40 -
- platform/generic/configs/defconfig        |   29 +
- platform/generic/objects.mk               |   33 +
- platform/generic/platform.c               |    6 +-
- platform/generic/sifive/objects.mk        |    8 +-
- platform/kendryte/k210/Kconfig            |   10 +
- platform/kendryte/k210/config.mk          |   19 -
- platform/kendryte/k210/configs/defconfig  |    0
- platform/kendryte/k210/objects.mk         |   12 +
- platform/nuclei/ux600/Kconfig             |   10 +
- platform/nuclei/ux600/config.mk           |   30 -
- platform/nuclei/ux600/configs/defconfig   |    0
- platform/nuclei/ux600/objects.mk          |   22 +
- platform/nuclei/ux600/platform.c          |    1 -
- platform/template/Kconfig                 |   16 +
- platform/template/config.mk               |   77 -
- platform/template/configs/defconfig       |    0
- platform/template/objects.mk              |   72 +
- platform/template/platform.c              |    2 +-
- scripts/Kconfiglib/LICENSE.txt            |    5 +
- scripts/Kconfiglib/allnoconfig.py         |   45 +
- scripts/Kconfiglib/allyesconfig.py        |   56 +
- scripts/Kconfiglib/defconfig.py           |   43 +
- scripts/Kconfiglib/genconfig.py           |  154 +
- scripts/Kconfiglib/kconfiglib.py          | 7160 +++++++++++++++++++++
- scripts/Kconfiglib/menuconfig.py          | 3278 ++++++++++
- scripts/Kconfiglib/oldconfig.py           |  246 +
- scripts/Kconfiglib/olddefconfig.py        |   28 +
- scripts/Kconfiglib/savedefconfig.py       |   49 +
- scripts/Kconfiglib/setconfig.py           |   92 +
- scripts/create-binary-archive.sh          |    2 +-
- 84 files changed, 12133 insertions(+), 406 deletions(-)
- create mode 100644 Kconfig
- create mode 100644 firmware/Kconfig
- create mode 100644 lib/utils/Kconfig
- create mode 100644 lib/utils/fdt/Kconfig
- create mode 100644 lib/utils/gpio/Kconfig
- create mode 100644 lib/utils/i2c/Kconfig
- create mode 100644 lib/utils/ipi/Kconfig
- create mode 100644 lib/utils/irqchip/Kconfig
- create mode 100644 lib/utils/libfdt/Kconfig
- create mode 100644 lib/utils/reset/Kconfig
- create mode 100644 lib/utils/serial/Kconfig
- create mode 100644 lib/utils/sys/Kconfig
- create mode 100644 lib/utils/timer/Kconfig
- create mode 100644 platform/andes/ae350/Kconfig
- delete mode 100644 platform/andes/ae350/config.mk
- create mode 100644 platform/andes/ae350/configs/defconfig
- create mode 100644 platform/fpga/ariane/Kconfig
- delete mode 100644 platform/fpga/ariane/config.mk
- create mode 100644 platform/fpga/ariane/configs/defconfig
- create mode 100644 platform/fpga/openpiton/Kconfig
- delete mode 100644 platform/fpga/openpiton/config.mk
- create mode 100644 platform/fpga/openpiton/configs/defconfig
- create mode 100644 platform/generic/Kconfig
- delete mode 100644 platform/generic/config.mk
- create mode 100644 platform/generic/configs/defconfig
- create mode 100644 platform/kendryte/k210/Kconfig
- delete mode 100644 platform/kendryte/k210/config.mk
- create mode 100644 platform/kendryte/k210/configs/defconfig
- create mode 100644 platform/nuclei/ux600/Kconfig
- delete mode 100644 platform/nuclei/ux600/config.mk
- create mode 100644 platform/nuclei/ux600/configs/defconfig
- create mode 100644 platform/template/Kconfig
- delete mode 100644 platform/template/config.mk
- create mode 100644 platform/template/configs/defconfig
- create mode 100644 scripts/Kconfiglib/LICENSE.txt
- create mode 100755 scripts/Kconfiglib/allnoconfig.py
- create mode 100755 scripts/Kconfiglib/allyesconfig.py
- create mode 100755 scripts/Kconfiglib/defconfig.py
- create mode 100755 scripts/Kconfiglib/genconfig.py
- create mode 100644 scripts/Kconfiglib/kconfiglib.py
- create mode 100755 scripts/Kconfiglib/menuconfig.py
- create mode 100755 scripts/Kconfiglib/oldconfig.py
- create mode 100755 scripts/Kconfiglib/olddefconfig.py
- create mode 100755 scripts/Kconfiglib/savedefconfig.py
- create mode 100755 scripts/Kconfiglib/setconfig.py
-
+diff --git a/Makefile b/Makefile
+index 677ea83..678159c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -243,8 +243,8 @@ include $(firmware-object-mks)
+ 
+ # Setup list of objects
+ libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(build_dir)/lib/sbi/$(obj))
+-libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(build_dir)/lib/utils/$(obj))
+ ifdef PLATFORM
++libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(platform_build_dir)/lib/utils/$(obj))
+ platform-objs-path-y=$(foreach obj,$(platform-objs-y),$(platform_build_dir)/$(obj))
+ firmware-bins-path-y=$(foreach bin,$(firmware-bins-y),$(platform_build_dir)/firmware/$(bin))
+ endif
+@@ -461,7 +461,6 @@ compile_gen_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo "$(1:.dep=$(2)): $(3)" >> $(1)
+ 
+ targets-y  = $(build_dir)/lib/libsbi.a
+-targets-y  += $(build_dir)/lib/libsbiutils.a
+ ifdef PLATFORM
+ targets-y += $(platform_build_dir)/lib/libplatsbi.a
+ endif
+@@ -474,12 +473,10 @@ all: $(targets-y)
+ # Preserve all intermediate files
+ .SECONDARY:
+ 
++# Rules for lib/sbi sources
+ $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
+ 	$(call compile_ar,$@,$^)
+ 
+-$(build_dir)/lib/libsbiutils.a: $(libsbi-objs-path-y) $(libsbiutils-objs-path-y)
+-	$(call compile_ar,$@,$^)
+-
+ $(platform_build_dir)/lib/libplatsbi.a: $(libsbi-objs-path-y) $(libsbiutils-objs-path-y) $(platform-objs-path-y)
+ 	$(call compile_ar,$@,$^)
+ 
+@@ -503,22 +500,14 @@ $(build_dir)/%.dep: $(src_dir)/%.S
+ $(build_dir)/%.o: $(src_dir)/%.S
+ 	$(call compile_as,$@,$<)
+ 
+-$(build_dir)/%.dep: $(src_dir)/%.carray
++# Rules for platform sources
++$(platform_build_dir)/%.dep: $(platform_src_dir)/%.carray
+ 	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
+ 	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
+ 
+-$(build_dir)/%.c: $(src_dir)/%.carray
++$(platform_build_dir)/%.c: $(platform_src_dir)/%.carray
+ 	$(call compile_carray,$@,$<)
+ 
+-$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
+-	$(call compile_objcopy,$@,$<)
+-
+-$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
+-	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
+-
+-$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
+-	$(call compile_cpp,$@,$<)
+-
+ $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c
+ 	$(call compile_cc_dep,$@,$<)
+ 
+@@ -542,6 +531,23 @@ $(platform_build_dir)/%.c: $(platform_build_dir)/%.dtb
+ $(platform_build_dir)/%.dtb: $(platform_src_dir)/%.dts
+ 	$(call compile_dts,$@,$<)
+ 
++# Rules for lib/utils and firmware sources
++$(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
++	$(call compile_objcopy,$@,$<)
++
++$(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
++	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
++
++$(platform_build_dir)/%.ld: $(src_dir)/%.ldS
++	$(call compile_cpp,$@,$<)
++
++$(platform_build_dir)/%.dep: $(src_dir)/%.carray
++	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
++	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
++
++$(platform_build_dir)/%.c: $(src_dir)/%.carray
++	$(call compile_carray,$@,$<)
++
+ $(platform_build_dir)/%.dep: $(src_dir)/%.c
+ 	$(call compile_cc_dep,$@,$<)
+ 
+@@ -595,7 +601,6 @@ endif
+ endif
+ 
+ install_targets-y  = install_libsbi
+-install_targets-y  += install_libsbiutils
+ ifdef PLATFORM
+ install_targets-y += install_libplatsbi
+ install_targets-y += install_firmwares
+@@ -610,17 +615,12 @@ install_libsbi: $(build_dir)/lib/libsbi.a
+ 	$(call inst_header_dir,$(install_root_dir)/$(install_include_path),$(include_dir)/sbi)
+ 	$(call inst_file,$(install_root_dir)/$(install_lib_path)/libsbi.a,$(build_dir)/lib/libsbi.a)
+ 
+-.PHONY: install_libsbiutils
+-install_libsbiutils: $(build_dir)/lib/libsbiutils.a
+-	$(call inst_header_dir,$(install_root_dir)/$(install_include_path),$(include_dir)/sbi_utils)
+-	$(call inst_file,$(install_root_dir)/$(install_lib_path)/libsbiutils.a,$(build_dir)/lib/libsbiutils.a)
+-
+ .PHONY: install_libplatsbi
+-install_libplatsbi: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a $(build_dir)/lib/libsbiutils.a
++install_libplatsbi: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a
+ 	$(call inst_file,$(install_root_dir)/$(install_lib_path)/opensbi/$(platform_subdir)/lib/libplatsbi.a,$(platform_build_dir)/lib/libplatsbi.a)
+ 
+ .PHONY: install_firmwares
+-install_firmwares: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a $(build_dir)/lib/libsbiutils.a $(firmware-bins-path-y)
++install_firmwares: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsbi.a $(firmware-bins-path-y)
+ 	$(call inst_file_list,$(install_root_dir),$(build_dir),$(install_firmware_path)/$(platform_subdir)/firmware,$(firmware-elfs-path-y))
+ 	$(call inst_file_list,$(install_root_dir),$(build_dir),$(install_firmware_path)/$(platform_subdir)/firmware,$(firmware-bins-path-y))
+ 
+diff --git a/docs/library_usage.md b/docs/library_usage.md
+index ff99801..d5d2ba9 100644
+--- a/docs/library_usage.md
++++ b/docs/library_usage.md
+@@ -8,11 +8,7 @@ OpenSBI provides two types of static libraries:
+    hooks for the execution of this interface must be provided by the firmware or
+    bootloader linking with this library. This library is installed as
+    *<install_directory>/lib/libsbi.a*
+-2. *libsbiutils.a* - A static library that will contain all common code required
+-   by any platform supported in OpenSBI. It will be built by default and included
+-   in libplatsbi.a. This library is installed as
+-   *<install_directory>/lib/libsbiutils.a*.
+-3. *libplatsbi.a* - An example platform-specific static library integrating
++2. *libplatsbi.a* - An example platform-specific static library integrating
+    *libsbi.a* with platform-specific hooks. This library is available only for
+    the platforms supported by OpenSBI. This library is installed as
+    *<install_directory>/platform/<platform_subdir>/lib/libplatsbi.a*
+diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
+index 43c5452..261a45a 100755
+--- a/scripts/create-binary-archive.sh
++++ b/scripts/create-binary-archive.sh
+@@ -118,7 +118,7 @@ build_opensbi() {
+ 	# Build and install generic library
+ 	echo "Build and install generic library XLEN=${BUILD_RISCV_XLEN}"
+ 	echo ""
+-	make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi install_libsbiutils -j "${BUILD_NUM_THREADS}"
++	make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi -j "${BUILD_NUM_THREADS}"
+ 	echo ""
+ 
+ 	# Build and install relevant platforms
 -- 
 2.34.1
 
