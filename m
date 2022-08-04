@@ -1,226 +1,53 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 4 Aug 2022 19:56:07 +0530
-Subject: [PATCH v5 16/16] docs: Update documentation for kconfig support
-In-Reply-To: <20220802081115.mrvklp74eeigsgjl@kamzik>
-References: <20220802044132.280529-1-apatel@ventanamicro.com>
- <20220802044132.280529-17-apatel@ventanamicro.com> <20220802081115.mrvklp74eeigsgjl@kamzik>
-Message-ID: <CAAhSdy1ERteCq3XiyX4AWZxacJL4cF7=1VDFjFaYHDQ8QMsK+Q@mail.gmail.com>
+From: Vivian Wang <dramforever@live.com>
+Date: Thu,  4 Aug 2022 22:30:56 +0800
+Subject: [PATCH v2 0/5] Set hstatus.GVA for traps going to HS-mode
+Message-ID: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Drew,
+The privileged spec specifies that on a trap to HS-mode, hstatus.GVA
+should be set to 1 if stval is written with a guest virtual address, and
+to 0 otherwise.
 
-Sorry, I totally missed addressing these comments in v6.
+Implement this by adding a field to sbi_trap_info called gva, which
+indicates if tval is a guest virtual address, and set it appropriately.
+When redirecting traps to HS-mode, set hstatus.GVA to trap->gva.
 
-On Tue, Aug 2, 2022 at 1:41 PM Andrew Jones <ajones@ventanamicro.com> wrote:
->
-> On Tue, Aug 02, 2022 at 10:11:32AM +0530, Anup Patel wrote:
-> > We update all documentation files to:
-> > 1) Remove references to platform specific config.mk file since it is
-> >    has been removed.
-> > 2) Add details about platform specific configs/defconfig and Kconfig
-> >    files mandatory for each platform.
-> > 3) Add required packages in top-level README.md
-> >
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > ---
-> >  README.md                   | 25 +++++++++++++++++++++++--
-> >  docs/firmware/fw_dynamic.md |  2 +-
-> >  docs/firmware/fw_jump.md    |  4 ++--
-> >  docs/firmware/fw_payload.md |  4 ++--
-> >  docs/platform/platform.md   |  4 ++--
-> >  docs/platform_guide.md      |  9 +++++----
-> >  6 files changed, 35 insertions(+), 13 deletions(-)
-> >
-> > diff --git a/README.md b/README.md
-> > index 54fabe4..67d491d 100644
-> > --- a/README.md
-> > +++ b/README.md
-> > @@ -92,8 +92,8 @@ N.B. Any S-mode boot loader (i.e. U-Boot) doesn't need to support HSM extension,
-> >  as it doesn't need to boot all the harts. The operating system should be
-> >  capable enough to bring up all other non-booting harts using HSM extension.
-> >
-> > -Required Toolchain
-> > -------------------
-> > +Required Toolchain and Packages
-> > +-------------------------------
-> >
-> >  OpenSBI can be compiled natively or cross-compiled on a x86 host. For
-> >  cross-compilation, you can build your own toolchain, download a prebuilt one
-> > @@ -115,6 +115,14 @@ triple is used (e.g. *-target riscv64-unknown-elf*).
-> >  Please note that only a 64-bit version of the toolchain is available in
-> >  the Bootlin toolchain repository for now.
-> >
-> > +In addition to a toolchain, OpenSBI also requires following packages on
->
-> the following
+Patch 4 is a bugfix. The hypervisor CSRs should be set for all traps to
+HS-mode, not just those coming from VS/VU-mode. Since it is closely
+related to this series and makes the structure for patch 5 clearer, I
+have included it in this series.
 
-Okay, I will update.
+Changes since v1:
 
->
-> > +the host:
-> > +
-> > +1. device-tree-compiler: The device tree compiler for compiling device
-> > +   tree sources (DTS files).
-> > +2. python3: The python 3.0 (or higher) language support for various
->
-> s/higher/compatible/ ?
+- Add a comment explaining that reading GVA is safe with or without the
+  hypervisor extension.
 
-Okay, I will update.
+Changes since RFC:
 
->
-> > +   scripts.
-> > +
-> >  Building and Installing the OpenSBI Platform-Independent Library
-> >  ----------------------------------------------------------------
-> >
-> > @@ -196,6 +204,19 @@ top-level make command line. These options, such as *PLATFORM_<xyz>* or
-> >  *docs/platform/<platform_name>.md* files and
-> >  *docs/firmware/<firmware_name>.md* files.
-> >
-> > +All OpenSBI platforms support Kconfig style build-time configuration. Users
-> > +can change the build-time configuration of a platform using a graphical
-> > +interface as follows:
-> > +```
-> > +make PLATFORM=<platform_subdir> menuconfig
-> > +```
-> > +
-> > +Alternately, an OpenSBI platform can have multiple default configurations
-> > +and users can select a custom default configuration as follows:
-> > +```
-> > +make PLATFORM=<platform_subdir> PLATFORM_DEFCONFIG=<platform_custom_defconfig>
-> > +```
-> > +
-> >  Building 32-bit / 64-bit OpenSBI Images
-> >  ---------------------------------------
-> >  By default, building OpenSBI generates 32-bit or 64-bit images based on the
-> > diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
-> > index 7b9b192..e251488 100644
-> > --- a/docs/firmware/fw_dynamic.md
-> > +++ b/docs/firmware/fw_dynamic.md
-> > @@ -20,7 +20,7 @@ the booting stage binary to follow OpenSBI firmware.
-> >  A platform can enable *FW_DYNAMIC* firmware using any of the following methods.
-> >
-> >  1. Specifying `FW_DYNAMIC=y` on the top level `make` command line.
-> > -2. Specifying `FW_DYNAMIC=y` in the target platform *config.mk* configuration
-> > +2. Specifying `FW_DYNAMIC=y` in the target platform *objects.mk* configuration
-> >  file.
-> >
-> >  The compiled *FW_DYNAMIC* firmware ELF file is named *fw_dynamic.elf*. It's
-> > diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
-> > index eea3013..35a4301 100644
-> > --- a/docs/firmware/fw_jump.md
-> > +++ b/docs/firmware/fw_jump.md
-> > @@ -15,7 +15,7 @@ and the booting stage binary to follow the OpenSBI firmware.
-> >  A platform *FW_JUMP* firmware can be enabled by any of the following methods:
-> >
-> >  1. Specifying `FW_JUMP=y` on the top level `make` command line.
-> > -2. Specifying `FW_JUMP=y` in the target platform *config.mk* configuration file.
-> > +2. Specifying `FW_JUMP=y` in the target platform *objects.mk* configuration file.
-> >
-> >  The compiled *FW_JUMP* firmware ELF file is named *fw_jump.elf*. Its expanded
-> >  image file is *fw_jump.bin*. Both files are created in the platform-specific
-> > @@ -26,7 +26,7 @@ build directory under the *build/platform/<platform_subdir>/firmware* directory.
-> >
-> >  To operate correctly, a *FW_JUMP* firmware requires some configuration
-> >  parameters to be defined using either the top level `make` command line or the
-> > -target platform *config.mk* configuration file. The possible parameters are as
-> > +target platform *objects.mk* configuration file. The possible parameters are as
-> >  follows:
-> >
-> >  * **FW_JUMP_ADDR** - Address of the entry point of the booting stage to be
-> > diff --git a/docs/firmware/fw_payload.md b/docs/firmware/fw_payload.md
-> > index 0947448..3bb918f 100644
-> > --- a/docs/firmware/fw_payload.md
-> > +++ b/docs/firmware/fw_payload.md
-> > @@ -20,7 +20,7 @@ Enabling *FW_PAYLOAD* compilation
-> >  The *FW_PAYLOAD* firmware can be enabled by any of the following methods:
-> >
-> >  1. Specifying `FW_PAYLOAD=y` on the top level `make` command line.
-> > -2. Specifying `FW_PAYLOAD=y` in the target platform *config.mk* configuration
-> > +2. Specifying `FW_PAYLOAD=y` in the target platform *objects.mk* configuration
-> >     file.
-> >
-> >  The compiled *FW_PAYLOAD* firmware ELF file is named *fw_jump.elf*. Its
-> > @@ -33,7 +33,7 @@ Configuration Options
-> >
-> >  A *FW_PAYLOAD* firmware is built according to configuration parameters and
-> >  options. These configuration parameters can be defined using either the top
-> > -level `make` command line or the target platform *config.mk* configuration
-> > +level `make` command line or the target platform *objects.mk* configuration
-> >  file. The parameters currently defined are as follows:
-> >
-> >  * **FW_PAYLOAD_OFFSET** - Offset from *FW_TEXT_BASE* where the payload binary
-> > diff --git a/docs/platform/platform.md b/docs/platform/platform.md
-> > index cb4bec6..b726e1d 100644
-> > --- a/docs/platform/platform.md
-> > +++ b/docs/platform/platform.md
-> > @@ -42,8 +42,8 @@ OpenSBI currently supports the following virtual and hardware platforms:
-> >  The code for these supported platforms can be used as example to implement
-> >  support for other platforms. The *platform/template* directory also provides
-> >  template files for implementing support for a new platform. The *object.mk*,
->
-> objects.mk
+- Fixed names used in sign-off lines
+- Added more detailed commit messages
+- Separated out the hypervisor CSR bugfix into a separate patch
 
-Okay, I will update.
+Vivian Wang (5):
+  include: Add mstatus[h].GVA encodings
+  lib: sbi_trap: Save mstatus[h].GVA in trap->gva
+  lib: sbi: Set gva when creating sbi_trap_info
+  lib: sbi_trap: Set hypervisor CSRs for HS-mode
+  lib: sbi_trap: Set hstatus.GVA when going to HS-mode
 
->
-> > -*config.mk* and *platform.c* template files provides enough comments to
-> > -facilitate the implementation.
-> > +*Kconfig*, *configs/defconfig* and *platform.c* template files provides enough
-> > +comments to facilitate the implementation.
->
-> While objects.mk has lots of comments and platform.c is the same as
-> before, platform/template's Kconfig has no comments and its
-> configs/defconfig is empty.
+ include/sbi/riscv_encoding.h  |  4 ++++
+ include/sbi/sbi_trap.h        |  6 +++++-
+ lib/sbi/sbi_expected_trap.S   | 17 +++++++++++++++--
+ lib/sbi/sbi_illegal_insn.c    |  1 +
+ lib/sbi/sbi_misaligned_ldst.c |  2 ++
+ lib/sbi/sbi_trap.c            | 28 +++++++++++++++++++++++-----
+ 6 files changed, 50 insertions(+), 8 deletions(-)
 
-Okay, I will add comments in platform/template/Kconfig
+-- 
+2.37.1
 
-The configs/defconfig is empty because the template platform does not
-have any optional drives which can be enabled mainly because the
-template platform does not use FDT based drivers.
-
->
-> >
-> >  [generic.md]: generic.md
-> >  [qemu_virt.md]: qemu_virt.md
-> > diff --git a/docs/platform_guide.md b/docs/platform_guide.md
-> > index b6c2c2e..8ac5aa0 100644
-> > --- a/docs/platform_guide.md
-> > +++ b/docs/platform_guide.md
-> > @@ -28,11 +28,12 @@ Adding support for a new platform
-> >  Support for a new platform named *&lt;xyz&gt;* can be added as follows:
-> >
-> >  1. Create a directory named *&lt;xyz&gt;* under the *platform/* directory.
-> > -2. Create a platform configuration file named *config.mk* under the
-> > -   *platform/&lt;xyz&gt;/* directory. This configuration file will provide
-> > +2. Create a platform configuration files named *Kconfig* and *configs/defconfig*
->
-> s/a platform/platform/
->
-> > +   under the *platform/&lt;xyz&gt;/* directory. This configuration files will
->
-> s/This/These/
->
-> > +   provide the build time configuration for the sources to be compiled.
-> > +3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the platform
-> > +   object files to be compiled. This file also provides platform-specific
-> >     compiler flags, and select firmware options.
-> > -3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the
-> > -   platform-specific object files to be compiled.
-> >  4. Create a *platform/&lt;xyz&gt;/platform.c* file providing a
-> >     *struct sbi_platform* instance.
-> >
-> > --
-> > 2.34.1
-> >
->
-> Thanks,
-> drew
-
-Regards,
-Anup
 
