@@ -1,85 +1,39 @@
 From: Vivian Wang <dramforever@live.com>
-Date: Thu,  4 Aug 2022 22:32:29 +0800
-Subject: [PATCH v2 3/5] lib: sbi: Set gva when creating sbi_trap_info
+Date: Thu,  4 Aug 2022 22:32:31 +0800
+Subject: [PATCH v2 5/5] lib: sbi_trap: Set hstatus.GVA when going to HS-mode
 In-Reply-To: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 References: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <TYYP286MB1439F1EFC445B353B5B1A077C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <TYYP286MB1439CFF3C4F3A1BEE070B4D6C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In some cases the sbi_trap_info argument passed to sbi_trap_redirect is
-created from scratch by filling its fields. Since we previously added a
-gva field to struct sbi_trap_info, initialize gva in these cases also.
+The privileged spec specifies that on a trap to HS-mode, hstatus.GVA
+should be set to 1 if stval is written with a guest virtual address, and
+to 0 otherwise. Implement this by setting hstatus.GVA to trap->gva when
+redirecting traps to HS-mode.
 
-Suggested-by: Andrew Jones <ajones@ventanamicro.com>
 Signed-off-by: Vivian Wang <dramforever@live.com>
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/sbi/sbi_illegal_insn.c    |  1 +
- lib/sbi/sbi_misaligned_ldst.c |  2 ++
- lib/sbi/sbi_trap.c            | 14 ++++++++++++++
- 3 files changed, 17 insertions(+)
+ lib/sbi/sbi_trap.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-index 84c04f8..ecd3508 100644
---- a/lib/sbi/sbi_illegal_insn.c
-+++ b/lib/sbi/sbi_illegal_insn.c
-@@ -30,6 +30,7 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
- 	trap.tval = insn;
- 	trap.tval2 = 0;
- 	trap.tinst = 0;
-+	trap.gva   = 0;
- 
- 	return sbi_trap_redirect(regs, &trap);
- }
-diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
-index fd11798..92a2393 100644
---- a/lib/sbi/sbi_misaligned_ldst.c
-+++ b/lib/sbi/sbi_misaligned_ldst.c
-@@ -129,6 +129,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
- 		uptrap.tval = addr;
- 		uptrap.tval2 = tval2;
- 		uptrap.tinst = tinst;
-+		uptrap.gva   = 0;
- 		return sbi_trap_redirect(regs, &uptrap);
- 	}
- 
-@@ -244,6 +245,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
- 		uptrap.tval = addr;
- 		uptrap.tval2 = tval2;
- 		uptrap.tinst = tinst;
-+		uptrap.gva   = 0;
- 		return sbi_trap_redirect(regs, &uptrap);
- 	}
- 
 diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index ee3e4e9..db70c26 100644
+index 1cf2e6f..925840f 100644
 --- a/lib/sbi/sbi_trap.c
 +++ b/lib/sbi/sbi_trap.c
-@@ -311,6 +311,20 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
- 		trap.tval = mtval;
- 		trap.tval2 = mtval2;
- 		trap.tinst = mtinst;
-+
-+		/*
-+		 * If the hypervisor extension is not implemented,
-+		 * mstatus[h].GVA is a WPRI field, which is guaranteed to read
-+		 * as zero. In addition, in this case we don't read mstatush and
-+		 * instead pretend it is zero, which handles privileged spec
-+		 * version < 1.12.
-+		 */
-+#if __riscv_xlen == 32
-+		trap.gva = (regs->mstatusH & MSTATUSH_GVA) ? 1 : 0;
-+#else
-+		trap.gva = (regs->mstatus & MSTATUS_GVA) ? 1 : 0;
-+#endif
-+
- 		rc = sbi_trap_redirect(regs, &trap);
- 		break;
- 	};
+@@ -128,6 +128,8 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+ 		}
+ 		hstatus &= ~HSTATUS_SPV;
+ 		hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
++		hstatus &= ~HSTATUS_GVA;
++		hstatus |= (trap->gva) ? HSTATUS_GVA : 0;
+ 		csr_write(CSR_HSTATUS, hstatus);
+ 		csr_write(CSR_HTVAL, trap->tval2);
+ 		csr_write(CSR_HTINST, trap->tinst);
 -- 
 2.37.1
 
