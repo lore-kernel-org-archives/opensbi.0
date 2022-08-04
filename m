@@ -1,49 +1,180 @@
-From: Vivian Wang <dramforever@live.com>
-Date: Thu,  4 Aug 2022 22:32:30 +0800
-Subject: [PATCH v2 4/5] lib: sbi_trap: Set hypervisor CSRs for HS-mode
-In-Reply-To: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-References: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <TYYP286MB14394E15716844F8DB334C60C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu,  4 Aug 2022 20:01:05 +0530
+Subject: [PATCH v7 16/17] docs: Update documentation for kconfig support
+In-Reply-To: <20220804143106.64599-1-apatel@ventanamicro.com>
+References: <20220804143106.64599-1-apatel@ventanamicro.com>
+Message-ID: <20220804143106.64599-17-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The hypervisor CSRs hstatus, htval, htinst should always be set if the
-trap is to be taken in HS-mode, regardless of which mode it came from.
+We update all documentation files to:
+1) Remove references to platform specific config.mk file since it is
+   has been removed.
+2) Add details about platform specific configs/defconfig and Kconfig
+   files mandatory for each platform.
+3) Add required packages in top-level README.md
+4) Fix typo releated to object.mk in docs/platform/platform.md
 
-Signed-off-by: Vivian Wang <dramforever@live.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Tested-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/sbi/sbi_trap.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ README.md                   | 25 +++++++++++++++++++++++--
+ docs/firmware/fw_dynamic.md |  2 +-
+ docs/firmware/fw_jump.md    |  4 ++--
+ docs/firmware/fw_payload.md |  4 ++--
+ docs/platform/platform.md   |  6 +++---
+ docs/platform_guide.md      |  9 +++++----
+ 6 files changed, 36 insertions(+), 14 deletions(-)
 
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index db70c26..1cf2e6f 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -118,12 +118,14 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 	regs->mstatus |= (next_virt) ? MSTATUS_MPV : 0UL;
- #endif
+diff --git a/README.md b/README.md
+index 54fabe4..895bbf2 100644
+--- a/README.md
++++ b/README.md
+@@ -92,8 +92,8 @@ N.B. Any S-mode boot loader (i.e. U-Boot) doesn't need to support HSM extension,
+ as it doesn't need to boot all the harts. The operating system should be
+ capable enough to bring up all other non-booting harts using HSM extension.
  
--	/* Update HSTATUS for VS/VU-mode to HS-mode transition */
--	if (misa_extension('H') && prev_virt && !next_virt) {
--		/* Update HSTATUS SPVP and SPV bits */
-+	/* Update hypervisor CSRs if going to HS-mode */
-+	if (misa_extension('H') && !next_virt) {
- 		hstatus = csr_read(CSR_HSTATUS);
--		hstatus &= ~HSTATUS_SPVP;
--		hstatus |= (prev_mode == PRV_S) ? HSTATUS_SPVP : 0;
-+		if (prev_virt) {
-+			/* hstatus.SPVP is only updated if coming from VS/VU-mode */
-+			hstatus &= ~HSTATUS_SPVP;
-+			hstatus |= (prev_mode == PRV_S) ? HSTATUS_SPVP : 0;
-+		}
- 		hstatus &= ~HSTATUS_SPV;
- 		hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
- 		csr_write(CSR_HSTATUS, hstatus);
+-Required Toolchain
+-------------------
++Required Toolchain and Packages
++-------------------------------
+ 
+ OpenSBI can be compiled natively or cross-compiled on a x86 host. For
+ cross-compilation, you can build your own toolchain, download a prebuilt one
+@@ -115,6 +115,14 @@ triple is used (e.g. *-target riscv64-unknown-elf*).
+ Please note that only a 64-bit version of the toolchain is available in
+ the Bootlin toolchain repository for now.
+ 
++In addition to a toolchain, OpenSBI also requires the following packages on
++the host:
++
++1. device-tree-compiler: The device tree compiler for compiling device
++   tree sources (DTS files).
++2. python3: The python 3.0 (or compatible) language support for various
++   scripts.
++
+ Building and Installing the OpenSBI Platform-Independent Library
+ ----------------------------------------------------------------
+ 
+@@ -196,6 +204,19 @@ top-level make command line. These options, such as *PLATFORM_<xyz>* or
+ *docs/platform/<platform_name>.md* files and
+ *docs/firmware/<firmware_name>.md* files.
+ 
++All OpenSBI platforms support Kconfig style build-time configuration. Users
++can change the build-time configuration of a platform using a graphical
++interface as follows:
++```
++make PLATFORM=<platform_subdir> menuconfig
++```
++
++Alternately, an OpenSBI platform can have multiple default configurations
++and users can select a custom default configuration as follows:
++```
++make PLATFORM=<platform_subdir> PLATFORM_DEFCONFIG=<platform_custom_defconfig>
++```
++
+ Building 32-bit / 64-bit OpenSBI Images
+ ---------------------------------------
+ By default, building OpenSBI generates 32-bit or 64-bit images based on the
+diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
+index 7b9b192..e251488 100644
+--- a/docs/firmware/fw_dynamic.md
++++ b/docs/firmware/fw_dynamic.md
+@@ -20,7 +20,7 @@ the booting stage binary to follow OpenSBI firmware.
+ A platform can enable *FW_DYNAMIC* firmware using any of the following methods.
+ 
+ 1. Specifying `FW_DYNAMIC=y` on the top level `make` command line.
+-2. Specifying `FW_DYNAMIC=y` in the target platform *config.mk* configuration
++2. Specifying `FW_DYNAMIC=y` in the target platform *objects.mk* configuration
+ file.
+ 
+ The compiled *FW_DYNAMIC* firmware ELF file is named *fw_dynamic.elf*. It's
+diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
+index eea3013..35a4301 100644
+--- a/docs/firmware/fw_jump.md
++++ b/docs/firmware/fw_jump.md
+@@ -15,7 +15,7 @@ and the booting stage binary to follow the OpenSBI firmware.
+ A platform *FW_JUMP* firmware can be enabled by any of the following methods:
+ 
+ 1. Specifying `FW_JUMP=y` on the top level `make` command line.
+-2. Specifying `FW_JUMP=y` in the target platform *config.mk* configuration file.
++2. Specifying `FW_JUMP=y` in the target platform *objects.mk* configuration file.
+ 
+ The compiled *FW_JUMP* firmware ELF file is named *fw_jump.elf*. Its expanded
+ image file is *fw_jump.bin*. Both files are created in the platform-specific
+@@ -26,7 +26,7 @@ build directory under the *build/platform/<platform_subdir>/firmware* directory.
+ 
+ To operate correctly, a *FW_JUMP* firmware requires some configuration
+ parameters to be defined using either the top level `make` command line or the
+-target platform *config.mk* configuration file. The possible parameters are as
++target platform *objects.mk* configuration file. The possible parameters are as
+ follows:
+ 
+ * **FW_JUMP_ADDR** - Address of the entry point of the booting stage to be
+diff --git a/docs/firmware/fw_payload.md b/docs/firmware/fw_payload.md
+index 0947448..3bb918f 100644
+--- a/docs/firmware/fw_payload.md
++++ b/docs/firmware/fw_payload.md
+@@ -20,7 +20,7 @@ Enabling *FW_PAYLOAD* compilation
+ The *FW_PAYLOAD* firmware can be enabled by any of the following methods:
+ 
+ 1. Specifying `FW_PAYLOAD=y` on the top level `make` command line.
+-2. Specifying `FW_PAYLOAD=y` in the target platform *config.mk* configuration
++2. Specifying `FW_PAYLOAD=y` in the target platform *objects.mk* configuration
+    file.
+ 
+ The compiled *FW_PAYLOAD* firmware ELF file is named *fw_jump.elf*. Its
+@@ -33,7 +33,7 @@ Configuration Options
+ 
+ A *FW_PAYLOAD* firmware is built according to configuration parameters and
+ options. These configuration parameters can be defined using either the top
+-level `make` command line or the target platform *config.mk* configuration
++level `make` command line or the target platform *objects.mk* configuration
+ file. The parameters currently defined are as follows:
+ 
+ * **FW_PAYLOAD_OFFSET** - Offset from *FW_TEXT_BASE* where the payload binary
+diff --git a/docs/platform/platform.md b/docs/platform/platform.md
+index cb4bec6..f291931 100644
+--- a/docs/platform/platform.md
++++ b/docs/platform/platform.md
+@@ -41,9 +41,9 @@ OpenSBI currently supports the following virtual and hardware platforms:
+ 
+ The code for these supported platforms can be used as example to implement
+ support for other platforms. The *platform/template* directory also provides
+-template files for implementing support for a new platform. The *object.mk*,
+-*config.mk* and *platform.c* template files provides enough comments to
+-facilitate the implementation.
++template files for implementing support for a new platform. The *objects.mk*,
++*Kconfig*, *configs/defconfig* and *platform.c* template files provides enough
++comments to facilitate the implementation.
+ 
+ [generic.md]: generic.md
+ [qemu_virt.md]: qemu_virt.md
+diff --git a/docs/platform_guide.md b/docs/platform_guide.md
+index b6c2c2e..38fd516 100644
+--- a/docs/platform_guide.md
++++ b/docs/platform_guide.md
+@@ -28,11 +28,12 @@ Adding support for a new platform
+ Support for a new platform named *&lt;xyz&gt;* can be added as follows:
+ 
+ 1. Create a directory named *&lt;xyz&gt;* under the *platform/* directory.
+-2. Create a platform configuration file named *config.mk* under the
+-   *platform/&lt;xyz&gt;/* directory. This configuration file will provide
++2. Create platform configuration files named *Kconfig* and *configs/defconfig*
++   under the *platform/&lt;xyz&gt;/* directory. These configuration files will
++   provide the build time configuration for the sources to be compiled.
++3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the platform
++   object files to be compiled. This file also provides platform-specific
+    compiler flags, and select firmware options.
+-3. Create a *platform/&lt;xyz&gt;/objects.mk* file for listing the
+-   platform-specific object files to be compiled.
+ 4. Create a *platform/&lt;xyz&gt;/platform.c* file providing a
+    *struct sbi_platform* instance.
+ 
 -- 
-2.37.1
+2.34.1
 
 
