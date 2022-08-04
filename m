@@ -1,42 +1,86 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Thu, 4 Aug 2022 17:16:13 +0200
-Subject: [PATCH v7 17/17] Makefile: Fix typo related to object.mk
-In-Reply-To: <20220804143106.64599-18-apatel@ventanamicro.com>
-References: <20220804143106.64599-1-apatel@ventanamicro.com>
- <20220804143106.64599-18-apatel@ventanamicro.com>
-Message-ID: <20220804151613.ynbwmlo6yv342t44@kamzik>
+From: Vivian Wang <dramforever@live.com>
+Date: Thu,  4 Aug 2022 22:32:29 +0800
+Subject: [PATCH v2 3/5] lib: sbi: Set gva when creating sbi_trap_info
+In-Reply-To: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <TYYP286MB1439F1EFC445B353B5B1A077C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 04, 2022 at 08:01:06PM +0530, Anup Patel wrote:
-> The "object.mk" name referred in top-level makefile should be
-> "objects.mk".
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> Tested-by: Andrew Jones <ajones@ventanamicro.com>
-> ---
->  Makefile | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index a5d6854..5adce4e 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -231,7 +231,7 @@ include $(KCONFIG_CONFIG)
->  include $(KCONFIG_AUTOCMD)
->  endif
->  
-> -# Include all object.mk files
-> +# Include all objects.mk files
->  ifdef PLATFORM
->  include $(platform-object-mks)
->  endif
-> -- 
-> 2.34.1
->
+In some cases the sbi_trap_info argument passed to sbi_trap_redirect is
+created from scratch by filling its fields. Since we previously added a
+gva field to struct sbi_trap_info, initialize gva in these cases also.
 
+Suggested-by: Andrew Jones <ajones@ventanamicro.com>
+Signed-off-by: Vivian Wang <dramforever@live.com>
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+---
+ lib/sbi/sbi_illegal_insn.c    |  1 +
+ lib/sbi/sbi_misaligned_ldst.c |  2 ++
+ lib/sbi/sbi_trap.c            | 14 ++++++++++++++
+ 3 files changed, 17 insertions(+)
+
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index 84c04f8..ecd3508 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -30,6 +30,7 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
+ 	trap.tval = insn;
+ 	trap.tval2 = 0;
+ 	trap.tinst = 0;
++	trap.gva   = 0;
+ 
+ 	return sbi_trap_redirect(regs, &trap);
+ }
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+index fd11798..92a2393 100644
+--- a/lib/sbi/sbi_misaligned_ldst.c
++++ b/lib/sbi/sbi_misaligned_ldst.c
+@@ -129,6 +129,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 		uptrap.tval = addr;
+ 		uptrap.tval2 = tval2;
+ 		uptrap.tinst = tinst;
++		uptrap.gva   = 0;
+ 		return sbi_trap_redirect(regs, &uptrap);
+ 	}
+ 
+@@ -244,6 +245,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 		uptrap.tval = addr;
+ 		uptrap.tval2 = tval2;
+ 		uptrap.tinst = tinst;
++		uptrap.gva   = 0;
+ 		return sbi_trap_redirect(regs, &uptrap);
+ 	}
+ 
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index ee3e4e9..db70c26 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -311,6 +311,20 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+ 		trap.tval = mtval;
+ 		trap.tval2 = mtval2;
+ 		trap.tinst = mtinst;
++
++		/*
++		 * If the hypervisor extension is not implemented,
++		 * mstatus[h].GVA is a WPRI field, which is guaranteed to read
++		 * as zero. In addition, in this case we don't read mstatush and
++		 * instead pretend it is zero, which handles privileged spec
++		 * version < 1.12.
++		 */
++#if __riscv_xlen == 32
++		trap.gva = (regs->mstatusH & MSTATUSH_GVA) ? 1 : 0;
++#else
++		trap.gva = (regs->mstatus & MSTATUS_GVA) ? 1 : 0;
++#endif
++
+ 		rc = sbi_trap_redirect(regs, &trap);
+ 		break;
+ 	};
+-- 
+2.37.1
+
 
