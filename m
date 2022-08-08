@@ -1,17 +1,17 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon,  8 Aug 2022 09:27:32 +0530
-Subject: [PATCH v8 09/17] lib: utils/irqchip: Use kconfig for enabling/disabling drivers
+Date: Mon,  8 Aug 2022 09:27:33 +0530
+Subject: [PATCH v8 10/17] lib: utils/i2c: Use kconfig for enabling/disabling drivers
 In-Reply-To: <20220808035740.69335-1-apatel@ventanamicro.com>
 References: <20220808035740.69335-1-apatel@ventanamicro.com>
-Message-ID: <20220808035740.69335-10-apatel@ventanamicro.com>
+Message-ID: <20220808035740.69335-11-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We update irqchip drivers makefile to use kconfig for enabling/disabling
-drivers. To avoid compile errors, we also enable appropriate irqchip
+We update i2c drivers makefile to use kconfig for enabling/disabling
+drivers. To avoid compile errors, we also enable appropriate i2c
 drivers for each platform.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
@@ -19,251 +19,84 @@ Tested-by: Andrew Jones <ajones@ventanamicro.com>
 Acked-by: Atish Patra <atishp@rivosinc.com>
 Tested-by: Atish Patra <atishp@rivosinc.com>
 ---
- include/sbi_utils/irqchip/fdt_irqchip.h | 10 +++++++
- include/sbi_utils/irqchip/imsic.h       | 10 +++++++
- lib/utils/Kconfig                       |  2 ++
- lib/utils/irqchip/Kconfig               | 40 +++++++++++++++++++++++++
- lib/utils/irqchip/objects.mk            | 22 +++++++-------
- platform/andes/ae350/Kconfig            |  1 +
- platform/fpga/ariane/Kconfig            |  1 +
- platform/fpga/openpiton/Kconfig         |  1 +
- platform/generic/configs/defconfig      |  4 +++
- platform/kendryte/k210/Kconfig          |  1 +
- platform/nuclei/ux600/Kconfig           |  1 +
- platform/template/Kconfig               |  1 +
- 12 files changed, 83 insertions(+), 11 deletions(-)
- create mode 100644 lib/utils/irqchip/Kconfig
+ lib/utils/Kconfig                  |  2 ++
+ lib/utils/i2c/Kconfig              | 22 ++++++++++++++++++++++
+ lib/utils/i2c/objects.mk           | 10 +++++-----
+ platform/generic/configs/defconfig |  2 ++
+ 4 files changed, 31 insertions(+), 5 deletions(-)
+ create mode 100644 lib/utils/i2c/Kconfig
 
-diff --git a/include/sbi_utils/irqchip/fdt_irqchip.h b/include/sbi_utils/irqchip/fdt_irqchip.h
-index 13ef6f7..63e9fd9 100644
---- a/include/sbi_utils/irqchip/fdt_irqchip.h
-+++ b/include/sbi_utils/irqchip/fdt_irqchip.h
-@@ -12,6 +12,8 @@
- 
- #include <sbi/sbi_types.h>
- 
-+#ifdef CONFIG_FDT_IRQCHIP
-+
- struct fdt_irqchip {
- 	const struct fdt_match *match_table;
- 	int (*cold_init)(void *fdt, int nodeoff, const struct fdt_match *match);
-@@ -23,4 +25,12 @@ void fdt_irqchip_exit(void);
- 
- int fdt_irqchip_init(bool cold_boot);
- 
-+#else
-+
-+static inline void fdt_irqchip_exit(void) { }
-+
-+static inline int fdt_irqchip_init(bool cold_boot) { return 0; }
-+
-+#endif
-+
- #endif
-diff --git a/include/sbi_utils/irqchip/imsic.h b/include/sbi_utils/irqchip/imsic.h
-index cffcb5a..e295771 100644
---- a/include/sbi_utils/irqchip/imsic.h
-+++ b/include/sbi_utils/irqchip/imsic.h
-@@ -33,6 +33,8 @@ struct imsic_data {
- 	struct imsic_regs regs[IMSIC_MAX_REGS];
- };
- 
-+#ifdef CONFIG_IRQCHIP_IMSIC
-+
- int imsic_map_hartid_to_data(u32 hartid, struct imsic_data *imsic, int file);
- 
- struct imsic_data *imsic_get_data(u32 hartid);
-@@ -47,4 +49,12 @@ int imsic_data_check(struct imsic_data *imsic);
- 
- int imsic_cold_irqchip_init(struct imsic_data *imsic);
- 
-+#else
-+
-+static inline void imsic_local_irqchip_init(void) { }
-+
-+static inline int imsic_data_check(struct imsic_data *imsic) { return 0; }
-+
-+#endif
-+
- #endif
 diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-index 50d9770..3f315fd 100644
+index 3f315fd..39452d5 100644
 --- a/lib/utils/Kconfig
 +++ b/lib/utils/Kconfig
-@@ -4,6 +4,8 @@ menu "Utils and Drivers Support"
+@@ -2,6 +2,8 @@
  
+ menu "Utils and Drivers Support"
+ 
++source "$(OPENSBI_SRC_DIR)/lib/utils/i2c/Kconfig"
++
  source "$(OPENSBI_SRC_DIR)/lib/utils/ipi/Kconfig"
  
-+source "$(OPENSBI_SRC_DIR)/lib/utils/irqchip/Kconfig"
-+
- source "$(OPENSBI_SRC_DIR)/lib/utils/reset/Kconfig"
- 
- source "$(OPENSBI_SRC_DIR)/lib/utils/serial/Kconfig"
-diff --git a/lib/utils/irqchip/Kconfig b/lib/utils/irqchip/Kconfig
+ source "$(OPENSBI_SRC_DIR)/lib/utils/irqchip/Kconfig"
+diff --git a/lib/utils/i2c/Kconfig b/lib/utils/i2c/Kconfig
 new file mode 100644
-index 0000000..6a7e297
+index 0000000..16c4453
 --- /dev/null
-+++ b/lib/utils/irqchip/Kconfig
-@@ -0,0 +1,40 @@
++++ b/lib/utils/i2c/Kconfig
+@@ -0,0 +1,22 @@
 +# SPDX-License-Identifier: BSD-2-Clause
 +
-+menu "Interrupt Controller Support"
++menu "I2C Support"
 +
-+config FDT_IRQCHIP
-+	bool "FDT based interrupt controller drivers"
++config FDT_I2C
++	bool "FDT based I2C drivers"
++	select I2C
 +	default n
 +
-+if FDT_IRQCHIP
++if FDT_I2C
 +
-+config FDT_IRQCHIP_APLIC
-+	bool "Advanced Platform Level Interrupt Controller (APLIC) FDT driver"
-+	select IRQCHIP_APLIC
-+	default n
-+
-+config FDT_IRQCHIP_IMSIC
-+	bool "Incoming Message Signalled Interrupt Controller (IMSIC) FDT driver"
-+	select IRQCHIP_IMSIC
-+	default n
-+
-+config FDT_IRQCHIP_PLIC
-+	bool "Platform Level Interrupt Controller (PLIC) FDT driver"
-+	select IRQCHIP_PLIC
++config FDT_I2C_SIFIVE
++	bool "SiFive I2C FDT driver"
 +	default n
 +
 +endif
 +
-+config IRQCHIP_APLIC
-+	bool "Advanced Platform Level Interrupt Controller (APLIC) support"
-+	default n
-+
-+config IRQCHIP_IMSIC
-+	bool "Incoming Message Signalled Interrupt Controller (IMSIC) support"
-+	default n
-+
-+config IRQCHIP_PLIC
-+	bool "Platform Level Interrupt Controller (PLIC) support"
++config I2C
++	bool "I2C support"
 +	default n
 +
 +endmenu
-diff --git a/lib/utils/irqchip/objects.mk b/lib/utils/irqchip/objects.mk
-index 7775bc4..e458891 100644
---- a/lib/utils/irqchip/objects.mk
-+++ b/lib/utils/irqchip/objects.mk
-@@ -7,18 +7,18 @@
- #   Anup Patel <anup.patel@wdc.com>
+diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
+index bb0d6d5..a0fbbb5 100644
+--- a/lib/utils/i2c/objects.mk
++++ b/lib/utils/i2c/objects.mk
+@@ -7,10 +7,10 @@
+ #   Nikita Shubin <n.shubin@yadro.com>
  #
  
--libsbiutils-objs-y += irqchip/fdt_irqchip.o
--libsbiutils-objs-y += irqchip/fdt_irqchip_drivers.o
-+libsbiutils-objs-$(CONFIG_FDT_IRQCHIP) += irqchip/fdt_irqchip.o
-+libsbiutils-objs-$(CONFIG_FDT_IRQCHIP) += irqchip/fdt_irqchip_drivers.o
+-libsbiutils-objs-y += i2c/i2c.o
++libsbiutils-objs-$(CONFIG_I2C) += i2c/i2c.o
  
--carray-fdt_irqchip_drivers-y += fdt_irqchip_aplic
--libsbiutils-objs-y += irqchip/fdt_irqchip_aplic.o
-+carray-fdt_irqchip_drivers-$(CONFIG_FDT_IRQCHIP_APLIC) += fdt_irqchip_aplic
-+libsbiutils-objs-$(CONFIG_FDT_IRQCHIP_APLIC) += irqchip/fdt_irqchip_aplic.o
+-libsbiutils-objs-y += i2c/fdt_i2c.o
+-libsbiutils-objs-y += i2c/fdt_i2c_adapter_drivers.o
++libsbiutils-objs-$(CONFIG_FDT_I2C) += i2c/fdt_i2c.o
++libsbiutils-objs-$(CONFIG_FDT_I2C) += i2c/fdt_i2c_adapter_drivers.o
  
--carray-fdt_irqchip_drivers-y += fdt_irqchip_imsic
--libsbiutils-objs-y += irqchip/fdt_irqchip_imsic.o
-+carray-fdt_irqchip_drivers-$(CONFIG_FDT_IRQCHIP_IMSIC) += fdt_irqchip_imsic
-+libsbiutils-objs-$(CONFIG_FDT_IRQCHIP_IMSIC) += irqchip/fdt_irqchip_imsic.o
- 
--carray-fdt_irqchip_drivers-y += fdt_irqchip_plic
--libsbiutils-objs-y += irqchip/fdt_irqchip_plic.o
-+carray-fdt_irqchip_drivers-$(CONFIG_FDT_IRQCHIP_PLIC) += fdt_irqchip_plic
-+libsbiutils-objs-$(CONFIG_FDT_IRQCHIP_PLIC) += irqchip/fdt_irqchip_plic.o
- 
--libsbiutils-objs-y += irqchip/aplic.o
--libsbiutils-objs-y += irqchip/imsic.o
--libsbiutils-objs-y += irqchip/plic.o
-+libsbiutils-objs-$(CONFIG_IRQCHIP_APLIC) += irqchip/aplic.o
-+libsbiutils-objs-$(CONFIG_IRQCHIP_IMSIC) += irqchip/imsic.o
-+libsbiutils-objs-$(CONFIG_IRQCHIP_PLIC) += irqchip/plic.o
-diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
-index 162d19c..87deab0 100644
---- a/platform/andes/ae350/Kconfig
-+++ b/platform/andes/ae350/Kconfig
-@@ -2,5 +2,6 @@
- 
- config PLATFORM_ANDES_AE350
- 	bool
-+	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
- 	default y
-diff --git a/platform/fpga/ariane/Kconfig b/platform/fpga/ariane/Kconfig
-index 0bc1597..5a720d9 100644
---- a/platform/fpga/ariane/Kconfig
-+++ b/platform/fpga/ariane/Kconfig
-@@ -3,6 +3,7 @@
- config PLATFORM_ARIANE_FPGA
- 	bool
- 	select IPI_MSWI
-+	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
- 	select TIMER_MTIMER
- 	default y
-diff --git a/platform/fpga/openpiton/Kconfig b/platform/fpga/openpiton/Kconfig
-index 0e4e3ba..973906e 100644
---- a/platform/fpga/openpiton/Kconfig
-+++ b/platform/fpga/openpiton/Kconfig
-@@ -3,6 +3,7 @@
- config PLATFORM_OPENPITON_FPGA
- 	bool
- 	select IPI_MSWI
-+	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
- 	select TIMER_MTIMER
- 	default y
+-carray-fdt_i2c_adapter_drivers-y += fdt_i2c_adapter_sifive
+-libsbiutils-objs-y += i2c/fdt_i2c_sifive.o
++carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SIFIVE) += fdt_i2c_adapter_sifive
++libsbiutils-objs-$(CONFIG_FDT_I2C_SIFIVE) += i2c/fdt_i2c_sifive.o
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index e218c32..ad66a63 100644
+index ad66a63..c9c221e 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -1,5 +1,9 @@
+@@ -1,3 +1,5 @@
++CONFIG_FDT_I2C=y
++CONFIG_FDT_I2C_SIFIVE=y
  CONFIG_FDT_IPI=y
  CONFIG_FDT_IPI_MSWI=y
-+CONFIG_FDT_IRQCHIP=y
-+CONFIG_FDT_IRQCHIP_APLIC=y
-+CONFIG_FDT_IRQCHIP_IMSIC=y
-+CONFIG_FDT_IRQCHIP_PLIC=y
- CONFIG_FDT_RESET=y
- CONFIG_FDT_RESET_GPIO=y
- CONFIG_FDT_RESET_HTIF=y
-diff --git a/platform/kendryte/k210/Kconfig b/platform/kendryte/k210/Kconfig
-index 685a5cd..2a1daaa 100644
---- a/platform/kendryte/k210/Kconfig
-+++ b/platform/kendryte/k210/Kconfig
-@@ -3,6 +3,7 @@
- config PLATFORM_KENDRYTE_K210
- 	bool
- 	select IPI_MSWI
-+	select IRQCHIP_PLIC
- 	select SERIAL_SIFIVE
- 	select TIMER_MTIMER
- 	default y
-diff --git a/platform/nuclei/ux600/Kconfig b/platform/nuclei/ux600/Kconfig
-index cd995a3..464802e 100644
---- a/platform/nuclei/ux600/Kconfig
-+++ b/platform/nuclei/ux600/Kconfig
-@@ -3,6 +3,7 @@
- config PLATFORM_NUCLEI_UX600
- 	bool
- 	select IPI_MSWI
-+	select IRQCHIP_PLIC
- 	select SERIAL_SIFIVE
- 	select TIMER_MTIMER
- 	default y
-diff --git a/platform/template/Kconfig b/platform/template/Kconfig
-index 4d9646d..d73825d 100644
---- a/platform/template/Kconfig
-+++ b/platform/template/Kconfig
-@@ -10,6 +10,7 @@
- config PLATFORM_TEMPLATE
- 	bool
- 	select IPI_MSWI
-+	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
- 	select TIMER_MTIMER
- 	default y
+ CONFIG_FDT_IRQCHIP=y
 -- 
 2.34.1
 
