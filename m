@@ -1,16 +1,16 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 11 Aug 2022 17:44:28 +0800
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Thu, 11 Aug 2022 14:49:19 +0200
 Subject: [RFC PATCH 0/0] Move the address of FW_JUMP_FDT_ADDR forward
 In-Reply-To: <20220811085811.3577-1-nylon.chen@sifive.com>
 References: <20220811085811.3577-1-nylon.chen@sifive.com>
-Message-ID: <ee411be90df23163ad9b794aeba75001dfad1d99.camel@126.com>
+Message-ID: <20220811124919.jdlwdp5rigpbomm3@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-08-11???? 16:58 +0800?Nylon Chen???
+On Thu, Aug 11, 2022 at 04:58:11PM +0800, Nylon Chen wrote:
 > From: "Nylon.Chen" <nylon.chen@sifive.com>
 > 
 > A while ago.
@@ -23,6 +23,9 @@ Content-Transfer-Encoding: 7bit
 > platform/generic/config.mk
 > 
 > The situation is our kernel size big than it.
+
+This implies opensbi is being used as a FW_PAYLOAD firmware.
+
 > 
 > e.g. 
 > # readelf -h vmlinux 
@@ -33,25 +36,31 @@ Content-Transfer-Encoding: 7bit
 > 
 > After our experiment, we can add offset FW_JUMP_FDT_ADDR, and the
 > problem is solved.
+
+Since this is a FW_PAYLOAD firmware you should be adjusting
+FW_PAYLOAD_FDT_ADDR. Adjusting FW_JUMP_FDT_ADDR only works because
+by default FW_PAYLOAD_FDT_ADDR = FW_JUMP_FDT_ADDR (for the generic
+platform).
+
 > 
 > But in my opinion, this is not a good method because the next time the
 > kernel size increases, the same situation occurs again.
+
+I haven't tried it, but I think it should be possible to embed the FDT
+into the kernel (CONFIG_BUILTIN_DTB) and then ensure FW_PAYLOAD_FDT_ADDR
+is *not* defined. Doing that will hopefully keep opensbi from overwriting
+the payload and linux will still find the DTB without looking at a1 for
+it. Taking that approach (if it works) would avoid having to adjust
+FW_PAYLOAD_FDT_ADDR for different payload sizes.
+
 > 
 > So maybe we can move the address forward and normalize the address to
 > FW_JUMP_FDT_ADDR?
-> 
-> Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
-> -- 
-> 2.36.1
-> 
-> 
-Overwriting may occur regardless of the bit value adjustment.
-You can build with:
 
-make ... FW_JUMP_FDT_ADDR=xxx ...
+These types of defaults are impossible to get right for everybody. IMHO,
+what's there today should stay as is and we should work at making it as
+easy as possible to adjust at build- and/or run- time when necessary.
 
-Regards,
-Xiang W
-
-
+Thanks,
+drew
 
