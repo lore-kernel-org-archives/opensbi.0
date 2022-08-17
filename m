@@ -1,224 +1,362 @@
-From: Heiko Stuebner <heiko@sntech.de>
-Date: Wed, 17 Aug 2022 13:20:03 +0200
-Subject: [PATCH v2 4/5] platform: generic: allwinner: add an extension for C9xx cores
-In-Reply-To: <20220817112004.745776-1-heiko@sntech.de>
-References: <20220817112004.745776-1-heiko@sntech.de>
-Message-ID: <20220817112004.745776-5-heiko@sntech.de>
+From: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
+Date: Wed, 17 Aug 2022 23:40:56 +0800
+Subject: [PATCH v4] lib: utils: serial: Add Cadence UART driver
+Message-ID: <20220817154056.543158-1-junliang.tan@linux.starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The T-Head c9xx cores extend the RISC-V ISA in a number of ways,
-both adding new instructions and also new (and extended) CSRs.
+Add Cadence UART driver
 
-Add an extension constant for this and set it in extension-init.
-
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
+Signed-off-by: Wei Liang Lim <weiliang.lim@linux.starfivetech.com>
 ---
- include/sbi/riscv_thead_c9xx.h         | 127 +++++++++++++++++++++++++
- include/sbi/sbi_hart.h                 |   3 +
- lib/sbi/sbi_hart.c                     |   3 +
- platform/generic/allwinner/sun20i-d1.c |  10 ++
- 4 files changed, 143 insertions(+)
- create mode 100644 include/sbi/riscv_thead_c9xx.h
 
-diff --git a/include/sbi/riscv_thead_c9xx.h b/include/sbi/riscv_thead_c9xx.h
+Changes in v4:
+- Add changelog
+- Check for possible divide-by-zero in uart_min_clk_divisor() by
+  referring to the fix in commit f27203525aa2fc20d0074feb892a6f8433f84e3a
+- Cosmetic changes
+
+Changes in v3:
+- Place #define register name in ascending order of register offset
+- Change #define register name to match manual register name
+- #define register flags in a way associate with their register
+- Cosmetic changes
+
+Changes in v2:
+- Rename fdt_parse_uart8250_node() to fdt_parse_uart_node() and make
+  neccessary changes in functions that call it
+- Align patch with the latest OpenSBI sources
+
+ include/sbi_utils/fdt/fdt_helper.h      |   4 +-
+ include/sbi_utils/serial/cadence-uart.h |  16 +++
+ lib/utils/fdt/fdt_helper.c              |   6 +-
+ lib/utils/serial/Kconfig                |   9 ++
+ lib/utils/serial/cadence-uart.c         | 128 ++++++++++++++++++++++++
+ lib/utils/serial/fdt_serial_cadence.c   |  35 +++++++
+ lib/utils/serial/fdt_serial_uart8250.c  |   2 +-
+ lib/utils/serial/objects.mk             |   4 +
+ platform/generic/configs/defconfig      |   1 +
+ 9 files changed, 199 insertions(+), 6 deletions(-)
+ create mode 100644 include/sbi_utils/serial/cadence-uart.h
+ create mode 100644 lib/utils/serial/cadence-uart.c
+ create mode 100644 lib/utils/serial/fdt_serial_cadence.c
+
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index c60af35..bcd4996 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -65,8 +65,8 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
+ 			       struct platform_uart_data *uart);
+ 
+-int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
+-			    struct platform_uart_data *uart);
++int fdt_parse_uart_node(void *fdt, int nodeoffset,
++			struct platform_uart_data *uart);
+ 
+ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
+ 		       const char *compatible);
+diff --git a/include/sbi_utils/serial/cadence-uart.h b/include/sbi_utils/serial/cadence-uart.h
 new file mode 100644
-index 0000000..bab0408
+index 0000000..e75fb95
 --- /dev/null
-+++ b/include/sbi/riscv_thead_c9xx.h
-@@ -0,0 +1,127 @@
-+#ifndef __RISCV_THEAD_C9XX_H____
-+#define __RISCV_THEAD_C9XX_H____
++++ b/include/sbi_utils/serial/cadence-uart.h
+@@ -0,0 +1,16 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 StarFive Technology Co., Ltd.
++ *
++ * Author: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
++ */
 +
-+/* T-HEAD C9xx M mode CSR.  */
-+#define THEAD_C9XX_CSR_MXSTATUS		0x7c0
-+#define THEAD_C9XX_CSR_MHCR		0x7c1
-+#define THEAD_C9XX_CSR_MCOR		0x7c2
-+#define THEAD_C9XX_CSR_MCCR2		0x7c3
-+#define THEAD_C9XX_CSR_MCER2		0x7c4
-+#define THEAD_C9XX_CSR_MHINT		0x7c5
-+#define THEAD_C9XX_CSR_MRMR		0x7c6
-+#define THEAD_C9XX_CSR_MRVBR		0x7c7
-+#define THEAD_C9XX_CSR_MCER		0x7c8
-+#define THEAD_C9XX_CSR_MCOUNTERWEN	0x7c9
-+#define THEAD_C9XX_CSR_MCOUNTERINTEN	0x7ca
-+#define THEAD_C9XX_CSR_MCOUNTEROF	0x7cb
-+#define THEAD_C9XX_CSR_MHINT2		0x7cc
-+#define THEAD_C9XX_CSR_MHINT3		0x7cd
-+#define THEAD_C9XX_CSR_MRADDR		0x7e0
-+#define THEAD_C9XX_CSR_MEXSTATUS	0x7e1
-+#define THEAD_C9XX_CSR_MNMICAUSE	0x7e2
-+#define THEAD_C9XX_CSR_MNMIPC		0x7e3
-+#define THEAD_C9XX_CSR_MHPMCR		0x7f0
-+#define THEAD_C9XX_CSR_MHPMSR		0x7f1
-+#define THEAD_C9XX_CSR_MHPMER		0x7f2
-+#define THEAD_C9XX_CSR_MSMPR		0x7f3
-+#define THEAD_C9XX_CSR_MTEECFG		0x7f4
-+#define THEAD_C9XX_CSR_MZONEID		0x7f5
-+#define THEAD_C9XX_CSR_ML2CPID		0x7f6
-+#define THEAD_C9XX_CSR_ML2WP		0x7f7
-+#define THEAD_C9XX_CSR_MDTCMCR		0x7f8
-+#define THEAD_C9XX_CSR_USP		0x7d1
-+#define THEAD_C9XX_CSR_MCINS		0x7d2
-+#define THEAD_C9XX_CSR_MCINDEX		0x7d3
-+#define THEAD_C9XX_CSR_MCDATA0		0x7d4
-+#define THEAD_C9XX_CSR_MCDATA1		0x7d5
-+#define THEAD_C9XX_CSR_MEICR		0x7d6
-+#define THEAD_C9XX_CSR_MEICR2		0x7d7
-+#define THEAD_C9XX_CSR_MBEADDR		0x7d8
-+#define THEAD_C9XX_CSR_MCPUID		0xfc0
-+#define THEAD_C9XX_CSR_MAPBADDR		0xfc1
-+#define THEAD_C9XX_CSR_MWMSR		0xfc2
-+#define THEAD_C9XX_CSR_MHALTCAUSE	0xfe0
-+#define THEAD_C9XX_CSR_MDBGINFO		0xfe1
-+#define THEAD_C9XX_CSR_MPCFIFO		0xfe2
++#ifndef __SERIAL_CADENCE_UART_H__
++#define __SERIAL_CADENCE_UART_H__
 +
-+/* T-HEAD C9xx S mode CSR.  */
-+#define THEAD_C9XX_CSR_SXSTATUS		0x5c0
-+#define THEAD_C9XX_CSR_SHCR		0x5c1
-+#define THEAD_C9XX_CSR_SCER2		0x5c2
-+#define THEAD_C9XX_CSR_SCER		0x5c3
-+#define THEAD_C9XX_CSR_SCOUNTERINTEN	0x5c4
-+#define THEAD_C9XX_CSR_SCOUNTEROF	0x5c5
-+#define THEAD_C9XX_CSR_SHINT		0x5c6
-+#define THEAD_C9XX_CSR_SHINT2		0x5c7
-+#define THEAD_C9XX_CSR_SHPMINHIBIT	0x5c8
-+#define THEAD_C9XX_CSR_SHPMCR		0x5c9
-+#define THEAD_C9XX_CSR_SHPMSR		0x5ca
-+#define THEAD_C9XX_CSR_SHPMER		0x5cb
-+#define THEAD_C9XX_CSR_SL2CPID		0x5cc
-+#define THEAD_C9XX_CSR_SL2WP		0x5cd
-+#define THEAD_C9XX_CSR_SBEADDR		0x5d0
-+#define THEAD_C9XX_CSR_SCYCLE		0x5e0
-+#define THEAD_C9XX_CSR_SHPMCOUNTER1	0x5e1
-+#define THEAD_C9XX_CSR_SHPMCOUNTER2	0x5e2
-+#define THEAD_C9XX_CSR_SHPMCOUNTER3	0x5e3
-+#define THEAD_C9XX_CSR_SHPMCOUNTER4	0x5e4
-+#define THEAD_C9XX_CSR_SHPMCOUNTER5	0x5e5
-+#define THEAD_C9XX_CSR_SHPMCOUNTER6	0x5e6
-+#define THEAD_C9XX_CSR_SHPMCOUNTER7	0x5e7
-+#define THEAD_C9XX_CSR_SHPMCOUNTER8	0x5e8
-+#define THEAD_C9XX_CSR_SHPMCOUNTER9	0x5e9
-+#define THEAD_C9XX_CSR_SHPMCOUNTER10	0x5ea
-+#define THEAD_C9XX_CSR_SHPMCOUNTER11	0x5eb
-+#define THEAD_C9XX_CSR_SHPMCOUNTER12	0x5ec
-+#define THEAD_C9XX_CSR_SHPMCOUNTER13	0x5ed
-+#define THEAD_C9XX_CSR_SHPMCOUNTER14	0x5ee
-+#define THEAD_C9XX_CSR_SHPMCOUNTER15	0x5ef
-+#define THEAD_C9XX_CSR_SHPMCOUNTER16	0x5f0
-+#define THEAD_C9XX_CSR_SHPMCOUNTER17	0x5f1
-+#define THEAD_C9XX_CSR_SHPMCOUNTER18	0x5f2
-+#define THEAD_C9XX_CSR_SHPMCOUNTER19	0x5f3
-+#define THEAD_C9XX_CSR_SHPMCOUNTER20	0x5f4
-+#define THEAD_C9XX_CSR_SHPMCOUNTER21	0x5f5
-+#define THEAD_C9XX_CSR_SHPMCOUNTER22	0x5f6
-+#define THEAD_C9XX_CSR_SHPMCOUNTER23	0x5f7
-+#define THEAD_C9XX_CSR_SHPMCOUNTER24	0x5f8
-+#define THEAD_C9XX_CSR_SHPMCOUNTER25	0x5f9
-+#define THEAD_C9XX_CSR_SHPMCOUNTER26	0x5fa
-+#define THEAD_C9XX_CSR_SHPMCOUNTER27	0x5fb
-+#define THEAD_C9XX_CSR_SHPMCOUNTER28	0x5fc
-+#define THEAD_C9XX_CSR_SHPMCOUNTER29	0x5fd
-+#define THEAD_C9XX_CSR_SHPMCOUNTER30	0x5fe
-+#define THEAD_C9XX_CSR_SHPMCOUNTER31	0x5ff
++#include <sbi/sbi_types.h>
 +
-+/* T-HEAD C9xx U mode CSR.  */
-+#define THEAD_C9XX_CSR_FXCR		0x800
-+
-+/* T-HEAD C9xx MMU extentions.  */
-+#define THEAD_C9XX_CSR_SMIR		0x9c0
-+#define THEAD_C9XX_CSR_SMEL		0x9c1
-+#define THEAD_C9XX_CSR_SMEH		0x9c2
-+#define THEAD_C9XX_CSR_SMCIR		0x9c3
-+
-+/* T-HEAD C9xx Security CSR(May be droped).  */
-+#define THEAD_C9XX_CSR_MEBR		0xbe0
-+#define THEAD_C9XX_CSR_NT_MSTATUS	0xbe1
-+#define THEAD_C9XX_CSR_NT_MIE		0xbe2
-+#define THEAD_C9XX_CSR_NT_MTVEC		0xbe3
-+#define THEAD_C9XX_CSR_NT_MTVT		0xbe4
-+#define THEAD_C9XX_CSR_NT_MEPC		0xbe5
-+#define THEAD_C9XX_CSR_NT_MCAUSE	0xbe6
-+#define THEAD_C9XX_CSR_NT_MIP		0xbe7
-+#define THEAD_C9XX_CSR_NT_MINTSTATE	0xbe8
-+#define THEAD_C9XX_CSR_NT_MXSTATUS	0xbe9
-+#define THEAD_C9XX_CSR_NT_MEBR		0xbea
-+#define THEAD_C9XX_CSR_NT_MSP		0xbeb
-+#define THEAD_C9XX_CSR_T_USP		0xbec
-+#define THEAD_C9XX_CSR_T_MDCR		0xbed
-+#define THEAD_C9XX_CSR_T_MPCR		0xbee
-+#define THEAD_C9XX_CSR_PMPTEECFG	0xbef
-+
-+/* T-HEAD C9xx MIP CSR extension */
-+#define THEAD_C9XX_IRQ_PMU_OVF		17
-+#define THEAD_C9XX_MIP_MOIP		(_UL(1) << THEAD_C9XX_IRQ_PMU_OVF)
++int cadence_uart_init(unsigned long base, u32 in_freq, u32 baudrate);
 +
 +#endif
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 4661506..a9a9a4d 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -37,6 +37,9 @@ enum sbi_hart_extensions {
- 	/** HART has Sstc extension */
- 	SBI_HART_EXT_SSTC,
- 
-+	/** HART is a C9xx core with its ISA extensions */
-+	SBI_HART_EXT_THEAD_C9XX,
-+
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
- };
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 5b33623..66bbc0b 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -434,6 +434,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
- 	case SBI_HART_EXT_SMSTATEEN:
- 		estr = "smstateen";
- 		break;
-+	case SBI_HART_EXT_THEAD_C9XX:
-+		estr = "c9xx";
-+		break;
- 	default:
- 		break;
- 	}
-diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-index 5b2656c..d295a2c 100644
---- a/platform/generic/allwinner/sun20i-d1.c
-+++ b/platform/generic/allwinner/sun20i-d1.c
-@@ -9,6 +9,7 @@
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/irqchip/fdt_irqchip_plic.h>
-@@ -199,6 +200,14 @@ static int sun20i_d1_final_init(bool cold_boot, const struct fdt_match *match)
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index c6abf80..6a75d6f 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -401,8 +401,8 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
  	return 0;
  }
  
-+static int sun20i_d1_extensions_init(unsigned long *extensions,
-+				     const struct fdt_match *match)
+-int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
+-			    struct platform_uart_data *uart)
++int fdt_parse_uart_node(void *fdt, int nodeoffset,
++			struct platform_uart_data *uart)
+ {
+ 	int len, rc;
+ 	const fdt32_t *val;
+@@ -447,7 +447,7 @@ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
+ 	if (nodeoffset < 0)
+ 		return nodeoffset;
+ 
+-	return fdt_parse_uart8250_node(fdt, nodeoffset, uart);
++	return fdt_parse_uart_node(fdt, nodeoffset, uart);
+ }
+ 
+ int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
+diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
+index 152060d..6e425f2 100644
+--- a/lib/utils/serial/Kconfig
++++ b/lib/utils/serial/Kconfig
+@@ -9,6 +9,11 @@ config FDT_SERIAL
+ 
+ if FDT_SERIAL
+ 
++config FDT_SERIAL_CADENCE
++	bool "Cadence UART FDT driver"
++	select SERIAL_CADENCE
++	default n
++
+ config FDT_SERIAL_GAISLER
+ 	bool "Gaisler UART FDT driver"
+ 	select SERIAL_GAISLER
+@@ -46,6 +51,10 @@ config FDT_SERIAL_XILINX_UARTLITE
+ 
+ endif
+ 
++config SERIAL_CADENCE
++	bool "Cadence UART support"
++	default n
++
+ config SERIAL_GAISLER
+ 	bool "Gaisler UART support"
+ 	default n
+diff --git a/lib/utils/serial/cadence-uart.c b/lib/utils/serial/cadence-uart.c
+new file mode 100644
+index 0000000..8a2b6ba
+--- /dev/null
++++ b/lib/utils/serial/cadence-uart.c
+@@ -0,0 +1,128 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 StarFive Technology Co., Ltd.
++ *
++ * Author: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
++ */
++
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_console.h>
++#include <sbi_utils/serial/cadence-uart.h>
++
++/* clang-format off */
++
++#define UART_REG_CTRL		0x00
++#define UART_REG_MODE		0x04
++#define UART_REG_IDR		0x0C
++#define UART_REG_BRGR		0x18
++#define UART_REG_CSR		0x2C
++#define UART_REG_RFIFO_TFIFO	0x30
++#define UART_REG_BDIVR		0x34
++
++#define UART_CTRL_RXRES		0x00000001
++#define UART_CTRL_TXRES		0x00000002
++#define UART_CTRL_RXEN		0x00000004
++#define UART_CTRL_RXDIS		0x00000008
++#define UART_CTRL_TXEN		0x00000010
++#define UART_CTRL_TXDIS		0x00000020
++
++#define UART_MODE_PAR_NONE	0x00000020	/* No parity set */
++
++#define UART_BRGR_CD_CLKDIVISOR	0x00000001	/* baud_sample = sel_clk */
++
++#define	UART_CSR_REMPTY		0x00000002
++#define	UART_CSR_TFUL		0x00000010
++
++/* clang-format on */
++
++static volatile void *uart_base;
++static u32 uart_in_freq;
++static u32 uart_baudrate;
++
++/*
++ * Find minimum divisor divides in_freq to max_target_hz;
++ * Based on SiFive UART driver (sifive-uart.c)
++ */
++static inline unsigned int uart_min_clk_divisor(uint64_t in_freq,
++						uint64_t max_target_hz)
 +{
-+	*extensions |= BIT(SBI_HART_EXT_THEAD_C9XX);
++	uint64_t quotient = (in_freq + max_target_hz - 1) / (max_target_hz);
++
++	/* Avoid underflow */
++	if (quotient == 0)
++		return 0;
++	else
++		return quotient - 1;
++}
++
++static u32 get_reg(u32 offset)
++{
++	return readl(uart_base + offset);
++}
++
++static void set_reg(u32 offset, u32 val)
++{
++	writel(val, uart_base + offset);
++}
++
++static void cadence_uart_putc(char ch)
++{
++	while (get_reg(UART_REG_CSR) & UART_CSR_TFUL)
++		;
++
++	set_reg(UART_REG_RFIFO_TFIFO, ch);
++}
++
++static int cadence_uart_getc(void)
++{
++	u32 ret = get_reg(UART_REG_CSR);
++
++	if (!(ret & UART_CSR_REMPTY))
++		return get_reg(UART_REG_RFIFO_TFIFO);
++
++	return -1;
++}
++
++static struct sbi_console_device cadence_console = {
++	.name = "cadence_uart",
++	.console_putc = cadence_uart_putc,
++	.console_getc = cadence_uart_getc
++};
++
++int cadence_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
++{
++	uart_base     = (volatile void *)base;
++	uart_in_freq  = in_freq;
++	uart_baudrate = baudrate;
++
++	/* Disable interrupts */
++	set_reg(UART_REG_IDR, 0xFFFFFFFF);
++
++	/* Disable TX RX */
++	set_reg(UART_REG_CTRL, UART_CTRL_TXDIS | UART_CTRL_RXDIS);
++
++	/* Configure baudrate */
++	if (in_freq && baudrate) {
++		set_reg(UART_REG_BRGR, UART_BRGR_CD_CLKDIVISOR);
++		set_reg(UART_REG_BDIVR,
++			uart_min_clk_divisor(in_freq, baudrate));
++	}
++
++	/* Software reset TX RX data path and enable TX RX */
++	set_reg(UART_REG_CTRL, UART_CTRL_TXRES | UART_CTRL_RXRES
++		| UART_CTRL_TXEN | UART_CTRL_RXEN);
++
++	/*
++	 * Set:
++	 * 1 stop bit, bits[07:06] = 0x00,
++	 * no parity set, bits[05:03] = 0x100,
++	 * 8 bits character length, bits[02:01] = 0x00,
++	 * sel_clk = uart_clk, bit[0] = 0x0
++	 */
++	set_reg(UART_REG_MODE, UART_MODE_PAR_NONE);
++
++	sbi_console_set_device(&cadence_console);
 +
 +	return 0;
 +}
+diff --git a/lib/utils/serial/fdt_serial_cadence.c b/lib/utils/serial/fdt_serial_cadence.c
+new file mode 100644
+index 0000000..946e533
+--- /dev/null
++++ b/lib/utils/serial/fdt_serial_cadence.c
+@@ -0,0 +1,35 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 StarFive Technology Co., Ltd.
++ *
++ * Author: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
++ */
 +
- static const struct fdt_match sun20i_d1_match[] = {
- 	{ .compatible = "allwinner,sun20i-d1" },
- 	{ },
-@@ -207,4 +216,5 @@ static const struct fdt_match sun20i_d1_match[] = {
- const struct platform_override sun20i_d1 = {
- 	.match_table	= sun20i_d1_match,
- 	.final_init	= sun20i_d1_final_init,
-+	.extensions_init = sun20i_d1_extensions_init,
- };
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/serial/fdt_serial.h>
++#include <sbi_utils/serial/cadence-uart.h>
++
++static int serial_cadence_init(void *fdt, int nodeoff,
++			       const struct fdt_match *match)
++{
++	int rc;
++	struct platform_uart_data uart = { 0 };
++
++	rc = fdt_parse_uart_node(fdt, nodeoff, &uart);
++	if (rc)
++		return rc;
++
++	return cadence_uart_init(uart.addr, uart.freq, uart.baud);
++}
++
++static const struct fdt_match serial_cadence_match[] = {
++	{ .compatible = "cdns,uart-r1p12" },
++	{ .compatible = "starfive,jh8100-uart" },
++	{ },
++};
++
++struct fdt_serial fdt_serial_cadence = {
++	.match_table = serial_cadence_match,
++	.init = serial_cadence_init
++};
+diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
+index 0b95f2d..7b5d6a4 100644
+--- a/lib/utils/serial/fdt_serial_uart8250.c
++++ b/lib/utils/serial/fdt_serial_uart8250.c
+@@ -17,7 +17,7 @@ static int serial_uart8250_init(void *fdt, int nodeoff,
+ 	int rc;
+ 	struct platform_uart_data uart = { 0 };
+ 
+-	rc = fdt_parse_uart8250_node(fdt, nodeoff, &uart);
++	rc = fdt_parse_uart_node(fdt, nodeoff, &uart);
+ 	if (rc)
+ 		return rc;
+ 
+diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+index fa9f5a3..efb1d9e 100644
+--- a/lib/utils/serial/objects.mk
++++ b/lib/utils/serial/objects.mk
+@@ -10,6 +10,9 @@
+ libsbiutils-objs-$(CONFIG_FDT_SERIAL) += serial/fdt_serial.o
+ libsbiutils-objs-$(CONFIG_FDT_SERIAL) += serial/fdt_serial_drivers.o
+ 
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_CADENCE) += fdt_serial_cadence
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_CADENCE) += serial/fdt_serial_cadence.o
++
+ carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_GAISLER) += fdt_serial_gaisler
+ libsbiutils-objs-$(CONFIG_FDT_SERIAL_GAISLER) += serial/fdt_serial_gaisler.o
+ 
+@@ -31,6 +34,7 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_UART8250) += serial/fdt_serial_uart8250.o
+ carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += fdt_serial_xlnx_uartlite
+ libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += serial/fdt_serial_xlnx_uartlite.o
+ 
++libsbiutils-objs-$(CONFIG_SERIAL_CADENCE) += serial/cadence-uart.o
+ libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
+ libsbiutils-objs-$(CONFIG_SERIAL_SHAKTI) += serial/shakti-uart.o
+ libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 2a75394..e324173 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -18,6 +18,7 @@ CONFIG_FDT_RESET_SIFIVE_TEST=y
+ CONFIG_FDT_RESET_SUNXI_WDT=y
+ CONFIG_FDT_RESET_THEAD=y
+ CONFIG_FDT_SERIAL=y
++CONFIG_FDT_SERIAL_CADENCE=y
+ CONFIG_FDT_SERIAL_GAISLER=y
+ CONFIG_FDT_SERIAL_HTIF=y
+ CONFIG_FDT_SERIAL_SHAKTI=y
 -- 
-2.35.1
+2.37.1
+
 
 
