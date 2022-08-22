@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 22 Aug 2022 08:47:23 +0530
-Subject: [PATCH v2 2/5] lib: sbi_trap: Save mstatus[h].GVA in trap->gva
-In-Reply-To: <TYYP286MB1439CD32E56EF3C9B0F3E483C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Date: Mon, 22 Aug 2022 08:47:53 +0530
+Subject: [PATCH v2 3/5] lib: sbi: Set gva when creating sbi_trap_info
+In-Reply-To: <TYYP286MB1439F1EFC445B353B5B1A077C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 References: <TYYP286MB1439FC0A558FBF23B64D8BB4C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <TYYP286MB1439CD32E56EF3C9B0F3E483C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <CAAhSdy0OVRtF4-QgexpwPV8jmy+sxsHwPrBe66gnC4P537ohGg@mail.gmail.com>
+ <TYYP286MB1439F1EFC445B353B5B1A077C69F9@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <CAAhSdy16sP3DqoM6yvhTnSaAZt5HvmwzRRfqRYYxUx=g0CmmJQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,13 +13,11 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Aug 4, 2022 at 9:13 PM Vivian Wang <dramforever@live.com> wrote:
 >
-> The machine mode GVA field is available if the hypervisor extension is
-> implemented, and indicates if mtval is a guest virtual address. Add a
-> gva field to sbi_trap_info for this, and in __sbi_expected_trap_hext,
-> save mstatus[h].GVA to it, so that gva indicates if tval is a guest
-> virtual address. If the hypervisor extension is not implemented, always
-> set gva to 0.
+> In some cases the sbi_trap_info argument passed to sbi_trap_redirect is
+> created from scratch by filling its fields. Since we previously added a
+> gva field to struct sbi_trap_info, initialize gva in these cases also.
 >
+> Suggested-by: Andrew Jones <ajones@ventanamicro.com>
 > Signed-off-by: Vivian Wang <dramforever@live.com>
 > Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
@@ -33,84 +31,68 @@ Thanks,
 Anup
 
 > ---
->  include/sbi/sbi_trap.h      |  6 +++++-
->  lib/sbi/sbi_expected_trap.S | 17 +++++++++++++++--
->  2 files changed, 20 insertions(+), 3 deletions(-)
+>  lib/sbi/sbi_illegal_insn.c    |  1 +
+>  lib/sbi/sbi_misaligned_ldst.c |  2 ++
+>  lib/sbi/sbi_trap.c            | 14 ++++++++++++++
+>  3 files changed, 17 insertions(+)
 >
-> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-> index d205056..fe3640a 100644
-> --- a/include/sbi/sbi_trap.h
-> +++ b/include/sbi/sbi_trap.h
-> @@ -95,8 +95,10 @@
->  #define SBI_TRAP_INFO_tval2                    3
->  /** Index of tinst member in sbi_trap_info */
->  #define SBI_TRAP_INFO_tinst                    4
-> +/** Index of gva member in sbi_trap_info */
-> +#define SBI_TRAP_INFO_gva                      5
->  /** Last member index in sbi_trap_info */
-> -#define SBI_TRAP_INFO_last                     5
-> +#define SBI_TRAP_INFO_last                     6
+> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+> index 84c04f8..ecd3508 100644
+> --- a/lib/sbi/sbi_illegal_insn.c
+> +++ b/lib/sbi/sbi_illegal_insn.c
+> @@ -30,6 +30,7 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
+>         trap.tval = insn;
+>         trap.tval2 = 0;
+>         trap.tinst = 0;
+> +       trap.gva   = 0;
 >
->  /* clang-format on */
+>         return sbi_trap_redirect(regs, &trap);
+>  }
+> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+> index fd11798..92a2393 100644
+> --- a/lib/sbi/sbi_misaligned_ldst.c
+> +++ b/lib/sbi/sbi_misaligned_ldst.c
+> @@ -129,6 +129,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+>                 uptrap.tval = addr;
+>                 uptrap.tval2 = tval2;
+>                 uptrap.tinst = tinst;
+> +               uptrap.gva   = 0;
+>                 return sbi_trap_redirect(regs, &uptrap);
+>         }
 >
-> @@ -200,6 +202,8 @@ struct sbi_trap_info {
->         unsigned long tval2;
->         /** tinst Trap instruction */
->         unsigned long tinst;
-> +       /** gva Guest virtual address in tval flag */
-> +       unsigned long gva;
->  };
+> @@ -244,6 +245,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+>                 uptrap.tval = addr;
+>                 uptrap.tval2 = tval2;
+>                 uptrap.tinst = tinst;
+> +               uptrap.gva   = 0;
+>                 return sbi_trap_redirect(regs, &uptrap);
+>         }
 >
->  int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> diff --git a/lib/sbi/sbi_expected_trap.S b/lib/sbi/sbi_expected_trap.S
-> index 24891c7..a5ef26a 100644
-> --- a/lib/sbi/sbi_expected_trap.S
-> +++ b/lib/sbi/sbi_expected_trap.S
-> @@ -22,7 +22,7 @@
->         .align 3
->         .global __sbi_expected_trap
->  __sbi_expected_trap:
-> -       /* Without H-extension so, MTVAL2 and MTINST CSRs not available */
-> +       /* Without H-extension so, MTVAL2 and MTINST CSRs and GVA not available */
->         csrr    a4, CSR_MEPC
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(epc)(a3)
->         csrr    a4, CSR_MCAUSE
-> @@ -31,6 +31,7 @@ __sbi_expected_trap:
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(tval)(a3)
->         REG_S   zero, SBI_TRAP_INFO_OFFSET(tval2)(a3)
->         REG_S   zero, SBI_TRAP_INFO_OFFSET(tinst)(a3)
-> +       REG_S   zero, SBI_TRAP_INFO_OFFSET(gva)(a3)
->         csrr    a4, CSR_MEPC
->         addi    a4, a4, 4
->         csrw    CSR_MEPC, a4
-> @@ -39,7 +40,7 @@ __sbi_expected_trap:
->         .align 3
->         .global __sbi_expected_trap_hext
->  __sbi_expected_trap_hext:
-> -       /* With H-extension so, MTVAL2 and MTINST CSRs available */
-> +       /* With H-extension so, MTVAL2 and MTINST CSRs and GVA available */
->         csrr    a4, CSR_MEPC
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(epc)(a3)
->         csrr    a4, CSR_MCAUSE
-> @@ -50,6 +51,18 @@ __sbi_expected_trap_hext:
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(tval2)(a3)
->         csrr    a4, CSR_MTINST
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(tinst)(a3)
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index ee3e4e9..db70c26 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -311,6 +311,20 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>                 trap.tval = mtval;
+>                 trap.tval2 = mtval2;
+>                 trap.tinst = mtinst;
 > +
-> +       /* Extract GVA bit from MSTATUS or MSTATUSH */
+> +               /*
+> +                * If the hypervisor extension is not implemented,
+> +                * mstatus[h].GVA is a WPRI field, which is guaranteed to read
+> +                * as zero. In addition, in this case we don't read mstatush and
+> +                * instead pretend it is zero, which handles privileged spec
+> +                * version < 1.12.
+> +                */
 > +#if __riscv_xlen == 32
-> +       csrr    a4, CSR_MSTATUSH
-> +       srli    a4, a4, MSTATUSH_GVA_SHIFT
+> +               trap.gva = (regs->mstatusH & MSTATUSH_GVA) ? 1 : 0;
 > +#else
-> +       csrr    a4, CSR_MSTATUS
-> +       srli    a4, a4, MSTATUS_GVA_SHIFT
+> +               trap.gva = (regs->mstatus & MSTATUS_GVA) ? 1 : 0;
 > +#endif
-> +       andi    a4, a4, 1
-> +       REG_S   a4, SBI_TRAP_INFO_OFFSET(gva)(a3)
 > +
->         csrr    a4, CSR_MEPC
->         addi    a4, a4, 4
->         csrw    CSR_MEPC, a4
+>                 rc = sbi_trap_redirect(regs, &trap);
+>                 break;
+>         };
 > --
 > 2.37.1
 >
