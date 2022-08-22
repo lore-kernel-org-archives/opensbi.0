@@ -1,49 +1,49 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 22 Aug 2022 09:01:11 +0530
-Subject: [PATCH v1] lib: sbi_illegal_insn: Fix FENCE.TSO emulation
- infinite trap loop
-In-Reply-To: <20220812135442.3771496-1-rpathak@ventanamicro.com>
-References: <20220812135442.3771496-1-rpathak@ventanamicro.com>
-Message-ID: <CAAhSdy1ie8nV6mR=RMTQVwc3Oc4fxzGedX7TLkT__Q4SJ+Jr5w@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 22 Aug 2022 10:38:17 +0200
+Subject: [PATCH v4] lib: utils: serial: Add Cadence UART driver
+In-Reply-To: <CAAhSdy1WXjWVEoA6gxGUWm5NtZeFGZbzu500Q4Rkv4hxxWiW+g@mail.gmail.com>
+References: <20220817154056.543158-1-junliang.tan@linux.starfivetech.com>
+ <CAAhSdy1WXjWVEoA6gxGUWm5NtZeFGZbzu500Q4Rkv4hxxWiW+g@mail.gmail.com>
+Message-ID: <20220822083817.huwicyk7gc4p4miq@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 12, 2022 at 7:25 PM Rahul Pathak <rpathak@ventanamicro.com> wrote:
+On Mon, Aug 22, 2022 at 08:38:40AM +0530, Anup Patel wrote:
+> On Wed, Aug 17, 2022 at 9:11 PM Jun Liang Tan
+> <junliang.tan@linux.starfivetech.com> wrote:
+> >
+> > Add Cadence UART driver
+> >
+> > Signed-off-by: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
+> > Signed-off-by: Wei Liang Lim <weiliang.lim@linux.starfivetech.com>
+> 
+> Overall, this looks good except the divide-by-zero question raised by
+> other folks in uart_min_clk_divisor().
+> 
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 >
-> In case of missing "FENCE.TSO" instruction implementation,
-> opensbi can emulate the "FENCE.TSO" with "FENCE RW,RW", but
-> mepc was not incremented to continue from the next instruction
-> causing infinite trap.
->
-> Fixes: cb8271c8 ("lib: sbi_illegal_insn: Add emulation for fence.tso")
-> Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
-Applied this patch to the riscv/opensbi repo.
+Hi Anup,
+
+I don't think there's an issue with the baud divisor calculation.
+The manual[1] I looked at for this UART states
+
+ baud_rate = sel_clk / (CD * (BDIV + 1)
+
+which is the same as the sifive calculation except for the additional
+'CD' term.
+
+However this driver sets CD == 1, which reduces it to the exact same
+as the sifive calculation.
+
+So the '- 1' in the calculation is correct, as just comes from the
+algebra applied to get BDIV.
+
+[*] https://docs.xilinx.com/v/u/en-US/ug585-Zynq-7000-TRM
 
 Thanks,
-Anup
-
-> ---
->  lib/sbi/sbi_illegal_insn.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-> index 84c04f8..53e9320 100644
-> --- a/lib/sbi/sbi_illegal_insn.c
-> +++ b/lib/sbi/sbi_illegal_insn.c
-> @@ -39,6 +39,7 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
->         /* Errata workaround: emulate `fence.tso` as `fence rw, rw`. */
->         if ((insn & INSN_MASK_FENCE_TSO) == INSN_MATCH_FENCE_TSO) {
->                 smp_mb();
-> +               regs->mepc += 4;
->                 return 0;
->         }
->
-> --
-> 2.34.1
->
+drew
 
