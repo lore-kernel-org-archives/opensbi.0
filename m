@@ -1,55 +1,43 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 23 Aug 2022 09:18:42 +0530
-Subject: [PATCH v4] lib: utils: serial: Add Cadence UART driver
-In-Reply-To: <20220822083817.huwicyk7gc4p4miq@kamzik>
-References: <20220817154056.543158-1-junliang.tan@linux.starfivetech.com>
- <CAAhSdy1WXjWVEoA6gxGUWm5NtZeFGZbzu500Q4Rkv4hxxWiW+g@mail.gmail.com> <20220822083817.huwicyk7gc4p4miq@kamzik>
-Message-ID: <CAAhSdy0+URfDDmYXCRh1zz04U6QQ9eSbKm-0XbaZ-4Xk28Wc6g@mail.gmail.com>
+From: Rahul Pathak <rpathak@ventanamicro.com>
+Date: Wed, 24 Aug 2022 20:24:37 +0530
+Subject: [PATCH] include: Remove sideleg and sedeleg
+Message-ID: <20220824145437.400746-1-rpathak@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Aug 22, 2022 at 2:08 PM Andrew Jones <ajones@ventanamicro.com> wrote:
->
-> On Mon, Aug 22, 2022 at 08:38:40AM +0530, Anup Patel wrote:
-> > On Wed, Aug 17, 2022 at 9:11 PM Jun Liang Tan
-> > <junliang.tan@linux.starfivetech.com> wrote:
-> > >
-> > > Add Cadence UART driver
-> > >
-> > > Signed-off-by: Jun Liang Tan <junliang.tan@linux.starfivetech.com>
-> > > Signed-off-by: Wei Liang Lim <weiliang.lim@linux.starfivetech.com>
-> >
-> > Overall, this looks good except the divide-by-zero question raised by
-> > other folks in uart_min_clk_divisor().
-> >
-> > Reviewed-by: Anup Patel <anup@brainfault.org>
-> >
->
-> Hi Anup,
->
-> I don't think there's an issue with the baud divisor calculation.
-> The manual[1] I looked at for this UART states
->
->  baud_rate = sel_clk / (CD * (BDIV + 1)
->
-> which is the same as the sifive calculation except for the additional
-> 'CD' term.
->
-> However this driver sets CD == 1, which reduces it to the exact same
-> as the sifive calculation.
->
-> So the '- 1' in the calculation is correct, as just comes from the
-> algebra applied to get BDIV.
->
-> [*] https://docs.xilinx.com/v/u/en-US/ug585-Zynq-7000-TRM
+sideleg and sedeleg csrs are not part of riscv isa spec
+anymore, these csrs were part of N extension which
+is removed from the riscv isa specification.
 
-Thanks for the explanation Drew.
+These commits removed all traces of these csrs from
+riscv spec (https://github.com/riscv/riscv-isa-manual) -
 
-Applied this patch to the riscv/opensbi repo.
+commit f8d27f805b65 ("Remove or downgrade more references to N extension (#674)")
+commit b6cade07034d ("Remove N extension chapter for now")
 
-Regards,
-Anup
+Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+---
+ include/sbi/riscv_encoding.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 8884301..b0f08c8 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -312,8 +312,6 @@
+ 
+ /* Supervisor Trap Setup */
+ #define CSR_SSTATUS			0x100
+-#define CSR_SEDELEG			0x102
+-#define CSR_SIDELEG			0x103
+ #define CSR_SIE				0x104
+ #define CSR_STVEC			0x105
+ #define CSR_SCOUNTEREN			0x106
+-- 
+2.34.1
+
 
