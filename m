@@ -1,42 +1,39 @@
-From: Rahul Pathak <rpathak@ventanamicro.com>
-Date: Wed, 24 Aug 2022 20:24:37 +0530
-Subject: [PATCH] include: Remove sideleg and sedeleg
-Message-ID: <20220824145437.400746-1-rpathak@ventanamicro.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu, 25 Aug 2022 10:21:37 +0530
+Subject: [PATCH 0/7] OpenSBI PMU improvements
+Message-ID: <20220825045144.752619-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-sideleg and sedeleg csrs are not part of riscv isa spec
-anymore, these csrs were part of N extension which
-is removed from the riscv isa specification.
+This series aims to improve SBI PMU implementation in following ways:
+1) Optimize memory usage by reducing global data to track per-HART firmware
+   counters (almost 80KB saved)
+2) Allow platform to implement custom firmware counters and quirks related
+   to hardware counters (This will be useful for T-Head)
+3) Few other fixes for better SBI spec compliance
 
-These commits removed all traces of these csrs from
-riscv spec (https://github.com/riscv/riscv-isa-manual) -
+These patches can also be found in sbi_pmu_imp_v1 branch at:
+https://github.com/avpatel/opensbi.git
 
-commit f8d27f805b65 ("Remove or downgrade more references to N extension (#674)")
-commit b6cade07034d ("Remove N extension chapter for now")
+Anup Patel (7):
+  lib: sbi_pmu: Remove "event_idx" member from struct sbi_pmu_fw_event
+  lib: sbi_pmu: Replace sbi_pmu_ctr_read() with sbi_pmu_ctr_fw_read()
+  lib: sbi_pmu: Firmware counters are always 64 bits wide
+  lib: sbi_pmu: Simplify FW counters to reduce memory usage
+  lib: sbi_pmu: Add custom PMU device operations
+  lib: sbi: Print platform PMU device at boot-time
+  include: sbi: Reduce includes in sbi_pmu.h
 
-Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
----
- include/sbi/riscv_encoding.h | 2 --
- 1 file changed, 2 deletions(-)
+ include/sbi/sbi_pmu.h   |  67 ++++++++++--
+ lib/sbi/sbi_ecall_pmu.c |   3 +-
+ lib/sbi/sbi_init.c      |   4 +
+ lib/sbi/sbi_pmu.c       | 218 +++++++++++++++++++++++-----------------
+ lib/sbi/sbi_trap.c      |   1 +
+ 5 files changed, 190 insertions(+), 103 deletions(-)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index 8884301..b0f08c8 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -312,8 +312,6 @@
- 
- /* Supervisor Trap Setup */
- #define CSR_SSTATUS			0x100
--#define CSR_SEDELEG			0x102
--#define CSR_SIDELEG			0x103
- #define CSR_SIE				0x104
- #define CSR_STVEC			0x105
- #define CSR_SCOUNTEREN			0x106
 -- 
 2.34.1
 
