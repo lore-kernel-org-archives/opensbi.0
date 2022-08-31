@@ -1,98 +1,68 @@
-From: Nylon Chen <nylon.chen@sifive.com>
-Date: Mon, 29 Aug 2022 14:13:34 +0800
-Subject: [RFC PATCH 0/0] Move the address of FW_JUMP_FDT_ADDR forward
-In-Reply-To: <20220811124919.jdlwdp5rigpbomm3@kamzik>
-References: <20220811085811.3577-1-nylon.chen@sifive.com> <20220811124919.jdlwdp5rigpbomm3@kamzik>
-Message-ID: <CAHh=Yk8OJsUbMp3viWH7W62XyWo3QADbw_Sj-ecAe9-So6CKAQ@mail.gmail.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Wed, 31 Aug 2022 10:07:14 +0300
+Subject: [PATCH 2/2] docs: pmu: extend bindings example for Unmatched
+In-Reply-To: <20220831070714.7540-1-nikita.shubin@maquefel.me>
+References: <20220831070714.7540-1-nikita.shubin@maquefel.me>
+Message-ID: <20220831070714.7540-2-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Andrew,Xiang
+Extend example for Unmatched board to provide linux perf bindings
+for generalized and cache event's where they are applicable.
 
-Thanks for your comment.
+Link: https://forums.sifive.com/t/perf-list-to-fu740-hpm-bindings-question/5509
+Signed-off-by: Nikita Shubin <nikita.shubin@maquefel.me>
+---
+ docs/pmu_support.md | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-maybe we can add some information in docs/firmware/fw_jump.md to help
-the developer avoid this issue?
+diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+index ca6ca25..57483da 100644
+--- a/docs/pmu_support.md
++++ b/docs/pmu_support.md
+@@ -90,9 +90,37 @@ pmu {
+ /*
+  * For HiFive Unmatched board. The encodings can be found here
+  * https://sifive.cdn.prismic.io/sifive/1a82e600-1f93-4f41-b2d8-86ed8b16acba_fu740-c000-manual-v1p6.pdf
++ * This example also binds standard perf hardware id's to U74 PMU event codes, U74 uses bitfield for
++ * events encoding, so several U74 events can be bound to single perf id.
+  */
+ pmu {
+-	compatible 			= "riscv,pmu";
++	compatible			= "riscv,pmu";
++	riscv,event-to-mhpmevent = /* PERF_COUNT_HW_BRANCH_INSTRUCTIONS -> 0x4000 */
++				   <0x00003 0x00000000 0x1801>,
++				   /* PERF_COUNT_HW_CACHE_MISSES -> 0x0102 | 0x0202 */
++				   <0x00004 0x00000000 0x0302>,
++				   /* PERF_COUNT_HW_BRANCH_INSTRUCTIONS -> 0x4000 */
++				   <0x00005 0x00000000 0x4000>,
++				   /* PERF_COUNT_HW_BRANCH_MISSES -> 0x2001 | 0x4001 */
++				   <0x00006 0x00000000 0x6001>,
++				   /* L1D_READ_MISS -> 0x0202 */
++				   <0x10001 0x00000000 0x0202>,
++				   /* L1D_WRITE_ACCESS -> 0x0402 */
++				   <0x10002 0x00000000 0x0402>,
++				   /* L1I_READ_ACCESS -> 0x0102 */
++				   <0x10009 0x00000000 0x0102>,
++				   /* LL_READ_MISS -> 0x2002 */
++				   <0x10011 0x00000000 0x2002>,
++				   /* DTLB_READ_MISS -> 0x1002 */
++				   <0x10019 0x00000000 0x1002>,
++				   /* ITLB_READ_MISS-> 0x0802 */
++				   <0x10021 0x00000000 0x0802>;
++	riscv,event-to-mhpmcounters = <0x00003 0x00006 0x18>,
++				      <0x10001 0x10002 0x18>,
++				      <0x10009 0x10009 0x18>,
++				      <0x10011 0x10011 0x18>,
++				      <0x10019 0x10019 0x18>,
++				      <0x10021 0x10021 0x18>;
+ 	riscv,raw-event-to-mhpmcounters = <0x0 0x0 0xffffffff 0xfc0000ff 0x18>,
+ 					  <0x0 0x1 0xffffffff 0xfff800ff 0x18>,
+ 					  <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
+-- 
+2.35.1
 
-e.g.
-
-If your PLATFORM=generic and your FW_JUMP_FDT_ADDR is default, you
-must check your Linux size because Linux will be overwritten in
-OpneSBI's FDT copy loop.
-
-You can use the following method.
-
-```
-LAST_SECTION=`${CROSS_COMPILE}objdump -h vmlinux | grep "00*" | awk
-'{print $5,$3}'| sort -rfu | head -n 1 | awk '{split($0,addr,"
-");print addr[1]}'` && \
-LAST_SECTION_SIZE=`${CROSS_COMPILE}objdump -h vmlinux | grep "00*" |
-awk '{print $5,$3}'| sort -rfu | head -n 1 | awk '{split($0,addr,"
-")}'` && \
-OFFSET_ADDR=$(( 16#$LAST_SECTION_SIZE + 16#$LAST_SECTION)) && \
-printf "The LMA of the last section of the Kernel is 0x%X\n" ${OFFSET_ADDR}
-```
-
-If the result is bigger than the default of
-FW_JUMP_FDT_ADDR(0x2200000), you must change it to avoid the problem
-of being overwritten.
-
-Andrew Jones <ajones@ventanamicro.com> ? 2022?8?11? ?? ??8:49???
->
-> On Thu, Aug 11, 2022 at 04:58:11PM +0800, Nylon Chen wrote:
-> > From: "Nylon.Chen" <nylon.chen@sifive.com>
-> >
-> > A while ago.
-> > when we boot from QEMU by OpenSBI Jump mode with initramfs kerenl.
-> >
-> > The kernel encountered panic because the kernel's section was
-> > overwritten, and the address was FW_JUMP_FDT_ADDR.
-> >
-> > we find out the the rule `$(FW_TEXT_START) + 0x2200000` in
-> > platform/generic/config.mk
-> >
-> > The situation is our kernel size big than it.
->
-> This implies opensbi is being used as a FW_PAYLOAD firmware.
->
-> >
-> > e.g.
-> > # readelf -h vmlinux
-> > init.bss's LMA is "0x00000000024a96a0", and when we use this rule, it
-> > exceeds its size.
-> >
-> > 0x24a96a0 > 0x2200000
-> >
-> > After our experiment, we can add offset FW_JUMP_FDT_ADDR, and the
-> > problem is solved.
->
-> Since this is a FW_PAYLOAD firmware you should be adjusting
-> FW_PAYLOAD_FDT_ADDR. Adjusting FW_JUMP_FDT_ADDR only works because
-> by default FW_PAYLOAD_FDT_ADDR = FW_JUMP_FDT_ADDR (for the generic
-> platform).
->
-> >
-> > But in my opinion, this is not a good method because the next time the
-> > kernel size increases, the same situation occurs again.
->
-> I haven't tried it, but I think it should be possible to embed the FDT
-> into the kernel (CONFIG_BUILTIN_DTB) and then ensure FW_PAYLOAD_FDT_ADDR
-> is *not* defined. Doing that will hopefully keep opensbi from overwriting
-> the payload and linux will still find the DTB without looking at a1 for
-> it. Taking that approach (if it works) would avoid having to adjust
-> FW_PAYLOAD_FDT_ADDR for different payload sizes.
->
-> >
-> > So maybe we can move the address forward and normalize the address to
-> > FW_JUMP_FDT_ADDR?
->
-> These types of defaults are impossible to get right for everybody. IMHO,
-> what's there today should stay as is and we should work at making it as
-> easy as possible to adjust at build- and/or run- time when necessary.
->
-> Thanks,
-> drew
 
