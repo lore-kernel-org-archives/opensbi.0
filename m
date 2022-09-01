@@ -1,76 +1,54 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 1 Sep 2022 16:59:39 +0530
-Subject: [PATCH 6/7] lib: sbi: Print platform PMU device at boot-time
-In-Reply-To: <CAOnJCUL2kD_8dbwyBOX1XbaGizUqRAymPUhRWddavtG=aLojMA@mail.gmail.com>
+Date: Thu, 1 Sep 2022 17:00:55 +0530
+Subject: [PATCH 0/7] OpenSBI PMU improvements
+In-Reply-To: <20220825045144.752619-1-apatel@ventanamicro.com>
 References: <20220825045144.752619-1-apatel@ventanamicro.com>
- <20220825045144.752619-7-apatel@ventanamicro.com> <CAOnJCUL2kD_8dbwyBOX1XbaGizUqRAymPUhRWddavtG=aLojMA@mail.gmail.com>
-Message-ID: <CAAhSdy17yy6+9fRpY=gT_E1t4Vgd9zq-0jq2s4h008mHhA5uWg@mail.gmail.com>
+Message-ID: <CAAhSdy2wVHAA8B_5E8=Cv_CDzOL0c5qqW7+eRU6_Z01V65XWsQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Aug 27, 2022 at 4:56 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Thu, Aug 25, 2022 at 10:22 AM Anup Patel <apatel@ventanamicro.com> wrote:
 >
+> This series aims to improve SBI PMU implementation in following ways:
+> 1) Optimize memory usage by reducing global data to track per-HART firmware
+>    counters (almost 80KB saved)
+> 2) Allow platform to implement custom firmware counters and quirks related
+>    to hardware counters (This will be useful for T-Head)
+> 3) Few other fixes for better SBI spec compliance
 >
+> These patches can also be found in sbi_pmu_imp_v1 branch at:
+> https://github.com/avpatel/opensbi.git
 >
-> On Wed, Aug 24, 2022 at 9:52 PM Anup Patel <apatel@ventanamicro.com> wrote:
->>
->> Let us print the platform PMU device name at the boot-time so that users
->> know whether the underlying platform has custom per-HART PMU operations.
->>
->> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
->> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
->> ---
->>  lib/sbi/sbi_init.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->> index d57efa7..a8500e5 100644
->> --- a/lib/sbi/sbi_init.c
->> +++ b/lib/sbi/sbi_init.c
->> @@ -63,6 +63,7 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
->>  static void sbi_boot_print_general(struct sbi_scratch *scratch)
->>  {
->>         char str[128];
->> +       const struct sbi_pmu_device *pdev;
->>         const struct sbi_hsm_device *hdev;
->>         const struct sbi_ipi_device *idev;
->>         const struct sbi_timer_device *tdev;
->> @@ -93,6 +94,9 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
->>         hdev = sbi_hsm_get_device();
->>         sbi_printf("Platform HSM Device       : %s\n",
->>                    (hdev) ? hdev->name : "---");
->> +       pdev = sbi_pmu_get_device();
->> +       sbi_printf("Platform PMU Device       : %s\n",
->> +                  (pdev) ? pdev->name : "---");
->
->
-> Just a nit pick thought ;)
-> Should we only print the entire line if pdev is present ?
+> Anup Patel (7):
+>   lib: sbi_pmu: Remove "event_idx" member from struct sbi_pmu_fw_event
+>   lib: sbi_pmu: Replace sbi_pmu_ctr_read() with sbi_pmu_ctr_fw_read()
+>   lib: sbi_pmu: Firmware counters are always 64 bits wide
+>   lib: sbi_pmu: Simplify FW counters to reduce memory usage
+>   lib: sbi_pmu: Add custom PMU device operations
+>   lib: sbi: Print platform PMU device at boot-time
+>   include: sbi: Reduce includes in sbi_pmu.h
 
-In general, I agree with your suggestion but for consistency
-let us keep it as-is. You can send a separate patch print
-device for various things only if xdev != NULL.
+Applied this series to the riscv/opensbi repo.
+
+Andrew (Drew) had already reviewed most of the patches
+before it landed on OpenSBI mailing list so I have added
+his Reviewed-by.
+
+Thanks,
+Anup
 
 >
->>
->>         srdev = sbi_system_reset_get_device(SBI_SRST_RESET_TYPE_COLD_REBOOT, 0);
->>         sbi_printf("Platform Reboot Device    : %s\n",
->>                    (srdev) ? srdev->name : "---");
->> --
->> 2.34.1
->>
->
-> Otherwise, LGTM.
->
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+>  include/sbi/sbi_pmu.h   |  67 ++++++++++--
+>  lib/sbi/sbi_ecall_pmu.c |   3 +-
+>  lib/sbi/sbi_init.c      |   4 +
+>  lib/sbi/sbi_pmu.c       | 218 +++++++++++++++++++++++-----------------
+>  lib/sbi/sbi_trap.c      |   1 +
+>  5 files changed, 190 insertions(+), 103 deletions(-)
 >
 > --
-> Regards,
-> Atish
-
-Regards,
-Anup
+> 2.34.1
+>
 
