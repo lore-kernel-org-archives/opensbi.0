@@ -1,87 +1,48 @@
 From: Vivian Wang <dramforever@live.com>
-Date: Fri,  2 Sep 2022 23:48:34 +0800
-Subject: [PATCH 1/2] lib: sbi_trap: Add helper to get GVA in sbi_trap_regs
+Date: Fri,  2 Sep 2022 23:48:35 +0800
+Subject: [PATCH 2/2] lib: sbi_misaligned_ldst: Set GVA if not emulating
 In-Reply-To: <OSZP286MB1435E0C79F99B144BC99F8F2C67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
 References: <OSZP286MB1435E0C79F99B144BC99F8F2C67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <OSZP286MB1435D1AC5E6B71A83041BE1DC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <OSZP286MB14356E709DECF9996FA02E9FC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The GVA bit is in mstatus on RV64, and in mstatush in RV32. Refactor
-code handling this in sbi_trap_handler into a helper function to extract
-GVA from sbi_trap_regs, so that future code accessing GVA can be
-XLEN-agnostic.
+If a particular misaligned load or store cannot be emulated at all, for
+the redirected trap, trap.gva is set to 0, but it should be the same as
+mstatus[h].GVA of the original trap. Fix this so that if the trap is
+destined for HS-mode, hstatus.GVA is then set correctly.
 
+Fixes: 1c4ce74f5128 ("lib: sbi: Set gva when creating sbi_trap_info")
 Signed-off-by: Vivian Wang <dramforever@live.com>
 ---
- include/sbi/sbi_trap.h | 18 ++++++++++++++++++
- lib/sbi/sbi_trap.c     | 14 +-------------
- 2 files changed, 19 insertions(+), 13 deletions(-)
+ lib/sbi/sbi_misaligned_ldst.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index fe3640a..a562b95 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -10,6 +10,8 @@
- #ifndef __SBI_TRAP_H__
- #define __SBI_TRAP_H__
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+index 92a2393..4b91e07 100644
+--- a/lib/sbi/sbi_misaligned_ldst.c
++++ b/lib/sbi/sbi_misaligned_ldst.c
+@@ -129,7 +129,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+ 		uptrap.tval = addr;
+ 		uptrap.tval2 = tval2;
+ 		uptrap.tinst = tinst;
+-		uptrap.gva   = 0;
++		uptrap.gva   = sbi_regs_gva(regs);
+ 		return sbi_trap_redirect(regs, &uptrap);
+ 	}
  
-+#include <sbi/riscv_encoding.h>
-+
- /* clang-format off */
+@@ -245,7 +245,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+ 		uptrap.tval = addr;
+ 		uptrap.tval2 = tval2;
+ 		uptrap.tinst = tinst;
+-		uptrap.gva   = 0;
++		uptrap.gva   = sbi_regs_gva(regs);
+ 		return sbi_trap_redirect(regs, &uptrap);
+ 	}
  
- /** Index of zero member in sbi_trap_regs */
-@@ -206,6 +208,22 @@ struct sbi_trap_info {
- 	unsigned long gva;
- };
- 
-+static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
-+{
-+	/*
-+	 * If the hypervisor extension is not implemented, mstatus[h].GVA is a
-+	 * WPRI field, which is guaranteed to read as zero. In addition, in this
-+	 * case we don't read mstatush and instead pretend it is zero, which
-+	 * handles privileged spec version < 1.12.
-+	 */
-+
-+#if __riscv_xlen == 32
-+	return (regs->mstatusH & MSTATUSH_GVA) ? 1 : 0;
-+#else
-+	return (regs->mstatus & MSTATUS_GVA) ? 1 : 0;
-+#endif
-+}
-+
- int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      struct sbi_trap_info *trap);
- 
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index 4c1339e..c875c90 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -316,19 +316,7 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
- 		trap.tval = mtval;
- 		trap.tval2 = mtval2;
- 		trap.tinst = mtinst;
--
--		/*
--		 * If the hypervisor extension is not implemented,
--		 * mstatus[h].GVA is a WPRI field, which is guaranteed to read
--		 * as zero. In addition, in this case we don't read mstatush and
--		 * instead pretend it is zero, which handles privileged spec
--		 * version < 1.12.
--		 */
--#if __riscv_xlen == 32
--		trap.gva = (regs->mstatusH & MSTATUSH_GVA) ? 1 : 0;
--#else
--		trap.gva = (regs->mstatus & MSTATUS_GVA) ? 1 : 0;
--#endif
-+		trap.gva   = sbi_regs_gva(regs);
- 
- 		rc = sbi_trap_redirect(regs, &trap);
- 		break;
 -- 
 2.37.1
 
