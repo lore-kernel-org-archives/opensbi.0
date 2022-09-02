@@ -1,54 +1,47 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 1 Sep 2022 17:00:55 +0530
-Subject: [PATCH 0/7] OpenSBI PMU improvements
-In-Reply-To: <20220825045144.752619-1-apatel@ventanamicro.com>
-References: <20220825045144.752619-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy2wVHAA8B_5E8=Cv_CDzOL0c5qqW7+eRU6_Z01V65XWsQ@mail.gmail.com>
+From: Nikita Shubin <nikita.shubin@maquefel.me>
+Date: Fri,  2 Sep 2022 10:41:03 +0300
+Subject: [PATCH v2 1/2] docs: pmu: fix Unmatched example typo
+In-Reply-To: <34F6D6CF-5BBC-4880-9A6F-793FC3A986B0@jrtc27.com>
+References: <34F6D6CF-5BBC-4880-9A6F-793FC3A986B0@jrtc27.com>
+Message-ID: <20220902074104.7082-1-nikita.shubin@maquefel.me>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 25, 2022 at 10:22 AM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> This series aims to improve SBI PMU implementation in following ways:
-> 1) Optimize memory usage by reducing global data to track per-HART firmware
->    counters (almost 80KB saved)
-> 2) Allow platform to implement custom firmware counters and quirks related
->    to hardware counters (This will be useful for T-Head)
-> 3) Few other fixes for better SBI spec compliance
->
-> These patches can also be found in sbi_pmu_imp_v1 branch at:
-> https://github.com/avpatel/opensbi.git
->
-> Anup Patel (7):
->   lib: sbi_pmu: Remove "event_idx" member from struct sbi_pmu_fw_event
->   lib: sbi_pmu: Replace sbi_pmu_ctr_read() with sbi_pmu_ctr_fw_read()
->   lib: sbi_pmu: Firmware counters are always 64 bits wide
->   lib: sbi_pmu: Simplify FW counters to reduce memory usage
->   lib: sbi_pmu: Add custom PMU device operations
->   lib: sbi: Print platform PMU device at boot-time
->   include: sbi: Reduce includes in sbi_pmu.h
+From: Nikita Shubin <n.shubin@yadro.com>
 
-Applied this series to the riscv/opensbi repo.
+bitmap for MHPMCOUNTERx should be 0x18 and not 0x0c, we check
+against SBI_PMU_FIXED_CTR_MASK which assumes than first 3 bits are
+dedicated to mcycle, mtime and minstret, u74 has 2 hardware counters.
 
-Andrew (Drew) had already reviewed most of the patches
-before it landed on OpenSBI mailing list so I have added
-his Reviewed-by.
+Reported-by: Zhang Xin <zhangxin.xa@gmail.com>
+Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
+---
+v1->v2:
+- replaced email
+---
+ docs/pmu_support.md | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thanks,
-Anup
+diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+index 8751bb5..ca6ca25 100644
+--- a/docs/pmu_support.md
++++ b/docs/pmu_support.md
+@@ -93,8 +93,8 @@ pmu {
+  */
+ pmu {
+ 	compatible 			= "riscv,pmu";
+-	riscv,raw-event-to-mhpmcounters = <0x0 0x0 0xffffffff 0xfc0000ff 0xc>,
+-					  <0x0 0x1 0xffffffff 0xfff800ff 0xc>,
+-					  <0x0 0x2 0xffffffff 0xffffe0ff 0xc>;
++	riscv,raw-event-to-mhpmcounters = <0x0 0x0 0xffffffff 0xfc0000ff 0x18>,
++					  <0x0 0x1 0xffffffff 0xfff800ff 0x18>,
++					  <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
+ };
+ ```
+-- 
+2.35.1
 
->
->  include/sbi/sbi_pmu.h   |  67 ++++++++++--
->  lib/sbi/sbi_ecall_pmu.c |   3 +-
->  lib/sbi/sbi_init.c      |   4 +
->  lib/sbi/sbi_pmu.c       | 218 +++++++++++++++++++++++-----------------
->  lib/sbi/sbi_trap.c      |   1 +
->  5 files changed, 190 insertions(+), 103 deletions(-)
->
-> --
-> 2.34.1
->
 
