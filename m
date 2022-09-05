@@ -1,80 +1,28 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon,  5 Sep 2022 12:32:42 +0530
-Subject: [PATCH] lib: utils/fdt: Fix DT parsing in fdt_pmu_setup()
-Message-ID: <20220905070242.150149-1-apatel@ventanamicro.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 5 Sep 2022 15:06:49 +0200
+Subject: [PATCH 1/2] lib: sbi_trap: Add helper to get GVA in sbi_trap_regs
+In-Reply-To: <OSZP286MB1435D1AC5E6B71A83041BE1DC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+References: <OSZP286MB1435E0C79F99B144BC99F8F2C67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+ <OSZP286MB1435D1AC5E6B71A83041BE1DC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <20220905130649.ne65vtlu6wk5dn4i@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch does following fixes in fdt_pmu_setup():
-1) If any of the event mapping DT property is absent or too small
-   then don't skip parsing of other DT properties.
-2) Return failure if sbi_pmu_add_hw_event_counter_map() fails.
-3) Return failure if sbi_pmu_add_raw_event_counter_map() fails.
+On Fri, Sep 02, 2022 at 11:48:34PM +0800, Vivian Wang wrote:
+> The GVA bit is in mstatus on RV64, and in mstatush in RV32. Refactor
+> code handling this in sbi_trap_handler into a helper function to extract
+> GVA from sbi_trap_regs, so that future code accessing GVA can be
+> XLEN-agnostic.
+> 
+> Signed-off-by: Vivian Wang <dramforever@live.com>
+> ---
+>  include/sbi/sbi_trap.h | 18 ++++++++++++++++++
+>  lib/sbi/sbi_trap.c     | 14 +-------------
+>  2 files changed, 19 insertions(+), 13 deletions(-)
+>
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/utils/fdt/fdt_pmu.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
-
-diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-index 8ba6b08..8ced8e1 100644
---- a/lib/utils/fdt/fdt_pmu.c
-+++ b/lib/utils/fdt/fdt_pmu.c
-@@ -77,18 +77,21 @@ int fdt_pmu_setup(void *fdt)
- 
- 	event_ctr_map = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters", &len);
- 	if (!event_ctr_map || len < 8)
--		return SBI_EFAIL;
-+		goto skip_event_to_mhpmcounters;
- 	len = len / (sizeof(u32) * 3);
- 	for (i = 0; i < len; i++) {
- 		event_idx_start = fdt32_to_cpu(event_ctr_map[3 * i]);
- 		event_idx_end = fdt32_to_cpu(event_ctr_map[3 * i + 1]);
- 		ctr_map = fdt32_to_cpu(event_ctr_map[3 * i + 2]);
--		sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
-+		result = sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
-+		if (result)
-+			return result;
- 	}
-+skip_event_to_mhpmcounters:
- 
- 	event_val = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmevent", &len);
- 	if (!event_val || len < 8)
--		return SBI_EFAIL;
-+		goto skip_event_to_mhpmevent;
- 	len = len / (sizeof(u32) * 3);
- 	for (i = 0; i < len; i++) {
- 		event = &fdt_pmu_evt_select[hw_event_count];
-@@ -97,10 +100,11 @@ int fdt_pmu_setup(void *fdt)
- 		event->select = (event->select << 32) | fdt32_to_cpu(event_val[3 * i + 2]);
- 		hw_event_count++;
- 	}
-+skip_event_to_mhpmevent:
- 
- 	event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
- 	if (!event_val || len < 20)
--		return SBI_EFAIL;
-+		goto skip_raw_event_to_mhpmcounters;
- 	len = len / (sizeof(u32) * 5);
- 	for (i = 0; i < len; i++) {
- 		raw_selector = fdt32_to_cpu(event_val[5 * i]);
-@@ -109,9 +113,10 @@ int fdt_pmu_setup(void *fdt)
- 		select_mask = (select_mask  << 32) | fdt32_to_cpu(event_val[5 * i + 3]);
- 		ctr_map = fdt32_to_cpu(event_val[5 * i + 4]);
- 		result = sbi_pmu_add_raw_event_counter_map(raw_selector, select_mask, ctr_map);
--		if (!result)
--			hw_event_count++;
-+		if (result)
-+			return result;
- 	}
-+skip_raw_event_to_mhpmcounters:
- 
- 	return 0;
- }
--- 
-2.34.1
-
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
