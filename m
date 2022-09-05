@@ -1,28 +1,52 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 5 Sep 2022 15:06:49 +0200
-Subject: [PATCH 1/2] lib: sbi_trap: Add helper to get GVA in sbi_trap_regs
-In-Reply-To: <OSZP286MB1435D1AC5E6B71A83041BE1DC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+Date: Mon, 5 Sep 2022 15:07:12 +0200
+Subject: [PATCH 2/2] lib: sbi_misaligned_ldst: Set GVA if not emulating
+In-Reply-To: <OSZP286MB14356E709DECF9996FA02E9FC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
 References: <OSZP286MB1435E0C79F99B144BC99F8F2C67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
- <OSZP286MB1435D1AC5E6B71A83041BE1DC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <20220905130649.ne65vtlu6wk5dn4i@kamzik>
+ <OSZP286MB14356E709DECF9996FA02E9FC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <20220905130712.fduqbut4jqroeupb@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 02, 2022 at 11:48:34PM +0800, Vivian Wang wrote:
-> The GVA bit is in mstatus on RV64, and in mstatush in RV32. Refactor
-> code handling this in sbi_trap_handler into a helper function to extract
-> GVA from sbi_trap_regs, so that future code accessing GVA can be
-> XLEN-agnostic.
+On Fri, Sep 02, 2022 at 11:48:35PM +0800, Vivian Wang wrote:
+> If a particular misaligned load or store cannot be emulated at all, for
+> the redirected trap, trap.gva is set to 0, but it should be the same as
+> mstatus[h].GVA of the original trap. Fix this so that if the trap is
+> destined for HS-mode, hstatus.GVA is then set correctly.
 > 
+> Fixes: 1c4ce74f5128 ("lib: sbi: Set gva when creating sbi_trap_info")
 > Signed-off-by: Vivian Wang <dramforever@live.com>
 > ---
->  include/sbi/sbi_trap.h | 18 ++++++++++++++++++
->  lib/sbi/sbi_trap.c     | 14 +-------------
->  2 files changed, 19 insertions(+), 13 deletions(-)
->
+>  lib/sbi/sbi_misaligned_ldst.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+> index 92a2393..4b91e07 100644
+> --- a/lib/sbi/sbi_misaligned_ldst.c
+> +++ b/lib/sbi/sbi_misaligned_ldst.c
+> @@ -129,7 +129,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+>  		uptrap.tval = addr;
+>  		uptrap.tval2 = tval2;
+>  		uptrap.tinst = tinst;
+> -		uptrap.gva   = 0;
+> +		uptrap.gva   = sbi_regs_gva(regs);
+>  		return sbi_trap_redirect(regs, &uptrap);
+>  	}
+>  
+> @@ -245,7 +245,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+>  		uptrap.tval = addr;
+>  		uptrap.tval2 = tval2;
+>  		uptrap.tinst = tinst;
+> -		uptrap.gva   = 0;
+> +		uptrap.gva   = sbi_regs_gva(regs);
+>  		return sbi_trap_redirect(regs, &uptrap);
+>  	}
+>  
+> -- 
+> 2.37.1
 
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
