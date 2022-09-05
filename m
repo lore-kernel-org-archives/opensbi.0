@@ -1,49 +1,80 @@
-From: Vivian Wang <dramforever@live.com>
-Date: Fri,  2 Sep 2022 23:48:35 +0800
-Subject: [PATCH 2/2] lib: sbi_misaligned_ldst: Set GVA if not emulating
-In-Reply-To: <OSZP286MB1435E0C79F99B144BC99F8F2C67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
-References: <OSZP286MB1435E0C79F99B144BC99F8F2C67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <OSZP286MB14356E709DECF9996FA02E9FC67A9@OSZP286MB1435.JPNP286.PROD.OUTLOOK.COM>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Mon,  5 Sep 2022 12:32:42 +0530
+Subject: [PATCH] lib: utils/fdt: Fix DT parsing in fdt_pmu_setup()
+Message-ID: <20220905070242.150149-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If a particular misaligned load or store cannot be emulated at all, for
-the redirected trap, trap.gva is set to 0, but it should be the same as
-mstatus[h].GVA of the original trap. Fix this so that if the trap is
-destined for HS-mode, hstatus.GVA is then set correctly.
+This patch does following fixes in fdt_pmu_setup():
+1) If any of the event mapping DT property is absent or too small
+   then don't skip parsing of other DT properties.
+2) Return failure if sbi_pmu_add_hw_event_counter_map() fails.
+3) Return failure if sbi_pmu_add_raw_event_counter_map() fails.
 
-Fixes: 1c4ce74f5128 ("lib: sbi: Set gva when creating sbi_trap_info")
-Signed-off-by: Vivian Wang <dramforever@live.com>
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- lib/sbi/sbi_misaligned_ldst.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/utils/fdt/fdt_pmu.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
-index 92a2393..4b91e07 100644
---- a/lib/sbi/sbi_misaligned_ldst.c
-+++ b/lib/sbi/sbi_misaligned_ldst.c
-@@ -129,7 +129,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
- 		uptrap.tval = addr;
- 		uptrap.tval2 = tval2;
- 		uptrap.tinst = tinst;
--		uptrap.gva   = 0;
-+		uptrap.gva   = sbi_regs_gva(regs);
- 		return sbi_trap_redirect(regs, &uptrap);
- 	}
+diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+index 8ba6b08..8ced8e1 100644
+--- a/lib/utils/fdt/fdt_pmu.c
++++ b/lib/utils/fdt/fdt_pmu.c
+@@ -77,18 +77,21 @@ int fdt_pmu_setup(void *fdt)
  
-@@ -245,7 +245,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
- 		uptrap.tval = addr;
- 		uptrap.tval2 = tval2;
- 		uptrap.tinst = tinst;
--		uptrap.gva   = 0;
-+		uptrap.gva   = sbi_regs_gva(regs);
- 		return sbi_trap_redirect(regs, &uptrap);
+ 	event_ctr_map = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmcounters", &len);
+ 	if (!event_ctr_map || len < 8)
+-		return SBI_EFAIL;
++		goto skip_event_to_mhpmcounters;
+ 	len = len / (sizeof(u32) * 3);
+ 	for (i = 0; i < len; i++) {
+ 		event_idx_start = fdt32_to_cpu(event_ctr_map[3 * i]);
+ 		event_idx_end = fdt32_to_cpu(event_ctr_map[3 * i + 1]);
+ 		ctr_map = fdt32_to_cpu(event_ctr_map[3 * i + 2]);
+-		sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
++		result = sbi_pmu_add_hw_event_counter_map(event_idx_start, event_idx_end, ctr_map);
++		if (result)
++			return result;
  	}
++skip_event_to_mhpmcounters:
  
+ 	event_val = fdt_getprop(fdt, pmu_offset, "riscv,event-to-mhpmevent", &len);
+ 	if (!event_val || len < 8)
+-		return SBI_EFAIL;
++		goto skip_event_to_mhpmevent;
+ 	len = len / (sizeof(u32) * 3);
+ 	for (i = 0; i < len; i++) {
+ 		event = &fdt_pmu_evt_select[hw_event_count];
+@@ -97,10 +100,11 @@ int fdt_pmu_setup(void *fdt)
+ 		event->select = (event->select << 32) | fdt32_to_cpu(event_val[3 * i + 2]);
+ 		hw_event_count++;
+ 	}
++skip_event_to_mhpmevent:
+ 
+ 	event_val = fdt_getprop(fdt, pmu_offset, "riscv,raw-event-to-mhpmcounters", &len);
+ 	if (!event_val || len < 20)
+-		return SBI_EFAIL;
++		goto skip_raw_event_to_mhpmcounters;
+ 	len = len / (sizeof(u32) * 5);
+ 	for (i = 0; i < len; i++) {
+ 		raw_selector = fdt32_to_cpu(event_val[5 * i]);
+@@ -109,9 +113,10 @@ int fdt_pmu_setup(void *fdt)
+ 		select_mask = (select_mask  << 32) | fdt32_to_cpu(event_val[5 * i + 3]);
+ 		ctr_map = fdt32_to_cpu(event_val[5 * i + 4]);
+ 		result = sbi_pmu_add_raw_event_counter_map(raw_selector, select_mask, ctr_map);
+-		if (!result)
+-			hw_event_count++;
++		if (result)
++			return result;
+ 	}
++skip_raw_event_to_mhpmcounters:
+ 
+ 	return 0;
+ }
 -- 
-2.37.1
+2.34.1
 
 
