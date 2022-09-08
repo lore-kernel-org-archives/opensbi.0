@@ -1,137 +1,63 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Thu,  8 Sep 2022 15:42:40 +0200
-Subject: [PATCH v3 3/5] lib: sbi_pmu: add ability to override methods on non-standard platforms
+Date: Thu,  8 Sep 2022 15:42:41 +0200
+Subject: [PATCH v3 4/5] platform: generic: add extensions_init handler and platform-override
 In-Reply-To: <20220908134242.3133259-1-heiko@sntech.de>
 References: <20220908134242.3133259-1-heiko@sntech.de>
-Message-ID: <20220908134242.3133259-4-heiko@sntech.de>
+Message-ID: <20220908134242.3133259-5-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Some platforms may not implement the PMU in a standard way,
-but instead deviate on some functionality like overflow
-handling.
-
-Implement an abstraction that those platforms can hook into.
-This way they can still use the standard pmu interface between
-kernel and firmware and profit from things like firmware counters,
-without needing to create their own.
+Init of non-standard extensions is a platform-specific thing,
+so allow generic platforms to do this via a platform-override.
 
 Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 ---
- include/sbi/sbi_pmu.h | 13 +++++++++++++
- lib/sbi/sbi_hart.c    |  7 +++++++
- lib/sbi/sbi_pmu.c     | 21 +++++++++++++++++++++
- 3 files changed, 41 insertions(+)
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-index 1c9a997..7c8cfe7 100644
---- a/include/sbi/sbi_pmu.h
-+++ b/include/sbi/sbi_pmu.h
-@@ -28,6 +28,16 @@
- #define SBI_PMU_CTR_MAX	   (SBI_PMU_HW_CTR_MAX + SBI_PMU_FW_CTR_MAX)
- #define SBI_PMU_FIXED_CTR_MASK 0x07
- 
-+struct sbi_pmu_platform_ops {
-+	int (*ctr_enable_irq_hw)(int ctr_idx);
-+	int (*ctr_enable_ovf)(int ctr_idx);
-+	int (*irq_bit)(void);
-+	void (*counter_data)(unsigned int *count, unsigned int *bits);
-+};
-+
-+/** Set platform-specific override ops */
-+void sbi_pmu_set_platform_ops(struct sbi_pmu_platform_ops *ops);
-+
- /** Initialize PMU */
- int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
- 
-@@ -37,6 +47,9 @@ void sbi_pmu_exit(struct sbi_scratch *scratch);
- /** Return the pmu irq bit depending on extension existence */
- int sbi_pmu_irq_bit(void);
- 
-+/** Allow non-standard platforms to override probed counter information */
-+void sbi_pmu_override_counter_data(unsigned int *count, unsigned int *bits);
-+
- /**
-  * Add the hardware event to counter mapping information. This should be called
-  * from the platform code to update the mapping table.
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 45fbcde..6506a19 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -632,6 +632,13 @@ __mhpm_skip:
- #undef __check_csr_2
- #undef __check_csr
- 
-+	/**
-+	 * Allow non-standard implementations to override the detected
-+	 * values for number of counters and bits.
-+	 */
-+	sbi_pmu_override_counter_data(&hfeatures->mhpm_count,
-+				      &hfeatures->mhpm_bits);
-+
- 	/* Detect if hart supports Priv v1.10 */
- 	val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
- 	if (!trap.cause)
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index efbfbb6..08fb242 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -77,6 +77,8 @@ static uint32_t num_hw_ctrs;
- /* Maximum number of counters available */
- static uint32_t total_ctrs;
- 
-+static struct sbi_pmu_platform_ops *pmu_platform_ops;
-+
- /* Helper macros to retrieve event idx and code type */
- #define get_cidx_type(x) ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> 16)
- #define get_cidx_code(x) (x & SBI_PMU_EVENT_IDX_CODE_MASK)
-@@ -358,6 +360,9 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
- 
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
- 		pmu_ctr_enable_irq_hw(cidx);
-+	else if (pmu_platform_ops && pmu_platform_ops->ctr_enable_irq_hw)
-+		pmu_platform_ops->ctr_enable_irq_hw(cidx);
-+
- 	csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
- 
- skip_inhibit_update:
-@@ -373,6 +378,8 @@ int sbi_pmu_irq_bit(void)
- 
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
- 		return MIP_LCOFIP;
-+	else if (pmu_platform_ops && pmu_platform_ops->irq_bit)
-+		return pmu_platform_ops->irq_bit();
- 
- 	return 0;
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index e55da25..06a26dd 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -22,6 +22,7 @@ struct platform_override {
+ 	void (*early_exit)(const struct fdt_match *match);
+ 	void (*final_exit)(const struct fdt_match *match);
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
++	int (*extensions_init)(const struct fdt_match *match);
+ 	int (*vendor_ext_check)(long extid, const struct fdt_match *match);
+ 	int (*vendor_ext_provider)(long extid, long funcid,
+ 				   const struct sbi_trap_regs *regs,
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index cc3620f..de406e3 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -203,6 +203,14 @@ static void generic_final_exit(void)
+ 		generic_plat->final_exit(generic_plat_match);
  }
-@@ -534,6 +541,8 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
- 		mhpmevent_val = (mhpmevent_val & ~MHPMEVENT_SSCOF_MASK) |
- 				 MHPMEVENT_MINH | MHPMEVENT_OF;
-+	else if (pmu_platform_ops && pmu_platform_ops->ctr_enable_ovf)
-+		pmu_platform_ops->ctr_enable_ovf(ctr_idx);
  
- 	/* Update the inhibit flags based on inhibit flags received from supervisor */
- 	pmu_update_inhibit_flags(flags, &mhpmevent_val);
-@@ -822,3 +831,15 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 
- 	return 0;
- }
-+
-+void sbi_pmu_override_counter_data(unsigned int *count,
-+				   unsigned int *bits)
++static int generic_extensions_init(void)
 +{
-+	if (pmu_platform_ops && pmu_platform_ops->counter_data)
-+		pmu_platform_ops->counter_data(count, bits);
++	if (generic_plat && generic_plat->extensions_init)
++		return generic_plat->extensions_init(generic_plat_match);
++
++	return 0;
 +}
 +
-+void sbi_pmu_set_platform_ops(struct sbi_pmu_platform_ops *ops)
-+{
-+	pmu_platform_ops = ops;
-+}
+ static int generic_domains_init(void)
+ {
+ 	return fdt_domains_populate(fdt_get_address());
+@@ -248,6 +256,7 @@ const struct sbi_platform_operations platform_ops = {
+ 	.final_init		= generic_final_init,
+ 	.early_exit		= generic_early_exit,
+ 	.final_exit		= generic_final_exit,
++	.extensions_init	= generic_extensions_init,
+ 	.domains_init		= generic_domains_init,
+ 	.console_init		= fdt_serial_init,
+ 	.irqchip_init		= fdt_irqchip_init,
 -- 
 2.35.1
 
