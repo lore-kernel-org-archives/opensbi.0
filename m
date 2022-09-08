@@ -1,365 +1,56 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Thu, 8 Sep 2022 12:18:21 +0100
-Subject: [PATCH 2/2] lib: utils/serial: add semihosting support
-In-Reply-To: <20220908084239.3205866-3-kconsul@ventanamicro.com>
-References: <20220908084239.3205866-1-kconsul@ventanamicro.com>
- <20220908084239.3205866-3-kconsul@ventanamicro.com>
-Message-ID: <DBD04AC6-1DAE-42C7-A2ED-E966D34FB107@jrtc27.com>
+From: Heiko Stuebner <heiko@sntech.de>
+Date: Thu,  8 Sep 2022 15:42:38 +0200
+Subject: [PATCH v3 1/5] lib: sbi: do platform-specific extension population earlier
+In-Reply-To: <20220908134242.3133259-1-heiko@sntech.de>
+References: <20220908134242.3133259-1-heiko@sntech.de>
+Message-ID: <20220908134242.3133259-2-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 8 Sept 2022, at 09:42, Kautuk Consul <kconsul@ventanamicro.com> wrote:
-> 
-> We add RISC-V semihosting based serial console for JTAG based early
-> debugging.
-> 
-> The RISC-V semihosting specification is available at:
-> https://github.com/riscv/riscv-semihosting-spec/blob/main/riscv-semihosting-spec.adoc
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> Signed-off-by: Kautuk Consul <kconsul@ventanamicro.com>
-> ---
-> include/sbi_utils/serial/semihosting.h |  47 +++++++
-> lib/utils/serial/Kconfig               |   4 +
-> lib/utils/serial/objects.mk            |   1 +
-> lib/utils/serial/semihosting.c         | 176 +++++++++++++++++++++++++
-> platform/generic/configs/defconfig     |   1 +
-> platform/generic/platform.c            |  11 +-
-> 6 files changed, 239 insertions(+), 1 deletion(-)
-> create mode 100644 include/sbi_utils/serial/semihosting.h
-> create mode 100644 lib/utils/serial/semihosting.c
-> 
-> diff --git a/include/sbi_utils/serial/semihosting.h b/include/sbi_utils/serial/semihosting.h
-> new file mode 100644
-> index 0000000..8cc4a86
-> --- /dev/null
-> +++ b/include/sbi_utils/serial/semihosting.h
-> @@ -0,0 +1,47 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 Ventana Micro Systems Inc.
-> + *
-> + * Authors:
-> + *   Anup Patel <apatel@ventanamicro.com>
-> + *   Kautuk Consul <kconsul@ventanamicro.com>
-> + */
-> +
-> +#ifndef __SERIAL_SEMIHOSTING_H__
-> +#define __SERIAL_SEMIHOSTING_H__
-> +
-> +#include <sbi/sbi_types.h>
-> +
-> +/**
-> + * enum semihosting_open_mode - Numeric file modes for use with semihosting_open()
-> + * MODE_READ: 'r'
-> + * MODE_BINARY: 'b'
-> + * MODE_PLUS: '+'
-> + * MODE_WRITE: 'w'
-> + * MODE_APPEND: 'a'
-> + *
-> + * These modes represent the mode string used by fopen(3) in a form which can
-> + * be passed to semihosting_open(). These do NOT correspond directly to %O_RDONLY,
-> + * %O_CREAT, etc; see fopen(3) for details. In particular, @MODE_PLUS
-> + * effectively results in adding %O_RDWR, and @MODE_WRITE will add %O_TRUNC.
-> + * For compatibility, @MODE_BINARY should be added when opening non-text files
-> + * (such as images).
-> + */
-> +enum semihosting_open_mode {
-> +	MODE_READ	= 0x0,
-> +	MODE_BINARY	= 0x1,
-> +	MODE_PLUS	= 0x2,
-> +	MODE_WRITE	= 0x4,
-> +	MODE_APPEND	= 0x8,
-> +};
-> +
-> +#ifdef CONFIG_SERIAL_SEMIHOSTING
-> +int semihosting_init(void);
-> +int semihosting_enabled(void);
-> +#else
-> +static inline int semihosting_init(void) { return SBI_ENODEV; }
-> +static inline int semihosting_enabled(void) { return 0; }
-> +#endif
-> +
-> +#endif
-> diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
-> index 6e425f2..da549a7 100644
-> --- a/lib/utils/serial/Kconfig
-> +++ b/lib/utils/serial/Kconfig
-> @@ -79,4 +79,8 @@ config SERIAL_XILINX_UARTLITE
-> 	bool "Xilinx UART Lite support"
-> 	default n
-> 
-> +config SERIAL_SEMIHOSTING
-> +	bool "Semihosting support"
-> +	default n
-> +
-> endmenu
-> diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-> index efb1d9e..98f3f9a 100644
-> --- a/lib/utils/serial/objects.mk
-> +++ b/lib/utils/serial/objects.mk
-> @@ -41,3 +41,4 @@ libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
-> libsbiutils-objs-$(CONFIG_SERIAL_LITEX) += serial/litex-uart.o
-> libsbiutils-objs-$(CONFIG_SERIAL_UART8250) += serial/uart8250.o
-> libsbiutils-objs-$(CONFIG_SERIAL_XILINX_UARTLITE) += serial/xlnx-uartlite.o
-> +libsbiutils-objs-$(CONFIG_SERIAL_SEMIHOSTING) += serial/semihosting.o
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> new file mode 100644
-> index 0000000..aa1bb16
-> --- /dev/null
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -0,0 +1,176 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 Ventana Micro Systems Inc.
-> + *
-> + * Authors:
-> + *   Anup Patel <apatel@ventanamicro.com>
-> + *   Kautuk Consul <kconsul@ventanamicro.com>
-> + */
-> +
-> +#include <sbi/sbi_console.h>
-> +#include <limits.h>
-> +#include <sbi/sbi_string.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi_utils/serial/semihosting.h>
-> +
-> +#define SYSOPEN     0x01
-> +#define SYSWRITEC   0x03
-> +#define SYSREAD     0x06
-> +#define SYSREADC    0x07
-> +#define SYSERRNO	0x13
-> +
-> +/*
-> + * Note: This function is intentionally noinline and 256 bytes aligned to
-> + * ensure that semihosting instruction sequence is within same 4K page.
-> + */
+Some of the more specific detections in hart_detect_features()
+might need to check platform-specific extensions so might need
+the platform-extensions being populated earlier.
 
-I don?t think this is relevant for M-mode, and really the spec is
-inaccurate. The point is that it must be able to look before and after
-the ebreak to check that it?s a semihosting sequence but that there?s a
-risk of a page fault if you straddle a page boundary. However, in
-M-mode we don?t have paging enabled, even though this is a system that
-supports (and, at less-privileged modes, uses) paging.
+So move the call to sbi_platform_extensions_init() to an earlier
+place.
 
-Even if the sequence were required to not cross a page boundary, this
-is not a good way to do it, as aligning the function to 256 bytes is
-rather overkill in practice (whilst not strictly guaranteed to even be
-sufficient). If you want to take the non-inlineable function approach
-it should be written in raw assembly, not C with inline assembly in the
-function, so that you can be much more precise with the alignment. That
-or don?t make the function inlineable and instead put the align
-directive in the inline assembly snippet.
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ lib/sbi/sbi_hart.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Jess
-
-> +static __noinline __aligned(256) long semihosting_trap(int sysnum, void *addr)
-> +{
-> +	register int ret asm ("a0") = sysnum;
-> +	register void *param0 asm ("a1") = addr;
-> +
-> +	asm volatile (
-> +		"\t.option push\n"
-> +		"\t.option norvc\n"
-> +		"\tslli zero, zero, 0x1f\n"
-> +		"\tebreak\n"
-> +		"\tsrai zero, zero, 7\n"
-> +		"\t.option pop\n"
-> +		: "+r" (ret) : "r" (param0) : "memory");
-> +
-> +	return ret;
-> +}
-> +
-> +static bool _semihosting_enabled = true;
-> +static bool try_semihosting = true;
-> +
-> +bool __aligned(256) semihosting_enabled(void)
-> +{
-> +	register int ret asm ("a0") = SYSERRNO;
-> +	register void *param0 asm ("a1") = NULL;
-> +	unsigned long tmp = 0;
-> +
-> +	if (!try_semihosting)
-> +		return _semihosting_enabled;
-> +
-> +	asm volatile (
-> +		"\t.option push\n"
-> +		"\t.option norvc\n"
-> +
-> +		"\tj _semihost_test_vector_next\n"
-> +		"\t.align 4\n"
-> +		"\t_semihost_test_vector:\n"
-> +		"\t\tcsrr %[en], mepc\n"
-> +		"\t\taddi %[en], %[en], 4\n"
-> +		"\t\tcsrw mepc, %[en]\n"
-> +		"\t\tadd %[en], zero, zero\n"
-> +		"\t\tmret\n"
-> +		"\t_semihost_test_vector_next:\n"
-> +
-> +		"\tla %[tmp], _semihost_test_vector\n"
-> +		"\tcsrrw %[tmp], mtvec, %[tmp]\n"
-> +		"\tslli zero, zero, 0x1f\n"
-> +		"\tebreak\n"
-> +		"\tsrai zero, zero, 7\n"
-> +		"\tcsrw mtvec, %[tmp]\n"
-> +
-> +		"\t.option pop\n"
-> +		: [tmp] "+r" (tmp), [en] "+r" (_semihosting_enabled),
-> +		  [ret] "+r" (ret)
-> +		: "r" (param0) : "memory");
-> +
-> +	try_semihosting = false;
-> +	return _semihosting_enabled;
-> +}
-> +
-> +static int semihosting_errno(void)
-> +{
-> +	long ret = semihosting_trap(SYSERRNO, NULL);
-> +
-> +	if (ret > 0 && ret < INT_MAX)
-> +		return -ret;
-> +	return SBI_EIO;
-> +}
-> +
-> +static int infd = SBI_ENODEV;
-> +
-> +static long semihosting_open(const char *fname, enum semihosting_open_mode mode)
-> +{
-> +	long fd;
-> +	struct semihosting_open_s {
-> +		const char *fname;
-> +		unsigned long mode;
-> +		size_t len;
-> +	} open;
-> +
-> +	open.fname = fname;
-> +	open.len = sbi_strlen(fname);
-> +	open.mode = mode;
-> +
-> +	/* Open the file on the host */
-> +	fd = semihosting_trap(SYSOPEN, &open);
-> +	if (fd == -1)
-> +		return semihosting_errno();
-> +	return fd;
-> +}
-> +
-> +/**
-> + * struct semihosting_rdwr_s - Arguments for read and write
-> + * @fd: A file descriptor returned from semihosting_open()
-> + * @memp: Pointer to a buffer of memory of at least @len bytes
-> + * @len: The number of bytes to read or write
-> + */
-> +struct semihosting_rdwr_s {
-> +	long fd;
-> +	void *memp;
-> +	size_t len;
-> +};
-> +
-> +static long semihosting_read(long fd, void *memp, size_t len)
-> +{
-> +	long ret;
-> +	struct semihosting_rdwr_s read;
-> +
-> +	read.fd = fd;
-> +	read.memp = memp;
-> +	read.len = len;
-> +
-> +	ret = semihosting_trap(SYSREAD, &read);
-> +	if (ret < 0)
-> +		return semihosting_errno();
-> +	return len - ret;
-> +}
-> +
-> +/* clang-format on */
-> +
-> +static void semihosting_putc(char ch)
-> +{
-> +	semihosting_trap(SYSWRITEC, &ch);
-> +}
-> +
-> +static int semihosting_getc(void)
-> +{
-> +	char ch = 0;
-> +
-> +	if (infd < 0)
-> +		return semihosting_trap(SYSREADC, NULL);
-> +
-> +	semihosting_read(infd, &ch, sizeof(ch));
-> +
-> +	return ch;
-> +}
-> +
-> +static struct sbi_console_device semihosting_console = {
-> +	.name = "semihosting",
-> +	.console_putc = semihosting_putc,
-> +	.console_getc = semihosting_getc
-> +};
-> +
-> +int semihosting_init(void)
-> +{
-> +	infd = semihosting_open(":tt", MODE_READ);
-> +
-> +	sbi_console_set_device(&semihosting_console);
-> +
-> +	return 0;
-> +}
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index e324173..c95b7fa 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -28,3 +28,4 @@ CONFIG_FDT_SERIAL_UART8250=y
-> CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
-> CONFIG_FDT_TIMER=y
-> CONFIG_FDT_TIMER_MTIMER=y
-> +CONFIG_SERIAL_SEMIHOSTING=y
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index cc3620f..bf51aba 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -23,6 +23,7 @@
-> #include <sbi_utils/timer/fdt_timer.h>
-> #include <sbi_utils/ipi/fdt_ipi.h>
-> #include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/serial/semihosting.h>
-> 
-> /* List of platform override modules generated at compile time */
-> extern const struct platform_override *platform_override_modules[];
-> @@ -242,6 +243,14 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
-> 	return evt_val;
-> }
-> 
-> +static int generic_console_init(void)
-> +{
-> +	if (semihosting_enabled())
-> +		return semihosting_init();
-> +	else
-> +		return fdt_serial_init();
-> +}
-> +
-> const struct sbi_platform_operations platform_ops = {
-> 	.nascent_init		= generic_nascent_init,
-> 	.early_init		= generic_early_init,
-> @@ -249,7 +258,7 @@ const struct sbi_platform_operations platform_ops = {
-> 	.early_exit		= generic_early_exit,
-> 	.final_exit		= generic_final_exit,
-> 	.domains_init		= generic_domains_init,
-> -	.console_init		= fdt_serial_init,
-> +	.console_init		= generic_console_init,
-> 	.irqchip_init		= fdt_irqchip_init,
-> 	.irqchip_exit		= fdt_irqchip_exit,
-> 	.ipi_init		= fdt_ipi_init,
-> -- 
-> 2.34.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 1294868..9540e5c 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -553,6 +553,11 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	hfeatures->pmp_count = 0;
+ 	hfeatures->mhpm_count = 0;
+ 
++	/* Let platform populate extensions */
++	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
++	if (rc)
++		return rc;
++
+ #define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
+ 	oldval = csr_read_allowed(__csr, (ulong)&trap);			\
+ 	if (!trap.cause) {						\
+@@ -681,11 +686,6 @@ __mhpm_skip:
+ 					SBI_HART_EXT_SMSTATEEN, true);
+ 	}
+ 
+-	/* Let platform populate extensions */
+-	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
+-	if (rc)
+-		return rc;
+-
+ 	/* Mark hart feature detection done */
+ 	hfeatures->detected = true;
+ 
+-- 
+2.35.1
 
 
