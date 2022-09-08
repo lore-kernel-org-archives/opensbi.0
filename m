@@ -1,86 +1,95 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 8 Sep 2022 21:37:59 +0530
+From: Heiko Stübner <heiko@sntech.de>
+Date: Thu, 08 Sep 2022 18:18:16 +0200
 Subject: [PATCH v3 0/5] Add support for T-HEAD C9xx PMU extensions
-In-Reply-To: <20220908134242.3133259-1-heiko@sntech.de>
-References: <20220908134242.3133259-1-heiko@sntech.de>
-Message-ID: <CAK9=C2WuWdb+sqYPbScVOZ8gkJj3mpHd=mjqQ54Ge10JEvizrg@mail.gmail.com>
+In-Reply-To: <CAK9=C2WuWdb+sqYPbScVOZ8gkJj3mpHd=mjqQ54Ge10JEvizrg@mail.gmail.com>
+References: <20220908134242.3133259-1-heiko@sntech.de> <CAK9=C2WuWdb+sqYPbScVOZ8gkJj3mpHd=mjqQ54Ge10JEvizrg@mail.gmail.com>
+Message-ID: <24892349.kmuVQn2iE0@diego>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Heiko,
+Am Donnerstag, 8. September 2022, 18:07:59 CEST schrieb Anup Patel:
+> Hi Heiko,
+> 
+> On Thu, Sep 8, 2022 at 7:13 PM Heiko Stuebner <heiko@sntech.de> wrote:
+> >
+> > The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
+> > Instead of implementing a separate interface into SBI as done in v1,
+> > we can add the C9XX tidbits with quite minimal overhead and leaverage
+> > the existing SBI pmu interface including giving access to the firmware
+> > counters.
+> >
+> > The current only hickup is the detection override in sbi_hart, where
+> > I still need to find out why the MHPMCOUNTERs are not writeable
+> > at _that_ point of the boot, but with this series on top of openSBI 1.1
+> > and the matching kernel perf patch I get reasonable results for example
+> > for:
+> >
+> > perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
+> >
+> >  Performance counter stats for 'ls':
+> >
+> >           17119496      cycles
+> >            2867765      instructions              #    0.17  insn per cycle
+> >              55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
+> >            3467346      L1-icache-loads
+> >
+> >        0.030156216 seconds time elapsed
+> >
+> >        0.000000000 seconds user
+> >        0.023496000 seconds sys
+> >
+> > changes in v3:
+> > - follow Atish's advice and implement an abstraction
+> >   to not pollute the core pmu with cpu-specific variants
+> >
+> > changes in v2:
+> > - don't implement a separate interface but instead modify
+> >   the sbi-pmu to allow the c9xx to use standard pmu interface
+> >
+> >
+> > Heiko Stuebner (5):
+> >   lib: sbi: do platform-specific extension population earlier
+> >   lib: sbi_pmu: move pmu irq information into pmu itself
+> >   lib: sbi_pmu: add ability to override methods on non-standard
+> >     platforms
+> >   platform: generic: add extensions_init handler and platform-override
+> >   platform: generic: allwinner: add support for c9xx pmu
+> 
+> Please rebase this upon the latest OpenSBI. We already have
+> "struct sbi_pmu_device" which platform can register and you
+> can extend it in this series.
 
-On Thu, Sep 8, 2022 at 7:13 PM Heiko Stuebner <heiko@sntech.de> wrote:
->
-> The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
-> Instead of implementing a separate interface into SBI as done in v1,
-> we can add the C9XX tidbits with quite minimal overhead and leaverage
-> the existing SBI pmu interface including giving access to the firmware
-> counters.
->
-> The current only hickup is the detection override in sbi_hart, where
-> I still need to find out why the MHPMCOUNTERs are not writeable
-> at _that_ point of the boot, but with this series on top of openSBI 1.1
-> and the matching kernel perf patch I get reasonable results for example
-> for:
->
-> perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
->
->  Performance counter stats for 'ls':
->
->           17119496      cycles
->            2867765      instructions              #    0.17  insn per cycle
->              55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
->            3467346      L1-icache-loads
->
->        0.030156216 seconds time elapsed
->
->        0.000000000 seconds user
->        0.023496000 seconds sys
->
-> changes in v3:
-> - follow Atish's advice and implement an abstraction
->   to not pollute the core pmu with cpu-specific variants
->
-> changes in v2:
-> - don't implement a separate interface but instead modify
->   the sbi-pmu to allow the c9xx to use standard pmu interface
->
->
-> Heiko Stuebner (5):
->   lib: sbi: do platform-specific extension population earlier
->   lib: sbi_pmu: move pmu irq information into pmu itself
->   lib: sbi_pmu: add ability to override methods on non-standard
->     platforms
->   platform: generic: add extensions_init handler and platform-override
->   platform: generic: allwinner: add support for c9xx pmu
+oh interesting, that sneaked past me it seems :-)
+Will update to use this.
 
-Please rebase this upon the latest OpenSBI. We already have
-"struct sbi_pmu_device" which platform can register and you
-can extend it in this series.
+Thanks
+Heiko
 
-Regards,
-Anup
+> >
+> >  include/sbi/sbi_pmu.h                        |  16 +++
+> >  lib/sbi/sbi_hart.c                           |  21 ++-
+> >  lib/sbi/sbi_pmu.c                            |  31 +++++
+> >  platform/generic/allwinner/sun20i-d1.c       |  76 +++++++++++
+> >  platform/generic/include/platform_override.h |   1 +
+> >  platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
+> >  platform/generic/platform.c                  |   9 ++
+> >  7 files changed, 274 insertions(+), 7 deletions(-)
+> >  create mode 100644 platform/generic/include/thead_c9xx.h
+> >
+> > --
+> > 2.35.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
 
->
->  include/sbi/sbi_pmu.h                        |  16 +++
->  lib/sbi/sbi_hart.c                           |  21 ++-
->  lib/sbi/sbi_pmu.c                            |  31 +++++
->  platform/generic/allwinner/sun20i-d1.c       |  76 +++++++++++
->  platform/generic/include/platform_override.h |   1 +
->  platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
->  platform/generic/platform.c                  |   9 ++
->  7 files changed, 274 insertions(+), 7 deletions(-)
->  create mode 100644 platform/generic/include/thead_c9xx.h
->
-> --
-> 2.35.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+
+
+
 
