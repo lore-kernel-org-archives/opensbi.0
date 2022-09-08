@@ -1,66 +1,84 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Thu,  8 Sep 2022 15:42:37 +0200
-Subject: [PATCH v3 0/5] Add support for T-HEAD C9xx PMU extensions
-Message-ID: <20220908134242.3133259-1-heiko@sntech.de>
+Date: Thu,  8 Sep 2022 15:42:39 +0200
+Subject: [PATCH v3 2/5] lib: sbi_pmu: move pmu irq information into pmu itself
+In-Reply-To: <20220908134242.3133259-1-heiko@sntech.de>
+References: <20220908134242.3133259-1-heiko@sntech.de>
+Message-ID: <20220908134242.3133259-3-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
-Instead of implementing a separate interface into SBI as done in v1,
-we can add the C9XX tidbits with quite minimal overhead and leaverage
-the existing SBI pmu interface including giving access to the firmware
-counters.
+Don't spread checking for pmu extensions through the code
+but instead introduce a sbi-pmu function that other code can
+call to get the correct information about the existence of the
+pmu interrupt.
 
-The current only hickup is the detection override in sbi_hart, where
-I still need to find out why the MHPMCOUNTERs are not writeable
-at _that_ point of the boot, but with this series on top of openSBI 1.1
-and the matching kernel perf patch I get reasonable results for example
-for:
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ include/sbi/sbi_pmu.h |  3 +++
+ lib/sbi/sbi_hart.c    |  4 ++--
+ lib/sbi/sbi_pmu.c     | 10 ++++++++++
+ 3 files changed, 15 insertions(+), 2 deletions(-)
 
-perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
-
- Performance counter stats for 'ls':
-
-          17119496      cycles
-           2867765      instructions              #    0.17  insn per cycle
-             55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
-           3467346      L1-icache-loads
-
-       0.030156216 seconds time elapsed
-
-       0.000000000 seconds user
-       0.023496000 seconds sys
-
-changes in v3:
-- follow Atish's advice and implement an abstraction
-  to not pollute the core pmu with cpu-specific variants
-
-changes in v2:
-- don't implement a separate interface but instead modify
-  the sbi-pmu to allow the c9xx to use standard pmu interface
-
-
-Heiko Stuebner (5):
-  lib: sbi: do platform-specific extension population earlier
-  lib: sbi_pmu: move pmu irq information into pmu itself
-  lib: sbi_pmu: add ability to override methods on non-standard
-    platforms
-  platform: generic: add extensions_init handler and platform-override
-  platform: generic: allwinner: add support for c9xx pmu
-
- include/sbi/sbi_pmu.h                        |  16 +++
- lib/sbi/sbi_hart.c                           |  21 ++-
- lib/sbi/sbi_pmu.c                            |  31 +++++
- platform/generic/allwinner/sun20i-d1.c       |  76 +++++++++++
- platform/generic/include/platform_override.h |   1 +
- platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
- platform/generic/platform.c                  |   9 ++
- 7 files changed, 274 insertions(+), 7 deletions(-)
- create mode 100644 platform/generic/include/thead_c9xx.h
-
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index f5e3dbd..1c9a997 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -34,6 +34,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
+ /** Reset PMU during hart exit */
+ void sbi_pmu_exit(struct sbi_scratch *scratch);
+ 
++/** Return the pmu irq bit depending on extension existence */
++int sbi_pmu_irq_bit(void);
++
+ /**
+  * Add the hardware event to counter mapping information. This should be called
+  * from the platform code to update the mapping table.
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 9540e5c..45fbcde 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -19,6 +19,7 @@
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_math.h>
+ #include <sbi/sbi_platform.h>
++#include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_trap.h>
+ 
+@@ -208,8 +209,7 @@ static int delegate_traps(struct sbi_scratch *scratch)
+ 
+ 	/* Send M-mode interrupts and most exceptions to S-mode */
+ 	interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
+-	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+-		interrupts |= MIP_LCOFIP;
++	interrupts |= sbi_pmu_irq_bit();
+ 
+ 	exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
+ 		     (1U << CAUSE_USER_ECALL);
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 5a294a2..efbfbb6 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -367,6 +367,16 @@ skip_inhibit_update:
+ 	return 0;
+ }
+ 
++int sbi_pmu_irq_bit(void)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		return MIP_LCOFIP;
++
++	return 0;
++}
++
+ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t fw_evt_code,
+ 			    uint64_t ival, bool ival_update)
+ {
 -- 
 2.35.1
 
