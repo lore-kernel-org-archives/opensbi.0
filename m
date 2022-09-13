@@ -1,24 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 13 Sep 2022 16:36:13 +0530
-Subject: [PATCH 1/2] docs: pmu: fix Unmatched example typo
-In-Reply-To: <20220831070714.7540-1-nikita.shubin@maquefel.me>
-References: <20220831070714.7540-1-nikita.shubin@maquefel.me>
-Message-ID: <CAAhSdy0og7ZaMCViz+CNud7kTfrE50zZ+msgFW2GfusPsdqx-w@mail.gmail.com>
+Date: Tue, 13 Sep 2022 16:36:58 +0530
+Subject: [PATCH v2 1/2] docs: pmu: fix Unmatched example typo
+In-Reply-To: <20220902074104.7082-1-nikita.shubin@maquefel.me>
+References: <34F6D6CF-5BBC-4880-9A6F-793FC3A986B0@jrtc27.com> <20220902074104.7082-1-nikita.shubin@maquefel.me>
+Message-ID: <CAAhSdy2cxhN7H-U7WToUJskvja3G=e=A3UqxO5uppK1Wf+O8JA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 31, 2022 at 12:38 PM Nikita Shubin
-<nikita.shubin@maquefel.me> wrote:
+On Fri, Sep 2, 2022 at 1:11 PM Nikita Shubin <nikita.shubin@maquefel.me> wrote:
+>
+> From: Nikita Shubin <n.shubin@yadro.com>
 >
 > bitmap for MHPMCOUNTERx should be 0x18 and not 0x0c, we check
 > against SBI_PMU_FIXED_CTR_MASK which assumes than first 3 bits are
 > dedicated to mcycle, mtime and minstret, u74 has 2 hardware counters.
 >
 > Reported-by: Zhang Xin <zhangxin.xa@gmail.com>
-> Signed-off-by: Nikita Shubin <nikita.shubin@maquefel.me>
+> Signed-off-by: Nikita Shubin <n.shubin@yadro.com>
 
 Looks good to me.
 
@@ -29,6 +30,9 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
+> ---
+> v1->v2:
+> - replaced email
 > ---
 >  docs/pmu_support.md | 6 +++---
 >  1 file changed, 3 insertions(+), 3 deletions(-)
