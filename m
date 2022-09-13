@@ -1,51 +1,55 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 13 Sep 2022 16:22:02 +0530
-Subject: [PATCH] lib: sbi: Fix sbi_strnlen wrong count decrement
-In-Reply-To: <20220913094708.2089724-1-rpathak@ventanamicro.com>
-References: <20220913094708.2089724-1-rpathak@ventanamicro.com>
-Message-ID: <CAAhSdy1zKM=Lqj3Yuu_fsocuLBEOmqeVuUTGKzdJaoa8ykrYtQ@mail.gmail.com>
+Date: Tue, 13 Sep 2022 16:36:13 +0530
+Subject: [PATCH 1/2] docs: pmu: fix Unmatched example typo
+In-Reply-To: <20220831070714.7540-1-nikita.shubin@maquefel.me>
+References: <20220831070714.7540-1-nikita.shubin@maquefel.me>
+Message-ID: <CAAhSdy0og7ZaMCViz+CNud7kTfrE50zZ+msgFW2GfusPsdqx-w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 13, 2022 at 3:21 PM Rahul Pathak <rpathak@ventanamicro.com> wrote:
+On Wed, Aug 31, 2022 at 12:38 PM Nikita Shubin
+<nikita.shubin@maquefel.me> wrote:
 >
-> count(maxlen) should not be decremented here
+> bitmap for MHPMCOUNTERx should be 0x18 and not 0x0c, we check
+> against SBI_PMU_FIXED_CTR_MASK which assumes than first 3 bits are
+> dedicated to mcycle, mtime and minstret, u74 has 2 hardware counters.
 >
-> Fixes: 1901e8a287bc ("platform: Add minimal libc support.")
-> Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+> Reported-by: Zhang Xin <zhangxin.xa@gmail.com>
+> Signed-off-by: Nikita Shubin <nikita.shubin@maquefel.me>
 
-This one slipped through our reviews. Thanks for catching.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Regards,
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_string.c | 1 -
->  1 file changed, 1 deletion(-)
+>  docs/pmu_support.md | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_string.c b/lib/sbi/sbi_string.c
-> index c163f3176506..9ebea693d0f6 100644
-> --- a/lib/sbi/sbi_string.c
-> +++ b/lib/sbi/sbi_string.c
-> @@ -59,7 +59,6 @@ size_t sbi_strnlen(const char *str, size_t count)
->         while (*str != '\0' && ret < count) {
->                 ret++;
->                 str++;
-> -               count--;
->         }
->
->         return ret;
+> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> index 8751bb5..ca6ca25 100644
+> --- a/docs/pmu_support.md
+> +++ b/docs/pmu_support.md
+> @@ -93,8 +93,8 @@ pmu {
+>   */
+>  pmu {
+>         compatible                      = "riscv,pmu";
+> -       riscv,raw-event-to-mhpmcounters = <0x0 0x0 0xffffffff 0xfc0000ff 0xc>,
+> -                                         <0x0 0x1 0xffffffff 0xfff800ff 0xc>,
+> -                                         <0x0 0x2 0xffffffff 0xffffe0ff 0xc>;
+> +       riscv,raw-event-to-mhpmcounters = <0x0 0x0 0xffffffff 0xfc0000ff 0x18>,
+> +                                         <0x0 0x1 0xffffffff 0xfff800ff 0x18>,
+> +                                         <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
+>  };
+>  ```
 > --
-> 2.34.1
+> 2.35.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
