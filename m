@@ -1,9 +1,9 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 13 Sep 2022 17:37:03 +0530
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 13 Sep 2022 17:42:03 +0530
 Subject: [PATCH 1/1] docs/firmware: Update FW_JUMP documentation
 In-Reply-To: <20220913054605.19929-1-nylon.chen@sifive.com>
 References: <20220913054605.19929-1-nylon.chen@sifive.com>
-Message-ID: <CAAhSdy2=hYfQ8CtiHewCgv-_4_jUwM9z7p0QiN48NmBDHzcHhw@mail.gmail.com>
+Message-ID: <CAK9=C2VMND6r-USjrxHBB0FmUBX=QM7pcztSeyFPQm-6Ukj__g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -17,21 +17,12 @@ On Tue, Sep 13, 2022 at 11:16 AM Nylon Chen <nylon.chen@sifive.com> wrote:
 > Add a tip for OpenSBI's Jump mode.
 >
 > help user avoids the kernel overwritten.
-
-Minor grammer error.
-
-This can be:
-
-"Add a tip for OpenSBI's FW_JUMP which helps users avoid
-overwriting the kernel."
-
 >
 > Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
 > Signed-off-by: Nylon.Chen <nylon.chen@sifive.com>
 
-Otherwise, it looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+One more thing, you don't need two Signed-off-by for yourself.
+Just keep one.
 
 Regards,
 Anup
