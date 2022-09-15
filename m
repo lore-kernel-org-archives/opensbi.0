@@ -1,73 +1,83 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 15 Sep 2022 09:51:09 +0800
-Subject: [PATCH 00/12] Add Andes AE350 fdt driver support
-Message-ID: <20220915015121.27596-1-peterlin@andestech.com>
+Date: Thu, 15 Sep 2022 09:51:14 +0800
+Subject: [PATCH 05/12] lib: utils/timer: Add PLMT mmio region to root domain
+In-Reply-To: <20220915015121.27596-1-peterlin@andestech.com>
+References: <20220915015121.27596-1-peterlin@andestech.com>
+Message-ID: <20220915015121.27596-6-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We move the devices used by AE350 to fdt driver framework, reuse or
-add serial, timer, ipi, irqchip and reset drivers. The OpenSBI domain
-support is also enabled. As of now, we can use Kconfig to manage these
-configurations that can support variants of Andes platform and SoC
-like Kendryte K510.
+Add PLMT as mmio memregion in root domain at boot-time.
 
-Yu Chien Peter Lin (12):
-  platform: ae350: Remove cache enabling from platform final
-    initailzation
-  platform: ae350: Use kconfig to set platform version and default name
-  lib: utils/serial: Add Andes fdt serial driver support
-  lib: utils/timer: Add Andes fdt timer support
-  lib: utils/timer: Add PLMT mmio region to root domain
-  lib: utils/reset: Add Andes fdt reset driver support
-  platform: andes/ae350: Use fdt irqchip driver
-  platform: ae350: Add fw_platform_init
-  lib: utils/ipi: Add Andes fdt ipi driver support
-  lib: utils/ipi: Add PLICSW mmio region to root domain
-  platform: ae350: Add AE350 domain support
-  docs: andes-ae350.md: Update ae350 documentation for fdt driver
-    support
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ lib/utils/timer/fdt_timer_plmt.c | 36 ++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
- docs/platform/andes-ae350.md           | 191 ++++++++++++++++++++++++-
- include/sbi_utils/fdt/fdt_helper.h     |   6 +
- include/sbi_utils/ipi/andes_plicsw.h   |  47 ++++++
- include/sbi_utils/timer/andes_plmt.h   |  32 +++++
- lib/utils/fdt/fdt_helper.c             | 113 +++++++++++++++
- lib/utils/ipi/Kconfig                  |   9 ++
- lib/utils/ipi/andes_plicsw.c           |  84 +++++++++++
- lib/utils/ipi/fdt_ipi_plicsw.c         | 113 +++++++++++++++
- lib/utils/ipi/objects.mk               |   4 +
- lib/utils/reset/Kconfig                |   4 +
- lib/utils/reset/fdt_reset_atcwdt200.c  | 122 ++++++++++++++++
- lib/utils/reset/objects.mk             |   3 +
- lib/utils/serial/fdt_serial_uart8250.c |   1 +
- lib/utils/timer/Kconfig                |   9 ++
- lib/utils/timer/andes_plmt.c           |  54 +++++++
- lib/utils/timer/fdt_timer_plmt.c       | 107 ++++++++++++++
- lib/utils/timer/objects.mk             |   4 +
- platform/andes/ae350/Kconfig           |  30 +++-
- platform/andes/ae350/objects.mk        |   2 +-
- platform/andes/ae350/platform.c        | 165 +++++++++------------
- platform/andes/ae350/platform.h        |  17 ---
- platform/andes/ae350/plicsw.c          | 139 ------------------
- platform/andes/ae350/plicsw.h          |  44 ------
- platform/andes/ae350/plmt.c            | 107 --------------
- platform/andes/ae350/plmt.h            |  17 ---
- 25 files changed, 997 insertions(+), 427 deletions(-)
- create mode 100644 include/sbi_utils/ipi/andes_plicsw.h
- create mode 100644 include/sbi_utils/timer/andes_plmt.h
- create mode 100644 lib/utils/ipi/andes_plicsw.c
- create mode 100644 lib/utils/ipi/fdt_ipi_plicsw.c
- create mode 100644 lib/utils/reset/fdt_reset_atcwdt200.c
- create mode 100644 lib/utils/timer/andes_plmt.c
- create mode 100644 lib/utils/timer/fdt_timer_plmt.c
- delete mode 100644 platform/andes/ae350/plicsw.c
- delete mode 100644 platform/andes/ae350/plicsw.h
- delete mode 100644 platform/andes/ae350/plmt.c
- delete mode 100644 platform/andes/ae350/plmt.h
-
+diff --git a/lib/utils/timer/fdt_timer_plmt.c b/lib/utils/timer/fdt_timer_plmt.c
+index a509c05..46298bf 100644
+--- a/lib/utils/timer/fdt_timer_plmt.c
++++ b/lib/utils/timer/fdt_timer_plmt.c
+@@ -9,6 +9,7 @@
+ 
+ #include <libfdt.h>
+ #include <sbi/sbi_error.h>
++#include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/timer/fdt_timer.h>
+ #include <sbi_utils/timer/andes_plmt.h>
+@@ -33,6 +34,36 @@ static int plmt_warm_timer_init(void)
+ 	return 0;
+ }
+ 
++static int andes_plmt_add_regions(unsigned long addr, unsigned long size)
++{
++#define PLMT_ADD_REGION_ALIGN 0x1000
++	int rc;
++	unsigned long pos, end, region_size;
++	struct sbi_domain_memregion reg;
++
++	pos = addr;
++	end = addr + size;
++	while (pos < end) {
++		if (pos & (PLMT_ADD_REGION_ALIGN - 1))
++			region_size = 1UL << sbi_ffs(pos);
++		else
++			region_size = ((end - pos) < PLMT_ADD_REGION_ALIGN)
++					      ? (end - pos)
++					      : PLMT_ADD_REGION_ALIGN;
++
++		sbi_domain_memregion_init(pos, region_size,
++					  SBI_DOMAIN_MEMREGION_MMIO |
++						  SBI_DOMAIN_MEMREGION_READABLE,
++					  &reg);
++		rc = sbi_domain_root_add_memregion(&reg);
++		if (rc)
++			return rc;
++		pos += region_size;
++	}
++
++	return 0;
++}
++
+ static int plmt_cold_timer_init(void *fdt, int nodeoff,
+ 				const struct fdt_match *match)
+ {
+@@ -53,6 +84,11 @@ static int plmt_cold_timer_init(void *fdt, int nodeoff,
+ 
+ 	plmt_timer.timer_freq = freq;
+ 
++	/* Add PLMT region to the root domain */
++	rc = andes_plmt_add_regions(plmt_base, plmt.size);
++	if (rc)
++		return rc;
++
+ 	sbi_timer_set_device(&plmt_timer);
+ 
+ 	return 0;
 -- 
 2.34.1
 
