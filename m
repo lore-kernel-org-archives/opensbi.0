@@ -1,127 +1,71 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 15 Sep 2022 09:51:17 +0800
-Subject: [PATCH 08/12] platform: ae350: Add fw_platform_init for platform initialization
+Date: Thu, 15 Sep 2022 09:51:20 +0800
+Subject: [PATCH 11/12] platform: ae350: Add AE350 domain support
 In-Reply-To: <20220915015121.27596-1-peterlin@andestech.com>
 References: <20220915015121.27596-1-peterlin@andestech.com>
-Message-ID: <20220915015121.27596-9-peterlin@andestech.com>
+Message-ID: <20220915015121.27596-12-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds fw_platform_init() to initialize ae350 platform.name
-and platform.hart_count by parsing device tree.
+Add domains_init platform hook for Andes AE350, users can add domain
+description in device tree and select FDT domain support in Kconfig
+to achieve system-level partitioning.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
- platform/andes/ae350/platform.c | 51 +++++++++++++++++++++++++++++++--
- platform/andes/ae350/platform.h |  2 --
- 2 files changed, 49 insertions(+), 4 deletions(-)
+ platform/andes/ae350/platform.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
-index 98acaaa..cf5417c 100644
+index 30e4606..d36d11e 100644
 --- a/platform/andes/ae350/platform.c
 +++ b/platform/andes/ae350/platform.c
-@@ -6,14 +6,18 @@
-  * Authors:
-  *   Zong Li <zong@andestech.com>
-  *   Nylon Chen <nylon7@andestech.com>
-+ *   Yu Chien Peter Lin <peterlin@andestech.com>
-  */
- 
-+#include <libfdt.h>
- #include <sbi/riscv_asm.h>
- #include <sbi/riscv_encoding.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_const.h>
-+#include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_ipi.h>
+@@ -19,13 +19,14 @@
  #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_string.h>
+ #include <sbi/sbi_string.h>
  #include <sbi/sbi_trap.h>
- #include <sbi_utils/fdt/fdt_helper.h>
+-#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_domain.h>
  #include <sbi_utils/fdt/fdt_fixup.h>
-@@ -25,6 +29,49 @@
- #include "plicsw.h"
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/ipi/fdt_ipi.h>
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/reset/fdt_reset.h>
+ #include <sbi_utils/serial/fdt_serial.h>
+ #include <sbi_utils/timer/fdt_timer.h>
+-#include <sbi_utils/ipi/fdt_ipi.h>
+ #include "platform.h"
  #include "cache.h"
  
-+struct sbi_platform platform;
-+unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
-+				unsigned long arg2, unsigned long arg3,
-+				unsigned long arg4)
+@@ -84,6 +85,7 @@ static int ae350_final_init(bool cold_boot)
+ 
+ 	fdt = fdt_get_address();
+ 	fdt_fixups(fdt);
++	fdt_domain_fixup(fdt);
+ 
+ 	return 0;
+ }
+@@ -132,10 +134,17 @@ static int ae350_vendor_ext_provider(long extid, long funcid,
+ 	return ret;
+ }
+ 
++static int ae350_domains_init(void)
 +{
-+	const char *model;
-+	void *fdt = (void *)arg1;
-+	u32 hartid, hart_count = 0;
-+	int rc, root_offset, cpus_offset, cpu_offset, len;
-+
-+	root_offset = fdt_path_offset(fdt, "/");
-+	if (root_offset < 0)
-+		goto fail;
-+
-+	model = fdt_getprop(fdt, root_offset, "model", &len);
-+	if (model)
-+		sbi_strncpy(platform.name, model, sizeof(platform.name) - 1);
-+
-+	cpus_offset = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_offset < 0)
-+		goto fail;
-+
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+		if (rc)
-+			continue;
-+
-+		if (SBI_HARTMASK_MAX_BITS <= hartid)
-+			continue;
-+
-+		hart_count++;
-+	}
-+
-+	platform.hart_count = hart_count;
-+
-+	/* Return original FDT pointer */
-+	return arg1;
-+
-+fail:
-+	while (1)
-+		wfi();
++	return fdt_domains_populate(fdt_get_address());
 +}
 +
- /* Platform final initialization. */
- static int ae350_final_init(bool cold_boot)
- {
-@@ -123,14 +170,14 @@ const struct sbi_platform_operations platform_ops = {
- 	.vendor_ext_provider = ae350_vendor_ext_provider
- };
+ /* Platform descriptor. */
+ const struct sbi_platform_operations platform_ops = {
+ 	.final_init = ae350_final_init,
  
--const struct sbi_platform platform = {
-+struct sbi_platform platform = {
- 	.opensbi_version = OPENSBI_VERSION,
- 	.platform_version =
- 		SBI_PLATFORM_VERSION(CONFIG_PLATFORM_ANDES_AE350_MAJOR_VER,
- 				     CONFIG_PLATFORM_ANDES_AE350_MINOR_VER),
- 	.name = CONFIG_PLATFORM_ANDES_AE350_NAME,
- 	.features = SBI_PLATFORM_DEFAULT_FEATURES,
--	.hart_count = AE350_HART_COUNT,
-+	.hart_count = SBI_HARTMASK_MAX_BITS,
- 	.hart_stack_size = SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
- 	.platform_ops_addr = (unsigned long)&platform_ops
- };
-diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
-index 3264b6f..3003bb4 100644
---- a/platform/andes/ae350/platform.h
-+++ b/platform/andes/ae350/platform.h
-@@ -11,8 +11,6 @@
- #ifndef _AE350_PLATFORM_H_
- #define _AE350_PLATFORM_H_
++	.domains_init = ae350_domains_init,
++
+ 	.console_init = fdt_serial_init,
  
--#define AE350_HART_COUNT		4
--
- #define AE350_PLICSW_ADDR		0xe6400000
- 
- #define AE350_L2C_ADDR			0xe0500000
+ 	.irqchip_init = fdt_irqchip_init,
 -- 
 2.34.1
 
