@@ -1,83 +1,53 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 15 Sep 2022 09:51:14 +0800
-Subject: [PATCH 05/12] lib: utils/timer: Add PLMT mmio region to root domain
+Date: Thu, 15 Sep 2022 09:51:10 +0800
+Subject: [PATCH 01/12] platform: ae350: Remove enabling cache from platform final initailzation
 In-Reply-To: <20220915015121.27596-1-peterlin@andestech.com>
 References: <20220915015121.27596-1-peterlin@andestech.com>
-Message-ID: <20220915015121.27596-6-peterlin@andestech.com>
+Message-ID: <20220915015121.27596-2-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PLMT as mmio memregion in root domain at boot-time.
+Boot-time cache operations have been handled by U-boot SPL, so we
+can drop duplicate code.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
- lib/utils/timer/fdt_timer_plmt.c | 36 ++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ platform/andes/ae350/platform.c | 19 -------------------
+ 1 file changed, 19 deletions(-)
 
-diff --git a/lib/utils/timer/fdt_timer_plmt.c b/lib/utils/timer/fdt_timer_plmt.c
-index a509c05..46298bf 100644
---- a/lib/utils/timer/fdt_timer_plmt.c
-+++ b/lib/utils/timer/fdt_timer_plmt.c
-@@ -9,6 +9,7 @@
- 
- #include <libfdt.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/timer/fdt_timer.h>
- #include <sbi_utils/timer/andes_plmt.h>
-@@ -33,6 +34,36 @@ static int plmt_warm_timer_init(void)
- 	return 0;
- }
- 
-+static int andes_plmt_add_regions(unsigned long addr, unsigned long size)
-+{
-+#define PLMT_ADD_REGION_ALIGN 0x1000
-+	int rc;
-+	unsigned long pos, end, region_size;
-+	struct sbi_domain_memregion reg;
-+
-+	pos = addr;
-+	end = addr + size;
-+	while (pos < end) {
-+		if (pos & (PLMT_ADD_REGION_ALIGN - 1))
-+			region_size = 1UL << sbi_ffs(pos);
-+		else
-+			region_size = ((end - pos) < PLMT_ADD_REGION_ALIGN)
-+					      ? (end - pos)
-+					      : PLMT_ADD_REGION_ALIGN;
-+
-+		sbi_domain_memregion_init(pos, region_size,
-+					  SBI_DOMAIN_MEMREGION_MMIO |
-+						  SBI_DOMAIN_MEMREGION_READABLE,
-+					  &reg);
-+		rc = sbi_domain_root_add_memregion(&reg);
-+		if (rc)
-+			return rc;
-+		pos += region_size;
-+	}
-+
-+	return 0;
-+}
-+
- static int plmt_cold_timer_init(void *fdt, int nodeoff,
- 				const struct fdt_match *match)
+diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
+index 6bd0a69..33f9c4c 100644
+--- a/platform/andes/ae350/platform.c
++++ b/platform/andes/ae350/platform.c
+@@ -34,25 +34,6 @@ static int ae350_final_init(bool cold_boot)
  {
-@@ -53,6 +84,11 @@ static int plmt_cold_timer_init(void *fdt, int nodeoff,
+ 	void *fdt;
  
- 	plmt_timer.timer_freq = freq;
+-	/* enable L1 cache */
+-	uintptr_t mcache_ctl_val = csr_read(CSR_MCACHECTL);
+-
+-	if (!(mcache_ctl_val & V5_MCACHE_CTL_IC_EN))
+-		mcache_ctl_val |= V5_MCACHE_CTL_IC_EN;
+-	if (!(mcache_ctl_val & V5_MCACHE_CTL_DC_EN))
+-		mcache_ctl_val |= V5_MCACHE_CTL_DC_EN;
+-	if (!(mcache_ctl_val & V5_MCACHE_CTL_CCTL_SUEN))
+-		mcache_ctl_val |= V5_MCACHE_CTL_CCTL_SUEN;
+-	csr_write(CSR_MCACHECTL, mcache_ctl_val);
+-
+-	/* enable L2 cache */
+-	uint32_t *l2c_ctl_base = (void *)AE350_L2C_ADDR + V5_L2C_CTL_OFFSET;
+-	uint32_t l2c_ctl_val = *l2c_ctl_base;
+-
+-	if (!(l2c_ctl_val & V5_L2C_CTL_ENABLE_MASK))
+-		l2c_ctl_val |= V5_L2C_CTL_ENABLE_MASK;
+-	*l2c_ctl_base = l2c_ctl_val;
+-
+ 	if (!cold_boot)
+ 		return 0;
  
-+	/* Add PLMT region to the root domain */
-+	rc = andes_plmt_add_regions(plmt_base, plmt.size);
-+	if (rc)
-+		return rc;
-+
- 	sbi_timer_set_device(&plmt_timer);
- 
- 	return 0;
 -- 
 2.34.1
 
