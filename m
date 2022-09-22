@@ -1,52 +1,75 @@
-From: Nylon Chen <nylon.chen@sifive.com>
-Date: Thu, 22 Sep 2022 15:36:12 +0800
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Thu, 22 Sep 2022 10:09:53 +0200
 Subject: [PATCH v2] docs/firmware: Update FW_JUMP documentation
-Message-ID: <20220922073612.28320-1-nylon.chen@sifive.com>
+In-Reply-To: <20220922073612.28320-1-nylon.chen@sifive.com>
+References: <20220922073612.28320-1-nylon.chen@sifive.com>
+Message-ID: <20220922080953.fej4jo4pr7ctjrwj@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: "Nylon.Chen" <nylon.chen@sifive.com>
+On Thu, Sep 22, 2022 at 03:36:12PM +0800, Nylon Chen wrote:
+> From: "Nylon.Chen" <nylon.chen@sifive.com>
+> 
+> Add a tip for OpenSBI's FW_JUMP which helps
+> users avoid overwriting the kernel.
+> 
+> Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
+> ---
+>  docs/firmware/fw_jump.md | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
+> index 35a4301..848f515 100644
+> --- a/docs/firmware/fw_jump.md
+> +++ b/docs/firmware/fw_jump.md
+> @@ -41,6 +41,23 @@ follows:
+>    provided, then the OpenSBI firmware will pass the FDT address passed by the
+>    previous booting stage to the next booting stage.
+>  
+> +  If your *PLATFORM=generic* and your *FW_JUMP_FDT_ADDR* is default, you must
 
-Add a tip for OpenSBI's FW_JUMP which helps
-users avoid overwriting the kernel.
+When using the default *FW_JUMP_FDT_ADDR* with *PLATFORM=generic*,
 
-Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
----
- docs/firmware/fw_jump.md | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+> +  ensure *FW_JUMP_FDT_ADDR* is set high enough to avoid overwriting the kernel
 
-diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
-index 35a4301..848f515 100644
---- a/docs/firmware/fw_jump.md
-+++ b/docs/firmware/fw_jump.md
-@@ -41,6 +41,23 @@ follows:
-   provided, then the OpenSBI firmware will pass the FDT address passed by the
-   previous booting stage to the next booting stage.
- 
-+  If your *PLATFORM=generic* and your *FW_JUMP_FDT_ADDR* is default, you must
-+  ensure *FW_JUMP_FDT_ADDR* is set high enough to avoid overwriting the kernel
-+  You can use the following method.
-+
-+  ```
-+  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk '/^ +[0-9]+ / ' \
-+  | awk -n '{addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' | \
-+  if [[ `tail -n -1` -gt 0x2200000 ]]; then \
-+  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR ; fi
-+
-+
-+  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | awk '/^ +[0-9]+ / ' \
-+  | awk -n '{addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' | \
-+  if [[ `tail -n -1` -gt 0x2200000 ]]; then \
-+  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR ; fi
-+  ```
-+
- *FW_JUMP* Example
- -----------------
- 
--- 
-2.36.1
+Missing the period at the end of the sentence.
 
+> +  You can use the following method.
+> +
+> +  ```
+> +  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk '/^ +[0-9]+ / ' \
+> +  | awk -n '{addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' | \
+> +  if [[ `tail -n -1` -gt 0x2200000 ]]; then \
+> +  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR ; fi
+
+Should be able to merge the awks and drop the -n on tail and just use &&
+instead of if-then. Also can use (( )) with normal math operators and
+don't need \ after |
+
+  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 |
+  awk -n '/^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
+  (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
+
+
+Thanks,
+drew
+
+
+> +
+> +
+> +  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | awk '/^ +[0-9]+ / ' \
+> +  | awk -n '{addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' | \
+> +  if [[ `tail -n -1` -gt 0x2200000 ]]; then \
+> +  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR ; fi
+> +  ```
+> +
+>  *FW_JUMP* Example
+>  -----------------
+>  
+> -- 
+> 2.36.1
+> 
 
