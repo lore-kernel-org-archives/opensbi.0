@@ -1,9 +1,10 @@
 From: Guo Ren <guoren@kernel.org>
-Date: Tue, 27 Sep 2022 07:13:47 +0800
-Subject: [PATCH v4 4/5] platform: generic: add extensions_init handler and platform-override
-In-Reply-To: <20220926101607.731275-5-heiko@sntech.de>
-References: <20220926101607.731275-1-heiko@sntech.de> <20220926101607.731275-5-heiko@sntech.de>
-Message-ID: <CAJF2gTQE5deEX9NsxU7kB-5Mhc7NV0cavZCxHg_ztOY_Deje=g@mail.gmail.com>
+Date: Tue, 27 Sep 2022 07:15:01 +0800
+Subject: [PATCH v4 1/5] lib: sbi: do platform-specific extension
+ population earlier
+In-Reply-To: <20220926101607.731275-2-heiko@sntech.de>
+References: <20220926101607.731275-1-heiko@sntech.de> <20220926101607.731275-2-heiko@sntech.de>
+Message-ID: <CAJF2gTQXjj1bCWdiyOiSuh-BWtgmjE4cPeBzyWJ_tHbkS=Se_g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,54 +15,46 @@ Acked-by: Guo Ren <guoren@kernel.org>
 
 On Mon, Sep 26, 2022 at 6:16 PM Heiko Stuebner <heiko@sntech.de> wrote:
 >
-> Init of non-standard extensions is a platform-specific thing,
-> so allow generic platforms to do this via a platform-override.
+> Some of the more specific detections in hart_detect_features()
+> might need to check platform-specific extensions so might need
+> the platform-extensions being populated earlier.
+>
+> So move the call to sbi_platform_extensions_init() to an earlier
+> place.
 >
 > Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 > ---
->  platform/generic/include/platform_override.h | 1 +
->  platform/generic/platform.c                  | 9 +++++++++
->  2 files changed, 10 insertions(+)
+>  lib/sbi/sbi_hart.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 >
-> diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-> index e55da25..06a26dd 100644
-> --- a/platform/generic/include/platform_override.h
-> +++ b/platform/generic/include/platform_override.h
-> @@ -22,6 +22,7 @@ struct platform_override {
->         void (*early_exit)(const struct fdt_match *match);
->         void (*final_exit)(const struct fdt_match *match);
->         int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
-> +       int (*extensions_init)(const struct fdt_match *match);
->         int (*vendor_ext_check)(long extid, const struct fdt_match *match);
->         int (*vendor_ext_provider)(long extid, long funcid,
->                                    const struct sbi_trap_regs *regs,
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index bf51aba..35545fb 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -204,6 +204,14 @@ static void generic_final_exit(void)
->                 generic_plat->final_exit(generic_plat_match);
->  }
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 1294868..9540e5c 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -553,6 +553,11 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+>         hfeatures->pmp_count = 0;
+>         hfeatures->mhpm_count = 0;
 >
-> +static int generic_extensions_init(void)
-> +{
-> +       if (generic_plat && generic_plat->extensions_init)
-> +               return generic_plat->extensions_init(generic_plat_match);
+> +       /* Let platform populate extensions */
+> +       rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
+> +       if (rc)
+> +               return rc;
 > +
-> +       return 0;
-> +}
-> +
->  static int generic_domains_init(void)
->  {
->         return fdt_domains_populate(fdt_get_address());
-> @@ -257,6 +265,7 @@ const struct sbi_platform_operations platform_ops = {
->         .final_init             = generic_final_init,
->         .early_exit             = generic_early_exit,
->         .final_exit             = generic_final_exit,
-> +       .extensions_init        = generic_extensions_init,
->         .domains_init           = generic_domains_init,
->         .console_init           = generic_console_init,
->         .irqchip_init           = fdt_irqchip_init,
+>  #define __check_csr(__csr, __rdonly, __wrval, __field, __skip) \
+>         oldval = csr_read_allowed(__csr, (ulong)&trap);                 \
+>         if (!trap.cause) {                                              \
+> @@ -681,11 +686,6 @@ __mhpm_skip:
+>                                         SBI_HART_EXT_SMSTATEEN, true);
+>         }
+>
+> -       /* Let platform populate extensions */
+> -       rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
+> -       if (rc)
+> -               return rc;
+> -
+>         /* Mark hart feature detection done */
+>         hfeatures->detected = true;
+>
 > --
 > 2.35.1
 >
