@@ -1,87 +1,63 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Mon, 26 Sep 2022 12:16:05 +0200
-Subject: [PATCH v4 3/5] lib: sbi_pmu: add override for counter data
+Date: Mon, 26 Sep 2022 12:16:06 +0200
+Subject: [PATCH v4 4/5] platform: generic: add extensions_init handler and platform-override
 In-Reply-To: <20220926101607.731275-1-heiko@sntech.de>
 References: <20220926101607.731275-1-heiko@sntech.de>
-Message-ID: <20220926101607.731275-4-heiko@sntech.de>
+Message-ID: <20220926101607.731275-5-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In general counter-data is auto-detected but some platforms
-may implement counters in a way that breaks this detection.
-
-Implement an abstraction that those platforms can hook into
-and override the counter-data.
+Init of non-standard extensions is a platform-specific thing,
+so allow generic platforms to do this via a platform-override.
 
 Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 ---
- include/sbi/sbi_pmu.h | 8 ++++++++
- lib/sbi/sbi_hart.c    | 7 +++++++
- lib/sbi/sbi_pmu.c     | 7 +++++++
- 3 files changed, 22 insertions(+)
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-index c365243..d257b14 100644
---- a/include/sbi/sbi_pmu.h
-+++ b/include/sbi/sbi_pmu.h
-@@ -78,6 +78,11 @@ struct sbi_pmu_device {
- 	 * Custom function returning the machine-specific irq-bit.
- 	 */
- 	int (*hw_counter_irq_bit)(void);
-+
-+	/**
-+	 * Override autodetected counter data.
-+	 */
-+	void (*hw_counter_data)(unsigned int *count, unsigned int *bits);
- };
- 
- /** Get the PMU platform device */
-@@ -95,6 +100,9 @@ void sbi_pmu_exit(struct sbi_scratch *scratch);
- /** Return the pmu irq bit depending on extension existence */
- int sbi_pmu_irq_bit(void);
- 
-+/** Allow non-standard platforms to override probed counter information */
-+void sbi_pmu_override_counter_data(unsigned int *count, unsigned int *bits);
-+
- /**
-  * Add the hardware event to counter mapping information. This should be called
-  * from the platform code to update the mapping table.
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 45fbcde..6506a19 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -632,6 +632,13 @@ __mhpm_skip:
- #undef __check_csr_2
- #undef __check_csr
- 
-+	/**
-+	 * Allow non-standard implementations to override the detected
-+	 * values for number of counters and bits.
-+	 */
-+	sbi_pmu_override_counter_data(&hfeatures->mhpm_count,
-+				      &hfeatures->mhpm_bits);
-+
- 	/* Detect if hart supports Priv v1.10 */
- 	val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
- 	if (!trap.cause)
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 91d9ccc..c8becf3 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -852,3 +852,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 
- 	return 0;
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index e55da25..06a26dd 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -22,6 +22,7 @@ struct platform_override {
+ 	void (*early_exit)(const struct fdt_match *match);
+ 	void (*final_exit)(const struct fdt_match *match);
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
++	int (*extensions_init)(const struct fdt_match *match);
+ 	int (*vendor_ext_check)(long extid, const struct fdt_match *match);
+ 	int (*vendor_ext_provider)(long extid, long funcid,
+ 				   const struct sbi_trap_regs *regs,
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index bf51aba..35545fb 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -204,6 +204,14 @@ static void generic_final_exit(void)
+ 		generic_plat->final_exit(generic_plat_match);
  }
-+
-+void sbi_pmu_override_counter_data(unsigned int *count,
-+				   unsigned int *bits)
+ 
++static int generic_extensions_init(void)
 +{
-+	if (pmu_dev && pmu_dev->hw_counter_data)
-+		pmu_dev->hw_counter_data(count, bits);
++	if (generic_plat && generic_plat->extensions_init)
++		return generic_plat->extensions_init(generic_plat_match);
++
++	return 0;
 +}
++
+ static int generic_domains_init(void)
+ {
+ 	return fdt_domains_populate(fdt_get_address());
+@@ -257,6 +265,7 @@ const struct sbi_platform_operations platform_ops = {
+ 	.final_init		= generic_final_init,
+ 	.early_exit		= generic_early_exit,
+ 	.final_exit		= generic_final_exit,
++	.extensions_init	= generic_extensions_init,
+ 	.domains_init		= generic_domains_init,
+ 	.console_init		= generic_console_init,
+ 	.irqchip_init		= fdt_irqchip_init,
 -- 
 2.35.1
 
