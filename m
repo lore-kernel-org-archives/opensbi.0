@@ -1,125 +1,276 @@
-From: dominic_riscx@qq.com <dominic_riscx@qq.com>
-Date: Wed, 28 Sep 2022 10:35:30 +0800
-Subject: [PATCH] doc:fix some typos
-Message-ID: <tencent_469245A41A1D5C9102CBCF0B6B6142196607@qq.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Wed, 28 Sep 2022 13:45:42 +0800
+Subject: [PATCH v4 5/5] platform: generic: allwinner: add support for c9xx pmu
+In-Reply-To: <3190206.aeNJFYEL58@diego>
+References: <20220926101607.731275-1-heiko@sntech.de> <20220926101607.731275-6-heiko@sntech.de>
+ <CAJF2gTS26pzgEnasxrz04vY1XFatcCT4=cyhiLTVpyoofZS6mg@mail.gmail.com> <3190206.aeNJFYEL58@diego>
+Message-ID: <CAJF2gTQ++wbOtCstisH6Ew4CrC=WOC4qed6AgjefF6khG6B4Jw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Dunky-Z <254758318@qq.com>
+On Tue, Sep 27, 2022 at 7:41 PM Heiko St?bner <heiko@sntech.de> wrote:
+>
+> Hi,
+>
+> Am Dienstag, 27. September 2022, 01:30:15 CEST schrieb Guo Ren:
+> > On Mon, Sep 26, 2022 at 6:16 PM Heiko Stuebner <heiko@sntech.de> wrote:
+> > >
+> > > With the T-HEAD C9XX cores being designed before or during ratification
+> > > of the SSCOFPMF extension, they implement a PMU extension that behaves
+> > > very similar but not equal to it by providing overflow interrupts though
+> > > in a slightly different registers format.
+> > >
+> > > The sun20i-d1 is using this core. So implement the necessary overrides
+> > > to allow its pmu to be used via the standard sbi-pmu extension.
+> > >
+> > > For now it's also the only soc using this core, so keep the additional
+> > > code in the d1-space for now.
+> > >
+> > > Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+> > > ---
+> > >  platform/generic/allwinner/sun20i-d1.c |  72 ++++++++++++++
+> > >  platform/generic/include/thead_c9xx.h  | 127 +++++++++++++++++++++++++
+> > >  2 files changed, 199 insertions(+)
+> > >  create mode 100644 platform/generic/include/thead_c9xx.h
+> > >
+> > > diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> > > index 5b2656c..a624b8b 100644
+> > > --- a/platform/generic/allwinner/sun20i-d1.c
+> > > +++ b/platform/generic/allwinner/sun20i-d1.c
+> > > @@ -5,11 +5,13 @@
+> > >   */
+> > >
+> > >  #include <platform_override.h>
+> > > +#include <thead_c9xx.h>
+> > >  #include <sbi/riscv_io.h>
+> > >  #include <sbi/sbi_bitops.h>
+> > >  #include <sbi/sbi_ecall_interface.h>
+> > >  #include <sbi/sbi_error.h>
+> > >  #include <sbi/sbi_hsm.h>
+> > > +#include <sbi/sbi_pmu.h>
+> > >  #include <sbi_utils/fdt/fdt_helper.h>
+> > >  #include <sbi_utils/irqchip/fdt_irqchip_plic.h>
+> > >
+> > > @@ -199,6 +201,75 @@ static int sun20i_d1_final_init(bool cold_boot, const struct fdt_match *match)
+> > >         return 0;
+> > >  }
+> > >
+> > > +static void thead_c9xx_pmu_ctr_enable_irq(uint32_t ctr_idx)
+> > > +{
+> > > +       unsigned long val;
+> > > +       unsigned long mip_val;
+> > > +
+> > > +       if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> > > +               return;
+> > > +
+> > > +       mip_val = csr_read(CSR_MIP);
+> > > +       /**
+> > > +        * Clear out the OF bit so that next interrupt can be enabled.
+> > > +        * This should be done only when the corresponding overflow interrupt
+> > > +        * bit is cleared. That indicates that software has already handled the
+> > > +        * previous interrupts or the hardware yet to set an overflow interrupt.
+> > > +        * Otherwise, there will be race conditions where we may clear the bit
+> > > +        * the software is yet to handle the interrupt.
+> > > +        */
+> > > +       if (!(mip_val & THEAD_C9XX_MIP_MOIP)) {
+> > > +               val = csr_read(THEAD_C9XX_CSR_MCOUNTEROF);
+> > > +               val &= ~(1 << ctr_idx);
+> > > +               csr_write(THEAD_C9XX_CSR_MCOUNTEROF, val);
+> > > +       }
+> > > +
+> > > +       /**
+> > > +        * SSCOFPMF uses the OF bit for enabling/disabling the interrupt,
+> > > +        * while the C9XX has designated enable bits.
+> > > +        * So enable per-counter interrupt on C9xx here.
+> > > +        */
+> > > +       val = csr_read(THEAD_C9XX_CSR_MCOUNTERINTEN);
+> > > +       val |= (1 << ctr_idx);
+> > > +       csr_write(THEAD_C9XX_CSR_MCOUNTERINTEN, val);
+> > Use csr_set
+>
+> great idea. I've added this to my v5-branch but will wait a bit for more
+> review comments to hopefully drop in :-)
+>
+> > > +}
+> > > +
+> > > +static void thead_c9xx_pmu_ctr_disable_irq(uint32_t ctr_idx)
+> > > +{
+> > > +       unsigned long val;
+> > > +
+> > > +       val = csr_read(THEAD_C9XX_CSR_MCOUNTERINTEN);
+> > > +       val &= ~(1 << ctr_idx);
+> > > +       csr_write(THEAD_C9XX_CSR_MCOUNTERINTEN, val);
+> > csr_clear
+> >
+> > > +}
+> > > +
+> > > +static int thead_c9xx_pmu_irq_bit(void)
+> > > +{
+> > > +       return THEAD_C9XX_MIP_MOIP;
+> > > +}
+> > > +
+> > > +static void thead_c9xx_pmu_counter_data(unsigned int *count,
+> > > +                                       unsigned int *bits)
+> > > +{
+> > > +       /* auto-detection doesn't work on t-head c9xx cores */
+> > > +       *count = 29;
+> > > +       *bits = 64;
+> > > +}
+> > > +
+> > > +const struct sbi_pmu_device thead_c9xx_pmu_device = {
+> > > +       .hw_counter_enable_irq = thead_c9xx_pmu_ctr_enable_irq,
+> > > +       .hw_counter_disable_irq = thead_c9xx_pmu_ctr_disable_irq,
+> > > +       .hw_counter_irq_bit = thead_c9xx_pmu_irq_bit,
+> > > +       .hw_counter_data = thead_c9xx_pmu_counter_data,
+> > > +};
+> > > +
+> > > +static int sun20i_d1_extensions_init(const struct fdt_match *match)
+> > > +{
+> > > +       sbi_pmu_set_device(&thead_c9xx_pmu_device);
+> > > +
+> > > +       return 0;
+> > > +}
+> > > +
+> > >  static const struct fdt_match sun20i_d1_match[] = {
+> > >         { .compatible = "allwinner,sun20i-d1" },
+> > >         { },
+> > > @@ -207,4 +278,5 @@ static const struct fdt_match sun20i_d1_match[] = {
+> > >  const struct platform_override sun20i_d1 = {
+> > >         .match_table    = sun20i_d1_match,
+> > >         .final_init     = sun20i_d1_final_init,
+> > > +       .extensions_init = sun20i_d1_extensions_init,
+> > >  };
+> > > diff --git a/platform/generic/include/thead_c9xx.h b/platform/generic/include/thead_c9xx.h
+> > > new file mode 100644
+> > > index 0000000..bab0408
+> > > --- /dev/null
+> > > +++ b/platform/generic/include/thead_c9xx.h
+> > > @@ -0,0 +1,127 @@
+> > > +#ifndef __RISCV_THEAD_C9XX_H____
+> > > +#define __RISCV_THEAD_C9XX_H____
+> > > +
+> > > +/* T-HEAD C9xx M mode CSR.  */
+> > > +#define THEAD_C9XX_CSR_MXSTATUS                0x7c0
+> > > +#define THEAD_C9XX_CSR_MHCR            0x7c1
+> > > +#define THEAD_C9XX_CSR_MCOR            0x7c2
+> > > +#define THEAD_C9XX_CSR_MCCR2           0x7c3
+> > > +#define THEAD_C9XX_CSR_MCER2           0x7c4
+> > > +#define THEAD_C9XX_CSR_MHINT           0x7c5
+> > > +#define THEAD_C9XX_CSR_MRMR            0x7c6
+> > > +#define THEAD_C9XX_CSR_MRVBR           0x7c7
+> > > +#define THEAD_C9XX_CSR_MCER            0x7c8
+> > > +#define THEAD_C9XX_CSR_MCOUNTERWEN     0x7c9
+> > > +#define THEAD_C9XX_CSR_MCOUNTERINTEN   0x7ca
+> > > +#define THEAD_C9XX_CSR_MCOUNTEROF      0x7cb
+> > > +#define THEAD_C9XX_CSR_MHINT2          0x7cc
+> > > +#define THEAD_C9XX_CSR_MHINT3          0x7cd
+> > > +#define THEAD_C9XX_CSR_MRADDR          0x7e0
+> > > +#define THEAD_C9XX_CSR_MEXSTATUS       0x7e1
+> > > +#define THEAD_C9XX_CSR_MNMICAUSE       0x7e2
+> > > +#define THEAD_C9XX_CSR_MNMIPC          0x7e3
+> > > +#define THEAD_C9XX_CSR_MHPMCR          0x7f0
+> > > +#define THEAD_C9XX_CSR_MHPMSR          0x7f1
+> > > +#define THEAD_C9XX_CSR_MHPMER          0x7f2
+> > > +#define THEAD_C9XX_CSR_MSMPR           0x7f3
+> > > +#define THEAD_C9XX_CSR_MTEECFG         0x7f4
+> > > +#define THEAD_C9XX_CSR_MZONEID         0x7f5
+> > > +#define THEAD_C9XX_CSR_ML2CPID         0x7f6
+> > > +#define THEAD_C9XX_CSR_ML2WP           0x7f7
+> > > +#define THEAD_C9XX_CSR_MDTCMCR         0x7f8
+> > > +#define THEAD_C9XX_CSR_USP             0x7d1
+> > > +#define THEAD_C9XX_CSR_MCINS           0x7d2
+> > > +#define THEAD_C9XX_CSR_MCINDEX         0x7d3
+> > > +#define THEAD_C9XX_CSR_MCDATA0         0x7d4
+> > > +#define THEAD_C9XX_CSR_MCDATA1         0x7d5
+> > > +#define THEAD_C9XX_CSR_MEICR           0x7d6
+> > > +#define THEAD_C9XX_CSR_MEICR2          0x7d7
+> > > +#define THEAD_C9XX_CSR_MBEADDR         0x7d8
+> > > +#define THEAD_C9XX_CSR_MCPUID          0xfc0
+> > > +#define THEAD_C9XX_CSR_MAPBADDR                0xfc1
+> > > +#define THEAD_C9XX_CSR_MWMSR           0xfc2
+> > > +#define THEAD_C9XX_CSR_MHALTCAUSE      0xfe0
+> > > +#define THEAD_C9XX_CSR_MDBGINFO                0xfe1
+> > > +#define THEAD_C9XX_CSR_MPCFIFO         0xfe2
+> > > +
+> > > +/* T-HEAD C9xx S mode CSR.  */
+> > > +#define THEAD_C9XX_CSR_SXSTATUS                0x5c0
+> > > +#define THEAD_C9XX_CSR_SHCR            0x5c1
+> > > +#define THEAD_C9XX_CSR_SCER2           0x5c2
+> > > +#define THEAD_C9XX_CSR_SCER            0x5c3
+> > > +#define THEAD_C9XX_CSR_SCOUNTERINTEN   0x5c4
+> > > +#define THEAD_C9XX_CSR_SCOUNTEROF      0x5c5
+> > > +#define THEAD_C9XX_CSR_SHINT           0x5c6
+> > > +#define THEAD_C9XX_CSR_SHINT2          0x5c7
+> > > +#define THEAD_C9XX_CSR_SHPMINHIBIT     0x5c8
+> > > +#define THEAD_C9XX_CSR_SHPMCR          0x5c9
+> > > +#define THEAD_C9XX_CSR_SHPMSR          0x5ca
+> > > +#define THEAD_C9XX_CSR_SHPMER          0x5cb
+> > > +#define THEAD_C9XX_CSR_SL2CPID         0x5cc
+> > > +#define THEAD_C9XX_CSR_SL2WP           0x5cd
+> > > +#define THEAD_C9XX_CSR_SBEADDR         0x5d0
+> > > +#define THEAD_C9XX_CSR_SCYCLE          0x5e0
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER1    0x5e1
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER2    0x5e2
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER3    0x5e3
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER4    0x5e4
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER5    0x5e5
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER6    0x5e6
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER7    0x5e7
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER8    0x5e8
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER9    0x5e9
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER10   0x5ea
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER11   0x5eb
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER12   0x5ec
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER13   0x5ed
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER14   0x5ee
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER15   0x5ef
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER16   0x5f0
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER17   0x5f1
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER18   0x5f2
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER19   0x5f3
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER20   0x5f4
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER21   0x5f5
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER22   0x5f6
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER23   0x5f7
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER24   0x5f8
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER25   0x5f9
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER26   0x5fa
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER27   0x5fb
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER28   0x5fc
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER29   0x5fd
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER30   0x5fe
+> > > +#define THEAD_C9XX_CSR_SHPMCOUNTER31   0x5ff
+> > Have we used the above CSR_SH* CSR in the patchset series?
+> >
+> > > +
+> > > +/* T-HEAD C9xx U mode CSR.  */
+> > > +#define THEAD_C9XX_CSR_FXCR            0x800
+> > It's about the float point register, maybe it should not contain in
+> > the PMU patch.
+>
+> My intention was to directly introduce one semi-complete header
+> with the t-head extensions, so that people in the future don't need
+> to look this up in some vendor tree when adding support for
+> other stuff.
+>
+> I guess I'll leave that to SBI people to decide if that is ok or
+> if they want a minimal header instead.
+Okay, after csr_set/clear finished
 
-Signed-off-by: zhangdongdong <zhangdongdong@eswincomputing.com>
----
- docs/domain_support.md        |  6 +++---
- docs/library_usage.md         |  2 +-
- docs/platform_requirements.md |  2 +-
- docs/pmu_support.md           | 10 +++++-----
- 4 files changed, 10 insertions(+), 10 deletions(-)
+Reviewed-by: Guo Ren <guoren@kernel.org>
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 73931f1..8963b57 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -2,7 +2,7 @@ OpenSBI Domain Support
- ======================
- 
- An OpenSBI domain is a system-level partition (subset) of underlying hardware
--having it's own memory regions (RAM and MMIO devices) and HARTs. The OpenSBI
-+having its own memory regions (RAM and MMIO devices) and HARTs. The OpenSBI
- will try to achieve secure isolation between domains using RISC-V platform
- features such as PMP, ePMP, IOPMP, SiFive Shield, etc.
- 
-@@ -15,7 +15,7 @@ Important entities which help implement OpenSBI domain support are:
- Each HART of a RISC-V platform must have an OpenSBI domain assigned to it.
- The OpenSBI platform support is responsible for populating domains and
- providing HART id to domain mapping. The OpenSBI domain support will by
--default assign **the ROOT domain** to all HARTs of a RISC-V platform so
-+default assign **the ROOT domain** to all HARTs of a RISC-V platform, so
- it is not mandatory for the OpenSBI platform support to populate domains.
- 
- Domain Memory Region
-@@ -29,7 +29,7 @@ OpenSBI and has following details:
- * **base** - The base address of a memory region is **2 ^ order**
-   aligned start address
- * **flags** - The flags of a memory region represent memory type (i.e.
--  RAM or MMIO) and allowed accesses (i.e. READ, WRITE, EXECUTE, etc)
-+  RAM or MMIO) and allowed accesses (i.e. READ, WRITE, EXECUTE, etc.)
- 
- Domain Instance
- ---------------
-diff --git a/docs/library_usage.md b/docs/library_usage.md
-index d5d2ba9..bb64bc4 100644
---- a/docs/library_usage.md
-+++ b/docs/library_usage.md
-@@ -73,7 +73,7 @@ firmware drivers based on the external firmware architecture.
- **OPENSBI_EXTERNAL_SBI_TYPES** identifier is introduced to *sbi_types.h* for selecting
- external header file during the build preprocess in order to define OpensSBI data types
- based on external firmware data type binding.
--For example, *bool* is declared as *int* in sbi_types.h. However in EDK2 build system,
-+For example, *bool* is declared as *int* in sbi_types.h. However, in EDK2 build system,
- *bool* is declared as *BOOLEAN* which is defined as *unsigned char* data type.
- 
- External firmware can define **OPENSBI_EXTERNAL_SBI_TYPES** in CFLAGS and specify it to the
-diff --git a/docs/platform_requirements.md b/docs/platform_requirements.md
-index 68dc393..8735adb 100644
---- a/docs/platform_requirements.md
-+++ b/docs/platform_requirements.md
-@@ -10,7 +10,7 @@ To handle this, we have two types of RISC-V platform requirements:
- 2. **Release specific platform requirements** which apply to a OpenSBI
-    release and later releases
- 
--Currently, we don't have any **Release specific platform requirements**
-+Currently, we don't have any **Release specific platform requirements**,
- but such platform requirements will be added in future.
- 
- Base Platform Requirements
-diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-index d79b515..1db36fc 100644
---- a/docs/pmu_support.md
-+++ b/docs/pmu_support.md
-@@ -1,7 +1,7 @@
- OpenSBI SBI PMU extension support
- ==================================
- SBI PMU extension supports allow supervisor software to configure/start/stop
--any performance counter at anytime. Thus, an user can leverage full
-+any performance counter at anytime. Thus, a user can leverage full
- capability of performance analysis tools such as perf if SBI PMU extension is
- enabled. The OpenSBI implementation makes the following assumptions about the
- hardware platform.
-@@ -25,7 +25,7 @@ SBI PMU Device Tree Bindings
- ----------------------------
- 
- Platforms may choose to describe PMU event selector and event to counter mapping
--values via device tree. The following sections describes the PMU DT node
-+values via device tree. The following sections describe the PMU DT node
- bindings in details.
- 
- * **compatible** (Mandatory) - The compatible string of SBI PMU device tree node.
-@@ -42,7 +42,7 @@ This property shouldn't encode any raw hardware event.
- * **riscv,event-to-mhpmcounters**(Optional) - It represents a MANY-to-MANY
- mapping between a range of events and all the MHPMCOUNTERx in a bitmap format
- that can be used to monitor these range of events. The information is encoded in
--a table format where each row represent a certain range of events and
-+a table format where each row represents a certain range of events and
- corresponding counters. The first column represents starting of the pmu event id
- and 2nd column represents the end of the pmu event id. The third column
- represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
-@@ -53,10 +53,10 @@ shouldn't encode any raw event.
- or MANY-to-MANY mapping between the raw event(s) and all the MHPMCOUNTERx in
- a bitmap format that can be used to monitor that raw event. The encoding of the
- raw events are platform specific. The information is encoded in a table format
--where each row represent the specific raw event(s). The first column is a 64bit
-+where each row represents the specific raw event(s). The first column is a 64bit
- match value where the invariant bits of range of events are set. The second
- column is a 64 bit mask that will have all the variant bits of the range of
--events cleared. Every other bits should be set in the mask.
-+events cleared. All other bits should be set in the mask.
- The third column is a 32bit value to represent bitmap of all MHPMCOUNTERx that
- can monitor these set of event(s).
- If a platform directly encodes each raw PMU event as a unique ID, the value of
+>
+>
+> Heiko
+>
+>
+>
+
+
 -- 
-2.34.1.windows.1
-
+Best Regards
+ Guo Ren
 
