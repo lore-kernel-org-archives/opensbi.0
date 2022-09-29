@@ -1,9 +1,9 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 29 Sep 2022 01:12:44 -0700
-Subject: [PATCH v4 2/5] lib: sbi_pmu: move pmu irq information into pmu itself
-In-Reply-To: <20220926101607.731275-3-heiko@sntech.de>
-References: <20220926101607.731275-1-heiko@sntech.de> <20220926101607.731275-3-heiko@sntech.de>
-Message-ID: <CAOnJCUKDVg9O+16nnBNrhopTpyzHzLumJ+EQ-yf_hxe_0siH+g@mail.gmail.com>
+Date: Thu, 29 Sep 2022 01:28:57 -0700
+Subject: [PATCH v4 3/5] lib: sbi_pmu: add override for counter data
+In-Reply-To: <20220926101607.731275-4-heiko@sntech.de>
+References: <20220926101607.731275-1-heiko@sntech.de> <20220926101607.731275-4-heiko@sntech.de>
+Message-ID: <CAOnJCUKKwy2_WdMKYkFeMnb68ay0FSmuhkiGaKXBqAJyFApoXA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,92 +12,78 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Sep 26, 2022 at 3:18 AM Heiko Stuebner <heiko@sntech.de> wrote:
 >
-> Don't spread checking for pmu extensions through the code
-> but instead introduce a sbi-pmu function that other code can
-> call to get the correct information about the existence of the
-> pmu interrupt.
+> In general counter-data is auto-detected but some platforms
+> may implement counters in a way that breaks this detection.
 >
-> Add a sbi_pmu_device override function to allow overridung this
-> bit as well if needed.
+> Implement an abstraction that those platforms can hook into
+> and override the counter-data.
 >
 > Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 > ---
->  include/sbi/sbi_pmu.h |  8 ++++++++
->  lib/sbi/sbi_hart.c    |  4 ++--
->  lib/sbi/sbi_pmu.c     | 12 ++++++++++++
->  3 files changed, 22 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_pmu.h | 8 ++++++++
+>  lib/sbi/sbi_hart.c    | 7 +++++++
+>  lib/sbi/sbi_pmu.c     | 7 +++++++
+>  3 files changed, 22 insertions(+)
 >
 > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> index a2ce42d..c365243 100644
+> index c365243..d257b14 100644
 > --- a/include/sbi/sbi_pmu.h
 > +++ b/include/sbi/sbi_pmu.h
-> @@ -73,6 +73,11 @@ struct sbi_pmu_device {
->          * Note: 0 <= counter_index < SBI_PMU_HW_CTR_MAX
+> @@ -78,6 +78,11 @@ struct sbi_pmu_device {
+>          * Custom function returning the machine-specific irq-bit.
 >          */
->         void (*hw_counter_disable_irq)(uint32_t counter_index);
+>         int (*hw_counter_irq_bit)(void);
 > +
 > +       /**
-> +        * Custom function returning the machine-specific irq-bit.
+> +        * Override autodetected counter data.
 > +        */
-> +       int (*hw_counter_irq_bit)(void);
+> +       void (*hw_counter_data)(unsigned int *count, unsigned int *bits);
 >  };
 >
 >  /** Get the PMU platform device */
-> @@ -87,6 +92,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
->  /** Reset PMU during hart exit */
->  void sbi_pmu_exit(struct sbi_scratch *scratch);
+> @@ -95,6 +100,9 @@ void sbi_pmu_exit(struct sbi_scratch *scratch);
+>  /** Return the pmu irq bit depending on extension existence */
+>  int sbi_pmu_irq_bit(void);
 >
-> +/** Return the pmu irq bit depending on extension existence */
-> +int sbi_pmu_irq_bit(void);
+> +/** Allow non-standard platforms to override probed counter information */
+> +void sbi_pmu_override_counter_data(unsigned int *count, unsigned int *bits);
 > +
 >  /**
 >   * Add the hardware event to counter mapping information. This should be called
 >   * from the platform code to update the mapping table.
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 9540e5c..45fbcde 100644
+> index 45fbcde..6506a19 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -19,6 +19,7 @@
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_math.h>
->  #include <sbi/sbi_platform.h>
-> +#include <sbi/sbi_pmu.h>
->  #include <sbi/sbi_string.h>
->  #include <sbi/sbi_trap.h>
+> @@ -632,6 +632,13 @@ __mhpm_skip:
+>  #undef __check_csr_2
+>  #undef __check_csr
 >
-> @@ -208,8 +209,7 @@ static int delegate_traps(struct sbi_scratch *scratch)
->
->         /* Send M-mode interrupts and most exceptions to S-mode */
->         interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
-> -       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
-> -               interrupts |= MIP_LCOFIP;
-> +       interrupts |= sbi_pmu_irq_bit();
->
->         exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
->                      (1U << CAUSE_USER_ECALL);
+> +       /**
+> +        * Allow non-standard implementations to override the detected
+> +        * values for number of counters and bits.
+> +        */
+> +       sbi_pmu_override_counter_data(&hfeatures->mhpm_count,
+> +                                     &hfeatures->mhpm_bits);
+> +
+>         /* Detect if hart supports Priv v1.10 */
+>         val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
+>         if (!trap.cause)
 > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 214d5e8..91d9ccc 100644
+> index 91d9ccc..c8becf3 100644
 > --- a/lib/sbi/sbi_pmu.c
 > +++ b/lib/sbi/sbi_pmu.c
-> @@ -344,6 +344,18 @@ skip_inhibit_update:
+> @@ -852,3 +852,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>
 >         return 0;
 >  }
->
-> +int sbi_pmu_irq_bit(void)
+> +
+> +void sbi_pmu_override_counter_data(unsigned int *count,
+> +                                  unsigned int *bits)
 > +{
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +
-> +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
-> +               return MIP_LCOFIP;
-> +       if (pmu_dev && pmu_dev->hw_counter_irq_bit)
-> +               return pmu_dev->hw_counter_irq_bit();
-> +
-> +       return 0;
+> +       if (pmu_dev && pmu_dev->hw_counter_data)
+> +               pmu_dev->hw_counter_data(count, bits);
 > +}
-> +
->  static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
->                             uint64_t ival, bool ival_update)
->  {
 > --
 > 2.35.1
 >
@@ -107,8 +93,10 @@ On Mon, Sep 26, 2022 at 3:18 AM Heiko Stuebner <heiko@sntech.de> wrote:
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
-
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+We may need similar functionality in the future as well where the
+platform may override the hart feature details.
+Should we pass the hfeatures in the extension_init callback so that a
+specific platform override can access it ?
 
 -- 
 Regards,
