@@ -1,82 +1,72 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 3 Oct 2022 19:52:28 +0800
-Subject: [PATCH v2 10/12] lib: utils/ipi: Add PLICSW mmio region to root domain
+Date: Mon, 3 Oct 2022 19:52:29 +0800
+Subject: [PATCH v2 11/12] platform: andes/ae350: Add AE350 domain support
 In-Reply-To: <20221003115230.10127-1-peterlin@andestech.com>
 References: <20221003115230.10127-1-peterlin@andestech.com>
-Message-ID: <20221003115230.10127-11-peterlin@andestech.com>
+Message-ID: <20221003115230.10127-12-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PLICSW as mmio memregion in root domain at boot-time.
+Add domains_init platform hook for Andes AE350, users can add domain
+description in device tree and select FDT domain support in Kconfig
+to achieve system-level partitioning.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
- lib/utils/ipi/fdt_ipi_plicsw.c | 34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ platform/andes/ae350/platform.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/lib/utils/ipi/fdt_ipi_plicsw.c b/lib/utils/ipi/fdt_ipi_plicsw.c
-index 8788f74..3af92bd 100644
---- a/lib/utils/ipi/fdt_ipi_plicsw.c
-+++ b/lib/utils/ipi/fdt_ipi_plicsw.c
-@@ -10,6 +10,7 @@
-  *   Yu Chien Peter Lin <peterlin@andestech.com>
-  */
+diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
+index 30e4606..d36d11e 100644
+--- a/platform/andes/ae350/platform.c
++++ b/platform/andes/ae350/platform.c
+@@ -19,13 +19,14 @@
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_trap.h>
+-#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_domain.h>
+ #include <sbi_utils/fdt/fdt_fixup.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/ipi/fdt_ipi.h>
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/reset/fdt_reset.h>
+ #include <sbi_utils/serial/fdt_serial.h>
+ #include <sbi_utils/timer/fdt_timer.h>
+-#include <sbi_utils/ipi/fdt_ipi.h>
+ #include "platform.h"
+ #include "cache.h"
  
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -34,6 +35,34 @@ static int plicsw_warm_ipi_init(void)
+@@ -84,6 +85,7 @@ static int ae350_final_init(bool cold_boot)
+ 
+ 	fdt = fdt_get_address();
+ 	fdt_fixups(fdt);
++	fdt_domain_fixup(fdt);
+ 
  	return 0;
  }
+@@ -132,10 +134,17 @@ static int ae350_vendor_ext_provider(long extid, long funcid,
+ 	return ret;
+ }
  
-+static int andes_plicsw_add_regions(unsigned long addr, unsigned long size)
++static int ae350_domains_init(void)
 +{
-+#define PLICSW_ADD_REGION_ALIGN 0x1000
-+	int rc;
-+	unsigned long pos, end, region_size;
-+	struct sbi_domain_memregion reg;
-+
-+	pos = addr;
-+	end = addr + size;
-+	while (pos < end) {
-+		if (pos & (PLICSW_ADD_REGION_ALIGN - 1))
-+			region_size = 1UL << sbi_ffs(pos);
-+		else
-+			region_size = ((end - pos) < PLICSW_ADD_REGION_ALIGN)
-+					      ? (end - pos)
-+					      : PLICSW_ADD_REGION_ALIGN;
-+
-+		sbi_domain_memregion_init(pos, region_size,
-+					  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+		rc = sbi_domain_root_add_memregion(&reg);
-+		if (rc)
-+			return rc;
-+		pos += region_size;
-+	}
-+
-+	return 0;
++	return fdt_domains_populate(fdt_get_address());
 +}
 +
- static int plicsw_cold_ipi_init(void *fdt, int nodeoff,
- 				const struct fdt_match *match)
- {
-@@ -61,6 +90,11 @@ static int plicsw_cold_ipi_init(void *fdt, int nodeoff,
- 		enable_mask <<= 1;
- 	}
+ /* Platform descriptor. */
+ const struct sbi_platform_operations platform_ops = {
+ 	.final_init = ae350_final_init,
  
-+	/* Add PLICSW region to the root domain */
-+	rc = andes_plicsw_add_regions(plicsw.addr, plicsw.size);
-+	if (rc)
-+		return rc;
++	.domains_init = ae350_domains_init,
 +
- 	sbi_ipi_set_device(&plicsw_ipi);
+ 	.console_init = fdt_serial_init,
  
- 	return 0;
+ 	.irqchip_init = fdt_irqchip_init,
 -- 
 2.34.1
 
