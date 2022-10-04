@@ -1,78 +1,77 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Tue,  4 Oct 2022 18:42:25 +0200
-Subject: [PATCH v5 3/5] lib: sbi_platform: expose hart_features to extension_init callback
-In-Reply-To: <20221004164227.1381825-1-heiko@sntech.de>
-References: <20221004164227.1381825-1-heiko@sntech.de>
-Message-ID: <20221004164227.1381825-4-heiko@sntech.de>
+Date: Tue,  4 Oct 2022 18:42:22 +0200
+Subject: [PATCH v5 0/5] Add support for T-HEAD C9xx PMU extensions
+Message-ID: <20221004164227.1381825-1-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The platform-specific extension_init callback is supposed to
-set specific things for the platform opensbi is running on.
+The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
+Instead of implementing a separate interface into SBI as done in v1,
+we can add the C9XX tidbits with quite minimal overhead and leaverage
+the existing SBI pmu interface including giving access to the firmware
+counters.
 
-So it's also the right place to override specific hart_features
-if needed - when it's know that autodetection has provided
-wrong results for example.
+The current only hickup is the detection override in sbi_hart, where
+I still need to find out why the MHPMCOUNTERs are not writeable
+at _that_ point of the boot, but with this series on top of openSBI 1.1
+and the matching kernel perf patch I get reasonable results for example
+for:
 
-Suggested-by: Atish Patra <atishp@atishpatra.org>
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
----
- include/sbi/sbi_platform.h | 8 +++++---
- lib/sbi/sbi_hart.c         | 3 ++-
- 2 files changed, 7 insertions(+), 4 deletions(-)
+perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 87024db..722f27a 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -48,6 +48,7 @@
- struct sbi_domain_memregion;
- struct sbi_trap_info;
- struct sbi_trap_regs;
-+struct sbi_hart_features;
- 
- /** Possible feature flags of a platform */
- enum sbi_platform_features {
-@@ -90,7 +91,7 @@ struct sbi_platform_operations {
- 	int (*misa_get_xlen)(void);
- 
- 	/** Initialize (or populate) HART extensions for the platform */
--	int (*extensions_init)(void);
-+	int (*extensions_init)(struct sbi_hart_features *hfeatures);
- 
- 	/** Initialize (or populate) domains for the platform */
- 	int (*domains_init)(void);
-@@ -464,10 +465,11 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
-  * @return 0 on success and negative error code on failure
-  */
- static inline int sbi_platform_extensions_init(
--					const struct sbi_platform *plat)
-+					const struct sbi_platform *plat,
-+					struct sbi_hart_features *hfeatures)
- {
- 	if (plat && sbi_platform_ops(plat)->extensions_init)
--		return sbi_platform_ops(plat)->extensions_init();
-+		return sbi_platform_ops(plat)->extensions_init(hfeatures);
- 	return 0;
- }
- 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index d0a6295..dacab1a 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -672,7 +672,8 @@ __mhpm_skip:
- 	}
- 
- 	/* Let platform populate extensions */
--	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
-+	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
-+					  hfeatures);
- 	if (rc)
- 		return rc;
- 
+ Performance counter stats for 'ls':
+
+          17119496      cycles
+           2867765      instructions              #    0.17  insn per cycle
+             55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
+           3467346      L1-icache-loads
+
+       0.030156216 seconds time elapsed
+
+       0.000000000 seconds user
+       0.023496000 seconds sys
+
+changes in v5:
+- use csr_set, csr_clear in allwinner pmu functions
+- expose hart_features struct into header
+- make hart_features param for extension_init callback
+  to allow platforms to override specific settings
+
+changes in v4:
+- use the new sbi_pmu_device structure for holding the
+  overrides and extend it where needed
+
+changes in v3:
+- follow Atish's advice and implement an abstraction
+  to not pollute the core pmu with cpu-specific variants
+
+changes in v2:
+- don't implement a separate interface but instead modify
+  the sbi-pmu to allow the c9xx to use standard pmu interface
+
+
+Heiko Stuebner (5):
+  lib: sbi_pmu: move pmu irq information into pmu itself
+  lib: sbi_hart: move hart_features struct to a public location
+  lib: sbi_platform: expose hart_features to extension_init callback
+  platform: generic: add extensions_init handler and platform-override
+  platform: generic: allwinner: add support for c9xx pmu
+
+ include/sbi/sbi_hart.h                       |  11 ++
+ include/sbi/sbi_platform.h                   |   8 +-
+ include/sbi/sbi_pmu.h                        |   8 ++
+ lib/sbi/sbi_hart.c                           |  43 +++----
+ lib/sbi/sbi_pmu.c                            |  12 ++
+ platform/generic/allwinner/sun20i-d1.c       |  60 +++++++++
+ platform/generic/include/platform_override.h |   3 +
+ platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
+ platform/generic/platform.c                  |  10 ++
+ 9 files changed, 253 insertions(+), 29 deletions(-)
+ create mode 100644 platform/generic/include/thead_c9xx.h
+
 -- 
 2.35.1
 
