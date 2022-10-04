@@ -1,77 +1,73 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Tue,  4 Oct 2022 18:42:22 +0200
-Subject: [PATCH v5 0/5] Add support for T-HEAD C9xx PMU extensions
-Message-ID: <20221004164227.1381825-1-heiko@sntech.de>
+Date: Tue,  4 Oct 2022 18:42:26 +0200
+Subject: [PATCH v5 4/5] platform: generic: add extensions_init handler and platform-override
+In-Reply-To: <20221004164227.1381825-1-heiko@sntech.de>
+References: <20221004164227.1381825-1-heiko@sntech.de>
+Message-ID: <20221004164227.1381825-5-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
-Instead of implementing a separate interface into SBI as done in v1,
-we can add the C9XX tidbits with quite minimal overhead and leaverage
-the existing SBI pmu interface including giving access to the firmware
-counters.
+Init of non-standard extensions is a platform-specific thing,
+so allow generic platforms to do this via a platform-override.
 
-The current only hickup is the detection override in sbi_hart, where
-I still need to find out why the MHPMCOUNTERs are not writeable
-at _that_ point of the boot, but with this series on top of openSBI 1.1
-and the matching kernel perf patch I get reasonable results for example
-for:
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ platform/generic/include/platform_override.h |  3 +++
+ platform/generic/platform.c                  | 10 ++++++++++
+ 2 files changed, 13 insertions(+)
 
-perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
-
- Performance counter stats for 'ls':
-
-          17119496      cycles
-           2867765      instructions              #    0.17  insn per cycle
-             55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
-           3467346      L1-icache-loads
-
-       0.030156216 seconds time elapsed
-
-       0.000000000 seconds user
-       0.023496000 seconds sys
-
-changes in v5:
-- use csr_set, csr_clear in allwinner pmu functions
-- expose hart_features struct into header
-- make hart_features param for extension_init callback
-  to allow platforms to override specific settings
-
-changes in v4:
-- use the new sbi_pmu_device structure for holding the
-  overrides and extend it where needed
-
-changes in v3:
-- follow Atish's advice and implement an abstraction
-  to not pollute the core pmu with cpu-specific variants
-
-changes in v2:
-- don't implement a separate interface but instead modify
-  the sbi-pmu to allow the c9xx to use standard pmu interface
-
-
-Heiko Stuebner (5):
-  lib: sbi_pmu: move pmu irq information into pmu itself
-  lib: sbi_hart: move hart_features struct to a public location
-  lib: sbi_platform: expose hart_features to extension_init callback
-  platform: generic: add extensions_init handler and platform-override
-  platform: generic: allwinner: add support for c9xx pmu
-
- include/sbi/sbi_hart.h                       |  11 ++
- include/sbi/sbi_platform.h                   |   8 +-
- include/sbi/sbi_pmu.h                        |   8 ++
- lib/sbi/sbi_hart.c                           |  43 +++----
- lib/sbi/sbi_pmu.c                            |  12 ++
- platform/generic/allwinner/sun20i-d1.c       |  60 +++++++++
- platform/generic/include/platform_override.h |   3 +
- platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
- platform/generic/platform.c                  |  10 ++
- 9 files changed, 253 insertions(+), 29 deletions(-)
- create mode 100644 platform/generic/include/thead_c9xx.h
-
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index e55da25..7f1558d 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -10,6 +10,7 @@
+ #ifndef __PLATFORM_OVERRIDE_H__
+ #define __PLATFORM_OVERRIDE_H__
+ 
++#include <sbi/sbi_hart.h>
+ #include <sbi/sbi_types.h>
+ #include <sbi/sbi_trap.h>
+ 
+@@ -22,6 +23,8 @@ struct platform_override {
+ 	void (*early_exit)(const struct fdt_match *match);
+ 	void (*final_exit)(const struct fdt_match *match);
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
++	int (*extensions_init)(const struct fdt_match *match,
++			       struct sbi_hart_features *hfeatures);
+ 	int (*vendor_ext_check)(long extid, const struct fdt_match *match);
+ 	int (*vendor_ext_provider)(long extid, long funcid,
+ 				   const struct sbi_trap_regs *regs,
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index bf51aba..595b0fd 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -204,6 +204,15 @@ static void generic_final_exit(void)
+ 		generic_plat->final_exit(generic_plat_match);
+ }
+ 
++static int generic_extensions_init(struct sbi_hart_features *hfeatures)
++{
++	if (generic_plat && generic_plat->extensions_init)
++		return generic_plat->extensions_init(generic_plat_match,
++						     hfeatures);
++
++	return 0;
++}
++
+ static int generic_domains_init(void)
+ {
+ 	return fdt_domains_populate(fdt_get_address());
+@@ -257,6 +266,7 @@ const struct sbi_platform_operations platform_ops = {
+ 	.final_init		= generic_final_init,
+ 	.early_exit		= generic_early_exit,
+ 	.final_exit		= generic_final_exit,
++	.extensions_init	= generic_extensions_init,
+ 	.domains_init		= generic_domains_init,
+ 	.console_init		= generic_console_init,
+ 	.irqchip_init		= fdt_irqchip_init,
 -- 
 2.35.1
 
