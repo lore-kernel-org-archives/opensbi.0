@@ -1,230 +1,104 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 3 Oct 2022 19:52:30 +0800
-Subject: [PATCH v2 12/12] docs: andes-ae350.md: Update ae350 documentation for fdt driver support
-In-Reply-To: <20221003115230.10127-1-peterlin@andestech.com>
-References: <20221003115230.10127-1-peterlin@andestech.com>
-Message-ID: <20221003115230.10127-13-peterlin@andestech.com>
+From: Heiko Stuebner <heiko@sntech.de>
+Date: Tue,  4 Oct 2022 18:42:23 +0200
+Subject: [PATCH v5 1/5] lib: sbi_pmu: move pmu irq information into pmu itself
+In-Reply-To: <20221004164227.1381825-1-heiko@sntech.de>
+References: <20221004164227.1381825-1-heiko@sntech.de>
+Message-ID: <20221004164227.1381825-2-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We update ae350 documentation to add details about platform device tree.
-The nodes and their properties must be provided to properly initialize
-data of underlying hardware and access their mmio registers.
+Don't spread checking for pmu extensions through the code
+but instead introduce a sbi-pmu function that other code can
+call to get the correct information about the existence of the
+pmu interrupt.
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Add a sbi_pmu_device override function to allow overridung this
+bit as well if needed.
+
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Reviewed-by: Guo Ren <guoren@kernel.org>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 ---
- docs/platform/andes-ae350.md | 191 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 187 insertions(+), 4 deletions(-)
+ include/sbi/sbi_pmu.h |  8 ++++++++
+ lib/sbi/sbi_hart.c    |  4 ++--
+ lib/sbi/sbi_pmu.c     | 12 ++++++++++++
+ 3 files changed, 22 insertions(+), 2 deletions(-)
 
-diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
-index 1cf83cf..bfbfcf8 100644
---- a/docs/platform/andes-ae350.md
-+++ b/docs/platform/andes-ae350.md
-@@ -18,13 +18,196 @@ The Andes AE350 platform does not have any platform-specific options.
- Building Andes AE350 Platform
- -----------------------------
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index a2ce42d..c365243 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -73,6 +73,11 @@ struct sbi_pmu_device {
+ 	 * Note: 0 <= counter_index < SBI_PMU_HW_CTR_MAX
+ 	 */
+ 	void (*hw_counter_disable_irq)(uint32_t counter_index);
++
++	/**
++	 * Custom function returning the machine-specific irq-bit.
++	 */
++	int (*hw_counter_irq_bit)(void);
+ };
  
--To use Linux v5.2 should be used to build Andes AE350 OpenSBI binaries by using
--the compile time option FW_FDT_PATH.
--
--AE350's dts is included in https://github.com/andestech/linux/tree/ast-v3_2_0-release-public
-+AE350's dts is included in https://github.com/andestech/linux/tree/RISCV-Linux-5.4-ast-v5_1_0-branch
+ /** Get the PMU platform device */
+@@ -87,6 +92,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
+ /** Reset PMU during hart exit */
+ void sbi_pmu_exit(struct sbi_scratch *scratch);
  
- **Linux Kernel Payload**
++/** Return the pmu irq bit depending on extension existence */
++int sbi_pmu_irq_bit(void);
++
+ /**
+  * Add the hardware event to counter mapping information. This should be called
+  * from the platform code to update the mapping table.
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 1294868..447f99e 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -19,6 +19,7 @@
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_math.h>
+ #include <sbi/sbi_platform.h>
++#include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_trap.h>
  
- ```
- make PLATFORM=andes/ae350 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
- ```
+@@ -208,8 +209,7 @@ static int delegate_traps(struct sbi_scratch *scratch)
+ 
+ 	/* Send M-mode interrupts and most exceptions to S-mode */
+ 	interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
+-	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+-		interrupts |= MIP_LCOFIP;
++	interrupts |= sbi_pmu_irq_bit();
+ 
+ 	exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
+ 		     (1U << CAUSE_USER_ECALL);
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 214d5e8..91d9ccc 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -344,6 +344,18 @@ skip_inhibit_update:
+ 	return 0;
+ }
+ 
++int sbi_pmu_irq_bit(void)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 +
-+DTS Example: (Quad-core AX45MP)
-+-------------------------------
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		return MIP_LCOFIP;
++	if (pmu_dev && pmu_dev->hw_counter_irq_bit)
++		return pmu_dev->hw_counter_irq_bit();
 +
-+```
-+	cpus {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		timebase-frequency = <60000000>;
++	return 0;
++}
 +
-+		CPU0: cpu at 0 {
-+			device_type = "cpu";
-+			reg = <0>;
-+			status = "okay";
-+			compatible = "riscv";
-+			riscv,isa = "rv64imafdc";
-+			riscv,priv-major = <1>;
-+			riscv,priv-minor = <10>;
-+			mmu-type = "riscv,sv48";
-+			clock-frequency = <60000000>;
-+			i-cache-size = <0x8000>;
-+			i-cache-sets = <256>;
-+			i-cache-line-size = <64>;
-+			i-cache-block-size = <64>;
-+			d-cache-size = <0x8000>;
-+			d-cache-sets = <128>;
-+			d-cache-line-size = <64>;
-+			d-cache-block-size = <64>;
-+			next-level-cache = <&L2>;
-+			CPU0_intc: interrupt-controller {
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				compatible = "riscv,cpu-intc";
-+			};
-+		};
-+		CPU1: cpu at 1 {
-+			device_type = "cpu";
-+			reg = <1>;
-+			status = "okay";
-+			compatible = "riscv";
-+			riscv,isa = "rv64imafdc";
-+			riscv,priv-major = <1>;
-+			riscv,priv-minor = <10>;
-+			mmu-type = "riscv,sv48";
-+			clock-frequency = <60000000>;
-+			i-cache-size = <0x8000>;
-+			i-cache-sets = <256>;
-+			i-cache-line-size = <64>;
-+			i-cache-block-size = <64>;
-+			d-cache-size = <0x8000>;
-+			d-cache-sets = <128>;
-+			d-cache-line-size = <64>;
-+			d-cache-block-size = <64>;
-+			next-level-cache = <&L2>;
-+			CPU1_intc: interrupt-controller {
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				compatible = "riscv,cpu-intc";
-+			};
-+		};
-+		CPU2: cpu at 2 {
-+			device_type = "cpu";
-+			reg = <2>;
-+			status = "okay";
-+			compatible = "riscv";
-+			riscv,isa = "rv64imafdc";
-+			riscv,priv-major = <1>;
-+			riscv,priv-minor = <10>;
-+			mmu-type = "riscv,sv48";
-+			clock-frequency = <60000000>;
-+			i-cache-size = <0x8000>;
-+			i-cache-sets = <256>;
-+			i-cache-line-size = <64>;
-+			i-cache-block-size = <64>;
-+			d-cache-size = <0x8000>;
-+			d-cache-sets = <128>;
-+			d-cache-line-size = <64>;
-+			d-cache-block-size = <64>;
-+			next-level-cache = <&L2>;
-+			CPU2_intc: interrupt-controller {
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				compatible = "riscv,cpu-intc";
-+			};
-+		};
-+		CPU3: cpu at 3 {
-+			device_type = "cpu";
-+			reg = <3>;
-+			status = "okay";
-+			compatible = "riscv";
-+			riscv,isa = "rv64imafdc";
-+			riscv,priv-major = <1>;
-+			riscv,priv-minor = <10>;
-+			mmu-type = "riscv,sv48";
-+			clock-frequency = <60000000>;
-+			i-cache-size = <0x8000>;
-+			i-cache-sets = <256>;
-+			i-cache-line-size = <64>;
-+			i-cache-block-size = <64>;
-+			d-cache-size = <0x8000>;
-+			d-cache-sets = <128>;
-+			d-cache-line-size = <64>;
-+			d-cache-block-size = <64>;
-+			next-level-cache = <&L2>;
-+			CPU3_intc: interrupt-controller {
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				compatible = "riscv,cpu-intc";
-+			};
-+		};
-+	};
-+
-+	soc {
-+		#address-cells = <2>;
-+		#size-cells = <2>;
-+		compatible = "andestech,riscv-ae350-soc", "simple-bus";
-+		ranges;
-+
-+		plic0: interrupt-controller at e4000000 {
-+			compatible = "riscv,plic0";
-+			reg = <0x00000000 0xe4000000 0x00000000 0x02000000>;
-+			interrupts-extended = <
-+				&CPU0_intc 11 &CPU0_intc 9
-+				&CPU1_intc 11 &CPU1_intc 9
-+				&CPU2_intc 11 &CPU2_intc 9
-+				&CPU3_intc 11 &CPU3_intc 9
-+				>;
-+			interrupt-controller;
-+			#address-cells = <2>;
-+			#interrupt-cells = <2>;
-+			riscv,ndev = <71>;
-+		};
-+
-+		plicsw: interrupt-controller at e6400000 {
-+			compatible = "andestech,plicsw";
-+			reg = <0x00000000 0xe6400000 0x00000000 0x00400000>;
-+			interrupts-extended = <
-+				&CPU0_intc 3
-+				&CPU1_intc 3
-+				&CPU2_intc 3
-+				&CPU3_intc 3
-+				>;
-+			interrupt-controller;
-+			#address-cells = <2>;
-+			#interrupt-cells = <2>;
-+			riscv,ndev = <4>;
-+		};
-+
-+		plmt0: plmt0 at e6000000 {
-+			compatible = "andestech,plmt0";
-+			reg = <0x00000000 0xe6000000 0x00000000 0x00100000>;
-+			interrupts-extended = <
-+				&CPU0_intc 7
-+				&CPU1_intc 7
-+				&CPU2_intc 7
-+				&CPU3_intc 7
-+				>;
-+		};
-+
-+		wdt: wdt at f0500000 {
-+			compatible = "andestech,atcwdt200";
-+			reg = <0x00000000 0xf0500000 0x00000000 0x00001000>;
-+			interrupts = <3 4>;
-+			interrupt-parent = <&plic0>;
-+			clock-frequency = <15000000>;
-+		};
-+
-+		serial0: serial at f0300000 {
-+			compatible = "andestech,uart16550", "ns16550a";
-+			reg = <0x00000000 0xf0300000 0x00000000 0x00001000>;
-+			interrupts = <9 4>;
-+			interrupt-parent = <&plic0>;
-+			clock-frequency = <19660800>;
-+			current-speed = <38400>;
-+			reg-shift = <2>;
-+			reg-offset = <32>;
-+			reg-io-width = <4>;
-+			no-loopback-test = <1>;
-+		};
-+
-+		smu: smu at f0100000 {
-+			compatible = "andestech,atcsmu";
-+			reg = <0x00000000 0xf0100000 0x00000000 0x00001000>;
-+		};
-+	};
-+```
+ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
+ 			    uint64_t ival, bool ival_update)
+ {
 -- 
-2.34.1
+2.35.1
 
 
