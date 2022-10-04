@@ -1,103 +1,78 @@
 From: Heiko Stuebner <heiko@sntech.de>
-Date: Tue,  4 Oct 2022 18:42:23 +0200
-Subject: [PATCH v5 1/5] lib: sbi_pmu: move pmu irq information into pmu itself
+Date: Tue,  4 Oct 2022 18:42:25 +0200
+Subject: [PATCH v5 3/5] lib: sbi_platform: expose hart_features to extension_init callback
 In-Reply-To: <20221004164227.1381825-1-heiko@sntech.de>
 References: <20221004164227.1381825-1-heiko@sntech.de>
-Message-ID: <20221004164227.1381825-2-heiko@sntech.de>
+Message-ID: <20221004164227.1381825-4-heiko@sntech.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Don't spread checking for pmu extensions through the code
-but instead introduce a sbi-pmu function that other code can
-call to get the correct information about the existence of the
-pmu interrupt.
+The platform-specific extension_init callback is supposed to
+set specific things for the platform opensbi is running on.
 
-Add a sbi_pmu_device override function to allow overridung this
-bit as well if needed.
+So it's also the right place to override specific hart_features
+if needed - when it's know that autodetection has provided
+wrong results for example.
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
-Reviewed-by: Guo Ren <guoren@kernel.org>
+Suggested-by: Atish Patra <atishp@atishpatra.org>
 Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 ---
- include/sbi/sbi_pmu.h |  8 ++++++++
- lib/sbi/sbi_hart.c    |  4 ++--
- lib/sbi/sbi_pmu.c     | 12 ++++++++++++
- 3 files changed, 22 insertions(+), 2 deletions(-)
+ include/sbi/sbi_platform.h | 8 +++++---
+ lib/sbi/sbi_hart.c         | 3 ++-
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-index a2ce42d..c365243 100644
---- a/include/sbi/sbi_pmu.h
-+++ b/include/sbi/sbi_pmu.h
-@@ -73,6 +73,11 @@ struct sbi_pmu_device {
- 	 * Note: 0 <= counter_index < SBI_PMU_HW_CTR_MAX
- 	 */
- 	void (*hw_counter_disable_irq)(uint32_t counter_index);
-+
-+	/**
-+	 * Custom function returning the machine-specific irq-bit.
-+	 */
-+	int (*hw_counter_irq_bit)(void);
- };
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 87024db..722f27a 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -48,6 +48,7 @@
+ struct sbi_domain_memregion;
+ struct sbi_trap_info;
+ struct sbi_trap_regs;
++struct sbi_hart_features;
  
- /** Get the PMU platform device */
-@@ -87,6 +92,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
- /** Reset PMU during hart exit */
- void sbi_pmu_exit(struct sbi_scratch *scratch);
+ /** Possible feature flags of a platform */
+ enum sbi_platform_features {
+@@ -90,7 +91,7 @@ struct sbi_platform_operations {
+ 	int (*misa_get_xlen)(void);
  
-+/** Return the pmu irq bit depending on extension existence */
-+int sbi_pmu_irq_bit(void);
-+
- /**
-  * Add the hardware event to counter mapping information. This should be called
-  * from the platform code to update the mapping table.
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 1294868..447f99e 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -19,6 +19,7 @@
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_math.h>
- #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_pmu.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_trap.h>
+ 	/** Initialize (or populate) HART extensions for the platform */
+-	int (*extensions_init)(void);
++	int (*extensions_init)(struct sbi_hart_features *hfeatures);
  
-@@ -208,8 +209,7 @@ static int delegate_traps(struct sbi_scratch *scratch)
- 
- 	/* Send M-mode interrupts and most exceptions to S-mode */
- 	interrupts = MIP_SSIP | MIP_STIP | MIP_SEIP;
--	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
--		interrupts |= MIP_LCOFIP;
-+	interrupts |= sbi_pmu_irq_bit();
- 
- 	exceptions = (1U << CAUSE_MISALIGNED_FETCH) | (1U << CAUSE_BREAKPOINT) |
- 		     (1U << CAUSE_USER_ECALL);
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 214d5e8..91d9ccc 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -344,6 +344,18 @@ skip_inhibit_update:
+ 	/** Initialize (or populate) domains for the platform */
+ 	int (*domains_init)(void);
+@@ -464,10 +465,11 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
+  * @return 0 on success and negative error code on failure
+  */
+ static inline int sbi_platform_extensions_init(
+-					const struct sbi_platform *plat)
++					const struct sbi_platform *plat,
++					struct sbi_hart_features *hfeatures)
+ {
+ 	if (plat && sbi_platform_ops(plat)->extensions_init)
+-		return sbi_platform_ops(plat)->extensions_init();
++		return sbi_platform_ops(plat)->extensions_init(hfeatures);
  	return 0;
  }
  
-+int sbi_pmu_irq_bit(void)
-+{
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
-+		return MIP_LCOFIP;
-+	if (pmu_dev && pmu_dev->hw_counter_irq_bit)
-+		return pmu_dev->hw_counter_irq_bit();
-+
-+	return 0;
-+}
-+
- static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
- 			    uint64_t ival, bool ival_update)
- {
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index d0a6295..dacab1a 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -672,7 +672,8 @@ __mhpm_skip:
+ 	}
+ 
+ 	/* Let platform populate extensions */
+-	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
++	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
++					  hfeatures);
+ 	if (rc)
+ 		return rc;
+ 
 -- 
 2.35.1
 
