@@ -1,188 +1,90 @@
-From: Heiko Stuebner <heiko@sntech.de>
-Date: Tue,  4 Oct 2022 18:42:24 +0200
-Subject: [PATCH v5 2/5] lib: sbi_hart: move hart_features struct to a public location
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 4 Oct 2022 19:15:54 +0200
+Subject: [PATCH v5 0/5] Add support for T-HEAD C9xx PMU extensions
 In-Reply-To: <20221004164227.1381825-1-heiko@sntech.de>
 References: <20221004164227.1381825-1-heiko@sntech.de>
-Message-ID: <20221004164227.1381825-3-heiko@sntech.de>
+Message-ID: <20221004171554.cfq6rhf45hndcvz2@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Platforms may need to override auto-detected hart features
-in their override functions. So move the hart_features
-struct to the sbi_hart.h header allowing us to pass it over
-to platform-handlers.
+On Tue, Oct 04, 2022 at 06:42:22PM +0200, Heiko Stuebner wrote:
+> The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
+> Instead of implementing a separate interface into SBI as done in v1,
+> we can add the C9XX tidbits with quite minimal overhead and leaverage
+> the existing SBI pmu interface including giving access to the firmware
+> counters.
+> 
+> The current only hickup is the detection override in sbi_hart, where
+> I still need to find out why the MHPMCOUNTERs are not writeable
+> at _that_ point of the boot, but with this series on top of openSBI 1.1
+> and the matching kernel perf patch I get reasonable results for example
+> for:
+> 
+> perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
+> 
+>  Performance counter stats for 'ls':
+> 
+>           17119496      cycles
+>            2867765      instructions              #    0.17  insn per cycle
+>              55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
+>            3467346      L1-icache-loads
+> 
+>        0.030156216 seconds time elapsed
+> 
+>        0.000000000 seconds user
+>        0.023496000 seconds sys
+> 
+> changes in v5:
+> - use csr_set, csr_clear in allwinner pmu functions
+> - expose hart_features struct into header
+> - make hart_features param for extension_init callback
+>   to allow platforms to override specific settings
+> 
+> changes in v4:
+> - use the new sbi_pmu_device structure for holding the
+>   overrides and extend it where needed
+> 
+> changes in v3:
+> - follow Atish's advice and implement an abstraction
+>   to not pollute the core pmu with cpu-specific variants
+> 
+> changes in v2:
+> - don't implement a separate interface but instead modify
+>   the sbi-pmu to allow the c9xx to use standard pmu interface
+> 
+> 
+> Heiko Stuebner (5):
+>   lib: sbi_pmu: move pmu irq information into pmu itself
+>   lib: sbi_hart: move hart_features struct to a public location
+>   lib: sbi_platform: expose hart_features to extension_init callback
+>   platform: generic: add extensions_init handler and platform-override
+>   platform: generic: allwinner: add support for c9xx pmu
+> 
+>  include/sbi/sbi_hart.h                       |  11 ++
+>  include/sbi/sbi_platform.h                   |   8 +-
+>  include/sbi/sbi_pmu.h                        |   8 ++
+>  lib/sbi/sbi_hart.c                           |  43 +++----
+>  lib/sbi/sbi_pmu.c                            |  12 ++
+>  platform/generic/allwinner/sun20i-d1.c       |  60 +++++++++
+>  platform/generic/include/platform_override.h |   3 +
+>  platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
+>  platform/generic/platform.c                  |  10 ++
+>  9 files changed, 253 insertions(+), 29 deletions(-)
+>  create mode 100644 platform/generic/include/thead_c9xx.h
+> 
+> -- 
+> 2.35.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Suggested-by: Atish Patra <atishp@atishpatra.org>
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
----
- include/sbi/sbi_hart.h | 11 +++++++++++
- lib/sbi/sbi_hart.c     | 36 +++++++++++++-----------------------
- 2 files changed, 24 insertions(+), 23 deletions(-)
+For the series
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 0032364..95b40e7 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -41,6 +41,17 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_MAX,
- };
- 
-+struct sbi_hart_features {
-+	bool detected;
-+	int priv_version;
-+	unsigned long extensions;
-+	unsigned int pmp_count;
-+	unsigned int pmp_addr_bits;
-+	unsigned long pmp_gran;
-+	unsigned int mhpm_count;
-+	unsigned int mhpm_bits;
-+};
-+
- struct sbi_scratch;
- 
- int sbi_hart_reinit(struct sbi_scratch *scratch);
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 447f99e..d0a6295 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -28,16 +28,6 @@ extern void __sbi_expected_trap_hext(void);
- 
- void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
- 
--struct hart_features {
--	bool detected;
--	int priv_version;
--	unsigned long extensions;
--	unsigned int pmp_count;
--	unsigned int pmp_addr_bits;
--	unsigned long pmp_gran;
--	unsigned int mhpm_count;
--	unsigned int mhpm_bits;
--};
- static unsigned long hart_features_offset;
- 
- static void mstatus_init(struct sbi_scratch *scratch)
-@@ -254,7 +244,7 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
- 
- unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	return hfeatures->mhpm_count;
-@@ -262,7 +252,7 @@ unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
- 
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	return hfeatures->pmp_count;
-@@ -270,7 +260,7 @@ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
- 
- unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	return hfeatures->pmp_gran;
-@@ -278,7 +268,7 @@ unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch)
- 
- unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	return hfeatures->pmp_addr_bits;
-@@ -286,7 +276,7 @@ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
- 
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	return hfeatures->mhpm_bits;
-@@ -336,7 +326,7 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 
- int sbi_hart_priv_version(struct sbi_scratch *scratch)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	return hfeatures->priv_version;
-@@ -346,7 +336,7 @@ void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
- 				   char *version_str, int nvstr)
- {
- 	char *temp;
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	switch (hfeatures->priv_version) {
-@@ -368,7 +358,7 @@ void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
- }
- 
- static inline void __sbi_hart_update_extension(
--					struct hart_features *hfeatures,
-+					struct sbi_hart_features *hfeatures,
- 					enum sbi_hart_extensions ext,
- 					bool enable)
- {
-@@ -389,7 +379,7 @@ void sbi_hart_update_extension(struct sbi_scratch *scratch,
- 			       enum sbi_hart_extensions ext,
- 			       bool enable)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	__sbi_hart_update_extension(hfeatures, ext, enable);
-@@ -405,7 +395,7 @@ void sbi_hart_update_extension(struct sbi_scratch *scratch,
- bool sbi_hart_has_extension(struct sbi_scratch *scratch,
- 			    enum sbi_hart_extensions ext)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
- 	if (hfeatures->extensions & BIT(ext))
-@@ -453,7 +443,7 @@ static inline char *sbi_hart_extension_id2string(int ext)
- void sbi_hart_get_extensions_str(struct sbi_scratch *scratch,
- 				 char *extensions_str, int nestr)
- {
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 	int offset = 0, ext = 0;
- 	char *temp;
-@@ -539,7 +529,7 @@ static int hart_pmu_get_allowed_bits(void)
- static int hart_detect_features(struct sbi_scratch *scratch)
- {
- 	struct sbi_trap_info trap = {0};
--	struct hart_features *hfeatures =
-+	struct sbi_hart_features *hfeatures =
- 		sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 	unsigned long val, oldval;
- 	int rc;
-@@ -718,7 +708,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
- 
- 		hart_features_offset = sbi_scratch_alloc_offset(
--						sizeof(struct hart_features));
-+					sizeof(struct sbi_hart_features));
- 		if (!hart_features_offset)
- 			return SBI_ENOMEM;
- 	}
--- 
-2.35.1
-
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
