@@ -1,48 +1,42 @@
 From: Vivian Wang <dramforever@live.com>
-Date: Tue, 11 Oct 2022 00:33:02 +0800
-Subject: [PATCH 0/3] Add Kconfig option for each extension
-Message-ID: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Date: Tue, 11 Oct 2022 00:34:43 +0800
+Subject: [PATCH 1/3] Makefile: Add rules for carray sources in lib/sbi
+In-Reply-To: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <TYYP286MB14397F96761E23EB9E84A3BEC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series adds support for disabling SBI extensions via Kconfig. In
-the future, Kconfig can also be used to disable obsolete extensions by
-default.
+Add back the missing rules needed to build carray files in lib/sbi. This
+allows future usage of carray in lib/sbi.
 
-All of the SBI extensions except Base extension is optional [1]. Users
-of OpenSBI may wish to disable support for some of the extensions for
-reasons such as:
+Fixes: de80e9337d81 ("Makefile: Compile lib/utils sources separately for each platform")
+Signed-off-by: Vivian Wang <dramforever@live.com>
+---
+ Makefile | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-- Future-proofing S-mode software, replacing SBI calls with
-  new ISA functionality.
-- Testing S-mode software to make sure they work correctly without
-  certain extensions present.
-- Disabling unused extensions to minimize the attack surface of M-mode
-  software. See [2].
-
-[1]: https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc#1-introduction
-[2]: https://github.com/riscv-non-isa/riscv-sbi-doc/issues/102
-
-Vivian Wang (3):
-  Makefile: Add rules for carray sources in lib/sbi
-  lib: sbi_ecall: Generate extensions list with carray
-  lib: sbi_ecall: Add Kconfig option for each extension
-
- Kconfig                       |  2 ++
- Makefile                      |  7 +++++++
- include/sbi/sbi_ecall.h       | 10 ---------
- lib/sbi/Kconfig               | 37 +++++++++++++++++++++++++++++++++
- lib/sbi/objects.mk            | 28 ++++++++++++++++++-------
- lib/sbi/sbi_ecall.c           | 39 ++++++++++-------------------------
- lib/sbi/sbi_ecall_exts.carray |  3 +++
- lib/sbi/sbi_ecall_replace.c   |  8 +++++++
- 8 files changed, 89 insertions(+), 45 deletions(-)
- create mode 100644 lib/sbi/Kconfig
- create mode 100644 lib/sbi/sbi_ecall_exts.carray
-
+diff --git a/Makefile b/Makefile
+index 0ab9f22..2a3d080 100644
+--- a/Makefile
++++ b/Makefile
+@@ -478,6 +478,13 @@ $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
+ $(platform_build_dir)/lib/libplatsbi.a: $(libsbi-objs-path-y) $(libsbiutils-objs-path-y) $(platform-objs-path-y)
+ 	$(call compile_ar,$@,$^)
+ 
++$(build_dir)/%.dep: $(src_dir)/%.carray $(KCONFIG_CONFIG)
++	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
++	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
++
++$(build_dir)/%.c: $(src_dir)/%.carray
++	$(call compile_carray,$@,$<)
++
+ $(build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_CONFIG)
+ 	$(call compile_cc_dep,$@,$<)
+ 
 -- 
 2.37.1
 
