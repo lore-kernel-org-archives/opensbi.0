@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 11 Oct 2022 22:15:19 +0530
-Subject: [PATCH v2 12/12] docs: andes-ae350.md: Update ae350 documentation
- for fdt driver support
-In-Reply-To: <20221003115230.10127-13-peterlin@andestech.com>
-References: <20221003115230.10127-1-peterlin@andestech.com> <20221003115230.10127-13-peterlin@andestech.com>
-Message-ID: <CAAhSdy2=bs_k_82d40_ZhicKaq3aeZKHx1EdUnHsgxG0+ksT9Q@mail.gmail.com>
+Date: Tue, 11 Oct 2022 22:27:23 +0530
+Subject: [PATCH v2 10/12] lib: utils/ipi: Add PLICSW mmio region to root domain
+In-Reply-To: <20221003115230.10127-11-peterlin@andestech.com>
+References: <20221003115230.10127-1-peterlin@andestech.com> <20221003115230.10127-11-peterlin@andestech.com>
+Message-ID: <CAAhSdy0WXhv3h_sXC3vjR9qLzJf+fD5QYVbOhJJN_ZVFshYXiQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,224 +13,94 @@ Content-Transfer-Encoding: 7bit
 On Mon, Oct 3, 2022 at 5:24 PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> We update ae350 documentation to add details about platform device tree.
-> The nodes and their properties must be provided to properly initialize
-> data of underlying hardware and access their mmio registers.
+> Add PLICSW as mmio memregion in root domain at boot-time.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 > ---
->  docs/platform/andes-ae350.md | 191 ++++++++++++++++++++++++++++++++++-
->  1 file changed, 187 insertions(+), 4 deletions(-)
+>  lib/utils/ipi/fdt_ipi_plicsw.c | 34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
 >
-> diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
-> index 1cf83cf..bfbfcf8 100644
-> --- a/docs/platform/andes-ae350.md
-> +++ b/docs/platform/andes-ae350.md
-> @@ -18,13 +18,196 @@ The Andes AE350 platform does not have any platform-specific options.
->  Building Andes AE350 Platform
->  -----------------------------
+> diff --git a/lib/utils/ipi/fdt_ipi_plicsw.c b/lib/utils/ipi/fdt_ipi_plicsw.c
+> index 8788f74..3af92bd 100644
+> --- a/lib/utils/ipi/fdt_ipi_plicsw.c
+> +++ b/lib/utils/ipi/fdt_ipi_plicsw.c
+> @@ -10,6 +10,7 @@
+>   *   Yu Chien Peter Lin <peterlin@andestech.com>
+>   */
 >
-> -To use Linux v5.2 should be used to build Andes AE350 OpenSBI binaries by using
-> -the compile time option FW_FDT_PATH.
-> -
-> -AE350's dts is included in https://github.com/andestech/linux/tree/ast-v3_2_0-release-public
-> +AE350's dts is included in https://github.com/andestech/linux/tree/RISCV-Linux-5.4-ast-v5_1_0-branch
+> +#include <sbi/sbi_domain.h>
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_ipi.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+> @@ -34,6 +35,34 @@ static int plicsw_warm_ipi_init(void)
+>         return 0;
+>  }
 >
->  **Linux Kernel Payload**
->
->  ```
->  make PLATFORM=andes/ae350 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
->  ```
+> +static int andes_plicsw_add_regions(unsigned long addr, unsigned long size)
+> +{
+> +#define PLICSW_ADD_REGION_ALIGN 0x1000
+> +       int rc;
+> +       unsigned long pos, end, region_size;
+> +       struct sbi_domain_memregion reg;
 > +
-> +DTS Example: (Quad-core AX45MP)
-> +-------------------------------
+> +       pos = addr;
+> +       end = addr + size;
+> +       while (pos < end) {
+> +               if (pos & (PLICSW_ADD_REGION_ALIGN - 1))
+> +                       region_size = 1UL << sbi_ffs(pos);
+> +               else
+> +                       region_size = ((end - pos) < PLICSW_ADD_REGION_ALIGN)
+> +                                             ? (end - pos)
+> +                                             : PLICSW_ADD_REGION_ALIGN;
 > +
-> +```
-> +       cpus {
-> +               #address-cells = <1>;
-> +               #size-cells = <0>;
-> +               timebase-frequency = <60000000>;
+> +               sbi_domain_memregion_init(pos, region_size,
+> +                                         SBI_DOMAIN_MEMREGION_MMIO, &reg);
+> +               rc = sbi_domain_root_add_memregion(&reg);
+> +               if (rc)
+> +                       return rc;
+> +               pos += region_size;
+> +       }
 > +
-> +               CPU0: cpu at 0 {
-> +                       device_type = "cpu";
-> +                       reg = <0>;
-> +                       status = "okay";
-> +                       compatible = "riscv";
-> +                       riscv,isa = "rv64imafdc";
-> +                       riscv,priv-major = <1>;
-> +                       riscv,priv-minor = <10>;
-> +                       mmu-type = "riscv,sv48";
-> +                       clock-frequency = <60000000>;
-> +                       i-cache-size = <0x8000>;
-> +                       i-cache-sets = <256>;
-> +                       i-cache-line-size = <64>;
-> +                       i-cache-block-size = <64>;
-> +                       d-cache-size = <0x8000>;
-> +                       d-cache-sets = <128>;
-> +                       d-cache-line-size = <64>;
-> +                       d-cache-block-size = <64>;
-> +                       next-level-cache = <&L2>;
-> +                       CPU0_intc: interrupt-controller {
-> +                               #interrupt-cells = <1>;
-> +                               interrupt-controller;
-> +                               compatible = "riscv,cpu-intc";
-> +                       };
-> +               };
-> +               CPU1: cpu at 1 {
-> +                       device_type = "cpu";
-> +                       reg = <1>;
-> +                       status = "okay";
-> +                       compatible = "riscv";
-> +                       riscv,isa = "rv64imafdc";
-> +                       riscv,priv-major = <1>;
-> +                       riscv,priv-minor = <10>;
-> +                       mmu-type = "riscv,sv48";
-> +                       clock-frequency = <60000000>;
-> +                       i-cache-size = <0x8000>;
-> +                       i-cache-sets = <256>;
-> +                       i-cache-line-size = <64>;
-> +                       i-cache-block-size = <64>;
-> +                       d-cache-size = <0x8000>;
-> +                       d-cache-sets = <128>;
-> +                       d-cache-line-size = <64>;
-> +                       d-cache-block-size = <64>;
-> +                       next-level-cache = <&L2>;
-> +                       CPU1_intc: interrupt-controller {
-> +                               #interrupt-cells = <1>;
-> +                               interrupt-controller;
-> +                               compatible = "riscv,cpu-intc";
-> +                       };
-> +               };
-> +               CPU2: cpu at 2 {
-> +                       device_type = "cpu";
-> +                       reg = <2>;
-> +                       status = "okay";
-> +                       compatible = "riscv";
-> +                       riscv,isa = "rv64imafdc";
-> +                       riscv,priv-major = <1>;
-> +                       riscv,priv-minor = <10>;
-> +                       mmu-type = "riscv,sv48";
-> +                       clock-frequency = <60000000>;
-> +                       i-cache-size = <0x8000>;
-> +                       i-cache-sets = <256>;
-> +                       i-cache-line-size = <64>;
-> +                       i-cache-block-size = <64>;
-> +                       d-cache-size = <0x8000>;
-> +                       d-cache-sets = <128>;
-> +                       d-cache-line-size = <64>;
-> +                       d-cache-block-size = <64>;
-> +                       next-level-cache = <&L2>;
-> +                       CPU2_intc: interrupt-controller {
-> +                               #interrupt-cells = <1>;
-> +                               interrupt-controller;
-> +                               compatible = "riscv,cpu-intc";
-> +                       };
-> +               };
-> +               CPU3: cpu at 3 {
-> +                       device_type = "cpu";
-> +                       reg = <3>;
-> +                       status = "okay";
-> +                       compatible = "riscv";
-> +                       riscv,isa = "rv64imafdc";
-> +                       riscv,priv-major = <1>;
-> +                       riscv,priv-minor = <10>;
-> +                       mmu-type = "riscv,sv48";
-> +                       clock-frequency = <60000000>;
-> +                       i-cache-size = <0x8000>;
-> +                       i-cache-sets = <256>;
-> +                       i-cache-line-size = <64>;
-> +                       i-cache-block-size = <64>;
-> +                       d-cache-size = <0x8000>;
-> +                       d-cache-sets = <128>;
-> +                       d-cache-line-size = <64>;
-> +                       d-cache-block-size = <64>;
-> +                       next-level-cache = <&L2>;
-> +                       CPU3_intc: interrupt-controller {
-> +                               #interrupt-cells = <1>;
-> +                               interrupt-controller;
-> +                               compatible = "riscv,cpu-intc";
-> +                       };
-> +               };
-> +       };
+> +       return 0;
+> +}
 > +
-> +       soc {
-> +               #address-cells = <2>;
-> +               #size-cells = <2>;
-> +               compatible = "andestech,riscv-ae350-soc", "simple-bus";
-> +               ranges;
-> +
-> +               plic0: interrupt-controller at e4000000 {
-> +                       compatible = "riscv,plic0";
-> +                       reg = <0x00000000 0xe4000000 0x00000000 0x02000000>;
-> +                       interrupts-extended = <
-> +                               &CPU0_intc 11 &CPU0_intc 9
-> +                               &CPU1_intc 11 &CPU1_intc 9
-> +                               &CPU2_intc 11 &CPU2_intc 9
-> +                               &CPU3_intc 11 &CPU3_intc 9
-> +                               >;
-> +                       interrupt-controller;
-> +                       #address-cells = <2>;
-> +                       #interrupt-cells = <2>;
-> +                       riscv,ndev = <71>;
-> +               };
-> +
-> +               plicsw: interrupt-controller at e6400000 {
-> +                       compatible = "andestech,plicsw";
-> +                       reg = <0x00000000 0xe6400000 0x00000000 0x00400000>;
-> +                       interrupts-extended = <
-> +                               &CPU0_intc 3
-> +                               &CPU1_intc 3
-> +                               &CPU2_intc 3
-> +                               &CPU3_intc 3
-> +                               >;
-> +                       interrupt-controller;
-> +                       #address-cells = <2>;
-> +                       #interrupt-cells = <2>;
-> +                       riscv,ndev = <4>;
 
-plicsw doesn't seem to need the "riscv,ndev" DT property so please
-drop it from here.
+This is exactly same as your PATCH5 and aclint_mtimer_add_regions()
+defined in lib/utils/timer/aclint_mtimer.c
 
-> +               };
+I suggest adding a common function in sbi_domain.c and sbi_domain.h
+with following function prototype:
+int sbi_domain_root_add_memrange(unsigned long addr,
+                                                            unsigned long size,
+                                                            unsigned long align,
+                                                            unsigned
+long region_flags);
+
+You can have one patch at the beginning of the series which adds
+above function in sbi_domain.c and remove it from aclint_mtimer.c
+
+Your PATCH4 and PATCH9 can directly use this new function
+which will allow you to drop your PATCH5 and PATCH10
+
+Regards,
+Anup
+
+>  static int plicsw_cold_ipi_init(void *fdt, int nodeoff,
+>                                 const struct fdt_match *match)
+>  {
+> @@ -61,6 +90,11 @@ static int plicsw_cold_ipi_init(void *fdt, int nodeoff,
+>                 enable_mask <<= 1;
+>         }
+>
+> +       /* Add PLICSW region to the root domain */
+> +       rc = andes_plicsw_add_regions(plicsw.addr, plicsw.size);
+> +       if (rc)
+> +               return rc;
 > +
-> +               plmt0: plmt0 at e6000000 {
-> +                       compatible = "andestech,plmt0";
-> +                       reg = <0x00000000 0xe6000000 0x00000000 0x00100000>;
-> +                       interrupts-extended = <
-> +                               &CPU0_intc 7
-> +                               &CPU1_intc 7
-> +                               &CPU2_intc 7
-> +                               &CPU3_intc 7
-> +                               >;
-> +               };
-> +
-> +               wdt: wdt at f0500000 {
-> +                       compatible = "andestech,atcwdt200";
-> +                       reg = <0x00000000 0xf0500000 0x00000000 0x00001000>;
-> +                       interrupts = <3 4>;
-> +                       interrupt-parent = <&plic0>;
-> +                       clock-frequency = <15000000>;
-> +               };
-> +
-> +               serial0: serial at f0300000 {
-> +                       compatible = "andestech,uart16550", "ns16550a";
-> +                       reg = <0x00000000 0xf0300000 0x00000000 0x00001000>;
-> +                       interrupts = <9 4>;
-> +                       interrupt-parent = <&plic0>;
-> +                       clock-frequency = <19660800>;
-> +                       current-speed = <38400>;
-> +                       reg-shift = <2>;
-> +                       reg-offset = <32>;
-> +                       reg-io-width = <4>;
-> +                       no-loopback-test = <1>;
-> +               };
-> +
-> +               smu: smu at f0100000 {
-> +                       compatible = "andestech,atcsmu";
-> +                       reg = <0x00000000 0xf0100000 0x00000000 0x00001000>;
-> +               };
-> +       };
-> +```
+>         sbi_ipi_set_device(&plicsw_ipi);
+>
+>         return 0;
 > --
 > 2.34.1
 >
@@ -240,11 +109,4 @@ drop it from here.
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Apart from a minor comment above, it looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
 
