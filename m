@@ -1,36 +1,29 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Thu, 13 Oct 2022 16:26:34 +0200
-Subject: [PATCH 0/3] Add Kconfig option for each extension
-In-Reply-To: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-References: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <20221013142634.lckftxftddwluzy7@kamzik>
+Date: Thu, 13 Oct 2022 16:31:17 +0200
+Subject: [1/1] Makefile: Add cscope support
+In-Reply-To: <20221013012623.1077367-1-ende.tan@linux.starfivetech.com>
+References: <20221013012623.1077367-1-ende.tan@linux.starfivetech.com>
+Message-ID: <20221013143117.awpxea4ijdn6dexz@kamzik>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 11, 2022 at 12:33:02AM +0800, Vivian Wang wrote:
-> This series adds support for disabling SBI extensions via Kconfig. In
-> the future, Kconfig can also be used to disable obsolete extensions by
-> default.
+On Thu, Oct 13, 2022 at 09:26:23AM +0800, Tan En De wrote:
+> Add cscope support so that running `make cscope` will generate/update
+> cscope files used for source code browsing, while running `make
+> distclean` will remove the cscope files.
 > 
-> All of the SBI extensions except Base extension is optional [1]. Users
-> of OpenSBI may wish to disable support for some of the extensions for
-> reasons such as:
+> Also add entry in .gitignore to ignore generated cscope files.
 > 
-> - Future-proofing S-mode software, replacing SBI calls with
->   new ISA functionality.
-> - Testing S-mode software to make sure they work correctly without
->   certain extensions present.
-> - Disabling unused extensions to minimize the attack surface of M-mode
->   software. See [2].
-> 
-> [1]: https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc#1-introduction
-> [2]: https://github.com/riscv-non-isa/riscv-sbi-doc/issues/102
->
+> Signed-off-by: Tan En De <ende.tan@linux.starfivetech.com>
+> ---
+>  .gitignore |  1 +
+>  Makefile   | 13 +++++++++++++
+>  2 files changed, 14 insertions(+)
 
-For the series
+As a cscope user myself, thank you for this!
 
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
