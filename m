@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 13 Oct 2022 09:38:19 +0530
-Subject: [PATCH v5 3/5] lib: sbi_platform: expose hart_features to
- extension_init callback
-In-Reply-To: <20221004164227.1381825-4-heiko@sntech.de>
-References: <20221004164227.1381825-1-heiko@sntech.de> <20221004164227.1381825-4-heiko@sntech.de>
-Message-ID: <CAAhSdy1F1F_tHgH2gVVJa4GgzGcxMAoU1CUAJyaNBhjkE8=6AA@mail.gmail.com>
+Date: Thu, 13 Oct 2022 09:38:42 +0530
+Subject: [PATCH v5 4/5] platform: generic: add extensions_init handler and platform-override
+In-Reply-To: <20221004164227.1381825-5-heiko@sntech.de>
+References: <20221004164227.1381825-1-heiko@sntech.de> <20221004164227.1381825-5-heiko@sntech.de>
+Message-ID: <CAAhSdy27GGpn4aNkUOSBxnn3_cpw8B=tpoVMC7jj8EhuLCOhgA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,14 +12,9 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Oct 4, 2022 at 10:13 PM Heiko Stuebner <heiko@sntech.de> wrote:
 >
-> The platform-specific extension_init callback is supposed to
-> set specific things for the platform opensbi is running on.
+> Init of non-standard extensions is a platform-specific thing,
+> so allow generic platforms to do this via a platform-override.
 >
-> So it's also the right place to override specific hart_features
-> if needed - when it's know that autodetection has provided
-> wrong results for example.
->
-> Suggested-by: Atish Patra <atishp@atishpatra.org>
 > Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 
 Looks good to me.
@@ -31,59 +25,59 @@ Regards,
 Anup
 
 > ---
->  include/sbi/sbi_platform.h | 8 +++++---
->  lib/sbi/sbi_hart.c         | 3 ++-
->  2 files changed, 7 insertions(+), 4 deletions(-)
+>  platform/generic/include/platform_override.h |  3 +++
+>  platform/generic/platform.c                  | 10 ++++++++++
+>  2 files changed, 13 insertions(+)
 >
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 87024db..722f27a 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -48,6 +48,7 @@
->  struct sbi_domain_memregion;
->  struct sbi_trap_info;
->  struct sbi_trap_regs;
-> +struct sbi_hart_features;
+> diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+> index e55da25..7f1558d 100644
+> --- a/platform/generic/include/platform_override.h
+> +++ b/platform/generic/include/platform_override.h
+> @@ -10,6 +10,7 @@
+>  #ifndef __PLATFORM_OVERRIDE_H__
+>  #define __PLATFORM_OVERRIDE_H__
 >
->  /** Possible feature flags of a platform */
->  enum sbi_platform_features {
-> @@ -90,7 +91,7 @@ struct sbi_platform_operations {
->         int (*misa_get_xlen)(void);
+> +#include <sbi/sbi_hart.h>
+>  #include <sbi/sbi_types.h>
+>  #include <sbi/sbi_trap.h>
 >
->         /** Initialize (or populate) HART extensions for the platform */
-> -       int (*extensions_init)(void);
-> +       int (*extensions_init)(struct sbi_hart_features *hfeatures);
->
->         /** Initialize (or populate) domains for the platform */
->         int (*domains_init)(void);
-> @@ -464,10 +465,11 @@ static inline int sbi_platform_misa_xlen(const struct sbi_platform *plat)
->   * @return 0 on success and negative error code on failure
->   */
->  static inline int sbi_platform_extensions_init(
-> -                                       const struct sbi_platform *plat)
-> +                                       const struct sbi_platform *plat,
-> +                                       struct sbi_hart_features *hfeatures)
->  {
->         if (plat && sbi_platform_ops(plat)->extensions_init)
-> -               return sbi_platform_ops(plat)->extensions_init();
-> +               return sbi_platform_ops(plat)->extensions_init(hfeatures);
->         return 0;
+> @@ -22,6 +23,8 @@ struct platform_override {
+>         void (*early_exit)(const struct fdt_match *match);
+>         void (*final_exit)(const struct fdt_match *match);
+>         int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
+> +       int (*extensions_init)(const struct fdt_match *match,
+> +                              struct sbi_hart_features *hfeatures);
+>         int (*vendor_ext_check)(long extid, const struct fdt_match *match);
+>         int (*vendor_ext_provider)(long extid, long funcid,
+>                                    const struct sbi_trap_regs *regs,
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index bf51aba..595b0fd 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -204,6 +204,15 @@ static void generic_final_exit(void)
+>                 generic_plat->final_exit(generic_plat_match);
 >  }
 >
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index d0a6295..dacab1a 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -672,7 +672,8 @@ __mhpm_skip:
->         }
->
->         /* Let platform populate extensions */
-> -       rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr());
-> +       rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
-> +                                         hfeatures);
->         if (rc)
->                 return rc;
->
+> +static int generic_extensions_init(struct sbi_hart_features *hfeatures)
+> +{
+> +       if (generic_plat && generic_plat->extensions_init)
+> +               return generic_plat->extensions_init(generic_plat_match,
+> +                                                    hfeatures);
+> +
+> +       return 0;
+> +}
+> +
+>  static int generic_domains_init(void)
+>  {
+>         return fdt_domains_populate(fdt_get_address());
+> @@ -257,6 +266,7 @@ const struct sbi_platform_operations platform_ops = {
+>         .final_init             = generic_final_init,
+>         .early_exit             = generic_early_exit,
+>         .final_exit             = generic_final_exit,
+> +       .extensions_init        = generic_extensions_init,
+>         .domains_init           = generic_domains_init,
+>         .console_init           = generic_console_init,
+>         .irqchip_init           = fdt_irqchip_init,
 > --
 > 2.35.1
 >
