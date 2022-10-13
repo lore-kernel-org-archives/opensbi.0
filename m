@@ -1,75 +1,55 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 13 Oct 2022 10:55:21 +0800
-Subject: [1/1] Makefile: Add cscope support
-In-Reply-To: <20221013012623.1077367-1-ende.tan@linux.starfivetech.com>
-References: <20221013012623.1077367-1-ende.tan@linux.starfivetech.com>
-Message-ID: <82d91d9d072afb1d96c1eb782e54cc8eda99f4fa.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 13 Oct 2022 08:58:53 +0530
+Subject: [PATCH v3 01/13] include: sbi: Fix typo in comment
+In-Reply-To: <20221013022951.5206-2-peterlin@andestech.com>
+References: <20221013022951.5206-1-peterlin@andestech.com> <20221013022951.5206-2-peterlin@andestech.com>
+Message-ID: <CAAhSdy3MJYyNgoy4RM7jyow7G-gQLTm8oSwP=CJxH4wrWPrVxw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-10-13???? 09:26 +0800?Tan En De???
-> Add cscope support so that running `make cscope` will generate/update
-> cscope files used for source code browsing, while running `make
-> distclean` will remove the cscope files.
-> 
-> Also add entry in .gitignore to ignore generated cscope files.
-> 
-> Signed-off-by: Tan En De <ende.tan@linux.starfivetech.com>
-LGTM
+On Thu, Oct 13, 2022 at 8:00 AM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
+>
+> %s/Priviledge/Privilege
+>
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
-> ?.gitignore |? 1 +
-> ?Makefile?? | 13 +++++++++++++
-> ?2 files changed, 14 insertions(+)
-> 
-> diff --git a/.gitignore b/.gitignore
-> index 534ad64..95692bb 100644
-> --- a/.gitignore
-> +++ b/.gitignore
-> @@ -9,3 +9,4 @@ install/
-> ?
-> ?# Development friendly files
-> ?tags
-> +cscope*
-> diff --git a/Makefile b/Makefile
-> index 0ab9f22..4b175a0 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -623,6 +623,17 @@ install_firmwares: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsb
-> ?install_docs: $(build_dir)/docs/latex/refman.pdf
-> ????????$(call inst_file,$(install_root_dir)/$(install_docs_path)/refman.pdf,$(build_dir)/docs/latex/refman.pdf)
-> ?
-> +.PHONY: cscope
-> +cscope:
-> +???????$(CMD_PREFIX)find \
-> +???????????????"$(src_dir)/firmware" \
-> +???????????????"$(src_dir)/include" \
-> +???????????????"$(src_dir)/lib" \
-> +???????????????"$(platform_src_dir)" \
-> +???????-name "*.[chS]" -print > cscope.files
-> +???????$(CMD_PREFIX)echo "$(KCONFIG_AUTOHEADER)" >> cscope.files
-> +???????$(CMD_PREFIX)cscope -bkq -i cscope.files -f cscope.out
-> +
-> ?# Rule for "make clean"
-> ?.PHONY: clean
-> ?clean:
-> @@ -652,6 +663,8 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
-> ????????$(if $(V), @echo " RM??????? $(install_root_dir_default)")
-> ????????$(CMD_PREFIX)rm -rf $(install_root_dir_default)
-> ?endif
-> +???????$(if $(V), @echo " RM??????? $(src_dir)/cscope*")
-> +???????$(CMD_PREFIX)rm -f $(src_dir)/cscope*
-> ?
-> ?.PHONY: FORCE
-> ?FORCE:
-> -- 
+> Changes v2 -> v3
+>   - New patch
+> ---
+>  include/sbi/sbi_scratch.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index 2f6f0a1..40a3bc9 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -57,7 +57,7 @@ struct sbi_scratch {
+>         unsigned long next_arg1;
+>         /** Address of next booting stage for this HART */
+>         unsigned long next_addr;
+> -       /** Priviledge mode of next booting stage for this HART */
+> +       /** Privilege mode of next booting stage for this HART */
+>         unsigned long next_mode;
+>         /** Warm boot entry point address for this HART */
+>         unsigned long warmboot_addr;
+> --
 > 2.34.1
-> 
-> 
-
-
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
