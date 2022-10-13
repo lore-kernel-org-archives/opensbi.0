@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 13 Oct 2022 09:10:50 +0530
-Subject: [PATCH v3 07/13] lib: utils/timer: Add Andes fdt timer support
-In-Reply-To: <20221013022951.5206-8-peterlin@andestech.com>
-References: <20221013022951.5206-1-peterlin@andestech.com> <20221013022951.5206-8-peterlin@andestech.com>
-Message-ID: <CAAhSdy1=bZrFr-qSy-jpmZAzaUL_jqe+KpLvJ4k9B=+AFmsC9Q@mail.gmail.com>
+Date: Thu, 13 Oct 2022 09:16:43 +0530
+Subject: [PATCH v3 11/13] lib: utils/ipi: Add Andes fdt ipi driver support
+In-Reply-To: <20221013022951.5206-12-peterlin@andestech.com>
+References: <20221013022951.5206-1-peterlin@andestech.com> <20221013022951.5206-12-peterlin@andestech.com>
+Message-ID: <CAAhSdy0LdSbtd4MLJJRDN07DwG8yay_neqDOxVumOOzH5137sg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,75 +13,74 @@ Content-Transfer-Encoding: 7bit
 On Thu, Oct 13, 2022 at 8:01 AM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Since we can get the PLMT base address and timer frequency from
-> device tree, move plmt timer device to fdt timer framework.
+> Move Andes PLICSW ipi device to fdt ipi framework, this patch is based
+> on Leo's modified IPI scheme on PLICSW.
+>
+> Current IPI scheme uses bit 0 of pending reigster on PLICSW to send IPI
+> from hart 0 to hart 7, but bit 0 needs to be hardwired to 0 according
+> to spec. After some investigation, self-IPI seems to be seldom or never
+> used, so we re-order the IPI scheme to support 8 core platforms.
 >
 > dts example (Quad-core AX45MP):
 >
->   cpus {
->       ...
->       timebase-frequency = <0x3938700>;
->       ...
->   }
->   soc {
->       ...
->       plmt0 at e6000000 {
->           compatible = "andestech,plmt0";
->           reg = <0x00 0xe6000000 0x00 0x100000>;
->           interrupts-extended = <&cpu0_intc 0x07
->                                  &cpu1_intc 0x07
->                                  &cpu2_intc 0x07
->                                  &cpu3_intc 0x07>;
->       };
->       ...
->   }
+>   plicsw: interrupt-controller at e6400000 {
+>           compatible = "andestech,plicsw";
+>           reg = <0x00000000 0xe6400000 0x00000000 0x00400000>;
+>           interrupts-extended = <&CPU0_intc 3
+>                                  &CPU1_intc 3
+>                                  &CPU2_intc 3
+>                                  &CPU3_intc 3>;
+>           interrupt-controller;
+>           #address-cells = <2>;
+>           #interrupt-cells = <2>;
+>   };
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
 > ---
 > Changes v2 -> v3
->   - Use sbi_domain_root_add_memrange() to add PLMT region to root domain
+>   - Remove "riscv,ndev" from plicsw device tree node and drop "num_src"
+>   - Use sbi_domain_root_add_memrange() to add PLICSW region to root domain
 > ---
 >  include/sbi_utils/fdt/fdt_helper.h   |   3 +
->  include/sbi_utils/timer/andes_plmt.h |  33 +++++++++
->  lib/utils/fdt/fdt_helper.c           |  54 ++++++++++++++
->  lib/utils/timer/Kconfig              |   9 +++
->  lib/utils/timer/andes_plmt.c         |  54 ++++++++++++++
->  lib/utils/timer/fdt_timer_plmt.c     |  79 ++++++++++++++++++++
->  lib/utils/timer/objects.mk           |   4 +
+>  include/sbi_utils/ipi/andes_plicsw.h |  49 ++++++++++
+>  lib/utils/fdt/fdt_helper.c           |  55 +++++++++++
+>  lib/utils/ipi/Kconfig                |   9 ++
+>  lib/utils/ipi/andes_plicsw.c         |  85 ++++++++++++++++
+>  lib/utils/ipi/fdt_ipi_plicsw.c       |  87 +++++++++++++++++
+>  lib/utils/ipi/objects.mk             |   4 +
 >  platform/andes/ae350/Kconfig         |   2 +
 >  platform/andes/ae350/objects.mk      |   2 +-
->  platform/andes/ae350/platform.c      |  19 +----
+>  platform/andes/ae350/platform.c      |  27 +-----
 >  platform/andes/ae350/platform.h      |   2 -
->  platform/andes/ae350/plmt.c          | 107 ---------------------------
->  platform/andes/ae350/plmt.h          |  17 -----
->  13 files changed, 241 insertions(+), 144 deletions(-)
->  create mode 100644 include/sbi_utils/timer/andes_plmt.h
->  create mode 100644 lib/utils/timer/andes_plmt.c
->  create mode 100644 lib/utils/timer/fdt_timer_plmt.c
->  delete mode 100644 platform/andes/ae350/plmt.c
->  delete mode 100644 platform/andes/ae350/plmt.h
+>  platform/andes/ae350/plicsw.c        | 139 ---------------------------
+>  platform/andes/ae350/plicsw.h        |  44 ---------
+>  13 files changed, 297 insertions(+), 211 deletions(-)
+>  create mode 100644 include/sbi_utils/ipi/andes_plicsw.h
+>  create mode 100644 lib/utils/ipi/andes_plicsw.c
+>  create mode 100644 lib/utils/ipi/fdt_ipi_plicsw.c
+>  delete mode 100644 platform/andes/ae350/plicsw.c
+>  delete mode 100644 platform/andes/ae350/plicsw.h
 >
 > diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index bcd4996..7ef63c9 100644
+> index 7ef63c9..c39f77a 100644
 > --- a/include/sbi_utils/fdt/fdt_helper.h
 > +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -95,6 +95,9 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
->                           unsigned long *out_addr2, unsigned long *out_size2,
->                           u32 *out_first_hartid, u32 *out_hart_count);
+> @@ -98,6 +98,9 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
+>  int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
+>                           unsigned long *plmt_size, u32 *hart_count);
 >
-> +int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
-> +                         unsigned long *plmt_size, u32 *hart_count);
+> +int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
+> +                         unsigned long *size, u32 *hart_count);
 > +
 >  int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
 >                           const char *compatible);
 >
-> diff --git a/include/sbi_utils/timer/andes_plmt.h b/include/sbi_utils/timer/andes_plmt.h
+> diff --git a/include/sbi_utils/ipi/andes_plicsw.h b/include/sbi_utils/ipi/andes_plicsw.h
 > new file mode 100644
-> index 0000000..427dc78
+> index 0000000..40fb60e
 > --- /dev/null
-> +++ b/include/sbi_utils/timer/andes_plmt.h
-> @@ -0,0 +1,33 @@
+> +++ b/include/sbi_utils/ipi/andes_plicsw.h
+> @@ -0,0 +1,49 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
@@ -90,57 +89,73 @@ On Thu, Oct 13, 2022 at 8:01 AM Yu Chien Peter Lin
 > + * Authors:
 > + *   Zong Li <zong@andestech.com>
 > + *   Nylon Chen <nylon7@andestech.com>
+> + *   Leo Yu-Chi Liang <ycliang@andestech.com>
 > + *   Yu Chien Peter Lin <peterlin@andestech.com>
 > + */
 > +
 > +#include <sbi/riscv_asm.h>
 > +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_timer.h>
+> +#include <sbi/sbi_types.h>
 > +
-> +#ifndef __TIMER_ANDES_PLMT_H__
-> +#define __TIMER_ANDES_PLMT_H__
+> +#ifndef _IPI_ANDES_PLICSW_H_
+> +#define _IPI_ANDES_PLICSW_H_
 > +
-> +#define DEFAULT_AE350_PLMT_FREQ 60000000
-> +#define PLMT_REGION_ALIGN 0x1000
+> +#define PLICSW_PRIORITY_BASE 0x4
 > +
-> +struct plmt_data {
-> +       u32 hart_count;
+> +#define PLICSW_PENDING_BASE 0x1000
+> +#define PLICSW_PENDING_STRIDE 0x8
+> +
+> +#define PLICSW_ENABLE_BASE 0x2000
+> +#define PLICSW_ENABLE_STRIDE 0x80
+> +
+> +#define PLICSW_CONTEXT_BASE 0x200000
+> +#define PLICSW_CONTEXT_STRIDE 0x1000
+> +#define PLICSW_CONTEXT_CLAIM 0x4
+> +
+> +#define PLICSW_HART_MASK 0x01010101
+> +
+> +#define PLICSW_HART_MAX_NR 8
+> +
+> +#define PLICSW_REGION_ALIGN 0x1000
+> +
+> +struct plicsw_data {
+> +       unsigned long addr;
 > +       unsigned long size;
-> +       volatile u64 *time_val;
-> +       volatile u64 *time_cmp;
+> +       uint32_t hart_count;
+> +       /* hart id to source id table */
+> +       uint32_t source_id[PLICSW_HART_MAX_NR];
 > +};
 > +
-> +u64 plmt_timer_value(void);
-> +void plmt_timer_event_stop(void);
-> +void plmt_timer_event_start(u64 next_event);
+> +void plicsw_ipi_send(u32 target_hart);
+> +void plicsw_ipi_clear(u32 target_hart);
 > +
-> +#endif /* __TIMER_ANDES_PLMT_H__ */
+> +#endif /* _IPI_ANDES_PLICSW_H_ */
 > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 6a75d6f..ce52fca 100644
+> index ce52fca..b97c849 100644
 > --- a/lib/utils/fdt/fdt_helper.c
 > +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -835,6 +835,60 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
+> @@ -889,6 +889,61 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
 >         return 0;
 >  }
 >
-> +int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
-> +                         unsigned long *plmt_size, u32 *hart_count)
+> +int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
+> +                         unsigned long *size, u32 *hart_count)
 > +{
 > +       const fdt32_t *val;
 > +       int rc, i, count;
 > +       uint64_t reg_addr, reg_size, cpu_offset, cpu_intc_offset;
 > +       u32 phandle, hwirq, hartid, hcount;
 > +
-> +       if (nodeoffset < 0 || !fdt || !plmt_base ||
-> +           !hart_count || !plmt_size)
+> +       if (nodeoffset < 0 || !fdt || !plicsw_base ||
+> +           !hart_count || !size)
 > +               return SBI_EINVAL;
 > +
 > +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
 > +                                   &reg_addr, &reg_size);
-> +       if (rc < 0 || !plmt_base || !plmt_size)
+> +       if (rc < 0 || !plicsw_base || !size)
 > +               return SBI_ENODEV;
-> +       *plmt_base = reg_addr;
-> +       *plmt_size = reg_size;
+> +       *plicsw_base = reg_addr;
+> +       *size = reg_size;
 > +
 > +       val = fdt_getprop(fdt, nodeoffset, "interrupts-extended", &count);
 > +       if (!val || count < sizeof(fdt32_t))
@@ -168,7 +183,7 @@ On Thu, Oct 13, 2022 at 8:01 AM Yu Chien Peter Lin
 > +               if (SBI_HARTMASK_MAX_BITS <= hartid)
 > +                       continue;
 > +
-> +               if (hwirq == IRQ_M_TIMER)
+> +               if (hwirq == IRQ_M_SOFT)
 > +                       hcount++;
 > +       }
 > +
@@ -177,297 +192,347 @@ On Thu, Oct 13, 2022 at 8:01 AM Yu Chien Peter Lin
 > +       return 0;
 > +}
 > +
+> +
+
+Drop the extra newline from here.
+
 >  int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
 >                           const char *compatible)
 >  {
-> diff --git a/lib/utils/timer/Kconfig b/lib/utils/timer/Kconfig
-> index 23c48c5..ba211b6 100644
-> --- a/lib/utils/timer/Kconfig
-> +++ b/lib/utils/timer/Kconfig
-> @@ -14,10 +14,19 @@ config FDT_TIMER_MTIMER
->         select TIMER_MTIMER
+> diff --git a/lib/utils/ipi/Kconfig b/lib/utils/ipi/Kconfig
+> index efc8960..3718852 100644
+> --- a/lib/utils/ipi/Kconfig
+> +++ b/lib/utils/ipi/Kconfig
+> @@ -14,10 +14,19 @@ config FDT_IPI_MSWI
+>         select IPI_MSWI
 >         default n
 >
-> +config FDT_TIMER_PLMT
-> +       bool "Andes PLMT FDT driver"
-> +       select TIMER_PLMT
+> +config FDT_IPI_PLICSW
+> +       bool "Andes PLICSW FDT driver"
+> +       select IPI_PLICSW
 > +       default n
 > +
 >  endif
 >
->  config TIMER_MTIMER
->         bool "ACLINT MTIMER support"
+>  config IPI_MSWI
+>         bool "ACLINT MSWI support"
 >         default n
 >
-> +config TIMER_PLMT
-> +       bool "Andes PLMT support"
+> +config IPI_PLICSW
+> +       bool "Andes PLICSW support"
 > +       default n
 > +
 >  endmenu
-> diff --git a/lib/utils/timer/andes_plmt.c b/lib/utils/timer/andes_plmt.c
+> diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
 > new file mode 100644
-> index 0000000..ea4f311
+> index 0000000..f353610
 > --- /dev/null
-> +++ b/lib/utils/timer/andes_plmt.c
-> @@ -0,0 +1,54 @@
-> +#include <sbi_utils/timer/andes_plmt.h>
-> +
-> +struct plmt_data plmt;
-> +
-> +u64 plmt_timer_value(void)
-> +{
-> +#if __riscv_xlen == 64
-> +       return readq_relaxed(plmt.time_val);
-> +#else
-> +       u32 lo, hi;
-> +
-> +       do {
-> +               hi = readl_relaxed((void *)plmt.time_val + 0x04);
-> +               lo = readl_relaxed(plmt.time_val);
-> +       } while (hi != readl_relaxed((void *)plmt.time_val + 0x04));
-> +
-> +       return ((u64)hi << 32) | (u64)lo;
-> +#endif
-> +}
-> +
-> +void plmt_timer_event_stop(void)
-> +{
-> +       u32 target_hart = current_hartid();
-> +
-> +       if (plmt.hart_count <= target_hart)
-> +               ebreak();
-> +
-> +       /* Clear PLMT Time Compare */
-> +#if __riscv_xlen == 64
-> +       writeq_relaxed(-1ULL, &plmt.time_cmp[target_hart]);
-> +#else
-> +       writel_relaxed(-1UL, &plmt.time_cmp[target_hart]);
-> +       writel_relaxed(-1UL, (void *)(&plmt.time_cmp[target_hart]) + 0x04);
-> +#endif
-> +}
-> +
-> +void plmt_timer_event_start(u64 next_event)
-> +{
-> +       u32 target_hart = current_hartid();
-> +
-> +       if (plmt.hart_count <= target_hart)
-> +               ebreak();
-> +
-> +       /* Program PLMT Time Compare */
-> +#if __riscv_xlen == 64
-> +       writeq_relaxed(next_event, &plmt.time_cmp[target_hart]);
-> +#else
-> +       u32 mask = -1UL;
-> +
-> +       writel_relaxed(next_event & mask, &plmt.time_cmp[target_hart]);
-> +       writel_relaxed(next_event >> 32,
-> +                      (void *)(&plmt.time_cmp[target_hart]) + 0x04);
-> +#endif
-> +}
-> diff --git a/lib/utils/timer/fdt_timer_plmt.c b/lib/utils/timer/fdt_timer_plmt.c
-> new file mode 100644
-> index 0000000..8947fa5
-> --- /dev/null
-> +++ b/lib/utils/timer/fdt_timer_plmt.c
-> @@ -0,0 +1,79 @@
+> +++ b/lib/utils/ipi/andes_plicsw.c
+> @@ -0,0 +1,85 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
 > + * Copyright (c) 2022 Andes Technology Corporation
 > + *
 > + * Authors:
+> + *   Zong Li <zong@andestech.com>
+> + *   Nylon Chen <nylon7@andestech.com>
+> + *   Leo Yu-Chi Liang <ycliang@andestech.com>
 > + *   Yu Chien Peter Lin <peterlin@andestech.com>
 > + */
 > +
-> +#include <libfdt.h>
-> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_types.h>
+> +#include <sbi_utils/ipi/andes_plicsw.h>
+> +
+> +extern struct plicsw_data plicsw;
+> +
+> +static inline void plicsw_claim(void)
+> +{
+> +       u32 hartid = current_hartid();
+> +
+> +       if (plicsw.hart_count <= hartid)
+> +               ebreak();
+> +
+> +       plicsw.source_id[hartid] =
+> +               readl((void *)plicsw.addr + PLICSW_CONTEXT_BASE +
+> +                     PLICSW_CONTEXT_CLAIM + PLICSW_CONTEXT_STRIDE * hartid);
+> +}
+> +
+> +static inline void plicsw_complete(void)
+> +{
+> +       u32 hartid = current_hartid();
+> +       u32 source = plicsw.source_id[hartid];
+> +
+> +       writel(source, (void *)plicsw.addr + PLICSW_CONTEXT_BASE +
+> +                              PLICSW_CONTEXT_CLAIM +
+> +                              PLICSW_CONTEXT_STRIDE * hartid);
+> +}
+> +
+> +static inline void plic_sw_pending(u32 target_hart)
+> +{
+> +       /*
+> +        * The pending array registers are w1s type.
+> +        * IPI pending array mapping as following:
+> +        *
+> +        * Pending array start address: base + 0x1000
+> +        * ---------------------------------
+> +        * | hart3 | hart2 | hart1 | hart0 |
+> +        * ---------------------------------
+> +        * Each hartX can send IPI to another hart by setting the
+> +        * bitY to its own region (see the below).
+> +        *
+> +        * In each hartX region:
+> +        * <---------- PICSW_PENDING_STRIDE -------->
+> +        * | bit7 | ... | bit3 | bit2 | bit1 | bit0 |
+> +        * ------------------------------------------
+> +        * The bitY of hartX region indicates that hartX sends an
+> +        * IPI to hartY.
+> +        */
+> +       u32 hartid          = current_hartid();
+> +       u32 word_index      = hartid / 4;
+> +       u32 per_hart_offset = PLICSW_PENDING_STRIDE * hartid;
+> +       u32 val             = 1 << target_hart << per_hart_offset;
+> +
+> +       writel(val, (void *)plicsw.addr + PLICSW_PENDING_BASE + word_index * 4);
+> +}
+> +
+> +void plicsw_ipi_send(u32 target_hart)
+> +{
+> +       if (plicsw.hart_count <= target_hart)
+> +               ebreak();
+> +
+> +       /* Set PLICSW IPI */
+> +       plic_sw_pending(target_hart);
+> +}
+> +
+> +void plicsw_ipi_clear(u32 target_hart)
+> +{
+> +       if (plicsw.hart_count <= target_hart)
+> +               ebreak();
+> +
+> +       /* Clear PLICSW IPI */
+> +       plicsw_claim();
+> +       plicsw_complete();
+> +}
+> diff --git a/lib/utils/ipi/fdt_ipi_plicsw.c b/lib/utils/ipi/fdt_ipi_plicsw.c
+> new file mode 100644
+> index 0000000..957dc48
+> --- /dev/null
+> +++ b/lib/utils/ipi/fdt_ipi_plicsw.c
+> @@ -0,0 +1,87 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 Andes Technology Corporation
+> + *
+> + * Authors:
+> + *   Zong Li <zong@andestech.com>
+> + *   Nylon Chen <nylon7@andestech.com>
+> + *   Leo Yu-Chi Liang <ycliang@andestech.com>
+> + *   Yu Chien Peter Lin <peterlin@andestech.com>
+> + */
+> +
 > +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_ipi.h>
 > +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/timer/fdt_timer.h>
-> +#include <sbi_utils/timer/andes_plmt.h>
+> +#include <sbi_utils/ipi/fdt_ipi.h>
+> +#include <sbi_utils/ipi/andes_plicsw.h>
 > +
-> +extern struct plmt_data plmt;
+> +struct plicsw_data plicsw;
 > +
-> +static struct sbi_timer_device plmt_timer = {
-> +       .name              = "andes_plmt",
-> +       .timer_freq        = DEFAULT_AE350_PLMT_FREQ,
-> +       .timer_value       = plmt_timer_value,
-> +       .timer_event_start = plmt_timer_event_start,
-> +       .timer_event_stop  = plmt_timer_event_stop
+> +static struct sbi_ipi_device plicsw_ipi = {
+> +       .name      = "andes_plicsw",
+> +       .ipi_send  = plicsw_ipi_send,
+> +       .ipi_clear = plicsw_ipi_clear
 > +};
 
-Move plmt_timer to andes_plmt.c
+Move both of the above to andes_plicsw.c
 
 > +
-> +static int plmt_warm_timer_init(void)
+> +static int plicsw_warm_ipi_init(void)
 > +{
-> +       if (!plmt.time_val)
-> +               return SBI_ENODEV;
+> +       u32 hartid = current_hartid();
 > +
-> +       plmt_timer_event_stop();
+> +       /* Clear PLICSW IPI */
+> +       plicsw_ipi_clear(hartid);
 > +
 > +       return 0;
 > +}
 > +
-> +static int plmt_cold_timer_init(void *fdt, int nodeoff,
+> +static int plicsw_cold_ipi_init(void *fdt, int nodeoff,
 > +                               const struct fdt_match *match)
 > +{
 > +       int rc;
-> +       unsigned long freq, plmt_base;
 > +
-> +       rc = fdt_parse_plmt_node(fdt, nodeoff, &plmt_base, &plmt.size,
-> +                                &plmt.hart_count);
+> +       rc = fdt_parse_plicsw_node(fdt, nodeoff, &plicsw.addr, &plicsw.size,
+> +                                  &plicsw.hart_count);
 > +       if (rc)
 > +               return rc;
 > +
-> +       plmt.time_val = (u64 *)plmt_base;
-> +       plmt.time_cmp = (u64 *)(plmt_base + 0x8);
+> +       /* Setup source priority */
+> +       uint32_t *priority = (void *)plicsw.addr + PLICSW_PRIORITY_BASE;
 > +
-> +       rc = fdt_parse_timebase_frequency(fdt, &freq);
+> +       for (int i = 0; i < plicsw.hart_count; i++)
+> +               writel(1, &priority[i]);
+> +
+> +       /* Setup target enable */
+> +       uint32_t enable_mask = PLICSW_HART_MASK;
+> +
+> +       for (int i = 0; i < plicsw.hart_count; i++) {
+> +               uint32_t *enable = (void *)plicsw.addr + PLICSW_ENABLE_BASE +
+> +                                  PLICSW_ENABLE_STRIDE * i;
+> +               writel(enable_mask, enable);
+> +               writel(enable_mask, enable + 1);
+> +               enable_mask <<= 1;
+> +       }
+> +
+> +       /* Add PLICSW region to the root domain */
+> +       rc = sbi_domain_root_add_memrange(plicsw.addr, plicsw.size,
+> +                                         PLICSW_REGION_ALIGN,
+> +                                         SBI_DOMAIN_MEMREGION_MMIO);
 > +       if (rc)
 > +               return rc;
 > +
-> +       plmt_timer.timer_freq = freq;
-> +
-> +       /* Add PLMT region to the root domain */
-> +       rc = sbi_domain_root_add_memrange(
-> +               plmt_base, plmt.size, PLMT_REGION_ALIGN,
-> +               SBI_DOMAIN_MEMREGION_MMIO | SBI_DOMAIN_MEMREGION_READABLE);
-> +       if (rc)
-> +               return rc;
-> +
-> +       sbi_timer_set_device(&plmt_timer);
+> +       sbi_ipi_set_device(&plicsw_ipi);
 
-Both sbi_domain_root_add_memrange() and sbi_timer_set_device() should
-be part of plmt_cold_timer_init() defined in andes_plmt.c
+Both sbi_domain_root_add_memrange() and sbi_ipi_set_device() should
+be done by plicsw_cold_ipi_init() defined in andes_plicsw.c
 
-The plmt_cold_timer_init() in this file can be renamed to
-fdt_plmt_cold_timer_init() or something similar.
+The plicsw_cold_ipi_init() over here can be renamed to
+fdt_plicsw_cold_ipi_init() or something similar.
 
 > +
 > +       return 0;
 > +}
 > +
-> +static const struct fdt_match timer_plmt_match[] = {
-> +       { .compatible = "andestech,plmt0" },
+> +static const struct fdt_match ipi_plicsw_match[] = {
+> +       { .compatible = "andestech,plicsw" },
 > +       {},
 > +};
 > +
-> +struct fdt_timer fdt_timer_plmt = {
-> +       .match_table = timer_plmt_match,
-> +       .cold_init   = plmt_cold_timer_init,
-> +       .warm_init   = plmt_warm_timer_init,
+> +struct fdt_ipi fdt_ipi_plicsw = {
+> +       .match_table = ipi_plicsw_match,
+> +       .cold_init   = plicsw_cold_ipi_init,
+> +       .warm_init   = plicsw_warm_ipi_init,
 > +       .exit        = NULL,
 > +};
-> diff --git a/lib/utils/timer/objects.mk b/lib/utils/timer/objects.mk
-> index 7f5f3ce..9360a76 100644
-> --- a/lib/utils/timer/objects.mk
-> +++ b/lib/utils/timer/objects.mk
+> diff --git a/lib/utils/ipi/objects.mk b/lib/utils/ipi/objects.mk
+> index 0600cac..999e7bd 100644
+> --- a/lib/utils/ipi/objects.mk
+> +++ b/lib/utils/ipi/objects.mk
 > @@ -8,9 +8,13 @@
 >  #
 >
->  libsbiutils-objs-$(CONFIG_TIMER_MTIMER) += timer/aclint_mtimer.o
-> +libsbiutils-objs-$(CONFIG_TIMER_PLMT) += timer/andes_plmt.o
+>  libsbiutils-objs-$(CONFIG_IPI_MSWI) += ipi/aclint_mswi.o
+> +libsbiutils-objs-$(CONFIG_IPI_PLICSW) += ipi/andes_plicsw.o
 >
->  libsbiutils-objs-$(CONFIG_FDT_TIMER) += timer/fdt_timer.o
->  libsbiutils-objs-$(CONFIG_FDT_TIMER) += timer/fdt_timer_drivers.o
+>  libsbiutils-objs-$(CONFIG_FDT_IPI) += ipi/fdt_ipi.o
+>  libsbiutils-objs-$(CONFIG_FDT_IPI) += ipi/fdt_ipi_drivers.o
 >
->  carray-fdt_timer_drivers-$(CONFIG_FDT_TIMER_MTIMER) += fdt_timer_mtimer
->  libsbiutils-objs-$(CONFIG_FDT_TIMER_MTIMER) += timer/fdt_timer_mtimer.o
+>  carray-fdt_ipi_drivers-$(CONFIG_FDT_IPI_MSWI) += fdt_ipi_mswi
+>  libsbiutils-objs-$(CONFIG_FDT_IPI_MSWI) += ipi/fdt_ipi_mswi.o
 > +
-> +carray-fdt_timer_drivers-$(CONFIG_FDT_TIMER_PLMT) += fdt_timer_plmt
-> +libsbiutils-objs-$(CONFIG_FDT_TIMER_PLMT) += timer/fdt_timer_plmt.o
+> +carray-fdt_ipi_drivers-$(CONFIG_FDT_IPI_PLICSW) += fdt_ipi_plicsw
+> +libsbiutils-objs-$(CONFIG_FDT_IPI_PLICSW) += ipi/fdt_ipi_plicsw.o
 > diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
-> index 8dd8ebe..f6f50eb 100644
+> index 084b27f..38e4001 100644
 > --- a/platform/andes/ae350/Kconfig
 > +++ b/platform/andes/ae350/Kconfig
-> @@ -6,6 +6,8 @@ config PLATFORM_ANDES_AE350
->         select IRQCHIP_PLIC
->         select FDT_SERIAL
->         select FDT_SERIAL_UART8250
-> +       select FDT_TIMER
-> +       select FDT_TIMER_PLMT
+> @@ -11,6 +11,8 @@ config PLATFORM_ANDES_AE350
+>         select FDT_RESET_ATCWDT200
+>         select FDT_IRQCHIP
+>         select FDT_IRQCHIP_PLIC
+> +       select FDT_IPI
+> +       select FDT_IPI_PLICSW
 >         default y
 >
 >  if PLATFORM_ANDES_AE350
 > diff --git a/platform/andes/ae350/objects.mk b/platform/andes/ae350/objects.mk
-> index 80f0737..1ccb894 100644
+> index 1ccb894..a4a2332 100644
 > --- a/platform/andes/ae350/objects.mk
 > +++ b/platform/andes/ae350/objects.mk
 > @@ -15,7 +15,7 @@ platform-asflags-y =
 >  platform-ldflags-y =
 >
 >  # Objects to build
-> -platform-objs-y += cache.o platform.o plicsw.o plmt.o
-> +platform-objs-y += cache.o platform.o plicsw.o
+> -platform-objs-y += cache.o platform.o plicsw.o
+> +platform-objs-y += cache.o platform.o
 >
 >  # Blobs to build
 >  FW_TEXT_START=0x00000000
 > diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
-> index 04428d1..79736c0 100644
+> index cf5417c..30e4606 100644
 > --- a/platform/andes/ae350/platform.c
 > +++ b/platform/andes/ae350/platform.c
-> @@ -19,9 +19,9 @@
->  #include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/irqchip/plic.h>
+> @@ -25,8 +25,8 @@
+>  #include <sbi_utils/reset/fdt_reset.h>
 >  #include <sbi_utils/serial/fdt_serial.h>
-> +#include <sbi_utils/timer/fdt_timer.h>
+>  #include <sbi_utils/timer/fdt_timer.h>
+> +#include <sbi_utils/ipi/fdt_ipi.h>
 >  #include "platform.h"
->  #include "plicsw.h"
-> -#include "plmt.h"
+> -#include "plicsw.h"
 >  #include "cache.h"
 >
->  static struct plic_data plic = {
-> @@ -81,21 +81,6 @@ static int ae350_ipi_init(bool cold_boot)
->         return plicsw_warm_ipi_init();
+>  struct sbi_platform platform;
+> @@ -88,29 +88,6 @@ static int ae350_final_init(bool cold_boot)
+>         return 0;
 >  }
 >
-> -/* Initialize platform timer for current HART. */
-> -static int ae350_timer_init(bool cold_boot)
+> -static struct sbi_ipi_device plicsw_ipi = {
+> -       .name = "ae350_plicsw",
+> -       .ipi_send = plicsw_ipi_send,
+> -       .ipi_clear = plicsw_ipi_clear
+> -};
+> -
+> -/* Initialize IPI for current HART. */
+> -static int ae350_ipi_init(bool cold_boot)
 > -{
 > -       int ret;
 > -
 > -       if (cold_boot) {
-> -               ret = plmt_cold_timer_init(AE350_PLMT_ADDR,
+> -               ret = plicsw_cold_ipi_init(AE350_PLICSW_ADDR,
 > -                                          AE350_HART_COUNT);
 > -               if (ret)
 > -                       return ret;
+> -
+> -               sbi_ipi_set_device(&plicsw_ipi);
 > -       }
 > -
-> -       return plmt_warm_timer_init();
+> -       return plicsw_warm_ipi_init();
 > -}
 > -
 >  /* Vendor-Specific SBI handler */
 >  static int ae350_vendor_ext_provider(long extid, long funcid,
 >         const struct sbi_trap_regs *regs, unsigned long *out_value,
-> @@ -150,7 +135,7 @@ const struct sbi_platform_operations platform_ops = {
+> @@ -163,7 +140,7 @@ const struct sbi_platform_operations platform_ops = {
 >
->         .ipi_init     = ae350_ipi_init,
+>         .irqchip_init = fdt_irqchip_init,
 >
-> -       .timer_init        = ae350_timer_init,
-> +       .timer_init        = fdt_timer_init,
+> -       .ipi_init     = ae350_ipi_init,
+> +       .ipi_init     = fdt_ipi_init,
 >
->         .vendor_ext_provider = ae350_vendor_ext_provider
->  };
+>         .timer_init        = fdt_timer_init,
+>
 > diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
-> index c699b7f..6a29fe5 100644
+> index 3003bb4..903bef0 100644
 > --- a/platform/andes/ae350/platform.h
 > +++ b/platform/andes/ae350/platform.h
-> @@ -18,8 +18,6 @@
+> @@ -11,8 +11,6 @@
+>  #ifndef _AE350_PLATFORM_H_
+>  #define _AE350_PLATFORM_H_
 >
->  #define AE350_PLICSW_ADDR              0xe6400000
->
-> -#define AE350_PLMT_ADDR                        0xe6000000
+> -#define AE350_PLICSW_ADDR              0xe6400000
 > -
 >  #define AE350_L2C_ADDR                 0xe0500000
 >
 >  /*Memory and Miscellaneous Registers*/
-> diff --git a/platform/andes/ae350/plmt.c b/platform/andes/ae350/plmt.c
+> diff --git a/platform/andes/ae350/plicsw.c b/platform/andes/ae350/plicsw.c
 > deleted file mode 100644
-> index 54dcb94..0000000
-> --- a/platform/andes/ae350/plmt.c
+> index edbbb11..0000000
+> --- a/platform/andes/ae350/plicsw.c
 > +++ /dev/null
-> @@ -1,107 +0,0 @@
+> @@ -1,139 +0,0 @@
 > -/*
 > - * SPDX-License-Identifier: BSD-2-Clause
 > - *
@@ -480,107 +545,139 @@ fdt_plmt_cold_timer_init() or something similar.
 > -
 > -#include <sbi/riscv_asm.h>
 > -#include <sbi/riscv_io.h>
-> -#include <sbi/sbi_timer.h>
+> -#include <sbi/sbi_types.h>
+> -#include "plicsw.h"
+> -#include "platform.h"
 > -
-> -static u32 plmt_time_hart_count;
-> -static volatile void *plmt_time_base;
-> -static volatile u64 *plmt_time_val;
-> -static volatile u64 *plmt_time_cmp;
+> -static u32 plicsw_ipi_hart_count;
+> -static struct plicsw plicsw_dev[AE350_HART_COUNT];
 > -
-> -static u64 plmt_timer_value(void)
+> -static inline void plicsw_claim(void)
 > -{
-> -#if __riscv_xlen == 64
-> -       return readq_relaxed(plmt_time_val);
-> -#else
-> -       u32 lo, hi;
+> -       u32 source_hart = current_hartid();
 > -
-> -       do {
-> -               hi = readl_relaxed((void *)plmt_time_val + 0x04);
-> -               lo = readl_relaxed(plmt_time_val);
-> -       } while (hi != readl_relaxed((void *)plmt_time_val + 0x04));
-> -
-> -       return ((u64)hi << 32) | (u64)lo;
-> -#endif
+> -       plicsw_dev[source_hart].source_id =
+> -               readl(plicsw_dev[source_hart].plicsw_claim);
 > -}
 > -
-> -static void plmt_timer_event_stop(void)
+> -static inline void plicsw_complete(void)
 > -{
-> -       u32 target_hart = current_hartid();
+> -       u32 source_hart = current_hartid();
+> -       u32 source = plicsw_dev[source_hart].source_id;
 > -
-> -       if (plmt_time_hart_count <= target_hart)
+> -       writel(source, plicsw_dev[source_hart].plicsw_claim);
+> -}
+> -
+> -static inline void plic_sw_pending(u32 target_hart)
+> -{
+> -       /*
+> -        * The pending array registers are w1s type.
+> -        * IPI pending array mapping as following:
+> -        *
+> -        * Pending array start address: base + 0x1000
+> -        * -------------------------------------
+> -        * | hart 3 | hart 2 | hart 1 | hart 0 |
+> -        * -------------------------------------
+> -        * Each hart X can send IPI to another hart by setting the
+> -        * corresponding bit in hart X own region(see the below).
+> -        *
+> -        * In each hart region:
+> -        * -----------------------------------------------
+> -        * | bit 7 | bit 6 | bit 5 | bit 4 | ... | bit 0 |
+> -        * -----------------------------------------------
+> -        * The bit 7 is used to send IPI to hart 0
+> -        * The bit 6 is used to send IPI to hart 1
+> -        * The bit 5 is used to send IPI to hart 2
+> -        * The bit 4 is used to send IPI to hart 3
+> -        */
+> -       u32 source_hart = current_hartid();
+> -       u32 target_offset = (PLICSW_PENDING_PER_HART - 1) - target_hart;
+> -       u32 per_hart_offset = PLICSW_PENDING_PER_HART * source_hart;
+> -       u32 val = 1 << target_offset << per_hart_offset;
+> -
+> -       writel(val, plicsw_dev[source_hart].plicsw_pending);
+> -}
+> -
+> -void plicsw_ipi_send(u32 target_hart)
+> -{
+> -       if (plicsw_ipi_hart_count <= target_hart)
 > -               return;
 > -
-> -       /* Clear PLMT Time Compare */
-> -#if __riscv_xlen == 64
-> -       writeq_relaxed(-1ULL, &plmt_time_cmp[target_hart]);
-> -#else
-> -       writel_relaxed(-1UL, &plmt_time_cmp[target_hart]);
-> -       writel_relaxed(-1UL, (void *)(&plmt_time_cmp[target_hart]) + 0x04);
-> -#endif
+> -       /* Set PLICSW IPI */
+> -       plic_sw_pending(target_hart);
 > -}
 > -
-> -static void plmt_timer_event_start(u64 next_event)
+> -void plicsw_ipi_clear(u32 target_hart)
 > -{
-> -       u32 target_hart = current_hartid();
-> -
-> -       if (plmt_time_hart_count <= target_hart)
+> -       if (plicsw_ipi_hart_count <= target_hart)
 > -               return;
 > -
-> -       /* Program PLMT Time Compare */
-> -#if __riscv_xlen == 64
-> -       writeq_relaxed(next_event, &plmt_time_cmp[target_hart]);
-> -#else
-> -       u32 mask = -1UL;
-> -
-> -       writel_relaxed(next_event & mask, &plmt_time_cmp[target_hart]);
-> -       writel_relaxed(next_event >> 32,
-> -                      (void *)(&plmt_time_cmp[target_hart]) + 0x04);
-> -#endif
-> -
+> -       /* Clear PLICSW IPI */
+> -       plicsw_claim();
+> -       plicsw_complete();
 > -}
 > -
-> -static struct sbi_timer_device plmt_timer = {
-> -       .name = "ae350_plmt",
-> -       .timer_value = plmt_timer_value,
-> -       .timer_event_start = plmt_timer_event_start,
-> -       .timer_event_stop = plmt_timer_event_stop
-> -};
-> -
-> -int plmt_warm_timer_init(void)
+> -int plicsw_warm_ipi_init(void)
 > -{
-> -       u32 target_hart = current_hartid();
+> -       u32 hartid = current_hartid();
 > -
-> -       if (plmt_time_hart_count <= target_hart || !plmt_time_base)
+> -       if (!plicsw_dev[hartid].plicsw_pending
+> -           && !plicsw_dev[hartid].plicsw_enable
+> -           && !plicsw_dev[hartid].plicsw_claim)
 > -               return -1;
 > -
-> -       /* Clear PLMT Time Compare */
-> -#if __riscv_xlen == 64
-> -       writeq_relaxed(-1ULL, &plmt_time_cmp[target_hart]);
-> -#else
-> -       writel_relaxed(-1UL, &plmt_time_cmp[target_hart]);
-> -       writel_relaxed(-1UL, (void *)(&plmt_time_cmp[target_hart]) + 0x04);
-> -#endif
+> -       /* Clear PLICSW IPI */
+> -       plicsw_ipi_clear(hartid);
 > -
 > -       return 0;
 > -}
 > -
-> -int plmt_cold_timer_init(unsigned long base, u32 hart_count)
+> -int plicsw_cold_ipi_init(unsigned long base, u32 hart_count)
 > -{
-> -       plmt_time_hart_count = hart_count;
-> -       plmt_time_base       = (void *)base;
-> -       plmt_time_val        = (u64 *)(plmt_time_base);
-> -       plmt_time_cmp        = (u64 *)(plmt_time_base + 0x8);
+> -       /* Setup source priority */
+> -       uint32_t *priority = (void *)base + PLICSW_PRIORITY_BASE;
 > -
-> -       sbi_timer_set_device(&plmt_timer);
+> -       for (int i = 0; i < AE350_HART_COUNT * PLICSW_PENDING_PER_HART; i++)
+> -               writel(1, &priority[i]);
+> -
+> -       /* Setup target enable */
+> -       uint32_t enable_mask = PLICSW_HART_MASK;
+> -
+> -       for (int i = 0; i < AE350_HART_COUNT; i++) {
+> -               uint32_t *enable = (void *)base + PLICSW_ENABLE_BASE
+> -                       + PLICSW_ENABLE_PER_HART * i;
+> -               writel(enable_mask, &enable[0]);
+> -               enable_mask >>= 1;
+> -       }
+> -
+> -       /* Figure-out PLICSW IPI register address */
+> -       plicsw_ipi_hart_count = hart_count;
+> -
+> -       for (u32 hartid = 0; hartid < AE350_HART_COUNT; hartid++) {
+> -               plicsw_dev[hartid].source_id = 0;
+> -               plicsw_dev[hartid].plicsw_pending =
+> -                       (void *)base
+> -                       + PLICSW_PENDING_BASE
+> -                       + ((hartid / 4) * 4);
+> -               plicsw_dev[hartid].plicsw_enable  =
+> -                       (void *)base
+> -                       + PLICSW_ENABLE_BASE
+> -                       + PLICSW_ENABLE_PER_HART * hartid;
+> -               plicsw_dev[hartid].plicsw_claim   =
+> -                       (void *)base
+> -                       + PLICSW_CONTEXT_BASE
+> -                       + PLICSW_CONTEXT_CLAIM
+> -                       + PLICSW_CONTEXT_PER_HART * hartid;
+> -       }
 > -
 > -       return 0;
 > -}
-> diff --git a/platform/andes/ae350/plmt.h b/platform/andes/ae350/plmt.h
+> diff --git a/platform/andes/ae350/plicsw.h b/platform/andes/ae350/plicsw.h
 > deleted file mode 100644
-> index db093e0..0000000
-> --- a/platform/andes/ae350/plmt.h
+> index 58728f6..0000000
+> --- a/platform/andes/ae350/plicsw.h
 > +++ /dev/null
-> @@ -1,17 +0,0 @@
+> @@ -1,44 +0,0 @@
 > -/*
 > - * SPDX-License-Identifier: BSD-2-Clause
 > - *
@@ -588,19 +685,51 @@ fdt_plmt_cold_timer_init() or something similar.
 > - *
 > - * Authors:
 > - *   Zong Li <zong@andestech.com>
+> - *   Nylon Chen <nylon7@andestech.com>
 > - */
 > -
-> -#ifndef _AE350_PLMT_H_
-> -#define _AE350_PLMT_H_
+> -#ifndef _AE350_PLICSW_H_
+> -#define _AE350_PLICSW_H_
 > -
-> -int plmt_warm_timer_init(void);
+> -#define PLICSW_PRIORITY_BASE           0x4
 > -
-> -int plmt_cold_timer_init(unsigned long base, u32 hart_count);
+> -#define PLICSW_PENDING_BASE            0x1000
+> -#define PLICSW_PENDING_PER_HART                0x8
 > -
-> -#endif /* _AE350_PLMT_H_ */
+> -#define PLICSW_ENABLE_BASE             0x2000
+> -#define PLICSW_ENABLE_PER_HART         0x80
+> -
+> -#define PLICSW_CONTEXT_BASE            0x200000
+> -#define PLICSW_CONTEXT_PER_HART                0x1000
+> -#define PLICSW_CONTEXT_CLAIM           0x4
+> -
+> -#define PLICSW_HART_MASK               0x80808080
+> -
+> -struct plicsw {
+> -       u32 source_id;
+> -
+> -       volatile uint32_t *plicsw_pending;
+> -       volatile uint32_t *plicsw_enable;
+> -       volatile uint32_t *plicsw_claim;
+> -};
+> -
+> -void plicsw_ipi_send(u32 target_hart);
+> -
+> -void plicsw_ipi_clear(u32 target_hart);
+> -
+> -int plicsw_warm_ipi_init(void);
+> -
+> -int plicsw_cold_ipi_init(unsigned long base, u32 hart_count);
+> -
+> -#endif /* _AE350_PLICSW_H_ */
 > --
 > 2.34.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
 Anup
