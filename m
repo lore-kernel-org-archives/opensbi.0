@@ -1,111 +1,101 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Fri, 14 Oct 2022 00:44:07 +0800
-Subject: [PATCH v5 0/5] Add support for T-HEAD C9xx PMU extensions
-In-Reply-To: <3510402.VqM8IeB0Os@phil>
-References: <20221004164227.1381825-1-heiko@sntech.de> <CAAhSdy2DvKZOZdmRzxpmT9UmV-ySMwzUNkQtU6dkzSLVs-VChw@mail.gmail.com>
- <3510402.VqM8IeB0Os@phil>
-Message-ID: <CAJF2gTT4WajFyFHXzbhU9ef2gLdz0oFw8zAAU74YytxDjmFoFw@mail.gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 14 Oct 2022 08:32:38 +0800
+Subject: [PATCH v4 00/14] Add Andes AE350 fdt driver support
+Message-ID: <20221014003252.17765-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Great! Thx Anup, and Heiko.
+We move the devices used by AE350 to fdt driver framework, reuse
+existing driver and add timer, ipi and reset drivers.
+The OpenSBI domain support is also enabled. As of now, we can use
+Kconfig to manage these configurations that can support variants of
+Andes platform and SoC like Kendryte K510.
 
-On Thu, Oct 13, 2022 at 3:04 PM Heiko Stuebner <heiko@sntech.de> wrote:
->
-> Am Donnerstag, 13. Oktober 2022, 06:26:43 CEST schrieb Anup Patel:
-> > On Tue, Oct 4, 2022 at 10:13 PM Heiko Stuebner <heiko@sntech.de> wrote:
-> > >
-> > > The T-HEAD C9XX cores implement functionality very similar to SSCOFPMF.
-> > > Instead of implementing a separate interface into SBI as done in v1,
-> > > we can add the C9XX tidbits with quite minimal overhead and leaverage
-> > > the existing SBI pmu interface including giving access to the firmware
-> > > counters.
-> > >
-> > > The current only hickup is the detection override in sbi_hart, where
-> > > I still need to find out why the MHPMCOUNTERs are not writeable
-> > > at _that_ point of the boot, but with this series on top of openSBI 1.1
-> > > and the matching kernel perf patch I get reasonable results for example
-> > > for:
-> > >
-> > > perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-icache-loads ls
-> > >
-> > >  Performance counter stats for 'ls':
-> > >
-> > >           17119496      cycles
-> > >            2867765      instructions              #    0.17  insn per cycle
-> > >              55929      L1-icache-load-misses     #    1.61% of all L1-icache accesses
-> > >            3467346      L1-icache-loads
-> > >
-> > >        0.030156216 seconds time elapsed
-> > >
-> > >        0.000000000 seconds user
-> > >        0.023496000 seconds sys
-> > >
-> > > changes in v5:
-> > > - use csr_set, csr_clear in allwinner pmu functions
-> > > - expose hart_features struct into header
-> > > - make hart_features param for extension_init callback
-> > >   to allow platforms to override specific settings
-> > >
-> > > changes in v4:
-> > > - use the new sbi_pmu_device structure for holding the
-> > >   overrides and extend it where needed
-> > >
-> > > changes in v3:
-> > > - follow Atish's advice and implement an abstraction
-> > >   to not pollute the core pmu with cpu-specific variants
-> > >
-> > > changes in v2:
-> > > - don't implement a separate interface but instead modify
-> > >   the sbi-pmu to allow the c9xx to use standard pmu interface
-> > >
-> > >
-> > > Heiko Stuebner (5):
-> > >   lib: sbi_pmu: move pmu irq information into pmu itself
-> > >   lib: sbi_hart: move hart_features struct to a public location
-> > >   lib: sbi_platform: expose hart_features to extension_init callback
-> > >   platform: generic: add extensions_init handler and platform-override
-> > >   platform: generic: allwinner: add support for c9xx pmu
-> >
-> > Applied this series to the riscv/opensbi repo.
->
-> Very cool, thanks a lot for picking this up :-)
->
-> Thanks
-> Heiko
->
->
-> > >  include/sbi/sbi_hart.h                       |  11 ++
-> > >  include/sbi/sbi_platform.h                   |   8 +-
-> > >  include/sbi/sbi_pmu.h                        |   8 ++
-> > >  lib/sbi/sbi_hart.c                           |  43 +++----
-> > >  lib/sbi/sbi_pmu.c                            |  12 ++
-> > >  platform/generic/allwinner/sun20i-d1.c       |  60 +++++++++
-> > >  platform/generic/include/platform_override.h |   3 +
-> > >  platform/generic/include/thead_c9xx.h        | 127 +++++++++++++++++++
-> > >  platform/generic/platform.c                  |  10 ++
-> > >  9 files changed, 253 insertions(+), 29 deletions(-)
-> > >  create mode 100644 platform/generic/include/thead_c9xx.h
-> > >
-> > > --
-> > > 2.35.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
->
->
->
->
+Changes v1 -> v2
+  - Rename Andes-specific devices (PLMT, PLICSW) compatible string
+  - Update ISA string in CPU nodes
+Changes v2 -> v3
+  - Add PATCH1 and PATCH2 to fix typos
+  - Add PATCH3 which factors out a function for adding mtimer and ipi
+    device regions to root domain
+  - Remove unused variable "num_src" and "riscv,ndev" property of ipi 
+    device node
+Changes v3 -> v4
+  - Add PATCH3 to fix grammar
+  - Move plmt_{cold,warm}_timer_init() to andes_plmt.c and define
+    fdt_plmt_cold_timer_init() which adds PLMT region and sets
+    timer device
+  - Move plicsw_{cold,warm}_ipi_init() to andes_plicsw.c and define
+    fdt_plicsw_cold_ipi_init() which adds PLICSW region and sets
+    ipi device
+ 
 
+Yu Chien Peter Lin (14):
+  include: sbi: Fix typo in comment
+  lib: sbi: Fix typo in comment
+  include: sbi: Fix grammar in comment
+  lib: sbi: Add sbi_domain_root_add_memrange() API
+  platform: andes/ae350: Remove enabling cache from an350_final_init
+  platform: andes/ae350: Use kconfig to set platform version and default
+    name
+  platform: andes/ae350: Use fdt serial driver
+  lib: utils/timer: Add Andes fdt timer support
+  lib: utils/reset: Add Andes fdt reset driver support
+  platform: andes/ae350: Use fdt irqchip driver
+  platform: andes/ae350: Add fw_platform_init for platform
+    initialization
+  lib: utils/ipi: Add Andes fdt ipi driver support
+  platform: andes/ae350: Add AE350 domain support
+  docs: andes-ae350.md: Update ae350 documentation for fdt driver
+    support
+
+ docs/platform/andes-ae350.md            | 184 +++++++++++++++++++++++-
+ include/sbi/sbi_domain.h                |  16 ++-
+ include/sbi/sbi_scratch.h               |   2 +-
+ include/sbi_utils/fdt/fdt_helper.h      |   6 +
+ include/sbi_utils/ipi/andes_plicsw.h    |  46 ++++++
+ include/sbi_utils/timer/aclint_mtimer.h |   2 +
+ include/sbi_utils/timer/andes_plmt.h    |  29 ++++
+ lib/sbi/sbi_domain.c                    |  27 ++++
+ lib/sbi/sbi_expected_trap.S             |   2 +-
+ lib/utils/fdt/fdt_helper.c              | 108 ++++++++++++++
+ lib/utils/ipi/Kconfig                   |   9 ++
+ lib/utils/ipi/andes_plicsw.c            | 137 ++++++++++++++++++
+ lib/utils/ipi/fdt_ipi_plicsw.c          |  47 ++++++
+ lib/utils/ipi/objects.mk                |   4 +
+ lib/utils/reset/Kconfig                 |   4 +
+ lib/utils/reset/fdt_reset_atcwdt200.c   | 122 ++++++++++++++++
+ lib/utils/reset/objects.mk              |   3 +
+ lib/utils/timer/Kconfig                 |   9 ++
+ lib/utils/timer/aclint_mtimer.c         |  50 ++-----
+ lib/utils/timer/andes_plmt.c            | 104 ++++++++++++++
+ lib/utils/timer/fdt_timer_plmt.c        |  51 +++++++
+ lib/utils/timer/objects.mk              |   4 +
+ platform/andes/ae350/Kconfig            |  30 +++-
+ platform/andes/ae350/objects.mk         |   2 +-
+ platform/andes/ae350/platform.c         | 165 +++++++++------------
+ platform/andes/ae350/platform.h         |  17 ---
+ platform/andes/ae350/plicsw.c           | 139 ------------------
+ platform/andes/ae350/plicsw.h           |  44 ------
+ platform/andes/ae350/plmt.c             | 107 --------------
+ platform/andes/ae350/plmt.h             |  17 ---
+ 30 files changed, 1021 insertions(+), 466 deletions(-)
+ create mode 100644 include/sbi_utils/ipi/andes_plicsw.h
+ create mode 100644 include/sbi_utils/timer/andes_plmt.h
+ create mode 100644 lib/utils/ipi/andes_plicsw.c
+ create mode 100644 lib/utils/ipi/fdt_ipi_plicsw.c
+ create mode 100644 lib/utils/reset/fdt_reset_atcwdt200.c
+ create mode 100644 lib/utils/timer/andes_plmt.c
+ create mode 100644 lib/utils/timer/fdt_timer_plmt.c
+ delete mode 100644 platform/andes/ae350/plicsw.c
+ delete mode 100644 platform/andes/ae350/plicsw.h
+ delete mode 100644 platform/andes/ae350/plmt.c
+ delete mode 100644 platform/andes/ae350/plmt.h
 
 -- 
-Best Regards
- Guo Ren
+2.34.1
+
 
