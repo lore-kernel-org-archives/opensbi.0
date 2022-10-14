@@ -1,36 +1,35 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Fri, 14 Oct 2022 08:32:40 +0800
-Subject: [PATCH v4 02/14] lib: sbi: Fix typo in comment
+Date: Fri, 14 Oct 2022 08:32:41 +0800
+Subject: [PATCH v4 03/14] include: sbi: Fix grammar in comment
 In-Reply-To: <20221014003252.17765-1-peterlin@andestech.com>
 References: <20221014003252.17765-1-peterlin@andestech.com>
-Message-ID: <20221014003252.17765-3-peterlin@andestech.com>
+Message-ID: <20221014003252.17765-4-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-%s/is is/is
+Fix minor grammar issue in function description.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_expected_trap.S | 2 +-
+ include/sbi/sbi_domain.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_expected_trap.S b/lib/sbi/sbi_expected_trap.S
-index a5ef26a..1f2d6b9 100644
---- a/lib/sbi/sbi_expected_trap.S
-+++ b/lib/sbi/sbi_expected_trap.S
-@@ -11,7 +11,7 @@
- #include <sbi/sbi_trap.h>
- 
- 	/*
--	 * We assume that faulting instruction is is 4-byte long and blindly
-+	 * We assume that faulting instruction is 4-byte long and blindly
- 	 * increment SEPC by 4.
- 	 *
- 	 * The trap info will be saved as follows:
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index b90f59c..00662a1 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -175,7 +175,7 @@ int sbi_domain_register(struct sbi_domain *dom,
+  * @param reg pointer to the memory region to be added
+  *
+  * @return 0 on success
+- * @return SBI_EALREADY if memory region conflicts with existing
++ * @return SBI_EALREADY if memory region conflicts with the existing one
+  * @return SBI_EINVAL otherwise
+  */
+ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg);
 -- 
 2.34.1
 
