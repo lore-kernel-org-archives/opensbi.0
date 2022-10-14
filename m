@@ -1,69 +1,114 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Fri, 14 Oct 2022 08:32:44 +0800
-Subject: [PATCH v4 06/14] platform: andes/ae350: Use kconfig to set platform version and default name
+Date: Fri, 14 Oct 2022 08:32:45 +0800
+Subject: [PATCH v4 07/14] platform: andes/ae350: Use fdt serial driver
 In-Reply-To: <20221014003252.17765-1-peterlin@andestech.com>
 References: <20221014003252.17765-1-peterlin@andestech.com>
-Message-ID: <20221014003252.17765-7-peterlin@andestech.com>
+Message-ID: <20221014003252.17765-8-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch makes andes platform name and version can be set in
-menuconfig interface.
+Andes UART is compatible with uart8250 driver. We can use
+fdt_serial_init() as platform console init hook.
+
+dts example:
+
+  serial0: serial at f0300000 {
+    compatible = "andestech,uart16550", "ns16550a";
+    reg = <0x00000000 0xf0300000 0x00000000 0x00001000>;
+    interrupts = <9 4>;
+    interrupt-parent = <&plic0>;
+    clock-frequency = <19660800>;
+    current-speed = <38400>;
+    reg-shift = <2>;
+    reg-offset = <32>;
+    reg-io-width = <4>;
+    no-loopback-test = <1>;
+  };
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- platform/andes/ae350/Kconfig    | 18 ++++++++++++++++++
- platform/andes/ae350/platform.c |  6 ++++--
- 2 files changed, 22 insertions(+), 2 deletions(-)
+ platform/andes/ae350/Kconfig    |  3 ++-
+ platform/andes/ae350/platform.c | 15 ++-------------
+ platform/andes/ae350/platform.h |  8 --------
+ 3 files changed, 4 insertions(+), 22 deletions(-)
 
 diff --git a/platform/andes/ae350/Kconfig b/platform/andes/ae350/Kconfig
-index d57f19f..3abad04 100644
+index 3abad04..8dd8ebe 100644
 --- a/platform/andes/ae350/Kconfig
 +++ b/platform/andes/ae350/Kconfig
-@@ -6,3 +6,21 @@ config PLATFORM_ANDES_AE350
+@@ -4,7 +4,8 @@ config PLATFORM_ANDES_AE350
+ 	bool
+ 	select FDT
  	select IRQCHIP_PLIC
- 	select SERIAL_UART8250
+-	select SERIAL_UART8250
++	select FDT_SERIAL
++	select FDT_SERIAL_UART8250
  	default y
-+
-+if PLATFORM_ANDES_AE350
-+
-+config PLATFORM_ANDES_AE350_NAME
-+	string "Platform default name"
-+	default "Andes AE350"
-+
-+config PLATFORM_ANDES_AE350_MAJOR_VER
-+	int "Platform major version"
-+	range 0 65535
-+	default 0
-+
-+config PLATFORM_ANDES_AE350_MINOR_VER
-+	int "Platform minor version"
-+	range 0 65535
-+	default 1
-+
-+endif
+ 
+ if PLATFORM_ANDES_AE350
 diff --git a/platform/andes/ae350/platform.c b/platform/andes/ae350/platform.c
-index 33f9c4c..c07f6be 100644
+index c07f6be..04428d1 100644
 --- a/platform/andes/ae350/platform.c
 +++ b/platform/andes/ae350/platform.c
-@@ -168,8 +168,10 @@ const struct sbi_platform_operations platform_ops = {
+@@ -18,7 +18,7 @@
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/irqchip/plic.h>
+-#include <sbi_utils/serial/uart8250.h>
++#include <sbi_utils/serial/fdt_serial.h>
+ #include "platform.h"
+ #include "plicsw.h"
+ #include "plmt.h"
+@@ -43,17 +43,6 @@ static int ae350_final_init(bool cold_boot)
+ 	return 0;
+ }
  
- const struct sbi_platform platform = {
- 	.opensbi_version = OPENSBI_VERSION,
--	.platform_version = SBI_PLATFORM_VERSION(0x0, 0x01),
--	.name = "Andes AE350",
-+	.platform_version =
-+		SBI_PLATFORM_VERSION(CONFIG_PLATFORM_ANDES_AE350_MAJOR_VER,
-+				     CONFIG_PLATFORM_ANDES_AE350_MINOR_VER),
-+	.name = CONFIG_PLATFORM_ANDES_AE350_NAME,
- 	.features = SBI_PLATFORM_DEFAULT_FEATURES,
- 	.hart_count = AE350_HART_COUNT,
- 	.hart_stack_size = SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
+-/* Initialize the platform console. */
+-static int ae350_console_init(void)
+-{
+-	return uart8250_init(AE350_UART_ADDR,
+-			     AE350_UART_FREQUENCY,
+-			     AE350_UART_BAUDRATE,
+-			     AE350_UART_REG_SHIFT,
+-			     AE350_UART_REG_WIDTH,
+-			     AE350_UART_REG_OFFSET);
+-}
+-
+ /* Initialize the platform interrupt controller for current HART. */
+ static int ae350_irqchip_init(bool cold_boot)
+ {
+@@ -155,7 +144,7 @@ static int ae350_vendor_ext_provider(long extid, long funcid,
+ const struct sbi_platform_operations platform_ops = {
+ 	.final_init = ae350_final_init,
+ 
+-	.console_init = ae350_console_init,
++	.console_init = fdt_serial_init,
+ 
+ 	.irqchip_init = ae350_irqchip_init,
+ 
+diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
+index 9b54816..c699b7f 100644
+--- a/platform/andes/ae350/platform.h
++++ b/platform/andes/ae350/platform.h
+@@ -22,14 +22,6 @@
+ 
+ #define AE350_L2C_ADDR			0xe0500000
+ 
+-#define AE350_UART_ADDR_OFFSET		0x20
+-#define AE350_UART_ADDR			(0xf0300000 + AE350_UART_ADDR_OFFSET)
+-#define AE350_UART_FREQUENCY		19660800
+-#define AE350_UART_BAUDRATE		38400
+-#define AE350_UART_REG_SHIFT		2
+-#define AE350_UART_REG_WIDTH		0
+-#define AE350_UART_REG_OFFSET		0
+-
+ /*Memory and Miscellaneous Registers*/
+ #define CSR_MILMB		0x7c0
+ #define CSR_MDLMB		0x7c1
 -- 
 2.34.1
 
