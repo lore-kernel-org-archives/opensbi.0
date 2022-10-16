@@ -1,10 +1,11 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 16 Oct 2022 14:15:42 -0500
-Subject: [PATCH v4 08/14] lib: utils/timer: Add Andes fdt timer support
-In-Reply-To: <20221014003252.17765-9-peterlin@andestech.com>
+Date: Sun, 16 Oct 2022 14:19:34 -0500
+Subject: [PATCH v4 09/14] lib: utils/reset: Add Andes fdt reset driver
+ support
+In-Reply-To: <20221014003252.17765-10-peterlin@andestech.com>
 References: <20221014003252.17765-1-peterlin@andestech.com>
- <20221014003252.17765-9-peterlin@andestech.com>
-Message-ID: <43cddb0a-934c-a020-f7d4-dcc5ef0401f3@sholland.org>
+ <20221014003252.17765-10-peterlin@andestech.com>
+Message-ID: <4b4aafa5-c03c-2f60-0632-c4fd8fd6986c@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,37 +13,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 On 10/13/22 19:32, Yu Chien Peter Lin wrote:
-> Since we can get the PLMT base address and timer frequency from
-> device tree, move plmt timer device to fdt timer framework.
+> Add ATCWDT200 as reset device of AE350 platform, this driver requires
+> SMU to program the reset vector registers before triggering WDT software
+> restart signal.
 > 
-> dts example (Quad-core AX45MP):
+> dts example:
 > 
->   cpus {
->       ...
->       timebase-frequency = <0x3938700>;
->       ...
->   }
->   soc {
->       ...
->       plmt0 at e6000000 {
->           compatible = "andestech,plmt0";
->           reg = <0x00 0xe6000000 0x00 0x100000>;
->           interrupts-extended = <&cpu0_intc 0x07
->                                  &cpu1_intc 0x07
->                                  &cpu2_intc 0x07
->                                  &cpu3_intc 0x07>;
->       };
->       ...
->   }
+>   smu at f0100000 {
+>     compatible = "andestech,atcsmu";
+>     reg = <0x00000000 0xf0100000 0x00000000 0x00001000>;
+>   };
+> 
+>   wdt: wdt at f0500000 {
+>     compatible = "andestech,atcwdt200";
+>     reg = <0x00000000 0xf0500000 0x00000000 0x00001000>;
+>     interrupts = <3 4>;
+>     interrupt-parent = <&plic0>;
+>     clock-frequency = <15000000>;
+>   };
 
-Where is the binding for this compatible string? I do not see anything
-either upstream or downstream:
-
-https://lore.kernel.org/linux-devicetree/?q=andestech%2Cplmt0
-https://github.com/andestech/linux/commits/RISCV-Linux-5.4-ast-v5_1_0-branch/Documentation/devicetree/bindings
-
-We really shouldn't be accepting any devicetree compatible unless a YAML
-binding for it exists, ideally one acked by the DT schema maintainers.
+The same applies here and in patch 12. A complete binding for these
+compatible strings needs to be available somewhere. Otherwise, it is
+impossible to review the code for compliance with the binding.
 
 Regards,
 Samuel
