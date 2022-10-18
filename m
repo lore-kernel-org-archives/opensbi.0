@@ -1,42 +1,36 @@
-From: Samuel Holland <samuel@sholland.org>
-Date: Sun, 16 Oct 2022 14:19:34 -0500
-Subject: [PATCH v4 09/14] lib: utils/reset: Add Andes fdt reset driver
- support
-In-Reply-To: <20221014003252.17765-10-peterlin@andestech.com>
-References: <20221014003252.17765-1-peterlin@andestech.com>
- <20221014003252.17765-10-peterlin@andestech.com>
-Message-ID: <4b4aafa5-c03c-2f60-0632-c4fd8fd6986c@sholland.org>
+From: pyjmstr@gmail.com <pyjmstr@gmail.com>
+Date: Tue, 18 Oct 2022 20:58:37 +0800
+Subject: [PATCH] docs: update docs/firmware/fw_payload.md
+Message-ID: <20221018125837.10799-1-pyjmstr@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10/13/22 19:32, Yu Chien Peter Lin wrote:
-> Add ATCWDT200 as reset device of AE350 platform, this driver requires
-> SMU to program the reset vector registers before triggering WDT software
-> restart signal.
-> 
-> dts example:
-> 
->   smu at f0100000 {
->     compatible = "andestech,atcsmu";
->     reg = <0x00000000 0xf0100000 0x00000000 0x00001000>;
->   };
-> 
->   wdt: wdt at f0500000 {
->     compatible = "andestech,atcwdt200";
->     reg = <0x00000000 0xf0500000 0x00000000 0x00001000>;
->     interrupts = <3 4>;
->     interrupt-parent = <&plic0>;
->     clock-frequency = <15000000>;
->   };
+From: Yangjie Zhang <pyjmstr@gmail.com>
 
-The same applies here and in patch 12. A complete binding for these
-compatible strings needs to be available somewhere. Otherwise, it is
-impossible to review the code for compliance with the binding.
+Update the document.
 
-Regards,
-Samuel
+Signed-off-by: Yangjie Zhang <pyjmstr@gmail.com>
+---
+ docs/firmware/fw_payload.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docs/firmware/fw_payload.md b/docs/firmware/fw_payload.md
+index 3bb918f..3d50ddc 100644
+--- a/docs/firmware/fw_payload.md
++++ b/docs/firmware/fw_payload.md
+@@ -12,7 +12,7 @@ firmware and the booting stage to follow OpenSBI firmware.
+ A *FW_PAYLOAD* firmware is also useful for cases where the booting stage prior
+ to the OpenSBI firmware does not pass a *flattened device tree (FDT file)*. In
+ such a case, a *FW_PAYLOAD* firmware allows embedding a flattened device tree
+-in the .text section of the final firmware.
++in the .rodata section of the final firmware.
+ 
+ Enabling *FW_PAYLOAD* compilation
+ ---------------------------------
+-- 
+2.34.1
 
 
