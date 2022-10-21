@@ -1,31 +1,63 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Fri, 21 Oct 2022 09:55:48 +0800
-Subject: [PATCH] docs/firmware: update the document
-In-Reply-To: <20221020144108.4034-1-pyjmstr@gmail.com>
-References: <20221020144108.4034-1-pyjmstr@gmail.com>
-Message-ID: <CAEUhbmXrmar9_VHXA5s16cLp9bf3Tp6WL0-bcjJvQuOLmEO06A@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 21 Oct 2022 10:41:56 +0530
+Subject: [PATCH v4 08/14] lib: utils/timer: Add Andes fdt timer support
+In-Reply-To: <43cddb0a-934c-a020-f7d4-dcc5ef0401f3@sholland.org>
+References: <20221014003252.17765-1-peterlin@andestech.com>
+ <20221014003252.17765-9-peterlin@andestech.com> <43cddb0a-934c-a020-f7d4-dcc5ef0401f3@sholland.org>
+Message-ID: <CAAhSdy2diaow70xY-f9Kd2sMGapetcJrrSzZqvpno+29AsiXHw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 20, 2022 at 10:42 PM <pyjmstr@gmail.com> wrote:
+On Mon, Oct 17, 2022 at 12:45 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> From: Yangjie Zhang <pyjmstr@gmail.com>
+> On 10/13/22 19:32, Yu Chien Peter Lin wrote:
+> > Since we can get the PLMT base address and timer frequency from
+> > device tree, move plmt timer device to fdt timer framework.
+> >
+> > dts example (Quad-core AX45MP):
+> >
+> >   cpus {
+> >       ...
+> >       timebase-frequency = <0x3938700>;
+> >       ...
+> >   }
+> >   soc {
+> >       ...
+> >       plmt0 at e6000000 {
+> >           compatible = "andestech,plmt0";
+> >           reg = <0x00 0xe6000000 0x00 0x100000>;
+> >           interrupts-extended = <&cpu0_intc 0x07
+> >                                  &cpu1_intc 0x07
+> >                                  &cpu2_intc 0x07
+> >                                  &cpu3_intc 0x07>;
+> >       };
+> >       ...
+> >   }
 >
-> Since
-> commit 9c07c513aa9b ("firmware:Remove FW_PAYLOAD_FDT_PATH compile-time option"),
-> the section where FDT would be embedded in has changed from *.text* to *.rodata*,
-> but some places in fw_payload.md and fw.md are still *.text*.
-> This patch updates the document.
+> Where is the binding for this compatible string? I do not see anything
+> either upstream or downstream:
 >
-> Signed-off-by: Yangjie Zhang <pyjmstr@gmail.com>
-> ---
->  docs/firmware/fw.md         | 2 +-
->  docs/firmware/fw_payload.md | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+> https://lore.kernel.org/linux-devicetree/?q=andestech%2Cplmt0
+> https://github.com/andestech/linux/commits/RISCV-Linux-5.4-ast-v5_1_0-branch/Documentation/devicetree/bindings
+>
+> We really shouldn't be accepting any devicetree compatible unless a YAML
+> binding for it exists, ideally one acked by the DT schema maintainers.
 >
 
-Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+Ideally, we should only accept patches for which DT bindings
+have been accepted in kernel but at the moment we are not
+strict about this as long as:
+1) It does not affect other platforms
+2) The platform/SoC vendor are willing to keep things up-to-date
+    whenever DT bindings are merged in kernel
+
+I am still not sure about from which OpenSBI release we should
+change our patch acceptance policy and mandate DT bindings to
+be present in the kernel.
+
+Regards,
+Anup
 
