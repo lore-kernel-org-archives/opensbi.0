@@ -1,45 +1,52 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 20 Oct 2022 23:03:06 -0700
-Subject: [QUERY] Adding a new platform
-In-Reply-To: <CA+V-a8ua-D1MVLAXpBbaoFX5X9BR3F-yPshnmjZzNbw2B6P48w@mail.gmail.com>
-References: <CA+V-a8ua-D1MVLAXpBbaoFX5X9BR3F-yPshnmjZzNbw2B6P48w@mail.gmail.com>
-Message-ID: <CAOnJCULhkjV5KPh=VU5XhncvxhkXf5C8p=h2xGHTr_B-N9S7ZA@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sun, 23 Oct 2022 10:09:34 +0530
+Subject: [PATCH v4 03/14] include: sbi: Fix grammar in comment
+In-Reply-To: <20221014003252.17765-4-peterlin@andestech.com>
+References: <20221014003252.17765-1-peterlin@andestech.com> <20221014003252.17765-4-peterlin@andestech.com>
+Message-ID: <CAAhSdy0G9donWQtnpBU9Cvsq+cuTHCPS6WmX6QOcehdnNvZ-pw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 19, 2022 at 12:22 PM Lad, Prabhakar
-<prabhakar.csengg@gmail.com> wrote:
+On Fri, Oct 14, 2022 at 6:03 AM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> Hi All,
+> Fix minor grammar issue in function description.
 >
-> I plan to add support for the Renesas RZ/Five SoC soon.
->
-> The RZ/Five SoC is based on the Andes AX45MP core and most of the code
-> for RZ/Five will be almost identical in the existing [0] (with just
-> slight differences). What is the best approach I should follow without
-> duplicating the code?
->
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 
-Can you use the generic platform ? I noticed bunch andes patches
-supporting DT based probing.
-That should help Renesas RZ/Five SoC as well.
+Looks good to me.
 
-> [0] platform/andes/ae350/
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
+> ---
+>  include/sbi/sbi_domain.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> Cheers,
-> Prabhakar
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index b90f59c..00662a1 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -175,7 +175,7 @@ int sbi_domain_register(struct sbi_domain *dom,
+>   * @param reg pointer to the memory region to be added
+>   *
+>   * @return 0 on success
+> - * @return SBI_EALREADY if memory region conflicts with existing
+> + * @return SBI_EALREADY if memory region conflicts with the existing one
+>   * @return SBI_EINVAL otherwise
+>   */
+>  int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg);
+> --
+> 2.34.1
+>
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-
-
---
-Regards,
-Atish
 
