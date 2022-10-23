@@ -1,25 +1,27 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 23 Oct 2022 10:50:40 +0530
-Subject: [1/1] Makefile: Add cscope support
-In-Reply-To: <20221013012623.1077367-1-ende.tan@linux.starfivetech.com>
-References: <20221013012623.1077367-1-ende.tan@linux.starfivetech.com>
-Message-ID: <CAAhSdy3NnxLxTtjmChNSTSBx-ZaJw6KmHHSphs62paPLxGL4Sg@mail.gmail.com>
+Date: Sun, 23 Oct 2022 11:11:11 +0530
+Subject: [PATCH 1/3] Makefile: Add rules for carray sources in lib/sbi
+In-Reply-To: <TYYP286MB14397F96761E23EB9E84A3BEC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+ <TYYP286MB14397F96761E23EB9E84A3BEC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <CAAhSdy3_v0XcSPajveaAyrXdp2Le6mf6Y+uPec+34sedNV23dA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 13, 2022 at 6:56 AM Tan En De
-<ende.tan@linux.starfivetech.com> wrote:
+On Mon, Oct 10, 2022 at 10:05 PM Vivian Wang <dramforever@live.com> wrote:
 >
-> Add cscope support so that running `make cscope` will generate/update
-> cscope files used for source code browsing, while running `make
-> distclean` will remove the cscope files.
+> Add back the missing rules needed to build carray files in lib/sbi. This
+> allows future usage of carray in lib/sbi.
 >
-> Also add entry in .gitignore to ignore generated cscope files.
->
-> Signed-off-by: Tan En De <ende.tan@linux.starfivetech.com>
+> Fixes: de80e9337d81 ("Makefile: Compile lib/utils sources separately for each platform")
+> Signed-off-by: Vivian Wang <dramforever@live.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -27,52 +29,29 @@ Thanks,
 Anup
 
 > ---
->  .gitignore |  1 +
->  Makefile   | 13 +++++++++++++
->  2 files changed, 14 insertions(+)
+>  Makefile | 7 +++++++
+>  1 file changed, 7 insertions(+)
 >
-> diff --git a/.gitignore b/.gitignore
-> index 534ad64..95692bb 100644
-> --- a/.gitignore
-> +++ b/.gitignore
-> @@ -9,3 +9,4 @@ install/
->
->  # Development friendly files
->  tags
-> +cscope*
 > diff --git a/Makefile b/Makefile
-> index 0ab9f22..4b175a0 100644
+> index 0ab9f22..2a3d080 100644
 > --- a/Makefile
 > +++ b/Makefile
-> @@ -623,6 +623,17 @@ install_firmwares: $(platform_build_dir)/lib/libplatsbi.a $(build_dir)/lib/libsb
->  install_docs: $(build_dir)/docs/latex/refman.pdf
->         $(call inst_file,$(install_root_dir)/$(install_docs_path)/refman.pdf,$(build_dir)/docs/latex/refman.pdf)
+> @@ -478,6 +478,13 @@ $(build_dir)/lib/libsbi.a: $(libsbi-objs-path-y)
+>  $(platform_build_dir)/lib/libplatsbi.a: $(libsbi-objs-path-y) $(libsbiutils-objs-path-y) $(platform-objs-path-y)
+>         $(call compile_ar,$@,$^)
 >
-> +.PHONY: cscope
-> +cscope:
-> +       $(CMD_PREFIX)find \
-> +               "$(src_dir)/firmware" \
-> +               "$(src_dir)/include" \
-> +               "$(src_dir)/lib" \
-> +               "$(platform_src_dir)" \
-> +       -name "*.[chS]" -print > cscope.files
-> +       $(CMD_PREFIX)echo "$(KCONFIG_AUTOHEADER)" >> cscope.files
-> +       $(CMD_PREFIX)cscope -bkq -i cscope.files -f cscope.out
+> +$(build_dir)/%.dep: $(src_dir)/%.carray $(KCONFIG_CONFIG)
+> +       $(call compile_gen_dep,$@,.c,$< $(KCONFIG_CONFIG))
+> +       $(call compile_gen_dep,$@,.o,$(@:.dep=.c))
 > +
->  # Rule for "make clean"
->  .PHONY: clean
->  clean:
-> @@ -652,6 +663,8 @@ ifeq ($(install_root_dir),$(install_root_dir_default)/usr)
->         $(if $(V), @echo " RM        $(install_root_dir_default)")
->         $(CMD_PREFIX)rm -rf $(install_root_dir_default)
->  endif
-> +       $(if $(V), @echo " RM        $(src_dir)/cscope*")
-> +       $(CMD_PREFIX)rm -f $(src_dir)/cscope*
+> +$(build_dir)/%.c: $(src_dir)/%.carray
+> +       $(call compile_carray,$@,$<)
+> +
+>  $(build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_CONFIG)
+>         $(call compile_cc_dep,$@,$<)
 >
->  .PHONY: FORCE
->  FORCE:
 > --
-> 2.34.1
+> 2.37.1
 >
 >
 > --
