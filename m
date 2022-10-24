@@ -1,51 +1,132 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 23 Oct 2022 11:15:27 +0530
-Subject: [PATCH 3/3] lib: sbi_ecall: Add Kconfig option for each extension
-In-Reply-To: <20221013142559.nzpxafcsp3yaffdp@kamzik>
-References: <TYYP286MB1439D0F7EA824413E8EF63FCC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <TYYP286MB14396945149DFFB36ADA5D8FC6209@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <20221013142559.nzpxafcsp3yaffdp@kamzik>
-Message-ID: <CAAhSdy3yBO=LN6B6=dbW=WXraLtCsSgE2zpW5aJfNtEbrTAC3A@mail.gmail.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Mon, 24 Oct 2022 15:10:48 +0000
+Subject: [PATCH v4 00/14] Add Andes AE350 fdt driver support
+In-Reply-To: <CAAhSdy2XvAA_1Qi9-b_d3H5st69ZbJbMdoho2X2fGHnzCY6A7g@mail.gmail.com>
+References: <20221014003252.17765-1-peterlin@andestech.com>
+ <CAAhSdy2XvAA_1Qi9-b_d3H5st69ZbJbMdoho2X2fGHnzCY6A7g@mail.gmail.com>
+Message-ID: <Y1aq+LQ/GyvhCHDB@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 13, 2022 at 7:56 PM Andrew Jones <ajones@ventanamicro.com> wrote:
->
-> On Tue, Oct 11, 2022 at 12:34:45AM +0800, Vivian Wang wrote:
-> > For each SBI extension, we:
+On Sun, Oct 23, 2022 at 10:42:52AM +0530, Anup Patel wrote:
+> On Fri, Oct 14, 2022 at 6:03 AM Yu Chien Peter Lin
+> <peterlin@andestech.com> wrote:
 > >
-> > - Add a Kconfig option for it
-> > - Add the extension to sbi_ecall_exts only if the extension is enabled
-> > - Add the corresponding sbi_ecall_* object file only if the extension is
-> >   enabled
+> > We move the devices used by AE350 to fdt driver framework, reuse
+> > existing driver and add timer, ipi and reset drivers.
+> > The OpenSBI domain support is also enabled. As of now, we can use
+> > Kconfig to manage these configurations that can support variants of
+> > Andes platform and SoC like Kendryte K510.
 > >
-> > Special cases are as follows:
+> > Changes v1 -> v2
+> >   - Rename Andes-specific devices (PLMT, PLICSW) compatible string
+> >   - Update ISA string in CPU nodes
+> > Changes v2 -> v3
+> >   - Add PATCH1 and PATCH2 to fix typos
+> >   - Add PATCH3 which factors out a function for adding mtimer and ipi
+> >     device regions to root domain
+> >   - Remove unused variable "num_src" and "riscv,ndev" property of ipi
+> >     device node
+> > Changes v3 -> v4
+> >   - Add PATCH3 to fix grammar
+> >   - Move plmt_{cold,warm}_timer_init() to andes_plmt.c and define
+> >     fdt_plmt_cold_timer_init() which adds PLMT region and sets
+> >     timer device
+> >   - Move plicsw_{cold,warm}_ipi_init() to andes_plicsw.c and define
+> >     fdt_plicsw_cold_ipi_init() which adds PLICSW region and sets
+> >     ipi device
 > >
-> > - The legacy extensions are lumped together as one 'big' extension, as
-> >   has always been the case in OpenSBI code.
-> > - The platform-defined vendor extensions are regarded as one extension.
-> > - The Base extension cannot be disabled.
-> > - sbi_ecall_replace implements multiple extensions, so it's not easy to
-> >   avoid linking it in. Enable it always, and use #ifdef to
-> >   disable/enable individual extensions.
->
-> It's tempting to use this as an opportunity to break sbi_ecall_replace up
-> into different files, but I'm not sure it's worth it.
+> >
+> > Yu Chien Peter Lin (14):
+> >   include: sbi: Fix typo in comment
+> >   lib: sbi: Fix typo in comment
+> >   include: sbi: Fix grammar in comment
+> >   lib: sbi: Add sbi_domain_root_add_memrange() API
+> >   platform: andes/ae350: Remove enabling cache from an350_final_init
+> >   platform: andes/ae350: Use kconfig to set platform version and default
+> >     name
+> >   platform: andes/ae350: Use fdt serial driver
+> >   lib: utils/timer: Add Andes fdt timer support
+> >   lib: utils/reset: Add Andes fdt reset driver support
+> >   platform: andes/ae350: Use fdt irqchip driver
+> >   platform: andes/ae350: Add fw_platform_init for platform
+> >     initialization
+> >   lib: utils/ipi: Add Andes fdt ipi driver support
+> >   platform: andes/ae350: Add AE350 domain support
+> >   docs: andes-ae350.md: Update ae350 documentation for fdt driver
+> >     support
+> 
+> Applied this series to the riscv/opensbi repo.
+> 
+> Any thoughts on using the generic platform ?
+> 
+> Thanks,
+> Anup
 
-I agree with you.
+Hi Anup,
 
-@Vivan/Drew, can one of you break-up sbi_ecall_replace.c so that
-we can avoid the #ifdef in sources ?
+The FW_TEXT_START on AE350 is different from generic platform.
+Will it become a configuration?
+I think we would keep the platform specific files in andes/ae350
+until we have to refactor the duplicate code.
 
-Regards,
-Anup
+Thanks,
+Peter Lin
 
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> >
+> >  docs/platform/andes-ae350.md            | 184 +++++++++++++++++++++++-
+> >  include/sbi/sbi_domain.h                |  16 ++-
+> >  include/sbi/sbi_scratch.h               |   2 +-
+> >  include/sbi_utils/fdt/fdt_helper.h      |   6 +
+> >  include/sbi_utils/ipi/andes_plicsw.h    |  46 ++++++
+> >  include/sbi_utils/timer/aclint_mtimer.h |   2 +
+> >  include/sbi_utils/timer/andes_plmt.h    |  29 ++++
+> >  lib/sbi/sbi_domain.c                    |  27 ++++
+> >  lib/sbi/sbi_expected_trap.S             |   2 +-
+> >  lib/utils/fdt/fdt_helper.c              | 108 ++++++++++++++
+> >  lib/utils/ipi/Kconfig                   |   9 ++
+> >  lib/utils/ipi/andes_plicsw.c            | 137 ++++++++++++++++++
+> >  lib/utils/ipi/fdt_ipi_plicsw.c          |  47 ++++++
+> >  lib/utils/ipi/objects.mk                |   4 +
+> >  lib/utils/reset/Kconfig                 |   4 +
+> >  lib/utils/reset/fdt_reset_atcwdt200.c   | 122 ++++++++++++++++
+> >  lib/utils/reset/objects.mk              |   3 +
+> >  lib/utils/timer/Kconfig                 |   9 ++
+> >  lib/utils/timer/aclint_mtimer.c         |  50 ++-----
+> >  lib/utils/timer/andes_plmt.c            | 104 ++++++++++++++
+> >  lib/utils/timer/fdt_timer_plmt.c        |  51 +++++++
+> >  lib/utils/timer/objects.mk              |   4 +
+> >  platform/andes/ae350/Kconfig            |  30 +++-
+> >  platform/andes/ae350/objects.mk         |   2 +-
+> >  platform/andes/ae350/platform.c         | 165 +++++++++------------
+> >  platform/andes/ae350/platform.h         |  17 ---
+> >  platform/andes/ae350/plicsw.c           | 139 ------------------
+> >  platform/andes/ae350/plicsw.h           |  44 ------
+> >  platform/andes/ae350/plmt.c             | 107 --------------
+> >  platform/andes/ae350/plmt.h             |  17 ---
+> >  30 files changed, 1021 insertions(+), 466 deletions(-)
+> >  create mode 100644 include/sbi_utils/ipi/andes_plicsw.h
+> >  create mode 100644 include/sbi_utils/timer/andes_plmt.h
+> >  create mode 100644 lib/utils/ipi/andes_plicsw.c
+> >  create mode 100644 lib/utils/ipi/fdt_ipi_plicsw.c
+> >  create mode 100644 lib/utils/reset/fdt_reset_atcwdt200.c
+> >  create mode 100644 lib/utils/timer/andes_plmt.c
+> >  create mode 100644 lib/utils/timer/fdt_timer_plmt.c
+> >  delete mode 100644 platform/andes/ae350/plicsw.c
+> >  delete mode 100644 platform/andes/ae350/plicsw.h
+> >  delete mode 100644 platform/andes/ae350/plmt.c
+> >  delete mode 100644 platform/andes/ae350/plmt.h
+> >
+> > --
+> > 2.34.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
