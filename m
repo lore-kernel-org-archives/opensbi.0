@@ -1,146 +1,91 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 24 Oct 2022 13:40:37 +0530
-Subject: [PATCH v4 00/14] Add Andes AE350 fdt driver support
-In-Reply-To: <Y1aq+LQ/GyvhCHDB@APC323>
-References: <20221014003252.17765-1-peterlin@andestech.com>
- <CAAhSdy2XvAA_1Qi9-b_d3H5st69ZbJbMdoho2X2fGHnzCY6A7g@mail.gmail.com> <Y1aq+LQ/GyvhCHDB@APC323>
-Message-ID: <CAAhSdy3tOUkMajYoMLP=KO=oPc2WHSTUDP_YHcDNhx6YTiiMiA@mail.gmail.com>
+From: zhangdongdong@eswincomputing.com <zhangdongdong@eswincomputing.com>
+Date: Tue, 25 Oct 2022 08:57:41 +0800
+Subject: [PATCH] docs: fix some typos
+Message-ID: <20221025005741.2441-1-zhangdongdong@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 24, 2022 at 12:43 PM Yu-Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> On Sun, Oct 23, 2022 at 10:42:52AM +0530, Anup Patel wrote:
-> > On Fri, Oct 14, 2022 at 6:03 AM Yu Chien Peter Lin
-> > <peterlin@andestech.com> wrote:
-> > >
-> > > We move the devices used by AE350 to fdt driver framework, reuse
-> > > existing driver and add timer, ipi and reset drivers.
-> > > The OpenSBI domain support is also enabled. As of now, we can use
-> > > Kconfig to manage these configurations that can support variants of
-> > > Andes platform and SoC like Kendryte K510.
-> > >
-> > > Changes v1 -> v2
-> > >   - Rename Andes-specific devices (PLMT, PLICSW) compatible string
-> > >   - Update ISA string in CPU nodes
-> > > Changes v2 -> v3
-> > >   - Add PATCH1 and PATCH2 to fix typos
-> > >   - Add PATCH3 which factors out a function for adding mtimer and ipi
-> > >     device regions to root domain
-> > >   - Remove unused variable "num_src" and "riscv,ndev" property of ipi
-> > >     device node
-> > > Changes v3 -> v4
-> > >   - Add PATCH3 to fix grammar
-> > >   - Move plmt_{cold,warm}_timer_init() to andes_plmt.c and define
-> > >     fdt_plmt_cold_timer_init() which adds PLMT region and sets
-> > >     timer device
-> > >   - Move plicsw_{cold,warm}_ipi_init() to andes_plicsw.c and define
-> > >     fdt_plicsw_cold_ipi_init() which adds PLICSW region and sets
-> > >     ipi device
-> > >
-> > >
-> > > Yu Chien Peter Lin (14):
-> > >   include: sbi: Fix typo in comment
-> > >   lib: sbi: Fix typo in comment
-> > >   include: sbi: Fix grammar in comment
-> > >   lib: sbi: Add sbi_domain_root_add_memrange() API
-> > >   platform: andes/ae350: Remove enabling cache from an350_final_init
-> > >   platform: andes/ae350: Use kconfig to set platform version and default
-> > >     name
-> > >   platform: andes/ae350: Use fdt serial driver
-> > >   lib: utils/timer: Add Andes fdt timer support
-> > >   lib: utils/reset: Add Andes fdt reset driver support
-> > >   platform: andes/ae350: Use fdt irqchip driver
-> > >   platform: andes/ae350: Add fw_platform_init for platform
-> > >     initialization
-> > >   lib: utils/ipi: Add Andes fdt ipi driver support
-> > >   platform: andes/ae350: Add AE350 domain support
-> > >   docs: andes-ae350.md: Update ae350 documentation for fdt driver
-> > >     support
-> >
-> > Applied this series to the riscv/opensbi repo.
-> >
-> > Any thoughts on using the generic platform ?
-> >
-> > Thanks,
-> > Anup
->
-> Hi Anup,
->
-> The FW_TEXT_START on AE350 is different from generic platform.
-> Will it become a configuration?
+From: zhangdongdong <zhangdongdong@eswincomputing.com>
 
-The generic platform has FW_PIC enabled so you can load and
-run generic firmwares from any address.
+Corrected the typos of some documents in the 'docs' folder.
 
-> I think we would keep the platform specific files in andes/ae350
-> until we have to refactor the duplicate code.
+Signed-off-by:  zhangdongdong <zhangdongdong@eswincomputing.com>
+---
+ docs/contributing.md          | 2 +-
+ docs/firmware/fw_dynamic.md   | 2 +-
+ docs/platform/fpga-ariane.md  | 2 +-
+ docs/platform/sifive_fu540.md | 2 +-
+ docs/platform/thead-c9xx.md   | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-You can add platform specific overrides to generic platforms which
-are selected based on compatible string in the root DT node.
+diff --git a/docs/contributing.md b/docs/contributing.md
+index 9c2b3ba..78d909e 100644
+--- a/docs/contributing.md
++++ b/docs/contributing.md
+@@ -29,7 +29,7 @@ and "top:".
+ 5. Maintainers should use "Rebase and Merge" when using GitHub to merge pull
+ requests to avoid creating unnecessary merge commits.
+ 6. Maintainers should avoid creating branches directly in the main
+-riscv/opensbi repository. Instead prefer using a fork of the riscv/opensbi main
++riscv/opensbi repository. Instead, prefer using a fork of the riscv/opensbi main
+ repository and branches within that fork to create pull requests.
+ 7. A maintainer cannot merge his own pull requests in the riscv/opensbi main
+ repository.
+diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
+index e251488..9fc8cfa 100644
+--- a/docs/firmware/fw_dynamic.md
++++ b/docs/firmware/fw_dynamic.md
+@@ -31,6 +31,6 @@ directory.
+ *FW_DYNAMIC* Firmware Configuration Options
+ -------------------------------------------
+ 
+-The *FW_DYNAMIC* firmware does not requires any platform specific configuration
++The *FW_DYNAMIC* firmware does not require any platform specific configuration
+ parameters because all required information is passed by previous booting stage
+ at runtime via *struct fw_dynamic_info*.
+diff --git a/docs/platform/fpga-ariane.md b/docs/platform/fpga-ariane.md
+index f95001f..9b1e156 100644
+--- a/docs/platform/fpga-ariane.md
++++ b/docs/platform/fpga-ariane.md
+@@ -7,7 +7,7 @@ Linux.
+ 
+ The FPGA SoC currently contains the following peripherals:
+ - DDR3 memory controller
+-- SPI controller to conncet to an SDCard
++- SPI controller to connect to an SDCard
+ - Ethernet controller
+ - JTAG port (see debugging section below)
+ - Bootrom containing zero stage bootloader and device tree.
+diff --git a/docs/platform/sifive_fu540.md b/docs/platform/sifive_fu540.md
+index 5cbca21..3dc1d28 100644
+--- a/docs/platform/sifive_fu540.md
++++ b/docs/platform/sifive_fu540.md
+@@ -150,7 +150,7 @@ If you want to test OpenSBI with QEMU 'sifive_u' machine, please follow the
+ same instructions above, with the exception of not passing FW_FDT_PATH.
+ 
+ This is because QEMU generates a device tree blob on the fly based on the
+-command line parameters and it's compatible with the one used in the upstream
++command line parameters, and it's compatible with the one used in the upstream
+ Linux kernel.
+ 
+ When U-Boot v2021.07 (or higher) is used as the payload, as the SiFive FU540
+diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
+index ced784d..8bb9e91 100644
+--- a/docs/platform/thead-c9xx.md
++++ b/docs/platform/thead-c9xx.md
+@@ -13,7 +13,7 @@ Platform Options
+ ----------------
+ 
+ The *T-HEAD C9xx* does not have any platform-specific compile options
+-because it use generic platform.
++because it uses generic platform.
+ 
+ ```
+ CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic /usr/bin/make
+-- 
+2.17.1
 
-Regards,
-Anup
-
->
-> Thanks,
-> Peter Lin
->
-> >
-> > >
-> > >  docs/platform/andes-ae350.md            | 184 +++++++++++++++++++++++-
-> > >  include/sbi/sbi_domain.h                |  16 ++-
-> > >  include/sbi/sbi_scratch.h               |   2 +-
-> > >  include/sbi_utils/fdt/fdt_helper.h      |   6 +
-> > >  include/sbi_utils/ipi/andes_plicsw.h    |  46 ++++++
-> > >  include/sbi_utils/timer/aclint_mtimer.h |   2 +
-> > >  include/sbi_utils/timer/andes_plmt.h    |  29 ++++
-> > >  lib/sbi/sbi_domain.c                    |  27 ++++
-> > >  lib/sbi/sbi_expected_trap.S             |   2 +-
-> > >  lib/utils/fdt/fdt_helper.c              | 108 ++++++++++++++
-> > >  lib/utils/ipi/Kconfig                   |   9 ++
-> > >  lib/utils/ipi/andes_plicsw.c            | 137 ++++++++++++++++++
-> > >  lib/utils/ipi/fdt_ipi_plicsw.c          |  47 ++++++
-> > >  lib/utils/ipi/objects.mk                |   4 +
-> > >  lib/utils/reset/Kconfig                 |   4 +
-> > >  lib/utils/reset/fdt_reset_atcwdt200.c   | 122 ++++++++++++++++
-> > >  lib/utils/reset/objects.mk              |   3 +
-> > >  lib/utils/timer/Kconfig                 |   9 ++
-> > >  lib/utils/timer/aclint_mtimer.c         |  50 ++-----
-> > >  lib/utils/timer/andes_plmt.c            | 104 ++++++++++++++
-> > >  lib/utils/timer/fdt_timer_plmt.c        |  51 +++++++
-> > >  lib/utils/timer/objects.mk              |   4 +
-> > >  platform/andes/ae350/Kconfig            |  30 +++-
-> > >  platform/andes/ae350/objects.mk         |   2 +-
-> > >  platform/andes/ae350/platform.c         | 165 +++++++++------------
-> > >  platform/andes/ae350/platform.h         |  17 ---
-> > >  platform/andes/ae350/plicsw.c           | 139 ------------------
-> > >  platform/andes/ae350/plicsw.h           |  44 ------
-> > >  platform/andes/ae350/plmt.c             | 107 --------------
-> > >  platform/andes/ae350/plmt.h             |  17 ---
-> > >  30 files changed, 1021 insertions(+), 466 deletions(-)
-> > >  create mode 100644 include/sbi_utils/ipi/andes_plicsw.h
-> > >  create mode 100644 include/sbi_utils/timer/andes_plmt.h
-> > >  create mode 100644 lib/utils/ipi/andes_plicsw.c
-> > >  create mode 100644 lib/utils/ipi/fdt_ipi_plicsw.c
-> > >  create mode 100644 lib/utils/reset/fdt_reset_atcwdt200.c
-> > >  create mode 100644 lib/utils/timer/andes_plmt.c
-> > >  create mode 100644 lib/utils/timer/fdt_timer_plmt.c
-> > >  delete mode 100644 platform/andes/ae350/plicsw.c
-> > >  delete mode 100644 platform/andes/ae350/plicsw.h
-> > >  delete mode 100644 platform/andes/ae350/plmt.c
-> > >  delete mode 100644 platform/andes/ae350/plmt.h
-> > >
-> > > --
-> > > 2.34.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
 
