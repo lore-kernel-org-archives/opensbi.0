@@ -1,65 +1,43 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 27 Oct 2022 18:13:48 +0530
-Subject: [PATCH v4 00/14] Add Andes AE350 fdt driver support
-In-Reply-To: <Y1roTqSu+6d8zT7M@APC323>
-References: <20221014003252.17765-1-peterlin@andestech.com>
- <CAAhSdy2XvAA_1Qi9-b_d3H5st69ZbJbMdoho2X2fGHnzCY6A7g@mail.gmail.com>
- <Y1aq+LQ/GyvhCHDB@APC323> <CAAhSdy3tOUkMajYoMLP=KO=oPc2WHSTUDP_YHcDNhx6YTiiMiA@mail.gmail.com>
- <Y1roTqSu+6d8zT7M@APC323>
-Message-ID: <CAK9=C2Xuu3E+oSf=3SDjUcOS-o9O7FhB7Hms8NhST5wD8uRL-w@mail.gmail.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Fri, 28 Oct 2022 00:19:28 +0100
+Subject: [QUERY] Adding a new platform
+In-Reply-To: <CAOnJCULhkjV5KPh=VU5XhncvxhkXf5C8p=h2xGHTr_B-N9S7ZA@mail.gmail.com>
+References: <CA+V-a8ua-D1MVLAXpBbaoFX5X9BR3F-yPshnmjZzNbw2B6P48w@mail.gmail.com>
+ <CAOnJCULhkjV5KPh=VU5XhncvxhkXf5C8p=h2xGHTr_B-N9S7ZA@mail.gmail.com>
+Message-ID: <CA+V-a8snimcvBjqzyYq+WfOt9dipZrHedTCmJahzVfYHiC=rcA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 27, 2022 at 5:54 PM Yu-Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> > > > Applied this series to the riscv/opensbi repo.
-> > > >
-> > > > Any thoughts on using the generic platform ?
-> > > >
-> > > > Thanks,
-> > > > Anup
-> > >
-> > > Hi Anup,
-> > >
-> > > The FW_TEXT_START on AE350 is different from generic platform.
-> > > Will it become a configuration?
-> >
-> > The generic platform has FW_PIC enabled so you can load and
-> > run generic firmwares from any address.
-> >
-> > > I think we would keep the platform specific files in andes/ae350
-> > > until we have to refactor the duplicate code.
-> >
-> > You can add platform specific overrides to generic platforms which
-> > are selected based on compatible string in the root DT node.
-> >
-> > Regards,
-> > Anup
->
-> Hi Anup,
->
-> We're considering using generic platform, but I don't find any
-> vendor_ext_provider is implemented as a platform_override hook,
-> does it mean we need to drop it if we move to generic platform?
+Hi Atish,
 
-vendor_ext_provider() is available in platform_override of generic
-platform.
+Sorry for the late reply.
 
-Please check the latest OpenSBI sources.
-
-Regards,
-Anup
-
+On Fri, Oct 21, 2022 at 7:03 AM Atish Patra <atishp@atishpatra.org> wrote:
 >
-> Best regards,
-> Peter Lin
+> On Wed, Oct 19, 2022 at 12:22 PM Lad, Prabhakar
+> <prabhakar.csengg@gmail.com> wrote:
+> >
+> > Hi All,
+> >
+> > I plan to add support for the Renesas RZ/Five SoC soon.
+> >
+> > The RZ/Five SoC is based on the Andes AX45MP core and most of the code
+> > for RZ/Five will be almost identical in the existing [0] (with just
+> > slight differences). What is the best approach I should follow without
+> > duplicating the code?
+> >
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> Can you use the generic platform ? I noticed bunch andes patches
+> supporting DT based probing.
+> That should help Renesas RZ/Five SoC as well.
+>
+I haven't tried the generic platform but I'm guessing it won't work as
+Andes AE350 doesnt use it. Thanks for the pointer for andes patches
+I'll send RFC patches soon.
+
+Cheers,
+Prabhakar
 
