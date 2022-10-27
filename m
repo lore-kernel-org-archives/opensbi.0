@@ -1,91 +1,48 @@
-From: zhangdongdong@eswincomputing.com <zhangdongdong@eswincomputing.com>
-Date: Tue, 25 Oct 2022 08:57:41 +0800
-Subject: [PATCH] docs: fix some typos
-Message-ID: <20221025005741.2441-1-zhangdongdong@eswincomputing.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 27 Oct 2022 20:21:34 +0000
+Subject: [PATCH v4 00/14] Add Andes AE350 fdt driver support
+In-Reply-To: <CAAhSdy3tOUkMajYoMLP=KO=oPc2WHSTUDP_YHcDNhx6YTiiMiA@mail.gmail.com>
+References: <20221014003252.17765-1-peterlin@andestech.com>
+ <CAAhSdy2XvAA_1Qi9-b_d3H5st69ZbJbMdoho2X2fGHnzCY6A7g@mail.gmail.com>
+ <Y1aq+LQ/GyvhCHDB@APC323>
+ <CAAhSdy3tOUkMajYoMLP=KO=oPc2WHSTUDP_YHcDNhx6YTiiMiA@mail.gmail.com>
+Message-ID: <Y1roTqSu+6d8zT7M@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: zhangdongdong <zhangdongdong@eswincomputing.com>
+> > > Applied this series to the riscv/opensbi repo.
+> > >
+> > > Any thoughts on using the generic platform ?
+> > >
+> > > Thanks,
+> > > Anup
+> >
+> > Hi Anup,
+> >
+> > The FW_TEXT_START on AE350 is different from generic platform.
+> > Will it become a configuration?
+> 
+> The generic platform has FW_PIC enabled so you can load and
+> run generic firmwares from any address.
+> 
+> > I think we would keep the platform specific files in andes/ae350
+> > until we have to refactor the duplicate code.
+> 
+> You can add platform specific overrides to generic platforms which
+> are selected based on compatible string in the root DT node.
+> 
+> Regards,
+> Anup
 
-Corrected the typos of some documents in the 'docs' folder.
+Hi Anup,
 
-Signed-off-by:  zhangdongdong <zhangdongdong@eswincomputing.com>
----
- docs/contributing.md          | 2 +-
- docs/firmware/fw_dynamic.md   | 2 +-
- docs/platform/fpga-ariane.md  | 2 +-
- docs/platform/sifive_fu540.md | 2 +-
- docs/platform/thead-c9xx.md   | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+We're considering using generic platform, but I don't find any
+vendor_ext_provider is implemented as a platform_override hook,
+does it mean we need to drop it if we move to generic platform?
 
-diff --git a/docs/contributing.md b/docs/contributing.md
-index 9c2b3ba..78d909e 100644
---- a/docs/contributing.md
-+++ b/docs/contributing.md
-@@ -29,7 +29,7 @@ and "top:".
- 5. Maintainers should use "Rebase and Merge" when using GitHub to merge pull
- requests to avoid creating unnecessary merge commits.
- 6. Maintainers should avoid creating branches directly in the main
--riscv/opensbi repository. Instead prefer using a fork of the riscv/opensbi main
-+riscv/opensbi repository. Instead, prefer using a fork of the riscv/opensbi main
- repository and branches within that fork to create pull requests.
- 7. A maintainer cannot merge his own pull requests in the riscv/opensbi main
- repository.
-diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
-index e251488..9fc8cfa 100644
---- a/docs/firmware/fw_dynamic.md
-+++ b/docs/firmware/fw_dynamic.md
-@@ -31,6 +31,6 @@ directory.
- *FW_DYNAMIC* Firmware Configuration Options
- -------------------------------------------
- 
--The *FW_DYNAMIC* firmware does not requires any platform specific configuration
-+The *FW_DYNAMIC* firmware does not require any platform specific configuration
- parameters because all required information is passed by previous booting stage
- at runtime via *struct fw_dynamic_info*.
-diff --git a/docs/platform/fpga-ariane.md b/docs/platform/fpga-ariane.md
-index f95001f..9b1e156 100644
---- a/docs/platform/fpga-ariane.md
-+++ b/docs/platform/fpga-ariane.md
-@@ -7,7 +7,7 @@ Linux.
- 
- The FPGA SoC currently contains the following peripherals:
- - DDR3 memory controller
--- SPI controller to conncet to an SDCard
-+- SPI controller to connect to an SDCard
- - Ethernet controller
- - JTAG port (see debugging section below)
- - Bootrom containing zero stage bootloader and device tree.
-diff --git a/docs/platform/sifive_fu540.md b/docs/platform/sifive_fu540.md
-index 5cbca21..3dc1d28 100644
---- a/docs/platform/sifive_fu540.md
-+++ b/docs/platform/sifive_fu540.md
-@@ -150,7 +150,7 @@ If you want to test OpenSBI with QEMU 'sifive_u' machine, please follow the
- same instructions above, with the exception of not passing FW_FDT_PATH.
- 
- This is because QEMU generates a device tree blob on the fly based on the
--command line parameters and it's compatible with the one used in the upstream
-+command line parameters, and it's compatible with the one used in the upstream
- Linux kernel.
- 
- When U-Boot v2021.07 (or higher) is used as the payload, as the SiFive FU540
-diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
-index ced784d..8bb9e91 100644
---- a/docs/platform/thead-c9xx.md
-+++ b/docs/platform/thead-c9xx.md
-@@ -13,7 +13,7 @@ Platform Options
- ----------------
- 
- The *T-HEAD C9xx* does not have any platform-specific compile options
--because it use generic platform.
-+because it uses generic platform.
- 
- ```
- CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic /usr/bin/make
--- 
-2.17.1
-
+Best regards,
+Peter Lin
 
