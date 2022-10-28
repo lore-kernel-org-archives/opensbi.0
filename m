@@ -1,9 +1,9 @@
 From: Prabhakar <prabhakar.csengg@gmail.com>
-Date: Fri, 28 Oct 2022 01:40:36 +0100
-Subject: [PATCH RFC 1/7] lib: utils: serial: Add Renesas SCIF driver
+Date: Fri, 28 Oct 2022 01:40:37 +0100
+Subject: [PATCH RFC 2/7] lib: utils: serial: Add FDT driver for Renesas SCIF
 In-Reply-To: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 References: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <20221028004042.135549-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20221028004042.135549-3-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,211 +12,165 @@ Content-Transfer-Encoding: 7bit
 
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 
-Add Renesas SCIF driver.
+Add FDT driver for Renesas SCIF.
 
-Based on a patch in the BSP by Takeki Hamada
-<takeki.hamada.ak@bp.renesas.com>
+    dts example:
+
+    soc: soc {
+          ....
+            scif0: serial at 1004b800 {
+                    compatible = "renesas,scif-r9a07g043",
+                                 "renesas,scif-r9a07g044";
+                    reg = <0 0x1004b800 0 0x400>;
+                    interrupts = <412 IRQ_TYPE_LEVEL_HIGH>,
+                                 <414 IRQ_TYPE_LEVEL_HIGH>,
+                                 <415 IRQ_TYPE_LEVEL_HIGH>,
+                                 <413 IRQ_TYPE_LEVEL_HIGH>,
+                                 <416 IRQ_TYPE_LEVEL_HIGH>,
+                                 <416 IRQ_TYPE_LEVEL_HIGH>;
+                    interrupt-names = "eri", "rxi", "txi",
+                                      "bri", "dri", "tei";
+                    clocks = <&cpg CPG_MOD R9A07G043_SCIF0_CLK_PCK>;
+                    clock-names = "fck";
+                    power-domains = <&cpg>;
+                    resets = <&cpg R9A07G043_SCIF0_RST_SYSTEM_N>;
+                    status = "disabled";
+            };
+          ....
+    };
 
 Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 ---
- include/sbi_utils/serial/renesas-scif.h |  11 ++
- lib/utils/serial/Kconfig                |   4 +
- lib/utils/serial/objects.mk             |   1 +
- lib/utils/serial/renesas_scif.c         | 140 ++++++++++++++++++++++++
- 4 files changed, 156 insertions(+)
- create mode 100644 include/sbi_utils/serial/renesas-scif.h
- create mode 100644 lib/utils/serial/renesas_scif.c
+ include/sbi_utils/fdt/fdt_helper.h         |  3 +++
+ lib/utils/fdt/fdt_helper.c                 | 23 ++++++++++++++++
+ lib/utils/serial/Kconfig                   |  5 ++++
+ lib/utils/serial/fdt_serial_renesas_scif.c | 31 ++++++++++++++++++++++
+ lib/utils/serial/objects.mk                |  3 +++
+ 5 files changed, 65 insertions(+)
+ create mode 100644 lib/utils/serial/fdt_serial_renesas_scif.c
 
-diff --git a/include/sbi_utils/serial/renesas-scif.h b/include/sbi_utils/serial/renesas-scif.h
-new file mode 100644
-index 0000000..0002a1a
---- /dev/null
-+++ b/include/sbi_utils/serial/renesas-scif.h
-@@ -0,0 +1,11 @@
-+/* SPDX-License-Identifier: BSD-2-Clause */
-+/*
-+ * Copyright (C) 2022 Renesas Electronics Corporation
-+ */
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index c39f77a..09f3095 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -59,6 +59,9 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq);
+ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+ 				struct platform_uart_data *uart);
+ 
++int fdt_parse_renesas_scif_node(void *fdt, int nodeoffset,
++				struct platform_uart_data *uart);
 +
-+#ifndef __SERIAL_RENESAS_SCIF_H__
-+#define __SERIAL_RENESAS_SCIF_H__
+ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+ 			       struct platform_uart_data *uart);
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index d390436..483865e 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -23,6 +23,11 @@
+ #define DEFAULT_UART_REG_IO_WIDTH	1
+ #define DEFAULT_UART_REG_OFFSET		0
+ 
++#define DEFAULT_RENESAS_SCIF_FREQ		100000000
++#define DEFAULT_RENESAS_SCIF_BAUD		115200
++#define DEFAULT_RENESAS_SCIF_REG_SHIFT		0
++#define DEFAULT_RENESAS_SCIF_REG_IO_WIDTH	4
 +
-+int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate);
+ #define DEFAULT_SIFIVE_UART_FREQ		0
+ #define DEFAULT_SIFIVE_UART_BAUD		115200
+ #define DEFAULT_SIFIVE_UART_REG_SHIFT		0
+@@ -370,6 +375,24 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+ 	return 0;
+ }
+ 
++int fdt_parse_renesas_scif_node(void *fdt, int nodeoffset,
++				struct platform_uart_data *uart)
++{
++	int rc;
 +
-+#endif /* __SERIAL_RENESAS_SCIF_H__ */
++	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
++					DEFAULT_RENESAS_SCIF_FREQ,
++					DEFAULT_RENESAS_SCIF_BAUD);
++
++	if (rc)
++		return rc;
++
++	uart->reg_shift = DEFAULT_RENESAS_SCIF_REG_SHIFT;
++	uart->reg_io_width = DEFAULT_RENESAS_SCIF_REG_IO_WIDTH;
++
++	return 0;
++}
++
+ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+ 			       struct platform_uart_data *uart)
+ {
 diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
-index da549a7..f6ed803 100644
+index f6ed803..e3589ca 100644
 --- a/lib/utils/serial/Kconfig
 +++ b/lib/utils/serial/Kconfig
-@@ -59,6 +59,10 @@ config SERIAL_GAISLER
- 	bool "Gaisler UART support"
+@@ -24,6 +24,11 @@ config FDT_SERIAL_HTIF
+ 	select SYS_HTIF
  	default n
  
-+config SERIAL_RENESAS_SCIF
-+	bool "Renesas SCIF support"
++config FDT_SERIAL_RENESAS_SCIF
++	bool "Renesas SCIF FDT driver"
++	select SERIAL_RENESAS_SCIF
 +	default n
 +
- config SERIAL_SHAKTI
- 	bool "Shakti UART support"
- 	default n
-diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-index 98f3f9a..6520424 100644
---- a/lib/utils/serial/objects.mk
-+++ b/lib/utils/serial/objects.mk
-@@ -36,6 +36,7 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += serial/fdt_serial_xlnx_
- 
- libsbiutils-objs-$(CONFIG_SERIAL_CADENCE) += serial/cadence-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
-+libsbiutils-objs-$(CONFIG_SERIAL_RENESAS_SCIF) += serial/renesas_scif.o
- libsbiutils-objs-$(CONFIG_SERIAL_SHAKTI) += serial/shakti-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_LITEX) += serial/litex-uart.o
-diff --git a/lib/utils/serial/renesas_scif.c b/lib/utils/serial/renesas_scif.c
+ config FDT_SERIAL_SHAKTI
+ 	bool "Shakti UART FDT driver"
+ 	select SERIAL_SHAKTI
+diff --git a/lib/utils/serial/fdt_serial_renesas_scif.c b/lib/utils/serial/fdt_serial_renesas_scif.c
 new file mode 100644
-index 0000000..13ac60b
+index 0000000..c331ca1
 --- /dev/null
-+++ b/lib/utils/serial/renesas_scif.c
-@@ -0,0 +1,140 @@
++++ b/lib/utils/serial/fdt_serial_renesas_scif.c
+@@ -0,0 +1,31 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +/*
 + * Copyright (C) 2022 Renesas Electronics Corporation
 + */
 +
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_timer.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/serial/fdt_serial.h>
 +#include <sbi_utils/serial/renesas-scif.h>
 +
-+/* clang-format off */
-+
-+#define SCIF_REG_SMR		0x0
-+#define SCIF_REG_BRR		0x2
-+#define SCIF_REG_SCR		0x4
-+#define SCIF_REG_FTDR		0x6
-+#define SCIF_REG_FSR		0x8
-+#define SCIF_REG_FRDR		0xa
-+#define SCIF_REG_FCR		0xc
-+#define SCIF_REG_LSR		0x12
-+#define SCIF_REG_SEMR		0x14
-+
-+#define SCIF_RFRST		0x2 /* Reset assert receive-FIFO (bit[1]) */
-+#define SCIF_TFRST		0x4 /* Reset assert transmit-FIFO(bit[2]) */
-+
-+#define SCIF_FCR_RST_ASSRT_TFRF	(SCIF_RFRST | SCIF_TFRST) /* Reset assert tx-FIFO & rx-FIFO */
-+#define SCIF_FCR_RST_NGATE_TFRF	0x0 /* Reset negate tx-FIFO & rx-FIFO*/
-+
-+#define SCIF_RE			0x10 /* Enable receive (bit[4])  */
-+#define SCIF_TE			0x20 /* Enable transmit(bit[5])  */
-+#define SCIF_SCR_RCV_TRN_EN	(SCIF_RE | SCIF_TE) /* Enable receive & transmit */
-+#define SCIF_SCR_RCV_TRN_DIS	0x0 /* Disable receive & transmit */
-+
-+#define SCIF_FSR_ER		0x80 /* Receive error flag */
-+#define SCIF_FSR_TEND		0x40 /* Detect break flag */
-+#define SCIF_FSR_TDFE		0x20 /* Detect break flag */
-+#define SCIF_FSR_BRK		0x10 /* Detect break flag */
-+#define SCIF_FSR_RDF		0x2  /* Receive FIFO data full flag */
-+#define SCIF_FSR_DR		0x1  /* Receive data ready flag */
-+
-+#define SCIF_FSR_RXD_CHK	(SCIF_FSR_ER | SCIF_FSR_BRK | SCIF_FSR_DR)
-+#define SCIF_FSR_TXD_CHK	(SCIF_FSR_TEND | SCIF_FSR_TDFE)
-+
-+#define SCIF_LSR_ORER		0x1 /* Overrun error flag */
-+
-+#define SCIF_SPTR_SPB2DT	0x1 /* if SCR.TE setting, don't care */
-+#define SCIF_SPTR_SPB2IO	0x2 /* if SCR.TE setting, don't care */
-+
-+#define SCIF_SEMR_BRME		0x20 /* bit-rate modulation enable */
-+#define SCIF_SEMR_MDDRS		0x10 /* MDDR access enable */
-+
-+#define SCIF_SIZE(reg)		((reg == SCIF_REG_BRR) || \
-+				 (reg == SCIF_REG_FTDR) || \
-+				 (reg == SCIF_REG_FRDR) || \
-+				 (reg == SCIF_REG_SEMR))
-+
-+#define SCBRR_VALUE(clk, baudrate) ((clk) / (64 / 2 * (baudrate)) - 1)
-+
-+/* clang-format on */
-+
-+static volatile char *scif_base;
-+
-+static u32 get_reg(u32 offset)
++static int serial_renesas_scif_init(void *fdt, int nodeoff,
++				    const struct fdt_match *match)
 +{
-+	if (SCIF_SIZE(offset))
-+		return readb(scif_base + offset);
++	struct platform_uart_data uart = { 0 };
++	int ret;
 +
-+	return readw(scif_base + offset);
++	ret = fdt_parse_renesas_scif_node(fdt, nodeoff, &uart);
++	if (ret)
++		return ret;
++
++	return renesas_scif_init(uart.addr, uart.freq, uart.baud);
 +}
 +
-+static void set_reg(u32 offset, u32 val)
-+{
-+	if (SCIF_SIZE(offset))
-+		return writeb(val, scif_base + offset);
-+
-+	return writew(val, scif_base + offset);
-+}
-+
-+static void scif_wait(unsigned long baudrate)
-+{
-+	unsigned long utime;
-+
-+	utime = 1000000 / baudrate;
-+	utime += 1;
-+
-+	sbi_timer_udelay(utime);
-+}
-+
-+static void renesas_scif_putc(char ch)
-+{
-+	uint16_t reg;
-+
-+	while (!(SCIF_FSR_TXD_CHK & get_reg(SCIF_REG_FSR)))
-+		;
-+
-+	set_reg(SCIF_REG_FTDR, ch);
-+	reg = get_reg(SCIF_REG_FSR);
-+	reg &= ~SCIF_FSR_TXD_CHK;
-+	set_reg(SCIF_REG_FSR, reg);
-+}
-+
-+static struct sbi_console_device renesas_scif_console = {
-+	.name		= "renesas_scif",
-+	.console_putc	= renesas_scif_putc,
++static const struct fdt_match serial_renesas_scif_match[] = {
++	{ .compatible = "renesas,scif-r9a07g043" },
++	{ /* sentinel */ }
 +};
 +
-+int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate)
-+{
-+	volatile uint16_t data16;
++struct fdt_serial fdt_serial_renesas_scif = {
++	.match_table = serial_renesas_scif_match,
++	.init = serial_renesas_scif_init
++};
+diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+index 6520424..1e6bd2e 100644
+--- a/lib/utils/serial/objects.mk
++++ b/lib/utils/serial/objects.mk
+@@ -19,6 +19,9 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_GAISLER) += serial/fdt_serial_gaisler.o
+ carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_HTIF) += fdt_serial_htif
+ libsbiutils-objs-$(CONFIG_FDT_SERIAL_HTIF) += serial/fdt_serial_htif.o
+ 
++carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_RENESAS_SCIF) += fdt_serial_renesas_scif
++libsbiutils-objs-$(CONFIG_FDT_SERIAL_RENESAS_SCIF) += serial/fdt_serial_renesas_scif.o
 +
-+	scif_base = (volatile char *)base;
-+
-+	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_DIS); /* Disable receive & transmit */
-+	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_ASSRT_TFRF); /* Reset assert tx-FIFO & rx-FIFO */
-+
-+	data16 = get_reg(SCIF_REG_FSR); /* Dummy read */
-+	set_reg(SCIF_REG_FSR, 0x0); /* Clear all error bit */
-+
-+	data16 = get_reg(SCIF_REG_LSR); /* Dummy read */
-+	set_reg(SCIF_REG_LSR, 0x0); /* Clear ORER bit */
-+
-+	set_reg(SCIF_REG_SCR, 0x0); /* Select internal clock, SC_CLK pin unused for output pin */
-+
-+	set_reg(SCIF_REG_SMR, 0x0); /* Set asynchronous, 8bit data, no-parity, 1 stop and Po/1 */
-+
-+	data16 = get_reg(SCIF_REG_SEMR);
-+	set_reg(SCIF_REG_SEMR, data16 & (~SCIF_SEMR_MDDRS)); /* Select to access BRR */
-+	set_reg(SCIF_REG_BRR, SCBRR_VALUE(in_freq, baudrate));
-+
-+	scif_wait(baudrate);
-+
-+	/* FTCR is left at initial value, because this interrupt isn't used. */
-+	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_NGATE_TFRF); /* Reset negate tx-FIFO, rx-FIFO. */
-+
-+	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_EN); /* Enable receive & transmit w/SC_CLK=no output */
-+
-+	sbi_console_set_device(&renesas_scif_console);
-+
-+	return 0;
-+}
+ carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_SHAKTI) += fdt_serial_shakti
+ libsbiutils-objs-$(CONFIG_FDT_SERIAL_SHAKTI) += serial/fdt_serial_shakti.o
+ 
 -- 
 2.17.1
 
