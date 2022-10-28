@@ -1,7 +1,9 @@
 From: Prabhakar <prabhakar.csengg@gmail.com>
-Date: Fri, 28 Oct 2022 01:40:35 +0100
-Subject: [PATCH RFC 0/7] Add support for Renesas RZ/Five SoC
-Message-ID: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Fri, 28 Oct 2022 01:40:36 +0100
+Subject: [PATCH RFC 1/7] lib: utils: serial: Add Renesas SCIF driver
+In-Reply-To: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20221028004042.135549-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -10,137 +12,211 @@ Content-Transfer-Encoding: 7bit
 
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 
-Hi All,
+Add Renesas SCIF driver.
 
-This patch series adds initial support to RZ/Five SoC (which is equipped
-with AX45MP AndesCore). Platform supports DT based probing.
+Based on a patch in the BSP by Takeki Hamada
+<takeki.hamada.ak@bp.renesas.com>
 
-Linux support is currently being upstreamed the latest patchset can be
-found at [0].(DT bindings can be seen here)
-
-[0] https://patchwork.kernel.org/project/linux-renesas-soc/cover/20220920184904.90495-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
-
-- PLIC binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/interrupt-controller/sifive,plic-1.0.0.yaml#L57
-- PLMT and PLICSW are not used by any driver in kernel hence DT bindings for it
-  and is used in a similar manner as compared Andes AE350 [1]
-  [1] https://github.com/andestech/linux/commits/v6.0.y_ae350-ax45mp/Documentation/devicetree/bindings
-- SCIF binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/serial/renesas,scif.yaml#L79
-
-Below are the logs for U-Boot (2022.10) and OpenSBI:
---------------------------------------------------
-U-Boot SPL 2022.10-00192-g0cf0a0919b-dirty (Oct 28 2022 - 01:09:54 +0100)
-Trying to boot from NOR
-
-OpenSBI v1.1-87-gc46891e
-   ____                    _____ ____ _____
-  / __ \                  / ____|  _ \_   _|
- | |  | |_ __   ___ _ __ | (___ | |_) || |
- | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
- | |__| | |_) |  __/ | | |____) | |_) || |_
-  \____/| .__/ \___|_| |_|_____/|____/_____|
-        | |
-        |_|
-
-Platform Name             : smarc-rzfZ/Five
-Platform Features         : medeleg
-Platform HART Count       : 1
-Platform IPI Device       : andes_plicsw
-Platform Timer Device     : andes_plmt @ 12000000Hz
-Platform Console Device   : renesas_scif
-Platform HSM Device       : ---
-Platform PMU Device       : ---
-Platform Reboot Device    : ---
-Platform Shutdown Device  : ---
-Firmware Base             : 0x44000000
-Firmware Size             : 152 KB
-Runtime SBI Version       : 1.0
-
-Domain0 Name              : root
-Domain0 Boot HART         : 0
-Domain0 HARTs             : 0*
-Domain0 Region00          : 0x00000000110c0000-0x00000000110fffff (I,R)
-Domain0 Region01          : 0x0000000011180000-0x00000000111bffff (I,R)
-Domain0 Region02          : 0x0000000044000000-0x000000004403ffff ()
-Domain0 Region03          : 0x0000000011100000-0x000000001117ffff (I,R)
-Domain0 Region04          : 0x0000000013000000-0x00000000133fffff (I)
-Domain0 Region05          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
-Domain0 Next Address      : 0x0000000050000000
-Domain0 Next Arg1         : 0x00000000500be568
-Domain0 Next Mode         : S-mode
-Domain0 SysReset          : yes
-
-Boot HART ID              : 0
-Boot HART Domain          : root
-Boot HART Priv Version    : v1.11
-Boot HART Base ISA        : rv64imafdcnx
-Boot HART ISA Extensions  : none
-Boot HART PMP Count       : 16
-Boot HART PMP Granularity : 8
-Boot HART PMP Address Bits: 36
-Boot HART MHPM Count      : 4
-Boot HART MIDELEG         : 0x0000000000000222
-Boot HART MEDELEG         : 0x000000000000b109
-
-
-U-Boot 2022.10-00192-g0cf0a0919b-dirty (Oct 28 2022 - 01:09:54 +0100)
-
-CPU:   rv64imafdc
-Model: smarc-rzf
-DRAM:  896 MiB
-SW_ET0_EN: OFFCore:  30 devices, 18 uclasses, devicetree: separate
-MMC:   sd at 11c00000: 0, sd at 11c10000: 1
-Loading Environment from MMC... OK
-In:    serial at 1004b800
-Out:   serial at 1004b800
-Err:   serial at 1004b800
-Net:   eth0: ethernet@11c30000
-Hit any key to stop autoboot:  0
-=>
---------------------------------------------------
-
-Cheers,
-Prabhakar
-
-Lad Prabhakar (7):
-  lib: utils: serial: Add Renesas SCIF driver
-  lib: utils: serial: Add FDT driver for Renesas SCIF
-  platform: andes/ae350: Split header platform.h header file
-  lib: utils/irqchip: Add compatible string for Andestech NCEPLIC100
-  platform: Add Renesas RZ/Five initial support
-  scripts: Add Renesas RZ/Five to platform list in the binary archive
-    script
-  docs: platform: Add documentation for Renesas RZ/Five SoC
-
- docs/platform/platform.md                  |   4 +
- docs/platform/renesas-rzfive.md            | 139 ++++++++++++++++++
- include/sbi_utils/fdt/fdt_helper.h         |   3 +
- include/sbi_utils/serial/renesas-scif.h    |  11 ++
- lib/utils/fdt/fdt_helper.c                 |  23 +++
- lib/utils/irqchip/fdt_irqchip_plic.c       |   3 +-
- lib/utils/serial/Kconfig                   |   9 ++
- lib/utils/serial/fdt_serial_renesas_scif.c |  31 ++++
- lib/utils/serial/objects.mk                |   4 +
- lib/utils/serial/renesas_scif.c            | 140 ++++++++++++++++++
- platform/andes/ae350/common-platform.h     |  94 ++++++++++++
- platform/andes/ae350/platform.h            |  82 +----------
- platform/renesas/rzfive/Kconfig            |  32 ++++
- platform/renesas/rzfive/configs/defconfig  |   0
- platform/renesas/rzfive/objects.mk         |  18 +++
- platform/renesas/rzfive/platform.c         | 161 +++++++++++++++++++++
- platform/renesas/rzfive/platform.h         |  24 +++
- scripts/create-binary-archive.sh           |   1 +
- 18 files changed, 698 insertions(+), 81 deletions(-)
- create mode 100644 docs/platform/renesas-rzfive.md
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+---
+ include/sbi_utils/serial/renesas-scif.h |  11 ++
+ lib/utils/serial/Kconfig                |   4 +
+ lib/utils/serial/objects.mk             |   1 +
+ lib/utils/serial/renesas_scif.c         | 140 ++++++++++++++++++++++++
+ 4 files changed, 156 insertions(+)
  create mode 100644 include/sbi_utils/serial/renesas-scif.h
- create mode 100644 lib/utils/serial/fdt_serial_renesas_scif.c
  create mode 100644 lib/utils/serial/renesas_scif.c
- create mode 100644 platform/andes/ae350/common-platform.h
- create mode 100644 platform/renesas/rzfive/Kconfig
- create mode 100644 platform/renesas/rzfive/configs/defconfig
- create mode 100644 platform/renesas/rzfive/objects.mk
- create mode 100644 platform/renesas/rzfive/platform.c
- create mode 100644 platform/renesas/rzfive/platform.h
 
+diff --git a/include/sbi_utils/serial/renesas-scif.h b/include/sbi_utils/serial/renesas-scif.h
+new file mode 100644
+index 0000000..0002a1a
+--- /dev/null
++++ b/include/sbi_utils/serial/renesas-scif.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: BSD-2-Clause */
++/*
++ * Copyright (C) 2022 Renesas Electronics Corporation
++ */
++
++#ifndef __SERIAL_RENESAS_SCIF_H__
++#define __SERIAL_RENESAS_SCIF_H__
++
++int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate);
++
++#endif /* __SERIAL_RENESAS_SCIF_H__ */
+diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
+index da549a7..f6ed803 100644
+--- a/lib/utils/serial/Kconfig
++++ b/lib/utils/serial/Kconfig
+@@ -59,6 +59,10 @@ config SERIAL_GAISLER
+ 	bool "Gaisler UART support"
+ 	default n
+ 
++config SERIAL_RENESAS_SCIF
++	bool "Renesas SCIF support"
++	default n
++
+ config SERIAL_SHAKTI
+ 	bool "Shakti UART support"
+ 	default n
+diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+index 98f3f9a..6520424 100644
+--- a/lib/utils/serial/objects.mk
++++ b/lib/utils/serial/objects.mk
+@@ -36,6 +36,7 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += serial/fdt_serial_xlnx_
+ 
+ libsbiutils-objs-$(CONFIG_SERIAL_CADENCE) += serial/cadence-uart.o
+ libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
++libsbiutils-objs-$(CONFIG_SERIAL_RENESAS_SCIF) += serial/renesas_scif.o
+ libsbiutils-objs-$(CONFIG_SERIAL_SHAKTI) += serial/shakti-uart.o
+ libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
+ libsbiutils-objs-$(CONFIG_SERIAL_LITEX) += serial/litex-uart.o
+diff --git a/lib/utils/serial/renesas_scif.c b/lib/utils/serial/renesas_scif.c
+new file mode 100644
+index 0000000..13ac60b
+--- /dev/null
++++ b/lib/utils/serial/renesas_scif.c
+@@ -0,0 +1,140 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/*
++ * Copyright (C) 2022 Renesas Electronics Corporation
++ */
++
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_timer.h>
++#include <sbi_utils/serial/renesas-scif.h>
++
++/* clang-format off */
++
++#define SCIF_REG_SMR		0x0
++#define SCIF_REG_BRR		0x2
++#define SCIF_REG_SCR		0x4
++#define SCIF_REG_FTDR		0x6
++#define SCIF_REG_FSR		0x8
++#define SCIF_REG_FRDR		0xa
++#define SCIF_REG_FCR		0xc
++#define SCIF_REG_LSR		0x12
++#define SCIF_REG_SEMR		0x14
++
++#define SCIF_RFRST		0x2 /* Reset assert receive-FIFO (bit[1]) */
++#define SCIF_TFRST		0x4 /* Reset assert transmit-FIFO(bit[2]) */
++
++#define SCIF_FCR_RST_ASSRT_TFRF	(SCIF_RFRST | SCIF_TFRST) /* Reset assert tx-FIFO & rx-FIFO */
++#define SCIF_FCR_RST_NGATE_TFRF	0x0 /* Reset negate tx-FIFO & rx-FIFO*/
++
++#define SCIF_RE			0x10 /* Enable receive (bit[4])  */
++#define SCIF_TE			0x20 /* Enable transmit(bit[5])  */
++#define SCIF_SCR_RCV_TRN_EN	(SCIF_RE | SCIF_TE) /* Enable receive & transmit */
++#define SCIF_SCR_RCV_TRN_DIS	0x0 /* Disable receive & transmit */
++
++#define SCIF_FSR_ER		0x80 /* Receive error flag */
++#define SCIF_FSR_TEND		0x40 /* Detect break flag */
++#define SCIF_FSR_TDFE		0x20 /* Detect break flag */
++#define SCIF_FSR_BRK		0x10 /* Detect break flag */
++#define SCIF_FSR_RDF		0x2  /* Receive FIFO data full flag */
++#define SCIF_FSR_DR		0x1  /* Receive data ready flag */
++
++#define SCIF_FSR_RXD_CHK	(SCIF_FSR_ER | SCIF_FSR_BRK | SCIF_FSR_DR)
++#define SCIF_FSR_TXD_CHK	(SCIF_FSR_TEND | SCIF_FSR_TDFE)
++
++#define SCIF_LSR_ORER		0x1 /* Overrun error flag */
++
++#define SCIF_SPTR_SPB2DT	0x1 /* if SCR.TE setting, don't care */
++#define SCIF_SPTR_SPB2IO	0x2 /* if SCR.TE setting, don't care */
++
++#define SCIF_SEMR_BRME		0x20 /* bit-rate modulation enable */
++#define SCIF_SEMR_MDDRS		0x10 /* MDDR access enable */
++
++#define SCIF_SIZE(reg)		((reg == SCIF_REG_BRR) || \
++				 (reg == SCIF_REG_FTDR) || \
++				 (reg == SCIF_REG_FRDR) || \
++				 (reg == SCIF_REG_SEMR))
++
++#define SCBRR_VALUE(clk, baudrate) ((clk) / (64 / 2 * (baudrate)) - 1)
++
++/* clang-format on */
++
++static volatile char *scif_base;
++
++static u32 get_reg(u32 offset)
++{
++	if (SCIF_SIZE(offset))
++		return readb(scif_base + offset);
++
++	return readw(scif_base + offset);
++}
++
++static void set_reg(u32 offset, u32 val)
++{
++	if (SCIF_SIZE(offset))
++		return writeb(val, scif_base + offset);
++
++	return writew(val, scif_base + offset);
++}
++
++static void scif_wait(unsigned long baudrate)
++{
++	unsigned long utime;
++
++	utime = 1000000 / baudrate;
++	utime += 1;
++
++	sbi_timer_udelay(utime);
++}
++
++static void renesas_scif_putc(char ch)
++{
++	uint16_t reg;
++
++	while (!(SCIF_FSR_TXD_CHK & get_reg(SCIF_REG_FSR)))
++		;
++
++	set_reg(SCIF_REG_FTDR, ch);
++	reg = get_reg(SCIF_REG_FSR);
++	reg &= ~SCIF_FSR_TXD_CHK;
++	set_reg(SCIF_REG_FSR, reg);
++}
++
++static struct sbi_console_device renesas_scif_console = {
++	.name		= "renesas_scif",
++	.console_putc	= renesas_scif_putc,
++};
++
++int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate)
++{
++	volatile uint16_t data16;
++
++	scif_base = (volatile char *)base;
++
++	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_DIS); /* Disable receive & transmit */
++	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_ASSRT_TFRF); /* Reset assert tx-FIFO & rx-FIFO */
++
++	data16 = get_reg(SCIF_REG_FSR); /* Dummy read */
++	set_reg(SCIF_REG_FSR, 0x0); /* Clear all error bit */
++
++	data16 = get_reg(SCIF_REG_LSR); /* Dummy read */
++	set_reg(SCIF_REG_LSR, 0x0); /* Clear ORER bit */
++
++	set_reg(SCIF_REG_SCR, 0x0); /* Select internal clock, SC_CLK pin unused for output pin */
++
++	set_reg(SCIF_REG_SMR, 0x0); /* Set asynchronous, 8bit data, no-parity, 1 stop and Po/1 */
++
++	data16 = get_reg(SCIF_REG_SEMR);
++	set_reg(SCIF_REG_SEMR, data16 & (~SCIF_SEMR_MDDRS)); /* Select to access BRR */
++	set_reg(SCIF_REG_BRR, SCBRR_VALUE(in_freq, baudrate));
++
++	scif_wait(baudrate);
++
++	/* FTCR is left at initial value, because this interrupt isn't used. */
++	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_NGATE_TFRF); /* Reset negate tx-FIFO, rx-FIFO. */
++
++	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_EN); /* Enable receive & transmit w/SC_CLK=no output */
++
++	sbi_console_set_device(&renesas_scif_console);
++
++	return 0;
++}
 -- 
 2.17.1
 
