@@ -1,93 +1,104 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Sat, 29 Oct 2022 10:01:38 +0000
-Subject: [PATCH v4 00/14] Add Andes AE350 fdt driver support
-In-Reply-To: <CAAhSdy0G27=AZXbEa3ZwNpqvAYzU+hrBi+g5a-w=thMT749Oig@mail.gmail.com>
+From: Samuel Holland <samuel@sholland.org>
+Date: Sat, 29 Oct 2022 10:51:15 -0500
+Subject: [PATCH v4 08/14] lib: utils/timer: Add Andes fdt timer support
+In-Reply-To: <CAOnJCUK0wm3igL1F0wq1M1YwJjCVs82fJG0Wh8ZmzePxS9qywQ@mail.gmail.com>
 References: <20221014003252.17765-1-peterlin@andestech.com>
- <CAAhSdy2XvAA_1Qi9-b_d3H5st69ZbJbMdoho2X2fGHnzCY6A7g@mail.gmail.com>
- <Y1aq+LQ/GyvhCHDB@APC323>
- <CAAhSdy3tOUkMajYoMLP=KO=oPc2WHSTUDP_YHcDNhx6YTiiMiA@mail.gmail.com>
- <Y1roTqSu+6d8zT7M@APC323>
- <CAK9=C2Xuu3E+oSf=3SDjUcOS-o9O7FhB7Hms8NhST5wD8uRL-w@mail.gmail.com>
- <Y1uWQ0vYftMV+vZN@APC323>
- <CAAhSdy0G27=AZXbEa3ZwNpqvAYzU+hrBi+g5a-w=thMT749Oig@mail.gmail.com>
-Message-ID: <Y1z6AlkY1N6ioX0Q@APC323>
+ <20221014003252.17765-9-peterlin@andestech.com>
+ <43cddb0a-934c-a020-f7d4-dcc5ef0401f3@sholland.org>
+ <CAAhSdy2diaow70xY-f9Kd2sMGapetcJrrSzZqvpno+29AsiXHw@mail.gmail.com>
+ <CAOnJCUK0wm3igL1F0wq1M1YwJjCVs82fJG0Wh8ZmzePxS9qywQ@mail.gmail.com>
+Message-ID: <6f8384ed-4a2c-e024-c1b9-3e8f4e3a6fd1@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 28, 2022 at 10:08:21PM +0530, Anup Patel wrote:
-> On Fri, Oct 28, 2022 at 6:16 AM Yu-Chien Peter Lin
-> <peterlin@andestech.com> wrote:
-> >
-> > On Thu, Oct 27, 2022 at 06:13:48PM +0530, Anup Patel wrote:
-> > > On Thu, Oct 27, 2022 at 5:54 PM Yu-Chien Peter Lin
-> > > <peterlin@andestech.com> wrote:
-> > > >
-> > > > > > > Applied this series to the riscv/opensbi repo.
-> > > > > > >
-> > > > > > > Any thoughts on using the generic platform ?
-> > > > > > >
-> > > > > > > Thanks,
-> > > > > > > Anup
-> > > > > >
-> > > > > > Hi Anup,
-> > > > > >
-> > > > > > The FW_TEXT_START on AE350 is different from generic platform.
-> > > > > > Will it become a configuration?
-> > > > >
-> > > > > The generic platform has FW_PIC enabled so you can load and
-> > > > > run generic firmwares from any address.
-> > > > >
-> > > > > > I think we would keep the platform specific files in andes/ae350
-> > > > > > until we have to refactor the duplicate code.
-> > > > >
-> > > > > You can add platform specific overrides to generic platforms which
-> > > > > are selected based on compatible string in the root DT node.
-> > > > >
-> > > > > Regards,
-> > > > > Anup
-> > > >
-> > > > Hi Anup,
-> > > >
-> > > > We're considering using generic platform, but I don't find any
-> > > > vendor_ext_provider is implemented as a platform_override hook,
-> > > > does it mean we need to drop it if we move to generic platform?
-> > >
-> > > vendor_ext_provider() is available in platform_override of generic
-> > > platform.
-> > >
-> > > Please check the latest OpenSBI sources.
-> > >
-> > > Regards,
-> > > Anup
-> > >
-> >
-> > Hi Anup,
-> >
-> > Sorry, I know there is vendor_ext_provider in platform_override,
-> > except AE350, no other platforms actually have such hook in their
-> > platform specific files, so I was wondering if the current acceptance
-> > policy won't let us keep that function even in platform/andes/ae350.
+On 10/21/22 01:01, Atish Patra wrote:
+> On Thu, Oct 20, 2022 at 10:12 PM Anup Patel <anup@brainfault.org> wrote:
+>>
+>> On Mon, Oct 17, 2022 at 12:45 AM Samuel Holland <samuel@sholland.org> wrote:
+>>>
+>>> On 10/13/22 19:32, Yu Chien Peter Lin wrote:
+>>>> Since we can get the PLMT base address and timer frequency from
+>>>> device tree, move plmt timer device to fdt timer framework.
+>>>>
+>>>> dts example (Quad-core AX45MP):
+>>>>
+>>>>   cpus {
+>>>>       ...
+>>>>       timebase-frequency = <0x3938700>;
+>>>>       ...
+>>>>   }
+>>>>   soc {
+>>>>       ...
+>>>>       plmt0 at e6000000 {
+>>>>           compatible = "andestech,plmt0";
+>>>>           reg = <0x00 0xe6000000 0x00 0x100000>;
+>>>>           interrupts-extended = <&cpu0_intc 0x07
+>>>>                                  &cpu1_intc 0x07
+>>>>                                  &cpu2_intc 0x07
+>>>>                                  &cpu3_intc 0x07>;
+>>>>       };
+>>>>       ...
+>>>>   }
+>>>
+>>> Where is the binding for this compatible string? I do not see anything
+>>> either upstream or downstream:
+>>>
+>>> https://lore.kernel.org/linux-devicetree/?q=andestech%2Cplmt0
+>>> https://github.com/andestech/linux/commits/RISCV-Linux-5.4-ast-v5_1_0-branch/Documentation/devicetree/bindings
+>>>
+>>> We really shouldn't be accepting any devicetree compatible unless a YAML
+>>> binding for it exists, ideally one acked by the DT schema maintainers.
+>>>
+>>
+>> Ideally, we should only accept patches for which DT bindings
+>> have been accepted in kernel but at the moment we are not
+>> strict about this as long as:
+>> 1) It does not affect other platforms
+>> 2) The platform/SoC vendor are willing to keep things up-to-date
+>>     whenever DT bindings are merged in kernel
+>>
+>> I am still not sure about from which OpenSBI release we should
+>> change our patch acceptance policy and mandate DT bindings to
+>> be present in the kernel.
+>>
 > 
-> We generally encourage platform vendors to prefer standard
-> SBI extensions over custom SBI extensions but it might not
-> be always possible to have a standard extension for everything
-> out there.
+> That should be the policy for drivers present in the kernel. However,
+> there may be some other driver
+> that only operates in M-mode and may not need to be present in the kernel.
 > 
-> In other words, we do expect a few platform_override to have
-> vendor_ext_provider() for platform specific quirks and currently
-> we are OKAY with it but platform vendor will have to maintain
-> their vendor_ext_provider() implementation.
-> 
-> Regards,
-> Anup
+> The SBI PMU extension also falls into this category. The DT bindings
+> have to be maintained in the OpenSBI
+> as the kernel driver doesn't need to be aware of PMU DT bindings.
 
-Hi Anup,
+Bindings still need to be in the Linux kernel (or dt-schema) repository
+for several reasons. Most importantly, the DT maintainers there provide
+a thorough review and enforce backward compatibility. If a binding is
+only documented in some downstream repository, there is nothing ensuring
+its validity or stability. Bindings hosted elsewhere cannot be trusted.
 
-Thanks for your clarification!
+Linux is the de facto "upstream" for both devicetrees and DT bindings,
+even when no Linux driver exists. U-Boot's policy is to use DTS files
+from Linux verbatim. When using the standard U-Boot boot flow, that
+devicetree is passed at runtime from U-Boot SPL to OpenSBI. That means
+any (static) node used by either U-Boot or OpenSBI needs to be in the
+Linux DTS. And any node in the Linux DTS needs to have its binding
+documented in the Linux repository (or the dt-schema repository).
 
-Best regards,
-Peter Lin
+See for example the U-Boot patch driven by this very thread:
+https://lore.kernel.org/u-boot/20221025150350.19300-1-peterlin at andestech.com/
+
+The drivers in OpenSBI consume DT nodes which are provided by U-Boot. So
+unless the bindings are upstreamed and can be considered stable, we have
+now introduced a version dependency between OpenSBI and U-Boot.
+
+Finally, Linux supports running in M-mode. And so does U-Boot, which
+again takes its DTSs from Linux. So a device being limited to M-mode is
+not a good reason to exclude it from the Linux DTS or DT bindings.
+
+Regards,
+Samuel
+
 
