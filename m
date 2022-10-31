@@ -1,104 +1,242 @@
-From: Samuel Holland <samuel@sholland.org>
-Date: Sat, 29 Oct 2022 10:51:15 -0500
-Subject: [PATCH v4 08/14] lib: utils/timer: Add Andes fdt timer support
-In-Reply-To: <CAOnJCUK0wm3igL1F0wq1M1YwJjCVs82fJG0Wh8ZmzePxS9qywQ@mail.gmail.com>
-References: <20221014003252.17765-1-peterlin@andestech.com>
- <20221014003252.17765-9-peterlin@andestech.com>
- <43cddb0a-934c-a020-f7d4-dcc5ef0401f3@sholland.org>
- <CAAhSdy2diaow70xY-f9Kd2sMGapetcJrrSzZqvpno+29AsiXHw@mail.gmail.com>
- <CAOnJCUK0wm3igL1F0wq1M1YwJjCVs82fJG0Wh8ZmzePxS9qywQ@mail.gmail.com>
-Message-ID: <6f8384ed-4a2c-e024-c1b9-3e8f4e3a6fd1@sholland.org>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Mon, 31 Oct 2022 13:01:03 +0000
+Subject: [PATCH RFC 3/7] platform: andes/ae350: Split header platform.h
+ header file
+In-Reply-To: <20221028004042.135549-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <20221028004042.135549-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <Y1/G+YAqhaG8K3T4@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10/21/22 01:01, Atish Patra wrote:
-> On Thu, Oct 20, 2022 at 10:12 PM Anup Patel <anup@brainfault.org> wrote:
->>
->> On Mon, Oct 17, 2022 at 12:45 AM Samuel Holland <samuel@sholland.org> wrote:
->>>
->>> On 10/13/22 19:32, Yu Chien Peter Lin wrote:
->>>> Since we can get the PLMT base address and timer frequency from
->>>> device tree, move plmt timer device to fdt timer framework.
->>>>
->>>> dts example (Quad-core AX45MP):
->>>>
->>>>   cpus {
->>>>       ...
->>>>       timebase-frequency = <0x3938700>;
->>>>       ...
->>>>   }
->>>>   soc {
->>>>       ...
->>>>       plmt0 at e6000000 {
->>>>           compatible = "andestech,plmt0";
->>>>           reg = <0x00 0xe6000000 0x00 0x100000>;
->>>>           interrupts-extended = <&cpu0_intc 0x07
->>>>                                  &cpu1_intc 0x07
->>>>                                  &cpu2_intc 0x07
->>>>                                  &cpu3_intc 0x07>;
->>>>       };
->>>>       ...
->>>>   }
->>>
->>> Where is the binding for this compatible string? I do not see anything
->>> either upstream or downstream:
->>>
->>> https://lore.kernel.org/linux-devicetree/?q=andestech%2Cplmt0
->>> https://github.com/andestech/linux/commits/RISCV-Linux-5.4-ast-v5_1_0-branch/Documentation/devicetree/bindings
->>>
->>> We really shouldn't be accepting any devicetree compatible unless a YAML
->>> binding for it exists, ideally one acked by the DT schema maintainers.
->>>
->>
->> Ideally, we should only accept patches for which DT bindings
->> have been accepted in kernel but at the moment we are not
->> strict about this as long as:
->> 1) It does not affect other platforms
->> 2) The platform/SoC vendor are willing to keep things up-to-date
->>     whenever DT bindings are merged in kernel
->>
->> I am still not sure about from which OpenSBI release we should
->> change our patch acceptance policy and mandate DT bindings to
->> be present in the kernel.
->>
+On Fri, Oct 28, 2022 at 01:40:38AM +0100, Prabhakar wrote:
+> From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 > 
-> That should be the policy for drivers present in the kernel. However,
-> there may be some other driver
-> that only operates in M-mode and may not need to be present in the kernel.
+> Split up the platform.h header file into
+> - platform.h #Contains platform specific macros
+> - common-platform.h #contains macros common across Andes platforms
 > 
-> The SBI PMU extension also falls into this category. The DT bindings
-> have to be maintained in the OpenSBI
-> as the kernel driver doesn't need to be aware of PMU DT bindings.
+> This is in preparation for adding the Renesas RZ/Five SoC which is based
+> on Andes AX45MP core.
+> 
+> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> ---
+>  platform/andes/ae350/common-platform.h | 94 ++++++++++++++++++++++++++
+>  platform/andes/ae350/platform.h        | 82 +---------------------
+>  2 files changed, 96 insertions(+), 80 deletions(-)
+>  create mode 100644 platform/andes/ae350/common-platform.h
+> 
+> diff --git a/platform/andes/ae350/common-platform.h b/platform/andes/ae350/common-platform.h
+> new file mode 100644
+> index 0000000..6334a2e
+> --- /dev/null
+> +++ b/platform/andes/ae350/common-platform.h
+> @@ -0,0 +1,94 @@
+> +/* SPDX-License-Identifier: BSD-2-Clause */
+> +/*
+> + * Copyright (c) 2019 Andes Technology Corporation
+> + *
+> + * Authors:
+> + *   Zong Li <zong@andestech.com>
+> + *   Nylon Chen <nylon7@andestech.com>
+> + */
+> +
+> +#ifndef _AE350_COMMON_PLATFORM_H_
+> +#define _AE350_COMMON_PLATFORM_H_
+> +
+> +/* Memory and Miscellaneous Registers */
+> +#define CSR_MILMB		0x7c0
+> +#define CSR_MDLMB		0x7c1
+> +#define CSR_MECC_CDOE		0x7c2
+> +#define CSR_MNVEC		0x7c3
+> +#define CSR_MPFTCTL		0x7c5
+> +#define CSR_MCACHECTL		0x7ca
+> +#define CSR_MCCTLBEGINADDR	0x7cb
+> +#define CSR_MCCTLCOMMAND	0x7cc
+> +#define CSR_MCCTLDATA		0x7cc
+> +#define CSR_SCCTLDATA		0x9cd
+> +#define CSR_UCCTLBEGINADDR	0x80c
+> +#define CSR_MMISCCTL		0x7d0
+> +
+> +/* nds v5 mmisc_ctl register*/
+> +#define V5_MMISC_CTL_VEC_PLIC_OFFSET		1
+> +#define V5_MMISC_CTL_RVCOMPM_OFFSET		2
+> +#define V5_MMISC_CTL_BRPE_OFFSET		3
+> +#define V5_MMISC_CTL_MSA_OR_UNA_OFFSET		6
+> +#define V5_MMISC_CTL_NON_BLOCKING_OFFSET	8
+> +#define V5_MCACHE_CTL_L1I_PREFETCH_OFFSET	9
+> +#define V5_MCACHE_CTL_L1D_PREFETCH_OFFSET	10
+> +#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_1	13
+> +#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_2	14
+> +
+> +#define V5_MMISC_CTL_VEC_PLIC_EN	(1UL << V5_MMISC_CTL_VEC_PLIC_OFFSET)
+> +#define V5_MMISC_CTL_RVCOMPM_EN		(1UL << V5_MMISC_CTL_RVCOMPM_OFFSET)
+> +#define V5_MMISC_CTL_BRPE_EN		(1UL << V5_MMISC_CTL_BRPE_OFFSET)
+> +#define V5_MMISC_CTL_MSA_OR_UNA_EN	(1UL << V5_MMISC_CTL_MSA_OR_UNA_OFFSET)
+> +#define V5_MMISC_CTL_NON_BLOCKING_EN	(1UL << V5_MMISC_CTL_NON_BLOCKING_OFFSET)
+> +#define V5_MCACHE_CTL_L1I_PREFETCH_EN	(1UL << V5_MCACHE_CTL_L1I_PREFETCH_OFFSET)
+> +#define V5_MCACHE_CTL_L1D_PREFETCH_EN	(1UL << V5_MCACHE_CTL_L1D_PREFETCH_OFFSET)
+> +#define V5_MCACHE_CTL_DC_WAROUND_1_EN	(1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_1)
+> +#define V5_MCACHE_CTL_DC_WAROUND_2_EN	(1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_2)
+> +
+> +#define V5_MMISC_CTL_MASK	(V5_MMISC_CTL_VEC_PLIC_EN | V5_MMISC_CTL_RVCOMPM_EN | \
+> +				 V5_MMISC_CTL_BRPE_EN | V5_MMISC_CTL_MSA_OR_UNA_EN | \
+> +				 V5_MMISC_CTL_NON_BLOCKING_EN)
+> +
+> +/* nds mcache_ctl register */
+> +#define V5_MCACHE_CTL_IC_EN_OFFSET	0
+> +#define V5_MCACHE_CTL_DC_EN_OFFSET	1
+> +#define V5_MCACHE_CTL_IC_ECCEN_OFFSET	2
+> +#define V5_MCACHE_CTL_DC_ECCEN_OFFSET	4
+> +#define V5_MCACHE_CTL_IC_RWECC_OFFSET	6
+> +#define V5_MCACHE_CTL_DC_RWECC_OFFSET	7
+> +#define V5_MCACHE_CTL_CCTL_SUEN_OFFSET	8
+> +
+> +/* nds cctl command */
+> +#define V5_UCCTL_L1D_WBINVAL_ALL	6
+> +#define V5_UCCTL_L1D_WB_ALL		7
+> +
+> +#define V5_MCACHE_CTL_IC_EN	(1UL << V5_MCACHE_CTL_IC_EN_OFFSET)
+> +#define V5_MCACHE_CTL_DC_EN	(1UL << V5_MCACHE_CTL_DC_EN_OFFSET)
+> +#define V5_MCACHE_CTL_IC_RWECC	(1UL << V5_MCACHE_CTL_IC_RWECC_OFFSET)
+> +#define V5_MCACHE_CTL_DC_RWECC	(1UL << V5_MCACHE_CTL_DC_RWECC_OFFSET)
+> +#define V5_MCACHE_CTL_CCTL_SUEN	(1UL << V5_MCACHE_CTL_CCTL_SUEN_OFFSET)
+> +
+> +#define V5_MCACHE_CTL_MASK	(V5_MCACHE_CTL_IC_EN | V5_MCACHE_CTL_DC_EN | \
+> +				 V5_MCACHE_CTL_IC_RWECC | V5_MCACHE_CTL_DC_RWECC | \
+> +				 V5_MCACHE_CTL_CCTL_SUEN | V5_MCACHE_CTL_L1I_PREFETCH_EN | \
+> +				 V5_MCACHE_CTL_L1D_PREFETCH_EN | V5_MCACHE_CTL_DC_WAROUND_1_EN | \
+> +				 V5_MCACHE_CTL_DC_WAROUND_2_EN)
+> +
+> +#define V5_L2C_CTL_OFFSET		0x8
+> +#define V5_L2C_CTL_ENABLE_OFFSET	0
+> +#define V5_L2C_CTL_IPFDPT_OFFSET	3
+> +#define V5_L2C_CTL_DPFDPT_OFFSET	5
+> +#define V5_L2C_CTL_TRAMOCTL_OFFSET	8
+> +#define V5_L2C_CTL_TRAMICTL_OFFSET	10
+> +#define V5_L2C_CTL_DRAMOCTL_OFFSET	11
+> +#define V5_L2C_CTL_DRAMICTL_OFFSET	13
+> +
+> +#define V5_L2C_CTL_ENABLE_MASK		(1UL << V5_L2C_CTL_ENABLE_OFFSET)
+> +#define V5_L2C_CTL_IPFDPT_MASK		(3UL << V5_L2C_CTL_IPFDPT_OFFSET)
+> +#define V5_L2C_CTL_DPFDPT_MASK		(3UL << V5_L2C_CTL_DPFDPT_OFFSET)
+> +#define V5_L2C_CTL_TRAMOCTL_MASK	(3UL << V5_L2C_CTL_TRAMOCTL_OFFSET)
+> +#define V5_L2C_CTL_TRAMICTL_MASK	(1UL << V5_L2C_CTL_TRAMICTL_OFFSET)
+> +#define V5_L2C_CTL_DRAMOCTL_MASK	(3UL << V5_L2C_CTL_DRAMOCTL_OFFSET)
+> +#define V5_L2C_CTL_DRAMICTL_MASK	(1UL << V5_L2C_CTL_DRAMICTL_OFFSET)
+> +
+> +#endif /* _AE350_COMMON_PLATFORM_H_ */
+> diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
+> index 903bef0..45de792 100644
+> --- a/platform/andes/ae350/platform.h
+> +++ b/platform/andes/ae350/platform.h
+> @@ -11,21 +11,9 @@
+>  #ifndef _AE350_PLATFORM_H_
+>  #define _AE350_PLATFORM_H_
+>  
+> -#define AE350_L2C_ADDR			0xe0500000
+> +#include "common-platform.h"
+>  
+> -/*Memory and Miscellaneous Registers*/
+> -#define CSR_MILMB		0x7c0
+> -#define CSR_MDLMB		0x7c1
+> -#define CSR_MECC_CDOE		0x7c2
+> -#define CSR_MNVEC		0x7c3
+> -#define CSR_MPFTCTL		0x7c5
+> -#define CSR_MCACHECTL		0x7ca
+> -#define CSR_MCCTLBEGINADDR	0x7cb
+> -#define CSR_MCCTLCOMMAND	0x7cc
+> -#define CSR_MCCTLDATA		0x7cc
+> -#define CSR_SCCTLDATA		0x9cd
+> -#define CSR_UCCTLBEGINADDR	0x80c
+> -#define CSR_MMISCCTL		0x7d0
+> +#define AE350_L2C_ADDR			0xe0500000
+>  
+>  enum sbi_ext_andes_fid {
+>  	SBI_EXT_ANDES_GET_MCACHE_CTL_STATUS = 0,
+> @@ -40,70 +28,4 @@ enum sbi_ext_andes_fid {
+>  	SBI_EXT_ANDES_WRITE_AROUND,
+>  };
+>  
+> -/* nds v5 mmisc_ctl register*/
+> -#define V5_MMISC_CTL_VEC_PLIC_OFFSET            1
+> -#define V5_MMISC_CTL_RVCOMPM_OFFSET             2
+> -#define V5_MMISC_CTL_BRPE_OFFSET                3
+> -#define V5_MMISC_CTL_MSA_OR_UNA_OFFSET          6
+> -#define V5_MMISC_CTL_NON_BLOCKING_OFFSET        8
+> -#define V5_MCACHE_CTL_L1I_PREFETCH_OFFSET       9
+> -#define V5_MCACHE_CTL_L1D_PREFETCH_OFFSET       10
+> -#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_1       13
+> -#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_2       14
+> -
+> -#define V5_MMISC_CTL_VEC_PLIC_EN        (1UL << V5_MMISC_CTL_VEC_PLIC_OFFSET)
+> -#define V5_MMISC_CTL_RVCOMPM_EN         (1UL << V5_MMISC_CTL_RVCOMPM_OFFSET)
+> -#define V5_MMISC_CTL_BRPE_EN            (1UL << V5_MMISC_CTL_BRPE_OFFSET)
+> -#define V5_MMISC_CTL_MSA_OR_UNA_EN      (1UL << V5_MMISC_CTL_MSA_OR_UNA_OFFSET)
+> -#define V5_MMISC_CTL_NON_BLOCKING_EN    (1UL << V5_MMISC_CTL_NON_BLOCKING_OFFSET)
+> -#define V5_MCACHE_CTL_L1I_PREFETCH_EN   (1UL << V5_MCACHE_CTL_L1I_PREFETCH_OFFSET)
+> -#define V5_MCACHE_CTL_L1D_PREFETCH_EN   (1UL << V5_MCACHE_CTL_L1D_PREFETCH_OFFSET)
+> -#define V5_MCACHE_CTL_DC_WAROUND_1_EN   (1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_1)
+> -#define V5_MCACHE_CTL_DC_WAROUND_2_EN   (1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_2)
+> -
+> -#define V5_MMISC_CTL_MASK  (V5_MMISC_CTL_VEC_PLIC_EN | V5_MMISC_CTL_RVCOMPM_EN \
+> -	| V5_MMISC_CTL_BRPE_EN | V5_MMISC_CTL_MSA_OR_UNA_EN | V5_MMISC_CTL_NON_BLOCKING_EN)
+> -
+> -/* nds mcache_ctl register*/
+> -#define V5_MCACHE_CTL_IC_EN_OFFSET      0
+> -#define V5_MCACHE_CTL_DC_EN_OFFSET      1
+> -#define V5_MCACHE_CTL_IC_ECCEN_OFFSET   2
+> -#define V5_MCACHE_CTL_DC_ECCEN_OFFSET   4
+> -#define V5_MCACHE_CTL_IC_RWECC_OFFSET   6
+> -#define V5_MCACHE_CTL_DC_RWECC_OFFSET   7
+> -#define V5_MCACHE_CTL_CCTL_SUEN_OFFSET  8
+> -
+> -/*nds cctl command*/
+> -#define V5_UCCTL_L1D_WBINVAL_ALL 6
+> -#define V5_UCCTL_L1D_WB_ALL 7
+> -
+> -#define V5_MCACHE_CTL_IC_EN     (1UL << V5_MCACHE_CTL_IC_EN_OFFSET)
+> -#define V5_MCACHE_CTL_DC_EN     (1UL << V5_MCACHE_CTL_DC_EN_OFFSET)
+> -#define V5_MCACHE_CTL_IC_RWECC  (1UL << V5_MCACHE_CTL_IC_RWECC_OFFSET)
+> -#define V5_MCACHE_CTL_DC_RWECC  (1UL << V5_MCACHE_CTL_DC_RWECC_OFFSET)
+> -#define V5_MCACHE_CTL_CCTL_SUEN (1UL << V5_MCACHE_CTL_CCTL_SUEN_OFFSET)
+> -
+> -#define V5_MCACHE_CTL_MASK (V5_MCACHE_CTL_IC_EN | V5_MCACHE_CTL_DC_EN \
+> -	| V5_MCACHE_CTL_IC_RWECC | V5_MCACHE_CTL_DC_RWECC \
+> -	| V5_MCACHE_CTL_CCTL_SUEN | V5_MCACHE_CTL_L1I_PREFETCH_EN \
+> -	| V5_MCACHE_CTL_L1D_PREFETCH_EN | V5_MCACHE_CTL_DC_WAROUND_1_EN \
+> -	| V5_MCACHE_CTL_DC_WAROUND_2_EN)
+> -
+> -#define V5_L2C_CTL_OFFSET           0x8
+> -#define V5_L2C_CTL_ENABLE_OFFSET    0
+> -#define V5_L2C_CTL_IPFDPT_OFFSET    3
+> -#define V5_L2C_CTL_DPFDPT_OFFSET    5
+> -#define V5_L2C_CTL_TRAMOCTL_OFFSET  8
+> -#define V5_L2C_CTL_TRAMICTL_OFFSET  10
+> -#define V5_L2C_CTL_DRAMOCTL_OFFSET  11
+> -#define V5_L2C_CTL_DRAMICTL_OFFSET  13
+> -
+> -#define V5_L2C_CTL_ENABLE_MASK      (1UL << V5_L2C_CTL_ENABLE_OFFSET)
+> -#define V5_L2C_CTL_IPFDPT_MASK      (3UL << V5_L2C_CTL_IPFDPT_OFFSET)
+> -#define V5_L2C_CTL_DPFDPT_MASK      (3UL << V5_L2C_CTL_DPFDPT_OFFSET)
+> -#define V5_L2C_CTL_TRAMOCTL_MASK    (3UL << V5_L2C_CTL_TRAMOCTL_OFFSET)
+> -#define V5_L2C_CTL_TRAMICTL_MASK    (1UL << V5_L2C_CTL_TRAMICTL_OFFSET)
+> -#define V5_L2C_CTL_DRAMOCTL_MASK    (3UL << V5_L2C_CTL_DRAMOCTL_OFFSET)
+> -#define V5_L2C_CTL_DRAMICTL_MASK    (1UL << V5_L2C_CTL_DRAMICTL_OFFSET)
+> -
+>  #endif /* _AE350_PLATFORM_H_ */
+> -- 
+> 2.17.1
+> 
 
-Bindings still need to be in the Linux kernel (or dt-schema) repository
-for several reasons. Most importantly, the DT maintainers there provide
-a thorough review and enforce backward compatibility. If a binding is
-only documented in some downstream repository, there is nothing ensuring
-its validity or stability. Bindings hosted elsewhere cannot be trusted.
+Hi Prabhakar,
 
-Linux is the de facto "upstream" for both devicetrees and DT bindings,
-even when no Linux driver exists. U-Boot's policy is to use DTS files
-from Linux verbatim. When using the standard U-Boot boot flow, that
-devicetree is passed at runtime from U-Boot SPL to OpenSBI. That means
-any (static) node used by either U-Boot or OpenSBI needs to be in the
-Linux DTS. And any node in the Linux DTS needs to have its binding
-documented in the Linux repository (or the dt-schema repository).
+LGTM.
+Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
 
-See for example the U-Boot patch driven by this very thread:
-https://lore.kernel.org/u-boot/20221025150350.19300-1-peterlin at andestech.com/
-
-The drivers in OpenSBI consume DT nodes which are provided by U-Boot. So
-unless the bindings are upstreamed and can be considered stable, we have
-now introduced a version dependency between OpenSBI and U-Boot.
-
-Finally, Linux supports running in M-mode. And so does U-Boot, which
-again takes its DTSs from Linux. So a device being limited to M-mode is
-not a good reason to exclude it from the Linux DTS or DT bindings.
-
-Regards,
-Samuel
-
+Thanks,
+Peter Lin
 
