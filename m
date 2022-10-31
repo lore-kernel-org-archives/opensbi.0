@@ -1,60 +1,87 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 31 Oct 2022 19:21:44 +0800
-Subject: [PATCH 1/2] lib: utils/fdt: Remove redundant code
+Date: Mon, 31 Oct 2022 19:21:45 +0800
+Subject: [PATCH 2/2] lib: utils/fdt: Simplified code
 In-Reply-To: <20221031112145.126615-1-wxjstz@126.com>
 References: <20221031112145.126615-1-wxjstz@126.com>
-Message-ID: <20221031112145.126615-2-wxjstz@126.com>
+Message-ID: <20221031112145.126615-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-uart->reg_offset and uart->reg_io_width are only used on uart8250 and
-not required on other platforms. Remove for sifive and gaisler.
+Simplified fdt_parse_xxx_uart_node which direct call
+fdt_parse_uart_node_common.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/utils/fdt/fdt_helper.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ lib/utils/fdt/fdt_helper.c | 28 ++++------------------------
+ 1 file changed, 4 insertions(+), 24 deletions(-)
 
 diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index d390436..cdd0b35 100644
+index cdd0b35..72d8635 100644
 --- a/lib/utils/fdt/fdt_helper.c
 +++ b/lib/utils/fdt/fdt_helper.c
-@@ -25,10 +25,6 @@
+@@ -350,43 +350,27 @@ static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
+ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+ 				struct platform_uart_data *uart)
+ {
+-	int rc;
  
- #define DEFAULT_SIFIVE_UART_FREQ		0
- #define DEFAULT_SIFIVE_UART_BAUD		115200
--#define DEFAULT_SIFIVE_UART_REG_SHIFT		0
--#define DEFAULT_SIFIVE_UART_REG_IO_WIDTH	4
+-	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
++	return fdt_parse_uart_node_common(fdt, nodeoffset, uart,
+ 					DEFAULT_UART_FREQ,
+ 					DEFAULT_UART_BAUD);
 -
--#define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
- 
- #define DEFAULT_SHAKTI_UART_FREQ		50000000
- #define DEFAULT_SHAKTI_UART_BAUD		115200
-@@ -363,10 +359,6 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
- 	if (rc)
- 		return rc;
- 
--	/* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
--	uart->reg_shift	   = DEFAULT_UART_REG_SHIFT;
--	uart->reg_io_width = DEFAULT_GAISLER_UART_REG_IO_WIDTH;
+-	if (rc)
+-		return rc;
 -
- 	return 0;
+-	return 0;
  }
  
-@@ -394,10 +386,6 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
- 	if (rc)
- 		return rc;
+ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
+ 			       struct platform_uart_data *uart)
+ {
+-	int rc;
  
--	/* For SiFive UART, the reg-shift and reg-io-width are fixed .*/
--	uart->reg_shift = DEFAULT_SIFIVE_UART_REG_SHIFT;
--	uart->reg_io_width = DEFAULT_SIFIVE_UART_REG_IO_WIDTH;
+-	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
++	return fdt_parse_uart_node_common(fdt, nodeoffset, uart,
+ 					DEFAULT_SHAKTI_UART_FREQ,
+ 					DEFAULT_SHAKTI_UART_BAUD);
 -
- 	return 0;
+-	return rc ? : 0;
  }
  
+ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
+ 			       struct platform_uart_data *uart)
+ {
+-	int rc;
+-
+-	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
++	return fdt_parse_uart_node_common(fdt, nodeoffset, uart,
+ 					DEFAULT_SIFIVE_UART_FREQ,
+ 					DEFAULT_SIFIVE_UART_BAUD);
+-
+-	if (rc)
+-		return rc;
+-
+-	return 0;
+ }
+ 
+ int fdt_parse_uart_node(void *fdt, int nodeoffset,
+@@ -441,11 +425,7 @@ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
+ int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
+ 			       struct platform_uart_data *uart)
+ {
+-	int rc;
+-
+-	rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
+-
+-	return rc ? : 0;
++	return fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
+ }
+ 
+ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
 -- 
 2.30.2
 
