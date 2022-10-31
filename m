@@ -1,242 +1,61 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 31 Oct 2022 13:01:03 +0000
-Subject: [PATCH RFC 3/7] platform: andes/ae350: Split header platform.h
- header file
-In-Reply-To: <20221028004042.135549-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <20221028004042.135549-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <Y1/G+YAqhaG8K3T4@APC323>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 31 Oct 2022 19:21:44 +0800
+Subject: [PATCH 1/2] lib: utils/fdt: Remove redundant code
+In-Reply-To: <20221031112145.126615-1-wxjstz@126.com>
+References: <20221031112145.126615-1-wxjstz@126.com>
+Message-ID: <20221031112145.126615-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 28, 2022 at 01:40:38AM +0100, Prabhakar wrote:
-> From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> 
-> Split up the platform.h header file into
-> - platform.h #Contains platform specific macros
-> - common-platform.h #contains macros common across Andes platforms
-> 
-> This is in preparation for adding the Renesas RZ/Five SoC which is based
-> on Andes AX45MP core.
-> 
-> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> ---
->  platform/andes/ae350/common-platform.h | 94 ++++++++++++++++++++++++++
->  platform/andes/ae350/platform.h        | 82 +---------------------
->  2 files changed, 96 insertions(+), 80 deletions(-)
->  create mode 100644 platform/andes/ae350/common-platform.h
-> 
-> diff --git a/platform/andes/ae350/common-platform.h b/platform/andes/ae350/common-platform.h
-> new file mode 100644
-> index 0000000..6334a2e
-> --- /dev/null
-> +++ b/platform/andes/ae350/common-platform.h
-> @@ -0,0 +1,94 @@
-> +/* SPDX-License-Identifier: BSD-2-Clause */
-> +/*
-> + * Copyright (c) 2019 Andes Technology Corporation
-> + *
-> + * Authors:
-> + *   Zong Li <zong@andestech.com>
-> + *   Nylon Chen <nylon7@andestech.com>
-> + */
-> +
-> +#ifndef _AE350_COMMON_PLATFORM_H_
-> +#define _AE350_COMMON_PLATFORM_H_
-> +
-> +/* Memory and Miscellaneous Registers */
-> +#define CSR_MILMB		0x7c0
-> +#define CSR_MDLMB		0x7c1
-> +#define CSR_MECC_CDOE		0x7c2
-> +#define CSR_MNVEC		0x7c3
-> +#define CSR_MPFTCTL		0x7c5
-> +#define CSR_MCACHECTL		0x7ca
-> +#define CSR_MCCTLBEGINADDR	0x7cb
-> +#define CSR_MCCTLCOMMAND	0x7cc
-> +#define CSR_MCCTLDATA		0x7cc
-> +#define CSR_SCCTLDATA		0x9cd
-> +#define CSR_UCCTLBEGINADDR	0x80c
-> +#define CSR_MMISCCTL		0x7d0
-> +
-> +/* nds v5 mmisc_ctl register*/
-> +#define V5_MMISC_CTL_VEC_PLIC_OFFSET		1
-> +#define V5_MMISC_CTL_RVCOMPM_OFFSET		2
-> +#define V5_MMISC_CTL_BRPE_OFFSET		3
-> +#define V5_MMISC_CTL_MSA_OR_UNA_OFFSET		6
-> +#define V5_MMISC_CTL_NON_BLOCKING_OFFSET	8
-> +#define V5_MCACHE_CTL_L1I_PREFETCH_OFFSET	9
-> +#define V5_MCACHE_CTL_L1D_PREFETCH_OFFSET	10
-> +#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_1	13
-> +#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_2	14
-> +
-> +#define V5_MMISC_CTL_VEC_PLIC_EN	(1UL << V5_MMISC_CTL_VEC_PLIC_OFFSET)
-> +#define V5_MMISC_CTL_RVCOMPM_EN		(1UL << V5_MMISC_CTL_RVCOMPM_OFFSET)
-> +#define V5_MMISC_CTL_BRPE_EN		(1UL << V5_MMISC_CTL_BRPE_OFFSET)
-> +#define V5_MMISC_CTL_MSA_OR_UNA_EN	(1UL << V5_MMISC_CTL_MSA_OR_UNA_OFFSET)
-> +#define V5_MMISC_CTL_NON_BLOCKING_EN	(1UL << V5_MMISC_CTL_NON_BLOCKING_OFFSET)
-> +#define V5_MCACHE_CTL_L1I_PREFETCH_EN	(1UL << V5_MCACHE_CTL_L1I_PREFETCH_OFFSET)
-> +#define V5_MCACHE_CTL_L1D_PREFETCH_EN	(1UL << V5_MCACHE_CTL_L1D_PREFETCH_OFFSET)
-> +#define V5_MCACHE_CTL_DC_WAROUND_1_EN	(1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_1)
-> +#define V5_MCACHE_CTL_DC_WAROUND_2_EN	(1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_2)
-> +
-> +#define V5_MMISC_CTL_MASK	(V5_MMISC_CTL_VEC_PLIC_EN | V5_MMISC_CTL_RVCOMPM_EN | \
-> +				 V5_MMISC_CTL_BRPE_EN | V5_MMISC_CTL_MSA_OR_UNA_EN | \
-> +				 V5_MMISC_CTL_NON_BLOCKING_EN)
-> +
-> +/* nds mcache_ctl register */
-> +#define V5_MCACHE_CTL_IC_EN_OFFSET	0
-> +#define V5_MCACHE_CTL_DC_EN_OFFSET	1
-> +#define V5_MCACHE_CTL_IC_ECCEN_OFFSET	2
-> +#define V5_MCACHE_CTL_DC_ECCEN_OFFSET	4
-> +#define V5_MCACHE_CTL_IC_RWECC_OFFSET	6
-> +#define V5_MCACHE_CTL_DC_RWECC_OFFSET	7
-> +#define V5_MCACHE_CTL_CCTL_SUEN_OFFSET	8
-> +
-> +/* nds cctl command */
-> +#define V5_UCCTL_L1D_WBINVAL_ALL	6
-> +#define V5_UCCTL_L1D_WB_ALL		7
-> +
-> +#define V5_MCACHE_CTL_IC_EN	(1UL << V5_MCACHE_CTL_IC_EN_OFFSET)
-> +#define V5_MCACHE_CTL_DC_EN	(1UL << V5_MCACHE_CTL_DC_EN_OFFSET)
-> +#define V5_MCACHE_CTL_IC_RWECC	(1UL << V5_MCACHE_CTL_IC_RWECC_OFFSET)
-> +#define V5_MCACHE_CTL_DC_RWECC	(1UL << V5_MCACHE_CTL_DC_RWECC_OFFSET)
-> +#define V5_MCACHE_CTL_CCTL_SUEN	(1UL << V5_MCACHE_CTL_CCTL_SUEN_OFFSET)
-> +
-> +#define V5_MCACHE_CTL_MASK	(V5_MCACHE_CTL_IC_EN | V5_MCACHE_CTL_DC_EN | \
-> +				 V5_MCACHE_CTL_IC_RWECC | V5_MCACHE_CTL_DC_RWECC | \
-> +				 V5_MCACHE_CTL_CCTL_SUEN | V5_MCACHE_CTL_L1I_PREFETCH_EN | \
-> +				 V5_MCACHE_CTL_L1D_PREFETCH_EN | V5_MCACHE_CTL_DC_WAROUND_1_EN | \
-> +				 V5_MCACHE_CTL_DC_WAROUND_2_EN)
-> +
-> +#define V5_L2C_CTL_OFFSET		0x8
-> +#define V5_L2C_CTL_ENABLE_OFFSET	0
-> +#define V5_L2C_CTL_IPFDPT_OFFSET	3
-> +#define V5_L2C_CTL_DPFDPT_OFFSET	5
-> +#define V5_L2C_CTL_TRAMOCTL_OFFSET	8
-> +#define V5_L2C_CTL_TRAMICTL_OFFSET	10
-> +#define V5_L2C_CTL_DRAMOCTL_OFFSET	11
-> +#define V5_L2C_CTL_DRAMICTL_OFFSET	13
-> +
-> +#define V5_L2C_CTL_ENABLE_MASK		(1UL << V5_L2C_CTL_ENABLE_OFFSET)
-> +#define V5_L2C_CTL_IPFDPT_MASK		(3UL << V5_L2C_CTL_IPFDPT_OFFSET)
-> +#define V5_L2C_CTL_DPFDPT_MASK		(3UL << V5_L2C_CTL_DPFDPT_OFFSET)
-> +#define V5_L2C_CTL_TRAMOCTL_MASK	(3UL << V5_L2C_CTL_TRAMOCTL_OFFSET)
-> +#define V5_L2C_CTL_TRAMICTL_MASK	(1UL << V5_L2C_CTL_TRAMICTL_OFFSET)
-> +#define V5_L2C_CTL_DRAMOCTL_MASK	(3UL << V5_L2C_CTL_DRAMOCTL_OFFSET)
-> +#define V5_L2C_CTL_DRAMICTL_MASK	(1UL << V5_L2C_CTL_DRAMICTL_OFFSET)
-> +
-> +#endif /* _AE350_COMMON_PLATFORM_H_ */
-> diff --git a/platform/andes/ae350/platform.h b/platform/andes/ae350/platform.h
-> index 903bef0..45de792 100644
-> --- a/platform/andes/ae350/platform.h
-> +++ b/platform/andes/ae350/platform.h
-> @@ -11,21 +11,9 @@
->  #ifndef _AE350_PLATFORM_H_
->  #define _AE350_PLATFORM_H_
->  
-> -#define AE350_L2C_ADDR			0xe0500000
-> +#include "common-platform.h"
->  
-> -/*Memory and Miscellaneous Registers*/
-> -#define CSR_MILMB		0x7c0
-> -#define CSR_MDLMB		0x7c1
-> -#define CSR_MECC_CDOE		0x7c2
-> -#define CSR_MNVEC		0x7c3
-> -#define CSR_MPFTCTL		0x7c5
-> -#define CSR_MCACHECTL		0x7ca
-> -#define CSR_MCCTLBEGINADDR	0x7cb
-> -#define CSR_MCCTLCOMMAND	0x7cc
-> -#define CSR_MCCTLDATA		0x7cc
-> -#define CSR_SCCTLDATA		0x9cd
-> -#define CSR_UCCTLBEGINADDR	0x80c
-> -#define CSR_MMISCCTL		0x7d0
-> +#define AE350_L2C_ADDR			0xe0500000
->  
->  enum sbi_ext_andes_fid {
->  	SBI_EXT_ANDES_GET_MCACHE_CTL_STATUS = 0,
-> @@ -40,70 +28,4 @@ enum sbi_ext_andes_fid {
->  	SBI_EXT_ANDES_WRITE_AROUND,
->  };
->  
-> -/* nds v5 mmisc_ctl register*/
-> -#define V5_MMISC_CTL_VEC_PLIC_OFFSET            1
-> -#define V5_MMISC_CTL_RVCOMPM_OFFSET             2
-> -#define V5_MMISC_CTL_BRPE_OFFSET                3
-> -#define V5_MMISC_CTL_MSA_OR_UNA_OFFSET          6
-> -#define V5_MMISC_CTL_NON_BLOCKING_OFFSET        8
-> -#define V5_MCACHE_CTL_L1I_PREFETCH_OFFSET       9
-> -#define V5_MCACHE_CTL_L1D_PREFETCH_OFFSET       10
-> -#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_1       13
-> -#define V5_MCACHE_CTL_DC_WAROUND_OFFSET_2       14
-> -
-> -#define V5_MMISC_CTL_VEC_PLIC_EN        (1UL << V5_MMISC_CTL_VEC_PLIC_OFFSET)
-> -#define V5_MMISC_CTL_RVCOMPM_EN         (1UL << V5_MMISC_CTL_RVCOMPM_OFFSET)
-> -#define V5_MMISC_CTL_BRPE_EN            (1UL << V5_MMISC_CTL_BRPE_OFFSET)
-> -#define V5_MMISC_CTL_MSA_OR_UNA_EN      (1UL << V5_MMISC_CTL_MSA_OR_UNA_OFFSET)
-> -#define V5_MMISC_CTL_NON_BLOCKING_EN    (1UL << V5_MMISC_CTL_NON_BLOCKING_OFFSET)
-> -#define V5_MCACHE_CTL_L1I_PREFETCH_EN   (1UL << V5_MCACHE_CTL_L1I_PREFETCH_OFFSET)
-> -#define V5_MCACHE_CTL_L1D_PREFETCH_EN   (1UL << V5_MCACHE_CTL_L1D_PREFETCH_OFFSET)
-> -#define V5_MCACHE_CTL_DC_WAROUND_1_EN   (1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_1)
-> -#define V5_MCACHE_CTL_DC_WAROUND_2_EN   (1UL << V5_MCACHE_CTL_DC_WAROUND_OFFSET_2)
-> -
-> -#define V5_MMISC_CTL_MASK  (V5_MMISC_CTL_VEC_PLIC_EN | V5_MMISC_CTL_RVCOMPM_EN \
-> -	| V5_MMISC_CTL_BRPE_EN | V5_MMISC_CTL_MSA_OR_UNA_EN | V5_MMISC_CTL_NON_BLOCKING_EN)
-> -
-> -/* nds mcache_ctl register*/
-> -#define V5_MCACHE_CTL_IC_EN_OFFSET      0
-> -#define V5_MCACHE_CTL_DC_EN_OFFSET      1
-> -#define V5_MCACHE_CTL_IC_ECCEN_OFFSET   2
-> -#define V5_MCACHE_CTL_DC_ECCEN_OFFSET   4
-> -#define V5_MCACHE_CTL_IC_RWECC_OFFSET   6
-> -#define V5_MCACHE_CTL_DC_RWECC_OFFSET   7
-> -#define V5_MCACHE_CTL_CCTL_SUEN_OFFSET  8
-> -
-> -/*nds cctl command*/
-> -#define V5_UCCTL_L1D_WBINVAL_ALL 6
-> -#define V5_UCCTL_L1D_WB_ALL 7
-> -
-> -#define V5_MCACHE_CTL_IC_EN     (1UL << V5_MCACHE_CTL_IC_EN_OFFSET)
-> -#define V5_MCACHE_CTL_DC_EN     (1UL << V5_MCACHE_CTL_DC_EN_OFFSET)
-> -#define V5_MCACHE_CTL_IC_RWECC  (1UL << V5_MCACHE_CTL_IC_RWECC_OFFSET)
-> -#define V5_MCACHE_CTL_DC_RWECC  (1UL << V5_MCACHE_CTL_DC_RWECC_OFFSET)
-> -#define V5_MCACHE_CTL_CCTL_SUEN (1UL << V5_MCACHE_CTL_CCTL_SUEN_OFFSET)
-> -
-> -#define V5_MCACHE_CTL_MASK (V5_MCACHE_CTL_IC_EN | V5_MCACHE_CTL_DC_EN \
-> -	| V5_MCACHE_CTL_IC_RWECC | V5_MCACHE_CTL_DC_RWECC \
-> -	| V5_MCACHE_CTL_CCTL_SUEN | V5_MCACHE_CTL_L1I_PREFETCH_EN \
-> -	| V5_MCACHE_CTL_L1D_PREFETCH_EN | V5_MCACHE_CTL_DC_WAROUND_1_EN \
-> -	| V5_MCACHE_CTL_DC_WAROUND_2_EN)
-> -
-> -#define V5_L2C_CTL_OFFSET           0x8
-> -#define V5_L2C_CTL_ENABLE_OFFSET    0
-> -#define V5_L2C_CTL_IPFDPT_OFFSET    3
-> -#define V5_L2C_CTL_DPFDPT_OFFSET    5
-> -#define V5_L2C_CTL_TRAMOCTL_OFFSET  8
-> -#define V5_L2C_CTL_TRAMICTL_OFFSET  10
-> -#define V5_L2C_CTL_DRAMOCTL_OFFSET  11
-> -#define V5_L2C_CTL_DRAMICTL_OFFSET  13
-> -
-> -#define V5_L2C_CTL_ENABLE_MASK      (1UL << V5_L2C_CTL_ENABLE_OFFSET)
-> -#define V5_L2C_CTL_IPFDPT_MASK      (3UL << V5_L2C_CTL_IPFDPT_OFFSET)
-> -#define V5_L2C_CTL_DPFDPT_MASK      (3UL << V5_L2C_CTL_DPFDPT_OFFSET)
-> -#define V5_L2C_CTL_TRAMOCTL_MASK    (3UL << V5_L2C_CTL_TRAMOCTL_OFFSET)
-> -#define V5_L2C_CTL_TRAMICTL_MASK    (1UL << V5_L2C_CTL_TRAMICTL_OFFSET)
-> -#define V5_L2C_CTL_DRAMOCTL_MASK    (3UL << V5_L2C_CTL_DRAMOCTL_OFFSET)
-> -#define V5_L2C_CTL_DRAMICTL_MASK    (1UL << V5_L2C_CTL_DRAMICTL_OFFSET)
-> -
->  #endif /* _AE350_PLATFORM_H_ */
-> -- 
-> 2.17.1
-> 
+uart->reg_offset and uart->reg_io_width are only used on uart8250 and
+not required on other platforms. Remove for sifive and gaisler.
 
-Hi Prabhakar,
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/utils/fdt/fdt_helper.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-LGTM.
-Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index d390436..cdd0b35 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -25,10 +25,6 @@
+ 
+ #define DEFAULT_SIFIVE_UART_FREQ		0
+ #define DEFAULT_SIFIVE_UART_BAUD		115200
+-#define DEFAULT_SIFIVE_UART_REG_SHIFT		0
+-#define DEFAULT_SIFIVE_UART_REG_IO_WIDTH	4
+-
+-#define DEFAULT_GAISLER_UART_REG_IO_WIDTH	4
+ 
+ #define DEFAULT_SHAKTI_UART_FREQ		50000000
+ #define DEFAULT_SHAKTI_UART_BAUD		115200
+@@ -363,10 +359,6 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+ 	if (rc)
+ 		return rc;
+ 
+-	/* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
+-	uart->reg_shift	   = DEFAULT_UART_REG_SHIFT;
+-	uart->reg_io_width = DEFAULT_GAISLER_UART_REG_IO_WIDTH;
+-
+ 	return 0;
+ }
+ 
+@@ -394,10 +386,6 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
+ 	if (rc)
+ 		return rc;
+ 
+-	/* For SiFive UART, the reg-shift and reg-io-width are fixed .*/
+-	uart->reg_shift = DEFAULT_SIFIVE_UART_REG_SHIFT;
+-	uart->reg_io_width = DEFAULT_SIFIVE_UART_REG_IO_WIDTH;
+-
+ 	return 0;
+ }
+ 
+-- 
+2.30.2
 
-Thanks,
-Peter Lin
 
