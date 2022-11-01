@@ -1,18 +1,17 @@
 From: Sergey Matyukevich <geomatsi@gmail.com>
-Date: Tue, 1 Nov 2022 13:20:29 +0300
+Date: Tue, 1 Nov 2022 13:55:44 +0300
 Subject: [PATCH RFC v1 1/1] lib: sbi: add support for debug triggers
-In-Reply-To: <6aaa58fd3e049b77a3caee7c3a016412a8e54ee8.camel@126.com>
+In-Reply-To: <E994763E-172E-4C90-AA97-0F8F899ADF55@jrtc27.com>
 References: <20221031211859.910439-1-geomatsi@gmail.com>
- <6aaa58fd3e049b77a3caee7c3a016412a8e54ee8.camel@126.com>
-Message-ID: <Y2Dy7Y4hsrb+LcPH@curiosity>
+ <E994763E-172E-4C90-AA97-0F8F899ADF55@jrtc27.com>
+Message-ID: <Y2D7MMfuqDGC3e0X@curiosity>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-Hi Xiang W and all,
+Hi Jessica and all,
 
 > > RISC-V Debug specification includes Sdtrig ISA extension.
 > > This extension describes Trigger Module. Triggers can cause
@@ -43,50 +42,42 @@ Hi Xiang W and all,
 
 ...
 
-> > +int sbi_dbtr_num_trig(unsigned long data, unsigned long *out)
-> > +{
-> > +???????unsigned long type = ((union riscv_dbtr_tdata1)data).type;
+> > +union riscv_dbtr_tdata1 {
+> > +	unsigned long value;
+> > +	struct {
+> > +#if __riscv_xlen == 64
+> > +		unsigned long data:59;
+> > +#elif __riscv_xlen == 32
+> > +		unsigned long data:27;
+> > +#else
+> > +#error "Unexpected __riscv_xlen"
+> > +#endif
+> > +		unsigned long dmode:1;
+> > +		unsigned long type:4;
+> > +	};
+> > +};
 > 
-> chain need to be care. If chain=1, we need to find the number of
-> consecutive pairs of trigger.
+> Bitfield order depends on endianness (type is in the MSBs for
+> little-endian but LSBs for big-endian).
 
-There can be more than two triggers in chained configuration.
-So I would suggest to check the availability of suitable
-consecutive triggers in sbi_dbtr_install_trig handler.
+Do we need to support non-standard BE cases as well ? If so, then
+accessing fields in shared memory messages between OpenSBI and kernel
+will have to be wrapped by cpu_to_le/le_to_cpu macros on both sides.
 
-> > +???????u32 hartid = current_hartid();
-> > +???????unsigned long total = 0;
-> > +???????int i;
-> > +
-> > +
-> > +???????if (data == 0) {
-> > +???????????????sbi_dprintf("%s: hart%d: total triggers: %u\n",
-> > +?????????????????????????? __func__, hartid, total_trigs);
-> > +???????????????*out = total_trigs;
-> > +???????????????return SBI_SUCCESS;
-> > +???????}
-> > +
-> > +???????for (i = 0; i < total_trigs; i++) {
+> > +/** SBI shared mem messages layout */
+> > +struct sbi_dbtr_data_msg {
+> > +	unsigned long tstate;
+> > +	unsigned long tdata1;
+> > +	unsigned long tdata2;
+> > +	unsigned long tdata3;
+> > +} __packed;
+> 
+> Why? This will give awful codegen.
+
+Both packed structures define messages for data exchange via shared
+memory between OpenSBI and kernel. We have to make sure that these
+structures have the same layout on both sides.
  
-> If only RISCV_DBTR_TRIG_MCONTROL6 is supported, do we need to find other
-> types of triggers?
-
-The idea is to add support for more types, e.g. icount and mcontrol.
-
-> > +???????/* Check requested triggers configuration */
-> > +???????for (k = 0; k < trig_count; k++) {
-> > +???????????????recv = (struct sbi_dbtr_data_msg *)(in_addr + k * sizeof(*recv));
-> > +???????????????ctrl = (union riscv_dbtr_tdata1_mcontrol6)recv->tdata1;
-> > +
-> > +???????????????if (ctrl.type != RISCV_DBTR_TRIG_MCONTROL6) {
-> 
-> why not support RISCV_DBTR_TRIG_MCONTROL?
-
-Well, new debug spec recommends to use mcontrol6. But, as it was pointed
-out in other review comments, there exists hardware which supports
-mcontrol but not mcontrol6. So we have to be able to fall-back to using
-mcontrol when needed.
-
 Regards,
 Sergey
 
