@@ -1,90 +1,156 @@
-From: Sergey Matyukevich <geomatsi@gmail.com>
-Date: Tue, 1 Nov 2022 19:25:05 +0300
-Subject: [PATCH RFC v1 1/1] lib: sbi: add support for debug triggers
-In-Reply-To: <CAAhSdy3SUVook-K4xMdh7R_dGRF0teo0BThYMreEPMJYHuBWMg@mail.gmail.com>
-References: <20221031211859.910439-1-geomatsi@gmail.com>
- <E994763E-172E-4C90-AA97-0F8F899ADF55@jrtc27.com>
- <Y2D7MMfuqDGC3e0X@curiosity>
- <CAAhSdy3SUVook-K4xMdh7R_dGRF0teo0BThYMreEPMJYHuBWMg@mail.gmail.com>
-Message-ID: <Y2FIYXGkrWtPIzQm@curiosity>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Sun, 6 Nov 2022 22:29:16 +0000
+Subject: [PATCH RFC 0/7] Add support for Renesas RZ/Five SoC
+In-Reply-To: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <CA+V-a8tLeQ8Zj_r72mqhOCypz_CJTkf0c7-muAVUtVrE=6n7EQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-> > > > RISC-V Debug specification includes Sdtrig ISA extension.
-> > > > This extension describes Trigger Module. Triggers can cause
-> > > > a breakpoint exception, entry into Debug Mode, or a trace
-> > > > action without having to execute a special instruction. For
-> > > > native debugging triggers can be used to implement hardware
-> > > > breakpoints and watchpoints.
-> > > >
-> > > > Software support for RISC-V hardware triggers consists of the
-> > > > following major components:
-> > > > - U-mode: gdb support for setting hw breakpoints/watchpoints
-> > > > - S/VS-mode: hardware breakpoints framework in Linux kernel
-> > > > - M-mode: SBI firmware code to handle triggers
-> > > >
-> > > > SBI Debug Trigger extension proposal (draft v4) has been posted
-> > > > by Anup Patel to lists.riscv.org tech-debug mailing list:
-> > > >
-> > > > https://lists.riscv.org/g/tech-debug/topic/92375492
-> > > >
-> > > > This patch provides initial implementation of SBI Debug
-> > > > Trigger Extension in OpenSBI library based on the
-> > > > suggested extension proposal.
-> > > >
-> > > > Initial implementation has the following limitations:
-> > > > - only mcontrol6 trigger type is supported
-> > > > - no support for chained triggers
-> > > > - trigger update supports only address change
-> >
-> > ...
-> >
-> > > > +union riscv_dbtr_tdata1 {
-> > > > +   unsigned long value;
-> > > > +   struct {
-> > > > +#if __riscv_xlen == 64
-> > > > +           unsigned long data:59;
-> > > > +#elif __riscv_xlen == 32
-> > > > +           unsigned long data:27;
-> > > > +#else
-> > > > +#error "Unexpected __riscv_xlen"
-> > > > +#endif
-> > > > +           unsigned long dmode:1;
-> > > > +           unsigned long type:4;
-> > > > +   };
-> > > > +};
-> > >
-> > > Bitfield order depends on endianness (type is in the MSBs for
-> > > little-endian but LSBs for big-endian).
-> >
-> > Do we need to support non-standard BE cases as well ? If so, then
-> > accessing fields in shared memory messages between OpenSBI and kernel
-> > will have to be wrapped by cpu_to_le/le_to_cpu macros on both sides.
-> 
-> Yes, in the long term we might support BE in both Linux and OpenSBI
-> so better to avoid bitfield for data structures in shared memory.
+On Fri, Oct 28, 2022 at 1:40 AM Prabhakar <prabhakar.csengg@gmail.com> wrote:
+>
+> From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+>
+> Hi All,
+>
+> This patch series adds initial support to RZ/Five SoC (which is equipped
+> with AX45MP AndesCore). Platform supports DT based probing.
+>
+> Linux support is currently being upstreamed the latest patchset can be
+> found at [0].(DT bindings can be seen here)
+>
+> [0] https://patchwork.kernel.org/project/linux-renesas-soc/cover/20220920184904.90495-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+>
+> - PLIC binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/interrupt-controller/sifive,plic-1.0.0.yaml#L57
+> - PLMT and PLICSW are not used by any driver in kernel hence DT bindings for it
+>   and is used in a similar manner as compared Andes AE350 [1]
+>   [1] https://github.com/andestech/linux/commits/v6.0.y_ae350-ax45mp/Documentation/devicetree/bindings
+> - SCIF binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/serial/renesas,scif.yaml#L79
+>
+Gentle ping for review.
 
-Do we have to avoid using bitfields in this context ?
-How about using a Linux approach with appropriate defines:
+Cheers,
+Prabhakar
 
-union riscv_dbtr_tdata1_mcontrol6 {
-	unsigned long value;
-	struct {
-#if defined(__LITTLE_ENDIAN_BITFIELD)
-		unsigned long load:1;
-		unsigned long store:1;
-		...
-#elif defined (__BIG_ENDIAN_BITFIELD)
-		...
-		unsigned long store:1;
-		unsigned long load:1;
-#endif
-	};
-
-
-Regards,
-Sergey
+> Below are the logs for U-Boot (2022.10) and OpenSBI:
+> --------------------------------------------------
+> U-Boot SPL 2022.10-00192-g0cf0a0919b-dirty (Oct 28 2022 - 01:09:54 +0100)
+> Trying to boot from NOR
+>
+> OpenSBI v1.1-87-gc46891e
+>    ____                    _____ ____ _____
+>   / __ \                  / ____|  _ \_   _|
+>  | |  | |_ __   ___ _ __ | (___ | |_) || |
+>  | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+>  | |__| | |_) |  __/ | | |____) | |_) || |_
+>   \____/| .__/ \___|_| |_|_____/|____/_____|
+>         | |
+>         |_|
+>
+> Platform Name             : smarc-rzfZ/Five
+> Platform Features         : medeleg
+> Platform HART Count       : 1
+> Platform IPI Device       : andes_plicsw
+> Platform Timer Device     : andes_plmt @ 12000000Hz
+> Platform Console Device   : renesas_scif
+> Platform HSM Device       : ---
+> Platform PMU Device       : ---
+> Platform Reboot Device    : ---
+> Platform Shutdown Device  : ---
+> Firmware Base             : 0x44000000
+> Firmware Size             : 152 KB
+> Runtime SBI Version       : 1.0
+>
+> Domain0 Name              : root
+> Domain0 Boot HART         : 0
+> Domain0 HARTs             : 0*
+> Domain0 Region00          : 0x00000000110c0000-0x00000000110fffff (I,R)
+> Domain0 Region01          : 0x0000000011180000-0x00000000111bffff (I,R)
+> Domain0 Region02          : 0x0000000044000000-0x000000004403ffff ()
+> Domain0 Region03          : 0x0000000011100000-0x000000001117ffff (I,R)
+> Domain0 Region04          : 0x0000000013000000-0x00000000133fffff (I)
+> Domain0 Region05          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
+> Domain0 Next Address      : 0x0000000050000000
+> Domain0 Next Arg1         : 0x00000000500be568
+> Domain0 Next Mode         : S-mode
+> Domain0 SysReset          : yes
+>
+> Boot HART ID              : 0
+> Boot HART Domain          : root
+> Boot HART Priv Version    : v1.11
+> Boot HART Base ISA        : rv64imafdcnx
+> Boot HART ISA Extensions  : none
+> Boot HART PMP Count       : 16
+> Boot HART PMP Granularity : 8
+> Boot HART PMP Address Bits: 36
+> Boot HART MHPM Count      : 4
+> Boot HART MIDELEG         : 0x0000000000000222
+> Boot HART MEDELEG         : 0x000000000000b109
+>
+>
+> U-Boot 2022.10-00192-g0cf0a0919b-dirty (Oct 28 2022 - 01:09:54 +0100)
+>
+> CPU:   rv64imafdc
+> Model: smarc-rzf
+> DRAM:  896 MiB
+> SW_ET0_EN: OFFCore:  30 devices, 18 uclasses, devicetree: separate
+> MMC:   sd at 11c00000: 0, sd at 11c10000: 1
+> Loading Environment from MMC... OK
+> In:    serial at 1004b800
+> Out:   serial at 1004b800
+> Err:   serial at 1004b800
+> Net:   eth0: ethernet at 11c30000
+> Hit any key to stop autoboot:  0
+> =>
+> --------------------------------------------------
+>
+> Cheers,
+> Prabhakar
+>
+> Lad Prabhakar (7):
+>   lib: utils: serial: Add Renesas SCIF driver
+>   lib: utils: serial: Add FDT driver for Renesas SCIF
+>   platform: andes/ae350: Split header platform.h header file
+>   lib: utils/irqchip: Add compatible string for Andestech NCEPLIC100
+>   platform: Add Renesas RZ/Five initial support
+>   scripts: Add Renesas RZ/Five to platform list in the binary archive
+>     script
+>   docs: platform: Add documentation for Renesas RZ/Five SoC
+>
+>  docs/platform/platform.md                  |   4 +
+>  docs/platform/renesas-rzfive.md            | 139 ++++++++++++++++++
+>  include/sbi_utils/fdt/fdt_helper.h         |   3 +
+>  include/sbi_utils/serial/renesas-scif.h    |  11 ++
+>  lib/utils/fdt/fdt_helper.c                 |  23 +++
+>  lib/utils/irqchip/fdt_irqchip_plic.c       |   3 +-
+>  lib/utils/serial/Kconfig                   |   9 ++
+>  lib/utils/serial/fdt_serial_renesas_scif.c |  31 ++++
+>  lib/utils/serial/objects.mk                |   4 +
+>  lib/utils/serial/renesas_scif.c            | 140 ++++++++++++++++++
+>  platform/andes/ae350/common-platform.h     |  94 ++++++++++++
+>  platform/andes/ae350/platform.h            |  82 +----------
+>  platform/renesas/rzfive/Kconfig            |  32 ++++
+>  platform/renesas/rzfive/configs/defconfig  |   0
+>  platform/renesas/rzfive/objects.mk         |  18 +++
+>  platform/renesas/rzfive/platform.c         | 161 +++++++++++++++++++++
+>  platform/renesas/rzfive/platform.h         |  24 +++
+>  scripts/create-binary-archive.sh           |   1 +
+>  18 files changed, 698 insertions(+), 81 deletions(-)
+>  create mode 100644 docs/platform/renesas-rzfive.md
+>  create mode 100644 include/sbi_utils/serial/renesas-scif.h
+>  create mode 100644 lib/utils/serial/fdt_serial_renesas_scif.c
+>  create mode 100644 lib/utils/serial/renesas_scif.c
+>  create mode 100644 platform/andes/ae350/common-platform.h
+>  create mode 100644 platform/renesas/rzfive/Kconfig
+>  create mode 100644 platform/renesas/rzfive/configs/defconfig
+>  create mode 100644 platform/renesas/rzfive/objects.mk
+>  create mode 100644 platform/renesas/rzfive/platform.c
+>  create mode 100644 platform/renesas/rzfive/platform.h
+>
+> --
+> 2.17.1
+>
 
