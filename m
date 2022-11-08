@@ -1,38 +1,60 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  8 Nov 2022 08:55:09 +0530
-Subject: [PATCH] lib: utils/serial: Fix semihosting compile error using LLVM
-Message-ID: <20221108032509.1382464-1-apatel@ventanamicro.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Tue, 8 Nov 2022 08:42:44 +0000
+Subject: [PATCH RFC 0/7] Add support for Renesas RZ/Five SoC
+In-Reply-To: <CAEUhbmUAT_Ho3EGfuFbXnXEOeqi+RuU3F0TgYX=oVmEPW3WvhQ@mail.gmail.com>
+References: <20221028004042.135549-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <CA+V-a8tLeQ8Zj_r72mqhOCypz_CJTkf0c7-muAVUtVrE=6n7EQ@mail.gmail.com> <CAEUhbmUAT_Ho3EGfuFbXnXEOeqi+RuU3F0TgYX=oVmEPW3WvhQ@mail.gmail.com>
+Message-ID: <CA+V-a8v2yUniKsXrV_ZyBoDb=L=GQ-e-=uvVDUhjT+cJxrY0-A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We fix the following semihosting compile error observed using LLVM:
-lib/utils/serial/semihosting.c:158:12: error: result of comparison of constant -1 with expression of type 'char' is always true [-Werror,-Wtautological-constant-out-of-range-compare]
-                ret = ch > -1 ? ch : -1;
-                      ~~ ^ ~~
+Hi,
 
-Fixes: 7f09fba86e43 ("lib: utils/serial: add semihosting support")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/utils/serial/semihosting.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue, Nov 8, 2022 at 1:39 AM Bin Meng <bmeng.cn@gmail.com> wrote:
+>
+> Hi,
+>
+> On Mon, Nov 7, 2022 at 6:30 AM Lad, Prabhakar
+> <prabhakar.csengg@gmail.com> wrote:
+> >
+> > On Fri, Oct 28, 2022 at 1:40 AM Prabhakar <prabhakar.csengg@gmail.com> wrote:
+> > >
+> > > From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> > >
+> > > Hi All,
+> > >
+> > > This patch series adds initial support to RZ/Five SoC (which is equipped
+> > > with AX45MP AndesCore). Platform supports DT based probing.
+> > >
+> > > Linux support is currently being upstreamed the latest patchset can be
+> > > found at [0].(DT bindings can be seen here)
+> > >
+> > > [0] https://patchwork.kernel.org/project/linux-renesas-soc/cover/20220920184904.90495-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+> > >
+> > > - PLIC binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/interrupt-controller/sifive,plic-1.0.0.yaml#L57
+> > > - PLMT and PLICSW are not used by any driver in kernel hence DT bindings for it
+> > >   and is used in a similar manner as compared Andes AE350 [1]
+> > >   [1] https://github.com/andestech/linux/commits/v6.0.y_ae350-ax45mp/Documentation/devicetree/bindings
+> > > - SCIF binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/serial/renesas,scif.yaml#L79
+> > >
+> > Gentle ping for review.
+> >
+> > Cheers,
+> > Prabhakar
+> >
+> > > Below are the logs for U-Boot (2022.10) and OpenSBI:
+> > > --------------------------------------------------
+> > > U-Boot SPL 2022.10-00192-g0cf0a0919b-dirty (Oct 28 2022 - 01:09:54 +0100)
+> > > Trying to boot from NOR
+>
+> Has U-Boot support been upstreamed?
+>
+It's in the pipeline (and should be done soon as you can see we are on
+the latest u-boot release). I can share the repo link if you need.
 
-diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index 5012fa1..72bbbb3 100644
---- a/lib/utils/serial/semihosting.c
-+++ b/lib/utils/serial/semihosting.c
-@@ -155,7 +155,7 @@ static int semihosting_getc(void)
- 
- 	if (semihosting_infd < 0)  {
- 		ch = semihosting_trap(SYSREADC, NULL);
--		ret = ch > -1 ? ch : -1;
-+		ret = ((int)ch > -1) ? ch : -1;
- 	} else
- 		ret = semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
- 
--- 
-2.34.1
-
+Cheers,
+Prabhakar
 
