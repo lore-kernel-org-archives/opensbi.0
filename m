@@ -1,40 +1,73 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  8 Nov 2022 17:40:16 +0530
-Subject: [PATCH v2] lib: utils/serial: Fix semihosting compile error using LLVM
-Message-ID: <20221108121016.1441356-1-apatel@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed,  9 Nov 2022 11:54:27 +0800
+Subject: [PATCH] lib: utils/serial: Fix semihosting_getc
+Message-ID: <20221109035427.120086-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We fix the following semihosting compile error observed using LLVM:
-lib/utils/serial/semihosting.c:158:12: error: result of comparison of constant -1 with expression of type 'char' is always true [-Werror,-Wtautological-constant-out-of-range-compare]
-                ret = ch > -1 ? ch : -1;
-                      ~~ ^ ~~
+semihosting_read returns buffer_length - bytes_read, so a successful
+read should return 0. This patch fixes this issue.
 
-Fixes: 7f09fba86e43 ("lib: utils/serial: add semihosting support")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/utils/serial/semihosting.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/utils/serial/semihosting.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Below is the code comment from openocd about SYS_READ
+
+		case SEMIHOSTING_SYS_READ:	/* 0x06 */
+			/*
+			 * Reads the contents of a file into a buffer. The file position
+			 * is specified either:
+			 * - Explicitly by a SYS_SEEK.
+			 * - Implicitly one byte beyond the previous SYS_READ or
+			 * SYS_WRITE request.
+			 *
+			 * The file position is at the start of the file when it is
+			 * opened, and is lost when the file is closed. Perform the
+			 * file operation as a single action whenever possible. For
+			 * example, do not split a read of 16KB into four 4KB chunks
+			 * unless there is no alternative.
+			 *
+			 * Entry
+			 * On entry, the PARAMETER REGISTER contains a pointer to a
+			 * three-field data block:
+			 * - field 1 Contains a handle for a file previously opened
+			 * with SYS_OPEN.
+			 * - field 2 Points to a buffer.
+			 * - field 3 Contains the number of bytes to read to the buffer
+			 * from the file.
+			 *
+			 * Return
+			 * On exit, the RETURN REGISTER contains the number of bytes not
+			 * filled in the buffer (buffer_length - bytes_read) as follows:
+			 * - If the RETURN REGISTER is 0, the entire buffer was
+			 * successfully filled.
+			 * - If the RETURN REGISTER is the same as field 3, no bytes
+			 * were read (EOF can be assumed).
+			 * - If the RETURN REGISTER contains a value smaller than
+			 * field 3, the read succeeded but the buffer was only partly
+			 * filled. For interactive devices, this is the most common
+			 * return value.
+			 */
 
 diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index 5012fa1..86fa296 100644
+index 5012fa1..79eb583 100644
 --- a/lib/utils/serial/semihosting.c
 +++ b/lib/utils/serial/semihosting.c
-@@ -154,8 +154,8 @@ static int semihosting_getc(void)
- 	int ret;
- 
- 	if (semihosting_infd < 0)  {
--		ch = semihosting_trap(SYSREADC, NULL);
--		ret = ch > -1 ? ch : -1;
-+		ret = semihosting_trap(SYSREADC, NULL);
-+		ret = ret < 0 ? -1 : ret;
+@@ -157,7 +157,7 @@ static int semihosting_getc(void)
+ 		ch = semihosting_trap(SYSREADC, NULL);
+ 		ret = ch > -1 ? ch : -1;
  	} else
- 		ret = semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
+-		ret = semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
++		ret = semihosting_read(semihosting_infd, &ch, 1) == 0 ? ch : -1;
  
+ 	return ret;
+ }
 -- 
-2.34.1
+2.30.2
 
 
