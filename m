@@ -1,58 +1,98 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 10 Nov 2022 22:30:15 +0530
-Subject: [RFC PATCH 2/3] lib: sbi: Add sbi_nputs() function
+Date: Thu, 10 Nov 2022 22:30:16 +0530
+Subject: [RFC PATCH 3/3] lib: sbi: Implement SBI debug console extension
 In-Reply-To: <20221110170016.1477865-1-apatel@ventanamicro.com>
 References: <20221110170016.1477865-1-apatel@ventanamicro.com>
-Message-ID: <20221110170016.1477865-3-apatel@ventanamicro.com>
+Message-ID: <20221110170016.1477865-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add new sbi_nputs() which help us print a fixed number of characters
-from a physical memory location.
+We implement SBI debug console extension as one of the replacement
+SBI extensions. This extension is only available when OpenSBI platform
+provides a console device to generic library.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_console.h |  2 ++
- lib/sbi/sbi_console.c     | 10 ++++++++++
- 2 files changed, 12 insertions(+)
+ lib/sbi/Kconfig             |  4 ++++
+ lib/sbi/objects.mk          |  1 +
+ lib/sbi/sbi_ecall_replace.c | 30 ++++++++++++++++++++++++++++++
+ 3 files changed, 35 insertions(+)
 
-diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
-index e15b55d..1bdeeb9 100644
---- a/include/sbi/sbi_console.h
-+++ b/include/sbi/sbi_console.h
-@@ -33,6 +33,8 @@ void sbi_putc(char ch);
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index df74bba..ef6728b 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -26,6 +26,10 @@ config SBI_ECALL_PMU
+ 	bool "Performance Monitoring Unit extension"
+ 	default y
  
- void sbi_puts(const char *str);
- 
-+void sbi_nputs(const char *str, unsigned long len);
++config SBI_ECALL_DBCN
++	bool "Debug Console extension"
++	default y
 +
- void sbi_gets(char *s, int maxwidth, char endchar);
+ config SBI_ECALL_LEGACY
+ 	bool "SBI v0.1 legacy extensions"
+ 	default y
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 783c46d..7ccad52 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -23,6 +23,7 @@ carray-sbi_ecall_exts-y += ecall_base
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_HSM) += ecall_hsm
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_SRST) += ecall_srst
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_PMU) += ecall_pmu
++carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VENDOR) += ecall_vendor
  
- int __printf(2, 3) sbi_sprintf(char *out, const char *format, ...);
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index cfef2f8..a975708 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -51,6 +51,16 @@ void sbi_puts(const char *str)
- 	spin_unlock(&console_out_lock);
- }
+diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
+index 0ea00d6..a092e2f 100644
+--- a/lib/sbi/sbi_ecall_replace.c
++++ b/lib/sbi/sbi_ecall_replace.c
+@@ -9,6 +9,7 @@
+  */
  
-+void sbi_nputs(const char *str, unsigned long len)
+ #include <sbi/riscv_asm.h>
++#include <sbi/sbi_console.h>
+ #include <sbi/sbi_ecall.h>
+ #include <sbi/sbi_ecall_interface.h>
+ #include <sbi/sbi_error.h>
+@@ -202,3 +203,32 @@ struct sbi_ecall_extension ecall_srst = {
+ 	.probe = sbi_ecall_srst_probe,
+ };
+ #endif
++
++#ifdef CONFIG_SBI_ECALL_DBCN
++static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
++				  const struct sbi_trap_regs *regs,
++				  unsigned long *out_val,
++				  struct sbi_trap_info *out_trap)
 +{
-+	unsigned long i;
++	if (funcid == SBI_EXT_DBCN_CONSOLE_PUTS) {
++		/* TODO: sanity check on the physical address range */
++		sbi_nputs((const char *)regs->a1, regs->a0);
++		return 0;
++	}
 +
-+	spin_lock(&console_out_lock);
-+	for (i = 0; i < len; i++)
-+		sbi_putc(str[i]);
-+	spin_unlock(&console_out_lock);
++	return SBI_ENOTSUPP;
 +}
 +
- void sbi_gets(char *s, int maxwidth, char endchar)
- {
- 	int ch;
++static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
++{
++	*out_val = (sbi_console_get_device()) ? 1 : 0;
++	return 0;
++}
++
++struct sbi_ecall_extension ecall_dbcn = {
++	.extid_start = SBI_EXT_DBCN,
++	.extid_end = SBI_EXT_DBCN,
++	.handle = sbi_ecall_dbcn_handler,
++	.probe = sbi_ecall_dbcn_probe,
++};
++#endif
 -- 
 2.34.1
 
