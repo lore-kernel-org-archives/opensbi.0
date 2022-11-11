@@ -1,99 +1,181 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 10 Nov 2022 22:30:16 +0530
-Subject: [RFC PATCH 3/3] lib: sbi: Implement SBI debug console extension
-In-Reply-To: <20221110170016.1477865-1-apatel@ventanamicro.com>
-References: <20221110170016.1477865-1-apatel@ventanamicro.com>
-Message-ID: <20221110170016.1477865-4-apatel@ventanamicro.com>
+From: Prabhakar <prabhakar.csengg@gmail.com>
+Date: Fri, 11 Nov 2022 18:20:58 +0000
+Subject: [PATCH v2 0/7] Add support for Renesas RZ/Five SoC
+Message-ID: <20221111182105.614094-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We implement SBI debug console extension as one of the replacement
-SBI extensions. This extension is only available when OpenSBI platform
-provides a console device to generic library.
+From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/sbi/Kconfig             |  4 ++++
- lib/sbi/objects.mk          |  1 +
- lib/sbi/sbi_ecall_replace.c | 30 ++++++++++++++++++++++++++++++
- 3 files changed, 35 insertions(+)
+Hi All,
 
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index df74bba..ef6728b 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -26,6 +26,10 @@ config SBI_ECALL_PMU
- 	bool "Performance Monitoring Unit extension"
- 	default y
- 
-+config SBI_ECALL_DBCN
-+	bool "Debug Console extension"
-+	default y
-+
- config SBI_ECALL_LEGACY
- 	bool "SBI v0.1 legacy extensions"
- 	default y
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 783c46d..7ccad52 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -23,6 +23,7 @@ carray-sbi_ecall_exts-y += ecall_base
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_HSM) += ecall_hsm
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_SRST) += ecall_srst
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_PMU) += ecall_pmu
-+carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VENDOR) += ecall_vendor
- 
-diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
-index 0ea00d6..a092e2f 100644
---- a/lib/sbi/sbi_ecall_replace.c
-+++ b/lib/sbi/sbi_ecall_replace.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <sbi/riscv_asm.h>
-+#include <sbi/sbi_console.h>
- #include <sbi/sbi_ecall.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
-@@ -202,3 +203,32 @@ struct sbi_ecall_extension ecall_srst = {
- 	.probe = sbi_ecall_srst_probe,
- };
- #endif
-+
-+#ifdef CONFIG_SBI_ECALL_DBCN
-+static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
-+				  const struct sbi_trap_regs *regs,
-+				  unsigned long *out_val,
-+				  struct sbi_trap_info *out_trap)
-+{
-+	if (funcid == SBI_EXT_DBCN_CONSOLE_PUTS) {
-+		/* TODO: sanity check on the physical address range */
-+		sbi_nputs((const char *)regs->a1, regs->a0);
-+		return 0;
-+	}
-+
-+	return SBI_ENOTSUPP;
-+}
-+
-+static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
-+{
-+	*out_val = (sbi_console_get_device()) ? 1 : 0;
-+	return 0;
-+}
-+
-+struct sbi_ecall_extension ecall_dbcn = {
-+	.extid_start = SBI_EXT_DBCN,
-+	.extid_end = SBI_EXT_DBCN,
-+	.handle = sbi_ecall_dbcn_handler,
-+	.probe = sbi_ecall_dbcn_probe,
-+};
-+#endif
+This patch series adds initial support to RZ/Five (R9A07G043F) SoC (which
+is equipped with AX45MP AndesCore). Platform supports DT based probing.
+
+Linux support is currently being upstreamed the latest patchset can be
+found at [0](currently in linux-next, DT bindings can be seen here)
+
+[0] https://patchwork.kernel.org/project/linux-renesas-soc/cover/20221028165921.94487-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+
+- PLIC binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/interrupt-controller/sifive,plic-1.0.0.yaml#L57
+- PLMT and PLICSW are not used by any driver in kernel hence DT bindings for it
+  and is used in a similar manner as compared Andes AE350 [1]
+  [1] https://github.com/andestech/linux/commits/v6.0.y_ae350-ax45mp/Documentation/devicetree/bindings
+- SCIF binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/serial/renesas,scif.yaml#L79
+
+RFC->v2
+* Fixed comments pointed by Xiang W
+* Included RB tag from Yu Chien Peter Lin for patch #3
+
+RFC: https://patchwork.ozlabs.org/project/opensbi/cover/20221028004042.135549-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+
+Note, in below the log "Platform Name" -> "smarc-rzfZ/Five" in platform.c
+we are parsing the DT and updating plat->name which is 64bytes only but in
+the DT the string is quite big enough. Should we better of change the name
+in sbi_platform to pointer instead?
+
+Below are the logs for U-Boot (2022.10) and OpenSBI:
+--------------------------------------------------
+
+U-Boot SPL 2022.10-00192-gbc7f070181-dirty (Nov 11 2022 - 16:31:17 +0000)
+Trying to boot from NOR
+
+OpenSBI v1.1-87-g888468d
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name             : Rmarc-rzfZ/Five
+Platform Features         : medeleg
+Platform HART Count       : 1
+Platform IPI Device       : andes_plicsw
+Platform Timer Device     : andes_plmt @ 12000000Hz
+Platform Console Device   : renesas_scif
+Platform HSM Device       : ---
+Platform PMU Device       : ---
+Platform Reboot Device    : ---
+Platform Shutdown Device  : ---
+Firmware Base             : 0x44000000
+Firmware Size             : 152 KB
+Runtime SBI Version       : 1.0
+
+Domain0 Name              : root
+Domain0 Boot HART         : 0
+Domain0 HARTs             : 0*
+Domain0 Region00          : 0x00000000110c0000-0x00000000110fffff (I,R)
+Domain0 Region01          : 0x0000000011180000-0x00000000111bffff (I,R)
+Domain0 Region02          : 0x0000000044000000-0x000000004403ffff ()
+Domain0 Region03          : 0x0000000011100000-0x000000001117ffff (I,R)
+Domain0 Region04          : 0x0000000013000000-0x00000000133fffff (I)
+Domain0 Region05          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
+Domain0 Next Address      : 0x0000000050000000
+Domain0 Next Arg1         : 0x00000000500be568
+Domain0 Next Mode         : S-mode
+Domain0 SysReset          : yes
+
+Boot HART ID              : 0
+Boot HART Domain          : root
+Boot HART Priv Version    : v1.11
+Boot HART Base ISA        : rv64imafdcnx
+Boot HART ISA Extensions  : none
+Boot HART PMP Count       : 16
+Boot HART PMP Granularity : 8
+Boot HART PMP Address Bits: 36
+Boot HART MHPM Count      : 4
+Boot HART MIDELEG         : 0x0000000000000222
+Boot HART MEDELEG         : 0x000000000000b109
+
+
+U-Boot 2022.10-00192-gbc7f070181-dirty (Nov 11 2022 - 16:31:17 +0000)
+
+CPU:   rv64imafdc
+Model: smarc-rzf
+DRAM:  896 MiB
+SW_ET0_EN: OFFCore:  30 devices, 18 uclasses, devicetree: separate
+MMC:   sd at 11c00000: 0, sd at 11c10000: 1
+Loading Environment from MMC... OK
+In:    serial at 1004b800
+Out:   serial at 1004b800
+Err:   serial at 1004b800
+Net:   eth0: ethernet@11c30000
+Hit any key to stop autoboot:  0
+=> sbi
+SBI 1.0
+OpenSBI 1.1
+Machine:
+  Vendor ID 31e
+  Architecture ID 8000000000008a45
+  Implementation ID 500
+Extensions:
+  sbi_set_timer
+  sbi_console_putchar
+  sbi_console_getchar
+  sbi_clear_ipi
+  sbi_send_ipi
+  sbi_remote_fence_i
+  sbi_remote_sfence_vma
+  sbi_remote_sfence_vma_asid
+  sbi_shutdown
+  SBI Base Functionality
+  Timer Extension
+  IPI Extension
+  RFENCE Extension
+  Hart State Management Extension
+  Performance Monitoring Unit Extension
+=>
+
+Cheers,
+Prabhakar
+
+Lad Prabhakar (7):
+  lib: utils: serial: Add Renesas SCIF driver
+  lib: utils: serial: Add FDT driver for Renesas SCIF
+  platform: andes/ae350: Split platform.h header file
+  lib: utils/irqchip: Add compatible string for Andestech NCEPLIC100
+  platform: Add Renesas RZ/Five initial support
+  scripts: Add Renesas RZ/Five to platform list in the binary archive
+    script
+  docs: platform: Add documentation for Renesas RZ/Five SoC
+
+ docs/platform/platform.md                  |   5 +
+ docs/platform/renesas-rzfive.md            | 143 ++++++++++++++++++
+ include/sbi_utils/fdt/fdt_helper.h         |   3 +
+ include/sbi_utils/serial/renesas-scif.h    |  11 ++
+ lib/utils/fdt/fdt_helper.c                 |  11 ++
+ lib/utils/irqchip/fdt_irqchip_plic.c       |   3 +-
+ lib/utils/serial/Kconfig                   |   9 ++
+ lib/utils/serial/fdt_serial_renesas_scif.c |  31 ++++
+ lib/utils/serial/objects.mk                |   4 +
+ lib/utils/serial/renesas_scif.c            | 139 ++++++++++++++++++
+ platform/andes/ae350/common-platform.h     |  94 ++++++++++++
+ platform/andes/ae350/platform.h            |  82 +----------
+ platform/renesas/rzfive/Kconfig            |  32 ++++
+ platform/renesas/rzfive/configs/defconfig  |   0
+ platform/renesas/rzfive/objects.mk         |  18 +++
+ platform/renesas/rzfive/platform.c         | 161 +++++++++++++++++++++
+ platform/renesas/rzfive/platform.h         |  24 +++
+ scripts/create-binary-archive.sh           |   1 +
+ 18 files changed, 690 insertions(+), 81 deletions(-)
+ create mode 100644 docs/platform/renesas-rzfive.md
+ create mode 100644 include/sbi_utils/serial/renesas-scif.h
+ create mode 100644 lib/utils/serial/fdt_serial_renesas_scif.c
+ create mode 100644 lib/utils/serial/renesas_scif.c
+ create mode 100644 platform/andes/ae350/common-platform.h
+ create mode 100644 platform/renesas/rzfive/Kconfig
+ create mode 100644 platform/renesas/rzfive/configs/defconfig
+ create mode 100644 platform/renesas/rzfive/objects.mk
+ create mode 100644 platform/renesas/rzfive/platform.c
+ create mode 100644 platform/renesas/rzfive/platform.h
+
 -- 
-2.34.1
+2.17.1
 
 
