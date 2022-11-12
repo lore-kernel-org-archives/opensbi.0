@@ -1,68 +1,126 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Sat, 12 Nov 2022 01:03:52 -0800
-Subject: [PATCH] firmware: payloads: Remove duplicate "ALIGN"
-In-Reply-To: <tencent_A5A2CFBAF1C09F3968C9EB028F1242CCD60A@qq.com>
-References: <tencent_A5A2CFBAF1C09F3968C9EB028F1242CCD60A@qq.com>
-Message-ID: <CAOnJCUKHVmGCZQpMdMprAWsPn6U5E4uABpSmbYq5Yo+26iNuyg@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Sat, 12 Nov 2022 22:58:39 +0800
+Subject: [RFC PATCH 3/3] lib: sbi: Implement SBI debug console extension
+In-Reply-To: <CAOnJCU+zKsen8RFmsJn4e65GBgQKdrtNoQAZqU3vq3noqS4P0g@mail.gmail.com>
+References: <20221110170016.1477865-1-apatel@ventanamicro.com>
+	 <20221110170016.1477865-4-apatel@ventanamicro.com>
+	 <CAOnJCU+zKsen8RFmsJn4e65GBgQKdrtNoQAZqU3vq3noqS4P0g@mail.gmail.com>
+Message-ID: <46cd84e0e4a2a62710b00f77fae307f5a7eb9922.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 8, 2022 at 2:11 AM <1220749046@qq.com> wrote:
->
-> From: zhangleizheng <zhangleizheng@eswincomputing.com>
->
-> ". = ALIGN(0x1000)" is used redundantly in firmware/fw_base.ldS
-> and fw_base.ldS files.
->
-> Signed-off-by: zhangleizheng <zhangleizheng@eswincomputing.com>
-> ---
->  firmware/fw_base.ldS           | 2 --
->  firmware/payloads/test.elf.ldS | 2 --
->  2 files changed, 4 deletions(-)
->
-> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-> index 220c043..382da25 100644
-> --- a/firmware/fw_base.ldS
-> +++ b/firmware/fw_base.ldS
-> @@ -24,8 +24,6 @@
->                 PROVIDE(_text_end = .);
->         }
->
-> -       . = ALIGN(0x1000); /* Ensure next section is page aligned */
-> -
->         /* End of the code sections */
->
->         /* Beginning of the read-only data sections */
-> diff --git a/firmware/payloads/test.elf.ldS b/firmware/payloads/test.elf.ldS
-> index f3f3242..763103c 100644
-> --- a/firmware/payloads/test.elf.ldS
-> +++ b/firmware/payloads/test.elf.ldS
-> @@ -33,8 +33,6 @@ SECTIONS
->                 PROVIDE(_text_end = .);
->         }
->
-> -       . = ALIGN(0x1000); /* Ensure next section is page aligned */
-> -
->         /* End of the code sections */
->
->         /* Beginning of the read-only data sections */
-> --
-> 2.17.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+? 2022-11-12???? 00:54 -0800?Atish Patra???
+> On Thu, Nov 10, 2022 at 9:01 AM Anup Patel <apatel@ventanamicro.com> wrote:
+> > 
+> > We implement SBI debug console extension as one of the replacement
+> > SBI extensions. This extension is only available when OpenSBI platform
+> > provides a console device to generic library.
+> > 
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> > ?lib/sbi/Kconfig???????????? |? 4 ++++
+> > ?lib/sbi/objects.mk????????? |? 1 +
+> > ?lib/sbi/sbi_ecall_replace.c | 30 ++++++++++++++++++++++++++++++
+> > ?3 files changed, 35 insertions(+)
+> > 
+> > diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+> > index df74bba..ef6728b 100644
+> > --- a/lib/sbi/Kconfig
+> > +++ b/lib/sbi/Kconfig
+> > @@ -26,6 +26,10 @@ config SBI_ECALL_PMU
+> > ??????? bool "Performance Monitoring Unit extension"
+> > ??????? default y
+> > 
+> > +config SBI_ECALL_DBCN
+> > +?????? bool "Debug Console extension"
+> > +?????? default y
+> > +
+> > ?config SBI_ECALL_LEGACY
+> > ??????? bool "SBI v0.1 legacy extensions"
+> > ??????? default y
+> > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> > index 783c46d..7ccad52 100644
+> > --- a/lib/sbi/objects.mk
+> > +++ b/lib/sbi/objects.mk
+> > @@ -23,6 +23,7 @@ carray-sbi_ecall_exts-y += ecall_base
+> > ?carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_HSM) += ecall_hsm
+> > ?carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_SRST) += ecall_srst
+> > ?carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_PMU) += ecall_pmu
+> > +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
+> > ?carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
+> > ?carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VENDOR) += ecall_vendor
+> > 
+> > diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
+> > index 0ea00d6..a092e2f 100644
+> > --- a/lib/sbi/sbi_ecall_replace.c
+> > +++ b/lib/sbi/sbi_ecall_replace.c
+> > @@ -9,6 +9,7 @@
+> > ? */
+> > 
+> > ?#include <sbi/riscv_asm.h>
+> > +#include <sbi/sbi_console.h>
+> > ?#include <sbi/sbi_ecall.h>
+> > ?#include <sbi/sbi_ecall_interface.h>
+> > ?#include <sbi/sbi_error.h>
+> > @@ -202,3 +203,32 @@ struct sbi_ecall_extension ecall_srst = {
+> > ??????? .probe = sbi_ecall_srst_probe,
+> > ?};
+> > ?#endif
+> > +
+> > +#ifdef CONFIG_SBI_ECALL_DBCN
+> > +static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
+> > +???????????????????????????????? const struct sbi_trap_regs *regs,
+> > +???????????????????????????????? unsigned long *out_val,
+> > +???????????????????????????????? struct sbi_trap_info *out_trap)
+> > +{
+> > +?????? if (funcid == SBI_EXT_DBCN_CONSOLE_PUTS) {
+> > +?????????????? /* TODO: sanity check on the physical address range */
+> 
+> We need PMP validation to ensure that it is not one of the M-mode
+> reserved addresses.
+> What else needed to be done here ?
 
-Good catch.
+We also need to confirm that this memory is not mmio.
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+We can imitate sbi_domain_check_addr to create sbi_domain_check_range for
+range checking.
 
--- 
 Regards,
-Atish
+Xiang W
+
+> 
+> > +?????????????? sbi_nputs((const char *)regs->a1, regs->a0);
+> > +?????????????? return 0;
+> > +?????? }
+> > +
+> > +?????? return SBI_ENOTSUPP;
+> > +}
+> > +
+> > +static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
+> > +{
+> > +?????? *out_val = (sbi_console_get_device()) ? 1 : 0;
+> > +?????? return 0;
+> > +}
+> > +
+> > +struct sbi_ecall_extension ecall_dbcn = {
+> > +?????? .extid_start = SBI_EXT_DBCN,
+> > +?????? .extid_end = SBI_EXT_DBCN,
+> > +?????? .handle = sbi_ecall_dbcn_handler,
+> > +?????? .probe = sbi_ecall_dbcn_probe,
+> > +};
+> > +#endif
+> > --
+> > 2.34.1
+> > 
+> 
+> 
+> --
+> Regards,
+> Atish
+> 
+
+
 
