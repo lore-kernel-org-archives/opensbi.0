@@ -1,67 +1,28 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Tue, 15 Nov 2022 00:06:14 +0800
-Subject: [PATCH] firmware: payloads: Remove duplicate "ALIGN"
-In-Reply-To: <tencent_A5A2CFBAF1C09F3968C9EB028F1242CCD60A@qq.com>
-References: <tencent_A5A2CFBAF1C09F3968C9EB028F1242CCD60A@qq.com>
-Message-ID: <CAEUhbmX3fnzc5WL=Z+M4oYvGVCgYPxSOogMyKQU2Msn4sE9_4A@mail.gmail.com>
+Date: Tue, 15 Nov 2022 00:09:44 +0800
+Subject: [PATCH v2] lib: utils/serial: Fix semihosting compile error using LLVM
+In-Reply-To: <20221108121016.1441356-1-apatel@ventanamicro.com>
+References: <20221108121016.1441356-1-apatel@ventanamicro.com>
+Message-ID: <CAEUhbmXFRd4MgX6t7M5wnSiEQ-e8P8qJ2uTAti7mrwhVWQZBww@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 8, 2022 at 6:12 PM <1220749046@qq.com> wrote:
+On Tue, Nov 8, 2022 at 8:12 PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> From: zhangleizheng <zhangleizheng@eswincomputing.com>
-
-nits: please use <First Name> <Last Name> format as the git user.name
-
+> We fix the following semihosting compile error observed using LLVM:
+> lib/utils/serial/semihosting.c:158:12: error: result of comparison of constant -1 with expression of type 'char' is always true [-Werror,-Wtautological-constant-out-of-range-compare]
+>                 ret = ch > -1 ? ch : -1;
+>                       ~~ ^ ~~
 >
-> ". = ALIGN(0x1000)" is used redundantly in firmware/fw_base.ldS
-> and fw_base.ldS files.
-
-and firmware/payloads/test.elf.ldS files
-
->
-> Signed-off-by: zhangleizheng <zhangleizheng@eswincomputing.com>
+> Fixes: 7f09fba86e43 ("lib: utils/serial: add semihosting support")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
->  firmware/fw_base.ldS           | 2 --
->  firmware/payloads/test.elf.ldS | 2 --
->  2 files changed, 4 deletions(-)
+>  lib/utils/serial/semihosting.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-> index 220c043..382da25 100644
-> --- a/firmware/fw_base.ldS
-> +++ b/firmware/fw_base.ldS
-> @@ -24,8 +24,6 @@
->                 PROVIDE(_text_end = .);
->         }
->
-> -       . = ALIGN(0x1000); /* Ensure next section is page aligned */
-> -
->         /* End of the code sections */
 
-nits: I would put ". = ALIGN(0x1000)" here in between the comments
-
-and fix other ". = ALIGN(0x1000)" locations in this file too.
-
->
->         /* Beginning of the read-only data sections */
-> diff --git a/firmware/payloads/test.elf.ldS b/firmware/payloads/test.elf.ldS
-> index f3f3242..763103c 100644
-> --- a/firmware/payloads/test.elf.ldS
-> +++ b/firmware/payloads/test.elf.ldS
-> @@ -33,8 +33,6 @@ SECTIONS
->                 PROVIDE(_text_end = .);
->         }
->
-> -       . = ALIGN(0x1000); /* Ensure next section is page aligned */
-> -
->         /* End of the code sections */
->
->         /* Beginning of the read-only data sections */
-> --
-
-Regards,
-Bin
+Reviewed-by: Bin Meng <bmeng@tinylab.org>
 
