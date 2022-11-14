@@ -1,26 +1,67 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 14 Nov 2022 21:52:22 +0800
-Subject: [RFC PATCH 2/3] lib: sbi: Add sbi_nputs() function
-In-Reply-To: <20221110170016.1477865-3-apatel@ventanamicro.com>
-References: <20221110170016.1477865-1-apatel@ventanamicro.com> <20221110170016.1477865-3-apatel@ventanamicro.com>
-Message-ID: <CAEUhbmX=BBOs=MzA37uvbzGdu=+DFueQ8ZCW=jS3DHvT4K9oog@mail.gmail.com>
+Date: Tue, 15 Nov 2022 00:06:14 +0800
+Subject: [PATCH] firmware: payloads: Remove duplicate "ALIGN"
+In-Reply-To: <tencent_A5A2CFBAF1C09F3968C9EB028F1242CCD60A@qq.com>
+References: <tencent_A5A2CFBAF1C09F3968C9EB028F1242CCD60A@qq.com>
+Message-ID: <CAEUhbmX3fnzc5WL=Z+M4oYvGVCgYPxSOogMyKQU2Msn4sE9_4A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Nov 11, 2022 at 1:03 AM Anup Patel <apatel@ventanamicro.com> wrote:
+On Tue, Nov 8, 2022 at 6:12 PM <1220749046@qq.com> wrote:
 >
-> We add new sbi_nputs() which help us print a fixed number of characters
-> from a physical memory location.
->
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
->  include/sbi/sbi_console.h |  2 ++
->  lib/sbi/sbi_console.c     | 10 ++++++++++
->  2 files changed, 12 insertions(+)
->
+> From: zhangleizheng <zhangleizheng@eswincomputing.com>
 
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
+nits: please use <First Name> <Last Name> format as the git user.name
+
+>
+> ". = ALIGN(0x1000)" is used redundantly in firmware/fw_base.ldS
+> and fw_base.ldS files.
+
+and firmware/payloads/test.elf.ldS files
+
+>
+> Signed-off-by: zhangleizheng <zhangleizheng@eswincomputing.com>
+> ---
+>  firmware/fw_base.ldS           | 2 --
+>  firmware/payloads/test.elf.ldS | 2 --
+>  2 files changed, 4 deletions(-)
+>
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index 220c043..382da25 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -24,8 +24,6 @@
+>                 PROVIDE(_text_end = .);
+>         }
+>
+> -       . = ALIGN(0x1000); /* Ensure next section is page aligned */
+> -
+>         /* End of the code sections */
+
+nits: I would put ". = ALIGN(0x1000)" here in between the comments
+
+and fix other ". = ALIGN(0x1000)" locations in this file too.
+
+>
+>         /* Beginning of the read-only data sections */
+> diff --git a/firmware/payloads/test.elf.ldS b/firmware/payloads/test.elf.ldS
+> index f3f3242..763103c 100644
+> --- a/firmware/payloads/test.elf.ldS
+> +++ b/firmware/payloads/test.elf.ldS
+> @@ -33,8 +33,6 @@ SECTIONS
+>                 PROVIDE(_text_end = .);
+>         }
+>
+> -       . = ALIGN(0x1000); /* Ensure next section is page aligned */
+> -
+>         /* End of the code sections */
+>
+>         /* Beginning of the read-only data sections */
+> --
+
+Regards,
+Bin
 
