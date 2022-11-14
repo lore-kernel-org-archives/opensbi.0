@@ -1,21 +1,22 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 14 Nov 2022 22:17:36 +0530
-Subject: [PATCH 2/2] lib: utils/fdt: Simplified code
-In-Reply-To: <20221031112145.126615-3-wxjstz@126.com>
-References: <20221031112145.126615-1-wxjstz@126.com> <20221031112145.126615-3-wxjstz@126.com>
-Message-ID: <CAAhSdy1PSAHbit7-qWZLYs5omvpTb3QsXEDdS1rgWQs50ZteXA@mail.gmail.com>
+Date: Mon, 14 Nov 2022 22:28:41 +0530
+Subject: [PATCH] docs: fix some typos
+In-Reply-To: <20221025005741.2441-1-zhangdongdong@eswincomputing.com>
+References: <20221025005741.2441-1-zhangdongdong@eswincomputing.com>
+Message-ID: <CAAhSdy2YqXtW-zcgEHAdiHxZuCuaEDKQJrMhYc-tkcogBgYavQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 31, 2022 at 4:52 PM Xiang W <wxjstz@126.com> wrote:
+On Tue, Oct 25, 2022 at 6:28 AM <zhangdongdong@eswincomputing.com> wrote:
 >
-> Simplified fdt_parse_xxx_uart_node which direct call
-> fdt_parse_uart_node_common.
+> From: zhangdongdong <zhangdongdong@eswincomputing.com>
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> Corrected the typos of some documents in the 'docs' folder.
+>
+> Signed-off-by:  zhangdongdong <zhangdongdong@eswincomputing.com>
 
 Looks good to me.
 
@@ -27,74 +28,83 @@ Thanks,
 Anup
 
 > ---
->  lib/utils/fdt/fdt_helper.c | 28 ++++------------------------
->  1 file changed, 4 insertions(+), 24 deletions(-)
+>  docs/contributing.md          | 2 +-
+>  docs/firmware/fw_dynamic.md   | 2 +-
+>  docs/platform/fpga-ariane.md  | 2 +-
+>  docs/platform/sifive_fu540.md | 2 +-
+>  docs/platform/thead-c9xx.md   | 2 +-
+>  5 files changed, 5 insertions(+), 5 deletions(-)
 >
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cdd0b35..72d8635 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -350,43 +350,27 @@ static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
->  int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
->                                 struct platform_uart_data *uart)
->  {
-> -       int rc;
+> diff --git a/docs/contributing.md b/docs/contributing.md
+> index 9c2b3ba..78d909e 100644
+> --- a/docs/contributing.md
+> +++ b/docs/contributing.md
+> @@ -29,7 +29,7 @@ and "top:".
+>  5. Maintainers should use "Rebase and Merge" when using GitHub to merge pull
+>  requests to avoid creating unnecessary merge commits.
+>  6. Maintainers should avoid creating branches directly in the main
+> -riscv/opensbi repository. Instead prefer using a fork of the riscv/opensbi main
+> +riscv/opensbi repository. Instead, prefer using a fork of the riscv/opensbi main
+>  repository and branches within that fork to create pull requests.
+>  7. A maintainer cannot merge his own pull requests in the riscv/opensbi main
+>  repository.
+> diff --git a/docs/firmware/fw_dynamic.md b/docs/firmware/fw_dynamic.md
+> index e251488..9fc8cfa 100644
+> --- a/docs/firmware/fw_dynamic.md
+> +++ b/docs/firmware/fw_dynamic.md
+> @@ -31,6 +31,6 @@ directory.
+>  *FW_DYNAMIC* Firmware Configuration Options
+>  -------------------------------------------
 >
-> -       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> +       return fdt_parse_uart_node_common(fdt, nodeoffset, uart,
->                                         DEFAULT_UART_FREQ,
->                                         DEFAULT_UART_BAUD);
-> -
-> -       if (rc)
-> -               return rc;
-> -
-> -       return 0;
->  }
+> -The *FW_DYNAMIC* firmware does not requires any platform specific configuration
+> +The *FW_DYNAMIC* firmware does not require any platform specific configuration
+>  parameters because all required information is passed by previous booting stage
+>  at runtime via *struct fw_dynamic_info*.
+> diff --git a/docs/platform/fpga-ariane.md b/docs/platform/fpga-ariane.md
+> index f95001f..9b1e156 100644
+> --- a/docs/platform/fpga-ariane.md
+> +++ b/docs/platform/fpga-ariane.md
+> @@ -7,7 +7,7 @@ Linux.
 >
->  int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
->                                struct platform_uart_data *uart)
->  {
-> -       int rc;
+>  The FPGA SoC currently contains the following peripherals:
+>  - DDR3 memory controller
+> -- SPI controller to conncet to an SDCard
+> +- SPI controller to connect to an SDCard
+>  - Ethernet controller
+>  - JTAG port (see debugging section below)
+>  - Bootrom containing zero stage bootloader and device tree.
+> diff --git a/docs/platform/sifive_fu540.md b/docs/platform/sifive_fu540.md
+> index 5cbca21..3dc1d28 100644
+> --- a/docs/platform/sifive_fu540.md
+> +++ b/docs/platform/sifive_fu540.md
+> @@ -150,7 +150,7 @@ If you want to test OpenSBI with QEMU 'sifive_u' machine, please follow the
+>  same instructions above, with the exception of not passing FW_FDT_PATH.
 >
-> -       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> +       return fdt_parse_uart_node_common(fdt, nodeoffset, uart,
->                                         DEFAULT_SHAKTI_UART_FREQ,
->                                         DEFAULT_SHAKTI_UART_BAUD);
-> -
-> -       return rc ? : 0;
->  }
+>  This is because QEMU generates a device tree blob on the fly based on the
+> -command line parameters and it's compatible with the one used in the upstream
+> +command line parameters, and it's compatible with the one used in the upstream
+>  Linux kernel.
 >
->  int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
->                                struct platform_uart_data *uart)
->  {
-> -       int rc;
-> -
-> -       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart,
-> +       return fdt_parse_uart_node_common(fdt, nodeoffset, uart,
->                                         DEFAULT_SIFIVE_UART_FREQ,
->                                         DEFAULT_SIFIVE_UART_BAUD);
-> -
-> -       if (rc)
-> -               return rc;
-> -
-> -       return 0;
->  }
+>  When U-Boot v2021.07 (or higher) is used as the payload, as the SiFive FU540
+> diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
+> index ced784d..8bb9e91 100644
+> --- a/docs/platform/thead-c9xx.md
+> +++ b/docs/platform/thead-c9xx.md
+> @@ -13,7 +13,7 @@ Platform Options
+>  ----------------
 >
->  int fdt_parse_uart_node(void *fdt, int nodeoffset,
-> @@ -441,11 +425,7 @@ int fdt_parse_uart8250(void *fdt, struct platform_uart_data *uart,
->  int fdt_parse_xlnx_uartlite_node(void *fdt, int nodeoffset,
->                                struct platform_uart_data *uart)
->  {
-> -       int rc;
-> -
-> -       rc = fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
-> -
-> -       return rc ? : 0;
-> +       return fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
->  }
+>  The *T-HEAD C9xx* does not have any platform-specific compile options
+> -because it use generic platform.
+> +because it uses generic platform.
 >
->  int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
+>  ```
+>  CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic /usr/bin/make
 > --
-> 2.30.2
+> 2.17.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
