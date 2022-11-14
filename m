@@ -1,28 +1,73 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Tue, 15 Nov 2022 00:09:44 +0800
-Subject: [PATCH v2] lib: utils/serial: Fix semihosting compile error using LLVM
-In-Reply-To: <20221108121016.1441356-1-apatel@ventanamicro.com>
-References: <20221108121016.1441356-1-apatel@ventanamicro.com>
-Message-ID: <CAEUhbmXFRd4MgX6t7M5wnSiEQ-e8P8qJ2uTAti7mrwhVWQZBww@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 14 Nov 2022 22:17:02 +0530
+Subject: [PATCH 1/2] lib: utils/fdt: Remove redundant code
+In-Reply-To: <20221031112145.126615-2-wxjstz@126.com>
+References: <20221031112145.126615-1-wxjstz@126.com> <20221031112145.126615-2-wxjstz@126.com>
+Message-ID: <CAAhSdy1RCF7bOs=8XbjdnxoRao7dNU7pPckXAP93jja52am8aA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 8, 2022 at 8:12 PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Mon, Oct 31, 2022 at 4:52 PM Xiang W <wxjstz@126.com> wrote:
 >
-> We fix the following semihosting compile error observed using LLVM:
-> lib/utils/serial/semihosting.c:158:12: error: result of comparison of constant -1 with expression of type 'char' is always true [-Werror,-Wtautological-constant-out-of-range-compare]
->                 ret = ch > -1 ? ch : -1;
->                       ~~ ^ ~~
+> uart->reg_offset and uart->reg_io_width are only used on uart8250 and
+> not required on other platforms. Remove for sifive and gaisler.
 >
-> Fixes: 7f09fba86e43 ("lib: utils/serial: add semihosting support")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
->  lib/utils/serial/semihosting.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>  lib/utils/fdt/fdt_helper.c | 12 ------------
+>  1 file changed, 12 deletions(-)
+>
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index d390436..cdd0b35 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -25,10 +25,6 @@
+>
+>  #define DEFAULT_SIFIVE_UART_FREQ               0
+>  #define DEFAULT_SIFIVE_UART_BAUD               115200
+> -#define DEFAULT_SIFIVE_UART_REG_SHIFT          0
+> -#define DEFAULT_SIFIVE_UART_REG_IO_WIDTH       4
+> -
+> -#define DEFAULT_GAISLER_UART_REG_IO_WIDTH      4
+>
+>  #define DEFAULT_SHAKTI_UART_FREQ               50000000
+>  #define DEFAULT_SHAKTI_UART_BAUD               115200
+> @@ -363,10 +359,6 @@ int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
+>         if (rc)
+>                 return rc;
+>
+> -       /* For Gaisler APBUART, the reg-shift and reg-io-width are fixed .*/
+> -       uart->reg_shift    = DEFAULT_UART_REG_SHIFT;
+> -       uart->reg_io_width = DEFAULT_GAISLER_UART_REG_IO_WIDTH;
+> -
+>         return 0;
+>  }
+>
+> @@ -394,10 +386,6 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
+>         if (rc)
+>                 return rc;
+>
+> -       /* For SiFive UART, the reg-shift and reg-io-width are fixed .*/
+> -       uart->reg_shift = DEFAULT_SIFIVE_UART_REG_SHIFT;
+> -       uart->reg_io_width = DEFAULT_SIFIVE_UART_REG_IO_WIDTH;
+> -
+>         return 0;
+>  }
+>
+> --
+> 2.30.2
+>
 
