@@ -1,27 +1,37 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 21 Nov 2022 17:29:12 +0800
-Subject: [PATCH v2] firmware: payloads: Optimize usage of "ALIGN"
-In-Reply-To: <20221121082622.1495-1-zhangleizheng@eswincomputing.com>
-References: <20221121082622.1495-1-zhangleizheng@eswincomputing.com>
-Message-ID: <CAEUhbmUs-7uyaXQGVh62B1F_F7bnKTw=sc5u-h6vVyOOCP4Jkw@mail.gmail.com>
+From: KaDiWa <kalle.wachsmuth@gmail.com>
+Date: Mon, 21 Nov 2022 16:59:05 +0100
+Subject: [PATCH] Makefile: replace `echo` with `printf` for compatibility
+Message-ID: <20221121155905.48577-1-kalle.wachsmuth@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 21, 2022 at 4:29 PM <zhangleizheng@eswincomputing.com> wrote:
->
-> From: Leizheng Zhang <zhangleizheng@eswincomputing.com>
->
-> Delete the redundant "ALIGN" and adjust the position of "ALIGN"
->
-> Signed-off-by: Leizheng Zhang <zhangleizheng@eswincomputing.com>
-> ---
->  firmware/fw_base.ldS           | 10 ++++------
->  firmware/payloads/test.elf.ldS | 12 +++++-------
->  2 files changed, 9 insertions(+), 13 deletions(-)
->
+I don't know why but `echo -n` didn't work for me. macOS supports the `-n` option but it doesn't work in the makefile. What it does instead is it literally writes `-n` to the file and then also
+leaves a newline at the end.
 
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
+I'm using GNU Make 4.4 (`gmake` from Homebrew).
+
+Signed-off-by: KaDiWa <kalle.wachsmuth@gmail.com>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 8db6eab..98e42fc 100644
+--- a/Makefile
++++ b/Makefile
+@@ -224,7 +224,7 @@ $(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(platform_
+ 
+ $(KCONFIG_AUTOCMD): $(KCONFIG_CONFIG)
+ 	$(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
+-	$(CMD_PREFIX)echo -n "$(KCONFIG_CONFIG): " > $(KCONFIG_AUTOCMD)
++	$(CMD_PREFIX)printf "%s: " $(KCONFIG_CONFIG) > $(KCONFIG_AUTOCMD)
+ 	$(CMD_PREFIX)cat $(KCONFIG_AUTOLIST) | tr '\n' ' ' >> $(KCONFIG_AUTOCMD)
+ 
+ include $(KCONFIG_CONFIG)
+-- 
+2.37.1 (Apple Git-137.1)
+
 
