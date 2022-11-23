@@ -1,63 +1,147 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 23 Nov 2022 21:36:01 +0800
-Subject: [Issue] OpenSBI domains
-In-Reply-To: <AS1PR04MB945575D72C9B1E2DAC0EF5EFFC0C9@AS1PR04MB9455.eurprd04.prod.outlook.com>
-References: <AS1PR04MB945575D72C9B1E2DAC0EF5EFFC0C9@AS1PR04MB9455.eurprd04.prod.outlook.com>
-Message-ID: <e82005264d1e1d88acbe541e7abdabb7631c69d4.camel@126.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Wed, 23 Nov 2022 21:14:02 +0530
+Subject: [PATCH v2 3/6] lib: sbi: Add sbi_domain_check_addr_range() function
+In-Reply-To: <f3059c8742ff12b8818586a8ce8788cd94037618.camel@126.com>
+References: <20221123105729.194640-1-apatel@ventanamicro.com>
+ <20221123105729.194640-4-apatel@ventanamicro.com> <f3059c8742ff12b8818586a8ce8788cd94037618.camel@126.com>
+Message-ID: <CAK9=C2XO1jXV4ZT3FwEH2OiH-dDaaXobNNsU5z=JA1a==Z7TfQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-11-23???? 08:35 +0000?Marouene Boubakri???
-> Hi,
-> 
-> This is not a patch sorry, but due to non-reactiveness? to issues open on Github, maybe this will go faster.
-> I'm trying to experiment with OpenSBI domains I'm not sure if this working as expected. (Random errors,? below)
-> 
-> Could you kindly provide a FULL DTS? showcasing the feature to align with that ? the one used here 
-> https://github.com/riscv-software-src/opensbi/blob/master/docs/domain_support.md
-> 
-> A generic DTS for virt Qemu machine will be much better.
-> 
-> Error 1:
-> sbi_trap_error: hart0: trap handler failed (error -2)
-> sbi_trap_error: hart0: mcause=0x0000000000000005 mtval=0x0000000000000004
-> sbi_trap_error: hart0: mepc=0x00000000800122a2 mstatus=0x8000000a00007800
-> sbi_trap_error: hart0: ra=0x0000000080003cd8 sp=0x000000008003aea0
-> sbi_trap_error: hart0: gp=0x0000000000000000 tp=0x000000008003b000
-> sbi_trap_error: hart0: s0=0x000000008003af10 s1=0x0000000000000000
-> sbi_trap_error: hart0: a0=0x0000000000000000 a1=0xffffffffffffffff
-> sbi_trap_error: hart0: a2=0x0000000080019db0 a3=0x000000008003aeb8
-> sbi_trap_error: hart0: a4=0x0000000000000000 a5=0x000000008003b000
-> sbi_trap_error: hart0: a6=0x0000000000000000 a7=0x0000000000000050
-> sbi_trap_error: hart0: s2=0x0000000000000000 s3=0x0000000000000000
-> sbi_trap_error: hart0: s4=0x0000000000000000 s5=0x000000008001d000
-> sbi_trap_error: hart0: s6=0x0000000000000000 s7=0x0000000000000005
-> sbi_trap_error: hart0: s8=0x0000000000002000 s9=0x0000000080029ab0
-> sbi_trap_error: hart0: s10=0x0000000000000000 s11=0x0000000000000000
-> sbi_trap_error: hart0: t0=0x0000000080007b8c t1=0x0000000000000414
-> sbi_trap_error: hart0: t2=0x0000000000001000 t3=0x00000000000000a0
-> sbi_trap_error: hart0: t4=0x000000000000003f t5=0x0000000000000004
-> sbi_trap_error: hart0: t6=0x0000000000000000
-> 
-> Error 2:
-> 
-> sbi_domain_finalize: failed to start boot HART 0 for trusted-domain (error -3)
-> init_coldboot: domain finalize failed (error -3)
-> 
-> Error 3:
-> Nothing just happens.
-> 
-> Thank you
-> Maro
-> 
-You'd better provide some details of your test so that we can reproduce it easily.
+On Wed, Nov 23, 2022 at 7:30 PM Xiang W <wxjstz@126.com> wrote:
+>
+> ? 2022-11-23???? 16:27 +0530?Anup Patel???
+> > We add sbi_domain_check_addr_range() helper function to check
+> > whether a given address range is accessible under a particular
+> > domain.
+> >
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  include/sbi/sbi_domain.h | 15 +++++++++++++
+> >  lib/sbi/sbi_domain.c     | 47 ++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 62 insertions(+)
+> >
+> > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> > index 5553d21..4afcc37 100644
+> > --- a/include/sbi/sbi_domain.h
+> > +++ b/include/sbi/sbi_domain.h
+> > @@ -154,6 +154,21 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+> >                            unsigned long addr, unsigned long mode,
+> >                            unsigned long access_flags);
+> >
+> > +/**
+> > + * Check whether we can access specified address range for given mode and
+> > + * memory region flags under a domain
+> > + * @param dom pointer to domain
+> > + * @param addr the start of the address range to be checked
+> > + * @param size the size of the address range to be checked
+> > + * @param mode the privilege mode of access
+> > + * @param access_flags bitmask of domain access types (enum sbi_domain_access)
+> > + * @return TRUE if access allowed otherwise FALSE
+> > + */
+> > +bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+> > +                                unsigned long addr, unsigned long size,
+> > +                                unsigned long mode,
+> > +                                unsigned long access_flags);
+> > +
+> >  /** Dump domain details on the console */
+> >  void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
+> >
+> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > index f24a8e5..6d19d2c 100644
+> > --- a/lib/sbi/sbi_domain.c
+> > +++ b/lib/sbi/sbi_domain.c
+> > @@ -195,6 +195,24 @@ static bool is_region_before(const struct sbi_domain_memregion *regA,
+> >         return FALSE;
+> >  }
+> >
+> > +static const struct sbi_domain_memregion *find_region(
+> > +                                               const struct sbi_domain *dom,
+> > +                                               unsigned long addr)
+> > +{
+> > +       unsigned long rstart, rend;
+> > +       struct sbi_domain_memregion *reg;
+> > +
+> > +       sbi_domain_for_each_memregion(dom, reg) {
+> > +               rstart = reg->base;
+> > +               rend = (reg->order < __riscv_xlen) ?
+> > +                       rstart + ((1UL << reg->order) - 1) : -1UL;
+> > +               if (rstart <= addr && addr <= rend)
+> > +                       return reg;
+> > +       }
+> > +
+> > +       return NULL;
+> > +}
+> > +
+> >  static int sanitize_domain(const struct sbi_platform *plat,
+> >                            struct sbi_domain *dom)
+> >  {
+> > @@ -303,6 +321,35 @@ static int sanitize_domain(const struct sbi_platform *plat,
+> >         return 0;
+> >  }
+> >
+> > +bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+> > +                                unsigned long addr, unsigned long size,
+> > +                                unsigned long mode,
+> > +                                unsigned long access_flags)
+> > +{
+> > +       unsigned long pos = 0;
+> > +       const struct sbi_domain_memregion *reg;
+> > +
+> > +       if (!dom)
+> > +               return FALSE;
+> > +
+> > +       while (pos < size) {
+> > +               reg = find_region(dom, addr + pos);
+> > +               if (!reg)
+> > +                       return FALSE;
+> > +
+> > +               if (!sbi_domain_check_addr(dom, addr + pos,
+> > +                                          mode, access_flags))
+> > +                       return FALSE;
+> > +
+> > +               if (reg->order < __riscv_xlen)
+> > +                       pos += 1UL << reg->order;
+> addr+pos not always point to the beginning of the region, so the size of the
+> region cannot be added directly.
+>
+> suggestion:
+>         pos = reg->base + (1 << reg->order) - addr
+
+This loop seems to be broken for overlapping regions.
+
+What you are suggesting will also not work for overlapping regions.
+
+Let me rethink.
 
 Regards,
-Xiang W
-> 
+Anup
 
-
+>
+> Regards,
+> Xiang W
+> > +               else
+> > +                       break;
+> > +       }
+> > +
+> > +       return TRUE;
+> > +}
+> > +
+> >  void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+> >  {
+> >         u32 i, k;
+> > --
+> > 2.34.1
+> >
+> >
+>
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
