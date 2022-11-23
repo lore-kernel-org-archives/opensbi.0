@@ -1,52 +1,49 @@
-From: Marouene Boubakri <marouene.boubakri@nxp.com>
-Date: Wed, 23 Nov 2022 08:35:17 +0000
-Subject: [Issue] OpenSBI domains
-Message-ID: <AS1PR04MB945575D72C9B1E2DAC0EF5EFFC0C9@AS1PR04MB9455.eurprd04.prod.outlook.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Wed, 23 Nov 2022 16:27:23 +0530
+Subject: [PATCH v2 0/6] OpenSBI debug console support
+Message-ID: <20221123105729.194640-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
+The latest draft-v4 proposal of SBI debug console can be found here:
+https://lists.riscv.org/g/tech-unixplatformspec/message/1815
 
-This is not a patch sorry, but due to non-reactiveness  to issues open on Github, maybe this will go faster.
-I'm trying to experiment with OpenSBI domains I'm not sure if this working as expected. (Random errors,  below)
+This series implements SBI debug console support in OpenSBI
+as-per above draft proposal.
 
-Could you kindly provide a FULL DTS  showcasing the feature to align with that ? the one used here https://github.com/riscv-software-src/opensbi/blob/master/docs/domain_support.md
+These patches can also be found in riscv_sbi_dbcn_v2 branch
+at: https://github.com/avpatel/opensbi.git
 
-A generic DTS for virt Qemu machine will be much better.
+Changes since v1:
+ - New PATCH3 to implement sbi_domain_check_addr_range() function
+ - Added checks in PATCH4 for location and size of string to print
+ - New PATCH5 to add console_puts() callback in the console device
+ - New PATCH6 to implement console_puts() for semihosting
 
-Error 1:
-sbi_trap_error: hart0: trap handler failed (error -2)
-sbi_trap_error: hart0: mcause=0x0000000000000005 mtval=0x0000000000000004
-sbi_trap_error: hart0: mepc=0x00000000800122a2 mstatus=0x8000000a00007800
-sbi_trap_error: hart0: ra=0x0000000080003cd8 sp=0x000000008003aea0
-sbi_trap_error: hart0: gp=0x0000000000000000 tp=0x000000008003b000
-sbi_trap_error: hart0: s0=0x000000008003af10 s1=0x0000000000000000
-sbi_trap_error: hart0: a0=0x0000000000000000 a1=0xffffffffffffffff
-sbi_trap_error: hart0: a2=0x0000000080019db0 a3=0x000000008003aeb8
-sbi_trap_error: hart0: a4=0x0000000000000000 a5=0x000000008003b000
-sbi_trap_error: hart0: a6=0x0000000000000000 a7=0x0000000000000050
-sbi_trap_error: hart0: s2=0x0000000000000000 s3=0x0000000000000000
-sbi_trap_error: hart0: s4=0x0000000000000000 s5=0x000000008001d000
-sbi_trap_error: hart0: s6=0x0000000000000000 s7=0x0000000000000005
-sbi_trap_error: hart0: s8=0x0000000000002000 s9=0x0000000080029ab0
-sbi_trap_error: hart0: s10=0x0000000000000000 s11=0x0000000000000000
-sbi_trap_error: hart0: t0=0x0000000080007b8c t1=0x0000000000000414
-sbi_trap_error: hart0: t2=0x0000000000001000 t3=0x00000000000000a0
-sbi_trap_error: hart0: t4=0x000000000000003f t5=0x0000000000000004
-sbi_trap_error: hart0: t6=0x0000000000000000
+Anup Patel (6):
+  include: Add defines for SBI debug console extension
+  lib: sbi: Add sbi_nputs() function
+  lib: sbi: Add sbi_domain_check_addr_range() function
+  lib: sbi: Implement SBI debug console extension
+  lib: sbi: Add console_puts() callback in the console device
+  lib: utils/serial: Implement console_puts() for semihosting
 
-Error 2:
+ include/sbi/sbi_console.h         |  5 +++
+ include/sbi/sbi_domain.h          | 15 ++++++++
+ include/sbi/sbi_ecall_interface.h |  4 ++
+ lib/sbi/Kconfig                   |  4 ++
+ lib/sbi/objects.mk                |  3 ++
+ lib/sbi/sbi_console.c             | 25 +++++++++++--
+ lib/sbi/sbi_domain.c              | 47 +++++++++++++++++++++++
+ lib/sbi/sbi_ecall_dbcn.c          | 62 +++++++++++++++++++++++++++++++
+ lib/utils/serial/semihosting.c    | 33 ++++++++++++++++
+ 9 files changed, 195 insertions(+), 3 deletions(-)
+ create mode 100644 lib/sbi/sbi_ecall_dbcn.c
 
-sbi_domain_finalize: failed to start boot HART 0 for trusted-domain (error -3)
-init_coldboot: domain finalize failed (error -3)
-
-Error 3:
-Nothing just happens.
-
-Thank you
-Maro
+-- 
+2.34.1
 
 
