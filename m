@@ -1,116 +1,124 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 23 Nov 2022 16:27:26 +0530
-Subject: [PATCH v2 3/6] lib: sbi: Add sbi_domain_check_addr_range() function
+Date: Wed, 23 Nov 2022 16:27:27 +0530
+Subject: [PATCH v2 4/6] lib: sbi: Implement SBI debug console extension
 In-Reply-To: <20221123105729.194640-1-apatel@ventanamicro.com>
 References: <20221123105729.194640-1-apatel@ventanamicro.com>
-Message-ID: <20221123105729.194640-4-apatel@ventanamicro.com>
+Message-ID: <20221123105729.194640-5-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add sbi_domain_check_addr_range() helper function to check
-whether a given address range is accessible under a particular
-domain.
+We implement SBI debug console extension as one of the replacement
+SBI extensions. This extension is only available when OpenSBI platform
+provides a console device to generic library.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_domain.h | 15 +++++++++++++
- lib/sbi/sbi_domain.c     | 47 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 62 insertions(+)
+ lib/sbi/Kconfig          |  4 +++
+ lib/sbi/objects.mk       |  3 ++
+ lib/sbi/sbi_ecall_dbcn.c | 62 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
+ create mode 100644 lib/sbi/sbi_ecall_dbcn.c
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 5553d21..4afcc37 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -154,6 +154,21 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
- 			   unsigned long addr, unsigned long mode,
- 			   unsigned long access_flags);
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index df74bba..ef6728b 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -26,6 +26,10 @@ config SBI_ECALL_PMU
+ 	bool "Performance Monitoring Unit extension"
+ 	default y
  
-+/**
-+ * Check whether we can access specified address range for given mode and
-+ * memory region flags under a domain
-+ * @param dom pointer to domain
-+ * @param addr the start of the address range to be checked
-+ * @param size the size of the address range to be checked
-+ * @param mode the privilege mode of access
-+ * @param access_flags bitmask of domain access types (enum sbi_domain_access)
-+ * @return TRUE if access allowed otherwise FALSE
++config SBI_ECALL_DBCN
++	bool "Debug Console extension"
++	default y
++
+ config SBI_ECALL_LEGACY
+ 	bool "SBI v0.1 legacy extensions"
+ 	default y
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index c774ebb..319f38d 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -37,6 +37,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SRST) += sbi_ecall_srst.o
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_PMU) += ecall_pmu
+ libsbi-objs-$(CONFIG_SBI_ECALL_PMU) += sbi_ecall_pmu.o
+ 
++carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
++libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
++
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
+ libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
+ 
+diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
+new file mode 100644
+index 0000000..19ac021
+--- /dev/null
++++ b/lib/sbi/sbi_ecall_dbcn.c
+@@ -0,0 +1,62 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Ventana Micro Systems Inc.
++ *
++ * Authors:
++ *   Anup Patel <apatel@ventanamicro.com>
 + */
-+bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
-+				 unsigned long addr, unsigned long size,
-+				 unsigned long mode,
-+				 unsigned long access_flags);
 +
- /** Dump domain details on the console */
- void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
- 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index f24a8e5..6d19d2c 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -195,6 +195,24 @@ static bool is_region_before(const struct sbi_domain_memregion *regA,
- 	return FALSE;
- }
- 
-+static const struct sbi_domain_memregion *find_region(
-+						const struct sbi_domain *dom,
-+						unsigned long addr)
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_ecall.h>
++#include <sbi/sbi_ecall_interface.h>
++#include <sbi/sbi_trap.h>
++#include <sbi/riscv_asm.h>
++
++static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
++				  const struct sbi_trap_regs *regs,
++				  unsigned long *out_val,
++				  struct sbi_trap_info *out_trap)
 +{
-+	unsigned long rstart, rend;
-+	struct sbi_domain_memregion *reg;
++	ulong smode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >>
++			MSTATUS_MPP_SHIFT;
 +
-+	sbi_domain_for_each_memregion(dom, reg) {
-+		rstart = reg->base;
-+		rend = (reg->order < __riscv_xlen) ?
-+			rstart + ((1UL << reg->order) - 1) : -1UL;
-+		if (rstart <= addr && addr <= rend)
-+			return reg;
++	if (funcid == SBI_EXT_DBCN_CONSOLE_PUTS) {
++		/*
++		 * On RV32, the M-mode can only access the first 4GB of
++		 * the physical address space because M-mode does not have
++		 * MMU to access full 34-bit physical address space.
++		 *
++		 * Based on above, we simply fail if the upper 32bits of
++		 * the physical address (i.e. a2 register) is non-zero on
++		 * RV32.
++		 */
++#if __riscv_xlen == 32
++		if (regs->a2)
++			return SBI_ERR_FAILED;
++#endif
++		if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
++					regs->a1, regs->a0, smode,
++					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
++			return SBI_EINVALID_ADDR;
++		sbi_nputs((const char *)regs->a1, regs->a0);
++		return 0;
 +	}
 +
-+	return NULL;
++	return SBI_ENOTSUPP;
 +}
 +
- static int sanitize_domain(const struct sbi_platform *plat,
- 			   struct sbi_domain *dom)
- {
-@@ -303,6 +321,35 @@ static int sanitize_domain(const struct sbi_platform *plat,
- 	return 0;
- }
- 
-+bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
-+				 unsigned long addr, unsigned long size,
-+				 unsigned long mode,
-+				 unsigned long access_flags)
++static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
 +{
-+	unsigned long pos = 0;
-+	const struct sbi_domain_memregion *reg;
-+
-+	if (!dom)
-+		return FALSE;
-+
-+	while (pos < size) {
-+		reg = find_region(dom, addr + pos);
-+		if (!reg)
-+			return FALSE;
-+
-+		if (!sbi_domain_check_addr(dom, addr + pos,
-+					   mode, access_flags))
-+			return FALSE;
-+
-+		if (reg->order < __riscv_xlen)
-+			pos += 1UL << reg->order;
-+		else
-+			break;
-+	}
-+
-+	return TRUE;
++	*out_val = (sbi_console_get_device()) ? 1 : 0;
++	return 0;
 +}
 +
- void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- {
- 	u32 i, k;
++struct sbi_ecall_extension ecall_dbcn = {
++	.extid_start = SBI_EXT_DBCN,
++	.extid_end = SBI_EXT_DBCN,
++	.handle = sbi_ecall_dbcn_handler,
++	.probe = sbi_ecall_dbcn_probe,
++};
 -- 
 2.34.1
 
