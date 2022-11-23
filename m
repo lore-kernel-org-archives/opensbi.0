@@ -1,48 +1,48 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 23 Nov 2022 16:27:23 +0530
-Subject: [PATCH v2 0/6] OpenSBI debug console support
-Message-ID: <20221123105729.194640-1-apatel@ventanamicro.com>
+Date: Wed, 23 Nov 2022 16:27:24 +0530
+Subject: [PATCH v2 1/6] include: Add defines for SBI debug console extension
+In-Reply-To: <20221123105729.194640-1-apatel@ventanamicro.com>
+References: <20221123105729.194640-1-apatel@ventanamicro.com>
+Message-ID: <20221123105729.194640-2-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The latest draft-v4 proposal of SBI debug console can be found here:
-https://lists.riscv.org/g/tech-unixplatformspec/message/1815
+We add SBI debug console extension related defines/enum to the
+SBI ecall interface header.
 
-This series implements SBI debug console support in OpenSBI
-as-per above draft proposal.
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Reviewed-by: Bin Meng <bmeng@tinylab.org>
+Reviewed-by: Xiang W <wxjstz@126.com>
+---
+ include/sbi/sbi_ecall_interface.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-These patches can also be found in riscv_sbi_dbcn_v2 branch
-at: https://github.com/avpatel/opensbi.git
-
-Changes since v1:
- - New PATCH3 to implement sbi_domain_check_addr_range() function
- - Added checks in PATCH4 for location and size of string to print
- - New PATCH5 to add console_puts() callback in the console device
- - New PATCH6 to implement console_puts() for semihosting
-
-Anup Patel (6):
-  include: Add defines for SBI debug console extension
-  lib: sbi: Add sbi_nputs() function
-  lib: sbi: Add sbi_domain_check_addr_range() function
-  lib: sbi: Implement SBI debug console extension
-  lib: sbi: Add console_puts() callback in the console device
-  lib: utils/serial: Implement console_puts() for semihosting
-
- include/sbi/sbi_console.h         |  5 +++
- include/sbi/sbi_domain.h          | 15 ++++++++
- include/sbi/sbi_ecall_interface.h |  4 ++
- lib/sbi/Kconfig                   |  4 ++
- lib/sbi/objects.mk                |  3 ++
- lib/sbi/sbi_console.c             | 25 +++++++++++--
- lib/sbi/sbi_domain.c              | 47 +++++++++++++++++++++++
- lib/sbi/sbi_ecall_dbcn.c          | 62 +++++++++++++++++++++++++++++++
- lib/utils/serial/semihosting.c    | 33 ++++++++++++++++
- 9 files changed, 195 insertions(+), 3 deletions(-)
- create mode 100644 lib/sbi/sbi_ecall_dbcn.c
-
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index a3f2bf4..1dd3874 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -29,6 +29,7 @@
+ #define SBI_EXT_HSM				0x48534D
+ #define SBI_EXT_SRST				0x53525354
+ #define SBI_EXT_PMU				0x504D55
++#define SBI_EXT_DBCN				0x4442434E
+ 
+ /* SBI function IDs for BASE extension*/
+ #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
+@@ -230,6 +231,9 @@ enum sbi_pmu_ctr_type {
+ /* Flags defined for counter stop function */
+ #define SBI_PMU_STOP_FLAG_RESET (1 << 0)
+ 
++/* SBI function IDs for DBCN extension */
++#define SBI_EXT_DBCN_CONSOLE_PUTS		0x0
++
+ /* SBI base specification related macros */
+ #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
+ #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
 -- 
 2.34.1
 
