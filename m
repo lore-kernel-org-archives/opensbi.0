@@ -1,147 +1,23 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 23 Nov 2022 21:14:02 +0530
-Subject: [PATCH v2 3/6] lib: sbi: Add sbi_domain_check_addr_range() function
-In-Reply-To: <f3059c8742ff12b8818586a8ce8788cd94037618.camel@126.com>
-References: <20221123105729.194640-1-apatel@ventanamicro.com>
- <20221123105729.194640-4-apatel@ventanamicro.com> <f3059c8742ff12b8818586a8ce8788cd94037618.camel@126.com>
-Message-ID: <CAK9=C2XO1jXV4ZT3FwEH2OiH-dDaaXobNNsU5z=JA1a==Z7TfQ@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Thu, 24 Nov 2022 11:04:38 +0800
+Subject: [PATCH 0/3] Some optimizations and bug fixes about sbi_domain
+Message-ID: <20221124030441.214213-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 23, 2022 at 7:30 PM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2022-11-23???? 16:27 +0530?Anup Patel???
-> > We add sbi_domain_check_addr_range() helper function to check
-> > whether a given address range is accessible under a particular
-> > domain.
-> >
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > ---
-> >  include/sbi/sbi_domain.h | 15 +++++++++++++
-> >  lib/sbi/sbi_domain.c     | 47 ++++++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 62 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> > index 5553d21..4afcc37 100644
-> > --- a/include/sbi/sbi_domain.h
-> > +++ b/include/sbi/sbi_domain.h
-> > @@ -154,6 +154,21 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
-> >                            unsigned long addr, unsigned long mode,
-> >                            unsigned long access_flags);
-> >
-> > +/**
-> > + * Check whether we can access specified address range for given mode and
-> > + * memory region flags under a domain
-> > + * @param dom pointer to domain
-> > + * @param addr the start of the address range to be checked
-> > + * @param size the size of the address range to be checked
-> > + * @param mode the privilege mode of access
-> > + * @param access_flags bitmask of domain access types (enum sbi_domain_access)
-> > + * @return TRUE if access allowed otherwise FALSE
-> > + */
-> > +bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
-> > +                                unsigned long addr, unsigned long size,
-> > +                                unsigned long mode,
-> > +                                unsigned long access_flags);
-> > +
-> >  /** Dump domain details on the console */
-> >  void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
-> >
-> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> > index f24a8e5..6d19d2c 100644
-> > --- a/lib/sbi/sbi_domain.c
-> > +++ b/lib/sbi/sbi_domain.c
-> > @@ -195,6 +195,24 @@ static bool is_region_before(const struct sbi_domain_memregion *regA,
-> >         return FALSE;
-> >  }
-> >
-> > +static const struct sbi_domain_memregion *find_region(
-> > +                                               const struct sbi_domain *dom,
-> > +                                               unsigned long addr)
-> > +{
-> > +       unsigned long rstart, rend;
-> > +       struct sbi_domain_memregion *reg;
-> > +
-> > +       sbi_domain_for_each_memregion(dom, reg) {
-> > +               rstart = reg->base;
-> > +               rend = (reg->order < __riscv_xlen) ?
-> > +                       rstart + ((1UL << reg->order) - 1) : -1UL;
-> > +               if (rstart <= addr && addr <= rend)
-> > +                       return reg;
-> > +       }
-> > +
-> > +       return NULL;
-> > +}
-> > +
-> >  static int sanitize_domain(const struct sbi_platform *plat,
-> >                            struct sbi_domain *dom)
-> >  {
-> > @@ -303,6 +321,35 @@ static int sanitize_domain(const struct sbi_platform *plat,
-> >         return 0;
-> >  }
-> >
-> > +bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
-> > +                                unsigned long addr, unsigned long size,
-> > +                                unsigned long mode,
-> > +                                unsigned long access_flags)
-> > +{
-> > +       unsigned long pos = 0;
-> > +       const struct sbi_domain_memregion *reg;
-> > +
-> > +       if (!dom)
-> > +               return FALSE;
-> > +
-> > +       while (pos < size) {
-> > +               reg = find_region(dom, addr + pos);
-> > +               if (!reg)
-> > +                       return FALSE;
-> > +
-> > +               if (!sbi_domain_check_addr(dom, addr + pos,
-> > +                                          mode, access_flags))
-> > +                       return FALSE;
-> > +
-> > +               if (reg->order < __riscv_xlen)
-> > +                       pos += 1UL << reg->order;
-> addr+pos not always point to the beginning of the region, so the size of the
-> region cannot be added directly.
->
-> suggestion:
->         pos = reg->base + (1 << reg->order) - addr
 
-This loop seems to be broken for overlapping regions.
+Xiang W (3):
+  lib: sbi: Simplified mmio match checking
+  lib: sbi: add in_region
+  lib: sbi: fix is_region_valid
 
-What you are suggesting will also not work for overlapping regions.
+ lib/sbi/sbi_domain.c | 63 ++++++++++++++++++++------------------------
+ 1 file changed, 29 insertions(+), 34 deletions(-)
 
-Let me rethink.
+-- 
+2.30.2
 
-Regards,
-Anup
-
->
-> Regards,
-> Xiang W
-> > +               else
-> > +                       break;
-> > +       }
-> > +
-> > +       return TRUE;
-> > +}
-> > +
-> >  void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
-> >  {
-> >         u32 i, k;
-> > --
-> > 2.34.1
-> >
-> >
->
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
