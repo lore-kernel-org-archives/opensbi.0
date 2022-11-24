@@ -1,39 +1,44 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 24 Nov 2022 11:16:05 +0800
-Subject: [PATCH v2 3/3] lib: sbi: fix is_region_valid
+Date: Thu, 24 Nov 2022 11:16:03 +0800
+Subject: [PATCH v2 1/3] lib: sbi: Simplified mmio match checking
 In-Reply-To: <20221124031605.216192-1-wxjstz@126.com>
 References: <20221124031605.216192-1-wxjstz@126.com>
-Message-ID: <20221124031605.216192-4-wxjstz@126.com>
+Message-ID: <20221124031605.216192-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When order is equal to __riscv_xlen, the shift operation will not
-perform any operation, which will cause
-reg->base & (BIT(reg->order) - 1) to always be 0, and the condition
-has not been established. This patch fixes this bug
-
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_domain.c | 3 +++
- 1 file changed, 3 insertions(+)
+ lib/sbi/sbi_domain.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 3365e74..65fae89 100644
+index f24a8e5..fec9074 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
-@@ -142,6 +142,9 @@ static bool is_region_valid(const struct sbi_domain_memregion *reg)
- 	if (reg->order < 3 || __riscv_xlen < reg->order)
- 		return FALSE;
+@@ -105,7 +105,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ 			   unsigned long addr, unsigned long mode,
+ 			   unsigned long access_flags)
+ {
+-	bool mmio = FALSE;
++	bool rmmio, mmio = FALSE;
+ 	struct sbi_domain_memregion *reg;
+ 	unsigned long rstart, rend, rflags, rwx = 0;
  
-+	if (reg->order == __riscv_xlen && reg->base != 0)
-+		return FALSE;
-+
- 	if (reg->base & (BIT(reg->order) - 1))
- 		return FALSE;
- 
+@@ -130,8 +130,8 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ 		rend = (reg->order < __riscv_xlen) ?
+ 			rstart + ((1UL << reg->order) - 1) : -1UL;
+ 		if (rstart <= addr && addr <= rend) {
+-			if ((mmio && !(rflags & SBI_DOMAIN_MEMREGION_MMIO)) ||
+-			    (!mmio && (rflags & SBI_DOMAIN_MEMREGION_MMIO)))
++			rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? TRUE : FALSE;
++			if (mmio != rmmio)
+ 				return FALSE;
+ 			return ((rflags & rwx) == rwx) ? TRUE : FALSE;
+ 		}
 -- 
 2.30.2
 
