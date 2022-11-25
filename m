@@ -1,27 +1,35 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Fri, 25 Nov 2022 15:08:22 +0100
-Subject: [PATCH 0/5] lib: fixes for fdt functions
-Message-ID: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
+Date: Fri, 25 Nov 2022 15:08:24 +0100
+Subject: [PATCH 2/5] lib: simplify fdt_parse_plicsw_node()
+In-Reply-To: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
+References: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
+Message-ID: <20221125140827.47018-3-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-* Use correct type for variables used in error checks
-* Avoid duplicates checks
-* Don't assign values that are never used.
+We should not check !plicsw_base || !size twice.
 
-Heinrich Schuchardt (5):
-  lib: simplify fdt_parse_plmt_node()
-  lib: simplify fdt_parse_plicsw_node()
-  lib: fix fdt_parse_plmt_node()
-  lib: fix fdt_parse_plicsw_node()
-  lib: simplify fdt_translate_address()
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+ lib/utils/fdt/fdt_helper.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- lib/utils/fdt/fdt_helper.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
-
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index dbd7484..57c0248 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -868,7 +868,7 @@ int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
+ 
+ 	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
+ 				    &reg_addr, &reg_size);
+-	if (rc < 0 || !plicsw_base || !size)
++	if (rc < 0)
+ 		return SBI_ENODEV;
+ 	*plicsw_base = reg_addr;
+ 	*size = reg_size;
 -- 
 2.37.2
 
