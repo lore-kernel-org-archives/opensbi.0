@@ -1,16 +1,16 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Fri, 25 Nov 2022 15:08:23 +0100
-Subject: [PATCH 1/5] lib: simplify fdt_parse_plmt_node()
+Date: Fri, 25 Nov 2022 15:08:27 +0100
+Subject: [PATCH 5/5] lib: simplify fdt_translate_address()
 In-Reply-To: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
 References: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20221125140827.47018-2-heinrich.schuchardt@canonical.com>
+Message-ID: <20221125140827.47018-6-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We should not check !plmt_base || !plmt_size twice.
+Don't assign a value to offset which is never used.
 
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
@@ -18,18 +18,18 @@ Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 89b8bba..dbd7484 100644
+index da96282..b8d0eea 100644
 --- a/lib/utils/fdt/fdt_helper.c
 +++ b/lib/utils/fdt/fdt_helper.c
-@@ -814,7 +814,7 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
+@@ -124,7 +124,7 @@ static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
+ 	int i, rlen;
+ 	int cell_addr, cell_size;
+ 	const fdt32_t *ranges;
+-	uint64_t offset = 0, caddr = 0, paddr = 0, rsize = 0;
++	uint64_t offset, caddr = 0, paddr = 0, rsize = 0;
  
- 	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
- 				    &reg_addr, &reg_size);
--	if (rc < 0 || !plmt_base || !plmt_size)
-+	if (rc < 0)
- 		return SBI_ENODEV;
- 	*plmt_base = reg_addr;
- 	*plmt_size = reg_size;
+ 	cell_addr = fdt_address_cells(fdt, parent);
+ 	if (cell_addr < 1)
 -- 
 2.37.2
 
