@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sat, 26 Nov 2022 20:51:59 +0800
-Subject: [PATCH 4/5] lib: fix fdt_parse_plicsw_node()
-In-Reply-To: <20221125140827.47018-5-heinrich.schuchardt@canonical.com>
+Date: Sat, 26 Nov 2022 20:54:37 +0800
+Subject: [PATCH 1/5] lib: simplify fdt_parse_plmt_node()
+In-Reply-To: <20221125140827.47018-2-heinrich.schuchardt@canonical.com>
 References: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
-	 <20221125140827.47018-5-heinrich.schuchardt@canonical.com>
-Message-ID: <9803bae1f9df8419ca7726ca478f8e5e82ffe651.camel@126.com>
+	 <20221125140827.47018-2-heinrich.schuchardt@canonical.com>
+Message-ID: <8b7f158aee9ba2dcbd8751e8bd403cd82c804607.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,41 +12,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2022-11-25???? 15:08 +0100?Heinrich Schuchardt???
-> cpu_offset and cpu_intc_offset must be int to detect failed invocations of
-> fdt_node_offset_by_phandle() or fdt_parent_offset().
+> We should not check !plmt_base || !plmt_size twice.
 > 
 > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-https://github.com/riscv-software-src/opensbi/blob/master/lib/utils/fdt/fdt_helper.c#L891
-if (cpu_intc_offset < 0) should be if (cpu_offset < 0)
+Look good to me
 
-Regards,
-Xiang W
+Reviewed-by: Xiang W <wxjstz@126.com>
 > ---
-> ?lib/utils/fdt/fdt_helper.c | 4 +++-
-> ?1 file changed, 3 insertions(+), 1 deletion(-)
+> ?lib/utils/fdt/fdt_helper.c | 2 +-
+> ?1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index ea969e5..da96282 100644
+> index 89b8bba..dbd7484 100644
 > --- a/lib/utils/fdt/fdt_helper.c
 > +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -861,7 +861,7 @@ int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
-> ?{
-> ????????const fdt32_t *val;
-> ????????int rc, i, count;
-> -???????uint64_t reg_addr, reg_size, cpu_offset, cpu_intc_offset;
-> +???????uint64_t reg_addr, reg_size;
-> ????????u32 phandle, hwirq, hartid, hcount;
+> @@ -814,7 +814,7 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
 > ?
-> ????????if (nodeoffset < 0 || !fdt || !plicsw_base ||
-> @@ -882,6 +882,8 @@ int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
-> ?
-> ????????hcount = 0;
-> ????????for (i = 0; i < (count / 2); i++) {
-> +???????????????int cpu_offset, cpu_intc_offset;
-> +
-> ????????????????phandle = fdt32_to_cpu(val[2 * i]);
-> ????????????????hwirq = fdt32_to_cpu(val[2 * i + 1]);
-> ?
+> ????????rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
+> ??????????????????????????????????? &reg_addr, &reg_size);
+> -???????if (rc < 0 || !plmt_base || !plmt_size)
+> +???????if (rc < 0)
+> ????????????????return SBI_ENODEV;
+> ????????*plmt_base = reg_addr;
+> ????????*plmt_size = reg_size;
 > -- 
 > 2.37.2
 > 
