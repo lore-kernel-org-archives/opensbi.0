@@ -1,109 +1,54 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sat, 26 Nov 2022 20:55:49 +0800
-Subject: [PATCH v3 6/6] lib: utils/serial: Implement console_puts() for
- semihosting
-In-Reply-To: <20221124132906.257732-7-apatel@ventanamicro.com>
-References: <20221124132906.257732-1-apatel@ventanamicro.com>
-	 <20221124132906.257732-7-apatel@ventanamicro.com>
-Message-ID: <7b24b7d7ad9774aaee256abd3164cbf17a208b1f.camel@126.com>
+Date: Sat, 26 Nov 2022 20:49:55 +0800
+Subject: [PATCH 3/5] lib: fix fdt_parse_plmt_node()
+In-Reply-To: <20221125140827.47018-4-heinrich.schuchardt@canonical.com>
+References: <20221125140827.47018-1-heinrich.schuchardt@canonical.com>
+	 <20221125140827.47018-4-heinrich.schuchardt@canonical.com>
+Message-ID: <52b2e02b3de19605d3816c9ebbfd520561d94055.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-11-24???? 18:59 +0530?Anup Patel???
-> We implement console_puts() for semihosting serial driver to speed-up
-> semihosting based prints.
+? 2022-11-25???? 15:08 +0100?Heinrich Schuchardt???
+> cpu_offset, cpu_intc_offset must int to discover failed invocations of
+> fdt_node_offset_by_phandle() or fdt_parent_offset().
 > 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Look good to me
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+https://github.com/riscv-software-src/opensbi/blob/master/lib/utils/fdt/fdt_helper.c#L837
+if (cpu_intc_offset < 0) should be if (cpu_offset < 0)
 
-Reviewed-by: Xiang W <wxjstz@126.com>
+Regards,
+Xiang W
 > ---
-> ?lib/utils/serial/semihosting.c | 33 +++++++++++++++++++++++++++++++++
-> ?1 file changed, 33 insertions(+)
+> ?lib/utils/fdt/fdt_helper.c | 4 +++-
+> ?1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> index 86fa296..773b75e 100644
-> --- a/lib/utils/serial/semihosting.c
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -15,6 +15,7 @@
-> ?
-> ?#define SYSOPEN???? 0x01
-> ?#define SYSWRITEC?? 0x03
-> +#define SYSWRITE??? 0x05
-> ?#define SYSREAD???? 0x06
-> ?#define SYSREADC??? 0x07
-> ?#define SYSERRNO???????0x13
-> @@ -93,6 +94,7 @@ static int semihosting_errno(void)
-> ?}
-> ?
-> ?static int semihosting_infd = SBI_ENODEV;
-> +static int semihosting_outfd = SBI_ENODEV;
-> ?
-> ?static long semihosting_open(const char *fname, enum semihosting_open_mode mode)
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index 57c0248..ea969e5 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -805,7 +805,7 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
 > ?{
-> @@ -141,6 +143,21 @@ static long semihosting_read(long fd, void *memp, size_t len)
-> ????????return len - ret;
-> ?}
+> ????????const fdt32_t *val;
+> ????????int rc, i, count;
+> -???????uint64_t reg_addr, reg_size, cpu_offset, cpu_intc_offset;
+> +???????uint64_t reg_addr, reg_size;
+> ????????u32 phandle, hwirq, hartid, hcount;
 > ?
-> +static long semihosting_write(long fd, const void *memp, size_t len)
-> +{
-> +???????long ret;
-> +???????struct semihosting_rdwr_s write;
-> +
-> +???????write.fd = fd;
-> +???????write.memp = (void *)memp;
-> +???????write.len = len;
-> +
-> +???????ret = semihosting_trap(SYSWRITE, &write);
-> +???????if (ret < 0)
-> +???????????????return semihosting_errno();
-> +???????return len - ret;
-> +}
-> +
-> ?/* clang-format on */
+> ????????if (nodeoffset < 0 || !fdt || !plmt_base ||
+> @@ -826,6 +826,8 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
 > ?
-> ?static void semihosting_putc(char ch)
-> @@ -148,6 +165,20 @@ static void semihosting_putc(char ch)
-> ????????semihosting_trap(SYSWRITEC, &ch);
-> ?}
-> ?
-> +static void semihosting_puts(const char *str, unsigned long len)
-> +{
-> +???????char ch;
-> +???????unsigned long i;
+> ????????hcount = 0;
+> ????????for (i = 0; i < (count / 2); i++) {
+> +???????????????int cpu_offset, cpu_intc_offset;
 > +
-> +???????if (semihosting_outfd < 0) {
-> +???????????????for (i = 0; i < len; i++) {
-> +???????????????????????ch = str[i];
-> +???????????????????????semihosting_trap(SYSWRITEC, &ch);
-> +???????????????}
-> +???????} else
-> +???????????????semihosting_write(semihosting_outfd, str, len);
-> +}
-> +
-> ?static int semihosting_getc(void)
-> ?{
-> ????????char ch = 0;
-> @@ -165,12 +196,14 @@ static int semihosting_getc(void)
-> ?static struct sbi_console_device semihosting_console = {
-> ????????.name = "semihosting",
-> ????????.console_putc = semihosting_putc,
-> +???????.console_puts = semihosting_puts,
-> ????????.console_getc = semihosting_getc
-> ?};
-> ?
-> ?int semihosting_init(void)
-> ?{
-> ????????semihosting_infd = semihosting_open(":tt", MODE_READ);
-> +???????semihosting_outfd = semihosting_open(":tt", MODE_WRITE);
-> ?
-> ????????sbi_console_set_device(&semihosting_console);
+> ????????????????phandle = fdt32_to_cpu(val[2 * i]);
+> ????????????????hwirq = fdt32_to_cpu(val[2 * i + 1]);
 > ?
 > -- 
-> 2.34.1
+> 2.37.2
 > 
 > 
 
