@@ -1,68 +1,65 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 28 Nov 2022 20:28:42 +0000
-Subject: [PATCH 1/4] platform: generic/andes: Enable generic platform
- support for AE350
-In-Reply-To: <CA+V-a8urkMz-Fwj9OFLEp2FAYG9_ZpFG9S_QBNK1=zR1g4svFg@mail.gmail.com>
-References: <20221128083046.6799-1-peterlin@andestech.com>
- <20221128083046.6799-2-peterlin@andestech.com>
- <CA+V-a8urkMz-Fwj9OFLEp2FAYG9_ZpFG9S_QBNK1=zR1g4svFg@mail.gmail.com>
-Message-ID: <Y4UZ+rcUBTUG152q@APC323>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 28 Nov 2022 20:53:04 +0800
+Subject: [PATCH v2 4/6] lib: fix fdt_parse_plicsw_node()
+In-Reply-To: <20221128091420.30391-5-heinrich.schuchardt@canonical.com>
+References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
+	 <20221128091420.30391-5-heinrich.schuchardt@canonical.com>
+Message-ID: <895183657835d6cf62bac0075f10d59ad0a4517d.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 28, 2022 at 10:34:06AM +0000, Lad, Prabhakar wrote:
-> Hi Lin-san,
+? 2022-11-28???? 10:14 +0100?Heinrich Schuchardt???
+> cpu_offset and cpu_intc_offset must be int to detect failed invocations of
+> fdt_node_offset_by_phandle() or fdt_parent_offset().
 > 
-> On Mon, Nov 28, 2022 at 8:32 AM Yu Chien Peter Lin
-> <peterlin@andestech.com> wrote:
-> >
-> > We move andes directory to platform/generic since the necessary fdt
-> > drivers are available, the users can enable the console, timer, ipi,
-> > irqchip and reset devices by adding device tree nodes stated in the
-> > docs/platform/andes-ae350.md.
-> >
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > ---
-> > Although generic/platform.c has been able to boot the system
-> > on AE350, we will add HSM device for it soon so let's keep
-> > ae350.c as a placeholder.
-> > ---
-> >  platform/andes/ae350/Kconfig           |  34 -----
-> >  platform/andes/ae350/cache.c           |  89 -------------
-> >  platform/andes/ae350/cache.h           |  17 ---
-> >  platform/andes/ae350/configs/defconfig |   0
-> >  platform/andes/ae350/objects.mk        |  40 ------
-> >  platform/andes/ae350/platform.c        | 169 -------------------------
-> >  platform/andes/ae350/platform.h        | 109 ----------------
-> >  platform/generic/Kconfig               |   4 +
-> >  platform/generic/andes/ae350.c         |  21 +++
-> >  platform/generic/andes/objects.mk      |   6 +
-> >  platform/generic/configs/defconfig     |   4 +
-> >  11 files changed, 35 insertions(+), 458 deletions(-)
-> >  delete mode 100644 platform/andes/ae350/Kconfig
-> >  delete mode 100644 platform/andes/ae350/cache.c
-> >  delete mode 100644 platform/andes/ae350/cache.h
-> You have got rid of cache functions and also the vendor specific EXT
-> handler, wouldn't that break things?
+> After determining cpu_offset we have to check this value and not
+> cpu_intc_offset.
+> 
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Look good to me
 
-Hi Prabhakar,
+Reviewed-by: Xiang W <wxjstz@126.com>
+> ---
+> v2:
+> ????????check correct variable
+> ---
+> ?lib/utils/fdt/fdt_helper.c | 6 ++++--
+> ?1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index 976c96e..674f17b 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -861,7 +861,7 @@ int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
+> ?{
+> ????????const fdt32_t *val;
+> ????????int rc, i, count;
+> -???????uint64_t reg_addr, reg_size, cpu_offset, cpu_intc_offset;
+> +???????uint64_t reg_addr, reg_size;
+> ????????u32 phandle, hwirq, hartid, hcount;
+> ?
+> ????????if (nodeoffset < 0 || !fdt || !plicsw_base ||
+> @@ -882,6 +882,8 @@ int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
+> ?
+> ????????hcount = 0;
+> ????????for (i = 0; i < (count / 2); i++) {
+> +???????????????int cpu_offset, cpu_intc_offset;
+> +
+> ????????????????phandle = fdt32_to_cpu(val[2 * i]);
+> ????????????????hwirq = fdt32_to_cpu(val[2 * i + 1]);
+> ?
+> @@ -890,7 +892,7 @@ int fdt_parse_plicsw_node(void *fdt, int nodeoffset, unsigned long *plicsw_base,
+> ????????????????????????continue;
+> ?
+> ????????????????cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
+> -???????????????if (cpu_intc_offset < 0)
+> +???????????????if (cpu_offset < 0)
+> ????????????????????????continue;
+> ?
+> ????????????????rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
 
-I want to take this opportunity to drop unnecessary functions, most of
-the andes SBI calls were experimental/debugging features in kernel that
-won't affact the boot flow.
 
-You can still keep them in generic/renesas/rzfive.c. The renesas vendor
-SBI call fid does not need to be the same as ours.
-
-As for common Andes CSR which you separated into andes/ae350/common-platform.h
-can be moved to generic/include/andes45.h.
-
-Best regards,
-Peter Lin
-
-> Cheers,
-> Prabhakar
 
