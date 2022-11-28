@@ -1,48 +1,43 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 28 Nov 2022 20:54:37 +0800
-Subject: [PATCH v2 6/6] lib: fix fdt_parse_aclint_node()
-In-Reply-To: <20221128091420.30391-7-heinrich.schuchardt@canonical.com>
-References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
-	 <20221128091420.30391-7-heinrich.schuchardt@canonical.com>
-Message-ID: <bc4f35dc30cff77dd9b1a411e5d68a62c74d43c3.camel@126.com>
+From: Bin Meng <bmeng@tinylab.org>
+Date: Mon, 28 Nov 2022 21:21:29 +0800
+Subject: [PATCH] lib: utils/irqchip: plic: Fix the off-by-one error in priority save/restore helpers
+Message-ID: <20221128132129.58558-1-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-11-28???? 10:14 +0100?Heinrich Schuchardt???
-> After determining cpu_offset we have to check this variable and not
-> cpu_intc_offset.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Look good to me
+Interrupt source 0 is reserved. Hence the irq should start from 1.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> v2:
-> ????????new patch
-> ---
-> ?lib/utils/fdt/fdt_helper.c | 2 +-
-> ?1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 43d7857..d4b38dc 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -772,7 +772,7 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
-> ????????????????????????continue;
-> ?
-> ????????????????cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-> -???????????????if (cpu_intc_offset < 0)
-> +???????????????if (cpu_offset < 0)
-> ????????????????????????continue;
-> ?
-> ????????????????rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-> -- 
-> 2.37.2
-> 
-> 
+Fixes: 2b79b694a805 ("lib: irqchip/plic: Add priority save/restore helpers")
+Signed-off-by: Bin Meng <bmeng@tinylab.org>
+---
 
+ lib/utils/irqchip/plic.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 73d7788..4df9020 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -38,13 +38,13 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+ 
+ void plic_priority_save(const struct plic_data *plic, u8 *priority)
+ {
+-	for (u32 i = 0; i < plic->num_src; i++)
++	for (u32 i = 1; i <= plic->num_src; i++)
+ 		priority[i] = plic_get_priority(plic, i);
+ }
+ 
+ void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
+ {
+-	for (u32 i = 0; i < plic->num_src; i++)
++	for (u32 i = 1; i <= plic->num_src; i++)
+ 		plic_set_priority(plic, i, priority[i]);
+ }
+ 
+-- 
+2.34.1
 
 
