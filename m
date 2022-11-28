@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 28 Nov 2022 20:54:21 +0800
+Date: Mon, 28 Nov 2022 20:54:37 +0800
 Subject: [PATCH v2 6/6] lib: fix fdt_parse_aclint_node()
 In-Reply-To: <20221128091420.30391-7-heinrich.schuchardt@canonical.com>
 References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
 	 <20221128091420.30391-7-heinrich.schuchardt@canonical.com>
-Message-ID: <06d32d35d4410554dce99ae0abf8c14b488012ed.camel@126.com>
+Message-ID: <bc4f35dc30cff77dd9b1a411e5d68a62c74d43c3.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -39,6 +39,10 @@ Reviewed-by: Xiang W <wxjstz@126.com>
 > ????????????????????????continue;
 > ?
 > ????????????????rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+> -- 
+> 2.37.2
+> 
+> 
 
 
 
