@@ -1,40 +1,50 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Mon, 28 Nov 2022 10:14:19 +0100
-Subject: [PATCH v2 5/6] lib: simplify fdt_translate_address()
-In-Reply-To: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
-References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20221128091420.30391-6-heinrich.schuchardt@canonical.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Mon, 28 Nov 2022 10:34:06 +0000
+Subject: [PATCH 1/4] platform: generic/andes: Enable generic platform
+ support for AE350
+In-Reply-To: <20221128083046.6799-2-peterlin@andestech.com>
+References: <20221128083046.6799-1-peterlin@andestech.com> <20221128083046.6799-2-peterlin@andestech.com>
+Message-ID: <CA+V-a8urkMz-Fwj9OFLEp2FAYG9_ZpFG9S_QBNK1=zR1g4svFg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Don't assign a value to offset which is never used.
+Hi Lin-san,
 
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
----
-v2:
-	Reviewed-by added
----
- lib/utils/fdt/fdt_helper.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Nov 28, 2022 at 8:32 AM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
+>
+> We move andes directory to platform/generic since the necessary fdt
+> drivers are available, the users can enable the console, timer, ipi,
+> irqchip and reset devices by adding device tree nodes stated in the
+> docs/platform/andes-ae350.md.
+>
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> ---
+> Although generic/platform.c has been able to boot the system
+> on AE350, we will add HSM device for it soon so let's keep
+> ae350.c as a placeholder.
+> ---
+>  platform/andes/ae350/Kconfig           |  34 -----
+>  platform/andes/ae350/cache.c           |  89 -------------
+>  platform/andes/ae350/cache.h           |  17 ---
+>  platform/andes/ae350/configs/defconfig |   0
+>  platform/andes/ae350/objects.mk        |  40 ------
+>  platform/andes/ae350/platform.c        | 169 -------------------------
+>  platform/andes/ae350/platform.h        | 109 ----------------
+>  platform/generic/Kconfig               |   4 +
+>  platform/generic/andes/ae350.c         |  21 +++
+>  platform/generic/andes/objects.mk      |   6 +
+>  platform/generic/configs/defconfig     |   4 +
+>  11 files changed, 35 insertions(+), 458 deletions(-)
+>  delete mode 100644 platform/andes/ae350/Kconfig
+>  delete mode 100644 platform/andes/ae350/cache.c
+>  delete mode 100644 platform/andes/ae350/cache.h
+You have got rid of cache functions and also the vendor specific EXT
+handler, wouldn't that break things?
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 674f17b..43d7857 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -124,7 +124,7 @@ static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
- 	int i, rlen;
- 	int cell_addr, cell_size;
- 	const fdt32_t *ranges;
--	uint64_t offset = 0, caddr = 0, paddr = 0, rsize = 0;
-+	uint64_t offset, caddr = 0, paddr = 0, rsize = 0;
- 
- 	cell_addr = fdt_address_cells(fdt, parent);
- 	if (cell_addr < 1)
--- 
-2.37.2
-
+Cheers,
+Prabhakar
 
