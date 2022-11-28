@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 28 Nov 2022 20:53:04 +0800
+Date: Mon, 28 Nov 2022 20:53:27 +0800
 Subject: [PATCH v2 4/6] lib: fix fdt_parse_plicsw_node()
 In-Reply-To: <20221128091420.30391-5-heinrich.schuchardt@canonical.com>
 References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
 	 <20221128091420.30391-5-heinrich.schuchardt@canonical.com>
-Message-ID: <895183657835d6cf62bac0075f10d59ad0a4517d.camel@126.com>
+Message-ID: <47756b1028503c2940eeed060cb1d2c12313d2cf.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -60,6 +60,10 @@ Reviewed-by: Xiang W <wxjstz@126.com>
 > ????????????????????????continue;
 > ?
 > ????????????????rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+> -- 
+> 2.37.2
+> 
+> 
 
 
 
