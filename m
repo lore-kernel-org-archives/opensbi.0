@@ -1,69 +1,35 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 28 Nov 2022 20:52:35 +0800
-Subject: [PATCH v2 3/6] lib: fix fdt_parse_plmt_node()
-In-Reply-To: <20221128091420.30391-4-heinrich.schuchardt@canonical.com>
-References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
-	 <20221128091420.30391-4-heinrich.schuchardt@canonical.com>
-Message-ID: <ca27a6535ff9b554ec0327ae2f5029736eda1766.camel@126.com>
+From: Andreas Schwab <schwab@suse.de>
+Date: Mon, 28 Nov 2022 14:36:24 +0100
+Subject: [PATCH] lib: utils/irqchip: plic: Fix the off-by-one error in
+ priority save/restore helpers
+In-Reply-To: <20221128132129.58558-1-bmeng@tinylab.org> (Bin Meng's message of
+	"Mon, 28 Nov 2022 21:21:29 +0800")
+References: <20221128132129.58558-1-bmeng@tinylab.org>
+Message-ID: <mvmpmd78alj.fsf@suse.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-11-28???? 10:14 +0100?Heinrich Schuchardt???
-> cpu_offset, cpu_intc_offset must be int to discover failed invocations of
-> fdt_node_offset_by_phandle() or fdt_parent_offset().
-> 
-> After determining cpu_offset we have to check this value and not
-> cpu_intc_offset.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Look good to me
+On Nov 28 2022, Bin Meng wrote:
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> v2:
-> ????????check correct variable
-> ---
-> ?lib/utils/fdt/fdt_helper.c | 6 ++++--
-> ?1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 87b9fb2..976c96e 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -805,7 +805,7 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
-> ?{
-> ????????const fdt32_t *val;
-> ????????int rc, i, count;
-> -???????uint64_t reg_addr, reg_size, cpu_offset, cpu_intc_offset;
-> +???????uint64_t reg_addr, reg_size;
-> ????????u32 phandle, hwirq, hartid, hcount;
-> ?
-> ????????if (nodeoffset < 0 || !fdt || !plmt_base ||
-> @@ -826,6 +826,8 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
-> ?
-> ????????hcount = 0;
-> ????????for (i = 0; i < (count / 2); i++) {
-> +???????????????int cpu_offset, cpu_intc_offset;
-> +
-> ????????????????phandle = fdt32_to_cpu(val[2 * i]);
-> ????????????????hwirq = fdt32_to_cpu(val[2 * i + 1]);
-> ?
-> @@ -834,7 +836,7 @@ int fdt_parse_plmt_node(void *fdt, int nodeoffset, unsigned long *plmt_base,
-> ????????????????????????continue;
-> ?
-> ????????????????cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-> -???????????????if (cpu_intc_offset < 0)
-> +???????????????if (cpu_offset < 0)
-> ????????????????????????continue;
-> ?
-> ????????????????rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-> -- 
-> 2.37.2
-> 
-> 
+> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+> index 73d7788..4df9020 100644
+> --- a/lib/utils/irqchip/plic.c
+> +++ b/lib/utils/irqchip/plic.c
+> @@ -38,13 +38,13 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+>  
+>  void plic_priority_save(const struct plic_data *plic, u8 *priority)
+>  {
+> -	for (u32 i = 0; i < plic->num_src; i++)
+> +	for (u32 i = 1; i <= plic->num_src; i++)
+>  		priority[i] = plic_get_priority(plic, i);
 
+That requires updating the size of the priority array.
 
+-- 
+Andreas Schwab, SUSE Labs, schwab at suse.de
+GPG Key fingerprint = 0196 BAD8 1CE9 1970 F4BE  1748 E4D4 88E3 0EEA B9D7
+"And now for something completely different."
 
