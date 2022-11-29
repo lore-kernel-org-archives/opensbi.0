@@ -1,26 +1,24 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Tue, 29 Nov 2022 10:44:41 +0000
-Subject: [PATCH v2 4/6] lib: fix fdt_parse_plicsw_node()
-In-Reply-To: <20221128091420.30391-5-heinrich.schuchardt@canonical.com>
-References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
- <20221128091420.30391-5-heinrich.schuchardt@canonical.com>
-Message-ID: <Y4Ximb7MKOP0+5DG@APC323>
+From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+Date: Tue, 29 Nov 2022 11:54:06 +0800
+Subject: [PATCH 0/1] firmware: Minor optimization for relocate
+Message-ID: <20221129035407.28946-1-zhangdongdong@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 28, 2022 at 10:14:18AM +0100, Heinrich Schuchardt wrote:
-> cpu_offset and cpu_intc_offset must be int to detect failed invocations of
-> fdt_node_offset_by_phandle() or fdt_parent_offset().
-> 
-> After determining cpu_offset we have to check this value and not
-> cpu_intc_offset.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+The t3 register stores the address of _load_end. If relocation is not required, it is unnecessary to calculate the address of _load_end.
 
-Looks good to me
+This can reduce the operation time of two instructions.
 
-Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Dongdong Zhang (1):
+  firmware: Minor optimization for relocate
+
+ firmware/fw_base.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+-- 
+2.17.1
+
 
