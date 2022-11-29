@@ -1,40 +1,67 @@
-From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
-Date: Tue, 29 Nov 2022 11:54:07 +0800
-Subject: [PATCH 1/1] firmware: Minor optimization for relocate
-In-Reply-To: <20221129035407.28946-1-zhangdongdong@eswincomputing.com>
-References: <20221129035407.28946-1-zhangdongdong@eswincomputing.com>
-Message-ID: <20221129035407.28946-2-zhangdongdong@eswincomputing.com>
+From: Wei Liang Lim <weiliang.lim@starfivetech.com>
+Date: Tue, 29 Nov 2022 13:21:19 +0800
+Subject: [PATCH] lib: sbi: Add option to select boot hart
+Message-ID: <20221129052119.379830-1-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The t3 register stores the address of _load_end. If relocation is not required, it is unnecessary to calculate the address of _load_end.
+In certain scenario, user needs to select a particular hart ID as the boot hart. This option provide the flexibility for user to select the preferred boot hart.
 
-This can reduce the operation time of two instructions.
-
-Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
+Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
+Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
 ---
- firmware/fw_base.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ firmware/objects.mk | 4 ++++
+ lib/sbi/sbi_init.c  | 9 ++++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 07be4c4..3f622b3 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -128,9 +128,9 @@ _relocate:
- 	REG_L	t1, 0(t1)
- 	lla	t2, _load_start
- 	REG_L	t2, 0(t2)
-+	beq	t0, t2, _relocate_done
- 	sub	t3, t1, t0
- 	add	t3, t3, t2
--	beq	t0, t2, _relocate_done
- 	lla	t4, _relocate_done
- 	sub	t4, t4, t2
- 	add	t4, t4, t0
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index a1704c4..2b41718 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -28,6 +28,10 @@ ifdef FW_TEXT_START
+ firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
+ endif
+ 
++ifdef FW_BOOT_HART_ID
++firmware-genflags-y += -DFW_BOOT_HART_ID=$(FW_BOOT_HART_ID)
++endif
++
+ ifdef FW_FDT_PATH
+ firmware-genflags-y += -DFW_FDT_PATH=\"$(FW_FDT_PATH)\"
+ ifdef FW_FDT_PADDING
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index d57efa7..5abfa79 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -443,7 +443,9 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+ 			     scratch->next_mode, FALSE);
+ }
+ 
++#ifndef FW_BOOT_HART_ID
+ static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
++#endif
+ 
+ /**
+  * Initialize OpenSBI library for current HART and jump to next
+@@ -494,7 +496,12 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+ 	 * HARTs which satisfy above condition.
+ 	 */
+ 
+-	if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
++	if (next_mode_supported &&
++#ifdef FW_BOOT_HART_ID
++		hartid == FW_BOOT_HART_ID)
++#else
++		atomic_xchg(&coldboot_lottery, 1) == 0)
++#endif
+ 		coldboot = TRUE;
+ 
+ 	/*
 -- 
-2.17.1
+2.25.1
 
 
