@@ -1,67 +1,137 @@
-From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Tue, 29 Nov 2022 13:21:19 +0800
-Subject: [PATCH] lib: sbi: Add option to select boot hart
-Message-ID: <20221129052119.379830-1-weiliang.lim@starfivetech.com>
+From: Samuel Holland <samuel@sholland.org>
+Date: Mon, 28 Nov 2022 23:48:32 -0600
+Subject: [PATCH v4 7/7] soc: renesas: Add L2 cache management for RZ/Five
+ SoC
+In-Reply-To: <CA+V-a8s5mZoLMhjjpo_89taaBx+M_EwXMZUu-TUpZc8Q3bw4ug@mail.gmail.com>
+References: <20221124172207.153718-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <20221124172207.153718-8-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <bf8e33fd-a752-d5d5-859e-14302d069f2d@sholland.org>
+ <CA+V-a8sz4i_wenTyA5tVTVB8dQWLmuXCf3CGYOPC+C07GJ8WTw@mail.gmail.com>
+ <CAMuHMdWQO_usrJwmVYDx6o-CpzmotVZLt176eKbqLzY-GXiDng@mail.gmail.com>
+ <CA+V-a8s5mZoLMhjjpo_89taaBx+M_EwXMZUu-TUpZc8Q3bw4ug@mail.gmail.com>
+Message-ID: <df0fed9d-6d0a-3e76-1ebf-920e4d19d624@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In certain scenario, user needs to select a particular hart ID as the boot hart. This option provide the flexibility for user to select the preferred boot hart.
+On 11/28/22 06:08, Lad, Prabhakar wrote:
+> Hi Geert,
+> 
+> On Sun, Nov 27, 2022 at 9:55 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>>
+>> Hi Prabhakar,
+>>
+>> On Sat, Nov 26, 2022 at 10:10 PM Lad, Prabhakar
+>> <prabhakar.csengg@gmail.com> wrote:
+>>> On Fri, Nov 25, 2022 at 7:43 PM Samuel Holland <samuel@sholland.org> wrote:
+>>>> On 11/24/22 11:22, Prabhakar wrote:
+>>>>> From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+>>>>>
+>>>>> On the AX45MP core, cache coherency is a specification option so it may
+>>>>> not be supported. In this case DMA will fail. As a workaround, firstly we
+>>>>> allocate a global dma coherent pool from which DMA allocations are taken
+>>>>> and marked as non-cacheable + bufferable using the PMA region as specified
+>>>>> in the device tree. Synchronization callbacks are implemented to
+>>>>> synchronize when doing DMA transactions.
+>>>>>
+>>>>> The Andes AX45MP core has a Programmable Physical Memory Attributes (PMA)
+>>>>> block that allows dynamic adjustment of memory attributes in the runtime.
+>>>>> It contains a configurable amount of PMA entries implemented as CSR
+>>>>> registers to control the attributes of memory locations in interest.
+>>>>>
+>>>>> Below are the memory attributes supported:
+>>>>> * Device, Non-bufferable
+>>>>> * Device, bufferable
+>>>>> * Memory, Non-cacheable, Non-bufferable
+>>>>> * Memory, Non-cacheable, Bufferable
+>>>>> * Memory, Write-back, No-allocate
+>>>>> * Memory, Write-back, Read-allocate
+>>>>> * Memory, Write-back, Write-allocate
+>>>>> * Memory, Write-back, Read and Write-allocate
+>>>>>
+>>>>> This patch adds support to configure the memory attributes of the memory
+>>>>> regions as passed from the l2 cache node and exposes the cache management
+>>>>> ops.
+>>>>
+>>>> Forgive my ignorance, but why do you need both a DMA pool and explicit
+>>>> cache maintenance? Wouldn't the purpose of marking a memory region as
+>>>> permanently non-cacheable be to avoid cache maintenance? And likewise,
+>>>> if you are doing cache maintenance anyway, why does it matter if/how the
+>>>> memory is cacheable?
+>>>>
+>>> "Memory, Non-cacheable, Bufferable" raises an AXI signal for
+>>> transactions hence needing SW implementation for cache maintenance.
+>>>
+>>>>> More info about PMA (section 10.3):
+>>>>> Link: http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
+>>>>>
+>>>>> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+>>
+>>>>> +static int ax45mp_configure_pma_regions(struct device_node *np)
+>>>>> +{
+>>>>> +     const char *propname = "andestech,pma-regions";
+>>>>> +     u32 start, size, flags;
+>>>>> +     unsigned int entry_id;
+>>>>> +     unsigned int i;
+>>>>> +     int count;
+>>>>> +     int ret;
+>>>>> +
+>>>>> +     count = of_property_count_elems_of_size(np, propname, sizeof(u32) * 3);
+>>>>> +     if (count < 0)
+>>>>> +             return count;
+>>>>> +
+>>>>> +     if (count > AX45MP_MAX_PMA_REGIONS)
+>>>>> +             return -EINVAL;
+>>>>> +
+>>>>> +     for (i = 0, entry_id = 0 ; entry_id < count ; i += 3, entry_id++) {
+>>>>> +             of_property_read_u32_index(np, propname, i, &start);
+>>>>> +             of_property_read_u32_index(np, propname, i + 1, &size);
+>>>>> +             of_property_read_u32_index(np, propname, i + 2, &flags);
+>>>>> +             ret = ax45mp_sbi_set_pma(start, size, flags, entry_id);
+>>>>> +             if (!ret)
+>>>>> +                     pr_err("Failed to setup PMA region 0x%x - 0x%x flags: 0x%x",
+>>>>> +                            start, start + size, flags);
+>>>>> +     }
+>>>>> +
+>>>>> +     return 0;
+>>>>> +}
+>>>>
+>>>> If firmware support is required to set up these PMA regions, why is
+>>>> Linux doing this at all? The firmware has access to the devicetree as
+>>>> well. It can set this up before entering S-mode, and then you don't need
+>>>> to expose this capability via an SBI extension. In fact, firmware could
+>>>> generate the reserved-memory node based on these regions at runtime (or
+>>>> vice versa).
+>>>>
+>>> That's a good point. I'll do some research on this and get back.
+>>>
+>>> Btw are there any existing examples where the firmware adds DT nodes?
+>>
+>> /memory, reserved-memory, optee on ARM, RPC status on R-Car Gen3/4, ...
+>>
+> On the TF-A we pass the FDT blob to u-boot and this does the magic.
+> 
+> On the RISC-V what would be the correct approach?
+> - We setup the PMA regions in OpenSBI
+> - We provide a vendor specific EXT to check if the PMA is setup
+> - In u-boot ft_board_setup() callback add the reserved-memory node
+> 
+> Does the above approach sound good or is there a better approach I'm missing?
 
-Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
-Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
----
- firmware/objects.mk | 4 ++++
- lib/sbi/sbi_init.c  | 9 ++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+My suggestion was to fix up the DT in OpenSBI itself. See
+lib/utils/fdt/fdt_fixup.c in the OpenSBI source tree. There is also a
+platform hook for this. Then OpenSBI passes the FDT to U-Boot, and
+U-Boot passes it on to Linux. No SBI extension is needed in that case.
 
-diff --git a/firmware/objects.mk b/firmware/objects.mk
-index a1704c4..2b41718 100644
---- a/firmware/objects.mk
-+++ b/firmware/objects.mk
-@@ -28,6 +28,10 @@ ifdef FW_TEXT_START
- firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
- endif
- 
-+ifdef FW_BOOT_HART_ID
-+firmware-genflags-y += -DFW_BOOT_HART_ID=$(FW_BOOT_HART_ID)
-+endif
-+
- ifdef FW_FDT_PATH
- firmware-genflags-y += -DFW_FDT_PATH=\"$(FW_FDT_PATH)\"
- ifdef FW_FDT_PADDING
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index d57efa7..5abfa79 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -443,7 +443,9 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
- 			     scratch->next_mode, FALSE);
- }
- 
-+#ifndef FW_BOOT_HART_ID
- static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
-+#endif
- 
- /**
-  * Initialize OpenSBI library for current HART and jump to next
-@@ -494,7 +496,12 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 	 * HARTs which satisfy above condition.
- 	 */
- 
--	if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
-+	if (next_mode_supported &&
-+#ifdef FW_BOOT_HART_ID
-+		hartid == FW_BOOT_HART_ID)
-+#else
-+		atomic_xchg(&coldboot_lottery, 1) == 0)
-+#endif
- 		coldboot = TRUE;
- 
- 	/*
--- 
-2.25.1
+If you optionally want your U-Boot to support loading a replacement FDT
+from disk, then ft_board_setup() would need to copy the reserved-memory
+nodes from U-Boot's control FDT to the loaded FDT. But this logic is the
+same for all reserved-memory nodes, including the one OpenSBI adds
+already. U-Boot has some code for this copying which you could reuse.
+
+Regards,
+Samuel
 
 
