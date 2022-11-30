@@ -1,9 +1,9 @@
 From: Prabhakar <prabhakar.csengg@gmail.com>
-Date: Wed, 30 Nov 2022 22:08:22 +0000
-Subject: [PATCH v3 3/6] lib: utils/irqchip: Add compatible string for Andestech NCEPLIC100
+Date: Wed, 30 Nov 2022 22:08:23 +0000
+Subject: [PATCH v3 4/6] platform: generic: Add Renesas RZ/Five initial support
 In-Reply-To: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <20221130220825.193693-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20221130220825.193693-5-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,62 +12,106 @@ Content-Transfer-Encoding: 7bit
 
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 
-Add compatible string for Andestech NCEPLIC100 found on Renesas RZ/Five SoC
-which is equipped with AX45MP AndesCore.
+This commit provides basic support for the Renesas RZ/Five
+(R9A07G043F) SoC.
 
-While at it drop the comma after the sentinel as it does not make sense to
-have a comma after a sentinel, as any new elements must be added before the
-sentinel.
+The RZ/Five microprocessor includes a single RISC-V CPU Core (Andes AX45MP)
+1.0 GHz, 16-bit DDR3L/DDR4 interface. Supported interfaces include:
+- Gigabit Ethernet 2ch
+- CAN interface (CAN-FD) 2ch
+- USB 2.0 interface 2ch
+- SD interface 2ch
+- AD converter 2ch
 
-dts example (Single-core AX45MP):
-
-    soc: soc {
-          ....
-          plic: interrupt-controller at 12c00000 {
-              compatible = "renesas,r9a07g043-plic", "andestech,nceplic100";
-              #interrupt-cells = <2>;
-              #address-cells = <0>;
-              riscv,ndev = <511>;
-              interrupt-controller;
-              reg = <0x0 0x12c00000 0 0x400000>;
-              clocks = <&cpg CPG_MOD R9A07G043_NCEPLIC_ACLK>;
-              power-domains = <&cpg>;
-              resets = <&cpg R9A07G043_NCEPLIC_ARESETN>;
-              interrupts-extended = <&cpu0_intc 11 &cpu0_intc 9>;
-          };
-          ....
-    };
+Useful links:
+-------------
+Links: https://www.renesas.com/us/en/products/microcontrollers-microprocessors/rz-mpus/rzfive-risc-v-general-purpose-microprocessors-risc-v-cpu-core-andes-ax45mp-single-10-ghz-2ch-gigabit-ethernet
+Links: http://www.andestech.com/en/products-solutions/andescore-processors/riscv-ax45mp/
 
 Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
 ---
 v2->v3
-* Included RB tags
-
-RFC->v2
-* No change
-
-DT binding [0]
-[0] https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/tree/Documentation/devicetree/bindings/interrupt-controller/sifive,plic-1.0.0.yaml?h=next-20221111#n56
+* New patch
 ---
- lib/utils/irqchip/fdt_irqchip_plic.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ platform/generic/Kconfig                   |  4 ++++
+ platform/generic/configs/defconfig         |  2 ++
+ platform/generic/renesas/rzfive/objects.mk |  8 ++++++++
+ platform/generic/renesas/rzfive/rzfive.c   | 17 +++++++++++++++++
+ 4 files changed, 31 insertions(+)
+ create mode 100644 platform/generic/renesas/rzfive/objects.mk
+ create mode 100644 platform/generic/renesas/rzfive/rzfive.c
 
-diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-index a6e185c..83d091a 100644
---- a/lib/utils/irqchip/fdt_irqchip_plic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-@@ -163,7 +163,8 @@ static const struct fdt_match irqchip_plic_match[] = {
- 	{ .compatible = "sifive,plic-1.0.0" },
- 	{ .compatible = "thead,c900-plic",
- 	  .data = thead_plic_plat_init },
--	{ },
-+	{ .compatible = "andestech,nceplic100" },
-+	{ /* sentinel */ }
- };
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 4b5d2cd..62c7a2d 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -32,6 +32,10 @@ config PLATFORM_ANDES_AE350
+ 	bool "Andes AE350 support"
+ 	default n
  
- struct fdt_irqchip fdt_irqchip_plic = {
++config PLATFORM_RENESAS_RZFIVE
++	bool "Renesas RZ/Five support"
++	default n
++
+ config PLATFORM_SIFIVE_FU540
+ 	bool "SiFive FU540 support"
+ 	default n
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 2eaeeb7..47fca95 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -1,5 +1,6 @@
+ CONFIG_PLATFORM_ALLWINNER_D1=y
+ CONFIG_PLATFORM_ANDES_AE350=y
++CONFIG_PLATFORM_RENESAS_RZFIVE=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
+ CONFIG_FDT_GPIO=y
+@@ -24,6 +25,7 @@ CONFIG_FDT_SERIAL=y
+ CONFIG_FDT_SERIAL_CADENCE=y
+ CONFIG_FDT_SERIAL_GAISLER=y
+ CONFIG_FDT_SERIAL_HTIF=y
++CONFIG_FDT_SERIAL_RENESAS_SCIF=y
+ CONFIG_FDT_SERIAL_SHAKTI=y
+ CONFIG_FDT_SERIAL_SIFIVE=y
+ CONFIG_FDT_SERIAL_LITEX=y
+diff --git a/platform/generic/renesas/rzfive/objects.mk b/platform/generic/renesas/rzfive/objects.mk
+new file mode 100644
+index 0000000..2e7e37f
+--- /dev/null
++++ b/platform/generic/renesas/rzfive/objects.mk
+@@ -0,0 +1,8 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++# Copyright (C) 2022 Renesas Electronics Corp.
++#
++
++carray-platform_override_modules-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas_rzfive
++platform-objs-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas/rzfive/rzfive.o
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+new file mode 100644
+index 0000000..2b82bc6
+--- /dev/null
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -0,0 +1,17 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2022 Renesas Electronics Corp.
++ *
++ */
++
++#include <platform_override.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++static const struct fdt_match renesas_rzfive_match[] = {
++	{ .compatible = "renesas,r9a07g043" },
++	{ /* sentinel */ }
++};
++
++const struct platform_override renesas_rzfive = {
++	.match_table = renesas_rzfive_match,
++};
 -- 
 2.17.1
 
