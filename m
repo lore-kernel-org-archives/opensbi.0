@@ -1,9 +1,9 @@
 From: Prabhakar <prabhakar.csengg@gmail.com>
-Date: Wed, 30 Nov 2022 22:08:20 +0000
-Subject: [PATCH v3 1/6] lib: utils: serial: Add Renesas SCIF driver
+Date: Wed, 30 Nov 2022 22:08:24 +0000
+Subject: [PATCH v3 5/6] docs: platform: Add documentation for Renesas RZ/Five SoC
 In-Reply-To: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <20221130220825.193693-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20221130220825.193693-6-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,194 +12,192 @@ Content-Transfer-Encoding: 7bit
 
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 
-Add Renesas SCIF driver.
-
-Based on a patch in the BSP by Takeki Hamada
-<takeki.hamada.ak@bp.renesas.com>
-Link: https://github.com/renesas-rz/rz_opensbi/commits/work/OpenSBI-PMA
+This patch adds documentation to build Renesas RZ/Five (R9A07G043F) SoC.
 
 Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 ---
 v2->v3
-* Fixed review comments pointed by Bin
+* Updated doc with new build command
 
 RFC->v2
-* Fixed comments pointed by Xiang W
+* Updated doc
 ---
- include/sbi_utils/serial/renesas-scif.h |  11 +++
- lib/utils/serial/Kconfig                |   4 +
- lib/utils/serial/objects.mk             |   1 +
- lib/utils/serial/renesas_scif.c         | 116 ++++++++++++++++++++++++
- 4 files changed, 132 insertions(+)
- create mode 100644 include/sbi_utils/serial/renesas-scif.h
- create mode 100644 lib/utils/serial/renesas_scif.c
+ docs/platform/platform.md       |   5 ++
+ docs/platform/renesas-rzfive.md | 145 ++++++++++++++++++++++++++++++++
+ 2 files changed, 150 insertions(+)
+ create mode 100644 docs/platform/renesas-rzfive.md
 
-diff --git a/include/sbi_utils/serial/renesas-scif.h b/include/sbi_utils/serial/renesas-scif.h
-new file mode 100644
-index 0000000..0002a1a
---- /dev/null
-+++ b/include/sbi_utils/serial/renesas-scif.h
-@@ -0,0 +1,11 @@
-+/* SPDX-License-Identifier: BSD-2-Clause */
-+/*
-+ * Copyright (C) 2022 Renesas Electronics Corporation
-+ */
-+
-+#ifndef __SERIAL_RENESAS_SCIF_H__
-+#define __SERIAL_RENESAS_SCIF_H__
-+
-+int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate);
-+
-+#endif /* __SERIAL_RENESAS_SCIF_H__ */
-diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
-index da549a7..f6ed803 100644
---- a/lib/utils/serial/Kconfig
-+++ b/lib/utils/serial/Kconfig
-@@ -59,6 +59,10 @@ config SERIAL_GAISLER
- 	bool "Gaisler UART support"
- 	default n
+diff --git a/docs/platform/platform.md b/docs/platform/platform.md
+index f291931..4504d87 100644
+--- a/docs/platform/platform.md
++++ b/docs/platform/platform.md
+@@ -39,6 +39,10 @@ OpenSBI currently supports the following virtual and hardware platforms:
+   processor based SOCs. More details on this platform can be found in the
+   file *[shakti_cclass.md]*.
  
-+config SERIAL_RENESAS_SCIF
-+	bool "Renesas SCIF support"
-+	default n
++* **Renesas RZ/Five SoC**: Platform support for Renesas RZ/Five (R9A07G043F) SoC
++  used on the Renesas RZ/Five SMARC EVK board. More details on this platform can
++  be found in the file *[renesas-rzfive.md]*.
 +
- config SERIAL_SHAKTI
- 	bool "Shakti UART support"
- 	default n
-diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-index 98f3f9a..6520424 100644
---- a/lib/utils/serial/objects.mk
-+++ b/lib/utils/serial/objects.mk
-@@ -36,6 +36,7 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += serial/fdt_serial_xlnx_
- 
- libsbiutils-objs-$(CONFIG_SERIAL_CADENCE) += serial/cadence-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
-+libsbiutils-objs-$(CONFIG_SERIAL_RENESAS_SCIF) += serial/renesas_scif.o
- libsbiutils-objs-$(CONFIG_SERIAL_SHAKTI) += serial/shakti-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_LITEX) += serial/litex-uart.o
-diff --git a/lib/utils/serial/renesas_scif.c b/lib/utils/serial/renesas_scif.c
+ The code for these supported platforms can be used as example to implement
+ support for other platforms. The *platform/template* directory also provides
+ template files for implementing support for a new platform. The *objects.mk*,
+@@ -54,3 +58,4 @@ comments to facilitate the implementation.
+ [spike.md]: spike.md
+ [fpga-openpiton.md]: fpga-openpiton.md
+ [shakti_cclass.md]: shakti_cclass.md
++[renesas-rzfive.md]: renesas-rzfive.md
+diff --git a/docs/platform/renesas-rzfive.md b/docs/platform/renesas-rzfive.md
 new file mode 100644
-index 0000000..cf6b53c
+index 0000000..a900cc7
 --- /dev/null
-+++ b/lib/utils/serial/renesas_scif.c
-@@ -0,0 +1,116 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * Copyright (C) 2022 Renesas Electronics Corporation
-+ */
++++ b/docs/platform/renesas-rzfive.md
+@@ -0,0 +1,145 @@
++Renesas RZ/Five SoC (R9A07G043F) Platform
++=========================================
++The RZ/Five microprocessor includes a single RISC-V CPU Core (Andes AX45MP)
++1.0 GHz, 16-bit DDR3L/DDR4 interface. Supported interfaces include:
++- Gigabit Ethernet 2ch
++- CAN interface (CAN-FD) 2ch
++- USB 2.0 interface 2ch
++- SD interface 2ch
++- AD converter 2ch
++making it ideal for applications such as entry-class social infrastructure
++gateway control and industrial gateway control.
 +
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_timer.h>
-+#include <sbi_utils/serial/renesas-scif.h>
++To build platform specific library and firmwares, provide the
++*PLATFORM=generic* parameter to the top level make command.
 +
-+/* clang-format off */
++Platform Options
++----------------
 +
-+#define SCIF_REG_SMR		0x0
-+#define SCIF_REG_BRR		0x2
-+#define SCIF_REG_SCR		0x4
-+#define SCIF_REG_FTDR		0x6
-+#define SCIF_REG_FSR		0x8
-+#define SCIF_REG_FCR		0xc
-+#define SCIF_REG_LSR		0x12
-+#define SCIF_REG_SEMR		0x14
++The Renesas RZ/Five platform does not have any platform-specific options.
 +
-+#define SCIF_FCR_RFRST		0x2 /* Reset assert receive-FIFO (bit[1]) */
-+#define SCIF_FCR_TFRST		0x4 /* Reset assert transmit-FIFO(bit[2]) */
++Building Renesas RZ/Five Platform
++---------------------------------
 +
-+#define SCIF_FCR_RST_ASSRT_RFTF	(SCIF_FCR_RFRST | SCIF_FCR_TFRST) /* Reset assert tx-FIFO & rx-FIFO */
-+#define SCIF_FCR_RST_NGATE_RFTF	0x0 /* Reset negate tx-FIFO & rx-FIFO */
++```
++make PLATFORM=generic
++```
 +
-+#define SCIF_SCR_RE		0x10 /* Enable receive (bit[4]) */
-+#define SCIF_SCR_TE		0x20 /* Enable transmit(bit[5]) */
-+#define SCIF_SCR_RCV_TRN_EN	(SCIF_SCR_RE | SCIF_SCR_TE) /* Enable receive & transmit */
-+#define SCIF_SCR_RCV_TRN_DIS	0x0 /* Disable receive & transmit */
++DTS Example: (RZ/Five AX45MP)
++-----------------------------
 +
-+#define SCIF_FSR_ER		0x80 /* Receive error flag */
-+#define SCIF_FSR_TEND		0x40 /* Transmit End Flag */
-+#define SCIF_FSR_TDFE		0x20 /* Transmit FIFO Data Empty Flag */
-+#define SCIF_FSR_BRK		0x10 /* Detect break flag */
-+#define SCIF_FSR_DR		0x1  /* Receive data ready flag */
++```
++	compatible = "renesas,r9a07g043";
 +
-+#define SCIF_FSR_TXD_CHK	(SCIF_FSR_TEND | SCIF_FSR_TDFE)
++	cpus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		timebase-frequency = <12000000>;
 +
-+#define SCIF_SEMR_MDDRS		0x10 /* MDDR access enable */
++		cpu0: cpu at 0 {
++			compatible = "andestech,ax45mp", "riscv";
++			device_type = "cpu";
++			reg = <0x0>;
++			status = "okay";
++			riscv,isa = "rv64imafdc";
++			mmu-type = "riscv,sv39";
++			i-cache-size = <0x8000>;
++			i-cache-line-size = <0x40>;
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <0x40>;
++			clocks = <&cpg CPG_CORE R9A07G043_AX45MP_CORE0_CLK>,
++				 <&cpg CPG_CORE R9A07G043_AX45MP_ACLK>;
 +
-+#define SCIF_REG_8BIT(reg)	((reg == SCIF_REG_BRR) || \
-+				 (reg == SCIF_REG_FTDR) || \
-+				 (reg == SCIF_REG_SEMR))
++			cpu0_intc: interrupt-controller {
++				#interrupt-cells = <1>;
++				compatible = "riscv,cpu-intc";
++				interrupt-controller;
++			};
++		};
++	};
 +
-+#define SCBRR_VALUE(clk, baudrate) ((clk) / (32 * (baudrate)) - 1)
++	soc {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		ranges;
 +
-+/* clang-format on */
++		scif0: serial at 1004b800 {
++			compatible = "renesas,scif-r9a07g043",
++				     "renesas,scif-r9a07g044";
++			reg = <0 0x1004b800 0 0x400>;
++			interrupts = <412 IRQ_TYPE_LEVEL_HIGH>,
++				     <414 IRQ_TYPE_LEVEL_HIGH>,
++				     <415 IRQ_TYPE_LEVEL_HIGH>,
++				     <413 IRQ_TYPE_LEVEL_HIGH>,
++				     <416 IRQ_TYPE_LEVEL_HIGH>,
++				     <416 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "eri", "rxi", "txi",
++					  "bri", "dri", "tei";
++			clocks = <&cpg CPG_MOD R9A07G043_SCIF0_CLK_PCK>;
++			clock-names = "fck";
++			power-domains = <&cpg>;
++			resets = <&cpg R9A07G043_SCIF0_RST_SYSTEM_N>;
++			status = "disabled";
++		};
 +
-+static volatile char *scif_base;
++		cpg: clock-controller at 11010000 {
++			compatible = "renesas,r9a07g043-cpg";
++			reg = <0 0x11010000 0 0x10000>;
++			clocks = <&extal_clk>;
++			clock-names = "extal";
++			#clock-cells = <2>;
++			#reset-cells = <1>;
++			#power-domain-cells = <0>;
++		};
 +
-+static u32 get_reg(u32 offset)
-+{
-+	if (SCIF_REG_8BIT(offset))
-+		return readb(scif_base + offset);
++		sysc: system-controller at 11020000 {
++			compatible = "renesas,r9a07g043-sysc";
++			reg = <0 0x11020000 0 0x10000>;
++			status = "disabled";
++		};
 +
-+	return readw(scif_base + offset);
-+}
++		pinctrl: pinctrl at 11030000 {
++			compatible = "renesas,r9a07g043-pinctrl";
++			reg = <0 0x11030000 0 0x10000>;
++			gpio-controller;
++			#gpio-cells = <2>;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++			gpio-ranges = <&pinctrl 0 0 152>;
++			clocks = <&cpg CPG_MOD R9A07G043_GPIO_HCLK>;
++			power-domains = <&cpg>;
++			resets = <&cpg R9A07G043_GPIO_RSTN>,
++				 <&cpg R9A07G043_GPIO_PORT_RESETN>,
++				 <&cpg R9A07G043_GPIO_SPARE_RESETN>;
++		};
 +
-+static void set_reg(u32 offset, u32 val)
-+{
-+	if (SCIF_REG_8BIT(offset))
-+		return writeb(val, scif_base + offset);
++		plmt0: plmt0 at 110c0000 {
++			compatible = "andestech,plmt0", "riscv,plmt0";
++			reg = <0x00000000 0x110c0000 0x00000000 0x00100000>;
++			interrupts-extended = <&cpu0_intc 7>;
++		};
 +
-+	return writew(val, scif_base + offset);
-+}
++		plic: interrupt-controller at 12c00000 {
++			compatible = "renesas,r9a07g043-plic", "andestech,nceplic100";
++			#interrupt-cells = <2>;
++			#address-cells = <0>;
++			riscv,ndev = <511>;
++			interrupt-controller;
++			reg = <0x0 0x12c00000 0 0x400000>;
++			clocks = <&cpg CPG_MOD R9A07G043_NCEPLIC_ACLK>;
++			power-domains = <&cpg>;
++			resets = <&cpg R9A07G043_NCEPLIC_ARESETN>;
++			interrupts-extended = <&cpu0_intc 11 &cpu0_intc 9>;
++		};
 +
-+static void renesas_scif_putc(char ch)
-+{
-+	uint16_t reg;
-+
-+	while (!(SCIF_FSR_TXD_CHK & get_reg(SCIF_REG_FSR)))
-+		;
-+
-+	set_reg(SCIF_REG_FTDR, ch);
-+	reg = get_reg(SCIF_REG_FSR);
-+	reg &= ~SCIF_FSR_TXD_CHK;
-+	set_reg(SCIF_REG_FSR, reg);
-+}
-+
-+static struct sbi_console_device renesas_scif_console = {
-+	.name		= "renesas_scif",
-+	.console_putc	= renesas_scif_putc,
-+};
-+
-+int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate)
-+{
-+	volatile uint16_t data16;
-+
-+	scif_base = (volatile char *)base;
-+
-+	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_DIS);
-+	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_ASSRT_RFTF);
-+
-+	data16 = get_reg(SCIF_REG_FSR); /* Dummy read */
-+	set_reg(SCIF_REG_FSR, 0x0); /* Clear all error bit */
-+
-+	data16 = get_reg(SCIF_REG_LSR); /* Dummy read */
-+	set_reg(SCIF_REG_LSR, 0x0); /* Clear ORER bit */
-+
-+	set_reg(SCIF_REG_SCR, 0x0);
-+
-+	set_reg(SCIF_REG_SMR, 0x0);
-+
-+	data16 = get_reg(SCIF_REG_SEMR);
-+	set_reg(SCIF_REG_SEMR, data16 & (~SCIF_SEMR_MDDRS));
-+	set_reg(SCIF_REG_BRR, SCBRR_VALUE(in_freq, baudrate));
-+
-+	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_NGATE_RFTF);
-+	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_EN);
-+
-+	sbi_console_set_device(&renesas_scif_console);
-+
-+	return 0;
-+}
++		plicsw: interrupt-controller at 13000000 {
++			compatible = "andestech,plicsw";
++			reg = <0x00000000 0x13000000 0x00000000 0x00400000>;
++			interrupts-extended = <&cpu0_intc 3>;
++			interrupt-controller;
++			#address-cells = <2>;
++			#interrupt-cells = <2>;
++		};
++	};
++```
 -- 
 2.17.1
 
