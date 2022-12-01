@@ -1,10 +1,11 @@
 From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Thu, 1 Dec 2022 09:05:18 +0000
-Subject: [PATCH v3 1/6] lib: utils: serial: Add Renesas SCIF driver
-In-Reply-To: <OS0PR01MB59228AE0FC48525FD8F255DE86149@OS0PR01MB5922.jpnprd01.prod.outlook.com>
+Date: Thu, 1 Dec 2022 09:06:06 +0000
+Subject: [PATCH v3 3/6] lib: utils/irqchip: Add compatible string for
+ Andestech NCEPLIC100
+In-Reply-To: <OS0PR01MB5922D6966D7DE0687CD36C7C86149@OS0PR01MB5922.jpnprd01.prod.outlook.com>
 References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <20221130220825.193693-2-prabhakar.mahadev-lad.rj@bp.renesas.com> <OS0PR01MB59228AE0FC48525FD8F255DE86149@OS0PR01MB5922.jpnprd01.prod.outlook.com>
-Message-ID: <CA+V-a8uoi+FZVQhrNqmvv+MKhtOZsUuUeWZgFUBVkobtO3sUcA@mail.gmail.com>
+ <20221130220825.193693-4-prabhakar.mahadev-lad.rj@bp.renesas.com> <OS0PR01MB5922D6966D7DE0687CD36C7C86149@OS0PR01MB5922.jpnprd01.prod.outlook.com>
+Message-ID: <CA+V-a8tTnEHAUoSMhSYoJTNcy8xjNbSpbwqa=9iP2oTfo2AHAg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,41 +16,29 @@ Hi Biju,
 
 Thank you for the review.
 
-On Thu, Dec 1, 2022 at 8:27 AM Biju Das <biju.das.jz@bp.renesas.com> wrote:
+On Thu, Dec 1, 2022 at 8:29 AM Biju Das <biju.das.jz@bp.renesas.com> wrote:
 >
 > Hi Prabhakar,
 >
-> > -----Original Message-----
-> > From: Prabhakar <prabhakar.csengg@gmail.com>
-> > Sent: 30 November 2022 22:08
-> > To: Anup Patel <anup@brainfault.org>; Atish Patra
-> > <atishp@atishpatra.org>; opensbi at lists.infradead.org
-> > Cc: Yu Chien Peter Lin <peterlin@andestech.com>; Bin Meng
-> > <bmeng.cn@gmail.com>; Andrew Jones <ajones@ventanamicro.com>; Prabhakar
-> > <prabhakar.csengg@gmail.com>; Biju Das <biju.das.jz@bp.renesas.com>;
-> > Chris Paterson <Chris.Paterson2@renesas.com>; Prabhakar Mahadev Lad
-> > <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> > Subject: [PATCH v3 1/6] lib: utils: serial: Add Renesas SCIF driver
+> > Subject: [PATCH v3 3/6] lib: utils/irqchip: Add compatible string for
+> > Andestech NCEPLIC100
 > >
-> > From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> >
-> > Add Renesas SCIF driver.
 <snip>
-> > +static u32 get_reg(u32 offset)
-> > +{
-> > +     if (SCIF_REG_8BIT(offset))
-> > +             return readb(scif_base + offset);
-> > +
-> > +     return readw(scif_base + offset);
-> > +}
-> > +
-> > +static void set_reg(u32 offset, u32 val) {
-> > +     if (SCIF_REG_8BIT(offset))
-> > +             return writeb(val, scif_base + offset);
+> > index a6e185c..83d091a 100644
+> > --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> > +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> > @@ -163,7 +163,8 @@ static const struct fdt_match irqchip_plic_match[] =
+> > {
+> >       { .compatible = "sifive,plic-1.0.0" },
+> >       { .compatible = "thead,c900-plic",
+> >         .data = thead_plic_plat_init },
+> > -     { },
+> > +     { .compatible = "andestech,nceplic100" },
+> > +     { /* sentinel */ }
 >
-> You are returning from void function. Same below as well.
+> Maybe sort alphabetically.
 >
-Good catch, the compiler didn't warn me.
+Ok.
 
 Cheers,
 Prabhakar
