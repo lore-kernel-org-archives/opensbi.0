@@ -1,123 +1,229 @@
-From: Rahul Pathak <rpathakmailbox@gmail.com>
-Date: Sat, 1 Mar 2025 12:41:43 +0530
-Subject: [PATCH 1/4] lib: sbi_scratch: Apply bounds check to platform hart_count
-In-Reply-To: <20250220184233.23802-2-samuel.holland@sifive.com>
-References: <20250220184233.23802-1-samuel.holland@sifive.com> <20250220184233.23802-2-samuel.holland@sifive.com>
-Message-ID: <CAMSwOgpP9ecscbiiD=Wd+cf4EvLWVwXduHb07uFLAyqhVTvZOg@mail.gmail.com>
+From: Biju Das <biju.das.jz@bp.renesas.com>
+Date: Thu, 1 Dec 2022 08:27:41 +0000
+Subject: [PATCH v3 1/6] lib: utils: serial: Add Renesas SCIF driver
+In-Reply-To: <20221130220825.193693-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <20221130220825.193693-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <OS0PR01MB59228AE0FC48525FD8F255DE86149@OS0PR01MB5922.jpnprd01.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 21, 2025 at 12:13?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> The internal limit on the number of harts is SBI_HARTMASK_MAX_BITS, as
-> this value determines the size of various bitmaps and arrays (including
-> hartindex_to_hartid_table and hartindex_to_scratch_table). Clamp the
-> value provided by the platform, and drop the extra array element.
->
-> Update the documentation to indicate that hart_index2id must be sized
-> based on hart_count, and that hart indexes must be contiguous. As of
-> commit 5e90e54a1a53 ("lib: utils:Check that hartid is valid"), there is
-> no restriction on the valid hart ID values.
->
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Hi Prabhakar,
+
+> -----Original Message-----
+> From: Prabhakar <prabhakar.csengg@gmail.com>
+> Sent: 30 November 2022 22:08
+> To: Anup Patel <anup@brainfault.org>; Atish Patra
+> <atishp@atishpatra.org>; opensbi at lists.infradead.org
+> Cc: Yu Chien Peter Lin <peterlin@andestech.com>; Bin Meng
+> <bmeng.cn@gmail.com>; Andrew Jones <ajones@ventanamicro.com>; Prabhakar
+> <prabhakar.csengg@gmail.com>; Biju Das <biju.das.jz@bp.renesas.com>;
+> Chris Paterson <Chris.Paterson2@renesas.com>; Prabhakar Mahadev Lad
+> <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> Subject: [PATCH v3 1/6] lib: utils: serial: Add Renesas SCIF driver
+> 
+> From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> 
+> Add Renesas SCIF driver.
+> 
+> Based on a patch in the BSP by Takeki Hamada
+> <takeki.hamada.ak@bp.renesas.com>
+> 
+> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 > ---
->
->  include/sbi/sbi_platform.h | 11 +++--------
->  lib/sbi/sbi_scratch.c      | 14 +++++++++-----
->  2 files changed, 12 insertions(+), 13 deletions(-)
->
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 6d5fbc7d..5e50c997 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -169,7 +169,7 @@ struct sbi_platform {
->         char name[64];
->         /** Supported features */
->         u64 features;
-> -       /** Total number of HARTs */
-> +       /** Total number of HARTs (at most SBI_HARTMASK_MAX_BITS) */
->         u32 hart_count;
->         /** Per-HART stack size for exception/interrupt handling */
->         u32 hart_stack_size;
-> @@ -184,17 +184,12 @@ struct sbi_platform {
->         /**
->          * HART index to HART id table
->          *
-> -        * For used HART index <abc>:
-> +        * If hart_index2id != NULL then the table must contain a mapping
-> +        * for each HART index 0 <= <abc> < hart_count:
->          *     hart_index2id[<abc>] = some HART id
-> -        * For unused HART index <abc>:
-> -        *     hart_index2id[<abc>] = -1U
->          *
->          * If hart_index2id == NULL then we assume identity mapping
->          *     hart_index2id[<abc>] = <abc>
-> -        *
-> -        * We have only two restrictions:
-> -        * 1. HART index < sbi_platform hart_count
-> -        * 2. HART id < SBI_HARTMASK_MAX_BITS
->          */
->         const u32 *hart_index2id;
->  };
-> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> index ccbbc68e..5a9e935b 100644
-> --- a/lib/sbi/sbi_scratch.c
-> +++ b/lib/sbi/sbi_scratch.c
-> @@ -15,8 +15,8 @@
->  #include <sbi/sbi_string.h>
->
->  u32 last_hartindex_having_scratch = 0;
-> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
-> -struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
-> +u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { -1U };
-> +struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS] = { 0 };
->
->  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
->  static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
-> @@ -36,17 +36,21 @@ typedef struct sbi_scratch *(*hartid2scratch)(ulong hartid, ulong hartindex);
->
->  int sbi_scratch_init(struct sbi_scratch *scratch)
->  {
-> -       u32 i, h;
-> +       u32 i, h, hart_count;
->         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->
-> -       for (i = 0; i < plat->hart_count; i++) {
-> +       hart_count = plat->hart_count;
-> +       if (hart_count > SBI_HARTMASK_MAX_BITS)
-> +               hart_count = SBI_HARTMASK_MAX_BITS;
->
-From a platform perspective case where hart_count > SBI_HARTMASK_MAX_BITS
-Since its a limitation of SBI to not be able to represent all what
-platform expects. Is it a
-point of failure and it should not continue from here or it should
-silently move forward with
-what SBI can accommodate?
+> v2->v3
+> * Fixed review comments pointed by Bin
+> 
+> RFC->v2
+> * Fixed comments pointed by Xiang W
+> ---
+>  include/sbi_utils/serial/renesas-scif.h |  11 +++
+>  lib/utils/serial/Kconfig                |   4 +
+>  lib/utils/serial/objects.mk             |   1 +
+>  lib/utils/serial/renesas_scif.c         | 116 ++++++++++++++++++++++++
+>  4 files changed, 132 insertions(+)
+>  create mode 100644 include/sbi_utils/serial/renesas-scif.h
+>  create mode 100644 lib/utils/serial/renesas_scif.c
+> 
+> diff --git a/include/sbi_utils/serial/renesas-scif.h
+> b/include/sbi_utils/serial/renesas-scif.h
+> new file mode 100644
+> index 0000000..0002a1a
+> --- /dev/null
+> +++ b/include/sbi_utils/serial/renesas-scif.h
+> @@ -0,0 +1,11 @@
+> +/* SPDX-License-Identifier: BSD-2-Clause */
+> +/*
+> + * Copyright (C) 2022 Renesas Electronics Corporation  */
+> +
+> +#ifndef __SERIAL_RENESAS_SCIF_H__
+> +#define __SERIAL_RENESAS_SCIF_H__
+> +
+> +int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate);
+> +
+> +#endif /* __SERIAL_RENESAS_SCIF_H__ */
+> diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig index
+> da549a7..f6ed803 100644
+> --- a/lib/utils/serial/Kconfig
+> +++ b/lib/utils/serial/Kconfig
+> @@ -59,6 +59,10 @@ config SERIAL_GAISLER
+>  	bool "Gaisler UART support"
+>  	default n
+> 
+> +config SERIAL_RENESAS_SCIF
+> +	bool "Renesas SCIF support"
+> +	default n
+> +
+>  config SERIAL_SHAKTI
+>  	bool "Shakti UART support"
+>  	default n
+> diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
+> index 98f3f9a..6520424 100644
+> --- a/lib/utils/serial/objects.mk
+> +++ b/lib/utils/serial/objects.mk
+> @@ -36,6 +36,7 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE)
+> += serial/fdt_serial_xlnx_
+> 
+>  libsbiutils-objs-$(CONFIG_SERIAL_CADENCE) += serial/cadence-uart.o
+>  libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
+> +libsbiutils-objs-$(CONFIG_SERIAL_RENESAS_SCIF) += serial/renesas_scif.o
+>  libsbiutils-objs-$(CONFIG_SERIAL_SHAKTI) += serial/shakti-uart.o
+>  libsbiutils-objs-$(CONFIG_SERIAL_SIFIVE) += serial/sifive-uart.o
+>  libsbiutils-objs-$(CONFIG_SERIAL_LITEX) += serial/litex-uart.o diff --
+> git a/lib/utils/serial/renesas_scif.c b/lib/utils/serial/renesas_scif.c
+> new file mode 100644 index 0000000..cf6b53c
+> --- /dev/null
+> +++ b/lib/utils/serial/renesas_scif.c
+> @@ -0,0 +1,116 @@
+> +// SPDX-License-Identifier: BSD-2-Clause
+> +/*
+> + * Copyright (C) 2022 Renesas Electronics Corporation  */
+> +
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_timer.h>
+> +#include <sbi_utils/serial/renesas-scif.h>
+> +
+> +/* clang-format off */
+> +
+> +#define SCIF_REG_SMR		0x0
+> +#define SCIF_REG_BRR		0x2
+> +#define SCIF_REG_SCR		0x4
+> +#define SCIF_REG_FTDR		0x6
+> +#define SCIF_REG_FSR		0x8
+> +#define SCIF_REG_FCR		0xc
+> +#define SCIF_REG_LSR		0x12
+> +#define SCIF_REG_SEMR		0x14
+> +
+> +#define SCIF_FCR_RFRST		0x2 /* Reset assert receive-FIFO (bit[1])
+> */
+> +#define SCIF_FCR_TFRST		0x4 /* Reset assert transmit-FIFO(bit[2])
+> */
+> +
+> +#define SCIF_FCR_RST_ASSRT_RFTF	(SCIF_FCR_RFRST | SCIF_FCR_TFRST) /*
+> Reset assert tx-FIFO & rx-FIFO */
+> +#define SCIF_FCR_RST_NGATE_RFTF	0x0 /* Reset negate tx-FIFO & rx-FIFO
+> */
+> +
+> +#define SCIF_SCR_RE		0x10 /* Enable receive (bit[4]) */
+> +#define SCIF_SCR_TE		0x20 /* Enable transmit(bit[5]) */
+> +#define SCIF_SCR_RCV_TRN_EN	(SCIF_SCR_RE | SCIF_SCR_TE) /* Enable
+> receive & transmit */
+> +#define SCIF_SCR_RCV_TRN_DIS	0x0 /* Disable receive & transmit */
+> +
+> +#define SCIF_FSR_ER		0x80 /* Receive error flag */
+> +#define SCIF_FSR_TEND		0x40 /* Transmit End Flag */
+> +#define SCIF_FSR_TDFE		0x20 /* Transmit FIFO Data Empty Flag */
+> +#define SCIF_FSR_BRK		0x10 /* Detect break flag */
+> +#define SCIF_FSR_DR		0x1  /* Receive data ready flag */
+> +
+> +#define SCIF_FSR_TXD_CHK	(SCIF_FSR_TEND | SCIF_FSR_TDFE)
+> +
+> +#define SCIF_SEMR_MDDRS		0x10 /* MDDR access enable */
+> +
+> +#define SCIF_REG_8BIT(reg)	((reg == SCIF_REG_BRR) || \
+> +				 (reg == SCIF_REG_FTDR) || \
+> +				 (reg == SCIF_REG_SEMR))
+> +
+> +#define SCBRR_VALUE(clk, baudrate) ((clk) / (32 * (baudrate)) - 1)
+> +
+> +/* clang-format on */
+> +
+> +static volatile char *scif_base;
+> +
+> +static u32 get_reg(u32 offset)
+> +{
+> +	if (SCIF_REG_8BIT(offset))
+> +		return readb(scif_base + offset);
+> +
+> +	return readw(scif_base + offset);
+> +}
+> +
+> +static void set_reg(u32 offset, u32 val) {
+> +	if (SCIF_REG_8BIT(offset))
+> +		return writeb(val, scif_base + offset);
 
+You are returning from void function. Same below as well.
 
->
-> +       for (i = 0; i < hart_count; i++) {
->                 h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
->                 hartindex_to_hartid_table[i] = h;
->                 hartindex_to_scratch_table[i] =
->                         ((hartid2scratch)scratch->hartid_to_scratch)(h, i);
->         }
->
-> -       last_hartindex_having_scratch = plat->hart_count - 1;
-> +       last_hartindex_having_scratch = hart_count - 1;
->
->         return 0;
->  }
+> +
+> +	return writew(val, scif_base + offset);
+
+Cheers,
+Biju
+ }
+> +
+> +static void renesas_scif_putc(char ch)
+> +{
+> +	uint16_t reg;
+> +
+> +	while (!(SCIF_FSR_TXD_CHK & get_reg(SCIF_REG_FSR)))
+> +		;
+
+> +
+> +	set_reg(SCIF_REG_FTDR, ch);
+> +	reg = get_reg(SCIF_REG_FSR);
+> +	reg &= ~SCIF_FSR_TXD_CHK;
+> +	set_reg(SCIF_REG_FSR, reg);
+> +}
+> +
+> +static struct sbi_console_device renesas_scif_console = {
+> +	.name		= "renesas_scif",
+> +	.console_putc	= renesas_scif_putc,
+> +};
+> +
+> +int renesas_scif_init(unsigned long base, u32 in_freq, u32 baudrate) {
+> +	volatile uint16_t data16;
+> +
+> +	scif_base = (volatile char *)base;
+> +
+> +	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_DIS);
+> +	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_ASSRT_RFTF);
+> +
+> +	data16 = get_reg(SCIF_REG_FSR); /* Dummy read */
+> +	set_reg(SCIF_REG_FSR, 0x0); /* Clear all error bit */
+> +
+> +	data16 = get_reg(SCIF_REG_LSR); /* Dummy read */
+> +	set_reg(SCIF_REG_LSR, 0x0); /* Clear ORER bit */
+> +
+> +	set_reg(SCIF_REG_SCR, 0x0);
+> +
+> +	set_reg(SCIF_REG_SMR, 0x0);
+> +
+> +	data16 = get_reg(SCIF_REG_SEMR);
+> +	set_reg(SCIF_REG_SEMR, data16 & (~SCIF_SEMR_MDDRS));
+> +	set_reg(SCIF_REG_BRR, SCBRR_VALUE(in_freq, baudrate));
+> +
+> +	set_reg(SCIF_REG_FCR, SCIF_FCR_RST_NGATE_RFTF);
+> +	set_reg(SCIF_REG_SCR, SCIF_SCR_RCV_TRN_EN);
+> +
+> +	sbi_console_set_device(&renesas_scif_console);
+> +
+> +	return 0;
+> +}
 > --
-> 2.47.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 2.17.1
+
 
