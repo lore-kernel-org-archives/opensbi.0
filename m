@@ -1,10 +1,9 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sat, 3 Dec 2022 00:10:05 +0800
-Subject: [PATCH 1/4] platform: generic/andes: Enable generic platform
- support for AE350
-In-Reply-To: <20221128083046.6799-2-peterlin@andestech.com>
-References: <20221128083046.6799-1-peterlin@andestech.com> <20221128083046.6799-2-peterlin@andestech.com>
-Message-ID: <CAEUhbmVTmY1w_zOC8FgPJ8oDbm5hJmOZe6HYkAm-LJboHHGqoQ@mail.gmail.com>
+Date: Sat, 3 Dec 2022 00:10:08 +0800
+Subject: [PATCH 2/4] docs: platform: Update AE350 and generic platform documentation
+In-Reply-To: <20221128083046.6799-3-peterlin@andestech.com>
+References: <20221128083046.6799-1-peterlin@andestech.com> <20221128083046.6799-3-peterlin@andestech.com>
+Message-ID: <CAEUhbmW8y4tQixXSw-kLsjsGTf89wMfEYAW_dnmAsruN581dWQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,39 +13,67 @@ Content-Transfer-Encoding: 7bit
 On Mon, Nov 28, 2022 at 4:33 PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> We move andes directory to platform/generic since the necessary fdt
-> drivers are available, the users can enable the console, timer, ipi,
-> irqchip and reset devices by adding device tree nodes stated in the
-> docs/platform/andes-ae350.md.
+> Update compile option and platform compatible string for AE350 and
+> add it to the generic platform list.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > ---
-> Although generic/platform.c has been able to boot the system
-> on AE350, we will add HSM device for it soon so let's keep
-> ae350.c as a placeholder.
-> ---
->  platform/andes/ae350/Kconfig           |  34 -----
->  platform/andes/ae350/cache.c           |  89 -------------
->  platform/andes/ae350/cache.h           |  17 ---
->  platform/andes/ae350/configs/defconfig |   0
->  platform/andes/ae350/objects.mk        |  40 ------
->  platform/andes/ae350/platform.c        | 169 -------------------------
->  platform/andes/ae350/platform.h        | 109 ----------------
->  platform/generic/Kconfig               |   4 +
->  platform/generic/andes/ae350.c         |  21 +++
->  platform/generic/andes/objects.mk      |   6 +
->  platform/generic/configs/defconfig     |   4 +
->  11 files changed, 35 insertions(+), 458 deletions(-)
->  delete mode 100644 platform/andes/ae350/Kconfig
->  delete mode 100644 platform/andes/ae350/cache.c
->  delete mode 100644 platform/andes/ae350/cache.h
->  delete mode 100644 platform/andes/ae350/configs/defconfig
->  delete mode 100644 platform/andes/ae350/objects.mk
->  delete mode 100644 platform/andes/ae350/platform.c
->  delete mode 100644 platform/andes/ae350/platform.h
->  create mode 100644 platform/generic/andes/ae350.c
->  create mode 100644 platform/generic/andes/objects.mk
+>  docs/platform/andes-ae350.md | 5 +++--
+>  docs/platform/generic.md     | 2 ++
+>  2 files changed, 5 insertions(+), 2 deletions(-)
 >
+> diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
+> index ec241ec..4739951 100644
+> --- a/docs/platform/andes-ae350.md
+> +++ b/docs/platform/andes-ae350.md
+> @@ -8,7 +8,7 @@ AHB/APB IPs suites a majority embedded systems, and the verified platform serves
+>  as a starting point to jump start SoC designs.
+>
+>  To build platform specific library and firmwares, provide the
+> -*PLATFORM=andes/ae350* parameter to the top level make command.
+> +*PLATFORM=generic* parameter to the top level `make` command.
+>
+>  Platform Options
+>  ----------------
+> @@ -23,13 +23,14 @@ AE350's dts is included in https://github.com/andestech/linux/tree/RISCV-Linux-5
+>  **Linux Kernel Payload**
+>
+>  ```
+> -make PLATFORM=andes/ae350 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
+> +make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
+>  ```
+>
+>  DTS Example: (Quad-core AX45MP)
+>  -------------------------------
+>
+>  ```
+> +       compatible = "andestech,ae350";
+>         cpus {
+>                 #address-cells = <1>;
+>                 #size-cells = <0>;
+> diff --git a/docs/platform/generic.md b/docs/platform/generic.md
+> index 73a8afa..bd3c8ab 100644
+> --- a/docs/platform/generic.md
+> +++ b/docs/platform/generic.md
+> @@ -50,9 +50,11 @@ RISC-V Platforms Using Generic Platform
+>  * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
+>  * **Spike** (*[spike.md]*)
+>  * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
+> +* **Andes AE350 Platform** (*[andes-ae350.md]*)
 
+nits: please insert this by following alphabetical order
+
+>
+>  [qemu_virt.md]: qemu_virt.md
+>  [shakti_cclass.md]: shakti_cclass.md
+>  [sifive_fu540.md]: sifive_fu540.md
+>  [spike.md]: spike.md
+>  [thead-c9xx.md]: thead-c9xx.md
+> +[andes-ae350.md]: andse-ae350.md
+> --
+
+nits: please insert this by following alphabetical order
+
+Otherwise,
 Reviewed-by: Bin Meng <bmeng@tinylab.org>
 
