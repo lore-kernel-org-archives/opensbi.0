@@ -1,67 +1,61 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 4 Dec 2022 21:02:24 +0530
-Subject: [PATCH] Makefile: bugfix for handling platform paths
-In-Reply-To: <904be39c57862760477bc0663527c55ab6db6ad2.camel@126.com>
-References: <20221122102825.88440-1-aldaya@gmail.com> <904be39c57862760477bc0663527c55ab6db6ad2.camel@126.com>
-Message-ID: <CAAhSdy3OKUZ-v0N5QR7T6ySPVSf5gJqfhShYUg5oMKE5EOVbgQ@mail.gmail.com>
+Date: Sun, 4 Dec 2022 21:59:24 +0530
+Subject: [PATCH v2 1/3] lib: sbi: Simplified mmio match checking
+In-Reply-To: <20221124031605.216192-2-wxjstz@126.com>
+References: <20221124031605.216192-1-wxjstz@126.com> <20221124031605.216192-2-wxjstz@126.com>
+Message-ID: <CAAhSdy1q327TWgEGSx9-+rJyZxEzxrstB-nNEMzTN7XbE-EtgA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 22, 2022 at 7:12 PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Nov 24, 2022 at 8:46 AM Xiang W <wxjstz@126.com> wrote:
 >
-> ? 2022-11-22???? 12:28 +0200?Alejandro Cabrera Aldaya???
-> > If the path where this repo is located contains the platform name on it,
-> > the original Makefile replaced its occurrences from the path making it an invalid path.
-> > This commit prevents this behavior replacing only the last part of the path as intended.
-> >
-> > Signed-off-by: Alejandro Cabrera Aldaya <aldaya@gmail.com>
-> > ---
-> >  Makefile | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/Makefile b/Makefile
-> > index 8db6eab..32d4c48 100644
-> > --- a/Makefile
-> > +++ b/Makefile
-> > @@ -47,7 +47,7 @@ ifdef PLATFORM_DIR
-> >      platform_parent_dir=$(platform_dir_path)
-> >    else
-> >      PLATFORM=$(shell basename $(platform_dir_path))
-> > -    platform_parent_dir=$(subst $(PLATFORM),,$(platform_dir_path))
-> > +    platform_parent_dir=$(shell dirname $(shell realpath $(platform_dir_path)))
-> >
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> ---
+>  lib/sbi/sbi_domain.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> Looks good, could simplify it a bit.
->         platform_parent_dir=$(shell realpath ${platform_dir_path}/..)
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index f24a8e5..fec9074 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -105,7 +105,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>                            unsigned long addr, unsigned long mode,
+>                            unsigned long access_flags)
+>  {
+> -       bool mmio = FALSE;
+> +       bool rmmio, mmio = FALSE;
+>         struct sbi_domain_memregion *reg;
+>         unsigned long rstart, rend, rflags, rwx = 0;
 >
-> Reviewed-by: Xiang W <wxjstz@126.com>
-
-I have considered the simplified version at the time of merging
-this patch.
-
-Reviewed-by: Anup Patel <anup@brainfaul.torg>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
->
-> >    endif
-> >  else
-> >   platform_parent_dir=$(src_dir)/platform
-> > --
-> > 2.34.1
-> >
-> >
->
+> @@ -130,8 +130,8 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>                 rend = (reg->order < __riscv_xlen) ?
+>                         rstart + ((1UL << reg->order) - 1) : -1UL;
+>                 if (rstart <= addr && addr <= rend) {
+> -                       if ((mmio && !(rflags & SBI_DOMAIN_MEMREGION_MMIO)) ||
+> -                           (!mmio && (rflags & SBI_DOMAIN_MEMREGION_MMIO)))
+> +                       rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? TRUE : FALSE;
+> +                       if (mmio != rmmio)
+>                                 return FALSE;
+>                         return ((rflags & rwx) == rwx) ? TRUE : FALSE;
+>                 }
+> --
+> 2.30.2
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Please try to have at least one sentence in the commit description.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Regards,
+Anup
 
