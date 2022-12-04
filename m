@@ -1,44 +1,43 @@
 From: Bin Meng <bmeng@tinylab.org>
-Date: Sun,  4 Dec 2022 13:14:59 +0800
-Subject: [PATCH v2 1/5] lib: utils/irqchip: plic: Fix the off-by-one error in priority save/restore helpers
-Message-ID: <20221204051503.439727-1-bmeng@tinylab.org>
+Date: Sun,  4 Dec 2022 13:15:01 +0800
+Subject: [PATCH v2 3/5] lib: utils/irqchip: plic: Fix the off-by-one error in plic_context_init()
+In-Reply-To: <20221204051503.439727-1-bmeng@tinylab.org>
+References: <20221204051503.439727-1-bmeng@tinylab.org>
+Message-ID: <20221204051503.439727-3-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Interrupt source 0 is reserved. Hence the irq should start from 1.
+The number of interrupt enable register in words was once correct,
+but was wrongly changed to have an off-by-one error since
+commit 8c362e7d065e ("lib: irqchip/plic: Factor out a context init function").
 
-Fixes: 2b79b694a805 ("lib: irqchip/plic: Add priority save/restore helpers")
+Fixes: 8c362e7d065e ("lib: irqchip/plic: Factor out a context init function")
 Signed-off-by: Bin Meng <bmeng@tinylab.org>
+
 ---
 
-(no changes since v1)
+Changes in v2:
+- new patch: lib: utils/irqchip: plic: Fix the off-by-one error in plic_context_init()
 
- lib/utils/irqchip/plic.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/utils/irqchip/plic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-index 73d7788..4df9020 100644
+index c5c1879..5b87d3b 100644
 --- a/lib/utils/irqchip/plic.c
 +++ b/lib/utils/irqchip/plic.c
-@@ -38,13 +38,13 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+@@ -121,7 +121,7 @@ int plic_context_init(const struct plic_data *plic, int context_id,
+ 	if (!plic || context_id < 0)
+ 		return SBI_EINVAL;
  
- void plic_priority_save(const struct plic_data *plic, u8 *priority)
- {
--	for (u32 i = 0; i < plic->num_src; i++)
-+	for (u32 i = 1; i <= plic->num_src; i++)
- 		priority[i] = plic_get_priority(plic, i);
- }
+-	ie_words = (plic->num_src + 31) / 32;
++	ie_words = plic->num_src / 32 + 1;
+ 	ie_value = enable ? 0xffffffffU : 0U;
  
- void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
- {
--	for (u32 i = 0; i < plic->num_src; i++)
-+	for (u32 i = 1; i <= plic->num_src; i++)
- 		plic_set_priority(plic, i, priority[i]);
- }
- 
+ 	for (u32 i = 0; i < ie_words; i++)
 -- 
 2.34.1
 
