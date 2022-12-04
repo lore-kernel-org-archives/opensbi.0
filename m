@@ -1,39 +1,45 @@
-From: Sergey Matyukevich <geomatsi@gmail.com>
-Date: Sun, 4 Dec 2022 00:59:08 +0300
-Subject: [PATCH RFC v2 0/2] lib: sbi: add support for debug triggers
-In-Reply-To: <20221203213929.206429-1-geomatsi@gmail.com>
-References: <20221203213929.206429-1-geomatsi@gmail.com>
-Message-ID: <Y4vGrLxywGPpCJ//@curiosity>
+From: Bin Meng <bmeng@tinylab.org>
+Date: Sun,  4 Dec 2022 13:14:59 +0800
+Subject: [PATCH v2 1/5] lib: utils/irqchip: plic: Fix the off-by-one error in priority save/restore helpers
+Message-ID: <20221204051503.439727-1-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-> This is the second revision of the patches implementing SBI Debug
-> Trigger extension proposal posted at riscv tech-debug list:
-> https://lists.riscv.org/g/tech-debug/topic/92375492
-> 
-> The major changes include support for mcounter trigger type and
-> updates according to some of the review comments. 
-> 
-> As a part of endianness fixes, this revision includes a separate
-> patch for a header with endianness conversion macros. Depending
-> on the feedback, later on it can be reposted separately.
-> 
-> Regards,
-> Sergey
-> 
-> Changes v1 -> v2:
-> - add header with endianness conversion macros
-> - fix endinanness: keep possible big-endian support in mind
-> - do not mark shared structures as packed
-> - add support for type 2 (mcounter) triggers
- 
-The accompanying patches for Linux and GDB has also been posted:
-- https://patchwork.sourceware.org/project/gdb/patch/20221130182605.1905317-1-yuly.tarasov at syntacore.com/
-- https://lore.kernel.org/linux-riscv/20221203215535.208948-1-geomatsi at gmail.com/T/#t
+Interrupt source 0 is reserved. Hence the irq should start from 1.
 
-Regards,
-Sergey
+Fixes: 2b79b694a805 ("lib: irqchip/plic: Add priority save/restore helpers")
+Signed-off-by: Bin Meng <bmeng@tinylab.org>
+---
+
+(no changes since v1)
+
+ lib/utils/irqchip/plic.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 73d7788..4df9020 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -38,13 +38,13 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+ 
+ void plic_priority_save(const struct plic_data *plic, u8 *priority)
+ {
+-	for (u32 i = 0; i < plic->num_src; i++)
++	for (u32 i = 1; i <= plic->num_src; i++)
+ 		priority[i] = plic_get_priority(plic, i);
+ }
+ 
+ void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
+ {
+-	for (u32 i = 0; i < plic->num_src; i++)
++	for (u32 i = 1; i <= plic->num_src; i++)
+ 		plic_set_priority(plic, i, priority[i]);
+ }
+ 
+-- 
+2.34.1
+
 
