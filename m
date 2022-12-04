@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 4 Dec 2022 22:01:09 +0530
-Subject: [PATCH v2 2/3] lib: sbi: add in_region
-In-Reply-To: <20221124031605.216192-3-wxjstz@126.com>
-References: <20221124031605.216192-1-wxjstz@126.com> <20221124031605.216192-3-wxjstz@126.com>
-Message-ID: <CAAhSdy3gEKXGzSshQvo7VA6xCggbLeaor2GXyVgv71R2JWXDQQ@mail.gmail.com>
+Date: Sun, 4 Dec 2022 22:01:55 +0530
+Subject: [PATCH v2 3/3] lib: sbi: fix is_region_valid
+In-Reply-To: <20221124031605.216192-4-wxjstz@126.com>
+References: <20221124031605.216192-1-wxjstz@126.com> <20221124031605.216192-4-wxjstz@126.com>
+Message-ID: <CAAhSdy3CEUUrsqdvwnQi3b2WgWbBAxKpf9+z-9nN-iXCRhqW5g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,110 +12,40 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Nov 24, 2022 at 8:46 AM Xiang W <wxjstz@126.com> wrote:
 >
-> It is a common operation to judge whether an address is in a
-> certain region, and add an inline function. and simplify
-> sbi_domain_memregion_init and is_region_subset.
+> When order is equal to __riscv_xlen, the shift operation will not
+> perform any operation, which will cause
+> reg->base & (BIT(reg->order) - 1) to always be 0, and the condition
+> has not been established. This patch fixes this bug
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 
-I don't see the point behind this optimization since compiler will
-anyway inline in_region().
+Looks good to me.
 
-Regards,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_domain.c | 52 +++++++++++++++++++-------------------------
->  1 file changed, 22 insertions(+), 30 deletions(-)
+>  lib/sbi/sbi_domain.c | 3 +++
+>  1 file changed, 3 insertions(+)
 >
 > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index fec9074..3365e74 100644
+> index 3365e74..65fae89 100644
 > --- a/lib/sbi/sbi_domain.c
 > +++ b/lib/sbi/sbi_domain.c
-> @@ -36,6 +36,14 @@ struct sbi_domain root = {
->         .system_reset_allowed = TRUE,
->  };
+> @@ -142,6 +142,9 @@ static bool is_region_valid(const struct sbi_domain_memregion *reg)
+>         if (reg->order < 3 || __riscv_xlen < reg->order)
+>                 return FALSE;
 >
-> +static inline bool in_region(unsigned long addr, const struct sbi_domain_memregion *reg)
-> +{
-> +       unsigned long s, e;
-> +       s= reg->base;
-> +       e = reg->order < __riscv_xlen ? reg->base + (BIT(reg->order) - 1) : -1;
-> +       return (s <= addr) && (addr <= e);
-> +}
+> +       if (reg->order == __riscv_xlen && reg->base != 0)
+> +               return FALSE;
 > +
->  bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
->  {
->         if (dom)
-> @@ -77,27 +85,18 @@ void sbi_domain_memregion_init(unsigned long addr,
->                                 unsigned long flags,
->                                 struct sbi_domain_memregion *reg)
->  {
-> -       unsigned long base = 0, order;
-> +       unsigned long order;
-> +
-> +       if (reg == NULL)
-> +               return;
+>         if (reg->base & (BIT(reg->order) - 1))
+>                 return FALSE;
 >
->         for (order = log2roundup(size) ; order <= __riscv_xlen; order++) {
-> -               if (order < __riscv_xlen) {
-> -                       base = addr & ~((1UL << order) - 1UL);
-> -                       if ((base <= addr) &&
-> -                           (addr < (base + (1UL << order))) &&
-> -                           (base <= (addr + size - 1UL)) &&
-> -                           ((addr + size - 1UL) < (base + (1UL << order))))
-> -                               break;
-> -               } else {
-> -                       base = 0;
-> +               reg->base = order < __riscv_xlen ? addr & ~((1UL << order) - 1UL) : 0;
-> +               reg->order = order;
-> +               if (in_region(addr,reg) && in_region(addr + size - 1, reg)) {
-> +                       reg->flags = flags;
->                         break;
->                 }
-> -
-> -       }
-> -
-> -       if (reg) {
-> -               reg->base = base;
-> -               reg->order = order;
-> -               reg->flags = flags;
->         }
->  }
->
-> @@ -126,10 +125,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
->                 if (mode == PRV_M && !(rflags & SBI_DOMAIN_MEMREGION_MMODE))
->                         continue;
->
-> -               rstart = reg->base;
-> -               rend = (reg->order < __riscv_xlen) ?
-> -                       rstart + ((1UL << reg->order) - 1) : -1UL;
-> -               if (rstart <= addr && addr <= rend) {
-> +               if (in_region(addr, reg)) {
->                         rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? TRUE : FALSE;
->                         if (mmio != rmmio)
->                                 return FALSE;
-> @@ -156,15 +152,11 @@ static bool is_region_valid(const struct sbi_domain_memregion *reg)
->  static bool is_region_subset(const struct sbi_domain_memregion *regA,
->                              const struct sbi_domain_memregion *regB)
->  {
-> -       ulong regA_start = regA->base;
-> -       ulong regA_end = regA->base + (BIT(regA->order) - 1);
-> -       ulong regB_start = regB->base;
-> -       ulong regB_end = regB->base + (BIT(regB->order) - 1);
-> -
-> -       if ((regB_start <= regA_start) &&
-> -           (regA_start < regB_end) &&
-> -           (regB_start < regA_end) &&
-> -           (regA_end <= regB_end))
-> +       unsigned long start, end;
-> +       start = regA->base;
-> +       end = regA->order < __riscv_xlen ? regA->base + (BIT(regA->order) - 1) : -1;
-> +
-> +       if (in_region(start, regB) && in_region(end, regB))
->                 return TRUE;
->
->         return FALSE;
 > --
 > 2.30.2
 >
