@@ -1,127 +1,61 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 5 Dec 2022 18:08:48 +0530
-Subject: [PATCH v3 4/6] platform: generic: Add Renesas RZ/Five initial support
-In-Reply-To: <20221130220825.193693-5-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com> <20221130220825.193693-5-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <CAAhSdy2qCe0Vq9ujxT0SEU1RTo11X_V9Wb30SON6OPGtiWNa0A@mail.gmail.com>
+Date: Mon, 5 Dec 2022 18:16:34 +0530
+Subject: [PATCH v3 6/6] platform: generic: Drop root_offset parameter from fw_platform_lookup_special()
+In-Reply-To: <20221130220825.193693-7-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com> <20221130220825.193693-7-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <CAAhSdy0kZDPJd4jWQGU-18gOtuS3dzgSQsThAafbf1RpDQrgQw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 1, 2022 at 3:38 AM Prabhakar <prabhakar.csengg@gmail.com> wrote:
+On Thu, Dec 1, 2022 at 3:39 AM Prabhakar <prabhakar.csengg@gmail.com> wrote:
 >
 > From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 >
-> This commit provides basic support for the Renesas RZ/Five
-> (R9A07G043F) SoC.
->
-> The RZ/Five microprocessor includes a single RISC-V CPU Core (Andes AX45MP)
-> 1.0 GHz, 16-bit DDR3L/DDR4 interface. Supported interfaces include:
-> - Gigabit Ethernet 2ch
-> - CAN interface (CAN-FD) 2ch
-> - USB 2.0 interface 2ch
-> - SD interface 2ch
-> - AD converter 2ch
->
-> Useful links:
-> -------------
-> Links: https://www.renesas.com/us/en/products/microcontrollers-microprocessors/rz-mpus/rzfive-risc-v-general-purpose-microprocessors-risc-v-cpu-core-andes-ax45mp-single-10-ghz-2ch-gigabit-ethernet
-> Links: http://www.andestech.com/en/products-solutions/andescore-processors/riscv-ax45mp/
+> root_offset parameter isn't used in fw_platform_lookup_special() so
+> just drop it.
 >
 > Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
 > v2->v3
 > * New patch
 > ---
->  platform/generic/Kconfig                   |  4 ++++
->  platform/generic/configs/defconfig         |  2 ++
->  platform/generic/renesas/rzfive/objects.mk |  8 ++++++++
->  platform/generic/renesas/rzfive/rzfive.c   | 17 +++++++++++++++++
->  4 files changed, 31 insertions(+)
->  create mode 100644 platform/generic/renesas/rzfive/objects.mk
->  create mode 100644 platform/generic/renesas/rzfive/rzfive.c
+>  platform/generic/platform.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index 4b5d2cd..62c7a2d 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -32,6 +32,10 @@ config PLATFORM_ANDES_AE350
->         bool "Andes AE350 support"
->         default n
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 595b0fd..fb5f476 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -32,7 +32,7 @@ extern unsigned long platform_override_modules_size;
+>  static const struct platform_override *generic_plat = NULL;
+>  static const struct fdt_match *generic_plat_match = NULL;
 >
-> +config PLATFORM_RENESAS_RZFIVE
-> +       bool "Renesas RZ/Five support"
-> +       default n
-> +
->  config PLATFORM_SIFIVE_FU540
->         bool "SiFive FU540 support"
->         default n
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 2eaeeb7..47fca95 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -1,5 +1,6 @@
->  CONFIG_PLATFORM_ALLWINNER_D1=y
->  CONFIG_PLATFORM_ANDES_AE350=y
-> +CONFIG_PLATFORM_RENESAS_RZFIVE=y
->  CONFIG_PLATFORM_SIFIVE_FU540=y
->  CONFIG_PLATFORM_SIFIVE_FU740=y
->  CONFIG_FDT_GPIO=y
-> @@ -24,6 +25,7 @@ CONFIG_FDT_SERIAL=y
->  CONFIG_FDT_SERIAL_CADENCE=y
->  CONFIG_FDT_SERIAL_GAISLER=y
->  CONFIG_FDT_SERIAL_HTIF=y
-> +CONFIG_FDT_SERIAL_RENESAS_SCIF=y
->  CONFIG_FDT_SERIAL_SHAKTI=y
->  CONFIG_FDT_SERIAL_SIFIVE=y
->  CONFIG_FDT_SERIAL_LITEX=y
-> diff --git a/platform/generic/renesas/rzfive/objects.mk b/platform/generic/renesas/rzfive/objects.mk
-> new file mode 100644
-> index 0000000..2e7e37f
-> --- /dev/null
-> +++ b/platform/generic/renesas/rzfive/objects.mk
-> @@ -0,0 +1,8 @@
-> +#
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +#
-> +# Copyright (C) 2022 Renesas Electronics Corp.
-> +#
-> +
-> +carray-platform_override_modules-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas_rzfive
-> +platform-objs-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas/rzfive/rzfive.o
-> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> new file mode 100644
-> index 0000000..2b82bc6
-> --- /dev/null
-> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> @@ -0,0 +1,17 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (C) 2022 Renesas Electronics Corp.
-> + *
-> + */
-> +
-> +#include <platform_override.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +
-> +static const struct fdt_match renesas_rzfive_match[] = {
-> +       { .compatible = "renesas,r9a07g043" },
-> +       { /* sentinel */ }
-> +};
-> +
-> +const struct platform_override renesas_rzfive = {
-> +       .match_table = renesas_rzfive_match,
-> +};
+> -static void fw_platform_lookup_special(void *fdt, int root_offset)
+> +static void fw_platform_lookup_special(void *fdt)
+
+Rather than dropping root_offset, please update this patch to
+replace use of fdt_find_match() with fdt_match_node(). This is
+because platform override should be detected only based on
+root DT node matching.
+
+Regards,
+Anup
+
+>  {
+>         int pos, noff;
+>         const struct platform_override *plat;
+> @@ -83,7 +83,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+>         if (root_offset < 0)
+>                 goto fail;
+>
+> -       fw_platform_lookup_special(fdt, root_offset);
+> +       fw_platform_lookup_special(fdt);
+>
+>         model = fdt_getprop(fdt, root_offset, "model", &len);
+>         if (model)
 > --
 > 2.17.1
 >
