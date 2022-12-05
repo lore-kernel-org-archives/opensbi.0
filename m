@@ -1,155 +1,86 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 5 Dec 2022 10:06:28 +0530
-Subject: [PATCH 1/3] lib: sbi: Optionally use ".insn" instead of ".word"
-In-Reply-To: <d0ab3f9e2b778ce834a81ec56c3cfd9d0fe255d2.1669452733.git.research_trasio@irq.a4lg.com>
-References: <cover.1669452733.git.research_trasio@irq.a4lg.com> <d0ab3f9e2b778ce834a81ec56c3cfd9d0fe255d2.1669452733.git.research_trasio@irq.a4lg.com>
-Message-ID: <CAAhSdy0+e9_oiVJS9GSzb69t5OV5PMU2Ggf379j=LDOOABWjBg@mail.gmail.com>
+Date: Mon, 5 Dec 2022 10:08:14 +0530
+Subject: [PATCH v2 2/3] lib: sbi: Optionally use ".option arch,+h"
+In-Reply-To: <688110cfcf63a3b70562d58daa095fcbb6a7820b.1669518264.git.research_trasio@irq.a4lg.com>
+References: <cover.1669452733.git.research_trasio@irq.a4lg.com>
+ <cover.1669518264.git.research_trasio@irq.a4lg.com> <688110cfcf63a3b70562d58daa095fcbb6a7820b.1669518264.git.research_trasio@irq.a4lg.com>
+Message-ID: <CAAhSdy2kNehxoEPQit25PyVvKqBUv5r6=JPKtn5HTSYHAXykYg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 26, 2022 at 2:24 PM Tsukasa OI <research_trasio@irq.a4lg.com> wrote:
+On Sun, Nov 27, 2022 at 8:35 AM Tsukasa OI <research_trasio@irq.a4lg.com> wrote:
 >
 > From: Tsukasa OI <research_trasio@irq.a4lg.com>
 >
-> ".word" is used to emit a data word (32-bits) and recent GNU assembler
-> adds mapping symbol "$d" before ".word" to make sure that this is a data
-> word.  However, in lib/sbi/sbi_hfence.S, we use this to emit hfence.*
-> instructions (for assemblers that do not support hfence.*).  The mapping
-> symbol "$d" prevents these instructions being disassembled as code.
+> On the debugger / disassembler, disassembling hfence.* as hfence.* requires
+> indication of the 'H'-extension use.
 >
-> Instead, ".insn" is available to emit raw instructions but not all
-> assemblers with ".insn" support raw values.
+> ".option arch,+[EXT_NAME]" is one of the such ways and this commit
+> optionally inserts this assembler directive when supported.
 >
-> This commit tests support of ".insn" with raw value in the Makefile
-> (AS_SUPPORT_INSN_RAW_DIRECTIVE) and optionally replaces ".word" with ".insn"
-> when ".insn" with raw value is supported.
+> It enables disassembling on the software which supports "$x[arch]" (mapping
+> symbols with ISA string) - latest GNU Binutils (will be released as 2.40).
+> Note that this commit alone won't make disassembler behavior correct on
+> GNU Binutils 2.39 because of a linker issue.
 >
 > Signed-off-by: Tsukasa OI <research_trasio@irq.a4lg.com>
 > ---
->  Makefile             |  8 ++++++++
->  lib/sbi/sbi_hfence.S | 16 ++++++++--------
->  2 files changed, 16 insertions(+), 8 deletions(-)
+>  Makefile             | 6 ++++++
+>  lib/sbi/sbi_hfence.S | 4 ++++
+>  2 files changed, 10 insertions(+)
 >
 > diff --git a/Makefile b/Makefile
-> index 8db6eabe9fda..e942dfdc00bc 100644
+> index e942dfdc00bc..d8b85f0497aa 100644
 > --- a/Makefile
 > +++ b/Makefile
 > @@ -173,6 +173,9 @@ CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
 >  # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
 >  CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
 >
-> +# Check whether the ".insn" directive on the assembler (with raw value) is supported
-> +AS_SUPPORT_INSN_RAW_DIRECTIVE := $(shell echo ".insn 0x1000000f" | $(AS) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -x assembler-with-cpp -c - -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+> +# Check whether the assembler support the H extension with .option arch,+h
+> +AS_SUPPORT_H_EXT_BY_OPTION_ARCH := $(shell echo ".option arch,+h" | $(AS) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -x assembler-with-cpp -c - -o /dev/null 2>&1 | grep -i "warning:.*option" > /dev/null && echo n || echo y)
 > +
->  # Build Info:
->  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
->  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
-> @@ -323,6 +326,11 @@ ifeq ($(BUILD_INFO),y)
->  GENFLAGS       +=      -DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
->  GENFLAGS       +=      -DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
->  endif
-> +ifeq ($(AS_SUPPORT_INSN_RAW_DIRECTIVE),y)
-> +GENFLAGS    +=  -DRAW_INSN=".insn"
-> +else
-> +GENFLAGS    +=  -DRAW_INSN=".word"
-> +endif
 
-OpenSBI specific defines have "OPENSBI_" prefix so
-better use that OPENSBI_RAW_INSN as define name.
+Currently, its H-extension and in-future there will be some other
+extension adding new instructions.
 
->  ifdef PLATFORM
->  GENFLAGS       +=      -include $(KCONFIG_AUTOHEADER)
->  endif
-> diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
-> index e11e6505383d..40882e036932 100644
-> --- a/lib/sbi/sbi_hfence.S
-> +++ b/lib/sbi/sbi_hfence.S
-> @@ -32,7 +32,7 @@ __sbi_hfence_gvma_vmid_gpa:
->          * HFENCE.GVMA a0, a1
->          * 0110001 01011 01010 000 00000 1110011
->          */
-> -       .word 0x62b50073
-> +       RAW_INSN 0x62b50073
-
-This will fail to compile for people using OpenSBI as a library.
-
-We need some kind of macro to fallback to ".word" when
-OPENSBI_RAW_INSN is not defined.
-
-It's better to do something like
-<linux_source>/arch/riscv/include/asm/insn-def.h
-which is flexible and scalable.
+Please look at <linux>/arch/riscv/include/asm/insn-def.h, we should
+go this route for OpenSBI as well.
 
 Regards,
 Anup
 
->         ret
+>  # Check whether the ".insn" directive on the assembler (with raw value) is supported
+>  AS_SUPPORT_INSN_RAW_DIRECTIVE := $(shell echo ".insn 0x1000000f" | $(AS) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -x assembler-with-cpp -c - -o /dev/null >/dev/null 2>&1 && echo y || echo n)
 >
->         .align 3
-> @@ -44,7 +44,7 @@ __sbi_hfence_gvma_vmid:
->          * HFENCE.GVMA zero, a0
->          * 0110001 01010 00000 000 00000 1110011
->          */
-> -       .word 0x62a00073
-> +       RAW_INSN 0x62a00073
->         ret
+> @@ -331,6 +334,9 @@ GENFLAGS    +=  -DRAW_INSN=".insn"
+>  else
+>  GENFLAGS    +=  -DRAW_INSN=".word"
+>  endif
+> +ifeq ($(AS_SUPPORT_H_EXT_BY_OPTION_ARCH),y)
+> +GENFLAGS    +=  -DOPENSBI_H_EXT_BY_OPTION_ARCH_SUPPORTED
+> +endif
+>  ifdef PLATFORM
+>  GENFLAGS       +=      -include $(KCONFIG_AUTOHEADER)
+>  endif
+> diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
+> index 40882e036932..146a41959a67 100644
+> --- a/lib/sbi/sbi_hfence.S
+> +++ b/lib/sbi/sbi_hfence.S
+> @@ -8,6 +8,10 @@
+>   *   Atish Patra <anup.patel@wdc.com>
+>   */
 >
->         .align 3
-> @@ -56,7 +56,7 @@ __sbi_hfence_gvma_gpa:
->          * HFENCE.GVMA a0
->          * 0110001 00000 01010 000 00000 1110011
->          */
-> -       .word 0x62050073
-> +       RAW_INSN 0x62050073
->         ret
->
->         .align 3
-> @@ -68,7 +68,7 @@ __sbi_hfence_gvma_all:
->          * HFENCE.GVMA
->          * 0110001 00000 00000 000 00000 1110011
->          */
-> -       .word 0x62000073
-> +       RAW_INSN 0x62000073
->         ret
->
+> +#ifdef OPENSBI_H_EXT_BY_OPTION_ARCH_SUPPORTED
+> +       .option arch,+h
+> +#endif
+> +
 >         /*
-> @@ -95,7 +95,7 @@ __sbi_hfence_vvma_asid_va:
->          * HFENCE.VVMA a0, a1
->          * 0010001 01011 01010 000 00000 1110011
->          */
-> -       .word 0x22b50073
-> +       RAW_INSN 0x22b50073
->         ret
->
->         .align 3
-> @@ -107,7 +107,7 @@ __sbi_hfence_vvma_asid:
->          * HFENCE.VVMA zero, a0
->          * 0010001 01010 00000 000 00000 1110011
->          */
-> -       .word 0x22a00073
-> +       RAW_INSN 0x22a00073
->         ret
->
->         .align 3
-> @@ -119,7 +119,7 @@ __sbi_hfence_vvma_va:
->          * HFENCE.VVMA zero, a0
->          * 0010001 00000 01010 000 00000 1110011
->          */
-> -       .word 0x22050073
-> +       RAW_INSN 0x22050073
->         ret
->
->         .align 3
-> @@ -131,5 +131,5 @@ __sbi_hfence_vvma_all:
->          * HFENCE.VVMA
->          * 0010001 00000 00000 000 00000 1110011
->          */
-> -       .word 0x22000073
-> +       RAW_INSN 0x22000073
->         ret
+>          * HFENCE.GVMA rs1, rs2
+>          * HFENCE.GVMA zero, rs2
 > --
 > 2.38.1
 >
