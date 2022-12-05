@@ -1,10 +1,10 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 5 Dec 2022 18:55:44 +0530
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 5 Dec 2022 19:17:31 +0530
 Subject: [PATCH v3 0/6] Add support for Renesas RZ/Five SoC
 In-Reply-To: <CA+V-a8uR8EuSUGdz773P_U2gzDmQRe458yDTdgU2n4fQkMwUrA@mail.gmail.com>
 References: <20221130220825.193693-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
  <CAAhSdy2R2t9QENdi7qn-hx1_3xQMFi5D=cnT9AyL_k485YafBw@mail.gmail.com> <CA+V-a8uR8EuSUGdz773P_U2gzDmQRe458yDTdgU2n4fQkMwUrA@mail.gmail.com>
-Message-ID: <CAK9=C2UFNLemX-k3d_=u8gn_oTfNfPx4b-EgMrV743AV=vqiPw@mail.gmail.com>
+Message-ID: <CAAhSdy1Vtt5nArE=Qp2cpW=uBPVpxZqq2qAwR-y8oBYyC2ZnjA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -92,21 +92,20 @@ On Mon, Dec 5, 2022 at 6:40 PM Lad, Prabhakar
 > Not with the current patchest, but going forward we will.
 >
 > I need to investigate this (can you please point me to an example for this).
->
-> BTW when do you plan to plan for the next OpenSBI release (I'll plan
-> accordingly to send a v4 for this series).
 
-It would be nice if we can conclude this series before the end of next week.
+You can look at <opensbi>/lib/utils/reset.
+This has quite a few drivers.
+
+If you still have questions then email me separately about how
+system reboot/shutdown works on your SoC.
 
 Regards,
 Anup
 
 >
+> BTW when do you plan to plan for the next OpenSBI release (I'll plan
+> accordingly to send a v4 for this series).
+>
 > Cheers,
 > Prabhakar
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
