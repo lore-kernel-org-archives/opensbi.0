@@ -1,77 +1,41 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 5 Dec 2022 10:03:58 +0800
-Subject: [PATCH v2 2/4] docs: platform: Update AE350 and generic platform documentation
+Date: Mon, 5 Dec 2022 10:03:59 +0800
+Subject: [PATCH v2 3/4] docs: andes-ae350.md: fix watchdog nodename in dts example
 In-Reply-To: <20221205020400.28712-1-peterlin@andestech.com>
 References: <20221205020400.28712-1-peterlin@andestech.com>
-Message-ID: <20221205020400.28712-3-peterlin@andestech.com>
+Message-ID: <20221205020400.28712-4-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Update compile option and platform compatible string for AE350 and
-add it to the generic platform list.
+The example should use watchdog as nodename instead of wdt.
+This is defined in watchdog common schemas:
+https://github.com/torvalds/linux/blob/v6.0/Documentation/devicetree/bindings/watchdog/watchdog.yaml#L19
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Bin Meng <bmeng@tinylab.org>
 ---
 Changes v1 -> v2
 - Add Bin Meng's review tag
-- Insert AE350 platform in alphabetical order
 ---
- docs/platform/andes-ae350.md | 5 +++--
- docs/platform/generic.md     | 2 ++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ docs/platform/andes-ae350.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
-index ec241ec..4739951 100644
+index 4739951..8fc8ec6 100644
 --- a/docs/platform/andes-ae350.md
 +++ b/docs/platform/andes-ae350.md
-@@ -8,7 +8,7 @@ AHB/APB IPs suites a majority embedded systems, and the verified platform serves
- as a starting point to jump start SoC designs.
+@@ -178,7 +178,7 @@ DTS Example: (Quad-core AX45MP)
+ 			                        &CPU3_intc 7 >;
+ 		};
  
- To build platform specific library and firmwares, provide the
--*PLATFORM=andes/ae350* parameter to the top level make command.
-+*PLATFORM=generic* parameter to the top level `make` command.
- 
- Platform Options
- ----------------
-@@ -23,13 +23,14 @@ AE350's dts is included in https://github.com/andestech/linux/tree/RISCV-Linux-5
- **Linux Kernel Payload**
- 
- ```
--make PLATFORM=andes/ae350 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
-+make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
- ```
- 
- DTS Example: (Quad-core AX45MP)
- -------------------------------
- 
- ```
-+	compatible = "andestech,ae350";
- 	cpus {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
-diff --git a/docs/platform/generic.md b/docs/platform/generic.md
-index 73a8afa..e8a3296 100644
---- a/docs/platform/generic.md
-+++ b/docs/platform/generic.md
-@@ -45,12 +45,14 @@ The *Generic* platform does not have any platform-specific options.
- RISC-V Platforms Using Generic Platform
- ---------------------------------------
- 
-+* **Andes AE350 Platform** (*[andes-ae350.md]*)
- * **QEMU RISC-V Virt Machine** (*[qemu_virt.md]*)
- * **Shakti C-class SoC Platform** (*[shakti_cclass.md]*)
- * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
- * **Spike** (*[spike.md]*)
- * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
- 
-+[andes-ae350.md]: andse-ae350.md
- [qemu_virt.md]: qemu_virt.md
- [shakti_cclass.md]: shakti_cclass.md
- [sifive_fu540.md]: sifive_fu540.md
+-		wdt: wdt at f0500000 {
++		wdt: watchdog at f0500000 {
+ 			compatible = "andestech,atcwdt200";
+ 			reg = <0x00000000 0xf0500000 0x00000000 0x00001000>;
+ 			interrupts = <3 4>;
 -- 
 2.34.1
 
