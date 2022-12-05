@@ -1,155 +1,161 @@
-From: Eric Lin <eric.lin@sifive.com>
-Date: Mon, 5 Dec 2022 10:31:29 +0800
-Subject: [PATCH] lib: sbi: Bypass CY and IR bit setting in mcountinhibit
-In-Reply-To: <CAOnJCUKi8NSqNgDyKaT9u7w-bPFeMbCM=K6DYTzW+e+3srYfnA@mail.gmail.com>
-References: <20221116101826.10465-1-eric.lin@sifive.com> <E95DA6B1-DCB9-45D9-BB30-8EC53F2D1596@jrtc27.com>
- <CAOnJCUKi8NSqNgDyKaT9u7w-bPFeMbCM=K6DYTzW+e+3srYfnA@mail.gmail.com>
-Message-ID: <CAPqJEFoe0R1aY=P8NEwaAipg=jSYaAJ4Prz=VJ7txp3vqqG-PQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 5 Dec 2022 10:06:28 +0530
+Subject: [PATCH 1/3] lib: sbi: Optionally use ".insn" instead of ".word"
+In-Reply-To: <d0ab3f9e2b778ce834a81ec56c3cfd9d0fe255d2.1669452733.git.research_trasio@irq.a4lg.com>
+References: <cover.1669452733.git.research_trasio@irq.a4lg.com> <d0ab3f9e2b778ce834a81ec56c3cfd9d0fe255d2.1669452733.git.research_trasio@irq.a4lg.com>
+Message-ID: <CAAhSdy0+e9_oiVJS9GSzb69t5OV5PMU2Ggf379j=LDOOABWjBg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-(Resend to OpenSBI mailing list)
-
-Hi Aitsh,
-
-On Fri, Nov 18, 2022 at 7:00 AM Atish Patra <atishp@atishpatra.org> wrote:
+On Sat, Nov 26, 2022 at 2:24 PM Tsukasa OI <research_trasio@irq.a4lg.com> wrote:
 >
-> On Wed, Nov 16, 2022 at 6:57 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >
-> > On 16 Nov 2022, at 10:18, Eric Lin <eric.lin@sifive.com> wrote:
-> > >
-> > > CYCLE and INSTRET counters are part of uABI and they were
-> > > re-enable for userspace in Linux riscv pmu driver.
-> > >
-> > > To make these counters increase normally in userspace, we bypass
-> > > CY and IR bit checking when setting mcountinhibit register.
-> > >
-> > > LINK:https://lore.kernel.org/all/20220928131807.30386-1-palmer at rivosinc.com/
-> > > Signed-off-by: Eric Lin <eric.lin@sifive.com>
-> >
-> > If Linux is making SBI calls it doesn?t want then it should stop making
-> > those calls. S-mode requesting CY and IR inhibit bits be set is totally
-> > legitimate in some circumstances, it?s not up to firmware to enforce a
-> > specific S-mode OS policy.
-> >
+> From: Tsukasa OI <research_trasio@irq.a4lg.com>
 >
-> Yes. Start/sop is required when the user is doing perf stat or record
-> for these counters.
+> ".word" is used to emit a data word (32-bits) and recent GNU assembler
+> adds mapping symbol "$d" before ".word" to make sure that this is a data
+> word.  However, in lib/sbi/sbi_hfence.S, we use this to emit hfence.*
+> instructions (for assemblers that do not support hfence.*).  The mapping
+> symbol "$d" prevents these instructions being disassembled as code.
 >
-> To increase the CYCLE and INSTRET,
-> pmu_sbi_starting_cpu( in drivers/perf/riscv_pmu_sbi.c)
-> should be modified to stop only the programmable counters. Not all.
+> Instead, ".insn" is available to emit raw instructions but not all
+> assemblers with ".insn" support raw values.
 >
-Since CYCLE and INSTRET counters are re-enabled in userspace, user
-applications will use rdcycle and rdinstert pseudoinstruction for
-performance monitoring.
+> This commit tests support of ".insn" with raw value in the Makefile
+> (AS_SUPPORT_INSN_RAW_DIRECTIVE) and optionally replaces ".word" with ".insn"
+> when ".insn" with raw value is supported.
+>
+> Signed-off-by: Tsukasa OI <research_trasio@irq.a4lg.com>
+> ---
+>  Makefile             |  8 ++++++++
+>  lib/sbi/sbi_hfence.S | 16 ++++++++--------
+>  2 files changed, 16 insertions(+), 8 deletions(-)
+>
+> diff --git a/Makefile b/Makefile
+> index 8db6eabe9fda..e942dfdc00bc 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -173,6 +173,9 @@ CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
+>  # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+>  CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
+>
+> +# Check whether the ".insn" directive on the assembler (with raw value) is supported
+> +AS_SUPPORT_INSN_RAW_DIRECTIVE := $(shell echo ".insn 0x1000000f" | $(AS) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -x assembler-with-cpp -c - -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+> +
+>  # Build Info:
+>  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+>  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+> @@ -323,6 +326,11 @@ ifeq ($(BUILD_INFO),y)
+>  GENFLAGS       +=      -DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
+>  GENFLAGS       +=      -DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
+>  endif
+> +ifeq ($(AS_SUPPORT_INSN_RAW_DIRECTIVE),y)
+> +GENFLAGS    +=  -DRAW_INSN=".insn"
+> +else
+> +GENFLAGS    +=  -DRAW_INSN=".word"
+> +endif
 
-IMO, when a user uses rdcycle and rdinstert pseudoinstruction to get
-cycle and instructions count, they would assume that CYCLE and INSTRET
-counters are strictly increasing and no need to initialize in Linux.
-Is the assumption right?
+OpenSBI specific defines have "OPENSBI_" prefix so
+better use that OPENSBI_RAW_INSN as define name.
 
-However, if another user uses the perf tool to get cycle and
-instruction count, the perf framework will start and stop counters
-when events are scheduled in and out.
-This will make the CYCLE and INSTRET counters not strictly increase
-and the rdcycle and rdinstert results are not what the user expects.
+>  ifdef PLATFORM
+>  GENFLAGS       +=      -include $(KCONFIG_AUTOHEADER)
+>  endif
+> diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
+> index e11e6505383d..40882e036932 100644
+> --- a/lib/sbi/sbi_hfence.S
+> +++ b/lib/sbi/sbi_hfence.S
+> @@ -32,7 +32,7 @@ __sbi_hfence_gvma_vmid_gpa:
+>          * HFENCE.GVMA a0, a1
+>          * 0110001 01011 01010 000 00000 1110011
+>          */
+> -       .word 0x62b50073
+> +       RAW_INSN 0x62b50073
 
-Therefore, I think two places need to modify in Linux riscv pmu driver.
+This will fail to compile for people using OpenSBI as a library.
 
-The first one is that when booting, we should only stop programmable
-counters in pmu_sbi_stop_all().
-The patch is as below:
- static inline void pmu_sbi_stop_all(struct riscv_pmu *pmu)
- {
-+       unsigned long cmask = 0;
-        /*
--        * No need to check the error because we are disabling all the counters
-+        * No need to check the error because we are disabling
-programmable counters
-         * which may include counters that are not enabled yet.
-         */
-+       cmask = pmu->cmask & (~(BIT(0) | BIT(2)));
-        sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_STOP,
--                 0, pmu->cmask, 0, 0, 0, 0);
-+                 0, cmask, 0, 0, 0, 0);
+We need some kind of macro to fallback to ".word" when
+OPENSBI_RAW_INSN is not defined.
 
-The second one is that when the user uses the perf stat -e
-cycles/instructions command, it will stop counters when the event
-stop.
-We should skip stopping CYCLE and INSTRET counters in pmu_sbi_ctr_stop().
-The patch is as below:
-@@ -446,6 +446,10 @@ static void pmu_sbi_ctr_stop(struct perf_event
-*event, unsigned long flag)
-        struct sbiret ret;
-        struct hw_perf_event *hwc = &event->hw;
-
-+       /* Skip to stop CYCLE and INSTRET counters */
-+       if (hwc->idx == 0 || hwc->idx == 2)
-+               return;
-+
-        ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_STOP,
-hwc->idx, 1, flag, 0, 0, 0);
-        if (ret.error && (ret.error != SBI_ERR_ALREADY_STOPPED) &&
-                flag != SBI_PMU_STOP_FLAG_RESET)
-
-Is this the right way to fix rdcycle and rdinstert increase issue in
-userspace? Or is there something that I miss?
-Thanks.
+It's better to do something like
+<linux_source>/arch/riscv/include/asm/insn-def.h
+which is flexible and scalable.
 
 Regards,
-Eric Lin
+Anup
 
-
-> > Jess
-> >
-> > > ---
-> > > lib/sbi/sbi_pmu.c | 4 ++--
-> > > 1 file changed, 2 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > > index 91d9ccc..28107e5 100644
-> > > --- a/lib/sbi/sbi_pmu.c
-> > > +++ b/lib/sbi/sbi_pmu.c
-> > > @@ -318,7 +318,7 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
-> > >       if (cidx >= num_hw_ctrs || cidx == 1)
-> > >               return SBI_EINVAL;
-> > >
-> > > -     if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11)
-> > > +     if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11 || cidx == 0 || cidx == 2)
-> > >               goto skip_inhibit_update;
-> > >
-> > >       /*
-> > > @@ -413,7 +413,7 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
-> > >       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > >       unsigned long mctr_inhbt;
-> > >
-> > > -     if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11)
-> > > +     if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11 || cidx == 0 || cidx == 2)
-> > >               return 0;
-> > >
-> > >       mctr_inhbt = csr_read(CSR_MCOUNTINHIBIT);
-> > > --
-> > > 2.36.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+>         ret
 >
+>         .align 3
+> @@ -44,7 +44,7 @@ __sbi_hfence_gvma_vmid:
+>          * HFENCE.GVMA zero, a0
+>          * 0110001 01010 00000 000 00000 1110011
+>          */
+> -       .word 0x62a00073
+> +       RAW_INSN 0x62a00073
+>         ret
+>
+>         .align 3
+> @@ -56,7 +56,7 @@ __sbi_hfence_gvma_gpa:
+>          * HFENCE.GVMA a0
+>          * 0110001 00000 01010 000 00000 1110011
+>          */
+> -       .word 0x62050073
+> +       RAW_INSN 0x62050073
+>         ret
+>
+>         .align 3
+> @@ -68,7 +68,7 @@ __sbi_hfence_gvma_all:
+>          * HFENCE.GVMA
+>          * 0110001 00000 00000 000 00000 1110011
+>          */
+> -       .word 0x62000073
+> +       RAW_INSN 0x62000073
+>         ret
+>
+>         /*
+> @@ -95,7 +95,7 @@ __sbi_hfence_vvma_asid_va:
+>          * HFENCE.VVMA a0, a1
+>          * 0010001 01011 01010 000 00000 1110011
+>          */
+> -       .word 0x22b50073
+> +       RAW_INSN 0x22b50073
+>         ret
+>
+>         .align 3
+> @@ -107,7 +107,7 @@ __sbi_hfence_vvma_asid:
+>          * HFENCE.VVMA zero, a0
+>          * 0010001 01010 00000 000 00000 1110011
+>          */
+> -       .word 0x22a00073
+> +       RAW_INSN 0x22a00073
+>         ret
+>
+>         .align 3
+> @@ -119,7 +119,7 @@ __sbi_hfence_vvma_va:
+>          * HFENCE.VVMA zero, a0
+>          * 0010001 00000 01010 000 00000 1110011
+>          */
+> -       .word 0x22050073
+> +       RAW_INSN 0x22050073
+>         ret
+>
+>         .align 3
+> @@ -131,5 +131,5 @@ __sbi_hfence_vvma_all:
+>          * HFENCE.VVMA
+>          * 0010001 00000 00000 000 00000 1110011
+>          */
+> -       .word 0x22000073
+> +       RAW_INSN 0x22000073
+>         ret
+> --
+> 2.38.1
 >
 >
 > --
-> Regards,
-> Atish
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
