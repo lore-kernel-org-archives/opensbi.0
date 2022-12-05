@@ -1,63 +1,55 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Mon,  5 Dec 2022 22:12:31 +0530
-Subject: [PATCH] lib: sbi: Synchronize PMP settings with virtual memory system
-Message-ID: <20221205164231.170617-1-hchauhan@ventanamicro.com>
+From: Sergey Matyukevich <geomatsi@gmail.com>
+Date: Mon, 5 Dec 2022 23:34:37 +0300
+Subject: [PATCH RFC v2 2/2] lib: sbi: add support for debug triggers
+In-Reply-To: <57086abe77447357d6f33cc92f713e2c08860c0b.camel@126.com>
+References: <20221203213929.206429-1-geomatsi@gmail.com>
+ <20221203213929.206429-3-geomatsi@gmail.com>
+ <57086abe77447357d6f33cc92f713e2c08860c0b.camel@126.com>
+Message-ID: <Y45V3fAIOc9jNGaG@curiosity>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-As per section 3.7.2 of RISC-V Privileged Specification,
-PMP settings must be synchronized with the virtual memory
-system after PMP settings have been written.
+> > RISC-V Debug specification includes Sdtrig ISA extension.
+> > This extension describes Trigger Module. Triggers can cause
+> > a breakpoint exception, entry into Debug Mode, or a trace
+> > action without having to execute a special instruction. For
+> > native debugging triggers can be used to implement hardware
+> > breakpoints and watchpoints.
+> > 
+> > Software support for triggers consists of the following
+> > major components:
+> > - U-mode: gdb
+> > - S-mode: hardware breakpoints framework in Linux kernel
+> > - M-mode: SBI firmware code to handle triggers
+> > 
+> > SBI Debug Trigger extension proposal has been posted by
+> > Anup Patel to lists.riscv.org tech-debug mailing list:
+> > https://lists.riscv.org/g/tech-debug/topic/92375492
+> > 
+> > This patch provides initial implementation of SBI Debug
+> > Trigger Extension in OpenSBI library based on the
+> > suggested extension proposal.
+> > 
+> > Initial implementation has the following limitations:
+> > - supported triggers: mcontrol, mcontrol6
+> > - no support for chained triggers
+> > - only build test for RV32
+> > 
+> Missing Signed-off-by
 
-Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
----
- lib/sbi/sbi_hart.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+Thanks for catching, will fix.
+ 
+> Compilation preprocessing too much. It is recommended to process register
+> fields by defining some masks, and via INSERT_FIELD and EXTRACT_FIELD.
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index dacab1a..5447c52 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -22,6 +22,7 @@
- #include <sbi/sbi_pmu.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_trap.h>
-+#include <sbi/sbi_hfence.h>
- 
- extern void __sbi_expected_trap(void);
- extern void __sbi_expected_trap_hext(void);
-@@ -321,6 +322,27 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 		}
- 	}
- 
-+	/*
-+	 * As per section 3.7.2 of privileged specification v1.12,
-+	 * virtual address translations can be speculatively performed
-+	 * (even before actual access). These, along with PMP traslations,
-+	 * can be cached. This can pose a problem with CPU hotplug
-+	 * and non-retentive suspend scenario because PMP states are
-+	 * not preserved.
-+	 * It is advisable to flush the caching structures under such
-+	 * conditions.
-+	 */
-+	if (misa_extension('S')) {
-+		__asm__ __volatile__("sfence.vma");
-+
-+		/*
-+		 * If hypervisor mode is supported, flush caching
-+		 * structures in guest mode too.
-+		 */
-+		if (misa_extension('H'))
-+			__sbi_hfence_gvma_all();
-+	}
-+
- 	return 0;
- }
- 
--- 
-2.38.1
+Indeed, current bitfield/union code looks awkward. I'll try to make it
+more comprehensible in the next revision. BTW thanks for mentioning
+INSERT/EXTRACT  - I missed them when looking for something suitable
+bitops header.
 
+Regards,
+Sergey
 
