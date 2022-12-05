@@ -1,138 +1,91 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 05 Dec 2022 08:25:04 +0800
-Subject: [PATCH v2 2/3] lib: sbi: add in_region
-In-Reply-To: <CAAhSdy3gEKXGzSshQvo7VA6xCggbLeaor2GXyVgv71R2JWXDQQ@mail.gmail.com>
-References: <20221124031605.216192-1-wxjstz@126.com>
-	 <20221124031605.216192-3-wxjstz@126.com>
-	 <CAAhSdy3gEKXGzSshQvo7VA6xCggbLeaor2GXyVgv71R2JWXDQQ@mail.gmail.com>
-Message-ID: <4a6b961f99380e9c12426806a14f48fe1ea26eb9.camel@126.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Mon, 5 Dec 2022 09:38:23 +0000
+Subject: [PATCH 2/4] docs: platform: Update AE350 and generic platform
+ documentation
+In-Reply-To: <CAEUhbmW8y4tQixXSw-kLsjsGTf89wMfEYAW_dnmAsruN581dWQ@mail.gmail.com>
+References: <20221128083046.6799-1-peterlin@andestech.com>
+ <20221128083046.6799-3-peterlin@andestech.com>
+ <CAEUhbmW8y4tQixXSw-kLsjsGTf89wMfEYAW_dnmAsruN581dWQ@mail.gmail.com>
+Message-ID: <Y428D1JYLNd8/s1R@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-12-04???? 22:01 +0530?Anup Patel???
-> On Thu, Nov 24, 2022 at 8:46 AM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > It is a common operation to judge whether an address is in a
-> > certain region, and add an inline function. and simplify
-> > sbi_domain_memregion_init and is_region_subset.
-> > 
-> > Signed-off-by: Xiang W <wxjstz@126.com>
-> 
-> I don't see the point behind this optimization since compiler will
-> anyway inline in_region().
-This patch can make the code concise and easy to understand. inline is to
-improve operating efficiency, not to reduce code size. inline can be
-removed if needed
-
-Regards,
-Xiang W
-> 
-> Regards,
-> Anup
-> 
+On Sat, Dec 03, 2022 at 12:10:08AM +0800, Bin Meng wrote:
+> On Mon, Nov 28, 2022 at 4:33 PM Yu Chien Peter Lin
+> <peterlin@andestech.com> wrote:
+> >
+> > Update compile option and platform compatible string for AE350 and
+> > add it to the generic platform list.
+> >
+> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > > ---
-> > ?lib/sbi/sbi_domain.c | 52 +++++++++++++++++++-------------------------
-> > ?1 file changed, 22 insertions(+), 30 deletions(-)
-> > 
-> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> > index fec9074..3365e74 100644
-> > --- a/lib/sbi/sbi_domain.c
-> > +++ b/lib/sbi/sbi_domain.c
-> > @@ -36,6 +36,14 @@ struct sbi_domain root = {
-> > ??????? .system_reset_allowed = TRUE,
-> > ?};
-> > 
-> > +static inline bool in_region(unsigned long addr, const struct sbi_domain_memregion *reg)
-> > +{
-> > +?????? unsigned long s, e;
-> > +?????? s= reg->base;
-> > +?????? e = reg->order < __riscv_xlen ? reg->base + (BIT(reg->order) - 1) : -1;
-> > +?????? return (s <= addr) && (addr <= e);
-> > +}
-> > +
-> > ?bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
-> > ?{
-> > ??????? if (dom)
-> > @@ -77,27 +85,18 @@ void sbi_domain_memregion_init(unsigned long addr,
-> > ??????????????????????????????? unsigned long flags,
-> > ??????????????????????????????? struct sbi_domain_memregion *reg)
-> > ?{
-> > -?????? unsigned long base = 0, order;
-> > +?????? unsigned long order;
-> > +
-> > +?????? if (reg == NULL)
-> > +?????????????? return;
-> > 
-> > ??????? for (order = log2roundup(size) ; order <= __riscv_xlen; order++) {
-> > -?????????????? if (order < __riscv_xlen) {
-> > -?????????????????????? base = addr & ~((1UL << order) - 1UL);
-> > -?????????????????????? if ((base <= addr) &&
-> > -?????????????????????????? (addr < (base + (1UL << order))) &&
-> > -?????????????????????????? (base <= (addr + size - 1UL)) &&
-> > -?????????????????????????? ((addr + size - 1UL) < (base + (1UL << order))))
-> > -?????????????????????????????? break;
-> > -?????????????? } else {
-> > -?????????????????????? base = 0;
-> > +?????????????? reg->base = order < __riscv_xlen ? addr & ~((1UL << order) - 1UL) : 0;
-> > +?????????????? reg->order = order;
-> > +?????????????? if (in_region(addr,reg) && in_region(addr + size - 1, reg)) {
-> > +?????????????????????? reg->flags = flags;
-> > ??????????????????????? break;
-> > ??????????????? }
-> > -
-> > -?????? }
-> > -
-> > -?????? if (reg) {
-> > -?????????????? reg->base = base;
-> > -?????????????? reg->order = order;
-> > -?????????????? reg->flags = flags;
-> > ??????? }
-> > ?}
-> > 
-> > @@ -126,10 +125,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
-> > ??????????????? if (mode == PRV_M && !(rflags & SBI_DOMAIN_MEMREGION_MMODE))
-> > ??????????????????????? continue;
-> > 
-> > -?????????????? rstart = reg->base;
-> > -?????????????? rend = (reg->order < __riscv_xlen) ?
-> > -?????????????????????? rstart + ((1UL << reg->order) - 1) : -1UL;
-> > -?????????????? if (rstart <= addr && addr <= rend) {
-> > +?????????????? if (in_region(addr, reg)) {
-> > ??????????????????????? rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? TRUE : FALSE;
-> > ??????????????????????? if (mmio != rmmio)
-> > ??????????????????????????????? return FALSE;
-> > @@ -156,15 +152,11 @@ static bool is_region_valid(const struct sbi_domain_memregion *reg)
-> > ?static bool is_region_subset(const struct sbi_domain_memregion *regA,
-> > ???????????????????????????? const struct sbi_domain_memregion *regB)
-> > ?{
-> > -?????? ulong regA_start = regA->base;
-> > -?????? ulong regA_end = regA->base + (BIT(regA->order) - 1);
-> > -?????? ulong regB_start = regB->base;
-> > -?????? ulong regB_end = regB->base + (BIT(regB->order) - 1);
-> > -
-> > -?????? if ((regB_start <= regA_start) &&
-> > -?????????? (regA_start < regB_end) &&
-> > -?????????? (regB_start < regA_end) &&
-> > -?????????? (regA_end <= regB_end))
-> > +?????? unsigned long start, end;
-> > +?????? start = regA->base;
-> > +?????? end = regA->order < __riscv_xlen ? regA->base + (BIT(regA->order) - 1) : -1;
-> > +
-> > +?????? if (in_region(start, regB) && in_region(end, regB))
-> > ??????????????? return TRUE;
-> > 
-> > ??????? return FALSE;
+> >  docs/platform/andes-ae350.md | 5 +++--
+> >  docs/platform/generic.md     | 2 ++
+> >  2 files changed, 5 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/docs/platform/andes-ae350.md b/docs/platform/andes-ae350.md
+> > index ec241ec..4739951 100644
+> > --- a/docs/platform/andes-ae350.md
+> > +++ b/docs/platform/andes-ae350.md
+> > @@ -8,7 +8,7 @@ AHB/APB IPs suites a majority embedded systems, and the verified platform serves
+> >  as a starting point to jump start SoC designs.
+> >
+> >  To build platform specific library and firmwares, provide the
+> > -*PLATFORM=andes/ae350* parameter to the top level make command.
+> > +*PLATFORM=generic* parameter to the top level `make` command.
+> >
+> >  Platform Options
+> >  ----------------
+> > @@ -23,13 +23,14 @@ AE350's dts is included in https://github.com/andestech/linux/tree/RISCV-Linux-5
+> >  **Linux Kernel Payload**
+> >
+> >  ```
+> > -make PLATFORM=andes/ae350 FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
+> > +make PLATFORM=generic FW_PAYLOAD_PATH=<linux_build_directory>/arch/riscv/boot/Image FW_FDT_PATH=<ae350.dtb path>
+> >  ```
+> >
+> >  DTS Example: (Quad-core AX45MP)
+> >  -------------------------------
+> >
+> >  ```
+> > +       compatible = "andestech,ae350";
+> >         cpus {
+> >                 #address-cells = <1>;
+> >                 #size-cells = <0>;
+> > diff --git a/docs/platform/generic.md b/docs/platform/generic.md
+> > index 73a8afa..bd3c8ab 100644
+> > --- a/docs/platform/generic.md
+> > +++ b/docs/platform/generic.md
+> > @@ -50,9 +50,11 @@ RISC-V Platforms Using Generic Platform
+> >  * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
+> >  * **Spike** (*[spike.md]*)
+> >  * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
+> > +* **Andes AE350 Platform** (*[andes-ae350.md]*)
+> 
+> nits: please insert this by following alphabetical order
+> 
+> >
+> >  [qemu_virt.md]: qemu_virt.md
+> >  [shakti_cclass.md]: shakti_cclass.md
+> >  [sifive_fu540.md]: sifive_fu540.md
+> >  [spike.md]: spike.md
+> >  [thead-c9xx.md]: thead-c9xx.md
+> > +[andes-ae350.md]: andse-ae350.md
 > > --
-> > 2.30.2
-> > 
-> > 
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> nits: please insert this by following alphabetical order
+> 
+> Otherwise,
+> Reviewed-by: Bin Meng <bmeng@tinylab.org>
 
+Hi Bin,
 
+Thanks for your review,
+I'll reorder the list.
+
+Best regards,
+Peter Lin
 
