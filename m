@@ -1,49 +1,60 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 5 Dec 2022 10:45:04 +0530
-Subject: [PATCH v2 0/6] lib: fixes for fdt functions
-In-Reply-To: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
-References: <20221128091420.30391-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy1GnbBA6831b07d5Ak0hLKp-LmC-dNFKmFnM6EravdWTQ@mail.gmail.com>
+Date: Mon, 5 Dec 2022 10:53:54 +0530
+Subject: [PATCH 1/1] firmware: Minor optimization for relocate
+In-Reply-To: <20221129035407.28946-2-zhangdongdong@eswincomputing.com>
+References: <20221129035407.28946-1-zhangdongdong@eswincomputing.com> <20221129035407.28946-2-zhangdongdong@eswincomputing.com>
+Message-ID: <CAAhSdy0-a9PtRj18dMmv3fe-EU6t0O0TNHFDhu0GP9uhKnNPKg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Heinrich,
-
-On Mon, Nov 28, 2022 at 2:44 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Tue, Nov 29, 2022 at 9:26 AM Dongdong Zhang
+<zhangdongdong@eswincomputing.com> wrote:
 >
-> * Use correct type for variables used in error checks
-> * Check correct variables
-> * Avoid duplicates checks
-> * Don't assign values that are never used.
+> The t3 register stores the address of _load_end. If relocation is not required, it is unnecessary to calculate the address of _load_end.
 >
-> v2:
->         check correct variables
->         fix fdt_parse_aclint_node() too
+> This can reduce the operation time of two instructions.
 >
-> Heinrich Schuchardt (6):
->   lib: simplify fdt_parse_plmt_node()
->   lib: simplify fdt_parse_plicsw_node()
->   lib: fix fdt_parse_plmt_node()
->   lib: fix fdt_parse_plicsw_node()
->   lib: simplify fdt_translate_address()
->   lib: fix fdt_parse_aclint_node()
+> Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 
-Thanks for catching and fixing all these issues.
+Looks good to me.
 
-Applied this series to the riscv/opensbi repo.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Regards,
+I have taken care of Bin's comment at the time of merging this patch.
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
+> ---
+>  firmware/fw_base.S | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
->  lib/utils/fdt/fdt_helper.c | 20 ++++++++++++--------
->  1 file changed, 12 insertions(+), 8 deletions(-)
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 07be4c4..3f622b3 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -128,9 +128,9 @@ _relocate:
+>         REG_L   t1, 0(t1)
+>         lla     t2, _load_start
+>         REG_L   t2, 0(t2)
+> +       beq     t0, t2, _relocate_done
+>         sub     t3, t1, t0
+>         add     t3, t3, t2
+> -       beq     t0, t2, _relocate_done
+>         lla     t4, _relocate_done
+>         sub     t4, t4, t2
+>         add     t4, t4, t0
+> --
+> 2.17.1
+>
 >
 > --
-> 2.37.2
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
