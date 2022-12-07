@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 08 Dec 2022 01:01:03 +0800
-Subject: [PATCH 2/3] lib: fix __fdt_parse_region()
-In-Reply-To: <20221207140751.9135-3-heinrich.schuchardt@canonical.com>
+Date: Thu, 08 Dec 2022 01:02:02 +0800
+Subject: [PATCH 3/3] lib: fix irqchip_plic_update_hartid_table
+In-Reply-To: <20221207140751.9135-4-heinrich.schuchardt@canonical.com>
 References: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
-	 <20221207140751.9135-3-heinrich.schuchardt@canonical.com>
-Message-ID: <b83632a64b539d45328e392999a8b58d99f2e642.camel@126.com>
+	 <20221207140751.9135-4-heinrich.schuchardt@canonical.com>
+Message-ID: <ac369b610b6b2d385ee31efb84b2a5dc087a7beb.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,53 +12,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2022-12-07???? 15:07 +0100?Heinrich Schuchardt???
-> If fdt_getprop() returns NULL, this indicates an error. In this case lenp
-> is set to an error code. But even if lenp = 0 we should not continue.
+> After determining cpu_offset we have to check this value.
 > 
-> If fdt_getprop() returns a wider value than we expect this is a separate
-> error condition.
-> 
-> In both cases the device-tree is invalid.
-> 
-> Addresses-Coverity-ID: 1529703 ("Dereference after null check")
+> Addresses-Coverity-ID: 1529706 ("Logically dead code")
 > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+LGTM
+
+Reviewed-by: Xiang W <wxjstz@126.com>
 > ---
-> ?lib/utils/fdt/fdt_domain.c | 4 ++--
-> ?1 file changed, 2 insertions(+), 2 deletions(-)
+> ?lib/utils/irqchip/fdt_irqchip_plic.c | 2 +-
+> ?1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index bd0eec3..6051025 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -246,7 +246,7 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index a6e185c..fe08836 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -86,7 +86,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
+> ????????????????????????continue;
 > ?
-> ????????/* Read "base" DT property */
-> ????????val = fdt_getprop(fdt, region_offset, "base", &len);
-> -???????if (!val && len >= 8)
-> +???????if (!val || len >= 8)
-When len is less than 8, the complete val64 cannot be read, and it can
-only be equal to 8 here, so it should be modified as follows
-          if (!val || len != 8)
-> ????????????????return SBI_EINVAL;
-> ????????val64 = fdt32_to_cpu(val[0]);
-> ????????val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
-> @@ -254,7 +254,7 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+> ????????????????cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
+> -???????????????if (cpu_intc_offset < 0)
+> +???????????????if (cpu_offset < 0)
+> ????????????????????????continue;
 > ?
-> ????????/* Read "order" DT property */
-> ????????val = fdt_getprop(fdt, region_offset, "order", &len);
-> -???????if (!val && len >= 4)
-> +???????if (!val || len >= 4)
-When len is less than 4, the complete val32 cannot be read, and it can
-only be equal to 4 here, so it should be modified as follows
-           if (!val || len != 4)
-> ????????????????return SBI_EINVAL;
-> ????????val32 = fdt32_to_cpu(*val);
-> ????????if (val32 < 3 || __riscv_xlen < val32)
+> ????????????????err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
 > -- 
 > 2.37.2
 > 
 > 
-Regards,
-Xiang W
+
 
 
