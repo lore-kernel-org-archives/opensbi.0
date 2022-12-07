@@ -1,36 +1,28 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed,  7 Dec 2022 15:07:51 +0100
-Subject: [PATCH 3/3] lib: fix irqchip_plic_update_hartid_table
-In-Reply-To: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
-References: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20221207140751.9135-4-heinrich.schuchardt@canonical.com>
+Date: Wed,  7 Dec 2022 15:07:48 +0100
+Subject: [PATCH 0/3] lib: fix fdt functions
+Message-ID: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-After determining cpu_offset we have to check this value.
+Fix library device-tree library functions.
 
-Addresses-Coverity-ID: 1529706 ("Logically dead code")
-Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
----
+The problems were indicated by Coverity. Details can be seen at
+https://scan.coverity.com/projects/opensbi/view_defects
+
+Heinrich Schuchardt (3):
+  lib: fix is_region_valid()
+  lib: fix __fdt_parse_region()
+  lib: fix irqchip_plic_update_hartid_table
+
+ lib/sbi/sbi_domain.c                 | 9 +++++----
+ lib/utils/fdt/fdt_domain.c           | 4 ++--
  lib/utils/irqchip/fdt_irqchip_plic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-index a6e185c..fe08836 100644
---- a/lib/utils/irqchip/fdt_irqchip_plic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-@@ -86,7 +86,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
- 			continue;
- 
- 		cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
--		if (cpu_intc_offset < 0)
-+		if (cpu_offset < 0)
- 			continue;
- 
- 		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
 -- 
 2.37.2
 
