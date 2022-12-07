@@ -1,52 +1,46 @@
-From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Wed,  7 Dec 2022 16:14:19 +0000
-Subject: [PATCH] platform: generic: Make use of fdt_match_node()
-Message-ID: <20221207161419.10259-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Wed, 7 Dec 2022 08:31:11 -0800
+Subject: [PATCH 3/3] lib: fix irqchip_plic_update_hartid_table
+In-Reply-To: <20221207140751.9135-4-heinrich.schuchardt@canonical.com>
+References: <20221207140751.9135-1-heinrich.schuchardt@canonical.com> <20221207140751.9135-4-heinrich.schuchardt@canonical.com>
+Message-ID: <CAOnJCUL2AHfUb3L52=VTtwK6H2e+XWt5adHShMPQ6C0RsTNSGg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-It makes sense to use fdt_match_node() instead of fdt_find_match()
-in fw_platform_lookup_special() as we already have the start offset
-to search from.
+On Wed, Dec 7, 2022 at 6:08 AM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
+>
+> After determining cpu_offset we have to check this value.
+>
+> Addresses-Coverity-ID: 1529706 ("Logically dead code")
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> ---
+>  lib/utils/irqchip/fdt_irqchip_plic.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index a6e185c..fe08836 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -86,7 +86,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
+>                         continue;
+>
+>                 cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
+> -               if (cpu_intc_offset < 0)
+> +               if (cpu_offset < 0)
+>                         continue;
+>
+>                 err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+> --
+> 2.37.2
+>
 
-Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
----
-Based on the feedback provided by Anup [0].
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
 
-[0] https://patchwork.ozlabs.org/project/opensbi/patch/20221130220825.193693-7-prabhakar.mahadev-lad.rj at bp.renesas.com/#3015759
----
- platform/generic/platform.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 595b0fd..bfe15f0 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -34,17 +34,17 @@ static const struct fdt_match *generic_plat_match = NULL;
- 
- static void fw_platform_lookup_special(void *fdt, int root_offset)
- {
--	int pos, noff;
- 	const struct platform_override *plat;
- 	const struct fdt_match *match;
-+	int pos;
- 
- 	for (pos = 0; pos < platform_override_modules_size; pos++) {
- 		plat = platform_override_modules[pos];
- 		if (!plat->match_table)
- 			continue;
- 
--		noff = fdt_find_match(fdt, -1, plat->match_table, &match);
--		if (noff < 0)
-+		match = fdt_match_node(fdt, root_offset, plat->match_table);
-+		if (!match)
- 			continue;
- 
- 		generic_plat = plat;
 -- 
-2.17.1
-
+Regards,
+Atish
 
