@@ -1,7 +1,7 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu,  8 Dec 2022 01:12:49 +0800
-Subject: [PATCH] lib: utils/fdt: Add full valid detection for __fdt_parse_region
-Message-ID: <20221207171249.1097169-1-wxjstz@126.com>
+Date: Thu,  8 Dec 2022 01:36:44 +0800
+Subject: [PATCH v2] lib: utils/fdt: Add full valid detection for __fdt_parse_region
+Message-ID: <20221207173644.1106040-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -10,15 +10,60 @@ Content-Transfer-Encoding: 7bit
 
 The original code only detects region->order, and a certain relationship
 needs to be satisfied between region->order and region->base. This patch
-detects whether the region in fdt is valid through is_region_valid
+detects whether the region in fdt is valid through sbi_is_region_valid
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
+REF -> v2
+* is_region_valid is local function, change it public and rename
+  sbi_is_region_valid
+---
+ include/sbi/sbi_domain.h   | 7 +++++++
+ lib/sbi/sbi_domain.c       | 4 ++--
  lib/utils/fdt/fdt_domain.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
+ 3 files changed, 12 insertions(+), 4 deletions(-)
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 5553d21..fdd73a9 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -109,6 +109,13 @@ extern struct sbi_domain *domidx_to_domain_table[];
+ #define sbi_domain_for_each_memregion(__d, __r) \
+ 	for ((__r) = (__d)->regions; (__r)->order; (__r)++)
+ 
++/**
++ * Check if sbi_domain_memregion is valid
++ * @param reg pointrt to the sbi_domain_memregion that needs to be check
++ * @return True if reg is vaild sbi_domain_memregion
++*/
++bool sbi_is_region_valid(const struct sbi_domain_memregion *reg);
++
+ /**
+  * Check whether given HART is assigned to specified domain
+  * @param dom pointer to domain
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 3302213..08f0ea6 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -141,7 +141,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ }
+ 
+ /* Check if region complies with constraints */
+-static bool is_region_valid(const struct sbi_domain_memregion *reg)
++bool sbi_is_region_valid(const struct sbi_domain_memregion *reg)
+ {
+ 	if (reg->order < 3 || __riscv_xlen < reg->order)
+ 		return FALSE;
+@@ -226,7 +226,7 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 		return SBI_EINVAL;
+ 	}
+ 	sbi_domain_for_each_memregion(dom, reg) {
+-		if (!is_region_valid(reg)) {
++		if (!sbi_is_region_valid(reg)) {
+ 			sbi_printf("%s: %s has invalid region base=0x%lx "
+ 				   "order=%lu flags=0x%lx\n", __func__,
+ 				   dom->name, reg->base, reg->order,
 diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index bd0eec3..30a40dc 100644
+index bd0eec3..49908f5 100644
 --- a/lib/utils/fdt/fdt_domain.c
 +++ b/lib/utils/fdt/fdt_domain.c
 @@ -257,8 +257,6 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
@@ -34,7 +79,7 @@ index bd0eec3..30a40dc 100644
  	if (fdt_get_property(fdt, region_offset, "mmio", NULL))
  		region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
  
-+	if(!is_region_valid(region))
++	if(!sbi_is_region_valid(region))
 +		return SBI_EINVAL;
 +
  	(*region_count)++;
