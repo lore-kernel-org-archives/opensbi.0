@@ -1,44 +1,51 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed,  7 Dec 2022 15:07:49 +0100
-Subject: [PATCH 1/3] lib: fix is_region_valid()
+Date: Wed,  7 Dec 2022 15:07:50 +0100
+Subject: [PATCH 2/3] lib: fix __fdt_parse_region()
 In-Reply-To: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
 References: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20221207140751.9135-2-heinrich.schuchardt@canonical.com>
+Message-ID: <20221207140751.9135-3-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-For 'reg->order == __riscv_xlen' the term 'BIT(reg->order)' is undefined.
+If fdt_getprop() returns NULL, this indicates an error. In this case lenp
+is set to an error code. But even if lenp = 0 we should not continue.
 
-Addresses-Coverity-ID: 1529706 ("Bad bit shift operation")
+If fdt_getprop() returns a wider value than we expect this is a separate
+error condition.
+
+In both cases the device-tree is invalid.
+
+Addresses-Coverity-ID: 1529703 ("Dereference after null check")
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
- lib/sbi/sbi_domain.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ lib/utils/fdt/fdt_domain.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 3302213..52ae1a1 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -146,11 +146,12 @@ static bool is_region_valid(const struct sbi_domain_memregion *reg)
- 	if (reg->order < 3 || __riscv_xlen < reg->order)
- 		return FALSE;
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index bd0eec3..6051025 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -246,7 +246,7 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
  
--	if (reg->order == __riscv_xlen && reg->base != 0)
--		return FALSE;
--
--	if (reg->base & (BIT(reg->order) - 1))
-+	if (reg->order == __riscv_xlen) {
-+		if (reg->base != 0)
-+			return FALSE;
-+	} else if (reg->base & (BIT(reg->order) - 1)) {
- 		return FALSE;
-+	}
+ 	/* Read "base" DT property */
+ 	val = fdt_getprop(fdt, region_offset, "base", &len);
+-	if (!val && len >= 8)
++	if (!val || len >= 8)
+ 		return SBI_EINVAL;
+ 	val64 = fdt32_to_cpu(val[0]);
+ 	val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
+@@ -254,7 +254,7 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
  
- 	return TRUE;
- }
+ 	/* Read "order" DT property */
+ 	val = fdt_getprop(fdt, region_offset, "order", &len);
+-	if (!val && len >= 4)
++	if (!val || len >= 4)
+ 		return SBI_EINVAL;
+ 	val32 = fdt32_to_cpu(*val);
+ 	if (val32 < 3 || __riscv_xlen < val32)
 -- 
 2.37.2
 
