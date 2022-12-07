@@ -1,29 +1,52 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed,  7 Dec 2022 15:07:48 +0100
-Subject: [PATCH 0/3] lib: fix fdt functions
-Message-ID: <20221207140751.9135-1-heinrich.schuchardt@canonical.com>
+From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Wed,  7 Dec 2022 16:14:19 +0000
+Subject: [PATCH] platform: generic: Make use of fdt_match_node()
+Message-ID: <20221207161419.10259-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix library device-tree library functions.
+It makes sense to use fdt_match_node() instead of fdt_find_match()
+in fw_platform_lookup_special() as we already have the start offset
+to search from.
 
-The problems were indicated by Coverity. Details can be seen at
-https://scan.coverity.com/projects/opensbi/view_defects
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+---
+Based on the feedback provided by Anup [0].
 
-Heinrich Schuchardt (3):
-  lib: fix is_region_valid()
-  lib: fix __fdt_parse_region()
-  lib: fix irqchip_plic_update_hartid_table
+[0] https://patchwork.ozlabs.org/project/opensbi/patch/20221130220825.193693-7-prabhakar.mahadev-lad.rj at bp.renesas.com/#3015759
+---
+ platform/generic/platform.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- lib/sbi/sbi_domain.c                 | 9 +++++----
- lib/utils/fdt/fdt_domain.c           | 4 ++--
- lib/utils/irqchip/fdt_irqchip_plic.c | 2 +-
- 3 files changed, 8 insertions(+), 7 deletions(-)
-
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 595b0fd..bfe15f0 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -34,17 +34,17 @@ static const struct fdt_match *generic_plat_match = NULL;
+ 
+ static void fw_platform_lookup_special(void *fdt, int root_offset)
+ {
+-	int pos, noff;
+ 	const struct platform_override *plat;
+ 	const struct fdt_match *match;
++	int pos;
+ 
+ 	for (pos = 0; pos < platform_override_modules_size; pos++) {
+ 		plat = platform_override_modules[pos];
+ 		if (!plat->match_table)
+ 			continue;
+ 
+-		noff = fdt_find_match(fdt, -1, plat->match_table, &match);
+-		if (noff < 0)
++		match = fdt_match_node(fdt, root_offset, plat->match_table);
++		if (!match)
+ 			continue;
+ 
+ 		generic_plat = plat;
 -- 
-2.37.2
+2.17.1
 
 
