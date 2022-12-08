@@ -1,91 +1,42 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu,  8 Dec 2022 01:36:44 +0800
-Subject: [PATCH v2] lib: utils/fdt: Add full valid detection for __fdt_parse_region
-Message-ID: <20221207173644.1106040-1-wxjstz@126.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Thu,  8 Dec 2022 02:14:21 +0100
+Subject: [PATCH v2 3/3] lib: fix irqchip_plic_update_hartid_table
+In-Reply-To: <20221208011421.11624-1-heinrich.schuchardt@canonical.com>
+References: <20221208011421.11624-1-heinrich.schuchardt@canonical.com>
+Message-ID: <20221208011421.11624-4-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The original code only detects region->order, and a certain relationship
-needs to be satisfied between region->order and region->base. This patch
-detects whether the region in fdt is valid through sbi_is_region_valid
+After determining cpu_offset we have to check this value.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
+Addresses-Coverity-ID: 1529706 ("Logically dead code")
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
 ---
-REF -> v2
-* is_region_valid is local function, change it public and rename
-  sbi_is_region_valid
+v2:
+	add reviewed-by lines
 ---
- include/sbi/sbi_domain.h   | 7 +++++++
- lib/sbi/sbi_domain.c       | 4 ++--
- lib/utils/fdt/fdt_domain.c | 5 +++--
- 3 files changed, 12 insertions(+), 4 deletions(-)
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 5553d21..fdd73a9 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -109,6 +109,13 @@ extern struct sbi_domain *domidx_to_domain_table[];
- #define sbi_domain_for_each_memregion(__d, __r) \
- 	for ((__r) = (__d)->regions; (__r)->order; (__r)++)
+ lib/utils/irqchip/fdt_irqchip_plic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+index a6e185c..fe08836 100644
+--- a/lib/utils/irqchip/fdt_irqchip_plic.c
++++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+@@ -86,7 +86,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
+ 			continue;
  
-+/**
-+ * Check if sbi_domain_memregion is valid
-+ * @param reg pointrt to the sbi_domain_memregion that needs to be check
-+ * @return True if reg is vaild sbi_domain_memregion
-+*/
-+bool sbi_is_region_valid(const struct sbi_domain_memregion *reg);
-+
- /**
-  * Check whether given HART is assigned to specified domain
-  * @param dom pointer to domain
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 3302213..08f0ea6 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -141,7 +141,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
- }
+ 		cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
+-		if (cpu_intc_offset < 0)
++		if (cpu_offset < 0)
+ 			continue;
  
- /* Check if region complies with constraints */
--static bool is_region_valid(const struct sbi_domain_memregion *reg)
-+bool sbi_is_region_valid(const struct sbi_domain_memregion *reg)
- {
- 	if (reg->order < 3 || __riscv_xlen < reg->order)
- 		return FALSE;
-@@ -226,7 +226,7 @@ static int sanitize_domain(const struct sbi_platform *plat,
- 		return SBI_EINVAL;
- 	}
- 	sbi_domain_for_each_memregion(dom, reg) {
--		if (!is_region_valid(reg)) {
-+		if (!sbi_is_region_valid(reg)) {
- 			sbi_printf("%s: %s has invalid region base=0x%lx "
- 				   "order=%lu flags=0x%lx\n", __func__,
- 				   dom->name, reg->base, reg->order,
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index bd0eec3..49908f5 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -257,8 +257,6 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
- 	if (!val && len >= 4)
- 		return SBI_EINVAL;
- 	val32 = fdt32_to_cpu(*val);
--	if (val32 < 3 || __riscv_xlen < val32)
--		return SBI_EINVAL;
- 	region->order = val32;
- 
- 	/* Read "mmio" DT property */
-@@ -266,6 +264,9 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
- 	if (fdt_get_property(fdt, region_offset, "mmio", NULL))
- 		region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
- 
-+	if(!sbi_is_region_valid(region))
-+		return SBI_EINVAL;
-+
- 	(*region_count)++;
- 
- 	return 0;
+ 		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
 -- 
-2.30.2
+2.37.2
 
 
