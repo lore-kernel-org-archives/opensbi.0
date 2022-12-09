@@ -1,69 +1,181 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 9 Dec 2022 10:52:02 +0530
-Subject: [RESEND PATCH v2 4/5] lib: utils/irqchip: plic: Fix the
- off-by-one error in context save/restore helpers
-In-Reply-To: <20221204051741.440008-4-bmeng@tinylab.org>
-References: <20221204051741.440008-1-bmeng@tinylab.org> <20221204051741.440008-4-bmeng@tinylab.org>
-Message-ID: <CAAhSdy3t91pZ6dVuFjxeHRYaj4v1o53=NjeQXfY_EAsKUAVH9Q@mail.gmail.com>
+Date: Fri, 9 Dec 2022 11:03:16 +0530
+Subject: [RESEND PATCH v2 2/5] lib: utils/irqchip: plic: Ensure no
+ out-of-bound access in priority save/restore helpers
+In-Reply-To: <CAAhSdy1ZhX=LueggHQhkfZ4AnRLBOQ5Q4fX++05De_4z-z1szA@mail.gmail.com>
+References: <20221204051741.440008-1-bmeng@tinylab.org> <20221204051741.440008-2-bmeng@tinylab.org>
+ <CAAhSdy1ZhX=LueggHQhkfZ4AnRLBOQ5Q4fX++05De_4z-z1szA@mail.gmail.com>
+Message-ID: <CAAhSdy0JzmuSyJ+LZsS3dsvPy_nYepYjpeGjPdroPbT=x4CzGA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Dec 4, 2022 at 10:47 AM Bin Meng <bmeng@tinylab.org> wrote:
+On Fri, Dec 9, 2022 at 10:40 AM Anup Patel <anup@brainfault.org> wrote:
 >
-> plic->num_src holds the number of interrupt sources without interrupt
-> source 0 but the interrupt enable register includes a bit for the
-> interrupt source 0 in the first word.
+> On Sun, Dec 4, 2022 at 10:47 AM Bin Meng <bmeng@tinylab.org> wrote:
+> >
+> > Currently the priority save/restore helpers writes/reads the provided
+> > array using an index whose maximum value is determined by PLIC, which
+> > potentially may disagree with the caller to these helpers.
+> >
+> > Add a parameter to ask the caller to provide the size limit of the
+> > array to ensure no out-of-bound access happens.
+> >
+> > Signed-off-by: Bin Meng <bmeng@tinylab.org>
+> >
+> > ---
+> >
+> > Changes in v2 RESEND:
+> > - %s/libs/lib in the commit title
+> >
+> > Changes in v2:
+> > - new patch: libs: utils/irqchip: plic: Ensure no out-of-bound access in priority save/restore helpers
+> >
+> >  include/sbi_utils/irqchip/fdt_irqchip_plic.h |  4 ++--
+> >  include/sbi_utils/irqchip/plic.h             |  5 +++--
+> >  lib/utils/irqchip/fdt_irqchip_plic.c         | 12 ++++++++----
+> >  lib/utils/irqchip/plic.c                     |  9 +++++----
+> >  platform/generic/allwinner/sun20i-d1.c       |  4 ++--
+> >  5 files changed, 20 insertions(+), 14 deletions(-)
+> >
+> > diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> > index 98d4de5..5f3f54d 100644
+> > --- a/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> > +++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> > @@ -9,9 +9,9 @@
+> >
+> >  #include <sbi/sbi_types.h>
+> >
+> > -void fdt_plic_priority_save(u8 *priority);
+> > +void fdt_plic_priority_save(u8 *priority, u32 num);
+> >
+> > -void fdt_plic_priority_restore(const u8 *priority);
+> > +void fdt_plic_priority_restore(const u8 *priority, u32 num);
+> >
+> >  void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold);
+> >
+> > diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
+> > index 48c24f0..38704a1 100644
+> > --- a/include/sbi_utils/irqchip/plic.h
+> > +++ b/include/sbi_utils/irqchip/plic.h
+> > @@ -18,9 +18,10 @@ struct plic_data {
+> >  };
+> >
+> >  /* So far, priorities on all consumers of these functions fit in 8 bits. */
+> > -void plic_priority_save(const struct plic_data *plic, u8 *priority);
+> > +void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num);
+> >
+> > -void plic_priority_restore(const struct plic_data *plic, const u8 *priority);
+> > +void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
+> > +                          u32 num);
+> >
+> >  void plic_context_save(const struct plic_data *plic, int context_id,
+> >                        u32 *enable, u32 *threshold);
+> > diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> > index a6e185c..87fb9bd 100644
+> > --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> > +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> > @@ -24,18 +24,22 @@ static struct plic_data plic[PLIC_MAX_NR];
+> >  static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
+> >  static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2];
+> >
+> > -void fdt_plic_priority_save(u8 *priority)
+> > +void fdt_plic_priority_save(u8 *priority, u32 num)
+> >  {
+> >         struct plic_data *plic = plic_hartid2data[current_hartid()];
+> >
+> > -       plic_priority_save(plic, priority);
+> > +       if (num > plic->num_src + 1)
+> > +               num = plic->num_src + 1;
 >
-> Fixes: 415ecf28f7ad ("lib: irqchip/plic: Add context save/restore helpers")
-> Signed-off-by: Bin Meng <bmeng@tinylab.org>
+> This should be:
+> if (num > plic->num_src)
+>     num = plic->num_src;
 
-Looks good to me.
+I think it is better to move this "if ()" block in plic_priority_save().
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+>
+> > +       plic_priority_save(plic, priority, num);
+> >  }
+> >
+> > -void fdt_plic_priority_restore(const u8 *priority)
+> > +void fdt_plic_priority_restore(const u8 *priority, u32 num)
+> >  {
+> >         struct plic_data *plic = plic_hartid2data[current_hartid()];
+> >
+> > -       plic_priority_restore(plic, priority);
+> > +       if (num > plic->num_src + 1)
+> > +               num = plic->num_src + 1;
+>
+> Same as above.
+>
+> > +       plic_priority_restore(plic, priority, num);
+> >  }
+> >
+> >  void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold)
+> > diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+> > index 4df9020..c5c1879 100644
+> > --- a/lib/utils/irqchip/plic.c
+> > +++ b/lib/utils/irqchip/plic.c
+> > @@ -36,15 +36,16 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+> >         writel(val, plic_priority);
+> >  }
+> >
+> > -void plic_priority_save(const struct plic_data *plic, u8 *priority)
+> > +void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num)
+> >  {
+> > -       for (u32 i = 1; i <= plic->num_src; i++)
+> > +       for (u32 i = 1; i <= num; i++)
+> >                 priority[i] = plic_get_priority(plic, i);
+> >  }
+> >
+> > -void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
+> > +void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
+> > +                          u32 num)
+> >  {
+> > -       for (u32 i = 1; i <= plic->num_src; i++)
+> > +       for (u32 i = 1; i <= num; i++)
+> >                 plic_set_priority(plic, i, priority[i]);
+> >  }
+> >
+> > diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> > index 707313b..46d336f 100644
+> > --- a/platform/generic/allwinner/sun20i-d1.c
+> > +++ b/platform/generic/allwinner/sun20i-d1.c
+> > @@ -79,13 +79,13 @@ static u32 plic_threshold;
+> >  static void sun20i_d1_plic_save(void)
+> >  {
+> >         fdt_plic_context_save(true, plic_sie, &plic_threshold);
+> > -       fdt_plic_priority_save(plic_priority);
+> > +       fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
+> >  }
+> >
+> >  static void sun20i_d1_plic_restore(void)
+> >  {
+> >         thead_plic_restore();
+> > -       fdt_plic_priority_restore(plic_priority);
+> > +       fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
+> >         fdt_plic_context_restore(true, plic_sie, plic_threshold);
+> >  }
+> >
+> > --
+> > 2.34.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
+> Otherwise it looks good to me.
+>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
+>
+> Regards,
+> Anup
 
 Regards,
 Anup
-
->
-> ---
->
-> Changes in v2:
-> - new patch: lib: utils/irqchip: plic: Fix the off-by-one error in context save/restore helpers
->
->  lib/utils/irqchip/plic.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-> index 5b87d3b..0a1596c 100644
-> --- a/lib/utils/irqchip/plic.c
-> +++ b/lib/utils/irqchip/plic.c
-> @@ -94,7 +94,7 @@ static void plic_set_ie(const struct plic_data *plic, u32 cntxid,
->  void plic_context_save(const struct plic_data *plic, int context_id,
->                        u32 *enable, u32 *threshold)
->  {
-> -       u32 ie_words = (plic->num_src + 31) / 32;
-> +       u32 ie_words = plic->num_src / 32 + 1;
->
->         for (u32 i = 0; i < ie_words; i++)
->                 enable[i] = plic_get_ie(plic, context_id, i);
-> @@ -105,7 +105,7 @@ void plic_context_save(const struct plic_data *plic, int context_id,
->  void plic_context_restore(const struct plic_data *plic, int context_id,
->                           const u32 *enable, u32 threshold)
->  {
-> -       u32 ie_words = (plic->num_src + 31) / 32;
-> +       u32 ie_words = plic->num_src / 32 + 1;
->
->         for (u32 i = 0; i < ie_words; i++)
->                 plic_set_ie(plic, context_id, i, enable[i]);
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
