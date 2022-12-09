@@ -1,24 +1,23 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 9 Dec 2022 14:11:49 +0530
-Subject: [PATCH v2 3/3] lib: fix irqchip_plic_update_hartid_table
-In-Reply-To: <20221208011421.11624-4-heinrich.schuchardt@canonical.com>
-References: <20221208011421.11624-1-heinrich.schuchardt@canonical.com> <20221208011421.11624-4-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy2Q8p3qFNX-Xqs2ph0MXeVTjsYA_E-UbFJNcJ5p4mL56w@mail.gmail.com>
+Date: Fri, 9 Dec 2022 14:26:22 +0530
+Subject: [PATCH] lib: sbi: Synchronize PMP settings with virtual memory system
+In-Reply-To: <20221205164231.170617-1-hchauhan@ventanamicro.com>
+References: <20221205164231.170617-1-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy2gGN0a0Zo9gbtfM0AVPJyRUqi00XczVmeedur5gut_4A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 8, 2022 at 6:44 AM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Mon, Dec 5, 2022 at 10:13 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
 >
-> After determining cpu_offset we have to check this value.
+> As per section 3.7.2 of RISC-V Privileged Specification,
+> PMP settings must be synchronized with the virtual memory
+> system after PMP settings have been written.
 >
-> Addresses-Coverity-ID: 1529706 ("Logically dead code")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
 Looks good to me.
 
@@ -30,26 +29,55 @@ Thanks,
 Anup
 
 > ---
-> v2:
->         add reviewed-by lines
-> ---
->  lib/utils/irqchip/fdt_irqchip_plic.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  lib/sbi/sbi_hart.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
 >
-> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-> index a6e185c..fe08836 100644
-> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
-> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-> @@ -86,7 +86,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
->                         continue;
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index dacab1a..5447c52 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -22,6 +22,7 @@
+>  #include <sbi/sbi_pmu.h>
+>  #include <sbi/sbi_string.h>
+>  #include <sbi/sbi_trap.h>
+> +#include <sbi/sbi_hfence.h>
 >
->                 cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-> -               if (cpu_intc_offset < 0)
-> +               if (cpu_offset < 0)
->                         continue;
+>  extern void __sbi_expected_trap(void);
+>  extern void __sbi_expected_trap_hext(void);
+> @@ -321,6 +322,27 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+>                 }
+>         }
 >
->                 err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+> +       /*
+> +        * As per section 3.7.2 of privileged specification v1.12,
+> +        * virtual address translations can be speculatively performed
+> +        * (even before actual access). These, along with PMP traslations,
+> +        * can be cached. This can pose a problem with CPU hotplug
+> +        * and non-retentive suspend scenario because PMP states are
+> +        * not preserved.
+> +        * It is advisable to flush the caching structures under such
+> +        * conditions.
+> +        */
+> +       if (misa_extension('S')) {
+> +               __asm__ __volatile__("sfence.vma");
+> +
+> +               /*
+> +                * If hypervisor mode is supported, flush caching
+> +                * structures in guest mode too.
+> +                */
+> +               if (misa_extension('H'))
+> +                       __sbi_hfence_gvma_all();
+> +       }
+> +
+>         return 0;
+>  }
+>
 > --
-> 2.37.2
+> 2.38.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
