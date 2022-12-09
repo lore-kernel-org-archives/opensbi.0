@@ -1,69 +1,70 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 09 Dec 2022 17:11:34 +0800
-Subject: [PATCH v2] scripts: use env to invoke bash
-In-Reply-To: <20221209061335.1326839-1-hchauhan@ventanamicro.com>
-References: <20221209061335.1326839-1-hchauhan@ventanamicro.com>
-Message-ID: <bb27feef21e1ca3d3e4b843400a6df03f85e5592.camel@126.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Fri, 9 Dec 2022 11:06:00 +0000
+Subject: [PATCH v4 5/5] docs: platform: Add documentation for Renesas
+ RZ/Five SoC
+In-Reply-To: <CAAhSdy0N+a_VtiELJ20gRrEKWgmP5Eh8Z7XmWAwJDMkpcT84PQ@mail.gmail.com>
+References: <20221207163233.10656-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <20221207163233.10656-6-prabhakar.mahadev-lad.rj@bp.renesas.com> <CAAhSdy0N+a_VtiELJ20gRrEKWgmP5Eh8Z7XmWAwJDMkpcT84PQ@mail.gmail.com>
+Message-ID: <CA+V-a8tr_aOKeqg4BSjJ5Wif++xQpvAgu_p89yY-rLyPEpqGgg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-12-09???? 11:43 +0530?Himanshu Chauhan???
-> Not all systems have bash at a fixed location like /bin/bash.
-> FreeBSD, for example, would typically have it at /usr/local/bin/bash.
-> When building OpenSBI on freebsd system, the build breaks.
-> 
-> Its advisable to use: #!/usr/bin/env bash
-> 
-> [v2] In this version:
-> * Change remaining two scripts to use env
-> 
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-LGTM
+Hi Anup,
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?scripts/carray.sh??????????????? | 2 +-
-> ?scripts/create-binary-archive.sh | 2 +-
-> ?scripts/d2c.sh?????????????????? | 2 +-
-> ?3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/scripts/carray.sh b/scripts/carray.sh
-> index 0c52bd6..13f9d36 100755
-> --- a/scripts/carray.sh
-> +++ b/scripts/carray.sh
-> @@ -1,4 +1,4 @@
-> -#!/bin/bash
-> +#!/usr/bin/env bash
-> ?
-> ?function usage()
-> ?{
-> diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
-> index 261a45a..63781e1 100755
-> --- a/scripts/create-binary-archive.sh
-> +++ b/scripts/create-binary-archive.sh
-> @@ -1,4 +1,4 @@
-> -#!/bin/bash
-> +#!/usr/bin/env bash
-> ?
-> ?function usage()
-> ?{
-> diff --git a/scripts/d2c.sh b/scripts/d2c.sh
-> index 33a3ccf..c411fcd 100755
-> --- a/scripts/d2c.sh
-> +++ b/scripts/d2c.sh
-> @@ -1,4 +1,4 @@
-> -#!/bin/bash
-> +#!/usr/bin/env bash
-> ?
-> ?function usage()
-> ?{
-> -- 
-> 2.38.1
-> 
-> 
+Thank you for the review.
 
+On Fri, Dec 9, 2022 at 9:04 AM Anup Patel <anup@brainfault.org> wrote:
+>
+> On Wed, Dec 7, 2022 at 10:03 PM Lad Prabhakar
+> <prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
+> >
+> > This patch adds documentation to build Renesas RZ/Five (R9A07G043F) SoC.
+> >
+> > Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> > ---
+> > v3->v4
+> > * Added complete list of IP blocks
+> >
+> > v2->v3
+> > * Updated doc with new build command
+> >
+> > RFC->v2
+> > * Updated doc
+> > ---
+> >  docs/platform/platform.md       |   5 +
+> >  docs/platform/renesas-rzfive.md | 160 ++++++++++++++++++++++++++++++++
+> >  2 files changed, 165 insertions(+)
+> >  create mode 100644 docs/platform/renesas-rzfive.md
+> >
+> > diff --git a/docs/platform/platform.md b/docs/platform/platform.md
+> > index f291931..4504d87 100644
+> > --- a/docs/platform/platform.md
+> > +++ b/docs/platform/platform.md
+> > @@ -39,6 +39,10 @@ OpenSBI currently supports the following virtual and hardware platforms:
+> >    processor based SOCs. More details on this platform can be found in the
+> >    file *[shakti_cclass.md]*.
+> >
+> > +* **Renesas RZ/Five SoC**: Platform support for Renesas RZ/Five (R9A07G043F) SoC
+> > +  used on the Renesas RZ/Five SMARC EVK board. More details on this platform can
+> > +  be found in the file *[renesas-rzfive.md]*.
+> > +
+> >  The code for these supported platforms can be used as example to implement
+> >  support for other platforms. The *platform/template* directory also provides
+> >  template files for implementing support for a new platform. The *objects.mk*,
+> > @@ -54,3 +58,4 @@ comments to facilitate the implementation.
+> >  [spike.md]: spike.md
+> >  [fpga-openpiton.md]: fpga-openpiton.md
+> >  [shakti_cclass.md]: shakti_cclass.md
+> > +[renesas-rzfive.md]: renesas-rzfive.md
+>
+> Add an entry of your platform in docs/platform/generic.md since you are
+> using generic platform.
+>
+Sure will do and re-spin a v5.
 
+Cheers,
+Prabhakar
 
