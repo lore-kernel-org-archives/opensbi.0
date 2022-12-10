@@ -1,123 +1,245 @@
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Sat, 10 Dec 2022 10:30:10 +0000
-Subject: [PATCH v5 4/5] platform: generic: Add Renesas RZ/Five initial support
+Date: Sat, 10 Dec 2022 10:30:11 +0000
+Subject: [PATCH v5 5/5] docs: platform: Add documentation for Renesas RZ/Five SoC
 In-Reply-To: <20221210103011.7814-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 References: <20221210103011.7814-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <20221210103011.7814-5-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20221210103011.7814-6-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This commit provides basic support for the Renesas RZ/Five
-(R9A07G043F) SoC.
-
-The RZ/Five microprocessor includes a single RISC-V CPU Core (Andes AX45MP)
-1.0 GHz, 16-bit DDR3L/DDR4 interface. Supported interfaces include:
-- Gigabit Ethernet 2ch
-- CAN interface (CAN-FD) 2ch
-- USB 2.0 interface 2ch
-- SD interface 2ch
-- AD converter 2ch
-
-Useful links:
--------------
-Links: https://www.renesas.com/us/en/products/microcontrollers-microprocessors/rz-mpus/rzfive-risc-v-general-purpose-microprocessors-risc-v-cpu-core-andes-ax45mp-single-10-ghz-2ch-gigabit-ethernet
-Links: http://www.andestech.com/en/products-solutions/andescore-processors/riscv-ax45mp/
+This patch adds documentation to build Renesas RZ/Five (R9A07G043F) SoC.
 
 Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
 v4->v5
-* No change
-
-v3->v4
-* Replaced "renesas,r9a07g043" -> "renesas,r9a07g043f01"
+* Updated generic.md to include RZ/Five SoC
 * Included RB tag
 
-v2->v3
-* New patch
----
- platform/generic/Kconfig                   |  4 ++++
- platform/generic/configs/defconfig         |  2 ++
- platform/generic/renesas/rzfive/objects.mk |  8 ++++++++
- platform/generic/renesas/rzfive/rzfive.c   | 17 +++++++++++++++++
- 4 files changed, 31 insertions(+)
- create mode 100644 platform/generic/renesas/rzfive/objects.mk
- create mode 100644 platform/generic/renesas/rzfive/rzfive.c
+v3->v4
+* Added complete list of IP blocks
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 4b5d2cd..62c7a2d 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -32,6 +32,10 @@ config PLATFORM_ANDES_AE350
- 	bool "Andes AE350 support"
- 	default n
+v2->v3
+* Updated doc with new build command
+
+RFC->v2
+* Updated doc
+---
+ docs/platform/generic.md        |   2 +
+ docs/platform/platform.md       |   5 +
+ docs/platform/renesas-rzfive.md | 160 ++++++++++++++++++++++++++++++++
+ 3 files changed, 167 insertions(+)
+ create mode 100644 docs/platform/renesas-rzfive.md
+
+diff --git a/docs/platform/generic.md b/docs/platform/generic.md
+index e8a3296..8e4cf2d 100644
+--- a/docs/platform/generic.md
++++ b/docs/platform/generic.md
+@@ -47,6 +47,7 @@ RISC-V Platforms Using Generic Platform
  
-+config PLATFORM_RENESAS_RZFIVE
-+	bool "Renesas RZ/Five support"
-+	default n
+ * **Andes AE350 Platform** (*[andes-ae350.md]*)
+ * **QEMU RISC-V Virt Machine** (*[qemu_virt.md]*)
++* **Renesas RZ/Five SoC** (*[renesas-rzfive.md]*)
+ * **Shakti C-class SoC Platform** (*[shakti_cclass.md]*)
+ * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
+ * **Spike** (*[spike.md]*)
+@@ -54,6 +55,7 @@ RISC-V Platforms Using Generic Platform
+ 
+ [andes-ae350.md]: andse-ae350.md
+ [qemu_virt.md]: qemu_virt.md
++[renesas-rzfive.md]: renesas-rzfive.md
+ [shakti_cclass.md]: shakti_cclass.md
+ [sifive_fu540.md]: sifive_fu540.md
+ [spike.md]: spike.md
+diff --git a/docs/platform/platform.md b/docs/platform/platform.md
+index f291931..4504d87 100644
+--- a/docs/platform/platform.md
++++ b/docs/platform/platform.md
+@@ -39,6 +39,10 @@ OpenSBI currently supports the following virtual and hardware platforms:
+   processor based SOCs. More details on this platform can be found in the
+   file *[shakti_cclass.md]*.
+ 
++* **Renesas RZ/Five SoC**: Platform support for Renesas RZ/Five (R9A07G043F) SoC
++  used on the Renesas RZ/Five SMARC EVK board. More details on this platform can
++  be found in the file *[renesas-rzfive.md]*.
 +
- config PLATFORM_SIFIVE_FU540
- 	bool "SiFive FU540 support"
- 	default n
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 2eaeeb7..47fca95 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -1,5 +1,6 @@
- CONFIG_PLATFORM_ALLWINNER_D1=y
- CONFIG_PLATFORM_ANDES_AE350=y
-+CONFIG_PLATFORM_RENESAS_RZFIVE=y
- CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
- CONFIG_FDT_GPIO=y
-@@ -24,6 +25,7 @@ CONFIG_FDT_SERIAL=y
- CONFIG_FDT_SERIAL_CADENCE=y
- CONFIG_FDT_SERIAL_GAISLER=y
- CONFIG_FDT_SERIAL_HTIF=y
-+CONFIG_FDT_SERIAL_RENESAS_SCIF=y
- CONFIG_FDT_SERIAL_SHAKTI=y
- CONFIG_FDT_SERIAL_SIFIVE=y
- CONFIG_FDT_SERIAL_LITEX=y
-diff --git a/platform/generic/renesas/rzfive/objects.mk b/platform/generic/renesas/rzfive/objects.mk
+ The code for these supported platforms can be used as example to implement
+ support for other platforms. The *platform/template* directory also provides
+ template files for implementing support for a new platform. The *objects.mk*,
+@@ -54,3 +58,4 @@ comments to facilitate the implementation.
+ [spike.md]: spike.md
+ [fpga-openpiton.md]: fpga-openpiton.md
+ [shakti_cclass.md]: shakti_cclass.md
++[renesas-rzfive.md]: renesas-rzfive.md
+diff --git a/docs/platform/renesas-rzfive.md b/docs/platform/renesas-rzfive.md
 new file mode 100644
-index 0000000..2e7e37f
+index 0000000..a73c53f
 --- /dev/null
-+++ b/platform/generic/renesas/rzfive/objects.mk
-@@ -0,0 +1,8 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (C) 2022 Renesas Electronics Corp.
-+#
++++ b/docs/platform/renesas-rzfive.md
+@@ -0,0 +1,160 @@
++Renesas RZ/Five SoC (R9A07G043F) Platform
++=========================================
++The RZ/Five microprocessor includes a single RISC-V CPU Core (Andes AX45MP)
++1.0 GHz, 16-bit DDR3L/DDR4 interface. Supported interfaces include:
++- Memory controller for DDR4-1600 / DDR3L-1333 with 16 bits
++- System RAM (RAM of 128 Kbytes (ECC))
++- SPI Multi I/O Bus Controller 1ch
++- SD Card Host Interface/Multimedia Card Interface (SD/MMC) 2ch
++- Serial Sound Interface (SSI) 4ch
++- Sampling Rate Converter (SRC) 1ch
++- USB2.0 host/function interface 2ch (ch0: Host-Function ch1: Host only)
++- Gigabit Ethernet Interface (GbE) 2ch
++- Controller Area Network Interface (CAN) 2ch (CAN-FD ISO 11898-1 (CD2014) compliant)
++- Multi-function Timer Pulse Unit 3 (MTU3a) 9 ch (16 bits ? 8 channels, 32 bits ? 1 channel)
++- Port Output Enable 3 (POE3)
++- Watchdog Timer (WDT) 1ch
++- General Timer (GTM) 3ch (32bits)
++- I2C Bus Interface (I2C) 4ch
++- Serial Communication Interface with FIFO (SCIFA) 5ch
++- Serial Communication Interface (SCI) 2ch
++- Renesas Serial Peripheral Interface (RSPI) 3ch
++- A/D Converter (ADC) 2ch
++making it ideal for applications such as entry-class social infrastructure
++gateway control and industrial gateway control. More details can be found at
++below link [0].
 +
-+carray-platform_override_modules-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas_rzfive
-+platform-objs-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas/rzfive/rzfive.o
-diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-new file mode 100644
-index 0000000..ca182e3
---- /dev/null
-+++ b/platform/generic/renesas/rzfive/rzfive.c
-@@ -0,0 +1,17 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2022 Renesas Electronics Corp.
-+ *
-+ */
++[0] https://www.renesas.com/us/en/products/microcontrollers-microprocessors/rz-mpus/rzfive-general-purpose-microprocessors-risc-v-cpu-core-andes-ax45mp-single-10-ghz-2ch-gigabit-ethernet
 +
-+#include <platform_override.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
++To build platform specific library and firmwares, provide the
++*PLATFORM=generic* parameter to the top level make command.
 +
-+static const struct fdt_match renesas_rzfive_match[] = {
-+	{ .compatible = "renesas,r9a07g043f01" },
-+	{ /* sentinel */ }
-+};
++Platform Options
++----------------
 +
-+const struct platform_override renesas_rzfive = {
-+	.match_table = renesas_rzfive_match,
-+};
++The Renesas RZ/Five platform does not have any platform-specific options.
++
++Building Renesas RZ/Five Platform
++---------------------------------
++
++```
++make PLATFORM=generic
++```
++
++DTS Example: (RZ/Five AX45MP)
++-----------------------------
++
++```
++	compatible = "renesas,r9a07g043f01", "renesas,r9a07g043";
++
++	cpus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		timebase-frequency = <12000000>;
++
++		cpu0: cpu at 0 {
++			compatible = "andestech,ax45mp", "riscv";
++			device_type = "cpu";
++			reg = <0x0>;
++			status = "okay";
++			riscv,isa = "rv64imafdc";
++			mmu-type = "riscv,sv39";
++			i-cache-size = <0x8000>;
++			i-cache-line-size = <0x40>;
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <0x40>;
++			clocks = <&cpg CPG_CORE R9A07G043_CLK_I>;
++
++			cpu0_intc: interrupt-controller {
++				#interrupt-cells = <1>;
++				compatible = "riscv,cpu-intc";
++				interrupt-controller;
++			};
++		};
++	};
++
++	soc {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		ranges;
++
++		scif0: serial at 1004b800 {
++			compatible = "renesas,scif-r9a07g043",
++				     "renesas,scif-r9a07g044";
++			reg = <0 0x1004b800 0 0x400>;
++			interrupts = <412 IRQ_TYPE_LEVEL_HIGH>,
++				     <414 IRQ_TYPE_LEVEL_HIGH>,
++				     <415 IRQ_TYPE_LEVEL_HIGH>,
++				     <413 IRQ_TYPE_LEVEL_HIGH>,
++				     <416 IRQ_TYPE_LEVEL_HIGH>,
++				     <416 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "eri", "rxi", "txi",
++					  "bri", "dri", "tei";
++			clocks = <&cpg CPG_MOD R9A07G043_SCIF0_CLK_PCK>;
++			clock-names = "fck";
++			power-domains = <&cpg>;
++			resets = <&cpg R9A07G043_SCIF0_RST_SYSTEM_N>;
++			status = "disabled";
++		};
++
++		cpg: clock-controller at 11010000 {
++			compatible = "renesas,r9a07g043-cpg";
++			reg = <0 0x11010000 0 0x10000>;
++			clocks = <&extal_clk>;
++			clock-names = "extal";
++			#clock-cells = <2>;
++			#reset-cells = <1>;
++			#power-domain-cells = <0>;
++		};
++
++		sysc: system-controller at 11020000 {
++			compatible = "renesas,r9a07g043-sysc";
++			reg = <0 0x11020000 0 0x10000>;
++			status = "disabled";
++		};
++
++		pinctrl: pinctrl at 11030000 {
++			compatible = "renesas,r9a07g043-pinctrl";
++			reg = <0 0x11030000 0 0x10000>;
++			gpio-controller;
++			#gpio-cells = <2>;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++			gpio-ranges = <&pinctrl 0 0 152>;
++			clocks = <&cpg CPG_MOD R9A07G043_GPIO_HCLK>;
++			power-domains = <&cpg>;
++			resets = <&cpg R9A07G043_GPIO_RSTN>,
++				 <&cpg R9A07G043_GPIO_PORT_RESETN>,
++				 <&cpg R9A07G043_GPIO_SPARE_RESETN>;
++		};
++
++		plmt0: plmt0 at 110c0000 {
++			compatible = "andestech,plmt0", "riscv,plmt0";
++			reg = <0x0 0x110c0000 0x0 0x10000>;
++			interrupts-extended = <&cpu0_intc 7>;
++		};
++
++		plic: interrupt-controller at 12c00000 {
++			compatible = "renesas,r9a07g043-plic", "andestech,nceplic100";
++			#interrupt-cells = <2>;
++			#address-cells = <0>;
++			riscv,ndev = <511>;
++			interrupt-controller;
++			reg = <0x0 0x12c00000 0x0 0x400000>;
++			clocks = <&cpg CPG_MOD R9A07G043_NCEPLIC_ACLK>;
++			power-domains = <&cpg>;
++			resets = <&cpg R9A07G043_NCEPLIC_ARESETN>;
++			interrupts-extended = <&cpu0_intc 11 &cpu0_intc 9>;
++		};
++
++		plicsw: interrupt-controller at 13000000 {
++			compatible = "andestech,plicsw";
++			reg = <0x0 0x13000000 0x0 0x400000>;
++			interrupts-extended = <&cpu0_intc 3>;
++			interrupt-controller;
++			#address-cells = <2>;
++			#interrupt-cells = <2>;
++		};
++	};
++```
 -- 
 2.17.1
 
