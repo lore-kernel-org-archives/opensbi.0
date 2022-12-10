@@ -1,246 +1,109 @@
-From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Sat, 10 Dec 2022 10:30:11 +0000
-Subject: [PATCH v5 5/5] docs: platform: Add documentation for Renesas RZ/Five SoC
-In-Reply-To: <20221210103011.7814-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20221210103011.7814-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <20221210103011.7814-6-prabhakar.mahadev-lad.rj@bp.renesas.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 10 Dec 2022 19:51:44 +0530
+Subject: [PATCH v2] lib: utils/fdt: Add full valid detection for __fdt_parse_region
+In-Reply-To: <20221207173644.1106040-1-wxjstz@126.com>
+References: <20221207173644.1106040-1-wxjstz@126.com>
+Message-ID: <CAAhSdy0W0zRDDjJ1vUP2F3yrEf_EV2P-VJnqm09RLokyGfuiBw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds documentation to build Renesas RZ/Five (R9A07G043F) SoC.
+On Wed, Dec 7, 2022 at 11:07 PM Xiang W <wxjstz@126.com> wrote:
+>
+> The original code only detects region->order, and a certain relationship
+> needs to be satisfied between region->order and region->base. This patch
+> detects whether the region in fdt is valid through sbi_is_region_valid
 
-Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
-v4->v5
-* Updated generic.md to include RZ/Five SoC
-* Included RB tag
+The sbi_domain_register() already checks is_region_valid() on each
+region via sanitize_domain().
 
-v3->v4
-* Added complete list of IP blocks
+Calling is_region_valid() in __fdt_parse_region() is unnecessary.
 
-v2->v3
-* Updated doc with new build command
+Regards,
+Anup
 
-RFC->v2
-* Updated doc
----
- docs/platform/generic.md        |   2 +
- docs/platform/platform.md       |   5 +
- docs/platform/renesas-rzfive.md | 160 ++++++++++++++++++++++++++++++++
- 3 files changed, 167 insertions(+)
- create mode 100644 docs/platform/renesas-rzfive.md
-
-diff --git a/docs/platform/generic.md b/docs/platform/generic.md
-index e8a3296..8e4cf2d 100644
---- a/docs/platform/generic.md
-+++ b/docs/platform/generic.md
-@@ -47,6 +47,7 @@ RISC-V Platforms Using Generic Platform
- 
- * **Andes AE350 Platform** (*[andes-ae350.md]*)
- * **QEMU RISC-V Virt Machine** (*[qemu_virt.md]*)
-+* **Renesas RZ/Five SoC** (*[renesas-rzfive.md]*)
- * **Shakti C-class SoC Platform** (*[shakti_cclass.md]*)
- * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
- * **Spike** (*[spike.md]*)
-@@ -54,6 +55,7 @@ RISC-V Platforms Using Generic Platform
- 
- [andes-ae350.md]: andse-ae350.md
- [qemu_virt.md]: qemu_virt.md
-+[renesas-rzfive.md]: renesas-rzfive.md
- [shakti_cclass.md]: shakti_cclass.md
- [sifive_fu540.md]: sifive_fu540.md
- [spike.md]: spike.md
-diff --git a/docs/platform/platform.md b/docs/platform/platform.md
-index f291931..4504d87 100644
---- a/docs/platform/platform.md
-+++ b/docs/platform/platform.md
-@@ -39,6 +39,10 @@ OpenSBI currently supports the following virtual and hardware platforms:
-   processor based SOCs. More details on this platform can be found in the
-   file *[shakti_cclass.md]*.
- 
-+* **Renesas RZ/Five SoC**: Platform support for Renesas RZ/Five (R9A07G043F) SoC
-+  used on the Renesas RZ/Five SMARC EVK board. More details on this platform can
-+  be found in the file *[renesas-rzfive.md]*.
-+
- The code for these supported platforms can be used as example to implement
- support for other platforms. The *platform/template* directory also provides
- template files for implementing support for a new platform. The *objects.mk*,
-@@ -54,3 +58,4 @@ comments to facilitate the implementation.
- [spike.md]: spike.md
- [fpga-openpiton.md]: fpga-openpiton.md
- [shakti_cclass.md]: shakti_cclass.md
-+[renesas-rzfive.md]: renesas-rzfive.md
-diff --git a/docs/platform/renesas-rzfive.md b/docs/platform/renesas-rzfive.md
-new file mode 100644
-index 0000000..a73c53f
---- /dev/null
-+++ b/docs/platform/renesas-rzfive.md
-@@ -0,0 +1,160 @@
-+Renesas RZ/Five SoC (R9A07G043F) Platform
-+=========================================
-+The RZ/Five microprocessor includes a single RISC-V CPU Core (Andes AX45MP)
-+1.0 GHz, 16-bit DDR3L/DDR4 interface. Supported interfaces include:
-+- Memory controller for DDR4-1600 / DDR3L-1333 with 16 bits
-+- System RAM (RAM of 128 Kbytes (ECC))
-+- SPI Multi I/O Bus Controller 1ch
-+- SD Card Host Interface/Multimedia Card Interface (SD/MMC) 2ch
-+- Serial Sound Interface (SSI) 4ch
-+- Sampling Rate Converter (SRC) 1ch
-+- USB2.0 host/function interface 2ch (ch0: Host-Function ch1: Host only)
-+- Gigabit Ethernet Interface (GbE) 2ch
-+- Controller Area Network Interface (CAN) 2ch (CAN-FD ISO 11898-1 (CD2014) compliant)
-+- Multi-function Timer Pulse Unit 3 (MTU3a) 9 ch (16 bits ? 8 channels, 32 bits ? 1 channel)
-+- Port Output Enable 3 (POE3)
-+- Watchdog Timer (WDT) 1ch
-+- General Timer (GTM) 3ch (32bits)
-+- I2C Bus Interface (I2C) 4ch
-+- Serial Communication Interface with FIFO (SCIFA) 5ch
-+- Serial Communication Interface (SCI) 2ch
-+- Renesas Serial Peripheral Interface (RSPI) 3ch
-+- A/D Converter (ADC) 2ch
-+making it ideal for applications such as entry-class social infrastructure
-+gateway control and industrial gateway control. More details can be found at
-+below link [0].
-+
-+[0] https://www.renesas.com/us/en/products/microcontrollers-microprocessors/rz-mpus/rzfive-general-purpose-microprocessors-risc-v-cpu-core-andes-ax45mp-single-10-ghz-2ch-gigabit-ethernet
-+
-+To build platform specific library and firmwares, provide the
-+*PLATFORM=generic* parameter to the top level make command.
-+
-+Platform Options
-+----------------
-+
-+The Renesas RZ/Five platform does not have any platform-specific options.
-+
-+Building Renesas RZ/Five Platform
-+---------------------------------
-+
-+```
-+make PLATFORM=generic
-+```
-+
-+DTS Example: (RZ/Five AX45MP)
-+-----------------------------
-+
-+```
-+	compatible = "renesas,r9a07g043f01", "renesas,r9a07g043";
-+
-+	cpus {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		timebase-frequency = <12000000>;
-+
-+		cpu0: cpu at 0 {
-+			compatible = "andestech,ax45mp", "riscv";
-+			device_type = "cpu";
-+			reg = <0x0>;
-+			status = "okay";
-+			riscv,isa = "rv64imafdc";
-+			mmu-type = "riscv,sv39";
-+			i-cache-size = <0x8000>;
-+			i-cache-line-size = <0x40>;
-+			d-cache-size = <0x8000>;
-+			d-cache-line-size = <0x40>;
-+			clocks = <&cpg CPG_CORE R9A07G043_CLK_I>;
-+
-+			cpu0_intc: interrupt-controller {
-+				#interrupt-cells = <1>;
-+				compatible = "riscv,cpu-intc";
-+				interrupt-controller;
-+			};
-+		};
-+	};
-+
-+	soc {
-+		compatible = "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		ranges;
-+
-+		scif0: serial at 1004b800 {
-+			compatible = "renesas,scif-r9a07g043",
-+				     "renesas,scif-r9a07g044";
-+			reg = <0 0x1004b800 0 0x400>;
-+			interrupts = <412 IRQ_TYPE_LEVEL_HIGH>,
-+				     <414 IRQ_TYPE_LEVEL_HIGH>,
-+				     <415 IRQ_TYPE_LEVEL_HIGH>,
-+				     <413 IRQ_TYPE_LEVEL_HIGH>,
-+				     <416 IRQ_TYPE_LEVEL_HIGH>,
-+				     <416 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "eri", "rxi", "txi",
-+					  "bri", "dri", "tei";
-+			clocks = <&cpg CPG_MOD R9A07G043_SCIF0_CLK_PCK>;
-+			clock-names = "fck";
-+			power-domains = <&cpg>;
-+			resets = <&cpg R9A07G043_SCIF0_RST_SYSTEM_N>;
-+			status = "disabled";
-+		};
-+
-+		cpg: clock-controller at 11010000 {
-+			compatible = "renesas,r9a07g043-cpg";
-+			reg = <0 0x11010000 0 0x10000>;
-+			clocks = <&extal_clk>;
-+			clock-names = "extal";
-+			#clock-cells = <2>;
-+			#reset-cells = <1>;
-+			#power-domain-cells = <0>;
-+		};
-+
-+		sysc: system-controller at 11020000 {
-+			compatible = "renesas,r9a07g043-sysc";
-+			reg = <0 0x11020000 0 0x10000>;
-+			status = "disabled";
-+		};
-+
-+		pinctrl: pinctrl at 11030000 {
-+			compatible = "renesas,r9a07g043-pinctrl";
-+			reg = <0 0x11030000 0 0x10000>;
-+			gpio-controller;
-+			#gpio-cells = <2>;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+			gpio-ranges = <&pinctrl 0 0 152>;
-+			clocks = <&cpg CPG_MOD R9A07G043_GPIO_HCLK>;
-+			power-domains = <&cpg>;
-+			resets = <&cpg R9A07G043_GPIO_RSTN>,
-+				 <&cpg R9A07G043_GPIO_PORT_RESETN>,
-+				 <&cpg R9A07G043_GPIO_SPARE_RESETN>;
-+		};
-+
-+		plmt0: plmt0 at 110c0000 {
-+			compatible = "andestech,plmt0", "riscv,plmt0";
-+			reg = <0x0 0x110c0000 0x0 0x10000>;
-+			interrupts-extended = <&cpu0_intc 7>;
-+		};
-+
-+		plic: interrupt-controller at 12c00000 {
-+			compatible = "renesas,r9a07g043-plic", "andestech,nceplic100";
-+			#interrupt-cells = <2>;
-+			#address-cells = <0>;
-+			riscv,ndev = <511>;
-+			interrupt-controller;
-+			reg = <0x0 0x12c00000 0x0 0x400000>;
-+			clocks = <&cpg CPG_MOD R9A07G043_NCEPLIC_ACLK>;
-+			power-domains = <&cpg>;
-+			resets = <&cpg R9A07G043_NCEPLIC_ARESETN>;
-+			interrupts-extended = <&cpu0_intc 11 &cpu0_intc 9>;
-+		};
-+
-+		plicsw: interrupt-controller at 13000000 {
-+			compatible = "andestech,plicsw";
-+			reg = <0x0 0x13000000 0x0 0x400000>;
-+			interrupts-extended = <&cpu0_intc 3>;
-+			interrupt-controller;
-+			#address-cells = <2>;
-+			#interrupt-cells = <2>;
-+		};
-+	};
-+```
--- 
-2.17.1
-
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> ---
+> REF -> v2
+> * is_region_valid is local function, change it public and rename
+>   sbi_is_region_valid
+> ---
+>  include/sbi/sbi_domain.h   | 7 +++++++
+>  lib/sbi/sbi_domain.c       | 4 ++--
+>  lib/utils/fdt/fdt_domain.c | 5 +++--
+>  3 files changed, 12 insertions(+), 4 deletions(-)
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index 5553d21..fdd73a9 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -109,6 +109,13 @@ extern struct sbi_domain *domidx_to_domain_table[];
+>  #define sbi_domain_for_each_memregion(__d, __r) \
+>         for ((__r) = (__d)->regions; (__r)->order; (__r)++)
+>
+> +/**
+> + * Check if sbi_domain_memregion is valid
+> + * @param reg pointrt to the sbi_domain_memregion that needs to be check
+> + * @return True if reg is vaild sbi_domain_memregion
+> +*/
+> +bool sbi_is_region_valid(const struct sbi_domain_memregion *reg);
+> +
+>  /**
+>   * Check whether given HART is assigned to specified domain
+>   * @param dom pointer to domain
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 3302213..08f0ea6 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -141,7 +141,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>  }
+>
+>  /* Check if region complies with constraints */
+> -static bool is_region_valid(const struct sbi_domain_memregion *reg)
+> +bool sbi_is_region_valid(const struct sbi_domain_memregion *reg)
+>  {
+>         if (reg->order < 3 || __riscv_xlen < reg->order)
+>                 return FALSE;
+> @@ -226,7 +226,7 @@ static int sanitize_domain(const struct sbi_platform *plat,
+>                 return SBI_EINVAL;
+>         }
+>         sbi_domain_for_each_memregion(dom, reg) {
+> -               if (!is_region_valid(reg)) {
+> +               if (!sbi_is_region_valid(reg)) {
+>                         sbi_printf("%s: %s has invalid region base=0x%lx "
+>                                    "order=%lu flags=0x%lx\n", __func__,
+>                                    dom->name, reg->base, reg->order,
+> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+> index bd0eec3..49908f5 100644
+> --- a/lib/utils/fdt/fdt_domain.c
+> +++ b/lib/utils/fdt/fdt_domain.c
+> @@ -257,8 +257,6 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+>         if (!val && len >= 4)
+>                 return SBI_EINVAL;
+>         val32 = fdt32_to_cpu(*val);
+> -       if (val32 < 3 || __riscv_xlen < val32)
+> -               return SBI_EINVAL;
+>         region->order = val32;
+>
+>         /* Read "mmio" DT property */
+> @@ -266,6 +264,9 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+>         if (fdt_get_property(fdt, region_offset, "mmio", NULL))
+>                 region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
+>
+> +       if(!sbi_is_region_valid(region))
+> +               return SBI_EINVAL;
+> +
+>         (*region_count)++;
+>
+>         return 0;
+> --
+> 2.30.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
