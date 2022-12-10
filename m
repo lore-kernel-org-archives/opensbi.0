@@ -1,11 +1,11 @@
 From: Sergey Matyukevich <geomatsi@gmail.com>
-Date: Sat, 10 Dec 2022 22:15:57 +0300
+Date: Sat, 10 Dec 2022 23:42:22 +0300
 Subject: [PATCH RFC v2 2/2] lib: sbi: add support for debug triggers
-In-Reply-To: <92833f1aeda3262f4ccb4b7fc796ee4de36c7ef0.camel@126.com>
+In-Reply-To: <20221208124904.qi5n6b6k7tamt22t@archlinux>
 References: <20221203213929.206429-1-geomatsi@gmail.com>
  <20221203213929.206429-3-geomatsi@gmail.com>
- <92833f1aeda3262f4ccb4b7fc796ee4de36c7ef0.camel@126.com>
-Message-ID: <Y5Ta7XTiBLwRmxBe@curiosity>
+ <20221208124904.qi5n6b6k7tamt22t@archlinux>
+Message-ID: <Y5TvLphl1IZj/k9r@curiosity>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -40,97 +40,188 @@ Content-Transfer-Encoding: 7bit
 
 ... [snip]
 
-> > +struct sbi_dbtr_trig_info {
-> > +???????unsigned long type_mask;
-> > +???????union sbi_dbtr_trig_state state;
-> > +???????unsigned long tdata1;
-> > +???????unsigned long tdata2;
-> > +???????unsigned long tdata3;
-> tdata1~tdata3 can be removed and written directly to scr during install
+> > +union riscv_dbtr_tdata1 {
+> > +	unsigned long value;
+> > +	struct {
+> > +#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+> > +		unsigned long type:4;
+> > +		unsigned long dmode:1;
+> > +#if __riscv_xlen == 64
+> > +		unsigned long data:59;
+> > +#elif __riscv_xlen == 32
+> > +		unsigned long data:27;
+> > +#else
+> > +#error "Unexpected __riscv_xlen"
+> > +#endif
+> > +#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+> > +#if __riscv_xlen == 64
+> > +		unsigned long data:59;
+> > +#elif __riscv_xlen == 32
+> > +		unsigned long data:27;
+> > +#else
+> > +#error "Unexpected __riscv_xlen"
+> > +#endif
+> > +		unsigned long dmode:1;
+> > +		unsigned long type:4;
+> > +#else
+> > +#error "Unexpected endianness"
+> > +#endif
+> > +	};
+> > +};
+> 
+> Since, RISC-V implementations can allow a combination of different endianness for
+> M-mode and S-mode software. I am wondering how would this be handled if S-mode
+> software is actually different endianess?
 
-We need to write those values not only when we install triggers. We have
-to rewrite them when we re-enable triggers after disabling or updating.
-So I think it is more convenient to keep the whole state at hand.
+This approach is not suitable for universal binaries that will work
+on both LE and BE hardware. This is a build-time approach when you
+know the target platform that you are building for. SBI Debug Trigger
+extension requires LE word format in messages passed between S-mode
+software and M-mode SBI firmware. That is handled by endiannes
+conversion macros added in the previous patch in this series.
 
+IIUC the initial discussion around endianness has been inspired by heavy
+use of bitfields in this patch. I probably should replace them by
+something less controversial )
+
+However if there is a serious intention to move towards proper LE/BE
+support in OpenSBI (including different M/S endianness combinations),
+then it should be done separately from these SBI debug extension
+patches.
+
+> > +
+> > +union riscv_dbtr_tdata1_mcontrol {
+> > +	unsigned long value;
+> > +	struct {
+> > +#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+> > +		unsigned long type:4;
+> > +		unsigned long dmode:1;
+> > +		unsigned long maskmax:6;
+> > +#if __riscv_xlen >= 64
+> > +		unsigned long _res1:30;
+> > +		unsigned long sizehi:2;
+> > +#endif
+> > +		unsigned long hit:1;
+> > +		unsigned long select:1;
+> > +		unsigned long timing:1;
+> > +		unsigned long sizelo:2;
+> > +		unsigned long action:4;
+> > +		unsigned long chain:1;
+> > +		unsigned long match:4;
+> > +		unsigned long m:1;
+> > +		unsigned long _res2:1;
+> > +		unsigned long s:1;
+> > +		unsigned long u:1;
+> > +		unsigned long execute:1;
+> > +		unsigned long store:1;
+> > +		unsigned long load:1;
+> > +#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+> > +		unsigned long load:1;
+> > +		unsigned long store:1;
+> > +		unsigned long execute:1;
+> > +		unsigned long u:1;
+> > +		unsigned long s:1;
+> > +		unsigned long _res2:1;
+> > +		unsigned long m:1;
+> > +		unsigned long match:4;
+> > +		unsigned long chain:1;
+> > +		unsigned long action:4;
+> > +		unsigned long sizelo:2;
+> > +		unsigned long timing:1;
+> > +		unsigned long select:1;
+> > +		unsigned long hit:1;
+> > +#if __riscv_xlen >= 64
+> > +		unsigned long sizehi:2;
+> > +		unsigned long _res1:30;
+> > +#endif
+> > +		unsigned long maskmax:6;
+> > +		unsigned long dmode:1;
+> > +		unsigned long type:4;
+> > +#else
+> > +#error "Unexpected endianness"
+> > +#endif
+> > +	};
 > > +};
 > > +
-> > +/** SBI shared mem messages layout */
-> > +struct sbi_dbtr_data_msg {
-> > +???????unsigned long tstate;
-> > +???????unsigned long tdata1;
-> > +???????unsigned long tdata2;
-> > +???????unsigned long tdata3;
+> > +#define MCONTROL_U_OFFSET	3
+> > +#define MCONTROL_S_OFFSET	4
+> > +#define MCONTROL_M_OFFSET	6
+> > +
+> > +union riscv_dbtr_tdata1_mcontrol6 {
+> > +	unsigned long value;
+> > +	struct {
+> > +#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+> > +		unsigned long type:4;
+> > +		unsigned long dmode:1;
+> > +#if __riscv_xlen == 64
+> > +		unsigned long _res1:34;
+> > +#elif __riscv_xlen == 32
+> > +		unsigned long _res1:2;
+> > +#else
+> > +#error "Unexpected __riscv_xlen"
+> > +#endif
+> > +		unsigned long vs:1;
+> > +		unsigned long vu:1;
+> > +		unsigned long hit:1;
+> > +		unsigned long select:1;
+> > +		unsigned long timing:1;
+> > +		unsigned long size:4;
+> > +		unsigned long action:4;
+> > +		unsigned long chain:1;
+> > +		unsigned long match:4;
+> > +		unsigned long m:1;
+> > +		unsigned long _res2:1;
+> > +		unsigned long s:1;
+> > +		unsigned long u:1;
+> > +		unsigned long execute:1;
+> > +		unsigned long store:1;
+> > +		unsigned long load:1;
+> > +#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+> > +		unsigned long load:1;
+> > +		unsigned long store:1;
+> > +		unsigned long execute:1;
+> > +		unsigned long u:1;
+> > +		unsigned long s:1;
+> > +		unsigned long _res2:1;
+> > +		unsigned long m:1;
+> > +		unsigned long match:4;
+> > +		unsigned long chain:1;
+> > +		unsigned long action:4;
+> > +		unsigned long size:4;
+> > +		unsigned long timing:1;
+> > +		unsigned long select:1;
+> > +		unsigned long hit:1;
+> > +		unsigned long vu:1;
+> > +		unsigned long vs:1;
+> > +#if __riscv_xlen == 64
+> > +		unsigned long _res1:34;
+> > +#elif __riscv_xlen == 32
+> > +		unsigned long _res1:2;
+> > +#else
+> > +#error "Unexpected __riscv_xlen"
+> > +#endif
+> > +		unsigned long dmode:1;
+> > +		unsigned long type:4;
+> > +#else
+> > +#error "Unexpected endianness"
+> > +#endif
+> > +	};
 > > +};
-> > +
-> > +struct sbi_dbtr_id_msg {
-> > +???????unsigned long idx;
-> > +};
+> Also, IMHO, these definitions defined under aren't maintenance friendly.
 
-... [snip]
+I assume that if Debug spec v1.0.0 is frozen and ratified,
+then those definitions will not need a lot of changes.
+So could you please clarify your concern ?
 
-> > +int sbi_dbtr_init(struct sbi_scratch *scratch)
-> > +{
-> > +???????struct sbi_trap_info trap = {0};
-> > +???????u32 hartid = current_hartid();
-> > +???????union riscv_dbtr_tdata1 tdata1;
-> > +???????unsigned long val;
-> > +???????int i;
+ 
 > > +
-> > +???????total_trigs = 0;
+> > +#define MCONTROL6_U_OFFSET	3
+> > +#define MCONTROL6_S_OFFSET	4
+> > +#define MCONTROL6_M_OFFSET	6
+> > +#define MCONTROL6_VU_OFFSET	23
+> > +#define MCONTROL6_VS_OFFSET	24
 > > +
-> > +???????for (i = 0; i < RV_MAX_TRIGGERS; i++) {
-> > +???????????????csr_write_allowed(CSR_TSELECT, (ulong)&trap, i);
-> > +???????????????if (trap.cause)
-> > +???????????????????????break;
-> > +
-> > +???????????????val = csr_read_allowed(CSR_TSELECT, (ulong)&trap);
-> > +???????????????if (trap.cause)
-> > +???????????????????????break;
-> > +
-> > +???????????????/* Read back tselect and check that it contains the written value */
-> > +???????????????if (val != i)
-> > +???????????????????????break;
-> > +
-> > +???????????????val = csr_read_allowed(CSR_TINFO, (ulong)&trap);
-> > +???????????????if (trap.cause) {
-> > +???????????????????????/**
-> > +??????????????????????? * If reading tinfo caused an exception, the debugger
-> > +??????????????????????? * must read tdata1 to discover the type.
-> > +??????????????????????? */
-> > +???????????????????????tdata1.value = csr_read_allowed(CSR_TDATA1, (ulong)&trap);
-> > +???????????????????????if (trap.cause)
-> > +???????????????????????????????break;
-> > +
-> > +???????????????????????if (tdata1.type == 0)
-> > +???????????????????????????????break;
-> > +
-> > +
-> > +???????????????????????sbi_triggers_table_init(hartid, i, BIT(tdata1.type));
-> > +???????????????????????total_trigs++;
-> > +???????????????} else {
-> > +???????????????????????if (val == 1)
-> > +???????????????????????????????break;
-> tinfo = 0 have to break, this is a invalid value.
-
-Good catch! But it looks like a grey area in the spec.  This function
-follows enumeration procedure described in the section 5.1 of Debug
-spec v1.0.0. That procedure has the following steps for tinfo:
-
-: 3. Read tinfo.
-: 4. If that caused an exception, the debugger must read tdata1 to discover the type.
-     (If type is 0, this trigger doesn?t exist. Exit the loop.)
-: 5. If info is 1, this trigger doesn?t exist. Exit the loop.
-: 6. Otherwise, the selected trigger supports the types discovered in info.
-: 7. Repeat, incrementing the value in tselect.
-
-So it looks like tinfo = 0 can be interpreted as valid. For instance,
-tinfo = 0 can be returned for a trigger disabled on a hardware level.
-Note that type 0 (tinfo = 1) can not be used to do the same since that
-value prevents futher enumeration.
-
-I will write to riscv tech-debug mailing list to clarify this point so
-that the next revision of patches will include either fix (as per your
-comment) or appropriate comment.
+> > +#endif /* __RISCV_DBTR_H__ */
 
 Regards,
 Sergey
