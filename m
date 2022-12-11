@@ -1,152 +1,47 @@
-From: Xiang W <wxjstz@126.com>
-Date: Sun, 11 Dec 2022 09:40:03 +0800
-Subject: [PATCH RFC v2 2/2] lib: sbi: add support for debug triggers
-In-Reply-To: <Y5Ta7XTiBLwRmxBe@curiosity>
-References: <20221203213929.206429-1-geomatsi@gmail.com>
-	 <20221203213929.206429-3-geomatsi@gmail.com>
-	 <92833f1aeda3262f4ccb4b7fc796ee4de36c7ef0.camel@126.com>
-	 <Y5Ta7XTiBLwRmxBe@curiosity>
-Message-ID: <cd24a0c91272bf5e636c90c2071f6e22bd500cf9.camel@126.com>
+From: Bin Meng <bmeng@tinylab.org>
+Date: Sun, 11 Dec 2022 14:54:22 +0800
+Subject: [PATCH v3 3/5] lib: utils/irqchip: plic: Fix the off-by-one error in plic_context_init()
+In-Reply-To: <20221211065424.806478-1-bmeng@tinylab.org>
+References: <20221211065424.806478-1-bmeng@tinylab.org>
+Message-ID: <20221211065424.806478-3-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-12-10???? 22:15 +0300?Sergey Matyukevich???
-> > > RISC-V Debug specification includes Sdtrig ISA extension.
-> > > This extension describes Trigger Module. Triggers can cause
-> > > a breakpoint exception, entry into Debug Mode, or a trace
-> > > action without having to execute a special instruction. For
-> > > native debugging triggers can be used to implement hardware
-> > > breakpoints and watchpoints.
-> > > 
-> > > Software support for triggers consists of the following
-> > > major components:
-> > > - U-mode: gdb
-> > > - S-mode: hardware breakpoints framework in Linux kernel
-> > > - M-mode: SBI firmware code to handle triggers
-> > > 
-> > > SBI Debug Trigger extension proposal has been posted by
-> > > Anup Patel to lists.riscv.org tech-debug mailing list:
-> > > https://lists.riscv.org/g/tech-debug/topic/92375492
-> > > 
-> > > This patch provides initial implementation of SBI Debug
-> > > Trigger Extension in OpenSBI library based on the
-> > > suggested extension proposal.
-> > > 
-> > > Initial implementation has the following limitations:
-> > > - supported triggers: mcontrol, mcontrol6
-> > > - no support for chained triggers
-> > > - only build test for RV32
-> 
-> ... [snip]
-> 
-> > > +struct sbi_dbtr_trig_info {
-> > > +???????unsigned long type_mask;
-> > > +???????union sbi_dbtr_trig_state state;
-> > > +???????unsigned long tdata1;
-> > > +???????unsigned long tdata2;
-> > > +???????unsigned long tdata3;
-> > tdata1~tdata3 can be removed and written directly to scr during install
-> 
-> We need to write those values not only when we install triggers. We have
-> to rewrite them when we re-enable triggers after disabling or updating.
-> So I think it is more convenient to keep the whole state at hand.
+The number of interrupt enable register in words was once correct,
+but was wrongly changed to have an off-by-one error since
+commit 8c362e7d065e ("lib: irqchip/plic: Factor out a context init function").
 
-when install, write directly to tdata1~data3
-when read, read from tdata1~tdata3, and OR the vs/vu/s/u bits in trig_status with tdata1  
-when disable, clear vs/vu/s/u in tdata1 
-when enable, write vs/vu/s/u in trig_state to tdata1
-when updat, Only need write recv to tdata2
+Fixes: 8c362e7d065e ("lib: irqchip/plic: Factor out a context init function")
+Signed-off-by: Bin Meng <bmeng@tinylab.org>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Does not require more memory to save tdata1~tdata3
+---
 
-Regards,
-Xiang W
-> 
-> > > +};
-> > > +
-> > > +/** SBI shared mem messages layout */
-> > > +struct sbi_dbtr_data_msg {
-> > > +???????unsigned long tstate;
-> > > +???????unsigned long tdata1;
-> > > +???????unsigned long tdata2;
-> > > +???????unsigned long tdata3;
-> > > +};
-> > > +
-> > > +struct sbi_dbtr_id_msg {
-> > > +???????unsigned long idx;
-> > > +};
-> 
-> ... [snip]
-> 
-> > > +int sbi_dbtr_init(struct sbi_scratch *scratch)
-> > > +{
-> > > +???????struct sbi_trap_info trap = {0};
-> > > +???????u32 hartid = current_hartid();
-> > > +???????union riscv_dbtr_tdata1 tdata1;
-> > > +???????unsigned long val;
-> > > +???????int i;
-> > > +
-> > > +???????total_trigs = 0;
-> > > +
-> > > +???????for (i = 0; i < RV_MAX_TRIGGERS; i++) {
-> > > +???????????????csr_write_allowed(CSR_TSELECT, (ulong)&trap, i);
-> > > +???????????????if (trap.cause)
-> > > +???????????????????????break;
-> > > +
-> > > +???????????????val = csr_read_allowed(CSR_TSELECT, (ulong)&trap);
-> > > +???????????????if (trap.cause)
-> > > +???????????????????????break;
-> > > +
-> > > +???????????????/* Read back tselect and check that it contains the written value */
-> > > +???????????????if (val != i)
-> > > +???????????????????????break;
-> > > +
-> > > +???????????????val = csr_read_allowed(CSR_TINFO, (ulong)&trap);
-> > > +???????????????if (trap.cause) {
-> > > +???????????????????????/**
-> > > +??????????????????????? * If reading tinfo caused an exception, the debugger
-> > > +??????????????????????? * must read tdata1 to discover the type.
-> > > +??????????????????????? */
-> > > +???????????????????????tdata1.value = csr_read_allowed(CSR_TDATA1, (ulong)&trap);
-> > > +???????????????????????if (trap.cause)
-> > > +???????????????????????????????break;
-> > > +
-> > > +???????????????????????if (tdata1.type == 0)
-> > > +???????????????????????????????break;
-> > > +
-> > > +
-> > > +???????????????????????sbi_triggers_table_init(hartid, i, BIT(tdata1.type));
-> > > +???????????????????????total_trigs++;
-> > > +???????????????} else {
-> > > +???????????????????????if (val == 1)
-> > > +???????????????????????????????break;
-> > tinfo = 0 have to break, this is a invalid value.
-> 
-> Good catch! But it looks like a grey area in the spec.? This function
-> follows enumeration procedure described in the section 5.1 of Debug
-> spec v1.0.0. That procedure has the following steps for tinfo:
-> 
-> : 3. Read tinfo.
-> : 4. If that caused an exception, the debugger must read tdata1 to discover the type.
-> ???? (If type is 0, this trigger doesn?t exist. Exit the loop.)
-> : 5. If info is 1, this trigger doesn?t exist. Exit the loop.
-> : 6. Otherwise, the selected trigger supports the types discovered in info.
-> : 7. Repeat, incrementing the value in tselect.
-> 
-> So it looks like tinfo = 0 can be interpreted as valid. For instance,
-> tinfo = 0 can be returned for a trigger disabled on a hardware level.
-> Note that type 0 (tinfo = 1) can not be used to do the same since that
-> value prevents futher enumeration.
-> 
-> I will write to riscv tech-debug mailing list to clarify this point so
-> that the next revision of patches will include either fix (as per your
-> comment) or appropriate comment.
-> 
-> Regards,
-> Sergey
+(no changes since v2)
 
+Changes in v2:
+- new patch: lib: utils/irqchip: plic: Fix the off-by-one error in plic_context_init()
+
+ lib/utils/irqchip/plic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index dca5678..568f814 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -127,7 +127,7 @@ int plic_context_init(const struct plic_data *plic, int context_id,
+ 	if (!plic || context_id < 0)
+ 		return SBI_EINVAL;
+ 
+-	ie_words = (plic->num_src + 31) / 32;
++	ie_words = plic->num_src / 32 + 1;
+ 	ie_value = enable ? 0xffffffffU : 0U;
+ 
+ 	for (u32 i = 0; i < ie_words; i++)
+-- 
+2.34.1
 
 
