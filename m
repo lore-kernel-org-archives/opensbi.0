@@ -1,45 +1,44 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Mon, 12 Dec 2022 00:40:20 -0600
-Subject: [PATCH v3 1/5] lib: utils/irqchip: plic: Fix the off-by-one error
- in priority save/restore helpers
-In-Reply-To: <CAEUhbmWJCB=i7OkeCMvtz0ut9xcCjiO8fTQ379GZWU=vHuzhwg@mail.gmail.com>
+Date: Mon, 12 Dec 2022 00:45:24 -0600
+Subject: [PATCH v3 2/5] lib: utils/irqchip: plic: Ensure no out-of-bound
+ access in priority save/restore helpers
+In-Reply-To: <87tu22qgvq.fsf@igel.home>
 References: <20221211065424.806478-1-bmeng@tinylab.org>
- <87a63ufe4a.fsf@linux-m68k.org>
- <CAEUhbmWJCB=i7OkeCMvtz0ut9xcCjiO8fTQ379GZWU=vHuzhwg@mail.gmail.com>
-Message-ID: <65db953b-fc55-7323-7c8b-754c9b8f6d85@sholland.org>
+ <20221211065424.806478-2-bmeng@tinylab.org> <87tu22qgvq.fsf@igel.home>
+Message-ID: <ed95c5e0-b3cd-5c0e-6708-415edfc50bbd@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 12/11/22 04:18, Bin Meng wrote:
-> On Sun, Dec 11, 2022 at 6:08 PM Andreas Schwab <schwab@linux-m68k.org> wrote:
->>
->> On Dez 11 2022, Bin Meng wrote:
->>
->>> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
->>> index 73d7788..4df9020 100644
->>> --- a/lib/utils/irqchip/plic.c
->>> +++ b/lib/utils/irqchip/plic.c
->>> @@ -38,13 +38,13 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
->>>
->>>  void plic_priority_save(const struct plic_data *plic, u8 *priority)
->>>  {
->>> -     for (u32 i = 0; i < plic->num_src; i++)
->>> +     for (u32 i = 1; i <= plic->num_src; i++)
->>>               priority[i] = plic_get_priority(plic, i);
->>
->> That needs to adjust the index into the priority array.
+On 12/11/22 06:11, Andreas Schwab wrote:
+> On Dez 11 2022, Bin Meng wrote:
 > 
-> Does that help anything? It just confuses people more.
+>> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+>> index 18d330d..1f27575 100644
+>> --- a/platform/generic/allwinner/sun20i-d1.c
+>> +++ b/platform/generic/allwinner/sun20i-d1.c
+>> @@ -79,13 +79,13 @@ static u32 plic_threshold;
+>>  static void sun20i_d1_plic_save(void)
+>>  {
+>>  	fdt_plic_context_save(true, plic_sie, &plic_threshold);
+>> -	fdt_plic_priority_save(plic_priority);
+>> +	fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
+>>  }
+>>  
+>>  static void sun20i_d1_plic_restore(void)
+>>  {
+>>  	thead_plic_restore();
+>> -	fdt_plic_priority_restore(plic_priority);
+>> +	fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
+>>  	fdt_plic_context_restore(true, plic_sie, plic_threshold);
+>>  }
 > 
-> I added function parameter descriptions in patch 2 to make it crystal
-> clear, that the priority array needs to include interrupt source 0.
+> That fails to update the size of the plic_priority array.
 
-To me, it is more confusing that when I ask to save the priority for N
-sources, I need to allocate an array with >N elements. And leaving array
-element 0 unused wastes memory.
+PLIC_SOURCES is 176, and I later corrected riscv,ndev in the DT to 175,
+so technically this does not create a bug.
 
 Regards,
 Samuel
