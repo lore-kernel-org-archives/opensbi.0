@@ -1,11 +1,11 @@
 From: Samuel Holland <samuel@sholland.org>
-Date: Mon, 12 Dec 2022 00:57:34 -0600
-Subject: [PATCH v3 4/5] lib: utils/irqchip: plic: Fix the off-by-one error
- in context save/restore helpers
-In-Reply-To: <20221211065424.806478-4-bmeng@tinylab.org>
+Date: Mon, 12 Dec 2022 01:00:46 -0600
+Subject: [PATCH v3 5/5] lib: utils/irqchip: plic: Ensure no out-of-bound
+ access in context save/restore helpers
+In-Reply-To: <20221211065424.806478-5-bmeng@tinylab.org>
 References: <20221211065424.806478-1-bmeng@tinylab.org>
- <20221211065424.806478-4-bmeng@tinylab.org>
-Message-ID: <bf5bb572-085e-6591-bfa1-641cbdd44bda@sholland.org>
+ <20221211065424.806478-5-bmeng@tinylab.org>
+Message-ID: <17261da5-b988-f1f2-2a39-34cd4c0321ae@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,27 +13,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 On 12/11/22 00:54, Bin Meng wrote:
-> plic->num_src holds the number of interrupt sources without interrupt
-> source 0 but the interrupt enable register includes a bit for the
-> interrupt source 0 in the first word.
-
-On the other hand, it is not really feasible to exclude the first bit
-here, so maybe it makes sense to leave patch 1 as it is for consistency.
-
-> Fixes: 415ecf28f7ad ("lib: irqchip/plic: Add context save/restore helpers")
+> Currently the context save/restore helpers writes/reads the provided
+> array using an index whose maximum value is determined by PLIC, which
+> potentially may disagree with the caller to these helpers.
+> 
+> Add a parameter to ask the caller to provide the size limit of the
+> array to ensure no out-of-bound access happens.
+> 
 > Signed-off-by: Bin Meng <bmeng@tinylab.org>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
 > 
 > ---
 > 
-> (no changes since v2)
+> Changes in v3:
+> - move the size limit check to plic_context_save/restore
 > 
 > Changes in v2:
-> - new patch: lib: utils/irqchip: plic: Fix the off-by-one error in context save/restore helpers
+> - new patch: lib: utils/irqchip: plic: Ensure no out-of-bound access in context save/restore helpers
 > 
->  lib/utils/irqchip/plic.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  include/sbi_utils/irqchip/fdt_irqchip_plic.h |  5 +++--
+>  include/sbi_utils/irqchip/plic.h             |  4 ++--
+>  lib/utils/irqchip/fdt_irqchip_plic.c         |  9 +++++----
+>  lib/utils/irqchip/plic.c                     | 14 ++++++++++----
+>  platform/generic/allwinner/sun20i-d1.c       |  5 +++--
+>  5 files changed, 23 insertions(+), 14 deletions(-)
+> 
+[...]
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 1f27575..1da9e5b 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -78,7 +78,7 @@ static u32 plic_threshold;
+>  
+>  static void sun20i_d1_plic_save(void)
+>  {
+> -	fdt_plic_context_save(true, plic_sie, &plic_threshold);
+> +	fdt_plic_context_save(true, plic_sie, &plic_threshold, PLIC_IE_WORDS);
 
-Reviewed-by: Samuel Holland <samuel@sholland.org>
+While the actual value ends up being the same, you should update the
+definition of PLIC_IE_WORDS to use the same formula used elsewhere.
+
+Regards,
+Samuel
+
+>  	fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
+>  }
+>  
+> @@ -86,7 +86,8 @@ static void sun20i_d1_plic_restore(void)
+>  {
+>  	thead_plic_restore();
+>  	fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
+> -	fdt_plic_context_restore(true, plic_sie, plic_threshold);
+> +	fdt_plic_context_restore(true, plic_sie, plic_threshold,
+> +				 PLIC_IE_WORDS);
+>  }
+>  
+>  /*
 
 
