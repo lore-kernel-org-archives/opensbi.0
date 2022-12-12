@@ -1,44 +1,40 @@
-From: Andreas Schwab <schwab@linux-m68k.org>
-Date: Sun, 11 Dec 2022 13:11:53 +0100
-Subject: [PATCH v3 2/5] lib: utils/irqchip: plic: Ensure no out-of-bound
- access in priority save/restore helpers
-In-Reply-To: <20221211065424.806478-2-bmeng@tinylab.org> (Bin Meng's message
-	of "Sun, 11 Dec 2022 14:54:21 +0800")
-References: <20221211065424.806478-1-bmeng@tinylab.org>
-	<20221211065424.806478-2-bmeng@tinylab.org>
-Message-ID: <87tu22qgvq.fsf@igel.home>
+From: Deepak Gupta <debug@rivosinc.com>
+Date: Sun, 11 Dec 2022 19:08:02 -0800
+Subject: [PATCH Zisslpcfi 0/2] Support for zisslpcfi in opensbi
+Message-ID: <20221212030804.927309-1-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Dez 11 2022, Bin Meng wrote:
+Zisslpcfi [1] extension extends risc-v architecture to mitigate against
+control-flow integrity attacks (ROP/JOP/COP). 
 
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index 18d330d..1f27575 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -79,13 +79,13 @@ static u32 plic_threshold;
->  static void sun20i_d1_plic_save(void)
->  {
->  	fdt_plic_context_save(true, plic_sie, &plic_threshold);
-> -	fdt_plic_priority_save(plic_priority);
-> +	fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
->  }
->  
->  static void sun20i_d1_plic_restore(void)
->  {
->  	thead_plic_restore();
-> -	fdt_plic_priority_restore(plic_priority);
-> +	fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
->  	fdt_plic_context_restore(true, plic_sie, plic_threshold);
->  }
+Zisslpcfi uses bits (b23-b29) in (m/s/vs) status CSR for enabling cfi in
+lesser privileged mode and record cfi state. One such state is expected
+landing pad (ELP). If forward cfi is enabled, indirect call/jmp updates
+hart's ELP state (1bit) to true. ELP state is cleared only by a landing 
+pad instruction else trap is delivered with ELP state recorded in sstatus
+CSR.
 
-That fails to update the size of the plic_priority arraay.
+This two patch series adds following changes to opensbi
+    - Adds support in opensbi to detect zisslpcfi
+    - trap redirection updates ELP state accordingly
+
+[1] - https://github.com/riscv/riscv-cfi
+
+Deepak Gupta (2):
+  include: adding support for zsslpcfi encodings
+  lib: sbi: zsslpcfi detection and elp cfi state reflect back in status
+
+ include/sbi/riscv_encoding.h |  6 ++++++
+ include/sbi/sbi_hart.h       |  2 ++
+ lib/sbi/sbi_hart.c           | 21 +++++++++++++++++++++
+ lib/sbi/sbi_trap.c           | 18 ++++++++++++++++++
+ 4 files changed, 47 insertions(+)
 
 -- 
-Andreas Schwab, schwab at linux-m68k.org
-GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
-"And now for something completely different."
+2.25.1
+
 
