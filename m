@@ -1,107 +1,77 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 12 Dec 2022 18:58:53 +0530
-Subject: [PATCH v5 0/5] Add support for Renesas RZ/Five SoC
-In-Reply-To: <20221210103011.7814-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20221210103011.7814-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <CAAhSdy2ANrHhbq4AYNVdcuSo8AL3UbH5Ej8S-MZanJNksYUH+w@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Mon, 12 Dec 2022 19:08:01 +0530
+Subject: [PATCH v3 2/3] platform: generic: Allow platform_override to
+ select cold boot HART
+In-Reply-To: <20221212054018.169408-3-weiliang.lim@starfivetech.com>
+References: <20221212054018.169408-1-weiliang.lim@starfivetech.com> <20221212054018.169408-3-weiliang.lim@starfivetech.com>
+Message-ID: <CAK9=C2XXSr50Vnw==WnOU2DYdUcRdWnqWxJurb=3-0HMnoqJzQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Dec 10, 2022 at 4:00 PM Lad Prabhakar
-<prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
+On Mon, Dec 12, 2022 at 11:10 AM Wei Liang Lim
+<weiliang.lim@starfivetech.com> wrote:
 >
-> Hi All,
+> From: Anup Patel <apatel@ventanamicro.com>
 >
-> This patch series adds initial support to RZ/Five (R9A07G043F) SoC (which
-> is equipped with AX45MP AndesCore). Platform supports DT based probing.
+> We add a generic platform override callback to allow platform specific
+> selection of cold boot HART.
 >
-> Linux support is currently being upstreamed the latest patchset can be
-> found at [0](currently in linux-next, DT bindings can be seen here)
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  platform/generic/include/platform_override.h | 1 +
+>  platform/generic/platform.c                  | 9 +++++++++
+>  2 files changed, 10 insertions(+)
 >
-> [0] https://patchwork.kernel.org/project/linux-renesas-soc/cover/20221028165921.94487-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+> diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+> index 7f1558d..21354e9 100644
+> --- a/platform/generic/include/platform_override.h
+> +++ b/platform/generic/include/platform_override.h
+> @@ -18,6 +18,7 @@ struct platform_override {
+>         const struct fdt_match *match_table;
+>         u64 (*features)(const struct fdt_match *match);
+>         u64 (*tlbr_flush_limit)(const struct fdt_match *match);
+> +       bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
+>         int (*early_init)(bool cold_boot, const struct fdt_match *match);
+>         int (*final_init)(bool cold_boot, const struct fdt_match *match);
+>         void (*early_exit)(const struct fdt_match *match);
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index bfe15f0..80961f0 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -122,6 +122,14 @@ fail:
+>                 wfi();
+>  }
 >
-> - PLIC binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/interrupt-controller/sifive,plic-1.0.0.yaml#L57
-> - PLMT and PLICSW are not used by any driver in kernel hence DT bindings for it
->   and is used in a similar manner as compared Andes AE350 [1]
->   [1] https://github.com/andestech/linux/commits/v6.0.y_ae350-ax45mp/Documentation/devicetree/bindings
-> - SCIF binding - https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/serial/renesas,scif.yaml#L79
->
-> Note:
-> - The PMA implementation is still in discussion [1] once its decided
-> corresponding patch to OpenSBI will be added to reserve the memory nodes
-> and vendor specific SBI EXT.
-> - U-boot from BSP release wont work with these patches, it requires additional
->   patches (happy to share the u-boot branch if anyone wants to test this patchset)
-> - Patches apply on top of [2]
->
-> [1] https://patchwork.kernel.org/project/linux-renesas-soc/patch/20221124172207.153718-8-prabhakar.mahadev-lad.rj at bp.renesas.com/
-> [2] https://patchwork.ozlabs.org/project/opensbi/cover/20221128083046.6799-1-peterlin at andestech.com/
->
-> v4->v5
-> * Included RB tag from Anup for patch 5/5
-> * Updated generic.md to include RZ/Five SoC
->
-> v3->v4
-> * Included RB tags
-> * Updated doc
-> * Sorted compatible string list
-> * Fixed minor issues related to scif driver
->
-> v2->v3
-> * Switched to generic platform
-> * Dropped all vendor specific SBI EXT
-> * Fixed review comments pointed by Bin for SCIF driver
-> * Updated doc
->
-> RFC->v2
-> * Fixed comments pointed by Xiang W
-> * Included RB tag from Yu Chien Peter Lin for patch #3
->
-> RFC: https://patchwork.ozlabs.org/project/opensbi/cover/20221028004042.135549-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
->
-> Cheers,
-> Prabhakar
->
-> Lad Prabhakar (5):
->   lib: utils: serial: Add Renesas SCIF driver
->   lib: utils: serial: Add FDT driver for Renesas SCIF
->   lib: utils/irqchip: Add compatible string for Andestech NCEPLIC100
->   platform: generic: Add Renesas RZ/Five initial support
->   docs: platform: Add documentation for Renesas RZ/Five SoC
+> +static bool generic_cold_boot_allowed(u32 hartid)
+> +{
+> +       if (generic_plat && generic_plat->cold_boot_allowed)
+> +               return generic_plat && generic_plat->cold_boot_allowed(
+> +                                               hartid, generic_plat_match);
 
-Applied this series to the riscv/opensbi repo.
+There is a typo here. This line should be:
+"return generic_plat->cold_boot_allowed(hartid, generic_plat_match);"
 
-Thanks,
-Anup
-
+> +       return TRUE;
+> +}
+> +
+>  static int generic_nascent_init(void)
+>  {
+>         if (platform_has_mlevel_imsic)
+> @@ -261,6 +269,7 @@ static int generic_console_init(void)
+>  }
 >
->  docs/platform/generic.md                   |   2 +
->  docs/platform/platform.md                  |   5 +
->  docs/platform/renesas-rzfive.md            | 160 +++++++++++++++++++++
->  include/sbi_utils/fdt/fdt_helper.h         |   3 +
->  include/sbi_utils/serial/renesas-scif.h    |  11 ++
->  lib/utils/fdt/fdt_helper.c                 |  11 ++
->  lib/utils/irqchip/fdt_irqchip_plic.c       |   3 +-
->  lib/utils/serial/Kconfig                   |   9 ++
->  lib/utils/serial/fdt_serial_renesas_scif.c |  31 ++++
->  lib/utils/serial/objects.mk                |   4 +
->  lib/utils/serial/renesas_scif.c            | 116 +++++++++++++++
->  platform/generic/Kconfig                   |   4 +
->  platform/generic/configs/defconfig         |   2 +
->  platform/generic/renesas/rzfive/objects.mk |   8 ++
->  platform/generic/renesas/rzfive/rzfive.c   |  17 +++
->  15 files changed, 385 insertions(+), 1 deletion(-)
->  create mode 100644 docs/platform/renesas-rzfive.md
->  create mode 100644 include/sbi_utils/serial/renesas-scif.h
->  create mode 100644 lib/utils/serial/fdt_serial_renesas_scif.c
->  create mode 100644 lib/utils/serial/renesas_scif.c
->  create mode 100644 platform/generic/renesas/rzfive/objects.mk
->  create mode 100644 platform/generic/renesas/rzfive/rzfive.c
->
+>  const struct sbi_platform_operations platform_ops = {
+> +       .cold_boot_allowed      = generic_cold_boot_allowed,
+>         .nascent_init           = generic_nascent_init,
+>         .early_init             = generic_early_init,
+>         .final_init             = generic_final_init,
 > --
-> 2.17.1
+> 2.25.1
 >
+
+Regards,
+Anup
 
