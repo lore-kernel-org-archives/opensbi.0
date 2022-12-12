@@ -1,178 +1,176 @@
-From: WeiLiang Lim <weiliang.lim@starfivetech.com>
-Date: Mon, 12 Dec 2022 07:03:32 +0000
-Subject: [PATCH v3 3/3] generic/starfive: Add Starfive JH7110 platform
- implementation
-In-Reply-To: <B86CE53A-BFD4-4FF7-A597-BF482E492365@jrtc27.com>
-References: <20221212051959.169231-1-weiliang.lim@starfivetech.com>
- <20221212051959.169231-3-weiliang.lim@starfivetech.com>
- <373F2524-3650-4058-AF29-F8CEA7613CF6@jrtc27.com>
- <26169619ad974ed5a57b60f4b31a4a53@EXMBX163.cuchost.com>
- <B86CE53A-BFD4-4FF7-A597-BF482E492365@jrtc27.com>
-Message-ID: <02f8d505695a42178e8419ec28c5f8ca@EXMBX163.cuchost.com>
+From: Samuel Holland <samuel@sholland.org>
+Date: Mon, 12 Dec 2022 01:04:33 -0600
+Subject: [PATCH v3 2/5] lib: utils/irqchip: plic: Ensure no out-of-bound
+ access in priority save/restore helpers
+In-Reply-To: <20221211065424.806478-2-bmeng@tinylab.org>
+References: <20221211065424.806478-1-bmeng@tinylab.org>
+ <20221211065424.806478-2-bmeng@tinylab.org>
+Message-ID: <a515eb8a-4f5e-68ff-327f-082d948362f3@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-> -----Original Message-----
-> From: Jessica Clarke <jrtc27@jrtc27.com>
-> Sent: Monday, December 12, 2022 2:05 PM
-> To: WeiLiang Lim <weiliang.lim@starfivetech.com>
-> Cc: opensbi <opensbi@lists.infradead.org>; Anup Patel
-> <apatel@ventanamicro.com>; Cheehong Ang
-> <cheehong.ang@starfivetech.com>; JunLiang Tan
-> <junliang.tan@starfivetech.com>
-> Subject: Re: [PATCH v3 3/3] generic/starfive: Add Starfive JH7110 platform
-> implementation
+On 12/11/22 00:54, Bin Meng wrote:
+> Currently the priority save/restore helpers writes/reads the provided
+> array using an index whose maximum value is determined by PLIC, which
+> potentially may disagree with the caller to these helpers.
 > 
-> On 12 Dec 2022, at 06:04, WeiLiang Lim <weiliang.lim@starfivetech.com>
-> wrote:
-> >
-> >
-> >
-> >> -----Original Message-----
-> >> From: Jessica Clarke <jrtc27@jrtc27.com>
-> >> Sent: Monday, December 12, 2022 1:40 PM
-> >> To: WeiLiang Lim <weiliang.lim@starfivetech.com>
-> >> Cc: opensbi <opensbi@lists.infradead.org>; Anup Patel
-> >> <apatel@ventanamicro.com>; Cheehong Ang
-> >> <cheehong.ang@starfivetech.com>; JunLiang Tan
-> >> <junliang.tan@starfivetech.com>
-> >> Subject: Re: [PATCH v3 3/3] generic/starfive: Add Starfive JH7110
-> >> platform implementation
-> >>
-> >> On 12 Dec 2022, at 05:19, Wei Liang Lim
-> >> <weiliang.lim@starfivetech.com>
-> >> wrote:
-> >>>
-> >>> Add Starfive JH7110 platform implementation
-> >>>
-> >>> Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
-> >>> Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
-> >>> Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
-> >>> ---
-> >>> platform/generic/Kconfig             |  4 ++++
-> >>> platform/generic/configs/defconfig   |  1 +
-> >>> platform/generic/starfive/jh7110.c   | 27 +++++++++++++++++++++++++++
-> >>> platform/generic/starfive/objects.mk |  6 ++++++
-> >>> 4 files changed, 38 insertions(+)
-> >>> create mode 100644 platform/generic/starfive/jh7110.c
-> >>> create mode 100644 platform/generic/starfive/objects.mk
-> >>>
-> >>> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> >>> index 4b5d2cd..a6e467d 100644
-> >>> --- a/platform/generic/Kconfig
-> >>> +++ b/platform/generic/Kconfig
-> >>> @@ -41,4 +41,8 @@ config PLATFORM_SIFIVE_FU740
-> >>> 	depends on FDT_RESET && FDT_I2C
-> >>> 	default n
-> >>>
-> >>> +config PLATFORM_STARFIVE_JH7110
-> >>> +	bool "StarFive JH7110 support"
-> >>> +	default n
-> >>> +
-> >>> endif
-> >>> diff --git a/platform/generic/configs/defconfig
-> >>> b/platform/generic/configs/defconfig
-> >>> index 2eaeeb7..ef6aad9 100644
-> >>> --- a/platform/generic/configs/defconfig
-> >>> +++ b/platform/generic/configs/defconfig
-> >>> @@ -2,6 +2,7 @@ CONFIG_PLATFORM_ALLWINNER_D1=y
-> >>> CONFIG_PLATFORM_ANDES_AE350=y
-> CONFIG_PLATFORM_SIFIVE_FU540=y
-> >>> CONFIG_PLATFORM_SIFIVE_FU740=y
-> >>> +CONFIG_PLATFORM_STARFIVE_JH7110=y
-> >>> CONFIG_FDT_GPIO=y
-> >>> CONFIG_FDT_GPIO_SIFIVE=y
-> >>> CONFIG_FDT_I2C=y
-> >>> diff --git a/platform/generic/starfive/jh7110.c
-> >>> b/platform/generic/starfive/jh7110.c
-> >>> new file mode 100644
-> >>> index 0000000..1c76975
-> >>> --- /dev/null
-> >>> +++ b/platform/generic/starfive/jh7110.c
-> >>> @@ -0,0 +1,27 @@
-> >>> +/*
-> >>> + * SPDX-License-Identifier: BSD-2-Clause
-> >>> + *
-> >>> + * Copyright (c) 2022 StarFive
-> >>> + *
-> >>> + * Authors:
-> >>> + *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-> >>> + */
-> >>> +
-> >>> +#include <platform_override.h>
-> >>> +#include <sbi_utils/fdt/fdt_helper.h>
-> >>> +
-> >>> +static bool starfive_cold_boot_allowed(u32 hartid,
-> >>> +				   const struct fdt_match *match) {
-> >>> +	return (hartid == 1);
-> >>
-> >> Why? I thought in an earlier thread it was said this was just a
-> >> debugging thing and you should fix whatever bug this masks another way.
-> >>
-> >> This at least needs a justification in the source code.
-> >>
-> >> Jess
-> >
-> > Hi Jess,
-> >
-> > Sorry I did something wrong previously causing some patch being missed out.
-> > Please refer to my latest submission.
-> > In earlier conversation, Anup helped to review and suggested patches to
-> allow platform to influence cold boot HART selection and allow
-> platform_override to select cold boot HART. Together with Anup's patches I
-> have included StarFive platform specific implementation.
+> Add a parameter to ask the caller to provide the size limit of the
+> array to ensure no out-of-bound access happens.
 > 
-> But why does the JH110 need this?
+> Signed-off-by: Bin Meng <bmeng@tinylab.org>
 > 
-> Jess
+> ---
 > 
+> Changes in v3:
+> - fix the size limit check
+> - move the size limit check to plic_priority_save/restore
+> - add parameter description to fdt_plic_priority_save/restore
+> 
+> Changes in v2:
+> - new patch: libs: utils/irqchip: plic: Ensure no out-of-bound access in priority save/restore helpers
+> 
+>  include/sbi_utils/irqchip/fdt_irqchip_plic.h | 14 ++++++++++++--
+>  include/sbi_utils/irqchip/plic.h             |  5 +++--
+>  lib/utils/irqchip/fdt_irqchip_plic.c         |  8 ++++----
+>  lib/utils/irqchip/plic.c                     | 15 +++++++++++----
+>  platform/generic/allwinner/sun20i-d1.c       |  4 ++--
+>  5 files changed, 32 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> index 98d4de5..d5b1c60 100644
+> --- a/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> +++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> @@ -9,9 +9,19 @@
+>  
+>  #include <sbi/sbi_types.h>
+>  
+> -void fdt_plic_priority_save(u8 *priority);
+> +/**
+> + * Save the PLIC priority state
+> + * @param priority pointer to the memory region for the saved priority
+> + * @param num size of the memory region including interrupt source 0
+> + */
+> +void fdt_plic_priority_save(u8 *priority, u32 num);
+>  
+> -void fdt_plic_priority_restore(const u8 *priority);
+> +/**
+> + * Restore the PLIC priority state
+> + * @param priority pointer to the memory region for the saved priority
+> + * @param num size of the memory region including interrupt source 0
+> + */
+> +void fdt_plic_priority_restore(const u8 *priority, u32 num);
+>  
+>  void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold);
+>  
+> diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
+> index 48c24f0..38704a1 100644
+> --- a/include/sbi_utils/irqchip/plic.h
+> +++ b/include/sbi_utils/irqchip/plic.h
+> @@ -18,9 +18,10 @@ struct plic_data {
+>  };
+>  
+>  /* So far, priorities on all consumers of these functions fit in 8 bits. */
+> -void plic_priority_save(const struct plic_data *plic, u8 *priority);
+> +void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num);
+>  
+> -void plic_priority_restore(const struct plic_data *plic, const u8 *priority);
+> +void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
+> +			   u32 num);
+>  
+>  void plic_context_save(const struct plic_data *plic, int context_id,
+>  		       u32 *enable, u32 *threshold);
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index fe08836..7d76c5b 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -24,18 +24,18 @@ static struct plic_data plic[PLIC_MAX_NR];
+>  static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
+>  static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2];
+>  
+> -void fdt_plic_priority_save(u8 *priority)
+> +void fdt_plic_priority_save(u8 *priority, u32 num)
+>  {
+>  	struct plic_data *plic = plic_hartid2data[current_hartid()];
+>  
+> -	plic_priority_save(plic, priority);
+> +	plic_priority_save(plic, priority, num);
+>  }
+>  
+> -void fdt_plic_priority_restore(const u8 *priority)
+> +void fdt_plic_priority_restore(const u8 *priority, u32 num)
+>  {
+>  	struct plic_data *plic = plic_hartid2data[current_hartid()];
+>  
+> -	plic_priority_restore(plic, priority);
+> +	plic_priority_restore(plic, priority, num);
+>  }
+>  
+>  void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold)
+> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+> index 4df9020..dca5678 100644
+> --- a/lib/utils/irqchip/plic.c
+> +++ b/lib/utils/irqchip/plic.c
+> @@ -36,15 +36,22 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+>  	writel(val, plic_priority);
+>  }
+>  
+> -void plic_priority_save(const struct plic_data *plic, u8 *priority)
+> +void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num)
+>  {
+> -	for (u32 i = 1; i <= plic->num_src; i++)
+> +	if (num > plic->num_src)
+> +		num = plic->num_src;
 
-Hi Jess,
+This check is not really necessary. If the caller tries to save/restore
+more sources then actually exist, then the extra register writes will
+just be ignored. We already access extra bits by doing word accesses.
 
-This is mainly to support our customer request which they need a preferred boot hart in their product application.
-For better flexibility, we are planning for a v4 version where user can have the option to specify the preferred boot hart in dts chosen node. If unspecified, it will just use the current default lottery mechanism.
+For bounds checking, the only things that need to match are the array
+size and the loop. With your change to the loop condition, plic->num_src
+is not relevant at all anymore.
 
-Thanks
+Regards,
+Samuel
 
-
-> >>
-> >>> +}
-> >>> +
-> >>> +static const struct fdt_match starfive_jh7110_match[] = {
-> >>> +	{ .compatible = "starfive,jh7110" },
-> >>> +	{ },
-> >>> +};
-> >>> +
-> >>> +const struct platform_override starfive_jh7110 = {
-> >>> +	.match_table = starfive_jh7110_match,
-> >>> +	.cold_boot_allowed = starfive_cold_boot_allowed, };
-> >>> diff --git a/platform/generic/starfive/objects.mk
-> >>> b/platform/generic/starfive/objects.mk
-> >>> new file mode 100644
-> >>> index 0000000..0b900fb
-> >>> --- /dev/null
-> >>> +++ b/platform/generic/starfive/objects.mk
-> >>> @@ -0,0 +1,6 @@
-> >>> +#
-> >>> +# SPDX-License-Identifier: BSD-2-Clause #
-> >>> +
-> >>> +carray-platform_override_modules-
-> >> $(CONFIG_PLATFORM_STARFIVE_JH7110)
-> >>> ++= starfive_jh7110
-> >>> +platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) +=
-> >> starfive/jh7110.o
-> >>> --
-> >>> 2.25.1
-> >>>
-> >>>
-> >>> --
-> >>> opensbi mailing list
-> >>> opensbi at lists.infradead.org
-> >>> http://lists.infradead.org/mailman/listinfo/opensbi
+> +
+> +	for (u32 i = 1; i <= num; i++)
+>  		priority[i] = plic_get_priority(plic, i);
+>  }
+>  
+> -void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
+> +void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
+> +			   u32 num)
+>  {
+> -	for (u32 i = 1; i <= plic->num_src; i++)
+> +	if (num > plic->num_src)
+> +		num = plic->num_src;
+> +
+> +	for (u32 i = 1; i <= num; i++)
+>  		plic_set_priority(plic, i, priority[i]);
+>  }
+>  
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 18d330d..1f27575 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -79,13 +79,13 @@ static u32 plic_threshold;
+>  static void sun20i_d1_plic_save(void)
+>  {
+>  	fdt_plic_context_save(true, plic_sie, &plic_threshold);
+> -	fdt_plic_priority_save(plic_priority);
+> +	fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
+>  }
+>  
+>  static void sun20i_d1_plic_restore(void)
+>  {
+>  	thead_plic_restore();
+> -	fdt_plic_priority_restore(plic_priority);
+> +	fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
+>  	fdt_plic_context_restore(true, plic_sie, plic_threshold);
+>  }
+>  
 
 
