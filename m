@@ -1,69 +1,99 @@
 From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Mon, 12 Dec 2022 13:19:58 +0800
-Subject: [PATCH v3 1/3] lib: sbi: Allow platform to influence cold boot HART selection
+Date: Mon, 12 Dec 2022 13:19:59 +0800
+Subject: [PATCH v3 3/3] generic/starfive: Add Starfive JH7110 platform implementation
 In-Reply-To: <20221212051959.169231-1-weiliang.lim@starfivetech.com>
 References: <20221212051959.169231-1-weiliang.lim@starfivetech.com>
-Message-ID: <20221212051959.169231-2-weiliang.lim@starfivetech.com>
+Message-ID: <20221212051959.169231-3-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From 1f466b9e2945b57adc18d075b45b9ecdb304a38a Mon Sep 17 00:00:00 2001
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 2 Dec 2022 14:23:22 +0530
-Subject: [PATCH v3 2/3] platform: generic: Allow platform_override to select
- cold boot HART
+Add Starfive JH7110 platform implementation
 
-We add a generic platform override callback to allow platform specific
-selection of cold boot HART.
-
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
+Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
+Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
 ---
- platform/generic/include/platform_override.h | 1 +
- platform/generic/platform.c                  | 9 +++++++++
- 2 files changed, 10 insertions(+)
+ platform/generic/Kconfig             |  4 ++++
+ platform/generic/configs/defconfig   |  1 +
+ platform/generic/starfive/jh7110.c   | 27 +++++++++++++++++++++++++++
+ platform/generic/starfive/objects.mk |  6 ++++++
+ 4 files changed, 38 insertions(+)
+ create mode 100644 platform/generic/starfive/jh7110.c
+ create mode 100644 platform/generic/starfive/objects.mk
 
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 7f1558d..21354e9 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -18,6 +18,7 @@ struct platform_override {
- 	const struct fdt_match *match_table;
- 	u64 (*features)(const struct fdt_match *match);
- 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
-+	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
- 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
- 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
- 	void (*early_exit)(const struct fdt_match *match);
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index bfe15f0..80961f0 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -122,6 +122,14 @@ fail:
- 		wfi();
- }
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 4b5d2cd..a6e467d 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -41,4 +41,8 @@ config PLATFORM_SIFIVE_FU740
+ 	depends on FDT_RESET && FDT_I2C
+ 	default n
  
-+static bool generic_cold_boot_allowed(u32 hartid)
++config PLATFORM_STARFIVE_JH7110
++	bool "StarFive JH7110 support"
++	default n
++
+ endif
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 2eaeeb7..ef6aad9 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -2,6 +2,7 @@ CONFIG_PLATFORM_ALLWINNER_D1=y
+ CONFIG_PLATFORM_ANDES_AE350=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
++CONFIG_PLATFORM_STARFIVE_JH7110=y
+ CONFIG_FDT_GPIO=y
+ CONFIG_FDT_GPIO_SIFIVE=y
+ CONFIG_FDT_I2C=y
+diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
+new file mode 100644
+index 0000000..1c76975
+--- /dev/null
++++ b/platform/generic/starfive/jh7110.c
+@@ -0,0 +1,27 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 StarFive
++ *
++ * Authors:
++ *   Wei Liang Lim <weiliang.lim@starfivetech.com>
++ */
++
++#include <platform_override.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++static bool starfive_cold_boot_allowed(u32 hartid,
++				   const struct fdt_match *match)
 +{
-+	if (generic_plat && generic_plat->cold_boot_allowed)
-+		return generic_plat && generic_plat->cold_boot_allowed(
-+						hartid, generic_plat_match);
-+	return TRUE;
++	return (hartid == 1);
 +}
 +
- static int generic_nascent_init(void)
- {
- 	if (platform_has_mlevel_imsic)
-@@ -261,6 +269,7 @@ static int generic_console_init(void)
- }
- 
- const struct sbi_platform_operations platform_ops = {
-+	.cold_boot_allowed	= generic_cold_boot_allowed,
- 	.nascent_init		= generic_nascent_init,
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
++static const struct fdt_match starfive_jh7110_match[] = {
++	{ .compatible = "starfive,jh7110" },
++	{ },
++};
++
++const struct platform_override starfive_jh7110 = {
++	.match_table = starfive_jh7110_match,
++	.cold_boot_allowed = starfive_cold_boot_allowed,
++};
+diff --git a/platform/generic/starfive/objects.mk b/platform/generic/starfive/objects.mk
+new file mode 100644
+index 0000000..0b900fb
+--- /dev/null
++++ b/platform/generic/starfive/objects.mk
+@@ -0,0 +1,6 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++
++carray-platform_override_modules-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive_jh7110
++platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive/jh7110.o
 -- 
 2.25.1
 
