@@ -1,180 +1,74 @@
-From: Icenowy Zheng <uwu@icenowy.me>
-Date: Tue, 13 Dec 2022 16:51:10 +0800
-Subject: [PATCH v2 2/3] lib: utils/timer: mtimer: add a quirk for
- lacking mtime register
-In-Reply-To: <27234f248aa70b8b7d994e16113f0a2d414debdd.camel@126.com>
-References: <20221212082238.265281-1-uwu@icenowy.me>
-	 <20221212082238.265281-3-uwu@icenowy.me>
-	 <27234f248aa70b8b7d994e16113f0a2d414debdd.camel@126.com>
-Message-ID: <b83e8c033064be95b4fe1e542887ced1a85bec3c.camel@icenowy.me>
+From: Sergey Matyukevich <geomatsi@gmail.com>
+Date: Tue, 13 Dec 2022 22:43:20 +0300
+Subject: [PATCH RFC v2 2/2] lib: sbi: add support for debug triggers
+In-Reply-To: <cd24a0c91272bf5e636c90c2071f6e22bd500cf9.camel@126.com>
+References: <20221203213929.206429-1-geomatsi@gmail.com>
+ <20221203213929.206429-3-geomatsi@gmail.com>
+ <92833f1aeda3262f4ccb4b7fc796ee4de36c7ef0.camel@126.com>
+ <Y5Ta7XTiBLwRmxBe@curiosity>
+ <cd24a0c91272bf5e636c90c2071f6e22bd500cf9.camel@126.com>
+Message-ID: <Y5jV2CPg9nDmOvfO@curiosity>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-12-13???? 16:01 +0800?Xiang W???
-> ? 2022-12-12???? 16:22 +0800?Icenowy Zheng???
-> > T-Head developers surely have a different understanding of time CSR
-> > and
-> > CLINT's mtime register with SiFive ones, that they did not
-> > implement
-> > the mtime register at all -- as shown in openC906 source code,
-> > their
-> > time CSR value is just exposed at the top of their processor IP
-> > block
-> > and expects an external continous counter, which makes it not
-> > overrideable, and thus mtime register is not implemented, even not
-> > for
-> > reading. However, if CLINTEE is not enabled in T-Head's MXSTATUS
-> > extended CSR, these systems still rely on the mtimecmp registers to
-> > generate timer interrupts. This makes it necessary to implement T-
-> > Head
-> > C9xx CLINT support in OpenSBI MTIMER driver, which skips
-> > implementing
-> > reading mtime register and falls back to default code that reads
-> > time
-> > CSR.
+> > > > RISC-V Debug specification includes Sdtrig ISA extension.
+> > > > This extension describes Trigger Module. Triggers can cause
+> > > > a breakpoint exception, entry into Debug Mode, or a trace
+> > > > action without having to execute a special instruction. For
+> > > > native debugging triggers can be used to implement hardware
+> > > > breakpoints and watchpoints.
+> > > > 
+> > > > Software support for triggers consists of the following
+> > > > major components:
+> > > > - U-mode: gdb
+> > > > - S-mode: hardware breakpoints framework in Linux kernel
+> > > > - M-mode: SBI firmware code to handle triggers
+> > > > 
+> > > > SBI Debug Trigger extension proposal has been posted by
+> > > > Anup Patel to lists.riscv.org tech-debug mailing list:
+> > > > https://lists.riscv.org/g/tech-debug/topic/92375492
+> > > > 
+> > > > This patch provides initial implementation of SBI Debug
+> > > > Trigger Extension in OpenSBI library based on the
+> > > > suggested extension proposal.
+> > > > 
+> > > > Initial implementation has the following limitations:
+> > > > - supported triggers: mcontrol, mcontrol6
+> > > > - no support for chained triggers
+> > > > - only build test for RV32
 > > 
-> > Add a quirk into MTIMER driver, which represents a mtime register
-> > is
-> > lacking and time CSR value should be used instead.
+> > ... [snip]
 > > 
-> > Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
-> > ---
-> > Changes in v2:
-> > - Dropped has_mtime field in aclint_mtimer_data, use mtime_size = 0
-> > ? (which is disallowed before) to mark absence of mtime.
-> > - Dropped the code that specially handle the existence of mtime
-> > when
-> > ? registering memory ranges -- the function will just be a no-op
-> > when
-> > ? size is 0.
+> > > > +struct sbi_dbtr_trig_info {
+> > > > +???????unsigned long type_mask;
+> > > > +???????union sbi_dbtr_trig_state state;
+> > > > +???????unsigned long tdata1;
+> > > > +???????unsigned long tdata2;
+> > > > +???????unsigned long tdata3;
+> > > tdata1~tdata3 can be removed and written directly to scr during install
 > > 
-> > ?lib/utils/timer/aclint_mtimer.c??? | 11 ++++++++---
-> > ?lib/utils/timer/fdt_timer_mtimer.c | 30 ++++++++++++++++++++------
-> > ----
-> > ?2 files changed, 28 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/lib/utils/timer/aclint_mtimer.c
-> > b/lib/utils/timer/aclint_mtimer.c
-> > index 3f00c21..1846a9a 100644
-> > --- a/lib/utils/timer/aclint_mtimer.c
-> > +++ b/lib/utils/timer/aclint_mtimer.c
-> > @@ -149,10 +149,10 @@ int aclint_mtimer_cold_init(struct
-> > aclint_mtimer_data *mt,
-> > ????????int rc;
-> > ?
-> > ????????/* Sanity checks */
-> > -???????if (!mt || !mt->mtime_size ||
-> > +???????if (!mt ||
-> > ??????????? (mt->hart_count && !mt->mtimecmp_size) ||
-> > -?????????? (mt->mtime_addr & (ACLINT_MTIMER_ALIGN - 1)) ||
-> > -?????????? (mt->mtime_size & (ACLINT_MTIMER_ALIGN - 1)) ||
-> > +?????????? (mt->mtime_size && (mt->mtime_addr &
-> > (ACLINT_MTIMER_ALIGN - 1))) ||
-> typo.
+> > We need to write those values not only when we install triggers. We have
+> > to rewrite them when we re-enable triggers after disabling or updating.
+> > So I think it is more convenient to keep the whole state at hand.
+> 
+> when install, write directly to tdata1~data3
+> when read, read from tdata1~tdata3, and OR the vs/vu/s/u bits in trig_status with tdata1  
+> when disable, clear vs/vu/s/u in tdata1 
+> when enable, write vs/vu/s/u in trig_state to tdata1
 
-Not a typo, mtime_size = 0 here means the mtime register is just not
-available, so we do sanity check on mtime_addr based on the existence
-of mtime, thus mtime_size.
+Ok for these four.
 
-> mt->mtime_size should be mt->mtime_addr.
-> 
-> Regards,
-> Xiang W
-> > +?????????? (mt->mtime_size && (mt->mtime_size &
-> > (ACLINT_MTIMER_ALIGN - 1))) ||
-> > ??????????? (mt->mtimecmp_addr & (ACLINT_MTIMER_ALIGN - 1)) ||
-> > ??????????? (mt->mtimecmp_size & (ACLINT_MTIMER_ALIGN - 1)) ||
-> > ??????????? (mt->first_hartid >= SBI_HARTMASK_MAX_BITS) ||
-> > @@ -178,6 +178,11 @@ int aclint_mtimer_cold_init(struct
-> > aclint_mtimer_data *mt,
-> > ????????for (i = 0; i < mt->hart_count; i++)
-> > ????????????????mtimer_hartid2data[mt->first_hartid + i] = mt;
-> > ?
-> > +???????if (!mt->mtime_size) {
-> > +???????????????/* Disable reading mtime when mtime is not
-> > available */
-> > +???????????????mtimer.timer_value = NULL;
-> > +???????}
-> > +
-> > ????????/* Add MTIMER regions to the root domain */
-> > ????????if (mt->mtime_addr == (mt->mtimecmp_addr + mt-
-> > >mtimecmp_size)) {
-> > ????????????????rc = sbi_domain_root_add_memrange(mt-
-> > >mtimecmp_addr,
-> > diff --git a/lib/utils/timer/fdt_timer_mtimer.c
-> > b/lib/utils/timer/fdt_timer_mtimer.c
-> > index 7b8546b..a0adc70 100644
-> > --- a/lib/utils/timer/fdt_timer_mtimer.c
-> > +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> > @@ -18,6 +18,7 @@
-> > ?struct timer_mtimer_quirks {
-> > ????????unsigned int????mtime_offset;
-> > ????????bool????????????has_64bit_mmio;
-> > +???????bool????????????without_mtime;
-> > ?};
-> > ?
-> > ?static unsigned long mtimer_count = 0;
-> > @@ -53,12 +54,16 @@ static int timer_mtimer_cold_init(void *fdt,
-> > int nodeoff,
-> > ????????????????/* Set CLINT addresses */
-> > ????????????????mt->mtimecmp_addr = addr[0] +
-> > ACLINT_DEFAULT_MTIMECMP_OFFSET;
-> > ????????????????mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
-> > -???????????????mt->mtime_addr = addr[0] +
-> > ACLINT_DEFAULT_MTIME_OFFSET;
-> > -???????????????mt->mtime_size = size[0] - mt->mtimecmp_size;
-> > -???????????????/* Adjust MTIMER address and size for CLINT device
-> > */
-> > -???????????????mt->mtime_addr += quirks->mtime_offset;
-> > +???????????????if (!quirks->without_mtime) {
-> > +???????????????????????mt->mtime_addr = addr[0] +
-> > ACLINT_DEFAULT_MTIME_OFFSET;
-> > +???????????????????????mt->mtime_size = size[0] - mt-
-> > >mtimecmp_size;
-> > +???????????????????????/* Adjust MTIMER address and size for CLINT
-> > device */
-> > +???????????????????????mt->mtime_addr += quirks->mtime_offset;
-> > +???????????????????????mt->mtime_size -= quirks->mtime_offset;
-> > +???????????????} else {
-> > +???????????????????????mt->mtime_addr = mt->mtime_size = 0;
-> > +???????????????}
-> > ????????????????mt->mtimecmp_addr += quirks->mtime_offset;
-> > -???????????????mt->mtime_size -= quirks->mtime_offset;
-> > ????????????????/* Apply additional CLINT quirks */
-> > ????????????????mt->has_64bit_mmio = quirks->has_64bit_mmio;
-> > ????????} else { /* RISC-V ACLINT MTIMER */
-> > @@ -70,12 +75,17 @@ static int timer_mtimer_cold_init(void *fdt,
-> > int nodeoff,
-> > ????????}
-> > ?
-> > ????????/* Check if MTIMER device has shared MTIME address */
-> > -???????mt->has_shared_mtime = false;
-> > -???????for (i = 0; i < mtimer_count; i++) {
-> > -???????????????if (mtimer[i].mtime_addr == mt->mtime_addr) {
-> > -???????????????????????mt->has_shared_mtime = true;
-> > -???????????????????????break;
-> > +???????if (mt->mtime_size) {
-> > +???????????????mt->has_shared_mtime = false;
-> > +???????????????for (i = 0; i < mtimer_count; i++) {
-> > +???????????????????????if (mtimer[i].mtime_addr == mt->mtime_addr)
-> > {
-> > +???????????????????????????????mt->has_shared_mtime = true;
-> > +???????????????????????????????break;
-> > +???????????????????????}
-> > ????????????????}
-> > +???????} else {
-> > +???????????????/* Assume shared time CSR */
-> > +???????????????mt->has_shared_mtime = true;
-> > ????????}
-> > ?
-> > ????????/* Initialize the MTIMER device */
-> > -- 
-> > 2.38.1
-> > 
-> > 
-> 
-> 
+> when updat, Only need write recv to tdata2
+
+Not for this one. You may need to update tdata1 as well. Besides, nothing
+in spec requires hardware to support partial trigger updates on the fly.
+On the other hand, we can read all CSRs, update some, and write back.
+Ok, I agree that there is a value in saving quite a few extra bytes.
+I will double-check this approach for v3.
+
+Regards,
+Sergey
 
