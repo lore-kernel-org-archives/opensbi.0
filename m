@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 13 Dec 2022 13:18:19 +0530
-Subject: [PATCH v2 3/3] lib: utils/timer: mtimer: add T-Head C9xx CLINT compatible
-In-Reply-To: <20221212082238.265281-4-uwu@icenowy.me>
-References: <20221212082238.265281-1-uwu@icenowy.me> <20221212082238.265281-4-uwu@icenowy.me>
-Message-ID: <CAAhSdy0um025HXxDpUOjWVpLGAWmjoQ2RYS2u8W_ja5VQTFB0g@mail.gmail.com>
+Date: Tue, 13 Dec 2022 13:20:34 +0530
+Subject: [PATCH v2 2/3] lib: utils/timer: mtimer: add a quirk for lacking
+ mtime register
+In-Reply-To: <20221212082238.265281-3-uwu@icenowy.me>
+References: <20221212082238.265281-1-uwu@icenowy.me> <20221212082238.265281-3-uwu@icenowy.me>
+Message-ID: <CAAhSdy1HnZ-QFVnvm+94LTrGABHyyUk+dtHeageHw9VPMNaPNA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +13,21 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Dec 12, 2022 at 1:53 PM Icenowy Zheng <uwu@icenowy.me> wrote:
 >
-> As we already added the quirk for lacking mtime register to MTIMER
-> driver, add T-Head C9xx CLINT compatible to it and wire the quirk.
+> T-Head developers surely have a different understanding of time CSR and
+> CLINT's mtime register with SiFive ones, that they did not implement
+> the mtime register at all -- as shown in openC906 source code, their
+> time CSR value is just exposed at the top of their processor IP block
+> and expects an external continous counter, which makes it not
+> overrideable, and thus mtime register is not implemented, even not for
+> reading. However, if CLINTEE is not enabled in T-Head's MXSTATUS
+> extended CSR, these systems still rely on the mtimecmp registers to
+> generate timer interrupts. This makes it necessary to implement T-Head
+> C9xx CLINT support in OpenSBI MTIMER driver, which skips implementing
+> reading mtime register and falls back to default code that reads time
+> CSR.
+>
+> Add a quirk into MTIMER driver, which represents a mtime register is
+> lacking and time CSR value should be used instead.
 >
 > Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
 
@@ -25,31 +39,104 @@ Regards,
 Anup
 
 > ---
-> No changes in v2.
+> Changes in v2:
+> - Dropped has_mtime field in aclint_mtimer_data, use mtime_size = 0
+>   (which is disallowed before) to mark absence of mtime.
+> - Dropped the code that specially handle the existence of mtime when
+>   registering memory ranges -- the function will just be a no-op when
+>   size is 0.
 >
->  lib/utils/timer/fdt_timer_mtimer.c | 6 ++++++
->  1 file changed, 6 insertions(+)
+>  lib/utils/timer/aclint_mtimer.c    | 11 ++++++++---
+>  lib/utils/timer/fdt_timer_mtimer.c | 30 ++++++++++++++++++++----------
+>  2 files changed, 28 insertions(+), 13 deletions(-)
 >
+> diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+> index 3f00c21..1846a9a 100644
+> --- a/lib/utils/timer/aclint_mtimer.c
+> +++ b/lib/utils/timer/aclint_mtimer.c
+> @@ -149,10 +149,10 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+>         int rc;
+>
+>         /* Sanity checks */
+> -       if (!mt || !mt->mtime_size ||
+> +       if (!mt ||
+>             (mt->hart_count && !mt->mtimecmp_size) ||
+> -           (mt->mtime_addr & (ACLINT_MTIMER_ALIGN - 1)) ||
+> -           (mt->mtime_size & (ACLINT_MTIMER_ALIGN - 1)) ||
+> +           (mt->mtime_size && (mt->mtime_addr & (ACLINT_MTIMER_ALIGN - 1))) ||
+> +           (mt->mtime_size && (mt->mtime_size & (ACLINT_MTIMER_ALIGN - 1))) ||
+>             (mt->mtimecmp_addr & (ACLINT_MTIMER_ALIGN - 1)) ||
+>             (mt->mtimecmp_size & (ACLINT_MTIMER_ALIGN - 1)) ||
+>             (mt->first_hartid >= SBI_HARTMASK_MAX_BITS) ||
+> @@ -178,6 +178,11 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+>         for (i = 0; i < mt->hart_count; i++)
+>                 mtimer_hartid2data[mt->first_hartid + i] = mt;
+>
+> +       if (!mt->mtime_size) {
+> +               /* Disable reading mtime when mtime is not available */
+> +               mtimer.timer_value = NULL;
+> +       }
+> +
+>         /* Add MTIMER regions to the root domain */
+>         if (mt->mtime_addr == (mt->mtimecmp_addr + mt->mtimecmp_size)) {
+>                 rc = sbi_domain_root_add_memrange(mt->mtimecmp_addr,
 > diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-> index a0adc70..5244f98 100644
+> index 7b8546b..a0adc70 100644
 > --- a/lib/utils/timer/fdt_timer_mtimer.c
 > +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> @@ -124,9 +124,15 @@ static const struct timer_mtimer_quirks sifive_clint_quirks = {
->         .has_64bit_mmio = true,
+> @@ -18,6 +18,7 @@
+>  struct timer_mtimer_quirks {
+>         unsigned int    mtime_offset;
+>         bool            has_64bit_mmio;
+> +       bool            without_mtime;
 >  };
 >
-> +static const struct timer_mtimer_quirks thead_clint_quirks = {
-> +       .mtime_offset   = CLINT_MTIMER_OFFSET,
-> +       .without_mtime  = true,
-> +};
-> +
->  static const struct fdt_match timer_mtimer_match[] = {
->         { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
->         { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
-> +       { .compatible = "thead,c900-clint", .data = &thead_clint_quirks },
->         { .compatible = "riscv,aclint-mtimer" },
->         { },
->  };
+>  static unsigned long mtimer_count = 0;
+> @@ -53,12 +54,16 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>                 /* Set CLINT addresses */
+>                 mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
+>                 mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
+> -               mt->mtime_addr = addr[0] + ACLINT_DEFAULT_MTIME_OFFSET;
+> -               mt->mtime_size = size[0] - mt->mtimecmp_size;
+> -               /* Adjust MTIMER address and size for CLINT device */
+> -               mt->mtime_addr += quirks->mtime_offset;
+> +               if (!quirks->without_mtime) {
+> +                       mt->mtime_addr = addr[0] + ACLINT_DEFAULT_MTIME_OFFSET;
+> +                       mt->mtime_size = size[0] - mt->mtimecmp_size;
+> +                       /* Adjust MTIMER address and size for CLINT device */
+> +                       mt->mtime_addr += quirks->mtime_offset;
+> +                       mt->mtime_size -= quirks->mtime_offset;
+> +               } else {
+> +                       mt->mtime_addr = mt->mtime_size = 0;
+> +               }
+>                 mt->mtimecmp_addr += quirks->mtime_offset;
+> -               mt->mtime_size -= quirks->mtime_offset;
+>                 /* Apply additional CLINT quirks */
+>                 mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>         } else { /* RISC-V ACLINT MTIMER */
+> @@ -70,12 +75,17 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>         }
+>
+>         /* Check if MTIMER device has shared MTIME address */
+> -       mt->has_shared_mtime = false;
+> -       for (i = 0; i < mtimer_count; i++) {
+> -               if (mtimer[i].mtime_addr == mt->mtime_addr) {
+> -                       mt->has_shared_mtime = true;
+> -                       break;
+> +       if (mt->mtime_size) {
+> +               mt->has_shared_mtime = false;
+> +               for (i = 0; i < mtimer_count; i++) {
+> +                       if (mtimer[i].mtime_addr == mt->mtime_addr) {
+> +                               mt->has_shared_mtime = true;
+> +                               break;
+> +                       }
+>                 }
+> +       } else {
+> +               /* Assume shared time CSR */
+> +               mt->has_shared_mtime = true;
+>         }
+>
+>         /* Initialize the MTIMER device */
 > --
 > 2.38.1
 >
