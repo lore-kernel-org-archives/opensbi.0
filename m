@@ -1,176 +1,48 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 17 Dec 2022 09:11:10 +0530
-Subject: [PATCH v3 5/5] lib: utils/irqchip: plic: Ensure no out-of-bound
- access in context save/restore helpers
-In-Reply-To: <20221211065424.806478-5-bmeng@tinylab.org>
-References: <20221211065424.806478-1-bmeng@tinylab.org> <20221211065424.806478-5-bmeng@tinylab.org>
-Message-ID: <CAAhSdy1X_Zr1D1tACg4NiL076mZhGMF_fOSQXkwPg-gJDVEvbw@mail.gmail.com>
+Date: Sat, 17 Dec 2022 10:49:11 +0530
+Subject: [PATCH v3 0/3] generic/starfive: Enable Starfive JH7110 platform
+ preferred boot hart implementation
+In-Reply-To: <20221212054018.169408-1-weiliang.lim@starfivetech.com>
+References: <20221212054018.169408-1-weiliang.lim@starfivetech.com>
+Message-ID: <CAAhSdy1vEvSepUwe6ZnXHLKFSDikyjoa9CR=KYboEmbS3tsyQw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Dec 11, 2022 at 12:25 PM Bin Meng <bmeng@tinylab.org> wrote:
+On Mon, Dec 12, 2022 at 11:11 AM Wei Liang Lim
+<weiliang.lim@starfivetech.com> wrote:
 >
-> Currently the context save/restore helpers writes/reads the provided
-> array using an index whose maximum value is determined by PLIC, which
-> potentially may disagree with the caller to these helpers.
+> This is patchset to enable Starfive JH7110 platform preferred boot hart implementation.
 >
-> Add a parameter to ask the caller to provide the size limit of the
-> array to ensure no out-of-bound access happens.
+> Anup Patel (2):
+>   lib: sbi: Allow platform to influence cold boot HART selection
+>   platform: generic: Allow platform_override to select cold boot HART
 >
-> Signed-off-by: Bin Meng <bmeng@tinylab.org>
+> Wei Liang Lim (1):
+>   generic/starfive: Add Starfive JH7110 platform implementation
 
-Applied this patch to the riscv/opensbi repo.
+Applied this series to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
 >
-> ---
+>  include/sbi/sbi_platform.h                   | 20 +++++++++++++++
+>  lib/sbi/sbi_init.c                           |  7 +++--
+>  platform/generic/Kconfig                     |  4 +++
+>  platform/generic/configs/defconfig           |  1 +
+>  platform/generic/include/platform_override.h |  1 +
+>  platform/generic/platform.c                  |  9 +++++++
+>  platform/generic/starfive/jh7110.c           | 27 ++++++++++++++++++++
+>  platform/generic/starfive/objects.mk         |  6 +++++
+>  8 files changed, 73 insertions(+), 2 deletions(-)
+>  create mode 100644 platform/generic/starfive/jh7110.c
+>  create mode 100644 platform/generic/starfive/objects.mk
 >
-> Changes in v3:
-> - move the size limit check to plic_context_save/restore
->
-> Changes in v2:
-> - new patch: lib: utils/irqchip: plic: Ensure no out-of-bound access in context save/restore helpers
->
->  include/sbi_utils/irqchip/fdt_irqchip_plic.h |  5 +++--
->  include/sbi_utils/irqchip/plic.h             |  4 ++--
->  lib/utils/irqchip/fdt_irqchip_plic.c         |  9 +++++----
->  lib/utils/irqchip/plic.c                     | 14 ++++++++++----
->  platform/generic/allwinner/sun20i-d1.c       |  5 +++--
->  5 files changed, 23 insertions(+), 14 deletions(-)
->
-> diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
-> index d5b1c60..df645dd 100644
-> --- a/include/sbi_utils/irqchip/fdt_irqchip_plic.h
-> +++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
-> @@ -23,9 +23,10 @@ void fdt_plic_priority_save(u8 *priority, u32 num);
->   */
->  void fdt_plic_priority_restore(const u8 *priority, u32 num);
->
-> -void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold);
-> +void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold, u32 num);
->
-> -void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold);
-> +void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold,
-> +                             u32 num);
->
->  void thead_plic_restore(void);
->
-> diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
-> index 38704a1..112a714 100644
-> --- a/include/sbi_utils/irqchip/plic.h
-> +++ b/include/sbi_utils/irqchip/plic.h
-> @@ -24,10 +24,10 @@ void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
->                            u32 num);
->
->  void plic_context_save(const struct plic_data *plic, int context_id,
-> -                      u32 *enable, u32 *threshold);
-> +                      u32 *enable, u32 *threshold, u32 num);
->
->  void plic_context_restore(const struct plic_data *plic, int context_id,
-> -                         const u32 *enable, u32 threshold);
-> +                         const u32 *enable, u32 threshold, u32 num);
->
->  int plic_context_init(const struct plic_data *plic, int context_id,
->                       bool enable, u32 threshold);
-> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-> index 7d76c5b..c54f45c 100644
-> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
-> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-> @@ -38,22 +38,23 @@ void fdt_plic_priority_restore(const u8 *priority, u32 num)
->         plic_priority_restore(plic, priority, num);
->  }
->
-> -void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold)
-> +void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold, u32 num)
->  {
->         u32 hartid = current_hartid();
->
->         plic_context_save(plic_hartid2data[hartid],
->                           plic_hartid2context[hartid][smode],
-> -                         enable, threshold);
-> +                         enable, threshold, num);
->  }
->
-> -void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold)
-> +void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold,
-> +                             u32 num)
->  {
->         u32 hartid = current_hartid();
->
->         plic_context_restore(plic_hartid2data[hartid],
->                              plic_hartid2context[hartid][smode],
-> -                            enable, threshold);
-> +                            enable, threshold, num);
->  }
->
->  static int irqchip_plic_warm_init(void)
-> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-> index b152bb7..8089a0b 100644
-> --- a/lib/utils/irqchip/plic.c
-> +++ b/lib/utils/irqchip/plic.c
-> @@ -98,22 +98,28 @@ static void plic_set_ie(const struct plic_data *plic, u32 cntxid,
->  }
->
->  void plic_context_save(const struct plic_data *plic, int context_id,
-> -                      u32 *enable, u32 *threshold)
-> +                      u32 *enable, u32 *threshold, u32 num)
->  {
->         u32 ie_words = plic->num_src / 32 + 1;
->
-> -       for (u32 i = 0; i < ie_words; i++)
-> +       if (num > ie_words)
-> +               num = ie_words;
-> +
-> +       for (u32 i = 0; i < num; i++)
->                 enable[i] = plic_get_ie(plic, context_id, i);
->
->         *threshold = plic_get_thresh(plic, context_id);
->  }
->
->  void plic_context_restore(const struct plic_data *plic, int context_id,
-> -                         const u32 *enable, u32 threshold)
-> +                         const u32 *enable, u32 threshold, u32 num)
->  {
->         u32 ie_words = plic->num_src / 32 + 1;
->
-> -       for (u32 i = 0; i < ie_words; i++)
-> +       if (num > ie_words)
-> +               num = ie_words;
-> +
-> +       for (u32 i = 0; i < num; i++)
->                 plic_set_ie(plic, context_id, i, enable[i]);
->
->         plic_set_thresh(plic, context_id, threshold);
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index 1f27575..1da9e5b 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -78,7 +78,7 @@ static u32 plic_threshold;
->
->  static void sun20i_d1_plic_save(void)
->  {
-> -       fdt_plic_context_save(true, plic_sie, &plic_threshold);
-> +       fdt_plic_context_save(true, plic_sie, &plic_threshold, PLIC_IE_WORDS);
->         fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
->  }
->
-> @@ -86,7 +86,8 @@ static void sun20i_d1_plic_restore(void)
->  {
->         thead_plic_restore();
->         fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
-> -       fdt_plic_context_restore(true, plic_sie, plic_threshold);
-> +       fdt_plic_context_restore(true, plic_sie, plic_threshold,
-> +                                PLIC_IE_WORDS);
->  }
->
->  /*
 > --
-> 2.34.1
+> 2.25.1
 >
 >
 > --
