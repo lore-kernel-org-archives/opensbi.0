@@ -1,41 +1,65 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue, 20 Dec 2022 16:16:25 +0530
-Subject: [PATCH 9/9] docs: Update domain's region permissions and requirements
+Date: Tue, 20 Dec 2022 16:16:23 +0530
+Subject: [PATCH 7/9] lib: utils: Disallow non-root domains from adding M-mode regions
 In-Reply-To: <20221220104625.80667-1-hchauhan@ventanamicro.com>
 References: <20221220104625.80667-1-hchauhan@ventanamicro.com>
-Message-ID: <20221220104625.80667-10-hchauhan@ventanamicro.com>
+Message-ID: <20221220104625.80667-8-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Updated the various permissions bits available for domains
-defined in DT node and restrictions on them.
+The M-mode regions can only be added by root domain. The non-root
+domains shouldn't be able to add them from FDT.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 ---
- docs/domain_support.md | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/sbi/sbi_domain.h   |  5 +++++
+ lib/utils/fdt/fdt_domain.c | 14 ++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 8963b57..e533bf7 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -160,8 +160,11 @@ The DT properties of a domain instance DT node are as follows:
- * **regions** (Optional) - The list of domain memory region DT node phandle
-   and access permissions for the domain instance. Each list entry is a pair
-   of DT node phandle and access permissions. The access permissions are
--  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
--  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
-+  represented as a 32bit bitmask having bits: **M readable** (BIT[0]),
-+  **M writeable** (BIT[1]), **M executable** (BIT[2]), **SU readable**
-+  (BIT[3]), **SU writable** (BIT[4]), and **SU executable** (BIT[5]).
-+  Any region of a domain defined in DT node cannot have only M-bits set
-+  in access permissions i.e. it cannot be an m-mode only accessible region.
- * **boot-hart** (Optional) - The DT node phandle of the HART booting the
-   domain instance. If coldboot HART is assigned to the domain instance then
-   this DT property is ignored and the coldboot HART is assumed to be the
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 955ffa3..3f5d28e 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -50,6 +50,11 @@ struct sbi_domain_memregion {
+ 						 SBI_DOMAIN_MEMREGION_M_WRITABLE | \
+ 						 SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
+ 
++#define SBI_DOMAIN_MEMREGION_SU_RWX		(SBI_DOMAIN_MEMREGION_SU_READABLE | \
++						 SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
++
++
+ 	/* Unrestricted M-mode accesses but enfoced on SU-mode */
+ #define SBI_DOMAIN_MEMREGION_READABLE		(SBI_DOMAIN_MEMREGION_SU_READABLE | \
+ 						 SBI_DOMAIN_MEMREGION_M_RWX)
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index f979343..838aeca 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -239,6 +239,20 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+ 	u32 *region_count = opaque;
+ 	struct sbi_domain_memregion *region;
+ 
++	/*
++	 * Non-root domains cannot add a region with only M-mode
++	 * access permissions. M-mode regions can only be part of
++	 * root domain.
++	 *
++	 * SU permission bits can't be all zeroes and M-mode permission
++	 * bits must be all set.
++	 */
++	if (!((region_access & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
++	     & SBI_DOMAIN_MEMREGION_SU_RWX)
++	    && ((region_access & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK)
++		& SBI_DOMAIN_MEMREGION_M_RWX))
++		return SBI_EINVAL;
++
+ 	/* Find next region of the domain */
+ 	if (FDT_DOMAIN_REGION_MAX_COUNT <= *region_count)
+ 		return SBI_EINVAL;
 -- 
 2.39.0
 
