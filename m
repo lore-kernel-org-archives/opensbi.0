@@ -1,75 +1,36 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue, 20 Dec 2022 16:16:18 +0530
-Subject: [PATCH 2/9] lib: sbi: Use finer permission semantics for address validation
+Date: Tue, 20 Dec 2022 16:16:19 +0530
+Subject: [PATCH 3/9] lib: sbi: Add permissions for the firmware start till end
 In-Reply-To: <20221220104625.80667-1-hchauhan@ventanamicro.com>
 References: <20221220104625.80667-1-hchauhan@ventanamicro.com>
-Message-ID: <20221220104625.80667-3-hchauhan@ventanamicro.com>
+Message-ID: <20221220104625.80667-4-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Use the fine grained permisssion semantics for address validation
-of a given region.
+Change the zero flag to M-mode R/W/X flag for the firmware
+region.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 ---
- lib/sbi/sbi_domain.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ lib/sbi/sbi_domain.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 3205595..8f9306c 100644
+index 8f9306c..01eff18 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
-@@ -107,24 +107,33 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
- {
- 	bool rmmio, mmio = FALSE;
- 	struct sbi_domain_memregion *reg;
--	unsigned long rstart, rend, rflags, rwx = 0;
-+	unsigned long rstart, rend, rflags, rwx = 0, rrwx = 0;
+@@ -628,7 +628,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
- 	if (!dom)
- 		return FALSE;
- 
-+	/*
-+	 * Use M_{R/W/X} bits because the SU-bits are at the
-+	 * same relative offsets. If the mode is not M, the SU
-+	 * bits will fall at same offsets after the shift.
-+	 */
- 	if (access_flags & SBI_DOMAIN_READ)
--		rwx |= SBI_DOMAIN_MEMREGION_READABLE;
-+		rwx |= SBI_DOMAIN_MEMREGION_M_READABLE;
-+
- 	if (access_flags & SBI_DOMAIN_WRITE)
--		rwx |= SBI_DOMAIN_MEMREGION_WRITEABLE;
-+		rwx |= SBI_DOMAIN_MEMREGION_M_WRITABLE;
-+
- 	if (access_flags & SBI_DOMAIN_EXECUTE)
--		rwx |= SBI_DOMAIN_MEMREGION_EXECUTABLE;
-+		rwx |= SBI_DOMAIN_MEMREGION_M_EXECUTABLE;
-+
- 	if (access_flags & SBI_DOMAIN_MMIO)
- 		mmio = TRUE;
- 
- 	sbi_domain_for_each_memregion(dom, reg) {
- 		rflags = reg->flags;
--		if (mode == PRV_M && !(rflags & SBI_DOMAIN_MEMREGION_MMODE))
--			continue;
-+		rrwx = (mode == PRV_M ? (rflags & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK)
-+			: (rflags & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
-+			>> SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT);
- 
- 		rstart = reg->base;
- 		rend = (reg->order < __riscv_xlen) ?
-@@ -133,7 +142,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
- 			rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? TRUE : FALSE;
- 			if (mmio != rmmio)
- 				return FALSE;
--			return ((rflags & rwx) == rwx) ? TRUE : FALSE;
-+			return ((rrwx & rwx) == rwx) ? TRUE : FALSE;
- 		}
- 	}
+ 	/* Root domain firmware memory region */
+-	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size, 0,
++	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
++				  SBI_DOMAIN_MEMREGION_M_RWX,
+ 				  &root_fw_region);
+ 	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
  
 -- 
 2.39.0
