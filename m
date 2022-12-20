@@ -1,59 +1,130 @@
-From: Andreas Schwab <schwab@linux-m68k.org>
-Date: Sat, 17 Dec 2022 13:50:45 +0100
-Subject: [PATCH v3 1/5] lib: utils/irqchip: plic: Fix the off-by-one
- error in priority save/restore helpers
-In-Reply-To: <CAK9=C2Xqy21AqKZ=OJq=J=fGv1j0ySFoVNTjs8=U3FLrzZQ_zw@mail.gmail.com>
-	(Anup Patel's message of "Sat, 17 Dec 2022 08:51:37 +0530")
-References: <20221211065424.806478-1-bmeng@tinylab.org>
-	<87a63ufe4a.fsf@linux-m68k.org>
-	<CAEUhbmWJCB=i7OkeCMvtz0ut9xcCjiO8fTQ379GZWU=vHuzhwg@mail.gmail.com>
-	<65db953b-fc55-7323-7c8b-754c9b8f6d85@sholland.org>
-	<CAK9=C2Xqy21AqKZ=OJq=J=fGv1j0ySFoVNTjs8=U3FLrzZQ_zw@mail.gmail.com>
-Message-ID: <87cz8iry6y.fsf@igel.home>
+From: Wei Liang Lim <weiliang.lim@starfivetech.com>
+Date: Tue, 20 Dec 2022 11:41:02 +0800
+Subject: [PATCH v4 3/3] generic/starfive: Add Starfive JH7110 platform implementation
+In-Reply-To: <20221220034102.150151-1-weiliang.lim@starfivetech.com>
+References: <20221220034102.150151-1-weiliang.lim@starfivetech.com>
+Message-ID: <20221220034102.150151-4-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Dez 17 2022, Anup Patel wrote:
+Add Starfive JH7110 platform implementation
 
-> On Mon, Dec 12, 2022 at 12:10 PM Samuel Holland <samuel@sholland.org> wrote:
->>
->> On 12/11/22 04:18, Bin Meng wrote:
->> > On Sun, Dec 11, 2022 at 6:08 PM Andreas Schwab <schwab@linux-m68k.org> wrote:
->> >>
->> >> On Dez 11 2022, Bin Meng wrote:
->> >>
->> >>> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
->> >>> index 73d7788..4df9020 100644
->> >>> --- a/lib/utils/irqchip/plic.c
->> >>> +++ b/lib/utils/irqchip/plic.c
->> >>> @@ -38,13 +38,13 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
->> >>>
->> >>>  void plic_priority_save(const struct plic_data *plic, u8 *priority)
->> >>>  {
->> >>> -     for (u32 i = 0; i < plic->num_src; i++)
->> >>> +     for (u32 i = 1; i <= plic->num_src; i++)
->> >>>               priority[i] = plic_get_priority(plic, i);
->> >>
->> >> That needs to adjust the index into the priority array.
->> >
->> > Does that help anything? It just confuses people more.
->> >
->> > I added function parameter descriptions in patch 2 to make it crystal
->> > clear, that the priority array needs to include interrupt source 0.
->>
->> To me, it is more confusing that when I ask to save the priority for N
->> sources, I need to allocate an array with >N elements. And leaving array
->> element 0 unused wastes memory.
->
-> This can be a separate improvement patch.
+Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
+Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
+Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
+---
+ platform/generic/Kconfig             |  4 ++
+ platform/generic/configs/defconfig   |  1 +
+ platform/generic/starfive/jh7110.c   | 57 ++++++++++++++++++++++++++++
+ platform/generic/starfive/objects.mk |  6 +++
+ 4 files changed, 68 insertions(+)
+ create mode 100644 platform/generic/starfive/jh7110.c
+ create mode 100644 platform/generic/starfive/objects.mk
 
-It is a bug fix, not just an improvement.
-
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 62c7a2d..47c10e5 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
+ 	depends on FDT_RESET && FDT_I2C
+ 	default n
+ 
++config PLATFORM_STARFIVE_JH7110
++	bool "StarFive JH7110 support"
++	default n
++
+ endif
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 47fca95..4b0842e 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
+ CONFIG_PLATFORM_RENESAS_RZFIVE=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
++CONFIG_PLATFORM_STARFIVE_JH7110=y
+ CONFIG_FDT_GPIO=y
+ CONFIG_FDT_GPIO_SIFIVE=y
+ CONFIG_FDT_I2C=y
+diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
+new file mode 100644
+index 0000000..5d3ab6f
+--- /dev/null
++++ b/platform/generic/starfive/jh7110.c
+@@ -0,0 +1,57 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 StarFive
++ *
++ * Authors:
++ *   Wei Liang Lim <weiliang.lim@starfivetech.com>
++ */
++
++#include <libfdt.h>
++#include <platform_override.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++static bool hart_cold_booted = FALSE;
++
++static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
++				   const struct fdt_match *match)
++{
++	const fdt32_t *val;
++	int len, coff;
++
++	if (hart_cold_booted)
++		return FALSE;
++
++	void *fdt = fdt_get_address();
++
++	coff = fdt_path_offset(fdt, "/chosen");
++	if (-1 < coff) {
++		val = fdt_getprop(fdt, coff, "boot-hart", &len);
++		if (val && len) {
++			u32 selected_hartid = (u32) fdt32_to_cpu(*val);
++			return (selected_hartid == hartid);
++		}
++	}
++
++	return TRUE;
++}
++
++static int starfive_jh7110_early_init(bool cold_boot,
++				   const struct fdt_match *match)
++{
++	if (cold_boot)
++		hart_cold_booted = TRUE;
++
++	return 0;
++}
++
++static const struct fdt_match starfive_jh7110_match[] = {
++	{ .compatible = "starfive,jh7110" },
++	{ },
++};
++
++const struct platform_override starfive_jh7110 = {
++	.match_table = starfive_jh7110_match,
++	.early_init = starfive_jh7110_early_init,
++	.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
++};
+diff --git a/platform/generic/starfive/objects.mk b/platform/generic/starfive/objects.mk
+new file mode 100644
+index 0000000..0b900fb
+--- /dev/null
++++ b/platform/generic/starfive/objects.mk
+@@ -0,0 +1,6 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++
++carray-platform_override_modules-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive_jh7110
++platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive/jh7110.o
 -- 
-Andreas Schwab, schwab at linux-m68k.org
-GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
-"And now for something completely different."
+2.25.1
+
 
