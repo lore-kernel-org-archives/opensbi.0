@@ -1,54 +1,41 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue, 20 Dec 2022 16:16:20 +0530
-Subject: [PATCH 4/9] lib: sbi: Use finer permission sematics to decide on PMP bits
+Date: Tue, 20 Dec 2022 16:16:25 +0530
+Subject: [PATCH 9/9] docs: Update domain's region permissions and requirements
 In-Reply-To: <20221220104625.80667-1-hchauhan@ventanamicro.com>
 References: <20221220104625.80667-1-hchauhan@ventanamicro.com>
-Message-ID: <20221220104625.80667-5-hchauhan@ventanamicro.com>
+Message-ID: <20221220104625.80667-10-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Use the fine grained permission bits to decide if the region
-permissions are to enforced on all modes. Also use the new
-permission bits for deciding on R/W/X bits in pmpcfg register.
+Updated the various permissions bits available for domains
+defined in DT node and restrictions on them.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 ---
- lib/sbi/sbi_hart.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ docs/domain_support.md | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 5447c52..2ded55b 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -303,14 +303,20 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 			break;
- 
- 		pmp_flags = 0;
--		if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
-+
-+		/*
-+		 * If permissions are to be enforced for all modes on this region,
-+		 * the lock bit should be set.
-+		 */
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
-+			pmp_flags |= PMP_L;
-+
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
- 			pmp_flags |= PMP_R;
--		if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
- 			pmp_flags |= PMP_W;
--		if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
- 			pmp_flags |= PMP_X;
--		if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
--			pmp_flags |= PMP_L;
- 
- 		pmp_addr =  reg->base >> PMP_SHIFT;
- 		if (pmp_gran_log2 <= reg->order && pmp_addr < pmp_addr_max)
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index 8963b57..e533bf7 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -160,8 +160,11 @@ The DT properties of a domain instance DT node are as follows:
+ * **regions** (Optional) - The list of domain memory region DT node phandle
+   and access permissions for the domain instance. Each list entry is a pair
+   of DT node phandle and access permissions. The access permissions are
+-  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
+-  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
++  represented as a 32bit bitmask having bits: **M readable** (BIT[0]),
++  **M writeable** (BIT[1]), **M executable** (BIT[2]), **SU readable**
++  (BIT[3]), **SU writable** (BIT[4]), and **SU executable** (BIT[5]).
++  Any region of a domain defined in DT node cannot have only M-bits set
++  in access permissions i.e. it cannot be an m-mode only accessible region.
+ * **boot-hart** (Optional) - The DT node phandle of the HART booting the
+   domain instance. If coldboot HART is assigned to the domain instance then
+   this DT property is ignored and the coldboot HART is assumed to be the
 -- 
 2.39.0
 
