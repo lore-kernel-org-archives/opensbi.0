@@ -1,73 +1,77 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 20 Dec 2022 18:29:43 +0800
-Subject: [PATCH v4 2/3] platform: generic: Allow platform_override to
- select cold boot HART
-In-Reply-To: <20221220034102.150151-3-weiliang.lim@starfivetech.com>
-References: <20221220034102.150151-1-weiliang.lim@starfivetech.com>
-	 <20221220034102.150151-3-weiliang.lim@starfivetech.com>
-Message-ID: <5969a072cc8b54de6a33c2730406e42cafef44ee.camel@126.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Tue, 20 Dec 2022 16:16:17 +0530
+Subject: [PATCH 1/9] include: sbi: Fine grain the permissions for M and SU modes
+In-Reply-To: <20221220104625.80667-1-hchauhan@ventanamicro.com>
+References: <20221220104625.80667-1-hchauhan@ventanamicro.com>
+Message-ID: <20221220104625.80667-2-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2022-12-20???? 11:41 +0800?Wei Liang Lim???
-> From: Anup Patel <apatel@ventanamicro.com>
-> 
-> We add a generic platform override callback to allow platform specific
-> selection of cold boot HART.
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?platform/generic/include/platform_override.h | 1 +
-> ?platform/generic/platform.c????????????????? | 9 +++++++++
-> ?2 files changed, 10 insertions(+)
-> 
-> diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-> index 7f1558d..21354e9 100644
-> --- a/platform/generic/include/platform_override.h
-> +++ b/platform/generic/include/platform_override.h
-> @@ -18,6 +18,7 @@ struct platform_override {
-> ????????const struct fdt_match *match_table;
-> ????????u64 (*features)(const struct fdt_match *match);
-> ????????u64 (*tlbr_flush_limit)(const struct fdt_match *match);
-> +???????bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
-> ????????int (*early_init)(bool cold_boot, const struct fdt_match *match);
-> ????????int (*final_init)(bool cold_boot, const struct fdt_match *match);
-> ????????void (*early_exit)(const struct fdt_match *match);
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index bfe15f0..16aa4f3 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -122,6 +122,14 @@ fail:
-> ????????????????wfi();
-> ?}
-> ?
-> +static bool generic_cold_boot_allowed(u32 hartid)
-> +{
-> +???????if (generic_plat && generic_plat->cold_boot_allowed)
-> +???????????????return generic_plat->cold_boot_allowed(
-> +???????????????????????????????????????????????hartid, generic_plat_match);
-> +???????return TRUE;
-> +}
-> +
-> ?static int generic_nascent_init(void)
-> ?{
-> ????????if (platform_has_mlevel_imsic)
-> @@ -261,6 +269,7 @@ static int generic_console_init(void)
-> ?}
-> ?
-> ?const struct sbi_platform_operations platform_ops = {
-> +???????.cold_boot_allowed??????= generic_cold_boot_allowed,
-> ????????.nascent_init???????????= generic_nascent_init,
-> ????????.early_init?????????????= generic_early_init,
-> ????????.final_init?????????????= generic_final_init,
-> -- 
-> 2.25.1
-> 
-> 
+Split the permissions for M-mode and SU-mode. This would
+help if different sections of OpenSBI need to be given
+different permissions and if M-mode has different permisssions
+than the SU-mode over a region.
 
+Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+---
+ include/sbi/sbi_domain.h | 40 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 5 deletions(-)
+
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 5553d21..955ffa3 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -36,11 +36,41 @@ struct sbi_domain_memregion {
+ 	 */
+ 	unsigned long base;
+ 	/** Flags representing memory region attributes */
+-#define SBI_DOMAIN_MEMREGION_READABLE		(1UL << 0)
+-#define SBI_DOMAIN_MEMREGION_WRITEABLE		(1UL << 1)
+-#define SBI_DOMAIN_MEMREGION_EXECUTABLE		(1UL << 2)
+-#define SBI_DOMAIN_MEMREGION_MMODE		(1UL << 3)
+-#define SBI_DOMAIN_MEMREGION_ACCESS_MASK	(0xfUL)
++#define SBI_DOMAIN_MEMREGION_M_READABLE		(1UL << 0)
++#define SBI_DOMAIN_MEMREGION_M_WRITABLE		(1UL << 1)
++#define SBI_DOMAIN_MEMREGION_M_EXECUTABLE	(1UL << 2)
++#define SBI_DOMAIN_MEMREGION_SU_READABLE	(1UL << 3)
++#define SBI_DOMAIN_MEMREGION_SU_WRITABLE	(1UL << 4)
++#define SBI_DOMAIN_MEMREGION_SU_EXECUTABLE	(1UL << 5)
++
++	/** Bit to control if permissions are enforced on all modes */
++#define SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS	(1UL << 6)
++
++#define SBI_DOMAIN_MEMREGION_M_RWX		(SBI_DOMAIN_MEMREGION_M_READABLE | \
++						 SBI_DOMAIN_MEMREGION_M_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
++
++	/* Unrestricted M-mode accesses but enfoced on SU-mode */
++#define SBI_DOMAIN_MEMREGION_READABLE		(SBI_DOMAIN_MEMREGION_SU_READABLE | \
++						 SBI_DOMAIN_MEMREGION_M_RWX)
++#define SBI_DOMAIN_MEMREGION_WRITEABLE		(SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_M_RWX)
++#define SBI_DOMAIN_MEMREGION_EXECUTABLE		(SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
++						 SBI_DOMAIN_MEMREGION_M_RWX)
++
++	/* Enforced accesses across all modes */
++#define SBI_DOMAIN_MEMREGION_ENF_READABLE	(SBI_DOMAIN_MEMREGION_SU_READABLE | \
++						 SBI_DOMAIN_MEMREGION_M_READABLE)
++#define SBI_DOMAIN_MEMREGION_ENF_WRITABLE	(SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_M_WRITABLE)
++#define SBI_DOMAIN_MEMREGION_ENF_EXECUTABLE	(SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
++						 SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
++
++#define SBI_DOMAIN_MEMREGION_ACCESS_MASK	(0x3fUL)
++#define SBI_DOMAIN_MEMREGION_M_ACCESS_MASK	(0x7UL)
++#define SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK	(0x38UL)
++
++#define SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT	(3)
+ 
+ #define SBI_DOMAIN_MEMREGION_MMIO		(1UL << 31)
+ 	unsigned long flags;
+-- 
+2.39.0
 
 
