@@ -1,66 +1,146 @@
-From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Tue, 20 Dec 2022 11:41:01 +0800
-Subject: [PATCH v4 2/3] platform: generic: Allow platform_override to select cold boot HART
-In-Reply-To: <20221220034102.150151-1-weiliang.lim@starfivetech.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 20 Dec 2022 18:28:40 +0800
+Subject: [PATCH v4 3/3] generic/starfive: Add Starfive JH7110 platform
+ implementation
+In-Reply-To: <20221220034102.150151-4-weiliang.lim@starfivetech.com>
 References: <20221220034102.150151-1-weiliang.lim@starfivetech.com>
-Message-ID: <20221220034102.150151-3-weiliang.lim@starfivetech.com>
+	 <20221220034102.150151-4-weiliang.lim@starfivetech.com>
+Message-ID: <8ed3bd53b96841953b8679fbb7f585ad85d5056a.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Anup Patel <apatel@ventanamicro.com>
+? 2022-12-20???? 11:41 +0800?Wei Liang Lim???
+> Add Starfive JH7110 platform implementation
+> 
+> Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
+> Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
+> Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
+> ---
+> ?platform/generic/Kconfig???????????? |? 4 ++
+> ?platform/generic/configs/defconfig?? |? 1 +
+> ?platform/generic/starfive/jh7110.c?? | 57 ++++++++++++++++++++++++++++
+> ?platform/generic/starfive/objects.mk |? 6 +++
+> ?4 files changed, 68 insertions(+)
+> ?create mode 100644 platform/generic/starfive/jh7110.c
+> ?create mode 100644 platform/generic/starfive/objects.mk
+> 
+> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+> index 62c7a2d..47c10e5 100644
+> --- a/platform/generic/Kconfig
+> +++ b/platform/generic/Kconfig
+> @@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
+> ????????depends on FDT_RESET && FDT_I2C
+> ????????default n
+> ?
+> +config PLATFORM_STARFIVE_JH7110
+> +???????bool "StarFive JH7110 support"
+> +???????default n
+> +
+> ?endif
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> index 47fca95..4b0842e 100644
+> --- a/platform/generic/configs/defconfig
+> +++ b/platform/generic/configs/defconfig
+> @@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
+> ?CONFIG_PLATFORM_RENESAS_RZFIVE=y
+> ?CONFIG_PLATFORM_SIFIVE_FU540=y
+> ?CONFIG_PLATFORM_SIFIVE_FU740=y
+> +CONFIG_PLATFORM_STARFIVE_JH7110=y
+> ?CONFIG_FDT_GPIO=y
+> ?CONFIG_FDT_GPIO_SIFIVE=y
+> ?CONFIG_FDT_I2C=y
+> diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
+> new file mode 100644
+> index 0000000..5d3ab6f
+> --- /dev/null
+> +++ b/platform/generic/starfive/jh7110.c
+> @@ -0,0 +1,57 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 StarFive
+> + *
+> + * Authors:
+> + *?? Wei Liang Lim <weiliang.lim@starfivetech.com>
+> + */
+> +
+> +#include <libfdt.h>
+> +#include <platform_override.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +
+> +static bool hart_cold_booted = FALSE;
+hart_cold_booted is not necessary, because coldboot_lottery will be
+1 after the first boot, which will guarantee that the second
+init_coldboot will not be executed
+> +
+> +static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
+> +????????????????????????????????? const struct fdt_match *match)
+> +{
+> +???????const fdt32_t *val;
+> +???????int len, coff;
+> +
+> +???????if (hart_cold_booted)
+> +???????????????return FALSE;
+> +
+> +???????void *fdt = fdt_get_address();
+> +
+> +???????coff = fdt_path_offset(fdt, "/chosen");
+> +???????if (-1 < coff) {
+> +???????????????val = fdt_getprop(fdt, coff, "boot-hart", &len);
+> +???????????????if (val && len) {
+> +???????????????????????u32 selected_hartid = (u32) fdt32_to_cpu(*val);
+> +???????????????????????return (selected_hartid == hartid);
+> +???????????????}
+> +???????}
+You can define selected_hartid as a static variable with an initial
+value of -1, and get it from fdt when the initial value is -1. In this
+way, there is no need to analyze fdt every time.
 
-We add a generic platform override callback to allow platform specific
-selection of cold boot HART.
+Regards,
+Xiang W
+> +
+> +???????return TRUE;
+> +}
+> +
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- platform/generic/include/platform_override.h | 1 +
- platform/generic/platform.c                  | 9 +++++++++
- 2 files changed, 10 insertions(+)
+> +static int starfive_jh7110_early_init(bool cold_boot,
+> +????????????????????????????????? const struct fdt_match *match)
+> +{
+> +???????if (cold_boot)
+> +???????????????hart_cold_booted = TRUE;
+> +
+> +???????return 0;
+> +}
+> +
+> +static const struct fdt_match starfive_jh7110_match[] = {
+> +???????{ .compatible = "starfive,jh7110" },
+> +???????{ },
+> +};
+> +
+> +const struct platform_override starfive_jh7110 = {
+> +???????.match_table = starfive_jh7110_match,
+> +???????.early_init = starfive_jh7110_early_init,
+> +???????.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
+> +};
+> diff --git a/platform/generic/starfive/objects.mk b/platform/generic/starfive/objects.mk
+> new file mode 100644
+> index 0000000..0b900fb
+> --- /dev/null
+> +++ b/platform/generic/starfive/objects.mk
+> @@ -0,0 +1,6 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +
+> +carray-platform_override_modules-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive_jh7110
+> +platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive/jh7110.o
+> -- 
+> 2.25.1
+> 
+> 
 
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 7f1558d..21354e9 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -18,6 +18,7 @@ struct platform_override {
- 	const struct fdt_match *match_table;
- 	u64 (*features)(const struct fdt_match *match);
- 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
-+	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
- 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
- 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
- 	void (*early_exit)(const struct fdt_match *match);
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index bfe15f0..16aa4f3 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -122,6 +122,14 @@ fail:
- 		wfi();
- }
- 
-+static bool generic_cold_boot_allowed(u32 hartid)
-+{
-+	if (generic_plat && generic_plat->cold_boot_allowed)
-+		return generic_plat->cold_boot_allowed(
-+						hartid, generic_plat_match);
-+	return TRUE;
-+}
-+
- static int generic_nascent_init(void)
- {
- 	if (platform_has_mlevel_imsic)
-@@ -261,6 +269,7 @@ static int generic_console_init(void)
- }
- 
- const struct sbi_platform_operations platform_ops = {
-+	.cold_boot_allowed	= generic_cold_boot_allowed,
- 	.nascent_init		= generic_nascent_init,
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
--- 
-2.25.1
 
 
