@@ -1,221 +1,273 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 20 Dec 2022 18:20:42 +0530
-Subject: [PATCH v4 3/3] generic/starfive: Add Starfive JH7110 platform implementation
-In-Reply-To: <86d58fe538e94baab146976c161efc27@EXMBX168.cuchost.com>
-References: <20221220034102.150151-1-weiliang.lim@starfivetech.com>
- <20221220034102.150151-4-weiliang.lim@starfivetech.com> <CAK9=C2WQSv-MFDUrzfiG9CP_-Wb+Ru1e8WCwoezLzNFEWztUOw@mail.gmail.com>
- <b94eeb4f4a544b13bcc036235e80026b@EXMBX168.cuchost.com> <CAK9=C2UecME1zNtTE6vX+zYKGviJWxgZVF7_ksVFWnYRZxwjvQ@mail.gmail.com>
- <86d58fe538e94baab146976c161efc27@EXMBX168.cuchost.com>
-Message-ID: <CAAhSdy1MyBAMXSrdVvTGWv0Zc+Q3ksyw2Xfac0=geJxJgBUrqw@mail.gmail.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Tue, 20 Dec 2022 22:12:29 +0000
+Subject: [RFC PATCH] platform: generic: renesas: Add support to configure
+ the PMA
+In-Reply-To: <20221212094421.14556-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20221212094421.14556-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <Y6IzTcaMxw9JjBW3@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 20, 2022 at 6:03 PM Cheehong Ang
-<cheehong.ang@starfivetech.com> wrote:
->
-> > -----Original Message-----
-> > From: Anup Patel <apatel@ventanamicro.com>
-> > Sent: Tuesday, December 20, 2022 8:04 PM
-> > To: Cheehong Ang <cheehong.ang@starfivetech.com>
-> > Cc: WeiLiang Lim <weiliang.lim@starfivetech.com>;
-> > opensbi at lists.infradead.org; JunLiang Tan <junliang.tan@starfivetech.com>
-> > Subject: Re: [PATCH v4 3/3] generic/starfive: Add Starfive JH7110 platform
-> > implementation
-> >
-> > On Tue, Dec 20, 2022 at 5:08 PM Cheehong Ang
-> > <cheehong.ang@starfivetech.com> wrote:
-> > >
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: Anup Patel <apatel@ventanamicro.com>
-> > > > Sent: Tuesday, December 20, 2022 7:05 PM
-> > > > To: WeiLiang Lim <weiliang.lim@starfivetech.com>
-> > > > Cc: opensbi at lists.infradead.org; Cheehong Ang
-> > > > <cheehong.ang@starfivetech.com>; JunLiang Tan
-> > > > <junliang.tan@starfivetech.com>
-> > > > Subject: Re: [PATCH v4 3/3] generic/starfive: Add Starfive JH7110
-> > > > platform implementation
-> > > >
-> > > > On Tue, Dec 20, 2022 at 9:12 AM Wei Liang Lim
-> > > > <weiliang.lim@starfivetech.com> wrote:
-> > > > >
-> > > > > Add Starfive JH7110 platform implementation
-> > > > >
-> > > > > Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
-> > > > > Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
-> > > > > Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
-> > > > > ---
-> > > > >  platform/generic/Kconfig             |  4 ++
-> > > > >  platform/generic/configs/defconfig   |  1 +
-> > > > >  platform/generic/starfive/jh7110.c   | 57
-> > ++++++++++++++++++++++++++++
-> > > > >  platform/generic/starfive/objects.mk |  6 +++
-> > > > >  4 files changed, 68 insertions(+)  create mode 100644
-> > > > > platform/generic/starfive/jh7110.c
-> > > > >  create mode 100644 platform/generic/starfive/objects.mk
-> > > > >
-> > > > > diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> > > > > index
-> > > > > 62c7a2d..47c10e5 100644
-> > > > > --- a/platform/generic/Kconfig
-> > > > > +++ b/platform/generic/Kconfig
-> > > > > @@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
-> > > > >         depends on FDT_RESET && FDT_I2C
-> > > > >         default n
-> > > > >
-> > > > > +config PLATFORM_STARFIVE_JH7110
-> > > > > +       bool "StarFive JH7110 support"
-> > > > > +       default n
-> > > > > +
-> > > > >  endif
-> > > > > diff --git a/platform/generic/configs/defconfig
-> > > > > b/platform/generic/configs/defconfig
-> > > > > index 47fca95..4b0842e 100644
-> > > > > --- a/platform/generic/configs/defconfig
-> > > > > +++ b/platform/generic/configs/defconfig
-> > > > > @@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
-> > > > > CONFIG_PLATFORM_RENESAS_RZFIVE=y
-> > > > CONFIG_PLATFORM_SIFIVE_FU540=y
-> > > > > CONFIG_PLATFORM_SIFIVE_FU740=y
-> > > > > +CONFIG_PLATFORM_STARFIVE_JH7110=y
-> > > > >  CONFIG_FDT_GPIO=y
-> > > > >  CONFIG_FDT_GPIO_SIFIVE=y
-> > > > >  CONFIG_FDT_I2C=y
-> > > > > diff --git a/platform/generic/starfive/jh7110.c
-> > > > > b/platform/generic/starfive/jh7110.c
-> > > > > new file mode 100644
-> > > > > index 0000000..5d3ab6f
-> > > > > --- /dev/null
-> > > > > +++ b/platform/generic/starfive/jh7110.c
-> > > > > @@ -0,0 +1,57 @@
-> > > > > +/*
-> > > > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > > > + *
-> > > > > + * Copyright (c) 2022 StarFive
-> > > > > + *
-> > > > > + * Authors:
-> > > > > + *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-> > > > > + */
-> > > > > +
-> > > > > +#include <libfdt.h>
-> > > > > +#include <platform_override.h>
-> > > > > +#include <sbi_utils/fdt/fdt_helper.h>
-> > > > > +
-> > > > > +static bool hart_cold_booted = FALSE;
-> > > > > +
-> > > > > +static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
-> > > > > +                                  const struct fdt_match *match) {
-> > > > > +       const fdt32_t *val;
-> > > > > +       int len, coff;
-> > > > > +
-> > > > > +       if (hart_cold_booted)
-> > > > > +               return FALSE;
-> > > > > +
-> > > > > +       void *fdt = fdt_get_address();
-> > > >
-> > > > starfive_jh7110_cold_boot_allowed() will be called at runtime during
-> > > > CPU hotplug or CPU non-retentive suspend so don't access FDT in this
-> > > > function because it might have been corrupted/over-written by S-mode
-> > software.
-> > > >
-> > > > You can save data from FDT in starfive_jh7110_early_init() when
-> > > > cold_boot == TRUE.
-> > > >
-> > > The problem is early_init() is called from init_coldboot() and
-> > > init_warm_startup() which is right after cold_boot_allowed(). Therefore, we
-> > have to access the FDT here, this is why we add a 'hart_cold_booted' boolean
-> > to ensure the FDT will not be accessed again once the FDT is read in cold boot
-> > path for the first time.
-> > > This is to avoid the issue you mentioned above. The code here already
-> > > ensure the FDT will not be accessed again when the cold_boot_allowed()
-> > > function is called during HSM SBI calls. This is the reason in the beginning of
-> > the cold_boot_allowed() function, we check whether the 'hart_cold_booted' is
-> > set to TRUE which mean the FDT should not be accessed again.
-> >
-> > I see but there is another way to do this.
-> >
-> > You do the following as a separate PATCH before this PATCH:
-> > 1) Add "void (*fw_init)(void *fdt, const struct fdt_match *match)" in
-> >     "struct platform_override"
-> > 2) Update fw_platform_init() to call generic_plat->fw_init() right
-> >    after fw_platform_lookup_special() call.
-> >
-> > Your current patch can simply implement fw_init() callback which will parse
-> > the chosen boot-hart-id. You will not need hart_cold_booted boolean with this
-> > approach.
-> Thanks. Will do. This shall also resolved Xiang's comment in other thread that the FDT is read multiple times when multiple
-> harts call cold_boot_allowed(). I believe the fw_platform_init() in fw_base.S is only called once from initial boot hart.
-> I don't think fdt_get_address() can be called in fw_platform_init() as the scratch area is not initialized yet.
-> But I think we can still get the FDT location from one of the arguments passed to fw_platform_init().
+On Mon, Dec 12, 2022 at 09:44:21AM +0000, Lad Prabhakar wrote:
+> Add support to configure the PMA regions and create a corresponding
+> reserve memory node and propagate it to the higher boot stack.
+> 
+> &L2 {
+>        andestech,pma-regions = <0x0 0x58000000 0x0 0x08000000
+>                                 (AX45MP_PMACFG_ETYP_NAPOT |
+>                                  AX45MP_PMACFG_MTYP_MEM_NON_CACHE_BUF)>;
+> };
+> 
+> PMA regions are passed as part of L2 cache node to OpenSBI, these regions
+> are parsed and configured in the OpenSBI.
+> 
+> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> ---
+> Hi All,
+> 
+> This patch is based on the discussion [0] so sending this as an RFC
+> patch so that we get the Linux side of things accepeted first and once its
+> finalized I'll send a non RFC patch for this.
+> 
+> [0] https://patchwork.kernel.org/project/linux-renesas-soc/patch/20221124172207.153718-8-prabhakar.mahadev-lad.rj at bp.renesas.com/
+> 
+> Cheers,
+> Prabhakar
+> ---
+>  platform/generic/renesas/rzfive/objects.mk   |   1 +
+>  platform/generic/renesas/rzfive/rzfive-pma.c | 181 +++++++++++++++
+>  platform/generic/renesas/rzfive/rzfive-pma.h |  12 +
+>  platform/generic/renesas/rzfive/rzfive.c     | 227 +++++++++++++++++++
+>  4 files changed, 421 insertions(+)
+>  create mode 100644 platform/generic/renesas/rzfive/rzfive-pma.c
+>  create mode 100644 platform/generic/renesas/rzfive/rzfive-pma.h
+> 
+> diff --git a/platform/generic/renesas/rzfive/objects.mk b/platform/generic/renesas/rzfive/objects.mk
+> index 2e7e37f..d666417 100644
+> --- a/platform/generic/renesas/rzfive/objects.mk
+> +++ b/platform/generic/renesas/rzfive/objects.mk
+> @@ -6,3 +6,4 @@
+>  
+>  carray-platform_override_modules-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas_rzfive
+>  platform-objs-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas/rzfive/rzfive.o
+> +platform-objs-$(CONFIG_PLATFORM_RENESAS_RZFIVE) += renesas/rzfive/rzfive-pma.o
+> diff --git a/platform/generic/renesas/rzfive/rzfive-pma.c b/platform/generic/renesas/rzfive/rzfive-pma.c
+> new file mode 100644
+> index 0000000..a3c0126
+> --- /dev/null
+> +++ b/platform/generic/renesas/rzfive/rzfive-pma.c
+> @@ -0,0 +1,181 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Copyright (C) 2022 Renesas Electronics Corp.
+> + *
+> + * Copyright (c) 2020 Andes Technology Corporation
+> + *
+> + * Authors:
+> + *      Nick Hu <nickhu@andestech.com>
+> + *      Nylon Chen <nylon7@andestech.com>
+> + */
+> +
+> +#include <sbi/riscv_asm.h>
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_error.h>
+> +
+> +/* Configuration Registers */
+> +#define CSR_MMSC_CFG		0xfc2
 
-Yes, fw_base.S ensures that only one HART calls fw_platform_init().
+MMSC_CFG is redefined in rzfive.c.
 
-Regards,
-Anup
+> +
+> +#define PMA_MMSC_CFG		(1 << 30)
+> +
+> +#define PMAADDR_0		0xBD0
+> +#define PMAADDR_1		0xBD1
+> +#define PMAADDR_2		0xBD2
+> +#define PMAADDR_3		0xBD3
+> +#define PMAADDR_4		0xBD4
+> +#define PMAADDR_5		0xBD5
+> +#define PMAADDR_6		0xBD6
+> +#define PMAADDR_7		0xBD7
+> +#define PMAADDR_8		0xBD8
+> +#define PMAADDR_9		0xBD9
+> +#define PMAADDR_10		0xBDA
+> +#define PMAADDR_11		0xBDB
+> +#define PMAADDR_12		0xBDC
+> +#define PMAADDR_13		0xBDD
+> +#define PMAADDR_14		0xBDE
+> +#define PMAADDR_15		0xBDF
+> +
+> +/* n = 0 - 3 */
+> +#define PMACFG_n(n)		(0xbc0 + (n))
+> +
+> +static inline unsigned long rzfive_read_pmacfg(unsigned int i)
+> +{
+> +	unsigned long val = 0;
+> +
+> +	if (!i)
+> +		val = csr_read(PMACFG_n(0));
+> +	else if (i == 1)
+> +		val = csr_read(PMACFG_n(2));
+> +
+> +	return val;
+> +}
+> +
+> +static inline void rzfive_write_pmacfg(unsigned int i, unsigned long val)
+> +{
+> +	if (!i)
+> +		csr_write(PMACFG_n(0), val);
+> +	else if (i == 1)
+> +		csr_write(PMACFG_n(2), val);
+> +}
+> +
+> +static inline void rzfive_write_pmaaddr(unsigned int i, unsigned long val)
+> +{
 
-> >
-> > Regards,
-> > Anup
-> >
-> > >
-> > > > Regards,
-> > > > Anup
-> > > >
-> > > > > +
-> > > > > +       coff = fdt_path_offset(fdt, "/chosen");
-> > > > > +       if (-1 < coff) {
-> > > > > +               val = fdt_getprop(fdt, coff, "boot-hart", &len);
-> > > > > +               if (val && len) {
-> > > > > +                       u32 selected_hartid = (u32) fdt32_to_cpu(*val);
-> > > > > +                       return (selected_hartid == hartid);
-> > > > > +               }
-> > > > > +       }
-> > > > > +
-> > > > > +       return TRUE;
-> > > > > +}
-> > > > > +
-> > > > > +static int starfive_jh7110_early_init(bool cold_boot,
-> > > > > +                                  const struct fdt_match *match) {
-> > > > > +       if (cold_boot)
-> > > > > +               hart_cold_booted = TRUE;
-> > > > > +
-> > > > > +       return 0;
-> > > > > +}
-> > > > > +
-> > > > > +static const struct fdt_match starfive_jh7110_match[] = {
-> > > > > +       { .compatible = "starfive,jh7110" },
-> > > > > +       { },
-> > > > > +};
-> > > > > +
-> > > > > +const struct platform_override starfive_jh7110 = {
-> > > > > +       .match_table = starfive_jh7110_match,
-> > > > > +       .early_init = starfive_jh7110_early_init,
-> > > > > +       .cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
-> > > > > +};
-> > > > > diff --git a/platform/generic/starfive/objects.mk
-> > > > > b/platform/generic/starfive/objects.mk
-> > > > > new file mode 100644
-> > > > > index 0000000..0b900fb
-> > > > > --- /dev/null
-> > > > > +++ b/platform/generic/starfive/objects.mk
-> > > > > @@ -0,0 +1,6 @@
-> > > > > +#
-> > > > > +# SPDX-License-Identifier: BSD-2-Clause #
-> > > > > +
-> > > > > +carray-platform_override_modules-
-> > > > $(CONFIG_PLATFORM_STARFIVE_JH7110)
-> > > > > ++= starfive_jh7110
-> > > > > +platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) +=
-> > > > starfive/jh7110.o
-> > > > > --
-> > > > > 2.25.1
-> > > > >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> +	if (i == 0)
+> +		csr_write(PMAADDR_0, val);
+> +	else if (i == 1)
+> +		csr_write(PMAADDR_1, val);
+> +	else if (i == 2)
+> +		csr_write(PMAADDR_2, val);
+> +	else if (i == 3)
+> +		csr_write(PMAADDR_3, val);
+> +	else if (i == 4)
+> +		csr_write(PMAADDR_4, val);
+> +	else if (i == 5)
+> +		csr_write(PMAADDR_5, val);
+> +	else if (i == 6)
+> +		csr_write(PMAADDR_6, val);
+> +	else if (i == 7)
+> +		csr_write(PMAADDR_7, val);
+> +	else if (i == 8)
+> +		csr_write(PMAADDR_8, val);
+> +	else if (i == 9)
+> +		csr_write(PMAADDR_9, val);
+> +	else if (i == 10)
+> +		csr_write(PMAADDR_10, val);
+> +	else if (i == 11)
+> +		csr_write(PMAADDR_11, val);
+> +	else if (i == 12)
+> +		csr_write(PMAADDR_12, val);
+> +	else if (i == 13)
+> +		csr_write(PMAADDR_13, val);
+> +	else if (i == 14)
+> +		csr_write(PMAADDR_14, val);
+> +	else if (i == 15)
+> +		csr_write(PMAADDR_15, val);
+> +}
+> +
+> +static inline unsigned long rzfive_read_pmaaddr(unsigned int i)
+> +{
+> +	unsigned long ret = 0;
+> +
+> +	if (i == 0)
+> +		ret = csr_read(PMAADDR_0);
+> +	else if (i == 1)
+> +		ret = csr_read(PMAADDR_1);
+> +	else if (i == 2)
+> +		ret = csr_read(PMAADDR_2);
+> +	else if (i == 3)
+> +		ret = csr_read(PMAADDR_3);
+> +	else if (i == 4)
+> +		ret = csr_read(PMAADDR_4);
+> +	else if (i == 5)
+> +		ret = csr_read(PMAADDR_5);
+> +	else if (i == 6)
+> +		ret =  csr_read(PMAADDR_6);
+            ^
+            a space added
+
+> +	else if (i == 7)
+> +		ret = csr_read(PMAADDR_7);
+> +	else if (i == 8)
+> +		ret = csr_read(PMAADDR_8);
+> +	else if (i == 9)
+> +		ret = csr_read(PMAADDR_9);
+> +	else if (i == 10)
+> +		ret = csr_read(PMAADDR_10);
+> +	else if (i == 11)
+> +		ret = csr_read(PMAADDR_11);
+> +	else if (i == 12)
+> +		ret = csr_read(PMAADDR_12);
+> +	else if (i == 13)
+> +		ret = csr_read(PMAADDR_13);
+> +	else if (i == 14)
+> +		ret = csr_read(PMAADDR_14);
+> +	else if (i == 15)
+> +		ret = csr_read(PMAADDR_15);
+> +
+> +	return ret;
+> +}
+> +
+> +unsigned long rzfive_setup_pma_region(unsigned long addr, unsigned long size,
+> +				      int entry_id, u32 flag)
+> +{
+> +	unsigned long size_tmp, shift = 0, pmacfg_val;
+> +	unsigned long mmsc = csr_read(CSR_MMSC_CFG);
+> +	unsigned long pa = addr;
+> +	char *pmaxcfg;
+> +	int power = 0;
+> +
+
+The granularity of PMA NAPOT mode is 4KiB, so we should not allow this
+case.
+
+if (size < (1 << 12))
+  return SBI_EINVAL;
+
+> +	if (flag > 0xff || entry_id > 15)
+> +		return SBI_EINVAL;
+> +
+> +	if ((mmsc & PMA_MMSC_CFG) == 0)
+> +		return 0;
+             ^
+             SBI_ENOTSUPP
+Can we rename this field as PPMA_MMCS_CFG, which is the same name
+in the datasheet?
+
+> +
+> +	size_tmp = size;
+> +	if ((pa & (size_tmp - 1)) != 0) {
+> +		pa = pa & ~(size_tmp - 1);
+> +		size_tmp = size_tmp << 1;
+
+PMA only has NAPOT mode, maybe return SBI_EINVAL here?
+
+> +	}
+> +
+> +	/* Calculate the NAPOT table for pmaaddr */
+> +	size_tmp = size;
+> +	while (size_tmp != 0x1) {
+> +		size_tmp = size_tmp >> 1;
+> +		power++;
+> +		if (power > 3)
+> +			shift = (shift << 1) | 0x1;
+> +	}
+> +
+> +	pmacfg_val = rzfive_read_pmacfg(entry_id / 8);
+> +	pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
+> +	*pmaxcfg = 0;
+> +	*pmaxcfg = (u8)flag;
+> +
+> +	rzfive_write_pmacfg(entry_id / 8, pmacfg_val);
+> +
+> +	pa = pa >> 2;
+> +	pa |= shift;
+> +	pa = pa & ~(0x1 << (power - 3));
+> +
+
+Can we simplify the logic to calculate the value of pmaaddr?
+
+If addr = 0x58000000
+   size = 0x08000000
+
+pmaaddr = (addr >> 2) + (size >> 3) - 1 = 0x16ffffff
+
+
+Best regards,
+Peter Lin
 
