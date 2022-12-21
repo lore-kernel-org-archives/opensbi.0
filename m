@@ -1,44 +1,71 @@
 From: Deepak Gupta <debug@rivosinc.com>
-Date: Wed, 21 Dec 2022 11:55:33 -0800
-Subject: [PATCH v2 Zisslpcfi 0/2] Support for zisslpcfi in opensbi
-Message-ID: <20221221195535.2136015-1-debug@rivosinc.com>
+Date: Wed, 21 Dec 2022 11:55:34 -0800
+Subject: [PATCH v2 Zisslpcfi 1/2] include: adding support for Zisslpcfi encodings
+In-Reply-To: <20221221195535.2136015-1-debug@rivosinc.com>
+References: <20221221195535.2136015-1-debug@rivosinc.com>
+Message-ID: <20221221195535.2136015-2-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Zisslpcfi [1] extension extends risc-v architecture to mitigate against
-control-flow integrity attacks (ROP/JOP/COP).
+Zisslpcfi extension (see link) introduces b60 (CFI) in menvcfg CSR to
+enable shadow stack and landing pad for machine and lesser privileged
+modes. Additionally extension introduces new bits in xstatus for cfi
+state.
 
-Zisslpcfi uses bits (b23-b29) in (m/s/vs) status CSR for enabling cfi in
-lesser privileged mode and record cfi state. One such state is expected
-landing pad (ELP). If forward cfi is enabled, indirect call/jmp updates
-hart's ELP state (1bit) to true. ELP state is cleared only by a landing
-pad instruction else trap is delivered with ELP state recorded in sstatus
-CSR.
+Link: https://github.com/riscv/riscv-cfi
 
-This two patch series adds following changes to opensbi
-    - Adds support in opensbi to detect zisslpcfi
-    - trap redirection updates ELP state accordingly
+Signed-off-by: Deepak Gupta <debug@rivosinc.com>
 
-Qemu implementation for Zisslpcfi can be checked out on github [2]
-Strawman linux kernel enabling (still very early) can be checked out on github [3]
+---
+changelog
+v1 --> v2:
+ - updated with correct name for extension "Zisslpcfi"
+---
+ include/sbi/riscv_encoding.h | 4 ++++
+ include/sbi/sbi_hart.h       | 2 ++
+ 2 files changed, 6 insertions(+)
 
-[1] - https://github.com/riscv/riscv-cfi
-[2] - https://github.com/deepak0414/qemu/tree/gh_Zisslpcfi-0.1
-[3] - https://github.com/deepak0414/linux-riscv-cfi/tree/Zisslpcfi-0.1_v6.1-rc2
-
-Deepak Gupta (2):
-  include: adding support for Zisslpcfi encodings
-  lib: sbi: Zisslpcfi detection and elp cfi state reflect back in status
-
- include/sbi/riscv_encoding.h |  6 ++++++
- include/sbi/sbi_hart.h       |  2 ++
- lib/sbi/sbi_hart.c           | 21 +++++++++++++++++++++
- lib/sbi/sbi_trap.c           | 18 ++++++++++++++++++
- 4 files changed, 47 insertions(+)
-
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index b0f08c8..1fb520f 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -210,9 +210,11 @@
+ #if __riscv_xlen > 32
+ #define ENVCFG_STCE			(_ULL(1) << 63)
+ #define ENVCFG_PBMTE			(_ULL(1) << 62)
++#define ENVCFG_CFI			(_ULL(1) << 60)
+ #else
+ #define ENVCFGH_STCE			(_UL(1) << 31)
+ #define ENVCFGH_PBMTE			(_UL(1) << 30)
++#define ENVCFGH_CFI			(_UL(1) << 28)
+ #endif
+ #define ENVCFG_CBZE			(_UL(1) << 7)
+ #define ENVCFG_CBCFE			(_UL(1) << 6)
+@@ -229,6 +231,8 @@
+ #define CSR_USTATUS			0x000
+ #define CSR_UIE				0x004
+ #define CSR_UTVEC			0x005
++#define CSR_LPLR			0x006
++#define CSR_SSP				0x020
+ 
+ /* User Trap Handling (N-extension) */
+ #define CSR_USCRATCH			0x040
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 95b40e7..d25227d 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -36,6 +36,8 @@ enum sbi_hart_extensions {
+ 	SBI_HART_EXT_SMSTATEEN,
+ 	/** HART has Sstc extension */
+ 	SBI_HART_EXT_SSTC,
++	/** HART has sslpcfi extension */
++	SBI_HART_EXT_SSLPCFI,
+ 
+ 	/** Maximum index of Hart extension */
+ 	SBI_HART_EXT_MAX,
 -- 
 2.25.1
 
