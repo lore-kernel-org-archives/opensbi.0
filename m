@@ -1,11 +1,12 @@
 From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Wed, 21 Dec 2022 18:04:34 +0000
+Date: Wed, 21 Dec 2022 18:19:12 +0000
 Subject: [RFC PATCH] platform: generic: renesas: Add support to configure
  the PMA
-In-Reply-To: <Y6MWqO71cISuLEOk@APC323>
+In-Reply-To: <Y6MjCN7UD1PqL9pL@APC323>
 References: <20221212094421.14556-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <CAEUhbmW5WmNSPNNe4UWq6o7ZtOgT=9N5f2=F6L+ScLSzW_K8dQ@mail.gmail.com> <Y6MWqO71cISuLEOk@APC323>
-Message-ID: <CA+V-a8vB2u2yjYno=Y_jAAjYg3gC1qCrrg7X6gQjAD1gbkr=_g@mail.gmail.com>
+ <Y6IzTcaMxw9JjBW3@APC323> <CA+V-a8t8G3AawnRNxi373Gp6W15hp9FmHYCCuSANVnyT7wqmXQ@mail.gmail.com>
+ <Y6MjCN7UD1PqL9pL@APC323>
+Message-ID: <CA+V-a8staavOP=bpnxZw=ZjXFH-XQB7HQLKOF6fY39iFu8Wq0w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,64 +15,61 @@ Content-Transfer-Encoding: 7bit
 
 Hi Yu-Chien,
 
-On Wed, Dec 21, 2022 at 6:26 AM Yu-Chien Peter Lin
+For the next version I'm thinking of having an array in OpenSBI itself
+for the PMA regions to be configured instead of passing it from u-boot
+and then passing the required region to the upper boot stack. Hope
+that's OK with you.
+
+On Wed, Dec 21, 2022 at 7:18 AM Yu-Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> On Wed, Dec 21, 2022 at 09:23:21AM +0800, Bin Meng wrote:
-> > On Mon, Dec 12, 2022 at 5:44 PM Lad Prabhakar
-> > <prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
-> > >
-> > > Add support to configure the PMA regions and create a corresponding
-> > > reserve memory node and propagate it to the higher boot stack.
-> > >
-> > > &L2 {
-> > >        andestech,pma-regions = <0x0 0x58000000 0x0 0x08000000
-> > >                                 (AX45MP_PMACFG_ETYP_NAPOT |
-> > >                                  AX45MP_PMACFG_MTYP_MEM_NON_CACHE_BUF)>;
-> > > };
-> > >
-> > > PMA regions are passed as part of L2 cache node to OpenSBI, these regions
-> > > are parsed and configured in the OpenSBI.
-> > >
-> > > Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> > > ---
-> > > Hi All,
-> > >
-> > > This patch is based on the discussion [0] so sending this as an RFC
-> > > patch so that we get the Linux side of things accepeted first and once its
-> > > finalized I'll send a non RFC patch for this.
-> > >
-> > > [0] https://patchwork.kernel.org/project/linux-renesas-soc/patch/20221124172207.153718-8-prabhakar.mahadev-lad.rj at bp.renesas.com/
-> > >
-> > > Cheers,
-> > > Prabhakar
-> > > ---
-> > >  platform/generic/renesas/rzfive/objects.mk   |   1 +
-> > >  platform/generic/renesas/rzfive/rzfive-pma.c | 181 +++++++++++++++
-> > >  platform/generic/renesas/rzfive/rzfive-pma.h |  12 +
-> >
-> > I feel we should name this to something like ax45mp-pma instead of
-> > rzfive-pma, as this is at the core configuration level not SoC's, no?
+> Hi Prabhakar,
 >
-> Agreed, Andes PMA CSRs also exist in A45MP (RV32) so it's better if we
-> call it andes45-pma.c and andes45_{read|write}_pma{cfg|addr} as function
-> name.
+> > > > +unsigned long rzfive_setup_pma_region(unsigned long addr, unsigned long size,
+> > > > +                                   int entry_id, u32 flag)
+> > > > +{
+> > > > +     unsigned long size_tmp, shift = 0, pmacfg_val;
+> > > > +     unsigned long mmsc = csr_read(CSR_MMSC_CFG);
+> > > > +     unsigned long pa = addr;
+> > > > +     char *pmaxcfg;
+> > > > +     int power = 0;
+> > > > +
+> > >
+> > > The granularity of PMA NAPOT mode is 4KiB, so we should not allow this
+> > > case.
+> > >
+> > > if (size < (1 << 12))
+> > >   return SBI_EINVAL;
+> > >
+> > The manual I am referring to says "The minimal size of NAPOT regions
+> > must be 8 bytes."
 >
-Ok, I will rename it.
+> I checked the section "16.17.1 PMA Configuration Registers" [1],
+> it says "The granularity is 4K bytes.".
+>
+> Besides, here is my observation:
+> Assume desired base: 0x58000000
+>                size: 0x00000400
+>
+> (gdb) p/x $pmacfg0
+> $10 = {0xf, pma0cfg = {0xf, etyp = 0x3, mtyp = 0x3}, [...]
+> (gdb) p/x (0x58000000 >> 2) + (0x400 >> 3) - 1
+> $6 = 0x1600007f
+> (gdb) p/x $pmaaddr0=0x1600007fl
+> $8 = 0x1600007f
+> (gdb) p/x $pmaaddr0
+> $9 = 0x160001ff
+> (gdb) pma_to_addr 0x160001ff
+> translate pmaaddr 0x160001ff
+> ==========================================
+> power:  12
+> base:   0x1000
+> region: 0x58000000 ~ 0x58001000
+>
+> [1] http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
+>
+Thanks for the pointer.
 
 Cheers,
 Prabhakar
-
-> Any suggestion to add these functions which will be shared between the
-> platforms?
->
-> >
-> > >  platform/generic/renesas/rzfive/rzfive.c     | 227 +++++++++++++++++++
-> > >  4 files changed, 421 insertions(+)
-> > >  create mode 100644 platform/generic/renesas/rzfive/rzfive-pma.c
-> > >  create mode 100644 platform/generic/renesas/rzfive/rzfive-pma.h
-> > >
->
-> Best regards,
-> Peter Lin
 
