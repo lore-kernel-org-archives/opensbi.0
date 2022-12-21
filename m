@@ -1,92 +1,45 @@
 From: Deepak Gupta <debug@rivosinc.com>
-Date: Wed, 21 Dec 2022 10:41:30 -0800
-Subject: [PATCH Zisslpcfi 2/2] lib: sbi: zsslpcfi detection and elp cfi
- state reflect back in status
-In-Reply-To: <CAEUhbmVbzA5UhFnV+Z_eDVBd1BizjyYjrzoJ7ymT4c=Vx6FjiQ@mail.gmail.com>
-References: <20221212030804.927309-1-debug@rivosinc.com> <20221212030804.927309-3-debug@rivosinc.com>
- <CAEUhbmVbzA5UhFnV+Z_eDVBd1BizjyYjrzoJ7ymT4c=Vx6FjiQ@mail.gmail.com>
-Message-ID: <CAKC1njT7f_UWDB_gOWYt9o6R39U-89-vDgpStndyPq4y3uo_sA@mail.gmail.com>
+Date: Wed, 21 Dec 2022 11:55:33 -0800
+Subject: [PATCH v2 Zisslpcfi 0/2] Support for zisslpcfi in opensbi
+Message-ID: <20221221195535.2136015-1-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 21, 2022 at 5:43 AM Bin Meng <bmeng.cn@gmail.com> wrote:
->
-> > @@ -87,6 +87,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >                       struct sbi_trap_info *trap)
-> >  {
-> >         ulong hstatus, vsstatus, prev_mode;
-> > +       bool elp = FALSE;
->
-> s/FALSE/false
+Zisslpcfi [1] extension extends risc-v architecture to mitigate against
+control-flow integrity attacks (ROP/JOP/COP).
 
-I followed whatever rest of the code is following. In the same function
+Zisslpcfi uses bits (b23-b29) in (m/s/vs) status CSR for enabling cfi in
+lesser privileged mode and record cfi state. One such state is expected
+landing pad (ELP). If forward cfi is enabled, indirect call/jmp updates
+hart's ELP state (1bit) to true. ELP state is cleared only by a landing
+pad instruction else trap is delivered with ELP state recorded in sstatus
+CSR.
 
-"
-int sbi_trap_redirect(struct sbi_trap_regs *regs,
-                      struct sbi_trap_info *trap)
-{
-        ulong hstatus, vsstatus, prev_mode;
-        bool elp = FALSE;
-#if __riscv_xlen == 32
-        bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? TRUE : FALSE;
-#else
-        bool prev_virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
-#endif
-        /* By default, we redirect to HS-mode */
-        bool next_virt = FALSE;
-"
-I can change it to false but it'll look ugly because at other places
-we're using upper case FALSE.
-Let me know what needs to be done.
+This two patch series adds following changes to opensbi
+    - Adds support in opensbi to detect zisslpcfi
+    - trap redirection updates ELP state accordingly
 
->
-> >  #if __riscv_xlen == 32
-> >         bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? TRUE : FALSE;
-> >  #else
-> > @@ -100,6 +101,13 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >         if (prev_mode != PRV_S && prev_mode != PRV_U)
-> >                 return SBI_ENOTSUPP;
-> >
-> > +       /* If extension has support for CFI, clear MPELP because redirecting to VS or (H)S */
-> > +       if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(), SBI_HART_EXT_SSLPCFI)) {
-> > +               elp = (regs->mstatus & MSTATUS_MPELP)? TRUE: FALSE;
-> > +               /* Since redirecting, clear mpelp unconditionally */
-> > +               regs->mstatus &= ~MSTATUS_MPELP;
-> > +       }
-> > +
-> >         /* If exceptions came from VS/VU-mode, redirect to VS-mode if
-> >          * delegated in hedeleg
-> >          */
-> > @@ -153,6 +161,11 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >                 /* Get VS-mode SSTATUS CSR */
-> >                 vsstatus = csr_read(CSR_VSSTATUS);
-> >
-> > +               /*if elp was set, set it back in vsstatus */
->
-> need space after /*
->
-> > +               if (elp) {
-> > +                       vsstatus |= MSTATUS_SPELP;
-> > +               }
-> > +
-> >                 /* Set SPP for VS-mode */
-> >                 vsstatus &= ~SSTATUS_SPP;
-> >                 if (prev_mode == PRV_S)
-> > @@ -193,6 +206,11 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >
-> >                 /* Clear SIE for S-mode */
-> >                 regs->mstatus &= ~MSTATUS_SIE;
-> > +
-> > +               /* if elp was set, set it back in mstatus */
-> > +               if (elp) {
-> > +                       regs->mstatus |= MSTATUS_SPELP;
-> > +               }
-> >         }
-> >
->
-> Regards,
-> Bin
+Qemu implementation for Zisslpcfi can be checked out on github [2]
+Strawman linux kernel enabling (still very early) can be checked out on github [3]
+
+[1] - https://github.com/riscv/riscv-cfi
+[2] - https://github.com/deepak0414/qemu/tree/gh_Zisslpcfi-0.1
+[3] - https://github.com/deepak0414/linux-riscv-cfi/tree/Zisslpcfi-0.1_v6.1-rc2
+
+Deepak Gupta (2):
+  include: adding support for Zisslpcfi encodings
+  lib: sbi: Zisslpcfi detection and elp cfi state reflect back in status
+
+ include/sbi/riscv_encoding.h |  6 ++++++
+ include/sbi/sbi_hart.h       |  2 ++
+ lib/sbi/sbi_hart.c           | 21 +++++++++++++++++++++
+ lib/sbi/sbi_trap.c           | 18 ++++++++++++++++++
+ 4 files changed, 47 insertions(+)
+
+-- 
+2.25.1
+
 
