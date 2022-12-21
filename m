@@ -1,75 +1,92 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Wed, 21 Dec 2022 18:19:12 +0000
-Subject: [RFC PATCH] platform: generic: renesas: Add support to configure
- the PMA
-In-Reply-To: <Y6MjCN7UD1PqL9pL@APC323>
-References: <20221212094421.14556-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <Y6IzTcaMxw9JjBW3@APC323> <CA+V-a8t8G3AawnRNxi373Gp6W15hp9FmHYCCuSANVnyT7wqmXQ@mail.gmail.com>
- <Y6MjCN7UD1PqL9pL@APC323>
-Message-ID: <CA+V-a8staavOP=bpnxZw=ZjXFH-XQB7HQLKOF6fY39iFu8Wq0w@mail.gmail.com>
+From: Deepak Gupta <debug@rivosinc.com>
+Date: Wed, 21 Dec 2022 10:41:30 -0800
+Subject: [PATCH Zisslpcfi 2/2] lib: sbi: zsslpcfi detection and elp cfi
+ state reflect back in status
+In-Reply-To: <CAEUhbmVbzA5UhFnV+Z_eDVBd1BizjyYjrzoJ7ymT4c=Vx6FjiQ@mail.gmail.com>
+References: <20221212030804.927309-1-debug@rivosinc.com> <20221212030804.927309-3-debug@rivosinc.com>
+ <CAEUhbmVbzA5UhFnV+Z_eDVBd1BizjyYjrzoJ7ymT4c=Vx6FjiQ@mail.gmail.com>
+Message-ID: <CAKC1njT7f_UWDB_gOWYt9o6R39U-89-vDgpStndyPq4y3uo_sA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Yu-Chien,
+On Wed, Dec 21, 2022 at 5:43 AM Bin Meng <bmeng.cn@gmail.com> wrote:
+>
+> > @@ -87,6 +87,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >                       struct sbi_trap_info *trap)
+> >  {
+> >         ulong hstatus, vsstatus, prev_mode;
+> > +       bool elp = FALSE;
+>
+> s/FALSE/false
 
-For the next version I'm thinking of having an array in OpenSBI itself
-for the PMA regions to be configured instead of passing it from u-boot
-and then passing the required region to the upper boot stack. Hope
-that's OK with you.
+I followed whatever rest of the code is following. In the same function
 
-On Wed, Dec 21, 2022 at 7:18 AM Yu-Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> Hi Prabhakar,
->
-> > > > +unsigned long rzfive_setup_pma_region(unsigned long addr, unsigned long size,
-> > > > +                                   int entry_id, u32 flag)
-> > > > +{
-> > > > +     unsigned long size_tmp, shift = 0, pmacfg_val;
-> > > > +     unsigned long mmsc = csr_read(CSR_MMSC_CFG);
-> > > > +     unsigned long pa = addr;
-> > > > +     char *pmaxcfg;
-> > > > +     int power = 0;
-> > > > +
-> > >
-> > > The granularity of PMA NAPOT mode is 4KiB, so we should not allow this
-> > > case.
-> > >
-> > > if (size < (1 << 12))
-> > >   return SBI_EINVAL;
-> > >
-> > The manual I am referring to says "The minimal size of NAPOT regions
-> > must be 8 bytes."
->
-> I checked the section "16.17.1 PMA Configuration Registers" [1],
-> it says "The granularity is 4K bytes.".
->
-> Besides, here is my observation:
-> Assume desired base: 0x58000000
->                size: 0x00000400
->
-> (gdb) p/x $pmacfg0
-> $10 = {0xf, pma0cfg = {0xf, etyp = 0x3, mtyp = 0x3}, [...]
-> (gdb) p/x (0x58000000 >> 2) + (0x400 >> 3) - 1
-> $6 = 0x1600007f
-> (gdb) p/x $pmaaddr0=0x1600007fl
-> $8 = 0x1600007f
-> (gdb) p/x $pmaaddr0
-> $9 = 0x160001ff
-> (gdb) pma_to_addr 0x160001ff
-> translate pmaaddr 0x160001ff
-> ==========================================
-> power:  12
-> base:   0x1000
-> region: 0x58000000 ~ 0x58001000
->
-> [1] http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
->
-Thanks for the pointer.
+"
+int sbi_trap_redirect(struct sbi_trap_regs *regs,
+                      struct sbi_trap_info *trap)
+{
+        ulong hstatus, vsstatus, prev_mode;
+        bool elp = FALSE;
+#if __riscv_xlen == 32
+        bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? TRUE : FALSE;
+#else
+        bool prev_virt = (regs->mstatus & MSTATUS_MPV) ? TRUE : FALSE;
+#endif
+        /* By default, we redirect to HS-mode */
+        bool next_virt = FALSE;
+"
+I can change it to false but it'll look ugly because at other places
+we're using upper case FALSE.
+Let me know what needs to be done.
 
-Cheers,
-Prabhakar
+>
+> >  #if __riscv_xlen == 32
+> >         bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? TRUE : FALSE;
+> >  #else
+> > @@ -100,6 +101,13 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >         if (prev_mode != PRV_S && prev_mode != PRV_U)
+> >                 return SBI_ENOTSUPP;
+> >
+> > +       /* If extension has support for CFI, clear MPELP because redirecting to VS or (H)S */
+> > +       if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(), SBI_HART_EXT_SSLPCFI)) {
+> > +               elp = (regs->mstatus & MSTATUS_MPELP)? TRUE: FALSE;
+> > +               /* Since redirecting, clear mpelp unconditionally */
+> > +               regs->mstatus &= ~MSTATUS_MPELP;
+> > +       }
+> > +
+> >         /* If exceptions came from VS/VU-mode, redirect to VS-mode if
+> >          * delegated in hedeleg
+> >          */
+> > @@ -153,6 +161,11 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >                 /* Get VS-mode SSTATUS CSR */
+> >                 vsstatus = csr_read(CSR_VSSTATUS);
+> >
+> > +               /*if elp was set, set it back in vsstatus */
+>
+> need space after /*
+>
+> > +               if (elp) {
+> > +                       vsstatus |= MSTATUS_SPELP;
+> > +               }
+> > +
+> >                 /* Set SPP for VS-mode */
+> >                 vsstatus &= ~SSTATUS_SPP;
+> >                 if (prev_mode == PRV_S)
+> > @@ -193,6 +206,11 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >
+> >                 /* Clear SIE for S-mode */
+> >                 regs->mstatus &= ~MSTATUS_SIE;
+> > +
+> > +               /* if elp was set, set it back in mstatus */
+> > +               if (elp) {
+> > +                       regs->mstatus |= MSTATUS_SPELP;
+> > +               }
+> >         }
+> >
+>
+> Regards,
+> Bin
 
