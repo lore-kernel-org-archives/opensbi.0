@@ -1,49 +1,37 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 22 Dec 2022 10:04:03 +0800
-Subject: [PATCH] lib: utils/serial: Simplify semihosting_getc() function
-Message-ID: <20221222020403.23209-1-peterlin@andestech.com>
+From: Wei Liang Lim <weiliang.lim@starfivetech.com>
+Date: Thu, 22 Dec 2022 16:44:40 +0800
+Subject: [PATCH v5 0/4] generic/starfive: Enable Starfive JH7110 platform preferred cold boot HART implementation
+Message-ID: <20221222084444.224301-1-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Simply pass the character returned by semihosting_trap(SYSREADC, NULL)
-on success, or -1 on failure. This also fixes issue [1] of comparison
-of constant -1 with char type.
+This is patchset to enable Starfive JH7110 platform preferred cold boot HART implementation.
+User has the option to specify preferred cold boot HART in the device tree. If unspecified, the existing lottery mechanism will be used.
 
-[1] https://github.com/riscv-software-src/opensbi/issues/269
+Anup Patel (2):
+  lib: sbi: Allow platform to influence cold boot HART selection
+  platform: generic: Allow platform_override to select cold boot HART
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
----
- lib/utils/serial/semihosting.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+Wei Liang Lim (2):
+  platform: generic: Allow platform_override to perform firmware init
+  generic/starfive: Add Starfive JH7110 platform implementation
 
-diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index 5012fa1..cd15f91 100644
---- a/lib/utils/serial/semihosting.c
-+++ b/lib/utils/serial/semihosting.c
-@@ -151,15 +151,11 @@ static void semihosting_putc(char ch)
- static int semihosting_getc(void)
- {
- 	char ch = 0;
--	int ret;
- 
--	if (semihosting_infd < 0)  {
--		ch = semihosting_trap(SYSREADC, NULL);
--		ret = ch > -1 ? ch : -1;
--	} else
--		ret = semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
--
--	return ret;
-+	if (semihosting_infd < 0)
-+		return semihosting_trap(SYSREADC, NULL);
-+	else
-+		return semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
- }
- 
- static struct sbi_console_device semihosting_console = {
+ include/sbi/sbi_platform.h                   | 20 +++++++++
+ lib/sbi/sbi_init.c                           |  7 ++-
+ platform/generic/Kconfig                     |  4 ++
+ platform/generic/configs/defconfig           |  1 +
+ platform/generic/include/platform_override.h |  2 +
+ platform/generic/platform.c                  | 12 +++++
+ platform/generic/starfive/jh7110.c           | 47 ++++++++++++++++++++
+ platform/generic/starfive/objects.mk         |  6 +++
+ 8 files changed, 97 insertions(+), 2 deletions(-)
+ create mode 100644 platform/generic/starfive/jh7110.c
+ create mode 100644 platform/generic/starfive/objects.mk
+
 -- 
-2.34.1
+2.25.1
 
 
