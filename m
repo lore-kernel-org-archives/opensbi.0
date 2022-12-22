@@ -1,66 +1,120 @@
-From: Conor.Dooley@microchip.com <Conor.Dooley@microchip.com>
-Date: Thu, 22 Dec 2022 10:49:25 +0000
-Subject: Upcoming OpenSBI v1.2 release
-In-Reply-To: <CAOnJCUK=XOfNtp6aTveqSdHYwUtNbbrnqn53z06fKU_i6ufTbA@mail.gmail.com>
-References: <CAAhSdy1MTYZcN0cbwPoM41RTWPwLuhbNvprKqhcXfJiNE8Jamw@mail.gmail.com>
- <CAOnJCUK=XOfNtp6aTveqSdHYwUtNbbrnqn53z06fKU_i6ufTbA@mail.gmail.com>
-Message-ID: <efd224b6-47c4-4f55-b247-5e6156c3d451@microchip.com>
+From: WeiLiang Lim <weiliang.lim@starfivetech.com>
+Date: Thu, 22 Dec 2022 10:49:43 +0000
+Subject: [PATCH v5 1/4] lib: sbi: Allow platform to influence cold boot
+ HART selection
+In-Reply-To: <CAEUhbmVhBo=3hDqFXcbyEs-TpRLQhHAjpiL5hrpO2RYKXA+BCw@mail.gmail.com>
+References: <20221222084444.224301-1-weiliang.lim@starfivetech.com>
+ <20221222084444.224301-2-weiliang.lim@starfivetech.com>
+ <CAEUhbmVhBo=3hDqFXcbyEs-TpRLQhHAjpiL5hrpO2RYKXA+BCw@mail.gmail.com>
+Message-ID: <d9655dc839054d54a6db2a625b966192@EXMBX163.cuchost.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hey,
 
-On 21/12/2022 15:02, Atish Patra wrote:
-> On Fri, Dec 16, 2022 at 9:42 PM Anup Patel <anup@brainfault.org> wrote:
->>
->> Hi All,
->>
->> We are close to the OpenSBI v1.2 release. I plan to complete this
->> release before the end of next week (i.e. 24th December 2022).
->>
->> Next week, I won't be merging patches unless it's a critical fix.
->> Also, I request everyone to test the latest OpenSBI on their RISC-V
->> platforms.
->>
+
+> -----Original Message-----
+> From: Bin Meng <bmeng.cn@gmail.com>
+> Sent: Thursday, December 22, 2022 5:22 PM
+> To: WeiLiang Lim <weiliang.lim@starfivetech.com>
+> Cc: opensbi at lists.infradead.org; apatel at ventanamicro.com; Cheehong Ang
+> <cheehong.ang@starfivetech.com>; JunLiang Tan
+> <junliang.tan@starfivetech.com>
+> Subject: Re: [PATCH v5 1/4] lib: sbi: Allow platform to influence cold boot
+> HART selection
 > 
-> Explicitly adding some folks for help in testing. We don't have access
-> to all the boards.
-
-In terms of PolarFire SoC, neither good nor bad news? Since OpenSBI is
-just one part of the HSS [0] it's non-trivial to do an upgrade & any
-meaningful testing - so probably not a runner in advance of Christmas.
-
-We are incredibly tight on space in eNVM for the HSS as things stand,
-so it is likely that we will not move to later versions of OpenSBI
-than (maybe) v1.1 & stick to cherry-picking fixes.
-The last time the HSS bumped its OpenSBI version, the change in size
-of OpenSBI needed some working around IIRC.
-
-I'll try to give my boards from other vendors a go, but I doubt I'll
-have anything useful done before the 24th.
-
-Apologies for not being more helpful,
-Conor.
-
-0 - https://github.com/polarfire-soc/hart-software-services/tree/master/thirdparty/opensbi
-
-> It would be great if folks can test the latest head commit b848d87 on
-> the boards they have and send a Tested by tag.
+> On Thu, Dec 22, 2022 at 4:48 PM Wei Liang Lim
+> <weiliang.lim@starfivetech.com> wrote:
+> >
+> > From: Anup Patel <apatel@ventanamicro.com>
+> >
+> > We add an optional cold_boot_allowed() platform callback which allows
+> > platform support to decide which HARTs can do cold boot initialization.
+> >
+> > If this platform callback is not available then any HART can do cold
+> > boot initialization.
+> >
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  include/sbi/sbi_platform.h | 20 ++++++++++++++++++++
+> >  lib/sbi/sbi_init.c         |  7 +++++--
+> >  2 files changed, 25 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> > index 722f27a..566eee3 100644
+> > --- a/include/sbi/sbi_platform.h
+> > +++ b/include/sbi/sbi_platform.h
+> > @@ -65,6 +65,9 @@ enum sbi_platform_features {
+> >
+> >  /** Platform functions */
+> >  struct sbi_platform_operations {
+> > +       /* Check if specified HART is allowed to do cold boot */
+> > +       bool (*cold_boot_allowed)(u32 hartid);
+> > +
+> >         /* Platform nascent initialization */
+> >         int (*nascent_init)(void);
+> >
+> > @@ -356,6 +359,23 @@ static inline bool sbi_platform_hart_invalid(const
+> struct sbi_platform *plat,
+> >         return FALSE;
+> >  }
+> >
+> > +/**
+> > + * Check whether given HART is allowed to do cold boot
+> > + *
+> > + * @param plat pointer to struct sbi_platform
+> > + * @param hartid HART ID
+> > + *
+> > + * @return TRUE if HART is allowed to do cold boot and FALSE
+> > +otherwise
 > 
->> Thanks & Regards,
->> Anup
->>
->> --
->> opensbi mailing list
->> opensbi at lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/opensbi
+> Previous comments were not addressed.
 > 
+> s/TRUE/true/g
+> s/FALSE/false/g
+
+Should this changes applied to this patch alone or all the patches?
+
 > 
+> Please also include a changelog when you send a new version.
 > 
-> --
+> The tags (RB, TB, etc) should be carried forward if there are no significant
+> changes.
+> 
+> > + */
+> > +static inline bool sbi_platform_cold_boot_allowed(
+> > +                                       const struct sbi_platform *plat,
+> > +                                       u32 hartid) {
+> > +       if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
+> > +               return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
+> > +       return TRUE;
+> > +}
+> > +
+> >  /**
+> >   * Nascent (very early) initialization for current HART
+> >   *
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c index
+> > a8500e5..d4902d9 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -498,8 +498,11 @@ void __noreturn sbi_init(struct sbi_scratch
+> *scratch)
+> >          * HARTs which satisfy above condition.
+> >          */
+> >
+> > -       if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
+> > -               coldboot = TRUE;
+> > +       if (sbi_platform_cold_boot_allowed(plat, hartid)) {
+> > +               if (next_mode_supported &&
+> > +                   atomic_xchg(&coldboot_lottery, 1) == 0)
+> > +                       coldboot = TRUE;
+> > +       }
+> >
+> >         /*
+> >          * Do platform specific nascent (very early) initialization so
+> > --
+> 
 > Regards,
-> Atish
-
+> Bin
