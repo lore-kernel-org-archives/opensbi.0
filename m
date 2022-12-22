@@ -1,41 +1,38 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Thu, 22 Dec 2022 17:52:17 +0000
-Subject: [RFC PATCH] platform: generic: renesas: Add support to configure
- the PMA
-In-Reply-To: <Y6S6uRzAupUkCFP2@APC323>
-References: <20221212094421.14556-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <Y6IzTcaMxw9JjBW3@APC323> <CA+V-a8t8G3AawnRNxi373Gp6W15hp9FmHYCCuSANVnyT7wqmXQ@mail.gmail.com>
- <Y6MjCN7UD1PqL9pL@APC323> <CA+V-a8staavOP=bpnxZw=ZjXFH-XQB7HQLKOF6fY39iFu8Wq0w@mail.gmail.com>
- <Y6S6uRzAupUkCFP2@APC323>
-Message-ID: <CA+V-a8sXSO3xyREjgM=UUc+BsQFwrEgeRMeGC2g+MshNTqs-Ng@mail.gmail.com>
+From: Conor Dooley <conor@kernel.org>
+Date: Thu, 22 Dec 2022 19:39:14 +0000
+Subject: [PATCH v1] docs: pmu: update a reference to a deprecated property name
+Message-ID: <20221222193913.223114-1-conor@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Yu-Chien,
+From: Conor Dooley <conor.dooley@microchip.com>
 
-On Thu, Dec 22, 2022 at 12:19 PM Yu-Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> Hi Prabhakar,
->
-> On Wed, Dec 21, 2022 at 06:19:12PM +0000, Lad, Prabhakar wrote:
-> > Hi Yu-Chien,
-> >
-> > For the next version I'm thinking of having an array in OpenSBI itself
-> > for the PMA regions to be configured instead of passing it from u-boot
-> > and then passing the required region to the upper boot stack. Hope
-> > that's OK with you.
->
-> I'll help to test with our platform.
->
-Thanks, that would be great.
+event-to-mhpmevent was deprecated and replaced by
+riscv,event-to-mhpmevent, but a reference remains to the old name.
+Replace it with the new one.
 
-While you are testing that, maybe you also want to test the PMA
-patches too on your platform ;)
+Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ docs/pmu_support.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Cheers,
-Prabhakar
+diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+index 1a16bad..9c79636 100644
+--- a/docs/pmu_support.md
++++ b/docs/pmu_support.md
+@@ -46,7 +46,7 @@ a table format where each row represents a certain range of events and
+ corresponding counters. The first column represents starting of the pmu event id
+ and 2nd column represents the end of the pmu event id. The third column
+ represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
+-event-to-mhpmevent is present. Otherwise, it can be omitted. This property
++riscv,event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+ shouldn't encode any raw event.
+ 
+ * **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
+-- 
+2.38.1
+
 
