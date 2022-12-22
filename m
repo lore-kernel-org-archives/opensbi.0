@@ -1,9 +1,9 @@
 From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Thu, 22 Dec 2022 16:44:41 +0800
-Subject: [PATCH v5 1/4] lib: sbi: Allow platform to influence cold boot HART selection
+Date: Thu, 22 Dec 2022 16:44:42 +0800
+Subject: [PATCH v5 2/4] platform: generic: Allow platform_override to select cold boot HART
 In-Reply-To: <20221222084444.224301-1-weiliang.lim@starfivetech.com>
 References: <20221222084444.224301-1-weiliang.lim@starfivetech.com>
-Message-ID: <20221222084444.224301-2-weiliang.lim@starfivetech.com>
+Message-ID: <20221222084444.224301-3-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,74 +12,54 @@ Content-Transfer-Encoding: 7bit
 
 From: Anup Patel <apatel@ventanamicro.com>
 
-We add an optional cold_boot_allowed() platform callback which allows
-platform support to decide which HARTs can do cold boot initialization.
-
-If this platform callback is not available then any HART can do cold
-boot initialization.
+We add a generic platform override callback to allow platform specific
+selection of cold boot HART.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_platform.h | 20 ++++++++++++++++++++
- lib/sbi/sbi_init.c         |  7 +++++--
- 2 files changed, 25 insertions(+), 2 deletions(-)
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 722f27a..566eee3 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -65,6 +65,9 @@ enum sbi_platform_features {
- 
- /** Platform functions */
- struct sbi_platform_operations {
-+	/* Check if specified HART is allowed to do cold boot */
-+	bool (*cold_boot_allowed)(u32 hartid);
-+
- 	/* Platform nascent initialization */
- 	int (*nascent_init)(void);
- 
-@@ -356,6 +359,23 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
- 	return FALSE;
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index 7f1558d..21354e9 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -18,6 +18,7 @@ struct platform_override {
+ 	const struct fdt_match *match_table;
+ 	u64 (*features)(const struct fdt_match *match);
+ 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
++	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
+ 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
+ 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
+ 	void (*early_exit)(const struct fdt_match *match);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index bfe15f0..16aa4f3 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -122,6 +122,14 @@ fail:
+ 		wfi();
  }
  
-+/**
-+ * Check whether given HART is allowed to do cold boot
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ * @param hartid HART ID
-+ *
-+ * @return TRUE if HART is allowed to do cold boot and FALSE otherwise
-+ */
-+static inline bool sbi_platform_cold_boot_allowed(
-+					const struct sbi_platform *plat,
-+					u32 hartid)
++static bool generic_cold_boot_allowed(u32 hartid)
 +{
-+	if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
-+		return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
++	if (generic_plat && generic_plat->cold_boot_allowed)
++		return generic_plat->cold_boot_allowed(
++						hartid, generic_plat_match);
 +	return TRUE;
 +}
 +
- /**
-  * Nascent (very early) initialization for current HART
-  *
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index a8500e5..d4902d9 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -498,8 +498,11 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 	 * HARTs which satisfy above condition.
- 	 */
+ static int generic_nascent_init(void)
+ {
+ 	if (platform_has_mlevel_imsic)
+@@ -261,6 +269,7 @@ static int generic_console_init(void)
+ }
  
--	if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
--		coldboot = TRUE;
-+	if (sbi_platform_cold_boot_allowed(plat, hartid)) {
-+		if (next_mode_supported &&
-+		    atomic_xchg(&coldboot_lottery, 1) == 0)
-+			coldboot = TRUE;
-+	}
- 
- 	/*
- 	 * Do platform specific nascent (very early) initialization so
+ const struct sbi_platform_operations platform_ops = {
++	.cold_boot_allowed	= generic_cold_boot_allowed,
+ 	.nascent_init		= generic_nascent_init,
+ 	.early_init		= generic_early_init,
+ 	.final_init		= generic_final_init,
 -- 
 2.25.1
 
