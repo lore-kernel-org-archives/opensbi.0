@@ -1,119 +1,85 @@
 From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Fri, 23 Dec 2022 15:07:41 +0800
-Subject: [PATCH v6 4/4] generic/starfive: Add Starfive JH7110 platform implementation
+Date: Fri, 23 Dec 2022 15:07:38 +0800
+Subject: [PATCH v6 1/4] lib: sbi: Allow platform to influence cold boot HART selection
 In-Reply-To: <20221223070741.236271-1-weiliang.lim@starfivetech.com>
 References: <20221223070741.236271-1-weiliang.lim@starfivetech.com>
-Message-ID: <20221223070741.236271-5-weiliang.lim@starfivetech.com>
+Message-ID: <20221223070741.236271-2-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add Starfive JH7110 platform implementation
+From: Anup Patel <apatel@ventanamicro.com>
 
-Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
-Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
+We add an optional cold_boot_allowed() platform callback which allows
+platform support to decide which HARTs can do cold boot initialization.
+
+If this platform callback is not available then any HART can do cold
+boot initialization.
+
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- platform/generic/Kconfig             |  4 +++
- platform/generic/configs/defconfig   |  1 +
- platform/generic/starfive/jh7110.c   | 47 ++++++++++++++++++++++++++++
- platform/generic/starfive/objects.mk |  6 ++++
- 4 files changed, 58 insertions(+)
- create mode 100644 platform/generic/starfive/jh7110.c
- create mode 100644 platform/generic/starfive/objects.mk
+ include/sbi/sbi_platform.h | 20 ++++++++++++++++++++
+ lib/sbi/sbi_init.c         |  7 +++++--
+ 2 files changed, 25 insertions(+), 2 deletions(-)
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 62c7a2d..47c10e5 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
- 	depends on FDT_RESET && FDT_I2C
- 	default n
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 722f27a..bd0d5ca 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -65,6 +65,9 @@ enum sbi_platform_features {
  
-+config PLATFORM_STARFIVE_JH7110
-+	bool "StarFive JH7110 support"
-+	default n
+ /** Platform functions */
+ struct sbi_platform_operations {
++	/* Check if specified HART is allowed to do cold boot */
++	bool (*cold_boot_allowed)(u32 hartid);
 +
- endif
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 47fca95..4b0842e 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
- CONFIG_PLATFORM_RENESAS_RZFIVE=y
- CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
-+CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_FDT_GPIO=y
- CONFIG_FDT_GPIO_SIFIVE=y
- CONFIG_FDT_I2C=y
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-new file mode 100644
-index 0000000..70a26fe
---- /dev/null
-+++ b/platform/generic/starfive/jh7110.c
-@@ -0,0 +1,47 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
+ 	/* Platform nascent initialization */
+ 	int (*nascent_init)(void);
+ 
+@@ -356,6 +359,23 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
+ 	return FALSE;
+ }
+ 
++/**
++ * Check whether given HART is allowed to do cold boot
 + *
-+ * Copyright (c) 2022 StarFive
++ * @param plat pointer to struct sbi_platform
++ * @param hartid HART ID
 + *
-+ * Authors:
-+ *   Wei Liang Lim <weiliang.lim@starfivetech.com>
++ * @return true if HART is allowed to do cold boot and false otherwise
 + */
-+
-+#include <libfdt.h>
-+#include <platform_override.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+static u32 selected_hartid = -1;
-+
-+static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
-+				   const struct fdt_match *match)
++static inline bool sbi_platform_cold_boot_allowed(
++					const struct sbi_platform *plat,
++					u32 hartid)
 +{
-+	if (selected_hartid != -1)
-+		return (selected_hartid == hartid);
-+
++	if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
++		return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
 +	return true;
 +}
 +
-+static void starfive_jh7110_fw_init(void *fdt, const struct fdt_match *match)
-+{
-+	const fdt32_t *val;
-+	int len, coff;
-+
-+	coff = fdt_path_offset(fdt, "/chosen");
-+	if (-1 < coff) {
-+		val = fdt_getprop(fdt, coff, "boot-hart-id", &len);
-+		if (val && len)
-+			selected_hartid = (u32) fdt32_to_cpu(*val);
+ /**
+  * Nascent (very early) initialization for current HART
+  *
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index a8500e5..d45cee6 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -498,8 +498,11 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+ 	 * HARTs which satisfy above condition.
+ 	 */
+ 
+-	if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
+-		coldboot = TRUE;
++	if (sbi_platform_cold_boot_allowed(plat, hartid)) {
++		if (next_mode_supported &&
++		    atomic_xchg(&coldboot_lottery, 1) == 0)
++			coldboot = true;
 +	}
-+}
-+
-+static const struct fdt_match starfive_jh7110_match[] = {
-+	{ .compatible = "starfive,jh7110" },
-+	{ },
-+};
-+
-+const struct platform_override starfive_jh7110 = {
-+	.match_table = starfive_jh7110_match,
-+	.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
-+	.fw_init = starfive_jh7110_fw_init,
-+};
-diff --git a/platform/generic/starfive/objects.mk b/platform/generic/starfive/objects.mk
-new file mode 100644
-index 0000000..0b900fb
---- /dev/null
-+++ b/platform/generic/starfive/objects.mk
-@@ -0,0 +1,6 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive_jh7110
-+platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive/jh7110.o
+ 
+ 	/*
+ 	 * Do platform specific nascent (very early) initialization so
 -- 
 2.25.1
 
