@@ -1,66 +1,35 @@
-From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Fri, 23 Dec 2022 15:07:39 +0800
-Subject: [PATCH v6 2/4] platform: generic: Allow platform_override to select cold boot HART
-In-Reply-To: <20221223070741.236271-1-weiliang.lim@starfivetech.com>
-References: <20221223070741.236271-1-weiliang.lim@starfivetech.com>
-Message-ID: <20221223070741.236271-3-weiliang.lim@starfivetech.com>
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Date: Fri, 23 Dec 2022 09:01:51 +0000
+Subject: Upcoming OpenSBI v1.2 release
+In-Reply-To: <CAOnJCUK=XOfNtp6aTveqSdHYwUtNbbrnqn53z06fKU_i6ufTbA@mail.gmail.com>
+References: <CAAhSdy1MTYZcN0cbwPoM41RTWPwLuhbNvprKqhcXfJiNE8Jamw@mail.gmail.com>
+ <CAOnJCUK=XOfNtp6aTveqSdHYwUtNbbrnqn53z06fKU_i6ufTbA@mail.gmail.com>
+Message-ID: <222bec58-2e07-2505-583b-89b8f9274b80@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Anup Patel <apatel@ventanamicro.com>
+On 21/12/2022 15:02, Atish Patra wrote:
+> On Fri, Dec 16, 2022 at 9:42 PM Anup Patel <anup@brainfault.org> wrote:
+>>
+>> Hi All,
+>>
+>> We are close to the OpenSBI v1.2 release. I plan to complete this
+>> release before the end of next week (i.e. 24th December 2022).
+>>
+>> Next week, I won't be merging patches unless it's a critical fix.
+>> Also, I request everyone to test the latest OpenSBI on their RISC-V
+>> platforms.
 
-We add a generic platform override callback to allow platform specific
-selection of cold boot HART.
+Unfortunately I've been too busy post RISCV summit, but will try and
+get testing done once we're back at work early January 2023.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- platform/generic/include/platform_override.h | 1 +
- platform/generic/platform.c                  | 9 +++++++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 7f1558d..21354e9 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -18,6 +18,7 @@ struct platform_override {
- 	const struct fdt_match *match_table;
- 	u64 (*features)(const struct fdt_match *match);
- 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
-+	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
- 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
- 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
- 	void (*early_exit)(const struct fdt_match *match);
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index bfe15f0..5fb0dc6 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -122,6 +122,14 @@ fail:
- 		wfi();
- }
- 
-+static bool generic_cold_boot_allowed(u32 hartid)
-+{
-+	if (generic_plat && generic_plat->cold_boot_allowed)
-+		return generic_plat->cold_boot_allowed(
-+						hartid, generic_plat_match);
-+	return true;
-+}
-+
- static int generic_nascent_init(void)
- {
- 	if (platform_has_mlevel_imsic)
-@@ -261,6 +269,7 @@ static int generic_console_init(void)
- }
- 
- const struct sbi_platform_operations platform_ops = {
-+	.cold_boot_allowed	= generic_cold_boot_allowed,
- 	.nascent_init		= generic_nascent_init,
- 	.early_init		= generic_early_init,
- 	.final_init		= generic_final_init,
 -- 
-2.25.1
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
+
+https://www.codethink.co.uk/privacy.html
 
 
