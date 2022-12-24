@@ -1,25 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 24 Dec 2022 11:09:24 +0530
-Subject: [PATCH] docs: pmu: Update the pmu doc with removal of
- mcountinhbit restriction
-In-Reply-To: <20221222203850.2592975-1-atishp@rivosinc.com>
-References: <20221222203850.2592975-1-atishp@rivosinc.com>
-Message-ID: <CAAhSdy0+XYH7ci27j1h=mO4cYA7bC38Q_bz7=Nq5oPiBUce6ng@mail.gmail.com>
+Date: Sat, 24 Dec 2022 11:09:00 +0530
+Subject: [PATCH v1] docs: pmu: update a reference to a deprecated property name
+In-Reply-To: <20221222193913.223114-1-conor@kernel.org>
+References: <20221222193913.223114-1-conor@kernel.org>
+Message-ID: <CAAhSdy0brgKcXRnzAZom6yu_KUMmPbtF3bBhVzTH6VzTuq=nYg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 23, 2022 at 2:08 AM Atish Patra <atishp@rivosinc.com> wrote:
+On Fri, Dec 23, 2022 at 1:17 AM Conor Dooley <conor@kernel.org> wrote:
 >
-> Since commit b28f070, it is possible for platforms to run perf monitoring
-> even if mcountinhibit is not supported. Sampling still won't be possible
-> though as it requires sscofpmf extension.
+> From: Conor Dooley <conor.dooley@microchip.com>
 >
-> Update the docs to remove the restriction.
+> event-to-mhpmevent was deprecated and replaced by
+> riscv,event-to-mhpmevent, but a reference remains to the old name.
+> Replace it with the new one.
 >
-> Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
 
 Looks good to me.
 
@@ -31,24 +30,28 @@ Thanks,
 Anup
 
 > ---
->  docs/pmu_support.md | 3 ---
->  1 file changed, 3 deletions(-)
+>  docs/pmu_support.md | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 > diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-> index 1db36fc..c74ef5f 100644
+> index 1a16bad..9c79636 100644
 > --- a/docs/pmu_support.md
 > +++ b/docs/pmu_support.md
-> @@ -6,9 +6,6 @@ capability of performance analysis tools such as perf if SBI PMU extension is
->  enabled. The OpenSBI implementation makes the following assumptions about the
->  hardware platform.
+> @@ -46,7 +46,7 @@ a table format where each row represents a certain range of events and
+>  corresponding counters. The first column represents starting of the pmu event id
+>  and 2nd column represents the end of the pmu event id. The third column
+>  represent a bitmap of all the MHPMCOUNTERx. This property is mandatory if
+> -event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+> +riscv,event-to-mhpmevent is present. Otherwise, it can be omitted. This property
+>  shouldn't encode any raw event.
 >
-> - * MCOUNTINHIBIT CSR must be implemented in the hardware. Otherwise, SBI PMU
-> -extension will not be enabled.
-> -
->   * The platform must provide information about PMU event to counter mapping
->  via device tree or platform specific hooks. Otherwise, SBI PMU extension will
->  not be enabled.
+>  * **riscv,raw-event-to-mhpmcounters**(Optional) - It represents an ONE-to-MANY
 > --
-> 2.25.1
+> 2.38.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
