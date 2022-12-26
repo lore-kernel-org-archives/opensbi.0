@@ -1,43 +1,22 @@
-From: Bin Meng <bmeng@tinylab.org>
-Date: Mon, 26 Dec 2022 11:36:03 +0800
-Subject: [PATCH] lib: utils/sys: Allow custom HTIF base address for RV32
-Message-ID: <20221226033603.1860569-1-bmeng@tinylab.org>
+From: Marouene Boubakri <marouene.boubakri@nxp.com>
+Date: Mon, 26 Dec 2022 18:25:22 +0000
+Subject: BUG: OpenSBI crashes when passing custom DTB on Qemu
+Message-ID: <AS1PR04MB9455ACCE24963065CDC19D47FCEC9@AS1PR04MB9455.eurprd04.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-commit 6dde43584f18 ("lib: utils/sys: Extend HTIF library to allow custom base address")
-forgot to update do_tohost_fromhost() codes for RV32, which still
-accesses the HTIF registers using the ELF symbol address directly.
+Hi,
 
-Fixes: 6dde43584f18 ("lib: utils/sys: Extend HTIF library to allow custom base address")
-Signed-off-by: Bin Meng <bmeng@tinylab.org>
----
+Is the OpenSBI community looking to the Github repository sometime ?
+I opened an issue [1] and would be great if someone looks at this.
 
- lib/utils/sys/htif.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+[1] https://github.com/riscv-software-src/opensbi/issues/281
 
-diff --git a/lib/utils/sys/htif.c b/lib/utils/sys/htif.c
-index d7cbeaf..b4e6321 100644
---- a/lib/utils/sys/htif.c
-+++ b/lib/utils/sys/htif.c
-@@ -135,11 +135,11 @@ static void do_tohost_fromhost(uint64_t dev, uint64_t cmd, uint64_t data)
- 	__set_tohost(HTIF_DEV_SYSTEM, cmd, data);
- 
- 	while (1) {
--		uint64_t fh = fromhost;
-+		uint64_t fh = __read_fromhost();
- 		if (fh) {
- 			if (FROMHOST_DEV(fh) == HTIF_DEV_SYSTEM &&
- 			    FROMHOST_CMD(fh) == cmd) {
--				fromhost = 0;
-+				__write_fromhost(0);
- 				break;
- 			}
- 			__check_fromhost();
--- 
-2.34.1
+Thanks
+Maro
+
 
 
