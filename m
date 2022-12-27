@@ -1,53 +1,65 @@
-From: Daniel Henrique Barboza <dbarboza@ventanamicro.com>
-Date: Tue, 27 Dec 2022 14:25:24 -0300
-Subject: [PATCH] lib: utils/sys: Allow custom HTIF base address for RV32
-In-Reply-To: <20221226033603.1860569-1-bmeng@tinylab.org>
-References: <20221226033603.1860569-1-bmeng@tinylab.org>
-Message-ID: <ddf50096-ee91-b0af-9a03-496159e264bf@ventanamicro.com>
+From: Samuel Holland <samuel@sholland.org>
+Date: Tue, 27 Dec 2022 12:22:22 -0600
+Subject: [PATCH 1/1] platform: generic: allwinner: avoid buffer overrun
+In-Reply-To: <CAEUhbmXcQiGH6WQ3pN_C+mv_qRn0mF2Pb2vq_dxeXxMsygNwdw@mail.gmail.com>
+References: <20221227110129.145976-1-heinrich.schuchardt@canonical.com>
+ <CAEUhbmX9u1Fpy-ZQP=Gyp=-jwc5OzRM7XziCkydLcsQqYBivKg@mail.gmail.com>
+ <374eb91d-e580-3583-accf-0d0e3a3687ea@canonical.com>
+ <CAEUhbmUbaAYp-dcEYF845XX66ZGFLPkNuJMp2xpkpPLNZ3o4MQ@mail.gmail.com>
+ <87cz85dmmd.fsf@igel.home>
+ <CAEUhbmXcQiGH6WQ3pN_C+mv_qRn0mF2Pb2vq_dxeXxMsygNwdw@mail.gmail.com>
+Message-ID: <da726834-79af-8e40-c39e-a6dd4c421ea4@sholland.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On 12/27/22 07:13, Bin Meng wrote:
+> On Tue, Dec 27, 2022 at 9:04 PM Andreas Schwab <schwab@linux-m68k.org> wrote:
+>>
+>> On Dez 27 2022, Bin Meng wrote:
+>>
+>>> Changing the array size to PLIC_SOURCES + 1 does not make sense. The
+>>> PLIC_SOURCES should be 176 which is correct as it includes source 0 on
+>>> the Allwinner SoC. The "riscv,ndev" [1] should not be 176 otherwise it
+>>> will create a buffer overrun.
+>>
+>> The range check will always allow that overrrun.
+>>
+> 
+> Well, with a correct dtb it doesn't.
 
+No, the bug has nothing at all to do with the DTB. The bug is purely in
+the C code.
 
-On 12/26/22 00:36, Bin Meng wrote:
-> commit 6dde43584f18 ("lib: utils/sys: Extend HTIF library to allow custom base address")
-> forgot to update do_tohost_fromhost() codes for RV32, which still
-> accesses the HTIF registers using the ELF symbol address directly.
->
-> Fixes: 6dde43584f18 ("lib: utils/sys: Extend HTIF library to allow custom base address")
-> Signed-off-by: Bin Meng <bmeng@tinylab.org>
-> ---
+> Strictly speaking, your proposed fix allows that overrun too, if the
+> given num is an arbitrary larger value than the size of the priority
+> array.
 
-With this patch, "qemu-system-riscv32 -M spike -bios fw_payload.bin -nographic"
-now displays OpenSBI output in the terminal
+This is already what you are doing! You have:
 
+	static u8 plic_priority[PLIC_SOURCES];
 
-Tested-by: Daniel Henrique Barboza <dbarboza@ventanamicro.com>
+and
 
->
->   lib/utils/sys/htif.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/utils/sys/htif.c b/lib/utils/sys/htif.c
-> index d7cbeaf..b4e6321 100644
-> --- a/lib/utils/sys/htif.c
-> +++ b/lib/utils/sys/htif.c
-> @@ -135,11 +135,11 @@ static void do_tohost_fromhost(uint64_t dev, uint64_t cmd, uint64_t data)
->   	__set_tohost(HTIF_DEV_SYSTEM, cmd, data);
->   
->   	while (1) {
-> -		uint64_t fh = fromhost;
-> +		uint64_t fh = __read_fromhost();
->   		if (fh) {
->   			if (FROMHOST_DEV(fh) == HTIF_DEV_SYSTEM &&
->   			    FROMHOST_CMD(fh) == cmd) {
-> -				fromhost = 0;
-> +				__write_fromhost(0);
->   				break;
->   			}
->   			__check_fromhost();
+	fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
+
+The combination of those two lines is necessarily incorrect. Because you
+dereference priority[num], the number of elements in the array *must* be
+greater than num.
+
+Since the range of external interrupt sources is [1, 175], the
+definitions need to be:
+
+#define PLIC_SOURCES                    175
+#define PLIC_IE_WORDS                   ((PLIC_SOURCES / 32) + 1)
+
+static u8 plic_priority[1 + PLIC_SOURCES];
+
+Anything else is either wrong or wasting space.
+
+Regards,
+Samuel
 
 
