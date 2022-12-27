@@ -1,365 +1,166 @@
-From: Marouene Boubakri <marouene.boubakri@nxp.com>
-Date: Tue, 27 Dec 2022 08:24:36 +0000
-Subject: [EXT] Re: BUG: OpenSBI crashes when passing custom DTB on Qemu
-In-Reply-To: <CAEUhbmX3JXdv1=ek0yugEHnVP-h84rgHUj1f5PAa4YBvBSXBdw@mail.gmail.com>
-References: <AS1PR04MB9455ACCE24963065CDC19D47FCEC9@AS1PR04MB9455.eurprd04.prod.outlook.com>
- <CAEUhbmX3JXdv1=ek0yugEHnVP-h84rgHUj1f5PAa4YBvBSXBdw@mail.gmail.com>
-Message-ID: <AS1PR04MB9455E9128C9AD28B6812C550FCED9@AS1PR04MB9455.eurprd04.prod.outlook.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Tue, 27 Dec 2022 11:54:21 +0100
+Subject: [PATCH v2 2/5] libs: utils/irqchip: plic: Ensure no out-of-bound
+ access in priority save/restore helpers
+In-Reply-To: <20221204051503.439727-2-bmeng@tinylab.org>
+References: <20221204051503.439727-1-bmeng@tinylab.org>
+ <20221204051503.439727-2-bmeng@tinylab.org>
+Message-ID: <70ccdcc7-613b-6a56-dc33-3b22ef5d0474@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I updated the issue on Github
-Here is the DTS:
 
-/dts-v1/;
 
-/ {
-        #address-cells = <0x02>;
-        #size-cells = <0x02>;
-        compatible = "riscv-virtio";
-        model = "riscv-virtio,qemu";
+On 12/4/22 06:15, Bin Meng wrote:
+> Currently the priority save/restore helpers writes/reads the provided
+> array using an index whose maximum value is determined by PLIC, which
+> potentially may disagree with the caller to these helpers.
+> 
+> Add a parameter to ask the caller to provide the size limit of the
+> array to ensure no out-of-bound access happens.
+> 
+> Signed-off-by: Bin Meng <bmeng@tinylab.org>
+> ---
+> 
+> Changes in v2:
+> - new patch: libs: utils/irqchip: plic: Ensure no out-of-bound access in priority save/restore helpers
+> 
+>   include/sbi_utils/irqchip/fdt_irqchip_plic.h |  4 ++--
+>   include/sbi_utils/irqchip/plic.h             |  5 +++--
+>   lib/utils/irqchip/fdt_irqchip_plic.c         | 12 ++++++++----
+>   lib/utils/irqchip/plic.c                     |  9 +++++----
+>   platform/generic/allwinner/sun20i-d1.c       |  4 ++--
+>   5 files changed, 20 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/sbi_utils/irqchip/fdt_irqchip_plic.h b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> index 98d4de5..5f3f54d 100644
+> --- a/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> +++ b/include/sbi_utils/irqchip/fdt_irqchip_plic.h
+> @@ -9,9 +9,9 @@
+>   
+>   #include <sbi/sbi_types.h>
+>   
+> -void fdt_plic_priority_save(u8 *priority);
+> +void fdt_plic_priority_save(u8 *priority, u32 num);
+>   
+> -void fdt_plic_priority_restore(const u8 *priority);
+> +void fdt_plic_priority_restore(const u8 *priority, u32 num);
+>   
+>   void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold);
+>   
+> diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
+> index 48c24f0..38704a1 100644
+> --- a/include/sbi_utils/irqchip/plic.h
+> +++ b/include/sbi_utils/irqchip/plic.h
+> @@ -18,9 +18,10 @@ struct plic_data {
+>   };
+>   
+>   /* So far, priorities on all consumers of these functions fit in 8 bits. */
+> -void plic_priority_save(const struct plic_data *plic, u8 *priority);
+> +void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num);
+>   
+> -void plic_priority_restore(const struct plic_data *plic, const u8 *priority);
+> +void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
+> +			   u32 num);
+>   
+>   void plic_context_save(const struct plic_data *plic, int context_id,
+>   		       u32 *enable, u32 *threshold);
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index a6e185c..87fb9bd 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -24,18 +24,22 @@ static struct plic_data plic[PLIC_MAX_NR];
+>   static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
+>   static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2];
+>   
+> -void fdt_plic_priority_save(u8 *priority)
+> +void fdt_plic_priority_save(u8 *priority, u32 num)
+>   {
+>   	struct plic_data *plic = plic_hartid2data[current_hartid()];
+>   
+> -	plic_priority_save(plic, priority);
+> +	if (num > plic->num_src + 1)
+> +		num = plic->num_src + 1;
+> +	plic_priority_save(plic, priority, num);
+>   }
+>   
+> -void fdt_plic_priority_restore(const u8 *priority)
+> +void fdt_plic_priority_restore(const u8 *priority, u32 num)
+>   {
+>   	struct plic_data *plic = plic_hartid2data[current_hartid()];
+>   
+> -	plic_priority_restore(plic, priority);
+> +	if (num > plic->num_src + 1)
+> +		num = plic->num_src + 1;
+> +	plic_priority_restore(plic, priority, num);
+>   }
+>   
+>   void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold)
+> diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+> index 4df9020..c5c1879 100644
+> --- a/lib/utils/irqchip/plic.c
+> +++ b/lib/utils/irqchip/plic.c
+> @@ -36,15 +36,16 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
+>   	writel(val, plic_priority);
+>   }
+>   
+> -void plic_priority_save(const struct plic_data *plic, u8 *priority)
+> +void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num)
+>   {
+> -	for (u32 i = 1; i <= plic->num_src; i++)
+> +	for (u32 i = 1; i <= num; i++)
+>   		priority[i] = plic_get_priority(plic, i);
+>   }
+>   
+> -void plic_priority_restore(const struct plic_data *plic, const u8 *priority)
+> +void plic_priority_restore(const struct plic_data *plic, const u8 *priority,
+> +			   u32 num)
+>   {
+> -	for (u32 i = 1; i <= plic->num_src; i++)
+> +	for (u32 i = 1; i <= num; i++)
+>   		plic_set_priority(plic, i, priority[i]);
+>   }
+>   
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 707313b..46d336f 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -79,13 +79,13 @@ static u32 plic_threshold;
+>   static void sun20i_d1_plic_save(void)
+>   {
+>   	fdt_plic_context_save(true, plic_sie, &plic_threshold);
+> -	fdt_plic_priority_save(plic_priority);
+> +	fdt_plic_priority_save(plic_priority, PLIC_SOURCES);
 
-        /*fw-cfg at 10100000 {
-                dma-coherent;
-                reg = <0x00 0x10100000 0x00 0x18>;
-                compatible = "qemu,fw-cfg-mmio";
-        };*/
+This ends up calling plic_priority_save() which will access 
+plic_priority at indexes 1 to PLIC_SOURCES. So you are overrunning the 
+plic_priority array size.
 
-        flash at 20000000 {
-                bank-width = <0x04>;
-                reg = <0x00 0x20000000 0x00 0x2000000 0x00 0x22000000 0x00 0x2000000>;
-                compatible = "cfi-flash";
-        };
+Coverity 1530252 Out-of-bounds access
 
-        chosen {
-                bootargs = "root=/dev/vda rw console=ttyS0 earlycon";
-                stdout-path = "/soc/uart at 10000000";
-				
-				opensbi-domains {
-					compatible = "opensbi,domain,config";
 
-					mumem: mumem {
-						compatible = "opensbi,domain,memregion";
-						base = <0x0 0x50000000>;
-						order = <10>;
-					};
+>   }
+>   
+>   static void sun20i_d1_plic_restore(void)
+>   {
+>   	thead_plic_restore();
+> -	fdt_plic_priority_restore(plic_priority);
+> +	fdt_plic_priority_restore(plic_priority, PLIC_SOURCES);
 
-					tmem: tmem {
-						compatible = "opensbi,domain,memregion";
-						base = <0x0 0x80100000>;
-						order = <20>;
-					};
+This ends up calling plic_priority_restore() which will access 
+plic_priority at indexes 1 to PLIC_SOURCES. So you are overrunning the 
+plic_priority array size.
 
-					tuart: tuart {
-						compatible = "opensbi,domain,memregion";
-						base = <0x0 0x10000000>;
-						order = <12>;
-						mmio;
-						devices = <&uart0>;
-					};
+Coverity 1530251 Out-of-bounds access
 
-					allmem: allmem {
-						compatible = "opensbi,domain,memregion";
-						base = <0x0 0x0>;
-						order = <64>;
-					};
+Best regards
 
-					tdomain: trusted-domain {
-						compatible = "opensbi,domain,instance";
-						possible-harts = <&cpu0>;
-						/* dev: access to all for now */
-						regions = <&tmem 0x7>, <&tuart 0x7>, <&allmem 0x7>, <&mumem 0x7>;
-						boot-hart = <&cpu0>;
-						next-arg1 = <0x0 0x0>;
-						next-addr = <0x0 0x80100000>;
-						next-mode = <0x1>;
-						system-reset-allowed;
-					};
+Heinrich
 
-					udomain: untrusted-domain {
-						compatible = "opensbi,domain,instance";
-						possible-harts = <&cpu1 &cpu2 &cpu3>;
-						/* dev: access to all for now */
-						regions = <&tmem 0x0>, <&tuart 0x7>, <&allmem 0x7>, <&mumem 0x7>;
-					};
-				};				
-        };
-
-        memory at 80000000 {
-                device_type = "memory";
-                reg = <0x00 0x80000000 0x00 0x10000000>;
-        };
-	
-        cpus {
-                #address-cells = <0x01>;
-                #size-cells = <0x00>;
-                timebase-frequency = <0x989680>;
-
-                cpu0: cpu at 0 {
-                        phandle = <0x07>;
-                        device_type = "cpu";
-                        reg = <0x00>;
-                        status = "okay";
-                        compatible = "riscv";
-                        riscv,isa = "rv64imafdcsu";
-			opensbi-domain = <&tdomain>;
-                        mmu-type = "riscv,sv39";
-
-                        interrupt-controller {
-                                #interrupt-cells = <0x01>;
-                                interrupt-controller;
-                                compatible = "riscv,cpu-intc";
-                                phandle = <0x08>;
-                        };
-                };
-
-                cpu1:cpu at 1 {
-                        phandle = <0x05>;
-                        device_type = "cpu";
-                        reg = <0x01>;
-                        status = "okay";
-                        compatible = "riscv";
-                        riscv,isa = "rv64imafdcsu";
-			opensbi-domain = <&udomain>;
-                        mmu-type = "riscv,sv39";
-
-                        interrupt-controller {
-                                #interrupt-cells = <0x01>;
-                                interrupt-controller;
-                                compatible = "riscv,cpu-intc";
-                                phandle = <0x06>;
-                        };
-                };
-
-                cpu2:cpu at 2 {
-                        phandle = <0x03>;
-                        device_type = "cpu";
-                        reg = <0x02>;
-                        status = "okay";
-                        compatible = "riscv";
-                        riscv,isa = "rv64imafdcsu";
-			opensbi-domain = <&udomain>;
-                        mmu-type = "riscv,sv39";
-
-                        interrupt-controller {
-                                #interrupt-cells = <0x01>;
-                                interrupt-controller;
-                                compatible = "riscv,cpu-intc";
-                                phandle = <0x04>;
-                        };
-                };
-
-                cpu3:cpu at 3 {
-                        phandle = <0x01>;
-                        device_type = "cpu";
-                        reg = <0x03>;
-                        status = "okay";
-                        compatible = "riscv";
-                        riscv,isa = "rv64imafdcsu";
-			opensbi-domain = <&udomain>;
-                        mmu-type = "riscv,sv39";
-
-                        interrupt-controller {
-                                #interrupt-cells = <0x01>;
-                                interrupt-controller;
-                                compatible = "riscv,cpu-intc";
-                                phandle = <0x02>;
-                        };
-                };
-
-                cpu-map {
-
-                        cluster0 {
-
-                                /*core0 {
-                                        cpu = <0x07>;
-                                };*/
-
-                                core1 {
-                                        cpu = <0x05>;
-                                };
-
-                                core2 {
-                                        cpu = <0x03>;
-                                };
-
-                                core3 {
-                                        cpu = <0x01>;
-                                };
-                        };
-                };
-        };
-
-        soc {
-                #address-cells = <0x02>;
-                #size-cells = <0x02>;
-                compatible = "simple-bus";
-                ranges;
-
-                rtc at 101000 {
-                        interrupts = <0x0b>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x101000 0x00 0x1000>;
-                        compatible = "google,goldfish-rtc";
-                };
-
-                uart0:uart at 10000000 {
-                        interrupts = <0x0a>;
-                        interrupt-parent = <0x09>;
-                        clock-frequency = "\08@";
-                        reg = <0x00 0x10000000 0x00 0x100>;
-                        compatible = "ns16550a";
-                };
-
-                poweroff {
-                        value = <0x5555>;
-                        offset = <0x00>;
-                        regmap = <0x0a>;
-                        compatible = "syscon-poweroff";
-                };
-
-                reboot {
-                        value = <0x7777>;
-                        offset = <0x00>;
-                        regmap = <0x0a>;
-                        compatible = "syscon-reboot";
-                };
-
-                test at 100000 {
-                        phandle = <0x0a>;
-                        reg = <0x00 0x100000 0x00 0x1000>;
-                        compatible = "sifive,test1\0sifive,test0\0syscon";
-                };
-
-                pci at 30000000 {
-                        interrupt-map-mask = <0x1800 0x00 0x00 0x07>;
-                        interrupt-map = <0x00 0x00 0x00 0x01 0x09 0x20 0x00 0x00 0x00 0x02 0x09 0x21 0x00 0x00 0x00 0x03 0x09 0x22 0x00 0x00 0x00 0x04 0x09 0x23 0x800 0x00 0x00 0x01 0x09 0x21 0x800 0x00 0x00 0x02 0x09 0x22 0x800 0x00 0x00 0x03 0x09 0x23 0x800 0x00 0x00 0x04 0x09 0x20 0x1000 0x00 0x00 0x01 0x09 0x22 0x1000 0x00 0x00 0x02 0x09 0x23 0x1000 0x00 0x00 0x03 0x09 0x20 0x1000 0x00 0x00 0x04 0x09 0x21 0x1800 0x00 0x00 0x01 0x09 0x23 0x1800 0x00 0x00 0x02 0x09 0x20 0x1800 0x00 0x00 0x03 0x09 0x21 0x1800 0x00 0x00 0x04 0x09 0x22>;
-                        ranges = <0x1000000 0x00 0x00 0x00 0x3000000 0x00 0x10000 0x2000000 0x00 0x40000000 0x00 0x40000000 0x00 0x40000000 0x3000000 0x04 0x00 0x04 0x00 0x04 0x00>;
-                        reg = <0x00 0x30000000 0x00 0x10000000>;
-                        dma-coherent;
-                        bus-range = <0x00 0xff>;
-                        linux,pci-domain = <0x00>;
-                        device_type = "pci";
-                        compatible = "pci-host-ecam-generic";
-                        #size-cells = <0x02>;
-                        #interrupt-cells = <0x01>;
-                        #address-cells = <0x03>;
-                };
-
-                virtio_mmio at 10008000 {
-                        interrupts = <0x08>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10008000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10007000 {
-                        interrupts = <0x07>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10007000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10006000 {
-                        interrupts = <0x06>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10006000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10005000 {
-                        interrupts = <0x05>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10005000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10004000 {
-                        interrupts = <0x04>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10004000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10003000 {
-                        interrupts = <0x03>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10003000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10002000 {
-                        interrupts = <0x02>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10002000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                virtio_mmio at 10001000 {
-                        interrupts = <0x01>;
-                        interrupt-parent = <0x09>;
-                        reg = <0x00 0x10001000 0x00 0x1000>;
-                        compatible = "virtio,mmio";
-                };
-
-                plic at c000000 {
-                        phandle = <0x09>;
-                        riscv,ndev = <0x35>;
-                        reg = <0x00 0xc000000 0x00 0x210000>;
-                        interrupts-extended = <0x08 0x0b 0x08 0x09 0x06 0x0b 0x06 0x09 0x04 0x0b 0x04 0x09 0x02 0x0b 0x02 0x09>;
-                        interrupt-controller;
-                        compatible = "sifive,plic-1.0.0\0riscv,plic0";
-                        #interrupt-cells = <0x01>;
-                        #address-cells = <0x00>;
-                };
-
-                clint at 2000000 {
-                        interrupts-extended = <0x08 0x03 0x08 0x07 0x06 0x03 0x06 0x07 0x04 0x03 0x04 0x07 0x02 0x03 0x02 0x07>;
-                        reg = <0x00 0x2000000 0x00 0x10000>;
-                        compatible = "sifive,clint0\0riscv,clint0";
-                };
-        };
-
-		firmware {
-			optee {
-				compatible = "riscv,optee-td";
-				method = "rpmsg";
-			};
-		};
-	
-};
-
------Original Message-----
-From: Bin Meng <bmeng.cn@gmail.com> 
-Sent: Tuesday, December 27, 2022 8:50 AM
-To: Marouene Boubakri <marouene.boubakri@nxp.com>
-Cc: opensbi at lists.infradead.org
-Subject: [EXT] Re: BUG: OpenSBI crashes when passing custom DTB on Qemu
-
-Caution: EXT Email
-
-On Tue, Dec 27, 2022 at 2:27 AM Marouene Boubakri <marouene.boubakri@nxp.com> wrote:
->
-> Hi,
->
-> Is the OpenSBI community looking to the Github repository sometime ?
-> I opened an issue [1] and would be great if someone looks at this.
->
-> [1] 
-> https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fgith
-> ub.com%2Friscv-software-src%2Fopensbi%2Fissues%2F281&data=05%7C01%7Cma
-> rouene.boubakri%40nxp.com%7C7cdd0a33c2224e4342a208dae7deec3b%7C686ea1d
-> 3bc2b4c6fa92cd99c5c301635%7C0%7C0%7C638077241876898208%7CUnknown%7CTWF
-> pbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6M
-> n0%3D%7C3000%7C%7C%7C&sdata=40WuGPVNGHBxpElw7XR9rmjuCX8kucy2Ho0RA%2FH9
-> kGw%3D&reserved=0
->
-
-Yes, it's monitored, and I asked for a clarification already.
-
-Regards,
-Bin
+>   	fdt_plic_context_restore(true, plic_sie, plic_threshold);
+>   }
+>   
 
