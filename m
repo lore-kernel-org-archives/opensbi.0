@@ -1,56 +1,30 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Tue, 27 Dec 2022 20:41:42 +0800
+From: Andreas Schwab <schwab@linux-m68k.org>
+Date: Tue, 27 Dec 2022 14:03:54 +0100
 Subject: [PATCH 1/1] platform: generic: allwinner: avoid buffer overrun
-In-Reply-To: <e869a6e2-458a-df92-6662-bf4fd3ff68a9@canonical.com>
+In-Reply-To: <CAEUhbmUbaAYp-dcEYF845XX66ZGFLPkNuJMp2xpkpPLNZ3o4MQ@mail.gmail.com>
+	(Bin Meng's message of "Tue, 27 Dec 2022 20:07:40 +0800")
 References: <20221227110129.145976-1-heinrich.schuchardt@canonical.com>
- <87h6xhdpbx.fsf@igel.home> <e869a6e2-458a-df92-6662-bf4fd3ff68a9@canonical.com>
-Message-ID: <CAEUhbmXqNLnpP=726bvY0h8GUehGCqQZkESM_RHd-voc7QQRoA@mail.gmail.com>
+	<CAEUhbmX9u1Fpy-ZQP=Gyp=-jwc5OzRM7XziCkydLcsQqYBivKg@mail.gmail.com>
+	<374eb91d-e580-3583-accf-0d0e3a3687ea@canonical.com>
+	<CAEUhbmUbaAYp-dcEYF845XX66ZGFLPkNuJMp2xpkpPLNZ3o4MQ@mail.gmail.com>
+Message-ID: <87cz85dmmd.fsf@igel.home>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 27, 2022 at 8:30 PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
->
-> On 12/27/22 13:05, Andreas Schwab wrote:
-> > The actual bug is in plic_priority_save/restore.
->
->
-> The problem really starts at include/sbi_utils/irqchip/plic.h where
-> there is no comment at all describing the usage of the function and its
-> parameters. So we don't know what the different authors of these
-> functions intended to use index 0 for.
->
-> It would be great if we could move the project to follow the kernel
-> documentation style (https://docs.kernel.org/doc-guide/kernel-doc.html)
->
->
-> >
-> > diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
-> > index d633514..901ffaa 100644
-> > --- a/lib/utils/irqchip/plic.c
-> > +++ b/lib/utils/irqchip/plic.c
-> > @@ -39,14 +39,14 @@ static void plic_set_priority(const struct plic_data *plic, u32 source, u32 val)
-> >   void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num)
-> >   {
-> >       for (u32 i = 1; i <= num; i++)
->
-> In patch 34da6638 ("lib: utils/irqchip: plic: Fix the off-by-one error
-> in priority save/restore helpers") Bin wrote
->
-> Interrupt source 0 is reserved. Hence the irq should start from 1.
->
-> Why was the the upper limit changed?
->
+On Dez 27 2022, Bin Meng wrote:
 
-Both lower and upper limits are changed because the irq number range
-is really [1, plic->num_src].
+> Changing the array size to PLIC_SOURCES + 1 does not make sense. The
+> PLIC_SOURCES should be 176 which is correct as it includes source 0 on
+> the Allwinner SoC. The "riscv,ndev" [1] should not be 176 otherwise it
+> will create a buffer overrun.
 
-Previously the author had a wrong understanding of the irq number
-hence that's what the patch 34da6638 tried to fix.
+The range check will always allow that overrrun.
 
-Regards,
-Bin
+-- 
+Andreas Schwab, schwab at linux-m68k.org
+GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
+"And now for something completely different."
 
