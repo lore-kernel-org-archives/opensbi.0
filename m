@@ -1,120 +1,117 @@
-From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Thu, 29 Dec 2022 10:56:18 +0800
-Subject: [PATCH v7 4/4] generic/starfive: Add Starfive JH7110 platform implementation
-In-Reply-To: <20221229025618.29555-1-weiliang.lim@starfivetech.com>
-References: <20221229025618.29555-1-weiliang.lim@starfivetech.com>
-Message-ID: <20221229025618.29555-5-weiliang.lim@starfivetech.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 29 Dec 2022 12:33:04 +0000
+Subject: [PATCH 1/2] lib: utils: Add fdt_add_cpu_idle_states() helper
+ function
+In-Reply-To: <20221228191125.37584-1-samuel@sholland.org>
+References: <20221228191125.37584-1-samuel@sholland.org>
+Message-ID: <Y62JAIU/VBM/jpV+@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add Starfive JH7110 platform implementation
+Hi Samuel,
 
-Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
-Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
----
- platform/generic/Kconfig             |  4 +++
- platform/generic/configs/defconfig   |  1 +
- platform/generic/starfive/jh7110.c   | 47 ++++++++++++++++++++++++++++
- platform/generic/starfive/objects.mk |  6 ++++
- 4 files changed, 58 insertions(+)
- create mode 100644 platform/generic/starfive/jh7110.c
- create mode 100644 platform/generic/starfive/objects.mk
+On Wed, Dec 28, 2022 at 01:11:23PM -0600, Samuel Holland wrote:
+> Since the availability and latency properties of CPU idle states depend
+> on the specific SBI HSM implementation, it is appropriate that the idle
+> states are added to the devicetree at runtime by that implementation.
+> 
+> This helper function adds a platform-provided array of idle states to
+> the devicetree, following the SBI idle state binding. It makes some
+> assumptions for simplicity, but these could be relaxed if needed.
+> 
+> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> ---
+> 
+>  include/sbi_utils/fdt/fdt_fixup.h | 23 +++++++++
+>  lib/utils/fdt/fdt_fixup.c         | 80 +++++++++++++++++++++++++++++++
+>  2 files changed, 103 insertions(+)
+> 
+> diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
+> index fb076ba..cab3f0f 100644
+> --- a/include/sbi_utils/fdt/fdt_fixup.h
+> +++ b/include/sbi_utils/fdt/fdt_fixup.h
+> @@ -9,6 +9,29 @@
+>  #ifndef __FDT_FIXUP_H__
+>  #define __FDT_FIXUP_H__
+>  
+> +struct sbi_cpu_idle_state {
+> +	const char *name;
+> +	uint32_t suspend_param;
+> +	bool local_timer_stop;
+> +	uint32_t entry_latency_us;
+> +	uint32_t exit_latency_us;
+> +	uint32_t min_residency_us;
+> +	uint32_t wakeup_latency_us;
+> +};
+> +
+> +/**
+> + * Add CPU idle states to cpu nodes in the DT
+> + *
+> + * Add information about CPU idle states to the devicetree. This function
+> + * assumes that CPU idle states are not already present in the devicetree, and
+> + * that all CPU states are equally applicable to all CPUs.
+> + *
+> + * @param fdt: device tree blob
+> + * @param states: array of idle state descriptions, ending with empty element
+> + * @return zero on success and -ve on failure
+> + */
+> +int fdt_add_cpu_idle_states(void *dtb, const struct sbi_cpu_idle_state *state);
+> +
+>  /**
+>   * Fix up the CPU node in the device tree
+>   *
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index 41f6cbb..d9aa0b2 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -18,6 +18,86 @@
+>  #include <sbi_utils/fdt/fdt_pmu.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  
+> +int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
+> +{
+> +	int cpu_node, cpus_node, err, idle_states_node;
+> +	uint32_t count, phandle;
+> +
+> +	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	err = fdt_find_max_phandle(fdt, &phandle);
+> +	phandle++;
+> +	if (err < 0)
+> +		return err;
+> +
+> +	cpus_node = fdt_path_offset(fdt, "/cpus");
+> +	if (cpus_node < 0)
+> +		return cpus_node;
+> +
+> +	/* Create the idle-states node and its child nodes. */
+> +	idle_states_node = fdt_add_subnode(fdt, cpus_node, "idle-states");
+> +	if (idle_states_node < 0)
+> +		return idle_states_node;
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 62c7a2d..47c10e5 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
- 	depends on FDT_RESET && FDT_I2C
- 	default n
- 
-+config PLATFORM_STARFIVE_JH7110
-+	bool "StarFive JH7110 support"
-+	default n
-+
- endif
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 47fca95..4b0842e 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
- CONFIG_PLATFORM_RENESAS_RZFIVE=y
- CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
-+CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_FDT_GPIO=y
- CONFIG_FDT_GPIO_SIFIVE=y
- CONFIG_FDT_I2C=y
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-new file mode 100644
-index 0000000..0eb60b2
---- /dev/null
-+++ b/platform/generic/starfive/jh7110.c
-@@ -0,0 +1,47 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2022 StarFive
-+ *
-+ * Authors:
-+ *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <platform_override.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+static u32 selected_hartid = -1;
-+
-+static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
-+				   const struct fdt_match *match)
-+{
-+	if (selected_hartid != -1)
-+		return (selected_hartid == hartid);
-+
-+	return true;
-+}
-+
-+static void starfive_jh7110_fw_init(void *fdt, const struct fdt_match *match)
-+{
-+	const fdt32_t *val;
-+	int len, coff;
-+
-+	coff = fdt_path_offset(fdt, "/chosen");
-+	if (-1 < coff) {
-+		val = fdt_getprop(fdt, coff, "boot-hart-id", &len);
-+		if (val && len >= sizeof(fdt32_t))
-+			selected_hartid = (u32) fdt32_to_cpu(*val);
-+	}
-+}
-+
-+static const struct fdt_match starfive_jh7110_match[] = {
-+	{ .compatible = "starfive,jh7110" },
-+	{ },
-+};
-+
-+const struct platform_override starfive_jh7110 = {
-+	.match_table = starfive_jh7110_match,
-+	.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
-+	.fw_init = starfive_jh7110_fw_init,
-+};
-diff --git a/platform/generic/starfive/objects.mk b/platform/generic/starfive/objects.mk
-new file mode 100644
-index 0000000..0b900fb
---- /dev/null
-+++ b/platform/generic/starfive/objects.mk
-@@ -0,0 +1,6 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive_jh7110
-+platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive/jh7110.o
--- 
-2.25.1
+It breaks platform final init when the ?idle-states? already exists:
 
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+init_coldboot: platform final init failed (error -2)
+
+The error code comes from fdt_add_subnode_namelen():
+https://github.com/riscv-software-src/opensbi/blob/v1.2/lib/utils/libfdt/fdt_rw.c#L347
+
+should it return 0 here?
+
+Best regards,
+Peter Lin
 
