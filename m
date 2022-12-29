@@ -1,27 +1,153 @@
-From: Marouene Boubakri <marouene.boubakri@nxp.com>
-Date: Wed, 28 Dec 2022 22:22:48 +0000
-Subject: Rethink PMPs assignment #283
-Message-ID: <AS1PR04MB94555484A6BE32C8F3E5C4B2FCF29@AS1PR04MB9455.eurprd04.prod.outlook.com>
+From: WeiLiang Lim <weiliang.lim@starfivetech.com>
+Date: Thu, 29 Dec 2022 02:53:22 +0000
+Subject: [PATCH v6 4/4] generic/starfive: Add Starfive JH7110 platform
+ implementation
+In-Reply-To: <e98acfe6-3fef-f7cd-fb58-001ace86bbf4@sholland.org>
+References: <20221223070741.236271-1-weiliang.lim@starfivetech.com>
+ <20221223070741.236271-5-weiliang.lim@starfivetech.com>
+ <e98acfe6-3fef-f7cd-fb58-001ace86bbf4@sholland.org>
+Message-ID: <59761d9c87f24e33adb03bdfd9889e5e@EXMBX163.cuchost.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
 
-My use case is simple, I'm configuring 2 domains, called trusted and untrusted. The trusted memory region starts at 0x82000000 while the untrusted region starts at 0x80200000. The regions does not overlap.
-For this use case few PMP entries are needed (considering PMP to protect OpenSBI etc).
 
-This should work fine in platform with 16 PMP entries, however this is not the case. I noticed that running the SW in trusted domain triggers an Illegal Instruction, by debugging it turned out that, OpenSBI writes to non-existing PMP register. Its address is 0x3c0. This is pmpaddr16. However my platform has only 16 PMP entries.
+> -----Original Message-----
+> From: Samuel Holland <samuel@sholland.org>
+> Sent: Wednesday, December 28, 2022 10:23 AM
+> To: WeiLiang Lim <weiliang.lim@starfivetech.com>;
+> opensbi at lists.infradead.org
+> Cc: apatel at ventanamicro.com; Cheehong Ang
+> <cheehong.ang@starfivetech.com>; JunLiang Tan
+> <junliang.tan@starfivetech.com>
+> Subject: Re: [PATCH v6 4/4] generic/starfive: Add Starfive JH7110 platform
+> implementation
+> 
+> On 12/23/22 01:07, Wei Liang Lim wrote:
+> > Add Starfive JH7110 platform implementation
+> >
+> > Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
+> > Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
+> > Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
+> > ---
+> >  platform/generic/Kconfig             |  4 +++
+> >  platform/generic/configs/defconfig   |  1 +
+> >  platform/generic/starfive/jh7110.c   | 47 ++++++++++++++++++++++++++++
+> >  platform/generic/starfive/objects.mk |  6 ++++
+> >  4 files changed, 58 insertions(+)
+> >  create mode 100644 platform/generic/starfive/jh7110.c
+> >  create mode 100644 platform/generic/starfive/objects.mk
+> >
+> > diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig index
+> > 62c7a2d..47c10e5 100644
+> > --- a/platform/generic/Kconfig
+> > +++ b/platform/generic/Kconfig
+> > @@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
+> >  	depends on FDT_RESET && FDT_I2C
+> >  	default n
+> >
+> > +config PLATFORM_STARFIVE_JH7110
+> > +	bool "StarFive JH7110 support"
+> > +	default n
+> > +
+> >  endif
+> > diff --git a/platform/generic/configs/defconfig
+> > b/platform/generic/configs/defconfig
+> > index 47fca95..4b0842e 100644
+> > --- a/platform/generic/configs/defconfig
+> > +++ b/platform/generic/configs/defconfig
+> > @@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
+> > CONFIG_PLATFORM_RENESAS_RZFIVE=y
+> CONFIG_PLATFORM_SIFIVE_FU540=y
+> > CONFIG_PLATFORM_SIFIVE_FU740=y
+> > +CONFIG_PLATFORM_STARFIVE_JH7110=y
+> >  CONFIG_FDT_GPIO=y
+> >  CONFIG_FDT_GPIO_SIFIVE=y
+> >  CONFIG_FDT_I2C=y
+> > diff --git a/platform/generic/starfive/jh7110.c
+> > b/platform/generic/starfive/jh7110.c
+> > new file mode 100644
+> > index 0000000..70a26fe
+> > --- /dev/null
+> > +++ b/platform/generic/starfive/jh7110.c
+> > @@ -0,0 +1,47 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2022 StarFive
+> > + *
+> > + * Authors:
+> > + *   Wei Liang Lim <weiliang.lim@starfivetech.com>
+> > + */
+> > +
+> > +#include <libfdt.h>
+> > +#include <platform_override.h>
+> > +#include <sbi_utils/fdt/fdt_helper.h>
+> > +
+> > +static u32 selected_hartid = -1;
+> > +
+> > +static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
+> > +				   const struct fdt_match *match) {
+> > +	if (selected_hartid != -1)
+> > +		return (selected_hartid == hartid);
+> > +
+> > +	return true;
+> > +}
+> > +
+> > +static void starfive_jh7110_fw_init(void *fdt, const struct fdt_match
+> > +*match) {
+> > +	const fdt32_t *val;
+> > +	int len, coff;
+> > +
+> > +	coff = fdt_path_offset(fdt, "/chosen");
+> > +	if (-1 < coff) {
+> > +		val = fdt_getprop(fdt, coff, "boot-hart-id", &len);
+> 
+> This looks like a brand new property. Please document it:
+> 
+> https://github.com/devicetree-org/dt-
+> schema/blob/main/dtschema/schemas/chosen.yaml
 
-By looking at the code https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/sbi_hart.c#L315-L318 The PMP is selected by shifting the desired address.
+Will do.
 
-I guess this should be re-considered. 
-
-Link to the Issue on Github. https://github.com/riscv-software-src/opensbi/issues/283
-
-Thanks
-Maro
-
+> 
+> > +		if (val && len)
+> 
+> This should probably check "len >= 4" (or sizeof equivalent).
+> 
+> Regards,
+> Samuel
+> 
+> > +			selected_hartid = (u32) fdt32_to_cpu(*val);
+> > +	}
+> > +}
+> > +
+> > +static const struct fdt_match starfive_jh7110_match[] = {
+> > +	{ .compatible = "starfive,jh7110" },
+> > +	{ },
+> > +};
+> > +
+> > +const struct platform_override starfive_jh7110 = {
+> > +	.match_table = starfive_jh7110_match,
+> > +	.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
+> > +	.fw_init = starfive_jh7110_fw_init,
+> > +};
+> > diff --git a/platform/generic/starfive/objects.mk
+> > b/platform/generic/starfive/objects.mk
+> > new file mode 100644
+> > index 0000000..0b900fb
+> > --- /dev/null
+> > +++ b/platform/generic/starfive/objects.mk
+> > @@ -0,0 +1,6 @@
+> > +#
+> > +# SPDX-License-Identifier: BSD-2-Clause #
+> > +
+> > +carray-platform_override_modules-
+> $(CONFIG_PLATFORM_STARFIVE_JH7110)
+> > ++= starfive_jh7110
+> > +platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) +=
+> starfive/jh7110.o
 
