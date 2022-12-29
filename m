@@ -1,59 +1,65 @@
 From: Wei Liang Lim <weiliang.lim@starfivetech.com>
-Date: Thu, 29 Dec 2022 10:56:14 +0800
-Subject: [PATCH v7 0/4] generic/starfive: Enable Starfive JH7110 platform preferred cold boot HART implementation
-Message-ID: <20221229025618.29555-1-weiliang.lim@starfivetech.com>
+Date: Thu, 29 Dec 2022 10:56:16 +0800
+Subject: [PATCH v7 2/4] platform: generic: Allow platform_override to select cold boot HART
+In-Reply-To: <20221229025618.29555-1-weiliang.lim@starfivetech.com>
+References: <20221229025618.29555-1-weiliang.lim@starfivetech.com>
+Message-ID: <20221229025618.29555-3-weiliang.lim@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This is patchset to enable Starfive JH7110 platform preferred cold boot HART implementation.
-User has the option to specify preferred cold boot HART in the device tree. If unspecified, the existing lottery mechanism will be used.
+From: Anup Patel <apatel@ventanamicro.com>
 
-v6->v7:
-- Changing if (val && len) -> if (val && len >= sizeof(fdt32_t)) in /platform/generic/starfive/jh7110.c
+We add a generic platform override callback to allow platform specific
+selection of cold boot HART.
 
-v5->v6:
-- Minor changes on TRUE->true, FALSE->false.
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-v4->v5:
-- Move FDT boot hart id reading from cold_boot_allowed() to fw_init()callback function.
-
-v3->v4:
-- Add implementation to allow user to specify preferred cold boot HART in the device tree. 
-- If unspecified, the existing lottery mechanism will be used.
-
-v3:
-- Add Starfive JH7110 implementation.
-- Anup's patches to allow platform specific selection of cold boot HART.
-
-v2:
-https://patchwork.ozlabs.org/project/opensbi/patch/20221202063845.14938-1-weiliang.lim at starfivetech.com/
-
-v1:
-https://patchwork.ozlabs.org/project/opensbi/patch/20221129052119.379830-1-weiliang.lim at starfivetech.com/
-
-Anup Patel (2):
-  lib: sbi: Allow platform to influence cold boot HART selection
-  platform: generic: Allow platform_override to select cold boot HART
-
-Wei Liang Lim (2):
-  platform: generic: Allow platform_override to perform firmware init
-  generic/starfive: Add Starfive JH7110 platform implementation
-
- include/sbi/sbi_platform.h                   | 20 +++++++++
- lib/sbi/sbi_init.c                           |  7 ++-
- platform/generic/Kconfig                     |  4 ++
- platform/generic/configs/defconfig           |  1 +
- platform/generic/include/platform_override.h |  2 +
- platform/generic/platform.c                  | 12 +++++
- platform/generic/starfive/jh7110.c           | 47 ++++++++++++++++++++
- platform/generic/starfive/objects.mk         |  6 +++
- 8 files changed, 97 insertions(+), 2 deletions(-)
- create mode 100644 platform/generic/starfive/jh7110.c
- create mode 100644 platform/generic/starfive/objects.mk
-
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index 7f1558d..21354e9 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -18,6 +18,7 @@ struct platform_override {
+ 	const struct fdt_match *match_table;
+ 	u64 (*features)(const struct fdt_match *match);
+ 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
++	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
+ 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
+ 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
+ 	void (*early_exit)(const struct fdt_match *match);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index bfe15f0..5fb0dc6 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -122,6 +122,14 @@ fail:
+ 		wfi();
+ }
+ 
++static bool generic_cold_boot_allowed(u32 hartid)
++{
++	if (generic_plat && generic_plat->cold_boot_allowed)
++		return generic_plat->cold_boot_allowed(
++						hartid, generic_plat_match);
++	return true;
++}
++
+ static int generic_nascent_init(void)
+ {
+ 	if (platform_has_mlevel_imsic)
+@@ -261,6 +269,7 @@ static int generic_console_init(void)
+ }
+ 
+ const struct sbi_platform_operations platform_ops = {
++	.cold_boot_allowed	= generic_cold_boot_allowed,
+ 	.nascent_init		= generic_nascent_init,
+ 	.early_init		= generic_early_init,
+ 	.final_init		= generic_final_init,
 -- 
 2.25.1
 
