@@ -1,83 +1,44 @@
 From: Bin Meng <bmeng@tinylab.org>
-Date: Fri, 30 Dec 2022 13:07:23 +0800
-Subject: [PATCH] lib: sbi_hsm: Rename 'priv' argument to 'arg1'
-Message-ID: <20221230050723.1966623-1-bmeng@tinylab.org>
+Date: Fri, 30 Dec 2022 13:07:51 +0800
+Subject: [PATCH] docs: domain_support: Use capital letter for privilege modes
+Message-ID: <20221230050751.1966673-1-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-'priv' argument of sbi_hsm_hart_start() and sbi_hsm_hart_suspend()
-may mislead people to think it stands for 'privilege mode', but it
-is not. Change it to 'arg1' to clearly indicate the a1 register.
+The RISC-V convention for the privilege mode is capital letter, like
+'M-mode', instead of 'm-mode'.
 
 Signed-off-by: Bin Meng <bmeng@tinylab.org>
 ---
 
- include/sbi/sbi_hsm.h | 4 ++--
- lib/sbi/sbi_hsm.c     | 8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ docs/domain_support.md | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index d6cc468..c2a728a 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -59,12 +59,12 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
- 
- int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		       const struct sbi_domain *dom,
--		       u32 hartid, ulong saddr, ulong smode, ulong priv);
-+		       u32 hartid, ulong saddr, ulong smode, ulong arg1);
- int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
- void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
- void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
- int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
--			 ulong raddr, ulong rmode, ulong priv);
-+			 ulong raddr, ulong rmode, ulong arg1);
- int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
- int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
- 				    ulong hbase, ulong *out_hmask);
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 836008f..c0a5505 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -248,7 +248,7 @@ fail_exit:
- 
- int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		       const struct sbi_domain *dom,
--		       u32 hartid, ulong saddr, ulong smode, ulong priv)
-+		       u32 hartid, ulong saddr, ulong smode, ulong arg1)
- {
- 	unsigned long init_count;
- 	unsigned int hstate;
-@@ -281,7 +281,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		return SBI_EINVAL;
- 
- 	init_count = sbi_init_count(hartid);
--	rscratch->next_arg1 = priv;
-+	rscratch->next_arg1 = arg1;
- 	rscratch->next_addr = saddr;
- 	rscratch->next_mode = smode;
- 
-@@ -402,7 +402,7 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
- }
- 
- int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
--			 ulong raddr, ulong rmode, ulong priv)
-+			 ulong raddr, ulong rmode, ulong arg1)
- {
- 	int oldstate, ret;
- 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-@@ -433,7 +433,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	}
- 
- 	/* Save the resume address and resume mode */
--	scratch->next_arg1 = priv;
-+	scratch->next_arg1 = arg1;
- 	scratch->next_addr = raddr;
- 	scratch->next_mode = rmode;
- 
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index 8963b57..c909d4a 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -161,7 +161,7 @@ The DT properties of a domain instance DT node are as follows:
+   and access permissions for the domain instance. Each list entry is a pair
+   of DT node phandle and access permissions. The access permissions are
+   represented as a 32bit bitmask having bits: **readable** (BIT[0]),
+-  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
++  **writeable** (BIT[1]), **executable** (BIT[2]), and **M-mode** (BIT[3]).
+ * **boot-hart** (Optional) - The DT node phandle of the HART booting the
+   domain instance. If coldboot HART is assigned to the domain instance then
+   this DT property is ignored and the coldboot HART is assumed to be the
+@@ -180,7 +180,7 @@ The DT properties of a domain instance DT node are as follows:
+   is used as default value.
+ * **next-mode** (Optional) - The 32 bit next booting stage mode for the
+   domain instance. The possible values of this DT property are: **0x1**
+-  (s-mode), and **0x0** (u-mode). If this DT property is not available
++  (S-mode), and **0x0** (U-mode). If this DT property is not available
+   and coldboot HART is not assigned to the domain instance then **0x1**
+   is used as default value. If this DT property is not available and
+   coldboot HART is assigned to the domain instance then **next booting
 -- 
 2.34.1
 
