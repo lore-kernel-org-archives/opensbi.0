@@ -1,38 +1,60 @@
-From: Bin Meng <bmeng@tinylab.org>
-Date: Sat, 31 Dec 2022 01:40:38 +0000
-Subject: [PATCH] lib: sbi_domain: Avoid overwriting coldboot hart's scratch->arg1
-In-Reply-To: <776535ea-e99a-f887-2825-2912aa3b7f30@sholland.org>
-References: <20221230042611.1966361-1-bmeng@tinylab.org>
- <776535ea-e99a-f887-2825-2912aa3b7f30@sholland.org>
-Message-ID: <em0eee6780-8a4c-4dfc-b8ea-7ea07a83f6b5@a9022134.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Sat, 31 Dec 2022 10:10:16 +0800
+Subject: [PATCH] lib: sbi: Check pmp index for overflow before programming
+In-Reply-To: <20221229191111.29041-1-hchauhan@ventanamicro.com>
+References: <20221229191111.29041-1-hchauhan@ventanamicro.com>
+Message-ID: <CAEUhbmWZRJqTNV-2U+SG7P5_JrbGxVJzVP7Z7NeP=6EMc_-6hw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Samuel,
+On Thu, Dec 29, 2022 at 10:51 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
+>
+> Check the current pmp index if it overflows the number of
+> pmp entries present. If so, skip the programming but
+> print debug information about the region, domain and
+> the last index of pmp programmed.
+>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> ---
+>  lib/sbi/sbi_hart.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 5447c52..2782c0d 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -313,9 +313,17 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+>                         pmp_flags |= PMP_L;
+>
+>                 pmp_addr =  reg->base >> PMP_SHIFT;
+> -               if (pmp_gran_log2 <= reg->order && pmp_addr < pmp_addr_max)
+> +               if (pmp_gran_log2 <= reg->order && pmp_addr < pmp_addr_max) {
+> +                       if (pmp_idx+1 >= pmp_count) {
 
-On Sat, Dec 31, 2022 at 12:38 AM Samuel Holland <samuel@sholland.org> 
-wrote:
- >
- > Hi Bin,
- >
- > On 12/29/22 22:26, Bin Meng wrote:
- > > In sbi_domain_finalize(), when locating the coldboot hart's domain,
- > > the coldboot hart's scratch->arg1 will be overwritten by the domain
- > > configuration. scratch->arg1 holds the FDT address of the coldboot
- > > hart, and in later boot process OpenSBI codes still read the FDT
- > > here and there, which leads to a crash.
- >
- > It sounds to me like the bug is in fdt_get_address(), not here. We
- > should save off the FDT address in some global variable, and not
- > continue getting it from next_arg1. Then there is no problem updating
- > next_arg1 from the domain configuration.
- >
+This check is meaningless. There is already a check at the beginning
+of the loop:
 
-Yep, I thought about this and felt that might change a lot of places. I 
-will have a try in v2.
+                if (pmp_count <= pmp_idx)
+                        break;
+
+> +                               sbi_printf("Cannot program pmp region: 0x%lx (order: 0x%lx) for domain %s.\n",
+> +                                          reg->base, reg->order, dom->name);
+> +                               sbi_printf("Reason: No free PMP entry left. "
+> +                                          "Number of PMP entries: %d Last PMP Index written: %d\n",
+> +                                          pmp_count, pmp_idx);
+> +                               break;
+> +                       }
+>                         pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
+> -               else {
+> +               } else {
+>                         sbi_printf("Can not configure pmp for domain %s", dom->name);
+>                         sbi_printf(" because memory region address %lx or size %lx is not in range\n",
+>                                     reg->base, reg->order);
+> --
 
 Regards,
 Bin
