@@ -1,63 +1,140 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed,  4 Jan 2023 20:20:02 +0530
-Subject: [PATCH v4 3/7] lib: sbi: Add sbi_ngets() function
+Date: Wed,  4 Jan 2023 20:20:03 +0530
+Subject: [PATCH v4 4/7] lib: sbi: Add sbi_domain_check_addr_range() function
 In-Reply-To: <20230104145006.947830-1-apatel@ventanamicro.com>
 References: <20230104145006.947830-1-apatel@ventanamicro.com>
-Message-ID: <20230104145006.947830-4-apatel@ventanamicro.com>
+Message-ID: <20230104145006.947830-5-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add new sbi_ngets() which help us read characters into a
-physical memory location.
+We add sbi_domain_check_addr_range() helper function to check
+whether a given address range is accessible under a particular
+domain.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Bin Meng <bmeng@tinylab.org>
 ---
- include/sbi/sbi_console.h |  2 ++
- lib/sbi/sbi_console.c     | 15 +++++++++++++++
- 2 files changed, 17 insertions(+)
+ include/sbi/sbi_domain.h | 15 +++++++++
+ lib/sbi/sbi_domain.c     | 69 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 84 insertions(+)
 
-diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
-index 1bdeeb9..660c239 100644
---- a/include/sbi/sbi_console.h
-+++ b/include/sbi/sbi_console.h
-@@ -37,6 +37,8 @@ void sbi_nputs(const char *str, unsigned long len);
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 5553d21..4afcc37 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -154,6 +154,21 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ 			   unsigned long addr, unsigned long mode,
+ 			   unsigned long access_flags);
  
- void sbi_gets(char *s, int maxwidth, char endchar);
- 
-+unsigned long sbi_ngets(char *str, unsigned long len);
++/**
++ * Check whether we can access specified address range for given mode and
++ * memory region flags under a domain
++ * @param dom pointer to domain
++ * @param addr the start of the address range to be checked
++ * @param size the size of the address range to be checked
++ * @param mode the privilege mode of access
++ * @param access_flags bitmask of domain access types (enum sbi_domain_access)
++ * @return TRUE if access allowed otherwise FALSE
++ */
++bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
++				 unsigned long addr, unsigned long size,
++				 unsigned long mode,
++				 unsigned long access_flags);
 +
- int __printf(2, 3) sbi_sprintf(char *out, const char *format, ...);
+ /** Dump domain details on the console */
+ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
  
- int __printf(3, 4) sbi_snprintf(char *out, u32 out_sz, const char *format, ...);
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index a975708..3942320 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -74,6 +74,21 @@ void sbi_gets(char *s, int maxwidth, char endchar)
- 	*retval = '\0';
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 3205595..ab041b0 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -198,6 +198,44 @@ static bool is_region_before(const struct sbi_domain_memregion *regA,
+ 	return FALSE;
  }
  
-+unsigned long sbi_ngets(char *str, unsigned long len)
++static const struct sbi_domain_memregion *find_region(
++						const struct sbi_domain *dom,
++						unsigned long addr)
 +{
-+	int ch;
-+	unsigned long i;
++	unsigned long rstart, rend;
++	struct sbi_domain_memregion *reg;
 +
-+	for (i = 0; i < len; i++) {
-+		ch = sbi_getc();
-+		if (ch < 0)
-+			break;
-+		str[i] = ch;
++	sbi_domain_for_each_memregion(dom, reg) {
++		rstart = reg->base;
++		rend = (reg->order < __riscv_xlen) ?
++			rstart + ((1UL << reg->order) - 1) : -1UL;
++		if (rstart <= addr && addr <= rend)
++			return reg;
 +	}
 +
-+	return i;
++	return NULL;
 +}
 +
- #define PAD_RIGHT 1
- #define PAD_ZERO 2
- #define PAD_ALTERNATE 4
++static const struct sbi_domain_memregion *find_next_subset_region(
++				const struct sbi_domain *dom,
++				const struct sbi_domain_memregion *reg,
++				unsigned long addr)
++{
++	struct sbi_domain_memregion *sreg, *ret = NULL;
++
++	sbi_domain_for_each_memregion(dom, sreg) {
++		if (sreg == reg || (sreg->base <= addr) ||
++		    !is_region_subset(sreg, reg))
++			continue;
++
++		if (!ret || (sreg->base < ret->base) ||
++		    ((sreg->base == ret->base) && (sreg->order < ret->order)))
++			ret = sreg;
++	}
++
++	return ret;
++}
++
+ static int sanitize_domain(const struct sbi_platform *plat,
+ 			   struct sbi_domain *dom)
+ {
+@@ -306,6 +344,37 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 	return 0;
+ }
+ 
++bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
++				 unsigned long addr, unsigned long size,
++				 unsigned long mode,
++				 unsigned long access_flags)
++{
++	unsigned long max = addr + size;
++	const struct sbi_domain_memregion *reg, *sreg;
++
++	if (!dom)
++		return FALSE;
++
++	while (addr < max) {
++		reg = find_region(dom, addr);
++		if (!reg)
++			return FALSE;
++
++		if (!sbi_domain_check_addr(dom, addr, mode, access_flags))
++			return FALSE;
++
++		sreg = find_next_subset_region(dom, reg, addr);
++		if (sreg)
++			addr = sreg->base;
++		else if (reg->order < __riscv_xlen)
++			addr = reg->base + (1UL << reg->order);
++		else
++			break;
++	}
++
++	return TRUE;
++}
++
+ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+ {
+ 	u32 i, k;
 -- 
 2.34.1
 
