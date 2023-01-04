@@ -1,103 +1,63 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed,  4 Jan 2023 20:20:06 +0530
-Subject: [PATCH v4 7/7] lib: utils/serial: Implement console_puts() for semihosting
-In-Reply-To: <20230104145006.947830-1-apatel@ventanamicro.com>
-References: <20230104145006.947830-1-apatel@ventanamicro.com>
-Message-ID: <20230104145006.947830-8-apatel@ventanamicro.com>
+Date: Wed,  4 Jan 2023 20:19:59 +0530
+Subject: [PATCH v4 0/7] OpenSBI debug console support
+Message-ID: <20230104145006.947830-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We implement console_puts() for semihosting serial driver to speed-up
-semihosting based prints.
+The latest proposal of SBI debug console extension can be found at:
+https://lists.riscv.org/g/tech-prs/message/74
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
----
- lib/utils/serial/semihosting.c | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+This series implements SBI debug console support in OpenSBI
+as-per above draft proposal.
 
-diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index 86fa296..773b75e 100644
---- a/lib/utils/serial/semihosting.c
-+++ b/lib/utils/serial/semihosting.c
-@@ -15,6 +15,7 @@
+To test these patches corresponding Linux patches can be found in
+riscv_sbi_dbcn_v1 branch at: https://github.com/avpatel/linux.git
+
+These patches can also be found in riscv_sbi_dbcn_v4 branch at:
+https://github.com/avpatel/opensbi.git
+
+Changes since v3:
+ - Rebased on OpenSBI v1.2 release
+ - Updated Reviewed-by tags
+ - Added new PATCH3 for sbi_ngets() function
+ - Updated SBI debug console implementation in PATCH5 as-per latest
+   proposal having both console write() and read() functions.
+
+Changes since v2:
+ - Reworked sbi_domain_check_addr_range() in PATCH3 to make it work
+   for overlapping regions.
+
+Changes since v1:
+ - New PATCH3 to implement sbi_domain_check_addr_range() function
+ - Added checks in PATCH4 for location and size of string to print
+ - New PATCH5 to add console_puts() callback in the console device
+ - New PATCH6 to implement console_puts() for semihosting
  
- #define SYSOPEN     0x01
- #define SYSWRITEC   0x03
-+#define SYSWRITE    0x05
- #define SYSREAD     0x06
- #define SYSREADC    0x07
- #define SYSERRNO	0x13
-@@ -93,6 +94,7 @@ static int semihosting_errno(void)
- }
- 
- static int semihosting_infd = SBI_ENODEV;
-+static int semihosting_outfd = SBI_ENODEV;
- 
- static long semihosting_open(const char *fname, enum semihosting_open_mode mode)
- {
-@@ -141,6 +143,21 @@ static long semihosting_read(long fd, void *memp, size_t len)
- 	return len - ret;
- }
- 
-+static long semihosting_write(long fd, const void *memp, size_t len)
-+{
-+	long ret;
-+	struct semihosting_rdwr_s write;
-+
-+	write.fd = fd;
-+	write.memp = (void *)memp;
-+	write.len = len;
-+
-+	ret = semihosting_trap(SYSWRITE, &write);
-+	if (ret < 0)
-+		return semihosting_errno();
-+	return len - ret;
-+}
-+
- /* clang-format on */
- 
- static void semihosting_putc(char ch)
-@@ -148,6 +165,20 @@ static void semihosting_putc(char ch)
- 	semihosting_trap(SYSWRITEC, &ch);
- }
- 
-+static void semihosting_puts(const char *str, unsigned long len)
-+{
-+	char ch;
-+	unsigned long i;
-+
-+	if (semihosting_outfd < 0) {
-+		for (i = 0; i < len; i++) {
-+			ch = str[i];
-+			semihosting_trap(SYSWRITEC, &ch);
-+		}
-+	} else
-+		semihosting_write(semihosting_outfd, str, len);
-+}
-+
- static int semihosting_getc(void)
- {
- 	char ch = 0;
-@@ -165,12 +196,14 @@ static int semihosting_getc(void)
- static struct sbi_console_device semihosting_console = {
- 	.name = "semihosting",
- 	.console_putc = semihosting_putc,
-+	.console_puts = semihosting_puts,
- 	.console_getc = semihosting_getc
- };
- 
- int semihosting_init(void)
- {
- 	semihosting_infd = semihosting_open(":tt", MODE_READ);
-+	semihosting_outfd = semihosting_open(":tt", MODE_WRITE);
- 
- 	sbi_console_set_device(&semihosting_console);
- 
+Anup Patel (7):
+  include: Add defines for SBI debug console extension
+  lib: sbi: Add sbi_nputs() function
+  lib: sbi: Add sbi_ngets() function
+  lib: sbi: Add sbi_domain_check_addr_range() function
+  lib: sbi: Implement SBI debug console extension
+  lib: sbi: Add console_puts() callback in the console device
+  lib: utils/serial: Implement console_puts() for semihosting
+
+ include/sbi/sbi_console.h         |  7 ++++
+ include/sbi/sbi_domain.h          | 15 +++++++
+ include/sbi/sbi_ecall_interface.h |  5 +++
+ lib/sbi/Kconfig                   |  4 ++
+ lib/sbi/objects.mk                |  3 ++
+ lib/sbi/sbi_console.c             | 40 ++++++++++++++++--
+ lib/sbi/sbi_domain.c              | 69 +++++++++++++++++++++++++++++++
+ lib/sbi/sbi_ecall_dbcn.c          | 69 +++++++++++++++++++++++++++++++
+ lib/utils/serial/semihosting.c    | 33 +++++++++++++++
+ 9 files changed, 242 insertions(+), 3 deletions(-)
+ create mode 100644 lib/sbi/sbi_ecall_dbcn.c
+
 -- 
 2.34.1
 
