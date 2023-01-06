@@ -1,67 +1,63 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Jan 2023 17:35:37 +0530
-Subject: [PATCH v2 Zisslpcfi 0/2] Support for zisslpcfi in opensbi
-In-Reply-To: <CAKC1njQWJ43mk5bkkccL58F9MHDcZj8QNZVvpVmDj6nAChcyJw@mail.gmail.com>
-References: <20221221195535.2136015-1-debug@rivosinc.com> <CAKC1njQWJ43mk5bkkccL58F9MHDcZj8QNZVvpVmDj6nAChcyJw@mail.gmail.com>
-Message-ID: <CAAhSdy2YcaV=FE7dHMyP8gDHq=L_9s7qJ2YYF2wYCyq_WkLbjg@mail.gmail.com>
+Date: Fri, 6 Jan 2023 17:46:31 +0530
+Subject: [PATCH] lib: utils/serial: Simplify semihosting_getc() function
+In-Reply-To: <20221222020403.23209-1-peterlin@andestech.com>
+References: <20221222020403.23209-1-peterlin@andestech.com>
+Message-ID: <CAAhSdy3s_zxOWo5JjE87LR-2g8GJxQG7LXQFHhdz5kmgD_vUYw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 22, 2022 at 5:09 AM Deepak Gupta <debug@rivosinc.com> wrote:
+On Thu, Dec 22, 2022 at 7:34 AM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> Please don't bother with your time and ignore this patch series.
-> Something went wrong on my setup and patches didn't come out as expected.
+> Simply pass the character returned by semihosting_trap(SYSREADC, NULL)
+> on success, or -1 on failure. This also fixes issue [1] of comparison
+> of constant -1 with char type.
 >
-> I'll send a new version.
+> [1] https://github.com/riscv-software-src/opensbi/issues/269
+>
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> ---
+>  lib/utils/serial/semihosting.c | 12 ++++--------
+>  1 file changed, 4 insertions(+), 8 deletions(-)
+>
+> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
+> index 5012fa1..cd15f91 100644
+> --- a/lib/utils/serial/semihosting.c
+> +++ b/lib/utils/serial/semihosting.c
+> @@ -151,15 +151,11 @@ static void semihosting_putc(char ch)
+>  static int semihosting_getc(void)
+>  {
+>         char ch = 0;
+> -       int ret;
+>
+> -       if (semihosting_infd < 0)  {
+> -               ch = semihosting_trap(SYSREADC, NULL);
+> -               ret = ch > -1 ? ch : -1;
 
-Okay, we will wait for another version.
+We have to return -1 upon any failure or no character. This is
+as-per expectation of SBI v0.1 console_getchar()
 
 Regards,
 Anup
 
-> Apologies.
+> -       } else
+> -               ret = semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
+> -
+> -       return ret;
+> +       if (semihosting_infd < 0)
+> +               return semihosting_trap(SYSREADC, NULL);
+> +       else
+> +               return semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
+>  }
 >
-> -Deepak
+>  static struct sbi_console_device semihosting_console = {
+> --
+> 2.34.1
 >
-> On Wed, Dec 21, 2022 at 11:55 AM Deepak Gupta <debug@rivosinc.com> wrote:
-> >
-> > Zisslpcfi [1] extension extends risc-v architecture to mitigate against
-> > control-flow integrity attacks (ROP/JOP/COP).
-> >
-> > Zisslpcfi uses bits (b23-b29) in (m/s/vs) status CSR for enabling cfi in
-> > lesser privileged mode and record cfi state. One such state is expected
-> > landing pad (ELP). If forward cfi is enabled, indirect call/jmp updates
-> > hart's ELP state (1bit) to true. ELP state is cleared only by a landing
-> > pad instruction else trap is delivered with ELP state recorded in sstatus
-> > CSR.
-> >
-> > This two patch series adds following changes to opensbi
-> >     - Adds support in opensbi to detect zisslpcfi
-> >     - trap redirection updates ELP state accordingly
-> >
-> > Qemu implementation for Zisslpcfi can be checked out on github [2]
-> > Strawman linux kernel enabling (still very early) can be checked out on github [3]
-> >
-> > [1] - https://github.com/riscv/riscv-cfi
-> > [2] - https://github.com/deepak0414/qemu/tree/gh_Zisslpcfi-0.1
-> > [3] - https://github.com/deepak0414/linux-riscv-cfi/tree/Zisslpcfi-0.1_v6.1-rc2
-> >
-> > Deepak Gupta (2):
-> >   include: adding support for Zisslpcfi encodings
-> >   lib: sbi: Zisslpcfi detection and elp cfi state reflect back in status
-> >
-> >  include/sbi/riscv_encoding.h |  6 ++++++
-> >  include/sbi/sbi_hart.h       |  2 ++
-> >  lib/sbi/sbi_hart.c           | 21 +++++++++++++++++++++
-> >  lib/sbi/sbi_trap.c           | 18 ++++++++++++++++++
-> >  4 files changed, 47 insertions(+)
-> >
-> > --
-> > 2.25.1
-> >
 >
 > --
 > opensbi mailing list
