@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Jan 2023 23:15:52 +0530
-Subject: [PATCH 4/9] lib: sbi: Use finer permission sematics to decide on
- PMP bits
-In-Reply-To: <20221220104625.80667-5-hchauhan@ventanamicro.com>
-References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-5-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy33+0NrrAk47ku1BnrYjpeoc32B3e78DGxOX2DD2Hu=6g@mail.gmail.com>
+Date: Fri, 6 Jan 2023 23:17:31 +0530
+Subject: [PATCH 5/9] lib: sbi: Modify the boot time region flag prints
+In-Reply-To: <20221220104625.80667-6-hchauhan@ventanamicro.com>
+References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-6-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy1t65PNfW1WOH-C=bZ18oNdfGm9YtyCQJQ4ancNik5hxg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,16 +13,12 @@ Content-Transfer-Encoding: 7bit
 On Tue, Dec 20, 2022 at 4:17 PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> Use the fine grained permission bits to decide if the region
-> permissions are to enforced on all modes. Also use the new
-
-s/are to/are to be/
-
-> permission bits for deciding on R/W/X bits in pmpcfg register.
+> With the finer permission semantics, the region access
+> permissions must be displayed separately for M and SU mode.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
-Otherwise, looks good to me.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -31,39 +26,44 @@ Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_hart.c | 16 +++++++++++-----
->  1 file changed, 11 insertions(+), 5 deletions(-)
+>  lib/sbi/sbi_domain.c | 20 +++++++++++++++-----
+>  1 file changed, 15 insertions(+), 5 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 5447c52..2ded55b 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -303,14 +303,20 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
->                         break;
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 01eff18..39a00f3 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -344,15 +344,25 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+>                            dom->index, i, suffix, rstart, rend);
 >
->                 pmp_flags = 0;
+>                 k = 0;
+> -               if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
+> -                       sbi_printf("%cM", (k++) ? ',' : '(');
+> +
+> +               sbi_printf("M: ");
+>                 if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
+>                         sbi_printf("%cI", (k++) ? ',' : '(');
 > -               if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_M_READABLE)
+> +                       sbi_printf("%cR", (k++) ? ',' : '(');
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_M_WRITABLE)
+> +                       sbi_printf("%cW", (k++) ? ',' : '(');
+> +               if (reg->flags & SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
+> +                       sbi_printf("%cX", (k++) ? ',' : '(');
+> +               sbi_printf("%s ", (k++) ? ")" : "()");
 > +
-> +               /*
-> +                * If permissions are to be enforced for all modes on this region,
-> +                * the lock bit should be set.
-> +                */
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
-> +                       pmp_flags |= PMP_L;
-> +
+> +               k = 0;
+> +               sbi_printf("S/U: ");
 > +               if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
->                         pmp_flags |= PMP_R;
+>                         sbi_printf("%cR", (k++) ? ',' : '(');
 > -               if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
 > +               if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
->                         pmp_flags |= PMP_W;
+>                         sbi_printf("%cW", (k++) ? ',' : '(');
 > -               if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
 > +               if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
->                         pmp_flags |= PMP_X;
-> -               if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
-> -                       pmp_flags |= PMP_L;
+>                         sbi_printf("%cX", (k++) ? ',' : '(');
+>                 sbi_printf("%s\n", (k++) ? ")" : "()");
 >
->                 pmp_addr =  reg->base >> PMP_SHIFT;
->                 if (pmp_gran_log2 <= reg->order && pmp_addr < pmp_addr_max)
 > --
 > 2.39.0
 >
