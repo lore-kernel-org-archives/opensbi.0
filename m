@@ -1,156 +1,75 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Fri,  6 Jan 2023 12:22:09 +0100
-Subject: [RFC PATCH 11/11] platform: generic: Add system suspend test
+Date: Fri, 6 Jan 2023 12:34:59 +0100
+Subject: [RFC PATCH 00/11] SBI system suspend (SUSP) extension
 In-Reply-To: <20230106112209.441825-1-ajones@ventanamicro.com>
 References: <20230106112209.441825-1-ajones@ventanamicro.com>
-Message-ID: <20230106112209.441825-12-ajones@ventanamicro.com>
+Message-ID: <20230106113459.3x4vgnmzzeogz5d7@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When the system-suspend-test property is present in the domain config
-node as shown below, implement system suspend with a simple 5 second
-delay followed by a WFI. This allows testing system suspend when the
-low-level firmware doesn't support it.
+On Fri, Jan 06, 2023 at 12:21:58PM +0100, Andrew Jones wrote:
+> This series implements the SBI system suspend support in OpenSBI
+> as-per the draft proposal for SBI system suspend which can be found at
+> https://github.com/jones-drew/riscv-sbi-doc/commit/d9e43e9a938fc3eb510e023c3f352462876f7785
 
-  / {
-    chosen {
-      opensbi-domains {
-          compatible = "opensbi,domain,config";
-          system-suspend-test;
-      };
+The extension proposal has been posted to tech-prs,
+https://lists.riscv.org/g/tech-prs/message/75
 
-Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
----
- docs/domain_support.md      |  4 ++++
- include/sbi/sbi_system.h    |  1 +
- lib/sbi/sbi_system.c        | 30 ++++++++++++++++++++++++++++++
- platform/generic/platform.c | 20 +++++++++++++++++++-
- 4 files changed, 54 insertions(+), 1 deletion(-)
+> 
+> The first half of the series are a few cleanups and fixes for HSM,
+> as system suspend makes use of some of its code and patterns. The
+> second half implements support for the extension and includes a patch
+> which allows testing to be enabled, even when low-level firmware does
+> not provide support. Regarding the test mode, it's currently enabled
+> by adding a 'system-suspend-test' DT property, but Anup has suggested
+> that FW_OPTION could also be used. I'm all ears for what people think
+> the best way to control test functionality in OpenSBI is and am happy
+> to switch it. To test with Linux the kernel must include the patch at
+> https://github.com/jones-drew/linux/commits/riscv/sbi-susp-rfc and
+> be built with CONFIG_SUSPEND enabled.
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index b2c1023008cc..d86628049b62 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -126,6 +126,9 @@ The DT properties of a domain configuration DT node are as follows:
- * **compatible** (Mandatory) - The compatible string of the domain
-   configuration. This DT property should have value *"opensbi,domain,config"*
- 
-+* **system-suspend-test** (Optional) - When present, enable a system
-+  suspend test implementation which simply waits five seconds and issues a WFI.
-+
- ### Domain Memory Region Node
- 
- The domain memory region DT node describes details of a memory region and
-@@ -226,6 +229,7 @@ be done:
-     chosen {
-         opensbi-domains {
-             compatible = "opensbi,domain,config";
-+            system-suspend-test;
- 
-             tmem: tmem {
-                 compatible = "opensbi,domain,memregion";
-diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
-index 65ea3d36d6cf..7d0867f276aa 100644
---- a/include/sbi/sbi_system.h
-+++ b/include/sbi/sbi_system.h
-@@ -57,6 +57,7 @@ struct sbi_system_suspend_device {
- 
- const struct sbi_system_suspend_device *sbi_system_suspend_get_device(void);
- void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev);
-+void sbi_system_suspend_test_enable(void);
- bool sbi_system_suspend_supported(u32 sleep_type);
- int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque);
- 
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index c18562cdcfab..3242b21699cb 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -17,6 +17,7 @@
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_init.h>
-+#include <sbi/sbi_timer.h>
- 
- static SBI_LIST_HEAD(reset_devices_list);
- 
-@@ -108,6 +109,35 @@ void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev)
- 	suspend_dev = dev;
- }
- 
-+static int sbi_system_suspend_test_check(u32 sleep_type)
-+{
-+	return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND;
-+}
-+
-+static int sbi_system_suspend_test_suspend(u32 sleep_type)
-+{
-+	if (sleep_type != SBI_SUSP_SLEEP_TYPE_SUSPEND)
-+		return SBI_EINVAL;
-+
-+	sbi_timer_mdelay(5000);
-+
-+	/* Wait for interrupt */
-+	wfi();
-+
-+	return SBI_OK;
-+}
-+
-+static struct sbi_system_suspend_device sbi_system_suspend_test = {
-+	.name = "system-suspend-test",
-+	.system_suspend_check = sbi_system_suspend_test_check,
-+	.system_suspend = sbi_system_suspend_test_suspend,
-+};
-+
-+void sbi_system_suspend_test_enable(void)
-+{
-+	sbi_system_suspend_set_device(&sbi_system_suspend_test);
-+}
-+
- bool sbi_system_suspend_supported(u32 sleep_type)
- {
- 	return suspend_dev && suspend_dev->system_suspend_check &&
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index bfe15f0d6b87..b3a3351c0439 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_string.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -215,7 +216,24 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
- 
- static int generic_domains_init(void)
- {
--	return fdt_domains_populate(fdt_get_address());
-+	void *fdt = fdt_get_address();
-+	int offset, ret;
-+
-+	ret = fdt_domains_populate(fdt);
-+	if (ret < 0)
-+		return ret;
-+
-+	offset = fdt_path_offset(fdt, "/chosen");
-+
-+	if (offset >= 0) {
-+		offset = fdt_node_offset_by_compatible(fdt, offset,
-+						       "opensbi,domain,config");
-+		if (offset >= 0 &&
-+		    fdt_get_property(fdt, offset, "system-suspend-test", NULL))
-+			sbi_system_suspend_test_enable();
-+	}
-+
-+	return 0;
- }
- 
- static u64 generic_tlbr_flush_limit(void)
--- 
-2.39.0
+The linux patch has been posted,
+https://lore.kernel.org/all/20230106113216.443057-1-ajones at ventanamicro.com/
 
+> 
+> The patches are based on v1.2 and "treewide: Replace TRUE/FALSE
+> with true/false" and can also be found at
+> https://github.com/jones-drew/opensbi/commits/susp-rfc
+> 
+> Andrew Jones (11):
+>   lib: sbi_hsm: Factor out invalid state detection
+>   lib: sbi_hsm: Don't try to restore state on failed change
+>   lib: sbi_hsm: Ensure errors are consistent with spec
+>   lib: sbi_hsm: Move misplaced comment
+>   lib: sbi_hsm: Remove unnecessary include
+>   lib: sbi_hsm: Export some functions
+>   lib: sbi: Add system suspend skeleton
+>   lib: sbi: Add system_suspend_allowed domain property
+>   lib: sbi: Implement system suspend
+>   docs: Correct opensbi-domain property name
+>   platform: generic: Add system suspend test
+> 
+>  docs/domain_support.md            |  15 +++-
+>  include/sbi/sbi_domain.h          |   2 +
+>  include/sbi/sbi_ecall_interface.h |   8 +++
+>  include/sbi/sbi_hsm.h             |   4 ++
+>  include/sbi/sbi_system.h          |  18 +++++
+>  lib/sbi/Kconfig                   |   4 ++
+>  lib/sbi/objects.mk                |   3 +
+>  lib/sbi/sbi_domain.c              |   4 ++
+>  lib/sbi/sbi_ecall_hsm.c           |   4 +-
+>  lib/sbi/sbi_ecall_susp.c          |  48 +++++++++++++
+>  lib/sbi/sbi_hsm.c                 |  92 +++++++++++--------------
+>  lib/sbi/sbi_system.c              | 111 ++++++++++++++++++++++++++++++
+>  lib/utils/fdt/fdt_domain.c        |   7 ++
+>  platform/generic/platform.c       |  20 +++++-
+>  14 files changed, 283 insertions(+), 57 deletions(-)
+>  create mode 100644 lib/sbi/sbi_ecall_susp.c
+> 
+> -- 
+> 2.39.0
+> 
 
