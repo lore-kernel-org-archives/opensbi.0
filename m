@@ -1,58 +1,44 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Fri,  6 Jan 2023 12:22:01 +0100
-Subject: [RFC PATCH 03/11] lib: sbi_hsm: Ensure errors are consistent with spec
+Date: Fri,  6 Jan 2023 12:22:03 +0100
+Subject: [RFC PATCH 05/11] lib: sbi_hsm: Remove unnecessary include
 In-Reply-To: <20230106112209.441825-1-ajones@ventanamicro.com>
 References: <20230106112209.441825-1-ajones@ventanamicro.com>
-Message-ID: <20230106112209.441825-4-ajones@ventanamicro.com>
+Message-ID: <20230106112209.441825-6-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-HSM functions define when SBI_ERR_INVALID_PARAM should be returned.
-Ensure it's not used for reasons that don't meet the definitions by
-using the catch-all code, SBI_ERR_FAILED, for those reasons instead.
-Also, in one case sbi_hart_suspend() may have returned SBI_ERR_DENIED,
-which isn't defined for that function at all. Use SBI_ERR_FAILED for
-that case too.
+Also remove a superfluous semicolon and add a blank line.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/sbi/sbi_hsm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/sbi/sbi_ecall_hsm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 6ef6c5bdd4a7..3635f968e020 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -403,7 +403,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 
- 	/* Sanity check on domain assigned to current HART */
- 	if (!dom)
--		return SBI_EINVAL;
-+		return SBI_EFAIL;
- 
- 	/* Sanity check on suspend type */
- 	if (SBI_HSM_SUSPEND_RET_DEFAULT < suspend_type &&
-@@ -416,7 +416,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	/* Additional sanity check for non-retentive suspend */
- 	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
- 		if (rmode != PRV_S && rmode != PRV_U)
--			return SBI_EINVAL;
-+			return SBI_EFAIL;
- 		if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
- 						  SBI_DOMAIN_EXECUTE))
- 			return SBI_EINVALID_ADDR;
-@@ -430,7 +430,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	/* Directly move from STARTED to SUSPENDED state */
- 	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
- 					 SBI_HSM_STATE_SUSPENDED))
--		return SBI_EDENIED;
-+		return SBI_EFAIL;
- 
- 	/* Save the suspend type */
- 	hdata->suspend_type = suspend_type;
+diff --git a/lib/sbi/sbi_ecall_hsm.c b/lib/sbi/sbi_ecall_hsm.c
+index 703a824493b4..f1b41d073b22 100644
+--- a/lib/sbi/sbi_ecall_hsm.c
++++ b/lib/sbi/sbi_ecall_hsm.c
+@@ -12,7 +12,6 @@
+ #include <sbi/sbi_ecall_interface.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_trap.h>
+-#include <sbi/sbi_version.h>
+ #include <sbi/sbi_hsm.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/riscv_asm.h>
+@@ -45,7 +44,8 @@ static int sbi_ecall_hsm_handler(unsigned long extid, unsigned long funcid,
+ 		break;
+ 	default:
+ 		ret = SBI_ENOTSUPP;
+-	};
++	}
++
+ 	if (ret >= 0) {
+ 		*out_val = ret;
+ 		ret = 0;
 -- 
 2.39.0
 
