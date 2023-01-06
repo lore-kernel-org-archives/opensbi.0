@@ -1,60 +1,72 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Jan 2023 17:46:31 +0530
-Subject: [PATCH] lib: utils/serial: Simplify semihosting_getc() function
-In-Reply-To: <20221222020403.23209-1-peterlin@andestech.com>
-References: <20221222020403.23209-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy3s_zxOWo5JjE87LR-2g8GJxQG7LXQFHhdz5kmgD_vUYw@mail.gmail.com>
+Date: Fri, 6 Jan 2023 17:57:21 +0530
+Subject: [PATCH] Makefile: Remove -N ldflag to prevent linker RWX warning
+In-Reply-To: <20221225032211.1370467-1-rpathak@ventanamicro.com>
+References: <20221225032211.1370467-1-rpathak@ventanamicro.com>
+Message-ID: <CAAhSdy2oFFkShOvuSMRowihBGB-CEXUiQRZPYNHZWi3U0u9iNg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 22, 2022 at 7:34 AM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
+On Sun, Dec 25, 2022 at 9:35 AM Rahul Pathak <rpathak@ventanamicro.com> wrote:
 >
-> Simply pass the character returned by semihosting_trap(SYSREADC, NULL)
-> on success, or -1 on failure. This also fixes issue [1] of comparison
-> of constant -1 with char type.
+> -N option coalesce all sections into single LOAD segment which causes
+> data and other sections to have executable permission causing warning
+> with new binutils ld 2.39.
+> New ld emits warning when any segment have all three permissions RWX.
 >
-> [1] https://github.com/riscv-software-src/opensbi/issues/269
+> ld.bfd: warning: test.elf has a LOAD segment with RWX permissions
+> ld.bfd: warning: fw_dynamic.elf has a LOAD segment with RWX permissions
+> ld.bfd: warning: fw_jump.elf has a LOAD segment with RWX permissions
+> ld.bfd: warning: fw_payload.elf has a LOAD segment with RWX permissions
 >
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> ---
->  lib/utils/serial/semihosting.c | 12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
+> This option was added in below commit -
+> commit: eeab92f2423e ("Makefile: Convert to a more standard format")
 >
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> index 5012fa1..cd15f91 100644
-> --- a/lib/utils/serial/semihosting.c
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -151,15 +151,11 @@ static void semihosting_putc(char ch)
->  static int semihosting_getc(void)
->  {
->         char ch = 0;
-> -       int ret;
+> Removing -N option allows to have text and rodata into one LOAD
+> segment and other sections into separate LOAD segment which prevents
+> RWX permissions on single LOAD segment. Here X == E
 >
-> -       if (semihosting_infd < 0)  {
-> -               ch = semihosting_trap(SYSREADC, NULL);
-> -               ret = ch > -1 ? ch : -1;
+> Current
+>  LOAD           0x0000000000000120 0x0000000080000000 0x0000000080000000
+>                  0x000000000001d4d0 0x0000000000032ed8  RWE    0x10
+>
+> -N removed
+>   LOAD           0x0000000000001000 0x0000000080000000 0x0000000080000000
+>                  0x00000000000198cc 0x00000000000198cc  R E    0x1000
+>   LOAD           0x000000000001b000 0x000000008001a000 0x000000008001a000
+>                  0x00000000000034d0 0x0000000000018ed8  RW     0x1000
+>
+> Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
 
-We have to return -1 upon any failure or no character. This is
-as-per expectation of SBI v0.1 console_getchar()
+Looks good to me.
 
-Regards,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
-> -       } else
-> -               ret = semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
-> -
-> -       return ret;
-> +       if (semihosting_infd < 0)
-> +               return semihosting_trap(SYSREADC, NULL);
-> +       else
-> +               return semihosting_read(semihosting_infd, &ch, 1) > 0 ? ch : -1;
->  }
+> ---
+>  Makefile | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
->  static struct sbi_console_device semihosting_console = {
+> diff --git a/Makefile b/Makefile
+> index 92203c5a2ac0..b742d6dbc5e5 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -369,7 +369,7 @@ ASFLAGS             +=      $(firmware-asflags-y)
+>  ARFLAGS                =       rcs
+>
+>  ELFFLAGS       +=      $(USE_LD_FLAG)
+> -ELFFLAGS       +=      -Wl,--build-id=none -Wl,-N
+> +ELFFLAGS       +=      -Wl,--build-id=none
+>  ELFFLAGS       +=      $(platform-ldflags-y)
+>  ELFFLAGS       +=      $(firmware-ldflags-y)
+>
 > --
 > 2.34.1
 >
