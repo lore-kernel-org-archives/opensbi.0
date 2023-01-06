@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Jan 2023 23:19:26 +0530
-Subject: [PATCH 6/9] lib: utils: Use SU-{R/W/X} flags for region
- permissions during parsing
-In-Reply-To: <20221220104625.80667-7-hchauhan@ventanamicro.com>
-References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-7-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy3FhkBFuSM4zM1TEymkPhrEb5uXuv19HELPVsFuL60XOA@mail.gmail.com>
+Date: Fri, 6 Jan 2023 23:21:51 +0530
+Subject: [PATCH 7/9] lib: utils: Disallow non-root domains from adding
+ M-mode regions
+In-Reply-To: <20221220104625.80667-8-hchauhan@ventanamicro.com>
+References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-8-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy14A42m=1L3W3fzL1nAs=OPofRex7Y7E+oh1e5ipvTMZg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,39 +14,65 @@ Content-Transfer-Encoding: 7bit
 On Tue, Dec 20, 2022 at 4:17 PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> Use the newer SU-{R/W/X} flags for checking and assigning region
-> permissions.
+> The M-mode regions can only be added by root domain. The non-root
+
+s/be added by/be added to/
+
+> domains shouldn't be able to add them from FDT.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
->  lib/utils/fdt/fdt_domain.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  include/sbi/sbi_domain.h   |  5 +++++
+>  lib/utils/fdt/fdt_domain.c | 14 ++++++++++++++
+>  2 files changed, 19 insertions(+)
 >
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index 955ffa3..3f5d28e 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -50,6 +50,11 @@ struct sbi_domain_memregion {
+>                                                  SBI_DOMAIN_MEMREGION_M_WRITABLE | \
+>                                                  SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
+>
+> +#define SBI_DOMAIN_MEMREGION_SU_RWX            (SBI_DOMAIN_MEMREGION_SU_READABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
+
+Small nit: Please ensure line is within 80 characters
+
+> +
+> +
+
+Redundant new line.
+
+>         /* Unrestricted M-mode accesses but enfoced on SU-mode */
+>  #define SBI_DOMAIN_MEMREGION_READABLE          (SBI_DOMAIN_MEMREGION_SU_READABLE | \
+>                                                  SBI_DOMAIN_MEMREGION_M_RWX)
 > diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 0568603..f979343 100644
+> index f979343..838aeca 100644
 > --- a/lib/utils/fdt/fdt_domain.c
 > +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -338,9 +338,9 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
->          * 2) mmio regions protecting M-mode only mmio devices
->          */
->         sbi_domain_for_each_memregion(&root, reg) {
-> -               if ((reg->flags & SBI_DOMAIN_MEMREGION_READABLE) ||
-> -                   (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE) ||
-> -                   (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE))
-> +               if ((reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE) ||
-> +                   (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE) ||
-> +                   (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE))
->                         continue;
->                 if (FDT_DOMAIN_REGION_MAX_COUNT <= val32)
->                         return SBI_EINVAL;
+> @@ -239,6 +239,20 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+>         u32 *region_count = opaque;
+>         struct sbi_domain_memregion *region;
+>
+> +       /*
+> +        * Non-root domains cannot add a region with only M-mode
+> +        * access permissions. M-mode regions can only be part of
+> +        * root domain.
+> +        *
+> +        * SU permission bits can't be all zeroes and M-mode permission
+> +        * bits must be all set.
+> +        */
+> +       if (!((region_access & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
+> +            & SBI_DOMAIN_MEMREGION_SU_RWX)
+> +           && ((region_access & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK)
+> +               & SBI_DOMAIN_MEMREGION_M_RWX))
+> +               return SBI_EINVAL;
+> +
+>         /* Find next region of the domain */
+>         if (FDT_DOMAIN_REGION_MAX_COUNT <= *region_count)
+>                 return SBI_EINVAL;
 > --
 > 2.39.0
 >
@@ -55,4 +81,11 @@ Anup
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Otherwise, it looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
 
