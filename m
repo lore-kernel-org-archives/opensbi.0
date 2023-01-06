@@ -1,49 +1,72 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Fri,  6 Jan 2023 12:22:02 +0100
-Subject: [RFC PATCH 04/11] lib: sbi_hsm: Move misplaced comment
+Date: Fri,  6 Jan 2023 12:22:04 +0100
+Subject: [RFC PATCH 06/11] lib: sbi_hsm: Export some functions
 In-Reply-To: <20230106112209.441825-1-ajones@ventanamicro.com>
 References: <20230106112209.441825-1-ajones@ventanamicro.com>
-Message-ID: <20230106112209.441825-5-ajones@ventanamicro.com>
+Message-ID: <20230106112209.441825-7-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-While non-retentive suspend is not allowed for M-mode, the comment
-at the top of sbi_hsm_hart_suspend() implied suspend wasn't allowed
-for M-mode at all. Move the comment above the mode check which is
-inside a suspend type is non-retentive check.
+A coming patch can make use of a few internal hsm functions if
+we export them.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/sbi/sbi_hsm.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/sbi/sbi_hsm.h |  4 ++++
+ lib/sbi/sbi_hsm.c     | 12 ++++++++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index d6cc468d0528..00adfe1a4ef1 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -65,9 +65,13 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
+ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
+ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 			 ulong raddr, ulong rmode, ulong priv);
++bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
++			       long newstate);
++int __sbi_hsm_hart_get_state(u32 hartid);
+ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+ 				    ulong hbase, ulong *out_hmask);
++void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
+ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+ 
+ #endif
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 3635f968e020..cce4b07bbb36 100644
+index cce4b07bbb36..8eb9643e6e72 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -399,8 +399,6 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+@@ -46,7 +46,15 @@ struct sbi_hsm_data {
+ 	unsigned long saved_mip;
+ };
+ 
+-static inline int __sbi_hsm_hart_get_state(u32 hartid)
++bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
++			       long newstate)
++{
++	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
++							    hart_data_offset);
++	return __sbi_hsm_hart_change_state(hdata, oldstate, newstate);
++}
++
++int __sbi_hsm_hart_get_state(u32 hartid)
+ {
+ 	struct sbi_hsm_data *hdata;
+ 	struct sbi_scratch *scratch;
+@@ -329,7 +337,7 @@ static int __sbi_hsm_suspend_default(struct sbi_scratch *scratch)
+ 	return 0;
+ }
+ 
+-static void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
++void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+ {
  	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
  							    hart_data_offset);
- 
--	/* For now, we only allow suspend from S-mode or U-mode. */
--
- 	/* Sanity check on domain assigned to current HART */
- 	if (!dom)
- 		return SBI_EFAIL;
-@@ -415,6 +413,10 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 
- 	/* Additional sanity check for non-retentive suspend */
- 	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
-+		/*
-+		 * For now, we only allow non-retentive suspend from
-+		 * S-mode or U-mode.
-+		 */
- 		if (rmode != PRV_S && rmode != PRV_U)
- 			return SBI_EFAIL;
- 		if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
 -- 
 2.39.0
 
