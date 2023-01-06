@@ -1,104 +1,95 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Fri, 6 Jan 2023 15:29:46 +0100
-Subject: [PATCH 6/6] lib: sbi_hsm: Introduce hart_secondary_boot()
- callback
-In-Reply-To: <20230104062927.15628-7-peterlin@andestech.com>
-References: <20230104062927.15628-1-peterlin@andestech.com>
- <20230104062927.15628-7-peterlin@andestech.com>
-Message-ID: <20230106142946.y27lr2it25y3mywa@orel>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 6 Jan 2023 23:05:53 +0530
+Subject: [PATCH 1/9] include: sbi: Fine grain the permissions for M and SU modes
+In-Reply-To: <20221220104625.80667-2-hchauhan@ventanamicro.com>
+References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-2-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy31psyvSi6auXN+9=UnbD+-b53jd3KG9ACFO9ZxSoMw7w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 04, 2023 at 02:29:27PM +0800, Yu Chien Peter Lin wrote:
-> When platform supports hotplug, i.e. both hart_start() and hart_stop()
-> callbacks are provided, the former doesn't need to be performed at
-> the boot-time. Thus, add a callback for the case of secondary boot.
-> 
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+On Tue, Dec 20, 2022 at 4:16 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
+>
+> Split the permissions for M-mode and SU-mode. This would
+> help if different sections of OpenSBI need to be given
+> different permissions and if M-mode has different permisssions
+> than the SU-mode over a region.
+>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 > ---
->  include/sbi/sbi_hsm.h |  7 +++++++
->  lib/sbi/sbi_hsm.c     | 22 +++++++++++++---------
->  2 files changed, 20 insertions(+), 9 deletions(-)
-
-I'm not sure why this patch is in the series as the change isn't used.
-
-Thanks,
-drew
-
-> 
-> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-> index 1e23884..94b3bbb 100644
-> --- a/include/sbi/sbi_hsm.h
-> +++ b/include/sbi/sbi_hsm.h
-> @@ -49,6 +49,13 @@ struct sbi_hsm_device {
->  	 * non-retentive suspend.
->  	 */
->  	void (*hart_resume)(void);
+>  include/sbi/sbi_domain.h | 40 +++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 35 insertions(+), 5 deletions(-)
+>
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index 5553d21..955ffa3 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -36,11 +36,41 @@ struct sbi_domain_memregion {
+>          */
+>         unsigned long base;
+>         /** Flags representing memory region attributes */
+> -#define SBI_DOMAIN_MEMREGION_READABLE          (1UL << 0)
+> -#define SBI_DOMAIN_MEMREGION_WRITEABLE         (1UL << 1)
+> -#define SBI_DOMAIN_MEMREGION_EXECUTABLE                (1UL << 2)
+> -#define SBI_DOMAIN_MEMREGION_MMODE             (1UL << 3)
+> -#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0xfUL)
+> +#define SBI_DOMAIN_MEMREGION_M_READABLE                (1UL << 0)
+> +#define SBI_DOMAIN_MEMREGION_M_WRITABLE                (1UL << 1)
+> +#define SBI_DOMAIN_MEMREGION_M_EXECUTABLE      (1UL << 2)
+> +#define SBI_DOMAIN_MEMREGION_SU_READABLE       (1UL << 3)
+> +#define SBI_DOMAIN_MEMREGION_SU_WRITABLE       (1UL << 4)
+> +#define SBI_DOMAIN_MEMREGION_SU_EXECUTABLE     (1UL << 5)
 > +
-> +	/**
-> +	 * Perform platform-specific actions on non-boot harts at boot-time
-> +	 *
-> +	 * For successful secondary boot, the call will return 0.
-> +	 */
-> +	int (*hart_secondary_boot)(u32 hartid, ulong saddr);
->  };
->  
->  struct sbi_domain;
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index b89253b..c9ab6a3 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -152,11 +152,18 @@ static bool hsm_device_has_hart_hotplug(void)
->  
->  static bool hsm_device_has_hart_secondary_boot(void)
->  {
-> -	if (hsm_dev && hsm_dev->hart_start && !hsm_dev->hart_stop)
-> +	if (hsm_dev && hsm_dev->hart_secondary_boot)
->  		return true;
->  	return false;
->  }
->  
-> +static int hsm_device_hart_secondary_boot(u32 hartid, ulong saddr)
-> +{
-> +	if (hsm_dev && hsm_dev->hart_secondary_boot)
-> +		return hsm_dev->hart_secondary_boot(hartid, saddr);
-> +	return SBI_ENOTSUPP;
-> +}
+> +       /** Bit to control if permissions are enforced on all modes */
+> +#define SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS   (1UL << 6)
 > +
->  static int hsm_device_hart_start(u32 hartid, ulong saddr)
->  {
->  	if (hsm_dev && hsm_dev->hart_start)
-> @@ -284,16 +291,13 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->  	rscratch->next_addr = saddr;
->  	rscratch->next_mode = smode;
->  
-> -	if (hsm_device_has_hart_hotplug() ||
-> -	   (hsm_device_has_hart_secondary_boot() && !init_count)) {
-> +	if (hsm_device_has_hart_secondary_boot() && !init_count)
-> +		return hsm_device_hart_secondary_boot(hartid, scratch->warmboot_addr);
+> +#define SBI_DOMAIN_MEMREGION_M_RWX             (SBI_DOMAIN_MEMREGION_M_READABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_WRITABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
 > +
-> +	if (hsm_device_has_hart_hotplug() && init_count)
->  		return hsm_device_hart_start(hartid, scratch->warmboot_addr);
-> -	} else {
-> -		int rc = sbi_ipi_raw_send(hartid);
-> -		if (rc)
-> -		    return rc;
-> -	}
->  
-> -	return 0;
-> +	return sbi_ipi_raw_send(hartid);
->  }
->  
->  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
-> -- 
-> 2.34.1
-> 
-> 
-> -- 
+> +       /* Unrestricted M-mode accesses but enfoced on SU-mode */
+> +#define SBI_DOMAIN_MEMREGION_READABLE          (SBI_DOMAIN_MEMREGION_SU_READABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_RWX)
+> +#define SBI_DOMAIN_MEMREGION_WRITEABLE         (SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_RWX)
+> +#define SBI_DOMAIN_MEMREGION_EXECUTABLE                (SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_RWX)
+> +
+> +       /* Enforced accesses across all modes */
+> +#define SBI_DOMAIN_MEMREGION_ENF_READABLE      (SBI_DOMAIN_MEMREGION_SU_READABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_READABLE)
+> +#define SBI_DOMAIN_MEMREGION_ENF_WRITABLE      (SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_WRITABLE)
+> +#define SBI_DOMAIN_MEMREGION_ENF_EXECUTABLE    (SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
+> +                                                SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
+
+Small nit: Please try to keep each line within 80 characters
+
+> +
+> +#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0x3fUL)
+> +#define SBI_DOMAIN_MEMREGION_M_ACCESS_MASK     (0x7UL)
+> +#define SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK    (0x38UL)
+> +
+> +#define SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT   (3)
+>
+>  #define SBI_DOMAIN_MEMREGION_MMIO              (1UL << 31)
+>         unsigned long flags;
+> --
+> 2.39.0
+>
+>
+> --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Otherwise, it looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
 
