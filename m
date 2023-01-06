@@ -1,82 +1,87 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Jan 2023 23:05:53 +0530
-Subject: [PATCH 1/9] include: sbi: Fine grain the permissions for M and SU modes
-In-Reply-To: <20221220104625.80667-2-hchauhan@ventanamicro.com>
-References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-2-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy31psyvSi6auXN+9=UnbD+-b53jd3KG9ACFO9ZxSoMw7w@mail.gmail.com>
+Date: Fri, 6 Jan 2023 23:08:45 +0530
+Subject: [PATCH 2/9] lib: sbi: Use finer permission semantics for address validation
+In-Reply-To: <20221220104625.80667-3-hchauhan@ventanamicro.com>
+References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-3-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy3jwFjWiZ+pSQ-5fs5m2iW==iOkXX7OnqAFeWz2R9da_w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 20, 2022 at 4:16 PM Himanshu Chauhan
+On Tue, Dec 20, 2022 at 4:17 PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> Split the permissions for M-mode and SU-mode. This would
-> help if different sections of OpenSBI need to be given
-> different permissions and if M-mode has different permisssions
-> than the SU-mode over a region.
+> Use the fine grained permisssion semantics for address validation
+> of a given region.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
->  include/sbi/sbi_domain.h | 40 +++++++++++++++++++++++++++++++++++-----
->  1 file changed, 35 insertions(+), 5 deletions(-)
+>  lib/sbi/sbi_domain.c | 23 ++++++++++++++++-------
+>  1 file changed, 16 insertions(+), 7 deletions(-)
 >
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index 5553d21..955ffa3 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -36,11 +36,41 @@ struct sbi_domain_memregion {
->          */
->         unsigned long base;
->         /** Flags representing memory region attributes */
-> -#define SBI_DOMAIN_MEMREGION_READABLE          (1UL << 0)
-> -#define SBI_DOMAIN_MEMREGION_WRITEABLE         (1UL << 1)
-> -#define SBI_DOMAIN_MEMREGION_EXECUTABLE                (1UL << 2)
-> -#define SBI_DOMAIN_MEMREGION_MMODE             (1UL << 3)
-> -#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0xfUL)
-> +#define SBI_DOMAIN_MEMREGION_M_READABLE                (1UL << 0)
-> +#define SBI_DOMAIN_MEMREGION_M_WRITABLE                (1UL << 1)
-> +#define SBI_DOMAIN_MEMREGION_M_EXECUTABLE      (1UL << 2)
-> +#define SBI_DOMAIN_MEMREGION_SU_READABLE       (1UL << 3)
-> +#define SBI_DOMAIN_MEMREGION_SU_WRITABLE       (1UL << 4)
-> +#define SBI_DOMAIN_MEMREGION_SU_EXECUTABLE     (1UL << 5)
-> +
-> +       /** Bit to control if permissions are enforced on all modes */
-> +#define SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS   (1UL << 6)
-> +
-> +#define SBI_DOMAIN_MEMREGION_M_RWX             (SBI_DOMAIN_MEMREGION_M_READABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_WRITABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
-> +
-> +       /* Unrestricted M-mode accesses but enfoced on SU-mode */
-> +#define SBI_DOMAIN_MEMREGION_READABLE          (SBI_DOMAIN_MEMREGION_SU_READABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_RWX)
-> +#define SBI_DOMAIN_MEMREGION_WRITEABLE         (SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_RWX)
-> +#define SBI_DOMAIN_MEMREGION_EXECUTABLE                (SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_RWX)
-> +
-> +       /* Enforced accesses across all modes */
-> +#define SBI_DOMAIN_MEMREGION_ENF_READABLE      (SBI_DOMAIN_MEMREGION_SU_READABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_READABLE)
-> +#define SBI_DOMAIN_MEMREGION_ENF_WRITABLE      (SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_WRITABLE)
-> +#define SBI_DOMAIN_MEMREGION_ENF_EXECUTABLE    (SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
-> +                                                SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
-
-Small nit: Please try to keep each line within 80 characters
-
-> +
-> +#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0x3fUL)
-> +#define SBI_DOMAIN_MEMREGION_M_ACCESS_MASK     (0x7UL)
-> +#define SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK    (0x38UL)
-> +
-> +#define SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT   (3)
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 3205595..8f9306c 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -107,24 +107,33 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>  {
+>         bool rmmio, mmio = FALSE;
+>         struct sbi_domain_memregion *reg;
+> -       unsigned long rstart, rend, rflags, rwx = 0;
+> +       unsigned long rstart, rend, rflags, rwx = 0, rrwx = 0;
 >
->  #define SBI_DOMAIN_MEMREGION_MMIO              (1UL << 31)
->         unsigned long flags;
+>         if (!dom)
+>                 return FALSE;
+>
+> +       /*
+> +        * Use M_{R/W/X} bits because the SU-bits are at the
+> +        * same relative offsets. If the mode is not M, the SU
+> +        * bits will fall at same offsets after the shift.
+> +        */
+>         if (access_flags & SBI_DOMAIN_READ)
+> -               rwx |= SBI_DOMAIN_MEMREGION_READABLE;
+> +               rwx |= SBI_DOMAIN_MEMREGION_M_READABLE;
+> +
+>         if (access_flags & SBI_DOMAIN_WRITE)
+> -               rwx |= SBI_DOMAIN_MEMREGION_WRITEABLE;
+> +               rwx |= SBI_DOMAIN_MEMREGION_M_WRITABLE;
+> +
+>         if (access_flags & SBI_DOMAIN_EXECUTE)
+> -               rwx |= SBI_DOMAIN_MEMREGION_EXECUTABLE;
+> +               rwx |= SBI_DOMAIN_MEMREGION_M_EXECUTABLE;
+> +
+>         if (access_flags & SBI_DOMAIN_MMIO)
+>                 mmio = TRUE;
+>
+>         sbi_domain_for_each_memregion(dom, reg) {
+>                 rflags = reg->flags;
+> -               if (mode == PRV_M && !(rflags & SBI_DOMAIN_MEMREGION_MMODE))
+> -                       continue;
+> +               rrwx = (mode == PRV_M ? (rflags & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK)
+> +                       : (rflags & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
+> +                       >> SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT);
+>
+>                 rstart = reg->base;
+>                 rend = (reg->order < __riscv_xlen) ?
+> @@ -133,7 +142,7 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>                         rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? TRUE : FALSE;
+>                         if (mmio != rmmio)
+>                                 return FALSE;
+> -                       return ((rflags & rwx) == rwx) ? TRUE : FALSE;
+> +                       return ((rrwx & rwx) == rwx) ? TRUE : FALSE;
+>                 }
+>         }
+>
 > --
 > 2.39.0
 >
@@ -85,11 +90,4 @@ Small nit: Please try to keep each line within 80 characters
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Otherwise, it looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
 
