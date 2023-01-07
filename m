@@ -1,56 +1,101 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Jan 2023 23:24:22 +0530
-Subject: [PATCH 9/9] docs: Update domain's region permissions and requirements
-In-Reply-To: <20221220104625.80667-10-hchauhan@ventanamicro.com>
-References: <20221220104625.80667-1-hchauhan@ventanamicro.com> <20221220104625.80667-10-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy3CSoyc11J-zC1o8ck=5X4tHpcwoXky-vzLXGFr9tD0EQ@mail.gmail.com>
+Date: Sat, 7 Jan 2023 16:01:49 +0530
+Subject: [PATCH v7 1/4] lib: sbi: Allow platform to influence cold boot
+ HART selection
+In-Reply-To: <20221229025618.29555-2-weiliang.lim@starfivetech.com>
+References: <20221229025618.29555-1-weiliang.lim@starfivetech.com> <20221229025618.29555-2-weiliang.lim@starfivetech.com>
+Message-ID: <CAAhSdy3Gd1wxtE6eLugR580OzJCJ4Tcuax8e8R6ypfO+WWyYyA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 20, 2022 at 4:17 PM Himanshu Chauhan
-<hchauhan@ventanamicro.com> wrote:
+On Thu, Dec 29, 2022 at 8:27 AM Wei Liang Lim
+<weiliang.lim@starfivetech.com> wrote:
 >
-> Updated the various permissions bits available for domains
-> defined in DT node and restrictions on them.
+> From: Anup Patel <apatel@ventanamicro.com>
 >
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> We add an optional cold_boot_allowed() platform callback which allows
+> platform support to decide which HARTs can do cold boot initialization.
+>
+> If this platform callback is not available then any HART can do cold
+> boot initialization.
+>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+
+Applied this patch to the riscv/opensbi repo
+
+Thanks,
+Anup
+
 > ---
->  docs/domain_support.md | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_platform.h | 20 ++++++++++++++++++++
+>  lib/sbi/sbi_init.c         |  7 +++++--
+>  2 files changed, 25 insertions(+), 2 deletions(-)
 >
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index 8963b57..e533bf7 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -160,8 +160,11 @@ The DT properties of a domain instance DT node are as follows:
->  * **regions** (Optional) - The list of domain memory region DT node phandle
->    and access permissions for the domain instance. Each list entry is a pair
->    of DT node phandle and access permissions. The access permissions are
-> -  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
-> -  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
-> +  represented as a 32bit bitmask having bits: **M readable** (BIT[0]),
-> +  **M writeable** (BIT[1]), **M executable** (BIT[2]), **SU readable**
-> +  (BIT[3]), **SU writable** (BIT[4]), and **SU executable** (BIT[5]).
-
-I think you missed documenting BIT[6] which is for enforcing.
-
-> +  Any region of a domain defined in DT node cannot have only M-bits set
-> +  in access permissions i.e. it cannot be an m-mode only accessible region.
->  * **boot-hart** (Optional) - The DT node phandle of the HART booting the
->    domain instance. If coldboot HART is assigned to the domain instance then
->    this DT property is ignored and the coldboot HART is assumed to be the
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index 722f27a..bd0d5ca 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -65,6 +65,9 @@ enum sbi_platform_features {
+>
+>  /** Platform functions */
+>  struct sbi_platform_operations {
+> +       /* Check if specified HART is allowed to do cold boot */
+> +       bool (*cold_boot_allowed)(u32 hartid);
+> +
+>         /* Platform nascent initialization */
+>         int (*nascent_init)(void);
+>
+> @@ -356,6 +359,23 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
+>         return FALSE;
+>  }
+>
+> +/**
+> + * Check whether given HART is allowed to do cold boot
+> + *
+> + * @param plat pointer to struct sbi_platform
+> + * @param hartid HART ID
+> + *
+> + * @return true if HART is allowed to do cold boot and false otherwise
+> + */
+> +static inline bool sbi_platform_cold_boot_allowed(
+> +                                       const struct sbi_platform *plat,
+> +                                       u32 hartid)
+> +{
+> +       if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
+> +               return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
+> +       return true;
+> +}
+> +
+>  /**
+>   * Nascent (very early) initialization for current HART
+>   *
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index a8500e5..d45cee6 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -498,8 +498,11 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+>          * HARTs which satisfy above condition.
+>          */
+>
+> -       if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
+> -               coldboot = TRUE;
+> +       if (sbi_platform_cold_boot_allowed(plat, hartid)) {
+> +               if (next_mode_supported &&
+> +                   atomic_xchg(&coldboot_lottery, 1) == 0)
+> +                       coldboot = true;
+> +       }
+>
+>         /*
+>          * Do platform specific nascent (very early) initialization so
 > --
-> 2.39.0
+> 2.25.1
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Regards,
-Anup
 
