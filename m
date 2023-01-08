@@ -1,140 +1,46 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 7 Jan 2023 16:04:07 +0530
-Subject: [PATCH v7 4/4] generic/starfive: Add Starfive JH7110 platform implementation
-In-Reply-To: <20221229025618.29555-5-weiliang.lim@starfivetech.com>
-References: <20221229025618.29555-1-weiliang.lim@starfivetech.com> <20221229025618.29555-5-weiliang.lim@starfivetech.com>
-Message-ID: <CAAhSdy2zw9fyYZ9gapiHToTwtQgH0c0+Sxicry2=sVNq+UH1sA@mail.gmail.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 8 Jan 2023 21:09:10 +0000
+Subject: [PATCH 6/6] lib: sbi_hsm: Introduce hart_secondary_boot()
+ callback
+In-Reply-To: <20230106142946.y27lr2it25y3mywa@orel>
+References: <20230104062927.15628-1-peterlin@andestech.com>
+ <20230104062927.15628-7-peterlin@andestech.com>
+ <20230106142946.y27lr2it25y3mywa@orel>
+Message-ID: <Y7sw9qByX4QK2IIa@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 29, 2022 at 8:27 AM Wei Liang Lim
-<weiliang.lim@starfivetech.com> wrote:
->
-> Add Starfive JH7110 platform implementation
->
-> Signed-off-by: Wei Liang Lim <weiliang.lim@starfivetech.com>
-> Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
-> Reviewed-by: Jun Liang Tan <junliang.tan@starfivetech.com>
-> ---
->  platform/generic/Kconfig             |  4 +++
->  platform/generic/configs/defconfig   |  1 +
->  platform/generic/starfive/jh7110.c   | 47 ++++++++++++++++++++++++++++
->  platform/generic/starfive/objects.mk |  6 ++++
->  4 files changed, 58 insertions(+)
->  create mode 100644 platform/generic/starfive/jh7110.c
->  create mode 100644 platform/generic/starfive/objects.mk
->
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index 62c7a2d..47c10e5 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -45,4 +45,8 @@ config PLATFORM_SIFIVE_FU740
->         depends on FDT_RESET && FDT_I2C
->         default n
->
-> +config PLATFORM_STARFIVE_JH7110
-> +       bool "StarFive JH7110 support"
-> +       default n
-> +
->  endif
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 47fca95..4b0842e 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
->  CONFIG_PLATFORM_RENESAS_RZFIVE=y
->  CONFIG_PLATFORM_SIFIVE_FU540=y
->  CONFIG_PLATFORM_SIFIVE_FU740=y
-> +CONFIG_PLATFORM_STARFIVE_JH7110=y
->  CONFIG_FDT_GPIO=y
->  CONFIG_FDT_GPIO_SIFIVE=y
->  CONFIG_FDT_I2C=y
-> diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-> new file mode 100644
-> index 0000000..0eb60b2
-> --- /dev/null
-> +++ b/platform/generic/starfive/jh7110.c
-> @@ -0,0 +1,47 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 StarFive
-> + *
-> + * Authors:
-> + *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-> + */
-> +
-> +#include <libfdt.h>
-> +#include <platform_override.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +
-> +static u32 selected_hartid = -1;
-> +
-> +static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
-> +                                  const struct fdt_match *match)
-> +{
-> +       if (selected_hartid != -1)
-> +               return (selected_hartid == hartid);
-> +
-> +       return true;
-> +}
-> +
-> +static void starfive_jh7110_fw_init(void *fdt, const struct fdt_match *match)
-> +{
-> +       const fdt32_t *val;
-> +       int len, coff;
-> +
-> +       coff = fdt_path_offset(fdt, "/chosen");
-> +       if (-1 < coff) {
-> +               val = fdt_getprop(fdt, coff, "boot-hart-id", &len);
+Hi Andrew,
 
-The DT should be "starfive,boot-hart-id" to make it explicit that
-it is StarFive specific DT property. I have added the "starfive,"
-prefix at the time of merging this patch.
+On Fri, Jan 06, 2023 at 03:29:46PM +0100, Andrew Jones wrote:
+> On Wed, Jan 04, 2023 at 02:29:27PM +0800, Yu Chien Peter Lin wrote:
+> > When platform supports hotplug, i.e. both hart_start() and hart_stop()
+> > callbacks are provided, the former doesn't need to be performed at
+> > the boot-time. Thus, add a callback for the case of secondary boot.
+> > 
+> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> > ---
+> >  include/sbi/sbi_hsm.h |  7 +++++++
+> >  lib/sbi/sbi_hsm.c     | 22 +++++++++++++---------
+> >  2 files changed, 20 insertions(+), 9 deletions(-)
+> 
+> I'm not sure why this patch is in the series as the change isn't used.
+> 
+> Thanks,
+> drew
 
-> +               if (val && len >= sizeof(fdt32_t))
-> +                       selected_hartid = (u32) fdt32_to_cpu(*val);
-> +       }
-> +}
-> +
-> +static const struct fdt_match starfive_jh7110_match[] = {
-> +       { .compatible = "starfive,jh7110" },
-> +       { },
-> +};
-> +
-> +const struct platform_override starfive_jh7110 = {
-> +       .match_table = starfive_jh7110_match,
-> +       .cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
-> +       .fw_init = starfive_jh7110_fw_init,
-> +};
-> diff --git a/platform/generic/starfive/objects.mk b/platform/generic/starfive/objects.mk
-> new file mode 100644
-> index 0000000..0b900fb
-> --- /dev/null
-> +++ b/platform/generic/starfive/objects.mk
-> @@ -0,0 +1,6 @@
-> +#
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +#
-> +
-> +carray-platform_override_modules-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive_jh7110
-> +platform-objs-$(CONFIG_PLATFORM_STARFIVE_JH7110) += starfive/jh7110.o
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Thanks for the review.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+I'm just found it's not necessary to run platform-specific hart_start()
+at boot-time since it's for CPU hotplug, I'm not sure hart_start() is
+supposed to do at boot-time so we can ignore this patch if it's not worth
+adding a callback.
 
-Applied this patch to the riscv/opensbi repo
+Best regards,
+Peter Lin
 
-Thanks,
-Anup
+
 
