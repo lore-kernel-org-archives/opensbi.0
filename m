@@ -1,49 +1,77 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Mon,  9 Jan 2023 05:20:34 +0000
-Subject: [PATCH v2 0/9] Split region permissions into M-mode and SU-mode
-Message-ID: <20230109052043.55473-1-hchauhan@ventanamicro.com>
+Date: Mon,  9 Jan 2023 05:20:35 +0000
+Subject: [PATCH v2 1/9] include: sbi: Fine grain the permissions for M and SU modes
+In-Reply-To: <20230109052043.55473-1-hchauhan@ventanamicro.com>
+References: <20230109052043.55473-1-hchauhan@ventanamicro.com>
+Message-ID: <20230109052043.55473-2-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This is first series in the series of forthcoming patches that would add
-support for different access permission for different sections of
-OpenSBI (RO, RX, RW). Eventually, this would lead to support of smepmp
-extension.
+Split the permissions for M-mode and SU-mode. This would
+help if different sections of OpenSBI need to be given
+different permissions and if M-mode has different permisssions
+than the SU-mode over a region.
 
-This patch series splits the current R/W/X permissions to M-mode R/W/X
-and SU-mode R/W/X. The split is in such a way that current permission
-semantics are not broken
+Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+ include/sbi/sbi_domain.h | 40 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 5 deletions(-)
 
-Changes in v2:
-1. Fixed the grammatical mistakes in the commit log.
-2. Removed the white space new line from sbi_domain.h
-3. Added enforce permission bit[6] details to documentation
-
-Himanshu Chauhan (9):
-  include: sbi: Fine grain the permissions for M and SU modes
-  lib: sbi: Use finer permission semantics for address validation
-  lib: sbi: Add permissions for the firmware start till end
-  lib: sbi: Use finer permission sematics to decide on PMP bits
-  lib: sbi: Modify the boot time region flag prints
-  lib: utils: Use SU-{R/W/X} flags for region permissions during parsing
-  lib: utils: Disallow non-root domains from adding M-mode regions
-  lib: utils: Add M-mode {R/W} flags to the MMIO regions
-  docs: Update domain's region permissions and requirements
-
- docs/domain_support.md          | 12 +++++++--
- include/sbi/sbi_domain.h        | 44 +++++++++++++++++++++++++++----
- lib/sbi/sbi_domain.c            | 46 +++++++++++++++++++++++----------
- lib/sbi/sbi_hart.c              | 16 ++++++++----
- lib/utils/fdt/fdt_domain.c      | 20 +++++++++++---
- lib/utils/ipi/aclint_mswi.c     |  4 ++-
- lib/utils/irqchip/aplic.c       |  4 ++-
- lib/utils/irqchip/imsic.c       |  4 ++-
- lib/utils/timer/aclint_mtimer.c | 16 +++++++++---
- 9 files changed, 131 insertions(+), 35 deletions(-)
-
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index f0d9289..7b94ce4 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -36,11 +36,41 @@ struct sbi_domain_memregion {
+ 	 */
+ 	unsigned long base;
+ 	/** Flags representing memory region attributes */
+-#define SBI_DOMAIN_MEMREGION_READABLE		(1UL << 0)
+-#define SBI_DOMAIN_MEMREGION_WRITEABLE		(1UL << 1)
+-#define SBI_DOMAIN_MEMREGION_EXECUTABLE		(1UL << 2)
+-#define SBI_DOMAIN_MEMREGION_MMODE		(1UL << 3)
+-#define SBI_DOMAIN_MEMREGION_ACCESS_MASK	(0xfUL)
++#define SBI_DOMAIN_MEMREGION_M_READABLE		(1UL << 0)
++#define SBI_DOMAIN_MEMREGION_M_WRITABLE		(1UL << 1)
++#define SBI_DOMAIN_MEMREGION_M_EXECUTABLE	(1UL << 2)
++#define SBI_DOMAIN_MEMREGION_SU_READABLE	(1UL << 3)
++#define SBI_DOMAIN_MEMREGION_SU_WRITABLE	(1UL << 4)
++#define SBI_DOMAIN_MEMREGION_SU_EXECUTABLE	(1UL << 5)
++
++	/** Bit to control if permissions are enforced on all modes */
++#define SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS	(1UL << 6)
++
++#define SBI_DOMAIN_MEMREGION_M_RWX		(SBI_DOMAIN_MEMREGION_M_READABLE | \
++						 SBI_DOMAIN_MEMREGION_M_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
++
++	/* Unrestricted M-mode accesses but enfoced on SU-mode */
++#define SBI_DOMAIN_MEMREGION_READABLE		(SBI_DOMAIN_MEMREGION_SU_READABLE | \
++						 SBI_DOMAIN_MEMREGION_M_RWX)
++#define SBI_DOMAIN_MEMREGION_WRITEABLE		(SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_M_RWX)
++#define SBI_DOMAIN_MEMREGION_EXECUTABLE		(SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
++						 SBI_DOMAIN_MEMREGION_M_RWX)
++
++	/* Enforced accesses across all modes */
++#define SBI_DOMAIN_MEMREGION_ENF_READABLE	(SBI_DOMAIN_MEMREGION_SU_READABLE | \
++						 SBI_DOMAIN_MEMREGION_M_READABLE)
++#define SBI_DOMAIN_MEMREGION_ENF_WRITABLE	(SBI_DOMAIN_MEMREGION_SU_WRITABLE | \
++						 SBI_DOMAIN_MEMREGION_M_WRITABLE)
++#define SBI_DOMAIN_MEMREGION_ENF_EXECUTABLE	(SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
++						 SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
++
++#define SBI_DOMAIN_MEMREGION_ACCESS_MASK	(0x3fUL)
++#define SBI_DOMAIN_MEMREGION_M_ACCESS_MASK	(0x7UL)
++#define SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK	(0x38UL)
++
++#define SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT	(3)
+ 
+ #define SBI_DOMAIN_MEMREGION_MMIO		(1UL << 31)
+ 	unsigned long flags;
 -- 
 2.34.1
 
