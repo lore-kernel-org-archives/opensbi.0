@@ -1,115 +1,46 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Mon,  9 Jan 2023 05:20:42 +0000
-Subject: [PATCH v2 8/9] lib: utils: Add M-mode {R/W} flags to the MMIO regions
+Date: Mon,  9 Jan 2023 05:20:43 +0000
+Subject: [PATCH v2 9/9] docs: Update domain's region permissions and requirements
 In-Reply-To: <20230109052043.55473-1-hchauhan@ventanamicro.com>
 References: <20230109052043.55473-1-hchauhan@ventanamicro.com>
-Message-ID: <20230109052043.55473-9-hchauhan@ventanamicro.com>
+Message-ID: <20230109052043.55473-10-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the M-mode readable/writable flags to mmio regions
-of various drivers.
+Updated the various permissions bits available for domains
+defined in DT node and restrictions on them.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/utils/ipi/aclint_mswi.c     |  4 +++-
- lib/utils/irqchip/aplic.c       |  4 +++-
- lib/utils/irqchip/imsic.c       |  4 +++-
- lib/utils/timer/aclint_mtimer.c | 16 ++++++++++++----
- 4 files changed, 21 insertions(+), 7 deletions(-)
+ docs/domain_support.md | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-index 832e223..c714a89 100644
---- a/lib/utils/ipi/aclint_mswi.c
-+++ b/lib/utils/ipi/aclint_mswi.c
-@@ -88,7 +88,9 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
- 		region_size = ((mswi->size - pos) < ACLINT_MSWI_ALIGN) ?
- 			      (mswi->size - pos) : ACLINT_MSWI_ALIGN;
- 		sbi_domain_memregion_init(mswi->addr + pos, region_size,
--					  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+					  (SBI_DOMAIN_MEMREGION_MMIO |
-+					   SBI_DOMAIN_MEMREGION_M_READABLE |
-+					   SBI_DOMAIN_MEMREGION_M_WRITABLE), &reg);
- 		rc = sbi_domain_root_add_memregion(&reg);
- 		if (rc)
- 			return rc;
-diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index 0a8469b..858e9b2 100644
---- a/lib/utils/irqchip/aplic.c
-+++ b/lib/utils/irqchip/aplic.c
-@@ -269,7 +269,9 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 	    (last_deleg_irq == aplic->num_source) &&
- 	    (first_deleg_irq == 1))) {
- 		sbi_domain_memregion_init(aplic->addr, aplic->size,
--					  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+					  (SBI_DOMAIN_MEMREGION_MMIO |
-+					   SBI_DOMAIN_MEMREGION_M_READABLE |
-+					   SBI_DOMAIN_MEMREGION_M_WRITABLE), &reg);
- 		rc = sbi_domain_root_add_memregion(&reg);
- 		if (rc)
- 			return rc;
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index 98f2cb6..ada4f3b 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -313,7 +313,9 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
- 	for (i = 0; i < IMSIC_MAX_REGS && imsic->regs[i].size; i++) {
- 		sbi_domain_memregion_init(imsic->regs[i].addr,
- 					  imsic->regs[i].size,
--					  SBI_DOMAIN_MEMREGION_MMIO, &reg);
-+					  (SBI_DOMAIN_MEMREGION_MMIO |
-+					   SBI_DOMAIN_MEMREGION_M_READABLE |
-+					   SBI_DOMAIN_MEMREGION_M_WRITABLE), &reg);
- 		rc = sbi_domain_root_add_memregion(&reg);
- 		if (rc)
- 			return rc;
-diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
-index 1846a9a..84ded4e 100644
---- a/lib/utils/timer/aclint_mtimer.c
-+++ b/lib/utils/timer/aclint_mtimer.c
-@@ -188,26 +188,34 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
- 		rc = sbi_domain_root_add_memrange(mt->mtimecmp_addr,
- 					mt->mtime_size + mt->mtimecmp_size,
- 					MTIMER_REGION_ALIGN,
--					SBI_DOMAIN_MEMREGION_MMIO);
-+					(SBI_DOMAIN_MEMREGION_MMIO |
-+					 SBI_DOMAIN_MEMREGION_M_READABLE |
-+					 SBI_DOMAIN_MEMREGION_M_WRITABLE));
- 		if (rc)
- 			return rc;
- 	} else if (mt->mtimecmp_addr == (mt->mtime_addr + mt->mtime_size)) {
- 		rc = sbi_domain_root_add_memrange(mt->mtime_addr,
- 					mt->mtime_size + mt->mtimecmp_size,
- 					MTIMER_REGION_ALIGN,
--					SBI_DOMAIN_MEMREGION_MMIO);
-+					(SBI_DOMAIN_MEMREGION_MMIO |
-+					 SBI_DOMAIN_MEMREGION_M_READABLE |
-+					 SBI_DOMAIN_MEMREGION_M_WRITABLE));
- 		if (rc)
- 			return rc;
- 	} else {
- 		rc = sbi_domain_root_add_memrange(mt->mtime_addr,
- 						mt->mtime_size, MTIMER_REGION_ALIGN,
--						SBI_DOMAIN_MEMREGION_MMIO);
-+						(SBI_DOMAIN_MEMREGION_MMIO |
-+						 SBI_DOMAIN_MEMREGION_M_READABLE |
-+						 SBI_DOMAIN_MEMREGION_M_WRITABLE));
- 		if (rc)
- 			return rc;
- 
- 		rc = sbi_domain_root_add_memrange(mt->mtimecmp_addr,
- 						mt->mtimecmp_size, MTIMER_REGION_ALIGN,
--						SBI_DOMAIN_MEMREGION_MMIO);
-+						(SBI_DOMAIN_MEMREGION_MMIO |
-+						 SBI_DOMAIN_MEMREGION_M_READABLE |
-+						 SBI_DOMAIN_MEMREGION_M_WRITABLE));
- 		if (rc)
- 			return rc;
- 	}
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index 8963b57..11a4dee 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -160,8 +160,16 @@ The DT properties of a domain instance DT node are as follows:
+ * **regions** (Optional) - The list of domain memory region DT node phandle
+   and access permissions for the domain instance. Each list entry is a pair
+   of DT node phandle and access permissions. The access permissions are
+-  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
+-  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
++  represented as a 32bit bitmask having bits: **M readable** (BIT[0]),
++  **M writeable** (BIT[1]), **M executable** (BIT[2]), **SU readable**
++  (BIT[3]), **SU writable** (BIT[4]), and **SU executable** (BIT[5]).
++  The enforce permission bit (BIT[6]), if set, will lock the permissions
++  in the PMP. This will enforce the permissions on M-mode as well which
++  otherwise will have unrestricted access. This bit must be used with
++  caution because no changes can be made to a PMP entry once its locked
++  until the hart is reset.
++  Any region of a domain defined in DT node cannot have only M-bits set
++  in access permissions i.e. it cannot be an m-mode only accessible region.
+ * **boot-hart** (Optional) - The DT node phandle of the HART booting the
+   domain instance. If coldboot HART is assigned to the domain instance then
+   this DT property is ignored and the coldboot HART is assumed to be the
 -- 
 2.34.1
 
