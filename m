@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 Jan 2023 17:15:22 +0530
-Subject: [PATCH v2 9/9] docs: Update domain's region permissions and requirements
-In-Reply-To: <20230109052043.55473-10-hchauhan@ventanamicro.com>
-References: <20230109052043.55473-1-hchauhan@ventanamicro.com> <20230109052043.55473-10-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy0F+=86tyeXP_02xtoxgYbFmiFc8BRquVNXN3oU3iLSoQ@mail.gmail.com>
+Date: Mon, 9 Jan 2023 18:04:50 +0530
+Subject: [PATCH v2 0/9] Split region permissions into M-mode and SU-mode
+In-Reply-To: <20230109052043.55473-1-hchauhan@ventanamicro.com>
+References: <20230109052043.55473-1-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy1ZxzkheJMpZM60KR_zch0tPbVaPG199hKAq1uqPFL0dA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,45 +13,53 @@ Content-Transfer-Encoding: 7bit
 On Mon, Jan 9, 2023 at 10:51 AM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> Updated the various permissions bits available for domains
-> defined in DT node and restrictions on them.
+> This is first series in the series of forthcoming patches that would add
+> support for different access permission for different sections of
+> OpenSBI (RO, RX, RW). Eventually, this would lead to support of smepmp
+> extension.
 >
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> This patch series splits the current R/W/X permissions to M-mode R/W/X
+> and SU-mode R/W/X. The split is in such a way that current permission
+> semantics are not broken
+>
+> Changes in v2:
+> 1. Fixed the grammatical mistakes in the commit log.
+> 2. Removed the white space new line from sbi_domain.h
+> 3. Added enforce permission bit[6] details to documentation
+>
+> Himanshu Chauhan (9):
+>   include: sbi: Fine grain the permissions for M and SU modes
+>   lib: sbi: Use finer permission semantics for address validation
+>   lib: sbi: Add permissions for the firmware start till end
+>   lib: sbi: Use finer permission sematics to decide on PMP bits
+>   lib: sbi: Modify the boot time region flag prints
+>   lib: utils: Use SU-{R/W/X} flags for region permissions during parsing
+>   lib: utils: Disallow non-root domains from adding M-mode regions
+>   lib: utils: Add M-mode {R/W} flags to the MMIO regions
+>   docs: Update domain's region permissions and requirements
 
-Looks good to me.
+I have tested this series with two domains (trusted and untrusted)
+on QEMU sifive_u machine.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Tested-by: Anup Patel <anup@brainfault.org>
 
-Regards,
+Applied this series to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
-> ---
->  docs/domain_support.md | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
 >
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index 8963b57..11a4dee 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -160,8 +160,16 @@ The DT properties of a domain instance DT node are as follows:
->  * **regions** (Optional) - The list of domain memory region DT node phandle
->    and access permissions for the domain instance. Each list entry is a pair
->    of DT node phandle and access permissions. The access permissions are
-> -  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
-> -  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
-> +  represented as a 32bit bitmask having bits: **M readable** (BIT[0]),
-> +  **M writeable** (BIT[1]), **M executable** (BIT[2]), **SU readable**
-> +  (BIT[3]), **SU writable** (BIT[4]), and **SU executable** (BIT[5]).
-> +  The enforce permission bit (BIT[6]), if set, will lock the permissions
-> +  in the PMP. This will enforce the permissions on M-mode as well which
-> +  otherwise will have unrestricted access. This bit must be used with
-> +  caution because no changes can be made to a PMP entry once its locked
-> +  until the hart is reset.
-> +  Any region of a domain defined in DT node cannot have only M-bits set
-> +  in access permissions i.e. it cannot be an m-mode only accessible region.
->  * **boot-hart** (Optional) - The DT node phandle of the HART booting the
->    domain instance. If coldboot HART is assigned to the domain instance then
->    this DT property is ignored and the coldboot HART is assumed to be the
+>  docs/domain_support.md          | 12 +++++++--
+>  include/sbi/sbi_domain.h        | 44 +++++++++++++++++++++++++++----
+>  lib/sbi/sbi_domain.c            | 46 +++++++++++++++++++++++----------
+>  lib/sbi/sbi_hart.c              | 16 ++++++++----
+>  lib/utils/fdt/fdt_domain.c      | 20 +++++++++++---
+>  lib/utils/ipi/aclint_mswi.c     |  4 ++-
+>  lib/utils/irqchip/aplic.c       |  4 ++-
+>  lib/utils/irqchip/imsic.c       |  4 ++-
+>  lib/utils/timer/aclint_mtimer.c | 16 +++++++++---
+>  9 files changed, 131 insertions(+), 35 deletions(-)
+>
 > --
 > 2.34.1
 >
