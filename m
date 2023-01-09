@@ -1,47 +1,82 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Mon,  9 Jan 2023 05:20:43 +0000
-Subject: [PATCH v2 9/9] docs: Update domain's region permissions and requirements
-In-Reply-To: <20230109052043.55473-1-hchauhan@ventanamicro.com>
-References: <20230109052043.55473-1-hchauhan@ventanamicro.com>
-Message-ID: <20230109052043.55473-10-hchauhan@ventanamicro.com>
+From: Atish Kumar Patra <atishp@rivosinc.com>
+Date: Mon, 9 Jan 2023 00:02:16 -0800
+Subject: [PATCH v3] dt-bindings: riscv: add SBI PMU event mappings
+In-Reply-To: <Y7s2+McYXLeEMNck@spud>
+References: <20230102165551.1564960-1-conor@kernel.org> <20230103092816.w6hknvd4caeahdo4@orel>
+ <Y7s2+McYXLeEMNck@spud>
+Message-ID: <CAHBxVyHUPPakb3djAuJMkRjXOew9+PC6nARv+RT-GrMWPdCRGw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Updated the various permissions bits available for domains
-defined in DT node and restrictions on them.
+On Sun, Jan 8, 2023 at 1:34 PM Conor Dooley <conor@kernel.org> wrote:
+>
+> Drew, Atish,
+>
+> Mainly just a question about the OpenSBI doc at the end. Gonna fix up
+> the rest of the wording and resend in a few.
+>
+> On Tue, Jan 03, 2023 at 10:28:16AM +0100, Andrew Jones wrote:
+> > On Mon, Jan 02, 2023 at 04:55:51PM +0000, Conor Dooley wrote:
+> > > From: Conor Dooley <conor.dooley@microchip.com>
+> > >
+> > > The SBI PMU extension requires a firmware to be aware of the event to
+> > > counter/mhpmevent mappings supported by the hardware. OpenSBI may use
+> > > DeviceTree to describe the PMU mappings. This binding is currently
+> > > described in markdown in OpenSBI (since v1.0 in Dec 2021) & used by QEMU
+> > > since v7.2.0.
+> > >
+> > > Import the binding for use while validating dtb dumps from QEMU and
+> > > upcoming hardware (eg JH7110 SoC) that will make use of the event
+> > > mapping.
+> > >
+> > > Link: https://github.com/riscv-software-src/opensbi/blob/master/docs/pmu_support.md
+> > > Link: https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc # Performance Monitoring Unit Extension
+> > > Co-developed-by: Atish Patra <atishp@rivosinc.com>
+> > > Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> > > Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
+>
+> > > +  riscv,event-to-mhpmevent:
+> > > +    $ref: /schemas/types.yaml#/definitions/uint32-matrix
+> > > +    description:
+> > > +      Represents an ONE-to-ONE mapping between a PMU event and the event
+> > > +      selector value that platform expects to be written to the MHPMEVENTx CSR
+> >                             ^ the
+>
+> I think this one is arguable, it makes sense both ways IMO. I don't care
+> since it's not my prose though ;)
+>
+> > > +      for that event.
+> > > +      The mapping is encoded in an matrix format where each element represents
+> > > +      an event.
+> > > +      This property shouldn't encode any raw hardware event.
+> > > +    items:
+> > > +      items:
+> > > +        - description: event_idx, a 20-bit wide encoding of the event type and
+> > > +            code. Refer to the SBI specification for a complete description of
+> > > +            the event types and codes.
+> > > +        - description: upper 32 bits of the event selector value for MHPMEVENTx
+> > > +        - description: lower 32 bits of the event selector value for MHPMEVENTx
+> >
+> > > +     * codes, U74 uses a bitfield for events encoding, so several U74 events
+> > > +     * can be bound to single perf id.
+> >                                 ^ a   ID
+> >
+> > > +     * See SBI PMU hardware id's in OpenSBI's include/sbi/sbi_ecall_interface.h
+> >
+> > IDs
+>
+> Most of this stuff comes directly from the doc in OpenSBI that I
+> copy-pasted. Atish, what do you wanna do once the binding is upstream
+> about the original doc?
+>
 
-Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
----
- docs/domain_support.md | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+I will fixup the doc based on the final version of the binding once it
+is upstream.
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 8963b57..11a4dee 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -160,8 +160,16 @@ The DT properties of a domain instance DT node are as follows:
- * **regions** (Optional) - The list of domain memory region DT node phandle
-   and access permissions for the domain instance. Each list entry is a pair
-   of DT node phandle and access permissions. The access permissions are
--  represented as a 32bit bitmask having bits: **readable** (BIT[0]),
--  **writeable** (BIT[1]), **executable** (BIT[2]), and **m-mode** (BIT[3]).
-+  represented as a 32bit bitmask having bits: **M readable** (BIT[0]),
-+  **M writeable** (BIT[1]), **M executable** (BIT[2]), **SU readable**
-+  (BIT[3]), **SU writable** (BIT[4]), and **SU executable** (BIT[5]).
-+  The enforce permission bit (BIT[6]), if set, will lock the permissions
-+  in the PMP. This will enforce the permissions on M-mode as well which
-+  otherwise will have unrestricted access. This bit must be used with
-+  caution because no changes can be made to a PMP entry once its locked
-+  until the hart is reset.
-+  Any region of a domain defined in DT node cannot have only M-bits set
-+  in access permissions i.e. it cannot be an m-mode only accessible region.
- * **boot-hart** (Optional) - The DT node phandle of the HART booting the
-   domain instance. If coldboot HART is assigned to the domain instance then
-   this DT property is ignored and the coldboot HART is assumed to be the
--- 
-2.34.1
-
+> Thanks,
+> Conor.
+>
 
