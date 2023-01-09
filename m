@@ -1,38 +1,55 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Mon,  9 Jan 2023 05:20:37 +0000
-Subject: [PATCH v2 3/9] lib: sbi: Add permissions for the firmware start till end
+Date: Mon,  9 Jan 2023 05:20:38 +0000
+Subject: [PATCH v2 4/9] lib: sbi: Use finer permission sematics to decide on PMP bits
 In-Reply-To: <20230109052043.55473-1-hchauhan@ventanamicro.com>
 References: <20230109052043.55473-1-hchauhan@ventanamicro.com>
-Message-ID: <20230109052043.55473-4-hchauhan@ventanamicro.com>
+Message-ID: <20230109052043.55473-5-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Change the zero flag to M-mode R/W/X flag for the firmware
-region.
+Use the fine grained permission bits to decide if the region
+permissions are to be enforced on all modes. Also use the new
+permission bits for deciding on R/W/X bits in pmpcfg register.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_domain.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_hart.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 7663244..b36a9d5 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -628,7 +628,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 5447c52..2ded55b 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -303,14 +303,20 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ 			break;
  
- 	/* Root domain firmware memory region */
--	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size, 0,
-+	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
-+				  SBI_DOMAIN_MEMREGION_M_RWX,
- 				  &root_fw_region);
- 	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
+ 		pmp_flags = 0;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
++
++		/*
++		 * If permissions are to be enforced for all modes on this region,
++		 * the lock bit should be set.
++		 */
++		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
++			pmp_flags |= PMP_L;
++
++		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
+ 			pmp_flags |= PMP_R;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
++		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
+ 			pmp_flags |= PMP_W;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
++		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
+ 			pmp_flags |= PMP_X;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_MMODE)
+-			pmp_flags |= PMP_L;
  
+ 		pmp_addr =  reg->base >> PMP_SHIFT;
+ 		if (pmp_gran_log2 <= reg->order && pmp_addr < pmp_addr_max)
 -- 
 2.34.1
 
