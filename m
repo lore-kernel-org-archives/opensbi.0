@@ -1,68 +1,78 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Wed, 11 Jan 2023 21:08:43 +0530
-Subject: =?utf-8?B?562U5aSNOg==?= [PATCH 1/1] Add RISC-V TEE support
-In-Reply-To: <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com>
-References: <20230111020159.1234-1-liushiwei@eswincomputing.com>
- <019501d925b4$9e792220$db6b6660$@ventanamicro.com>
- <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com>
-Message-ID: <20230111153843.3jw5ku53yxqjddtw@arcolinux>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Wed, 11 Jan 2023 11:18:29 -0800 (PST)
+Subject: [PATCH] platform: generic: renesas: rzfive: Configure the Local memory regions as part of root domain
+In-Reply-To: <20230111101511.1386-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <mhng-4379345f-9cb9-49fa-8285-c07af3f443bb@palmer-ri-x1c9a>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 11, 2023 at 08:27:59PM +0800, liushiwei wrote:
-> Do you mean hardware? Our hardware design referred to arm's trustzone
-> technology. optee os is a software solution using arm trustzone hardware,
-> which mainly includes REE(linux), TEE(optee os), ATF(ARM Trusted firmware),
-> and then our software also developed these three parts. opensbi is similar
-> to ATF. whether if this is what you want?  The current committed code is not
-> hardware-dependent, but just continues the idea of this workaround, and we
-> may commit hardware-dependent code later.
+On Wed, 11 Jan 2023 02:15:11 PST (-0800), prabhakar.mahadev-lad.rj at bp.renesas.com wrote:
+> Renesas RZ/Five RISC-V SoC has Instruction local memory and Data local
+> memory (ILM & DLM) mapped between region 0x30000 - 0x4FFFF. When a
+> virtual address falls within this range, the MMU doesn't trigger a page
+> fault; it assumes the virtual address is a physical address which can
+> cause undesired behaviours for statically linked applications/libraries.
 >
-No, I meant the software specification.
- 
-> -----????-----
-> ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com] 
-> ????: 2023?1?11? 20:03
-> ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
-> org
-> ??: chenchaokai at eswincomputing.com
-> ??: RE: [PATCH 1/1] Add RISC-V TEE support
-> 
-> -----Original Message-----
-> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
-> > liushiwei
-> > Sent: 11 January 2023 07:32
-> > To: opensbi at lists.infradead.org
-> > Cc: chenchaokai at eswincomputing.com; liushiwei
-> <liushiwei@eswincomputing.com>
-> > Subject: [PATCH 1/1] Add RISC-V TEE support
-> 
-> >RISC-V Trusted Executable Environment security software includes linux,
-> opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE OS is the
-> secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
-> At runtime, opensbi acts as a secure monitor, responsible for context saving
-> and restoring when switching between linux and OP-TEE OS.
-> >TEE function is off by default, when using configuration is added in 
-> >the
-> config and objects file, such as platform/generic/configs/defconfig add
-> CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk add
-> CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the starting
-> address of the OP-TEE OS.
-> 
-> Hi Liushiwei,
-> 
-> Was there any formal specification or draft for this? Could you please point
-> me to the draft or specification?
-> 
-> Regards
-> Himanshu
-> 
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-> 
+> To avoid this, add the ILM/DLM memory regions to the root domain region
+> of the PMPU with permissions set to 0x0 so that any access to these
+> regions gets blocked.
+>
+> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> ---
+>  platform/generic/renesas/rzfive/rzfive.c | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+>
+> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+> index ca182e3..76f2d3a 100644
+> --- a/platform/generic/renesas/rzfive/rzfive.c
+> +++ b/platform/generic/renesas/rzfive/rzfive.c
+> @@ -5,8 +5,25 @@
+>   */
+>
+>  #include <platform_override.h>
+> +#include <sbi/sbi_domain.h>
+
+I can't find sbi_domain, do you have pointer to whatever this depends 
+on?
+
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>
+> +int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+> +{
+> +	/*
+> +	 * Renesas RZ/Five RISC-V SoC has Instruction local memory and
+> +	 * Data local memory (ILM & DLM) mapped between region 0x30000
+> +	 * to 0x4FFFF. When a virtual address falls within this range,
+> +	 * the MMU doesn't trigger a page fault; it assumes the virtual
+> +	 * address is a physical address which can cause undesired
+> +	 * behaviours for statically linked applications/libraries. To
+> +	 * avoid this, add the ILM/DLM memory regions to the root domain
+> +	 * region of the PMPU with permissions set to 0x0 so that any
+> +	 * access to these regions gets blocked.
+
+"blocked" means it traps with an invalid access exception?  If so we 
+just need to make sure that somehow gets plumbed back in to userspace.
+
+> +	 */
+> +	return sbi_domain_root_add_memrange(0x30000, 0x20000, 0x1000, 0x0);
+
+Since I couldn't find the code, does this also hook into something 
+(maybe memblock?) to prevent allocating this region?  Nothing we can do 
+if userspace asks for the VAs specifically via mmap(), but we should at 
+least avoid allocating them when we can do so.
+
+> +}
+> +
+>  static const struct fdt_match renesas_rzfive_match[] = {
+>  	{ .compatible = "renesas,r9a07g043f01" },
+>  	{ /* sentinel */ }
+> @@ -14,4 +31,5 @@ static const struct fdt_match renesas_rzfive_match[] = {
+>
+>  const struct platform_override renesas_rzfive = {
+>  	.match_table = renesas_rzfive_match,
+> +	.early_init = renesas_rzfive_early_init,
+>  };
 
