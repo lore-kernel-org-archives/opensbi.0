@@ -1,131 +1,68 @@
-From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Wed, 11 Jan 2023 13:05:40 +0000
-Subject: [RFC PATCH v2 3/3] platform: generic: renesas: rzfive: Add SBI EXT to check for enabling IOCP errata
-In-Reply-To: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <20230111130540.22722-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Wed, 11 Jan 2023 21:08:43 +0530
+Subject: =?utf-8?B?562U5aSNOg==?= [PATCH 1/1] Add RISC-V TEE support
+In-Reply-To: <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com>
+References: <20230111020159.1234-1-liushiwei@eswincomputing.com>
+ <019501d925b4$9e792220$db6b6660$@ventanamicro.com>
+ <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com>
+Message-ID: <20230111153843.3jw5ku53yxqjddtw@arcolinux>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I/O Coherence Port (IOCP) provides an AXI interface for connecting
-external non-caching masters, such as DMA controllers. The accesses
-from IOCP are coherent with D-Caches and L2 Cache.
-
-IOCP is a specification option and is disabled on the Renesas RZ/Five
-SoC due to this reason IP blocks using DMA will fail.
-
-As a workaround for SoCs with IOCP disabled CMO needs to be handled by
-software. Firstly OpenSBI configures the memory region as
-"Memory, Non-cacheable, Bufferable" and passes this region as a global
-shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
-allocations happen from this region and synchronization callbacks are
-implemented to synchronize when doing DMA transactions.
-
-RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP
-errata should be applied to handle cache management.
-
-Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
----
-Hi Lin-san,
-
-If Andes plan to use similar approach I can move this code into some common
-file so that it can be shared. Please share your thoughts.
-
-Cheers, Prabhakar
----
- platform/generic/renesas/rzfive/rzfive.c | 63 ++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
-
-diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-index 54a4c29..2cb9b3b 100644
---- a/platform/generic/renesas/rzfive/rzfive.c
-+++ b/platform/generic/renesas/rzfive/rzfive.c
-@@ -9,6 +9,33 @@
- #include <sbi/sbi_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
+On Wed, Jan 11, 2023 at 08:27:59PM +0800, liushiwei wrote:
+> Do you mean hardware? Our hardware design referred to arm's trustzone
+> technology. optee os is a software solution using arm trustzone hardware,
+> which mainly includes REE(linux), TEE(optee os), ATF(ARM Trusted firmware),
+> and then our software also developed these three parts. opensbi is similar
+> to ATF. whether if this is what you want?  The current committed code is not
+> hardware-dependent, but just continues the idea of this workaround, and we
+> may commit hardware-dependent code later.
+>
+No, I meant the software specification.
  
-+#define RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND	0
-+
-+/* AX45MP registers */
-+#define AX45MP_CSR_MISA_CFG			0x301
-+#define AX45MP_CSR_MICM_CFG			0xfc0
-+#define AX45MP_CSR_MDCM_CFG			0xfc1
-+#define AX45MP_CSR_MMSC_CFG			0xfc2
-+#define AX45MP_CSR_MCACHE_CTL			0x7ca
-+
-+/* AX45MP register bit offsets and masks */
-+#define AX45MP_MISA_20_OFFSET			20
-+#define AX45MP_MISA_20_MASK			(0x1 << AX45MP_MISA_20_OFFSET)
-+
-+#define AX45MP_MICM_CFG_ISZ_OFFSET		6
-+#define AX45MP_MICM_CFG_ISZ_MASK		(0x7  << AX45MP_MICM_CFG_ISZ_OFFSET)
-+
-+#define AX45MP_MDCM_CFG_DSZ_OFFSET		6
-+#define AX45MP_MDCM_CFG_DSZ_MASK		(0x7  << AX45MP_MDCM_CFG_DSZ_OFFSET)
-+
-+#define AX45MP_MMSC_CFG_CCTLCSR_OFFSET		16
-+#define AX45MP_MMSC_CFG_CCTLCSR_MASK		(0x1 << AX45MP_MMSC_CFG_CCTLCSR_OFFSET)
-+#define AX45MP_MMSC_IOCP_OFFSET			47
-+#define AX45MP_MMSC_IOCP_MASK			(0x1ULL << AX45MP_MMSC_IOCP_OFFSET)
-+
-+#define AX45MP_MCACHE_CTL_CCTL_SUEN_OFFSET	8
-+#define AX45MP_MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << AX45MP_MCACHE_CTL_CCTL_SUEN_OFFSET)
-+
- static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
- 	{
- 		.pa = 0x58000000,
-@@ -28,6 +55,41 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
- 					 array_size(renesas_rzfive_pma_regions));
- }
- 
-+static bool renesas_rzfive_cpu_cache_controlable(void)
-+{
-+	return (((csr_read(AX45MP_CSR_MICM_CFG) & AX45MP_MICM_CFG_ISZ_MASK) ||
-+		 (csr_read(AX45MP_CSR_MDCM_CFG) & AX45MP_MDCM_CFG_DSZ_MASK)) &&
-+		(csr_read(AX45MP_CSR_MISA_CFG) & AX45MP_MISA_20_MASK) &&
-+		(csr_read(AX45MP_CSR_MMSC_CFG) & AX45MP_MMSC_CFG_CCTLCSR_MASK) &&
-+		(csr_read(AX45MP_CSR_MCACHE_CTL) & AX45MP_MCACHE_CTL_CCTL_SUEN_MASK));
-+}
-+
-+static bool renesas_rzfive_cpu_iocp_disabled(void)
-+{
-+	return (csr_read(AX45MP_CSR_MMSC_CFG) & AX45MP_MMSC_IOCP_MASK) ? false : true;
-+}
-+
-+static bool renesas_rzfive_apply_iocp_sw_workaround(void)
-+{
-+	return renesas_rzfive_cpu_cache_controlable() & renesas_rzfive_cpu_iocp_disabled();
-+}
-+static int renesas_rzfive_vendor_ext_provider(long extid, long funcid,
-+					      const struct sbi_trap_regs *regs,
-+					      unsigned long *out_value,
-+					      struct sbi_trap_info *out_trap,
-+					      const struct fdt_match *match)
-+{
-+	switch (funcid) {
-+	case RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND:
-+		*out_value = renesas_rzfive_apply_iocp_sw_workaround();
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
- int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
- {
- 	/*
-@@ -53,4 +115,5 @@ const struct platform_override renesas_rzfive = {
- 	.match_table = renesas_rzfive_match,
- 	.early_init = renesas_rzfive_early_init,
- 	.final_init = renesas_rzfive_final_init,
-+	.vendor_ext_provider = renesas_rzfive_vendor_ext_provider,
- };
--- 
-2.17.1
-
+> -----????-----
+> ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com] 
+> ????: 2023?1?11? 20:03
+> ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
+> org
+> ??: chenchaokai at eswincomputing.com
+> ??: RE: [PATCH 1/1] Add RISC-V TEE support
+> 
+> -----Original Message-----
+> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
+> > liushiwei
+> > Sent: 11 January 2023 07:32
+> > To: opensbi at lists.infradead.org
+> > Cc: chenchaokai at eswincomputing.com; liushiwei
+> <liushiwei@eswincomputing.com>
+> > Subject: [PATCH 1/1] Add RISC-V TEE support
+> 
+> >RISC-V Trusted Executable Environment security software includes linux,
+> opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE OS is the
+> secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
+> At runtime, opensbi acts as a secure monitor, responsible for context saving
+> and restoring when switching between linux and OP-TEE OS.
+> >TEE function is off by default, when using configuration is added in 
+> >the
+> config and objects file, such as platform/generic/configs/defconfig add
+> CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk add
+> CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the starting
+> address of the OP-TEE OS.
+> 
+> Hi Liushiwei,
+> 
+> Was there any formal specification or draft for this? Could you please point
+> me to the draft or specification?
+> 
+> Regards
+> Himanshu
+> 
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+> 
 
