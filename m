@@ -1,77 +1,50 @@
-From: liushiwei <liushiwei@eswincomputing.com>
-Date: Wed, 11 Jan 2023 20:43:38 +0800
-Subject: =?gb2312?B?tPC4tDogW1BBVENIIDEvMV0gQWRkIFJJU0MtViBURUUgc3VwcG9ydA==?=
-References: <20230111020159.1234-1-liushiwei@eswincomputing.com> <019501d925b4$9e792220$db6b6660$@ventanamicro.com> 
-Message-ID: <004d01d925ba$546796c0$fd36c440$@eswincomputing.com>
+From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Wed, 11 Jan 2023 13:05:37 +0000
+Subject: [RFC PATCH v2 0/3] Renesas RZ/Five add support to configure PMA and add vendor specific SBI extension
+Message-ID: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-" Our hardware design referred to arm's trustzone technology",  The
-translation software description may not be quite accurate, a hardware
-technology like arm trustzone might be more better,  We want to submit a
-piece of common hardware-independent code to opensbi, and then add
-hardware-specific code controlled by configuration items to the common part,
-Would you accept such a commit?
+Hi All,
 
------????-----
-???: liushiwei [mailto:liushiwei at eswincomputing.com] 
-????: 2023?1?11? 20:28
-???: 'hchauhan at ventanamicro.com' <hchauhan@ventanamicro.com>;
-'opensbi at lists.infradead.org' <opensbi@lists.infradead.org>
-??: 'chenchaokai at eswincomputing.com' <chenchaokai@eswincomputing.com>
-??: ??: [PATCH 1/1] Add RISC-V TEE support
+This patch series aims to add support to configure the PMA regions present
+on the Andes AX45MP core (andes45-pma.c which can be shared with other
+Andes vendors) and configures the required PMA region for RZ/Five SoC.
 
-Do you mean hardware? Our hardware design referred to arm's trustzone
-technology. optee os is a software solution using arm trustzone hardware,
-which mainly includes REE(linux), TEE(optee os), ATF(ARM Trusted firmware),
-and then our software also developed these three parts. opensbi is similar
-to ATF. whether if this is what you want?  The current committed code is not
-hardware-dependent, but just continues the idea of this workaround, and we
-may commit hardware-dependent code later.
+This patch series also adds the SBI vendor extension
+RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND to check if IOCP is present on
+the core and if un-available it also checks if SW workaround for cache
+management needs to be applied.
 
------????-----
-???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com]
-????: 2023?1?11? 20:03
-???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
-org
-??: chenchaokai at eswincomputing.com
-??: RE: [PATCH 1/1] Add RISC-V TEE support
+RFC v2 -> RFC v1
+-> Fixed review comments pointed by Lin-san
+-> Implemented PMA as library so that it can be shared
 
------Original Message-----
-> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
-> liushiwei
-> Sent: 11 January 2023 07:32
-> To: opensbi at lists.infradead.org
-> Cc: chenchaokai at eswincomputing.com; liushiwei
-<liushiwei@eswincomputing.com>
-> Subject: [PATCH 1/1] Add RISC-V TEE support
+RFC v1:
+https://patchwork.ozlabs.org/project/opensbi/patch/20221212094421.14556-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
 
->RISC-V Trusted Executable Environment security software includes linux,
-opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE OS is the
-secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
-At runtime, opensbi acts as a secure monitor, responsible for context saving
-and restoring when switching between linux and OP-TEE OS.
->TEE function is off by default, when using configuration is added in 
->the
-config and objects file, such as platform/generic/configs/defconfig add
-CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk add
-CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the starting
-address of the OP-TEE OS.
+Cheers,
+Prabhakar
 
-Hi Liushiwei,
+Lad Prabhakar (3):
+  platform: generic: renesas: rzfive: Add support to configure the PMA
+  platform: generic: renesas: rzfive: Configure the PMA region
+  platform: generic: renesas: rzfive: Add SBI EXT to check for enabling
+    IOCP errata
 
-Was there any formal specification or draft for this? Could you please point
-me to the draft or specification?
+ platform/generic/Kconfig                      |   9 +
+ platform/generic/include/andes45-pma.h        |  48 +++
+ platform/generic/renesas/rzfive/andes45-pma.c | 346 ++++++++++++++++++
+ platform/generic/renesas/rzfive/objects.mk    |   1 +
+ platform/generic/renesas/rzfive/rzfive.c      |  84 +++++
+ 5 files changed, 488 insertions(+)
+ create mode 100644 platform/generic/include/andes45-pma.h
+ create mode 100644 platform/generic/renesas/rzfive/andes45-pma.c
 
-Regards
-Himanshu
-
---
-opensbi mailing list
-opensbi at lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+-- 
+2.17.1
 
 
