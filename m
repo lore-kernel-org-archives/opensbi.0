@@ -1,7 +1,7 @@
 From: liushiwei <liushiwei@eswincomputing.com>
-Date: Wed, 11 Jan 2023 10:01:59 +0800
+Date: Wed, 11 Jan 2023 10:08:18 +0800
 Subject: [PATCH 1/1] Add RISC-V TEE support
-Message-ID: <20230111020159.1234-1-liushiwei@eswincomputing.com>
+Message-ID: <20230111020818.851-1-liushiwei@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
