@@ -1,49 +1,95 @@
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Wed, 11 Jan 2023 13:05:37 +0000
-Subject: [RFC PATCH v2 0/3] Renesas RZ/Five add support to configure PMA and add vendor specific SBI extension
-Message-ID: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Wed, 11 Jan 2023 13:05:39 +0000
+Subject: [RFC PATCH v2 2/3] platform: generic: renesas: rzfive: Configure the PMA region
+In-Reply-To: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20230111130540.22722-3-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi All,
+On the Renesas RZ/Five SoC by default we want to configure 128MiB of memory
+ranging from 0x58000000 as a non-cacheable + bufferable region in the PMA
+and populate this region as PMA reserve DT node with shared DMA pool and
+no-map flags set so that Linux drivers requesting any DMA'able memory go
+through this region.
 
-This patch series aims to add support to configure the PMA regions present
-on the Andes AX45MP core (andes45-pma.c which can be shared with other
-Andes vendors) and configures the required PMA region for RZ/Five SoC.
+PMA node passed to the above stack:
 
-This patch series also adds the SBI vendor extension
-RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND to check if IOCP is present on
-the core and if un-available it also checks if SW workaround for cache
-management needs to be applied.
+        reserved-memory {
+            #address-cells = <2>;
+            #size-cells = <2>;
+            ranges;
 
-RFC v2 -> RFC v1
--> Fixed review comments pointed by Lin-san
--> Implemented PMA as library so that it can be shared
+            pma_resv0 at 58000000 {
+                compatible = "shared-dma-pool";
+                reg = <0x0 0x58000000 0x0 0x08000000>;
+                no-map;
+                linux,dma-default;
+            };
+        };
 
-RFC v1:
-https://patchwork.ozlabs.org/project/opensbi/patch/20221212094421.14556-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+---
+ platform/generic/Kconfig                 |  1 +
+ platform/generic/renesas/rzfive/rzfive.c | 21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-Cheers,
-Prabhakar
-
-Lad Prabhakar (3):
-  platform: generic: renesas: rzfive: Add support to configure the PMA
-  platform: generic: renesas: rzfive: Configure the PMA region
-  platform: generic: renesas: rzfive: Add SBI EXT to check for enabling
-    IOCP errata
-
- platform/generic/Kconfig                      |   9 +
- platform/generic/include/andes45-pma.h        |  48 +++
- platform/generic/renesas/rzfive/andes45-pma.c | 346 ++++++++++++++++++
- platform/generic/renesas/rzfive/objects.mk    |   1 +
- platform/generic/renesas/rzfive/rzfive.c      |  84 +++++
- 5 files changed, 488 insertions(+)
- create mode 100644 platform/generic/include/andes45-pma.h
- create mode 100644 platform/generic/renesas/rzfive/andes45-pma.c
-
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index c6bbe8f..f65b17f 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -34,6 +34,7 @@ config PLATFORM_ANDES_AE350
+ 
+ config PLATFORM_RENESAS_RZFIVE
+ 	bool "Renesas RZ/Five support"
++	select ANDES45_PMA
+ 	default n
+ 
+ config PLATFORM_SIFIVE_FU540
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 76f2d3a..54a4c29 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -4,10 +4,30 @@
+  *
+  */
+ 
++#include <andes45-pma.h>
+ #include <platform_override.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
++static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
++	{
++		.pa = 0x58000000,
++		.size = 0x8000000,
++		.flags = ANDES45_PMACFG_ETYP_NAPOT |
++			 ANDES45_PMACFG_MTYP_MEM_NON_CACHE_BUF,
++		.dt_populate = true,
++		.shared_dma = true,
++		.no_map = true,
++		.dma_default = true,
++	},
++};
++
++static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *match)
++{
++	return andes45_pma_setup_regions(renesas_rzfive_pma_regions,
++					 array_size(renesas_rzfive_pma_regions));
++}
++
+ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ {
+ 	/*
+@@ -32,4 +52,5 @@ static const struct fdt_match renesas_rzfive_match[] = {
+ const struct platform_override renesas_rzfive = {
+ 	.match_table = renesas_rzfive_match,
+ 	.early_init = renesas_rzfive_early_init,
++	.final_init = renesas_rzfive_final_init,
+ };
 -- 
 2.17.1
 
