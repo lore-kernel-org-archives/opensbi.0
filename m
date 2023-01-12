@@ -1,130 +1,106 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Wed, 11 Jan 2023 23:53:14 +0000
-Subject: [PATCH] platform: generic: renesas: rzfive: Configure the Local
- memory regions as part of root domain
-In-Reply-To: <36252D29-9FCD-4062-9618-21EC8C0F8BBF@jrtc27.com>
-References: <mhng-4379345f-9cb9-49fa-8285-c07af3f443bb@palmer-ri-x1c9a> <36252D29-9FCD-4062-9618-21EC8C0F8BBF@jrtc27.com>
-Message-ID: <CA+V-a8sZ45_gXvDUk7AFN6ZdHMOs71hi+rKf5pRRdK0HOw-CSA@mail.gmail.com>
+From: liushiwei <liushiwei@eswincomputing.com>
+Date: Thu, 12 Jan 2023 15:06:04 +0800
+Subject: =?UTF-8?Q?=E7=AD=94=E5=A4=8D:_=5BPATCH_1/1=5D_Add_RISC-V_TEE_s?=
+	=?UTF-8?Q?upport?=
+In-Reply-To: <CAK9=C2W61XqnQ7i2+LkQAZ2uOkarXF0NSQ=zOhqQw=E8RmVriA@mail.gmail.com>
+References: <20230111020159.1234-1-liushiwei@eswincomputing.com> <019501d925b4$9e792220$db6b6660$@ventanamicro.com> <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com> <CAK9=C2W61XqnQ7i2+LkQAZ2uOkarXF0NSQ=zOhqQw=E8RmVriA@mail.gmail.com>
+Message-ID: <00a401d92654$561cb2d0$02561870$@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 11, 2023 at 7:35 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+Hi,  Anup
+	You mean this code?
++#define SBI_EXT_TEE_START                      0x0A000000
++#define SBI_EXT_TEE_END                        0x0AFFFFFF
++#define SBI_EXT_TEE                            0xFFFFEEEE
+	Current code is not in use SBI_EXT_TEE_START and SBI_EXT_TEE_END, I use SBI_EXT_TEE, I wrote these two macros in reference to 
+SBI_EXT_FIRMWARE_START,  I'd like your advice on this part.
+	Currently, there are 20 scenarios, 12 of which are reserved for later use. I am not familiar with the rules for the use of SBI extension ID
+and funciton ID. Because of the number of arguments, instead of using linux sbi_ecall, I encapsulated the ecall instruction by ourselves.
+I are not sure if this approach meets the requirements of opensbi and linux, So I made a redundant macro definition here. 
+Could you give me some advice?  Thank you.
+
+
+Regards,
+liushiwei
+
+-----????-----
+???: Anup Patel [mailto:apatel at ventanamicro.com] 
+????: 2023?1?11? 20:34
+???: liushiwei <liushiwei@eswincomputing.com>
+??: hchauhan at ventanamicro.com; opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
+??: Re: [PATCH 1/1] Add RISC-V TEE support
+
+On Wed, Jan 11, 2023 at 5:58 PM liushiwei <liushiwei@eswincomputing.com> wrote:
 >
-> On 11 Jan 2023, at 19:18, Palmer Dabbelt <palmer@dabbelt.com> wrote:
-> >
-> > On Wed, 11 Jan 2023 02:15:11 PST (-0800), prabhakar.mahadev-lad.rj at bp.renesas.com wrote:
-> >> Renesas RZ/Five RISC-V SoC has Instruction local memory and Data local
-> >> memory (ILM & DLM) mapped between region 0x30000 - 0x4FFFF. When a
-> >> virtual address falls within this range, the MMU doesn't trigger a page
-> >> fault; it assumes the virtual address is a physical address which can
-> >> cause undesired behaviours for statically linked applications/libraries.
-> >>
-> >> To avoid this, add the ILM/DLM memory regions to the root domain region
-> >> of the PMPU with permissions set to 0x0 so that any access to these
-> >> regions gets blocked.
-> >>
-> >> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> >> ---
-> >> platform/generic/renesas/rzfive/rzfive.c | 18 ++++++++++++++++++
-> >> 1 file changed, 18 insertions(+)
-> >>
-> >> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> >> index ca182e3..76f2d3a 100644
-> >> --- a/platform/generic/renesas/rzfive/rzfive.c
-> >> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> >> @@ -5,8 +5,25 @@
-> >>  */
-> >>
-> >> #include <platform_override.h>
-> >> +#include <sbi/sbi_domain.h>
-> >
-> > I can't find sbi_domain, do you have pointer to whatever this depends on?
-> >
-> >> #include <sbi_utils/fdt/fdt_helper.h>
-> >>
-> >> +int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
-> >> +{
-> >> +    /*
-> >> +     * Renesas RZ/Five RISC-V SoC has Instruction local memory and
-> >> +     * Data local memory (ILM & DLM) mapped between region 0x30000
-> >> +     * to 0x4FFFF. When a virtual address falls within this range,
-> >> +     * the MMU doesn't trigger a page fault; it assumes the virtual
-> >> +     * address is a physical address which can cause undesired
-> >> +     * behaviours for statically linked applications/libraries. To
-> >> +     * avoid this, add the ILM/DLM memory regions to the root domain
-> >> +     * region of the PMPU with permissions set to 0x0 so that any
-> >> +     * access to these regions gets blocked.
-> >
-> > "blocked" means it traps with an invalid access exception?  If so we just need to make sure that somehow gets plumbed back in to userspace.
-> >
-> >> +     */
-> >> +    return sbi_domain_root_add_memrange(0x30000, 0x20000, 0x1000, 0x0);
-> >
-> > Since I couldn't find the code, does this also hook into something (maybe memblock?) to prevent allocating this region?  Nothing we can do if userspace asks for the VAs specifically via mmap(), but we should at least avoid allocating them when we can do so.
+> Do you mean hardware? Our hardware design referred to arm's trustzone 
+> technology. optee os is a software solution using arm trustzone 
+> hardware, which mainly includes REE(linux), TEE(optee os), ATF(ARM 
+> Trusted firmware), and then our software also developed these three 
+> parts. opensbi is similar to ATF. whether if this is what you want?  
+> The current committed code is not hardware-dependent, but just 
+> continues the idea of this workaround, and we may commit hardware-dependent code later.
+
+We can't blindly use SBI extension ID and function ID space for TEE.
+
+Please share a draft proposal of how OP-TEE calls will be implemented as SBI calls.
+
+I see that you have reserved an entire range of SBI extension IDs for OP-TEE. This is a waste of the SBI extension ID space.
+
+Regards,
+Anup
+
 >
-> sbi_domain_root_add_memrange is for reserving regions of the physical
-> address space and uses the PMP to enforce it (and adds the ranges to
-> /reserved-memory in the FDT). So this does nothing to affect anything
-> using virtual memory from mapping things with a VA in that range,
-So If the userspace tries to map virtual memory in that range and
-tries to access this region it still falls in the signal trap (11). Ie
-for example consider a statical compiled application where the virtual
-memory region falls in the range of this local memory when it tries do
-a va-> pa conversion of say va = 0x30000 the pa will be 0x30000 and
-that is where the PMP kicks is in and causes a signal trap:
+> -----????-----
+> ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com]
+> ????: 2023?1?11? 20:03
+> ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
+> org
+> ??: chenchaokai at eswincomputing.com
+> ??: RE: [PATCH 1/1] Add RISC-V TEE support
+>
+> -----Original Message-----
+> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
+> > liushiwei
+> > Sent: 11 January 2023 07:32
+> > To: opensbi at lists.infradead.org
+> > Cc: chenchaokai at eswincomputing.com; liushiwei
+> <liushiwei@eswincomputing.com>
+> > Subject: [PATCH 1/1] Add RISC-V TEE support
+>
+> >RISC-V Trusted Executable Environment security software includes 
+> >linux,
+> opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE OS 
+> is the secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
+> At runtime, opensbi acts as a secure monitor, responsible for context 
+> saving and restoring when switching between linux and OP-TEE OS.
+> >TEE function is off by default, when using configuration is added in 
+> >the
+> config and objects file, such as platform/generic/configs/defconfig 
+> add CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk add 
+> CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the 
+> starting address of the OP-TEE OS.
+>
+> Hi Liushiwei,
+>
+> Was there any formal specification or draft for this? Could you please 
+> point me to the draft or specification?
+>
+> Regards
+> Himanshu
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-See for example below where the statically compiled app fails:
-[11242.998276] do_trap: 3 callbacks suppressed
-[11242.998298] security-static[191]: unhandled signal 11 code 0x2 at
-0x0000000000040be8 in security-static[40000+6c000]
-[11243.013085] CPU: 0 PID: 191 Comm: security-static Not tainted
-6.2.0-rc1-00124-g11313d81178f-dirty #286
-[11243.022379] Hardware name: Renesas SMARC EVK based on r9a07g043f01 (DT)
-[11243.028988] epc : 0000000000040be8 ra : 0000000000040954 sp :
-0000003ffb8be9d0
-[11243.036205]  gp : 00000000000af0d0 tp : 0000003fbf412720 t0 :
-0000000000000000
-[11243.043428]  t1 : 0000002ab2e60bbc t2 : 00000000000003ff s0 :
-0000000000040d66
-[11243.050644]  s1 : 0000000000040df6 a0 : 00000000000acff0 a1 :
-000000000000004d
-[11243.057869]  a2 : 0000000000000007 a3 : 00000000000401c8 a4 :
-0000000000000007
-[11243.065086]  a5 : 0000000000040040 a6 : 0000000000000000 a7 :
-0000003ffb8bee09
-[11243.072299]  s2 : 00000000000403b0 s3 : 00000000000ade60 s4 :
-00000000000403b0
-[11243.079513]  s5 : 0000002ab2f54e70 s6 : 0000002ab2f54b60 s7 :
-0000002ab2f54880
-[11243.086727]  s8 : 0000002ab2f54b00 s9 : 0000000000000000 s10:
-0000002ab2f11584
-[11243.093941]  s11: 0000000000000000 t3 : 0000003fbf495e18 t4 :
-000000000000000f
-[11243.101156]  t5 : 000000000000000f t6 : 0000000000000000
-[11243.106467] status: 0000000200004020 badaddr: 0000000000040040
-cause: 0000000000000005
-[11243.125035] audit: type=1701 audit(1673025202.983:11):
-auid=4294967295 uid=0 gid=0 ses=4294967295 pid=191
-comm="security-static" exe="/home/root/security-static" sig=11 res=1
-Segmentation fault
-
-badaddr: 0000000000040040 falls in local memory region.
-^^^
-
-> and I do wonder what happens with all the local memory stuff if you have a
-> virtual address outside the magic range that maps to a physical address
-> in the magic range (does that map to DRAM or also go to the local
-> memory)?
-That's basically devmem2. So if you try to mmap the local memory
-region without this patch the va should be the same as pa only then
-you do a read/write.
-
-With this patch being applied PMP kicks in and we cannot mmap local
-memory regions.
-
-Cheers,
-Prabhakar
 
