@@ -1,129 +1,70 @@
-From: liushiwei <liushiwei@eswincomputing.com>
-Date: Fri, 13 Jan 2023 11:30:41 +0800
-Subject: =?UTF-8?Q?=E7=AD=94=E5=A4=8D:_=5BPATCH_1/1=5D_Add_RISC-V_TEE_s?=
-	=?UTF-8?Q?upport?=
-References: <20230111020159.1234-1-liushiwei@eswincomputing.com> <019501d925b4$9e792220$db6b6660$@ventanamicro.com> <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com> <CAK9=C2W61XqnQ7i2+LkQAZ2uOkarXF0NSQ=zOhqQw=E8RmVriA@mail.gmail.com> 
-Message-ID: <000a01d926ff$69edd310$3dc97930$@eswincomputing.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Fri, 13 Jan 2023 17:11:02 +0530
+Subject: [PATCH v5 0/8] OpenSBI debug console support
+Message-ID: <20230113114110.1916226-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,  Anup
-	I've combed through the linux code. What do you think of the following change?
+The latest proposal of SBI debug console extension can be found at:
+https://lists.riscv.org/g/tech-prs/message/96
 
-diff --git a/arch/riscv/include/asm/sbi.h b/arch/riscv/include/asm/sbi.h
-index d1c37479d..9696c8c77 100644
---- a/arch/riscv/include/asm/sbi.h
-+++ b/arch/riscv/include/asm/sbi.h
-@@ -29,6 +29,7 @@ enum sbi_ext_id {
-        SBI_EXT_RFENCE = 0x52464E43,
-        SBI_EXT_HSM = 0x48534D,
-        SBI_EXT_SRST = 0x53525354,
-+       SBI_EXT_TEE = 0x544545,
+This series implements SBI debug console support in OpenSBI
+as-per above draft proposal.
 
-	I find that these values are just transformations of these letters?So I just use the ext id, not the func id?
-	While the sbi_ecall_tee_handler function uses other registers, such as t0.
+To test these patches corresponding Linux patches can be found in
+riscv_sbi_dbcn_v1 branch at: https://github.com/avpatel/linux.git
 
-Regards,
-Liushiwei
+These patches can also be found in riscv_sbi_dbcn_v5 branch at:
+https://github.com/avpatel/opensbi.git
 
------????-----
-???: liushiwei [mailto:liushiwei at eswincomputing.com] 
-????: 2023?1?12? 15:06
-???: 'Anup Patel' <apatel@ventanamicro.com>
-??: 'hchauhan at ventanamicro.com' <hchauhan@ventanamicro.com>; 'opensbi at lists.infradead.org' <opensbi@lists.infradead.org>; 'chenchaokai at eswincomputing.com' <chenchaokai@eswincomputing.com>
-??: ??: [PATCH 1/1] Add RISC-V TEE support
+Changes since v4:
+ - Rebased on latest OpenSBI sources
+ - Updated Reviewed-by tags
+ - Added new PATCH8 to speed-up sbi_printf() using nputs()
 
-Hi,  Anup
-	You mean this code?
-+#define SBI_EXT_TEE_START                      0x0A000000
-+#define SBI_EXT_TEE_END                        0x0AFFFFFF
-+#define SBI_EXT_TEE                            0xFFFFEEEE
-	Current code is not in use SBI_EXT_TEE_START and SBI_EXT_TEE_END, I use SBI_EXT_TEE, I wrote these two macros in reference to SBI_EXT_FIRMWARE_START,  I'd like your advice on this part.
-	Currently, there are 20 scenarios, 12 of which are reserved for later use. I am not familiar with the rules for the use of SBI extension ID and funciton ID. Because of the number of arguments, instead of using linux sbi_ecall, I encapsulated the ecall instruction by ourselves.
-I are not sure if this approach meets the requirements of opensbi and linux, So I made a redundant macro definition here. 
-Could you give me some advice?  Thank you.
+Changes since v3:
+ - Rebased on OpenSBI v1.2 release
+ - Updated Reviewed-by tags
+ - Added new PATCH3 for sbi_ngets() function
+ - Updated SBI debug console implementation in PATCH5 as-per latest
+   proposal having both console write() and read() functions.
 
+Changes since v2:
+ - Reworked sbi_domain_check_addr_range() in PATCH3 to make it work
+   for overlapping regions.
 
-Regards,
-liushiwei
+Changes since v1:
+ - New PATCH3 to implement sbi_domain_check_addr_range() function
+ - Added checks in PATCH4 for location and size of string to print
+ - New PATCH5 to add console_puts() callback in the console device
+ - New PATCH6 to implement console_puts() for semihosting
 
------????-----
-???: Anup Patel [mailto:apatel at ventanamicro.com] 
-????: 2023?1?11? 20:34
-???: liushiwei <liushiwei@eswincomputing.com>
-??: hchauhan at ventanamicro.com; opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
-??: Re: [PATCH 1/1] Add RISC-V TEE support
+Anup Patel (8):
+  include: Add defines for SBI debug console extension
+  lib: sbi: Add sbi_nputs() function
+  lib: sbi: Add sbi_ngets() function
+  lib: sbi: Add sbi_domain_check_addr_range() function
+  lib: sbi: Implement SBI debug console extension
+  lib: sbi: Add console_puts() callback in the console device
+  lib: utils/serial: Implement console_puts() for semihosting
+  lib: sbi: Speed-up sbi_printf() and friends using nputs()
 
-On Wed, Jan 11, 2023 at 5:58 PM liushiwei <liushiwei@eswincomputing.com> wrote:
->
-> Do you mean hardware? Our hardware design referred to arm's trustzone 
-> technology. optee os is a software solution using arm trustzone 
-> hardware, which mainly includes REE(linux), TEE(optee os), ATF(ARM 
-> Trusted firmware), and then our software also developed these three 
-> parts. opensbi is similar to ATF. whether if this is what you want?  
-> The current committed code is not hardware-dependent, but just 
-> continues the idea of this workaround, and we may commit hardware-dependent code later.
+ include/sbi/sbi_console.h         |  7 +++
+ include/sbi/sbi_domain.h          | 15 +++++++
+ include/sbi/sbi_ecall_interface.h |  6 +++
+ lib/sbi/Kconfig                   |  4 ++
+ lib/sbi/objects.mk                |  3 ++
+ lib/sbi/sbi_console.c             | 64 ++++++++++++++++++++++++---
+ lib/sbi/sbi_domain.c              | 69 +++++++++++++++++++++++++++++
+ lib/sbi/sbi_ecall_dbcn.c          | 72 +++++++++++++++++++++++++++++++
+ lib/utils/serial/semihosting.c    | 33 ++++++++++++++
+ 9 files changed, 266 insertions(+), 7 deletions(-)
+ create mode 100644 lib/sbi/sbi_ecall_dbcn.c
 
-We can't blindly use SBI extension ID and function ID space for TEE.
-
-Please share a draft proposal of how OP-TEE calls will be implemented as SBI calls.
-
-I see that you have reserved an entire range of SBI extension IDs for OP-TEE. This is a waste of the SBI extension ID space.
-
-Regards,
-Anup
-
->
-> -----????-----
-> ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com]
-> ????: 2023?1?11? 20:03
-> ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
-> org
-> ??: chenchaokai at eswincomputing.com
-> ??: RE: [PATCH 1/1] Add RISC-V TEE support
->
-> -----Original Message-----
-> > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
-> > liushiwei
-> > Sent: 11 January 2023 07:32
-> > To: opensbi at lists.infradead.org
-> > Cc: chenchaokai at eswincomputing.com; liushiwei
-> <liushiwei@eswincomputing.com>
-> > Subject: [PATCH 1/1] Add RISC-V TEE support
->
-> >RISC-V Trusted Executable Environment security software includes 
-> >linux,
-> opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE OS 
-> is the secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
-> At runtime, opensbi acts as a secure monitor, responsible for context 
-> saving and restoring when switching between linux and OP-TEE OS.
-> >TEE function is off by default, when using configuration is added in 
-> >the
-> config and objects file, such as platform/generic/configs/defconfig 
-> add CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk add 
-> CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the 
-> starting address of the OP-TEE OS.
->
-> Hi Liushiwei,
->
-> Was there any formal specification or draft for this? Could you please 
-> point me to the draft or specification?
->
-> Regards
-> Himanshu
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+-- 
+2.34.1
 
 
