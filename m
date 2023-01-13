@@ -1,68 +1,124 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 13 Jan 2023 17:37:58 +0530
-Subject: [PATCH] platform: generic: allwinner: Fix PLIC array bounds
-In-Reply-To: <20221227184444.61331-1-samuel@sholland.org>
-References: <20221227184444.61331-1-samuel@sholland.org>
-Message-ID: <CAAhSdy20FoZaqGEg_7imygrc9y3Dw4wWkL+7s-HJYNz=nD9nAg@mail.gmail.com>
+Date: Fri, 13 Jan 2023 17:57:10 +0530
+Subject: [PATCH 1/2] lib: utils: Add fdt_add_cpu_idle_states() helper function
+In-Reply-To: <6f14e6af-058c-58d1-bd56-af68814b8463@sholland.org>
+References: <20221228191125.37584-1-samuel@sholland.org> <Y62JAIU/VBM/jpV+@APC323>
+ <6f14e6af-058c-58d1-bd56-af68814b8463@sholland.org>
+Message-ID: <CAAhSdy0otAPu8XaeV1WN8wXAKv4Ft=YAV9TX1tfYyYnr0-mtzw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 28, 2022 at 12:14 AM Samuel Holland <samuel@sholland.org> wrote:
+On Thu, Dec 29, 2022 at 11:10 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> The two referenced commits passed incorrect bounds to the PLIC save/
-> restore functions, causing out-of-bounds memory access. The functions
-> expect "num" to be the 1-based number of interrupt sources, equivalent
-> to the "riscv,ndev" devicetree property. Thus, "num" must be strictly
-> smaller than the 0-based size of the array storing the register values.
+> On 12/29/22 06:33, Yu-Chien Peter Lin wrote:
+> > Hi Samuel,
+> >
+> > On Wed, Dec 28, 2022 at 01:11:23PM -0600, Samuel Holland wrote:
+> >> Since the availability and latency properties of CPU idle states depend
+> >> on the specific SBI HSM implementation, it is appropriate that the idle
+> >> states are added to the devicetree at runtime by that implementation.
+> >>
+> >> This helper function adds a platform-provided array of idle states to
+> >> the devicetree, following the SBI idle state binding. It makes some
+> >> assumptions for simplicity, but these could be relaxed if needed.
+> >>
+> >> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> >> ---
+> >>
+> >>  include/sbi_utils/fdt/fdt_fixup.h | 23 +++++++++
+> >>  lib/utils/fdt/fdt_fixup.c         | 80 +++++++++++++++++++++++++++++++
+> >>  2 files changed, 103 insertions(+)
+> >>
+> >> diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
+> >> index fb076ba..cab3f0f 100644
+> >> --- a/include/sbi_utils/fdt/fdt_fixup.h
+> >> +++ b/include/sbi_utils/fdt/fdt_fixup.h
+> >> @@ -9,6 +9,29 @@
+> >>  #ifndef __FDT_FIXUP_H__
+> >>  #define __FDT_FIXUP_H__
+> >>
+> >> +struct sbi_cpu_idle_state {
+> >> +    const char *name;
+> >> +    uint32_t suspend_param;
+> >> +    bool local_timer_stop;
+> >> +    uint32_t entry_latency_us;
+> >> +    uint32_t exit_latency_us;
+> >> +    uint32_t min_residency_us;
+> >> +    uint32_t wakeup_latency_us;
+> >> +};
+> >> +
+> >> +/**
+> >> + * Add CPU idle states to cpu nodes in the DT
+> >> + *
+> >> + * Add information about CPU idle states to the devicetree. This function
+> >> + * assumes that CPU idle states are not already present in the devicetree, and
+> >> + * that all CPU states are equally applicable to all CPUs.
+> >> + *
+> >> + * @param fdt: device tree blob
+> >> + * @param states: array of idle state descriptions, ending with empty element
+> >> + * @return zero on success and -ve on failure
+> >> + */
+> >> +int fdt_add_cpu_idle_states(void *dtb, const struct sbi_cpu_idle_state *state);
+> >> +
+> >>  /**
+> >>   * Fix up the CPU node in the device tree
+> >>   *
+> >> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> >> index 41f6cbb..d9aa0b2 100644
+> >> --- a/lib/utils/fdt/fdt_fixup.c
+> >> +++ b/lib/utils/fdt/fdt_fixup.c
+> >> @@ -18,6 +18,86 @@
+> >>  #include <sbi_utils/fdt/fdt_pmu.h>
+> >>  #include <sbi_utils/fdt/fdt_helper.h>
+> >>
+> >> +int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
+> >> +{
+> >> +    int cpu_node, cpus_node, err, idle_states_node;
+> >> +    uint32_t count, phandle;
+> >> +
+> >> +    err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
+> >> +    if (err < 0)
+> >> +            return err;
+> >> +
+> >> +    err = fdt_find_max_phandle(fdt, &phandle);
+> >> +    phandle++;
+> >> +    if (err < 0)
+> >> +            return err;
+> >> +
+> >> +    cpus_node = fdt_path_offset(fdt, "/cpus");
+> >> +    if (cpus_node < 0)
+> >> +            return cpus_node;
+> >> +
+> >> +    /* Create the idle-states node and its child nodes. */
+> >> +    idle_states_node = fdt_add_subnode(fdt, cpus_node, "idle-states");
+> >> +    if (idle_states_node < 0)
+> >> +            return idle_states_node;
+> >
+> > It breaks platform final init when the ?idle-states? already exists:
 >
-> However, the referenced commits incorrectly passed in the unmodified
-> size of the array as "num". Fix this by reducing PLIC_SOURCES (matching
-> "riscv,ndev" on this platform), while keeping the same array sizes.
->
-> Addresses-Coverity-ID: 1530251 ("Out-of-bounds access")
-> Addresses-Coverity-ID: 1530252 ("Out-of-bounds access")
-> Fixes: 8509e46ca63a ("lib: utils/irqchip: plic: Ensure no out-of-bound access in priority save/restore helpers")
-> Fixes: 9a2eeb4aaeac ("lib: utils/irqchip: plic: Ensure no out-of-bound access in context save/restore helpers")
-> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> Right, that is a documented limitation. I would expect there to be a
+> single source of idle state information -- wherever the HSM
+> implementation is. So my suggestion would be to remove idle-states from
+> the static devicetree if you plan to use this function. If that is not
+> desired, could you explain your scenario in a bit more detail?
 
-This looks similar to Heinrich's patch. I am merging this since it
-came after enough discussion on Heinrich's patch.
+I assume there are existing boards with DTBs in flash containing
+"idle-states" DT node. Better to add a check if "idle-states" DT
+node already exists.
+
+Otherwise, this patch looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
-> ---
 >
->  platform/generic/allwinner/sun20i-d1.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index 1da9e5b..e2b76a3 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -69,10 +69,10 @@ static void sun20i_d1_csr_restore(void)
->   * PLIC
->   */
->
-> -#define PLIC_SOURCES                   176
-> -#define PLIC_IE_WORDS                  ((PLIC_SOURCES + 31) / 32)
-> +#define PLIC_SOURCES                   175
-> +#define PLIC_IE_WORDS                  (PLIC_SOURCES / 32 + 1)
->
-> -static u8 plic_priority[PLIC_SOURCES];
-> +static u8 plic_priority[1 + PLIC_SOURCES];
->  static u32 plic_sie[PLIC_IE_WORDS];
->  static u32 plic_threshold;
->
-> --
-> 2.37.4
+> Regards,
+> Samuel
 >
 >
 > --
