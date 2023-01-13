@@ -1,122 +1,46 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 13 Jan 2023 17:11:10 +0530
-Subject: [PATCH v5 8/8] lib: sbi: Speed-up sbi_printf() and friends using nputs()
-In-Reply-To: <20230113114110.1916226-1-apatel@ventanamicro.com>
-References: <20230113114110.1916226-1-apatel@ventanamicro.com>
-Message-ID: <20230113114110.1916226-9-apatel@ventanamicro.com>
+From: Conor Dooley <conor@kernel.org>
+Date: Fri, 13 Jan 2023 11:46:43 +0000
+Subject: =?UTF-8?Q?Re=3A_=E7=AD=94=E5=A4=8D=3A_=5BPATCH_1/1=5D_A?= =?UTF-8?Q?dd_RISC-V_TEE_support?=
+In-Reply-To: <000a01d926ff$69edd310$3dc97930$@eswincomputing.com>
+References: <20230111020159.1234-1-liushiwei@eswincomputing.com> <019501d925b4$9e792220$db6b6660$@ventanamicro.com> <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com> <CAK9=C2W61XqnQ7i2+LkQAZ2uOkarXF0NSQ=zOhqQw=E8RmVriA@mail.gmail.com> <000a01d926ff$69edd310$3dc97930$@eswincomputing.com>
+Message-ID: <12E61229-3007-4AAD-948D-C8B8296808E2@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_printf() is slow for semihosting because it prints one
-character at a time. To speed-up sbi_printf() for semihosting,
-we use a temporary buffer and nputs().
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/sbi/sbi_console.c | 52 ++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 18 deletions(-)
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index c1b9f73..41881d7 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -42,31 +42,29 @@ void sbi_putc(char ch)
- 	}
- }
- 
--void sbi_puts(const char *str)
-+static void nputs(const char *str, unsigned long len)
- {
--	spin_lock(&console_out_lock);
-+	unsigned long i;
-+
- 	if (console_dev && console_dev->console_puts) {
--		console_dev->console_puts(str, sbi_strlen(str));
-+		console_dev->console_puts(str, len);
- 	} else {
--		while (*str) {
--			sbi_putc(*str);
--			str++;
--		}
-+		for (i = 0; i < len; i++)
-+			sbi_putc(str[i]);
- 	}
-+}
-+
-+void sbi_puts(const char *str)
-+{
-+	spin_lock(&console_out_lock);
-+	nputs(str, sbi_strlen(str));
- 	spin_unlock(&console_out_lock);
- }
- 
- void sbi_nputs(const char *str, unsigned long len)
- {
--	unsigned long i;
--
- 	spin_lock(&console_out_lock);
--	if (console_dev && console_dev->console_puts) {
--		console_dev->console_puts(str, len);
--	} else {
--		for (i = 0; i < len; i++)
--			sbi_putc(str[i]);
--	}
-+	nputs(str, len);
- 	spin_unlock(&console_out_lock);
- }
- 
-@@ -102,6 +100,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define PAD_ZERO 2
- #define PAD_ALTERNATE 4
- #define PRINT_BUF_LEN 64
-+#define PRINT_TBUF_MAX 128
- 
- #define va_start(v, l) __builtin_va_start((v), l)
- #define va_end __builtin_va_end
-@@ -217,12 +216,26 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
- 
- static int print(char **out, u32 *out_len, const char *format, va_list args)
- {
--	int width, flags;
--	int pc = 0;
--	char scr[2];
-+	u32 tbuf_len;
-+	int width, flags, pc = 0;
-+	char scr[2], *tout, tbuf[PRINT_TBUF_MAX];
-+	bool use_tbuf = (!out) ? true : false;
- 	unsigned long long tmp;
- 
-+	if (use_tbuf) {
-+		tbuf_len = PRINT_TBUF_MAX;
-+		tout = tbuf;
-+		out = &tout;
-+		out_len = &tbuf_len;
-+	}
-+
- 	for (; *format != 0; ++format) {
-+		if (use_tbuf && !tbuf_len) {
-+			nputs(tbuf, PRINT_TBUF_MAX);
-+			tbuf_len = PRINT_TBUF_MAX;
-+			tout = tbuf;
-+		}
-+
- 		if (*format == '%') {
- 			++format;
- 			width = flags = 0;
-@@ -348,6 +361,9 @@ literal:
- 		}
- 	}
- 
-+	if (use_tbuf && tbuf_len < PRINT_TBUF_MAX)
-+		nputs(tbuf, PRINT_TBUF_MAX - tbuf_len);
-+
- 	return pc;
- }
- 
--- 
-2.34.1
+On 13 January 2023 03:30:41 GMT, liushiwei <liushiwei@eswincomputing.com> wrote:
+>Hi,  Anup
+
+It'd be nice if you'd respond inline so that following the conversation was easier.
+And responding from a mobile device would be too!
+
+>	I've combed through the linux code. What do you think of the following change?
+>
+>diff --git a/arch/riscv/include/asm/sbi.h b/arch/riscv/include/asm/sbi.h
+>index d1c37479d..9696c8c77 100644
+>--- a/arch/riscv/include/asm/sbi.h
+>+++ b/arch/riscv/include/asm/sbi.h
+>@@ -29,6 +29,7 @@ enum sbi_ext_id {
+>        SBI_EXT_RFENCE = 0x52464E43,
+>        SBI_EXT_HSM = 0x48534D,
+>        SBI_EXT_SRST = 0x53525354,
+>+       SBI_EXT_TEE = 0x544545,
+
+This range is reserved for official extensions.
+Can you please respond to Anup's request, preserved below, for a draft proposal?
+
+>	I find that these values are just transformations of these letters?So I just use the ext id, not the func id?
+>	While the sbi_ecall_tee_handler function uses other registers, such as t0.
+
+Anup wrote:
+> >We can't blindly use SBI extension ID and function ID space for TEE.
+> >Please share a draft proposal of how OP-TEE calls will be implemented as SBI calls.
+
+Thanks,
+Conor.
 
 
