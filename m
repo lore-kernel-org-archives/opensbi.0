@@ -1,61 +1,64 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 13 Jan 2023 17:11:04 +0530
-Subject: [PATCH v5 2/8] lib: sbi: Add sbi_nputs() function
+Date: Fri, 13 Jan 2023 17:11:05 +0530
+Subject: [PATCH v5 3/8] lib: sbi: Add sbi_ngets() function
 In-Reply-To: <20230113114110.1916226-1-apatel@ventanamicro.com>
 References: <20230113114110.1916226-1-apatel@ventanamicro.com>
-Message-ID: <20230113114110.1916226-3-apatel@ventanamicro.com>
+Message-ID: <20230113114110.1916226-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We add new sbi_nputs() which help us print a fixed number of characters
-from a physical memory location.
+We add new sbi_ngets() which help us read characters into a
+physical memory location.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
-Reviewed-by: Xiang W <wxjstz@126.com>
 ---
  include/sbi/sbi_console.h |  2 ++
- lib/sbi/sbi_console.c     | 10 ++++++++++
- 2 files changed, 12 insertions(+)
+ lib/sbi/sbi_console.c     | 15 +++++++++++++++
+ 2 files changed, 17 insertions(+)
 
 diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
-index e15b55d..1bdeeb9 100644
+index 1bdeeb9..660c239 100644
 --- a/include/sbi/sbi_console.h
 +++ b/include/sbi/sbi_console.h
-@@ -33,6 +33,8 @@ void sbi_putc(char ch);
+@@ -37,6 +37,8 @@ void sbi_nputs(const char *str, unsigned long len);
  
- void sbi_puts(const char *str);
- 
-+void sbi_nputs(const char *str, unsigned long len);
-+
  void sbi_gets(char *s, int maxwidth, char endchar);
  
++unsigned long sbi_ngets(char *str, unsigned long len);
++
  int __printf(2, 3) sbi_sprintf(char *out, const char *format, ...);
+ 
+ int __printf(3, 4) sbi_snprintf(char *out, u32 out_sz, const char *format, ...);
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index bb6e1ef..946c61d 100644
+index 946c61d..89d6a49 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -51,6 +51,16 @@ void sbi_puts(const char *str)
- 	spin_unlock(&console_out_lock);
+@@ -74,6 +74,21 @@ void sbi_gets(char *s, int maxwidth, char endchar)
+ 	*retval = '\0';
  }
  
-+void sbi_nputs(const char *str, unsigned long len)
++unsigned long sbi_ngets(char *str, unsigned long len)
 +{
++	int ch;
 +	unsigned long i;
 +
-+	spin_lock(&console_out_lock);
-+	for (i = 0; i < len; i++)
-+		sbi_putc(str[i]);
-+	spin_unlock(&console_out_lock);
++	for (i = 0; i < len; i++) {
++		ch = sbi_getc();
++		if (ch < 0)
++			break;
++		str[i] = ch;
++	}
++
++	return i;
 +}
 +
- void sbi_gets(char *s, int maxwidth, char endchar)
- {
- 	int ch;
+ #define PAD_RIGHT 1
+ #define PAD_ZERO 2
+ #define PAD_ALTERNATE 4
 -- 
 2.34.1
 
