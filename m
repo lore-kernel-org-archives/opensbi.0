@@ -1,32 +1,70 @@
-From: Conor Dooley <conor.dooley@microchip.com>
-Date: Mon, 9 Jan 2023 11:58:05 +0000
-Subject: [PATCH v4] dt-bindings: riscv: add SBI PMU event mappings
-In-Reply-To: <20230109104029.3cwbngqiydlpl7z2@orel>
-References: <20230108215047.3165032-1-conor@kernel.org>
- <20230109092715.bwomqoeosif43lr2@orel>
- <Y7vpxW1AeEOhcxUf@wendy>
- <20230109104029.3cwbngqiydlpl7z2@orel>
-Message-ID: <Y7wBTQM7BY8P4Oc4@wendy>
+From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Fri, 13 Jan 2023 16:47:19 +0000
+Subject: [PATCH v2] platform: generic: renesas: rzfive: Configure the Local memory regions as part of root domain
+Message-ID: <20230113164719.8058-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 09, 2023 at 11:40:29AM +0100, Andrew Jones wrote:
+Renesas RZ/Five RISC-V SoC has Instruction local memory and Data local
+memory (ILM & DLM) mapped between region 0x30000 - 0x4FFFF. When a
+virtual address falls within this range, the MMU doesn't trigger a page
+fault; it assumes the virtual address is a physical address which can
+cause undesired behaviours for statically linked applications/libraries.
 
-> Maybe just replace 'platform specific hooks' with 'in a platform specific
-> way'? I'm mostly just hung up on "hooks" (pun definitely intended), as
-> this document lives in the Linux repo and there aren't any hooks.
+To avoid this, add the ILM/DLM memory regions to the root domain region
+of the PMPU with permissions set to 0x0 for S/U modes so that any access
+to these regions gets blocked and for M-mode we grant full access (R/W/X).
 
-Yes Captain,
-Peter.
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+---
+v1->v2
+* Allow local memory region access in M-mode.
+---
+ platform/generic/renesas/rzfive/rzfive.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-;)
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 228 bytes
-Desc: not available
-URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20230109/375e01b2/attachment.sig>
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index ca182e3..ee9c9c4 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -5,8 +5,27 @@
+  */
+ 
+ #include <platform_override.h>
++#include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
++int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
++{
++	/*
++	 * Renesas RZ/Five RISC-V SoC has Instruction local memory and
++	 * Data local memory (ILM & DLM) mapped between region 0x30000
++	 * to 0x4FFFF. When a virtual address falls within this range,
++	 * the MMU doesn't trigger a page fault; it assumes the virtual
++	 * address is a physical address which can cause undesired
++	 * behaviours for statically linked applications/libraries. To
++	 * avoid this, add the ILM/DLM memory regions to the root domain
++	 * region of the PMPU with permissions set to 0x0 for S/U modes
++	 * so that any access to these regions gets blocked and for M-mode
++	 * we grant full access.
++	 */
++	return sbi_domain_root_add_memrange(0x30000, 0x20000, 0x1000,
++					    SBI_DOMAIN_MEMREGION_M_RWX);
++}
++
+ static const struct fdt_match renesas_rzfive_match[] = {
+ 	{ .compatible = "renesas,r9a07g043f01" },
+ 	{ /* sentinel */ }
+@@ -14,4 +33,5 @@ static const struct fdt_match renesas_rzfive_match[] = {
+ 
+ const struct platform_override renesas_rzfive = {
+ 	.match_table = renesas_rzfive_match,
++	.early_init = renesas_rzfive_early_init,
+ };
+-- 
+2.17.1
+
+
