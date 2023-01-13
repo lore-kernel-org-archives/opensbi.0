@@ -1,96 +1,142 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 13 Jan 2023 17:58:05 +0530
-Subject: [PATCH 2/2] platform: generic: allwinner: Advertise nonretentive suspend
-In-Reply-To: <20221228191125.37584-2-samuel@sholland.org>
-References: <20221228191125.37584-1-samuel@sholland.org> <20221228191125.37584-2-samuel@sholland.org>
-Message-ID: <CAAhSdy1wVUkAs6i3KPxugaTkmg+Opra+109PG1BUA3btgYVMVQ@mail.gmail.com>
+Date: Fri, 13 Jan 2023 18:12:13 +0530
+Subject: [PATCH] lib: sbi_domain: Avoid overwriting coldboot hart's scratch->arg1
+In-Reply-To: <776535ea-e99a-f887-2825-2912aa3b7f30@sholland.org>
+References: <20221230042611.1966361-1-bmeng@tinylab.org> <776535ea-e99a-f887-2825-2912aa3b7f30@sholland.org>
+Message-ID: <CAAhSdy0OXfbrWRJ4avMAWVrME62GDy=EjnqEWmVF-TRfSa1rMg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 29, 2022 at 12:41 AM Samuel Holland <samuel@sholland.org> wrote:
+On Fri, Dec 30, 2022 at 9:56 PM Samuel Holland <samuel@sholland.org> wrote:
 >
-> Add D1's nonretentive suspend state to the devicetree so S-mode software
-> knows about it and can use it.
+> Hi Bin,
 >
-> Latency and power measurements were taken on an Allwinner Nezha board:
->  - Entry latency was measured from the beginning of sbi_ecall_handler()
->    to before the call to wfi() in sun20i_d1_hart_suspend().
->  - Exit latency was measured from the beginning of sbi_init() to before
->    the call to sbi_hart_switch_mode() in init_warmboot().
->  - There was a 17.5 mW benefit from non-retentive suspend compared to
->    WFI, with a 170 mW cost during the 107 us entry/exit period. This
->    provides a break-even point around 1040 us. Residency includes entry
->    latency, so round this up to 1100 us.
->  - The hardware power sequence latency (after the WFI) is assumed to be
->    negligible, so set the wakeup latency to the exit latency.
+> On 12/29/22 22:26, Bin Meng wrote:
+> > In sbi_domain_finalize(), when locating the coldboot hart's domain,
+> > the coldboot hart's scratch->arg1 will be overwritten by the domain
+> > configuration. scratch->arg1 holds the FDT address of the coldboot
+> > hart, and in later boot process OpenSBI codes still read the FDT
+> > here and there, which leads to a crash.
 >
-> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> It sounds to me like the bug is in fdt_get_address(), not here. We
+> should save off the FDT address in some global variable, and not
+> continue getting it from next_arg1. Then there is no problem updating
+> next_arg1 from the domain configuration.
 
-Looks good to me.
+I agree with your suggestion.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+The fdt_get_address() should return root domains next_arg1 as the
+FDT pointer.
+
+@Bin, will you be sending a v2 patch ?
 
 Regards,
 Anup
 
-> ---
 >
->  platform/generic/allwinner/sun20i-d1.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
+> Regards,
+> Samuel
 >
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index 1da9e5b..8ca556e 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -12,6 +12,7 @@
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hsm.h>
->  #include <sbi/sbi_pmu.h>
-> +#include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/irqchip/fdt_irqchip_plic.h>
+> > To fix this, we save the next booting stage arg1 for the coldboot
+> > domain instance for the caller to use later.
+> >
+> > Resolves: https://github.com/riscv-software-src/opensbi/issues/281
+> > Fixes: b1678af210dc ("lib: sbi: Add initial domain support")
+> > Reported-by: Marouene Boubakri <marouene.boubakri@nxp.com>
+> > Signed-off-by: Bin Meng <bmeng@tinylab.org>
+> > ---
+> >
+> >  include/sbi/sbi_domain.h |  3 ++-
+> >  lib/sbi/sbi_domain.c     | 15 +++++++++++++--
+> >  lib/sbi/sbi_init.c       |  7 ++++++-
+> >  3 files changed, 21 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> > index 5553d21..0370d48 100644
+> > --- a/include/sbi/sbi_domain.h
+> > +++ b/include/sbi/sbi_domain.h
+> > @@ -195,7 +195,8 @@ int sbi_domain_root_add_memrange(unsigned long addr, unsigned long size,
+> >                          unsigned long align, unsigned long region_flags);
+> >
+> >  /** Finalize domain tables and startup non-root domains */
+> > -int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid);
+> > +int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid,
+> > +                     bool *coldboot_domain, unsigned long *next_arg1);
+> >
+> >  /** Initialize domains */
+> >  int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid);
+> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > index 3205595..bdef99f 100644
+> > --- a/lib/sbi/sbi_domain.c
+> > +++ b/lib/sbi/sbi_domain.c
+> > @@ -552,12 +552,14 @@ int sbi_domain_root_add_memrange(unsigned long addr, unsigned long size,
+> >       return 0;
+> >  }
+> >
+> > -int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+> > +int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid,
+> > +                     bool *coldboot_domain, unsigned long *next_arg1)
+> >  {
+> >       int rc;
+> >       u32 i, dhart;
+> >       struct sbi_domain *dom;
+> >       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> > +     *coldboot_domain = false;
+> >
+> >       /* Initialize and populate domains for the platform */
+> >       rc = sbi_platform_domains_init(plat);
+> > @@ -589,7 +591,16 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
+> >               if (dhart == cold_hartid) {
+> >                       scratch->next_addr = dom->next_addr;
+> >                       scratch->next_mode = dom->next_mode;
+> > -                     scratch->next_arg1 = dom->next_arg1;
+> > +                     /*
+> > +                      * We cannot overwrite the scratch->next_arg1 here
+> > +                      * as it holds the FDT address for the coldboot hart.
+> > +                      *
+> > +                      * Instead, we save the next booting stage arg1 for
+> > +                      * the coldboot domain instance for the caller to
+> > +                      * use later.
+> > +                      */
+> > +                     *coldboot_domain = true;
+> > +                     *next_arg1 = dom->next_arg1;
+> >               } else {
+> >                       rc = sbi_hsm_hart_start(scratch, NULL, dhart,
+> >                                               dom->next_addr,
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> > index a8500e5..85d211b 100644
+> > --- a/lib/sbi/sbi_init.c
+> > +++ b/lib/sbi/sbi_init.c
+> > @@ -240,6 +240,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >       int rc;
+> >       unsigned long *init_count;
+> >       const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> > +     bool coldboot_domain;
+> > +     unsigned long next_arg1;
+> >
+> >       /* Note: This has to be first thing in coldboot init sequence */
+> >       rc = sbi_scratch_init(scratch);
+> > @@ -314,7 +316,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >        * Note: Finalize domains before HART PMP configuration so
+> >        * that we use correct domain for configuring PMP.
+> >        */
+> > -     rc = sbi_domain_finalize(scratch, hartid);
+> > +     rc = sbi_domain_finalize(scratch, hartid, &coldboot_domain,
+> > +                              &next_arg1);
+> >       if (rc) {
+> >               sbi_printf("%s: domain finalize failed (error %d)\n",
+> >                          __func__, rc);
+> > @@ -351,6 +354,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >       (*init_count)++;
+> >
+> >       sbi_hsm_prepare_next_jump(scratch, hartid);
+> > +     if (coldboot_domain)
+> > +             scratch->next_arg1 = next_arg1;
+> >       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
+> >                            scratch->next_mode, FALSE);
+> >  }
 >
-> @@ -202,6 +203,24 @@ static int sun20i_d1_final_init(bool cold_boot, const struct fdt_match *match)
->         return 0;
->  }
->
-> +static const struct sbi_cpu_idle_state sun20i_d1_cpu_idle_states[] = {
-> +       {
-> +               .name                   = "cpu-nonretentive",
-> +               .suspend_param          = SBI_HSM_SUSPEND_NON_RET_DEFAULT,
-> +               .local_timer_stop       = true,
-> +               .entry_latency_us       = 40,
-> +               .exit_latency_us        = 67,
-> +               .min_residency_us       = 1100,
-> +               .wakeup_latency_us      = 67,
-> +       },
-> +       { }
-> +};
-> +
-> +static int sun20i_d1_fdt_fixup(void *fdt, const struct fdt_match *match)
-> +{
-> +       return fdt_add_cpu_idle_states(fdt, sun20i_d1_cpu_idle_states);
-> +}
-> +
->  static void thead_c9xx_pmu_ctr_enable_irq(uint32_t ctr_idx)
->  {
->         unsigned long mip_val;
-> @@ -265,5 +284,6 @@ static const struct fdt_match sun20i_d1_match[] = {
->  const struct platform_override sun20i_d1 = {
->         .match_table    = sun20i_d1_match,
->         .final_init     = sun20i_d1_final_init,
-> +       .fdt_fixup      = sun20i_d1_fdt_fixup,
->         .extensions_init = sun20i_d1_extensions_init,
->  };
-> --
-> 2.37.4
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
