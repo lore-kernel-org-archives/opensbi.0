@@ -1,124 +1,92 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 13 Jan 2023 17:57:10 +0530
-Subject: [PATCH 1/2] lib: utils: Add fdt_add_cpu_idle_states() helper function
-In-Reply-To: <6f14e6af-058c-58d1-bd56-af68814b8463@sholland.org>
-References: <20221228191125.37584-1-samuel@sholland.org> <Y62JAIU/VBM/jpV+@APC323>
- <6f14e6af-058c-58d1-bd56-af68814b8463@sholland.org>
-Message-ID: <CAAhSdy0otAPu8XaeV1WN8wXAKv4Ft=YAV9TX1tfYyYnr0-mtzw@mail.gmail.com>
+Date: Fri, 13 Jan 2023 17:58:05 +0530
+Subject: [PATCH 2/2] platform: generic: allwinner: Advertise nonretentive suspend
+In-Reply-To: <20221228191125.37584-2-samuel@sholland.org>
+References: <20221228191125.37584-1-samuel@sholland.org> <20221228191125.37584-2-samuel@sholland.org>
+Message-ID: <CAAhSdy1wVUkAs6i3KPxugaTkmg+Opra+109PG1BUA3btgYVMVQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 29, 2022 at 11:10 AM Samuel Holland <samuel@sholland.org> wrote:
+On Thu, Dec 29, 2022 at 12:41 AM Samuel Holland <samuel@sholland.org> wrote:
 >
-> On 12/29/22 06:33, Yu-Chien Peter Lin wrote:
-> > Hi Samuel,
-> >
-> > On Wed, Dec 28, 2022 at 01:11:23PM -0600, Samuel Holland wrote:
-> >> Since the availability and latency properties of CPU idle states depend
-> >> on the specific SBI HSM implementation, it is appropriate that the idle
-> >> states are added to the devicetree at runtime by that implementation.
-> >>
-> >> This helper function adds a platform-provided array of idle states to
-> >> the devicetree, following the SBI idle state binding. It makes some
-> >> assumptions for simplicity, but these could be relaxed if needed.
-> >>
-> >> Signed-off-by: Samuel Holland <samuel@sholland.org>
-> >> ---
-> >>
-> >>  include/sbi_utils/fdt/fdt_fixup.h | 23 +++++++++
-> >>  lib/utils/fdt/fdt_fixup.c         | 80 +++++++++++++++++++++++++++++++
-> >>  2 files changed, 103 insertions(+)
-> >>
-> >> diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
-> >> index fb076ba..cab3f0f 100644
-> >> --- a/include/sbi_utils/fdt/fdt_fixup.h
-> >> +++ b/include/sbi_utils/fdt/fdt_fixup.h
-> >> @@ -9,6 +9,29 @@
-> >>  #ifndef __FDT_FIXUP_H__
-> >>  #define __FDT_FIXUP_H__
-> >>
-> >> +struct sbi_cpu_idle_state {
-> >> +    const char *name;
-> >> +    uint32_t suspend_param;
-> >> +    bool local_timer_stop;
-> >> +    uint32_t entry_latency_us;
-> >> +    uint32_t exit_latency_us;
-> >> +    uint32_t min_residency_us;
-> >> +    uint32_t wakeup_latency_us;
-> >> +};
-> >> +
-> >> +/**
-> >> + * Add CPU idle states to cpu nodes in the DT
-> >> + *
-> >> + * Add information about CPU idle states to the devicetree. This function
-> >> + * assumes that CPU idle states are not already present in the devicetree, and
-> >> + * that all CPU states are equally applicable to all CPUs.
-> >> + *
-> >> + * @param fdt: device tree blob
-> >> + * @param states: array of idle state descriptions, ending with empty element
-> >> + * @return zero on success and -ve on failure
-> >> + */
-> >> +int fdt_add_cpu_idle_states(void *dtb, const struct sbi_cpu_idle_state *state);
-> >> +
-> >>  /**
-> >>   * Fix up the CPU node in the device tree
-> >>   *
-> >> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> >> index 41f6cbb..d9aa0b2 100644
-> >> --- a/lib/utils/fdt/fdt_fixup.c
-> >> +++ b/lib/utils/fdt/fdt_fixup.c
-> >> @@ -18,6 +18,86 @@
-> >>  #include <sbi_utils/fdt/fdt_pmu.h>
-> >>  #include <sbi_utils/fdt/fdt_helper.h>
-> >>
-> >> +int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
-> >> +{
-> >> +    int cpu_node, cpus_node, err, idle_states_node;
-> >> +    uint32_t count, phandle;
-> >> +
-> >> +    err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
-> >> +    if (err < 0)
-> >> +            return err;
-> >> +
-> >> +    err = fdt_find_max_phandle(fdt, &phandle);
-> >> +    phandle++;
-> >> +    if (err < 0)
-> >> +            return err;
-> >> +
-> >> +    cpus_node = fdt_path_offset(fdt, "/cpus");
-> >> +    if (cpus_node < 0)
-> >> +            return cpus_node;
-> >> +
-> >> +    /* Create the idle-states node and its child nodes. */
-> >> +    idle_states_node = fdt_add_subnode(fdt, cpus_node, "idle-states");
-> >> +    if (idle_states_node < 0)
-> >> +            return idle_states_node;
-> >
-> > It breaks platform final init when the ?idle-states? already exists:
+> Add D1's nonretentive suspend state to the devicetree so S-mode software
+> knows about it and can use it.
 >
-> Right, that is a documented limitation. I would expect there to be a
-> single source of idle state information -- wherever the HSM
-> implementation is. So my suggestion would be to remove idle-states from
-> the static devicetree if you plan to use this function. If that is not
-> desired, could you explain your scenario in a bit more detail?
+> Latency and power measurements were taken on an Allwinner Nezha board:
+>  - Entry latency was measured from the beginning of sbi_ecall_handler()
+>    to before the call to wfi() in sun20i_d1_hart_suspend().
+>  - Exit latency was measured from the beginning of sbi_init() to before
+>    the call to sbi_hart_switch_mode() in init_warmboot().
+>  - There was a 17.5 mW benefit from non-retentive suspend compared to
+>    WFI, with a 170 mW cost during the 107 us entry/exit period. This
+>    provides a break-even point around 1040 us. Residency includes entry
+>    latency, so round this up to 1100 us.
+>  - The hardware power sequence latency (after the WFI) is assumed to be
+>    negligible, so set the wakeup latency to the exit latency.
+>
+> Signed-off-by: Samuel Holland <samuel@sholland.org>
 
-I assume there are existing boards with DTBs in flash containing
-"idle-states" DT node. Better to add a check if "idle-states" DT
-node already exists.
-
-Otherwise, this patch looks good to me.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
 
+> ---
 >
-> Regards,
-> Samuel
+>  platform/generic/allwinner/sun20i-d1.c | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+>
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 1da9e5b..8ca556e 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -12,6 +12,7 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_hsm.h>
+>  #include <sbi/sbi_pmu.h>
+> +#include <sbi_utils/fdt/fdt_fixup.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/irqchip/fdt_irqchip_plic.h>
+>
+> @@ -202,6 +203,24 @@ static int sun20i_d1_final_init(bool cold_boot, const struct fdt_match *match)
+>         return 0;
+>  }
+>
+> +static const struct sbi_cpu_idle_state sun20i_d1_cpu_idle_states[] = {
+> +       {
+> +               .name                   = "cpu-nonretentive",
+> +               .suspend_param          = SBI_HSM_SUSPEND_NON_RET_DEFAULT,
+> +               .local_timer_stop       = true,
+> +               .entry_latency_us       = 40,
+> +               .exit_latency_us        = 67,
+> +               .min_residency_us       = 1100,
+> +               .wakeup_latency_us      = 67,
+> +       },
+> +       { }
+> +};
+> +
+> +static int sun20i_d1_fdt_fixup(void *fdt, const struct fdt_match *match)
+> +{
+> +       return fdt_add_cpu_idle_states(fdt, sun20i_d1_cpu_idle_states);
+> +}
+> +
+>  static void thead_c9xx_pmu_ctr_enable_irq(uint32_t ctr_idx)
+>  {
+>         unsigned long mip_val;
+> @@ -265,5 +284,6 @@ static const struct fdt_match sun20i_d1_match[] = {
+>  const struct platform_override sun20i_d1 = {
+>         .match_table    = sun20i_d1_match,
+>         .final_init     = sun20i_d1_final_init,
+> +       .fdt_fixup      = sun20i_d1_fdt_fixup,
+>         .extensions_init = sun20i_d1_extensions_init,
+>  };
+> --
+> 2.37.4
 >
 >
 > --
