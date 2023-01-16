@@ -1,78 +1,60 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 16 Jan 2023 14:45:51 +0530
-Subject: [PATCH 5/6] lib: reset/fdt_reset_atcwdt200: use defined macros in atcsmu.h
-In-Reply-To: <20230104062927.15628-6-peterlin@andestech.com>
-References: <20230104062927.15628-1-peterlin@andestech.com> <20230104062927.15628-6-peterlin@andestech.com>
-Message-ID: <CAAhSdy3XC9b8FWYqDd1gTTwz-_BL9ZAnHZZKeja7+a01L0RpQw@mail.gmail.com>
+Date: Mon, 16 Jan 2023 14:48:46 +0530
+Subject: [PATCH 6/6] lib: sbi_hsm: Introduce hart_secondary_boot() callback
+In-Reply-To: <Y7sw9qByX4QK2IIa@APC323>
+References: <20230104062927.15628-1-peterlin@andestech.com>
+ <20230104062927.15628-7-peterlin@andestech.com> <20230106142946.y27lr2it25y3mywa@orel>
+ <Y7sw9qByX4QK2IIa@APC323>
+Message-ID: <CAAhSdy3B8vi2DQ7Caa-i=VFELvYnh=aZZV+7fNKtmcnehi3WkA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 4, 2023 at 12:02 PM Yu Chien Peter Lin
+On Sun, Jan 8, 2023 at 6:40 PM Yu-Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Reuse the smu related macros defined in atcsmu.h.
+> Hi Andrew,
 >
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> ---
->  lib/utils/reset/fdt_reset_atcwdt200.c | 12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
+> On Fri, Jan 06, 2023 at 03:29:46PM +0100, Andrew Jones wrote:
+> > On Wed, Jan 04, 2023 at 02:29:27PM +0800, Yu Chien Peter Lin wrote:
+> > > When platform supports hotplug, i.e. both hart_start() and hart_stop()
+> > > callbacks are provided, the former doesn't need to be performed at
+> > > the boot-time. Thus, add a callback for the case of secondary boot.
+> > >
+> > > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> > > ---
+> > >  include/sbi/sbi_hsm.h |  7 +++++++
+> > >  lib/sbi/sbi_hsm.c     | 22 +++++++++++++---------
+> > >  2 files changed, 20 insertions(+), 9 deletions(-)
+> >
+> > I'm not sure why this patch is in the series as the change isn't used.
+> >
+> > Thanks,
+> > drew
 >
-> diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
-> index 91acc9f..a6e6834 100644
-> --- a/lib/utils/reset/fdt_reset_atcwdt200.c
-> +++ b/lib/utils/reset/fdt_reset_atcwdt200.c
-> @@ -17,6 +17,8 @@
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/reset/fdt_reset.h>
+> Thanks for the review.
 >
-> +#include <andes/atcsmu.h>
-> +
+> I'm just found it's not necessary to run platform-specific hart_start()
+> at boot-time since it's for CPU hotplug, I'm not sure hart_start() is
+> supposed to do at boot-time so we can ignore this patch if it's not worth
+> adding a callback.
 
-This can result in compile error because andes/atcsmu.h is
-part of platform code.
+For now it looks like we don't need this callback but we can revisit
+in the future.
 
-I suggest that andes/atcsmu.h should be in a common location
-include/sbi_utils/sys/ which is meant for common system devices.
+Regards,
+Anup
 
->  #define ATCWDT200_WP_NUM 0x5aa5
->  #define WREN_REG 0x18
->  #define CTRL_REG 0x10
-> @@ -41,12 +43,6 @@
->  #define CLK_PCLK (1 << 1)
->  #define WDT_EN (1 << 0)
 >
-> -#define FLASH_BASE 0x80000000ULL
-> -#define SMU_RESET_VEC_LO_OFF 0x50
-> -#define SMU_RESET_VEC_HI_OFF 0x60
-> -#define SMU_HARTn_RESET_VEC_LO(n) (SMU_RESET_VEC_LO_OFF + (n * 0x4))
-> -#define SMU_HARTn_RESET_VEC_HI(n) (SMU_RESET_VEC_HI_OFF + (n * 0x4))
-> -
->  static volatile char *wdt_addr;
->  static volatile char *smu_addr;
+> Best regards,
+> Peter Lin
 >
-> @@ -67,8 +63,8 @@ static void ae350_system_reset(u32 type, u32 reason)
->         const struct sbi_platform *plat = sbi_platform_thishart_ptr();
->
->         for (int i = 0; i < sbi_platform_hart_count(plat); i++) {
-> -               writel(FLASH_BASE, smu_addr + SMU_HARTn_RESET_VEC_LO(i));
-> -               writel(FLASH_BASE >> 32, smu_addr + SMU_HARTn_RESET_VEC_HI(i));
-> +               writel(FLASH_BASE, smu_addr + HARTn_RESET_VEC_LO(i));
-> +               writel(FLASH_BASE >> 32, smu_addr + HARTn_RESET_VEC_HI(i));
->         }
->
->         /* Program WDT control register  */
-> --
-> 2.34.1
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Regards,
-Anup
 
