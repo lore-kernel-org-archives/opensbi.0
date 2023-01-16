@@ -1,53 +1,57 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 16 Jan 2023 20:17:16 +0000
-Subject: [PATCH 5/6] lib: reset/fdt_reset_atcwdt200: use defined macros
- in atcsmu.h
-In-Reply-To: <CAAhSdy3XC9b8FWYqDd1gTTwz-_BL9ZAnHZZKeja7+a01L0RpQw@mail.gmail.com>
-References: <20230104062927.15628-1-peterlin@andestech.com>
- <20230104062927.15628-6-peterlin@andestech.com>
- <CAAhSdy3XC9b8FWYqDd1gTTwz-_BL9ZAnHZZKeja7+a01L0RpQw@mail.gmail.com>
-Message-ID: <Y8WwzLahq52eTGcl@APC323>
+From: liushiwei <liushiwei@eswincomputing.com>
+Date: Mon, 16 Jan 2023 21:08:12 +0800
+Subject: [PATCH 1/1] Add RISC-V TEE support
+Message-ID: <000001d929ab$975448d0$c5fcda70$@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
-
-On Mon, Jan 16, 2023 at 02:45:51PM +0530, Anup Patel wrote:
-> On Wed, Jan 4, 2023 at 12:02 PM Yu Chien Peter Lin
-> <peterlin@andestech.com> wrote:
-> >
-> > Reuse the smu related macros defined in atcsmu.h.
-> >
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > ---
-> >  lib/utils/reset/fdt_reset_atcwdt200.c | 12 ++++--------
-> >  1 file changed, 4 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
-> > index 91acc9f..a6e6834 100644
-> > --- a/lib/utils/reset/fdt_reset_atcwdt200.c
-> > +++ b/lib/utils/reset/fdt_reset_atcwdt200.c
-> > @@ -17,6 +17,8 @@
-> >  #include <sbi_utils/fdt/fdt_helper.h>
-> >  #include <sbi_utils/reset/fdt_reset.h>
-> >
-> > +#include <andes/atcsmu.h>
-> > +
-> 
-> This can result in compile error because andes/atcsmu.h is
-> part of platform code.
-> 
-> I suggest that andes/atcsmu.h should be in a common location
-> include/sbi_utils/sys/ which is meant for common system devices.
->
-> Regards,
-> Anup
-
-OK, will fix.
+Hi?Conor.
+	I have replied to the question of a draft proposal in another email, and Anup suggested that I edit it in https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc. I tried to push a document edit commit [https://github.com/riscv-non-isa/riscv-sbi-doc/pull/106]. Please check. Am I doing what you expect me to do?
 
 Thanks,
-Peter Lin
+Liushiwei
+-----????-----
+???: Conor Dooley [mailto:conor at kernel.org] 
+????: 2023?1?13? 19:47
+???: opensbi at lists.infradead.org; liushiwei <liushiwei@eswincomputing.com>; 'Anup Patel' <apatel@ventanamicro.com>
+??: hchauhan at ventanamicro.com; chenchaokai at eswincomputing.com
+??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
+
+
+
+On 13 January 2023 03:30:41 GMT, liushiwei <liushiwei@eswincomputing.com> wrote:
+>Hi,  Anup
+
+It'd be nice if you'd respond inline so that following the conversation was easier.
+And responding from a mobile device would be too!
+
+>	I've combed through the linux code. What do you think of the following 
+>change?
+>
+>diff --git a/arch/riscv/include/asm/sbi.h 
+>b/arch/riscv/include/asm/sbi.h index d1c37479d..9696c8c77 100644
+>--- a/arch/riscv/include/asm/sbi.h
+>+++ b/arch/riscv/include/asm/sbi.h
+>@@ -29,6 +29,7 @@ enum sbi_ext_id {
+>        SBI_EXT_RFENCE = 0x52464E43,
+>        SBI_EXT_HSM = 0x48534D,
+>        SBI_EXT_SRST = 0x53525354,
+>+       SBI_EXT_TEE = 0x544545,
+
+This range is reserved for official extensions.
+Can you please respond to Anup's request, preserved below, for a draft proposal?
+
+>	I find that these values are just transformations of these letters?So I just use the ext id, not the func id?
+>	While the sbi_ecall_tee_handler function uses other registers, such as t0.
+
+Anup wrote:
+> >We can't blindly use SBI extension ID and function ID space for TEE.
+> >Please share a draft proposal of how OP-TEE calls will be implemented as SBI calls.
+
+Thanks,
+Conor.
+
 
