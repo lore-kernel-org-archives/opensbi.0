@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 17 Jan 2023 09:21:31 +0530
-Subject: [RFC PATCH 10/11] docs: Correct opensbi-domain property name
-In-Reply-To: <20230106112209.441825-11-ajones@ventanamicro.com>
-References: <20230106112209.441825-1-ajones@ventanamicro.com> <20230106112209.441825-11-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy2=Okc6w0mnv+xYGMKeEucWymrgm1jdyvWWSf7WX6r5Sg@mail.gmail.com>
+Date: Tue, 17 Jan 2023 09:24:11 +0530
+Subject: [RFC PATCH 00/11] SBI system suspend (SUSP) extension
+In-Reply-To: <20230106112209.441825-1-ajones@ventanamicro.com>
+References: <20230106112209.441825-1-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy34Q6j40WfQh9Pi_NBQR=_PE1ifucZkutVqDYq5Tue+vw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,38 +12,65 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Jan 6, 2023 at 4:52 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> Replace the commas with dashes to correct the name.
+> This series implements the SBI system suspend support in OpenSBI
+> as-per the draft proposal for SBI system suspend which can be found at
+> https://github.com/jones-drew/riscv-sbi-doc/commit/d9e43e9a938fc3eb510e023c3f352462876f7785
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> The first half of the series are a few cleanups and fixes for HSM,
+> as system suspend makes use of some of its code and patterns. The
+> second half implements support for the extension and includes a patch
+> which allows testing to be enabled, even when low-level firmware does
+> not provide support. Regarding the test mode, it's currently enabled
+> by adding a 'system-suspend-test' DT property, but Anup has suggested
+> that FW_OPTION could also be used. I'm all ears for what people think
+> the best way to control test functionality in OpenSBI is and am happy
+> to switch it. To test with Linux the kernel must include the patch at
+> https://github.com/jones-drew/linux/commits/riscv/sbi-susp-rfc and
+> be built with CONFIG_SUSPEND enabled.
+>
+> The patches are based on v1.2 and "treewide: Replace TRUE/FALSE
+> with true/false" and can also be found at
+> https://github.com/jones-drew/opensbi/commits/susp-rfc
+>
+> Andrew Jones (11):
+>   lib: sbi_hsm: Factor out invalid state detection
+>   lib: sbi_hsm: Don't try to restore state on failed change
+>   lib: sbi_hsm: Ensure errors are consistent with spec
+>   lib: sbi_hsm: Move misplaced comment
+>   lib: sbi_hsm: Remove unnecessary include
+>   lib: sbi_hsm: Export some functions
+>   lib: sbi: Add system suspend skeleton
+>   lib: sbi: Add system_suspend_allowed domain property
+>   lib: sbi: Implement system suspend
+>   docs: Correct opensbi-domain property name
+>   platform: generic: Add system suspend test
 
-Looks good to me.
+I must say that this is pretty neatly done. Great work !!!
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Could you please add a boot print for suspend device in
+sbi_boot_print_general() ?
 
 Regards,
 Anup
 
-> ---
->  docs/domain_support.md | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index ac8c73d40b3e..b2c1023008cc 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -199,9 +199,9 @@ platform support can provide the HART to domain instance assignment using
->  platform specific callback.
+>  docs/domain_support.md            |  15 +++-
+>  include/sbi/sbi_domain.h          |   2 +
+>  include/sbi/sbi_ecall_interface.h |   8 +++
+>  include/sbi/sbi_hsm.h             |   4 ++
+>  include/sbi/sbi_system.h          |  18 +++++
+>  lib/sbi/Kconfig                   |   4 ++
+>  lib/sbi/objects.mk                |   3 +
+>  lib/sbi/sbi_domain.c              |   4 ++
+>  lib/sbi/sbi_ecall_hsm.c           |   4 +-
+>  lib/sbi/sbi_ecall_susp.c          |  48 +++++++++++++
+>  lib/sbi/sbi_hsm.c                 |  92 +++++++++++--------------
+>  lib/sbi/sbi_system.c              | 111 ++++++++++++++++++++++++++++++
+>  lib/utils/fdt/fdt_domain.c        |   7 ++
+>  platform/generic/platform.c       |  20 +++++-
+>  14 files changed, 283 insertions(+), 57 deletions(-)
+>  create mode 100644 lib/sbi/sbi_ecall_susp.c
 >
->  The HART to domain instance assignment can be parsed from the device tree
-> -using optional DT property **opensbi,domain** in each CPU DT node. The
-> -value of DT property **opensbi,domain** is the DT phandle of the domain
-> -instance DT node. If **opensbi,domain** DT property is not specified then
-> +using optional DT property **opensbi-domain** in each CPU DT node. The
-> +value of DT property **opensbi-domain** is the DT phandle of the domain
-> +instance DT node. If **opensbi-domain** DT property is not specified then
->  corresponding HART is assigned to **the ROOT domain**.
->
->  ### Domain Configuration Only Accessible to OpenSBI
 > --
 > 2.39.0
 >
