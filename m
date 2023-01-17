@@ -1,93 +1,65 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Tue, 17 Jan 2023 10:33:59 +0100
-Subject: [RFC PATCH 00/11] SBI system suspend (SUSP) extension
-In-Reply-To: <CAAhSdy34Q6j40WfQh9Pi_NBQR=_PE1ifucZkutVqDYq5Tue+vw@mail.gmail.com>
-References: <20230106112209.441825-1-ajones@ventanamicro.com>
- <CAAhSdy34Q6j40WfQh9Pi_NBQR=_PE1ifucZkutVqDYq5Tue+vw@mail.gmail.com>
-Message-ID: <20230117093359.k2xpcxoikj25mgtd@orel>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 17 Jan 2023 13:50:11 -0600
+Subject: [PATCH v5] dt-bindings: riscv: add SBI PMU event mappings
+In-Reply-To: <20230113205435.122712-1-conor@kernel.org>
+References: <20230113205435.122712-1-conor@kernel.org>
+Message-ID: <167398500960.3526866.18235571341667319487.robh@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 17, 2023 at 09:24:11AM +0530, Anup Patel wrote:
-> On Fri, Jan 6, 2023 at 4:52 PM Andrew Jones <ajones@ventanamicro.com> wrote:
-> >
-> > This series implements the SBI system suspend support in OpenSBI
-> > as-per the draft proposal for SBI system suspend which can be found at
-> > https://github.com/jones-drew/riscv-sbi-doc/commit/d9e43e9a938fc3eb510e023c3f352462876f7785
-> >
-> > The first half of the series are a few cleanups and fixes for HSM,
-> > as system suspend makes use of some of its code and patterns. The
-> > second half implements support for the extension and includes a patch
-> > which allows testing to be enabled, even when low-level firmware does
-> > not provide support. Regarding the test mode, it's currently enabled
-> > by adding a 'system-suspend-test' DT property, but Anup has suggested
-> > that FW_OPTION could also be used. I'm all ears for what people think
-> > the best way to control test functionality in OpenSBI is and am happy
-> > to switch it. To test with Linux the kernel must include the patch at
-> > https://github.com/jones-drew/linux/commits/riscv/sbi-susp-rfc and
-> > be built with CONFIG_SUSPEND enabled.
-> >
-> > The patches are based on v1.2 and "treewide: Replace TRUE/FALSE
-> > with true/false" and can also be found at
-> > https://github.com/jones-drew/opensbi/commits/susp-rfc
-> >
-> > Andrew Jones (11):
-> >   lib: sbi_hsm: Factor out invalid state detection
-> >   lib: sbi_hsm: Don't try to restore state on failed change
-> >   lib: sbi_hsm: Ensure errors are consistent with spec
-> >   lib: sbi_hsm: Move misplaced comment
-> >   lib: sbi_hsm: Remove unnecessary include
-> >   lib: sbi_hsm: Export some functions
-> >   lib: sbi: Add system suspend skeleton
-> >   lib: sbi: Add system_suspend_allowed domain property
-> >   lib: sbi: Implement system suspend
-> >   docs: Correct opensbi-domain property name
-> >   platform: generic: Add system suspend test
+
+On Fri, 13 Jan 2023 20:54:35 +0000, Conor Dooley wrote:
+> From: Conor Dooley <conor.dooley@microchip.com>
 > 
-> I must say that this is pretty neatly done. Great work !!!
-
-Thank you, Anup!
-
+> The SBI PMU extension requires a firmware to be aware of the event to
+> counter/mhpmevent mappings supported by the hardware. OpenSBI may use
+> DeviceTree to describe the PMU mappings. This binding is currently
+> described in markdown in OpenSBI (since v1.0 in Dec 2021) & used by QEMU
+> since v7.2.0.
 > 
-> Could you please add a boot print for suspend device in
-> sbi_boot_print_general() ?
-
-Will do.
-
-Thanks,
-drew
-
+> Import the binding for use while validating dtb dumps from QEMU and
+> upcoming hardware (eg JH7110 SoC) that will make use of the event
+> mapping.
 > 
-> Regards,
-> Anup
+> Link: https://github.com/riscv-software-src/opensbi/blob/master/docs/pmu_support.md
+> Link: https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc # Performance Monitoring Unit Extension
+> Co-developed-by: Atish Patra <atishp@rivosinc.com>
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
+> ---
+> Changes in v5:
+> - Remove the word hook from top level description & reword some of the
+>   statements that sound clumsy when removed from the context of OpenSBI.
 > 
-> >
-> >  docs/domain_support.md            |  15 +++-
-> >  include/sbi/sbi_domain.h          |   2 +
-> >  include/sbi/sbi_ecall_interface.h |   8 +++
-> >  include/sbi/sbi_hsm.h             |   4 ++
-> >  include/sbi/sbi_system.h          |  18 +++++
-> >  lib/sbi/Kconfig                   |   4 ++
-> >  lib/sbi/objects.mk                |   3 +
-> >  lib/sbi/sbi_domain.c              |   4 ++
-> >  lib/sbi/sbi_ecall_hsm.c           |   4 +-
-> >  lib/sbi/sbi_ecall_susp.c          |  48 +++++++++++++
-> >  lib/sbi/sbi_hsm.c                 |  92 +++++++++++--------------
-> >  lib/sbi/sbi_system.c              | 111 ++++++++++++++++++++++++++++++
-> >  lib/utils/fdt/fdt_domain.c        |   7 ++
-> >  platform/generic/platform.c       |  20 +++++-
-> >  14 files changed, 283 insertions(+), 57 deletions(-)
-> >  create mode 100644 lib/sbi/sbi_ecall_susp.c
-> >
-> > --
-> > 2.39.0
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> Changes in v4:
+> - A bunch of minor description/comment changes suggested by Drew
+> 
+> Changes in v3:
+> - align descriptions to SBI spec (and fix a misinterpretation of mine)
+> - switch to a nested items description, since the descriptions are for
+>   the elements of each entry, not the entries themselves
+> 
+> Changes in v2:
+> - use the schema mechanism for dependancies between properties
+> - +CC perf maintainers...
+> - move the matrix element descriptions into regular item descriptions
+>   rather than doing so freeform in the property description
+> - drop some description text that no longer applies since changes were
+>   made to the SBI spec
+> - drop mention of the "generic platform" which is OpenSBI specific
+> - drop the min/max items from the matrices, they don't appear to be
+>   needed?
+> 
+> OpenSBI is BSD-2-Clause licensed, hence the license here.
+> ---
+>  .../devicetree/bindings/perf/riscv,pmu.yaml   | 161 ++++++++++++++++++
+>  1 file changed, 161 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/perf/riscv,pmu.yaml
+> 
+
+Applied, thanks!
 
