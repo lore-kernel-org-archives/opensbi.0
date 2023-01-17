@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 17 Jan 2023 09:07:22 +0530
-Subject: [RFC PATCH 03/11] lib: sbi_hsm: Ensure errors are consistent with spec
-In-Reply-To: <20230106112209.441825-4-ajones@ventanamicro.com>
-References: <20230106112209.441825-1-ajones@ventanamicro.com> <20230106112209.441825-4-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy2W=bO1sKOY-vKTf93bkqcCEtG1izBgwhhy3JHXdKB1Tw@mail.gmail.com>
+Date: Tue, 17 Jan 2023 09:09:14 +0530
+Subject: [RFC PATCH 04/11] lib: sbi_hsm: Move misplaced comment
+In-Reply-To: <20230106112209.441825-5-ajones@ventanamicro.com>
+References: <20230106112209.441825-1-ajones@ventanamicro.com> <20230106112209.441825-5-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy23F7MNzh8Cs1f+Gau5EfYiF33KoD4PjAHXXFb_oyuKCA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,12 +12,10 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Jan 6, 2023 at 4:52 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> HSM functions define when SBI_ERR_INVALID_PARAM should be returned.
-> Ensure it's not used for reasons that don't meet the definitions by
-> using the catch-all code, SBI_ERR_FAILED, for those reasons instead.
-> Also, in one case sbi_hart_suspend() may have returned SBI_ERR_DENIED,
-> which isn't defined for that function at all. Use SBI_ERR_FAILED for
-> that case too.
+> While non-retentive suspend is not allowed for M-mode, the comment
+> at the top of sbi_hsm_hart_suspend() implied suspend wasn't allowed
+> for M-mode at all. Move the comment above the mode check which is
+> inside a suspend type is non-retentive check.
 >
 > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 
@@ -29,40 +27,33 @@ Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_hsm.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  lib/sbi/sbi_hsm.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 6ef6c5bdd4a7..3635f968e020 100644
+> index 3635f968e020..cce4b07bbb36 100644
 > --- a/lib/sbi/sbi_hsm.c
 > +++ b/lib/sbi/sbi_hsm.c
-> @@ -403,7 +403,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+> @@ -399,8 +399,6 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
 >
+> -       /* For now, we only allow suspend from S-mode or U-mode. */
+> -
 >         /* Sanity check on domain assigned to current HART */
 >         if (!dom)
-> -               return SBI_EINVAL;
-> +               return SBI_EFAIL;
+>                 return SBI_EFAIL;
+> @@ -415,6 +413,10 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
 >
->         /* Sanity check on suspend type */
->         if (SBI_HSM_SUSPEND_RET_DEFAULT < suspend_type &&
-> @@ -416,7 +416,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
 >         /* Additional sanity check for non-retentive suspend */
 >         if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
+> +               /*
+> +                * For now, we only allow non-retentive suspend from
+> +                * S-mode or U-mode.
+> +                */
 >                 if (rmode != PRV_S && rmode != PRV_U)
-> -                       return SBI_EINVAL;
-> +                       return SBI_EFAIL;
+>                         return SBI_EFAIL;
 >                 if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
->                                                   SBI_DOMAIN_EXECUTE))
->                         return SBI_EINVALID_ADDR;
-> @@ -430,7 +430,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
->         /* Directly move from STARTED to SUSPENDED state */
->         if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
->                                          SBI_HSM_STATE_SUSPENDED))
-> -               return SBI_EDENIED;
-> +               return SBI_EFAIL;
->
->         /* Save the suspend type */
->         hdata->suspend_type = suspend_type;
 > --
 > 2.39.0
 >
