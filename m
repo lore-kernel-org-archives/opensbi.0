@@ -1,27 +1,48 @@
 From: Nick Hu <nick.hu@sifive.com>
-Date: Tue, 17 Jan 2023 16:14:26 +0800
-Subject: [PATCH 0/2] Not to clear all the bits of mip
-Message-ID: <20230117081428.15042-1-nick.hu@sifive.com>
+Date: Tue, 17 Jan 2023 16:14:27 +0800
+Subject: [PATCH 1/2] firmware: Not to clear all the MIP
+In-Reply-To: <20230117081428.15042-1-nick.hu@sifive.com>
+References: <20230117081428.15042-1-nick.hu@sifive.com>
+Message-ID: <20230117081428.15042-2-nick.hu@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In generic behavior of QEMU, if we clear the mip.SEIP and the pendings of
-PLIC still exist, the QEMU may not set the mip.SEIP back immediately. So
-interrupts won't be handled anymore until the next new device interrupt
-arrived. We should only clear the SSIP and STIP which set by SW. The rest
-of the bits should be decided by HW.
+In generic behavior of QEMU, if the pending bits of PLIC are still set and
+we clear the SEIP, the QEMU may not set the SEIP back immediately and the
+interrupt may not be handled anymore until the new interrupts arrived and
+QEMU set the SEIP back which is a generic behavior in QEMU.
 
-Nick Hu (2):
-  firmware: Not to clear all the MIP
-  lib: sbi_hsm: Use csr_set to restore the MIP
-
+Signed-off-by: Nick Hu <nick.hu@sifive.com>
+Signed-off-by: Jim Shu <jim.shu@sifive.com>
+---
  firmware/fw_base.S | 10 ++++++++--
- lib/sbi/sbi_hsm.c  |  2 +-
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 3f622b3..50f284e 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -422,9 +422,15 @@ _start_warm:
+ 	li	ra, 0
+ 	call	_reset_regs
+ 
+-	/* Disable and clear all interrupts */
++	/* Disable all interrupts */
+ 	csrw	CSR_MIE, zero
+-	csrw	CSR_MIP, zero
++	/*
++	 * Only clear the MIP_SSIP and MIP_STIP. For the platform like QEMU,
++	 * If we clear other interrupts like MIP_SEIP and the pendings of
++	 * PLIC still exist, the QEMU may not set it back immediately.
++	 */
++	li	t0, (MIP_SSIP | MIP_STIP)
++	csrc	CSR_MIP, t0
+ 
+ 	/* Find HART count and HART stack size */
+ 	lla	a4, platform
 -- 
 2.34.1
 
