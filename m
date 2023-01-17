@@ -1,219 +1,198 @@
-From: liushiwei <liushiwei@eswincomputing.com>
-Date: Mon, 16 Jan 2023 21:09:15 +0800
-Subject: =?utf-8?Q?=E7=AD=94=E5=A4=8D:_=E7=AD=94=E5=A4=8D:_=5BPATCH_1/1=5D_Add_RIS?=
-	=?utf-8?Q?C-V_TEE_support?=
-In-Reply-To: <CAAhSdy26SAmQFwG_ky3kPVj6ASsvQO_otFfr5KMkK6FyNm0x6g@mail.gmail.com>
-References: <20230111020159.1234-1-liushiwei@eswincomputing.com> <019501d925b4$9e792220$db6b6660$@ventanamicro.com> <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com> <20230111153843.3jw5ku53yxqjddtw@arcolinux> <00a601d92654$a1888f50$e499adf0$@eswincomputing.com> <CAAhSdy26SAmQFwG_ky3kPVj6ASsvQO_otFfr5KMkK6FyNm0x6g@mail.gmail.com>
-Message-ID: <000201d929ab$bc5d2e30$35178a90$@eswincomputing.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 17 Jan 2023 09:06:23 +0530
+Subject: [RFC PATCH 01/11] lib: sbi_hsm: Factor out invalid state detection
+In-Reply-To: <20230106112209.441825-2-ajones@ventanamicro.com>
+References: <20230106112209.441825-1-ajones@ventanamicro.com> <20230106112209.441825-2-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy3g2t8JuDVZ-FtfTPmG-+s1=M9iYS9aVK_eZS5+pkeETg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi?Anup
-I edit it in https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc. I tried to push a document edit commit [https://github.com/riscv-non-isa/riscv-sbi-doc/pull/106]. Please check. Am I doing what you expect me to do
+On Fri, Jan 6, 2023 at 4:52 PM Andrew Jones <ajones@ventanamicro.com> wrote:
+>
+> Remove some redundant code by creating an invalid state detection
+> macro.
+>
+> No functional change intended.
+>
+> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 
+Looks good to me.
 
-Thanks
-Liushiwei
------????-----
-???: Anup Patel [mailto:anup at brainfault.org] 
-????: 2023?1?13? 20:00
-???: liushiwei <liushiwei@eswincomputing.com>
-??: Himanshu Chauhan <hchauhan@ventanamicro.com>; opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
-??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
-
-On Thu, Jan 12, 2023 at 12:38 PM liushiwei <liushiwei@eswincomputing.com> wrote:
->
-> Hi, Himanshu ,  These are my description:
->
-> In my design, The entire linux space is called REE (Rich Execution 
-> Environment), and TEE OS includes its user state called TEE (Trusted execution environment).
-> adding TEE functionality to opensbi requires two configuration items.
-> For example:
->    add CONFIG_SBI_ECALL_TEE=y in platform/generic/configs/defconfig file.
->    add CONFIG_TEE_LOAD_ADDR=0x27C000000 platform/generic/objects.mk.
->    The value of CONFIG_TEE_LOAD_ADDR depends on the actual memory layout,
->    It's a physical address.
->
-> When TEE is configured, opensbi adds the following functionality:
-> 1. Boot TEE OS.
->    If TEE is enabled, tee_os_init() is called before entering
->    sbi_hart_switch_mode(). tee_os_init saves the current context,
->    sets a new trap stack address, and runs to CONFIG_TEE_LOAD_ADDR as configured
->    to complete TEE OS initialization. TEE OS returns via ecall, Go to opensbi
->    sbi_ecall_tee_handler and use the characteristic value RETURN_ENTRY_DONE
->    to indicate the return after the TEE OS completes booting. Check whether the
->    TEE OS boot successfully according to the parameter. If fails,
->    the system enters wfi and terminates the startup process of opensbi. If successful,
->    it returns REE to switch into TEE's vector. then trap stack memory is restored,
->    the context is restored, the tee_os_init call is returned,
->    and the rest of the process is performed.
-> 2. REE switches to TEE.
->    When the TEE OS boot successfully, it returns an entry vector for REE into the TEE.
->    It represents various entry points into TEE OS and is stored in opensbi's global variables.
->    It is the optee_vectors_t structure, which contains nine entry cases:
->       1. yield_smc_entry;
->       2. fast_smc_entry;
->       3. cpu_on_entry;
->       4. cpu_off_entry;
->       5. cpu_resume_entry;
->       6. cpu_suspend_entry;
->       7. fiq_entry;
->       8. system_off_entry;
->       9. system_reset_entry;
->    yield_smc_entry means that this function entry TEE will start the thread function
->    and enter the user state of TEE. It may also switch back to REE with RPC function,
->    and then return to TEE after REE completes the corresponding function.
->    For the REE process that sent you this call, it may cause sleep.
->
->    fast_smc_entry indicates that this is a quick function that returns after
->    the TEE OS does something, and that it does not cause the caller to sleep.
->
->    yield_smc_entry and fast_smc_entry return opensbi use eigenvalue RETURN_CALL_DONE.
->    for yield_smc_entry, whether the call returns or the RPC returns is decided by linux.
->
->    cpu_on_entry/cpu_off_entry/cpu_resume_entry/cpu_suspend_entry and
->    fiq_entry/system_off_entry/system_reset_entry they are not implemented currently.
->
-> 3. TEE switches to REE.
->    opensbi needs to save the context when REE enters the TEE,
->    and restore the context when it returns from the TEE.
->
-> 4. TEE/REE Request a special function.
->    We have some specific functions, like get hartid from TEE,
->    it need save and restore the TEE context.
->
-> Data structure.
-> opensbi adds the sbi_save_context declaration
->    struct sbi_save_context {
->       struct sbi_trap_regs regs;
->       unsigned long sepc;
->       unsigned long satp;
->       unsigned long sstatus;
->       unsigned long sie;
->       unsigned long stvec;
->       unsigned long sscratch;
->       unsigned long scounteren;
->       unsigned long scause;
->       unsigned long stval;
->       unsigned long sip;
->    };
->    sbi_save_context include sbi_trap_regs and S mode csr. Used to hold 
-> the context of TEE or REE
->
->    typedef struct optee_vectors {
->       optee_vector_isn_t yield_smc_entry;
->       optee_vector_isn_t fast_smc_entry;
->       optee_vector_isn_t cpu_on_entry;
->       optee_vector_isn_t cpu_off_entry;
->       optee_vector_isn_t cpu_resume_entry;
->       optee_vector_isn_t cpu_suspend_entry;
->       optee_vector_isn_t fiq_entry;
->       optee_vector_isn_t system_off_entry;
->       optee_vector_isn_t system_reset_entry;
->    } optee_vectors_t;
->    optee_vectors represent the various entry points into TEE OS.
->
-> Variables defined by opensbi
->    optee_vectors_t *optee_vector_table;
->    struct sbi_save_context nsec_cpu_context[OPTEED_CORE_COUNT];
->    struct sbi_save_context sec_cpu_context[OPTEED_CORE_COUNT];
->    struct sbi_trap_regs cpu_start_context[OPTEED_CORE_COUNT];
->    typedef ulong tee_tmp_trap_stack[1024];
->    static tee_tmp_trap_stack tmp_stack[OPTEED_CORE_COUNT];
->
->    optee_vector_table value is assigned after the TEE OS boot succeeds.
->    nsec_cpu_context and sec_cpu_context is to save the context of TEE and REE,
->    cpu_start_context save the context of opensbi before tee_os_init enter TEE OS,
->    tee_tmp_stack is the trap stack when TEE OS return tee_os_init.
->
-> Under the current design, REE does not enable interrupts when entering 
-> TEE, and the entire TEE, including opensbi, is the process context of linux.
-> TEE processing must be brief and quick.
-
-Looks like you do have some write-up for your proof-of-concept implementation which is good but we can look at your patches only after we have discussed your SBI OPTEE proposal.
-
-I suggest you should create a textual/adoc description as if you are writing a chapter for https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc
-
-After you have this textual/adoc writeup for SBI OPTEE, we can discuss this in the Platform runtime services (PRS) or Trusted computing SIG meeting.
-
-Your patches can be reviewed only after there is enough agreement on your SBI OPTEE proposal.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
 
+> ---
+>  lib/sbi/sbi_hsm.c | 65 +++++++++++++++++------------------------------
+>  1 file changed, 24 insertions(+), 41 deletions(-)
 >
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 836008fc92d7..1896f52c2ab2 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -26,6 +26,15 @@
+>  #include <sbi/sbi_timer.h>
+>  #include <sbi/sbi_console.h>
 >
-> Regards,
-> liushiwei
-> -----????-----
-> ???: Himanshu Chauhan [mailto:hchauhan at ventanamicro.com]
-> ????: 2023?1?11? 23:39
-> ???: liushiwei <liushiwei@eswincomputing.com>
-> ??: opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
-> ??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
+> +#define __sbi_hsm_hart_change_state(hdata, oldstate, newstate)         \
+> +({                                                                     \
+> +       long state = atomic_cmpxchg(&(hdata)->state, oldstate, newstate); \
+> +       if (state != (oldstate))                                        \
+> +               sbi_printf("%s: ERR: The hart is in invalid state [%lu]\n", \
+> +                          __func__, state);                            \
+> +       state == (oldstate);                                            \
+> +})
+> +
+>  static const struct sbi_hsm_device *hsm_dev = NULL;
+>  static unsigned long hart_data_offset;
 >
-> On Wed, Jan 11, 2023 at 08:27:59PM +0800, liushiwei wrote:
-> > Do you mean hardware? Our hardware design referred to arm's 
-> > trustzone technology. optee os is a software solution using arm 
-> > trustzone hardware, which mainly includes REE(linux), TEE(optee os), 
-> > ATF(ARM Trusted firmware), and then our software also developed 
-> > these three parts. opensbi is similar to ATF. whether if this is what you want?
-> > The current committed code is not hardware-dependent, but just 
-> > continues the idea of this workaround, and we may commit hardware-dependent code later.
-> >
-> No, I meant the software specification.
+> @@ -95,13 +104,11 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
 >
-> > -----????-----
-> > ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com]
-> > ????: 2023?1?11? 20:03
-> > ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
-> > org
-> > ??: chenchaokai at eswincomputing.com
-> > ??: RE: [PATCH 1/1] Add RISC-V TEE support
-> >
-> > -----Original Message-----
-> > > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
-> > > liushiwei
-> > > Sent: 11 January 2023 07:32
-> > > To: opensbi at lists.infradead.org
-> > > Cc: chenchaokai at eswincomputing.com; liushiwei
-> > <liushiwei@eswincomputing.com>
-> > > Subject: [PATCH 1/1] Add RISC-V TEE support
-> >
-> > >RISC-V Trusted Executable Environment security software includes 
-> > >linux,
-> > opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE 
-> > OS is the secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
-> > At runtime, opensbi acts as a secure monitor, responsible for 
-> > context saving and restoring when switching between linux and OP-TEE OS.
-> > >TEE function is off by default, when using configuration is added 
-> > >in the
-> > config and objects file, such as platform/generic/configs/defconfig
-> > add CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk 
-> > add CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the 
-> > starting address of the OP-TEE OS.
-> >
-> > Hi Liushiwei,
-> >
-> > Was there any formal specification or draft for this? Could you 
-> > please point me to the draft or specification?
-> >
-> > Regards
-> > Himanshu
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
+>  void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>  {
+> -       u32 oldstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_START_PENDING,
+> -                                 SBI_HSM_STATE_STARTED);
+> -       if (oldstate != SBI_HSM_STATE_START_PENDING)
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
+> +                                        SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+>  }
+>
+> @@ -217,14 +224,12 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+>
+>  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+>  {
+> -       u32 hstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>         void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+>
+> -       hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOP_PENDING,
+> -                               SBI_HSM_STATE_STOPPED);
+> -       if (hstate != SBI_HSM_STATE_STOP_PENDING)
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STOP_PENDING,
+> +                                        SBI_HSM_STATE_STOPPED))
+>                 goto fail_exit;
+>
+>         if (hsm_device_has_hart_hotplug()) {
+> @@ -299,7 +304,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+>
+>  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+>  {
+> -       int oldstate;
+>         const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+> @@ -307,13 +311,9 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+>         if (!dom)
+>                 return SBI_EFAIL;
+>
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+> -                                 SBI_HSM_STATE_STOP_PENDING);
+> -       if (oldstate != SBI_HSM_STATE_STARTED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
+> +                                        SBI_HSM_STATE_STOP_PENDING))
+>                 return SBI_EFAIL;
+> -       }
+>
+>         if (exitnow)
+>                 sbi_exit(scratch);
+> @@ -363,36 +363,26 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+>
+>  void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+>  {
+> -       int oldstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+>         /* If current HART was SUSPENDED then set RESUME_PENDING state */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+> -                       SBI_HSM_STATE_RESUME_PENDING);
+> -       if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
+> +                                        SBI_HSM_STATE_RESUME_PENDING))
+>                 sbi_hart_hang();
+> -       }
+>
+>         hsm_device_hart_resume();
+>  }
+>
+>  void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>  {
+> -       u32 oldstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+>         /* If current HART was RESUME_PENDING then set STARTED state */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_RESUME_PENDING,
+> -                                 SBI_HSM_STATE_STARTED);
+> -       if (oldstate != SBI_HSM_STATE_RESUME_PENDING) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_RESUME_PENDING,
+> +                                        SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+> -       }
+>
+>         /*
+>          * Restore some of the M-mode CSRs which we are re-configured by
+> @@ -404,7 +394,7 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>  int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>                          ulong raddr, ulong rmode, ulong priv)
+>  {
+> -       int oldstate, ret;
+> +       int ret;
+>         const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+> @@ -438,11 +428,8 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>         scratch->next_mode = rmode;
+>
+>         /* Directly move from STARTED to SUSPENDED state */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+> -                                 SBI_HSM_STATE_SUSPENDED);
+> -       if (oldstate != SBI_HSM_STATE_STARTED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
+> +                                        SBI_HSM_STATE_SUSPENDED)) {
+>                 ret = SBI_EDENIED;
+>                 goto fail_restore_state;
+>         }
+> @@ -485,13 +472,9 @@ fail_restore_state:
+>          * We might have successfully resumed from retentive suspend
+>          * or suspend failed. In both cases, we restore state of hart.
+>          */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+> -                                 SBI_HSM_STATE_STARTED);
+> -       if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
+> +                                        SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+> -       }
+>
+>         return ret;
+>  }
+> --
+> 2.39.0
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
 
