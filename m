@@ -1,65 +1,39 @@
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 17 Jan 2023 13:50:11 -0600
-Subject: [PATCH v5] dt-bindings: riscv: add SBI PMU event mappings
-In-Reply-To: <20230113205435.122712-1-conor@kernel.org>
-References: <20230113205435.122712-1-conor@kernel.org>
-Message-ID: <167398500960.3526866.18235571341667319487.robh@kernel.org>
+From: Conor.Dooley@microchip.com <Conor.Dooley@microchip.com>
+Date: Tue, 17 Jan 2023 22:59:27 +0000
+Subject: Upcoming OpenSBI v1.2 release
+In-Reply-To: <af3a653f-1a20-38ad-b8d9-3b6b1a0e66c4@sholland.org>
+References: <CAAhSdy1MTYZcN0cbwPoM41RTWPwLuhbNvprKqhcXfJiNE8Jamw@mail.gmail.com>
+ <CAOnJCUK=XOfNtp6aTveqSdHYwUtNbbrnqn53z06fKU_i6ufTbA@mail.gmail.com>
+ <efd224b6-47c4-4f55-b247-5e6156c3d451@microchip.com>
+ <af3a653f-1a20-38ad-b8d9-3b6b1a0e66c4@sholland.org>
+Message-ID: <345ae4e5-c209-3da3-ec42-1b44da25c0f1@microchip.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On 27/12/2022 17:06, Samuel Holland wrote:
+> On 12/22/22 04:49, Conor.Dooley at microchip.com wrote:
 
-On Fri, 13 Jan 2023 20:54:35 +0000, Conor Dooley wrote:
-> From: Conor Dooley <conor.dooley@microchip.com>
+>> We are incredibly tight on space in eNVM for the HSS as things stand,
+>> so it is likely that we will not move to later versions of OpenSBI
+>> than (maybe) v1.1 & stick to cherry-picking fixes.
+>> The last time the HSS bumped its OpenSBI version, the change in size
+>> of OpenSBI needed some working around IIRC.
 > 
-> The SBI PMU extension requires a firmware to be aware of the event to
-> counter/mhpmevent mappings supported by the hardware. OpenSBI may use
-> DeviceTree to describe the PMU mappings. This binding is currently
-> described in markdown in OpenSBI (since v1.0 in Dec 2021) & used by QEMU
-> since v7.2.0.
-> 
-> Import the binding for use while validating dtb dumps from QEMU and
-> upcoming hardware (eg JH7110 SoC) that will make use of the event
-> mapping.
-> 
-> Link: https://github.com/riscv-software-src/opensbi/blob/master/docs/pmu_support.md
-> Link: https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc # Performance Monitoring Unit Extension
-> Co-developed-by: Atish Patra <atishp@rivosinc.com>
-> Signed-off-by: Atish Patra <atishp@rivosinc.com>
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-> Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
-> ---
-> Changes in v5:
-> - Remove the word hook from top level description & reword some of the
->   statements that sound clumsy when removed from the context of OpenSBI.
-> 
-> Changes in v4:
-> - A bunch of minor description/comment changes suggested by Drew
-> 
-> Changes in v3:
-> - align descriptions to SBI spec (and fix a misinterpretation of mine)
-> - switch to a nested items description, since the descriptions are for
->   the elements of each entry, not the entries themselves
-> 
-> Changes in v2:
-> - use the schema mechanism for dependancies between properties
-> - +CC perf maintainers...
-> - move the matrix element descriptions into regular item descriptions
->   rather than doing so freeform in the property description
-> - drop some description text that no longer applies since changes were
->   made to the SBI spec
-> - drop mention of the "generic platform" which is OpenSBI specific
-> - drop the min/max items from the matrices, they don't appear to be
->   needed?
-> 
-> OpenSBI is BSD-2-Clause licensed, hence the license here.
-> ---
->  .../devicetree/bindings/perf/riscv,pmu.yaml   | 161 ++++++++++++++++++
->  1 file changed, 161 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/perf/riscv,pmu.yaml
-> 
+> Adding Kconfig was quite helpful here. Now that there is an
+> officially-supported way to disable unused FDT drivers, my OpenSBI
+> builds for D1 are comfortably back under 256 KiB.
 
-Applied, thanks!
+I brought it up last week but forgot to respond here.
+eNVM on PolarFire SoC is only 128 KiB and the HSS, of which OpenSBI
+is but a component, has to fit in that.
+As things stand, "we" are already cutting out swathes of code that is
+not used on the platform & relying on self decompression - but even
+with that it's a struggle to fit.
+
+I don't think v1.2 (or later) is going to happen unfortunately!
+
+Thanks
 
