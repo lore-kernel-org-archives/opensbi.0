@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 17 Jan 2023 09:10:28 +0530
-Subject: [RFC PATCH 06/11] lib: sbi_hsm: Export some functions
-In-Reply-To: <20230106112209.441825-7-ajones@ventanamicro.com>
-References: <20230106112209.441825-1-ajones@ventanamicro.com> <20230106112209.441825-7-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy0LQWzJyX9YcZmTQKLW1KpLwkhbRwXiSOr09DTnLfaQVw@mail.gmail.com>
+Date: Tue, 17 Jan 2023 09:15:01 +0530
+Subject: [RFC PATCH 11/11] platform: generic: Add system suspend test
+In-Reply-To: <20230106112209.441825-12-ajones@ventanamicro.com>
+References: <20230106112209.441825-1-ajones@ventanamicro.com> <20230106112209.441825-12-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy3qrePrEdwBtTzYKuVA34_8kEGHeoroAqp263hspEHhGA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +12,17 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Jan 6, 2023 at 4:52 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> A coming patch can make use of a few internal hsm functions if
-> we export them.
+> When the system-suspend-test property is present in the domain config
+> node as shown below, implement system suspend with a simple 5 second
+> delay followed by a WFI. This allows testing system suspend when the
+> low-level firmware doesn't support it.
+>
+>   / {
+>     chosen {
+>       opensbi-domains {
+>           compatible = "opensbi,domain,config";
+>           system-suspend-test;
+>       };
 >
 > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 
@@ -25,58 +34,132 @@ Regards,
 Anup
 
 > ---
->  include/sbi/sbi_hsm.h |  4 ++++
->  lib/sbi/sbi_hsm.c     | 12 ++++++++++--
->  2 files changed, 14 insertions(+), 2 deletions(-)
+>  docs/domain_support.md      |  4 ++++
+>  include/sbi/sbi_system.h    |  1 +
+>  lib/sbi/sbi_system.c        | 30 ++++++++++++++++++++++++++++++
+>  platform/generic/platform.c | 20 +++++++++++++++++++-
+>  4 files changed, 54 insertions(+), 1 deletion(-)
 >
-> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-> index d6cc468d0528..00adfe1a4ef1 100644
-> --- a/include/sbi/sbi_hsm.h
-> +++ b/include/sbi/sbi_hsm.h
-> @@ -65,9 +65,13 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
->  void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
->  int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
->                          ulong raddr, ulong rmode, ulong priv);
-> +bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
-> +                              long newstate);
-> +int __sbi_hsm_hart_get_state(u32 hartid);
->  int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
->  int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
->                                     ulong hbase, ulong *out_hmask);
-> +void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
->  void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+> diff --git a/docs/domain_support.md b/docs/domain_support.md
+> index b2c1023008cc..d86628049b62 100644
+> --- a/docs/domain_support.md
+> +++ b/docs/domain_support.md
+> @@ -126,6 +126,9 @@ The DT properties of a domain configuration DT node are as follows:
+>  * **compatible** (Mandatory) - The compatible string of the domain
+>    configuration. This DT property should have value *"opensbi,domain,config"*
 >
->  #endif
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index cce4b07bbb36..8eb9643e6e72 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -46,7 +46,15 @@ struct sbi_hsm_data {
->         unsigned long saved_mip;
->  };
->
-> -static inline int __sbi_hsm_hart_get_state(u32 hartid)
-> +bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
-> +                              long newstate)
-> +{
-> +       struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-> +                                                           hart_data_offset);
-> +       return __sbi_hsm_hart_change_state(hdata, oldstate, newstate);
-> +}
+> +* **system-suspend-test** (Optional) - When present, enable a system
+> +  suspend test implementation which simply waits five seconds and issues a WFI.
 > +
-> +int __sbi_hsm_hart_get_state(u32 hartid)
->  {
->         struct sbi_hsm_data *hdata;
->         struct sbi_scratch *scratch;
-> @@ -329,7 +337,7 @@ static int __sbi_hsm_suspend_default(struct sbi_scratch *scratch)
->         return 0;
+>  ### Domain Memory Region Node
+>
+>  The domain memory region DT node describes details of a memory region and
+> @@ -226,6 +229,7 @@ be done:
+>      chosen {
+>          opensbi-domains {
+>              compatible = "opensbi,domain,config";
+> +            system-suspend-test;
+>
+>              tmem: tmem {
+>                  compatible = "opensbi,domain,memregion";
+> diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
+> index 65ea3d36d6cf..7d0867f276aa 100644
+> --- a/include/sbi/sbi_system.h
+> +++ b/include/sbi/sbi_system.h
+> @@ -57,6 +57,7 @@ struct sbi_system_suspend_device {
+>
+>  const struct sbi_system_suspend_device *sbi_system_suspend_get_device(void);
+>  void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev);
+> +void sbi_system_suspend_test_enable(void);
+>  bool sbi_system_suspend_supported(u32 sleep_type);
+>  int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque);
+>
+> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+> index c18562cdcfab..3242b21699cb 100644
+> --- a/lib/sbi/sbi_system.c
+> +++ b/lib/sbi/sbi_system.c
+> @@ -17,6 +17,7 @@
+>  #include <sbi/sbi_system.h>
+>  #include <sbi/sbi_ipi.h>
+>  #include <sbi/sbi_init.h>
+> +#include <sbi/sbi_timer.h>
+>
+>  static SBI_LIST_HEAD(reset_devices_list);
+>
+> @@ -108,6 +109,35 @@ void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev)
+>         suspend_dev = dev;
 >  }
 >
-> -static void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
-> +void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+> +static int sbi_system_suspend_test_check(u32 sleep_type)
+> +{
+> +       return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND;
+> +}
+> +
+> +static int sbi_system_suspend_test_suspend(u32 sleep_type)
+> +{
+> +       if (sleep_type != SBI_SUSP_SLEEP_TYPE_SUSPEND)
+> +               return SBI_EINVAL;
+> +
+> +       sbi_timer_mdelay(5000);
+> +
+> +       /* Wait for interrupt */
+> +       wfi();
+> +
+> +       return SBI_OK;
+> +}
+> +
+> +static struct sbi_system_suspend_device sbi_system_suspend_test = {
+> +       .name = "system-suspend-test",
+> +       .system_suspend_check = sbi_system_suspend_test_check,
+> +       .system_suspend = sbi_system_suspend_test_suspend,
+> +};
+> +
+> +void sbi_system_suspend_test_enable(void)
+> +{
+> +       sbi_system_suspend_set_device(&sbi_system_suspend_test);
+> +}
+> +
+>  bool sbi_system_suspend_supported(u32 sleep_type)
 >  {
->         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->                                                             hart_data_offset);
+>         return suspend_dev && suspend_dev->system_suspend_check &&
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index bfe15f0d6b87..b3a3351c0439 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -13,6 +13,7 @@
+>  #include <sbi/sbi_hartmask.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_string.h>
+> +#include <sbi/sbi_system.h>
+>  #include <sbi_utils/fdt/fdt_domain.h>
+>  #include <sbi_utils/fdt/fdt_fixup.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+> @@ -215,7 +216,24 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
+>
+>  static int generic_domains_init(void)
+>  {
+> -       return fdt_domains_populate(fdt_get_address());
+> +       void *fdt = fdt_get_address();
+> +       int offset, ret;
+> +
+> +       ret = fdt_domains_populate(fdt);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       offset = fdt_path_offset(fdt, "/chosen");
+> +
+> +       if (offset >= 0) {
+> +               offset = fdt_node_offset_by_compatible(fdt, offset,
+> +                                                      "opensbi,domain,config");
+> +               if (offset >= 0 &&
+> +                   fdt_get_property(fdt, offset, "system-suspend-test", NULL))
+> +                       sbi_system_suspend_test_enable();
+> +       }
+> +
+> +       return 0;
+>  }
+>
+>  static u64 generic_tlbr_flush_limit(void)
 > --
 > 2.39.0
 >
