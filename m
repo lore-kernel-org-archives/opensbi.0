@@ -1,39 +1,61 @@
-From: Conor.Dooley@microchip.com <Conor.Dooley@microchip.com>
-Date: Tue, 17 Jan 2023 22:59:27 +0000
-Subject: Upcoming OpenSBI v1.2 release
-In-Reply-To: <af3a653f-1a20-38ad-b8d9-3b6b1a0e66c4@sholland.org>
-References: <CAAhSdy1MTYZcN0cbwPoM41RTWPwLuhbNvprKqhcXfJiNE8Jamw@mail.gmail.com>
- <CAOnJCUK=XOfNtp6aTveqSdHYwUtNbbrnqn53z06fKU_i6ufTbA@mail.gmail.com>
- <efd224b6-47c4-4f55-b247-5e6156c3d451@microchip.com>
- <af3a653f-1a20-38ad-b8d9-3b6b1a0e66c4@sholland.org>
-Message-ID: <345ae4e5-c209-3da3-ec42-1b44da25c0f1@microchip.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 18 Jan 2023 10:18:53 +0800
+Subject: [PATCH v2 0/6] Implement hart hotplug using HSM extension for AE350
+Message-ID: <20230118021859.27010-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 27/12/2022 17:06, Samuel Holland wrote:
-> On 12/22/22 04:49, Conor.Dooley at microchip.com wrote:
+The following patches include implementing hotplug with ATCSMU deep sleep mode
+using HSM extension, introduce ATCSMU system device and some fixes, base on
+OpenSBI v1.2 and test on AE350 platform with the CPU listed below:
 
->> We are incredibly tight on space in eNVM for the HSS as things stand,
->> so it is likely that we will not move to later versions of OpenSBI
->> than (maybe) v1.1 & stick to cherry-picking fixes.
->> The last time the HSS bumped its OpenSBI version, the change in size
->> of OpenSBI needed some working around IIRC.
-> 
-> Adding Kconfig was quite helpful here. Now that there is an
-> officially-supported way to disable unused FDT drivers, my OpenSBI
-> builds for D1 are comfortably back under 256 KiB.
+RV64:
+* AX45MP quad-core
+* AX45MP octa-core
+* AX25MP quad-core
 
-I brought it up last week but forgot to respond here.
-eNVM on PolarFire SoC is only 128 KiB and the HSS, of which OpenSBI
-is but a component, has to fit in that.
-As things stand, "we" are already cutting out swathes of code that is
-not used on the platform & relying on self decompression - but even
-with that it's a struggle to fit.
+RV32:
+* A45MP quad-core
+* A25MP quad-core
 
-I don't think v1.2 (or later) is going to happen unfortunately!
+Changes v1 -> v2:
+* Drop patch for adding secondary_boot callback
+* Add a PATCH4 to move ATCSMU related code to lib/utils/sys
+* Include RB tags
 
-Thanks
+Yu Chien Peter Lin (6):
+  docs: generic.md: fix typo of andes-ae350
+  lib: sbi_hsm: handle failure when hart_stop returns SBI_ENOTSUPP
+  include: types: add always inline compiler attribute
+  lib: utils: atcsmu: Add Andes System Management Unit support
+  platform: andes/ae350: Implement hart hotplug using HSM extension
+  lib: reset/fdt_reset_atcwdt200: Use defined macros and function in
+    atcsmu.h
+
+ docs/platform/generic.md                 |  2 +-
+ include/sbi/sbi_hsm.h                    |  8 ++-
+ include/sbi/sbi_types.h                  |  1 +
+ include/sbi_utils/sys/atcsmu.h           | 63 ++++++++++++++++++
+ lib/sbi/sbi_hsm.c                        |  7 +-
+ lib/utils/reset/fdt_reset_atcwdt200.c    | 13 +---
+ lib/utils/sys/Kconfig                    |  4 ++
+ lib/utils/sys/atcsmu.c                   | 60 +++++++++++++++++
+ lib/utils/sys/objects.mk                 |  1 +
+ platform/generic/Kconfig                 |  1 +
+ platform/generic/andes/ae350.c           | 84 ++++++++++++++++++++++++
+ platform/generic/andes/objects.mk        |  2 +-
+ platform/generic/andes/sleep.S           | 70 ++++++++++++++++++++
+ platform/generic/include/andes/andes45.h | 10 +++
+ 14 files changed, 308 insertions(+), 18 deletions(-)
+ create mode 100644 include/sbi_utils/sys/atcsmu.h
+ create mode 100644 lib/utils/sys/atcsmu.c
+ create mode 100644 platform/generic/andes/sleep.S
+ create mode 100644 platform/generic/include/andes/andes45.h
+
+-- 
+2.34.1
+
 
