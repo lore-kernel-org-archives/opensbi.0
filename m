@@ -1,95 +1,75 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 18 Jan 2023 15:53:21 +0800
-Subject: [PATCH v3 6/6] lib: reset/fdt_reset_atcwdt200: Use defined macros and function in atcsmu.h
-In-Reply-To: <20230118075321.19447-1-peterlin@andestech.com>
-References: <20230118075321.19447-1-peterlin@andestech.com>
-Message-ID: <20230118075321.19447-7-peterlin@andestech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 18 Jan 2023 13:28:22 +0530
+Subject: [PATCH 5/5] lib: sbi: Program separate pmp entries for text and data
+In-Reply-To: <20230109084049.31828-6-hchauhan@ventanamicro.com>
+References: <20230109084049.31828-1-hchauhan@ventanamicro.com> <20230109084049.31828-6-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy3L+EPst88vV1KYMB4sEjjzkhqtVtZf8h_vXT5x1OU4NQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Reuse the smu related macros and function in atcsmu.h.
+On Mon, Jan 9, 2023 at 2:11 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
+>
+> Add two entries:
+>     1. TEXT: fw_start to _fw_rw_offset with RX permissions
+>     2. DATA: _fw_rw_offset to fw_size with RW permissions
+>
+> These permissions are still not enforced from M-mode but lay
+> the ground work for enforcing them for M-mode. SU-mode don't
+> have any access to these regions.
+>
+> Sample output:
+> Domain0 Region01  : 0x0000000080000000-0x000000008001ffff M: (R,X) S/U: ()
+> Domain0 Region02  : 0x0000000080020000-0x000000008003ffff M: (R,W) S/U: ()
+>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> ---
+>  lib/sbi/sbi_domain.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index f6addc4..8730c2c 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -638,11 +638,18 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
----
- lib/utils/reset/Kconfig               |  1 +
- lib/utils/reset/fdt_reset_atcwdt200.c | 21 ++++++++-------------
- 2 files changed, 9 insertions(+), 13 deletions(-)
+We need to do following checks as first thing in sbi_domain_init():
+1) scratch->fw_rw_offset should be power-of-2 value
+2) scratch->fw_start should be aligned to scratch->fw_rw_offset
+    (i.e. (scratch->fw_start & (scratch->fw_rw_offset - 1)) == 0)
 
-diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
-index 0e0c2c1d..4748cc85 100644
---- a/lib/utils/reset/Kconfig
-+++ b/lib/utils/reset/Kconfig
-@@ -11,6 +11,7 @@ if FDT_RESET
- 
- config FDT_RESET_ATCWDT200
- 	bool "Andes WDT FDT reset driver"
-+	depends on SYS_ATCSMU
- 	default n
- 
- config FDT_RESET_GPIO
-diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
-index 91acc9f7..9a611116 100644
---- a/lib/utils/reset/fdt_reset_atcwdt200.c
-+++ b/lib/utils/reset/fdt_reset_atcwdt200.c
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/reset/fdt_reset.h>
-+#include <sbi_utils/sys/atcsmu.h>
- 
- #define ATCWDT200_WP_NUM 0x5aa5
- #define WREN_REG 0x18
-@@ -41,14 +42,8 @@
- #define CLK_PCLK (1 << 1)
- #define WDT_EN (1 << 0)
- 
--#define FLASH_BASE 0x80000000ULL
--#define SMU_RESET_VEC_LO_OFF 0x50
--#define SMU_RESET_VEC_HI_OFF 0x60
--#define SMU_HARTn_RESET_VEC_LO(n) (SMU_RESET_VEC_LO_OFF + (n * 0x4))
--#define SMU_HARTn_RESET_VEC_HI(n) (SMU_RESET_VEC_HI_OFF + (n * 0x4))
--
--static volatile char *wdt_addr;
--static volatile char *smu_addr;
-+static volatile char *wdt_addr = NULL;
-+static struct smu_data smu = { 0 };
- 
- static int ae350_system_reset_check(u32 type, u32 reason)
- {
-@@ -66,16 +61,16 @@ static void ae350_system_reset(u32 type, u32 reason)
- {
- 	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
- 
--	for (int i = 0; i < sbi_platform_hart_count(plat); i++) {
--		writel(FLASH_BASE, smu_addr + SMU_HARTn_RESET_VEC_LO(i));
--		writel(FLASH_BASE >> 32, smu_addr + SMU_HARTn_RESET_VEC_HI(i));
--	}
-+	for (int i = 0; i < sbi_platform_hart_count(plat); i++)
-+		if (smu_set_reset_vector(&smu, FLASH_BASE, i))
-+			goto fail;
- 
- 	/* Program WDT control register  */
- 	writew(ATCWDT200_WP_NUM, wdt_addr + WREN_REG);
- 	writel(INT_CLK_32768 | INT_EN | RST_CLK_128 | RST_EN | WDT_EN,
- 	       wdt_addr + CTRL_REG);
- 
-+fail:
- 	sbi_hart_hang();
- }
- 
-@@ -104,7 +99,7 @@ static int atcwdt200_reset_init(void *fdt, int nodeoff,
- 	if (fdt_parse_compat_addr(fdt, &reg_addr, "andestech,atcsmu"))
- 		return SBI_ENODEV;
- 
--	smu_addr = (volatile char *)(unsigned long)reg_addr;
-+	smu.addr = (unsigned long)reg_addr;
- 
- 	sbi_system_reset_add_device(&atcwdt200_reset);
- 
--- 
-2.34.1
+>
+>         /* Root domain firmware memory region */
+> -       sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
+> -                                 SBI_DOMAIN_MEMREGION_M_RWX,
+> +       sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
+> +                                 (SBI_DOMAIN_MEMREGION_M_READABLE |
+> +                                  SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
+>                                   &root_fw_region);
+>         domain_memregion_initfw(&root_memregs[root_memregs_count++]);
+>
+> +       sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
+> +                                 (scratch->fw_size - scratch->fw_rw_offset),
+> +                                 (SBI_DOMAIN_MEMREGION_M_READABLE |
+> +                                  SBI_DOMAIN_MEMREGION_M_WRITABLE),
+> +                                 &root_memregs[root_memregs_count++]);
+> +
+>         /* Root domain allow everything memory region */
+>         sbi_domain_memregion_init(0, ~0UL,
+>                                   (SBI_DOMAIN_MEMREGION_READABLE |
+> --
+> 2.39.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
+Regards,
+Anup
 
