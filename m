@@ -1,75 +1,111 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 18 Jan 2023 15:56:07 +0100
-Subject: [PATCH 00/11] SBI system suspend (SUSP) extension
-In-Reply-To: <20230118144234.79263-1-ajones@ventanamicro.com>
-References: <20230118144234.79263-1-ajones@ventanamicro.com>
-Message-ID: <20230118145607.lrnbgu4jljuy2c6n@orel>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Wed, 18 Jan 2023 16:23:06 +0000
+Subject: [PATCH 3/5] firmware: Add RW section offset in scratch
+In-Reply-To: <20230109084049.31828-4-hchauhan@ventanamicro.com>
+References: <20230109084049.31828-1-hchauhan@ventanamicro.com>
+ <20230109084049.31828-4-hchauhan@ventanamicro.com>
+Message-ID: <2AEE45E0-861E-462D-B54A-D9779F2AE0B8@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 18, 2023 at 03:42:23PM +0100, Andrew Jones wrote:
-> This series implements the SBI system suspend support in OpenSBI
-> as-per the draft proposal for SBI system suspend which can be found at
-> https://github.com/jones-drew/riscv-sbi-doc/commit/d9e43e9a938fc3eb510e023c3f352462876f7785
+On 9 Jan 2023, at 08:40, Himanshu Chauhan <hchauhan@ventanamicro.com> wrote:
 > 
-> The first half of the series are a few cleanups and fixes for HSM,
-> as system suspend makes use of some of its code and patterns. The
-> second half implements support for the extension and includes a patch
-> which allows testing to be enabled, even when low-level firmware does
-> not provide support. Regarding the test mode, it's currently enabled
-> by adding a 'system-suspend-test' DT property, but Anup has suggested
-> that FW_OPTION could also be used. I'm all ears for what people think
-> the best way to control test functionality in OpenSBI is and am happy
-> to switch it. To test with Linux the kernel must include the patch at
-> https://github.com/jones-drew/linux/commits/riscv/sbi-susp-rfc and
-> be built with CONFIG_SUSPEND enabled.
+> Add the RW section offset, provided by _fw_rw_offset symbol,
+> to the scratch structure. This will be used to program
+> separate pmp entry for RW section.
 > 
-> The patches are based on commit da5594bf853d ("platform: generic:
-> allwinner: Fix PLIC array bounds") and can also be found at
-> https://github.com/jones-drew/opensbi/commits/susp-v1
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> ---
+> firmware/fw_base.S        |  5 +++++
+> include/sbi/sbi_scratch.h | 24 ++++++++++++++----------
+> 2 files changed, 19 insertions(+), 10 deletions(-)
 > 
-> v2:
-  ^ This should be v1, since I started at RFC (v0).
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 3f622b3..ce1f782 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -298,6 +298,11 @@ _scratch_init:
+> 	sub	a5, t3, a4
+> 	REG_S	a4, SBI_SCRATCH_FW_START_OFFSET(tp)
+> 	REG_S	a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
+> +
+> +	/* Store R/W section's offset in scratch space */
+> +	lla	a4, _fw_rw_offset
+> +	REG_S	a4, SBI_SCRATCH_FW_RW_OFFSET(tp)
+> +
 
->  - Rebased on latest master
->  - Added a print line to sbi_boot_print_general() [Anup]
->  - Picked up Anup's r-b's
+You can?t use LLA for an absolute symbol, especially one whose value
+isn?t guaranteed to be within 2^31 of the LLA?s address. Use the GOT,
+use a constant pool (for compatibility with older assemblers) or do the
+subtraction in the code instead of the linker script.
+
+Jess
+
+> 	/* Store next arg1 in scratch space */
+> 	MOV_3R	s0, a0, s1, a1, s2, a2
+> 	call	fw_next_arg1
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index 40a3bc9..2966188 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -18,26 +18,28 @@
+> #define SBI_SCRATCH_FW_START_OFFSET		(0 * __SIZEOF_POINTER__)
+> /** Offset of fw_size member in sbi_scratch */
+> #define SBI_SCRATCH_FW_SIZE_OFFSET		(1 * __SIZEOF_POINTER__)
+> +/** Offset (in sbi_scratch) of the R/W Offset */
+> +#define SBI_SCRATCH_FW_RW_OFFSET		(2 * __SIZEOF_POINTER__)
+> /** Offset of next_arg1 member in sbi_scratch */
+> -#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(2 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(3 * __SIZEOF_POINTER__)
+> /** Offset of next_addr member in sbi_scratch */
+> -#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(3 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(4 * __SIZEOF_POINTER__)
+> /** Offset of next_mode member in sbi_scratch */
+> -#define SBI_SCRATCH_NEXT_MODE_OFFSET		(4 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_NEXT_MODE_OFFSET		(5 * __SIZEOF_POINTER__)
+> /** Offset of warmboot_addr member in sbi_scratch */
+> -#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(5 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(6 * __SIZEOF_POINTER__)
+> /** Offset of platform_addr member in sbi_scratch */
+> -#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(6 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(7 * __SIZEOF_POINTER__)
+> /** Offset of hartid_to_scratch member in sbi_scratch */
+> -#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(7 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(8 * __SIZEOF_POINTER__)
+> /** Offset of trap_exit member in sbi_scratch */
+> -#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(8 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(9 * __SIZEOF_POINTER__)
+> /** Offset of tmp0 member in sbi_scratch */
+> -#define SBI_SCRATCH_TMP0_OFFSET			(9 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_TMP0_OFFSET			(10 * __SIZEOF_POINTER__)
+> /** Offset of options member in sbi_scratch */
+> -#define SBI_SCRATCH_OPTIONS_OFFSET		(10 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_OPTIONS_OFFSET		(11 * __SIZEOF_POINTER__)
+> /** Offset of extra space in sbi_scratch */
+> -#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(11 * __SIZEOF_POINTER__)
+> +#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(12 * __SIZEOF_POINTER__)
+> /** Maximum size of sbi_scratch (4KB) */
+> #define SBI_SCRATCH_SIZE			(0x1000)
 > 
-> Andrew Jones (11):
->   lib: sbi_hsm: Factor out invalid state detection
->   lib: sbi_hsm: Don't try to restore state on failed change
->   lib: sbi_hsm: Ensure errors are consistent with spec
->   lib: sbi_hsm: Move misplaced comment
->   lib: sbi_hsm: Remove unnecessary include
->   lib: sbi_hsm: Export some functions
->   lib: sbi: Add system suspend skeleton
->   lib: sbi: Add system_suspend_allowed domain property
->   lib: sbi: Implement system suspend
->   docs: Correct opensbi-domain property name
->   platform: generic: Add system suspend test
-> 
->  docs/domain_support.md            |  15 +++-
->  include/sbi/sbi_domain.h          |   2 +
->  include/sbi/sbi_ecall_interface.h |   8 +++
->  include/sbi/sbi_hsm.h             |   4 ++
->  include/sbi/sbi_system.h          |  18 +++++
->  lib/sbi/Kconfig                   |   4 ++
->  lib/sbi/objects.mk                |   3 +
->  lib/sbi/sbi_domain.c              |   4 ++
->  lib/sbi/sbi_ecall_hsm.c           |   4 +-
->  lib/sbi/sbi_ecall_susp.c          |  48 +++++++++++++
->  lib/sbi/sbi_hsm.c                 |  92 +++++++++++--------------
->  lib/sbi/sbi_init.c                |   4 ++
->  lib/sbi/sbi_system.c              | 111 ++++++++++++++++++++++++++++++
->  lib/utils/fdt/fdt_domain.c        |   7 ++
->  platform/generic/platform.c       |  20 +++++-
->  15 files changed, 287 insertions(+), 57 deletions(-)
->  create mode 100644 lib/sbi/sbi_ecall_susp.c
-> 
+> @@ -53,6 +55,8 @@ struct sbi_scratch {
+> 	unsigned long fw_start;
+> 	/** Size (in bytes) of firmware linked to OpenSBI library */
+> 	unsigned long fw_size;
+> +	/** Offset (in bytes) of the R/W section */
+> +	unsigned long fw_rw_offset;
+> 	/** Arg1 (or 'a1' register) of next booting stage for this HART */
+> 	unsigned long next_arg1;
+> 	/** Address of next booting stage for this HART */
 > -- 
 > 2.39.0
 > 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
 
