@@ -1,52 +1,73 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 18 Jan 2023 13:22:43 +0530
-Subject: [PATCH 4/5] lib: sbi: Print the RW section offset
-In-Reply-To: <20230109084049.31828-5-hchauhan@ventanamicro.com>
-References: <20230109084049.31828-1-hchauhan@ventanamicro.com> <20230109084049.31828-5-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy2JnOy5HP9OxcHNPJaXbJCLnUV+q7SXtT9vJdMN8Swc2Q@mail.gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 18 Jan 2023 15:53:15 +0800
+Subject: [PATCH v3 0/6] Implement hart hotplug using HSM extension for AE350
+Message-ID: <20230118075321.19447-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 9, 2023 at 2:11 PM Himanshu Chauhan
-<hchauhan@ventanamicro.com> wrote:
->
-> Print the RW section offset when firmware base and size is
-> being printed.
->
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+The following patches include implementing hotplug with ATCSMU deep sleep mode
+using HSM extension, introduce ATCSMU system device and some fixes, base on
+OpenSBI v1.2 and test on AE350 platform with the CPU listed below:
 
-Looks good to me.
+RV64:
+* AX45MP quad-core
+* AX45MP octa-core
+* AX25MP quad-core
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+RV32:
+* A45MP quad-core
+* A25MP quad-core
 
-Regards,
-Anup
+Changes v1 -> v2:
+* Drop patch for adding secondary_boot callback
+* Add a PATCH4 to move ATCSMU related code to lib/utils/sys
+* Include RB tags
+Changes v2 -> v3:
+* Refine PATCH4 suggested by Anup [1]
+	* Remove redundant headers
+	* Move is_andes25() to ae350.c
+	* Add "struct smu_data *smu" parameter to each smu related functions
+* Refine PATCH6 suggested by Anup [2]
+	* Make FDT_RESET_ATCWDT200 depends on SYS_ATCSMU
+* PATCH5 & PATCH6: Instantiate struct smu_data in ae350.c and fdt_reset_atcwdt200.c
 
-> ---
->  lib/sbi/sbi_init.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 259a191..e353c33 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -108,6 +108,7 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
->         sbi_printf("Firmware Base             : 0x%lx\n", scratch->fw_start);
->         sbi_printf("Firmware Size             : %d KB\n",
->                    (u32)(scratch->fw_size / 1024));
-> +       sbi_printf("Firmware RW Offset        : 0x%lx\n", scratch->fw_rw_offset);
->
->         /* SBI details */
->         sbi_printf("Runtime SBI Version       : %d.%d\n",
-> --
-> 2.39.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+[1] https://lists.infradead.org/pipermail/opensbi/2023-January/004236.html
+[2] https://lists.infradead.org/pipermail/opensbi/2023-January/004237.html
+
+Yu Chien Peter Lin (6):
+  docs: generic.md: fix typo of andes-ae350
+  lib: sbi_hsm: handle failure when hart_stop returns SBI_ENOTSUPP
+  include: types: add always inline compiler attribute
+  lib: utils: atcsmu: Add Andes System Management Unit support
+  platform: andes/ae350: Implement hart hotplug using HSM extension
+  lib: reset/fdt_reset_atcwdt200: Use defined macros and function in
+    atcsmu.h
+
+ docs/platform/generic.md                 |  2 +-
+ include/sbi/sbi_hsm.h                    |  8 +-
+ include/sbi/sbi_types.h                  |  1 +
+ include/sbi_utils/sys/atcsmu.h           | 53 +++++++++++++
+ lib/sbi/sbi_hsm.c                        |  7 +-
+ lib/utils/reset/Kconfig                  |  1 +
+ lib/utils/reset/fdt_reset_atcwdt200.c    | 21 ++---
+ lib/utils/sys/Kconfig                    |  4 +
+ lib/utils/sys/atcsmu.c                   | 92 ++++++++++++++++++++++
+ lib/utils/sys/objects.mk                 |  1 +
+ platform/generic/Kconfig                 |  1 +
+ platform/generic/andes/ae350.c           | 99 ++++++++++++++++++++++++
+ platform/generic/andes/objects.mk        |  2 +-
+ platform/generic/andes/sleep.S           | 70 +++++++++++++++++
+ platform/generic/include/andes/andes45.h | 10 +++
+ 15 files changed, 351 insertions(+), 21 deletions(-)
+ create mode 100644 include/sbi_utils/sys/atcsmu.h
+ create mode 100644 lib/utils/sys/atcsmu.c
+ create mode 100644 platform/generic/andes/sleep.S
+ create mode 100644 platform/generic/include/andes/andes45.h
+
+-- 
+2.34.1
+
 
