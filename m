@@ -1,93 +1,35 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Wed, 18 Jan 2023 17:07:54 +0530
-Subject: [PATCH v2 2/5] firmware: Move dynsym and reladyn sections to RX section
+Date: Wed, 18 Jan 2023 17:07:56 +0530
+Subject: [PATCH v2 4/5] lib: sbi: Print the RW section offset
 In-Reply-To: <20230118113757.46282-1-hchauhan@ventanamicro.com>
 References: <20230118113757.46282-1-hchauhan@ventanamicro.com>
-Message-ID: <20230118113757.46282-3-hchauhan@ventanamicro.com>
+Message-ID: <20230118113757.46282-5-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, the dynsym and reladyn sections are under RW data.
-They are moved to the Read-only/Executable region.
+Print the RW section offset when firmware base and size is
+being printed.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 ---
- firmware/fw_base.ldS | 41 ++++++++++++++++++++++-------------------
- 1 file changed, 22 insertions(+), 19 deletions(-)
+ lib/sbi/sbi_init.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-index 5411bbd..9a1304e 100644
---- a/firmware/fw_base.ldS
-+++ b/firmware/fw_base.ldS
-@@ -30,23 +30,39 @@
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 259a191..e353c33 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -108,6 +108,7 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
+ 	sbi_printf("Firmware Base             : 0x%lx\n", scratch->fw_start);
+ 	sbi_printf("Firmware Size             : %d KB\n",
+ 		   (u32)(scratch->fw_size / 1024));
++	sbi_printf("Firmware RW Offset        : 0x%lx\n", scratch->fw_rw_offset);
  
- 	/* Beginning of the read-only data sections */
- 
-+	PROVIDE(_rodata_start = .);
-+
- 	.rodata :
- 	{
--		PROVIDE(_rodata_start = .);
- 		*(.rodata .rodata.*)
- 		. = ALIGN(8);
--		PROVIDE(_rodata_end = .);
- 	}
- 
--	/* End of the read-only data sections */
--
- 	. = ALIGN(0x1000); /* Ensure next section is page aligned */
- 
-+	.dynsym : {
-+		PROVIDE(__dyn_sym_start = .);
-+		*(.dynsym)
-+		PROVIDE(__dyn_sym_end = .);
-+	}
-+
-+	.rela.dyn : {
-+		PROVIDE(__rel_dyn_start = .);
-+		*(.rela*)
-+		. = ALIGN(8);
-+		PROVIDE(__rel_dyn_end = .);
-+	}
-+
-+	PROVIDE(_rodata_end = .);
-+
-+	/* End of the read-only data sections */
-+
- 	/*
--	 * PMP regions must be to be power-of-2. RO/RW will have separate
-+	 * PMP regions must be to be power-of-2. RX/RW will have separate
- 	 * regions, so ensure that the split is power-of-2.
- 	 */
--	. = ALIGN(1 << LOG2CEIL(SIZEOF(.rodata) + SIZEOF(.text)));
-+	. = ALIGN(1 << LOG2CEIL((SIZEOF(.rodata) + SIZEOF(.text)
-+				+ SIZEOF(.dynsym) + SIZEOF(.rela.dyn))));
- 
- 	PROVIDE(_fw_rw_offset = (.  - _fw_start));
- 
-@@ -67,19 +83,6 @@
- 		PROVIDE(_data_end = .);
- 	}
- 
--	.dynsym : {
--		PROVIDE(__dyn_sym_start = .);
--		*(.dynsym)
--		PROVIDE(__dyn_sym_end = .);
--	}
--
--	.rela.dyn : {
--		PROVIDE(__rel_dyn_start = .);
--		*(.rela*)
--		. = ALIGN(8);
--		PROVIDE(__rel_dyn_end = .);
--	}
--
- 	. = ALIGN(0x1000); /* Ensure next section is page aligned */
- 
- 	.bss :
+ 	/* SBI details */
+ 	sbi_printf("Runtime SBI Version       : %d.%d\n",
 -- 
 2.39.0
 
