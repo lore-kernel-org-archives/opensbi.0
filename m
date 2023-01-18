@@ -1,40 +1,119 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 18 Jan 2023 15:42:33 +0100
-Subject: [PATCH 10/11] docs: Correct opensbi-domain property name
+Date: Wed, 18 Jan 2023 15:42:31 +0100
+Subject: [PATCH 08/11] lib: sbi: Add system_suspend_allowed domain property
 In-Reply-To: <20230118144234.79263-1-ajones@ventanamicro.com>
 References: <20230118144234.79263-1-ajones@ventanamicro.com>
-Message-ID: <20230118144234.79263-11-ajones@ventanamicro.com>
+Message-ID: <20230118144234.79263-9-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Replace the commas with dashes to correct the name.
+Only privileged domains should be allowed to suspend the entire
+system. Give the root domain this property by default and allow
+other domains to be given the property by specifying it in the
+DT.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- docs/domain_support.md | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ docs/domain_support.md     | 5 +++++
+ include/sbi/sbi_domain.h   | 2 ++
+ lib/sbi/sbi_domain.c       | 4 ++++
+ lib/utils/fdt/fdt_domain.c | 7 +++++++
+ 4 files changed, 18 insertions(+)
 
 diff --git a/docs/domain_support.md b/docs/domain_support.md
-index e2ff896bd550..265d8d85786e 100644
+index 4ccbcff87195..e2ff896bd550 100644
 --- a/docs/domain_support.md
 +++ b/docs/domain_support.md
-@@ -207,9 +207,9 @@ platform support can provide the HART to domain instance assignment using
- platform specific callback.
+@@ -52,6 +52,7 @@ has following details:
+ * **next_mode** - Privilege mode of the next booting stage for this
+   domain. This can be either S-mode or U-mode.
+ * **system_reset_allowed** - Is domain allowed to reset the system?
++* **system_suspend_allowed** - Is domain allowed to suspend the system?
  
- The HART to domain instance assignment can be parsed from the device tree
--using optional DT property **opensbi,domain** in each CPU DT node. The
--value of DT property **opensbi,domain** is the DT phandle of the domain
--instance DT node. If **opensbi,domain** DT property is not specified then
-+using optional DT property **opensbi-domain** in each CPU DT node. The
-+value of DT property **opensbi-domain** is the DT phandle of the domain
-+instance DT node. If **opensbi-domain** DT property is not specified then
- corresponding HART is assigned to **the ROOT domain**.
+ The memory regions represented by **regions** in **struct sbi_domain** have
+ following additional constraints to align with RISC-V PMP requirements:
+@@ -91,6 +92,7 @@ following manner:
+ * **next_mode** - Next booting stage mode in coldboot HART scratch space
+   is the next mode for the ROOT domain
+ * **system_reset_allowed** - The ROOT domain is allowed to reset the system
++* **system_suspend_allowed** - The ROOT domain is allowed to suspend the system
  
- ### Domain Configuration Only Accessible to OpenSBI
+ Domain Effects
+ --------------
+@@ -195,6 +197,8 @@ The DT properties of a domain instance DT node are as follows:
+   stage mode of coldboot HART** is used as default value.
+ * **system-reset-allowed** (Optional) - A boolean flag representing
+   whether the domain instance is allowed to do system reset.
++* **system-suspend-allowed** (Optional) - A boolean flag representing
++  whether the domain instance is allowed to do system suspend.
+ 
+ ### Assigning HART To Domain Instance
+ 
+@@ -260,6 +264,7 @@ be done:
+                 next-addr = <0x0 0x80100000>;
+                 next-mode = <0x0>;
+                 system-reset-allowed;
++                system-suspend-allowed;
+             };
+ 
+             udomain: untrusted-domain {
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index bbb3effa2449..178221e3711d 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -120,6 +120,8 @@ struct sbi_domain {
+ 	unsigned long next_mode;
+ 	/** Is domain allowed to reset the system */
+ 	bool system_reset_allowed;
++	/** Is domain allowed to suspend the system */
++	bool system_suspend_allowed;
+ };
+ 
+ /** The root domain instance */
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 60fda012d7b4..f2fe4da6d17f 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -34,6 +34,7 @@ struct sbi_domain root = {
+ 	.possible_harts = &root_hmask,
+ 	.regions = root_memregs,
+ 	.system_reset_allowed = true,
++	.system_suspend_allowed = true,
+ };
+ 
+ bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
+@@ -394,6 +395,9 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+ 
+ 	sbi_printf("Domain%d SysReset    %s: %s\n",
+ 		   dom->index, suffix, (dom->system_reset_allowed) ? "yes" : "no");
++
++	sbi_printf("Domain%d SysSuspend  %s: %s\n",
++		   dom->index, suffix, (dom->system_suspend_allowed) ? "yes" : "no");
+ }
+ 
+ void sbi_domain_dump_all(const char *suffix)
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 2b51a8ebe132..33653e2f555f 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -419,6 +419,13 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 	else
+ 		dom->system_reset_allowed = false;
+ 
++	/* Read "system-suspend-allowed" DT property */
++	if (fdt_get_property(fdt, domain_offset,
++			     "system-suspend-allowed", NULL))
++		dom->system_suspend_allowed = true;
++	else
++		dom->system_suspend_allowed = false;
++
+ 	/* Find /cpus DT node */
+ 	cpus_offset = fdt_path_offset(fdt, "/cpus");
+ 	if (cpus_offset < 0)
 -- 
 2.39.0
 
