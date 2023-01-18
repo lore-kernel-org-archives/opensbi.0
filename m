@@ -1,73 +1,40 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 18 Jan 2023 15:42:29 +0100
-Subject: [PATCH 06/11] lib: sbi_hsm: Export some functions
+Date: Wed, 18 Jan 2023 15:42:33 +0100
+Subject: [PATCH 10/11] docs: Correct opensbi-domain property name
 In-Reply-To: <20230118144234.79263-1-ajones@ventanamicro.com>
 References: <20230118144234.79263-1-ajones@ventanamicro.com>
-Message-ID: <20230118144234.79263-7-ajones@ventanamicro.com>
+Message-ID: <20230118144234.79263-11-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A coming patch can make use of a few internal hsm functions if
-we export them.
+Replace the commas with dashes to correct the name.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi/sbi_hsm.h |  4 ++++
- lib/sbi/sbi_hsm.c     | 12 ++++++++++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ docs/domain_support.md | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index c2a728a4aca5..c730db1810df 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -65,9 +65,13 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
- void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
- int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 			 ulong raddr, ulong rmode, ulong arg1);
-+bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
-+			       long newstate);
-+int __sbi_hsm_hart_get_state(u32 hartid);
- int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
- int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
- 				    ulong hbase, ulong *out_hmask);
-+void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
- void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index e2ff896bd550..265d8d85786e 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -207,9 +207,9 @@ platform support can provide the HART to domain instance assignment using
+ platform specific callback.
  
- #endif
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 2eb189a9d7f3..3adedff8f232 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -46,7 +46,15 @@ struct sbi_hsm_data {
- 	unsigned long saved_mip;
- };
+ The HART to domain instance assignment can be parsed from the device tree
+-using optional DT property **opensbi,domain** in each CPU DT node. The
+-value of DT property **opensbi,domain** is the DT phandle of the domain
+-instance DT node. If **opensbi,domain** DT property is not specified then
++using optional DT property **opensbi-domain** in each CPU DT node. The
++value of DT property **opensbi-domain** is the DT phandle of the domain
++instance DT node. If **opensbi-domain** DT property is not specified then
+ corresponding HART is assigned to **the ROOT domain**.
  
--static inline int __sbi_hsm_hart_get_state(u32 hartid)
-+bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
-+			       long newstate)
-+{
-+	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-+							    hart_data_offset);
-+	return __sbi_hsm_hart_change_state(hdata, oldstate, newstate);
-+}
-+
-+int __sbi_hsm_hart_get_state(u32 hartid)
- {
- 	struct sbi_hsm_data *hdata;
- 	struct sbi_scratch *scratch;
-@@ -329,7 +337,7 @@ static int __sbi_hsm_suspend_default(struct sbi_scratch *scratch)
- 	return 0;
- }
- 
--static void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
-+void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
- {
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
+ ### Domain Configuration Only Accessible to OpenSBI
 -- 
 2.39.0
 
