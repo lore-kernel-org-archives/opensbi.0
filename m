@@ -1,256 +1,94 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 18 Jan 2023 15:53:20 +0800
-Subject: [PATCH v3 5/6] platform: andes/ae350: Implement hart hotplug using HSM extension
+Date: Wed, 18 Jan 2023 15:53:21 +0800
+Subject: [PATCH v3 6/6] lib: reset/fdt_reset_atcwdt200: Use defined macros and function in atcsmu.h
 In-Reply-To: <20230118075321.19447-1-peterlin@andestech.com>
 References: <20230118075321.19447-1-peterlin@andestech.com>
-Message-ID: <20230118075321.19447-6-peterlin@andestech.com>
+Message-ID: <20230118075321.19447-7-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add hart_start() and hart_stop() callbacks for the multi-core ae350
-platform, it utilizes the ATCSMU to put the harts into power-gated
-deep sleep mode. The programming sequence is stated as below:
-
-1. Set the wakeup events to PCSm_WE
-2. Set the sleep command to PCSm_CTL
-3. Set the reset vector to HARTm_RESET_VECTOR_{LO|HI}
-4. Write back and invalidate D-cache by executing the CCTL command L1D_WBINVAL_ALL
-5. Disable I/D-cache by clearing mcache_ctl.{I|D}C_EN
-6. Disable D-cache coherency by clearing mcache_ctl_.DC_COHEN
-7. Wait for mcache_ctl.DC_COHSTA to be cleared to ensure the previous step is completed
-8. Execute WFI
+Reuse the smu related macros and function in atcsmu.h.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- platform/generic/andes/ae350.c           | 99 ++++++++++++++++++++++++
- platform/generic/andes/objects.mk        |  2 +-
- platform/generic/andes/sleep.S           | 70 +++++++++++++++++
- platform/generic/include/andes/andes45.h | 10 +++
- 4 files changed, 180 insertions(+), 1 deletion(-)
- create mode 100644 platform/generic/andes/sleep.S
- create mode 100644 platform/generic/include/andes/andes45.h
+ lib/utils/reset/Kconfig               |  1 +
+ lib/utils/reset/fdt_reset_atcwdt200.c | 21 ++++++++-------------
+ 2 files changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index cf7f6f2a..89f5b74a 100644
---- a/platform/generic/andes/ae350.c
-+++ b/platform/generic/andes/ae350.c
-@@ -10,6 +10,104 @@
- #include <platform_override.h>
+diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
+index 0e0c2c1d..4748cc85 100644
+--- a/lib/utils/reset/Kconfig
++++ b/lib/utils/reset/Kconfig
+@@ -11,6 +11,7 @@ if FDT_RESET
+ 
+ config FDT_RESET_ATCWDT200
+ 	bool "Andes WDT FDT reset driver"
++	depends on SYS_ATCSMU
+ 	default n
+ 
+ config FDT_RESET_GPIO
+diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
+index 91acc9f7..9a611116 100644
+--- a/lib/utils/reset/fdt_reset_atcwdt200.c
++++ b/lib/utils/reset/fdt_reset_atcwdt200.c
+@@ -16,6 +16,7 @@
+ #include <sbi/sbi_system.h>
  #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/reset/fdt_reset.h>
 +#include <sbi_utils/sys/atcsmu.h>
-+#include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_ipi.h>
-+#include <sbi/sbi_init.h>
-+#include <andes/andes45.h>
-+
+ 
+ #define ATCWDT200_WP_NUM 0x5aa5
+ #define WREN_REG 0x18
+@@ -41,14 +42,8 @@
+ #define CLK_PCLK (1 << 1)
+ #define WDT_EN (1 << 0)
+ 
+-#define FLASH_BASE 0x80000000ULL
+-#define SMU_RESET_VEC_LO_OFF 0x50
+-#define SMU_RESET_VEC_HI_OFF 0x60
+-#define SMU_HARTn_RESET_VEC_LO(n) (SMU_RESET_VEC_LO_OFF + (n * 0x4))
+-#define SMU_HARTn_RESET_VEC_HI(n) (SMU_RESET_VEC_HI_OFF + (n * 0x4))
+-
+-static volatile char *wdt_addr;
+-static volatile char *smu_addr;
++static volatile char *wdt_addr = NULL;
 +static struct smu_data smu = { 0 };
-+extern void __ae350_enable_coherency_warmboot(void);
-+extern void __ae350_disable_coherency(void);
-+
-+static __always_inline bool is_andes25(void)
-+{
-+	ulong marchid = csr_read(CSR_MARCHID);
-+	return !!(EXTRACT_FIELD(marchid, CSR_MARCHID_MICROID) == 0xa25);
-+}
-+
-+static int ae350_hart_start(u32 hartid, ulong saddr)
-+{
-+	/* Don't send wakeup command at boot-time */
-+	if (!sbi_init_count(hartid) || (is_andes25() && hartid == 0))
-+		return sbi_ipi_raw_send(hartid);
-+
-+	/* Write wakeup command to the sleep hart */
-+	smu_set_command(&smu, WAKEUP_CMD, hartid);
-+
-+	return 0;
-+}
-+
-+static int ae350_hart_stop(void)
-+{
-+	int rc;
-+	u32 hartid = current_hartid();
-+
-+	/**
-+	 * For Andes AX25MP, the hart0 shares power domain with
-+	 * L2-cache, instead of turning it off, it should fall
-+	 * through and jump to warmboot_addr.
-+	 */
-+	if (is_andes25() && hartid == 0)
-+		return SBI_ENOTSUPP;
-+
-+	if (!smu_support_sleep_mode(&smu, DEEPSLEEP_MODE, hartid))
-+		return SBI_ENOTSUPP;
-+
-+	/**
-+	 * disable all events, the current hart will be
-+	 * woken up from reset vector when other hart
-+	 * writes its PCS (power control slot) control
-+	 * register
-+	 */
-+	smu_set_wakeup_events(&smu, 0x0, hartid);
-+	smu_set_command(&smu, DEEP_SLEEP_CMD, hartid);
-+
-+	rc = smu_set_reset_vector(&smu, (ulong)__ae350_enable_coherency_warmboot,
-+			       hartid);
-+	if (rc)
-+		goto fail;
-+
-+	__ae350_disable_coherency();
-+
-+	wfi();
-+
+ 
+ static int ae350_system_reset_check(u32 type, u32 reason)
+ {
+@@ -66,16 +61,16 @@ static void ae350_system_reset(u32 type, u32 reason)
+ {
+ 	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+ 
+-	for (int i = 0; i < sbi_platform_hart_count(plat); i++) {
+-		writel(FLASH_BASE, smu_addr + SMU_HARTn_RESET_VEC_LO(i));
+-		writel(FLASH_BASE >> 32, smu_addr + SMU_HARTn_RESET_VEC_HI(i));
+-	}
++	for (int i = 0; i < sbi_platform_hart_count(plat); i++)
++		if (smu_set_reset_vector(&smu, FLASH_BASE, i))
++			goto fail;
+ 
+ 	/* Program WDT control register  */
+ 	writew(ATCWDT200_WP_NUM, wdt_addr + WREN_REG);
+ 	writel(INT_CLK_32768 | INT_EN | RST_CLK_128 | RST_EN | WDT_EN,
+ 	       wdt_addr + CTRL_REG);
+ 
 +fail:
-+	/* It should never reach here */
-+	sbi_hart_hang();
-+	return 0;
-+}
-+
-+static const struct sbi_hsm_device andes_smu = {
-+	.name	      = "andes_smu",
-+	.hart_start   = ae350_hart_start,
-+	.hart_stop    = ae350_hart_stop,
-+};
-+
-+static void ae350_hsm_device_init(void)
-+{
-+	int rc;
-+	void *fdt;
-+
-+	fdt = fdt_get_address();
-+
-+	rc = fdt_parse_compat_addr(fdt, (uint64_t *)&smu.addr,
-+				   "andestech,atcsmu");
-+
-+	if (!rc) {
-+		sbi_hsm_set_device(&andes_smu);
-+	}
-+}
-+
-+static int ae350_final_init(bool cold_boot, const struct fdt_match *match)
-+{
-+	if (cold_boot)
-+		ae350_hsm_device_init();
-+
-+	return 0;
-+}
+ 	sbi_hart_hang();
+ }
  
- static const struct fdt_match andes_ae350_match[] = {
- 	{ .compatible = "andestech,ae350" },
-@@ -18,4 +116,5 @@ static const struct fdt_match andes_ae350_match[] = {
+@@ -104,7 +99,7 @@ static int atcwdt200_reset_init(void *fdt, int nodeoff,
+ 	if (fdt_parse_compat_addr(fdt, &reg_addr, "andestech,atcsmu"))
+ 		return SBI_ENODEV;
  
- const struct platform_override andes_ae350 = {
- 	.match_table = andes_ae350_match,
-+	.final_init  = ae350_final_init,
- };
-diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
-index dd6408de..28275efb 100644
---- a/platform/generic/andes/objects.mk
-+++ b/platform/generic/andes/objects.mk
-@@ -3,4 +3,4 @@
- #
+-	smu_addr = (volatile char *)(unsigned long)reg_addr;
++	smu.addr = (unsigned long)reg_addr;
  
- carray-platform_override_modules-$(CONFIG_PLATFORM_ANDES_AE350) += andes_ae350
--platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o
-+platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
-diff --git a/platform/generic/andes/sleep.S b/platform/generic/andes/sleep.S
-new file mode 100644
-index 00000000..59a5597d
---- /dev/null
-+++ b/platform/generic/andes/sleep.S
-@@ -0,0 +1,70 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2023 Andes Technology Corporation
-+ *
-+ * Authors:
-+ *   Yu Chien Peter Lin <peterlin@andestech.com>
-+ */
-+
-+#include <sbi/riscv_encoding.h>
-+#include <sbi/riscv_asm.h>
-+#include <andes/andes45.h>
-+
-+	.section .text, "ax", %progbits
-+	.align 3
-+	.global __ae350_disable_coherency
-+__ae350_disable_coherency:
-+	/* flush d-cache */
-+	csrw	CSR_MCCTLCOMMAND, 0x6
-+	/* disable i/d-cache */
-+	csrc	CSR_MCACHE_CTL, 0x3
-+	/* disable d-cache coherency */
-+	lui	t1, 0x80
-+	csrc	CSR_MCACHE_CTL, t1
-+	/*
-+	 * wait for mcache_ctl.DC_COHSTA to be cleared,
-+	 * the bit is hard-wired 0 on platforms w/o CM
-+	 * (Coherence Manager)
-+	 */
-+check_cm_disabled:
-+	csrr	t1, CSR_MCACHE_CTL
-+	srli	t1, t1, 20
-+	andi	t1, t1, 0x1
-+	bnez	t1, check_cm_disabled
-+
-+	ret
-+
-+	.section .text, "ax", %progbits
-+	.align 3
-+	.global __ae350_enable_coherency
-+__ae350_enable_coherency:
-+	/* enable d-cache coherency */
-+	lui		t1, 0x80
-+	csrs	CSR_MCACHE_CTL, t1
-+	/*
-+	 * mcache_ctl.DC_COHEN is hard-wired 0 on platforms
-+	 * w/o CM support
-+	 */
-+	csrr	t1, CSR_MCACHE_CTL
-+	srli	t1, t1, 19
-+	andi	t1, t1, 0x1
-+	beqz	t1, enable_L1_cache
-+	/* wait for mcache_ctl.DC_COHSTA to be set */
-+check_cm_enabled:
-+	csrr	t1, CSR_MCACHE_CTL
-+	srli	t1, t1, 20
-+	andi	t1, t1, 0x1
-+	beqz	t1, check_cm_enabled
-+enable_L1_cache:
-+	/* enable i/d-cache */
-+	csrs	CSR_MCACHE_CTL, 0x3
-+
-+	ret
-+
-+	.section .text, "ax", %progbits
-+	.align 3
-+	.global __ae350_enable_coherency_warmboot
-+__ae350_enable_coherency_warmboot:
-+	call ra, __ae350_enable_coherency
-+	j _start_warm
-diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-new file mode 100644
-index 00000000..08b3d188
---- /dev/null
-+++ b/platform/generic/include/andes/andes45.h
-@@ -0,0 +1,10 @@
-+#ifndef _RISCV_ANDES45_H
-+#define _RISCV_ANDES45_H
-+
-+#define CSR_MARCHID_MICROID 0xfff
-+
-+/* Memory and Miscellaneous Registers */
-+#define CSR_MCACHE_CTL 0x7ca
-+#define CSR_MCCTLCOMMAND 0x7cc
-+
-+#endif /* _RISCV_ANDES45_H */
+ 	sbi_system_reset_add_device(&atcwdt200_reset);
+ 
 -- 
 2.34.1
 
