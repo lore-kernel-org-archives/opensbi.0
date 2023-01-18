@@ -1,76 +1,223 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 18 Jan 2023 15:53:17 +0800
-Subject: [PATCH v3 2/6] lib: sbi_hsm: handle failure when hart_stop returns SBI_ENOTSUPP
+Date: Wed, 18 Jan 2023 15:53:19 +0800
+Subject: [PATCH v3 4/6] lib: utils: atcsmu: Add Andes System Management Unit support
 In-Reply-To: <20230118075321.19447-1-peterlin@andestech.com>
 References: <20230118075321.19447-1-peterlin@andestech.com>
-Message-ID: <20230118075321.19447-3-peterlin@andestech.com>
+Message-ID: <20230118075321.19447-5-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Make use of generic warm-boot path when platform hart_stop callback
-returns SBI_ENOTSUPP, in case certain hart can not turn off its
-power domain, or it detects some error occured in power management
-unit, it can fall through warmboot flow and wait for interrupt in
-sbi_hsm_hart_wait().
-
-Also improves comment in sbi_hsm_hart_wait().
+This patch adds atcsmu support for Andes AE350 platforms. The SMU
+provides system management capabilities, including clock, reset
+and power control based on power domain partitions.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi/sbi_hsm.h | 8 ++++++--
- lib/sbi/sbi_hsm.c     | 7 +++----
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ include/sbi_utils/sys/atcsmu.h | 53 ++++++++++++++++++++
+ lib/utils/sys/Kconfig          |  4 ++
+ lib/utils/sys/atcsmu.c         | 92 ++++++++++++++++++++++++++++++++++
+ lib/utils/sys/objects.mk       |  1 +
+ platform/generic/Kconfig       |  1 +
+ 5 files changed, 151 insertions(+)
+ create mode 100644 include/sbi_utils/sys/atcsmu.h
+ create mode 100644 lib/utils/sys/atcsmu.c
 
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index c2a728a4..1170127b 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -21,8 +21,12 @@ struct sbi_hsm_device {
- 	int (*hart_start)(u32 hartid, ulong saddr);
+diff --git a/include/sbi_utils/sys/atcsmu.h b/include/sbi_utils/sys/atcsmu.h
+new file mode 100644
+index 00000000..0dd923fe
+--- /dev/null
++++ b/include/sbi_utils/sys/atcsmu.h
+@@ -0,0 +1,53 @@
++/*
++ * SPDX-License-Identifier: BSD-3-Clause
++ *
++ * Copyright (c) 2023 Andes Technology Corporation
++ */
++
++#ifndef _SYS_ATCSMU_H
++#define _SYS_ATCSMU_H
++
++#include <sbi/sbi_types.h>
++
++#define PCS0_WE_OFFSET 0x90
++#define PCSm_WE_OFFSET(i) ((i + 3) * 0x20 + PCS0_WE_OFFSET)
++
++#define PCS0_CTL_OFFSET 0x94
++#define PCSm_CTL_OFFSET(i) ((i + 3) * 0x20 + PCS0_CTL_OFFSET)
++#define PCS_CTL_CMD_SHIFT 0
++#define PCS_CTL_PARAM_SHIFT 3
++#define SLEEP_CMD 0x3
++#define WAKEUP_CMD (0x0 | (1 << PCS_CTL_PARAM_SHIFT))
++#define LIGHTSLEEP_MODE 0
++#define DEEPSLEEP_MODE 1
++#define LIGHT_SLEEP_CMD (SLEEP_CMD | (LIGHTSLEEP_MODE << PCS_CTL_PARAM_SHIFT))
++#define DEEP_SLEEP_CMD (SLEEP_CMD | (DEEPSLEEP_MODE << PCS_CTL_PARAM_SHIFT))
++
++#define PCS0_CFG_OFFSET 0x80
++#define PCSm_CFG_OFFSET(i) ((i + 3) * 0x20 + PCS0_CFG_OFFSET)
++#define PCS_CFG_LIGHT_SLEEP_SHIFT 2
++#define PCS_CFG_LIGHT_SLEEP (1 << PCS_CFG_LIGHT_SLEEP_SHIFT)
++#define PCS_CFG_DEEP_SLEEP_SHIFT 3
++#define PCS_CFG_DEEP_SLEEP (1 << PCS_CFG_DEEP_SLEEP_SHIFT)
++#define RESET_VEC_LO_OFFSET 0x50
++#define RESET_VEC_HI_OFFSET 0x60
++#define RESET_VEC_8CORE_OFFSET 0x1a0
++#define HARTn_RESET_VEC_LO(n)  \
++	(RESET_VEC_LO_OFFSET + \
++	 ((n) < 4 ? 0 : RESET_VEC_8CORE_OFFSET) + ((n) * 0x4))
++#define HARTn_RESET_VEC_HI(n)  \
++	(RESET_VEC_HI_OFFSET + \
++	 ((n) < 4 ? 0 : RESET_VEC_8CORE_OFFSET) + ((n) * 0x4))
++#define PCS_MAX_NR 8
++#define FLASH_BASE 0x80000000ULL
++
++struct smu_data {
++	unsigned long addr;
++};
++
++int smu_set_wakeup_events(struct smu_data *smu, u32 events, u32 hartid);
++bool smu_support_sleep_mode(struct smu_data *smu, u32 sleep_mode, u32 hartid);
++int smu_set_command(struct smu_data *smu, u32 pcs_ctl, u32 hartid);
++int smu_set_reset_vector(struct smu_data *smu, ulong wakeup_addr, u32 hartid);
++
++#endif /* _SYS_ATCSMU_H */
+diff --git a/lib/utils/sys/Kconfig b/lib/utils/sys/Kconfig
+index ee85b1a3..76190f8c 100644
+--- a/lib/utils/sys/Kconfig
++++ b/lib/utils/sys/Kconfig
+@@ -2,6 +2,10 @@
  
- 	/**
--	 * Stop (or power-down) the current hart from running. This call
--	 * doesn't expect to return if success.
-+	 * Stop (or power-down) the current hart from running.
-+	 *
-+	 * Return SBI_ENOTSUPP if the hart does not support platform-specific
-+	 * stop actions.
-+	 *
-+	 * For successful stop, the call won't return.
- 	 */
- 	int (*hart_stop)(void);
+ menu "System Device Support"
  
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index c0a55054..d4cce4ac 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -116,7 +116,7 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
- 	/* Set MSIE and MEIE bits to receive IPI */
- 	csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
++config SYS_ATCSMU
++	bool "Andes System Management Unit (SMU) support"
++	default n
++
+ config SYS_HTIF
+ 	bool "Host transfere interface (HTIF) support"
+ 	default n
+diff --git a/lib/utils/sys/atcsmu.c b/lib/utils/sys/atcsmu.c
+new file mode 100644
+index 00000000..8ddd88d5
+--- /dev/null
++++ b/lib/utils/sys/atcsmu.c
+@@ -0,0 +1,92 @@
++/*
++ * SPDX-License-Identifier: BSD-3-Clause
++ *
++ * Copyright (c) 2023 Andes Technology Corporation
++ *
++ * Authors:
++ *   Yu Chien Peter Lin <peterlin@andestech.com>
++ */
++
++#include <sbi_utils/sys/atcsmu.h>
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_bitops.h>
++
++inline int smu_set_wakeup_events(struct smu_data *smu, u32 events, u32 hartid)
++{
++	if (smu) {
++		writel(events, (void *)(smu->addr + PCSm_WE_OFFSET(hartid)));
++		return 0;
++	} else
++		return SBI_EINVAL;
++}
++
++inline bool smu_support_sleep_mode(struct smu_data *smu, u32 sleep_mode,
++				   u32 hartid)
++{
++	u32 pcs_cfg;
++
++	if (!smu) {
++		sbi_printf("%s(): Failed to access smu_data\n", __func__);
++		return false;
++	}
++
++	pcs_cfg = readl((void *)(smu->addr + PCSm_CFG_OFFSET(hartid)));
++
++	switch (sleep_mode) {
++	case LIGHTSLEEP_MODE:
++		if (EXTRACT_FIELD(pcs_cfg, PCS_CFG_LIGHT_SLEEP) == 0) {
++			sbi_printf(
++				"SMU: hart%d (PCS%d) does not support light sleep mode\n",
++				hartid, hartid + 3);
++			return false;
++		}
++		break;
++	case DEEPSLEEP_MODE:
++		if (EXTRACT_FIELD(pcs_cfg, PCS_CFG_DEEP_SLEEP) == 0) {
++			sbi_printf(
++				"SMU: hart%d (PCS%d) does not support deep sleep mode\n",
++				hartid, hartid + 3);
++			return false;
++		}
++		break;
++	}
++
++	return true;
++}
++
++inline int smu_set_command(struct smu_data *smu, u32 pcs_ctl, u32 hartid)
++{
++	if (smu) {
++		writel(pcs_ctl, (void *)(smu->addr + PCSm_CTL_OFFSET(hartid)));
++		return 0;
++	} else
++		return SBI_EINVAL;
++}
++
++inline int smu_set_reset_vector(struct smu_data *smu, ulong wakeup_addr,
++				u32 hartid)
++{
++	u32 vec_lo, vec_hi;
++	u64 reset_vector;
++
++	if (!smu)
++		return SBI_EINVAL;
++
++	writel(wakeup_addr, (void *)(smu->addr + HARTn_RESET_VEC_LO(hartid)));
++	writel((u64)wakeup_addr >> 32,
++	       (void *)(smu->addr + HARTn_RESET_VEC_HI(hartid)));
++
++	vec_lo = readl((void *)(smu->addr + HARTn_RESET_VEC_LO(hartid)));
++	vec_hi = readl((void *)(smu->addr + HARTn_RESET_VEC_HI(hartid)));
++	reset_vector = ((u64)vec_hi << 32) | vec_lo;
++
++	if (reset_vector != (u64)wakeup_addr) {
++		sbi_printf(
++			"hard%d (PCS%d): Failed to program the reset vector.\n",
++			hartid, hartid + 3);
++		return SBI_EFAIL;
++	} else
++		return 0;
++}
+diff --git a/lib/utils/sys/objects.mk b/lib/utils/sys/objects.mk
+index 9f67aee2..03d6740b 100644
+--- a/lib/utils/sys/objects.mk
++++ b/lib/utils/sys/objects.mk
+@@ -9,3 +9,4 @@
  
--	/* Wait for hart_add call*/
-+	/* Wait for state transition requested by sbi_hsm_hart_start() */
- 	while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
- 		wfi();
- 	};
-@@ -228,9 +228,8 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
- 		goto fail_exit;
+ libsbiutils-objs-$(CONFIG_SYS_HTIF) += sys/htif.o
+ libsbiutils-objs-$(CONFIG_SYS_SIFIVE_TEST) += sys/sifive_test.o
++libsbiutils-objs-$(CONFIG_SYS_ATCSMU) += sys/atcsmu.o
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 47c10e53..c7f198ae 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -30,6 +30,7 @@ config PLATFORM_ALLWINNER_D1
  
- 	if (hsm_device_has_hart_hotplug()) {
--		hsm_device_hart_stop();
--		/* It should never reach here */
--		goto fail_exit;
-+		if (hsm_device_hart_stop() != SBI_ENOTSUPP)
-+			goto fail_exit;
- 	}
+ config PLATFORM_ANDES_AE350
+ 	bool "Andes AE350 support"
++	select SYS_ATCSMU
+ 	default n
  
- 	/**
+ config PLATFORM_RENESAS_RZFIVE
 -- 
 2.34.1
 
