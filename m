@@ -1,74 +1,60 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 18 Jan 2023 09:47:05 +0530
-Subject: [PATCH v2 6/6] lib: reset/fdt_reset_atcwdt200: Use defined macros
- and function in atcsmu.h
-In-Reply-To: <20230118021859.27010-7-peterlin@andestech.com>
-References: <20230118021859.27010-1-peterlin@andestech.com> <20230118021859.27010-7-peterlin@andestech.com>
-Message-ID: <CAAhSdy1awZETp8Sq6cJ_eqw1MDm_VSctt-2-kRjjOgDvF+TxOQ@mail.gmail.com>
+Date: Wed, 18 Jan 2023 13:20:12 +0530
+Subject: [PATCH 1/5] firmware: Split RO/RX and RW sections
+In-Reply-To: <20230109084049.31828-2-hchauhan@ventanamicro.com>
+References: <20230109084049.31828-1-hchauhan@ventanamicro.com> <20230109084049.31828-2-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy2VddZrtXJruomAVZGpMPju3WL1yHCCygmPbK6WQmiwhA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 18, 2023 at 7:50 AM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
+On Mon, Jan 9, 2023 at 2:11 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
 >
-> Reuse the smu related macros and function in atcsmu.h.
+> Split the RO/RX and RW sections so that they can have
+> independent pmp entries with required permissions. The
+> split size is ensured to be a power-of-2 as required by
+> pmp.
 >
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> ---
->  lib/utils/reset/fdt_reset_atcwdt200.c | 13 +++----------
->  1 file changed, 3 insertions(+), 10 deletions(-)
+> _fw_rw_offset symbol marks the beginning of the data
+> section.
 >
-> diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
-> index 91acc9f..c524f84 100644
-> --- a/lib/utils/reset/fdt_reset_atcwdt200.c
-> +++ b/lib/utils/reset/fdt_reset_atcwdt200.c
-> @@ -16,6 +16,7 @@
->  #include <sbi/sbi_system.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/sys/atcsmu.h>
->
->  #define ATCWDT200_WP_NUM 0x5aa5
->  #define WREN_REG 0x18
-> @@ -41,12 +42,6 @@
->  #define CLK_PCLK (1 << 1)
->  #define WDT_EN (1 << 0)
->
-> -#define FLASH_BASE 0x80000000ULL
-> -#define SMU_RESET_VEC_LO_OFF 0x50
-> -#define SMU_RESET_VEC_HI_OFF 0x60
-> -#define SMU_HARTn_RESET_VEC_LO(n) (SMU_RESET_VEC_LO_OFF + (n * 0x4))
-> -#define SMU_HARTn_RESET_VEC_HI(n) (SMU_RESET_VEC_HI_OFF + (n * 0x4))
-> -
->  static volatile char *wdt_addr;
->  static volatile char *smu_addr;
->
-> @@ -66,10 +61,8 @@ static void ae350_system_reset(u32 type, u32 reason)
->  {
->         const struct sbi_platform *plat = sbi_platform_thishart_ptr();
->
-> -       for (int i = 0; i < sbi_platform_hart_count(plat); i++) {
-> -               writel(FLASH_BASE, smu_addr + SMU_HARTn_RESET_VEC_LO(i));
-> -               writel(FLASH_BASE >> 32, smu_addr + SMU_HARTn_RESET_VEC_HI(i));
-> -       }
-> +       for (int i = 0; i < sbi_platform_hart_count(plat); i++)
-> +               smu_set_reset_vector(FLASH_BASE, i);
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
-This also means that "config FDT_RESET_ATCWDT200" now depends
-upon SYS_ATCSMU
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
 
-
+> ---
+>  firmware/fw_base.ldS | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 >
->         /* Program WDT control register  */
->         writew(ATCWDT200_WP_NUM, wdt_addr + WREN_REG);
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index 563ae25..5411bbd 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -42,6 +42,14 @@
+>
+>         . = ALIGN(0x1000); /* Ensure next section is page aligned */
+>
+> +       /*
+> +        * PMP regions must be to be power-of-2. RO/RW will have separate
+> +        * regions, so ensure that the split is power-of-2.
+> +        */
+> +       . = ALIGN(1 << LOG2CEIL(SIZEOF(.rodata) + SIZEOF(.text)));
+> +
+> +       PROVIDE(_fw_rw_offset = (.  - _fw_start));
+> +
+>         /* Beginning of the read-write data sections */
+>
+>         .data :
 > --
-> 2.34.1
+> 2.39.0
 >
 >
 > --
