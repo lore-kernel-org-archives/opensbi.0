@@ -1,59 +1,183 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 18 Jan 2023 15:42:26 +0100
-Subject: [PATCH 03/11] lib: sbi_hsm: Ensure errors are consistent with spec
+Date: Wed, 18 Jan 2023 15:42:24 +0100
+Subject: [PATCH 01/11] lib: sbi_hsm: Factor out invalid state detection
 In-Reply-To: <20230118144234.79263-1-ajones@ventanamicro.com>
 References: <20230118144234.79263-1-ajones@ventanamicro.com>
-Message-ID: <20230118144234.79263-4-ajones@ventanamicro.com>
+Message-ID: <20230118144234.79263-2-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-HSM functions define when SBI_ERR_INVALID_PARAM should be returned.
-Ensure it's not used for reasons that don't meet the definitions by
-using the catch-all code, SBI_ERR_FAILED, for those reasons instead.
-Also, in one case sbi_hart_suspend() may have returned SBI_ERR_DENIED,
-which isn't defined for that function at all. Use SBI_ERR_FAILED for
-that case too.
+Remove some redundant code by creating an invalid state detection
+macro.
+
+No functional change intended.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_hsm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/sbi/sbi_hsm.c | 65 +++++++++++++++++------------------------------
+ 1 file changed, 24 insertions(+), 41 deletions(-)
 
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index c7454499b2ba..2fbb0d0afc7e 100644
+index c0a5505423bf..b43f26cfe3a0 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -403,7 +403,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+@@ -26,6 +26,15 @@
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_console.h>
  
- 	/* Sanity check on domain assigned to current HART */
++#define __sbi_hsm_hart_change_state(hdata, oldstate, newstate)		\
++({									\
++	long state = atomic_cmpxchg(&(hdata)->state, oldstate, newstate); \
++	if (state != (oldstate))					\
++		sbi_printf("%s: ERR: The hart is in invalid state [%lu]\n", \
++			   __func__, state);				\
++	state == (oldstate);						\
++})
++
+ static const struct sbi_hsm_device *hsm_dev = NULL;
+ static unsigned long hart_data_offset;
+ 
+@@ -95,13 +104,11 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+ 
+ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+ {
+-	u32 oldstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_START_PENDING,
+-				  SBI_HSM_STATE_STARTED);
+-	if (oldstate != SBI_HSM_STATE_START_PENDING)
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
++					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
+ }
+ 
+@@ -217,14 +224,12 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+ 
+ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+ {
+-	u32 hstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+ 
+-	hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOP_PENDING,
+-				SBI_HSM_STATE_STOPPED);
+-	if (hstate != SBI_HSM_STATE_STOP_PENDING)
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STOP_PENDING,
++					 SBI_HSM_STATE_STOPPED))
+ 		goto fail_exit;
+ 
+ 	if (hsm_device_has_hart_hotplug()) {
+@@ -299,7 +304,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ {
+-	int oldstate;
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+@@ -307,13 +311,9 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
  	if (!dom)
--		return SBI_EINVAL;
-+		return SBI_EFAIL;
+ 		return SBI_EFAIL;
  
- 	/* Sanity check on suspend type */
- 	if (SBI_HSM_SUSPEND_RET_DEFAULT < suspend_type &&
-@@ -416,7 +416,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	/* Additional sanity check for non-retentive suspend */
- 	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
- 		if (rmode != PRV_S && rmode != PRV_U)
--			return SBI_EINVAL;
-+			return SBI_EFAIL;
- 		if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
- 						  SBI_DOMAIN_EXECUTE))
- 			return SBI_EINVALID_ADDR;
-@@ -430,7 +430,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+-				  SBI_HSM_STATE_STOP_PENDING);
+-	if (oldstate != SBI_HSM_STATE_STARTED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
++					 SBI_HSM_STATE_STOP_PENDING))
+ 		return SBI_EFAIL;
+-	}
+ 
+ 	if (exitnow)
+ 		sbi_exit(scratch);
+@@ -363,36 +363,26 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+ 
+ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+ {
+-	int oldstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+ 	/* If current HART was SUSPENDED then set RESUME_PENDING state */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+-			SBI_HSM_STATE_RESUME_PENDING);
+-	if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
++					 SBI_HSM_STATE_RESUME_PENDING))
+ 		sbi_hart_hang();
+-	}
+ 
+ 	hsm_device_hart_resume();
+ }
+ 
+ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+ {
+-	u32 oldstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+ 	/* If current HART was RESUME_PENDING then set STARTED state */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_RESUME_PENDING,
+-				  SBI_HSM_STATE_STARTED);
+-	if (oldstate != SBI_HSM_STATE_RESUME_PENDING) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_RESUME_PENDING,
++					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
+-	}
+ 
+ 	/*
+ 	 * Restore some of the M-mode CSRs which we are re-configured by
+@@ -404,7 +394,7 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 			 ulong raddr, ulong rmode, ulong arg1)
+ {
+-	int oldstate, ret;
++	int ret;
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+@@ -438,11 +428,8 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 	scratch->next_mode = rmode;
+ 
  	/* Directly move from STARTED to SUSPENDED state */
- 	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
- 					 SBI_HSM_STATE_SUSPENDED))
--		return SBI_EDENIED;
-+		return SBI_EFAIL;
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+-				  SBI_HSM_STATE_SUSPENDED);
+-	if (oldstate != SBI_HSM_STATE_STARTED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
++					 SBI_HSM_STATE_SUSPENDED)) {
+ 		ret = SBI_EDENIED;
+ 		goto fail_restore_state;
+ 	}
+@@ -485,13 +472,9 @@ fail_restore_state:
+ 	 * We might have successfully resumed from retentive suspend
+ 	 * or suspend failed. In both cases, we restore state of hart.
+ 	 */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+-				  SBI_HSM_STATE_STARTED);
+-	if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
++					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
+-	}
  
- 	/* Save the suspend type */
- 	hdata->suspend_type = suspend_type;
+ 	return ret;
+ }
 -- 
 2.39.0
 
