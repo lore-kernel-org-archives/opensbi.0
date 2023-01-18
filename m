@@ -1,70 +1,82 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Wed, 18 Jan 2023 17:07:57 +0530
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 18 Jan 2023 20:17:26 +0800
 Subject: [PATCH v2 5/5] Add two entries:
-In-Reply-To: <20230118113757.46282-1-hchauhan@ventanamicro.com>
+In-Reply-To: <20230118113757.46282-6-hchauhan@ventanamicro.com>
 References: <20230118113757.46282-1-hchauhan@ventanamicro.com>
-Message-ID: <20230118113757.46282-6-hchauhan@ventanamicro.com>
+	 <20230118113757.46282-6-hchauhan@ventanamicro.com>
+Message-ID: <b241ba810010ebdf266f3742389033ce91be8691.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-  1. TEXT: fw_start to _fw_rw_offset with RX permissions
-  2. DATA: _fw_rw_offset to fw_size with RW permissions
+? 2023-01-18???? 17:07 +0530?Himanshu Chauhan???
+> ? 1. TEXT: fw_start to _fw_rw_offset with RX permissions
+> ? 2. DATA: _fw_rw_offset to fw_size with RW permissions
+> 
+> These permissions are still not enforced from M-mode but lay
+> the ground work for enforcing them for M-mode. SU-mode don't
+> have any access to these regions.
+> 
+> Sample output:
+> ?Domain0 Region01? : 0x0000000080000000-0x000000008001ffff M: (R,X) S/U: ()
+> ?Domain0 Region02? : 0x0000000080020000-0x000000008003ffff M: (R,W) S/U: ()
+> 
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> ---
+> ?lib/sbi/sbi_domain.c | 23 +++++++++++++++++++++--
+> ?1 file changed, 21 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index f6addc4..3dceb6a 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -637,12 +637,31 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> ????????u32 i;
+> ????????const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> ?
+> +???????if ((scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0) {
 
-These permissions are still not enforced from M-mode but lay
-the ground work for enforcing them for M-mode. SU-mode don't
-have any access to these regions.
+This expression is false at scratch-> fw_rw_offset = 0.
+0 is not a power of 2.
+suggestion:
+    if ((scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0 || scratch->fw_rw_offset == 0) {
 
-Sample output:
- Domain0 Region01  : 0x0000000080000000-0x000000008001ffff M: (R,X) S/U: ()
- Domain0 Region02  : 0x0000000080020000-0x000000008003ffff M: (R,W) S/U: ()
+Regards,
+Xiang W
 
-Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
----
- lib/sbi/sbi_domain.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
-
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index f6addc4..3dceb6a 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -637,12 +637,31 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	u32 i;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
-+	if ((scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0) {
-+		sbi_printf("%s: Firmware read-write offset not a power of 2 (0x%lx)\n",
-+			   __func__, scratch->fw_rw_offset);
-+		return SBI_EINVAL;
-+	}
-+
-+	if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
-+		sbi_printf("%s: Firmware start and read-write offset not aligned\n",
-+			   __func__);
-+		return SBI_EINVAL;
-+	}
-+
- 	/* Root domain firmware memory region */
--	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
--				  SBI_DOMAIN_MEMREGION_M_RWX,
-+	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
-+				  (SBI_DOMAIN_MEMREGION_M_READABLE |
-+				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
- 				  &root_fw_region);
- 	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
- 
-+	sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
-+				  (scratch->fw_size - scratch->fw_rw_offset),
-+				  (SBI_DOMAIN_MEMREGION_M_READABLE |
-+				   SBI_DOMAIN_MEMREGION_M_WRITABLE),
-+				  &root_memregs[root_memregs_count++]);
-+
- 	/* Root domain allow everything memory region */
- 	sbi_domain_memregion_init(0, ~0UL,
- 				  (SBI_DOMAIN_MEMREGION_READABLE |
--- 
-2.39.0
-
+> +???????????????sbi_printf("%s: Firmware read-write offset not a power of 2 (0x%lx)\n",
+> +????????????????????????? __func__, scratch->fw_rw_offset);
+> +???????????????return SBI_EINVAL;
+> +???????}
+> +
+> +???????if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
+> +???????????????sbi_printf("%s: Firmware start and read-write offset not aligned\n",
+> +????????????????????????? __func__);
+> +???????????????return SBI_EINVAL;
+> +???????}
+> +
+> ????????/* Root domain firmware memory region */
+> -???????sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
+> -???????????????????????????????? SBI_DOMAIN_MEMREGION_M_RWX,
+> +???????sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
+> +???????????????????????????????? (SBI_DOMAIN_MEMREGION_M_READABLE |
+> +????????????????????????????????? SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
+> ????????????????????????????????? &root_fw_region);
+> ????????domain_memregion_initfw(&root_memregs[root_memregs_count++]);
+> ?
+> +???????sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
+> +???????????????????????????????? (scratch->fw_size - scratch->fw_rw_offset),
+> +???????????????????????????????? (SBI_DOMAIN_MEMREGION_M_READABLE |
+> +????????????????????????????????? SBI_DOMAIN_MEMREGION_M_WRITABLE),
+> +???????????????????????????????? &root_memregs[root_memregs_count++]);
+> +
+> ????????/* Root domain allow everything memory region */
+> ????????sbi_domain_memregion_init(0, ~0UL,
+> ????????????????????????????????? (SBI_DOMAIN_MEMREGION_READABLE |
+> -- 
+> 2.39.0
+> 
+> 
 
