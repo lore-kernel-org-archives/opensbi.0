@@ -1,92 +1,75 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 18 Jan 2023 15:42:32 +0100
-Subject: [PATCH 09/11] lib: sbi: Implement system suspend
+Date: Wed, 18 Jan 2023 15:56:07 +0100
+Subject: [PATCH 00/11] SBI system suspend (SUSP) extension
 In-Reply-To: <20230118144234.79263-1-ajones@ventanamicro.com>
 References: <20230118144234.79263-1-ajones@ventanamicro.com>
-Message-ID: <20230118144234.79263-10-ajones@ventanamicro.com>
+Message-ID: <20230118145607.lrnbgu4jljuy2c6n@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fill the implementation of the system suspend ecall. A platform
-implementation of the suspend callbacks is still required for this
-to do anything.
+On Wed, Jan 18, 2023 at 03:42:23PM +0100, Andrew Jones wrote:
+> This series implements the SBI system suspend support in OpenSBI
+> as-per the draft proposal for SBI system suspend which can be found at
+> https://github.com/jones-drew/riscv-sbi-doc/commit/d9e43e9a938fc3eb510e023c3f352462876f7785
+> 
+> The first half of the series are a few cleanups and fixes for HSM,
+> as system suspend makes use of some of its code and patterns. The
+> second half implements support for the extension and includes a patch
+> which allows testing to be enabled, even when low-level firmware does
+> not provide support. Regarding the test mode, it's currently enabled
+> by adding a 'system-suspend-test' DT property, but Anup has suggested
+> that FW_OPTION could also be used. I'm all ears for what people think
+> the best way to control test functionality in OpenSBI is and am happy
+> to switch it. To test with Linux the kernel must include the patch at
+> https://github.com/jones-drew/linux/commits/riscv/sbi-susp-rfc and
+> be built with CONFIG_SUSPEND enabled.
+> 
+> The patches are based on commit da5594bf853d ("platform: generic:
+> allwinner: Fix PLIC array bounds") and can also be found at
+> https://github.com/jones-drew/opensbi/commits/susp-v1
+> 
+> v2:
+  ^ This should be v1, since I started at RFC (v0).
 
-Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- lib/sbi/sbi_system.c | 57 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 56 insertions(+), 1 deletion(-)
-
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index 5c123a6c9d8d..c18562cdcfab 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -116,5 +116,60 @@ bool sbi_system_suspend_supported(u32 sleep_type)
- 
- int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
- {
--	return 0;
-+	int ret = SBI_ENOTSUPP;
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
-+	unsigned int hartid = current_hartid();
-+	unsigned long prev_mode;
-+	unsigned long i;
-+
-+	if (!dom || !dom->system_suspend_allowed)
-+		return SBI_EFAIL;
-+
-+	if (!suspend_dev || !suspend_dev->system_suspend)
-+		return SBI_EFAIL;
-+
-+	if (!sbi_system_suspend_supported(sleep_type))
-+		return SBI_ENOTSUPP;
-+
-+	prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+	if (prev_mode != PRV_S && prev_mode != PRV_U)
-+		return SBI_EFAIL;
-+
-+	sbi_hartmask_for_each_hart(i, &dom->assigned_harts) {
-+		if (i == hartid)
-+			continue;
-+		if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED)
-+			return SBI_EFAIL;
-+	}
-+
-+	if (!sbi_domain_check_addr(dom, resume_addr, prev_mode,
-+				   SBI_DOMAIN_EXECUTE))
-+		return SBI_EINVALID_ADDR;
-+
-+	if (!sbi_hsm_hart_change_state(scratch, SBI_HSM_STATE_STARTED,
-+				       SBI_HSM_STATE_SUSPENDED))
-+		return SBI_EFAIL;
-+
-+	/* Prepare for resume */
-+	scratch->next_mode = prev_mode;
-+	scratch->next_addr = resume_addr;
-+	scratch->next_arg1 = opaque;
-+
-+	__sbi_hsm_suspend_non_ret_save(scratch);
-+
-+	/* Suspend */
-+	ret = suspend_dev->system_suspend(sleep_type);
-+	if (ret != SBI_OK) {
-+		if (!sbi_hsm_hart_change_state(scratch, SBI_HSM_STATE_SUSPENDED,
-+					       SBI_HSM_STATE_STARTED))
-+			sbi_hart_hang();
-+		return ret;
-+	}
-+
-+	/* Resume */
-+	jump_warmboot();
-+
-+	__builtin_unreachable();
- }
--- 
-2.39.0
-
+>  - Rebased on latest master
+>  - Added a print line to sbi_boot_print_general() [Anup]
+>  - Picked up Anup's r-b's
+> 
+> Andrew Jones (11):
+>   lib: sbi_hsm: Factor out invalid state detection
+>   lib: sbi_hsm: Don't try to restore state on failed change
+>   lib: sbi_hsm: Ensure errors are consistent with spec
+>   lib: sbi_hsm: Move misplaced comment
+>   lib: sbi_hsm: Remove unnecessary include
+>   lib: sbi_hsm: Export some functions
+>   lib: sbi: Add system suspend skeleton
+>   lib: sbi: Add system_suspend_allowed domain property
+>   lib: sbi: Implement system suspend
+>   docs: Correct opensbi-domain property name
+>   platform: generic: Add system suspend test
+> 
+>  docs/domain_support.md            |  15 +++-
+>  include/sbi/sbi_domain.h          |   2 +
+>  include/sbi/sbi_ecall_interface.h |   8 +++
+>  include/sbi/sbi_hsm.h             |   4 ++
+>  include/sbi/sbi_system.h          |  18 +++++
+>  lib/sbi/Kconfig                   |   4 ++
+>  lib/sbi/objects.mk                |   3 +
+>  lib/sbi/sbi_domain.c              |   4 ++
+>  lib/sbi/sbi_ecall_hsm.c           |   4 +-
+>  lib/sbi/sbi_ecall_susp.c          |  48 +++++++++++++
+>  lib/sbi/sbi_hsm.c                 |  92 +++++++++++--------------
+>  lib/sbi/sbi_init.c                |   4 ++
+>  lib/sbi/sbi_system.c              | 111 ++++++++++++++++++++++++++++++
+>  lib/utils/fdt/fdt_domain.c        |   7 ++
+>  platform/generic/platform.c       |  20 +++++-
+>  15 files changed, 287 insertions(+), 57 deletions(-)
+>  create mode 100644 lib/sbi/sbi_ecall_susp.c
+> 
+> -- 
+> 2.39.0
+> 
 
