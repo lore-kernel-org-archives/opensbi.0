@@ -1,160 +1,101 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Thu, 19 Jan 2023 16:05:30 +0530
-Subject: [PATCH 3/5] firmware: Add RW section offset in scratch
-In-Reply-To: <EA26E1D5-0C4D-4A69-B695-30621BB17133@jrtc27.com>
-References: <20230109084049.31828-1-hchauhan@ventanamicro.com>
- <20230109084049.31828-4-hchauhan@ventanamicro.com>
- <2AEE45E0-861E-462D-B54A-D9779F2AE0B8@jrtc27.com>
- <20230119042950.gl6ltcljbqepeixh@arcolinux>
- <EA26E1D5-0C4D-4A69-B695-30621BB17133@jrtc27.com>
-Message-ID: <20230119103530.rwdbu3qwa3axztyb@arcolinux>
+From: Xiang W <wxjstz@126.com>
+Date: Thu, 19 Jan 2023 22:01:14 +0800
+Subject: [PATCH v2 5/5] Add two entries:
+In-Reply-To: <20230119024137.zrbsxue7erxfzmkq@arcolinux>
+References: <20230118113757.46282-1-hchauhan@ventanamicro.com>
+	 <20230118113757.46282-6-hchauhan@ventanamicro.com>
+	 <b241ba810010ebdf266f3742389033ce91be8691.camel@126.com>
+	 <20230119024137.zrbsxue7erxfzmkq@arcolinux>
+Message-ID: <479c63025d0c0babf2884deb05b065caf1dea4b3.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jan 19, 2023 at 04:43:35AM +0000, Jessica Clarke wrote:
-> On 19 Jan 2023, at 04:29, Himanshu Chauhan <hchauhan@ventanamicro.com> wrote:
+? 2023-01-19???? 08:11 +0530?Himanshu Chauhan???
+> On Wed, Jan 18, 2023 at 08:17:26PM +0800, Xiang W wrote:
+> > ? 2023-01-18???? 17:07 +0530?Himanshu Chauhan???
+> > > ? 1. TEXT: fw_start to _fw_rw_offset with RX permissions
+> > > ? 2. DATA: _fw_rw_offset to fw_size with RW permissions
+> > > 
+> > > These permissions are still not enforced from M-mode but lay
+> > > the ground work for enforcing them for M-mode. SU-mode don't
+> > > have any access to these regions.
+> > > 
+> > > Sample output:
+> > > ?Domain0 Region01? : 0x0000000080000000-0x000000008001ffff M: (R,X) S/U: ()
+> > > ?Domain0 Region02? : 0x0000000080020000-0x000000008003ffff M: (R,W) S/U: ()
+> > > 
+> > > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+> > > ---
+> > > ?lib/sbi/sbi_domain.c | 23 +++++++++++++++++++++--
+> > > ?1 file changed, 21 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > > index f6addc4..3dceb6a 100644
+> > > --- a/lib/sbi/sbi_domain.c
+> > > +++ b/lib/sbi/sbi_domain.c
+> > > @@ -637,12 +637,31 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> > > ????????u32 i;
+> > > ????????const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+> > > ?
+> > > +???????if ((scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0) {
 > > 
-> > On Wed, Jan 18, 2023 at 04:23:06PM +0000, Jessica Clarke wrote:
-> >> On 9 Jan 2023, at 08:40, Himanshu Chauhan <hchauhan@ventanamicro.com> wrote:
-> >>> 
-> >>> Add the RW section offset, provided by _fw_rw_offset symbol,
-> >>> to the scratch structure. This will be used to program
-> >>> separate pmp entry for RW section.
-> >>> 
-> >>> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-> >>> ---
-> >>> firmware/fw_base.S        |  5 +++++
-> >>> include/sbi/sbi_scratch.h | 24 ++++++++++++++----------
-> >>> 2 files changed, 19 insertions(+), 10 deletions(-)
-> >>> 
-> >>> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> >>> index 3f622b3..ce1f782 100644
-> >>> --- a/firmware/fw_base.S
-> >>> +++ b/firmware/fw_base.S
-> >>> @@ -298,6 +298,11 @@ _scratch_init:
-> >>> 	sub	a5, t3, a4
-> >>> 	REG_S	a4, SBI_SCRATCH_FW_START_OFFSET(tp)
-> >>> 	REG_S	a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
-> >>> +
-> >>> +	/* Store R/W section's offset in scratch space */
-> >>> +	lla	a4, _fw_rw_offset
-> >>> +	REG_S	a4, SBI_SCRATCH_FW_RW_OFFSET(tp)
-> >>> +
-> >> 
-> >> You can?t use LLA for an absolute symbol, especially one whose value
-> >> isn?t guaranteed to be within 2^31 of the LLA?s address. Use the GOT,
-> >> use a constant pool (for compatibility with older assemblers) or do the
-> >> subtraction in the code instead of the linker script.
-> > 
-> > This code segment is executed after the relocation. The _fw_rw_offset
-> > symbol also gets relocated.
+> > This expression is false at scratch-> fw_rw_offset = 0.
+> > 0 is not a power of 2.
+> > suggestion:
+> > ??? if ((scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0 || scratch->fw_rw_offset == 0) {
 > 
-> No it doesn?t. _fw_rw_offset is absolute. It?s not subject to
-> relocation. In fact executing this *after* relocation would totally
-> screw up FW_PIC binaries, because they?d include the run-time
-> relocation offset in the calculation of _fw_rw_offset, but
-> _fw_rw_offset is the offset from _fw_base. That is, if your relocation
-> offset (FreeBSD calls this ?relocbase?) is 1 GiB then suddenly
-> _fw_rw_offset is regarded as 1 GiB + some small value from the start of
-> OpenSBI?s image, which seems rather nonsensical, when it should be just
-> that small value.
-> 
-> > Thus the symbol will always be in 2Gig range
-> > unless the text and RO-data go beyond that size.
-> 
-> That?s not even guaranteed at link time if you have a base address
-> beyond 2 GiB. It only works with the default base address of 2 GiB
-> because this lla is in the text segment and thus at a smaller offset
-> from the start of the file than _fw_rw_offset?s value. For example,
-> with a base address of 2 GiB, a 4 KiB text segment, and, for argument?s
-> sake, 32 uncompressed instructions before this lla in the text segment,
-> _fw_rw_offset will have value 4 KiB, and the lla will be at 2 GiB + 32
-> * 4 bytes = 2 GiB + 128 bytes, which is less than 2 GiB above 4 KiB.
-> But if you bump the base address up to 3 GiB then the lla is at 3 GiB +
-> 128 bytes, which is more than 2 GiB above 4 KiB.
-> 
-> Use the GOT or a constant pool.
->
-GOT your point :). Thanks for catching it! Will send new version.
+> fw_rw_offset is provided by the linker. It will fall after text, ro, and symbols and then it is
+> protected by LOG2CEIL. Unless everything is preceding fw_rw_offset is zero, fw_rw_offset can't
+> be zero. So I think this check is safe here.
 
-Regards
-Himanshu
- 
-> Jess
+I know fw_rw_offset is provieded by the linker script. This check prevents
+linker scripts from being incorrectly modified.
+
+Regards,
+Xiang W
 > 
-> > IMHO, I don't see a need
-> > to go via GOT.
-> > 
-> > Regards
-> > Himanshu
-> > 
-> >> Jess
-> >> 
-> >>> 	/* Store next arg1 in scratch space */
-> >>> 	MOV_3R	s0, a0, s1, a1, s2, a2
-> >>> 	call	fw_next_arg1
-> >>> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> >>> index 40a3bc9..2966188 100644
-> >>> --- a/include/sbi/sbi_scratch.h
-> >>> +++ b/include/sbi/sbi_scratch.h
-> >>> @@ -18,26 +18,28 @@
-> >>> #define SBI_SCRATCH_FW_START_OFFSET		(0 * __SIZEOF_POINTER__)
-> >>> /** Offset of fw_size member in sbi_scratch */
-> >>> #define SBI_SCRATCH_FW_SIZE_OFFSET		(1 * __SIZEOF_POINTER__)
-> >>> +/** Offset (in sbi_scratch) of the R/W Offset */
-> >>> +#define SBI_SCRATCH_FW_RW_OFFSET		(2 * __SIZEOF_POINTER__)
-> >>> /** Offset of next_arg1 member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(2 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(3 * __SIZEOF_POINTER__)
-> >>> /** Offset of next_addr member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(3 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(4 * __SIZEOF_POINTER__)
-> >>> /** Offset of next_mode member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_NEXT_MODE_OFFSET		(4 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_NEXT_MODE_OFFSET		(5 * __SIZEOF_POINTER__)
-> >>> /** Offset of warmboot_addr member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(5 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(6 * __SIZEOF_POINTER__)
-> >>> /** Offset of platform_addr member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(6 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(7 * __SIZEOF_POINTER__)
-> >>> /** Offset of hartid_to_scratch member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(7 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(8 * __SIZEOF_POINTER__)
-> >>> /** Offset of trap_exit member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(8 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(9 * __SIZEOF_POINTER__)
-> >>> /** Offset of tmp0 member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_TMP0_OFFSET			(9 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_TMP0_OFFSET			(10 * __SIZEOF_POINTER__)
-> >>> /** Offset of options member in sbi_scratch */
-> >>> -#define SBI_SCRATCH_OPTIONS_OFFSET		(10 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_OPTIONS_OFFSET		(11 * __SIZEOF_POINTER__)
-> >>> /** Offset of extra space in sbi_scratch */
-> >>> -#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(11 * __SIZEOF_POINTER__)
-> >>> +#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(12 * __SIZEOF_POINTER__)
-> >>> /** Maximum size of sbi_scratch (4KB) */
-> >>> #define SBI_SCRATCH_SIZE			(0x1000)
-> >>> 
-> >>> @@ -53,6 +55,8 @@ struct sbi_scratch {
-> >>> 	unsigned long fw_start;
-> >>> 	/** Size (in bytes) of firmware linked to OpenSBI library */
-> >>> 	unsigned long fw_size;
-> >>> +	/** Offset (in bytes) of the R/W section */
-> >>> +	unsigned long fw_rw_offset;
-> >>> 	/** Arg1 (or 'a1' register) of next booting stage for this HART */
-> >>> 	unsigned long next_arg1;
-> >>> 	/** Address of next booting stage for this HART */
-> >>> -- 
-> >>> 2.39.0
-> >>> 
-> >>> 
-> >>> -- 
-> >>> opensbi mailing list
-> >>> opensbi at lists.infradead.org
-> >>> http://lists.infradead.org/mailman/listinfo/opensbi
+> Regards
+> Himanshu
 > 
+> > 
+> > Regards,
+> > Xiang W
+> > 
+> > > +???????????????sbi_printf("%s: Firmware read-write offset not a power of 2 (0x%lx)\n",
+> > > +????????????????????????? __func__, scratch->fw_rw_offset);
+> > > +???????????????return SBI_EINVAL;
+> > > +???????}
+> > > +
+> > > +???????if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
+> > > +???????????????sbi_printf("%s: Firmware start and read-write offset not aligned\n",
+> > > +????????????????????????? __func__);
+> > > +???????????????return SBI_EINVAL;
+> > > +???????}
+> > > +
+> > > ????????/* Root domain firmware memory region */
+> > > -???????sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
+> > > -???????????????????????????????? SBI_DOMAIN_MEMREGION_M_RWX,
+> > > +???????sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
+> > > +???????????????????????????????? (SBI_DOMAIN_MEMREGION_M_READABLE |
+> > > +????????????????????????????????? SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
+> > > ????????????????????????????????? &root_fw_region);
+> > > ????????domain_memregion_initfw(&root_memregs[root_memregs_count++]);
+> > > ?
+> > > +???????sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
+> > > +???????????????????????????????? (scratch->fw_size - scratch->fw_rw_offset),
+> > > +???????????????????????????????? (SBI_DOMAIN_MEMREGION_M_READABLE |
+> > > +????????????????????????????????? SBI_DOMAIN_MEMREGION_M_WRITABLE),
+> > > +???????????????????????????????? &root_memregs[root_memregs_count++]);
+> > > +
+> > > ????????/* Root domain allow everything memory region */
+> > > ????????sbi_domain_memregion_init(0, ~0UL,
+> > > ????????????????????????????????? (SBI_DOMAIN_MEMREGION_READABLE |
+> > > -- 
+> > > 2.39.0
+> > > 
+> > > 
+> > 
 
