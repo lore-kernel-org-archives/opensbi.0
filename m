@@ -1,89 +1,75 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Fri, 20 Jan 2023 10:11:26 +0800
-Subject: [PATCH v3 4/6] lib: utils: atcsmu: Add Andes System Management
- Unit support
-In-Reply-To: <20230119152607.w532kwh4mqqjnleq@arcolinux>
-References: <20230118075321.19447-1-peterlin@andestech.com>
- <20230118075321.19447-5-peterlin@andestech.com>
- <20230119152607.w532kwh4mqqjnleq@arcolinux>
-Message-ID: <Y8n4Tjr1I5ZbDivI@Thinkpad-L14>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 20 Jan 2023 11:05:06 +0800
+Subject: [PATCH v4 0/6] Implement hart hotplug using HSM extension for AE350
+Message-ID: <20230120030512.8778-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Chauhan,
+The patchset includes implementing hotplug with ATCSMU deep sleep mode
+using HSM extension, introduces ATCSMU system device and some fixes.
+Base on OpenSBI v1.2 and test on AE350 platform with the CPU listed below:
 
-On Thu, Jan 19, 2023 at 08:56:07PM +0530, Himanshu Chauhan wrote:
-> On Wed, Jan 18, 2023 at 03:53:19PM +0800, Yu Chien Peter Lin wrote:
-> > This patch adds atcsmu support for Andes AE350 platforms. The SMU
-> > provides system management capabilities, including clock, reset
-> > and power control based on power domain partitions.
-> > 
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > ---
-> >  include/sbi_utils/sys/atcsmu.h | 53 ++++++++++++++++++++
-> >  lib/utils/sys/Kconfig          |  4 ++
-> >  lib/utils/sys/atcsmu.c         | 92 ++++++++++++++++++++++++++++++++++
-> >  lib/utils/sys/objects.mk       |  1 +
-> >  platform/generic/Kconfig       |  1 +
-> >  5 files changed, 151 insertions(+)
-> >  create mode 100644 include/sbi_utils/sys/atcsmu.h
-> >  create mode 100644 lib/utils/sys/atcsmu.c
-> > 
-> > diff --git a/include/sbi_utils/sys/atcsmu.h b/include/sbi_utils/sys/atcsmu.h
-> > new file mode 100644
-> > index 00000000..0dd923fe
-> > --- /dev/null
-> > +++ b/include/sbi_utils/sys/atcsmu.h
-> > @@ -0,0 +1,53 @@
-> > +/*
-> > + * SPDX-License-Identifier: BSD-3-Clause
-> > + *
-> > + * Copyright (c) 2023 Andes Technology Corporation
-> > + */
-> > +
-> > +#ifndef _SYS_ATCSMU_H
-> > +#define _SYS_ATCSMU_H
-> > +
-> > +#include <sbi/sbi_types.h>
-> > +
-> > +#define PCS0_WE_OFFSET 0x90
-> > +#define PCSm_WE_OFFSET(i) ((i + 3) * 0x20 + PCS0_WE_OFFSET)
-> > +
-> > +#define PCS0_CTL_OFFSET 0x94
-> > +#define PCSm_CTL_OFFSET(i) ((i + 3) * 0x20 + PCS0_CTL_OFFSET)
-> > +#define PCS_CTL_CMD_SHIFT 0
-> > +#define PCS_CTL_PARAM_SHIFT 3
-> > +#define SLEEP_CMD 0x3
-> > +#define WAKEUP_CMD (0x0 | (1 << PCS_CTL_PARAM_SHIFT))
-> > +#define LIGHTSLEEP_MODE 0
-> > +#define DEEPSLEEP_MODE 1
-> > +#define LIGHT_SLEEP_CMD (SLEEP_CMD | (LIGHTSLEEP_MODE << PCS_CTL_PARAM_SHIFT))
-> > +#define DEEP_SLEEP_CMD (SLEEP_CMD | (DEEPSLEEP_MODE << PCS_CTL_PARAM_SHIFT))
-> > +
-> > +#define PCS0_CFG_OFFSET 0x80
-> > +#define PCSm_CFG_OFFSET(i) ((i + 3) * 0x20 + PCS0_CFG_OFFSET)
-> > +#define PCS_CFG_LIGHT_SLEEP_SHIFT 2
-> > +#define PCS_CFG_LIGHT_SLEEP (1 << PCS_CFG_LIGHT_SLEEP_SHIFT)
-> > +#define PCS_CFG_DEEP_SLEEP_SHIFT 3
-> > +#define PCS_CFG_DEEP_SLEEP (1 << PCS_CFG_DEEP_SLEEP_SHIFT)
-> > +#define RESET_VEC_LO_OFFSET 0x50
-> > +#define RESET_VEC_HI_OFFSET 0x60
-> > +#define RESET_VEC_8CORE_OFFSET 0x1a0
-> > +#define HARTn_RESET_VEC_LO(n)  \
-> > +	(RESET_VEC_LO_OFFSET + \
-> > +	 ((n) < 4 ? 0 : RESET_VEC_8CORE_OFFSET) + ((n) * 0x4))
-> > +#define HARTn_RESET_VEC_HI(n)  \
-> > +	(RESET_VEC_HI_OFFSET + \
-> > +	 ((n) < 4 ? 0 : RESET_VEC_8CORE_OFFSET) + ((n) * 0x4))
-> > +#define PCS_MAX_NR 8
-> > +#define FLASH_BASE 0x80000000ULL
-> Just a nit, can the values of macros be aligned for better readability?
+RV64:
+* AX45MP quad-core
+* AX45MP octa-core
+* AX25MP quad-core
 
-Sure, I will fix the indentation.
+RV32:
+* A45MP quad-core
+* A25MP quad-core
 
-Thanks,
-Peter Lin
+Changes v1 -> v2:
+* Drop patch for adding secondary_boot callback
+* Add a PATCH4 to move ATCSMU related code to lib/utils/sys
+* Include RB tags
+Changes v2 -> v3:
+* Refine PATCH4 (suggested by Anup [1])
+  * Remove redundant headers
+  * Move is_andes25() to ae350.c
+  * Add "struct smu_data *smu" parameter to each smu related functions
+* Refine PATCH6 (suggested by Anup [2])
+  * Make FDT_RESET_ATCWDT200 depends on SYS_ATCSMU
+* PATCH5 & PATCH6: Instantiate struct smu_data in ae350.c and fdt_reset_atcwdt200.c
+Changes v3 -> v4
+* PATCH4: Fix indentation for atcsmu.h
+
+[1] https://lists.infradead.org/pipermail/opensbi/2023-January/004236.html
+[2] https://lists.infradead.org/pipermail/opensbi/2023-January/004237.html
+
+Yu Chien Peter Lin (6):
+  docs: generic.md: fix typo of andes-ae350
+  lib: sbi_hsm: handle failure when hart_stop returns SBI_ENOTSUPP
+  include: types: add always inline compiler attribute
+  lib: utils: atcsmu: Add Andes System Management Unit support
+  platform: andes/ae350: Implement hart hotplug using HSM extension
+  lib: reset/fdt_reset_atcwdt200: Use defined macros and function in
+    atcsmu.h
+
+ docs/platform/generic.md                 |  2 +-
+ include/sbi/sbi_hsm.h                    |  8 +-
+ include/sbi/sbi_types.h                  |  1 +
+ include/sbi_utils/sys/atcsmu.h           | 59 ++++++++++++++
+ lib/sbi/sbi_hsm.c                        |  7 +-
+ lib/utils/reset/Kconfig                  |  1 +
+ lib/utils/reset/fdt_reset_atcwdt200.c    | 21 ++---
+ lib/utils/sys/Kconfig                    |  4 +
+ lib/utils/sys/atcsmu.c                   | 92 ++++++++++++++++++++++
+ lib/utils/sys/objects.mk                 |  1 +
+ platform/generic/Kconfig                 |  1 +
+ platform/generic/andes/ae350.c           | 99 ++++++++++++++++++++++++
+ platform/generic/andes/objects.mk        |  2 +-
+ platform/generic/andes/sleep.S           | 70 +++++++++++++++++
+ platform/generic/include/andes/andes45.h | 10 +++
+ 15 files changed, 357 insertions(+), 21 deletions(-)
+ create mode 100644 include/sbi_utils/sys/atcsmu.h
+ create mode 100644 lib/utils/sys/atcsmu.c
+ create mode 100644 platform/generic/andes/sleep.S
+ create mode 100644 platform/generic/include/andes/andes45.h
+
+-- 
+2.34.1
+
 
