@@ -1,96 +1,56 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Fri, 20 Jan 2023 11:05:12 +0800
-Subject: [PATCH v4 6/6] lib: reset/fdt_reset_atcwdt200: Use defined macros and function in atcsmu.h
-In-Reply-To: <20230120030512.8778-1-peterlin@andestech.com>
-References: <20230120030512.8778-1-peterlin@andestech.com>
-Message-ID: <20230120030512.8778-7-peterlin@andestech.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Fri, 20 Jan 2023 12:34:06 +0000
+Subject: [RFC PATCH v2 1/3] platform: generic: renesas: rzfive: Add
+ support to configure the PMA
+In-Reply-To: <20230119154131.dkiq2s5354iqxahz@arcolinux>
+References: <20230111130540.22722-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <20230111130540.22722-2-prabhakar.mahadev-lad.rj@bp.renesas.com> <20230119154131.dkiq2s5354iqxahz@arcolinux>
+Message-ID: <CA+V-a8sEk5pCrv3GR=3WYsUdGvXBELHimue+E5f63sjsph2opQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Reuse the smu related macros and function in atcsmu.h.
+Hi Himanshu,
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- lib/utils/reset/Kconfig               |  1 +
- lib/utils/reset/fdt_reset_atcwdt200.c | 21 ++++++++-------------
- 2 files changed, 9 insertions(+), 13 deletions(-)
+On Thu, Jan 19, 2023 at 3:41 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
+>
+> On Wed, Jan 11, 2023 at 01:05:38PM +0000, Lad Prabhakar wrote:
+> > I/O Coherence Port (IOCP) provides an AXI interface for connecting
+> > external non-caching masters, such as DMA controllers. The accesses
+> > from IOCP are coherent with D-Caches and L2 Cache.
+> >
+> > IOCP is a specification option and is disabled on the Renesas RZ/Five
+> > SoC due to this reason IP blocks using DMA will fail.
+> >
+> > The Andes AX45MP core has a Programmable Physical Memory Attributes (PMA)
+> > block that allows dynamic adjustment of memory attributes in the runtime.
+> > It contains a configurable amount of PMA entries implemented as CSR
+> > registers to control the attributes of memory locations in interest.
+> > Below are the memory attributes supported:
+> > * Device, Non-bufferable
+> > * Device, bufferable
+> > * Memory, Non-cacheable, Non-bufferable
+> > * Memory, Non-cacheable, Bufferable
+> > * Memory, Write-back, No-allocate
+> > * Memory, Write-back, Read-allocate
+> > * Memory, Write-back, Write-allocate
+> > * Memory, Write-back, Read and Write-allocate
+<snip>
+> > +
+> > +static unsigned long andes45_pma_setup(unsigned long addr,
+> > +                                    unsigned long size,
+> > +                                    unsigned int entry_id,
+> > +                                    u32 flag)
+> IMHO, we should be consistent with types that are used. Better to
+> stick with u32 sorts.
+>
+Ok, I'll switch to unsigned int and while doing that I'll pass a
+pointer to struct andes45_pma_region instead of passing the
+addr/size/flag separately.
 
-diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
-index 0e0c2c1d..4748cc85 100644
---- a/lib/utils/reset/Kconfig
-+++ b/lib/utils/reset/Kconfig
-@@ -11,6 +11,7 @@ if FDT_RESET
- 
- config FDT_RESET_ATCWDT200
- 	bool "Andes WDT FDT reset driver"
-+	depends on SYS_ATCSMU
- 	default n
- 
- config FDT_RESET_GPIO
-diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
-index 91acc9f7..03d547b9 100644
---- a/lib/utils/reset/fdt_reset_atcwdt200.c
-+++ b/lib/utils/reset/fdt_reset_atcwdt200.c
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/reset/fdt_reset.h>
-+#include <sbi_utils/sys/atcsmu.h>
- 
- #define ATCWDT200_WP_NUM 0x5aa5
- #define WREN_REG 0x18
-@@ -41,14 +42,8 @@
- #define CLK_PCLK (1 << 1)
- #define WDT_EN (1 << 0)
- 
--#define FLASH_BASE 0x80000000ULL
--#define SMU_RESET_VEC_LO_OFF 0x50
--#define SMU_RESET_VEC_HI_OFF 0x60
--#define SMU_HARTn_RESET_VEC_LO(n) (SMU_RESET_VEC_LO_OFF + (n * 0x4))
--#define SMU_HARTn_RESET_VEC_HI(n) (SMU_RESET_VEC_HI_OFF + (n * 0x4))
--
--static volatile char *wdt_addr;
--static volatile char *smu_addr;
-+static volatile char *wdt_addr = NULL;
-+static struct smu_data smu = { 0 };
- 
- static int ae350_system_reset_check(u32 type, u32 reason)
- {
-@@ -66,16 +61,16 @@ static void ae350_system_reset(u32 type, u32 reason)
- {
- 	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
- 
--	for (int i = 0; i < sbi_platform_hart_count(plat); i++) {
--		writel(FLASH_BASE, smu_addr + SMU_HARTn_RESET_VEC_LO(i));
--		writel(FLASH_BASE >> 32, smu_addr + SMU_HARTn_RESET_VEC_HI(i));
--	}
-+	for (int i = 0; i < sbi_platform_hart_count(plat); i++)
-+		if (smu_set_reset_vector(&smu, FLASH_BASE, i))
-+			goto fail;
- 
- 	/* Program WDT control register  */
- 	writew(ATCWDT200_WP_NUM, wdt_addr + WREN_REG);
- 	writel(INT_CLK_32768 | INT_EN | RST_CLK_128 | RST_EN | WDT_EN,
- 	       wdt_addr + CTRL_REG);
- 
-+fail:
- 	sbi_hart_hang();
- }
- 
-@@ -104,7 +99,7 @@ static int atcwdt200_reset_init(void *fdt, int nodeoff,
- 	if (fdt_parse_compat_addr(fdt, &reg_addr, "andestech,atcsmu"))
- 		return SBI_ENODEV;
- 
--	smu_addr = (volatile char *)(unsigned long)reg_addr;
-+	smu.addr = (unsigned long)reg_addr;
- 
- 	sbi_system_reset_add_device(&atcwdt200_reset);
- 
--- 
-2.34.1
-
+Cheers,
+Prabhakar
 
