@@ -1,59 +1,68 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 23 Jan 2023 10:29:47 +0530
-Subject: [PATCH] lib: utils: Fix reserved memory node for firmware memory
-In-Reply-To: <20230121064559.3164930-1-mchitale@ventanamicro.com>
-References: <20230121064559.3164930-1-mchitale@ventanamicro.com>
-Message-ID: <CAAhSdy3+EERjXy_4bminsxH1a2XkoNQWHC20f1bDS00cwLjG2w@mail.gmail.com>
+Date: Mon, 23 Jan 2023 10:36:46 +0530
+Subject: [PATCH v3 0/5] Split RX and RW regions for separate pmp entries
+In-Reply-To: <20230119151826.59697-1-hchauhan@ventanamicro.com>
+References: <20230119151826.59697-1-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy2oxADhCbNyP-hzj5EbPZDOGL7ifmVcRunBj2fyGJoM3A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Jan 21, 2023 at 12:16 PM Mayuresh Chitale
-<mchitale@ventanamicro.com> wrote:
+On Thu, Jan 19, 2023 at 8:48 PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
 >
-> The commit 9e0ba090 introduced more fine grained permissions for memory
-> regions and did not update the fdt_reserved_memory_fixup() function. As
-> a result, the fdt_reserved_memory_fixup continued to use the older coarse
-> permissions which causes the reserved memory node to be not inserted
-> into the DT.
+> This is second installment of the patch series sent earlier with
+> the subject:  Split region permissions into M-mode and SU-mode. The
+> version 2 was recently posted, for which below is the link:
+> http://lists.infradead.org/pipermail/opensbi/2023-January/004127.html
 >
-> To fix the above issue, we correct the flags used for memory region
-> permission checks in the fdt_reserved_memory_fixup() function.
+> This patch series splits the RX (text and read-only data) and RW data regions
+> so that each can have its independent pmp entries with correct permissions.
+> The linker script provides a new symbol _fw_rw_offset that marks the
+> beginning of the RW section. It also ensures that the split is a power-of-2
+> as required by pmp.
 >
-> Fixes: 9e0ba090 ("include: sbi: Fine grain the permissions for M and SU modes")
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+> This lays ground work for enforcing the permissions from M-mode.
+>
+> Changes in v2:
+> * Added a check if fw_rw_offset is a power of w
+> * Added a check if fw_start and fw_rw_offset are aligned
+>
+> Changes in v3:
+> * Use of local variable to latch the value in fw_rw_offset linker symbol
+> * Check that fw_rw_offset is non-zero before power-of-2 check
+>
+> Himanshu Chauhan (5):
+>   firmware: Split RO/RX and RW sections
+>   firmware: Move dynsym and reladyn sections to RX section
+>   firmware: Add RW section offset in scratch
+>   lib: sbi: Print the RW section offset
+>   Add two entries:
 
-Applied this patch to the riscv/opensbi repo.
+I have taken care of comments from Xiang W and myself in PATCH5
+at the time of merging this patch.
+
+Applied this series to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
-> ---
->  lib/utils/fdt/fdt_fixup.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index 41f6cbb..42692cc 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -259,11 +259,11 @@ int fdt_reserved_memory_fixup(void *fdt)
->                 /* Ignore MMIO or READABLE or WRITABLE or EXECUTABLE regions */
->                 if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
->                         continue;
-> -               if (reg->flags & SBI_DOMAIN_MEMREGION_READABLE)
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
->                         continue;
-> -               if (reg->flags & SBI_DOMAIN_MEMREGION_WRITEABLE)
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
->                         continue;
-> -               if (reg->flags & SBI_DOMAIN_MEMREGION_EXECUTABLE)
-> +               if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
->                         continue;
+>  firmware/fw_base.S        |  8 ++++++++
+>  firmware/fw_base.ldS      | 43 ++++++++++++++++++++++++---------------
+>  include/sbi/sbi_scratch.h | 24 +++++++++++++---------
+>  lib/sbi/sbi_domain.c      | 24 ++++++++++++++++++++--
+>  lib/sbi/sbi_init.c        |  1 +
+>  5 files changed, 72 insertions(+), 28 deletions(-)
 >
->                 addr = reg->base;
 > --
-> 2.34.1
+> 2.39.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
