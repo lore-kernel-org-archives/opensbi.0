@@ -1,93 +1,213 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 24 Jan 2023 18:02:44 +0530
-Subject: [PATCH v2 2/2] platform: generic: allwinner: Advertise
- nonretentive suspend
-In-Reply-To: <20230123063208.19590-2-samuel@sholland.org>
-References: <20230123063208.19590-1-samuel@sholland.org> <20230123063208.19590-2-samuel@sholland.org>
-Message-ID: <CAAhSdy3PM0wdso+cW=N=YivtxdtWQtaTuafs1BnbAwY1WE=Ujg@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Tue, 24 Jan 2023 11:12:24 -0800
+Subject: =?UTF-8?B?UmU6IOetlOWkjTogW1BBVENIIDEvMV0gQWRkIFJJU0MtViBURUUgc3VwcG9ydA==?=
+In-Reply-To: <00a601d92654$a1888f50$e499adf0$@eswincomputing.com>
+References: <20230111020159.1234-1-liushiwei@eswincomputing.com>
+ <019501d925b4$9e792220$db6b6660$@ventanamicro.com> <004901d925b8$2452b2f0$6cf818d0$@eswincomputing.com>
+ <20230111153843.3jw5ku53yxqjddtw@arcolinux> <00a601d92654$a1888f50$e499adf0$@eswincomputing.com>
+Message-ID: <CAOnJCULDiGwW9s0Neuc=foC6s9pzo26x1oyK4ZfCWrX6kKsAHA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 23, 2023 at 12:02 PM Samuel Holland <samuel@sholland.org> wrote:
+On Wed, Jan 11, 2023 at 11:08 PM liushiwei <liushiwei@eswincomputing.com> wrote:
 >
-> Add D1's nonretentive suspend state to the devicetree so S-mode software
-> knows about it and can use it.
+> Hi, Himanshu ,  These are my description:
 >
-> Latency and power measurements were taken on an Allwinner Nezha board:
->  - Entry latency was measured from the beginning of sbi_ecall_handler()
->    to before the call to wfi() in sun20i_d1_hart_suspend().
->  - Exit latency was measured from the beginning of sbi_init() to before
->    the call to sbi_hart_switch_mode() in init_warmboot().
->  - There was a 17.5 mW benefit from non-retentive suspend compared to
->    WFI, with a 170 mW cost during the 107 us entry/exit period. This
->    provides a break-even point around 1040 us. Residency includes entry
->    latency, so round this up to 1100 us.
->  - The hardware power sequence latency (after the WFI) is assumed to be
->    negligible, so set the wakeup latency to the exit latency.
+> In my design, The entire linux space is called REE (Rich Execution Environment),
+> and TEE OS includes its user state called TEE (Trusted execution environment).
+> adding TEE functionality to opensbi requires two configuration items.
+> For example:
+>    add CONFIG_SBI_ECALL_TEE=y in platform/generic/configs/defconfig file.
+>    add CONFIG_TEE_LOAD_ADDR=0x27C000000 platform/generic/objects.mk.
+>    The value of CONFIG_TEE_LOAD_ADDR depends on the actual memory layout,
+>    It's a physical address.
 >
-> Reviewed-by: Anup Patel <anup@brainfault.org>
-> Signed-off-by: Samuel Holland <samuel@sholland.org>
+> When TEE is configured, opensbi adds the following functionality:
+> 1. Boot TEE OS.
+>    If TEE is enabled, tee_os_init() is called before entering
+>    sbi_hart_switch_mode(). tee_os_init saves the current context,
+>    sets a new trap stack address, and runs to CONFIG_TEE_LOAD_ADDR as configured
+>    to complete TEE OS initialization. TEE OS returns via ecall, Go to opensbi
+>    sbi_ecall_tee_handler and use the characteristic value RETURN_ENTRY_DONE
+>    to indicate the return after the TEE OS completes booting. Check whether the
+>    TEE OS boot successfully according to the parameter. If fails,
+>    the system enters wfi and terminates the startup process of opensbi. If successful,
+>    it returns REE to switch into TEE's vector. then trap stack memory is restored,
+>    the context is restored, the tee_os_init call is returned,
+>    and the rest of the process is performed.
+> 2. REE switches to TEE.
+>    When the TEE OS boot successfully, it returns an entry vector for REE into the TEE.
+>    It represents various entry points into TEE OS and is stored in opensbi's global variables.
+>    It is the optee_vectors_t structure, which contains nine entry cases:
+>       1. yield_smc_entry;
+>       2. fast_smc_entry;
+>       3. cpu_on_entry;
+>       4. cpu_off_entry;
+>       5. cpu_resume_entry;
+>       6. cpu_suspend_entry;
+>       7. fiq_entry;
+>       8. system_off_entry;
+>       9. system_reset_entry;
+>    yield_smc_entry means that this function entry TEE will start the thread function
+>    and enter the user state of TEE. It may also switch back to REE with RPC function,
+>    and then return to TEE after REE completes the corresponding function.
+>    For the REE process that sent you this call, it may cause sleep.
+>
+>    fast_smc_entry indicates that this is a quick function that returns after
+>    the TEE OS does something, and that it does not cause the caller to sleep.
+>
+>    yield_smc_entry and fast_smc_entry return opensbi use eigenvalue RETURN_CALL_DONE.
+>    for yield_smc_entry, whether the call returns or the RPC returns is decided by linux.
+>
+>    cpu_on_entry/cpu_off_entry/cpu_resume_entry/cpu_suspend_entry and
+>    fiq_entry/system_off_entry/system_reset_entry they are not implemented currently.
+>
+> 3. TEE switches to REE.
+>    opensbi needs to save the context when REE enters the TEE,
+>    and restore the context when it returns from the TEE.
+>
+> 4. TEE/REE Request a special function.
+>    We have some specific functions, like get hartid from TEE,
+>    it need save and restore the TEE context.
+>
+> Data structure.
+> opensbi adds the sbi_save_context declaration
+>    struct sbi_save_context {
+>       struct sbi_trap_regs regs;
+>       unsigned long sepc;
+>       unsigned long satp;
+>       unsigned long sstatus;
+>       unsigned long sie;
+>       unsigned long stvec;
+>       unsigned long sscratch;
+>       unsigned long scounteren;
+>       unsigned long scause;
+>       unsigned long stval;
+>       unsigned long sip;
+>    };
+>    sbi_save_context include sbi_trap_regs and S mode csr. Used to hold the context of TEE or REE
+>
+>    typedef struct optee_vectors {
+>       optee_vector_isn_t yield_smc_entry;
+>       optee_vector_isn_t fast_smc_entry;
+>       optee_vector_isn_t cpu_on_entry;
+>       optee_vector_isn_t cpu_off_entry;
+>       optee_vector_isn_t cpu_resume_entry;
+>       optee_vector_isn_t cpu_suspend_entry;
+>       optee_vector_isn_t fiq_entry;
+>       optee_vector_isn_t system_off_entry;
+>       optee_vector_isn_t system_reset_entry;
+>    } optee_vectors_t;
+>    optee_vectors represent the various entry points into TEE OS.
+>
+> Variables defined by opensbi
+>    optee_vectors_t *optee_vector_table;
+>    struct sbi_save_context nsec_cpu_context[OPTEED_CORE_COUNT];
+>    struct sbi_save_context sec_cpu_context[OPTEED_CORE_COUNT];
+>    struct sbi_trap_regs cpu_start_context[OPTEED_CORE_COUNT];
+>    typedef ulong tee_tmp_trap_stack[1024];
+>    static tee_tmp_trap_stack tmp_stack[OPTEED_CORE_COUNT];
+>
+>    optee_vector_table value is assigned after the TEE OS boot succeeds.
+>    nsec_cpu_context and sec_cpu_context is to save the context of TEE and REE,
+>    cpu_start_context save the context of opensbi before tee_os_init enter TEE OS,
+>    tee_tmp_stack is the trap stack when TEE OS return tee_os_init.
+>
+> Under the current design, REE does not enable interrupts when entering TEE,
+> and the entire TEE, including opensbi, is the process context of linux.
+> TEE processing must be brief and quick.
+>
 
-Applied this patch to the riscv/opensbi repo.
+Great. Thanks. Your PR should include more details like this with
+proper FID allocation and description.
+In order to make it a standard RISC-V SBI extension, you need to
+present this in tech-prs mailing list
+(https://lists.riscv.org/g/tech-prs)
+and get it approved within the group. Here is the policy document[1]
 
-Thanks,
-Anup
+https://docs.google.com/document/d/1bQGHU-wD4uN4mU07oH9adpXbH51NqUbFxcL8qTTIqhA/edit
 
-> ---
+I think it would be good if you can present your work in trusted
+computing SIG (https://lists.riscv.org/g/sig-trusted-computing) as
+well.
+
 >
-> (no changes since v1)
+> Regards,
+> liushiwei
+> -----????-----
+> ???: Himanshu Chauhan [mailto:hchauhan at ventanamicro.com]
+> ????: 2023?1?11? 23:39
+> ???: liushiwei <liushiwei@eswincomputing.com>
+> ??: opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
+> ??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
 >
->  platform/generic/allwinner/sun20i-d1.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
+> On Wed, Jan 11, 2023 at 08:27:59PM +0800, liushiwei wrote:
+> > Do you mean hardware? Our hardware design referred to arm's trustzone
+> > technology. optee os is a software solution using arm trustzone
+> > hardware, which mainly includes REE(linux), TEE(optee os), ATF(ARM
+> > Trusted firmware), and then our software also developed these three
+> > parts. opensbi is similar to ATF. whether if this is what you want?
+> > The current committed code is not hardware-dependent, but just
+> > continues the idea of this workaround, and we may commit hardware-dependent code later.
+> >
+> No, I meant the software specification.
 >
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index e2b76a3..295c159 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -12,6 +12,7 @@
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hsm.h>
->  #include <sbi/sbi_pmu.h>
-> +#include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/irqchip/fdt_irqchip_plic.h>
+> > -----????-----
+> > ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com]
+> > ????: 2023?1?11? 20:03
+> > ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
+> > org
+> > ??: chenchaokai at eswincomputing.com
+> > ??: RE: [PATCH 1/1] Add RISC-V TEE support
+> >
+> > -----Original Message-----
+> > > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of
+> > > liushiwei
+> > > Sent: 11 January 2023 07:32
+> > > To: opensbi at lists.infradead.org
+> > > Cc: chenchaokai at eswincomputing.com; liushiwei
+> > <liushiwei@eswincomputing.com>
+> > > Subject: [PATCH 1/1] Add RISC-V TEE support
+> >
+> > >RISC-V Trusted Executable Environment security software includes
+> > >linux,
+> > opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE OS
+> > is the secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
+> > At runtime, opensbi acts as a secure monitor, responsible for context
+> > saving and restoring when switching between linux and OP-TEE OS.
+> > >TEE function is off by default, when using configuration is added in
+> > >the
+> > config and objects file, such as platform/generic/configs/defconfig
+> > add CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk add
+> > CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is the
+> > starting address of the OP-TEE OS.
+> >
+> > Hi Liushiwei,
+> >
+> > Was there any formal specification or draft for this? Could you please
+> > point me to the draft or specification?
+> >
+> > Regards
+> > Himanshu
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> >
 >
-> @@ -202,6 +203,24 @@ static int sun20i_d1_final_init(bool cold_boot, const struct fdt_match *match)
->         return 0;
->  }
 >
-> +static const struct sbi_cpu_idle_state sun20i_d1_cpu_idle_states[] = {
-> +       {
-> +               .name                   = "cpu-nonretentive",
-> +               .suspend_param          = SBI_HSM_SUSPEND_NON_RET_DEFAULT,
-> +               .local_timer_stop       = true,
-> +               .entry_latency_us       = 40,
-> +               .exit_latency_us        = 67,
-> +               .min_residency_us       = 1100,
-> +               .wakeup_latency_us      = 67,
-> +       },
-> +       { }
-> +};
-> +
-> +static int sun20i_d1_fdt_fixup(void *fdt, const struct fdt_match *match)
-> +{
-> +       return fdt_add_cpu_idle_states(fdt, sun20i_d1_cpu_idle_states);
-> +}
-> +
->  static void thead_c9xx_pmu_ctr_enable_irq(uint32_t ctr_idx)
->  {
->         unsigned long mip_val;
-> @@ -265,5 +284,6 @@ static const struct fdt_match sun20i_d1_match[] = {
->  const struct platform_override sun20i_d1 = {
->         .match_table    = sun20i_d1_match,
->         .final_init     = sun20i_d1_final_init,
-> +       .fdt_fixup      = sun20i_d1_fdt_fixup,
->         .extensions_init = sun20i_d1_extensions_init,
->  };
 > --
-> 2.37.4
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+
+
+-- 
+Regards,
+Atish
 
