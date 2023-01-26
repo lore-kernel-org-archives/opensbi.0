@@ -1,18 +1,16 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 26 Jan 2023 21:23:47 +0530
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Thu, 26 Jan 2023 22:23:17 +0000
 Subject: [PATCH] firmware: Fix fw_rw_offset computation in fw_base.S
 In-Reply-To: <20230126155238.2617075-1-apatel@ventanamicro.com>
 References: <20230126155238.2617075-1-apatel@ventanamicro.com>
-Message-ID: <CAK9=C2Xu9oG-tMfk1heWRBcDARW6GTu-8g4LVN7aAcEvTQ2A3A@mail.gmail.com>
+Message-ID: <CA+V-a8ukLMTyWtCNn3U5x7Ksu4+_Xvh+eP-Wgndp55JF_diKLQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Jessica,
-
-On Thu, Jan 26, 2023 at 9:22 PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Thu, Jan 26, 2023 at 3:53 PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
 > From: Jessica Clarke <jrtc27@jrtc27.com>
 >
@@ -26,21 +24,23 @@ On Thu, Jan 26, 2023 at 9:22 PM Anup Patel <apatel@ventanamicro.com> wrote:
 > linker script which results in OpenSBI firmware failing to boot
 > whne loaded at an address different from FW_TEXT_START.
 >
+s/whne/when
+
 > Fixes: c10e3fe5f9a1 ("firmware: Add RW section offset in scratch")
 > Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
 > Tested-by: Anup Patel <apatel@ventanamicro.com>
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-
-Let me know if you are okay with the above commit description ?
-
-Regards,
-Anup
-
 > ---
 >  firmware/fw_base.S   | 2 +-
 >  firmware/fw_base.ldS | 2 +-
 >  2 files changed, 2 insertions(+), 2 deletions(-)
 >
+Reported-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Tested-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+
+Cheers,
+Prabhakar
+
 > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
 > index e04b683..fb6ac92 100644
 > --- a/firmware/fw_base.S
@@ -70,4 +70,9 @@ Anup
 > --
 > 2.34.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
