@@ -1,58 +1,129 @@
 From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Thu, 26 Jan 2023 09:58:29 +0000
-Subject: [RFC PATCH v3 0/3] Renesas RZ/Five add support to configure PMA and add vendor specific SBI extension
-Message-ID: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Thu, 26 Jan 2023 09:58:32 +0000
+Subject: [RFC PATCH v3 3/3] platform: generic: renesas: rzfive: Add SBI EXT to check for enabling IOCP errata
+In-Reply-To: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <20230126095832.21566-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi All,
+I/O Coherence Port (IOCP) provides an AXI interface for connecting
+external non-caching masters, such as DMA controllers. The accesses
+from IOCP are coherent with D-Caches and L2 Cache.
 
-This patch series aims to add support to configure the PMA regions present
-on the Andes AX45MP core (andes45-pma.c which can be shared with other
-Andes vendors) and configures the required PMA region for RZ/Five SoC.
+IOCP is a specification option and is disabled on the Renesas RZ/Five
+SoC due to this reason IP blocks using DMA will fail.
 
-This patch series also adds the SBI vendor extension
-RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND to check if IOCP is present on
-the core and if un-available it also checks if SW workaround for cache
-management needs to be applied.
+As a workaround for SoCs with IOCP disabled CMO needs to be handled by
+software. Firstly OpenSBI configures the memory region as
+"Memory, Non-cacheable, Bufferable" and passes this region as a global
+shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
+allocations happen from this region and synchronization callbacks are
+implemented to synchronize when doing DMA transactions.
 
-RFC v2 -> RFC v3
--> Fixed review comments pointed by Lin-san
-   * Used switch case macro
-   * Added a check to verify the PMA size is power-of-2
-   * Dropped un-needed calculation done in PMA code for NAPOT.
-   * Dropped MISA macro
--> Fixed comments pointed by Himanshu
--> Fixed check patch issue
+RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP
+errata should be applied to handle cache management.
 
-RFC v2 -> RFC v1
--> Fixed review comments pointed by Lin-san
--> Implemented PMA as library so that it can be shared
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+---
+ platform/generic/renesas/rzfive/rzfive.c | 69 ++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
 
-RFC v1:
-https://patchwork.ozlabs.org/project/opensbi/patch/20221212094421.14556-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
-
-Cheers,
-Prabhakar
-
-Lad Prabhakar (3):
-  platform: generic: renesas: rzfive: Add support to configure the PMA
-  platform: generic: renesas: rzfive: Configure the PMA region
-  platform: generic: renesas: rzfive: Add SBI EXT to check for enabling
-    IOCP errata
-
- platform/generic/Kconfig                      |   9 +
- platform/generic/include/andes45-pma.h        |  48 +++
- platform/generic/renesas/rzfive/andes45-pma.c | 350 ++++++++++++++++++
- platform/generic/renesas/rzfive/objects.mk    |   1 +
- platform/generic/renesas/rzfive/rzfive.c      |  90 +++++
- 5 files changed, 498 insertions(+)
- create mode 100644 platform/generic/include/andes45-pma.h
- create mode 100644 platform/generic/renesas/rzfive/andes45-pma.c
-
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 0a8c9f9..627df09 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -9,6 +9,34 @@
+ #include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
++#define RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND	0
++
++/* AX45MP registers */
++#define AX45MP_CSR_MICM_CFG			0xfc0
++#define AX45MP_CSR_MDCM_CFG			0xfc1
++#define AX45MP_CSR_MMSC_CFG			0xfc2
++#define AX45MP_CSR_MCACHE_CTL			0x7ca
++
++/* AX45MP register bit offsets and masks */
++#define AX45MP_MISA_20_OFFSET			20
++#define AX45MP_MISA_20_MASK			(0x1 << AX45MP_MISA_20_OFFSET)
++
++#define AX45MP_MICM_CFG_ISZ_OFFSET		6
++#define AX45MP_MICM_CFG_ISZ_MASK		(0x7  << AX45MP_MICM_CFG_ISZ_OFFSET)
++
++#define AX45MP_MDCM_CFG_DSZ_OFFSET		6
++#define AX45MP_MDCM_CFG_DSZ_MASK		(0x7  << AX45MP_MDCM_CFG_DSZ_OFFSET)
++
++#define AX45MP_MMSC_CFG_CCTLCSR_OFFSET		16
++#define AX45MP_MMSC_CFG_CCTLCSR_MASK		(0x1 << AX45MP_MMSC_CFG_CCTLCSR_OFFSET)
++#define AX45MP_MMSC_IOCP_OFFSET			47
++#define AX45MP_MMSC_IOCP_MASK			(0x1ULL << AX45MP_MMSC_IOCP_OFFSET)
++
++#define AX45MP_MCACHE_CTL_CCTL_SUEN_OFFSET	8
++#define AX45MP_MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << AX45MP_MCACHE_CTL_CCTL_SUEN_OFFSET)
++
++#define ANDESTECH_SBI_EXT_ANDES			0x900031e
++
+ static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
+ 	{
+ 		.pa = 0x58000000,
+@@ -28,6 +56,46 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
+ 					 array_size(renesas_rzfive_pma_regions));
+ }
+ 
++static bool renesas_rzfive_cpu_cache_controlable(void)
++{
++	return (((csr_read(AX45MP_CSR_MICM_CFG) & AX45MP_MICM_CFG_ISZ_MASK) ||
++		 (csr_read(AX45MP_CSR_MDCM_CFG) & AX45MP_MDCM_CFG_DSZ_MASK)) &&
++		(csr_read(CSR_MISA) & AX45MP_MISA_20_MASK) &&
++		(csr_read(AX45MP_CSR_MMSC_CFG) & AX45MP_MMSC_CFG_CCTLCSR_MASK) &&
++		(csr_read(AX45MP_CSR_MCACHE_CTL) & AX45MP_MCACHE_CTL_CCTL_SUEN_MASK));
++}
++
++static bool renesas_rzfive_cpu_iocp_disabled(void)
++{
++	return (csr_read(AX45MP_CSR_MMSC_CFG) & AX45MP_MMSC_IOCP_MASK) ? false : true;
++}
++
++static bool renesas_rzfive_apply_iocp_sw_workaround(void)
++{
++	return renesas_rzfive_cpu_cache_controlable() & renesas_rzfive_cpu_iocp_disabled();
++}
++
++static int renesas_rzfive_vendor_ext_provider(long extid, long funcid,
++					      const struct sbi_trap_regs *regs,
++					      unsigned long *out_value,
++					      struct sbi_trap_info *out_trap,
++					      const struct fdt_match *match)
++{
++	if (extid != ANDESTECH_SBI_EXT_ANDES)
++		return SBI_EINVAL;
++
++	switch (funcid) {
++	case RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND:
++		*out_value = renesas_rzfive_apply_iocp_sw_workaround();
++		break;
++
++	default:
++		break;
++	}
++
++	return 0;
++}
++
+ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ {
+ 	/*
+@@ -55,4 +123,5 @@ const struct platform_override renesas_rzfive = {
+ 	.match_table = renesas_rzfive_match,
+ 	.early_init = renesas_rzfive_early_init,
+ 	.final_init = renesas_rzfive_final_init,
++	.vendor_ext_provider = renesas_rzfive_vendor_ext_provider,
+ };
 -- 
 2.17.1
 
