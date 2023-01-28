@@ -1,111 +1,53 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Sat, 28 Jan 2023 03:05:24 +0000
-Subject: [RFC PATCH v3 2/3] platform: generic: renesas: rzfive: Configure
- the PMA region
-In-Reply-To: <20230126095832.21566-3-prabhakar.mahadev-lad.rj@bp.renesas.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Sat, 28 Jan 2023 11:15:17 +0800
+Subject: [RFC PATCH v3 1/3] platform: generic: renesas: rzfive: Add
+ support to configure the PMA
+In-Reply-To: <20230126095832.21566-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
 References: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <20230126095832.21566-3-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <8BDFDDD1-DA9C-4A76-9936-176B1A50028B@jrtc27.com>
+ <20230126095832.21566-2-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <Y9STRS2xa4WUXk4r@Thinkpad-L14>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 26 Jan 2023, at 09:58, Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
-> 
-> On the Renesas RZ/Five SoC by default we want to configure 128MiB of memory
-> ranging from 0x58000000 as a non-cacheable + bufferable region in the PMA
-> and populate this region as PMA reserve DT node with shared DMA pool and
-> no-map flags set so that Linux drivers requesting any DMA'able memory go
-> through this region.
-> 
-> PMA node passed to the above stack:
-> 
->        reserved-memory {
->            #address-cells = <2>;
->            #size-cells = <2>;
->            ranges;
-> 
->            pma_resv0 at 58000000 {
->                compatible = "shared-dma-pool";
->                reg = <0x0 0x58000000 0x0 0x08000000>;
->                no-map;
->                linux,dma-default;
->            };
->        };
-> 
-> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> ---
-> platform/generic/Kconfig                 |  1 +
-> platform/generic/renesas/rzfive/rzfive.c | 21 +++++++++++++++++++++
-> 2 files changed, 22 insertions(+)
-> 
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index 9ee9fe3..bc5c280 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -35,6 +35,7 @@ config PLATFORM_ANDES_AE350
-> 
-> config PLATFORM_RENESAS_RZFIVE
-> 	bool "Renesas RZ/Five support"
-> +	select ANDES45_PMA
-> 	default n
-> 
-> config PLATFORM_SIFIVE_FU540
-> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> index ee9c9c4..0a8c9f9 100644
-> --- a/platform/generic/renesas/rzfive/rzfive.c
-> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> @@ -4,10 +4,30 @@
->  *
->  */
-> 
-> +#include <andes45-pma.h>
+Hi Prabhakar,
 
-This name looks inconsistent.
-
-Jess
-
-> #include <platform_override.h>
-> #include <sbi/sbi_domain.h>
-> #include <sbi_utils/fdt/fdt_helper.h>
-> 
-> +static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
-> +	{
-> +		.pa = 0x58000000,
-> +		.size = 0x8000000,
-> +		.flags = ANDES45_PMACFG_ETYP_NAPOT |
-> +			 ANDES45_PMACFG_MTYP_MEM_NON_CACHE_BUF,
-> +		.dt_populate = true,
-> +		.shared_dma = true,
-> +		.no_map = true,
-> +		.dma_default = true,
-> +	},
-> +};
-> +
-> +static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *match)
+> +static unsigned long
+> +andes45_pma_setup(const struct andes45_pma_region *pma_region,
+> +		  unsigned int entry_id)
 > +{
-> +	return andes45_pma_setup_regions(renesas_rzfive_pma_regions,
-> +					 array_size(renesas_rzfive_pma_regions));
-> +}
+> +	unsigned long size = pma_region->size;
+> +	unsigned long addr = pma_region->pa;
+> +	unsigned int pma_cfg_addr;
+> +	unsigned long pmacfg_val;
+> +	unsigned long pmaaddr;
+> +	char *pmaxcfg;
 > +
-> int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
-> {
-> 	/*
-> @@ -34,4 +54,5 @@ static const struct fdt_match renesas_rzfive_match[] = {
-> const struct platform_override renesas_rzfive = {
-> 	.match_table = renesas_rzfive_match,
-> 	.early_init = renesas_rzfive_early_init,
-> +	.final_init = renesas_rzfive_final_init,
-> };
-> -- 
-> 2.17.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> +	/* Check for 4KiB granularity */
+> +	if (size < (1 << 12))
+> +		return SBI_EINVAL;
+> +
+> +	/* Check size is power of 2 */
+> +	if (size & (size - 1))
+> +		return SBI_EINVAL;
+> +
+> +	if (pma_region->flags > 0xff || entry_id > 15)
 
+(pma_region->flags > 0xff) is always false as its type is unsigned char?
+I guess we can drop the condition and specify the bit-field of flags as
+7-bit wide (the MSB is reserved), i.e.
+
+struct andes45_pma_region {
+    unsigned long pa;
+    unsigned long size;
+    u8 flags:7;
+[...]
+
+So if someone sets the flags to a value greater than 0x7f, it will cause
+a compilation error.
+
+Regards,
+Peter Lin
 
