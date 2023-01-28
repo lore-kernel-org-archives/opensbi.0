@@ -1,119 +1,255 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Sat, 28 Jan 2023 11:27:47 +0800
-Subject: [RFC PATCH v3 3/3] platform: generic: renesas: rzfive: Add SBI
- EXT to check for enabling IOCP errata
-In-Reply-To: <20230126095832.21566-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <20230126095832.21566-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <Y9SWMzl9+wXV52V2@Thinkpad-L14>
+From: liushiwei <liushiwei@eswincomputing.com>
+Date: Sat, 28 Jan 2023 15:39:30 +0800
+Subject: [PATCH 1/1] Add RISC-V TEE support
+Message-ID: <002501d932eb$a894d5d0$f9be8170$@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Prabhakar,
-
-On Thu, Jan 26, 2023 at 09:58:32AM +0000, Lad Prabhakar wrote:
-> I/O Coherence Port (IOCP) provides an AXI interface for connecting
-> external non-caching masters, such as DMA controllers. The accesses
-> from IOCP are coherent with D-Caches and L2 Cache.
-> 
-> IOCP is a specification option and is disabled on the Renesas RZ/Five
-> SoC due to this reason IP blocks using DMA will fail.
-> 
-> As a workaround for SoCs with IOCP disabled CMO needs to be handled by
-> software. Firstly OpenSBI configures the memory region as
-> "Memory, Non-cacheable, Bufferable" and passes this region as a global
-> shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
-> allocations happen from this region and synchronization callbacks are
-> implemented to synchronize when doing DMA transactions.
-> 
-> RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP
-> errata should be applied to handle cache management.
-> 
-> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> ---
->  platform/generic/renesas/rzfive/rzfive.c | 69 ++++++++++++++++++++++++
->  1 file changed, 69 insertions(+)
-> 
-> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> index 0a8c9f9..627df09 100644
-> --- a/platform/generic/renesas/rzfive/rzfive.c
-> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> @@ -9,6 +9,34 @@
->  #include <sbi/sbi_domain.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  
-> +#define RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND	0
-> +
-> +/* AX45MP registers */
-> +#define AX45MP_CSR_MICM_CFG			0xfc0
-> +#define AX45MP_CSR_MDCM_CFG			0xfc1
-> +#define AX45MP_CSR_MMSC_CFG			0xfc2
-> +#define AX45MP_CSR_MCACHE_CTL			0x7ca
-> +
-> +/* AX45MP register bit offsets and masks */
-> +#define AX45MP_MISA_20_OFFSET			20
-> +#define AX45MP_MISA_20_MASK			(0x1 << AX45MP_MISA_20_OFFSET)
-> +
-> +#define AX45MP_MICM_CFG_ISZ_OFFSET		6
-> +#define AX45MP_MICM_CFG_ISZ_MASK		(0x7  << AX45MP_MICM_CFG_ISZ_OFFSET)
-> +
-> +#define AX45MP_MDCM_CFG_DSZ_OFFSET		6
-> +#define AX45MP_MDCM_CFG_DSZ_MASK		(0x7  << AX45MP_MDCM_CFG_DSZ_OFFSET)
-> +
-> +#define AX45MP_MMSC_CFG_CCTLCSR_OFFSET		16
-> +#define AX45MP_MMSC_CFG_CCTLCSR_MASK		(0x1 << AX45MP_MMSC_CFG_CCTLCSR_OFFSET)
-> +#define AX45MP_MMSC_IOCP_OFFSET			47
-> +#define AX45MP_MMSC_IOCP_MASK			(0x1ULL << AX45MP_MMSC_IOCP_OFFSET)
-> +
-> +#define AX45MP_MCACHE_CTL_CCTL_SUEN_OFFSET	8
-> +#define AX45MP_MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << AX45MP_MCACHE_CTL_CCTL_SUEN_OFFSET)
-
-Could you move these CSR to platform/generic/include/andes/andes45.h
-which is recently merged? Thanks.
-
-> +
-> +#define ANDESTECH_SBI_EXT_ANDES			0x900031e
-> +
->  static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
->  	{
->  		.pa = 0x58000000,
-> @@ -28,6 +56,46 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
->  					 array_size(renesas_rzfive_pma_regions));
->  }
->  
-> +static bool renesas_rzfive_cpu_cache_controlable(void)
-> +{
-> +	return (((csr_read(AX45MP_CSR_MICM_CFG) & AX45MP_MICM_CFG_ISZ_MASK) ||
-> +		 (csr_read(AX45MP_CSR_MDCM_CFG) & AX45MP_MDCM_CFG_DSZ_MASK)) &&
-> +		(csr_read(CSR_MISA) & AX45MP_MISA_20_MASK) &&
-> +		(csr_read(AX45MP_CSR_MMSC_CFG) & AX45MP_MMSC_CFG_CCTLCSR_MASK) &&
-> +		(csr_read(AX45MP_CSR_MCACHE_CTL) & AX45MP_MCACHE_CTL_CCTL_SUEN_MASK));
-> +}
-> +
-> +static bool renesas_rzfive_cpu_iocp_disabled(void)
-> +{
-> +	return (csr_read(AX45MP_CSR_MMSC_CFG) & AX45MP_MMSC_IOCP_MASK) ? false : true;
-> +}
-> +
-> +static bool renesas_rzfive_apply_iocp_sw_workaround(void)
-> +{
-> +	return renesas_rzfive_cpu_cache_controlable() & renesas_rzfive_cpu_iocp_disabled();
-> +}
-> +
-> +static int renesas_rzfive_vendor_ext_provider(long extid, long funcid,
-> +					      const struct sbi_trap_regs *regs,
-> +					      unsigned long *out_value,
-> +					      struct sbi_trap_info *out_trap,
-> +					      const struct fdt_match *match)
-> +{
-> +	if (extid != ANDESTECH_SBI_EXT_ANDES)
-> +		return SBI_EINVAL;
-
-This causes compilation error without including sbi/sbi_error.h.
+Hi?Anup
+	I have updated the document in https://github.com/riscv-non-isa/riscv-sbi-doc/pull/106 . 
+	You can preview them at https://github.com/liushiwei007/riscv-sbi-doc/blob/master/riscv-sbi.adoc .
+	With regard to the TEE function, the design focuses on its three main categories (yield /fast/fiq hardware dependent, not implemented yet), 
+	which are three different TEE entry. The more detailed part, which opensbi does not care about, needs to be handled internally by optee os according to parameters.
+	As for function value concatenation, the linux part still follows the arm rules. Specific to view https://documentation-service.arm.com/static/6013e5faeee5236980d08619 2.5 Function Identifiers.
 
 Regards,
-Peter Lin
+Liushiwei
+
+-----????-----
+???: Anup Patel [mailto:anup at brainfault.org] 
+????: 2023?1?21? 21:37
+???: liushiwei <liushiwei@eswincomputing.com>
+??: Himanshu Chauhan <hchauhan@ventanamicro.com>; opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
+??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
+
+Hi Liushiwei,
+
+On Mon, Jan 16, 2023 at 6:39 PM liushiwei <liushiwei@eswincomputing.com> wrote:
+>
+> Hi?Anup
+> I edit it in 
+> https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.a
+> doc. I tried to push a document edit commit 
+> [https://github.com/riscv-non-isa/riscv-sbi-doc/pull/106]. Please 
+> check. Am I doing what you expect me to do
+
+This is a good starting point but can you add more details about:
+1) Details of the supervisor state to be saved-n-restored by SBI implementation when forwarding the TEE calls
+2) Details about each TEE function (such as FID, etc). You can cite the actual OP-TEE spec
+
+Regards,
+Anup
+
+>
+>
+> Thanks
+> Liushiwei
+> -----????-----
+> ???: Anup Patel [mailto:anup at brainfault.org]
+> ????: 2023?1?13? 20:00
+> ???: liushiwei <liushiwei@eswincomputing.com>
+> ??: Himanshu Chauhan <hchauhan@ventanamicro.com>; 
+> opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
+> ??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
+>
+> On Thu, Jan 12, 2023 at 12:38 PM liushiwei <liushiwei@eswincomputing.com> wrote:
+> >
+> > Hi, Himanshu ,  These are my description:
+> >
+> > In my design, The entire linux space is called REE (Rich Execution 
+> > Environment), and TEE OS includes its user state called TEE (Trusted execution environment).
+> > adding TEE functionality to opensbi requires two configuration items.
+> > For example:
+> >    add CONFIG_SBI_ECALL_TEE=y in platform/generic/configs/defconfig file.
+> >    add CONFIG_TEE_LOAD_ADDR=0x27C000000 platform/generic/objects.mk.
+> >    The value of CONFIG_TEE_LOAD_ADDR depends on the actual memory layout,
+> >    It's a physical address.
+> >
+> > When TEE is configured, opensbi adds the following functionality:
+> > 1. Boot TEE OS.
+> >    If TEE is enabled, tee_os_init() is called before entering
+> >    sbi_hart_switch_mode(). tee_os_init saves the current context,
+> >    sets a new trap stack address, and runs to CONFIG_TEE_LOAD_ADDR as configured
+> >    to complete TEE OS initialization. TEE OS returns via ecall, Go to opensbi
+> >    sbi_ecall_tee_handler and use the characteristic value RETURN_ENTRY_DONE
+> >    to indicate the return after the TEE OS completes booting. Check whether the
+> >    TEE OS boot successfully according to the parameter. If fails,
+> >    the system enters wfi and terminates the startup process of opensbi. If successful,
+> >    it returns REE to switch into TEE's vector. then trap stack memory is restored,
+> >    the context is restored, the tee_os_init call is returned,
+> >    and the rest of the process is performed.
+> > 2. REE switches to TEE.
+> >    When the TEE OS boot successfully, it returns an entry vector for REE into the TEE.
+> >    It represents various entry points into TEE OS and is stored in opensbi's global variables.
+> >    It is the optee_vectors_t structure, which contains nine entry cases:
+> >       1. yield_smc_entry;
+> >       2. fast_smc_entry;
+> >       3. cpu_on_entry;
+> >       4. cpu_off_entry;
+> >       5. cpu_resume_entry;
+> >       6. cpu_suspend_entry;
+> >       7. fiq_entry;
+> >       8. system_off_entry;
+> >       9. system_reset_entry;
+> >    yield_smc_entry means that this function entry TEE will start the thread function
+> >    and enter the user state of TEE. It may also switch back to REE with RPC function,
+> >    and then return to TEE after REE completes the corresponding function.
+> >    For the REE process that sent you this call, it may cause sleep.
+> >
+> >    fast_smc_entry indicates that this is a quick function that returns after
+> >    the TEE OS does something, and that it does not cause the caller to sleep.
+> >
+> >    yield_smc_entry and fast_smc_entry return opensbi use eigenvalue RETURN_CALL_DONE.
+> >    for yield_smc_entry, whether the call returns or the RPC returns is decided by linux.
+> >
+> >    cpu_on_entry/cpu_off_entry/cpu_resume_entry/cpu_suspend_entry and
+> >    fiq_entry/system_off_entry/system_reset_entry they are not implemented currently.
+> >
+> > 3. TEE switches to REE.
+> >    opensbi needs to save the context when REE enters the TEE,
+> >    and restore the context when it returns from the TEE.
+> >
+> > 4. TEE/REE Request a special function.
+> >    We have some specific functions, like get hartid from TEE,
+> >    it need save and restore the TEE context.
+> >
+> > Data structure.
+> > opensbi adds the sbi_save_context declaration
+> >    struct sbi_save_context {
+> >       struct sbi_trap_regs regs;
+> >       unsigned long sepc;
+> >       unsigned long satp;
+> >       unsigned long sstatus;
+> >       unsigned long sie;
+> >       unsigned long stvec;
+> >       unsigned long sscratch;
+> >       unsigned long scounteren;
+> >       unsigned long scause;
+> >       unsigned long stval;
+> >       unsigned long sip;
+> >    };
+> >    sbi_save_context include sbi_trap_regs and S mode csr. Used to 
+> > hold the context of TEE or REE
+> >
+> >    typedef struct optee_vectors {
+> >       optee_vector_isn_t yield_smc_entry;
+> >       optee_vector_isn_t fast_smc_entry;
+> >       optee_vector_isn_t cpu_on_entry;
+> >       optee_vector_isn_t cpu_off_entry;
+> >       optee_vector_isn_t cpu_resume_entry;
+> >       optee_vector_isn_t cpu_suspend_entry;
+> >       optee_vector_isn_t fiq_entry;
+> >       optee_vector_isn_t system_off_entry;
+> >       optee_vector_isn_t system_reset_entry;
+> >    } optee_vectors_t;
+> >    optee_vectors represent the various entry points into TEE OS.
+> >
+> > Variables defined by opensbi
+> >    optee_vectors_t *optee_vector_table;
+> >    struct sbi_save_context nsec_cpu_context[OPTEED_CORE_COUNT];
+> >    struct sbi_save_context sec_cpu_context[OPTEED_CORE_COUNT];
+> >    struct sbi_trap_regs cpu_start_context[OPTEED_CORE_COUNT];
+> >    typedef ulong tee_tmp_trap_stack[1024];
+> >    static tee_tmp_trap_stack tmp_stack[OPTEED_CORE_COUNT];
+> >
+> >    optee_vector_table value is assigned after the TEE OS boot succeeds.
+> >    nsec_cpu_context and sec_cpu_context is to save the context of TEE and REE,
+> >    cpu_start_context save the context of opensbi before tee_os_init enter TEE OS,
+> >    tee_tmp_stack is the trap stack when TEE OS return tee_os_init.
+> >
+> > Under the current design, REE does not enable interrupts when 
+> > entering TEE, and the entire TEE, including opensbi, is the process context of linux.
+> > TEE processing must be brief and quick.
+>
+> Looks like you do have some write-up for your proof-of-concept implementation which is good but we can look at your patches only after we have discussed your SBI OPTEE proposal.
+>
+> I suggest you should create a textual/adoc description as if you are 
+> writing a chapter for 
+> https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.a
+> doc
+>
+> After you have this textual/adoc writeup for SBI OPTEE, we can discuss this in the Platform runtime services (PRS) or Trusted computing SIG meeting.
+>
+> Your patches can be reviewed only after there is enough agreement on your SBI OPTEE proposal.
+>
+> Regards,
+> Anup
+>
+> >
+> >
+> > Regards,
+> > liushiwei
+> > -----????-----
+> > ???: Himanshu Chauhan [mailto:hchauhan at ventanamicro.com]
+> > ????: 2023?1?11? 23:39
+> > ???: liushiwei <liushiwei@eswincomputing.com>
+> > ??: opensbi at lists.infradead.org; chenchaokai at eswincomputing.com
+> > ??: Re: ??: [PATCH 1/1] Add RISC-V TEE support
+> >
+> > On Wed, Jan 11, 2023 at 08:27:59PM +0800, liushiwei wrote:
+> > > Do you mean hardware? Our hardware design referred to arm's 
+> > > trustzone technology. optee os is a software solution using arm 
+> > > trustzone hardware, which mainly includes REE(linux), TEE(optee 
+> > > os), ATF(ARM Trusted firmware), and then our software also 
+> > > developed these three parts. opensbi is similar to ATF. whether if this is what you want?
+> > > The current committed code is not hardware-dependent, but just 
+> > > continues the idea of this workaround, and we may commit hardware-dependent code later.
+> > >
+> > No, I meant the software specification.
+> >
+> > > -----????-----
+> > > ???: hchauhan at ventanamicro.com [mailto:hchauhan at ventanamicro.com]
+> > > ????: 2023?1?11? 20:03
+> > > ???: 'liushiwei' <liushiwei@eswincomputing.com>; opensbi at lists.infradead.
+> > > org
+> > > ??: chenchaokai at eswincomputing.com
+> > > ??: RE: [PATCH 1/1] Add RISC-V TEE support
+> > >
+> > > -----Original Message-----
+> > > > From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of 
+> > > > liushiwei
+> > > > Sent: 11 January 2023 07:32
+> > > > To: opensbi at lists.infradead.org
+> > > > Cc: chenchaokai at eswincomputing.com; liushiwei
+> > > <liushiwei@eswincomputing.com>
+> > > > Subject: [PATCH 1/1] Add RISC-V TEE support
+> > >
+> > > >RISC-V Trusted Executable Environment security software includes 
+> > > >linux,
+> > > opensbi, and OP-TEE OS. linux is the non-secure domain, and OP-TEE 
+> > > OS is the secure domain. At boot time, opensbi boots OP->TEE OS and then starts linux.
+> > > At runtime, opensbi acts as a secure monitor, responsible for 
+> > > context saving and restoring when switching between linux and OP-TEE OS.
+> > > >TEE function is off by default, when using configuration is added 
+> > > >in the
+> > > config and objects file, such as 
+> > > platform/generic/configs/defconfig
+> > > add CONFIG_SBI_ECALL_TEE = y, In the >platform/generic/objects.mk 
+> > > add CONFIG_TEE_LOAD_ADDR = 0x27c000000, CONFIG_TEE_LOAD_ADDR is 
+> > > the starting address of the OP-TEE OS.
+> > >
+> > > Hi Liushiwei,
+> > >
+> > > Was there any formal specification or draft for this? Could you 
+> > > please point me to the draft or specification?
+> > >
+> > > Regards
+> > > Himanshu
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
+> > >
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+>
+
 
