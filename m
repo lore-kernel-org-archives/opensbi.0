@@ -1,65 +1,86 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Mon, 30 Jan 2023 16:17:38 +0000
-Subject: [RFC PATCH v3 3/3] platform: generic: renesas: rzfive: Add SBI
- EXT to check for enabling IOCP errata
-In-Reply-To: <20230126095832.21566-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com> <20230126095832.21566-4-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <CA+V-a8sVBOSBtLrwJGg74yniWkmP0xURjm8z86dcgAfSJb9+rw@mail.gmail.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Mon, 30 Jan 2023 16:29:33 +0000
+Subject: [RFC PATCH v3 2/3] platform: generic: renesas: rzfive: Configure
+ the PMA region
+In-Reply-To: <CA+V-a8uwH3NDrU1WtHBXQUcEks8MSCkjgDDhP3a3A+ggmM=DWQ@mail.gmail.com>
+References: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <20230126095832.21566-3-prabhakar.mahadev-lad.rj@bp.renesas.com>
+ <8BDFDDD1-DA9C-4A76-9936-176B1A50028B@jrtc27.com>
+ <CA+V-a8uwH3NDrU1WtHBXQUcEks8MSCkjgDDhP3a3A+ggmM=DWQ@mail.gmail.com>
+Message-ID: <6AB6F13D-1E43-4397-BB7B-D57B1069E9DF@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+On 30 Jan 2023, at 15:09, Lad, Prabhakar <prabhakar.csengg@gmail.com> wrote:
+> 
+> Hi Jessica,
+> 
+> Thank you for the review.
+> 
+> On Sat, Jan 28, 2023 at 3:05 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+>> 
+>> On 26 Jan 2023, at 09:58, Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
+>>> 
+>>> On the Renesas RZ/Five SoC by default we want to configure 128MiB of memory
+>>> ranging from 0x58000000 as a non-cacheable + bufferable region in the PMA
+>>> and populate this region as PMA reserve DT node with shared DMA pool and
+>>> no-map flags set so that Linux drivers requesting any DMA'able memory go
+>>> through this region.
+>>> 
+>>> PMA node passed to the above stack:
+>>> 
+>>>       reserved-memory {
+>>>           #address-cells = <2>;
+>>>           #size-cells = <2>;
+>>>           ranges;
+>>> 
+>>>           pma_resv0 at 58000000 {
+>>>               compatible = "shared-dma-pool";
+>>>               reg = <0x0 0x58000000 0x0 0x08000000>;
+>>>               no-map;
+>>>               linux,dma-default;
+>>>           };
+>>>       };
+>>> 
+>>> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+>>> ---
+>>> platform/generic/Kconfig                 |  1 +
+>>> platform/generic/renesas/rzfive/rzfive.c | 21 +++++++++++++++++++++
+>>> 2 files changed, 22 insertions(+)
+>>> 
+>>> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+>>> index 9ee9fe3..bc5c280 100644
+>>> --- a/platform/generic/Kconfig
+>>> +++ b/platform/generic/Kconfig
+>>> @@ -35,6 +35,7 @@ config PLATFORM_ANDES_AE350
+>>> 
+>>> config PLATFORM_RENESAS_RZFIVE
+>>>      bool "Renesas RZ/Five support"
+>>> +     select ANDES45_PMA
+>>>      default n
+>>> 
+>>> config PLATFORM_SIFIVE_FU540
+>>> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+>>> index ee9c9c4..0a8c9f9 100644
+>>> --- a/platform/generic/renesas/rzfive/rzfive.c
+>>> +++ b/platform/generic/renesas/rzfive/rzfive.c
+>>> @@ -4,10 +4,30 @@
+>>> *
+>>> */
+>>> 
+>>> +#include <andes45-pma.h>
+>> 
+>> This name looks inconsistent.
+>> 
+> As the RZ/Five has the Andes AX45MP core and the PMA code will be
+> re-used by other non-coherent  Andes AX45MP platforms hence the
+> andes45-pma.h (Also suggested by Andes maintainer)
 
-On Thu, Jan 26, 2023 at 9:58 AM Lad Prabhakar
-<prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
->
-> I/O Coherence Port (IOCP) provides an AXI interface for connecting
-> external non-caching masters, such as DMA controllers. The accesses
-> from IOCP are coherent with D-Caches and L2 Cache.
->
-> IOCP is a specification option and is disabled on the Renesas RZ/Five
-> SoC due to this reason IP blocks using DMA will fail.
->
-> As a workaround for SoCs with IOCP disabled CMO needs to be handled by
-> software. Firstly OpenSBI configures the memory region as
-> "Memory, Non-cacheable, Bufferable" and passes this region as a global
-> shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
-> allocations happen from this region and synchronization callbacks are
-> implemented to synchronize when doing DMA transactions.
->
-> RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP
-> errata should be applied to handle cache management.
->
-> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> ---
->  platform/generic/renesas/rzfive/rzfive.c | 69 ++++++++++++++++++++++++
->  1 file changed, 69 insertions(+)
->
-<snip>
-> +
-> +static int renesas_rzfive_vendor_ext_provider(long extid, long funcid,
-> +                                             const struct sbi_trap_regs *regs,
-> +                                             unsigned long *out_value,
-> +                                             struct sbi_trap_info *out_trap,
-> +                                             const struct fdt_match *match)
-> +{
-> +       if (extid != ANDESTECH_SBI_EXT_ANDES)
-Should we check extid here is this OK? Is returning SBI_EINVAL in case
-of extid mismatch is ok or should we panic here?
+I understand that. I meant the dash should be an underscore.
 
-> +               return SBI_EINVAL;
-> +
-> +       switch (funcid) {
-> +       case RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND:
-> +               *out_value = renesas_rzfive_apply_iocp_sw_workaround();
-> +               break;
-> +
-> +       default:
-Is this a correct behavior or should we do a panic here?
+Jess
 
-Cheers,
-Prabhakar
 
