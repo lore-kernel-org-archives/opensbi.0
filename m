@@ -1,90 +1,41 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Mon, 30 Jan 2023 16:36:54 +0000
-Subject: [RFC PATCH v3 2/3] platform: generic: renesas: rzfive: Configure
- the PMA region
-In-Reply-To: <6AB6F13D-1E43-4397-BB7B-D57B1069E9DF@jrtc27.com>
-References: <20230126095832.21566-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <20230126095832.21566-3-prabhakar.mahadev-lad.rj@bp.renesas.com>
- <8BDFDDD1-DA9C-4A76-9936-176B1A50028B@jrtc27.com> <CA+V-a8uwH3NDrU1WtHBXQUcEks8MSCkjgDDhP3a3A+ggmM=DWQ@mail.gmail.com>
- <6AB6F13D-1E43-4397-BB7B-D57B1069E9DF@jrtc27.com>
-Message-ID: <CA+V-a8tg_XwdVjMoLajkkqXncuNGb73B0w5Ck041oHL=oNWXiA@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 30 Jan 2023 17:42:24 +0100
+Subject: [PATCH] lib: sbi: Ensure domidx_to_domain_table is null-terminated
+Message-ID: <20230130164224.1364402-1-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 30, 2023 at 4:29 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 30 Jan 2023, at 15:09, Lad, Prabhakar <prabhakar.csengg@gmail.com> wrote:
-> >
-> > Hi Jessica,
-> >
-> > Thank you for the review.
-> >
-> > On Sat, Jan 28, 2023 at 3:05 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>
-> >> On 26 Jan 2023, at 09:58, Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
-> >>>
-> >>> On the Renesas RZ/Five SoC by default we want to configure 128MiB of memory
-> >>> ranging from 0x58000000 as a non-cacheable + bufferable region in the PMA
-> >>> and populate this region as PMA reserve DT node with shared DMA pool and
-> >>> no-map flags set so that Linux drivers requesting any DMA'able memory go
-> >>> through this region.
-> >>>
-> >>> PMA node passed to the above stack:
-> >>>
-> >>>       reserved-memory {
-> >>>           #address-cells = <2>;
-> >>>           #size-cells = <2>;
-> >>>           ranges;
-> >>>
-> >>>           pma_resv0 at 58000000 {
-> >>>               compatible = "shared-dma-pool";
-> >>>               reg = <0x0 0x58000000 0x0 0x08000000>;
-> >>>               no-map;
-> >>>               linux,dma-default;
-> >>>           };
-> >>>       };
-> >>>
-> >>> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-> >>> ---
-> >>> platform/generic/Kconfig                 |  1 +
-> >>> platform/generic/renesas/rzfive/rzfive.c | 21 +++++++++++++++++++++
-> >>> 2 files changed, 22 insertions(+)
-> >>>
-> >>> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> >>> index 9ee9fe3..bc5c280 100644
-> >>> --- a/platform/generic/Kconfig
-> >>> +++ b/platform/generic/Kconfig
-> >>> @@ -35,6 +35,7 @@ config PLATFORM_ANDES_AE350
-> >>>
-> >>> config PLATFORM_RENESAS_RZFIVE
-> >>>      bool "Renesas RZ/Five support"
-> >>> +     select ANDES45_PMA
-> >>>      default n
-> >>>
-> >>> config PLATFORM_SIFIVE_FU540
-> >>> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> >>> index ee9c9c4..0a8c9f9 100644
-> >>> --- a/platform/generic/renesas/rzfive/rzfive.c
-> >>> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> >>> @@ -4,10 +4,30 @@
-> >>> *
-> >>> */
-> >>>
-> >>> +#include <andes45-pma.h>
-> >>
-> >> This name looks inconsistent.
-> >>
-> > As the RZ/Five has the Andes AX45MP core and the PMA code will be
-> > re-used by other non-coherent  Andes AX45MP platforms hence the
-> > andes45-pma.h (Also suggested by Andes maintainer)
->
-> I understand that. I meant the dash should be an underscore.
->
-OK, I will rename it andes45_pma.h
+sbi_domain_for_each() requires domidx_to_domain_table[] to be
+null-terminated. Allocate one extra element which will always
+be null.
 
-Cheers,
-Prabhakar
+Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+---
+ lib/sbi/sbi_domain.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 3ab1fbe0b7de..3813f1b2e97d 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -17,8 +17,12 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
+ 
++/*
++ * We allocate an extra element because sbi_domain_for_each() expects
++ * the array to be null-terminated.
++ */
++struct sbi_domain *domidx_to_domain_table[SBI_DOMAIN_MAX_INDEX + 1] = { 0 };
+ struct sbi_domain *hartid_to_domain_table[SBI_HARTMASK_MAX_BITS] = { 0 };
+-struct sbi_domain *domidx_to_domain_table[SBI_DOMAIN_MAX_INDEX] = { 0 };
+ static u32 domain_count = 0;
+ static bool domain_finalized = false;
+ 
+-- 
+2.39.1
+
 
