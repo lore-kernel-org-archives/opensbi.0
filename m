@@ -1,95 +1,65 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 31 Jan 2023 17:20:06 +0800
-Subject: [PATCH 1/3] lib: sbi: Optimize sbi_tlb
-In-Reply-To: <20230131092008.51078-1-wxjstz@126.com>
-References: <20230131092008.51078-1-wxjstz@126.com>
-Message-ID: <20230131092008.51078-2-wxjstz@126.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 31 Jan 2023 18:26:39 +0100
+Subject: [PATCH v5 1/8] include: Add defines for SBI debug console
+ extension
+In-Reply-To: <20230113114110.1916226-2-apatel@ventanamicro.com>
+References: <20230113114110.1916226-1-apatel@ventanamicro.com>
+ <20230113114110.1916226-2-apatel@ventanamicro.com>
+Message-ID: <20230131172639.cscl4ixscibnokot@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Originally, the process and sync of sbi_tlb need to wait for each other.
-Evasion by atomic addition and subtraction.
+On Fri, Jan 13, 2023 at 05:11:03PM +0530, Anup Patel wrote:
+> We add SBI debug console extension related defines/enum to the
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_tlb.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+Not adding any enums.
 
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index 4c142ea..685b8ea 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -215,7 +215,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
- {
- 	u32 rhartid;
- 	struct sbi_scratch *rscratch = NULL;
--	unsigned long *rtlb_sync = NULL;
-+	atomic_t *rtlb_sync = NULL;
- 
- 	tinfo->local_fn(tinfo);
- 
-@@ -225,7 +225,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
- 			continue;
- 
- 		rtlb_sync = sbi_scratch_offset_ptr(rscratch, tlb_sync_off);
--		while (atomic_raw_xchg_ulong(rtlb_sync, 1)) ;
-+		atomic_sub_return(rtlb_sync, 1);
- 	}
- }
- 
-@@ -257,10 +257,10 @@ static void tlb_process(struct sbi_scratch *scratch)
- 
- static void tlb_sync(struct sbi_scratch *scratch)
- {
--	unsigned long *tlb_sync =
-+	atomic_t *tlb_sync =
- 			sbi_scratch_offset_ptr(scratch, tlb_sync_off);
- 
--	while (!atomic_raw_xchg_ulong(tlb_sync, 0)) {
-+	while (atomic_read(tlb_sync) > 0) {
- 		/*
- 		 * While we are waiting for remote hart to set the sync,
- 		 * consume fifo requests to avoid deadlock.
-@@ -343,6 +343,7 @@ static int tlb_update(struct sbi_scratch *scratch,
- 			  u32 remote_hartid, void *data)
- {
- 	int ret;
-+	atomic_t *tlb_sync;
- 	struct sbi_fifo *tlb_fifo_r;
- 	struct sbi_tlb_info *tinfo = data;
- 	u32 curr_hartid = current_hartid();
-@@ -387,6 +388,9 @@ static int tlb_update(struct sbi_scratch *scratch,
- 			    curr_hartid, remote_hartid);
- 	}
- 
-+	tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
-+	atomic_add_return(tlb_sync, 1);
-+
- 	return 0;
- }
- 
-@@ -413,7 +417,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
- {
- 	int ret;
- 	void *tlb_mem;
--	unsigned long *tlb_sync;
-+	atomic_t *tlb_sync;
- 	struct sbi_fifo *tlb_q;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
-@@ -455,7 +459,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
- 	tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
- 	tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
- 
--	*tlb_sync = 0;
-+	tlb_sync->counter = 0;
- 
- 	sbi_fifo_init(tlb_q, tlb_mem,
- 		      SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);
--- 
-2.39.0
+> SBI ecall interface header.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Bin Meng <bmeng@tinylab.org>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+
+> ---
+>  include/sbi/sbi_ecall_interface.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index a3f2bf4..9d6f474 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -29,6 +29,7 @@
+>  #define SBI_EXT_HSM				0x48534D
+>  #define SBI_EXT_SRST				0x53525354
+>  #define SBI_EXT_PMU				0x504D55
+> +#define SBI_EXT_DBCN				0x4442434E
+>  
+>  /* SBI function IDs for BASE extension*/
+>  #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
+> @@ -230,6 +231,11 @@ enum sbi_pmu_ctr_type {
+>  /* Flags defined for counter stop function */
+>  #define SBI_PMU_STOP_FLAG_RESET (1 << 0)
+>  
+> +/* SBI function IDs for DBCN extension */
+> +#define SBI_EXT_DBCN_CONSOLE_WRITE		0x0
+> +#define SBI_EXT_DBCN_CONSOLE_READ		0x1
+> +#define SBI_EXT_DBCN_CONSOLE_WRITE_BYTE		0x2
+> +
+>  /* SBI base specification related macros */
+>  #define SBI_SPEC_VERSION_MAJOR_OFFSET		24
+>  #define SBI_SPEC_VERSION_MAJOR_MASK		0x7f
+> -- 
+> 2.34.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
