@@ -1,137 +1,106 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 1 Feb 2023 10:22:35 +0100
-Subject: [PATCH v5 8/8] lib: sbi: Speed-up sbi_printf() and friends using
- nputs()
-In-Reply-To: <20230113114110.1916226-9-apatel@ventanamicro.com>
+Date: Wed, 1 Feb 2023 10:30:13 +0100
+Subject: [PATCH v5 6/8] lib: sbi: Add console_puts() callback in the
+ console device
+In-Reply-To: <20230113114110.1916226-7-apatel@ventanamicro.com>
 References: <20230113114110.1916226-1-apatel@ventanamicro.com>
- <20230113114110.1916226-9-apatel@ventanamicro.com>
-Message-ID: <20230201092235.vessrt2t7jdc5hfl@orel>
+ <20230113114110.1916226-7-apatel@ventanamicro.com>
+Message-ID: <20230201093013.sibkotoeehynl7py@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 13, 2023 at 05:11:10PM +0530, Anup Patel wrote:
-> The sbi_printf() is slow for semihosting because it prints one
-> character at a time. To speed-up sbi_printf() for semihosting,
-> we use a temporary buffer and nputs().
+On Fri, Jan 13, 2023 at 05:11:08PM +0530, Anup Patel wrote:
+> We add console_puts() callback in the console device which allows
+> console drivers (such as semihosting) to implement a specialized
+> way to output character string.
 > 
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Bin Meng <bmeng@tinylab.org>
 > ---
->  lib/sbi/sbi_console.c | 52 ++++++++++++++++++++++++++++---------------
->  1 file changed, 34 insertions(+), 18 deletions(-)
+>  include/sbi/sbi_console.h |  3 +++
+>  lib/sbi/sbi_console.c     | 19 ++++++++++++++-----
+>  2 files changed, 17 insertions(+), 5 deletions(-)
 > 
+> diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
+> index 660c239..8e95b9d 100644
+> --- a/include/sbi/sbi_console.h
+> +++ b/include/sbi/sbi_console.h
+> @@ -19,6 +19,9 @@ struct sbi_console_device {
+>  	/** Write a character to the console output */
+>  	void (*console_putc)(char ch);
+>  
+> +	/** Write a character string to the console output */
+> +	void (*console_puts)(const char *str, unsigned long len);
+
+The spec draft says the write command is non-blocking and returns the
+number of bytes written. So this interface should at least return the
+number of bytes written. And, maybe it should take a flags parameter
+where a NON_BLOCKING flag can be set? But, if we can't enforce the
+console to be non-blocking at the SBI implementation level, then
+maybe the spec should state that the calls may block?
+
+Thanks,
+drew
+
+> +
+>  	/** Read a character from the console input */
+>  	int (*console_getc)(void);
+>  };
 > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index c1b9f73..41881d7 100644
+> index 89d6a49..c1b9f73 100644
 > --- a/lib/sbi/sbi_console.c
 > +++ b/lib/sbi/sbi_console.c
-> @@ -42,31 +42,29 @@ void sbi_putc(char ch)
->  	}
->  }
+> @@ -12,6 +12,7 @@
+>  #include <sbi/sbi_hart.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_scratch.h>
+> +#include <sbi/sbi_string.h>
 >  
-> -void sbi_puts(const char *str)
-> +static void nputs(const char *str, unsigned long len)
+>  static const struct sbi_console_device *console_dev = NULL;
+>  static spinlock_t console_out_lock	       = SPIN_LOCK_INITIALIZER;
+> @@ -44,9 +45,13 @@ void sbi_putc(char ch)
+>  void sbi_puts(const char *str)
 >  {
-> -	spin_lock(&console_out_lock);
-> +	unsigned long i;
-> +
->  	if (console_dev && console_dev->console_puts) {
-> -		console_dev->console_puts(str, sbi_strlen(str));
+>  	spin_lock(&console_out_lock);
+> -	while (*str) {
+> -		sbi_putc(*str);
+> -		str++;
+> +	if (console_dev && console_dev->console_puts) {
+> +		console_dev->console_puts(str, sbi_strlen(str));
+> +	} else {
+> +		while (*str) {
+> +			sbi_putc(*str);
+> +			str++;
+> +		}
+>  	}
+>  	spin_unlock(&console_out_lock);
+>  }
+> @@ -56,8 +61,12 @@ void sbi_nputs(const char *str, unsigned long len)
+>  	unsigned long i;
+>  
+>  	spin_lock(&console_out_lock);
+> -	for (i = 0; i < len; i++)
+> -		sbi_putc(str[i]);
+> +	if (console_dev && console_dev->console_puts) {
 > +		console_dev->console_puts(str, len);
->  	} else {
-> -		while (*str) {
-> -			sbi_putc(*str);
-> -			str++;
-> -		}
+> +	} else {
 > +		for (i = 0; i < len; i++)
 > +			sbi_putc(str[i]);
->  	}
-> +}
-> +
-> +void sbi_puts(const char *str)
-> +{
-> +	spin_lock(&console_out_lock);
-> +	nputs(str, sbi_strlen(str));
->  	spin_unlock(&console_out_lock);
->  }
->  
->  void sbi_nputs(const char *str, unsigned long len)
->  {
-> -	unsigned long i;
-> -
->  	spin_lock(&console_out_lock);
-> -	if (console_dev && console_dev->console_puts) {
-> -		console_dev->console_puts(str, len);
-> -	} else {
-> -		for (i = 0; i < len; i++)
-> -			sbi_putc(str[i]);
-> -	}
-> +	nputs(str, len);
->  	spin_unlock(&console_out_lock);
->  }
->  
-> @@ -102,6 +100,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
->  #define PAD_ZERO 2
->  #define PAD_ALTERNATE 4
->  #define PRINT_BUF_LEN 64
-> +#define PRINT_TBUF_MAX 128
->  
->  #define va_start(v, l) __builtin_va_start((v), l)
->  #define va_end __builtin_va_end
-> @@ -217,12 +216,26 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
->  
->  static int print(char **out, u32 *out_len, const char *format, va_list args)
->  {
-> -	int width, flags;
-> -	int pc = 0;
-> -	char scr[2];
-> +	u32 tbuf_len;
-> +	int width, flags, pc = 0;
-> +	char scr[2], *tout, tbuf[PRINT_TBUF_MAX];
-> +	bool use_tbuf = (!out) ? true : false;
-
-print() is only called with a non-null 'out' parameter or under
-console_out_lock, so we can use global variable for the buffer
-to avoid putting it on the stack, and it can be larger.
-
->  	unsigned long long tmp;
->  
-> +	if (use_tbuf) {
-> +		tbuf_len = PRINT_TBUF_MAX;
-> +		tout = tbuf;
-> +		out = &tout;
-> +		out_len = &tbuf_len;
 > +	}
-> +
->  	for (; *format != 0; ++format) {
-> +		if (use_tbuf && !tbuf_len) {
-> +			nputs(tbuf, PRINT_TBUF_MAX);
-> +			tbuf_len = PRINT_TBUF_MAX;
-> +			tout = tbuf;
-> +		}
-> +
->  		if (*format == '%') {
->  			++format;
->  			width = flags = 0;
-> @@ -348,6 +361,9 @@ literal:
->  		}
->  	}
->  
-> +	if (use_tbuf && tbuf_len < PRINT_TBUF_MAX)
-> +		nputs(tbuf, PRINT_TBUF_MAX - tbuf_len);
-> +
->  	return pc;
+>  	spin_unlock(&console_out_lock);
 >  }
 >  
 > -- 
 > 2.34.1
->
-
-Otherwise,
-
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-
-Thanks,
-drew
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
