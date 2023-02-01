@@ -1,42 +1,147 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 1 Feb 2023 14:13:57 +0530
-Subject: [PATCH 0/2] Not to clear all the bits of mip
-In-Reply-To: <CAKddAkDtLOwsT9XTOPY3zpO+h78zGVFx=PtEn-+jafab69ON_Q@mail.gmail.com>
-References: <20230117081428.15042-1-nick.hu@sifive.com> <CAKddAkDtLOwsT9XTOPY3zpO+h78zGVFx=PtEn-+jafab69ON_Q@mail.gmail.com>
-Message-ID: <CAK9=C2WGnMueTK-aX3LY_emC1_RqPxFAA3szc3S-=gsc3FC9zw@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Wed, 1 Feb 2023 09:48:09 +0100
+Subject: [PATCH v5 4/8] lib: sbi: Add sbi_domain_check_addr_range()
+ function
+In-Reply-To: <20230113114110.1916226-5-apatel@ventanamicro.com>
+References: <20230113114110.1916226-1-apatel@ventanamicro.com>
+ <20230113114110.1916226-5-apatel@ventanamicro.com>
+Message-ID: <20230201084809.42zmyvthwizbggps@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 1, 2023 at 1:52 PM Nick Hu <nick.hu@sifive.com> wrote:
->
-> On Tue, Jan 17, 2023 at 4:14 PM Nick Hu <nick.hu@sifive.com> wrote:
->>
->> In generic behavior of QEMU, if we clear the mip.SEIP and the pendings of
->> PLIC still exist, the QEMU may not set the mip.SEIP back immediately. So
->> interrupts won't be handled anymore until the next new device interrupt
->> arrived. We should only clear the SSIP and STIP which set by SW. The rest
->> of the bits should be decided by HW.
->>
->> Nick Hu (2):
->>   firmware: Not to clear all the MIP
->>   lib: sbi_hsm: Use csr_set to restore the MIP
->>
->>  firmware/fw_base.S | 10 ++++++++--
->>  lib/sbi/sbi_hsm.c  |  2 +-
->>  2 files changed, 9 insertions(+), 3 deletions(-)
->>
->> --
->> 2.34.1
->>
-> Hi Anup,
->
-> Do you have any suggestions on the patches?
+On Fri, Jan 13, 2023 at 05:11:06PM +0530, Anup Patel wrote:
+> We add sbi_domain_check_addr_range() helper function to check
+> whether a given address range is accessible under a particular
+> domain.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Bin Meng <bmeng@tinylab.org>
+> ---
+>  include/sbi/sbi_domain.h | 15 +++++++++
+>  lib/sbi/sbi_domain.c     | 69 ++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 84 insertions(+)
+> 
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index bbb3eff..ab1a944 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -196,6 +196,21 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+>  			   unsigned long addr, unsigned long mode,
+>  			   unsigned long access_flags);
+>  
+> +/**
+> + * Check whether we can access specified address range for given mode and
+> + * memory region flags under a domain
+> + * @param dom pointer to domain
+> + * @param addr the start of the address range to be checked
+> + * @param size the size of the address range to be checked
+> + * @param mode the privilege mode of access
+> + * @param access_flags bitmask of domain access types (enum sbi_domain_access)
+> + * @return TRUE if access allowed otherwise FALSE
+> + */
+> +bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+> +				 unsigned long addr, unsigned long size,
+> +				 unsigned long mode,
+> +				 unsigned long access_flags);
+> +
+>  /** Dump domain details on the console */
+>  void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
+>  
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 60fda01..683b6cf 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -208,6 +208,44 @@ static bool is_region_before(const struct sbi_domain_memregion *regA,
+>  	return false;
+>  }
+>  
+> +static const struct sbi_domain_memregion *find_region(
+> +						const struct sbi_domain *dom,
+> +						unsigned long addr)
+> +{
+> +	unsigned long rstart, rend;
+> +	struct sbi_domain_memregion *reg;
+> +
+> +	sbi_domain_for_each_memregion(dom, reg) {
+> +		rstart = reg->base;
+> +		rend = (reg->order < __riscv_xlen) ?
+> +			rstart + ((1UL << reg->order) - 1) : -1UL;
+> +		if (rstart <= addr && addr <= rend)
+> +			return reg;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static const struct sbi_domain_memregion *find_next_subset_region(
+> +				const struct sbi_domain *dom,
+> +				const struct sbi_domain_memregion *reg,
+> +				unsigned long addr)
+> +{
+> +	struct sbi_domain_memregion *sreg, *ret = NULL;
+> +
+> +	sbi_domain_for_each_memregion(dom, sreg) {
+> +		if (sreg == reg || (sreg->base <= addr) ||
+> +		    !is_region_subset(sreg, reg))
+> +			continue;
+> +
+> +		if (!ret || (sreg->base < ret->base) ||
+> +		    ((sreg->base == ret->base) && (sreg->order < ret->order)))
+> +			ret = sreg;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static int sanitize_domain(const struct sbi_platform *plat,
+>  			   struct sbi_domain *dom)
+>  {
+> @@ -316,6 +354,37 @@ static int sanitize_domain(const struct sbi_platform *plat,
+>  	return 0;
+>  }
+>  
+> +bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+> +				 unsigned long addr, unsigned long size,
+> +				 unsigned long mode,
+> +				 unsigned long access_flags)
+> +{
+> +	unsigned long max = addr + size;
+> +	const struct sbi_domain_memregion *reg, *sreg;
+> +
+> +	if (!dom)
+> +		return false;
+> +
+> +	while (addr < max) {
+> +		reg = find_region(dom, addr);
+> +		if (!reg)
+> +			return false;
+> +
+> +		if (!sbi_domain_check_addr(dom, addr, mode, access_flags))
+> +			return false;
+> +
+> +		sreg = find_next_subset_region(dom, reg, addr);
+> +		if (sreg)
+> +			addr = sreg->base;
+> +		else if (reg->order < __riscv_xlen)
+> +			addr = reg->base + (1UL << reg->order);
+> +		else
+> +			break;
+> +	}
+> +
+> +	return true;
+> +}
+> +
 
-This is next on my list. I will review it soon.
+It seems like there should be a way to optimize this check / these
+searches, but I suppose we can do that later.
 
-Regards,
-Anup
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+
+Thanks,
+drew
 
