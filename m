@@ -1,107 +1,60 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed,  1 Feb 2023 23:06:40 +0800
-Subject: [PATCH 2/4] lib: sbi: Optimize sbi_ipi
-In-Reply-To: <20230201150642.161265-1-wxjstz@126.com>
-References: <20230201150642.161265-1-wxjstz@126.com>
-Message-ID: <20230201150642.161265-3-wxjstz@126.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Wed,  1 Feb 2023 16:49:16 +0000
+Subject: [PATCH] Makefile: Add missing .dep files for fw_*.elf.ld
+Message-ID: <20230201164916.19908-1-jrtc27@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-the original sbI_ipi will be processed by hart by hart, after optimization,
-send ipi first and finally wait together.
+Since we don't currently create these, changes to fw_base.ldS do not
+cause the preprocessed fw_*.elf.ld files to be rebuilt, and thus
+incremental builds can end up failing with missing symbols if crossing
+the recent commits that introduced _fw_rw_offset and then replaced it
+with _fw_rw_start.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
+Reported-by: Ben Dooks <ben.dooks@sifive.com>
+Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
 ---
- lib/sbi/sbi_ipi.c | 42 ++++++++++++++++++++++++++++++++++++------
- 1 file changed, 36 insertions(+), 6 deletions(-)
+ Makefile | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 1bcc2e4..92a33bd 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -31,7 +31,7 @@ static unsigned long ipi_data_off;
- static const struct sbi_ipi_device *ipi_dev = NULL;
- static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
+diff --git a/Makefile b/Makefile
+index b742d6d..b20404f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -254,6 +254,7 @@ deps-y=$(platform-objs-path-y:.o=.dep)
+ deps-y+=$(libsbi-objs-path-y:.o=.dep)
+ deps-y+=$(libsbiutils-objs-path-y:.o=.dep)
+ deps-y+=$(firmware-objs-path-y:.o=.dep)
++deps-y+=$(firmware-elfs-path-y:=.dep)
  
--static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
-+static int sbi_ipi_update(struct sbi_scratch *scratch, u32 remote_hartid,
- 			u32 event, void *data)
- {
- 	int ret;
-@@ -69,6 +69,18 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
+ # Setup platform ABI, ISA and Code Model
+ ifndef PLATFORM_RISCV_ABI
+@@ -413,6 +414,11 @@ inst_file_list = $(CMD_PREFIX)if [ ! -z "$(4)" ]; then \
+ inst_header_dir =  $(CMD_PREFIX)mkdir -p $(1); \
+ 	     echo " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
+ 	     cp -rf $(2) $(1)
++compile_cpp_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
++	     echo " CPP-DEP   $(subst $(build_dir)/,,$(1))"; \
++	     printf %s `dirname $(1)`/  > $(1) && \
++	     $(CC) $(CPPFLAGS) -x c -MM $(3) \
++	       -MT `basename $(1:.dep=$(2))` >> $(1) || rm -f $(1)
+ compile_cpp = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo " CPP       $(subst $(build_dir)/,,$(1))"; \
+ 	     $(CPP) $(CPPFLAGS) -x c $(2) | grep -v "\#" > $(1)
+@@ -543,6 +549,9 @@ $(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
+ $(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
+ 	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
  
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
- 
-+	return 0;
-+}
++$(platform_build_dir)/%.dep: $(src_dir)/%.ldS $(KCONFIG_CONFIG)
++	$(call compile_cpp_dep,$@,.ld,$<)
 +
-+static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
-+{
-+	const struct sbi_ipi_event_ops *ipi_ops;
-+
-+	if ((SBI_IPI_EVENT_MAX <= event) ||
-+	    !ipi_ops_array[event])
-+		return SBI_EINVAL;
-+	ipi_ops = ipi_ops_array[event];
-+
- 	if (ipi_ops->sync)
- 		ipi_ops->sync(scratch);
+ $(platform_build_dir)/%.ld: $(src_dir)/%.ldS
+ 	$(call compile_cpp,$@,$<)
  
-@@ -83,7 +95,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
- int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- {
- 	int rc;
--	ulong i, m;
-+	ulong i, m, n;
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
-@@ -92,19 +104,37 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- 		if (rc)
- 			return rc;
- 		m &= hmask;
-+		n = m;
- 
--		/* Send IPIs */
-+		/* update IPIs */
- 		for (i = hbase; m; i++, m >>= 1) {
- 			if (m & 1UL)
--				sbi_ipi_send(scratch, i, event, data);
-+				sbi_ipi_update(scratch, i, event, data);
-+		}
-+
-+		/* sync IPIs */
-+		m = n;
-+		for (i = hbase; m; i++, m >>= 1) {
-+			if (m & 1UL)
-+				sbi_ipi_sync(scratch, event);
- 		}
- 	} else {
-+		/* update IPIs */
-+		hbase = 0;
-+		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
-+			for (i = hbase; m; i++, m >>= 1) {
-+				if (m & 1UL)
-+					sbi_ipi_update(scratch, i, event, data);
-+			}
-+			hbase += BITS_PER_LONG;
-+		}
-+
-+		/* sync IPIs */
- 		hbase = 0;
- 		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
--			/* Send IPIs */
- 			for (i = hbase; m; i++, m >>= 1) {
- 				if (m & 1UL)
--					sbi_ipi_send(scratch, i, event, data);
-+					sbi_ipi_sync(scratch, event);
- 			}
- 			hbase += BITS_PER_LONG;
- 		}
 -- 
-2.39.0
+2.37.0
 
 
