@@ -1,106 +1,94 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  1 Feb 2023 23:07:54 +0800
-Subject: [PATCH v3 2/4] lib: sbi: Optimize sbi_ipi
+Date: Wed,  1 Feb 2023 23:07:53 +0800
+Subject: [PATCH v3 1/4] lib: sbi: Optimize sbi_tlb
 In-Reply-To: <20230201150756.161507-1-wxjstz@126.com>
 References: <20230201150756.161507-1-wxjstz@126.com>
-Message-ID: <20230201150756.161507-3-wxjstz@126.com>
+Message-ID: <20230201150756.161507-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-the original sbI_ipi will be processed by hart by hart, after optimization,
-send ipi first and finally wait together.
+Originally, the process and sync of sbi_tlb need to wait for each other.
+Evasion by atomic addition and subtraction.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_ipi.c | 42 ++++++++++++++++++++++++++++++++++++------
- 1 file changed, 36 insertions(+), 6 deletions(-)
+ lib/sbi/sbi_tlb.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 1bcc2e4..92a33bd 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -31,7 +31,7 @@ static unsigned long ipi_data_off;
- static const struct sbi_ipi_device *ipi_dev = NULL;
- static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index 4c142ea..685b8ea 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -215,7 +215,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+ {
+ 	u32 rhartid;
+ 	struct sbi_scratch *rscratch = NULL;
+-	unsigned long *rtlb_sync = NULL;
++	atomic_t *rtlb_sync = NULL;
  
--static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
-+static int sbi_ipi_update(struct sbi_scratch *scratch, u32 remote_hartid,
- 			u32 event, void *data)
+ 	tinfo->local_fn(tinfo);
+ 
+@@ -225,7 +225,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+ 			continue;
+ 
+ 		rtlb_sync = sbi_scratch_offset_ptr(rscratch, tlb_sync_off);
+-		while (atomic_raw_xchg_ulong(rtlb_sync, 1)) ;
++		atomic_sub_return(rtlb_sync, 1);
+ 	}
+ }
+ 
+@@ -257,10 +257,10 @@ static void tlb_process(struct sbi_scratch *scratch)
+ 
+ static void tlb_sync(struct sbi_scratch *scratch)
+ {
+-	unsigned long *tlb_sync =
++	atomic_t *tlb_sync =
+ 			sbi_scratch_offset_ptr(scratch, tlb_sync_off);
+ 
+-	while (!atomic_raw_xchg_ulong(tlb_sync, 0)) {
++	while (atomic_read(tlb_sync) > 0) {
+ 		/*
+ 		 * While we are waiting for remote hart to set the sync,
+ 		 * consume fifo requests to avoid deadlock.
+@@ -343,6 +343,7 @@ static int tlb_update(struct sbi_scratch *scratch,
+ 			  u32 remote_hartid, void *data)
  {
  	int ret;
-@@ -69,6 +69,18 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
++	atomic_t *tlb_sync;
+ 	struct sbi_fifo *tlb_fifo_r;
+ 	struct sbi_tlb_info *tinfo = data;
+ 	u32 curr_hartid = current_hartid();
+@@ -387,6 +388,9 @@ static int tlb_update(struct sbi_scratch *scratch,
+ 			    curr_hartid, remote_hartid);
+ 	}
  
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
++	tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
++	atomic_add_return(tlb_sync, 1);
++
+ 	return 0;
+ }
  
-+	return 0;
-+}
-+
-+static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
-+{
-+	const struct sbi_ipi_event_ops *ipi_ops;
-+
-+	if ((SBI_IPI_EVENT_MAX <= event) ||
-+	    !ipi_ops_array[event])
-+		return SBI_EINVAL;
-+	ipi_ops = ipi_ops_array[event];
-+
- 	if (ipi_ops->sync)
- 		ipi_ops->sync(scratch);
- 
-@@ -83,7 +95,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
- int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+@@ -413,7 +417,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
  {
- 	int rc;
--	ulong i, m;
-+	ulong i, m, n;
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	int ret;
+ 	void *tlb_mem;
+-	unsigned long *tlb_sync;
++	atomic_t *tlb_sync;
+ 	struct sbi_fifo *tlb_q;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
-@@ -92,19 +104,37 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- 		if (rc)
- 			return rc;
- 		m &= hmask;
-+		n = m;
+@@ -455,7 +459,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
+ 	tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
+ 	tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
  
--		/* Send IPIs */
-+		/* update IPIs */
- 		for (i = hbase; m; i++, m >>= 1) {
- 			if (m & 1UL)
--				sbi_ipi_send(scratch, i, event, data);
-+				sbi_ipi_update(scratch, i, event, data);
-+		}
-+
-+		/* sync IPIs */
-+		m = n;
-+		for (i = hbase; m; i++, m >>= 1) {
-+			if (m & 1UL)
-+				sbi_ipi_sync(scratch, event);
- 		}
- 	} else {
-+		/* update IPIs */
-+		hbase = 0;
-+		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
-+			for (i = hbase; m; i++, m >>= 1) {
-+				if (m & 1UL)
-+					sbi_ipi_update(scratch, i, event, data);
-+			}
-+			hbase += BITS_PER_LONG;
-+		}
-+
-+		/* sync IPIs */
- 		hbase = 0;
- 		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
--			/* Send IPIs */
- 			for (i = hbase; m; i++, m >>= 1) {
- 				if (m & 1UL)
--					sbi_ipi_send(scratch, i, event, data);
-+					sbi_ipi_sync(scratch, event);
- 			}
- 			hbase += BITS_PER_LONG;
- 		}
+-	*tlb_sync = 0;
++	tlb_sync->counter = 0;
+ 
+ 	sbi_fifo_init(tlb_q, tlb_mem,
+ 		      SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);
 -- 
 2.39.0
 
