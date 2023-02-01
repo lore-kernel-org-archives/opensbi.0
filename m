@@ -1,110 +1,134 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Wed, 1 Feb 2023 10:03:53 +0100
-Subject: [PATCH v5 7/8] lib: utils/serial: Implement console_puts() for
- semihosting
-In-Reply-To: <20230113114110.1916226-8-apatel@ventanamicro.com>
+Date: Wed, 1 Feb 2023 10:22:35 +0100
+Subject: [PATCH v5 8/8] lib: sbi: Speed-up sbi_printf() and friends using
+ nputs()
+In-Reply-To: <20230113114110.1916226-9-apatel@ventanamicro.com>
 References: <20230113114110.1916226-1-apatel@ventanamicro.com>
- <20230113114110.1916226-8-apatel@ventanamicro.com>
-Message-ID: <20230201090353.lg67zpqck4nucl2a@orel>
+ <20230113114110.1916226-9-apatel@ventanamicro.com>
+Message-ID: <20230201092235.vessrt2t7jdc5hfl@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 13, 2023 at 05:11:09PM +0530, Anup Patel wrote:
-> We implement console_puts() for semihosting serial driver to speed-up
-> semihosting based prints.
+On Fri, Jan 13, 2023 at 05:11:10PM +0530, Anup Patel wrote:
+> The sbi_printf() is slow for semihosting because it prints one
+> character at a time. To speed-up sbi_printf() for semihosting,
+> we use a temporary buffer and nputs().
 > 
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Bin Meng <bmeng@tinylab.org>
 > ---
->  lib/utils/serial/semihosting.c | 33 +++++++++++++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
+>  lib/sbi/sbi_console.c | 52 ++++++++++++++++++++++++++++---------------
+>  1 file changed, 34 insertions(+), 18 deletions(-)
 > 
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> index 86fa296..773b75e 100644
-> --- a/lib/utils/serial/semihosting.c
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -15,6 +15,7 @@
->  
->  #define SYSOPEN     0x01
->  #define SYSWRITEC   0x03
-> +#define SYSWRITE    0x05
->  #define SYSREAD     0x06
->  #define SYSREADC    0x07
->  #define SYSERRNO	0x13
-> @@ -93,6 +94,7 @@ static int semihosting_errno(void)
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index c1b9f73..41881d7 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -42,31 +42,29 @@ void sbi_putc(char ch)
+>  	}
 >  }
 >  
->  static int semihosting_infd = SBI_ENODEV;
-> +static int semihosting_outfd = SBI_ENODEV;
->  
->  static long semihosting_open(const char *fname, enum semihosting_open_mode mode)
+> -void sbi_puts(const char *str)
+> +static void nputs(const char *str, unsigned long len)
 >  {
-> @@ -141,6 +143,21 @@ static long semihosting_read(long fd, void *memp, size_t len)
->  	return len - ret;
->  }
->  
-> +static long semihosting_write(long fd, const void *memp, size_t len)
-> +{
-> +	long ret;
-> +	struct semihosting_rdwr_s write;
-> +
-> +	write.fd = fd;
-> +	write.memp = (void *)memp;
-> +	write.len = len;
-> +
-> +	ret = semihosting_trap(SYSWRITE, &write);
-> +	if (ret < 0)
-> +		return semihosting_errno();
-> +	return len - ret;
-> +}
-> +
->  /* clang-format on */
->  
->  static void semihosting_putc(char ch)
-> @@ -148,6 +165,20 @@ static void semihosting_putc(char ch)
->  	semihosting_trap(SYSWRITEC, &ch);
->  }
->  
-> +static void semihosting_puts(const char *str, unsigned long len)
-> +{
-> +	char ch;
+> -	spin_lock(&console_out_lock);
 > +	unsigned long i;
 > +
-> +	if (semihosting_outfd < 0) {
-> +		for (i = 0; i < len; i++) {
-> +			ch = str[i];
-> +			semihosting_trap(SYSWRITEC, &ch);
-> +		}
-> +	} else
-> +		semihosting_write(semihosting_outfd, str, len);
+>  	if (console_dev && console_dev->console_puts) {
+> -		console_dev->console_puts(str, sbi_strlen(str));
+> +		console_dev->console_puts(str, len);
+>  	} else {
+> -		while (*str) {
+> -			sbi_putc(*str);
+> -			str++;
+> -		}
+> +		for (i = 0; i < len; i++)
+> +			sbi_putc(str[i]);
+>  	}
 > +}
 > +
->  static int semihosting_getc(void)
->  {
->  	char ch = 0;
-> @@ -165,12 +196,14 @@ static int semihosting_getc(void)
->  static struct sbi_console_device semihosting_console = {
->  	.name = "semihosting",
->  	.console_putc = semihosting_putc,
-> +	.console_puts = semihosting_puts,
->  	.console_getc = semihosting_getc
->  };
+> +void sbi_puts(const char *str)
+> +{
+> +	spin_lock(&console_out_lock);
+> +	nputs(str, sbi_strlen(str));
+>  	spin_unlock(&console_out_lock);
+>  }
 >  
->  int semihosting_init(void)
+>  void sbi_nputs(const char *str, unsigned long len)
 >  {
->  	semihosting_infd = semihosting_open(":tt", MODE_READ);
-> +	semihosting_outfd = semihosting_open(":tt", MODE_WRITE);
+> -	unsigned long i;
+> -
+>  	spin_lock(&console_out_lock);
+> -	if (console_dev && console_dev->console_puts) {
+> -		console_dev->console_puts(str, len);
+> -	} else {
+> -		for (i = 0; i < len; i++)
+> -			sbi_putc(str[i]);
+> -	}
+> +	nputs(str, len);
+>  	spin_unlock(&console_out_lock);
+>  }
 >  
->  	sbi_console_set_device(&semihosting_console);
+> @@ -102,6 +100,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
+>  #define PAD_ZERO 2
+>  #define PAD_ALTERNATE 4
+>  #define PRINT_BUF_LEN 64
+> +#define PRINT_TBUF_MAX 128
+>  
+>  #define va_start(v, l) __builtin_va_start((v), l)
+>  #define va_end __builtin_va_end
+> @@ -217,12 +216,26 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+>  
+>  static int print(char **out, u32 *out_len, const char *format, va_list args)
+>  {
+> -	int width, flags;
+> -	int pc = 0;
+> -	char scr[2];
+> +	u32 tbuf_len;
+> +	int width, flags, pc = 0;
+> +	char scr[2], *tout, tbuf[PRINT_TBUF_MAX];
+> +	bool use_tbuf = (!out) ? true : false;
+
+print() is only called with a non-null 'out' parameter or under
+console_out_lock, so we can use global variable for the buffer
+to avoid putting it on the stack, and it can be larger.
+
+>  	unsigned long long tmp;
+>  
+> +	if (use_tbuf) {
+> +		tbuf_len = PRINT_TBUF_MAX;
+> +		tout = tbuf;
+> +		out = &tout;
+> +		out_len = &tbuf_len;
+> +	}
+> +
+>  	for (; *format != 0; ++format) {
+> +		if (use_tbuf && !tbuf_len) {
+> +			nputs(tbuf, PRINT_TBUF_MAX);
+> +			tbuf_len = PRINT_TBUF_MAX;
+> +			tout = tbuf;
+> +		}
+> +
+>  		if (*format == '%') {
+>  			++format;
+>  			width = flags = 0;
+> @@ -348,6 +361,9 @@ literal:
+>  		}
+>  	}
+>  
+> +	if (use_tbuf && tbuf_len < PRINT_TBUF_MAX)
+> +		nputs(tbuf, PRINT_TBUF_MAX - tbuf_len);
+> +
+>  	return pc;
+>  }
 >  
 > -- 
 > 2.34.1
 >
+
+Otherwise,
 
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
