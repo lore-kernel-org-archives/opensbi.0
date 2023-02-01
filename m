@@ -1,122 +1,42 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Wed, 29 Jul 2020 23:42:39 -0700
-Subject: [PATCH] lib: sbi_misaligned_ldst: Determine transformed
- instruction length correctly
-In-Reply-To: <20200729120153.127735-1-anup.patel@wdc.com>
-References: <20200729120153.127735-1-anup.patel@wdc.com>
-Message-ID: <CAOnJCUJmciriWLh2fodRLpHyHa5VkpJf=zqYGOb4qKQXDdP+xA@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Wed, 1 Feb 2023 14:13:57 +0530
+Subject: [PATCH 0/2] Not to clear all the bits of mip
+In-Reply-To: <CAKddAkDtLOwsT9XTOPY3zpO+h78zGVFx=PtEn-+jafab69ON_Q@mail.gmail.com>
+References: <20230117081428.15042-1-nick.hu@sifive.com> <CAKddAkDtLOwsT9XTOPY3zpO+h78zGVFx=PtEn-+jafab69ON_Q@mail.gmail.com>
+Message-ID: <CAK9=C2WGnMueTK-aX3LY_emC1_RqPxFAA3szc3S-=gsc3FC9zw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 29, 2020 at 5:02 AM Anup Patel <anup.patel@wdc.com> wrote:
+On Wed, Feb 1, 2023 at 1:52 PM Nick Hu <nick.hu@sifive.com> wrote:
 >
-> If MTINST[0:0] bit is 1 then we have transformed instruction encoding
-> in MTINST CSR. For transformed instructions, if the MTINST[1:1] bit
-> is Zero then original trapped instruction was a 16bit instruction
-> which was converted to 32bit instruction at time of taking trap.
+> On Tue, Jan 17, 2023 at 4:14 PM Nick Hu <nick.hu@sifive.com> wrote:
+>>
+>> In generic behavior of QEMU, if we clear the mip.SEIP and the pendings of
+>> PLIC still exist, the QEMU may not set the mip.SEIP back immediately. So
+>> interrupts won't be handled anymore until the next new device interrupt
+>> arrived. We should only clear the SSIP and STIP which set by SW. The rest
+>> of the bits should be decided by HW.
+>>
+>> Nick Hu (2):
+>>   firmware: Not to clear all the MIP
+>>   lib: sbi_hsm: Use csr_set to restore the MIP
+>>
+>>  firmware/fw_base.S | 10 ++++++++--
+>>  lib/sbi/sbi_hsm.c  |  2 +-
+>>  2 files changed, 9 insertions(+), 3 deletions(-)
+>>
+>> --
+>> 2.34.1
+>>
+> Hi Anup,
 >
-> We should use MTINST[1:1] bit to determine correct instruction length
-> of transformed instruction.
->
-> This patch updates misaligned load/store emulation as-per above.
->
-> Signed-off-by: Anup Patel <anup.patel@wdc.com>
-> ---
->  lib/sbi/sbi_misaligned_ldst.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
->
-> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
-> index 29d79bb..964a372 100644
-> --- a/lib/sbi/sbi_misaligned_ldst.c
-> +++ b/lib/sbi/sbi_misaligned_ldst.c
-> @@ -24,7 +24,7 @@ union reg_data {
->  int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
->                                 struct sbi_trap_regs *regs)
->  {
-> -       ulong insn;
-> +       ulong insn, insn_len;
->         union reg_data val;
->         struct sbi_trap_info uptrap;
->         int i, fp = 0, shift = 0, len = 0;
-> @@ -35,6 +35,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
->                  * transformed instruction or custom instruction.
->                  */
->                 insn = tinst | INSN_16BIT_MASK;
-> +               insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
->         } else {
->                 /*
->                  * Bit[0] == 0 implies trapped instruction value is
-> @@ -45,6 +46,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
->                         uptrap.epc = regs->mepc;
->                         return sbi_trap_redirect(regs, &uptrap);
->                 }
-> +               insn_len = INSN_LEN(insn);
->         }
->
->         if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
-> @@ -134,7 +136,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
->                 SET_F32_RD(insn, regs, val.data_ulong);
->  #endif
->
-> -       regs->mepc += INSN_LEN(insn);
-> +       regs->mepc += insn_len;
->
->         return 0;
->  }
-> @@ -142,7 +144,7 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
->  int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
->                                  struct sbi_trap_regs *regs)
->  {
-> -       ulong insn;
-> +       ulong insn, insn_len;
->         union reg_data val;
->         struct sbi_trap_info uptrap;
->         int i, len = 0;
-> @@ -153,6 +155,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
->                  * transformed instruction or custom instruction.
->                  */
->                 insn = tinst | INSN_16BIT_MASK;
-> +               insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
->         } else {
->                 /*
->                  * Bit[0] == 0 implies trapped instruction value is
-> @@ -163,6 +166,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
->                         uptrap.epc = regs->mepc;
->                         return sbi_trap_redirect(regs, &uptrap);
->                 }
-> +               insn_len = INSN_LEN(insn);
->         }
->
->         val.data_ulong = GET_RS2(insn, regs);
-> @@ -233,7 +237,7 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
->                 }
->         }
->
-> -       regs->mepc += INSN_LEN(insn);
-> +       regs->mepc += insn_len;
->
->         return 0;
->  }
-> --
-> 2.25.1
->
+> Do you have any suggestions on the patches?
 
-Looks good to me.
+This is next on my list. I will review it soon.
 
-Reviewed-by: Atish Patra <atish.patra@wdc.com>
-
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-
-
--- 
 Regards,
-Atish
+Anup
 
