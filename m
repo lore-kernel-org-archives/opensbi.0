@@ -1,65 +1,92 @@
-From: Rahul Pathak <rpathak@ventanamicro.com>
-Date: Thu,  2 Feb 2023 10:14:27 +0530
-Subject: [PATCH v2 3/3] include: types: Add typedefs for endianness
-In-Reply-To: <20230202044427.1253816-1-rpathak@ventanamicro.com>
-References: <20230202044427.1253816-1-rpathak@ventanamicro.com>
-Message-ID: <20230202044427.1253816-4-rpathak@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Thu,  2 Feb 2023 16:51:35 +0800
+Subject: [PATCH v4 3/4] lib: sbi: rename function of sbi_ipi
+In-Reply-To: <20230202085136.224745-1-wxjstz@126.com>
+References: <20230202085136.224745-1-wxjstz@126.com>
+Message-ID: <20230202085136.224745-4-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If any variable/memory-location follows certain
-endianness then its important to annotate it properly
-so that proper conversion can be done before read/write
-from that variable/memory.
+Renamed some functions and reused some code
 
-Also, use these new typedefs in libfdt_env.h for deriving
-its own custom fdtX_t types
-
-Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi/sbi_types.h       | 7 +++++++
- lib/utils/libfdt/libfdt_env.h | 6 +++---
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ lib/sbi/sbi_tlb.c | 27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
-diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
-index 9c1fef3b8dc6..def88bbad2c3 100644
---- a/include/sbi/sbi_types.h
-+++ b/include/sbi/sbi_types.h
-@@ -54,6 +54,13 @@ typedef unsigned long		virtual_size_t;
- typedef unsigned long		physical_addr_t;
- typedef unsigned long		physical_size_t;
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index 8bab31a..741f4bb 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -211,7 +211,7 @@ static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data)
+ 		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
+ }
  
-+typedef uint16_t		le16_t;
-+typedef uint16_t		be16_t;
-+typedef uint32_t		le32_t;
-+typedef uint32_t		be32_t;
-+typedef uint64_t		le64_t;
-+typedef uint64_t		be64_t;
-+
- #define true			1
- #define false			0
- 
-diff --git a/lib/utils/libfdt/libfdt_env.h b/lib/utils/libfdt/libfdt_env.h
-index e5ad7698efca..6ebbae01b514 100644
---- a/lib/utils/libfdt/libfdt_env.h
-+++ b/lib/utils/libfdt/libfdt_env.h
-@@ -38,9 +38,9 @@
- #define strlen		sbi_strlen
- #define strnlen		sbi_strnlen
- 
--typedef uint16_t FDT_BITWISE fdt16_t;
--typedef uint32_t FDT_BITWISE fdt32_t;
--typedef uint64_t FDT_BITWISE fdt64_t;
-+typedef be16_t FDT_BITWISE fdt16_t;
-+typedef be32_t FDT_BITWISE fdt32_t;
-+typedef be64_t FDT_BITWISE fdt64_t;
- 
- static inline uint16_t fdt16_to_cpu(fdt16_t x)
+-static void tlb_entry_process(struct sbi_tlb_info *tinfo)
++static void tlb_process_helper(struct sbi_tlb_info *tinfo)
  {
+ 	u32 rhartid;
+ 	struct sbi_scratch *rscratch = NULL;
+@@ -229,30 +229,23 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+ 	}
+ }
+ 
+-static void tlb_process_count(struct sbi_scratch *scratch, int count)
++static int tlb_process_once(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_tlb_info tinfo;
+-	unsigned int deq_count = 0;
+ 	struct sbi_fifo *tlb_fifo =
+ 			sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
+ 
+-	while (!sbi_fifo_dequeue(tlb_fifo, &tinfo)) {
+-		tlb_entry_process(&tinfo);
+-		deq_count++;
+-		if (deq_count > count)
+-			break;
+-
++	if (!sbi_fifo_dequeue(tlb_fifo, &tinfo)) {
++		tlb_process_helper(&tinfo);
++		return 0;
+ 	}
++
++	return -1;
+ }
+ 
+ static void tlb_process(struct sbi_scratch *scratch)
+ {
+-	struct sbi_tlb_info tinfo;
+-	struct sbi_fifo *tlb_fifo =
+-			sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
+-
+-	while (!sbi_fifo_dequeue(tlb_fifo, &tinfo))
+-		tlb_entry_process(&tinfo);
++	while (!tlb_process_once(scratch));
+ }
+ 
+ static void tlb_sync(struct sbi_scratch *scratch)
+@@ -265,7 +258,7 @@ static void tlb_sync(struct sbi_scratch *scratch)
+ 		 * While we are waiting for remote hart to set the sync,
+ 		 * consume fifo requests to avoid deadlock.
+ 		 */
+-		tlb_process_count(scratch, 1);
++		tlb_process_once(scratch);
+ 	}
+ 
+ 	return;
+@@ -380,7 +373,7 @@ static int tlb_update(struct sbi_scratch *scratch,
+ 		 * TODO: Introduce a wait/wakeup event mechanism to handle
+ 		 * this properly.
+ 		 */
+-		tlb_process_count(scratch, 1);
++		tlb_process_once(scratch);
+ 		sbi_dprintf("hart%d: hart%d tlb fifo full\n",
+ 			    curr_hartid, remote_hartid);
+ 	}
 -- 
-2.34.1
+2.39.0
 
 
