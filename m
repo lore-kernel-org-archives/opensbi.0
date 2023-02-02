@@ -1,107 +1,147 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu,  2 Feb 2023 16:51:33 +0800
-Subject: [PATCH v4 1/4] lib: sbi: Optimize sbi_tlb
+Date: Thu,  2 Feb 2023 16:51:36 +0800
+Subject: [PATCH v4 4/4] lib: sbi: Optimize sbi_tlb queue waiting
 In-Reply-To: <20230202085136.224745-1-wxjstz@126.com>
 References: <20230202085136.224745-1-wxjstz@126.com>
-Message-ID: <20230202085136.224745-2-wxjstz@126.com>
+Message-ID: <20230202085136.224745-5-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Originally, the process and sync of sbi_tlb need to wait for each other.
-Evasion by atomic addition and subtraction.
+When tlb_fifo is full, it will wait and affect the ipi update to
+other harts. This patch is optimized.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_tlb.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ include/sbi/sbi_ipi.h |  3 +++
+ lib/sbi/sbi_ipi.c     | 47 +++++++++++++++++++++----------------------
+ lib/sbi/sbi_tlb.c     |  3 ++-
+ 3 files changed, 28 insertions(+), 25 deletions(-)
 
+diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
+index f6ac807..aad7f77 100644
+--- a/include/sbi/sbi_ipi.h
++++ b/include/sbi/sbi_ipi.h
+@@ -41,6 +41,9 @@ struct sbi_ipi_event_ops {
+ 	 * Update callback to save/enqueue data for remote HART
+ 	 * Note: This is an optional callback and it is called just before
+ 	 * triggering IPI to remote HART.
++	 * @return 0  success
++	 * @return -1 break IPI, done on local hart
++	 * @return -2 need retry
+ 	 */
+ 	int (* update)(struct sbi_scratch *scratch,
+ 			struct sbi_scratch *remote_scratch,
+diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+index 92a33bd..3282aaa 100644
+--- a/lib/sbi/sbi_ipi.c
++++ b/lib/sbi/sbi_ipi.c
+@@ -53,7 +53,7 @@ static int sbi_ipi_update(struct sbi_scratch *scratch, u32 remote_hartid,
+ 	if (ipi_ops->update) {
+ 		ret = ipi_ops->update(scratch, remote_scratch,
+ 				      remote_hartid, data);
+-		if (ret < 0)
++		if (ret != 0)
+ 			return ret;
+ 	}
+ 
+@@ -94,51 +94,50 @@ static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
+  */
+ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+ {
+-	int rc;
+-	ulong i, m, n;
++	int rc, done;
++	ulong i, m;
++	struct sbi_hartmask target_mask = {0};
++	struct sbi_hartmask retry_mask = {0};
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 
++	/* find target harts */
+ 	if (hbase != -1UL) {
+ 		rc = sbi_hsm_hart_interruptible_mask(dom, hbase, &m);
+ 		if (rc)
+ 			return rc;
+ 		m &= hmask;
+-		n = m;
+ 
+-		/* update IPIs */
+ 		for (i = hbase; m; i++, m >>= 1) {
+ 			if (m & 1UL)
+-				sbi_ipi_update(scratch, i, event, data);
+-		}
+-
+-		/* sync IPIs */
+-		m = n;
+-		for (i = hbase; m; i++, m >>= 1) {
+-			if (m & 1UL)
+-				sbi_ipi_sync(scratch, event);
++				sbi_hartmask_set_hart(i, &target_mask);
+ 		}
+ 	} else {
+-		/* update IPIs */
+ 		hbase = 0;
+ 		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
+ 			for (i = hbase; m; i++, m >>= 1) {
+ 				if (m & 1UL)
+-					sbi_ipi_update(scratch, i, event, data);
++					sbi_hartmask_set_hart(i, &target_mask);
+ 			}
+ 			hbase += BITS_PER_LONG;
+ 		}
++	}
+ 
+-		/* sync IPIs */
+-		hbase = 0;
+-		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
+-			for (i = hbase; m; i++, m >>= 1) {
+-				if (m & 1UL)
+-					sbi_ipi_sync(scratch, event);
+-			}
+-			hbase += BITS_PER_LONG;
++	/* update IPIs */
++	retry_mask = target_mask;
++	do {
++		done = true;
++		sbi_hartmask_for_each_hart(i, &retry_mask) {
++			rc = sbi_ipi_update(scratch, i, event, data);
++			if (rc == -2)
++				done = false;
++			else
++				sbi_hartmask_clear_hart(i, &retry_mask);
+ 		}
+-	}
++	} while (!done);
++
++	/* sync IPIs */
++	sbi_ipi_sync(scratch, event);
+ 
+ 	return 0;
+ }
 diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index 4c142ea..8bab31a 100644
+index 741f4bb..1be2058 100644
 --- a/lib/sbi/sbi_tlb.c
 +++ b/lib/sbi/sbi_tlb.c
-@@ -215,7 +215,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
- {
- 	u32 rhartid;
- 	struct sbi_scratch *rscratch = NULL;
--	unsigned long *rtlb_sync = NULL;
-+	atomic_t *rtlb_sync = NULL;
- 
- 	tinfo->local_fn(tinfo);
- 
-@@ -225,7 +225,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
- 			continue;
- 
- 		rtlb_sync = sbi_scratch_offset_ptr(rscratch, tlb_sync_off);
--		while (atomic_raw_xchg_ulong(rtlb_sync, 1)) ;
-+		atomic_sub_return(rtlb_sync, 1);
- 	}
- }
- 
-@@ -257,10 +257,10 @@ static void tlb_process(struct sbi_scratch *scratch)
- 
- static void tlb_sync(struct sbi_scratch *scratch)
- {
--	unsigned long *tlb_sync =
-+	atomic_t *tlb_sync =
- 			sbi_scratch_offset_ptr(scratch, tlb_sync_off);
- 
--	while (!atomic_raw_xchg_ulong(tlb_sync, 0)) {
-+	while (atomic_read(tlb_sync) > 0) {
- 		/*
- 		 * While we are waiting for remote hart to set the sync,
- 		 * consume fifo requests to avoid deadlock.
-@@ -343,6 +343,7 @@ static int tlb_update(struct sbi_scratch *scratch,
- 			  u32 remote_hartid, void *data)
- {
- 	int ret;
-+	atomic_t *tlb_sync;
- 	struct sbi_fifo *tlb_fifo_r;
- 	struct sbi_tlb_info *tinfo = data;
- 	u32 curr_hartid = current_hartid();
-@@ -369,11 +370,8 @@ static int tlb_update(struct sbi_scratch *scratch,
- 	tlb_fifo_r = sbi_scratch_offset_ptr(remote_scratch, tlb_fifo_off);
+@@ -364,7 +364,7 @@ static int tlb_update(struct sbi_scratch *scratch,
  
  	ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
--	if (ret != SBI_FIFO_UNCHANGED) {
--		return 1;
--	}
  
--	while (sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
-+	while (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
+-	while (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
++	if (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
  		/**
  		 * For now, Busy loop until there is space in the fifo.
  		 * There may be case where target hart is also
-@@ -387,6 +385,9 @@ static int tlb_update(struct sbi_scratch *scratch,
+@@ -376,6 +376,7 @@ static int tlb_update(struct sbi_scratch *scratch,
+ 		tlb_process_once(scratch);
+ 		sbi_dprintf("hart%d: hart%d tlb fifo full\n",
  			    curr_hartid, remote_hartid);
++		return -2;
  	}
  
-+	tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
-+	atomic_add_return(tlb_sync, 1);
-+
- 	return 0;
- }
- 
-@@ -413,7 +414,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
- {
- 	int ret;
- 	void *tlb_mem;
--	unsigned long *tlb_sync;
-+	atomic_t *tlb_sync;
- 	struct sbi_fifo *tlb_q;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
-@@ -455,7 +456,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
- 	tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
- 	tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
- 
--	*tlb_sync = 0;
-+	tlb_sync->counter = 0;
- 
- 	sbi_fifo_init(tlb_q, tlb_mem,
- 		      SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);
+ 	tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
 -- 
 2.39.0
 
