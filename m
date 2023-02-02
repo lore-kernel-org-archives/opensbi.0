@@ -1,106 +1,38 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu,  2 Feb 2023 16:51:34 +0800
-Subject: [PATCH v4 2/4] lib: sbi: Optimize sbi_ipi
-In-Reply-To: <20230202085136.224745-1-wxjstz@126.com>
-References: <20230202085136.224745-1-wxjstz@126.com>
-Message-ID: <20230202085136.224745-3-wxjstz@126.com>
+Date: Thu,  2 Feb 2023 16:51:32 +0800
+Subject: [PATCH v4 0/4] Miscellaneous about sbi_tlb and sbi_ipi
+Message-ID: <20230202085136.224745-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-the original sbI_ipi will be processed by hart by hart, after optimization,
-send ipi first and finally wait together.
+Removed the mutual waiting between process and sync in sbi_tlb
+Update ipi first then wait together
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_ipi.c | 42 ++++++++++++++++++++++++++++++++++++------
- 1 file changed, 36 insertions(+), 6 deletions(-)
+V4 Changes:
+PATCH1: Fixed not adding one to tlb_sync when SBI_FIFO_UNCHANGED
+PATCH4: Add comments
 
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 1bcc2e4..92a33bd 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -31,7 +31,7 @@ static unsigned long ipi_data_off;
- static const struct sbi_ipi_device *ipi_dev = NULL;
- static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
- 
--static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
-+static int sbi_ipi_update(struct sbi_scratch *scratch, u32 remote_hartid,
- 			u32 event, void *data)
- {
- 	int ret;
-@@ -69,6 +69,18 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
- 
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
- 
-+	return 0;
-+}
-+
-+static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
-+{
-+	const struct sbi_ipi_event_ops *ipi_ops;
-+
-+	if ((SBI_IPI_EVENT_MAX <= event) ||
-+	    !ipi_ops_array[event])
-+		return SBI_EINVAL;
-+	ipi_ops = ipi_ops_array[event];
-+
- 	if (ipi_ops->sync)
- 		ipi_ops->sync(scratch);
- 
-@@ -83,7 +95,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
- int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- {
- 	int rc;
--	ulong i, m;
-+	ulong i, m, n;
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
-@@ -92,19 +104,37 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- 		if (rc)
- 			return rc;
- 		m &= hmask;
-+		n = m;
- 
--		/* Send IPIs */
-+		/* update IPIs */
- 		for (i = hbase; m; i++, m >>= 1) {
- 			if (m & 1UL)
--				sbi_ipi_send(scratch, i, event, data);
-+				sbi_ipi_update(scratch, i, event, data);
-+		}
-+
-+		/* sync IPIs */
-+		m = n;
-+		for (i = hbase; m; i++, m >>= 1) {
-+			if (m & 1UL)
-+				sbi_ipi_sync(scratch, event);
- 		}
- 	} else {
-+		/* update IPIs */
-+		hbase = 0;
-+		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
-+			for (i = hbase; m; i++, m >>= 1) {
-+				if (m & 1UL)
-+					sbi_ipi_update(scratch, i, event, data);
-+			}
-+			hbase += BITS_PER_LONG;
-+		}
-+
-+		/* sync IPIs */
- 		hbase = 0;
- 		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
--			/* Send IPIs */
- 			for (i = hbase; m; i++, m >>= 1) {
- 				if (m & 1UL)
--					sbi_ipi_send(scratch, i, event, data);
-+					sbi_ipi_sync(scratch, event);
- 			}
- 			hbase += BITS_PER_LONG;
- 		}
+V3 Changes:
+PATCH2: Remove missing sync in update
+add PATCH4: Optimize sbi_tlb queue waiting
+
+V2 Changes:
+PATCH2: Fix m changes after update IPIs
+
+Xiang W (4):
+  lib: sbi: Optimize sbi_tlb
+  lib: sbi: Optimize sbi_ipi
+  lib: sbi: rename function of sbi_ipi
+  lib: sbi: Optimize sbi_tlb queue waiting
+
+ include/sbi/sbi_ipi.h |  3 +++
+ lib/sbi/sbi_ipi.c     | 43 ++++++++++++++++++++++++++++++-------
+ lib/sbi/sbi_tlb.c     | 49 +++++++++++++++++++------------------------
+ 3 files changed, 61 insertions(+), 34 deletions(-)
+
 -- 
 2.39.0
 
