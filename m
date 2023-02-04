@@ -1,171 +1,99 @@
-From: Rahul Pathak <rpathak@ventanamicro.com>
-Date: Thu, 2 Feb 2023 15:02:52 +0530
-Subject: [PATCH 1/2] include: Add support for byteorder/endianness conversion
-In-Reply-To: <Y9uBNKl1yPkVRg/D@curiosity>
-References: <20230128074617.1917265-1-rpathak@ventanamicro.com>
- <20230128074617.1917265-2-rpathak@ventanamicro.com> <Y9jNHM1dHedBPmAf@curiosity>
- <CA+Oz1=apLYgi29eDggPZF8GKjYteVr3LQDtuVhOSU6wAi84Q9Q@mail.gmail.com> <Y9uBNKl1yPkVRg/D@curiosity>
-Message-ID: <CA+Oz1=ayx=Y8E7BCfM1yj6_q5zNb-YN4JXP1X7H7y2eSrwXecg@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Sat, 04 Feb 2023 21:14:45 +0800
+Subject: [PATCH v5 6/8] lib: sbi: Add console_puts() callback in the
+ console device
+In-Reply-To: <20230201090013.ulgfsudxkf3zjhtw@orel>
+References: <20230113114110.1916226-1-apatel@ventanamicro.com>
+	 <20230113114110.1916226-7-apatel@ventanamicro.com>
+	 <20230201090013.ulgfsudxkf3zjhtw@orel>
+Message-ID: <eda14e33346db2fc0cca64216ad39323fd6912ae.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-But should libgcc be pulled in the opensbi, I doubt that.
+? 2023-02-01???? 10:00 +0100?Andrew Jones???
+> On Fri, Jan 13, 2023 at 05:11:08PM +0530, Anup Patel wrote:
+> > We add console_puts() callback in the console device which allows
+> > console drivers (such as semihosting) to implement a specialized
+> > way to output character string.
+> > 
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> > Reviewed-by: Xiang W <wxjstz@126.com>
+> > Reviewed-by: Bin Meng <bmeng@tinylab.org>
+> > ---
+> > ?include/sbi/sbi_console.h |? 3 +++
+> > ?lib/sbi/sbi_console.c???? | 19 ++++++++++++++-----
+> > ?2 files changed, 17 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
+> > index 660c239..8e95b9d 100644
+> > --- a/include/sbi/sbi_console.h
+> > +++ b/include/sbi/sbi_console.h
+> > @@ -19,6 +19,9 @@ struct sbi_console_device {
+> > ????????/** Write a character to the console output */
+> > ????????void (*console_putc)(char ch);
+> > ?
+> > +???????/** Write a character string to the console output */
+> > +???????void (*console_puts)(const char *str, unsigned long len);
+We should add a comment here that \r\n needs to be output when \n is output.
+Otherwise, the output effect of sbi_nputs will be inconsistent.
 
-Also just for trying i did tried linking with libgcc, it was giving me
-build errors
-libgcc.a(_bswapdi2.o): can't link double-float modules with soft-float modules
-
-On Thu, Feb 2, 2023 at 2:54 PM Sergey Matyukevich <geomatsi@gmail.com> wrote:
->
-> Hi Rahul,
->
-> > Using __builtins_bswapX causes weird issues on gcc,
-> > due to reasons unknown the functions in libfdt_env.h
-> > like below emit the library call to __bswapdi2
-> > which causes errors.
-> >
-> > static inline fdt32_t cpu_to_fdt32(uint32_t x)
-> > {
-> > return (FDT_FORCE fdt32_t)cpu_to_be32(x);
-> > }
-> >
-> > Errors -
-> > fdt_reset_gpio.c:135: undefined reference to `__bswapsi2'
-> > /fdt_reset_thead.c:77: undefined reference to `__bswapsi2'
-> >
-> > Clang works perfectly
-> >
-> > Did you face such issues?
->
-> Right. I see such issues for gcc revisions v10.2, v11.2, v12.1.
-> Missing references could be be pulled from libgcc, e.g.:
->
-> diff --git a/Makefile b/Makefile
-> index 8db6eab..8cae625 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -369,7 +369,7 @@ ASFLAGS             +=      $(firmware-asflags-y)
->  ARFLAGS                =       rcs
->
->  ELFFLAGS       +=      $(USE_LD_FLAG)
-> -ELFFLAGS       +=      -Wl,--build-id=none -Wl,-N
-> +ELFFLAGS       +=      -Wl,--build-id=none -Wl,-N -Wl,-lgcc
->  ELFFLAGS       +=      $(platform-ldflags-y)
->  ELFFLAGS       +=      $(firmware-ldflags-y)
->
->
-> Regards,
-> Sergey
->
-> > On Tue, Jan 31, 2023 at 1:41 PM Sergey Matyukevich <geomatsi@gmail.com> wrote:
-> > >
-> > > On Sat, Jan 28, 2023 at 01:16:16PM +0530, Rahul Pathak wrote:
-> > > > Define macros for general byteorder conversion
-> > > > Define functions for endianness conversion
-> > > > using general byteorder conversion macros
-> > > >
-> > > > Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
-> > > > ---
-> > > >  include/sbi/sbi_byteorder.h | 57 +++++++++++++++++++++++++++++++++++++
-> > > >  1 file changed, 57 insertions(+)
-> > > >  create mode 100644 include/sbi/sbi_byteorder.h
-> > >
-> > > Reviewed-by: Sergey Matyukevich <sergey.matyukevich@syntacore.com>
-> > >
-> > > By the way, is there any advantage of using custom macros instead of
-> > > compiler builtins ? E.g. see my patch loosely based on FreeBSD code:
-> > > http://lists.infradead.org/pipermail/opensbi/2022-December/003766.html
-> > >
-> > > Regards,
-> > > Sergey
-> > >
-> > >
-> > > > diff --git a/include/sbi/sbi_byteorder.h b/include/sbi/sbi_byteorder.h
-> > > > new file mode 100644
-> > > > index 000000000000..680710fe6d91
-> > > > --- /dev/null
-> > > > +++ b/include/sbi/sbi_byteorder.h
-> > > > @@ -0,0 +1,57 @@
-> > > > +/*
-> > > > + * SPDX-License-Identifier: BSD-2-Clause
-> > > > + *
-> > > > + * Copyright (c) 2023 Ventana Micro Systems Inc.
-> > > > + */
-> > > > +
-> > > > +#ifndef __SBI_BYTEORDER_H__
-> > > > +#define __SBI_BYTEORDER_H__
-> > > > +
-> > > > +#include <sbi/sbi_types.h>
-> > > > +
-> > > > +#define EXTRACT_BYTE(x, n)   ((unsigned long long)((uint8_t *)&x)[n])
-> > > > +
-> > > > +#define BSWAP16(x)   ((EXTRACT_BYTE(x, 0) << 8) | EXTRACT_BYTE(x, 1))
-> > > > +#define BSWAP32(x)   ((EXTRACT_BYTE(x, 0) << 24) | (EXTRACT_BYTE(x, 1) << 16) | \
-> > > > +                      (EXTRACT_BYTE(x, 2) << 8) | EXTRACT_BYTE(x, 3))
-> > > > +#define BSWAP64(x)   ((EXTRACT_BYTE(x, 0) << 56) | (EXTRACT_BYTE(x, 1) << 48) | \
-> > > > +                      (EXTRACT_BYTE(x, 2) << 40) | (EXTRACT_BYTE(x, 3) << 32) | \
-> > > > +                      (EXTRACT_BYTE(x, 4) << 24) | (EXTRACT_BYTE(x, 5) << 16) | \
-> > > > +                      (EXTRACT_BYTE(x, 6) << 8) | EXTRACT_BYTE(x, 7))
-> > > > +
-> > > > +
-> > > > +#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* CPU(little-endian) */
-> > > > +#define cpu_to_be16(x)               ((uint16_t)BSWAP16(x))
-> > > > +#define cpu_to_be32(x)               ((uint32_t)BSWAP32(x))
-> > > > +#define cpu_to_be64(x)               ((uint64_t)BSWAP64(x))
-> > > > +
-> > > > +#define be16_to_cpu(x)               ((uint16_t)BSWAP16(x))
-> > > > +#define be32_to_cpu(x)               ((uint32_t)BSWAP32(x))
-> > > > +#define be64_to_cpu(x)               ((uint64_t)BSWAP64(x))
-> > > > +
-> > > > +#define cpu_to_le16(x)               ((uint16_t)(x))
-> > > > +#define cpu_to_le32(x)               ((uint32_t)(x))
-> > > > +#define cpu_to_le64(x)               ((uint64_t)(x))
-> > > > +
-> > > > +#define le16_to_cpu(x)               ((uint16_t)(x))
-> > > > +#define le32_to_cpu(x)               ((uint32_t)(x))
-> > > > +#define le64_to_cpu(x)               ((uint64_t)(x))
-> > > > +#else /* CPU(big-endian) */
-> > > > +#define cpu_to_be16(x)               ((uint16_t)(x))
-> > > > +#define cpu_to_be32(x)               ((uint32_t)(x))
-> > > > +#define cpu_to_be64(x)               ((uint64_t)(x))
-> > > > +
-> > > > +#define be16_to_cpu(x)               ((uint16_t)(x))
-> > > > +#define be32_to_cpu(x)               ((uint32_t)(x))
-> > > > +#define be64_to_cpu(x)               ((uint64_t)(x))
-> > > > +
-> > > > +#define cpu_to_le16(x)               ((uint16_t)BSWAP16(x))
-> > > > +#define cpu_to_le32(x)               ((uint32_t)BSWAP32(x))
-> > > > +#define cpu_to_le64(x)               ((uint64_t)BSWAP64(x))
-> > > > +
-> > > > +#define le16_to_cpu(x)               ((uint16_t)BSWAP16(x))
-> > > > +#define le32_to_cpu(x)               ((uint32_t)BSWAP32(x))
-> > > > +#define le64_to_cpu(x)               ((uint64_t)BSWAP64(x))
-> > > > +#endif
-> > > > +
-> > > > +#endif /* __SBI_BYTEORDER_H__ */
-> > > > --
-> > > > 2.34.1
-> > > >
-> > > >
-> > > > --
-> > > > opensbi mailing list
-> > > > opensbi at lists.infradead.org
-> > > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
-> >
-> >
-> > --
-> >
-> > Thanks
-> > Rahul Pathak
-
-
-
--- 
-
-Thanks
-Rahul Pathak
+Regards,
+Xiang W
+> > +
+> > ????????/** Read a character from the console input */
+> > ????????int (*console_getc)(void);
+> > ?};
+> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> > index 89d6a49..c1b9f73 100644
+> > --- a/lib/sbi/sbi_console.c
+> > +++ b/lib/sbi/sbi_console.c
+> > @@ -12,6 +12,7 @@
+> > ?#include <sbi/sbi_hart.h>
+> > ?#include <sbi/sbi_platform.h>
+> > ?#include <sbi/sbi_scratch.h>
+> > +#include <sbi/sbi_string.h>
+> > ?
+> > ?static const struct sbi_console_device *console_dev = NULL;
+> > ?static spinlock_t console_out_lock??????????? = SPIN_LOCK_INITIALIZER;
+> > @@ -44,9 +45,13 @@ void sbi_putc(char ch)
+> > ?void sbi_puts(const char *str)
+> > ?{
+> > ????????spin_lock(&console_out_lock);
+> > -???????while (*str) {
+> > -???????????????sbi_putc(*str);
+> > -???????????????str++;
+> > +???????if (console_dev && console_dev->console_puts) {
+> > +???????????????console_dev->console_puts(str, sbi_strlen(str));
+> > +???????} else {
+> > +???????????????while (*str) {
+> > +???????????????????????sbi_putc(*str);
+> > +???????????????????????str++;
+> > +???????????????}
+> > ????????}
+> > ????????spin_unlock(&console_out_lock);
+> > ?}
+> > @@ -56,8 +61,12 @@ void sbi_nputs(const char *str, unsigned long len)
+> > ????????unsigned long i;
+> > ?
+> > ????????spin_lock(&console_out_lock);
+> > -???????for (i = 0; i < len; i++)
+> > -???????????????sbi_putc(str[i]);
+> > +???????if (console_dev && console_dev->console_puts) {
+> > +???????????????console_dev->console_puts(str, len);
+> > +???????} else {
+> > +???????????????for (i = 0; i < len; i++)
+> > +???????????????????????sbi_putc(str[i]);
+> > +???????}
+> > ????????spin_unlock(&console_out_lock);
+> > ?}
+> > ?
+> > -- 
+> > 2.34.1
+> > 
+> 
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
