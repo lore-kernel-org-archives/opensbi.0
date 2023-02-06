@@ -1,99 +1,67 @@
-From: Xiang W <wxjstz@126.com>
-Date: Sat, 04 Feb 2023 21:14:45 +0800
-Subject: [PATCH v5 6/8] lib: sbi: Add console_puts() callback in the
- console device
-In-Reply-To: <20230201090013.ulgfsudxkf3zjhtw@orel>
-References: <20230113114110.1916226-1-apatel@ventanamicro.com>
-	 <20230113114110.1916226-7-apatel@ventanamicro.com>
-	 <20230201090013.ulgfsudxkf3zjhtw@orel>
-Message-ID: <eda14e33346db2fc0cca64216ad39323fd6912ae.camel@126.com>
+From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Mon,  6 Feb 2023 00:06:21 +0000
+Subject: [PATCH v4 0/3] Renesas RZ/Five add support to configure PMA and add vendor specific SBI extension
+Message-ID: <20230206000624.6544-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-02-01???? 10:00 +0100?Andrew Jones???
-> On Fri, Jan 13, 2023 at 05:11:08PM +0530, Anup Patel wrote:
-> > We add console_puts() callback in the console device which allows
-> > console drivers (such as semihosting) to implement a specialized
-> > way to output character string.
-> > 
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > Reviewed-by: Atish Patra <atishp@rivosinc.com>
-> > Reviewed-by: Xiang W <wxjstz@126.com>
-> > Reviewed-by: Bin Meng <bmeng@tinylab.org>
-> > ---
-> > ?include/sbi/sbi_console.h |? 3 +++
-> > ?lib/sbi/sbi_console.c???? | 19 ++++++++++++++-----
-> > ?2 files changed, 17 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
-> > index 660c239..8e95b9d 100644
-> > --- a/include/sbi/sbi_console.h
-> > +++ b/include/sbi/sbi_console.h
-> > @@ -19,6 +19,9 @@ struct sbi_console_device {
-> > ????????/** Write a character to the console output */
-> > ????????void (*console_putc)(char ch);
-> > ?
-> > +???????/** Write a character string to the console output */
-> > +???????void (*console_puts)(const char *str, unsigned long len);
-We should add a comment here that \r\n needs to be output when \n is output.
-Otherwise, the output effect of sbi_nputs will be inconsistent.
+Hi All,
 
-Regards,
-Xiang W
-> > +
-> > ????????/** Read a character from the console input */
-> > ????????int (*console_getc)(void);
-> > ?};
-> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> > index 89d6a49..c1b9f73 100644
-> > --- a/lib/sbi/sbi_console.c
-> > +++ b/lib/sbi/sbi_console.c
-> > @@ -12,6 +12,7 @@
-> > ?#include <sbi/sbi_hart.h>
-> > ?#include <sbi/sbi_platform.h>
-> > ?#include <sbi/sbi_scratch.h>
-> > +#include <sbi/sbi_string.h>
-> > ?
-> > ?static const struct sbi_console_device *console_dev = NULL;
-> > ?static spinlock_t console_out_lock??????????? = SPIN_LOCK_INITIALIZER;
-> > @@ -44,9 +45,13 @@ void sbi_putc(char ch)
-> > ?void sbi_puts(const char *str)
-> > ?{
-> > ????????spin_lock(&console_out_lock);
-> > -???????while (*str) {
-> > -???????????????sbi_putc(*str);
-> > -???????????????str++;
-> > +???????if (console_dev && console_dev->console_puts) {
-> > +???????????????console_dev->console_puts(str, sbi_strlen(str));
-> > +???????} else {
-> > +???????????????while (*str) {
-> > +???????????????????????sbi_putc(*str);
-> > +???????????????????????str++;
-> > +???????????????}
-> > ????????}
-> > ????????spin_unlock(&console_out_lock);
-> > ?}
-> > @@ -56,8 +61,12 @@ void sbi_nputs(const char *str, unsigned long len)
-> > ????????unsigned long i;
-> > ?
-> > ????????spin_lock(&console_out_lock);
-> > -???????for (i = 0; i < len; i++)
-> > -???????????????sbi_putc(str[i]);
-> > +???????if (console_dev && console_dev->console_puts) {
-> > +???????????????console_dev->console_puts(str, len);
-> > +???????} else {
-> > +???????????????for (i = 0; i < len; i++)
-> > +???????????????????????sbi_putc(str[i]);
-> > +???????}
-> > ????????spin_unlock(&console_out_lock);
-> > ?}
-> > ?
-> > -- 
-> > 2.34.1
-> > 
-> 
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+This patch series aims to add support to configure the PMA regions present
+on the Andes AX45MP core (andes45-pma.c which can be shared with other
+Andes vendors) and configures the required PMA region for RZ/Five SoC.
+
+This patch series also adds the SBI vendor extension
+RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND to check if IOCP is present on
+the core and if un-available it also checks if SW workaround for cache
+management needs to be applied.
+
+RFC v3 -> RFC v4
+-> Used bit field for flags in struct andes45_pma_region
+-> Renamed andes45-pma.h -> andes45_pma.h
+-> Included RB tag from Lin san for patch 2/3
+-> Moved CSR to platform/generic/include/andes/andes45.h
+-> Included sbi/sbi_error.h in andes45-pma.c to fix build issue
+
+RFC v2 -> RFC v3
+-> Fixed review comments pointed by Lin-san
+   * Used switch case macro
+   * Added a check to verify the PMA size is power-of-2
+   * Dropped un-needed calculation done in PMA code for NAPOT.
+   * Dropped MISA macro
+-> Fixed comments pointed by Himanshu
+-> Fixed check patch issue
+
+RFC v2 -> RFC v1
+-> Fixed review comments pointed by Lin-san
+-> Implemented PMA as library so that it can be shared
+
+RFC v1:
+https://patchwork.ozlabs.org/project/opensbi/patch/20221212094421.14556-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
+
+Cheers,
+Prabhakar
+
+Lad Prabhakar (3):
+  platform: generic: renesas: rzfive: Add support to configure the PMA
+  platform: generic: renesas: rzfive: Configure the PMA region
+  platform: generic: renesas: rzfive: Add SBI EXT to check for enabling
+    IOCP errata
+
+ platform/generic/Kconfig                      |   9 +
+ platform/generic/include/andes/andes45.h      |  25 +-
+ platform/generic/include/andes45_pma.h        |  48 +++
+ platform/generic/renesas/rzfive/andes45-pma.c | 350 ++++++++++++++++++
+ platform/generic/renesas/rzfive/objects.mk    |   1 +
+ platform/generic/renesas/rzfive/rzfive.c      |  68 ++++
+ 6 files changed, 499 insertions(+), 2 deletions(-)
+ create mode 100644 platform/generic/include/andes45_pma.h
+ create mode 100644 platform/generic/renesas/rzfive/andes45-pma.c
+
+-- 
+2.17.1
+
 
