@@ -1,27 +1,27 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 8 Feb 2023 16:56:16 +0530
-Subject: [PATCH] Makefile: Add missing .dep files for fw_*.elf.ld
-In-Reply-To: <20230201164916.19908-1-jrtc27@jrtc27.com>
-References: <20230201164916.19908-1-jrtc27@jrtc27.com>
-Message-ID: <CAAhSdy199zb=8wAhQGigF6xNbpmezv7jaY5CGf8mHV7Okso9Ng@mail.gmail.com>
+Date: Wed, 8 Feb 2023 18:16:58 +0530
+Subject: [PATCH v2 1/3] include: Add support for byteorder/endianness conversion
+In-Reply-To: <20230202044427.1253816-2-rpathak@ventanamicro.com>
+References: <20230202044427.1253816-1-rpathak@ventanamicro.com> <20230202044427.1253816-2-rpathak@ventanamicro.com>
+Message-ID: <CAAhSdy1AM069BcP6y94yON5iLcYQPZHKKpp0b1O+mWosbq8cQQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 1, 2023 at 10:19 PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Thu, Feb 2, 2023 at 10:15 AM Rahul Pathak <rpathak@ventanamicro.com> wrote:
 >
-> Since we don't currently create these, changes to fw_base.ldS do not
-> cause the preprocessed fw_*.elf.ld files to be rebuilt, and thus
-> incremental builds can end up failing with missing symbols if crossing
-> the recent commits that introduced _fw_rw_offset and then replaced it
-> with _fw_rw_start.
+> Define macros general byteorder conversion
+> Define functions for endianness conversion
+> from general byteorder conversion macros
 >
-> Reported-by: Ben Dooks <ben.dooks@sifive.com>
-> Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
+> Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Sergey Matyukevich <sergey.matyukevich@syntacore.com>
 
-Looks good to me.
+For now, this looks good. We can move to built-in compiler macros
+as a separate patch.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -31,45 +31,75 @@ Thanks,
 Anup
 
 > ---
->  Makefile | 9 +++++++++
->  1 file changed, 9 insertions(+)
+>  include/sbi/sbi_byteorder.h | 57 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 57 insertions(+)
+>  create mode 100644 include/sbi/sbi_byteorder.h
 >
-> diff --git a/Makefile b/Makefile
-> index b742d6d..b20404f 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -254,6 +254,7 @@ deps-y=$(platform-objs-path-y:.o=.dep)
->  deps-y+=$(libsbi-objs-path-y:.o=.dep)
->  deps-y+=$(libsbiutils-objs-path-y:.o=.dep)
->  deps-y+=$(firmware-objs-path-y:.o=.dep)
-> +deps-y+=$(firmware-elfs-path-y:=.dep)
->
->  # Setup platform ABI, ISA and Code Model
->  ifndef PLATFORM_RISCV_ABI
-> @@ -413,6 +414,11 @@ inst_file_list = $(CMD_PREFIX)if [ ! -z "$(4)" ]; then \
->  inst_header_dir =  $(CMD_PREFIX)mkdir -p $(1); \
->              echo " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
->              cp -rf $(2) $(1)
-> +compile_cpp_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
-> +            echo " CPP-DEP   $(subst $(build_dir)/,,$(1))"; \
-> +            printf %s `dirname $(1)`/  > $(1) && \
-> +            $(CC) $(CPPFLAGS) -x c -MM $(3) \
-> +              -MT `basename $(1:.dep=$(2))` >> $(1) || rm -f $(1)
->  compile_cpp = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
->              echo " CPP       $(subst $(build_dir)/,,$(1))"; \
->              $(CPP) $(CPPFLAGS) -x c $(2) | grep -v "\#" > $(1)
-> @@ -543,6 +549,9 @@ $(platform_build_dir)/%.bin: $(platform_build_dir)/%.elf
->  $(platform_build_dir)/%.elf: $(platform_build_dir)/%.o $(platform_build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
->         $(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
->
-> +$(platform_build_dir)/%.dep: $(src_dir)/%.ldS $(KCONFIG_CONFIG)
-> +       $(call compile_cpp_dep,$@,.ld,$<)
+> diff --git a/include/sbi/sbi_byteorder.h b/include/sbi/sbi_byteorder.h
+> new file mode 100644
+> index 000000000000..680710fe6d91
+> --- /dev/null
+> +++ b/include/sbi/sbi_byteorder.h
+> @@ -0,0 +1,57 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2023 Ventana Micro Systems Inc.
+> + */
 > +
->  $(platform_build_dir)/%.ld: $(src_dir)/%.ldS
->         $(call compile_cpp,$@,$<)
->
+> +#ifndef __SBI_BYTEORDER_H__
+> +#define __SBI_BYTEORDER_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +#define EXTRACT_BYTE(x, n)     ((unsigned long long)((uint8_t *)&x)[n])
+> +
+> +#define BSWAP16(x)     ((EXTRACT_BYTE(x, 0) << 8) | EXTRACT_BYTE(x, 1))
+> +#define BSWAP32(x)     ((EXTRACT_BYTE(x, 0) << 24) | (EXTRACT_BYTE(x, 1) << 16) | \
+> +                        (EXTRACT_BYTE(x, 2) << 8) | EXTRACT_BYTE(x, 3))
+> +#define BSWAP64(x)     ((EXTRACT_BYTE(x, 0) << 56) | (EXTRACT_BYTE(x, 1) << 48) | \
+> +                        (EXTRACT_BYTE(x, 2) << 40) | (EXTRACT_BYTE(x, 3) << 32) | \
+> +                        (EXTRACT_BYTE(x, 4) << 24) | (EXTRACT_BYTE(x, 5) << 16) | \
+> +                        (EXTRACT_BYTE(x, 6) << 8) | EXTRACT_BYTE(x, 7))
+> +
+> +
+> +#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* CPU(little-endian) */
+> +#define cpu_to_be16(x)         ((uint16_t)BSWAP16(x))
+> +#define cpu_to_be32(x)         ((uint32_t)BSWAP32(x))
+> +#define cpu_to_be64(x)         ((uint64_t)BSWAP64(x))
+> +
+> +#define be16_to_cpu(x)         ((uint16_t)BSWAP16(x))
+> +#define be32_to_cpu(x)         ((uint32_t)BSWAP32(x))
+> +#define be64_to_cpu(x)         ((uint64_t)BSWAP64(x))
+> +
+> +#define cpu_to_le16(x)         ((uint16_t)(x))
+> +#define cpu_to_le32(x)         ((uint32_t)(x))
+> +#define cpu_to_le64(x)         ((uint64_t)(x))
+> +
+> +#define le16_to_cpu(x)         ((uint16_t)(x))
+> +#define le32_to_cpu(x)         ((uint32_t)(x))
+> +#define le64_to_cpu(x)         ((uint64_t)(x))
+> +#else /* CPU(big-endian) */
+> +#define cpu_to_be16(x)         ((uint16_t)(x))
+> +#define cpu_to_be32(x)         ((uint32_t)(x))
+> +#define cpu_to_be64(x)         ((uint64_t)(x))
+> +
+> +#define be16_to_cpu(x)         ((uint16_t)(x))
+> +#define be32_to_cpu(x)         ((uint32_t)(x))
+> +#define be64_to_cpu(x)         ((uint64_t)(x))
+> +
+> +#define cpu_to_le16(x)         ((uint16_t)BSWAP16(x))
+> +#define cpu_to_le32(x)         ((uint32_t)BSWAP32(x))
+> +#define cpu_to_le64(x)         ((uint64_t)BSWAP64(x))
+> +
+> +#define le16_to_cpu(x)         ((uint16_t)BSWAP16(x))
+> +#define le32_to_cpu(x)         ((uint32_t)BSWAP32(x))
+> +#define le64_to_cpu(x)         ((uint64_t)BSWAP64(x))
+> +#endif
+> +
+> +#endif /* __SBI_BYTEORDER_H__ */
 > --
-> 2.37.0
+> 2.34.1
 >
 >
 > --
