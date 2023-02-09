@@ -1,65 +1,45 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu,  9 Feb 2023 09:32:51 +0530
-Subject: [PATCH] include: sbi: Fix BSWAPx() macros for big-endian host
-Message-ID: <20230209040251.451328-1-apatel@ventanamicro.com>
+From: Deepak Gupta <debug@rivosinc.com>
+Date: Wed,  8 Feb 2023 20:26:52 -0800
+Subject: [PATCH v3 Zisslpcfi 0/2] Support for zisslpcfi in opensbi
+Message-ID: <20230209042654.3568990-1-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The BSWAPx() macros won't do any swapping for big-endian host
-because the EXTRACT_BYTE() macro will pickup bytes in reverse
-order. Also, the EXTRACT_BYTE() will generate compile error
-for constants.
+zisslpcfi [1] extension extends risc-v architecture to mitigate against
+control-flow integrity attacks (ROP/JOP/COP).
 
-To fix this, we get remove the EXTRACT_BYTE() macro and re-write
-BSWAPx() using simple mask and shift operations.
+zisslpcfi uses bits (b23-b26) in (m/s/vs) status CSR for enabling cfi in
+U mode and record cfi state. One such state is expected landing pad 
+(ELP). If forward cfi is enabled, indirect call/jmp updates hart's ELP
+state (1bit) to true. ELP state is cleared only by a landing pad
+instruction else trap is delivered with ELP state recorded in sstatus
+CSR.
 
-Fixes: 09b34d8cca51 ("include: Add support for byteorder/endianness
-conversion")
-Reported-by: Samuel Holland <samuel@sholland.org>
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- include/sbi/sbi_byteorder.h | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+This two patch series adds following changes to opensbi
+    - Adds support in opensbi to detect zisslpcfi
+    - trap redirection updates ELP state accordingly
 
-diff --git a/include/sbi/sbi_byteorder.h b/include/sbi/sbi_byteorder.h
-index 680710f..15107e1 100644
---- a/include/sbi/sbi_byteorder.h
-+++ b/include/sbi/sbi_byteorder.h
-@@ -9,16 +9,20 @@
- 
- #include <sbi/sbi_types.h>
- 
--#define EXTRACT_BYTE(x, n)	((unsigned long long)((uint8_t *)&x)[n])
--
--#define BSWAP16(x)	((EXTRACT_BYTE(x, 0) << 8) | EXTRACT_BYTE(x, 1))
--#define BSWAP32(x)	((EXTRACT_BYTE(x, 0) << 24) | (EXTRACT_BYTE(x, 1) << 16) | \
--			 (EXTRACT_BYTE(x, 2) << 8) | EXTRACT_BYTE(x, 3))
--#define BSWAP64(x)	((EXTRACT_BYTE(x, 0) << 56) | (EXTRACT_BYTE(x, 1) << 48) | \
--			 (EXTRACT_BYTE(x, 2) << 40) | (EXTRACT_BYTE(x, 3) << 32) | \
--			 (EXTRACT_BYTE(x, 4) << 24) | (EXTRACT_BYTE(x, 5) << 16) | \
--			 (EXTRACT_BYTE(x, 6) << 8) | EXTRACT_BYTE(x, 7))
--
-+#define BSWAP16(x)	((((x) & 0x00ff) << 8) | \
-+			 (((x) & 0xff00) >> 8))
-+#define BSWAP32(x)	((((x) & 0x000000ff) << 24) | \
-+			 (((x) & 0x0000ff00) << 8) | \
-+			 (((x) & 0x00ff0000) >> 8) | \
-+			 (((x) & 0xff000000) >> 24))
-+#define BSWAP64(x)	((((x) & 0x00000000000000ffULL) << 56) | \
-+			 (((x) & 0x000000000000ff00ULL) << 40) | \
-+			 (((x) & 0x0000000000ff0000ULL) << 24) | \
-+			 (((x) & 0x00000000ff000000ULL) << 8) | \
-+			 (((x) & 0x000000ff00000000ULL) >> 8) | \
-+			 (((x) & 0x0000ff0000000000ULL) >> 24) | \
-+			 (((x) & 0x00ff000000000000ULL) >> 40) | \
-+			 (((x) & 0xff00000000000000ULL) >> 56))
- 
- #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* CPU(little-endian) */
- #define cpu_to_be16(x)		((uint16_t)BSWAP16(x))
+Qemu implementation for zisslpcfi can be checked out on github [2]
+Strawman linux kernel enabling (still very early) can be checked out on github [3]
+
+[1] - https://github.com/riscv/riscv-cfi
+[2] - https://github.com/deepak0414/qemu/tree/gh_Zisslpcfi-0.1
+[3] - https://github.com/deepak0414/linux-riscv-cfi/tree/Zisslpcfi-0.1_v6.1-rc2
+
+Deepak Gupta (2):
+  include: adding support for Zisslpcfi encodings
+  lib: sbi: Zisslpcfi detection and elp cfi state reflect back in status
+
+ include/sbi/riscv_encoding.h | 10 ++++++++++
+ include/sbi/sbi_hart.h       |  2 ++
+ lib/sbi/sbi_hart.c           | 23 +++++++++++++++++++++++
+ lib/sbi/sbi_trap.c           | 16 ++++++++++++++++
+ 4 files changed, 51 insertions(+)
+
 -- 
-2.34.1
+2.25.1
 
 
