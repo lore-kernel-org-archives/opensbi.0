@@ -1,137 +1,101 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 10 Feb 2023 11:16:49 +0530
-Subject: [PATCH v6 5/8] lib: sbi: Implement SBI debug console extension
+Date: Fri, 10 Feb 2023 11:16:50 +0530
+Subject: [PATCH v6 6/8] lib: sbi: Add console_puts() callback in the console device
 In-Reply-To: <20230210054652.495628-1-apatel@ventanamicro.com>
 References: <20230210054652.495628-1-apatel@ventanamicro.com>
-Message-ID: <20230210054652.495628-6-apatel@ventanamicro.com>
+Message-ID: <20230210054652.495628-7-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We implement SBI debug console extension as one of the replacement
-SBI extensions. This extension is only available when OpenSBI platform
-provides a console device to generic library.
+We add console_puts() callback in the console device which allows
+console drivers (such as semihosting) to implement a specialized
+way to output character string.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
 Reviewed-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Bin Meng <bmeng@tinylab.org>
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/sbi/Kconfig          |  4 +++
- lib/sbi/objects.mk       |  3 ++
- lib/sbi/sbi_ecall_dbcn.c | 72 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 79 insertions(+)
- create mode 100644 lib/sbi/sbi_ecall_dbcn.c
+ include/sbi/sbi_console.h |  3 +++
+ lib/sbi/sbi_console.c     | 29 ++++++++++++++++++++++-------
+ 2 files changed, 25 insertions(+), 7 deletions(-)
 
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index df74bba..ef6728b 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -26,6 +26,10 @@ config SBI_ECALL_PMU
- 	bool "Performance Monitoring Unit extension"
- 	default y
+diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
+index 3c1f5e5..0979765 100644
+--- a/include/sbi/sbi_console.h
++++ b/include/sbi/sbi_console.h
+@@ -19,6 +19,9 @@ struct sbi_console_device {
+ 	/** Write a character to the console output */
+ 	void (*console_putc)(char ch);
  
-+config SBI_ECALL_DBCN
-+	bool "Debug Console extension"
-+	default y
++	/** Write a character string to the console output */
++	unsigned long (*console_puts)(const char *str, unsigned long len);
 +
- config SBI_ECALL_LEGACY
- 	bool "SBI v0.1 legacy extensions"
- 	default y
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index c774ebb..319f38d 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -37,6 +37,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SRST) += sbi_ecall_srst.o
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_PMU) += ecall_pmu
- libsbi-objs-$(CONFIG_SBI_ECALL_PMU) += sbi_ecall_pmu.o
+ 	/** Read a character from the console input */
+ 	int (*console_getc)(void);
+ };
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index c734bc0..8a5d9de 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -12,6 +12,7 @@
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_scratch.h>
++#include <sbi/sbi_string.h>
  
-+carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
-+libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
-+
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
- libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
+ static const struct sbi_console_device *console_dev = NULL;
+ static spinlock_t console_out_lock	       = SPIN_LOCK_INITIALIZER;
+@@ -43,24 +44,38 @@ void sbi_putc(char ch)
  
-diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-new file mode 100644
-index 0000000..fe7e175
---- /dev/null
-+++ b/lib/sbi/sbi_ecall_dbcn.c
-@@ -0,0 +1,72 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2022 Ventana Micro Systems Inc.
-+ *
-+ * Authors:
-+ *   Anup Patel <apatel@ventanamicro.com>
-+ */
+ void sbi_puts(const char *str)
+ {
++	unsigned long p, len;
 +
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_trap.h>
-+#include <sbi/riscv_asm.h>
-+
-+static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
-+				  const struct sbi_trap_regs *regs,
-+				  unsigned long *out_val,
-+				  struct sbi_trap_info *out_trap)
-+{
-+	ulong smode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >>
-+			MSTATUS_MPP_SHIFT;
-+
-+	switch (funcid) {
-+	case SBI_EXT_DBCN_CONSOLE_WRITE:
-+	case SBI_EXT_DBCN_CONSOLE_READ:
-+		/*
-+		 * On RV32, the M-mode can only access the first 4GB of
-+		 * the physical address space because M-mode does not have
-+		 * MMU to access full 34-bit physical address space.
-+		 *
-+		 * Based on above, we simply fail if the upper 32bits of
-+		 * the physical address (i.e. a2 register) is non-zero on
-+		 * RV32.
-+		 */
-+#if __riscv_xlen == 32
-+		if (regs->a2)
-+			return SBI_ERR_FAILED;
-+#endif
-+		if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
-+					regs->a1, regs->a0, smode,
-+					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
-+			return SBI_ERR_INVALID_PARAM;
-+		if (funcid == SBI_EXT_DBCN_CONSOLE_WRITE)
-+			*out_val = sbi_nputs((const char *)regs->a1, regs->a0);
-+		else
-+			*out_val = sbi_ngets((char *)regs->a1, regs->a0);
-+		return 0;
-+	case SBI_EXT_DBCN_CONSOLE_WRITE_BYTE:
-+		sbi_putc(regs->a0);
-+		return 0;
-+	default:
-+		break;
+ 	spin_lock(&console_out_lock);
+-	while (*str) {
+-		sbi_putc(*str);
+-		str++;
++	if (console_dev && console_dev->console_puts) {
++		p = 0;
++		len = sbi_strlen(str);
++		while (p < len)
++			p += console_dev->console_puts(&str[p], len - p);
++	} else {
++		while (*str) {
++			sbi_putc(*str);
++			str++;
++		}
+ 	}
+ 	spin_unlock(&console_out_lock);
+ }
+ 
+ unsigned long sbi_nputs(const char *str, unsigned long len)
+ {
+-	unsigned long i;
++	unsigned long i, ret;
+ 
+ 	spin_lock(&console_out_lock);
+-	for (i = 0; i < len; i++)
+-		sbi_putc(str[i]);
++	if (console_dev && console_dev->console_puts) {
++		ret = console_dev->console_puts(str, len);
++	} else {
++		for (i = 0; i < len; i++)
++			sbi_putc(str[i]);
++		ret = len;
 +	}
-+
-+	return SBI_ENOTSUPP;
-+}
-+
-+static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
-+{
-+	*out_val = sbi_console_get_device() ? 1 : 0;
-+	return 0;
-+}
-+
-+struct sbi_ecall_extension ecall_dbcn = {
-+	.extid_start = SBI_EXT_DBCN,
-+	.extid_end = SBI_EXT_DBCN,
-+	.handle = sbi_ecall_dbcn_handler,
-+	.probe = sbi_ecall_dbcn_probe,
-+};
+ 	spin_unlock(&console_out_lock);
+ 
+-	return i;
++	return ret;
+ }
+ 
+ void sbi_gets(char *s, int maxwidth, char endchar)
 -- 
 2.34.1
 
