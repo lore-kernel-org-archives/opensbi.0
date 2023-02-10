@@ -1,108 +1,148 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 10 Feb 2023 11:16:51 +0530
-Subject: [PATCH v6 7/8] lib: utils/serial: Implement console_puts() for semihosting
+Date: Fri, 10 Feb 2023 11:16:52 +0530
+Subject: [PATCH v6 8/8] lib: sbi: Speed-up sbi_printf() and friends using nputs()
 In-Reply-To: <20230210054652.495628-1-apatel@ventanamicro.com>
 References: <20230210054652.495628-1-apatel@ventanamicro.com>
-Message-ID: <20230210054652.495628-8-apatel@ventanamicro.com>
+Message-ID: <20230210054652.495628-9-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We implement console_puts() for semihosting serial driver to speed-up
-semihosting based prints.
+The sbi_printf() is slow for semihosting because it prints one
+character at a time. To speed-up sbi_printf() for semihosting,
+we use a temporary buffer and nputs().
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Bin Meng <bmeng@tinylab.org>
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/utils/serial/semihosting.c | 37 ++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ lib/sbi/sbi_console.c | 76 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 54 insertions(+), 22 deletions(-)
 
-diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index 86fa296..ce65887 100644
---- a/lib/utils/serial/semihosting.c
-+++ b/lib/utils/serial/semihosting.c
-@@ -15,6 +15,7 @@
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index 8a5d9de..f3ac003 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -14,7 +14,11 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
  
- #define SYSOPEN     0x01
- #define SYSWRITEC   0x03
-+#define SYSWRITE    0x05
- #define SYSREAD     0x06
- #define SYSREADC    0x07
- #define SYSERRNO	0x13
-@@ -93,6 +94,7 @@ static int semihosting_errno(void)
++#define CONSOLE_TBUF_MAX 256
++
+ static const struct sbi_console_device *console_dev = NULL;
++static char console_tbuf[CONSOLE_TBUF_MAX];
++static u32 console_tbuf_len;
+ static spinlock_t console_out_lock	       = SPIN_LOCK_INITIALIZER;
+ 
+ bool sbi_isprintable(char c)
+@@ -42,37 +46,44 @@ void sbi_putc(char ch)
+ 	}
  }
  
- static int semihosting_infd = SBI_ENODEV;
-+static int semihosting_outfd = SBI_ENODEV;
- 
- static long semihosting_open(const char *fname, enum semihosting_open_mode mode)
+-void sbi_puts(const char *str)
++static unsigned long nputs(const char *str, unsigned long len)
  {
-@@ -141,6 +143,21 @@ static long semihosting_read(long fd, void *memp, size_t len)
- 	return len - ret;
- }
+-	unsigned long p, len;
++	unsigned long i, ret;
  
-+static long semihosting_write(long fd, const void *memp, size_t len)
-+{
-+	long ret;
-+	struct semihosting_rdwr_s write;
-+
-+	write.fd = fd;
-+	write.memp = (void *)memp;
-+	write.len = len;
-+
-+	ret = semihosting_trap(SYSWRITE, &write);
-+	if (ret < 0)
-+		return semihosting_errno();
-+	return len - ret;
-+}
-+
- /* clang-format on */
- 
- static void semihosting_putc(char ch)
-@@ -148,6 +165,24 @@ static void semihosting_putc(char ch)
- 	semihosting_trap(SYSWRITEC, &ch);
- }
- 
-+static unsigned long semihosting_puts(const char *str, unsigned long len)
-+{
-+	char ch;
-+	long ret;
-+	unsigned long i;
-+
-+	if (semihosting_outfd < 0) {
-+		for (i = 0; i < len; i++) {
-+			ch = str[i];
-+			semihosting_trap(SYSWRITEC, &ch);
-+		}
+-	spin_lock(&console_out_lock);
+ 	if (console_dev && console_dev->console_puts) {
+-		p = 0;
+-		len = sbi_strlen(str);
+-		while (p < len)
+-			p += console_dev->console_puts(&str[p], len - p);
++		ret = console_dev->console_puts(str, len);
+ 	} else {
+-		while (*str) {
+-			sbi_putc(*str);
+-			str++;
+-		}
++		for (i = 0; i < len; i++)
++			sbi_putc(str[i]);
 +		ret = len;
-+	} else
-+		ret = semihosting_write(semihosting_outfd, str, len);
+ 	}
 +
-+	return (ret < 0) ? 0 : ret;
++	return ret;
 +}
 +
- static int semihosting_getc(void)
- {
- 	char ch = 0;
-@@ -165,12 +200,14 @@ static int semihosting_getc(void)
- static struct sbi_console_device semihosting_console = {
- 	.name = "semihosting",
- 	.console_putc = semihosting_putc,
-+	.console_puts = semihosting_puts,
- 	.console_getc = semihosting_getc
- };
++static void nputs_all(const char *str, unsigned long len)
++{
++	unsigned long p = 0;
++
++	while (p < len)
++		p += nputs(&str[p], len - p);
++}
++
++void sbi_puts(const char *str)
++{
++	unsigned long len = sbi_strlen(str);
++
++	spin_lock(&console_out_lock);
++	nputs_all(str, len);
+ 	spin_unlock(&console_out_lock);
+ }
  
- int semihosting_init(void)
+ unsigned long sbi_nputs(const char *str, unsigned long len)
  {
- 	semihosting_infd = semihosting_open(":tt", MODE_READ);
-+	semihosting_outfd = semihosting_open(":tt", MODE_WRITE);
+-	unsigned long i, ret;
++	unsigned long ret;
  
- 	sbi_console_set_device(&semihosting_console);
+ 	spin_lock(&console_out_lock);
+-	if (console_dev && console_dev->console_puts) {
+-		ret = console_dev->console_puts(str, len);
+-	} else {
+-		for (i = 0; i < len; i++)
+-			sbi_putc(str[i]);
+-		ret = len;
+-	}
++	ret = nputs(str, len);
+ 	spin_unlock(&console_out_lock);
+ 
+ 	return ret;
+@@ -225,12 +236,30 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+ 
+ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ {
+-	int width, flags;
+-	int pc = 0;
+-	char scr[2];
++	int width, flags, pc = 0;
++	char scr[2], *tout;
++	bool use_tbuf = (!out) ? true : false;
+ 	unsigned long long tmp;
+ 
++	/*
++	 * The console_tbuf is protected by console_out_lock and
++	 * print() is always called with console_out_lock held
++	 * when out == NULL.
++	 */
++	if (use_tbuf) {
++		console_tbuf_len = CONSOLE_TBUF_MAX;
++		tout = console_tbuf;
++		out = &tout;
++		out_len = &console_tbuf_len;
++	}
++
+ 	for (; *format != 0; ++format) {
++		if (use_tbuf && !console_tbuf_len) {
++			nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
++			console_tbuf_len = CONSOLE_TBUF_MAX;
++			tout = console_tbuf;
++		}
++
+ 		if (*format == '%') {
+ 			++format;
+ 			width = flags = 0;
+@@ -356,6 +385,9 @@ literal:
+ 		}
+ 	}
+ 
++	if (use_tbuf && console_tbuf_len < CONSOLE_TBUF_MAX)
++		nputs_all(console_tbuf, CONSOLE_TBUF_MAX - console_tbuf_len);
++
+ 	return pc;
+ }
  
 -- 
 2.34.1
