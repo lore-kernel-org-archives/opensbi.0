@@ -1,74 +1,86 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 10 Feb 2023 12:41:45 +0530
-Subject: [PATCH] include: sbi: Fix BSWAPx() macros for big-endian host
-In-Reply-To: <20230209040251.451328-1-apatel@ventanamicro.com>
-References: <20230209040251.451328-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy0z0qEz9BwapO+GYdj5Q5u4iShaA1eyhkR_gfjVUoB3sA@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Fri, 10 Feb 2023 12:50:49 +0530
+Subject: [PATCH v6 0/8] OpenSBI debug console support
+In-Reply-To: <20230210054652.495628-1-apatel@ventanamicro.com>
+References: <20230210054652.495628-1-apatel@ventanamicro.com>
+Message-ID: <CAK9=C2WKqySwZJoB9kgNqenQ42AAeLkz=uGuraAa5Pif33u1TA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 9, 2023 at 9:33 AM Anup Patel <apatel@ventanamicro.com> wrote:
+On Fri, Feb 10, 2023 at 11:17 AM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> The BSWAPx() macros won't do any swapping for big-endian host
-> because the EXTRACT_BYTE() macro will pickup bytes in reverse
-> order. Also, the EXTRACT_BYTE() will generate compile error
-> for constants.
+> The latest proposal of SBI debug console extension can be found at:
+> https://lists.riscv.org/g/tech-prs/message/96
 >
-> To fix this, we get remove the EXTRACT_BYTE() macro and re-write
-> BSWAPx() using simple mask and shift operations.
+> This series implements SBI debug console support in OpenSBI
+> as-per above draft proposal.
 >
-> Fixes: 09b34d8cca51 ("include: Add support for byteorder/endianness
-> conversion")
-> Reported-by: Samuel Holland <samuel@sholland.org>
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> To test these patches corresponding Linux patches can be found in
+> riscv_sbi_dbcn_v1 branch at: https://github.com/avpatel/linux.git
+>
+> These patches can also be found in riscv_sbi_dbcn_v6 branch at:
+> https://github.com/avpatel/opensbi.git
+>
+> Changes since v5:
+>  - Rebased on latest OpenSBI sources
+>  - Updated Reviewed-by tags
+>  - Addressed Drew's comments in all patches
+>  - Updated SBI debug console implementation as-per latest proposal
+>    where console write() is non-blocking.
+>
+> Changes since v4:
+>  - Rebased on latest OpenSBI sources
+>  - Updated Reviewed-by tags
+>  - Added new PATCH8 to speed-up sbi_printf() using nputs()
+>
+> Changes since v3:
+>  - Rebased on OpenSBI v1.2 release
+>  - Updated Reviewed-by tags
+>  - Added new PATCH3 for sbi_ngets() function
+>  - Updated SBI debug console implementation in PATCH5 as-per latest
+>    proposal having both console write() and read() functions.
+>
+> Changes since v2:
+>  - Reworked sbi_domain_check_addr_range() in PATCH3 to make it work
+>    for overlapping regions.
+>
+> Changes since v1:
+>  - New PATCH3 to implement sbi_domain_check_addr_range() function
+>  - Added checks in PATCH4 for location and size of string to print
+>  - New PATCH5 to add console_puts() callback in the console device
+>  - New PATCH6 to implement console_puts() for semihosting
+>
+> Anup Patel (8):
+>   include: Add defines for SBI debug console extension
+>   lib: sbi: Add sbi_nputs() function
+>   lib: sbi: Add sbi_ngets() function
+>   lib: sbi: Add sbi_domain_check_addr_range() function
+>   lib: sbi: Implement SBI debug console extension
+>   lib: sbi: Add console_puts() callback in the console device
+>   lib: utils/serial: Implement console_puts() for semihosting
+>   lib: sbi: Speed-up sbi_printf() and friends using nputs()
 
-Applied this patch to the riscv/opensbi repo
+Applied this series to the riscv/opensbi repo.
 
 Regards,
 Anup
 
-> ---
->  include/sbi/sbi_byteorder.h | 24 ++++++++++++++----------
->  1 file changed, 14 insertions(+), 10 deletions(-)
 >
-> diff --git a/include/sbi/sbi_byteorder.h b/include/sbi/sbi_byteorder.h
-> index 680710f..15107e1 100644
-> --- a/include/sbi/sbi_byteorder.h
-> +++ b/include/sbi/sbi_byteorder.h
-> @@ -9,16 +9,20 @@
+>  include/sbi/sbi_console.h         |  7 +++
+>  include/sbi/sbi_domain.h          | 15 ++++++
+>  include/sbi/sbi_ecall_interface.h |  6 +++
+>  lib/sbi/Kconfig                   |  4 ++
+>  lib/sbi/objects.mk                |  3 ++
+>  lib/sbi/sbi_console.c             | 88 ++++++++++++++++++++++++++++---
+>  lib/sbi/sbi_domain.c              | 69 ++++++++++++++++++++++++
+>  lib/sbi/sbi_ecall_dbcn.c          | 72 +++++++++++++++++++++++++
+>  lib/utils/serial/semihosting.c    | 37 +++++++++++++
+>  9 files changed, 294 insertions(+), 7 deletions(-)
+>  create mode 100644 lib/sbi/sbi_ecall_dbcn.c
 >
->  #include <sbi/sbi_types.h>
->
-> -#define EXTRACT_BYTE(x, n)     ((unsigned long long)((uint8_t *)&x)[n])
-> -
-> -#define BSWAP16(x)     ((EXTRACT_BYTE(x, 0) << 8) | EXTRACT_BYTE(x, 1))
-> -#define BSWAP32(x)     ((EXTRACT_BYTE(x, 0) << 24) | (EXTRACT_BYTE(x, 1) << 16) | \
-> -                        (EXTRACT_BYTE(x, 2) << 8) | EXTRACT_BYTE(x, 3))
-> -#define BSWAP64(x)     ((EXTRACT_BYTE(x, 0) << 56) | (EXTRACT_BYTE(x, 1) << 48) | \
-> -                        (EXTRACT_BYTE(x, 2) << 40) | (EXTRACT_BYTE(x, 3) << 32) | \
-> -                        (EXTRACT_BYTE(x, 4) << 24) | (EXTRACT_BYTE(x, 5) << 16) | \
-> -                        (EXTRACT_BYTE(x, 6) << 8) | EXTRACT_BYTE(x, 7))
-> -
-> +#define BSWAP16(x)     ((((x) & 0x00ff) << 8) | \
-> +                        (((x) & 0xff00) >> 8))
-> +#define BSWAP32(x)     ((((x) & 0x000000ff) << 24) | \
-> +                        (((x) & 0x0000ff00) << 8) | \
-> +                        (((x) & 0x00ff0000) >> 8) | \
-> +                        (((x) & 0xff000000) >> 24))
-> +#define BSWAP64(x)     ((((x) & 0x00000000000000ffULL) << 56) | \
-> +                        (((x) & 0x000000000000ff00ULL) << 40) | \
-> +                        (((x) & 0x0000000000ff0000ULL) << 24) | \
-> +                        (((x) & 0x00000000ff000000ULL) << 8) | \
-> +                        (((x) & 0x000000ff00000000ULL) >> 8) | \
-> +                        (((x) & 0x0000ff0000000000ULL) >> 24) | \
-> +                        (((x) & 0x00ff000000000000ULL) >> 40) | \
-> +                        (((x) & 0xff00000000000000ULL) >> 56))
->
->  #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* CPU(little-endian) */
->  #define cpu_to_be16(x)         ((uint16_t)BSWAP16(x))
 > --
 > 2.34.1
 >
