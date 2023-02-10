@@ -1,150 +1,75 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 10 Feb 2023 11:16:52 +0530
-Subject: [PATCH v6 8/8] lib: sbi: Speed-up sbi_printf() and friends using nputs()
-In-Reply-To: <20230210054652.495628-1-apatel@ventanamicro.com>
-References: <20230210054652.495628-1-apatel@ventanamicro.com>
-Message-ID: <20230210054652.495628-9-apatel@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 10 Feb 2023 12:41:45 +0530
+Subject: [PATCH] include: sbi: Fix BSWAPx() macros for big-endian host
+In-Reply-To: <20230209040251.451328-1-apatel@ventanamicro.com>
+References: <20230209040251.451328-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy0z0qEz9BwapO+GYdj5Q5u4iShaA1eyhkR_gfjVUoB3sA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_printf() is slow for semihosting because it prints one
-character at a time. To speed-up sbi_printf() for semihosting,
-we use a temporary buffer and nputs().
+On Thu, Feb 9, 2023 at 9:33 AM Anup Patel <apatel@ventanamicro.com> wrote:
+>
+> The BSWAPx() macros won't do any swapping for big-endian host
+> because the EXTRACT_BYTE() macro will pickup bytes in reverse
+> order. Also, the EXTRACT_BYTE() will generate compile error
+> for constants.
+>
+> To fix this, we get remove the EXTRACT_BYTE() macro and re-write
+> BSWAPx() using simple mask and shift operations.
+>
+> Fixes: 09b34d8cca51 ("include: Add support for byteorder/endianness
+> conversion")
+> Reported-by: Samuel Holland <samuel@sholland.org>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
----
- lib/sbi/sbi_console.c | 76 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 54 insertions(+), 22 deletions(-)
+Applied this patch to the riscv/opensbi repo
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 8a5d9de..f3ac003 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -14,7 +14,11 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- 
-+#define CONSOLE_TBUF_MAX 256
-+
- static const struct sbi_console_device *console_dev = NULL;
-+static char console_tbuf[CONSOLE_TBUF_MAX];
-+static u32 console_tbuf_len;
- static spinlock_t console_out_lock	       = SPIN_LOCK_INITIALIZER;
- 
- bool sbi_isprintable(char c)
-@@ -42,37 +46,44 @@ void sbi_putc(char ch)
- 	}
- }
- 
--void sbi_puts(const char *str)
-+static unsigned long nputs(const char *str, unsigned long len)
- {
--	unsigned long p, len;
-+	unsigned long i, ret;
- 
--	spin_lock(&console_out_lock);
- 	if (console_dev && console_dev->console_puts) {
--		p = 0;
--		len = sbi_strlen(str);
--		while (p < len)
--			p += console_dev->console_puts(&str[p], len - p);
-+		ret = console_dev->console_puts(str, len);
- 	} else {
--		while (*str) {
--			sbi_putc(*str);
--			str++;
--		}
-+		for (i = 0; i < len; i++)
-+			sbi_putc(str[i]);
-+		ret = len;
- 	}
-+
-+	return ret;
-+}
-+
-+static void nputs_all(const char *str, unsigned long len)
-+{
-+	unsigned long p = 0;
-+
-+	while (p < len)
-+		p += nputs(&str[p], len - p);
-+}
-+
-+void sbi_puts(const char *str)
-+{
-+	unsigned long len = sbi_strlen(str);
-+
-+	spin_lock(&console_out_lock);
-+	nputs_all(str, len);
- 	spin_unlock(&console_out_lock);
- }
- 
- unsigned long sbi_nputs(const char *str, unsigned long len)
- {
--	unsigned long i, ret;
-+	unsigned long ret;
- 
- 	spin_lock(&console_out_lock);
--	if (console_dev && console_dev->console_puts) {
--		ret = console_dev->console_puts(str, len);
--	} else {
--		for (i = 0; i < len; i++)
--			sbi_putc(str[i]);
--		ret = len;
--	}
-+	ret = nputs(str, len);
- 	spin_unlock(&console_out_lock);
- 
- 	return ret;
-@@ -225,12 +236,30 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
- 
- static int print(char **out, u32 *out_len, const char *format, va_list args)
- {
--	int width, flags;
--	int pc = 0;
--	char scr[2];
-+	int width, flags, pc = 0;
-+	char scr[2], *tout;
-+	bool use_tbuf = (!out) ? true : false;
- 	unsigned long long tmp;
- 
-+	/*
-+	 * The console_tbuf is protected by console_out_lock and
-+	 * print() is always called with console_out_lock held
-+	 * when out == NULL.
-+	 */
-+	if (use_tbuf) {
-+		console_tbuf_len = CONSOLE_TBUF_MAX;
-+		tout = console_tbuf;
-+		out = &tout;
-+		out_len = &console_tbuf_len;
-+	}
-+
- 	for (; *format != 0; ++format) {
-+		if (use_tbuf && !console_tbuf_len) {
-+			nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
-+			console_tbuf_len = CONSOLE_TBUF_MAX;
-+			tout = console_tbuf;
-+		}
-+
- 		if (*format == '%') {
- 			++format;
- 			width = flags = 0;
-@@ -356,6 +385,9 @@ literal:
- 		}
- 	}
- 
-+	if (use_tbuf && console_tbuf_len < CONSOLE_TBUF_MAX)
-+		nputs_all(console_tbuf, CONSOLE_TBUF_MAX - console_tbuf_len);
-+
- 	return pc;
- }
- 
--- 
-2.34.1
+Regards,
+Anup
 
+> ---
+>  include/sbi/sbi_byteorder.h | 24 ++++++++++++++----------
+>  1 file changed, 14 insertions(+), 10 deletions(-)
+>
+> diff --git a/include/sbi/sbi_byteorder.h b/include/sbi/sbi_byteorder.h
+> index 680710f..15107e1 100644
+> --- a/include/sbi/sbi_byteorder.h
+> +++ b/include/sbi/sbi_byteorder.h
+> @@ -9,16 +9,20 @@
+>
+>  #include <sbi/sbi_types.h>
+>
+> -#define EXTRACT_BYTE(x, n)     ((unsigned long long)((uint8_t *)&x)[n])
+> -
+> -#define BSWAP16(x)     ((EXTRACT_BYTE(x, 0) << 8) | EXTRACT_BYTE(x, 1))
+> -#define BSWAP32(x)     ((EXTRACT_BYTE(x, 0) << 24) | (EXTRACT_BYTE(x, 1) << 16) | \
+> -                        (EXTRACT_BYTE(x, 2) << 8) | EXTRACT_BYTE(x, 3))
+> -#define BSWAP64(x)     ((EXTRACT_BYTE(x, 0) << 56) | (EXTRACT_BYTE(x, 1) << 48) | \
+> -                        (EXTRACT_BYTE(x, 2) << 40) | (EXTRACT_BYTE(x, 3) << 32) | \
+> -                        (EXTRACT_BYTE(x, 4) << 24) | (EXTRACT_BYTE(x, 5) << 16) | \
+> -                        (EXTRACT_BYTE(x, 6) << 8) | EXTRACT_BYTE(x, 7))
+> -
+> +#define BSWAP16(x)     ((((x) & 0x00ff) << 8) | \
+> +                        (((x) & 0xff00) >> 8))
+> +#define BSWAP32(x)     ((((x) & 0x000000ff) << 24) | \
+> +                        (((x) & 0x0000ff00) << 8) | \
+> +                        (((x) & 0x00ff0000) >> 8) | \
+> +                        (((x) & 0xff000000) >> 24))
+> +#define BSWAP64(x)     ((((x) & 0x00000000000000ffULL) << 56) | \
+> +                        (((x) & 0x000000000000ff00ULL) << 40) | \
+> +                        (((x) & 0x0000000000ff0000ULL) << 24) | \
+> +                        (((x) & 0x00000000ff000000ULL) << 8) | \
+> +                        (((x) & 0x000000ff00000000ULL) >> 8) | \
+> +                        (((x) & 0x0000ff0000000000ULL) >> 24) | \
+> +                        (((x) & 0x00ff000000000000ULL) >> 40) | \
+> +                        (((x) & 0xff00000000000000ULL) >> 56))
+>
+>  #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* CPU(little-endian) */
+>  #define cpu_to_be16(x)         ((uint16_t)BSWAP16(x))
+> --
+> 2.34.1
+>
 
