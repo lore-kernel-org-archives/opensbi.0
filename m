@@ -1,17 +1,17 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 10 Feb 2023 09:53:40 +0530
+Date: Fri, 10 Feb 2023 09:55:06 +0530
 Subject: [PATCH v5 5/8] lib: sbi: Implement SBI debug console extension
-In-Reply-To: <20230201085815.77wcmkw76l2in5qc@orel>
+In-Reply-To: <20230201093558.ty5emxqvl5vrdfg3@orel>
 References: <20230113114110.1916226-1-apatel@ventanamicro.com>
- <20230113114110.1916226-6-apatel@ventanamicro.com> <20230201085815.77wcmkw76l2in5qc@orel>
-Message-ID: <CAAhSdy0HC23UTSFV6_hep7+QMsp2sHOG-QhQLwGzFBvD1ivgkg@mail.gmail.com>
+ <20230113114110.1916226-6-apatel@ventanamicro.com> <20230201093558.ty5emxqvl5vrdfg3@orel>
+Message-ID: <CAAhSdy3uL_O+BCqvA-A3W72UVziHVJMBU=xqAj_zNqyxd5diHA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 1, 2023 at 2:28 PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Wed, Feb 1, 2023 at 3:06 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
 > On Fri, Jan 13, 2023 at 05:11:07PM +0530, Anup Patel wrote:
 > > We implement SBI debug console extension as one of the replacement
@@ -104,30 +104,28 @@ On Wed, Feb 1, 2023 at 2:28 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 > > +#if __riscv_xlen == 32
 > > +             if (regs->a2)
 > > +                     return SBI_ERR_FAILED;
->
-> The spec drafts says SBI_ERR_FAILED is only for I/O errors. I think
-> we should extend the spec draft to point this situation out and return
-> SBI_ERR_INVALID_ADDRESS.
-
-This is a limitation for OpenSBI RV32 because to support a 34bit
-physical address for RV32, we will need special infrastructure
-using a temporary page table. Due to this reason, twe reat this
-limitation as I/O error on OpenSBI RV32 side.
-
->
 > > +#endif
 > > +             if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
 > > +                                     regs->a1, regs->a0, smode,
 > > +                                     SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
 > > +                     return SBI_EINVALID_ADDR;
->
-> The spec draft says this should be SBI_ERR_INVALID_PARAM
-
-Okay, I will update.
-
->
 > > +             if (funcid == SBI_EXT_DBCN_CONSOLE_WRITE)
 > > +                     sbi_nputs((const char *)regs->a1, regs->a0);
+>
+> The spec draft says we return the number of bytes written, so we need
+> sbi_nputs to return that. If we never intend to support partial writes,
+> then I guess we at least need '*out_val = regs->a0'.
+
+I had already updated the implementation based on the latest draft so
+this is already taken care in v6.
+
+Regards,
+Anup
+
+>
+> Thanks,
+> drew
+>
 > > +             else
 > > +                     *out_val = sbi_ngets((char *)regs->a1, regs->a0);
 > > +             return 0;
@@ -144,12 +142,6 @@ Okay, I will update.
 > > +static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
 > > +{
 > > +     *out_val = (sbi_console_get_device()) ? 1 : 0;
->
-> nit: Unnecessary ()
-
-Okay, I will update.
-
->
 > > +     return 0;
 > > +}
 > > +
@@ -163,10 +155,8 @@ Okay, I will update.
 > > 2.34.1
 > >
 > >
->
-> Thanks,
-> drew
-
-Regards,
-Anup
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
