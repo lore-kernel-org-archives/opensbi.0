@@ -1,204 +1,144 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 10 Feb 2023 10:59:28 +0530
-Subject: [PATCH v5 5/8] lib: sbi: Implement SBI debug console extension
-In-Reply-To: <205F9423-3BD2-4510-854E-6FDE749BE7AB@jrtc27.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 10 Feb 2023 11:11:19 +0530
+Subject: [PATCH v5 8/8] lib: sbi: Speed-up sbi_printf() and friends using nputs()
+In-Reply-To: <20230201092235.vessrt2t7jdc5hfl@orel>
 References: <20230113114110.1916226-1-apatel@ventanamicro.com>
- <20230113114110.1916226-6-apatel@ventanamicro.com> <20230201085815.77wcmkw76l2in5qc@orel>
- <CAAhSdy0HC23UTSFV6_hep7+QMsp2sHOG-QhQLwGzFBvD1ivgkg@mail.gmail.com> <205F9423-3BD2-4510-854E-6FDE749BE7AB@jrtc27.com>
-Message-ID: <CAK9=C2X+PdZuwarbQ9GD8OrasbAZfq7aRRWQ5U3Jw8M_cymsFQ@mail.gmail.com>
+ <20230113114110.1916226-9-apatel@ventanamicro.com> <20230201092235.vessrt2t7jdc5hfl@orel>
+Message-ID: <CAAhSdy20PLMEoOvbFeRvas00NyGANQNhk93eU4TVTOieE_fH5w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 10, 2023 at 10:50 AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Wed, Feb 1, 2023 at 2:52 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> On 10 Feb 2023, at 04:23, Anup Patel <anup@brainfault.org> wrote:
+> On Fri, Jan 13, 2023 at 05:11:10PM +0530, Anup Patel wrote:
+> > The sbi_printf() is slow for semihosting because it prints one
+> > character at a time. To speed-up sbi_printf() for semihosting,
+> > we use a temporary buffer and nputs().
 > >
-> > On Wed, Feb 1, 2023 at 2:28 PM Andrew Jones <ajones@ventanamicro.com> wrote:
-> >>
-> >> On Fri, Jan 13, 2023 at 05:11:07PM +0530, Anup Patel wrote:
-> >>> We implement SBI debug console extension as one of the replacement
-> >>> SBI extensions. This extension is only available when OpenSBI platform
-> >>> provides a console device to generic library.
-> >>>
-> >>> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> >>> Reviewed-by: Atish Patra <atishp@rivosinc.com>
-> >>> Reviewed-by: Xiang W <wxjstz@126.com>
-> >>> Reviewed-by: Bin Meng <bmeng@tinylab.org>
-> >>> ---
-> >>> lib/sbi/Kconfig          |  4 +++
-> >>> lib/sbi/objects.mk       |  3 ++
-> >>> lib/sbi/sbi_ecall_dbcn.c | 72 ++++++++++++++++++++++++++++++++++++++++
-> >>> 3 files changed, 79 insertions(+)
-> >>> create mode 100644 lib/sbi/sbi_ecall_dbcn.c
-> >>>
-> >>> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-> >>> index df74bba..ef6728b 100644
-> >>> --- a/lib/sbi/Kconfig
-> >>> +++ b/lib/sbi/Kconfig
-> >>> @@ -26,6 +26,10 @@ config SBI_ECALL_PMU
-> >>>      bool "Performance Monitoring Unit extension"
-> >>>      default y
-> >>>
-> >>> +config SBI_ECALL_DBCN
-> >>> +     bool "Debug Console extension"
-> >>> +     default y
-> >>> +
-> >>> config SBI_ECALL_LEGACY
-> >>>      bool "SBI v0.1 legacy extensions"
-> >>>      default y
-> >>> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> >>> index c774ebb..319f38d 100644
-> >>> --- a/lib/sbi/objects.mk
-> >>> +++ b/lib/sbi/objects.mk
-> >>> @@ -37,6 +37,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SRST) += sbi_ecall_srst.o
-> >>> carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_PMU) += ecall_pmu
-> >>> libsbi-objs-$(CONFIG_SBI_ECALL_PMU) += sbi_ecall_pmu.o
-> >>>
-> >>> +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
-> >>> +libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
-> >>> +
-> >>> carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
-> >>> libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
-> >>>
-> >>> diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-> >>> new file mode 100644
-> >>> index 0000000..bfa40e9
-> >>> --- /dev/null
-> >>> +++ b/lib/sbi/sbi_ecall_dbcn.c
-> >>> @@ -0,0 +1,72 @@
-> >>> +/*
-> >>> + * SPDX-License-Identifier: BSD-2-Clause
-> >>> + *
-> >>> + * Copyright (c) 2022 Ventana Micro Systems Inc.
-> >>> + *
-> >>> + * Authors:
-> >>> + *   Anup Patel <apatel@ventanamicro.com>
-> >>> + */
-> >>> +
-> >>> +#include <sbi/sbi_console.h>
-> >>> +#include <sbi/sbi_domain.h>
-> >>> +#include <sbi/sbi_error.h>
-> >>> +#include <sbi/sbi_ecall.h>
-> >>> +#include <sbi/sbi_ecall_interface.h>
-> >>> +#include <sbi/sbi_trap.h>
-> >>> +#include <sbi/riscv_asm.h>
-> >>> +
-> >>> +static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
-> >>> +                               const struct sbi_trap_regs *regs,
-> >>> +                               unsigned long *out_val,
-> >>> +                               struct sbi_trap_info *out_trap)
-> >>> +{
-> >>> +     ulong smode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >>
-> >>> +                     MSTATUS_MPP_SHIFT;
-> >>> +
-> >>> +     switch (funcid) {
-> >>> +     case SBI_EXT_DBCN_CONSOLE_WRITE:
-> >>> +     case SBI_EXT_DBCN_CONSOLE_READ:
-> >>> +             /*
-> >>> +              * On RV32, the M-mode can only access the first 4GB of
-> >>> +              * the physical address space because M-mode does not have
-> >>> +              * MMU to access full 34-bit physical address space.
-> >>> +              *
-> >>> +              * Based on above, we simply fail if the upper 32bits of
-> >>> +              * the physical address (i.e. a2 register) is non-zero on
-> >>> +              * RV32.
-> >>> +              */
-> >>> +#if __riscv_xlen == 32
-> >>> +             if (regs->a2)
-> >>> +                     return SBI_ERR_FAILED;
-> >>
-> >> The spec drafts says SBI_ERR_FAILED is only for I/O errors. I think
-> >> we should extend the spec draft to point this situation out and return
-> >> SBI_ERR_INVALID_ADDRESS.
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  lib/sbi/sbi_console.c | 52 ++++++++++++++++++++++++++++---------------
+> >  1 file changed, 34 insertions(+), 18 deletions(-)
 > >
-> > This is a limitation for OpenSBI RV32 because to support a 34bit
-> > physical address for RV32, we will need special infrastructure
-> > using a temporary page table. Due to this reason, twe reat this
-> > limitation as I/O error on OpenSBI RV32 side.
+> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> > index c1b9f73..41881d7 100644
+> > --- a/lib/sbi/sbi_console.c
+> > +++ b/lib/sbi/sbi_console.c
+> > @@ -42,31 +42,29 @@ void sbi_putc(char ch)
+> >       }
+> >  }
+> >
+> > -void sbi_puts(const char *str)
+> > +static void nputs(const char *str, unsigned long len)
+> >  {
+> > -     spin_lock(&console_out_lock);
+> > +     unsigned long i;
+> > +
+> >       if (console_dev && console_dev->console_puts) {
+> > -             console_dev->console_puts(str, sbi_strlen(str));
+> > +             console_dev->console_puts(str, len);
+> >       } else {
+> > -             while (*str) {
+> > -                     sbi_putc(*str);
+> > -                     str++;
+> > -             }
+> > +             for (i = 0; i < len; i++)
+> > +                     sbi_putc(str[i]);
+> >       }
+> > +}
+> > +
+> > +void sbi_puts(const char *str)
+> > +{
+> > +     spin_lock(&console_out_lock);
+> > +     nputs(str, sbi_strlen(str));
+> >       spin_unlock(&console_out_lock);
+> >  }
+> >
+> >  void sbi_nputs(const char *str, unsigned long len)
+> >  {
+> > -     unsigned long i;
+> > -
+> >       spin_lock(&console_out_lock);
+> > -     if (console_dev && console_dev->console_puts) {
+> > -             console_dev->console_puts(str, len);
+> > -     } else {
+> > -             for (i = 0; i < len; i++)
+> > -                     sbi_putc(str[i]);
+> > -     }
+> > +     nputs(str, len);
+> >       spin_unlock(&console_out_lock);
+> >  }
+> >
+> > @@ -102,6 +100,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
+> >  #define PAD_ZERO 2
+> >  #define PAD_ALTERNATE 4
+> >  #define PRINT_BUF_LEN 64
+> > +#define PRINT_TBUF_MAX 128
+> >
+> >  #define va_start(v, l) __builtin_va_start((v), l)
+> >  #define va_end __builtin_va_end
+> > @@ -217,12 +216,26 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+> >
+> >  static int print(char **out, u32 *out_len, const char *format, va_list args)
+> >  {
+> > -     int width, flags;
+> > -     int pc = 0;
+> > -     char scr[2];
+> > +     u32 tbuf_len;
+> > +     int width, flags, pc = 0;
+> > +     char scr[2], *tout, tbuf[PRINT_TBUF_MAX];
+> > +     bool use_tbuf = (!out) ? true : false;
 >
-> Were the interface to take a virtual address (or, really, pointer) this
-> would not be an issue as the supervisor would already have handled the
-> mapping for you. Which is what I?ve kept advocating for.
+> print() is only called with a non-null 'out' parameter or under
+> console_out_lock, so we can use global variable for the buffer
+> to avoid putting it on the stack, and it can be larger.
 
-There are two major issues in passing virtual address:
-1) The virtual address could point to anything so SBI implementation
-    (Both M-mode firmware and hypervisors) have to translate the
-    virtual address into physical address and then check sanity of
-    the virtual address. This will involve doing software page table walks
-    which are very expensive.
-2) SBI implementation will have to use unpriv load/stores for accessing
-   data pointed by virtual address which can potentially trap if the page
-   table mapping is changed by OS while the SBI implementation was
-   accessing it.
+Okay, I will update.
+
+>
+> >       unsigned long long tmp;
+> >
+> > +     if (use_tbuf) {
+> > +             tbuf_len = PRINT_TBUF_MAX;
+> > +             tout = tbuf;
+> > +             out = &tout;
+> > +             out_len = &tbuf_len;
+> > +     }
+> > +
+> >       for (; *format != 0; ++format) {
+> > +             if (use_tbuf && !tbuf_len) {
+> > +                     nputs(tbuf, PRINT_TBUF_MAX);
+> > +                     tbuf_len = PRINT_TBUF_MAX;
+> > +                     tout = tbuf;
+> > +             }
+> > +
+> >               if (*format == '%') {
+> >                       ++format;
+> >                       width = flags = 0;
+> > @@ -348,6 +361,9 @@ literal:
+> >               }
+> >       }
+> >
+> > +     if (use_tbuf && tbuf_len < PRINT_TBUF_MAX)
+> > +             nputs(tbuf, PRINT_TBUF_MAX - tbuf_len);
+> > +
+> >       return pc;
+> >  }
+> >
+> > --
+> > 2.34.1
+> >
+>
+> Otherwise,
+>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+>
+> Thanks,
+> drew
 
 Regards,
 Anup
-
->
-> Jess
->
-> >>
-> >>> +#endif
-> >>> +             if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
-> >>> +                                     regs->a1, regs->a0, smode,
-> >>> +                                     SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
-> >>> +                     return SBI_EINVALID_ADDR;
-> >>
-> >> The spec draft says this should be SBI_ERR_INVALID_PARAM
-> >
-> > Okay, I will update.
-> >
-> >>
-> >>> +             if (funcid == SBI_EXT_DBCN_CONSOLE_WRITE)
-> >>> +                     sbi_nputs((const char *)regs->a1, regs->a0);
-> >>> +             else
-> >>> +                     *out_val = sbi_ngets((char *)regs->a1, regs->a0);
-> >>> +             return 0;
-> >>> +     case SBI_EXT_DBCN_CONSOLE_WRITE_BYTE:
-> >>> +             sbi_putc(regs->a0);
-> >>> +             return 0;
-> >>> +     default:
-> >>> +             break;
-> >>> +     }
-> >>> +
-> >>> +     return SBI_ENOTSUPP;
-> >>> +}
-> >>> +
-> >>> +static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
-> >>> +{
-> >>> +     *out_val = (sbi_console_get_device()) ? 1 : 0;
-> >>
-> >> nit: Unnecessary ()
-> >
-> > Okay, I will update.
-> >
-> >>
-> >>> +     return 0;
-> >>> +}
-> >>> +
-> >>> +struct sbi_ecall_extension ecall_dbcn = {
-> >>> +     .extid_start = SBI_EXT_DBCN,
-> >>> +     .extid_end = SBI_EXT_DBCN,
-> >>> +     .handle = sbi_ecall_dbcn_handler,
-> >>> +     .probe = sbi_ecall_dbcn_probe,
-> >>> +};
-> >>> --
-> >>> 2.34.1
-> >>>
-> >>>
-> >>
-> >> Thanks,
-> >> drew
-> >
-> > Regards,
-> > Anup
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
->
 
