@@ -1,111 +1,141 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 13 Feb 2023 10:48:05 +0530
-Subject: [PATCH 2/2] include: sbi: Remove extid parameter from vendor_ext_provider() callback
-In-Reply-To: <20230213051805.603113-1-apatel@ventanamicro.com>
-References: <20230213051805.603113-1-apatel@ventanamicro.com>
-Message-ID: <20230213051805.603113-2-apatel@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 13 Feb 2023 14:52:16 +0800
+Subject: [PATCH v2] lib: sbi: fix missing '\r' for console
+In-Reply-To: <CAAhSdy3SvbA=XSaoGrSAriN3Qk0LeEkkBafzeAbBHHJnAR3vEA@mail.gmail.com>
+References: <20230213020821.109087-1-wxjstz@126.com>
+	 <CAAhSdy3SvbA=XSaoGrSAriN3Qk0LeEkkBafzeAbBHHJnAR3vEA@mail.gmail.com>
+Message-ID: <cc00eb448d4d27e9a4d8e1b3a0aabbd7935aa941.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The extid parameter of vendor_ext_provider() is redundant so let us
-remove it.
+? 2023-02-13???? 09:25 +0530?Anup Patel???
+> On Mon, Feb 13, 2023 at 8:09 AM Xiang W <wxjstz@126.com> wrote:
+> > 
+> > print is finally implemented by sbi_putc or console_dev->puts. sbi_putc
+> > will add a \r before the output \n. This patch adds missing \r when
+> > outputting characters via console_dev->puts.
+> > 
+> > Signed-off-by: Xiang W <wxjstz@126.com>
+> > 
+> > Changes since v2:
+> > - Fix the bug reported by Samuel. Prevent p from accessing memory other
+> > ? than strings.
+> > ---
+> > ?lib/sbi/sbi_console.c | 46 +++++++++++++++++++++++++++++--------------
+> > ?1 file changed, 31 insertions(+), 15 deletions(-)
+> > 
+> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> > index f3ac003..f8560c9 100644
+> > --- a/lib/sbi/sbi_console.c
+> > +++ b/lib/sbi/sbi_console.c
+> > @@ -46,27 +46,43 @@ void sbi_putc(char ch)
+> > ??????? }
+> > ?}
+> > 
+> > +static unsigned long console_puts_all(const char *str, unsigned long len)
+> > +{
+> > +?????? const char *s = str;
+> > +?????? const char *e = s + len;
+> > +?????? while (s < e)
+> > +?????????????? s += console_dev->console_puts(s, e - s);
+> > +?????? return len;
+> > +}
+> > +
+> > +static unsigned long console_puts(const char *str, unsigned long len)
+> > +{
+> > +?????? const char *s, *p, *e;
+> > +?????? s = str;
+> > +?????? e = str + len;
+> > +?????? while (s < e) {
+> > +?????????????? p = sbi_strchr(s, '\n');
+> > +?????????????? p = p ? p : e;
+> > +?????????????? console_puts_all(s, p - s);
+> > +?????????????? if (p < e && *p == '\n')
+> > +?????????????????????? console_puts_all("\r\n", 2);
+> > +?????????????? s = p + 1;
+> > +?????? }
+> > +?????? return len;
+> > +}
+> > +
+> > ?static unsigned long nputs(const char *str, unsigned long len)
+> > ?{
+> > -?????? unsigned long i, ret;
+> > +?????? unsigned long i;
+> > 
+> > ??????? if (console_dev && console_dev->console_puts) {
+> > -?????????????? ret = console_dev->console_puts(str, len);
+> > +?????????????? console_puts(str, len);
+> > ??????? } else {
+> > ??????????????? for (i = 0; i < len; i++)
+> > ??????????????????????? sbi_putc(str[i]);
+> > -?????????????? ret = len;
+> > ??????? }
+> > 
+> > -?????? return ret;
+> > -}
+> > -
+> > -static void nputs_all(const char *str, unsigned long len)
+> > -{
+> > -?????? unsigned long p = 0;
+> > -
+> > -?????? while (p < len)
+> > -?????????????? p += nputs(&str[p], len - p);
+> > +?????? return len;
+> 
+> This patch is already broken because it changes the semantics
+> of nputs() and nputs_all(). The nputs() is supposed is allowed
+> to do partial writes whereas nputs_all() only returns after printing
+> all characters.
+> 
+> Regards,
+> Anup
+When the platform does not implement console_dev->console_puts, nputs and
+nputs_all are effectively the same. Also, I don't quite understand the
+circumstances under which partial writes are needed. Will there be a
+performance advantage for multiple sbi calls to complete the printing?
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- include/sbi/sbi_platform.h                   | 9 ++++-----
- lib/sbi/sbi_ecall_vendor.c                   | 2 +-
- platform/generic/include/platform_override.h | 2 +-
- platform/generic/platform.c                  | 4 ++--
- 4 files changed, 8 insertions(+), 9 deletions(-)
-
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 3a629a6..546c0a6 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -129,7 +129,7 @@ struct sbi_platform_operations {
- 	/** Check if SBI vendor extension is implemented or not */
- 	bool (*vendor_ext_check)(void);
- 	/** platform specific SBI extension implementation provider */
--	int (*vendor_ext_provider)(long extid, long funcid,
-+	int (*vendor_ext_provider)(long funcid,
- 				   const struct sbi_trap_regs *regs,
- 				   unsigned long *out_value,
- 				   struct sbi_trap_info *out_trap);
-@@ -655,7 +655,6 @@ static inline bool sbi_platform_vendor_ext_check(
-  * Invoke platform specific vendor SBI extension implementation.
-  *
-  * @param plat pointer to struct sbi_platform
-- * @param extid	vendor SBI extension id
-  * @param funcid SBI function id within the extension id
-  * @param regs pointer to trap registers passed by the caller
-  * @param out_value output value that can be filled by the callee
-@@ -665,14 +664,14 @@ static inline bool sbi_platform_vendor_ext_check(
-  */
- static inline int sbi_platform_vendor_ext_provider(
- 					const struct sbi_platform *plat,
--					long extid, long funcid,
-+					long funcid,
- 					const struct sbi_trap_regs *regs,
- 					unsigned long *out_value,
- 					struct sbi_trap_info *out_trap)
- {
- 	if (plat && sbi_platform_ops(plat)->vendor_ext_provider) {
--		return sbi_platform_ops(plat)->vendor_ext_provider(extid,
--								funcid, regs,
-+		return sbi_platform_ops(plat)->vendor_ext_provider(funcid,
-+								regs,
- 								out_value,
- 								out_trap);
- 	}
-diff --git a/lib/sbi/sbi_ecall_vendor.c b/lib/sbi/sbi_ecall_vendor.c
-index 9ea5156..8b8dab0 100644
---- a/lib/sbi/sbi_ecall_vendor.c
-+++ b/lib/sbi/sbi_ecall_vendor.c
-@@ -43,7 +43,7 @@ static int sbi_ecall_vendor_handler(unsigned long extid, unsigned long funcid,
- 		return SBI_ERR_NOT_SUPPORTED;
- 
- 	return sbi_platform_vendor_ext_provider(sbi_platform_thishart_ptr(),
--						extid, funcid, regs,
-+						funcid, regs,
- 						out_val, out_trap);
- }
- 
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 350c381..0d9e5ee 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -27,7 +27,7 @@ struct platform_override {
- 	int (*extensions_init)(const struct fdt_match *match,
- 			       struct sbi_hart_features *hfeatures);
- 	void (*fw_init)(void *fdt, const struct fdt_match *match);
--	int (*vendor_ext_provider)(long extid, long funcid,
-+	int (*vendor_ext_provider)(long funcid,
- 				   const struct sbi_trap_regs *regs,
- 				   unsigned long *out_value,
- 				   struct sbi_trap_info *out_trap,
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 88c3ec7..0b90fd7 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -186,12 +186,12 @@ static bool generic_vendor_ext_check(void)
- 		true : false;
- }
- 
--static int generic_vendor_ext_provider(long extid, long funcid,
-+static int generic_vendor_ext_provider(long funcid,
- 				       const struct sbi_trap_regs *regs,
- 				       unsigned long *out_value,
- 				       struct sbi_trap_info *out_trap)
- {
--	return generic_plat->vendor_ext_provider(extid, funcid, regs,
-+	return generic_plat->vendor_ext_provider(funcid, regs,
- 						 out_value, out_trap,
- 						 generic_plat_match);
- }
--- 
-2.34.1
-
+Regards,
+Xiang W
+> 
+> > ?}
+> > 
+> > ?void sbi_puts(const char *str)
+> > @@ -74,7 +90,7 @@ void sbi_puts(const char *str)
+> > ??????? unsigned long len = sbi_strlen(str);
+> > 
+> > ??????? spin_lock(&console_out_lock);
+> > -?????? nputs_all(str, len);
+> > +?????? nputs(str, len);
+> > ??????? spin_unlock(&console_out_lock);
+> > ?}
+> > 
+> > @@ -255,7 +271,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+> > 
+> > ??????? for (; *format != 0; ++format) {
+> > ??????????????? if (use_tbuf && !console_tbuf_len) {
+> > -?????????????????????? nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
+> > +?????????????????????? nputs(console_tbuf, CONSOLE_TBUF_MAX);
+> > ??????????????????????? console_tbuf_len = CONSOLE_TBUF_MAX;
+> > ??????????????????????? tout = console_tbuf;
+> > ??????????????? }
+> > @@ -386,7 +402,7 @@ literal:
+> > ??????? }
+> > 
+> > ??????? if (use_tbuf && console_tbuf_len < CONSOLE_TBUF_MAX)
+> > -?????????????? nputs_all(console_tbuf, CONSOLE_TBUF_MAX - console_tbuf_len);
+> > +?????????????? nputs(console_tbuf, CONSOLE_TBUF_MAX - console_tbuf_len);
+> > 
+> > ??????? return pc;
+> > ?}
+> > --
+> > 2.39.1
+> > 
+> > 
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
