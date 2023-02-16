@@ -1,43 +1,187 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 16 Feb 2023 09:57:32 +0800
-Subject: [PATCH] docs: fix typo in fw.md
-In-Reply-To: <TY3P286MB2611F8A2445A0A2ADE1A843498A39@TY3P286MB2611.JPNP286.PROD.OUTLOOK.COM>
-References: <TY3P286MB2611F8A2445A0A2ADE1A843498A39@TY3P286MB2611.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <8f0529d446e278a0276c78635cbb5888220f90aa.camel@126.com>
+From: minda.chen <minda.chen@starfivetech.com>
+Date: Thu, 16 Feb 2023 17:21:26 +0800
+Subject: [PATCH] gpio/starfive: add gpio driver and support gpio reset
+Message-ID: <20230216092126.99022-1-minda.chen@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-02-16???? 02:26 +0800?Shengyu Qu???
-> In docs/firmware/fw.md, there's a configuration parameter called
-> FW_TEXT_ADDR, which actually should be FW_TEXT_START, so fix it.
-> 
-> Signed-off-by: Shengyu Qu <wiagn233@outlook.com>
-LGTM
+Add gpio driver and gpio reset function in Starfive
+JH7110 SOC platform.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?docs/firmware/fw.md | 2 +-
-> ?1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
-> index 18faaa9..38351c8 100644
-> --- a/docs/firmware/fw.md
-> +++ b/docs/firmware/fw.md
-> @@ -61,7 +61,7 @@ Firmware Configuration and Compilation
-> ?All firmware types support the following common compile time configuration
-> ?parameters:
-> ?
-> -* **FW_TEXT_ADDR** - Defines the execution address of the OpenSBI firmware.
-> +* **FW_TEXT_START** - Defines the execution address of the OpenSBI firmware.
-> ?? This configuration parameter is mandatory.
-> ?* **FW_FDT_PATH** - Path to an external flattened device tree binary file to
-> ?? be embedded in the *.rodata* section of the final firmware. If this option
-> -- 
-> 2.25.1
-> 
-> 
+Signed-off-by: minda.chen <minda.chen@starfivetech.com>
+---
+ lib/utils/gpio/Kconfig             |   3 +
+ lib/utils/gpio/fdt_gpio_starfive.c | 117 +++++++++++++++++++++++++++++
+ lib/utils/gpio/objects.mk          |   3 +
+ platform/generic/configs/defconfig |   1 +
+ 4 files changed, 124 insertions(+)
+ create mode 100644 lib/utils/gpio/fdt_gpio_starfive.c
+
+diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
+index 38a9d75..1b338a6 100644
+--- a/lib/utils/gpio/Kconfig
++++ b/lib/utils/gpio/Kconfig
+@@ -14,6 +14,9 @@ config FDT_GPIO_SIFIVE
+ 	bool "SiFive GPIO FDT driver"
+ 	default n
+ 
++config FDT_GPIO_STARFIVE
++	bool "StarFive GPIO FDT driver"
++	default n
+ endif
+ 
+ config GPIO
+diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
+new file mode 100644
+index 0000000..18cca72
+--- /dev/null
++++ b/lib/utils/gpio/fdt_gpio_starfive.c
+@@ -0,0 +1,117 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2022 Starfive
++ *
++ * Authors:
++ *   Minda.chen <Minda.chen@starfivetech.com>
++ */
++
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_console.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/gpio/fdt_gpio.h>
++
++#define STARFIVE_GPIO_CHIP_MAX		2
++#define STARFIVE_GPIO_PINS_DEF		64
++#define STARFIVE_GPIO_OUTVAL		0x40
++#define STARFIVE_GPIO_MASK		0xff
++#define STARFIVE_GPIO_REG_SHIFT_MASK	0x3
++#define STARFIVE_GPIO_SHIFT_BITS	0x3
++
++struct starfive_gpio_chip {
++	unsigned long addr;
++	struct gpio_chip chip;
++};
++
++static unsigned int starfive_gpio_chip_count;
++static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
++
++static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
++{
++	u32 val;
++	unsigned long reg_addr;
++	u32 bit_mask, shift_bits;
++	struct starfive_gpio_chip *chip =
++		container_of(gp->chip, struct starfive_gpio_chip, chip);
++
++	/* set out en*/
++	reg_addr = chip->addr + gp->offset;
++	reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
++
++	val = readl((void *)(reg_addr));
++	shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
++		<< STARFIVE_GPIO_SHIFT_BITS;
++	bit_mask = STARFIVE_GPIO_MASK << shift_bits;
++
++	val = readl((void *)reg_addr);
++	val &= ~bit_mask;
++	writel(val, (void *)reg_addr);
++
++	return 0;
++}
++
++static void starfive_gpio_set(struct gpio_pin *gp, int value)
++{
++	u32 val;
++	unsigned long reg_addr;
++	u32 bit_mask, shift_bits;
++	struct starfive_gpio_chip *chip =
++		container_of(gp->chip, struct starfive_gpio_chip, chip);
++
++	reg_addr = chip->addr + gp->offset;
++	reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
++
++	shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
++		<< STARFIVE_GPIO_SHIFT_BITS;
++	bit_mask = STARFIVE_GPIO_MASK << shift_bits;
++	/* set output value */
++	val = readl((void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
++	val &= ~bit_mask;
++	val |= value << shift_bits;
++	writel(val, (void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
++}
++
++extern struct fdt_gpio fdt_gpio_starfive;
++
++static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
++			      const struct fdt_match *match)
++{
++	int rc;
++	struct starfive_gpio_chip *chip;
++	u64 addr;
++
++	if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
++		return SBI_ENOSPC;
++	chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
++
++	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
++	if (rc)
++		return rc;
++
++	chip->addr = addr;
++	chip->chip.driver = &fdt_gpio_starfive;
++	chip->chip.id = phandle;
++	chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
++	chip->chip.direction_output = starfive_gpio_direction_output;
++	chip->chip.set = starfive_gpio_set;
++	rc = gpio_chip_add(&chip->chip);
++	if (rc)
++		return rc;
++
++	starfive_gpio_chip_count++;
++	return 0;
++}
++
++static const struct fdt_match starfive_gpio_match[] = {
++	{ .compatible = "starfive,jh7110-sys-pinctrl" },
++	{ .compatible = "starfive,iomux-pinctrl" },
++	{ },
++};
++
++struct fdt_gpio fdt_gpio_starfive = {
++	.match_table = starfive_gpio_match,
++	.xlate = fdt_gpio_simple_xlate,
++	.init = starfive_gpio_init,
++};
+diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+index eedd699..8f4a6a8 100644
+--- a/lib/utils/gpio/objects.mk
++++ b/lib/utils/gpio/objects.mk
+@@ -13,4 +13,7 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
+ carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
+ libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
+ 
++carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_STARFIVE) += fdt_gpio_starfive
++libsbiutils-objs-$(CONFIG_FDT_GPIO_STARFIVE) += gpio/fdt_gpio_starfive.o
++
+ libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 4b0842e..2ad953d 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
+ CONFIG_PLATFORM_STARFIVE_JH7110=y
+ CONFIG_FDT_GPIO=y
+ CONFIG_FDT_GPIO_SIFIVE=y
++CONFIG_FDT_GPIO_STARFIVE=y
+ CONFIG_FDT_I2C=y
+ CONFIG_FDT_I2C_SIFIVE=y
+ CONFIG_FDT_IPI=y
+-- 
+2.17.1
 
 
