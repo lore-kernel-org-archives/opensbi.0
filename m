@@ -1,97 +1,116 @@
-From: Evgenii Shatokhin <e.shatokhin@yadro.com>
-Date: Mon, 20 Feb 2023 01:20:31 +0300
-Subject: [PATCH 2/2] lib: sbi: Clear IPIs before init_warm_startup in non-boot harts
-In-Reply-To: <20230219222031.3053255-1-e.shatokhin@yadro.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Sun, 19 Feb 2023 22:38:12 +0000
+Subject: [PATCH 1/2] lib: sbi: Actually wait for an IPI in
+ sbi_hsm_hart_wait()
+In-Reply-To: <20230219222031.3053255-2-e.shatokhin@yadro.com>
 References: <20230219222031.3053255-1-e.shatokhin@yadro.com>
-Message-ID: <20230219222031.3053255-3-e.shatokhin@yadro.com>
+ <20230219222031.3053255-2-e.shatokhin@yadro.com>
+Message-ID: <19015380-F8C5-4DF3-AA0A-E4C2EDAC350F@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Since commit 50d4fde1c5a4 ("lib: Remove redundant sbi_platform_ipi_clear()
-calls"), the IPI sent from the boot hart in wake_coldboot_harts() is not
-cleared in the secondary harts until they reach sbi_ipi_init(). However,
-sbi_hsm_init() and sbi_hsm_hart_wait() are called earlier, so a secondary
-hart might enter sbi_hsm_hart_wait() with an already pending IPI.
+On 19 Feb 2023, at 22:20, Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
+> 
+> "wfi" instruction is not guaranteed to wait for an interrupt to be received
+> by the hart, it is just a hint for the CPU. According to RISC-V Privileged
+> Architectures spec. v20211203, even an implementation of "wfi" as "nop" is
+> legal.
+> 
+> As a result, a secondary (non-boot) hart waiting in the while loop in
+> sbi_hsm_hart_wait() might leave the loop and continue even if it got no
+> IPI. This could lead to the following race condition when booting Linux,
+> for example:
+> 
+>  Boot hart (#0)                        Secondary hart (#1)
+>  runs Linux startup code               waits in sbi_hsm_hart_wait()
+> 
+>  sbi_ecall(SBI_EXT_HSM,
+>            SBI_EXT_HSM_HART_START,
+>            ...)
+>  enters sbi_hsm_hart_start()
+>  sets state of hart #1 to START_PENDING
+>                                        leaves sbi_hsm_hart_wait()
+>                                        runs to the end of init_warmboot()
+>                                        returns to scratch->next_addr
+>                                        (next_addr can be garbage here)
+> 
+>  sets next_addr, etc. for hart #1
+>  (no good: hart #1 has already left)
+> 
+>  sends IPI to hart #1
+>  (no good either)
+> 
+> If this happens, the secondary hart jumps to a wrong next_addr at the end
+> of init_warmboot(), which leads to a system hang or crash.
+> 
+> To reproduce the issue more reliably, one could add a delay in
+> sbi_hsm_hart_start(): after setting the hart's state but before sending
+> IPI to that hart:
+> 
+>    hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOPPED,
+>                            SBI_HSM_STATE_START_PENDING);
+>    ...
+>  + sbi_timer_mdelay(10);
+>    init_count = sbi_init_count(hartid);
+>    rscratch->next_arg1 = arg1;
+>    rscratch->next_addr = saddr;
+> 
+> The issue can be reproduced, for example, in a QEMU VM with '-machine virt'
+> and 2 or more CPUs, with Linux as the guest OS.
+> 
+> Let us actually check in sbi_hsm_hart_wait(), if the waiting hart has
+> received an IPI.
 
-Because of this, the secondary hart might exit the "wfi" loop in
-sbi_hsm_hart_wait() right after the boot hart changes state of that hart to
-SBI_HSM_STATE_START_PENDING. Then, depending on the hardware, it might be
-able to reach sbi_hart_switch_mode() at the end of init_warmboot() before
-the boot hart has set next_addr, etc., for it in sbi_hsm_hart_start(). In
-this case, the secondary hart will jump to a wrong address.
+Using the IPI itself as the synchronisation barrier seems awfully
+brittle. Better to split SBI_HSM_STATE_START_PENDING into two states so
+there?s an additional atomic_write that the atomic_read here can
+synchronise with.
 
-This behaviour can be observed, for example, in a QEMU VM (QEMU 7.2.0) with
-"-machine virt" running a Linux guest. Inserting delays after setting the
-hart state to SBI_HSM_STATE_START_PENDING in sbi_hsm_hart_start() allows
-reproducing the issue more reliably.
+Jess
 
-The comment in wait_for_coldboot() suggests that the initial IPI is needed
-in the warm resume path, so let us clear it before init_warm_startup()
-only.
-
-To do this, sbi_ipi_raw_clear() was created similar to sbi_ipi_raw_send().
-
-Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
----
- include/sbi/sbi_ipi.h | 2 ++
- lib/sbi/sbi_init.c    | 6 ++++--
- lib/sbi/sbi_ipi.c     | 6 ++++++
- 3 files changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-index f6ac807..f384e74 100644
---- a/include/sbi/sbi_ipi.h
-+++ b/include/sbi/sbi_ipi.h
-@@ -77,6 +77,8 @@ void sbi_ipi_process(void);
- 
- int sbi_ipi_raw_send(u32 target_hart);
- 
-+void sbi_ipi_raw_clear(u32 target_hart);
-+
- const struct sbi_ipi_device *sbi_ipi_get_device(void);
- 
- void sbi_ipi_set_device(const struct sbi_ipi_device *dev);
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index e353c33..a9a4084 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -438,10 +438,12 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
- 	if (hstate < 0)
- 		sbi_hart_hang();
- 
--	if (hstate == SBI_HSM_STATE_SUSPENDED)
-+	if (hstate == SBI_HSM_STATE_SUSPENDED) {
- 		init_warm_resume(scratch);
--	else
-+	} else {
-+		sbi_ipi_raw_clear(hartid);
- 		init_warm_startup(scratch, hartid);
-+	}
- 
- 	sbi_hart_switch_mode(hartid, scratch->next_arg1,
- 			     scratch->next_addr,
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 1bcc2e4..b9f6205 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -217,6 +217,12 @@ int sbi_ipi_raw_send(u32 target_hart)
- 	return 0;
- }
- 
-+void sbi_ipi_raw_clear(u32 target_hart)
-+{
-+	if (ipi_dev && ipi_dev->ipi_clear)
-+		ipi_dev->ipi_clear(target_hart);
-+}
-+
- const struct sbi_ipi_device *sbi_ipi_get_device(void)
- {
- 	return ipi_dev;
--- 
-2.34.1
-
+> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
+> ---
+> lib/sbi/sbi_hsm.c | 8 ++++++--
+> 1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 8499bb1..0e5ff3d 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -108,6 +108,8 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+> static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+> {
+> 	unsigned long saved_mie;
+> +	unsigned long ipi_received;
+> +	unsigned int hstate;
+> 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+> 							    hart_data_offset);
+> 	/* Save MIE CSR */
+> @@ -117,9 +119,11 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+> 	csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+> 
+> 	/* Wait for state transition requested by sbi_hsm_hart_start() */
+> -	while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
+> +	do {
+> 		wfi();
+> -	};
+> +		ipi_received = csr_read(CSR_MIP) & (MIP_MSIP | MIP_MEIP);
+> +		hstate = atomic_read(&hdata->state);
+> +	} while (hstate != SBI_HSM_STATE_START_PENDING || !ipi_received);
+> 
+> 	/* Restore MIE CSR */
+> 	csr_write(CSR_MIE, saved_mie);
+> -- 
+> 2.34.1
+> 
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
