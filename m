@@ -1,93 +1,99 @@
 From: Evgenii Shatokhin <e.shatokhin@yadro.com>
-Date: Mon, 20 Feb 2023 01:20:29 +0300
-Subject: [PATCH 0/2] lib: sbi: Prevent system hang when bringing up secondary harts
-Message-ID: <20230219222031.3053255-1-e.shatokhin@yadro.com>
+Date: Mon, 20 Feb 2023 01:20:30 +0300
+Subject: [PATCH 1/2] lib: sbi: Actually wait for an IPI in sbi_hsm_hart_wait()
+In-Reply-To: <20230219222031.3053255-1-e.shatokhin@yadro.com>
+References: <20230219222031.3053255-1-e.shatokhin@yadro.com>
+Message-ID: <20230219222031.3053255-2-e.shatokhin@yadro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The boot hart can race with the secondary harts when it tries to bring them
-up at startup time. This results in occasional system hangs at boot, which
-can be reproduced in QEMU with a Linux guest, even with '-machine virt'.
+"wfi" instruction is not guaranteed to wait for an interrupt to be received
+by the hart, it is just a hint for the CPU. According to RISC-V Privileged
+Architectures spec. v20211203, even an implementation of "wfi" as "nop" is
+legal.
 
-When the Linux kernel needs to bring up the non-boot harts, the boot hart
-enters opensbi via a ecall and eventually gets to sbi_hsm_hart_start().
-Other (secondary) harts are spinning in the while loop in
-sbi_hsm_hart_wait() at that moment:
+As a result, a secondary (non-boot) hart waiting in the while loop in
+sbi_hsm_hart_wait() might leave the loop and continue even if it got no
+IPI. This could lead to the following race condition when booting Linux,
+for example:
 
-	/* Wait for state transition requested by sbi_hsm_hart_start() */
-	while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
-		wfi();
-	};
+  Boot hart (#0)                        Secondary hart (#1)
+  runs Linux startup code               waits in sbi_hsm_hart_wait()
 
-If I understand it correctly, the idea is that sbi_hsm_hart_start() should
-first set the secondary hart's state to SBI_HSM_STATE_START_PENDING
-atomically and check the previous value of the state. This makes sure no
-other hart would try to modify the secondary hart's scratch area in the
-meantime.
+  sbi_ecall(SBI_EXT_HSM,
+            SBI_EXT_HSM_HART_START,
+            ...)
+  enters sbi_hsm_hart_start()
+  sets state of hart #1 to START_PENDING
+                                        leaves sbi_hsm_hart_wait()
+                                        runs to the end of init_warmboot()
+                                        returns to scratch->next_addr
+                                        (next_addr can be garbage here)
 
-The boot hart then reads the init count of the secondary hart and sets the
-address it should eventually jump to, as well as other data:
+  sets next_addr, etc. for hart #1
+  (no good: hart #1 has already left)
 
-	init_count = sbi_init_count(hartid);
-	rscratch->next_arg1 = arg1;
-	rscratch->next_addr = saddr;
-	rscratch->next_mode = smode;
+  sends IPI to hart #1
+  (no good either)
 
-Then, the boot hart sends IPI to the secondary hart, so that it would stop
-spinning in the loop above and would continue.
+If this happens, the secondary hart jumps to a wrong next_addr at the end
+of init_warmboot(), which leads to a system hang or crash.
 
-However, as we observed during the test runs for our systems, the secondary
-harts could leave the loop in sbi_hsm_hart_wait() as soon as their state is
-set to SBI_HSM_STATE_START_PENDING. As a result, the following situation is
-possible:
+To reproduce the issue more reliably, one could add a delay in
+sbi_hsm_hart_start(): after setting the hart's state but before sending
+IPI to that hart:
 
+    hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOPPED,
+                            SBI_HSM_STATE_START_PENDING);
+    ...
+  + sbi_timer_mdelay(10);
+    init_count = sbi_init_count(hartid);
+    rscratch->next_arg1 = arg1;
+    rscratch->next_addr = saddr;
 
-Boot hart (#0)                        Secondary hart (#1)
-runs Linux startup code               waits in sbi_hsm_hart_wait()
-sbi_ecall(SBI_EXT_HSM,
-          SBI_EXT_HSM_HART_START,
-          ...)
-enters sbi_hsm_hart_start()
-sets state to START_PENDING
-                                      leaves sbi_hsm_hart_wait()
-                                      runs to the end of init_warmboot()
-                                      returns to scratch->next_addr
-                                      (next_addr can be garbage here)
+The issue can be reproduced, for example, in a QEMU VM with '-machine virt'
+and 2 or more CPUs, with Linux as the guest OS.
 
-sets next_addr, etc. for hart #1
-(no good: hart #1 has already left)
+Let us actually check in sbi_hsm_hart_wait(), if the waiting hart has
+received an IPI.
 
-sends IPI to hart #1
-(no good either)
-                   (system might hang or crash)
+Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
+---
+ lib/sbi/sbi_hsm.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-This can be reproduced easier, if one inserts a delay into
-sbi_hsm_hart_start() right before "init_count = sbi_init_count(hartid);".
-In our case, "sbi_timer_mdelay(10)" was enough for the issue to manifest
-each time.
-
-The patch series fixes 2 issues that could make the secondary harts exit
-the while loop in sbi_hsm_hart_wait() prematurely, i.e. before the IPI:
-
-1. "wfi" instruction is just a hint for the CPU, it might or might not
-actually wait for an interrupt to happen in the hart. RISC-V Privileged
-Architectures spec. v20211203 even states that "a legal implementation is to
-simply implement WFI as a NOP".
-
-2. Since commit 50d4fde1c5a4 ("lib: Remove redundant sbi_platform_ipi_clear()
-calls"), the IPI sent from the boot hart in wake_coldboot_harts() is never
-cleared in the secondary harts. So, they enter sbi_hsm_hart_wait() with
-already pending IPIs and do not wait for new ones.
-
-In both cases, the secondary hart might leave the loop as soon as its state
-is set to SBI_HSM_STATE_START_PENDING, leading to the race described above.
-
-Regards,
-Evgenii
-
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 8499bb1..0e5ff3d 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -108,6 +108,8 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+ {
+ 	unsigned long saved_mie;
++	unsigned long ipi_received;
++	unsigned int hstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 	/* Save MIE CSR */
+@@ -117,9 +119,11 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+ 	csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+ 
+ 	/* Wait for state transition requested by sbi_hsm_hart_start() */
+-	while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
++	do {
+ 		wfi();
+-	};
++		ipi_received = csr_read(CSR_MIP) & (MIP_MSIP | MIP_MEIP);
++		hstate = atomic_read(&hdata->state);
++	} while (hstate != SBI_HSM_STATE_START_PENDING || !ipi_received);
+ 
+ 	/* Restore MIE CSR */
+ 	csr_write(CSR_MIE, saved_mie);
+-- 
+2.34.1
 
 
 
