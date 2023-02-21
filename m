@@ -1,16 +1,16 @@
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Tue, 21 Feb 2023 09:25:16 +0800
-Subject: [PATCH v2] lib: utils: fdt_fixup: Fix compile error
-In-Reply-To: <20230219103116.710854-1-wxjstz@126.com>
-References: <20230219103116.710854-1-wxjstz@126.com>
-Message-ID: <CAEUhbmVV4AZDZB3vMwpYJxESvnQPJEFJhaH_f2zqcNUzmeyC4w@mail.gmail.com>
+Date: Tue, 21 Feb 2023 12:16:36 +0800
+Subject: [PATCH v3] lib: utils: fdt_fixup: Fix compile error
+In-Reply-To: <20230221041203.819559-1-wxjstz@126.com>
+References: <20230221041203.819559-1-wxjstz@126.com>
+Message-ID: <CAEUhbmVOkR-nGhofwBokxs8=MpjdCWg1h2jaf=FfHqmigZ585w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Feb 19, 2023 at 6:33 PM Xiang W <wxjstz@126.com> wrote:
+On Tue, Feb 21, 2023 at 12:13 PM Xiang W <wxjstz@126.com> wrote:
 >
 > When building with GCC-10 or older versions, it throws the following
 > error:
@@ -22,44 +22,50 @@ On Sun, Feb 19, 2023 at 6:33 PM Xiang W <wxjstz@126.com> wrote:
 >   376 |  next_entry:
 >       |  ^~~~~~~~~~
 >
-> Remove the goto statement. Fixed issue#288 [1]
+> Remove the goto statement. Resolves issue#288 [1]
 
-nits: Use "Resolves" tag
+This is still not correct
+
+Should be:
+
+Remove the goto statement.
+
+Resolves: https://github.com/riscv-software-src/opensbi/issues/288
+SoB
+SoB
+RB
+etc...
 
 >
 > [1]: https://github.com/riscv-software-src/opensbi/issues/288
-
-So this becomes:
-
-Resolves: https://github.com/riscv-software-src/opensbi/issues/288
-
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Signed-off-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 > ---
+> Changes in v3:
+> - Fix a comment issue raised by Bin Meng
+> - Changed the type of "overlap" from int to bool as suggested by Bin Meng
+>
 > Changes in v2:
 > - Fix a comment issue raised by Andreas Schwab
->
 >  lib/utils/fdt/fdt_fixup.c | 13 ++++++++-----
 >  1 file changed, 8 insertions(+), 5 deletions(-)
 >
 > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index 619e4f5..e23517d 100644
+> index 619e4f5..c10179b 100644
 > --- a/lib/utils/fdt/fdt_fixup.c
 > +++ b/lib/utils/fdt/fdt_fixup.c
 > @@ -361,19 +361,22 @@ int fdt_reserved_memory_fixup(void *fdt)
 >                         return SBI_ENOSPC;
 >                 }
 >
-> +               int overlap = 0;
-
-bool overlap = false;
-
+> +               bool overlap = false;
 >                 addr = reg->base;
 >                 for (j = 0; j < i; j++) {
 >                         if (addr == filtered_base[j]
 >                             && filtered_order[j] < reg->order) {
-> +                               overlap = 1;
+> +                               overlap = true;
 >                                 filtered_order[j] = reg->order;
 > -                               goto next_entry;
 > +                               break;
@@ -79,8 +85,6 @@ bool overlap = false;
 >
 >         for (j = 0; j < i; j++) {
 > --
-> 2.39.1
->
 
 Regards,
 Bin
