@@ -1,16 +1,16 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 20 Feb 2023 21:08:18 +0530
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Tue, 21 Feb 2023 09:25:16 +0800
 Subject: [PATCH v2] lib: utils: fdt_fixup: Fix compile error
 In-Reply-To: <20230219103116.710854-1-wxjstz@126.com>
 References: <20230219103116.710854-1-wxjstz@126.com>
-Message-ID: <CAAhSdy0UonkLe-+wezkh16xeyw=kxD4hkNb_uVKDsBGhojbvug@mail.gmail.com>
+Message-ID: <CAEUhbmVV4AZDZB3vMwpYJxESvnQPJEFJhaH_f2zqcNUzmeyC4w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Feb 19, 2023 at 4:02 PM Xiang W <wxjstz@126.com> wrote:
+On Sun, Feb 19, 2023 at 6:33 PM Xiang W <wxjstz@126.com> wrote:
 >
 > When building with GCC-10 or older versions, it throws the following
 > error:
@@ -23,19 +23,19 @@ On Sun, Feb 19, 2023 at 4:02 PM Xiang W <wxjstz@126.com> wrote:
 >       |  ^~~~~~~~~~
 >
 > Remove the goto statement. Fixed issue#288 [1]
+
+nits: Use "Resolves" tag
+
 >
 > [1]: https://github.com/riscv-software-src/opensbi/issues/288
+
+So this becomes:
+
+Resolves: https://github.com/riscv-software-src/opensbi/issues/288
+
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Signed-off-by: Xiang W <wxjstz@126.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
 > Changes in v2:
 > - Fix a comment issue raised by Andreas Schwab
@@ -52,6 +52,9 @@ Anup
 >                 }
 >
 > +               int overlap = 0;
+
+bool overlap = false;
+
 >                 addr = reg->base;
 >                 for (j = 0; j < i; j++) {
 >                         if (addr == filtered_base[j]
@@ -78,9 +81,7 @@ Anup
 > --
 > 2.39.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Bin
 
