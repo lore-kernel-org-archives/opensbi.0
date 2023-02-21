@@ -1,7 +1,7 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 21 Feb 2023 12:12:03 +0800
-Subject: [PATCH v3] lib: utils: fdt_fixup: Fix compile error
-Message-ID: <20230221041203.819559-1-wxjstz@126.com>
+Date: Tue, 21 Feb 2023 13:07:07 +0800
+Subject: [PATCH v4] lib: utils: fdt_fixup: Fix compile error
+Message-ID: <20230221050707.825994-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,20 +18,26 @@ lib/utils/fdt/fdt_fixup.c:376:2: error: label at end of compound statement
   376 |  next_entry:
       |  ^~~~~~~~~~
 
-Remove the goto statement. Resolves issue#288 [1]
+Remove the goto statement.
 
-[1]: https://github.com/riscv-software-src/opensbi/issues/288
+Resolves: https://github.com/riscv-software-src/opensbi/issues/288
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Signed-off-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
+Changes in v4:
+ - Continue to fix the comment in Changes v3
+
 Changes in v3:
 - Fix a comment issue raised by Bin Meng
 - Changed the type of "overlap" from int to bool as suggested by Bin Meng
 
 Changes in v2:
 - Fix a comment issue raised by Andreas Schwab
+ lib/utils/fdt/fdt_fixup.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
  lib/utils/fdt/fdt_fixup.c | 13 ++++++++-----
  1 file changed, 8 insertions(+), 5 deletions(-)
 
