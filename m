@@ -1,186 +1,149 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 21 Feb 2023 18:49:49 -0800
-Subject: [PATCH v2 5/5] lib: sbi_pmu: Add hartid parameter PMU device ops
-In-Reply-To: <20230217144413.3720307-6-mchitale@ventanamicro.com>
-References: <20230217144413.3720307-1-mchitale@ventanamicro.com> <20230217144413.3720307-6-mchitale@ventanamicro.com>
-Message-ID: <CAOnJCUK99ApA+XPX6Oxe-ojDhW9m5s_7+vRTOpkJA9YJe2L4fQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 22 Feb 2023 08:59:52 +0530
+Subject: [PATCH] lib: sbi: sbi_ecall: Improve return SBI error
+In-Reply-To: <20230221180724.vtmg4dgc4msb7io6@orel>
+References: <20230221104756.28573-1-peterlin@andestech.com>
+ <20230221172124.34ccwi3cg2c2ilff@orel> <CAAhSdy1TEiRkw796rg5yNqLuOog33s4xUJhSdcxGhrG07kxgsg@mail.gmail.com>
+ <20230221180724.vtmg4dgc4msb7io6@orel>
+Message-ID: <CAAhSdy1NH+05cc5_LukHLahVx6efc6=YvN-2FK1Qpb_0DzkVbg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 17, 2023 at 6:45 AM Mayuresh Chitale
-<mchitale@ventanamicro.com> wrote:
+On Tue, Feb 21, 2023 at 11:37 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> Pass the hartid parameter to custom PMU device ops. It is required by
-> platform event handler to be able to program correct registers for a
-> given counter.
+> On Tue, Feb 21, 2023 at 10:53:31PM +0530, Anup Patel wrote:
+> > On Tue, Feb 21, 2023 at 10:51 PM Andrew Jones <ajones@ventanamicro.com> wrote:
+> > >
+> > > On Tue, Feb 21, 2023 at 06:47:56PM +0800, Yu Chien Peter Lin wrote:
+> > > > We should also check if the return error code is greater than 0
+> > > > (SBI_SUCCESS), as this is an invalid error.
+> > > >
+> > > > Also rename the variable returned via a0 to 'out_err' and use
+> > > > SBI_ERR_NOT_SUPPORTED when the extension does not have a handler
+> > > > for consistency with the standard SBI errors defined in Table 1
+> > > > of the SBI specification.
+> > >
+> > > It's best to do renames separate from functional changes, and, in
+> > > this case, the ret -> out_err rename feels like unnecessary churn.
+> >
+> > Maybe we can do something similar to KVM RISC-V ?
 >
+> We could if we have three types of return values to manage like we do
+> with KVM. For anyone who isn't familiar with how KVM will manage things,
+> once the PMU patches are merged, it'll work like this:
+>
+>  1. Linux error while emulating an SBI call (e.g. ENOMEM)
+>  2. 'sbiret.error' generated during emulation
+>  3. 'sbiret.value' generated during emulation
+>
+> (1) is the return value of an SBI emulation function,
+>
+>     int sbi_func(struct kvm_vcpu_sbi_return *retdata)
+>
+> (2) is kvm_vcpu_sbi_return.out_val
+> (3) is kvm_vcpu_sbi_return.err_val
+>
+>
+> But don't we only have (2) and (3) here?
 
-This can be improved..something along the lines
+We do have (1) as well because SBI_Exxx are supposed
+to be errors internal to OpenSBI whereas SBI_ERR_xxx
+are standard SBI errors.
 
-"Platform event handler may leverage the hartid to program  per hart
-specific registers
-for a given counter."
+Maybe as a separate series we can improve error returned
+by SBI calls in OpenSBI?
 
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
-> ---
->  include/sbi/sbi_pmu.h | 18 +++++++++++-------
->  lib/sbi/sbi_pmu.c     | 28 +++++++++++++++++-----------
->  2 files changed, 28 insertions(+), 18 deletions(-)
->
-> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> index 467ec03..90a564f 100644
-> --- a/include/sbi/sbi_pmu.h
-> +++ b/include/sbi/sbi_pmu.h
-> @@ -31,14 +31,15 @@ struct sbi_pmu_device {
->         /**
->          * Validate event code of custom firmware event
->          */
-> -       int (*fw_event_validate_code)(uint64_t event_idx_code);
-> +       int (*fw_event_validate_encoding)(uint64_t event_idx_code);
->
->         /**
->          * Match custom firmware counter with custom firmware event
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       bool (*fw_counter_match_code)(uint32_t counter_index,
-> -                                     uint64_t event_idx_code);
-> +       bool (*fw_counter_match_encoding)(uint32_t hartid,
-> +                                         uint32_t counter_index,
-> +                                         uint64_t event_idx_code);
->
->         /**
->          * Fetch the max width of this counter in number of bits.
-> @@ -49,27 +50,30 @@ struct sbi_pmu_device {
->          * Read value of custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       uint64_t (*fw_counter_read_value)(uint32_t counter_index);
-> +       uint64_t (*fw_counter_read_value)(uint32_t hartid,
-> +                                         uint32_t counter_index);
->
->         /**
->          * Write value to custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       void (*fw_counter_write_value)(uint32_t counter_index,
-> +       void (*fw_counter_write_value)(uint32_t hartid,
-> +                                      uint32_t counter_index,
->                                        uint64_t value);
->
->         /**
->          * Start custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       int (*fw_counter_start)(uint32_t counter_index,
-> +       int (*fw_counter_start)(uint32_t hartid,
-> +                               uint32_t counter_index,
->                                 uint64_t event_idx_code);
->
->         /**
->          * Stop custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       int (*fw_counter_stop)(uint32_t counter_index);
-> +       int (*fw_counter_stop)(uint32_t hartid, uint32_t counter_index);
->
->         /**
->          * Custom enable irq for hardware counter
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 05e2571..4479aa4 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -123,8 +123,8 @@ static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
->                 break;
->         case SBI_PMU_EVENT_TYPE_FW:
->                 if (SBI_PMU_FW_PLATFORM == event_idx_code &&
-> -                   pmu_dev && pmu_dev->fw_event_validate_code)
-> -                       return pmu_dev->fw_event_validate_code(edata);
-> +                   pmu_dev && pmu_dev->fw_event_validate_encoding)
-> +                       return pmu_dev->fw_event_validate_encoding(edata);
->                 else
->                         event_idx_code_max = SBI_PMU_FW_MAX;
->                 break;
-> @@ -189,7 +189,8 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
->
->         if (SBI_PMU_FW_PLATFORM == event_code) {
->                 if (pmu_dev && pmu_dev->fw_counter_read_value)
-> -                       *cval = pmu_dev->fw_counter_read_value(cidx -
-> +                       *cval = pmu_dev->fw_counter_read_value(hartid,
-> +                                                              cidx -
->                                                                num_hw_ctrs);
->                 else
->                         *cval = 0;
-> @@ -376,7 +377,8 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
->                     }
->
->                 if (ival_update)
-> -                       pmu_dev->fw_counter_write_value(cidx - num_hw_ctrs,
-> +                       pmu_dev->fw_counter_write_value(hartid,
-> +                                                       cidx - num_hw_ctrs,
->                                                         ival);
->
->                 if (pmu_dev->fw_counter_start(hartid, cidx - num_hw_ctrs,
-> @@ -453,11 +455,12 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
->
->  static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t event_code)
->  {
-> +       u32 hartid = current_hartid();
->         int ret;
->
->         if (SBI_PMU_FW_PLATFORM == event_code &&
->             pmu_dev && pmu_dev->fw_counter_stop) {
-> -               ret = pmu_dev->fw_counter_stop(cidx - num_hw_ctrs);
-> +               ret = pmu_dev->fw_counter_stop(hartid, cidx - num_hw_ctrs);
->                 if (ret)
->                         return ret;
->         }
-> @@ -672,10 +675,11 @@ static int pmu_ctr_find_fw(unsigned long cbase, unsigned long cmask,
->                 if (active_events[hartid][i] != SBI_PMU_EVENT_IDX_INVALID)
->                         continue;
->                 if (SBI_PMU_FW_PLATFORM == event_code &&
-> -                   pmu_dev && pmu_dev->fw_counter_match_code) {
-> -                       if (!pmu_dev->fw_counter_match_code(cidx -
-> -                                                           num_hw_ctrs,
-> -                                                           edata))
-> +                   pmu_dev && pmu_dev->fw_counter_match_encoding) {
-> +                       if (!pmu_dev->fw_counter_match_encoding(hartid,
-> +                                                               cidx -
-> +                                                               num_hw_ctrs,
-> +                                                               edata))
->                                 continue;
->                 }
->
-> @@ -741,8 +745,10 @@ skip_match:
->                 if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
->                         if (SBI_PMU_FW_PLATFORM == event_code &&
->                             pmu_dev && pmu_dev->fw_counter_start) {
-> -                               ret = pmu_dev->fw_counter_start(ctr_idx - num_hw_ctrs,
-> -                                                       event_data);
-> +                               ret = pmu_dev->fw_counter_start(hartid,
-> +                                                               ctr_idx -
-> +                                                               num_hw_ctrs,
-> +                                                               event_data);
->                                 if (ret)
->                                         return ret;
->                         }
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-IMO, this patch can be applied before PATCH4.
-
-Either Way,
-
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
--- 
 Regards,
-Atish
+Anup
+
+>
+> Thanks,
+> drew
+>
+> >
+> > Regards,
+> > Anup
+> >
+> > >
+> > > Thanks,
+> > > drew
+> > >
+> > > >
+> > > > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> > > > ---
+> > > >  lib/sbi/sbi_ecall.c | 18 +++++++++---------
+> > > >  1 file changed, 9 insertions(+), 9 deletions(-)
+> > > >
+> > > > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
+> > > > index 27ce5d49..8accf675 100644
+> > > > --- a/lib/sbi/sbi_ecall.c
+> > > > +++ b/lib/sbi/sbi_ecall.c
+> > > > @@ -97,34 +97,34 @@ void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext)
+> > > >
+> > > >  int sbi_ecall_handler(struct sbi_trap_regs *regs)
+> > > >  {
+> > > > -     int ret = 0;
+> > > > +     int out_err = 0;
+> > > > +     unsigned long out_val = 0;
+> > > >       struct sbi_ecall_extension *ext;
+> > > >       unsigned long extension_id = regs->a7;
+> > > >       unsigned long func_id = regs->a6;
+> > > >       struct sbi_trap_info trap = {0};
+> > > > -     unsigned long out_val = 0;
+> > > >       bool is_0_1_spec = 0;
+> > > >
+> > > >       ext = sbi_ecall_find_extension(extension_id);
+> > > >       if (ext && ext->handle) {
+> > > > -             ret = ext->handle(extension_id, func_id,
+> > > > +             out_err = ext->handle(extension_id, func_id,
+> > > >                                 regs, &out_val, &trap);
+> > > >               if (extension_id >= SBI_EXT_0_1_SET_TIMER &&
+> > > >                   extension_id <= SBI_EXT_0_1_SHUTDOWN)
+> > > >                       is_0_1_spec = 1;
+> > > >       } else {
+> > > > -             ret = SBI_ENOTSUPP;
+> > > > +             out_err = SBI_ERR_NOT_SUPPORTED;
+> > > >       }
+> > > >
+> > > > -     if (ret == SBI_ETRAP) {
+> > > > +     if (out_err == SBI_ETRAP) {
+> > > >               trap.epc = regs->mepc;
+> > > >               sbi_trap_redirect(regs, &trap);
+> > > >       } else {
+> > > > -             if (ret < SBI_LAST_ERR) {
+> > > > +             if (out_err < SBI_LAST_ERR || SBI_SUCCESS < out_err) {
+> > > >                       sbi_printf("%s: Invalid error %d for ext=0x%lx "
+> > > > -                                "func=0x%lx\n", __func__, ret,
+> > > > +                                "func=0x%lx\n", __func__, out_err,
+> > > >                                  extension_id, func_id);
+> > > > -                     ret = SBI_ERR_FAILED;
+> > > > +                     out_err = SBI_ERR_FAILED;
+> > > >               }
+> > > >
+> > > >               /*
+> > > > @@ -136,7 +136,7 @@ int sbi_ecall_handler(struct sbi_trap_regs *regs)
+> > > >                * case should be handled differently.
+> > > >                */
+> > > >               regs->mepc += 4;
+> > > > -             regs->a0 = ret;
+> > > > +             regs->a0 = out_err;
+> > > >               if (!is_0_1_spec)
+> > > >                       regs->a1 = out_val;
+> > > >       }
+> > > > --
+> > > > 2.34.1
+> > > >
+> > > >
+> > > > --
+> > > > opensbi mailing list
+> > > > opensbi at lists.infradead.org
+> > > > http://lists.infradead.org/mailman/listinfo/opensbi
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
 
