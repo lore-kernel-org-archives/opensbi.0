@@ -1,52 +1,81 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 22 Feb 2023 08:42:48 +0000
-Subject: [PATCH] lib: sbi: sbi_ecall: Improve return SBI error
-In-Reply-To: <2c3c52436f6dadf09fe733a257a46943ff57728a.camel@126.com>
-References: <20230221104756.28573-1-peterlin@andestech.com>
- <2c3c52436f6dadf09fe733a257a46943ff57728a.camel@126.com>
-Message-ID: <Y/XViK1LimqbfwSx@APC323>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Tue, 21 Feb 2023 16:50:22 -0800
+Subject: [PATCH v2 1/5] lib: sbi_pmu: add callback for counter width
+In-Reply-To: <20230217144413.3720307-2-mchitale@ventanamicro.com>
+References: <20230217144413.3720307-1-mchitale@ventanamicro.com> <20230217144413.3720307-2-mchitale@ventanamicro.com>
+Message-ID: <CAOnJCUJ6d2f1yakMRDgGzi81NC-e2gkCXEGk4uFFGd0by4M=Mw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 21, 2023 at 07:34:46PM +0800, Xiang W wrote:
-> ? 2023-02-21???? 18:47 +0800?Yu Chien Peter Lin???
-> > We should also check if the return error code is greater than 0
-> > (SBI_SUCCESS), as this is an invalid error.
-> > 
-> > Also rename the variable returned via a0 to 'out_err' and use
-> > SBI_ERR_NOT_SUPPORTED when the extension does not have a handler
-> > for consistency with the standard SBI errors defined in Table 1
-> > of the SBI specification.
-> > 
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > ---
-> > ?lib/sbi/sbi_ecall.c | 18 +++++++++---------
-> > ?1 file changed, 9 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-> > index 27ce5d49..8accf675 100644
-> > --- a/lib/sbi/sbi_ecall.c
-> > +++ b/lib/sbi/sbi_ecall.c
-> > @@ -97,34 +97,34 @@ void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext)
-> > ?
-> > ?int sbi_ecall_handler(struct sbi_trap_regs *regs)
-> > ?{
-> > -???????int ret = 0;
-> > +???????int out_err = 0;
-> There is no need to rename ret to out_err because a0 is not always an
-> error code in legacy extensions
-> Other than the above, it looks good to me.
-> 
-> Reviewed-by: Xiang W <wxjstz@126.com>
+On Fri, Feb 17, 2023 at 6:44 AM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
+>
+> This patch adds a callback to fetch the number of bits implemented for a
+> custom firmware counter. If the callback fails or is not implemented then
+> width defaults to 63.
+>
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+> ---
+>  include/sbi/sbi_pmu.h | 5 +++++
+>  lib/sbi/sbi_pmu.c     | 6 ++++++
+>  2 files changed, 11 insertions(+)
+>
+> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> index c365243..b3b75c1 100644
+> --- a/include/sbi/sbi_pmu.h
+> +++ b/include/sbi/sbi_pmu.h
+> @@ -41,6 +41,11 @@ struct sbi_pmu_device {
+>         bool (*fw_counter_match_code)(uint32_t counter_index,
+>                                       uint32_t event_idx_code);
+>
+> +       /**
+> +        * Fetch the max width of this counter in number of bits.
+> +        */
+> +       int (*fw_counter_width)(void);
+> +
+>         /**
+>          * Read value of custom firmware counter
+>          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 154dbda..a99c045 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -761,6 +761,7 @@ unsigned long sbi_pmu_num_ctr(void)
+>
+>  int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+>  {
+> +       int width;
+>         union sbi_pmu_ctr_info cinfo = {0};
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>
+> @@ -782,6 +783,11 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+>                 cinfo.type = SBI_PMU_CTR_TYPE_FW;
+>                 /* Firmware counters are always 64 bits wide */
+>                 cinfo.width = 63;
+> +               if (pmu_dev && pmu_dev->fw_counter_width) {
+> +                       width = pmu_dev->fw_counter_width();
+> +                       if (width)
+> +                               cinfo.width = width - 1;
+> +               }
+>         }
+>
+>         *ctr_info = cinfo.value;
+> --
+> 2.34.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Hi Xiang, Andrew,
 
-Thanks for the review,
-Sure I'll use 'ret' as it is in next patch.
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
 
-Best regards,
-Peter Lin
+-- 
+Regards,
+Atish
 
