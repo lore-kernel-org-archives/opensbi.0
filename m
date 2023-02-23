@@ -1,63 +1,56 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 23 Feb 2023 10:50:40 +0000
-Subject: [PATCH v2] lib: sbi: sbi_ecall: Check the range of SBI error
-In-Reply-To: <20230222122405.uoi2kavjdngy5q5a@orel>
-References: <20230222024854.24876-1-peterlin@andestech.com>
- <20230222122405.uoi2kavjdngy5q5a@orel>
-Message-ID: <Y/dFAAKyBXCCegcb@APC323>
+From: Bin Meng <bmeng@tinylab.org>
+Date: Thu, 23 Feb 2023 17:53:48 +0800
+Subject: [PATCH v2] lib: sbi_domain: Avoid overwriting coldboot hart's scratch->arg1
+Message-ID: <20230223095348.1723380-1-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Andrew,
+In sbi_domain_finalize(), when locating the coldboot hart's domain,
+the coldboot hart's scratch->arg1 will be overwritten by the domain
+configuration. scratch->arg1 holds the FDT address of the coldboot
+hart, and in later boot process OpenSBI codes still read the FDT
+here and there, which leads to a crash.
 
-On Wed, Feb 22, 2023 at 01:24:05PM +0100, Andrew Jones wrote:
-> On Wed, Feb 22, 2023 at 10:48:54AM +0800, Yu Chien Peter Lin wrote:
-> > We should also check if the return error code is greater than 0
-> > (SBI_SUCCESS), as this is an invalid error.
-> > 
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > Reviewed-by: Xiang W <wxjstz@126.com>
-> > ---
-> > Changes v1 -> v2:
-> > - Include Xiang's Reviewed-by
-> > - Drop the 'ret -> out_err' rename
-> 
-> The SBI_ENOTSUPP -> SBI_ERR_NOT_SUPPORTED rename was also dropped, but as
-> Anup suggests, we should probably do a full rework of that in another
-> series later.
-> 
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-> 
-> Thanks,
-> drew
+To fix this, we change fdt_get_address() to return root domain's
+next_arg1 as the FDT pointer.
 
-Agreed, thanks for the review.
+Resolves: https://github.com/riscv-software-src/opensbi/issues/281
+Fixes: b1678af210dc ("lib: sbi: Add initial domain support")
+Reported-by: Marouene Boubakri <marouene.boubakri@nxp.com>
+Signed-off-by: Bin Meng <bmeng@tinylab.org>
+---
 
-Best regards,
-Peter Lin
+Changes in v2:
+- Change fdt_get_address() to return root.next_arg1
 
-> 
-> > ---
-> >  lib/sbi/sbi_ecall.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-> > index 27ce5d49..d0f01665 100644
-> > --- a/lib/sbi/sbi_ecall.c
-> > +++ b/lib/sbi/sbi_ecall.c
-> > @@ -120,7 +120,7 @@ int sbi_ecall_handler(struct sbi_trap_regs *regs)
-> >  		trap.epc = regs->mepc;
-> >  		sbi_trap_redirect(regs, &trap);
-> >  	} else {
-> > -		if (ret < SBI_LAST_ERR) {
-> > +		if (ret < SBI_LAST_ERR || SBI_SUCCESS < ret) {
-> >  			sbi_printf("%s: Invalid error %d for ext=0x%lx "
-> >  				   "func=0x%lx\n", __func__, ret,
-> >  				   extension_id, func_id);
-> > -- 
-> > 2.34.1
-> > 
+ include/sbi_utils/fdt/fdt_helper.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 09f3095..e17b906 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -12,6 +12,7 @@
+ 
+ #include <sbi/sbi_types.h>
+ #include <sbi/sbi_scratch.h>
++#include <sbi/sbi_domain.h>
+ 
+ struct fdt_match {
+ 	const char *compatible;
+@@ -109,7 +110,7 @@ int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
+ 
+ static inline void *fdt_get_address(void)
+ {
+-	return sbi_scratch_thishart_arg1_ptr();
++	return (void *)root.next_arg1;
+ }
+ 
+ #endif /* __FDT_HELPER_H__ */
+-- 
+2.25.1
+
 
