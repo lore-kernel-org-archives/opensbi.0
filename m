@@ -1,36 +1,62 @@
 From: Bin Meng <bmeng@tinylab.org>
-Date: Thu, 23 Feb 2023 18:40:08 +0800
-Subject: [PATCH v3 3/4] platform: generic/andes: Fix ae350.c header dependency
+Date: Thu, 23 Feb 2023 18:40:09 +0800
+Subject: [PATCH v3 4/4] include: fdt/fdt_helper: Change fdt_get_address() to return root.next_arg1
 In-Reply-To: <20230223104009.1727401-1-bmeng@tinylab.org>
 References: <20230223104009.1727401-1-bmeng@tinylab.org>
-Message-ID: <20230223104009.1727401-3-bmeng@tinylab.org>
+Message-ID: <20230223104009.1727401-4-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The code calls various macros from riscv_asm.h which is not directly
-included. Fix such dependency.
+In sbi_domain_finalize(), when locating the coldboot hart's domain,
+the coldboot hart's scratch->arg1 will be overwritten by the domain
+configuration. However scratch->arg1 holds the FDT address of the
+coldboot hart, and is still being accessed by fdt_get_address() in
+later boot process. scratch->arg1 could then contain completely
+garbage and lead to a crash.
 
+To fix this, we change fdt_get_address() to return root domain's
+next_arg1 as the FDT pointer.
+
+Resolves: https://github.com/riscv-software-src/opensbi/issues/281
+Fixes: b1678af210dc ("lib: sbi: Add initial domain support")
+Reported-by: Marouene Boubakri <marouene.boubakri@nxp.com>
 Signed-off-by: Bin Meng <bmeng@tinylab.org>
 ---
 
- platform/generic/andes/ae350.c | 1 +
- 1 file changed, 1 insertion(+)
+Changes in v3:
+- Drop <sbi/sbi_scratch.h> as it is no longer needed
 
-diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index 89f5b74..01bd02d 100644
---- a/platform/generic/andes/ae350.c
-+++ b/platform/generic/andes/ae350.c
-@@ -11,6 +11,7 @@
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/sys/atcsmu.h>
-+#include <sbi/riscv_asm.h>
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hsm.h>
+Changes in v2:
+- Change fdt_get_address() to return root.next_arg1
+
+ include/sbi_utils/fdt/fdt_helper.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 09f3095..39d7f3a 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -11,7 +11,7 @@
+ #define __FDT_HELPER_H__
+ 
+ #include <sbi/sbi_types.h>
+-#include <sbi/sbi_scratch.h>
++#include <sbi/sbi_domain.h>
+ 
+ struct fdt_match {
+ 	const char *compatible;
+@@ -109,7 +109,7 @@ int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
+ 
+ static inline void *fdt_get_address(void)
+ {
+-	return sbi_scratch_thishart_arg1_ptr();
++	return (void *)root.next_arg1;
+ }
+ 
+ #endif /* __FDT_HELPER_H__ */
 -- 
 2.25.1
 
