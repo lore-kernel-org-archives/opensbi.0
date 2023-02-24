@@ -1,50 +1,68 @@
-From: Bin Meng <bmeng@tinylab.org>
-Date: Fri, 24 Feb 2023 12:28:27 +0800
-Subject: [PATCH 3/3] docs: domain_support: Update the DT example
-In-Reply-To: <20230224042827.1768931-1-bmeng@tinylab.org>
-References: <20230224042827.1768931-1-bmeng@tinylab.org>
-Message-ID: <20230224042827.1768931-3-bmeng@tinylab.org>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 24 Feb 2023 10:18:29 +0530
+Subject: [PATCH v2] lib: sbi_domain: Avoid overwriting coldboot hart's scratch->arg1
+In-Reply-To: <20230223095348.1723380-1-bmeng@tinylab.org>
+References: <20230223095348.1723380-1-bmeng@tinylab.org>
+Message-ID: <CAAhSdy3JXUPXUO4dcwstXWSpXS3YLKe=6FjvRA6J3wCPj4BW1w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-commit 3e2f573e707e ("lib: utils: Disallow non-root domains from adding M-mode regions")
-added access permission check in __fdt_parse_region(). With the
-existing DT example in the doc OpenSBI won't boot anymore.
+On Thu, Feb 23, 2023 at 3:24 PM Bin Meng <bmeng@tinylab.org> wrote:
+>
+> In sbi_domain_finalize(), when locating the coldboot hart's domain,
+> the coldboot hart's scratch->arg1 will be overwritten by the domain
+> configuration. scratch->arg1 holds the FDT address of the coldboot
+> hart, and in later boot process OpenSBI codes still read the FDT
+> here and there, which leads to a crash.
+>
+> To fix this, we change fdt_get_address() to return root domain's
+> next_arg1 as the FDT pointer.
+>
+> Resolves: https://github.com/riscv-software-src/opensbi/issues/281
+> Fixes: b1678af210dc ("lib: sbi: Add initial domain support")
+> Reported-by: Marouene Boubakri <marouene.boubakri@nxp.com>
+> Signed-off-by: Bin Meng <bmeng@tinylab.org>
 
-Let's update the DT example so that it can work out of the box.
+Looks good to me.
 
-Signed-off-by: Bin Meng <bmeng@tinylab.org>
----
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
- docs/domain_support.md | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Regards,
+Anup
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 4ccbcff..2a9ca3d 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -254,7 +254,7 @@ be done:
-             tdomain: trusted-domain {
-                 compatible = "opensbi,domain,instance";
-                 possible-harts = <&cpu0>;
--                regions = <&tmem 0x7>, <&tuart 0x7>;
-+                regions = <&tmem 0x3f>, <&tuart 0x3f>;
-                 boot-hart = <&cpu0>;
-                 next-arg1 = <0x0 0x0>;
-                 next-addr = <0x0 0x80100000>;
-@@ -265,7 +265,7 @@ be done:
-             udomain: untrusted-domain {
-                 compatible = "opensbi,domain,instance";
-                 possible-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
--                regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x7>;
-+                regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x3f>;
-             };
-         };
-     };
--- 
-2.25.1
-
+> ---
+>
+> Changes in v2:
+> - Change fdt_get_address() to return root.next_arg1
+>
+>  include/sbi_utils/fdt/fdt_helper.h | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index 09f3095..e17b906 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -12,6 +12,7 @@
+>
+>  #include <sbi/sbi_types.h>
+>  #include <sbi/sbi_scratch.h>
+> +#include <sbi/sbi_domain.h>
+>
+>  struct fdt_match {
+>         const char *compatible;
+> @@ -109,7 +110,7 @@ int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
+>
+>  static inline void *fdt_get_address(void)
+>  {
+> -       return sbi_scratch_thishart_arg1_ptr();
+> +       return (void *)root.next_arg1;
+>  }
+>
+>  #endif /* __FDT_HELPER_H__ */
+> --
+> 2.25.1
+>
 
