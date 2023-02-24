@@ -1,67 +1,67 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 24 Feb 2023 10:18:29 +0530
-Subject: [PATCH v2] lib: sbi_domain: Avoid overwriting coldboot hart's scratch->arg1
-In-Reply-To: <20230223095348.1723380-1-bmeng@tinylab.org>
-References: <20230223095348.1723380-1-bmeng@tinylab.org>
-Message-ID: <CAAhSdy3JXUPXUO4dcwstXWSpXS3YLKe=6FjvRA6J3wCPj4BW1w@mail.gmail.com>
+Date: Fri, 24 Feb 2023 10:19:38 +0530
+Subject: [RFC PATCH] Kconfig: Add an option for debugging OpenSBI
+In-Reply-To: <20230223145238.1750383-1-bmeng@tinylab.org>
+References: <20230223145238.1750383-1-bmeng@tinylab.org>
+Message-ID: <CAAhSdy2pDpYtYgydyaWyxeQDQD+VgmDM1nfwD23xAKOBBWvEKw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 23, 2023 at 3:24 PM Bin Meng <bmeng@tinylab.org> wrote:
+On Thu, Feb 23, 2023 at 8:23 PM Bin Meng <bmeng@tinylab.org> wrote:
 >
-> In sbi_domain_finalize(), when locating the coldboot hart's domain,
-> the coldboot hart's scratch->arg1 will be overwritten by the domain
-> configuration. scratch->arg1 holds the FDT address of the coldboot
-> hart, and in later boot process OpenSBI codes still read the FDT
-> here and there, which leads to a crash.
+> Add a new Kconfig option CONFIG_OPENSBI_DEBUG to prevent compiler
+> optimizations using -O2.
 >
-> To fix this, we change fdt_get_address() to return root domain's
-> next_arg1 as the FDT pointer.
->
-> Resolves: https://github.com/riscv-software-src/opensbi/issues/281
-> Fixes: b1678af210dc ("lib: sbi: Add initial domain support")
-> Reported-by: Marouene Boubakri <marouene.boubakri@nxp.com>
 > Signed-off-by: Bin Meng <bmeng@tinylab.org>
+> ---
+>
+>  Kconfig  | 7 +++++++
+>  Makefile | 7 ++++++-
+>  2 files changed, 13 insertions(+), 1 deletion(-)
+>
+> diff --git a/Kconfig b/Kconfig
+> index acfc138..123ea66 100644
+> --- a/Kconfig
+> +++ b/Kconfig
+> @@ -23,3 +23,10 @@ source "$(OPENSBI_SRC_DIR)/lib/sbi/Kconfig"
+>  source "$(OPENSBI_SRC_DIR)/lib/utils/Kconfig"
+>
+>  source "$(OPENSBI_SRC_DIR)/firmware/Kconfig"
+> +
+> +menu "General Setup"
+> +
+> +config OPENSBI_DEBUG
+> +       bool "Disable compiler optimizations for debugging"
+> +
+> +endmenu\
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Rather than adding a Kconfig option, I would suggest having a
+simple make command-line option. For example, "make DEBUG=1"
 
 Regards,
 Anup
 
-> ---
+> diff --git a/Makefile b/Makefile
+> index b20404f..b4ed548 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -331,7 +331,12 @@ GENFLAGS   +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
 >
-> Changes in v2:
-> - Change fdt_get_address() to return root.next_arg1
->
->  include/sbi_utils/fdt/fdt_helper.h | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 09f3095..e17b906 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -12,6 +12,7 @@
->
->  #include <sbi/sbi_types.h>
->  #include <sbi/sbi_scratch.h>
-> +#include <sbi/sbi_domain.h>
->
->  struct fdt_match {
->         const char *compatible;
-> @@ -109,7 +110,7 @@ int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
->
->  static inline void *fdt_get_address(void)
->  {
-> -       return sbi_scratch_thishart_arg1_ptr();
-> +       return (void *)root.next_arg1;
->  }
->
->  #endif /* __FDT_HELPER_H__ */
+> -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
+> +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+> +ifeq ($(CONFIG_OPENSBI_DEBUG),y)
+> +CFLAGS         +=      -O0
+> +else
+> +CFLAGS         +=      -O2
+> +endif
+>  CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
+>  # enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
+>  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
 > --
 > 2.25.1
 >
