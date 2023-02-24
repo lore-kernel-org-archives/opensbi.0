@@ -1,43 +1,49 @@
 From: Bin Meng <bmeng@tinylab.org>
-Date: Fri, 24 Feb 2023 12:28:25 +0800
-Subject: [PATCH 1/3] lib: sbi/sbi_domain: cosmetic style fixes
-Message-ID: <20230224042827.1768931-1-bmeng@tinylab.org>
+Date: Fri, 24 Feb 2023 12:28:26 +0800
+Subject: [PATCH 2/3] lib: utils/fdt/fdt_domain: Simplify region access permission check
+In-Reply-To: <20230224042827.1768931-1-bmeng@tinylab.org>
+References: <20230224042827.1768931-1-bmeng@tinylab.org>
+Message-ID: <20230224042827.1768931-2-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Minor updates to the comments for language and style fixes.
+The region access permission check in __fdt_parse_region() can be
+simplified as masking SBI_DOMAIN_MEMREGION_{M,SU}_ACCESS_MASK is
+enough.
+
+While we are here, update the confusing comments to match the codes.
 
 Signed-off-by: Bin Meng <bmeng@tinylab.org>
 ---
 
- lib/sbi/sbi_domain.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/utils/fdt/fdt_domain.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index dc825b0..d2f58a2 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -337,7 +337,7 @@ static int sanitize_domain(const struct sbi_platform *plat,
- 	/*
- 	 * Check next mode
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 2b51a8e..bc30010 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -244,13 +244,11 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
+ 	 * access permissions. M-mode regions can only be part of
+ 	 * root domain.
  	 *
--	 * We only allow next mode to be S-mode or U-mode.so that we can
-+	 * We only allow next mode to be S-mode or U-mode, so that we can
- 	 * protect M-mode context and enforce checks on memory accesses.
+-	 * SU permission bits can't be all zeroes and M-mode permission
+-	 * bits must be all set.
++	 * SU permission bits can't be all zeroes when M-mode permission
++	 * bits have at least one bit set.
  	 */
- 	if (dom->next_mode != PRV_S &&
-@@ -347,7 +347,7 @@ static int sanitize_domain(const struct sbi_platform *plat,
+-	if (!((region_access & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
+-	     & SBI_DOMAIN_MEMREGION_SU_RWX)
+-	    && ((region_access & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK)
+-		& SBI_DOMAIN_MEMREGION_M_RWX))
++	if (!(region_access & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
++	    && (region_access & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK))
  		return SBI_EINVAL;
- 	}
  
--	/* Check next address and next mode*/
-+	/* Check next address and next mode */
- 	if (!sbi_domain_check_addr(dom, dom->next_addr, dom->next_mode,
- 				   SBI_DOMAIN_EXECUTE)) {
- 		sbi_printf("%s: %s next booting stage address 0x%lx can't "
+ 	/* Find next region of the domain */
 -- 
 2.25.1
 
