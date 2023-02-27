@@ -1,77 +1,184 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Mon, 27 Feb 2023 09:03:43 +0000
-Subject: [PATCH v5 0/3] Renesas RZ/Five add support to configure PMA and
- add vendor specific SBI extension
-In-Reply-To: <CAAhSdy3PepnH+xoqWhnurK1Rn+q51vp579FeG3VnZfFV+n-5ww@mail.gmail.com>
-References: <20230213215111.32017-1-prabhakar.mahadev-lad.rj@bp.renesas.com> <CAAhSdy3PepnH+xoqWhnurK1Rn+q51vp579FeG3VnZfFV+n-5ww@mail.gmail.com>
-Message-ID: <CA+V-a8v7AGOTTm2J5-rX8Xyhyvt-u97WNShTGm0qfHb7NUE6sA@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 27 Feb 2023 11:30:56 +0100
+Subject: [PATCH v2 01/11] lib: sbi_hsm: Factor out invalid state detection
+In-Reply-To: <20230227103106.137995-1-ajones@ventanamicro.com>
+References: <20230227103106.137995-1-ajones@ventanamicro.com>
+Message-ID: <20230227103106.137995-2-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+Remove some redundant code by creating an invalid state detection
+macro.
 
-On Mon, Feb 27, 2023 at 6:13?AM Anup Patel <anup@brainfault.org> wrote:
->
-> On Tue, Feb 14, 2023 at 3:21 AM Lad Prabhakar
-> <prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
-> >
-> > Hi All,
-> >
-> > This patch series aims to add support to configure the PMA regions present
-> > on the Andes AX45MP core (andes45-pma.c which can be shared with other
-> > Andes vendors) and configures the required PMA region for RZ/Five SoC.
-> >
-> > This patch series also adds the SBI vendor extension
-> > RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND to check if IOCP is present on
-> > the core and if un-available it also checks if SW workaround for cache
-> > management needs to be applied.
-> >
-> > v4 -> v5
-> > -> Included RB tags from Yu Chien Peter Lin
-> > -> Moved PMA configuration code into andes folder
-> > -> Rebased the changes on top of [0]
-> > [0] https://patchwork.ozlabs.org/project/opensbi/list/?series=341535
-> >
-> > RFC v3 -> v4
-> > -> Used bit field for flags in struct andes45_pma_region
-> > -> Renamed andes45-pma.h -> andes45_pma.h
-> > -> Included RB tag from Lin san for patch 2/3
-> > -> Moved CSR to platform/generic/include/andes/andes45.h
-> > -> Included sbi/sbi_error.h in andes45-pma.c to fix build issue
-> >
-> > RFC v2 -> RFC v3
-> > -> Fixed review comments pointed by Lin-san
-> >    * Used switch case macro
-> >    * Added a check to verify the PMA size is power-of-2
-> >    * Dropped un-needed calculation done in PMA code for NAPOT.
-> >    * Dropped MISA macro
-> > -> Fixed comments pointed by Himanshu
-> > -> Fixed check patch issue
-> >
-> > RFC v2 -> RFC v1
-> > -> Fixed review comments pointed by Lin-san
-> > -> Implemented PMA as library so that it can be shared
-> >
-> > RFC v1:
-> > https://patchwork.ozlabs.org/project/opensbi/patch/20221212094421.14556-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
-> >
-> > Cheers,
-> > Prabhakar
-> >
-> > Lad Prabhakar (3):
-> >   platform: generic: renesas: rzfive: Add support to configure the PMA
-> >   platform: generic: renesas: rzfive: Configure the PMA region
-> >   platform: generic: renesas: rzfive: Add SBI EXT to check for enabling
-> >     IOCP errata
->
-> Applied first two patches of this series. Please work with Andes folks
-> and send v6 of PATCH3.
->
-Sure will do, thanks.
+No functional change intended.
 
-Cheers,
-Prabhakar
+Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+ lib/sbi/sbi_hsm.c | 65 +++++++++++++++++------------------------------
+ 1 file changed, 24 insertions(+), 41 deletions(-)
+
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 8499bb1ddeae..b71ee6ba4e80 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -26,6 +26,15 @@
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_console.h>
+ 
++#define __sbi_hsm_hart_change_state(hdata, oldstate, newstate)		\
++({									\
++	long state = atomic_cmpxchg(&(hdata)->state, oldstate, newstate); \
++	if (state != (oldstate))					\
++		sbi_printf("%s: ERR: The hart is in invalid state [%lu]\n", \
++			   __func__, state);				\
++	state == (oldstate);						\
++})
++
+ static const struct sbi_hsm_device *hsm_dev = NULL;
+ static unsigned long hart_data_offset;
+ 
+@@ -95,13 +104,11 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+ 
+ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+ {
+-	u32 oldstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_START_PENDING,
+-				  SBI_HSM_STATE_STARTED);
+-	if (oldstate != SBI_HSM_STATE_START_PENDING)
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
++					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
+ }
+ 
+@@ -217,14 +224,12 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+ 
+ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+ {
+-	u32 hstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+ 
+-	hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOP_PENDING,
+-				SBI_HSM_STATE_STOPPED);
+-	if (hstate != SBI_HSM_STATE_STOP_PENDING)
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STOP_PENDING,
++					 SBI_HSM_STATE_STOPPED))
+ 		goto fail_exit;
+ 
+ 	if (hsm_device_has_hart_hotplug()) {
+@@ -298,7 +303,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ {
+-	int oldstate;
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+@@ -306,13 +310,9 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+ 	if (!dom)
+ 		return SBI_EFAIL;
+ 
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+-				  SBI_HSM_STATE_STOP_PENDING);
+-	if (oldstate != SBI_HSM_STATE_STARTED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
++					 SBI_HSM_STATE_STOP_PENDING))
+ 		return SBI_EFAIL;
+-	}
+ 
+ 	if (exitnow)
+ 		sbi_exit(scratch);
+@@ -362,36 +362,26 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+ 
+ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+ {
+-	int oldstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+ 	/* If current HART was SUSPENDED then set RESUME_PENDING state */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+-			SBI_HSM_STATE_RESUME_PENDING);
+-	if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
++					 SBI_HSM_STATE_RESUME_PENDING))
+ 		sbi_hart_hang();
+-	}
+ 
+ 	hsm_device_hart_resume();
+ }
+ 
+ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+ {
+-	u32 oldstate;
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+ 	/* If current HART was RESUME_PENDING then set STARTED state */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_RESUME_PENDING,
+-				  SBI_HSM_STATE_STARTED);
+-	if (oldstate != SBI_HSM_STATE_RESUME_PENDING) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_RESUME_PENDING,
++					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
+-	}
+ 
+ 	/*
+ 	 * Restore some of the M-mode CSRs which we are re-configured by
+@@ -403,7 +393,7 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 			 ulong raddr, ulong rmode, ulong arg1)
+ {
+-	int oldstate, ret;
++	int ret;
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+@@ -437,11 +427,8 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 	scratch->next_mode = rmode;
+ 
+ 	/* Directly move from STARTED to SUSPENDED state */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+-				  SBI_HSM_STATE_SUSPENDED);
+-	if (oldstate != SBI_HSM_STATE_STARTED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
++					 SBI_HSM_STATE_SUSPENDED)) {
+ 		ret = SBI_EDENIED;
+ 		goto fail_restore_state;
+ 	}
+@@ -484,13 +471,9 @@ fail_restore_state:
+ 	 * We might have successfully resumed from retentive suspend
+ 	 * or suspend failed. In both cases, we restore state of hart.
+ 	 */
+-	oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+-				  SBI_HSM_STATE_STARTED);
+-	if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+-		sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+-			   __func__, oldstate);
++	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
++					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
+-	}
+ 
+ 	return ret;
+ }
+-- 
+2.39.1
+
 
