@@ -1,158 +1,224 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 27 Feb 2023 11:31:06 +0100
-Subject: [PATCH v2 11/11] platform: generic: Add system suspend test
-In-Reply-To: <20230227103106.137995-1-ajones@ventanamicro.com>
-References: <20230227103106.137995-1-ajones@ventanamicro.com>
-Message-ID: <20230227103106.137995-12-ajones@ventanamicro.com>
+From: Minda Chen <minda.chen@starfivetech.com>
+Date: Mon, 27 Feb 2023 19:23:40 +0800
+Subject: [PATCH] gpio/starfive: add gpio driver and support gpio reset
+In-Reply-To: <CAAhSdy3gUbX3+54-i6PSo99UMGVE60VSYALRLA5QVazSqLCQmQ@mail.gmail.com>
+References: <20230216092126.99022-1-minda.chen@starfivetech.com>
+ <CAAhSdy3gUbX3+54-i6PSo99UMGVE60VSYALRLA5QVazSqLCQmQ@mail.gmail.com>
+Message-ID: <d0ca6d1c-6761-6b35-6ca8-4244937b1392@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When the system-suspend-test property is present in the domain config
-node as shown below, implement system suspend with a simple 5 second
-delay followed by a WFI. This allows testing system suspend when the
-low-level firmware doesn't support it.
 
-  / {
-    chosen {
-      opensbi-domains {
-          compatible = "opensbi,domain,config";
-          system-suspend-test;
-      };
 
-Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- docs/domain_support.md      |  4 ++++
- include/sbi/sbi_system.h    |  1 +
- lib/sbi/sbi_system.c        | 31 +++++++++++++++++++++++++++++++
- platform/generic/platform.c | 20 +++++++++++++++++++-
- 4 files changed, 55 insertions(+), 1 deletion(-)
+On 2023/2/27 14:44, Anup Patel wrote:
+> On Thu, Feb 16, 2023 at 2:52 PM minda.chen <minda.chen@starfivetech.com> wrote:
+>>
+>> Add gpio driver and gpio reset function in Starfive
+>> JH7110 SOC platform.
+>>
+>> Signed-off-by: minda.chen <minda.chen@starfivetech.com>
+> 
+> I don't see a PATCH enabling it in defconfig.
+> 
+> How is this driver used in OpenSBI ?
+> 
+> Regards,
+> Anup
+> 
+I have enabled CONFIG_FDT_GPIO_STARFIVE in defconfig in this patch.
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 265d8d85786e..c13014a5f7cf 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -126,6 +126,9 @@ The DT properties of a domain configuration DT node are as follows:
- * **compatible** (Mandatory) - The compatible string of the domain
-   configuration. This DT property should have value *"opensbi,domain,config"*
- 
-+* **system-suspend-test** (Optional) - When present, enable a system
-+  suspend test implementation which simply waits five seconds and issues a WFI.
-+
- ### Domain Memory Region Node
- 
- The domain memory region DT node describes details of a memory region and
-@@ -234,6 +237,7 @@ be done:
-     chosen {
-         opensbi-domains {
-             compatible = "opensbi,domain,config";
-+            system-suspend-test;
- 
-             tmem: tmem {
-                 compatible = "opensbi,domain,memregion";
-diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
-index d70ef8bb8874..b4e86aef8949 100644
---- a/include/sbi/sbi_system.h
-+++ b/include/sbi/sbi_system.h
-@@ -66,6 +66,7 @@ struct sbi_system_suspend_device {
- 
- const struct sbi_system_suspend_device *sbi_system_suspend_get_device(void);
- void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev);
-+void sbi_system_suspend_test_enable(void);
- bool sbi_system_suspend_supported(u32 sleep_type);
- int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque);
- 
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index 7fa5ea82b7a6..6eaf6c9508e0 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -17,6 +17,7 @@
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_init.h>
-+#include <sbi/sbi_timer.h>
- 
- static SBI_LIST_HEAD(reset_devices_list);
- 
-@@ -108,6 +109,36 @@ void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev)
- 	suspend_dev = dev;
- }
- 
-+static int sbi_system_suspend_test_check(u32 sleep_type)
-+{
-+	return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND;
-+}
-+
-+static int sbi_system_suspend_test_suspend(u32 sleep_type,
-+					   unsigned long warmboot_addr)
-+{
-+	if (sleep_type != SBI_SUSP_SLEEP_TYPE_SUSPEND)
-+		return SBI_EINVAL;
-+
-+	sbi_timer_mdelay(5000);
-+
-+	/* Wait for interrupt */
-+	wfi();
-+
-+	return SBI_OK;
-+}
-+
-+static struct sbi_system_suspend_device sbi_system_suspend_test = {
-+	.name = "system-suspend-test",
-+	.system_suspend_check = sbi_system_suspend_test_check,
-+	.system_suspend = sbi_system_suspend_test_suspend,
-+};
-+
-+void sbi_system_suspend_test_enable(void)
-+{
-+	sbi_system_suspend_set_device(&sbi_system_suspend_test);
-+}
-+
- bool sbi_system_suspend_supported(u32 sleep_type)
- {
- 	return suspend_dev && suspend_dev->system_suspend_check &&
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 0b90fd7c1446..eeefef4c9533 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_string.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -219,7 +220,24 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
- 
- static int generic_domains_init(void)
- {
--	return fdt_domains_populate(fdt_get_address());
-+	void *fdt = fdt_get_address();
-+	int offset, ret;
-+
-+	ret = fdt_domains_populate(fdt);
-+	if (ret < 0)
-+		return ret;
-+
-+	offset = fdt_path_offset(fdt, "/chosen");
-+
-+	if (offset >= 0) {
-+		offset = fdt_node_offset_by_compatible(fdt, offset,
-+						       "opensbi,domain,config");
-+		if (offset >= 0 &&
-+		    fdt_get_property(fdt, offset, "system-suspend-test", NULL))
-+			sbi_system_suspend_test_enable();
-+	}
-+
-+	return 0;
- }
- 
- static u64 generic_tlbr_flush_limit(void)
--- 
-2.39.1
+ --- a/platform/generic/configs/defconfig
+ +++ b/platform/generic/configs/defconfig
+ @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
+  CONFIG_PLATFORM_STARFIVE_JH7110=y
+  CONFIG_FDT_GPIO=y
+  CONFIG_FDT_GPIO_SIFIVE=y
+ +CONFIG_FDT_GPIO_STARFIVE=y
 
+May I set this change to second commit ?
+
+This patch is a gpio reset implementation for sbi ecall SBI_EXT_SRST_RESET.
+
+>> ---
+>>  lib/utils/gpio/Kconfig             |   3 +
+>>  lib/utils/gpio/fdt_gpio_starfive.c | 117 +++++++++++++++++++++++++++++
+>>  lib/utils/gpio/objects.mk          |   3 +
+>>  platform/generic/configs/defconfig |   1 +
+defconfig have been changed.
+
+>>  4 files changed, 124 insertions(+)
+>>  create mode 100644 lib/utils/gpio/fdt_gpio_starfive.c
+>>
+>> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
+>> index 38a9d75..1b338a6 100644
+>> --- a/lib/utils/gpio/Kconfig
+>> +++ b/lib/utils/gpio/Kconfig
+>> @@ -14,6 +14,9 @@ config FDT_GPIO_SIFIVE
+>>         bool "SiFive GPIO FDT driver"
+>>         default n
+>>
+>> +config FDT_GPIO_STARFIVE
+>> +       bool "StarFive GPIO FDT driver"
+>> +       default n
+>>  endif
+>>
+>>  config GPIO
+>> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
+>> new file mode 100644
+>> index 0000000..18cca72
+>> --- /dev/null
+>> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
+>> @@ -0,0 +1,117 @@
+>> +/*
+>> + * SPDX-License-Identifier: BSD-2-Clause
+>> + *
+>> + * Copyright (c) 2022 Starfive
+>> + *
+>> + * Authors:
+>> + *   Minda.chen <Minda.chen@starfivetech.com>
+>> + */
+>> +
+>> +#include <sbi/riscv_io.h>
+>> +#include <sbi/sbi_error.h>
+>> +#include <sbi/sbi_console.h>
+>> +#include <sbi_utils/fdt/fdt_helper.h>
+>> +#include <sbi_utils/gpio/fdt_gpio.h>
+>> +
+>> +#define STARFIVE_GPIO_CHIP_MAX         2
+>> +#define STARFIVE_GPIO_PINS_DEF         64
+>> +#define STARFIVE_GPIO_OUTVAL           0x40
+>> +#define STARFIVE_GPIO_MASK             0xff
+>> +#define STARFIVE_GPIO_REG_SHIFT_MASK   0x3
+>> +#define STARFIVE_GPIO_SHIFT_BITS       0x3
+>> +
+>> +struct starfive_gpio_chip {
+>> +       unsigned long addr;
+>> +       struct gpio_chip chip;
+>> +};
+>> +
+>> +static unsigned int starfive_gpio_chip_count;
+>> +static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
+>> +
+>> +static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
+>> +{
+>> +       u32 val;
+>> +       unsigned long reg_addr;
+>> +       u32 bit_mask, shift_bits;
+>> +       struct starfive_gpio_chip *chip =
+>> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
+>> +
+>> +       /* set out en*/
+>> +       reg_addr = chip->addr + gp->offset;
+>> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
+>> +
+>> +       val = readl((void *)(reg_addr));
+>> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
+>> +               << STARFIVE_GPIO_SHIFT_BITS;
+>> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
+>> +
+>> +       val = readl((void *)reg_addr);
+>> +       val &= ~bit_mask;
+>> +       writel(val, (void *)reg_addr);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static void starfive_gpio_set(struct gpio_pin *gp, int value)
+>> +{
+>> +       u32 val;
+>> +       unsigned long reg_addr;
+>> +       u32 bit_mask, shift_bits;
+>> +       struct starfive_gpio_chip *chip =
+>> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
+>> +
+>> +       reg_addr = chip->addr + gp->offset;
+>> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
+>> +
+>> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
+>> +               << STARFIVE_GPIO_SHIFT_BITS;
+>> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
+>> +       /* set output value */
+>> +       val = readl((void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
+>> +       val &= ~bit_mask;
+>> +       val |= value << shift_bits;
+>> +       writel(val, (void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
+>> +}
+>> +
+>> +extern struct fdt_gpio fdt_gpio_starfive;
+>> +
+>> +static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
+>> +                             const struct fdt_match *match)
+>> +{
+>> +       int rc;
+>> +       struct starfive_gpio_chip *chip;
+>> +       u64 addr;
+>> +
+>> +       if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
+>> +               return SBI_ENOSPC;
+>> +       chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
+>> +
+>> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+>> +       if (rc)
+>> +               return rc;
+>> +
+>> +       chip->addr = addr;
+>> +       chip->chip.driver = &fdt_gpio_starfive;
+>> +       chip->chip.id = phandle;
+>> +       chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
+>> +       chip->chip.direction_output = starfive_gpio_direction_output;
+>> +       chip->chip.set = starfive_gpio_set;
+>> +       rc = gpio_chip_add(&chip->chip);
+>> +       if (rc)
+>> +               return rc;
+>> +
+>> +       starfive_gpio_chip_count++;
+>> +       return 0;
+>> +}
+>> +
+>> +static const struct fdt_match starfive_gpio_match[] = {
+>> +       { .compatible = "starfive,jh7110-sys-pinctrl" },
+>> +       { .compatible = "starfive,iomux-pinctrl" },
+>> +       { },
+>> +};
+>> +
+>> +struct fdt_gpio fdt_gpio_starfive = {
+>> +       .match_table = starfive_gpio_match,
+>> +       .xlate = fdt_gpio_simple_xlate,
+>> +       .init = starfive_gpio_init,
+>> +};
+>> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+>> index eedd699..8f4a6a8 100644
+>> --- a/lib/utils/gpio/objects.mk
+>> +++ b/lib/utils/gpio/objects.mk
+>> @@ -13,4 +13,7 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
+>>  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
+>>  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
+>>
+>> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_STARFIVE) += fdt_gpio_starfive
+>> +libsbiutils-objs-$(CONFIG_FDT_GPIO_STARFIVE) += gpio/fdt_gpio_starfive.o
+>> +
+>>  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
+>> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+>> index 4b0842e..2ad953d 100644
+>> --- a/platform/generic/configs/defconfig
+>> +++ b/platform/generic/configs/defconfig
+>> @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
+>>  CONFIG_PLATFORM_STARFIVE_JH7110=y
+>>  CONFIG_FDT_GPIO=y
+>>  CONFIG_FDT_GPIO_SIFIVE=y
+>> +CONFIG_FDT_GPIO_STARFIVE=y
+>>  CONFIG_FDT_I2C=y
+>>  CONFIG_FDT_I2C_SIFIVE=y
+>>  CONFIG_FDT_IPI=y
+>> --
+>> 2.17.1
+>>
+>>
+>> --
+>> opensbi mailing list
+>> opensbi at lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
 
