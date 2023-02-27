@@ -1,25 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 10:56:04 +0530
-Subject: [PATCH] docs: fix typo in fw.md
-In-Reply-To: <TY3P286MB2611F8A2445A0A2ADE1A843498A39@TY3P286MB2611.JPNP286.PROD.OUTLOOK.COM>
-References: <TY3P286MB2611F8A2445A0A2ADE1A843498A39@TY3P286MB2611.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <CAAhSdy14BFhQNd-cLHiZW59U=M90wqRMys5LmxnE46w9p_nr0A@mail.gmail.com>
+Date: Mon, 27 Feb 2023 11:24:22 +0530
+Subject: [PATCH] lib: sbi_hart: Enable hcontext and scontext
+In-Reply-To: <20230210085238.19723-1-nylon.chen@sifive.com>
+References: <20230210085238.19723-1-nylon.chen@sifive.com>
+Message-ID: <CAAhSdy0+Ywcrf5Vu8EiYQRyyN-U-neuV4BVAXjRX9gGTs_rdMQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 15, 2023 at 11:57 PM Shengyu Qu <wiagn233@outlook.com> wrote:
+On Fri, Feb 10, 2023 at 2:22 PM Nylon Chen <nylon.chen@sifive.com> wrote:
 >
-> In docs/firmware/fw.md, there's a configuration parameter called
-> FW_TEXT_ADDR, which actually should be FW_TEXT_START, so fix it.
+> According to the description in "riscv-state-enable[0]", to access
+> h/scontext in S-Mode, we need to enable the 57th bit.
 >
-> Signed-off-by: Shengyu Qu <wiagn233@outlook.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+> If it is not enabled, an "illegal instruction" error will occur.
+>
+> Link: https://github.com/riscv/riscv-state-enable/blob/a28bfae443f350d5b4c42874f428367d5b322ffe/content.adoc [0]
+>
+> Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
+> Reviewed-by: Zong Li <zong.li@sifive.com>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -27,24 +28,37 @@ Thanks,
 Anup
 
 > ---
->  docs/firmware/fw.md | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  include/sbi/riscv_encoding.h | 2 ++
+>  lib/sbi/sbi_hart.c           | 1 +
+>  2 files changed, 3 insertions(+)
 >
-> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
-> index 18faaa9..38351c8 100644
-> --- a/docs/firmware/fw.md
-> +++ b/docs/firmware/fw.md
-> @@ -61,7 +61,7 @@ Firmware Configuration and Compilation
->  All firmware types support the following common compile time configuration
->  parameters:
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index b0f08c8..4ebed97 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -736,6 +736,8 @@
+>  #define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
+>  #define SMSTATEEN0_FCSR_SHIFT          1
+>  #define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
+> +#define SMSTATEEN0_CONTEXT_SHIFT       57
+> +#define SMSTATEEN0_CONTEXT             (_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
+>  #define SMSTATEEN0_IMSIC_SHIFT         58
+>  #define SMSTATEEN0_IMSIC               (_ULL(1) << SMSTATEEN0_IMSIC_SHIFT)
+>  #define SMSTATEEN0_AIA_SHIFT           59
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 02ce991..5e06918 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -90,6 +90,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                 mstateen_val |= ((uint64_t)csr_read(CSR_MSTATEEN0H)) << 32;
+>  #endif
+>                 mstateen_val |= SMSTATEEN_STATEN;
+> +               mstateen_val |= SMSTATEEN0_CONTEXT;
+>                 mstateen_val |= SMSTATEEN0_HSENVCFG;
 >
-> -* **FW_TEXT_ADDR** - Defines the execution address of the OpenSBI firmware.
-> +* **FW_TEXT_START** - Defines the execution address of the OpenSBI firmware.
->    This configuration parameter is mandatory.
->  * **FW_FDT_PATH** - Path to an external flattened device tree binary file to
->    be embedded in the *.rodata* section of the final firmware. If this option
+>                 if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
 > --
-> 2.25.1
+> 2.36.1
 >
 >
 > --
