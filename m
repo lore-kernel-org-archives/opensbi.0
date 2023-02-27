@@ -1,88 +1,60 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 11:42:50 +0530
-Subject: [PATCH v5 0/3] Renesas RZ/Five add support to configure PMA and
- add vendor specific SBI extension
-In-Reply-To: <20230213215111.32017-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20230213215111.32017-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <CAAhSdy3PepnH+xoqWhnurK1Rn+q51vp579FeG3VnZfFV+n-5ww@mail.gmail.com>
+Date: Mon, 27 Feb 2023 11:53:42 +0530
+Subject: [PATCH v2] lib: sbi: sbi_ecall: Check the range of SBI error
+In-Reply-To: <20230222024854.24876-1-peterlin@andestech.com>
+References: <20230222024854.24876-1-peterlin@andestech.com>
+Message-ID: <CAAhSdy2LXU77Y0o2BP=0TPTik-6svmwQtVr6m0px7WMRjGcxLw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 14, 2023 at 3:21 AM Lad Prabhakar
-<prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
+On Wed, Feb 22, 2023 at 8:19 AM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> Hi All,
+> We should also check if the return error code is greater than 0
+> (SBI_SUCCESS), as this is an invalid error.
 >
-> This patch series aims to add support to configure the PMA regions present
-> on the Andes AX45MP core (andes45-pma.c which can be shared with other
-> Andes vendors) and configures the required PMA region for RZ/Five SoC.
->
-> This patch series also adds the SBI vendor extension
-> RENESAS_RZFIVE_SBI_EXT_IOCP_SW_WORKAROUND to check if IOCP is present on
-> the core and if un-available it also checks if SW workaround for cache
-> management needs to be applied.
->
-> v4 -> v5
-> -> Included RB tags from Yu Chien Peter Lin
-> -> Moved PMA configuration code into andes folder
-> -> Rebased the changes on top of [0]
-> [0] https://patchwork.ozlabs.org/project/opensbi/list/?series=341535
->
-> RFC v3 -> v4
-> -> Used bit field for flags in struct andes45_pma_region
-> -> Renamed andes45-pma.h -> andes45_pma.h
-> -> Included RB tag from Lin san for patch 2/3
-> -> Moved CSR to platform/generic/include/andes/andes45.h
-> -> Included sbi/sbi_error.h in andes45-pma.c to fix build issue
->
-> RFC v2 -> RFC v3
-> -> Fixed review comments pointed by Lin-san
->    * Used switch case macro
->    * Added a check to verify the PMA size is power-of-2
->    * Dropped un-needed calculation done in PMA code for NAPOT.
->    * Dropped MISA macro
-> -> Fixed comments pointed by Himanshu
-> -> Fixed check patch issue
->
-> RFC v2 -> RFC v1
-> -> Fixed review comments pointed by Lin-san
-> -> Implemented PMA as library so that it can be shared
->
-> RFC v1:
-> https://patchwork.ozlabs.org/project/opensbi/patch/20221212094421.14556-1-prabhakar.mahadev-lad.rj at bp.renesas.com/
->
-> Cheers,
-> Prabhakar
->
-> Lad Prabhakar (3):
->   platform: generic: renesas: rzfive: Add support to configure the PMA
->   platform: generic: renesas: rzfive: Configure the PMA region
->   platform: generic: renesas: rzfive: Add SBI EXT to check for enabling
->     IOCP errata
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
-Applied first two patches of this series. Please work with Andes folks
-and send v6 of PATCH3.
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
+> ---
+> Changes v1 -> v2:
+> - Include Xiang's Reviewed-by
+> - Drop the 'ret -> out_err' rename
+> ---
+>  lib/sbi/sbi_ecall.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
->  platform/generic/Kconfig                     |   3 +
->  platform/generic/andes/Kconfig               |   5 +
->  platform/generic/andes/andes45-pma.c         | 350 +++++++++++++++++++
->  platform/generic/andes/objects.mk            |   2 +
->  platform/generic/include/andes/andes45.h     |  25 +-
->  platform/generic/include/andes/andes45_pma.h |  48 +++
->  platform/generic/renesas/rzfive/rzfive.c     |  62 ++++
->  7 files changed, 493 insertions(+), 2 deletions(-)
->  create mode 100644 platform/generic/andes/Kconfig
->  create mode 100644 platform/generic/andes/andes45-pma.c
->  create mode 100644 platform/generic/include/andes/andes45_pma.h
+> diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
+> index 27ce5d49..d0f01665 100644
+> --- a/lib/sbi/sbi_ecall.c
+> +++ b/lib/sbi/sbi_ecall.c
+> @@ -120,7 +120,7 @@ int sbi_ecall_handler(struct sbi_trap_regs *regs)
+>                 trap.epc = regs->mepc;
+>                 sbi_trap_redirect(regs, &trap);
+>         } else {
+> -               if (ret < SBI_LAST_ERR) {
+> +               if (ret < SBI_LAST_ERR || SBI_SUCCESS < ret) {
+>                         sbi_printf("%s: Invalid error %d for ext=0x%lx "
+>                                    "func=0x%lx\n", __func__, ret,
+>                                    extension_id, func_id);
+> --
+> 2.34.1
+>
 >
 > --
-> 2.17.1
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
