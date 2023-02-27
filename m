@@ -1,23 +1,22 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 19:24:34 +0530
-Subject: [PATCH 2/3] lib: utils/fdt/fdt_domain: Simplify region access
- permission check
-In-Reply-To: <20230224042827.1768931-2-bmeng@tinylab.org>
-References: <20230224042827.1768931-1-bmeng@tinylab.org> <20230224042827.1768931-2-bmeng@tinylab.org>
-Message-ID: <CAAhSdy0zYcBhdONeqzKU-Xr4gDuPnOZwQM++W8neYhC5sh8fKQ@mail.gmail.com>
+Date: Mon, 27 Feb 2023 19:25:15 +0530
+Subject: [PATCH 3/3] docs: domain_support: Update the DT example
+In-Reply-To: <20230224042827.1768931-3-bmeng@tinylab.org>
+References: <20230224042827.1768931-1-bmeng@tinylab.org> <20230224042827.1768931-3-bmeng@tinylab.org>
+Message-ID: <CAAhSdy3uT1aEak8VA32H_Skm8BGnqXmNcfz2N2HyDJ9vSSWKBw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 24, 2023 at 10:01 AM Bin Meng <bmeng@tinylab.org> wrote:
+On Fri, Feb 24, 2023 at 10:02 AM Bin Meng <bmeng@tinylab.org> wrote:
 >
-> The region access permission check in __fdt_parse_region() can be
-> simplified as masking SBI_DOMAIN_MEMREGION_{M,SU}_ACCESS_MASK is
-> enough.
+> commit 3e2f573e707e ("lib: utils: Disallow non-root domains from adding M-mode regions")
+> added access permission check in __fdt_parse_region(). With the
+> existing DT example in the doc OpenSBI won't boot anymore.
 >
-> While we are here, update the confusing comments to match the codes.
+> Let's update the DT example so that it can work out of the box.
 >
 > Signed-off-by: Bin Meng <bmeng@tinylab.org>
 
@@ -32,31 +31,31 @@ Anup
 
 > ---
 >
->  lib/utils/fdt/fdt_domain.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
+>  docs/domain_support.md | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 2b51a8e..bc30010 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -244,13 +244,11 @@ static int __fdt_parse_region(void *fdt, int domain_offset,
->          * access permissions. M-mode regions can only be part of
->          * root domain.
->          *
-> -        * SU permission bits can't be all zeroes and M-mode permission
-> -        * bits must be all set.
-> +        * SU permission bits can't be all zeroes when M-mode permission
-> +        * bits have at least one bit set.
->          */
-> -       if (!((region_access & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
-> -            & SBI_DOMAIN_MEMREGION_SU_RWX)
-> -           && ((region_access & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK)
-> -               & SBI_DOMAIN_MEMREGION_M_RWX))
-> +       if (!(region_access & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
-> +           && (region_access & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK))
->                 return SBI_EINVAL;
->
->         /* Find next region of the domain */
+> diff --git a/docs/domain_support.md b/docs/domain_support.md
+> index 4ccbcff..2a9ca3d 100644
+> --- a/docs/domain_support.md
+> +++ b/docs/domain_support.md
+> @@ -254,7 +254,7 @@ be done:
+>              tdomain: trusted-domain {
+>                  compatible = "opensbi,domain,instance";
+>                  possible-harts = <&cpu0>;
+> -                regions = <&tmem 0x7>, <&tuart 0x7>;
+> +                regions = <&tmem 0x3f>, <&tuart 0x3f>;
+>                  boot-hart = <&cpu0>;
+>                  next-arg1 = <0x0 0x0>;
+>                  next-addr = <0x0 0x80100000>;
+> @@ -265,7 +265,7 @@ be done:
+>              udomain: untrusted-domain {
+>                  compatible = "opensbi,domain,instance";
+>                  possible-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
+> -                regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x7>;
+> +                regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x3f>;
+>              };
+>          };
+>      };
 > --
 > 2.25.1
 >
