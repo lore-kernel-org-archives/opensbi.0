@@ -1,59 +1,73 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 27 Feb 2023 11:30:58 +0100
-Subject: [PATCH v2 03/11] lib: sbi_hsm: Ensure errors are consistent with spec
+Date: Mon, 27 Feb 2023 11:31:01 +0100
+Subject: [PATCH v2 06/11] lib: sbi_hsm: Export some functions
 In-Reply-To: <20230227103106.137995-1-ajones@ventanamicro.com>
 References: <20230227103106.137995-1-ajones@ventanamicro.com>
-Message-ID: <20230227103106.137995-4-ajones@ventanamicro.com>
+Message-ID: <20230227103106.137995-7-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-HSM functions define when SBI_ERR_INVALID_PARAM should be returned.
-Ensure it's not used for reasons that don't meet the definitions by
-using the catch-all code, SBI_ERR_FAILED, for those reasons instead.
-Also, in one case sbi_hart_suspend() may have returned SBI_ERR_DENIED,
-which isn't defined for that function at all. Use SBI_ERR_FAILED for
-that case too.
+A coming patch can make use of a few internal hsm functions if
+we export them.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_hsm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/sbi/sbi_hsm.h |  4 ++++
+ lib/sbi/sbi_hsm.c     | 12 ++++++++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index 1170127baa87..c0b483030de8 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -69,9 +69,13 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
+ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
+ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 			 ulong raddr, ulong rmode, ulong arg1);
++bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
++			       long newstate);
++int __sbi_hsm_hart_get_state(u32 hartid);
+ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+ 				    ulong hbase, ulong *out_hmask);
++void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
+ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+ 
+ #endif
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 7ee4159256be..3455520b8a94 100644
+index 294156a9a7bd..3eeeb586cbb8 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -402,7 +402,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+@@ -46,7 +46,15 @@ struct sbi_hsm_data {
+ 	unsigned long saved_mip;
+ };
  
- 	/* Sanity check on domain assigned to current HART */
- 	if (!dom)
--		return SBI_EINVAL;
-+		return SBI_EFAIL;
+-static inline int __sbi_hsm_hart_get_state(u32 hartid)
++bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
++			       long newstate)
++{
++	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
++							    hart_data_offset);
++	return __sbi_hsm_hart_change_state(hdata, oldstate, newstate);
++}
++
++int __sbi_hsm_hart_get_state(u32 hartid)
+ {
+ 	struct sbi_hsm_data *hdata;
+ 	struct sbi_scratch *scratch;
+@@ -328,7 +336,7 @@ static int __sbi_hsm_suspend_default(struct sbi_scratch *scratch)
+ 	return 0;
+ }
  
- 	/* Sanity check on suspend type */
- 	if (SBI_HSM_SUSPEND_RET_DEFAULT < suspend_type &&
-@@ -415,7 +415,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	/* Additional sanity check for non-retentive suspend */
- 	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
- 		if (rmode != PRV_S && rmode != PRV_U)
--			return SBI_EINVAL;
-+			return SBI_EFAIL;
- 		if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
- 						  SBI_DOMAIN_EXECUTE))
- 			return SBI_EINVALID_ADDR;
-@@ -429,7 +429,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 	/* Directly move from STARTED to SUSPENDED state */
- 	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
- 					 SBI_HSM_STATE_SUSPENDED))
--		return SBI_EDENIED;
-+		return SBI_EFAIL;
- 
- 	/* Save the suspend type */
- 	hdata->suspend_type = suspend_type;
+-static void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
++void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
 -- 
 2.39.1
 
