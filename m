@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 19:54:46 +0530
-Subject: [PATCH v2 09/11] lib: sbi: Implement system suspend
-In-Reply-To: <20230227103106.137995-10-ajones@ventanamicro.com>
-References: <20230227103106.137995-1-ajones@ventanamicro.com> <20230227103106.137995-10-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy07PSoxmiRi3-+vT70iBQAjkLq+1tK75biSLMwm8H_qKw@mail.gmail.com>
+Date: Mon, 27 Feb 2023 19:55:02 +0530
+Subject: [PATCH v2 10/11] docs: Correct opensbi-domain property name
+In-Reply-To: <20230227103106.137995-11-ajones@ventanamicro.com>
+References: <20230227103106.137995-1-ajones@ventanamicro.com> <20230227103106.137995-11-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy1Z-qTB7_et327LXtc8os1QEc3nB8FjzJnHjdBScp59cA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,9 +12,7 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Feb 27, 2023 at 4:01 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> Fill the implementation of the system suspend ecall. A platform
-> implementation of the suspend callbacks is still required for this
-> to do anything.
+> Replace the commas with dashes to correct the name.
 >
 > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 > Reviewed-by: Anup Patel <anup@brainfault.org>
@@ -25,75 +23,26 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_system.c | 57 +++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 56 insertions(+), 1 deletion(-)
+>  docs/domain_support.md | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index 5c123a6c9d8d..7fa5ea82b7a6 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -116,5 +116,60 @@ bool sbi_system_suspend_supported(u32 sleep_type)
+> diff --git a/docs/domain_support.md b/docs/domain_support.md
+> index e2ff896bd550..265d8d85786e 100644
+> --- a/docs/domain_support.md
+> +++ b/docs/domain_support.md
+> @@ -207,9 +207,9 @@ platform support can provide the HART to domain instance assignment using
+>  platform specific callback.
 >
->  int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
->  {
-> -       return 0;
-> +       int ret = SBI_ENOTSUPP;
-> +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +       void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
-> +       unsigned int hartid = current_hartid();
-> +       unsigned long prev_mode;
-> +       unsigned long i;
-> +
-> +       if (!dom || !dom->system_suspend_allowed)
-> +               return SBI_EFAIL;
-> +
-> +       if (!suspend_dev || !suspend_dev->system_suspend)
-> +               return SBI_EFAIL;
-> +
-> +       if (!sbi_system_suspend_supported(sleep_type))
-> +               return SBI_ENOTSUPP;
-> +
-> +       prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-> +       if (prev_mode != PRV_S && prev_mode != PRV_U)
-> +               return SBI_EFAIL;
-> +
-> +       sbi_hartmask_for_each_hart(i, &dom->assigned_harts) {
-> +               if (i == hartid)
-> +                       continue;
-> +               if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED)
-> +                       return SBI_EFAIL;
-> +       }
-> +
-> +       if (!sbi_domain_check_addr(dom, resume_addr, prev_mode,
-> +                                  SBI_DOMAIN_EXECUTE))
-> +               return SBI_EINVALID_ADDR;
-> +
-> +       if (!sbi_hsm_hart_change_state(scratch, SBI_HSM_STATE_STARTED,
-> +                                      SBI_HSM_STATE_SUSPENDED))
-> +               return SBI_EFAIL;
-> +
-> +       /* Prepare for resume */
-> +       scratch->next_mode = prev_mode;
-> +       scratch->next_addr = resume_addr;
-> +       scratch->next_arg1 = opaque;
-> +
-> +       __sbi_hsm_suspend_non_ret_save(scratch);
-> +
-> +       /* Suspend */
-> +       ret = suspend_dev->system_suspend(sleep_type, scratch->warmboot_addr);
-> +       if (ret != SBI_OK) {
-> +               if (!sbi_hsm_hart_change_state(scratch, SBI_HSM_STATE_SUSPENDED,
-> +                                              SBI_HSM_STATE_STARTED))
-> +                       sbi_hart_hang();
-> +               return ret;
-> +       }
-> +
-> +       /* Resume */
-> +       jump_warmboot();
-> +
-> +       __builtin_unreachable();
->  }
+>  The HART to domain instance assignment can be parsed from the device tree
+> -using optional DT property **opensbi,domain** in each CPU DT node. The
+> -value of DT property **opensbi,domain** is the DT phandle of the domain
+> -instance DT node. If **opensbi,domain** DT property is not specified then
+> +using optional DT property **opensbi-domain** in each CPU DT node. The
+> +value of DT property **opensbi-domain** is the DT phandle of the domain
+> +instance DT node. If **opensbi-domain** DT property is not specified then
+>  corresponding HART is assigned to **the ROOT domain**.
+>
+>  ### Domain Configuration Only Accessible to OpenSBI
 > --
 > 2.39.1
 >
