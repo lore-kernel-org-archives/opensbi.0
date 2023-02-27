@@ -1,169 +1,98 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 19:55:58 +0530
-Subject: [PATCH v2 11/11] platform: generic: Add system suspend test
-In-Reply-To: <20230227103106.137995-12-ajones@ventanamicro.com>
-References: <20230227103106.137995-1-ajones@ventanamicro.com> <20230227103106.137995-12-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy2o5PEZZ0XjrncRxoALr_9we9Xe0zFC3Q7hq1Kzz=ePRw@mail.gmail.com>
+Date: Mon, 27 Feb 2023 20:54:48 +0530
+Subject: [PATCH v4] lib: sbi: fix missing '\r' for console
+In-Reply-To: <20230213090929.144906-1-wxjstz@126.com>
+References: <20230213090929.144906-1-wxjstz@126.com>
+Message-ID: <CAAhSdy2425+iLY1z4QjQ1awpUzhx-MuXjPsj58ZztSx1u16qaw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 27, 2023 at 4:01 PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Mon, Feb 13, 2023 at 2:40 PM Xiang W <wxjstz@126.com> wrote:
 >
-> When the system-suspend-test property is present in the domain config
-> node as shown below, implement system suspend with a simple 5 second
-> delay followed by a WFI. This allows testing system suspend when the
-> low-level firmware doesn't support it.
+> print is finally implemented by sbi_putc or console_dev->puts. sbi_putc
+> will add a \r before the output \n. This patch adds missing \r when
+> outputting characters via console_dev->puts.
 >
->   / {
->     chosen {
->       opensbi-domains {
->           compatible = "opensbi,domain,config";
->           system-suspend-test;
->       };
+> Signed-off-by: Xiang W <wxjstz@126.com>
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Changes since v4:
+> - nputs_all come back
+> - implement partial writes as much as possible
+>
+> Changes since v3:
+> - Prevent string overflow when looking for \n
+>
+> Changes since v2:
+> - Fix the bug reported by Samuel. Prevent p from accessing memory other
+>   than strings.
+>
 > ---
->  docs/domain_support.md      |  4 ++++
->  include/sbi/sbi_system.h    |  1 +
->  lib/sbi/sbi_system.c        | 31 +++++++++++++++++++++++++++++++
->  platform/generic/platform.c | 20 +++++++++++++++++++-
->  4 files changed, 55 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_console.c | 31 ++++++++++++++++++++++++++++++-
+>  1 file changed, 30 insertions(+), 1 deletion(-)
 >
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index 265d8d85786e..c13014a5f7cf 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -126,6 +126,9 @@ The DT properties of a domain configuration DT node are as follows:
->  * **compatible** (Mandatory) - The compatible string of the domain
->    configuration. This DT property should have value *"opensbi,domain,config"*
->
-> +* **system-suspend-test** (Optional) - When present, enable a system
-> +  suspend test implementation which simply waits five seconds and issues a WFI.
-> +
->  ### Domain Memory Region Node
->
->  The domain memory region DT node describes details of a memory region and
-> @@ -234,6 +237,7 @@ be done:
->      chosen {
->          opensbi-domains {
->              compatible = "opensbi,domain,config";
-> +            system-suspend-test;
->
->              tmem: tmem {
->                  compatible = "opensbi,domain,memregion";
-> diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
-> index d70ef8bb8874..b4e86aef8949 100644
-> --- a/include/sbi/sbi_system.h
-> +++ b/include/sbi/sbi_system.h
-> @@ -66,6 +66,7 @@ struct sbi_system_suspend_device {
->
->  const struct sbi_system_suspend_device *sbi_system_suspend_get_device(void);
->  void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev);
-> +void sbi_system_suspend_test_enable(void);
->  bool sbi_system_suspend_supported(u32 sleep_type);
->  int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque);
->
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index 7fa5ea82b7a6..6eaf6c9508e0 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -17,6 +17,7 @@
->  #include <sbi/sbi_system.h>
->  #include <sbi/sbi_ipi.h>
->  #include <sbi/sbi_init.h>
-> +#include <sbi/sbi_timer.h>
->
->  static SBI_LIST_HEAD(reset_devices_list);
->
-> @@ -108,6 +109,36 @@ void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev)
->         suspend_dev = dev;
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index f3ac003..4be5a8f 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -46,12 +46,41 @@ void sbi_putc(char ch)
+>         }
 >  }
 >
-> +static int sbi_system_suspend_test_check(u32 sleep_type)
+> +static unsigned long console_puts_all(const char *str, unsigned long len)
 > +{
-> +       return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND;
+> +       const char *s = str;
+> +       const char *e = s + len;
+> +       while (s < e)
+> +               s += console_dev->console_puts(s, e - s);
+> +       return len;
 > +}
 > +
-> +static int sbi_system_suspend_test_suspend(u32 sleep_type,
-> +                                          unsigned long warmboot_addr)
+> +static unsigned long console_puts(const char *str, unsigned long len)
+> +{
+> +       unsigned long l;
+> +       const char *s, *p, *e;
+> +       s = str;
+> +       e = str + len;
+> +       while (s < e) {
+> +               p = sbi_strchr(s, '\n');
 
-Renamed this parameter to mmode_resume_addr at the time of
-merging this patch.
+Introduce "char *sbi_strnchr(const char *s, int c, size_t count)" and
+use it here. This will simplify the below condition in "if ()" as well.
 
-> +{
-> +       if (sleep_type != SBI_SUSP_SLEEP_TYPE_SUSPEND)
-> +               return SBI_EINVAL;
-> +
-> +       sbi_timer_mdelay(5000);
-> +
-> +       /* Wait for interrupt */
-> +       wfi();
-> +
-> +       return SBI_OK;
-> +}
-> +
-> +static struct sbi_system_suspend_device sbi_system_suspend_test = {
-> +       .name = "system-suspend-test",
-> +       .system_suspend_check = sbi_system_suspend_test_check,
-> +       .system_suspend = sbi_system_suspend_test_suspend,
-> +};
-> +
-> +void sbi_system_suspend_test_enable(void)
-> +{
-> +       sbi_system_suspend_set_device(&sbi_system_suspend_test);
-> +}
-> +
->  bool sbi_system_suspend_supported(u32 sleep_type)
->  {
->         return suspend_dev && suspend_dev->system_suspend_check &&
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 0b90fd7c1446..eeefef4c9533 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -13,6 +13,7 @@
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi/sbi_platform.h>
->  #include <sbi/sbi_string.h>
-> +#include <sbi/sbi_system.h>
->  #include <sbi_utils/fdt/fdt_domain.h>
->  #include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> @@ -219,7 +220,24 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
->
->  static int generic_domains_init(void)
->  {
-> -       return fdt_domains_populate(fdt_get_address());
-> +       void *fdt = fdt_get_address();
-> +       int offset, ret;
-> +
-> +       ret = fdt_domains_populate(fdt);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       offset = fdt_path_offset(fdt, "/chosen");
-> +
-> +       if (offset >= 0) {
-> +               offset = fdt_node_offset_by_compatible(fdt, offset,
-> +                                                      "opensbi,domain,config");
-> +               if (offset >= 0 &&
-> +                   fdt_get_property(fdt, offset, "system-suspend-test", NULL))
-> +                       sbi_system_suspend_test_enable();
+> +               if (p == NULL || p > e)
+> +                       p = e;
+> +               l = console_dev->console_puts(s, p - s);
+> +               if (l < p - s)
+> +                       return s - str + l;
+> +               if (p < e && *p == '\n')
+> +                       console_puts_all("\r\n", 2);
+> +               s = p + 1;
 > +       }
+> +       return len;
+> +}
 > +
-> +       return 0;
->  }
+>  static unsigned long nputs(const char *str, unsigned long len)
+>  {
+>         unsigned long i, ret;
 >
->  static u64 generic_tlbr_flush_limit(void)
+>         if (console_dev && console_dev->console_puts) {
+> -               ret = console_dev->console_puts(str, len);
+> +               ret = console_puts(str, len);
+>         } else {
+>                 for (i = 0; i < len; i++)
+>                         sbi_putc(str[i]);
 > --
 > 2.39.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
