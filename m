@@ -1,49 +1,50 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 27 Feb 2023 11:30:57 +0100
-Subject: [PATCH v2 02/11] lib: sbi_hsm: Don't try to restore state on failed change
+Date: Mon, 27 Feb 2023 11:30:59 +0100
+Subject: [PATCH v2 04/11] lib: sbi_hsm: Move misplaced comment
 In-Reply-To: <20230227103106.137995-1-ajones@ventanamicro.com>
 References: <20230227103106.137995-1-ajones@ventanamicro.com>
-Message-ID: <20230227103106.137995-3-ajones@ventanamicro.com>
+Message-ID: <20230227103106.137995-5-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When a state change fails there's no need to restore the original
-state as it remains the same.
+While non-retentive suspend is not allowed for M-mode, the comment
+at the top of sbi_hsm_hart_suspend() implied suspend wasn't allowed
+for M-mode at all. Move the comment above the mode check which is
+inside a suspend type is non-retentive check.
 
 Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_hsm.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ lib/sbi/sbi_hsm.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index b71ee6ba4e80..7ee4159256be 100644
+index 3455520b8a94..294156a9a7bd 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -428,10 +428,8 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+@@ -398,8 +398,6 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
  
- 	/* Directly move from STARTED to SUSPENDED state */
- 	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
--					 SBI_HSM_STATE_SUSPENDED)) {
--		ret = SBI_EDENIED;
--		goto fail_restore_state;
--	}
-+					 SBI_HSM_STATE_SUSPENDED))
-+		return SBI_EDENIED;
+-	/* For now, we only allow suspend from S-mode or U-mode. */
+-
+ 	/* Sanity check on domain assigned to current HART */
+ 	if (!dom)
+ 		return SBI_EFAIL;
+@@ -414,6 +412,10 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
  
- 	/* Save the suspend type */
- 	hdata->suspend_type = suspend_type;
-@@ -466,7 +464,6 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 		jump_warmboot();
- 	}
- 
--fail_restore_state:
- 	/*
- 	 * We might have successfully resumed from retentive suspend
- 	 * or suspend failed. In both cases, we restore state of hart.
+ 	/* Additional sanity check for non-retentive suspend */
+ 	if (suspend_type & SBI_HSM_SUSP_NON_RET_BIT) {
++		/*
++		 * For now, we only allow non-retentive suspend from
++		 * S-mode or U-mode.
++		 */
+ 		if (rmode != PRV_S && rmode != PRV_U)
+ 			return SBI_EFAIL;
+ 		if (dom && !sbi_domain_check_addr(dom, raddr, rmode,
 -- 
 2.39.1
 
