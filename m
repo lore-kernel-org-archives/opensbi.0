@@ -1,44 +1,66 @@
-From: Bin Meng <bmeng.cn@gmail.com>
-Date: Mon, 27 Feb 2023 10:09:44 +0800
-Subject: [PATCH v2] lib: sbi_domain: Avoid overwriting coldboot hart's scratch->arg1
-In-Reply-To: <CAAhSdy3JXUPXUO4dcwstXWSpXS3YLKe=6FjvRA6J3wCPj4BW1w@mail.gmail.com>
-References: <20230223095348.1723380-1-bmeng@tinylab.org> <CAAhSdy3JXUPXUO4dcwstXWSpXS3YLKe=6FjvRA6J3wCPj4BW1w@mail.gmail.com>
-Message-ID: <CAEUhbmU4Wf=7WtKhQe5Y5PWC3T3p8coL6NnUOmFP94EzcyVGYQ@mail.gmail.com>
+From: Bin Meng <bmeng@tinylab.org>
+Date: Mon, 27 Feb 2023 10:35:06 +0800
+Subject: [PATCH] make: Add a command line option for debugging OpenSBI
+Message-ID: <20230227023506.1818620-1-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+Add a new make command line option "make DEBUG=1" to prevent compiler
+optimizations using -O2.
 
-On Fri, Feb 24, 2023 at 12:50?PM Anup Patel <anup@brainfault.org> wrote:
->
-> On Thu, Feb 23, 2023 at 3:24 PM Bin Meng <bmeng@tinylab.org> wrote:
-> >
-> > In sbi_domain_finalize(), when locating the coldboot hart's domain,
-> > the coldboot hart's scratch->arg1 will be overwritten by the domain
-> > configuration. scratch->arg1 holds the FDT address of the coldboot
-> > hart, and in later boot process OpenSBI codes still read the FDT
-> > here and there, which leads to a crash.
-> >
-> > To fix this, we change fdt_get_address() to return root domain's
-> > next_arg1 as the FDT pointer.
-> >
-> > Resolves: https://github.com/riscv-software-src/opensbi/issues/281
-> > Fixes: b1678af210dc ("lib: sbi: Add initial domain support")
-> > Reported-by: Marouene Boubakri <marouene.boubakri@nxp.com>
-> > Signed-off-by: Bin Meng <bmeng@tinylab.org>
->
-> Looks good to me.
->
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Bin Meng <bmeng@tinylab.org>
+---
 
-Thanks for the review!
+ Makefile  |  7 ++++++-
+ README.md | 13 +++++++++++++
+ 2 files changed, 19 insertions(+), 1 deletion(-)
 
-This v2 was superseded by v3 @
-https://patchwork.ozlabs.org/project/opensbi/list/?series=343310
+diff --git a/Makefile b/Makefile
+index b20404f..a26a39b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -331,7 +331,12 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
+ GENFLAGS	+=	$(platform-genflags-y)
+ GENFLAGS	+=	$(firmware-genflags-y)
+ 
+-CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
++CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
++ifneq ($(DEBUG),)
++CFLAGS		+=	-O0
++else
++CFLAGS		+=	-O2
++endif
+ CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
+ # enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
+ ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+diff --git a/README.md b/README.md
+index 895bbf2..a6bcb0c 100644
+--- a/README.md
++++ b/README.md
+@@ -298,6 +298,19 @@ NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will violate
+ purpose, and should NOT be used in a product which follows "reproducible
+ builds".
+ 
++Building with optimization off for debugging
++--------------------------------------------
++
++When debugging OpenSBI, we may want to turn off the compiler optimization and
++make debugging produce the expected results for a better debugging experience.
++To build with optimization off we can just simply add `DEBUG=1`, like:
++```
++make DEBUG=1
++```
++
++This definition is ONLY for development and debug purpose, and should NOT be
++used in a product build.
++
+ Contributing to OpenSBI
+ -----------------------
+ 
+-- 
+2.25.1
 
-Regards,
-Bin
 
