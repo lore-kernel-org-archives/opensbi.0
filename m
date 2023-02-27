@@ -1,244 +1,192 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 19:30:34 +0530
-Subject: [PATCH] gpio/starfive: add gpio driver and support gpio reset
-In-Reply-To: <d0ca6d1c-6761-6b35-6ca8-4244937b1392@starfivetech.com>
-References: <20230216092126.99022-1-minda.chen@starfivetech.com>
- <CAAhSdy3gUbX3+54-i6PSo99UMGVE60VSYALRLA5QVazSqLCQmQ@mail.gmail.com> <d0ca6d1c-6761-6b35-6ca8-4244937b1392@starfivetech.com>
-Message-ID: <CAAhSdy1fMYFVddf2UqkY8P0QBexeUt0FZLCg768LMkezUTzXAw@mail.gmail.com>
+Date: Mon, 27 Feb 2023 19:51:48 +0530
+Subject: [PATCH v2 01/11] lib: sbi_hsm: Factor out invalid state detection
+In-Reply-To: <20230227103106.137995-2-ajones@ventanamicro.com>
+References: <20230227103106.137995-1-ajones@ventanamicro.com> <20230227103106.137995-2-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy0y2w=w-XQTVoE_rhqnybmbcgQt7uE5T9BZptbnrRpafA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 27, 2023 at 4:53 PM Minda Chen <minda.chen@starfivetech.com> wrote:
+On Mon, Feb 27, 2023 at 4:01 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
+> Remove some redundant code by creating an invalid state detection
+> macro.
 >
+> No functional change intended.
 >
-> On 2023/2/27 14:44, Anup Patel wrote:
-> > On Thu, Feb 16, 2023 at 2:52 PM minda.chen <minda.chen@starfivetech.com> wrote:
-> >>
-> >> Add gpio driver and gpio reset function in Starfive
-> >> JH7110 SOC platform.
-> >>
-> >> Signed-off-by: minda.chen <minda.chen@starfivetech.com>
-> >
-> > I don't see a PATCH enabling it in defconfig.
-> >
-> > How is this driver used in OpenSBI ?
-> >
-> > Regards,
-> > Anup
-> >
-> I have enabled CONFIG_FDT_GPIO_STARFIVE in defconfig in this patch.
+> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Okay.
+Applied this patch to the riscv/opensbi repo.
 
->
->  --- a/platform/generic/configs/defconfig
->  +++ b/platform/generic/configs/defconfig
->  @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
->   CONFIG_PLATFORM_STARFIVE_JH7110=y
->   CONFIG_FDT_GPIO=y
->   CONFIG_FDT_GPIO_SIFIVE=y
->  +CONFIG_FDT_GPIO_STARFIVE=y
->
-> May I set this change to second commit ?
-
-No need for a separate patch.
-
->
-> This patch is a gpio reset implementation for sbi ecall SBI_EXT_SRST_RESET.
-
-Fare enough but you also send another series
-"Add StarFive JH7110 SoC shutdown and reboot ops"
-which provides system reboot based on I2C PMIC.
-
-Basically, we have two separate system reboot ops
-for JH7110, is that right ?
-
-Regards,
+Thanks,
 Anup
 
-
+> ---
+>  lib/sbi/sbi_hsm.c | 65 +++++++++++++++++------------------------------
+>  1 file changed, 24 insertions(+), 41 deletions(-)
 >
-> >> ---
-> >>  lib/utils/gpio/Kconfig             |   3 +
-> >>  lib/utils/gpio/fdt_gpio_starfive.c | 117 +++++++++++++++++++++++++++++
-> >>  lib/utils/gpio/objects.mk          |   3 +
-> >>  platform/generic/configs/defconfig |   1 +
-> defconfig have been changed.
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 8499bb1ddeae..b71ee6ba4e80 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -26,6 +26,15 @@
+>  #include <sbi/sbi_timer.h>
+>  #include <sbi/sbi_console.h>
 >
-> >>  4 files changed, 124 insertions(+)
-> >>  create mode 100644 lib/utils/gpio/fdt_gpio_starfive.c
-> >>
-> >> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
-> >> index 38a9d75..1b338a6 100644
-> >> --- a/lib/utils/gpio/Kconfig
-> >> +++ b/lib/utils/gpio/Kconfig
-> >> @@ -14,6 +14,9 @@ config FDT_GPIO_SIFIVE
-> >>         bool "SiFive GPIO FDT driver"
-> >>         default n
-> >>
-> >> +config FDT_GPIO_STARFIVE
-> >> +       bool "StarFive GPIO FDT driver"
-> >> +       default n
-> >>  endif
-> >>
-> >>  config GPIO
-> >> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
-> >> new file mode 100644
-> >> index 0000000..18cca72
-> >> --- /dev/null
-> >> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
-> >> @@ -0,0 +1,117 @@
-> >> +/*
-> >> + * SPDX-License-Identifier: BSD-2-Clause
-> >> + *
-> >> + * Copyright (c) 2022 Starfive
-> >> + *
-> >> + * Authors:
-> >> + *   Minda.chen <Minda.chen@starfivetech.com>
-> >> + */
-> >> +
-> >> +#include <sbi/riscv_io.h>
-> >> +#include <sbi/sbi_error.h>
-> >> +#include <sbi/sbi_console.h>
-> >> +#include <sbi_utils/fdt/fdt_helper.h>
-> >> +#include <sbi_utils/gpio/fdt_gpio.h>
-> >> +
-> >> +#define STARFIVE_GPIO_CHIP_MAX         2
-> >> +#define STARFIVE_GPIO_PINS_DEF         64
-> >> +#define STARFIVE_GPIO_OUTVAL           0x40
-> >> +#define STARFIVE_GPIO_MASK             0xff
-> >> +#define STARFIVE_GPIO_REG_SHIFT_MASK   0x3
-> >> +#define STARFIVE_GPIO_SHIFT_BITS       0x3
-> >> +
-> >> +struct starfive_gpio_chip {
-> >> +       unsigned long addr;
-> >> +       struct gpio_chip chip;
-> >> +};
-> >> +
-> >> +static unsigned int starfive_gpio_chip_count;
-> >> +static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
-> >> +
-> >> +static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
-> >> +{
-> >> +       u32 val;
-> >> +       unsigned long reg_addr;
-> >> +       u32 bit_mask, shift_bits;
-> >> +       struct starfive_gpio_chip *chip =
-> >> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
-> >> +
-> >> +       /* set out en*/
-> >> +       reg_addr = chip->addr + gp->offset;
-> >> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
-> >> +
-> >> +       val = readl((void *)(reg_addr));
-> >> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
-> >> +               << STARFIVE_GPIO_SHIFT_BITS;
-> >> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
-> >> +
-> >> +       val = readl((void *)reg_addr);
-> >> +       val &= ~bit_mask;
-> >> +       writel(val, (void *)reg_addr);
-> >> +
-> >> +       return 0;
-> >> +}
-> >> +
-> >> +static void starfive_gpio_set(struct gpio_pin *gp, int value)
-> >> +{
-> >> +       u32 val;
-> >> +       unsigned long reg_addr;
-> >> +       u32 bit_mask, shift_bits;
-> >> +       struct starfive_gpio_chip *chip =
-> >> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
-> >> +
-> >> +       reg_addr = chip->addr + gp->offset;
-> >> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
-> >> +
-> >> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
-> >> +               << STARFIVE_GPIO_SHIFT_BITS;
-> >> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
-> >> +       /* set output value */
-> >> +       val = readl((void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
-> >> +       val &= ~bit_mask;
-> >> +       val |= value << shift_bits;
-> >> +       writel(val, (void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
-> >> +}
-> >> +
-> >> +extern struct fdt_gpio fdt_gpio_starfive;
-> >> +
-> >> +static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
-> >> +                             const struct fdt_match *match)
-> >> +{
-> >> +       int rc;
-> >> +       struct starfive_gpio_chip *chip;
-> >> +       u64 addr;
-> >> +
-> >> +       if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
-> >> +               return SBI_ENOSPC;
-> >> +       chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
-> >> +
-> >> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> >> +       if (rc)
-> >> +               return rc;
-> >> +
-> >> +       chip->addr = addr;
-> >> +       chip->chip.driver = &fdt_gpio_starfive;
-> >> +       chip->chip.id = phandle;
-> >> +       chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
-> >> +       chip->chip.direction_output = starfive_gpio_direction_output;
-> >> +       chip->chip.set = starfive_gpio_set;
-> >> +       rc = gpio_chip_add(&chip->chip);
-> >> +       if (rc)
-> >> +               return rc;
-> >> +
-> >> +       starfive_gpio_chip_count++;
-> >> +       return 0;
-> >> +}
-> >> +
-> >> +static const struct fdt_match starfive_gpio_match[] = {
-> >> +       { .compatible = "starfive,jh7110-sys-pinctrl" },
-> >> +       { .compatible = "starfive,iomux-pinctrl" },
-> >> +       { },
-> >> +};
-> >> +
-> >> +struct fdt_gpio fdt_gpio_starfive = {
-> >> +       .match_table = starfive_gpio_match,
-> >> +       .xlate = fdt_gpio_simple_xlate,
-> >> +       .init = starfive_gpio_init,
-> >> +};
-> >> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-> >> index eedd699..8f4a6a8 100644
-> >> --- a/lib/utils/gpio/objects.mk
-> >> +++ b/lib/utils/gpio/objects.mk
-> >> @@ -13,4 +13,7 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
-> >>  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
-> >>  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
-> >>
-> >> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_STARFIVE) += fdt_gpio_starfive
-> >> +libsbiutils-objs-$(CONFIG_FDT_GPIO_STARFIVE) += gpio/fdt_gpio_starfive.o
-> >> +
-> >>  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
-> >> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> >> index 4b0842e..2ad953d 100644
-> >> --- a/platform/generic/configs/defconfig
-> >> +++ b/platform/generic/configs/defconfig
-> >> @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
-> >>  CONFIG_PLATFORM_STARFIVE_JH7110=y
-> >>  CONFIG_FDT_GPIO=y
-> >>  CONFIG_FDT_GPIO_SIFIVE=y
-> >> +CONFIG_FDT_GPIO_STARFIVE=y
-> >>  CONFIG_FDT_I2C=y
-> >>  CONFIG_FDT_I2C_SIFIVE=y
-> >>  CONFIG_FDT_IPI=y
-> >> --
-> >> 2.17.1
-> >>
-> >>
-> >> --
-> >> opensbi mailing list
-> >> opensbi at lists.infradead.org
-> >> http://lists.infradead.org/mailman/listinfo/opensbi
+> +#define __sbi_hsm_hart_change_state(hdata, oldstate, newstate)         \
+> +({                                                                     \
+> +       long state = atomic_cmpxchg(&(hdata)->state, oldstate, newstate); \
+> +       if (state != (oldstate))                                        \
+> +               sbi_printf("%s: ERR: The hart is in invalid state [%lu]\n", \
+> +                          __func__, state);                            \
+> +       state == (oldstate);                                            \
+> +})
+> +
+>  static const struct sbi_hsm_device *hsm_dev = NULL;
+>  static unsigned long hart_data_offset;
+>
+> @@ -95,13 +104,11 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>
+>  void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>  {
+> -       u32 oldstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_START_PENDING,
+> -                                 SBI_HSM_STATE_STARTED);
+> -       if (oldstate != SBI_HSM_STATE_START_PENDING)
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
+> +                                        SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+>  }
+>
+> @@ -217,14 +224,12 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+>
+>  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
+>  {
+> -       u32 hstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>         void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+>
+> -       hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOP_PENDING,
+> -                               SBI_HSM_STATE_STOPPED);
+> -       if (hstate != SBI_HSM_STATE_STOP_PENDING)
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STOP_PENDING,
+> +                                        SBI_HSM_STATE_STOPPED))
+>                 goto fail_exit;
+>
+>         if (hsm_device_has_hart_hotplug()) {
+> @@ -298,7 +303,6 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+>
+>  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+>  {
+> -       int oldstate;
+>         const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+> @@ -306,13 +310,9 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
+>         if (!dom)
+>                 return SBI_EFAIL;
+>
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+> -                                 SBI_HSM_STATE_STOP_PENDING);
+> -       if (oldstate != SBI_HSM_STATE_STARTED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
+> +                                        SBI_HSM_STATE_STOP_PENDING))
+>                 return SBI_EFAIL;
+> -       }
+>
+>         if (exitnow)
+>                 sbi_exit(scratch);
+> @@ -362,36 +362,26 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+>
+>  void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+>  {
+> -       int oldstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+>         /* If current HART was SUSPENDED then set RESUME_PENDING state */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+> -                       SBI_HSM_STATE_RESUME_PENDING);
+> -       if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
+> +                                        SBI_HSM_STATE_RESUME_PENDING))
+>                 sbi_hart_hang();
+> -       }
+>
+>         hsm_device_hart_resume();
+>  }
+>
+>  void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>  {
+> -       u32 oldstate;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+>         /* If current HART was RESUME_PENDING then set STARTED state */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_RESUME_PENDING,
+> -                                 SBI_HSM_STATE_STARTED);
+> -       if (oldstate != SBI_HSM_STATE_RESUME_PENDING) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_RESUME_PENDING,
+> +                                        SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+> -       }
+>
+>         /*
+>          * Restore some of the M-mode CSRs which we are re-configured by
+> @@ -403,7 +393,7 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>  int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>                          ulong raddr, ulong rmode, ulong arg1)
+>  {
+> -       int oldstate, ret;
+> +       int ret;
+>         const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+> @@ -437,11 +427,8 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>         scratch->next_mode = rmode;
+>
+>         /* Directly move from STARTED to SUSPENDED state */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STARTED,
+> -                                 SBI_HSM_STATE_SUSPENDED);
+> -       if (oldstate != SBI_HSM_STATE_STARTED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_STARTED,
+> +                                        SBI_HSM_STATE_SUSPENDED)) {
+>                 ret = SBI_EDENIED;
+>                 goto fail_restore_state;
+>         }
+> @@ -484,13 +471,9 @@ fail_restore_state:
+>          * We might have successfully resumed from retentive suspend
+>          * or suspend failed. In both cases, we restore state of hart.
+>          */
+> -       oldstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_SUSPENDED,
+> -                                 SBI_HSM_STATE_STARTED);
+> -       if (oldstate != SBI_HSM_STATE_SUSPENDED) {
+> -               sbi_printf("%s: ERR: The hart is in invalid state [%u]\n",
+> -                          __func__, oldstate);
+> +       if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_SUSPENDED,
+> +                                        SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+> -       }
+>
+>         return ret;
+>  }
+> --
+> 2.39.1
+>
 
