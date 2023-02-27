@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 19:54:31 +0530
-Subject: [PATCH v2 08/11] lib: sbi: Add system_suspend_allowed domain property
-In-Reply-To: <20230227103106.137995-9-ajones@ventanamicro.com>
-References: <20230227103106.137995-1-ajones@ventanamicro.com> <20230227103106.137995-9-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy2pHqKETGkQ-1OnAMMzvOpjZ+Xwmyna6syMdYw3mJiqnw@mail.gmail.com>
+Date: Mon, 27 Feb 2023 19:54:46 +0530
+Subject: [PATCH v2 09/11] lib: sbi: Implement system suspend
+In-Reply-To: <20230227103106.137995-10-ajones@ventanamicro.com>
+References: <20230227103106.137995-1-ajones@ventanamicro.com> <20230227103106.137995-10-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy07PSoxmiRi3-+vT70iBQAjkLq+1tK75biSLMwm8H_qKw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,10 +12,9 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Feb 27, 2023 at 4:01 PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> Only privileged domains should be allowed to suspend the entire
-> system. Give the root domain this property by default and allow
-> other domains to be given the property by specifying it in the
-> DT.
+> Fill the implementation of the system suspend ecall. A platform
+> implementation of the suspend callbacks is still required for this
+> to do anything.
 >
 > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 > Reviewed-by: Anup Patel <anup@brainfault.org>
@@ -26,102 +25,75 @@ Thanks,
 Anup
 
 > ---
->  docs/domain_support.md     | 5 +++++
->  include/sbi/sbi_domain.h   | 2 ++
->  lib/sbi/sbi_domain.c       | 4 ++++
->  lib/utils/fdt/fdt_domain.c | 7 +++++++
->  4 files changed, 18 insertions(+)
+>  lib/sbi/sbi_system.c | 57 +++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 56 insertions(+), 1 deletion(-)
 >
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index 4ccbcff87195..e2ff896bd550 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -52,6 +52,7 @@ has following details:
->  * **next_mode** - Privilege mode of the next booting stage for this
->    domain. This can be either S-mode or U-mode.
->  * **system_reset_allowed** - Is domain allowed to reset the system?
-> +* **system_suspend_allowed** - Is domain allowed to suspend the system?
+> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+> index 5c123a6c9d8d..7fa5ea82b7a6 100644
+> --- a/lib/sbi/sbi_system.c
+> +++ b/lib/sbi/sbi_system.c
+> @@ -116,5 +116,60 @@ bool sbi_system_suspend_supported(u32 sleep_type)
 >
->  The memory regions represented by **regions** in **struct sbi_domain** have
->  following additional constraints to align with RISC-V PMP requirements:
-> @@ -91,6 +92,7 @@ following manner:
->  * **next_mode** - Next booting stage mode in coldboot HART scratch space
->    is the next mode for the ROOT domain
->  * **system_reset_allowed** - The ROOT domain is allowed to reset the system
-> +* **system_suspend_allowed** - The ROOT domain is allowed to suspend the system
->
->  Domain Effects
->  --------------
-> @@ -195,6 +197,8 @@ The DT properties of a domain instance DT node are as follows:
->    stage mode of coldboot HART** is used as default value.
->  * **system-reset-allowed** (Optional) - A boolean flag representing
->    whether the domain instance is allowed to do system reset.
-> +* **system-suspend-allowed** (Optional) - A boolean flag representing
-> +  whether the domain instance is allowed to do system suspend.
->
->  ### Assigning HART To Domain Instance
->
-> @@ -260,6 +264,7 @@ be done:
->                  next-addr = <0x0 0x80100000>;
->                  next-mode = <0x0>;
->                  system-reset-allowed;
-> +                system-suspend-allowed;
->              };
->
->              udomain: untrusted-domain {
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index ab1a944b474b..eaca7f093271 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -120,6 +120,8 @@ struct sbi_domain {
->         unsigned long next_mode;
->         /** Is domain allowed to reset the system */
->         bool system_reset_allowed;
-> +       /** Is domain allowed to suspend the system */
-> +       bool system_suspend_allowed;
->  };
->
->  /** The root domain instance */
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index dc825b0d95f6..b1cd837e4b70 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -38,6 +38,7 @@ struct sbi_domain root = {
->         .possible_harts = &root_hmask,
->         .regions = root_memregs,
->         .system_reset_allowed = true,
-> +       .system_suspend_allowed = true,
->  };
->
->  bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
-> @@ -467,6 +468,9 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
->
->         sbi_printf("Domain%d SysReset    %s: %s\n",
->                    dom->index, suffix, (dom->system_reset_allowed) ? "yes" : "no");
+>  int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
+>  {
+> -       return 0;
+> +       int ret = SBI_ENOTSUPP;
+> +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +       void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+> +       unsigned int hartid = current_hartid();
+> +       unsigned long prev_mode;
+> +       unsigned long i;
 > +
-> +       sbi_printf("Domain%d SysSuspend  %s: %s\n",
-> +                  dom->index, suffix, (dom->system_suspend_allowed) ? "yes" : "no");
+> +       if (!dom || !dom->system_suspend_allowed)
+> +               return SBI_EFAIL;
+> +
+> +       if (!suspend_dev || !suspend_dev->system_suspend)
+> +               return SBI_EFAIL;
+> +
+> +       if (!sbi_system_suspend_supported(sleep_type))
+> +               return SBI_ENOTSUPP;
+> +
+> +       prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> +       if (prev_mode != PRV_S && prev_mode != PRV_U)
+> +               return SBI_EFAIL;
+> +
+> +       sbi_hartmask_for_each_hart(i, &dom->assigned_harts) {
+> +               if (i == hartid)
+> +                       continue;
+> +               if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED)
+> +                       return SBI_EFAIL;
+> +       }
+> +
+> +       if (!sbi_domain_check_addr(dom, resume_addr, prev_mode,
+> +                                  SBI_DOMAIN_EXECUTE))
+> +               return SBI_EINVALID_ADDR;
+> +
+> +       if (!sbi_hsm_hart_change_state(scratch, SBI_HSM_STATE_STARTED,
+> +                                      SBI_HSM_STATE_SUSPENDED))
+> +               return SBI_EFAIL;
+> +
+> +       /* Prepare for resume */
+> +       scratch->next_mode = prev_mode;
+> +       scratch->next_addr = resume_addr;
+> +       scratch->next_arg1 = opaque;
+> +
+> +       __sbi_hsm_suspend_non_ret_save(scratch);
+> +
+> +       /* Suspend */
+> +       ret = suspend_dev->system_suspend(sleep_type, scratch->warmboot_addr);
+> +       if (ret != SBI_OK) {
+> +               if (!sbi_hsm_hart_change_state(scratch, SBI_HSM_STATE_SUSPENDED,
+> +                                              SBI_HSM_STATE_STARTED))
+> +                       sbi_hart_hang();
+> +               return ret;
+> +       }
+> +
+> +       /* Resume */
+> +       jump_warmboot();
+> +
+> +       __builtin_unreachable();
 >  }
->
->  void sbi_domain_dump_all(const char *suffix)
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 2b51a8ebe132..33653e2f555f 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -419,6 +419,13 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
->         else
->                 dom->system_reset_allowed = false;
->
-> +       /* Read "system-suspend-allowed" DT property */
-> +       if (fdt_get_property(fdt, domain_offset,
-> +                            "system-suspend-allowed", NULL))
-> +               dom->system_suspend_allowed = true;
-> +       else
-> +               dom->system_suspend_allowed = false;
-> +
->         /* Find /cpus DT node */
->         cpus_offset = fdt_path_offset(fdt, "/cpus");
->         if (cpus_offset < 0)
 > --
 > 2.39.1
 >
