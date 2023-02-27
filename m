@@ -1,34 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 27 Feb 2023 10:52:14 +0530
-Subject: [PATCH v4] lib: utils: fdt_fixup: Fix compile error
-In-Reply-To: <20230221050707.825994-1-wxjstz@126.com>
-References: <20230221050707.825994-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3Juch4TmNn+6GQkbK1AhBCRA0UnQYbGmRmnrOLzAc9cA@mail.gmail.com>
+Date: Mon, 27 Feb 2023 10:56:04 +0530
+Subject: [PATCH] docs: fix typo in fw.md
+In-Reply-To: <TY3P286MB2611F8A2445A0A2ADE1A843498A39@TY3P286MB2611.JPNP286.PROD.OUTLOOK.COM>
+References: <TY3P286MB2611F8A2445A0A2ADE1A843498A39@TY3P286MB2611.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <CAAhSdy14BFhQNd-cLHiZW59U=M90wqRMys5LmxnE46w9p_nr0A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 21, 2023 at 10:37 AM Xiang W <wxjstz@126.com> wrote:
+On Wed, Feb 15, 2023 at 11:57 PM Shengyu Qu <wiagn233@outlook.com> wrote:
 >
-> When building with GCC-10 or older versions, it throws the following
-> error:
+> In docs/firmware/fw.md, there's a configuration parameter called
+> FW_TEXT_ADDR, which actually should be FW_TEXT_START, so fix it.
 >
->  CC-DEP    platform/generic/lib/utils/fdt/fdt_fixup.dep
->  CC        platform/generic/lib/utils/fdt/fdt_fixup.o
-> lib/utils/fdt/fdt_fixup.c: In function 'fdt_reserved_memory_fixup':
-> lib/utils/fdt/fdt_fixup.c:376:2: error: label at end of compound statement
->   376 |  next_entry:
->       |  ^~~~~~~~~~
->
-> Remove the goto statement.
->
-> Resolves: https://github.com/riscv-software-src/opensbi/issues/288
->
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Shengyu Qu <wiagn233@outlook.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -36,54 +27,28 @@ Thanks,
 Anup
 
 > ---
-> Changes in v4:
->  - Continue to fix the comment in Changes v3
+>  docs/firmware/fw.md | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> Changes in v3:
-> - Fix a comment issue raised by Bin Meng
-> - Changed the type of "overlap" from int to bool as suggested by Bin Meng
+> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
+> index 18faaa9..38351c8 100644
+> --- a/docs/firmware/fw.md
+> +++ b/docs/firmware/fw.md
+> @@ -61,7 +61,7 @@ Firmware Configuration and Compilation
+>  All firmware types support the following common compile time configuration
+>  parameters:
 >
-> Changes in v2:
-> - Fix a comment issue raised by Andreas Schwab
->  lib/utils/fdt/fdt_fixup.c | 13 ++++++++-----
->  1 file changed, 8 insertions(+), 5 deletions(-)
->
->  lib/utils/fdt/fdt_fixup.c | 13 ++++++++-----
->  1 file changed, 8 insertions(+), 5 deletions(-)
->
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index 619e4f5..c10179b 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -361,19 +361,22 @@ int fdt_reserved_memory_fixup(void *fdt)
->                         return SBI_ENOSPC;
->                 }
->
-> +               bool overlap = false;
->                 addr = reg->base;
->                 for (j = 0; j < i; j++) {
->                         if (addr == filtered_base[j]
->                             && filtered_order[j] < reg->order) {
-> +                               overlap = true;
->                                 filtered_order[j] = reg->order;
-> -                               goto next_entry;
-> +                               break;
->                         }
->                 }
->
-> -               filtered_base[i] = reg->base;
-> -               filtered_order[i] = reg->order;
-> -               i++;
-> -       next_entry:
-> +               if (!overlap) {
-> +                       filtered_base[i] = reg->base;
-> +                       filtered_order[i] = reg->order;
-> +                       i++;
-> +               }
->         }
->
->         for (j = 0; j < i; j++) {
+> -* **FW_TEXT_ADDR** - Defines the execution address of the OpenSBI firmware.
+> +* **FW_TEXT_START** - Defines the execution address of the OpenSBI firmware.
+>    This configuration parameter is mandatory.
+>  * **FW_FDT_PATH** - Path to an external flattened device tree binary file to
+>    be embedded in the *.rodata* section of the final firmware. If this option
 > --
-> 2.39.1
+> 2.25.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
