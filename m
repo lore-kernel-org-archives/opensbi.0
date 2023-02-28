@@ -1,80 +1,112 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 28 Feb 2023 09:55:57 +0530
-Subject: [PATCH v5 2/2] lib: sbi: fix missing '\r' for console
-In-Reply-To: <20230227161906.634775-3-wxjstz@126.com>
-References: <20230227161906.634775-1-wxjstz@126.com> <20230227161906.634775-3-wxjstz@126.com>
-Message-ID: <CAAhSdy3X2JY4siWuJKurbBN4z5RiJd=XDAhWYCFRioToBVDVhg@mail.gmail.com>
+Date: Tue, 28 Feb 2023 10:11:55 +0530
+Subject: [PATCH v2 2/2] lib: sbi: Clear IPIs before init_warm_startup in
+ non-boot harts
+In-Reply-To: <20230221210851.3145840-3-e.shatokhin@yadro.com>
+References: <20230221210851.3145840-1-e.shatokhin@yadro.com> <20230221210851.3145840-3-e.shatokhin@yadro.com>
+Message-ID: <CAAhSdy1KWF_j=uVdijefit8ZD1nqDtSNh=3gZy96E_JxUEForw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 27, 2023 at 9:50 PM Xiang W <wxjstz@126.com> wrote:
+On Wed, Feb 22, 2023 at 2:39 AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
 >
-> print is finally implemented by sbi_putc or console_dev->puts. sbi_putc
-> will add a \r before the output \n. This patch adds missing \r when
-> outputting characters via console_dev->puts.
+> Since commit 50d4fde1c5a4 ("lib: Remove redundant sbi_platform_ipi_clear()
+> calls"), the IPI sent from the boot hart in wake_coldboot_harts() is not
+> cleared in the secondary harts until they reach sbi_ipi_init(). However,
+> sbi_hsm_init() and sbi_hsm_hart_wait() are called earlier, so a secondary
+> hart might enter sbi_hsm_hart_wait() with an already pending IPI.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
+> sbi_hsm_hart_wait() makes sure the hart leaves the loop only when it is
+> actually ready, so a pending unrelated IPI should not cause safety issues.
+> However, it might be inefficient on certain hardware, because it prevents
+> "wfi" from stalling the hart even if the hardware supports this, making the
+> hart needlessly spin in a "busy-wait" loop.
+>
+> This behaviour can be observed, for example, in a QEMU VM (QEMU 7.2.0) with
+> "-machine virt" running a Linux guest. Inserting delays in
+> sbi_hsm_hart_start() allows reproducing the issue more reliably.
+>
+> The comment in wait_for_coldboot() suggests that the initial IPI is needed
+> in the warm resume path, so let us clear it before init_warm_startup()
+> only.
+>
+> To do this, sbi_ipi_raw_clear() was created similar to sbi_ipi_raw_send().
+>
+> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
 > ---
->  lib/sbi/sbi_console.c | 31 ++++++++++++++++++++++++++++++-
->  1 file changed, 30 insertions(+), 1 deletion(-)
+>  include/sbi/sbi_ipi.h | 2 ++
+>  lib/sbi/sbi_init.c    | 6 ++++--
+>  lib/sbi/sbi_ipi.c     | 6 ++++++
+>  3 files changed, 12 insertions(+), 2 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index f3ac003..adeadcb 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -46,12 +46,41 @@ void sbi_putc(char ch)
->         }
+> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
+> index f6ac807..f384e74 100644
+> --- a/include/sbi/sbi_ipi.h
+> +++ b/include/sbi/sbi_ipi.h
+> @@ -77,6 +77,8 @@ void sbi_ipi_process(void);
+>
+>  int sbi_ipi_raw_send(u32 target_hart);
+>
+> +void sbi_ipi_raw_clear(u32 target_hart);
+> +
+>  const struct sbi_ipi_device *sbi_ipi_get_device(void);
+>
+>  void sbi_ipi_set_device(const struct sbi_ipi_device *dev);
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index e353c33..a9a4084 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -438,10 +438,12 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+>         if (hstate < 0)
+>                 sbi_hart_hang();
+>
+> -       if (hstate == SBI_HSM_STATE_SUSPENDED)
+> +       if (hstate == SBI_HSM_STATE_SUSPENDED) {
+>                 init_warm_resume(scratch);
+> -       else
+> +       } else {
+> +               sbi_ipi_raw_clear(hartid);
+
+This effectively does nothing in many cases because for a lot of
+platforms all HARTs enter OpenSBI at the same time and the HARTs
+entering warm boot path will call sbi_ipi_raw_clear() even before
+ipi_dev is provided by platform code.
+
+>                 init_warm_startup(scratch, hartid);
+> +       }
+>
+>         sbi_hart_switch_mode(hartid, scratch->next_arg1,
+>                              scratch->next_addr,
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 1bcc2e4..b9f6205 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -217,6 +217,12 @@ int sbi_ipi_raw_send(u32 target_hart)
+>         return 0;
 >  }
 >
-> +static unsigned long console_puts_all(const char *str, unsigned long len)
+> +void sbi_ipi_raw_clear(u32 target_hart)
 > +{
-> +       const char *s = str;
-> +       const char *e = s + len;
-> +       while (s < e)
-> +               s += console_dev->console_puts(s, e - s);
-> +       return len;
+> +       if (ipi_dev && ipi_dev->ipi_clear)
+> +               ipi_dev->ipi_clear(target_hart);
 > +}
 > +
-> +static unsigned long console_puts(const char *str, unsigned long len)
-> +{
-> +       unsigned long l;
-> +       const char *s, *p, *e;
-> +       s = str;
-> +       e = str + len;
-> +       while (s < e) {
-> +               p = sbi_strnchr(s, '\n', e - s);
-> +               if (p == NULL)
-> +                       p = e;
-> +               l = console_dev->console_puts(s, p - s);
-> +               if (l < p - s)
-> +                       return s - str + l;
-> +               if (p < e && *p == '\n')
-> +                       console_puts_all("\r\n", 2);
-> +               s = p + 1;
-> +       }
-> +       return len;
-> +}
-> +
->  static unsigned long nputs(const char *str, unsigned long len)
+>  const struct sbi_ipi_device *sbi_ipi_get_device(void)
 >  {
->         unsigned long i, ret;
->
->         if (console_dev && console_dev->console_puts) {
-> -               ret = console_dev->console_puts(str, len);
-> +               ret = console_puts(str, len);
->         } else {
->                 for (i = 0; i < len; i++)
->                         sbi_putc(str[i]);
+>         return ipi_dev;
 > --
-> 2.39.2
+> 2.34.1
 >
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Anup
 
