@@ -1,251 +1,237 @@
-From: Minda Chen <minda.chen@starfivetech.com>
-Date: Tue, 28 Feb 2023 18:30:14 +0800
-Subject: [PATCH] gpio/starfive: add gpio driver and support gpio reset
-In-Reply-To: <CAAhSdy1fMYFVddf2UqkY8P0QBexeUt0FZLCg768LMkezUTzXAw@mail.gmail.com>
-References: <20230216092126.99022-1-minda.chen@starfivetech.com>
- <CAAhSdy3gUbX3+54-i6PSo99UMGVE60VSYALRLA5QVazSqLCQmQ@mail.gmail.com>
- <d0ca6d1c-6761-6b35-6ca8-4244937b1392@starfivetech.com>
- <CAAhSdy1fMYFVddf2UqkY8P0QBexeUt0FZLCg768LMkezUTzXAw@mail.gmail.com>
-Message-ID: <2968fc4e-96ad-ccf6-d313-2ec370f87af4@starfivetech.com>
+From: Evgenii Shatokhin <e.shatokhin@yadro.com>
+Date: Tue, 28 Feb 2023 18:56:09 +0300
+Subject: [PATCH v2 1/2] lib: sbi: Wait in sbi_hsm_hart_wait() till the
+ hart is prepared to start
+In-Reply-To: <CAAhSdy2EwxbwNV2fvshUDr49h6Ja6K3j8Ah4w1_TbYEbZ4UaOA@mail.gmail.com>
+References: <20230221210851.3145840-1-e.shatokhin@yadro.com>
+ <20230221210851.3145840-2-e.shatokhin@yadro.com>
+ <CAAhSdy2EwxbwNV2fvshUDr49h6Ja6K3j8Ah4w1_TbYEbZ4UaOA@mail.gmail.com>
+Message-ID: <6eb6ddad-6ddf-1b6a-aad8-7a4df8657641@yadro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On 28.02.2023 08:06, Anup Patel wrote:
+> On Wed, Feb 22, 2023 at 2:39 AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
+>>
+>> "wfi" instruction is not guaranteed to wait for an interrupt to be received
+>> by the hart, it is just a hint for the CPU. According to RISC-V Privileged
+>> Architectures spec. v20211203, even an implementation of "wfi" as "nop" is
+>> legal.
+>>
+>> As a result, a secondary (non-boot) hart waiting in the while loop in
+>> sbi_hsm_hart_wait() might leave the loop and continue even if it got no
+>> IPI or it got an IPI unrelated to sbi_hsm_hart_start(). This could lead to
+>> the following race condition when booting Linux, for example:
+>>
+>>    Boot hart (#0)                        Secondary hart (#1)
+>>    runs Linux startup code               waits in sbi_hsm_hart_wait()
+>>
+>>    sbi_ecall(SBI_EXT_HSM,
+>>              SBI_EXT_HSM_HART_START,
+>>              ...)
+>>    enters sbi_hsm_hart_start()
+>>    sets state of hart #1 to START_PENDING
+>>                                          leaves sbi_hsm_hart_wait()
+>>                                          runs to the end of init_warmboot()
+>>                                          returns to scratch->next_addr
+>>                                          (next_addr can be garbage here)
+>>
+>>    sets next_addr, etc. for hart #1
+>>    (no good: hart #1 has already left)
+>>
+>>    sends IPI to hart #1
+>>    (no good either)
+>>
+>> If this happens, the secondary hart jumps to a wrong next_addr at the end
+>> of init_warmboot(), which leads to a system hang or crash.
+>>
+>> To reproduce the issue more reliably, one could add a delay in
+>> sbi_hsm_hart_start() after setting the hart's state but before sending
+>> IPI to that hart:
+>>
+>>      hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOPPED,
+>>                              SBI_HSM_STATE_START_PENDING);
+>>      ...
+>>    + sbi_timer_mdelay(10);
+>>      init_count = sbi_init_count(hartid);
+>>      rscratch->next_arg1 = arg1;
+>>      rscratch->next_addr = saddr;
+>>
+>> The issue can be reproduced, for example, in a QEMU VM with '-machine virt'
+>> and 2 or more CPUs, with Linux as the guest OS.
+> 
+> Good catch. This is a valid issue which needs to be fixed.
+> 
+>>
+>> This patch adds an auxiliary per-hart state variable, aux_state, as well as
+>> its accessor functions, to synchronize execution of the boot hart and the
+>> starting secondary hart.
+>>
+>> Initially, aux_state is 0: sbi_scratch_alloc_offset() zeroes the allocated
+>> memory. The boot hart sets it to 1 after it has set next_addr, etc., for the
+>> secondary hart, then sends the IPI to the latter.
+>>
+>> The secondary hart waits in sbi_hsm_hart_wait() both for aux_state to become
+>> non-zero and for an IPI to happen. This should be safe even if the secondary
+>> hart somehow gets an IPI unrelated to sbi_hsm_hart_start().
+>>
+>> Memory barriers are used to make sure the writes to next_addr, etc., in the
+>> boot hart are visible to the secondary hart if it reads non-zero aux_state.
+>>
+>> Only one bit of aux_state is actually used here, so, this per-hart variable
+>> can be used to hold other data in the future, if needed.
+> 
+> Adding aux_state is an overly complicated solution in my opinion.
+> 
+> Instead, you can simply do the following:
+> 
+>      rscratch->next_arg1 = arg1;
+>      rscratch->next_addr = saddr;
+>      rscratch->next_mode = smode;
+> 
+>      /*
+>       * Barrier to ensure that the above writes have happened before
+>       * updating the HART state.
+>       */
+>      smp_wmb();
+> 
+> Before "hdata = sbi_scratch_offset_ptr(rscratch, hart_data_offset);" in
+> sbi_hsm_hart_start().
 
+True, the proposed fix it is more complicated than I would like it to 
+be, but there is a reason.
 
-On 2023/2/27 22:00, Anup Patel wrote:
-> On Mon, Feb 27, 2023 at 4:53 PM Minda Chen <minda.chen@starfivetech.com> wrote:
+Should we worry about the scenario when two or more harts enter 
+sbi_hsm_hart_start() with the same target hartid? It must not happen 
+during normal operation of the OS, but, in theory, errors in the 
+higher-level software could lead to this.
+
+Setting hstate to SBI_HSM_STATE_START_PENDING atomically and checking 
+its previous values before changing *rscratch in sbi_hsm_hart_start() 
+guarantees that the current hart has exclusive access to *rscratch after 
+that. If we move rscratch->next_arg1 = arg1, etc., before hdata = 
+sbi_scratch_offset_ptr(...), it would be possible for two harts to race 
+and write different values to *rscratch for the same target hart. It is 
+very unlikely to happen, but still.
+
+If it is somehow guaranteed that the current hart has exclusive access 
+to *rscratch even at the beginning of sbi_hsm_hart_start(), then yes, we 
+can drop aux_state, etc., and use a simpler fix.
+
+smp_wmb() will then be paired with rmb() in atomic_read(&hdata->state) 
+from sbi_hsm_hart_wait() and it would make sure the writes are seen in 
+correct order.
+
+So, should we worry about misbehaving OSes which could allow 2 or more 
+harts to enter sbi_hsm_hart_start() for the same target hart in parallel?
+
+What do you think?
+
+> 
+>>
+>> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
+> 
+>> ---
+>>   lib/sbi/sbi_hsm.c | 35 +++++++++++++++++++++++++++++++++--
+>>   1 file changed, 33 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+>> index 8499bb1..24061c5 100644
+>> --- a/lib/sbi/sbi_hsm.c
+>> +++ b/lib/sbi/sbi_hsm.c
+>> @@ -35,6 +35,7 @@ struct sbi_hsm_data {
+>>          unsigned long suspend_type;
+>>          unsigned long saved_mie;
+>>          unsigned long saved_mip;
+>> +       unsigned long aux_state;
+>>   };
+>>
+>>   static inline int __sbi_hsm_hart_get_state(u32 hartid)
+>> @@ -93,6 +94,23 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>>          return 0;
+>>   }
+>>
+>> +static inline bool sbi_hsm_is_runnable(struct sbi_hsm_data *hdata)
+>> +{
+>> +       unsigned long aux_state = __smp_load_acquire(&hdata->aux_state);
+>> +
+>> +       return !!aux_state;
+>> +}
+>> +
+>> +static inline void sbi_hsm_set_runnable(struct sbi_hsm_data *hdata)
+>> +{
+>> +       __smp_store_release(&hdata->aux_state, 1);
+>> +}
+>> +
+>> +static inline void sbi_hsm_reset_runnable(struct sbi_hsm_data *hdata)
+>> +{
+>> +       __smp_store_release(&hdata->aux_state, 0);
+>> +}
+>> +
+>>   void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>>   {
+>>          u32 oldstate;
+>> @@ -108,6 +126,7 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>>   static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+>>   {
+>>          unsigned long saved_mie;
+>> +       unsigned long cmip;
+>>          struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>>                                                              hart_data_offset);
+>>          /* Save MIE CSR */
+>> @@ -117,13 +136,22 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+>>          csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
+>>
+>>          /* Wait for state transition requested by sbi_hsm_hart_start() */
+>> -       while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
+>> -               wfi();
+>> +       while (!sbi_hsm_is_runnable(hdata)) {
+>> +               do {
+>> +                       wfi();
+>> +                       cmip = csr_read(CSR_MIP);
+>> +               } while (!(cmip & (MIP_MSIP | MIP_MEIP)));
+>>          };
+>>
+>>          /* Restore MIE CSR */
+>>          csr_write(CSR_MIE, saved_mie);
+>>
+>> +       /*
+>> +        * If the hart ever needs to wait for such state transition again,
+>> +        * make sure the hart's data allows that.
+>> +        */
+>> +       sbi_hsm_reset_runnable(hdata);
+>> +
+>>          /*
+>>           * No need to clear IPI here because the sbi_ipi_init() will
+>>           * clear it for current HART via sbi_platform_ipi_init().
+>> @@ -284,6 +312,9 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+>>          rscratch->next_addr = saddr;
+>>          rscratch->next_mode = smode;
+>>
+>> +       /* Inform the hart that it may continue as soon as it gets IPI. */
+>> +       sbi_hsm_set_runnable(hdata);
+>> +
+>>          if (hsm_device_has_hart_hotplug() ||
+>>             (hsm_device_has_hart_secondary_boot() && !init_count)) {
+>>                  return hsm_device_hart_start(hartid, scratch->warmboot_addr);
+>> --
+>> 2.34.1
 >>
 >>
 >>
->> On 2023/2/27 14:44, Anup Patel wrote:
->> > On Thu, Feb 16, 2023 at 2:52 PM minda.chen <minda.chen@starfivetech.com> wrote:
->> >>
->> >> Add gpio driver and gpio reset function in Starfive
->> >> JH7110 SOC platform.
->> >>
->> >> Signed-off-by: minda.chen <minda.chen@starfivetech.com>
->> >
->> > I don't see a PATCH enabling it in defconfig.
->> >
->> > How is this driver used in OpenSBI ?
->> >
->> > Regards,
->> > Anup
->> >
->> I have enabled CONFIG_FDT_GPIO_STARFIVE in defconfig in this patch.
-> 
-> Okay.
-> 
->>
->>  --- a/platform/generic/configs/defconfig
->>  +++ b/platform/generic/configs/defconfig
->>  @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
->>   CONFIG_PLATFORM_STARFIVE_JH7110=y
->>   CONFIG_FDT_GPIO=y
->>   CONFIG_FDT_GPIO_SIFIVE=y
->>  +CONFIG_FDT_GPIO_STARFIVE=y
->>
->> May I set this change to second commit ?
-> 
-> No need for a separate patch.
-> 
->>
->> This patch is a gpio reset implementation for sbi ecall SBI_EXT_SRST_RESET.
-> 
-> Fare enough but you also send another series
-> "Add StarFive JH7110 SoC shutdown and reboot ops"
-> which provides system reboot based on I2C PMIC.
-> 
-> Basically, we have two separate system reboot ops
-> for JH7110, is that right ?
+>> --
+>> opensbi mailing list
+>> opensbi at lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
 > 
 > Regards,
 > Anup
 > 
-Yes, GPIO reset is for uboot warm reset, PMIC reset is for uboot cold reset and linux reboot.
-  
-> 
->>
->> >> ---
->> >>  lib/utils/gpio/Kconfig             |   3 +
->> >>  lib/utils/gpio/fdt_gpio_starfive.c | 117 +++++++++++++++++++++++++++++
->> >>  lib/utils/gpio/objects.mk          |   3 +
->> >>  platform/generic/configs/defconfig |   1 +
->> defconfig have been changed.
->>
->> >>  4 files changed, 124 insertions(+)
->> >>  create mode 100644 lib/utils/gpio/fdt_gpio_starfive.c
->> >>
->> >> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
->> >> index 38a9d75..1b338a6 100644
->> >> --- a/lib/utils/gpio/Kconfig
->> >> +++ b/lib/utils/gpio/Kconfig
->> >> @@ -14,6 +14,9 @@ config FDT_GPIO_SIFIVE
->> >>         bool "SiFive GPIO FDT driver"
->> >>         default n
->> >>
->> >> +config FDT_GPIO_STARFIVE
->> >> +       bool "StarFive GPIO FDT driver"
->> >> +       default n
->> >>  endif
->> >>
->> >>  config GPIO
->> >> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
->> >> new file mode 100644
->> >> index 0000000..18cca72
->> >> --- /dev/null
->> >> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
->> >> @@ -0,0 +1,117 @@
->> >> +/*
->> >> + * SPDX-License-Identifier: BSD-2-Clause
->> >> + *
->> >> + * Copyright (c) 2022 Starfive
->> >> + *
->> >> + * Authors:
->> >> + *   Minda.chen <Minda.chen@starfivetech.com>
->> >> + */
->> >> +
->> >> +#include <sbi/riscv_io.h>
->> >> +#include <sbi/sbi_error.h>
->> >> +#include <sbi/sbi_console.h>
->> >> +#include <sbi_utils/fdt/fdt_helper.h>
->> >> +#include <sbi_utils/gpio/fdt_gpio.h>
->> >> +
->> >> +#define STARFIVE_GPIO_CHIP_MAX         2
->> >> +#define STARFIVE_GPIO_PINS_DEF         64
->> >> +#define STARFIVE_GPIO_OUTVAL           0x40
->> >> +#define STARFIVE_GPIO_MASK             0xff
->> >> +#define STARFIVE_GPIO_REG_SHIFT_MASK   0x3
->> >> +#define STARFIVE_GPIO_SHIFT_BITS       0x3
->> >> +
->> >> +struct starfive_gpio_chip {
->> >> +       unsigned long addr;
->> >> +       struct gpio_chip chip;
->> >> +};
->> >> +
->> >> +static unsigned int starfive_gpio_chip_count;
->> >> +static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
->> >> +
->> >> +static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
->> >> +{
->> >> +       u32 val;
->> >> +       unsigned long reg_addr;
->> >> +       u32 bit_mask, shift_bits;
->> >> +       struct starfive_gpio_chip *chip =
->> >> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
->> >> +
->> >> +       /* set out en*/
->> >> +       reg_addr = chip->addr + gp->offset;
->> >> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
->> >> +
->> >> +       val = readl((void *)(reg_addr));
->> >> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
->> >> +               << STARFIVE_GPIO_SHIFT_BITS;
->> >> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
->> >> +
->> >> +       val = readl((void *)reg_addr);
->> >> +       val &= ~bit_mask;
->> >> +       writel(val, (void *)reg_addr);
->> >> +
->> >> +       return 0;
->> >> +}
->> >> +
->> >> +static void starfive_gpio_set(struct gpio_pin *gp, int value)
->> >> +{
->> >> +       u32 val;
->> >> +       unsigned long reg_addr;
->> >> +       u32 bit_mask, shift_bits;
->> >> +       struct starfive_gpio_chip *chip =
->> >> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
->> >> +
->> >> +       reg_addr = chip->addr + gp->offset;
->> >> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
->> >> +
->> >> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
->> >> +               << STARFIVE_GPIO_SHIFT_BITS;
->> >> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
->> >> +       /* set output value */
->> >> +       val = readl((void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
->> >> +       val &= ~bit_mask;
->> >> +       val |= value << shift_bits;
->> >> +       writel(val, (void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
->> >> +}
->> >> +
->> >> +extern struct fdt_gpio fdt_gpio_starfive;
->> >> +
->> >> +static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
->> >> +                             const struct fdt_match *match)
->> >> +{
->> >> +       int rc;
->> >> +       struct starfive_gpio_chip *chip;
->> >> +       u64 addr;
->> >> +
->> >> +       if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
->> >> +               return SBI_ENOSPC;
->> >> +       chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
->> >> +
->> >> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
->> >> +       if (rc)
->> >> +               return rc;
->> >> +
->> >> +       chip->addr = addr;
->> >> +       chip->chip.driver = &fdt_gpio_starfive;
->> >> +       chip->chip.id = phandle;
->> >> +       chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
->> >> +       chip->chip.direction_output = starfive_gpio_direction_output;
->> >> +       chip->chip.set = starfive_gpio_set;
->> >> +       rc = gpio_chip_add(&chip->chip);
->> >> +       if (rc)
->> >> +               return rc;
->> >> +
->> >> +       starfive_gpio_chip_count++;
->> >> +       return 0;
->> >> +}
->> >> +
->> >> +static const struct fdt_match starfive_gpio_match[] = {
->> >> +       { .compatible = "starfive,jh7110-sys-pinctrl" },
->> >> +       { .compatible = "starfive,iomux-pinctrl" },
->> >> +       { },
->> >> +};
->> >> +
->> >> +struct fdt_gpio fdt_gpio_starfive = {
->> >> +       .match_table = starfive_gpio_match,
->> >> +       .xlate = fdt_gpio_simple_xlate,
->> >> +       .init = starfive_gpio_init,
->> >> +};
->> >> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
->> >> index eedd699..8f4a6a8 100644
->> >> --- a/lib/utils/gpio/objects.mk
->> >> +++ b/lib/utils/gpio/objects.mk
->> >> @@ -13,4 +13,7 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
->> >>  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
->> >>  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
->> >>
->> >> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_STARFIVE) += fdt_gpio_starfive
->> >> +libsbiutils-objs-$(CONFIG_FDT_GPIO_STARFIVE) += gpio/fdt_gpio_starfive.o
->> >> +
->> >>  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
->> >> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
->> >> index 4b0842e..2ad953d 100644
->> >> --- a/platform/generic/configs/defconfig
->> >> +++ b/platform/generic/configs/defconfig
->> >> @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
->> >>  CONFIG_PLATFORM_STARFIVE_JH7110=y
->> >>  CONFIG_FDT_GPIO=y
->> >>  CONFIG_FDT_GPIO_SIFIVE=y
->> >> +CONFIG_FDT_GPIO_STARFIVE=y
->> >>  CONFIG_FDT_I2C=y
->> >>  CONFIG_FDT_I2C_SIFIVE=y
->> >>  CONFIG_FDT_IPI=y
->> >> --
->> >> 2.17.1
->> >>
->> >>
->> >> --
->> >> opensbi mailing list
->> >> opensbi at lists.infradead.org
->> >> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Evgenii
+
 
