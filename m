@@ -1,21 +1,21 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 1 Mar 2023 09:17:57 +0530
-Subject: [PATCH] gpio/starfive: add gpio driver and support gpio reset
-In-Reply-To: <20230216092126.99022-1-minda.chen@starfivetech.com>
-References: <20230216092126.99022-1-minda.chen@starfivetech.com>
-Message-ID: <CAAhSdy3tpF8rUfO=6mJqwReRZB-NrMdY=vYs2ZqFdxxNtYe27w@mail.gmail.com>
+Date: Wed, 1 Mar 2023 09:30:02 +0530
+Subject: [PATCH] make: Add a command line option for debugging OpenSBI
+In-Reply-To: <20230227023506.1818620-1-bmeng@tinylab.org>
+References: <20230227023506.1818620-1-bmeng@tinylab.org>
+Message-ID: <CAAhSdy2BhBHz6zA=Ni5YScQ21noxyn-HzygCd+om4OpsxjSUJQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 16, 2023 at 2:52 PM minda.chen <minda.chen@starfivetech.com> wrote:
+On Mon, Feb 27, 2023 at 8:05 AM Bin Meng <bmeng@tinylab.org> wrote:
 >
-> Add gpio driver and gpio reset function in Starfive
-> JH7110 SOC platform.
+> Add a new make command line option "make DEBUG=1" to prevent compiler
+> optimizations using -O2.
 >
-> Signed-off-by: minda.chen <minda.chen@starfivetech.com>
+> Signed-off-by: Bin Meng <bmeng@tinylab.org>
 
 Looks good to me.
 
@@ -27,180 +27,54 @@ Thanks,
 Anup
 
 > ---
->  lib/utils/gpio/Kconfig             |   3 +
->  lib/utils/gpio/fdt_gpio_starfive.c | 117 +++++++++++++++++++++++++++++
->  lib/utils/gpio/objects.mk          |   3 +
->  platform/generic/configs/defconfig |   1 +
->  4 files changed, 124 insertions(+)
->  create mode 100644 lib/utils/gpio/fdt_gpio_starfive.c
 >
-> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
-> index 38a9d75..1b338a6 100644
-> --- a/lib/utils/gpio/Kconfig
-> +++ b/lib/utils/gpio/Kconfig
-> @@ -14,6 +14,9 @@ config FDT_GPIO_SIFIVE
->         bool "SiFive GPIO FDT driver"
->         default n
+>  Makefile  |  7 ++++++-
+>  README.md | 13 +++++++++++++
+>  2 files changed, 19 insertions(+), 1 deletion(-)
 >
-> +config FDT_GPIO_STARFIVE
-> +       bool "StarFive GPIO FDT driver"
-> +       default n
->  endif
+> diff --git a/Makefile b/Makefile
+> index b20404f..a26a39b 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -331,7 +331,12 @@ GENFLAGS   +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
 >
->  config GPIO
-> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
-> new file mode 100644
-> index 0000000..18cca72
-> --- /dev/null
-> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
-> @@ -0,0 +1,117 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 Starfive
-> + *
-> + * Authors:
-> + *   Minda.chen <Minda.chen@starfivetech.com>
-> + */
-> +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/gpio/fdt_gpio.h>
-> +
-> +#define STARFIVE_GPIO_CHIP_MAX         2
-> +#define STARFIVE_GPIO_PINS_DEF         64
-> +#define STARFIVE_GPIO_OUTVAL           0x40
-> +#define STARFIVE_GPIO_MASK             0xff
-> +#define STARFIVE_GPIO_REG_SHIFT_MASK   0x3
-> +#define STARFIVE_GPIO_SHIFT_BITS       0x3
-> +
-> +struct starfive_gpio_chip {
-> +       unsigned long addr;
-> +       struct gpio_chip chip;
-> +};
-> +
-> +static unsigned int starfive_gpio_chip_count;
-> +static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
-> +
-> +static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
-> +{
-> +       u32 val;
-> +       unsigned long reg_addr;
-> +       u32 bit_mask, shift_bits;
-> +       struct starfive_gpio_chip *chip =
-> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
-> +
-> +       /* set out en*/
-> +       reg_addr = chip->addr + gp->offset;
-> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
-> +
-> +       val = readl((void *)(reg_addr));
-> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
-> +               << STARFIVE_GPIO_SHIFT_BITS;
-> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
-> +
-> +       val = readl((void *)reg_addr);
-> +       val &= ~bit_mask;
-> +       writel(val, (void *)reg_addr);
-> +
-> +       return 0;
-> +}
-> +
-> +static void starfive_gpio_set(struct gpio_pin *gp, int value)
-> +{
-> +       u32 val;
-> +       unsigned long reg_addr;
-> +       u32 bit_mask, shift_bits;
-> +       struct starfive_gpio_chip *chip =
-> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
-> +
-> +       reg_addr = chip->addr + gp->offset;
-> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
-> +
-> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
-> +               << STARFIVE_GPIO_SHIFT_BITS;
-> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
-> +       /* set output value */
-> +       val = readl((void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
-> +       val &= ~bit_mask;
-> +       val |= value << shift_bits;
-> +       writel(val, (void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
-> +}
-> +
-> +extern struct fdt_gpio fdt_gpio_starfive;
-> +
-> +static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
-> +                             const struct fdt_match *match)
-> +{
-> +       int rc;
-> +       struct starfive_gpio_chip *chip;
-> +       u64 addr;
-> +
-> +       if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
-> +               return SBI_ENOSPC;
-> +       chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> +       if (rc)
-> +               return rc;
-> +
-> +       chip->addr = addr;
-> +       chip->chip.driver = &fdt_gpio_starfive;
-> +       chip->chip.id = phandle;
-> +       chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
-> +       chip->chip.direction_output = starfive_gpio_direction_output;
-> +       chip->chip.set = starfive_gpio_set;
-> +       rc = gpio_chip_add(&chip->chip);
-> +       if (rc)
-> +               return rc;
-> +
-> +       starfive_gpio_chip_count++;
-> +       return 0;
-> +}
-> +
-> +static const struct fdt_match starfive_gpio_match[] = {
-> +       { .compatible = "starfive,jh7110-sys-pinctrl" },
-> +       { .compatible = "starfive,iomux-pinctrl" },
-> +       { },
-> +};
-> +
-> +struct fdt_gpio fdt_gpio_starfive = {
-> +       .match_table = starfive_gpio_match,
-> +       .xlate = fdt_gpio_simple_xlate,
-> +       .init = starfive_gpio_init,
-> +};
-> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-> index eedd699..8f4a6a8 100644
-> --- a/lib/utils/gpio/objects.mk
-> +++ b/lib/utils/gpio/objects.mk
-> @@ -13,4 +13,7 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
->  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
->  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
+> -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -O2
+> +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+> +ifneq ($(DEBUG),)
+> +CFLAGS         +=      -O0
+> +else
+> +CFLAGS         +=      -O2
+> +endif
+>  CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
+>  # enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
+>  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+> diff --git a/README.md b/README.md
+> index 895bbf2..a6bcb0c 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -298,6 +298,19 @@ NOTE: Using `BUILD_INFO=y` without specifying SOURCE_DATE_EPOCH will violate
+>  purpose, and should NOT be used in a product which follows "reproducible
+>  builds".
 >
-> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_STARFIVE) += fdt_gpio_starfive
-> +libsbiutils-objs-$(CONFIG_FDT_GPIO_STARFIVE) += gpio/fdt_gpio_starfive.o
+> +Building with optimization off for debugging
+> +--------------------------------------------
 > +
->  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 4b0842e..2ad953d 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
->  CONFIG_PLATFORM_STARFIVE_JH7110=y
->  CONFIG_FDT_GPIO=y
->  CONFIG_FDT_GPIO_SIFIVE=y
-> +CONFIG_FDT_GPIO_STARFIVE=y
->  CONFIG_FDT_I2C=y
->  CONFIG_FDT_I2C_SIFIVE=y
->  CONFIG_FDT_IPI=y
-> --
-> 2.17.1
->
+> +When debugging OpenSBI, we may want to turn off the compiler optimization and
+> +make debugging produce the expected results for a better debugging experience.
+> +To build with optimization off we can just simply add `DEBUG=1`, like:
+> +```
+> +make DEBUG=1
+> +```
+> +
+> +This definition is ONLY for development and debug purpose, and should NOT be
+> +used in a product build.
+> +
+>  Contributing to OpenSBI
+>  -----------------------
 >
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 2.25.1
+>
 
