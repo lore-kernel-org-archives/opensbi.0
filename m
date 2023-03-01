@@ -1,170 +1,206 @@
-From: Evgenii Shatokhin <e.shatokhin@yadro.com>
-Date: Tue, 28 Feb 2023 19:54:54 +0300
-Subject: [PATCH v2 2/2] lib: sbi: Clear IPIs before init_warm_startup in
- non-boot harts
-In-Reply-To: <9293d8b4-e0b7-7ce6-2df9-afaf1bb5dec9@yadro.com>
-References: <20230221210851.3145840-1-e.shatokhin@yadro.com>
- <20230221210851.3145840-3-e.shatokhin@yadro.com>
- <CAAhSdy1KWF_j=uVdijefit8ZD1nqDtSNh=3gZy96E_JxUEForw@mail.gmail.com>
- <9293d8b4-e0b7-7ce6-2df9-afaf1bb5dec9@yadro.com>
-Message-ID: <ff7778a5-a48a-6248-c78a-510afc0340f0@yadro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 1 Mar 2023 09:17:57 +0530
+Subject: [PATCH] gpio/starfive: add gpio driver and support gpio reset
+In-Reply-To: <20230216092126.99022-1-minda.chen@starfivetech.com>
+References: <20230216092126.99022-1-minda.chen@starfivetech.com>
+Message-ID: <CAAhSdy3tpF8rUfO=6mJqwReRZB-NrMdY=vYs2ZqFdxxNtYe27w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 28.02.2023 19:19, Evgenii Shatokhin wrote:
-> On 28.02.2023 07:41, Anup Patel wrote:
->> On Wed, Feb 22, 2023 at 2:39 AM Evgenii Shatokhin 
->> <e.shatokhin@yadro.com> wrote:
->>>
->>> Since commit 50d4fde1c5a4 ("lib: Remove redundant 
->>> sbi_platform_ipi_clear()
->>> calls"), the IPI sent from the boot hart in wake_coldboot_harts() is not
->>> cleared in the secondary harts until they reach sbi_ipi_init(). However,
->>> sbi_hsm_init() and sbi_hsm_hart_wait() are called earlier, so a 
->>> secondary
->>> hart might enter sbi_hsm_hart_wait() with an already pending IPI.
->>>
->>> sbi_hsm_hart_wait() makes sure the hart leaves the loop only when it is
->>> actually ready, so a pending unrelated IPI should not cause safety 
->>> issues.
->>> However, it might be inefficient on certain hardware, because it 
->>> prevents
->>> "wfi" from stalling the hart even if the hardware supports this, 
->>> making the
->>> hart needlessly spin in a "busy-wait" loop.
->>>
->>> This behaviour can be observed, for example, in a QEMU VM (QEMU 
->>> 7.2.0) with
->>> "-machine virt" running a Linux guest. Inserting delays in
->>> sbi_hsm_hart_start() allows reproducing the issue more reliably.
->>>
->>> The comment in wait_for_coldboot() suggests that the initial IPI is 
->>> needed
->>> in the warm resume path, so let us clear it before init_warm_startup()
->>> only.
->>>
->>> To do this, sbi_ipi_raw_clear() was created similar to 
->>> sbi_ipi_raw_send().
->>>
->>> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
->>> ---
->>> ? include/sbi/sbi_ipi.h | 2 ++
->>> ? lib/sbi/sbi_init.c??? | 6 ++++--
->>> ? lib/sbi/sbi_ipi.c???? | 6 ++++++
->>> ? 3 files changed, 12 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
->>> index f6ac807..f384e74 100644
->>> --- a/include/sbi/sbi_ipi.h
->>> +++ b/include/sbi/sbi_ipi.h
->>> @@ -77,6 +77,8 @@ void sbi_ipi_process(void);
->>>
->>> ? int sbi_ipi_raw_send(u32 target_hart);
->>>
->>> +void sbi_ipi_raw_clear(u32 target_hart);
->>> +
->>> ? const struct sbi_ipi_device *sbi_ipi_get_device(void);
->>>
->>> ? void sbi_ipi_set_device(const struct sbi_ipi_device *dev);
->>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->>> index e353c33..a9a4084 100644
->>> --- a/lib/sbi/sbi_init.c
->>> +++ b/lib/sbi/sbi_init.c
->>> @@ -438,10 +438,12 @@ static void __noreturn init_warmboot(struct 
->>> sbi_scratch *scratch, u32 hartid)
->>> ???????? if (hstate < 0)
->>> ???????????????? sbi_hart_hang();
->>>
->>> -?????? if (hstate == SBI_HSM_STATE_SUSPENDED)
->>> +?????? if (hstate == SBI_HSM_STATE_SUSPENDED) {
->>> ???????????????? init_warm_resume(scratch);
->>> -?????? else
->>> +?????? } else {
->>> +?????????????? sbi_ipi_raw_clear(hartid);
->>
->> This effectively does nothing in many cases because for a lot of
->> platforms all HARTs enter OpenSBI at the same time and the HARTs
->> entering warm boot path will call sbi_ipi_raw_clear() even before
->> ipi_dev is provided by platform code.
-> 
-> Right, it would be a no-op then.
-> 
-> However, this is not the case when Linux 6.x boots, e.g. in QEMU with 
-> "-machine virt" or with other platforms which provide "cold" IPI init 
-> callbacks.
-> 
-> Here, the boot hart initializes ipi_dev early. For example, in QEMU with 
-> "-machine virt", it does the following:
-> init_coldboot() => sbi_ipi_init() => ... => aclint_mswi_cold_init().
-> 
-> Other harts are waiting in sbi_hsm_init() at the moment and will only 
-> call sbi_ipi_init() after they leave sbi_hsm_hart_wait(), etc.
+On Thu, Feb 16, 2023 at 2:52 PM minda.chen <minda.chen@starfivetech.com> wrote:
+>
+> Add gpio driver and gpio reset function in Starfive
+> JH7110 SOC platform.
+>
+> Signed-off-by: minda.chen <minda.chen@starfivetech.com>
 
-Correction: the secondary harts are waiting in init_warmboot() at that 
-moment rather than in sbi_hsm_init(). Sorry, my bad.
+Looks good to me.
 
-Still, the boot hart only wakes them up with wake_coldboot_harts() after 
-it has called sbi_ipi_init(), etc. So, by the time the secondary harts 
-get to init_warm_startup(), ipi_dev should already be initialized and 
-sbi_ipi_raw_clear() should work.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-> 
-> While they are waiting, their previous IPI remains pending. It can be 
-> easily demonstrated if one checks the relevant bits of CSR_MIP in 
-> sbi_hsm_hart_wait() right before the wfi loop. A delay in 
-> sbi_hsm_hart_start(), same as for the first issue, also helps make it 
-> visible.
-> 
-> csr_read(CSR_MIP) & (MIP_MSIP | MIP_MEIP) == 0x8 in my case at that 
-> point. That is, MIP_MSIP bit is set even before the boot hart has send 
-> an IPI to the target hart in sbi_hsm_hart_start(). Not good.
-> 
-> So, sbi_ipi_raw_clear(hartid) really helps in such cases, even if it is 
-> a no-op in other situations.
+Applied this patch to the riscv/opensbi repo.
 
+Thanks,
+Anup
 
-> 
->>
->>> ???????????????? init_warm_startup(scratch, hartid);
->>> +?????? }
->>>
->>> ???????? sbi_hart_switch_mode(hartid, scratch->next_arg1,
->>> ????????????????????????????? scratch->next_addr,
->>> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
->>> index 1bcc2e4..b9f6205 100644
->>> --- a/lib/sbi/sbi_ipi.c
->>> +++ b/lib/sbi/sbi_ipi.c
->>> @@ -217,6 +217,12 @@ int sbi_ipi_raw_send(u32 target_hart)
->>> ???????? return 0;
->>> ? }
->>>
->>> +void sbi_ipi_raw_clear(u32 target_hart)
->>> +{
->>> +?????? if (ipi_dev && ipi_dev->ipi_clear)
->>> +?????????????? ipi_dev->ipi_clear(target_hart);
->>> +}
->>> +
->>> ? const struct sbi_ipi_device *sbi_ipi_get_device(void)
->>> ? {
->>> ???????? return ipi_dev;
->>> -- 
->>> 2.34.1
->>>
->>>
->>>
->>> -- 
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
->>
->> Regards,
->> Anup
->>
-
-Regards,
-Evgenii
-
+> ---
+>  lib/utils/gpio/Kconfig             |   3 +
+>  lib/utils/gpio/fdt_gpio_starfive.c | 117 +++++++++++++++++++++++++++++
+>  lib/utils/gpio/objects.mk          |   3 +
+>  platform/generic/configs/defconfig |   1 +
+>  4 files changed, 124 insertions(+)
+>  create mode 100644 lib/utils/gpio/fdt_gpio_starfive.c
+>
+> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
+> index 38a9d75..1b338a6 100644
+> --- a/lib/utils/gpio/Kconfig
+> +++ b/lib/utils/gpio/Kconfig
+> @@ -14,6 +14,9 @@ config FDT_GPIO_SIFIVE
+>         bool "SiFive GPIO FDT driver"
+>         default n
+>
+> +config FDT_GPIO_STARFIVE
+> +       bool "StarFive GPIO FDT driver"
+> +       default n
+>  endif
+>
+>  config GPIO
+> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
+> new file mode 100644
+> index 0000000..18cca72
+> --- /dev/null
+> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
+> @@ -0,0 +1,117 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 Starfive
+> + *
+> + * Authors:
+> + *   Minda.chen <Minda.chen@starfivetech.com>
+> + */
+> +
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/gpio/fdt_gpio.h>
+> +
+> +#define STARFIVE_GPIO_CHIP_MAX         2
+> +#define STARFIVE_GPIO_PINS_DEF         64
+> +#define STARFIVE_GPIO_OUTVAL           0x40
+> +#define STARFIVE_GPIO_MASK             0xff
+> +#define STARFIVE_GPIO_REG_SHIFT_MASK   0x3
+> +#define STARFIVE_GPIO_SHIFT_BITS       0x3
+> +
+> +struct starfive_gpio_chip {
+> +       unsigned long addr;
+> +       struct gpio_chip chip;
+> +};
+> +
+> +static unsigned int starfive_gpio_chip_count;
+> +static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
+> +
+> +static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
+> +{
+> +       u32 val;
+> +       unsigned long reg_addr;
+> +       u32 bit_mask, shift_bits;
+> +       struct starfive_gpio_chip *chip =
+> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
+> +
+> +       /* set out en*/
+> +       reg_addr = chip->addr + gp->offset;
+> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
+> +
+> +       val = readl((void *)(reg_addr));
+> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
+> +               << STARFIVE_GPIO_SHIFT_BITS;
+> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
+> +
+> +       val = readl((void *)reg_addr);
+> +       val &= ~bit_mask;
+> +       writel(val, (void *)reg_addr);
+> +
+> +       return 0;
+> +}
+> +
+> +static void starfive_gpio_set(struct gpio_pin *gp, int value)
+> +{
+> +       u32 val;
+> +       unsigned long reg_addr;
+> +       u32 bit_mask, shift_bits;
+> +       struct starfive_gpio_chip *chip =
+> +               container_of(gp->chip, struct starfive_gpio_chip, chip);
+> +
+> +       reg_addr = chip->addr + gp->offset;
+> +       reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
+> +
+> +       shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
+> +               << STARFIVE_GPIO_SHIFT_BITS;
+> +       bit_mask = STARFIVE_GPIO_MASK << shift_bits;
+> +       /* set output value */
+> +       val = readl((void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
+> +       val &= ~bit_mask;
+> +       val |= value << shift_bits;
+> +       writel(val, (void *)(reg_addr + STARFIVE_GPIO_OUTVAL));
+> +}
+> +
+> +extern struct fdt_gpio fdt_gpio_starfive;
+> +
+> +static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
+> +                             const struct fdt_match *match)
+> +{
+> +       int rc;
+> +       struct starfive_gpio_chip *chip;
+> +       u64 addr;
+> +
+> +       if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
+> +               return SBI_ENOSPC;
+> +       chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
+> +
+> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+> +       if (rc)
+> +               return rc;
+> +
+> +       chip->addr = addr;
+> +       chip->chip.driver = &fdt_gpio_starfive;
+> +       chip->chip.id = phandle;
+> +       chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
+> +       chip->chip.direction_output = starfive_gpio_direction_output;
+> +       chip->chip.set = starfive_gpio_set;
+> +       rc = gpio_chip_add(&chip->chip);
+> +       if (rc)
+> +               return rc;
+> +
+> +       starfive_gpio_chip_count++;
+> +       return 0;
+> +}
+> +
+> +static const struct fdt_match starfive_gpio_match[] = {
+> +       { .compatible = "starfive,jh7110-sys-pinctrl" },
+> +       { .compatible = "starfive,iomux-pinctrl" },
+> +       { },
+> +};
+> +
+> +struct fdt_gpio fdt_gpio_starfive = {
+> +       .match_table = starfive_gpio_match,
+> +       .xlate = fdt_gpio_simple_xlate,
+> +       .init = starfive_gpio_init,
+> +};
+> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+> index eedd699..8f4a6a8 100644
+> --- a/lib/utils/gpio/objects.mk
+> +++ b/lib/utils/gpio/objects.mk
+> @@ -13,4 +13,7 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
+>  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
+>  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
+>
+> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_STARFIVE) += fdt_gpio_starfive
+> +libsbiutils-objs-$(CONFIG_FDT_GPIO_STARFIVE) += gpio/fdt_gpio_starfive.o
+> +
+>  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> index 4b0842e..2ad953d 100644
+> --- a/platform/generic/configs/defconfig
+> +++ b/platform/generic/configs/defconfig
+> @@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
+>  CONFIG_PLATFORM_STARFIVE_JH7110=y
+>  CONFIG_FDT_GPIO=y
+>  CONFIG_FDT_GPIO_SIFIVE=y
+> +CONFIG_FDT_GPIO_STARFIVE=y
+>  CONFIG_FDT_I2C=y
+>  CONFIG_FDT_I2C_SIFIVE=y
+>  CONFIG_FDT_IPI=y
+> --
+> 2.17.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
