@@ -1,288 +1,386 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 2 Mar 2023 09:37:03 +0530
-Subject: [PATCH v2 1/2] lib: sbi: Wait in sbi_hsm_hart_wait() till the
- hart is prepared to start
-In-Reply-To: <6eb6ddad-6ddf-1b6a-aad8-7a4df8657641@yadro.com>
-References: <20230221210851.3145840-1-e.shatokhin@yadro.com>
- <20230221210851.3145840-2-e.shatokhin@yadro.com> <CAAhSdy2EwxbwNV2fvshUDr49h6Ja6K3j8Ah4w1_TbYEbZ4UaOA@mail.gmail.com>
- <6eb6ddad-6ddf-1b6a-aad8-7a4df8657641@yadro.com>
-Message-ID: <CAAhSdy1bS_yA290sPt6S2fxHiffq=-Dc5r28AeYFScBEmjd7hQ@mail.gmail.com>
+Date: Fri, 3 Mar 2023 17:51:19 +0530
+Subject: [PATCH 1/2] lib: utils/i2c: Add minimal StarFive jh7110 I2C driver
+In-Reply-To: <20230224095746.40466-2-minda.chen@starfivetech.com>
+References: <20230224095746.40466-1-minda.chen@starfivetech.com> <20230224095746.40466-2-minda.chen@starfivetech.com>
+Message-ID: <CAAhSdy38T6VDQ_-yHosd0hwuONHOgu4aybjgkPEvjTUUzSZm-A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 28, 2023 at 9:26 PM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
+On Fri, Feb 24, 2023 at 3:28?PM Minda Chen <minda.chen@starfivetech.com> wrote:
 >
-> On 28.02.2023 08:06, Anup Patel wrote:
-> > On Wed, Feb 22, 2023 at 2:39 AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
-> >>
-> >> "wfi" instruction is not guaranteed to wait for an interrupt to be received
-> >> by the hart, it is just a hint for the CPU. According to RISC-V Privileged
-> >> Architectures spec. v20211203, even an implementation of "wfi" as "nop" is
-> >> legal.
-> >>
-> >> As a result, a secondary (non-boot) hart waiting in the while loop in
-> >> sbi_hsm_hart_wait() might leave the loop and continue even if it got no
-> >> IPI or it got an IPI unrelated to sbi_hsm_hart_start(). This could lead to
-> >> the following race condition when booting Linux, for example:
-> >>
-> >>    Boot hart (#0)                        Secondary hart (#1)
-> >>    runs Linux startup code               waits in sbi_hsm_hart_wait()
-> >>
-> >>    sbi_ecall(SBI_EXT_HSM,
-> >>              SBI_EXT_HSM_HART_START,
-> >>              ...)
-> >>    enters sbi_hsm_hart_start()
-> >>    sets state of hart #1 to START_PENDING
-> >>                                          leaves sbi_hsm_hart_wait()
-> >>                                          runs to the end of init_warmboot()
-> >>                                          returns to scratch->next_addr
-> >>                                          (next_addr can be garbage here)
-> >>
-> >>    sets next_addr, etc. for hart #1
-> >>    (no good: hart #1 has already left)
-> >>
-> >>    sends IPI to hart #1
-> >>    (no good either)
-> >>
-> >> If this happens, the secondary hart jumps to a wrong next_addr at the end
-> >> of init_warmboot(), which leads to a system hang or crash.
-> >>
-> >> To reproduce the issue more reliably, one could add a delay in
-> >> sbi_hsm_hart_start() after setting the hart's state but before sending
-> >> IPI to that hart:
-> >>
-> >>      hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOPPED,
-> >>                              SBI_HSM_STATE_START_PENDING);
-> >>      ...
-> >>    + sbi_timer_mdelay(10);
-> >>      init_count = sbi_init_count(hartid);
-> >>      rscratch->next_arg1 = arg1;
-> >>      rscratch->next_addr = saddr;
-> >>
-> >> The issue can be reproduced, for example, in a QEMU VM with '-machine virt'
-> >> and 2 or more CPUs, with Linux as the guest OS.
-> >
-> > Good catch. This is a valid issue which needs to be fixed.
-> >
-> >>
-> >> This patch adds an auxiliary per-hart state variable, aux_state, as well as
-> >> its accessor functions, to synchronize execution of the boot hart and the
-> >> starting secondary hart.
-> >>
-> >> Initially, aux_state is 0: sbi_scratch_alloc_offset() zeroes the allocated
-> >> memory. The boot hart sets it to 1 after it has set next_addr, etc., for the
-> >> secondary hart, then sends the IPI to the latter.
-> >>
-> >> The secondary hart waits in sbi_hsm_hart_wait() both for aux_state to become
-> >> non-zero and for an IPI to happen. This should be safe even if the secondary
-> >> hart somehow gets an IPI unrelated to sbi_hsm_hart_start().
-> >>
-> >> Memory barriers are used to make sure the writes to next_addr, etc., in the
-> >> boot hart are visible to the secondary hart if it reads non-zero aux_state.
-> >>
-> >> Only one bit of aux_state is actually used here, so, this per-hart variable
-> >> can be used to hold other data in the future, if needed.
-> >
-> > Adding aux_state is an overly complicated solution in my opinion.
-> >
-> > Instead, you can simply do the following:
-> >
-> >      rscratch->next_arg1 = arg1;
-> >      rscratch->next_addr = saddr;
-> >      rscratch->next_mode = smode;
-> >
-> >      /*
-> >       * Barrier to ensure that the above writes have happened before
-> >       * updating the HART state.
-> >       */
-> >      smp_wmb();
-> >
-> > Before "hdata = sbi_scratch_offset_ptr(rscratch, hart_data_offset);" in
-> > sbi_hsm_hart_start().
+> Starfive JH7110 I2C IP is synopsys designware.
+> Minimum StarFIve I2C driver to read/send bytes over I2C bus.
 >
-> True, the proposed fix it is more complicated than I would like it to
-> be, but there is a reason.
+> This allows querying information and perform operation of onboard PMIC,
+> as well as power-off and reset.
 >
-> Should we worry about the scenario when two or more harts enter
-> sbi_hsm_hart_start() with the same target hartid? It must not happen
-> during normal operation of the OS, but, in theory, errors in the
-> higher-level software could lead to this.
+> Signed-off-by: Minda Chen <minda.chen@starfivetech.com>
+> ---
+>  include/sbi_utils/i2c/dw_i2c.h   |  21 ++++
+>  lib/utils/i2c/Kconfig            |   8 ++
+>  lib/utils/i2c/dw_i2c.c           | 190 +++++++++++++++++++++++++++++++
+>  lib/utils/i2c/fdt_i2c_starfive.c |  63 ++++++++++
+>  lib/utils/i2c/objects.mk         |   5 +
+>  5 files changed, 287 insertions(+)
+>  create mode 100644 include/sbi_utils/i2c/dw_i2c.h
+>  create mode 100644 lib/utils/i2c/dw_i2c.c
+>  create mode 100644 lib/utils/i2c/fdt_i2c_starfive.c
 >
-> Setting hstate to SBI_HSM_STATE_START_PENDING atomically and checking
-> its previous values before changing *rscratch in sbi_hsm_hart_start()
-> guarantees that the current hart has exclusive access to *rscratch after
-> that. If we move rscratch->next_arg1 = arg1, etc., before hdata =
-> sbi_scratch_offset_ptr(...), it would be possible for two harts to race
-> and write different values to *rscratch for the same target hart. It is
-> very unlikely to happen, but still.
+> diff --git a/include/sbi_utils/i2c/dw_i2c.h b/include/sbi_utils/i2c/dw_i2c.h
+> new file mode 100644
+> index 0000000..88703e0
+> --- /dev/null
+> +++ b/include/sbi_utils/i2c/dw_i2c.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 StarFive Technology Co., Ltd.
+> + *
+> + * Author: Minda Chen <minda.chen@starfivetech.com>
+> + */
+> +
+> +#ifndef __DW_I2C_H__
+> +#define __DW_I2C_H__
+> +
+> +#include <sbi_utils/i2c/i2c.h>
+> +
+> +int dw_i2c_init(struct i2c_adapter *, int nodeoff);
+> +
+> +struct dw_i2c_adapter {
+> +       unsigned long addr;
+> +       struct i2c_adapter adapter;
+> +};
+> +
+> +#endif
+> diff --git a/lib/utils/i2c/Kconfig b/lib/utils/i2c/Kconfig
+> index 46a3454..0bc6a58 100644
+> --- a/lib/utils/i2c/Kconfig
+> +++ b/lib/utils/i2c/Kconfig
+> @@ -14,8 +14,16 @@ config FDT_I2C_SIFIVE
+>         bool "SiFive I2C FDT driver"
+>         default n
 >
-> If it is somehow guaranteed that the current hart has exclusive access
-> to *rscratch even at the beginning of sbi_hsm_hart_start(), then yes, we
-> can drop aux_state, etc., and use a simpler fix.
->
-> smp_wmb() will then be paired with rmb() in atomic_read(&hdata->state)
-> from sbi_hsm_hart_wait() and it would make sure the writes are seen in
-> correct order.
->
-> So, should we worry about misbehaving OSes which could allow 2 or more
-> harts to enter sbi_hsm_hart_start() for the same target hart in parallel?
->
-> What do you think?
+> +config FDT_I2C_STARFIVE
 
-I see your point but it is better to tackle the situation of 2 or more
-harts entering sbi_hsm_hart_start() rather than aux_state which
-less readable.
+s/FDT_I2C_STARFIVE/FDT_I2C_DW
 
-How about this ?
+> +       bool "STARFIVE I2C FDT driver"
 
-1) Re-base on-top of the below patch
-2) Update this patch to:
-    a) Move "rscratch->next_*" updates before
-        "hdata = sbi_scratch_offset_ptr(rscratch, hart_data_offset);"
-        in sbi_hsm_hart_start()
-    b) Add "start_ticket" which needs to be acquired (0->1) before
-        "rscratch->next_*" updates in sbi_hsm_hart_start() and
-        if a HART fails to acquire it then sbi_hsm_hart_start() fails
-   c) Read the "scratch->next_" data and release "start_ticket" (1->0)
-       in sbi_hsm_hart_start_finish() before doing sbi_hart_switch_mode().
+s/STARFIVE I2C FDT driver/Designware I2C FDT driver/
+
+> +       select I2C_DW
+> +       default n
+>  endif
+>
+> +config I2C_DW
+> +       bool "Synopsys Designware I2C support"
+> +       default n
+> +
+>  config I2C
+>         bool "I2C support"
+>         default n
+> diff --git a/lib/utils/i2c/dw_i2c.c b/lib/utils/i2c/dw_i2c.c
+> new file mode 100644
+> index 0000000..e2ffc71
+> --- /dev/null
+> +++ b/lib/utils/i2c/dw_i2c.c
+> @@ -0,0 +1,190 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 starfivetech.com
+> + *
+> + * Authors:
+> + *   Minda Chen <minda.chen@starfivetech.com>
+> + */
+> +
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_timer.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_string.h>
+> +#include <sbi/sbi_bitops.h>
+> +#include <sbi_utils/i2c/dw_i2c.h>
+> +
+> +#define DW_IC_CON              0x00
+> +#define DW_IC_TAR              0x04
+> +#define DW_IC_SAR              0x08
+> +#define DW_IC_DATA_CMD         0x10
+> +#define DW_IC_SS_SCL_HCNT      0x14
+> +#define DW_IC_SS_SCL_LCNT      0x18
+> +#define DW_IC_FS_SCL_HCNT      0x1c
+> +#define DW_IC_FS_SCL_LCNT      0x20
+> +#define DW_IC_HS_SCL_HCNT      0x24
+> +#define DW_IC_HS_SCL_LCNT      0x28
+> +#define DW_IC_INTR_STAT                0x2c
+> +#define DW_IC_INTR_MASK                0x30
+> +#define DW_IC_RAW_INTR_STAT    0x34
+> +#define DW_IC_RX_TL            0x38
+> +#define DW_IC_TX_TL            0x3c
+> +#define DW_IC_CLR_INTR         0x40
+> +#define DW_IC_CLR_RX_UNDER     0x44
+> +#define DW_IC_CLR_RX_OVER      0x48
+> +#define DW_IC_CLR_TX_OVER      0x4c
+> +#define DW_IC_CLR_RD_REQ       0x50
+> +#define DW_IC_CLR_TX_ABRT      0x54
+> +#define DW_IC_CLR_RX_DONE      0x58
+> +#define DW_IC_CLR_ACTIVITY     0x5c
+> +#define DW_IC_CLR_STOP_DET     0x60
+> +#define DW_IC_CLR_START_DET    0x64
+> +#define DW_IC_CLR_GEN_CALL     0x68
+> +#define DW_IC_ENABLE           0x6c
+> +#define DW_IC_STATUS           0x70
+> +#define DW_IC_TXFLR            0x74
+> +#define DW_IC_RXFLR            0x78
+> +#define DW_IC_SDA_HOLD         0x7c
+> +#define DW_IC_TX_ABRT_SOURCE   0x80
+> +#define DW_IC_ENABLE_STATUS    0x9c
+> +#define DW_IC_CLR_RESTART_DET  0xa8
+> +#define DW_IC_COMP_PARAM_1     0xf4
+> +#define DW_IC_COMP_VERSION     0xf8
+> +
+> +#define DW_I2C_STATUS_TXFIFO_EMPTY     BIT(2)
+> +#define DW_I2C_STATUS_RXFIFO_NOT_EMPTY BIT(3)
+> +
+> +#define IC_DATA_CMD_READ       BIT(8)
+> +#define IC_DATA_CMD_STOP       BIT(9)
+> +#define IC_DATA_CMD_RESTART    BIT(10)
+> +#define IC_INT_STATUS_STOPDET  BIT(9)
+> +
+> +static inline void dw_i2c_setreg(struct dw_i2c_adapter *adap,
+> +                                u8 reg, u32 value)
+> +{
+> +       writel(value, (void *)adap->addr + reg);
+> +}
+> +
+> +static inline u32 dw_i2c_getreg(struct dw_i2c_adapter *adap,
+> +                               u32 reg)
+> +{
+> +       return readl((void *)adap->addr + reg);
+> +}
+> +
+> +static int dw_i2c_adapter_poll(struct dw_i2c_adapter *adap,
+> +                              u32 mask, u32 addr,
+> +                              bool inverted)
+> +{
+> +       unsigned int timeout = 10; /* msec */
+> +       int count = 0;
+> +       u32 val;
+> +
+> +       do {
+> +               val = dw_i2c_getreg(adap, addr);
+> +               if (inverted) {
+> +                       if (!(val & mask))
+> +                               return 0;
+> +               } else {
+> +                       if (val & mask)
+> +                               return 0;
+> +               }
+> +               sbi_timer_udelay(2);
+> +               count += 1;
+> +               if (count == (timeout * 1000))
+> +                       return SBI_ETIMEDOUT;
+> +       } while (1);
+> +}
+> +
+> +#define dw_i2c_adapter_poll_rxrdy(adap)        \
+> +       dw_i2c_adapter_poll(adap, DW_I2C_STATUS_RXFIFO_NOT_EMPTY, DW_IC_STATUS, 0)
+> +#define dw_i2c_adapter_poll_txfifo_ready(adap) \
+> +       dw_i2c_adapter_poll(adap, DW_I2C_STATUS_TXFIFO_EMPTY, DW_IC_STATUS, 0)
+> +
+> +static int dw_i2c_write_addr(struct dw_i2c_adapter *adap, u8 addr)
+> +{
+> +       dw_i2c_setreg(adap, DW_IC_ENABLE, 0);
+> +       dw_i2c_setreg(adap, DW_IC_TAR, addr);
+> +       dw_i2c_setreg(adap, DW_IC_ENABLE, 1);
+> +
+> +       return 0;
+> +}
+> +
+> +static int dw_i2c_adapter_read(struct i2c_adapter *ia, u8 addr,
+> +                              u8 reg, u8 *buffer, int len)
+> +{
+> +       struct dw_i2c_adapter *adap =
+> +               container_of(ia, struct dw_i2c_adapter, adapter);
+> +       int rc;
+> +
+> +       dw_i2c_write_addr(adap, addr);
+> +
+> +       rc = dw_i2c_adapter_poll_txfifo_ready(adap);
+> +       if (rc)
+> +               return rc;
+> +
+> +       /* set register address */
+> +       dw_i2c_setreg(adap, DW_IC_DATA_CMD, reg);
+> +
+> +       /* set value */
+> +       while (len) {
+> +               if (len == 1)
+> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD,
+> +                                     IC_DATA_CMD_READ | IC_DATA_CMD_STOP);
+> +               else
+> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD, IC_DATA_CMD_READ);
+> +
+> +               rc = dw_i2c_adapter_poll_rxrdy(adap);
+> +               if (rc)
+> +                       return rc;
+> +
+> +               *buffer = dw_i2c_getreg(adap, DW_IC_DATA_CMD) & 0xff;
+> +               buffer++;
+> +               len--;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static int dw_i2c_adapter_write(struct i2c_adapter *ia, u8 addr,
+> +                               u8 reg, u8 *buffer, int len)
+> +{
+> +       struct dw_i2c_adapter *adap =
+> +               container_of(ia, struct dw_i2c_adapter, adapter);
+> +       int rc;
+> +
+> +       dw_i2c_write_addr(adap, addr);
+> +
+> +       rc = dw_i2c_adapter_poll_txfifo_ready(adap);
+> +       if (rc)
+> +               return rc;
+> +
+> +       /* set register address */
+> +       dw_i2c_setreg(adap, DW_IC_DATA_CMD, reg);
+> +
+> +       while (len) {
+> +               rc = dw_i2c_adapter_poll_txfifo_ready(adap);
+> +               if (rc)
+> +                       return rc;
+> +
+> +               if (len == 1)
+> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD, *buffer | IC_DATA_CMD_STOP);
+> +               else
+> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD, *buffer);
+> +
+> +               buffer++;
+> +               len--;
+> +       }
+> +       rc = dw_i2c_adapter_poll_txfifo_ready(adap);
+> +
+> +       return rc;
+> +}
+> +
+> +int dw_i2c_init(struct i2c_adapter *adapter, int nodeoff)
+> +{
+> +       adapter->id = nodeoff;
+> +       adapter->write = dw_i2c_adapter_write;
+> +       adapter->read = dw_i2c_adapter_read;
+> +
+> +       return i2c_adapter_add(adapter);
+> +}
+> diff --git a/lib/utils/i2c/fdt_i2c_starfive.c b/lib/utils/i2c/fdt_i2c_starfive.c
+> new file mode 100644
+> index 0000000..7b7f3cc
+> --- /dev/null
+> +++ b/lib/utils/i2c/fdt_i2c_starfive.c
+
+Please rename the file to fde_i2c_dw.c
+
+> @@ -0,0 +1,63 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 starfivetech.com
+> + *
+> + * Authors:
+> + *   Minda Chen <minda.chen@starfivetech.com>
+> + */
+> +
+> +#include <sbi/riscv_io.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_string.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/i2c/dw_i2c.h>
+> +#include <sbi_utils/i2c/fdt_i2c.h>
+> +
+> +#define STARFIVE_I2C_ADAPTER_MAX       7
+
+Use the prefix "FDT_DW_" instead of "STARFIVE_" everywhere in
+this source file.
+
+> +
+> +static unsigned int starfive_i2c_adapter_count;
+> +static struct dw_i2c_adapter
+> +       starfive_i2c_adapter_array[STARFIVE_I2C_ADAPTER_MAX];
+> +
+> +extern struct fdt_i2c_adapter fdt_i2c_adapter_starfive;
+> +
+> +static int starfive_i2c_init(void *fdt, int nodeoff,
+> +                            const struct fdt_match *match)
+> +{
+> +       int rc;
+> +       struct dw_i2c_adapter *adapter;
+> +       u64 addr;
+> +
+> +       if (starfive_i2c_adapter_count >= STARFIVE_I2C_ADAPTER_MAX)
+> +               return SBI_ENOSPC;
+> +
+> +       adapter = &starfive_i2c_adapter_array[starfive_i2c_adapter_count];
+> +
+> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+> +       if (rc)
+> +               return rc;
+> +
+> +       adapter->addr = addr;
+> +       adapter->adapter.driver = &fdt_i2c_adapter_starfive;
+> +
+> +       rc = dw_i2c_init(&adapter->adapter, nodeoff);
+> +       if (rc)
+> +               return rc;
+> +
+> +       starfive_i2c_adapter_count++;
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct fdt_match starfive_i2c_match[] = {
+> +       { .compatible = "snps,designware-i2c" },
+> +       { .compatible = "starfive,jh7110-i2c" },
+> +       { },
+> +};
+> +
+> +struct fdt_i2c_adapter fdt_i2c_adapter_starfive = {
+
+s/fdt_i2c_adapter_starfive/fdt_i2c_adapter_dw
+
+> +       .match_table = starfive_i2c_match,
+> +       .init = starfive_i2c_init,
+> +};
+> +
+> diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
+> index a0fbbb5..6ceffe8 100644
+> --- a/lib/utils/i2c/objects.mk
+> +++ b/lib/utils/i2c/objects.mk
+> @@ -14,3 +14,8 @@ libsbiutils-objs-$(CONFIG_FDT_I2C) += i2c/fdt_i2c_adapter_drivers.o
+>
+>  carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SIFIVE) += fdt_i2c_adapter_sifive
+>  libsbiutils-objs-$(CONFIG_FDT_I2C_SIFIVE) += i2c/fdt_i2c_sifive.o
+> +
+> +carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_STARFIVE) += fdt_i2c_adapter_starfive
+> +libsbiutils-objs-$(CONFIG_FDT_I2C_STARFIVE) += i2c/fdt_i2c_starfive.o
+> +
+> +libsbiutils-objs-$(CONFIG_I2C_DW) += i2c/dw_i2c.o
+> --
+> 2.17.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
 Anup
-
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index c0b4830..4b5601b 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -66,7 +66,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
-                u32 hartid, ulong saddr, ulong smode, ulong arg1);
- int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
- void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
--void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
-+void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
-+                       u32 hartid);
- int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
-              ulong raddr, ulong rmode, ulong arg1);
- bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
-@@ -76,6 +77,7 @@ int sbi_hsm_hart_get_state(const struct sbi_domain
-*dom, u32 hartid);
- int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
-                     ulong hbase, ulong *out_hmask);
- void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
--void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
-+void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
-+                      u32 hartid);
-
- #endif
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 3eeeb58..100b8c0 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -110,7 +110,8 @@ int sbi_hsm_hart_interruptible_mask(const struct
-sbi_domain *dom,
-     return 0;
- }
-
--void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
-+void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
-+                      u32 hartid)
- {
-     struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-                                 hart_data_offset);
-@@ -118,6 +119,9 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch
-*scratch, u32 hartid)
-     if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
-                      SBI_HSM_STATE_STARTED))
-         sbi_hart_hang();
-+
-+    sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
-+                 scratch->next_mode, false);
- }
-
- static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
-@@ -381,7 +385,8 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
-     hsm_device_hart_resume();
- }
-
--void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
-+void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
-+                       u32 hartid)
- {
-     struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
-                                 hart_data_offset);
-@@ -396,6 +401,10 @@ void sbi_hsm_hart_resume_finish(struct
-sbi_scratch *scratch)
-      * the warm-boot sequence.
-      */
-     __sbi_hsm_suspend_non_ret_restore(scratch);
-+
-+    sbi_hart_switch_mode(hartid, scratch->next_arg1,
-+                 scratch->next_addr,
-+                 scratch->next_mode, false);
- }
-
- int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index bc60a42..dcca2c8 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -355,12 +355,11 @@ static void __noreturn init_coldboot(struct
-sbi_scratch *scratch, u32 hartid)
-     init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
-     (*init_count)++;
-
--    sbi_hsm_prepare_next_jump(scratch, hartid);
--    sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
--                 scratch->next_mode, false);
-+    sbi_hsm_hart_start_finish(scratch, hartid);
- }
-
--static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
-+static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
-+                     u32 hartid)
- {
-     int rc;
-     unsigned long *init_count;
-@@ -412,10 +411,11 @@ static void init_warm_startup(struct sbi_scratch
-*scratch, u32 hartid)
-     init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
-     (*init_count)++;
-
--    sbi_hsm_prepare_next_jump(scratch, hartid);
-+    sbi_hsm_hart_start_finish(scratch, hartid);
- }
-
--static void init_warm_resume(struct sbi_scratch *scratch)
-+static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
-+                    u32 hartid)
- {
-     int rc;
-
-@@ -429,7 +429,7 @@ static void init_warm_resume(struct sbi_scratch *scratch)
-     if (rc)
-         sbi_hart_hang();
-
--    sbi_hsm_hart_resume_finish(scratch);
-+    sbi_hsm_hart_resume_finish(scratch, hartid);
- }
-
- static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
-@@ -443,13 +443,9 @@ static void __noreturn init_warmboot(struct
-sbi_scratch *scratch, u32 hartid)
-         sbi_hart_hang();
-
-     if (hstate == SBI_HSM_STATE_SUSPENDED)
--        init_warm_resume(scratch);
-+        init_warm_resume(scratch, hartid);
-     else
-         init_warm_startup(scratch, hartid);
--
--    sbi_hart_switch_mode(hartid, scratch->next_arg1,
--                 scratch->next_addr,
--                 scratch->next_mode, false);
- }
-
- static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
 
