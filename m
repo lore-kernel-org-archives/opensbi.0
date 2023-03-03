@@ -1,23 +1,21 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 3 Mar 2023 17:55:45 +0530
-Subject: [PATCH 2/2] config: starfive: add PMIC power ops in JH7110
- visionfive2 board
-In-Reply-To: <20230224095746.40466-3-minda.chen@starfivetech.com>
-References: <20230224095746.40466-1-minda.chen@starfivetech.com> <20230224095746.40466-3-minda.chen@starfivetech.com>
-Message-ID: <CAAhSdy0pvXcpzRmvbHqa9eXg=BSNrW8YifL6h+CeKgWebeyOzg@mail.gmail.com>
+Date: Fri, 3 Mar 2023 17:57:14 +0530
+Subject: [PATCH] gpio/desginware: add Synopsys DesignWare APB GPIO support
+In-Reply-To: <20230301122525.213751-1-ben.dooks@sifive.com>
+References: <20230301122525.213751-1-ben.dooks@sifive.com>
+Message-ID: <CAAhSdy0jOgGLepaEzSZB1=j9dWhORFB=f00_Hic9hcZjvpyfOA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 24, 2023 at 3:28?PM Minda Chen <minda.chen@starfivetech.com> wrote:
+On Wed, Mar 1, 2023 at 5:55?PM Ben Dooks <ben.dooks@sifive.com> wrote:
 >
-> add reboot and poweroff support. The whole reboot and shutdown
-> pm op includes shutdown jh7110 pmu device power domain
-> and access on board pmic register through I2C.
+> Add a driver for the Synopsys DesignWare APB GPIO IP block found in many
+> SoCs.
 >
-> Signed-off-by: Minda Chen <minda.chen@starfivetech.com>
+> Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
 
 Looks good to me.
 
@@ -27,320 +25,201 @@ Regards,
 Anup
 
 > ---
->  platform/generic/configs/defconfig |   1 +
->  platform/generic/starfive/jh7110.c | 272 +++++++++++++++++++++++++++++
->  2 files changed, 273 insertions(+)
+>  lib/utils/gpio/Kconfig               |   4 +
+>  lib/utils/gpio/fdt_gpio_designware.c | 140 +++++++++++++++++++++++++++
+>  lib/utils/gpio/objects.mk            |   2 +
+>  platform/generic/configs/defconfig   |   1 +
+>  4 files changed, 147 insertions(+)
+>  create mode 100644 lib/utils/gpio/fdt_gpio_designware.c
 >
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 2ad953d..1fece49 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -9,6 +9,7 @@ CONFIG_FDT_GPIO_SIFIVE=y
->  CONFIG_FDT_GPIO_STARFIVE=y
->  CONFIG_FDT_I2C=y
->  CONFIG_FDT_I2C_SIFIVE=y
-> +CONFIG_FDT_I2C_STARFIVE=y
->  CONFIG_FDT_IPI=y
->  CONFIG_FDT_IPI_MSWI=y
->  CONFIG_FDT_IPI_PLICSW=y
-> diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-> index c665658..31c6bd3 100644
-> --- a/platform/generic/starfive/jh7110.c
-> +++ b/platform/generic/starfive/jh7110.c
-> @@ -5,14 +5,285 @@
->   *
->   * Authors:
->   *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-> + *   Minda Chen <minda.chen@starfivetech.com>
->   */
+> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
+> index 38a9d75..f229928 100644
+> --- a/lib/utils/gpio/Kconfig
+> +++ b/lib/utils/gpio/Kconfig
+> @@ -14,6 +14,10 @@ config FDT_GPIO_SIFIVE
+>         bool "SiFive GPIO FDT driver"
+>         default n
 >
->  #include <libfdt.h>
->  #include <platform_override.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_bitops.h>
-> +#include <sbi/sbi_system.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_timer.h>
+> +config FDT_GPIO_DESIGNWARE
+> +       bool "DesignWare GPIO driver"
+> +       default n
+> +
+>  endif
+>
+>  config GPIO
+> diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
+> new file mode 100644
+> index 0000000..6223d7e
+> --- /dev/null
+> +++ b/lib/utils/gpio/fdt_gpio_designware.c
+> @@ -0,0 +1,140 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2022 SiFive
+> + *
+> + * GPIO driver for Synopsys DesignWare APB GPIO
+> + *
+> + * Authors:
+> + *   Ben Dooks <ben.dooks@sifive.com>
+> + */
+> +
+> +#include <libfdt.h>
+> +
 > +#include <sbi/riscv_io.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/i2c/fdt_i2c.h>
->
-> +struct pmic {
-> +       struct i2c_adapter *adapter;
-> +       u32 dev_addr;
-> +       const char *compatible;
+> +#include <sbi/sbi_error.h>
+> +
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/gpio/fdt_gpio.h>
+> +
+> +#define DW_GPIO_CHIP_MAX       4       /* need 1 per bank in use */
+> +#define DW_GPIO_PINS_MAX       32
+> +
+> +#define DW_GPIO_DDR    0x4
+> +#define DW_GPIO_DR     0x0
+> +#define DW_GPIO_BIT(_b)        (1UL << (_b))
+> +
+> +struct dw_gpio_chip {
+> +       void *dr;
+> +       void *ext;
+> +       struct gpio_chip chip;
 > +};
 > +
-> +struct jh7110 {
-> +       u64 pmu_reg_base;
-> +       u64 clk_reg_base;
-> +       u32 i2c_index;
-> +};
+> +extern struct fdt_gpio fdt_gpio_designware;
 > +
-> +static struct pmic pmic_inst;
-> +static struct jh7110 jh7110_inst;
->  static u32 selected_hartid = -1;
->
-> +/* PMU register define */
-> +#define HW_EVENT_TURN_ON_MASK          0x04
-> +#define HW_EVENT_TURN_OFF_MASK         0x08
-> +#define SW_TURN_ON_POWER_MODE          0x0C
-> +#define SW_TURN_OFF_POWER_MODE         0x10
-> +#define SW_ENCOURAGE                   0x44
-> +#define PMU_INT_MASK                   0x48
-> +#define PCH_BYPASS                     0x4C
-> +#define PCH_PSTATE                     0x50
-> +#define PCH_TIMEOUT                    0x54
-> +#define LP_TIMEOUT                     0x58
-> +#define HW_TURN_ON_MODE                        0x5C
-> +#define CURR_POWER_MODE                        0x80
-> +#define PMU_EVENT_STATUS               0x88
-> +#define PMU_INT_STATUS                 0x8C
+> +static unsigned int dw_gpio_chip_count;
+> +static struct dw_gpio_chip dw_gpio_chip_array[DW_GPIO_CHIP_MAX];
 > +
-> +/* sw encourage cfg */
-> +#define SW_MODE_ENCOURAGE_EN_LO                0x05
-> +#define SW_MODE_ENCOURAGE_EN_HI                0x50
-> +#define SW_MODE_ENCOURAGE_DIS_LO       0x0A
-> +#define SW_MODE_ENCOURAGE_DIS_HI       0xA0
-> +#define SW_MODE_ENCOURAGE_ON           0xFF
+> +#define pin_to_chip(__p) container_of((__p)->chip, struct dw_gpio_chip, chip);
 > +
-> +#define DEVICE_PD_MASK                 0xfc
-> +#define SYSTOP_CPU_PD_MASK             0x3
-> +
-> +#define TIMEOUT_COUNT                  100000
-> +#define AXP15060_POWER_REG             0x32
-> +#define AXP15060_POWER_OFF_BIT         BIT(7)
-> +#define AXP15060_RESET_BIT             BIT(6)
-> +
-> +#define I2C_APB_CLK_OFFSET             0x228
-> +#define I2C_APB_CLK_ENABLE_BIT         BIT(31)
-> +
-> +static int pm_system_reset_check(u32 type, u32 reason)
+> +static int dw_gpio_direction_output(struct gpio_pin *gp, int value)
 > +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               return 1;
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +               return 255;
-> +       default:
-> +               break;
-> +       }
+> +       struct dw_gpio_chip *chip = pin_to_chip(gp);
+> +       unsigned long v;
+> +
+> +       v = readl(chip->dr + DW_GPIO_DR);
+> +       if (!value)
+> +               v &= ~DW_GPIO_BIT(gp->offset);
+> +       else
+> +               v |= DW_GPIO_BIT(gp->offset);
+> +       writel(v, chip->dr + DW_GPIO_DR);
+> +
+> +       /* the DR is output only so we can set it then the DDR to set
+> +        * the data direction, to avoid glitches.
+> +        */
+> +       v = readl(chip->dr + DW_GPIO_DDR);
+> +       v |= DW_GPIO_BIT(gp->offset);
+> +       writel(v, chip->dr + DW_GPIO_DDR);
 > +
 > +       return 0;
 > +}
 > +
-> +static int wait_pmu_pd_state(u32 mask)
+> +static void dw_gpio_set(struct gpio_pin *gp, int value)
 > +{
-> +       int count = 0;
-> +       unsigned long addr = jh7110_inst.pmu_reg_base;
-> +       u32 val;
+> +       struct dw_gpio_chip *chip = pin_to_chip(gp);
+> +       unsigned long v;
 > +
-> +       do {
-> +               val = readl((void *)(addr + CURR_POWER_MODE));
-> +               if (val == mask)
-> +                       return 0;
-> +
-> +               sbi_timer_udelay(2);
-> +               count += 1;
-> +               if (count == TIMEOUT_COUNT)
-> +                       return SBI_ETIMEDOUT;
-> +       } while (1);
+> +       v = readl(chip->dr + DW_GPIO_DR);
+> +       if (!value)
+> +               v &= ~DW_GPIO_BIT(gp->offset);
+> +       else
+> +               v |= DW_GPIO_BIT(gp->offset);
+> +       writel(v, chip->dr + DW_GPIO_DR);
 > +}
 > +
-> +static int shutdown_device_power_domain(void)
+> +/* notes:
+> + * each sub node is a bank and has ngpios or snpns,nr-gpios and a reg property
+> + * with the compatible `snps,dw-apb-gpio-port`.
+> + * bank A is the only one with irq support but we're not using it here
+> +*/
+> +
+> +static int dw_gpio_init_bank(void *fdt, int nodeoff, u32 phandle,
+> +                            const struct fdt_match *match)
 > +{
-> +       unsigned long addr = jh7110_inst.pmu_reg_base;
-> +       u32 curr_mode;
-> +       int ret = 0;
+> +       struct dw_gpio_chip *chip;
+> +       const fdt32_t *val;
+> +       uint64_t addr;
+> +       int rc, poff, nr_pins, bank, len;
 > +
-> +       curr_mode = readl((void *)(addr + CURR_POWER_MODE));
-> +       curr_mode &= DEVICE_PD_MASK;
+> +       if (dw_gpio_chip_count >= DW_GPIO_CHIP_MAX)
+> +               return SBI_ENOSPC;
 > +
-> +       if (curr_mode) {
-> +               writel(curr_mode, (void *)(addr + SW_TURN_OFF_POWER_MODE));
-> +               writel(SW_MODE_ENCOURAGE_ON, (void *)(addr + SW_ENCOURAGE));
-> +               writel(SW_MODE_ENCOURAGE_DIS_LO, (void *)(addr + SW_ENCOURAGE));
-> +               writel(SW_MODE_ENCOURAGE_DIS_HI, (void *)(addr + SW_ENCOURAGE));
-> +               ret = wait_pmu_pd_state(SYSTOP_CPU_PD_MASK);
-> +               if (ret)
-> +                       sbi_printf("%s shutdown device power %x error\n",
-> +                                  __func__, curr_mode);
-> +       }
-> +       return ret;
-> +}
+> +       /* need to get parent for the address property  */
+> +       poff = fdt_parent_offset(fdt, nodeoff);
+> +       if (poff < 0)
+> +               return SBI_EINVAL;
 > +
-> +static void pmic_ops(struct pmic *pmic, int type)
-> +{
-> +       int ret = 0;
-> +       u8 val;
+> +       rc = fdt_get_node_addr_size(fdt, poff, 0, &addr, NULL);
+> +       if (rc)
+> +               return rc;
 > +
-> +       ret = shutdown_device_power_domain();
+> +       val = fdt_getprop(fdt, nodeoff, "reg", &len);
+> +       if (!val || len <= 0)
+> +               return SBI_EINVAL;
+> +       bank = fdt32_to_cpu(*val);
 > +
-> +       if (ret)
-> +               return;
-> +
-> +       if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
-> +               ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
-> +                                          AXP15060_POWER_REG, &val);
-> +
-> +               if (ret) {
-> +                       sbi_printf("%s: cannot read pmic power register\n",
-> +                                  __func__);
-> +                       return;
-> +               }
-> +
-> +               val |= AXP15060_POWER_OFF_BIT;
-> +               if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
-> +                       val |= AXP15060_POWER_OFF_BIT;
-> +               else
-> +                       val |= AXP15060_RESET_BIT;
-> +
-> +               ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
-> +                                           AXP15060_POWER_REG, val);
-> +               if (ret)
-> +                       sbi_printf("%s: cannot write pmic power register\n",
-> +                                  __func__);
-> +       }
-> +}
-> +
-> +static void pmic_i2c_clk_enable(void)
-> +{
-> +       u64 clock_base;
-> +       unsigned int val;
-> +
-> +       clock_base = jh7110_inst.clk_reg_base +
-> +               I2C_APB_CLK_OFFSET +
-> +               (jh7110_inst.i2c_index << 2);
-> +
-> +       val = readl((void *)clock_base);
-> +
+> +       val = fdt_getprop(fdt, nodeoff, "snps,nr-gpios", &len);
 > +       if (!val)
-> +               writel(I2C_APB_CLK_ENABLE_BIT, (void *)(clock_base));
-> +}
+> +               val = fdt_getprop(fdt, nodeoff, "ngpios", &len);
+> +       if (!val || len <= 0)
+> +               return SBI_EINVAL;
+> +       nr_pins = fdt32_to_cpu(*val);
 > +
-> +static void pm_system_reset(u32 type, u32 reason)
-> +{
-> +       if (pmic_inst.adapter) {
-> +               switch (type) {
-> +               case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +                       /* i2c clk may be disabled by kernel driver */
-> +                       pmic_i2c_clk_enable();
-> +                       pmic_ops(&pmic_inst, type);
-> +                       break;
-> +               default:
-> +                       break;
-> +               }
-> +       }
+> +       chip = &dw_gpio_chip_array[dw_gpio_chip_count];
 > +
-> +       sbi_hart_hang();
-> +}
-> +
-> +static struct sbi_system_reset_device pm_reset = {
-> +       .name = "pm-reset",
-> +       .system_reset_check = pm_system_reset_check,
-> +       .system_reset = pm_system_reset
-> +};
-> +
-> +static int pm_reset_init(void *fdt, int nodeoff,
-> +                        const struct fdt_match *match)
-> +{
-> +       int rc;
-> +       int i2c_bus;
-> +       struct i2c_adapter *adapter;
-> +       u64 addr;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+> +       chip->dr = (void *)addr + (bank * 0xc);
+> +       chip->ext = (void *)addr + (bank * 4) + 0x50;
+> +       chip->chip.driver = &fdt_gpio_designware;
+> +       chip->chip.id = phandle;
+> +       chip->chip.ngpio = nr_pins;
+> +       chip->chip.set = dw_gpio_set;
+> +       chip->chip.direction_output = dw_gpio_direction_output;
+> +       rc = gpio_chip_add(&chip->chip);
 > +       if (rc)
 > +               return rc;
 > +
-> +       pmic_inst.dev_addr = addr;
-> +       pmic_inst.compatible = match->compatible;
-> +
-> +       i2c_bus = fdt_parent_offset(fdt, nodeoff);
-> +       if (i2c_bus < 0)
-> +               return i2c_bus;
-> +
-> +       /* i2c adapter get */
-> +       rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
-> +       if (rc)
-> +               return rc;
-> +
-> +       pmic_inst.adapter = adapter;
-> +
-> +       sbi_system_reset_add_device(&pm_reset);
-> +
+> +       dw_gpio_chip_count++;
 > +       return 0;
 > +}
 > +
-> +static const struct fdt_match pm_reset_match[] = {
-> +       { .compatible = "stf,axp15060-regulator", .data = (void *)true },
+> +/* since we're only probed when used, match on port not main controller node */
+> +static const struct fdt_match dw_gpio_match[] = {
+> +       { .compatible = "snps,dw-apb-gpio-port" },
 > +       { },
 > +};
 > +
-> +static struct fdt_reset fdt_reset_pmic = {
-> +       .match_table = pm_reset_match,
-> +       .init = pm_reset_init,
+> +struct fdt_gpio fdt_gpio_designware = {
+> +       .match_table = dw_gpio_match,
+> +       .xlate = fdt_gpio_simple_xlate,
+> +       .init = dw_gpio_init_bank,
 > +};
-> +
-> +static int starfive_jh7110_inst_init(void *fdt)
-> +{
-> +       int noff, rc = 0;
-> +       const char *name;
-> +       u64 addr;
-> +
-> +       noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-pmu");
-> +       if (-1 < noff) {
-> +               rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
-> +               if (rc)
-> +                       goto err;
-> +               jh7110_inst.pmu_reg_base = addr;
-> +       }
-> +
-> +       noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-clkgen");
-> +       if (-1 < noff) {
-> +               rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
-> +               if (rc)
-> +                       goto err;
-> +               jh7110_inst.clk_reg_base = addr;
-> +       }
-> +
-> +       if (pmic_inst.adapter) {
-> +               name = fdt_get_name(fdt, pmic_inst.adapter->id, NULL);
-> +               if (!sbi_strncmp(name, "i2c", 3))
-> +                       jh7110_inst.i2c_index = name[3] - '0';
-> +               else
-> +                       rc = SBI_EINVAL;
-> +       }
-> +err:
-> +       return rc;
-> +}
-> +
-> +static int starfive_jh7110_final_init(bool cold_boot,
-> +                                     const struct fdt_match *match)
-> +{
-> +       void *fdt = fdt_get_address();
-> +
-> +       if (cold_boot) {
-> +               fdt_reset_driver_init(fdt, &fdt_reset_pmic);
-> +               return starfive_jh7110_inst_init(fdt);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
->                                    const struct fdt_match *match)
->  {
-> @@ -44,4 +315,5 @@ const struct platform_override starfive_jh7110 = {
->         .match_table = starfive_jh7110_match,
->         .cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
->         .fw_init = starfive_jh7110_fw_init,
-> +       .final_init = starfive_jh7110_final_init,
->  };
+> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
+> index eedd699..00ea7af 100644
+> --- a/lib/utils/gpio/objects.mk
+> +++ b/lib/utils/gpio/objects.mk
+> @@ -11,6 +11,8 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio.o
+>  libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
+>
+>  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
+> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_DESIGNWARE) += fdt_gpio_designware
+>  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
+> +libsbiutils-objs-$(CONFIG_FDT_GPIO_DESIGNWARE) += gpio/fdt_gpio_designware.o
+>
+>  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> index 4b0842e..759caaa 100644
+> --- a/platform/generic/configs/defconfig
+> +++ b/platform/generic/configs/defconfig
+> @@ -5,6 +5,7 @@ CONFIG_PLATFORM_SIFIVE_FU540=y
+>  CONFIG_PLATFORM_SIFIVE_FU740=y
+>  CONFIG_PLATFORM_STARFIVE_JH7110=y
+>  CONFIG_FDT_GPIO=y
+> +CONFIG_FDT_GPIO_DESIGNWARE=y
+>  CONFIG_FDT_GPIO_SIFIVE=y
+>  CONFIG_FDT_I2C=y
+>  CONFIG_FDT_I2C_SIFIVE=y
 > --
-> 2.17.1
+> 2.39.2
 >
 >
 > --
