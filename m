@@ -1,113 +1,156 @@
 From: Evgenii Shatokhin <e.shatokhin@yadro.com>
-Date: Mon, 6 Mar 2023 00:22:44 +0300
-Subject: [PATCH v3 0/3] lib: sbi: Prevent system hang when bringing up secondary harts
-Message-ID: <20230305212247.494912-1-e.shatokhin@yadro.com>
+Date: Mon, 6 Mar 2023 00:22:45 +0300
+Subject: [PATCH v3 1/3] lib: sbi: Refactor the calls to sbi_hart_switch_mode()
+In-Reply-To: <20230305212247.494912-1-e.shatokhin@yadro.com>
+References: <20230305212247.494912-1-e.shatokhin@yadro.com>
+Message-ID: <20230305212247.494912-2-e.shatokhin@yadro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The boot hart can race with the secondary harts when it tries to bring them
-up at startup time. This results in occasional system hangs at boot, which
-can be reproduced in QEMU with a Linux guest, even with '-machine virt'.
+Move them into sbi_hsm_hart_start_finish() and sbi_hsm_hart_resume_finish()
+to make them easier to manage.
 
-When the Linux kernel needs to bring up the non-boot harts, the boot hart
-enters opensbi via a ecall and eventually gets to sbi_hsm_hart_start().
-Other (secondary) harts are spinning in the while loop in
-sbi_hsm_hart_wait() at that moment:
+This will be used by subsequent patches.
 
-	/* Wait for state transition requested by sbi_hsm_hart_start() */
-	while (atomic_read(&hdata->state) != SBI_HSM_STATE_START_PENDING) {
-		wfi();
-	};
+Suggested-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
+---
+ include/sbi/sbi_hsm.h |  6 ++++--
+ lib/sbi/sbi_hsm.c     | 13 +++++++++++--
+ lib/sbi/sbi_init.c    | 20 ++++++++------------
+ 3 files changed, 23 insertions(+), 16 deletions(-)
 
-sbi_hsm_hart_start() sets the secondary hart's state to 
-SBI_HSM_STATE_START_PENDING first and checks the previous value of the
-state. This makes sure no other hart would try to modify the secondary
-hart's scratch area in the meantime.
-
-The boot hart then reads the init count of the secondary hart and sets the
-address it should eventually jump to, as well as other data:
-
-	init_count = sbi_init_count(hartid);
-	rscratch->next_arg1 = arg1;
-	rscratch->next_addr = saddr;
-	rscratch->next_mode = smode;
-
-Then, the boot hart sends IPI to the secondary hart, so that it would stop
-spinning in the loop above and would continue.
-
-However, as we observed during the test runs for our systems, the secondary
-harts could leave the loop in sbi_hsm_hart_wait() as soon as their state is
-set to SBI_HSM_STATE_START_PENDING. As a result, the following situation is
-possible:
-
-
-Boot hart (#0)                        Secondary hart (#1)
-runs Linux startup code               waits in sbi_hsm_hart_wait()
-sbi_ecall(SBI_EXT_HSM,
-          SBI_EXT_HSM_HART_START,
-          ...)
-enters sbi_hsm_hart_start()
-sets state to START_PENDING
-                                      leaves sbi_hsm_hart_wait()
-                                      runs to the end of init_warmboot()
-                                      returns to scratch->next_addr
-                                      (next_addr can be garbage here)
-
-sets next_addr, etc. for hart #1
-(no good: hart #1 has already left)
-
-sends IPI to hart #1
-(no good either)
-                   (system might hang or crash)
-
-This can be reproduced easier, if one inserts a delay into
-sbi_hsm_hart_start() right before "init_count = sbi_init_count(hartid);".
-In our case, "sbi_timer_mdelay(10)" was enough for the issue to manifest
-each time.
-
-The patch series fixes 2 issues:
-
-1. The data required for the secondary hart to continue (next_addr, etc.)
-are prepared after it state is set to SBI_HSM_STATE_START_PENDING, which can
-be too late.
-
-2. Since commit 50d4fde1c5a4 ("lib: Remove redundant sbi_platform_ipi_clear()
-calls"), the IPI sent from the boot hart in wake_coldboot_harts() is never
-cleared in the secondary harts. So, they enter sbi_hsm_hart_wait() with
-already pending IPIs and do not wait for new ones.
-
-In both cases, the secondary hart might leave the "wfi" loop as soon as its
-state is set to SBI_HSM_STATE_START_PENDING, leading to the race described
-above.
-
-Changes in v3:
-
-* Added a patch with refactoring suggested by Anup Patel.
-
-* Moved updates of the target hart's scratch area before setting the state.
-Used a more readable ticket-based synchronization to prevent other harts
-from messing with that scratch area.
-
-* Added comments about memory ordering.
-
-Changes in v2:
-
-* Added a per-hart variable to properly synchronize the boot hart and the
-  secondary hart. This should be safer than just waiting for any IPI in
-  sbi_hsm_hart_wait(), because the hart might, in theory, get an IPI
-  unrelated to sbi_hsm_hart_start().
-
-* Updated the description of the second patch: clearing of the pending IPIs
-  is no longer needed to prevent the race. Now, it rather allows avoiding
-  a potentially inefficient busy-wait.
-
-Regards,
-Evgenii
-
-
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index c0b4830..4b5601b 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -66,7 +66,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 		       u32 hartid, ulong saddr, ulong smode, ulong arg1);
+ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
+-void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
++void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
++					   u32 hartid);
+ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+ 			 ulong raddr, ulong rmode, ulong arg1);
+ bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
+@@ -76,6 +77,7 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+ 				    ulong hbase, ulong *out_hmask);
+ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
+-void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
++void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
++					  u32 hartid);
+ 
+ #endif
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 3eeeb58..100b8c0 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -110,7 +110,8 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+ 	return 0;
+ }
+ 
+-void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
++void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
++					  u32 hartid)
+ {
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+@@ -118,6 +119,9 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+ 	if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
+ 					 SBI_HSM_STATE_STARTED))
+ 		sbi_hart_hang();
++
++	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
++			     scratch->next_mode, false);
+ }
+ 
+ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+@@ -381,7 +385,8 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+ 	hsm_device_hart_resume();
+ }
+ 
+-void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
++void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
++					   u32 hartid)
+ {
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+@@ -396,6 +401,10 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+ 	 * the warm-boot sequence.
+ 	 */
+ 	__sbi_hsm_suspend_non_ret_restore(scratch);
++
++	sbi_hart_switch_mode(hartid, scratch->next_arg1,
++			     scratch->next_addr,
++			     scratch->next_mode, false);
+ }
+ 
+ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index bc60a42..dcca2c8 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -355,12 +355,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+ 	(*init_count)++;
+ 
+-	sbi_hsm_prepare_next_jump(scratch, hartid);
+-	sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
+-			     scratch->next_mode, false);
++	sbi_hsm_hart_start_finish(scratch, hartid);
+ }
+ 
+-static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
++static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
++					 u32 hartid)
+ {
+ 	int rc;
+ 	unsigned long *init_count;
+@@ -412,10 +411,11 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+ 	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+ 	(*init_count)++;
+ 
+-	sbi_hsm_prepare_next_jump(scratch, hartid);
++	sbi_hsm_hart_start_finish(scratch, hartid);
+ }
+ 
+-static void init_warm_resume(struct sbi_scratch *scratch)
++static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
++					u32 hartid)
+ {
+ 	int rc;
+ 
+@@ -429,7 +429,7 @@ static void init_warm_resume(struct sbi_scratch *scratch)
+ 	if (rc)
+ 		sbi_hart_hang();
+ 
+-	sbi_hsm_hart_resume_finish(scratch);
++	sbi_hsm_hart_resume_finish(scratch, hartid);
+ }
+ 
+ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+@@ -443,13 +443,9 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 
+ 	if (hstate == SBI_HSM_STATE_SUSPENDED)
+-		init_warm_resume(scratch);
++		init_warm_resume(scratch, hartid);
+ 	else
+ 		init_warm_startup(scratch, hartid);
+-
+-	sbi_hart_switch_mode(hartid, scratch->next_arg1,
+-			     scratch->next_addr,
+-			     scratch->next_mode, false);
+ }
+ 
+ static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
+-- 
+2.34.1
 
 
 
