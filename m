@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 Mar 2023 18:58:30 +0530
-Subject: [PATCH v2 1/2] lib: utils/i2c: Add minimal StarFive jh7110 I2C driver
-In-Reply-To: <20230306084507.25214-2-minda.chen@starfivetech.com>
-References: <20230306084507.25214-1-minda.chen@starfivetech.com> <20230306084507.25214-2-minda.chen@starfivetech.com>
-Message-ID: <CAAhSdy0HURo2emhwUb++jWfoZnc1FReSZvo6SFA8DvbsLoGb0g@mail.gmail.com>
+Date: Tue, 7 Mar 2023 19:02:02 +0530
+Subject: [PATCH v2 2/2] config: starfive: add PMIC power ops in JH7110
+ visionfive2 board
+In-Reply-To: <20230306084507.25214-3-minda.chen@starfivetech.com>
+References: <20230306084507.25214-1-minda.chen@starfivetech.com> <20230306084507.25214-3-minda.chen@starfivetech.com>
+Message-ID: <CAAhSdy1BwAr666t+VOrQH7ogBu5T4K4BmSjnPJpobnDRgQf7bw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,353 +13,335 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Mar 6, 2023 at 2:15?PM Minda Chen <minda.chen@starfivetech.com> wrote:
 >
-> Starfive JH7110 I2C IP is synopsys designware.
-> Minimum StarFIve I2C driver to read/send bytes over I2C bus.
->
-> This allows querying information and perform operation of onboard PMIC,
-> as well as power-off and reset.
+> add reboot and poweroff support. The whole reboot and shutdown
+> pm op includes shutdown jh7110 pmu device power domain
+> and access on board pmic register through I2C.
 >
 > Signed-off-by: Minda Chen <minda.chen@starfivetech.com>
+
+This patch was already reviewed by me.
+
+Please add Reviewed-by tags obtained in previous patch revision.
+This helps reviewers to know which patches were already reviewed.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
->  include/sbi_utils/i2c/dw_i2c.h |  21 ++++
->  lib/utils/i2c/Kconfig          |   8 ++
->  lib/utils/i2c/dw_i2c.c         | 190 +++++++++++++++++++++++++++++++++
->  lib/utils/i2c/fdt_i2c_dw.c     |  63 +++++++++++
->  lib/utils/i2c/objects.mk       |   5 +
->  5 files changed, 287 insertions(+)
->  create mode 100644 include/sbi_utils/i2c/dw_i2c.h
->  create mode 100644 lib/utils/i2c/dw_i2c.c
->  create mode 100644 lib/utils/i2c/fdt_i2c_dw.c
+>  platform/generic/configs/defconfig |   1 +
+>  platform/generic/starfive/jh7110.c | 272 +++++++++++++++++++++++++++++
+>  2 files changed, 273 insertions(+)
 >
-> diff --git a/include/sbi_utils/i2c/dw_i2c.h b/include/sbi_utils/i2c/dw_i2c.h
-> new file mode 100644
-> index 0000000..88703e0
-> --- /dev/null
-> +++ b/include/sbi_utils/i2c/dw_i2c.h
-> @@ -0,0 +1,21 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 StarFive Technology Co., Ltd.
-> + *
-> + * Author: Minda Chen <minda.chen@starfivetech.com>
-> + */
-> +
-> +#ifndef __DW_I2C_H__
-> +#define __DW_I2C_H__
-> +
-> +#include <sbi_utils/i2c/i2c.h>
-> +
-> +int dw_i2c_init(struct i2c_adapter *, int nodeoff);
-> +
-> +struct dw_i2c_adapter {
-> +       unsigned long addr;
-> +       struct i2c_adapter adapter;
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> index 2ad953d..ee0df38 100644
+> --- a/platform/generic/configs/defconfig
+> +++ b/platform/generic/configs/defconfig
+> @@ -9,6 +9,7 @@ CONFIG_FDT_GPIO_SIFIVE=y
+>  CONFIG_FDT_GPIO_STARFIVE=y
+>  CONFIG_FDT_I2C=y
+>  CONFIG_FDT_I2C_SIFIVE=y
+> +CONFIG_FDT_I2C_DW=y
+>  CONFIG_FDT_IPI=y
+>  CONFIG_FDT_IPI_MSWI=y
+>  CONFIG_FDT_IPI_PLICSW=y
+> diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
+> index c665658..31c6bd3 100644
+> --- a/platform/generic/starfive/jh7110.c
+> +++ b/platform/generic/starfive/jh7110.c
+> @@ -5,14 +5,285 @@
+>   *
+>   * Authors:
+>   *   Wei Liang Lim <weiliang.lim@starfivetech.com>
+> + *   Minda Chen <minda.chen@starfivetech.com>
+>   */
+>
+>  #include <libfdt.h>
+>  #include <platform_override.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_bitops.h>
+> +#include <sbi/sbi_system.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_timer.h>
+> +#include <sbi/riscv_io.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/reset/fdt_reset.h>
+> +#include <sbi_utils/i2c/fdt_i2c.h>
+>
+> +struct pmic {
+> +       struct i2c_adapter *adapter;
+> +       u32 dev_addr;
+> +       const char *compatible;
 > +};
 > +
-> +#endif
-> diff --git a/lib/utils/i2c/Kconfig b/lib/utils/i2c/Kconfig
-> index 46a3454..7fa32fc 100644
-> --- a/lib/utils/i2c/Kconfig
-> +++ b/lib/utils/i2c/Kconfig
-> @@ -14,8 +14,16 @@ config FDT_I2C_SIFIVE
->         bool "SiFive I2C FDT driver"
->         default n
+> +struct jh7110 {
+> +       u64 pmu_reg_base;
+> +       u64 clk_reg_base;
+> +       u32 i2c_index;
+> +};
+> +
+> +static struct pmic pmic_inst;
+> +static struct jh7110 jh7110_inst;
+>  static u32 selected_hartid = -1;
 >
-> +config FDT_I2C_DW
-> +       bool "Synopsys Designware I2C FDT driver"
-> +       select I2C_DW
-> +       default n
->  endif
->
-> +config I2C_DW
-> +       bool "Synopsys Designware I2C support"
-> +       default n
+> +/* PMU register define */
+> +#define HW_EVENT_TURN_ON_MASK          0x04
+> +#define HW_EVENT_TURN_OFF_MASK         0x08
+> +#define SW_TURN_ON_POWER_MODE          0x0C
+> +#define SW_TURN_OFF_POWER_MODE         0x10
+> +#define SW_ENCOURAGE                   0x44
+> +#define PMU_INT_MASK                   0x48
+> +#define PCH_BYPASS                     0x4C
+> +#define PCH_PSTATE                     0x50
+> +#define PCH_TIMEOUT                    0x54
+> +#define LP_TIMEOUT                     0x58
+> +#define HW_TURN_ON_MODE                        0x5C
+> +#define CURR_POWER_MODE                        0x80
+> +#define PMU_EVENT_STATUS               0x88
+> +#define PMU_INT_STATUS                 0x8C
 > +
->  config I2C
->         bool "I2C support"
->         default n
-> diff --git a/lib/utils/i2c/dw_i2c.c b/lib/utils/i2c/dw_i2c.c
-> new file mode 100644
-> index 0000000..e2ffc71
-> --- /dev/null
-> +++ b/lib/utils/i2c/dw_i2c.c
-> @@ -0,0 +1,190 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 starfivetech.com
-> + *
-> + * Authors:
-> + *   Minda Chen <minda.chen@starfivetech.com>
-> + */
+> +/* sw encourage cfg */
+> +#define SW_MODE_ENCOURAGE_EN_LO                0x05
+> +#define SW_MODE_ENCOURAGE_EN_HI                0x50
+> +#define SW_MODE_ENCOURAGE_DIS_LO       0x0A
+> +#define SW_MODE_ENCOURAGE_DIS_HI       0xA0
+> +#define SW_MODE_ENCOURAGE_ON           0xFF
 > +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_timer.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_string.h>
-> +#include <sbi/sbi_bitops.h>
-> +#include <sbi_utils/i2c/dw_i2c.h>
+> +#define DEVICE_PD_MASK                 0xfc
+> +#define SYSTOP_CPU_PD_MASK             0x3
 > +
-> +#define DW_IC_CON              0x00
-> +#define DW_IC_TAR              0x04
-> +#define DW_IC_SAR              0x08
-> +#define DW_IC_DATA_CMD         0x10
-> +#define DW_IC_SS_SCL_HCNT      0x14
-> +#define DW_IC_SS_SCL_LCNT      0x18
-> +#define DW_IC_FS_SCL_HCNT      0x1c
-> +#define DW_IC_FS_SCL_LCNT      0x20
-> +#define DW_IC_HS_SCL_HCNT      0x24
-> +#define DW_IC_HS_SCL_LCNT      0x28
-> +#define DW_IC_INTR_STAT                0x2c
-> +#define DW_IC_INTR_MASK                0x30
-> +#define DW_IC_RAW_INTR_STAT    0x34
-> +#define DW_IC_RX_TL            0x38
-> +#define DW_IC_TX_TL            0x3c
-> +#define DW_IC_CLR_INTR         0x40
-> +#define DW_IC_CLR_RX_UNDER     0x44
-> +#define DW_IC_CLR_RX_OVER      0x48
-> +#define DW_IC_CLR_TX_OVER      0x4c
-> +#define DW_IC_CLR_RD_REQ       0x50
-> +#define DW_IC_CLR_TX_ABRT      0x54
-> +#define DW_IC_CLR_RX_DONE      0x58
-> +#define DW_IC_CLR_ACTIVITY     0x5c
-> +#define DW_IC_CLR_STOP_DET     0x60
-> +#define DW_IC_CLR_START_DET    0x64
-> +#define DW_IC_CLR_GEN_CALL     0x68
-> +#define DW_IC_ENABLE           0x6c
-> +#define DW_IC_STATUS           0x70
-> +#define DW_IC_TXFLR            0x74
-> +#define DW_IC_RXFLR            0x78
-> +#define DW_IC_SDA_HOLD         0x7c
-> +#define DW_IC_TX_ABRT_SOURCE   0x80
-> +#define DW_IC_ENABLE_STATUS    0x9c
-> +#define DW_IC_CLR_RESTART_DET  0xa8
-> +#define DW_IC_COMP_PARAM_1     0xf4
-> +#define DW_IC_COMP_VERSION     0xf8
+> +#define TIMEOUT_COUNT                  100000
+> +#define AXP15060_POWER_REG             0x32
+> +#define AXP15060_POWER_OFF_BIT         BIT(7)
+> +#define AXP15060_RESET_BIT             BIT(6)
 > +
-> +#define DW_I2C_STATUS_TXFIFO_EMPTY     BIT(2)
-> +#define DW_I2C_STATUS_RXFIFO_NOT_EMPTY BIT(3)
+> +#define I2C_APB_CLK_OFFSET             0x228
+> +#define I2C_APB_CLK_ENABLE_BIT         BIT(31)
 > +
-> +#define IC_DATA_CMD_READ       BIT(8)
-> +#define IC_DATA_CMD_STOP       BIT(9)
-> +#define IC_DATA_CMD_RESTART    BIT(10)
-> +#define IC_INT_STATUS_STOPDET  BIT(9)
-> +
-> +static inline void dw_i2c_setreg(struct dw_i2c_adapter *adap,
-> +                                u8 reg, u32 value)
+> +static int pm_system_reset_check(u32 type, u32 reason)
 > +{
-> +       writel(value, (void *)adap->addr + reg);
+> +       switch (type) {
+> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +               return 1;
+> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +               return 255;
+> +       default:
+> +               break;
+> +       }
+> +
+> +       return 0;
 > +}
 > +
-> +static inline u32 dw_i2c_getreg(struct dw_i2c_adapter *adap,
-> +                               u32 reg)
+> +static int wait_pmu_pd_state(u32 mask)
 > +{
-> +       return readl((void *)adap->addr + reg);
-> +}
-> +
-> +static int dw_i2c_adapter_poll(struct dw_i2c_adapter *adap,
-> +                              u32 mask, u32 addr,
-> +                              bool inverted)
-> +{
-> +       unsigned int timeout = 10; /* msec */
 > +       int count = 0;
+> +       unsigned long addr = jh7110_inst.pmu_reg_base;
 > +       u32 val;
 > +
 > +       do {
-> +               val = dw_i2c_getreg(adap, addr);
-> +               if (inverted) {
-> +                       if (!(val & mask))
-> +                               return 0;
-> +               } else {
-> +                       if (val & mask)
-> +                               return 0;
-> +               }
+> +               val = readl((void *)(addr + CURR_POWER_MODE));
+> +               if (val == mask)
+> +                       return 0;
+> +
 > +               sbi_timer_udelay(2);
 > +               count += 1;
-> +               if (count == (timeout * 1000))
+> +               if (count == TIMEOUT_COUNT)
 > +                       return SBI_ETIMEDOUT;
 > +       } while (1);
 > +}
 > +
-> +#define dw_i2c_adapter_poll_rxrdy(adap)        \
-> +       dw_i2c_adapter_poll(adap, DW_I2C_STATUS_RXFIFO_NOT_EMPTY, DW_IC_STATUS, 0)
-> +#define dw_i2c_adapter_poll_txfifo_ready(adap) \
-> +       dw_i2c_adapter_poll(adap, DW_I2C_STATUS_TXFIFO_EMPTY, DW_IC_STATUS, 0)
-> +
-> +static int dw_i2c_write_addr(struct dw_i2c_adapter *adap, u8 addr)
+> +static int shutdown_device_power_domain(void)
 > +{
-> +       dw_i2c_setreg(adap, DW_IC_ENABLE, 0);
-> +       dw_i2c_setreg(adap, DW_IC_TAR, addr);
-> +       dw_i2c_setreg(adap, DW_IC_ENABLE, 1);
+> +       unsigned long addr = jh7110_inst.pmu_reg_base;
+> +       u32 curr_mode;
+> +       int ret = 0;
 > +
-> +       return 0;
+> +       curr_mode = readl((void *)(addr + CURR_POWER_MODE));
+> +       curr_mode &= DEVICE_PD_MASK;
+> +
+> +       if (curr_mode) {
+> +               writel(curr_mode, (void *)(addr + SW_TURN_OFF_POWER_MODE));
+> +               writel(SW_MODE_ENCOURAGE_ON, (void *)(addr + SW_ENCOURAGE));
+> +               writel(SW_MODE_ENCOURAGE_DIS_LO, (void *)(addr + SW_ENCOURAGE));
+> +               writel(SW_MODE_ENCOURAGE_DIS_HI, (void *)(addr + SW_ENCOURAGE));
+> +               ret = wait_pmu_pd_state(SYSTOP_CPU_PD_MASK);
+> +               if (ret)
+> +                       sbi_printf("%s shutdown device power %x error\n",
+> +                                  __func__, curr_mode);
+> +       }
+> +       return ret;
 > +}
 > +
-> +static int dw_i2c_adapter_read(struct i2c_adapter *ia, u8 addr,
-> +                              u8 reg, u8 *buffer, int len)
+> +static void pmic_ops(struct pmic *pmic, int type)
 > +{
-> +       struct dw_i2c_adapter *adap =
-> +               container_of(ia, struct dw_i2c_adapter, adapter);
-> +       int rc;
+> +       int ret = 0;
+> +       u8 val;
 > +
-> +       dw_i2c_write_addr(adap, addr);
+> +       ret = shutdown_device_power_domain();
 > +
-> +       rc = dw_i2c_adapter_poll_txfifo_ready(adap);
-> +       if (rc)
-> +               return rc;
+> +       if (ret)
+> +               return;
 > +
-> +       /* set register address */
-> +       dw_i2c_setreg(adap, DW_IC_DATA_CMD, reg);
+> +       if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
+> +               ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
+> +                                          AXP15060_POWER_REG, &val);
 > +
-> +       /* set value */
-> +       while (len) {
-> +               if (len == 1)
-> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD,
-> +                                     IC_DATA_CMD_READ | IC_DATA_CMD_STOP);
+> +               if (ret) {
+> +                       sbi_printf("%s: cannot read pmic power register\n",
+> +                                  __func__);
+> +                       return;
+> +               }
+> +
+> +               val |= AXP15060_POWER_OFF_BIT;
+> +               if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
+> +                       val |= AXP15060_POWER_OFF_BIT;
 > +               else
-> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD, IC_DATA_CMD_READ);
+> +                       val |= AXP15060_RESET_BIT;
 > +
-> +               rc = dw_i2c_adapter_poll_rxrdy(adap);
-> +               if (rc)
-> +                       return rc;
+> +               ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
+> +                                           AXP15060_POWER_REG, val);
+> +               if (ret)
+> +                       sbi_printf("%s: cannot write pmic power register\n",
+> +                                  __func__);
+> +       }
+> +}
 > +
-> +               *buffer = dw_i2c_getreg(adap, DW_IC_DATA_CMD) & 0xff;
-> +               buffer++;
-> +               len--;
+> +static void pmic_i2c_clk_enable(void)
+> +{
+> +       u64 clock_base;
+> +       unsigned int val;
+> +
+> +       clock_base = jh7110_inst.clk_reg_base +
+> +               I2C_APB_CLK_OFFSET +
+> +               (jh7110_inst.i2c_index << 2);
+> +
+> +       val = readl((void *)clock_base);
+> +
+> +       if (!val)
+> +               writel(I2C_APB_CLK_ENABLE_BIT, (void *)(clock_base));
+> +}
+> +
+> +static void pm_system_reset(u32 type, u32 reason)
+> +{
+> +       if (pmic_inst.adapter) {
+> +               switch (type) {
+> +               case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +               case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +                       /* i2c clk may be disabled by kernel driver */
+> +                       pmic_i2c_clk_enable();
+> +                       pmic_ops(&pmic_inst, type);
+> +                       break;
+> +               default:
+> +                       break;
+> +               }
 > +       }
 > +
-> +       return 0;
+> +       sbi_hart_hang();
 > +}
 > +
-> +static int dw_i2c_adapter_write(struct i2c_adapter *ia, u8 addr,
-> +                               u8 reg, u8 *buffer, int len)
-> +{
-> +       struct dw_i2c_adapter *adap =
-> +               container_of(ia, struct dw_i2c_adapter, adapter);
-> +       int rc;
+> +static struct sbi_system_reset_device pm_reset = {
+> +       .name = "pm-reset",
+> +       .system_reset_check = pm_system_reset_check,
+> +       .system_reset = pm_system_reset
+> +};
 > +
-> +       dw_i2c_write_addr(adap, addr);
-> +
-> +       rc = dw_i2c_adapter_poll_txfifo_ready(adap);
-> +       if (rc)
-> +               return rc;
-> +
-> +       /* set register address */
-> +       dw_i2c_setreg(adap, DW_IC_DATA_CMD, reg);
-> +
-> +       while (len) {
-> +               rc = dw_i2c_adapter_poll_txfifo_ready(adap);
-> +               if (rc)
-> +                       return rc;
-> +
-> +               if (len == 1)
-> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD, *buffer | IC_DATA_CMD_STOP);
-> +               else
-> +                       dw_i2c_setreg(adap, DW_IC_DATA_CMD, *buffer);
-> +
-> +               buffer++;
-> +               len--;
-> +       }
-> +       rc = dw_i2c_adapter_poll_txfifo_ready(adap);
-> +
-> +       return rc;
-> +}
-> +
-> +int dw_i2c_init(struct i2c_adapter *adapter, int nodeoff)
-> +{
-> +       adapter->id = nodeoff;
-> +       adapter->write = dw_i2c_adapter_write;
-> +       adapter->read = dw_i2c_adapter_read;
-> +
-> +       return i2c_adapter_add(adapter);
-> +}
-> diff --git a/lib/utils/i2c/fdt_i2c_dw.c b/lib/utils/i2c/fdt_i2c_dw.c
-> new file mode 100644
-> index 0000000..9f40a08
-> --- /dev/null
-> +++ b/lib/utils/i2c/fdt_i2c_dw.c
-> @@ -0,0 +1,63 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 starfivetech.com
-> + *
-> + * Authors:
-> + *   Minda Chen <minda.chen@starfivetech.com>
-> + */
-> +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_string.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/i2c/dw_i2c.h>
-> +#include <sbi_utils/i2c/fdt_i2c.h>
-> +
-> +#define FDT_DW_I2C_ADAPTER_MAX 7
-> +
-> +static unsigned int fdt_dw_i2c_adapter_count;
-> +static struct dw_i2c_adapter
-> +       fdt_dw_i2c_adapter_array[FDT_DW_I2C_ADAPTER_MAX];
-> +
-> +extern struct fdt_i2c_adapter fdt_i2c_adapter_dw;
-> +
-> +static int fdt_dw_i2c_init(void *fdt, int nodeoff,
-> +                            const struct fdt_match *match)
+> +static int pm_reset_init(void *fdt, int nodeoff,
+> +                        const struct fdt_match *match)
 > +{
 > +       int rc;
-> +       struct dw_i2c_adapter *adapter;
+> +       int i2c_bus;
+> +       struct i2c_adapter *adapter;
 > +       u64 addr;
-> +
-> +       if (fdt_dw_i2c_adapter_count >= FDT_DW_I2C_ADAPTER_MAX)
-> +               return SBI_ENOSPC;
-> +
-> +       adapter = &fdt_dw_i2c_adapter_array[fdt_dw_i2c_adapter_count];
 > +
 > +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
 > +       if (rc)
 > +               return rc;
 > +
-> +       adapter->addr = addr;
-> +       adapter->adapter.driver = &fdt_i2c_adapter_dw;
+> +       pmic_inst.dev_addr = addr;
+> +       pmic_inst.compatible = match->compatible;
 > +
-> +       rc = dw_i2c_init(&adapter->adapter, nodeoff);
+> +       i2c_bus = fdt_parent_offset(fdt, nodeoff);
+> +       if (i2c_bus < 0)
+> +               return i2c_bus;
+> +
+> +       /* i2c adapter get */
+> +       rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
 > +       if (rc)
 > +               return rc;
 > +
-> +       fdt_dw_i2c_adapter_count++;
+> +       pmic_inst.adapter = adapter;
+> +
+> +       sbi_system_reset_add_device(&pm_reset);
 > +
 > +       return 0;
 > +}
 > +
-> +static const struct fdt_match fdt_dw_i2c_match[] = {
-> +       { .compatible = "snps,designware-i2c" },
-> +       { .compatible = "starfive,jh7110-i2c" },
+> +static const struct fdt_match pm_reset_match[] = {
+> +       { .compatible = "stf,axp15060-regulator", .data = (void *)true },
 > +       { },
 > +};
 > +
-> +struct fdt_i2c_adapter fdt_i2c_adapter_dw = {
-> +       .match_table = fdt_dw_i2c_match,
-> +       .init = fdt_dw_i2c_init,
+> +static struct fdt_reset fdt_reset_pmic = {
+> +       .match_table = pm_reset_match,
+> +       .init = pm_reset_init,
 > +};
 > +
-
-Redundant newline here.
-
-> diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-> index a0fbbb5..5f7a79f 100644
-> --- a/lib/utils/i2c/objects.mk
-> +++ b/lib/utils/i2c/objects.mk
-> @@ -14,3 +14,8 @@ libsbiutils-objs-$(CONFIG_FDT_I2C) += i2c/fdt_i2c_adapter_drivers.o
->
->  carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SIFIVE) += fdt_i2c_adapter_sifive
->  libsbiutils-objs-$(CONFIG_FDT_I2C_SIFIVE) += i2c/fdt_i2c_sifive.o
+> +static int starfive_jh7110_inst_init(void *fdt)
+> +{
+> +       int noff, rc = 0;
+> +       const char *name;
+> +       u64 addr;
 > +
-> +carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_DW) += fdt_i2c_adapter_dw
-> +libsbiutils-objs-$(CONFIG_FDT_I2C_DW) += i2c/fdt_i2c_dw.o
+> +       noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-pmu");
+> +       if (-1 < noff) {
+> +               rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
+> +               if (rc)
+> +                       goto err;
+> +               jh7110_inst.pmu_reg_base = addr;
+> +       }
 > +
-> +libsbiutils-objs-$(CONFIG_I2C_DW) += i2c/dw_i2c.o
+> +       noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-clkgen");
+> +       if (-1 < noff) {
+> +               rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
+> +               if (rc)
+> +                       goto err;
+> +               jh7110_inst.clk_reg_base = addr;
+> +       }
+> +
+> +       if (pmic_inst.adapter) {
+> +               name = fdt_get_name(fdt, pmic_inst.adapter->id, NULL);
+> +               if (!sbi_strncmp(name, "i2c", 3))
+> +                       jh7110_inst.i2c_index = name[3] - '0';
+> +               else
+> +                       rc = SBI_EINVAL;
+> +       }
+> +err:
+> +       return rc;
+> +}
+> +
+> +static int starfive_jh7110_final_init(bool cold_boot,
+> +                                     const struct fdt_match *match)
+> +{
+> +       void *fdt = fdt_get_address();
+> +
+> +       if (cold_boot) {
+> +               fdt_reset_driver_init(fdt, &fdt_reset_pmic);
+> +               return starfive_jh7110_inst_init(fdt);
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
+>                                    const struct fdt_match *match)
+>  {
+> @@ -44,4 +315,5 @@ const struct platform_override starfive_jh7110 = {
+>         .match_table = starfive_jh7110_match,
+>         .cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
+>         .fw_init = starfive_jh7110_fw_init,
+> +       .final_init = starfive_jh7110_final_init,
+>  };
 > --
 > 2.17.1
 >
@@ -367,11 +350,4 @@ Redundant newline here.
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Otherwise, it looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
 
