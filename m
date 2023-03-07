@@ -1,28 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 Mar 2023 19:02:02 +0530
-Subject: [PATCH v2 2/2] config: starfive: add PMIC power ops in JH7110
- visionfive2 board
-In-Reply-To: <20230306084507.25214-3-minda.chen@starfivetech.com>
-References: <20230306084507.25214-1-minda.chen@starfivetech.com> <20230306084507.25214-3-minda.chen@starfivetech.com>
-Message-ID: <CAAhSdy1BwAr666t+VOrQH7ogBu5T4K4BmSjnPJpobnDRgQf7bw@mail.gmail.com>
+Date: Tue, 7 Mar 2023 19:07:47 +0530
+Subject: [PATCH v3 1/3] lib: sbi: Refactor the calls to sbi_hart_switch_mode()
+In-Reply-To: <20230305212247.494912-2-e.shatokhin@yadro.com>
+References: <20230305212247.494912-1-e.shatokhin@yadro.com> <20230305212247.494912-2-e.shatokhin@yadro.com>
+Message-ID: <CAAhSdy1UPnAMGYTdHm0uTiL9kGF+2Th_ZCFb-CEU0hpcUWL7CQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 6, 2023 at 2:15?PM Minda Chen <minda.chen@starfivetech.com> wrote:
+On Mon, Mar 6, 2023 at 2:53?AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
 >
-> add reboot and poweroff support. The whole reboot and shutdown
-> pm op includes shutdown jh7110 pmu device power domain
-> and access on board pmic register through I2C.
+> Move them into sbi_hsm_hart_start_finish() and sbi_hsm_hart_resume_finish()
+> to make them easier to manage.
 >
-> Signed-off-by: Minda Chen <minda.chen@starfivetech.com>
+> This will be used by subsequent patches.
+>
+> Suggested-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
 
-This patch was already reviewed by me.
-
-Please add Reviewed-by tags obtained in previous patch revision.
-This helps reviewers to know which patches were already reviewed.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -30,324 +28,139 @@ Regards,
 Anup
 
 > ---
->  platform/generic/configs/defconfig |   1 +
->  platform/generic/starfive/jh7110.c | 272 +++++++++++++++++++++++++++++
->  2 files changed, 273 insertions(+)
+>  include/sbi/sbi_hsm.h |  6 ++++--
+>  lib/sbi/sbi_hsm.c     | 13 +++++++++++--
+>  lib/sbi/sbi_init.c    | 20 ++++++++------------
+>  3 files changed, 23 insertions(+), 16 deletions(-)
 >
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 2ad953d..ee0df38 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -9,6 +9,7 @@ CONFIG_FDT_GPIO_SIFIVE=y
->  CONFIG_FDT_GPIO_STARFIVE=y
->  CONFIG_FDT_I2C=y
->  CONFIG_FDT_I2C_SIFIVE=y
-> +CONFIG_FDT_I2C_DW=y
->  CONFIG_FDT_IPI=y
->  CONFIG_FDT_IPI_MSWI=y
->  CONFIG_FDT_IPI_PLICSW=y
-> diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-> index c665658..31c6bd3 100644
-> --- a/platform/generic/starfive/jh7110.c
-> +++ b/platform/generic/starfive/jh7110.c
-> @@ -5,14 +5,285 @@
->   *
->   * Authors:
->   *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-> + *   Minda Chen <minda.chen@starfivetech.com>
->   */
+> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+> index c0b4830..4b5601b 100644
+> --- a/include/sbi/sbi_hsm.h
+> +++ b/include/sbi/sbi_hsm.h
+> @@ -66,7 +66,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+>                        u32 hartid, ulong saddr, ulong smode, ulong arg1);
+>  int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+>  void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
+> -void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
+> +void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
+> +                                          u32 hartid);
+>  int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>                          ulong raddr, ulong rmode, ulong arg1);
+>  bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
+> @@ -76,6 +77,7 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+>  int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>                                     ulong hbase, ulong *out_hmask);
+>  void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
+> -void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+> +void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+> +                                         u32 hartid);
 >
->  #include <libfdt.h>
->  #include <platform_override.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_bitops.h>
-> +#include <sbi/sbi_system.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_timer.h>
-> +#include <sbi/riscv_io.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/i2c/fdt_i2c.h>
+>  #endif
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 3eeeb58..100b8c0 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -110,7 +110,8 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>         return 0;
+>  }
 >
-> +struct pmic {
-> +       struct i2c_adapter *adapter;
-> +       u32 dev_addr;
-> +       const char *compatible;
-> +};
-> +
-> +struct jh7110 {
-> +       u64 pmu_reg_base;
-> +       u64 clk_reg_base;
-> +       u32 i2c_index;
-> +};
-> +
-> +static struct pmic pmic_inst;
-> +static struct jh7110 jh7110_inst;
->  static u32 selected_hartid = -1;
->
-> +/* PMU register define */
-> +#define HW_EVENT_TURN_ON_MASK          0x04
-> +#define HW_EVENT_TURN_OFF_MASK         0x08
-> +#define SW_TURN_ON_POWER_MODE          0x0C
-> +#define SW_TURN_OFF_POWER_MODE         0x10
-> +#define SW_ENCOURAGE                   0x44
-> +#define PMU_INT_MASK                   0x48
-> +#define PCH_BYPASS                     0x4C
-> +#define PCH_PSTATE                     0x50
-> +#define PCH_TIMEOUT                    0x54
-> +#define LP_TIMEOUT                     0x58
-> +#define HW_TURN_ON_MODE                        0x5C
-> +#define CURR_POWER_MODE                        0x80
-> +#define PMU_EVENT_STATUS               0x88
-> +#define PMU_INT_STATUS                 0x8C
-> +
-> +/* sw encourage cfg */
-> +#define SW_MODE_ENCOURAGE_EN_LO                0x05
-> +#define SW_MODE_ENCOURAGE_EN_HI                0x50
-> +#define SW_MODE_ENCOURAGE_DIS_LO       0x0A
-> +#define SW_MODE_ENCOURAGE_DIS_HI       0xA0
-> +#define SW_MODE_ENCOURAGE_ON           0xFF
-> +
-> +#define DEVICE_PD_MASK                 0xfc
-> +#define SYSTOP_CPU_PD_MASK             0x3
-> +
-> +#define TIMEOUT_COUNT                  100000
-> +#define AXP15060_POWER_REG             0x32
-> +#define AXP15060_POWER_OFF_BIT         BIT(7)
-> +#define AXP15060_RESET_BIT             BIT(6)
-> +
-> +#define I2C_APB_CLK_OFFSET             0x228
-> +#define I2C_APB_CLK_ENABLE_BIT         BIT(31)
-> +
-> +static int pm_system_reset_check(u32 type, u32 reason)
-> +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               return 1;
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +               return 255;
-> +       default:
-> +               break;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static int wait_pmu_pd_state(u32 mask)
-> +{
-> +       int count = 0;
-> +       unsigned long addr = jh7110_inst.pmu_reg_base;
-> +       u32 val;
-> +
-> +       do {
-> +               val = readl((void *)(addr + CURR_POWER_MODE));
-> +               if (val == mask)
-> +                       return 0;
-> +
-> +               sbi_timer_udelay(2);
-> +               count += 1;
-> +               if (count == TIMEOUT_COUNT)
-> +                       return SBI_ETIMEDOUT;
-> +       } while (1);
-> +}
-> +
-> +static int shutdown_device_power_domain(void)
-> +{
-> +       unsigned long addr = jh7110_inst.pmu_reg_base;
-> +       u32 curr_mode;
-> +       int ret = 0;
-> +
-> +       curr_mode = readl((void *)(addr + CURR_POWER_MODE));
-> +       curr_mode &= DEVICE_PD_MASK;
-> +
-> +       if (curr_mode) {
-> +               writel(curr_mode, (void *)(addr + SW_TURN_OFF_POWER_MODE));
-> +               writel(SW_MODE_ENCOURAGE_ON, (void *)(addr + SW_ENCOURAGE));
-> +               writel(SW_MODE_ENCOURAGE_DIS_LO, (void *)(addr + SW_ENCOURAGE));
-> +               writel(SW_MODE_ENCOURAGE_DIS_HI, (void *)(addr + SW_ENCOURAGE));
-> +               ret = wait_pmu_pd_state(SYSTOP_CPU_PD_MASK);
-> +               if (ret)
-> +                       sbi_printf("%s shutdown device power %x error\n",
-> +                                  __func__, curr_mode);
-> +       }
-> +       return ret;
-> +}
-> +
-> +static void pmic_ops(struct pmic *pmic, int type)
-> +{
-> +       int ret = 0;
-> +       u8 val;
-> +
-> +       ret = shutdown_device_power_domain();
-> +
-> +       if (ret)
-> +               return;
-> +
-> +       if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
-> +               ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
-> +                                          AXP15060_POWER_REG, &val);
-> +
-> +               if (ret) {
-> +                       sbi_printf("%s: cannot read pmic power register\n",
-> +                                  __func__);
-> +                       return;
-> +               }
-> +
-> +               val |= AXP15060_POWER_OFF_BIT;
-> +               if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
-> +                       val |= AXP15060_POWER_OFF_BIT;
-> +               else
-> +                       val |= AXP15060_RESET_BIT;
-> +
-> +               ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
-> +                                           AXP15060_POWER_REG, val);
-> +               if (ret)
-> +                       sbi_printf("%s: cannot write pmic power register\n",
-> +                                  __func__);
-> +       }
-> +}
-> +
-> +static void pmic_i2c_clk_enable(void)
-> +{
-> +       u64 clock_base;
-> +       unsigned int val;
-> +
-> +       clock_base = jh7110_inst.clk_reg_base +
-> +               I2C_APB_CLK_OFFSET +
-> +               (jh7110_inst.i2c_index << 2);
-> +
-> +       val = readl((void *)clock_base);
-> +
-> +       if (!val)
-> +               writel(I2C_APB_CLK_ENABLE_BIT, (void *)(clock_base));
-> +}
-> +
-> +static void pm_system_reset(u32 type, u32 reason)
-> +{
-> +       if (pmic_inst.adapter) {
-> +               switch (type) {
-> +               case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +                       /* i2c clk may be disabled by kernel driver */
-> +                       pmic_i2c_clk_enable();
-> +                       pmic_ops(&pmic_inst, type);
-> +                       break;
-> +               default:
-> +                       break;
-> +               }
-> +       }
-> +
-> +       sbi_hart_hang();
-> +}
-> +
-> +static struct sbi_system_reset_device pm_reset = {
-> +       .name = "pm-reset",
-> +       .system_reset_check = pm_system_reset_check,
-> +       .system_reset = pm_system_reset
-> +};
-> +
-> +static int pm_reset_init(void *fdt, int nodeoff,
-> +                        const struct fdt_match *match)
-> +{
-> +       int rc;
-> +       int i2c_bus;
-> +       struct i2c_adapter *adapter;
-> +       u64 addr;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> +       if (rc)
-> +               return rc;
-> +
-> +       pmic_inst.dev_addr = addr;
-> +       pmic_inst.compatible = match->compatible;
-> +
-> +       i2c_bus = fdt_parent_offset(fdt, nodeoff);
-> +       if (i2c_bus < 0)
-> +               return i2c_bus;
-> +
-> +       /* i2c adapter get */
-> +       rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
-> +       if (rc)
-> +               return rc;
-> +
-> +       pmic_inst.adapter = adapter;
-> +
-> +       sbi_system_reset_add_device(&pm_reset);
-> +
-> +       return 0;
-> +}
-> +
-> +static const struct fdt_match pm_reset_match[] = {
-> +       { .compatible = "stf,axp15060-regulator", .data = (void *)true },
-> +       { },
-> +};
-> +
-> +static struct fdt_reset fdt_reset_pmic = {
-> +       .match_table = pm_reset_match,
-> +       .init = pm_reset_init,
-> +};
-> +
-> +static int starfive_jh7110_inst_init(void *fdt)
-> +{
-> +       int noff, rc = 0;
-> +       const char *name;
-> +       u64 addr;
-> +
-> +       noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-pmu");
-> +       if (-1 < noff) {
-> +               rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
-> +               if (rc)
-> +                       goto err;
-> +               jh7110_inst.pmu_reg_base = addr;
-> +       }
-> +
-> +       noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-clkgen");
-> +       if (-1 < noff) {
-> +               rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
-> +               if (rc)
-> +                       goto err;
-> +               jh7110_inst.clk_reg_base = addr;
-> +       }
-> +
-> +       if (pmic_inst.adapter) {
-> +               name = fdt_get_name(fdt, pmic_inst.adapter->id, NULL);
-> +               if (!sbi_strncmp(name, "i2c", 3))
-> +                       jh7110_inst.i2c_index = name[3] - '0';
-> +               else
-> +                       rc = SBI_EINVAL;
-> +       }
-> +err:
-> +       return rc;
-> +}
-> +
-> +static int starfive_jh7110_final_init(bool cold_boot,
-> +                                     const struct fdt_match *match)
-> +{
-> +       void *fdt = fdt_get_address();
-> +
-> +       if (cold_boot) {
-> +               fdt_reset_driver_init(fdt, &fdt_reset_pmic);
-> +               return starfive_jh7110_inst_init(fdt);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
->                                    const struct fdt_match *match)
+> -void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+> +void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+> +                                         u32 hartid)
 >  {
-> @@ -44,4 +315,5 @@ const struct platform_override starfive_jh7110 = {
->         .match_table = starfive_jh7110_match,
->         .cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
->         .fw_init = starfive_jh7110_fw_init,
-> +       .final_init = starfive_jh7110_final_init,
->  };
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+> @@ -118,6 +119,9 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>         if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
+>                                          SBI_HSM_STATE_STARTED))
+>                 sbi_hart_hang();
+> +
+> +       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
+> +                            scratch->next_mode, false);
+>  }
+>
+>  static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+> @@ -381,7 +385,8 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+>         hsm_device_hart_resume();
+>  }
+>
+> -void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+> +void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
+> +                                          u32 hartid)
+>  {
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+> @@ -396,6 +401,10 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>          * the warm-boot sequence.
+>          */
+>         __sbi_hsm_suspend_non_ret_restore(scratch);
+> +
+> +       sbi_hart_switch_mode(hartid, scratch->next_arg1,
+> +                            scratch->next_addr,
+> +                            scratch->next_mode, false);
+>  }
+>
+>  int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index bc60a42..dcca2c8 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -355,12 +355,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>         init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+>         (*init_count)++;
+>
+> -       sbi_hsm_prepare_next_jump(scratch, hartid);
+> -       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
+> -                            scratch->next_mode, false);
+> +       sbi_hsm_hart_start_finish(scratch, hartid);
+>  }
+>
+> -static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+> +static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+> +                                        u32 hartid)
+>  {
+>         int rc;
+>         unsigned long *init_count;
+> @@ -412,10 +411,11 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+>         init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+>         (*init_count)++;
+>
+> -       sbi_hsm_prepare_next_jump(scratch, hartid);
+> +       sbi_hsm_hart_start_finish(scratch, hartid);
+>  }
+>
+> -static void init_warm_resume(struct sbi_scratch *scratch)
+> +static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
+> +                                       u32 hartid)
+>  {
+>         int rc;
+>
+> @@ -429,7 +429,7 @@ static void init_warm_resume(struct sbi_scratch *scratch)
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> -       sbi_hsm_hart_resume_finish(scratch);
+> +       sbi_hsm_hart_resume_finish(scratch, hartid);
+>  }
+>
+>  static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+> @@ -443,13 +443,9 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>
+>         if (hstate == SBI_HSM_STATE_SUSPENDED)
+> -               init_warm_resume(scratch);
+> +               init_warm_resume(scratch, hartid);
+>         else
+>                 init_warm_startup(scratch, hartid);
+> -
+> -       sbi_hart_switch_mode(hartid, scratch->next_arg1,
+> -                            scratch->next_addr,
+> -                            scratch->next_mode, false);
+>  }
+>
+>  static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
 > --
-> 2.17.1
+> 2.34.1
 >
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
