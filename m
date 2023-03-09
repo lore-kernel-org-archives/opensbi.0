@@ -1,73 +1,228 @@
 From: mchitale@ventanamicro.com <mchitale@ventanamicro.com>
-Date: Thu, 09 Mar 2023 18:00:20 +0530
-Subject: [PATCH v3 3/8] lib: sbi_pmu: Reserve space for implementation
- specific firmware events
-In-Reply-To: <20230309091653.n3gm3ewdzxgoetm3@orel>
+Date: Thu, 09 Mar 2023 18:03:03 +0530
+Subject: [PATCH v3 6/8] lib: sbi_pmu: Use dedicated event code for
+ platform firmware events
+In-Reply-To: <CAAhSdy3qVFkpd-OU_F_3+9_q2hYO28iWCy1TLgnureyiRZdSQw@mail.gmail.com>
 References: <20230309055112.1516581-1-mchitale@ventanamicro.com>
-	 <20230309055112.1516581-4-mchitale@ventanamicro.com>
-	 <20230309091653.n3gm3ewdzxgoetm3@orel>
-Message-ID: <819a9b1906f0c53401277177bd7201dbc38150d9.camel@ventanamicro.com>
+	 <20230309055112.1516581-7-mchitale@ventanamicro.com>
+	 <CAAhSdy3qVFkpd-OU_F_3+9_q2hYO28iWCy1TLgnureyiRZdSQw@mail.gmail.com>
+Message-ID: <9c2bbdccc9c5ef2a825fdc9309e34ba0638bd9d2.camel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, 2023-03-09 at 10:16 +0100, Andrew Jones wrote:
-> On Thu, Mar 09, 2023 at 11:21:07AM +0530, Mayuresh Chitale wrote:
-> > We reserve space for SBI implementation specific custom firmware
-> > events which can be used by M-mode firmwares and HS-mode
-> > hypervisors
-> > for their own use. This reserved space is intentionally large to
-> > ensure that SBI implementation has enough space to accommodate
-> > platform specific firmware events as well.
+On Thu, 2023-03-09 at 11:58 +0530, Anup Patel wrote:
+> On Thu, Mar 9, 2023 at 11:21?AM Mayuresh Chitale
+> <mchitale@ventanamicro.com> wrote:
+> > For all platform specific firmware event operations use the
+> > dedicated
+> > event code (0xFFFF) when matching against the input firmware event.
+> > Furthermore save the real platform specific firmware event code
+> > received as
+> > the event data for future use.
 > > 
 > > Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
-> > Reviewed-by: Atish Patra <atishp@rivosinc.com>
 > > ---
-> >  include/sbi/sbi_ecall_interface.h | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
+> >  lib/sbi/sbi_pmu.c | 65 +++++++++++++++++++++++++++++++++++++----
+> > ------
+> >  1 file changed, 52 insertions(+), 13 deletions(-)
 > > 
-> > diff --git a/include/sbi/sbi_ecall_interface.h
-> > b/include/sbi/sbi_ecall_interface.h
-> > index d448212..8d1cb97 100644
-> > --- a/include/sbi/sbi_ecall_interface.h
-> > +++ b/include/sbi/sbi_ecall_interface.h
-> > @@ -185,6 +185,17 @@ enum sbi_pmu_fw_event_code_id {
-> >  	SBI_PMU_FW_HFENCE_VVMA_ASID_SENT = 20,
-> >  	SBI_PMU_FW_HFENCE_VVMA_ASID_RCVD = 21,
-> >  	SBI_PMU_FW_MAX,
-> > +	/*
-> > +	 * Event codes 22 to 255 are reserved for future use.
-> > +	 * Event codes 256 to 65534 are reserved for SBI implementation
-> > +	 * specific custom firmware events.
-> > +	 */
-> > +	SBI_PMU_FW_RESERVED_MAX = 0xFFFE,
-> > +	/*
-> > +	* Event code 0xFFFF is used for platform specific firmware
-> > +	* events where the event data contains any event specific
-> > information.
-> > +	*/
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index 1169ef2..d083198 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -122,7 +122,12 @@ static int pmu_event_validate(unsigned long
+> > event_idx, uint64_t edata)
+> >                 event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
+> >                 break;
+> >         case SBI_PMU_EVENT_TYPE_FW:
+> > -               if (SBI_PMU_FW_MAX <= event_idx_code &&
+> > +               if ((event_idx_code >= SBI_PMU_FW_MAX &&
+> > +                   event_idx_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +                   event_idx_code > SBI_PMU_FW_PLATFORM)
+> > +                       return SBI_EINVAL;
+> > +
+> > +               if (SBI_PMU_FW_PLATFORM == event_idx_code &&
+> >                     pmu_dev && pmu_dev->fw_event_validate_encoding)
+> >                         return pmu_dev-
+> > >fw_event_validate_encoding(edata);
+> >                 else
+> > @@ -187,12 +192,19 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx,
+> > uint64_t *cval)
+> >         if (event_idx_type != SBI_PMU_EVENT_TYPE_FW)
+> >                 return SBI_EINVAL;
+> > 
+> > -       if (SBI_PMU_FW_MAX <= event_code &&
+> > -           pmu_dev && pmu_dev->fw_counter_read_value)
+> > -               fw_counters_data[hartid][cidx - num_hw_ctrs] =
+> > -                       pmu_dev->fw_counter_read_value(cidx -
+> > num_hw_ctrs);
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > 
+> > -       *cval = fw_counters_data[hartid][cidx - num_hw_ctrs];
+> > +       if (SBI_PMU_FW_PLATFORM == event_code) {
+> > +               if (pmu_dev && pmu_dev->fw_counter_read_value)
+> > +                       *cval = pmu_dev->fw_counter_read_value(cidx 
+> > -
+> > +                                                              num_
+> > hw_ctrs);
+> > +               else
+> > +                       *cval = 0;
+> > +       } else
+> > +               *cval = fw_counters_data[hartid][cidx -
+> > num_hw_ctrs];
+> > 
+> >         return 0;
+> >  }
+> > @@ -367,8 +379,17 @@ static int pmu_ctr_start_fw(uint32_t cidx,
+> > uint32_t event_code,
+> >         int ret;
+> >         u32 hartid = current_hartid();
+> > 
+> > -       if (SBI_PMU_FW_MAX <= event_code &&
+> > -           pmu_dev && pmu_dev->fw_counter_start) {
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > +
+> > +       if (SBI_PMU_FW_PLATFORM == event_code) {
+> > +               if (!pmu_dev ||
+> > +                   !pmu_dev->fw_counter_start) {
+> > +                       return SBI_EINVAL;
+> > +                   }
+> > +
+> >                 ret = pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
+> >                                                 event_data,
+> >                                                 ival, ival_update);
+> > @@ -386,12 +407,13 @@ static int pmu_ctr_start_fw(uint32_t cidx,
+> > uint32_t event_code,
+> >  int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+> >                       unsigned long flags, uint64_t ival)
+> >  {
+> > +       u32 hartid = current_hartid();
 > 
-> The above three lines need to be spaced over one space. And, then,
-> "the
-> stars will align", which should improve our luck!
-Ok :). Will fix it.
+> This is an unrelated change. Probably belongs to a different patch.
+When comparing with the platform fw event code we need the hartid to
+get the event data that was saved for that hart and counter index.
 > 
-> Thanks,
-> drew
-> 
-> > +	SBI_PMU_FW_PLATFORM = 0xFFFF,
-> >  };
-> >  
-> >  /** SBI PMU event idx type */
-> > -- 
+> >         int event_idx_type;
+> >         uint32_t event_code;
+> >         int ret = SBI_EINVAL;
+> >         bool bUpdate = false;
+> >         int i, cidx;
+> > -       uint64_t edata = 0;
+> > +       uint64_t edata;
+> > 
+> >         if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+> >                 return ret;
+> > @@ -405,9 +427,13 @@ int sbi_pmu_ctr_start(unsigned long cbase,
+> > unsigned long cmask,
+> >                 if (event_idx_type < 0)
+> >                         /* Continue the start operation for other
+> > counters */
+> >                         continue;
+> > -               else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
+> > +               else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW) {
+> > +                       edata = (event_code == SBI_PMU_FW_PLATFORM)
+> > ?
+> > +                                fw_counters_data[hartid][cidx -
+> > num_hw_ctrs]
+> > +                                : 0x0;
+> >                         ret = pmu_ctr_start_fw(cidx, event_code,
+> > edata, ival,
+> >                                                bUpdate);
+> > +               }
+> >                 else
+> >                         ret = pmu_ctr_start_hw(cidx, ival,
+> > bUpdate);
+> >         }
+> > @@ -441,7 +467,12 @@ static int pmu_ctr_stop_fw(uint32_t cidx,
+> > uint32_t event_code)
+> >  {
+> >         int ret;
+> > 
+> > -       if (SBI_PMU_FW_MAX <= event_code &&
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > +
+> > +       if (SBI_PMU_FW_PLATFORM == event_code &&
+> >             pmu_dev && pmu_dev->fw_counter_stop) {
+> >                 ret = pmu_dev->fw_counter_stop(cidx - num_hw_ctrs);
+> >                 if (ret)
+> > @@ -651,13 +682,18 @@ static int pmu_ctr_find_fw(unsigned long
+> > cbase, unsigned long cmask,
+> >  {
+> >         int i, cidx;
+> > 
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > +
+> >         for_each_set_bit(i, &cmask, BITS_PER_LONG) {
+> >                 cidx = i + cbase;
+> >                 if (cidx < num_hw_ctrs || total_ctrs <= cidx)
+> >                         continue;
+> >                 if (active_events[hartid][i] !=
+> > SBI_PMU_EVENT_IDX_INVALID)
+> >                         continue;
+> > -               if (SBI_PMU_FW_MAX <= event_code &&
+> > +               if (SBI_PMU_FW_PLATFORM == event_code &&
+> >                     pmu_dev && pmu_dev->fw_counter_match_encoding)
+> > {
+> >                         if (!pmu_dev-
+> > >fw_counter_match_encoding(cidx - num_hw_ctrs,
+> >                                                                 eda
+> > ta))
+> > @@ -702,6 +738,9 @@ int sbi_pmu_ctr_cfg_match(unsigned long
+> > cidx_base, unsigned long cidx_mask,
+> >                 /* Any firmware counter can be used track any
+> > firmware event */
+> >                 ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask,
+> > event_code,
+> >                                           hartid, event_data);
+> > +               if (event_code == SBI_PMU_FW_PLATFORM)
+> > +                       fw_counters_data[hartid][ctr_idx -
+> > num_hw_ctrs] =
+> > +                                                               eve
+> > nt_data;
+> >         } else {
+> >                 ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask,
+> > flags, event_idx,
+> >                                           event_data);
+> > @@ -721,7 +760,7 @@ skip_match:
+> >                 if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
+> >                         fw_counters_data[hartid][ctr_idx -
+> > num_hw_ctrs] = 0;
+> >                 if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
+> > -                       if (SBI_PMU_FW_MAX <= event_code &&
+> > +                       if (SBI_PMU_FW_PLATFORM == event_code &&
+> >                             pmu_dev && pmu_dev->fw_counter_start) {
+> >                                 ret = pmu_dev->fw_counter_start(
+> >                                         ctr_idx - num_hw_ctrs,
+> > event_data,
+> > --
 > > 2.34.1
 > > 
 > > 
-> > -- 
+> > --
 > > opensbi mailing list
 > > opensbi at lists.infradead.org
 > > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Otherwise, it looks good to me.
+> 
+> Reviewed-by: Anup Patel <anup@brainfault.org>
+> 
+> Regards,
+> Anup
 
 
