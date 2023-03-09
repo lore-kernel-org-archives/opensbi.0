@@ -1,116 +1,63 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 9 Mar 2023 11:49:35 +0530
-Subject: [PATCH v3 4/8] lib: sbi_pmu: Rename fw_counter_value
-In-Reply-To: <20230309055112.1516581-5-mchitale@ventanamicro.com>
-References: <20230309055112.1516581-1-mchitale@ventanamicro.com> <20230309055112.1516581-5-mchitale@ventanamicro.com>
-Message-ID: <CAAhSdy1dU4=yzGzMzmJ+y5kQ-ut1OQ428Q_-udiLgRHCKB566Q@mail.gmail.com>
+From: Minda Chen <minda.chen@starfivetech.com>
+Date: Thu, 9 Mar 2023 14:19:57 +0800
+Subject: [PATCH v3 0/2] Add StarFive JH7110 SoC shutdown and reboot ops
+Message-ID: <20230309061959.10916-1-minda.chen@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 9, 2023 at 11:21?AM Mayuresh Chitale
-<mchitale@ventanamicro.com> wrote:
->
-> Rename and reuse fw_counter_value arrary to save both the counter values
-> for the SBI firmware events and event data for the SBI platform specific
-> firmware events.
->
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+Test board is JH7110 visionfive v2 board. shutdown and reboot function
+require to access axp15060 PMIC through i2c.
 
-Looks good to me.
+patch1 is i2c driver. i2c ip is designware. dw_i2c.c includes designware
+i2c minimal driver which can be used by other platform.
+fdt_i2c_dw.c parse i2c register base and other information.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+patch2 is JH7110 visionfive2 board reboot and shutdown ops.
+The i2c clk will be disabled by kernel i2c driver in power off progress
+(suspend ops).
 
-Regards,
-Anup
+Before access PMIC control bits to reboot or shutdown. Require
+to set off device power domain in JH7110 SoC power management unit.
 
-> ---
->  lib/sbi/sbi_pmu.c | 22 +++++++++++++---------
->  1 file changed, 13 insertions(+), 9 deletions(-)
->
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index a99c045..1a3c44d 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -65,8 +65,12 @@ static uint32_t active_events[SBI_HARTMASK_MAX_BITS][SBI_PMU_HW_CTR_MAX + SBI_PM
->  #endif
->  static unsigned long fw_counters_started[SBI_HARTMASK_MAX_BITS];
->
-> -/* Values of firmwares counters on each HART */
-> -static uint64_t fw_counters_value[SBI_HARTMASK_MAX_BITS][SBI_PMU_FW_CTR_MAX] = {0};
-> +/*
-> + * Counter values for SBI firmware events and event codes for platform
-> + * firmware events. Both are mutually exclusive and hence can optimally share
-> + * the same memory.
-> + */
-> +static uint64_t fw_counters_data[SBI_HARTMASK_MAX_BITS][SBI_PMU_FW_CTR_MAX] = {0};
->
->  /* Maximum number of hardware events available */
->  static uint32_t num_hw_events;
-> @@ -185,10 +189,10 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
->
->         if (SBI_PMU_FW_MAX <= event_code &&
->             pmu_dev && pmu_dev->fw_counter_read_value)
-> -               fw_counters_value[hartid][cidx - num_hw_ctrs] =
-> +               fw_counters_data[hartid][cidx - num_hw_ctrs] =
->                         pmu_dev->fw_counter_read_value(cidx - num_hw_ctrs);
->
-> -       *cval = fw_counters_value[hartid][cidx - num_hw_ctrs];
-> +       *cval = fw_counters_data[hartid][cidx - num_hw_ctrs];
->
->         return 0;
->  }
-> @@ -372,7 +376,7 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
->         }
->
->         if (ival_update)
-> -               fw_counters_value[hartid][cidx - num_hw_ctrs] = ival;
-> +               fw_counters_data[hartid][cidx - num_hw_ctrs] = ival;
->         fw_counters_started[hartid] |= BIT(cidx - num_hw_ctrs);
->
->         return 0;
-> @@ -711,13 +715,13 @@ skip_match:
->                         pmu_ctr_start_hw(ctr_idx, 0, false);
->         } else if (event_type == SBI_PMU_EVENT_TYPE_FW) {
->                 if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
-> -                       fw_counters_value[hartid][ctr_idx - num_hw_ctrs] = 0;
-> +                       fw_counters_data[hartid][ctr_idx - num_hw_ctrs] = 0;
->                 if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
->                         if (SBI_PMU_FW_MAX <= event_code &&
->                             pmu_dev && pmu_dev->fw_counter_start) {
->                                 ret = pmu_dev->fw_counter_start(
->                                         ctr_idx - num_hw_ctrs, event_code,
-> -                                       fw_counters_value[hartid][ctr_idx - num_hw_ctrs],
-> +                                       fw_counters_data[hartid][ctr_idx - num_hw_ctrs],
->                                         true);
->                                 if (ret)
->                                         return ret;
-> @@ -743,7 +747,7 @@ int sbi_pmu_ctr_incr_fw(enum sbi_pmu_fw_event_code_id fw_id)
->         for (cidx = num_hw_ctrs; cidx < total_ctrs; cidx++) {
->                 if (get_cidx_code(active_events[hartid][cidx]) == fw_id &&
->                     (fw_counters_started[hartid] & BIT(cidx - num_hw_ctrs))) {
-> -                       fcounter = &fw_counters_value[hartid][cidx - num_hw_ctrs];
-> +                       fcounter = &fw_counters_data[hartid][cidx - num_hw_ctrs];
->                         break;
->                 }
->         }
-> @@ -803,7 +807,7 @@ static void pmu_reset_event_map(u32 hartid)
->         for (j = 3; j < total_ctrs; j++)
->                 active_events[hartid][j] = SBI_PMU_EVENT_IDX_INVALID;
->         for (j = 0; j < SBI_PMU_FW_CTR_MAX; j++)
-> -               fw_counters_value[hartid][j] = 0;
-> +               fw_counters_data[hartid][j] = 0;
->         fw_counters_started[hartid] = 0;
->  }
->
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+For more JH7110 and visionFive v2 information and support,
+you can visit RVspace wiki[2].
+
+[2] https://wiki.rvspace.org/
+
+Changes in v3
+ patch1
+ - Remove the redundant bottom new line in fdt_i2c_dw.c
+ - Change the subject prefix to "platform: starfive"
+
+Changes in v2
+ patch1
+ - Rename fdt_i2c_starfive.c to fdt_i2c_dw.c
+ - Replace prefix of the macros and variables 'starfive' to 'fdt_dw' in
+   fdt_i2c_dw.c
+ - Replace FDT_I2C_STARFIVE to FDT_I2C_DW in i2c object.mk and Kconfig
+ patch2
+ - Replace CONFIG_FDT_I2C_STARFIVE to CONFIG_FDT_I2C_DW in defconfig 
+
+Minda Chen (2):
+  lib: utils/i2c: Add minimal StarFive jh7110 I2C driver
+  platform: starfive: add PMIC power ops in JH7110 visionfive2 board
+
+ include/sbi_utils/i2c/dw_i2c.h     |  21 +++
+ lib/utils/i2c/Kconfig              |   8 +
+ lib/utils/i2c/dw_i2c.c             | 190 ++++++++++++++++++++
+ lib/utils/i2c/fdt_i2c_dw.c         |  62 +++++++
+ lib/utils/i2c/objects.mk           |   5 +
+ platform/generic/configs/defconfig |   1 +
+ platform/generic/starfive/jh7110.c | 272 +++++++++++++++++++++++++++++
+ 7 files changed, 559 insertions(+)
+ create mode 100644 include/sbi_utils/i2c/dw_i2c.h
+ create mode 100644 lib/utils/i2c/dw_i2c.c
+ create mode 100644 lib/utils/i2c/fdt_i2c_dw.c
+
+-- 
+2.17.1
+
 
