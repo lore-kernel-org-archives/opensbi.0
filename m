@@ -1,335 +1,185 @@
-From: Minda Chen <minda.chen@starfivetech.com>
-Date: Thu, 9 Mar 2023 14:19:59 +0800
-Subject: [PATCH v3 2/2] platform: starfive: add PMIC power ops in JH7110 visionfive2 board
-In-Reply-To: <20230309061959.10916-1-minda.chen@starfivetech.com>
-References: <20230309061959.10916-1-minda.chen@starfivetech.com>
-Message-ID: <20230309061959.10916-3-minda.chen@starfivetech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 9 Mar 2023 11:51:13 +0530
+Subject: [PATCH v3 5/8] lib: sbi_pmu: Update sbi_pmu dev ops
+In-Reply-To: <20230309055112.1516581-6-mchitale@ventanamicro.com>
+References: <20230309055112.1516581-1-mchitale@ventanamicro.com> <20230309055112.1516581-6-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy1SO6zkvdnpR1tw=B-L0U1RzS+6fDzLogyvcsO=JgueYA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-add reboot and poweroff support. The whole reboot and shutdown
-pm op includes shutdown jh7110 pmu device power domain
-and access on board pmic register through I2C.
+On Thu, Mar 9, 2023 at 11:21?AM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
+>
+> Update fw_event_validate_code, fw_counter_match_code and fw_counter_start
+> ops which used a 32 bit event code to use the 64 bit event data instead.
+>
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 
-Signed-off-by: Minda Chen <minda.chen@starfivetech.com>
+Looks good to me.
+
 Reviewed-by: Anup Patel <anup@brainfault.org>
----
- platform/generic/configs/defconfig |   1 +
- platform/generic/starfive/jh7110.c | 272 +++++++++++++++++++++++++++++
- 2 files changed, 273 insertions(+)
 
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 2ad953d..ee0df38 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -9,6 +9,7 @@ CONFIG_FDT_GPIO_SIFIVE=y
- CONFIG_FDT_GPIO_STARFIVE=y
- CONFIG_FDT_I2C=y
- CONFIG_FDT_I2C_SIFIVE=y
-+CONFIG_FDT_I2C_DW=y
- CONFIG_FDT_IPI=y
- CONFIG_FDT_IPI_MSWI=y
- CONFIG_FDT_IPI_PLICSW=y
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index c665658..31c6bd3 100644
---- a/platform/generic/starfive/jh7110.c
-+++ b/platform/generic/starfive/jh7110.c
-@@ -5,14 +5,285 @@
-  *
-  * Authors:
-  *   Wei Liang Lim <weiliang.lim@starfivetech.com>
-+ *   Minda Chen <minda.chen@starfivetech.com>
-  */
- 
- #include <libfdt.h>
- #include <platform_override.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_timer.h>
-+#include <sbi/riscv_io.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/reset/fdt_reset.h>
-+#include <sbi_utils/i2c/fdt_i2c.h>
- 
-+struct pmic {
-+	struct i2c_adapter *adapter;
-+	u32 dev_addr;
-+	const char *compatible;
-+};
-+
-+struct jh7110 {
-+	u64 pmu_reg_base;
-+	u64 clk_reg_base;
-+	u32 i2c_index;
-+};
-+
-+static struct pmic pmic_inst;
-+static struct jh7110 jh7110_inst;
- static u32 selected_hartid = -1;
- 
-+/* PMU register define */
-+#define HW_EVENT_TURN_ON_MASK		0x04
-+#define HW_EVENT_TURN_OFF_MASK		0x08
-+#define SW_TURN_ON_POWER_MODE		0x0C
-+#define SW_TURN_OFF_POWER_MODE		0x10
-+#define SW_ENCOURAGE			0x44
-+#define PMU_INT_MASK			0x48
-+#define PCH_BYPASS			0x4C
-+#define PCH_PSTATE			0x50
-+#define PCH_TIMEOUT			0x54
-+#define LP_TIMEOUT			0x58
-+#define HW_TURN_ON_MODE			0x5C
-+#define CURR_POWER_MODE			0x80
-+#define PMU_EVENT_STATUS		0x88
-+#define PMU_INT_STATUS			0x8C
-+
-+/* sw encourage cfg */
-+#define SW_MODE_ENCOURAGE_EN_LO		0x05
-+#define SW_MODE_ENCOURAGE_EN_HI		0x50
-+#define SW_MODE_ENCOURAGE_DIS_LO	0x0A
-+#define SW_MODE_ENCOURAGE_DIS_HI	0xA0
-+#define SW_MODE_ENCOURAGE_ON		0xFF
-+
-+#define DEVICE_PD_MASK			0xfc
-+#define SYSTOP_CPU_PD_MASK		0x3
-+
-+#define TIMEOUT_COUNT			100000
-+#define AXP15060_POWER_REG		0x32
-+#define AXP15060_POWER_OFF_BIT		BIT(7)
-+#define AXP15060_RESET_BIT		BIT(6)
-+
-+#define I2C_APB_CLK_OFFSET		0x228
-+#define I2C_APB_CLK_ENABLE_BIT		BIT(31)
-+
-+static int pm_system_reset_check(u32 type, u32 reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+		return 1;
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+		return 255;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int wait_pmu_pd_state(u32 mask)
-+{
-+	int count = 0;
-+	unsigned long addr = jh7110_inst.pmu_reg_base;
-+	u32 val;
-+
-+	do {
-+		val = readl((void *)(addr + CURR_POWER_MODE));
-+		if (val == mask)
-+			return 0;
-+
-+		sbi_timer_udelay(2);
-+		count += 1;
-+		if (count == TIMEOUT_COUNT)
-+			return SBI_ETIMEDOUT;
-+	} while (1);
-+}
-+
-+static int shutdown_device_power_domain(void)
-+{
-+	unsigned long addr = jh7110_inst.pmu_reg_base;
-+	u32 curr_mode;
-+	int ret = 0;
-+
-+	curr_mode = readl((void *)(addr + CURR_POWER_MODE));
-+	curr_mode &= DEVICE_PD_MASK;
-+
-+	if (curr_mode) {
-+		writel(curr_mode, (void *)(addr + SW_TURN_OFF_POWER_MODE));
-+		writel(SW_MODE_ENCOURAGE_ON, (void *)(addr + SW_ENCOURAGE));
-+		writel(SW_MODE_ENCOURAGE_DIS_LO, (void *)(addr + SW_ENCOURAGE));
-+		writel(SW_MODE_ENCOURAGE_DIS_HI, (void *)(addr + SW_ENCOURAGE));
-+		ret = wait_pmu_pd_state(SYSTOP_CPU_PD_MASK);
-+		if (ret)
-+			sbi_printf("%s shutdown device power %x error\n",
-+				   __func__, curr_mode);
-+	}
-+	return ret;
-+}
-+
-+static void pmic_ops(struct pmic *pmic, int type)
-+{
-+	int ret = 0;
-+	u8 val;
-+
-+	ret = shutdown_device_power_domain();
-+
-+	if (ret)
-+		return;
-+
-+	if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
-+		ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
-+					   AXP15060_POWER_REG, &val);
-+
-+		if (ret) {
-+			sbi_printf("%s: cannot read pmic power register\n",
-+				   __func__);
-+			return;
-+		}
-+
-+		val |= AXP15060_POWER_OFF_BIT;
-+		if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
-+			val |= AXP15060_POWER_OFF_BIT;
-+		else
-+			val |= AXP15060_RESET_BIT;
-+
-+		ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
-+					    AXP15060_POWER_REG, val);
-+		if (ret)
-+			sbi_printf("%s: cannot write pmic power register\n",
-+				   __func__);
-+	}
-+}
-+
-+static void pmic_i2c_clk_enable(void)
-+{
-+	u64 clock_base;
-+	unsigned int val;
-+
-+	clock_base = jh7110_inst.clk_reg_base +
-+		I2C_APB_CLK_OFFSET +
-+		(jh7110_inst.i2c_index << 2);
-+
-+	val = readl((void *)clock_base);
-+
-+	if (!val)
-+		writel(I2C_APB_CLK_ENABLE_BIT, (void *)(clock_base));
-+}
-+
-+static void pm_system_reset(u32 type, u32 reason)
-+{
-+	if (pmic_inst.adapter) {
-+		switch (type) {
-+		case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+		case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+			/* i2c clk may be disabled by kernel driver */
-+			pmic_i2c_clk_enable();
-+			pmic_ops(&pmic_inst, type);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
-+	sbi_hart_hang();
-+}
-+
-+static struct sbi_system_reset_device pm_reset = {
-+	.name = "pm-reset",
-+	.system_reset_check = pm_system_reset_check,
-+	.system_reset = pm_system_reset
-+};
-+
-+static int pm_reset_init(void *fdt, int nodeoff,
-+			 const struct fdt_match *match)
-+{
-+	int rc;
-+	int i2c_bus;
-+	struct i2c_adapter *adapter;
-+	u64 addr;
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-+	if (rc)
-+		return rc;
-+
-+	pmic_inst.dev_addr = addr;
-+	pmic_inst.compatible = match->compatible;
-+
-+	i2c_bus = fdt_parent_offset(fdt, nodeoff);
-+	if (i2c_bus < 0)
-+		return i2c_bus;
-+
-+	/* i2c adapter get */
-+	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &adapter);
-+	if (rc)
-+		return rc;
-+
-+	pmic_inst.adapter = adapter;
-+
-+	sbi_system_reset_add_device(&pm_reset);
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match pm_reset_match[] = {
-+	{ .compatible = "stf,axp15060-regulator", .data = (void *)true },
-+	{ },
-+};
-+
-+static struct fdt_reset fdt_reset_pmic = {
-+	.match_table = pm_reset_match,
-+	.init = pm_reset_init,
-+};
-+
-+static int starfive_jh7110_inst_init(void *fdt)
-+{
-+	int noff, rc = 0;
-+	const char *name;
-+	u64 addr;
-+
-+	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-pmu");
-+	if (-1 < noff) {
-+		rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
-+		if (rc)
-+			goto err;
-+		jh7110_inst.pmu_reg_base = addr;
-+	}
-+
-+	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-clkgen");
-+	if (-1 < noff) {
-+		rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
-+		if (rc)
-+			goto err;
-+		jh7110_inst.clk_reg_base = addr;
-+	}
-+
-+	if (pmic_inst.adapter) {
-+		name = fdt_get_name(fdt, pmic_inst.adapter->id, NULL);
-+		if (!sbi_strncmp(name, "i2c", 3))
-+			jh7110_inst.i2c_index = name[3] - '0';
-+		else
-+			rc = SBI_EINVAL;
-+	}
-+err:
-+	return rc;
-+}
-+
-+static int starfive_jh7110_final_init(bool cold_boot,
-+				      const struct fdt_match *match)
-+{
-+	void *fdt = fdt_get_address();
-+
-+	if (cold_boot) {
-+		fdt_reset_driver_init(fdt, &fdt_reset_pmic);
-+		return starfive_jh7110_inst_init(fdt);
-+	}
-+
-+	return 0;
-+}
-+
- static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
- 				   const struct fdt_match *match)
- {
-@@ -44,4 +315,5 @@ const struct platform_override starfive_jh7110 = {
- 	.match_table = starfive_jh7110_match,
- 	.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
- 	.fw_init = starfive_jh7110_fw_init,
-+	.final_init = starfive_jh7110_final_init,
- };
--- 
-2.17.1
+Regards,
+Anup
 
+> ---
+>  include/sbi/sbi_pmu.h |  9 ++++-----
+>  lib/sbi/sbi_pmu.c     | 30 +++++++++++++++++-------------
+>  2 files changed, 21 insertions(+), 18 deletions(-)
+>
+> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> index b3b75c1..3232e14 100644
+> --- a/include/sbi/sbi_pmu.h
+> +++ b/include/sbi/sbi_pmu.h
+> @@ -30,16 +30,15 @@ struct sbi_pmu_device {
+>
+>         /**
+>          * Validate event code of custom firmware event
+> -        * Note: SBI_PMU_FW_MAX <= event_idx_code
+>          */
+> -       int (*fw_event_validate_code)(uint32_t event_idx_code);
+> +       int (*fw_event_validate_encoding)(uint64_t event_data);
+>
+>         /**
+>          * Match custom firmware counter with custom firmware event
+>          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+>          */
+> -       bool (*fw_counter_match_code)(uint32_t counter_index,
+> -                                     uint32_t event_idx_code);
+> +       bool (*fw_counter_match_encoding)(uint32_t counter_index,
+> +                                         uint64_t event_data);
+>
+>         /**
+>          * Fetch the max width of this counter in number of bits.
+> @@ -58,7 +57,7 @@ struct sbi_pmu_device {
+>          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+>          */
+>         int (*fw_counter_start)(uint32_t counter_index,
+> -                               uint32_t event_idx_code,
+> +                               uint64_t event_data,
+>                                 uint64_t init_val, bool init_val_update);
+>
+>         /**
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 1a3c44d..1169ef2 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -110,7 +110,7 @@ static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
+>         return false;
+>  }
+>
+> -static int pmu_event_validate(unsigned long event_idx)
+> +static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
+>  {
+>         uint32_t event_idx_type = get_cidx_type(event_idx);
+>         uint32_t event_idx_code = get_cidx_code(event_idx);
+> @@ -123,8 +123,8 @@ static int pmu_event_validate(unsigned long event_idx)
+>                 break;
+>         case SBI_PMU_EVENT_TYPE_FW:
+>                 if (SBI_PMU_FW_MAX <= event_idx_code &&
+> -                   pmu_dev && pmu_dev->fw_event_validate_code)
+> -                       return pmu_dev->fw_event_validate_code(event_idx_code);
+> +                   pmu_dev && pmu_dev->fw_event_validate_encoding)
+> +                       return pmu_dev->fw_event_validate_encoding(edata);
+>                 else
+>                         event_idx_code_max = SBI_PMU_FW_MAX;
+>                 break;
+> @@ -361,7 +361,8 @@ int sbi_pmu_irq_bit(void)
+>  }
+>
+>  static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
+> -                           uint64_t ival, bool ival_update)
+> +                           uint64_t event_data, uint64_t ival,
+> +                           bool ival_update)
+>  {
+>         int ret;
+>         u32 hartid = current_hartid();
+> @@ -369,7 +370,7 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
+>         if (SBI_PMU_FW_MAX <= event_code &&
+>             pmu_dev && pmu_dev->fw_counter_start) {
+>                 ret = pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
+> -                                               event_code,
+> +                                               event_data,
+>                                                 ival, ival_update);
+>                 if (ret)
+>                         return ret;
+> @@ -390,6 +391,7 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+>         int ret = SBI_EINVAL;
+>         bool bUpdate = false;
+>         int i, cidx;
+> +       uint64_t edata = 0;
+>
+>         if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+>                 return ret;
+> @@ -404,7 +406,8 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+>                         /* Continue the start operation for other counters */
+>                         continue;
+>                 else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
+> -                       ret = pmu_ctr_start_fw(cidx, event_code, ival, bUpdate);
+> +                       ret = pmu_ctr_start_fw(cidx, event_code, edata, ival,
+> +                                              bUpdate);
+>                 else
+>                         ret = pmu_ctr_start_hw(cidx, ival, bUpdate);
+>         }
+> @@ -644,7 +647,7 @@ static int pmu_ctr_find_hw(unsigned long cbase, unsigned long cmask, unsigned lo
+>   * check.
+>   */
+>  static int pmu_ctr_find_fw(unsigned long cbase, unsigned long cmask,
+> -                          uint32_t event_code, u32 hartid)
+> +                          uint32_t event_code, u32 hartid, uint64_t edata)
+>  {
+>         int i, cidx;
+>
+> @@ -655,9 +658,9 @@ static int pmu_ctr_find_fw(unsigned long cbase, unsigned long cmask,
+>                 if (active_events[hartid][i] != SBI_PMU_EVENT_IDX_INVALID)
+>                         continue;
+>                 if (SBI_PMU_FW_MAX <= event_code &&
+> -                   pmu_dev && pmu_dev->fw_counter_match_code) {
+> -                       if (!pmu_dev->fw_counter_match_code(cidx - num_hw_ctrs,
+> -                                                           event_code))
+> +                   pmu_dev && pmu_dev->fw_counter_match_encoding) {
+> +                       if (!pmu_dev->fw_counter_match_encoding(cidx - num_hw_ctrs,
+> +                                                               edata))
+>                                 continue;
+>                 }
+>
+> @@ -679,7 +682,7 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+>         if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
+>                 return SBI_EINVAL;
+>
+> -       event_type = pmu_event_validate(event_idx);
+> +       event_type = pmu_event_validate(event_idx, event_data);
+>         if (event_type < 0)
+>                 return SBI_EINVAL;
+>         event_code = get_cidx_code(event_idx);
+> @@ -697,7 +700,8 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+>
+>         if (event_type == SBI_PMU_EVENT_TYPE_FW) {
+>                 /* Any firmware counter can be used track any firmware event */
+> -               ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask, event_code, hartid);
+> +               ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask, event_code,
+> +                                         hartid, event_data);
+>         } else {
+>                 ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, flags, event_idx,
+>                                           event_data);
+> @@ -720,7 +724,7 @@ skip_match:
+>                         if (SBI_PMU_FW_MAX <= event_code &&
+>                             pmu_dev && pmu_dev->fw_counter_start) {
+>                                 ret = pmu_dev->fw_counter_start(
+> -                                       ctr_idx - num_hw_ctrs, event_code,
+> +                                       ctr_idx - num_hw_ctrs, event_data,
+>                                         fw_counters_data[hartid][ctr_idx - num_hw_ctrs],
+>                                         true);
+>                                 if (ret)
+> --
+> 2.34.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
