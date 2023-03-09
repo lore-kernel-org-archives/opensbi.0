@@ -1,30 +1,33 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Thu, 9 Mar 2023 10:19:33 +0100
-Subject: [PATCH v3 4/8] lib: sbi_pmu: Rename fw_counter_value
-In-Reply-To: <20230309055112.1516581-5-mchitale@ventanamicro.com>
-References: <20230309055112.1516581-1-mchitale@ventanamicro.com>
- <20230309055112.1516581-5-mchitale@ventanamicro.com>
-Message-ID: <20230309091933.35t3gtpqwumyj7wi@orel>
+From: Xiang W <wxjstz@126.com>
+Date: Thu,  9 Mar 2023 17:46:07 +0800
+Subject: [PATCH] lib: sbi_scratch: Optimize the alignment code for alloc size
+Message-ID: <20230309094607.72318-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 09, 2023 at 11:21:08AM +0530, Mayuresh Chitale wrote:
-> Rename and reuse fw_counter_value arrary to save both the counter values
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/sbi_scratch.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-array
+diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+index 87b34c6..ea62105 100644
+--- a/lib/sbi/sbi_scratch.c
++++ b/lib/sbi/sbi_scratch.c
+@@ -59,8 +59,7 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
+ 	if (!size)
+ 		return 0;
+ 
+-	if (size & (__SIZEOF_POINTER__ - 1))
+-		size = (size & ~(__SIZEOF_POINTER__ - 1)) + __SIZEOF_POINTER__;
++	size = (size + __SIZEOF_POINTER__ - 1) & ~(__SIZEOF_POINTER__ - 1);
+ 
+ 	spin_lock(&extra_lock);
+ 
+-- 
+2.39.2
 
-> for the SBI firmware events and event data for the SBI platform specific
-> firmware events.
-> 
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
-> ---
->  lib/sbi/sbi_pmu.c | 22 +++++++++++++---------
->  1 file changed, 13 insertions(+), 9 deletions(-)
-
-Otherwise
-
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
