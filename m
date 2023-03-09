@@ -1,107 +1,164 @@
 From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Thu,  9 Mar 2023 18:43:57 +0530
-Subject: [PATCH v4 7/8] lib: sbi_pmu: Introduce fw_counter_write_value API
+Date: Thu,  9 Mar 2023 18:43:58 +0530
+Subject: [PATCH v4 8/8] lib: sbi_pmu: Add hartid parameter PMU device ops
 In-Reply-To: <20230309131358.2259923-1-mchitale@ventanamicro.com>
 References: <20230309131358.2259923-1-mchitale@ventanamicro.com>
-Message-ID: <20230309131358.2259923-8-mchitale@ventanamicro.com>
+Message-ID: <20230309131358.2259923-9-mchitale@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add fw_counter_write_value API for platform specific firmware events
-which separates setting the counter's initial value from starting the
-counter. This is required so that the fw_event_data array can be reused
-to save the event data received.
+Platform specific firmware event handler may leverage the hartid to program
+per hart specific registers for a given counter.
 
 Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi/sbi_pmu.h | 11 ++++++++---
- lib/sbi/sbi_pmu.c     | 25 +++++++++++++------------
- 2 files changed, 21 insertions(+), 15 deletions(-)
+ include/sbi/sbi_pmu.h | 14 ++++++++------
+ lib/sbi/sbi_pmu.c     | 25 +++++++++++++++----------
+ 2 files changed, 23 insertions(+), 16 deletions(-)
 
 diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-index 3232e14..53f2700 100644
+index 53f2700..16f6877 100644
 --- a/include/sbi/sbi_pmu.h
 +++ b/include/sbi/sbi_pmu.h
-@@ -51,14 +51,19 @@ struct sbi_pmu_device {
- 	 */
- 	uint64_t (*fw_counter_read_value)(uint32_t counter_index);
- 
-+	/**
-+	 * Write value to custom firmware counter
-+	 * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
-+	 */
-+	void (*fw_counter_write_value)(uint32_t counter_index,
-+				       uint64_t value);
-+
+@@ -31,13 +31,14 @@ struct sbi_pmu_device {
  	/**
- 	 * Start custom firmware counter
--	 * Note: SBI_PMU_FW_MAX <= event_idx_code
+ 	 * Validate event code of custom firmware event
+ 	 */
+-	int (*fw_event_validate_encoding)(uint64_t event_data);
++	int (*fw_event_validate_encoding)(uint32_t hartid, uint64_t event_data);
+ 
+ 	/**
+ 	 * Match custom firmware counter with custom firmware event
  	 * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
  	 */
- 	int (*fw_counter_start)(uint32_t counter_index,
--				uint64_t event_data,
--				uint64_t init_val, bool init_val_update);
-+				uint64_t event_data);
+-	bool (*fw_counter_match_encoding)(uint32_t counter_index,
++	bool (*fw_counter_match_encoding)(uint32_t hartid,
++					  uint32_t counter_index,
+ 					  uint64_t event_data);
+ 
+ 	/**
+@@ -49,27 +50,28 @@ struct sbi_pmu_device {
+ 	 * Read value of custom firmware counter
+ 	 * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+ 	 */
+-	uint64_t (*fw_counter_read_value)(uint32_t counter_index);
++	uint64_t (*fw_counter_read_value)(uint32_t hartid,
++					  uint32_t counter_index);
+ 
+ 	/**
+ 	 * Write value to custom firmware counter
+ 	 * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+ 	 */
+-	void (*fw_counter_write_value)(uint32_t counter_index,
++	void (*fw_counter_write_value)(uint32_t hartid, uint32_t counter_index,
+ 				       uint64_t value);
+ 
+ 	/**
+ 	 * Start custom firmware counter
+ 	 * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+ 	 */
+-	int (*fw_counter_start)(uint32_t counter_index,
++	int (*fw_counter_start)(uint32_t hartid, uint32_t counter_index,
+ 				uint64_t event_data);
  
  	/**
  	 * Stop custom firmware counter
+ 	 * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+ 	 */
+-	int (*fw_counter_stop)(uint32_t counter_index);
++	int (*fw_counter_stop)(uint32_t hartid, uint32_t counter_index);
+ 
+ 	/**
+ 	 * Custom enable irq for hardware counter
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index d083198..00a2c3e 100644
+index 00a2c3e..74d6912 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -376,7 +376,6 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
- 			    uint64_t event_data, uint64_t ival,
- 			    bool ival_update)
- {
--	int ret;
- 	u32 hartid = current_hartid();
+@@ -116,6 +116,7 @@ static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
+ 	uint32_t event_idx_code = get_cidx_code(event_idx);
+ 	uint32_t event_idx_code_max = -1;
+ 	uint32_t cache_ops_result, cache_ops_id, cache_id;
++	u32 hartid = current_hartid();
  
- 	if ((event_code >= SBI_PMU_FW_MAX &&
-@@ -386,19 +385,22 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
+ 	switch(event_idx_type) {
+ 	case SBI_PMU_EVENT_TYPE_HW:
+@@ -129,7 +130,8 @@ static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
+ 
+ 		if (SBI_PMU_FW_PLATFORM == event_idx_code &&
+ 		    pmu_dev && pmu_dev->fw_event_validate_encoding)
+-			return pmu_dev->fw_event_validate_encoding(edata);
++			return pmu_dev->fw_event_validate_encoding(hartid,
++							           edata);
+ 		else
+ 			event_idx_code_max = SBI_PMU_FW_MAX;
+ 		break;
+@@ -199,7 +201,8 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
  
  	if (SBI_PMU_FW_PLATFORM == event_code) {
- 		if (!pmu_dev ||
-+		    !pmu_dev->fw_counter_write_value ||
- 		    !pmu_dev->fw_counter_start) {
- 			return SBI_EINVAL;
+ 		if (pmu_dev && pmu_dev->fw_counter_read_value)
+-			*cval = pmu_dev->fw_counter_read_value(cidx -
++			*cval = pmu_dev->fw_counter_read_value(hartid,
++							       cidx -
+ 							       num_hw_ctrs);
+ 		else
+ 			*cval = 0;
+@@ -391,10 +394,11 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
  		    }
  
--		ret = pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
--						event_data,
--						ival, ival_update);
--		if (ret)
--			return ret;
-+		if (ival_update)
-+			pmu_dev->fw_counter_write_value(cidx - num_hw_ctrs,
-+							ival);
-+
-+		return pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
-+						 event_data);
-+	} else {
-+		if (ival_update)
-+			fw_counters_data[hartid][cidx - num_hw_ctrs] = ival;
+ 		if (ival_update)
+-			pmu_dev->fw_counter_write_value(cidx - num_hw_ctrs,
++			pmu_dev->fw_counter_write_value(hartid,
++							cidx - num_hw_ctrs,
+ 							ival);
+ 
+-		return pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
++		return pmu_dev->fw_counter_start(hartid, cidx - num_hw_ctrs,
+ 						 event_data);
+ 	} else {
+ 		if (ival_update)
+@@ -467,6 +471,7 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
+ 
+ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t event_code)
+ {
++	u32 hartid = current_hartid();
+ 	int ret;
+ 
+ 	if ((event_code >= SBI_PMU_FW_MAX &&
+@@ -476,7 +481,7 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t event_code)
+ 
+ 	if (SBI_PMU_FW_PLATFORM == event_code &&
+ 	    pmu_dev && pmu_dev->fw_counter_stop) {
+-		ret = pmu_dev->fw_counter_stop(cidx - num_hw_ctrs);
++		ret = pmu_dev->fw_counter_stop(hartid, cidx - num_hw_ctrs);
+ 		if (ret)
+ 			return ret;
  	}
+@@ -697,8 +702,9 @@ static int pmu_ctr_find_fw(unsigned long cbase, unsigned long cmask,
+ 			continue;
+ 		if (SBI_PMU_FW_PLATFORM == event_code &&
+ 		    pmu_dev && pmu_dev->fw_counter_match_encoding) {
+-			if (!pmu_dev->fw_counter_match_encoding(cidx - num_hw_ctrs,
+-								edata))
++			if (!pmu_dev->fw_counter_match_encoding(hartid,
++							    cidx - num_hw_ctrs,
++							    edata))
+ 				continue;
+ 		}
  
--	if (ival_update)
--		fw_counters_data[hartid][cidx - num_hw_ctrs] = ival;
- 	fw_counters_started[hartid] |= BIT(cidx - num_hw_ctrs);
- 
- 	return 0;
-@@ -762,10 +764,9 @@ skip_match:
+@@ -764,9 +770,8 @@ skip_match:
  		if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
  			if (SBI_PMU_FW_PLATFORM == event_code &&
  			    pmu_dev && pmu_dev->fw_counter_start) {
--				ret = pmu_dev->fw_counter_start(
--					ctr_idx - num_hw_ctrs, event_data,
--					fw_counters_data[hartid][ctr_idx - num_hw_ctrs],
--					true);
-+				ret = pmu_dev->fw_counter_start(ctr_idx -
-+								num_hw_ctrs,
-+								event_data);
+-				ret = pmu_dev->fw_counter_start(ctr_idx -
+-								num_hw_ctrs,
+-								event_data);
++				ret = pmu_dev->fw_counter_start(hartid,
++					ctr_idx - num_hw_ctrs, event_data);
  				if (ret)
  					return ret;
  			}
