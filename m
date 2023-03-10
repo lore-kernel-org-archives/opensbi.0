@@ -1,159 +1,186 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 10 Mar 2023 09:26:28 +0530
-Subject: [PATCH v3 3/3] lib: sbi: Clear IPIs before init_warm_startup in
- non-boot harts
-In-Reply-To: <5ccf718d-f576-55f6-0704-0c930f3f40f8@yadro.com>
-References: <20230305212247.494912-1-e.shatokhin@yadro.com>
- <20230305212247.494912-4-e.shatokhin@yadro.com> <CAAhSdy3ghazwrRxgDuZ1qAcxMdQ4Mtcc4yPLvft6TZE6t7F8BQ@mail.gmail.com>
- <d3039c2a-25e4-ba90-5a5f-d3d24e2ffaf4@yadro.com> <CAAhSdy2yk+dgGBFXQsjGNXHg6Y+WjFndBF9qJ8fNz1q=9Psm2A@mail.gmail.com>
- <5ccf718d-f576-55f6-0704-0c930f3f40f8@yadro.com>
-Message-ID: <CAAhSdy3YpAmp6pnPAaoUrgxgHyeu7x6XvayUyC5p_oNCaffxdA@mail.gmail.com>
+From: Mayuresh Chitale <mchitale@ventanamicro.com>
+Date: Fri, 10 Mar 2023 10:04:17 +0530
+Subject: [PATCH v4 6/8] lib: sbi_pmu: Use dedicated event code for
+ platform firmware events
+In-Reply-To: <431c68ca0803f3cd71b06f4e75f42135426f98b5.camel@126.com>
+References: <20230309131358.2259923-1-mchitale@ventanamicro.com>
+ <20230309131358.2259923-7-mchitale@ventanamicro.com> <431c68ca0803f3cd71b06f4e75f42135426f98b5.camel@126.com>
+Message-ID: <CAN37VV4y8DXg5K8_yiHoKMVwoqHkHk6vkW3YQ4=7mX6eBy3VVw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 10, 2023 at 1:10?AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
+On Thu, Mar 9, 2023 at 8:02?PM Xiang W <wxjstz@126.com> wrote:
 >
-> On 09.03.2023 21:03, Anup Patel wrote:
+> ? 2023-03-09???? 18:43 +0530?Mayuresh Chitale???
+> > For all platform specific firmware event operations use the dedicated
+> > event code (0xFFFF) when matching against the input firmware event.
+> > Furthermore save the real platform specific firmware event code received as
+> > the event data for future use.
 > >
-> > On Thu, Mar 9, 2023 at 11:23?PM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
-> >>
-> >> On 09.03.2023 19:30, Anup Patel wrote:
-> >>> On Mon, Mar 6, 2023 at 2:54?AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
-> >>>>
-> >>>> Since commit 50d4fde1c5a4 ("lib: Remove redundant sbi_platform_ipi_clear()
-> >>>> calls"), the IPI sent from the boot hart in wake_coldboot_harts() is not
-> >>>> cleared in the secondary harts until they reach sbi_ipi_init(). However,
-> >>>> sbi_hsm_init() and sbi_hsm_hart_wait() are called earlier, so a secondary
-> >>>> hart might enter sbi_hsm_hart_wait() with an already pending IPI.
-> >>>>
-> >>>> sbi_hsm_hart_wait() makes sure the hart leaves the loop only when it is
-> >>>> actually ready, so a pending unrelated IPI should not cause safety issues.
-> >>>> However, it might be inefficient on certain hardware, because it prevents
-> >>>> "wfi" from stalling the hart even if the hardware supports this, making the
-> >>>> hart needlessly spin in a "busy-wait" loop.
-> >>>>
-> >>>> This behaviour can be observed, for example, in a QEMU VM (QEMU 7.2.0) with
-> >>>> "-machine virt" running a Linux guest. Inserting delays in
-> >>>> sbi_hsm_hart_start() allows reproducing the issue more reliably.
-> >>>>
-> >>>> The comment in wait_for_coldboot() suggests that the initial IPI is needed
-> >>>> in the warm resume path, so let us clear it before init_warm_startup()
-> >>>> only.
-> >>>>
-> >>>> To do this, sbi_ipi_raw_clear() was created similar to sbi_ipi_raw_send().
-> >>>
-> >>> As noted before, the sbi_ipi_raw_clear() will not work since secondary
-> >>> HARTs might call sbi_ipi_raw_clear() even before platform code has a
-> >>> chance to register IPI device ops.
-> >>
-> >> How so? If I understand it correctly, the platform code registers IPI
-> >> device ops and sets the IPI device structures when the boot hart calls
-> >> sbi_platform_ipi_init() with cold_boot=true from sbi_ipi_init().
+> > Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+> > Reviewed-by: Anup Patel <anup@brainfault.org>
+> > ---
+> >  lib/sbi/sbi_pmu.c | 65 +++++++++++++++++++++++++++++++++++++----------
+> >  1 file changed, 52 insertions(+), 13 deletions(-)
 > >
-> > sbi_ipi_raw_clear() added by this patch is called from secondary HART
-> > whereas platform code registers IPI device ops from sbi_ipi_init().
->
-> Yes.
->
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index 1169ef2..d083198 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -122,7 +122,12 @@ static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
+> >                 event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
+> >                 break;
+> >         case SBI_PMU_EVENT_TYPE_FW:
+> > -               if (SBI_PMU_FW_MAX <= event_idx_code &&
+> > +               if ((event_idx_code >= SBI_PMU_FW_MAX &&
+> > +                   event_idx_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +                   event_idx_code > SBI_PMU_FW_PLATFORM)
+> > +                       return SBI_EINVAL;
+> > +
+> > +               if (SBI_PMU_FW_PLATFORM == event_idx_code &&
+> >                     pmu_dev && pmu_dev->fw_event_validate_encoding)
+> >                         return pmu_dev->fw_event_validate_encoding(edata);
+> >                 else
+> > @@ -187,12 +192,19 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
+> >         if (event_idx_type != SBI_PMU_EVENT_TYPE_FW)
+> >                 return SBI_EINVAL;
 > >
-> >>
-> >> So, by the time the secondary harts exit wait_for_coldboot(), IPI device
-> >> and ops are already in place and can be used.
-> >>
-> >> sbi_platform_ipi_init() called from those harts with cold_boot == false
-> >> only clears pending IPIs and disables certain interrupts, it looks like.
+> > -       if (SBI_PMU_FW_MAX <= event_code &&
+> > -           pmu_dev && pmu_dev->fw_counter_read_value)
+> > -               fw_counters_data[hartid][cidx - num_hw_ctrs] =
+> > -                       pmu_dev->fw_counter_read_value(cidx - num_hw_ctrs);
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
 > >
-> > The sbi_platform_ipi_init() is called via init_warm_startup() only after
-> > cold boot sequence is completed by primary hart but over here you
-> > are calling sbi_ipi_raw_clear() before init_warm_startup().
->
-> Yes. But the IPI device is common for all harts, as far as I can see. It
-> has already been set up by that point by the coldboot path and is
-> operational. Why not use it then?
->
-> When sbi_platform_ipi_init() is called later in init_warm_startup(), it
-> only clears IPIs and, on certain platforms, disables some interrupts. I
-> do not think that clearing IPIs with sbi_ipi_raw_clear() before
-> init_warm_startup() would break that.
->
-> Or, perhaps, I am missing something?
-
-Ahh, yes. I had the old warm boot sequence in my mind. Sorry for
-the confusion.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
->
-> I could not check it on all platforms in runtime, of course, but
-> debugging shows that, at least, "generic" platform with fdt behaves the
-> way I described. Clearing IPIs before init_warm_startup() works OK there.
->
-> The platforms which use aclint_mswi_cold_init() and
-> aclint_mswi_warm_init(), that is, most of them, should be fine too:
-> aclint_mswi_cold_init() prepares the IPI device and the related
-> structures (mswi_hartid2data, etc.) while aclint_mswi_warm_init() just
-> clears IPI for the current hart.
->
->
+> > -       *cval = fw_counters_data[hartid][cidx - num_hw_ctrs];
+> > +       if (SBI_PMU_FW_PLATFORM == event_code) {
+> > +               if (pmu_dev && pmu_dev->fw_counter_read_value)
+> > +                       *cval = pmu_dev->fw_counter_read_value(cidx -
+> > +                                                              num_hw_ctrs);
+> > +               else
+> > +                       *cval = 0;
+> > +       } else
+> > +               *cval = fw_counters_data[hartid][cidx - num_hw_ctrs];
 > >
-> > Regards,
-> > Anup
+> >         return 0;
+> >  }
+> > @@ -367,8 +379,17 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
+> >         int ret;
+> >         u32 hartid = current_hartid();
 > >
-> >>
-> >>>
-> >>> I also recollected why we have this WFI and IPI based coldboot wait logic.
-> >>> The rationale of using WFI and IPI based coldboot wait logic was to reduce
-> >>> bus traffic from secondary HARTs while the primary HART completes the
-> >>> coldboot sequence (i.e. init_coldboot()). Clearly, this WFI and IPI based
-> >>> coldboot wait logic will do the intended thing if WFI is a NOP.
-> >>>
-> >>> I think we can do the following:
-> >>> 1) Remove coldboot_lock and coldboot_wait_hmask
-> >>> 2) Simplify the loop in wait_for_coldboot() to use
-> >>>       cpu_relax_loop(100) (or more) to reduce bus traffic
-> >>>       from secondary HARTs
-> >>> 3) Simplify wake_coldboot_harts() to only do
-> >>>       "__smp_store_release(&coldboot_done, 1);"
-> >>>
-> >>> Regards,
-> >>> Anup
-> >>>
-> >>> diff --git a/include/sbi/riscv_barrier.h b/include/sbi/riscv_barrier.h
-> >>> index 1fba8b8..dd8aa79 100644
-> >>> --- a/include/sbi/riscv_barrier.h
-> >>> +++ b/include/sbi/riscv_barrier.h
-> >>> @@ -40,7 +40,19 @@
-> >>>    #define smp_wmb()        RISCV_FENCE(w,w)
-> >>>
-> >>>    /* CPU relax for busy loop */
-> >>> -#define cpu_relax()        asm volatile ("" : : : "memory")
-> >>> +#define cpu_relax()        \
-> >>> +do {                \
-> >>> +    long dummy = 0x1;    \
-> >>> +    asm volatile ("div %0, %0, zero" : "=r" (dummy) : : "memory");\
-> >>> +} while (0)
-> >>> +
-> >>> +/* CPU relax loop */
-> >>> +#define cpu_relax_loop(__loop_count)    \
-> >>> +do {                    \
-> >>> +    long i;                \
-> >>> +    for (i = 0; i < (__loop_count); i++) \
-> >>> +        cpu_relax();        \
-> >>> +} while (0)
-> >>>
-> >>>    /* clang-format on */
-> >>>
-> >>
-> >> Regards,
-> >> Evgenii
-> >>
-> >
+> > -       if (SBI_PMU_FW_MAX <= event_code &&
+> > -           pmu_dev && pmu_dev->fw_counter_start) {
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > +
+> > +       if (SBI_PMU_FW_PLATFORM == event_code) {
+> > +               if (!pmu_dev ||
+> > +                   !pmu_dev->fw_counter_start) {
+> > +                       return SBI_EINVAL;
+> > +                   }
+> > +
+> >                 ret = pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
+> >                                                 event_data,
+> >                                                 ival, ival_update);
+> > @@ -386,12 +407,13 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
+> >  int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+> >                       unsigned long flags, uint64_t ival)
+> >  {
+> > +       u32 hartid = current_hartid();
+> >         int event_idx_type;
+> >         uint32_t event_code;
+> >         int ret = SBI_EINVAL;
+> >         bool bUpdate = false;
+> >         int i, cidx;
+> > -       uint64_t edata = 0;
+> The previous line of code does not exist in the current master branch.
+> You need to regenerate the patch.
+It was added in patch 5 and modified in this patch.
 >
+> Regards,
+> Xiang W
+> > +       uint64_t edata;
+> >
+> >         if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+> >                 return ret;
+> > @@ -405,9 +427,13 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+> >                 if (event_idx_type < 0)
+> >                         /* Continue the start operation for other counters */
+> >                         continue;
+> > -               else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW)
+> > +               else if (event_idx_type == SBI_PMU_EVENT_TYPE_FW) {
+> > +                       edata = (event_code == SBI_PMU_FW_PLATFORM) ?
+> > +                                fw_counters_data[hartid][cidx - num_hw_ctrs]
+> > +                                : 0x0;
+> >                         ret = pmu_ctr_start_fw(cidx, event_code, edata, ival,
+> >                                                bUpdate);
+> > +               }
+> >                 else
+> >                         ret = pmu_ctr_start_hw(cidx, ival, bUpdate);
+> >         }
+> > @@ -441,7 +467,12 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t event_code)
+> >  {
+> >         int ret;
+> >
+> > -       if (SBI_PMU_FW_MAX <= event_code &&
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > +
+> > +       if (SBI_PMU_FW_PLATFORM == event_code &&
+> >             pmu_dev && pmu_dev->fw_counter_stop) {
+> >                 ret = pmu_dev->fw_counter_stop(cidx - num_hw_ctrs);
+> >                 if (ret)
+> > @@ -651,13 +682,18 @@ static int pmu_ctr_find_fw(unsigned long cbase, unsigned long cmask,
+> >  {
+> >         int i, cidx;
+> >
+> > +       if ((event_code >= SBI_PMU_FW_MAX &&
+> > +           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > +           event_code > SBI_PMU_FW_PLATFORM)
+> > +               return SBI_EINVAL;
+> > +
+> >         for_each_set_bit(i, &cmask, BITS_PER_LONG) {
+> >                 cidx = i + cbase;
+> >                 if (cidx < num_hw_ctrs || total_ctrs <= cidx)
+> >                         continue;
+> >                 if (active_events[hartid][i] != SBI_PMU_EVENT_IDX_INVALID)
+> >                         continue;
+> > -               if (SBI_PMU_FW_MAX <= event_code &&
+> > +               if (SBI_PMU_FW_PLATFORM == event_code &&
+> >                     pmu_dev && pmu_dev->fw_counter_match_encoding) {
+> >                         if (!pmu_dev->fw_counter_match_encoding(cidx - num_hw_ctrs,
+> >                                                                 edata))
+> > @@ -702,6 +738,9 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+> >                 /* Any firmware counter can be used track any firmware event */
+> >                 ctr_idx = pmu_ctr_find_fw(cidx_base, cidx_mask, event_code,
+> >                                           hartid, event_data);
+> > +               if (event_code == SBI_PMU_FW_PLATFORM)
+> > +                       fw_counters_data[hartid][ctr_idx - num_hw_ctrs] =
+> > +                                                               event_data;
+> >         } else {
+> >                 ctr_idx = pmu_ctr_find_hw(cidx_base, cidx_mask, flags, event_idx,
+> >                                           event_data);
+> > @@ -721,7 +760,7 @@ skip_match:
+> >                 if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
+> >                         fw_counters_data[hartid][ctr_idx - num_hw_ctrs] = 0;
+> >                 if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
+> > -                       if (SBI_PMU_FW_MAX <= event_code &&
+> > +                       if (SBI_PMU_FW_PLATFORM == event_code &&
+> >                             pmu_dev && pmu_dev->fw_counter_start) {
+> >                                 ret = pmu_dev->fw_counter_start(
+> >                                         ctr_idx - num_hw_ctrs, event_data,
+> > --
+> > 2.34.1
+> >
+> >
 >
 
