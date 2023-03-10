@@ -1,177 +1,178 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 10 Mar 2023 14:26:55 +0530
-Subject: [PATCH v4 8/8] lib: sbi_pmu: Add hartid parameter PMU device ops
-In-Reply-To: <20230309131358.2259923-9-mchitale@ventanamicro.com>
-References: <20230309131358.2259923-1-mchitale@ventanamicro.com> <20230309131358.2259923-9-mchitale@ventanamicro.com>
-Message-ID: <CAAhSdy0VHnqecrGdzhLtmf2ENtD-V-iCLQhSFBFUwf0KSbNcKA@mail.gmail.com>
+From: Evgenii Shatokhin <e.shatokhin@yadro.com>
+Date: Fri, 10 Mar 2023 14:32:39 +0300
+Subject: [PATCH v3 1/3] lib: sbi: Refactor the calls to
+ sbi_hart_switch_mode()
+In-Reply-To: <CAAhSdy17NAEDjxQ+77wi5t+Bhn-yf6GsCaYB_4O7-o9-bSW7JA@mail.gmail.com>
+References: <20230305212247.494912-1-e.shatokhin@yadro.com>
+ <20230305212247.494912-2-e.shatokhin@yadro.com>
+ <CAAhSdy17NAEDjxQ+77wi5t+Bhn-yf6GsCaYB_4O7-o9-bSW7JA@mail.gmail.com>
+Message-ID: <9110ca21-4b30-779f-4f8b-cddc1ec7801b@yadro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 9, 2023 at 6:44?PM Mayuresh Chitale
-<mchitale@ventanamicro.com> wrote:
->
-> Platform specific firmware event handler may leverage the hartid to program
-> per hart specific registers for a given counter.
->
-> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+On 10.03.2023 11:52, Anup Patel wrote:
+> 
+> On Mon, Mar 6, 2023 at 2:53?AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
+>>
+>> Move them into sbi_hsm_hart_start_finish() and sbi_hsm_hart_resume_finish()
+>> to make them easier to manage.
+>>
+>> This will be used by subsequent patches.
+>>
+>> Suggested-by: Anup Patel <anup@brainfault.org>
+>> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
+> 
+> Applied this patch to the riscv/opensbi repo.
+> 
+> Thanks,
+> Anup
 
-Applied this patch to the riscv/opensbi repo.
+Thank you!
 
-Thanks,
-Anup
+Regards,
+Evgenii
 
-> ---
->  include/sbi/sbi_pmu.h | 14 ++++++++------
->  lib/sbi/sbi_pmu.c     | 25 +++++++++++++++----------
->  2 files changed, 23 insertions(+), 16 deletions(-)
->
-> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> index 53f2700..16f6877 100644
-> --- a/include/sbi/sbi_pmu.h
-> +++ b/include/sbi/sbi_pmu.h
-> @@ -31,13 +31,14 @@ struct sbi_pmu_device {
->         /**
->          * Validate event code of custom firmware event
->          */
-> -       int (*fw_event_validate_encoding)(uint64_t event_data);
-> +       int (*fw_event_validate_encoding)(uint32_t hartid, uint64_t event_data);
->
->         /**
->          * Match custom firmware counter with custom firmware event
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       bool (*fw_counter_match_encoding)(uint32_t counter_index,
-> +       bool (*fw_counter_match_encoding)(uint32_t hartid,
-> +                                         uint32_t counter_index,
->                                           uint64_t event_data);
->
->         /**
-> @@ -49,27 +50,28 @@ struct sbi_pmu_device {
->          * Read value of custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       uint64_t (*fw_counter_read_value)(uint32_t counter_index);
-> +       uint64_t (*fw_counter_read_value)(uint32_t hartid,
-> +                                         uint32_t counter_index);
->
->         /**
->          * Write value to custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       void (*fw_counter_write_value)(uint32_t counter_index,
-> +       void (*fw_counter_write_value)(uint32_t hartid, uint32_t counter_index,
->                                        uint64_t value);
->
->         /**
->          * Start custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       int (*fw_counter_start)(uint32_t counter_index,
-> +       int (*fw_counter_start)(uint32_t hartid, uint32_t counter_index,
->                                 uint64_t event_data);
->
->         /**
->          * Stop custom firmware counter
->          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
->          */
-> -       int (*fw_counter_stop)(uint32_t counter_index);
-> +       int (*fw_counter_stop)(uint32_t hartid, uint32_t counter_index);
->
->         /**
->          * Custom enable irq for hardware counter
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 00a2c3e..74d6912 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -116,6 +116,7 @@ static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
->         uint32_t event_idx_code = get_cidx_code(event_idx);
->         uint32_t event_idx_code_max = -1;
->         uint32_t cache_ops_result, cache_ops_id, cache_id;
-> +       u32 hartid = current_hartid();
->
->         switch(event_idx_type) {
->         case SBI_PMU_EVENT_TYPE_HW:
-> @@ -129,7 +130,8 @@ static int pmu_event_validate(unsigned long event_idx, uint64_t edata)
->
->                 if (SBI_PMU_FW_PLATFORM == event_idx_code &&
->                     pmu_dev && pmu_dev->fw_event_validate_encoding)
-> -                       return pmu_dev->fw_event_validate_encoding(edata);
-> +                       return pmu_dev->fw_event_validate_encoding(hartid,
-> +                                                                  edata);
->                 else
->                         event_idx_code_max = SBI_PMU_FW_MAX;
->                 break;
-> @@ -199,7 +201,8 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
->
->         if (SBI_PMU_FW_PLATFORM == event_code) {
->                 if (pmu_dev && pmu_dev->fw_counter_read_value)
-> -                       *cval = pmu_dev->fw_counter_read_value(cidx -
-> +                       *cval = pmu_dev->fw_counter_read_value(hartid,
-> +                                                              cidx -
->                                                                num_hw_ctrs);
->                 else
->                         *cval = 0;
-> @@ -391,10 +394,11 @@ static int pmu_ctr_start_fw(uint32_t cidx, uint32_t event_code,
->                     }
->
->                 if (ival_update)
-> -                       pmu_dev->fw_counter_write_value(cidx - num_hw_ctrs,
-> +                       pmu_dev->fw_counter_write_value(hartid,
-> +                                                       cidx - num_hw_ctrs,
->                                                         ival);
->
-> -               return pmu_dev->fw_counter_start(cidx - num_hw_ctrs,
-> +               return pmu_dev->fw_counter_start(hartid, cidx - num_hw_ctrs,
->                                                  event_data);
->         } else {
->                 if (ival_update)
-> @@ -467,6 +471,7 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
->
->  static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t event_code)
->  {
-> +       u32 hartid = current_hartid();
->         int ret;
->
->         if ((event_code >= SBI_PMU_FW_MAX &&
-> @@ -476,7 +481,7 @@ static int pmu_ctr_stop_fw(uint32_t cidx, uint32_t event_code)
->
->         if (SBI_PMU_FW_PLATFORM == event_code &&
->             pmu_dev && pmu_dev->fw_counter_stop) {
-> -               ret = pmu_dev->fw_counter_stop(cidx - num_hw_ctrs);
-> +               ret = pmu_dev->fw_counter_stop(hartid, cidx - num_hw_ctrs);
->                 if (ret)
->                         return ret;
->         }
-> @@ -697,8 +702,9 @@ static int pmu_ctr_find_fw(unsigned long cbase, unsigned long cmask,
->                         continue;
->                 if (SBI_PMU_FW_PLATFORM == event_code &&
->                     pmu_dev && pmu_dev->fw_counter_match_encoding) {
-> -                       if (!pmu_dev->fw_counter_match_encoding(cidx - num_hw_ctrs,
-> -                                                               edata))
-> +                       if (!pmu_dev->fw_counter_match_encoding(hartid,
-> +                                                           cidx - num_hw_ctrs,
-> +                                                           edata))
->                                 continue;
->                 }
->
-> @@ -764,9 +770,8 @@ skip_match:
->                 if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
->                         if (SBI_PMU_FW_PLATFORM == event_code &&
->                             pmu_dev && pmu_dev->fw_counter_start) {
-> -                               ret = pmu_dev->fw_counter_start(ctr_idx -
-> -                                                               num_hw_ctrs,
-> -                                                               event_data);
-> +                               ret = pmu_dev->fw_counter_start(hartid,
-> +                                       ctr_idx - num_hw_ctrs, event_data);
->                                 if (ret)
->                                         return ret;
->                         }
-> --
-> 2.34.1
->
+> 
+>> ---
+>>   include/sbi/sbi_hsm.h |  6 ++++--
+>>   lib/sbi/sbi_hsm.c     | 13 +++++++++++--
+>>   lib/sbi/sbi_init.c    | 20 ++++++++------------
+>>   3 files changed, 23 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+>> index c0b4830..4b5601b 100644
+>> --- a/include/sbi/sbi_hsm.h
+>> +++ b/include/sbi/sbi_hsm.h
+>> @@ -66,7 +66,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+>>                         u32 hartid, ulong saddr, ulong smode, ulong arg1);
+>>   int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
+>>   void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
+>> -void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
+>> +void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
+>> +                                          u32 hartid);
+>>   int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>>                           ulong raddr, ulong rmode, ulong arg1);
+>>   bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
+>> @@ -76,6 +77,7 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+>>   int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>>                                      ulong hbase, ulong *out_hmask);
+>>   void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
+>> -void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
+>> +void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+>> +                                         u32 hartid);
+>>
+>>   #endif
+>> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+>> index 3eeeb58..100b8c0 100644
+>> --- a/lib/sbi/sbi_hsm.c
+>> +++ b/lib/sbi/sbi_hsm.c
+>> @@ -110,7 +110,8 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>>          return 0;
+>>   }
+>>
+>> -void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>> +void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+>> +                                         u32 hartid)
+>>   {
+>>          struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>>                                                              hart_data_offset);
+>> @@ -118,6 +119,9 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
+>>          if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
+>>                                           SBI_HSM_STATE_STARTED))
+>>                  sbi_hart_hang();
+>> +
+>> +       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
+>> +                            scratch->next_mode, false);
+>>   }
+>>
+>>   static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+>> @@ -381,7 +385,8 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+>>          hsm_device_hart_resume();
+>>   }
+>>
+>> -void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>> +void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
+>> +                                          u32 hartid)
+>>   {
+>>          struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>>                                                              hart_data_offset);
+>> @@ -396,6 +401,10 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
+>>           * the warm-boot sequence.
+>>           */
+>>          __sbi_hsm_suspend_non_ret_restore(scratch);
+>> +
+>> +       sbi_hart_switch_mode(hartid, scratch->next_arg1,
+>> +                            scratch->next_addr,
+>> +                            scratch->next_mode, false);
+>>   }
+>>
+>>   int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
+>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+>> index bc60a42..dcca2c8 100644
+>> --- a/lib/sbi/sbi_init.c
+>> +++ b/lib/sbi/sbi_init.c
+>> @@ -355,12 +355,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>>          init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+>>          (*init_count)++;
+>>
+>> -       sbi_hsm_prepare_next_jump(scratch, hartid);
+>> -       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
+>> -                            scratch->next_mode, false);
+>> +       sbi_hsm_hart_start_finish(scratch, hartid);
+>>   }
+>>
+>> -static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+>> +static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>> +                                        u32 hartid)
+>>   {
+>>          int rc;
+>>          unsigned long *init_count;
+>> @@ -412,10 +411,11 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
+>>          init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+>>          (*init_count)++;
+>>
+>> -       sbi_hsm_prepare_next_jump(scratch, hartid);
+>> +       sbi_hsm_hart_start_finish(scratch, hartid);
+>>   }
+>>
+>> -static void init_warm_resume(struct sbi_scratch *scratch)
+>> +static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
+>> +                                       u32 hartid)
+>>   {
+>>          int rc;
+>>
+>> @@ -429,7 +429,7 @@ static void init_warm_resume(struct sbi_scratch *scratch)
+>>          if (rc)
+>>                  sbi_hart_hang();
+>>
+>> -       sbi_hsm_hart_resume_finish(scratch);
+>> +       sbi_hsm_hart_resume_finish(scratch, hartid);
+>>   }
+>>
+>>   static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+>> @@ -443,13 +443,9 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+>>                  sbi_hart_hang();
+>>
+>>          if (hstate == SBI_HSM_STATE_SUSPENDED)
+>> -               init_warm_resume(scratch);
+>> +               init_warm_resume(scratch, hartid);
+>>          else
+>>                  init_warm_startup(scratch, hartid);
+>> -
+>> -       sbi_hart_switch_mode(hartid, scratch->next_arg1,
+>> -                            scratch->next_addr,
+>> -                            scratch->next_mode, false);
+>>   }
+>>
+>>   static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
+>> --
+>> 2.34.1
+>>
+>>
+> 
+
+
 
