@@ -1,41 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 10 Mar 2023 14:23:42 +0530
-Subject: [PATCH v3 3/3] lib: sbi: Clear IPIs before init_warm_startup in
- non-boot harts
-In-Reply-To: <20230305212247.494912-4-e.shatokhin@yadro.com>
-References: <20230305212247.494912-1-e.shatokhin@yadro.com> <20230305212247.494912-4-e.shatokhin@yadro.com>
-Message-ID: <CAAhSdy3=WR8W=PxRj0Q40RmWMUxeqVV+i-5D6Z7OGzqEdNpYYQ@mail.gmail.com>
+Date: Fri, 10 Mar 2023 14:25:00 +0530
+Subject: [PATCH v4 1/8] lib: sbi_pmu: add callback for counter width
+In-Reply-To: <20230309131358.2259923-2-mchitale@ventanamicro.com>
+References: <20230309131358.2259923-1-mchitale@ventanamicro.com> <20230309131358.2259923-2-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy1+niUa9xe+o7TP0LugS7A0B6_G5aLKmhh9h+9LciDL6w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 6, 2023 at 2:54?AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
+On Thu, Mar 9, 2023 at 6:44?PM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
 >
-> Since commit 50d4fde1c5a4 ("lib: Remove redundant sbi_platform_ipi_clear()
-> calls"), the IPI sent from the boot hart in wake_coldboot_harts() is not
-> cleared in the secondary harts until they reach sbi_ipi_init(). However,
-> sbi_hsm_init() and sbi_hsm_hart_wait() are called earlier, so a secondary
-> hart might enter sbi_hsm_hart_wait() with an already pending IPI.
+> This patch adds a callback to fetch the number of bits implemented for a
+> custom firmware counter. If the callback fails or is not implemented then
+> width defaults to 63.
 >
-> sbi_hsm_hart_wait() makes sure the hart leaves the loop only when it is
-> actually ready, so a pending unrelated IPI should not cause safety issues.
-> However, it might be inefficient on certain hardware, because it prevents
-> "wfi" from stalling the hart even if the hardware supports this, making the
-> hart needlessly spin in a "busy-wait" loop.
->
-> This behaviour can be observed, for example, in a QEMU VM (QEMU 7.2.0) with
-> "-machine virt" running a Linux guest. Inserting delays in
-> sbi_hsm_hart_start() allows reproducing the issue more reliably.
->
-> The comment in wait_for_coldboot() suggests that the initial IPI is needed
-> in the warm resume path, so let us clear it before init_warm_startup()
-> only.
->
-> To do this, sbi_ipi_raw_clear() was created similar to sbi_ipi_raw_send().
->
-> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -43,62 +27,51 @@ Thanks,
 Anup
 
 > ---
->  include/sbi/sbi_ipi.h | 2 ++
->  lib/sbi/sbi_init.c    | 6 ++++--
->  lib/sbi/sbi_ipi.c     | 6 ++++++
->  3 files changed, 12 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_pmu.h | 5 +++++
+>  lib/sbi/sbi_pmu.c     | 6 ++++++
+>  2 files changed, 11 insertions(+)
 >
-> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-> index f6ac807..f384e74 100644
-> --- a/include/sbi/sbi_ipi.h
-> +++ b/include/sbi/sbi_ipi.h
-> @@ -77,6 +77,8 @@ void sbi_ipi_process(void);
+> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> index c365243..b3b75c1 100644
+> --- a/include/sbi/sbi_pmu.h
+> +++ b/include/sbi/sbi_pmu.h
+> @@ -41,6 +41,11 @@ struct sbi_pmu_device {
+>         bool (*fw_counter_match_code)(uint32_t counter_index,
+>                                       uint32_t event_idx_code);
 >
->  int sbi_ipi_raw_send(u32 target_hart);
->
-> +void sbi_ipi_raw_clear(u32 target_hart);
+> +       /**
+> +        * Fetch the max width of this counter in number of bits.
+> +        */
+> +       int (*fw_counter_width)(void);
 > +
->  const struct sbi_ipi_device *sbi_ipi_get_device(void);
+>         /**
+>          * Read value of custom firmware counter
+>          * Note: 0 <= counter_index < SBI_PMU_FW_CTR_MAX
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 154dbda..a99c045 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -761,6 +761,7 @@ unsigned long sbi_pmu_num_ctr(void)
 >
->  void sbi_ipi_set_device(const struct sbi_ipi_device *dev);
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index dcca2c8..ffa214c 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -442,10 +442,12 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
->         if (hstate < 0)
->                 sbi_hart_hang();
->
-> -       if (hstate == SBI_HSM_STATE_SUSPENDED)
-> +       if (hstate == SBI_HSM_STATE_SUSPENDED) {
->                 init_warm_resume(scratch, hartid);
-> -       else
-> +       } else {
-> +               sbi_ipi_raw_clear(hartid);
->                 init_warm_startup(scratch, hartid);
-> +       }
->  }
->
->  static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index 1bcc2e4..b9f6205 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -217,6 +217,12 @@ int sbi_ipi_raw_send(u32 target_hart)
->         return 0;
->  }
->
-> +void sbi_ipi_raw_clear(u32 target_hart)
-> +{
-> +       if (ipi_dev && ipi_dev->ipi_clear)
-> +               ipi_dev->ipi_clear(target_hart);
-> +}
-> +
->  const struct sbi_ipi_device *sbi_ipi_get_device(void)
+>  int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
 >  {
->         return ipi_dev;
+> +       int width;
+>         union sbi_pmu_ctr_info cinfo = {0};
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>
+> @@ -782,6 +783,11 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+>                 cinfo.type = SBI_PMU_CTR_TYPE_FW;
+>                 /* Firmware counters are always 64 bits wide */
+>                 cinfo.width = 63;
+> +               if (pmu_dev && pmu_dev->fw_counter_width) {
+> +                       width = pmu_dev->fw_counter_width();
+> +                       if (width)
+> +                               cinfo.width = width - 1;
+> +               }
+>         }
+>
+>         *ctr_info = cinfo.value;
 > --
 > 2.34.1
->
 >
 
