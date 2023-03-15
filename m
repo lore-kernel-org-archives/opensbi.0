@@ -1,178 +1,159 @@
-From: Evgenii Shatokhin <e.shatokhin@yadro.com>
-Date: Fri, 10 Mar 2023 14:32:39 +0300
-Subject: [PATCH v3 1/3] lib: sbi: Refactor the calls to
- sbi_hart_switch_mode()
-In-Reply-To: <CAAhSdy17NAEDjxQ+77wi5t+Bhn-yf6GsCaYB_4O7-o9-bSW7JA@mail.gmail.com>
-References: <20230305212247.494912-1-e.shatokhin@yadro.com>
- <20230305212247.494912-2-e.shatokhin@yadro.com>
- <CAAhSdy17NAEDjxQ+77wi5t+Bhn-yf6GsCaYB_4O7-o9-bSW7JA@mail.gmail.com>
-Message-ID: <9110ca21-4b30-779f-4f8b-cddc1ec7801b@yadro.com>
+From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Date: Wed, 15 Mar 2023 21:45:58 +0000
+Subject: [PATCH v6] platform: generic: renesas: rzfive: Add SBI EXT to check for enabling IOCP errata
+Message-ID: <20230315214558.20422-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10.03.2023 11:52, Anup Patel wrote:
-> 
-> On Mon, Mar 6, 2023 at 2:53?AM Evgenii Shatokhin <e.shatokhin@yadro.com> wrote:
->>
->> Move them into sbi_hsm_hart_start_finish() and sbi_hsm_hart_resume_finish()
->> to make them easier to manage.
->>
->> This will be used by subsequent patches.
->>
->> Suggested-by: Anup Patel <anup@brainfault.org>
->> Signed-off-by: Evgenii Shatokhin <e.shatokhin@yadro.com>
-> 
-> Applied this patch to the riscv/opensbi repo.
-> 
-> Thanks,
-> Anup
+I/O Coherence Port (IOCP) provides an AXI interface for connecting
+external non-caching masters, such as DMA controllers. The accesses
+from IOCP are coherent with D-Caches and L2 Cache.
 
-Thank you!
+IOCP is a specification option and is disabled on the Renesas RZ/Five
+SoC due to this reason IP blocks using DMA will fail.
 
-Regards,
-Evgenii
+As a workaround for SoCs with IOCP disabled CMO needs to be handled by
+software. Firstly OpenSBI configures the memory region as
+"Memory, Non-cacheable, Bufferable" and passes this region as a global
+shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
+allocations happen from this region and synchronization callbacks are
+implemented to synchronize when doing DMA transactions.
 
-> 
->> ---
->>   include/sbi/sbi_hsm.h |  6 ++++--
->>   lib/sbi/sbi_hsm.c     | 13 +++++++++++--
->>   lib/sbi/sbi_init.c    | 20 ++++++++------------
->>   3 files changed, 23 insertions(+), 16 deletions(-)
->>
->> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
->> index c0b4830..4b5601b 100644
->> --- a/include/sbi/sbi_hsm.h
->> +++ b/include/sbi/sbi_hsm.h
->> @@ -66,7 +66,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->>                         u32 hartid, ulong saddr, ulong smode, ulong arg1);
->>   int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow);
->>   void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch);
->> -void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch);
->> +void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
->> +                                          u32 hartid);
->>   int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
->>                           ulong raddr, ulong rmode, ulong arg1);
->>   bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
->> @@ -76,6 +77,7 @@ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
->>   int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
->>                                      ulong hbase, ulong *out_hmask);
->>   void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
->> -void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid);
->> +void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
->> +                                         u32 hartid);
->>
->>   #endif
->> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
->> index 3eeeb58..100b8c0 100644
->> --- a/lib/sbi/sbi_hsm.c
->> +++ b/lib/sbi/sbi_hsm.c
->> @@ -110,7 +110,8 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
->>          return 0;
->>   }
->>
->> -void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
->> +void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
->> +                                         u32 hartid)
->>   {
->>          struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->>                                                              hart_data_offset);
->> @@ -118,6 +119,9 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
->>          if (!__sbi_hsm_hart_change_state(hdata, SBI_HSM_STATE_START_PENDING,
->>                                           SBI_HSM_STATE_STARTED))
->>                  sbi_hart_hang();
->> +
->> +       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
->> +                            scratch->next_mode, false);
->>   }
->>
->>   static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
->> @@ -381,7 +385,8 @@ void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
->>          hsm_device_hart_resume();
->>   }
->>
->> -void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
->> +void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
->> +                                          u32 hartid)
->>   {
->>          struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->>                                                              hart_data_offset);
->> @@ -396,6 +401,10 @@ void sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch)
->>           * the warm-boot sequence.
->>           */
->>          __sbi_hsm_suspend_non_ret_restore(scratch);
->> +
->> +       sbi_hart_switch_mode(hartid, scratch->next_arg1,
->> +                            scratch->next_addr,
->> +                            scratch->next_mode, false);
->>   }
->>
->>   int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
->> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->> index bc60a42..dcca2c8 100644
->> --- a/lib/sbi/sbi_init.c
->> +++ b/lib/sbi/sbi_init.c
->> @@ -355,12 +355,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->>          init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
->>          (*init_count)++;
->>
->> -       sbi_hsm_prepare_next_jump(scratch, hartid);
->> -       sbi_hart_switch_mode(hartid, scratch->next_arg1, scratch->next_addr,
->> -                            scratch->next_mode, false);
->> +       sbi_hsm_hart_start_finish(scratch, hartid);
->>   }
->>
->> -static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
->> +static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
->> +                                        u32 hartid)
->>   {
->>          int rc;
->>          unsigned long *init_count;
->> @@ -412,10 +411,11 @@ static void init_warm_startup(struct sbi_scratch *scratch, u32 hartid)
->>          init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
->>          (*init_count)++;
->>
->> -       sbi_hsm_prepare_next_jump(scratch, hartid);
->> +       sbi_hsm_hart_start_finish(scratch, hartid);
->>   }
->>
->> -static void init_warm_resume(struct sbi_scratch *scratch)
->> +static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
->> +                                       u32 hartid)
->>   {
->>          int rc;
->>
->> @@ -429,7 +429,7 @@ static void init_warm_resume(struct sbi_scratch *scratch)
->>          if (rc)
->>                  sbi_hart_hang();
->>
->> -       sbi_hsm_hart_resume_finish(scratch);
->> +       sbi_hsm_hart_resume_finish(scratch, hartid);
->>   }
->>
->>   static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
->> @@ -443,13 +443,9 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
->>                  sbi_hart_hang();
->>
->>          if (hstate == SBI_HSM_STATE_SUSPENDED)
->> -               init_warm_resume(scratch);
->> +               init_warm_resume(scratch, hartid);
->>          else
->>                  init_warm_startup(scratch, hartid);
->> -
->> -       sbi_hart_switch_mode(hartid, scratch->next_arg1,
->> -                            scratch->next_addr,
->> -                            scratch->next_mode, false);
->>   }
->>
->>   static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
->> --
->> 2.34.1
->>
->>
-> 
+ANDES_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP errata
+should be applied to handle cache management.
 
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+---
+v5->v6
+* Moved ANDES_SBI_EXT_IOCP_SW_WORKAROUND to andes_sbi.h
+* Moved helpers to check IOCP to common header so that we re-use code
+
+v5:
+https://patchwork.ozlabs.org/project/opensbi/patch/20230213215111.32017-4-prabhakar.mahadev-lad.rj at bp.renesas.com/
+---
+ platform/generic/include/andes/andes45.h   | 25 +++++++++++++++++--
+ platform/generic/include/andes/andes_sbi.h | 29 ++++++++++++++++++++++
+ platform/generic/renesas/rzfive/rzfive.c   | 20 +++++++++++++++
+ 3 files changed, 72 insertions(+), 2 deletions(-)
+ create mode 100644 platform/generic/include/andes/andes_sbi.h
+
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index 08b3d18..d5d265f 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -4,7 +4,28 @@
+ #define CSR_MARCHID_MICROID 0xfff
+ 
+ /* Memory and Miscellaneous Registers */
+-#define CSR_MCACHE_CTL 0x7ca
+-#define CSR_MCCTLCOMMAND 0x7cc
++#define CSR_MCACHE_CTL		0x7ca
++#define CSR_MCCTLCOMMAND	0x7cc
++#define CSR_MICM_CFG		0xfc0
++#define CSR_MDCM_CFG		0xfc1
++#define CSR_MMSC_CFG		0xfc2
++
++#define MISA_20_OFFSET			20
++#define MISA_20_MASK			(0x1 << MISA_20_OFFSET)
++
++#define MICM_CFG_ISZ_OFFSET		6
++#define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
++
++#define MDCM_CFG_DSZ_OFFSET		6
++#define MDCM_CFG_DSZ_MASK		(0x7  << MDCM_CFG_DSZ_OFFSET)
++
++#define MMSC_CFG_CCTLCSR_OFFSET		16
++#define MMSC_CFG_CCTLCSR_MASK		(0x1 << MMSC_CFG_CCTLCSR_OFFSET)
++#define MMSC_IOCP_OFFSET			47
++#define MMSC_IOCP_MASK			(0x1ULL << MMSC_IOCP_OFFSET)
++
++#define MCACHE_CTL_CCTL_SUEN_OFFSET	8
++#define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
++
+ 
+ #endif /* _RISCV_ANDES45_H */
+diff --git a/platform/generic/include/andes/andes_sbi.h b/platform/generic/include/andes/andes_sbi.h
+new file mode 100644
+index 0000000..332b7d2
+--- /dev/null
++++ b/platform/generic/include/andes/andes_sbi.h
+@@ -0,0 +1,29 @@
++#ifndef _RISCV_ANDES_SBI_H
++#define _RISCV_ANDES_SBI_H
++
++#include <sbi/riscv_asm.h>
++
++#include "andes45.h"
++
++#define ANDES_SBI_EXT_IOCP_SW_WORKAROUND	1
++
++static bool andes45_cache_controlable(void)
++{
++	return (((csr_read(CSR_MICM_CFG) & MICM_CFG_ISZ_MASK) ||
++		 (csr_read(CSR_MDCM_CFG) & MDCM_CFG_DSZ_MASK)) &&
++		(csr_read(CSR_MISA) & MISA_20_MASK) &&
++		(csr_read(CSR_MMSC_CFG) & MMSC_CFG_CCTLCSR_MASK) &&
++		(csr_read(CSR_MCACHE_CTL) & MCACHE_CTL_CCTL_SUEN_MASK));
++}
++
++static bool andes45_iocp_disabled(void)
++{
++	return (csr_read(CSR_MMSC_CFG) & MMSC_IOCP_MASK) ? false : true;
++}
++
++static bool andes45_apply_iocp_sw_workaround(void)
++{
++	return andes45_cache_controlable() & andes45_iocp_disabled();
++}
++
++#endif /* _RISCV_ANDES_SBI_H */
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 4d71d0d..0f5b693 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include <andes/andes45_pma.h>
++#include <andes/andes_sbi.h>
+ #include <platform_override.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+@@ -28,6 +29,24 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
+ 					 array_size(renesas_rzfive_pma_regions));
+ }
+ 
++static int renesas_rzfive_vendor_ext_provider(long funcid,
++					      const struct sbi_trap_regs *regs,
++					      unsigned long *out_value,
++					      struct sbi_trap_info *out_trap,
++					      const struct fdt_match *match)
++{
++	switch (funcid) {
++	case ANDES_SBI_EXT_IOCP_SW_WORKAROUND:
++		*out_value = andes45_apply_iocp_sw_workaround();
++		break;
++
++	default:
++		break;
++	}
++
++	return 0;
++}
++
+ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ {
+ 	/*
+@@ -55,4 +74,5 @@ const struct platform_override renesas_rzfive = {
+ 	.match_table = renesas_rzfive_match,
+ 	.early_init = renesas_rzfive_early_init,
+ 	.final_init = renesas_rzfive_final_init,
++	.vendor_ext_provider = renesas_rzfive_vendor_ext_provider,
+ };
+-- 
+2.17.1
 
 
