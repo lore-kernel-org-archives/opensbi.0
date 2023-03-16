@@ -1,159 +1,99 @@
-From: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Date: Wed, 15 Mar 2023 21:45:58 +0000
-Subject: [PATCH v6] platform: generic: renesas: rzfive: Add SBI EXT to check for enabling IOCP errata
-Message-ID: <20230315214558.20422-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+From: Xiang W <wxjstz@126.com>
+Date: Thu, 16 Mar 2023 15:51:22 +0800
+Subject: [PATCH v4 0/4] Miscellaneous about sbi_tlb and sbi_ipi
+In-Reply-To: <20230202085136.224745-1-wxjstz@126.com>
+References: <20230202085136.224745-1-wxjstz@126.com>
+Message-ID: <89543c328342c6bed00393536d01bb43cd3ef612.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I/O Coherence Port (IOCP) provides an AXI interface for connecting
-external non-caching masters, such as DMA controllers. The accesses
-from IOCP are coherent with D-Caches and L2 Cache.
+? 2023-02-02???? 16:51 +0800?Xiang W???
+> Removed the mutual waiting between process and sync in sbi_tlb
+> Update ipi first then wait together
+> 
+Please review!
+Optimization can improve tlb sync efficiency.
 
-IOCP is a specification option and is disabled on the Renesas RZ/Five
-SoC due to this reason IP blocks using DMA will fail.
+sequence diagram before optimization:
+===================================================================
+send ipi hart       hart 0       hart 1     hart 2   ...
+      +               +           +           +
+      |               |           |           |
+      | update hart 0 |           |           |
+      +<------------->+--+        |           |
+      |               |  |process |           |
+      |               |  |        |           |
+      |               +<-+        |           |
+      | sync          |           |           |
+      +<------------->+           |           |
+      | update hart 1             |           |
+      +<------------------------->+--+        |
+      |                           |  |process |
+      |                           |  |        |
+      |                           +<-+        |
+      | sync                      |           |
+      +<------------------------->+           |
+      | update hart 2                         |
+      +<------------------------------------->+--+
+      |                                       |  |process
+      |                                       |  |
+      |                                       +<-+
+      | sync                                  |
+      +<------------------------------------->+
+      .
+      .
+      .
 
-As a workaround for SoCs with IOCP disabled CMO needs to be handled by
-software. Firstly OpenSBI configures the memory region as
-"Memory, Non-cacheable, Bufferable" and passes this region as a global
-shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
-allocations happen from this region and synchronization callbacks are
-implemented to synchronize when doing DMA transactions.
+sequence diagram after optimization:
+===================================================================
+send ipi hart       hart 0       hart 1     hart 2   ...
+      +               +           +           +
+      |               |           |           |
+      | update hart 0 |           |           |
+      +<------------->+--+        |           |
+      | update hart 1 |  |process |           |
+      +<--------------|--|------->+--+        |
+      | update hart 2 +<-+        |  |process |
+      +<--------------|-----------|--|------->+--+
+      |               |           +<-+        |  |process
+      |               |           |           |  |
+      | sync          |           |           +<-+
+      +<------------->+           |           |
+      | sync                      |           |
+      +<------------------------->+           |
+      | sync                                  |
+      +<------------------------------------->+
+      .
+      .
+      .
 
-ANDES_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP errata
-should be applied to handle cache management.
+Regards,
+Xiang W
 
-Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
----
-v5->v6
-* Moved ANDES_SBI_EXT_IOCP_SW_WORKAROUND to andes_sbi.h
-* Moved helpers to check IOCP to common header so that we re-use code
-
-v5:
-https://patchwork.ozlabs.org/project/opensbi/patch/20230213215111.32017-4-prabhakar.mahadev-lad.rj at bp.renesas.com/
----
- platform/generic/include/andes/andes45.h   | 25 +++++++++++++++++--
- platform/generic/include/andes/andes_sbi.h | 29 ++++++++++++++++++++++
- platform/generic/renesas/rzfive/rzfive.c   | 20 +++++++++++++++
- 3 files changed, 72 insertions(+), 2 deletions(-)
- create mode 100644 platform/generic/include/andes/andes_sbi.h
-
-diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-index 08b3d18..d5d265f 100644
---- a/platform/generic/include/andes/andes45.h
-+++ b/platform/generic/include/andes/andes45.h
-@@ -4,7 +4,28 @@
- #define CSR_MARCHID_MICROID 0xfff
- 
- /* Memory and Miscellaneous Registers */
--#define CSR_MCACHE_CTL 0x7ca
--#define CSR_MCCTLCOMMAND 0x7cc
-+#define CSR_MCACHE_CTL		0x7ca
-+#define CSR_MCCTLCOMMAND	0x7cc
-+#define CSR_MICM_CFG		0xfc0
-+#define CSR_MDCM_CFG		0xfc1
-+#define CSR_MMSC_CFG		0xfc2
-+
-+#define MISA_20_OFFSET			20
-+#define MISA_20_MASK			(0x1 << MISA_20_OFFSET)
-+
-+#define MICM_CFG_ISZ_OFFSET		6
-+#define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
-+
-+#define MDCM_CFG_DSZ_OFFSET		6
-+#define MDCM_CFG_DSZ_MASK		(0x7  << MDCM_CFG_DSZ_OFFSET)
-+
-+#define MMSC_CFG_CCTLCSR_OFFSET		16
-+#define MMSC_CFG_CCTLCSR_MASK		(0x1 << MMSC_CFG_CCTLCSR_OFFSET)
-+#define MMSC_IOCP_OFFSET			47
-+#define MMSC_IOCP_MASK			(0x1ULL << MMSC_IOCP_OFFSET)
-+
-+#define MCACHE_CTL_CCTL_SUEN_OFFSET	8
-+#define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
-+
- 
- #endif /* _RISCV_ANDES45_H */
-diff --git a/platform/generic/include/andes/andes_sbi.h b/platform/generic/include/andes/andes_sbi.h
-new file mode 100644
-index 0000000..332b7d2
---- /dev/null
-+++ b/platform/generic/include/andes/andes_sbi.h
-@@ -0,0 +1,29 @@
-+#ifndef _RISCV_ANDES_SBI_H
-+#define _RISCV_ANDES_SBI_H
-+
-+#include <sbi/riscv_asm.h>
-+
-+#include "andes45.h"
-+
-+#define ANDES_SBI_EXT_IOCP_SW_WORKAROUND	1
-+
-+static bool andes45_cache_controlable(void)
-+{
-+	return (((csr_read(CSR_MICM_CFG) & MICM_CFG_ISZ_MASK) ||
-+		 (csr_read(CSR_MDCM_CFG) & MDCM_CFG_DSZ_MASK)) &&
-+		(csr_read(CSR_MISA) & MISA_20_MASK) &&
-+		(csr_read(CSR_MMSC_CFG) & MMSC_CFG_CCTLCSR_MASK) &&
-+		(csr_read(CSR_MCACHE_CTL) & MCACHE_CTL_CCTL_SUEN_MASK));
-+}
-+
-+static bool andes45_iocp_disabled(void)
-+{
-+	return (csr_read(CSR_MMSC_CFG) & MMSC_IOCP_MASK) ? false : true;
-+}
-+
-+static bool andes45_apply_iocp_sw_workaround(void)
-+{
-+	return andes45_cache_controlable() & andes45_iocp_disabled();
-+}
-+
-+#endif /* _RISCV_ANDES_SBI_H */
-diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-index 4d71d0d..0f5b693 100644
---- a/platform/generic/renesas/rzfive/rzfive.c
-+++ b/platform/generic/renesas/rzfive/rzfive.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include <andes/andes45_pma.h>
-+#include <andes/andes_sbi.h>
- #include <platform_override.h>
- #include <sbi/sbi_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -28,6 +29,24 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
- 					 array_size(renesas_rzfive_pma_regions));
- }
- 
-+static int renesas_rzfive_vendor_ext_provider(long funcid,
-+					      const struct sbi_trap_regs *regs,
-+					      unsigned long *out_value,
-+					      struct sbi_trap_info *out_trap,
-+					      const struct fdt_match *match)
-+{
-+	switch (funcid) {
-+	case ANDES_SBI_EXT_IOCP_SW_WORKAROUND:
-+		*out_value = andes45_apply_iocp_sw_workaround();
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
- {
- 	/*
-@@ -55,4 +74,5 @@ const struct platform_override renesas_rzfive = {
- 	.match_table = renesas_rzfive_match,
- 	.early_init = renesas_rzfive_early_init,
- 	.final_init = renesas_rzfive_final_init,
-+	.vendor_ext_provider = renesas_rzfive_vendor_ext_provider,
- };
--- 
-2.17.1
+> V4 Changes:
+> PATCH1: Fixed not adding one to tlb_sync when SBI_FIFO_UNCHANGED
+> PATCH4: Add comments
+> 
+> V3 Changes:
+> PATCH2: Remove missing sync in update
+> add PATCH4: Optimize sbi_tlb queue waiting
+> 
+> V2 Changes:
+> PATCH2: Fix m changes after update IPIs
+> 
+> Xiang W (4):
+> ? lib: sbi: Optimize sbi_tlb
+> ? lib: sbi: Optimize sbi_ipi
+> ? lib: sbi: rename function of sbi_ipi
+> ? lib: sbi: Optimize sbi_tlb queue waiting
+> 
+> ?include/sbi/sbi_ipi.h |? 3 +++
+> ?lib/sbi/sbi_ipi.c???? | 43 ++++++++++++++++++++++++++++++-------
+> ?lib/sbi/sbi_tlb.c???? | 49 +++++++++++++++++++------------------------
+> ?3 files changed, 61 insertions(+), 34 deletions(-)
+> 
 
 
