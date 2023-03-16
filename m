@@ -1,7 +1,7 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 16 Mar 2023 20:03:15 +0800
-Subject: [PATCH] lib: sbi: Fix how to check whether the domain contains fw_region
-Message-ID: <20230316120315.117391-1-wxjstz@126.com>
+Date: Thu, 16 Mar 2023 20:11:11 +0800
+Subject: [PATCH v2] lib: sbi: Fix how to check whether the domain contains fw_region
+Message-ID: <20230316121111.122741-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,10 +14,12 @@ fw_region_inited to sbi_domain.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
+v2 changes: Remove unused have_fw_reg
+
  include/sbi/sbi_domain.h   |  2 ++
- lib/sbi/sbi_domain.c       | 27 +++++++--------------------
+ lib/sbi/sbi_domain.c       | 28 +++++++---------------------
  lib/utils/fdt/fdt_domain.c |  1 +
- 3 files changed, 10 insertions(+), 20 deletions(-)
+ 3 files changed, 10 insertions(+), 21 deletions(-)
 
 diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
 index eaca7f0..124ea90 100644
@@ -33,7 +35,7 @@ index eaca7f0..124ea90 100644
  
  /** The root domain instance */
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 4d7b80a..d1eede0 100644
+index 4d7b80a..d6e9ff6 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
 @@ -30,7 +30,6 @@ static struct sbi_hartmask root_hmask = { 0 };
@@ -67,7 +69,15 @@ index 4d7b80a..d1eede0 100644
  void sbi_domain_memregion_init(unsigned long addr,
  				unsigned long size,
  				unsigned long flags,
-@@ -288,17 +280,11 @@ static int sanitize_domain(const struct sbi_platform *plat,
+@@ -255,7 +247,6 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 			   struct sbi_domain *dom)
+ {
+ 	u32 i, j, count;
+-	bool have_fw_reg;
+ 	struct sbi_domain_memregion treg, *reg, *reg1;
+ 
+ 	/* Check possible HARTs */
+@@ -288,17 +279,11 @@ static int sanitize_domain(const struct sbi_platform *plat,
  		}
  	}
  
@@ -88,7 +98,7 @@ index 4d7b80a..d1eede0 100644
  		sbi_printf("%s: %s does not have firmware region\n",
  			   __func__, dom->name);
  		return SBI_EINVAL;
-@@ -732,8 +718,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+@@ -732,8 +717,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
  	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
  				  (SBI_DOMAIN_MEMREGION_M_READABLE |
  				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
@@ -98,7 +108,7 @@ index 4d7b80a..d1eede0 100644
  
  	sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
  				  (scratch->fw_size - scratch->fw_rw_offset),
-@@ -741,6 +726,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+@@ -741,6 +725,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
  				   SBI_DOMAIN_MEMREGION_M_WRITABLE),
  				  &root_memregs[root_memregs_count++]);
  
