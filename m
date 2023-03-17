@@ -1,149 +1,191 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Thu, 16 Mar 2023 19:03:56 +0530
-Subject: [PATCH v2] lib: sbi: Fix how to check whether the domain
- contains fw_region
-In-Reply-To: <20230316121111.122741-1-wxjstz@126.com>
-References: <20230316121111.122741-1-wxjstz@126.com>
-Message-ID: <ZBMaxFaz2j2x0SbG@xubuntu>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 17 Mar 2023 15:05:27 +0000
+Subject: [PATCH v6] platform: generic: renesas: rzfive: Add SBI EXT to
+ check for enabling IOCP errata
+In-Reply-To: <20230315214558.20422-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20230315214558.20422-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <ZBSBt40MV/rR704Q@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 16, 2023 at 08:11:11PM +0800, Xiang W wrote:
-> Because firmware is split into rw/rx segments, it cannot be recorded
-> by a root_fw_region. This problem is solved by adding a flag
-> fw_region_inited to sbi_domain.
+Hi Prabhakar,
+
+On Wed, Mar 15, 2023 at 09:45:58PM +0000, Lad Prabhakar wrote:
+> I/O Coherence Port (IOCP) provides an AXI interface for connecting
+> external non-caching masters, such as DMA controllers. The accesses
+> from IOCP are coherent with D-Caches and L2 Cache.
 > 
-> Signed-off-by: Xiang W <wxjstz@126.com>
-
-LGTM
-
-Reviewed-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-
+> IOCP is a specification option and is disabled on the Renesas RZ/Five
+> SoC due to this reason IP blocks using DMA will fail.
+> 
+> As a workaround for SoCs with IOCP disabled CMO needs to be handled by
+> software. Firstly OpenSBI configures the memory region as
+> "Memory, Non-cacheable, Bufferable" and passes this region as a global
+> shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
+> allocations happen from this region and synchronization callbacks are
+> implemented to synchronize when doing DMA transactions.
+> 
+> ANDES_SBI_EXT_IOCP_SW_WORKAROUND SBI EXT checks if the IOCP errata
+> should be applied to handle cache management.
+> 
+> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 > ---
-> v2 changes: Remove unused have_fw_reg
+> v5->v6
+> * Moved ANDES_SBI_EXT_IOCP_SW_WORKAROUND to andes_sbi.h
+> * Moved helpers to check IOCP to common header so that we re-use code
 > 
->  include/sbi/sbi_domain.h   |  2 ++
->  lib/sbi/sbi_domain.c       | 28 +++++++---------------------
->  lib/utils/fdt/fdt_domain.c |  1 +
->  3 files changed, 10 insertions(+), 21 deletions(-)
+> v5:
+> https://patchwork.ozlabs.org/project/opensbi/patch/20230213215111.32017-4-prabhakar.mahadev-lad.rj at bp.renesas.com/
+> ---
+>  platform/generic/include/andes/andes45.h   | 25 +++++++++++++++++--
+>  platform/generic/include/andes/andes_sbi.h | 29 ++++++++++++++++++++++
+>  platform/generic/renesas/rzfive/rzfive.c   | 20 +++++++++++++++
+>  3 files changed, 72 insertions(+), 2 deletions(-)
+>  create mode 100644 platform/generic/include/andes/andes_sbi.h
 > 
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index eaca7f0..124ea90 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -122,6 +122,8 @@ struct sbi_domain {
->  	bool system_reset_allowed;
->  	/** Is domain allowed to suspend the system */
->  	bool system_suspend_allowed;
-> +	/** Identifies whether to include the firmware region */
-> +	bool fw_region_inited;
->  };
+> diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+> index 08b3d18..d5d265f 100644
+> --- a/platform/generic/include/andes/andes45.h
+> +++ b/platform/generic/include/andes/andes45.h
+> @@ -4,7 +4,28 @@
+>  #define CSR_MARCHID_MICROID 0xfff
+
+>  /* Memory and Miscellaneous Registers */
+> -#define CSR_MCACHE_CTL 0x7ca
+> -#define CSR_MCCTLCOMMAND 0x7cc
+> +#define CSR_MCACHE_CTL		0x7ca
+> +#define CSR_MCCTLCOMMAND	0x7cc
+
+Let's add a category here:
+/* Configuration Control & Status Registers */
+> +#define CSR_MICM_CFG		0xfc0
+> +#define CSR_MDCM_CFG		0xfc1
+> +#define CSR_MMSC_CFG		0xfc2
+> +
+> +#define MISA_20_OFFSET			20
+> +#define MISA_20_MASK			(0x1 << MISA_20_OFFSET)
+> +
+> +#define MICM_CFG_ISZ_OFFSET		6
+> +#define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
+> +
+> +#define MDCM_CFG_DSZ_OFFSET		6
+> +#define MDCM_CFG_DSZ_MASK		(0x7  << MDCM_CFG_DSZ_OFFSET)
+> +
+> +#define MMSC_CFG_CCTLCSR_OFFSET		16
+> +#define MMSC_CFG_CCTLCSR_MASK		(0x1 << MMSC_CFG_CCTLCSR_OFFSET)
+> +#define MMSC_IOCP_OFFSET			47
+> +#define MMSC_IOCP_MASK			(0x1ULL << MMSC_IOCP_OFFSET)
+> +
+> +#define MCACHE_CTL_CCTL_SUEN_OFFSET	8
+> +#define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
+> +
 >  
->  /** The root domain instance */
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 4d7b80a..d6e9ff6 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -30,7 +30,6 @@ static struct sbi_hartmask root_hmask = { 0 };
+>  #endif /* _RISCV_ANDES45_H */
+> diff --git a/platform/generic/include/andes/andes_sbi.h b/platform/generic/include/andes/andes_sbi.h
+> new file mode 100644
+> index 0000000..332b7d2
+> --- /dev/null
+> +++ b/platform/generic/include/andes/andes_sbi.h
+> @@ -0,0 +1,29 @@
+> +#ifndef _RISCV_ANDES_SBI_H
+> +#define _RISCV_ANDES_SBI_H
+> +
+> +#include <sbi/riscv_asm.h>
+> +
+> +#include "andes45.h"
+
+-#include "andes45.h"
++#include <andes/andes45.h>
+
+> +
+> +#define ANDES_SBI_EXT_IOCP_SW_WORKAROUND	1
+
+Let's define an enum and leave the first one empty for now,
+and please rename the constants as SBI_EXT_ANDES_XXX:
+
+-#define ANDES_SBI_EXT_IOCP_SW_WORKAROUND       1
++enum sbi_ext_andes_fid {
++       SBI_EXT_ANDES_FID0 = 0, /* Reserved for future use */
++       SBI_EXT_ANDES_IOCP_SW_WORKAROUND,
++};
+
+> +
+> +static bool andes45_cache_controlable(void)
+> +{
+> +	return (((csr_read(CSR_MICM_CFG) & MICM_CFG_ISZ_MASK) ||
+> +		 (csr_read(CSR_MDCM_CFG) & MDCM_CFG_DSZ_MASK)) &&
+> +		(csr_read(CSR_MISA) & MISA_20_MASK) &&
+
+Sorry for not bringing this up earlier, this check on CSR_MISA can be
+replaced with misa_extension('U') [1], so no need to define MISA_20_MASK
+
+Thank you!
+Peter Lin
+
+[1] https://github.com/riscv-software-src/opensbi/blob/v1.2/include/sbi/riscv_asm.h#L171
+
+> +		(csr_read(CSR_MMSC_CFG) & MMSC_CFG_CCTLCSR_MASK) &&
+> +		(csr_read(CSR_MCACHE_CTL) & MCACHE_CTL_CCTL_SUEN_MASK));
+> +}
+> +
+> +static bool andes45_iocp_disabled(void)
+> +{
+> +	return (csr_read(CSR_MMSC_CFG) & MMSC_IOCP_MASK) ? false : true;
+> +}
+> +
+> +static bool andes45_apply_iocp_sw_workaround(void)
+> +{
+> +	return andes45_cache_controlable() & andes45_iocp_disabled();
+> +}
+> +
+> +#endif /* _RISCV_ANDES_SBI_H */
+> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+> index 4d71d0d..0f5b693 100644
+> --- a/platform/generic/renesas/rzfive/rzfive.c
+> +++ b/platform/generic/renesas/rzfive/rzfive.c
+> @@ -5,6 +5,7 @@
+>   */
 >  
->  #define ROOT_REGION_MAX	16
->  static u32 root_memregs_count = 0;
-> -static struct sbi_domain_memregion root_fw_region;
->  static struct sbi_domain_memregion root_memregs[ROOT_REGION_MAX + 1] = { 0 };
->  
->  struct sbi_domain root = {
-> @@ -39,6 +38,7 @@ struct sbi_domain root = {
->  	.regions = root_memregs,
->  	.system_reset_allowed = true,
->  	.system_suspend_allowed = true,
-> +	.fw_region_inited = false,
->  };
->  
->  bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
-> @@ -69,14 +69,6 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
->  	return ret;
+>  #include <andes/andes45_pma.h>
+> +#include <andes/andes_sbi.h>
+>  #include <platform_override.h>
+>  #include <sbi/sbi_domain.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+> @@ -28,6 +29,24 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
+>  					 array_size(renesas_rzfive_pma_regions));
 >  }
 >  
-> -static void domain_memregion_initfw(struct sbi_domain_memregion *reg)
-> -{
-> -	if (!reg)
-> -		return;
-> -
-> -	sbi_memcpy(reg, &root_fw_region, sizeof(*reg));
-> -}
-> -
->  void sbi_domain_memregion_init(unsigned long addr,
->  				unsigned long size,
->  				unsigned long flags,
-> @@ -255,7 +247,6 @@ static int sanitize_domain(const struct sbi_platform *plat,
->  			   struct sbi_domain *dom)
->  {
->  	u32 i, j, count;
-> -	bool have_fw_reg;
->  	struct sbi_domain_memregion treg, *reg, *reg1;
->  
->  	/* Check possible HARTs */
-> @@ -288,17 +279,11 @@ static int sanitize_domain(const struct sbi_platform *plat,
->  		}
->  	}
->  
-> -	/* Count memory regions and check presence of firmware region */
-> +	/* Count memory regions */
->  	count = 0;
-> -	have_fw_reg = false;
-> -	sbi_domain_for_each_memregion(dom, reg) {
-> -		if (reg->order == root_fw_region.order &&
-> -		    reg->base == root_fw_region.base &&
-> -		    reg->flags == root_fw_region.flags)
-> -			have_fw_reg = true;
-> +	sbi_domain_for_each_memregion(dom, reg)
->  		count++;
-> -	}
-> -	if (!have_fw_reg) {
-> +	if (!dom->fw_region_inited) {
->  		sbi_printf("%s: %s does not have firmware region\n",
->  			   __func__, dom->name);
->  		return SBI_EINVAL;
-> @@ -732,8 +717,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->  	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
->  				  (SBI_DOMAIN_MEMREGION_M_READABLE |
->  				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
-> -				  &root_fw_region);
-> -	domain_memregion_initfw(&root_memregs[root_memregs_count++]);
-> +				  &root_memregs[root_memregs_count++]);
->  
->  	sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
->  				  (scratch->fw_size - scratch->fw_rw_offset),
-> @@ -741,6 +725,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->  				   SBI_DOMAIN_MEMREGION_M_WRITABLE),
->  				  &root_memregs[root_memregs_count++]);
->  
-> +	root.fw_region_inited = true;
+> +static int renesas_rzfive_vendor_ext_provider(long funcid,
+> +					      const struct sbi_trap_regs *regs,
+> +					      unsigned long *out_value,
+> +					      struct sbi_trap_info *out_trap,
+> +					      const struct fdt_match *match)
+> +{
+> +	switch (funcid) {
+> +	case ANDES_SBI_EXT_IOCP_SW_WORKAROUND:
+> +		*out_value = andes45_apply_iocp_sw_workaround();
+> +		break;
 > +
->  	/* Root domain allow everything memory region */
->  	sbi_domain_memregion_init(0, ~0UL,
->  				  (SBI_DOMAIN_MEMREGION_READABLE |
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index adcb94b..bb6d17d 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -358,6 +358,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
->  			return SBI_EINVAL;
->  		memcpy(&regions[val32++], reg, sizeof(*reg));
->  	}
-> +	dom->fw_region_inited = root.fw_region_inited;
->  
->  	/* Read "boot-hart" DT property */
->  	val32 = -1U;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+>  {
+>  	/*
+> @@ -55,4 +74,5 @@ const struct platform_override renesas_rzfive = {
+>  	.match_table = renesas_rzfive_match,
+>  	.early_init = renesas_rzfive_early_init,
+>  	.final_init = renesas_rzfive_final_init,
+> +	.vendor_ext_provider = renesas_rzfive_vendor_ext_provider,
+>  };
 > -- 
-> 2.39.2
+> 2.17.1
 > 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
