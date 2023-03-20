@@ -1,61 +1,70 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 20 Mar 2023 21:29:24 +0530
-Subject: [PATCH 2/2] lib: sbi_hsm: Fix sbi_hsm_hart_start() for platform with hart hotplug
-In-Reply-To: <20230320155924.950465-1-apatel@ventanamicro.com>
-References: <20230320155924.950465-1-apatel@ventanamicro.com>
-Message-ID: <20230320155924.950465-2-apatel@ventanamicro.com>
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Mon, 20 Mar 2023 16:33:07 +0000
+Subject: [PATCH] Makefile: Generate Map file for each firmware
+In-Reply-To: <20230319182252.5862-1-junliang.tan@starfivetech.com>
+References: <20230319182252.5862-1-junliang.tan@starfivetech.com>
+Message-ID: <ADA54967-387A-4A40-A444-E767D4A9915A@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-It possible that a platform supports hart hotplug (i.e. both hart_start
-and hart_stop callbacks available) and all harts are start simultaneously
-at platform boot-time. In this situation, the sbi_hsm_hart_start() will
-call hsm_device_hart_start() for secondary harts at platform boot-time
-which will fail because secondary harts were already started.
+On 19 Mar 2023, at 18:22, Jun Liang Tan <junliang.tan@starfivetech.com> wrote:
+> 
+> Currently, OpenSBI does not generate Map file.
+> This patch allows OpenSBI generates Map file for each
+> firmware. This comes in handy in debugging process as
+> Map file gives detailed information about the symbols
+> in our program.
 
-To fix above, we call hsm_device_hart_start() from sbi_hsm_hart_start()
-only when entry_count is same as init_count for the secondary hart.
+How and why? Isn?t this just a bunch of tracing for how the linker laid
+the binary out? I really don?t see how this is particularly useful, it
+definitely shouldn?t be on by default and the file format varies wildly
+between GNU ld and LLVM LLD anyway.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/sbi/sbi_hsm.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+What are you trying to do that you can?t do with an unstripped ELF?
 
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 16e3846..b261410 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -301,7 +301,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		       const struct sbi_domain *dom,
- 		       u32 hartid, ulong saddr, ulong smode, ulong arg1)
- {
--	unsigned long init_count;
-+	unsigned long init_count, entry_count;
- 	unsigned int hstate;
- 	struct sbi_scratch *rscratch;
- 	struct sbi_hsm_data *hdata;
-@@ -325,6 +325,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		return SBI_EINVAL;
- 
- 	init_count = sbi_init_count(hartid);
-+	entry_count = sbi_entry_count(hartid);
-+
- 	rscratch->next_arg1 = arg1;
- 	rscratch->next_addr = saddr;
- 	rscratch->next_mode = smode;
-@@ -350,7 +352,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 		goto err;
- 	}
- 
--	if (hsm_device_has_hart_hotplug() ||
-+	if ((hsm_device_has_hart_hotplug() && (entry_count == init_count)) ||
- 	   (hsm_device_has_hart_secondary_boot() && !init_count)) {
- 		rc = hsm_device_hart_start(hartid, scratch->warmboot_addr);
- 	} else {
--- 
-2.34.1
+> Signed-off-by: Jun Liang Tan <junliang.tan@starfivetech.com>
+> Reviewed-by: Chee Hong Ang <cheehong.ang@starfivetech.com>
+> ---
+> Makefile | 4 +++-
+> 1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Makefile b/Makefile
+> index a26a39b..e46b67a 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -445,7 +445,7 @@ compile_as = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+> 	     $(AS) $(ASFLAGS) $(call dynamic_flags,$(1),$(2)) -c $(2) -o $(1)
+> compile_elf = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+> 	     echo " ELF       $(subst $(build_dir)/,,$(1))"; \
+> -	     $(CC) $(CFLAGS) $(3) $(ELFFLAGS) -Wl,-T$(2) -o $(1)
+> +	     $(CC) $(CFLAGS) -Wl,-Map=$(basename $(1)).map $(3) $(ELFFLAGS) -Wl,-T$(2) -o $(1)
+
+This is clearly not the right path to use.
+
+Jess
+
+> compile_ar = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+> 	     echo " AR        $(subst $(build_dir)/,,$(1))"; \
+> 	     $(AR) $(ARFLAGS) $(1) $(2)
+> @@ -669,6 +669,8 @@ clean:
+> 	$(CMD_PREFIX)find $(build_dir) -type f -name "*.bin" -exec rm -rf {} +
+> 	$(if $(V), @echo " RM        $(build_dir)/*.dtb")
+> 	$(CMD_PREFIX)find $(build_dir) -type f -name "*.dtb" -exec rm -rf {} +
+> +	$(if $(V), @echo " RM        $(build_dir)/*.map")
+> +	$(CMD_PREFIX)find $(build_dir) -type f -name "*.map" -exec rm -rf {} +
+> 
+> # Rule for "make distclean"
+> .PHONY: distclean
+> -- 
+> 2.38.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
