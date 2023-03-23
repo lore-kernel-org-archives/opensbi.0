@@ -1,47 +1,58 @@
-From: Gabriel Somlo <gsomlo@gmail.com>
-Date: Wed, 22 Mar 2023 13:04:48 -0400
-Subject: [PATCH v1] docs: Correct FW_JUMP_FDT_ADDR calculation example
-Message-ID: <20230322170448.3600124-1-gsomlo@gmail.com>
+From: Sunil V L <sunilvl@ventanamicro.com>
+Date: Thu, 23 Mar 2023 14:33:16 +0530
+Subject: [RFC PATCH v2 0/4] Add CPPC extension support in OpenSBI
+Message-ID: <20230323090320.2489167-1-sunilvl@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When using `PLATFORM=generic` defaults, the kernel is loaded at
-`FW_JUMP_ADDR = FW_TEXT_START + 0x200000`, and the FDT is loaded at
-`FW_JUMP_FDT_ADDR = FW_TEXT_START + 0x2200000`.
+The latest proposal of SBI CPPC extension can be found at:
+https://lists.riscv.org/g/tech-prs/message/301
 
-Therefore, the maximum kernel size before `FW_JUMP_FDT_ADDR` must
-be increased is the difference, or `0x2000000`.
+This series implements SBI CPPC extension support in OpenSBI
+as-per above draft proposal.
 
-Update the example calculation to reflect this, and avoid confusion.
+To test these patches,
+Qemu patches can be found in,
+aia_plic_cppc_v1 branch at: https://github.com/vlsunil/qemu.git
+Linux patches can be found in
+aia_plic_cppc_v1 branch at: https://github.com/vlsunil/linux.git
 
-Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
----
- docs/firmware/fw_jump.md | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+These OpenSBI patches can also be found in
+aia_plic_cppc_v1 branch at: https://github.com/vlsunil/opensbi.git
 
-diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
-index 956897e..d1b07b9 100644
---- a/docs/firmware/fw_jump.md
-+++ b/docs/firmware/fw_jump.md
-@@ -48,12 +48,12 @@ follows:
-   ```
-   ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '/^ +[0-9]+ /\
-   {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' \
--  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
-+  | (( `tail -1` > 0x2000000 )) && echo fdt overlaps kernel,\
-   increase FW_JUMP_FDT_ADDR
- 
-   ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | \
-   awk -n '/^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}'\
--  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
-+  | (( `tail -1` > 0x2000000 )) && echo fdt overlaps kernel,\
-   increase FW_JUMP_FDT_ADDR
-   ```
- 
+Changes since v1:
+	1) Addresses Drew's feedback
+		a) Updated common functions to handle most of the errors.
+		b) Added is_reserved, readable, writable helpers as per Drew's feedback.
+		c) Updated macro name to SBI_CPPC_ENERGY_PERF_PREFERENCE
+	2) Updated RB tags
+
+Sunil V L (4):
+  include: Add defines for SBI CPPC extension
+  lib: sbi: Implement SBI CPPC extension
+  lib: sbi: Print the CPPC device name
+  NOT_FOR_MERGE: Add test code to emulate CPPC extension
+
+ include/sbi/sbi_cppc.h            |  37 ++++++
+ include/sbi/sbi_ecall_interface.h |  34 +++++
+ lib/sbi/Kconfig                   |   4 +
+ lib/sbi/objects.mk                |   4 +
+ lib/sbi/sbi_cppc.c                | 124 ++++++++++++++++++
+ lib/sbi/sbi_ecall_cppc.c          |  63 +++++++++
+ lib/sbi/sbi_init.c                |   5 +
+ platform/generic/objects.mk       |   1 +
+ platform/generic/platform.c       |   6 +
+ platform/generic/test_cppc.c      | 204 ++++++++++++++++++++++++++++++
+ 10 files changed, 482 insertions(+)
+ create mode 100644 include/sbi/sbi_cppc.h
+ create mode 100644 lib/sbi/sbi_cppc.c
+ create mode 100644 lib/sbi/sbi_ecall_cppc.c
+ create mode 100644 platform/generic/test_cppc.c
+
 -- 
-2.39.2
+2.34.1
 
 
