@@ -1,57 +1,61 @@
-From: Gabriel Somlo <gsomlo@gmail.com>
-Date: Fri, 24 Mar 2023 10:09:19 -0400
-Subject: [PATCH v4] docs: Correct FW_JUMP_FDT_ADDR calculation example
-Message-ID: <20230324140919.4050026-1-gsomlo@gmail.com>
+From: Mayuresh Chitale <mchitale@ventanamicro.com>
+Date: Sat, 25 Mar 2023 22:20:47 +0530
+Subject: [PATCH] lib: sbi_hart: clear mip csr during hart init
+Message-ID: <20230325165047.3107856-1-mchitale@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When using `PLATFORM=generic` defaults, the kernel is loaded at
-`FW_JUMP_ADDR`, and the FDT is loaded at `FW_JUMP_FDT_ADDR.
+If mip.SEIP bit is not cleared then on HiFive Unmatched board it causes
+spurious external interrupts. This breaks the boot up of HiFive Unmatched
+board. Hence it is required to bring the mip CSR to a known state during
+hart init and avoid spurious interrupts.
 
-Therefore, the maximum kernel size before `FW_JUMP_FDT_ADDR` must
-be increased is `$(( FW_JUMP_FDT_ADDR - FW_JUMP_ADDR ))`.
-
-The example calculation assumes `rv64`, and is wrong to boot
-(off by 0x200000). Fix it and update it for the general case.
-
-Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+Fixes: d9e7368 ("firmware: Not to clear all the MIP")
+Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 ---
- docs/firmware/fw_jump.md | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ firmware/fw_base.S | 7 -------
+ lib/sbi/sbi_hart.c | 6 ++++++
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
-index 956897e..ed3a43e 100644
---- a/docs/firmware/fw_jump.md
-+++ b/docs/firmware/fw_jump.md
-@@ -46,15 +46,15 @@ follows:
-   You can use the following method.
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index ceef44f..5a3e894 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -430,13 +430,6 @@ _start_warm:
  
-   ```
--  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '/^ +[0-9]+ /\
--  {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' \
--  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
--  increase FW_JUMP_FDT_ADDR
-+  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '
-+  /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
-+  (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
-+  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
+ 	/* Disable all interrupts */
+ 	csrw	CSR_MIE, zero
+-	/*
+-	 * Only clear the MIP_SSIP and MIP_STIP. For the platform like QEMU,
+-	 * If we clear other interrupts like MIP_SEIP and the pendings of
+-	 * PLIC still exist, the QEMU may not set it back immediately.
+-	 */
+-	li	t0, (MIP_SSIP | MIP_STIP)
+-	csrc	CSR_MIP, t0
  
--  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | \
--  awk -n '/^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}'\
--  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
--  increase FW_JUMP_FDT_ADDR
-+  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | awk -n '
-+  /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
-+  (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
-+  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
-   ```
+ 	/* Find HART count and HART stack size */
+ 	lla	a4, platform
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 5e06918..6e52cbd 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -733,6 +733,12 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+ {
+ 	int rc;
  
- *FW_JUMP* Example
++	/*
++	 * Clear mip CSR before proceeding with init to avoid any spurious
++	 * external interrupts in S-mode.
++	 */
++	csr_write(CSR_MIP, 0);
++
+ 	if (cold_boot) {
+ 		if (misa_extension('H'))
+ 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
 -- 
-2.39.2
+2.34.1
 
 
