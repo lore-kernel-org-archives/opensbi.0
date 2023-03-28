@@ -1,277 +1,347 @@
-From: Sunil V L <sunilvl@ventanamicro.com>
-Date: Tue, 28 Mar 2023 09:59:09 +0530
-Subject: [RFC PATCH v4 4/4] NOT_FOR_MERGE: Add test code to emulate CPPC extension
-In-Reply-To: <20230328042909.1853497-1-sunilvl@ventanamicro.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 28 Mar 2023 08:44:02 +0200
+Subject: [RFC PATCH v4 2/4] lib: sbi: Implement SBI CPPC extension
+In-Reply-To: <20230328042909.1853497-3-sunilvl@ventanamicro.com>
 References: <20230328042909.1853497-1-sunilvl@ventanamicro.com>
-Message-ID: <20230328042909.1853497-5-sunilvl@ventanamicro.com>
+ <20230328042909.1853497-3-sunilvl@ventanamicro.com>
+Message-ID: <orhhvo35gl4itc4md76ibjodua2vmlbzv57x3fcgj2zokashtb@apqbwmqgmayg>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This is a test code to emulate the CPPC extension and it is
-not for merge.
+On Tue, Mar 28, 2023 at 09:59:07AM +0530, Sunil V L wrote:
+> Implement SBI CPPC extension. This extension is only available when
+> OpenSBI platform provides a CPPC device to generic library.
+> 
+> Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> ---
+>  include/sbi/sbi_cppc.h   |  35 +++++++++
+>  lib/sbi/Kconfig          |   4 +
+>  lib/sbi/objects.mk       |   4 +
+>  lib/sbi/sbi_cppc.c       | 156 +++++++++++++++++++++++++++++++++++++++
+>  lib/sbi/sbi_ecall_cppc.c |  63 ++++++++++++++++
+>  5 files changed, 262 insertions(+)
+>  create mode 100644 include/sbi/sbi_cppc.h
+>  create mode 100644 lib/sbi/sbi_cppc.c
+>  create mode 100644 lib/sbi/sbi_ecall_cppc.c
+> 
+> diff --git a/include/sbi/sbi_cppc.h b/include/sbi/sbi_cppc.h
+> new file mode 100644
+> index 0000000..edf73f5
+> --- /dev/null
+> +++ b/include/sbi/sbi_cppc.h
+> @@ -0,0 +1,35 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2023 Ventana Micro Systems Inc.
+> + *
+> + */
+> +
+> +#ifndef __SBI_CPPC_H__
+> +#define __SBI_CPPC_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +
+> +/** CPPC device */
+> +struct sbi_cppc_device {
+> +	/** Name of the CPPC device */
+> +	char name[32];
+> +
+> +	/** probe - returns register width if implemented, 0 otherwise */
+> +	int (*cppc_probe)(unsigned long reg);
+> +
+> +	/** read the cppc register*/
+> +	int (*cppc_read)(unsigned long reg, uint64_t *val);
+> +
+> +	/** write to the cppc register*/
+> +	int (*cppc_write)(unsigned long reg, uint64_t val);
+> +};
+> +
+> +int sbi_cppc_probe(unsigned long reg);
+> +int sbi_cppc_read(unsigned long reg, uint64_t *val);
+> +int sbi_cppc_write(unsigned long reg, uint64_t val);
+> +
+> +const struct sbi_cppc_device *sbi_cppc_get_device(void);
+> +void sbi_cppc_set_device(const struct sbi_cppc_device *dev);
+> +
+> +#endif
+> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+> index 7eb3273..477775e 100644
+> --- a/lib/sbi/Kconfig
+> +++ b/lib/sbi/Kconfig
+> @@ -34,6 +34,10 @@ config SBI_ECALL_DBCN
+>  	bool "Debug Console extension"
+>  	default y
+>  
+> +config SBI_ECALL_CPPC
+> +	bool "CPPC extension"
+> +	default y
+> +
+>  config SBI_ECALL_LEGACY
+>  	bool "SBI v0.1 legacy extensions"
+>  	default y
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index 770238b..7d691c6 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -43,6 +43,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_PMU) += sbi_ecall_pmu.o
+>  carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBCN) += ecall_dbcn
+>  libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
+>  
+> +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_CPPC) += ecall_cppc
+> +libsbi-objs-$(CONFIG_SBI_ECALL_CPPC) += sbi_ecall_cppc.o
+> +
+>  carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
+>  libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
+>  
+> @@ -74,3 +77,4 @@ libsbi-objs-y += sbi_tlb.o
+>  libsbi-objs-y += sbi_trap.o
+>  libsbi-objs-y += sbi_unpriv.o
+>  libsbi-objs-y += sbi_expected_trap.o
+> +libsbi-objs-y += sbi_cppc.o
+> diff --git a/lib/sbi/sbi_cppc.c b/lib/sbi/sbi_cppc.c
+> new file mode 100644
+> index 0000000..dddc539
+> --- /dev/null
+> +++ b/lib/sbi/sbi_cppc.c
+> @@ -0,0 +1,156 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2023 Ventana Micro Systems Inc.
+> + *
+> + */
+> +
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_cppc.h>
+> +
+> +static const struct sbi_cppc_device *cppc_dev = NULL;
+> +
+> +const struct sbi_cppc_device *sbi_cppc_get_device(void)
+> +{
+> +	return cppc_dev;
+> +}
+> +
+> +void sbi_cppc_set_device(const struct sbi_cppc_device *dev)
+> +{
+> +	if (!dev || cppc_dev)
+> +		return;
+> +
+> +	cppc_dev = dev;
+> +}
+> +
+> +static int sbi_cppc_probe_mandatory(unsigned long reg)
+> +{
+> +	switch (reg) {
+> +	case SBI_CPPC_HIGHEST_PERF:
+> +	case SBI_CPPC_NOMINAL_PERF:
+> +	case SBI_CPPC_LOW_NON_LINEAR_PERF:
+> +	case SBI_CPPC_LOWEST_PERF:
+> +	case SBI_CPPC_PERF_LIMITED:
+> +		return 32;
+> +	}
 
-Signed-off-by: Sunil V L <sunilvl@ventanamicro.com>
----
- include/sbi/sbi_cppc.h       |   2 +
- platform/generic/objects.mk  |   1 +
- platform/generic/platform.c  |   6 ++
- platform/generic/test_cppc.c | 196 +++++++++++++++++++++++++++++++++++
- 4 files changed, 205 insertions(+)
- create mode 100644 platform/generic/test_cppc.c
+I'm not sure this small switch warrants its own function. I'd just put the
+function in the place of its one caller in sbi_cppc_probe().
 
-diff --git a/include/sbi/sbi_cppc.h b/include/sbi/sbi_cppc.h
-index edf73f5..f62d702 100644
---- a/include/sbi/sbi_cppc.h
-+++ b/include/sbi/sbi_cppc.h
-@@ -32,4 +32,6 @@ int sbi_cppc_write(unsigned long reg, uint64_t val);
- const struct sbi_cppc_device *sbi_cppc_get_device(void);
- void sbi_cppc_set_device(const struct sbi_cppc_device *dev);
- 
-+int test_cppc_init(void);
-+
- #endif
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index 136853e..d9eb959 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -20,6 +20,7 @@ platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
- # Objects to build
- platform-objs-y += platform.o
- platform-objs-y += platform_override_modules.o
-+platform-objs-$(CONFIG_SBI_ECALL_CPPC) += test_cppc.o
- 
- # Blobs to build
- FW_TEXT_START=0x80000000
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index eeefef4..ef85b70 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_system.h>
-+#include <sbi/sbi_cppc.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -166,6 +167,11 @@ static int generic_final_init(bool cold_boot)
- 	if (!cold_boot)
- 		return 0;
- 
-+#ifdef CONFIG_SBI_ECALL_CPPC
-+	if (!generic_plat)
-+		test_cppc_init();
-+#endif
-+
- 	fdt = fdt_get_address();
- 
- 	fdt_cpu_fixup(fdt);
-diff --git a/platform/generic/test_cppc.c b/platform/generic/test_cppc.c
-new file mode 100644
-index 0000000..26727a1
---- /dev/null
-+++ b/platform/generic/test_cppc.c
-@@ -0,0 +1,196 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2023 Ventana Micro Systems Inc.
-+ *
-+ */
-+
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_cppc.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_string.h>
-+#include <sbi/sbi_timer.h>
-+
-+struct perf_channel {
-+	unsigned int	highest_perf;
-+	unsigned int	nominal_perf;
-+	unsigned int	lowest_nonlinear_perf;
-+	unsigned int	lowest_perf;
-+	unsigned int	desired_perf;
-+	unsigned int	perf_limited;
-+	unsigned int	reference_perf;
-+	unsigned int	lowest_freq;
-+	unsigned int	nominal_freq;
-+	unsigned int	transition_latency;
-+};
-+
-+static unsigned long cppc_offset;
-+
-+static int sbi_cppc_test_read(unsigned long reg, uint64_t *val)
-+{
-+	struct sbi_scratch *scratch;
-+	struct perf_channel *cppc;
-+	unsigned long hartid;
-+	int ret = SBI_SUCCESS;
-+
-+	hartid = current_hartid();
-+
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	cppc = sbi_scratch_offset_ptr(scratch, cppc_offset);
-+
-+	switch (reg) {
-+	case SBI_CPPC_HIGHEST_PERF:
-+		*val = cppc->highest_perf;
-+		break;
-+	case SBI_CPPC_NOMINAL_PERF:
-+		*val = cppc->nominal_perf;
-+		break;
-+	case SBI_CPPC_LOW_NON_LINEAR_PERF:
-+		*val = cppc->lowest_nonlinear_perf;
-+		break;
-+	case SBI_CPPC_LOWEST_PERF:
-+		*val = cppc->lowest_perf;
-+		break;
-+	case SBI_CPPC_DESIRED_PERF:
-+		*val = cppc->desired_perf;
-+		break;
-+	case SBI_CPPC_REFERENCE_CTR:
-+		*val = sbi_timer_value();
-+		break;
-+	case SBI_CPPC_DELIVERED_CTR:
-+		/*
-+		 * Can't use CYCLE CSR properly in qemu, so just return
-+		 * TIME itself so that delta(delivered) / delta(ref) = 1
-+		 */
-+		*val = sbi_timer_value();
-+		break;
-+	case SBI_CPPC_PERF_LIMITED:
-+		*val = cppc->perf_limited;
-+		break;
-+	case SBI_CPPC_REFERENCE_PERF:
-+		*val = cppc->reference_perf;
-+		break;
-+	case SBI_CPPC_LOWEST_FREQ:
-+		*val = cppc->lowest_freq;
-+		break;
-+	case SBI_CPPC_NOMINAL_FREQ:
-+		*val = cppc->nominal_freq;
-+		break;
-+	case SBI_CPPC_TRANSITION_LATENCY:
-+		*val = cppc->transition_latency;
-+		break;
-+	default:
-+		ret = SBI_ERR_FAILED;
-+	}
-+
-+	return ret;
-+}
-+
-+static int sbi_cppc_test_write(unsigned long reg, uint64_t val)
-+{
-+	struct sbi_scratch *scratch;
-+	struct perf_channel *cppc;
-+	unsigned long hartid;
-+	int ret = SBI_SUCCESS;
-+
-+	hartid = current_hartid();
-+
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	cppc = sbi_scratch_offset_ptr(scratch, cppc_offset);
-+
-+	switch (reg) {
-+	case SBI_CPPC_DESIRED_PERF:
-+		cppc->desired_perf = val;
-+		break;
-+	case SBI_CPPC_PERF_LIMITED:
-+		cppc->perf_limited = val;
-+		break;
-+	default:
-+		ret = SBI_ERR_FAILED;
-+	}
-+
-+	return ret;
-+}
-+
-+static int sbi_cppc_test_probe(unsigned long reg)
-+{
-+	switch (reg) {
-+	case SBI_CPPC_REFERENCE_CTR:
-+	case SBI_CPPC_DELIVERED_CTR:
-+		/* Implemented, platform specific width */
-+		return 64;
-+	case SBI_CPPC_GUARANTEED_PERF:
-+	case SBI_CPPC_MIN_PERF:
-+	case SBI_CPPC_MAX_PERF:
-+	case SBI_CPPC_PERF_REDUC_TOLERANCE:
-+	case SBI_CPPC_TIME_WINDOW:
-+	case SBI_CPPC_CTR_WRAP_TIME:
-+	case SBI_CPPC_ENABLE:
-+	case SBI_CPPC_AUTO_SEL_ENABLE:
-+	case SBI_CPPC_AUTO_ACT_WINDOW:
-+	case SBI_CPPC_ENERGY_PERF_PREFERENCE:
-+		/* Unimplemented */
-+		return 0;
-+	}
-+
-+	/* Implemented, but standard width, let common probe handle */
-+	return -1;
-+}
-+
-+static struct sbi_cppc_device sbi_system_cppc_test = {
-+	.name		= "cppc-test",
-+	.cppc_read	= sbi_cppc_test_read,
-+	.cppc_write	= sbi_cppc_test_write,
-+	.cppc_probe	= sbi_cppc_test_probe,
-+};
-+
-+static void sbi_cppc_test_enable(void)
-+{
-+	sbi_cppc_set_device(&sbi_system_cppc_test);
-+}
-+
-+/*
-+ * Allocate scratch space as the channel memory to emulate the SBI CPPC
-+ * extension.
-+ */
-+int test_cppc_init()
-+{
-+	u32 i;
-+	struct sbi_scratch *rscratch;
-+	struct perf_channel *cppc;
-+
-+	cppc_offset = sbi_scratch_alloc_offset(sizeof(*cppc));
-+	if (!cppc_offset)
-+		return SBI_ENOMEM;
-+
-+	/* Initialize hart state data for every hart */
-+	for (i = 0; i <= sbi_scratch_last_hartid(); i++) {
-+		rscratch = sbi_hartid_to_scratch(i);
-+		if (!rscratch)
-+			continue;
-+
-+		cppc = sbi_scratch_offset_ptr(rscratch,
-+					      cppc_offset);
-+		if (cppc) {
-+			sbi_memset(cppc, 0, sizeof(*cppc));
-+
-+			/* Initialize sample values */
-+			cppc->highest_perf = 6;
-+			cppc->nominal_perf = 5;
-+			cppc->lowest_nonlinear_perf = 2;
-+			cppc->lowest_perf = 1;
-+			cppc->desired_perf = cppc->nominal_perf;
-+			cppc->perf_limited = 0;
-+			cppc->reference_perf = 20;
-+			cppc->lowest_freq = 20;
-+			cppc->nominal_freq = 100;
-+			cppc->transition_latency = 20000;
-+		}
-+	}
-+
-+	sbi_cppc_test_enable();
-+
-+	return 0;
-+}
--- 
-2.34.1
+Thanks,
+drew
 
+> +
+> +	return 0;
+> +}
+> +
+> +static bool sbi_cppc_is_reserved(unsigned long reg)
+> +{
+> +	if ((reg > SBI_CPPC_ACPI_LAST && reg < SBI_CPPC_TRANSITION_LATENCY) ||
+> +	    reg > SBI_CPPC_NON_ACPI_LAST)
+> +		return true;
+> +
+> +	return false;
+> +}
+> +
+> +static bool sbi_cppc_readable(unsigned long reg)
+> +{
+> +	/* there are no write-only cppc registers currently */
+> +	return true;
+> +}
+> +
+> +static bool sbi_cppc_writable(unsigned long reg)
+> +{
+> +	switch (reg) {
+> +	case SBI_CPPC_HIGHEST_PERF:
+> +	case SBI_CPPC_NOMINAL_PERF:
+> +	case SBI_CPPC_LOW_NON_LINEAR_PERF:
+> +	case SBI_CPPC_LOWEST_PERF:
+> +	case SBI_CPPC_GUARANTEED_PERF:
+> +	case SBI_CPPC_CTR_WRAP_TIME:
+> +	case SBI_CPPC_REFERENCE_CTR:
+> +	case SBI_CPPC_DELIVERED_CTR:
+> +	case SBI_CPPC_REFERENCE_PERF:
+> +	case SBI_CPPC_LOWEST_FREQ:
+> +	case SBI_CPPC_NOMINAL_FREQ:
+> +	case SBI_CPPC_TRANSITION_LATENCY:
+> +		return false;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +int sbi_cppc_probe(unsigned long reg)
+> +{
+> +	int ret;
+> +
+> +	if (!cppc_dev || !cppc_dev->cppc_probe)
+> +		return SBI_EFAIL;
+> +
+> +	/* Check whether register is reserved */
+> +	if (sbi_cppc_is_reserved(reg))
+> +		return SBI_ERR_INVALID_PARAM;
+> +
+> +	/* Return width for mandatory registers */
+> +	ret = sbi_cppc_probe_mandatory(reg);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = cppc_dev->cppc_probe(reg);
+> +	if (ret >= 0)
+> +		return ret;
+> +
+> +	switch (reg) {
+> +	case SBI_CPPC_GUARANTEED_PERF:
+> +	case SBI_CPPC_MIN_PERF:
+> +	case SBI_CPPC_MAX_PERF:
+> +	case SBI_CPPC_PERF_REDUC_TOLERANCE:
+> +	case SBI_CPPC_TIME_WINDOW:
+> +	case SBI_CPPC_ENABLE:
+> +	case SBI_CPPC_AUTO_SEL_ENABLE:
+> +	case SBI_CPPC_AUTO_ACT_WINDOW:
+> +	case SBI_CPPC_ENERGY_PERF_PREFERENCE:
+> +	case SBI_CPPC_REFERENCE_PERF:
+> +	case SBI_CPPC_LOWEST_FREQ:
+> +	case SBI_CPPC_NOMINAL_FREQ:
+> +	case SBI_CPPC_TRANSITION_LATENCY:
+> +		return 32;
+> +	}
+> +
+> +	return SBI_ERR_FAILED;
+> +}
+> +
+> +int sbi_cppc_read(unsigned long reg, uint64_t *val)
+> +{
+> +	int ret;
+> +
+> +	if (!cppc_dev || !cppc_dev->cppc_read)
+> +		return SBI_EFAIL;
+> +
+> +	/* Check whether register is implemented */
+> +	ret = sbi_cppc_probe(reg);
+> +	if (ret < 0)
+> +		return ret;
+> +	else if (!ret)
+> +		return SBI_ERR_NOT_SUPPORTED;
+> +
+> +	/* Check whether the register is write-only */
+> +	if (!sbi_cppc_readable(reg))
+> +		return SBI_ERR_DENIED;
+> +
+> +	return cppc_dev->cppc_read(reg, val);
+> +}
+> +
+> +int sbi_cppc_write(unsigned long reg, uint64_t val)
+> +{
+> +	int ret;
+> +
+> +	if (!cppc_dev || !cppc_dev->cppc_write)
+> +		return SBI_EFAIL;
+> +
+> +	/* Check whether register is implemented */
+> +	ret = sbi_cppc_probe(reg);
+> +	if (ret < 0)
+> +		return ret;
+> +	else if (!ret)
+> +		return SBI_ERR_NOT_SUPPORTED;
+> +
+> +	/* Check whether the register is read-only */
+> +	if (!sbi_cppc_writable(reg))
+> +		return SBI_ERR_DENIED;
+> +
+> +	return cppc_dev->cppc_write(reg, val);
+> +}
+> diff --git a/lib/sbi/sbi_ecall_cppc.c b/lib/sbi/sbi_ecall_cppc.c
+> new file mode 100644
+> index 0000000..91585f3
+> --- /dev/null
+> +++ b/lib/sbi/sbi_ecall_cppc.c
+> @@ -0,0 +1,63 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2023 Ventana Micro Systems Inc.
+> + *
+> + */
+> +
+> +#include <sbi/sbi_ecall.h>
+> +#include <sbi/sbi_ecall_interface.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_trap.h>
+> +#include <sbi/sbi_cppc.h>
+> +
+> +static int sbi_ecall_cppc_handler(unsigned long extid, unsigned long funcid,
+> +				  const struct sbi_trap_regs *regs,
+> +				  unsigned long *out_val,
+> +				  struct sbi_trap_info *out_trap)
+> +{
+> +	int ret = 0;
+> +	uint64_t temp;
+> +
+> +	switch (funcid) {
+> +	case SBI_EXT_CPPC_READ:
+> +		ret = sbi_cppc_read(regs->a0, &temp);
+> +		*out_val = temp;
+> +		break;
+> +	case SBI_EXT_CPPC_READ_HI:
+> +#if __riscv_xlen == 32
+> +		ret = sbi_cppc_read(regs->a0, &temp);
+> +		*out_val = temp >> 32;
+> +#else
+> +		*out_val = 0;
+> +#endif
+> +		break;
+> +	case SBI_EXT_CPPC_WRITE:
+> +		ret = sbi_cppc_write(regs->a0, regs->a1);
+> +		break;
+> +	case SBI_EXT_CPPC_PROBE:
+> +		ret = sbi_cppc_probe(regs->a0);
+> +		if (ret >= 0) {
+> +			*out_val = ret;
+> +			ret = 0;
+> +		}
+> +		break;
+> +	default:
+> +		ret = SBI_ENOTSUPP;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int sbi_ecall_cppc_probe(unsigned long extid, unsigned long *out_val)
+> +{
+> +	*out_val = sbi_cppc_get_device() ? 1 : 0;
+> +	return 0;
+> +}
+> +
+> +struct sbi_ecall_extension ecall_cppc = {
+> +	.extid_start	= SBI_EXT_CPPC,
+> +	.extid_end	= SBI_EXT_CPPC,
+> +	.handle		= sbi_ecall_cppc_handler,
+> +	.probe		= sbi_ecall_cppc_probe,
+> +};
+> -- 
+> 2.34.1
+> 
 
