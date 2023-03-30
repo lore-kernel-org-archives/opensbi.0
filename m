@@ -1,64 +1,67 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 30 Mar 2023 16:33:04 +0800
-Subject: [PATCH v3] docs: Correct FW_JUMP_FDT_ADDR calculation example
-In-Reply-To: <20230324120728.3926464-1-gsomlo@gmail.com>
-References: <20230324120728.3926464-1-gsomlo@gmail.com>
-Message-ID: <c606b62e358194d06132da8e84760f3a872ddefa.camel@126.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 30 Mar 2023 16:41:14 +0800
+Subject: [PATCH] sbi/sbi_pmu.c: Align the event type offset as per SBI specification
+Message-ID: <20230330084114.24166-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-03-24???? 08:07 -0400?Gabriel Somlo???
-> When using `PLATFORM=generic` defaults, the kernel is loaded at
-> `FW_JUMP_ADDR`, and the FDT is loaded at `FW_JUMP_FDT_ADDR.
-> 
-> Therefore, the maximum kernel size before `FW_JUMP_FDT_ADDR` must
-> be increased is `$(( FW_JUMP_FDT_ADDR - FW_JUMP_ADDR ))`.
-> 
-> The example calculation assumes `rv64`, and is wrong to boot
-> (off by 0x200000). Fix it and update it for the general case.
-> 
-> Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
-LGTM
+The bits encoded in event_idx[19:16] indicate the event type, with an
+offset of 16 instead of 20.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?docs/firmware/fw_jump.md | 16 ++++++++--------
-> ?1 file changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
-> index 956897e..ed3a43e 100644
-> --- a/docs/firmware/fw_jump.md
-> +++ b/docs/firmware/fw_jump.md
-> @@ -46,15 +46,15 @@ follows:
-> ?? You can use the following method.
-> ?
-> ?? ```
-> -? ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '/^ +[0-9]+ /\
-> -? {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' \
-> -? | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
-> -? increase FW_JUMP_FDT_ADDR
-> +? ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '
-> +? /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
-> +? (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
-> +? echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
-> ?
-> -? ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | \
-> -? awk -n '/^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}'\
-> -? | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
-> -? increase FW_JUMP_FDT_ADDR
-> +? ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | awk -n '
-> +? /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
-> +? (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
-> +? echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
-> ?? ```
-> ?
-> ?*FW_JUMP* Example
-> -- 
-> 2.39.2
-> 
-> 
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ include/sbi/sbi_ecall_interface.h | 4 ++--
+ lib/sbi/sbi_pmu.c                 | 7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index 4597358..54d1951 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -214,10 +214,10 @@ enum sbi_pmu_ctr_type {
+ };
+ 
+ /* Helper macros to decode event idx */
+-#define SBI_PMU_EVENT_IDX_OFFSET 20
+ #define SBI_PMU_EVENT_IDX_MASK 0xFFFFF
++#define SBI_PMU_EVENT_IDX_TYPE_OFFSET 16
++#define SBI_PMU_EVENT_IDX_TYPE_MASK (0xF << SBI_PMU_EVENT_IDX_TYPE_OFFSET)
+ #define SBI_PMU_EVENT_IDX_CODE_MASK 0xFFFF
+-#define SBI_PMU_EVENT_IDX_TYPE_MASK 0xF0000
+ #define SBI_PMU_EVENT_RAW_IDX 0x20000
+ 
+ #define SBI_PMU_EVENT_IDX_INVALID 0xFFFFFFFF
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 74d6912..ef1eab0 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -81,7 +81,8 @@ static uint32_t num_hw_ctrs;
+ static uint32_t total_ctrs;
+ 
+ /* Helper macros to retrieve event idx and code type */
+-#define get_cidx_type(x) ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> 16)
++#define get_cidx_type(x) \
++  ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> SBI_PMU_EVENT_IDX_TYPE_OFFSET)
+ #define get_cidx_code(x) (x & SBI_PMU_EVENT_IDX_CODE_MASK)
+ 
+ /**
+@@ -903,10 +904,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ 	pmu_reset_event_map(hartid);
+ 
+ 	/* First three counters are fixed by the priv spec and we enable it by default */
+-	active_events[hartid][0] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_OFFSET |
++	active_events[hartid][0] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_TYPE_OFFSET |
+ 				   SBI_PMU_HW_CPU_CYCLES;
+ 	active_events[hartid][1] = SBI_PMU_EVENT_IDX_INVALID;
+-	active_events[hartid][2] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_OFFSET |
++	active_events[hartid][2] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_TYPE_OFFSET |
+ 				   SBI_PMU_HW_INSTRUCTIONS;
+ 
+ 	return 0;
+-- 
+2.34.1
 
 
