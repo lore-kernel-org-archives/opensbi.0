@@ -1,94 +1,112 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 30 Mar 2023 18:11:26 +0000
-Subject: [PATCH] sbi/sbi_pmu.c: Align the event type offset as per SBI
- specification
-In-Reply-To: <x24ckpfmxzptw4gyzmcjhybmjtybowfpbtswwiymkoj7b7jynw@eytiem3phe7o>
-References: <20230330084114.24166-1-peterlin@andestech.com>
- <x24ckpfmxzptw4gyzmcjhybmjtybowfpbtswwiymkoj7b7jynw@eytiem3phe7o>
-Message-ID: <ZCXQzg+J2lw/MOgA@APC323>
+From: Gabriel L. Somlo <gsomlo@gmail.com>
+Date: Thu, 30 Mar 2023 16:24:28 -0400
+Subject: [PATCH v3] docs: Correct FW_JUMP_FDT_ADDR calculation example
+In-Reply-To: <o5wzf3o3xqlpyjfwurk4bvf2e2dcxutke3z7equoxamvfenhca@67zhwblqwv3k>
+References: <20230324120728.3926464-1-gsomlo@gmail.com>
+ <7ecf54d130e979c0fc1f74f6ce0483eff1a0fa03.camel@126.com>
+ <ZCT+cdxBr0t+JJwe@errol.ini.cmu.edu>
+ <261bbbfc531fa4a479e97e70933d5e722e7a8ab6.camel@126.com>
+ <3be5bff68835974783ecf7231dc4eac0140d9be1.camel@126.com>
+ <nvtmivbx6ew3wql6jroofvsaxuxut7ampinf3r5krx6ks5zbbp@vy3nsieqhfko>
+ <o5wzf3o3xqlpyjfwurk4bvf2e2dcxutke3z7equoxamvfenhca@67zhwblqwv3k>
+Message-ID: <ZCXv/FAt0vRs4i7M@errol.ini.cmu.edu>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 30, 2023 at 11:26:48AM +0200, Andrew Jones wrote:
-> On Thu, Mar 30, 2023 at 04:41:14PM +0800, Yu Chien Peter Lin wrote:
-> > The bits encoded in event_idx[19:16] indicate the event type, with an
-> > offset of 16 instead of 20.
+On Thu, Mar 30, 2023 at 11:13:48AM +0200, Andrew Jones wrote:
+> On Thu, Mar 30, 2023 at 10:46:57AM +0200, Andrew Jones wrote:
+> > T+cdxBr0t+JJwe at errol.ini.cmu.edu>
+> >  <261bbbfc531fa4a479e97e70933d5e722e7a8ab6.camel@126.com>
+> >  <3be5bff68835974783ecf7231dc4eac0140d9be1.camel@126.com>
+> > MIME-Version: 1.0
+> > Content-Type: text/plain; charset=utf-8
+> > Content-Disposition: inline
+> > Content-Transfer-Encoding: 8bit
+> > In-Reply-To: <3be5bff68835974783ecf7231dc4eac0140d9be1.camel@126.com>
 > > 
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > ---
-> >  include/sbi/sbi_ecall_interface.h | 4 ++--
-> >  lib/sbi/sbi_pmu.c                 | 7 ++++---
-> >  2 files changed, 6 insertions(+), 5 deletions(-)
+> > On Thu, Mar 30, 2023 at 04:20:30PM +0800, Xiang W wrote:
+> > > ? 2023-03-30???? 16:13 +0800?Xiang W???
+> > > > ? 2023-03-29???? 23:13 -0400?Gabriel L. Somlo???
+> > > > > On Thu, Mar 30, 2023 at 10:15:59AM +0800, Xiang W wrote:
+> > > > > > ? 2023-03-24???? 08:07 -0400?Gabriel Somlo???
+> > > > > > > When using `PLATFORM=generic` defaults, the kernel is loaded at
+> > > > > > > `FW_JUMP_ADDR`, and the FDT is loaded at `FW_JUMP_FDT_ADDR.
+> > > > > > > 
+> > > > > > > Therefore, the maximum kernel size before `FW_JUMP_FDT_ADDR` must
+> > > > > > > be increased is `$(( FW_JUMP_FDT_ADDR - FW_JUMP_ADDR ))`.
+> > > > > > > 
+> > > > > > > The example calculation assumes `rv64`, and is wrong to boot
+> > > > > > > (off by 0x200000). Fix it and update it for the general case.
+> > > > > > > 
+> > > > > > > Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
+> > > > > > > ---
+> > > > > > > ?docs/firmware/fw_jump.md | 16 ++++++++--------
+> > > > > > > ?1 file changed, 8 insertions(+), 8 deletions(-)
+> > > > > > > 
+> > > > > > > diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
+> > > > > > > index 956897e..ed3a43e 100644
+> > > > > > > --- a/docs/firmware/fw_jump.md
+> > > > > > > +++ b/docs/firmware/fw_jump.md
+> > > > > > > @@ -46,15 +46,15 @@ follows:
+> > > > > > > ?? You can use the following method.
+> > > > > > > ?
+> > > > > > > ?? ```
+> > > > > > > -? ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '/^ +[0-9]+ /\
+> > > > > > > -? {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' \
+> > > > > > > -? | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
+> > > > > > > -? increase FW_JUMP_FDT_ADDR
+> > > > > > > +? ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '
+> > > > > > > +? /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
+> > > > > > > +? (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
+> > > > > > FW_JUMP_FDT_ADDR and FW_JUMP_ADDR should be variables in the shell,
+> > > > > > and references need to use $ as the starting char.
+> > > > > 
+> > > > > AFAIK, "ARITHMETIC EVALUATION" rules in bash allow shell variables to
+> > > > > be referenced without the "parameter expansion syntax" (i.e., $FOO),
+> > > > > when they are within an expression (e.g., "(( FOO + BAR ))").
+> > > > 
+> > > > It is better to use POSIX shell, if want to use BASH it is better to
+> > > > add some text description
+> > > Sorry!!! This is POSIX grammar!!!
 > > 
-> > diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> > index 4597358..54d1951 100644
-> > --- a/include/sbi/sbi_ecall_interface.h
-> > +++ b/include/sbi/sbi_ecall_interface.h
-> > @@ -214,10 +214,10 @@ enum sbi_pmu_ctr_type {
-> >  };
-> >  
-> >  /* Helper macros to decode event idx */
-> > -#define SBI_PMU_EVENT_IDX_OFFSET 20
-> >  #define SBI_PMU_EVENT_IDX_MASK 0xFFFFF
-> > +#define SBI_PMU_EVENT_IDX_TYPE_OFFSET 16
-> > +#define SBI_PMU_EVENT_IDX_TYPE_MASK (0xF << SBI_PMU_EVENT_IDX_TYPE_OFFSET)
-> >  #define SBI_PMU_EVENT_IDX_CODE_MASK 0xFFFF
-> > -#define SBI_PMU_EVENT_IDX_TYPE_MASK 0xF0000
-> >  #define SBI_PMU_EVENT_RAW_IDX 0x20000
-> >  
-> >  #define SBI_PMU_EVENT_IDX_INVALID 0xFFFFFFFF
-> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > index 74d6912..ef1eab0 100644
-> > --- a/lib/sbi/sbi_pmu.c
-> > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -81,7 +81,8 @@ static uint32_t num_hw_ctrs;
-> >  static uint32_t total_ctrs;
-> >  
-> >  /* Helper macros to retrieve event idx and code type */
-> > -#define get_cidx_type(x) ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> 16)
-> > +#define get_cidx_type(x) \
-> > +  ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> SBI_PMU_EVENT_IDX_TYPE_OFFSET)
-> >  #define get_cidx_code(x) (x & SBI_PMU_EVENT_IDX_CODE_MASK)
-> >  
-> >  /**
-> > @@ -903,10 +904,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
-> >  	pmu_reset_event_map(hartid);
-> >  
-> >  	/* First three counters are fixed by the priv spec and we enable it by default */
-> > -	active_events[hartid][0] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_OFFSET |
-> > +	active_events[hartid][0] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_TYPE_OFFSET |
-> >  				   SBI_PMU_HW_CPU_CYCLES;
-> >  	active_events[hartid][1] = SBI_PMU_EVENT_IDX_INVALID;
-> > -	active_events[hartid][2] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_OFFSET |
-> > +	active_events[hartid][2] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_TYPE_OFFSET |
-> >  				   SBI_PMU_HW_INSTRUCTIONS;
-> >  
-> >  	return 0;
-> > -- 
-> > 2.34.1
-> >
+> > ((..)) is undefined for POSIX, only $((..)) is defined, but do we care?
+> > This is just an example in a document, not a script expected to run as
+> > part of the build on multiple platforms. Maybe we could change the
+> > sentence above to point out Bash though,
+> > 
+> >    ensure *FW_JUMP_FDT_ADDR* is set high enough to avoid overwriting the kernel.
+> > -  You can use the following method.
+> > +  Using Bash, you can use the following method:
+> > 
+> >    ```
 > 
-> I guess this was found by inspection, since SBI_PMU_EVENT_TYPE_HW is zero,
-> so the patch doesn't change anything. And, even though nothing is changed,
-> it is still a fix, so probably worth adding
-
-Yes, the active_events was still filled with correct values.
-
-> Fixes: 13d40f21d588 ("lib: sbi: Add PMU support")
+> Or, we can make more use of [posix] awk and make everything posix
+> compatible
 > 
-> Either way,
-> 
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 |
+> awk -P -v maxsize=$((FW_JUMP_FDT_ADDR - FW_JUMP_ADDR)) '
+> /^ +[0-9]+ / {
+>   addr="0x"$3; size="0x"$5; size+=addr;
+> }
+> END {
+>   if (size > maxsize) {
+>     print "fdt overlaps kernel, increase FW_JUMP_FDT_ADDR";
+>   }
+> }'
 
-Thanks for the review!
+If it's all the same to you all, I'd prefer we mentioned bash
+(or zsh, which also works) and avoided using the (IMHO much
+harder to read) syntax above just to satisfy posix...
 
-Regards,
-Peter Lin
+I'll send out another version where bash and zsh are namedropped in
+the "following method" line... :)
 
-> 
+Thanks,
+--Gabriel
+ 
 > Thanks,
 > drew
 
