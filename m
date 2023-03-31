@@ -1,47 +1,54 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 31 Mar 2023 21:26:54 +0800
-Subject: [PATCH v2 1/1] lib: utils: fdt_fixup: avoid buffer overrun
-In-Reply-To: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
-References: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
-Message-ID: <7c73ce1bd8c99beb7d681cacfabbad3bcd798dec.camel@126.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Fri, 31 Mar 2023 13:48:55 +0000
+Subject: [PATCH v7] platform: generic: renesas: rzfive: Add SBI EXT to
+ check for enabling IOCP errata
+In-Reply-To: <af55cd53-6319-44ad-8b9e-7fc519fa5c72@spud>
+References: <20230317140357.14819-1-prabhakar.mahadev-lad.rj@bp.renesas.com> <af55cd53-6319-44ad-8b9e-7fc519fa5c72@spud>
+Message-ID: <CA+V-a8uH2mfLmz5+PjNO1219r7=Pz=4d+mH_oEHkEt6dJbxn7w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-03-31???? 15:15 +0200?Heinrich Schuchardt???
-> fdt_reserved_memory_fixup() uses filtered_order[PMP_COUNT]. The index
-> must not reach PMP_COUNT.
-> 
-> Fixes: 199189bd1c17 ("lib: utils: Mark only the largest region as reserved in FDT")
-> Addresses-Coverity-ID: 1536994 ("Out-of-bounds write")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-LGTM
+Hi Conor,
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> v2:
-> ????????fix typo in commit message
-> ---
-> ?lib/utils/fdt/fdt_fixup.c | 2 +-
-> ?1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index c10179b..ae6be00 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -355,7 +355,7 @@ int fdt_reserved_memory_fixup(void *fdt)
-> ????????????????if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
-> ????????????????????????continue;
-> ?
-> -???????????????if (i > PMP_COUNT) {
-> +???????????????if (i >= PMP_COUNT) {
-> ????????????????????????sbi_printf("%s: Too many memory regions to fixup.\n",
-> ?????????????????????????????????? __func__);
-> ????????????????????????return SBI_ENOSPC;
-> -- 
-> 2.39.2
-> 
-> 
+Thank you for the review.
+
+On Fri, Mar 31, 2023 at 2:00?PM Conor Dooley <conor.dooley@microchip.com> wrote:
+>
+> On Fri, Mar 17, 2023 at 02:03:57PM +0000, Lad Prabhakar wrote:
+> > I/O Coherence Port (IOCP) provides an AXI interface for connecting
+> > external non-caching masters, such as DMA controllers. The accesses
+> > from IOCP are coherent with D-Caches and L2 Cache.
+> >
+> > IOCP is a specification option and is disabled on the Renesas RZ/Five
+> > SoC due to this reason IP blocks using DMA will fail.
+> >
+> > As a workaround for SoCs with IOCP disabled CMO needs to be handled by
+> > software. Firstly OpenSBI configures the memory region as
+> > "Memory, Non-cacheable, Bufferable" and passes this region as a global
+> > shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
+> > allocations happen from this region and synchronization callbacks are
+> > implemented to synchronize when doing DMA transactions.
+> >
+> > SBI_EXT_ANDES_IOCP_SW_WORKAROUND checks if the IOCP errata should be
+> > applied to handle cache management.
+> >
+> > Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> > Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+>
+> > +static bool andes45_cache_controlable(void)
+>
+> FWIW, controllable has 3 Ls
+>
+I will fix that.
+
+> I'm not really au fait with this neck of the woods, but what you're
+> doing makes sense to me..
+> Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+>
+
+Cheers,
+Prabhakar
 
