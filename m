@@ -1,19 +1,22 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Fri, 31 Mar 2023 15:06:58 +0200
-Subject: [PATCH 1/1] lib: utils: fdt_fixup: avoid buffer overrun
-Message-ID: <20230331130658.58865-1-heinrich.schuchardt@canonical.com>
+Date: Fri, 31 Mar 2023 15:15:15 +0200
+Subject: [PATCH v2 1/1] lib: utils: fdt_fixup: avoid buffer overrun
+Message-ID: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In fdt_reserved_memory_fixup() uses filtered_order[PMP_COUNT]. The index
+fdt_reserved_memory_fixup() uses filtered_order[PMP_COUNT]. The index
 must not reach PMP_COUNT.
 
 Fixes: 199189bd1c17 ("lib: utils: Mark only the largest region as reserved in FDT")
 Addresses-Coverity-ID: 1536994 ("Out-of-bounds write")
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+v2:
+	fix typo in commit message
 ---
  lib/utils/fdt/fdt_fixup.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
