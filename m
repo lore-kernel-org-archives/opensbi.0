@@ -1,73 +1,34 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 4 Apr 2023 06:14:25 +0530
-Subject: [PATCH 2/2] lib: sbi: Fix cidx_base check when
- SBI_PMU_CFG_FLAG_SKIP_MATCH is set
-In-Reply-To: <20230320100958.16831-2-alexghiti@rivosinc.com>
-References: <20230320100958.16831-1-alexghiti@rivosinc.com> <20230320100958.16831-2-alexghiti@rivosinc.com>
-Message-ID: <CAOnJCUKQ6=v-Az19n9v4xrbkgqn=XVGAbKLKzBYzOVfMqDG1Ag@mail.gmail.com>
+From: Bin Meng <bmeng@tinylab.org>
+Date: Tue,  4 Apr 2023 12:46:00 +0800
+Subject: [PATCH 1/2] firmware: Optimize loading relocation type
+Message-ID: <20230404044601.2835305-1-bmeng@tinylab.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 20, 2023 at 3:41?PM Alexandre Ghiti <alexghiti@rivosinc.com> wrote:
->
-> When SBI_PMU_CFG_FLAG_SKIP_MATCH is set, cidx_base is used to represent
-> the counter index to match, so make sure we don't return an error in
-> this case.
->
+'t5' already contains relocation type so don't bother reloading it.
 
-Reading the spec again, it says
-"the SBI implementation will unconditionally select the first counter
-from the set of counters specified by the counter_idx_base and
-counter_idx_mask"
-Technically, a caller can pass a non-zero valid counter mask with the
-counter base being really a base. Correct ?
+Signed-off-by: Bin Meng <bmeng@tinylab.org>
+---
 
-so we should check cbase+ sbi_ffs against total_ctrs
-We also need to choose that value instead of cbase while selecting the ctr_idx.
+ firmware/fw_base.S | 1 -
+ 1 file changed, 1 deletion(-)
 
-> Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-> ---
->  lib/sbi/sbi_pmu.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 2176cc7..ffdbe65 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -722,8 +722,16 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
->         u32 event_code, hartid = current_hartid();
->         int event_type;
->
-> -       /* Do a basic sanity check of counter base & mask */
-> -       if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
-> +       /*
-> +        * Do a basic sanity check of counter base & mask but not when
-> +        * flags has the skip match bit set since cidx_base has a
-> +        * different meaning there.
-> +        */
-> +       if ((flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) && cidx_base > total_ctrs)
-> +               return SBI_EINVAL;
-> +
-> +       if (!(flags & SBI_PMU_CFG_FLAG_SKIP_MATCH) &&
-> +           ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs))
->                 return SBI_EINVAL;
->
->         event_type = pmu_event_validate(event_idx, event_data);
-> --
-> 2.37.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-
-
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index ceef44f..e30aca6 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -95,7 +95,6 @@ _try_lottery:
+ 	lla	t4, __dyn_sym_start
+ 
+ 4:
+-	REG_L	t5, -(REGBYTES*2)(t0)	/* t5 <-- relocation info:type */
+ 	srli	t6, t5, SYM_INDEX	/* t6 <--- sym table index */
+ 	andi	t5, t5, 0xFF		/* t5 <--- relocation type */
+ 	li	t3, RELOC_TYPE
 -- 
-Regards,
-Atish
+2.25.1
+
 
