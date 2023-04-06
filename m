@@ -1,160 +1,203 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Wed, 5 Apr 2023 11:23:20 +0100
-Subject: [PATCH v7 1/4] lib: sbi: Allow platform to influence cold boot
- HART selection
-In-Reply-To: <CAK9=C2WFr9D5piT8iq9L-6TnZJ9qROUZ_Oi9dwFf0EManevVJA@mail.gmail.com>
-References: <20221229025618.29555-1-weiliang.lim@starfivetech.com>
- <20221229025618.29555-2-weiliang.lim@starfivetech.com>
- <CAAhSdy3Gd1wxtE6eLugR580OzJCJ4Tcuax8e8R6ypfO+WWyYyA@mail.gmail.com>
- <94779F24-B502-4E2C-BB46-212CC580E492@jrtc27.com>
- <CAK9=C2WFr9D5piT8iq9L-6TnZJ9qROUZ_Oi9dwFf0EManevVJA@mail.gmail.com>
-Message-ID: <89E2F119-4A71-437E-AA35-F4EE1D0548D3@jrtc27.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 6 Apr 2023 10:23:38 +0530
+Subject: [PATCH v8] platform: generic: renesas: rzfive: Add SBI EXT to
+ check for enabling IOCP errata
+In-Reply-To: <20230331180245.17945-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20230331180245.17945-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+Message-ID: <CAAhSdy3W4N2zVyTm12uR+AnfRsoK7JFtYkBr4WRarOa84caBig@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 5 Apr 2023, at 11:11, Anup Patel <apatel@ventanamicro.com> wrote:
-> 
-> Resending ...
-> 
-> On Tue, Apr 4, 2023 at 10:50?PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->> 
->> On 7 Jan 2023, at 10:31, Anup Patel <anup@brainfault.org> wrote:
->>> 
->>> On Thu, Dec 29, 2022 at 8:27 AM Wei Liang Lim
->>> <weiliang.lim@starfivetech.com> wrote:
->>>> 
->>>> From: Anup Patel <apatel@ventanamicro.com>
->>>> 
->>>> We add an optional cold_boot_allowed() platform callback which allows
->>>> platform support to decide which HARTs can do cold boot initialization.
->>>> 
->>>> If this platform callback is not available then any HART can do cold
->>>> boot initialization.
->>>> 
->>>> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
->>> 
->>> Applied this patch to the riscv/opensbi repo
->> 
->> So, no attempt to engage with my objections to the concept as a whole
->> in past patches? Instead you just steamrolled it through over the
->> holiday period. I didn?t even notice this had been re-posted until now.
-> 
-> I did wait 9 days for any comments and since there were no comments
-> I assumed there are no objections.
-> 
-> Overall from OpenSBI perspective, it is good to allow platforms to
-> select HARTs which can do the cold boot sequence.
+On Fri, Mar 31, 2023 at 11:32?PM Lad Prabhakar
+<prabhakar.mahadev-lad.rj@bp.renesas.com> wrote:
+>
+> I/O Coherence Port (IOCP) provides an AXI interface for connecting
+> external non-caching masters, such as DMA controllers. The accesses
+> from IOCP are coherent with D-Caches and L2 Cache.
+>
+> IOCP is a specification option and is disabled on the Renesas RZ/Five
+> SoC due to this reason IP blocks using DMA will fail.
+>
+> As a workaround for SoCs with IOCP disabled CMO needs to be handled by
+> software. Firstly OpenSBI configures the memory region as
+> "Memory, Non-cacheable, Bufferable" and passes this region as a global
+> shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
+> allocations happen from this region and synchronization callbacks are
+> implemented to synchronize when doing DMA transactions.
+>
+> SBI_EXT_ANDES_IOCP_SW_WORKAROUND checks if the IOCP errata should be
+> applied to handle cache management.
+>
+> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+> ---
+> v7->v8
+> * Fixed typo controlable -> controllable
+> * Included RB tag from Lin-san and Conor
+>
+> v6->v7
+> * Added a new section for conf and control registers
+> * Made use of misa_extension('U')
+> * For unsupported funcid's now returning SBI_EINVAL
+> * Renamed ANDES_SBI_EXT_IOCP_SW_WORKAROUND -> SBI_EXT_ANDES_IOCP_SW_WORKAROUND
+>
+> v5->v6
+> * Moved ANDES_SBI_EXT_IOCP_SW_WORKAROUND to andes_sbi.h
+> * Moved helpers to check IOCP to common header so that we re-use code
+>
+> v5:
+> https://patchwork.ozlabs.org/project/opensbi/patch/20230213215111.32017-4-prabhakar.mahadev-lad.rj at bp.renesas.com/
+> ---
+>  platform/generic/include/andes/andes45.h   | 23 ++++++++++++++--
+>  platform/generic/include/andes/andes_sbi.h | 32 ++++++++++++++++++++++
+>  platform/generic/renesas/rzfive/rzfive.c   | 21 ++++++++++++++
+>  3 files changed, 74 insertions(+), 2 deletions(-)
+>  create mode 100644 platform/generic/include/andes/andes_sbi.h
+>
+> diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+> index 08b3d18..f570994 100644
+> --- a/platform/generic/include/andes/andes45.h
+> +++ b/platform/generic/include/andes/andes45.h
+> @@ -4,7 +4,26 @@
+>  #define CSR_MARCHID_MICROID 0xfff
+>
+>  /* Memory and Miscellaneous Registers */
+> -#define CSR_MCACHE_CTL 0x7ca
+> -#define CSR_MCCTLCOMMAND 0x7cc
+> +#define CSR_MCACHE_CTL         0x7ca
+> +#define CSR_MCCTLCOMMAND       0x7cc
+> +
+> +/* Configuration Control & Status Registers */
+> +#define CSR_MICM_CFG           0xfc0
+> +#define CSR_MDCM_CFG           0xfc1
+> +#define CSR_MMSC_CFG           0xfc2
+> +
+> +#define MICM_CFG_ISZ_OFFSET            6
+> +#define MICM_CFG_ISZ_MASK              (0x7  << MICM_CFG_ISZ_OFFSET)
+> +
+> +#define MDCM_CFG_DSZ_OFFSET            6
+> +#define MDCM_CFG_DSZ_MASK              (0x7  << MDCM_CFG_DSZ_OFFSET)
+> +
+> +#define MMSC_CFG_CCTLCSR_OFFSET                16
+> +#define MMSC_CFG_CCTLCSR_MASK          (0x1 << MMSC_CFG_CCTLCSR_OFFSET)
+> +#define MMSC_IOCP_OFFSET                       47
+> +#define MMSC_IOCP_MASK                 (0x1ULL << MMSC_IOCP_OFFSET)
+> +
+> +#define MCACHE_CTL_CCTL_SUEN_OFFSET    8
+> +#define MCACHE_CTL_CCTL_SUEN_MASK      (0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
+>
+>  #endif /* _RISCV_ANDES45_H */
+> diff --git a/platform/generic/include/andes/andes_sbi.h b/platform/generic/include/andes/andes_sbi.h
+> new file mode 100644
+> index 0000000..12b83c2
+> --- /dev/null
+> +++ b/platform/generic/include/andes/andes_sbi.h
+> @@ -0,0 +1,32 @@
+> +#ifndef _RISCV_ANDES_SBI_H
+> +#define _RISCV_ANDES_SBI_H
+> +
+> +#include <sbi/riscv_asm.h>
+> +
+> +#include "andes45.h"
+> +
+> +enum sbi_ext_andes_fid {
+> +       SBI_EXT_ANDES_FID0 = 0, /* Reserved for future use */
+> +       SBI_EXT_ANDES_IOCP_SW_WORKAROUND,
+> +};
+> +
+> +static bool andes45_cache_controllable(void)
+> +{
+> +       return (((csr_read(CSR_MICM_CFG) & MICM_CFG_ISZ_MASK) ||
+> +                (csr_read(CSR_MDCM_CFG) & MDCM_CFG_DSZ_MASK)) &&
+> +               (csr_read(CSR_MMSC_CFG) & MMSC_CFG_CCTLCSR_MASK) &&
+> +               (csr_read(CSR_MCACHE_CTL) & MCACHE_CTL_CCTL_SUEN_MASK) &&
+> +               misa_extension('U'));
+> +}
+> +
+> +static bool andes45_iocp_disabled(void)
+> +{
+> +       return (csr_read(CSR_MMSC_CFG) & MMSC_IOCP_MASK) ? false : true;
+> +}
+> +
+> +static bool andes45_apply_iocp_sw_workaround(void)
+> +{
+> +       return andes45_cache_controllable() & andes45_iocp_disabled();
+> +}
 
-I shouldn?t have to repeat unaddressed comments from previous patches
-that were the reason behind it being reverted; reposting a patch
-doesn?t suddenly make the objections go away. If OpenSBI used a code
-review system from this millennium then updating the patch set wouldn?t
-lose past comments, but if you want to use outdated processes like
-mailing lists for code review then it?s on you as maintainer to make
-sure previous threads? comments have been addressed. If you don?t want
-to do that then use a better system, but I?m not going to waste my life
-repeating myself because you insist on doing everything the Linux way
-and remaining stuck in the previous century.
+Instead of having all static functions in the header, I suggest creating a small
+library at platforms/generic/andes/andes_sbi.c with its own Kconfig option.
 
-Plus, like many, I was on annual leave for much of that period, given
-it was 29th Dec - 7th Jan, so those 9 days are extremely aggressive in
-the circumstances. There was zero urgency to land this even if the 
-overall consensus was to do so.
+The Renesas RZ/Five platform can select the andes_sbi library using Kconfig.
 
-I am very unhappy with the process followed here, it is not the way in
-which you build a community of people reviewing code, nor how you build
-high-quality software.
+> +
+> +#endif /* _RISCV_ANDES_SBI_H */
+> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+> index 4d71d0d..b6df1a7 100644
+> --- a/platform/generic/renesas/rzfive/rzfive.c
+> +++ b/platform/generic/renesas/rzfive/rzfive.c
+> @@ -5,8 +5,10 @@
+>   */
+>
+>  #include <andes/andes45_pma.h>
+> +#include <andes/andes_sbi.h>
+>  #include <platform_override.h>
+>  #include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>
+>  static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
+> @@ -28,6 +30,24 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
+>                                          array_size(renesas_rzfive_pma_regions));
+>  }
+>
+> +static int renesas_rzfive_vendor_ext_provider(long funcid,
+> +                                             const struct sbi_trap_regs *regs,
+> +                                             unsigned long *out_value,
+> +                                             struct sbi_trap_info *out_trap,
+> +                                             const struct fdt_match *match)
 
-I see no technical reason why a specific hart needs to perform the cold
-boot sequence, and if it does then you can key that off the compatible.
+I think andes_sbi.c should define and implement:
 
-Jess
+int andes_sbi_vendor_ext_provider(long funcid,
+                                              const struct sbi_trap_regs *regs,
+                                             unsigned long *out_value,
+                                             struct sbi_trap_info *out_trap,
+                                             const struct fdt_match *match);
 
-> Regards,
-> Anup
-> 
->> 
->> Jess
->> 
->>> Thanks,
->>> Anup
->>> 
->>>> ---
->>>> include/sbi/sbi_platform.h | 20 ++++++++++++++++++++
->>>> lib/sbi/sbi_init.c         |  7 +++++--
->>>> 2 files changed, 25 insertions(+), 2 deletions(-)
->>>> 
->>>> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
->>>> index 722f27a..bd0d5ca 100644
->>>> --- a/include/sbi/sbi_platform.h
->>>> +++ b/include/sbi/sbi_platform.h
->>>> @@ -65,6 +65,9 @@ enum sbi_platform_features {
->>>> 
->>>> /** Platform functions */
->>>> struct sbi_platform_operations {
->>>> +       /* Check if specified HART is allowed to do cold boot */
->>>> +       bool (*cold_boot_allowed)(u32 hartid);
->>>> +
->>>>       /* Platform nascent initialization */
->>>>       int (*nascent_init)(void);
->>>> 
->>>> @@ -356,6 +359,23 @@ static inline bool sbi_platform_hart_invalid(const struct sbi_platform *plat,
->>>>       return FALSE;
->>>> }
->>>> 
->>>> +/**
->>>> + * Check whether given HART is allowed to do cold boot
->>>> + *
->>>> + * @param plat pointer to struct sbi_platform
->>>> + * @param hartid HART ID
->>>> + *
->>>> + * @return true if HART is allowed to do cold boot and false otherwise
->>>> + */
->>>> +static inline bool sbi_platform_cold_boot_allowed(
->>>> +                                       const struct sbi_platform *plat,
->>>> +                                       u32 hartid)
->>>> +{
->>>> +       if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
->>>> +               return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
->>>> +       return true;
->>>> +}
->>>> +
->>>> /**
->>>> * Nascent (very early) initialization for current HART
->>>> *
->>>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->>>> index a8500e5..d45cee6 100644
->>>> --- a/lib/sbi/sbi_init.c
->>>> +++ b/lib/sbi/sbi_init.c
->>>> @@ -498,8 +498,11 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
->>>>        * HARTs which satisfy above condition.
->>>>        */
->>>> 
->>>> -       if (next_mode_supported && atomic_xchg(&coldboot_lottery, 1) == 0)
->>>> -               coldboot = TRUE;
->>>> +       if (sbi_platform_cold_boot_allowed(plat, hartid)) {
->>>> +               if (next_mode_supported &&
->>>> +                   atomic_xchg(&coldboot_lottery, 1) == 0)
->>>> +                       coldboot = true;
->>>> +       }
->>>> 
->>>>       /*
->>>>        * Do platform specific nascent (very early) initialization so
->>>> --
->>>> 2.25.1
->>>> 
->>>> 
->>>> --
->>>> opensbi mailing list
->>>> opensbi at lists.infradead.org
->>>> http://lists.infradead.org/mailman/listinfo/opensbi
->>> 
->>> --
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
+The renesas_rzfive_vendor_ext_provider() can simply call
+andes_sbi_vendor_ext_provider() or the ".vendor_ext_provider"
+below can be directly set to andes_sbi_vendor_ext_provider().
 
+> +{
+> +       switch (funcid) {
+> +       case SBI_EXT_ANDES_IOCP_SW_WORKAROUND:
+> +               *out_value = andes45_apply_iocp_sw_workaround();
+> +               break;
+> +
+> +       default:
+> +               return SBI_EINVAL;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+>  {
+>         /*
+> @@ -55,4 +75,5 @@ const struct platform_override renesas_rzfive = {
+>         .match_table = renesas_rzfive_match,
+>         .early_init = renesas_rzfive_early_init,
+>         .final_init = renesas_rzfive_final_init,
+> +       .vendor_ext_provider = renesas_rzfive_vendor_ext_provider,
+>  };
+> --
+> 2.17.1
+>
+
+Regards,
+Anup
 
