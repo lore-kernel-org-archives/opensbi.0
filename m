@@ -1,26 +1,21 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 6 Apr 2023 18:44:08 +0530
-Subject: [PATCH v2] lib: sbi: Fix how to check whether the domain contains fw_region
-In-Reply-To: <20230316121111.122741-1-wxjstz@126.com>
-References: <20230316121111.122741-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3Q9Cbe_V_36BB2s-PBstx2RA-EE485BWA-V1C5oWdt5A@mail.gmail.com>
+Date: Thu, 6 Apr 2023 18:49:27 +0530
+Subject: [PATCH 1/2] lib: sbi: Introduce sbi_entry_count() function
+In-Reply-To: <20230320155924.950465-1-apatel@ventanamicro.com>
+References: <20230320155924.950465-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy2r29kh+fFhogKkj-d9LC11utQk+WLmfqW9rwTWsSzCpw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 16, 2023 at 5:41?PM Xiang W <wxjstz@126.com> wrote:
+On Mon, Mar 20, 2023 at 9:29?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> Because firmware is split into rw/rx segments, it cannot be recorded
-> by a root_fw_region. This problem is solved by adding a flag
-> fw_region_inited to sbi_domain.
+> We introduce sbi_entry_count() function which counts the number
+> of times a HART enters OpenSBI via cold-boot or warm-boot path.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -28,127 +23,125 @@ Thanks,
 Anup
 
 > ---
-> v2 changes: Remove unused have_fw_reg
+>  include/sbi/sbi_init.h |  2 ++
+>  lib/sbi/sbi_init.c     | 42 +++++++++++++++++++++++++++++++++++-------
+>  2 files changed, 37 insertions(+), 7 deletions(-)
 >
->  include/sbi/sbi_domain.h   |  2 ++
->  lib/sbi/sbi_domain.c       | 28 +++++++---------------------
->  lib/utils/fdt/fdt_domain.c |  1 +
->  3 files changed, 10 insertions(+), 21 deletions(-)
+> diff --git a/include/sbi/sbi_init.h b/include/sbi/sbi_init.h
+> index 74eb1c0..9640fee 100644
+> --- a/include/sbi/sbi_init.h
+> +++ b/include/sbi/sbi_init.h
+> @@ -16,6 +16,8 @@ struct sbi_scratch;
 >
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index eaca7f0..124ea90 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -122,6 +122,8 @@ struct sbi_domain {
->         bool system_reset_allowed;
->         /** Is domain allowed to suspend the system */
->         bool system_suspend_allowed;
-> +       /** Identifies whether to include the firmware region */
-> +       bool fw_region_inited;
->  };
+>  void __noreturn sbi_init(struct sbi_scratch *scratch);
 >
->  /** The root domain instance */
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 4d7b80a..d6e9ff6 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -30,7 +30,6 @@ static struct sbi_hartmask root_hmask = { 0 };
+> +unsigned long sbi_entry_count(u32 hartid);
+> +
+>  unsigned long sbi_init_count(u32 hartid);
 >
->  #define ROOT_REGION_MAX        16
->  static u32 root_memregs_count = 0;
-> -static struct sbi_domain_memregion root_fw_region;
->  static struct sbi_domain_memregion root_memregs[ROOT_REGION_MAX + 1] = { 0 };
->
->  struct sbi_domain root = {
-> @@ -39,6 +38,7 @@ struct sbi_domain root = {
->         .regions = root_memregs,
->         .system_reset_allowed = true,
->         .system_suspend_allowed = true,
-> +       .fw_region_inited = false,
->  };
->
->  bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
-> @@ -69,14 +69,6 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
->         return ret;
+>  void __noreturn sbi_exit(struct sbi_scratch *scratch);
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index ffa214c..f184248 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -238,12 +238,13 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
+>         spin_unlock(&coldboot_lock);
 >  }
 >
-> -static void domain_memregion_initfw(struct sbi_domain_memregion *reg)
-> -{
-> -       if (!reg)
-> -               return;
-> -
-> -       sbi_memcpy(reg, &root_fw_region, sizeof(*reg));
-> -}
-> -
->  void sbi_domain_memregion_init(unsigned long addr,
->                                 unsigned long size,
->                                 unsigned long flags,
-> @@ -255,7 +247,6 @@ static int sanitize_domain(const struct sbi_platform *plat,
->                            struct sbi_domain *dom)
+> +static unsigned long entry_count_offset;
+>  static unsigned long init_count_offset;
+>
+>  static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 >  {
->         u32 i, j, count;
-> -       bool have_fw_reg;
->         struct sbi_domain_memregion treg, *reg, *reg1;
+>         int rc;
+> -       unsigned long *init_count;
+> +       unsigned long *count;
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 >
->         /* Check possible HARTs */
-> @@ -288,17 +279,11 @@ static int sanitize_domain(const struct sbi_platform *plat,
->                 }
->         }
+>         /* Note: This has to be first thing in coldboot init sequence */
+> @@ -256,10 +257,17 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>         if (rc)
+>                 sbi_hart_hang();
 >
-> -       /* Count memory regions and check presence of firmware region */
-> +       /* Count memory regions */
->         count = 0;
-> -       have_fw_reg = false;
-> -       sbi_domain_for_each_memregion(dom, reg) {
-> -               if (reg->order == root_fw_region.order &&
-> -                   reg->base == root_fw_region.base &&
-> -                   reg->flags == root_fw_region.flags)
-> -                       have_fw_reg = true;
-> +       sbi_domain_for_each_memregion(dom, reg)
->                 count++;
-> -       }
-> -       if (!have_fw_reg) {
-> +       if (!dom->fw_region_inited) {
->                 sbi_printf("%s: %s does not have firmware region\n",
->                            __func__, dom->name);
->                 return SBI_EINVAL;
-> @@ -732,8 +717,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->         sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
->                                   (SBI_DOMAIN_MEMREGION_M_READABLE |
->                                    SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
-> -                                 &root_fw_region);
-> -       domain_memregion_initfw(&root_memregs[root_memregs_count++]);
-> +                                 &root_memregs[root_memregs_count++]);
->
->         sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
->                                   (scratch->fw_size - scratch->fw_rw_offset),
-> @@ -741,6 +725,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->                                    SBI_DOMAIN_MEMREGION_M_WRITABLE),
->                                   &root_memregs[root_memregs_count++]);
->
-> +       root.fw_region_inited = true;
+> +       entry_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
+> +       if (!entry_count_offset)
+> +               sbi_hart_hang();
 > +
->         /* Root domain allow everything memory region */
->         sbi_domain_memregion_init(0, ~0UL,
->                                   (SBI_DOMAIN_MEMREGION_READABLE |
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index adcb94b..bb6d17d 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -358,6 +358,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
->                         return SBI_EINVAL;
->                 memcpy(&regions[val32++], reg, sizeof(*reg));
->         }
-> +       dom->fw_region_inited = root.fw_region_inited;
+>         init_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
+>         if (!init_count_offset)
+>                 sbi_hart_hang();
 >
->         /* Read "boot-hart" DT property */
->         val32 = -1U;
+> +       count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
+> +       (*count)++;
+> +
+>         rc = sbi_hsm_init(scratch, hartid, true);
+>         if (rc)
+>                 sbi_hart_hang();
+> @@ -352,8 +360,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>
+>         wake_coldboot_harts(scratch, hartid);
+>
+> -       init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+> -       (*init_count)++;
+> +       count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+> +       (*count)++;
+>
+>         sbi_hsm_hart_start_finish(scratch, hartid);
+>  }
+> @@ -362,12 +370,15 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>                                          u32 hartid)
+>  {
+>         int rc;
+> -       unsigned long *init_count;
+> +       unsigned long *count;
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>
+> -       if (!init_count_offset)
+> +       if (!entry_count_offset || !init_count_offset)
+>                 sbi_hart_hang();
+>
+> +       count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
+> +       (*count)++;
+> +
+>         rc = sbi_hsm_init(scratch, hartid, false);
+>         if (rc)
+>                 sbi_hart_hang();
+> @@ -408,8 +419,8 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> -       init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+> -       (*init_count)++;
+> +       count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+> +       (*count)++;
+>
+>         sbi_hsm_hart_start_finish(scratch, hartid);
+>  }
+> @@ -521,6 +532,23 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+>                 init_warmboot(scratch, hartid);
+>  }
+>
+> +unsigned long sbi_entry_count(u32 hartid)
+> +{
+> +       struct sbi_scratch *scratch;
+> +       unsigned long *entry_count;
+> +
+> +       if (!entry_count_offset)
+> +               return 0;
+> +
+> +       scratch = sbi_hartid_to_scratch(hartid);
+> +       if (!scratch)
+> +               return 0;
+> +
+> +       entry_count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
+> +
+> +       return *entry_count;
+> +}
+> +
+>  unsigned long sbi_init_count(u32 hartid)
+>  {
+>         struct sbi_scratch *scratch;
 > --
-> 2.39.2
+> 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
