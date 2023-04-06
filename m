@@ -1,117 +1,104 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 6 Apr 2023 13:08:59 +0530
-Subject: [PATCH v4 2/4] lib: sbi: Optimize sbi_ipi
-In-Reply-To: <20230202085136.224745-3-wxjstz@126.com>
-References: <20230202085136.224745-1-wxjstz@126.com> <20230202085136.224745-3-wxjstz@126.com>
-Message-ID: <CAAhSdy1FBsSJqxo8RYBKWQaYdFSDqNS3zkZsJmm=dOEv--xkgA@mail.gmail.com>
+Date: Thu, 6 Apr 2023 13:22:18 +0530
+Subject: [PATCH v4 3/4] lib: sbi: rename function of sbi_ipi
+In-Reply-To: <20230202085136.224745-4-wxjstz@126.com>
+References: <20230202085136.224745-1-wxjstz@126.com> <20230202085136.224745-4-wxjstz@126.com>
+Message-ID: <CAAhSdy1kNNHm=jnEqCxD3zaJuoJr_7Ddg8=1q4ZCPHABvRxUNA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 2, 2023 at 2:52?PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Feb 2, 2023 at 2:22?PM Xiang W <wxjstz@126.com> wrote:
 >
-> the original sbI_ipi will be processed by hart by hart, after optimization,
-
-s/sbl_ipi/sbi_ipi/
-
-> send ipi first and finally wait together.
+> Renamed some functions and reused some code
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
+
+The patch subject and commit description needs to be improved.
+
+The subject can be "sbi: tlb: Simplify to tlb_process_count() function"
+
 > ---
->  lib/sbi/sbi_ipi.c | 42 ++++++++++++++++++++++++++++++++++++------
->  1 file changed, 36 insertions(+), 6 deletions(-)
+>  lib/sbi/sbi_tlb.c | 27 ++++++++++-----------------
+>  1 file changed, 10 insertions(+), 17 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index 1bcc2e4..92a33bd 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -31,7 +31,7 @@ static unsigned long ipi_data_off;
->  static const struct sbi_ipi_device *ipi_dev = NULL;
->  static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
+> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+> index 8bab31a..741f4bb 100644
+> --- a/lib/sbi/sbi_tlb.c
+> +++ b/lib/sbi/sbi_tlb.c
+> @@ -211,7 +211,7 @@ static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data)
+>                 sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
+>  }
 >
-> -static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
-> +static int sbi_ipi_update(struct sbi_scratch *scratch, u32 remote_hartid,
->                         u32 event, void *data)
+> -static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+> +static void tlb_process_helper(struct sbi_tlb_info *tinfo)
 
-This is unnecessary renaming. Please drop this renaming.
+No need to rename this function.
 
 >  {
->         int ret;
-> @@ -69,6 +69,18 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
+>         u32 rhartid;
+>         struct sbi_scratch *rscratch = NULL;
+> @@ -229,30 +229,23 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+>         }
+>  }
 >
->         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
->
-> +       return 0;
-> +}
-> +
-> +static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
-> +{
-> +       const struct sbi_ipi_event_ops *ipi_ops;
-> +
-> +       if ((SBI_IPI_EVENT_MAX <= event) ||
-> +           !ipi_ops_array[event])
-> +               return SBI_EINVAL;
-> +       ipi_ops = ipi_ops_array[event];
-> +
->         if (ipi_ops->sync)
->                 ipi_ops->sync(scratch);
->
-> @@ -83,7 +95,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
->  int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+> -static void tlb_process_count(struct sbi_scratch *scratch, int count)
+> +static int tlb_process_once(struct sbi_scratch *scratch)
+
+This function can return "true" on success and "false" on failure.
+
 >  {
->         int rc;
-> -       ulong i, m;
-> +       ulong i, m, n;
->         struct sbi_domain *dom = sbi_domain_thishart_ptr();
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         struct sbi_tlb_info tinfo;
+> -       unsigned int deq_count = 0;
+>         struct sbi_fifo *tlb_fifo =
+>                         sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
 >
-> @@ -92,19 +104,37 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
->                 if (rc)
->                         return rc;
->                 m &= hmask;
-> +               n = m;
+> -       while (!sbi_fifo_dequeue(tlb_fifo, &tinfo)) {
+> -               tlb_entry_process(&tinfo);
+> -               deq_count++;
+> -               if (deq_count > count)
+> -                       break;
+> -
+> +       if (!sbi_fifo_dequeue(tlb_fifo, &tinfo)) {
+> +               tlb_process_helper(&tinfo);
+> +               return 0;
+>         }
+> +
+> +       return -1;
+>  }
 >
-> -               /* Send IPIs */
-> +               /* update IPIs */
->                 for (i = hbase; m; i++, m >>= 1) {
->                         if (m & 1UL)
-> -                               sbi_ipi_send(scratch, i, event, data);
-> +                               sbi_ipi_update(scratch, i, event, data);
-> +               }
-> +
-> +               /* sync IPIs */
-> +               m = n;
-> +               for (i = hbase; m; i++, m >>= 1) {
-> +                       if (m & 1UL)
-> +                               sbi_ipi_sync(scratch, event);
->                 }
->         } else {
-> +               /* update IPIs */
-> +               hbase = 0;
-> +               while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
-> +                       for (i = hbase; m; i++, m >>= 1) {
-> +                               if (m & 1UL)
-> +                                       sbi_ipi_update(scratch, i, event, data);
-> +                       }
-> +                       hbase += BITS_PER_LONG;
-> +               }
-> +
-> +               /* sync IPIs */
->                 hbase = 0;
-
-Set "m = n" here.
-
->                 while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
-> -                       /* Send IPIs */
->                         for (i = hbase; m; i++, m >>= 1) {
->                                 if (m & 1UL)
-> -                                       sbi_ipi_send(scratch, i, event, data);
-> +                                       sbi_ipi_sync(scratch, event);
->                         }
->                         hbase += BITS_PER_LONG;
->                 }
+>  static void tlb_process(struct sbi_scratch *scratch)
+>  {
+> -       struct sbi_tlb_info tinfo;
+> -       struct sbi_fifo *tlb_fifo =
+> -                       sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
+> -
+> -       while (!sbi_fifo_dequeue(tlb_fifo, &tinfo))
+> -               tlb_entry_process(&tinfo);
+> +       while (!tlb_process_once(scratch));
+>  }
+>
+>  static void tlb_sync(struct sbi_scratch *scratch)
+> @@ -265,7 +258,7 @@ static void tlb_sync(struct sbi_scratch *scratch)
+>                  * While we are waiting for remote hart to set the sync,
+>                  * consume fifo requests to avoid deadlock.
+>                  */
+> -               tlb_process_count(scratch, 1);
+> +               tlb_process_once(scratch);
+>         }
+>
+>         return;
+> @@ -380,7 +373,7 @@ static int tlb_update(struct sbi_scratch *scratch,
+>                  * TODO: Introduce a wait/wakeup event mechanism to handle
+>                  * this properly.
+>                  */
+> -               tlb_process_count(scratch, 1);
+> +               tlb_process_once(scratch);
+>                 sbi_dprintf("hart%d: hart%d tlb fifo full\n",
+>                             curr_hartid, remote_hartid);
+>         }
 > --
 > 2.39.0
 >
