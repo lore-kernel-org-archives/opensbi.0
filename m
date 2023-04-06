@@ -1,147 +1,126 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Thu, 6 Apr 2023 08:07:41 +0100
-Subject: [1/1] lib: utils/fdt: Parse for UART "clocks" property if
- "clock-frequency" is absent
-In-Reply-To: <20230406062622.1484-1-ende.tan@starfivetech.com>
-References: <20230406062622.1484-1-ende.tan@starfivetech.com>
-Message-ID: <F8BEB3D4-B938-42D7-B57D-21541873FFD2@jrtc27.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 6 Apr 2023 13:08:59 +0530
+Subject: [PATCH v4 2/4] lib: sbi: Optimize sbi_ipi
+In-Reply-To: <20230202085136.224745-3-wxjstz@126.com>
+References: <20230202085136.224745-1-wxjstz@126.com> <20230202085136.224745-3-wxjstz@126.com>
+Message-ID: <CAAhSdy1FBsSJqxo8RYBKWQaYdFSDqNS3zkZsJmm=dOEv--xkgA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 6 Apr 2023, at 07:26, Tan En De <ende.tan@starfivetech.com> wrote:
-> 
-> For UART node, current implementation of fdt_parse_uart_node_common() checks for "clock-frequency" property only.
-> However, for UART node that uses more than one clock,
-> "clock-frequency" may need to be parsed from the phandle specified in "clocks" property.
-> So, this commit adds in logic to parse "clocks" property if "clock-frequency" is absent.
+On Thu, Feb 2, 2023 at 2:52?PM Xiang W <wxjstz@126.com> wrote:
+>
+> the original sbI_ipi will be processed by hart by hart, after optimization,
 
-FreeBSD?s common FDT UART code doesn?t do this. What specific
-hardware/bindings do you need this for? If this is for the
-snps,dw-apb-uart (which I would assume is what it?s for given you?re a
-StarFive employee) then why? The Linux driver assumes that
-clock-frequency exists, as does FreeBSD.
+s/sbl_ipi/sbi_ipi/
 
-Needs further justification, otherwise it?s a NAK from me.
-
-Jess
-
-> Signed-off-by: Tan En De <ende.tan@starfivetech.com>
-> Signed-off-by: Tan Jun Liang <junliang.tan@starfivetech.com>
+> send ipi first and finally wait together.
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
-> include/sbi_utils/fdt/fdt_helper.h |  6 +++
-> lib/utils/fdt/fdt_helper.c         | 65 +++++++++++++++++++++++++++++-
-> 2 files changed, 69 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 39d7f3a..d84040e 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -32,6 +32,12 @@ struct platform_uart_data {
-> 	unsigned long reg_shift;
-> 	unsigned long reg_io_width;
-> 	unsigned long reg_offset;
-> +	/*
-> +	 * For multi-clock UART node.
-> +	 * clock_index shall be set to zero-indexed main clock's index in the "clocks" list,
-> +	 * from which freq will be obtained for baud calculation.
-> +	 */
-> +	unsigned long clock_index;
-> };
-> 
-> const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 48bc2fe..d68d886 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -313,6 +313,62 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
-> 	return 0;
-> }
-> 
-> +/*
-> + * For multi-clock UART node.
-> + * Parse "clocks" property in UART node to set uart->freq.
-> + * "clocks" property is an array of clock phandle and clock specifier pairs.
-> + * Before calling this function, uart->clock_index shall be set with
-> + * the index of the pair containing the main UART clock's phandle,
-> + * which baudrate calculation will be based on.
-> + * Return 0 on success, else return -1.
-> + */
-> +static int fdt_parse_uart_clocks_prop(void *fdt, int nodeoffset,
-> +				struct platform_uart_data *uart)
-> +{
-> +	const fdt32_t *clocks_val, *clock_cells_val, *clock_frequency_val;
-> +	uint32_t clock_phandle, cell_index, clock_cells;
-> +	int clocks_len, clock_offset, clock_cells_len, clock_frequency_len;
-> +	unsigned long clock_index = uart->clock_index;
-> +
-> +	/* clocks_val is a flattened array of values, made from the phandle and specifier pairs. */
-> +	clocks_val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clocks", &clocks_len);
-> +	if (!(clocks_len > 0 && clocks_val))
-> +		return -1;
-> +
-> +	cell_index = 0; /* index into the clocks_val */
-> +	for (int i = 0; i <= clock_index; i++) {
-> +		/* In case of out-of-bound access to the clocks_val array, return -1. */
-> +		if (cell_index + 1 > clocks_len)
-> +			return -1;
-> +		/* Else, parse the phandle */
-> +		clock_phandle = fdt32_to_cpu(clocks_val[cell_index]);
-> +		clock_offset = fdt_node_offset_by_phandle(fdt, clock_phandle);
-> +		/*
-> +		 * "#clock-cells" is a required property,
-> +		 * it tells how many cells the clock specifier takes.
-> +		 */
-> +		clock_cells_val = (fdt32_t *)fdt_getprop(fdt, clock_offset, "#clock-cells", &clock_cells_len);
-> +		if (clock_cells_len > 0 && clock_cells_val)
-> +			clock_cells = fdt32_to_cpu(*clock_cells_val);
-> +		else
-> +			return -1;
-> +		/*
-> +		 * Advance clock_index to get cell index to next phandle.
-> +		 * Each phandle and clock specifier pair consists of
-> +		 * 1 phandle and clock_cells number of specifiers.
-> +		 */
-> +		cell_index += 1 + clock_cells;
-> +	}
-> +	/* Finally, obtain the uart->freq from "clock-freqeuncy" property */
-> +	clock_frequency_val = (fdt32_t *)fdt_getprop(fdt, clock_offset, "clock-frequency", &clock_frequency_len);
-> +	if (clock_frequency_len > 0 && clock_frequency_val)
-> +		uart->freq = fdt32_to_cpu(*clock_frequency_val);
-> +	else
-> +		return -1;
-> +
-> +	return 0;
+>  lib/sbi/sbi_ipi.c | 42 ++++++++++++++++++++++++++++++++++++------
+>  1 file changed, 36 insertions(+), 6 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 1bcc2e4..92a33bd 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -31,7 +31,7 @@ static unsigned long ipi_data_off;
+>  static const struct sbi_ipi_device *ipi_dev = NULL;
+>  static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
+>
+> -static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
+> +static int sbi_ipi_update(struct sbi_scratch *scratch, u32 remote_hartid,
+>                         u32 event, void *data)
+
+This is unnecessary renaming. Please drop this renaming.
+
+>  {
+>         int ret;
+> @@ -69,6 +69,18 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
+>
+>         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
+>
+> +       return 0;
 > +}
 > +
-> static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
-> 				      struct platform_uart_data *uart,
-> 				      unsigned long default_freq,
-> @@ -338,8 +394,13 @@ static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
-> 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
-> 	if (len > 0 && val)
-> 		uart->freq = fdt32_to_cpu(*val);
-> -	else
-> -		uart->freq = default_freq;
-> +	else {
-> +		/* If "clock-frequency" property is absent, try parse for "clocks" property */
-> +		rc = fdt_parse_uart_clocks_prop(fdt, nodeoffset, uart);
-> +		/* Fall back to default frequency in case of failure to parse */
-> +		if (rc < 0)
-> +			uart->freq = default_freq;
-> +	}
-> 
-> 	val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-> 	if (len > 0 && val)
-> -- 
-> 2.34.1
-> 
-> 
-> -- 
+> +static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
+> +{
+> +       const struct sbi_ipi_event_ops *ipi_ops;
+> +
+> +       if ((SBI_IPI_EVENT_MAX <= event) ||
+> +           !ipi_ops_array[event])
+> +               return SBI_EINVAL;
+> +       ipi_ops = ipi_ops_array[event];
+> +
+>         if (ipi_ops->sync)
+>                 ipi_ops->sync(scratch);
+>
+> @@ -83,7 +95,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
+>  int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+>  {
+>         int rc;
+> -       ulong i, m;
+> +       ulong i, m, n;
+>         struct sbi_domain *dom = sbi_domain_thishart_ptr();
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>
+> @@ -92,19 +104,37 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+>                 if (rc)
+>                         return rc;
+>                 m &= hmask;
+> +               n = m;
+>
+> -               /* Send IPIs */
+> +               /* update IPIs */
+>                 for (i = hbase; m; i++, m >>= 1) {
+>                         if (m & 1UL)
+> -                               sbi_ipi_send(scratch, i, event, data);
+> +                               sbi_ipi_update(scratch, i, event, data);
+> +               }
+> +
+> +               /* sync IPIs */
+> +               m = n;
+> +               for (i = hbase; m; i++, m >>= 1) {
+> +                       if (m & 1UL)
+> +                               sbi_ipi_sync(scratch, event);
+>                 }
+>         } else {
+> +               /* update IPIs */
+> +               hbase = 0;
+> +               while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
+> +                       for (i = hbase; m; i++, m >>= 1) {
+> +                               if (m & 1UL)
+> +                                       sbi_ipi_update(scratch, i, event, data);
+> +                       }
+> +                       hbase += BITS_PER_LONG;
+> +               }
+> +
+> +               /* sync IPIs */
+>                 hbase = 0;
+
+Set "m = n" here.
+
+>                 while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
+> -                       /* Send IPIs */
+>                         for (i = hbase; m; i++, m >>= 1) {
+>                                 if (m & 1UL)
+> -                                       sbi_ipi_send(scratch, i, event, data);
+> +                                       sbi_ipi_sync(scratch, event);
+>                         }
+>                         hbase += BITS_PER_LONG;
+>                 }
+> --
+> 2.39.0
+>
+>
+> --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
+Regards,
+Anup
 
