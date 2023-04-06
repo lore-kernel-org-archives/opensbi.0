@@ -1,126 +1,132 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 6 Apr 2023 12:27:47 +0530
-Subject: [PATCH v4 1/4] lib: sbi: Optimize sbi_tlb
-In-Reply-To: <20230202085136.224745-2-wxjstz@126.com>
-References: <20230202085136.224745-1-wxjstz@126.com> <20230202085136.224745-2-wxjstz@126.com>
-Message-ID: <CAAhSdy0r_xdEDcv7TxKdZYEE4B+nxRj5weR8+f4_NjKJFgJqAg@mail.gmail.com>
+Date: Thu, 6 Apr 2023 12:30:40 +0530
+Subject: [PATCH v4 0/4] Miscellaneous about sbi_tlb and sbi_ipi
+In-Reply-To: <CAAhSdy0Ji=0dNMCF8ZzdqvAUb1TzXrsycpS=mUuRYci18+qyuA@mail.gmail.com>
+References: <20230202085136.224745-1-wxjstz@126.com> <89543c328342c6bed00393536d01bb43cd3ef612.camel@126.com>
+ <CAAhSdy0Ji=0dNMCF8ZzdqvAUb1TzXrsycpS=mUuRYci18+qyuA@mail.gmail.com>
+Message-ID: <CAAhSdy2npVbGdmcMmSfFzuJN+N-VDMhraXyfXVsW-8fXptouig@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 2, 2023 at 2:52?PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Apr 6, 2023 at 10:27?AM Anup Patel <anup@brainfault.org> wrote:
 >
-> Originally, the process and sync of sbi_tlb need to wait for each other.
-> Evasion by atomic addition and subtraction.
+> On Thu, Mar 16, 2023 at 1:52?PM Xiang W <wxjstz@126.com> wrote:
+> >
+> > ? 2023-02-02???? 16:51 +0800?Xiang W???
+> > > Removed the mutual waiting between process and sync in sbi_tlb
+> > > Update ipi first then wait together
+> > >
+> > Please review!
+> > Optimization can improve tlb sync efficiency.
+> >
+> > sequence diagram before optimization:
+> > ===================================================================
+> > send ipi hart       hart 0       hart 1     hart 2   ...
+> >       +               +           +           +
+> >       |               |           |           |
+> >       | update hart 0 |           |           |
+> >       +<------------->+--+        |           |
+> >       |               |  |process |           |
+> >       |               |  |        |           |
+> >       |               +<-+        |           |
+> >       | sync          |           |           |
+> >       +<------------->+           |           |
+> >       | update hart 1             |           |
+> >       +<------------------------->+--+        |
+> >       |                           |  |process |
+> >       |                           |  |        |
+> >       |                           +<-+        |
+> >       | sync                      |           |
+> >       +<------------------------->+           |
+> >       | update hart 2                         |
+> >       +<------------------------------------->+--+
+> >       |                                       |  |process
+> >       |                                       |  |
+> >       |                                       +<-+
+> >       | sync                                  |
+> >       +<------------------------------------->+
+> >       .
+> >       .
+> >       .
+> >
+> > sequence diagram after optimization:
+> > ===================================================================
+> > send ipi hart       hart 0       hart 1     hart 2   ...
+> >       +               +           +           +
+> >       |               |           |           |
+> >       | update hart 0 |           |           |
+> >       +<------------->+--+        |           |
+> >       | update hart 1 |  |process |           |
+> >       +<--------------|--|------->+--+        |
+> >       | update hart 2 +<-+        |  |process |
+> >       +<--------------|-----------|--|------->+--+
+> >       |               |           +<-+        |  |process
+> >       |               |           |           |  |
+> >       | sync          |           |           +<-+
+> >       +<------------->+           |           |
+> >       | sync                      |           |
+> >       +<------------------------->+           |
+> >       | sync                                  |
+> >       +<------------------------------------->+
+> >       .
+> >       .
+> >       .
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  lib/sbi/sbi_tlb.c | 21 +++++++++++----------
->  1 file changed, 11 insertions(+), 10 deletions(-)
+> Sorry for being slow on this series. Overall, the approach looks
+> good but I need to review individual patches.
 >
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> index 4c142ea..8bab31a 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -215,7 +215,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
->  {
->         u32 rhartid;
->         struct sbi_scratch *rscratch = NULL;
-> -       unsigned long *rtlb_sync = NULL;
-> +       atomic_t *rtlb_sync = NULL;
->
->         tinfo->local_fn(tinfo);
->
-> @@ -225,7 +225,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
->                         continue;
->
->                 rtlb_sync = sbi_scratch_offset_ptr(rscratch, tlb_sync_off);
-> -               while (atomic_raw_xchg_ulong(rtlb_sync, 1)) ;
-> +               atomic_sub_return(rtlb_sync, 1);
->         }
->  }
->
-> @@ -257,10 +257,10 @@ static void tlb_process(struct sbi_scratch *scratch)
->
->  static void tlb_sync(struct sbi_scratch *scratch)
->  {
-> -       unsigned long *tlb_sync =
-> +       atomic_t *tlb_sync =
->                         sbi_scratch_offset_ptr(scratch, tlb_sync_off);
->
-> -       while (!atomic_raw_xchg_ulong(tlb_sync, 0)) {
-> +       while (atomic_read(tlb_sync) > 0) {
->                 /*
->                  * While we are waiting for remote hart to set the sync,
->                  * consume fifo requests to avoid deadlock.
-> @@ -343,6 +343,7 @@ static int tlb_update(struct sbi_scratch *scratch,
->                           u32 remote_hartid, void *data)
->  {
->         int ret;
-> +       atomic_t *tlb_sync;
->         struct sbi_fifo *tlb_fifo_r;
->         struct sbi_tlb_info *tinfo = data;
->         u32 curr_hartid = current_hartid();
-> @@ -369,11 +370,8 @@ static int tlb_update(struct sbi_scratch *scratch,
->         tlb_fifo_r = sbi_scratch_offset_ptr(remote_scratch, tlb_fifo_off);
->
->         ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
-> -       if (ret != SBI_FIFO_UNCHANGED) {
-> -               return 1;
-> -       }
->
-> -       while (sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
-> +       while (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
->                 /**
->                  * For now, Busy loop until there is space in the fifo.
->                  * There may be case where target hart is also
-> @@ -387,6 +385,9 @@ static int tlb_update(struct sbi_scratch *scratch,
->                             curr_hartid, remote_hartid);
->         }
->
-> +       tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
-> +       atomic_add_return(tlb_sync, 1);
-> +
->         return 0;
->  }
->
-> @@ -413,7 +414,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
->  {
->         int ret;
->         void *tlb_mem;
-> -       unsigned long *tlb_sync;
-> +       atomic_t *tlb_sync;
->         struct sbi_fifo *tlb_q;
->         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->
-> @@ -455,7 +456,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
->         tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
->         tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
->
-> -       *tlb_sync = 0;
-> +       tlb_sync->counter = 0;
+> In the meantime, I suggest you try running stress-ng one
+> QEMU virt machine with this patch applied in OpenSBI.
 
-Use ATOMIC_INIT() here.
+To run stress-ng on QEMU virt machine, launch QEMU virt
+machine with at least 1G RAM and Fedora RootFS located
+at:
+https://dl.fedoraproject.org/pub/alt/risc-v/repo/virt-builder-images/images/
+https://dl.fedoraproject.org/pub/alt/risc-v/repo/virt-builder-images/images/Fedora-Developer-37-20221130.n.0-nvme.raw.img.xz
 
->
->         sbi_fifo_init(tlb_q, tlb_mem,
->                       SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);
-> --
-> 2.39.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-Otherwise it looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-Tested-by: Anup Patel <anup@brainfault.org>
+I typically run a cyclic stress-ng test as follows:
+stress-ng --verbose --seq 4 -t 20 -x cyclic
 
 Regards,
 Anup
+
+>
+> Regards,
+> Anup
+>
+> >
+> > Regards,
+> > Xiang W
+> >
+> > > V4 Changes:
+> > > PATCH1: Fixed not adding one to tlb_sync when SBI_FIFO_UNCHANGED
+> > > PATCH4: Add comments
+> > >
+> > > V3 Changes:
+> > > PATCH2: Remove missing sync in update
+> > > add PATCH4: Optimize sbi_tlb queue waiting
+> > >
+> > > V2 Changes:
+> > > PATCH2: Fix m changes after update IPIs
+> > >
+> > > Xiang W (4):
+> > >   lib: sbi: Optimize sbi_tlb
+> > >   lib: sbi: Optimize sbi_ipi
+> > >   lib: sbi: rename function of sbi_ipi
+> > >   lib: sbi: Optimize sbi_tlb queue waiting
+> > >
+> > >  include/sbi/sbi_ipi.h |  3 +++
+> > >  lib/sbi/sbi_ipi.c     | 43 ++++++++++++++++++++++++++++++-------
+> > >  lib/sbi/sbi_tlb.c     | 49 +++++++++++++++++++------------------------
+> > >  3 files changed, 61 insertions(+), 34 deletions(-)
+> > >
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
