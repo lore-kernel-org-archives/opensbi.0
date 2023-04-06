@@ -1,28 +1,29 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 6 Apr 2023 18:49:47 +0530
-Subject: [PATCH 2/2] lib: sbi_hsm: Fix sbi_hsm_hart_start() for platform
- with hart hotplug
-In-Reply-To: <20230320155924.950465-2-apatel@ventanamicro.com>
-References: <20230320155924.950465-1-apatel@ventanamicro.com> <20230320155924.950465-2-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy1Wsu_aH2JpY8VsoKgBVyPAAccXD3nnj1ue2gML-+TmKw@mail.gmail.com>
+Date: Thu, 6 Apr 2023 19:07:14 +0530
+Subject: [PATCH] lib: sbi_hart: clear mip csr during hart init
+In-Reply-To: <20230325165047.3107856-1-mchitale@ventanamicro.com>
+References: <20230325165047.3107856-1-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy3XbF5aEi2q9815=SQJW7Sa534c2Em_dwkAhbAwp2346w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 20, 2023 at 9:29?PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Sat, Mar 25, 2023 at 10:21?PM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
 >
-> It possible that a platform supports hart hotplug (i.e. both hart_start
-> and hart_stop callbacks available) and all harts are start simultaneously
-> at platform boot-time. In this situation, the sbi_hsm_hart_start() will
-> call hsm_device_hart_start() for secondary harts at platform boot-time
-> which will fail because secondary harts were already started.
+> If mip.SEIP bit is not cleared then on HiFive Unmatched board it causes
+> spurious external interrupts. This breaks the boot up of HiFive Unmatched
+> board. Hence it is required to bring the mip CSR to a known state during
+> hart init and avoid spurious interrupts.
 >
-> To fix above, we call hsm_device_hart_start() from sbi_hsm_hart_start()
-> only when entry_count is same as init_count for the secondary hart.
->
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Fixes: d9e7368 ("firmware: Not to clear all the MIP")
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -30,41 +31,51 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_hsm.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>  firmware/fw_base.S | 7 -------
+>  lib/sbi/sbi_hart.c | 6 ++++++
+>  2 files changed, 6 insertions(+), 7 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 16e3846..b261410 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -301,7 +301,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->                        const struct sbi_domain *dom,
->                        u32 hartid, ulong saddr, ulong smode, ulong arg1)
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index ceef44f..5a3e894 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -430,13 +430,6 @@ _start_warm:
+>
+>         /* Disable all interrupts */
+>         csrw    CSR_MIE, zero
+> -       /*
+> -        * Only clear the MIP_SSIP and MIP_STIP. For the platform like QEMU,
+> -        * If we clear other interrupts like MIP_SEIP and the pendings of
+> -        * PLIC still exist, the QEMU may not set it back immediately.
+> -        */
+> -       li      t0, (MIP_SSIP | MIP_STIP)
+> -       csrc    CSR_MIP, t0
+>
+>         /* Find HART count and HART stack size */
+>         lla     a4, platform
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 5e06918..6e52cbd 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -733,6 +733,12 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
 >  {
-> -       unsigned long init_count;
-> +       unsigned long init_count, entry_count;
->         unsigned int hstate;
->         struct sbi_scratch *rscratch;
->         struct sbi_hsm_data *hdata;
-> @@ -325,6 +325,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->                 return SBI_EINVAL;
+>         int rc;
 >
->         init_count = sbi_init_count(hartid);
-> +       entry_count = sbi_entry_count(hartid);
+> +       /*
+> +        * Clear mip CSR before proceeding with init to avoid any spurious
+> +        * external interrupts in S-mode.
+> +        */
+> +       csr_write(CSR_MIP, 0);
 > +
->         rscratch->next_arg1 = arg1;
->         rscratch->next_addr = saddr;
->         rscratch->next_mode = smode;
-> @@ -350,7 +352,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->                 goto err;
->         }
->
-> -       if (hsm_device_has_hart_hotplug() ||
-> +       if ((hsm_device_has_hart_hotplug() && (entry_count == init_count)) ||
->            (hsm_device_has_hart_secondary_boot() && !init_count)) {
->                 rc = hsm_device_hart_start(hartid, scratch->warmboot_addr);
->         } else {
+>         if (cold_boot) {
+>                 if (misa_extension('H'))
+>                         sbi_hart_expected_trap = &__sbi_expected_trap_hext;
 > --
 > 2.34.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
