@@ -1,29 +1,28 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 7 Apr 2023 11:16:39 +0530
-Subject: [PATCH v5] docs: Correct FW_JUMP_FDT_ADDR calculation example
-In-Reply-To: <20230330202530.2645471-1-gsomlo@gmail.com>
-References: <20230330202530.2645471-1-gsomlo@gmail.com>
-Message-ID: <CAAhSdy1upD3FK7WuKuG-p8KbEYATGBV=PvV=4Sv1PqhS_JJiqA@mail.gmail.com>
+Date: Fri, 7 Apr 2023 11:28:06 +0530
+Subject: [PATCH v2 1/1] lib: utils: fdt_fixup: avoid buffer overrun
+In-Reply-To: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
+References: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy2dButOT5c1EUOG=3=1v0gw3gnhJT+LSxGW4CMXwHNdiQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 31, 2023 at 1:55?AM Gabriel Somlo <gsomlo@gmail.com> wrote:
+On Fri, Mar 31, 2023 at 6:45?PM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
 >
-> When using `PLATFORM=generic` defaults, the kernel is loaded at
-> `FW_JUMP_ADDR`, and the FDT is loaded at `FW_JUMP_FDT_ADDR.
+> fdt_reserved_memory_fixup() uses filtered_order[PMP_COUNT]. The index
+> must not reach PMP_COUNT.
 >
-> Therefore, the maximum kernel size before `FW_JUMP_FDT_ADDR` must
-> be increased is `$(( FW_JUMP_FDT_ADDR - FW_JUMP_ADDR ))`.
->
-> The example calculation assumes `rv64`, and is wrong to boot
-> (off by 0x200000). Fix it and update it for the general case.
->
-> Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+> Fixes: 199189bd1c17 ("lib: utils: Mark only the largest region as reserved in FDT")
+> Addresses-Coverity-ID: 1536994 ("Out-of-bounds write")
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -31,47 +30,26 @@ Thanks,
 Anup
 
 > ---
->  docs/firmware/fw_jump.md | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
+> v2:
+>         fix typo in commit message
+> ---
+>  lib/utils/fdt/fdt_fixup.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
-> index 956897e..3e883fa 100644
-> --- a/docs/firmware/fw_jump.md
-> +++ b/docs/firmware/fw_jump.md
-> @@ -43,18 +43,18 @@ follows:
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index c10179b..ae6be00 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -355,7 +355,7 @@ int fdt_reserved_memory_fixup(void *fdt)
+>                 if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
+>                         continue;
 >
->    When using the default *FW_JUMP_FDT_ADDR* with *PLATFORM=generic*, you must
->    ensure *FW_JUMP_FDT_ADDR* is set high enough to avoid overwriting the kernel.
-> -  You can use the following method.
-> +  You can use the following method (e.g., using bash or zsh):
->
->    ```
-> -  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '/^ +[0-9]+ /\
-> -  {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' \
-> -  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
-> -  increase FW_JUMP_FDT_ADDR
-> +  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '
-> +  /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
-> +  (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
-> +  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
->
-> -  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | \
-> -  awk -n '/^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}'\
-> -  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
-> -  increase FW_JUMP_FDT_ADDR
-> +  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | awk -n '
-> +  /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
-> +  (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
-> +  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
->    ```
->
->  *FW_JUMP* Example
+> -               if (i > PMP_COUNT) {
+> +               if (i >= PMP_COUNT) {
+>                         sbi_printf("%s: Too many memory regions to fixup.\n",
+>                                    __func__);
+>                         return SBI_ENOSPC;
 > --
 > 2.39.2
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
