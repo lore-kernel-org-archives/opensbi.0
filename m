@@ -1,55 +1,46 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 7 Apr 2023 11:28:06 +0530
-Subject: [PATCH v2 1/1] lib: utils: fdt_fixup: avoid buffer overrun
-In-Reply-To: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
-References: <20230331131515.59258-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy2dButOT5c1EUOG=3=1v0gw3gnhJT+LSxGW4CMXwHNdiQ@mail.gmail.com>
+Date: Fri, 7 Apr 2023 11:44:58 +0530
+Subject: [PATCH 1/2] firmware: Optimize loading relocation type
+In-Reply-To: <20230404044601.2835305-1-bmeng@tinylab.org>
+References: <20230404044601.2835305-1-bmeng@tinylab.org>
+Message-ID: <CAAhSdy3gNBckFe_ZHzd-mpPVr-OLNrDE9NtOB1VWz6+V5zbmvQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 31, 2023 at 6:45?PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Tue, Apr 4, 2023 at 10:16?AM Bin Meng <bmeng@tinylab.org> wrote:
 >
-> fdt_reserved_memory_fixup() uses filtered_order[PMP_COUNT]. The index
-> must not reach PMP_COUNT.
+> 't5' already contains relocation type so don't bother reloading it.
 >
-> Fixes: 199189bd1c17 ("lib: utils: Mark only the largest region as reserved in FDT")
-> Addresses-Coverity-ID: 1536994 ("Out-of-bounds write")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Signed-off-by: Bin Meng <bmeng@tinylab.org>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
 > ---
-> v2:
->         fix typo in commit message
-> ---
->  lib/utils/fdt/fdt_fixup.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index c10179b..ae6be00 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -355,7 +355,7 @@ int fdt_reserved_memory_fixup(void *fdt)
->                 if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
->                         continue;
+>  firmware/fw_base.S | 1 -
+>  1 file changed, 1 deletion(-)
 >
-> -               if (i > PMP_COUNT) {
-> +               if (i >= PMP_COUNT) {
->                         sbi_printf("%s: Too many memory regions to fixup.\n",
->                                    __func__);
->                         return SBI_ENOSPC;
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index ceef44f..e30aca6 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -95,7 +95,6 @@ _try_lottery:
+>         lla     t4, __dyn_sym_start
+>
+>  4:
+> -       REG_L   t5, -(REGBYTES*2)(t0)   /* t5 <-- relocation info:type */
+>         srli    t6, t5, SYM_INDEX       /* t6 <--- sym table index */
+>         andi    t5, t5, 0xFF            /* t5 <--- relocation type */
+>         li      t3, RELOC_TYPE
 > --
-> 2.39.2
+> 2.25.1
 >
 
