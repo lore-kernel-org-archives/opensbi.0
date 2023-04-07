@@ -1,25 +1,29 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 7 Apr 2023 10:18:48 +0530
-Subject: [PATCH] sbi/sbi_pmu.c: Align the event type offset as per SBI specification
-In-Reply-To: <20230330084114.24166-1-peterlin@andestech.com>
-References: <20230330084114.24166-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy2T2UrBu_S93m-WLsuespb_D5V6u2pFqk56_9mcGbLPXw@mail.gmail.com>
+Date: Fri, 7 Apr 2023 11:16:39 +0530
+Subject: [PATCH v5] docs: Correct FW_JUMP_FDT_ADDR calculation example
+In-Reply-To: <20230330202530.2645471-1-gsomlo@gmail.com>
+References: <20230330202530.2645471-1-gsomlo@gmail.com>
+Message-ID: <CAAhSdy1upD3FK7WuKuG-p8KbEYATGBV=PvV=4Sv1PqhS_JJiqA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 30, 2023 at 2:11?PM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
+On Fri, Mar 31, 2023 at 1:55?AM Gabriel Somlo <gsomlo@gmail.com> wrote:
 >
-> The bits encoded in event_idx[19:16] indicate the event type, with an
-> offset of 16 instead of 20.
+> When using `PLATFORM=generic` defaults, the kernel is loaded at
+> `FW_JUMP_ADDR`, and the FDT is loaded at `FW_JUMP_FDT_ADDR.
 >
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-
-I have updated the commit description to have a Fixes tag and use
-"lib: sbi_pmu:" as the subject prefix.
+> Therefore, the maximum kernel size before `FW_JUMP_FDT_ADDR` must
+> be increased is `$(( FW_JUMP_FDT_ADDR - FW_JUMP_ADDR ))`.
+>
+> The example calculation assumes `rv64`, and is wrong to boot
+> (off by 0x200000). Fix it and update it for the general case.
+>
+> Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -27,56 +31,43 @@ Thanks,
 Anup
 
 > ---
->  include/sbi/sbi_ecall_interface.h | 4 ++--
->  lib/sbi/sbi_pmu.c                 | 7 ++++---
->  2 files changed, 6 insertions(+), 5 deletions(-)
+>  docs/firmware/fw_jump.md | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
 >
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index 4597358..54d1951 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -214,10 +214,10 @@ enum sbi_pmu_ctr_type {
->  };
+> diff --git a/docs/firmware/fw_jump.md b/docs/firmware/fw_jump.md
+> index 956897e..3e883fa 100644
+> --- a/docs/firmware/fw_jump.md
+> +++ b/docs/firmware/fw_jump.md
+> @@ -43,18 +43,18 @@ follows:
 >
->  /* Helper macros to decode event idx */
-> -#define SBI_PMU_EVENT_IDX_OFFSET 20
->  #define SBI_PMU_EVENT_IDX_MASK 0xFFFFF
-> +#define SBI_PMU_EVENT_IDX_TYPE_OFFSET 16
-> +#define SBI_PMU_EVENT_IDX_TYPE_MASK (0xF << SBI_PMU_EVENT_IDX_TYPE_OFFSET)
->  #define SBI_PMU_EVENT_IDX_CODE_MASK 0xFFFF
-> -#define SBI_PMU_EVENT_IDX_TYPE_MASK 0xF0000
->  #define SBI_PMU_EVENT_RAW_IDX 0x20000
+>    When using the default *FW_JUMP_FDT_ADDR* with *PLATFORM=generic*, you must
+>    ensure *FW_JUMP_FDT_ADDR* is set high enough to avoid overwriting the kernel.
+> -  You can use the following method.
+> +  You can use the following method (e.g., using bash or zsh):
 >
->  #define SBI_PMU_EVENT_IDX_INVALID 0xFFFFFFFF
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 74d6912..ef1eab0 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -81,7 +81,8 @@ static uint32_t num_hw_ctrs;
->  static uint32_t total_ctrs;
+>    ```
+> -  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '/^ +[0-9]+ /\
+> -  {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' \
+> -  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
+> -  increase FW_JUMP_FDT_ADDR
+> +  ${CROSS_COMPILE}objdump -h $KERNEL_ELF | sort -k 5,5 | awk -n '
+> +  /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
+> +  (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
+> +  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
 >
->  /* Helper macros to retrieve event idx and code type */
-> -#define get_cidx_type(x) ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> 16)
-> +#define get_cidx_type(x) \
-> +  ((x & SBI_PMU_EVENT_IDX_TYPE_MASK) >> SBI_PMU_EVENT_IDX_TYPE_OFFSET)
->  #define get_cidx_code(x) (x & SBI_PMU_EVENT_IDX_CODE_MASK)
+> -  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | \
+> -  awk -n '/^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}'\
+> -  | (( `tail -1` > 0x2200000 )) && echo fdt overlaps kernel,\
+> -  increase FW_JUMP_FDT_ADDR
+> +  ${LLVM}objdump -h --show-lma $KERNEL_ELF | sort -k 5,5 | awk -n '
+> +  /^ +[0-9]+ / {addr="0x"$3; size="0x"$5; printf "0x""%x\n",addr+size}' |
+> +  (( `tail -1` > (FW_JUMP_FDT_ADDR - FW_JUMP_ADDR) )) &&
+> +  echo fdt overlaps kernel, increase FW_JUMP_FDT_ADDR
+>    ```
 >
->  /**
-> @@ -903,10 +904,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
->         pmu_reset_event_map(hartid);
->
->         /* First three counters are fixed by the priv spec and we enable it by default */
-> -       active_events[hartid][0] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_OFFSET |
-> +       active_events[hartid][0] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_TYPE_OFFSET |
->                                    SBI_PMU_HW_CPU_CYCLES;
->         active_events[hartid][1] = SBI_PMU_EVENT_IDX_INVALID;
-> -       active_events[hartid][2] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_OFFSET |
-> +       active_events[hartid][2] = SBI_PMU_EVENT_TYPE_HW << SBI_PMU_EVENT_IDX_TYPE_OFFSET |
->                                    SBI_PMU_HW_INSTRUCTIONS;
->
->         return 0;
+>  *FW_JUMP* Example
 > --
-> 2.34.1
+> 2.39.2
 >
 >
 > --
