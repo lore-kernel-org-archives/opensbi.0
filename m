@@ -1,147 +1,46 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 11 Apr 2023 12:56:21 +0800
-Subject: [PATCH v5 4/4] lib: sbi: Optimize sbi_tlb queue waiting
-In-Reply-To: <20230411045621.60331-1-wxjstz@126.com>
+Date: Tue, 11 Apr 2023 12:56:17 +0800
+Subject: [PATCH v5 0/4] Miscellaneous about sbi_tlb and sbi_ipi
+In-Reply-To: <y>
 References: <y>
- <20230411045621.60331-1-wxjstz@126.com>
-Message-ID: <20230411045621.60331-5-wxjstz@126.com>
+Message-ID: <20230411045621.60331-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When tlb_fifo is full, it will wait and affect the ipi update to
-other harts. This patch is optimized.
+V5 Changes:
+PATCH1: use ATOMIC_INIT tlb_sync
+PATCH2: drop the rename of sbi_ipi_send
+PATCH3: drop the rename of tlb_entry_process.
+        commit improved
+        Modify the return value type of tlb_process_once to bool
+PATCH4: update ipi's loop variable from done to retry_needed
+        
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
+V4 Changes:
+PATCH1: Fixed not adding one to tlb_sync when SBI_FIFO_UNCHANGED
+PATCH4: Add comments
+
+V3 Changes:
+PATCH2: Remove missing sync in update
+add PATCH4: Optimize sbi_tlb queue waiting
+
+V2 Changes:
+PATCH2: Fix m changes after update IPIs
+
+Xiang W (4):
+  lib: sbi: Optimize sbi_tlb
+  lib: sbi: Optimize sbi_ipi
+  sbi: tlb: Simplify to tlb_process_count/tlb_process function
+  lib: sbi: Optimize sbi_tlb queue waiting
+
  include/sbi/sbi_ipi.h |  3 +++
- lib/sbi/sbi_ipi.c     | 46 +++++++++++++++++++++----------------------
- lib/sbi/sbi_tlb.c     |  3 ++-
- 3 files changed, 28 insertions(+), 24 deletions(-)
+ lib/sbi/sbi_ipi.c     | 40 +++++++++++++++++++++++++++++++++-----
+ lib/sbi/sbi_tlb.c     | 45 +++++++++++++++++++------------------------
+ 3 files changed, 58 insertions(+), 30 deletions(-)
 
-diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-index f384e74..5511d50 100644
---- a/include/sbi/sbi_ipi.h
-+++ b/include/sbi/sbi_ipi.h
-@@ -41,6 +41,9 @@ struct sbi_ipi_event_ops {
- 	 * Update callback to save/enqueue data for remote HART
- 	 * Note: This is an optional callback and it is called just before
- 	 * triggering IPI to remote HART.
-+	 * @return 0  success
-+	 * @return -1 break IPI, done on local hart
-+	 * @return -2 need retry
- 	 */
- 	int (* update)(struct sbi_scratch *scratch,
- 			struct sbi_scratch *remote_scratch,
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 33bff7a..11512d1 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -53,7 +53,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
- 	if (ipi_ops->update) {
- 		ret = ipi_ops->update(scratch, remote_scratch,
- 				      remote_hartid, data);
--		if (ret < 0)
-+		if (ret != 0)
- 			return ret;
- 	}
- 
-@@ -95,50 +95,50 @@ static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
- int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
- {
- 	int rc;
--	ulong i, m, n;
-+	bool retry_needed;
-+	ulong i, m;
-+	struct sbi_hartmask target_mask = {0};
-+	struct sbi_hartmask retry_mask = {0};
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
-+	/* find target harts */
- 	if (hbase != -1UL) {
- 		rc = sbi_hsm_hart_interruptible_mask(dom, hbase, &m);
- 		if (rc)
- 			return rc;
- 		m &= hmask;
--		n = m;
- 
--		/* update IPIs */
- 		for (i = hbase; m; i++, m >>= 1) {
- 			if (m & 1UL)
--				sbi_ipi_send(scratch, i, event, data);
--		}
--
--		/* sync IPIs */
--		m = n;
--		for (i = hbase; m; i++, m >>= 1) {
--			if (m & 1UL)
--				sbi_ipi_sync(scratch, event);
-+				sbi_hartmask_set_hart(i, &target_mask);
- 		}
- 	} else {
--		/* update IPIs */
- 		hbase = 0;
- 		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
- 			for (i = hbase; m; i++, m >>= 1) {
- 				if (m & 1UL)
--					sbi_ipi_send(scratch, i, event, data);
-+					sbi_hartmask_set_hart(i, &target_mask);
- 			}
- 			hbase += BITS_PER_LONG;
- 		}
-+	}
- 
--		/* sync IPIs */
--		hbase = 0;
--		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
--			for (i = hbase; m; i++, m >>= 1) {
--				if (m & 1UL)
--					sbi_ipi_sync(scratch, event);
--			}
--			hbase += BITS_PER_LONG;
-+	/* update IPIs */
-+	retry_mask = target_mask;
-+	do {
-+		retry_needed = false;
-+		sbi_hartmask_for_each_hart(i, &retry_mask) {
-+			rc = sbi_ipi_send(scratch, i, event, data);
-+			if (rc == -2)
-+				retry_needed = true;
-+			else
-+				sbi_hartmask_clear_hart(i, &retry_mask);
- 		}
--	}
-+	} while (retry_needed);
-+
-+	/* sync IPIs */
-+	sbi_ipi_sync(scratch, event);
- 
- 	return 0;
- }
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index 60ca8c6..248997e 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -364,7 +364,7 @@ static int tlb_update(struct sbi_scratch *scratch,
- 
- 	ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
- 
--	while (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
-+	if (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
- 		/**
- 		 * For now, Busy loop until there is space in the fifo.
- 		 * There may be case where target hart is also
-@@ -376,6 +376,7 @@ static int tlb_update(struct sbi_scratch *scratch,
- 		tlb_process_once(scratch);
- 		sbi_dprintf("hart%d: hart%d tlb fifo full\n",
- 			    curr_hartid, remote_hartid);
-+		return -2;
- 	}
- 
- 	tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
 -- 
 2.39.2
 
