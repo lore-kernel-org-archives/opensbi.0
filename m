@@ -1,66 +1,41 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 12 Apr 2023 09:44:18 +0800
-Subject: [PATCH v10] platform: generic: andes/renesas: Add SBI EXT to
- check for enabling IOCP errata
-In-Reply-To: <20230411163633.11220-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-References: <20230411163633.11220-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
-Message-ID: <ZDYM8laDKXzApUw5@APC323>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 12 Apr 2023 12:39:06 +0800
+Subject: [PATCH 1/2] firmware: Optimize loading relocation type
+In-Reply-To: <20230404044601.2835305-1-bmeng@tinylab.org>
+References: <20230404044601.2835305-1-bmeng@tinylab.org>
+Message-ID: <8663e8becb6ebbc48b131c4caa76734a9cc2da40.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 11, 2023 at 05:36:33PM +0100, Lad Prabhakar wrote:
-> I/O Coherence Port (IOCP) provides an AXI interface for connecting
-> external non-caching masters, such as DMA controllers. The accesses
-> from IOCP are coherent with D-Caches and L2 Cache.
+? 2023-04-04???? 12:46 +0800?Bin Meng???
+> 't5' already contains relocation type so don't bother reloading it.
 > 
-> IOCP is a specification option and is disabled on the Renesas RZ/Five
-> SoC (which is based on Andes AX45MP core) due to this reason IP blocks
-> using DMA will fail.
-> 
-> As a workaround for SoCs with IOCP disabled CMO needs to be handled by
-> software. Firstly OpenSBI configures the memory region as
-> "Memory, Non-cacheable, Bufferable" and passes this region as a global
-> shared dma pool as a DT node. With DMA_GLOBAL_POOL enabled all DMA
-> allocations happen from this region and synchronization callbacks are
-> implemented to synchronize when doing DMA transactions.
-> 
-> SBI_EXT_ANDES_IOCP_SW_WORKAROUND checks if the IOCP errata should be
-> applied to handle cache management.
-> 
-> Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> Signed-off-by: Bin Meng <bmeng@tinylab.org>
+LGTM
 
-Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
-
-Thanks,
-Peter Lin
-
+Reviewed-by: Xiang W <wxjstz@126.com>
 > ---
-> v9->v10
-> * Renamed andes45->andes
-> * Changes the license to BSD-2-Clause
 > 
-> v8->v9
-> * Moved vendor_ext_provider callback to andes45_sbi.c
-> * Updated commit message
-> * Dropped RB tags
+> ?firmware/fw_base.S | 1 -
+> ?1 file changed, 1 deletion(-)
 > 
-> v7->v8
-> * Fixed typo controlable -> controllable
-> * Included RB tag from Lin-san and Conor
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index ceef44f..e30aca6 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -95,7 +95,6 @@ _try_lottery:
+> ????????lla?????t4, __dyn_sym_start
+> ?
+> ?4:
+> -???????REG_L???t5, -(REGBYTES*2)(t0)???/* t5 <-- relocation info:type */
+> ????????srli????t6, t5, SYM_INDEX???????/* t6 <--- sym table index */
+> ????????andi????t5, t5, 0xFF????????????/* t5 <--- relocation type */
+> ????????li??????t3, RELOC_TYPE
+> -- 
+> 2.25.1
 > 
-> v6->v7
-> * Added a new section for conf and control registers
-> * Made use of misa_extension('U')
-> * For unsupported funcid's now returning SBI_EINVAL
-> * Renamed ANDES_SBI_EXT_IOCP_SW_WORKAROUND -> SBI_EXT_ANDES_IOCP_SW_WORKAROUND
 > 
-> v5->v6
-> * Moved ANDES_SBI_EXT_IOCP_SW_WORKAROUND to andes_sbi.h
-> * Moved helpers to check IOCP to common header so that we re-use code
-> 
-> v5:
-> https://patchwork.ozlabs.org/project/opensbi/patch/20230213215111.32017-4-prabhakar.mahadev-lad.rj at bp.renesas.com/
 
