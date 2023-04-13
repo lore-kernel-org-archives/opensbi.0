@@ -1,168 +1,37 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 13 Apr 2023 17:09:25 +0530
-Subject: [PATCH v5 4/4] lib: sbi: Optimize sbi_tlb queue waiting
-In-Reply-To: <20230411045621.60331-5-wxjstz@126.com>
-References: <20230411045621.60331-1-wxjstz@126.com> <20230411045621.60331-5-wxjstz@126.com>
-Message-ID: <CAAhSdy1gX-CZ80_Q+0VUAmT+x9cHkpz3FQdJnbM7nMbWSd+YBA@mail.gmail.com>
+From: Alexandre Ghiti <alexghiti@rivosinc.com>
+Date: Thu, 13 Apr 2023 16:02:18 +0200
+Subject: [PATCH v2 1/2] lib: sbi: Do not clear active_events for cycle/instret when stopping
+Message-ID: <20230413140219.189916-1-alexghiti@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 11, 2023 at 10:27?AM Xiang W <wxjstz@126.com> wrote:
->
-> When tlb_fifo is full, it will wait and affect the ipi update to
-> other harts. This patch is optimized.
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  include/sbi/sbi_ipi.h |  3 +++
->  lib/sbi/sbi_ipi.c     | 46 +++++++++++++++++++++----------------------
->  lib/sbi/sbi_tlb.c     |  3 ++-
->  3 files changed, 28 insertions(+), 24 deletions(-)
->
-> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-> index f384e74..5511d50 100644
-> --- a/include/sbi/sbi_ipi.h
-> +++ b/include/sbi/sbi_ipi.h
-> @@ -41,6 +41,9 @@ struct sbi_ipi_event_ops {
->          * Update callback to save/enqueue data for remote HART
->          * Note: This is an optional callback and it is called just before
->          * triggering IPI to remote HART.
-> +        * @return 0  success
-> +        * @return -1 break IPI, done on local hart
-> +        * @return -2 need retry
+Those events are enabled by default and should not be reset afterwards
+since when using SBI_PMU_CFG_FLAG_SKIP_MATCH, it leads to unaccessible
+counters after the first use.
 
-Don't use negative numbers for special cases.
+Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
+---
+ lib/sbi/sbi_pmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I suggest following error code scheme:
-1) < 0 (error or failure)
-2) = 0 (success)
-3) 1 (break IPI, done on local hart)
-4) 2 (try again)
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 74d6912..2176cc7 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -531,7 +531,7 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+ 		else
+ 			ret = pmu_ctr_stop_hw(cidx);
+ 
+-		if (flag & SBI_PMU_STOP_FLAG_RESET) {
++		if (cidx > (CSR_INSTRET - CSR_CYCLE) && flag & SBI_PMU_STOP_FLAG_RESET) {
+ 			active_events[hartid][cidx] = SBI_PMU_EVENT_IDX_INVALID;
+ 			pmu_reset_hw_mhpmevent(cidx);
+ 		}
+-- 
+2.37.2
 
-Also, better to have enum for the special return values
-in include/sbi/sbi_ipi.h
-
->          */
->         int (* update)(struct sbi_scratch *scratch,
->                         struct sbi_scratch *remote_scratch,
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index 33bff7a..11512d1 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -53,7 +53,7 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartid,
->         if (ipi_ops->update) {
->                 ret = ipi_ops->update(scratch, remote_scratch,
->                                       remote_hartid, data);
-> -               if (ret < 0)
-> +               if (ret != 0)
->                         return ret;
->         }
->
-> @@ -95,50 +95,50 @@ static int sbi_ipi_sync(struct sbi_scratch *scratch, u32 event)
->  int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
->  {
->         int rc;
-> -       ulong i, m, n;
-> +       bool retry_needed;
-> +       ulong i, m;
-> +       struct sbi_hartmask target_mask = {0};
-> +       struct sbi_hartmask retry_mask = {0};
->         struct sbi_domain *dom = sbi_domain_thishart_ptr();
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->
-> +       /* find target harts */
->         if (hbase != -1UL) {
->                 rc = sbi_hsm_hart_interruptible_mask(dom, hbase, &m);
->                 if (rc)
->                         return rc;
->                 m &= hmask;
-> -               n = m;
->
-> -               /* update IPIs */
->                 for (i = hbase; m; i++, m >>= 1) {
->                         if (m & 1UL)
-> -                               sbi_ipi_send(scratch, i, event, data);
-> -               }
-> -
-> -               /* sync IPIs */
-> -               m = n;
-> -               for (i = hbase; m; i++, m >>= 1) {
-> -                       if (m & 1UL)
-> -                               sbi_ipi_sync(scratch, event);
-> +                               sbi_hartmask_set_hart(i, &target_mask);
->                 }
->         } else {
-> -               /* update IPIs */
->                 hbase = 0;
->                 while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
->                         for (i = hbase; m; i++, m >>= 1) {
->                                 if (m & 1UL)
-> -                                       sbi_ipi_send(scratch, i, event, data);
-> +                                       sbi_hartmask_set_hart(i, &target_mask);
->                         }
->                         hbase += BITS_PER_LONG;
->                 }
-> +       }
->
-> -               /* sync IPIs */
-> -               hbase = 0;
-> -               while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
-> -                       for (i = hbase; m; i++, m >>= 1) {
-> -                               if (m & 1UL)
-> -                                       sbi_ipi_sync(scratch, event);
-> -                       }
-> -                       hbase += BITS_PER_LONG;
-> +       /* update IPIs */
-> +       retry_mask = target_mask;
-
-You can directly update the target_mask below instead of
-creating a separate retry_mask.
-
-> +       do {
-> +               retry_needed = false;
-> +               sbi_hartmask_for_each_hart(i, &retry_mask) {
-> +                       rc = sbi_ipi_send(scratch, i, event, data);
-> +                       if (rc == -2)
-> +                               retry_needed = true;
-> +                       else
-> +                               sbi_hartmask_clear_hart(i, &retry_mask);
->                 }
-> -       }
-> +       } while (retry_needed);
-> +
-> +       /* sync IPIs */
-> +       sbi_ipi_sync(scratch, event);
->
->         return 0;
->  }
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> index 60ca8c6..248997e 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -364,7 +364,7 @@ static int tlb_update(struct sbi_scratch *scratch,
->
->         ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
->
-> -       while (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
-> +       if (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
->                 /**
->                  * For now, Busy loop until there is space in the fifo.
->                  * There may be case where target hart is also
-> @@ -376,6 +376,7 @@ static int tlb_update(struct sbi_scratch *scratch,
->                 tlb_process_once(scratch);
->                 sbi_dprintf("hart%d: hart%d tlb fifo full\n",
->                             curr_hartid, remote_hartid);
-> +               return -2;
->         }
->
->         tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
-> --
-> 2.39.2
->
-
-Regards,
-Anup
 
