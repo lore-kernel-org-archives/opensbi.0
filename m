@@ -1,136 +1,118 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 12 Apr 2023 13:35:34 +0800
-Subject: [1/1] lib: utils/fdt: Parse for UART "clocks" property if
- "clock-frequency" is absent
-In-Reply-To: <20230406062622.1484-1-ende.tan@starfivetech.com>
-References: <20230406062622.1484-1-ende.tan@starfivetech.com>
-Message-ID: <24bff3371f4faa20a1082070bb08956064b74d68.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 13 Apr 2023 14:44:28 +0530
+Subject: [PATCH v5 1/4] lib: sbi: Optimize sbi_tlb
+In-Reply-To: <20230411045621.60331-2-wxjstz@126.com>
+References: <20230411045621.60331-1-wxjstz@126.com> <20230411045621.60331-2-wxjstz@126.com>
+Message-ID: <CAAhSdy0WGBaap_9fRx+dW1q7ANzmHFMNrrtm16mZZ-Jzg6Ebtw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-04-06???? 14:26 +0800?Tan En De???
-> For UART node, current implementation of fdt_parse_uart_node_common() checks for "clock-frequency" property only.
-> However, for UART node that uses more than one clock,
-> "clock-frequency" may need to be parsed from the phandle specified in "clocks" property.
-> So, this commit adds in logic to parse "clocks" property if "clock-frequency" is absent.
-> 
-> Signed-off-by: Tan En De <ende.tan@starfivetech.com>
-> Signed-off-by: Tan Jun Liang <junliang.tan@starfivetech.com>
-> ---
-> ?include/sbi_utils/fdt/fdt_helper.h |? 6 +++
-> ?lib/utils/fdt/fdt_helper.c???????? | 65 +++++++++++++++++++++++++++++-
-> ?2 files changed, 69 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 39d7f3a..d84040e 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -32,6 +32,12 @@ struct platform_uart_data {
-> ????????unsigned long reg_shift;
-> ????????unsigned long reg_io_width;
-> ????????unsigned long reg_offset;
-> +???????/*
-> +??????? * For multi-clock UART node.
-> +??????? * clock_index shall be set to zero-indexed main clock's index in the "clocks" list,
-> +??????? * from which freq will be obtained for baud calculation.
-> +??????? */
-> +???????unsigned long clock_index;
-Where is clock_index set. Don't see specific driver modifications. It can be sent with
-the patch to modify the driver
+On Tue, Apr 11, 2023 at 10:27?AM Xiang W <wxjstz@126.com> wrote:
+>
+> Originally, the process and sync of sbi_tlb need to wait for each other.
+> Evasion by atomic addition and subtraction.
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Tested-by: Anup Patel <anup@brainfault.org>
 
-Regards,
-Xiang W
-> ?};
-> ?
-> ?const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 48bc2fe..d68d886 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -313,6 +313,62 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
-> ????????return 0;
-> ?}
-> ?
-> +/*
-> + * For multi-clock UART node.
-> + * Parse "clocks" property in UART node to set uart->freq.
-> + * "clocks" property is an array of clock phandle and clock specifier pairs.
-> + * Before calling this function, uart->clock_index shall be set with
-> + * the index of the pair containing the main UART clock's phandle,
-> + * which baudrate calculation will be based on.
-> + * Return 0 on success, else return -1.
-> + */
-> +static int fdt_parse_uart_clocks_prop(void *fdt, int nodeoffset,
-> +???????????????????????????????struct platform_uart_data *uart)
-> +{
-> +???????const fdt32_t *clocks_val, *clock_cells_val, *clock_frequency_val;
-> +???????uint32_t clock_phandle, cell_index, clock_cells;
-> +???????int clocks_len, clock_offset, clock_cells_len, clock_frequency_len;
-> +???????unsigned long clock_index = uart->clock_index;
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>  lib/sbi/sbi_tlb.c | 21 +++++++++++----------
+>  1 file changed, 11 insertions(+), 10 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+> index 4c142ea..d950c45 100644
+> --- a/lib/sbi/sbi_tlb.c
+> +++ b/lib/sbi/sbi_tlb.c
+> @@ -215,7 +215,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+>  {
+>         u32 rhartid;
+>         struct sbi_scratch *rscratch = NULL;
+> -       unsigned long *rtlb_sync = NULL;
+> +       atomic_t *rtlb_sync = NULL;
+>
+>         tinfo->local_fn(tinfo);
+>
+> @@ -225,7 +225,7 @@ static void tlb_entry_process(struct sbi_tlb_info *tinfo)
+>                         continue;
+>
+>                 rtlb_sync = sbi_scratch_offset_ptr(rscratch, tlb_sync_off);
+> -               while (atomic_raw_xchg_ulong(rtlb_sync, 1)) ;
+> +               atomic_sub_return(rtlb_sync, 1);
+>         }
+>  }
+>
+> @@ -257,10 +257,10 @@ static void tlb_process(struct sbi_scratch *scratch)
+>
+>  static void tlb_sync(struct sbi_scratch *scratch)
+>  {
+> -       unsigned long *tlb_sync =
+> +       atomic_t *tlb_sync =
+>                         sbi_scratch_offset_ptr(scratch, tlb_sync_off);
+>
+> -       while (!atomic_raw_xchg_ulong(tlb_sync, 0)) {
+> +       while (atomic_read(tlb_sync) > 0) {
+>                 /*
+>                  * While we are waiting for remote hart to set the sync,
+>                  * consume fifo requests to avoid deadlock.
+> @@ -343,6 +343,7 @@ static int tlb_update(struct sbi_scratch *scratch,
+>                           u32 remote_hartid, void *data)
+>  {
+>         int ret;
+> +       atomic_t *tlb_sync;
+>         struct sbi_fifo *tlb_fifo_r;
+>         struct sbi_tlb_info *tinfo = data;
+>         u32 curr_hartid = current_hartid();
+> @@ -369,11 +370,8 @@ static int tlb_update(struct sbi_scratch *scratch,
+>         tlb_fifo_r = sbi_scratch_offset_ptr(remote_scratch, tlb_fifo_off);
+>
+>         ret = sbi_fifo_inplace_update(tlb_fifo_r, data, tlb_update_cb);
+> -       if (ret != SBI_FIFO_UNCHANGED) {
+> -               return 1;
+> -       }
+>
+> -       while (sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
+> +       while (ret == SBI_FIFO_UNCHANGED && sbi_fifo_enqueue(tlb_fifo_r, data) < 0) {
+>                 /**
+>                  * For now, Busy loop until there is space in the fifo.
+>                  * There may be case where target hart is also
+> @@ -387,6 +385,9 @@ static int tlb_update(struct sbi_scratch *scratch,
+>                             curr_hartid, remote_hartid);
+>         }
+>
+> +       tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
+> +       atomic_add_return(tlb_sync, 1);
 > +
-> +???????/* clocks_val is a flattened array of values, made from the phandle and specifier pairs. */
-> +???????clocks_val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clocks", &clocks_len);
-> +???????if (!(clocks_len > 0 && clocks_val))
-> +???????????????return -1;
-> +
-> +???????cell_index = 0; /* index into the clocks_val */
-> +???????for (int i = 0; i <= clock_index; i++) {
-> +???????????????/* In case of out-of-bound access to the clocks_val array, return -1. */
-> +???????????????if (cell_index + 1 > clocks_len)
-> +???????????????????????return -1;
-> +???????????????/* Else, parse the phandle */
-> +???????????????clock_phandle = fdt32_to_cpu(clocks_val[cell_index]);
-> +???????????????clock_offset = fdt_node_offset_by_phandle(fdt, clock_phandle);
-> +???????????????/*
-> +??????????????? * "#clock-cells" is a required property,
-> +??????????????? * it tells how many cells the clock specifier takes.
-> +??????????????? */
-> +???????????????clock_cells_val = (fdt32_t *)fdt_getprop(fdt, clock_offset, "#clock-cells", &clock_cells_len);
-> +???????????????if (clock_cells_len > 0 && clock_cells_val)
-> +???????????????????????clock_cells = fdt32_to_cpu(*clock_cells_val);
-> +???????????????else
-> +???????????????????????return -1;
-> +???????????????/*
-> +??????????????? * Advance clock_index to get cell index to next phandle.
-> +??????????????? * Each phandle and clock specifier pair consists of
-> +??????????????? * 1 phandle and clock_cells number of specifiers.
-> +??????????????? */
-> +???????????????cell_index += 1 + clock_cells;
-> +???????}
-> +???????/* Finally, obtain the uart->freq from "clock-freqeuncy" property */
-> +???????clock_frequency_val = (fdt32_t *)fdt_getprop(fdt, clock_offset, "clock-frequency", &clock_frequency_len);
-> +???????if (clock_frequency_len > 0 && clock_frequency_val)
-> +???????????????uart->freq = fdt32_to_cpu(*clock_frequency_val);
-> +???????else
-> +???????????????return -1;
-> +
-> +???????return 0;
-> +}
-> +
-> ?static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
-> ????????????????????????????????????? struct platform_uart_data *uart,
-> ????????????????????????????????????? unsigned long default_freq,
-> @@ -338,8 +394,13 @@ static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
-> ????????val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "clock-frequency", &len);
-> ????????if (len > 0 && val)
-> ????????????????uart->freq = fdt32_to_cpu(*val);
-> -???????else
-> -???????????????uart->freq = default_freq;
-> +???????else {
-> +???????????????/* If "clock-frequency" property is absent, try parse for "clocks" property */
-> +???????????????rc = fdt_parse_uart_clocks_prop(fdt, nodeoffset, uart);
-> +???????????????/* Fall back to default frequency in case of failure to parse */
-> +???????????????if (rc < 0)
-> +???????????????????????uart->freq = default_freq;
-> +???????}
-> ?
-> ????????val = (fdt32_t *)fdt_getprop(fdt, nodeoffset, "current-speed", &len);
-> ????????if (len > 0 && val)
-> -- 
-> 2.34.1
-> 
-> 
+>         return 0;
+>  }
+>
+> @@ -413,7 +414,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
+>  {
+>         int ret;
+>         void *tlb_mem;
+> -       unsigned long *tlb_sync;
+> +       atomic_t *tlb_sync;
+>         struct sbi_fifo *tlb_q;
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>
+> @@ -455,7 +456,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
+>         tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
+>         tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
+>
+> -       *tlb_sync = 0;
+> +       ATOMIC_INIT(tlb_sync, 0);
+>
+>         sbi_fifo_init(tlb_q, tlb_mem,
+>                       SBI_TLB_FIFO_NUM_ENTRIES, SBI_TLB_INFO_SIZE);
+> --
+> 2.39.2
+>
 
