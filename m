@@ -1,47 +1,59 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 17 Apr 2023 09:35:20 +0530
-Subject: [PATCH v2 1/2] lib: sbi: Do not clear active_events for
- cycle/instret when stopping
-In-Reply-To: <20230413140219.189916-1-alexghiti@rivosinc.com>
-References: <20230413140219.189916-1-alexghiti@rivosinc.com>
-Message-ID: <CAAhSdy0sZ0=tB_EJMAD4qAiHPH=0eVEanZrVURvgr2SuC__Qkw@mail.gmail.com>
+Date: Mon, 17 Apr 2023 09:37:08 +0530
+Subject: [PATCH v2 2/2] lib: sbi: Fix counter index calculation for SBI_PMU_CFG_FLAG_SKIP_MATCH
+In-Reply-To: <20230413140219.189916-2-alexghiti@rivosinc.com>
+References: <20230413140219.189916-1-alexghiti@rivosinc.com> <20230413140219.189916-2-alexghiti@rivosinc.com>
+Message-ID: <CAAhSdy0E-+fEMajQQqHhBQ5P6wDXbdtNiid8q8oQO7dMJJv24w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Apr 13, 2023 at 7:32?PM Alexandre Ghiti <alexghiti@rivosinc.com> wrote:
+On Thu, Apr 13, 2023 at 7:33?PM Alexandre Ghiti <alexghiti@rivosinc.com> wrote:
 >
-> Those events are enabled by default and should not be reset afterwards
-> since when using SBI_PMU_CFG_FLAG_SKIP_MATCH, it leads to unaccessible
-> counters after the first use.
+> As per the SBI specification, we should "unconditionally select the first
+> counter from the set of counters specified by the counter_idx_base and
+> counter_idx_mask", so implement this behaviour.
 >
+> Suggested-by: Atish Patra <atishp@atishpatra.org>
 > Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-> Reviewed-by: Atish Patra <atishp@rivosinc.com>
 
-Applied this patch to the riscv/opensbi repo.
+No issues with this patch but as a separate patch we might still want
+to check whether the specified counter actually supports the specified
+event.
+
+Applied this patch to the riscv/opesbi repo.
 
 Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_pmu.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  lib/sbi/sbi_pmu.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 74d6912..2176cc7 100644
+> index 2176cc7..f5dbe6d 100644
 > --- a/lib/sbi/sbi_pmu.c
 > +++ b/lib/sbi/sbi_pmu.c
-> @@ -531,7 +531,7 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
->                 else
->                         ret = pmu_ctr_stop_hw(cidx);
+> @@ -735,10 +735,15 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+>                 /* The caller wants to skip the match because it already knows the
+>                  * counter idx for the given event. Verify that the counter idx
+>                  * is still valid.
+> +                * As per the specification, we should "unconditionally select
+> +                * the first counter from the set of counters specified by the
+> +                * counter_idx_base and counter_idx_mask".
+>                  */
+> -               if (active_events[hartid][cidx_base] == SBI_PMU_EVENT_IDX_INVALID)
+> +               unsigned long cidx_first = cidx_base + sbi_ffs(cidx_mask);
+> +
+> +               if (active_events[hartid][cidx_first] == SBI_PMU_EVENT_IDX_INVALID)
+>                         return SBI_EINVAL;
+> -               ctr_idx = cidx_base;
+> +               ctr_idx = cidx_first;
+>                 goto skip_match;
+>         }
 >
-> -               if (flag & SBI_PMU_STOP_FLAG_RESET) {
-> +               if (cidx > (CSR_INSTRET - CSR_CYCLE) && flag & SBI_PMU_STOP_FLAG_RESET) {
->                         active_events[hartid][cidx] = SBI_PMU_EVENT_IDX_INVALID;
->                         pmu_reset_hw_mhpmevent(cidx);
->                 }
 > --
 > 2.37.2
 >
