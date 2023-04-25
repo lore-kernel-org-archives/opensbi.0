@@ -1,9 +1,9 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 25 Apr 2023 18:02:30 +0530
-Subject: [PATCH 17/17] lib: utils/irqchip: Use scratch space to save per-HART IMSIC pointer
+Date: Tue, 25 Apr 2023 18:02:27 +0530
+Subject: [PATCH 14/17] lib: utils/timer: Use scratch space to save per-HART MTIMER pointer
 In-Reply-To: <20230425123230.3943447-1-apatel@ventanamicro.com>
 References: <20230425123230.3943447-1-apatel@ventanamicro.com>
-Message-ID: <20230425123230.3943447-18-apatel@ventanamicro.com>
+Message-ID: <20230425123230.3943447-15-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -11,180 +11,167 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 Instead of using a global array indexed by hartid, we should use
-scratch space to save per-HART IMSIC pointer and IMSIC file number.
+scratch space to save per-HART MTIMER pointer.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- lib/utils/irqchip/fdt_irqchip_imsic.c |  4 +-
- lib/utils/irqchip/imsic.c             | 87 ++++++++++++++++++++++-----
- 2 files changed, 74 insertions(+), 17 deletions(-)
+ lib/utils/timer/aclint_mtimer.c | 82 +++++++++++++++++++++++++++------
+ 1 file changed, 67 insertions(+), 15 deletions(-)
 
-diff --git a/lib/utils/irqchip/fdt_irqchip_imsic.c b/lib/utils/irqchip/fdt_irqchip_imsic.c
-index 574cadc..20ee0d8 100644
---- a/lib/utils/irqchip/fdt_irqchip_imsic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_imsic.c
-@@ -78,13 +78,13 @@ static int irqchip_imsic_cold_init(void *fdt, int nodeoff,
- 		return 0;
- 	}
- 
--	rc = irqchip_imsic_update_hartid_table(fdt, nodeoff, id);
-+	rc = imsic_cold_irqchip_init(id);
- 	if (rc) {
- 		sbi_free(id);
- 		return rc;
- 	}
- 
--	rc = imsic_cold_irqchip_init(id);
-+	rc = irqchip_imsic_update_hartid_table(fdt, nodeoff, id);
- 	if (rc) {
- 		sbi_free(id);
- 		return rc;
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index 11667cd..2b3e9da 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -13,10 +13,10 @@
- #include <sbi/riscv_encoding.h>
- #include <sbi/sbi_console.h>
+diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+index 84ded4e..c75f790 100644
+--- a/lib/utils/timer/aclint_mtimer.c
++++ b/lib/utils/timer/aclint_mtimer.c
+@@ -13,12 +13,23 @@
+ #include <sbi/sbi_bitops.h>
  #include <sbi/sbi_domain.h>
--#include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_irqchip.h>
  #include <sbi/sbi_error.h>
+-#include <sbi/sbi_hartmask.h>
+-#include <sbi/sbi_ipi.h>
 +#include <sbi/sbi_scratch.h>
- #include <sbi_utils/irqchip/imsic.h>
+ #include <sbi/sbi_timer.h>
+ #include <sbi_utils/timer/aclint_mtimer.h>
  
- #define IMSIC_MMIO_PAGE_LE		0x00
-@@ -79,33 +79,69 @@ do { \
- 	csr_clear(CSR_MIREG, __v); \
- } while (0)
- 
--static struct imsic_data *imsic_hartid2data[SBI_HARTMASK_MAX_BITS];
--static int imsic_hartid2file[SBI_HARTMASK_MAX_BITS];
-+static unsigned long imsic_ptr_offset;
+-static struct aclint_mtimer_data *mtimer_hartid2data[SBI_HARTMASK_MAX_BITS];
++static unsigned long mtimer_ptr_offset;
 +
-+#define imsic_get_hart_data_ptr(__scratch)				\
++#define mtimer_get_hart_data_ptr(__scratch)				\
 +({									\
 +	(void *)(*((ulong *)sbi_scratch_offset_ptr((__scratch),		\
-+						   imsic_ptr_offset)));\
++						   mtimer_ptr_offset)));\
 +})
 +
-+#define imsic_set_hart_data_ptr(__scratch, __imsic)			\
++#define mtimer_set_hart_data_ptr(__scratch, __mtimer)			\
 +do {									\
-+	*((ulong *)sbi_scratch_offset_ptr((__scratch), imsic_ptr_offset))\
-+					= (ulong)(__imsic);		\
-+} while (0)
-+
-+static unsigned long imsic_file_offset;
-+
-+#define imsic_get_hart_file(__scratch)					\
-+({									\
-+	*((long *)sbi_scratch_offset_ptr((__scratch), imsic_file_offset));\
-+})
-+
-+#define imsic_set_hart_file(__scratch, __file)				\
-+do {									\
-+	*((long *)sbi_scratch_offset_ptr((__scratch), imsic_file_offset))\
-+					= (long)(__file);		\
++	*((ulong *)sbi_scratch_offset_ptr((__scratch), mtimer_ptr_offset))\
++					= (ulong)(__mtimer);		\
 +} while (0)
  
- int imsic_map_hartid_to_data(u32 hartid, struct imsic_data *imsic, int file)
- {
--	if (!imsic || !imsic->targets_mmode ||
--	    (SBI_HARTMASK_MAX_BITS <= hartid))
-+	struct sbi_scratch *scratch;
-+
-+	if (!imsic || !imsic->targets_mmode)
- 		return SBI_EINVAL;
+ #if __riscv_xlen != 32
+ static u64 mtimer_time_rd64(volatile u64 *addr)
+@@ -53,30 +64,54 @@ static void mtimer_time_wr32(bool timecmp, u64 value, volatile u64 *addr)
  
--	imsic_hartid2data[hartid] = imsic;
--	imsic_hartid2file[hartid] = file;
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	if (!scratch)
-+		return SBI_ENOENT;
+ static u64 mtimer_value(void)
+ {
+-	struct aclint_mtimer_data *mt = mtimer_hartid2data[current_hartid()];
+-	u64 *time_val = (void *)mt->mtime_addr;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	struct aclint_mtimer_data *mt;
 +
-+	imsic_set_hart_data_ptr(scratch, imsic);
-+	imsic_set_hart_file(scratch, file);
- 	return 0;
++	mt = mtimer_get_hart_data_ptr(scratch);
++	if (!mt)
++		return 0;
+ 
+ 	/* Read MTIMER Time Value */
+-	return mt->time_rd(time_val);
++	return mt->time_rd((void *)mt->mtime_addr);
  }
  
- struct imsic_data *imsic_get_data(u32 hartid)
+ static void mtimer_event_stop(void)
  {
--	if (SBI_HARTMASK_MAX_BITS <= hartid)
+ 	u32 target_hart = current_hartid();
+-	struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+-	u64 *time_cmp = (void *)mt->mtimecmp_addr;
 +	struct sbi_scratch *scratch;
++	struct aclint_mtimer_data *mt;
++	u64 *time_cmp;
 +
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	if (!scratch)
- 		return NULL;
--	return imsic_hartid2data[hartid];
-+
-+	return imsic_get_hart_data_ptr(scratch);
- }
- 
- int imsic_get_target_file(u32 hartid)
- {
--	if ((SBI_HARTMASK_MAX_BITS <= hartid) ||
--	    !imsic_hartid2data[hartid])
-+	struct sbi_scratch *scratch;
-+
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	if (!scratch)
- 		return SBI_ENOENT;
--	return imsic_hartid2file[hartid];
-+
-+	return imsic_get_hart_file(scratch);
- }
- 
- static int imsic_external_irqfn(struct sbi_trap_regs *regs)
-@@ -133,9 +169,16 @@ static void imsic_ipi_send(u32 target_hart)
- {
- 	unsigned long reloff;
- 	struct imsic_regs *regs;
--	struct imsic_data *data = imsic_hartid2data[target_hart];
--	int file = imsic_hartid2file[target_hart];
-+	struct imsic_data *data;
-+	struct sbi_scratch *scratch;
-+	int file;
- 
 +	scratch = sbi_hartid_to_scratch(target_hart);
 +	if (!scratch)
 +		return;
 +
-+	data = imsic_get_hart_data_ptr(scratch);
-+	file = imsic_get_hart_file(scratch);
- 	if (!data || !data->targets_mmode)
- 		return;
++	mt = mtimer_get_hart_data_ptr(scratch);
++	if (!mt)
++		return;
  
-@@ -204,7 +247,7 @@ void imsic_local_irqchip_init(void)
+ 	/* Clear MTIMER Time Compare */
++	time_cmp = (void *)mt->mtimecmp_addr;
+ 	mt->time_wr(true, -1ULL, &time_cmp[target_hart - mt->first_hartid]);
+ }
  
- int imsic_warm_irqchip_init(void)
+ static void mtimer_event_start(u64 next_event)
  {
--	struct imsic_data *imsic = imsic_hartid2data[current_hartid()];
-+	struct imsic_data *imsic = imsic_get_data(current_hartid());
+ 	u32 target_hart = current_hartid();
+-	struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
+-	u64 *time_cmp = (void *)mt->mtimecmp_addr;
++	struct sbi_scratch *scratch;
++	struct aclint_mtimer_data *mt;
++	u64 *time_cmp;
++
++	scratch = sbi_hartid_to_scratch(target_hart);
++	if (!scratch)
++		return;
++
++	mt = mtimer_get_hart_data_ptr(scratch);
++	if (!mt)
++		return;
+ 
+ 	/* Program MTIMER Time Compare */
++	time_cmp = (void *)mt->mtimecmp_addr;
+ 	mt->time_wr(true, next_event,
+ 		    &time_cmp[target_hart - mt->first_hartid]);
+ }
+@@ -126,8 +161,14 @@ int aclint_mtimer_warm_init(void)
+ {
+ 	u64 *mt_time_cmp;
+ 	u32 target_hart = current_hartid();
+-	struct aclint_mtimer_data *mt = mtimer_hartid2data[target_hart];
++	struct sbi_scratch *scratch;
++	struct aclint_mtimer_data *mt;
+ 
++	scratch = sbi_hartid_to_scratch(target_hart);
++	if (!scratch)
++		return SBI_ENOENT;
++
++	mt = mtimer_get_hart_data_ptr(scratch);
+ 	if (!mt)
+ 		return SBI_ENODEV;
+ 
+@@ -147,6 +188,7 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+ {
+ 	u32 i;
+ 	int rc;
++	struct sbi_scratch *scratch;
  
  	/* Sanity checks */
- 	if (!imsic || !imsic->targets_mmode)
-@@ -306,6 +349,20 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
- 	if (!imsic->targets_mmode)
+ 	if (!mt ||
+@@ -155,12 +197,18 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+ 	    (mt->mtime_size && (mt->mtime_size & (ACLINT_MTIMER_ALIGN - 1))) ||
+ 	    (mt->mtimecmp_addr & (ACLINT_MTIMER_ALIGN - 1)) ||
+ 	    (mt->mtimecmp_size & (ACLINT_MTIMER_ALIGN - 1)) ||
+-	    (mt->first_hartid >= SBI_HARTMASK_MAX_BITS) ||
+ 	    (mt->hart_count > ACLINT_MTIMER_MAX_HARTS))
+ 		return SBI_EINVAL;
+ 	if (reference && mt->mtime_freq != reference->mtime_freq)
  		return SBI_EINVAL;
  
 +	/* Allocate scratch space pointer */
-+	if (!imsic_ptr_offset) {
-+		imsic_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
-+		if (!imsic_ptr_offset)
++	if (!mtimer_ptr_offset) {
++		mtimer_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
++		if (!mtimer_ptr_offset)
 +			return SBI_ENOMEM;
 +	}
 +
-+	/* Allocate scratch space file */
-+	if (!imsic_file_offset) {
-+		imsic_file_offset = sbi_scratch_alloc_offset(sizeof(long));
-+		if (!imsic_file_offset)
-+			return SBI_ENOMEM;
-+	}
-+
- 	/* Setup external interrupt function for IMSIC */
- 	sbi_irqchip_set_irqfn(imsic_external_irqfn);
+ 	/* Initialize private data */
+ 	aclint_mtimer_set_reference(mt, reference);
+ 	mt->time_rd = mtimer_time_rd32;
+@@ -174,9 +222,13 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+ 	}
+ #endif
  
+-	/* Update MTIMER hartid table */
+-	for (i = 0; i < mt->hart_count; i++)
+-		mtimer_hartid2data[mt->first_hartid + i] = mt;
++	/* Update MTIMER pointer in scratch space */
++	for (i = 0; i < mt->hart_count; i++) {
++		scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
++		if (!scratch)
++			return SBI_ENOENT;
++		mtimer_set_hart_data_ptr(scratch, mt);
++	}
+ 
+ 	if (!mt->mtime_size) {
+ 		/* Disable reading mtime when mtime is not available */
 -- 
 2.34.1
 
