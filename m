@@ -1,131 +1,145 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 25 Apr 2023 18:02:19 +0530
-Subject: [PATCH 06/17] lib: sbi: Use scratch space to save per-HART domain pointer
+Date: Tue, 25 Apr 2023 18:02:20 +0530
+Subject: [PATCH 07/17] lib: utils/gpio: Use heap in SiFive and StartFive GPIO drivers
 In-Reply-To: <20230425123230.3943447-1-apatel@ventanamicro.com>
 References: <20230425123230.3943447-1-apatel@ventanamicro.com>
-Message-ID: <20230425123230.3943447-7-apatel@ventanamicro.com>
+Message-ID: <20230425123230.3943447-8-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of using a global array indexed by hartid, we should use
-scratch space to save per-HART domain pointer.
+Let's use heap allocation in SiFive and Starfive GPIO drivers
+instead of using a fixed size global array.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_domain.h |  6 +-----
- lib/sbi/sbi_domain.c     | 38 +++++++++++++++++++++++++++++++++++---
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ lib/utils/gpio/fdt_gpio_sifive.c   | 21 ++++++++++-----------
+ lib/utils/gpio/fdt_gpio_starfive.c | 20 ++++++++++----------
+ 2 files changed, 20 insertions(+), 21 deletions(-)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 124ea90..b05bcf4 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -129,12 +129,8 @@ struct sbi_domain {
- /** The root domain instance */
- extern struct sbi_domain root;
+diff --git a/lib/utils/gpio/fdt_gpio_sifive.c b/lib/utils/gpio/fdt_gpio_sifive.c
+index 677f0fa..5e3f39d 100644
+--- a/lib/utils/gpio/fdt_gpio_sifive.c
++++ b/lib/utils/gpio/fdt_gpio_sifive.c
+@@ -9,11 +9,10 @@
  
--/** HART id to domain table */
--extern struct sbi_domain *hartid_to_domain_table[];
+ #include <sbi/riscv_io.h>
+ #include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/gpio/fdt_gpio.h>
+ 
+-#define SIFIVE_GPIO_CHIP_MAX	2
 -
- /** Get pointer to sbi_domain from HART id */
--#define sbi_hartid_to_domain(__hartid) \
--	hartid_to_domain_table[__hartid]
-+struct sbi_domain *sbi_hartid_to_domain(u32 hartid);
- 
- /** Get pointer to sbi_domain for current HART */
- #define sbi_domain_thishart_ptr() \
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index b07d310..531737c 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -23,7 +23,6 @@
-  * the array to be null-terminated.
-  */
- struct sbi_domain *domidx_to_domain_table[SBI_DOMAIN_MAX_INDEX + 1] = { 0 };
--struct sbi_domain *hartid_to_domain_table[SBI_HARTMASK_MAX_BITS] = { 0 };
- static u32 domain_count = 0;
- static bool domain_finalized = false;
- 
-@@ -39,6 +38,32 @@ struct sbi_domain root = {
- 	.fw_region_inited = false,
+ #define SIFIVE_GPIO_PINS_MIN	1
+ #define SIFIVE_GPIO_PINS_MAX	32
+ #define SIFIVE_GPIO_PINS_DEF	16
+@@ -27,9 +26,6 @@ struct sifive_gpio_chip {
+ 	struct gpio_chip chip;
  };
  
-+static unsigned long domain_hart_ptr_offset;
-+
-+struct sbi_domain *sbi_hartid_to_domain(u32 hartid)
-+{
-+	struct sbi_scratch *scratch;
-+
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	if (!scratch || !domain_hart_ptr_offset)
-+		return NULL;
-+
-+	return (void *)(*((ulong *)sbi_scratch_offset_ptr(scratch,
-+						   domain_hart_ptr_offset)));
-+}
-+
-+static void update_hartid_to_domain(u32 hartid, struct sbi_domain *dom)
-+{
-+	struct sbi_scratch *scratch;
-+
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	if (!scratch)
-+		return;
-+
-+	*((ulong *)sbi_scratch_offset_ptr(scratch, domain_hart_ptr_offset))
-+					= (ulong)dom;
-+}
-+
- bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
+-static unsigned int sifive_gpio_chip_count;
+-static struct sifive_gpio_chip sifive_gpio_chip_array[SIFIVE_GPIO_CHIP_MAX];
+-
+ static int sifive_gpio_direction_output(struct gpio_pin *gp, int value)
  {
- 	if (dom)
-@@ -519,11 +544,11 @@ int sbi_domain_register(struct sbi_domain *dom,
- 		if (!sbi_hartmask_test_hart(i, dom->possible_harts))
- 			continue;
+ 	unsigned int v;
+@@ -73,13 +69,15 @@ static int sifive_gpio_init(void *fdt, int nodeoff, u32 phandle,
+ 	struct sifive_gpio_chip *chip;
+ 	uint64_t addr;
  
--		tdom = hartid_to_domain_table[i];
-+		tdom = sbi_hartid_to_domain(i);
- 		if (tdom)
- 			sbi_hartmask_clear_hart(i,
- 					&tdom->assigned_harts);
--		hartid_to_domain_table[i] = dom;
-+		update_hartid_to_domain(i, dom);
- 		sbi_hartmask_set_hart(i, &dom->assigned_harts);
- 
- 		/*
-@@ -715,9 +740,14 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 		return SBI_EINVAL;
- 	}
- 
-+	domain_hart_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
-+	if (!domain_hart_ptr_offset)
+-	if (SIFIVE_GPIO_CHIP_MAX <= sifive_gpio_chip_count)
+-		return SBI_ENOSPC;
+-	chip = &sifive_gpio_chip_array[sifive_gpio_chip_count];
++	chip = sbi_zalloc(sizeof(*chip));
++	if (!chip)
 +		return SBI_ENOMEM;
-+
- 	root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
- 	if (!root_memregs) {
- 		sbi_printf("%s: no memory for root regions\n", __func__);
-+		sbi_scratch_free_offset(domain_hart_ptr_offset);
- 		return SBI_ENOMEM;
- 	}
- 	root.regions = root_memregs;
-@@ -726,6 +756,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	if (!root_hmask) {
- 		sbi_printf("%s: no memory for root hartmask\n", __func__);
- 		sbi_free(root_memregs);
-+		sbi_scratch_free_offset(domain_hart_ptr_offset);
- 		return SBI_ENOMEM;
- 	}
- 	root.possible_harts = root_hmask;
-@@ -774,6 +805,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	if (rc) {
- 		sbi_free(root_hmask);
- 		sbi_free(root_memregs);
-+		sbi_scratch_free_offset(domain_hart_ptr_offset);
+ 
+ 	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+-	if (rc)
++	if (rc) {
++		sbi_free(chip);
  		return rc;
- 	}
++	}
+ 
+ 	chip->addr = addr;
+ 	chip->chip.driver = &fdt_gpio_sifive;
+@@ -88,10 +86,11 @@ static int sifive_gpio_init(void *fdt, int nodeoff, u32 phandle,
+ 	chip->chip.direction_output = sifive_gpio_direction_output;
+ 	chip->chip.set = sifive_gpio_set;
+ 	rc = gpio_chip_add(&chip->chip);
+-	if (rc)
++	if (rc) {
++		sbi_free(chip);
+ 		return rc;
++	}
+ 
+-	sifive_gpio_chip_count++;
+ 	return 0;
+ }
+ 
+diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
+index 18cca72..f430b13 100644
+--- a/lib/utils/gpio/fdt_gpio_starfive.c
++++ b/lib/utils/gpio/fdt_gpio_starfive.c
+@@ -9,11 +9,11 @@
+ 
+ #include <sbi/riscv_io.h>
+ #include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
+ #include <sbi/sbi_console.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/gpio/fdt_gpio.h>
+ 
+-#define STARFIVE_GPIO_CHIP_MAX		2
+ #define STARFIVE_GPIO_PINS_DEF		64
+ #define STARFIVE_GPIO_OUTVAL		0x40
+ #define STARFIVE_GPIO_MASK		0xff
+@@ -25,9 +25,6 @@ struct starfive_gpio_chip {
+ 	struct gpio_chip chip;
+ };
+ 
+-static unsigned int starfive_gpio_chip_count;
+-static struct starfive_gpio_chip starfive_gpio_chip_array[STARFIVE_GPIO_CHIP_MAX];
+-
+ static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
+ {
+ 	u32 val;
+@@ -82,13 +79,15 @@ static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
+ 	struct starfive_gpio_chip *chip;
+ 	u64 addr;
+ 
+-	if (starfive_gpio_chip_count >= STARFIVE_GPIO_CHIP_MAX)
+-		return SBI_ENOSPC;
+-	chip = &starfive_gpio_chip_array[starfive_gpio_chip_count];
++	chip = sbi_zalloc(sizeof(*chip));
++	if (!chip)
++		return SBI_ENOMEM;
+ 
+ 	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+-	if (rc)
++	if (rc) {
++		sbi_free(chip);
+ 		return rc;
++	}
+ 
+ 	chip->addr = addr;
+ 	chip->chip.driver = &fdt_gpio_starfive;
+@@ -97,10 +96,11 @@ static int starfive_gpio_init(void *fdt, int nodeoff, u32 phandle,
+ 	chip->chip.direction_output = starfive_gpio_direction_output;
+ 	chip->chip.set = starfive_gpio_set;
+ 	rc = gpio_chip_add(&chip->chip);
+-	if (rc)
++	if (rc) {
++		sbi_free(chip);
+ 		return rc;
++	}
+ 
+-	starfive_gpio_chip_count++;
+ 	return 0;
+ }
  
 -- 
 2.34.1
