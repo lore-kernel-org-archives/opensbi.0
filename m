@@ -1,9 +1,9 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 25 Apr 2023 18:02:28 +0530
-Subject: [PATCH 15/17] lib: utils/irqchip: Use scratch space to save per-HART PLIC pointer
+Date: Tue, 25 Apr 2023 18:02:30 +0530
+Subject: [PATCH 17/17] lib: utils/irqchip: Use scratch space to save per-HART IMSIC pointer
 In-Reply-To: <20230425123230.3943447-1-apatel@ventanamicro.com>
 References: <20230425123230.3943447-1-apatel@ventanamicro.com>
-Message-ID: <20230425123230.3943447-16-apatel@ventanamicro.com>
+Message-ID: <20230425123230.3943447-18-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -11,197 +11,180 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 Instead of using a global array indexed by hartid, we should use
-scratch space to save per-HART PLIC pointer and PLIC context numbers.
+scratch space to save per-HART IMSIC pointer and IMSIC file number.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- lib/utils/irqchip/fdt_irqchip_plic.c | 108 +++++++++++++++++++++------
- 1 file changed, 86 insertions(+), 22 deletions(-)
+ lib/utils/irqchip/fdt_irqchip_imsic.c |  4 +-
+ lib/utils/irqchip/imsic.c             | 87 ++++++++++++++++++++++-----
+ 2 files changed, 74 insertions(+), 17 deletions(-)
 
-diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-index 605f44a..eb1e412 100644
---- a/lib/utils/irqchip/fdt_irqchip_plic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-@@ -12,54 +12,97 @@
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
--#include <sbi/sbi_hartmask.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/irqchip/fdt_irqchip.h>
- #include <sbi_utils/irqchip/plic.h>
+diff --git a/lib/utils/irqchip/fdt_irqchip_imsic.c b/lib/utils/irqchip/fdt_irqchip_imsic.c
+index 574cadc..20ee0d8 100644
+--- a/lib/utils/irqchip/fdt_irqchip_imsic.c
++++ b/lib/utils/irqchip/fdt_irqchip_imsic.c
+@@ -78,13 +78,13 @@ static int irqchip_imsic_cold_init(void *fdt, int nodeoff,
+ 		return 0;
+ 	}
  
--static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
--static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2] = { { -1 } };
-+static unsigned long plic_ptr_offset;
+-	rc = irqchip_imsic_update_hartid_table(fdt, nodeoff, id);
++	rc = imsic_cold_irqchip_init(id);
+ 	if (rc) {
+ 		sbi_free(id);
+ 		return rc;
+ 	}
+ 
+-	rc = imsic_cold_irqchip_init(id);
++	rc = irqchip_imsic_update_hartid_table(fdt, nodeoff, id);
+ 	if (rc) {
+ 		sbi_free(id);
+ 		return rc;
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 11667cd..2b3e9da 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -13,10 +13,10 @@
+ #include <sbi/riscv_encoding.h>
+ #include <sbi/sbi_console.h>
+ #include <sbi/sbi_domain.h>
+-#include <sbi/sbi_hartmask.h>
+ #include <sbi/sbi_ipi.h>
+ #include <sbi/sbi_irqchip.h>
+ #include <sbi/sbi_error.h>
++#include <sbi/sbi_scratch.h>
+ #include <sbi_utils/irqchip/imsic.h>
+ 
+ #define IMSIC_MMIO_PAGE_LE		0x00
+@@ -79,33 +79,69 @@ do { \
+ 	csr_clear(CSR_MIREG, __v); \
+ } while (0)
+ 
+-static struct imsic_data *imsic_hartid2data[SBI_HARTMASK_MAX_BITS];
+-static int imsic_hartid2file[SBI_HARTMASK_MAX_BITS];
++static unsigned long imsic_ptr_offset;
 +
-+#define plic_get_hart_data_ptr(__scratch)				\
++#define imsic_get_hart_data_ptr(__scratch)				\
 +({									\
 +	(void *)(*((ulong *)sbi_scratch_offset_ptr((__scratch),		\
-+						   plic_ptr_offset)));	\
++						   imsic_ptr_offset)));\
 +})
 +
-+#define plic_set_hart_data_ptr(__scratch, __imsic)			\
++#define imsic_set_hart_data_ptr(__scratch, __imsic)			\
 +do {									\
-+	*((ulong *)sbi_scratch_offset_ptr((__scratch), plic_ptr_offset))\
++	*((ulong *)sbi_scratch_offset_ptr((__scratch), imsic_ptr_offset))\
 +					= (ulong)(__imsic);		\
 +} while (0)
 +
-+static unsigned long plic_mcontext_offset;
++static unsigned long imsic_file_offset;
 +
-+#define plic_get_hart_mcontext(__scratch)				\
++#define imsic_get_hart_file(__scratch)					\
 +({									\
-+	long __ret =							\
-+	*((long *)sbi_scratch_offset_ptr((__scratch), plic_mcontext_offset));\
-+	(__ret - 1);							\
++	*((long *)sbi_scratch_offset_ptr((__scratch), imsic_file_offset));\
 +})
 +
-+#define plic_set_hart_mcontext(__scratch, __mcontext)			\
++#define imsic_set_hart_file(__scratch, __file)				\
 +do {									\
-+	*((long *)sbi_scratch_offset_ptr((__scratch), plic_mcontext_offset))\
-+					= (long)(__mcontext + 1);	\
-+} while (0)
-+
-+static unsigned long plic_scontext_offset;
-+
-+#define plic_get_hart_scontext(__scratch)				\
-+({									\
-+	long __ret =							\
-+	*((long *)sbi_scratch_offset_ptr((__scratch), plic_scontext_offset));\
-+	(__ret - 1);							\
-+})
-+
-+#define plic_set_hart_scontext(__scratch, __scontext)			\
-+do {									\
-+	*((long *)sbi_scratch_offset_ptr((__scratch), plic_scontext_offset))\
-+					= (long)(__scontext + 1);	\
++	*((long *)sbi_scratch_offset_ptr((__scratch), imsic_file_offset))\
++					= (long)(__file);		\
 +} while (0)
  
- void fdt_plic_priority_save(u8 *priority, u32 num)
+ int imsic_map_hartid_to_data(u32 hartid, struct imsic_data *imsic, int file)
  {
--	struct plic_data *plic = plic_hartid2data[current_hartid()];
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
--	plic_priority_save(plic, priority, num);
-+	plic_priority_save(plic_get_hart_data_ptr(scratch), priority, num);
- }
- 
- void fdt_plic_priority_restore(const u8 *priority, u32 num)
- {
--	struct plic_data *plic = plic_hartid2data[current_hartid()];
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
--	plic_priority_restore(plic, priority, num);
-+	plic_priority_restore(plic_get_hart_data_ptr(scratch), priority, num);
- }
- 
- void fdt_plic_context_save(bool smode, u32 *enable, u32 *threshold, u32 num)
- {
--	u32 hartid = current_hartid();
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
--	plic_context_save(plic_hartid2data[hartid],
--			  plic_hartid2context[hartid][smode],
-+	plic_context_save(plic_get_hart_data_ptr(scratch),
-+			  smode ? plic_get_hart_scontext(scratch) :
-+				  plic_get_hart_mcontext(scratch),
- 			  enable, threshold, num);
- }
- 
- void fdt_plic_context_restore(bool smode, const u32 *enable, u32 threshold,
- 			      u32 num)
- {
--	u32 hartid = current_hartid();
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
--	plic_context_restore(plic_hartid2data[hartid],
--			     plic_hartid2context[hartid][smode],
-+	plic_context_restore(plic_get_hart_data_ptr(scratch),
-+			     smode ? plic_get_hart_scontext(scratch) :
-+				     plic_get_hart_mcontext(scratch),
- 			     enable, threshold, num);
- }
- 
- static int irqchip_plic_warm_init(void)
- {
--	u32 hartid = current_hartid();
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
--	return plic_warm_irqchip_init(plic_hartid2data[hartid],
--				      plic_hartid2context[hartid][0],
--				      plic_hartid2context[hartid][1]);
-+	return plic_warm_irqchip_init(plic_get_hart_data_ptr(scratch),
-+				      plic_get_hart_mcontext(scratch),
-+				      plic_get_hart_scontext(scratch));
- }
- 
- static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
-@@ -67,6 +110,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
- {
- 	const fdt32_t *val;
- 	u32 phandle, hwirq, hartid;
+-	if (!imsic || !imsic->targets_mmode ||
+-	    (SBI_HARTMASK_MAX_BITS <= hartid))
 +	struct sbi_scratch *scratch;
- 	int i, err, count, cpu_offset, cpu_intc_offset;
- 
- 	val = fdt_getprop(fdt, nodeoff, "interrupts-extended", &count);
-@@ -90,16 +134,17 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
- 		if (err)
- 			continue;
- 
--		if (SBI_HARTMASK_MAX_BITS <= hartid)
-+		scratch = sbi_hartid_to_scratch(hartid);
-+		if (!scratch)
- 			continue;
- 
--		plic_hartid2data[hartid] = pd;
-+		plic_set_hart_data_ptr(scratch, pd);
- 		switch (hwirq) {
- 		case IRQ_M_EXT:
--			plic_hartid2context[hartid][0] = i / 2;
-+			plic_set_hart_mcontext(scratch, i / 2);
- 			break;
- 		case IRQ_S_EXT:
--			plic_hartid2context[hartid][1] = i / 2;
-+			plic_set_hart_scontext(scratch, i / 2);
- 			break;
- 		}
- 	}
-@@ -113,6 +158,24 @@ static int irqchip_plic_cold_init(void *fdt, int nodeoff,
- 	int rc;
- 	struct plic_data *pd;
- 
-+	if (!plic_ptr_offset) {
-+		plic_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
-+		if (!plic_ptr_offset)
-+			return SBI_ENOMEM;
-+	}
 +
-+	if (!plic_mcontext_offset) {
-+		plic_mcontext_offset = sbi_scratch_alloc_offset(sizeof(long));
-+		if (!plic_mcontext_offset)
-+			return SBI_ENOMEM;
-+	}
-+
-+	if (!plic_scontext_offset) {
-+		plic_scontext_offset = sbi_scratch_alloc_offset(sizeof(long));
-+		if (!plic_scontext_offset)
-+			return SBI_ENOMEM;
-+	}
-+
- 	pd = sbi_zalloc(sizeof(*pd));
- 	if (!pd)
- 		return SBI_ENOMEM;
-@@ -152,7 +215,8 @@ static void thead_plic_plat_init(struct plic_data *pd)
++	if (!imsic || !imsic->targets_mmode)
+ 		return SBI_EINVAL;
  
- void thead_plic_restore(void)
- {
--	struct plic_data *plic = plic_hartid2data[current_hartid()];
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	struct plic_data *plic = plic_get_hart_data_ptr(scratch);
- 
- 	thead_plic_plat_init(plic);
+-	imsic_hartid2data[hartid] = imsic;
+-	imsic_hartid2file[hartid] = file;
++	scratch = sbi_hartid_to_scratch(hartid);
++	if (!scratch)
++		return SBI_ENOENT;
++
++	imsic_set_hart_data_ptr(scratch, imsic);
++	imsic_set_hart_file(scratch, file);
+ 	return 0;
  }
+ 
+ struct imsic_data *imsic_get_data(u32 hartid)
+ {
+-	if (SBI_HARTMASK_MAX_BITS <= hartid)
++	struct sbi_scratch *scratch;
++
++	scratch = sbi_hartid_to_scratch(hartid);
++	if (!scratch)
+ 		return NULL;
+-	return imsic_hartid2data[hartid];
++
++	return imsic_get_hart_data_ptr(scratch);
+ }
+ 
+ int imsic_get_target_file(u32 hartid)
+ {
+-	if ((SBI_HARTMASK_MAX_BITS <= hartid) ||
+-	    !imsic_hartid2data[hartid])
++	struct sbi_scratch *scratch;
++
++	scratch = sbi_hartid_to_scratch(hartid);
++	if (!scratch)
+ 		return SBI_ENOENT;
+-	return imsic_hartid2file[hartid];
++
++	return imsic_get_hart_file(scratch);
+ }
+ 
+ static int imsic_external_irqfn(struct sbi_trap_regs *regs)
+@@ -133,9 +169,16 @@ static void imsic_ipi_send(u32 target_hart)
+ {
+ 	unsigned long reloff;
+ 	struct imsic_regs *regs;
+-	struct imsic_data *data = imsic_hartid2data[target_hart];
+-	int file = imsic_hartid2file[target_hart];
++	struct imsic_data *data;
++	struct sbi_scratch *scratch;
++	int file;
+ 
++	scratch = sbi_hartid_to_scratch(target_hart);
++	if (!scratch)
++		return;
++
++	data = imsic_get_hart_data_ptr(scratch);
++	file = imsic_get_hart_file(scratch);
+ 	if (!data || !data->targets_mmode)
+ 		return;
+ 
+@@ -204,7 +247,7 @@ void imsic_local_irqchip_init(void)
+ 
+ int imsic_warm_irqchip_init(void)
+ {
+-	struct imsic_data *imsic = imsic_hartid2data[current_hartid()];
++	struct imsic_data *imsic = imsic_get_data(current_hartid());
+ 
+ 	/* Sanity checks */
+ 	if (!imsic || !imsic->targets_mmode)
+@@ -306,6 +349,20 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+ 	if (!imsic->targets_mmode)
+ 		return SBI_EINVAL;
+ 
++	/* Allocate scratch space pointer */
++	if (!imsic_ptr_offset) {
++		imsic_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
++		if (!imsic_ptr_offset)
++			return SBI_ENOMEM;
++	}
++
++	/* Allocate scratch space file */
++	if (!imsic_file_offset) {
++		imsic_file_offset = sbi_scratch_alloc_offset(sizeof(long));
++		if (!imsic_file_offset)
++			return SBI_ENOMEM;
++	}
++
+ 	/* Setup external interrupt function for IMSIC */
+ 	sbi_irqchip_set_irqfn(imsic_external_irqfn);
+ 
 -- 
 2.34.1
 
