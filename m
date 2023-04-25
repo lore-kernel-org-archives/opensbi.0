@@ -1,269 +1,340 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 25 Apr 2023 18:02:14 +0530
-Subject: [PATCH 01/17] platform: Allow platforms to specify heap size
+Date: Tue, 25 Apr 2023 18:02:15 +0530
+Subject: [PATCH 02/17] lib: sbi: Introduce simple heap allocator
 In-Reply-To: <20230425123230.3943447-1-apatel@ventanamicro.com>
 References: <20230425123230.3943447-1-apatel@ventanamicro.com>
-Message-ID: <20230425123230.3943447-2-apatel@ventanamicro.com>
+Message-ID: <20230425123230.3943447-3-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We extend struct sbi_platform and struct sbi_scratch to allow platforms
-specify the heap size to the OpenSBI firmwares. The OpenSBI firmwares
-will use this information to determine the location of heap and provide
-heap base address in per-HART scratch space.
+We provide simple heap allocator to manage the heap space provided
+by OpenSBI firmware and platform.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- firmware/fw_base.S                 | 15 +++++++++++++++
- include/sbi/sbi_platform.h         | 18 +++++++++++++++---
- include/sbi/sbi_scratch.h          | 28 ++++++++++++++++++----------
- platform/fpga/ariane/platform.c    |  1 +
- platform/fpga/openpiton/platform.c |  2 ++
- platform/generic/platform.c        |  3 ++-
- platform/kendryte/k210/platform.c  |  2 ++
- platform/nuclei/ux600/platform.c   |  2 ++
- platform/template/platform.c       |  1 +
- 9 files changed, 58 insertions(+), 14 deletions(-)
+ include/sbi/sbi_heap.h |  44 +++++++++
+ lib/sbi/objects.mk     |   1 +
+ lib/sbi/sbi_heap.c     | 204 +++++++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_init.c     |  15 +++
+ 4 files changed, 264 insertions(+)
+ create mode 100644 include/sbi/sbi_heap.h
+ create mode 100644 lib/sbi/sbi_heap.c
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index e37df09..fff09e1 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -255,20 +255,28 @@ _bss_zero:
- 	/* Preload HART details
- 	 * s7 -> HART Count
- 	 * s8 -> HART Stack Size
-+	 * s9 -> Heap Size
-+	 * s10 -> Heap Offset
- 	 */
- 	lla	a4, platform
- #if __riscv_xlen > 32
- 	lwu	s7, SBI_PLATFORM_HART_COUNT_OFFSET(a4)
- 	lwu	s8, SBI_PLATFORM_HART_STACK_SIZE_OFFSET(a4)
-+	lwu	s9, SBI_PLATFORM_HEAP_SIZE_OFFSET(a4)
- #else
- 	lw	s7, SBI_PLATFORM_HART_COUNT_OFFSET(a4)
- 	lw	s8, SBI_PLATFORM_HART_STACK_SIZE_OFFSET(a4)
-+	lw	s9, SBI_PLATFORM_HEAP_SIZE_OFFSET(a4)
- #endif
- 
- 	/* Setup scratch space for all the HARTs*/
- 	lla	tp, _fw_end
- 	mul	a5, s7, s8
- 	add	tp, tp, a5
-+	/* Setup heap base address */
-+	lla	s10, _fw_start
-+	sub	s10, tp, s10
-+	add	tp, tp, s9
- 	/* Keep a copy of tp */
- 	add	t3, tp, zero
- 	/* Counter */
-@@ -283,8 +291,11 @@ _scratch_init:
- 	 * t3 -> the firmware end address
- 	 * s7 -> HART count
- 	 * s8 -> HART stack size
-+	 * s9 -> Heap Size
-+	 * s10 -> Heap Offset
- 	 */
- 	add	tp, t3, zero
-+	sub	tp, tp, s9
- 	mul	a5, s8, t1
- 	sub	tp, tp, a5
- 	li	a5, SBI_SCRATCH_SIZE
-@@ -302,6 +313,10 @@ _scratch_init:
- 	REG_L	a5, 0(a4)
- 	REG_S	a5, SBI_SCRATCH_FW_RW_OFFSET(tp)
- 
-+	/* Store fw_heap_offset and fw_heap_size in scratch space */
-+	REG_S	s10, SBI_SCRATCH_FW_HEAP_OFFSET(tp)
-+	REG_S	s9, SBI_SCRATCH_FW_HEAP_SIZE_OFFSET(tp)
+diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
+new file mode 100644
+index 0000000..88d176e
+--- /dev/null
++++ b/include/sbi/sbi_heap.h
+@@ -0,0 +1,44 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2023 Ventana Micro Systems Inc.
++ *
++ * Authors:
++ *   Anup Patel<apatel@ventanamicro.com>
++ */
 +
- 	/* Store next arg1 in scratch space */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
- 	call	fw_next_arg1
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 546c0a6..3e9616f 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -29,12 +29,16 @@
- #define SBI_PLATFORM_HART_COUNT_OFFSET (0x50)
- /** Offset of hart_stack_size in struct sbi_platform */
- #define SBI_PLATFORM_HART_STACK_SIZE_OFFSET (0x54)
-+/** Offset of heap_size in struct sbi_platform */
-+#define SBI_PLATFORM_HEAP_SIZE_OFFSET (0x58)
-+/** Offset of reserved in struct sbi_platform */
-+#define SBI_PLATFORM_RESERVED_OFFSET (0x5c)
- /** Offset of platform_ops_addr in struct sbi_platform */
--#define SBI_PLATFORM_OPS_OFFSET (0x58)
-+#define SBI_PLATFORM_OPS_OFFSET (0x60)
- /** Offset of firmware_context in struct sbi_platform */
--#define SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET (0x58 + __SIZEOF_POINTER__)
-+#define SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET (0x60 + __SIZEOF_POINTER__)
- /** Offset of hart_index2id in struct sbi_platform */
--#define SBI_PLATFORM_HART_INDEX2ID_OFFSET (0x58 + (__SIZEOF_POINTER__ * 2))
-+#define SBI_PLATFORM_HART_INDEX2ID_OFFSET (0x60 + (__SIZEOF_POINTER__ * 2))
- 
- #define SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT		(1UL << 12)
- 
-@@ -138,6 +142,10 @@ struct sbi_platform_operations {
- /** Platform default per-HART stack size for exception/interrupt handling */
- #define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE	8192
- 
-+/** Platform default heap size */
-+#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)	\
-+					(0x8000 + 0x800 * (__num_hart))
++#ifndef __SBI_HEAP_H__
++#define __SBI_HEAP_H__
 +
- /** Representation of a platform */
- struct sbi_platform {
- 	/**
-@@ -160,6 +168,10 @@ struct sbi_platform {
- 	u32 hart_count;
- 	/** Per-HART stack size for exception/interrupt handling */
- 	u32 hart_stack_size;
-+	/** Size of heap shared by all HARTs */
-+	u32 heap_size;
-+	/** Reserved for future use */
-+	u32 reserved;
- 	/** Pointer to sbi platform operations */
- 	unsigned long platform_ops_addr;
- 	/** Pointer to system firmware specific context */
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index 2966188..2376995 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -20,26 +20,30 @@
- #define SBI_SCRATCH_FW_SIZE_OFFSET		(1 * __SIZEOF_POINTER__)
- /** Offset (in sbi_scratch) of the R/W Offset */
- #define SBI_SCRATCH_FW_RW_OFFSET		(2 * __SIZEOF_POINTER__)
-+/** Offset of fw_heap_offset member in sbi_scratch */
-+#define SBI_SCRATCH_FW_HEAP_OFFSET		(3 * __SIZEOF_POINTER__)
-+/** Offset of fw_heap_size_offset member in sbi_scratch */
-+#define SBI_SCRATCH_FW_HEAP_SIZE_OFFSET		(4 * __SIZEOF_POINTER__)
- /** Offset of next_arg1 member in sbi_scratch */
--#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(3 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_NEXT_ARG1_OFFSET		(5 * __SIZEOF_POINTER__)
- /** Offset of next_addr member in sbi_scratch */
--#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(4 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_NEXT_ADDR_OFFSET		(6 * __SIZEOF_POINTER__)
- /** Offset of next_mode member in sbi_scratch */
--#define SBI_SCRATCH_NEXT_MODE_OFFSET		(5 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_NEXT_MODE_OFFSET		(7 * __SIZEOF_POINTER__)
- /** Offset of warmboot_addr member in sbi_scratch */
--#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(6 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_WARMBOOT_ADDR_OFFSET	(8 * __SIZEOF_POINTER__)
- /** Offset of platform_addr member in sbi_scratch */
--#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(7 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(9 * __SIZEOF_POINTER__)
- /** Offset of hartid_to_scratch member in sbi_scratch */
--#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(8 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(10 * __SIZEOF_POINTER__)
- /** Offset of trap_exit member in sbi_scratch */
--#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(9 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(11 * __SIZEOF_POINTER__)
- /** Offset of tmp0 member in sbi_scratch */
--#define SBI_SCRATCH_TMP0_OFFSET			(10 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
- /** Offset of options member in sbi_scratch */
--#define SBI_SCRATCH_OPTIONS_OFFSET		(11 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
- /** Offset of extra space in sbi_scratch */
--#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(12 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(14 * __SIZEOF_POINTER__)
- /** Maximum size of sbi_scratch (4KB) */
- #define SBI_SCRATCH_SIZE			(0x1000)
++#include <sbi/sbi_types.h>
++
++struct sbi_scratch;
++
++/** Allocate from heap area */
++void *sbi_malloc(size_t size);
++
++/** Zero allocate from heap area */
++void *sbi_zalloc(size_t size);
++
++/** Allocate array from heap area */
++static inline void *sbi_calloc(size_t nitems, size_t size)
++{
++	return sbi_zalloc(nitems * size);
++}
++
++/** Free-up to heap area */
++void sbi_free(void *ptr);
++
++/** Amount (in bytes) of free space in the heap area */
++unsigned long sbi_heap_free_space(void);
++
++/** Amount (in bytes) of used space in the heap area */
++unsigned long sbi_heap_used_space(void);
++
++/** Amount (in bytes) of reserved space in the heap area */
++unsigned long sbi_heap_reserved_space(void);
++
++/** Initialize heap area */
++int sbi_heap_init(struct sbi_scratch *scratch);
++
++#endif
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 7d691c6..c699187 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -59,6 +59,7 @@ libsbi-objs-y += sbi_domain.o
+ libsbi-objs-y += sbi_emulate_csr.o
+ libsbi-objs-y += sbi_fifo.o
+ libsbi-objs-y += sbi_hart.o
++libsbi-objs-y += sbi_heap.o
+ libsbi-objs-y += sbi_math.o
+ libsbi-objs-y += sbi_hfence.o
+ libsbi-objs-y += sbi_hsm.o
+diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
+new file mode 100644
+index 0000000..82aa1ec
+--- /dev/null
++++ b/lib/sbi/sbi_heap.c
+@@ -0,0 +1,204 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2023 Ventana Micro Systems Inc.
++ *
++ * Authors:
++ *   Anup Patel<apatel@ventanamicro.com>
++ */
++
++#include <sbi/riscv_locks.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
++#include <sbi/sbi_list.h>
++#include <sbi/sbi_scratch.h>
++#include <sbi/sbi_string.h>
++
++#define HEAP_BASE_ALIGN			1024
++#define HEAP_ALLOC_ALIGN		64
++#define HEAP_HOUSEKEEPING_FACTOR	16
++
++struct heap_node {
++	struct sbi_dlist head;
++	unsigned long addr;
++	unsigned long size;
++};
++
++struct heap_control {
++	spinlock_t lock;
++	unsigned long base;
++	unsigned long size;
++	unsigned long hkbase;
++	unsigned long hksize;
++	struct sbi_dlist free_node_list;
++	struct sbi_dlist free_space_list;
++	struct sbi_dlist used_space_list;
++};
++
++static struct heap_control hpctrl;
++
++void *sbi_malloc(size_t size)
++{
++	void *ret = NULL;
++	struct heap_node *n, *np;
++
++	if (!size)
++		return NULL;
++
++	size += HEAP_ALLOC_ALIGN - 1;
++	size &= ~((unsigned long)HEAP_ALLOC_ALIGN - 1);
++
++	spin_lock(&hpctrl.lock);
++
++	np = NULL;
++	sbi_list_for_each_entry(n, &hpctrl.free_space_list, head) {
++		if (size <= n->size) {
++			np = n;
++			break;
++		}
++	}
++	if (np) {
++		if ((size < np->size) &&
++		    !sbi_list_empty(&hpctrl.free_node_list)) {
++			n = sbi_list_first_entry(&hpctrl.free_node_list,
++						 struct heap_node, head);
++			sbi_list_del(&n->head);
++			n->addr = np->addr + np->size - size;
++			n->size = size;
++			np->size -= size;
++			sbi_list_add_tail(&n->head, &hpctrl.used_space_list);
++			ret = (void *)n->addr;
++		} else if (size == np->size) {
++			sbi_list_del(&np->head);
++			sbi_list_add_tail(&np->head, &hpctrl.used_space_list);
++			ret = (void *)np->addr;
++		}
++	}
++
++	spin_unlock(&hpctrl.lock);
++
++	return ret;
++}
++
++void *sbi_zalloc(size_t size)
++{
++	void *ret = sbi_malloc(size);
++
++	if (ret)
++		sbi_memset(ret, 0, size);
++	return ret;
++}
++
++void sbi_free(void *ptr)
++{
++	struct heap_node *n, *np;
++
++	if (!ptr)
++		return;
++
++	spin_lock(&hpctrl.lock);
++
++	np = NULL;
++	sbi_list_for_each_entry(n, &hpctrl.used_space_list, head) {
++		if ((n->addr <= (unsigned long)ptr) &&
++		    ((unsigned long)ptr < (n->addr + n->size))) {
++			np = n;
++			break;
++		}
++	}
++	if (!np) {
++		spin_unlock(&hpctrl.lock);
++		return;
++	}
++
++	sbi_list_del(&np->head);
++
++	sbi_list_for_each_entry(n, &hpctrl.free_space_list, head) {
++		if ((np->addr + np->size) == n->addr) {
++			n->addr = np->addr;
++			n->size += np->size;
++			sbi_list_add_tail(&np->head, &hpctrl.free_node_list);
++			np = NULL;
++			break;
++		} else if (np->addr == (n->addr + n->size)) {
++			n->size += np->size;
++			sbi_list_add_tail(&np->head, &hpctrl.free_node_list);
++			np = NULL;
++			break;
++		} else if ((n->addr + n->size) < np->addr) {
++			sbi_list_add(&np->head, &n->head);
++			np = NULL;
++			break;
++		}
++	}
++	if (np)
++		sbi_list_add_tail(&np->head, &hpctrl.free_space_list);
++
++	spin_unlock(&hpctrl.lock);
++}
++
++unsigned long sbi_heap_free_space(void)
++{
++	struct heap_node *n;
++	unsigned long ret = 0;
++
++	spin_lock(&hpctrl.lock);
++	sbi_list_for_each_entry(n, &hpctrl.free_space_list, head)
++		ret += n->size;
++	spin_unlock(&hpctrl.lock);
++
++	return ret;
++}
++
++unsigned long sbi_heap_used_space(void)
++{
++	return hpctrl.size - hpctrl.hksize - sbi_heap_free_space();
++}
++
++unsigned long sbi_heap_reserved_space(void)
++{
++	return hpctrl.hksize;
++}
++
++int sbi_heap_init(struct sbi_scratch *scratch)
++{
++	unsigned long i;
++	struct heap_node *n;
++
++	/* Sanity checks on heap offset and size */
++	if (!scratch->fw_heap_size ||
++	    (scratch->fw_heap_size & (HEAP_BASE_ALIGN - 1)) ||
++	    (scratch->fw_heap_offset < scratch->fw_rw_offset) ||
++	    (scratch->fw_size < (scratch->fw_heap_offset + scratch->fw_heap_size)) ||
++	    (scratch->fw_heap_offset & (HEAP_BASE_ALIGN - 1)))
++		return SBI_EINVAL;
++
++	/* Initialize heap control */
++	SPIN_LOCK_INIT(hpctrl.lock);
++	hpctrl.base = scratch->fw_start + scratch->fw_heap_offset;
++	hpctrl.size = scratch->fw_heap_size;
++	hpctrl.hkbase = hpctrl.base;
++	hpctrl.hksize = hpctrl.size / HEAP_HOUSEKEEPING_FACTOR;
++	hpctrl.hksize &= ~((unsigned long)HEAP_BASE_ALIGN - 1);
++	SBI_INIT_LIST_HEAD(&hpctrl.free_node_list);
++	SBI_INIT_LIST_HEAD(&hpctrl.free_space_list);
++	SBI_INIT_LIST_HEAD(&hpctrl.used_space_list);
++
++	/* Prepare free node list */
++	for (i = 0; i < (hpctrl.hksize / sizeof(*n)); i++) {
++		n = (struct heap_node *)(hpctrl.hkbase + (sizeof(*n) * i));
++		SBI_INIT_LIST_HEAD(&n->head);
++		n->addr = n->size = 0;
++		sbi_list_add_tail(&n->head, &hpctrl.free_node_list);
++	}
++
++	/* Prepare free space list */
++	n = sbi_list_first_entry(&hpctrl.free_node_list,
++				 struct heap_node, head);
++	sbi_list_del(&n->head);
++	n->addr = hpctrl.hkbase + hpctrl.hksize;
++	n->size = hpctrl.size - hpctrl.hksize;
++	sbi_list_add_tail(&n->head, &hpctrl.free_space_list);
++
++	return 0;
++}
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 5db8e7f..f09a7ac 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -17,6 +17,7 @@
+ #include <sbi/sbi_ecall.h>
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_hartmask.h>
++#include <sbi/sbi_heap.h>
+ #include <sbi/sbi_hsm.h>
+ #include <sbi/sbi_ipi.h>
+ #include <sbi/sbi_irqchip.h>
+@@ -118,6 +119,15 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
+ 	sbi_printf("Firmware Size             : %d KB\n",
+ 		   (u32)(scratch->fw_size / 1024));
+ 	sbi_printf("Firmware RW Offset        : 0x%lx\n", scratch->fw_rw_offset);
++	sbi_printf("Firmware RW Size          : %d KB\n",
++		   (u32)((scratch->fw_size - scratch->fw_rw_offset) / 1024));
++	sbi_printf("Firmware Heap Offset      : 0x%lx\n", scratch->fw_heap_offset);
++	sbi_printf("Firmware Heap Size        : "
++		   "%d KB (total), %d KB (reserved), %d KB (used), %d KB (free)\n",
++		   (u32)(scratch->fw_heap_size / 1024),
++		   (u32)(sbi_heap_reserved_space() / 1024),
++		   (u32)(sbi_heap_used_space() / 1024),
++		   (u32)(sbi_heap_free_space() / 1024));
  
-@@ -57,6 +61,10 @@ struct sbi_scratch {
- 	unsigned long fw_size;
- 	/** Offset (in bytes) of the R/W section */
- 	unsigned long fw_rw_offset;
-+	/** Offset (in bytes) of the heap area */
-+	unsigned long fw_heap_offset;
-+	/** Size (in bytes) of the heap area */
-+	unsigned long fw_heap_size;
- 	/** Arg1 (or 'a1' register) of next booting stage for this HART */
- 	unsigned long next_arg1;
- 	/** Address of next booting stage for this HART */
-diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
-index 1e341c2..975528f 100644
---- a/platform/fpga/ariane/platform.c
-+++ b/platform/fpga/ariane/platform.c
-@@ -185,5 +185,6 @@ const struct sbi_platform platform = {
- 	.features = SBI_PLATFORM_DEFAULT_FEATURES,
- 	.hart_count = ARIANE_HART_COUNT,
- 	.hart_stack_size = SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-+	.heap_size = SBI_PLATFORM_DEFAULT_HEAP_SIZE(ARIANE_HART_COUNT),
- 	.platform_ops_addr = (unsigned long)&platform_ops
- };
-diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
-index 57ae698..e59dc99 100644
---- a/platform/fpga/openpiton/platform.c
-+++ b/platform/fpga/openpiton/platform.c
-@@ -220,5 +220,7 @@ const struct sbi_platform platform = {
- 	.features = SBI_PLATFORM_DEFAULT_FEATURES,
- 	.hart_count = OPENPITON_DEFAULT_HART_COUNT,
- 	.hart_stack_size = SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-+	.heap_size =
-+		SBI_PLATFORM_DEFAULT_HEAP_SIZE(OPENPITON_DEFAULT_HART_COUNT),
- 	.platform_ops_addr = (unsigned long)&platform_ops
- };
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index eeefef4..0c9cd95 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -115,7 +115,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 	}
+ 	/* SBI details */
+ 	sbi_printf("Runtime SBI Version       : %d.%d\n",
+@@ -258,6 +268,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
  
- 	platform.hart_count = hart_count;
--
-+	platform.heap_size = SBI_PLATFORM_DEFAULT_HEAP_SIZE(hart_count);
- 	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
- 
- 	/* Return original FDT pointer */
-@@ -315,5 +315,6 @@ struct sbi_platform platform = {
- 	.hart_count		= SBI_HARTMASK_MAX_BITS,
- 	.hart_index2id		= generic_hart_index2id,
- 	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-+	.heap_size		= SBI_PLATFORM_DEFAULT_HEAP_SIZE(0),
- 	.platform_ops_addr	= (unsigned long)&platform_ops
- };
-diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
-index 7eb9015..637a217 100644
---- a/platform/kendryte/k210/platform.c
-+++ b/platform/kendryte/k210/platform.c
-@@ -196,5 +196,7 @@ const struct sbi_platform platform = {
- 	.features		= 0,
- 	.hart_count		= K210_HART_COUNT,
- 	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-+	.heap_size		=
-+			SBI_PLATFORM_DEFAULT_HEAP_SIZE(K210_HART_COUNT),
- 	.platform_ops_addr	= (unsigned long)&platform_ops
- };
-diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
-index 4eccff1..6fd6cd7 100644
---- a/platform/nuclei/ux600/platform.c
-+++ b/platform/nuclei/ux600/platform.c
-@@ -244,5 +244,7 @@ const struct sbi_platform platform = {
- 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
- 	.hart_count		= UX600_HART_COUNT,
- 	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-+	.heap_size		=
-+			SBI_PLATFORM_DEFAULT_HEAP_SIZE(UX600_HART_COUNT),
- 	.platform_ops_addr	= (unsigned long)&platform_ops
- };
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index 8adc431..86381ca 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -152,5 +152,6 @@ const struct sbi_platform platform = {
- 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
- 	.hart_count		= 1,
- 	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-+	.heap_size		= SBI_PLATFORM_DEFAULT_HEAP_SIZE(1),
- 	.platform_ops_addr	= (unsigned long)&platform_ops
- };
+ 	/* Note: This has to be second thing in coldboot init sequence */
++	rc = sbi_heap_init(scratch);
++	if (rc)
++		sbi_hart_hang();
++
++	/* Note: This has to be thing thing in coldboot init sequence */
+ 	rc = sbi_domain_init(scratch, hartid);
+ 	if (rc)
+ 		sbi_hart_hang();
 -- 
 2.34.1
 
