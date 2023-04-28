@@ -1,104 +1,109 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Thu, 27 Apr 2023 11:41:38 +0200
-Subject: [PATCH v2] lib: sbi: Ensure SBI extension is available
-Message-ID: <20230427094138.349029-1-ajones@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 28 Apr 2023 09:52:00 +0800
+Subject: [PATCH] lib: sbi: Ensure SBI extension is available
+In-Reply-To: <ptjyzjjjlekztw3o2o6x2gg3c46ist2hcvk32iu4tguc4kt6f4@pnkmhiown66l>
+References: <20230426172753.70664-1-ajones@ventanamicro.com>
+	 <f798c3f500849d71aba59a06d4c90ea0e4cb2071.camel@126.com>
+	 <jhzdkddibw5j7nje66qxamammxruslfbaz4xshfbykgvcgcozn@rqv44g76lo4w>
+	 <ad0ca17922ba61ec988fcee15f0940ee495d0759.camel@126.com>
+	 <ptjyzjjjlekztw3o2o6x2gg3c46ist2hcvk32iu4tguc4kt6f4@pnkmhiown66l>
+Message-ID: <0163ae018708b6b107b9a2dcb27ebb10b54fdb62.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Ensure attempts to invoke SBI extension functions fail with
-SBI_ERR_NOT_SUPPORTED when the extension's probe function has
-reported that the extension is not available. By adding a new status
-member to the extension, which has three states (uninitialized,
-available, unavailable), we can ensure that the probe functions of
-single ID extensions, i.e.  extid_start == extid_end, are only
-invoked once, lazily, upon first use. Extensions that have multiple
-IDs cannot use a single status field to avoid making probe calls, as
-probe functions are extension ID specific. It's expected that these
-multi-ID extension probe functions implement their own optimizations
-in order to ensure extension lookups are fast.
+? 2023-04-27???? 10:01 +0200?Andrew Jones???
+> On Thu, Apr 27, 2023 at 03:26:20PM +0800, Xiang W wrote:
+> > ? 2023-04-27???? 09:00 +0200?Andrew Jones???
+> > > On Thu, Apr 27, 2023 at 09:02:14AM +0800, Xiang W wrote:
+> > > > ? 2023-04-26???? 19:27 +0200?Andrew Jones???
+> > > > > Ensure attempts to invoke SBI extension functions fail with
+> > > > > SBI_ERR_NOT_SUPPORTED when the extension's probe function has
+> > > > > reported that the extension is not available. By adding a new
+> > > > > status member to the extension which has three states
+> > > > > (uninitialized, available, unavailable), we ensure that the
+> > > > > probe function is only invoked once, lazily, upon first use.
+> > > > 
+> > > > Adding this state may cause errors. For example: the id numberof an extension is from extid_start to extid_end, which has an
+> > > > unused ID. Searching for an ID in this extension will return NULL
+> > > > if an unused ID is searched first.
+> > > 
+> > > Hi Xiang,
+> > > 
+> > > You're right. Either sbi_ecall_extension::status needs to be a function of
+> > > extid, like probe is, or we should just always call probe (when it's
+> > > available) and leave any optimizations to the individual probe functions.
+> > > How about this?
+> > > 
+> > > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
+> > > index 76a1ae9ab733..c86e4e8c9134 100644
+> > > --- a/lib/sbi/sbi_ecall.c
+> > > +++ b/lib/sbi/sbi_ecall.c
+> > > @@ -42,16 +42,18 @@ static SBI_LIST_HEAD(ecall_exts_list);
+> > > ?
+> > > ?struct sbi_ecall_extension *sbi_ecall_find_extension(unsigned long extid)
+> > > ?{
+> > > -???????struct sbi_ecall_extension *t, *ret = NULL;
+> > > +???????struct sbi_ecall_extension *t;
+> > > +???????unsigned long out_val;
+> > > ?
+> > > ????????sbi_list_for_each_entry(t, &ecall_exts_list, head) {
+> > > ????????????????if (t->extid_start <= extid && extid <= t->extid_end) {
+> > > -???????????????????????ret = t;
+> > > -???????????????????????break;
+> > > +???????????????????????if (t->probe && (t->probe(extid, &out_val) || !out_val))
+> > > +???????????????????????????????return NULL;
+> > > +???????????????????????return t;
+> > > ????????????????}
+> > > ????????}
+> > > ?
+> > > -???????return ret;
+> > > +???????return NULL;
+> > > ?}
+> > > ?
+> > > ?int sbi_ecall_register_extension(struct sbi_ecall_extension *ext)
+> > > 
+> > > Thanks,
+> > > drew
+> > Good. If so modified we can modify sbi_ecall_base_probe as well.
+> > As follows:
+> > 
+> > diff --git a/lib/sbi/sbi_ecall_base.c b/lib/sbi/sbi_ecall_base.c
+> > index 786d2ac..e3aa02b 100644
+> > --- a/lib/sbi/sbi_ecall_base.c
+> > +++ b/lib/sbi/sbi_ecall_base.c
+> > @@ -20,15 +20,7 @@ static int sbi_ecall_base_probe(unsigned long extid, unsigned long *out_val)
+> > ??????? struct sbi_ecall_extension *ext;
+> > ?
+> > ??????? ext = sbi_ecall_find_extension(extid);
+> > -?????? if (!ext) {
+> > -?????????????? *out_val = 0;
+> > -?????????????? return 0;
+> > -?????? }
+> > -
+> > -?????? if (ext->probe)
+> > -?????????????? return ext->probe(extid, out_val);
+> > -
+> > -?????? *out_val = 1;
+> > +?????? *out_val = ext ? 1 : 0;
+> > ??????? return 0;
+> > ?}
+> > 
+> 
+> If we do this, then we lose the return value of the extension's probe
+> function, which is currently getting propagated all the way back to
+> the SBI caller. sbi_ecall_base_probe() isn't in a fast path, so even
+> though probe will get invoked twice, I guess we can afford it.
+> 
+> Thanks,
+> drew
 
-Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
----
- include/sbi/sbi_ecall.h | 14 ++++++++++++++
- lib/sbi/sbi_ecall.c     | 26 ++++++++++++++++++++++----
- 2 files changed, 36 insertions(+), 4 deletions(-)
+If you don't modify sbi_ecall_base_probe, I don't think we need to modify
+sbi_ecall_find_extension. sbi_ecall_find_extension just find the structure
+of extension. If there is a gap in the id number, the handle and probe
+will definitely handle it.
 
-diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-index ff9bf8e2b435..9793019047e7 100644
---- a/include/sbi/sbi_ecall.h
-+++ b/include/sbi/sbi_ecall.h
-@@ -20,10 +20,24 @@
- struct sbi_trap_regs;
- struct sbi_trap_info;
- 
-+/*
-+ * sbi_ext_status is used to optimize lookups of extensions which have
-+ * single extension IDs, i.e. extid_start == extid_end. The status is
-+ * set after the first call of the extension's probe function (if it
-+ * has one) in order to avoid repeating the probe call on later lookups.
-+ * Extensions with more than one ID should ensure their probe functions
-+ * are fast, perhaps by caching responses.
-+ */
-+enum sbi_ext_status {
-+	SBI_EXT_AVAILABLE = 1,
-+	SBI_EXT_UNAVAILABLE,
-+};
-+
- struct sbi_ecall_extension {
- 	struct sbi_dlist head;
- 	unsigned long extid_start;
- 	unsigned long extid_end;
-+	enum sbi_ext_status status;
- 	int (* probe)(unsigned long extid, unsigned long *out_val);
- 	int (* handle)(unsigned long extid, unsigned long funcid,
- 		       const struct sbi_trap_regs *regs,
-diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-index 76a1ae9ab733..ad27b9b7e5cb 100644
---- a/lib/sbi/sbi_ecall.c
-+++ b/lib/sbi/sbi_ecall.c
-@@ -42,16 +42,34 @@ static SBI_LIST_HEAD(ecall_exts_list);
- 
- struct sbi_ecall_extension *sbi_ecall_find_extension(unsigned long extid)
- {
--	struct sbi_ecall_extension *t, *ret = NULL;
-+	struct sbi_ecall_extension *t;
-+	unsigned long out_val;
- 
- 	sbi_list_for_each_entry(t, &ecall_exts_list, head) {
-+		bool use_status = t->extid_start == t->extid_end;
-+
- 		if (t->extid_start <= extid && extid <= t->extid_end) {
--			ret = t;
--			break;
-+			if (use_status) {
-+				if (t->status == SBI_EXT_AVAILABLE)
-+					return t;
-+				if (t->status == SBI_EXT_UNAVAILABLE)
-+					return NULL;
-+			}
-+
-+			if (t->probe && (t->probe(extid, &out_val) || !out_val)) {
-+				if (use_status)
-+					t->status = SBI_EXT_UNAVAILABLE;
-+				return NULL;
-+			}
-+
-+			if (use_status)
-+				t->status = SBI_EXT_AVAILABLE;
-+
-+			return t;
- 		}
- 	}
- 
--	return ret;
-+	return NULL;
- }
- 
- int sbi_ecall_register_extension(struct sbi_ecall_extension *ext)
--- 
-2.39.2
-
-
+Regards,
+Xiang W
