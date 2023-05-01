@@ -1,36 +1,57 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 1 May 2023 14:09:17 +0200
-Subject: [PATCH v2] lib: sbi: Ensure SBI extension is available
-In-Reply-To: <20230427094138.349029-1-ajones@ventanamicro.com>
-References: <20230427094138.349029-1-ajones@ventanamicro.com>
-Message-ID: <20230501-9d2aee781ad1dfa437c28adf@orel>
+Date: Mon, 1 May 2023 14:11:35 +0200
+Subject: [PATCH] lib: sbi: Optimize probe of srst
+In-Reply-To: <20230428020024.868283-1-wxjstz@126.com>
+References: <20230428020024.868283-1-wxjstz@126.com>
+Message-ID: <20230501-d1fcda15002dbd3c39155e12@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Apr 27, 2023 at 11:41:38AM +0200, Andrew Jones wrote:
-> Ensure attempts to invoke SBI extension functions fail with
-> SBI_ERR_NOT_SUPPORTED when the extension's probe function has
-> reported that the extension is not available. By adding a new status
-> member to the extension, which has three states (uninitialized,
-> available, unavailable), we can ensure that the probe functions of
-> single ID extensions, i.e.  extid_start == extid_end, are only
-> invoked once, lazily, upon first use. Extensions that have multiple
-> IDs cannot use a single status field to avoid making probe calls, as
-> probe functions are extension ID specific. It's expected that these
-> multi-ID extension probe functions implement their own optimizations
-> in order to ensure extension lookups are fast.
+On Fri, Apr 28, 2023 at 10:00:24AM +0800, Xiang W wrote:
+> No need to do a fully comprehensive count, just find a supported reset
+> type
 > 
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  include/sbi/sbi_ecall.h | 14 ++++++++++++++
->  lib/sbi/sbi_ecall.c     | 26 ++++++++++++++++++++++----
->  2 files changed, 36 insertions(+), 4 deletions(-)
->
+>  lib/sbi/sbi_ecall_srst.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_ecall_srst.c b/lib/sbi/sbi_ecall_srst.c
+> index 93b012c..91059d7 100644
+> --- a/lib/sbi/sbi_ecall_srst.c
+> +++ b/lib/sbi/sbi_ecall_srst.c
+> @@ -50,7 +50,7 @@ static int sbi_ecall_srst_handler(unsigned long extid, unsigned long funcid,
+>  
+>  static int sbi_ecall_srst_probe(unsigned long extid, unsigned long *out_val)
+>  {
+> -	u32 type, count = 0;
+> +	u32 type;
+>  
+>  	/*
+>  	 * At least one standard reset types should be supported by
+> @@ -60,10 +60,11 @@ static int sbi_ecall_srst_probe(unsigned long extid, unsigned long *out_val)
+>  	for (type = 0; type <= SBI_SRST_RESET_TYPE_LAST; type++) {
+>  		if (sbi_system_reset_supported(type,
+>  					SBI_SRST_RESET_REASON_NONE))
+> -			count++;
+> +			*out_val = 1;
+> +			return 0;
+>  	}
+>  
+> -	*out_val = (count) ? 1 : 0;
+> +	*out_val = 0;
+>  	return 0;
+>  }
+>  
+> -- 
+> 2.39.2
+> 
 
-self-nack. Sent a v3 based on feedback I got on v1.
+Looks good, but can you send a v2 also applying the same optimization to
+the SUSP extension?
 
 Thanks,
 drew
