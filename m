@@ -1,16 +1,16 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 11 May 2023 12:56:21 +0530
-Subject: [PATCH 2/2] lib: sbi: Simplify sbi_ipi_process remove goto
-In-Reply-To: <20230425085625.465921-3-wxjstz@126.com>
-References: <20230425085625.465921-1-wxjstz@126.com> <20230425085625.465921-3-wxjstz@126.com>
-Message-ID: <CAAhSdy1+nS7sEuqQWWZ7UBwFx0Lsad9SrF5qNKmfXHJWqHE20Q@mail.gmail.com>
+Date: Thu, 11 May 2023 12:58:00 +0530
+Subject: [PATCH] lib: sbi: Simplify BITS_PER_LONG definition
+In-Reply-To: <20230425113221.485662-1-wxjstz@126.com>
+References: <20230425113221.485662-1-wxjstz@126.com>
+Message-ID: <CAAhSdy216j5KG+UGOk7g5er+-zn+Ff=Ls_JDavin7-AxdXfvrw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 25, 2023 at 2:26?PM Xiang W <wxjstz@126.com> wrote:
+On Tue, Apr 25, 2023 at 5:03?PM Xiang W <wxjstz@126.com> wrote:
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 
@@ -24,33 +24,28 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_ipi.c | 13 +++++--------
->  1 file changed, 5 insertions(+), 8 deletions(-)
+>  include/sbi/sbi_bitops.h | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index ba83f24..ad09154 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -223,14 +223,11 @@ void sbi_ipi_process(void)
->         ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
->         ipi_event = 0;
->         while (ipi_type) {
-> -               if (!(ipi_type & 1UL))
-> -                       goto skip;
-> -
-> -               ipi_ops = ipi_ops_array[ipi_event];
-> -               if (ipi_ops && ipi_ops->process)
-> -                       ipi_ops->process(scratch);
-> -
-> -skip:
-> +               if (ipi_type & 1UL) {
-> +                       ipi_ops = ipi_ops_array[ipi_event];
-> +                       if (ipi_ops && ipi_ops->process)
-> +                               ipi_ops->process(scratch);
-> +               }
->                 ipi_type = ipi_type >> 1;
->                 ipi_event++;
->         }
+> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+> index 251e4d8..2e08947 100644
+> --- a/include/sbi/sbi_bitops.h
+> +++ b/include/sbi/sbi_bitops.h
+> @@ -12,13 +12,7 @@
+>
+>  #include <sbi/sbi_types.h>
+>
+> -#if __SIZEOF_POINTER__ == 8
+> -#define BITS_PER_LONG          64
+> -#elif __SIZEOF_POINTER__ == 4
+> -#define BITS_PER_LONG          32
+> -#else
+> -#error "Unexpected __SIZEOF_POINTER__"
+> -#endif
+> +#define BITS_PER_LONG          (8 * __SIZEOF_LONG__)
+>
+>  #define EXTRACT_FIELD(val, which) \
+>         (((val) & (which)) / ((which) & ~((which)-1)))
 > --
 > 2.39.2
 >
