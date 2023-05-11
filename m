@@ -1,52 +1,121 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 11 May 2023 12:58:00 +0530
-Subject: [PATCH] lib: sbi: Simplify BITS_PER_LONG definition
-In-Reply-To: <20230425113221.485662-1-wxjstz@126.com>
-References: <20230425113221.485662-1-wxjstz@126.com>
-Message-ID: <CAAhSdy216j5KG+UGOk7g5er+-zn+Ff=Ls_JDavin7-AxdXfvrw@mail.gmail.com>
+Date: Thu, 11 May 2023 13:21:00 +0530
+Subject: [PATCH v3] lib: sbi: Ensure SBI extension is available
+In-Reply-To: <20230501120839.334341-1-ajones@ventanamicro.com>
+References: <20230501120839.334341-1-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy1TpSuWepN92vRfGcgZ4Sqe2FBr2v9pzgO5pwdAAs4cqA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 25, 2023 at 5:03?PM Xiang W <wxjstz@126.com> wrote:
+On Mon, May 1, 2023 at 5:38?PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> Ensure attempts to invoke SBI extension functions fail with
+> SBI_ERR_NOT_SUPPORTED when the extension's probe function has
+> reported that the extension is not available. To avoid invoking
+> probe too frequently, we check single extension ID extensions at
+> init time and even drop them from the extension list when their
+> probe fails. If the probe succeeds, we keep it, and then later
+> seeing that it's a single extension ID extension is enough to know
+> it's available. Extensions which have multiple IDs must have its probe
+> called for each, so we don't try to reduce calls to those. It's
+> expected that these multi-ID extension probe functions implement
+> their own optimizations in order to ensure extension lookups are
+> fast.
+>
+> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> ---
+> v3:
+>  - Only apply optimization to single extension ID extensions [Xiang]
+>  - Drop extensions from extension list when they can be probed
+>    at init time (and drop the, now unnecessary, status) [Anup]
+>
+>  lib/sbi/sbi_ecall.c | 32 +++++++++++++++++++++++---------
+>  1 file changed, 23 insertions(+), 9 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
+> index 76a1ae9ab733..cb73105d7aa8 100644
+> --- a/lib/sbi/sbi_ecall.c
+> +++ b/lib/sbi/sbi_ecall.c
+> @@ -42,16 +42,19 @@ static SBI_LIST_HEAD(ecall_exts_list);
+>
+>  struct sbi_ecall_extension *sbi_ecall_find_extension(unsigned long extid)
+>  {
+> -       struct sbi_ecall_extension *t, *ret = NULL;
+> +       struct sbi_ecall_extension *t;
+> +       unsigned long out_val;
+>
+>         sbi_list_for_each_entry(t, &ecall_exts_list, head) {
+>                 if (t->extid_start <= extid && extid <= t->extid_end) {
+> -                       ret = t;
+> -                       break;
+> +                       if (t->extid_start != t->extid_end && t->probe &&
+> +                           (t->probe(extid, &out_val) || !out_val))
 
-Please don't leave the commit description empty. Otherwise it looks good to me.
+I disagree with this approach of penalizing extension spread over
+a range of extension IDs. Particularly this adds overhead for
+vendor extension.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+I suggest, we should change the prototype of probe callback to:
+"int (* probe)(struct sbi_ecall_extension *extl);"
 
-Applied this patch to the riscv/opensbi repo.
+And update existing probe functions to directly register extension
+by calling sbi_ecall_register_extension().
 
-Thanks,
+The sbi_ecall_init() should call sbi_ecall_register_extension()
+only for extensions which don't have a probe callback.
+
+Based on this suggestion, no changes are required in
+sbi_ecall_find_extension().
+
+Regards,
 Anup
 
-> ---
->  include/sbi/sbi_bitops.h | 8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
+> +                               return NULL;
+> +                       return t;
+>                 }
+>         }
 >
-> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
-> index 251e4d8..2e08947 100644
-> --- a/include/sbi/sbi_bitops.h
-> +++ b/include/sbi/sbi_bitops.h
-> @@ -12,13 +12,7 @@
+> -       return ret;
+> +       return NULL;
+>  }
 >
->  #include <sbi/sbi_types.h>
+>  int sbi_ecall_register_extension(struct sbi_ecall_extension *ext)
+> @@ -148,15 +151,26 @@ int sbi_ecall_handler(struct sbi_trap_regs *regs)
 >
-> -#if __SIZEOF_POINTER__ == 8
-> -#define BITS_PER_LONG          64
-> -#elif __SIZEOF_POINTER__ == 4
-> -#define BITS_PER_LONG          32
-> -#else
-> -#error "Unexpected __SIZEOF_POINTER__"
-> -#endif
-> +#define BITS_PER_LONG          (8 * __SIZEOF_LONG__)
+>  int sbi_ecall_init(void)
+>  {
+> -       int ret;
+>         struct sbi_ecall_extension *ext;
+> -       unsigned long i;
+> +       unsigned long out_val, i;
+> +       int ret;
 >
->  #define EXTRACT_FIELD(val, which) \
->         (((val) & (which)) / ((which) & ~((which)-1)))
+>         for (i = 0; i < sbi_ecall_exts_size; i++) {
+>                 ext = sbi_ecall_exts[i];
+> -               ret = sbi_ecall_register_extension(ext);
+> -               if (ret)
+> -                       return ret;
+> +               /*
+> +                * Don't bother adding extensions which have a single extension
+> +                * ID and its probe fails. Extensions with multiple IDs need to
+> +                * have their probe called on specific IDs, so we need to add
+> +                * them here and probe on each use. And, of course, if there
+> +                * isn't a probe function, then the extension is always
+> +                * available, so we add it here.
+> +                */
+> +               if (ext->extid_start != ext->extid_end || !ext->probe ||
+> +                   (!ext->probe(ext->extid_start, &out_val) && out_val)) {
+> +                       ret = sbi_ecall_register_extension(ext);
+> +                       if (ret)
+> +                               return ret;
+> +               }
+>         }
+>
+>         return 0;
 > --
-> 2.39.2
+> 2.40.0
 >
 
