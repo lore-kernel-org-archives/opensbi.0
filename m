@@ -1,89 +1,81 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 15 May 2023 16:12:27 +0530
-Subject: [PATCH v5 2/7] lib: sbi: Narrow vendor extension range
-In-Reply-To: <20230515-30949d43a51053bd384a98dd@orel>
-References: <20230515093446.73123-1-ajones@ventanamicro.com>
- <20230515093446.73123-3-ajones@ventanamicro.com> <CAAhSdy05j92C2em+s-iv9vH-jH4ofLzxX5+-D7BvGqJpjUMQcw@mail.gmail.com>
- <20230515-30949d43a51053bd384a98dd@orel>
-Message-ID: <CAAhSdy39hA8KKZZ8ovDWyYgebkkUdX8kXUgvwj0czD+WD6zFow@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 15 May 2023 13:12:33 +0200
+Subject: [PATCH v6 0/7] lib: sbi: Ensure SBI extension is available
+Message-ID: <20230515111240.95059-1-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 15, 2023 at 4:08?PM Andrew Jones <ajones@ventanamicro.com> wrote:
->
-> On Mon, May 15, 2023 at 04:02:01PM +0530, Anup Patel wrote:
-> > On Mon, May 15, 2023 at 3:04?PM Andrew Jones <ajones@ventanamicro.com> wrote:
-> > >
-> > > The vendor extension ID range is large, but at runtime at most
-> > > a single ID will be available. Narrow the range in the
-> > > register_extensions callback. After narrowing, we no longer
-> > > need to check that the extension ID is correct in the other
-> > > callbacks, as those callbacks will never be invoked with
-> > > anything other than the single ID.
-> > >
-> > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-> > > ---
-> > >  lib/sbi/sbi_ecall_vendor.c | 11 +++++++----
-> > >  1 file changed, 7 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/lib/sbi/sbi_ecall_vendor.c b/lib/sbi/sbi_ecall_vendor.c
-> > > index 126156f79a12..39c58c8b6fd5 100644
-> > > --- a/lib/sbi/sbi_ecall_vendor.c
-> > > +++ b/lib/sbi/sbi_ecall_vendor.c
-> > > @@ -25,8 +25,7 @@ static inline unsigned long sbi_ecall_vendor_id(void)
-> > >  static int sbi_ecall_vendor_probe(unsigned long extid,
-> > >                                   unsigned long *out_val)
-> > >  {
-> > > -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
-> > > -           extid != sbi_ecall_vendor_id())
-> > > +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
-> > >                 *out_val = 0;
-> > >         else
-> > >                 *out_val = 1;
-> > > @@ -38,8 +37,7 @@ static int sbi_ecall_vendor_handler(unsigned long extid, unsigned long funcid,
-> > >                                     unsigned long *out_val,
-> > >                                     struct sbi_trap_info *out_trap)
-> > >  {
-> > > -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
-> > > -           extid != sbi_ecall_vendor_id())
-> > > +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
-> > >                 return SBI_ERR_NOT_SUPPORTED;
-> > >
-> > >         return sbi_platform_vendor_ext_provider(sbi_platform_thishart_ptr(),
-> > > @@ -51,6 +49,11 @@ struct sbi_ecall_extension ecall_vendor;
-> > >
-> > >  static int sbi_ecall_vendor_register_extensions(void)
-> > >  {
-> > > +       unsigned long extid = sbi_ecall_vendor_id();
-> > > +
-> > > +       ecall_vendor.extid_start = extid;
-> > > +       ecall_vendor.extid_end = extid;
-> > > +
-> > >         return sbi_ecall_register_extension(&ecall_vendor);
-> >
-> > Actually, we should register vendor extension only if
-> > sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr())
-> > is true.
->
-> That's done in a later patch.
+Ensure attempts to invoke SBI extension functions fail with
+SBI_ERR_NOT_SUPPORTED when the extension's probe function has reported
+that the extension is not available. To avoid invoking probe too
+frequently, we check extension availability at init time and skip
+registering them in the extension list when their probe fails. If the
+probes succeed, we keep them, and then later seeing them is enough to
+know they're available. Extensions which have multiple IDs may also need
+to narrow their ID range or remove IDs from their range to ensure when
+the IDs are seen they are valid.
 
-Yes, I realized that after looking at a later patch.
+To handle both the available and valid cases at init time we introduce a
+new callback which gets invoked instead of just registering the
+extensions. We then modify the callbacks for probing and narrowing as
+necessary. Additionally, considering the Base extension probe function
+already knows how to set out_val to 1 for available extensions, we simply
+remove all the probe functions, as now they must all succeed and none of
+them return anything other than 1 on success.
 
->
-> >
-> > This way we can remove the if-check from
-> > sbi_ecall_vendor_handler() and
-> > sbi_ecall_vendor_probe().
->
-> The extid != sbi_ecall_vendor_id part can be / is removed in this patch,
-> but I forgot to remove the other part in the later patch after adding
-> it to sbi_ecall_vendor_register_extensions(). I'll do that for v6.
+v6:
+  - Remove the check in sbi_ecall_vendor_handler() when adding it to
+sbi_ecall_vendor_register_extensions()
+  - Better line wrapping of the comments added for documenting the
+    extension struct members
+  - Added Anup's r-b's
 
-Okay, no problem.
+v5:
+  Another rework where I finally take Anup's advice that he gave on
+  the initial posting and more or less replace probe with a new
+  init callback.
 
-Regards,
-Anup
+v4:
+  Almost a total redesign. Patch1 of the v4 (now series) does keep
+  hunk 2 of the v3 patch, but the changes to sbi_ecall_find_extension()
+  of the v3 patch have been dropped. Instead multi-ID extensions can
+  now make use of a new extension callback (Patch2) which gets invoked
+  at init time. This new callback has been applied to vendor extensions
+  with Patch3.
+
+v3: http://lists.infradead.org/pipermail/opensbi/2023-May/004894.html
+
+Andrew Jones (6):
+  lib: sbi: Introduce register_extensions extension callback
+  lib: sbi: Narrow vendor extension range
+  lib: sbi: pmu: Remove unnecessary probe function
+  lib: sbi: Only register available extensions
+  lib: sbi: Remove 0/1 probe implementations
+  lib: sbi: Document sbi_ecall_extension members
+
+Xiang W (1):
+  lib: sbi: Optimize probe of srst/susp
+
+ include/sbi/sbi_ecall.h    | 36 ++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_ecall.c        |  5 ++++-
+ lib/sbi/sbi_ecall_base.c   | 14 +++++++++++---
+ lib/sbi/sbi_ecall_cppc.c   | 18 +++++++++++-------
+ lib/sbi/sbi_ecall_dbcn.c   | 18 +++++++++++-------
+ lib/sbi/sbi_ecall_hsm.c    | 14 +++++++++++---
+ lib/sbi/sbi_ecall_ipi.c    | 14 +++++++++++---
+ lib/sbi/sbi_ecall_legacy.c | 14 +++++++++++---
+ lib/sbi/sbi_ecall_pmu.c    | 16 ++++++++--------
+ lib/sbi/sbi_ecall_rfence.c | 14 +++++++++++---
+ lib/sbi/sbi_ecall_srst.c   | 28 ++++++++++++++++++----------
+ lib/sbi/sbi_ecall_susp.c   | 27 ++++++++++++++++++---------
+ lib/sbi/sbi_ecall_time.c   | 14 +++++++++++---
+ lib/sbi/sbi_ecall_vendor.c | 38 +++++++++++++++++++-------------------
+ 14 files changed, 191 insertions(+), 79 deletions(-)
+
+-- 
+2.40.0
+
 
