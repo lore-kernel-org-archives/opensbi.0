@@ -1,88 +1,89 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 15 May 2023 16:11:22 +0530
-Subject: [PATCH v5 7/7] lib: sbi: Document sbi_ecall_extension members
-In-Reply-To: <20230515093446.73123-8-ajones@ventanamicro.com>
-References: <20230515093446.73123-1-ajones@ventanamicro.com> <20230515093446.73123-8-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy3N45YWP=5-R09AmzF=w=3_A4hO+hegfsFS0nk_X+xAqQ@mail.gmail.com>
+Date: Mon, 15 May 2023 16:12:27 +0530
+Subject: [PATCH v5 2/7] lib: sbi: Narrow vendor extension range
+In-Reply-To: <20230515-30949d43a51053bd384a98dd@orel>
+References: <20230515093446.73123-1-ajones@ventanamicro.com>
+ <20230515093446.73123-3-ajones@ventanamicro.com> <CAAhSdy05j92C2em+s-iv9vH-jH4ofLzxX5+-D7BvGqJpjUMQcw@mail.gmail.com>
+ <20230515-30949d43a51053bd384a98dd@orel>
+Message-ID: <CAAhSdy39hA8KKZZ8ovDWyYgebkkUdX8kXUgvwj0czD+WD6zFow@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 15, 2023 at 3:05?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Mon, May 15, 2023 at 4:08?PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> With the introduction of the register_extensions callback the
-> range members (extid_start and extid_end) may now change and it
-> has become a bit subtle as to when a probe function should be
-> implemented. Document all the members and their relationship to
-> the register_extensions callback.
+> On Mon, May 15, 2023 at 04:02:01PM +0530, Anup Patel wrote:
+> > On Mon, May 15, 2023 at 3:04?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+> > >
+> > > The vendor extension ID range is large, but at runtime at most
+> > > a single ID will be available. Narrow the range in the
+> > > register_extensions callback. After narrowing, we no longer
+> > > need to check that the extension ID is correct in the other
+> > > callbacks, as those callbacks will never be invoked with
+> > > anything other than the single ID.
+> > >
+> > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> > > ---
+> > >  lib/sbi/sbi_ecall_vendor.c | 11 +++++++----
+> > >  1 file changed, 7 insertions(+), 4 deletions(-)
+> > >
+> > > diff --git a/lib/sbi/sbi_ecall_vendor.c b/lib/sbi/sbi_ecall_vendor.c
+> > > index 126156f79a12..39c58c8b6fd5 100644
+> > > --- a/lib/sbi/sbi_ecall_vendor.c
+> > > +++ b/lib/sbi/sbi_ecall_vendor.c
+> > > @@ -25,8 +25,7 @@ static inline unsigned long sbi_ecall_vendor_id(void)
+> > >  static int sbi_ecall_vendor_probe(unsigned long extid,
+> > >                                   unsigned long *out_val)
+> > >  {
+> > > -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
+> > > -           extid != sbi_ecall_vendor_id())
+> > > +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
+> > >                 *out_val = 0;
+> > >         else
+> > >                 *out_val = 1;
+> > > @@ -38,8 +37,7 @@ static int sbi_ecall_vendor_handler(unsigned long extid, unsigned long funcid,
+> > >                                     unsigned long *out_val,
+> > >                                     struct sbi_trap_info *out_trap)
+> > >  {
+> > > -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
+> > > -           extid != sbi_ecall_vendor_id())
+> > > +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
+> > >                 return SBI_ERR_NOT_SUPPORTED;
+> > >
+> > >         return sbi_platform_vendor_ext_provider(sbi_platform_thishart_ptr(),
+> > > @@ -51,6 +49,11 @@ struct sbi_ecall_extension ecall_vendor;
+> > >
+> > >  static int sbi_ecall_vendor_register_extensions(void)
+> > >  {
+> > > +       unsigned long extid = sbi_ecall_vendor_id();
+> > > +
+> > > +       ecall_vendor.extid_start = extid;
+> > > +       ecall_vendor.extid_end = extid;
+> > > +
+> > >         return sbi_ecall_register_extension(&ecall_vendor);
+> >
+> > Actually, we should register vendor extension only if
+> > sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr())
+> > is true.
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> That's done in a later patch.
 
-Looks good to me.
+Yes, I realized that after looking at a later patch.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+>
+> >
+> > This way we can remove the if-check from
+> > sbi_ecall_vendor_handler() and
+> > sbi_ecall_vendor_probe().
+>
+> The extid != sbi_ecall_vendor_id part can be / is removed in this patch,
+> but I forgot to remove the other part in the later patch after adding
+> it to sbi_ecall_vendor_register_extensions(). I'll do that for v6.
 
-Thanks,
+Okay, no problem.
+
+Regards,
 Anup
-
-> ---
->  include/sbi/sbi_ecall.h | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
->
-> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> index fac26429cf5d..3cb25ae80fb0 100644
-> --- a/include/sbi/sbi_ecall.h
-> +++ b/include/sbi/sbi_ecall.h
-> @@ -21,11 +21,46 @@ struct sbi_trap_regs;
->  struct sbi_trap_info;
->
->  struct sbi_ecall_extension {
-> +       /* head is used by the extension list */
->         struct sbi_dlist head;
-> +       /*
-> +        * extid_start and extid_end specify the range for this extension.
-> +        * As the initial range may be wider than the valid runtime range,
-> +        * the register_extensions callback is responsible for narrowing
-> +        * the range before other callbacks may be invoked.
-> +        */
->         unsigned long extid_start;
->         unsigned long extid_end;
-> +       /*
-> +        * register_extensions
-> +        *
-> +        * Calls sbi_ecall_register_extension() one or more times to
-> +        * register extension ID range(s) which should be handled by this
-> +        * extension. More than one sbi_ecall_extension struct and
-> +        * sbi_ecall_register_extension() call is necessary when the supported
-> +        * extension ID ranges have gaps. Additionally, extension availability
-> +        * must be checked before registering, which means, when this callback
-> +        * returns, only valid extension IDs from the initial range, which are
-> +        * also available, have been registered.
-> +        */
->         int (* register_extensions)(void);
-> +       /*
-> +        * probe
-> +        *
-> +        * Implements the Base extension's probe function for the extension. As
-> +        * the register_extensions callback ensures that no other extension
-> +        * callbacks will be invoked when the extension is not available, then
-> +        * probe can never fail. However, an extension may choose to set out_val
-> +        * to a nonzero value other than one. In those cases, it should implement
-> +        * this callback.
-> +        */
->         int (* probe)(unsigned long extid, unsigned long *out_val);
-> +       /*
-> +        * handle
-> +        *
-> +        * This is the extension handler. register_extensions ensures it is
-> +        * never invoked with an invalid or unavailable extension ID.
-> +        */
->         int (* handle)(unsigned long extid, unsigned long funcid,
->                        const struct sbi_trap_regs *regs,
->                        unsigned long *out_val,
-> --
-> 2.40.0
->
 
