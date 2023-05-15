@@ -1,123 +1,74 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 15 May 2023 08:01:29 +0200
-Subject: [PATCH v4 2/3] lib: sbi: Introduce register_extensions extension
- callback
-In-Reply-To: <CAAhSdy0ETK1Bk8J=YK_dpz4WtDDbjUfknjvqEfq3R5rgCohMUw@mail.gmail.com>
-References: <20230511161104.115168-1-ajones@ventanamicro.com>
- <20230511161104.115168-3-ajones@ventanamicro.com>
- <CAAhSdy0MEK7Gb5bPoA896tAwnztR_=bMzcisC0bs-MmznXrMSQ@mail.gmail.com>
- <20230512-c5340e4149046d611eb57a85@orel>
- <CAAhSdy0ETK1Bk8J=YK_dpz4WtDDbjUfknjvqEfq3R5rgCohMUw@mail.gmail.com>
-Message-ID: <20230515-742122040aa9da812251120f@orel>
+Date: Mon, 15 May 2023 11:34:39 +0200
+Subject: [PATCH v5 0/7] lib: sbi: Ensure SBI extension is available
+Message-ID: <20230515093446.73123-1-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, May 12, 2023 at 10:17:35PM +0530, Anup Patel wrote:
-> On Fri, May 12, 2023 at 8:36?PM Andrew Jones <ajones@ventanamicro.com> wrote:
-> >
-> > On Fri, May 12, 2023 at 07:55:56PM +0530, Anup Patel wrote:
-> > > On Thu, May 11, 2023 at 9:41?PM Andrew Jones <ajones@ventanamicro.com> wrote:
-> > > >
-> > > > The register_extensions callback is called from sbi_ecall_init() for
-> > > > any extension that provides it. It's purpose is to register the
-> > > > extension with one or more sbi_ecall_register_extension() calls after
-> > > > possibly narrowing the range of extension IDs that should be handled.
-> > > > More than one call of sbi_ecall_register_extension() is necessary
-> > > > when the supported extension ID ranges have gaps. Additionally, when
-> > > > an extension may not be available and has a probe function, then the
-> > > > probe function should be consulted as to whether or not the extension
-> > > > should be registered. In summary, when register_extensions() returns,
-> > > > only valid extension IDs from the initial range, which are also
-> > > > available, have been registered.
-> > > >
-> > > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-> > > > ---
-> > > >  include/sbi/sbi_ecall.h | 1 +
-> > > >  lib/sbi/sbi_ecall.c     | 8 ++++++--
-> > > >  2 files changed, 7 insertions(+), 2 deletions(-)
-> > > >
-> > > > diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> > > > index ff9bf8e2b435..fac26429cf5d 100644
-> > > > --- a/include/sbi/sbi_ecall.h
-> > > > +++ b/include/sbi/sbi_ecall.h
-> > > > @@ -24,6 +24,7 @@ struct sbi_ecall_extension {
-> > > >         struct sbi_dlist head;
-> > > >         unsigned long extid_start;
-> > > >         unsigned long extid_end;
-> > > > +       int (* register_extensions)(void);
-> > > >         int (* probe)(unsigned long extid, unsigned long *out_val);
-> > > >         int (* handle)(unsigned long extid, unsigned long funcid,
-> > > >                        const struct sbi_trap_regs *regs,
-> > > > diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-> > > > index 5a301fb7d403..1c4a26fde438 100644
-> > > > --- a/lib/sbi/sbi_ecall.c
-> > > > +++ b/lib/sbi/sbi_ecall.c
-> > > > @@ -154,8 +154,12 @@ int sbi_ecall_init(void)
-> > > >
-> > > >         for (i = 0; i < sbi_ecall_exts_size; i++) {
-> > > >                 ext = sbi_ecall_exts[i];
-> > > > -               if (ext->extid_start != ext->extid_end || !ext->probe ||
-> > > > -                   (!ext->probe(ext->extid_end, &out_val) && out_val)) {
-> > > > +               if (ext->register_extensions) {
-> > > > +                       ret = ext->register_extensions();
-> > > > +                       if (ret)
-> > > > +                               return ret;
-> > > > +               } else if (ext->extid_start != ext->extid_end || !ext->probe ||
-> > > > +                          (!ext->probe(ext->extid_end, &out_val) && out_val)) {
-> > >
-> > > We should replace probe() callback with register_extensions()
-> > > and code over here can be something like below:
-> >
-> > We need to keep probe in case an extension wants to implement a
-> > nonzero out_val, which can be inspected by S-mode with the Base
-> > extension probe function:
-> >
-> > """
-> > Probe SBI extension (FID #3)
-> >
-> > Returns 0 if the given SBI extension ID (EID) is not available, or
-> > 1 if it is available unless defined as any other non-zero value by
-> > the implementation.
-> > """
-> 
-> Fair enough, we can keep the probe() callback for custom
-> return values but none of the existing SBI extensions have
-> custom probe return values so don't need probe existing
-> SBI extensions.
+Ensure attempts to invoke SBI extension functions fail with
+SBI_ERR_NOT_SUPPORTED when the extension's probe function has reported
+that the extension is not available. To avoid invoking probe too
+frequently, we check extension availability at init time and skip
+registering them in the extension list when their probe fails. If the
+probes succeed, we keep them, and then later seeing them is enough to
+know they're available. Extensions which have multiple IDs may also need
+to narrow their ID range or remove IDs from their range to ensure when
+the IDs are seen they are valid.
 
-Sounds good. I'll add a patch documenting the probe callback's
-purpose.
+To handle both the available and valid cases at init time we introduce a
+new callback which gets invoked instead of just registering the
+extensions. We then modify the callbacks for probing and narrowing as
+necessary. Additionally, considering the Base extension probe function
+already knows how to set out_val to 1 for available extensions, we simply
+remove all the probe functions, as now they must all succeed and none of
+them return anything other than 1 on success.
 
-> 
-> >
-> > >
-> > > if (ext->register_extensions)
-> > >      ret = ext->register_extensions();
-> > > else if (ext->extid_start == ext->extid_end)
-> > >      ret = sbi_ecall_register_extension(ext);
-> >
-> > Also here, if we don't have probe, then we can't know if the single
-> > ID extension should be added or not. Not adding the extensions which
-> > fail probe to the list, so sbi_ecall_find_extension() can't find
-> > them when their functions are invoked, is the main motivation of the
-> > series.
-> 
-> We should just implemetn register_extensions() for all
-> existing SBI extensions and remove probe() implementation
-> so the code over here will be a simple if-else:
-> 
-> if (ext->register_extensions)
->     ret = ext->register_extensions();
-> else
->     ret = SBI_ENODEV;
-> if (ret)
->     return ret;
+v5:
+  Another rework where I finally take Anup's advice that he gave on
+  the initial posting and more or less replace probe with a new
+  init callback.
 
-Works for me.
+v4:
+  Almost a total redesign. Patch1 of the v4 (now series) does keep
+  hunk 2 of the v3 patch, but the changes to sbi_ecall_find_extension()
+  of the v3 patch have been dropped. Instead multi-ID extensions can
+  now make use of a new extension callback (Patch2) which gets invoked
+  at init time. This new callback has been applied to vendor extensions
+  with Patch3.
 
-Thanks,
-drew
+v3: http://lists.infradead.org/pipermail/opensbi/2023-May/004894.html
+
+Andrew Jones (6):
+  lib: sbi: Introduce register_extensions extension callback
+  lib: sbi: Narrow vendor extension range
+  lib: sbi: pmu: Remove unnecessary probe function
+  lib: sbi: Only register available extensions
+  lib: sbi: Remove 0/1 probe implementations
+  lib: sbi: Document sbi_ecall_extension members
+
+Xiang W (1):
+  lib: sbi: Optimize probe of srst/susp
+
+ include/sbi/sbi_ecall.h    | 36 ++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_ecall.c        |  5 ++++-
+ lib/sbi/sbi_ecall_base.c   | 14 +++++++++++---
+ lib/sbi/sbi_ecall_cppc.c   | 18 +++++++++++-------
+ lib/sbi/sbi_ecall_dbcn.c   | 18 +++++++++++-------
+ lib/sbi/sbi_ecall_hsm.c    | 14 +++++++++++---
+ lib/sbi/sbi_ecall_ipi.c    | 14 +++++++++++---
+ lib/sbi/sbi_ecall_legacy.c | 14 +++++++++++---
+ lib/sbi/sbi_ecall_pmu.c    | 16 ++++++++--------
+ lib/sbi/sbi_ecall_rfence.c | 14 +++++++++++---
+ lib/sbi/sbi_ecall_srst.c   | 28 ++++++++++++++++++----------
+ lib/sbi/sbi_ecall_susp.c   | 27 ++++++++++++++++++---------
+ lib/sbi/sbi_ecall_time.c   | 14 +++++++++++---
+ lib/sbi/sbi_ecall_vendor.c | 37 ++++++++++++++++++++-----------------
+ 14 files changed, 192 insertions(+), 77 deletions(-)
+
+-- 
+2.40.0
+
 
