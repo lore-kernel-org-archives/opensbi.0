@@ -1,219 +1,82 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 15 May 2023 16:05:41 +0530
-Subject: [PATCH v5 6/7] lib: sbi: Remove 0/1 probe implementations
-In-Reply-To: <20230515093446.73123-7-ajones@ventanamicro.com>
-References: <20230515093446.73123-1-ajones@ventanamicro.com> <20230515093446.73123-7-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy2m3+Gu8+vKTjuD_X1-rPf8nQcg9sPyNTtFtwctNDCkrw@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 15 May 2023 12:38:05 +0200
+Subject: [PATCH v5 2/7] lib: sbi: Narrow vendor extension range
+In-Reply-To: <CAAhSdy05j92C2em+s-iv9vH-jH4ofLzxX5+-D7BvGqJpjUMQcw@mail.gmail.com>
+References: <20230515093446.73123-1-ajones@ventanamicro.com>
+ <20230515093446.73123-3-ajones@ventanamicro.com>
+ <CAAhSdy05j92C2em+s-iv9vH-jH4ofLzxX5+-D7BvGqJpjUMQcw@mail.gmail.com>
+Message-ID: <20230515-30949d43a51053bd384a98dd@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 15, 2023 at 3:05?PM Andrew Jones <ajones@ventanamicro.com> wrote:
->
-> When a probe implementation just returns zero for not available and
-> one for available then we don't need it, as the extension won't be
-> registered at all if it would return zero and the Base extension
-> probe function will already set out_val to 1 if not probe function
-> is implemented. Currently all probe functions only return zero or
-> one, so remove them all.
->
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+On Mon, May 15, 2023 at 04:02:01PM +0530, Anup Patel wrote:
+> On Mon, May 15, 2023 at 3:04?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+> >
+> > The vendor extension ID range is large, but at runtime at most
+> > a single ID will be available. Narrow the range in the
+> > register_extensions callback. After narrowing, we no longer
+> > need to check that the extension ID is correct in the other
+> > callbacks, as those callbacks will never be invoked with
+> > anything other than the single ID.
+> >
+> > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> > ---
+> >  lib/sbi/sbi_ecall_vendor.c | 11 +++++++----
+> >  1 file changed, 7 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/lib/sbi/sbi_ecall_vendor.c b/lib/sbi/sbi_ecall_vendor.c
+> > index 126156f79a12..39c58c8b6fd5 100644
+> > --- a/lib/sbi/sbi_ecall_vendor.c
+> > +++ b/lib/sbi/sbi_ecall_vendor.c
+> > @@ -25,8 +25,7 @@ static inline unsigned long sbi_ecall_vendor_id(void)
+> >  static int sbi_ecall_vendor_probe(unsigned long extid,
+> >                                   unsigned long *out_val)
+> >  {
+> > -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
+> > -           extid != sbi_ecall_vendor_id())
+> > +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
+> >                 *out_val = 0;
+> >         else
+> >                 *out_val = 1;
+> > @@ -38,8 +37,7 @@ static int sbi_ecall_vendor_handler(unsigned long extid, unsigned long funcid,
+> >                                     unsigned long *out_val,
+> >                                     struct sbi_trap_info *out_trap)
+> >  {
+> > -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
+> > -           extid != sbi_ecall_vendor_id())
+> > +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
+> >                 return SBI_ERR_NOT_SUPPORTED;
+> >
+> >         return sbi_platform_vendor_ext_provider(sbi_platform_thishart_ptr(),
+> > @@ -51,6 +49,11 @@ struct sbi_ecall_extension ecall_vendor;
+> >
+> >  static int sbi_ecall_vendor_register_extensions(void)
+> >  {
+> > +       unsigned long extid = sbi_ecall_vendor_id();
+> > +
+> > +       ecall_vendor.extid_start = extid;
+> > +       ecall_vendor.extid_end = extid;
+> > +
+> >         return sbi_ecall_register_extension(&ecall_vendor);
+> 
+> Actually, we should register vendor extension only if
+> sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr())
+> is true.
 
-Looks good to me.
+That's done in a later patch.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+> 
+> This way we can remove the if-check from
+> sbi_ecall_vendor_handler() and
+> sbi_ecall_vendor_probe().
+
+The extid != sbi_ecall_vendor_id part can be / is removed in this patch,
+but I forgot to remove the other part in the later patch after adding
+it to sbi_ecall_vendor_register_extensions(). I'll do that for v6.
 
 Thanks,
-Anup
-
-> ---
->  lib/sbi/sbi_ecall_cppc.c   |  7 -------
->  lib/sbi/sbi_ecall_dbcn.c   |  7 -------
->  lib/sbi/sbi_ecall_srst.c   | 18 +++++-------------
->  lib/sbi/sbi_ecall_susp.c   | 17 +++++------------
->  lib/sbi/sbi_ecall_vendor.c | 11 -----------
->  5 files changed, 10 insertions(+), 50 deletions(-)
->
-> diff --git a/lib/sbi/sbi_ecall_cppc.c b/lib/sbi/sbi_ecall_cppc.c
-> index a6398ac78226..b54d54ec684c 100644
-> --- a/lib/sbi/sbi_ecall_cppc.c
-> +++ b/lib/sbi/sbi_ecall_cppc.c
-> @@ -49,12 +49,6 @@ static int sbi_ecall_cppc_handler(unsigned long extid, unsigned long funcid,
->         return ret;
->  }
->
-> -static int sbi_ecall_cppc_probe(unsigned long extid, unsigned long *out_val)
-> -{
-> -       *out_val = sbi_cppc_get_device() ? 1 : 0;
-> -       return 0;
-> -}
-> -
->  struct sbi_ecall_extension ecall_cppc;
->
->  static int sbi_ecall_cppc_register_extensions(void)
-> @@ -69,6 +63,5 @@ struct sbi_ecall_extension ecall_cppc = {
->         .extid_start            = SBI_EXT_CPPC,
->         .extid_end              = SBI_EXT_CPPC,
->         .register_extensions    = sbi_ecall_cppc_register_extensions,
-> -       .probe                  = sbi_ecall_cppc_probe,
->         .handle                 = sbi_ecall_cppc_handler,
->  };
-> diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-> index cbb2e802e615..e0b892c2ed6b 100644
-> --- a/lib/sbi/sbi_ecall_dbcn.c
-> +++ b/lib/sbi/sbi_ecall_dbcn.c
-> @@ -58,12 +58,6 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
->         return SBI_ENOTSUPP;
->  }
->
-> -static int sbi_ecall_dbcn_probe(unsigned long extid, unsigned long *out_val)
-> -{
-> -       *out_val = sbi_console_get_device() ? 1 : 0;
-> -       return 0;
-> -}
-> -
->  struct sbi_ecall_extension ecall_dbcn;
->
->  static int sbi_ecall_dbcn_register_extensions(void)
-> @@ -78,6 +72,5 @@ struct sbi_ecall_extension ecall_dbcn = {
->         .extid_start            = SBI_EXT_DBCN,
->         .extid_end              = SBI_EXT_DBCN,
->         .register_extensions    = sbi_ecall_dbcn_register_extensions,
-> -       .probe                  = sbi_ecall_dbcn_probe,
->         .handle                 = sbi_ecall_dbcn_handler,
->  };
-> diff --git a/lib/sbi/sbi_ecall_srst.c b/lib/sbi/sbi_ecall_srst.c
-> index fd2dc0d251f3..dcd560d22f9d 100644
-> --- a/lib/sbi/sbi_ecall_srst.c
-> +++ b/lib/sbi/sbi_ecall_srst.c
-> @@ -48,7 +48,7 @@ static int sbi_ecall_srst_handler(unsigned long extid, unsigned long funcid,
->         return SBI_ENOTSUPP;
->  }
->
-> -static int sbi_ecall_srst_probe(unsigned long extid, unsigned long *out_val)
-> +static bool srst_available(void)
->  {
->         u32 type;
->
-> @@ -56,27 +56,20 @@ static int sbi_ecall_srst_probe(unsigned long extid, unsigned long *out_val)
->          * At least one standard reset types should be supported by
->          * the platform for SBI SRST extension to be usable.
->          */
-> -
->         for (type = 0; type <= SBI_SRST_RESET_TYPE_LAST; type++) {
->                 if (sbi_system_reset_supported(type,
-> -                                       SBI_SRST_RESET_REASON_NONE)) {
-> -                       *out_val = 1;
-> -                       return 0;
-> -               }
-> +                                       SBI_SRST_RESET_REASON_NONE))
-> +                       return true;
->         }
->
-> -       *out_val = 0;
-> -       return 0;
-> +       return false;
->  }
->
->  struct sbi_ecall_extension ecall_srst;
->
->  static int sbi_ecall_srst_register_extensions(void)
->  {
-> -       unsigned long out_val;
-> -
-> -       sbi_ecall_srst_probe(SBI_EXT_SRST, &out_val);
-> -       if (!out_val)
-> +       if (!srst_available())
->                 return 0;
->
->         return sbi_ecall_register_extension(&ecall_srst);
-> @@ -86,6 +79,5 @@ struct sbi_ecall_extension ecall_srst = {
->         .extid_start            = SBI_EXT_SRST,
->         .extid_end              = SBI_EXT_SRST,
->         .register_extensions    = sbi_ecall_srst_register_extensions,
-> -       .probe                  = sbi_ecall_srst_probe,
->         .handle                 = sbi_ecall_srst_handler,
->  };
-> diff --git a/lib/sbi/sbi_ecall_susp.c b/lib/sbi/sbi_ecall_susp.c
-> index 716a6d585af7..2bfd99ae8720 100644
-> --- a/lib/sbi/sbi_ecall_susp.c
-> +++ b/lib/sbi/sbi_ecall_susp.c
-> @@ -23,7 +23,7 @@ static int sbi_ecall_susp_handler(unsigned long extid, unsigned long funcid,
->         return ret;
->  }
->
-> -static int sbi_ecall_susp_probe(unsigned long extid, unsigned long *out_val)
-> +static bool susp_available(void)
->  {
->         u32 type;
->
-> @@ -32,24 +32,18 @@ static int sbi_ecall_susp_probe(unsigned long extid, unsigned long *out_val)
->          * platform for the SBI SUSP extension to be usable.
->          */
->         for (type = 0; type <= SBI_SUSP_SLEEP_TYPE_LAST; type++) {
-> -               if (sbi_system_suspend_supported(type)) {
-> -                       *out_val = 1;
-> -                       return 0;
-> -               }
-> +               if (sbi_system_suspend_supported(type))
-> +                       return true;
->         }
->
-> -       *out_val = 0;
-> -       return 0;
-> +       return false;
->  }
->
->  struct sbi_ecall_extension ecall_susp;
->
->  static int sbi_ecall_susp_register_extensions(void)
->  {
-> -       unsigned long out_val;
-> -
-> -       sbi_ecall_susp_probe(SBI_EXT_SUSP, &out_val);
-> -       if (!out_val)
-> +       if (!susp_available())
->                 return 0;
->
->         return sbi_ecall_register_extension(&ecall_susp);
-> @@ -59,6 +53,5 @@ struct sbi_ecall_extension ecall_susp = {
->         .extid_start            = SBI_EXT_SUSP,
->         .extid_end              = SBI_EXT_SUSP,
->         .register_extensions    = sbi_ecall_susp_register_extensions,
-> -       .probe                  = sbi_ecall_susp_probe,
->         .handle                 = sbi_ecall_susp_handler,
->  };
-> diff --git a/lib/sbi/sbi_ecall_vendor.c b/lib/sbi/sbi_ecall_vendor.c
-> index c4a4c1c45b14..fc0d43ef7e13 100644
-> --- a/lib/sbi/sbi_ecall_vendor.c
-> +++ b/lib/sbi/sbi_ecall_vendor.c
-> @@ -22,16 +22,6 @@ static inline unsigned long sbi_ecall_vendor_id(void)
->                  (SBI_EXT_VENDOR_END - SBI_EXT_VENDOR_START));
->  }
->
-> -static int sbi_ecall_vendor_probe(unsigned long extid,
-> -                                 unsigned long *out_val)
-> -{
-> -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
-> -               *out_val = 0;
-> -       else
-> -               *out_val = 1;
-> -       return 0;
-> -}
-> -
->  static int sbi_ecall_vendor_handler(unsigned long extid, unsigned long funcid,
->                                     const struct sbi_trap_regs *regs,
->                                     unsigned long *out_val,
-> @@ -64,6 +54,5 @@ struct sbi_ecall_extension ecall_vendor = {
->         .extid_start            = SBI_EXT_VENDOR_START,
->         .extid_end              = SBI_EXT_VENDOR_END,
->         .register_extensions    = sbi_ecall_vendor_register_extensions,
-> -       .probe                  = sbi_ecall_vendor_probe,
->         .handle                 = sbi_ecall_vendor_handler,
->  };
-> --
-> 2.40.0
->
+drew
 
