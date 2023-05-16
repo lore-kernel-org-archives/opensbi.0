@@ -1,36 +1,71 @@
 From: Filip Filmar <fmil@google.com>
-Date: Mon, 15 May 2023 18:37:27 -0700
-Subject: [PATCH] Makefile: Dereference symlinks on install
+Date: Tue, 16 May 2023 01:42:05 +0000
+Subject: [PATCH v[3]] Makefile: Dereference symlinks on install
 In-Reply-To: <d0e964ee7ecc2d3dd782f0f19b253b129419fbd2.camel@126.com>
-References: <4905b45dce646da59fae50374fff57a2c493b453.camel@126.com>
- <20230515231708.1871973-1-fmil@google.com> <2091338669d6c38cfa01b615b3205af81e4efb53.camel@126.com>
- <CAGEh6bgZLfNcPW91SG5OgNawRE1MhHv7z64UwhvOMxj+1nahHA@mail.gmail.com> <d0e964ee7ecc2d3dd782f0f19b253b129419fbd2.camel@126.com>
-Message-ID: <CAGEh6bidQmWhh4Txcku3LeX3hez-m6NLF6V65aYoE6r=KkZhhQ@mail.gmail.com>
+References: <d0e964ee7ecc2d3dd782f0f19b253b129419fbd2.camel@126.com>
+Message-ID: <20230516014203.1899731-1-fmil@google.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Will do.
+Adds the `-L` flag (follow symlinks) to the `cp` commands used to
+install `libsbi.a` and `include/sbi/*`.
 
+This should make no difference in regular compilation. However,
+it does make a difference when compiling with bazel.  Namely,
+bazel's sandboxing will turn all the source files into symlinks.
+After installation with `cp` the destination files will be
+symlinks pointing to the sandbox symlinks. As the sandbox files
+are removed when compilation ends, the just-copied symlinks
+become dangling symlinks.
 
-On Mon, May 15, 2023 at 6:24?PM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2023-05-15???? 17:33 -0700?Filip Filmar???
-> > On Mon, May 15, 2023 at 4:38?PM Xiang W <wxjstz@126.com> wrote:
-> > > > Signed-off-by: Filip Filmar <fmil@google.com>
-> > > Missing my tag.
-> > >
-> >
-> >
-> > I don't follow. What do you want me to change?
-> Missing "Reviewed-by: Xiang W <wxjstz@126.com>".
-> Sending a new patch should change the subject [PATCH v[n]].
->
-> Regards,
-> Xiang W
-> >
-> > F
->
+The resulting include files will be
+unusable due to the dangling symlink issues. Adding `-L` when
+copying ensures that the files obtained by executing the `install`
+targets are always dereferenced to files, rather than symlinks,
+eliminating this issue.
+
+Signed-off-by: Filip Filmar <fmil@google.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+---
+ Makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index a26a39b..730dbd9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -401,10 +401,10 @@ merge_deps = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     cat $(2) > $(1)
+ copy_file =  $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo " COPY      $(subst $(build_dir)/,,$(1))"; \
+-	     cp -f $(2) $(1)
++	     cp -L -f $(2) $(1)
+ inst_file =  $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
+-	     cp -f $(2) $(1)
++	     cp -L -f $(2) $(1)
+ inst_file_list = $(CMD_PREFIX)if [ ! -z "$(4)" ]; then \
+ 	     mkdir -p $(1)/$(3); \
+ 	     for file in $(4) ; do \
+@@ -413,12 +413,12 @@ inst_file_list = $(CMD_PREFIX)if [ ! -z "$(4)" ]; then \
+ 	     dest_dir=`dirname $$dest_file`; \
+ 	     echo " INSTALL   "$(3)"/"`echo $$rel_file`; \
+ 	     mkdir -p $$dest_dir; \
+-	     cp -f $$file $$dest_file; \
++	     cp -L -f $$file $$dest_file; \
+ 	     done \
+ 	     fi
+ inst_header_dir =  $(CMD_PREFIX)mkdir -p $(1); \
+ 	     echo " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
+-	     cp -rf $(2) $(1)
++	     cp -L -rf $(2) $(1)
+ compile_cpp_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo " CPP-DEP   $(subst $(build_dir)/,,$(1))"; \
+ 	     printf %s `dirname $(1)`/  > $(1) && \
+-- 
+2.40.1.606.ga4b1b128d6-goog
+
 
