@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 21 May 2023 20:56:33 +0530
-Subject: [PATCH v6 2/7] lib: sbi: Narrow vendor extension range
-In-Reply-To: <20230515111240.95059-3-ajones@ventanamicro.com>
-References: <20230515111240.95059-1-ajones@ventanamicro.com> <20230515111240.95059-3-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy3pL9mqcHn6_thZ5=KSyrp0p1YXcN_wFGDjbeAJdgcbHg@mail.gmail.com>
+Date: Sun, 21 May 2023 20:56:52 +0530
+Subject: [PATCH v6 3/7] lib: sbi: pmu: Remove unnecessary probe function
+In-Reply-To: <20230515111240.95059-4-ajones@ventanamicro.com>
+References: <20230515111240.95059-1-ajones@ventanamicro.com> <20230515111240.95059-4-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy38TBwBSpNJK=LwWPK54tvai8V7VO0SyYJcwqLHR2DsgQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,14 +12,13 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, May 15, 2023 at 4:42?PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> The vendor extension ID range is large, but at runtime at most
-> a single ID will be available. Narrow the range in the
-> register_extensions callback. After narrowing, we no longer
-> need to check that the extension ID is correct in the other
-> callbacks, as those callbacks will never be invoked with
-> anything other than the single ID.
+> The absence of a probe implementation means that the extension is
+> always available. Remove the implementation for the PMU extension,
+> which does no checking, and indeed even has a comment saying it's
+> always available.
 >
 > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -27,45 +26,34 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_ecall_vendor.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
+>  lib/sbi/sbi_ecall_pmu.c | 8 --------
+>  1 file changed, 8 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_ecall_vendor.c b/lib/sbi/sbi_ecall_vendor.c
-> index 126156f79a12..39c58c8b6fd5 100644
-> --- a/lib/sbi/sbi_ecall_vendor.c
-> +++ b/lib/sbi/sbi_ecall_vendor.c
-> @@ -25,8 +25,7 @@ static inline unsigned long sbi_ecall_vendor_id(void)
->  static int sbi_ecall_vendor_probe(unsigned long extid,
->                                   unsigned long *out_val)
->  {
-> -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
-> -           extid != sbi_ecall_vendor_id())
-> +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
->                 *out_val = 0;
->         else
->                 *out_val = 1;
-> @@ -38,8 +37,7 @@ static int sbi_ecall_vendor_handler(unsigned long extid, unsigned long funcid,
->                                     unsigned long *out_val,
->                                     struct sbi_trap_info *out_trap)
->  {
-> -       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()) ||
-> -           extid != sbi_ecall_vendor_id())
-> +       if (!sbi_platform_vendor_ext_check(sbi_platform_thishart_ptr()))
->                 return SBI_ERR_NOT_SUPPORTED;
->
->         return sbi_platform_vendor_ext_provider(sbi_platform_thishart_ptr(),
-> @@ -51,6 +49,11 @@ struct sbi_ecall_extension ecall_vendor;
->
->  static int sbi_ecall_vendor_register_extensions(void)
->  {
-> +       unsigned long extid = sbi_ecall_vendor_id();
-> +
-> +       ecall_vendor.extid_start = extid;
-> +       ecall_vendor.extid_end = extid;
-> +
->         return sbi_ecall_register_extension(&ecall_vendor);
+> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
+> index b0589d0ecfa1..1d5d512eeed7 100644
+> --- a/lib/sbi/sbi_ecall_pmu.c
+> +++ b/lib/sbi/sbi_ecall_pmu.c
+> @@ -81,13 +81,6 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
+>         return ret;
 >  }
 >
+> -static int sbi_ecall_pmu_probe(unsigned long extid, unsigned long *out_val)
+> -{
+> -       /* PMU extension is always enabled */
+> -       *out_val = 1;
+> -       return 0;
+> -}
+> -
+>  struct sbi_ecall_extension ecall_pmu;
+>
+>  static int sbi_ecall_pmu_register_extensions(void)
+> @@ -99,6 +92,5 @@ struct sbi_ecall_extension ecall_pmu = {
+>         .extid_start            = SBI_EXT_PMU,
+>         .extid_end              = SBI_EXT_PMU,
+>         .register_extensions    = sbi_ecall_pmu_register_extensions,
+> -       .probe                  = sbi_ecall_pmu_probe,
+>         .handle                 = sbi_ecall_pmu_handler,
+>  };
 > --
 > 2.40.0
 >
