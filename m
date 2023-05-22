@@ -1,98 +1,88 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 May 2023 13:18:07 +0800
-Subject: [PATCH v3 2/4] lib: utils: Improve fdt_serial_init
+Date: Mon, 22 May 2023 13:18:08 +0800
+Subject: [PATCH v3 3/4] lib: utils: Improve fdt_ipi
 In-Reply-To: <20230522051809.1062177-1-wxjstz@126.com>
 References: <20230522051809.1062177-1-wxjstz@126.com>
-Message-ID: <20230522051809.1062177-3-wxjstz@126.com>
+Message-ID: <20230522051809.1062177-4-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A final check of all DT nodes does not necessarily find a match, so
-SBI_ENODEV needs to be returned. Optimize removal of current_driver.
+Remove dummy driver. Optimize fdt_ipi_cold_init to exit the loop
+early.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/utils/serial/fdt_serial.c | 48 +++++++++++++----------------------
- 1 file changed, 17 insertions(+), 31 deletions(-)
+ lib/utils/ipi/fdt_ipi.c | 36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
-diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
-index 1a4bf9e..0baa722 100644
---- a/lib/utils/serial/fdt_serial.c
-+++ b/lib/utils/serial/fdt_serial.c
-@@ -17,13 +17,6 @@
- extern struct fdt_serial *fdt_serial_drivers[];
- extern unsigned long fdt_serial_drivers_size;
+diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+index 66dc510..54f7c4c 100644
+--- a/lib/utils/ipi/fdt_ipi.c
++++ b/lib/utils/ipi/fdt_ipi.c
+@@ -16,24 +16,17 @@
+ extern struct fdt_ipi *fdt_ipi_drivers[];
+ extern unsigned long fdt_ipi_drivers_size;
  
--static struct fdt_serial dummy = {
+-static struct fdt_ipi dummy = {
 -	.match_table = NULL,
--	.init = NULL,
+-	.cold_init = NULL,
+-	.warm_init = NULL,
+-	.exit = NULL,
 -};
 -
--static struct fdt_serial *current_driver = &dummy;
--
- int fdt_serial_init(void)
+-static struct fdt_ipi *current_driver = &dummy;
++static struct fdt_ipi *current_driver = NULL;
+ 
+ void fdt_ipi_exit(void)
  {
- 	const void *prop;
-@@ -57,20 +50,15 @@ int fdt_serial_init(void)
- 		if (!match)
- 			continue;
+-	if (current_driver->exit)
++	if (current_driver && current_driver->exit)
+ 		current_driver->exit();
+ }
  
--		if (drv->init) {
--			rc = drv->init(fdt, noff, match);
--			if (rc == SBI_ENODEV)
--				continue;
--			if (rc)
--				return rc;
+ static int fdt_ipi_warm_init(void)
+ {
+-	if (current_driver->warm_init)
++	if (current_driver && current_driver->warm_init)
+ 		return current_driver->warm_init();
+ 	return 0;
+ }
+@@ -51,20 +44,21 @@ static int fdt_ipi_cold_init(void)
+ 		noff = -1;
+ 		while ((noff = fdt_find_match(fdt, noff,
+ 					drv->match_table, &match)) >= 0) {
+-			if (drv->cold_init) {
+-				rc = drv->cold_init(fdt, noff, match);
+-				if (rc == SBI_ENODEV)
+-					continue;
+-				if (rc)
+-					return rc;
+-			}
+-			current_driver = drv;
 -		}
--		current_driver = drv;
--		break;
--	}
-+		/* drv->init must not be NULL */
-+		if (drv->init == NULL)
-+			return SBI_EFAIL;
++			/* drv->cold_init must not be NULL */
++			if (drv->cold_init == NULL)
++				return SBI_EFAIL;
  
--	/* Check if we found desired driver */
--	if (current_driver != &dummy)
--		goto done;
-+		rc = drv->init(fdt, noff, match);
-+		if (rc == SBI_ENODEV)
-+			continue;
-+		return rc;
-+	}
- 
- 	/* Lastly check all DT nodes */
- 	for (pos = 0; pos < fdt_serial_drivers_size; pos++) {
-@@ -80,17 +68,15 @@ int fdt_serial_init(void)
- 		if (noff < 0)
- 			continue;
- 
--		if (drv->init) {
--			rc = drv->init(fdt, noff, match);
--			if (rc == SBI_ENODEV)
--				continue;
--			if (rc)
--				return rc;
--		}
--		current_driver = drv;
--		break;
-+		/* drv->init must not be NULL */
-+		if (drv->init == NULL)
-+			return SBI_EFAIL;
-+
-+		rc = drv->init(fdt, noff, match);
-+		if (rc == SBI_ENODEV)
-+			continue;
-+		return rc;
+-		if (current_driver != &dummy)
+-			break;
++			rc = drv->cold_init(fdt, noff, match);
++			if (rc == SBI_ENODEV)
++				continue;
++			if (rc == 0)
++				current_driver = drv;
++			return rc;
++		}
  	}
  
--done:
--	return 0;
-+	return SBI_ENODEV;
++	/* On some single-hart system there is no need for ipi,
++	 * so we cannot return a failure here */
+ 	return 0;
  }
+ 
 -- 
 2.39.2
 
