@@ -1,88 +1,35 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 May 2023 13:10:28 +0800
-Subject: [PATCH v2 3/4] lib: utils: Improve fdt_ipi
-In-Reply-To: <20230522051029.1061225-1-wxjstz@126.com>
-References: <20230522051029.1061225-1-wxjstz@126.com>
-Message-ID: <20230522051029.1061225-4-wxjstz@126.com>
+Date: Mon, 22 May 2023 13:18:05 +0800
+Subject: [PATCH v3 0/4] Miscellaneous
+Message-ID: <20230522051809.1062177-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Remove dummy driver. Optimize fdt_ipi_cold_init to exit the loop
-early.
+v3 changes:
+PATCH2: add Reviewed-by tag.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/utils/ipi/fdt_ipi.c | 36 +++++++++++++++---------------------
- 1 file changed, 15 insertions(+), 21 deletions(-)
+v2 changes:
+PATCH1: Move error check in sbi_console_init
+PATCH3: return error when drv->cold_init == NULL.
+	Device does not exist returns 0.
+PATCH4: return error when drv->cold_init == NULL.
+	Device does not exist returns 0.
 
-diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
-index 66dc510..54f7c4c 100644
---- a/lib/utils/ipi/fdt_ipi.c
-+++ b/lib/utils/ipi/fdt_ipi.c
-@@ -16,24 +16,17 @@
- extern struct fdt_ipi *fdt_ipi_drivers[];
- extern unsigned long fdt_ipi_drivers_size;
- 
--static struct fdt_ipi dummy = {
--	.match_table = NULL,
--	.cold_init = NULL,
--	.warm_init = NULL,
--	.exit = NULL,
--};
--
--static struct fdt_ipi *current_driver = &dummy;
-+static struct fdt_ipi *current_driver = NULL;
- 
- void fdt_ipi_exit(void)
- {
--	if (current_driver->exit)
-+	if (current_driver && current_driver->exit)
- 		current_driver->exit();
- }
- 
- static int fdt_ipi_warm_init(void)
- {
--	if (current_driver->warm_init)
-+	if (current_driver && current_driver->warm_init)
- 		return current_driver->warm_init();
- 	return 0;
- }
-@@ -51,20 +44,21 @@ static int fdt_ipi_cold_init(void)
- 		noff = -1;
- 		while ((noff = fdt_find_match(fdt, noff,
- 					drv->match_table, &match)) >= 0) {
--			if (drv->cold_init) {
--				rc = drv->cold_init(fdt, noff, match);
--				if (rc == SBI_ENODEV)
--					continue;
--				if (rc)
--					return rc;
--			}
--			current_driver = drv;
--		}
-+			/* drv->cold_init must not be NULL */
-+			if (drv->cold_init == NULL)
-+				return SBI_EFAIL;
- 
--		if (current_driver != &dummy)
--			break;
-+			rc = drv->cold_init(fdt, noff, match);
-+			if (rc == SBI_ENODEV)
-+				continue;
-+			if (rc == 0)
-+				current_driver = drv;
-+			return rc;
-+		}
- 	}
- 
-+	/* On some single-hart system there is no need for ipi,
-+	 * so we cannot return a failure here */
- 	return 0;
- }
- 
+Xiang W (4):
+  lib: sbi: Fix return of sbi_console_init
+  lib: utils: Improve fdt_serial_init
+  lib: utils: Improve fdt_ipi
+  lib: utils: Improve fdt_timer
+
+ lib/sbi/sbi_console.c         |  8 +++++-
+ lib/utils/ipi/fdt_ipi.c       | 36 +++++++++++---------------
+ lib/utils/serial/fdt_serial.c | 48 +++++++++++++----------------------
+ lib/utils/timer/fdt_timer.c   | 36 +++++++++++---------------
+ 4 files changed, 54 insertions(+), 74 deletions(-)
+
 -- 
 2.39.2
 
