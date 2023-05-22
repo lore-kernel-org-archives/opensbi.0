@@ -1,39 +1,96 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 May 2023 13:18:06 +0800
-Subject: [PATCH v3 1/4] lib: sbi: Fix return of sbi_console_init
-In-Reply-To: <20230522051809.1062177-1-wxjstz@126.com>
-References: <20230522051809.1062177-1-wxjstz@126.com>
-Message-ID: <20230522051809.1062177-2-wxjstz@126.com>
+Date: Mon, 22 May 2023 13:10:27 +0800
+Subject: [PATCH v2 2/4] lib: utils: Improve fdt_serial_init
+In-Reply-To: <20230522051029.1061225-1-wxjstz@126.com>
+References: <20230522051029.1061225-1-wxjstz@126.com>
+Message-ID: <20230522051029.1061225-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-console is not a required peripheral. So it should return success when
-the console does not exist.
+A final check of all DT nodes does not necessarily find a match, so
+SBI_ENODEV needs to be returned. Optimize removal of current_driver.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ lib/utils/serial/fdt_serial.c | 48 +++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 31 deletions(-)
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index f3ac003..168dffd 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -481,5 +481,11 @@ void sbi_console_set_device(const struct sbi_console_device *dev)
+diff --git a/lib/utils/serial/fdt_serial.c b/lib/utils/serial/fdt_serial.c
+index 1a4bf9e..0baa722 100644
+--- a/lib/utils/serial/fdt_serial.c
++++ b/lib/utils/serial/fdt_serial.c
+@@ -17,13 +17,6 @@
+ extern struct fdt_serial *fdt_serial_drivers[];
+ extern unsigned long fdt_serial_drivers_size;
  
- int sbi_console_init(struct sbi_scratch *scratch)
+-static struct fdt_serial dummy = {
+-	.match_table = NULL,
+-	.init = NULL,
+-};
+-
+-static struct fdt_serial *current_driver = &dummy;
+-
+ int fdt_serial_init(void)
  {
--	return sbi_platform_console_init(sbi_platform_ptr(scratch));
-+	int rc = sbi_platform_console_init(sbi_platform_ptr(scratch));
+ 	const void *prop;
+@@ -57,20 +50,15 @@ int fdt_serial_init(void)
+ 		if (!match)
+ 			continue;
+ 
+-		if (drv->init) {
+-			rc = drv->init(fdt, noff, match);
+-			if (rc == SBI_ENODEV)
+-				continue;
+-			if (rc)
+-				return rc;
+-		}
+-		current_driver = drv;
+-		break;
+-	}
++		/* drv->init must not be NULL */
++		if (drv->init == NULL)
++			return SBI_EFAIL;
+ 
+-	/* Check if we found desired driver */
+-	if (current_driver != &dummy)
+-		goto done;
++		rc = drv->init(fdt, noff, match);
++		if (rc == SBI_ENODEV)
++			continue;
++		return rc;
++	}
+ 
+ 	/* Lastly check all DT nodes */
+ 	for (pos = 0; pos < fdt_serial_drivers_size; pos++) {
+@@ -80,17 +68,15 @@ int fdt_serial_init(void)
+ 		if (noff < 0)
+ 			continue;
+ 
+-		if (drv->init) {
+-			rc = drv->init(fdt, noff, match);
+-			if (rc == SBI_ENODEV)
+-				continue;
+-			if (rc)
+-				return rc;
+-		}
+-		current_driver = drv;
+-		break;
++		/* drv->init must not be NULL */
++		if (drv->init == NULL)
++			return SBI_EFAIL;
 +
-+	/* console is not a necessary device */
-+	if (rc == SBI_ENODEV)
-+		return 0;
-+
-+	return rc;
++		rc = drv->init(fdt, noff, match);
++		if (rc == SBI_ENODEV)
++			continue;
++		return rc;
+ 	}
+ 
+-done:
+-	return 0;
++	return SBI_ENODEV;
  }
 -- 
 2.39.2
