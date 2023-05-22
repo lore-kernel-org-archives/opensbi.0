@@ -1,9 +1,9 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 May 2023 13:10:29 +0800
-Subject: [PATCH v2 4/4] lib: utils: Improve fdt_timer
-In-Reply-To: <20230522051029.1061225-1-wxjstz@126.com>
-References: <20230522051029.1061225-1-wxjstz@126.com>
-Message-ID: <20230522051029.1061225-5-wxjstz@126.com>
+Date: Mon, 22 May 2023 13:18:09 +0800
+Subject: [PATCH v3 4/4] lib: utils: Improve fdt_timer
+In-Reply-To: <20230522051809.1062177-1-wxjstz@126.com>
+References: <20230522051809.1062177-1-wxjstz@126.com>
+Message-ID: <20230522051809.1062177-5-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
