@@ -1,40 +1,88 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 May 2023 13:10:26 +0800
-Subject: [PATCH v2 1/4] lib: sbi: Fix return of sbi_console_init
+Date: Mon, 22 May 2023 13:10:28 +0800
+Subject: [PATCH v2 3/4] lib: utils: Improve fdt_ipi
 In-Reply-To: <20230522051029.1061225-1-wxjstz@126.com>
 References: <20230522051029.1061225-1-wxjstz@126.com>
-Message-ID: <20230522051029.1061225-2-wxjstz@126.com>
+Message-ID: <20230522051029.1061225-4-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-console is not a required peripheral. So it should return success when
-the console does not exist.
+Remove dummy driver. Optimize fdt_ipi_cold_init to exit the loop
+early.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ lib/utils/ipi/fdt_ipi.c | 36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index f3ac003..168dffd 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -481,5 +481,11 @@ void sbi_console_set_device(const struct sbi_console_device *dev)
+diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+index 66dc510..54f7c4c 100644
+--- a/lib/utils/ipi/fdt_ipi.c
++++ b/lib/utils/ipi/fdt_ipi.c
+@@ -16,24 +16,17 @@
+ extern struct fdt_ipi *fdt_ipi_drivers[];
+ extern unsigned long fdt_ipi_drivers_size;
  
- int sbi_console_init(struct sbi_scratch *scratch)
+-static struct fdt_ipi dummy = {
+-	.match_table = NULL,
+-	.cold_init = NULL,
+-	.warm_init = NULL,
+-	.exit = NULL,
+-};
+-
+-static struct fdt_ipi *current_driver = &dummy;
++static struct fdt_ipi *current_driver = NULL;
+ 
+ void fdt_ipi_exit(void)
  {
--	return sbi_platform_console_init(sbi_platform_ptr(scratch));
-+	int rc = sbi_platform_console_init(sbi_platform_ptr(scratch));
-+
-+	/* console is not a necessary device */
-+	if (rc == SBI_ENODEV)
-+		return 0;
-+
-+	return rc;
+-	if (current_driver->exit)
++	if (current_driver && current_driver->exit)
+ 		current_driver->exit();
  }
+ 
+ static int fdt_ipi_warm_init(void)
+ {
+-	if (current_driver->warm_init)
++	if (current_driver && current_driver->warm_init)
+ 		return current_driver->warm_init();
+ 	return 0;
+ }
+@@ -51,20 +44,21 @@ static int fdt_ipi_cold_init(void)
+ 		noff = -1;
+ 		while ((noff = fdt_find_match(fdt, noff,
+ 					drv->match_table, &match)) >= 0) {
+-			if (drv->cold_init) {
+-				rc = drv->cold_init(fdt, noff, match);
+-				if (rc == SBI_ENODEV)
+-					continue;
+-				if (rc)
+-					return rc;
+-			}
+-			current_driver = drv;
+-		}
++			/* drv->cold_init must not be NULL */
++			if (drv->cold_init == NULL)
++				return SBI_EFAIL;
+ 
+-		if (current_driver != &dummy)
+-			break;
++			rc = drv->cold_init(fdt, noff, match);
++			if (rc == SBI_ENODEV)
++				continue;
++			if (rc == 0)
++				current_driver = drv;
++			return rc;
++		}
+ 	}
+ 
++	/* On some single-hart system there is no need for ipi,
++	 * so we cannot return a failure here */
+ 	return 0;
+ }
+ 
 -- 
 2.39.2
 
