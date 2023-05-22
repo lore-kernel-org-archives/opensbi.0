@@ -1,87 +1,47 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 21 May 2023 21:02:25 +0530
-Subject: [PATCH v6 7/7] lib: sbi: Document sbi_ecall_extension members
-In-Reply-To: <20230515111240.95059-8-ajones@ventanamicro.com>
-References: <20230515111240.95059-1-ajones@ventanamicro.com> <20230515111240.95059-8-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy0n5Ti_91wRQgPJjbNVNShsgm6KQq0VW8uOj4-iPXsknw@mail.gmail.com>
+Date: Mon, 22 May 2023 09:07:00 +0530
+Subject: [PATCH 1/4] lib: sbi: Fix the hang condition of console init
+In-Reply-To: <20230509144735.72059-2-wxjstz@126.com>
+References: <20230509144735.72059-1-wxjstz@126.com> <20230509144735.72059-2-wxjstz@126.com>
+Message-ID: <CAAhSdy1qWwbOE2pUcQtS3Sw6akqH3o=CskTj0opVdtg2++Txvw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 15, 2023 at 4:42?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Tue, May 9, 2023 at 8:17?PM Xiang W <wxjstz@126.com> wrote:
 >
-> With the introduction of the register_extensions callback the
-> range members (extid_start and extid_end) may now change and it
-> has become a bit subtle as to when a probe function should be
-> implemented. Document all the members and their relationship to
-> the register_extensions callback.
+> console is not a required device and should not hang when
+> sbi_console_init returns SBI_ENODEV
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
+> Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  include/sbi/sbi_ecall.h | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
+>  lib/sbi/sbi_init.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> index fac26429cf5d..90f33bac0bcc 100644
-> --- a/include/sbi/sbi_ecall.h
-> +++ b/include/sbi/sbi_ecall.h
-> @@ -21,11 +21,46 @@ struct sbi_trap_regs;
->  struct sbi_trap_info;
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 5db8e7f..ec0bcb0 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -286,7 +286,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
 >
->  struct sbi_ecall_extension {
-> +       /* head is used by the extension list */
->         struct sbi_dlist head;
-> +       /*
-> +        * extid_start and extid_end specify the range for this extension. As
-> +        * the initial range may be wider than the valid runtime range, the
-> +        * register_extensions callback is responsible for narrowing the range
-> +        * before other callbacks may be invoked.
-> +        */
->         unsigned long extid_start;
->         unsigned long extid_end;
-> +       /*
-> +        * register_extensions
-> +        *
-> +        * Calls sbi_ecall_register_extension() one or more times to register
-> +        * extension ID range(s) which should be handled by this extension.
-> +        * More than one sbi_ecall_extension struct and
-> +        * sbi_ecall_register_extension() call is necessary when the supported
-> +        * extension ID ranges have gaps. Additionally, extension availability
-> +        * must be checked before registering, which means, when this callback
-> +        * returns, only valid extension IDs from the initial range, which are
-> +        * also available, have been registered.
-> +        */
->         int (* register_extensions)(void);
-> +       /*
-> +        * probe
-> +        *
-> +        * Implements the Base extension's probe function for the extension. As
-> +        * the register_extensions callback ensures that no other extension
-> +        * callbacks will be invoked when the extension is not available, then
-> +        * probe can never fail. However, an extension may choose to set
-> +        * out_val to a nonzero value other than one. In those cases, it should
-> +        * implement this callback.
-> +        */
->         int (* probe)(unsigned long extid, unsigned long *out_val);
-> +       /*
-> +        * handle
-> +        *
-> +        * This is the extension handler. register_extensions ensures it is
-> +        * never invoked with an invalid or unavailable extension ID.
-> +        */
->         int (* handle)(unsigned long extid, unsigned long funcid,
->                        const struct sbi_trap_regs *regs,
->                        unsigned long *out_val,
+>         rc = sbi_console_init(scratch);
+> -       if (rc)
+> +       if (rc && rc != SBI_ENODEV)
+
+Move this special error check in sbi_console_init() such that
+sbi_console_init() returns 0 when sbi_platform_console_init()
+returns SBI_ENODEV.
+
+>                 sbi_hart_hang();
+>
+>         rc = sbi_pmu_init(scratch, true);
 > --
-> 2.40.0
+> 2.39.2
 >
+
+Regards,
+Anup
 
