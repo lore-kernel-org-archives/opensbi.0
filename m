@@ -1,89 +1,41 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 22 May 2023 13:18:08 +0800
-Subject: [PATCH v3 3/4] lib: utils: Improve fdt_ipi
-In-Reply-To: <20230522051809.1062177-1-wxjstz@126.com>
-References: <20230522051809.1062177-1-wxjstz@126.com>
-Message-ID: <20230522051809.1062177-4-wxjstz@126.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Tue, 23 May 2023 14:36:00 +0800
+Subject: [PATCH 0/3] platform: generic: add T-HEAD th1520 soc support
+Message-ID: <IA1PR20MB4953CE93694010974A762343BB409@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Remove dummy driver. Optimize fdt_ipi_cold_init to exit the loop
-early.
+The th1520 is a new 4-core c910 soc from T-HEAD. This soc is already
+supported by the mainline sbi with no pmu support. So this patch adds
+pmu support for the T-HEAD th1520.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/utils/ipi/fdt_ipi.c | 36 +++++++++++++++---------------------
- 1 file changed, 15 insertions(+), 21 deletions(-)
+Inochi Amaoto (3):
+  platform: generic: thead: move to thead c9xx header to vendor specific
+    postion
+  platform: generic: thead: separate implement of thead c9xx pmu
+  platform: generic: thead: add pmu detection for th1520
 
-diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
-index 66dc510..54f7c4c 100644
---- a/lib/utils/ipi/fdt_ipi.c
-+++ b/lib/utils/ipi/fdt_ipi.c
-@@ -16,24 +16,17 @@
- extern struct fdt_ipi *fdt_ipi_drivers[];
- extern unsigned long fdt_ipi_drivers_size;
- 
--static struct fdt_ipi dummy = {
--	.match_table = NULL,
--	.cold_init = NULL,
--	.warm_init = NULL,
--	.exit = NULL,
--};
--
--static struct fdt_ipi *current_driver = &dummy;
-+static struct fdt_ipi *current_driver = NULL;
- 
- void fdt_ipi_exit(void)
- {
--	if (current_driver->exit)
-+	if (current_driver && current_driver->exit)
- 		current_driver->exit();
- }
- 
- static int fdt_ipi_warm_init(void)
- {
--	if (current_driver->warm_init)
-+	if (current_driver && current_driver->warm_init)
- 		return current_driver->warm_init();
- 	return 0;
- }
-@@ -51,20 +44,21 @@ static int fdt_ipi_cold_init(void)
- 		noff = -1;
- 		while ((noff = fdt_find_match(fdt, noff,
- 					drv->match_table, &match)) >= 0) {
--			if (drv->cold_init) {
--				rc = drv->cold_init(fdt, noff, match);
--				if (rc == SBI_ENODEV)
--					continue;
--				if (rc)
--					return rc;
--			}
--			current_driver = drv;
--		}
-+			/* drv->cold_init must not be NULL */
-+			if (drv->cold_init == NULL)
-+				return SBI_EFAIL;
- 
--		if (current_driver != &dummy)
--			break;
-+			rc = drv->cold_init(fdt, noff, match);
-+			if (rc == SBI_ENODEV)
-+				continue;
-+			if (rc == 0)
-+				current_driver = drv;
-+			return rc;
-+		}
- 	}
- 
-+	/* On some single-hart system there is no need for ipi,
-+	 * so we cannot return a failure here */
- 	return 0;
- }
- 
+ platform/generic/Kconfig                      |  8 +++
+ platform/generic/allwinner/sun20i-d1.c        | 46 +---------------
+ platform/generic/configs/defconfig            |  1 +
+ .../{thead_c9xx.h => thead/c9xx_encoding.h}   |  4 +-
+ platform/generic/include/thead/c9xx_pmu.h     | 16 ++++++
+ platform/generic/thead/Kconfig                |  5 ++
+ platform/generic/thead/c9xx_pmu.c             | 54 +++++++++++++++++++
+ platform/generic/thead/objects.mk             |  8 +++
+ platform/generic/thead/th1520.c               | 34 ++++++++++++
+ 9 files changed, 130 insertions(+), 46 deletions(-)
+ rename platform/generic/include/{thead_c9xx.h => thead/c9xx_encoding.h} (98%)
+ create mode 100644 platform/generic/include/thead/c9xx_pmu.h
+ create mode 100644 platform/generic/thead/Kconfig
+ create mode 100644 platform/generic/thead/c9xx_pmu.c
+ create mode 100644 platform/generic/thead/objects.mk
+ create mode 100644 platform/generic/thead/th1520.c
+
 -- 
-2.39.2
+2.40.1
 
 
