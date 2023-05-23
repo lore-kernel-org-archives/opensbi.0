@@ -1,40 +1,54 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Tue, 23 May 2023 14:36:00 +0800
-Subject: [PATCH 0/3] platform: generic: add T-HEAD th1520 soc support
-Message-ID: <IA1PR20MB4953CE93694010974A762343BB409@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Tue, 23 May 2023 14:36:01 +0800
+Subject: [PATCH 1/3] platform: generic: thead: move to thead c9xx header to vendor specific postion
+In-Reply-To: <20230523063603.1836508-1-inochiama@outlook.com>
+References: <20230523063603.1836508-1-inochiama@outlook.com>
+Message-ID: <IA1PR20MB4953CEF2405E057BE1B9D7AFBB409@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The th1520 is a new 4-core c910 soc from T-HEAD. This soc is already
-supported by the mainline sbi with no pmu support. So this patch adds
-pmu support for the T-HEAD th1520.
+The CSR encoding for t-head c9xx cores is shared across all the
+platforms with these cores. So move header thead_c9xx.h to the
+thead subdir.
 
-Inochi Amaoto (3):
-  platform: generic: thead: move to thead c9xx header to vendor specific
-    postion
-  platform: generic: thead: separate implement of thead c9xx pmu
-  platform: generic: thead: add pmu detection for th1520
-
- platform/generic/Kconfig                      |  8 +++
- platform/generic/allwinner/sun20i-d1.c        | 46 +---------------
- platform/generic/configs/defconfig            |  1 +
- .../{thead_c9xx.h => thead/c9xx_encoding.h}   |  4 +-
- platform/generic/include/thead/c9xx_pmu.h     | 16 ++++++
- platform/generic/thead/Kconfig                |  5 ++
- platform/generic/thead/c9xx_pmu.c             | 54 +++++++++++++++++++
- platform/generic/thead/objects.mk             |  8 +++
- platform/generic/thead/th1520.c               | 34 ++++++++++++
- 9 files changed, 130 insertions(+), 46 deletions(-)
+Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+---
+ platform/generic/allwinner/sun20i-d1.c                        | 2 +-
+ .../generic/include/{thead_c9xx.h => thead/c9xx_encoding.h}   | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
  rename platform/generic/include/{thead_c9xx.h => thead/c9xx_encoding.h} (98%)
- create mode 100644 platform/generic/include/thead/c9xx_pmu.h
- create mode 100644 platform/generic/thead/Kconfig
- create mode 100644 platform/generic/thead/c9xx_pmu.c
- create mode 100644 platform/generic/thead/objects.mk
- create mode 100644 platform/generic/thead/th1520.c
 
+diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+index 0f0a9f3..fe38d8f 100644
+--- a/platform/generic/allwinner/sun20i-d1.c
++++ b/platform/generic/allwinner/sun20i-d1.c
+@@ -5,7 +5,7 @@
+  */
+ 
+ #include <platform_override.h>
+-#include <thead_c9xx.h>
++#include <thead/c9xx_encoding.h>
+ #include <sbi/riscv_asm.h>
+ #include <sbi/riscv_io.h>
+ #include <sbi/sbi_bitops.h>
+diff --git a/platform/generic/include/thead_c9xx.h b/platform/generic/include/thead/c9xx_encoding.h
+similarity index 98%
+rename from platform/generic/include/thead_c9xx.h
+rename to platform/generic/include/thead/c9xx_encoding.h
+index bab0408..58adbef 100644
+--- a/platform/generic/include/thead_c9xx.h
++++ b/platform/generic/include/thead/c9xx_encoding.h
+@@ -1,5 +1,5 @@
+-#ifndef __RISCV_THEAD_C9XX_H____
+-#define __RISCV_THEAD_C9XX_H____
++#ifndef __RISCV_THEAD_C9XX_ENCODING_H____
++#define __RISCV_THEAD_C9XX_ENCODING_H____
+ 
+ /* T-HEAD C9xx M mode CSR.  */
+ #define THEAD_C9XX_CSR_MXSTATUS		0x7c0
 -- 
 2.40.1
 
