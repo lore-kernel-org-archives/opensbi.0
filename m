@@ -1,45 +1,38 @@
-From: Oleksii <oleksii.kurochko@gmail.com>
-Date: Wed, 24 May 2023 17:03:26 +0300
-Subject: reserved-memory nodes created by OpenSBI
-In-Reply-To: <CAAhSdy1CsideBVoe1yw7v=wzzPyRQFtmzVvAdsX1oq2DMPfVNw@mail.gmail.com>
-References: <CAMacjJzPFY85xouincvYdeh1TLOZEynVuzyVnztRNP4ht+Exhw@mail.gmail.com>
-	 <CAAhSdy1CsideBVoe1yw7v=wzzPyRQFtmzVvAdsX1oq2DMPfVNw@mail.gmail.com>
-Message-ID: <f6d61188cfc388810b836f9c550851ae8971dc91.camel@gmail.com>
+From: Conor Dooley <conor@kernel.org>
+Date: Wed, 24 May 2023 15:46:01 +0100
+Subject: [RFC PATCH 2/2] lib: reset: thead: Correct the naming convention
+ of dts
+In-Reply-To: <CAJF2gTQPyyi5twqdboo=4t0KgP0RqgOpqd0PX239PQZKC-Z8Uw@mail.gmail.com>
+References: <20230523094649.4100554-1-guoren@kernel.org>
+ <20230523094649.4100554-3-guoren@kernel.org>
+ <20230523-manatee-providing-77413fac0c58@spud>
+ <CAJF2gTSR1LzGyzxLWWst+4M_nKWXBA=v8=zY-42-ODGU_aO-Lg@mail.gmail.com>
+ <20230524-vertebrae-slip-84584f5bb65b@wendy>
+ <CAJF2gTQPyyi5twqdboo=4t0KgP0RqgOpqd0PX239PQZKC-Z8Uw@mail.gmail.com>
+Message-ID: <20230524-claw-obligate-e4815c3e232b@spud>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, 2023-05-23 at 19:18 +0530, Anup Patel wrote:
-> On Tue, May 23, 2023 at 7:13?PM Oleksii Kurochko
-> <oleksii.kurochko@gmail.com> wrote:
-> > 
-> > Hello, dear community,
-> > 
-> > I would like to ask you about reserved-memory nodes, which are
-> > created
-> > by OpenSBI here:
-> > https://github.com/riscv-software-src/opensbi/blob/v1.2/lib/utils/fdt/fdt_fixup.c#LL198C5-L198C30)/
-> > 
-> > The questions are the following:
-> > 1. What is the purpose of extending dts by reserved-memory nodes? I
-> > assume that it is necessary to reserve some memory ranges for
-> > OpenSBI.
-> > 2. Why OpenSBI needs to have a preserved memory?
-> > 3. The memory-reserved ranges are overlapped with Linux's memory
-> > node
-> > range. Is it OK that OpenSBI's memory-reserved node ranges and
-> > Linux's
-> > memory node ranges overlap?
-> 
-> OpenSBI uses reserved-memory DT nodes to inform the next booting
-> stage (including Linux) about the memory used by OpenSBI firmware.
-> 
-> If these reserved-memory DT nodes are not present then supervisor
-> OS (Linux) might crash accessing the memory used by OpenSBI
-> because OpenSBI protects its own memory using PMP.
-Thank you. All is clear now.
+On Wed, May 24, 2023 at 06:39:47PM +0800, Guo Ren wrote:
 
-~ Oleksii
+> We remove reset-ctrl-val, but still keep csr-copy. Because it contains
+> the index, not value. It didn't viloate anything. okay?
 
+If it is set per-soc, which apparently it is, then you don't need to
+fill the values into a property to communicate it to software because
+you already have a compatible that tells you exactly what implementation
+you have. Just like it is normal for a driver to use #defines etc for
+register access, since it knows those registers exist on a particular
+implementation. I don't know what OpenSBI calls this, but in Linux it
+is called match_data.
+Either way - we are just going around in circles here :)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 228 bytes
+Desc: not available
+URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20230524/e2741170/attachment.sig>
