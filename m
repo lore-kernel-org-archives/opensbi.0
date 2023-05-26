@@ -1,58 +1,58 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 26 May 2023 12:50:14 +0530
-Subject: [PATCH v3 3/4] lib: utils: Improve fdt_ipi
-In-Reply-To: <20230522051809.1062177-4-wxjstz@126.com>
-References: <20230522051809.1062177-1-wxjstz@126.com> <20230522051809.1062177-4-wxjstz@126.com>
-Message-ID: <CAAhSdy0eBUoFxY7xcVE==v4VGrCXO79_m6FfpGMHsqT+nT5Snw@mail.gmail.com>
+Date: Fri, 26 May 2023 12:50:53 +0530
+Subject: [PATCH v3 4/4] lib: utils: Improve fdt_timer
+In-Reply-To: <20230522051809.1062177-5-wxjstz@126.com>
+References: <20230522051809.1062177-1-wxjstz@126.com> <20230522051809.1062177-5-wxjstz@126.com>
+Message-ID: <CAAhSdy1csiDYbKppizf9=FsY0hwaW=8POTQ4Ab0mjn57wfVvcA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, May 22, 2023 at 10:50?AM Xiang W <wxjstz@126.com> wrote:
+On Mon, May 22, 2023 at 10:49?AM Xiang W <wxjstz@126.com> wrote:
 >
-> Remove dummy driver. Optimize fdt_ipi_cold_init to exit the loop
-> early.
+> Remove dummy driver. Optimize fdt_timer_cold_init to exit the
+> loop early.
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  lib/utils/ipi/fdt_ipi.c | 36 +++++++++++++++---------------------
+>  lib/utils/timer/fdt_timer.c | 36 +++++++++++++++---------------------
 >  1 file changed, 15 insertions(+), 21 deletions(-)
 >
-> diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
-> index 66dc510..54f7c4c 100644
-> --- a/lib/utils/ipi/fdt_ipi.c
-> +++ b/lib/utils/ipi/fdt_ipi.c
+> diff --git a/lib/utils/timer/fdt_timer.c b/lib/utils/timer/fdt_timer.c
+> index 4695c0f..a08ded9 100644
+> --- a/lib/utils/timer/fdt_timer.c
+> +++ b/lib/utils/timer/fdt_timer.c
 > @@ -16,24 +16,17 @@
->  extern struct fdt_ipi *fdt_ipi_drivers[];
->  extern unsigned long fdt_ipi_drivers_size;
+>  extern struct fdt_timer *fdt_timer_drivers[];
+>  extern unsigned long fdt_timer_drivers_size;
 >
-> -static struct fdt_ipi dummy = {
+> -static struct fdt_timer dummy = {
 > -       .match_table = NULL,
 > -       .cold_init = NULL,
 > -       .warm_init = NULL,
 > -       .exit = NULL,
 > -};
 > -
-> -static struct fdt_ipi *current_driver = &dummy;
-> +static struct fdt_ipi *current_driver = NULL;
+> -static struct fdt_timer *current_driver = &dummy;
+> +static struct fdt_timer *current_driver = NULL;
 >
->  void fdt_ipi_exit(void)
+>  void fdt_timer_exit(void)
 >  {
 > -       if (current_driver->exit)
 > +       if (current_driver && current_driver->exit)
 >                 current_driver->exit();
 >  }
 >
->  static int fdt_ipi_warm_init(void)
+>  static int fdt_timer_warm_init(void)
 >  {
 > -       if (current_driver->warm_init)
 > +       if (current_driver && current_driver->warm_init)
 >                 return current_driver->warm_init();
 >         return 0;
 >  }
-> @@ -51,20 +44,21 @@ static int fdt_ipi_cold_init(void)
+> @@ -51,20 +44,21 @@ static int fdt_timer_cold_init(void)
 >                 noff = -1;
 >                 while ((noff = fdt_find_match(fdt, noff,
 >                                         drv->match_table, &match)) >= 0) {
@@ -78,8 +78,8 @@ On Mon, May 22, 2023 at 10:50?AM Xiang W <wxjstz@126.com> wrote:
 > +                               current_driver = drv;
 > +                       return rc;
 
-We can't return here after finding one IPI device because we will
-have multiple IPI devices on multi-die and multi-socket systems.
+We can't return here after finding one timer device because we will
+have multiple timer devices on multi-die and multi-socket systems.
 
 I have fixed it at the time of merging this patch.
 
@@ -91,8 +91,8 @@ Anup
 > +               }
 >         }
 >
-> +       /* On some single-hart system there is no need for ipi,
-> +        * so we cannot return a failure here */
+> +       /* We can't fail here since systems with Sstc might not provide
+> +        * mtimer/clint DT node in the device tree. */
 >         return 0;
 >  }
 >
