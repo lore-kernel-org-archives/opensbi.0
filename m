@@ -1,7 +1,7 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Mon, 29 May 2023 10:38:11 +0200
-Subject: [PATCH 1/1] lib: utils/ipi: buffer overrun aclint_mswi_cold_init
-Message-ID: <20230529083811.13207-1-heinrich.schuchardt@canonical.com>
+Date: Mon, 29 May 2023 11:27:20 +0200
+Subject: [PATCH v2 1/1] lib: utils/ipi: buffer overrun aclint_mswi_cold_init
+Message-ID: <20230529092720.20294-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -26,8 +26,11 @@ We have to check the sum of mswi->first_hartid and mswi->hart_count.
 Furthermore mswi->hart_count = 0 would not make much sense.
 
 Addresses-Coverity-ID: 1529705 ("Out-of-bounds write")
-5a049fe1d6a5 ("lib: utils/ipi: Add ACLINT MSWI library")
+Fixes: 5a049fe1d6a5 ("lib: utils/ipi: Add ACLINT MSWI library")
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+v2:
+	add missing 'Fixes:'
 ---
  lib/utils/ipi/aclint_mswi.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
