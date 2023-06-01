@@ -1,318 +1,97 @@
-From: Anup Patel <anup.patel@wdc.com>
-Date: Wed, 30 Dec 2020 09:03:04 +0530
-Subject: [PATCH 3/3] lib: sbi: Allow custom local TLB flush function
-In-Reply-To: <20201230033304.295706-1-anup.patel@wdc.com>
-References: <20201230033304.295706-1-anup.patel@wdc.com>
-Message-ID: <20201230033304.295706-4-anup.patel@wdc.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Thu,  1 Jun 2023 09:48:10 +0200
+Subject: [PATCH] lib: sbi: Align system suspend errors with spec
+Message-ID: <20230601074810.798131-1-ajones@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, we have fixed TLB flush types supported by the
-remote TLB library. This approach is not flexible and does
-not allow custom local TLB flush function. For example,
-after updating PMP entries on a set of HARTs at runtime,
-we have to flush TLB on these HARTs as well.
+The spec says sbi_system_suspend() will return SBI_ERR_INVALID_PARAM
+when "sleep_type is reserved or is platform-specific and unimplemented"
+and SBI_ERR_NOT_SUPPORTED when sleep_type "is not reserved and is
+implemented, but the platform does not support it due to one or more
+missing dependencies." Ensure SBI_ERR_INVALID_PARAM is returned for
+reserved sleep types and that the system suspend driver can choose
+which of the two error types to return itself by returning an error
+from its check function rather than a boolean.
 
-To support custom local TLB flush function, we replace the
-"type" field of "struct sbi_tlb_info" with a local TLB flush
-function pointer. We also provide definitions of standard TLB
-flush operations (such as fence_i, sfence.vma, hfence.vvma,
-hfence.gvma, etc).
-
-Signed-off-by: Anup Patel <anup.patel@wdc.com>
+Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- include/sbi/sbi_tlb.h       | 24 +++++++--------
- lib/sbi/sbi_ecall_legacy.c  |  9 ++++--
- lib/sbi/sbi_ecall_replace.c | 16 +++++-----
- lib/sbi/sbi_tlb.c           | 59 +++++++++++--------------------------
- 4 files changed, 44 insertions(+), 64 deletions(-)
+ include/sbi/sbi_system.h |  9 ++++++++-
+ lib/sbi/sbi_system.c     | 14 ++++++++------
+ 2 files changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/include/sbi/sbi_tlb.h b/include/sbi/sbi_tlb.h
-index 6ee64a9..48f1962 100644
---- a/include/sbi/sbi_tlb.h
-+++ b/include/sbi/sbi_tlb.h
-@@ -22,16 +22,6 @@
+diff --git a/include/sbi/sbi_system.h b/include/sbi/sbi_system.h
+index 33ff7f1a44a6..0fdcc98cce5d 100644
+--- a/include/sbi/sbi_system.h
++++ b/include/sbi/sbi_system.h
+@@ -48,7 +48,14 @@ struct sbi_system_suspend_device {
+ 	/** Name of the system suspend device */
+ 	char name[32];
  
- #define SBI_TLB_FIFO_NUM_ENTRIES		8
+-	/* Check whether sleep type is supported by the device */
++	/**
++	 * Check whether sleep type is supported by the device
++	 *
++	 * Returns 0 when @sleep_type supported, SBI_ERR_INVALID_PARAM
++	 * when @sleep_type is reserved, or SBI_ERR_NOT_SUPPORTED when
++	 * @sleep_type is not reserved and is implemented, but the
++	 * platform doesn't support it due to missing dependencies.
++	 */
+ 	int (*system_suspend_check)(u32 sleep_type);
  
--enum sbi_tlb_info_types {
--	SBI_TLB_FLUSH_VMA,
--	SBI_TLB_FLUSH_VMA_ASID,
--	SBI_TLB_FLUSH_GVMA,
--	SBI_TLB_FLUSH_GVMA_VMID,
--	SBI_TLB_FLUSH_VVMA,
--	SBI_TLB_FLUSH_VVMA_ASID,
--	SBI_ITLB_FLUSH
--};
--
- struct sbi_scratch;
+ 	/**
+diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+index 6933915a12ed..d803ffa84189 100644
+--- a/lib/sbi/sbi_system.c
++++ b/lib/sbi/sbi_system.c
+@@ -111,7 +111,7 @@ void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev)
  
- struct sbi_tlb_info {
-@@ -39,17 +29,25 @@ struct sbi_tlb_info {
- 	unsigned long size;
- 	unsigned long asid;
- 	unsigned long vmid;
--	unsigned long type;
-+	void (*local_fn)(struct sbi_tlb_info *tinfo);
- 	struct sbi_hartmask smask;
- };
- 
--#define SBI_TLB_INFO_INIT(__p, __start, __size, __asid, __vmid, __type, __src) \
-+void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo);
-+void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo);
-+void sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo);
-+void sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo);
-+void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo);
-+void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo);
-+void sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo);
-+
-+#define SBI_TLB_INFO_INIT(__p, __start, __size, __asid, __vmid, __lfn, __src) \
- do { \
- 	(__p)->start = (__start); \
- 	(__p)->size = (__size); \
- 	(__p)->asid = (__asid); \
- 	(__p)->vmid = (__vmid); \
--	(__p)->type = (__type); \
-+	(__p)->local_fn = (__lfn); \
- 	SBI_HARTMASK_INIT_EXCEPT(&(__p)->smask, (__src)); \
- } while (0)
- 
-diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-index 8afeb00..1a7fe26 100644
---- a/lib/sbi/sbi_ecall_legacy.c
-+++ b/lib/sbi/sbi_ecall_legacy.c
-@@ -80,7 +80,8 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 						&hmask, out_trap);
- 		if (ret != SBI_ETRAP) {
- 			SBI_TLB_INFO_INIT(&tlb_info, 0, 0, 0, 0,
--					  SBI_ITLB_FLUSH, source_hart);
-+					  sbi_tlb_local_fence_i,
-+					  source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		}
- 		break;
-@@ -89,7 +90,8 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 						&hmask, out_trap);
- 		if (ret != SBI_ETRAP) {
- 			SBI_TLB_INFO_INIT(&tlb_info, regs->a1, regs->a2, 0, 0,
--					  SBI_TLB_FLUSH_VMA, source_hart);
-+					  sbi_tlb_local_sfence_vma,
-+					  source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		}
- 		break;
-@@ -99,7 +101,8 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 		if (ret != SBI_ETRAP) {
- 			SBI_TLB_INFO_INIT(&tlb_info, regs->a1,
- 					  regs->a2, regs->a3, 0,
--					  SBI_TLB_FLUSH_VMA_ASID, source_hart);
-+					  sbi_tlb_local_sfence_vma_asid,
-+					  source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		}
- 		break;
-diff --git a/lib/sbi/sbi_ecall_replace.c b/lib/sbi/sbi_ecall_replace.c
-index a95821b..a7935d9 100644
---- a/lib/sbi/sbi_ecall_replace.c
-+++ b/lib/sbi/sbi_ecall_replace.c
-@@ -62,41 +62,43 @@ static int sbi_ecall_rfence_handler(unsigned long extid, unsigned long funcid,
- 	switch (funcid) {
- 	case SBI_EXT_RFENCE_REMOTE_FENCE_I:
- 		SBI_TLB_INFO_INIT(&tlb_info, 0, 0, 0, 0,
--				  SBI_ITLB_FLUSH, source_hart);
-+				  sbi_tlb_local_fence_i, source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	case SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA:
- 		SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, 0,
--				  SBI_TLB_FLUSH_GVMA, source_hart);
-+				  sbi_tlb_local_hfence_gvma, source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	case SBI_EXT_RFENCE_REMOTE_HFENCE_GVMA_VMID:
- 		SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, regs->a4,
--				  SBI_TLB_FLUSH_GVMA_VMID, source_hart);
-+				  sbi_tlb_local_hfence_gvma_vmid,
-+				  source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	case SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA:
- 		vmid = (csr_read(CSR_HGATP) & HGATP_VMID_MASK);
- 		vmid = vmid >> HGATP_VMID_SHIFT;
- 		SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, vmid,
--				  SBI_TLB_FLUSH_VVMA, source_hart);
-+				  sbi_tlb_local_hfence_vvma, source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	case SBI_EXT_RFENCE_REMOTE_HFENCE_VVMA_ASID:
- 		vmid = (csr_read(CSR_HGATP) & HGATP_VMID_MASK);
- 		vmid = vmid >> HGATP_VMID_SHIFT;
- 		SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, regs->a4,
--				  vmid, SBI_TLB_FLUSH_VVMA_ASID, source_hart);
-+				  vmid, sbi_tlb_local_hfence_vvma_asid,
-+				  source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	case SBI_EXT_RFENCE_REMOTE_SFENCE_VMA:
- 		SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, 0, 0,
--				  SBI_TLB_FLUSH_VMA, source_hart);
-+				  sbi_tlb_local_sfence_vma, source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	case SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID:
- 		SBI_TLB_INFO_INIT(&tlb_info, regs->a2, regs->a3, regs->a4, 0,
--				  SBI_TLB_FLUSH_VMA_ASID, source_hart);
-+				  sbi_tlb_local_sfence_vma_asid, source_hart);
- 		ret = sbi_tlb_request(regs->a0, regs->a1, &tlb_info);
- 		break;
- 	default:
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index c8e62cd..73f59e8 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -32,7 +32,7 @@ static void sbi_tlb_flush_all(void)
- 	__asm__ __volatile("sfence.vma");
- }
- 
--static void sbi_tlb_hfence_vvma(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo)
+ static int sbi_system_suspend_test_check(u32 sleep_type)
  {
- 	unsigned long start = tinfo->start;
- 	unsigned long size  = tinfo->size;
-@@ -55,7 +55,7 @@ done:
- 	csr_write(CSR_HGATP, hgatp);
+-	return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND;
++	return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND ? 0 : SBI_EINVAL;
  }
  
--static void sbi_tlb_hfence_gvma(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
+ static int sbi_system_suspend_test_suspend(u32 sleep_type,
+@@ -142,27 +142,29 @@ void sbi_system_suspend_test_enable(void)
+ bool sbi_system_suspend_supported(u32 sleep_type)
  {
- 	unsigned long start = tinfo->start;
- 	unsigned long size  = tinfo->size;
-@@ -71,7 +71,7 @@ static void sbi_tlb_hfence_gvma(struct sbi_tlb_info *tinfo)
- 	}
+ 	return suspend_dev && suspend_dev->system_suspend_check &&
+-	       suspend_dev->system_suspend_check(sleep_type);
++	       suspend_dev->system_suspend_check(sleep_type) == 0;
  }
  
--static void sbi_tlb_sfence_vma(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo)
+ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
  {
- 	unsigned long start = tinfo->start;
- 	unsigned long size  = tinfo->size;
-@@ -90,7 +90,7 @@ static void sbi_tlb_sfence_vma(struct sbi_tlb_info *tinfo)
- 	}
- }
+-	int ret = SBI_ENOTSUPP;
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
+ 	unsigned int hartid = current_hartid();
+ 	unsigned long prev_mode;
+ 	unsigned long i;
++	int ret;
  
--static void sbi_tlb_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
- {
- 	unsigned long start = tinfo->start;
- 	unsigned long size  = tinfo->size;
-@@ -119,7 +119,7 @@ done:
- 	csr_write(CSR_HGATP, hgatp);
- }
+ 	if (!dom || !dom->system_suspend_allowed)
+ 		return SBI_EFAIL;
  
--static void sbi_tlb_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
- {
- 	unsigned long start = tinfo->start;
- 	unsigned long size  = tinfo->size;
-@@ -141,7 +141,7 @@ static void sbi_tlb_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
- 	}
- }
+-	if (!suspend_dev || !suspend_dev->system_suspend)
++	if (!suspend_dev || !suspend_dev->system_suspend ||
++	    !suspend_dev->system_suspend_check)
+ 		return SBI_EFAIL;
  
--static void sbi_tlb_sfence_vma_asid(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
- {
- 	unsigned long start = tinfo->start;
- 	unsigned long size  = tinfo->size;
-@@ -170,35 +170,9 @@ static void sbi_tlb_sfence_vma_asid(struct sbi_tlb_info *tinfo)
- 	}
- }
+-	if (!sbi_system_suspend_supported(sleep_type))
+-		return SBI_ENOTSUPP;
++	ret = suspend_dev->system_suspend_check(sleep_type);
++	if (ret != SBI_OK)
++		return ret;
  
--static void sbi_tlb_local_flush(struct sbi_tlb_info *tinfo)
-+void sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo)
- {
--	switch (tinfo->type) {
--	case SBI_TLB_FLUSH_VMA:
--		sbi_tlb_sfence_vma(tinfo);
--		break;
--	case SBI_TLB_FLUSH_VMA_ASID:
--		sbi_tlb_sfence_vma_asid(tinfo);
--		break;
--	case SBI_TLB_FLUSH_GVMA:
--		sbi_tlb_hfence_gvma(tinfo);
--		break;
--	case SBI_TLB_FLUSH_GVMA_VMID:
--		sbi_tlb_hfence_gvma_vmid(tinfo);
--		break;
--	case SBI_TLB_FLUSH_VVMA:
--		sbi_tlb_hfence_vvma(tinfo);
--		break;
--	case SBI_TLB_FLUSH_VVMA_ASID:
--		sbi_tlb_hfence_vvma_asid(tinfo);
--		break;
--	case SBI_ITLB_FLUSH:
--		__asm__ __volatile("fence.i");
--		break;
--	default:
--		sbi_printf("Invalid tlb flush request type [%lu]\n",
--			   tinfo->type);
--	}
--	return;
-+	__asm__ __volatile("fence.i");
- }
- 
- static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)
-@@ -207,7 +181,7 @@ static void sbi_tlb_entry_process(struct sbi_tlb_info *tinfo)
- 	struct sbi_scratch *rscratch = NULL;
- 	unsigned long *rtlb_sync = NULL;
- 
--	sbi_tlb_local_flush(tinfo);
-+	tinfo->local_fn(tinfo);
- 
- 	sbi_hartmask_for_each_hart(rhartid, &tinfo->smask) {
- 		rscratch = sbi_hartid_to_scratch(rhartid);
-@@ -316,13 +290,13 @@ static int sbi_tlb_update_cb(void *in, void *data)
- 	curr = (struct sbi_tlb_info *)data;
- 	next = (struct sbi_tlb_info *)in;
- 
--	if (next->type == SBI_TLB_FLUSH_VMA_ASID &&
--	    curr->type == SBI_TLB_FLUSH_VMA_ASID) {
-+	if (next->local_fn == sbi_tlb_local_sfence_vma_asid &&
-+	    curr->local_fn == sbi_tlb_local_sfence_vma_asid) {
- 		if (next->asid == curr->asid)
- 			ret = __sbi_tlb_range_check(curr, next);
--	} else if (next->type == SBI_TLB_FLUSH_VMA &&
--		   curr->type == SBI_TLB_FLUSH_VMA) {
--			ret = __sbi_tlb_range_check(curr, next);
-+	} else if (next->local_fn == sbi_tlb_local_sfence_vma &&
-+		   curr->local_fn == sbi_tlb_local_sfence_vma) {
-+		ret = __sbi_tlb_range_check(curr, next);
- 	}
- 
- 	return ret;
-@@ -352,7 +326,7 @@ static int sbi_tlb_update(struct sbi_scratch *scratch,
- 	 * then just do a local flush and return;
- 	 */
- 	if (remote_hartid == curr_hartid) {
--		sbi_tlb_local_flush(tinfo);
-+		tinfo->local_fn(tinfo);
- 		return -1;
- 	}
- 
-@@ -391,6 +365,9 @@ static u32 tlb_event = SBI_IPI_EVENT_MAX;
- 
- int sbi_tlb_request(ulong hmask, ulong hbase, struct sbi_tlb_info *tinfo)
- {
-+	if (!tinfo->local_fn)
-+		return SBI_EINVAL;
-+
- 	return sbi_ipi_send_many(hmask, hbase, tlb_event, tinfo);
- }
- 
+ 	prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+ 	if (prev_mode != PRV_S && prev_mode != PRV_U)
 -- 
-2.25.1
+2.40.1
 
 
