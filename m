@@ -1,368 +1,141 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 4 Jun 2023 15:47:34 +0530
-Subject: [PATCH 02/17] lib: sbi: Introduce simple heap allocator
-In-Reply-To: <20230531-6b1fc211b6c567e1ae1d5f3a@orel>
+Date: Sun, 4 Jun 2023 16:08:27 +0530
+Subject: [PATCH 06/17] lib: sbi: Use scratch space to save per-HART domain pointer
+In-Reply-To: <20230531-ace2a06252786f57e7952f36@orel>
 References: <20230425123230.3943447-1-apatel@ventanamicro.com>
- <20230425123230.3943447-3-apatel@ventanamicro.com> <20230531-6b1fc211b6c567e1ae1d5f3a@orel>
-Message-ID: <CAAhSdy2+_VO_i4wkoh7sXTa9ouv3RgyTtOePa6ozxHqcwcC-Ng@mail.gmail.com>
+ <20230425123230.3943447-7-apatel@ventanamicro.com> <20230531-ace2a06252786f57e7952f36@orel>
+Message-ID: <CAAhSdy2iMLH-k7Wk6FSYZdwA63gBaXAp62C4_RojjAzY-GgK1Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, May 31, 2023 at 5:41?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Wed, May 31, 2023 at 6:09?PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> On Tue, Apr 25, 2023 at 06:02:15PM +0530, Anup Patel wrote:
-> > We provide simple heap allocator to manage the heap space provided
-> > by OpenSBI firmware and platform.
+> On Tue, Apr 25, 2023 at 06:02:19PM +0530, Anup Patel wrote:
+> > Instead of using a global array indexed by hartid, we should use
+> > scratch space to save per-HART domain pointer.
 > >
 > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > > ---
-> >  include/sbi/sbi_heap.h |  44 +++++++++
-> >  lib/sbi/objects.mk     |   1 +
-> >  lib/sbi/sbi_heap.c     | 204 +++++++++++++++++++++++++++++++++++++++++
-> >  lib/sbi/sbi_init.c     |  15 +++
-> >  4 files changed, 264 insertions(+)
-> >  create mode 100644 include/sbi/sbi_heap.h
-> >  create mode 100644 lib/sbi/sbi_heap.c
+> >  include/sbi/sbi_domain.h |  6 +-----
+> >  lib/sbi/sbi_domain.c     | 38 +++++++++++++++++++++++++++++++++++---
+> >  2 files changed, 36 insertions(+), 8 deletions(-)
 > >
-> > diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
-> > new file mode 100644
-> > index 0000000..88d176e
-> > --- /dev/null
-> > +++ b/include/sbi/sbi_heap.h
-> > @@ -0,0 +1,44 @@
-> > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + *
-> > + * Copyright (c) 2023 Ventana Micro Systems Inc.
-> > + *
-> > + * Authors:
-> > + *   Anup Patel<apatel@ventanamicro.com>
-> > + */
+> > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> > index 124ea90..b05bcf4 100644
+> > --- a/include/sbi/sbi_domain.h
+> > +++ b/include/sbi/sbi_domain.h
+> > @@ -129,12 +129,8 @@ struct sbi_domain {
+> >  /** The root domain instance */
+> >  extern struct sbi_domain root;
+> >
+> > -/** HART id to domain table */
+> > -extern struct sbi_domain *hartid_to_domain_table[];
+> > -
+> >  /** Get pointer to sbi_domain from HART id */
+> > -#define sbi_hartid_to_domain(__hartid) \
+> > -     hartid_to_domain_table[__hartid]
+> > +struct sbi_domain *sbi_hartid_to_domain(u32 hartid);
+> >
+> >  /** Get pointer to sbi_domain for current HART */
+> >  #define sbi_domain_thishart_ptr() \
+> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > index b07d310..531737c 100644
+> > --- a/lib/sbi/sbi_domain.c
+> > +++ b/lib/sbi/sbi_domain.c
+> > @@ -23,7 +23,6 @@
+> >   * the array to be null-terminated.
+> >   */
+> >  struct sbi_domain *domidx_to_domain_table[SBI_DOMAIN_MAX_INDEX + 1] = { 0 };
+> > -struct sbi_domain *hartid_to_domain_table[SBI_HARTMASK_MAX_BITS] = { 0 };
+> >  static u32 domain_count = 0;
+> >  static bool domain_finalized = false;
+> >
+> > @@ -39,6 +38,32 @@ struct sbi_domain root = {
+> >       .fw_region_inited = false,
+> >  };
+> >
+> > +static unsigned long domain_hart_ptr_offset;
 > > +
-> > +#ifndef __SBI_HEAP_H__
-> > +#define __SBI_HEAP_H__
-> > +
-> > +#include <sbi/sbi_types.h>
-> > +
-> > +struct sbi_scratch;
-> > +
-> > +/** Allocate from heap area */
-> > +void *sbi_malloc(size_t size);
-> > +
-> > +/** Zero allocate from heap area */
-> > +void *sbi_zalloc(size_t size);
-> > +
-> > +/** Allocate array from heap area */
-> > +static inline void *sbi_calloc(size_t nitems, size_t size)
+> > +struct sbi_domain *sbi_hartid_to_domain(u32 hartid)
 > > +{
-> > +     return sbi_zalloc(nitems * size);
-> > +}
+> > +     struct sbi_scratch *scratch;
 > > +
-> > +/** Free-up to heap area */
-> > +void sbi_free(void *ptr);
-> > +
-> > +/** Amount (in bytes) of free space in the heap area */
-> > +unsigned long sbi_heap_free_space(void);
-> > +
-> > +/** Amount (in bytes) of used space in the heap area */
-> > +unsigned long sbi_heap_used_space(void);
-> > +
-> > +/** Amount (in bytes) of reserved space in the heap area */
-> > +unsigned long sbi_heap_reserved_space(void);
-> > +
-> > +/** Initialize heap area */
-> > +int sbi_heap_init(struct sbi_scratch *scratch);
-> > +
-> > +#endif
-> > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> > index 7d691c6..c699187 100644
-> > --- a/lib/sbi/objects.mk
-> > +++ b/lib/sbi/objects.mk
-> > @@ -59,6 +59,7 @@ libsbi-objs-y += sbi_domain.o
-> >  libsbi-objs-y += sbi_emulate_csr.o
-> >  libsbi-objs-y += sbi_fifo.o
-> >  libsbi-objs-y += sbi_hart.o
-> > +libsbi-objs-y += sbi_heap.o
-> >  libsbi-objs-y += sbi_math.o
-> >  libsbi-objs-y += sbi_hfence.o
-> >  libsbi-objs-y += sbi_hsm.o
-> > diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
-> > new file mode 100644
-> > index 0000000..82aa1ec
-> > --- /dev/null
-> > +++ b/lib/sbi/sbi_heap.c
-> > @@ -0,0 +1,204 @@
-> > +/*
-> > + * SPDX-License-Identifier: BSD-2-Clause
-> > + *
-> > + * Copyright (c) 2023 Ventana Micro Systems Inc.
-> > + *
-> > + * Authors:
-> > + *   Anup Patel<apatel@ventanamicro.com>
-> > + */
-> > +
-> > +#include <sbi/riscv_locks.h>
-> > +#include <sbi/sbi_error.h>
-> > +#include <sbi/sbi_heap.h>
-> > +#include <sbi/sbi_list.h>
-> > +#include <sbi/sbi_scratch.h>
-> > +#include <sbi/sbi_string.h>
-> > +
-> > +#define HEAP_BASE_ALIGN                      1024
-> > +#define HEAP_ALLOC_ALIGN             64
->
-> What's the rationale for these alignments. Maybe alloc-align is expected
-> cache size? But what about base-align? Can you add comment explaining
-> them?
-
-The HEAP_BASE_ALIGN is used to ensure that the base address
-and size of the heap is 1KB aligned.
-
-Also, the HEAP_ALLOC_ALIGN should be roughly the same as
-cache-line size. For now this is fixed, but in the future, platform
-might be able to provide cache line size.
-
-Okay, I will add comments.
-
->
-> > +#define HEAP_HOUSEKEEPING_FACTOR     16
-> > +
-> > +struct heap_node {
-> > +     struct sbi_dlist head;
-> > +     unsigned long addr;
-> > +     unsigned long size;
-> > +};
-> > +
-> > +struct heap_control {
-> > +     spinlock_t lock;
-> > +     unsigned long base;
-> > +     unsigned long size;
-> > +     unsigned long hkbase;
-> > +     unsigned long hksize;
-> > +     struct sbi_dlist free_node_list;
-> > +     struct sbi_dlist free_space_list;
-> > +     struct sbi_dlist used_space_list;
-> > +};
-> > +
-> > +static struct heap_control hpctrl;
-> > +
-> > +void *sbi_malloc(size_t size)
-> > +{
-> > +     void *ret = NULL;
-> > +     struct heap_node *n, *np;
-> > +
-> > +     if (!size)
+> > +     scratch = sbi_hartid_to_scratch(hartid);
+> > +     if (!scratch || !domain_hart_ptr_offset)
 > > +             return NULL;
 > > +
-> > +     size += HEAP_ALLOC_ALIGN - 1;
-> > +     size &= ~((unsigned long)HEAP_ALLOC_ALIGN - 1);
-> > +
-> > +     spin_lock(&hpctrl.lock);
-> > +
-> > +     np = NULL;
-> > +     sbi_list_for_each_entry(n, &hpctrl.free_space_list, head) {
-> > +             if (size <= n->size) {
-> > +                     np = n;
-> > +                     break;
-> > +             }
-> > +     }
-> > +     if (np) {
-> > +             if ((size < np->size) &&
-> > +                 !sbi_list_empty(&hpctrl.free_node_list)) {
-> > +                     n = sbi_list_first_entry(&hpctrl.free_node_list,
-> > +                                              struct heap_node, head);
-> > +                     sbi_list_del(&n->head);
-> > +                     n->addr = np->addr + np->size - size;
-> > +                     n->size = size;
-> > +                     np->size -= size;
-> > +                     sbi_list_add_tail(&n->head, &hpctrl.used_space_list);
-> > +                     ret = (void *)n->addr;
-> > +             } else if (size == np->size) {
-> > +                     sbi_list_del(&np->head);
-> > +                     sbi_list_add_tail(&np->head, &hpctrl.used_space_list);
-> > +                     ret = (void *)np->addr;
-> > +             }
-> > +     }
-> > +
-> > +     spin_unlock(&hpctrl.lock);
-> > +
-> > +     return ret;
+> > +     return (void *)(*((ulong *)sbi_scratch_offset_ptr(scratch,
+> > +                                                domain_hart_ptr_offset)));
 > > +}
 > > +
-> > +void *sbi_zalloc(size_t size)
+> > +static void update_hartid_to_domain(u32 hartid, struct sbi_domain *dom)
 > > +{
-> > +     void *ret = sbi_malloc(size);
+> > +     struct sbi_scratch *scratch;
 > > +
-> > +     if (ret)
-> > +             sbi_memset(ret, 0, size);
-> > +     return ret;
-> > +}
-> > +
-> > +void sbi_free(void *ptr)
-> > +{
-> > +     struct heap_node *n, *np;
-> > +
-> > +     if (!ptr)
+> > +     scratch = sbi_hartid_to_scratch(hartid);
+> > +     if (!scratch)
 > > +             return;
 > > +
-> > +     spin_lock(&hpctrl.lock);
-> > +
-> > +     np = NULL;
-> > +     sbi_list_for_each_entry(n, &hpctrl.used_space_list, head) {
-> > +             if ((n->addr <= (unsigned long)ptr) &&
-> > +                 ((unsigned long)ptr < (n->addr + n->size))) {
-> > +                     np = n;
-> > +                     break;
-> > +             }
-> > +     }
-> > +     if (!np) {
-> > +             spin_unlock(&hpctrl.lock);
-> > +             return;
-> > +     }
-> > +
-> > +     sbi_list_del(&np->head);
-> > +
-> > +     sbi_list_for_each_entry(n, &hpctrl.free_space_list, head) {
-> > +             if ((np->addr + np->size) == n->addr) {
-> > +                     n->addr = np->addr;
-> > +                     n->size += np->size;
-> > +                     sbi_list_add_tail(&np->head, &hpctrl.free_node_list);
-> > +                     np = NULL;
-> > +                     break;
-> > +             } else if (np->addr == (n->addr + n->size)) {
-> > +                     n->size += np->size;
-> > +                     sbi_list_add_tail(&np->head, &hpctrl.free_node_list);
-> > +                     np = NULL;
-> > +                     break;
-> > +             } else if ((n->addr + n->size) < np->addr) {
-> > +                     sbi_list_add(&np->head, &n->head);
-> > +                     np = NULL;
-> > +                     break;
-> > +             }
-> > +     }
-> > +     if (np)
-> > +             sbi_list_add_tail(&np->head, &hpctrl.free_space_list);
-> > +
-> > +     spin_unlock(&hpctrl.lock);
+> > +     *((ulong *)sbi_scratch_offset_ptr(scratch, domain_hart_ptr_offset))
+> > +                                     = (ulong)dom;
 > > +}
 > > +
-> > +unsigned long sbi_heap_free_space(void)
-> > +{
-> > +     struct heap_node *n;
-> > +     unsigned long ret = 0;
-> > +
-> > +     spin_lock(&hpctrl.lock);
-> > +     sbi_list_for_each_entry(n, &hpctrl.free_space_list, head)
-> > +             ret += n->size;
-> > +     spin_unlock(&hpctrl.lock);
-> > +
-> > +     return ret;
-> > +}
-> > +
-> > +unsigned long sbi_heap_used_space(void)
-> > +{
-> > +     return hpctrl.size - hpctrl.hksize - sbi_heap_free_space();
-> > +}
-> > +
-> > +unsigned long sbi_heap_reserved_space(void)
-> > +{
-> > +     return hpctrl.hksize;
-> > +}
-> > +
-> > +int sbi_heap_init(struct sbi_scratch *scratch)
-> > +{
-> > +     unsigned long i;
-> > +     struct heap_node *n;
-> > +
-> > +     /* Sanity checks on heap offset and size */
-> > +     if (!scratch->fw_heap_size ||
-> > +         (scratch->fw_heap_size & (HEAP_BASE_ALIGN - 1)) ||
-> > +         (scratch->fw_heap_offset < scratch->fw_rw_offset) ||
-> > +         (scratch->fw_size < (scratch->fw_heap_offset + scratch->fw_heap_size)) ||
-> > +         (scratch->fw_heap_offset & (HEAP_BASE_ALIGN - 1)))
-> > +             return SBI_EINVAL;
-> > +
-> > +     /* Initialize heap control */
-> > +     SPIN_LOCK_INIT(hpctrl.lock);
-> > +     hpctrl.base = scratch->fw_start + scratch->fw_heap_offset;
-> > +     hpctrl.size = scratch->fw_heap_size;
-> > +     hpctrl.hkbase = hpctrl.base;
-> > +     hpctrl.hksize = hpctrl.size / HEAP_HOUSEKEEPING_FACTOR;
-> > +     hpctrl.hksize &= ~((unsigned long)HEAP_BASE_ALIGN - 1);
-> > +     SBI_INIT_LIST_HEAD(&hpctrl.free_node_list);
-> > +     SBI_INIT_LIST_HEAD(&hpctrl.free_space_list);
-> > +     SBI_INIT_LIST_HEAD(&hpctrl.used_space_list);
-> > +
-> > +     /* Prepare free node list */
-> > +     for (i = 0; i < (hpctrl.hksize / sizeof(*n)); i++) {
-> > +             n = (struct heap_node *)(hpctrl.hkbase + (sizeof(*n) * i));
-> > +             SBI_INIT_LIST_HEAD(&n->head);
-> > +             n->addr = n->size = 0;
-> > +             sbi_list_add_tail(&n->head, &hpctrl.free_node_list);
-> > +     }
-> > +
-> > +     /* Prepare free space list */
-> > +     n = sbi_list_first_entry(&hpctrl.free_node_list,
-> > +                              struct heap_node, head);
-> > +     sbi_list_del(&n->head);
-> > +     n->addr = hpctrl.hkbase + hpctrl.hksize;
-> > +     n->size = hpctrl.size - hpctrl.hksize;
-> > +     sbi_list_add_tail(&n->head, &hpctrl.free_space_list);
-> > +
-> > +     return 0;
-> > +}
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> > index 5db8e7f..f09a7ac 100644
-> > --- a/lib/sbi/sbi_init.c
-> > +++ b/lib/sbi/sbi_init.c
-> > @@ -17,6 +17,7 @@
-> >  #include <sbi/sbi_ecall.h>
-> >  #include <sbi/sbi_hart.h>
-> >  #include <sbi/sbi_hartmask.h>
-> > +#include <sbi/sbi_heap.h>
-> >  #include <sbi/sbi_hsm.h>
-> >  #include <sbi/sbi_ipi.h>
-> >  #include <sbi/sbi_irqchip.h>
-> > @@ -118,6 +119,15 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
-> >       sbi_printf("Firmware Size             : %d KB\n",
-> >                  (u32)(scratch->fw_size / 1024));
-> >       sbi_printf("Firmware RW Offset        : 0x%lx\n", scratch->fw_rw_offset);
-> > +     sbi_printf("Firmware RW Size          : %d KB\n",
-> > +                (u32)((scratch->fw_size - scratch->fw_rw_offset) / 1024));
-> > +     sbi_printf("Firmware Heap Offset      : 0x%lx\n", scratch->fw_heap_offset);
-> > +     sbi_printf("Firmware Heap Size        : "
-> > +                "%d KB (total), %d KB (reserved), %d KB (used), %d KB (free)\n",
-> > +                (u32)(scratch->fw_heap_size / 1024),
-> > +                (u32)(sbi_heap_reserved_space() / 1024),
-> > +                (u32)(sbi_heap_used_space() / 1024),
-> > +                (u32)(sbi_heap_free_space() / 1024));
+> >  bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
+> >  {
+> >       if (dom)
+> > @@ -519,11 +544,11 @@ int sbi_domain_register(struct sbi_domain *dom,
+> >               if (!sbi_hartmask_test_hart(i, dom->possible_harts))
+> >                       continue;
 > >
-> >       /* SBI details */
-> >       sbi_printf("Runtime SBI Version       : %d.%d\n",
-> > @@ -258,6 +268,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >               sbi_hart_hang();
+> > -             tdom = hartid_to_domain_table[i];
+> > +             tdom = sbi_hartid_to_domain(i);
+> >               if (tdom)
+> >                       sbi_hartmask_clear_hart(i,
+> >                                       &tdom->assigned_harts);
+> > -             hartid_to_domain_table[i] = dom;
+> > +             update_hartid_to_domain(i, dom);
+> >               sbi_hartmask_set_hart(i, &dom->assigned_harts);
 > >
-> >       /* Note: This has to be second thing in coldboot init sequence */
-> > +     rc = sbi_heap_init(scratch);
-> > +     if (rc)
-> > +             sbi_hart_hang();
+> >               /*
+> > @@ -715,9 +740,14 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> >               return SBI_EINVAL;
+> >       }
+> >
+> > +     domain_hart_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
+> > +     if (!domain_hart_ptr_offset)
+> > +             return SBI_ENOMEM;
 > > +
-> > +     /* Note: This has to be thing thing in coldboot init sequence */
+> >       root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
+> >       if (!root_memregs) {
+> >               sbi_printf("%s: no memory for root regions\n", __func__);
+> > +             sbi_scratch_free_offset(domain_hart_ptr_offset);
+> >               return SBI_ENOMEM;
+> >       }
+> >       root.regions = root_memregs;
+> > @@ -726,6 +756,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> >       if (!root_hmask) {
+> >               sbi_printf("%s: no memory for root hartmask\n", __func__);
+> >               sbi_free(root_memregs);
+> > +             sbi_scratch_free_offset(domain_hart_ptr_offset);
+> >               return SBI_ENOMEM;
+> >       }
+> >       root.possible_harts = root_hmask;
+> > @@ -774,6 +805,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> >       if (rc) {
+> >               sbi_free(root_hmask);
+> >               sbi_free(root_memregs);
+> > +             sbi_scratch_free_offset(domain_hart_ptr_offset);
+> >               return rc;
+> >       }
 >
-> ...be the third thing...
+> Rather than duplicating all the free()'s we could use a sequence of error
+> labels and gotos.
 
 Okay, I will update.
 
->
-> >       rc = sbi_domain_init(scratch, hartid);
-> >       if (rc)
-> >               sbi_hart_hang();
-> > --
-> > 2.34.1
-> >
 >
 > Otherwise,
 >
