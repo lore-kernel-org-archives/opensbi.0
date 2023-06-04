@@ -1,141 +1,242 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 4 Jun 2023 16:08:27 +0530
-Subject: [PATCH 06/17] lib: sbi: Use scratch space to save per-HART domain pointer
-In-Reply-To: <20230531-ace2a06252786f57e7952f36@orel>
+Date: Sun, 4 Jun 2023 17:13:19 +0530
+Subject: [PATCH 10/17] lib: utils/irqchip: Use heap in PLIC, APLIC and
+ IMSIC drivers
+In-Reply-To: <20230531-14fb3f8b4bbee3ac09daf364@orel>
 References: <20230425123230.3943447-1-apatel@ventanamicro.com>
- <20230425123230.3943447-7-apatel@ventanamicro.com> <20230531-ace2a06252786f57e7952f36@orel>
-Message-ID: <CAAhSdy2iMLH-k7Wk6FSYZdwA63gBaXAp62C4_RojjAzY-GgK1Q@mail.gmail.com>
+ <20230425123230.3943447-11-apatel@ventanamicro.com> <20230531-14fb3f8b4bbee3ac09daf364@orel>
+Message-ID: <CAAhSdy3mUHuvrBKEiWHJovE333tD_DfB-Bjd6gvWwGJ4Cu0Ovg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, May 31, 2023 at 6:09?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Wed, May 31, 2023 at 6:16?PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> On Tue, Apr 25, 2023 at 06:02:19PM +0530, Anup Patel wrote:
-> > Instead of using a global array indexed by hartid, we should use
-> > scratch space to save per-HART domain pointer.
+> On Tue, Apr 25, 2023 at 06:02:23PM +0530, Anup Patel wrote:
+> > Let's use heap allocation in PLIC, APLIC, and IMSIC irqchip drivers
+> > instead of using a fixed size global array.
 > >
 > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > > ---
-> >  include/sbi/sbi_domain.h |  6 +-----
-> >  lib/sbi/sbi_domain.c     | 38 +++++++++++++++++++++++++++++++++++---
-> >  2 files changed, 36 insertions(+), 8 deletions(-)
+> >  lib/utils/irqchip/fdt_irqchip_aplic.c | 24 ++++++++++--------
+> >  lib/utils/irqchip/fdt_irqchip_imsic.c | 30 +++++++++++-----------
+> >  lib/utils/irqchip/fdt_irqchip_plic.c  | 36 +++++++++++++--------------
+> >  3 files changed, 47 insertions(+), 43 deletions(-)
 > >
-> > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> > index 124ea90..b05bcf4 100644
-> > --- a/include/sbi/sbi_domain.h
-> > +++ b/include/sbi/sbi_domain.h
-> > @@ -129,12 +129,8 @@ struct sbi_domain {
-> >  /** The root domain instance */
-> >  extern struct sbi_domain root;
+> > diff --git a/lib/utils/irqchip/fdt_irqchip_aplic.c b/lib/utils/irqchip/fdt_irqchip_aplic.c
+> > index 965f023..caa92a7 100644
+> > --- a/lib/utils/irqchip/fdt_irqchip_aplic.c
+> > +++ b/lib/utils/irqchip/fdt_irqchip_aplic.c
+> > @@ -11,15 +11,11 @@
+> >  #include <libfdt.h>
+> >  #include <sbi/riscv_asm.h>
+> >  #include <sbi/sbi_error.h>
+> > +#include <sbi/sbi_heap.h>
+> >  #include <sbi_utils/fdt/fdt_helper.h>
+> >  #include <sbi_utils/irqchip/fdt_irqchip.h>
+> >  #include <sbi_utils/irqchip/aplic.h>
 > >
-> > -/** HART id to domain table */
-> > -extern struct sbi_domain *hartid_to_domain_table[];
+> > -#define APLIC_MAX_NR                 16
 > > -
-> >  /** Get pointer to sbi_domain from HART id */
-> > -#define sbi_hartid_to_domain(__hartid) \
-> > -     hartid_to_domain_table[__hartid]
-> > +struct sbi_domain *sbi_hartid_to_domain(u32 hartid);
-> >
-> >  /** Get pointer to sbi_domain for current HART */
-> >  #define sbi_domain_thishart_ptr() \
-> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> > index b07d310..531737c 100644
-> > --- a/lib/sbi/sbi_domain.c
-> > +++ b/lib/sbi/sbi_domain.c
-> > @@ -23,7 +23,6 @@
-> >   * the array to be null-terminated.
-> >   */
-> >  struct sbi_domain *domidx_to_domain_table[SBI_DOMAIN_MAX_INDEX + 1] = { 0 };
-> > -struct sbi_domain *hartid_to_domain_table[SBI_HARTMASK_MAX_BITS] = { 0 };
-> >  static u32 domain_count = 0;
-> >  static bool domain_finalized = false;
-> >
-> > @@ -39,6 +38,32 @@ struct sbi_domain root = {
-> >       .fw_region_inited = false,
-> >  };
-> >
-> > +static unsigned long domain_hart_ptr_offset;
-> > +
-> > +struct sbi_domain *sbi_hartid_to_domain(u32 hartid)
-> > +{
-> > +     struct sbi_scratch *scratch;
-> > +
-> > +     scratch = sbi_hartid_to_scratch(hartid);
-> > +     if (!scratch || !domain_hart_ptr_offset)
-> > +             return NULL;
-> > +
-> > +     return (void *)(*((ulong *)sbi_scratch_offset_ptr(scratch,
-> > +                                                domain_hart_ptr_offset)));
-> > +}
-> > +
-> > +static void update_hartid_to_domain(u32 hartid, struct sbi_domain *dom)
-> > +{
-> > +     struct sbi_scratch *scratch;
-> > +
-> > +     scratch = sbi_hartid_to_scratch(hartid);
-> > +     if (!scratch)
-> > +             return;
-> > +
-> > +     *((ulong *)sbi_scratch_offset_ptr(scratch, domain_hart_ptr_offset))
-> > +                                     = (ulong)dom;
-> > +}
-> > +
-> >  bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
+> > -static unsigned long aplic_count = 0;
+> > -static struct aplic_data aplic[APLIC_MAX_NR];
+> > -
+> >  static int irqchip_aplic_warm_init(void)
 > >  {
-> >       if (dom)
-> > @@ -519,11 +544,11 @@ int sbi_domain_register(struct sbi_domain *dom,
-> >               if (!sbi_hartmask_test_hart(i, dom->possible_harts))
-> >                       continue;
+> >       /* Nothing to do here. */
+> > @@ -32,15 +28,23 @@ static int irqchip_aplic_cold_init(void *fdt, int nodeoff,
+> >       int rc;
+> >       struct aplic_data *pd;
 > >
-> > -             tdom = hartid_to_domain_table[i];
-> > +             tdom = sbi_hartid_to_domain(i);
-> >               if (tdom)
-> >                       sbi_hartmask_clear_hart(i,
-> >                                       &tdom->assigned_harts);
-> > -             hartid_to_domain_table[i] = dom;
-> > +             update_hartid_to_domain(i, dom);
-> >               sbi_hartmask_set_hart(i, &dom->assigned_harts);
-> >
-> >               /*
-> > @@ -715,9 +740,14 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
-> >               return SBI_EINVAL;
-> >       }
-> >
-> > +     domain_hart_ptr_offset = sbi_scratch_alloc_offset(sizeof(ulong));
-> > +     if (!domain_hart_ptr_offset)
+> > -     if (APLIC_MAX_NR <= aplic_count)
+> > -             return SBI_ENOSPC;
+> > -     pd = &aplic[aplic_count++];
+> > +     pd = sbi_zalloc(sizeof(*pd));
+> > +     if (!pd)
 > > +             return SBI_ENOMEM;
-> > +
-> >       root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
-> >       if (!root_memregs) {
-> >               sbi_printf("%s: no memory for root regions\n", __func__);
-> > +             sbi_scratch_free_offset(domain_hart_ptr_offset);
-> >               return SBI_ENOMEM;
-> >       }
-> >       root.regions = root_memregs;
-> > @@ -726,6 +756,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
-> >       if (!root_hmask) {
-> >               sbi_printf("%s: no memory for root hartmask\n", __func__);
-> >               sbi_free(root_memregs);
-> > +             sbi_scratch_free_offset(domain_hart_ptr_offset);
-> >               return SBI_ENOMEM;
-> >       }
-> >       root.possible_harts = root_hmask;
-> > @@ -774,6 +805,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
-> >       if (rc) {
-> >               sbi_free(root_hmask);
-> >               sbi_free(root_memregs);
-> > +             sbi_scratch_free_offset(domain_hart_ptr_offset);
+> >
+> >       rc = fdt_parse_aplic_node(fdt, nodeoff, pd);
+> > -     if (rc)
+> > +     if (rc) {
+> > +             sbi_free(pd);
 > >               return rc;
-> >       }
+> > +     }
+> >
+> > -     return aplic_cold_irqchip_init(pd);
+> > +     rc = aplic_cold_irqchip_init(pd);
+> > +     if (rc) {
+> > +             sbi_free(pd);
+> > +             return rc;
+> > +     }
+> > +
+> > +     return 0;
+> >  }
+> >
+> >  static const struct fdt_match irqchip_aplic_match[] = {
+> > diff --git a/lib/utils/irqchip/fdt_irqchip_imsic.c b/lib/utils/irqchip/fdt_irqchip_imsic.c
+> > index 6020ac0..d890400 100644
+> > --- a/lib/utils/irqchip/fdt_irqchip_imsic.c
+> > +++ b/lib/utils/irqchip/fdt_irqchip_imsic.c
+> > @@ -11,16 +11,12 @@
+> >  #include <libfdt.h>
+> >  #include <sbi/riscv_asm.h>
+> >  #include <sbi/sbi_error.h>
+> > +#include <sbi/sbi_heap.h>
+> >  #include <sbi/sbi_hartmask.h>
+> >  #include <sbi_utils/fdt/fdt_helper.h>
+> >  #include <sbi_utils/irqchip/fdt_irqchip.h>
+> >  #include <sbi_utils/irqchip/imsic.h>
+> >
+> > -#define IMSIC_MAX_NR                 16
+> > -
+> > -static unsigned long imsic_count = 0;
+> > -static struct imsic_data imsic[IMSIC_MAX_NR];
+> > -
+> >  static int irqchip_imsic_update_hartid_table(void *fdt, int nodeoff,
+> >                                            struct imsic_data *id)
+> >  {
+> > @@ -71,25 +67,31 @@ static int irqchip_imsic_cold_init(void *fdt, int nodeoff,
+> >       int rc;
+> >       struct imsic_data *id;
+> >
+> > -     if (IMSIC_MAX_NR <= imsic_count)
+> > -             return SBI_ENOSPC;
+> > -     id = &imsic[imsic_count];
+> > +     id = sbi_zalloc(sizeof(*id));
+> > +     if (!id)
+> > +             return SBI_ENOMEM;
+> >
+> >       rc = fdt_parse_imsic_node(fdt, nodeoff, id);
+> > -     if (rc)
+> > +     if (rc) {
+> > +             sbi_free(id);
+> >               return rc;
+> > -     if (!id->targets_mmode)
+> > +     }
+> > +     if (!id->targets_mmode) {
+> > +             sbi_free(id);
+> >               return 0;
+> > +     }
+> >
+> >       rc = irqchip_imsic_update_hartid_table(fdt, nodeoff, id);
+> > -     if (rc)
+> > +     if (rc) {
+> > +             sbi_free(id);
+> >               return rc;
+> > +     }
+> >
+> >       rc = imsic_cold_irqchip_init(id);
+> > -     if (rc)
+> > +     if (rc) {
+> > +             sbi_free(id);
+> >               return rc;
+> > -
+> > -     imsic_count++;
+> > +     }
 >
-> Rather than duplicating all the free()'s we could use a sequence of error
-> labels and gotos.
+> Could have a label at the bottom
+>
+>     return 0;
+> error:
+>     sbi_free(id);
+>     return rc;
+>
+> Just need to set rc=0 before the id->targets_mmode test and everything can
+> goto error rather than needing to remember to free at each point.
 
 Okay, I will update.
 
+>
+> >
+> >       return 0;
+> >  }
+> > diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> > index 1aadf91..605f44a 100644
+> > --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> > +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> > @@ -11,18 +11,14 @@
+> >  #include <sbi/riscv_asm.h>
+> >  #include <sbi/riscv_io.h>
+> >  #include <sbi/sbi_error.h>
+> > +#include <sbi/sbi_heap.h>
+> >  #include <sbi/sbi_hartmask.h>
+> >  #include <sbi_utils/fdt/fdt_helper.h>
+> >  #include <sbi_utils/irqchip/fdt_irqchip.h>
+> >  #include <sbi_utils/irqchip/plic.h>
+> >
+> > -#define PLIC_MAX_NR                  16
+> > -
+> > -static unsigned long plic_count = 0;
+> > -static struct plic_data plic[PLIC_MAX_NR];
+> > -
+> >  static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
+> > -static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2];
+> > +static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2] = { { -1 } };
+> >
+> >  void fdt_plic_priority_save(u8 *priority, u32 num)
+> >  {
+> > @@ -114,16 +110,18 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
+> >  static int irqchip_plic_cold_init(void *fdt, int nodeoff,
+> >                                 const struct fdt_match *match)
+> >  {
+> > -     int i, rc;
+> > +     int rc;
+> >       struct plic_data *pd;
+> >
+> > -     if (PLIC_MAX_NR <= plic_count)
+> > -             return SBI_ENOSPC;
+> > -     pd = &plic[plic_count++];
+> > +     pd = sbi_zalloc(sizeof(*pd));
+> > +     if (!pd)
+> > +             return SBI_ENOMEM;
+> >
+> >       rc = fdt_parse_plic_node(fdt, nodeoff, pd);
+> > -     if (rc)
+> > +     if (rc) {
+> > +             sbi_free(pd);
+> >               return rc;
+> > +     }
+> >
+> >       if (match->data) {
+> >               void (*plic_plat_init)(struct plic_data *) = match->data;
+> > @@ -131,18 +129,18 @@ static int irqchip_plic_cold_init(void *fdt, int nodeoff,
+> >       }
+> >
+> >       rc = plic_cold_irqchip_init(pd);
+> > -     if (rc)
+> > +     if (rc) {
+> > +             sbi_free(pd);
+> >               return rc;
+> > +     }
+> >
+> > -     if (plic_count == 1) {
+> > -             for (i = 0; i < SBI_HARTMASK_MAX_BITS; i++) {
+> > -                     plic_hartid2data[i] = NULL;
+> > -                     plic_hartid2context[i][0] = -1;
+> > -                     plic_hartid2context[i][1] = -1;
+> > -             }
+> > +     rc = irqchip_plic_update_hartid_table(fdt, nodeoff, pd);
+> > +     if (rc) {
+> > +             sbi_free(pd);
+> > +             return rc;
+> >       }
+> >
+> > -     return irqchip_plic_update_hartid_table(fdt, nodeoff, pd);
+> > +     return 0;
+>
+> Same comment as above.
+
+Okay, I will update.
+
+>
+> >  }
+> >
+> >  #define THEAD_PLIC_CTRL_REG 0x1ffffc
+> > --
+> > 2.34.1
+> >
 >
 > Otherwise,
 >
