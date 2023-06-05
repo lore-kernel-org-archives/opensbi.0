@@ -1,74 +1,92 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 5 Jun 2023 16:53:17 +0530
-Subject: [PATCH 15/17] lib: utils/irqchip: Use scratch space to save
- per-HART PLIC pointer
-In-Reply-To: <59E6DFC8-989C-45F1-8A95-E723E5415FDC@jrtc27.com>
-References: <20230425123230.3943447-1-apatel@ventanamicro.com>
- <20230425123230.3943447-16-apatel@ventanamicro.com> <C3911409-D000-4FC3-8302-4C4BAADACFE2@jrtc27.com>
- <CAAhSdy3LrndeWLUy6dELUtgTVCE+Z=zHzsJb2PxhZpG2R+S5FQ@mail.gmail.com> <59E6DFC8-989C-45F1-8A95-E723E5415FDC@jrtc27.com>
-Message-ID: <CAAhSdy3z0S1CoTbUF5fkVZcQNf2Ddaxus29U22Tio6nOc7-sSg@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Mon,  5 Jun 2023 17:07:31 +0530
+Subject: [PATCH v2 00/18] Introduce and use simple heap allocator
+Message-ID: <20230605113749.230696-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 5, 2023 at 12:27?PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 5 Jun 2023, at 07:51, Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Mon, Jun 5, 2023 at 11:13?AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>
-> >> On 25 Apr 2023, at 13:32, Anup Patel <apatel@ventanamicro.com> wrote:
-> >>>
-> >>> Instead of using a global array indexed by hartid, we should use
-> >>> scratch space to save per-HART PLIC pointer and PLIC context numbers.
-> >>>
-> >>> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> >>> ---
-> >>> lib/utils/irqchip/fdt_irqchip_plic.c | 108 +++++++++++++++++++++------
-> >>> 1 file changed, 86 insertions(+), 22 deletions(-)
-> >>>
-> >>> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-> >>> index 605f44a..eb1e412 100644
-> >>> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
-> >>> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-> >>> @@ -12,54 +12,97 @@
-> >>> #include <sbi/riscv_io.h>
-> >>> #include <sbi/sbi_error.h>
-> >>> #include <sbi/sbi_heap.h>
-> >>> -#include <sbi/sbi_hartmask.h>
-> >>> +#include <sbi/sbi_scratch.h>
-> >>> #include <sbi_utils/fdt/fdt_helper.h>
-> >>> #include <sbi_utils/irqchip/fdt_irqchip.h>
-> >>> #include <sbi_utils/irqchip/plic.h>
-> >>>
-> >>> -static struct plic_data *plic_hartid2data[SBI_HARTMASK_MAX_BITS];
-> >>> -static int plic_hartid2context[SBI_HARTMASK_MAX_BITS][2] = { { -1 } };
-> >>> +static unsigned long plic_ptr_offset;
-> >>> +
-> >>> +#define plic_get_hart_data_ptr(__scratch) \
-> >>> +({ \
-> >>> + (void *)(*((ulong *)sbi_scratch_offset_ptr((__scratch), \
-> >>> +   plic_ptr_offset))); \
-> >>
-> >> Why all the casting rather than just storing the pointer?
-> >
-> > We are storing pointer value in scratch space as ulong but
-> > sbi_scratch_offset_ptr() returns a void pointer to a location in
-> > scratch space so we have to do the above casting for getting
-> > the pointer stored in scratch space.
-> >
-> > Thinking about this more, it is better to have generic helper
-> > macros in sbi_scartch.h so that we don't have to define it
-> > everywhere.
->
-> Pointers are not longs. This isn?t the Linux kernel, you don?t
-> need to be allergic to using the correct types for things.
->
+Currently, we use global variables instead of explicitly allocating
+memory in different parts of OpenSBI. This leads to a bloated BSS
+section in the firmware binaries and this will continue to grow as
+more drivers (and frameworks) with global variables are added.
 
-Okay, I will improve this in v2.
+To improve memory utilizaiton in OpenSBI:
+1) We introduce a simple heap allocator which based on linked list.
+   This is a reasonable heap implementation to start with because
+   heap allocation and free-up won't be in hot path.
+2) Use a combination of heap allocations and scratch space allocations
+   to improve the reduce the BSS memory foot-print.
 
-Regards,
-Anup
+As a by-product, this series also redunces global arrays indexed by hartid
+which is preparatory work for the upcoming full sparse hartid support.
+
+These patches can also be found in simple_heap_v2 branch at:
+https://github.com/avpatel/opensbi.git
+
+Chagnes since v1:
+ - Addressed Drew's comments in PATCH2, PATCH6, PATCH10, PATCH12, and
+   PATCH15
+ - New PATCH which adds helper macros in sbi_scratch.h to access
+   data type from scratch space.
+
+Anup Patel (18):
+  include: sbi_scratch: Add helper macros to access data type
+  platform: Allow platforms to specify heap size
+  lib: sbi: Introduce simple heap allocator
+  lib: sbi: Print scratch size and usage at boot time
+  lib: sbi_pmu: Use heap for per-HART PMU state
+  lib: sbi: Use heap for root domain creation
+  lib: sbi: Use scratch space to save per-HART domain pointer
+  lib: utils/gpio: Use heap in SiFive and StartFive GPIO drivers
+  lib: utils/i2c: Use heap in DesignWare and SiFive I2C drivers
+  lib: utils/ipi: Use heap in ACLINT MSWI driver
+  lib: utils/irqchip: Use heap in PLIC, APLIC and IMSIC drivers
+  lib: utils/timer: Use heap in ACLINT MTIMER driver
+  lib: utils/fdt: Use heap in FDT domain parsing
+  lib: utils/ipi: Use scratch space to save per-HART MSWI pointer
+  lib: utils/timer: Use scratch space to save per-HART MTIMER pointer
+  lib: utils/irqchip: Use scratch space to save per-HART PLIC pointer
+  lib: utils/irqchip: Don't check hartid in imsic_update_hartid_table()
+  lib: utils/irqchip: Use scratch space to save per-HART IMSIC pointer
+
+ firmware/fw_base.S                    |  15 ++
+ include/sbi/sbi_domain.h              |   6 +-
+ include/sbi/sbi_heap.h                |  44 ++++++
+ include/sbi/sbi_platform.h            |  18 ++-
+ include/sbi/sbi_scratch.h             |  48 ++++--
+ lib/sbi/objects.mk                    |   1 +
+ lib/sbi/sbi_domain.c                  |  84 ++++++++--
+ lib/sbi/sbi_heap.c                    | 206 ++++++++++++++++++++++++
+ lib/sbi/sbi_init.c                    |  20 +++
+ lib/sbi/sbi_pmu.c                     | 215 +++++++++++++++-----------
+ lib/sbi/sbi_scratch.c                 |  11 ++
+ lib/utils/fdt/fdt_domain.c            | 113 +++++++++-----
+ lib/utils/gpio/fdt_gpio_sifive.c      |  21 ++-
+ lib/utils/gpio/fdt_gpio_starfive.c    |  20 +--
+ lib/utils/i2c/fdt_i2c_dw.c            |  24 ++-
+ lib/utils/i2c/fdt_i2c_sifive.c        |  23 ++-
+ lib/utils/ipi/aclint_mswi.c           |  43 ++++--
+ lib/utils/ipi/fdt_ipi_mswi.c          |  21 ++-
+ lib/utils/irqchip/fdt_irqchip_aplic.c |  24 +--
+ lib/utils/irqchip/fdt_irqchip_imsic.c |  35 ++---
+ lib/utils/irqchip/fdt_irqchip_plic.c  | 118 +++++++++-----
+ lib/utils/irqchip/imsic.c             |  76 +++++++--
+ lib/utils/timer/aclint_mtimer.c       |  76 +++++++--
+ lib/utils/timer/fdt_timer_mtimer.c    |  47 ++++--
+ platform/fpga/ariane/platform.c       |   1 +
+ platform/fpga/openpiton/platform.c    |   2 +
+ platform/generic/platform.c           |   3 +-
+ platform/kendryte/k210/platform.c     |   2 +
+ platform/nuclei/ux600/platform.c      |   2 +
+ platform/template/platform.c          |   1 +
+ 30 files changed, 971 insertions(+), 349 deletions(-)
+ create mode 100644 include/sbi/sbi_heap.h
+ create mode 100644 lib/sbi/sbi_heap.c
+
+-- 
+2.34.1
+
 
