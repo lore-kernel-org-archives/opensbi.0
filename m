@@ -1,9 +1,9 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon,  5 Jun 2023 14:16:08 +0800
-Subject: [PATCH 5/9] lib: sbi: Add ' ' '\'' flags for print
+Date: Mon,  5 Jun 2023 14:16:10 +0800
+Subject: [PATCH 7/9] lib: sbi: print add 'o' type
 In-Reply-To: <20230605061612.1030529-1-wxjstz@126.com>
 References: <20230605061612.1030529-1-wxjstz@126.com>
-Message-ID: <20230605061612.1030529-6-wxjstz@126.com>
+Message-ID: <20230605061612.1030529-8-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,24 +12,41 @@ Content-Transfer-Encoding: 7bit
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ lib/sbi/sbi_console.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index a616316..7f32f81 100644
+index a9a2ed6..047c51e 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -288,6 +288,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 				case '0':
- 					flags |= PAD_ZERO;
- 					break;
-+				case ' ':
-+				case '\'':
-+					/* Ignored flags, do nothing */
-+					break;
- 				default:
- 					flags_done = true;
- 					break;
+@@ -328,7 +328,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 					     width, flags, *format);
+ 				continue;
+ 			}
+-			if ((*format == 'u') || (*format == 'x') || (*format == 'X')) {
++			if ((*format == 'u') || (*format == 'o')
++					 || (*format == 'x') || (*format == 'X')) {
+ 				pc += printi(out, out_len, va_arg(args, unsigned int),
+ 					     width, flags, *format);
+ 				continue;
+@@ -342,7 +343,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 				type = 'i';
+ 				if (format[1] == 'l') {
+ 					++format;
+-					if ((format[1] == 'u')
++					if ((format[1] == 'u') || (format[1] == 'o')
+ 							|| (format[1] == 'd') || (format[1] == 'i')
+ 							|| (format[1] == 'x') || (format[1] == 'X')) {
+ 						++format;
+@@ -352,7 +353,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 						width, flags, type);
+ 					continue;
+ 				}
+-				if ((format[1] == 'u')
++				if ((format[1] == 'u') || (format[1] == 'o')
+ 						|| (format[1] == 'd') || (format[1] == 'i')
+ 						|| (format[1] == 'x') || (format[1] == 'X')) {
+ 					++format;
 -- 
 2.39.2
 
