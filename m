@@ -1,135 +1,78 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon,  5 Jun 2023 17:07:43 +0530
-Subject: [PATCH v2 12/18] lib: utils/timer: Use heap in ACLINT MTIMER driver
+Date: Mon,  5 Jun 2023 17:07:41 +0530
+Subject: [PATCH v2 10/18] lib: utils/ipi: Use heap in ACLINT MSWI driver
 In-Reply-To: <20230605113749.230696-1-apatel@ventanamicro.com>
 References: <20230605113749.230696-1-apatel@ventanamicro.com>
-Message-ID: <20230605113749.230696-13-apatel@ventanamicro.com>
+Message-ID: <20230605113749.230696-11-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Let's use heap allocation in ACLINT MTIMER driver instead of using
+Let's use heap allocation in ACLINT MSWI driver instead of using
 a fixed size global array.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 ---
- lib/utils/timer/fdt_timer_mtimer.c | 47 +++++++++++++++++++-----------
- 1 file changed, 30 insertions(+), 17 deletions(-)
+ lib/utils/ipi/fdt_ipi_mswi.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-index 5244f98..9eaa11d 100644
---- a/lib/utils/timer/fdt_timer_mtimer.c
-+++ b/lib/utils/timer/fdt_timer_mtimer.c
-@@ -9,44 +9,54 @@
+diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+index 4dc91f2..e3a6378 100644
+--- a/lib/utils/ipi/fdt_ipi_mswi.c
++++ b/lib/utils/ipi/fdt_ipi_mswi.c
+@@ -8,15 +8,11 @@
+  */
  
- #include <libfdt.h>
  #include <sbi/sbi_error.h>
 +#include <sbi/sbi_heap.h>
-+#include <sbi/sbi_list.h>
  #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/timer/fdt_timer.h>
- #include <sbi_utils/timer/aclint_mtimer.h>
+ #include <sbi_utils/ipi/fdt_ipi.h>
+ #include <sbi_utils/ipi/aclint_mswi.h>
  
--#define MTIMER_MAX_NR			16
+-#define MSWI_MAX_NR			16
 -
- struct timer_mtimer_quirks {
- 	unsigned int	mtime_offset;
- 	bool		has_64bit_mmio;
- 	bool		without_mtime;
- };
- 
--static unsigned long mtimer_count = 0;
--static struct aclint_mtimer_data mtimer[MTIMER_MAX_NR];
-+struct timer_mtimer_node {
-+	struct sbi_dlist head;
-+	struct aclint_mtimer_data data;
-+};
-+static SBI_LIST_HEAD(mtn_list);
-+
- static struct aclint_mtimer_data *mt_reference = NULL;
- 
- static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 				  const struct fdt_match *match)
+-static unsigned long mswi_count = 0;
+-static struct aclint_mswi_data mswi[MSWI_MAX_NR];
+-
+ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
+ 			      const struct fdt_match *match)
  {
--	int i, rc;
-+	int rc;
- 	unsigned long addr[2], size[2];
-+	struct timer_mtimer_node *mtn, *n;
- 	struct aclint_mtimer_data *mt;
+@@ -24,15 +20,17 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
+ 	unsigned long offset;
+ 	struct aclint_mswi_data *ms;
  
--	if (MTIMER_MAX_NR <= mtimer_count)
+-	if (MSWI_MAX_NR <= mswi_count)
 -		return SBI_ENOSPC;
--	mt = &mtimer[mtimer_count];
-+	mtn = sbi_zalloc(sizeof(*mtn));
-+	if (!mtn)
+-	ms = &mswi[mswi_count];
++	ms = sbi_zalloc(sizeof(*ms));
++	if (!ms)
 +		return SBI_ENOMEM;
-+	mt = &mtn->data;
  
- 	rc = fdt_parse_aclint_node(fdt, nodeoff, true,
- 				   &addr[0], &size[0], &addr[1], &size[1],
- 				   &mt->first_hartid, &mt->hart_count);
+ 	rc = fdt_parse_aclint_node(fdt, nodeoff, false,
+ 				   &ms->addr, &ms->size, NULL, NULL,
+ 				   &ms->first_hartid, &ms->hart_count);
 -	if (rc)
 +	if (rc) {
-+		sbi_free(mtn);
- 		return rc;
-+	}
- 	mt->has_64bit_mmio = true;
- 	mt->has_shared_mtime = false;
- 
- 	rc = fdt_parse_timebase_frequency(fdt, &mt->mtime_freq);
--	if (rc)
-+	if (rc) {
-+		sbi_free(mtn);
++		sbi_free(ms);
  		return rc;
 +	}
  
- 	if (match->data) { /* SiFive CLINT */
- 		const struct timer_mtimer_quirks *quirks = match->data;
-@@ -77,8 +87,8 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 	/* Check if MTIMER device has shared MTIME address */
- 	if (mt->mtime_size) {
- 		mt->has_shared_mtime = false;
--		for (i = 0; i < mtimer_count; i++) {
--			if (mtimer[i].mtime_addr == mt->mtime_addr) {
-+		sbi_list_for_each_entry(n, &mtn_list, head) {
-+			if (n->data.mtime_addr == mt->mtime_addr) {
- 				mt->has_shared_mtime = true;
- 				break;
- 			}
-@@ -90,8 +100,10 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 
- 	/* Initialize the MTIMER device */
- 	rc = aclint_mtimer_cold_init(mt, mt_reference);
--	if (rc)
-+	if (rc) {
-+		sbi_free(mtn);
- 		return rc;
-+	}
- 
- 	/*
- 	 * Select first MTIMER device with no associated HARTs as our
-@@ -106,16 +118,17 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 		 * Set reference for already propbed MTIMER devices
- 		 * with non-shared MTIME
- 		 */
--		for (i = 0; i < mtimer_count; i++)
--			if (!mtimer[i].has_shared_mtime)
--				aclint_mtimer_set_reference(&mtimer[i], mt);
-+		sbi_list_for_each_entry(n, &mtn_list, head) {
-+			if (!n->data.has_shared_mtime)
-+				aclint_mtimer_set_reference(&n->data, mt);
-+		}
+ 	if (match->data) {
+ 		/* Adjust MSWI address and size for CLINT device */
+@@ -44,10 +42,11 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
  	}
  
- 	/* Explicitly sync-up MTIMER devices not associated with any HARTs */
- 	if (!mt->hart_count)
- 		aclint_mtimer_sync(mt);
+ 	rc = aclint_mswi_cold_init(ms);
+-	if (rc)
++	if (rc) {
++		sbi_free(ms);
+ 		return rc;
++	}
  
--	mtimer_count++;
-+	sbi_list_add_tail(&mtn->head, &mtn_list);
+-	mswi_count++;
  	return 0;
  }
  
