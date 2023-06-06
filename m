@@ -1,75 +1,65 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue,  6 Jun 2023 18:30:30 +0800
-Subject: [PATCH v2 08/12] lib: sbi: Fix printi
-In-Reply-To: <20230606103034.1218221-1-wxjstz@126.com>
-References: <20230606103034.1218221-1-wxjstz@126.com>
-Message-ID: <20230606103034.1218221-9-wxjstz@126.com>
+Date: Tue,  6 Jun 2023 18:31:10 +0800
+Subject: [PATCH v2 10/12] lib: sbi: sbi_console.c code re-layout
+In-Reply-To: <20230606103112.1218382-1-wxjstz@126.com>
+References: <20230606103112.1218382-1-wxjstz@126.com>
+Message-ID: <20230606103112.1218382-11-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix two bug:
-> printf("%#08x", 0x123); /* print 0000x123 */
-> printf("%#x", 0); /* print 0x0 */
+Move the type definitions and macros in sbi_console.c to the begin
+of the file.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ lib/sbi/sbi_console.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 047c51e..6f714f0 100644
+index 824ff6e..af93f51 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -227,23 +227,33 @@ static int printi(char **out, u32 *out_len, long long i,
- 		}
- 	}
+@@ -14,8 +14,19 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
  
--	if (flags & PAD_ALTERNATE) {
--		if ((b == 16) && (letbase == 'A')) {
--			*--s = 'X';
--		} else if ((b == 16) && (letbase == 'a')) {
--			*--s = 'x';
--		}
--		*--s = '0';
--	}
++#define PAD_RIGHT 1
++#define PAD_ZERO 2
++#define PAD_ALTERNATE 4
++#define PAD_SIGN 8
++#define PRINT_BUF_LEN 64
+ #define CONSOLE_TBUF_MAX 256
+ 
++#define va_start(v, l) __builtin_va_start((v), l)
++#define va_end __builtin_va_end
++#define va_arg __builtin_va_arg
++
++typedef __builtin_va_list va_list;
++
+ static const struct sbi_console_device *console_dev = NULL;
+ static char console_tbuf[CONSOLE_TBUF_MAX];
+ static u32 console_tbuf_len;
+@@ -117,17 +128,6 @@ unsigned long sbi_ngets(char *str, unsigned long len)
+ 	return i;
+ }
+ 
+-#define PAD_RIGHT 1
+-#define PAD_ZERO 2
+-#define PAD_ALTERNATE 4
+-#define PAD_SIGN 8
+-#define PRINT_BUF_LEN 64
 -
--	if (sign) {
--		if (width && (flags & PAD_ZERO)) {
-+	if (flags & PAD_ZERO) {
-+		if (sign) {
- 			printc(out, out_len, sign);
- 			++pc;
- 			--width;
--		} else {
--			*--s = sign;
- 		}
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16 || b == 8) {
-+				printc(out, out_len, '0');
-+				++pc;
-+				--width;
-+			}
-+			if (b == 16) {
-+				printc(out, out_len, 'x' - 'a' + letbase);
-+				++pc;
-+				--width;
-+			}
-+		}
-+	} else {
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16)
-+				*--s = 'x' - 'a' + letbase;
-+			if (b == 16 || b == 8)
-+				*--s = '0';
-+		}
-+		if (sign)
-+			*--s = sign;
- 	}
- 
- 	return pc + prints(out, out_len, s, width, flags);
+-#define va_start(v, l) __builtin_va_start((v), l)
+-#define va_end __builtin_va_end
+-#define va_arg __builtin_va_arg
+-typedef __builtin_va_list va_list;
+-
+ static void printc(char **out, u32 *out_len, char ch)
+ {
+ 	if (!out) {
 -- 
 2.39.2
 
