@@ -1,37 +1,34 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue,  6 Jun 2023 21:24:33 +0800
-Subject: [PATCH v3 00/12] Improve sbi_console
-Message-ID: <20230606132445.1239808-1-wxjstz@126.com>
+Date: Tue,  6 Jun 2023 21:24:34 +0800
+Subject: [PATCH v3 01/12] lib: sbi: Fix missing contine in print
+In-Reply-To: <20230606132445.1239808-1-wxjstz@126.com>
+References: <20230606132445.1239808-1-wxjstz@126.com>
+Message-ID: <20230606132445.1239808-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-v3 changes:
-- PATCH11: Simplify get info->type
-- PATCH12: Change the way to keep USED_TBUF by and to reset it by use_tbuf
+Missing continue after print %lu %ld %lx ...
 
-v2 changes:
-- add patch 10-12
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/sbi_console.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Xiang W (12):
-  lib: sbi: Fix missing contine in print
-  lib: sbi: Fix how print gets flags
-  lib: sbi: print not fill '0' when left-aligned
-  lib: sbi: Add '+' flags for print
-  lib: sbi: Add ' ' '\'' flags for print
-  lib: sbi: implifying the parameters of printi
-  lib: sbi: print add 'o' type
-  lib: sbi: Fix printi
-  lib: sbi: Simplify prints
-  lib: sbi: sbi_console.c code re-layout
-  lib: sbi: Add print_info for sbi_console.c
-  lib: sbi: Fix timing of clearing tbuf
-
- lib/sbi/sbi_console.c | 405 +++++++++++++++++++++---------------------
- 1 file changed, 201 insertions(+), 204 deletions(-)
-
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index 168dffd..1f0727c 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -370,6 +370,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 						     va_arg(args, long), 10, 1,
+ 						     width, flags, '0');
+ 				}
++				continue;
+ 			}
+ 			if (*format == 'c') {
+ 				/* char are converted to int then pushed on the stack */
 -- 
 2.39.2
 
