@@ -1,116 +1,80 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon,  5 Jun 2023 17:07:45 +0530
-Subject: [PATCH v2 14/18] lib: utils/ipi: Use scratch space to save per-HART MSWI pointer
-In-Reply-To: <20230605113749.230696-1-apatel@ventanamicro.com>
-References: <20230605113749.230696-1-apatel@ventanamicro.com>
-Message-ID: <20230605113749.230696-15-apatel@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue,  6 Jun 2023 14:32:47 +0800
+Subject: [PATCH] lib: sbi: Fix timing of clearing tbuf
+Message-ID: <20230606063247.1174503-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of using a global array indexed by hartid, we should use
-scratch space to save per-HART MSWI pointer.
+A single scan of the format char may add multiple characters to the
+tbuf, causing a buffer overflow. You should check if tbuf is full in
+printc so that it does not cause a buffer overflow.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/utils/ipi/aclint_mswi.c | 43 ++++++++++++++++++++++++++++---------
- 1 file changed, 33 insertions(+), 10 deletions(-)
+ lib/sbi/sbi_console.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-index ac8570b..f47b3bc 100644
---- a/lib/utils/ipi/aclint_mswi.c
-+++ b/lib/utils/ipi/aclint_mswi.c
-@@ -12,21 +12,30 @@
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
--#include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_ipi.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi/sbi_timer.h>
- #include <sbi_utils/ipi/aclint_mswi.h>
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index 168dffd..c092934 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -17,8 +17,8 @@
+ #define CONSOLE_TBUF_MAX 256
  
--static struct aclint_mswi_data *mswi_hartid2data[SBI_HARTMASK_MAX_BITS];
-+static unsigned long mswi_ptr_offset;
-+
-+#define mswi_get_hart_data_ptr(__scratch)				\
-+	sbi_scratch_read_type((__scratch), void *, mswi_ptr_offset)
-+
-+#define mswi_set_hart_data_ptr(__scratch, __mswi)			\
-+	sbi_scratch_write_type((__scratch), void *, mswi_ptr_offset, (__mswi))
+ static const struct sbi_console_device *console_dev = NULL;
++static bool use_tbuf;
+ static char console_tbuf[CONSOLE_TBUF_MAX];
+-static u32 console_tbuf_len;
+ static spinlock_t console_out_lock	       = SPIN_LOCK_INITIALIZER;
  
- static void mswi_ipi_send(u32 target_hart)
- {
- 	u32 *msip;
-+	struct sbi_scratch *scratch;
- 	struct aclint_mswi_data *mswi;
- 
--	if (SBI_HARTMASK_MAX_BITS <= target_hart)
-+	scratch = sbi_hartid_to_scratch(target_hart);
-+	if (!scratch)
+ bool sbi_isprintable(char c)
+@@ -134,6 +134,12 @@ static void printc(char **out, u32 *out_len, char ch)
  		return;
--	mswi = mswi_hartid2data[target_hart];
-+
-+	mswi = mswi_get_hart_data_ptr(scratch);
- 	if (!mswi)
- 		return;
+ 	}
  
-@@ -38,11 +47,14 @@ static void mswi_ipi_send(u32 target_hart)
- static void mswi_ipi_clear(u32 target_hart)
- {
- 	u32 *msip;
-+	struct sbi_scratch *scratch;
- 	struct aclint_mswi_data *mswi;
- 
--	if (SBI_HARTMASK_MAX_BITS <= target_hart)
-+	scratch = sbi_hartid_to_scratch(target_hart);
-+	if (!scratch)
- 		return;
--	mswi = mswi_hartid2data[target_hart];
-+
-+	mswi = mswi_get_hart_data_ptr(scratch);
- 	if (!mswi)
- 		return;
- 
-@@ -69,19 +81,30 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
- {
- 	u32 i;
- 	int rc;
-+	struct sbi_scratch *scratch;
- 	unsigned long pos, region_size;
- 	struct sbi_domain_memregion reg;
- 
- 	/* Sanity checks */
- 	if (!mswi || (mswi->addr & (ACLINT_MSWI_ALIGN - 1)) ||
- 	    (mswi->size < (mswi->hart_count * sizeof(u32))) ||
--	    (mswi->first_hartid + mswi->hart_count > SBI_HARTMASK_MAX_BITS) ||
- 	    (!mswi->hart_count || mswi->hart_count > ACLINT_MSWI_MAX_HARTS))
- 		return SBI_EINVAL;
- 
--	/* Update MSWI hartid table */
--	for (i = 0; i < mswi->hart_count; i++)
--		mswi_hartid2data[mswi->first_hartid + i] = mswi;
-+	/* Allocate scratch space pointer */
-+	if (!mswi_ptr_offset) {
-+		mswi_ptr_offset = sbi_scratch_alloc_type_offset(void *);
-+		if (!mswi_ptr_offset)
-+			return SBI_ENOMEM;
++	if (use_tbuf && (*out_len == 0)) {
++		nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
++		*out = console_tbuf;
++		*out_len = CONSOLE_TBUF_MAX;
 +	}
 +
-+	/* Update MSWI pointer in scratch space */
-+	for (i = 0; i < mswi->hart_count; i++) {
-+		scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
-+		if (!scratch)
-+			return SBI_ENOENT;
-+		mswi_set_hart_data_ptr(scratch, mswi);
-+	}
+ 	/*
+ 	 * The *printf entry point functions have enforced that (*out) can
+ 	 * only be null when out_len is non-null and its value is zero.
+@@ -238,7 +244,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ {
+ 	int width, flags, pc = 0;
+ 	char scr[2], *tout;
+-	bool use_tbuf = (!out) ? true : false;
++	u32 console_tbuf_len;
+ 	unsigned long long tmp;
  
- 	/* Add MSWI regions to the root domain */
- 	for (pos = 0; pos < mswi->size; pos += ACLINT_MSWI_ALIGN) {
+ 	/*
+@@ -246,6 +252,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 	 * print() is always called with console_out_lock held
+ 	 * when out == NULL.
+ 	 */
++	use_tbuf = (!out) ? true : false;
+ 	if (use_tbuf) {
+ 		console_tbuf_len = CONSOLE_TBUF_MAX;
+ 		tout = console_tbuf;
+@@ -254,12 +261,6 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 	}
+ 
+ 	for (; *format != 0; ++format) {
+-		if (use_tbuf && !console_tbuf_len) {
+-			nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
+-			console_tbuf_len = CONSOLE_TBUF_MAX;
+-			tout = console_tbuf;
+-		}
+-
+ 		if (*format == '%') {
+ 			++format;
+ 			width = flags = 0;
 -- 
-2.34.1
+2.39.2
 
 
