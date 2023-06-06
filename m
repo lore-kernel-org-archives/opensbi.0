@@ -1,81 +1,84 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue,  6 Jun 2023 18:30:24 +0800
-Subject: [PATCH v2 02/12] lib: sbi: Fix how print gets flags
-In-Reply-To: <20230606103034.1218221-1-wxjstz@126.com>
-References: <20230606103034.1218221-1-wxjstz@126.com>
-Message-ID: <20230606103034.1218221-3-wxjstz@126.com>
+Date: Tue,  6 Jun 2023 18:31:04 +0800
+Subject: [PATCH v2 04/12] lib: sbi: Add '+' flags for print
+In-Reply-To: <20230606103112.1218382-1-wxjstz@126.com>
+References: <20230606103112.1218382-1-wxjstz@126.com>
+Message-ID: <20230606103112.1218382-5-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The flags for print should be able to appear in any order. The
-previous code required the order to be fixed.
-
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ lib/sbi/sbi_console.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 1f0727c..97ee328 100644
+index b18f9c5..a616316 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -236,6 +236,7 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+@@ -120,6 +120,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
+ #define PAD_RIGHT 1
+ #define PAD_ZERO 2
+ #define PAD_ALTERNATE 4
++#define PAD_SIGN 8
+ #define PRINT_BUF_LEN 64
  
- static int print(char **out, u32 *out_len, const char *format, va_list args)
+ #define va_start(v, l) __builtin_va_start((v), l)
+@@ -186,15 +187,18 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+ 		  int width, int flags, int letbase)
  {
-+	bool flags_done;
- 	int width, flags, pc = 0;
- 	char scr[2], *tout;
- 	bool use_tbuf = (!out) ? true : false;
-@@ -262,25 +263,33 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+-	char print_buf[PRINT_BUF_LEN];
+-	char *s;
+-	int neg = 0, pc = 0;
++	char *s, sign, print_buf[PRINT_BUF_LEN];
++	int pc = 0;
+ 	u64 t;
+ 	unsigned long long u = i;
  
- 		if (*format == '%') {
- 			++format;
--			width = flags = 0;
- 			if (*format == '\0')
- 				break;
- 			if (*format == '%')
- 				goto literal;
- 			/* Get flags */
--			if (*format == '-') {
--				++format;
--				flags = PAD_RIGHT;
--			}
--			if (*format == '#') {
--				++format;
--				flags |= PAD_ALTERNATE;
--			}
--			while (*format == '0') {
--				++format;
--				flags |= PAD_ZERO;
-+			flags = 0;
-+			flags_done = false;
-+			while (!flags_done) {
-+				switch (*format) {
-+				case '-':
-+					flags |= PAD_RIGHT;
+-	if (sg && b == 10 && i < 0) {
+-		neg = 1;
+-		u   = -i;
++	if (sg && b == 10) {
++		if ((flags & PAD_SIGN) && i > 0)
++			sign = '+';
++		if (i < 0) {
++			sign = '-';
++			u = -i;
++		}
+ 	}
+ 
+ 	s  = print_buf + PRINT_BUF_LEN - 1;
+@@ -221,13 +225,13 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+ 		*--s = '0';
+ 	}
+ 
+-	if (neg) {
++	if (sign) {
+ 		if (width && (flags & PAD_ZERO)) {
+-			printc(out, out_len, '-');
++			printc(out, out_len, sign);
+ 			++pc;
+ 			--width;
+ 		} else {
+-			*--s = '-';
++			*--s = sign;
+ 		}
+ 	}
+ 
+@@ -275,6 +279,9 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 				case '-':
+ 					flags |= PAD_RIGHT;
+ 					break;
++				case '+':
++					flags |= PAD_SIGN;
 +					break;
-+				case '#':
-+					flags |= PAD_ALTERNATE;
-+					break;
-+				case '0':
-+					flags |= PAD_ZERO;
-+					break;
-+				default:
-+					flags_done = true;
-+					break;
-+				}
-+				if (!flags_done)
-+					++format;
- 			}
- 			/* Get width */
-+			width = 0;
- 			for (; *format >= '0' && *format <= '9'; ++format) {
- 				width *= 10;
- 				width += *format - '0';
+ 				case '#':
+ 					flags |= PAD_ALTERNATE;
+ 					break;
 -- 
 2.39.2
 
