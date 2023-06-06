@@ -1,75 +1,81 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue,  6 Jun 2023 18:31:08 +0800
-Subject: [PATCH v2 08/12] lib: sbi: Fix printi
-In-Reply-To: <20230606103112.1218382-1-wxjstz@126.com>
-References: <20230606103112.1218382-1-wxjstz@126.com>
-Message-ID: <20230606103112.1218382-9-wxjstz@126.com>
+Date: Tue,  6 Jun 2023 18:30:24 +0800
+Subject: [PATCH v2 02/12] lib: sbi: Fix how print gets flags
+In-Reply-To: <20230606103034.1218221-1-wxjstz@126.com>
+References: <20230606103034.1218221-1-wxjstz@126.com>
+Message-ID: <20230606103034.1218221-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix two bug:
-> printf("%#08x", 0x123); /* print 0000x123 */
-> printf("%#x", 0); /* print 0x0 */
+The flags for print should be able to appear in any order. The
+previous code required the order to be fixed.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ lib/sbi/sbi_console.c | 33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 047c51e..6f714f0 100644
+index 1f0727c..97ee328 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -227,23 +227,33 @@ static int printi(char **out, u32 *out_len, long long i,
- 		}
- 	}
+@@ -236,6 +236,7 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
  
--	if (flags & PAD_ALTERNATE) {
--		if ((b == 16) && (letbase == 'A')) {
--			*--s = 'X';
--		} else if ((b == 16) && (letbase == 'a')) {
--			*--s = 'x';
--		}
--		*--s = '0';
--	}
--
--	if (sign) {
--		if (width && (flags & PAD_ZERO)) {
-+	if (flags & PAD_ZERO) {
-+		if (sign) {
- 			printc(out, out_len, sign);
- 			++pc;
- 			--width;
--		} else {
--			*--s = sign;
- 		}
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16 || b == 8) {
-+				printc(out, out_len, '0');
-+				++pc;
-+				--width;
-+			}
-+			if (b == 16) {
-+				printc(out, out_len, 'x' - 'a' + letbase);
-+				++pc;
-+				--width;
-+			}
-+		}
-+	} else {
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16)
-+				*--s = 'x' - 'a' + letbase;
-+			if (b == 16 || b == 8)
-+				*--s = '0';
-+		}
-+		if (sign)
-+			*--s = sign;
- 	}
+ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ {
++	bool flags_done;
+ 	int width, flags, pc = 0;
+ 	char scr[2], *tout;
+ 	bool use_tbuf = (!out) ? true : false;
+@@ -262,25 +263,33 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
  
- 	return pc + prints(out, out_len, s, width, flags);
+ 		if (*format == '%') {
+ 			++format;
+-			width = flags = 0;
+ 			if (*format == '\0')
+ 				break;
+ 			if (*format == '%')
+ 				goto literal;
+ 			/* Get flags */
+-			if (*format == '-') {
+-				++format;
+-				flags = PAD_RIGHT;
+-			}
+-			if (*format == '#') {
+-				++format;
+-				flags |= PAD_ALTERNATE;
+-			}
+-			while (*format == '0') {
+-				++format;
+-				flags |= PAD_ZERO;
++			flags = 0;
++			flags_done = false;
++			while (!flags_done) {
++				switch (*format) {
++				case '-':
++					flags |= PAD_RIGHT;
++					break;
++				case '#':
++					flags |= PAD_ALTERNATE;
++					break;
++				case '0':
++					flags |= PAD_ZERO;
++					break;
++				default:
++					flags_done = true;
++					break;
++				}
++				if (!flags_done)
++					++format;
+ 			}
+ 			/* Get width */
++			width = 0;
+ 			for (; *format >= '0' && *format <= '9'; ++format) {
+ 				width *= 10;
+ 				width += *format - '0';
 -- 
 2.39.2
 
