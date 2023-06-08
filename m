@@ -1,65 +1,43 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu,  8 Jun 2023 15:30:00 +0800
-Subject: [PATCH v4 10/13] lib: sbi: sbi_console.c code re-layout
-In-Reply-To: <20230608073003.1565710-1-wxjstz@126.com>
+Date: Thu,  8 Jun 2023 15:32:14 +0800
+Subject: [PATCH v4 13/13] lib: sbi: Fix missing '\0' when buffer szie equal 1
+In-Reply-To: <20230608073214.1566095-1-wxjstz@126.com>
 References: <20230608073003.1565710-1-wxjstz@126.com>
-Message-ID: <20230608073003.1565710-11-wxjstz@126.com>
+ <20230608073214.1566095-1-wxjstz@126.com>
+Message-ID: <20230608073214.1566095-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the type definitions and macros in sbi_console.c to the begin
-of the file.
+Fix special case: sbi_snprintf(out, 1, ...), The previous code will
+not fill the buffer with any char.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ lib/sbi/sbi_console.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 824ff6e..af93f51 100644
+index 7d811e7..81555f3 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -14,8 +14,19 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- 
-+#define PAD_RIGHT 1
-+#define PAD_ZERO 2
-+#define PAD_ALTERNATE 4
-+#define PAD_SIGN 8
-+#define PRINT_BUF_LEN 64
- #define CONSOLE_TBUF_MAX 256
- 
-+#define va_start(v, l) __builtin_va_start((v), l)
-+#define va_end __builtin_va_end
-+#define va_arg __builtin_va_arg
+@@ -157,6 +157,14 @@ static void printc(struct print_info *info, char ch)
+ 	/* The buffer is long enough to add new characters */
+ 	if (info->len - info->pos > 1)
+ 		goto append;
 +
-+typedef __builtin_va_list va_list;
++	/*
++	 * special case: sbi_snprintf(out, 1, ...);
++	 * This case never jumps to append, so add '\0' here
++	 */
++	if (info->pos == 0)
++		info->out[0] = '\0';
 +
- static const struct sbi_console_device *console_dev = NULL;
- static char console_tbuf[CONSOLE_TBUF_MAX];
- static u32 console_tbuf_len;
-@@ -117,17 +128,6 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- 	return i;
- }
+ 	return;
  
--#define PAD_RIGHT 1
--#define PAD_ZERO 2
--#define PAD_ALTERNATE 4
--#define PAD_SIGN 8
--#define PRINT_BUF_LEN 64
--
--#define va_start(v, l) __builtin_va_start((v), l)
--#define va_end __builtin_va_end
--#define va_arg __builtin_va_arg
--typedef __builtin_va_list va_list;
--
- static void printc(char **out, u32 *out_len, char ch)
- {
- 	if (!out) {
+ append:
 -- 
 2.39.2
 
