@@ -1,65 +1,66 @@
 From: Xiang W <wxjstz@126.com>
-Date: Fri,  9 Jun 2023 11:34:26 +0800
-Subject: [PATCH v5 10/14] lib: sbi: sbi_console.c code re-layout
+Date: Fri,  9 Jun 2023 11:34:25 +0800
+Subject: [PATCH v5 09/14] lib: sbi: Simplify prints
 In-Reply-To: <20230609033430.84471-1-wxjstz@126.com>
 References: <20230609033430.84471-1-wxjstz@126.com>
-Message-ID: <20230609033430.84471-11-wxjstz@126.com>
+Message-ID: <20230609033430.84471-10-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the type definitions and macros in sbi_console.c to the begin
-of the file.
+When doing width = width - strlen(string) in prints there is no need
+to consider the case that witdh may be less than 0. This is because
+the code to do filling needs to be executed under the condition that
+width > 0.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ lib/sbi/sbi_console.c | 21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 824ff6e..af93f51 100644
+index 6f714f0..824ff6e 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -14,8 +14,19 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- 
-+#define PAD_RIGHT 1
-+#define PAD_ZERO 2
-+#define PAD_ALTERNATE 4
-+#define PAD_SIGN 8
-+#define PRINT_BUF_LEN 64
- #define CONSOLE_TBUF_MAX 256
- 
-+#define va_start(v, l) __builtin_va_start((v), l)
-+#define va_end __builtin_va_end
-+#define va_arg __builtin_va_arg
-+
-+typedef __builtin_va_list va_list;
-+
- static const struct sbi_console_device *console_dev = NULL;
- static char console_tbuf[CONSOLE_TBUF_MAX];
- static u32 console_tbuf_len;
-@@ -117,17 +128,6 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- 	return i;
- }
- 
--#define PAD_RIGHT 1
--#define PAD_ZERO 2
--#define PAD_ALTERNATE 4
--#define PAD_SIGN 8
--#define PRINT_BUF_LEN 64
--
--#define va_start(v, l) __builtin_va_start((v), l)
--#define va_end __builtin_va_end
--#define va_arg __builtin_va_arg
--typedef __builtin_va_list va_list;
--
- static void printc(char **out, u32 *out_len, char ch)
+@@ -151,24 +151,11 @@ static void printc(char **out, u32 *out_len, char ch)
+ static int prints(char **out, u32 *out_len, const char *string, int width,
+ 		  int flags)
  {
- 	if (!out) {
+-	int pc	     = 0;
+-	char padchar = ' ';
+-
+-	if (width > 0) {
+-		int len = 0;
+-		const char *ptr;
+-		for (ptr = string; *ptr; ++ptr)
+-			++len;
+-		if (len >= width)
+-			width = 0;
+-		else
+-			width -= len;
+-		if (flags & PAD_ZERO)
+-			padchar = '0';
+-	}
++	int pc = 0;
++	width -= sbi_strlen(string);
+ 	if (!(flags & PAD_RIGHT)) {
+ 		for (; width > 0; --width) {
+-			printc(out, out_len, padchar);
++			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
+ 			++pc;
+ 		}
+ 	}
+@@ -177,7 +164,7 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+ 		++pc;
+ 	}
+ 	for (; width > 0; --width) {
+-		printc(out, out_len, padchar);
++		printc(out, out_len, ' ');
+ 		++pc;
+ 	}
+ 
 -- 
 2.39.2
 
