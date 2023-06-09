@@ -1,75 +1,36 @@
 From: Xiang W <wxjstz@126.com>
-Date: Fri,  9 Jun 2023 11:34:24 +0800
-Subject: [PATCH v5 08/14] lib: sbi: Fix printi
+Date: Fri,  9 Jun 2023 11:34:19 +0800
+Subject: [PATCH v5 03/14] lib: sbi: print not fill '0' when left-aligned
 In-Reply-To: <20230609033430.84471-1-wxjstz@126.com>
 References: <20230609033430.84471-1-wxjstz@126.com>
-Message-ID: <20230609033430.84471-9-wxjstz@126.com>
+Message-ID: <20230609033430.84471-4-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix two bug:
-> printf("%#08x", 0x123); /* print 0000x123 */
-> printf("%#x", 0); /* print 0x0 */
+Left alignment and padding '0' should not exist at the same time,
+this patch is not padded with 0 when left aligned.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ lib/sbi/sbi_console.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 047c51e..6f714f0 100644
+index 97ee328..b18f9c5 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -227,23 +227,33 @@ static int printi(char **out, u32 *out_len, long long i,
- 		}
- 	}
- 
--	if (flags & PAD_ALTERNATE) {
--		if ((b == 16) && (letbase == 'A')) {
--			*--s = 'X';
--		} else if ((b == 16) && (letbase == 'a')) {
--			*--s = 'x';
--		}
--		*--s = '0';
--	}
--
--	if (sign) {
--		if (width && (flags & PAD_ZERO)) {
-+	if (flags & PAD_ZERO) {
-+		if (sign) {
- 			printc(out, out_len, sign);
- 			++pc;
- 			--width;
--		} else {
--			*--s = sign;
- 		}
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16 || b == 8) {
-+				printc(out, out_len, '0');
-+				++pc;
-+				--width;
-+			}
-+			if (b == 16) {
-+				printc(out, out_len, 'x' - 'a' + letbase);
-+				++pc;
-+				--width;
-+			}
-+		}
-+	} else {
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16)
-+				*--s = 'x' - 'a' + letbase;
-+			if (b == 16 || b == 8)
-+				*--s = '0';
-+		}
-+		if (sign)
-+			*--s = sign;
- 	}
- 
- 	return pc + prints(out, out_len, s, width, flags);
+@@ -288,6 +288,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 				if (!flags_done)
+ 					++format;
+ 			}
++			if (flags & PAD_RIGHT)
++				flags &= ~PAD_ZERO;
+ 			/* Get width */
+ 			width = 0;
+ 			for (; *format >= '0' && *format <= '9'; ++format) {
 -- 
 2.39.2
 
