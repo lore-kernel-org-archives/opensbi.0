@@ -1,40 +1,41 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 11 Jun 2023 09:38:55 +0530
-Subject: [PATCH 0/2] OpenSBI logo and copyright update
-Message-ID: <20230611040857.51858-1-apatel@ventanamicro.com>
+Date: Sun, 11 Jun 2023 09:38:57 +0530
+Subject: [PATCH 2/2] README.md: Improve project copyright information
+In-Reply-To: <20230611040857.51858-1-apatel@ventanamicro.com>
+References: <20230611040857.51858-1-apatel@ventanamicro.com>
+Message-ID: <20230611040857.51858-3-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The OpenSBI project does have an official logo which was designed
-few months back. This logo is reviewed and approved by RISC-V
-international. In fact, some of the RISC-V international slides
-already use the official OpenSBI logo.
+Over-time a lot of organizations and individuals have contributed to
+the OpenSBI project so let us add copyright RISC-V International to
+respect the contributions from all RISC-V members.
 
-We add the official logo to the OpenSBI sources so that anyone can:
-* Use it in presentations
-* Create laptop stickers
-* ... and more ...
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ README.md | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-We also update project copyright information in the top-level
-README.md.
-
-These patches can also be found in logo_v1 branch at:
-https://github.com/avpatel/opensbi.git
-
-Anup Patel (2):
-  docs: Add OpenSBI logo and use it in the top-level README.md
-  README.md: Improve project copyright information
-
- README.md                               |   8 ++++++--
- docs/riscv_opensbi_logo_final_color.png | Bin 0 -> 7758 bytes
- docs/riscv_opensbi_logo_final_grey.png  | Bin 0 -> 9159 bytes
- 3 files changed, 6 insertions(+), 2 deletions(-)
- create mode 100644 docs/riscv_opensbi_logo_final_color.png
- create mode 100644 docs/riscv_opensbi_logo_final_grey.png
-
+diff --git a/README.md b/README.md
+index bb09fdf..73de8ea 100644
+--- a/README.md
++++ b/README.md
+@@ -6,8 +6,10 @@ RISC-V Open Source Supervisor Binary Interface (OpenSBI)
+ Copyright and License
+ ---------------------
+ 
+-The OpenSBI project is copyright (c) 2019 Western Digital Corporation
+-or its affiliates and other contributors.
++The OpenSBI project is:
++
++* Copyright (c) 2019 Western Digital Corporation or its affiliates
++* Copyright (c) 2023 RISC-V International
+ 
+ It is distributed under the terms of the BSD 2-clause license
+ ("Simplified BSD License" or "FreeBSD License", SPDX: *BSD-2-Clause*).
 -- 
 2.34.1
 
