@@ -1,66 +1,48 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 12 Jun 2023 16:09:56 +0800
-Subject: [PATCH v6 09/12] lib: sbi: sbi_console.c code re-layout
-In-Reply-To: <20230612080959.571293-1-wxjstz@126.com>
-References: <20230612080959.571293-1-wxjstz@126.com>
-Message-ID: <20230612080959.571293-10-wxjstz@126.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 12 Jun 2023 11:13:24 +0200
+Subject: [PATCH 0/2] OpenSBI logo and copyright update
+In-Reply-To: <20230611040857.51858-1-apatel@ventanamicro.com>
+References: <20230611040857.51858-1-apatel@ventanamicro.com>
+Message-ID: <20230612-3f46ae2a208e71a771eb3281@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the type definitions and macros in sbi_console.c to the begin
-of the file.
+On Sun, Jun 11, 2023 at 09:38:55AM +0530, Anup Patel wrote:
+> The OpenSBI project does have an official logo which was designed
+> few months back. This logo is reviewed and approved by RISC-V
+> international. In fact, some of the RISC-V international slides
+> already use the official OpenSBI logo.
+> 
+> We add the official logo to the OpenSBI sources so that anyone can:
+> * Use it in presentations
+> * Create laptop stickers
+> * ... and more ...
+> 
+> We also update project copyright information in the top-level
+> README.md.
+> 
+> These patches can also be found in logo_v1 branch at:
+> https://github.com/avpatel/opensbi.git
+> 
+> Anup Patel (2):
+>   docs: Add OpenSBI logo and use it in the top-level README.md
+>   README.md: Improve project copyright information
+> 
+>  README.md                               |   8 ++++++--
+>  docs/riscv_opensbi_logo_final_color.png | Bin 0 -> 7758 bytes
+>  docs/riscv_opensbi_logo_final_grey.png  | Bin 0 -> 9159 bytes
+>  3 files changed, 6 insertions(+), 2 deletions(-)
+>  create mode 100644 docs/riscv_opensbi_logo_final_color.png
+>  create mode 100644 docs/riscv_opensbi_logo_final_grey.png
+> 
+> -- 
+> 2.34.1
+>
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_console.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+For the series,
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 824ff6e..af93f51 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -14,8 +14,19 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- 
-+#define PAD_RIGHT 1
-+#define PAD_ZERO 2
-+#define PAD_ALTERNATE 4
-+#define PAD_SIGN 8
-+#define PRINT_BUF_LEN 64
- #define CONSOLE_TBUF_MAX 256
- 
-+#define va_start(v, l) __builtin_va_start((v), l)
-+#define va_end __builtin_va_end
-+#define va_arg __builtin_va_arg
-+
-+typedef __builtin_va_list va_list;
-+
- static const struct sbi_console_device *console_dev = NULL;
- static char console_tbuf[CONSOLE_TBUF_MAX];
- static u32 console_tbuf_len;
-@@ -117,17 +128,6 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- 	return i;
- }
- 
--#define PAD_RIGHT 1
--#define PAD_ZERO 2
--#define PAD_ALTERNATE 4
--#define PAD_SIGN 8
--#define PRINT_BUF_LEN 64
--
--#define va_start(v, l) __builtin_va_start((v), l)
--#define va_end __builtin_va_end
--#define va_arg __builtin_va_arg
--typedef __builtin_va_list va_list;
--
- static void printc(char **out, u32 *out_len, char ch)
- {
- 	if (!out) {
--- 
-2.39.2
-
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
