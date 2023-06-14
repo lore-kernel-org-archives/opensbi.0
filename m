@@ -1,5 +1,5 @@
 From: Guo Ren <guoren@kernel.org>
-Date: Wed, 14 Jun 2023 09:11:01 +0800
+Date: Wed, 14 Jun 2023 09:17:20 +0800
 Subject: [RFC PATCH 2/2] lib: reset: thead: Correct the naming convention
  of dts
 In-Reply-To: <20230613-define-constrict-7608d966e0e8@spud>
@@ -10,7 +10,7 @@ References: <CAJF2gTQPyyi5twqdboo=4t0KgP0RqgOpqd0PX239PQZKC-Z8Uw@mail.gmail.com>
  <CAJF2gTQNXncSUcDh0SfbRwb2GrKn7DeoQ_pgOfERXbLZ9yS_jg@mail.gmail.com>
  <20230612-graveness-uncloak-5f3634a45339@spud> <CAJF2gTSV-+cGj-1R6VumTqHmUt0PKJSEjrCoq5hMnBsLrg4jcw@mail.gmail.com>
  <20230613-define-constrict-7608d966e0e8@spud>
-Message-ID: <CAJF2gTSzD5EF0zWOzR0U2eJSR9aBzc+JjzUi04-Ce5oWgb=n9w@mail.gmail.com>
+Message-ID: <CAJF2gTTTETPnbmP3KAMPCHTKdDpJ8kzaXrwkk36j5LcEYG_H1g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -32,6 +32,10 @@ On Wed, Jun 14, 2023 at 3:36?AM Conor Dooley <conor@kernel.org> wrote:
 >
 > Also, please just add the soc-specific compatibles even if the driver
 > will bind against the most common form of it.
+compatible = "thead,th1520-cpu-reset";
+
+Correct?
+
 >
 > > > >                        reg = <0xff 0xff019050 0x0 0x4>, <0xff
 > > > > 0xff015004 0x0 0x0>;
@@ -46,44 +50,6 @@ On Wed, Jun 14, 2023 at 3:36?AM Conor Dooley <conor@kernel.org> wrote:
 > the soc-level compatible, and not related to the "cpu-reset" node at
 > all, which (given the below) sounds more and more like a regular reset
 > controller.
-We need to put clone-csrs' execution entry into the reset entry (the
-first reg address).
-
-        /* Custom reset method for secondary harts */
-        val = fdt_getprop(fdt, nodeoff, "entry-reg", &len);
-        if (len > 0 && val) {
-          p = (char *)(ulong)fdt64_to_cpu(*val);
-
-                val_w = fdt_getprop(fdt, nodeoff, "entry-cnt", &len);
-                if (len > 0 && val_w) {
-                        tmp = fdt32_to_cpu(*val_w);
-
-                        for (i = 0; i < tmp; i++) {
-                                t = (ulong)&__thead_pre_start_warm;
-                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                writel(t, p + (8 * i));
-                                t = (u64)(ulong)&__thead_pre_start_warm >> 32;
-                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                writel(t, p + (8 * i) + 4);
-                                ^^^^^^^^^^^^^^^^^^^^^
-                        }
-                }
-
-                val = fdt_getprop(fdt, nodeoff, "control-reg", &len);
-                if (len > 0 && val) {
-                        p = (void *)(ulong)fdt64_to_cpu(*val);
-
-                        val_w = fdt_getprop(fdt, nodeoff, "control-val", &len);
-                        if (len > 0 && val_w) {
-                                tmp = fdt32_to_cpu(*val_w);
-                                tmp |= readl(p);
-                                writel(tmp, p);
-                        }
-                }
-        }
-
-I don't think we need to separate it, which made maintenance more complex.
-
 >
 >
 > > > > The reset-ctrl is used to control different parts of soc, generally, a
