@@ -1,81 +1,30 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 18 Jun 2023 21:10:01 +0530
-Subject: [PATCH V2] lib: reset: Move fdt_reset_init into generic_early_init
-In-Reply-To: <20230618150716.3317274-1-guoren@kernel.org>
-References: <20230618150716.3317274-1-guoren@kernel.org>
-Message-ID: <CAAhSdy1=TKcVhUbFCyEcHE-uK3v-wYho-LAZc3=yG=MUf5ytMg@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Mon, 19 Jun 2023 12:55:39 -0700
+Subject: CFP open for RISC-V MC at Linux Plumbers Conference 2023
+Message-ID: <CAOnJCU+uMF-brnyjA1HLhupYPqL0ebOVu+ivrSn2AewuSrhtBw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jun 18, 2023 at 8:37?PM <guoren@kernel.org> wrote:
->
-> From: Guo Ren <guoren@linux.alibaba.com>
->
-> The fdt_reset_thead driver needs to modify the __reset_thead_csr_stub
-> text region for the secondary harts booting. After that, the
-> sbi_hart_pmp_configure may lock down the text region with M_READABLE &
-> M_EXECUTABLE attributes in the future. Currently, the M_READABLE &
-> M_EXECUtABLE have no effect on m-mode, the L-bit in pmpcfg csr is
-> useless for the current opensbi scenario. See:
->
-> Priv-isa-spec 3.7.1.2. Locking and Privilege Mode
-> When the L bit is clear, any M-mode access matching the PMP entry will
-> succeed; the R/W/X permissions apply only to S and U modes.
->
-> That's why current fdt_reset_thead could still work well after commit:
-> 230278dcf127 ("lib: sbi: Add separate entries for firmware RX and RW
-> regions"). So this patch fixes up a fake bug for the M-mode permission
-> setting of the future.
->
-> Fixes: 230278dcf127 ("lib: sbi: Add separate entries for firmware RX and RW regions")
-> Link: http://lists.infradead.org/pipermail/opensbi/2023-June/005176.html
-> Reported-by: Jessica Clarke <jrtc27@jrtc27.com>
-> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> Signed-off-by: Guo Ren <guoren@kernel.org>
+The CFP for topic proposals for the RISC-V micro conference[1] 2023 is open now.
+Please submit your proposal before it's too late!
 
-Looks good to me.
+The Linux plumbers event will be both in person and remote
+(hybrid)virtual this year. More details can be found here [2].
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+We will start accepting proposals after 15th August 2023 to avoid last
+minute visa/travel hassles.
+The conference registration sells out pretty quickly too. Thus, we
+would prefer to sort out the schedule sooner than later.
 
+The final deadline is 15th October 2023 though.
+
+[1] https://lpc.events/event/16/contributions/1148/
+[2] https://lpc.events/
+
+-- 
 Regards,
-Anup
-
-> ---
-> Changelog:
-> v2:
->  - Direct move fdt_reset_init into generic_early_init
-> ---
->  platform/generic/platform.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index eeefef4c9533..bd608f6d4065 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -143,6 +143,9 @@ static int generic_nascent_init(void)
->
->  static int generic_early_init(bool cold_boot)
->  {
-> +       if (cold_boot)
-> +               fdt_reset_init();
-> +
->         if (!generic_plat || !generic_plat->early_init)
->                 return 0;
->
-> @@ -154,9 +157,6 @@ static int generic_final_init(bool cold_boot)
->         void *fdt;
->         int rc;
->
-> -       if (cold_boot)
-> -               fdt_reset_init();
-> -
->         if (generic_plat && generic_plat->final_init) {
->                 rc = generic_plat->final_init(cold_boot, generic_plat_match);
->                 if (rc)
-> --
-> 2.36.1
->
+Atish
 
