@@ -1,30 +1,52 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 19 Jun 2023 12:55:39 -0700
-Subject: CFP open for RISC-V MC at Linux Plumbers Conference 2023
-Message-ID: <CAOnJCU+uMF-brnyjA1HLhupYPqL0ebOVu+ivrSn2AewuSrhtBw@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 20 Jun 2023 20:32:01 +0800
+Subject: [PATCH] lib: sbi: Try to make each domain have boot hart
+Message-ID: <20230620123201.1784745-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The CFP for topic proposals for the RISC-V micro conference[1] 2023 is open now.
-Please submit your proposal before it's too late!
+domain register will move the hart from the old domain to the
+new domain, and should not move the boot hart to prevent the
+old domain from losing the boot hart.
 
-The Linux plumbers event will be both in person and remote
-(hybrid)virtual this year. More details can be found here [2].
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/sbi_domain.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-We will start accepting proposals after 15th August 2023 to avoid last
-minute visa/travel hassles.
-The conference registration sells out pretty quickly too. Thus, we
-would prefer to sort out the schedule sooner than later.
-
-The final deadline is 15th October 2023 though.
-
-[1] https://lpc.events/event/16/contributions/1148/
-[2] https://lpc.events/
-
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 38a5902..46a4aef 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -543,9 +543,23 @@ int sbi_domain_register(struct sbi_domain *dom,
+ 			continue;
+ 
+ 		tdom = sbi_hartid_to_domain(i);
+-		if (tdom)
++		if (tdom) {
++			if (i == tdom->boot_hartid) {
++				/* Newly registered domain should not
++				 * take up the boot hart of the older domain */
++				if (i == dom->boot_hartid)
++					sbi_printf("%s: failed assign Hart%d to %s, "
++						"conflict with %s\n",
++						__func__, i, dom->name, tdom->name);
++				else
++					sbi_printf("%s: skip assign Hart%d to %s, "
++						"because Hart%d is boot hart of %s\n",
++						__func__, i, dom->name, i, tdom->name);
++				continue;
++			}
+ 			sbi_hartmask_clear_hart(i,
+ 					&tdom->assigned_harts);
++		}
+ 		update_hartid_to_domain(i, dom);
+ 		sbi_hartmask_set_hart(i, &dom->assigned_harts);
+ 
 -- 
-Regards,
-Atish
+2.39.2
+
 
