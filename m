@@ -1,52 +1,47 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 20 Jun 2023 20:32:01 +0800
-Subject: [PATCH] lib: sbi: Try to make each domain have boot hart
-Message-ID: <20230620123201.1784745-1-wxjstz@126.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Tue, 20 Jun 2023 20:02:06 +0530
+Subject: [PATCH 0/6] Add support for Smepmp
+Message-ID: <20230620143212.2701598-1-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-domain register will move the hart from the old domain to the
-new domain, and should not move the boot hart to prevent the
-old domain from losing the boot hart.
+This patch series adds support for the Smepmp specification.
+The detection of Smepmp support in platform depends on the
+ISA string present in the FDT. If "smepmp" is present in ISA
+string in FDT, Smepmp is enabled.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_domain.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+When Smepmp is enabled, the M-mode software's free access
+to S/U memory region is revoked. Hence, all the shared
+memory access between M-mode and S/U-mode must be done
+only after mapping the shared memory.
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 38a5902..46a4aef 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -543,9 +543,23 @@ int sbi_domain_register(struct sbi_domain *dom,
- 			continue;
- 
- 		tdom = sbi_hartid_to_domain(i);
--		if (tdom)
-+		if (tdom) {
-+			if (i == tdom->boot_hartid) {
-+				/* Newly registered domain should not
-+				 * take up the boot hart of the older domain */
-+				if (i == dom->boot_hartid)
-+					sbi_printf("%s: failed assign Hart%d to %s, "
-+						"conflict with %s\n",
-+						__func__, i, dom->name, tdom->name);
-+				else
-+					sbi_printf("%s: skip assign Hart%d to %s, "
-+						"because Hart%d is boot hart of %s\n",
-+						__func__, i, dom->name, i, tdom->name);
-+				continue;
-+			}
- 			sbi_hartmask_clear_hart(i,
- 					&tdom->assigned_harts);
-+		}
- 		update_hartid_to_domain(i, dom);
- 		sbi_hartmask_set_hart(i, &dom->assigned_harts);
- 
+Himanshu Chauhan (6):
+  Add macro definitions for mseccfg CSR
+  Add functions to manipulate PMP entries
+  Add Smepmp specific access flags for PMP entries
+  Add detection of Smepmp from ISA string in FDT
+  Add support for Smepmp
+  Map/Unmap debug console shared memory buffers before and after
+    read/write
+
+ include/sbi/riscv_asm.h            |   6 +
+ include/sbi/riscv_encoding.h       |  12 ++
+ include/sbi/sbi_domain.h           |  51 +++++++-
+ include/sbi/sbi_hart.h             |  20 ++++
+ include/sbi_utils/fdt/fdt_helper.h |   3 +
+ lib/sbi/riscv_asm.c                |  43 +++++++
+ lib/sbi/sbi_domain.c               |  14 ++-
+ lib/sbi/sbi_ecall_dbcn.c           |   3 +
+ lib/sbi/sbi_hart.c                 | 184 ++++++++++++++++++++++++++---
+ lib/sbi/sbi_init.c                 |  24 ++--
+ lib/utils/fdt/fdt_helper.c         | 111 +++++++++++++++++
+ platform/generic/platform.c        |   5 +
+ 12 files changed, 438 insertions(+), 38 deletions(-)
+
 -- 
-2.39.2
+2.34.1
 
 
