@@ -1,79 +1,51 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 21 Jun 2023 11:18:52 +0530
-Subject: [PATCH V2] lib: reset: Move fdt_reset_init into generic_early_init
-In-Reply-To: <20230618150716.3317274-1-guoren@kernel.org>
-References: <20230618150716.3317274-1-guoren@kernel.org>
-Message-ID: <CAAhSdy383vf-yMQYe6Dx+h0EY3cj66vvho44k28yvR8T+gXSDA@mail.gmail.com>
+From: Gianluca Guida <gianluca@rivosinc.com>
+Date: Thu, 22 Jun 2023 18:38:59 +0100
+Subject: [PATCH] lib: sbi: check A2 register in ecall_dbcn_handler.
+Message-ID: <20230622173857.387914-1-gianluca@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jun 18, 2023 at 8:37?PM <guoren@kernel.org> wrote:
->
-> From: Guo Ren <guoren@linux.alibaba.com>
->
-> The fdt_reset_thead driver needs to modify the __reset_thead_csr_stub
-> text region for the secondary harts booting. After that, the
-> sbi_hart_pmp_configure may lock down the text region with M_READABLE &
-> M_EXECUTABLE attributes in the future. Currently, the M_READABLE &
-> M_EXECUtABLE have no effect on m-mode, the L-bit in pmpcfg csr is
-> useless for the current opensbi scenario. See:
->
-> Priv-isa-spec 3.7.1.2. Locking and Privilege Mode
-> When the L bit is clear, any M-mode access matching the PMP entry will
-> succeed; the R/W/X permissions apply only to S and U modes.
->
-> That's why current fdt_reset_thead could still work well after commit:
-> 230278dcf127 ("lib: sbi: Add separate entries for firmware RX and RW
-> regions"). So this patch fixes up a fake bug for the M-mode permission
-> setting of the future.
->
-> Fixes: 230278dcf127 ("lib: sbi: Add separate entries for firmware RX and RW regions")
-> Link: http://lists.infradead.org/pipermail/opensbi/2023-June/005176.html
-> Reported-by: Jessica Clarke <jrtc27@jrtc27.com>
-> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> Signed-off-by: Guo Ren <guoren@kernel.org>
+Do not ignore register A2 (high bits of physical address) in the dbcn
+handler (RV64).
 
-Applied this patch to the riscv/opensbi repo
+Signed-off-by: Gianluca Guida <gianluca@rivosinc.com>
+---
+
+The spec doesn't seem to imply that in RV64 only one paramenter will
+be used.
 
 Thanks,
-Anup
+G.
 
-> ---
-> Changelog:
-> v2:
->  - Direct move fdt_reset_init into generic_early_init
-> ---
->  platform/generic/platform.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index eeefef4c9533..bd608f6d4065 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -143,6 +143,9 @@ static int generic_nascent_init(void)
->
->  static int generic_early_init(bool cold_boot)
->  {
-> +       if (cold_boot)
-> +               fdt_reset_init();
-> +
->         if (!generic_plat || !generic_plat->early_init)
->                 return 0;
->
-> @@ -154,9 +157,6 @@ static int generic_final_init(bool cold_boot)
->         void *fdt;
->         int rc;
->
-> -       if (cold_boot)
-> -               fdt_reset_init();
-> -
->         if (generic_plat && generic_plat->final_init) {
->                 rc = generic_plat->final_init(cold_boot, generic_plat_match);
->                 if (rc)
-> --
-> 2.36.1
->
+
+ lib/sbi/sbi_ecall_dbcn.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
+index e0b892c..ecec027 100644
+--- a/lib/sbi/sbi_ecall_dbcn.c
++++ b/lib/sbi/sbi_ecall_dbcn.c
+@@ -34,11 +34,14 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
+ 		 * Based on above, we simply fail if the upper 32bits of
+ 		 * the physical address (i.e. a2 register) is non-zero on
+ 		 * RV32.
++                 *
++                 * Analogously, we fail if the upper 64bit of the
++                 * physical address (i.e. a2 register) is non-zero on
++                 * RV64.
+ 		 */
+-#if __riscv_xlen == 32
+ 		if (regs->a2)
+ 			return SBI_ERR_FAILED;
+-#endif
++
+ 		if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
+ 					regs->a1, regs->a0, smode,
+ 					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
+-- 
+2.34.1
+
 
