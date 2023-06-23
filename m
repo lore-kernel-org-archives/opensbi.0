@@ -1,70 +1,39 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 23 Jun 2023 12:12:46 +0530
-Subject: [PATCH] lib: sbi: check A2 register in ecall_dbcn_handler.
-In-Reply-To: <20230622173857.387914-1-gianluca@rivosinc.com>
-References: <20230622173857.387914-1-gianluca@rivosinc.com>
-Message-ID: <CAAhSdy35=rQp-PbVv=0hTQbHEnBqQ2ben03DbXqt23u3H3hHnA@mail.gmail.com>
+Date: Fri, 23 Jun 2023 13:18:53 +0530
+Subject: OpenSBI v1.3 Released
+Message-ID: <CAAhSdy0S7UWzroJV04w4xfQvcaXoQ_a7zXfT9aLaYT5kWWPJ=Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 22, 2023 at 11:10?PM Gianluca Guida <gianluca@rivosinc.com> wrote:
->
-> Do not ignore register A2 (high bits of physical address) in the dbcn
-> handler (RV64).
->
-> Signed-off-by: Gianluca Guida <gianluca@rivosinc.com>
+Hi All,
 
-Looks good to me.
+The OpenSBI v1.3 is now available on GitHub at:
+https://github.com/riscv-software-src/opensbi/releases
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+This release has:
 
-Applied this patch to the riscv/opensbi repo.
+* Allow platform to influence cold boot HART selection
+* Starfive JH7110 platform support
+* Split RX and RW firmware regions
+* Advertise nonretentive suspend for allwinner D1 platform
+* Byteorder/endianness conversion macros
+* SBI debug console extension (Experimental)
+* Configure the PMA regions for RZ/Five platform
+* SBI system suspend extension (Experimental)
+* SBI PMU platform firmware events (Experimental)
+* SBI CPPC extension (Experimental)
+* Optimized remote TLB flushes
+* Simple heap for boot time memory allocations
+* Bring back no-map DT property for reserved memory nodes
 
-Thanks,
-Anup
+Overall, this release mainly adds new SBI extensions along
+with other improvements.
 
-> ---
->
-> The spec doesn't seem to imply that in RV64 only one paramenter will
-> be used.
->
-> Thanks,
-> G.
->
->
->  lib/sbi/sbi_ecall_dbcn.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-> index e0b892c..ecec027 100644
-> --- a/lib/sbi/sbi_ecall_dbcn.c
-> +++ b/lib/sbi/sbi_ecall_dbcn.c
-> @@ -34,11 +34,14 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
->                  * Based on above, we simply fail if the upper 32bits of
->                  * the physical address (i.e. a2 register) is non-zero on
->                  * RV32.
-> +                 *
-> +                 * Analogously, we fail if the upper 64bit of the
-> +                 * physical address (i.e. a2 register) is non-zero on
-> +                 * RV64.
->                  */
-> -#if __riscv_xlen == 32
->                 if (regs->a2)
->                         return SBI_ERR_FAILED;
-> -#endif
-> +
->                 if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
->                                         regs->a1, regs->a0, smode,
->                                         SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Many thanks to everyone who has contributed to this release.
+
+Best Regards,
+Anup Patel
 
