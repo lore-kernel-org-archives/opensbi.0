@@ -1,66 +1,35 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Sat, 24 Jun 2023 13:08:48 +0200
-Subject: [PATCH] lib: sbi: check A2 register in ecall_dbcn_handler.
-In-Reply-To: <20230622173857.387914-1-gianluca@rivosinc.com>
-References: <20230622173857.387914-1-gianluca@rivosinc.com>
-Message-ID: <20230624-7cb81b92e2a280b55e61b675@orel>
+From: Drew Fustini <dfustini@baylibre.com>
+Date: Mon, 26 Jun 2023 21:12:45 -0700
+Subject: CFP open for RISC-V MC at Linux Plumbers Conference 2023
+In-Reply-To: <CAOnJCU+uMF-brnyjA1HLhupYPqL0ebOVu+ivrSn2AewuSrhtBw@mail.gmail.com>
+References: <CAOnJCU+uMF-brnyjA1HLhupYPqL0ebOVu+ivrSn2AewuSrhtBw@mail.gmail.com>
+Message-ID: <ZJphvbTsp6Q4Dfrq@x1>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 22, 2023 at 06:38:59PM +0100, Gianluca Guida wrote:
-> Do not ignore register A2 (high bits of physical address) in the dbcn
-> handler (RV64).
-> 
-> Signed-off-by: Gianluca Guida <gianluca@rivosinc.com>
-> ---
-> 
-> The spec doesn't seem to imply that in RV64 only one paramenter will
-> be used.
-> 
-> Thanks,
-> G.
-> 
-> 
->  lib/sbi/sbi_ecall_dbcn.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-> index e0b892c..ecec027 100644
-> --- a/lib/sbi/sbi_ecall_dbcn.c
-> +++ b/lib/sbi/sbi_ecall_dbcn.c
-> @@ -34,11 +34,14 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
->  		 * Based on above, we simply fail if the upper 32bits of
->  		 * the physical address (i.e. a2 register) is non-zero on
->  		 * RV32.
-> +                 *
-> +                 * Analogously, we fail if the upper 64bit of the
-> +                 * physical address (i.e. a2 register) is non-zero on
-> +                 * RV64.
+On Mon, Jun 19, 2023 at 12:55:39PM -0700, Atish Patra wrote:
+> The CFP for topic proposals for the RISC-V micro conference[1] 2023 is open now.
+> Please submit your proposal before it's too late!
 
-I see I'm too late, since Anup already applied, but the above lines have
-leading spaces instead of tabs.
+Thanks for posting. I am looking forward to it!
 
-Thanks,
-drew
+> The Linux plumbers event will be both in person and remote
+> (hybrid)virtual this year. More details can be found here [2].
+> 
+> We will start accepting proposals after 15th August 2023 to avoid last
+> minute visa/travel hassles.
+> The conference registration sells out pretty quickly too. Thus, we
+> would prefer to sort out the schedule sooner than later.
+> 
+> The final deadline is 15th October 2023 though.
+> 
+> [1] https://lpc.events/event/16/contributions/1148/
 
->  		 */
-> -#if __riscv_xlen == 32
->  		if (regs->a2)
->  			return SBI_ERR_FAILED;
-> -#endif
-> +
->  		if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
->  					regs->a1, regs->a0, smode,
->  					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
-> -- 
-> 2.34.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+I think that page is from 2022 and that this would be a better link:
+https://lpc.events/blog/current/index.php/2023/06/23/risc-v-microconference-cfp/
+
+Drew
 
