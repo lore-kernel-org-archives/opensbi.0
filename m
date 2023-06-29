@@ -1,50 +1,39 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 26 Jun 2023 23:21:12 -0700
-Subject: CFP open for RISC-V MC at Linux Plumbers Conference 2023
-In-Reply-To: <ZJphvbTsp6Q4Dfrq@x1>
-References: <CAOnJCU+uMF-brnyjA1HLhupYPqL0ebOVu+ivrSn2AewuSrhtBw@mail.gmail.com>
- <ZJphvbTsp6Q4Dfrq@x1>
-Message-ID: <CAOnJCU+HqEgGpLGb1-4JrSC30rZZ_8Z5h3HMAKUN2xFu-D8uvA@mail.gmail.com>
+From: Gianluca Guida <gianluca@rivosinc.com>
+Date: Thu, 29 Jun 2023 15:18:45 +0100
+Subject: [PATCH] lib: sbi: check A2 register in ecall_dbcn_handler.
+In-Reply-To: <20230624-7cb81b92e2a280b55e61b675@orel>
+References: <20230622173857.387914-1-gianluca@rivosinc.com> <20230624-7cb81b92e2a280b55e61b675@orel>
+Message-ID: <CAOOZEBQvm56i2qzxvmVR0JPgPtOghwrjN0JV=z-cY5oa2QMr8g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 26, 2023 at 9:08?PM Drew Fustini <dfustini@baylibre.com> wrote:
->
-> On Mon, Jun 19, 2023 at 12:55:39PM -0700, Atish Patra wrote:
-> > The CFP for topic proposals for the RISC-V micro conference[1] 2023 is open now.
-> > Please submit your proposal before it's too late!
->
-> Thanks for posting. I am looking forward to it!
->
-> > The Linux plumbers event will be both in person and remote
-> > (hybrid)virtual this year. More details can be found here [2].
+On Sat, Jun 24, 2023 at 12:08?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+[...]
+> >  lib/sbi/sbi_ecall_dbcn.c | 7 +++++--
+> >  1 file changed, 5 insertions(+), 2 deletions(-)
 > >
-> > We will start accepting proposals after 15th August 2023 to avoid last
-> > minute visa/travel hassles.
-> > The conference registration sells out pretty quickly too. Thus, we
-> > would prefer to sort out the schedule sooner than later.
-> >
-> > The final deadline is 15th October 2023 though.
-> >
-> > [1] https://lpc.events/event/16/contributions/1148/
+> > diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
+> > index e0b892c..ecec027 100644
+> > --- a/lib/sbi/sbi_ecall_dbcn.c
+> > +++ b/lib/sbi/sbi_ecall_dbcn.c
+> > @@ -34,11 +34,14 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
+> >                * Based on above, we simply fail if the upper 32bits of
+> >                * the physical address (i.e. a2 register) is non-zero on
+> >                * RV32.
+> > +                 *
+> > +                 * Analogously, we fail if the upper 64bit of the
+> > +                 * physical address (i.e. a2 register) is non-zero on
+> > +                 * RV64.
 >
-> I think that page is from 2022 and that this would be a better link:
-
-Copy paste error :(
-
-> https://lpc.events/blog/current/index.php/2023/06/23/risc-v-microconference-cfp/
+> I see I'm too late, since Anup already applied, but the above lines have
+> leading spaces instead of tabs.
 >
 
-Thanks.
+I'll send a follow-up patch.
 
-> Drew
-
-
-
--- 
-Regards,
-Atish
+Thank you,
+G.
 
