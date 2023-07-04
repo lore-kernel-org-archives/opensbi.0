@@ -1,49 +1,103 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Tue, 4 Jul 2023 09:48:46 +0100
-Subject: OpenSBI v1.3 Released
-In-Reply-To: <CAAhSdy0S7UWzroJV04w4xfQvcaXoQ_a7zXfT9aLaYT5kWWPJ=Q@mail.gmail.com>
-References: <CAAhSdy0S7UWzroJV04w4xfQvcaXoQ_a7zXfT9aLaYT5kWWPJ=Q@mail.gmail.com>
-Message-ID: <1017d861-64e0-f7fa-409a-6208dfc6afdc@codethink.co.uk>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 4 Jul 2023 14:41:39 +0530
+Subject: [PATCH] lib: sbi: Try to make each domain have boot hart
+In-Reply-To: <a1432b602dee91a1b1af412ea3c1e6ab475cee88.camel@126.com>
+References: <20230620123201.1784745-1-wxjstz@126.com> <CAAhSdy3Xgdx-rhs7mTRbNS1LhFoBbEXc0-MYqepgx254dNNOAw@mail.gmail.com>
+ <a1432b602dee91a1b1af412ea3c1e6ab475cee88.camel@126.com>
+Message-ID: <CAAhSdy2BTY9JsedB81X4dvEzpexCEAaM3_N5OH3OTZidd840Mw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 23/06/2023 08:48, Anup Patel wrote:
-> Hi All,
-> 
-> The OpenSBI v1.3 is now available on GitHub at:
-> https://github.com/riscv-software-src/opensbi/releases
-> 
-> This release has:
-> 
-> * Allow platform to influence cold boot HART selection
-> * Starfive JH7110 platform support
-> * Split RX and RW firmware regions
-> * Advertise nonretentive suspend for allwinner D1 platform
-> * Byteorder/endianness conversion macros
-> * SBI debug console extension (Experimental)
-> * Configure the PMA regions for RZ/Five platform
-> * SBI system suspend extension (Experimental)
-> * SBI PMU platform firmware events (Experimental)
-> * SBI CPPC extension (Experimental)
-> * Optimized remote TLB flushes
-> * Simple heap for boot time memory allocations
-> * Bring back no-map DT property for reserved memory nodes
-> 
-> Overall, this release mainly adds new SBI extensions along
-> with other improvements.
-> 
-> Many thanks to everyone who has contributed to this release.
+On Tue, Jul 4, 2023 at 2:16?PM Xiang W <wxjstz@126.com> wrote:
 >
+> ? 2023-07-04???? 09:18 +0530?Anup Patel???
+> > On Tue, Jun 20, 2023 at 6:02?PM Xiang W <wxjstz@126.com> wrote:
+> > >
+> > > domain register will move the hart from the old domain to the
+> > > new domain, and should not move the boot hart to prevent the
+> > > old domain from losing the boot hart.
+> > >
+> > > Signed-off-by: Xiang W <wxjstz@126.com>
+> > > ---
+> > >  lib/sbi/sbi_domain.c | 16 +++++++++++++++-
+> > >  1 file changed, 15 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > > index 38a5902..46a4aef 100644
+> > > --- a/lib/sbi/sbi_domain.c
+> > > +++ b/lib/sbi/sbi_domain.c
+> > > @@ -543,9 +543,23 @@ int sbi_domain_register(struct sbi_domain *dom,
+> > >                         continue;
+> > >
+> > >                 tdom = sbi_hartid_to_domain(i);
+> > > -               if (tdom)
+> > > +               if (tdom) {
+> > > +                       if (i == tdom->boot_hartid) {
+> > > +                               /* Newly registered domain should not
+> > > +                                * take up the boot hart of the older domain */
+> > > +                               if (i == dom->boot_hartid)
+> > > +                                       sbi_printf("%s: failed assign Hart%d to %s, "
+> > > +                                               "conflict with %s\n",
+> > > +                                               __func__, i, dom->name, tdom->name);
+> > > +                               else
+> > > +                                       sbi_printf("%s: skip assign Hart%d to %s, "
+> > > +                                               "because Hart%d is boot hart of %s\n",
+> > > +                                               __func__, i, dom->name, i, tdom->name);
+> > > +                               continue;
+> > > +                       }
+> >
+> > This is not needed because sbi_domain_finalize() already checks that
+> > dom->boot_hartid is assigned to dom before starting dom->boot_hartid.
+> >
+> > The cold boot HART is by default boot HART of the root domain and
+> > assigned to the root domain. This patch prevents cold boot HART from
+> > changing its own domain.
+>
+> If the cold boot hart changes its own domain, the root domain will not
+> lost boot hart and will not be able to start.
+>
+> Is it not a mistake that root dmain cannot be started?
 
-Did the DesignWare GPIO driver get overlooked for this?
+No it's not a mistake. For instance, look at example in the
+docs/domain_support.md where we have two additional
+domains "trusted" and "untrusted" apart from the root domain
+which cover all HARTs already covered by the root domain. In
+this example, the root domain never runs because the boot
+HART changes its own domain to "untrusted" domain.
 
--- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+The root domain is a default/fallback domain which exists in the
+system even when no domains are defined via FDT. We can have
+many domains defined in the system but a HART is running in exactly
+one domain context.
 
-https://www.codethink.co.uk/privacy.html
+Regards,
+Anup
 
+>
+> Regards,
+> Xiang W
+> >
+> > NACK for this patch.
+> >
+> > Regards,
+> > Anup
+> >
+> > >                         sbi_hartmask_clear_hart(i,
+> > >                                         &tdom->assigned_harts);
+> > > +               }
+> > >                 update_hartid_to_domain(i, dom);
+> > >                 sbi_hartmask_set_hart(i, &dom->assigned_harts);
+> > >
+> > > --
+> > > 2.39.2
+> > >
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
+>
 
