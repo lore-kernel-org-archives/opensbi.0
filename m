@@ -1,71 +1,76 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue,  4 Jul 2023 21:11:58 +0800
-Subject: [PATCH v7 01/11] lib: sbi: Fix how print gets flags
+Date: Tue,  4 Jul 2023 21:12:04 +0800
+Subject: [PATCH v7 07/11] lib: sbi: Fix printi
 In-Reply-To: <20230704131208.465914-1-wxjstz@126.com>
 References: <20230704131208.465914-1-wxjstz@126.com>
-Message-ID: <20230704131208.465914-2-wxjstz@126.com>
+Message-ID: <20230704131208.465914-8-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The flags for print should be able to appear in any order. The
-previous code required the order to be fixed.
+Fix two bug:
+> printf("%#08x", 0x123); /* print 0000x123 */
+> printf("%#x", 0); /* print 0x0 */
 
 Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_console.c | 30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ lib/sbi/sbi_console.c | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 168dffd..d87b5c2 100644
+index 2a43e16..963d19f 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -236,6 +236,7 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+@@ -227,23 +227,33 @@ static int printi(char **out, u32 *out_len, long long i,
+ 		}
+ 	}
  
- static int print(char **out, u32 *out_len, const char *format, va_list args)
- {
-+	bool flags_done;
- 	int width, flags, pc = 0;
- 	char scr[2], *tout;
- 	bool use_tbuf = (!out) ? true : false;
-@@ -268,17 +269,24 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 			if (*format == '%')
- 				goto literal;
- 			/* Get flags */
--			if (*format == '-') {
--				++format;
--				flags = PAD_RIGHT;
--			}
--			if (*format == '#') {
--				++format;
--				flags |= PAD_ALTERNATE;
--			}
--			while (*format == '0') {
--				++format;
--				flags |= PAD_ZERO;
-+			flags_done = false;
-+			while (!flags_done) {
-+				switch (*format) {
-+				case '-':
-+					flags |= PAD_RIGHT;
-+					break;
-+				case '#':
-+					flags |= PAD_ALTERNATE;
-+					break;
-+				case '0':
-+					flags |= PAD_ZERO;
-+					break;
-+				default:
-+					flags_done = true;
-+					break;
-+				}
-+				if (!flags_done)
-+					++format;
- 			}
- 			/* Get width */
- 			for (; *format >= '0' && *format <= '9'; ++format) {
+-	if (flags & PAD_ALTERNATE) {
+-		if ((b == 16) && (letbase == 'A')) {
+-			*--s = 'X';
+-		} else if ((b == 16) && (letbase == 'a')) {
+-			*--s = 'x';
+-		}
+-		*--s = '0';
+-	}
+-
+-	if (sign) {
+-		if (width && (flags & PAD_ZERO)) {
++	if (flags & PAD_ZERO) {
++		if (sign) {
+ 			printc(out, out_len, sign);
+ 			++pc;
+ 			--width;
+-		} else {
+-			*--s = sign;
+ 		}
++		if (i && (flags & PAD_ALTERNATE)) {
++			if (b == 16 || b == 8) {
++				printc(out, out_len, '0');
++				++pc;
++				--width;
++			}
++			if (b == 16) {
++				printc(out, out_len, 'x' - 'a' + letbase);
++				++pc;
++				--width;
++			}
++		}
++	} else {
++		if (i && (flags & PAD_ALTERNATE)) {
++			if (b == 16)
++				*--s = 'x' - 'a' + letbase;
++			if (b == 16 || b == 8)
++				*--s = '0';
++		}
++		if (sign)
++			*--s = sign;
+ 	}
+ 
+ 	return pc + prints(out, out_len, s, width, flags);
 -- 
 2.40.1
 
