@@ -1,82 +1,110 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 04 Jul 2023 17:47:25 +0800
-Subject: [PATCH v6 09/12] lib: sbi: sbi_console.c code re-layout
-In-Reply-To: <CAAhSdy0oELehTS4gPMpffjGmC2FsgRofB7HUwoPD298CJOQZyQ@mail.gmail.com>
-References: <20230612080959.571293-1-wxjstz@126.com>
-	 <20230612080959.571293-10-wxjstz@126.com>
-	 <CAAhSdy0oELehTS4gPMpffjGmC2FsgRofB7HUwoPD298CJOQZyQ@mail.gmail.com>
-Message-ID: <22278a133c683c97169204bbe7f54c2705891b0b.camel@126.com>
+Date: Tue, 04 Jul 2023 17:51:53 +0800
+Subject: [PATCH] lib: sbi: Try to make each domain have boot hart
+In-Reply-To: <CAAhSdy2BTY9JsedB81X4dvEzpexCEAaM3_N5OH3OTZidd840Mw@mail.gmail.com>
+References: <20230620123201.1784745-1-wxjstz@126.com>
+	 <CAAhSdy3Xgdx-rhs7mTRbNS1LhFoBbEXc0-MYqepgx254dNNOAw@mail.gmail.com>
+	 <a1432b602dee91a1b1af412ea3c1e6ab475cee88.camel@126.com>
+	 <CAAhSdy2BTY9JsedB81X4dvEzpexCEAaM3_N5OH3OTZidd840Mw@mail.gmail.com>
+Message-ID: <5ef906d7666ddd915a6618f200b54fdb2e7a08b1.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-07-04???? 11:25 +0530?Anup Patel???
-> On Mon, Jun 12, 2023 at 1:40?PM Xiang W <wxjstz@126.com> wrote:
+? 2023-07-04???? 14:41 +0530?Anup Patel???
+> On Tue, Jul 4, 2023 at 2:16?PM Xiang W <wxjstz@126.com> wrote:
+> > 
+> > ? 2023-07-04???? 09:18 +0530?Anup Patel???
+> > > On Tue, Jun 20, 2023 at 6:02?PM Xiang W <wxjstz@126.com> wrote:
+> > > > 
+> > > > domain register will move the hart from the old domain to the
+> > > > new domain, and should not move the boot hart to prevent the
+> > > > old domain from losing the boot hart.
+> > > > 
+> > > > Signed-off-by: Xiang W <wxjstz@126.com>
+> > > > ---
+> > > > ?lib/sbi/sbi_domain.c | 16 +++++++++++++++-
+> > > > ?1 file changed, 15 insertions(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> > > > index 38a5902..46a4aef 100644
+> > > > --- a/lib/sbi/sbi_domain.c
+> > > > +++ b/lib/sbi/sbi_domain.c
+> > > > @@ -543,9 +543,23 @@ int sbi_domain_register(struct sbi_domain *dom,
+> > > > ??????????????????????? continue;
+> > > > 
+> > > > ??????????????? tdom = sbi_hartid_to_domain(i);
+> > > > -?????????????? if (tdom)
+> > > > +?????????????? if (tdom) {
+> > > > +?????????????????????? if (i == tdom->boot_hartid) {
+> > > > +?????????????????????????????? /* Newly registered domain should not
+> > > > +??????????????????????????????? * take up the boot hart of the older domain */
+> > > > +?????????????????????????????? if (i == dom->boot_hartid)
+> > > > +?????????????????????????????????????? sbi_printf("%s: failed assign Hart%d to %s, "
+> > > > +?????????????????????????????????????????????? "conflict with %s\n",
+> > > > +?????????????????????????????????????????????? __func__, i, dom->name, tdom->name);
+> > > > +?????????????????????????????? else
+> > > > +?????????????????????????????????????? sbi_printf("%s: skip assign Hart%d to %s, "
+> > > > +?????????????????????????????????????????????? "because Hart%d is boot hart of %s\n",
+> > > > +?????????????????????????????????????????????? __func__, i, dom->name, i, tdom->name);
+> > > > +?????????????????????????????? continue;
+> > > > +?????????????????????? }
+> > > 
+> > > This is not needed because sbi_domain_finalize() already checks that
+> > > dom->boot_hartid is assigned to dom before starting dom->boot_hartid.
+> > > 
+> > > The cold boot HART is by default boot HART of the root domain and
+> > > assigned to the root domain. This patch prevents cold boot HART from
+> > > changing its own domain.
+> > 
+> > If the cold boot hart changes its own domain, the root domain will not
+> > lost boot hart and will not be able to start.
+> > 
+> > Is it not a mistake that root dmain cannot be started?
 > 
-> The patch subject is totally misleading.
-This is in preparation for PATCH10
+> No it's not a mistake. For instance, look at example in the
+> docs/domain_support.md where we have two additional
+> domains "trusted" and "untrusted" apart from the root domain
+> which cover all HARTs already covered by the root domain. In
+> this example, the root domain never runs because the boot
+> HART changes its own domain to "untrusted" domain.
+> 
+> The root domain is a default/fallback domain which exists in the
+> system even when no domains are defined via FDT. We can have
+> many domains defined in the system but a HART is running in exactly
+> one domain context.
+Thank you for the explanation
 
 Regards,
 Xiang W
 > 
-> > 
-> > Move the type definitions and macros in sbi_console.c to the begin
-> > of the file.
-> > 
-> > Signed-off-by: Xiang W <wxjstz@126.com>
-> > ---
-> > ?lib/sbi/sbi_console.c | 22 +++++++++++-----------
-> > ?1 file changed, 11 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> > index 824ff6e..af93f51 100644
-> > --- a/lib/sbi/sbi_console.c
-> > +++ b/lib/sbi/sbi_console.c
-> > @@ -14,8 +14,19 @@
-> > ?#include <sbi/sbi_scratch.h>
-> > ?#include <sbi/sbi_string.h>
-> > 
-> > +#define PAD_RIGHT 1
-> > +#define PAD_ZERO 2
-> > +#define PAD_ALTERNATE 4
-> > +#define PAD_SIGN 8
-> > +#define PRINT_BUF_LEN 64
-> > ?#define CONSOLE_TBUF_MAX 256
-> > 
-> > +#define va_start(v, l) __builtin_va_start((v), l)
-> > +#define va_end __builtin_va_end
-> > +#define va_arg __builtin_va_arg
-> > +
-> > +typedef __builtin_va_list va_list;
-> > +
-> > ?static const struct sbi_console_device *console_dev = NULL;
-> > ?static char console_tbuf[CONSOLE_TBUF_MAX];
-> > ?static u32 console_tbuf_len;
-> > @@ -117,17 +128,6 @@ unsigned long sbi_ngets(char *str, unsigned long len)
-> > ??????? return i;
-> > ?}
-> > 
-> > -#define PAD_RIGHT 1
-> > -#define PAD_ZERO 2
-> > -#define PAD_ALTERNATE 4
-> > -#define PAD_SIGN 8
-> > -#define PRINT_BUF_LEN 64
-> > -
-> > -#define va_start(v, l) __builtin_va_start((v), l)
-> > -#define va_end __builtin_va_end
-> > -#define va_arg __builtin_va_arg
-> > -typedef __builtin_va_list va_list;
-> > -
-> > ?static void printc(char **out, u32 *out_len, char ch)
-> > ?{
-> > ??????? if (!out) {
-> > --
-> > 2.39.2
-> > 
-> 
 > Regards,
 > Anup
-
+> 
+> > 
+> > Regards,
+> > Xiang W
+> > > 
+> > > NACK for this patch.
+> > > 
+> > > Regards,
+> > > Anup
+> > > 
+> > > > ??????????????????????? sbi_hartmask_clear_hart(i,
+> > > > ??????????????????????????????????????? &tdom->assigned_harts);
+> > > > +?????????????? }
+> > > > ??????????????? update_hartid_to_domain(i, dom);
+> > > > ??????????????? sbi_hartmask_set_hart(i, &dom->assigned_harts);
+> > > > 
+> > > > --
+> > > > 2.39.2
+> > > > 
+> > > > 
+> > > > --
+> > > > opensbi mailing list
+> > > > opensbi at lists.infradead.org
+> > > > http://lists.infradead.org/mailman/listinfo/opensbi
+> > 
 
