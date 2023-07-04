@@ -1,74 +1,92 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 4 Jul 2023 09:18:38 +0530
-Subject: [PATCH] lib: sbi: Try to make each domain have boot hart
-In-Reply-To: <20230620123201.1784745-1-wxjstz@126.com>
-References: <20230620123201.1784745-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3Xgdx-rhs7mTRbNS1LhFoBbEXc0-MYqepgx254dNNOAw@mail.gmail.com>
+Date: Tue, 4 Jul 2023 09:25:19 +0530
+Subject: [PATCH v6 01/12] lib: sbi: Fix how print gets flags
+In-Reply-To: <20230612080959.571293-2-wxjstz@126.com>
+References: <20230612080959.571293-1-wxjstz@126.com> <20230612080959.571293-2-wxjstz@126.com>
+Message-ID: <CAAhSdy0Qw5TnA71VmeymSCt8B5knwCSJ5xZKkFvZGwjZvY+HAQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 20, 2023 at 6:02?PM Xiang W <wxjstz@126.com> wrote:
+On Mon, Jun 12, 2023 at 1:40?PM Xiang W <wxjstz@126.com> wrote:
 >
-> domain register will move the hart from the old domain to the
-> new domain, and should not move the boot hart to prevent the
-> old domain from losing the boot hart.
+> The flags for print should be able to appear in any order. The
+> previous code required the order to be fixed.
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  lib/sbi/sbi_domain.c | 16 +++++++++++++++-
->  1 file changed, 15 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_console.c | 33 +++++++++++++++++++++------------
+>  1 file changed, 21 insertions(+), 12 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 38a5902..46a4aef 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -543,9 +543,23 @@ int sbi_domain_register(struct sbi_domain *dom,
->                         continue;
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index 168dffd..6e07663 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -236,6 +236,7 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
 >
->                 tdom = sbi_hartid_to_domain(i);
-> -               if (tdom)
-> +               if (tdom) {
-> +                       if (i == tdom->boot_hartid) {
-> +                               /* Newly registered domain should not
-> +                                * take up the boot hart of the older domain */
-> +                               if (i == dom->boot_hartid)
-> +                                       sbi_printf("%s: failed assign Hart%d to %s, "
-> +                                               "conflict with %s\n",
-> +                                               __func__, i, dom->name, tdom->name);
-> +                               else
-> +                                       sbi_printf("%s: skip assign Hart%d to %s, "
-> +                                               "because Hart%d is boot hart of %s\n",
-> +                                               __func__, i, dom->name, i, tdom->name);
-> +                               continue;
-> +                       }
-
-This is not needed because sbi_domain_finalize() already checks that
-dom->boot_hartid is assigned to dom before starting dom->boot_hartid.
-
-The cold boot HART is by default boot HART of the root domain and
-assigned to the root domain. This patch prevents cold boot HART from
-changing its own domain.
-
-NACK for this patch.
-
-Regards,
-Anup
-
->                         sbi_hartmask_clear_hart(i,
->                                         &tdom->assigned_harts);
-> +               }
->                 update_hartid_to_domain(i, dom);
->                 sbi_hartmask_set_hart(i, &dom->assigned_harts);
+>  static int print(char **out, u32 *out_len, const char *format, va_list args)
+>  {
+> +       bool flags_done;
+>         int width, flags, pc = 0;
+>         char scr[2], *tout;
+>         bool use_tbuf = (!out) ? true : false;
+> @@ -262,25 +263,33 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
 >
+>                 if (*format == '%') {
+>                         ++format;
+> -                       width = flags = 0;
+
+Why do you need to split this line into two statements ?
+
+This is a totally unrelated change.
+
+>                         if (*format == '\0')
+>                                 break;
+>                         if (*format == '%')
+>                                 goto literal;
+>                         /* Get flags */
+> -                       if (*format == '-') {
+> -                               ++format;
+> -                               flags = PAD_RIGHT;
+> -                       }
+> -                       if (*format == '#') {
+> -                               ++format;
+> -                               flags |= PAD_ALTERNATE;
+> -                       }
+> -                       while (*format == '0') {
+> -                               ++format;
+> -                               flags |= PAD_ZERO;
+> +                       flags = 0;
+> +                       flags_done = false;
+> +                       while (!flags_done) {
+> +                               switch (*format) {
+> +                               case '-':
+> +                                       flags |= PAD_RIGHT;
+> +                                       break;
+> +                               case '#':
+> +                                       flags |= PAD_ALTERNATE;
+> +                                       break;
+> +                               case '0':
+> +                                       flags |= PAD_ZERO;
+> +                                       break;
+> +                               default:
+> +                                       flags_done = true;
+> +                                       break;
+> +                               }
+> +                               if (!flags_done)
+> +                                       ++format;
+>                         }
+>                         /* Get width */
+> +                       width = 0;
+>                         for (; *format >= '0' && *format <= '9'; ++format) {
+>                                 width *= 10;
+>                                 width += *format - '0';
 > --
 > 2.39.2
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Anup
 
