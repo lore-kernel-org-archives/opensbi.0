@@ -1,131 +1,66 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue,  4 Jul 2023 21:12:07 +0800
-Subject: [PATCH v7 10/11] lib: sbi: Fix timing of clearing tbuf
+Date: Tue,  4 Jul 2023 21:12:05 +0800
+Subject: [PATCH v7 08/11] lib: sbi: Simplify prints
 In-Reply-To: <20230704131208.465914-1-wxjstz@126.com>
 References: <20230704131208.465914-1-wxjstz@126.com>
-Message-ID: <20230704131208.465914-11-wxjstz@126.com>
+Message-ID: <20230704131208.465914-9-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A single scan of the format char may add multiple characters to the
-tbuf, causing a buffer overflow. You should check if tbuf is full in
-printc so that it does not cause a buffer overflow.
+When doing width = width - strlen(string) in prints there is no need
+to consider the case that witdh may be less than 0. This is because
+the code to do filling needs to be executed under the condition that
+width > 0.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c | 35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ lib/sbi/sbi_console.c | 21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index af5e94b..50af405 100644
+index 963d19f..43870b8 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -121,6 +121,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define PAD_ZERO 2
- #define PAD_ALTERNATE 4
- #define PAD_SIGN 8
-+#define USED_TBUF (1 << (8 * sizeof(int) - 1))
- #define PRINT_BUF_LEN 64
- 
- #define va_start(v, l) __builtin_va_start((v), l)
-@@ -128,7 +129,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define va_arg __builtin_va_arg
- typedef __builtin_va_list va_list;
- 
--static void printc(char **out, u32 *out_len, char ch)
-+static void printc(char **out, u32 *out_len, char ch, int flags)
+@@ -151,24 +151,11 @@ static void printc(char **out, u32 *out_len, char ch)
+ static int prints(char **out, u32 *out_len, const char *string, int width,
+ 		  int flags)
  {
- 	if (!out) {
- 		sbi_putc(ch);
-@@ -142,8 +143,14 @@ static void printc(char **out, u32 *out_len, char ch)
- 	if (!out_len || *out_len > 1) {
- 		*(*out)++ = ch;
- 		**out = '\0';
--		if (out_len)
-+		if (out_len) {
- 			--(*out_len);
-+			if ((flags & USED_TBUF) && *out_len == 1) {
-+				nputs_all(console_tbuf, CONSOLE_TBUF_MAX - *out_len);
-+				*out = console_tbuf;
-+				*out_len = CONSOLE_TBUF_MAX;
-+			}
-+		}
- 	}
- }
- 
-@@ -154,16 +161,16 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
- 	width -= sbi_strlen(string);
+-	int pc	     = 0;
+-	char padchar = ' ';
+-
+-	if (width > 0) {
+-		int len = 0;
+-		const char *ptr;
+-		for (ptr = string; *ptr; ++ptr)
+-			++len;
+-		if (len >= width)
+-			width = 0;
+-		else
+-			width -= len;
+-		if (flags & PAD_ZERO)
+-			padchar = '0';
+-	}
++	int pc = 0;
++	width -= sbi_strlen(string);
  	if (!(flags & PAD_RIGHT)) {
  		for (; width > 0; --width) {
--			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
-+			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ', flags);
+-			printc(out, out_len, padchar);
++			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
  			++pc;
  		}
  	}
- 	for (; *string; ++string) {
--		printc(out, out_len, *string);
-+		printc(out, out_len, *string, flags);
+@@ -177,7 +164,7 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
  		++pc;
  	}
  	for (; width > 0; --width) {
--		printc(out, out_len, ' ');
-+		printc(out, out_len, ' ', flags);
+-		printc(out, out_len, padchar);
++		printc(out, out_len, ' ');
  		++pc;
  	}
  
-@@ -215,18 +222,18 @@ static int printi(char **out, u32 *out_len, long long i,
- 
- 	if (flags & PAD_ZERO) {
- 		if (sign) {
--			printc(out, out_len, sign);
-+			printc(out, out_len, sign, flags);
- 			++pc;
- 			--width;
- 		}
- 		if (i && (flags & PAD_ALTERNATE)) {
- 			if (b == 16 || b == 8) {
--				printc(out, out_len, '0');
-+				printc(out, out_len, '0', flags);
- 				++pc;
- 				--width;
- 			}
- 			if (b == 16) {
--				printc(out, out_len, 'x' - 'a' + letbase);
-+				printc(out, out_len, 'x' - 'a' + letbase, flags);
- 				++pc;
- 				--width;
- 			}
-@@ -265,15 +272,11 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 	}
- 
- 	for (; *format != 0; ++format) {
--		if (use_tbuf && !console_tbuf_len) {
--			nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
--			console_tbuf_len = CONSOLE_TBUF_MAX;
--			tout = console_tbuf;
--		}
--
-+		width = flags = 0;
-+		if (use_tbuf)
-+			flags |= USED_TBUF;
- 		if (*format == '%') {
- 			++format;
--			width = flags = 0;
- 			if (*format == '\0')
- 				break;
- 			if (*format == '%')
-@@ -371,7 +374,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 			}
- 		} else {
- literal:
--			printc(out, out_len, *format);
-+			printc(out, out_len, *format, flags);
- 			++pc;
- 		}
- 	}
 -- 
 2.40.1
 
