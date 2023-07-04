@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 4 Jul 2023 17:23:29 +0530
-Subject: [PATCH 1/6] include: sbi: Add macro definitions for mseccfg CSR
-In-Reply-To: <20230620143212.2701598-2-hchauhan@ventanamicro.com>
-References: <20230620143212.2701598-1-hchauhan@ventanamicro.com> <20230620143212.2701598-2-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy3G65o4dAgVgwg3r32BroZnTie_ABRT3GeeVG8zTO07Dw@mail.gmail.com>
+Date: Tue, 4 Jul 2023 17:34:51 +0530
+Subject: [PATCH 2/6] lib: sbi: Add functions to manipulate PMP entries
+In-Reply-To: <20230620143212.2701598-3-hchauhan@ventanamicro.com>
+References: <20230620143212.2701598-1-hchauhan@ventanamicro.com> <20230620143212.2701598-3-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy3+sgrTmT16LKdEvGrxY0ukyAEoYgijusprjEcTfROO=A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,45 +13,90 @@ Content-Transfer-Encoding: 7bit
 On Tue, Jun 20, 2023 at 8:02?PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> - Add macros for Machine Security Configuration (mseccfg) CSR
-> - Add macros to access/manipulate bits in msecfg CSR
+> - Add a function to disable a given PMP entry.
+> - Add a function to check if a given entry is disabled.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
->  include/sbi/riscv_encoding.h | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
+>  include/sbi/riscv_asm.h |  6 ++++++
+>  lib/sbi/riscv_asm.c     | 43 +++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 49 insertions(+)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 4ebed97..50071ad 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -663,6 +663,18 @@
->  #define CSR_MHPMEVENT30H               0x73e
->  #define CSR_MHPMEVENT31H               0x73f
+> diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
+> index 1ff36de..2c34635 100644
+> --- a/include/sbi/riscv_asm.h
+> +++ b/include/sbi/riscv_asm.h
+> @@ -181,6 +181,12 @@ int misa_xlen(void);
+>  /* Get RISC-V ISA string representation */
+>  void misa_string(int xlen, char *out, unsigned int out_sz);
 >
-> +/* Machine Security Configuration CSR (mseccfg) */
-> +#define CSR_MSECCFG_LOWER              0x747
-> +#define CSR_MSECCFG_UPPER              0x757
-> +#define CSR_MSECCFG                    (CSR_MSECCFG_LOWER)
+> +/* Disable pmp entry at a given index */
+> +int pmp_disable(unsigned int n);
 > +
-> +#define MSECCFG_MML_SHIFT              (0)
-> +#define MSECCFG_MML                    (_UL(1) << MSECCFG_MML_SHIFT)
-> +#define MSECCFG_MMWP_SHIFT             (1)
-> +#define MSECCFG_MMWP                   (_UL(1) << MSECCFG_MMWP_SHIFT)
-> +#define MSECCFG_RLB_SHIFT              (2)
-> +#define MSECCFG_RLB                    (_UL(1) << MSECCFG_RLB_SHIFT)
+> +/* Check if the matching field is set */
+> +int is_pmp_entry_mapped(unsigned long entry);
 > +
->  /* Counter Overflow CSR */
->  #define CSR_SCOUNTOVF                  0xda0
+>  int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+>             unsigned long log2len);
 >
+> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+> index cd56553..0690721 100644
+> --- a/lib/sbi/riscv_asm.c
+> +++ b/lib/sbi/riscv_asm.c
+> @@ -246,6 +246,49 @@ static unsigned long ctz(unsigned long x)
+>         return ret;
+>  }
+>
+> +int pmp_disable(unsigned int n)
+> +{
+> +       int pmpcfg_csr, pmpcfg_shift;
+> +       unsigned long cfgmask, pmpcfg;
+> +
+> +       if (n >= PMP_COUNT)
+> +               return SBI_EINVAL;
+> +
+> +#if __riscv_xlen == 32
+> +       pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
+> +       pmpcfg_shift = (n & 3) << 3;
+> +#elif __riscv_xlen == 64
+> +       pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+> +       pmpcfg_shift = (n & 7) << 3;
+> +#else
+> +# error "Unexpected __riscv_xlen"
+> +#endif
+> +
+> +       /* Clear the address matching bits to disable the pmp entry */
+> +       cfgmask = ~(0xffUL << pmpcfg_shift);
+> +       pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
+> +       pmpcfg &= (~PMP_A << pmpcfg_shift);
+
+This statement is not required because the previous statement
+already cleared all config bits of the PMP region.
+
+> +
+> +       csr_write_num(pmpcfg_csr, pmpcfg);
+> +
+> +       return SBI_OK;
+> +}
+> +
+> +int is_pmp_entry_mapped(unsigned long entry)
+> +{
+> +       unsigned long prot;
+> +       unsigned long addr;
+> +       unsigned long log2len;
+> +
+> +       pmp_get(entry, &prot, &addr, &log2len);
+> +
+> +       /* If address matching bits are non-zero, the entry is enable */
+> +       if (prot & PMP_A)
+> +               return true;
+> +
+> +       return false;
+> +}
+> +
+>  int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+>             unsigned long log2len)
+>  {
 > --
 > 2.34.1
 >
@@ -60,4 +105,11 @@ Anup
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Apart from above, this looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
 
