@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 4 Jul 2023 09:25:19 +0530
-Subject: [PATCH v6 01/12] lib: sbi: Fix how print gets flags
-In-Reply-To: <20230612080959.571293-2-wxjstz@126.com>
-References: <20230612080959.571293-1-wxjstz@126.com> <20230612080959.571293-2-wxjstz@126.com>
-Message-ID: <CAAhSdy0Qw5TnA71VmeymSCt8B5knwCSJ5xZKkFvZGwjZvY+HAQ@mail.gmail.com>
+Date: Tue, 4 Jul 2023 09:34:18 +0530
+Subject: [PATCH v6 02/12] lib: sbi: print not fill '0' when left-aligned
+In-Reply-To: <20230612080959.571293-3-wxjstz@126.com>
+References: <20230612080959.571293-1-wxjstz@126.com> <20230612080959.571293-3-wxjstz@126.com>
+Message-ID: <CAAhSdy3oU3USYcp7OxhcdNDTVL0VWWMkvE_EGPKF_yiRgrCTag@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,80 +12,37 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Jun 12, 2023 at 1:40?PM Xiang W <wxjstz@126.com> wrote:
 >
-> The flags for print should be able to appear in any order. The
-> previous code required the order to be fixed.
+> Left alignment and padding '0' should not exist at the same time,
+> this patch is not padded with 0 when left aligned.
+
+s/this patch is not padded with/this patch skips padding/
+
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  lib/sbi/sbi_console.c | 33 +++++++++++++++++++++------------
->  1 file changed, 21 insertions(+), 12 deletions(-)
+>  lib/sbi/sbi_console.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >
 > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 168dffd..6e07663 100644
+> index 6e07663..b7d0896 100644
 > --- a/lib/sbi/sbi_console.c
 > +++ b/lib/sbi/sbi_console.c
-> @@ -236,6 +236,7 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
->
->  static int print(char **out, u32 *out_len, const char *format, va_list args)
->  {
-> +       bool flags_done;
->         int width, flags, pc = 0;
->         char scr[2], *tout;
->         bool use_tbuf = (!out) ? true : false;
-> @@ -262,25 +263,33 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->
->                 if (*format == '%') {
->                         ++format;
-> -                       width = flags = 0;
-
-Why do you need to split this line into two statements ?
-
-This is a totally unrelated change.
-
->                         if (*format == '\0')
->                                 break;
->                         if (*format == '%')
->                                 goto literal;
->                         /* Get flags */
-> -                       if (*format == '-') {
-> -                               ++format;
-> -                               flags = PAD_RIGHT;
-> -                       }
-> -                       if (*format == '#') {
-> -                               ++format;
-> -                               flags |= PAD_ALTERNATE;
-> -                       }
-> -                       while (*format == '0') {
-> -                               ++format;
-> -                               flags |= PAD_ZERO;
-> +                       flags = 0;
-> +                       flags_done = false;
-> +                       while (!flags_done) {
-> +                               switch (*format) {
-> +                               case '-':
-> +                                       flags |= PAD_RIGHT;
-> +                                       break;
-> +                               case '#':
-> +                                       flags |= PAD_ALTERNATE;
-> +                                       break;
-> +                               case '0':
-> +                                       flags |= PAD_ZERO;
-> +                                       break;
-> +                               default:
-> +                                       flags_done = true;
-> +                                       break;
-> +                               }
-> +                               if (!flags_done)
-> +                                       ++format;
+> @@ -288,6 +288,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+>                                 if (!flags_done)
+>                                         ++format;
 >                         }
+> +                       if (flags & PAD_RIGHT)
+> +                               flags &= ~PAD_ZERO;
 >                         /* Get width */
-> +                       width = 0;
+>                         width = 0;
 >                         for (; *format >= '0' && *format <= '9'; ++format) {
->                                 width *= 10;
->                                 width += *format - '0';
 > --
 > 2.39.2
 >
+
+Otherwise it looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
