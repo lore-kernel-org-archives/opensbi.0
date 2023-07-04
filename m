@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 4 Jul 2023 17:34:51 +0530
-Subject: [PATCH 2/6] lib: sbi: Add functions to manipulate PMP entries
-In-Reply-To: <20230620143212.2701598-3-hchauhan@ventanamicro.com>
-References: <20230620143212.2701598-1-hchauhan@ventanamicro.com> <20230620143212.2701598-3-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy3+sgrTmT16LKdEvGrxY0ukyAEoYgijusprjEcTfROO=A@mail.gmail.com>
+Date: Tue, 4 Jul 2023 17:46:15 +0530
+Subject: [PATCH 3/6] include: sbi: Add Smepmp specific access flags for
+ PMP entries
+In-Reply-To: <20230620143212.2701598-4-hchauhan@ventanamicro.com>
+References: <20230620143212.2701598-1-hchauhan@ventanamicro.com> <20230620143212.2701598-4-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy2k0ougW4Cb1Tz3VK2XDi_urXt5sNcaHikCCGZgehHL2A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,90 +14,90 @@ Content-Transfer-Encoding: 7bit
 On Tue, Jun 20, 2023 at 8:02?PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> - Add a function to disable a given PMP entry.
-> - Add a function to check if a given entry is disabled.
+> Smepmp specification defines a truth table based on which the access is allowed to
+> different modes. This patch adds different flags based on this truth table.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 > ---
->  include/sbi/riscv_asm.h |  6 ++++++
->  lib/sbi/riscv_asm.c     | 43 +++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 49 insertions(+)
+>  include/sbi/sbi_domain.h | 51 +++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 45 insertions(+), 6 deletions(-)
 >
-> diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
-> index 1ff36de..2c34635 100644
-> --- a/include/sbi/riscv_asm.h
-> +++ b/include/sbi/riscv_asm.h
-> @@ -181,6 +181,12 @@ int misa_xlen(void);
->  /* Get RISC-V ISA string representation */
->  void misa_string(int xlen, char *out, unsigned int out_sz);
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index b05bcf4..24d3dc1 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -43,6 +43,51 @@ struct sbi_domain_memregion {
+>  #define SBI_DOMAIN_MEMREGION_SU_WRITABLE       (1UL << 4)
+>  #define SBI_DOMAIN_MEMREGION_SU_EXECUTABLE     (1UL << 5)
 >
-> +/* Disable pmp entry at a given index */
-> +int pmp_disable(unsigned int n);
+> +#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0x3fUL)
+> +#define SBI_DOMAIN_MEMREGION_M_ACCESS_MASK     (0x7UL)
+> +#define SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK    (0x38UL)
 > +
-> +/* Check if the matching field is set */
-> +int is_pmp_entry_mapped(unsigned long entry);
+> +#define SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT   (3)
 > +
->  int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
->             unsigned long log2len);
->
-> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> index cd56553..0690721 100644
-> --- a/lib/sbi/riscv_asm.c
-> +++ b/lib/sbi/riscv_asm.c
-> @@ -246,6 +246,49 @@ static unsigned long ctz(unsigned long x)
->         return ret;
->  }
->
-> +int pmp_disable(unsigned int n)
-> +{
-> +       int pmpcfg_csr, pmpcfg_shift;
-> +       unsigned long cfgmask, pmpcfg;
+> +#define SBI_DOMAIN_MEMREGION_SHARED_RDONLY     \
+> +                                       (SBI_DOMAIN_MEMREGION_M_READABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_SU_READABLE)
 > +
-> +       if (n >= PMP_COUNT)
-> +               return SBI_EINVAL;
+> +#define SBI_DOMAIN_MEMREGION_SHARED_SUX_MRX    \
+> +                                       (SBI_DOMAIN_MEMREGION_M_READABLE   | \
+> +                                        SBI_DOMAIN_MEMREGION_M_EXECUTABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
 > +
-> +#if __riscv_xlen == 32
-> +       pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
-> +       pmpcfg_shift = (n & 3) << 3;
-> +#elif __riscv_xlen == 64
-> +       pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
-> +       pmpcfg_shift = (n & 7) << 3;
-> +#else
-> +# error "Unexpected __riscv_xlen"
-> +#endif
+> +#define SBI_DOMAIN_MEMREGION_SHARED_SUX_MX     \
+> +                                       (SBI_DOMAIN_MEMREGION_M_EXECUTABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
 > +
-> +       /* Clear the address matching bits to disable the pmp entry */
-> +       cfgmask = ~(0xffUL << pmpcfg_shift);
-> +       pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
-> +       pmpcfg &= (~PMP_A << pmpcfg_shift);
+> +#define SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW   \
+> +                                       (SBI_DOMAIN_MEMREGION_M_READABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_M_WRITABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_SU_READABLE| \
+> +                                        SBI_DOMAIN_MEMREGION_SU_WRITABLE)
+> +
+> +#define SBI_DOMAIN_MEMREGION_SHARED_SUR_MRW    \
+> +                                       (SBI_DOMAIN_MEMREGION_M_READABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_M_WRITABLE | \
+> +                                        SBI_DOMAIN_MEMREGION_SU_READABLE)
+> +
+> +#define SBI_DOMAIN_MEMREGION_IS_SHARED(_flags) \
+> +       ((_flags == SBI_DOMAIN_MEMREGION_SHARED_RDONLY)  || \
+> +        (_flags == SBI_DOMAIN_MEMREGION_SHARED_SUX_MRX) || \
+> +        (_flags == SBI_DOMAIN_MEMREGION_SHARED_SUX_MX)  || \
+> +        (_flags == SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW)|| \
+> +        (_flags == SBI_DOMAIN_MEMREGION_SHARED_SUR_MRW))
 
-This statement is not required because the previous statement
-already cleared all config bits of the PMP region.
+Is there a way to simplify this macro ?
+
+For example,
+((__flags & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK) && \
+ (__flags & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK))
 
 > +
-> +       csr_write_num(pmpcfg_csr, pmpcfg);
+> +#define SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(__flags) \
+> +       ((__flags & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK) && \
+> +        !(__flags & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK))
 > +
-> +       return SBI_OK;
-> +}
+> +#define SBI_DOMAIN_MEMREGION_SU_ONLY_ACCESS(__flags) \
+> +       ((__flags & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)  && \
+> +        !(__flags & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK))
 > +
-> +int is_pmp_entry_mapped(unsigned long entry)
-> +{
-> +       unsigned long prot;
-> +       unsigned long addr;
-> +       unsigned long log2len;
-> +
-> +       pmp_get(entry, &prot, &addr, &log2len);
-> +
-> +       /* If address matching bits are non-zero, the entry is enable */
-> +       if (prot & PMP_A)
-> +               return true;
-> +
-> +       return false;
-> +}
-> +
->  int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
->             unsigned long log2len)
->  {
+>  /** Bit to control if permissions are enforced on all modes */
+>  #define SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS   (1UL << 6)
+>
+> @@ -78,12 +123,6 @@ struct sbi_domain_memregion {
+>                                 (SBI_DOMAIN_MEMREGION_SU_EXECUTABLE | \
+>                                  SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
+>
+> -#define SBI_DOMAIN_MEMREGION_ACCESS_MASK       (0x3fUL)
+> -#define SBI_DOMAIN_MEMREGION_M_ACCESS_MASK     (0x7UL)
+> -#define SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK    (0x38UL)
+> -
+> -#define SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT   (3)
+> -
+>  #define SBI_DOMAIN_MEMREGION_MMIO              (1UL << 31)
+>         unsigned long flags;
+>  };
 > --
 > 2.34.1
 >
@@ -106,7 +107,7 @@ already cleared all config bits of the PMP region.
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
 
-Apart from above, this looks good to me.
+Otherwise, it looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
