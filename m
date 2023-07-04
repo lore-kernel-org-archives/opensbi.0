@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 4 Jul 2023 11:14:10 +0530
-Subject: [PATCH v6 07/12] lib: sbi: Fix printi
-In-Reply-To: <20230612080959.571293-8-wxjstz@126.com>
-References: <20230612080959.571293-1-wxjstz@126.com> <20230612080959.571293-8-wxjstz@126.com>
-Message-ID: <CAAhSdy0p45BikJmTQ-ABaQkYtAiRY3vHsv4C74tZ-2oXJV_YBQ@mail.gmail.com>
+Date: Tue, 4 Jul 2023 11:24:37 +0530
+Subject: [PATCH v6 08/12] lib: sbi: Simplify prints
+In-Reply-To: <20230612080959.571293-9-wxjstz@126.com>
+References: <20230612080959.571293-1-wxjstz@126.com> <20230612080959.571293-9-wxjstz@126.com>
+Message-ID: <CAAhSdy2Md94AXEgSh05uzYoMHtRWfF9CKkKz1bKXnh8ojPoHDA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,75 +12,65 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Jun 12, 2023 at 1:40?PM Xiang W <wxjstz@126.com> wrote:
 >
-> Fix two bug:
-> > printf("%#08x", 0x123); /* print 0000x123 */
-> > printf("%#x", 0); /* print 0x0 */
+> When doing width = width - strlen(string) in prints there is no need
+> to consider the case that witdh may be less than 0. This is because
+> the code to do filling needs to be executed under the condition that
+> width > 0.
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
->  lib/sbi/sbi_console.c | 36 +++++++++++++++++++++++-------------
->  1 file changed, 23 insertions(+), 13 deletions(-)
+>  lib/sbi/sbi_console.c | 21 ++++-----------------
+>  1 file changed, 4 insertions(+), 17 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 047c51e..6f714f0 100644
+> index 6f714f0..824ff6e 100644
 > --- a/lib/sbi/sbi_console.c
 > +++ b/lib/sbi/sbi_console.c
-> @@ -227,23 +227,33 @@ static int printi(char **out, u32 *out_len, long long i,
->                 }
->         }
->
-> -       if (flags & PAD_ALTERNATE) {
-> -               if ((b == 16) && (letbase == 'A')) {
-> -                       *--s = 'X';
-> -               } else if ((b == 16) && (letbase == 'a')) {
-> -                       *--s = 'x';
-> -               }
-> -               *--s = '0';
-> -       }
+> @@ -151,24 +151,11 @@ static void printc(char **out, u32 *out_len, char ch)
+>  static int prints(char **out, u32 *out_len, const char *string, int width,
+>                   int flags)
+>  {
+> -       int pc       = 0;
+> -       char padchar = ' ';
 > -
-> -       if (sign) {
-> -               if (width && (flags & PAD_ZERO)) {
-> +       if (flags & PAD_ZERO) {
-> +               if (sign) {
->                         printc(out, out_len, sign);
+> -       if (width > 0) {
+> -               int len = 0;
+> -               const char *ptr;
+> -               for (ptr = string; *ptr; ++ptr)
+> -                       ++len;
+> -               if (len >= width)
+> -                       width = 0;
+> -               else
+> -                       width -= len;
+> -               if (flags & PAD_ZERO)
+> -                       padchar = '0';
+> -       }
+> +       int pc = 0;
+> +       width -= sbi_strlen(string);
+>         if (!(flags & PAD_RIGHT)) {
+>                 for (; width > 0; --width) {
+> -                       printc(out, out_len, padchar);
+> +                       printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
 >                         ++pc;
->                         --width;
-> -               } else {
-> -                       *--s = sign;
 >                 }
-> +               if (i && (flags & PAD_ALTERNATE)) {
-> +                       if (b == 16 || b == 8) {
-> +                               printc(out, out_len, '0');
-> +                               ++pc;
-> +                               --width;
-> +                       }
-> +                       if (b == 16) {
-> +                               printc(out, out_len, 'x' - 'a' + letbase);
-> +                               ++pc;
-> +                               --width;
-> +                       }
-> +               }
-> +       } else {
-> +               if (i && (flags & PAD_ALTERNATE)) {
-> +                       if (b == 16)
-> +                               *--s = 'x' - 'a' + letbase;
-> +                       if (b == 16 || b == 8)
-> +                               *--s = '0';
-> +               }
-> +               if (sign)
-> +                       *--s = sign;
+>         }
+> @@ -177,7 +164,7 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+>                 ++pc;
+>         }
+>         for (; width > 0; --width) {
+> -               printc(out, out_len, padchar);
+> +               printc(out, out_len, ' ');
+
+The padchar should be
+flags & PAD_ZERO ? '0' : ' '
+
+>                 ++pc;
 >         }
 >
->         return pc + prints(out, out_len, s, width, flags);
 > --
 > 2.39.2
 >
+
+Regards,
+Anup
 
