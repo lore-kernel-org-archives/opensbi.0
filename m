@@ -1,57 +1,67 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 4 Jul 2023 11:31:08 +0530
-Subject: [PATCH] lib: sbi: fix comment indent
-In-Reply-To: <20230629142406.6796-1-gianluca@rivosinc.com>
-References: <20230629142406.6796-1-gianluca@rivosinc.com>
-Message-ID: <CAAhSdy3uy3xCJisA+uPRViaL0GxK5m2i4shRUuDecp4Pej5L5Q@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 4 Jul 2023 10:10:38 +0200
+Subject: [PATCH 1/1] lib: sbi_pmu: Avoid out of bounds access
+In-Reply-To: <f7bfddae-96f7-2b13-8a15-b008b398cb00@canonical.com>
+References: <20230703134318.109435-1-heinrich.schuchardt@canonical.com>
+ <20230703-73f326cf8367044cd0bd6832@orel>
+ <f7bfddae-96f7-2b13-8a15-b008b398cb00@canonical.com>
+Message-ID: <20230704-67bf27b8a1d7fb9ea3d21bd0@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 29, 2023 at 8:00?PM Gianluca Guida <gianluca@rivosinc.com> wrote:
+On Tue, Jul 04, 2023 at 02:18:47AM +0200, Heinrich Schuchardt wrote:
+> On 03.07.23 16:50, Andrew Jones wrote:
+> > On Mon, Jul 03, 2023 at 03:43:18PM +0200, Heinrich Schuchardt wrote:
+> > > On a misconfigured system we could access phs->active_events[] out of
+> > > bounds. Check that num_hw_ctrs is less or equal SBI_PMU_HW_CTR_MAX.
+> > > 
+> > > Addresses-Coverity-ID: 1566113 ("Out-of-bounds read")
+> > > Addresses-Coverity-ID: 1566114 ("Out-of-bounds write")
+> > > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> > > ---
+> > >   lib/sbi/sbi_pmu.c | 2 ++
+> > >   1 file changed, 2 insertions(+)
+> > > 
+> > > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > > index c73e6ef..7213a53 100644
+> > > --- a/lib/sbi/sbi_pmu.c
+> > > +++ b/lib/sbi/sbi_pmu.c
+> > > @@ -933,6 +933,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+> > >   		/* mcycle & minstret is available always */
+> > >   		num_hw_ctrs = sbi_hart_mhpm_count(scratch) + 3;
+> > > +		if (num_hw_ctrs > SBI_PMU_HW_CTR_MAX)
+> > > +			return SBI_EINVAL;
+> > >   		total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+> > >   	}
+> > > -- 
+> > > 2.40.1
+> > > 
+> > 
+> > Should we instead cap and warn in hart_detect_features()?
+> 
+> Thanks for reviewing.
+> 
+> By default U-Boot invokes OpenSBI with SBI_SCRATCH_NO_BOOT_PRINTS (to save a
+> few ms boot time). You might never see the warning.
+> 
+> mhpm_count is hard coded, e.g.
+> 
+> platform/generic/allwinner/sun20i-d1.c:275:
+> hfeatures->mhpm_count = 29;
+> 
+> If this value is too high, the coding needs to be changed.
 >
-> Use tabs rather than spaces.
->
-> Signed-off-by: Gianluca Guida <gianluca@rivosinc.com>
 
-Looks good to me.
+Yeah, scratch the cap/warn suggestion. Despite mhpm_count being detected,
+not coded, for most platforms, the architecture states their can never be
+more than 29. It's definitely a fail scenario if more are detected, or
+coded.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
-Regards,
-Anup
-
-> ---
->  lib/sbi/sbi_ecall_dbcn.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-> index ecec027..8e68729 100644
-> --- a/lib/sbi/sbi_ecall_dbcn.c
-> +++ b/lib/sbi/sbi_ecall_dbcn.c
-> @@ -34,10 +34,10 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
->                  * Based on above, we simply fail if the upper 32bits of
->                  * the physical address (i.e. a2 register) is non-zero on
->                  * RV32.
-> -                 *
-> -                 * Analogously, we fail if the upper 64bit of the
-> -                 * physical address (i.e. a2 register) is non-zero on
-> -                 * RV64.
-> +                *
-> +                * Analogously, we fail if the upper 64bit of the
-> +                * physical address (i.e. a2 register) is non-zero on
-> +                * RV64.
->                  */
->                 if (regs->a2)
->                         return SBI_ERR_FAILED;
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Thanks,
+drew
 
