@@ -1,41 +1,70 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  5 Jul 2023 22:36:56 +0800
-Subject: [PATCH v8 04/11] lib: sbi: Add ' ' '\'' flags for print
-In-Reply-To: <20230705143703.635254-1-wxjstz@126.com>
-References: <20230705143703.635254-1-wxjstz@126.com>
-Message-ID: <20230705143703.635254-5-wxjstz@126.com>
+Date: Wed, 05 Jul 2023 23:06:21 +0800
+Subject: [PATCH 2/4] lib: sbi: Add Zihpm as a HART ISA extension
+In-Reply-To: <20230705115805.1054915-3-apatel@ventanamicro.com>
+References: <20230705115805.1054915-1-apatel@ventanamicro.com>
+	 <20230705115805.1054915-3-apatel@ventanamicro.com>
+Message-ID: <aa357f146ed1696c3bf9387c1565da8c20ada11f.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The space flag is used to add a space before positive numbers, and
-apostrophe is used to print the thousand separator. Add code to
-ignore these two flags
+? 2023-07-05???? 17:28 +0530?Anup Patel???
+> Recently ratified Zihpm ISA extension covers all [m]hpm* CSRs
+> so we add Zihpm as a HART ISA extension in OpenSBI.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+> ?include/sbi/sbi_hart.h | 2 ++
+> ?lib/sbi/sbi_hart.c???? | 6 ++++++
+> ?2 files changed, 8 insertions(+)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index d48940d..938248f 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
+> ????????SBI_HART_EXT_SMSTATEEN,
+> ????????/** HART has Sstc extension */
+> ????????SBI_HART_EXT_SSTC,
+> +???????/** HART has Zihpm extension */
+> +???????SBI_HART_EXT_ZIHPM,
+> ?
+> ????????/** Maximum index of Hart extension */
+> ????????SBI_HART_EXT_MAX,
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index c470482..435771c 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
+> ????????case SBI_HART_EXT_SMSTATEEN:
+> ????????????????estr = "smstateen";
+> ????????????????break;
+> +???????case SBI_HART_EXT_ZIHPM:
+> +???????????????estr = "zihpm";
+> +???????????????break;
+> ????????default:
+> ????????????????break;
+> ????????}
+> @@ -637,6 +640,9 @@ __pmp_skip:
+> ???????? */
+> ?
+> ?__mhpm_skip:
+> +???????if (hfeatures->mhpm_count)
+> +???????????????__sbi_hart_update_extension(hfeatures,
+> +???????????????????????????????????????SBI_HART_EXT_ZIHPM, true);
+allwinner D1 sets mhpm_count in sbi_platform_extensions_init. We should
+call __sbi_hart_update_extension again in the code of D1.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- lib/sbi/sbi_console.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 6ebdc44..b6b23bf 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -288,6 +288,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 				case '0':
- 					flags |= PAD_ZERO;
- 					break;
-+				case ' ':
-+				case '\'':
-+					/* Ignored flags, do nothing */
-+					break;
- 				default:
- 					flags_done = true;
- 					break;
--- 
-2.40.1
-
+Regards,
+Xiang W
+> ?
+> ?#undef __check_csr_64
+> ?#undef __check_csr_32
+> -- 
+> 2.34.1
+> 
+> 
 
