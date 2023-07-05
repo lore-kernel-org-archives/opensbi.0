@@ -1,38 +1,43 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  5 Jul 2023 22:37:54 +0800
-Subject: [PATCH v8 11/11] lib: sbi: Fix missing '\0' when buffer szie equal 1
+Date: Wed,  5 Jul 2023 22:37:01 +0800
+Subject: [PATCH v8 09/11] lib: sbi: Fix printc
 In-Reply-To: <20230705143703.635254-1-wxjstz@126.com>
 References: <20230705143703.635254-1-wxjstz@126.com>
-Message-ID: <20230705143754.635428-1-wxjstz@126.com>
+Message-ID: <20230705143703.635254-10-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix special case: sbi_snprintf(out, out_len, ...) when out_len equal
-1, The previous code will not fill the buffer with any char.
+Because *out needs to reserve a byte to hold '\0', no more characters
+should be added to the buffer when *out has one byte left, and the
+buffer size *out_len should not be modified. this patch prevents
+the correction of *out_len when *out_len is 1.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_console.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ lib/sbi/sbi_console.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 00feec8..0703d4a 100644
+index 43870b8..af5e94b 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -271,6 +271,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 		out_len = &console_tbuf_len;
+@@ -142,10 +142,9 @@ static void printc(char **out, u32 *out_len, char ch)
+ 	if (!out_len || *out_len > 1) {
+ 		*(*out)++ = ch;
+ 		**out = '\0';
++		if (out_len)
++			--(*out_len);
  	}
+-
+-	if (out_len && *out_len > 0)
+-		--(*out_len);
+ }
  
-+	/* handle special case: *out_len == 1*/
-+	if (out)
-+		**out = '\0';
-+
- 	for (; *format != 0; ++format) {
- 		width = flags = 0;
- 		if (use_tbuf)
+ static int prints(char **out, u32 *out_len, const char *string, int width,
 -- 
 2.40.1
 
