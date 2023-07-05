@@ -1,10 +1,11 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 05 Jul 2023 22:46:43 +0800
-Subject: [PATCH 2/4] lib: sbi: Add Zihpm as a HART ISA extension
-In-Reply-To: <20230705115805.1054915-3-apatel@ventanamicro.com>
+Date: Wed, 05 Jul 2023 22:47:10 +0800
+Subject: [PATCH 4/4] lib: sbi: Rename hart_pmu_get_allowed_bits()
+ function
+In-Reply-To: <20230705115805.1054915-5-apatel@ventanamicro.com>
 References: <20230705115805.1054915-1-apatel@ventanamicro.com>
-	 <20230705115805.1054915-3-apatel@ventanamicro.com>
-Message-ID: <b4c3151b01433553da4b3657c4286484ab56a794.camel@126.com>
+	 <20230705115805.1054915-5-apatel@ventanamicro.com>
+Message-ID: <b87edb25e5ccaa0b8486a38e662a2c5b13fee28c.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +13,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2023-07-05???? 17:28 +0530?Anup Patel???
-> Recently ratified Zihpm ISA extension covers all [m]hpm* CSRs
-> so we add Zihpm as a HART ISA extension in OpenSBI.
+> The hart_pmu_get_allowed_bits() function detects implemented bits
+> of mhpm counters so let us rename this function accordingly.
 > 
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Look good to me.
@@ -21,49 +22,34 @@ Look good to me.
 Reviewed-by: Xiang W <wxjstz@126.com>
 
 > ---
-> ?include/sbi/sbi_hart.h | 2 ++
-> ?lib/sbi/sbi_hart.c???? | 6 ++++++
-> ?2 files changed, 8 insertions(+)
+> ?lib/sbi/sbi_hart.c | 4 ++--
+> ?1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index d48940d..938248f 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
-> ????????SBI_HART_EXT_SMSTATEEN,
-> ????????/** HART has Sstc extension */
-> ????????SBI_HART_EXT_SSTC,
-> +???????/** HART has Zihpm extension */
-> +???????SBI_HART_EXT_ZIHPM,
-> ?
-> ????????/** Maximum index of Hart extension */
-> ????????SBI_HART_EXT_MAX,
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index c470482..435771c 100644
+> index 380e615..25277a5 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
-> ????????case SBI_HART_EXT_SMSTATEEN:
-> ????????????????estr = "smstateen";
-> ????????????????break;
-> +???????case SBI_HART_EXT_ZIHPM:
-> +???????????????estr = "zihpm";
-> +???????????????break;
-> ????????default:
-> ????????????????break;
-> ????????}
-> @@ -637,6 +640,9 @@ __pmp_skip:
-> ???????? */
+> @@ -527,7 +527,7 @@ static unsigned long hart_pmp_get_allowed_addr(void)
+> ????????return val;
+> ?}
 > ?
-> ?__mhpm_skip:
-> +???????if (hfeatures->mhpm_count)
-> +???????????????__sbi_hart_update_extension(hfeatures,
-> +???????????????????????????????????????SBI_HART_EXT_ZIHPM, true);
+> -static int hart_pmu_get_allowed_bits(void)
+> +static int hart_mhpm_get_allowed_bits(void)
+> ?{
+> ????????unsigned long val = ~(0UL);
+> ????????struct sbi_trap_info trap = {0};
+> @@ -628,7 +628,7 @@ __pmp_skip:
 > ?
-> ?#undef __check_csr_64
-> ?#undef __check_csr_32
+> ????????/* Detect number of MHPM counters */
+> ????????__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count, __mhpm_skip);
+> -???????hfeatures->mhpm_bits = hart_pmu_get_allowed_bits();
+> +???????hfeatures->mhpm_bits = hart_mhpm_get_allowed_bits();
+> ?
+> ????????__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count, __mhpm_skip);
+> ????????__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count, __mhpm_skip);
 > -- 
 > 2.34.1
 > 
 > 
+
 
