@@ -1,88 +1,72 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  5 Jul 2023 22:36:55 +0800
-Subject: [PATCH v8 03/11] lib: sbi: Add '+' flags for print
+Date: Wed,  5 Jul 2023 22:36:53 +0800
+Subject: [PATCH v8 01/11] lib: sbi: Fix how print gets flags
 In-Reply-To: <20230705143703.635254-1-wxjstz@126.com>
 References: <20230705143703.635254-1-wxjstz@126.com>
-Message-ID: <20230705143703.635254-4-wxjstz@126.com>
+Message-ID: <20230705143703.635254-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Adds + flags for print, prefixing positive numbers with + when this
-flags is present
+The flags for print should be able to appear in any order. The
+previous code required the order to be fixed.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_console.c | 25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ lib/sbi/sbi_console.c | 30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 03ee05a..6ebdc44 100644
+index 168dffd..d87b5c2 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -120,6 +120,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define PAD_RIGHT 1
- #define PAD_ZERO 2
- #define PAD_ALTERNATE 4
-+#define PAD_SIGN 8
- #define PRINT_BUF_LEN 64
+@@ -236,6 +236,7 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
  
- #define va_start(v, l) __builtin_va_start((v), l)
-@@ -186,15 +187,18 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
- static int printi(char **out, u32 *out_len, long long i, int b, int sg,
- 		  int width, int flags, int letbase)
+ static int print(char **out, u32 *out_len, const char *format, va_list args)
  {
--	char print_buf[PRINT_BUF_LEN];
--	char *s;
--	int neg = 0, pc = 0;
-+	char *s, sign, print_buf[PRINT_BUF_LEN];
-+	int pc = 0;
- 	u64 t;
- 	unsigned long long u = i;
- 
--	if (sg && b == 10 && i < 0) {
--		neg = 1;
--		u   = -i;
-+	if (sg && b == 10) {
-+		if ((flags & PAD_SIGN) && i > 0)
-+			sign = '+';
-+		if (i < 0) {
-+			sign = '-';
-+			u = -i;
-+		}
- 	}
- 
- 	s  = print_buf + PRINT_BUF_LEN - 1;
-@@ -221,13 +225,13 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
- 		*--s = '0';
- 	}
- 
--	if (neg) {
-+	if (sign) {
- 		if (width && (flags & PAD_ZERO)) {
--			printc(out, out_len, '-');
-+			printc(out, out_len, sign);
- 			++pc;
- 			--width;
- 		} else {
--			*--s = '-';
-+			*--s = sign;
- 		}
- 	}
- 
-@@ -275,6 +279,9 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 				case '-':
- 					flags |= PAD_RIGHT;
- 					break;
-+				case '+':
-+					flags |= PAD_SIGN;
++	bool flags_done;
+ 	int width, flags, pc = 0;
+ 	char scr[2], *tout;
+ 	bool use_tbuf = (!out) ? true : false;
+@@ -268,17 +269,24 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 			if (*format == '%')
+ 				goto literal;
+ 			/* Get flags */
+-			if (*format == '-') {
+-				++format;
+-				flags = PAD_RIGHT;
+-			}
+-			if (*format == '#') {
+-				++format;
+-				flags |= PAD_ALTERNATE;
+-			}
+-			while (*format == '0') {
+-				++format;
+-				flags |= PAD_ZERO;
++			flags_done = false;
++			while (!flags_done) {
++				switch (*format) {
++				case '-':
++					flags |= PAD_RIGHT;
 +					break;
- 				case '#':
- 					flags |= PAD_ALTERNATE;
- 					break;
++				case '#':
++					flags |= PAD_ALTERNATE;
++					break;
++				case '0':
++					flags |= PAD_ZERO;
++					break;
++				default:
++					flags_done = true;
++					break;
++				}
++				if (!flags_done)
++					++format;
+ 			}
+ 			/* Get width */
+ 			for (; *format >= '0' && *format <= '9'; ++format) {
 -- 
 2.40.1
 
