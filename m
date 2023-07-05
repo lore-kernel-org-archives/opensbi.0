@@ -1,45 +1,75 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 5 Jul 2023 10:11:57 +0530
-Subject: [PATCH 1/1] lib: sbi_pmu: Avoid out of bounds access
-In-Reply-To: <20230703134318.109435-1-heinrich.schuchardt@canonical.com>
-References: <20230703134318.109435-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy1k7oQqmnsE-uyVz1zgPkt+Fh=-RfEeVE0eEqahABn5jQ@mail.gmail.com>
+Date: Wed, 5 Jul 2023 10:50:36 +0530
+Subject: [PATCH v7 08/11] lib: sbi: Simplify prints
+In-Reply-To: <20230704131208.465914-9-wxjstz@126.com>
+References: <20230704131208.465914-1-wxjstz@126.com> <20230704131208.465914-9-wxjstz@126.com>
+Message-ID: <CAAhSdy3h40gYp_VjNMn4tQrEKDGhkvZfiWMvi_VxSjzoVaPi0A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 3, 2023 at 7:13?PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Tue, Jul 4, 2023 at 6:42?PM Xiang W <wxjstz@126.com> wrote:
 >
-> On a misconfigured system we could access phs->active_events[] out of
-> bounds. Check that num_hw_ctrs is less or equal SBI_PMU_HW_CTR_MAX.
+> When doing width = width - strlen(string) in prints there is no need
+> to consider the case that witdh may be less than 0. This is because
+> the code to do filling needs to be executed under the condition that
+> width > 0.
 >
-> Addresses-Coverity-ID: 1566113 ("Out-of-bounds read")
-> Addresses-Coverity-ID: 1566114 ("Out-of-bounds write")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-Applied this patch to the riscv/opensbi repo.
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
 
+
 > ---
->  lib/sbi/sbi_pmu.c | 2 ++
->  1 file changed, 2 insertions(+)
+>  lib/sbi/sbi_console.c | 21 ++++-----------------
+>  1 file changed, 4 insertions(+), 17 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index c73e6ef..7213a53 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -933,6 +933,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
->
->                 /* mcycle & minstret is available always */
->                 num_hw_ctrs = sbi_hart_mhpm_count(scratch) + 3;
-> +               if (num_hw_ctrs > SBI_PMU_HW_CTR_MAX)
-> +                       return SBI_EINVAL;
->                 total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index 963d19f..43870b8 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -151,24 +151,11 @@ static void printc(char **out, u32 *out_len, char ch)
+>  static int prints(char **out, u32 *out_len, const char *string, int width,
+>                   int flags)
+>  {
+> -       int pc       = 0;
+> -       char padchar = ' ';
+> -
+> -       if (width > 0) {
+> -               int len = 0;
+> -               const char *ptr;
+> -               for (ptr = string; *ptr; ++ptr)
+> -                       ++len;
+> -               if (len >= width)
+> -                       width = 0;
+> -               else
+> -                       width -= len;
+> -               if (flags & PAD_ZERO)
+> -                       padchar = '0';
+> -       }
+> +       int pc = 0;
+> +       width -= sbi_strlen(string);
+>         if (!(flags & PAD_RIGHT)) {
+>                 for (; width > 0; --width) {
+> -                       printc(out, out_len, padchar);
+> +                       printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
+>                         ++pc;
+>                 }
+>         }
+> @@ -177,7 +164,7 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+>                 ++pc;
+>         }
+>         for (; width > 0; --width) {
+> -               printc(out, out_len, padchar);
+> +               printc(out, out_len, ' ');
+>                 ++pc;
 >         }
 >
 > --
