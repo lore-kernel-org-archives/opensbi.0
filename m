@@ -1,131 +1,55 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  5 Jul 2023 22:37:02 +0800
-Subject: [PATCH v8 10/11] lib: sbi: Fix timing of clearing tbuf
+Date: Wed,  5 Jul 2023 22:36:58 +0800
+Subject: [PATCH v8 06/11] lib: sbi: print add 'o' type
 In-Reply-To: <20230705143703.635254-1-wxjstz@126.com>
 References: <20230705143703.635254-1-wxjstz@126.com>
-Message-ID: <20230705143703.635254-11-wxjstz@126.com>
+Message-ID: <20230705143703.635254-7-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A single scan of the format char may add multiple characters to the
-tbuf, causing a buffer overflow. You should check if tbuf is full in
-printc so that it does not cause a buffer overflow.
+Add o type for print to print octal numbers
 
 Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_console.c | 35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ lib/sbi/sbi_console.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index af5e94b..00feec8 100644
+index 7dd023f..2a43e16 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -121,6 +121,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define PAD_ZERO 2
- #define PAD_ALTERNATE 4
- #define PAD_SIGN 8
-+#define USE_TBUF 16
- #define PRINT_BUF_LEN 64
- 
- #define va_start(v, l) __builtin_va_start((v), l)
-@@ -128,7 +129,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define va_arg __builtin_va_arg
- typedef __builtin_va_list va_list;
- 
--static void printc(char **out, u32 *out_len, char ch)
-+static void printc(char **out, u32 *out_len, char ch, int flags)
- {
- 	if (!out) {
- 		sbi_putc(ch);
-@@ -142,8 +143,14 @@ static void printc(char **out, u32 *out_len, char ch)
- 	if (!out_len || *out_len > 1) {
- 		*(*out)++ = ch;
- 		**out = '\0';
--		if (out_len)
-+		if (out_len) {
- 			--(*out_len);
-+			if ((flags & USE_TBUF) && *out_len == 1) {
-+				nputs_all(console_tbuf, CONSOLE_TBUF_MAX - *out_len);
-+				*out = console_tbuf;
-+				*out_len = CONSOLE_TBUF_MAX;
-+			}
-+		}
- 	}
- }
- 
-@@ -154,16 +161,16 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
- 	width -= sbi_strlen(string);
- 	if (!(flags & PAD_RIGHT)) {
- 		for (; width > 0; --width) {
--			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
-+			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ', flags);
- 			++pc;
- 		}
- 	}
- 	for (; *string; ++string) {
--		printc(out, out_len, *string);
-+		printc(out, out_len, *string, flags);
- 		++pc;
- 	}
- 	for (; width > 0; --width) {
--		printc(out, out_len, ' ');
-+		printc(out, out_len, ' ', flags);
- 		++pc;
- 	}
- 
-@@ -215,18 +222,18 @@ static int printi(char **out, u32 *out_len, long long i,
- 
- 	if (flags & PAD_ZERO) {
- 		if (sign) {
--			printc(out, out_len, sign);
-+			printc(out, out_len, sign, flags);
- 			++pc;
- 			--width;
- 		}
- 		if (i && (flags & PAD_ALTERNATE)) {
- 			if (b == 16 || b == 8) {
--				printc(out, out_len, '0');
-+				printc(out, out_len, '0', flags);
- 				++pc;
- 				--width;
+@@ -327,7 +327,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 					     width, flags, *format);
+ 				continue;
  			}
- 			if (b == 16) {
--				printc(out, out_len, 'x' - 'a' + letbase);
-+				printc(out, out_len, 'x' - 'a' + letbase, flags);
- 				++pc;
- 				--width;
- 			}
-@@ -265,15 +272,11 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 	}
- 
- 	for (; *format != 0; ++format) {
--		if (use_tbuf && !console_tbuf_len) {
--			nputs_all(console_tbuf, CONSOLE_TBUF_MAX);
--			console_tbuf_len = CONSOLE_TBUF_MAX;
--			tout = console_tbuf;
--		}
--
-+		width = flags = 0;
-+		if (use_tbuf)
-+			flags |= USE_TBUF;
- 		if (*format == '%') {
- 			++format;
--			width = flags = 0;
- 			if (*format == '\0')
- 				break;
- 			if (*format == '%')
-@@ -371,7 +374,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 			}
- 		} else {
- literal:
--			printc(out, out_len, *format);
-+			printc(out, out_len, *format, flags);
- 			++pc;
- 		}
- 	}
+-			if ((*format == 'u') || (*format == 'x') || (*format == 'X')) {
++			if ((*format == 'u') || (*format == 'o')
++					 || (*format == 'x') || (*format == 'X')) {
+ 				pc += printi(out, out_len, va_arg(args, unsigned int),
+ 					     width, flags, *format);
+ 				continue;
+@@ -341,7 +342,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 				type = 'i';
+ 				if (format[1] == 'l') {
+ 					++format;
+-					if ((format[1] == 'u')
++					if ((format[1] == 'u') || (format[1] == 'o')
+ 							|| (format[1] == 'd') || (format[1] == 'i')
+ 							|| (format[1] == 'x') || (format[1] == 'X')) {
+ 						++format;
+@@ -351,7 +352,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 						width, flags, type);
+ 					continue;
+ 				}
+-				if ((format[1] == 'u')
++				if ((format[1] == 'u') || (format[1] == 'o')
+ 						|| (format[1] == 'd') || (format[1] == 'i')
+ 						|| (format[1] == 'x') || (format[1] == 'X')) {
+ 					++format;
 -- 
 2.40.1
 
