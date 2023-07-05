@@ -1,48 +1,62 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 5 Jul 2023 11:14:23 +0530
-Subject: [PATCH v7 11/11] lib: sbi: Fix missing '\0' when buffer szie
- equal 1
-In-Reply-To: <20230704131316.466246-1-wxjstz@126.com>
-References: <20230704131208.465914-1-wxjstz@126.com> <20230704131316.466246-1-wxjstz@126.com>
-Message-ID: <CAAhSdy0ZhdxofU3C-dbYU2xivqc-YhrG4oT2VDoHfsJoF-LVMg@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Wed,  5 Jul 2023 12:15:15 +0530
+Subject: [PATCH] lib: utils: Fix sbi_hartid_to_scratch() usage in ACLINT drivers
+Message-ID: <20230705064515.1007478-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 4, 2023 at 6:43?PM Xiang W <wxjstz@126.com> wrote:
->
-> Fix special case: sbi_snprintf(out, out_len, ...) when out_len equal
-> 1, The previous code will not fill the buffer with any char.
+The cold_init() functions of ACLINT drivers should skip the HART
+is sbi_hartid_to_scratch() returns NULL because we might be dealing
+with a HART that is disabled in the device tree.
 
-I don't understand why this special case is needed.
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ lib/utils/ipi/aclint_mswi.c     | 7 ++++++-
+ lib/utils/timer/aclint_mtimer.c | 7 ++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-Regards,
-Anup
+diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
+index f47b3bc..140a49b 100644
+--- a/lib/utils/ipi/aclint_mswi.c
++++ b/lib/utils/ipi/aclint_mswi.c
+@@ -101,8 +101,13 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
+ 	/* Update MSWI pointer in scratch space */
+ 	for (i = 0; i < mswi->hart_count; i++) {
+ 		scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
++		/*
++		 * We don't need to fail if scratch pointer is not available
++		 * because we might be dealing with hartid of a HART disabled
++		 * in the device tree.
++		 */
+ 		if (!scratch)
+-			return SBI_ENOENT;
++			continue;
+ 		mswi_set_hart_data_ptr(scratch, mswi);
+ 	}
+ 
+diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+index 13af5d8..271e625 100644
+--- a/lib/utils/timer/aclint_mtimer.c
++++ b/lib/utils/timer/aclint_mtimer.c
+@@ -219,8 +219,13 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+ 	/* Update MTIMER pointer in scratch space */
+ 	for (i = 0; i < mt->hart_count; i++) {
+ 		scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
++		/*
++		 * We don't need to fail if scratch pointer is not available
++		 * because we might be dealing with hartid of a HART disabled
++		 * in the device tree.
++		 */
+ 		if (!scratch)
+-			return SBI_ENOENT;
++			continue;
+ 		mtimer_set_hart_data_ptr(scratch, mt);
+ 	}
+ 
+-- 
+2.34.1
 
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  lib/sbi/sbi_console.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 50af405..4f7c4ca 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -271,6 +271,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->                 out_len = &console_tbuf_len;
->         }
->
-> +       /* handle special case: *out_len == 1*/
-> +       if (out)
-> +               **out = '\0';
-> +
->         for (; *format != 0; ++format) {
->                 width = flags = 0;
->                 if (use_tbuf)
-> --
-> 2.40.1
->
 
