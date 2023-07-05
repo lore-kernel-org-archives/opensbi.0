@@ -1,56 +1,91 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  5 Jul 2023 22:36:58 +0800
-Subject: [PATCH v8 06/11] lib: sbi: print add 'o' type
-In-Reply-To: <20230705143703.635254-1-wxjstz@126.com>
-References: <20230705143703.635254-1-wxjstz@126.com>
-Message-ID: <20230705143703.635254-7-wxjstz@126.com>
+Date: Wed, 05 Jul 2023 22:46:56 +0800
+Subject: [PATCH 3/4] lib: sbi: Alphabetically sort HART ISA extensions
+In-Reply-To: <20230705115805.1054915-4-apatel@ventanamicro.com>
+References: <20230705115805.1054915-1-apatel@ventanamicro.com>
+	 <20230705115805.1054915-4-apatel@ventanamicro.com>
+Message-ID: <79fa91cbcc080ac916792b2742821bdf8251579f.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add o type for print to print octal numbers
+? 2023-07-05???? 17:28 +0530?Anup Patel???
+> Let us follow alphabetical order for HART ISA extension so that
+> it is simpler to maintain.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Look good to me.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- lib/sbi/sbi_console.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+Reviewed-by: Xiang W <wxjstz@126.com>
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 7dd023f..2a43e16 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -327,7 +327,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 					     width, flags, *format);
- 				continue;
- 			}
--			if ((*format == 'u') || (*format == 'x') || (*format == 'X')) {
-+			if ((*format == 'u') || (*format == 'o')
-+					 || (*format == 'x') || (*format == 'X')) {
- 				pc += printi(out, out_len, va_arg(args, unsigned int),
- 					     width, flags, *format);
- 				continue;
-@@ -341,7 +342,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 				type = 'i';
- 				if (format[1] == 'l') {
- 					++format;
--					if ((format[1] == 'u')
-+					if ((format[1] == 'u') || (format[1] == 'o')
- 							|| (format[1] == 'd') || (format[1] == 'i')
- 							|| (format[1] == 'x') || (format[1] == 'X')) {
- 						++format;
-@@ -351,7 +352,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 						width, flags, type);
- 					continue;
- 				}
--				if ((format[1] == 'u')
-+				if ((format[1] == 'u') || (format[1] == 'o')
- 						|| (format[1] == 'd') || (format[1] == 'i')
- 						|| (format[1] == 'x') || (format[1] == 'X')) {
- 					++format;
--- 
-2.40.1
-
+> ---
+> ?include/sbi/sbi_hart.h | 10 +++++-----
+> ?lib/sbi/sbi_hart.c???? | 16 ++++++++--------
+> ?2 files changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 938248f..b97f78c 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -26,16 +26,16 @@ enum sbi_hart_priv_versions {
+> ?
+> ?/** Possible ISA extensions of a hart */
+> ?enum sbi_hart_extensions {
+> -???????/** Hart has Sscofpmt extension */
+> -???????SBI_HART_EXT_SSCOFPMF = 0,
+> -???????/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> -???????SBI_HART_EXT_ZICNTR,
+> ????????/** HART has AIA M-mode CSRs */
+> -???????SBI_HART_EXT_SMAIA,
+> +???????SBI_HART_EXT_SMAIA = 0,
+> ????????/** HART has Smstateen CSR **/
+> ????????SBI_HART_EXT_SMSTATEEN,
+> +???????/** Hart has Sscofpmt extension */
+> +???????SBI_HART_EXT_SSCOFPMF,
+> ????????/** HART has Sstc extension */
+> ????????SBI_HART_EXT_SSTC,
+> +???????/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> +???????SBI_HART_EXT_ZICNTR,
+> ????????/** HART has Zihpm extension */
+> ????????SBI_HART_EXT_ZIHPM,
+> ?
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 435771c..380e615 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -438,20 +438,20 @@ static inline char *sbi_hart_extension_id2string(int ext)
+> ????????char *estr = NULL;
+> ?
+> ????????switch (ext) {
+> -???????case SBI_HART_EXT_SSCOFPMF:
+> -???????????????estr = "sscofpmf";
+> -???????????????break;
+> -???????case SBI_HART_EXT_ZICNTR:
+> -???????????????estr = "zicntr";
+> -???????????????break;
+> ????????case SBI_HART_EXT_SMAIA:
+> ????????????????estr = "smaia";
+> ????????????????break;
+> +???????case SBI_HART_EXT_SMSTATEEN:
+> +???????????????estr = "smstateen";
+> +???????????????break;
+> +???????case SBI_HART_EXT_SSCOFPMF:
+> +???????????????estr = "sscofpmf";
+> +???????????????break;
+> ????????case SBI_HART_EXT_SSTC:
+> ????????????????estr = "sstc";
+> ????????????????break;
+> -???????case SBI_HART_EXT_SMSTATEEN:
+> -???????????????estr = "smstateen";
+> +???????case SBI_HART_EXT_ZICNTR:
+> +???????????????estr = "zicntr";
+> ????????????????break;
+> ????????case SBI_HART_EXT_ZIHPM:
+> ????????????????estr = "zihpm";
+> -- 
+> 2.34.1
+> 
+> 
 
