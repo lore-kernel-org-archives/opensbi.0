@@ -1,76 +1,88 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed,  5 Jul 2023 22:36:59 +0800
-Subject: [PATCH v8 07/11] lib: sbi: Fix printi
+Date: Wed,  5 Jul 2023 22:36:55 +0800
+Subject: [PATCH v8 03/11] lib: sbi: Add '+' flags for print
 In-Reply-To: <20230705143703.635254-1-wxjstz@126.com>
 References: <20230705143703.635254-1-wxjstz@126.com>
-Message-ID: <20230705143703.635254-8-wxjstz@126.com>
+Message-ID: <20230705143703.635254-4-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix two bug:
-> printf("%#08x", 0x123); /* print 0000x123 */
-> printf("%#x", 0); /* print 0x0 */
+Adds + flags for print, prefixing positive numbers with + when this
+flags is present
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_console.c | 36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ lib/sbi/sbi_console.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 2a43e16..963d19f 100644
+index 03ee05a..6ebdc44 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -227,23 +227,33 @@ static int printi(char **out, u32 *out_len, long long i,
- 		}
+@@ -120,6 +120,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
+ #define PAD_RIGHT 1
+ #define PAD_ZERO 2
+ #define PAD_ALTERNATE 4
++#define PAD_SIGN 8
+ #define PRINT_BUF_LEN 64
+ 
+ #define va_start(v, l) __builtin_va_start((v), l)
+@@ -186,15 +187,18 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+ 		  int width, int flags, int letbase)
+ {
+-	char print_buf[PRINT_BUF_LEN];
+-	char *s;
+-	int neg = 0, pc = 0;
++	char *s, sign, print_buf[PRINT_BUF_LEN];
++	int pc = 0;
+ 	u64 t;
+ 	unsigned long long u = i;
+ 
+-	if (sg && b == 10 && i < 0) {
+-		neg = 1;
+-		u   = -i;
++	if (sg && b == 10) {
++		if ((flags & PAD_SIGN) && i > 0)
++			sign = '+';
++		if (i < 0) {
++			sign = '-';
++			u = -i;
++		}
  	}
  
--	if (flags & PAD_ALTERNATE) {
--		if ((b == 16) && (letbase == 'A')) {
--			*--s = 'X';
--		} else if ((b == 16) && (letbase == 'a')) {
--			*--s = 'x';
--		}
--		*--s = '0';
--	}
--
--	if (sign) {
--		if (width && (flags & PAD_ZERO)) {
-+	if (flags & PAD_ZERO) {
-+		if (sign) {
- 			printc(out, out_len, sign);
+ 	s  = print_buf + PRINT_BUF_LEN - 1;
+@@ -221,13 +225,13 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+ 		*--s = '0';
+ 	}
+ 
+-	if (neg) {
++	if (sign) {
+ 		if (width && (flags & PAD_ZERO)) {
+-			printc(out, out_len, '-');
++			printc(out, out_len, sign);
  			++pc;
  			--width;
--		} else {
--			*--s = sign;
- 		}
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16 || b == 8) {
-+				printc(out, out_len, '0');
-+				++pc;
-+				--width;
-+			}
-+			if (b == 16) {
-+				printc(out, out_len, 'x' - 'a' + letbase);
-+				++pc;
-+				--width;
-+			}
-+		}
-+	} else {
-+		if (i && (flags & PAD_ALTERNATE)) {
-+			if (b == 16)
-+				*--s = 'x' - 'a' + letbase;
-+			if (b == 16 || b == 8)
-+				*--s = '0';
-+		}
-+		if (sign)
+ 		} else {
+-			*--s = '-';
 +			*--s = sign;
+ 		}
  	}
  
- 	return pc + prints(out, out_len, s, width, flags);
+@@ -275,6 +279,9 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 				case '-':
+ 					flags |= PAD_RIGHT;
+ 					break;
++				case '+':
++					flags |= PAD_SIGN;
++					break;
+ 				case '#':
+ 					flags |= PAD_ALTERNATE;
+ 					break;
 -- 
 2.40.1
 
