@@ -1,11 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 6 Jul 2023 17:29:47 +0530
-Subject: [PATCH v2 5/8] lib: utils: Add detection of Smepmp from ISA
- string in FDT
-In-Reply-To: <20230706104928.3391947-6-hchauhan@ventanamicro.com>
+Date: Thu, 6 Jul 2023 17:31:49 +0530
+Subject: [PATCH v2 7/8] lib: sbi: Add functions to map/unmap shared memory
+In-Reply-To: <20230706104928.3391947-8-hchauhan@ventanamicro.com>
 References: <20230620143212.2701598-1-hchauhan@ventanamicro.com>
- <20230706104928.3391947-1-hchauhan@ventanamicro.com> <20230706104928.3391947-6-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy1o0Vp6-WRZenpcM+wTyDL=7VmnUompxR_hLqGdp-9ecg@mail.gmail.com>
+ <20230706104928.3391947-1-hchauhan@ventanamicro.com> <20230706104928.3391947-8-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy3ZLgUhmscd-HvV2xVB9zQcQCKZ2Njg8njPNd5UXdu=jA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,8 +14,9 @@ Content-Transfer-Encoding: 7bit
 On Thu, Jul 6, 2023 at 4:19?PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> - Add function to parse ISA string in FDT.
-> - Set Smepmp feature bit in extensions if "smepmp" string is found in ISA string.
+> When Smepmp is enabled, M-mode will need to map/unmap the
+> shared memory before it can read/write to it. This patch
+> adds functions to create dynamic short-lived mappings.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
@@ -28,174 +28,76 @@ Regards,
 Anup
 
 > ---
->  include/sbi_utils/fdt/fdt_helper.h |   3 +
->  lib/utils/fdt/fdt_helper.c         | 111 +++++++++++++++++++++++++++++
->  platform/generic/platform.c        |   9 +++
->  3 files changed, 123 insertions(+)
+>  include/sbi/sbi_hart.h |  2 ++
+>  lib/sbi/sbi_hart.c     | 42 ++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 44 insertions(+)
 >
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 39d7f3a..5c928ff 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -56,6 +56,9 @@ int fdt_parse_max_enabled_hart_id(void *fdt, u32 *max_hartid);
->
->  int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq);
->
-> +int fdt_parse_isa_extensions(void *fdt, unsigned int hard_id,
-> +                            unsigned long *extensions);
-> +
->  int fdt_parse_gaisler_uart_node(void *fdt, int nodeoffset,
->                                 struct platform_uart_data *uart);
->
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index a88a4ba..61a4100 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -12,6 +12,7 @@
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi/sbi_platform.h>
->  #include <sbi/sbi_scratch.h>
-> +#include <sbi/sbi_hart.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/irqchip/aplic.h>
->  #include <sbi_utils/irqchip/imsic.h>
-> @@ -313,6 +314,116 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
->         return 0;
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index fb5bb59..975966d 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -88,6 +88,8 @@ unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
+>  unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+>  unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
+> +int sbi_hart_map_saddr(unsigned long base, unsigned long size);
+> +int sbi_hart_unmap_saddr(void);
+>  int sbi_hart_priv_version(struct sbi_scratch *scratch);
+>  void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
+>                                    char *version_str, int nvstr);
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 5d91718..936dbda 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -347,6 +347,48 @@ unsigned int sbi_hart_get_smepmp_flags(struct sbi_scratch *scratch,
+>         return pmp_flags;
 >  }
 >
-> +static int fdt_get_isa_string(void *fdt, unsigned int hartid,
-> +                       const char **isa_string)
+> +int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
 > +{
-> +       int err, cpu_offset, cpus_offset, len;
-> +       u32 c_hartid;
-> +       const fdt32_t *val;
+> +       /* shared R/W access for M and S/U mode */
+> +       unsigned int pmp_flags = (PMP_W | PMP_X);
+> +       unsigned long order, base = 0;
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 > +
-> +       if (!fdt)
-> +               return SBI_EINVAL;
+> +       /* If Smepmp is not supported no special mapping is required */
+> +       if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+> +               return SBI_OK;
 > +
-> +       cpus_offset = fdt_path_offset(fdt, "/cpus");
-> +       if (cpus_offset < 0)
-> +               return cpus_offset;
+> +       if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
+> +               return SBI_ENOSPC;
 > +
-> +       fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-> +               err = fdt_parse_hart_id(fdt, cpu_offset, &c_hartid);
-> +               if (err)
-> +                       continue;
-> +
-> +               if (!fdt_node_is_enabled(fdt, cpu_offset))
-> +                       continue;
-> +
-> +               if (c_hartid == hartid) {
-> +                       val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-> +                       if (val && len > 0) {
-> +                               *isa_string = (const char *)val;
-> +                               return 0;
-> +                       }
+> +       for (order = log2roundup(size) ; order <= __riscv_xlen; order++) {
+> +               if (order < __riscv_xlen) {
+> +                       base = addr & ~((1UL << order) - 1UL);
+> +                       if ((base <= addr) &&
+> +                           (addr < (base + (1UL << order))) &&
+> +                           (base <= (addr + size - 1UL)) &&
+> +                           ((addr + size - 1UL) < (base + (1UL << order))))
+> +                               break;
+> +               } else {
+> +                       return SBI_EFAIL;
 > +               }
 > +       }
 > +
-> +       return SBI_EINVAL;
+> +       pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
+> +
+> +       return SBI_OK;
 > +}
 > +
-> +#define RISCV_ISA_EXT_NAME_LEN_MAX     32
-> +
-> +int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
-> +                       unsigned long *extensions)
+> +int sbi_hart_unmap_saddr(void)
 > +{
-> +       size_t i, j, isa_len;
-> +       char mstr[RISCV_ISA_EXT_NAME_LEN_MAX];
-> +       const char *isa = NULL;
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 > +
-> +       if (fdt_get_isa_string(fdt, hartid, &isa))
-> +               return SBI_EINVAL;
+> +       if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+> +               return SBI_OK;
 > +
-> +       if (!isa)
-> +               return SBI_EINVAL;
-> +
-> +       i = 0;
-> +       isa_len = strlen(isa);
-> +
-> +       if (isa[i] == 'r' || isa[i] == 'R')
-> +               i++;
-> +       else
-> +               return SBI_EINVAL;
-> +
-> +       if (isa[i] == 'v' || isa[i] == 'V')
-> +               i++;
-> +       else
-> +               return SBI_EINVAL;
-> +
-> +       if (isa[i] == '3' || isa[i+1] == '2')
-> +               i += 2;
-> +       else if (isa[i] == '6' || isa[i+1] == '4')
-> +               i += 2;
-> +       else
-> +               return SBI_EINVAL;
-> +
-> +       /* Skip base ISA extensions */
-> +       for (; i < isa_len; i++) {
-> +               if (isa[i] == '_')
-> +                       break;
-> +       }
-> +
-> +       while (i < isa_len) {
-> +               if (isa[i] != '_') {
-> +                       i++;
-> +                       continue;
-> +               }
-> +
-> +               /* Skip the '_' character */
-> +               i++;
-> +
-> +               /* Extract the multi-letter extension name */
-> +               j = 0;
-> +               while ((i < isa_len) && (isa[i] != '_') &&
-> +                      (j < (sizeof(mstr) - 1)))
-> +                       mstr[j++] = isa[i++];
-> +               mstr[j] = '\0';
-> +
-> +               /* Skip empty multi-letter extension name */
-> +               if (!j)
-> +                       continue;
-> +
-> +#define SET_ISA_EXT_MAP(name, bit)                             \
-> +               do {                                            \
-> +                       if (!strcmp(mstr, name)) {              \
-> +                               __set_bit(bit, extensions);     \
-> +                               continue;                       \
-> +                       }                                       \
-> +               } while (false)                                 \
-> +
-> +               SET_ISA_EXT_MAP("smepmp", SBI_HART_EXT_SMEPMP);
-> +#undef SET_ISA_EXT_MAP
-> +       }
-> +
-> +       return 0;
+> +       return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
 > +}
 > +
->  static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
->                                       struct platform_uart_data *uart,
->                                       unsigned long default_freq,
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 86811e6..34b87f7 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -211,6 +211,15 @@ static void generic_final_exit(void)
->
->  static int generic_extensions_init(struct sbi_hart_features *hfeatures)
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
 >  {
-> +       int rc;
-> +
-> +       /* Parse the ISA string from FDT and enable the listed extensions */
-> +       rc = fdt_parse_isa_extensions(fdt_get_address(), current_hartid(),
-> +                                     &hfeatures->extensions);
-> +
-> +       if (rc)
-> +               return rc;
-> +
->         if (generic_plat && generic_plat->extensions_init)
->                 return generic_plat->extensions_init(generic_plat_match,
->                                                      hfeatures);
+>         struct sbi_domain_memregion *reg;
 > --
 > 2.34.1
 >
