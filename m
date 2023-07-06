@@ -1,66 +1,55 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 6 Jul 2023 11:08:18 +0530
-Subject: [PATCH v8 11/11] lib: sbi: Fix missing '\0' when buffer szie
- equal 1
-In-Reply-To: <20230705143754.635428-1-wxjstz@126.com>
-References: <20230705143703.635254-1-wxjstz@126.com> <20230705143754.635428-1-wxjstz@126.com>
-Message-ID: <CAAhSdy2QOcjukWmQiCxWTJsJK6g_WS_MYz8GvUqT2q9Q639MLw@mail.gmail.com>
+Date: Thu, 6 Jul 2023 11:37:57 +0530
+Subject: [PATCH] lib: sbi: Fix Priv spec version for [m|s]counter CSR
+In-Reply-To: <20230706030350.2970803-1-leyfoon.tan@starfivetech.com>
+References: <20230706030350.2970803-1-leyfoon.tan@starfivetech.com>
+Message-ID: <CAAhSdy3hGXW3eD0zZ6EMR_SrFUhq0WVt3e2YS_ZxCgRMPT==vA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 5, 2023 at 8:08?PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Jul 6, 2023 at 8:35?AM Ley Foon Tan
+<leyfoon.tan@starfivetech.com> wrote:
 >
-> Fix special case: sbi_snprintf(out, out_len, ...) when out_len equal
-> 1, The previous code will not fill the buffer with any char.
+> Fix Priv spec version typo in commit d4b563c881d6 ("lib: sbi: Remove MCOUNTEREN
+> and SCOUNTEREN hart features"). It should be v1.10.
+>
+> Fixes: d4b563c881d6 ("lib: sbi: Remove MCOUNTEREN and SCOUNTEREN hart features")
+> Signed-off-by: Ley Foon Tan <leyfoon.tan@starfivetech.com>
+> ---
+>  lib/sbi/sbi_hart.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 6e52cbd..62e7a4b 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -664,7 +664,7 @@ __mhpm_skip:
+>                 hfeatures->priv_version = SBI_HART_PRIV_VER_1_12;
+>
+>         /* Counter overflow/filtering is not useful without mcounter/inhibit */
+> -       if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
+> +       if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_10) {
 
-I would rather do something like below in printc(...)
+There is no mcountinhibit CSR in Priv v1.10 so this does not align with
+the comment.
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 168dffd..e0ecb41 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -138,10 +138,10 @@ static void printc(char **out, u32 *out_len, char ch)
-      * The *printf entry point functions have enforced that (*out) can
-      * only be null when out_len is non-null and its value is zero.
-      */
--    if (!out_len || *out_len > 1) {
-+    if (!out_len || *out_len)
-         *(*out)++ = ch;
-+    if (!out_len || *out_len > 1)
-         **out = '\0';
--    }
+The Priv version has to be at least v1.11 and nothing less.
 
-     if (out_len && *out_len > 0)
-         --(*out_len);
+>                 /* Detect if hart supports sscofpmf */
+>                 csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
+>                 if (!trap.cause)
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
 Anup
-
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  lib/sbi/sbi_console.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 00feec8..0703d4a 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -271,6 +271,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->                 out_len = &console_tbuf_len;
->         }
->
-> +       /* handle special case: *out_len == 1*/
-> +       if (out)
-> +               **out = '\0';
-> +
->         for (; *format != 0; ++format) {
->                 width = flags = 0;
->                 if (use_tbuf)
-> --
-> 2.40.1
->
 
