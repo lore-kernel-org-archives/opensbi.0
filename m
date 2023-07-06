@@ -1,71 +1,69 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Thu, 6 Jul 2023 16:47:12 +0530
-Subject: [PATCH v8 06/11] lib: sbi: print add 'o' type
-In-Reply-To: <20230705143703.635254-7-wxjstz@126.com>
-References: <20230705143703.635254-1-wxjstz@126.com>
- <20230705143703.635254-7-wxjstz@126.com>
-Message-ID: <2766a679-587d-d44a-a1e1-bbb745adeb59@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 6 Jul 2023 17:28:48 +0530
+Subject: [PATCH v2 4/8] lib: sbi: Add smepmp in hart extensions
+In-Reply-To: <20230706104928.3391947-5-hchauhan@ventanamicro.com>
+References: <20230620143212.2701598-1-hchauhan@ventanamicro.com>
+ <20230706104928.3391947-1-hchauhan@ventanamicro.com> <20230706104928.3391947-5-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy0_k=XVkxj=fs+Ef7SxA2z1w4Jup6HXHP7Az2HiOzhDYw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Xiang,
-
-On 05/07/23 8:06 pm, Xiang W wrote:
-> Add o type for print to print octal numbers
+On Thu, Jul 6, 2023 at 4:19?PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> - Add Smepmp as extension in sbi_hart_extensions enum
+> - Return "smepmp" string for Smepmp extension from sbi_hart_extension_id2string
+>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
->   lib/sbi/sbi_console.c | 7 ++++---
->   1 file changed, 4 insertions(+), 3 deletions(-)
+>  include/sbi/sbi_hart.h | 2 ++
+>  lib/sbi/sbi_hart.c     | 3 +++
+>  2 files changed, 5 insertions(+)
 >
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 7dd023f..2a43e16 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -327,7 +327,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->   					     width, flags, *format);
->   				continue;
->   			}
-> -			if ((*format == 'u') || (*format == 'x') || (*format == 'X')) {
-> +			if ((*format == 'u') || (*format == 'o')
-> +					 || (*format == 'x') || (*format == 'X')) {
->   				pc += printi(out, out_len, va_arg(args, unsigned int),
->   					     width, flags, *format);
->   				continue;
-> @@ -341,7 +342,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->   				type = 'i';
->   				if (format[1] == 'l') {
->   					++format;
-> -					if ((format[1] == 'u')
-> +					if ((format[1] == 'u') || (format[1] == 'o')
->   							|| (format[1] == 'd') || (format[1] == 'i')
->   							|| (format[1] == 'x') || (format[1] == 'X')) {
-
-With %ld format, I have seen than 'd' is printed as it is. Can you take 
-care of that in this patch?
-
-Regards
-
-Himanshu
-
-
->   						++format;
-> @@ -351,7 +352,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->   						width, flags, type);
->   					continue;
->   				}
-> -				if ((format[1] == 'u')
-> +				if ((format[1] == 'u') || (format[1] == 'o')
->   						|| (format[1] == 'd') || (format[1] == 'i')
->   						|| (format[1] == 'x') || (format[1] == 'X')) {
->   					++format;
-
--- 
-Thanks & Regards
-Himanshu
-
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 95b40e7..9957565 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
+>         SBI_HART_EXT_SMSTATEEN,
+>         /** HART has Sstc extension */
+>         SBI_HART_EXT_SSTC,
+> +       /** HART has Smepmp */
+> +       SBI_HART_EXT_SMEPMP,
+>
+>         /** Maximum index of Hart extension */
+>         SBI_HART_EXT_MAX,
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 6e52cbd..7b9d5dc 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
+>         case SBI_HART_EXT_SMSTATEEN:
+>                 estr = "smstateen";
+>                 break;
+> +       case SBI_HART_EXT_SMEPMP:
+> +               estr = "smepmp";
+> +               break;
+>         default:
+>                 break;
+>         }
+> --
+> 2.34.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
