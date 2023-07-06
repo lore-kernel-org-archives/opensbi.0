@@ -1,84 +1,34 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 6 Jul 2023 09:39:51 +0530
-Subject: [PATCH 2/4] lib: sbi: Add Zihpm as a HART ISA extension
-In-Reply-To: <aa357f146ed1696c3bf9387c1565da8c20ada11f.camel@126.com>
-References: <20230705115805.1054915-1-apatel@ventanamicro.com>
- <20230705115805.1054915-3-apatel@ventanamicro.com> <aa357f146ed1696c3bf9387c1565da8c20ada11f.camel@126.com>
-Message-ID: <CAK9=C2XSCospJ4XTK_OprhmGzet8O+XncYKKdiafN5aj9n6M=w@mail.gmail.com>
+Date: Thu,  6 Jul 2023 09:45:38 +0530
+Subject: [PATCH v2 0/4] Misc OpenSBI HART ISA extension improvements
+Message-ID: <20230706041542.1069059-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 5, 2023 at 8:36?PM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2023-07-05???? 17:28 +0530?Anup Patel???
-> > Recently ratified Zihpm ISA extension covers all [m]hpm* CSRs
-> > so we add Zihpm as a HART ISA extension in OpenSBI.
-> >
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > ---
-> >  include/sbi/sbi_hart.h | 2 ++
-> >  lib/sbi/sbi_hart.c     | 6 ++++++
-> >  2 files changed, 8 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> > index d48940d..938248f 100644
-> > --- a/include/sbi/sbi_hart.h
-> > +++ b/include/sbi/sbi_hart.h
-> > @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
-> >         SBI_HART_EXT_SMSTATEEN,
-> >         /** HART has Sstc extension */
-> >         SBI_HART_EXT_SSTC,
-> > +       /** HART has Zihpm extension */
-> > +       SBI_HART_EXT_ZIHPM,
-> >
-> >         /** Maximum index of Hart extension */
-> >         SBI_HART_EXT_MAX,
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index c470482..435771c 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
-> >         case SBI_HART_EXT_SMSTATEEN:
-> >                 estr = "smstateen";
-> >                 break;
-> > +       case SBI_HART_EXT_ZIHPM:
-> > +               estr = "zihpm";
-> > +               break;
-> >         default:
-> >                 break;
-> >         }
-> > @@ -637,6 +640,9 @@ __pmp_skip:
-> >          */
-> >
-> >  __mhpm_skip:
-> > +       if (hfeatures->mhpm_count)
-> > +               __sbi_hart_update_extension(hfeatures,
-> > +                                       SBI_HART_EXT_ZIHPM, true);
-> allwinner D1 sets mhpm_count in sbi_platform_extensions_init. We should
-> call __sbi_hart_update_extension again in the code of D1.
+This series does assorted improvements to OpenSBI HART ISA extensions.
 
-Ahh, yes. I forgot about D1. Good catch.
+These patches can also be found in zicntr_zihpm_v2 branch at:
+https://github.com/avpatel/opensbi.git
 
-We should set SBI_HART_EXT_ZIHPM in hart_detect_features()
-after calling sbi_platform_extensions_init().
+Changes since v1:
+ - Updated PATCH2 to set set SBI_HART_EXT_ZIHPM in hart_detect_features()
+   after calling sbi_platform_extensions_init().
 
-I will update this in v2.
+Anup Patel (4):
+  lib: sbi: Add Zicntr as a HART ISA extension
+  lib: sbi: Add Zihpm as a HART ISA extension
+  lib: sbi: Alphabetically sort HART ISA extensions
+  lib: sbi: Rename hart_pmu_get_allowed_bits() function
 
-Regards,
-Anup
+ include/sbi/sbi_hart.h | 12 +++++++-----
+ lib/sbi/sbi_hart.c     | 30 +++++++++++++++++++-----------
+ lib/sbi/sbi_timer.c    |  2 +-
+ 3 files changed, 27 insertions(+), 17 deletions(-)
 
->
-> Regards,
-> Xiang W
-> >
-> >  #undef __check_csr_64
-> >  #undef __check_csr_32
-> > --
-> > 2.34.1
-> >
-> >
->
+-- 
+2.34.1
+
 
