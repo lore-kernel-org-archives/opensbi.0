@@ -1,81 +1,56 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 06 Jul 2023 14:50:05 +0800
-Subject: [PATCH v8 11/11] lib: sbi: Fix missing '\0' when buffer szie
- equal 1
-In-Reply-To: <CAAhSdy2QOcjukWmQiCxWTJsJK6g_WS_MYz8GvUqT2q9Q639MLw@mail.gmail.com>
-References: <20230705143703.635254-1-wxjstz@126.com>
-	 <20230705143754.635428-1-wxjstz@126.com>
-	 <CAAhSdy2QOcjukWmQiCxWTJsJK6g_WS_MYz8GvUqT2q9Q639MLw@mail.gmail.com>
-Message-ID: <7b0e5009891f6b11e36b9471a0e25a4b417175b9.camel@126.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Thu,  6 Jul 2023 16:19:20 +0530
+Subject: [PATCH v2 0/8] Add support for Smepmp
+In-Reply-To: <20230620143212.2701598-1-hchauhan@ventanamicro.com>
+References: <20230620143212.2701598-1-hchauhan@ventanamicro.com>
+Message-ID: <20230706104928.3391947-1-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-07-06???? 11:08 +0530?Anup Patel???
-> On Wed, Jul 5, 2023 at 8:08?PM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > Fix special case: sbi_snprintf(out, out_len, ...) when out_len equal
-> > 1, The previous code will not fill the buffer with any char.
-> 
-> I would rather do something like below in printc(...)
-> 
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 168dffd..e0ecb41 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -138,10 +138,10 @@ static void printc(char **out, u32 *out_len, char ch)
-> ????? * The *printf entry point functions have enforced that (*out) can
-> ????? * only be null when out_len is non-null and its value is zero.
-> ????? */
-> -??? if (!out_len || *out_len > 1) {
-> +??? if (!out_len || *out_len)
-> ???????? *(*out)++ = ch;
-> +??? if (!out_len || *out_len > 1)
-> ???????? **out = '\0';
-> -??? }
+This patch series adds support for the Smepmp specification.
+The detection of Smepmp support in platform depends on the
+ISA string present in the FDT. If "smepmp" is present in ISA
+string in FDT, Smepmp is enabled.
 
-When *out_len is equal to 1, that is, when there is not enough buffer to drop
-the formatted string, a string without '\0' will be generated.
+When Smepmp is enabled, the M-mode software's free access
+to S/U memory region is revoked. Hence, all the shared
+memory access between M-mode and S/U-mode must be done
+only after mapping the shared memory.
 
-And when there is a problem with the format in sbi_snprintf, it may not entry
-printc at all. e.g:
-	sbi_printf(out,out_len,"%f",3.14)
+changes in v2:
+* Split into futher patches
+	- FDT ISA string parsing is now separate patch
+	- Map/Unmap functions for shared memory are in different patch
+* Addressed other general comments.
 
-Regards,
-Xiang W
+Himanshu Chauhan (8):
+  include: sbi: Add macro definitions for mseccfg CSR
+  lib: sbi: Add functions to manipulate PMP entries
+  include: sbi: Add Smepmp specific access flags for PMP entries
+  lib: sbi: Add smepmp in hart extensions
+  lib: utils: Add detection of Smepmp from ISA string in FDT
+  lib: sbi: Add support for Smepmp
+  lib: sbi: Add functions to map/unmap shared memory
+  lib: sbi: Map/Unmap debug console shared memory buffers
 
-> 
-> ???? if (out_len && *out_len > 0)
-> ???????? --(*out_len);
-> 
-> Regards,
-> Anup
-> 
-> > 
-> > Signed-off-by: Xiang W <wxjstz@126.com>
-> > ---
-> > ?lib/sbi/sbi_console.c | 4 ++++
-> > ?1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> > index 00feec8..0703d4a 100644
-> > --- a/lib/sbi/sbi_console.c
-> > +++ b/lib/sbi/sbi_console.c
-> > @@ -271,6 +271,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
-> > ??????????????? out_len = &console_tbuf_len;
-> > ??????? }
-> > 
-> > +?????? /* handle special case: *out_len == 1*/
-> > +?????? if (out)
-> > +?????????????? **out = '\0';
-> > +
-> > ??????? for (; *format != 0; ++format) {
-> > ??????????????? width = flags = 0;
-> > ??????????????? if (use_tbuf)
-> > --
-> > 2.40.1
-> > 
+ include/sbi/riscv_asm.h            |   6 +
+ include/sbi/riscv_encoding.h       |  12 ++
+ include/sbi/sbi_domain.h           |  84 +++++++++++++-
+ include/sbi/sbi_hart.h             |  19 ++++
+ include/sbi_utils/fdt/fdt_helper.h |   3 +
+ lib/sbi/riscv_asm.c                |  42 +++++++
+ lib/sbi/sbi_domain.c               |  14 ++-
+ lib/sbi/sbi_ecall_dbcn.c           |   3 +
+ lib/sbi/sbi_hart.c                 | 177 +++++++++++++++++++++++++----
+ lib/sbi/sbi_init.c                 |  22 ++--
+ lib/utils/fdt/fdt_helper.c         | 111 ++++++++++++++++++
+ platform/generic/platform.c        |   9 ++
+ 12 files changed, 464 insertions(+), 38 deletions(-)
+
+-- 
+2.34.1
 
 
