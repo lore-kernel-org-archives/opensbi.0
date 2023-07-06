@@ -1,70 +1,36 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 05 Jul 2023 23:06:21 +0800
-Subject: [PATCH 2/4] lib: sbi: Add Zihpm as a HART ISA extension
-In-Reply-To: <20230705115805.1054915-3-apatel@ventanamicro.com>
-References: <20230705115805.1054915-1-apatel@ventanamicro.com>
-	 <20230705115805.1054915-3-apatel@ventanamicro.com>
-Message-ID: <aa357f146ed1696c3bf9387c1565da8c20ada11f.camel@126.com>
+From: Ley Foon Tan <leyfoon.tan@starfivetech.com>
+Date: Thu, 6 Jul 2023 11:03:50 +0800
+Subject: [PATCH] lib: sbi: Fix Priv spec version for [m|s]counter CSR
+Message-ID: <20230706030350.2970803-1-leyfoon.tan@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-07-05???? 17:28 +0530?Anup Patel???
-> Recently ratified Zihpm ISA extension covers all [m]hpm* CSRs
-> so we add Zihpm as a HART ISA extension in OpenSBI.
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
-> ?include/sbi/sbi_hart.h | 2 ++
-> ?lib/sbi/sbi_hart.c???? | 6 ++++++
-> ?2 files changed, 8 insertions(+)
-> 
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index d48940d..938248f 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
-> ????????SBI_HART_EXT_SMSTATEEN,
-> ????????/** HART has Sstc extension */
-> ????????SBI_HART_EXT_SSTC,
-> +???????/** HART has Zihpm extension */
-> +???????SBI_HART_EXT_ZIHPM,
-> ?
-> ????????/** Maximum index of Hart extension */
-> ????????SBI_HART_EXT_MAX,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index c470482..435771c 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
-> ????????case SBI_HART_EXT_SMSTATEEN:
-> ????????????????estr = "smstateen";
-> ????????????????break;
-> +???????case SBI_HART_EXT_ZIHPM:
-> +???????????????estr = "zihpm";
-> +???????????????break;
-> ????????default:
-> ????????????????break;
-> ????????}
-> @@ -637,6 +640,9 @@ __pmp_skip:
-> ???????? */
-> ?
-> ?__mhpm_skip:
-> +???????if (hfeatures->mhpm_count)
-> +???????????????__sbi_hart_update_extension(hfeatures,
-> +???????????????????????????????????????SBI_HART_EXT_ZIHPM, true);
-allwinner D1 sets mhpm_count in sbi_platform_extensions_init. We should
-call __sbi_hart_update_extension again in the code of D1.
+Fix Priv spec version typo in commit d4b563c881d6 ("lib: sbi: Remove MCOUNTEREN
+and SCOUNTEREN hart features"). It should be v1.10.
 
-Regards,
-Xiang W
-> ?
-> ?#undef __check_csr_64
-> ?#undef __check_csr_32
-> -- 
-> 2.34.1
-> 
-> 
+Fixes: d4b563c881d6 ("lib: sbi: Remove MCOUNTEREN and SCOUNTEREN hart features")
+Signed-off-by: Ley Foon Tan <leyfoon.tan@starfivetech.com>
+---
+ lib/sbi/sbi_hart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6e52cbd..62e7a4b 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -664,7 +664,7 @@ __mhpm_skip:
+ 		hfeatures->priv_version = SBI_HART_PRIV_VER_1_12;
+ 
+ 	/* Counter overflow/filtering is not useful without mcounter/inhibit */
+-	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
++	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_10) {
+ 		/* Detect if hart supports sscofpmf */
+ 		csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
+ 		if (!trap.cause)
+-- 
+2.25.1
+
 
