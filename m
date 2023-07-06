@@ -1,70 +1,84 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 06 Jul 2023 11:19:10 +0800
-Subject: [PATCH] lib: utils: Fix sbi_hartid_to_scratch() usage in ACLINT
- drivers
-In-Reply-To: <20230705064515.1007478-1-apatel@ventanamicro.com>
-References: <20230705064515.1007478-1-apatel@ventanamicro.com>
-Message-ID: <ec7b7c81720264c720fb405290b9a6cb290d5b26.camel@126.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu, 6 Jul 2023 09:39:51 +0530
+Subject: [PATCH 2/4] lib: sbi: Add Zihpm as a HART ISA extension
+In-Reply-To: <aa357f146ed1696c3bf9387c1565da8c20ada11f.camel@126.com>
+References: <20230705115805.1054915-1-apatel@ventanamicro.com>
+ <20230705115805.1054915-3-apatel@ventanamicro.com> <aa357f146ed1696c3bf9387c1565da8c20ada11f.camel@126.com>
+Message-ID: <CAK9=C2XSCospJ4XTK_OprhmGzet8O+XncYKKdiafN5aj9n6M=w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-07-05???? 12:15 +0530?Anup Patel???
-> The cold_init() functions of ACLINT drivers should skip the HART
-> is sbi_hartid_to_scratch() returns NULL because we might be dealing
-> with a HART that is disabled in the device tree.
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Look good to me
+On Wed, Jul 5, 2023 at 8:36?PM Xiang W <wxjstz@126.com> wrote:
+>
+> ? 2023-07-05???? 17:28 +0530?Anup Patel???
+> > Recently ratified Zihpm ISA extension covers all [m]hpm* CSRs
+> > so we add Zihpm as a HART ISA extension in OpenSBI.
+> >
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  include/sbi/sbi_hart.h | 2 ++
+> >  lib/sbi/sbi_hart.c     | 6 ++++++
+> >  2 files changed, 8 insertions(+)
+> >
+> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> > index d48940d..938248f 100644
+> > --- a/include/sbi/sbi_hart.h
+> > +++ b/include/sbi/sbi_hart.h
+> > @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
+> >         SBI_HART_EXT_SMSTATEEN,
+> >         /** HART has Sstc extension */
+> >         SBI_HART_EXT_SSTC,
+> > +       /** HART has Zihpm extension */
+> > +       SBI_HART_EXT_ZIHPM,
+> >
+> >         /** Maximum index of Hart extension */
+> >         SBI_HART_EXT_MAX,
+> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> > index c470482..435771c 100644
+> > --- a/lib/sbi/sbi_hart.c
+> > +++ b/lib/sbi/sbi_hart.c
+> > @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
+> >         case SBI_HART_EXT_SMSTATEEN:
+> >                 estr = "smstateen";
+> >                 break;
+> > +       case SBI_HART_EXT_ZIHPM:
+> > +               estr = "zihpm";
+> > +               break;
+> >         default:
+> >                 break;
+> >         }
+> > @@ -637,6 +640,9 @@ __pmp_skip:
+> >          */
+> >
+> >  __mhpm_skip:
+> > +       if (hfeatures->mhpm_count)
+> > +               __sbi_hart_update_extension(hfeatures,
+> > +                                       SBI_HART_EXT_ZIHPM, true);
+> allwinner D1 sets mhpm_count in sbi_platform_extensions_init. We should
+> call __sbi_hart_update_extension again in the code of D1.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?lib/utils/ipi/aclint_mswi.c???? | 7 ++++++-
-> ?lib/utils/timer/aclint_mtimer.c | 7 ++++++-
-> ?2 files changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-> index f47b3bc..140a49b 100644
-> --- a/lib/utils/ipi/aclint_mswi.c
-> +++ b/lib/utils/ipi/aclint_mswi.c
-> @@ -101,8 +101,13 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
-> ????????/* Update MSWI pointer in scratch space */
-> ????????for (i = 0; i < mswi->hart_count; i++) {
-> ????????????????scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
-> +???????????????/*
-> +??????????????? * We don't need to fail if scratch pointer is not available
-> +??????????????? * because we might be dealing with hartid of a HART disabled
-> +??????????????? * in the device tree.
-> +??????????????? */
-> ????????????????if (!scratch)
-> -???????????????????????return SBI_ENOENT;
-> +???????????????????????continue;
-> ????????????????mswi_set_hart_data_ptr(scratch, mswi);
-> ????????}
-> ?
-> diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
-> index 13af5d8..271e625 100644
-> --- a/lib/utils/timer/aclint_mtimer.c
-> +++ b/lib/utils/timer/aclint_mtimer.c
-> @@ -219,8 +219,13 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
-> ????????/* Update MTIMER pointer in scratch space */
-> ????????for (i = 0; i < mt->hart_count; i++) {
-> ????????????????scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
-> +???????????????/*
-> +??????????????? * We don't need to fail if scratch pointer is not available
-> +??????????????? * because we might be dealing with hartid of a HART disabled
-> +??????????????? * in the device tree.
-> +??????????????? */
-> ????????????????if (!scratch)
-> -???????????????????????return SBI_ENOENT;
-> +???????????????????????continue;
-> ????????????????mtimer_set_hart_data_ptr(scratch, mt);
-> ????????}
-> ?
-> -- 
-> 2.34.1
-> 
-> 
+Ahh, yes. I forgot about D1. Good catch.
+
+We should set SBI_HART_EXT_ZIHPM in hart_detect_features()
+after calling sbi_platform_extensions_init().
+
+I will update this in v2.
+
+Regards,
+Anup
+
+>
+> Regards,
+> Xiang W
+> >
+> >  #undef __check_csr_64
+> >  #undef __check_csr_32
+> > --
+> > 2.34.1
+> >
+> >
+>
 
