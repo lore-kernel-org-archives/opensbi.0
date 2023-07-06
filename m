@@ -1,53 +1,71 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Thu,  6 Jul 2023 16:19:28 +0530
-Subject: [PATCH v2 8/8] lib: sbi: Map/Unmap debug console shared memory buffers
-In-Reply-To: <20230706104928.3391947-1-hchauhan@ventanamicro.com>
-References: <20230620143212.2701598-1-hchauhan@ventanamicro.com>
- <20230706104928.3391947-1-hchauhan@ventanamicro.com>
-Message-ID: <20230706104928.3391947-9-hchauhan@ventanamicro.com>
+Date: Thu, 6 Jul 2023 16:47:12 +0530
+Subject: [PATCH v8 06/11] lib: sbi: print add 'o' type
+In-Reply-To: <20230705143703.635254-7-wxjstz@126.com>
+References: <20230705143703.635254-1-wxjstz@126.com>
+ <20230705143703.635254-7-wxjstz@126.com>
+Message-ID: <2766a679-587d-d44a-a1e1-bbb745adeb59@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-With Smepmp enabled, it is necessary for shared memory from
-S/U mode to be mapped/unmapped before and after read/write
-of the memory region. This patch maps the debug console
-shared memory before accessing it.
+Hi Xiang,
 
-Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- lib/sbi/sbi_ecall_dbcn.c | 3 +++
- 1 file changed, 3 insertions(+)
+On 05/07/23 8:06 pm, Xiang W wrote:
+> Add o type for print to print octal numbers
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
+> ---
+>   lib/sbi/sbi_console.c | 7 ++++---
+>   1 file changed, 4 insertions(+), 3 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index 7dd023f..2a43e16 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -327,7 +327,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+>   					     width, flags, *format);
+>   				continue;
+>   			}
+> -			if ((*format == 'u') || (*format == 'x') || (*format == 'X')) {
+> +			if ((*format == 'u') || (*format == 'o')
+> +					 || (*format == 'x') || (*format == 'X')) {
+>   				pc += printi(out, out_len, va_arg(args, unsigned int),
+>   					     width, flags, *format);
+>   				continue;
+> @@ -341,7 +342,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+>   				type = 'i';
+>   				if (format[1] == 'l') {
+>   					++format;
+> -					if ((format[1] == 'u')
+> +					if ((format[1] == 'u') || (format[1] == 'o')
+>   							|| (format[1] == 'd') || (format[1] == 'i')
+>   							|| (format[1] == 'x') || (format[1] == 'X')) {
 
-diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-index 8e68729..18cd6c8 100644
---- a/lib/sbi/sbi_ecall_dbcn.c
-+++ b/lib/sbi/sbi_ecall_dbcn.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_trap.h>
- #include <sbi/riscv_asm.h>
-+#include <sbi/sbi_hart.h>
- 
- static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
- 				  const struct sbi_trap_regs *regs,
-@@ -46,10 +47,12 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
- 					regs->a1, regs->a0, smode,
- 					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
- 			return SBI_ERR_INVALID_PARAM;
-+		sbi_hart_map_saddr(regs->a1, regs->a0);
- 		if (funcid == SBI_EXT_DBCN_CONSOLE_WRITE)
- 			*out_val = sbi_nputs((const char *)regs->a1, regs->a0);
- 		else
- 			*out_val = sbi_ngets((char *)regs->a1, regs->a0);
-+		sbi_hart_unmap_saddr();
- 		return 0;
- 	case SBI_EXT_DBCN_CONSOLE_WRITE_BYTE:
- 		sbi_putc(regs->a0);
+With %ld format, I have seen than 'd' is printed as it is. Can you take 
+care of that in this patch?
+
+Regards
+
+Himanshu
+
+
+>   						++format;
+> @@ -351,7 +352,7 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+>   						width, flags, type);
+>   					continue;
+>   				}
+> -				if ((format[1] == 'u')
+> +				if ((format[1] == 'u') || (format[1] == 'o')
+>   						|| (format[1] == 'd') || (format[1] == 'i')
+>   						|| (format[1] == 'x') || (format[1] == 'X')) {
+>   					++format;
+
 -- 
-2.34.1
+Thanks & Regards
+Himanshu
 
 
