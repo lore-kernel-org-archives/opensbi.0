@@ -1,84 +1,46 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu,  6 Jul 2023 09:45:41 +0530
-Subject: [PATCH v2 3/4] lib: sbi: Alphabetically sort HART ISA extensions
+Date: Thu,  6 Jul 2023 09:45:42 +0530
+Subject: [PATCH v2 4/4] lib: sbi: Rename hart_pmu_get_allowed_bits() function
 In-Reply-To: <20230706041542.1069059-1-apatel@ventanamicro.com>
 References: <20230706041542.1069059-1-apatel@ventanamicro.com>
-Message-ID: <20230706041542.1069059-4-apatel@ventanamicro.com>
+Message-ID: <20230706041542.1069059-5-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Let us follow alphabetical order for HART ISA extension so that
-it is simpler to maintain.
+The hart_pmu_get_allowed_bits() function detects implemented bits
+of mhpm counters so let us rename this function accordingly.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Reviewed-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi/sbi_hart.h | 10 +++++-----
- lib/sbi/sbi_hart.c     | 16 ++++++++--------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ lib/sbi/sbi_hart.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 938248f..b97f78c 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -26,16 +26,16 @@ enum sbi_hart_priv_versions {
- 
- /** Possible ISA extensions of a hart */
- enum sbi_hart_extensions {
--	/** Hart has Sscofpmt extension */
--	SBI_HART_EXT_SSCOFPMF = 0,
--	/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
--	SBI_HART_EXT_ZICNTR,
- 	/** HART has AIA M-mode CSRs */
--	SBI_HART_EXT_SMAIA,
-+	SBI_HART_EXT_SMAIA = 0,
- 	/** HART has Smstateen CSR **/
- 	SBI_HART_EXT_SMSTATEEN,
-+	/** Hart has Sscofpmt extension */
-+	SBI_HART_EXT_SSCOFPMF,
- 	/** HART has Sstc extension */
- 	SBI_HART_EXT_SSTC,
-+	/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
-+	SBI_HART_EXT_ZICNTR,
- 	/** HART has Zihpm extension */
- 	SBI_HART_EXT_ZIHPM,
- 
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index ff6f582..2eacefb 100644
+index 2eacefb..e9b2b27 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -438,20 +438,20 @@ static inline char *sbi_hart_extension_id2string(int ext)
- 	char *estr = NULL;
+@@ -527,7 +527,7 @@ static unsigned long hart_pmp_get_allowed_addr(void)
+ 	return val;
+ }
  
- 	switch (ext) {
--	case SBI_HART_EXT_SSCOFPMF:
--		estr = "sscofpmf";
--		break;
--	case SBI_HART_EXT_ZICNTR:
--		estr = "zicntr";
--		break;
- 	case SBI_HART_EXT_SMAIA:
- 		estr = "smaia";
- 		break;
-+	case SBI_HART_EXT_SMSTATEEN:
-+		estr = "smstateen";
-+		break;
-+	case SBI_HART_EXT_SSCOFPMF:
-+		estr = "sscofpmf";
-+		break;
- 	case SBI_HART_EXT_SSTC:
- 		estr = "sstc";
- 		break;
--	case SBI_HART_EXT_SMSTATEEN:
--		estr = "smstateen";
-+	case SBI_HART_EXT_ZICNTR:
-+		estr = "zicntr";
- 		break;
- 	case SBI_HART_EXT_ZIHPM:
- 		estr = "zihpm";
+-static int hart_pmu_get_allowed_bits(void)
++static int hart_mhpm_get_allowed_bits(void)
+ {
+ 	unsigned long val = ~(0UL);
+ 	struct sbi_trap_info trap = {0};
+@@ -628,7 +628,7 @@ __pmp_skip:
+ 
+ 	/* Detect number of MHPM counters */
+ 	__check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count, __mhpm_skip);
+-	hfeatures->mhpm_bits = hart_pmu_get_allowed_bits();
++	hfeatures->mhpm_bits = hart_mhpm_get_allowed_bits();
+ 
+ 	__check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count, __mhpm_skip);
+ 	__check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count, __mhpm_skip);
 -- 
 2.34.1
 
