@@ -1,22 +1,23 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 9 Jul 2023 11:10:13 +0530
-Subject: [PATCH] lib: utils: Fix sbi_hartid_to_scratch() usage in ACLINT drivers
-In-Reply-To: <20230705064515.1007478-1-apatel@ventanamicro.com>
-References: <20230705064515.1007478-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy0p2UNRxXWm_1-tPrYHKmfoG1xJtPTTRAL20ZbdCiV28A@mail.gmail.com>
+Date: Sun, 9 Jul 2023 11:10:46 +0530
+Subject: [PATCH v2 1/4] lib: sbi: Add Zicntr as a HART ISA extension
+In-Reply-To: <20230706041542.1069059-2-apatel@ventanamicro.com>
+References: <20230706041542.1069059-1-apatel@ventanamicro.com> <20230706041542.1069059-2-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy0cdDBDDepnxCU9obSLx3-5W3X=Xjrmehm36EeF09xb+g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 5, 2023 at 12:15?PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Thu, Jul 6, 2023 at 9:45?AM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> The cold_init() functions of ACLINT drivers should skip the HART
-> is sbi_hartid_to_scratch() returns NULL because we might be dealing
-> with a HART that is disabled in the device tree.
+> Recently ratified Zicntr ISA extension covers cycle, time and
+> instret CSRs so we replace the "time" ISA extension with "zicntr"
+> ISA extension in OpenSBI.
 >
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -24,48 +25,63 @@ Regards,
 Anup
 
 > ---
->  lib/utils/ipi/aclint_mswi.c     | 7 ++++++-
->  lib/utils/timer/aclint_mtimer.c | 7 ++++++-
->  2 files changed, 12 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_hart.h | 4 ++--
+>  lib/sbi/sbi_hart.c     | 6 +++---
+>  lib/sbi/sbi_timer.c    | 2 +-
+>  3 files changed, 6 insertions(+), 6 deletions(-)
 >
-> diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-> index f47b3bc..140a49b 100644
-> --- a/lib/utils/ipi/aclint_mswi.c
-> +++ b/lib/utils/ipi/aclint_mswi.c
-> @@ -101,8 +101,13 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
->         /* Update MSWI pointer in scratch space */
->         for (i = 0; i < mswi->hart_count; i++) {
->                 scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
-> +               /*
-> +                * We don't need to fail if scratch pointer is not available
-> +                * because we might be dealing with hartid of a HART disabled
-> +                * in the device tree.
-> +                */
->                 if (!scratch)
-> -                       return SBI_ENOENT;
-> +                       continue;
->                 mswi_set_hart_data_ptr(scratch, mswi);
->         }
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 95b40e7..d48940d 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -28,8 +28,8 @@ enum sbi_hart_priv_versions {
+>  enum sbi_hart_extensions {
+>         /** Hart has Sscofpmt extension */
+>         SBI_HART_EXT_SSCOFPMF = 0,
+> -       /** HART has HW time CSR (extension name not available) */
+> -       SBI_HART_EXT_TIME,
+> +       /** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> +       SBI_HART_EXT_ZICNTR,
+>         /** HART has AIA M-mode CSRs */
+>         SBI_HART_EXT_SMAIA,
+>         /** HART has Smstateen CSR **/
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 6e52cbd..c470482 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -441,8 +441,8 @@ static inline char *sbi_hart_extension_id2string(int ext)
+>         case SBI_HART_EXT_SSCOFPMF:
+>                 estr = "sscofpmf";
+>                 break;
+> -       case SBI_HART_EXT_TIME:
+> -               estr = "time";
+> +       case SBI_HART_EXT_ZICNTR:
+> +               estr = "zicntr";
+>                 break;
+>         case SBI_HART_EXT_SMAIA:
+>                 estr = "smaia";
+> @@ -676,7 +676,7 @@ __mhpm_skip:
+>         csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+>         if (!trap.cause)
+>                 __sbi_hart_update_extension(hfeatures,
+> -                                       SBI_HART_EXT_TIME, true);
+> +                                       SBI_HART_EXT_ZICNTR, true);
 >
-> diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
-> index 13af5d8..271e625 100644
-> --- a/lib/utils/timer/aclint_mtimer.c
-> +++ b/lib/utils/timer/aclint_mtimer.c
-> @@ -219,8 +219,13 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
->         /* Update MTIMER pointer in scratch space */
->         for (i = 0; i < mt->hart_count; i++) {
->                 scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
-> +               /*
-> +                * We don't need to fail if scratch pointer is not available
-> +                * because we might be dealing with hartid of a HART disabled
-> +                * in the device tree.
-> +                */
->                 if (!scratch)
-> -                       return SBI_ENOENT;
-> +                       continue;
->                 mtimer_set_hart_data_ptr(scratch, mt);
->         }
+>         /* Detect if hart has AIA local interrupt CSRs */
+>         csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
+> diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> index 4b24cbe..7b618de 100644
+> --- a/lib/sbi/sbi_timer.c
+> +++ b/lib/sbi/sbi_timer.c
+> @@ -188,7 +188,7 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
+>                 if (!time_delta_off)
+>                         return SBI_ENOMEM;
 >
+> -               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_TIME))
+> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR))
+>                         get_time_val = get_ticks;
+>         } else {
+>                 if (!time_delta_off)
 > --
 > 2.34.1
 >
