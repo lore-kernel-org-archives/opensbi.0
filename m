@@ -1,88 +1,188 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 10 Jul 2023 00:02:23 +0800
-Subject: [PATCH v9 03/11] lib: sbi: Add '+' flags for print
+Date: Mon, 10 Jul 2023 00:02:25 +0800
+Subject: [PATCH v9 05/11] lib: sbi: implifying the parameters of printi
 In-Reply-To: <20230709160231.202121-1-wxjstz@126.com>
 References: <20230709160231.202121-1-wxjstz@126.com>
-Message-ID: <20230709160231.202121-4-wxjstz@126.com>
+Message-ID: <20230709160231.202121-6-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Adds + flags for print, prefixing positive numbers with + when this
-flags is present
+The information of sg/b/letbase can be obtained by the type character,
+simplifying the parameter by passing the type directly.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_console.c | 25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ lib/sbi/sbi_console.c | 127 +++++++++++++++++-------------------------
+ 1 file changed, 50 insertions(+), 77 deletions(-)
 
 diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index 03ee05a..6ebdc44 100644
+index b6b23bf..7dd023f 100644
 --- a/lib/sbi/sbi_console.c
 +++ b/lib/sbi/sbi_console.c
-@@ -120,6 +120,7 @@ unsigned long sbi_ngets(char *str, unsigned long len)
- #define PAD_RIGHT 1
- #define PAD_ZERO 2
- #define PAD_ALTERNATE 4
-+#define PAD_SIGN 8
- #define PRINT_BUF_LEN 64
+@@ -184,15 +184,26 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+ 	return pc;
+ }
  
- #define va_start(v, l) __builtin_va_start((v), l)
-@@ -186,15 +187,18 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
- static int printi(char **out, u32 *out_len, long long i, int b, int sg,
- 		  int width, int flags, int letbase)
+-static int printi(char **out, u32 *out_len, long long i, int b, int sg,
+-		  int width, int flags, int letbase)
++static int printi(char **out, u32 *out_len, long long i,
++		  int width, int flags, int type)
  {
--	char print_buf[PRINT_BUF_LEN];
--	char *s;
--	int neg = 0, pc = 0;
-+	char *s, sign, print_buf[PRINT_BUF_LEN];
-+	int pc = 0;
- 	u64 t;
- 	unsigned long long u = i;
+-	char *s, sign, print_buf[PRINT_BUF_LEN];
+ 	int pc = 0;
+-	u64 t;
+-	unsigned long long u = i;
++	char *s, sign, letbase, print_buf[PRINT_BUF_LEN];
++	unsigned long long u, b, t;
++
++	b = 10;
++	letbase = 'a';
++	if (type == 'o')
++		b = 8;
++	else if (type == 'x' || type == 'X' || type == 'p' || type == 'P') {
++		b = 16;
++		letbase &= ~0x20;
++		letbase |= type & 0x20;
++	}
  
--	if (sg && b == 10 && i < 0) {
--		neg = 1;
--		u   = -i;
-+	if (sg && b == 10) {
-+		if ((flags & PAD_SIGN) && i > 0)
-+			sign = '+';
-+		if (i < 0) {
-+			sign = '-';
-+			u = -i;
-+		}
- 	}
+-	if (sg && b == 10) {
++	u = i;
++	sign = 0;
++	if (type == 'i' || type == 'd') {
+ 		if ((flags & PAD_SIGN) && i > 0)
+ 			sign = '+';
+ 		if (i < 0) {
+@@ -242,9 +253,8 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ {
+ 	bool flags_done;
+ 	int width, flags, pc = 0;
+-	char scr[2], *tout;
++	char type, scr[2], *tout;
+ 	bool use_tbuf = (!out) ? true : false;
+-	unsigned long long tmp;
  
- 	s  = print_buf + PRINT_BUF_LEN - 1;
-@@ -221,13 +225,13 @@ static int printi(char **out, u32 *out_len, long long i, int b, int sg,
- 		*--s = '0';
- 	}
- 
--	if (neg) {
-+	if (sign) {
- 		if (width && (flags & PAD_ZERO)) {
--			printc(out, out_len, '-');
-+			printc(out, out_len, sign);
- 			++pc;
- 			--width;
- 		} else {
--			*--s = '-';
-+			*--s = sign;
- 		}
- 	}
- 
-@@ -275,6 +279,9 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
- 				case '-':
- 					flags |= PAD_RIGHT;
- 					break;
-+				case '+':
-+					flags |= PAD_SIGN;
-+					break;
- 				case '#':
- 					flags |= PAD_ALTERNATE;
- 					break;
+ 	/*
+ 	 * The console_tbuf is protected by console_out_lock and
+@@ -314,83 +324,46 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+ 			}
+ 			if ((*format == 'd') || (*format == 'i')) {
+ 				pc += printi(out, out_len, va_arg(args, int),
+-					     10, 1, width, flags, '0');
+-				continue;
+-			}
+-			if (*format == 'x') {
+-				pc += printi(out, out_len,
+-					     va_arg(args, unsigned int), 16, 0,
+-					     width, flags, 'a');
++					     width, flags, *format);
+ 				continue;
+ 			}
+-			if (*format == 'X') {
+-				pc += printi(out, out_len,
+-					     va_arg(args, unsigned int), 16, 0,
+-					     width, flags, 'A');
++			if ((*format == 'u') || (*format == 'x') || (*format == 'X')) {
++				pc += printi(out, out_len, va_arg(args, unsigned int),
++					     width, flags, *format);
+ 				continue;
+ 			}
+-			if (*format == 'u') {
+-				pc += printi(out, out_len,
+-					     va_arg(args, unsigned int), 10, 0,
+-					     width, flags, 'a');
++			if ((*format == 'p') || (*format == 'P')) {
++				pc += printi(out, out_len, (uintptr_t)va_arg(args, void*),
++					     width, flags, *format);
+ 				continue;
+ 			}
+-			if (*format == 'p') {
+-				pc += printi(out, out_len,
+-					     va_arg(args, unsigned long), 16, 0,
+-					     width, flags, 'a');
+-				continue;
+-			}
+-			if (*format == 'P') {
+-				pc += printi(out, out_len,
+-					     va_arg(args, unsigned long), 16, 0,
+-					     width, flags, 'A');
+-				continue;
+-			}
+-			if (*format == 'l' && *(format + 1) == 'l') {
+-				tmp = va_arg(args, unsigned long long);
+-				if (*(format + 2) == 'u') {
+-					format += 2;
+-					pc += printi(out, out_len, tmp, 10, 0,
+-						     width, flags, 'a');
+-				} else if (*(format + 2) == 'x') {
+-					format += 2;
+-					pc += printi(out, out_len, tmp, 16, 0,
+-						     width, flags, 'a');
+-				} else if (*(format + 2) == 'X') {
+-					format += 2;
+-					pc += printi(out, out_len, tmp, 16, 0,
+-						     width, flags, 'A');
+-				} else {
+-					format += 1;
+-					pc += printi(out, out_len, tmp, 10, 1,
+-						     width, flags, '0');
++			if (*format == 'l') {
++				type = 'i';
++				if (format[1] == 'l') {
++					++format;
++					if ((format[1] == 'u')
++							|| (format[1] == 'd') || (format[1] == 'i')
++							|| (format[1] == 'x') || (format[1] == 'X')) {
++						++format;
++						type = *format;
++					}
++					pc += printi(out, out_len, va_arg(args, long long),
++						width, flags, type);
++					continue;
+ 				}
+-				continue;
+-			} else if (*format == 'l') {
+-				if (*(format + 1) == 'u') {
+-					format += 1;
+-					pc += printi(
+-						out, out_len,
+-						va_arg(args, unsigned long), 10,
+-						0, width, flags, 'a');
+-				} else if (*(format + 1) == 'x') {
+-					format += 1;
+-					pc += printi(
+-						out, out_len,
+-						va_arg(args, unsigned long), 16,
+-						0, width, flags, 'a');
+-				} else if (*(format + 1) == 'X') {
+-					format += 1;
+-					pc += printi(
+-						out, out_len,
+-						va_arg(args, unsigned long), 16,
+-						0, width, flags, 'A');
+-				} else {
+-					pc += printi(out, out_len,
+-						     va_arg(args, long), 10, 1,
+-						     width, flags, '0');
++				if ((format[1] == 'u')
++						|| (format[1] == 'd') || (format[1] == 'i')
++						|| (format[1] == 'x') || (format[1] == 'X')) {
++					++format;
++					type = *format;
+ 				}
++				if ((type == 'd') || (type == 'i'))
++					pc += printi(out, out_len, va_arg(args, long),
++					     width, flags, type);
++				else
++					pc += printi(out, out_len, va_arg(args, unsigned long),
++					     width, flags, type);
++				continue;
+ 			}
+ 			if (*format == 'c') {
+ 				/* char are converted to int then pushed on the stack */
 -- 
 2.40.1
 
