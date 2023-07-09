@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 9 Jul 2023 11:11:04 +0530
-Subject: [PATCH v2 2/4] lib: sbi: Add Zihpm as a HART ISA extension
-In-Reply-To: <20230706041542.1069059-3-apatel@ventanamicro.com>
-References: <20230706041542.1069059-1-apatel@ventanamicro.com> <20230706041542.1069059-3-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy3GTd_Gbgqu=9J8ovqGzvJuVjaj0Pyc3yo9eVq_yVeh3g@mail.gmail.com>
+Date: Sun, 9 Jul 2023 11:11:22 +0530
+Subject: [PATCH v2 3/4] lib: sbi: Alphabetically sort HART ISA extensions
+In-Reply-To: <20230706041542.1069059-4-apatel@ventanamicro.com>
+References: <20230706041542.1069059-1-apatel@ventanamicro.com> <20230706041542.1069059-4-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy2tro5EG1aCj3iWvZ0kmtYPSpsMvLcu_FaMe8L5qJKSzw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +12,8 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Jul 6, 2023 at 9:46?AM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> Recently ratified Zihpm ISA extension covers all [m]hpm* CSRs
-> so we add Zihpm as a HART ISA extension in OpenSBI.
+> Let us follow alphabetical order for HART ISA extension so that
+> it is simpler to maintain.
 >
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > Reviewed-by: Xiang W <wxjstz@126.com>
@@ -24,49 +24,69 @@ Regards,
 Anup
 
 > ---
->  include/sbi/sbi_hart.h | 2 ++
->  lib/sbi/sbi_hart.c     | 8 ++++++++
->  2 files changed, 10 insertions(+)
+>  include/sbi/sbi_hart.h | 10 +++++-----
+>  lib/sbi/sbi_hart.c     | 16 ++++++++--------
+>  2 files changed, 13 insertions(+), 13 deletions(-)
 >
 > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index d48940d..938248f 100644
+> index 938248f..b97f78c 100644
 > --- a/include/sbi/sbi_hart.h
 > +++ b/include/sbi/sbi_hart.h
-> @@ -36,6 +36,8 @@ enum sbi_hart_extensions {
+> @@ -26,16 +26,16 @@ enum sbi_hart_priv_versions {
+>
+>  /** Possible ISA extensions of a hart */
+>  enum sbi_hart_extensions {
+> -       /** Hart has Sscofpmt extension */
+> -       SBI_HART_EXT_SSCOFPMF = 0,
+> -       /** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> -       SBI_HART_EXT_ZICNTR,
+>         /** HART has AIA M-mode CSRs */
+> -       SBI_HART_EXT_SMAIA,
+> +       SBI_HART_EXT_SMAIA = 0,
+>         /** HART has Smstateen CSR **/
 >         SBI_HART_EXT_SMSTATEEN,
+> +       /** Hart has Sscofpmt extension */
+> +       SBI_HART_EXT_SSCOFPMF,
 >         /** HART has Sstc extension */
 >         SBI_HART_EXT_SSTC,
-> +       /** HART has Zihpm extension */
-> +       SBI_HART_EXT_ZIHPM,
+> +       /** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> +       SBI_HART_EXT_ZICNTR,
+>         /** HART has Zihpm extension */
+>         SBI_HART_EXT_ZIHPM,
 >
->         /** Maximum index of Hart extension */
->         SBI_HART_EXT_MAX,
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index c470482..ff6f582 100644
+> index ff6f582..2eacefb 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
->         case SBI_HART_EXT_SMSTATEEN:
->                 estr = "smstateen";
+> @@ -438,20 +438,20 @@ static inline char *sbi_hart_extension_id2string(int ext)
+>         char *estr = NULL;
+>
+>         switch (ext) {
+> -       case SBI_HART_EXT_SSCOFPMF:
+> -               estr = "sscofpmf";
+> -               break;
+> -       case SBI_HART_EXT_ZICNTR:
+> -               estr = "zicntr";
+> -               break;
+>         case SBI_HART_EXT_SMAIA:
+>                 estr = "smaia";
 >                 break;
-> +       case SBI_HART_EXT_ZIHPM:
-> +               estr = "zihpm";
+> +       case SBI_HART_EXT_SMSTATEEN:
+> +               estr = "smstateen";
 > +               break;
->         default:
+> +       case SBI_HART_EXT_SSCOFPMF:
+> +               estr = "sscofpmf";
+> +               break;
+>         case SBI_HART_EXT_SSTC:
+>                 estr = "sstc";
 >                 break;
->         }
-> @@ -706,6 +709,11 @@ __mhpm_skip:
->         if (rc)
->                 return rc;
->
-> +       /* Extensions implied by other extensions and features */
-> +       if (hfeatures->mhpm_count)
-> +               __sbi_hart_update_extension(hfeatures,
-> +                                       SBI_HART_EXT_ZIHPM, true);
-> +
->         /* Mark hart feature detection done */
->         hfeatures->detected = true;
->
+> -       case SBI_HART_EXT_SMSTATEEN:
+> -               estr = "smstateen";
+> +       case SBI_HART_EXT_ZICNTR:
+> +               estr = "zicntr";
+>                 break;
+>         case SBI_HART_EXT_ZIHPM:
+>                 estr = "zihpm";
 > --
 > 2.34.1
 >
