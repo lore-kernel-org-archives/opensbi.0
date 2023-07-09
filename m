@@ -1,229 +1,91 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 7 Jul 2023 10:08:22 +0530
-Subject: [PATCH] gpio/desginware: add Synopsys DesignWare APB GPIO support
-In-Reply-To: <20230301122525.213751-1-ben.dooks@sifive.com>
-References: <20230301122525.213751-1-ben.dooks@sifive.com>
-Message-ID: <CAAhSdy0U5XhXYGzsn_x6AkGWhiYsj7b7PF0rjapCGmUqjW0aLg@mail.gmail.com>
+Date: Sun, 9 Jul 2023 11:02:48 +0530
+Subject: [PATCH v8 11/11] lib: sbi: Fix missing '\0' when buffer szie
+ equal 1
+In-Reply-To: <7b0e5009891f6b11e36b9471a0e25a4b417175b9.camel@126.com>
+References: <20230705143703.635254-1-wxjstz@126.com> <20230705143754.635428-1-wxjstz@126.com>
+ <CAAhSdy2QOcjukWmQiCxWTJsJK6g_WS_MYz8GvUqT2q9Q639MLw@mail.gmail.com> <7b0e5009891f6b11e36b9471a0e25a4b417175b9.camel@126.com>
+Message-ID: <CAAhSdy27YNoAX25MfZhgmwWxUawNgc9UwYk4x4bqh6uUomOUXA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 1, 2023 at 5:55?PM Ben Dooks <ben.dooks@sifive.com> wrote:
+On Thu, Jul 6, 2023 at 12:20?PM Xiang W <wxjstz@126.com> wrote:
 >
-> Add a driver for the Synopsys DesignWare APB GPIO IP block found in many
-> SoCs.
+> ? 2023-07-06???? 11:08 +0530?Anup Patel???
+> > On Wed, Jul 5, 2023 at 8:08?PM Xiang W <wxjstz@126.com> wrote:
+> > >
+> > > Fix special case: sbi_snprintf(out, out_len, ...) when out_len equal
+> > > 1, The previous code will not fill the buffer with any char.
+> >
+> > I would rather do something like below in printc(...)
+> >
+> > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> > index 168dffd..e0ecb41 100644
+> > --- a/lib/sbi/sbi_console.c
+> > +++ b/lib/sbi/sbi_console.c
+> > @@ -138,10 +138,10 @@ static void printc(char **out, u32 *out_len, char ch)
+> >       * The *printf entry point functions have enforced that (*out) can
+> >       * only be null when out_len is non-null and its value is zero.
+> >       */
+> > -    if (!out_len || *out_len > 1) {
+> > +    if (!out_len || *out_len)
+> >          *(*out)++ = ch;
+> > +    if (!out_len || *out_len > 1)
+> >          **out = '\0';
+> > -    }
 >
-> Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
+> When *out_len is equal to 1, that is, when there is not enough buffer to drop
+> the formatted string, a string without '\0' will be generated.
+>
+> And when there is a problem with the format in sbi_snprintf, it may not entry
+> printc at all. e.g:
+>         sbi_printf(out,out_len,"%f",3.14)
 
-Sorry, I forgot to include this in OpenSBI v1.3.
+Fair enough but I still think check on out_len is also required.
 
-Applied this patch to the riscv/opensbi repo.
+if (out && out_len && *out_len)
+    **out = '\0';
 
-Thanks,
+Regards,
 Anup
 
-> ---
->  lib/utils/gpio/Kconfig               |   4 +
->  lib/utils/gpio/fdt_gpio_designware.c | 140 +++++++++++++++++++++++++++
->  lib/utils/gpio/objects.mk            |   2 +
->  platform/generic/configs/defconfig   |   1 +
->  4 files changed, 147 insertions(+)
->  create mode 100644 lib/utils/gpio/fdt_gpio_designware.c
 >
-> diff --git a/lib/utils/gpio/Kconfig b/lib/utils/gpio/Kconfig
-> index 38a9d75..f229928 100644
-> --- a/lib/utils/gpio/Kconfig
-> +++ b/lib/utils/gpio/Kconfig
-> @@ -14,6 +14,10 @@ config FDT_GPIO_SIFIVE
->         bool "SiFive GPIO FDT driver"
->         default n
+> Regards,
+> Xiang W
 >
-> +config FDT_GPIO_DESIGNWARE
-> +       bool "DesignWare GPIO driver"
-> +       default n
-> +
->  endif
+> >
+> >      if (out_len && *out_len > 0)
+> >          --(*out_len);
+> >
+> > Regards,
+> > Anup
+> >
+> > >
+> > > Signed-off-by: Xiang W <wxjstz@126.com>
+> > > ---
+> > >  lib/sbi/sbi_console.c | 4 ++++
+> > >  1 file changed, 4 insertions(+)
+> > >
+> > > diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> > > index 00feec8..0703d4a 100644
+> > > --- a/lib/sbi/sbi_console.c
+> > > +++ b/lib/sbi/sbi_console.c
+> > > @@ -271,6 +271,10 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
+> > >                 out_len = &console_tbuf_len;
+> > >         }
+> > >
+> > > +       /* handle special case: *out_len == 1*/
+> > > +       if (out)
+> > > +               **out = '\0';
+> > > +
+> > >         for (; *format != 0; ++format) {
+> > >                 width = flags = 0;
+> > >                 if (use_tbuf)
+> > > --
+> > > 2.40.1
+> > >
 >
->  config GPIO
-> diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
-> new file mode 100644
-> index 0000000..6223d7e
-> --- /dev/null
-> +++ b/lib/utils/gpio/fdt_gpio_designware.c
-> @@ -0,0 +1,140 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2022 SiFive
-> + *
-> + * GPIO driver for Synopsys DesignWare APB GPIO
-> + *
-> + * Authors:
-> + *   Ben Dooks <ben.dooks@sifive.com>
-> + */
-> +
-> +#include <libfdt.h>
-> +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_error.h>
-> +
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/gpio/fdt_gpio.h>
-> +
-> +#define DW_GPIO_CHIP_MAX       4       /* need 1 per bank in use */
-> +#define DW_GPIO_PINS_MAX       32
-> +
-> +#define DW_GPIO_DDR    0x4
-> +#define DW_GPIO_DR     0x0
-> +#define DW_GPIO_BIT(_b)        (1UL << (_b))
-> +
-> +struct dw_gpio_chip {
-> +       void *dr;
-> +       void *ext;
-> +       struct gpio_chip chip;
-> +};
-> +
-> +extern struct fdt_gpio fdt_gpio_designware;
-> +
-> +static unsigned int dw_gpio_chip_count;
-> +static struct dw_gpio_chip dw_gpio_chip_array[DW_GPIO_CHIP_MAX];
-> +
-> +#define pin_to_chip(__p) container_of((__p)->chip, struct dw_gpio_chip, chip);
-> +
-> +static int dw_gpio_direction_output(struct gpio_pin *gp, int value)
-> +{
-> +       struct dw_gpio_chip *chip = pin_to_chip(gp);
-> +       unsigned long v;
-> +
-> +       v = readl(chip->dr + DW_GPIO_DR);
-> +       if (!value)
-> +               v &= ~DW_GPIO_BIT(gp->offset);
-> +       else
-> +               v |= DW_GPIO_BIT(gp->offset);
-> +       writel(v, chip->dr + DW_GPIO_DR);
-> +
-> +       /* the DR is output only so we can set it then the DDR to set
-> +        * the data direction, to avoid glitches.
-> +        */
-> +       v = readl(chip->dr + DW_GPIO_DDR);
-> +       v |= DW_GPIO_BIT(gp->offset);
-> +       writel(v, chip->dr + DW_GPIO_DDR);
-> +
-> +       return 0;
-> +}
-> +
-> +static void dw_gpio_set(struct gpio_pin *gp, int value)
-> +{
-> +       struct dw_gpio_chip *chip = pin_to_chip(gp);
-> +       unsigned long v;
-> +
-> +       v = readl(chip->dr + DW_GPIO_DR);
-> +       if (!value)
-> +               v &= ~DW_GPIO_BIT(gp->offset);
-> +       else
-> +               v |= DW_GPIO_BIT(gp->offset);
-> +       writel(v, chip->dr + DW_GPIO_DR);
-> +}
-> +
-> +/* notes:
-> + * each sub node is a bank and has ngpios or snpns,nr-gpios and a reg property
-> + * with the compatible `snps,dw-apb-gpio-port`.
-> + * bank A is the only one with irq support but we're not using it here
-> +*/
-> +
-> +static int dw_gpio_init_bank(void *fdt, int nodeoff, u32 phandle,
-> +                            const struct fdt_match *match)
-> +{
-> +       struct dw_gpio_chip *chip;
-> +       const fdt32_t *val;
-> +       uint64_t addr;
-> +       int rc, poff, nr_pins, bank, len;
-> +
-> +       if (dw_gpio_chip_count >= DW_GPIO_CHIP_MAX)
-> +               return SBI_ENOSPC;
-> +
-> +       /* need to get parent for the address property  */
-> +       poff = fdt_parent_offset(fdt, nodeoff);
-> +       if (poff < 0)
-> +               return SBI_EINVAL;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, poff, 0, &addr, NULL);
-> +       if (rc)
-> +               return rc;
-> +
-> +       val = fdt_getprop(fdt, nodeoff, "reg", &len);
-> +       if (!val || len <= 0)
-> +               return SBI_EINVAL;
-> +       bank = fdt32_to_cpu(*val);
-> +
-> +       val = fdt_getprop(fdt, nodeoff, "snps,nr-gpios", &len);
-> +       if (!val)
-> +               val = fdt_getprop(fdt, nodeoff, "ngpios", &len);
-> +       if (!val || len <= 0)
-> +               return SBI_EINVAL;
-> +       nr_pins = fdt32_to_cpu(*val);
-> +
-> +       chip = &dw_gpio_chip_array[dw_gpio_chip_count];
-> +
-> +       chip->dr = (void *)addr + (bank * 0xc);
-> +       chip->ext = (void *)addr + (bank * 4) + 0x50;
-> +       chip->chip.driver = &fdt_gpio_designware;
-> +       chip->chip.id = phandle;
-> +       chip->chip.ngpio = nr_pins;
-> +       chip->chip.set = dw_gpio_set;
-> +       chip->chip.direction_output = dw_gpio_direction_output;
-> +       rc = gpio_chip_add(&chip->chip);
-> +       if (rc)
-> +               return rc;
-> +
-> +       dw_gpio_chip_count++;
-> +       return 0;
-> +}
-> +
-> +/* since we're only probed when used, match on port not main controller node */
-> +static const struct fdt_match dw_gpio_match[] = {
-> +       { .compatible = "snps,dw-apb-gpio-port" },
-> +       { },
-> +};
-> +
-> +struct fdt_gpio fdt_gpio_designware = {
-> +       .match_table = dw_gpio_match,
-> +       .xlate = fdt_gpio_simple_xlate,
-> +       .init = dw_gpio_init_bank,
-> +};
-> diff --git a/lib/utils/gpio/objects.mk b/lib/utils/gpio/objects.mk
-> index eedd699..00ea7af 100644
-> --- a/lib/utils/gpio/objects.mk
-> +++ b/lib/utils/gpio/objects.mk
-> @@ -11,6 +11,8 @@ libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio.o
->  libsbiutils-objs-$(CONFIG_FDT_GPIO) += gpio/fdt_gpio_drivers.o
->
->  carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_SIFIVE) += fdt_gpio_sifive
-> +carray-fdt_gpio_drivers-$(CONFIG_FDT_GPIO_DESIGNWARE) += fdt_gpio_designware
->  libsbiutils-objs-$(CONFIG_FDT_GPIO_SIFIVE) += gpio/fdt_gpio_sifive.o
-> +libsbiutils-objs-$(CONFIG_FDT_GPIO_DESIGNWARE) += gpio/fdt_gpio_designware.o
->
->  libsbiutils-objs-$(CONFIG_GPIO) += gpio/gpio.o
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 4b0842e..759caaa 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -5,6 +5,7 @@ CONFIG_PLATFORM_SIFIVE_FU540=y
->  CONFIG_PLATFORM_SIFIVE_FU740=y
->  CONFIG_PLATFORM_STARFIVE_JH7110=y
->  CONFIG_FDT_GPIO=y
-> +CONFIG_FDT_GPIO_DESIGNWARE=y
->  CONFIG_FDT_GPIO_SIFIVE=y
->  CONFIG_FDT_I2C=y
->  CONFIG_FDT_I2C_SIFIVE=y
-> --
-> 2.39.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
