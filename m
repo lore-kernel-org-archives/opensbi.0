@@ -1,33 +1,67 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 10 Jul 2023 00:02:20 +0800
-Subject: [PATCH v9 00/11] Improve sbi_console
-Message-ID: <20230709160231.202121-1-wxjstz@126.com>
+Date: Mon, 10 Jul 2023 00:02:28 +0800
+Subject: [PATCH v9 08/11] lib: sbi: Simplify prints
+In-Reply-To: <20230709160231.202121-1-wxjstz@126.com>
+References: <20230709160231.202121-1-wxjstz@126.com>
+Message-ID: <20230709160231.202121-9-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-v9 changes:
-- PATCH10 Add Anup's SoB
-- PATCH11 Add check of out_len
+When doing width = width - strlen(string) in prints there is no need
+to consider the case that witdh may be less than 0. This is because
+the code to do filling needs to be executed under the condition that
+width > 0.
 
-Xiang W (11):
-  lib: sbi: Fix how print gets flags
-  lib: sbi: print not fill '0' when left-aligned
-  lib: sbi: Add '+' flags for print
-  lib: sbi: Add ' ' '\'' flags for print
-  lib: sbi: implifying the parameters of printi
-  lib: sbi: print add 'o' type
-  lib: sbi: Fix printi
-  lib: sbi: Simplify prints
-  lib: sbi: Fix printc
-  lib: sbi: Fix timing of clearing tbuf
-  lib: sbi: Fix missing '\0' when buffer szie equal 1
+Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+ lib/sbi/sbi_console.c | 21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
- lib/sbi/sbi_console.c | 274 +++++++++++++++++++++---------------------
- 1 file changed, 137 insertions(+), 137 deletions(-)
-
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index 963d19f..43870b8 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -151,24 +151,11 @@ static void printc(char **out, u32 *out_len, char ch)
+ static int prints(char **out, u32 *out_len, const char *string, int width,
+ 		  int flags)
+ {
+-	int pc	     = 0;
+-	char padchar = ' ';
+-
+-	if (width > 0) {
+-		int len = 0;
+-		const char *ptr;
+-		for (ptr = string; *ptr; ++ptr)
+-			++len;
+-		if (len >= width)
+-			width = 0;
+-		else
+-			width -= len;
+-		if (flags & PAD_ZERO)
+-			padchar = '0';
+-	}
++	int pc = 0;
++	width -= sbi_strlen(string);
+ 	if (!(flags & PAD_RIGHT)) {
+ 		for (; width > 0; --width) {
+-			printc(out, out_len, padchar);
++			printc(out, out_len, flags & PAD_ZERO ? '0' : ' ');
+ 			++pc;
+ 		}
+ 	}
+@@ -177,7 +164,7 @@ static int prints(char **out, u32 *out_len, const char *string, int width,
+ 		++pc;
+ 	}
+ 	for (; width > 0; --width) {
+-		printc(out, out_len, padchar);
++		printc(out, out_len, ' ');
+ 		++pc;
+ 	}
+ 
 -- 
 2.40.1
 
