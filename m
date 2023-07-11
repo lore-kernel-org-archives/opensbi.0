@@ -1,52 +1,46 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 10 Jul 2023 09:27:07 +0530
-Subject: [PATCH v9 11/11] lib: sbi: Fix missing '\0' when buffer szie
- equal 1
-In-Reply-To: <20230709160326.202193-1-wxjstz@126.com>
-References: <20230709160231.202121-1-wxjstz@126.com> <20230709160326.202193-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3okO+KfxqdxwKTJ=ByTwQ80qQB=K=cFqrJp4TOSO4KaQ@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 11 Jul 2023 18:15:19 +0530
+Subject: [PATCH] lib: utils/gpio: Fix RV32 compile error for designware GPIO driver
+Message-ID: <20230711124519.1591123-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jul 9, 2023 at 9:34?PM Xiang W <wxjstz@126.com> wrote:
->
-> Fix special case: sbi_snprintf(out, out_len, ...) when out_len equal
-> 1, The previous code will not fill the buffer with any char.
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
+Currently, we see following compile error in the designeware GPIO driver
+for RV32 systems:
 
-Looks good to me.
+lib/utils/gpio/fdt_gpio_designware.c:115:20: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+  115 |         chip->dr = (void *)addr + (bank * 0xc);
+      |                    ^
+lib/utils/gpio/fdt_gpio_designware.c:116:21: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+  116 |         chip->ext = (void *)addr + (bank * 4) + 0x50;
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+We fix the above error using an explicit type-cast to 'unsigned long'.
 
-Regards,
-Anup
+Fixes: 7828eebaaa77 ("gpio/desginware: add Synopsys DesignWare APB GPIO support")
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ lib/utils/gpio/fdt_gpio_designware.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> ---
->  lib/sbi/sbi_console.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 00feec8..ad04c8b 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -271,6 +271,12 @@ static int print(char **out, u32 *out_len, const char *format, va_list args)
->                 out_len = &console_tbuf_len;
->         }
->
-> +       /* handle special case: *out_len == 1*/
-> +       if (out) {
-> +               if(!out_len || *out_len)
-> +                       **out = '\0';
-> +       }
-> +
->         for (; *format != 0; ++format) {
->                 width = flags = 0;
->                 if (use_tbuf)
-> --
-> 2.40.1
->
+diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
+index 6223d7e..603e5a0 100644
+--- a/lib/utils/gpio/fdt_gpio_designware.c
++++ b/lib/utils/gpio/fdt_gpio_designware.c
+@@ -112,8 +112,8 @@ static int dw_gpio_init_bank(void *fdt, int nodeoff, u32 phandle,
+ 
+ 	chip = &dw_gpio_chip_array[dw_gpio_chip_count];
+ 
+-	chip->dr = (void *)addr + (bank * 0xc);
+-	chip->ext = (void *)addr + (bank * 4) + 0x50;
++	chip->dr = (void *)(ulong)addr + (bank * 0xc);
++	chip->ext = (void *)(ulong)addr + (bank * 4) + 0x50;
+ 	chip->chip.driver = &fdt_gpio_designware;
+ 	chip->chip.id = phandle;
+ 	chip->chip.ngpio = nr_pins;
+-- 
+2.34.1
+
 
