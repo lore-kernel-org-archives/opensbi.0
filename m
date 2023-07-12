@@ -1,61 +1,69 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 12 Jul 2023 11:24:12 +0530
-Subject: [PATCH v2] lib: utils/gpio: Fix RV32 compile error for designware
- GPIO driver
-In-Reply-To: <20230712040340.1640305-1-apatel@ventanamicro.com>
-References: <20230712040340.1640305-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy32HLbrAuDy-j_uY5TpXMQrwhjv0suRH5xuJrapFY01Mg@mail.gmail.com>
+Date: Wed, 12 Jul 2023 11:46:37 +0530
+Subject: [PATCH v3 04/10] lib: sbi: Add smepmp in hart extensions
+In-Reply-To: <20230712043436.100548-5-hchauhan@ventanamicro.com>
+References: <20230706104928.3391947-1-hchauhan@ventanamicro.com>
+ <20230712043436.100548-1-hchauhan@ventanamicro.com> <20230712043436.100548-5-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy0d94C=zonhmFjjkOc_hO1ee8Puc5kHc-jzNkFF7W_vVQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 12, 2023 at 9:33?AM Anup Patel <apatel@ventanamicro.com> wrote:
+On Wed, Jul 12, 2023 at 10:05?AM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
 >
-> Currently, we see following compile error in the designeware GPIO driver
-> for RV32 systems:
+> - Add Smepmp as extension in sbi_hart_extensions enum
+> - Return "smepmp" string for Smepmp extension from sbi_hart_extension_id2string
 >
-> lib/utils/gpio/fdt_gpio_designware.c:115:20: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
->   115 |         chip->dr = (void *)addr + (bank * 0xc);
->       |                    ^
-> lib/utils/gpio/fdt_gpio_designware.c:116:21: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
->   116 |         chip->ext = (void *)addr + (bank * 4) + 0x50;
->
-> We fix the above error using an explicit type-cast to 'unsigned long'.
->
-> Fixes: 7828eebaaa77 ("gpio/desginware: add Synopsys DesignWare APB GPIO support")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
-Applied this patch to the riscv/opensbi repo.
+Please carry Rb tags from the previous version.
 
-Regards,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Thanks,
 Anup
 
 > ---
-> Changes since v1:
->  - Use uintptr_t in-place of ulong data type.
-> ---
->  lib/utils/gpio/fdt_gpio_designware.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  include/sbi/sbi_hart.h | 2 ++
+>  lib/sbi/sbi_hart.c     | 3 +++
+>  2 files changed, 5 insertions(+)
 >
-> diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
-> index 6223d7e..018e2d5 100644
-> --- a/lib/utils/gpio/fdt_gpio_designware.c
-> +++ b/lib/utils/gpio/fdt_gpio_designware.c
-> @@ -112,8 +112,8 @@ static int dw_gpio_init_bank(void *fdt, int nodeoff, u32 phandle,
->
->         chip = &dw_gpio_chip_array[dw_gpio_chip_count];
->
-> -       chip->dr = (void *)addr + (bank * 0xc);
-> -       chip->ext = (void *)addr + (bank * 4) + 0x50;
-> +       chip->dr = (void *)(uintptr_t)addr + (bank * 0xc);
-> +       chip->ext = (void *)(uintptr_t)addr + (bank * 4) + 0x50;
->         chip->chip.driver = &fdt_gpio_designware;
->         chip->chip.id = phandle;
->         chip->chip.ngpio = nr_pins;
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index b97f78c..8b0e896 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -28,6 +28,8 @@ enum sbi_hart_priv_versions {
+>  enum sbi_hart_extensions {
+>         /** HART has AIA M-mode CSRs */
+>         SBI_HART_EXT_SMAIA = 0,
+> +       /** HART has Smepmp */
+> +       SBI_HART_EXT_SMEPMP,
+>         /** HART has Smstateen CSR **/
+>         SBI_HART_EXT_SMSTATEEN,
+>         /** Hart has Sscofpmt extension */
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 0c27fd7..4dfa170 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -456,6 +456,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
+>         case SBI_HART_EXT_ZIHPM:
+>                 estr = "zihpm";
+>                 break;
+> +       case SBI_HART_EXT_SMEPMP:
+> +               estr = "smepmp";
+> +               break;
+>         default:
+>                 break;
+>         }
 > --
 > 2.34.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
