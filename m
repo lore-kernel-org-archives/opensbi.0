@@ -1,79 +1,92 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Wed, 12 Jul 2023 10:04:34 +0530
-Subject: [PATCH v3 08/10] lib: sbi: Change the order of PMP initialization
+Date: Wed, 12 Jul 2023 10:04:35 +0530
+Subject: [PATCH v3 09/10] lib: sbi: Add functions to map/unmap shared memory
 In-Reply-To: <20230712043436.100548-1-hchauhan@ventanamicro.com>
 References: <20230706104928.3391947-1-hchauhan@ventanamicro.com>
  <20230712043436.100548-1-hchauhan@ventanamicro.com>
-Message-ID: <20230712043436.100548-9-hchauhan@ventanamicro.com>
+Message-ID: <20230712043436.100548-10-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Configure PMP at last when all other initializations have been done.
-Because if SMEPMP is detected, M-mode access to the S/U space will be
-rescinded.
+When Smepmp is enabled, M-mode will need to map/unmap the
+shared memory before it can read/write to it. This patch
+adds functions to create dynamic short-lived mappings.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 ---
- lib/sbi/sbi_init.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ include/sbi/sbi_hart.h |  2 ++
+ lib/sbi/sbi_hart.c     | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 423e6d8..35e6633 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -356,13 +356,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 		sbi_hart_hang();
- 	}
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 1b78343..c150b7e 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -90,6 +90,8 @@ unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
++int sbi_hart_map_saddr(unsigned long base, unsigned long size);
++int sbi_hart_unmap_saddr(void);
+ int sbi_hart_priv_version(struct sbi_scratch *scratch);
+ void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
+ 				   char *version_str, int nvstr);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index c816f80..fde06d9 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -347,6 +347,48 @@ unsigned int sbi_hart_get_smepmp_flags(struct sbi_scratch *scratch,
+ 	return pmp_flags;
+ }
  
--	rc = sbi_hart_pmp_configure(scratch);
--	if (rc) {
--		sbi_printf("%s: PMP configure failed (error %d)\n",
--			   __func__, rc);
--		sbi_hart_hang();
--	}
--
- 	/*
- 	 * Note: Platform final initialization should be after finalizing
- 	 * domains so that it sees correct domain assignment and PMP
-@@ -392,6 +385,17 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 
- 	sbi_boot_print_hart(scratch, hartid);
- 
-+	/*
-+	 * Configure PMP at last because if SMEPMP is detected,
-+	 * M-mode access to the S/U space will be rescinded.
-+	 */
-+	rc = sbi_hart_pmp_configure(scratch);
-+	if (rc) {
-+		sbi_printf("%s: PMP configure failed (error %d)\n",
-+			   __func__, rc);
-+		sbi_hart_hang();
++int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
++{
++	/* shared R/W access for M and S/U mode */
++	unsigned int pmp_flags = (PMP_W | PMP_X);
++	unsigned long order, base = 0;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	/* If Smepmp is not supported no special mapping is required */
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
++		return SBI_OK;
++
++	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
++		return SBI_ENOSPC;
++
++	for (order = log2roundup(size) ; order <= __riscv_xlen; order++) {
++		if (order < __riscv_xlen) {
++			base = addr & ~((1UL << order) - 1UL);
++			if ((base <= addr) &&
++			    (addr < (base + (1UL << order))) &&
++			    (base <= (addr + size - 1UL)) &&
++			    ((addr + size - 1UL) < (base + (1UL << order))))
++				break;
++		} else {
++			return SBI_EFAIL;
++		}
 +	}
 +
- 	wake_coldboot_harts(scratch, hartid);
- 
- 	count = sbi_scratch_offset_ptr(scratch, init_count_offset);
-@@ -445,11 +449,15 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_hart_pmp_configure(scratch);
-+	rc = sbi_platform_final_init(plat, false);
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_platform_final_init(plat, false);
-+	/*
-+	 * Configure PMP at last because if SMEPMP is detected,
-+	 * M-mode access to the S/U space will be rescinded.
-+	 */
-+	rc = sbi_hart_pmp_configure(scratch);
- 	if (rc)
- 		sbi_hart_hang();
- 
++	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
++
++	return SBI_OK;
++}
++
++int sbi_hart_unmap_saddr(void)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
++		return SBI_OK;
++
++	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++}
++
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_domain_memregion *reg;
 -- 
 2.34.1
 
