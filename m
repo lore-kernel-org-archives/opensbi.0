@@ -1,92 +1,52 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Wed, 12 Jul 2023 10:04:35 +0530
-Subject: [PATCH v3 09/10] lib: sbi: Add functions to map/unmap shared memory
+Date: Wed, 12 Jul 2023 10:04:36 +0530
+Subject: [PATCH v3 10/10] lib: sbi: Map/Unmap debug console shared memory buffers
 In-Reply-To: <20230712043436.100548-1-hchauhan@ventanamicro.com>
 References: <20230706104928.3391947-1-hchauhan@ventanamicro.com>
  <20230712043436.100548-1-hchauhan@ventanamicro.com>
-Message-ID: <20230712043436.100548-10-hchauhan@ventanamicro.com>
+Message-ID: <20230712043436.100548-11-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When Smepmp is enabled, M-mode will need to map/unmap the
-shared memory before it can read/write to it. This patch
-adds functions to create dynamic short-lived mappings.
+With Smepmp enabled, it is necessary for shared memory from
+S/U mode to be mapped/unmapped before and after read/write
+of the memory region. This patch maps the debug console
+shared memory before accessing it.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi/sbi_hart.h |  2 ++
- lib/sbi/sbi_hart.c     | 42 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
+ lib/sbi/sbi_ecall_dbcn.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 1b78343..c150b7e 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -90,6 +90,8 @@ unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
- unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
-+int sbi_hart_map_saddr(unsigned long base, unsigned long size);
-+int sbi_hart_unmap_saddr(void);
- int sbi_hart_priv_version(struct sbi_scratch *scratch);
- void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
- 				   char *version_str, int nvstr);
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index c816f80..fde06d9 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -347,6 +347,48 @@ unsigned int sbi_hart_get_smepmp_flags(struct sbi_scratch *scratch,
- 	return pmp_flags;
- }
+diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
+index 8e68729..18cd6c8 100644
+--- a/lib/sbi/sbi_ecall_dbcn.c
++++ b/lib/sbi/sbi_ecall_dbcn.c
+@@ -14,6 +14,7 @@
+ #include <sbi/sbi_ecall_interface.h>
+ #include <sbi/sbi_trap.h>
+ #include <sbi/riscv_asm.h>
++#include <sbi/sbi_hart.h>
  
-+int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
-+{
-+	/* shared R/W access for M and S/U mode */
-+	unsigned int pmp_flags = (PMP_W | PMP_X);
-+	unsigned long order, base = 0;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	/* If Smepmp is not supported no special mapping is required */
-+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
-+		return SBI_OK;
-+
-+	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
-+		return SBI_ENOSPC;
-+
-+	for (order = log2roundup(size) ; order <= __riscv_xlen; order++) {
-+		if (order < __riscv_xlen) {
-+			base = addr & ~((1UL << order) - 1UL);
-+			if ((base <= addr) &&
-+			    (addr < (base + (1UL << order))) &&
-+			    (base <= (addr + size - 1UL)) &&
-+			    ((addr + size - 1UL) < (base + (1UL << order))))
-+				break;
-+		} else {
-+			return SBI_EFAIL;
-+		}
-+	}
-+
-+	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
-+
-+	return SBI_OK;
-+}
-+
-+int sbi_hart_unmap_saddr(void)
-+{
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
-+		return SBI_OK;
-+
-+	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
-+}
-+
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- {
- 	struct sbi_domain_memregion *reg;
+ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
+ 				  const struct sbi_trap_regs *regs,
+@@ -46,10 +47,12 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
+ 					regs->a1, regs->a0, smode,
+ 					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
+ 			return SBI_ERR_INVALID_PARAM;
++		sbi_hart_map_saddr(regs->a1, regs->a0);
+ 		if (funcid == SBI_EXT_DBCN_CONSOLE_WRITE)
+ 			*out_val = sbi_nputs((const char *)regs->a1, regs->a0);
+ 		else
+ 			*out_val = sbi_ngets((char *)regs->a1, regs->a0);
++		sbi_hart_unmap_saddr();
+ 		return 0;
+ 	case SBI_EXT_DBCN_CONSOLE_WRITE_BYTE:
+ 		sbi_putc(regs->a0);
 -- 
 2.34.1
 
