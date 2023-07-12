@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 12 Jul 2023 11:52:27 +0530
-Subject: [PATCH v3 06/10] lib: sbi: Grant SU R/W/X permissions to whole memory
-In-Reply-To: <20230712043436.100548-7-hchauhan@ventanamicro.com>
+Date: Wed, 12 Jul 2023 11:54:11 +0530
+Subject: [PATCH v3 08/10] lib: sbi: Change the order of PMP initialization
+In-Reply-To: <20230712043436.100548-9-hchauhan@ventanamicro.com>
 References: <20230706104928.3391947-1-hchauhan@ventanamicro.com>
- <20230712043436.100548-1-hchauhan@ventanamicro.com> <20230712043436.100548-7-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy0Gzyp0QYvzoMQjPQ5TZhpaTRqgC=qLOUYApcjrzXHE8A@mail.gmail.com>
+ <20230712043436.100548-1-hchauhan@ventanamicro.com> <20230712043436.100548-9-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy0UksK=rgtQGK9fL7oY-AaYvaQHUBHcxwm3jGZJXTSnRw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,9 +14,9 @@ Content-Transfer-Encoding: 7bit
 On Wed, Jul 12, 2023 at 10:05?AM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> Since pmp entries have implicit priority on index, previous entries will
-> deny access to SU on M-mode region. Also, M-mode will not have access to
-> SU region while previous entries will allow access to M-mode regions.
+> Configure PMP at last when all other initializations have been done.
+> Because if SMEPMP is detected, M-mode access to the S/U space will be
+> rescinded.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
@@ -28,35 +28,63 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_domain.c | 14 ++++++++++----
->  1 file changed, 10 insertions(+), 4 deletions(-)
+>  lib/sbi/sbi_init.c | 26 +++++++++++++++++---------
+>  1 file changed, 17 insertions(+), 9 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 38a5902..acd0f74 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -772,11 +772,17 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 423e6d8..35e6633 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -356,13 +356,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
 >
->         root.fw_region_inited = true;
+> -       rc = sbi_hart_pmp_configure(scratch);
+> -       if (rc) {
+> -               sbi_printf("%s: PMP configure failed (error %d)\n",
+> -                          __func__, rc);
+> -               sbi_hart_hang();
+> -       }
+> -
+>         /*
+>          * Note: Platform final initialization should be after finalizing
+>          * domains so that it sees correct domain assignment and PMP
+> @@ -392,6 +385,17 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 >
-> -       /* Root domain allow everything memory region */
+>         sbi_boot_print_hart(scratch, hartid);
+>
 > +       /*
-> +        * Allow SU RWX on rest of the memory region. Since pmp entries
-> +        * have implicit priority on index, previous entries will
-> +        * deny access to SU on M-mode region. Also, M-mode will not
-> +        * have access to SU region while previous entries will allow
-> +        * access to M-mode regions.
+> +        * Configure PMP at last because if SMEPMP is detected,
+> +        * M-mode access to the S/U space will be rescinded.
 > +        */
->         sbi_domain_memregion_init(0, ~0UL,
-> -                                 (SBI_DOMAIN_MEMREGION_READABLE |
-> -                                  SBI_DOMAIN_MEMREGION_WRITEABLE |
-> -                                  SBI_DOMAIN_MEMREGION_EXECUTABLE),
-> +                                 (SBI_DOMAIN_MEMREGION_SU_READABLE |
-> +                                  SBI_DOMAIN_MEMREGION_SU_WRITABLE |
-> +                                  SBI_DOMAIN_MEMREGION_SU_EXECUTABLE),
->                                   &root_memregs[root_memregs_count++]);
+> +       rc = sbi_hart_pmp_configure(scratch);
+> +       if (rc) {
+> +               sbi_printf("%s: PMP configure failed (error %d)\n",
+> +                          __func__, rc);
+> +               sbi_hart_hang();
+> +       }
+> +
+>         wake_coldboot_harts(scratch, hartid);
 >
->         /* Root domain memory region end */
+>         count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+> @@ -445,11 +449,15 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> -       rc = sbi_hart_pmp_configure(scratch);
+> +       rc = sbi_platform_final_init(plat, false);
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> -       rc = sbi_platform_final_init(plat, false);
+> +       /*
+> +        * Configure PMP at last because if SMEPMP is detected,
+> +        * M-mode access to the S/U space will be rescinded.
+> +        */
+> +       rc = sbi_hart_pmp_configure(scratch);
+>         if (rc)
+>                 sbi_hart_hang();
+>
 > --
 > 2.34.1
 >
