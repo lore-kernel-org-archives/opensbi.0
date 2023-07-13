@@ -1,102 +1,172 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 13 Jul 2023 15:05:18 +0530
-Subject: [PATCH] lib: sbi: Configure seed bits when MSECCFG is readable
-In-Reply-To: <20230712083254.1585244-1-sameo@rivosinc.com>
-References: <20230712083254.1585244-1-sameo@rivosinc.com>
-Message-ID: <CAAhSdy0RWOG35ZM0teiJG6WE9vN1Z7YBuWsPHANr3BeX+ioLMQ@mail.gmail.com>
+From: Daniel Henrique Barboza <dbarboza@ventanamicro.com>
+Date: Thu, 13 Jul 2023 19:35:01 -0300
+Subject: Boot failure after QEMU's upgrade to OpenSBI v1.3 (was Re: [PATCH
+ for-8.2 6/7] target/riscv: add 'max' CPU type)
+In-Reply-To: <20230713-craziness-lankiness-8aec3db24993@spud>
+References: <20230712190149.424675-1-dbarboza@ventanamicro.com>
+ <20230712190149.424675-7-dbarboza@ventanamicro.com>
+ <20230712-stench-happiness-40c2ea831257@spud>
+ <3e9b5be8-d3ca-3a17-bef9-4a6a5bdc0ad0@ventanamicro.com>
+ <20230712-tulip-replica-0322e71c3e81@spud>
+ <744cbde6-7ce5-c327-3c5a-3858e994cc39@ventanamicro.com>
+ <20230712-superhero-rabid-578605f52927@spud>
+ <5dd3366d-13ba-c7fb-554f-549d97e7d4f9@ventanamicro.com>
+ <20230712-fancied-aviator-270f51166407@spud>
+ <20230713-craziness-lankiness-8aec3db24993@spud>
+Message-ID: <f5f76a03-411c-fb7e-5c21-f261a0e0b141@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 12, 2023 at 2:03?PM Samuel Ortiz <sameo@rivosinc.com> wrote:
->
-> When MSECCFFG is not trapped, giving exclusive access to the SEED CSR to
-> S-Mode (SSEED=1, USEED=0) seems like a reasonable default. It gives the
-> Linux kernel the ability to add entropy to its randomness pool while
-> preventing user mode from accessing it.
->
-> Eventually, this check will be enhanced with a check for the Zkr
-> extensions through the riscv,isa-extensions dt-bindings.
->
-> Signed-off-by: Samuel Ortiz <sameo@rivosinc.com>
 
-Latest OpenSBI has ISA string parsing which can be used to
-detect more extensions. You can even enhance this to support
-the new DT bindings as well.
 
-> ---
->  include/sbi/riscv_encoding.h |  5 +++++
->  lib/sbi/sbi_hart.c           | 13 +++++++++++++
->  2 files changed, 18 insertions(+)
->
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 4ebed97..6a66d32 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -223,6 +223,9 @@
->  #define ENVCFG_CBIE_INV                        _UL(0x3)
->  #define ENVCFG_FIOM                    _UL(0x1)
->
-> +#define SECCFG_SSEED                   (_ULL(1) << 9)
-> +#define SECCFG_USEED                   (_ULL(1) << 8)
-> +
->  /* ===== User-level CSRs ===== */
->
->  /* User Trap Setup (N-extension) */
-> @@ -444,6 +447,8 @@
->  /* Machine Configuration */
->  #define CSR_MENVCFG                    0x30a
->  #define CSR_MENVCFGH                   0x31a
-> +#define CSR_MSECCFG                    0x747
-> +#define CSR_MSECCFGH                   0x757
->
->  /* Machine Trap Handling */
->  #define CSR_MSCRATCH                   0x340
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 0c27fd7..39af37c 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -703,6 +703,19 @@ __mhpm_skip:
->                                         SBI_HART_EXT_SMSTATEEN, true);
->         }
->
-> +       if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11) {
+On 7/13/23 19:12, Conor Dooley wrote:
+> +CC OpenSBI Mailing list
+> 
+> I've not yet had the chance to bisect this, so adding the OpenSBI folks
+> to CC in case they might have an idea for what to try.
+> 
+> And a question for you below Daniel.
+> 
+> On Wed, Jul 12, 2023 at 11:14:21PM +0100, Conor Dooley wrote:
+>> On Wed, Jul 12, 2023 at 06:39:28PM -0300, Daniel Henrique Barboza wrote:
+>>> On 7/12/23 18:35, Conor Dooley wrote:
+>>>> On Wed, Jul 12, 2023 at 06:09:10PM -0300, Daniel Henrique Barboza wrote:
+>>>>
+>>>>> It is intentional. Those default marchid/mimpid vals were derived from the current
+>>>>> QEMU version ID/build and didn't mean much.
+>>>>>
+>>>>> It is still possible to set them via "-cpu rv64,marchid=N,mimpid=N" if needed when
+>>>>> using the generic (rv64,rv32) CPUs. Vendor CPUs can't have their machine IDs changed
+>>>>> via command line.
+>>>>
+>>>> Sounds good, thanks. I did just now go and check icicle to see what it
+>>>> would report & it does not boot. I'll go bisect...
+>>>
+>>> BTW how are you booting the icicle board nowadays? I remember you mentioning about
+>>> some changes in the FDT being required to boot and whatnot.
+>>
+>> I do direct kernel boots, as the HSS doesn't work anymore, and just lie
+>> a bit to QEMU about how much DDR we have.
+>> .PHONY: qemu-icicle
+>> qemu-icicle:
+>> 	$(qemu) -M microchip-icicle-kit \
+>> 		-m 3G -smp 5 \
+>> 		-kernel $(vmlinux_bin) \
+>> 		-dtb $(icicle_dtb) \
+>> 		-initrd $(initramfs) \
+>> 		-display none -serial null \
+>> 		-serial stdio \
+>> 		-D qemu.log -d unimp
+>>
+>> The platform only supports 2 GiB of DDR, not 3, but if I pass 2 to QEMU
+>> it thinks there's 1 GiB at 0x8000_0000 and 1 GiB at 0x10_0000_0000. The
+>> upstream devicetree (and current FPGA reference design) expects there to
+>> be 1 GiB at 0x8000_0000 and 1 GiB at 0x10_4000_0000. If I lie to QEMU,
+>> it thinks there is 1 GiB at 0x8000_0000 and 2 GiB at 0x10_0000_0000, and
+>> things just work. I prefer doing it this way than having to modify the
+>> DT, it is a lot easier to explain to people this way.
+>>
+>> I've been meaning to work the support for the icicle & mpfs in QEMU, but
+>> it just gets shunted down the priority list. I'd really like if a proper
+>> boot flow would run in QEMU, which means fixing whatever broke the HSS,
+>> but I've recently picked up maintainership of dt-binding stuff in Linux,
+>> so I've unfortunately got even less time to try and work on it. Maybe
+>> we'll get some new graduate in and I can make them suffer in my stead...
+>>
+>>> If it's not too hard I'll add it in my test scripts to keep it under check. Perhaps
+>>> we can even add it to QEMU testsuite.
+>>
+>> I don't think it really should be that bad, at least for the direct
+>> kernel boot, which is what I mainly care about, since I use it fairly
+>> often for debugging boot stuff in Linux.
+>>
+>> Anyways, aa903cf31391dd505b399627158f1292a6d19896 is the first bad commit:
+>> commit aa903cf31391dd505b399627158f1292a6d19896
+>> Author: Bin Meng <bmeng@tinylab.org>
+>> Date:   Fri Jun 30 23:36:04 2023 +0800
+>>
+>>      roms/opensbi: Upgrade from v1.2 to v1.3
+>>      
+>>      Upgrade OpenSBI from v1.2 to v1.3 and the pre-built bios images.
+>>
+>> And I see something like:
+>> qemu//build/qemu-system-riscv64 -M microchip-icicle-kit \
+>>          -m 3G -smp 5 \
+>>          -kernel vmlinux.bin \
+>>          -dtb icicle.dtb \
+>>          -initrd initramfs.cpio.gz \
+>>          -display none -serial null \
+>>          -serial stdio \
+>>          -D qemu.log -d unimp
+> 
+>> qemu-system-riscv64: warning: disabling zca extension for hart 0x0000000000000000 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zca extension for hart 0x0000000000000001 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zcd extension for hart 0x0000000000000001 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zca extension for hart 0x0000000000000002 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zcd extension for hart 0x0000000000000002 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zca extension for hart 0x0000000000000003 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zcd extension for hart 0x0000000000000003 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zca extension for hart 0x0000000000000004 because privilege spec version does not match
+>> qemu-system-riscv64: warning: disabling zcd extension for hart 0x0000000000000004 because privilege spec version does not match
+> 
+> Why am I seeing these warnings? Does the mpfs machine type need to
+> disable some things? It only supports rv64imafdc per the DT, and
+> predates things like Zca existing, so emitting warnings does not seem
+> fair at all to me!
 
-This should be >= SBI_HART_PRIV_VER_1_12 since mseccfg CSR
-was introduced with Priv v1.12
+QEMU will disable extensions that are newer than a priv spec version that is set
+by the CPU. IIUC the icicle board is running a sifive_u54 CPU by default. That
+CPU has a priv spec version 1_10_0. The CPU is also enabling C.
 
-> +               val = csr_read_allowed(CSR_MSECCFG, (unsigned long)&trap);
-> +               if (!trap.cause) {
-> +                       /* Disable unprivileged access to the SEED CSR */
-> +                       val &= ~SECCFG_USEED;
-> +
-> +                       /* Enable S-Mode access to the SEED CSR */
-> +                       val |= SECCFG_SSEED;
-> +
-> +                       csr_write(CSR_MSECCFG, val);
+We will enable zca if C is enabled. C and D enabled will also enable zcd. But
+then the priv check will disabled both because zca and zcd have priv spec 1_12_0.
 
-Over here, we should only detect seed CSR (i.e. Zksed extension)
-while the mseccfg CSR should be programmed in mstatus_init().
+This is a side effect for a change that I did a few months ago. Back then we
+weren't disabling stuff correctly. The warnings are annoying but are benign.
+And apparently the sifive_u54 CPU is being inconsistent for some time and
+we noticed just now.
 
-> +               }
-> +       }
-> +
->         /* Let platform populate extensions */
->         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
->                                           hfeatures);
->
-> base-commit: ea6533ada828cf71b9359f566be0f9c640022543
-> --
-> 2.41.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Now, if the icicle board is supposed to have zca and zcd then we have a problem.
+We'll need to discuss whether we move sifive_u54 CPU priv spec to 1_12_0 (I'm not
+sure how this will affect other boards that uses this CPU) or remove this priv spec
+disable code altogether from QEMU.
 
-Regards,
-Anup
+
+Thanks,
+
+Daniel
+
+
+
+> 
+>>
+>> OpenSBI v1.3
+>>     ____                    _____ ____ _____
+>>    / __ \                  / ____|  _ \_   _|
+>>   | |  | |_ __   ___ _ __ | (___ | |_) || |
+>>   | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+>>   | |__| | |_) |  __/ | | |____) | |_) || |_
+>>    \____/| .__/ \___|_| |_|_____/|___/_____|
+>>          | |
+>>          |_|
+>>
+>> init_coldboot: ipi init failed (error -1009)
+>>
+>> Just to note, because we use our own firmware that vendors in OpenSBI
+>> and compiles only a significantly cut down number of files from it, we
+>> do not use the fw_dynamic etc flow on our hardware. As a result, we have
+>> not tested v1.3, nor do we have any immediate plans to change our
+>> platform firmware to vendor v1.3 either.
+>>
+>> I unless there's something obvious to you, it sounds like I will need to
+>> go and bisect OpenSBI. That's a job for another day though, given the
+>> time.
+>>
+>> Cheers,
+>> Conor.
+> 
+> 
 
