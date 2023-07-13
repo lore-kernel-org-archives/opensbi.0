@@ -1,69 +1,101 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 13 Jul 2023 14:59:45 +0530
-Subject: [PATCH v2] lib: utils/gpio: Fix RV32 compile error for designware
- GPIO driver
-In-Reply-To: <4634a716-9a81-2521-155f-fd0dea5eb333@codethink.co.uk>
-References: <20230712040340.1640305-1-apatel@ventanamicro.com> <4634a716-9a81-2521-155f-fd0dea5eb333@codethink.co.uk>
-Message-ID: <CAAhSdy2WW2D64aCRxdSnXATzv14-Oz18OK3h78aLECSyR08zvg@mail.gmail.com>
+Date: Thu, 13 Jul 2023 15:05:18 +0530
+Subject: [PATCH] lib: sbi: Configure seed bits when MSECCFG is readable
+In-Reply-To: <20230712083254.1585244-1-sameo@rivosinc.com>
+References: <20230712083254.1585244-1-sameo@rivosinc.com>
+Message-ID: <CAAhSdy0RWOG35ZM0teiJG6WE9vN1Z7YBuWsPHANr3BeX+ioLMQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 12, 2023 at 2:49?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
+On Wed, Jul 12, 2023 at 2:03?PM Samuel Ortiz <sameo@rivosinc.com> wrote:
 >
-> On 12/07/2023 05:03, Anup Patel wrote:
-> > Currently, we see following compile error in the designeware GPIO driver
-> > for RV32 systems:
-> >
-> > lib/utils/gpio/fdt_gpio_designware.c:115:20: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
-> >    115 |         chip->dr = (void *)addr + (bank * 0xc);
-> >        |                    ^
-> > lib/utils/gpio/fdt_gpio_designware.c:116:21: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
-> >    116 |         chip->ext = (void *)addr + (bank * 4) + 0x50;
-> >
-> > We fix the above error using an explicit type-cast to 'unsigned long'.
-> >
-> > Fixes: 7828eebaaa77 ("gpio/desginware: add Synopsys DesignWare APB GPIO support")
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > Reviewed-by: Xiang W <wxjstz@126.com>
-> > ---
-> > Changes since v1:
-> >   - Use uintptr_t in-place of ulong data type.
-> > ---
-> >   lib/utils/gpio/fdt_gpio_designware.c | 4 ++--
-> >   1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
-> > index 6223d7e..018e2d5 100644
-> > --- a/lib/utils/gpio/fdt_gpio_designware.c
-> > +++ b/lib/utils/gpio/fdt_gpio_designware.c
-> > @@ -112,8 +112,8 @@ static int dw_gpio_init_bank(void *fdt, int nodeoff, u32 phandle,
-> >
-> >       chip = &dw_gpio_chip_array[dw_gpio_chip_count];
-> >
-> > -     chip->dr = (void *)addr + (bank * 0xc);
-> > -     chip->ext = (void *)addr + (bank * 4) + 0x50;
-> > +     chip->dr = (void *)(uintptr_t)addr + (bank * 0xc);
-> > +     chip->ext = (void *)(uintptr_t)addr + (bank * 4) + 0x50;
+> When MSECCFFG is not trapped, giving exclusive access to the SEED CSR to
+> S-Mode (SSEED=1, USEED=0) seems like a reasonable default. It gives the
+> Linux kernel the ability to add entropy to its randomness pool while
+> preventing user mode from accessing it.
 >
-> would a macro to do this, maybe called fdt_addr_to_ptr(addr) ?
+> Eventually, this check will be enhanced with a check for the Zkr
+> extensions through the riscv,isa-extensions dt-bindings.
+>
+> Signed-off-by: Samuel Ortiz <sameo@rivosinc.com>
 
-Yes, some generic addr_to_ptr() macro would be useful to avoid
-compile error in future. It need not be FDT specific.
+Latest OpenSBI has ISA string parsing which can be used to
+detect more extensions. You can even enhance this to support
+the new DT bindings as well.
 
+> ---
+>  include/sbi/riscv_encoding.h |  5 +++++
+>  lib/sbi/sbi_hart.c           | 13 +++++++++++++
+>  2 files changed, 18 insertions(+)
 >
-> >       chip->chip.driver = &fdt_gpio_designware;
-> >       chip->chip.id = phandle;
-> >       chip->chip.ngpio = nr_pins;
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 4ebed97..6a66d32 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -223,6 +223,9 @@
+>  #define ENVCFG_CBIE_INV                        _UL(0x3)
+>  #define ENVCFG_FIOM                    _UL(0x1)
+>
+> +#define SECCFG_SSEED                   (_ULL(1) << 9)
+> +#define SECCFG_USEED                   (_ULL(1) << 8)
+> +
+>  /* ===== User-level CSRs ===== */
+>
+>  /* User Trap Setup (N-extension) */
+> @@ -444,6 +447,8 @@
+>  /* Machine Configuration */
+>  #define CSR_MENVCFG                    0x30a
+>  #define CSR_MENVCFGH                   0x31a
+> +#define CSR_MSECCFG                    0x747
+> +#define CSR_MSECCFGH                   0x757
+>
+>  /* Machine Trap Handling */
+>  #define CSR_MSCRATCH                   0x340
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 0c27fd7..39af37c 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -703,6 +703,19 @@ __mhpm_skip:
+>                                         SBI_HART_EXT_SMSTATEEN, true);
+>         }
+>
+> +       if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11) {
+
+This should be >= SBI_HART_PRIV_VER_1_12 since mseccfg CSR
+was introduced with Priv v1.12
+
+> +               val = csr_read_allowed(CSR_MSECCFG, (unsigned long)&trap);
+> +               if (!trap.cause) {
+> +                       /* Disable unprivileged access to the SEED CSR */
+> +                       val &= ~SECCFG_USEED;
+> +
+> +                       /* Enable S-Mode access to the SEED CSR */
+> +                       val |= SECCFG_SSEED;
+> +
+> +                       csr_write(CSR_MSECCFG, val);
+
+Over here, we should only detect seed CSR (i.e. Zksed extension)
+while the mseccfg CSR should be programmed in mstatus_init().
+
+> +               }
+> +       }
+> +
+>         /* Let platform populate extensions */
+>         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+>                                           hfeatures);
+>
+> base-commit: ea6533ada828cf71b9359f566be0f9c640022543
+> --
+> 2.41.0
+>
 >
 > --
-> Ben Dooks                               http://www.codethink.co.uk/
-> Senior Engineer                         Codethink - Providing Genius
->
-> https://www.codethink.co.uk/privacy.html
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
 Anup
