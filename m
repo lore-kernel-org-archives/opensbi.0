@@ -1,78 +1,70 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 13 Jul 2023 13:03:29 +0530
-Subject: [PATCH v3 00/10] Add support for Smepmp
-In-Reply-To: <20230712043436.100548-1-hchauhan@ventanamicro.com>
-References: <20230706104928.3391947-1-hchauhan@ventanamicro.com> <20230712043436.100548-1-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy3_jQGPRGf8dA3gNhF4aBM-jig+8o5iU1Xkr6TX0DkA6w@mail.gmail.com>
+Date: Thu, 13 Jul 2023 14:59:45 +0530
+Subject: [PATCH v2] lib: utils/gpio: Fix RV32 compile error for designware
+ GPIO driver
+In-Reply-To: <4634a716-9a81-2521-155f-fd0dea5eb333@codethink.co.uk>
+References: <20230712040340.1640305-1-apatel@ventanamicro.com> <4634a716-9a81-2521-155f-fd0dea5eb333@codethink.co.uk>
+Message-ID: <CAAhSdy2WW2D64aCRxdSnXATzv14-Oz18OK3h78aLECSyR08zvg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 12, 2023 at 10:04?AM Himanshu Chauhan
-<hchauhan@ventanamicro.com> wrote:
+On Wed, Jul 12, 2023 at 2:49?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
 >
-> This patch series adds support for the Smepmp specification.
-> The detection of Smepmp support in platform depends on the
-> ISA string present in the FDT. If "smepmp" is present in ISA
-> string in FDT, Smepmp is enabled.
+> On 12/07/2023 05:03, Anup Patel wrote:
+> > Currently, we see following compile error in the designeware GPIO driver
+> > for RV32 systems:
+> >
+> > lib/utils/gpio/fdt_gpio_designware.c:115:20: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> >    115 |         chip->dr = (void *)addr + (bank * 0xc);
+> >        |                    ^
+> > lib/utils/gpio/fdt_gpio_designware.c:116:21: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> >    116 |         chip->ext = (void *)addr + (bank * 4) + 0x50;
+> >
+> > We fix the above error using an explicit type-cast to 'unsigned long'.
+> >
+> > Fixes: 7828eebaaa77 ("gpio/desginware: add Synopsys DesignWare APB GPIO support")
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > Reviewed-by: Xiang W <wxjstz@126.com>
+> > ---
+> > Changes since v1:
+> >   - Use uintptr_t in-place of ulong data type.
+> > ---
+> >   lib/utils/gpio/fdt_gpio_designware.c | 4 ++--
+> >   1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
+> > index 6223d7e..018e2d5 100644
+> > --- a/lib/utils/gpio/fdt_gpio_designware.c
+> > +++ b/lib/utils/gpio/fdt_gpio_designware.c
+> > @@ -112,8 +112,8 @@ static int dw_gpio_init_bank(void *fdt, int nodeoff, u32 phandle,
+> >
+> >       chip = &dw_gpio_chip_array[dw_gpio_chip_count];
+> >
+> > -     chip->dr = (void *)addr + (bank * 0xc);
+> > -     chip->ext = (void *)addr + (bank * 4) + 0x50;
+> > +     chip->dr = (void *)(uintptr_t)addr + (bank * 0xc);
+> > +     chip->ext = (void *)(uintptr_t)addr + (bank * 4) + 0x50;
 >
-> When Smepmp is enabled, the M-mode software's free access
-> to S/U memory region is revoked. Hence, all the shared
-> memory access between M-mode and S/U-mode must be done
-> only after mapping the shared memory.
->
-> changes in v3:
-> * Split "Add smepmp support" patch into subpatches
->         - Root domain permission change is different patch
->         - Ordering change in PMP configuration is a different patch.
->
-> changes in v2:
-> * Split into futher patches
->         - FDT ISA string parsing is now separate patch
->         - Map/Unmap functions for shared memory are in different patch
-> * Addressed other general comments.
->
->
-> Himanshu Chauhan (10):
->   include: sbi: Add macro definitions for mseccfg CSR
->   lib: sbi: Add functions to manipulate PMP entries
->   include: sbi: Add Smepmp specific access flags for PMP entries
->   lib: sbi: Add smepmp in hart extensions
->   lib: utils: Add detection of Smepmp from ISA string in FDT
->   lib: sbi: Grant SU R/W/X permissions to whole memory
->   lib: sbi: Add support for Smepmp
->   lib: sbi: Change the order of PMP initialization
->   lib: sbi: Add functions to map/unmap shared memory
->   lib: sbi: Map/Unmap debug console shared memory buffers
+> would a macro to do this, maybe called fdt_addr_to_ptr(addr) ?
 
-Applied this series to the riscv/opensbi repo.
+Yes, some generic addr_to_ptr() macro would be useful to avoid
+compile error in future. It need not be FDT specific.
 
-Thanks,
+>
+> >       chip->chip.driver = &fdt_gpio_designware;
+> >       chip->chip.id = phandle;
+> >       chip->chip.ngpio = nr_pins;
+>
+> --
+> Ben Dooks                               http://www.codethink.co.uk/
+> Senior Engineer                         Codethink - Providing Genius
+>
+> https://www.codethink.co.uk/privacy.html
+>
+
+Regards,
 Anup
-
->
->  include/sbi/riscv_asm.h            |   6 +
->  include/sbi/riscv_encoding.h       |  12 ++
->  include/sbi/sbi_domain.h           |  84 +++++++++++++-
->  include/sbi/sbi_hart.h             |  19 ++++
->  include/sbi_utils/fdt/fdt_helper.h |   3 +
->  lib/sbi/riscv_asm.c                |  42 +++++++
->  lib/sbi/sbi_domain.c               |  14 ++-
->  lib/sbi/sbi_ecall_dbcn.c           |   3 +
->  lib/sbi/sbi_hart.c                 | 177 +++++++++++++++++++++++++----
->  lib/sbi/sbi_init.c                 |  26 +++--
->  lib/utils/fdt/fdt_helper.c         | 111 ++++++++++++++++++
->  platform/generic/platform.c        |   9 ++
->  12 files changed, 468 insertions(+), 38 deletions(-)
->
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
