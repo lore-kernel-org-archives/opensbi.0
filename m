@@ -1,146 +1,39 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 19 Jul 2023 21:40:46 +0530
-Subject: Boot failure after QEMU's upgrade to OpenSBI v1.3 (was Re: [PATCH
- for-8.2 6/7] target/riscv: add 'max' CPU type)
+From: Andreas Schwab <schwab@linux-m68k.org>
+Date: Wed, 19 Jul 2023 18:17:59 +0200
+Subject: Boot failure after QEMU's upgrade to OpenSBI v1.3 (was Re:
+ [PATCH for-8.2 6/7] target/riscv: add 'max' CPU type)
 In-Reply-To: <CAEUhbmVoYnOMEi_Hqi7iX0__jTjbEnaxrHjCJHuMVaUAcMiACA@mail.gmail.com>
-References: <20230712-stench-happiness-40c2ea831257@spud> <3e9b5be8-d3ca-3a17-bef9-4a6a5bdc0ad0@ventanamicro.com>
- <20230712-tulip-replica-0322e71c3e81@spud> <744cbde6-7ce5-c327-3c5a-3858e994cc39@ventanamicro.com>
- <20230712-superhero-rabid-578605f52927@spud> <5dd3366d-13ba-c7fb-554f-549d97e7d4f9@ventanamicro.com>
- <20230712-fancied-aviator-270f51166407@spud> <20230713-craziness-lankiness-8aec3db24993@spud>
- <CAAhSdy3J5HUoVP21jo11FBuAFSPSxHNKtuL7amn-5t7n_smoSg@mail.gmail.com>
- <20230714-reoccur-confined-4b37494b1201@spud> <20230714-hash-handwrite-339817b93ba1@spud>
- <CAOnJCUL3=G_yV5cP5OjCGQKNvciNgXWnoQGUU4Bqh4iwnx6C4A@mail.gmail.com>
- <CAKmqyKO3O87ETntm7pzMPedKW19ANpEp5nM4jFiHXO76K9saTQ@mail.gmail.com>
- <CAAhSdy1+wRpqoTFmBRNF7uFnc_fFCyCnt5ctoMu7zhTiu2GcTg@mail.gmail.com>
- <CAKmqyKOTik3tUa1MyHAyc5jOWcPDY=seHuR-VurHbSKaCKQFpw@mail.gmail.com>
- <CAAhSdy1vkk6xj7HSyPHKN0d0qgYrq_rn-+iw_rxkdDBKqpC2yw@mail.gmail.com> <CAEUhbmVoYnOMEi_Hqi7iX0__jTjbEnaxrHjCJHuMVaUAcMiACA@mail.gmail.com>
-Message-ID: <CAK9=C2WG8Ro9kUCWBCDVtTYQwoTGbxo=hNgkK9y5HdAqhL=DHg@mail.gmail.com>
+	(Bin Meng's message of "Wed, 19 Jul 2023 23:45:40 +0800")
+References: <20230712-stench-happiness-40c2ea831257@spud>
+	<3e9b5be8-d3ca-3a17-bef9-4a6a5bdc0ad0@ventanamicro.com>
+	<20230712-tulip-replica-0322e71c3e81@spud>
+	<744cbde6-7ce5-c327-3c5a-3858e994cc39@ventanamicro.com>
+	<20230712-superhero-rabid-578605f52927@spud>
+	<5dd3366d-13ba-c7fb-554f-549d97e7d4f9@ventanamicro.com>
+	<20230712-fancied-aviator-270f51166407@spud>
+	<20230713-craziness-lankiness-8aec3db24993@spud>
+	<CAAhSdy3J5HUoVP21jo11FBuAFSPSxHNKtuL7amn-5t7n_smoSg@mail.gmail.com>
+	<20230714-reoccur-confined-4b37494b1201@spud>
+	<20230714-hash-handwrite-339817b93ba1@spud>
+	<CAOnJCUL3=G_yV5cP5OjCGQKNvciNgXWnoQGUU4Bqh4iwnx6C4A@mail.gmail.com>
+	<CAKmqyKO3O87ETntm7pzMPedKW19ANpEp5nM4jFiHXO76K9saTQ@mail.gmail.com>
+	<CAAhSdy1+wRpqoTFmBRNF7uFnc_fFCyCnt5ctoMu7zhTiu2GcTg@mail.gmail.com>
+	<CAKmqyKOTik3tUa1MyHAyc5jOWcPDY=seHuR-VurHbSKaCKQFpw@mail.gmail.com>
+	<CAAhSdy1vkk6xj7HSyPHKN0d0qgYrq_rn-+iw_rxkdDBKqpC2yw@mail.gmail.com>
+	<CAEUhbmVoYnOMEi_Hqi7iX0__jTjbEnaxrHjCJHuMVaUAcMiACA@mail.gmail.com>
+Message-ID: <87zg3rvps8.fsf@igel.home>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Bin,
+On Jul 19 2023, Bin Meng wrote:
 
-On Wed, Jul 19, 2023 at 9:15?PM Bin Meng <bmeng.cn@gmail.com> wrote:
->
-> On Wed, Jul 19, 2023 at 11:22?PM Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Wed, Jul 19, 2023 at 3:23?PM Alistair Francis <alistair23@gmail.com> wrote:
-> > >
-> > > On Wed, Jul 19, 2023 at 3:39?PM Anup Patel <anup@brainfault.org> wrote:
-> > > >
-> > > > On Wed, Jul 19, 2023 at 7:03?AM Alistair Francis <alistair23@gmail.com> wrote:
-> > > > >
-> > > > > On Sat, Jul 15, 2023 at 7:14?PM Atish Patra <atishp@atishpatra.org> wrote:
-> > > > > >
-> > > > > > On Fri, Jul 14, 2023 at 5:29?AM Conor Dooley <conor@kernel.org> wrote:
-> > > > > > >
-> > > > > > > On Fri, Jul 14, 2023 at 11:19:34AM +0100, Conor Dooley wrote:
-> > > > > > > > On Fri, Jul 14, 2023 at 10:00:19AM +0530, Anup Patel wrote:
-> > > > > > > >
-> > > > > > > > > > > OpenSBI v1.3
-> > > > > > > > > > >    ____                    _____ ____ _____
-> > > > > > > > > > >   / __ \                  / ____|  _ \_   _|
-> > > > > > > > > > >  | |  | |_ __   ___ _ __ | (___ | |_) || |
-> > > > > > > > > > >  | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
-> > > > > > > > > > >  | |__| | |_) |  __/ | | |____) | |_) || |_
-> > > > > > > > > > >   \____/| .__/ \___|_| |_|_____/|___/_____|
-> > > > > > > > > > >         | |
-> > > > > > > > > > >         |_|
-> > > > > > > > > > >
-> > > > > > > > > > > init_coldboot: ipi init failed (error -1009)
-> > > > > > > > > > >
-> > > > > > > > > > > Just to note, because we use our own firmware that vendors in OpenSBI
-> > > > > > > > > > > and compiles only a significantly cut down number of files from it, we
-> > > > > > > > > > > do not use the fw_dynamic etc flow on our hardware. As a result, we have
-> > > > > > > > > > > not tested v1.3, nor do we have any immediate plans to change our
-> > > > > > > > > > > platform firmware to vendor v1.3 either.
-> > > > > > > > > > >
-> > > > > > > > > > > I unless there's something obvious to you, it sounds like I will need to
-> > > > > > > > > > > go and bisect OpenSBI. That's a job for another day though, given the
-> > > > > > > > > > > time.
-> > > > > > > > > > >
-> > > > > > > > >
-> > > > > > > > > The real issue is some CPU/HART DT nodes marked as disabled in the
-> > > > > > > > > DT passed to OpenSBI 1.3.
-> > > > > > > > >
-> > > > > > > > > This issue does not exist in any of the DTs generated by QEMU but some
-> > > > > > > > > of the DTs in the kernel (such as microchip and SiFive board DTs) have
-> > > > > > > > > the E-core disabled.
-> > > > > > > > >
-> > > > > > > > > I had discovered this issue in a totally different context after the OpenSBI 1.3
-> > > > > > > > > release happened. This issue is already fixed in the latest OpenSBI by the
-> > > > > > > > > following commit c6a35733b74aeff612398f274ed19a74f81d1f37 ("lib: utils:
-> > > > > > > > > Fix sbi_hartid_to_scratch() usage in ACLINT drivers").
-> > > > > > > >
-> > > > > > > > Great, thanks Anup! I thought I had tested tip-of-tree too, but
-> > > > > > > > obviously not.
-> > > > > > > >
-> > > > > > > > > I always assumed that Microchip hss.bin is the preferred BIOS for the
-> > > > > > > > > QEMU microchip-icicle-kit machine but I guess that's not true.
-> > > > > > > >
-> > > > > > > > Unfortunately the HSS has not worked in QEMU for a long time, and while
-> > > > > > > > I would love to fix it, but am pretty stretched for spare time to begin
-> > > > > > > > with.
-> > > > > > > > I usually just do direct kernel boots, which use the OpenSBI that comes
-> > > > > > > > with QEMU, as I am sure you already know :)
-> > > > > > > >
-> > > > > > > > > At this point, you can either:
-> > > > > > > > > 1) Use latest OpenSBI on QEMU microchip-icicle-kit machine
-> > > > > > >
-> > > > > > > I forgot to reply to this point, wondering what should be done with
-> > > > > > > QEMU. Bumping to v1.3 in QEMU introduces a regression here, regardless
-> > > > > > > of whether I can go and build a fixed version of OpenSBI.
-> > > > > > >
-> > > > > > FYI: The no-map fix went in OpenSBI v1.3. Without the upgrade, any
-> > > > > > user using the latest kernel (> v6.4)
-> > > > > > may hit those random linear map related issues (in hibernation or EFI
-> > > > > > booting path).
-> > > > > >
-> > > > > > There are three possible scenarios:
-> > > > > >
-> > > > > > 1. Upgrade to OpenSBI v1.3: Any user of microchip-icicle-kit machine
-> > > > > > or sifive fu540 machine users
-> > > > > > may hit this issue if the device tree has the disabled hart (e core).
-> > > > > > 2. No upgrade to OpenSBI v1.2. Any user using hibernation or UEFI may
-> > > > > > have issues [1]
-> > > > > > 3. Include a non-release version OpenSBI in Qemu with the fix as an exception.
-> > > > > >
-> > > > > > #3 probably deviates from policy and sets a bad precedent. So I am not
-> > > > > > advocating for it though ;)
-> > > > > > For both #1 & #2, the solution would be to use the latest OpenSBI in
-> > > > > > -bios argument instead of the stock one.
-> > > > > > I could be wrong but my guess is the number of users facing #2 would
-> > > > > > be higher than #1.
-> > > > >
-> > > > > Thanks for that info Atish!
-> > > > >
-> > > > > We are stuck in a bad situation.
-> > > > >
-> > > > > The best solution would be if OpenSBI can release a 1.3.1, @Anup Patel
-> > > > > do you think you could do that?
-> > > >
-> > > > OpenSBI has a major number and minor number in the version but it does
-> > > > not have release/patch number so best would be to treat OpenSBI vX.Y.Z
-> > > > as bug fixes on-top-of OpenSBI vX.Y. In other words, supervisor software
-> > > > won't be able to differentiate between OpenSBI vX.Y.Z and OpenSBI vX.Y
-> > > > using sbi_get_impl_version().
-> > > >
-> > > > There are only three commits between the ACLINT fix and OpenSBI v1.3
-> > > > so as one-of case I will go ahead create OpenSBI v1.3.1 containing only
-> > > > four commits on-top of OpenSBI v1.3
-> > > >
-> > > > Does this sound okay ?
-> > >
-> > > That sounds fine to me. It fixes the issue for the Microsemi board and
-> > > it's a very small change between 1.3 and 1.3.1
-> >
-> > Please check
-> > https://github.com/riscv-software-src/opensbi/releases/tag/v1.3.1
-> >
-> > I hope this helps.
+>> Please check
+>> https://github.com/riscv-software-src/opensbi/releases/tag/v1.3.1
+>>
+>> I hope this helps.
 >
 > Hi Alistair,
 >
@@ -151,13 +44,11 @@ On Wed, Jul 19, 2023 at 9:15?PM Bin Meng <bmeng.cn@gmail.com> wrote:
 > Somehow I cannot see the 'tag' v1.3.1 being populated in the opensbi
 > git repo. Am I missing anything?
 
-There is a v1.3.1 tag in https://github.com/riscv-software-src/opensbi
-(Try cloning the repo again?)
+You need to run git fetch --tags, because the tag is not part of any
+branch, thus not fetched automatically.
 
-The commit history of v1.3.1 is v1.3 tag + 5 cherry picked commits
-which means the commit history of the master branch is not the same
-as the commit history of v1.3.1.
-
-Regards,
-Anup
+-- 
+Andreas Schwab, schwab at linux-m68k.org
+GPG Key fingerprint = 7578 EB47 D4E5 4D69 2510  2552 DF73 E780 A9DA AEC1
+"And now for something completely different."
 
