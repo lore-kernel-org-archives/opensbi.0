@@ -1,63 +1,81 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 21 Jul 2023 22:40:04 +0530
-Subject: [PATCH 0/6] Syscon reboot and poweroff drivers
-Message-ID: <20230721171010.2572232-1-apatel@ventanamicro.com>
+Date: Fri, 21 Jul 2023 22:40:05 +0530
+Subject: [PATCH 1/6] include: sbi_utils: Remove driver pointer from struct i2c_adapter
+In-Reply-To: <20230721171010.2572232-1-apatel@ventanamicro.com>
+References: <20230721171010.2572232-1-apatel@ventanamicro.com>
+Message-ID: <20230721171010.2572232-2-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series adds syscon reboot and poweroff drivers which replaces the
-SiFive Test reset driver. These new drivers need a lightweight or simple
-regmap framework which is also added by this series.
+The "driver" pointer in struct i2c_adapter is not used anywhere
+so let us remove it.
 
-These patches can also be found in the syscon_reboot_v1 branch at:
-https://github.com/avpatel/opensbi.git
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ include/sbi_utils/i2c/i2c.h    | 3 ---
+ lib/utils/i2c/fdt_i2c_dw.c     | 3 ---
+ lib/utils/i2c/fdt_i2c_sifive.c | 3 ---
+ 3 files changed, 9 deletions(-)
 
-Anup Patel (6):
-  include: sbi_utils: Remove driver pointer from struct i2c_adapter
-  lib: utils/regmap: Add generic regmap access library
-  lib: utils/regmap: Add simple FDT based regmap framework
-  lib: utils/regmap: Add simple FDT based syscon regmap driver
-  lib: utils/reset: Add syscon based reboot and poweroff
-  lib: utils/reset: Remove SiFive Test reset driver
-
- include/sbi_utils/i2c/i2c.h                |   3 -
- include/sbi_utils/regmap/fdt_regmap.h      |  31 +++
- include/sbi_utils/regmap/regmap.h          |  67 ++++++
- include/sbi_utils/sys/sifive_test.h        |  17 --
- lib/utils/Kconfig                          |   2 +
- lib/utils/i2c/fdt_i2c_dw.c                 |   3 -
- lib/utils/i2c/fdt_i2c_sifive.c             |   3 -
- lib/utils/regmap/Kconfig                   |  22 ++
- lib/utils/regmap/fdt_regmap.c              |  94 ++++++++
- lib/utils/regmap/fdt_regmap_drivers.carray |   3 +
- lib/utils/regmap/fdt_regmap_syscon.c       | 262 +++++++++++++++++++++
- lib/utils/regmap/objects.mk                |  16 ++
- lib/utils/regmap/regmap.c                  | 114 +++++++++
- lib/utils/reset/Kconfig                    |  10 +-
- lib/utils/reset/fdt_reset_sifive_test.c    |  36 ---
- lib/utils/reset/fdt_reset_syscon.c         | 167 +++++++++++++
- lib/utils/reset/objects.mk                 |   7 +-
- lib/utils/sys/Kconfig                      |   4 -
- lib/utils/sys/objects.mk                   |   1 -
- lib/utils/sys/sifive_test.c                |  65 -----
- platform/generic/configs/defconfig         |   6 +-
- 21 files changed, 791 insertions(+), 142 deletions(-)
- create mode 100644 include/sbi_utils/regmap/fdt_regmap.h
- create mode 100644 include/sbi_utils/regmap/regmap.h
- delete mode 100644 include/sbi_utils/sys/sifive_test.h
- create mode 100644 lib/utils/regmap/Kconfig
- create mode 100644 lib/utils/regmap/fdt_regmap.c
- create mode 100644 lib/utils/regmap/fdt_regmap_drivers.carray
- create mode 100644 lib/utils/regmap/fdt_regmap_syscon.c
- create mode 100644 lib/utils/regmap/objects.mk
- create mode 100644 lib/utils/regmap/regmap.c
- delete mode 100644 lib/utils/reset/fdt_reset_sifive_test.c
- create mode 100644 lib/utils/reset/fdt_reset_syscon.c
- delete mode 100644 lib/utils/sys/sifive_test.c
-
+diff --git a/include/sbi_utils/i2c/i2c.h b/include/sbi_utils/i2c/i2c.h
+index 5a70364..93a44f4 100644
+--- a/include/sbi_utils/i2c/i2c.h
++++ b/include/sbi_utils/i2c/i2c.h
+@@ -15,9 +15,6 @@
+ 
+ /** Representation of a I2C adapter */
+ struct i2c_adapter {
+-	/** Pointer to I2C driver owning this I2C adapter */
+-	void *driver;
+-
+ 	/** Unique ID of the I2C adapter assigned by the driver */
+ 	int id;
+ 
+diff --git a/lib/utils/i2c/fdt_i2c_dw.c b/lib/utils/i2c/fdt_i2c_dw.c
+index 99b2ddb..358ad3c 100644
+--- a/lib/utils/i2c/fdt_i2c_dw.c
++++ b/lib/utils/i2c/fdt_i2c_dw.c
+@@ -15,8 +15,6 @@
+ #include <sbi_utils/i2c/dw_i2c.h>
+ #include <sbi_utils/i2c/fdt_i2c.h>
+ 
+-extern struct fdt_i2c_adapter fdt_i2c_adapter_dw;
+-
+ static int fdt_dw_i2c_init(void *fdt, int nodeoff,
+ 			     const struct fdt_match *match)
+ {
+@@ -35,7 +33,6 @@ static int fdt_dw_i2c_init(void *fdt, int nodeoff,
+ 	}
+ 
+ 	adapter->addr = addr;
+-	adapter->adapter.driver = &fdt_i2c_adapter_dw;
+ 
+ 	rc = dw_i2c_init(&adapter->adapter, nodeoff);
+ 	if (rc) {
+diff --git a/lib/utils/i2c/fdt_i2c_sifive.c b/lib/utils/i2c/fdt_i2c_sifive.c
+index b85b245..1174062 100644
+--- a/lib/utils/i2c/fdt_i2c_sifive.c
++++ b/lib/utils/i2c/fdt_i2c_sifive.c
+@@ -46,8 +46,6 @@ struct sifive_i2c_adapter {
+ 	struct i2c_adapter adapter;
+ };
+ 
+-extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
+-
+ static inline void sifive_i2c_setreg(struct sifive_i2c_adapter *adap,
+ 				     uint8_t reg, uint8_t value)
+ {
+@@ -250,7 +248,6 @@ static int sifive_i2c_init(void *fdt, int nodeoff,
+ 	}
+ 
+ 	adapter->addr = addr;
+-	adapter->adapter.driver = &fdt_i2c_adapter_sifive;
+ 	adapter->adapter.id = nodeoff;
+ 	adapter->adapter.write = sifive_i2c_adapter_write;
+ 	adapter->adapter.read = sifive_i2c_adapter_read;
 -- 
 2.34.1
 
