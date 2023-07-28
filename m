@@ -1,101 +1,90 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 24 Jul 2023 10:52:41 +0530
-Subject: v1.3.1 tag is not present in any branch
-In-Reply-To: <C68B62D3-6807-4094-AC9F-E1B3C67F6B4C@jrtc27.com>
-References: <87h6pxz1dj.fsf@wireframe> <CAAhSdy3Xjt-616YS93XsvM0PA3v2LgM99Ur0r_e9xopE=bhVEA@mail.gmail.com>
- <CDB4B450-4B9C-4406-A56B-77BA869FF060@jrtc27.com> <CAAhSdy0+RqENaaBFbzt=fVUNF5APvJCKQYF8Wb2U+AYCfkjiAA@mail.gmail.com>
- <C68B62D3-6807-4094-AC9F-E1B3C67F6B4C@jrtc27.com>
-Message-ID: <CAAhSdy0+hJQX=fbQ4OTv5eXMCDNiqY2zmy0k6bjCzvb=TPL6Ng@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 28 Jul 2023 21:41:25 +0800
+Subject: [PATCH 1/6] include: sbi_utils: Remove driver pointer from
+ struct i2c_adapter
+In-Reply-To: <20230721171010.2572232-2-apatel@ventanamicro.com>
+References: <20230721171010.2572232-1-apatel@ventanamicro.com>
+	 <20230721171010.2572232-2-apatel@ventanamicro.com>
+Message-ID: <9db2e2e7e4d1beadcb8a63c144a958c8730a1281.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 24, 2023 at 10:24?AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 24 Jul 2023, at 05:41, Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Mon, Jul 24, 2023 at 9:24?AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> >>
-> >> On 24 Jul 2023, at 04:47, Anup Patel <anup@brainfault.org> wrote:
-> >>>
-> >>> On Sat, Jul 22, 2023 at 6:38?AM Vagrant Cascadian <vagrant@debian.org> wrote:
-> >>>>
-> >>>> As seen on IRC and github issues:
-> >>>>
-> >>>> https://github.com/riscv-software-src/opensbi/issues/316
-> >>>>
-> >>>> There does not appear to be a branch that contains v1.3.1, which makes
-> >>>> it rather complicated to actually fetch the tag.
-> >>>>
-> >>>> https://github.com/riscv-software-src/opensbi/tree/v1.3.1
-> >>>>
-> >>>> This commit does not belong to any branch on this repository, and may belong to a fork outside of the repository.
-> >>>>
-> >>>> Please push a 1.3.x branch or some such with the tag!
-> >>>
-> >>> I had pushed release-1.3.1 branch two days back since few
-> >>> folks (including yourself) reported this issue.
-> >>
-> >> What happens if there?s then a 1.3.2?
-> >
-> > If the commit history of 1.3.2 differs from the master branch then
-> > we will have to create release-1.3.2 branch for 1.3.2 as well.
->
-> If 1.3.2 is based off master not 1.3.1 then that?s some very misleading
-> versioning. I would seriously hope that 1.3.2 is 1.3.1 + patches, both
-> content-wise and history-wise, and thus it belongs in a 1.3.x branch.
+? 2023-07-21???? 22:40 +0530?Anup Patel???
+> The "driver" pointer in struct i2c_adapter is not used anywhere
+> so let us remove it.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
-Yes, if 1.3.2 happens then it will be based on 1.3.1.
+Look good to me.
 
->
-> >> 1.3.1 is overly narrow. Good for tags but not branches.
-> >> Something like 1.3.x as suggested is more forward-thinking.
-> >
-> > I agree and that's why I had only created a tag but it seems
-> > not everyone prefers git fetch to get latest tags.
->
-> So why did you choose to create release-1.3.1 rather than release-1.3.x
-> as was originally suggested?
-
-It is very unlikely that we have more 1.3.x intermediate releases. I
-certainly don't mind using release-1.3.x as the branch name so I
-have renamed it.
-
-Regards,
-Anup
-
->
-> Jess
->
-> > Regards,
-> > Anup
-> >
-> >>
-> >> Jess
-> >>
-> >>> This is the first time that we did an intermediate release so
-> >>> going forward I will ensure that a separate branch in pushed
-> >>> for an intermediate releases whenever intermediate release
-> >>> has a different commit history compared to master branch.
-> >>>
-> >>> Thanks,
-> >>> Anup
-> >>>
-> >>>
-> >>>>
-> >>>> live well,
-> >>>> vagrant
-> >>>> --
-> >>>> opensbi mailing list
-> >>>> opensbi at lists.infradead.org
-> >>>> http://lists.infradead.org/mailman/listinfo/opensbi
-> >>>
-> >>> --
-> >>> opensbi mailing list
-> >>> opensbi at lists.infradead.org
-> >>> http://lists.infradead.org/mailman/listinfo/opensbi
->
->
+Reviewed-by: Xiang W <wxjstz@126.com>
+> ---
+> ?include/sbi_utils/i2c/i2c.h??? | 3 ---
+> ?lib/utils/i2c/fdt_i2c_dw.c???? | 3 ---
+> ?lib/utils/i2c/fdt_i2c_sifive.c | 3 ---
+> ?3 files changed, 9 deletions(-)
+> 
+> diff --git a/include/sbi_utils/i2c/i2c.h b/include/sbi_utils/i2c/i2c.h
+> index 5a70364..93a44f4 100644
+> --- a/include/sbi_utils/i2c/i2c.h
+> +++ b/include/sbi_utils/i2c/i2c.h
+> @@ -15,9 +15,6 @@
+> ?
+> ?/** Representation of a I2C adapter */
+> ?struct i2c_adapter {
+> -???????/** Pointer to I2C driver owning this I2C adapter */
+> -???????void *driver;
+> -
+> ????????/** Unique ID of the I2C adapter assigned by the driver */
+> ????????int id;
+> ?
+> diff --git a/lib/utils/i2c/fdt_i2c_dw.c b/lib/utils/i2c/fdt_i2c_dw.c
+> index 99b2ddb..358ad3c 100644
+> --- a/lib/utils/i2c/fdt_i2c_dw.c
+> +++ b/lib/utils/i2c/fdt_i2c_dw.c
+> @@ -15,8 +15,6 @@
+> ?#include <sbi_utils/i2c/dw_i2c.h>
+> ?#include <sbi_utils/i2c/fdt_i2c.h>
+> ?
+> -extern struct fdt_i2c_adapter fdt_i2c_adapter_dw;
+> -
+> ?static int fdt_dw_i2c_init(void *fdt, int nodeoff,
+> ???????????????????????????? const struct fdt_match *match)
+> ?{
+> @@ -35,7 +33,6 @@ static int fdt_dw_i2c_init(void *fdt, int nodeoff,
+> ????????}
+> ?
+> ????????adapter->addr = addr;
+> -???????adapter->adapter.driver = &fdt_i2c_adapter_dw;
+> ?
+> ????????rc = dw_i2c_init(&adapter->adapter, nodeoff);
+> ????????if (rc) {
+> diff --git a/lib/utils/i2c/fdt_i2c_sifive.c b/lib/utils/i2c/fdt_i2c_sifive.c
+> index b85b245..1174062 100644
+> --- a/lib/utils/i2c/fdt_i2c_sifive.c
+> +++ b/lib/utils/i2c/fdt_i2c_sifive.c
+> @@ -46,8 +46,6 @@ struct sifive_i2c_adapter {
+> ????????struct i2c_adapter adapter;
+> ?};
+> ?
+> -extern struct fdt_i2c_adapter fdt_i2c_adapter_sifive;
+> -
+> ?static inline void sifive_i2c_setreg(struct sifive_i2c_adapter *adap,
+> ???????????????????????????????????? uint8_t reg, uint8_t value)
+> ?{
+> @@ -250,7 +248,6 @@ static int sifive_i2c_init(void *fdt, int nodeoff,
+> ????????}
+> ?
+> ????????adapter->addr = addr;
+> -???????adapter->adapter.driver = &fdt_i2c_adapter_sifive;
+> ????????adapter->adapter.id = nodeoff;
+> ????????adapter->adapter.write = sifive_i2c_adapter_write;
+> ????????adapter->adapter.read = sifive_i2c_adapter_read;
+> -- 
+> 2.34.1
+> 
+> 
 
