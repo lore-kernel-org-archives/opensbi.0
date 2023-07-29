@@ -1,39 +1,52 @@
-From: Xiang W <wxjstz@126.com>
-Date: Sat, 29 Jul 2023 16:37:58 +0800
-Subject: [PATCH] gitignore: add VSCode workspace dir
-In-Reply-To: <IA1PR20MB49531FC9B5E99A58C37DD66DBB07A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49531FC9B5E99A58C37DD66DBB07A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <2e17d973f96bfe31a8c41a9be2d591e406ee61a3.camel@126.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Sat, 29 Jul 2023 17:47:40 +0800
+Subject: [RFC PATCH] gitignore: allow gitignore to ignore most dot file
+Message-ID: <IA1PR20MB495312A830387CB43CF96A60BB07A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-07-29???? 09:49 +0800?Inochi Amaoto???
-> VSCode uses .vscode dir to store workspace settings, update .gitignore to
-> ignore it
-> 
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-Look good to me.
+Nowdays, most of the editor use files or directories begin with dot to
+store some settings. So let git ignore these files and directories to
+reduce potential mistakes.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?.gitignore | 1 +
-> ?1 file changed, 1 insertion(+)
-> 
-> diff --git a/.gitignore b/.gitignore
-> index c11afd3..69ff5f8 100644
-> --- a/.gitignore
-> +++ b/.gitignore
-> @@ -11,3 +11,4 @@ install/
-> ?tags
-> ?cscope*
-> ?*.swp
-> +.vscode
-> -- 
-> 2.41.0
-> 
-> 
+Add dot match to ignore any editor file and there are two exceptions:
+- .gitignore
+- .clang-format
+
+Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+---
+Note:
+1. AFAIK, the vim swap file is also begin with dot.
+2. the patch also covers the patch `gitignore: add VSCode workspace dir`
+so that patch is not needed anymore.
+---
+ .gitignore | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/.gitignore b/.gitignore
+index c11afd3..fbba52e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,10 @@
++# ignore anything begin with dot
++.*
++
++# exceptions we need even begin with dot
++!.clang-format
++!.gitignore
++
+ # Object files
+ *.o
+ *.a
+@@ -10,4 +17,3 @@ install/
+ # Development friendly files
+ tags
+ cscope*
+-*.swp
+--
+2.41.0
 
 
