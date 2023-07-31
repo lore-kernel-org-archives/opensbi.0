@@ -1,53 +1,74 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 31 Jul 2023 14:03:19 +0530
-Subject: [PATCH] lib: sbi: Update system suspend to spec
-In-Reply-To: <20230720154836.110674-2-ajones@ventanamicro.com>
-References: <20230720154836.110674-2-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy36x2D438rF2qd0ioh46nZ7CA_r4kMJe7SZi2veYxzJkQ@mail.gmail.com>
+Date: Mon, 31 Jul 2023 14:12:17 +0530
+Subject: [PATCH 0/6] Syscon reboot and poweroff drivers
+In-Reply-To: <20230721171010.2572232-1-apatel@ventanamicro.com>
+References: <20230721171010.2572232-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy2j2kWzbFxD9njo__gKyeVn+rxyWPyhM76oTfXeP5n0qg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 20, 2023 at 9:18?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Fri, Jul 21, 2023 at 10:40?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> commit 68e66106120f ("SUSP: Add SBI_ERR_DENIED") of the SBI spec adds
-> a new error code, SBI_ERR_DENIED, which is returned when entry criteria
-> has not be meant. Update the system suspend implementation to return
-> this error when it has detected that not all harts are in the STOPPED
-> state.
+> This series adds syscon reboot and poweroff drivers which replaces the
+> SiFive Test reset driver. These new drivers need a lightweight or simple
+> regmap framework which is also added by this series.
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> These patches can also be found in the syscon_reboot_v1 branch at:
+> https://github.com/avpatel/opensbi.git
+>
+> Anup Patel (6):
+>   include: sbi_utils: Remove driver pointer from struct i2c_adapter
+>   lib: utils/regmap: Add generic regmap access library
+>   lib: utils/regmap: Add simple FDT based regmap framework
+>   lib: utils/regmap: Add simple FDT based syscon regmap driver
+>   lib: utils/reset: Add syscon based reboot and poweroff
+>   lib: utils/reset: Remove SiFive Test reset driver
 
-Looks good to me.
+Applied this series to the riscv/opensbi repo.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
-
-> ---
->  lib/sbi/sbi_system.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-> index d803ffa84189..2e917c9e9130 100644
-> --- a/lib/sbi/sbi_system.c
-> +++ b/lib/sbi/sbi_system.c
-> @@ -174,7 +174,7 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
->                 if (i == hartid)
->                         continue;
->                 if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED)
-> -                       return SBI_EFAIL;
-> +                       return SBI_ERR_DENIED;
->         }
+>  include/sbi_utils/i2c/i2c.h                |   3 -
+>  include/sbi_utils/regmap/fdt_regmap.h      |  31 +++
+>  include/sbi_utils/regmap/regmap.h          |  67 ++++++
+>  include/sbi_utils/sys/sifive_test.h        |  17 --
+>  lib/utils/Kconfig                          |   2 +
+>  lib/utils/i2c/fdt_i2c_dw.c                 |   3 -
+>  lib/utils/i2c/fdt_i2c_sifive.c             |   3 -
+>  lib/utils/regmap/Kconfig                   |  22 ++
+>  lib/utils/regmap/fdt_regmap.c              |  94 ++++++++
+>  lib/utils/regmap/fdt_regmap_drivers.carray |   3 +
+>  lib/utils/regmap/fdt_regmap_syscon.c       | 262 +++++++++++++++++++++
+>  lib/utils/regmap/objects.mk                |  16 ++
+>  lib/utils/regmap/regmap.c                  | 114 +++++++++
+>  lib/utils/reset/Kconfig                    |  10 +-
+>  lib/utils/reset/fdt_reset_sifive_test.c    |  36 ---
+>  lib/utils/reset/fdt_reset_syscon.c         | 167 +++++++++++++
+>  lib/utils/reset/objects.mk                 |   7 +-
+>  lib/utils/sys/Kconfig                      |   4 -
+>  lib/utils/sys/objects.mk                   |   1 -
+>  lib/utils/sys/sifive_test.c                |  65 -----
+>  platform/generic/configs/defconfig         |   6 +-
+>  21 files changed, 791 insertions(+), 142 deletions(-)
+>  create mode 100644 include/sbi_utils/regmap/fdt_regmap.h
+>  create mode 100644 include/sbi_utils/regmap/regmap.h
+>  delete mode 100644 include/sbi_utils/sys/sifive_test.h
+>  create mode 100644 lib/utils/regmap/Kconfig
+>  create mode 100644 lib/utils/regmap/fdt_regmap.c
+>  create mode 100644 lib/utils/regmap/fdt_regmap_drivers.carray
+>  create mode 100644 lib/utils/regmap/fdt_regmap_syscon.c
+>  create mode 100644 lib/utils/regmap/objects.mk
+>  create mode 100644 lib/utils/regmap/regmap.c
+>  delete mode 100644 lib/utils/reset/fdt_reset_sifive_test.c
+>  create mode 100644 lib/utils/reset/fdt_reset_syscon.c
+>  delete mode 100644 lib/utils/sys/sifive_test.c
 >
->         if (!sbi_domain_check_addr(dom, resume_addr, prev_mode,
 > --
-> 2.41.0
+> 2.34.1
 >
 
