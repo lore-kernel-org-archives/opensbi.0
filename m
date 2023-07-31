@@ -1,26 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 31 Jul 2023 14:03:13 +0530
-Subject: [PATCH 1/1] libfdt: fix SPDX license identifiers
-In-Reply-To: <20230714110736.50171-1-heinrich.schuchardt@canonical.com>
-References: <20230714110736.50171-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy1LcMB7y1c25X8xgoX2vmYvUcj5s-uJQ-mT6Af=A2nGEw@mail.gmail.com>
+Date: Mon, 31 Jul 2023 14:03:19 +0530
+Subject: [PATCH] lib: sbi: Update system suspend to spec
+In-Reply-To: <20230720154836.110674-2-ajones@ventanamicro.com>
+References: <20230720154836.110674-2-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy36x2D438rF2qd0ioh46nZ7CA_r4kMJe7SZi2veYxzJkQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 14, 2023 at 4:37?PM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Thu, Jul 20, 2023 at 9:18?PM Andrew Jones <ajones@ventanamicro.com> wrote:
 >
-> License identifiers should be machine readable.
+> commit 68e66106120f ("SUSP: Add SBI_ERR_DENIED") of the SBI spec adds
+> a new error code, SBI_ERR_DENIED, which is returned when entry criteria
+> has not be meant. Update the system suspend implementation to return
+> this error when it has detected that not all harts are in the STOPPED
+> state.
 >
-> According to the SPDX v2.3.0 specification annex E parentheses are not
-> used in the SPDX identifier field when specifying multiple licenses [1].
->
-> [1] https://spdx.github.io/spdx-spec/v2.3/using-SPDX-short-identifiers-in-source-files/
->
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 
 Looks good to me.
 
@@ -33,185 +31,23 @@ Anup
 
 
 > ---
->  lib/utils/libfdt/Makefile.libfdt   | 2 +-
->  lib/utils/libfdt/fdt.c             | 2 +-
->  lib/utils/libfdt/fdt.h             | 2 +-
->  lib/utils/libfdt/fdt_addresses.c   | 2 +-
->  lib/utils/libfdt/fdt_check.c       | 2 +-
->  lib/utils/libfdt/fdt_empty_tree.c  | 2 +-
->  lib/utils/libfdt/fdt_overlay.c     | 2 +-
->  lib/utils/libfdt/fdt_ro.c          | 2 +-
->  lib/utils/libfdt/fdt_rw.c          | 2 +-
->  lib/utils/libfdt/fdt_strerror.c    | 2 +-
->  lib/utils/libfdt/fdt_sw.c          | 2 +-
->  lib/utils/libfdt/fdt_wip.c         | 2 +-
->  lib/utils/libfdt/libfdt.h          | 2 +-
->  lib/utils/libfdt/libfdt_env.h      | 2 +-
->  lib/utils/libfdt/libfdt_internal.h | 2 +-
->  lib/utils/libfdt/version.lds       | 2 +-
->  16 files changed, 16 insertions(+), 16 deletions(-)
+>  lib/sbi/sbi_system.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/utils/libfdt/Makefile.libfdt b/lib/utils/libfdt/Makefile.libfdt
-> index b6d8fc0..f99cd12 100644
-> --- a/lib/utils/libfdt/Makefile.libfdt
-> +++ b/lib/utils/libfdt/Makefile.libfdt
-> @@ -1,4 +1,4 @@
-> -# SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +# SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  # Makefile.libfdt
->  #
->  # This is not a complete Makefile of itself.  Instead, it is designed to
-> diff --git a/lib/utils/libfdt/fdt.c b/lib/utils/libfdt/fdt.c
-> index 9fe7cf4..d8f2daa 100644
-> --- a/lib/utils/libfdt/fdt.c
-> +++ b/lib/utils/libfdt/fdt.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt.h b/lib/utils/libfdt/fdt.h
-> index f2e6880..0d9b09a 100644
-> --- a/lib/utils/libfdt/fdt.h
-> +++ b/lib/utils/libfdt/fdt.h
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause) */
-> +/* SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause */
->  #ifndef FDT_H
->  #define FDT_H
->  /*
-> diff --git a/lib/utils/libfdt/fdt_addresses.c b/lib/utils/libfdt/fdt_addresses.c
-> index 9a82cd0..78a1226 100644
-> --- a/lib/utils/libfdt/fdt_addresses.c
-> +++ b/lib/utils/libfdt/fdt_addresses.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2014 David Gibson <david@gibson.dropbear.id.au>
-> diff --git a/lib/utils/libfdt/fdt_check.c b/lib/utils/libfdt/fdt_check.c
-> index fa410a8..7283c41 100644
-> --- a/lib/utils/libfdt/fdt_check.c
-> +++ b/lib/utils/libfdt/fdt_check.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt_empty_tree.c b/lib/utils/libfdt/fdt_empty_tree.c
-> index 49d54d4..5a0ac63 100644
-> --- a/lib/utils/libfdt/fdt_empty_tree.c
-> +++ b/lib/utils/libfdt/fdt_empty_tree.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2012 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt_overlay.c b/lib/utils/libfdt/fdt_overlay.c
-> index 0871e26..3ba8244 100644
-> --- a/lib/utils/libfdt/fdt_overlay.c
-> +++ b/lib/utils/libfdt/fdt_overlay.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2016 Free Electrons
-> diff --git a/lib/utils/libfdt/fdt_ro.c b/lib/utils/libfdt/fdt_ro.c
-> index 17584da..fc73030 100644
-> --- a/lib/utils/libfdt/fdt_ro.c
-> +++ b/lib/utils/libfdt/fdt_ro.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt_rw.c b/lib/utils/libfdt/fdt_rw.c
-> index 3621d36..b3b8e73 100644
-> --- a/lib/utils/libfdt/fdt_rw.c
-> +++ b/lib/utils/libfdt/fdt_rw.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt_strerror.c b/lib/utils/libfdt/fdt_strerror.c
-> index b435693..15b4cfb 100644
-> --- a/lib/utils/libfdt/fdt_strerror.c
-> +++ b/lib/utils/libfdt/fdt_strerror.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt_sw.c b/lib/utils/libfdt/fdt_sw.c
-> index 4c569ee..90394f3 100644
-> --- a/lib/utils/libfdt/fdt_sw.c
-> +++ b/lib/utils/libfdt/fdt_sw.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/fdt_wip.c b/lib/utils/libfdt/fdt_wip.c
-> index c2d7566..e90d2ac 100644
-> --- a/lib/utils/libfdt/fdt_wip.c
-> +++ b/lib/utils/libfdt/fdt_wip.c
-> @@ -1,4 +1,4 @@
-> -// SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause)
-> +// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
->  /*
->   * libfdt - Flat Device Tree manipulation
->   * Copyright (C) 2006 David Gibson, IBM Corporation.
-> diff --git a/lib/utils/libfdt/libfdt.h b/lib/utils/libfdt/libfdt.h
-> index 73467f7..be3b722 100644
-> --- a/lib/utils/libfdt/libfdt.h
-> +++ b/lib/utils/libfdt/libfdt.h
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause) */
-> +/* SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause */
->  #ifndef LIBFDT_H
->  #define LIBFDT_H
->  /*
-> diff --git a/lib/utils/libfdt/libfdt_env.h b/lib/utils/libfdt/libfdt_env.h
-> index 6ebbae0..d36eba2 100644
-> --- a/lib/utils/libfdt/libfdt_env.h
-> +++ b/lib/utils/libfdt/libfdt_env.h
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause) */
-> +/* SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause */
->  #ifndef LIBFDT_ENV_H
->  #define LIBFDT_ENV_H
->  /*
-> diff --git a/lib/utils/libfdt/libfdt_internal.h b/lib/utils/libfdt/libfdt_internal.h
-> index 16bda19..e511be0 100644
-> --- a/lib/utils/libfdt/libfdt_internal.h
-> +++ b/lib/utils/libfdt/libfdt_internal.h
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause) */
-> +/* SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause */
->  #ifndef LIBFDT_INTERNAL_H
->  #define LIBFDT_INTERNAL_H
->  /*
-> diff --git a/lib/utils/libfdt/version.lds b/lib/utils/libfdt/version.lds
-> index 7ab85f1..9c00004 100644
-> --- a/lib/utils/libfdt/version.lds
-> +++ b/lib/utils/libfdt/version.lds
-> @@ -1,4 +1,4 @@
-> -/* SPDX-License-Identifier: (GPL-2.0-or-later OR BSD-2-Clause) */
-> +/* SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause */
->  LIBFDT_1.2 {
->         global:
->                 fdt_next_node;
+> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+> index d803ffa84189..2e917c9e9130 100644
+> --- a/lib/sbi/sbi_system.c
+> +++ b/lib/sbi/sbi_system.c
+> @@ -174,7 +174,7 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
+>                 if (i == hartid)
+>                         continue;
+>                 if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED)
+> -                       return SBI_EFAIL;
+> +                       return SBI_ERR_DENIED;
+>         }
+>
+>         if (!sbi_domain_check_addr(dom, resume_addr, prev_mode,
 > --
-> 2.40.1
+> 2.41.0
 >
 
