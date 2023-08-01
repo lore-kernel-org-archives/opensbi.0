@@ -1,32 +1,56 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Mon, 30 Oct 2023 18:41:52 +0200
-Subject: [RFC 3/3] lib: sbi: enable seed access in S-mode
-In-Reply-To: <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
-References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
- <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
-Message-ID: <7d9bfb00-1f61-433a-a558-bd8f4e77399b@canonical.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Tue,  1 Aug 2023 19:41:19 +0800
+Subject: [PATCH] gitignore: allow gitignore to ignore most dot file
+Message-ID: <IA1PR20MB4953AEE6EF8603D78B892479BB0AA@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10/29/23 01:49, Heinrich Schuchardt wrote:
-> If ISA extension Zkr is available, set
-> 
->      mseccfg.sseed=1
->      mseccfg.useed=0
-> 
-> This enables access to the seed CSR in S-mode but not in U-mode.
-> 
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Nowadays, most of the editor use files or directories begin with dot to
+store some settings. So let git ignore these files and directories to
+reduce potential mistakes.
 
-Anup pointed me to a previous patch:
+Add dot match to ignore any editor file and there are two exceptions:
+- .gitignore
+- .clang-format
 
-lib: sbi: Configure seed bits when MSECCFG is readable
-https://patchwork.ozlabs.org/project/opensbi/patch/20230712083254.1585244-1-sameo at rivosinc.com/
+Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
+---
+Changed from RFC:
+1. fix typo
 
-Best regards
+Note:
+1. AFAIK, the vim swap file is also begin with dot.
+2. the patch also covers the patch `gitignore: add VSCode workspace dir`
+so that patch is not needed anymore.
+---
+ .gitignore | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-Heinrich
+diff --git a/.gitignore b/.gitignore
+index c11afd3..fbba52e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,10 @@
++# ignore anything begin with dot
++.*
++
++# exceptions we need even begin with dot
++!.clang-format
++!.gitignore
++
+ # Object files
+ *.o
+ *.a
+@@ -10,4 +17,3 @@ install/
+ # Development friendly files
+ tags
+ cscope*
+-*.swp
+--
+2.41.0
+
 
