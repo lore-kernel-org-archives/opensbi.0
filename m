@@ -1,59 +1,45 @@
-From: Mitchell Horne <mhorne@freebsd.org>
-Date: Thu, 3 Aug 2023 14:01:19 -0300
-Subject: [PATCH] fw_base.S: Fix assembler error with clang 16+
-In-Reply-To: <md5:OE/AQBW2QQL3zhYH18RQlQ==>
-References: <md5:OE/AQBW2QQL3zhYH18RQlQ==>
-Message-ID: <1edbc8c0-54b6-6a59-bfd6-30a983d1beb2@freebsd.org>
+From: Kaiwen Xue <kaiwenx@rivosinc.com>
+Date: Thu,  3 Aug 2023 11:34:15 -0700
+Subject: [PATCH 1/1] lib: sbi: Fix typo for finding fixed event counter
+Message-ID: <20230803183416.1468821-1-kaiwenx@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Cycle and instructions are hardware events instead of firmware ones. Fix
+the typo in the name of this function.
 
-Attempting to build OpenSBI with clang 16 and the following command:
-
-   $ make LLVM=1 PLATFORM=generic
-
-Results in the following error:
-
-    AS        platform/generic/firmware/fw_dynamic.o
-   /tmp/fw_dynamic-d000a6.s:429:9: error: symbol '_fw_start' can not be undefined in a subtraction expression
-    .dword _fw_rw_start - _fw_start
-
-Work around this issue by eliminating the __fw_rw_offset variable and
-performing the offset calculation at run-time instead. This takes
-advantage of the fact that the a4 register contains the value of
-_fw_start.
-
-Signed-off-by: Mitchell Horne <mhorne@FreeBSD.org>
+Signed-off-by: Kaiwen Xue <kaiwenx@andrew.cmu.edu>
+Signed-off-by: Kaiwen Xue <kaiwenx@rivosinc.com>
 ---
-  firmware/fw_base.S | 6 ++----
-  1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/sbi/sbi_pmu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index b947423..ca34b4c 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -309,8 +309,8 @@ _scratch_init:
-  	REG_S	a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
-   	/* Store R/W section's offset in scratch space */
--	lla	a4, __fw_rw_offset
--	REG_L	a5, 0(a4)
-+	lla	a5, _fw_rw_start
-+	sub	a5, a5, a4
-  	REG_S	a5, SBI_SCRATCH_FW_RW_OFFSET(tp)
-   	/* Store fw_heap_offset and fw_heap_size in scratch space */
-@@ -536,8 +536,6 @@ _link_start:
-  	RISCV_PTR	FW_TEXT_START
-  _link_end:
-  	RISCV_PTR	_fw_reloc_end
--__fw_rw_offset:
--	RISCV_PTR	_fw_rw_start - _fw_start
-   	.section .entry, "ax", %progbits
-  	.align 3
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 7213a53..6d564e7 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -609,7 +609,7 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 	return 0;
+ }
+ 
+-static int pmu_ctr_find_fixed_fw(unsigned long evt_idx_code)
++static int pmu_ctr_find_fixed_hw(unsigned long evt_idx_code)
+ {
+ 	/* Non-programmables counters are enabled always. No need to do lookup */
+ 	if (evt_idx_code == SBI_PMU_HW_CPU_CYCLES)
+@@ -638,7 +638,7 @@ static int pmu_ctr_find_hw(struct sbi_pmu_hart_state *phs,
+ 	 * If Sscof is present try to find the programmable counter for
+ 	 * cycle/instret as well.
+ 	 */
+-	fixed_ctr = pmu_ctr_find_fixed_fw(event_idx);
++	fixed_ctr = pmu_ctr_find_fixed_hw(event_idx);
+ 	if (fixed_ctr >= 0 &&
+ 	    !sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+ 		return fixed_ctr;
 -- 
 2.41.0
-
 
 
