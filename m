@@ -1,175 +1,59 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu,  3 Aug 2023 12:41:01 +0530
-Subject: [PATCH] lib: utils/fdt: Fix fdt_parse_isa_extensions() implementation
-Message-ID: <20230803071101.352061-1-apatel@ventanamicro.com>
+From: Mitchell Horne <mhorne@freebsd.org>
+Date: Thu, 3 Aug 2023 14:01:19 -0300
+Subject: [PATCH] fw_base.S: Fix assembler error with clang 16+
+In-Reply-To: <md5:OE/AQBW2QQL3zhYH18RQlQ==>
+References: <md5:OE/AQBW2QQL3zhYH18RQlQ==>
+Message-ID: <1edbc8c0-54b6-6a59-bfd6-30a983d1beb2@freebsd.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, the fdt_parse_isa_extensions() tries to parse the ISA
-string once for each HART. This ISA string parsing can fail for
-secondary HARTs if the FDT memory is already overwritten by the
-supervisor OS.
 
-To tackle this issue, we improve the fdt_parse_isa_extensions()
-implementation to pre-parse ISA string for all HARTs during
-cold boot.
+Attempting to build OpenSBI with clang 16 and the following command:
 
-Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA
-string in FDT")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+   $ make LLVM=1 PLATFORM=generic
+
+Results in the following error:
+
+    AS        platform/generic/firmware/fw_dynamic.o
+   /tmp/fw_dynamic-d000a6.s:429:9: error: symbol '_fw_start' can not be undefined in a subtraction expression
+    .dword _fw_rw_start - _fw_start
+
+Work around this issue by eliminating the __fw_rw_offset variable and
+performing the offset calculation at run-time instead. This takes
+advantage of the fact that the a4 register contains the value of
+_fw_start.
+
+Signed-off-by: Mitchell Horne <mhorne@FreeBSD.org>
 ---
- lib/utils/fdt/fdt_helper.c | 122 ++++++++++++++++++++++++-------------
- 1 file changed, 79 insertions(+), 43 deletions(-)
+  firmware/fw_base.S | 6 ++----
+  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 61a4100..c97f09d 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -314,54 +314,14 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
- 	return 0;
- }
- 
--static int fdt_get_isa_string(void *fdt, unsigned int hartid,
--			const char **isa_string)
--{
--	int err, cpu_offset, cpus_offset, len;
--	u32 c_hartid;
--	const fdt32_t *val;
--
--	if (!fdt)
--		return SBI_EINVAL;
--
--	cpus_offset = fdt_path_offset(fdt, "/cpus");
--	if (cpus_offset < 0)
--		return cpus_offset;
--
--	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
--		err = fdt_parse_hart_id(fdt, cpu_offset, &c_hartid);
--		if (err)
--			continue;
--
--		if (!fdt_node_is_enabled(fdt, cpu_offset))
--			continue;
--
--		if (c_hartid == hartid) {
--			val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
--			if (val && len > 0) {
--				*isa_string = (const char *)val;
--				return 0;
--			}
--		}
--	}
--
--	return SBI_EINVAL;
--}
--
- #define RISCV_ISA_EXT_NAME_LEN_MAX	32
- 
--int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
--			unsigned long *extensions)
-+static unsigned long fdt_isa_bitmap_offset;
-+
-+static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
- {
- 	size_t i, j, isa_len;
- 	char mstr[RISCV_ISA_EXT_NAME_LEN_MAX];
--	const char *isa = NULL;
--
--	if (fdt_get_isa_string(fdt, hartid, &isa))
--		return SBI_EINVAL;
--
--	if (!isa)
--		return SBI_EINVAL;
- 
- 	i = 0;
- 	isa_len = strlen(isa);
-@@ -424,6 +384,82 @@ int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
- 	return 0;
- }
- 
-+static int fdt_parse_isa_all_harts(void *fdt)
-+{
-+	u32 hartid;
-+	const fdt32_t *val;
-+	unsigned long *hart_exts;
-+	struct sbi_scratch *scratch;
-+	int err, cpu_offset, cpus_offset, len;
-+
-+	if (!fdt || !fdt_isa_bitmap_offset)
-+		return SBI_EINVAL;
-+
-+	cpus_offset = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_offset < 0)
-+		return cpus_offset;
-+
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+		if (err)
-+			continue;
-+
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
-+
-+		val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-+		if (!val || len <= 0)
-+			return SBI_ENOENT;
-+
-+		scratch = sbi_hartid_to_scratch(hartid);
-+		if (!scratch)
-+			return SBI_ENOENT;
-+
-+		hart_exts = sbi_scratch_offset_ptr(scratch,
-+						   fdt_isa_bitmap_offset);
-+		if (!hart_exts)
-+			return SBI_ENOENT;
-+
-+		err = fdt_parse_isa_one_hart((const char *)val, hart_exts);
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+
-+int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
-+			unsigned long *extensions)
-+{
-+	int rc, i;
-+	unsigned long *hart_exts;
-+	struct sbi_scratch *scratch;
-+
-+	if (!fdt_isa_bitmap_offset) {
-+		fdt_isa_bitmap_offset = sbi_scratch_alloc_offset(
-+					sizeof(*hart_exts) *
-+					BITS_TO_LONGS(SBI_HART_EXT_MAX));
-+		if (!fdt_isa_bitmap_offset)
-+			return SBI_ENOMEM;
-+
-+		rc = fdt_parse_isa_all_harts(fdt);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	scratch = sbi_hartid_to_scratch(hartid);
-+	if (!scratch)
-+		return SBI_ENOENT;
-+
-+	hart_exts = sbi_scratch_offset_ptr(scratch, fdt_isa_bitmap_offset);
-+	if (!hart_exts)
-+		return SBI_ENOENT;
-+
-+	for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
-+		extensions[i] |= hart_exts[i];
-+	return 0;
-+}
-+
- static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
- 				      struct platform_uart_data *uart,
- 				      unsigned long default_freq,
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index b947423..ca34b4c 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -309,8 +309,8 @@ _scratch_init:
+  	REG_S	a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
+   	/* Store R/W section's offset in scratch space */
+-	lla	a4, __fw_rw_offset
+-	REG_L	a5, 0(a4)
++	lla	a5, _fw_rw_start
++	sub	a5, a5, a4
+  	REG_S	a5, SBI_SCRATCH_FW_RW_OFFSET(tp)
+   	/* Store fw_heap_offset and fw_heap_size in scratch space */
+@@ -536,8 +536,6 @@ _link_start:
+  	RISCV_PTR	FW_TEXT_START
+  _link_end:
+  	RISCV_PTR	_fw_reloc_end
+-__fw_rw_offset:
+-	RISCV_PTR	_fw_rw_start - _fw_start
+   	.section .entry, "ax", %progbits
+  	.align 3
 -- 
-2.34.1
+2.41.0
+
 
 
