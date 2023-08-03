@@ -1,36 +1,175 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu,  3 Aug 2023 09:50:34 +0800
-Subject: [PATCH] platform: generic: allwinner: correct mhpmevent count
-Message-ID: <IA1PR20MB495331314E453C7E9822C88ABB08A@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu,  3 Aug 2023 12:41:01 +0530
+Subject: [PATCH] lib: utils/fdt: Fix fdt_parse_isa_extensions() implementation
+Message-ID: <20230803071101.352061-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so reduce
-the mhpm_count to 15 to avoid invalid usage.
+Currently, the fdt_parse_isa_extensions() tries to parse the ISA
+string once for each HART. This ISA string parsing can fail for
+secondary HARTs if the FDT memory is already overwritten by the
+supervisor OS.
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+To tackle this issue, we improve the fdt_parse_isa_extensions()
+implementation to pre-parse ISA string for all HARTs during
+cold boot.
+
+Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA
+string in FDT")
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- platform/generic/allwinner/sun20i-d1.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/utils/fdt/fdt_helper.c | 122 ++++++++++++++++++++++++-------------
+ 1 file changed, 79 insertions(+), 43 deletions(-)
 
-diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-index 0f0a9f3..94a3a5e 100644
---- a/platform/generic/allwinner/sun20i-d1.c
-+++ b/platform/generic/allwinner/sun20i-d1.c
-@@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
- 	sbi_pmu_set_device(&thead_c9xx_pmu_device);
-
- 	/* auto-detection doesn't work on t-head c9xx cores */
--	hfeatures->mhpm_count = 29;
-+	/* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
-+	hfeatures->mhpm_count = 15;
- 	hfeatures->mhpm_bits = 64;
-
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 61a4100..c97f09d 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -314,54 +314,14 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
  	return 0;
---
-2.41.0
+ }
+ 
+-static int fdt_get_isa_string(void *fdt, unsigned int hartid,
+-			const char **isa_string)
+-{
+-	int err, cpu_offset, cpus_offset, len;
+-	u32 c_hartid;
+-	const fdt32_t *val;
+-
+-	if (!fdt)
+-		return SBI_EINVAL;
+-
+-	cpus_offset = fdt_path_offset(fdt, "/cpus");
+-	if (cpus_offset < 0)
+-		return cpus_offset;
+-
+-	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
+-		err = fdt_parse_hart_id(fdt, cpu_offset, &c_hartid);
+-		if (err)
+-			continue;
+-
+-		if (!fdt_node_is_enabled(fdt, cpu_offset))
+-			continue;
+-
+-		if (c_hartid == hartid) {
+-			val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
+-			if (val && len > 0) {
+-				*isa_string = (const char *)val;
+-				return 0;
+-			}
+-		}
+-	}
+-
+-	return SBI_EINVAL;
+-}
+-
+ #define RISCV_ISA_EXT_NAME_LEN_MAX	32
+ 
+-int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
+-			unsigned long *extensions)
++static unsigned long fdt_isa_bitmap_offset;
++
++static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
+ {
+ 	size_t i, j, isa_len;
+ 	char mstr[RISCV_ISA_EXT_NAME_LEN_MAX];
+-	const char *isa = NULL;
+-
+-	if (fdt_get_isa_string(fdt, hartid, &isa))
+-		return SBI_EINVAL;
+-
+-	if (!isa)
+-		return SBI_EINVAL;
+ 
+ 	i = 0;
+ 	isa_len = strlen(isa);
+@@ -424,6 +384,82 @@ int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
+ 	return 0;
+ }
+ 
++static int fdt_parse_isa_all_harts(void *fdt)
++{
++	u32 hartid;
++	const fdt32_t *val;
++	unsigned long *hart_exts;
++	struct sbi_scratch *scratch;
++	int err, cpu_offset, cpus_offset, len;
++
++	if (!fdt || !fdt_isa_bitmap_offset)
++		return SBI_EINVAL;
++
++	cpus_offset = fdt_path_offset(fdt, "/cpus");
++	if (cpus_offset < 0)
++		return cpus_offset;
++
++	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
++		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
++		if (err)
++			continue;
++
++		if (!fdt_node_is_enabled(fdt, cpu_offset))
++			continue;
++
++		val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
++		if (!val || len <= 0)
++			return SBI_ENOENT;
++
++		scratch = sbi_hartid_to_scratch(hartid);
++		if (!scratch)
++			return SBI_ENOENT;
++
++		hart_exts = sbi_scratch_offset_ptr(scratch,
++						   fdt_isa_bitmap_offset);
++		if (!hart_exts)
++			return SBI_ENOENT;
++
++		err = fdt_parse_isa_one_hart((const char *)val, hart_exts);
++		if (err)
++			return err;
++	}
++
++	return 0;
++}
++
++int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
++			unsigned long *extensions)
++{
++	int rc, i;
++	unsigned long *hart_exts;
++	struct sbi_scratch *scratch;
++
++	if (!fdt_isa_bitmap_offset) {
++		fdt_isa_bitmap_offset = sbi_scratch_alloc_offset(
++					sizeof(*hart_exts) *
++					BITS_TO_LONGS(SBI_HART_EXT_MAX));
++		if (!fdt_isa_bitmap_offset)
++			return SBI_ENOMEM;
++
++		rc = fdt_parse_isa_all_harts(fdt);
++		if (rc)
++			return rc;
++	}
++
++	scratch = sbi_hartid_to_scratch(hartid);
++	if (!scratch)
++		return SBI_ENOENT;
++
++	hart_exts = sbi_scratch_offset_ptr(scratch, fdt_isa_bitmap_offset);
++	if (!hart_exts)
++		return SBI_ENOENT;
++
++	for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
++		extensions[i] |= hart_exts[i];
++	return 0;
++}
++
+ static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
+ 				      struct platform_uart_data *uart,
+ 				      unsigned long default_freq,
+-- 
+2.34.1
 
 
