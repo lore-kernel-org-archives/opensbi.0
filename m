@@ -1,192 +1,223 @@
-From: mchitale@ventanamicro.com <mchitale@ventanamicro.com>
-Date: Fri, 04 Aug 2023 10:22:16 +0530
-Subject: [PATCH] lib: utils/fdt: Fix fdt_parse_isa_extensions()
- implementation
-In-Reply-To: <20230803071101.352061-1-apatel@ventanamicro.com>
-References: <20230803071101.352061-1-apatel@ventanamicro.com>
-Message-ID: <95b3c58a4eb9df659944962204f97c9b282f4a7a.camel@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 4 Aug 2023 11:01:22 +0530
+Subject: [PATCH] lib: sbi_pmu: Enable noncontigous hpm event and counters
+In-Reply-To: <20230802111523.3362467-1-mchitale@ventanamicro.com>
+References: <20230802111523.3362467-1-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy0+-pR8_+hz2rDBm0NK5fGZ6BTPbRJ-ccPH7k1K_9HV+A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, 2023-08-03 at 12:41 +0530, Anup Patel wrote:
-> Currently, the fdt_parse_isa_extensions() tries to parse the ISA
-> string once for each HART. This ISA string parsing can fail for
-> secondary HARTs if the FDT memory is already overwritten by the
-> supervisor OS.
-> 
-> To tackle this issue, we improve the fdt_parse_isa_extensions()
-> implementation to pre-parse ISA string for all HARTs during
-> cold boot.
-> 
-> Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA
-> string in FDT")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
->  lib/utils/fdt/fdt_helper.c | 122 ++++++++++++++++++++++++-----------
-> --
->  1 file changed, 79 insertions(+), 43 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 61a4100..c97f09d 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -314,54 +314,14 @@ int fdt_parse_timebase_frequency(void *fdt,
-> unsigned long *freq)
->  	return 0;
->  }
->  
-> -static int fdt_get_isa_string(void *fdt, unsigned int hartid,
-> -			const char **isa_string)
-> -{
-> -	int err, cpu_offset, cpus_offset, len;
-> -	u32 c_hartid;
-> -	const fdt32_t *val;
-> -
-> -	if (!fdt)
-> -		return SBI_EINVAL;
-> -
-> -	cpus_offset = fdt_path_offset(fdt, "/cpus");
-> -	if (cpus_offset < 0)
-> -		return cpus_offset;
-> -
-> -	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-> -		err = fdt_parse_hart_id(fdt, cpu_offset, &c_hartid);
-> -		if (err)
-> -			continue;
-> -
-> -		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> -			continue;
-> -
-> -		if (c_hartid == hartid) {
-> -			val = fdt_getprop(fdt, cpu_offset, "riscv,isa",
-> &len);
-> -			if (val && len > 0) {
-> -				*isa_string = (const char *)val;
-> -				return 0;
-> -			}
-> -		}
-> -	}
-> -
-> -	return SBI_EINVAL;
-> -}
-> -
->  #define RISCV_ISA_EXT_NAME_LEN_MAX	32
->  
-> -int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
-> -			unsigned long *extensions)
-> +static unsigned long fdt_isa_bitmap_offset;
-> +
-> +static int fdt_parse_isa_one_hart(const char *isa, unsigned long
-> *extensions)
->  {
->  	size_t i, j, isa_len;
->  	char mstr[RISCV_ISA_EXT_NAME_LEN_MAX];
-> -	const char *isa = NULL;
-> -
-> -	if (fdt_get_isa_string(fdt, hartid, &isa))
-> -		return SBI_EINVAL;
-> -
-> -	if (!isa)
-> -		return SBI_EINVAL;
->  
->  	i = 0;
->  	isa_len = strlen(isa);
-> @@ -424,6 +384,82 @@ int fdt_parse_isa_extensions(void *fdt, unsigned
-> int hartid,
->  	return 0;
->  }
->  
-> +static int fdt_parse_isa_all_harts(void *fdt)
-> +{
-> +	u32 hartid;
-> +	const fdt32_t *val;
-> +	unsigned long *hart_exts;
-> +	struct sbi_scratch *scratch;
-> +	int err, cpu_offset, cpus_offset, len;
-> +
-> +	if (!fdt || !fdt_isa_bitmap_offset)
-> +		return SBI_EINVAL;
-> +
-> +	cpus_offset = fdt_path_offset(fdt, "/cpus");
-> +	if (cpus_offset < 0)
-> +		return cpus_offset;
-> +
-> +	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-> +		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-> +		if (err)
-> +			continue;
-> +
-> +		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> +			continue;
-> +
-> +		val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-> +		if (!val || len <= 0)
-> +			return SBI_ENOENT;
-> +
-> +		scratch = sbi_hartid_to_scratch(hartid);
-> +		if (!scratch)
-> +			return SBI_ENOENT;
-> +
-> +		hart_exts = sbi_scratch_offset_ptr(scratch,
-> +						   fdt_isa_bitmap_offse
-> t);
-> +		if (!hart_exts)
-> +			return SBI_ENOENT;
-> +
-> +		err = fdt_parse_isa_one_hart((const char *)val,
-> hart_exts);
-> +		if (err)
-> +			return err;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
-> +			unsigned long *extensions)
-> +{
-> +	int rc, i;
-> +	unsigned long *hart_exts;
-> +	struct sbi_scratch *scratch;
-> +
-> +	if (!fdt_isa_bitmap_offset) {
-> +		fdt_isa_bitmap_offset = sbi_scratch_alloc_offset(
-> +					sizeof(*hart_exts) *
-> +					BITS_TO_LONGS(SBI_HART_EXT_MAX)
-> );
-> +		if (!fdt_isa_bitmap_offset)
-> +			return SBI_ENOMEM;
-> +
-> +		rc = fdt_parse_isa_all_harts(fdt);
-> +		if (rc)
-> +			return rc;
-> +	}
-> +
-> +	scratch = sbi_hartid_to_scratch(hartid);
-> +	if (!scratch)
-> +		return SBI_ENOENT;
-> +
-> +	hart_exts = sbi_scratch_offset_ptr(scratch,
-> fdt_isa_bitmap_offset);
-> +	if (!hart_exts)
-> +		return SBI_ENOENT;
-> +
-> +	for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
-> +		extensions[i] |= hart_exts[i];
-> +	return 0;
-> +}
-> +
->  static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
->  				      struct platform_uart_data *uart,
->  				      unsigned long default_freq,
-> -- 
-> 2.34.1
-> 
-> 
-Works on SiFive HiFive Unmatched A00.
-Tested-By : Mayuresh Chitale<mchitale@ventanamicro.com>
+On Wed, Aug 2, 2023 at 4:46?PM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
+>
+> Platforms may implement hpm events/counters non contiguously but the current
+> implementation assumes them to be always contigous. Add a bitmap that
+> captures the hpm events/counters as implemented in the hardware and use
+> it to set the max limit of hardware counters visible to the OS. Counters
+> not implemented in the hardware can't be used by the OS because those
+> wont be described in the DT.
+>
+> Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Thanks,
+Anup
+
+> ---
+>  include/sbi/sbi_hart.h |  2 ++
+>  lib/sbi/sbi_hart.c     | 56 +++++++++++++++++++++++++++++++-----------
+>  lib/sbi/sbi_init.c     |  2 ++
+>  lib/sbi/sbi_pmu.c      | 13 ++++++----
+>  4 files changed, 54 insertions(+), 19 deletions(-)
+>
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index c150b7e..1310198 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -68,6 +68,7 @@ struct sbi_hart_features {
+>         unsigned int pmp_addr_bits;
+>         unsigned long pmp_gran;
+>         unsigned int mhpm_count;
+> +       unsigned int mhpm_mask;
+>         unsigned int mhpm_bits;
+>  };
+>
+> @@ -83,6 +84,7 @@ static inline ulong sbi_hart_expected_trap_addr(void)
+>  }
+>
+>  unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
+> +unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
+>  void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+>                               const char *prefix, const char *suffix);
+>  unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 7b5f380..252f33d 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -35,7 +35,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>  {
+>         unsigned long menvcfg_val, mstatus_val = 0;
+>         int cidx;
+> -       unsigned int num_mhpm = sbi_hart_mhpm_count(scratch);
+> +       unsigned int mhpm_mask = sbi_hart_mhpm_mask(scratch);
+>         uint64_t mhpmevent_init_val = 0;
+>         uint64_t mstateen_val;
+>
+> @@ -69,13 +69,14 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>         /**
+>          * The mhpmeventn[h] CSR should be initialized with interrupt disabled
+>          * and inhibited running in M-mode during init.
+> -        * To keep it simple, only contiguous mhpmcounters are supported as a
+> -        * platform with discontiguous mhpmcounters may not make much sense.
+>          */
+>         mhpmevent_init_val |= (MHPMEVENT_OF | MHPMEVENT_MINH);
+> -       for (cidx = 0; cidx < num_mhpm; cidx++) {
+> +       for (cidx = 0; cidx <= 28; cidx++) {
+> +               if (!(mhpm_mask & 1 << (cidx + 3)))
+> +                       continue;
+>  #if __riscv_xlen == 32
+> -               csr_write_num(CSR_MHPMEVENT3 + cidx, mhpmevent_init_val & 0xFFFFFFFF);
+> +               csr_write_num(CSR_MHPMEVENT3 + cidx,
+> +                              mhpmevent_init_val & 0xFFFFFFFF);
+>                 if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+>                         csr_write_num(CSR_MHPMEVENT3H + cidx,
+>                                       mhpmevent_init_val >> BITS_PER_LONG);
+> @@ -244,6 +245,14 @@ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+>                    prefix, suffix, csr_read(CSR_MEDELEG));
+>  }
+>
+> +unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch)
+> +{
+> +       struct sbi_hart_features *hfeatures =
+> +                       sbi_scratch_offset_ptr(scratch, hart_features_offset);
+> +
+> +       return hfeatures->mhpm_mask;
+> +}
+> +
+>  unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
+>  {
+>         struct sbi_hart_features *hfeatures =
+> @@ -715,6 +724,30 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+>         hfeatures->extensions = 0;
+>         hfeatures->pmp_count = 0;
+>         hfeatures->mhpm_count = 0;
+> +       hfeatures->mhpm_mask = 0;
+> +
+> +#define __check_hpm_csr(__csr, __count, __mask)                          \
+> +       oldval = csr_read_allowed(__csr, (ulong)&trap);                   \
+> +       if (!trap.cause) {                                                \
+> +               csr_write_allowed(__csr, (ulong)&trap, 1UL);              \
+> +               if (!trap.cause && csr_swap(__csr, oldval) == 1UL) {      \
+> +                       (hfeatures->__count)++;                           \
+> +                       (hfeatures->__mask) |= 1 << (__csr - CSR_MCYCLE); \
+> +               }                                                         \
+> +       }
+> +
+> +#define __check_hpm_csr_2(__csr, __count, __mask)                        \
+> +       __check_hpm_csr(__csr + 0, __count, __mask)                       \
+> +       __check_hpm_csr(__csr + 1, __count, __mask)
+> +#define __check_hpm_csr_4(__csr, __count, __mask)                        \
+> +       __check_hpm_csr_2(__csr + 0, __count, __mask)                     \
+> +       __check_hpm_csr_2(__csr + 2, __count, __mask)
+> +#define __check_hpm_csr_8(__csr, __count, __mask)                        \
+> +       __check_hpm_csr_4(__csr + 0, __count, __mask)                     \
+> +       __check_hpm_csr_4(__csr + 4, __count, __mask)
+> +#define __check_hpm_csr_16(__csr, __count, __mask)                       \
+> +       __check_hpm_csr_8(__csr + 0, __count, __mask)                     \
+> +       __check_hpm_csr_8(__csr + 8, __count, __mask)
+>
+>  #define __check_csr(__csr, __rdonly, __wrval, __field, __skip) \
+>         oldval = csr_read_allowed(__csr, (ulong)&trap);                 \
+> @@ -766,22 +799,17 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+>                 __check_csr_64(CSR_PMPADDR0, 0, val, pmp_count, __pmp_skip);
+>         }
+>  __pmp_skip:
+> -
+>         /* Detect number of MHPM counters */
+> -       __check_csr(CSR_MHPMCOUNTER3, 0, 1UL, mhpm_count, __mhpm_skip);
+> +       __check_hpm_csr(CSR_MHPMCOUNTER3, mhpm_count, mhpm_mask);
+>         hfeatures->mhpm_bits = hart_mhpm_get_allowed_bits();
+> -
+> -       __check_csr_4(CSR_MHPMCOUNTER4, 0, 1UL, mhpm_count, __mhpm_skip);
+> -       __check_csr_8(CSR_MHPMCOUNTER8, 0, 1UL, mhpm_count, __mhpm_skip);
+> -       __check_csr_16(CSR_MHPMCOUNTER16, 0, 1UL, mhpm_count, __mhpm_skip);
+> +       __check_hpm_csr_4(CSR_MHPMCOUNTER4, mhpm_count, mhpm_mask);
+> +       __check_hpm_csr_8(CSR_MHPMCOUNTER8, mhpm_count, mhpm_mask);
+> +       __check_hpm_csr_16(CSR_MHPMCOUNTER16, mhpm_count, mhpm_mask);
+>
+>         /**
+>          * No need to check for MHPMCOUNTERH for RV32 as they are expected to be
+>          * implemented if MHPMCOUNTER is implemented.
+>          */
+> -
+> -__mhpm_skip:
+> -
+>  #undef __check_csr_64
+>  #undef __check_csr_32
+>  #undef __check_csr_16
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 35e6633..eae4f28 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -182,6 +182,8 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+>                    sbi_hart_pmp_addrbits(scratch));
+>         sbi_printf("Boot HART MHPM Count      : %d\n",
+>                    sbi_hart_mhpm_count(scratch));
+> +       sbi_printf("Boot HART MHPM Mask       : 0x%x\n",
+> +                  sbi_hart_mhpm_mask(scratch));
+>         sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
+>  }
+>
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 7213a53..cc8a88e 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -236,8 +236,7 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+>         bool is_overlap;
+>         struct sbi_pmu_hw_event *event = &hw_event_map[num_hw_events];
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> -       int hw_ctr_avail = sbi_hart_mhpm_count(scratch);
+> -       uint32_t ctr_avail_mask = ((uint32_t)(~0) >> (32 - (hw_ctr_avail + 3)));
+> +       uint32_t ctr_avail_mask = sbi_hart_mhpm_mask(scratch) | 0x7;
+>
+>         /* The first two counters are reserved by priv spec */
+>         if (eidx_start > SBI_PMU_HW_INSTRUCTIONS && (cmap & SBI_PMU_FIXED_CTR_MASK))
+> @@ -912,6 +911,7 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
+>
+>  int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>  {
+> +       int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
+>         struct sbi_pmu_hart_state *phs;
+>         const struct sbi_platform *plat;
+>
+> @@ -932,9 +932,12 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>                 sbi_platform_pmu_init(plat);
+>
+>                 /* mcycle & minstret is available always */
+> -               num_hw_ctrs = sbi_hart_mhpm_count(scratch) + 3;
+> -               if (num_hw_ctrs > SBI_PMU_HW_CTR_MAX)
+> -                       return SBI_EINVAL;
+> +               if (!hpm_count)
+> +                       /* Only CY, TM & IR are implemented in the hw */
+> +                       num_hw_ctrs = 3;
+> +               else
+> +                       num_hw_ctrs = hpm_count + 1;
+> +
+>                 total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+>         }
+>
+> --
+> 2.34.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
