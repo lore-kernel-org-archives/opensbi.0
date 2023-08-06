@@ -1,24 +1,40 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 6 Aug 2023 10:27:06 +0530
-Subject: [PATCH 1/1] lib: sbi: Fix typo for finding fixed event counter
-In-Reply-To: <20230803183416.1468821-1-kaiwenx@rivosinc.com>
-References: <20230803183416.1468821-1-kaiwenx@rivosinc.com>
-Message-ID: <CAAhSdy3T9yH7epJTjUAZw85t2JV1Nqys8HfFdN+3DGDvG+3M+Q@mail.gmail.com>
+Date: Sun, 6 Aug 2023 10:33:46 +0530
+Subject: [PATCH] platform: generic: allwinner: correct mhpmevent count
+In-Reply-To: <IA1PR20MB495331314E453C7E9822C88ABB08A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495331314E453C7E9822C88ABB08A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy07+GW5Oh1WogSFYMD45fwm7G1Ej4Wq2SWZFF_c+ekkzA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 4, 2023 at 12:04?AM Kaiwen Xue <kaiwenx@rivosinc.com> wrote:
+On Thu, Aug 3, 2023 at 7:20?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> Cycle and instructions are hardware events instead of firmware ones. Fix
-> the typo in the name of this function.
+> Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so reduce
+> the mhpm_count to 15 to avoid invalid usage.
 >
-> Signed-off-by: Kaiwen Xue <kaiwenx@andrew.cmu.edu>
-> Signed-off-by: Kaiwen Xue <kaiwenx@rivosinc.com>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> ---
+>  platform/generic/allwinner/sun20i-d1.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 0f0a9f3..94a3a5e 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
+>         sbi_pmu_set_device(&thead_c9xx_pmu_device);
+>
+>         /* auto-detection doesn't work on t-head c9xx cores */
+> -       hfeatures->mhpm_count = 29;
+> +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
+> +       hfeatures->mhpm_count = 15;
 
-Looks good to me.
+With the latest non-contiguous counter support, we need to set
+mhpm_mask as well.
+I have taken care of this at the time of merging this patch.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -27,33 +43,15 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
-> ---
->  lib/sbi/sbi_pmu.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>         hfeatures->mhpm_bits = 64;
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 7213a53..6d564e7 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -609,7 +609,7 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
 >         return 0;
->  }
->
-> -static int pmu_ctr_find_fixed_fw(unsigned long evt_idx_code)
-> +static int pmu_ctr_find_fixed_hw(unsigned long evt_idx_code)
->  {
->         /* Non-programmables counters are enabled always. No need to do lookup */
->         if (evt_idx_code == SBI_PMU_HW_CPU_CYCLES)
-> @@ -638,7 +638,7 @@ static int pmu_ctr_find_hw(struct sbi_pmu_hart_state *phs,
->          * If Sscof is present try to find the programmable counter for
->          * cycle/instret as well.
->          */
-> -       fixed_ctr = pmu_ctr_find_fixed_fw(event_idx);
-> +       fixed_ctr = pmu_ctr_find_fixed_hw(event_idx);
->         if (fixed_ctr >= 0 &&
->             !sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
->                 return fixed_ctr;
 > --
 > 2.41.0
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
