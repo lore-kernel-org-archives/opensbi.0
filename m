@@ -1,76 +1,76 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Sun, 6 Aug 2023 01:32:16 -0400
-Subject: [PATCH] platform: generic: allwinner: correct mhpmevent count
-In-Reply-To: <CAAhSdy07+GW5Oh1WogSFYMD45fwm7G1Ej4Wq2SWZFF_c+ekkzA@mail.gmail.com>
-References: <IA1PR20MB495331314E453C7E9822C88ABB08A@IA1PR20MB4953.namprd20.prod.outlook.com>
- <CAAhSdy07+GW5Oh1WogSFYMD45fwm7G1Ej4Wq2SWZFF_c+ekkzA@mail.gmail.com>
-Message-ID: <CAJF2gTSsJ6KkZr-s_-bnxbAZnoirSdv=7y=qD1B3ru+ccvY7Ng@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sun, 6 Aug 2023 11:04:48 +0530
+Subject: [PATCH] fw_base.S: Fix assembler error with clang 16+
+In-Reply-To: <1edbc8c0-54b6-6a59-bfd6-30a983d1beb2@freebsd.org>
+References: <1edbc8c0-54b6-6a59-bfd6-30a983d1beb2@freebsd.org>
+Message-ID: <CAAhSdy3UW=RWz=GhwUomKyO4m_1ee4i4F9aPJTixZdXiKEsLkg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Aug 6, 2023 at 1:04?AM Anup Patel <anup@brainfault.org> wrote:
+On Thu, Aug 3, 2023 at 10:31?PM Mitchell Horne <mhorne@freebsd.org> wrote:
 >
-> On Thu, Aug 3, 2023 at 7:20?AM Inochi Amaoto <inochiama@outlook.com> wrote:
-> >
-> > Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so reduce
-> > the mhpm_count to 15 to avoid invalid usage.
-> >
-> > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> > ---
-> >  platform/generic/allwinner/sun20i-d1.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> > index 0f0a9f3..94a3a5e 100644
-> > --- a/platform/generic/allwinner/sun20i-d1.c
-> > +++ b/platform/generic/allwinner/sun20i-d1.c
-> > @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
-> >         sbi_pmu_set_device(&thead_c9xx_pmu_device);
-> >
-> >         /* auto-detection doesn't work on t-head c9xx cores */
-> > -       hfeatures->mhpm_count = 29;
-> > +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
-> > +       hfeatures->mhpm_count = 15;
 >
-> With the latest non-contiguous counter support, we need to set
-> mhpm_mask as well.
-> I have taken care of this at the time of merging this patch.
+> Attempting to build OpenSBI with clang 16 and the following command:
 >
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+>    $ make LLVM=1 PLATFORM=generic
 >
-> Applied this patch to the riscv/opensbi repo.
-Sorry for the delayed reply. I think we need more tests on this patch.
-Now my colleagues are cooperating with Inochi to solve the problem.
-
-We are also solving the perf record problem on D1, so I'm unsure about
-the final solution. I recommend you hold this patch for a while. Maybe
-we would adjust it.
-
-ps:
-Include Heiko email
-
+> Results in the following error:
 >
-> Thanks,
-> Anup
+>     AS        platform/generic/firmware/fw_dynamic.o
+>    /tmp/fw_dynamic-d000a6.s:429:9: error: symbol '_fw_start' can not be undefined in a subtraction expression
+>     .dword _fw_rw_start - _fw_start
 >
-> >         hfeatures->mhpm_bits = 64;
-> >
-> >         return 0;
-> > --
-> > 2.41.0
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> Work around this issue by eliminating the __fw_rw_offset variable and
+> performing the offset calculation at run-time instead. This takes
+> advantage of the fact that the a4 register contains the value of
+> _fw_start.
+>
+> Signed-off-by: Mitchell Horne <mhorne@FreeBSD.org>
 
+Looks good to me.
 
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
--- 
-Best Regards
- Guo Ren
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>   firmware/fw_base.S | 6 ++----
+>   1 file changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index b947423..ca34b4c 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -309,8 +309,8 @@ _scratch_init:
+>         REG_S   a5, SBI_SCRATCH_FW_SIZE_OFFSET(tp)
+>         /* Store R/W section's offset in scratch space */
+> -       lla     a4, __fw_rw_offset
+> -       REG_L   a5, 0(a4)
+> +       lla     a5, _fw_rw_start
+> +       sub     a5, a5, a4
+>         REG_S   a5, SBI_SCRATCH_FW_RW_OFFSET(tp)
+>         /* Store fw_heap_offset and fw_heap_size in scratch space */
+> @@ -536,8 +536,6 @@ _link_start:
+>         RISCV_PTR       FW_TEXT_START
+>   _link_end:
+>         RISCV_PTR       _fw_reloc_end
+> -__fw_rw_offset:
+> -       RISCV_PTR       _fw_rw_start - _fw_start
+>         .section .entry, "ax", %progbits
+>         .align 3
+> --
+> 2.41.0
+>
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
