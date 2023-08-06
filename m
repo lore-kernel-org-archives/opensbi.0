@@ -1,29 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 6 Aug 2023 10:20:58 +0530
-Subject: [PATCH] lib: utils/fdt: Fix fdt_parse_isa_extensions() implementation
-In-Reply-To: <20230803071101.352061-1-apatel@ventanamicro.com>
-References: <20230803071101.352061-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy3N-pSO7T7mpjmxhJ32NpP0pD3Vtqp2ZjSqNB8Xu09CSw@mail.gmail.com>
+Date: Sun, 6 Aug 2023 10:27:06 +0530
+Subject: [PATCH 1/1] lib: sbi: Fix typo for finding fixed event counter
+In-Reply-To: <20230803183416.1468821-1-kaiwenx@rivosinc.com>
+References: <20230803183416.1468821-1-kaiwenx@rivosinc.com>
+Message-ID: <CAAhSdy3T9yH7epJTjUAZw85t2JV1Nqys8HfFdN+3DGDvG+3M+Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 3, 2023 at 12:41?PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Fri, Aug 4, 2023 at 12:04?AM Kaiwen Xue <kaiwenx@rivosinc.com> wrote:
 >
-> Currently, the fdt_parse_isa_extensions() tries to parse the ISA
-> string once for each HART. This ISA string parsing can fail for
-> secondary HARTs if the FDT memory is already overwritten by the
-> supervisor OS.
+> Cycle and instructions are hardware events instead of firmware ones. Fix
+> the typo in the name of this function.
 >
-> To tackle this issue, we improve the fdt_parse_isa_extensions()
-> implementation to pre-parse ISA string for all HARTs during
-> cold boot.
->
-> Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA
-> string in FDT")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Kaiwen Xue <kaiwenx@andrew.cmu.edu>
+> Signed-off-by: Kaiwen Xue <kaiwenx@rivosinc.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -31,155 +28,32 @@ Thanks,
 Anup
 
 > ---
->  lib/utils/fdt/fdt_helper.c | 122 ++++++++++++++++++++++++-------------
->  1 file changed, 79 insertions(+), 43 deletions(-)
+>  lib/sbi/sbi_pmu.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 61a4100..c97f09d 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -314,54 +314,14 @@ int fdt_parse_timebase_frequency(void *fdt, unsigned long *freq)
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 7213a53..6d564e7 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -609,7 +609,7 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
 >         return 0;
 >  }
 >
-> -static int fdt_get_isa_string(void *fdt, unsigned int hartid,
-> -                       const char **isa_string)
-> -{
-> -       int err, cpu_offset, cpus_offset, len;
-> -       u32 c_hartid;
-> -       const fdt32_t *val;
-> -
-> -       if (!fdt)
-> -               return SBI_EINVAL;
-> -
-> -       cpus_offset = fdt_path_offset(fdt, "/cpus");
-> -       if (cpus_offset < 0)
-> -               return cpus_offset;
-> -
-> -       fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-> -               err = fdt_parse_hart_id(fdt, cpu_offset, &c_hartid);
-> -               if (err)
-> -                       continue;
-> -
-> -               if (!fdt_node_is_enabled(fdt, cpu_offset))
-> -                       continue;
-> -
-> -               if (c_hartid == hartid) {
-> -                       val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-> -                       if (val && len > 0) {
-> -                               *isa_string = (const char *)val;
-> -                               return 0;
-> -                       }
-> -               }
-> -       }
-> -
-> -       return SBI_EINVAL;
-> -}
-> -
->  #define RISCV_ISA_EXT_NAME_LEN_MAX     32
->
-> -int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
-> -                       unsigned long *extensions)
-> +static unsigned long fdt_isa_bitmap_offset;
-> +
-> +static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
+> -static int pmu_ctr_find_fixed_fw(unsigned long evt_idx_code)
+> +static int pmu_ctr_find_fixed_hw(unsigned long evt_idx_code)
 >  {
->         size_t i, j, isa_len;
->         char mstr[RISCV_ISA_EXT_NAME_LEN_MAX];
-> -       const char *isa = NULL;
-> -
-> -       if (fdt_get_isa_string(fdt, hartid, &isa))
-> -               return SBI_EINVAL;
-> -
-> -       if (!isa)
-> -               return SBI_EINVAL;
->
->         i = 0;
->         isa_len = strlen(isa);
-> @@ -424,6 +384,82 @@ int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
->         return 0;
->  }
->
-> +static int fdt_parse_isa_all_harts(void *fdt)
-> +{
-> +       u32 hartid;
-> +       const fdt32_t *val;
-> +       unsigned long *hart_exts;
-> +       struct sbi_scratch *scratch;
-> +       int err, cpu_offset, cpus_offset, len;
-> +
-> +       if (!fdt || !fdt_isa_bitmap_offset)
-> +               return SBI_EINVAL;
-> +
-> +       cpus_offset = fdt_path_offset(fdt, "/cpus");
-> +       if (cpus_offset < 0)
-> +               return cpus_offset;
-> +
-> +       fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-> +               err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-> +               if (err)
-> +                       continue;
-> +
-> +               if (!fdt_node_is_enabled(fdt, cpu_offset))
-> +                       continue;
-> +
-> +               val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-> +               if (!val || len <= 0)
-> +                       return SBI_ENOENT;
-> +
-> +               scratch = sbi_hartid_to_scratch(hartid);
-> +               if (!scratch)
-> +                       return SBI_ENOENT;
-> +
-> +               hart_exts = sbi_scratch_offset_ptr(scratch,
-> +                                                  fdt_isa_bitmap_offset);
-> +               if (!hart_exts)
-> +                       return SBI_ENOENT;
-> +
-> +               err = fdt_parse_isa_one_hart((const char *)val, hart_exts);
-> +               if (err)
-> +                       return err;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
-> +                       unsigned long *extensions)
-> +{
-> +       int rc, i;
-> +       unsigned long *hart_exts;
-> +       struct sbi_scratch *scratch;
-> +
-> +       if (!fdt_isa_bitmap_offset) {
-> +               fdt_isa_bitmap_offset = sbi_scratch_alloc_offset(
-> +                                       sizeof(*hart_exts) *
-> +                                       BITS_TO_LONGS(SBI_HART_EXT_MAX));
-> +               if (!fdt_isa_bitmap_offset)
-> +                       return SBI_ENOMEM;
-> +
-> +               rc = fdt_parse_isa_all_harts(fdt);
-> +               if (rc)
-> +                       return rc;
-> +       }
-> +
-> +       scratch = sbi_hartid_to_scratch(hartid);
-> +       if (!scratch)
-> +               return SBI_ENOENT;
-> +
-> +       hart_exts = sbi_scratch_offset_ptr(scratch, fdt_isa_bitmap_offset);
-> +       if (!hart_exts)
-> +               return SBI_ENOENT;
-> +
-> +       for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
-> +               extensions[i] |= hart_exts[i];
-> +       return 0;
-> +}
-> +
->  static int fdt_parse_uart_node_common(void *fdt, int nodeoffset,
->                                       struct platform_uart_data *uart,
->                                       unsigned long default_freq,
+>         /* Non-programmables counters are enabled always. No need to do lookup */
+>         if (evt_idx_code == SBI_PMU_HW_CPU_CYCLES)
+> @@ -638,7 +638,7 @@ static int pmu_ctr_find_hw(struct sbi_pmu_hart_state *phs,
+>          * If Sscof is present try to find the programmable counter for
+>          * cycle/instret as well.
+>          */
+> -       fixed_ctr = pmu_ctr_find_fixed_fw(event_idx);
+> +       fixed_ctr = pmu_ctr_find_fixed_hw(event_idx);
+>         if (fixed_ctr >= 0 &&
+>             !sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+>                 return fixed_ctr;
 > --
-> 2.34.1
+> 2.41.0
 >
 
