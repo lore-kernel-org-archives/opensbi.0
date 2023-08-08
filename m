@@ -1,93 +1,138 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 8 Aug 2023 00:00:59 -0700
-Subject: [PATCH] platform: generic: allwinner: correct mhpmevent count
-In-Reply-To: <CAJF2gTSsJ6KkZr-s_-bnxbAZnoirSdv=7y=qD1B3ru+ccvY7Ng@mail.gmail.com>
-References: <IA1PR20MB495331314E453C7E9822C88ABB08A@IA1PR20MB4953.namprd20.prod.outlook.com>
- <CAAhSdy07+GW5Oh1WogSFYMD45fwm7G1Ej4Wq2SWZFF_c+ekkzA@mail.gmail.com> <CAJF2gTSsJ6KkZr-s_-bnxbAZnoirSdv=7y=qD1B3ru+ccvY7Ng@mail.gmail.com>
-Message-ID: <CAOnJCULMbMT2dAkBUObFtVMVO2iNwQk8fCnLhwQVXCoerGxHoQ@mail.gmail.com>
+From: guoren@kernel.org <guoren@kernel.org>
+Date: Tue,  8 Aug 2023 09:29:58 -0400
+Subject: [PATCH] docs/platform: thead-c9xx: Improve the documentation
+Message-ID: <20230808132958.1097873-1-guoren@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Aug 5, 2023 at 10:33?PM Guo Ren <guoren@kernel.org> wrote:
->
-> On Sun, Aug 6, 2023 at 1:04?AM Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Thu, Aug 3, 2023 at 7:20?AM Inochi Amaoto <inochiama@outlook.com> wrote:
-> > >
-> > > Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so reduce
-> > > the mhpm_count to 15 to avoid invalid usage.
-> > >
-> > > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> > > ---
-> > >  platform/generic/allwinner/sun20i-d1.c | 3 ++-
-> > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > >
-> > > diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> > > index 0f0a9f3..94a3a5e 100644
-> > > --- a/platform/generic/allwinner/sun20i-d1.c
-> > > +++ b/platform/generic/allwinner/sun20i-d1.c
-> > > @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
-> > >         sbi_pmu_set_device(&thead_c9xx_pmu_device);
-> > >
-> > >         /* auto-detection doesn't work on t-head c9xx cores */
-> > > -       hfeatures->mhpm_count = 29;
-> > > +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
-> > > +       hfeatures->mhpm_count = 15;
-> >
-> > With the latest non-contiguous counter support, we need to set
-> > mhpm_mask as well.
-> > I have taken care of this at the time of merging this patch.
-> >
-> > Reviewed-by: Anup Patel <anup@brainfault.org>
-> >
-> > Applied this patch to the riscv/opensbi repo.
-> Sorry for the delayed reply. I think we need more tests on this patch.
-> Now my colleagues are cooperating with Inochi to solve the problem.
->
-> We are also solving the perf record problem on D1, so I'm unsure about
-> the final solution. I recommend you hold this patch for a while. Maybe
-> we would adjust it.
->
+From: Guo Ren <guoren@linux.alibaba.com>
 
-What is the problem with perf record on D1 ? Is it hardware related or
-any kernel issue ?
+Add detailed information about thead,reset-sample driver, and improve
+usage documentation.
 
-> ps:
-> Include Heiko email
->
-> >
-> > Thanks,
-> > Anup
-> >
-> > >         hfeatures->mhpm_bits = 64;
-> > >
-> > >         return 0;
-> > > --
-> > > 2.41.0
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
->
->
->
-> --
-> Best Regards
->  Guo Ren
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+Signed-off-by: Guo Ren <guoren@kernel.org>
+---
+ docs/platform/thead-c9xx.md | 87 ++++++++++++++++++++++++++++---------
+ 1 file changed, 67 insertions(+), 20 deletions(-)
 
-
-
+diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
+index 8bb9e91f1a9b..fe05fc5bb85a 100644
+--- a/docs/platform/thead-c9xx.md
++++ b/docs/platform/thead-c9xx.md
+@@ -1,8 +1,8 @@
+-T-HEAD C9xx Series Processors
+-=============================
++T-HEAD Processors
++=================
+ 
+-The **C9xx** series processors are high-performance RISC-V architecture
+-multi-core processors with AI vector acceleration engine.
++T-HEAD provides high-performance RISC-V architecture multi-core
++processors with AI vector acceleration engine.
+ 
+ For more details, refer [T-HEAD.CN](https://www.t-head.cn/)
+ 
+@@ -12,15 +12,75 @@ To build the platform-specific library and firmware images, provide the
+ Platform Options
+ ----------------
+ 
+-The *T-HEAD C9xx* does not have any platform-specific compile options
++The *T-HEAD CPU* does not have any platform-specific compile options
+ because it uses generic platform.
+ 
+ ```
+ CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic /usr/bin/make
+ ```
+ 
+-The *T-HEAD C9xx* DTB provided to OpenSBI generic firmwares will usually have
+-"riscv,clint0", "riscv,plic0", "thead,reset-sample" compatible strings.
++The *T-HEAD CPU* DTB provided to OpenSBI generic firmwares will usually have
++"thead,reset-sample" compatible strings. The "thead,reset-sample" is a T-HEAD
++custom driver for the SMP system bootup; the single-core system doesn't need
++it.
++
++T-HEAD Fdt Reset Driver Introduction
++------------------------------------
++
++Every T-HEAD CPU provides a reset control signal and reset address signals.
++ - Reset address signal determines CPU where to start up.
++ - Reset control signal releases CPU from reset state and begins to execute
++   at reset address.
++
++Many vendors would gather these signals into SoC control registers. These
++register designs are similar but with different base addresses and bits
++definitions. We only provide standard opensbi, Linux binaries, and jtag gdbinit
++script to simplify Linux booting at the FPGA stage. The fdt reset driver helps
++users bring up their SMP system quickly with the below settings:
++
++ - entry-reg:
++	The base address to store reset address value
++
++ - entry-cnt:
++	The numbers of entry-reg, all of them set the same reset address
++
++ - control-reg:
++	The base address to reset the controller
++
++ - control-val:
++	Write which bits of control-reg for booting
++
++ - csr-copy:
++	This array determines which csrs to copy from primary hart to the
++	secondary harts, which are set in sequence from left to right. The
++	secondary harts should keep the same setting as the primary hart.
++	These settings are also the first part of the bootup instructions
++	for secondary harts.
++
++ - using-csr-reset:
++	A legacy reset controller for the SMP system, but abandoned in the
++	latest T-HEAD processors.
++
++Here is the dts example:
++```
++	reset: reset-sample {
++		compatible = "thead,reset-sample";
++		entry-reg = <0xff 0xff019050>;
++		entry-cnt = <4>;
++		control-reg = <0xff 0xff015004>;
++		control-val = <0x1c>;
++		csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>;
++	};
++```
++
++Legacy dts example (Abandoned):
++```
++	reset: reset-sample {
++		compatible = "thead,reset-sample";
++		using-csr-reset;
++		csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>;
++	};
++```
+ 
+ DTS Example1: (Single core, eg: Allwinner D1 - c906)
+ ----------------------------------------------------
+@@ -181,16 +241,3 @@ DTS Example2: (Multi cores with soc reset-regs)
+ 		};
+ 	}
+ ```
+-
+-DTS Example2: (Multi cores with old reset csrs)
+------------------------------------------------
+-```
+-	reset: reset-sample {
+-		compatible = "thead,reset-sample";
+-		using-csr-reset;
+-		csr-copy = <0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc
+-			    0x3b0 0x3b1 0x3b2 0x3b3
+-			    0x3b4 0x3b5 0x3b6 0x3b7
+-			    0x3a0>;
+-	};
+-```
 -- 
-Regards,
-Atish
+2.36.1
+
 
