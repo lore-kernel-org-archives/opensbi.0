@@ -1,51 +1,62 @@
-From: Andreas Schwab <schwab@suse.de>
-Date: Thu, 10 Aug 2023 13:46:19 +0200
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Thu, 10 Aug 2023 14:11:12 +0200
 Subject: [PATCH] Makefile: Fix grep warning
-In-Reply-To: <20230810-0ea8bc1ee6925836422aa14f@orel> (Andrew Jones's message
-	of "Thu, 10 Aug 2023 13:40:27 +0200")
+In-Reply-To: <mvmo7jff7ck.fsf@suse.de>
 References: <20230810110258.52482-2-ajones@ventanamicro.com>
-	<mvmwmy3f7z2.fsf@suse.de> <20230810-0ea8bc1ee6925836422aa14f@orel>
-Message-ID: <mvmo7jff7ck.fsf@suse.de>
+ <mvmwmy3f7z2.fsf@suse.de>
+ <20230810-0ea8bc1ee6925836422aa14f@orel>
+ <mvmo7jff7ck.fsf@suse.de>
+Message-ID: <20230810-4b906c88e81713195428de8b@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Aug 10 2023, Andrew Jones wrote:
+On Thu, Aug 10, 2023 at 01:46:19PM +0200, Andreas Schwab wrote:
+> On Aug 10 2023, Andrew Jones wrote:
+> 
+> > On Thu, Aug 10, 2023 at 01:32:49PM +0200, Andreas Schwab wrote:
+> >> On Aug 10 2023, Andrew Jones wrote:
+> >> 
+> >> > grep (at least my version, grep-3.8-3.fc38.x86_64) warns with
+> >> > "grep: warning: stray \ before -". Fix the warning by making
+> >> > the command line input to grep less ambiguous.
+> >> >
+> >> > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> >> > ---
+> >> >  Makefile | 2 +-
+> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >> >
+> >> > diff --git a/Makefile b/Makefile
+> >> > index 730dbd910e51..03768a51f710 100644
+> >> > --- a/Makefile
+> >> > +++ b/Makefile
+> >> > @@ -168,7 +168,7 @@ endif
+> >> >  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+> >> >  
+> >> >  # Check whether the compiler supports -m(no-)save-restore
+> >> > -CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
+> >> > +CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -- "-save-restore" >/dev/null && echo n || echo y)
+> >> 
+> >> Please use grep -e ... instead.
+> >
+> > Sure, but I'd like to put a justification in the commit message, something
+> > like, Use -e, as opposed to --, because...
+> 
+> It's portable.
 
-> On Thu, Aug 10, 2023 at 01:32:49PM +0200, Andreas Schwab wrote:
->> On Aug 10 2023, Andrew Jones wrote:
->> 
->> > grep (at least my version, grep-3.8-3.fc38.x86_64) warns with
->> > "grep: warning: stray \ before -". Fix the warning by making
->> > the command line input to grep less ambiguous.
->> >
->> > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
->> > ---
->> >  Makefile | 2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> > diff --git a/Makefile b/Makefile
->> > index 730dbd910e51..03768a51f710 100644
->> > --- a/Makefile
->> > +++ b/Makefile
->> > @@ -168,7 +168,7 @@ endif
->> >  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
->> >  
->> >  # Check whether the compiler supports -m(no-)save-restore
->> > -CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
->> > +CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -- "-save-restore" >/dev/null && echo n || echo y)
->> 
->> Please use grep -e ... instead.
->
-> Sure, but I'd like to put a justification in the commit message, something
-> like, Use -e, as opposed to --, because...
+Hmm, shellcheck doesn't complain,
 
-It's portable.
+ shellcheck -s sh <(echo "echo foo | grep -- foo")
 
--- 
-Andreas Schwab, SUSE Labs, schwab at suse.de
-GPG Key fingerprint = 0196 BAD8 1CE9 1970 F4BE  1748 E4D4 88E3 0EEA B9D7
-"And now for something completely different."
+but maybe the concern is that plopping the "grep -- foo" string into
+random shells may not always work, since a random shell could assume
+the -- is for itself to interpret, rather than for grep?
+
+Anyway, v2 coming up, but without a justification for -e vs. --, since
+it's not clear to me.
+
+Thanks,
+drew
 
