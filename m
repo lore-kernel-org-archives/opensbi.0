@@ -1,194 +1,162 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Fri, 11 Aug 2023 08:24:43 +0800
-Subject: [PATCH] lib: sbi_pmu: remove mhpm_count field in hart feature
-Message-ID: <IA1PR20MB49535E7470BE1E4AD933B2F7BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Fri, 11 Aug 2023 08:38:04 +0800
+Subject: [PATCH] docs/platform: thead-c9xx: Improve the documentation
+In-Reply-To: <ZNURXBKkYdiWLanf@xhacker>
+References: <20230808132958.1097873-1-guoren@kernel.org> <ZNURXBKkYdiWLanf@xhacker>
+Message-ID: <CAJF2gTTuKzX0O+wBX8j+qMp9SY2SGdKYEKpnP_e9=K39zbTuvA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-After supporting noncontigous hpm event and counters in opensbi, the
-number of hpm counters can be calculated by the mhpm_mask. So this field
-is unnecessary and can be removed to save some space.
+On Fri, Aug 11, 2023 at 12:45?AM Jisheng Zhang <jszhang@kernel.org> wrote:
+>
+> On Tue, Aug 08, 2023 at 09:29:58AM -0400, guoren at kernel.org wrote:
+> > From: Guo Ren <guoren@linux.alibaba.com>
+> >
+> > Add detailed information about thead,reset-sample driver, and improve
+> > usage documentation.
+> >
+> > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> > Signed-off-by: Guo Ren <guoren@kernel.org>
+> > ---
+> >  docs/platform/thead-c9xx.md | 87 ++++++++++++++++++++++++++++---------
+> >  1 file changed, 67 insertions(+), 20 deletions(-)
+> >
+> > diff --git a/docs/platform/thead-c9xx.md b/docs/platform/thead-c9xx.md
+> > index 8bb9e91f1a9b..fe05fc5bb85a 100644
+> > --- a/docs/platform/thead-c9xx.md
+> > +++ b/docs/platform/thead-c9xx.md
+> > @@ -1,8 +1,8 @@
+> > -T-HEAD C9xx Series Processors
+> > -=============================
+> > +T-HEAD Processors
+> > +=================
+> >
+> > -The **C9xx** series processors are high-performance RISC-V architecture
+> > -multi-core processors with AI vector acceleration engine.
+> > +T-HEAD provides high-performance RISC-V architecture multi-core
+> > +processors with AI vector acceleration engine.
+> >
+> >  For more details, refer [T-HEAD.CN](https://www.t-head.cn/)
+> >
+> > @@ -12,15 +12,75 @@ To build the platform-specific library and firmware images, provide the
+> >  Platform Options
+> >  ----------------
+> >
+> > -The *T-HEAD C9xx* does not have any platform-specific compile options
+> > +The *T-HEAD CPU* does not have any platform-specific compile options
+> >  because it uses generic platform.
+> >
+> >  ```
+> >  CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic /usr/bin/make
+> >  ```
+> >
+> > -The *T-HEAD C9xx* DTB provided to OpenSBI generic firmwares will usually have
+> > -"riscv,clint0", "riscv,plic0", "thead,reset-sample" compatible strings.
+> > +The *T-HEAD CPU* DTB provided to OpenSBI generic firmwares will usually have
+> > +"thead,reset-sample" compatible strings. The "thead,reset-sample" is a T-HEAD
+> > +custom driver for the SMP system bootup; the single-core system doesn't need
+> > +it.
+> > +
+> > +T-HEAD Fdt Reset Driver Introduction
+> > +------------------------------------
+> > +
+> > +Every T-HEAD CPU provides a reset control signal and reset address signals.
+> > + - Reset address signal determines CPU where to start up.
+> > + - Reset control signal releases CPU from reset state and begins to execute
+> > +   at reset address.
+> > +
+> > +Many vendors would gather these signals into SoC control registers. These
+> > +register designs are similar but with different base addresses and bits
+> > +definitions. We only provide standard opensbi, Linux binaries, and jtag gdbinit
+> > +script to simplify Linux booting at the FPGA stage. The fdt reset driver helps
+> > +users bring up their SMP system quickly with the below settings:
+>
+> +DT maintainers and DT list.
+>
+> I can submit a dt-binding for this if DT maintainers agree with below
+> properties. Could you please help review?
+Of cause, I would help review.
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
----
-This patch needs the V2 patch which fixup D1 mhpm_mask.
----
- include/sbi/sbi_bitops.h  | 16 ++++++++++++++
- include/sbi/sbi_hart.h    |  2 --
- lib/sbi/sbi_emulate_csr.c |  2 +-
- lib/sbi/sbi_hart.c        | 46 +++++++++++++++------------------------
- lib/sbi/sbi_init.c        |  5 ++---
- 5 files changed, 37 insertions(+), 34 deletions(-)
+This documentation describes the fact of opensbi thead,reset-sample
+driver's status. The node name and property names have existed for 2
+years, changing them would cause confusion, so let's keep them
+continuously.
 
-diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
-index 2e08947..48a2090 100644
---- a/include/sbi/sbi_bitops.h
-+++ b/include/sbi/sbi_bitops.h
-@@ -112,6 +112,22 @@ static inline unsigned long sbi_fls(unsigned long word)
- 	return num;
- }
+>
+> > +
+> > + - entry-reg:
+> > +     The base address to store reset address value
+> > +
+> > + - entry-cnt:
+> > +     The numbers of entry-reg, all of them set the same reset address
+> > +
+> > + - control-reg:
+> > +     The base address to reset the controller
+> > +
+> > + - control-val:
+> > +     Write which bits of control-reg for booting
+> > +
+> > + - csr-copy:
+> > +     This array determines which csrs to copy from primary hart to the
+> > +     secondary harts, which are set in sequence from left to right. The
+> > +     secondary harts should keep the same setting as the primary hart.
+> > +     These settings are also the first part of the bootup instructions
+> > +     for secondary harts.
+> > +
+> > + - using-csr-reset:
+> > +     A legacy reset controller for the SMP system, but abandoned in the
+> > +     latest T-HEAD processors.
+> > +
+> > +Here is the dts example:
+> > +```
+> > +     reset: reset-sample {
+> > +             compatible = "thead,reset-sample";
+> > +             entry-reg = <0xff 0xff019050>;
+> > +             entry-cnt = <4>;
+> > +             control-reg = <0xff 0xff015004>;
+> > +             control-val = <0x1c>;
+> > +             csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>;
+> > +     };
+> > +```
+> > +
+> > +Legacy dts example (Abandoned):
+> > +```
+> > +     reset: reset-sample {
+> > +             compatible = "thead,reset-sample";
+> > +             using-csr-reset;
+> > +             csr-copy = <0x7f3 0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc>;
+> > +     };
+> > +```
+> >
+> >  DTS Example1: (Single core, eg: Allwinner D1 - c906)
+> >  ----------------------------------------------------
+> > @@ -181,16 +241,3 @@ DTS Example2: (Multi cores with soc reset-regs)
+> >               };
+> >       }
+> >  ```
+> > -
+> > -DTS Example2: (Multi cores with old reset csrs)
+> > ------------------------------------------------
+> > -```
+> > -     reset: reset-sample {
+> > -             compatible = "thead,reset-sample";
+> > -             using-csr-reset;
+> > -             csr-copy = <0x7c0 0x7c1 0x7c2 0x7c3 0x7c5 0x7cc
+> > -                         0x3b0 0x3b1 0x3b2 0x3b3
+> > -                         0x3b4 0x3b5 0x3b6 0x3b7
+> > -                         0x3a0>;
+> > -     };
+> > -```
+> > --
+> > 2.36.1
+> >
 
-+/**
-+ * sbi_popcount - find the number of set bit in a long word
-+ * @word: the word to search
-+ */
-+static inline unsigned long sbi_popcount(unsigned long word)
-+{
-+	unsigned long count = 0;
-+
-+	while (word) {
-+		word &= word - 1;
-+		count++;
-+	}
-+
-+	return count;
-+}
-+
- #define for_each_set_bit(bit, addr, size) \
- 	for ((bit) = find_first_bit((addr), (size));		\
- 	     (bit) < (size);					\
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 1310198..3a78266 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -67,7 +67,6 @@ struct sbi_hart_features {
- 	unsigned int pmp_count;
- 	unsigned int pmp_addr_bits;
- 	unsigned long pmp_gran;
--	unsigned int mhpm_count;
- 	unsigned int mhpm_mask;
- 	unsigned int mhpm_bits;
- };
-@@ -83,7 +82,6 @@ static inline ulong sbi_hart_expected_trap_addr(void)
- 	return (ulong)sbi_hart_expected_trap;
- }
 
--unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
- unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
- void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
- 			      const char *prefix, const char *suffix);
-diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-index da81165..5f3b111 100644
---- a/lib/sbi/sbi_emulate_csr.c
-+++ b/lib/sbi/sbi_emulate_csr.c
-@@ -109,7 +109,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
 
- #define switchcase_hpm(__uref, __mref, __csr)				\
- 	case __csr:							\
--		if ((sbi_hart_mhpm_count(scratch) + 3) <= (__csr - __uref))\
-+		if (sbi_hart_mhpm_mask(scratch) & (1 << (__csr - __uref)))\
- 			return SBI_ENOTSUPP;				\
- 		if (!hpm_allowed(__csr - __uref, prev_mode, virt))	\
- 			return SBI_ENOTSUPP;				\
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 252f33d..6179594 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -253,14 +253,6 @@ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch)
- 	return hfeatures->mhpm_mask;
- }
-
--unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
--{
--	struct sbi_hart_features *hfeatures =
--			sbi_scratch_offset_ptr(scratch, hart_features_offset);
--
--	return hfeatures->mhpm_count;
--}
--
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
- {
- 	struct sbi_hart_features *hfeatures =
-@@ -723,31 +715,29 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 	/* Clear hart features */
- 	hfeatures->extensions = 0;
- 	hfeatures->pmp_count = 0;
--	hfeatures->mhpm_count = 0;
- 	hfeatures->mhpm_mask = 0;
-
--#define __check_hpm_csr(__csr, __count, __mask) 			  \
-+#define __check_hpm_csr(__csr, __mask) 					  \
- 	oldval = csr_read_allowed(__csr, (ulong)&trap);			  \
- 	if (!trap.cause) {						  \
- 		csr_write_allowed(__csr, (ulong)&trap, 1UL);		  \
- 		if (!trap.cause && csr_swap(__csr, oldval) == 1UL) {	  \
--			(hfeatures->__count)++;				  \
- 			(hfeatures->__mask) |= 1 << (__csr - CSR_MCYCLE); \
- 		}							  \
- 	}
-
--#define __check_hpm_csr_2(__csr, __count, __mask)	 		  \
--	__check_hpm_csr(__csr + 0, __count, __mask)	 		  \
--	__check_hpm_csr(__csr + 1, __count, __mask)
--#define __check_hpm_csr_4(__csr, __count, __mask)	 		  \
--	__check_hpm_csr_2(__csr + 0, __count, __mask) 			  \
--	__check_hpm_csr_2(__csr + 2, __count, __mask)
--#define __check_hpm_csr_8(__csr, __count, __mask)	 		  \
--	__check_hpm_csr_4(__csr + 0, __count, __mask) 			  \
--	__check_hpm_csr_4(__csr + 4, __count, __mask)
--#define __check_hpm_csr_16(__csr, __count, __mask)	 		  \
--	__check_hpm_csr_8(__csr + 0, __count, __mask) 			  \
--	__check_hpm_csr_8(__csr + 8, __count, __mask)
-+#define __check_hpm_csr_2(__csr, __mask)	 		  \
-+	__check_hpm_csr(__csr + 0, __mask)	 		  \
-+	__check_hpm_csr(__csr + 1, __mask)
-+#define __check_hpm_csr_4(__csr, __mask)	 		  \
-+	__check_hpm_csr_2(__csr + 0, __mask) 			  \
-+	__check_hpm_csr_2(__csr + 2, __mask)
-+#define __check_hpm_csr_8(__csr, __mask)	 		  \
-+	__check_hpm_csr_4(__csr + 0, __mask) 			  \
-+	__check_hpm_csr_4(__csr + 4, __mask)
-+#define __check_hpm_csr_16(__csr, __mask)	 		  \
-+	__check_hpm_csr_8(__csr + 0, __mask) 			  \
-+	__check_hpm_csr_8(__csr + 8, __mask)
-
- #define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
- 	oldval = csr_read_allowed(__csr, (ulong)&trap);			\
-@@ -800,11 +790,11 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 	}
- __pmp_skip:
- 	/* Detect number of MHPM counters */
--	__check_hpm_csr(CSR_MHPMCOUNTER3, mhpm_count, mhpm_mask);
-+	__check_hpm_csr(CSR_MHPMCOUNTER3, mhpm_mask);
- 	hfeatures->mhpm_bits = hart_mhpm_get_allowed_bits();
--	__check_hpm_csr_4(CSR_MHPMCOUNTER4, mhpm_count, mhpm_mask);
--	__check_hpm_csr_8(CSR_MHPMCOUNTER8, mhpm_count, mhpm_mask);
--	__check_hpm_csr_16(CSR_MHPMCOUNTER16, mhpm_count, mhpm_mask);
-+	__check_hpm_csr_4(CSR_MHPMCOUNTER4, mhpm_mask);
-+	__check_hpm_csr_8(CSR_MHPMCOUNTER8, mhpm_mask);
-+	__check_hpm_csr_16(CSR_MHPMCOUNTER16, mhpm_mask);
-
- 	/**
- 	 * No need to check for MHPMCOUNTERH for RV32 as they are expected to be
-@@ -879,7 +869,7 @@ __pmp_skip:
- 		return rc;
-
- 	/* Extensions implied by other extensions and features */
--	if (hfeatures->mhpm_count)
-+	if (hfeatures->mhpm_mask)
- 		__sbi_hart_update_extension(hfeatures,
- 					SBI_HART_EXT_ZIHPM, true);
-
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index eae4f28..252b41a 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -180,9 +180,8 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 		   sbi_hart_pmp_granularity(scratch));
- 	sbi_printf("Boot HART PMP Address Bits: %d\n",
- 		   sbi_hart_pmp_addrbits(scratch));
--	sbi_printf("Boot HART MHPM Count      : %d\n",
--		   sbi_hart_mhpm_count(scratch));
--	sbi_printf("Boot HART MHPM Mask       : 0x%x\n",
-+	sbi_printf("Boot HART MHPM Info       : %lu (0x%08x)\n",
-+		   sbi_popcount(sbi_hart_mhpm_mask(scratch)),
- 		   sbi_hart_mhpm_mask(scratch));
- 	sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
- }
---
-2.41.0
-
+-- 
+Best Regards
+ Guo Ren
 
