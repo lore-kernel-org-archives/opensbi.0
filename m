@@ -1,18 +1,19 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Sat, 12 Aug 2023 08:15:34 +0800
+From: Conor Dooley <conor@kernel.org>
+Date: Sat, 12 Aug 2023 01:16:47 +0100
 Subject: [PATCH] docs/platform: thead-c9xx: Improve the documentation
 In-Reply-To: <CAJF2gTSYAz5ogsnB5SD_A3J1WEPzAHU1GDy_cPnuvXytqvMiBw@mail.gmail.com>
-References: <20230808132958.1097873-1-guoren@kernel.org> <ZNURXBKkYdiWLanf@xhacker>
- <20230811-cardiac-platter-8b50b3b764d3@spud> <CAJF2gTSYAz5ogsnB5SD_A3J1WEPzAHU1GDy_cPnuvXytqvMiBw@mail.gmail.com>
-Message-ID: <CAJF2gTQrr8OqrqETpQrehUJRnN4y9O3tmvwTi0qFrZ4A-__p_g@mail.gmail.com>
+References: <20230808132958.1097873-1-guoren@kernel.org>
+ <ZNURXBKkYdiWLanf@xhacker>
+ <20230811-cardiac-platter-8b50b3b764d3@spud>
+ <CAJF2gTSYAz5ogsnB5SD_A3J1WEPzAHU1GDy_cPnuvXytqvMiBw@mail.gmail.com>
+Message-ID: <20230812-septum-gestate-4c62ef7c7213@spud>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Aug 12, 2023 at 8:07?AM Guo Ren <guoren@kernel.org> wrote:
->
+On Sat, Aug 12, 2023 at 08:07:50AM +0800, Guo Ren wrote:
 > On Sat, Aug 12, 2023 at 1:57?AM Conor Dooley <conor@kernel.org> wrote:
 > >
 > > On Fri, Aug 11, 2023 at 12:33:32AM +0800, Jisheng Zhang wrote:
@@ -43,56 +44,22 @@ On Sat, Aug 12, 2023 at 8:07?AM Guo Ren <guoren@kernel.org> wrote:
 > > don't think existed in the original iteration that I saw.
 > > I did see things getting better with the use of standard stuff like
 > > "reg" in our earlier discussion which I don't see here.
+
 > It's not a patch to improve the implementation and we don't make a
 > deal in that discussion. This patch improves the document because the
 > previous doc didn't describe the whole thing about the
 > thead,reset-sample driver.
->
+
+That's all well and good, but there's still no point in Rob, Krzysztof
+or I reviewing it, which is what was being requested in the email I was
+replying to.
+
 > > What is the point in carrying out any further review if things will be
 > > flat out ignored?
-I think the critical problem is JC objects to the whole of this
-existing driver,  so any improvement is meaningless for the current.
-Your naming advice is okay for me, but it does not relate to this
-patch.
-
->
-> >
-> > Thanks,
-> > Conor.
-> >
-> > > > +
-> > > > + - entry-reg:
-> > > > +   The base address to store reset address value
-> > > > +
-> > > > + - entry-cnt:
-> > > > +   The numbers of entry-reg, all of them set the same reset address
-> > > > +
-> > > > + - control-reg:
-> > > > +   The base address to reset the controller
-> > > > +
-> > > > + - control-val:
-> > > > +   Write which bits of control-reg for booting
-> > > > +
-> > > > + - csr-copy:
-> > > > +   This array determines which csrs to copy from primary hart to the
-> > > > +   secondary harts, which are set in sequence from left to right. The
-> > > > +   secondary harts should keep the same setting as the primary hart.
-> > > > +   These settings are also the first part of the bootup instructions
-> > > > +   for secondary harts.
-> > > > +
-> > > > + - using-csr-reset:
-> > > > +   A legacy reset controller for the SMP system, but abandoned in the
-> > > > +   latest T-HEAD processors.
-> >
->
->
-> --
-> Best Regards
->  Guo Ren
-
-
-
--- 
-Best Regards
- Guo Ren
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 228 bytes
+Desc: not available
+URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20230812/f430cab7/attachment.sig>
