@@ -1,61 +1,77 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Tue, 15 Aug 2023 17:40:31 +0800
-Subject: [PATCH V2 1/3] lib: sbi_pmu: ensure update hpm counter before starting counting
-In-Reply-To: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Tue, 15 Aug 2023 17:40:32 +0800
+Subject: [PATCH V2 2/3] platform: generic: allwinner: fix OF process for T-HEAD c9xx pmu
+In-Reply-To: <20230815094033.593243-1-inochiama@outlook.com>
 References: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <IA1PR20MB4953E5CF5C492A2612CDFD69BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
+ <20230815094033.593243-1-inochiama@outlook.com>
+Message-ID: <IA1PR20MB495329723FF2AA4375D7861CBB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When detecting features of PMU, the hpm counter may be written to some
-value, this will cause some unexpected behavior in some cases. So ensure
-the hpm counter is updated before starting the counter and the related
-interrupt.
+T-HEAD c9xx pmu needs to clear OV bits of MCOUNTEROF in any condition
+to avoid unnecessary OF interrupts.
+
+In addition, the S-mode SCOUNTEROF only have OF bit set when the related
+bits of MCOUNTERWEN is set, so also configure MCOUNTERWEN to allow kernel
+to access valid SCOUNTEROF.
 
 Signed-off-by: Haijiao Liu <haijiao.liu@sophgo.com>
 Co-authored-by: Inochi Amaoto <inochiama@outlook.com>
 Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 ---
- lib/sbi/sbi_pmu.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ platform/generic/allwinner/sun20i-d1.c | 25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index adb9f18..2904903 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -353,8 +353,11 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
- 	if (cidx >= num_hw_ctrs || cidx == 1)
- 		return SBI_EINVAL;
+diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+index 0f0a9f3..f59b1e8 100644
+--- a/platform/generic/allwinner/sun20i-d1.c
++++ b/platform/generic/allwinner/sun20i-d1.c
+@@ -225,22 +225,23 @@ static int sun20i_d1_fdt_fixup(void *fdt, const struct fdt_match *match)
 
--	if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11)
--		goto skip_inhibit_update;
-+	if (sbi_hart_priv_version(scratch) < SBI_HART_PRIV_VER_1_11) {
-+		if (ival_update)
-+			pmu_ctr_write_hw(cidx, ival);
-+		return 0;
-+	}
-
- 	/*
- 	 * Some of the hardware may not support mcountinhibit but perf stat
-@@ -368,14 +371,13 @@ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
-
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
- 		pmu_ctr_enable_irq_hw(cidx);
-+	if (ival_update)
-+		pmu_ctr_write_hw(cidx, ival);
- 	if (pmu_dev && pmu_dev->hw_counter_enable_irq)
- 		pmu_dev->hw_counter_enable_irq(cidx);
-+
- 	csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
-
--skip_inhibit_update:
--	if (ival_update)
--		pmu_ctr_write_hw(cidx, ival);
+ static void thead_c9xx_pmu_ctr_enable_irq(uint32_t ctr_idx)
+ {
+-	unsigned long mip_val;
 -
- 	return 0;
+ 	if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
+ 		return;
+
+-	mip_val = csr_read(CSR_MIP);
+ 	/**
+ 	 * Clear out the OF bit so that next interrupt can be enabled.
+-	 * This should be done only when the corresponding overflow interrupt
+-	 * bit is cleared. That indicates that software has already handled the
+-	 * previous interrupts or the hardware yet to set an overflow interrupt.
+-	 * Otherwise, there will be race conditions where we may clear the bit
+-	 * the software is yet to handle the interrupt.
++	 * This should be done before starting interrupt to avoid unexcepted
++	 * overflow interrupt.
+ 	 */
+-	if (!(mip_val & THEAD_C9XX_MIP_MOIP))
+-		csr_clear(THEAD_C9XX_CSR_MCOUNTEROF, BIT(ctr_idx));
++	csr_clear(THEAD_C9XX_CSR_MCOUNTEROF, BIT(ctr_idx));
++
++	/**
++	 * This register is described in C9xx document as the control register
++	 * for enabling writes to the superuser state counter. However, if the
++	 * corresponding bit is not set to 1, scounterof will always read as 0
++	 * when the counter register overflows.
++	 */
++	csr_set(THEAD_C9XX_CSR_MCOUNTERWEN, BIT(ctr_idx));
+
+ 	/**
+ 	 * SSCOFPMF uses the OF bit for enabling/disabling the interrupt,
+@@ -252,6 +253,10 @@ static void thead_c9xx_pmu_ctr_enable_irq(uint32_t ctr_idx)
+
+ static void thead_c9xx_pmu_ctr_disable_irq(uint32_t ctr_idx)
+ {
++	/**
++	 * There is no need to clear the bit of mcounterwen, it will expire
++	 * after setting the csr mcountinhibit.
++	 */
+ 	csr_clear(THEAD_C9XX_CSR_MCOUNTERINTEN, BIT(ctr_idx));
  }
 
 --
