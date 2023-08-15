@@ -1,9 +1,9 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 15 Aug 2023 10:31:11 +0800
-Subject: [PATCH v3 2/2] lib: sbi: alloc tlb fifo by sbi_malloc
-In-Reply-To: <20230815023111.349647-1-wxjstz@126.com>
-References: <20230815023111.349647-1-wxjstz@126.com>
-Message-ID: <20230815023111.349647-3-wxjstz@126.com>
+Date: Tue, 15 Aug 2023 15:15:16 +0800
+Subject: [PATCH v4 2/2] lib: sbi: alloc tlb fifo by sbi_malloc
+In-Reply-To: <20230815071516.422658-1-wxjstz@126.com>
+References: <20230815071516.422658-1-wxjstz@126.com>
+Message-ID: <20230815071516.422658-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,6 +14,7 @@ If the system is defined from tlb_fifo_num_entries, the scratch may be
 too small to hold the fifo, so it is alloc through the heap.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
+Signed-off-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
 ---
  lib/sbi/sbi_tlb.c | 19 ++++++-------------
  1 file changed, 6 insertions(+), 13 deletions(-)
