@@ -1,52 +1,59 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Wed, 16 Aug 2023 10:48:35 -0400
-Subject: [PATCH V2 3/3] lib: sbi_pmu: keep overflow interrupt of stopped
- hpm counter disabled
-In-Reply-To: <IA1PR20MB4953344E8BB577C4EA3BDE6ABB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
- <20230815094033.593243-1-inochiama@outlook.com> <IA1PR20MB4953344E8BB577C4EA3BDE6ABB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAJF2gTTM-bVh5o+QwiF5a_OpN8Xgz7jc+A_BvYqySHbY5cWJUw@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 18 Aug 2023 15:07:08 +0530
+Subject: [PATCH V2] platform: generic: allwinner: correct mhpmevent count
+In-Reply-To: <IA1PR20MB495378594DF776E8E6CB8E53BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495378594DF776E8E6CB8E53BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy3Euu3CO-8tyGBkmGMfWCfa5KYV86TP+KJpADjyDdggHA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 15, 2023 at 5:40?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Fri, Aug 11, 2023 at 5:43?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> After the hardware hpm counter is stopped, it should not raise any new
-> interrupt as it is already stopped. So add the hw_counter_disable_irq
-> callback to allow the custom pmu device to control this behavior.
+> Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so change
+> the mhpm_mask to a valid value to avoid invalid usage.
+>
+> Due to the openc906 pmu code
+> https://github.com/T-head-Semi/openc906/blob/main/C906_RTL_FACTORY/gen_rtl/pmu/rtl/aq_hpcp_top.v
 >
 > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel  <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
->  lib/sbi/sbi_pmu.c | 3 +++
->  1 file changed, 3 insertions(+)
+> The fix code of T-HEAD C9xx PMU will arrive soon in a few days. This patch
+> is submitted for code cleanup
+> ---
+>  platform/generic/allwinner/sun20i-d1.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 2904903..b5c11bc 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -482,6 +482,9 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
->         if (!__test_bit(cidx, &mctr_inhbt)) {
->                 __set_bit(cidx, &mctr_inhbt);
->                 csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
-> +               if (pmu_dev && pmu_dev->hw_counter_disable_irq) {
-> +                       pmu_dev->hw_counter_disable_irq(cidx);
-> +               }
-Thx.
-
-Reviewed-by: Guo Ren <guoren@kernel.org>
-
->                 return 0;
->         } else
->                 return SBI_EALREADY_STOPPED;
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 0f0a9f3..03cb92c 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
+>         sbi_pmu_set_device(&thead_c9xx_pmu_device);
+>
+>         /* auto-detection doesn't work on t-head c9xx cores */
+> -       hfeatures->mhpm_count = 29;
+> +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
+> +       hfeatures->mhpm_mask = 0x0003e3f8;
+>         hfeatures->mhpm_bits = 64;
+>
+>         return 0;
 > --
 > 2.41.0
 >
-
-
--- 
-Best Regards
- Guo Ren
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
