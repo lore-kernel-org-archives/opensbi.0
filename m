@@ -1,75 +1,28 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 20 Aug 2023 10:17:17 +0530
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Sun, 20 Aug 2023 12:54:50 +0800
 Subject: [PATCH V2] platform: generic: allwinner: correct mhpmevent count
-In-Reply-To: <IA1PR20MB4953DAAFEBD82EF0F7BBAC6BBB19A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953DAAFEBD82EF0F7BBAC6BBB19A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy3ev9pnLoKw4fB1_CXpOLx71EZy1iAWCKbL0X_ns8wG-g@mail.gmail.com>
+In-Reply-To: <CAJF2gTQOdCpKaFDu=W9oKpvj8_u4oOMsANfJiNovHiCvVkS4RQ@mail.gmail.com>
+References: <CAJF2gTQOdCpKaFDu=W9oKpvj8_u4oOMsANfJiNovHiCvVkS4RQ@mail.gmail.com>
+Message-ID: <IA1PR20MB4953E383790AF9932716F820BB19A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Aug 20, 2023 at 8:53?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+Thanks. This is good for me. And the patch does not need any further changes.
+
+>On Sun, Aug 20, 2023 at 8:53?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+>>
+>> Thanks, but now I have a small problem: wheather the bit cycles and bit
+>> instructions should be set in soc extensions init? Or these two bits should
+>> be handled in sbi pmu init?
 >
-> Thanks, but now I have a small problem: wheather the bit cycles and bit
-> instructions should be set in soc extensions init? Or these two bits should
-> be handled in sbi pmu init?
-
-The mphm_mask only represents the available HPM counters. The fixed
-counters are assumed to be available.
-
-This is already taken care by ib/sbi/sbi_pmu.c in the pmu_add_hw_event_map().
-
-Regards,
-Anup
-
+>The mphm_mask only represents the available HPM counters. The fixed
+>counters are assumed to be available.
 >
-> >On Fri, Aug 11, 2023 at 5:43?AM Inochi Amaoto <inochiama@outlook.com> wrote:
-> >>
-> >> Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so change
-> >> the mhpm_mask to a valid value to avoid invalid usage.
-> >>
-> >> Due to the openc906 pmu code
-> >> https://github.com/T-head-Semi/openc906/blob/main/C906_RTL_FACTORY/gen_rtl/pmu/rtl/aq_hpcp_top.v
-> >>
-> >> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> >
-> >Looks good to me.
-> >
-> >Reviewed-by: Anup Patel  <anup@brainfault.org>
-> >
-> >Regards,
-> >Anup
-> >
-> >> ---
-> >> The fix code of T-HEAD C9xx PMU will arrive soon in a few days. This patch
-> >> is submitted for code cleanup
-> >> ---
-> >>  platform/generic/allwinner/sun20i-d1.c | 3 ++-
-> >>  1 file changed, 2 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> >> index 0f0a9f3..03cb92c 100644
-> >> --- a/platform/generic/allwinner/sun20i-d1.c
-> >> +++ b/platform/generic/allwinner/sun20i-d1.c
-> >> @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
-> >>         sbi_pmu_set_device(&thead_c9xx_pmu_device);
-> >>
-> >>         /* auto-detection doesn't work on t-head c9xx cores */
-> >> -       hfeatures->mhpm_count = 29;
-> >> +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
-> >> +       hfeatures->mhpm_mask = 0x0003e3f8;
-> >>         hfeatures->mhpm_bits = 64;
-> >>
-> >>         return 0;
-> >> --
-> >> 2.41.0
-> >>
-> >>
-> >> --
-> >> opensbi mailing list
-> >> opensbi at lists.infradead.org
-> >> http://lists.infradead.org/mailman/listinfo/opensbi
-> >
+>This is already taken care by ib/sbi/sbi_pmu.c in the pmu_add_hw_event_map().
+>
+>Regards,
+>Anup
 
