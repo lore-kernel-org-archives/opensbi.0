@@ -1,22 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 22 Aug 2023 13:43:07 +0530
-Subject: [PATCH v2] Makefile: Fix grep warning
-In-Reply-To: <20230810121527.62217-2-ajones@ventanamicro.com>
-References: <20230810121527.62217-2-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy3pEnRMZnyEtw4-VV-Jc1WZtGq3PsjjmHX5Rv85q0kfaQ@mail.gmail.com>
+Date: Tue, 22 Aug 2023 13:43:13 +0530
+Subject: [PATCH V2] platform: generic: allwinner: correct mhpmevent count
+In-Reply-To: <IA1PR20MB495378594DF776E8E6CB8E53BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495378594DF776E8E6CB8E53BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy0CZdNCuNRFp3NbtSFLAWeUGP-x5Gi0aiZ3pgMKRtGMNQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 10, 2023 at 5:45?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Fri, Aug 11, 2023 at 5:43?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> grep (at least my version, grep-3.8-3.fc38.x86_64) warns with
-> "grep: warning: stray \ before -". Fix the warning by making
-> the command line input to grep less ambiguous.
+> Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so change
+> the mhpm_mask to a valid value to avoid invalid usage.
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> Due to the openc906 pmu code
+> https://github.com/T-head-Semi/openc906/blob/main/C906_RTL_FACTORY/gen_rtl/pmu/rtl/aq_hpcp_top.v
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
 Applied this patch to the riscv/opensbi repo
 
@@ -25,25 +27,32 @@ Anup
 
 
 > ---
-> v2: Use -e instead of -- [Andreas]
+> The fix code of T-HEAD C9xx PMU will arrive soon in a few days. This patch
+> is submitted for code cleanup
+> ---
+>  platform/generic/allwinner/sun20i-d1.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >
->  Makefile | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index 0f0a9f3..03cb92c 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
+>         sbi_pmu_set_device(&thead_c9xx_pmu_device);
 >
-> diff --git a/Makefile b/Makefile
-> index 730dbd910e51..ca70949df480 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -168,7 +168,7 @@ endif
->  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+>         /* auto-detection doesn't work on t-head c9xx cores */
+> -       hfeatures->mhpm_count = 29;
+> +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
+> +       hfeatures->mhpm_mask = 0x0003e3f8;
+>         hfeatures->mhpm_bits = 64;
 >
->  # Check whether the compiler supports -m(no-)save-restore
-> -CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
-> +CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e "-save-restore" >/dev/null && echo n || echo y)
->
->  # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
->  CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
+>         return 0;
 > --
 > 2.41.0
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
