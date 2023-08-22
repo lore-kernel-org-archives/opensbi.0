@@ -1,22 +1,20 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 22 Aug 2023 13:43:13 +0530
-Subject: [PATCH V2] platform: generic: allwinner: correct mhpmevent count
-In-Reply-To: <IA1PR20MB495378594DF776E8E6CB8E53BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB495378594DF776E8E6CB8E53BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy0CZdNCuNRFp3NbtSFLAWeUGP-x5Gi0aiZ3pgMKRtGMNQ@mail.gmail.com>
+Date: Tue, 22 Aug 2023 13:43:18 +0530
+Subject: [PATCH] lib: sbi_pmu: remove mhpm_count field in hart feature
+In-Reply-To: <IA1PR20MB49535E7470BE1E4AD933B2F7BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB49535E7470BE1E4AD933B2F7BB10A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy1jtE7x2a_X7D5ZG6N+DUQtHzdsZSPBC7Gtr6WWWdoJuA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 11, 2023 at 5:43?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Fri, Aug 11, 2023 at 5:54?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> Only the CSR mhpmevent 3-9,13-17 of D1 have valid function, so change
-> the mhpm_mask to a valid value to avoid invalid usage.
->
-> Due to the openc906 pmu code
-> https://github.com/T-head-Semi/openc906/blob/main/C906_RTL_FACTORY/gen_rtl/pmu/rtl/aq_hpcp_top.v
+> After supporting noncontigous hpm event and counters in opensbi, the
+> number of hpm counters can be calculated by the mhpm_mask. So this field
+> is unnecessary and can be removed to save some space.
 >
 > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
@@ -27,26 +25,180 @@ Anup
 
 
 > ---
-> The fix code of T-HEAD C9xx PMU will arrive soon in a few days. This patch
-> is submitted for code cleanup
+> This patch needs the V2 patch which fixup D1 mhpm_mask.
 > ---
->  platform/generic/allwinner/sun20i-d1.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  include/sbi/sbi_bitops.h  | 16 ++++++++++++++
+>  include/sbi/sbi_hart.h    |  2 --
+>  lib/sbi/sbi_emulate_csr.c |  2 +-
+>  lib/sbi/sbi_hart.c        | 46 +++++++++++++++------------------------
+>  lib/sbi/sbi_init.c        |  5 ++---
+>  5 files changed, 37 insertions(+), 34 deletions(-)
 >
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index 0f0a9f3..03cb92c 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -272,7 +272,8 @@ static int sun20i_d1_extensions_init(const struct fdt_match *match,
->         sbi_pmu_set_device(&thead_c9xx_pmu_device);
+> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+> index 2e08947..48a2090 100644
+> --- a/include/sbi/sbi_bitops.h
+> +++ b/include/sbi/sbi_bitops.h
+> @@ -112,6 +112,22 @@ static inline unsigned long sbi_fls(unsigned long word)
+>         return num;
+>  }
 >
->         /* auto-detection doesn't work on t-head c9xx cores */
-> -       hfeatures->mhpm_count = 29;
-> +       /* D1 has 29 mhpmevent csrs, but only 3-9,13-17 have valid value */
-> +       hfeatures->mhpm_mask = 0x0003e3f8;
->         hfeatures->mhpm_bits = 64;
+> +/**
+> + * sbi_popcount - find the number of set bit in a long word
+> + * @word: the word to search
+> + */
+> +static inline unsigned long sbi_popcount(unsigned long word)
+> +{
+> +       unsigned long count = 0;
+> +
+> +       while (word) {
+> +               word &= word - 1;
+> +               count++;
+> +       }
+> +
+> +       return count;
+> +}
+> +
+>  #define for_each_set_bit(bit, addr, size) \
+>         for ((bit) = find_first_bit((addr), (size));            \
+>              (bit) < (size);                                    \
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 1310198..3a78266 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -67,7 +67,6 @@ struct sbi_hart_features {
+>         unsigned int pmp_count;
+>         unsigned int pmp_addr_bits;
+>         unsigned long pmp_gran;
+> -       unsigned int mhpm_count;
+>         unsigned int mhpm_mask;
+>         unsigned int mhpm_bits;
+>  };
+> @@ -83,7 +82,6 @@ static inline ulong sbi_hart_expected_trap_addr(void)
+>         return (ulong)sbi_hart_expected_trap;
+>  }
 >
->         return 0;
+> -unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
+>  unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
+>  void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+>                               const char *prefix, const char *suffix);
+> diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
+> index da81165..5f3b111 100644
+> --- a/lib/sbi/sbi_emulate_csr.c
+> +++ b/lib/sbi/sbi_emulate_csr.c
+> @@ -109,7 +109,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+>
+>  #define switchcase_hpm(__uref, __mref, __csr)                          \
+>         case __csr:                                                     \
+> -               if ((sbi_hart_mhpm_count(scratch) + 3) <= (__csr - __uref))\
+> +               if (sbi_hart_mhpm_mask(scratch) & (1 << (__csr - __uref)))\
+>                         return SBI_ENOTSUPP;                            \
+>                 if (!hpm_allowed(__csr - __uref, prev_mode, virt))      \
+>                         return SBI_ENOTSUPP;                            \
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 252f33d..6179594 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -253,14 +253,6 @@ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch)
+>         return hfeatures->mhpm_mask;
+>  }
+>
+> -unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
+> -{
+> -       struct sbi_hart_features *hfeatures =
+> -                       sbi_scratch_offset_ptr(scratch, hart_features_offset);
+> -
+> -       return hfeatures->mhpm_count;
+> -}
+> -
+>  unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
+>  {
+>         struct sbi_hart_features *hfeatures =
+> @@ -723,31 +715,29 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+>         /* Clear hart features */
+>         hfeatures->extensions = 0;
+>         hfeatures->pmp_count = 0;
+> -       hfeatures->mhpm_count = 0;
+>         hfeatures->mhpm_mask = 0;
+>
+> -#define __check_hpm_csr(__csr, __count, __mask)                          \
+> +#define __check_hpm_csr(__csr, __mask)                                           \
+>         oldval = csr_read_allowed(__csr, (ulong)&trap);                   \
+>         if (!trap.cause) {                                                \
+>                 csr_write_allowed(__csr, (ulong)&trap, 1UL);              \
+>                 if (!trap.cause && csr_swap(__csr, oldval) == 1UL) {      \
+> -                       (hfeatures->__count)++;                           \
+>                         (hfeatures->__mask) |= 1 << (__csr - CSR_MCYCLE); \
+>                 }                                                         \
+>         }
+>
+> -#define __check_hpm_csr_2(__csr, __count, __mask)                        \
+> -       __check_hpm_csr(__csr + 0, __count, __mask)                       \
+> -       __check_hpm_csr(__csr + 1, __count, __mask)
+> -#define __check_hpm_csr_4(__csr, __count, __mask)                        \
+> -       __check_hpm_csr_2(__csr + 0, __count, __mask)                     \
+> -       __check_hpm_csr_2(__csr + 2, __count, __mask)
+> -#define __check_hpm_csr_8(__csr, __count, __mask)                        \
+> -       __check_hpm_csr_4(__csr + 0, __count, __mask)                     \
+> -       __check_hpm_csr_4(__csr + 4, __count, __mask)
+> -#define __check_hpm_csr_16(__csr, __count, __mask)                       \
+> -       __check_hpm_csr_8(__csr + 0, __count, __mask)                     \
+> -       __check_hpm_csr_8(__csr + 8, __count, __mask)
+> +#define __check_hpm_csr_2(__csr, __mask)                         \
+> +       __check_hpm_csr(__csr + 0, __mask)                        \
+> +       __check_hpm_csr(__csr + 1, __mask)
+> +#define __check_hpm_csr_4(__csr, __mask)                         \
+> +       __check_hpm_csr_2(__csr + 0, __mask)                      \
+> +       __check_hpm_csr_2(__csr + 2, __mask)
+> +#define __check_hpm_csr_8(__csr, __mask)                         \
+> +       __check_hpm_csr_4(__csr + 0, __mask)                      \
+> +       __check_hpm_csr_4(__csr + 4, __mask)
+> +#define __check_hpm_csr_16(__csr, __mask)                        \
+> +       __check_hpm_csr_8(__csr + 0, __mask)                      \
+> +       __check_hpm_csr_8(__csr + 8, __mask)
+>
+>  #define __check_csr(__csr, __rdonly, __wrval, __field, __skip) \
+>         oldval = csr_read_allowed(__csr, (ulong)&trap);                 \
+> @@ -800,11 +790,11 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+>         }
+>  __pmp_skip:
+>         /* Detect number of MHPM counters */
+> -       __check_hpm_csr(CSR_MHPMCOUNTER3, mhpm_count, mhpm_mask);
+> +       __check_hpm_csr(CSR_MHPMCOUNTER3, mhpm_mask);
+>         hfeatures->mhpm_bits = hart_mhpm_get_allowed_bits();
+> -       __check_hpm_csr_4(CSR_MHPMCOUNTER4, mhpm_count, mhpm_mask);
+> -       __check_hpm_csr_8(CSR_MHPMCOUNTER8, mhpm_count, mhpm_mask);
+> -       __check_hpm_csr_16(CSR_MHPMCOUNTER16, mhpm_count, mhpm_mask);
+> +       __check_hpm_csr_4(CSR_MHPMCOUNTER4, mhpm_mask);
+> +       __check_hpm_csr_8(CSR_MHPMCOUNTER8, mhpm_mask);
+> +       __check_hpm_csr_16(CSR_MHPMCOUNTER16, mhpm_mask);
+>
+>         /**
+>          * No need to check for MHPMCOUNTERH for RV32 as they are expected to be
+> @@ -879,7 +869,7 @@ __pmp_skip:
+>                 return rc;
+>
+>         /* Extensions implied by other extensions and features */
+> -       if (hfeatures->mhpm_count)
+> +       if (hfeatures->mhpm_mask)
+>                 __sbi_hart_update_extension(hfeatures,
+>                                         SBI_HART_EXT_ZIHPM, true);
+>
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index eae4f28..252b41a 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -180,9 +180,8 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+>                    sbi_hart_pmp_granularity(scratch));
+>         sbi_printf("Boot HART PMP Address Bits: %d\n",
+>                    sbi_hart_pmp_addrbits(scratch));
+> -       sbi_printf("Boot HART MHPM Count      : %d\n",
+> -                  sbi_hart_mhpm_count(scratch));
+> -       sbi_printf("Boot HART MHPM Mask       : 0x%x\n",
+> +       sbi_printf("Boot HART MHPM Info       : %lu (0x%08x)\n",
+> +                  sbi_popcount(sbi_hart_mhpm_mask(scratch)),
+>                    sbi_hart_mhpm_mask(scratch));
+>         sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
+>  }
 > --
 > 2.41.0
 >
