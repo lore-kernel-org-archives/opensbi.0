@@ -1,53 +1,49 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 21 Aug 2023 22:11:45 +0800
-Subject: [PATCH] lib: sbi: improve the definition of SBI_IPI_EVENT_MAX
-Message-ID: <20230821141145.23695-1-wxjstz@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 22 Aug 2023 13:43:07 +0530
+Subject: [PATCH v2] Makefile: Fix grep warning
+In-Reply-To: <20230810121527.62217-2-ajones@ventanamicro.com>
+References: <20230810121527.62217-2-ajones@ventanamicro.com>
+Message-ID: <CAAhSdy3pEnRMZnyEtw4-VV-Jc1WZtGq3PsjjmHX5Rv85q0kfaQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The previous definition had the assumption that the machine word length
-is equal to the word length of LONG. Remove this assumption and add a
-static check to prevent errors in subsequent modifications.
+On Thu, Aug 10, 2023 at 5:45?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+>
+> grep (at least my version, grep-3.8-3.fc38.x86_64) warns with
+> "grep: warning: stray \ before -". Fix the warning by making
+> the command line input to grep less ambiguous.
+>
+> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- include/sbi/sbi_ipi.h | 2 +-
- lib/sbi/sbi_ipi.c     | 5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+Applied this patch to the riscv/opensbi repo
 
-diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-index c64f422..6b5e260 100644
---- a/include/sbi/sbi_ipi.h
-+++ b/include/sbi/sbi_ipi.h
-@@ -14,7 +14,7 @@
- 
- /* clang-format off */
- 
--#define SBI_IPI_EVENT_MAX			__riscv_xlen
-+#define SBI_IPI_EVENT_MAX			(8 * __SIZEOF_LONG__)
- 
- /* clang-format on */
- 
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index ad09154..0d8edab 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -27,6 +27,11 @@ struct sbi_ipi_data {
- 	unsigned long ipi_type;
- };
- 
-+_Static_assert(
-+	8 * sizeof(((struct sbi_ipi_data*)0)->ipi_type) == SBI_IPI_EVENT_MAX,
-+	"type of sbi_ipi_data.ipi_type has changed, please redefine SBI_IPI_EVENT_MAX"
-+	);
-+
- static unsigned long ipi_data_off;
- static const struct sbi_ipi_device *ipi_dev = NULL;
- static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
--- 
-2.40.1
+Thanks,
+Anup
 
+
+> ---
+> v2: Use -e instead of -- [Andreas]
+>
+>  Makefile | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/Makefile b/Makefile
+> index 730dbd910e51..ca70949df480 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -168,7 +168,7 @@ endif
+>  OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fPIE -nostdlib -Wl,-pie -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
+>
+>  # Check whether the compiler supports -m(no-)save-restore
+> -CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep "\-save\-restore" >/dev/null && echo n || echo y)
+> +CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e "-save-restore" >/dev/null && echo n || echo y)
+>
+>  # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+>  CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
+> --
+> 2.41.0
+>
 
