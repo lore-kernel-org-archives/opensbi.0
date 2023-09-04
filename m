@@ -1,153 +1,190 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon,  4 Sep 2023 09:33:44 +0530
-Subject: [PATCH 6/8] lib: sbi: Remove sbi_scratch_last_hartid() macro
+Date: Mon,  4 Sep 2023 09:33:45 +0530
+Subject: [PATCH 7/8] lib: sbi: Maximize the use of HART index in sbi_domain
 In-Reply-To: <20230904040346.118604-1-apatel@ventanamicro.com>
 References: <20230904040346.118604-1-apatel@ventanamicro.com>
-Message-ID: <20230904040346.118604-7-apatel@ventanamicro.com>
+Message-ID: <20230904040346.118604-8-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_scratch_last_hartid() macro is not of much use on platforms
-with really sparse hartids so let us replace use of this macro with
-other approaches.
+Let us maximize the use of HART index in sbi_domain because hartindex
+based hartmask access and sbi_scratch lookup is faster.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_scratch.h |  6 ------
- lib/sbi/sbi_hsm.c         | 28 +++++++++++++---------------
- lib/sbi/sbi_init.c        | 10 ++++++----
- lib/sbi/sbi_scratch.c     |  5 +----
- 4 files changed, 20 insertions(+), 29 deletions(-)
+ include/sbi/sbi_domain.h |  6 ++---
+ lib/sbi/sbi_domain.c     | 56 +++++++++++++++++++++-------------------
+ 2 files changed, 33 insertions(+), 29 deletions(-)
 
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index 9a4dce1..e6a33ba 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -244,12 +244,6 @@ u32 sbi_hartid_to_hartindex(u32 hartid);
- #define sbi_hartid_to_scratch(__hartid) \
- 	sbi_hartindex_to_scratch(sbi_hartid_to_hartindex(__hartid))
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index da2a65a..e10daff 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -201,12 +201,12 @@ struct sbi_domain {
+ /** The root domain instance */
+ extern struct sbi_domain root;
  
--/** Last HART id having a sbi_scratch pointer */
--extern u32 last_hartid_having_scratch;
--
--/** Get last HART id having a sbi_scratch pointer */
--#define sbi_scratch_last_hartid()	last_hartid_having_scratch
--
- /** Check whether particular HART id is valid or not */
- #define sbi_hartid_valid(__hartid)	\
- 	sbi_hartindex_valid(sbi_hartid_to_hartindex(__hartid))
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 814130e..147f954 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -115,23 +115,21 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+-/** Get pointer to sbi_domain from HART id */
+-struct sbi_domain *sbi_hartid_to_domain(u32 hartid);
++/** Get pointer to sbi_domain from HART index */
++struct sbi_domain *sbi_hartindex_to_domain(u32 hartindex);
+ 
+ /** Get pointer to sbi_domain for current HART */
+ #define sbi_domain_thishart_ptr() \
+-	sbi_hartid_to_domain(current_hartid())
++	sbi_hartindex_to_domain(sbi_hartid_to_hartindex(current_hartid()))
+ 
+ /** Index to domain table */
+ extern struct sbi_domain *domidx_to_domain_table[];
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index ee3a5e9..b1f485d 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -40,22 +40,22 @@ struct sbi_domain root = {
+ 
+ static unsigned long domain_hart_ptr_offset;
+ 
+-struct sbi_domain *sbi_hartid_to_domain(u32 hartid)
++struct sbi_domain *sbi_hartindex_to_domain(u32 hartindex)
  {
- 	int hstate;
- 	ulong i, hmask, dmask;
--	ulong hend = sbi_scratch_last_hartid() + 1;
+ 	struct sbi_scratch *scratch;
  
- 	*out_hmask = 0;
--	if (hend <= hbase)
-+	if (!sbi_hartid_valid(hbase))
+-	scratch = sbi_hartid_to_scratch(hartid);
++	scratch = sbi_hartindex_to_scratch(hartindex);
+ 	if (!scratch || !domain_hart_ptr_offset)
+ 		return NULL;
+ 
+ 	return sbi_scratch_read_type(scratch, void *, domain_hart_ptr_offset);
+ }
+ 
+-static void update_hartid_to_domain(u32 hartid, struct sbi_domain *dom)
++static void update_hartindex_to_domain(u32 hartindex, struct sbi_domain *dom)
+ {
+ 	struct sbi_scratch *scratch;
+ 
+-	scratch = sbi_hartid_to_scratch(hartid);
++	scratch = sbi_hartindex_to_scratch(hartindex);
+ 	if (!scratch)
+ 		return;
+ 
+@@ -268,10 +268,11 @@ static int sanitize_domain(const struct sbi_platform *plat,
+ 			   __func__, dom->name);
  		return SBI_EINVAL;
--	if (BITS_PER_LONG < (hend - hbase))
--		hend = hbase + BITS_PER_LONG;
- 
- 	dmask = sbi_domain_get_assigned_hartmask(dom, hbase);
--	for (i = hbase; i < hend; i++) {
--		hmask = 1UL << (i - hbase);
--		if (dmask & hmask) {
--			hstate = __sbi_hsm_hart_get_state(i);
--			if (hstate == SBI_HSM_STATE_STARTED ||
--			    hstate == SBI_HSM_STATE_SUSPENDED)
--				*out_hmask |= hmask;
--		}
-+	for (i = 0; i < BITS_PER_LONG; i++) {
-+		hmask = 1UL << i;
-+		if (!(dmask & hmask))
-+			continue;
-+
-+		hstate = __sbi_hsm_hart_get_state(hbase + i);
-+		if (hstate == SBI_HSM_STATE_STARTED ||
-+		    hstate == SBI_HSM_STATE_SUSPENDED)
-+			*out_hmask |= hmask;
  	}
+-	sbi_hartmask_for_each_hart(i, j, dom->possible_harts) {
+-		if (!sbi_hartid_valid(i)) {
++	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++		if (!sbi_hartindex_valid(i)) {
+ 			sbi_printf("%s: %s possible HART mask has invalid "
+-				   "hart %d\n", __func__, dom->name, i);
++				   "hart %d\n", __func__,
++				   dom->name, sbi_hartindex_to_hartid(i));
+ 			return SBI_EINVAL;
+ 		}
+ 	}
+@@ -404,9 +405,11 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
  
- 	return 0;
-@@ -249,15 +247,15 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
- 			return SBI_ENOMEM;
+ 	k = 0;
+ 	sbi_printf("Domain%d HARTs       %s: ", dom->index, suffix);
+-	sbi_hartmask_for_each_hart(i, j, dom->possible_harts)
++	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++		j = sbi_hartindex_to_hartid(i);
+ 		sbi_printf("%s%d%s", (k++) ? "," : "",
+-			   i, sbi_domain_is_assigned_hart(dom, i) ? "*" : "");
++			   j, sbi_domain_is_assigned_hart(dom, j) ? "*" : "");
++	}
+ 	sbi_printf("\n");
  
- 		/* Initialize hart state data for every hart */
--		for (i = 0; i <= sbi_scratch_last_hartid(); i++) {
--			rscratch = sbi_hartid_to_scratch(i);
-+		for (i = 0; i <= sbi_scratch_last_hartindex(); i++) {
-+			rscratch = sbi_hartindex_to_scratch(i);
- 			if (!rscratch)
- 				continue;
- 
- 			hdata = sbi_scratch_offset_ptr(rscratch,
- 						       hart_data_offset);
- 			ATOMIC_INIT(&hdata->state,
--				    (i == hartid) ?
-+				    (sbi_hartindex_to_hartid(i) == hartid) ?
- 				    SBI_HSM_STATE_START_PENDING :
- 				    SBI_HSM_STATE_STOPPED);
- 			ATOMIC_INIT(&hdata->start_ticket, 0);
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index a6d96e6..e723553 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -242,6 +242,8 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 
- static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
+ 	i = 0;
+@@ -487,7 +490,7 @@ void sbi_domain_dump_all(const char *suffix)
+ int sbi_domain_register(struct sbi_domain *dom,
+ 			const struct sbi_hartmask *assign_mask)
  {
-+	u32 i, hartindex = sbi_hartid_to_hartindex(hartid);
-+
- 	/* Mark coldboot done */
- 	__smp_store_release(&coldboot_done, 1);
+-	u32 i, j;
++	u32 i;
+ 	int rc;
+ 	struct sbi_domain *tdom;
+ 	u32 cold_hartid = current_hartid();
+@@ -530,22 +533,22 @@ int sbi_domain_register(struct sbi_domain *dom,
+ 	sbi_hartmask_clear_all(&dom->assigned_harts);
  
-@@ -249,10 +251,10 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
- 	spin_lock(&coldboot_lock);
+ 	/* Assign domain to HART if HART is a possible HART */
+-	sbi_hartmask_for_each_hart(i, j, assign_mask) {
+-		if (!sbi_hartmask_test_hartid(i, dom->possible_harts))
++	sbi_hartmask_for_each_hartindex(i, assign_mask) {
++		if (!sbi_hartmask_test_hartindex(i, dom->possible_harts))
+ 			continue;
  
- 	/* Send an IPI to all HARTs waiting for coldboot */
--	for (u32 i = 0; i <= sbi_scratch_last_hartid(); i++) {
--		if ((i != hartid) &&
--		    sbi_hartmask_test_hartid(i, &coldboot_wait_hmask))
--			sbi_ipi_raw_send(sbi_hartid_to_hartindex(i));
-+	sbi_hartmask_for_each_hartindex(i, &coldboot_wait_hmask) {
-+		if (i == hartindex)
-+			continue;
-+		sbi_ipi_raw_send(i);
- 	}
+-		tdom = sbi_hartid_to_domain(i);
++		tdom = sbi_hartindex_to_domain(i);
+ 		if (tdom)
+-			sbi_hartmask_clear_hartid(i,
++			sbi_hartmask_clear_hartindex(i,
+ 					&tdom->assigned_harts);
+-		update_hartid_to_domain(i, dom);
+-		sbi_hartmask_set_hartid(i, &dom->assigned_harts);
++		update_hartindex_to_domain(i, dom);
++		sbi_hartmask_set_hartindex(i, &dom->assigned_harts);
  
- 	/* Release coldboot lock */
-diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-index d2abc89..6aeb0ca 100644
---- a/lib/sbi/sbi_scratch.c
-+++ b/lib/sbi/sbi_scratch.c
-@@ -14,7 +14,6 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
+ 		/*
+ 		 * If cold boot HART is assigned to this domain then
+ 		 * override boot HART of this domain.
+ 		 */
+-		if (i == cold_hartid &&
++		if (sbi_hartindex_to_hartid(i) == cold_hartid &&
+ 		    dom->boot_hartid != cold_hartid) {
+ 			sbi_printf("Domain%d Boot HARTID forced to"
+ 				   " %d\n", dom->index, cold_hartid);
+@@ -665,36 +668,37 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
  
--u32 last_hartid_having_scratch = SBI_HARTMASK_MAX_BITS - 1;
- u32 last_hartindex_having_scratch = 0;
- u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
- struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
-@@ -45,10 +44,8 @@ int sbi_scratch_init(struct sbi_scratch *scratch)
- 		hartindex_to_hartid_table[i] = h;
- 		hartindex_to_scratch_table[i] =
- 			((hartid2scratch)scratch->hartid_to_scratch)(h, i);
--		if (hartindex_to_scratch_table[i]) {
--			last_hartid_having_scratch = h;
-+		if (hartindex_to_scratch_table[i])
- 			last_hartindex_having_scratch = i;
--		}
- 	}
+ 	/* Startup boot HART of domains */
+ 	sbi_domain_for_each(i, dom) {
+-		/* Domain boot HART */
+-		dhart = dom->boot_hartid;
++		/* Domain boot HART index */
++		dhart = sbi_hartid_to_hartindex(dom->boot_hartid);
  
- 	return 0;
+ 		/* Ignore of boot HART is off limits */
+-		if (SBI_HARTMASK_MAX_BITS <= dhart)
++		if (!sbi_hartindex_valid(dhart))
+ 			continue;
+ 
+ 		/* Ignore if boot HART not possible for this domain */
+-		if (!sbi_hartmask_test_hartid(dhart, dom->possible_harts))
++		if (!sbi_hartmask_test_hartindex(dhart, dom->possible_harts))
+ 			continue;
+ 
+ 		/* Ignore if boot HART assigned different domain */
+-		if (sbi_hartid_to_domain(dhart) != dom ||
+-		    !sbi_hartmask_test_hartid(dhart, &dom->assigned_harts))
++		if (sbi_hartindex_to_domain(dhart) != dom ||
++		    !sbi_hartmask_test_hartindex(dhart, &dom->assigned_harts))
+ 			continue;
+ 
+ 		/* Startup boot HART of domain */
+-		if (dhart == cold_hartid) {
++		if (dom->boot_hartid == cold_hartid) {
+ 			scratch->next_addr = dom->next_addr;
+ 			scratch->next_mode = dom->next_mode;
+ 			scratch->next_arg1 = dom->next_arg1;
+ 		} else {
+-			rc = sbi_hsm_hart_start(scratch, NULL, dhart,
++			rc = sbi_hsm_hart_start(scratch, NULL,
++						dom->boot_hartid,
+ 						dom->next_addr,
+ 						dom->next_mode,
+ 						dom->next_arg1);
+ 			if (rc) {
+ 				sbi_printf("%s: failed to start boot HART %d"
+ 					   " for %s (error %d)\n", __func__,
+-					   dhart, dom->name, rc);
++					   dom->boot_hartid, dom->name, rc);
+ 				return rc;
+ 			}
+ 		}
 -- 
 2.34.1
 
