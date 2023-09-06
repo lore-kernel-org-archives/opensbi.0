@@ -1,100 +1,48 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Sep 2023 16:44:49 +0530
-Subject: [PATCH v4 2/2] lib: sbi: alloc tlb fifo by sbi_malloc
-In-Reply-To: <20230815071516.422658-3-wxjstz@126.com>
-References: <20230815071516.422658-1-wxjstz@126.com> <20230815071516.422658-3-wxjstz@126.com>
-Message-ID: <CAAhSdy3Wk=_CLgxN3qnOLKqrnhU8D2tFNYUvoJ_-Afe=rdtCcw@mail.gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 6 Sep 2023 19:14:55 +0800
+Subject: [PATCH 0/6] Add Andes PMU extension support
+Message-ID: <20230906111455.4161641-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 15, 2023 at 12:45?PM Xiang W <wxjstz@126.com> wrote:
->
-> If the system is defined from tlb_fifo_num_entries, the scratch may be
-> too small to hold the fifo, so it is alloc through the heap.
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> Signed-off-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
-> ---
->  lib/sbi/sbi_tlb.c | 19 ++++++-------------
->  1 file changed, 6 insertions(+), 13 deletions(-)
->
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> index 92648da..7b3ec0a 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -14,6 +14,7 @@
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_fifo.h>
->  #include <sbi/sbi_hart.h>
-> +#include <sbi/sbi_heap.h>
->  #include <sbi/sbi_ipi.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_tlb.h>
-> @@ -25,7 +26,6 @@
->
->  static unsigned long tlb_sync_off;
->  static unsigned long tlb_fifo_off;
-> -static unsigned long tlb_fifo_mem_off;
->  static unsigned long tlb_range_flush_limit;
->
->  static void tlb_flush_all(void)
-> @@ -421,16 +421,8 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
->                         sbi_scratch_free_offset(tlb_sync_off);
->                         return SBI_ENOMEM;
->                 }
-> -               tlb_fifo_mem_off = sbi_scratch_alloc_offset(
-> -                               sbi_platform_tlb_fifo_num_entries(plat) * SBI_TLB_INFO_SIZE);
-> -               if (!tlb_fifo_mem_off) {
-> -                       sbi_scratch_free_offset(tlb_fifo_off);
-> -                       sbi_scratch_free_offset(tlb_sync_off);
-> -                       return SBI_ENOMEM;
-> -               }
->                 ret = sbi_ipi_event_create(&tlb_ops);
->                 if (ret < 0) {
-> -                       sbi_scratch_free_offset(tlb_fifo_mem_off);
->                         sbi_scratch_free_offset(tlb_fifo_off);
->                         sbi_scratch_free_offset(tlb_sync_off);
->                         return ret;
-> @@ -438,9 +430,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
->                 tlb_event = ret;
->                 tlb_range_flush_limit = sbi_platform_tlbr_flush_limit(plat);
->         } else {
-> -               if (!tlb_sync_off ||
-> -                   !tlb_fifo_off ||
-> -                   !tlb_fifo_mem_off)
-> +               if (!tlb_sync_off || !tlb_fifo_off)
->                         return SBI_ENOMEM;
->                 if (SBI_IPI_EVENT_MAX <= tlb_event)
->                         return SBI_ENOSPC;
-> @@ -448,7 +438,10 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
->
->         tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
->         tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
-> -       tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
-> +       tlb_mem = sbi_malloc(
-> +                       sbi_platform_tlb_fifo_num_entries(plat) * SBI_TLB_INFO_SIZE);
-> +       if (!tlb_mem)
-> +               return SBI_ENOMEM;
+This patch series enables perf tool to utilize Andes PMU
+extension via PMU SBI calls, provides PMU device callbacks
+for event sampling and mode filtering.
 
-The sbi_malloc() over here is called for a HART whenever it is turned-on
-even at runtime so it eats away heap space whenever a HART is turned-off
-and turned-on.
+We also provide a PMU node example of AX45MP in the last
+patch.
 
-Regards,
-Anup
+The OpenSBI and Linux patches can be found on Andes Technology GitHub
+- https://github.com/andestech/opensbi/commits/andes-pmu-support
+- https://github.com/andestech/linux/commits/andes-pmu-support
 
->
->         ATOMIC_INIT(tlb_sync, 0);
->
-> --
-> 2.40.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Yu Chien Peter Lin (6):
+  sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
+  platform: include: andes45: Add PMU related CSR defines
+  platform: andes: Add Andes custom PMU support
+  platform: andes: Enable Andes PMU for AE350
+  platform: rzfive: Enable Andes PMU for RZ/Five
+  docs: pmu: Add Andes PMU node example
+
+ docs/pmu_support.md                        | 87 ++++++++++++++++++++++
+ include/sbi/sbi_pmu.h                      |  6 ++
+ lib/sbi/sbi_pmu.c                          |  5 +-
+ platform/generic/Kconfig                   |  2 +
+ platform/generic/andes/Kconfig             |  4 +
+ platform/generic/andes/ae350.c             |  2 +
+ platform/generic/andes/andes_pmu.c         | 85 +++++++++++++++++++++
+ platform/generic/andes/objects.mk          |  1 +
+ platform/generic/include/andes/andes45.h   | 26 +++++++
+ platform/generic/include/andes/andes_pmu.h | 12 +++
+ platform/generic/renesas/rzfive/rzfive.c   |  2 +
+ 11 files changed, 231 insertions(+), 1 deletion(-)
+ create mode 100644 platform/generic/andes/andes_pmu.c
+ create mode 100644 platform/generic/include/andes/andes_pmu.h
+
+-- 
+2.34.1
+
 
