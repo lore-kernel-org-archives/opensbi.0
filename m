@@ -1,48 +1,108 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 6 Sep 2023 19:14:55 +0800
-Subject: [PATCH 0/6] Add Andes PMU extension support
-Message-ID: <20230906111455.4161641-1-peterlin@andestech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 6 Sep 2023 16:54:25 +0530
+Subject: [PATCH] firmware: payload: test: Change to SBI v2.0 DBCN ecalls
+In-Reply-To: <IA1PR20MB49533BF011EF79795C4226EEBBE6A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB49533BF011EF79795C4226EEBBE6A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy3B9HT2VNOcJT=g6xD_+R+SFXb5vLCjXLz8kvMFYKkTOg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch series enables perf tool to utilize Andes PMU
-extension via PMU SBI calls, provides PMU device callbacks
-for event sampling and mode filtering.
+On Wed, Aug 30, 2023 at 6:04?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+> As the the "Console Putchar" extension is already legacy and may
+> be removed in the furture. So replace it with the SBI v2.0 "DBCN"
+> extension.
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
-We also provide a PMU node example of AX45MP in the last
-patch.
+Looks good to me.
 
-The OpenSBI and Linux patches can be found on Andes Technology GitHub
-- https://github.com/andestech/opensbi/commits/andes-pmu-support
-- https://github.com/andestech/linux/commits/andes-pmu-support
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Yu Chien Peter Lin (6):
-  sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
-  platform: include: andes45: Add PMU related CSR defines
-  platform: andes: Add Andes custom PMU support
-  platform: andes: Enable Andes PMU for AE350
-  platform: rzfive: Enable Andes PMU for RZ/Five
-  docs: pmu: Add Andes PMU node example
+Applied this patch to the riscv/opensbi
 
- docs/pmu_support.md                        | 87 ++++++++++++++++++++++
- include/sbi/sbi_pmu.h                      |  6 ++
- lib/sbi/sbi_pmu.c                          |  5 +-
- platform/generic/Kconfig                   |  2 +
- platform/generic/andes/Kconfig             |  4 +
- platform/generic/andes/ae350.c             |  2 +
- platform/generic/andes/andes_pmu.c         | 85 +++++++++++++++++++++
- platform/generic/andes/objects.mk          |  1 +
- platform/generic/include/andes/andes45.h   | 26 +++++++
- platform/generic/include/andes/andes_pmu.h | 12 +++
- platform/generic/renesas/rzfive/rzfive.c   |  2 +
- 11 files changed, 231 insertions(+), 1 deletion(-)
- create mode 100644 platform/generic/andes/andes_pmu.c
- create mode 100644 platform/generic/include/andes/andes_pmu.h
+Thanks,
+Anup
 
--- 
-2.34.1
-
+> ---
+>  firmware/payloads/test_main.c | 49 +++++++++++++++++++++--------------
+>  1 file changed, 30 insertions(+), 19 deletions(-)
+>
+> diff --git a/firmware/payloads/test_main.c b/firmware/payloads/test_main.c
+> index ae2ed4f..194dbbe6 100644
+> --- a/firmware/payloads/test_main.c
+> +++ b/firmware/payloads/test_main.c
+> @@ -8,31 +8,42 @@
+>   */
+>
+>  #include <sbi/sbi_ecall_interface.h>
+> +#include <sbi/sbi_string.h>
+>
+> -#define SBI_ECALL(__eid, __fid, __a0, __a1, __a2)                             \
+> -       ({                                                                    \
+> -               register unsigned long a0 asm("a0") = (unsigned long)(__a0);  \
+> -               register unsigned long a1 asm("a1") = (unsigned long)(__a1);  \
+> -               register unsigned long a2 asm("a2") = (unsigned long)(__a2);  \
+> -               register unsigned long a6 asm("a6") = (unsigned long)(__fid); \
+> -               register unsigned long a7 asm("a7") = (unsigned long)(__eid); \
+> -               asm volatile("ecall"                                          \
+> -                            : "+r"(a0)                                       \
+> -                            : "r"(a1), "r"(a2), "r"(a6), "r"(a7)             \
+> -                            : "memory");                                     \
+> -               a0;                                                           \
+> -       })
+> +struct sbiret {
+> +       unsigned long error;
+> +       unsigned long value;
+> +};
+>
+> -#define SBI_ECALL_0(__eid, __fid) SBI_ECALL(__eid, __fid, 0, 0, 0)
+> -#define SBI_ECALL_1(__eid, __fid, __a0) SBI_ECALL(__eid, __fid, __a0, 0, 0)
+> -#define SBI_ECALL_2(__eid, __fid, __a0, __a1) SBI_ECALL(__eid, __fid, __a0, __a1, 0)
+> +struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
+> +                       unsigned long arg1, unsigned long arg2,
+> +                       unsigned long arg3, unsigned long arg4,
+> +                       unsigned long arg5)
+> +{
+> +       struct sbiret ret;
+>
+> -#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_EXT_0_1_CONSOLE_PUTCHAR, 0, (c))
+> +       register unsigned long a0 asm ("a0") = (unsigned long)(arg0);
+> +       register unsigned long a1 asm ("a1") = (unsigned long)(arg1);
+> +       register unsigned long a2 asm ("a2") = (unsigned long)(arg2);
+> +       register unsigned long a3 asm ("a3") = (unsigned long)(arg3);
+> +       register unsigned long a4 asm ("a4") = (unsigned long)(arg4);
+> +       register unsigned long a5 asm ("a5") = (unsigned long)(arg5);
+> +       register unsigned long a6 asm ("a6") = (unsigned long)(fid);
+> +       register unsigned long a7 asm ("a7") = (unsigned long)(ext);
+> +       asm volatile ("ecall"
+> +                     : "+r" (a0), "+r" (a1)
+> +                     : "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7)
+> +                     : "memory");
+> +       ret.error = a0;
+> +       ret.value = a1;
+> +
+> +       return ret;
+> +}
+>
+>  static inline void sbi_ecall_console_puts(const char *str)
+>  {
+> -       while (str && *str)
+> -               sbi_ecall_console_putc(*str++);
+> +       sbi_ecall(SBI_EXT_DBCN, SBI_EXT_DBCN_CONSOLE_WRITE,
+> +                 sbi_strlen(str), (unsigned long)str, 0, 0, 0, 0);
+>  }
+>
+>  #define wfi()                                             \
+> --
+> 2.42.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
