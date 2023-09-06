@@ -1,63 +1,50 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon,  4 Sep 2023 09:33:46 +0530
-Subject: [PATCH 8/8] include: sbi: Remove sbi_hartmask_for_each_hart() macro
-In-Reply-To: <20230904040346.118604-1-apatel@ventanamicro.com>
-References: <20230904040346.118604-1-apatel@ventanamicro.com>
-Message-ID: <20230904040346.118604-9-apatel@ventanamicro.com>
+From: Greentime Hu <greentime.hu@sifive.com>
+Date: Wed,  6 Sep 2023 09:01:14 +0000
+Subject: [PATCH] lib: sbi: Implement SET_FS_DIRTY() to make sure the mstatus FS dirty is set
+Message-ID: <20230906090114.24625-1-greentime.hu@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_hartmask_for_each_hart() macro is slow and has only one user
-so let us completely remove the sbi_hartmask_for_each_hart() macro.
+We found the mstatus.FS status is not set correctly after the SET_F64_REG()
+and SET_F32_REG(). We should set mstatus.FS dirty after we emulate the FPU
+instructions.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Co-developed-by: Roy Lin <roy.lin@sifive.com>
+Signed-off-by: Roy Lin <roy.lin@sifive.com>
+Signed-off-by: Greentime Hu <greentime.hu@sifive.com>
 ---
- include/sbi/sbi_hartmask.h | 13 -------------
- lib/sbi/sbi_system.c       |  3 ++-
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ include/sbi/riscv_fp.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi/sbi_hartmask.h b/include/sbi/sbi_hartmask.h
-index 105653e..bcfa50d 100644
---- a/include/sbi/sbi_hartmask.h
-+++ b/include/sbi/sbi_hartmask.h
-@@ -169,19 +169,6 @@ static inline void sbi_hartmask_xor(struct sbi_hartmask *dstp,
- 		   sbi_hartmask_bits(src2p), SBI_HARTMASK_MAX_BITS);
- }
+diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
+index b3dc08b9db6a..3141c1c5b825 100644
+--- a/include/sbi/riscv_fp.h
++++ b/include/sbi/riscv_fp.h
+@@ -84,7 +84,7 @@
+ #define GET_FFLAGS() csr_read(CSR_FFLAGS)
+ #define SET_FFLAGS(value) csr_write(CSR_FFLAGS, (value))
  
--/**
-- * Iterate over each HART in hartmask
-- * __h hart id
-- * __i hart index
-- * __m hartmask
--*/
--#define sbi_hartmask_for_each_hart(__h, __i, __m) \
--	for((__i) = find_first_bit((__m)->bits, SBI_HARTMASK_MAX_BITS), \
--		(__h) = sbi_hartindex_to_hartid(__i); \
--		(__i) < SBI_HARTMASK_MAX_BITS; \
--		(__i) = find_next_bit((__m)->bits, SBI_HARTMASK_MAX_BITS, (__i) + 1), \
--		(__h) = sbi_hartindex_to_hartid(__i))
--
- /**
-  * Iterate over each HART index in hartmask
-  * __i hart index
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index bae9730..d1fa349 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -170,7 +170,8 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
- 	if (prev_mode != PRV_S && prev_mode != PRV_U)
- 		return SBI_EFAIL;
+-#define SET_FS_DIRTY() ((void)0)
++#define SET_FS_DIRTY(regs) (regs->mstatus |= MSTATUS_FS)
  
--	sbi_hartmask_for_each_hart(i, j, &dom->assigned_harts) {
-+	sbi_hartmask_for_each_hartindex(j, &dom->assigned_harts) {
-+		i = sbi_hartindex_to_hartid(j);
- 		if (i == hartid)
- 			continue;
- 		if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED)
+ #define GET_F32_RS1(insn, regs) (GET_F32_REG(insn, 15, regs))
+ #define GET_F32_RS2(insn, regs) (GET_F32_REG(insn, 20, regs))
+@@ -93,9 +93,9 @@
+ #define GET_F64_RS2(insn, regs) (GET_F64_REG(insn, 20, regs))
+ #define GET_F64_RS3(insn, regs) (GET_F64_REG(insn, 27, regs))
+ #define SET_F32_RD(insn, regs, val) \
+-	(SET_F32_REG(insn, 7, regs, val), SET_FS_DIRTY())
++	(SET_F32_REG(insn, 7, regs, val), SET_FS_DIRTY(regs))
+ #define SET_F64_RD(insn, regs, val) \
+-	(SET_F64_REG(insn, 7, regs, val), SET_FS_DIRTY())
++	(SET_F64_REG(insn, 7, regs, val), SET_FS_DIRTY(regs))
+ 
+ #define GET_F32_RS2C(insn, regs) (GET_F32_REG(insn, 2, regs))
+ #define GET_F32_RS2S(insn, regs) (GET_F32_REG(RVC_RS2S(insn), 0, regs))
 -- 
-2.34.1
+2.17.1
 
 
