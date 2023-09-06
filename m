@@ -1,65 +1,54 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 6 Sep 2023 17:40:47 +0800
-Subject: [PATCH 2/6] platform: include: andes45: Add PMU related CSR defines
+Date: Wed, 6 Sep 2023 17:40:49 +0800
+Subject: [PATCH 4/6] platform: andes: Enable Andes PMU for AE350
 In-Reply-To: <20230906094051.3957564-1-peterlin@andestech.com>
 References: <20230906094051.3957564-1-peterlin@andestech.com>
-Message-ID: <20230906094051.3957564-3-peterlin@andestech.com>
+Message-ID: <20230906094051.3957564-5-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds CSR for Andes PMU extension.
+Enable Andes PMU extension support for AE350 platforms.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
- platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ platform/generic/Kconfig       | 1 +
+ platform/generic/andes/ae350.c | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-index f570994..6b141cf 100644
---- a/platform/generic/include/andes/andes45.h
-+++ b/platform/generic/include/andes/andes45.h
-@@ -12,6 +12,17 @@
- #define CSR_MDCM_CFG		0xfc1
- #define CSR_MMSC_CFG		0xfc2
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 72768ed..16c28fe 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
+ config PLATFORM_ANDES_AE350
+ 	bool "Andes AE350 support"
+ 	select SYS_ATCSMU
++	select ANDES_PMU
+ 	default n
  
-+/* Machine Trap Related Registers */
-+#define CSR_MSLIDELEG		0x7d5
-+
-+/* Counter Related Registers */
-+#define CSR_MCOUNTERWEN		0x7ce
-+#define CSR_MCOUNTERINTEN	0x7cf
-+#define CSR_MCOUNTERMASK_M	0x7d1
-+#define CSR_MCOUNTERMASK_S	0x7d2
-+#define CSR_MCOUNTERMASK_U	0x7d3
-+#define CSR_MCOUNTEROVF		0x7d4
-+
- #define MICM_CFG_ISZ_OFFSET		6
- #define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
+ config PLATFORM_RENESAS_RZFIVE
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index 01bd02d..c8adb0d 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -8,6 +8,7 @@
+  */
  
-@@ -26,4 +37,19 @@
- #define MCACHE_CTL_CCTL_SUEN_OFFSET	8
- #define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
- 
-+/* Performance monitor */
-+#define MMSC_CFG_PMNDS_MASK		(1 << 15)
-+#define MIP_PMOVI			(1 << 18)
-+
-+#ifndef __ASSEMBLER__
-+
-+#define andes_pmu()					\
-+({							\
-+	(((csr_read(CSR_MMSC_CFG) &			\
-+	   MMSC_CFG_PMNDS_MASK)				\
-+	  && misa_extension('S')) ? true : false);	\
-+})
-+
-+#endif /* __ASSEMBLER__ */
-+
- #endif /* _RISCV_ANDES45_H */
+ #include <platform_override.h>
++#include <andes/andes_pmu.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/sys/atcsmu.h>
+@@ -118,4 +119,5 @@ static const struct fdt_match andes_ae350_match[] = {
+ const struct platform_override andes_ae350 = {
+ 	.match_table = andes_ae350_match,
+ 	.final_init  = ae350_final_init,
++	.extensions_init = andes_pmu_extensions_init,
+ };
 -- 
 2.34.1
 
