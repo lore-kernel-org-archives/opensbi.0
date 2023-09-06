@@ -1,104 +1,68 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Sep 2023 16:54:25 +0530
-Subject: [PATCH] firmware: payload: test: Change to SBI v2.0 DBCN ecalls
-In-Reply-To: <IA1PR20MB49533BF011EF79795C4226EEBBE6A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49533BF011EF79795C4226EEBBE6A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy3B9HT2VNOcJT=g6xD_+R+SFXb5vLCjXLz8kvMFYKkTOg@mail.gmail.com>
+Date: Wed, 6 Sep 2023 17:13:05 +0530
+Subject: [PATCH] lib: sbi: improve the definition of SBI_IPI_EVENT_MAX
+In-Reply-To: <20230821141145.23695-1-wxjstz@126.com>
+References: <20230821141145.23695-1-wxjstz@126.com>
+Message-ID: <CAAhSdy1SUOn=YG_BHyKE1uki9wx4huJdNot2xzDx6NdVjTJHvw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 30, 2023 at 6:04?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Mon, Aug 21, 2023 at 7:44?PM Xiang W <wxjstz@126.com> wrote:
 >
-> As the the "Console Putchar" extension is already legacy and may
-> be removed in the furture. So replace it with the SBI v2.0 "DBCN"
-> extension.
+> The previous definition had the assumption that the machine word length
+> is equal to the word length of LONG. Remove this assumption and add a
+> static check to prevent errors in subsequent modifications.
 >
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
 > ---
->  firmware/payloads/test_main.c | 49 +++++++++++++++++++++--------------
->  1 file changed, 30 insertions(+), 19 deletions(-)
+>  include/sbi/sbi_ipi.h | 2 +-
+>  lib/sbi/sbi_ipi.c     | 5 +++++
+>  2 files changed, 6 insertions(+), 1 deletion(-)
 >
-> diff --git a/firmware/payloads/test_main.c b/firmware/payloads/test_main.c
-> index ae2ed4f..194dbbe6 100644
-> --- a/firmware/payloads/test_main.c
-> +++ b/firmware/payloads/test_main.c
-> @@ -8,31 +8,42 @@
->   */
+> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
+> index c64f422..6b5e260 100644
+> --- a/include/sbi/sbi_ipi.h
+> +++ b/include/sbi/sbi_ipi.h
+> @@ -14,7 +14,7 @@
 >
->  #include <sbi/sbi_ecall_interface.h>
-> +#include <sbi/sbi_string.h>
+>  /* clang-format off */
 >
-> -#define SBI_ECALL(__eid, __fid, __a0, __a1, __a2)                             \
-> -       ({                                                                    \
-> -               register unsigned long a0 asm("a0") = (unsigned long)(__a0);  \
-> -               register unsigned long a1 asm("a1") = (unsigned long)(__a1);  \
-> -               register unsigned long a2 asm("a2") = (unsigned long)(__a2);  \
-> -               register unsigned long a6 asm("a6") = (unsigned long)(__fid); \
-> -               register unsigned long a7 asm("a7") = (unsigned long)(__eid); \
-> -               asm volatile("ecall"                                          \
-> -                            : "+r"(a0)                                       \
-> -                            : "r"(a1), "r"(a2), "r"(a6), "r"(a7)             \
-> -                            : "memory");                                     \
-> -               a0;                                                           \
-> -       })
-> +struct sbiret {
-> +       unsigned long error;
-> +       unsigned long value;
-> +};
+> -#define SBI_IPI_EVENT_MAX                      __riscv_xlen
+> +#define SBI_IPI_EVENT_MAX                      (8 * __SIZEOF_LONG__)
 >
-> -#define SBI_ECALL_0(__eid, __fid) SBI_ECALL(__eid, __fid, 0, 0, 0)
-> -#define SBI_ECALL_1(__eid, __fid, __a0) SBI_ECALL(__eid, __fid, __a0, 0, 0)
-> -#define SBI_ECALL_2(__eid, __fid, __a0, __a1) SBI_ECALL(__eid, __fid, __a0, __a1, 0)
-> +struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
-> +                       unsigned long arg1, unsigned long arg2,
-> +                       unsigned long arg3, unsigned long arg4,
-> +                       unsigned long arg5)
-> +{
-> +       struct sbiret ret;
+>  /* clang-format on */
 >
-> -#define sbi_ecall_console_putc(c) SBI_ECALL_1(SBI_EXT_0_1_CONSOLE_PUTCHAR, 0, (c))
-> +       register unsigned long a0 asm ("a0") = (unsigned long)(arg0);
-> +       register unsigned long a1 asm ("a1") = (unsigned long)(arg1);
-> +       register unsigned long a2 asm ("a2") = (unsigned long)(arg2);
-> +       register unsigned long a3 asm ("a3") = (unsigned long)(arg3);
-> +       register unsigned long a4 asm ("a4") = (unsigned long)(arg4);
-> +       register unsigned long a5 asm ("a5") = (unsigned long)(arg5);
-> +       register unsigned long a6 asm ("a6") = (unsigned long)(fid);
-> +       register unsigned long a7 asm ("a7") = (unsigned long)(ext);
-> +       asm volatile ("ecall"
-> +                     : "+r" (a0), "+r" (a1)
-> +                     : "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7)
-> +                     : "memory");
-> +       ret.error = a0;
-> +       ret.value = a1;
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index ad09154..0d8edab 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -27,6 +27,11 @@ struct sbi_ipi_data {
+>         unsigned long ipi_type;
+>  };
+>
+> +_Static_assert(
+> +       8 * sizeof(((struct sbi_ipi_data*)0)->ipi_type) == SBI_IPI_EVENT_MAX,
+> +       "type of sbi_ipi_data.ipi_type has changed, please redefine SBI_IPI_EVENT_MAX"
+> +       );
 > +
-> +       return ret;
-> +}
->
->  static inline void sbi_ecall_console_puts(const char *str)
->  {
-> -       while (str && *str)
-> -               sbi_ecall_console_putc(*str++);
-> +       sbi_ecall(SBI_EXT_DBCN, SBI_EXT_DBCN_CONSOLE_WRITE,
-> +                 sbi_strlen(str), (unsigned long)str, 0, 0, 0, 0);
->  }
->
->  #define wfi()                                             \
+>  static unsigned long ipi_data_off;
+>  static const struct sbi_ipi_device *ipi_dev = NULL;
+>  static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
 > --
-> 2.42.0
+> 2.40.1
 >
 >
 > --
