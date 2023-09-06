@@ -1,165 +1,56 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 6 Sep 2023 17:40:48 +0800
-Subject: [PATCH 3/6] platform: andes: Add Andes custom PMU support
-In-Reply-To: <20230906094051.3957564-1-peterlin@andestech.com>
-References: <20230906094051.3957564-1-peterlin@andestech.com>
-Message-ID: <20230906094051.3957564-4-peterlin@andestech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 6 Sep 2023 16:21:20 +0530
+Subject: [PATCH V2 3/3] lib: sbi_pmu: keep overflow interrupt of stopped
+ hpm counter disabled
+In-Reply-To: <IA1PR20MB4953344E8BB577C4EA3BDE6ABB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
+ <20230815094033.593243-1-inochiama@outlook.com> <IA1PR20MB4953344E8BB577C4EA3BDE6ABB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy2pgTLQSJ=sjuQBwcfgobv7nHAsnWGPTHXV5sUasubOxQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Before the ratification of Sscofpmf, the Andes PMU extension was
-designed to support the sampling and filtering of hardware performance
-counters, compatible with the current SBI PMU extension and Linux perf
-driver.
+On Tue, Aug 15, 2023 at 3:10?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+> After the hardware hpm counter is stopped, it should not raise any new
+> interrupt as it is already stopped. So add the hw_counter_disable_irq
+> callback to allow the custom pmu device to control this behavior.
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
-This patch implements the PMU extension platform callback and PMU device
-callbacks to update the corresponding custom CSRs.
+Looks good to me.
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
----
- platform/generic/andes/Kconfig             |  4 +
- platform/generic/andes/andes_pmu.c         | 85 ++++++++++++++++++++++
- platform/generic/andes/objects.mk          |  1 +
- platform/generic/include/andes/andes_pmu.h | 12 +++
- 4 files changed, 102 insertions(+)
- create mode 100644 platform/generic/andes/andes_pmu.c
- create mode 100644 platform/generic/include/andes/andes_pmu.h
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
-index a91fb9c..056327b 100644
---- a/platform/generic/andes/Kconfig
-+++ b/platform/generic/andes/Kconfig
-@@ -7,3 +7,7 @@ config ANDES45_PMA
- config ANDES_SBI
- 	bool "Andes SBI support"
- 	default n
-+
-+config ANDES_PMU
-+	bool "Andes PMU support"
-+	default n
-diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
-new file mode 100644
-index 0000000..d2574c7
---- /dev/null
-+++ b/platform/generic/andes/andes_pmu.c
-@@ -0,0 +1,85 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * Copyright (C) 2022 Andes Technology Corporation
-+ *
-+ */
-+#include <andes/andes45.h>
-+#include <andes/andes_pmu.h>
-+#include <sbi/riscv_asm.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_pmu.h>
-+#include <sbi/sbi_scratch.h>
-+
-+static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
-+{
-+	unsigned long mip_val;
-+
-+	if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
-+		return;
-+
-+	mip_val = csr_read(CSR_MIP);
-+	if (!(mip_val & MIP_PMOVI))
-+		csr_clear(CSR_MCOUNTEROVF, BIT(ctr_idx));
-+
-+	csr_set(CSR_MCOUNTERINTEN, BIT(ctr_idx));
-+}
-+
-+static void andes_hw_counter_disable_irq(uint32_t ctr_idx)
-+{
-+	csr_clear(CSR_MCOUNTERINTEN, BIT(ctr_idx));
-+}
-+
-+static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
-+{
-+	if (!flags) {
-+		csr_write(CSR_MCOUNTERMASK_S, 0);
-+		csr_write(CSR_MCOUNTERMASK_U, 0);
-+	}
-+	if (flags & SBI_PMU_CFG_FLAG_SET_UINH) {
-+		csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-+		csr_set(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
-+	}
-+	if (flags & SBI_PMU_CFG_FLAG_SET_SINH) {
-+		csr_set(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-+		csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
-+	}
-+}
-+
-+static struct sbi_pmu_device andes_pmu = {
-+	.name = "andes_pmu",
-+	.hw_counter_enable_irq  = andes_hw_counter_enable_irq,
-+	.hw_counter_disable_irq = andes_hw_counter_disable_irq,
-+	/*
-+	 * In andes_pmu_extensions_init(), we set mslideleg[18] for each
-+	 * hart instead of mideleg, so leave hw_counter_irq_bit() hook
-+	 * unimplemented.
-+	 */
-+	.hw_counter_irq_bit     = NULL,
-+	.hw_counter_filter_mode = andes_hw_counter_filter_mode
-+};
-+
-+int andes_pmu_extensions_init(const struct fdt_match *match,
-+			      struct sbi_hart_features *hfeatures)
-+{
-+	if (andes_pmu()) {
-+		/*
-+		 * It is not rational for a hardware to support
-+		 * both Andes PMU and standard Sscofpmf, as they
-+		 * serve the same purpose.
-+		 */
-+		if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+					   SBI_HART_EXT_SSCOFPMF))
-+			ebreak();
-+
-+		/* Machine counter write enable */
-+		csr_write(CSR_MCOUNTERWEN, 0xfffffffd);
-+		/* disable HPM counter in M-mode */
-+		csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
-+		/* delegate S-mode local interrupt to S-mode */
-+		csr_write(CSR_MSLIDELEG, MIP_PMOVI);
-+
-+		sbi_pmu_set_device(&andes_pmu);
-+	}
-+
-+	return 0;
-+}
-diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
-index e8f86ea..6a8c66c 100644
---- a/platform/generic/andes/objects.mk
-+++ b/platform/generic/andes/objects.mk
-@@ -7,3 +7,4 @@ platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
- 
- platform-objs-$(CONFIG_ANDES45_PMA) += andes/andes45-pma.o
- platform-objs-$(CONFIG_ANDES_SBI) += andes/andes_sbi.o
-+platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
-diff --git a/platform/generic/include/andes/andes_pmu.h b/platform/generic/include/andes/andes_pmu.h
-new file mode 100644
-index 0000000..8a2e136
---- /dev/null
-+++ b/platform/generic/include/andes/andes_pmu.h
-@@ -0,0 +1,12 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+
-+#ifndef _RISCV_ANDES_PMU_H
-+#define _RISCV_ANDES_PMU_H
-+
-+#include <sbi/sbi_hart.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+int andes_pmu_extensions_init(const struct fdt_match *match,
-+			      struct sbi_hart_features *hfeatures);
-+
-+#endif /* _RISCV_ANDES_PMU_H */
--- 
-2.34.1
+Regards,
+Anup
 
+> ---
+>  lib/sbi/sbi_pmu.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 2904903..b5c11bc 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -482,6 +482,9 @@ static int pmu_ctr_stop_hw(uint32_t cidx)
+>         if (!__test_bit(cidx, &mctr_inhbt)) {
+>                 __set_bit(cidx, &mctr_inhbt);
+>                 csr_write(CSR_MCOUNTINHIBIT, mctr_inhbt);
+> +               if (pmu_dev && pmu_dev->hw_counter_disable_irq) {
+> +                       pmu_dev->hw_counter_disable_irq(cidx);
+> +               }
+>                 return 0;
+>         } else
+>                 return SBI_EALREADY_STOPPED;
+> --
+> 2.41.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
