@@ -1,123 +1,62 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 6 Sep 2023 17:40:51 +0800
-Subject: [PATCH 6/6] docs: pmu: Add Andes PMU node example
+Date: Wed, 6 Sep 2023 17:40:46 +0800
+Subject: [PATCH 1/6] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
 In-Reply-To: <20230906094051.3957564-1-peterlin@andestech.com>
 References: <20230906094051.3957564-1-peterlin@andestech.com>
-Message-ID: <20230906094051.3957564-7-peterlin@andestech.com>
+Message-ID: <20230906094051.3957564-2-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PMU node example for event index to counter index mapping
-and selector value translation of Andes' CPUs.
-
-Currently, there are 4 HPM counters that can be used to monitor
-all of the events for each hart.
+Add support for custom PMU extensions to set inhibit bits
+on custom CSRs by introducing the PMU device callback
+hw_counter_filter_mode(). This allows the perf tool to
+restrict event counting under a specified privileged
+mode by appending a modifier, e.g. perf record -e event:k
+to count events only happening in kernel mode.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
- docs/pmu_support.md | 87 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ include/sbi/sbi_pmu.h | 6 ++++++
+ lib/sbi/sbi_pmu.c     | 5 ++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-index 8cfa08c..6d8fa9d 100644
---- a/docs/pmu_support.md
-+++ b/docs/pmu_support.md
-@@ -125,3 +125,90 @@ pmu {
- 					  <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index 16f6877..d63149c 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -89,6 +89,12 @@ struct sbi_pmu_device {
+ 	 * Custom function returning the machine-specific irq-bit.
+ 	 */
+ 	int (*hw_counter_irq_bit)(void);
++
++	/**
++	 * Custom function to inhibit counting of events while in
++	 * specified mode.
++	 */
++	void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
  };
- ```
-+
-+### Example 3
-+
-+```
-+/*
-+ * For Andes 45-series platforms. The encodings can be found in the
-+ * "Machine Performance Monitoring Event Selector" section
-+ * http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
-+ */
-+pmu {
-+	compatible 			= "riscv,pmu";
-+	riscv,event-to-mhpmevent =
-+					 <0x1 0x0000 0x10>, /* CPU_CYCLES          -> Cycle count */
-+					 <0x2 0x0000 0x20>, /* INSTRUCTIONS        -> Retired instruction count */
-+					 <0x3 0x0000 0x41>, /* CACHE_REFERENCES    -> D-Cache access */
-+					 <0x4 0x0000 0x51>, /* CACHE_MISSES        -> D-Cache miss */
-+					 <0x5 0x0000 0x80>, /* BRANCH_INSTRUCTIONS -> Conditional branch instruction count */
-+					 <0x6 0x0000 0x02>, /* BRANCH_MISSES       -> Misprediction of conditional branches */
-+					 <0x10000 0x0000 0x61>,  /* L1D_READ_ACCESS  -> D-Cache load access */
-+					 <0x10001 0x0000 0x71>,  /* L1D_READ_MISS    -> D-Cache load miss */
-+					 <0x10002 0x0000 0x81>,  /* L1D_WRITE_ACCESS -> D-Cache store access */
-+					 <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
-+					 <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
-+					 <0x10009 0x0000 0x31>,  /* L1I_READ_MISS    -> I-Cache miss */
-+					 <0x10018 0x0000 0x131>, /* DTLB_READ_ACCESS -> Main DTLB access */
-+					 <0x10020 0x0000 0x111>; /* ITLB_READ_ACCESS -> Main ITLB access */
-+	riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
-+							<0x10000 0x10003 0x78>,
-+							<0x10008 0x10009 0x78>,
-+							<0x10018 0x10018 0x78>,
-+							<0x10020 0x10020 0x78>;
-+	riscv,raw-event-to-mhpmcounters =
-+						<0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
-+						<0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
-+						<0x0 0x30 0xffffffff 0xffffffff 0x78>, /* Integer load instruction count */
-+						<0x0 0x40 0xffffffff 0xffffffff 0x78>, /* Integer store instruction count */
-+						<0x0 0x50 0xffffffff 0xffffffff 0x78>, /* Atomic instruction count */
-+						<0x0 0x60 0xffffffff 0xffffffff 0x78>, /* System instruction count */
-+						<0x0 0x70 0xffffffff 0xffffffff 0x78>, /* Integer computational instruction count */
-+						<0x0 0x80 0xffffffff 0xffffffff 0x78>, /* Conditional branch instruction count */
-+						<0x0 0x90 0xffffffff 0xffffffff 0x78>, /* Taken conditional branch instruction count */
-+						<0x0 0xA0 0xffffffff 0xffffffff 0x78>, /* JAL instruction count */
-+						<0x0 0xB0 0xffffffff 0xffffffff 0x78>, /* JALR instruction count */
-+						<0x0 0xC0 0xffffffff 0xffffffff 0x78>, /* Return instruction count */
-+						<0x0 0xD0 0xffffffff 0xffffffff 0x78>, /* Control transfer instruction count */
-+						<0x0 0xE0 0xffffffff 0xffffffff 0x78>, /* EXEC.IT instruction count */
-+						<0x0 0xF0 0xffffffff 0xffffffff 0x78>, /* Integer multiplication instruction count */
-+						<0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
-+						<0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
-+						<0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
-+						<0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
-+						<0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
-+						<0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
-+						<0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
-+						<0x0 0x170 0xffffffff 0xffffffff 0x78>, /* Other floating-point instruction count */
-+						<0x0 0x180 0xffffffff 0xffffffff 0x78>, /* Integer multiplication and add/sub instruction count */
-+						<0x0 0x190 0xffffffff 0xffffffff 0x78>, /* Retired operation count */
-+						<0x0 0x01 0xffffffff 0xffffffff 0x78>, /* ILM access */
-+						<0x0 0x11 0xffffffff 0xffffffff 0x78>, /* DLM access */
-+						<0x0 0x21 0xffffffff 0xffffffff 0x78>, /* I-Cache access */
-+						<0x0 0x31 0xffffffff 0xffffffff 0x78>, /* I-Cache miss */
-+						<0x0 0x41 0xffffffff 0xffffffff 0x78>, /* D-Cache access */
-+						<0x0 0x51 0xffffffff 0xffffffff 0x78>, /* D-Cache miss */
-+						<0x0 0x61 0xffffffff 0xffffffff 0x78>, /* D-Cache load access */
-+						<0x0 0x71 0xffffffff 0xffffffff 0x78>, /* D-Cache load miss */
-+						<0x0 0x81 0xffffffff 0xffffffff 0x78>, /* D-Cache store access */
-+						<0x0 0x91 0xffffffff 0xffffffff 0x78>, /* D-Cache store miss */
-+						<0x0 0xA1 0xffffffff 0xffffffff 0x78>, /* D-Cache writeback */
-+						<0x0 0xB1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for I-Cache fill data */
-+						<0x0 0xC1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for D-Cache fill data */
-+						<0x0 0xD1 0xffffffff 0xffffffff 0x78>, /* Uncached fetch data access from bus */
-+						<0x0 0xE1 0xffffffff 0xffffffff 0x78>, /* Uncached load data access from bus */
-+						<0x0 0xF1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached fetch data from bus */
-+						<0x0 0x101 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached load data from bus */
-+						<0x0 0x111 0xffffffff 0xffffffff 0x78>, /* Main ITLB access */
-+						<0x0 0x121 0xffffffff 0xffffffff 0x78>, /* Main ITLB miss */
-+						<0x0 0x131 0xffffffff 0xffffffff 0x78>, /* Main DTLB access */
-+						<0x0 0x141 0xffffffff 0xffffffff 0x78>, /* Main DTLB miss */
-+						<0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
-+						<0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
-+						<0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
-+						<0x0 0x181 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for source operand ready in the integer register file scoreboard */
-+						<0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
-+						<0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
-+						<0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
-+};
-+```
+ 
+ /** Get the PMU platform device */
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index e8bed49..cfe9b0c 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -594,7 +594,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 		pmu_dev->hw_counter_disable_irq(ctr_idx);
+ 
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+-	pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
+ 
+ #if __riscv_xlen == 32
+ 	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
 -- 
 2.34.1
 
