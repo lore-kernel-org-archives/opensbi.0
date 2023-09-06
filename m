@@ -1,56 +1,96 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Sep 2023 16:29:09 +0530
-Subject: [PATCH V2 0/3] fix cpu softlock when using T-HEAD c9xx pmu
-In-Reply-To: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy152ZnCKbyNZy+NL0BcrprQyp2c_OuEu-J-9y897ZzuOg@mail.gmail.com>
+Date: Wed, 6 Sep 2023 16:44:49 +0530
+Subject: [PATCH v4 2/2] lib: sbi: alloc tlb fifo by sbi_malloc
+In-Reply-To: <20230815071516.422658-3-wxjstz@126.com>
+References: <20230815071516.422658-1-wxjstz@126.com> <20230815071516.422658-3-wxjstz@126.com>
+Message-ID: <CAAhSdy3Wk=_CLgxN3qnOLKqrnhU8D2tFNYUvoJ_-Afe=rdtCcw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Guo,
+On Tue, Aug 15, 2023 at 12:45?PM Xiang W <wxjstz@126.com> wrote:
+>
+> If the system is defined from tlb_fifo_num_entries, the scratch may be
+> too small to hold the fifo, so it is alloc through the heap.
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> Signed-off-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
+> ---
+>  lib/sbi/sbi_tlb.c | 19 ++++++-------------
+>  1 file changed, 6 insertions(+), 13 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+> index 92648da..7b3ec0a 100644
+> --- a/lib/sbi/sbi_tlb.c
+> +++ b/lib/sbi/sbi_tlb.c
+> @@ -14,6 +14,7 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_fifo.h>
+>  #include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_heap.h>
+>  #include <sbi/sbi_ipi.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_tlb.h>
+> @@ -25,7 +26,6 @@
+>
+>  static unsigned long tlb_sync_off;
+>  static unsigned long tlb_fifo_off;
+> -static unsigned long tlb_fifo_mem_off;
+>  static unsigned long tlb_range_flush_limit;
+>
+>  static void tlb_flush_all(void)
+> @@ -421,16 +421,8 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
+>                         sbi_scratch_free_offset(tlb_sync_off);
+>                         return SBI_ENOMEM;
+>                 }
+> -               tlb_fifo_mem_off = sbi_scratch_alloc_offset(
+> -                               sbi_platform_tlb_fifo_num_entries(plat) * SBI_TLB_INFO_SIZE);
+> -               if (!tlb_fifo_mem_off) {
+> -                       sbi_scratch_free_offset(tlb_fifo_off);
+> -                       sbi_scratch_free_offset(tlb_sync_off);
+> -                       return SBI_ENOMEM;
+> -               }
+>                 ret = sbi_ipi_event_create(&tlb_ops);
+>                 if (ret < 0) {
+> -                       sbi_scratch_free_offset(tlb_fifo_mem_off);
+>                         sbi_scratch_free_offset(tlb_fifo_off);
+>                         sbi_scratch_free_offset(tlb_sync_off);
+>                         return ret;
+> @@ -438,9 +430,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
+>                 tlb_event = ret;
+>                 tlb_range_flush_limit = sbi_platform_tlbr_flush_limit(plat);
+>         } else {
+> -               if (!tlb_sync_off ||
+> -                   !tlb_fifo_off ||
+> -                   !tlb_fifo_mem_off)
+> +               if (!tlb_sync_off || !tlb_fifo_off)
+>                         return SBI_ENOMEM;
+>                 if (SBI_IPI_EVENT_MAX <= tlb_event)
+>                         return SBI_ENOSPC;
+> @@ -448,7 +438,10 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
+>
+>         tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
+>         tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
+> -       tlb_mem = sbi_scratch_offset_ptr(scratch, tlb_fifo_mem_off);
+> +       tlb_mem = sbi_malloc(
+> +                       sbi_platform_tlb_fifo_num_entries(plat) * SBI_TLB_INFO_SIZE);
+> +       if (!tlb_mem)
+> +               return SBI_ENOMEM;
 
-On Tue, Aug 15, 2023 at 3:09?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->
-> These patches fix the system hang issue caused by using perf tool on
-> T-HEAD c9xx related platforms.
->
-> These patch solves two issues for T-HEAD c9xx pmu:
-> When detecting features of PMU, MHPMCOUNTER3 is written to all 1s. This
-> will cause an unexpected overflow interrupt before starting the PMU in
-> T-HEAD cores.
->
-> Another thing is the T-HEAD c9xx pmu is not a standart pmu, especially
-> in interrupt process and access delegation. For interrupt process, the
-> T-HEAD pmu uses MCOUNTERINTEN and MCOUNTEROF to control and identify the
-> interrupt. For access delegation. It needs to set MCOUNTERWEN to allow
-> S-mode to access related CSRs.
->
-> Changed from V1:
-> 1. fix the hang issue when using perf with high profile frequency.
-> 2. optimze the performance of irq process of T-HEAD c9xx pmu.
->
-> Inochi Amaoto (3):
->   lib: sbi_pmu: ensure update hpm counter before starting counting
->   platform: generic: allwinner: fix OF process for T-HEAD c9xx pmu
->   lib: sbi_pmu: keep overflow interrupt of stopped hpm counter disabled
-
-I intend to merge this series by end-of-week.
-
-Please let me know if you want to hold-off merging this.
+The sbi_malloc() over here is called for a HART whenever it is turned-on
+even at runtime so it eats away heap space whenever a HART is turned-off
+and turned-on.
 
 Regards,
 Anup
 
 >
->  lib/sbi/sbi_pmu.c                      | 17 +++++++++++------
->  platform/generic/allwinner/sun20i-d1.c | 25 +++++++++++++++----------
->  2 files changed, 26 insertions(+), 16 deletions(-)
+>         ATOMIC_INIT(tlb_sync, 0);
 >
 > --
-> 2.41.0
+> 2.40.1
 >
 >
 > --
