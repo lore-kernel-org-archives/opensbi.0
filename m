@@ -1,9 +1,9 @@
 From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Thu,  7 Sep 2023 17:19:43 +0530
-Subject: [PATCH v1 3/7] lib: sbi: Don't clear mseccfg.MML bit in sbi_hart_smepmp_configure()
+Date: Thu,  7 Sep 2023 17:19:44 +0530
+Subject: [PATCH v1 4/7] lib: sbi: Fix pmp_flags for Smepmp read-only shared region
 In-Reply-To: <20230907114947.1705425-1-mchitale@ventanamicro.com>
 References: <20230907114947.1705425-1-mchitale@ventanamicro.com>
-Message-ID: <20230907114947.1705425-4-mchitale@ventanamicro.com>
+Message-ID: <20230907114947.1705425-5-mchitale@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,34 +12,29 @@ Content-Transfer-Encoding: 7bit
 
 From: Anup Patel <apatel@ventanamicro.com>
 
-The mseccfg.MML bit is a sticky bit which remains unchanged once set
-so no need to clear it in sbi_hart_smepmp_configure().
+The Smepmp read-only shared region must have pmpcfg.L, pmpcfg.R,
+pmpcfg.W, and pmpcfg.X bits set so sbi_hart_get_smepmp_flags()
+must return pmp_flags accordingly.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
 ---
- lib/sbi/sbi_hart.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/sbi/sbi_hart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 48784c8..6320ea6 100644
+index 6320ea6..c8aa342 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -360,12 +360,10 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
- 	unsigned long pmp_addr;
+@@ -297,7 +297,7 @@ static unsigned int sbi_hart_get_smepmp_flags(struct sbi_scratch *scratch,
+ 	if (SBI_DOMAIN_MEMREGION_IS_SHARED(reg->flags)) {
+ 		/* Read only for both M and SU modes */
+ 		if (SBI_DOMAIN_MEMREGION_IS_SUR_MR(reg->flags))
+-			pmp_flags = (PMP_R | PMP_W | PMP_X);
++			pmp_flags = (PMP_L | PMP_R | PMP_W | PMP_X);
  
- 	/*
--	 * Set the RLB and clear MML so that, we can write to
--	 * entries without enforcement even if some entries
--	 * are locked.
-+	 * Set the RLB so that, we can write to PMP entries without
-+	 * enforcement even if some entries are locked.
- 	 */
- 	csr_set(CSR_MSECCFG, MSECCFG_RLB);
--	csr_clear(CSR_MSECCFG, MSECCFG_MML);
- 
- 	/* Disable the reserved entry */
- 	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+ 		/* Execute for SU but Read/Execute for M mode */
+ 		else if (SBI_DOMAIN_MEMREGION_IS_SUX_MRX(reg->flags))
 -- 
 2.34.1
 
