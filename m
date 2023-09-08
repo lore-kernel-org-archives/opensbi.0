@@ -1,52 +1,71 @@
-From: Mayuresh Chitale <mchitale@ventanamicro.com>
-Date: Thu,  7 Sep 2023 17:19:47 +0530
-Subject: [PATCH v1 7/7] lib: utils/regmap: Mark syscon region as shared read-write
-In-Reply-To: <20230907114947.1705425-1-mchitale@ventanamicro.com>
-References: <20230907114947.1705425-1-mchitale@ventanamicro.com>
-Message-ID: <20230907114947.1705425-8-mchitale@ventanamicro.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Fri, 8 Sep 2023 10:37:25 +0800
+Subject: [PATCH V2 0/3] fix cpu softlock when using T-HEAD c9xx pmu
+In-Reply-To: <CAAhSdy152ZnCKbyNZy+NL0BcrprQyp2c_OuEu-J-9y897ZzuOg@mail.gmail.com>
+References: <IA1PR20MB495351FBE86C63ECBB8764C7BB14A@IA1PR20MB4953.namprd20.prod.outlook.com>
+ <CAAhSdy152ZnCKbyNZy+NL0BcrprQyp2c_OuEu-J-9y897ZzuOg@mail.gmail.com>
+Message-ID: <CAJF2gTTPnHy+5QM+G9DRe-sL9nWcFY0i7nMSuMf1WxWCmL0WUQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Anup Patel <apatel@ventanamicro.com>
+On Wed, Sep 6, 2023 at 6:59?PM Anup Patel <anup@brainfault.org> wrote:
+>
+> Hi Guo,
+>
+> On Tue, Aug 15, 2023 at 3:09?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+> >
+> > These patches fix the system hang issue caused by using perf tool on
+> > T-HEAD c9xx related platforms.
+> >
+> > These patch solves two issues for T-HEAD c9xx pmu:
+> > When detecting features of PMU, MHPMCOUNTER3 is written to all 1s. This
+> > will cause an unexpected overflow interrupt before starting the PMU in
+> > T-HEAD cores.
+> >
+> > Another thing is the T-HEAD c9xx pmu is not a standart pmu, especially
+> > in interrupt process and access delegation. For interrupt process, the
+> > T-HEAD pmu uses MCOUNTERINTEN and MCOUNTEROF to control and identify the
+> > interrupt. For access delegation. It needs to set MCOUNTERWEN to allow
+> > S-mode to access related CSRs.
+> >
+> > Changed from V1:
+> > 1. fix the hang issue when using perf with high profile frequency.
+> > 2. optimze the performance of irq process of T-HEAD c9xx pmu.
+> >
+> > Inochi Amaoto (3):
+> >   lib: sbi_pmu: ensure update hpm counter before starting counting
+> >   platform: generic: allwinner: fix OF process for T-HEAD c9xx pmu
+> >   lib: sbi_pmu: keep overflow interrupt of stopped hpm counter disabled
+>
+> I intend to merge this series by end-of-week.
+>
+> Please let me know if you want to hold-off merging this.
+This is okay for me, thx for merging.
 
-The syscon region used by OpenSBI should be marked as a shared
-read-write region between M-mode and SU-mode.
+>
+> Regards,
+> Anup
+>
+> >
+> >  lib/sbi/sbi_pmu.c                      | 17 +++++++++++------
+> >  platform/generic/allwinner/sun20i-d1.c | 25 +++++++++++++++----------
+> >  2 files changed, 26 insertions(+), 16 deletions(-)
+> >
+> > --
+> > 2.41.0
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Signed-off-by: Mayuresh Chitale <mchitale@ventanamicro.com>
----
- lib/utils/regmap/fdt_regmap_syscon.c | 7 +++++++
- 1 file changed, 7 insertions(+)
 
-diff --git a/lib/utils/regmap/fdt_regmap_syscon.c b/lib/utils/regmap/fdt_regmap_syscon.c
-index 29263dd..d87b6e0 100644
---- a/lib/utils/regmap/fdt_regmap_syscon.c
-+++ b/lib/utils/regmap/fdt_regmap_syscon.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <libfdt.h>
-+#include <sbi/riscv_asm.h>
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_byteorder.h>
- #include <sbi/sbi_error.h>
-@@ -240,6 +241,12 @@ static int regmap_syscon_init(void *fdt, int nodeoff, u32 phandle,
- 		goto fail_free_syscon;
- 	}
- 
-+	rc = sbi_domain_root_add_memrange(addr, size, PAGE_SIZE,
-+				(SBI_DOMAIN_MEMREGION_MMIO |
-+				 SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW));
-+	if (rc)
-+		goto fail_free_syscon;
-+
- 	rc = regmap_add(&srm->rmap);
- 	if (rc)
- 		goto fail_free_syscon;
+
 -- 
-2.34.1
-
+Best Regards
+ Guo Ren
 
