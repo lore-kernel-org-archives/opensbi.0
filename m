@@ -1,64 +1,97 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 22 Sep 2023 12:18:53 +0530
-Subject: [PATCH] lib: sbi: Implement SET_FS_DIRTY() to make sure the
- mstatus FS dirty is set
-In-Reply-To: <20230906090114.24625-1-greentime.hu@sifive.com>
-References: <20230906090114.24625-1-greentime.hu@sifive.com>
-Message-ID: <CAAhSdy1E-Tdo4EGixoH4kQ8Fn0DJQCHxMNqdRYyj1SZDsStdXw@mail.gmail.com>
+Date: Fri, 22 Sep 2023 12:36:40 +0530
+Subject: [PATCH 1/4] lib: sbi: refactor the code for enable extensions in
+ menvfg CSR
+In-Reply-To: <20230907092729.11200-2-yongxuan.wang@sifive.com>
+References: <20230907092729.11200-1-yongxuan.wang@sifive.com> <20230907092729.11200-2-yongxuan.wang@sifive.com>
+Message-ID: <CAAhSdy0NmitqUhmeZ1PX-mJ8bmtaUBxT7y0U9GxtKXBskr1MpA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 6, 2023 at 2:31?PM Greentime Hu <greentime.hu@sifive.com> wrote:
+On Thu, Sep 7, 2023 at 2:57?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
 >
-> We found the mstatus.FS status is not set correctly after the SET_F64_REG()
-> and SET_F32_REG(). We should set mstatus.FS dirty after we emulate the FPU
-> instructions.
+> use 1 variable to store the value of menvcfg
 >
-> Co-developed-by: Roy Lin <roy.lin@sifive.com>
-> Signed-off-by: Roy Lin <roy.lin@sifive.com>
-> Signed-off-by: Greentime Hu <greentime.hu@sifive.com>
+> Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
 
 Looks good to me.
 
-Reviewed-by: Anup Patel <anup@brainfaut.org>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
 > ---
->  include/sbi/riscv_fp.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  include/sbi/riscv_encoding.h |  5 -----
+>  lib/sbi/sbi_hart.c           | 15 ++++++---------
+>  2 files changed, 6 insertions(+), 14 deletions(-)
 >
-> diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
-> index b3dc08b9db6a..3141c1c5b825 100644
-> --- a/include/sbi/riscv_fp.h
-> +++ b/include/sbi/riscv_fp.h
-> @@ -84,7 +84,7 @@
->  #define GET_FFLAGS() csr_read(CSR_FFLAGS)
->  #define SET_FFLAGS(value) csr_write(CSR_FFLAGS, (value))
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index d137bf8..01bafcd 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -207,13 +207,8 @@
 >
-> -#define SET_FS_DIRTY() ((void)0)
-> +#define SET_FS_DIRTY(regs) (regs->mstatus |= MSTATUS_FS)
+>  #define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
 >
->  #define GET_F32_RS1(insn, regs) (GET_F32_REG(insn, 15, regs))
->  #define GET_F32_RS2(insn, regs) (GET_F32_REG(insn, 20, regs))
-> @@ -93,9 +93,9 @@
->  #define GET_F64_RS2(insn, regs) (GET_F64_REG(insn, 20, regs))
->  #define GET_F64_RS3(insn, regs) (GET_F64_REG(insn, 27, regs))
->  #define SET_F32_RD(insn, regs, val) \
-> -       (SET_F32_REG(insn, 7, regs, val), SET_FS_DIRTY())
-> +       (SET_F32_REG(insn, 7, regs, val), SET_FS_DIRTY(regs))
->  #define SET_F64_RD(insn, regs, val) \
-> -       (SET_F64_REG(insn, 7, regs, val), SET_FS_DIRTY())
-> +       (SET_F64_REG(insn, 7, regs, val), SET_FS_DIRTY(regs))
+> -#if __riscv_xlen > 32
+>  #define ENVCFG_STCE                    (_ULL(1) << 63)
+>  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
+> -#else
+> -#define ENVCFGH_STCE                   (_UL(1) << 31)
+> -#define ENVCFGH_PBMTE                  (_UL(1) << 30)
+> -#endif
+>  #define ENVCFG_CBZE                    (_UL(1) << 7)
+>  #define ENVCFG_CBCFE                   (_UL(1) << 6)
+>  #define ENVCFG_CBIE_SHIFT              4
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index f7cefe4..d749aea 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -108,6 +108,9 @@ static void mstatus_init(struct sbi_scratch *scratch)
 >
->  #define GET_F32_RS2C(insn, regs) (GET_F32_REG(insn, 2, regs))
->  #define GET_F32_RS2S(insn, regs) (GET_F32_REG(RVC_RS2S(insn), 0, regs))
+>         if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
+>                 menvcfg_val = csr_read(CSR_MENVCFG);
+> +#if __riscv_xlen == 32
+> +               menvcfg_val |= ((uint64_t)csr_read(CSR_MENVCFGH)) << 32;
+> +#endif
+>
+>                 /*
+>                  * Set menvcfg.CBZE == 1
+> @@ -139,9 +142,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                  * If Svpbmt extension is not available then menvcfg.PBMTE
+>                  * will be read-only zero.
+>                  */
+> -#if __riscv_xlen > 32
+>                 menvcfg_val |= ENVCFG_PBMTE;
+> -#endif
+>
+>                 /*
+>                  * The spec doesn't explicitly describe the reset value of menvcfg.
+> @@ -149,17 +150,13 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                  * hardware.
+>                  */
+>                 if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSTC)) {
+> -#if __riscv_xlen == 32
+> -                       unsigned long menvcfgh_val;
+> -                       menvcfgh_val = csr_read(CSR_MENVCFGH);
+> -                       menvcfgh_val |= ENVCFGH_STCE;
+> -                       csr_write(CSR_MENVCFGH, menvcfgh_val);
+> -#else
+>                         menvcfg_val |= ENVCFG_STCE;
+> -#endif
+>                 }
+>
+>                 csr_write(CSR_MENVCFG, menvcfg_val);
+> +#if __riscv_xlen == 32
+> +               csr_write(CSR_MENVCFGH, menvcfg_val >> 32);
+> +#endif
+>         }
+>
+>         /* Disable all interrupts */
 > --
 > 2.17.1
 >
