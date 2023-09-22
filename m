@@ -1,18 +1,18 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 22 Sep 2023 13:53:23 +0530
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Fri, 22 Sep 2023 14:08:27 +0530
 Subject: [PATCH 1/8] lib: sbi: Introduce HART index in sbi_scratch
 In-Reply-To: <6031893febae384a6a7694f758b0e0358169fdd2.camel@126.com>
 References: <20230904040346.118604-1-apatel@ventanamicro.com>
  <20230904040346.118604-2-apatel@ventanamicro.com> <3307bded65f816a5fe9e2929003bf8fe14324265.camel@126.com>
  <CAAhSdy0iL9WUt_y7=YMY1-VROWFMaBoNtkSUiiwgtGGfFGSD0w@mail.gmail.com> <6031893febae384a6a7694f758b0e0358169fdd2.camel@126.com>
-Message-ID: <CAAhSdy2vE=hs8GixkuBbjyo3EA8nz51ZkPPn10pRbL6uHfAN1Q@mail.gmail.com>
+Message-ID: <CAK9=C2VWwPL3-OHjiBmsm74V20eFX7xGC6x4DPsEvqP75tJdpg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 22, 2023 at 1:28?PM Xiang W <wxjstz@126.com> wrote:
+On Fri, Sep 22, 2023 at 1:29?PM Xiang W <wxjstz@126.com> wrote:
 >
 > ? 2023-09-22???? 11:14 +0530?Anup Patel???
 > > On Wed, Sep 20, 2023 at 11:24?PM Xiang W <wxjstz@126.com> wrote:
@@ -61,16 +61,15 @@ On Fri, Sep 22, 2023 at 1:28?PM Xiang W <wxjstz@126.com> wrote:
 > The following case:
 > hart_count==4
 > hart_index2id==NULL
-> hartindex_to_scratch_table[1]==NULL
-> hartindex_to_scratch_table[3]==NULL
 
-There are no holes expected in the hart_index2id[] table
-provided by platform support code. The above example
-shows that platform code is buggy.
+If hart_index2id==NULL then we are assuming hartindex == hartid
+so there are no holes when hart_index2id==NULL.
 
 Regards,
 Anup
 
+> hartindex_to_scratch_table[1]==NULL
+> hartindex_to_scratch_table[3]==NULL
 >
 > sbi_hartindex_valid(1) return true
 > sbi_hartindex_valid(3) return false
@@ -206,4 +205,8 @@ Anup
 > > > >
 > > >
 >
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
