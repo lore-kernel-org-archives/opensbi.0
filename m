@@ -1,65 +1,48 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 24 Sep 2023 12:04:28 +0530
-Subject: [PATCH 0/8] OpenSBI sparse HART id support
-In-Reply-To: <20230904040346.118604-1-apatel@ventanamicro.com>
-References: <20230904040346.118604-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy02MTPBtgOAUv1V0iNP1oJWgfJPmtVcuamL-NPi30JVJA@mail.gmail.com>
+Date: Sun, 24 Sep 2023 18:24:09 +0530
+Subject: [PATCH v1 0/7] Smepmp fixes and improvements
+In-Reply-To: <20230907114947.1705425-1-mchitale@ventanamicro.com>
+References: <20230907114947.1705425-1-mchitale@ventanamicro.com>
+Message-ID: <CAAhSdy3ckMgkFPu5EHgP61jWfqFnCVdum4L=q93odhK+bnN4_w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Sep 4, 2023 at 9:33?AM Anup Patel <apatel@ventanamicro.com> wrote:
+On Thu, Sep 7, 2023 at 5:19?PM Mayuresh Chitale
+<mchitale@ventanamicro.com> wrote:
 >
-> Currently, we requires HART id to be less than SBI_HARTMASK_MAX_BITS
-> because we use HART id as bit index in the sbi_hartmask. This is a
-> very limiting requirement because RISC-V platforms can have sparse
-> HART ids (with possibly large values).
+> This series fixes issues found when testing smepmp on Qemu and other
+> Ventana platforms. We need to add PMP rules for those device regions
+> (e.g UART, syscon registers) that are accessed in both M and S/U modes.
+> Also the sequence of programming the PMP rules needs to be changed such
+> that the M-only rules are programmed before enabling the mseccfg.MML bit.
 >
-> This series addresses the above described limitation by adding
-> sparse HART id support in OpenSBI.
->
-> These patches can also be found the full_sparse_hartid_v1 branch at
-> https://github.com/avpatel/opensbi.git
->
-> Anup Patel (7):
->   lib: sbi: Introduce HART index in sbi_scratch
->   lib: sbi: Remove sbi_platform_hart_index/invalid() functions
->   lib: sbi: Use sbi_scratch_last_hartindex() in remote TLB managment
->   lib: sbi: Prefer hartindex over hartid in IPI framework
->   lib: sbi: Remove sbi_scratch_last_hartid() macro
->   lib: sbi: Maximize the use of HART index in sbi_domain
->   include: sbi: Remove sbi_hartmask_for_each_hart() macro
->
-> Xiang W (1):
->   lib: sbi: Extend sbi_hartmask to support both hartid and hartindex
+> Anup Patel (5):
+>   lib: sbi: Factor-out Smepmp configuration as separate function
+>   lib: sbi: Don't clear mseccfg.MML bit in sbi_hart_smepmp_configure()
+>   lib: sbi: Fix pmp_flags for Smepmp read-only shared region
+>   lib: sbi: Populate M-only Smepmp entries before setting mseccfg.MML
+>   lib: utils/regmap: Mark syscon region as shared read-write
 
-Addressed comment on PATCH1 and applied this series to the riscv/opensbi repo.
+Applied this series to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
 >
->  include/sbi/sbi_domain.h       |  6 +--
->  include/sbi/sbi_hartmask.h     | 75 ++++++++++++++++++++++++-------
->  include/sbi/sbi_ipi.h          | 14 +++---
->  include/sbi/sbi_platform.h     | 28 ------------
->  include/sbi/sbi_scratch.h      | 49 ++++++++++++++++----
->  lib/sbi/sbi_domain.c           | 82 ++++++++++++++++------------------
->  lib/sbi/sbi_hsm.c              | 30 ++++++-------
->  lib/sbi/sbi_init.c             | 28 +++++++-----
->  lib/sbi/sbi_ipi.c              | 28 ++++++------
->  lib/sbi/sbi_platform.c         | 17 -------
->  lib/sbi/sbi_scratch.c          | 37 +++++++++------
->  lib/sbi/sbi_system.c           |  5 ++-
->  lib/sbi/sbi_tlb.c              | 14 +++---
->  lib/utils/fdt/fdt_domain.c     |  4 +-
->  lib/utils/ipi/aclint_mswi.c    | 14 +++---
->  lib/utils/ipi/andes_plicsw.c   |  8 +++-
->  lib/utils/irqchip/imsic.c      |  4 +-
->  platform/generic/andes/ae350.c |  2 +-
->  18 files changed, 246 insertions(+), 199 deletions(-)
+> Mayuresh Chitale (2):
+>   include: sbi_domain: Fix permission test macros
+>   lib: utils/serial: Add shared regions for serial drivers
+>
+>  include/sbi/sbi_domain.h             |  34 ++--
+>  lib/sbi/sbi_hart.c                   | 225 ++++++++++++++++++---------
+>  lib/utils/regmap/fdt_regmap_syscon.c |   7 +
+>  lib/utils/serial/cadence-uart.c      |   6 +-
+>  lib/utils/serial/fdt_serial_htif.c   |  10 ++
+>  lib/utils/serial/uart8250.c          |   7 +-
+>  6 files changed, 197 insertions(+), 92 deletions(-)
 >
 > --
 > 2.34.1
