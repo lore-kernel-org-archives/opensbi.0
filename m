@@ -1,36 +1,46 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed, 27 Sep 2023 16:14:51 +0200
-Subject: [PATCH 1/1] lib: sbi: fix sbi_domain_get_assigned_hartmask()
-Message-ID: <20230927141451.51052-1-heinrich.schuchardt@canonical.com>
+Date: Wed, 27 Sep 2023 16:18:04 +0200
+Subject: [PATCH 1/1] lib: sbi_pmu: check for index overflows
+Message-ID: <20230927141804.51473-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-'1' is a 32 bit integer. When shifting it by more than 31 bits it becomes
-zero and we get an incorrect return value.
+sbi_pmu_ctr_cfg_match() receives data from a lower privilege level.
+We must catch maliciously wrong values.
 
-Addresses-Coverity-ID: 1568356 Bad bit shift operation
-Fixes: 296e70d69da7 ("lib: sbi: Extend sbi_hartmask to support both hartid and hartindex")
+Addresses-Coverity-ID: 1566114 Out-of-bounds write
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
- lib/sbi/sbi_domain.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sbi/sbi_pmu.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index b1f485d..fd4a296 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -76,7 +76,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
- 	ulong ret = 0;
- 	for (int i = 0; i < 8 * sizeof(ret); i++) {
- 		if (sbi_domain_is_assigned_hart(dom, hbase + i))
--			ret |= 1 << i;
-+			ret |= 1UL << i;
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 9694aae..4e30809 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -802,6 +802,10 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+ 		 */
+ 		unsigned long cidx_first = cidx_base + sbi_ffs(cidx_mask);
+ 
++		if (ctr_idx < 0 ||
++		    ctr_idx >= SBI_PMU_HW_CTR_MAX + SBI_PMU_FW_CTR_MAX)
++			return SBI_ENOTSUPP;
++
+ 		if (phs->active_events[cidx_first] == SBI_PMU_EVENT_IDX_INVALID)
+ 			return SBI_EINVAL;
+ 		ctr_idx = cidx_first;
+@@ -820,7 +824,7 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+ 					  event_idx, event_data);
  	}
  
- 	return ret;
+-	if (ctr_idx < 0)
++	if (ctr_idx < 0 || ctr_idx >= SBI_PMU_HW_CTR_MAX + SBI_PMU_FW_CTR_MAX)
+ 		return SBI_ENOTSUPP;
+ 
+ 	phs->active_events[ctr_idx] = event_idx;
 -- 
 2.40.1
 
