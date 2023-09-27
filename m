@@ -1,69 +1,33 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Wed, 27 Sep 2023 17:38:25 +0200
-Subject: [PATCH 1/1] lib: utils: Simplify SET_ISA_EXT_MAP()
-In-Reply-To: <ea8d5b17416fc2e593c5b64c0bc6f893eaf050d3.camel@126.com>
-References: <20230927142103.52016-1-heinrich.schuchardt@canonical.com>
- <ea8d5b17416fc2e593c5b64c0bc6f893eaf050d3.camel@126.com>
-Message-ID: <bdae373d-843d-4f5b-b7a8-24724f6eef2c@canonical.com>
+From: Vivian Wang <uwu@dram.page>
+Date: Wed, 27 Sep 2023 23:39:13 +0800
+Subject: [PATCH 1/1] lib: sbi_pmu: check for index overflows
+In-Reply-To: <20230927141804.51473-1-heinrich.schuchardt@canonical.com>
+References: <20230927141804.51473-1-heinrich.schuchardt@canonical.com>
+Message-ID: <a94525a1-f7d2-40bb-a52c-36351f0205b3@dram.page>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9/27/23 17:23, Xiang W wrote:
-> ? 2023-09-27???? 16:21 +0200?Heinrich Schuchardt???
->> The define is hard to read.
->>
->> Addresses-Coverity-ID: 1568359 Unexpected control flow
->> Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA string in FDT")
->> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
->> ---
->>  ?lib/utils/fdt/fdt_helper.c | 8 +++-----
->>  ?1 file changed, 3 insertions(+), 5 deletions(-)
->>
->> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
->> index c97f09d..6f23f6f 100644
->> --- a/lib/utils/fdt/fdt_helper.c
->> +++ b/lib/utils/fdt/fdt_helper.c
->> @@ -370,12 +370,10 @@ static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
->>  ?			continue;
->>   
->>  ?#define SET_ISA_EXT_MAP(name, bit)				\
->> -		do {						\
->> -			if (!strcmp(mstr, name)) {		\
->> +		{						\
->> +			if (!strcmp(mstr, name))		\
->>  ?				__set_bit(bit, extensions);	\
->> -				continue;			\
-> Only remove 'do ... while' and 'continue' can be keep . In this way, after finding
-> the extension, the subsequent judgment can be skip.
+Good catch on the untrusted value but I think this is already checked?
 
-I understand why you want to have a continue here. Makes sense to me 
-once you add more invocations of the macro.
+	/* Do a basic sanity check of counter base & mask */
+	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
+		return SBI_EINVAL;
 
-Just to be clear this is not what the incoming code did.
+But I suppose this could overflow, in which case probably just add this?
 
-With your suggestion we should rename the macro to something like 
-SET_ISA_EXT_AND_CONTINUE() to make the behavior obvious.
+	if (cidx_base >= total_ctrs || ...)
 
-Best regards
+total_ctrs is small anyway (there shouldn't a billion counters right?)
+so this should be fine. If we do that we probably should modify the
+checks in sbi_pmu_ctr_{start,stop} as well for consistency.
 
-Heinrich
+I also checked if the IPI stuff have this problem but I'm pretty sure
+the hart indices are range-checked individually. It's probably still a
+good idea to add a "base and mask is sane" check there.
 
-> 
-> Regards,
-> Xiang W
->> -			}					\
->> -		} while (false)					\
->> +		}						\
->>   
->>  ?		SET_ISA_EXT_MAP("smepmp", SBI_HART_EXT_SMEPMP);
->>  ?#undef SET_ISA_EXT_MAP
->> -- 
->> 2.40.1
->>
->>
-> 
-
+Thanks,
+Vivian aka "dram"
 
