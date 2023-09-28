@@ -1,37 +1,60 @@
-From: jay1273062855@outlook.com <jay1273062855@outlook.com>
-Date: Thu, 28 Sep 2023 16:27:09 +0800
-Subject: [PATCH] lib: sbi: Add support for mconfigptr
-Message-ID: <TYWP286MB2987DF5FDABB17DF166C2588A5C1A@TYWP286MB2987.JPNP286.PROD.OUTLOOK.COM>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Thu, 28 Sep 2023 14:17:20 +0200
+Subject: [PATCH v2 1/1] lib: utils: Simplify SET_ISA_EXT_MAP()
+Message-ID: <20230928121720.41669-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Yangjie Zhang <jay1273062855@outlook.com>
+The define is hard to read. The continue statement does not do what was
+intended.
 
-RISC-V privileged specification v1.12 introduced the mconfigptr CSR
-which will hold the physical address of a configuration data
-structure.
+* Remove do {} while (false);
+* Change the name to set_multi_letter_ext
+  - Other local macros are lower case too.
+  - Refer to the fact that this is only used for multi-letter extensions.
 
-Signed-off-by: Yangjie Zhang <jay1273062855@outlook.com>
+Addresses-Coverity-ID: 1568359 Unexpected control flow
+Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA string in FDT")
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
- include/sbi/riscv_encoding.h | 1 +
- 1 file changed, 1 insertion(+)
+v2:
+	keep continue statement
+	rename macro
+---
+ lib/utils/fdt/fdt_helper.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index d137bf8..d7a000f 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -430,6 +430,7 @@
- #define CSR_MARCHID			0xf12
- #define CSR_MIMPID			0xf13
- #define CSR_MHARTID			0xf14
-+#define CSR_MCONFIGPTR		0xf15
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index c97f09d..b97ff74 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -369,16 +369,15 @@ static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
+ 		if (!j)
+ 			continue;
  
- /* Machine Trap Setup */
- #define CSR_MSTATUS			0x300
+-#define SET_ISA_EXT_MAP(name, bit)				\
+-		do {						\
+-			if (!strcmp(mstr, name)) {		\
++#define set_multi_letter_ext(name, bit)				\
++		{						\
++			if (!strcmp(mstr, name))		\
+ 				__set_bit(bit, extensions);	\
+ 				continue;			\
+-			}					\
+-		} while (false)					\
++		}						\
+ 
+-		SET_ISA_EXT_MAP("smepmp", SBI_HART_EXT_SMEPMP);
+-#undef SET_ISA_EXT_MAP
++		set_multi_letter_ext("smepmp", SBI_HART_EXT_SMEPMP);
++#undef set_multi_letter_ext
+ 	}
+ 
+ 	return 0;
 -- 
-2.34.1
+2.40.1
 
 
