@@ -1,68 +1,188 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 04 Oct 2023 19:48:20 +0800
-Subject: [PATCH v2 1/1] lib: utils: Simplify SET_ISA_EXT_MAP()
-In-Reply-To: <20230928121720.41669-1-heinrich.schuchardt@canonical.com>
-References: <20230928121720.41669-1-heinrich.schuchardt@canonical.com>
-Message-ID: <fc00fd7b82fd5013065ad9526a7a26cc0634cdb4.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 4 Oct 2023 20:27:43 +0530
+Subject: [PATCH v2] platform: generic: thead: fix stale TLB entries for th1520/sg2042
+In-Reply-To: <IA1PR20MB495365BF4F1FFA74C7CCEA9CBBF6A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495365BF4F1FFA74C7CCEA9CBBF6A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy0ZKWKA34_+AFCU6kYK9YOPkSR3ZzqFLuhuNY3oLOpZWA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-09-28???? 14:17 +0200?Heinrich Schuchardt???
-> The define is hard to read. The continue statement does not do what was
-> intended.
-> 
-> * Remove do {} while (false);
-> * Change the name to set_multi_letter_ext
-> ? - Other local macros are lower case too.
-> ? - Refer to the fact that this is only used for multi-letter extensions.
-> 
-> Addresses-Coverity-ID: 1568359 Unexpected control flow
-> Fixes: d72f5f17478d ("lib: utils: Add detection of Smepmp from ISA string in FDT")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-LGTM
-
-Reviewed-by: Xiang W <wxjstz@126.com>
+On Fri, Sep 15, 2023 at 3:10?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+> The TLB entries remain functional all the time once added in T-HEAD th1520
+> and Sophgo sg2042 (even if the MMU is then disabled afterwards). If there
+> are some stale TLB entries that contains the address of SBI, it will cause
+> unexpected memory access and issue a illegal instruction error. To avoid
+> this, a TLB flush is needed to drop these TLB entries before any memory
+> access in the trap handler.
+>
+> To handle this workaroud, add a custom trap handler with executing TLB flush
+> first in the T-HEAD platform to fix affected socs.
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 > ---
-> v2:
-> 	keep continue statement
-> 	rename macro
+> Changed from v1:
+> 1. remove stale code in RFC v2;
+> 2. change quirk and function name to "TLB_FLUSH_FIXUP" for clear meaning.
+>
+> Changed from RFC v2:
+> 1. rollback the moving of trap helper macro to sbi_trap.h
+> 2. use direct jump in custom trap handler to access _trap_handler
+>
+> Changed from RFC:
+> 1. use custom trap handler instead of asm alternative.
+> 2. change description
 > ---
-> ?lib/utils/fdt/fdt_helper.c | 13 ++++++-------
-> ?1 file changed, 6 insertions(+), 7 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index c97f09d..b97ff74 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -369,16 +369,15 @@ static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
-> ?		if (!j)
-> ?			continue;
-> ?
-> -#define SET_ISA_EXT_MAP(name, bit)				\
-> -		do {						\
-> -			if (!strcmp(mstr, name)) {		\
-> +#define set_multi_letter_ext(name, bit)				\
-> +		{						\
-> +			if (!strcmp(mstr, name))		\
-> ?				__set_bit(bit, extensions);	\
-> ?				continue;			\
-> -			}					\
-> -		} while (false)					\
-> +		}						\
-> ?
-> -		SET_ISA_EXT_MAP("smepmp", SBI_HART_EXT_SMEPMP);
-> -#undef SET_ISA_EXT_MAP
-> +		set_multi_letter_ext("smepmp", SBI_HART_EXT_SMEPMP);
-> +#undef set_multi_letter_ext
-> ?	}
-> ?
-> ?	return 0;
-> -- 
-> 2.40.1
-> 
-> 
+>  platform/generic/Kconfig                    |  4 ++
+>  platform/generic/configs/defconfig          |  1 +
+>  platform/generic/thead/objects.mk           | 10 +++++
+>  platform/generic/thead/thead-generic.c      | 50 +++++++++++++++++++++
+>  platform/generic/thead/thead-trap-handler.S | 13 ++++++
+>  5 files changed, 78 insertions(+)
+>  create mode 100644 platform/generic/thead/objects.mk
+>  create mode 100644 platform/generic/thead/thead-generic.c
+>  create mode 100644 platform/generic/thead/thead-trap-handler.S
+>
+> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+> index 72768ed..68dd58c 100644
+> --- a/platform/generic/Kconfig
+> +++ b/platform/generic/Kconfig
+> @@ -52,6 +52,10 @@ config PLATFORM_STARFIVE_JH7110
+>         bool "StarFive JH7110 support"
+>         default n
+>
+> +config PLATFORM_THEAD_GENERIC
+> +       bool "THEAD C9xx generic platform support"
+> +       default n
+> +
 
+No need to add "_GENERIC" suffix to kconfig name. I have
+taken care of this at the time of merging this patch.
+
+>  source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
+>
+>  endif
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> index 634d410..26f0874 100644
+> --- a/platform/generic/configs/defconfig
+> +++ b/platform/generic/configs/defconfig
+> @@ -4,6 +4,7 @@ CONFIG_PLATFORM_RENESAS_RZFIVE=y
+>  CONFIG_PLATFORM_SIFIVE_FU540=y
+>  CONFIG_PLATFORM_SIFIVE_FU740=y
+>  CONFIG_PLATFORM_STARFIVE_JH7110=y
+> +CONFIG_PLATFORM_THEAD_GENERIC=y
+>  CONFIG_FDT_GPIO=y
+>  CONFIG_FDT_GPIO_DESIGNWARE=y
+>  CONFIG_FDT_GPIO_SIFIVE=y
+> diff --git a/platform/generic/thead/objects.mk b/platform/generic/thead/objects.mk
+> new file mode 100644
+> index 0000000..cbbab18
+> --- /dev/null
+> +++ b/platform/generic/thead/objects.mk
+> @@ -0,0 +1,10 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +# Copyright (C) 2023 Inochi Amaoto <inochiama@outlook.com>
+> +# Copyright (C) 2023 Alibaba Group Holding Limited.
+> +#
+> +
+> +carray-platform_override_modules-$(CONFIG_PLATFORM_THEAD_GENERIC) += thead_generic
+> +platform-objs-$(CONFIG_PLATFORM_THEAD_GENERIC) += thead/thead-generic.o
+> +platform-objs-$(CONFIG_PLATFORM_THEAD_GENERIC) += thead/thead-trap-handler.o
+> diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
+> new file mode 100644
+> index 0000000..8120f6f
+> --- /dev/null
+> +++ b/platform/generic/thead/thead-generic.c
+> @@ -0,0 +1,50 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Authors:
+> + *   Inochi Amaoto <inochiama@outlook.com>
+> + *
+> + */
+> +
+> +#include <platform_override.h>
+> +#include <sbi/riscv_barrier.h>
+> +#include <sbi/sbi_const.h>
+> +#include <sbi/sbi_platform.h>
+> +#include <sbi/sbi_scratch.h>
+> +#include <sbi/sbi_string.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +
+> +/**
+> + * T-HEAD board with this quirk need to execute sfence.vma to flush
+> + * stale entrie avoid incorrect memory access.
+> + */
+> +#define THEAD_QUIRK_TLB_FLUSH_FIXUP            BIT(0)
+> +
+> +void _thead_tlb_flush_fixup_trap_handler(void);
+> +
+> +void thead_register_tlb_flush_trap_handler(void)
+> +{
+> +       csr_write(CSR_MTVEC, &_thead_tlb_flush_fixup_trap_handler);
+> +}
+> +
+> +static int thead_generic_early_init(bool cold_boot,
+> +                                   const struct fdt_match *match)
+> +{
+> +       unsigned long quirks = (unsigned long)match->data;
+> +
+> +       if (quirks & THEAD_QUIRK_TLB_FLUSH_FIXUP)
+> +               thead_register_tlb_flush_trap_handler();
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct fdt_match thead_generic_match[] = {
+> +       { .compatible = "thead,th1520",
+> +         .data = (void*)THEAD_QUIRK_TLB_FLUSH_FIXUP },
+> +       { },
+> +};
+> +
+> +const struct platform_override thead_generic = {
+> +       .match_table    = thead_generic_match,
+> +       .early_init     = thead_generic_early_init,
+> +};
+> diff --git a/platform/generic/thead/thead-trap-handler.S b/platform/generic/thead/thead-trap-handler.S
+> new file mode 100644
+> index 0000000..861c029
+> --- /dev/null
+> +++ b/platform/generic/thead/thead-trap-handler.S
+> @@ -0,0 +1,13 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Authors:
+> + *   Inochi Amaoto <inochiama@outlook.com>
+> + *
+> + */
+> +       .section .entry, "ax", %progbits
+> +       .align 3
+> +       .globl _thead_tlb_flush_fixup_trap_handler
+> +_thead_tlb_flush_fixup_trap_handler:
+> +       sfence.vma t0, zero
+> +       j _trap_handler
+> --
+> 2.42.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
 
