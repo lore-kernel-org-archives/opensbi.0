@@ -1,18 +1,18 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 17:47:16 +0530
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Date: Fri, 6 Oct 2023 13:20:27 +0100
 Subject: [PATCH 0/6] Add Andes PMU extension support
-In-Reply-To: <20230906094051.3957564-1-peterlin@andestech.com>
-References: <20230906094051.3957564-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy1iUKOKkp3Z8ybL8ubcF7Y+YZEyMN232HYogE4ToTH+hw@mail.gmail.com>
+In-Reply-To: <20230906111455.4161641-1-peterlin@andestech.com>
+References: <20230906111455.4161641-1-peterlin@andestech.com>
+Message-ID: <CA+V-a8uDWwyf51ZTyi3_wGu8_9JNqudDTAQ2pS95oBa+VcYYdg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Yu Chien Peter Lin,
+Hi Lin-san,
 
-On Wed, Sep 6, 2023 at 3:12?PM Yu Chien Peter Lin
+On Wed, Sep 6, 2023 at 12:17?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
 > This patch series enables perf tool to utilize Andes PMU
@@ -33,12 +33,6 @@ On Wed, Sep 6, 2023 at 3:12?PM Yu Chien Peter Lin
 >   platform: andes: Enable Andes PMU for AE350
 >   platform: rzfive: Enable Andes PMU for RZ/Five
 >   docs: pmu: Add Andes PMU node example
-
-I assume there is going to be a v2 due to comments on PATCH3 ?
-
-Regards,
-Anup
-
 >
 >  docs/pmu_support.md                        | 87 ++++++++++++++++++++++
 >  include/sbi/sbi_pmu.h                      |  6 ++
@@ -55,7 +49,9 @@ Anup
 >  create mode 100644 platform/generic/andes/andes_pmu.c
 >  create mode 100644 platform/generic/include/andes/andes_pmu.h
 >
-> --
-> 2.34.1
->
+I tried these patches on the RZ/Five SMARC EVK and I am seeing kernel
+freeze when trying to quit perf.
+
+Cheers,
+Prabhakar
 
