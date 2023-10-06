@@ -1,52 +1,61 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 17:34:13 +0530
-Subject: [PATCH 1/1] gpio/starfive: redundant readl() call
-In-Reply-To: <20230929215355.18985-1-heinrich.schuchardt@canonical.com>
-References: <20230929215355.18985-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy0WczXTJiFNLXuyr1bksJx-Q3rgdCm=0EYAOgvko53-=Q@mail.gmail.com>
+Date: Fri, 6 Oct 2023 17:47:16 +0530
+Subject: [PATCH 0/6] Add Andes PMU extension support
+In-Reply-To: <20230906094051.3957564-1-peterlin@andestech.com>
+References: <20230906094051.3957564-1-peterlin@andestech.com>
+Message-ID: <CAAhSdy1iUKOKkp3Z8ybL8ubcF7Y+YZEyMN232HYogE4ToTH+hw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Sep 30, 2023 at 3:24?AM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+Hi Yu Chien Peter Lin,
+
+On Wed, Sep 6, 2023 at 3:12?PM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> In starfive_gpio_direction_output() readl() is called twice to read the
-> gpio direction register. The result of the first read is discarded.
+> This patch series enables perf tool to utilize Andes PMU
+> extension via PMU SBI calls, provides PMU device callbacks
+> for event sampling and mode filtering.
 >
-> Remove the redundant read.
+> We also provide a PMU node example of AX45MP in the last
+> patch.
 >
-> Fixes: 908be1b85c8f ("gpio/starfive: add gpio driver and support gpio reset")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> The OpenSBI and Linux patches can be found on Andes Technology GitHub
+> - https://github.com/andestech/opensbi/commits/andes-pmu-support
+> - https://github.com/andestech/linux/commits/andes-pmu-support
+>
+> Yu Chien Peter Lin (6):
+>   sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
+>   platform: include: andes45: Add PMU related CSR defines
+>   platform: andes: Add Andes custom PMU support
+>   platform: andes: Enable Andes PMU for AE350
+>   platform: rzfive: Enable Andes PMU for RZ/Five
+>   docs: pmu: Add Andes PMU node example
 
-Looks good to me.
+I assume there is going to be a v2 due to comments on PATCH3 ?
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
-> ---
->  lib/utils/gpio/fdt_gpio_starfive.c | 1 -
->  1 file changed, 1 deletion(-)
 >
-> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
-> index f430b13..bd2a9f2 100644
-> --- a/lib/utils/gpio/fdt_gpio_starfive.c
-> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
-> @@ -37,7 +37,6 @@ static int starfive_gpio_direction_output(struct gpio_pin *gp, int value)
->         reg_addr = chip->addr + gp->offset;
->         reg_addr &= ~(STARFIVE_GPIO_REG_SHIFT_MASK);
+>  docs/pmu_support.md                        | 87 ++++++++++++++++++++++
+>  include/sbi/sbi_pmu.h                      |  6 ++
+>  lib/sbi/sbi_pmu.c                          |  5 +-
+>  platform/generic/Kconfig                   |  2 +
+>  platform/generic/andes/Kconfig             |  4 +
+>  platform/generic/andes/ae350.c             |  2 +
+>  platform/generic/andes/andes_pmu.c         | 85 +++++++++++++++++++++
+>  platform/generic/andes/objects.mk          |  1 +
+>  platform/generic/include/andes/andes45.h   | 26 +++++++
+>  platform/generic/include/andes/andes_pmu.h | 12 +++
+>  platform/generic/renesas/rzfive/rzfive.c   |  2 +
+>  11 files changed, 231 insertions(+), 1 deletion(-)
+>  create mode 100644 platform/generic/andes/andes_pmu.c
+>  create mode 100644 platform/generic/include/andes/andes_pmu.h
 >
-> -       val = readl((void *)(reg_addr));
->         shift_bits = (gp->offset & STARFIVE_GPIO_REG_SHIFT_MASK)
->                 << STARFIVE_GPIO_SHIFT_BITS;
->         bit_mask = STARFIVE_GPIO_MASK << shift_bits;
 > --
-> 2.40.1
+> 2.34.1
 >
 
