@@ -1,23 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 17:06:01 +0530
-Subject: [PATCH 1/1] lib: sbi: fix sbi_domain_get_assigned_hartmask()
-In-Reply-To: <20230927141451.51052-1-heinrich.schuchardt@canonical.com>
-References: <20230927141451.51052-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy1O7XVowJ6KmAXCxqqq9sXpq6rO1U_1xCv09st+s=1vUw@mail.gmail.com>
+Date: Fri, 6 Oct 2023 17:13:25 +0530
+Subject: [PATCH 1/1] lib: utils/fdt: simplify dt_parse_isa_extensions
+In-Reply-To: <20230927141912.51591-1-heinrich.schuchardt@canonical.com>
+References: <20230927141912.51591-1-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy2VCbXpmCZHPoN=a-O2yPV+ZB4aaN1VF1sBGdaFCeKNyg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 27, 2023 at 7:45?PM Heinrich Schuchardt
+On Wed, Sep 27, 2023 at 7:49?PM Heinrich Schuchardt
 <heinrich.schuchardt@canonical.com> wrote:
 >
-> '1' is a 32 bit integer. When shifting it by more than 31 bits it becomes
-> zero and we get an incorrect return value.
+> hart_exts == NULL can only occur if offset and node address lead to an
+> overflow resulting in exactly NULL. As we don't catch other values of
+> overflow it does not make sense to treat this one as special.
 >
-> Addresses-Coverity-ID: 1568356 Bad bit shift operation
-> Fixes: 296e70d69da7 ("lib: sbi: Extend sbi_hartmask to support both hartid and hartindex")
+> Addresses-Coverity-ID: 1568355 Logically dead code
+> Addresses-Coverity-ID: 1568358 Logically dead code
+> Fixes: 6259b2ec2d09 ("lib: utils/fdt: Fix fdt_parse_isa_extensions() implementation")
 > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
 Looks good to me.
@@ -30,22 +32,31 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_domain.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  lib/utils/fdt/fdt_helper.c | 4 ----
+>  1 file changed, 4 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index b1f485d..fd4a296 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -76,7 +76,7 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
->         ulong ret = 0;
->         for (int i = 0; i < 8 * sizeof(ret); i++) {
->                 if (sbi_domain_is_assigned_hart(dom, hbase + i))
-> -                       ret |= 1 << i;
-> +                       ret |= 1UL << i;
->         }
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index c97f09d..13e79b9 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -417,8 +417,6 @@ static int fdt_parse_isa_all_harts(void *fdt)
 >
->         return ret;
+>                 hart_exts = sbi_scratch_offset_ptr(scratch,
+>                                                    fdt_isa_bitmap_offset);
+> -               if (!hart_exts)
+> -                       return SBI_ENOENT;
+>
+>                 err = fdt_parse_isa_one_hart((const char *)val, hart_exts);
+>                 if (err)
+> @@ -452,8 +450,6 @@ int fdt_parse_isa_extensions(void *fdt, unsigned int hartid,
+>                 return SBI_ENOENT;
+>
+>         hart_exts = sbi_scratch_offset_ptr(scratch, fdt_isa_bitmap_offset);
+> -       if (!hart_exts)
+> -               return SBI_ENOENT;
+>
+>         for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
+>                 extensions[i] |= hart_exts[i];
 > --
 > 2.40.1
 >
