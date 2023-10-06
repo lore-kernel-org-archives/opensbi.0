@@ -1,74 +1,57 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu,  5 Oct 2023 14:58:43 +0800
-Subject: [PATCH v2 4/4] platform: generic: thead: initialize PMU by default in thead generic platform
-In-Reply-To: <20231005065843.239501-1-inochiama@outlook.com>
-References: <IA1PR20MB4953287B7688E0F5058984BDBBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
- <20231005065843.239501-1-inochiama@outlook.com>
-Message-ID: <IA1PR20MB49536C4C0A19D97FA8E288CBBBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 6 Oct 2023 09:44:27 +0530
+Subject: [PATCH 1/3] firmware: Remove ALIGN in .rela.dyn in linker script
+In-Reply-To: <TYYP286MB143994BAD3D130B072AB4105C6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+References: <TYYP286MB1439495D0B19A0ECFD89BDABC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+ <TYYP286MB143994BAD3D130B072AB4105C6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <CAAhSdy1F0dNjXJS9JA+kZmYhREKkhW7YA0Wfd4NAF3C4zU=5ng@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Since all the SoC with thead c9xx cores need this initialization at now,
-initialize the c9xx pmu in the thead generic platform by default.
+On Sun, Sep 17, 2023 at 11:23?PM Vivian Wang <dramforever@live.com> wrote:
+>
+> The .rela.dyn section should be exactly the size of the relocations,
+> without padding. On RV64, .rela* sections are already aligned and
+> there's no need for padding. On RV32, this adds padding up to 4 bytes,
+> which, if present, confuses the relocation loop into processing an extra
+> entry past the end of .rela*, and it crashes with an invalid memory
+> access.
+>
+> Fixes: 0f20e8adcf42 ("firmware: Support position independent execution")
+> Signed-off-by: Vivian Wang <dramforever@live.com>
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
----
- platform/generic/Kconfig               |  1 +
- platform/generic/thead/thead-generic.c | 13 +++++++++++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+Looks good to me.
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 3be75cf..f9e7ed2 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -56,6 +56,7 @@ config PLATFORM_STARFIVE_JH7110
- config PLATFORM_THEAD
- 	bool "THEAD C9xx support"
- 	select THEAD_C9XX_ERRATA
-+	select THEAD_C9XX_PMU
- 	default n
- 
- source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
-diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
-index c77140c..72f4aaa 100644
---- a/platform/generic/thead/thead-generic.c
-+++ b/platform/generic/thead/thead-generic.c
-@@ -8,6 +8,7 @@
- 
- #include <platform_override.h>
- #include <thead/c9xx_errata.h>
-+#include <thead/c9xx_pmu.h>
- #include <sbi/sbi_const.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
-@@ -29,6 +30,13 @@ static int thead_generic_early_init(bool cold_boot,
- 	return 0;
- }
- 
-+static int thead_generic_extensions_init(const struct fdt_match *match,
-+					 struct sbi_hart_features *hfeatures)
-+{
-+	thead_c9xx_register_pmu_device();
-+	return 0;
-+}
-+
- static struct thead_generic_quirks thead_th1520_quirks = {
- 	.errata = THEAD_QUIRK_ERRATA_TLB_FLUSH,
- };
-@@ -39,6 +47,7 @@ static const struct fdt_match thead_generic_match[] = {
- };
- 
- const struct platform_override thead_generic = {
--	.match_table	= thead_generic_match,
--	.early_init	= thead_generic_early_init,
-+	.match_table		= thead_generic_match,
-+	.early_init		= thead_generic_early_init,
-+	.extensions_init	= thead_generic_extensions_init,
- };
--- 
-2.42.0
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Thanks,
+Anup
+
+> ---
+>  firmware/fw_base.ldS | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index 3d68484..88b8dfd 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -49,7 +49,6 @@
+>         .rela.dyn : {
+>                 PROVIDE(__rel_dyn_start = .);
+>                 *(.rela*)
+> -               . = ALIGN(8);
+>                 PROVIDE(__rel_dyn_end = .);
+>         }
+>
+> --
+> 2.41.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
