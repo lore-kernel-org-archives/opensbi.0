@@ -1,43 +1,49 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 10:05:30 +0530
-Subject: [PATCH 0/3] Sparse HART id improvements
-In-Reply-To: <20230924155745.1753120-1-wxjstz@126.com>
-References: <20230924155745.1753120-1-wxjstz@126.com>
-Message-ID: <CAAhSdy2iZruS48CqB9UDiaqL57KD7zX+DxsC-M8ArmxX8soWzg@mail.gmail.com>
+Date: Fri, 6 Oct 2023 10:08:53 +0530
+Subject: [PATCH] doc: Fix fw_payload.md
+In-Reply-To: <20230924214823.2789366-1-hn@hnpl.org>
+References: <20230924214823.2789366-1-hn@hnpl.org>
+Message-ID: <CAAhSdy0ZaV7vDn-EA+7d+eRO8nhRteFe=UA-P+rUbQsYZ2KjPA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Sep 24, 2023 at 9:28?PM Xiang W <wxjstz@126.com> wrote:
+On Mon, Sep 25, 2023 at 3:19?AM Hoa Nguyen <hn@hnpl.org> wrote:
 >
-> Modify last_hartindex_having_scratch/hartindex_to_hartid_table
-> /hartindex_to_scratch_table as static variables to prevent accidental
-> modification and reduce memory consumption
+> The base of .text is defined by `FW_TEXT_START`, not `FW_TEXT_BASE`.
 >
-> Xiang W (3):
->   lib: sbi: Refactor sbi_scratch_last_hartindex as a function
->   lib: sbi: Refactor sbi_hartindex_to_hartid as a function
->   lib: sbi: Refactor sbi_hartindex_to_scratch as a function
+> Signed-off-by: Hoa Nguyen <hn@hnpl.org>
 
-All these are in hot-path at various places so introducing a
-function is certainly not helping.
+Looks good to me.
 
-Also, if some buggy code is accidentally modifying global data
-then that buggy code should be fixed rather than papering over
-the problem by introducing these functions.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Regards,
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
+> ---
+>  docs/firmware/fw_payload.md | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
->  include/sbi/sbi_scratch.h | 35 ++++++++++++-----------------------
->  lib/sbi/sbi_scratch.c     | 30 ++++++++++++++++++++++++++----
->  2 files changed, 38 insertions(+), 27 deletions(-)
+> diff --git a/docs/firmware/fw_payload.md b/docs/firmware/fw_payload.md
+> index 3d50ddc..113604a 100644
+> --- a/docs/firmware/fw_payload.md
+> +++ b/docs/firmware/fw_payload.md
+> @@ -36,7 +36,7 @@ options. These configuration parameters can be defined using either the top
+>  level `make` command line or the target platform *objects.mk* configuration
+>  file. The parameters currently defined are as follows:
 >
+> -* **FW_PAYLOAD_OFFSET** - Offset from *FW_TEXT_BASE* where the payload binary
+> +* **FW_PAYLOAD_OFFSET** - Offset from *FW_TEXT_START* where the payload binary
+>    will be linked in the final *FW_PAYLOAD* firmware binary image. This
+>    configuration parameter is mandatory if *FW_PAYLOAD_ALIGN* is not defined.
+>    Compilation errors will result from an incorrect definition of
 > --
-> 2.40.1
+> 2.25.1
 >
 >
 > --
