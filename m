@@ -1,75 +1,43 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 09:48:48 +0530
-Subject: [PATCH 0/3] Relocation-related fixes
-In-Reply-To: <TYYP286MB1439495D0B19A0ECFD89BDABC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-References: <TYYP286MB1439495D0B19A0ECFD89BDABC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <CAAhSdy0zezBg40dXY-S7FdtwZpRuZ4ukTKdmpGAaS-Y+OK=_gw@mail.gmail.com>
+Date: Fri, 6 Oct 2023 10:05:30 +0530
+Subject: [PATCH 0/3] Sparse HART id improvements
+In-Reply-To: <20230924155745.1753120-1-wxjstz@126.com>
+References: <20230924155745.1753120-1-wxjstz@126.com>
+Message-ID: <CAAhSdy2iZruS48CqB9UDiaqL57KD7zX+DxsC-M8ArmxX8soWzg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Sep 17, 2023 at 11:22?PM Vivian Wang <dramforever@live.com> wrote:
+On Sun, Sep 24, 2023 at 9:28?PM Xiang W <wxjstz@126.com> wrote:
 >
-> I was looking into various implementations of "DIY" runtime relocations.
-> One thing led to another, and here are three patches.
+> Modify last_hartindex_having_scratch/hartindex_to_hartid_table
+> /hartindex_to_scratch_table as static variables to prevent accidental
+> modification and reduce memory consumption
 >
-> This area does seem fairly obscure, so advice on proper/better ways to
-> do things are definitely needed. Thanks in advance for any help.
->
-> Patch 1 fixes a crash on RV32 that happens to 50% of built binaries
-> essentially randomly.
->
-> Patch 2 removes handling of R_RISCV_{32,64}. Why they have been added in
-> the first place is a complete mystery to me, since these are for dynamic
-> linking only, which is simply not a thing here. I've also never seen a
-> toolchain generate these for *static*-pie. And yes the generated binary
-> boots fine.
->
-> From what I can tell, Linux, musl, glibc all only handle
-> R_RISCV_RELATIVE for static-pie. (Okay, also IRELATIVE, but just don't
-> use ifuncs.) The only other place I can find that does anything with
-> .dynsym is U-Boot's RISC-V relocation code [1], and the code is there
-> without explanation either.
->
-> Maybe some ancient toolchains generated R_RISCV_{32,64} for static
-> linking? I have no idea.
->
-> Since we don't need .dynsym, I went ahead and did patch 3. I tried
-> fiddling around with -fvisibility= but it seems that, given that OpenSBI
-> is built as a static library, --exclude-libs ALL looked liked the
-> simplest solution. Or should we just /DISCARD/ .dynsym etc. instead?
->
-> Cc'd Vincent Chen - Since you're the author of 0f20e8adcf42 "firmware:
-> Support position independent execution" I'm hope you can give some
-> insight. Thanks in advance.
->
-> [1]: https://github.com/u-boot/u-boot/commit/e8e39597a33cc53aacbaf4ef5cae60ed86d6a20a
->
-> Vivian Wang (3):
->   firmware: Remove ALIGN in .rela.dyn in linker script
->   firmware: Remove handling of R_RISCV_{32,64}
->   Makefile: Add --exclude-libs ALL to avoid .dynsym
+> Xiang W (3):
+>   lib: sbi: Refactor sbi_scratch_last_hartindex as a function
+>   lib: sbi: Refactor sbi_hartindex_to_hartid as a function
+>   lib: sbi: Refactor sbi_hartindex_to_scratch as a function
 
-I quickly tried this series with both GCC 12.2.0 and CLANG 14.0.0
-on the RV64 virt machine and RV32 virt machine. It worked fine
-at my end.
+All these are in hot-path at various places so introducing a
+function is certainly not helping.
 
-Applied this series to the riscv/opensbi repo.
+Also, if some buggy code is accidentally modifying global data
+then that buggy code should be fixed rather than papering over
+the problem by introducing these functions.
 
-Thanks,
+Regards,
 Anup
 
 >
->  Makefile                |  1 +
->  firmware/fw_base.S      | 22 ----------------------
->  firmware/fw_base.ldS    |  7 -------
->  include/sbi/riscv_elf.h |  8 --------
->  4 files changed, 1 insertion(+), 37 deletions(-)
+>  include/sbi/sbi_scratch.h | 35 ++++++++++++-----------------------
+>  lib/sbi/sbi_scratch.c     | 30 ++++++++++++++++++++++++++----
+>  2 files changed, 38 insertions(+), 27 deletions(-)
 >
 > --
-> 2.41.0
+> 2.40.1
 >
 >
 > --
