@@ -1,55 +1,71 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 18:05:34 +0530
-Subject: [PATCH] lib: sbi: Add support for mconfigptr
-In-Reply-To: <TYWP286MB2987DF5FDABB17DF166C2588A5C1A@TYWP286MB2987.JPNP286.PROD.OUTLOOK.COM>
-References: <TYWP286MB2987DF5FDABB17DF166C2588A5C1A@TYWP286MB2987.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <CAAhSdy3y_AqQFRm60LWVV1EbO73+feRbQCjabWLtyGRnDv68UQ@mail.gmail.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Fri,  6 Oct 2023 22:59:26 +0200
+Subject: [PATCH 1/1] lib: sbi: simplify sanitize_domain()
+Message-ID: <20231006205926.26599-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Sep 28, 2023 at 1:58?PM <jay1273062855@outlook.com> wrote:
->
-> From: Yangjie Zhang <jay1273062855@outlook.com>
->
-> RISC-V privileged specification v1.12 introduced the mconfigptr CSR
-> which will hold the physical address of a configuration data
-> structure.
->
-> Signed-off-by: Yangjie Zhang <jay1273062855@outlook.com>
+Since commit 112daa2e647c ("lib: sbi: Maximize the use of HART index in
+sbi_domain") the platform parameter is unused.
 
-Although, we don't use the mconfigptr CSR at the moment but it
-does not hurt to have CSR define.
+Fixes: 112daa2e647c ("lib: sbi: Maximize the use of HART index in sbi_domain")
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+ lib/sbi/sbi_domain.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-Applied this patch to the riscv/opensbi repo.
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index fd4a296..4d248d0 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -256,8 +256,7 @@ static const struct sbi_domain_memregion *find_next_subset_region(
+ 	return ret;
+ }
+ 
+-static int sanitize_domain(const struct sbi_platform *plat,
+-			   struct sbi_domain *dom)
++static int sanitize_domain(struct sbi_domain *dom)
+ {
+ 	u32 i, j, count;
+ 	struct sbi_domain_memregion treg, *reg, *reg1;
+@@ -494,7 +493,6 @@ int sbi_domain_register(struct sbi_domain *dom,
+ 	int rc;
+ 	struct sbi_domain *tdom;
+ 	u32 cold_hartid = current_hartid();
+-	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+ 
+ 	/* Sanity checks */
+ 	if (!dom || !assign_mask || domain_finalized)
+@@ -517,7 +515,7 @@ int sbi_domain_register(struct sbi_domain *dom,
+ 	}
+ 
+ 	/* Sanitize discovered domain */
+-	rc = sanitize_domain(plat, dom);
++	rc = sanitize_domain(dom);
+ 	if (rc) {
+ 		sbi_printf("%s: sanity checks failed for"
+ 			   " %s (error %d)\n", __func__,
+@@ -564,7 +562,6 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
+ 	int rc;
+ 	bool reg_merged;
+ 	struct sbi_domain_memregion *nreg, *nreg1, *nreg2;
+-	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+ 
+ 	/* Sanity checks */
+ 	if (!reg || domain_finalized || !root.regions ||
+@@ -590,7 +587,7 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
+ 	/* Sort and optimize root regions */
+ 	do {
+ 		/* Sanitize the root domain so that memregions are sorted */
+-		rc = sanitize_domain(plat, &root);
++		rc = sanitize_domain(&root);
+ 		if (rc) {
+ 			sbi_printf("%s: sanity checks failed for"
+ 				   " %s (error %d)\n", __func__,
+-- 
+2.40.1
 
-Thanks,
-Anup
-
-> ---
->  include/sbi/riscv_encoding.h | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index d137bf8..d7a000f 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -430,6 +430,7 @@
->  #define CSR_MARCHID                    0xf12
->  #define CSR_MIMPID                     0xf13
->  #define CSR_MHARTID                    0xf14
-> +#define CSR_MCONFIGPTR         0xf15
->
->  /* Machine Trap Setup */
->  #define CSR_MSTATUS                    0x300
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
