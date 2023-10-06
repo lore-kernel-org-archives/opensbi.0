@@ -1,49 +1,73 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 6 Oct 2023 09:44:59 +0530
-Subject: [PATCH 3/3] Makefile: Add --exclude-libs ALL to avoid .dynsym
-In-Reply-To: <TYYP286MB1439270F179A98FEE6178EDEC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Date: Fri, 6 Oct 2023 09:48:48 +0530
+Subject: [PATCH 0/3] Relocation-related fixes
+In-Reply-To: <TYYP286MB1439495D0B19A0ECFD89BDABC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 References: <TYYP286MB1439495D0B19A0ECFD89BDABC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
- <TYYP286MB1439270F179A98FEE6178EDEC6F4A@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <CAAhSdy05ccHLrv4iwq_p6BkHn+wkbwRbRNhmb02p+NxvazFkTA@mail.gmail.com>
+Message-ID: <CAAhSdy0zezBg40dXY-S7FdtwZpRuZ4ukTKdmpGAaS-Y+OK=_gw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Sep 17, 2023 at 11:23?PM Vivian Wang <dramforever@live.com> wrote:
+On Sun, Sep 17, 2023 at 11:22?PM Vivian Wang <dramforever@live.com> wrote:
 >
-> Since everything is statically linked, we don't need to expose symbols
-> for dynamic linking.
+> I was looking into various implementations of "DIY" runtime relocations.
+> One thing led to another, and here are three patches.
 >
-> For a default build this saves about 2 KiB of useless read only data in
-> .dynsym, .dynstr, .hash, .gnu.hash sections.
+> This area does seem fairly obscure, so advice on proper/better ways to
+> do things are definitely needed. Thanks in advance for any help.
 >
-> Signed-off-by: Vivian Wang <dramforever@live.com>
+> Patch 1 fixes a crash on RV32 that happens to 50% of built binaries
+> essentially randomly.
+>
+> Patch 2 removes handling of R_RISCV_{32,64}. Why they have been added in
+> the first place is a complete mystery to me, since these are for dynamic
+> linking only, which is simply not a thing here. I've also never seen a
+> toolchain generate these for *static*-pie. And yes the generated binary
+> boots fine.
+>
+> From what I can tell, Linux, musl, glibc all only handle
+> R_RISCV_RELATIVE for static-pie. (Okay, also IRELATIVE, but just don't
+> use ifuncs.) The only other place I can find that does anything with
+> .dynsym is U-Boot's RISC-V relocation code [1], and the code is there
+> without explanation either.
+>
+> Maybe some ancient toolchains generated R_RISCV_{32,64} for static
+> linking? I have no idea.
+>
+> Since we don't need .dynsym, I went ahead and did patch 3. I tried
+> fiddling around with -fvisibility= but it seems that, given that OpenSBI
+> is built as a static library, --exclude-libs ALL looked liked the
+> simplest solution. Or should we just /DISCARD/ .dynsym etc. instead?
+>
+> Cc'd Vincent Chen - Since you're the author of 0f20e8adcf42 "firmware:
+> Support position independent execution" I'm hope you can give some
+> insight. Thanks in advance.
+>
+> [1]: https://github.com/u-boot/u-boot/commit/e8e39597a33cc53aacbaf4ef5cae60ed86d6a20a
+>
+> Vivian Wang (3):
+>   firmware: Remove ALIGN in .rela.dyn in linker script
+>   firmware: Remove handling of R_RISCV_{32,64}
+>   Makefile: Add --exclude-libs ALL to avoid .dynsym
 
-Looks good to me.
+I quickly tried this series with both GCC 12.2.0 and CLANG 14.0.0
+on the RV64 virt machine and RV32 virt machine. It worked fine
+at my end.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Applied this series to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
-> ---
->  Makefile | 1 +
->  1 file changed, 1 insertion(+)
 >
-> diff --git a/Makefile b/Makefile
-> index ca70949..de4e73a 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -375,6 +375,7 @@ ASFLAGS             +=      $(firmware-asflags-y)
->  ARFLAGS                =       rcs
+>  Makefile                |  1 +
+>  firmware/fw_base.S      | 22 ----------------------
+>  firmware/fw_base.ldS    |  7 -------
+>  include/sbi/riscv_elf.h |  8 --------
+>  4 files changed, 1 insertion(+), 37 deletions(-)
 >
->  ELFFLAGS       +=      $(USE_LD_FLAG)
-> +ELFFLAGS       +=      -Wl,--exclude-libs,ALL
->  ELFFLAGS       +=      -Wl,--build-id=none
->  ELFFLAGS       +=      $(platform-ldflags-y)
->  ELFFLAGS       +=      $(firmware-ldflags-y)
 > --
 > 2.41.0
 >
