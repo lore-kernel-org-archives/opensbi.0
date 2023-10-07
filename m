@@ -1,46 +1,39 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Fri, 6 Oct 2023 15:44:37 -0700
-Subject: Public Review: Advanced Configuration and Power Interface -
- Functional Fixed Hardware
-Message-ID: <CAOnJCU+BdTMQSxaXChUBLiiz71yx5e6mqngOxvD+cXNxSabzSQ@mail.gmail.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Sat,  7 Oct 2023 10:55:37 +0800
+Subject: [PATCH 0/3] platform: generic Add Sophgo sg2042 support
+Message-ID: <IA1PR20MB49531BBE4BAA82B82316FFC1BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We're excited to kick off the public review for ACPI FFH v1.0.0.
+As the dts of sg2042 in the mainline kernel is considered as stable, it is
+time to port sg2042 soc.
 
-Review Dates: 10/06/2023 to 11/06/2023
+This patch depends other two series:
+1. platform: generic: add T-HEAD th1520 soc support
+2. lib: sbi: Add sub-regions check for sanitizing domain
 
-Specification Details:
+Link: https://lore.kernel.org/linux-riscv/cover.1696433229.git.unicorn_wang at outlook.com/
 
-PDF Version: https://github.com/riscv-non-isa/riscv-acpi-ffh/releases/download/v1.0.0-rc7/riscv-ffh.pdf
+Inochi Amaoto (3):
+  lib: utils/timer: mtimer: add separate T-Head C9xx CLINT mtimer
+    compatible
+  lib: utils/ipi: mswi: add separate T-Head C9xx CLINT mswi compatible
+  platform: generic: Add Sophgo sg2042 soc support
 
-Source Code: https://github.com/riscv-non-isa/riscv-acpi-ffh
+ lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
+ lib/utils/timer/fdt_timer_mtimer.c |  2 +
+ platform/generic/Kconfig           |  6 +++
+ platform/generic/configs/defconfig |  1 +
+ platform/generic/sophgo/objects.mk |  9 ++++
+ platform/generic/sophgo/sg2042.c   | 71 ++++++++++++++++++++++++++++++
+ 6 files changed, 90 insertions(+)
+ create mode 100644 platform/generic/sophgo/objects.mk
+ create mode 100644 platform/generic/sophgo/sg2042.c
 
-How to Give Feedback:
+--
+2.42.0
 
-Email your comments to the public isa-dev mailing
-list(isa-dev at groups.riscv.org) or PRS mailing list
-(tech-prs at lists.riscv.org).
-Or, add issues/pull requests to our GitHub repository.
-
-All feedback will be evaluated by the Platform Runtime Services Task
-Group. Minor corrections and straightforward changes will be directly
-implemented. Any other proposed changes will be discussed in a summary
-report after the review period. If no major changes are required, the
-updated specifications will be recommended for approval by the RISC-V
-Technical Steering Committee and Board of Directors.
-
-Contact:
-
-Group: https://lists.riscv.org/g/tech-prs
-
-Task Group Chair: Atish Patra (atishp at rivosinc.com)
-Task Group Vice-chair: Sunil V L (sunilvl at ventanamicro.com)
-
--- 
-Regards,
-Atish
 
