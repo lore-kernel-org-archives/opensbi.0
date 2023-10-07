@@ -1,149 +1,55 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Sat,  7 Oct 2023 10:58:06 +0800
-Subject: [PATCH 3/3] platform: generic: Add Sophgo sg2042 soc support
-In-Reply-To: <IA1PR20MB49531BBE4BAA82B82316FFC1BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49531BBE4BAA82B82316FFC1BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <IA1PR20MB4953D273C377C504C5EA8B4FBBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Sat,  7 Oct 2023 11:05:51 +0800
+Subject: [PATCH v3 0/4] platform: generic: add T-HEAD th1520 soc support
+Message-ID: <IA1PR20MB49534E329372B295663B2153BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add Sophgo sg2042 platform support
+As the tlb workaround is fixed, now it is a time to add T-HEAD th1520 soc
+PMU support.
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
----
- platform/generic/Kconfig           |  6 +++
- platform/generic/configs/defconfig |  1 +
- platform/generic/sophgo/objects.mk |  9 ++++
- platform/generic/sophgo/sg2042.c   | 71 ++++++++++++++++++++++++++++++
- 4 files changed, 87 insertions(+)
- create mode 100644 platform/generic/sophgo/objects.mk
- create mode 100644 platform/generic/sophgo/sg2042.c
+We also move the tlb flush errata to a separate file, so the furthur
+platform can reused it. e.g. the Sophgo sg2042.
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index f9e7ed2..a902cf3 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -49,6 +49,12 @@ config PLATFORM_SIFIVE_FU740
- 	depends on FDT_RESET && FDT_I2C
- 	default n
- 
-+config PLATFORM_SOPHGO_SG2042
-+	bool "Sophgo sg2042 support"
-+	select THEAD_C9XX_ERRATA
-+	select THEAD_C9XX_PMU
-+	default n
-+
- config PLATFORM_STARFIVE_JH7110
- 	bool "StarFive JH7110 support"
- 	default n
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index c432bc2..e1b76c8 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
- CONFIG_PLATFORM_RENESAS_RZFIVE=y
- CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
-+CONFIG_PLATFORM_SOPHGO_SG2042=y
- CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_PLATFORM_THEAD=y
- CONFIG_FDT_GPIO=y
-diff --git a/platform/generic/sophgo/objects.mk b/platform/generic/sophgo/objects.mk
-new file mode 100644
-index 0000000..3d2908a
---- /dev/null
-+++ b/platform/generic/sophgo/objects.mk
-@@ -0,0 +1,9 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (C) 2023 Inochi Amaoto <inochiama@outlook.com>
-+# Copyright (C) 2023 Alibaba Group Holding Limited.
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo_sg2042
-+platform-objs-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo/sg2042.o
-diff --git a/platform/generic/sophgo/sg2042.c b/platform/generic/sophgo/sg2042.c
-new file mode 100644
-index 0000000..df841bd
---- /dev/null
-+++ b/platform/generic/sophgo/sg2042.c
-@@ -0,0 +1,71 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Authors:
-+ *   Inochi Amaoto <inochiama@outlook.com>
-+ *
-+ */
-+
-+#include <platform_override.h>
-+#include <thead/c9xx_errata.h>
-+#include <thead/c9xx_pmu.h>
-+#include <sbi/sbi_const.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_string.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/timer/aclint_mtimer.h>
-+
-+#define SOPHGO_SG2042_TIMER_BASE	0x70ac000000UL
-+#define SOPHGO_SG2042_TIMER_SIZE	0x10000UL
-+
-+
-+static int sophgo_sg2042_early_init(bool cold_boot,
-+				    const struct fdt_match *match)
-+{
-+	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
-+
-+	thead_register_tlb_flush_trap_handler();
-+
-+	/*
-+	 * Sophgo sg2042 soc use seperate 16 timers while initiating,
-+	 * merge them as a single domain to avoid wasting.
-+	 */
-+	if (cold_boot)
-+		return sbi_domain_root_add_memrange(SOPHGO_SG2042_TIMER_BASE,
-+						SOPHGO_SG2042_TIMER_SIZE *
-+						sbi_platform_hart_count(plat),
-+						MTIMER_REGION_ALIGN,
-+						(SBI_DOMAIN_MEMREGION_MMIO |
-+						 SBI_DOMAIN_MEMREGION_M_READABLE |
-+						 SBI_DOMAIN_MEMREGION_M_WRITABLE));
-+
-+
-+	return 0;
-+}
-+
-+static u32 sophgo_sg2042_tlb_num_entries(const struct fdt_match *match)
-+{
-+	unsigned long num_tlb_entries = (unsigned long)match->data;
-+	return num_tlb_entries;
-+}
-+
-+static int sophgo_sg2042_extensions_init(const struct fdt_match *match,
-+					 struct sbi_hart_features *hfeatures)
-+{
-+	thead_c9xx_register_pmu_device();
-+	return 0;
-+}
-+
-+static const struct fdt_match sophgo_sg2042_match[] = {
-+	{ .compatible = "sophgo,sg2042", .data = (void*)64 },
-+	{ },
-+};
-+
-+const struct platform_override sophgo_sg2042 = {
-+	.match_table		= sophgo_sg2042_match,
-+	.tlb_num_entries	= sophgo_sg2042_tlb_num_entries,
-+	.early_init		= sophgo_sg2042_early_init,
-+	.extensions_init	= sophgo_sg2042_extensions_init,
-+};
--- 
+Changed from v2:
+1. fix for empty line error when patching.
+2. add the missing ack.
+
+Changed from v1:
+1. rebase for the master.
+
+Inochi Amaoto (4):
+  platform: generic: thead: move to thead c9xx header to vendor specific
+    postion
+  platform: generic: thead: separate implement of T-HEAD c9xx pmu
+  platform: generic: thead: separate implement of T-HEAD c9xx errata
+  platform: generic: thead: initialize PMU by default in thead generic
+    platform
+
+ platform/generic/Kconfig                      |  4 ++
+ platform/generic/allwinner/sun20i-d1.c        | 53 +-------------
+ .../{thead_c9xx.h => thead/c9xx_encoding.h}   |  4 +-
+ platform/generic/include/thead/c9xx_errata.h  | 13 ++++
+ platform/generic/include/thead/c9xx_pmu.h     |  7 ++
+ platform/generic/thead/Kconfig                |  9 +++
+ platform/generic/thead/objects.mk             |  6 +-
+ platform/generic/thead/thead-generic.c        | 41 ++++++-----
+ .../thead/thead_c9xx_errata_tlb_flush.c       | 17 +++++
+ platform/generic/thead/thead_c9xx_pmu.c       | 69 +++++++++++++++++++
+ ...andler.S => thead_c9xx_tlb_trap_handler.S} |  0
+ 11 files changed, 151 insertions(+), 72 deletions(-)
+ rename platform/generic/include/{thead_c9xx.h => thead/c9xx_encoding.h} (98%)
+ create mode 100644 platform/generic/include/thead/c9xx_errata.h
+ create mode 100644 platform/generic/include/thead/c9xx_pmu.h
+ create mode 100644 platform/generic/thead/Kconfig
+ create mode 100644 platform/generic/thead/thead_c9xx_errata_tlb_flush.c
+ create mode 100644 platform/generic/thead/thead_c9xx_pmu.c
+ rename platform/generic/thead/{thead-trap-handler.S => thead_c9xx_tlb_trap_handler.S} (100%)
+
+--
 2.42.0
 
 
