@@ -1,74 +1,65 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Sat,  7 Oct 2023 11:06:31 +0800
-Subject: [PATCH v3 4/4] platform: generic: thead: initialize PMU by default in thead generic platform
-In-Reply-To: <20231007030631.101073-1-inochiama@outlook.com>
-References: <IA1PR20MB49534E329372B295663B2153BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
- <20231007030631.101073-1-inochiama@outlook.com>
-Message-ID: <IA1PR20MB49536E28A3FC24C353A8DC04BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Xiang W <wxjstz@126.com>
+Date: Sat, 07 Oct 2023 11:48:50 +0800
+Subject: [PATCH 0/3] Sparse HART id improvements
+In-Reply-To: <CAAhSdy2iZruS48CqB9UDiaqL57KD7zX+DxsC-M8ArmxX8soWzg@mail.gmail.com>
+References: <20230924155745.1753120-1-wxjstz@126.com>
+	 <CAAhSdy2iZruS48CqB9UDiaqL57KD7zX+DxsC-M8ArmxX8soWzg@mail.gmail.com>
+Message-ID: <6ce921ad7d4ff85737d4605163e70abb451f910c.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Since all the SoC with thead c9xx cores need this initialization at now,
-initialize the c9xx pmu in the thead generic platform by default.
+? 2023-10-06???? 10:05 +0530?Anup Patel???
+> On Sun, Sep 24, 2023 at 9:28?PM Xiang W <wxjstz@126.com> wrote:
+> > 
+> > Modify last_hartindex_having_scratch/hartindex_to_hartid_table
+> > /hartindex_to_scratch_table as static variables to prevent accidental
+> > modification and reduce memory consumption
+> > 
+> > Xiang W (3):
+> > ? lib: sbi: Refactor sbi_scratch_last_hartindex as a function
+> > ? lib: sbi: Refactor sbi_hartindex_to_hartid as a function
+> > ? lib: sbi: Refactor sbi_hartindex_to_scratch as a function
+> 
+> All these are in hot-path at various places so introducing a
+> function is certainly not helping.
+> 
+> Also, if some buggy code is accidentally modifying global data
+> then that buggy code should be fixed rather than papering over
+> the problem by introducing these functions.
+PATCH1:
+The original code is a bit strange in that there is already a global variable
+last_hartindex_having_scratch, but instead of using it outside of sbi_scratch.c,
+the macro sbi_scratch_last_hartindex is used. If don't want to modify this macro
+into a function, why not just change the name of the last_hartindex_having_scratch
+renamed to sbi_scratch_last_hartindex and then remove the macro?
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
----
- platform/generic/Kconfig               |  1 +
- platform/generic/thead/thead-generic.c | 13 +++++++++++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+PATCH2:
+The arrays hartindex_to_hartid_table and plat->hart_index2id store similar content,
+and the extra length of the hartindex_to_hartid_table array is not used because
+there is a determination of whether the index is less than sbi_scratch_last_ hartindex.
+the array can be removed by adding just a little bit of checking.
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 3be75cf..f9e7ed2 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -56,6 +56,7 @@ config PLATFORM_STARFIVE_JH7110
- config PLATFORM_THEAD
- 	bool "THEAD C9xx support"
- 	select THEAD_C9XX_ERRATA
-+	select THEAD_C9XX_PMU
- 	default n
- 
- source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
-diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
-index c77140c..72f4aaa 100644
---- a/platform/generic/thead/thead-generic.c
-+++ b/platform/generic/thead/thead-generic.c
-@@ -8,6 +8,7 @@
- 
- #include <platform_override.h>
- #include <thead/c9xx_errata.h>
-+#include <thead/c9xx_pmu.h>
- #include <sbi/sbi_const.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
-@@ -29,6 +30,13 @@ static int thead_generic_early_init(bool cold_boot,
- 	return 0;
- }
- 
-+static int thead_generic_extensions_init(const struct fdt_match *match,
-+					 struct sbi_hart_features *hfeatures)
-+{
-+	thead_c9xx_register_pmu_device();
-+	return 0;
-+}
-+
- static struct thead_generic_quirks thead_th1520_quirks = {
- 	.errata = THEAD_QUIRK_ERRATA_TLB_FLUSH,
- };
-@@ -39,6 +47,7 @@ static const struct fdt_match thead_generic_match[] = {
- };
- 
- const struct platform_override thead_generic = {
--	.match_table	= thead_generic_match,
--	.early_init	= thead_generic_early_init,
-+	.match_table		= thead_generic_match,
-+	.early_init		= thead_generic_early_init,
-+	.extensions_init	= thead_generic_extensions_init,
- };
--- 
-2.42.0
+Regards,
+Xiang W
+> 
+> Regards,
+> Anup
+> 
+> > 
+> > ?include/sbi/sbi_scratch.h | 35 ++++++++++++-----------------------
+> > ?lib/sbi/sbi_scratch.c???? | 30 ++++++++++++++++++++++++++----
+> > ?2 files changed, 38 insertions(+), 27 deletions(-)
+> > 
+> > --
+> > 2.40.1
+> > 
+> > 
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
 
