@@ -1,44 +1,39 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Sun,  8 Oct 2023 20:15:52 +0800
-Subject: [PATCH v2 0/4] platform: generic: Add Sophgo sg2042 support
-Message-ID: <IA1PR20MB4953CAA2C31F07F9A1157EF7BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Sun,  8 Oct 2023 20:16:44 +0800
+Subject: [PATCH v2 1/4] lib: utils/timer: mtimer: add separate T-Head C9xx CLINT mtimer compatible
+In-Reply-To: <IA1PR20MB4953CAA2C31F07F9A1157EF7BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953CAA2C31F07F9A1157EF7BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <IA1PR20MB4953A405684C03B289FED6E6BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-As the dts of sg2042 in the mainline kernel is considered as stable, it is
-time to port sg2042 soc.
+T-HEAD allows soc vendor to map the mtimer and mswi of C9xx clint on
+different address, which may cause a misuse if use the same compatible
+string, add a new timer compatible string to avoid this.
 
-This patch depends other two series:
-1. platform: generic: add T-HEAD th1520 soc support
-2. lib: sbi: Add sub-regions check for sanitizing domain
+Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+Link: https://lore.kernel.org/linux-riscv/6e48cbe5e60f9ada2fd1fe58e803e127f1a678e5.1696433229.git.unicorn_wang at outlook.com/
+---
+ lib/utils/timer/fdt_timer_mtimer.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Link: https://lore.kernel.org/linux-riscv/cover.1696433229.git.unicorn_wang at outlook.com/
-
-Changed from v1:
-1. make number of entries in tlb fifo auto deteted.
-
-Inochi Amaoto (4):
-  lib: utils/timer: mtimer: add separate T-Head C9xx CLINT mtimer
-    compatible
-  lib: utils/ipi: mswi: add separate T-Head C9xx CLINT mswi compatible
-  platform: Allow platform uses hart count as the size of tlb info
-  platform: generic: Add Sophgo sg2042 platform support
-
- lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
- lib/utils/timer/fdt_timer_mtimer.c |  2 +
- platform/generic/Kconfig           |  6 +++
- platform/generic/configs/defconfig |  1 +
- platform/generic/platform.c        |  7 ++++
- platform/generic/sophgo/objects.mk |  9 +++++
- platform/generic/sophgo/sg2042.c   | 64 ++++++++++++++++++++++++++++++
- 7 files changed, 90 insertions(+)
- create mode 100644 platform/generic/sophgo/objects.mk
- create mode 100644 platform/generic/sophgo/sg2042.c
-
---
+diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+index 9eaa11d..0ac9aed 100644
+--- a/lib/utils/timer/fdt_timer_mtimer.c
++++ b/lib/utils/timer/fdt_timer_mtimer.c
+@@ -146,6 +146,8 @@ static const struct fdt_match timer_mtimer_match[] = {
+ 	{ .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+ 	{ .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+ 	{ .compatible = "thead,c900-clint", .data = &thead_clint_quirks },
++	{ .compatible = "thead,c900-aclint-mtimer",
++	  .data = &thead_clint_quirks },
+ 	{ .compatible = "riscv,aclint-mtimer" },
+ 	{ },
+ };
+-- 
 2.42.0
 
 
