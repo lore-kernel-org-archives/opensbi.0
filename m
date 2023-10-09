@@ -1,67 +1,82 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 Oct 2023 13:55:47 +0530
-Subject: [PATCH] lib: sbi_misaligned_ldst: Fix handling of C.SWSP and C.SDSP
-In-Reply-To: <20231001091226.592084-1-amanieu@gmail.com>
-References: <20231001091226.592084-1-amanieu@gmail.com>
-Message-ID: <CAAhSdy0Ut=A2T02FauaH=fZqpX8XosUt_fCMXbm0WhAW2sECPw@mail.gmail.com>
+Date: Mon, 9 Oct 2023 14:06:52 +0530
+Subject: [PATCH 0/3] Sparse HART id improvements
+In-Reply-To: <6ce921ad7d4ff85737d4605163e70abb451f910c.camel@126.com>
+References: <20230924155745.1753120-1-wxjstz@126.com> <CAAhSdy2iZruS48CqB9UDiaqL57KD7zX+DxsC-M8ArmxX8soWzg@mail.gmail.com>
+ <6ce921ad7d4ff85737d4605163e70abb451f910c.camel@126.com>
+Message-ID: <CAAhSdy119qy6zksV6ofVf_iy1nTJsGTwNNhKEUiFqNYjaL+fEw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Oct 1, 2023 at 2:43?PM Amanieu d'Antras <amanieu@gmail.com> wrote:
+On Sat, Oct 7, 2023 at 9:19?AM Xiang W <wxjstz@126.com> wrote:
 >
-> Unlike C.LWSP/C.LDSP, these encodings can be used with the zero
-> register, so checking that the rs2 field is non-zero is unnecessary.
+> ? 2023-10-06???? 10:05 +0530?Anup Patel???
+> > On Sun, Sep 24, 2023 at 9:28?PM Xiang W <wxjstz@126.com> wrote:
+> > >
+> > > Modify last_hartindex_having_scratch/hartindex_to_hartid_table
+> > > /hartindex_to_scratch_table as static variables to prevent accidental
+> > > modification and reduce memory consumption
+> > >
+> > > Xiang W (3):
+> > >   lib: sbi: Refactor sbi_scratch_last_hartindex as a function
+> > >   lib: sbi: Refactor sbi_hartindex_to_hartid as a function
+> > >   lib: sbi: Refactor sbi_hartindex_to_scratch as a function
+> >
+> > All these are in hot-path at various places so introducing a
+> > function is certainly not helping.
+> >
+> > Also, if some buggy code is accidentally modifying global data
+> > then that buggy code should be fixed rather than papering over
+> > the problem by introducing these functions.
+> PATCH1:
+> The original code is a bit strange in that there is already a global variable
+> last_hartindex_having_scratch, but instead of using it outside of sbi_scratch.c,
+> the macro sbi_scratch_last_hartindex is used. If don't want to modify this macro
+> into a function, why not just change the name of the last_hartindex_having_scratch
+> renamed to sbi_scratch_last_hartindex and then remove the macro?
+
+The sbi_scratch_last_hartindex() macro allows adding instrumentation
+code for debugging purposes. The caller of sbi_scratch_last_hartindex()
+should not care about how it is implemented.
+
 >
-> Additionally, the previous check was incorrect since it was checking the
-> immediate field of the instruction instead of the rs2 field.
->
-> Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
+> PATCH2:
+> The arrays hartindex_to_hartid_table and plat->hart_index2id store similar content,
+> and the extra length of the hartindex_to_hartid_table array is not used because
+> there is a determination of whether the index is less than sbi_scratch_last_ hartindex.
+> the array can be removed by adding just a little bit of checking.
 
-Looks good to me.
+The "plat->hart_index2id" is optional and can be NULL as well so
+we have to always use "if ()" before accessing "plat->hart_index2id".
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
+Also, we always have to access "hart_index2id[]" via "plat" pointer
+which is slower compared to a global array like "hartindex_to_hartid_table[]".
 
 Regards,
 Anup
 
-> ---
->  lib/sbi/sbi_misaligned_ldst.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
-> index 4b91e07..aa512de 100644
-> --- a/lib/sbi/sbi_misaligned_ldst.c
-> +++ b/lib/sbi/sbi_misaligned_ldst.c
-> @@ -211,16 +211,14 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
->         } else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD) {
->                 len            = 8;
->                 val.data_ulong = GET_RS2S(insn, regs);
-> -       } else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP &&
-> -                  ((insn >> SH_RD) & 0x1f)) {
-> +       } else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP) {
->                 len            = 8;
->                 val.data_ulong = GET_RS2C(insn, regs);
->  #endif
->         } else if ((insn & INSN_MASK_C_SW) == INSN_MATCH_C_SW) {
->                 len            = 4;
->                 val.data_ulong = GET_RS2S(insn, regs);
-> -       } else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP &&
-> -                  ((insn >> SH_RD) & 0x1f)) {
-> +       } else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP) {
->                 len            = 4;
->                 val.data_ulong = GET_RS2C(insn, regs);
->  #ifdef __riscv_flen
-> --
-> 2.42.0
+> Regards,
+> Xiang W
+> >
+> > Regards,
+> > Anup
+> >
+> > >
+> > >  include/sbi/sbi_scratch.h | 35 ++++++++++++-----------------------
+> > >  lib/sbi/sbi_scratch.c     | 30 ++++++++++++++++++++++++++----
+> > >  2 files changed, 38 insertions(+), 27 deletions(-)
+> > >
+> > > --
+> > > 2.40.1
+> > >
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
