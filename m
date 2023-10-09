@@ -1,82 +1,185 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 Oct 2023 14:06:52 +0530
-Subject: [PATCH 0/3] Sparse HART id improvements
-In-Reply-To: <6ce921ad7d4ff85737d4605163e70abb451f910c.camel@126.com>
-References: <20230924155745.1753120-1-wxjstz@126.com> <CAAhSdy2iZruS48CqB9UDiaqL57KD7zX+DxsC-M8ArmxX8soWzg@mail.gmail.com>
- <6ce921ad7d4ff85737d4605163e70abb451f910c.camel@126.com>
-Message-ID: <CAAhSdy119qy6zksV6ofVf_iy1nTJsGTwNNhKEUiFqNYjaL+fEw@mail.gmail.com>
+Date: Mon, 9 Oct 2023 14:23:01 +0530
+Subject: [PATCH] lib: sbi: Add sub-regions check for sanitizing domain
+In-Reply-To: <IA1PR20MB4953ECE2BD5CA00E14EFE892BBF1A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953ECE2BD5CA00E14EFE892BBF1A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy1hGgvXQ4HNxYcHd56vT2sXqYNuQXFyVk7GUksgDFukHg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Oct 7, 2023 at 9:19?AM Xiang W <wxjstz@126.com> wrote:
+On Tue, Sep 12, 2023 at 5:42?PM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> ? 2023-10-06???? 10:05 +0530?Anup Patel???
-> > On Sun, Sep 24, 2023 at 9:28?PM Xiang W <wxjstz@126.com> wrote:
-> > >
-> > > Modify last_hartindex_having_scratch/hartindex_to_hartid_table
-> > > /hartindex_to_scratch_table as static variables to prevent accidental
-> > > modification and reduce memory consumption
-> > >
-> > > Xiang W (3):
-> > >   lib: sbi: Refactor sbi_scratch_last_hartindex as a function
-> > >   lib: sbi: Refactor sbi_hartindex_to_hartid as a function
-> > >   lib: sbi: Refactor sbi_hartindex_to_scratch as a function
-> >
-> > All these are in hot-path at various places so introducing a
-> > function is certainly not helping.
-> >
-> > Also, if some buggy code is accidentally modifying global data
-> > then that buggy code should be fixed rather than papering over
-> > the problem by introducing these functions.
-> PATCH1:
-> The original code is a bit strange in that there is already a global variable
-> last_hartindex_having_scratch, but instead of using it outside of sbi_scratch.c,
-> the macro sbi_scratch_last_hartindex is used. If don't want to modify this macro
-> into a function, why not just change the name of the last_hartindex_having_scratch
-> renamed to sbi_scratch_last_hartindex and then remove the macro?
-
-The sbi_scratch_last_hartindex() macro allows adding instrumentation
-code for debugging purposes. The caller of sbi_scratch_last_hartindex()
-should not care about how it is implemented.
-
+> As the domain will reject a new memory region which has a sub-regions
+> already in the domain, even the new region is bigger and has the same
+> flags. This problem can be solved by relaxing region restriction and
+> rechecking when adding and sanitizing domains.
 >
-> PATCH2:
-> The arrays hartindex_to_hartid_table and plat->hart_index2id store similar content,
-> and the extra length of the hartindex_to_hartid_table array is not used because
-> there is a determination of whether the index is less than sbi_scratch_last_ hartindex.
-> the array can be removed by adding just a little bit of checking.
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> ---
+>  lib/sbi/sbi_domain.c | 86 ++++++++++++++++++++++++++++++--------------
+>  1 file changed, 59 insertions(+), 27 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index acd0f74..8c6cbfe 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -193,20 +193,19 @@ static bool is_region_subset(const struct sbi_domain_memregion *regA,
+>         ulong regB_end = regB->base + (BIT(regB->order) - 1);
+>
+>         if ((regB_start <= regA_start) &&
+> -           (regA_start < regB_end) &&
+> -           (regB_start < regA_end) &&
+> +           (regB_start <= regA_end) &&
+> +           (regA_start <= regB_end) &&
+>             (regA_end <= regB_end))
 
-The "plat->hart_index2id" is optional and can be NULL as well so
-we have to always use "if ()" before accessing "plat->hart_index2id".
+The above needs to be a separate patch since it is improving
+is_region_subset().
 
-Also, we always have to access "hart_index2id[]" via "plat" pointer
-which is slower compared to a global array like "hartindex_to_hartid_table[]".
+>                 return true;
+>
+>         return false;
+>  }
+>
+> -/** Check if regionA conflicts regionB */
+> -static bool is_region_conflict(const struct sbi_domain_memregion *regA,
+> -                               const struct sbi_domain_memregion *regB)
+> +/** Check if regionA can be replaced by regionB */
+> +static bool is_region_compatible(const struct sbi_domain_memregion *regA,
+> +                                const struct sbi_domain_memregion *regB)
+>  {
+> -       if ((is_region_subset(regA, regB) || is_region_subset(regB, regA)) &&
+> -           regA->flags == regB->flags)
+> +       if (is_region_subset(regA, regB) && regA->flags == regB->flags)
+>                 return true;
+>
+>         return false;
+> @@ -264,11 +263,26 @@ static const struct sbi_domain_memregion *find_next_subset_region(
+>         return ret;
+>  }
+>
+> +static void swap_region(struct sbi_domain_memregion* reg1,
+> +                       struct sbi_domain_memregion* reg2)
+> +{
+> +       struct sbi_domain_memregion treg;
+> +
+> +       sbi_memcpy(&treg, reg1, sizeof(treg));
+> +       sbi_memcpy(reg1, reg2, sizeof(treg));
+> +       sbi_memcpy(reg2, &treg, sizeof(treg));
+> +}
+
+Introducing swap_region() should also be a separate patch.
+
+> +
+> +static void clear_region(struct sbi_domain_memregion* reg)
+> +{
+> +       sbi_memset(reg, 0x0, sizeof(*reg));
+> +}
+> +
+>  static int sanitize_domain(const struct sbi_platform *plat,
+>                            struct sbi_domain *dom)
+>  {
+>         u32 i, j, count;
+> -       struct sbi_domain_memregion treg, *reg, *reg1;
+> +       struct sbi_domain_memregion *reg, *reg1;
+>
+>         /* Check possible HARTs */
+>         if (!dom->possible_harts) {
+> @@ -312,28 +326,50 @@ static int sanitize_domain(const struct sbi_platform *plat,
+>                 return SBI_EINVAL;
+>         }
+>
+> +       /* Remove covered regions */
+> +       while(i < (count - 1)) {
+> +               reg = &dom->regions[i];
+> +               j = i + 1;
+> +               while (j < count) {
+> +                       reg1 = &dom->regions[j];
+> +
+> +                       /* reg1 is sub-region of reg, remove reg1 */
+> +                       if (is_region_compatible(reg1, reg)) {
+> +                               swap_region(reg1, &dom->regions[count - 1]);
+> +                               clear_region(&dom->regions[count - 1]);
+> +                               count--;
+> +                               continue;
+> +                       }
+> +
+> +                       /*
+> +                        * reg is sub-region of reg1, replace reg with reg1
+> +                        * and recheck all other regions.
+> +                        */
+> +                       if (is_region_compatible(reg, reg1)) {
+> +                               swap_region(reg, reg1);
+> +                               swap_region(reg1, &dom->regions[count - 1]);
+> +                               clear_region(&dom->regions[count - 1]);
+> +                               count--;
+> +                               goto regions_recheck;
+> +                       }
+> +
+> +                       j++;
+> +               }
+> +
+> +               i++;
+> +regions_recheck:
+> +       }
+> +
+>         /* Sort the memory regions */
+>         for (i = 0; i < (count - 1); i++) {
+>                 reg = &dom->regions[i];
+>                 for (j = i + 1; j < count; j++) {
+>                         reg1 = &dom->regions[j];
+>
+> -                       if (is_region_conflict(reg1, reg)) {
+> -                               sbi_printf("%s: %s conflict between regions "
+> -                                       "(base=0x%lx order=%lu flags=0x%lx) and "
+> -                                       "(base=0x%lx order=%lu flags=0x%lx)\n",
+> -                                       __func__, dom->name,
+> -                                       reg->base, reg->order, reg->flags,
+> -                                       reg1->base, reg1->order, reg1->flags);
+> -                               return SBI_EINVAL;
+> -                       }
+> -
+>                         if (!is_region_before(reg1, reg))
+>                                 continue;
+>
+> -                       sbi_memcpy(&treg, reg1, sizeof(treg));
+> -                       sbi_memcpy(reg1, reg, sizeof(treg));
+> -                       sbi_memcpy(reg, &treg, sizeof(treg));
+> +                       swap_region(reg, reg1);
+>                 }
+>         }
+>
+> @@ -578,12 +614,8 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
+>
+>         /* Check for conflicts */
+>         sbi_domain_for_each_memregion(&root, nreg) {
+> -               if (is_region_conflict(reg, nreg)) {
+> -                       sbi_printf("%s: is_region_conflict check failed"
+> -                       " 0x%lx conflicts existing 0x%lx\n", __func__,
+> -                                  reg->base, nreg->base);
+> -                       return SBI_EALREADY;
+> -               }
+> +               if (is_region_compatible(reg, nreg))
+> +                       return 0;
+>         }
+>
+>         /* Append the memregion to root memregions */
+> --
+> 2.42.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+The remaining changes should be a separate patch itself.
+
+Please convert this patch into a small series as suggested above.
 
 Regards,
 Anup
-
->
-> Regards,
-> Xiang W
-> >
-> > Regards,
-> > Anup
-> >
-> > >
-> > >  include/sbi/sbi_scratch.h | 35 ++++++++++++-----------------------
-> > >  lib/sbi/sbi_scratch.c     | 30 ++++++++++++++++++++++++++----
-> > >  2 files changed, 38 insertions(+), 27 deletions(-)
-> > >
-> > > --
-> > > 2.40.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
->
 
