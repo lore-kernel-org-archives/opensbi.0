@@ -1,185 +1,89 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 Oct 2023 14:23:01 +0530
-Subject: [PATCH] lib: sbi: Add sub-regions check for sanitizing domain
-In-Reply-To: <IA1PR20MB4953ECE2BD5CA00E14EFE892BBF1A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953ECE2BD5CA00E14EFE892BBF1A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy1hGgvXQ4HNxYcHd56vT2sXqYNuQXFyVk7GUksgDFukHg@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Mon,  9 Oct 2023 17:22:02 +0800
+Subject: [PATCH] lib: sbi: Improve hartindex_to_hartid_table
+Message-ID: <20231009092202.267633-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 12, 2023 at 5:42?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->
-> As the domain will reject a new memory region which has a sub-regions
-> already in the domain, even the new region is bigger and has the same
-> flags. This problem can be solved by relaxing region restriction and
-> rechecking when adding and sanitizing domains.
->
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> ---
->  lib/sbi/sbi_domain.c | 86 ++++++++++++++++++++++++++++++--------------
->  1 file changed, 59 insertions(+), 27 deletions(-)
->
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index acd0f74..8c6cbfe 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -193,20 +193,19 @@ static bool is_region_subset(const struct sbi_domain_memregion *regA,
->         ulong regB_end = regB->base + (BIT(regB->order) - 1);
->
->         if ((regB_start <= regA_start) &&
-> -           (regA_start < regB_end) &&
-> -           (regB_start < regA_end) &&
-> +           (regB_start <= regA_end) &&
-> +           (regA_start <= regB_end) &&
->             (regA_end <= regB_end))
+Modify hartindex_to_hartid_table point to plat->hart_index2id to
+save memory. This slows down sbi_hartindex_to_hartid slightly
+because it needs to determine whether hartindex_to_hartid_table is
+NULL. This will also improve the speed of sbi_hartid_to_hartindex
+when plat->hart_index2id is NULL, since there is no need to iterate
+through the array.
 
-The above needs to be a separate patch since it is improving
-is_region_subset().
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ include/sbi/sbi_scratch.h | 13 ++++++++-----
+ lib/sbi/sbi_scratch.c     |  7 +++++--
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
->                 return true;
->
->         return false;
->  }
->
-> -/** Check if regionA conflicts regionB */
-> -static bool is_region_conflict(const struct sbi_domain_memregion *regA,
-> -                               const struct sbi_domain_memregion *regB)
-> +/** Check if regionA can be replaced by regionB */
-> +static bool is_region_compatible(const struct sbi_domain_memregion *regA,
-> +                                const struct sbi_domain_memregion *regB)
->  {
-> -       if ((is_region_subset(regA, regB) || is_region_subset(regB, regA)) &&
-> -           regA->flags == regB->flags)
-> +       if (is_region_subset(regA, regB) && regA->flags == regB->flags)
->                 return true;
->
->         return false;
-> @@ -264,11 +263,26 @@ static const struct sbi_domain_memregion *find_next_subset_region(
->         return ret;
->  }
->
-> +static void swap_region(struct sbi_domain_memregion* reg1,
-> +                       struct sbi_domain_memregion* reg2)
-> +{
-> +       struct sbi_domain_memregion treg;
-> +
-> +       sbi_memcpy(&treg, reg1, sizeof(treg));
-> +       sbi_memcpy(reg1, reg2, sizeof(treg));
-> +       sbi_memcpy(reg2, &treg, sizeof(treg));
-> +}
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index e6a33ba..02db224 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -213,13 +213,16 @@ extern u32 last_hartindex_having_scratch;
+ (((__hartindex) <= sbi_scratch_last_hartindex()) ? true : false)
+ 
+ /** HART index to HART id table */
+-extern u32 hartindex_to_hartid_table[];
++extern const u32* hartindex_to_hartid_table;
+ 
+ /** Get sbi_scratch from HART index */
+-#define sbi_hartindex_to_hartid(__hartindex)		\
+-({							\
+-	((__hartindex) <= sbi_scratch_last_hartindex()) ?\
+-	hartindex_to_hartid_table[__hartindex] : -1U;	\
++#define sbi_hartindex_to_hartid(__hartindex)			\
++({								\
++	((__hartindex) <= sbi_scratch_last_hartindex()) ?	\
++		(hartindex_to_hartid_table ?			\
++			hartindex_to_hartid_table[__hartindex] :\
++			__hartindex) :				\
++		-1U;						\
+ })
+ 
+ /** HART index to scratch table */
+diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+index ccbbc68..e097077 100644
+--- a/lib/sbi/sbi_scratch.c
++++ b/lib/sbi/sbi_scratch.c
+@@ -15,7 +15,7 @@
+ #include <sbi/sbi_string.h>
+ 
+ u32 last_hartindex_having_scratch = 0;
+-u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
++const u32 *hartindex_to_hartid_table;
+ struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
+ 
+ static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+@@ -25,6 +25,9 @@ u32 sbi_hartid_to_hartindex(u32 hartid)
+ {
+ 	u32 i;
+ 
++	if (hartindex_to_hartid_table == NULL)
++		return hartid;
++
+ 	for (i = 0; i <= last_hartindex_having_scratch; i++)
+ 		if (hartindex_to_hartid_table[i] == hartid)
+ 			return i;
+@@ -41,11 +44,11 @@ int sbi_scratch_init(struct sbi_scratch *scratch)
+ 
+ 	for (i = 0; i < plat->hart_count; i++) {
+ 		h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
+-		hartindex_to_hartid_table[i] = h;
+ 		hartindex_to_scratch_table[i] =
+ 			((hartid2scratch)scratch->hartid_to_scratch)(h, i);
+ 	}
+ 
++	hartindex_to_hartid_table = plat->hart_index2id;
+ 	last_hartindex_having_scratch = plat->hart_count - 1;
+ 
+ 	return 0;
+-- 
+2.40.1
 
-Introducing swap_region() should also be a separate patch.
-
-> +
-> +static void clear_region(struct sbi_domain_memregion* reg)
-> +{
-> +       sbi_memset(reg, 0x0, sizeof(*reg));
-> +}
-> +
->  static int sanitize_domain(const struct sbi_platform *plat,
->                            struct sbi_domain *dom)
->  {
->         u32 i, j, count;
-> -       struct sbi_domain_memregion treg, *reg, *reg1;
-> +       struct sbi_domain_memregion *reg, *reg1;
->
->         /* Check possible HARTs */
->         if (!dom->possible_harts) {
-> @@ -312,28 +326,50 @@ static int sanitize_domain(const struct sbi_platform *plat,
->                 return SBI_EINVAL;
->         }
->
-> +       /* Remove covered regions */
-> +       while(i < (count - 1)) {
-> +               reg = &dom->regions[i];
-> +               j = i + 1;
-> +               while (j < count) {
-> +                       reg1 = &dom->regions[j];
-> +
-> +                       /* reg1 is sub-region of reg, remove reg1 */
-> +                       if (is_region_compatible(reg1, reg)) {
-> +                               swap_region(reg1, &dom->regions[count - 1]);
-> +                               clear_region(&dom->regions[count - 1]);
-> +                               count--;
-> +                               continue;
-> +                       }
-> +
-> +                       /*
-> +                        * reg is sub-region of reg1, replace reg with reg1
-> +                        * and recheck all other regions.
-> +                        */
-> +                       if (is_region_compatible(reg, reg1)) {
-> +                               swap_region(reg, reg1);
-> +                               swap_region(reg1, &dom->regions[count - 1]);
-> +                               clear_region(&dom->regions[count - 1]);
-> +                               count--;
-> +                               goto regions_recheck;
-> +                       }
-> +
-> +                       j++;
-> +               }
-> +
-> +               i++;
-> +regions_recheck:
-> +       }
-> +
->         /* Sort the memory regions */
->         for (i = 0; i < (count - 1); i++) {
->                 reg = &dom->regions[i];
->                 for (j = i + 1; j < count; j++) {
->                         reg1 = &dom->regions[j];
->
-> -                       if (is_region_conflict(reg1, reg)) {
-> -                               sbi_printf("%s: %s conflict between regions "
-> -                                       "(base=0x%lx order=%lu flags=0x%lx) and "
-> -                                       "(base=0x%lx order=%lu flags=0x%lx)\n",
-> -                                       __func__, dom->name,
-> -                                       reg->base, reg->order, reg->flags,
-> -                                       reg1->base, reg1->order, reg1->flags);
-> -                               return SBI_EINVAL;
-> -                       }
-> -
->                         if (!is_region_before(reg1, reg))
->                                 continue;
->
-> -                       sbi_memcpy(&treg, reg1, sizeof(treg));
-> -                       sbi_memcpy(reg1, reg, sizeof(treg));
-> -                       sbi_memcpy(reg, &treg, sizeof(treg));
-> +                       swap_region(reg, reg1);
->                 }
->         }
->
-> @@ -578,12 +614,8 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->
->         /* Check for conflicts */
->         sbi_domain_for_each_memregion(&root, nreg) {
-> -               if (is_region_conflict(reg, nreg)) {
-> -                       sbi_printf("%s: is_region_conflict check failed"
-> -                       " 0x%lx conflicts existing 0x%lx\n", __func__,
-> -                                  reg->base, nreg->base);
-> -                       return SBI_EALREADY;
-> -               }
-> +               if (is_region_compatible(reg, nreg))
-> +                       return 0;
->         }
->
->         /* Append the memregion to root memregions */
-> --
-> 2.42.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-The remaining changes should be a separate patch itself.
-
-Please convert this patch into a small series as suggested above.
-
-Regards,
-Anup
 
