@@ -1,156 +1,67 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Mon, 9 Oct 2023 08:36:51 +0800
-Subject: [PATCH v2 4/4] platform: generic: Add Sophgo sg2042 platform support
-In-Reply-To: <IA1PR20MB4953994C9AA1CAE023E84E00BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953CAA2C31F07F9A1157EF7BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
- <20231008121742.330012-1-inochiama@outlook.com> <IA1PR20MB4953994C9AA1CAE023E84E00BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAJF2gTTWuMO5MVpieUQE=wvUSspLS_Md82T+GOvg-LoMrLphaQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 9 Oct 2023 13:55:47 +0530
+Subject: [PATCH] lib: sbi_misaligned_ldst: Fix handling of C.SWSP and C.SDSP
+In-Reply-To: <20231001091226.592084-1-amanieu@gmail.com>
+References: <20231001091226.592084-1-amanieu@gmail.com>
+Message-ID: <CAAhSdy0Ut=A2T02FauaH=fZqpX8XosUt_fCMXbm0WhAW2sECPw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Oct 8, 2023 at 8:17?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Sun, Oct 1, 2023 at 2:43?PM Amanieu d'Antras <amanieu@gmail.com> wrote:
 >
-> Add Sophgo sg2042 soc support
+> Unlike C.LWSP/C.LDSP, these encodings can be used with the zero
+> register, so checking that the rs2 field is non-zero is unnecessary.
 >
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> Additionally, the previous check was incorrect since it was checking the
+> immediate field of the instruction instead of the rs2 field.
+>
+> Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
+
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Regards,
+Anup
+
 > ---
->  platform/generic/Kconfig           |  6 +++
->  platform/generic/configs/defconfig |  1 +
->  platform/generic/sophgo/objects.mk |  9 +++++
->  platform/generic/sophgo/sg2042.c   | 64 ++++++++++++++++++++++++++++++
->  4 files changed, 80 insertions(+)
->  create mode 100644 platform/generic/sophgo/objects.mk
->  create mode 100644 platform/generic/sophgo/sg2042.c
+>  lib/sbi/sbi_misaligned_ldst.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
 >
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index f9e7ed2..a902cf3 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -49,6 +49,12 @@ config PLATFORM_SIFIVE_FU740
->         depends on FDT_RESET && FDT_I2C
->         default n
->
-> +config PLATFORM_SOPHGO_SG2042
-> +       bool "Sophgo sg2042 support"
-> +       select THEAD_C9XX_ERRATA
-> +       select THEAD_C9XX_PMU
-> +       default n
-> +
->  config PLATFORM_STARFIVE_JH7110
->         bool "StarFive JH7110 support"
->         default n
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index c432bc2..e1b76c8 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
->  CONFIG_PLATFORM_RENESAS_RZFIVE=y
->  CONFIG_PLATFORM_SIFIVE_FU540=y
->  CONFIG_PLATFORM_SIFIVE_FU740=y
-> +CONFIG_PLATFORM_SOPHGO_SG2042=y
->  CONFIG_PLATFORM_STARFIVE_JH7110=y
->  CONFIG_PLATFORM_THEAD=y
->  CONFIG_FDT_GPIO=y
-> diff --git a/platform/generic/sophgo/objects.mk b/platform/generic/sophgo/objects.mk
-> new file mode 100644
-> index 0000000..3d2908a
-> --- /dev/null
-> +++ b/platform/generic/sophgo/objects.mk
-> @@ -0,0 +1,9 @@
-> +#
-> +# SPDX-License-Identifier: BSD-2-Clause
-> +#
-> +# Copyright (C) 2023 Inochi Amaoto <inochiama@outlook.com>
-> +# Copyright (C) 2023 Alibaba Group Holding Limited.
-> +#
-> +
-> +carray-platform_override_modules-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo_sg2042
-> +platform-objs-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo/sg2042.o
-> diff --git a/platform/generic/sophgo/sg2042.c b/platform/generic/sophgo/sg2042.c
-> new file mode 100644
-> index 0000000..af36eb2
-> --- /dev/null
-> +++ b/platform/generic/sophgo/sg2042.c
-> @@ -0,0 +1,64 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Authors:
-> + *   Inochi Amaoto <inochiama@outlook.com>
-> + *
-> + */
-> +
-> +#include <platform_override.h>
-> +#include <thead/c9xx_errata.h>
-> +#include <thead/c9xx_pmu.h>
-> +#include <sbi/sbi_const.h>
-> +#include <sbi/sbi_domain.h>
-> +#include <sbi/sbi_platform.h>
-> +#include <sbi/sbi_scratch.h>
-> +#include <sbi/sbi_string.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/timer/aclint_mtimer.h>
-> +
-> +#define SOPHGO_SG2042_TIMER_BASE       0x70ac000000UL
-> +#define SOPHGO_SG2042_TIMER_SIZE       0x10000UL
-> +
-> +
-> +static int sophgo_sg2042_early_init(bool cold_boot,
-> +                                   const struct fdt_match *match)
-> +{
-> +       const struct sbi_platform *plat = sbi_platform_thishart_ptr();
-> +
-> +       thead_register_tlb_flush_trap_handler();
-> +
-> +       /*
-> +        * Sophgo sg2042 soc use seperate 16 timers while initiating,
-Typo: separate
-
-After fixed:
-
-Reviewed-by: Guo Ren <guoren@kernel.org>
-
-> +        * merge them as a single domain to avoid wasting.
-> +        */
-> +       if (cold_boot)
-> +               return sbi_domain_root_add_memrange(SOPHGO_SG2042_TIMER_BASE,
-> +                                               SOPHGO_SG2042_TIMER_SIZE *
-> +                                               sbi_platform_hart_count(plat),
-> +                                               MTIMER_REGION_ALIGN,
-> +                                               (SBI_DOMAIN_MEMREGION_MMIO |
-> +                                                SBI_DOMAIN_MEMREGION_M_READABLE |
-> +                                                SBI_DOMAIN_MEMREGION_M_WRITABLE));
-> +
-> +
-> +       return 0;
-> +}
-> +
-> +static int sophgo_sg2042_extensions_init(const struct fdt_match *match,
-> +                                        struct sbi_hart_features *hfeatures)
-> +{
-> +       thead_c9xx_register_pmu_device();
-> +       return 0;
-> +}
-> +
-> +static const struct fdt_match sophgo_sg2042_match[] = {
-> +       { .compatible = "sophgo,sg2042" },
-> +       { },
-> +};
-> +
-> +const struct platform_override sophgo_sg2042 = {
-> +       .match_table            = sophgo_sg2042_match,
-> +       .early_init             = sophgo_sg2042_early_init,
-> +       .extensions_init        = sophgo_sg2042_extensions_init,
-> +};
+> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+> index 4b91e07..aa512de 100644
+> --- a/lib/sbi/sbi_misaligned_ldst.c
+> +++ b/lib/sbi/sbi_misaligned_ldst.c
+> @@ -211,16 +211,14 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+>         } else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD) {
+>                 len            = 8;
+>                 val.data_ulong = GET_RS2S(insn, regs);
+> -       } else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP &&
+> -                  ((insn >> SH_RD) & 0x1f)) {
+> +       } else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP) {
+>                 len            = 8;
+>                 val.data_ulong = GET_RS2C(insn, regs);
+>  #endif
+>         } else if ((insn & INSN_MASK_C_SW) == INSN_MATCH_C_SW) {
+>                 len            = 4;
+>                 val.data_ulong = GET_RS2S(insn, regs);
+> -       } else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP &&
+> -                  ((insn >> SH_RD) & 0x1f)) {
+> +       } else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP) {
+>                 len            = 4;
+>                 val.data_ulong = GET_RS2C(insn, regs);
+>  #ifdef __riscv_flen
 > --
 > 2.42.0
 >
-
-
--- 
-Best Regards
- Guo Ren
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
