@@ -1,50 +1,50 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 12 Oct 2023 11:59:39 +0800
-Subject: [PATCH] platform: Uses hart count as the default size of tlb
- info
-In-Reply-To: <IA1PR20MB4953569FCD95E4E40FC6A4CABBD3A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953569FCD95E4E40FC6A4CABBD3A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <6397376c06e557760bfa0e383058ca08e3bd812c.camel@126.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Thu, 12 Oct 2023 14:23:32 +0800
+Subject: [PATCH] platform: generic: thead: improve tlb flush errata
+In-Reply-To: <IA1PR20MB49530A123B23DFFED0CC3E06BBD3A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB49530A123B23DFFED0CC3E06BBD3A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAJF2gTT1CCQjzz8YkApucHuvnv+bFuK+3hDy-SCO3E7zgGTgHQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-10-12???? 11:29 +0800?Inochi Amaoto???
-> For platform with high number of harts, it is better to auto detect a
-> suitable number of entries in tlb fifo. Since allocating tlb entry for
-> all online harts can reduce the wait time significantly, using the
-> number of the online harts can make most platforms happy. This auto
-> detection can avoid most duplicate code for setting tlb fifo size.
-> 
+On Thu, Oct 12, 2023 at 9:54?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+> Flushing the tlb entries can solve the thead tlb problem, but flushing
+> it by address will miss something and lead to a exception in some rare
+> cases, and this is more common for sg2042.
+>
+> To solve this problem, flush the tlb entries by asid in the custom trap
+> handler to ensure it is refreshed.
+>
 > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-Missing fix for sbi_platform_tlb_fifo_num_entries. Then remove?
-SBI_PLATFORM_TLB_FIFO_NUM_ENTRIES.
-
-Regards,
-Xiang W
-
 > ---
-> ?platform/generic/platform.c | 2 +-
-> ?1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 66a0b77..4246efd 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -260,7 +260,7 @@ static u32 generic_tlb_num_entries(void)
-> ?{
-> ?	if (generic_plat && generic_plat->tlb_num_entries)
-> ?		return generic_plat->tlb_num_entries(generic_plat_match);
-> -	return SBI_PLATFORM_TLB_FIFO_NUM_ENTRIES;
-> +	return sbi_scratch_last_hartindex() + 1;
-> ?}
-> ?
-> ?static int generic_pmu_init(void)
-> -- 
-> 2.42.0
-> 
-> 
+> This patch based on the th1520 series patch.
+> ---
+>  platform/generic/thead/thead_c9xx_tlb_trap_handler.S | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/platform/generic/thead/thead_c9xx_tlb_trap_handler.S b/platform/generic/thead/thead_c9xx_tlb_trap_handler.S
+> index 861c029..120daa7 100644
+> --- a/platform/generic/thead/thead_c9xx_tlb_trap_handler.S
+> +++ b/platform/generic/thead/thead_c9xx_tlb_trap_handler.S
+> @@ -9,5 +9,5 @@
+>         .align 3
+>         .globl _thead_tlb_flush_fixup_trap_handler
+>  _thead_tlb_flush_fixup_trap_handler:
+> -       sfence.vma t0, zero
+> +       sfence.vma zero, t0
+Reviewed-by: Guo Ren <guoren@kernel.org>
 
+>         j _trap_handler
+> --
+> 2.42.0
+>
+
+
+-- 
+Best Regards
+ Guo Ren
 
