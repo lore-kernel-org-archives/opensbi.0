@@ -1,51 +1,39 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu, 12 Oct 2023 07:25:08 +0800
-Subject: [PATCH] lib: utils/fdt: Allow zero length mtime when parsing ACLINT
-Message-ID: <IA1PR20MB4953C5601F0B167904D68D5FBBCCA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Thu, 12 Oct 2023 09:54:18 +0800
+Subject: [PATCH] platform: generic: thead: improve tlb flush errata
+Message-ID: <IA1PR20MB49530A123B23DFFED0CC3E06BBD3A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, the fdt_parse_aclint_node() does not allow the first reg to
-be zero length. This may cause the parser to fail when the ACLINT does
-not support mtime.
+Flushing the tlb entries can solve the thead tlb problem, but flushing
+it by address will miss something and lead to a exception in some rare
+cases, and this is more common for sg2042.
 
-To be robust, delay the check of first reg in fdt_parse_aclint_node()
-so the parser can handle ACLINT without mtime support.
+To solve this problem, flush the tlb entries by asid in the custom trap
+handler to ensure it is refreshed.
 
 Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 ---
- lib/utils/fdt/fdt_helper.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+This patch based on the th1520 series patch.
+---
+ platform/generic/thead/thead_c9xx_tlb_trap_handler.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index c97f09d..6b4ef38 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -897,8 +897,10 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
- 
- 	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
- 				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_size)
-+	if (rc < 0)
- 		return SBI_ENODEV;
-+	if (!reg_size)
-+		reg_addr = reg_size = 0;
- 	*out_addr1 = reg_addr;
- 	*out_size1 = reg_size;
- 
-@@ -906,6 +908,8 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
- 				    &reg_addr, &reg_size);
- 	if (rc < 0 || !reg_size)
- 		reg_addr = reg_size = 0;
-+	if (!reg_addr && *out_size1 == 0)
-+		return SBI_ENODEV;
- 	if (out_addr2)
- 		*out_addr2 = reg_addr;
- 	if (out_size2)
--- 
+diff --git a/platform/generic/thead/thead_c9xx_tlb_trap_handler.S b/platform/generic/thead/thead_c9xx_tlb_trap_handler.S
+index 861c029..120daa7 100644
+--- a/platform/generic/thead/thead_c9xx_tlb_trap_handler.S
++++ b/platform/generic/thead/thead_c9xx_tlb_trap_handler.S
+@@ -9,5 +9,5 @@
+ 	.align 3
+ 	.globl _thead_tlb_flush_fixup_trap_handler
+ _thead_tlb_flush_fixup_trap_handler:
+-	sfence.vma t0, zero
++	sfence.vma zero, t0
+ 	j _trap_handler
+--
 2.42.0
 
 
