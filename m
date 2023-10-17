@@ -1,50 +1,73 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 18 Oct 2023 00:57:27 +0800
-Subject: [PATCH] lib: utils/serial: Optimize semihosting_putc
- implementation
-In-Reply-To: <20231017115312.268-1-cp0613@linux.alibaba.com>
-References: <20231017115312.268-1-cp0613@linux.alibaba.com>
-Message-ID: <1bafdb31530fe5264f232dd2539b5cd2b718344a.camel@126.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Tue, 17 Oct 2023 15:20:19 -0700
+Subject: [PATCH] lib: sbi: Correctly limit flushes to a single ASID/VMID
+Message-ID: <20231017222027.3668468-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-10-17???? 19:53 +0800?cp0613 at linux.alibaba.com???
-> From: Chen Pei <cp0613@linux.alibaba.com>
-> 
-> For some debuggers that do not implement SYSWRITEC and SYSREADC
-> operations, we can use SYSWRITE and SYSREAD instead like the
-> implementation of semihosting_getc().
-> 
-> Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
-> ---
-> ?lib/utils/serial/semihosting.c | 5 ++++-
-> ?1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> index ce65887..9bbf2e2 100644
-> --- a/lib/utils/serial/semihosting.c
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -162,7 +162,10 @@ static long semihosting_write(long fd, const void *memp, size_t len)
-> ?
-> ?static void semihosting_putc(char ch)
-> ?{
-> -	semihosting_trap(SYSWRITEC, &ch);
-> +	if (semihosting_outfd < 0)
-> +		semihosting_trap(SYSWRITEC, &ch);
-> +	else
-> +		semihosting_write(semihosting_outfd, &ch, 1);
-The code can be simplified by calling semihosting_puts directly, otherwise look good to me.
+Per the SBI specification, the effects of these functions are limited to
+a specific ASID and/or VMID. This applies even when flushing the entire
+address space.
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ?}
-> ?
-> ?static unsigned long semihosting_puts(const char *str, unsigned long len)
-> -- 
-> 2.25.1
-> 
-> 
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
+The SBI spec doesn't say anything about this `start == 0 && size == 0`
+exception, so I wonder if it should be removed entirely.
+
+ lib/sbi/sbi_tlb.c | 21 +++------------------
+ 1 file changed, 3 insertions(+), 18 deletions(-)
+
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index ced2854..dad9508 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -111,12 +111,7 @@ void sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
+ 	hgatp = csr_swap(CSR_HGATP,
+ 			 (vmid << HGATP_VMID_SHIFT) & HGATP_VMID_MASK);
+ 
+-	if (start == 0 && size == 0) {
+-		__sbi_hfence_vvma_all();
+-		goto done;
+-	}
+-
+-	if (size == SBI_TLB_FLUSH_ALL) {
++	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_vvma_asid(asid);
+ 		goto done;
+ 	}
+@@ -138,12 +133,7 @@ void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_VMID_RCVD);
+ 
+-	if (start == 0 && size == 0) {
+-		__sbi_hfence_gvma_all();
+-		return;
+-	}
+-
+-	if (size == SBI_TLB_FLUSH_ALL) {
++	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_gvma_vmid(vmid);
+ 		return;
+ 	}
+@@ -162,13 +152,8 @@ void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_RCVD);
+ 
+-	if (start == 0 && size == 0) {
+-		tlb_flush_all();
+-		return;
+-	}
+-
+ 	/* Flush entire MM context for a given ASID */
+-	if (size == SBI_TLB_FLUSH_ALL) {
++	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__asm__ __volatile__("sfence.vma x0, %0"
+ 				     :
+ 				     : "r"(asid)
+-- 
+2.41.0
 
 
