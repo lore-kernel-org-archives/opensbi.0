@@ -1,76 +1,165 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Fri, 20 Oct 2023 07:33:23 +0800
-Subject: [PATCH] fw_base.S: Fix boot hart status synchronization
-In-Reply-To: <20231019092734.2554798-1-guoren@kernel.org>
-References: <20231019092734.2554798-1-guoren@kernel.org>
-Message-ID: <CAJF2gTSM5+j-iUd8-ucdZLi5YW8zcZCf4BdM2L94NkYcuZ5=qg@mail.gmail.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Fri, 20 Oct 2023 07:57:18 +0800
+Subject: [PATCH v4] platform: generic: Add Sophgo sg2042 platform support
+Message-ID: <IA1PR20MB4953FC1436930F92BA765847BBD4A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-F.Y.I Drew
+Add Sophgo sg2042 soc support
 
-This patch is also needed for "zsb -> opensbi -> linux"
+Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+Reviewed-by: Guo Ren <guoren@kernel.org>
+---
+This patch depends these patchs:
+1. platform: generic: add T-HEAD th1520 soc support
+2. lib: sbi: Add sub-regions check for sanitizing domain
+3. lib: utils: Add T-HEAD C900 ACLINT
+4. platform: generic: thead: improve tlb flush errata
 
+Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005676.html
+Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005705.html
+Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005736.html
+Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005712.html
+Link: https://lore.kernel.org/linux-riscv/cover.1696433229.git.unicorn_wang at outlook.com/
 
-On Thu, Oct 19, 2023 at 5:27?PM <guoren@kernel.org> wrote:
->
-> From: Guo Ren <guoren@linux.alibaba.com>
->
-> It's wrong to put the fence after setting the boot status flag because
-> all relocation operations must be finished before setting the status
-> flag. So, this fence must be put before the setting status flag, and
-> there is no use in putting a fence between _start_warm and setting
-> status flag.
->
-> Also, nop can't delay other harts too much, so use div instead, just
-> like Linux cpu_relax. Current opensbi force enables ?M? Standard
-> Extension, and mul instructions have been used in the fw_base.S.
->
-> After the above two fixes, the boot hart index param of the
-> fw_dynamic_info could be guaranteed properly for all platforms.
->
-> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> Signed-off-by: Guo Ren <guoren@kernel.org>
-> ---
->  firmware/fw_base.S | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 42b03fe890f0..f7763f4d9e56 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -399,8 +399,8 @@ _fdt_reloc_done:
->         /* mark boot hart done */
->         li      t0, BOOT_STATUS_BOOT_HART_DONE
->         lla     t1, _boot_status
-> -       REG_S   t0, 0(t1)
->         fence   rw, rw
-> +       REG_S   t0, 0(t1)
->         j       _start_warm
->
->         /* waiting for boot hart to be done (_boot_status == 2) */
-> @@ -409,9 +409,9 @@ _wait_for_boot_hart:
->         lla     t1, _boot_status
->         REG_L   t1, 0(t1)
->         /* Reduce the bus traffic so that boot hart may proceed faster */
-> -       nop
-> -       nop
-> -       nop
-> +       div     t2, t2, zero
-> +       div     t2, t2, zero
-> +       div     t2, t2, zero
->         bne     t0, t1, _wait_for_boot_hart
->
->  _start_warm:
-> --
-> 2.36.1
->
+Changed from v3:
+1. remove unused variable to avoid compile failed
 
+Changed from v2:
+1. replace hart count with number 16 when calculating the timer area.
+   The sg2042 have a fixed number of timer, see the kernel dt in the link.
+2. fix typo
+3. move the c900 aclint patch out of this series.
+4. move the tlb size change patch out of this series.
 
+Changed from v1:
+1. make number of entries in tlb fifo auto deteted.
+
+---
+ platform/generic/Kconfig           |  6 +++
+ platform/generic/configs/defconfig |  1 +
+ platform/generic/sophgo/objects.mk |  9 +++++
+ platform/generic/sophgo/sg2042.c   | 62 ++++++++++++++++++++++++++++++
+ 4 files changed, 78 insertions(+)
+ create mode 100644 platform/generic/sophgo/objects.mk
+ create mode 100644 platform/generic/sophgo/sg2042.c
+
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index f9e7ed2..a902cf3 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -49,6 +49,12 @@ config PLATFORM_SIFIVE_FU740
+ 	depends on FDT_RESET && FDT_I2C
+ 	default n
+
++config PLATFORM_SOPHGO_SG2042
++	bool "Sophgo sg2042 support"
++	select THEAD_C9XX_ERRATA
++	select THEAD_C9XX_PMU
++	default n
++
+ config PLATFORM_STARFIVE_JH7110
+ 	bool "StarFive JH7110 support"
+ 	default n
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index c432bc2..e1b76c8 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
+ CONFIG_PLATFORM_RENESAS_RZFIVE=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
++CONFIG_PLATFORM_SOPHGO_SG2042=y
+ CONFIG_PLATFORM_STARFIVE_JH7110=y
+ CONFIG_PLATFORM_THEAD=y
+ CONFIG_FDT_GPIO=y
+diff --git a/platform/generic/sophgo/objects.mk b/platform/generic/sophgo/objects.mk
+new file mode 100644
+index 0000000..3d2908a
+--- /dev/null
++++ b/platform/generic/sophgo/objects.mk
+@@ -0,0 +1,9 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++# Copyright (C) 2023 Inochi Amaoto <inochiama@outlook.com>
++# Copyright (C) 2023 Alibaba Group Holding Limited.
++#
++
++carray-platform_override_modules-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo_sg2042
++platform-objs-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo/sg2042.o
+diff --git a/platform/generic/sophgo/sg2042.c b/platform/generic/sophgo/sg2042.c
+new file mode 100644
+index 0000000..9c6acdb
+--- /dev/null
++++ b/platform/generic/sophgo/sg2042.c
+@@ -0,0 +1,62 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Authors:
++ *   Inochi Amaoto <inochiama@outlook.com>
++ *
++ */
++
++#include <platform_override.h>
++#include <thead/c9xx_errata.h>
++#include <thead/c9xx_pmu.h>
++#include <sbi/sbi_const.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_platform.h>
++#include <sbi/sbi_scratch.h>
++#include <sbi/sbi_string.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/timer/aclint_mtimer.h>
++
++#define SOPHGO_SG2042_TIMER_BASE	0x70ac000000UL
++#define SOPHGO_SG2042_TIMER_SIZE	0x10000UL
++#define SOPHGO_SG2042_TIMER_NUM		16
++
++static int sophgo_sg2042_early_init(bool cold_boot,
++				    const struct fdt_match *match)
++{
++	thead_register_tlb_flush_trap_handler();
++
++	/*
++	 * Sophgo sg2042 soc use separate 16 timers while initiating,
++	 * merge them as a single domain to avoid wasting.
++	 */
++	if (cold_boot)
++		return sbi_domain_root_add_memrange(SOPHGO_SG2042_TIMER_BASE,
++						SOPHGO_SG2042_TIMER_SIZE *
++						SOPHGO_SG2042_TIMER_NUM,
++						MTIMER_REGION_ALIGN,
++						(SBI_DOMAIN_MEMREGION_MMIO |
++						 SBI_DOMAIN_MEMREGION_M_READABLE |
++						 SBI_DOMAIN_MEMREGION_M_WRITABLE));
++
++
++	return 0;
++}
++
++static int sophgo_sg2042_extensions_init(const struct fdt_match *match,
++					 struct sbi_hart_features *hfeatures)
++{
++	thead_c9xx_register_pmu_device();
++	return 0;
++}
++
++static const struct fdt_match sophgo_sg2042_match[] = {
++	{ .compatible = "sophgo,sg2042" },
++	{ },
++};
++
++const struct platform_override sophgo_sg2042 = {
++	.match_table		= sophgo_sg2042_match,
++	.early_init		= sophgo_sg2042_early_init,
++	.extensions_init	= sophgo_sg2042_extensions_init,
++};
 --
-Best Regards
- Guo Ren
+2.42.0
+
 
