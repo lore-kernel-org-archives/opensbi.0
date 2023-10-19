@@ -1,58 +1,50 @@
-From: cp0613@linux.alibaba.com <cp0613@linux.alibaba.com>
-Date: Wed, 18 Oct 2023 10:42:05 +0800
-Subject: [PATCH v2] lib: utils/serial: Optimize semihosting_putc implementation
-Message-ID: <20231018024205.270-1-cp0613@linux.alibaba.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Thu, 19 Oct 2023 10:43:06 +0200
+Subject: [PATCH] include: sbi: Change spec version to 2.0
+In-Reply-To: <20231010102125.603343-1-apatel@ventanamicro.com>
+References: <20231010102125.603343-1-apatel@ventanamicro.com>
+Message-ID: <20231019-1a0cc8a5a3643dbf4d4d51f6@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Chen Pei <cp0613@linux.alibaba.com>
+On Tue, Oct 10, 2023 at 03:51:25PM +0530, Anup Patel wrote:
+> Now that SBI v2.0 specification is frozen, we change spec verion
+> implemented by OpenSBI to v2.0.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  include/sbi/sbi_ecall.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
+> index 90f33ba..027213c 100644
+> --- a/include/sbi/sbi_ecall.h
+> +++ b/include/sbi/sbi_ecall.h
+> @@ -13,7 +13,7 @@
+>  #include <sbi/sbi_types.h>
+>  #include <sbi/sbi_list.h>
+>  
+> -#define SBI_ECALL_VERSION_MAJOR		1
+> +#define SBI_ECALL_VERSION_MAJOR		2
+>  #define SBI_ECALL_VERSION_MINOR		0
+>  #define SBI_OPENSBI_IMPID		1
+>  
+> -- 
+> 2.34.1
+>
 
-For some debuggers that do not implement SYSWRITEC and SYSREADC
-operations, we can use SYSWRITE and SYSREAD instead like the
-implementation of semihosting_getc().
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
-Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
 
-Changed from v1:
-1. simplified by calling semihosting_puts directly.
+It'd be good to get this merged and also build a new version of opensbi
+which can be incorporated into QEMU. Without this change several new SBI
+extensions won't be usable by Linux, even though the implementations are
+present, because Linux checks that the SBI implementation version is at
+least as big as the spec version where the extensions were frozen.
 
----
- lib/utils/serial/semihosting.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index ce65887..a27c69e 100644
---- a/lib/utils/serial/semihosting.c
-+++ b/lib/utils/serial/semihosting.c
-@@ -160,11 +160,6 @@ static long semihosting_write(long fd, const void *memp, size_t len)
- 
- /* clang-format on */
- 
--static void semihosting_putc(char ch)
--{
--	semihosting_trap(SYSWRITEC, &ch);
--}
--
- static unsigned long semihosting_puts(const char *str, unsigned long len)
- {
- 	char ch;
-@@ -183,6 +178,11 @@ static unsigned long semihosting_puts(const char *str, unsigned long len)
- 	return (ret < 0) ? 0 : ret;
- }
- 
-+static void semihosting_putc(char ch)
-+{
-+	semihosting_puts(&ch, 1);
-+}
-+
- static int semihosting_getc(void)
- {
- 	char ch = 0;
--- 
-2.25.1
-
+Thanks,
+drew
 
