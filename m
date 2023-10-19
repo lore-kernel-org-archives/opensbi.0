@@ -1,67 +1,91 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 19 Oct 2023 19:37:02 +0800
-Subject: [PATCH v2 00/11] Add Andes PMU extension support
-Message-ID: <20231019113713.3508153-1-peterlin@andestech.com>
+Date: Thu, 19 Oct 2023 19:37:03 +0800
+Subject: [PATCH v2 01/11] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+In-Reply-To: <20231019113713.3508153-1-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com>
+Message-ID: <20231019113713.3508153-2-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch series enables perf tool to utilize Andes PMU
-extension via PMU SBI calls, provides PMU device callbacks
-to achieve event sampling and mode filtering.
+This patch makes the following changes:
 
-This version also introduces a platform override fdt_add_pmu_mappings()
-to create event mappings before PMU setup if a valid PMU node
-is missing.
+- As sbi_platform_pmu_init() returns a negative error code on
+  failure, let sbi_pmu_init() to hang by propagating the error
+  code.
 
-The last patch provides a PMU node example used on AX45MP cores.
+- In order to distinguish the SBI_EFAIL error returned by
+  sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
+  that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
+  generic_pmu_init() ignores such case.
 
-The OpenSBI and Linux patches can be found on Andes Technology GitHub
-- https://github.com/andestech/opensbi/commits/andes-pmu-support-v2
-- https://github.com/andestech/linux/commits/andes-pmu-support-v2
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+Changes v1 -> v2:
+  - New patch
+---
+ lib/sbi/sbi_pmu.c           | 5 ++++-
+ lib/utils/fdt/fdt_pmu.c     | 2 +-
+ platform/generic/platform.c | 8 +++++++-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-Yu Chien Peter Lin (11):
-  sbi: sbi_pmu: Improve sbi_pmu_init() error handling
-  sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
-  platform: include: andes45: Add PMU related CSR defines
-  platform: andes: Add Andes custom PMU support
-  platform: andes: Enable Andes PMU for AE350
-  platform: rzfive: Enable Andes PMU for RZ/Five
-  lib: utils: fdt_fixup: Add fdt_add_pmu_mappings() helper function
-  lib: utils: fdt_fixup: Allow preserving PMU properties
-  platform: andes: Factor out is_andes() helper
-  platform: andes: Implement andes_fdt_add_pmu_mappings platform
-    override
-  docs: pmu: Add Andes PMU node example
-
- docs/pmu_support.md                          |  82 ++++
- include/sbi/sbi_ecall_interface.h            |   5 +
- include/sbi/sbi_pmu.h                        |   6 +
- include/sbi/sbi_scratch.h                    |   2 +
- include/sbi_utils/fdt/fdt_fixup.h            |  48 +++
- lib/sbi/sbi_pmu.c                            |  10 +-
- lib/utils/fdt/fdt_fixup.c                    | 101 ++++-
- lib/utils/fdt/fdt_pmu.c                      |   2 +-
- platform/generic/Kconfig                     |   4 +
- platform/generic/andes/Kconfig               |  11 +
- platform/generic/andes/ae350.c               |  31 +-
- platform/generic/andes/andes_hpm.c           | 381 +++++++++++++++++++
- platform/generic/andes/andes_pmu.c           |  81 ++++
- platform/generic/andes/objects.mk            |   2 +
- platform/generic/include/andes/andes45.h     |  32 ++
- platform/generic/include/andes/andes_hpm.h   |  83 ++++
- platform/generic/include/andes/andes_pmu.h   |   8 +
- platform/generic/include/platform_override.h |   1 +
- platform/generic/platform.c                  |  16 +-
- platform/generic/renesas/rzfive/rzfive.c     |  18 +-
- 20 files changed, 909 insertions(+), 15 deletions(-)
- create mode 100644 platform/generic/andes/andes_hpm.c
- create mode 100644 platform/generic/andes/andes_pmu.c
- create mode 100644 platform/generic/include/andes/andes_hpm.h
- create mode 100644 platform/generic/include/andes/andes_pmu.h
-
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index f4c8fc4..3cbd4ff 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ 	int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
+ 	struct sbi_pmu_hart_state *phs;
+ 	const struct sbi_platform *plat;
++	int rc;
+ 
+ 	if (cold_boot) {
+ 		hw_event_map = sbi_calloc(sizeof(*hw_event_map),
+@@ -972,7 +973,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ 
+ 		plat = sbi_platform_ptr(scratch);
+ 		/* Initialize hw pmu events */
+-		sbi_platform_pmu_init(plat);
++		rc = sbi_platform_pmu_init(plat);
++		if (rc)
++			return rc;
+ 
+ 		/* mcycle & minstret is available always */
+ 		if (!hpm_count)
+diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+index 83301bb..a8d7648 100644
+--- a/lib/utils/fdt/fdt_pmu.c
++++ b/lib/utils/fdt/fdt_pmu.c
+@@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
+ 
+ 	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
+ 	if (pmu_offset < 0)
+-		return SBI_EFAIL;
++		return SBI_ENOENT;
+ 
+ 	event_ctr_map = fdt_getprop(fdt, pmu_offset,
+ 				    "riscv,event-to-mhpmcounters", &len);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 66a0b77..cb9270d 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
+ 
+ static int generic_pmu_init(void)
+ {
+-	return fdt_pmu_setup(fdt_get_address());
++	int rc;
++
++	rc = fdt_pmu_setup(fdt_get_address());
++	if (rc && rc != SBI_ENOENT)
++		return rc;
++
++	return 0;
+ }
+ 
+ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
 -- 
 2.34.1
 
