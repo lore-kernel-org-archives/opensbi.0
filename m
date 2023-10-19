@@ -1,91 +1,68 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 19 Oct 2023 19:37:03 +0800
-Subject: [PATCH v2 01/11] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+Date: Thu, 19 Oct 2023 19:37:05 +0800
+Subject: [PATCH v2 03/11] platform: include: andes45: Add PMU related CSR defines
 In-Reply-To: <20231019113713.3508153-1-peterlin@andestech.com>
 References: <20231019113713.3508153-1-peterlin@andestech.com>
-Message-ID: <20231019113713.3508153-2-peterlin@andestech.com>
+Message-ID: <20231019113713.3508153-4-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch makes the following changes:
-
-- As sbi_platform_pmu_init() returns a negative error code on
-  failure, let sbi_pmu_init() to hang by propagating the error
-  code.
-
-- In order to distinguish the SBI_EFAIL error returned by
-  sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
-  that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
-  generic_pmu_init() ignores such case.
+This patch adds CSR for Andes PMU extension.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
 Changes v1 -> v2:
-  - New patch
+  - Rename andes_pmu() -> has_andes_pmu()
 ---
- lib/sbi/sbi_pmu.c           | 5 ++++-
- lib/utils/fdt/fdt_pmu.c     | 2 +-
- platform/generic/platform.c | 8 +++++++-
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index f4c8fc4..3cbd4ff 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 	int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
- 	struct sbi_pmu_hart_state *phs;
- 	const struct sbi_platform *plat;
-+	int rc;
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index f570994..ce31617 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -12,6 +12,17 @@
+ #define CSR_MDCM_CFG		0xfc1
+ #define CSR_MMSC_CFG		0xfc2
  
- 	if (cold_boot) {
- 		hw_event_map = sbi_calloc(sizeof(*hw_event_map),
-@@ -972,7 +973,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 
- 		plat = sbi_platform_ptr(scratch);
- 		/* Initialize hw pmu events */
--		sbi_platform_pmu_init(plat);
-+		rc = sbi_platform_pmu_init(plat);
-+		if (rc)
-+			return rc;
- 
- 		/* mcycle & minstret is available always */
- 		if (!hpm_count)
-diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-index 83301bb..a8d7648 100644
---- a/lib/utils/fdt/fdt_pmu.c
-+++ b/lib/utils/fdt/fdt_pmu.c
-@@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
- 
- 	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
- 	if (pmu_offset < 0)
--		return SBI_EFAIL;
-+		return SBI_ENOENT;
- 
- 	event_ctr_map = fdt_getprop(fdt, pmu_offset,
- 				    "riscv,event-to-mhpmcounters", &len);
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 66a0b77..cb9270d 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
- 
- static int generic_pmu_init(void)
- {
--	return fdt_pmu_setup(fdt_get_address());
-+	int rc;
++/* Machine Trap Related Registers */
++#define CSR_MSLIDELEG		0x7d5
 +
-+	rc = fdt_pmu_setup(fdt_get_address());
-+	if (rc && rc != SBI_ENOENT)
-+		return rc;
++/* Counter Related Registers */
++#define CSR_MCOUNTERWEN		0x7ce
++#define CSR_MCOUNTERINTEN	0x7cf
++#define CSR_MCOUNTERMASK_M	0x7d1
++#define CSR_MCOUNTERMASK_S	0x7d2
++#define CSR_MCOUNTERMASK_U	0x7d3
++#define CSR_MCOUNTEROVF		0x7d4
 +
-+	return 0;
- }
+ #define MICM_CFG_ISZ_OFFSET		6
+ #define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
  
- static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+@@ -26,4 +37,19 @@
+ #define MCACHE_CTL_CCTL_SUEN_OFFSET	8
+ #define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
+ 
++/* Performance monitor */
++#define MMSC_CFG_PMNDS_MASK		(1 << 15)
++#define MIP_PMOVI			(1 << 18)
++
++#ifndef __ASSEMBLER__
++
++#define has_andes_pmu()					\
++({							\
++	(((csr_read(CSR_MMSC_CFG) &			\
++	   MMSC_CFG_PMNDS_MASK)				\
++	  && misa_extension('S')) ? true : false);	\
++})
++
++#endif /* __ASSEMBLER__ */
++
+ #endif /* _RISCV_ANDES45_H */
 -- 
 2.34.1
 
