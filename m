@@ -1,233 +1,63 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 19 Oct 2023 19:37:09 +0800
-Subject: [PATCH v2 07/11] lib: utils: fdt_fixup: Add fdt_add_pmu_mappings() helper function
+Date: Thu, 19 Oct 2023 19:37:10 +0800
+Subject: [PATCH v2 08/11] lib: utils: fdt_fixup: Allow preserving PMU properties
 In-Reply-To: <20231019113713.3508153-1-peterlin@andestech.com>
 References: <20231019113713.3508153-1-peterlin@andestech.com>
-Message-ID: <20231019113713.3508153-8-peterlin@andestech.com>
+Message-ID: <20231019113713.3508153-9-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add fdt_add_pmu_mappings() that creates entries of riscv,*event-to-mhpm*
-property from arrays right before fdt_pmu_setup() populating the mapping
-tables (i.e. hw_event_map[] and fdt_pmu_evt_select[]).
-
-The helper function will skip the creation of those properties if a
-"/pmu" node with "riscv,pmu" compatible string is provided.
+Add a scratch option to control PMU fixup, so the next
+stage software can dump the PMU node including event
+mapping information for debugging purposes.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
 Changes v1 -> v2:
   - New patch
 ---
- include/sbi_utils/fdt/fdt_fixup.h            | 48 ++++++++++
- lib/utils/fdt/fdt_fixup.c                    | 95 ++++++++++++++++++++
- platform/generic/include/platform_override.h |  1 +
- platform/generic/platform.c                  | 10 ++-
- 4 files changed, 153 insertions(+), 1 deletion(-)
+ include/sbi/sbi_scratch.h | 2 ++
+ lib/utils/fdt/fdt_fixup.c | 6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
-index ecd55a7..9b72df8 100644
---- a/include/sbi_utils/fdt/fdt_fixup.h
-+++ b/include/sbi_utils/fdt/fdt_fixup.h
-@@ -19,6 +19,54 @@ struct sbi_cpu_idle_state {
- 	uint32_t wakeup_latency_us;
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index e6a33ba..7914dfb 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -151,6 +151,8 @@ enum sbi_scratch_options {
+ 	SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
+ 	/** Enable runtime debug prints */
+ 	SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
++	/** Preserve PMU node properties */
++	SBI_SCRATCH_PRESERVE_PMU_PROP = (1 << 2),
  };
  
-+struct sbi_pmu_event_select_map {
-+	/**
-+	 * The description of an entry in
-+	 * riscv,event-to-mhpmevent property
-+	 */
-+	uint32_t eidx;
-+	uint64_t select;
-+};
-+
-+struct sbi_pmu_event_counter_map {
-+	/**
-+	 * The description of an entry in
-+	 * riscv,event-to-mhpmcounters property
-+	 */
-+	uint32_t eidx_start;
-+	uint32_t eidx_end;
-+	uint32_t ctr_map;
-+};
-+
-+struct sbi_pmu_raw_event_counter_map {
-+	/**
-+	 * The description of an entry in
-+	 * riscv,raw-event-to-mhpmcounters property
-+	 */
-+	uint64_t select;
-+	uint64_t select_mask;
-+	uint32_t ctr_map;
-+};
-+
-+/**
-+ * Add PMU properties in the DT
-+ *
-+ * Add information about event to selector/counter mappings to the
-+ * devicetree.
-+ *
-+ * @param fdt: device tree blob
-+ * @param selects: array of event index to selector value mapping
-+ *                 descriptions, ending with empty element
-+ * @param counters: array of event indexes to counters mapping
-+ *                  descriptions, ending with empty element
-+ * @param rcounters: array of raw events to counters mapping
-+ *                   descriptions, ending with empty element
-+ * @return zero on success and -ve on failure
-+ */
-+int fdt_add_pmu_mappings(void *fdt, const struct sbi_pmu_event_select_map *selects,
-+		const struct sbi_pmu_event_counter_map *counters,
-+		const struct sbi_pmu_raw_event_counter_map *rcounters);
-+
- /**
-  * Add CPU idle states to cpu nodes in the DT
-  *
+ /** Get pointer to sbi_scratch for current HART */
 diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index e213ded..67e2e2e 100644
+index 67e2e2e..b0c885f 100644
 --- a/lib/utils/fdt/fdt_fixup.c
 +++ b/lib/utils/fdt/fdt_fixup.c
-@@ -20,6 +20,101 @@
- #include <sbi_utils/fdt/fdt_pmu.h>
- #include <sbi_utils/fdt/fdt_helper.h>
+@@ -482,6 +482,8 @@ int fdt_reserved_memory_fixup(void *fdt)
  
-+int fdt_add_pmu_mappings(void *fdt, const struct sbi_pmu_event_select_map *selects,
-+		const struct sbi_pmu_event_counter_map *counters,
-+		const struct sbi_pmu_raw_event_counter_map *rcounters)
-+{
-+	int i, err, pmu_noff, root_noff;
-+	const char *comp;
-+	fdt32_t evt_to_mhpmevent[3];
-+	fdt32_t evt_to_mhpmcounters[3];
-+	fdt32_t raw_evt_to_mhpmcounters[5];
-+
-+	/* Try to locate pmu node */
-+	pmu_noff = fdt_path_offset(fdt, "/pmu");
-+
-+	if (pmu_noff > 0) {
-+		/*
-+		 * If compatible string is "riscv,pmu",
-+		 * we assume a valid pmu node has been
-+		 * provided.
-+		 */
-+		comp = fdt_getprop(fdt, pmu_noff, "compatible", NULL);
-+		if (comp && !strcmp(comp, "riscv,pmu"))
-+			return 0;
-+		else
-+			return -FDT_ERR_BADVALUE;
-+	}
-+
-+	if (pmu_noff < 0 && pmu_noff != -FDT_ERR_NOTFOUND)
-+		return pmu_noff;
-+
-+	/*
-+	 * If "riscv,event-to-mhpmevent" is present, "riscv,event-to-mhpmcounters"
-+	 * must be provided as well, but not vice versa (OpenSBI will direct mapping
-+	 * event_idx as selector value).
-+	 */
-+	if (selects && !counters) {
-+		sbi_printf("%s: ERR: riscv,event-to-mhpmcounters is mandatory if"
-+			" riscv,event-to-mhpmevent is present.", __func__);
-+		return SBI_EINVAL;
-+	}
-+
-+	/*
-+	 * Create pmu node based on given @selects, @counters
-+	 * and @rcounters.
-+	 */
-+	root_noff = fdt_path_offset(fdt, "/");
-+	pmu_noff = fdt_add_subnode(fdt, root_noff, "pmu");
-+	if  (pmu_noff < 0)
-+		return pmu_noff;
-+
-+	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
-+	if (err < 0)
-+		return err;
-+
-+	err = fdt_setprop_string(fdt, pmu_noff, "compatible", "riscv,pmu");
-+	if (err)
-+		return err;
-+
-+	/* Add riscv,event-to-mhpmevent */
-+	for (i = 0; selects && selects[i].eidx; i++) {
-+		evt_to_mhpmevent[0] = cpu_to_fdt32(selects[i].eidx);
-+		evt_to_mhpmevent[1] = cpu_to_fdt32(selects[i].select >> 32);
-+		evt_to_mhpmevent[2] = cpu_to_fdt32(selects[i].select & ~0UL);
-+		err = fdt_appendprop(fdt, pmu_noff, "riscv,event-to-mhpmevent",
-+				evt_to_mhpmevent, 3 * sizeof(fdt32_t));
-+		if (err)
-+			return err;
-+	}
-+
-+	/* Add riscv,event-to-mhpmcounters */
-+	for (i = 0; counters && counters[i].eidx_start; i++) {
-+		evt_to_mhpmcounters[0] = cpu_to_fdt32(counters[i].eidx_start);
-+		evt_to_mhpmcounters[1] = cpu_to_fdt32(counters[i].eidx_end);
-+		evt_to_mhpmcounters[2] = cpu_to_fdt32(counters[i].ctr_map);
-+		err = fdt_appendprop(fdt, pmu_noff, "riscv,event-to-mhpmcounters",
-+				evt_to_mhpmcounters, 3 * sizeof(fdt32_t));
-+		if (err)
-+			return err;
-+	}
-+
-+	/* Add riscv,raw-event-to-mhpmcounters */
-+	for (i = 0; rcounters && rcounters[i].select; i++) {
-+		raw_evt_to_mhpmcounters[0] = cpu_to_fdt32(rcounters[i].select >> 32);
-+		raw_evt_to_mhpmcounters[1] = cpu_to_fdt32(rcounters[i].select & ~0UL);
-+		raw_evt_to_mhpmcounters[2] = cpu_to_fdt32(rcounters[i].select_mask >> 32);
-+		raw_evt_to_mhpmcounters[3] = cpu_to_fdt32(rcounters[i].select_mask & ~0UL);
-+		raw_evt_to_mhpmcounters[4] = cpu_to_fdt32(rcounters[i].ctr_map);
-+		err = fdt_appendprop(fdt, pmu_noff, "riscv,raw-event-to-mhpmcounters",
-+				raw_evt_to_mhpmcounters, 5 * sizeof(fdt32_t));
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+
- int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
+ void fdt_fixups(void *fdt)
  {
- 	int cpu_node, cpus_node, err, idle_states_node;
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index bf4b112..bd34d2a 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -19,6 +19,7 @@ struct platform_override {
- 	u64 (*features)(const struct fdt_match *match);
- 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
- 	u32 (*tlb_num_entries)(const struct fdt_match *match);
-+	int (*fdt_add_pmu_mappings)(void *fdt, const struct fdt_match *match);
- 	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
- 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
- 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index cb9270d..a48a8b7 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -265,9 +265,17 @@ static u32 generic_tlb_num_entries(void)
- 
- static int generic_pmu_init(void)
- {
-+	void *fdt = fdt_get_address();
- 	int rc;
- 
--	rc = fdt_pmu_setup(fdt_get_address());
-+	if (generic_plat && generic_plat->fdt_add_pmu_mappings) {
-+		rc = generic_plat->fdt_add_pmu_mappings(fdt,
-+							generic_plat_match);
-+		if (rc)
-+			return rc;
-+	}
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 +
-+	rc = fdt_pmu_setup(fdt);
- 	if (rc && rc != SBI_ENOENT)
- 		return rc;
+ 	fdt_aplic_fixup(fdt);
  
+ 	fdt_imsic_fixup(fdt);
+@@ -489,5 +491,7 @@ void fdt_fixups(void *fdt)
+ 	fdt_plic_fixup(fdt);
+ 
+ 	fdt_reserved_memory_fixup(fdt);
+-	fdt_pmu_fixup(fdt);
++
++	if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_PROP))
++		fdt_pmu_fixup(fdt);
+ }
 -- 
 2.34.1
 
