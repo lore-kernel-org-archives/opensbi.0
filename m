@@ -1,62 +1,66 @@
-From: guoren@kernel.org <guoren@kernel.org>
-Date: Thu, 19 Oct 2023 05:27:34 -0400
-Subject: [PATCH] fw_base.S: Fix boot hart status synchronization
-Message-ID: <20231019092734.2554798-1-guoren@kernel.org>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 19 Oct 2023 19:37:04 +0800
+Subject: [PATCH v2 02/11] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
+In-Reply-To: <20231019113713.3508153-1-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com>
+Message-ID: <20231019113713.3508153-3-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Guo Ren <guoren@linux.alibaba.com>
+Add support for custom PMU extensions to set inhibit bits
+on custom CSRs by introducing the PMU device callback
+hw_counter_filter_mode(). This allows the perf tool to
+restrict event counting under a specified privileged
+mode by appending a modifier, e.g. perf record -e event:k
+to count events only happening in kernel mode.
 
-It's wrong to put the fence after setting the boot status flag because
-all relocation operations must be finished before setting the status
-flag. So, this fence must be put before the setting status flag, and
-there is no use in putting a fence between _start_warm and setting
-status flag.
-
-Also, nop can't delay other harts too much, so use div instead, just
-like Linux cpu_relax. Current opensbi force enables ?M? Standard
-Extension, and mul instructions have been used in the fw_base.S.
-
-After the above two fixes, the boot hart index param of the
-fw_dynamic_info could be guaranteed properly for all platforms.
-
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Signed-off-by: Guo Ren <guoren@kernel.org>
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
- firmware/fw_base.S | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Changes v1 -> v2:
+  - No change
+---
+ include/sbi/sbi_pmu.h | 6 ++++++
+ lib/sbi/sbi_pmu.c     | 5 ++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 42b03fe890f0..f7763f4d9e56 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -399,8 +399,8 @@ _fdt_reloc_done:
- 	/* mark boot hart done */
- 	li	t0, BOOT_STATUS_BOOT_HART_DONE
- 	lla	t1, _boot_status
--	REG_S	t0, 0(t1)
- 	fence	rw, rw
-+	REG_S	t0, 0(t1)
- 	j	_start_warm
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index 16f6877..d63149c 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -89,6 +89,12 @@ struct sbi_pmu_device {
+ 	 * Custom function returning the machine-specific irq-bit.
+ 	 */
+ 	int (*hw_counter_irq_bit)(void);
++
++	/**
++	 * Custom function to inhibit counting of events while in
++	 * specified mode.
++	 */
++	void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
+ };
  
- 	/* waiting for boot hart to be done (_boot_status == 2) */
-@@ -409,9 +409,9 @@ _wait_for_boot_hart:
- 	lla	t1, _boot_status
- 	REG_L	t1, 0(t1)
- 	/* Reduce the bus traffic so that boot hart may proceed faster */
--	nop
--	nop
--	nop
-+	div	t2, t2, zero
-+	div	t2, t2, zero
-+	div	t2, t2, zero
- 	bne	t0, t1, _wait_for_boot_hart
+ /** Get the PMU platform device */
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 3cbd4ff..7e3723f 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 		pmu_dev->hw_counter_disable_irq(ctr_idx);
  
- _start_warm:
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+-	pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
+ 
+ #if __riscv_xlen == 32
+ 	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
 -- 
-2.36.1
+2.34.1
 
 
