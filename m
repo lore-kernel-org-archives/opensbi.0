@@ -1,45 +1,76 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 19 Oct 2023 17:21:13 +0530
-Subject: [PATCH] include: sbi: Change spec version to 2.0
-In-Reply-To: <20231010102125.603343-1-apatel@ventanamicro.com>
-References: <20231010102125.603343-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy2urwZ1srodcXSYCNP7JcAgw+dCeXfSMEEAHCYBKmi5AQ@mail.gmail.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Fri, 20 Oct 2023 07:33:23 +0800
+Subject: [PATCH] fw_base.S: Fix boot hart status synchronization
+In-Reply-To: <20231019092734.2554798-1-guoren@kernel.org>
+References: <20231019092734.2554798-1-guoren@kernel.org>
+Message-ID: <CAJF2gTSM5+j-iUd8-ucdZLi5YW8zcZCf4BdM2L94NkYcuZ5=qg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 10, 2023 at 3:51?PM Anup Patel <apatel@ventanamicro.com> wrote:
+F.Y.I Drew
+
+This patch is also needed for "zsb -> opensbi -> linux"
+
+
+On Thu, Oct 19, 2023 at 5:27?PM <guoren@kernel.org> wrote:
 >
-> Now that SBI v2.0 specification is frozen, we change spec verion
-> implemented by OpenSBI to v2.0.
+> From: Guo Ren <guoren@linux.alibaba.com>
 >
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
+> It's wrong to put the fence after setting the boot status flag because
+> all relocation operations must be finished before setting the status
+> flag. So, this fence must be put before the setting status flag, and
+> there is no use in putting a fence between _start_warm and setting
+> status flag.
+>
+> Also, nop can't delay other harts too much, so use div instead, just
+> like Linux cpu_relax. Current opensbi force enables ?M? Standard
+> Extension, and mul instructions have been used in the fw_base.S.
+>
+> After the above two fixes, the boot hart index param of the
+> fw_dynamic_info could be guaranteed properly for all platforms.
+>
+> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> Signed-off-by: Guo Ren <guoren@kernel.org>
 > ---
->  include/sbi/sbi_ecall.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  firmware/fw_base.S | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 >
-> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> index 90f33ba..027213c 100644
-> --- a/include/sbi/sbi_ecall.h
-> +++ b/include/sbi/sbi_ecall.h
-> @@ -13,7 +13,7 @@
->  #include <sbi/sbi_types.h>
->  #include <sbi/sbi_list.h>
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 42b03fe890f0..f7763f4d9e56 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -399,8 +399,8 @@ _fdt_reloc_done:
+>         /* mark boot hart done */
+>         li      t0, BOOT_STATUS_BOOT_HART_DONE
+>         lla     t1, _boot_status
+> -       REG_S   t0, 0(t1)
+>         fence   rw, rw
+> +       REG_S   t0, 0(t1)
+>         j       _start_warm
 >
-> -#define SBI_ECALL_VERSION_MAJOR                1
-> +#define SBI_ECALL_VERSION_MAJOR                2
->  #define SBI_ECALL_VERSION_MINOR                0
->  #define SBI_OPENSBI_IMPID              1
+>         /* waiting for boot hart to be done (_boot_status == 2) */
+> @@ -409,9 +409,9 @@ _wait_for_boot_hart:
+>         lla     t1, _boot_status
+>         REG_L   t1, 0(t1)
+>         /* Reduce the bus traffic so that boot hart may proceed faster */
+> -       nop
+> -       nop
+> -       nop
+> +       div     t2, t2, zero
+> +       div     t2, t2, zero
+> +       div     t2, t2, zero
+>         bne     t0, t1, _wait_for_boot_hart
 >
+>  _start_warm:
 > --
-> 2.34.1
+> 2.36.1
 >
+
+
+--
+Best Regards
+ Guo Ren
 
