@@ -1,165 +1,623 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Fri, 20 Oct 2023 07:57:18 +0800
-Subject: [PATCH v4] platform: generic: Add Sophgo sg2042 platform support
-Message-ID: <IA1PR20MB4953FC1436930F92BA765847BBD4A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Sat, 21 Oct 2023 20:25:30 +0800
+Subject: [PATCH v2 10/11] platform: andes: Implement andes_fdt_add_pmu_mappings platform override
+In-Reply-To: <20231019113713.3508153-8-peterlin@andestech.com>
+References: <20231019113713.3508153-8-peterlin@andestech.com>
+Message-ID: <IA1PR20MB4953B09D78D523D9E15B7D9CBBDAA@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add Sophgo sg2042 soc support
+>Implement the andes_fdt_add_pmu_mappings() callback, which creates PMU
+>node properties that will later be populated with mapping tables.
+>
+>Currently we only support 45-series event mappings.
+>
+>Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+>---
+>Changes v1 -> v2:
+>  - New patch
+>---
+> include/sbi/sbi_ecall_interface.h          |   5 +
+> platform/generic/Kconfig                   |   2 +
+> platform/generic/andes/Kconfig             |   7 +
+> platform/generic/andes/ae350.c             |   2 +
+> platform/generic/andes/andes_hpm.c         | 381 +++++++++++++++++++++
+> platform/generic/andes/objects.mk          |   1 +
+> platform/generic/include/andes/andes_hpm.h |  83 +++++
+> platform/generic/renesas/rzfive/rzfive.c   |   2 +
+> 8 files changed, 483 insertions(+)
+> create mode 100644 platform/generic/andes/andes_hpm.c
+> create mode 100644 platform/generic/include/andes/andes_hpm.h
+>
+>diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+>index 1fe469e..89187e7 100644
+>--- a/include/sbi/sbi_ecall_interface.h
+>+++ b/include/sbi/sbi_ecall_interface.h
+>@@ -155,6 +155,11 @@ enum sbi_pmu_hw_cache_op_result_id {
+> 	SBI_PMU_HW_CACHE_RESULT_MAX,
+> };
+>
+>+#define SBI_PMU_HW_CACHE_EVENT_IDX(id, op, res) \
+>+	(SBI_PMU_EVENT_TYPE_HW_CACHE << SBI_PMU_EVENT_IDX_TYPE_OFFSET | \
+>+	SBI_PMU_HW_CACHE_##id << 3 | SBI_PMU_HW_CACHE_OP_##op << 1 | \
+>+	SBI_PMU_HW_CACHE_RESULT_##res)
+>+
+> /**
+>  * Special "firmware" events provided by the OpenSBI, even if the hardware
+>  * does not support performance events. These events are encoded as a raw
+>diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+>index d6dafef..fbcd870 100644
+>--- a/platform/generic/Kconfig
+>+++ b/platform/generic/Kconfig
+>@@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
+> config PLATFORM_ANDES_AE350
+> 	bool "Andes AE350 support"
+> 	select SYS_ATCSMU
+>+	select ANDES_HPM
+> 	select ANDES_PMU
+> 	default n
+>
+>@@ -38,6 +39,7 @@ config PLATFORM_RENESAS_RZFIVE
+> 	bool "Renesas RZ/Five support"
+> 	select ANDES45_PMA
+> 	select ANDES_SBI
+>+	select ANDES_HPM
+> 	select ANDES_PMU
+> 	default n
+>
+>diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
+>index 555e4fe..8af2704 100644
+>--- a/platform/generic/andes/Kconfig
+>+++ b/platform/generic/andes/Kconfig
+>@@ -8,6 +8,13 @@ config ANDES_SBI
+> 	bool "Andes SBI support"
+> 	default n
+>
+>+config ANDES_HPM
+>+	bool "Andes HPM support"
+>+	default n
+>+	help
+>+	  This provides Andes platform override for creating
+>+	  event to counter mappings in pmu node.
+>+
+> config ANDES_PMU
+> 	bool "Andes custom PMU extension support"
+> 	default n
+>diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+>index 80cd294..28c187e 100644
+>--- a/platform/generic/andes/ae350.c
+>+++ b/platform/generic/andes/ae350.c
+>@@ -19,6 +19,7 @@
+> #include <sbi/sbi_ipi.h>
+> #include <sbi/sbi_init.h>
+> #include <andes/andes45.h>
+>+#include <andes/andes_hpm.h>
+>
+> static struct smu_data smu = { 0 };
+> extern void __ae350_enable_coherency_warmboot(void);
+>@@ -128,5 +129,6 @@ static const struct fdt_match andes_ae350_match[] = {
+> const struct platform_override andes_ae350 = {
+> 	.match_table = andes_ae350_match,
+> 	.final_init  = ae350_final_init,
+>+	.fdt_add_pmu_mappings = andes_fdt_add_pmu_mappings,
+> 	.extensions_init = ae350_extensions_init,
+> };
+>diff --git a/platform/generic/andes/andes_hpm.c b/platform/generic/andes/andes_hpm.c
+>new file mode 100644
+>index 0000000..f9e6d2e
+>--- /dev/null
+>+++ b/platform/generic/andes/andes_hpm.c
+>@@ -0,0 +1,381 @@
+>+/*
+>+ * SPDX-License-Identifier: BSD-2-Clause
+>+ *
+>+ * Copyright (c) 2023 Andes Technology Corporation
+>+ */
+>+
+>+#include <andes/andes45.h>
+>+#include <andes/andes_hpm.h>
+>+#include <sbi/riscv_asm.h>
+>+#include <sbi/sbi_ecall_interface.h>
+>+#include <sbi_utils/fdt/fdt_fixup.h>
+>+
+>+static const struct sbi_pmu_event_select_map andes45_hw_evt_selects[] = {
+>+	/* Hardware general events (Type #0) */
+>+	{
+>+		/* perf: cycles (eidx: 0x1) */
+>+		.eidx = SBI_PMU_HW_CPU_CYCLES,
+>+		.select = ANDES_CYCLES
+>+	},
+>+	{
+>+		/* perf: instructions (eidx: 0x2) */
+>+		.eidx = SBI_PMU_HW_INSTRUCTIONS,
+>+		.select = ANDES_INSTRET
+>+	},
+>+	{
+>+		/* perf: cache-references (eidx: 0x3) */
+>+		.eidx = SBI_PMU_HW_CACHE_REFERENCES,
+>+		.select = ANDES_DCACHE_ACCESS
+>+	},
+>+	{
+>+		/* perf: cache-misses (eidx: 0x4) */
+>+		.eidx = SBI_PMU_HW_CACHE_MISSES,
+>+		.select = ANDES_DCACHE_MISS
+>+	},
+>+	{
+>+		/* perf: branches (eidx: 0x5) */
+>+		.eidx = SBI_PMU_HW_BRANCH_INSTRUCTIONS,
+>+		.select = ANDES_CONDITION_BR,
+>+	},
+>+	{
+>+		/* perf: branch-misses (eidx: 0x6) */
+>+		.eidx = SBI_PMU_HW_BRANCH_MISSES,
+>+		.select = ANDES_MISPREDICT_CONDITION_BR,
+>+	},
+>+	/* Hardware cache events (Type #1) */
+>+	{
+>+		/* perf: L1-dcache-loads (eidx: 0x10000) */
+>+		.eidx = SBI_PMU_HW_CACHE_EVENT_IDX(L1D, READ, ACCESS),
+>+		.select = ANDES_DCACHE_LOAD_ACCESS
+>+	},
+>+	{
+>+		/* perf: L1-dcache-loads-misses (eidx: 0x10001) */
+>+		.eidx = SBI_PMU_HW_CACHE_EVENT_IDX(L1D, READ, MISS),
+>+		.select = ANDES_DCACHE_LOAD_MISS
+>+	},
+>+	{
+>+		/* perf: L1-dcache-stores (eidx: 0x10002) */
+>+		.eidx = SBI_PMU_HW_CACHE_EVENT_IDX(L1D, WRITE, ACCESS),
+>+		.select = ANDES_DCACHE_STORE_ACCESS
+>+	},
+>+	{
+>+		/* perf: L1-dcache-store-misses (eidx: 0x10003) */
+>+		.eidx = SBI_PMU_HW_CACHE_EVENT_IDX(L1D, WRITE, MISS),
+>+		.select = ANDES_DCACHE_STORE_MISS
+>+	},
+>+	{
+>+		/* perf: L1-icache-load (eidx: 0x10008) */
+>+		.eidx = SBI_PMU_HW_CACHE_EVENT_IDX(L1I, READ, ACCESS),
+>+		.select = ANDES_ICACHE_ACCESS
+>+	},
+>+	{
+>+		/* perf: L1-icache-load-misses (eidx: 0x10009) */
+>+		.eidx = SBI_PMU_HW_CACHE_EVENT_IDX(L1I, READ, MISS),
+>+		.select = ANDES_ICACHE_MISS
+>+	},
+>+	{ /* sentinel */ }
+>+};
+>+
+>+static const struct sbi_pmu_event_counter_map andes45_hw_evt_counters[] = {
+>+	{
+>+		/* perf: cycles (eidx: 0x1) */
+>+		.eidx_start = SBI_PMU_HW_CPU_CYCLES,
+>+		/* perf: branch-misses (eidx: 0x6) */
+>+		.eidx_end = SBI_PMU_HW_BRANCH_MISSES,
+>+		.ctr_map = ANDES_MHPM_MAP,
+>+	},
+>+	{
+>+		/* perf: L1-dcache-loads (eidx: 0x10000) */
+>+		.eidx_start = SBI_PMU_HW_CACHE_EVENT_IDX(L1D, READ, ACCESS),
+>+		/* perf: L1-dcache-store-misses (eidx: 0x10003) */
+>+		.eidx_end = SBI_PMU_HW_CACHE_EVENT_IDX(L1D, WRITE, MISS),
+>+		.ctr_map = ANDES_MHPM_MAP,
+>+	},
+>+	{
+>+		/* perf: L1-icache-load (eidx: 0x10008) */
+>+		.eidx_start = SBI_PMU_HW_CACHE_EVENT_IDX(L1I, READ, ACCESS),
+>+		/* perf: L1-icache-load-misses (eidx: 0x10009) */
+>+		.eidx_end = SBI_PMU_HW_CACHE_EVENT_IDX(L1I, READ, MISS),
+>+		.ctr_map = ANDES_MHPM_MAP,
+>+	},
+>+	{ /* sentinel */ }
+>+};
+>+
+>+static const struct sbi_pmu_raw_event_counter_map andes45_raw_evt_counters[] = {
+>+	{
+>+		.select = ANDES_CYCLES,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INSTRET,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INT_LOAD_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INT_STORE_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_ATOMIC_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_SYS_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INT_COMPUTE_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CONDITION_BR,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_TAKEN_CONDITION_BR,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_JAL_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_JALR_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_RET_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CONTROL_TRANS_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_EX9_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INT_MUL_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INT_DIV_REMAINDER_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_FLOAT_LOAD_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_FLOAT_STORE_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_FLOAT_ADD_SUB_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_FLOAT_MUL_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_FLOAT_FUSED_MULADD_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_FLOAT_DIV_SQUARE_ROOT_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_OTHER_FLOAT_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_INT_MUL_AND_SUB_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_RETIRED_OP,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_ILM_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DLM_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_ICACHE_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_ICACHE_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_LOAD_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_LOAD_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_STORE_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_STORE_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_DCACHE_WB,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CYCLE_WAIT_ICACHE_FILL,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CYCLE_WAIT_DCACHE_FILL,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_UNCACHED_IFETCH_FROM_BUS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_UNCACHED_LOAD_FROM_BUS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CYCLE_WAIT_UNCACHED_IFETCH,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CYCLE_WAIT_UNCACHED_LOAD,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MAIN_ITLB_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MAIN_ITLB_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MAIN_DTLB_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MAIN_DTLB_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_CYCLE_WAIT_ITLB_FILL,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_PIPE_STALL_CYCLE_DTLB_MISS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_HW_PREFETCH_BUS_ACCESS,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MISPREDICT_CONDITION_BR,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MISPREDICT_TAKE_CONDITION_BR,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{
+>+		.select = ANDES_MISPREDICT_TARGET_RET_INST,
+>+		.select_mask = ANDES_RAW_EVENT_MASK,
+>+		.ctr_map = ANDES_MHPM_MAP
+>+	},
+>+	{ /* sentinel */ }
+>+};
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-Reviewed-by: Guo Ren <guoren@kernel.org>
----
-This patch depends these patchs:
-1. platform: generic: add T-HEAD th1520 soc support
-2. lib: sbi: Add sub-regions check for sanitizing domain
-3. lib: utils: Add T-HEAD C900 ACLINT
-4. platform: generic: thead: improve tlb flush errata
+Why not use DT? I just see everything is fixed.
 
-Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005676.html
-Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005705.html
-Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005736.html
-Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005712.html
-Link: https://lore.kernel.org/linux-riscv/cover.1696433229.git.unicorn_wang at outlook.com/
+Adding fdt_add_pmu_mappings is not a good idea. Opensbi can use its own
+DT by setting FW_FDT_PATH, so you do not need to add this mapping table.
 
-Changed from v3:
-1. remove unused variable to avoid compile failed
-
-Changed from v2:
-1. replace hart count with number 16 when calculating the timer area.
-   The sg2042 have a fixed number of timer, see the kernel dt in the link.
-2. fix typo
-3. move the c900 aclint patch out of this series.
-4. move the tlb size change patch out of this series.
-
-Changed from v1:
-1. make number of entries in tlb fifo auto deteted.
-
----
- platform/generic/Kconfig           |  6 +++
- platform/generic/configs/defconfig |  1 +
- platform/generic/sophgo/objects.mk |  9 +++++
- platform/generic/sophgo/sg2042.c   | 62 ++++++++++++++++++++++++++++++
- 4 files changed, 78 insertions(+)
- create mode 100644 platform/generic/sophgo/objects.mk
- create mode 100644 platform/generic/sophgo/sg2042.c
-
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index f9e7ed2..a902cf3 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -49,6 +49,12 @@ config PLATFORM_SIFIVE_FU740
- 	depends on FDT_RESET && FDT_I2C
- 	default n
-
-+config PLATFORM_SOPHGO_SG2042
-+	bool "Sophgo sg2042 support"
-+	select THEAD_C9XX_ERRATA
-+	select THEAD_C9XX_PMU
-+	default n
-+
- config PLATFORM_STARFIVE_JH7110
- 	bool "StarFive JH7110 support"
- 	default n
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index c432bc2..e1b76c8 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -3,6 +3,7 @@ CONFIG_PLATFORM_ANDES_AE350=y
- CONFIG_PLATFORM_RENESAS_RZFIVE=y
- CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
-+CONFIG_PLATFORM_SOPHGO_SG2042=y
- CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_PLATFORM_THEAD=y
- CONFIG_FDT_GPIO=y
-diff --git a/platform/generic/sophgo/objects.mk b/platform/generic/sophgo/objects.mk
-new file mode 100644
-index 0000000..3d2908a
---- /dev/null
-+++ b/platform/generic/sophgo/objects.mk
-@@ -0,0 +1,9 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (C) 2023 Inochi Amaoto <inochiama@outlook.com>
-+# Copyright (C) 2023 Alibaba Group Holding Limited.
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo_sg2042
-+platform-objs-$(CONFIG_PLATFORM_SOPHGO_SG2042) += sophgo/sg2042.o
-diff --git a/platform/generic/sophgo/sg2042.c b/platform/generic/sophgo/sg2042.c
-new file mode 100644
-index 0000000..9c6acdb
---- /dev/null
-+++ b/platform/generic/sophgo/sg2042.c
-@@ -0,0 +1,62 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Authors:
-+ *   Inochi Amaoto <inochiama@outlook.com>
-+ *
-+ */
-+
-+#include <platform_override.h>
-+#include <thead/c9xx_errata.h>
-+#include <thead/c9xx_pmu.h>
-+#include <sbi/sbi_const.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_string.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/timer/aclint_mtimer.h>
-+
-+#define SOPHGO_SG2042_TIMER_BASE	0x70ac000000UL
-+#define SOPHGO_SG2042_TIMER_SIZE	0x10000UL
-+#define SOPHGO_SG2042_TIMER_NUM		16
-+
-+static int sophgo_sg2042_early_init(bool cold_boot,
-+				    const struct fdt_match *match)
-+{
-+	thead_register_tlb_flush_trap_handler();
-+
-+	/*
-+	 * Sophgo sg2042 soc use separate 16 timers while initiating,
-+	 * merge them as a single domain to avoid wasting.
-+	 */
-+	if (cold_boot)
-+		return sbi_domain_root_add_memrange(SOPHGO_SG2042_TIMER_BASE,
-+						SOPHGO_SG2042_TIMER_SIZE *
-+						SOPHGO_SG2042_TIMER_NUM,
-+						MTIMER_REGION_ALIGN,
-+						(SBI_DOMAIN_MEMREGION_MMIO |
-+						 SBI_DOMAIN_MEMREGION_M_READABLE |
-+						 SBI_DOMAIN_MEMREGION_M_WRITABLE));
-+
-+
-+	return 0;
-+}
-+
-+static int sophgo_sg2042_extensions_init(const struct fdt_match *match,
-+					 struct sbi_hart_features *hfeatures)
-+{
-+	thead_c9xx_register_pmu_device();
-+	return 0;
-+}
-+
-+static const struct fdt_match sophgo_sg2042_match[] = {
-+	{ .compatible = "sophgo,sg2042" },
-+	{ },
-+};
-+
-+const struct platform_override sophgo_sg2042 = {
-+	.match_table		= sophgo_sg2042_match,
-+	.early_init		= sophgo_sg2042_early_init,
-+	.extensions_init	= sophgo_sg2042_extensions_init,
-+};
---
-2.42.0
-
+>+
+>+int andes_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match)
+>+{
+>+	/*
+>+	 * At the moment, simply create mapping for any 45-series core
+>+	 * based on marchid, we may check and differentiate the mapping
+>+	 * by mimpid.
+>+	 */
+>+	if (is_andes(45))
+>+		return fdt_add_pmu_mappings(fdt, andes45_hw_evt_selects,
+>+					    andes45_hw_evt_counters,
+>+					    andes45_raw_evt_counters);
+>+
+>+	return 0;
+>+}
+>diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
+>index 6a8c66c..57caaf6 100644
+>--- a/platform/generic/andes/objects.mk
+>+++ b/platform/generic/andes/objects.mk
+>@@ -8,3 +8,4 @@ platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
+> platform-objs-$(CONFIG_ANDES45_PMA) += andes/andes45-pma.o
+> platform-objs-$(CONFIG_ANDES_SBI) += andes/andes_sbi.o
+> platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
+>+platform-objs-$(CONFIG_ANDES_HPM) += andes/andes_hpm.o
+>diff --git a/platform/generic/include/andes/andes_hpm.h b/platform/generic/include/andes/andes_hpm.h
+>new file mode 100644
+>index 0000000..0f301db
+>--- /dev/null
+>+++ b/platform/generic/include/andes/andes_hpm.h
+>@@ -0,0 +1,83 @@
+>+/*
+>+ * SPDX-License-Identifier: BSD-2-Clause
+>+ *
+>+ * Copyright (c) 2023 Andes Technology Corporation
+>+ */
+>+
+>+#ifndef _ANDES_HPM_H_
+>+#define _ANDES_HPM_H_
+>+
+>+#include <sbi_utils/fdt/fdt_helper.h>
+>+
+>+#define ANDES_MHPM_MAP		0x78
+>+#define ANDES_RAW_EVENT_MASK	~0ULL
+>+
+>+/* Event code for instruction commit events */
+>+#define ANDES_CYCLES				0x10
+>+#define ANDES_INSTRET				0x20
+>+#define ANDES_INT_LOAD_INST			0x30
+>+#define ANDES_INT_STORE_INST			0x40
+>+#define ANDES_ATOMIC_INST			0x50
+>+#define ANDES_SYS_INST				0x60
+>+#define ANDES_INT_COMPUTE_INST			0x70
+>+#define ANDES_CONDITION_BR			0x80
+>+#define ANDES_TAKEN_CONDITION_BR		0x90
+>+#define ANDES_JAL_INST				0xA0
+>+#define ANDES_JALR_INST				0xB0
+>+#define ANDES_RET_INST				0xC0
+>+#define ANDES_CONTROL_TRANS_INST		0xD0
+>+#define ANDES_EX9_INST				0xE0
+>+#define ANDES_INT_MUL_INST			0xF0
+>+#define ANDES_INT_DIV_REMAINDER_INST		0x100
+>+#define ANDES_FLOAT_LOAD_INST			0x110
+>+#define ANDES_FLOAT_STORE_INST			0x120
+>+#define ANDES_FLOAT_ADD_SUB_INST		0x130
+>+#define ANDES_FLOAT_MUL_INST			0x140
+>+#define ANDES_FLOAT_FUSED_MULADD_INST		0x150
+>+#define ANDES_FLOAT_DIV_SQUARE_ROOT_INST	0x160
+>+#define ANDES_OTHER_FLOAT_INST			0x170
+>+#define ANDES_INT_MUL_AND_SUB_INST		0x180
+>+#define ANDES_RETIRED_OP			0x190
+>+
+>+/* Event code for memory system events */
+>+#define ANDES_ILM_ACCESS			0x01
+>+#define ANDES_DLM_ACCESS			0x11
+>+#define ANDES_ICACHE_ACCESS			0x21
+>+#define ANDES_ICACHE_MISS			0x31
+>+#define ANDES_DCACHE_ACCESS			0x41
+>+#define ANDES_DCACHE_MISS			0x51
+>+#define ANDES_DCACHE_LOAD_ACCESS		0x61
+>+#define ANDES_DCACHE_LOAD_MISS			0x71
+>+#define ANDES_DCACHE_STORE_ACCESS		0x81
+>+#define ANDES_DCACHE_STORE_MISS			0x91
+>+#define ANDES_DCACHE_WB				0xA1
+>+#define ANDES_CYCLE_WAIT_ICACHE_FILL		0xB1
+>+#define ANDES_CYCLE_WAIT_DCACHE_FILL		0xC1
+>+#define ANDES_UNCACHED_IFETCH_FROM_BUS		0xD1
+>+#define ANDES_UNCACHED_LOAD_FROM_BUS		0xE1
+>+#define ANDES_CYCLE_WAIT_UNCACHED_IFETCH	0xF1
+>+#define ANDES_CYCLE_WAIT_UNCACHED_LOAD		0x101
+>+#define ANDES_MAIN_ITLB_ACCESS			0x111
+>+#define ANDES_MAIN_ITLB_MISS			0x121
+>+#define ANDES_MAIN_DTLB_ACCESS			0x131
+>+#define ANDES_MAIN_DTLB_MISS			0x141
+>+#define ANDES_CYCLE_WAIT_ITLB_FILL		0x151
+>+#define ANDES_PIPE_STALL_CYCLE_DTLB_MISS	0x161
+>+#define ANDES_HW_PREFETCH_BUS_ACCESS		0x171
+>+
+>+/* Event code for microarchitecture events */
+>+#define ANDES_MISPREDICT_CONDITION_BR		0x02
+>+#define ANDES_MISPREDICT_TAKE_CONDITION_BR	0x12
+>+#define ANDES_MISPREDICT_TARGET_RET_INST	0x22
+>+
+>+#ifdef CONFIG_ANDES_HPM
+>+
+>+int andes_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match);
+>+
+>+#else
+>+
+>+int andes_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match) { return 0; }
+>+
+>+#endif /* CONFIG_ANDES_HPM */
+>+
+>+#endif /* _ANDES_HPM_H_ */
+>diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+>index 2f772c8..fafbff0 100644
+>--- a/platform/generic/renesas/rzfive/rzfive.c
+>+++ b/platform/generic/renesas/rzfive/rzfive.c
+>@@ -5,6 +5,7 @@
+>  */
+>
+> #include <andes/andes45_pma.h>
+>+#include <andes/andes_hpm.h>
+> #include <andes/andes_pmu.h>
+> #include <andes/andes_sbi.h>
+> #include <platform_override.h>
+>@@ -69,6 +70,7 @@ const struct platform_override renesas_rzfive = {
+> 	.match_table = renesas_rzfive_match,
+> 	.early_init = renesas_rzfive_early_init,
+> 	.final_init = renesas_rzfive_final_init,
+>+	.fdt_add_pmu_mappings = andes_fdt_add_pmu_mappings,
+> 	.vendor_ext_provider = andes_sbi_vendor_ext_provider,
+> 	.extensions_init = renesas_rzfive_extensions_init,
+> };
+>--
+>2.34.1
+>
+>
 
