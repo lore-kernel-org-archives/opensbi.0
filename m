@@ -1,41 +1,57 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Sun, 29 Oct 2023 00:49:57 +0200
-Subject: [PATCH 1/3] include: sbi: macros for mseccfg.sseed and .useed
+Date: Sun, 29 Oct 2023 00:49:59 +0200
+Subject: [RFC 3/3] lib: sbi: enable seed access in S-mode
 In-Reply-To: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
 References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
-Message-ID: <20231028224959.95465-2-heinrich.schuchardt@canonical.com>
+Message-ID: <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Define macros to access the sseed and the useed bit in the machine
-security configuration register (mseccfg).
+If ISA extension Zkr is available, set
+
+    mseccfg.sseed=1
+    mseccfg.useed=0
+
+This enables access to the seed CSR in S-mode but not in U-mode.
 
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
-Just resending this patch which should be merged independent of how
-we set mseccfg.sseed in future.
----
- include/sbi/riscv_encoding.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ lib/sbi/sbi_hart.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index a545242..0996d64 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -678,6 +678,10 @@
- #define MSECCFG_MMWP			(_UL(1) << MSECCFG_MMWP_SHIFT)
- #define MSECCFG_RLB_SHIFT		(2)
- #define MSECCFG_RLB			(_UL(1) << MSECCFG_RLB_SHIFT)
-+#define MSECCFG_USEED_SHIFT		(8)
-+#define MSECCFG_USEED			(_UL(1) << MSECCFG_USEED_SHIFT)
-+#define MSECCFG_SSEED_SHIFT		(9)
-+#define MSECCFG_SSEED			(_UL(1) << MSECCFG_SSEED_SHIFT)
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 569596f..5a3e8ee 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -530,6 +530,15 @@ int sbi_hart_unmap_saddr(void)
+ 	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+ }
  
- /* Counter Overflow CSR */
- #define CSR_SCOUNTOVF			0xda0
++static void sbi_hart_zkr_configure(struct sbi_scratch *scratch)
++{
++	unsigned long mseccfg_val = csr_read(CSR_MSECCFG);
++
++	mseccfg_val |= MSECCFG_SSEED;
++	mseccfg_val &= ~MSECCFG_USEED;
++	csr_set(CSR_MSECCFG, mseccfg_val);
++}
++
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ {
+ 	int rc;
+@@ -551,6 +560,9 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ 		rc = sbi_hart_oldpmp_configure(scratch, pmp_count,
+ 						pmp_gran_log2, pmp_addr_max);
+ 
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZKR))
++		sbi_hart_zkr_configure(scratch);
++
+ 	/*
+ 	 * As per section 3.7.2 of privileged specification v1.12,
+ 	 * virtual address translations can be speculatively performed
 -- 
 2.40.1
 
