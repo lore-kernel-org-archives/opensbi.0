@@ -1,38 +1,41 @@
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Sun, 29 Oct 2023 00:49:56 +0200
-Subject: [RFC 0/3] Enable access to seed CSR in S-mode
-Message-ID: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
+Date: Sun, 29 Oct 2023 00:49:57 +0200
+Subject: [PATCH 1/3] include: sbi: macros for mseccfg.sseed and .useed
+In-Reply-To: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
+References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
+Message-ID: <20231028224959.95465-2-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The Zkr ISA extension (ratified Nov 2021) introduced the seed CSR. It
-provides an interface to a physical entropy source.
+Define macros to access the sseed and the useed bit in the machine
+security configuration register (mseccfg).
 
-Machine mode has always access to the CSR, supervisor, and user mode
-only if the corresponding bits sseed and useed are set in mseccfg.
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+Just resending this patch which should be merged independent of how
+we set mseccfg.sseed in future.
+---
+ include/sbi/riscv_encoding.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-With this series S-mode access to the seed register is enabled if the
-Zkr extension is present. U-mode access is disabled.
-
-QEMU 8.1.2 seems to have a bug:
-
-The mseccfg register can only be accessed when setting cpu flag x-epmp=on.
-The Privileged Architecture does not foresee this.
-
-Heinrich Schuchardt (3):
-  include: sbi: macros for mseccfg.sseed and .useed
-  lib: sbi: Add Zkr in hart extensions
-  lib: sbi: enable seed access in S-mode
-
- include/sbi/riscv_encoding.h |  4 ++++
- include/sbi/sbi_hart.h       |  2 ++
- lib/sbi/sbi_hart.c           | 15 +++++++++++++++
- lib/utils/fdt/fdt_helper.c   |  1 +
- 4 files changed, 22 insertions(+)
-
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index a545242..0996d64 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -678,6 +678,10 @@
+ #define MSECCFG_MMWP			(_UL(1) << MSECCFG_MMWP_SHIFT)
+ #define MSECCFG_RLB_SHIFT		(2)
+ #define MSECCFG_RLB			(_UL(1) << MSECCFG_RLB_SHIFT)
++#define MSECCFG_USEED_SHIFT		(8)
++#define MSECCFG_USEED			(_UL(1) << MSECCFG_USEED_SHIFT)
++#define MSECCFG_SSEED_SHIFT		(9)
++#define MSECCFG_SSEED			(_UL(1) << MSECCFG_SSEED_SHIFT)
+ 
+ /* Counter Overflow CSR */
+ #define CSR_SCOUNTOVF			0xda0
 -- 
 2.40.1
 
