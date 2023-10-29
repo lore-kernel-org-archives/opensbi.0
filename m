@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 30 Oct 2023 00:38:00 +0800
-Subject: [RFC 3/3] lib: sbi: enable seed access in S-mode
-In-Reply-To: <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
+Date: Mon, 30 Oct 2023 00:42:02 +0800
+Subject: [PATCH 1/3] include: sbi: macros for mseccfg.sseed and .useed
+In-Reply-To: <20231028224959.95465-2-heinrich.schuchardt@canonical.com>
 References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com>
-	 <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
-Message-ID: <b9d5f65a06781a77f0a6deb04b5539fd5b456d4d.camel@126.com>
+	 <20231028224959.95465-2-heinrich.schuchardt@canonical.com>
+Message-ID: <77c58a70e31ee9a40e202f1958344481e7b94651.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,53 +12,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2023-10-29???? 00:49 +0200?Heinrich Schuchardt???
-> If ISA extension Zkr is available, set
-> 
-> ??? mseccfg.sseed=1
-> ??? mseccfg.useed=0
-> 
-> This enables access to the seed CSR in S-mode but not in U-mode.
+> Define macros to access the sseed and the useed bit in the machine
+> security configuration register (mseccfg).
 > 
 > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-> ---
-> ?lib/sbi/sbi_hart.c | 12 ++++++++++++
-> ?1 file changed, 12 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 569596f..5a3e8ee 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -530,6 +530,15 @@ int sbi_hart_unmap_saddr(void)
-> ?	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
-> ?}
-> ?
-> +static void sbi_hart_zkr_configure(struct sbi_scratch *scratch)
-> +{
-> +	unsigned long mseccfg_val = csr_read(CSR_MSECCFG);
-> +
-> +	mseccfg_val |= MSECCFG_SSEED;
-> +	mseccfg_val &= ~MSECCFG_USEED;
-> +	csr_set(CSR_MSECCFG, mseccfg_val);
-> +}
-> +
-> ?int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
-> ?{
-> ?	int rc;
-> @@ -551,6 +560,9 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
-> ?		rc = sbi_hart_oldpmp_configure(scratch, pmp_count,
-> ?						pmp_gran_log2, pmp_addr_max);
-> ?
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZKR))
-> +		sbi_hart_zkr_configure(scratch);
-> +
-What is the relationship between zkr and pmp? Maybe it's better to move 
-into sbi_hart_reinit.
+LGTM
 
-Regards,
-Xiang W
-> ?	/*
-> ?	 * As per section 3.7.2 of privileged specification v1.12,
-> ?	 * virtual address translations can be speculatively performed
+Reviewed-by: Xiang W <wxjstz@126.com>
+> ---
+> Just resending this patch which should be merged independent of how
+> we set mseccfg.sseed in future.
+> ---
+> ?include/sbi/riscv_encoding.h | 4 ++++
+> ?1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index a545242..0996d64 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -678,6 +678,10 @@
+> ?#define MSECCFG_MMWP			(_UL(1) << MSECCFG_MMWP_SHIFT)
+> ?#define MSECCFG_RLB_SHIFT		(2)
+> ?#define MSECCFG_RLB			(_UL(1) << MSECCFG_RLB_SHIFT)
+> +#define MSECCFG_USEED_SHIFT		(8)
+> +#define MSECCFG_USEED			(_UL(1) << MSECCFG_USEED_SHIFT)
+> +#define MSECCFG_SSEED_SHIFT		(9)
+> +#define MSECCFG_SSEED			(_UL(1) << MSECCFG_SSEED_SHIFT)
+> ?
+> ?/* Counter Overflow CSR */
+> ?#define CSR_SCOUNTOVF			0xda0
 > -- 
 > 2.40.1
 > 
