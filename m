@@ -1,67 +1,41 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 27 Sep 2024 13:12:39 +0530
-Subject: [PATCH] lib: sbi: fix missing high 32bits when sbi_cppc_write on rv32
-In-Reply-To: <20240923013832.477015-1-wxjstz@126.com>
-References: <20240923013832.477015-1-wxjstz@126.com>
-Message-ID: <CAAhSdy2Otjic3FDK4SGgd2WQyQiuK+e94q_bW1FQ-OszozAQ1w@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 07 Nov 2023 22:32:01 +0800
+Subject: issue about lr/sc and __riscv_atomic
+Message-ID: <f93027a6dd48ed1a0432750c4dd4b24ebeaa1117.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Sep 23, 2024 at 7:09?AM Xiang W <wxjstz@126.com> wrote:
->
-> sbi_cppc_write was writing to the a1 register only, which under rv32
-> would cause the high 32 bits to always be 0. This patch fixes that.
->
-> Resolves: https://github.com/riscv-software-src/opensbi/issues/334
+There are some conditional compilation related to __riscv_atomic in
+lib/sbi/riscv_atomic.c. Atomic operations are implemented through lr/sc when
+the __riscv_atomic macro is not defined. But lr/sc is also part of the A
+extension. If the A extension is not supported, lr/sc should not be used.
 
-Always use "Closes:" in the commit description when fixing a GitHub issue.
-This allows GitHub to automatically close the issue once the patch is
-merged.
+We should remove these conditional compilations, opensbi is strongly dependent
+on the A extension.
 
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> Reported-by: Wesley Norris <repnop@outlook.com>
-> ---
->  lib/sbi/sbi_ecall_cppc.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/lib/sbi/sbi_ecall_cppc.c b/lib/sbi/sbi_ecall_cppc.c
-> index c26bb40..f3747b0 100644
-> --- a/lib/sbi/sbi_ecall_cppc.c
-> +++ b/lib/sbi/sbi_ecall_cppc.c
-> @@ -32,7 +32,13 @@ static int sbi_ecall_cppc_handler(unsigned long extid, unsigned long funcid,
->  #endif
->                 break;
->         case SBI_EXT_CPPC_WRITE:
-> -               ret = sbi_cppc_write(regs->a0, regs->a1);
-> +#if __riscv_xlen == 32
-> +               temp = regs->a2;
-> +               temp = (temp << 32) | regs->a1;
-> +else
+The following is the compilation log when I turned off the A extension.
 
-s/else/#else/
+make CROSS_COMPILE=riscv64-unknown-elf- PLATFORM_RISCV_ISA=rv64imfdc_zicsr_zifencei
+ CC        lib/sbi/riscv_asm.o
+ CC        lib/sbi/riscv_atomic.o
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c: Assembler messages:
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:37: Error: unrecognized opcode `amoadd.d.aqrl a5,a1,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:37: Error: unrecognized opcode `amoadd.d.aqrl a5,a5,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:173: Error: unrecognized opcode `lr.d a3,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:175: Error: unrecognized opcode `sc.d.rl a2,a4,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:183: Error: unrecognized opcode `lr.d a4,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:184: Error: unrecognized opcode `sc.d.rl a3,a5,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:194: Error: unrecognized opcode `lr.w a4,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:195: Error: unrecognized opcode `sc.w.rl a3,a5,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:205: Error: unrecognized opcode `lr.d a4,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:206: Error: unrecognized opcode `sc.d.rl a3,a5,0(a0)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:237: Error: unrecognized opcode `amoor.d.aqrl a0,a0,0(a1)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:242: Error: unrecognized opcode `amoand.d.aqrl a0,a0,0(a1)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:237: Error: unrecognized opcode `amoor.d.aqrl a0,a0,0(a1)', extension `a' required
+/home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:242: Error: unrecognized opcode `amoand.d.aqrl a0,a0,0(a1)', extension `a' required
+make: *** [Makefile:504: /home/merle/workspaces/opensbi/build/lib/sbi/riscv_atomic.o] Error 1
 
-Make sure your patches are at least compile tested before sending.
-
-> +               temp = regs->a1;
-> +#endif
-> +               ret = sbi_cppc_write(regs->a0, temp);
->                 break;
->         case SBI_EXT_CPPC_PROBE:
->                 ret = sbi_cppc_probe(regs->a0);
-> --
-> 2.45.2
->
-
-I have taken care of the above issues at the time of merging this patch.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
 
