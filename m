@@ -1,63 +1,169 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 07 Nov 2023 23:41:01 +0800
-Subject: issue about lr/sc and __riscv_atomic
-In-Reply-To: <CAK9=C2VJGfT_R5LrE_ZkdfJeh_0AKFUYTbbE=EmdRpe8p3jAZA@mail.gmail.com>
-References: <f93027a6dd48ed1a0432750c4dd4b24ebeaa1117.camel@126.com>
-	 <CAK9=C2VJGfT_R5LrE_ZkdfJeh_0AKFUYTbbE=EmdRpe8p3jAZA@mail.gmail.com>
-Message-ID: <b9467b1d1907891c5d1b3b2c565207f3330415c7.camel@126.com>
+Date: Wed,  8 Nov 2023 11:28:16 +0800
+Subject: [PATCH] lib: sbi: Remove xchg/cmpxchg implemented via lr/sc
+Message-ID: <20231108032859.159198-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-11-07???? 20:40 +0530?Anup Patel???
-> On Tue, Nov 7, 2023 at 8:03?PM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > There are some conditional compilation related to __riscv_atomic in
-> > lib/sbi/riscv_atomic.c. Atomic operations are implemented through lr/sc when
-> > the __riscv_atomic macro is not defined. But lr/sc is also part of the A
-> > extension. If the A extension is not supported, lr/sc should not be used.
-> > 
-> > We should remove these conditional compilations, opensbi is strongly dependent
-> > on the A extension.
-> > 
-> > The following is the compilation log when I turned off the A extension.
-> > 
-> > make CROSS_COMPILE=riscv64-unknown-elf- PLATFORM_RISCV_ISA=rv64imfdc_zicsr_zifencei
-> > ?CC??????? lib/sbi/riscv_asm.o
-> > ?CC??????? lib/sbi/riscv_atomic.o
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c: Assembler messages:
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:37: Error: unrecognized opcode `amoadd.d.aqrl a5,a1,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:37: Error: unrecognized opcode `amoadd.d.aqrl a5,a5,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:173: Error: unrecognized opcode `lr.d a3,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:175: Error: unrecognized opcode `sc.d.rl a2,a4,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:183: Error: unrecognized opcode `lr.d a4,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:184: Error: unrecognized opcode `sc.d.rl a3,a5,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:194: Error: unrecognized opcode `lr.w a4,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:195: Error: unrecognized opcode `sc.w.rl a3,a5,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:205: Error: unrecognized opcode `lr.d a4,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:206: Error: unrecognized opcode `sc.d.rl a3,a5,0(a0)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:237: Error: unrecognized opcode `amoor.d.aqrl a0,a0,0(a1)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:242: Error: unrecognized opcode `amoand.d.aqrl a0,a0,0(a1)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:237: Error: unrecognized opcode `amoor.d.aqrl a0,a0,0(a1)', extension `a' required
-> > /home/merle/workspaces/opensbi/lib/sbi/riscv_atomic.c:242: Error: unrecognized opcode `amoand.d.aqrl a0,a0,0(a1)', extension `a' required
-> > make: *** [Makefile:504: /home/merle/workspaces/opensbi/build/lib/sbi/riscv_atomic.o] Error 1
-> 
-> We did not add "#if" checks because IMA is a minimal requirement for OpenSBI.
-I mean remove these
-https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/riscv_atomic.c#L170
-https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/riscv_atomic.c#L180
-https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/riscv_atomic.c#L191
-https://github.com/riscv-software-src/opensbi/blob/master/lib/sbi/riscv_atomic.c#L202
+lr/sc is part of the A extension. If the A extension is not supported,
+lr/sc cannot be used. So remove xchg/cmpxchg.
 
-Regards,
-Xiang W
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/riscv_atomic.c | 106 ++---------------------------------------
+ 1 file changed, 4 insertions(+), 102 deletions(-)
 
-> 
-> Refer, https://github.com/riscv-software-src/opensbi/blob/master/docs/platform_requirements.md
-> 
-> Regards,
-> Anup
+diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
+index 528686f..a143218 100644
+--- a/lib/sbi/riscv_atomic.c
++++ b/lib/sbi/riscv_atomic.c
+@@ -12,6 +12,10 @@
+ #include <sbi/riscv_atomic.h>
+ #include <sbi/riscv_barrier.h>
+ 
++#ifndef __riscv_atomic
++#error "opensbi strongly relies on the A extension of RISC-V"
++#endif
++
+ long atomic_read(atomic_t *atom)
+ {
+ 	long ret = atom->counter;
+@@ -79,131 +83,29 @@ long atomic_sub_return(atomic_t *atom, long value)
+ 		(__typeof__(*(ptr))) __axchg((ptr), _x_, sizeof(*(ptr)));	\
+ 	})
+ 
+-
+-#define __xchg(ptr, new, size)                                            \
+-	({                                                                \
+-		__typeof__(ptr) __ptr	 = (ptr);                         \
+-		__typeof__(*(ptr)) __new = (new);                         \
+-		__typeof__(*(ptr)) __ret;                                 \
+-		register unsigned int __rc;                               \
+-		switch (size) {                                           \
+-		case 4:                                                   \
+-			__asm__ __volatile__("0:	lr.w %0, %2\n"    \
+-					     "	sc.w.rl %1, %z3, %2\n"    \
+-					     "	bnez %1, 0b\n"            \
+-					     "	fence rw, rw\n"           \
+-					     : "=&r"(__ret), "=&r"(__rc), \
+-					       "+A"(*__ptr)               \
+-					     : "rJ"(__new)                \
+-					     : "memory");                 \
+-			break;                                            \
+-		case 8:                                                   \
+-			__asm__ __volatile__("0:	lr.d %0, %2\n"    \
+-					     "	sc.d.rl %1, %z3, %2\n"    \
+-					     "	bnez %1, 0b\n"            \
+-					     "	fence rw, rw\n"           \
+-					     : "=&r"(__ret), "=&r"(__rc), \
+-					       "+A"(*__ptr)               \
+-					     : "rJ"(__new)                \
+-					     : "memory");                 \
+-			break;                                            \
+-		default:                                                  \
+-			break;                                            \
+-		}                                                         \
+-		__ret;                                                    \
+-	})
+-
+-#define xchg(ptr, n)                                                     \
+-	({                                                               \
+-		__typeof__(*(ptr)) _n_ = (n);                            \
+-		(__typeof__(*(ptr))) __xchg((ptr), _n_, sizeof(*(ptr))); \
+-	})
+-
+-#define __cmpxchg(ptr, old, new, size)                                    \
+-	({                                                                \
+-		__typeof__(ptr) __ptr	 = (ptr);                         \
+-		__typeof__(*(ptr)) __old = (old);                         \
+-		__typeof__(*(ptr)) __new = (new);                         \
+-		__typeof__(*(ptr)) __ret;                                 \
+-		register unsigned int __rc;                               \
+-		switch (size) {                                           \
+-		case 4:                                                   \
+-			__asm__ __volatile__("0:	lr.w %0, %2\n"    \
+-					     "	bne  %0, %z3, 1f\n"       \
+-					     "	sc.w.rl %1, %z4, %2\n"    \
+-					     "	bnez %1, 0b\n"            \
+-					     "	fence rw, rw\n"           \
+-					     "1:\n"                       \
+-					     : "=&r"(__ret), "=&r"(__rc), \
+-					       "+A"(*__ptr)               \
+-					     : "rJ"(__old), "rJ"(__new)   \
+-					     : "memory");                 \
+-			break;                                            \
+-		case 8:                                                   \
+-			__asm__ __volatile__("0:	lr.d %0, %2\n"    \
+-					     "	bne %0, %z3, 1f\n"        \
+-					     "	sc.d.rl %1, %z4, %2\n"    \
+-					     "	bnez %1, 0b\n"            \
+-					     "	fence rw, rw\n"           \
+-					     "1:\n"                       \
+-					     : "=&r"(__ret), "=&r"(__rc), \
+-					       "+A"(*__ptr)               \
+-					     : "rJ"(__old), "rJ"(__new)   \
+-					     : "memory");                 \
+-			break;                                            \
+-		default:                                                  \
+-			break;                                            \
+-		}                                                         \
+-		__ret;                                                    \
+-	})
+-
+-#define cmpxchg(ptr, o, n)                                          \
+-	({                                                          \
+-		__typeof__(*(ptr)) _o_ = (o);                       \
+-		__typeof__(*(ptr)) _n_ = (n);                       \
+-		(__typeof__(*(ptr)))                                \
+-			__cmpxchg((ptr), _o_, _n_, sizeof(*(ptr))); \
+-	})
+-
+ long atomic_cmpxchg(atomic_t *atom, long oldval, long newval)
+ {
+-#ifdef __riscv_atomic
+ 	return __sync_val_compare_and_swap(&atom->counter, oldval, newval);
+-#else
+-	return cmpxchg(&atom->counter, oldval, newval);
+-#endif
+ }
+ 
+ long atomic_xchg(atomic_t *atom, long newval)
+ {
+ 	/* Atomically set new value and return old value. */
+-#ifdef __riscv_atomic
+ 	return axchg(&atom->counter, newval);
+-#else
+-	return xchg(&atom->counter, newval);
+-#endif
+ }
+ 
+ unsigned int atomic_raw_xchg_uint(volatile unsigned int *ptr,
+ 				  unsigned int newval)
+ {
+ 	/* Atomically set new value and return old value. */
+-#ifdef __riscv_atomic
+ 	return axchg(ptr, newval);
+-#else
+-	return xchg(ptr, newval);
+-#endif
+ }
+ 
+ unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
+ 				    unsigned long newval)
+ {
+ 	/* Atomically set new value and return old value. */
+-#ifdef __riscv_atomic
+ 	return axchg(ptr, newval);
+-#else
+-	return xchg(ptr, newval);
+-#endif
+ }
+ 
+ #if (__SIZEOF_POINTER__ == 8)
+-- 
+2.42.0
 
 
