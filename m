@@ -1,27 +1,76 @@
-From: Bo Gan <ganboing@gmail.com>
-Date: Wed, 8 Nov 2023 02:26:14 -0800
-Subject: [PATCH] lib: sbi: Remove xchg/cmpxchg implemented via lr/sc
-In-Reply-To: <0569501d1669fee1dfcceae0fb456c76b13c0b80.camel@126.com>
-References: <20231108032859.159198-1-wxjstz@126.com>
- <d50c455f-fb4c-4e63-c256-61af74cf8c9b@gmail.com>
- <0569501d1669fee1dfcceae0fb456c76b13c0b80.camel@126.com>
-Message-ID: <f21d8661-43c5-55c5-b887-c20931f8e839@gmail.com>
+From: Björn Töpel <bjorn@kernel.org>
+Date: Wed,  8 Nov 2023 20:13:10 +0100
+Subject: [PATCH] lib: sbi_illegal_insn: Emulate 'MZ'/c.li s4,-13 instruction
+Message-ID: <20231108191310.49950-1-bjorn@kernel.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 11/8/23 1:26 AM, Xiang W wrote:
-> Thanks for the feedback.
-> 
-> I'm a bit confused: doesn't your example prove that lr/sc doesn't work on a specific platform?
-> Why do you advise keeping?
-> 
-> Regards,
-> Xiang W
+From: Bj?rn T?pel <bjorn@rivosinc.com>
 
-I have no preference on whether it should be removed. If there's no objection, go ahead.
-If other people find it might be useful and against the removal, then I'd prefer lr/sc to
-be made optional, and by default use amo.
+The Linux kernel RISC-V image format allows that UEFI Images can also
+be booted by non-UEFI firmware. However for that to work, the PE/Image
+combo requires that 'MZ' is a valid instruction. On RISC-V, 'MZ' is
+only a valid instruction if the hardware is C capable [1].
+
+Emulate "c.li s4,-13" for non-C capable hardware.
+
+Link: https://lore.kernel.org/linux-riscv/20231024192648.25527-1-bjorn at kernel.org/ # [1]
+Signed-off-by: Bj?rn T?pel <bjorn@rivosinc.com>
+---
+ lib/sbi/sbi_illegal_insn.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index 2be47575a365..a3ade71295ce 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -102,6 +102,19 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 	return 0;
+ }
+ 
++static int compressed_insn(ulong insn, struct sbi_trap_regs *regs)
++{
++	/* Only handle 'MZ'/c.li s4,-13/0x5a3d */
++	if (!misa_extension('C') && (insn & 0xffff) == 0x5a4d) {
++		regs->s4 = -13;
++		regs->mepc += 4;
++
++		return 0;
++	}
++
++	return truly_illegal_insn(insn, regs);
++}
++
+ static const illegal_insn_func illegal_insn_table[32] = {
+ 	truly_illegal_insn, /* 0 */
+ 	truly_illegal_insn, /* 1 */
+@@ -140,6 +153,7 @@ static const illegal_insn_func illegal_insn_table[32] = {
+ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+ {
+ 	struct sbi_trap_info uptrap;
++	ulong tmp;
+ 
+ 	/*
+ 	 * We only deal with 32-bit (or longer) illegal instructions. If we
+@@ -159,7 +173,11 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+ 			uptrap.epc = regs->mepc;
+ 			return sbi_trap_redirect(regs, &uptrap);
+ 		}
+-		if ((insn & 3) != 3)
++
++		tmp = insn & 3;
++		if (tmp == 1)
++			return compressed_insn(insn, regs);
++		else if (tmp != 3)
+ 			return truly_illegal_insn(insn, regs);
+ 	}
+ 
+
+base-commit: cbdd86973901b6be2a1a2d3d6b54f3184fdf9a44
+-- 
+2.40.1
+
 
