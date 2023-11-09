@@ -1,104 +1,62 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu,  9 Nov 2023 15:54:21 +0800
-Subject: [PATCH] lib: sbi_illegal_insn: Emulate 'MZ'/c.li s4,-13 instruction
-In-Reply-To: <DADA653C-2A45-47AA-AB4F-BFFD3954FF6C@jrtc27.com>
-References: <DADA653C-2A45-47AA-AB4F-BFFD3954FF6C@jrtc27.com>
-Message-ID: <IA1PR20MB4953F7E940FFC38799B7C0E8BBAFA@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Xiang W <wxjstz@126.com>
+Date: Thu,  9 Nov 2023 16:25:17 +0800
+Subject: [PATCH] lib: sbi_illegal_insn: Emulate c.li
+Message-ID: <20231109082540.52144-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->On 9 Nov 2023, at 07:10, Xiang W <wxjstz@126.com> wrote:
->> ? 2023-11-09???? 07:00 +0000?Jessica Clarke???
->>> On 9 Nov 2023, at 06:55, Xiang W <wxjstz@126.com> wrote:
->>>> ? 2023-11-09???? 06:24 +0000?Jessica Clarke???
->>>>> On 9 Nov 2023, at 04:04, Xiang W <wxjstz@126.com> wrote:
->>>>>>
->>>>>> ? 2023-11-09???? 01:22 +0100?Bj?rn T?pel???
->>>>>>> On Thu, 9 Nov 2023 at 01:11, Jessica Clarke <jrtc27@jrtc27.com> wrote:
->>>>>>>>
->>>>>>>> On 9 Nov 2023, at 00:02, Bj?rn T?pel <bjorn@kernel.org> wrote:
->>>>>>>>>
->>>>>>>>> Hi Andreas!
->>>>>>>>>
->>>>>>>>> On Wed, 8 Nov 2023 at 22:55, Andreas Schwab <schwab@linux-m68k.org> wrote:
->>>>>>>>>>
->>>>>>>>>> On Nov 08 2023, Bj?rn T?pel wrote:
->>>>>>>>>>
->>>>>>>>>>> +static int compressed_insn(ulong insn, struct sbi_trap_regs *regs)
->>>>>>>>>>> +{
->>>>>>>>>>> +     /* Only handle 'MZ'/c.li s4,-13/0x5a3d */
->>>>>>>>>>> +     if (!misa_extension('C') && (insn & 0xffff) == 0x5a4d) {
->>>>>>>>>>> +             regs->s4 = -13;
->>>>>>>>>>> +             regs->mepc += 4;
->>>>>>>>>>
->>>>>>>>>> By skipping 4 bytes execution will resume in the middle of the next insn
->>>>>>>>>> (the jump around the header).
->>>>>>>>>
->>>>>>>>> This is in a non-C environment -- "!misa_extension('C')", so we're not
->>>>>>>>> jumping into the middle of the next insn.
->>>>>>>>
->>>>>>>> But that?s not c.li, is it. That?s bjorn.c.li, a 32-bit instruction
->>>>>>>                                                  ^^^^ My very own! ?
->>>>>>>
->>>>>>>> whose first 16-bit parcel is the same as c.li and whose second 16-bit
->>>>>>>> parcel is ignored. I really do not think this is a good idea.
->>>>>>>>
->>>>>>>>> Note that the Linux kernel needs the change pointed out in this patch,
->>>>>>>>> to build w/o C.
->>>>>>>>
->>>>>>>> That sounds like a Linux problem. Other OSes cope just fine. Fixing in
->>>>>>>> firmware is not the right approach; fix your software instead. Which
->>>>>>>> may mean abandoning an image format that isn?t fit for purpose. But the
->>>>>>>> solution isn?t to hack in whatever random crud Linux wants in firmware,
->>>>>>>> and other non-firmware SBI implementations like hypervisors.
->>>>>>>
->>>>>>> There are other kernels that people care about?
->>>>>>>
->>>>>>>> So this is a resounding NAK from me.
->>>>>>>
->>>>>>> Jokes aside; Fair enough! I'll go back to the drawing board.
->>>>>>
->>>>>> The kernel cannot handle this problem because the kernel has not initialized
->>>>>> stvec at this time. And the MZ cannot be changed because it is part of the PE
->>>>>> header. The best way is to skip the MZ of the PE header through the upper
->>>>>> bootloader. Therefore, when the kernel is used as the payload of opensbi,
->>>>>> skipped operations also need to be added. sbi_hart_switch_mode needs to add
->>>>>> some code to detect whether the current core supports C extension, whether
->>>>>> there is 0x5a4d5a4d at next_addr, and modify next_addr.
->>>>>
->>>>> That?s also extremely ugly; now you?re just skipping instructions in
->>>>> the payload rather than trapping like the current de-facto spec would
->>>>> mandate. And what would you skip? Again, you can?t just skip 2 bytes,
->>>>> you would have to skip a whole 4 bytes, which is more than just the
->>>>> c.li instruction. And what happens if a vendor, not implementing C,
->>>>> wants to use that encoding space? For example, Qualcomm, who are
->>>>> proposing to ditch C entirely. It may not conform to a standard
->>>>> profile, but it is a thing that SBI must support.
->>>>>
->>>>> Linux is abusing file formats and trying to create a polyglot where
->>>>> it?s not possible. That?s Linux?s problem, and it needs to stop
->>>>> assuming things that aren?t true. This grotesque approach is not
->>>>> present in other OSes.
->>>> How do other operating systems solve it? This is a problem with the uefi
->>>> image file format. Can we remove dos header?
->>>
->>> They don?t delude themselves that you can just jump to the start of a
->>> UEFI PE/COFF executable and interpret it as machine code.
->> Show me code.
->
->They are separate binaries, one for UEFI PE/COFF and one for direct SBI
->booting if you want it. Unless you introduce a new image format for SBI
->payloads there is no way around that without inappropriate hacks like
->these suggestions. So there is no magic code. The answer is, like I?ve
->been saying, to just not, because it?s not possible.
->
->Jess
->
+The Linux kernel RISC-V image format allows that UEFI Images can also
+be booted by non-UEFI firmware. However for that to work, the PE/Image
+combo requires that 'MZ' is a valid instruction. On RISC-V, 'MZ' is
+only a valid instruction if the hardware is C capable [1]. So add
+Emulate c.li
 
-As the UEFI header can be vaild code, it can be the first inst of bare
-program. Skipping it may cause some bare program not work.
-In fact, this is a problem releated to the UEFI, not SBI.
+Signed-off-by: Bj?rn T?pel <bjorn@rivosinc.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/sbi_illegal_insn.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index 2be4757..4ab10f4 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -102,6 +102,22 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 	return 0;
+ }
+ 
++static int compressed_insn(ulong insn, struct sbi_trap_regs *regs) {
++	unsigned long imm, rd;
++	unsigned long *regs_p = (unsigned long *)regs;
++
++	if ((insn & 0xe003) == 0x4001) { /* c.li */
++		imm = (insn >> 2) & 0x1f;
++		imm |= ((insn >> 12) & 1) ? -32 : 0;
++		rd = (insn >> 7) & 0x1f;
++		if (rd)
++			regs_p[rd] = imm;
++		return 0;
++	}
++
++	return truly_illegal_insn(insn, regs);
++}
++
+ static const illegal_insn_func illegal_insn_table[32] = {
+ 	truly_illegal_insn, /* 0 */
+ 	truly_illegal_insn, /* 1 */
+@@ -160,7 +176,7 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+ 			return sbi_trap_redirect(regs, &uptrap);
+ 		}
+ 		if ((insn & 3) != 3)
+-			return truly_illegal_insn(insn, regs);
++			return compressed_insn(insn, regs);
+ 	}
+ 
+ 	return illegal_insn_table[(insn & 0x7c) >> 2](insn, regs);
+-- 
+2.42.0
+
 
