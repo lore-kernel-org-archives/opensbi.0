@@ -1,74 +1,79 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Sat, 11 Nov 2023 07:48:20 +0000
-Subject: [PATCH] lib: sbi_pmu: disable IR and CY counter in SBI
- initialization
-In-Reply-To: <IA1PR20MB49535075F058FF74E83CD41BBBADA@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49535075F058FF74E83CD41BBBADA@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <D1256FAE-0648-4776-A8EC-BC42066386BF@jrtc27.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Sat, 11 Nov 2023 16:21:15 +0800
+Subject: [PATCH] lib: sbi_pmu: disable IR and CY counter in SBI initialization
+In-Reply-To: <D1256FAE-0648-4776-A8EC-BC42066386BF@jrtc27.com>
+References: <D1256FAE-0648-4776-A8EC-BC42066386BF@jrtc27.com>
+Message-ID: <IA1PR20MB4953A812CB161F4CAEEA09B4BBADA@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 11 Nov 2023, at 04:16, Inochi Amaoto <inochiama@outlook.com> wrote:
-> 
-> The default overflow behavior of INSTRET and CYCLE counter remains
-> unclear when platform has a custom pmu_device with irq callback.
-> For example, enabling the IR and CY events in the startup without
-> setting related CSRs may cause missing interrupt and wrong event
-> report for D1 soc.
-> 
-> Disable IR and CY counter in the startup and let OS manage them.
+>
+>On 11 Nov 2023, at 04:16, Inochi Amaoto <inochiama@outlook.com> wrote:
+>>
+>> The default overflow behavior of INSTRET and CYCLE counter remains
+>> unclear when platform has a custom pmu_device with irq callback.
+>> For example, enabling the IR and CY events in the startup without
+>> setting related CSRs may cause missing interrupt and wrong event
+>> report for D1 soc.
+>>
+>> Disable IR and CY counter in the startup and let OS manage them.
+>
+>Is this not an ABI break? Maybe Linux doesn?t care, but other OSes like
+>FreeBSD assume the counters are working and make them usable by U-mode.
+>If they no longer count up then you will break that for all existing
+>FreeBSD kernels.
+>
+>Please don?t change existing semantics.
+>
 
-Is this not an ABI break? Maybe Linux doesn?t care, but other OSes like
-FreeBSD assume the counters are working and make them usable by U-mode.
-If they no longer count up then you will break that for all existing
-FreeBSD kernels.
+Thanks for your reminder, this does introduct a ABI break for the existing
+counter. I will explore a new way to resolve this problem.
 
-Please don?t change existing semantics.
-
-Jess
-
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> ---
-> lib/sbi/sbi_hart.c | 2 +-
-> lib/sbi/sbi_pmu.c  | 2 +-
-> 2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 29d6481..8a908d6 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -64,7 +64,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
-> 
-> /* All programmable counters will start running at runtime after S-mode request */
-> if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
-> - csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
-> + csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFFD);
-> 
-> /**
-> * The mhpmeventn[h] CSR should be initialized with interrupt disabled
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index f4c8fc4..1e2fc01 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -944,7 +944,7 @@ void sbi_pmu_set_device(const struct sbi_pmu_device *dev)
-> void sbi_pmu_exit(struct sbi_scratch *scratch)
-> {
-> if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
-> - csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
-> + csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFFD);
-> 
-> if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
-> csr_write(CSR_MCOUNTEREN, -1);
-> -- 
-> 2.42.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
+>Jess
+>
+>> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+>> ---
+>> lib/sbi/sbi_hart.c | 2 +-
+>> lib/sbi/sbi_pmu.c  | 2 +-
+>> 2 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+>> index 29d6481..8a908d6 100644
+>> --- a/lib/sbi/sbi_hart.c
+>> +++ b/lib/sbi/sbi_hart.c
+>> @@ -64,7 +64,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>>
+>> /* All programmable counters will start running at runtime after S-mode request */
+>> if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
+>> - csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+>> + csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFFD);
+>>
+>> /**
+>> * The mhpmeventn[h] CSR should be initialized with interrupt disabled
+>> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+>> index f4c8fc4..1e2fc01 100644
+>> --- a/lib/sbi/sbi_pmu.c
+>> +++ b/lib/sbi/sbi_pmu.c
+>> @@ -944,7 +944,7 @@ void sbi_pmu_set_device(const struct sbi_pmu_device *dev)
+>> void sbi_pmu_exit(struct sbi_scratch *scratch)
+>> {
+>> if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
+>> - csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFF8);
+>> + csr_write(CSR_MCOUNTINHIBIT, 0xFFFFFFFD);
+>>
+>> if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
+>> csr_write(CSR_MCOUNTEREN, -1);
+>> --
+>> 2.42.1
+>>
+>>
+>> --
+>> opensbi mailing list
+>> opensbi at lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>
 
