@@ -1,134 +1,74 @@
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Date: Sat, 11 Nov 2023 16:14:07 +0100
-Subject: [PATCH] lib: sbi: change sbi_hart_features.extensions as an array
-In-Reply-To: <20231030164046.25108-1-wxjstz@126.com>
-References: <20231030164046.25108-1-wxjstz@126.com>
-Message-ID: <8e77c232-8fec-46ea-88a5-a72928930c61@canonical.com>
+From: Bo Gan <ganboing@gmail.com>
+Date: Mon, 13 Nov 2023 04:31:42 -0800
+Subject: Security and correctness issues around captured FDT pointers
+Message-ID: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10/30/23 17:39, Xiang W wrote:
-> In the future there may be a lot of ISA extensions, a 'long' may not
-> be able to accommodate, changed to an array for the future.
+Hi OpenSBI community again,
+
+It's a little bit unclear to me from design point of view how are we going to
+protect the flattened device tree shared with lower privileged modes. I ask
+because in several places we have the following
+
+1. generic/platform.c:
+> static void fw_platform_lookup_special(void *fdt, int root_offset)
+> {
+> ...
+> 	match = fdt_match_node(fdt, root_offset, plat->match_table);
+> 	if (!match)
+> 		continue;
 > 
+> 	generic_plat = plat;
+> 	generic_plat_match = match;
 
-Fixes: 6259b2ec2d09 ("lib: utils/fdt: Fix fdt_parse_isa_extensions() 
-implementation")
-Addresses-Coverity-ID: 1568357 Out-of-bounds access
+`generic_plat_match` captures a data blob inside fdt.
 
-> Signed-off-by: Xiang W <wxjstz@126.com>
-
-Reviewed-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-
-> ---
->   include/sbi/sbi_hart.h      |  3 ++-
->   lib/sbi/sbi_hart.c          | 32 ++++++++++++--------------------
->   platform/generic/platform.c |  2 +-
->   3 files changed, 15 insertions(+), 22 deletions(-)
+2. generic/starfive/jh7110.c
+> static int starfive_jh7110_final_init(bool cold_boot,
+> 				      const struct fdt_match *match)
+> {
+> 	void *fdt = fdt_get_address();
 > 
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index e60f415..3b73f63 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -11,6 +11,7 @@
->   #define __SBI_HART_H__
->   
->   #include <sbi/sbi_types.h>
-> +#include <sbi/sbi_bitops.h>
->   
->   /** Possible privileged specification versions of a hart */
->   enum sbi_hart_priv_versions {
-> @@ -65,7 +66,7 @@ enum sbi_hart_extensions {
->   struct sbi_hart_features {
->   	bool detected;
->   	int priv_version;
-> -	unsigned long extensions;
-> +	unsigned long extensions[BITS_TO_LONGS(SBI_HART_EXT_MAX)];
->   	unsigned int pmp_count;
->   	unsigned int pmp_addr_bits;
->   	unsigned long pmp_gran;
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 29d6481..f94eba5 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -614,9 +614,9 @@ static inline void __sbi_hart_update_extension(
->   					bool enable)
->   {
->   	if (enable)
-> -		hfeatures->extensions |= BIT(ext);
-> +		__set_bit(ext, hfeatures->extensions);
->   	else
-> -		hfeatures->extensions &= ~BIT(ext);
-> +		__clear_bit(ext, hfeatures->extensions);
->   }
->   
->   /**
-> @@ -649,7 +649,7 @@ bool sbi_hart_has_extension(struct sbi_scratch *scratch,
->   	struct sbi_hart_features *hfeatures =
->   			sbi_scratch_offset_ptr(scratch, hart_features_offset);
->   
-> -	if (hfeatures->extensions & BIT(ext))
-> +	if (__test_bit(ext, hfeatures->extensions))
->   		return true;
->   	else
->   		return false;
-> @@ -712,24 +712,16 @@ void sbi_hart_get_extensions_str(struct sbi_scratch *scratch,
->   		return;
->   	sbi_memset(extensions_str, 0, nestr);
->   
-> -	if (!hfeatures->extensions)
-> -		goto done;
-> -
-> -	do {
-> -		if (hfeatures->extensions & BIT(ext)) {
-> -			temp = sbi_hart_extension_id2string(ext);
-> -			if (temp) {
-> -				sbi_snprintf(extensions_str + offset,
-> -					     nestr - offset,
-> -					     "%s,", temp);
-> -				offset = offset + sbi_strlen(temp) + 1;
-> -			}
-> +	for_each_set_bit(ext, hfeatures->extensions, SBI_HART_EXT_MAX) {
-> +		temp = sbi_hart_extension_id2string(ext);
-> +		if (temp) {
-> +			sbi_snprintf(extensions_str + offset,
-> +				     nestr - offset,
-> +				     "%s,", temp);
-> +			offset = offset + sbi_strlen(temp) + 1;
->   		}
-> +	}
->   
-> -		ext++;
-> -	} while (ext < SBI_HART_EXT_MAX);
-> -
-> -done:
->   	if (offset)
->   		extensions_str[offset - 1] = '\0';
->   	else
-> @@ -799,7 +791,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
->   		return 0;
->   
->   	/* Clear hart features */
-> -	hfeatures->extensions = 0;
-> +	sbi_memset(hfeatures->extensions, 0, sizeof(hfeatures->extensions));
->   	hfeatures->pmp_count = 0;
->   	hfeatures->mhpm_mask = 0;
->   
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 66a0b77..9182faa 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -215,7 +215,7 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
->   
->   	/* Parse the ISA string from FDT and enable the listed extensions */
->   	rc = fdt_parse_isa_extensions(fdt_get_address(), current_hartid(),
-> -				      &hfeatures->extensions);
-> +				      hfeatures->extensions);
->   
->   	if (rc)
->   		return rc;
+> 	if (cold_boot) {
+> 		fdt_reset_driver_init(fdt, &fdt_reset_pmic);
+> 		return starfive_jh7110_inst_init(fdt);
+> 	}
+> 
+> static int pm_reset_init(void *fdt, int nodeoff,
+> 			 const struct fdt_match *match)
+> {
+> ...
+> 	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+> 	if (rc)
+> 		return rc;
+> 
+> 	pmic_inst.dev_addr = addr;
+> 	pmic_inst.compatible = match->compatible;
+
+`fdt_reset_pmic` will capture a compatible string in `pmic.compatible`
+
+For 1, it's probably safe unless we are using the same fdt from previous boot-
+loader and pass it to the next stage. (Could happen if using fw_jump and not
+defining FW_JUMP_FDT_ADDR). For 2, it's very likely unsafe. `fdt_get_address`
+will return `root.next_arg1`, which IS the fdt we pass to next stage. I don't
+think we can ever made the fdt to next stage as read-only, because they, such
+as U-boot or Linux kernel running in S-mode, usually will relocate it and reuse
+the memory for something else, or at least probably modify it in-place. When it
+happens, the harts, at runtime, regardless of cold/warm booted, will access the
+corrupted data. This can also be exploited by malicious actors.
+
+In my opinion, the only place we access fdt should be from code boot hart, and
+we should stop accessing it and zero-out pointers captured before it kicks warm
+boot harts. If the fdt data is still need afterwards, either parse it or make a
+copy (perhaps on the heap). fdt_get_address() can also be enhanced to prevent
+it from being called in the wrong places. Please let me know your thoughts, and
+I'm looking forward to your ideas. Thanks!
+
+Bo
+
 
 
