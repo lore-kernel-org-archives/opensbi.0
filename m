@@ -1,104 +1,56 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 14 Nov 2023 22:09:23 +0530
-Subject: [PATCH] lib: sbi: Improve hartindex_to_hartid_table
-In-Reply-To: <20231009092202.267633-1-wxjstz@126.com>
-References: <20231009092202.267633-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3rEn0FKSyH1HL0VEx2Se5o62U9cYFFWeh_vGtS20B_mA@mail.gmail.com>
+Date: Tue, 14 Nov 2023 22:15:58 +0530
+Subject: [PATCH v2 0/5] Add Svadu extension support
+In-Reply-To: <20231024101145.32000-1-yongxuan.wang@sifive.com>
+References: <20231024101145.32000-1-yongxuan.wang@sifive.com>
+Message-ID: <CAAhSdy2ALrnjXMUoA0AondR1-pEPyLCafsZX=N=d2gN7WL3nGQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 9, 2023 at 2:52?PM Xiang W <wxjstz@126.com> wrote:
+On Tue, Oct 24, 2023 at 3:42?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
 >
-> Modify hartindex_to_hartid_table point to plat->hart_index2id to
-> save memory. This slows down sbi_hartindex_to_hartid slightly
-> because it needs to determine whether hartindex_to_hartid_table is
-> NULL. This will also improve the speed of sbi_hartid_to_hartindex
-> when plat->hart_index2id is NULL, since there is no need to iterate
-> through the array.
+> This series enables Svadu extension support by configuring the menvcfg
+> CSR and, if available, displays the Svadu extension in the boot log.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> Additionally, we've made some programming improvements in
+> lib/sbi/sbi_hart.c and lib/utils/fdt/fdt_helper.c.
+>
 > ---
->  include/sbi/sbi_scratch.h | 13 ++++++++-----
->  lib/sbi/sbi_scratch.c     |  7 +++++--
->  2 files changed, 13 insertions(+), 7 deletions(-)
+> v2:
+> - Rearrange the patches to do the code refactoring first before adding
+>   new features
+> - Suggested by Anup and Atish, detect extensions from DT instead of
+>   menvcfg CSR
+> - Enable access to some extensions through menvcfg CSR if they are
+>   present in the device tree.
 >
-> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> index e6a33ba..02db224 100644
-> --- a/include/sbi/sbi_scratch.h
-> +++ b/include/sbi/sbi_scratch.h
-> @@ -213,13 +213,16 @@ extern u32 last_hartindex_having_scratch;
->  (((__hartindex) <= sbi_scratch_last_hartindex()) ? true : false)
->
->  /** HART index to HART id table */
-> -extern u32 hartindex_to_hartid_table[];
-> +extern const u32* hartindex_to_hartid_table;
->
->  /** Get sbi_scratch from HART index */
-> -#define sbi_hartindex_to_hartid(__hartindex)           \
-> -({                                                     \
-> -       ((__hartindex) <= sbi_scratch_last_hartindex()) ?\
-> -       hartindex_to_hartid_table[__hartindex] : -1U;   \
-> +#define sbi_hartindex_to_hartid(__hartindex)                   \
-> +({                                                             \
-> +       ((__hartindex) <= sbi_scratch_last_hartindex()) ?       \
-> +               (hartindex_to_hartid_table ?                    \
-> +                       hartindex_to_hartid_table[__hartindex] :\
-> +                       __hartindex) :                          \
-> +               -1U;                                            \
+> Yong-Xuan Wang (5):
+>   lib: sbi: Improve the code of privilege mode and extensions detection
+>   lib: sbi: Refactor the code for enable extensions in menvfg CSR
+>   lib: sbi: Using one array to define the name of extensions
+>   lib: sbi: Detect extensions from the ISA string in DT
+>   lib: sbi: Add support for Svadu extension
 
-Now, we have one more unnecessary "if ()" check in the
-hot-path.
-
-This patch deteriorates sbi_hartindex_to_hartid() instead
-of improving it.
+For backward compatibility with existing OSes, it is better to have
+supervisor OS explicitly enable Svadu using the upcoming SBI
+FWFT extension instead of enabling it unconditionally whenever
+Svadu extension is available.
 
 Regards,
 Anup
 
->  })
 >
->  /** HART index to scratch table */
-> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> index ccbbc68..e097077 100644
-> --- a/lib/sbi/sbi_scratch.c
-> +++ b/lib/sbi/sbi_scratch.c
-> @@ -15,7 +15,7 @@
->  #include <sbi/sbi_string.h>
+>  include/sbi/riscv_encoding.h |   6 +-
+>  include/sbi/sbi_hart.h       |  15 +++
+>  lib/sbi/sbi_hart.c           | 226 +++++++++++++----------------------
+>  lib/utils/fdt/fdt_helper.c   |   5 +-
+>  4 files changed, 104 insertions(+), 148 deletions(-)
 >
->  u32 last_hartindex_having_scratch = 0;
-> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
-> +const u32 *hartindex_to_hartid_table;
->  struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
->
->  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
-> @@ -25,6 +25,9 @@ u32 sbi_hartid_to_hartindex(u32 hartid)
->  {
->         u32 i;
->
-> +       if (hartindex_to_hartid_table == NULL)
-> +               return hartid;
-> +
->         for (i = 0; i <= last_hartindex_having_scratch; i++)
->                 if (hartindex_to_hartid_table[i] == hartid)
->                         return i;
-> @@ -41,11 +44,11 @@ int sbi_scratch_init(struct sbi_scratch *scratch)
->
->         for (i = 0; i < plat->hart_count; i++) {
->                 h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
-> -               hartindex_to_hartid_table[i] = h;
->                 hartindex_to_scratch_table[i] =
->                         ((hartid2scratch)scratch->hartid_to_scratch)(h, i);
->         }
->
-> +       hartindex_to_hartid_table = plat->hart_index2id;
->         last_hartindex_having_scratch = plat->hart_count - 1;
->
->         return 0;
 > --
-> 2.40.1
+> 2.17.1
 >
 >
 > --
