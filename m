@@ -1,25 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 14 Nov 2023 21:16:09 +0530
-Subject: [PATCH v2 4/4] platform: generic: thead: initialize PMU by
- default in thead generic platform
-In-Reply-To: <IA1PR20MB49536C4C0A19D97FA8E288CBBBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953287B7688E0F5058984BDBBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
- <20231005065843.239501-1-inochiama@outlook.com> <IA1PR20MB49536C4C0A19D97FA8E288CBBBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy2fuwtgq8SUmxCu6i8nOFv=SbWOvT0cESCq4LmYZRSRqQ@mail.gmail.com>
+Date: Tue, 14 Nov 2023 21:54:51 +0530
+Subject: [PATCH v3 1/4] platform: generic: thead: move to thead c9xx
+ header to vendor specific postion
+In-Reply-To: <IA1PR20MB4953402F2CEAEA2038B7A8F7BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB49534E329372B295663B2153BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
+ <IA1PR20MB4953402F2CEAEA2038B7A8F7BBC8A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy0be2eMdMfb5s6NPZES1C3UCDCcaS6h96V+CUY3yh7aHg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 5, 2023 at 12:29?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Sat, Oct 7, 2023 at 8:36?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> Since all the SoC with thead c9xx cores need this initialization at now,
-> initialize the c9xx pmu in the thead generic platform by default.
+> The CSR encoding for t-head c9xx cores is shared across all the
+> platforms with these cores. So move header thead_c9xx.h to the
+> thead subdir.
 >
 > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-
-Looks good to me.
+> Acked-by: Guo Ren <guoren@kernel.org>
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -29,58 +29,39 @@ Thanks,
 Anup
 
 > ---
->  platform/generic/Kconfig               |  1 +
->  platform/generic/thead/thead-generic.c | 13 +++++++++++--
->  2 files changed, 12 insertions(+), 2 deletions(-)
+>  platform/generic/allwinner/sun20i-d1.c                        | 2 +-
+>  .../generic/include/{thead_c9xx.h => thead/c9xx_encoding.h}   | 4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+>  rename platform/generic/include/{thead_c9xx.h => thead/c9xx_encoding.h} (98%)
 >
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index 3be75cf..f9e7ed2 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -56,6 +56,7 @@ config PLATFORM_STARFIVE_JH7110
->  config PLATFORM_THEAD
->         bool "THEAD C9xx support"
->         select THEAD_C9XX_ERRATA
-> +       select THEAD_C9XX_PMU
->         default n
->
->  source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
-> diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
-> index c77140c..72f4aaa 100644
-> --- a/platform/generic/thead/thead-generic.c
-> +++ b/platform/generic/thead/thead-generic.c
-> @@ -8,6 +8,7 @@
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index a9a7e47..b960284 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -5,7 +5,7 @@
+>   */
 >
 >  #include <platform_override.h>
->  #include <thead/c9xx_errata.h>
-> +#include <thead/c9xx_pmu.h>
->  #include <sbi/sbi_const.h>
->  #include <sbi/sbi_platform.h>
->  #include <sbi/sbi_scratch.h>
-> @@ -29,6 +30,13 @@ static int thead_generic_early_init(bool cold_boot,
->         return 0;
->  }
+> -#include <thead_c9xx.h>
+> +#include <thead/c9xx_encoding.h>
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_io.h>
+>  #include <sbi/sbi_bitops.h>
+> diff --git a/platform/generic/include/thead_c9xx.h b/platform/generic/include/thead/c9xx_encoding.h
+> similarity index 98%
+> rename from platform/generic/include/thead_c9xx.h
+> rename to platform/generic/include/thead/c9xx_encoding.h
+> index bab0408..58adbef 100644
+> --- a/platform/generic/include/thead_c9xx.h
+> +++ b/platform/generic/include/thead/c9xx_encoding.h
+> @@ -1,5 +1,5 @@
+> -#ifndef __RISCV_THEAD_C9XX_H____
+> -#define __RISCV_THEAD_C9XX_H____
+> +#ifndef __RISCV_THEAD_C9XX_ENCODING_H____
+> +#define __RISCV_THEAD_C9XX_ENCODING_H____
 >
-> +static int thead_generic_extensions_init(const struct fdt_match *match,
-> +                                        struct sbi_hart_features *hfeatures)
-> +{
-> +       thead_c9xx_register_pmu_device();
-> +       return 0;
-> +}
-> +
->  static struct thead_generic_quirks thead_th1520_quirks = {
->         .errata = THEAD_QUIRK_ERRATA_TLB_FLUSH,
->  };
-> @@ -39,6 +47,7 @@ static const struct fdt_match thead_generic_match[] = {
->  };
->
->  const struct platform_override thead_generic = {
-> -       .match_table    = thead_generic_match,
-> -       .early_init     = thead_generic_early_init,
-> +       .match_table            = thead_generic_match,
-> +       .early_init             = thead_generic_early_init,
-> +       .extensions_init        = thead_generic_extensions_init,
->  };
+>  /* T-HEAD C9xx M mode CSR.  */
+>  #define THEAD_C9XX_CSR_MXSTATUS                0x7c0
 > --
 > 2.42.0
 >
