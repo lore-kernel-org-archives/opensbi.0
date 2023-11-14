@@ -1,56 +1,104 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 14 Nov 2023 22:06:01 +0530
-Subject: [PATCH v2 0/4] platform: generic: Add Sophgo sg2042 support
-In-Reply-To: <IA1PR20MB4953CAA2C31F07F9A1157EF7BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953CAA2C31F07F9A1157EF7BBCFA@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy1HRNAE6g1cTi_i3fRf1hJjp4oPfF-KnjPg77qq-yzivA@mail.gmail.com>
+Date: Tue, 14 Nov 2023 22:09:23 +0530
+Subject: [PATCH] lib: sbi: Improve hartindex_to_hartid_table
+In-Reply-To: <20231009092202.267633-1-wxjstz@126.com>
+References: <20231009092202.267633-1-wxjstz@126.com>
+Message-ID: <CAAhSdy3rEn0FKSyH1HL0VEx2Se5o62U9cYFFWeh_vGtS20B_mA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Oct 8, 2023 at 5:46?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Mon, Oct 9, 2023 at 2:52?PM Xiang W <wxjstz@126.com> wrote:
 >
-> As the dts of sg2042 in the mainline kernel is considered as stable, it is
-> time to port sg2042 soc.
+> Modify hartindex_to_hartid_table point to plat->hart_index2id to
+> save memory. This slows down sbi_hartindex_to_hartid slightly
+> because it needs to determine whether hartindex_to_hartid_table is
+> NULL. This will also improve the speed of sbi_hartid_to_hartindex
+> when plat->hart_index2id is NULL, since there is no need to iterate
+> through the array.
 >
-> This patch depends other two series:
-> 1. platform: generic: add T-HEAD th1520 soc support
-> 2. lib: sbi: Add sub-regions check for sanitizing domain
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> ---
+>  include/sbi/sbi_scratch.h | 13 ++++++++-----
+>  lib/sbi/sbi_scratch.c     |  7 +++++--
+>  2 files changed, 13 insertions(+), 7 deletions(-)
 >
-> Link: https://lore.kernel.org/linux-riscv/cover.1696433229.git.unicorn_wang at outlook.com/
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index e6a33ba..02db224 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -213,13 +213,16 @@ extern u32 last_hartindex_having_scratch;
+>  (((__hartindex) <= sbi_scratch_last_hartindex()) ? true : false)
 >
-> Changed from v1:
-> 1. make number of entries in tlb fifo auto deteted.
+>  /** HART index to HART id table */
+> -extern u32 hartindex_to_hartid_table[];
+> +extern const u32* hartindex_to_hartid_table;
 >
-> Inochi Amaoto (4):
->   lib: utils/timer: mtimer: add separate T-Head C9xx CLINT mtimer
->     compatible
->   lib: utils/ipi: mswi: add separate T-Head C9xx CLINT mswi compatible
->   platform: Allow platform uses hart count as the size of tlb info
->   platform: generic: Add Sophgo sg2042 platform support
+>  /** Get sbi_scratch from HART index */
+> -#define sbi_hartindex_to_hartid(__hartindex)           \
+> -({                                                     \
+> -       ((__hartindex) <= sbi_scratch_last_hartindex()) ?\
+> -       hartindex_to_hartid_table[__hartindex] : -1U;   \
+> +#define sbi_hartindex_to_hartid(__hartindex)                   \
+> +({                                                             \
+> +       ((__hartindex) <= sbi_scratch_last_hartindex()) ?       \
+> +               (hartindex_to_hartid_table ?                    \
+> +                       hartindex_to_hartid_table[__hartindex] :\
+> +                       __hartindex) :                          \
+> +               -1U;                                            \
 
-There are unaddressed comments in this series. I assume there will
-be a v3.
+Now, we have one more unnecessary "if ()" check in the
+hot-path.
+
+This patch deteriorates sbi_hartindex_to_hartid() instead
+of improving it.
 
 Regards,
 Anup
 
+>  })
 >
->  lib/utils/ipi/fdt_ipi_mswi.c       |  1 +
->  lib/utils/timer/fdt_timer_mtimer.c |  2 +
->  platform/generic/Kconfig           |  6 +++
->  platform/generic/configs/defconfig |  1 +
->  platform/generic/platform.c        |  7 ++++
->  platform/generic/sophgo/objects.mk |  9 +++++
->  platform/generic/sophgo/sg2042.c   | 64 ++++++++++++++++++++++++++++++
->  7 files changed, 90 insertions(+)
->  create mode 100644 platform/generic/sophgo/objects.mk
->  create mode 100644 platform/generic/sophgo/sg2042.c
+>  /** HART index to scratch table */
+> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+> index ccbbc68..e097077 100644
+> --- a/lib/sbi/sbi_scratch.c
+> +++ b/lib/sbi/sbi_scratch.c
+> @@ -15,7 +15,7 @@
+>  #include <sbi/sbi_string.h>
 >
+>  u32 last_hartindex_having_scratch = 0;
+> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
+> +const u32 *hartindex_to_hartid_table;
+>  struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
+>
+>  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+> @@ -25,6 +25,9 @@ u32 sbi_hartid_to_hartindex(u32 hartid)
+>  {
+>         u32 i;
+>
+> +       if (hartindex_to_hartid_table == NULL)
+> +               return hartid;
+> +
+>         for (i = 0; i <= last_hartindex_having_scratch; i++)
+>                 if (hartindex_to_hartid_table[i] == hartid)
+>                         return i;
+> @@ -41,11 +44,11 @@ int sbi_scratch_init(struct sbi_scratch *scratch)
+>
+>         for (i = 0; i < plat->hart_count; i++) {
+>                 h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
+> -               hartindex_to_hartid_table[i] = h;
+>                 hartindex_to_scratch_table[i] =
+>                         ((hartid2scratch)scratch->hartid_to_scratch)(h, i);
+>         }
+>
+> +       hartindex_to_hartid_table = plat->hart_index2id;
+>         last_hartindex_having_scratch = plat->hart_count - 1;
+>
+>         return 0;
 > --
-> 2.42.0
+> 2.40.1
 >
 >
 > --
