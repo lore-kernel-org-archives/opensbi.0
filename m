@@ -1,96 +1,86 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 13 Nov 2023 22:59:45 +0530
-Subject: Security and correctness issues around captured FDT pointers
-In-Reply-To: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
-References: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
-Message-ID: <CAK9=C2W3d1t+83kNoWhkA81M59Wen2gGa_EcgOJA1U19WJP4mQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 14 Nov 2023 20:59:42 +0530
+Subject: [PATCH 1/1] lib: sbi: simplify sanitize_domain()
+In-Reply-To: <20231006205926.26599-1-heinrich.schuchardt@canonical.com>
+References: <20231006205926.26599-1-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy03qDHYRkVdweV819D=P3bE_199Td_d=A3ka42=dnz4qA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 13, 2023 at 6:02?PM Bo Gan <ganboing@gmail.com> wrote:
+On Sat, Oct 7, 2023 at 2:30?AM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
 >
-> Hi OpenSBI community again,
+> Since commit 112daa2e647c ("lib: sbi: Maximize the use of HART index in
+> sbi_domain") the platform parameter is unused.
 >
-> It's a little bit unclear to me from design point of view how are we going to
-> protect the flattened device tree shared with lower privileged modes. I ask
-> because in several places we have the following
->
-> 1. generic/platform.c:
-> > static void fw_platform_lookup_special(void *fdt, int root_offset)
-> > {
-> > ...
-> >       match = fdt_match_node(fdt, root_offset, plat->match_table);
-> >       if (!match)
-> >               continue;
-> >
-> >       generic_plat = plat;
-> >       generic_plat_match = match;
->
-> `generic_plat_match` captures a data blob inside fdt.
->
-> 2. generic/starfive/jh7110.c
-> > static int starfive_jh7110_final_init(bool cold_boot,
-> >                                     const struct fdt_match *match)
-> > {
-> >       void *fdt = fdt_get_address();
-> >
-> >       if (cold_boot) {
-> >               fdt_reset_driver_init(fdt, &fdt_reset_pmic);
-> >               return starfive_jh7110_inst_init(fdt);
-> >       }
-> >
-> > static int pm_reset_init(void *fdt, int nodeoff,
-> >                        const struct fdt_match *match)
-> > {
-> > ...
-> >       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> >       if (rc)
-> >               return rc;
-> >
-> >       pmic_inst.dev_addr = addr;
-> >       pmic_inst.compatible = match->compatible;
->
-> `fdt_reset_pmic` will capture a compatible string in `pmic.compatible`
->
-> For 1, it's probably safe unless we are using the same fdt from previous boot-
-> loader and pass it to the next stage. (Could happen if using fw_jump and not
-> defining FW_JUMP_FDT_ADDR). For 2, it's very likely unsafe. `fdt_get_address`
-> will return `root.next_arg1`, which IS the fdt we pass to next stage. I don't
-> think we can ever made the fdt to next stage as read-only, because they, such
-> as U-boot or Linux kernel running in S-mode, usually will relocate it and reuse
-> the memory for something else, or at least probably modify it in-place. When it
-> happens, the harts, at runtime, regardless of cold/warm booted, will access the
-> corrupted data. This can also be exploited by malicious actors.
+> Fixes: 112daa2e647c ("lib: sbi: Maximize the use of HART index in sbi_domain")
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
-Yes, #1 is mostly safe.
+Looks good to me.
 
-The #2 needs to be fixed in the generic/starfive/jh7110.c and all other places
-where it exists.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
->
-> In my opinion, the only place we access fdt should be from code boot hart, and
-> we should stop accessing it and zero-out pointers captured before it kicks warm
-> boot harts. If the fdt data is still need afterwards, either parse it or make a
-> copy (perhaps on the heap). fdt_get_address() can also be enhanced to prevent
-> it from being called in the wrong places. Please let me know your thoughts, and
-> I'm looking forward to your ideas. Thanks!
+Applied this patch to the riscv/opensbi repo.
 
-We should certainly stop accessing FDT after cold boot hard is done but I don't
-think we should zero-out pointers as well.
-
-Regards,
+Thanks,
 Anup
 
+> ---
+>  lib/sbi/sbi_domain.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
 >
-> Bo
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index fd4a296..4d248d0 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -256,8 +256,7 @@ static const struct sbi_domain_memregion *find_next_subset_region(
+>         return ret;
+>  }
 >
+> -static int sanitize_domain(const struct sbi_platform *plat,
+> -                          struct sbi_domain *dom)
+> +static int sanitize_domain(struct sbi_domain *dom)
+>  {
+>         u32 i, j, count;
+>         struct sbi_domain_memregion treg, *reg, *reg1;
+> @@ -494,7 +493,6 @@ int sbi_domain_register(struct sbi_domain *dom,
+>         int rc;
+>         struct sbi_domain *tdom;
+>         u32 cold_hartid = current_hartid();
+> -       const struct sbi_platform *plat = sbi_platform_thishart_ptr();
 >
+>         /* Sanity checks */
+>         if (!dom || !assign_mask || domain_finalized)
+> @@ -517,7 +515,7 @@ int sbi_domain_register(struct sbi_domain *dom,
+>         }
 >
+>         /* Sanitize discovered domain */
+> -       rc = sanitize_domain(plat, dom);
+> +       rc = sanitize_domain(dom);
+>         if (rc) {
+>                 sbi_printf("%s: sanity checks failed for"
+>                            " %s (error %d)\n", __func__,
+> @@ -564,7 +562,6 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
+>         int rc;
+>         bool reg_merged;
+>         struct sbi_domain_memregion *nreg, *nreg1, *nreg2;
+> -       const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+>
+>         /* Sanity checks */
+>         if (!reg || domain_finalized || !root.regions ||
+> @@ -590,7 +587,7 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
+>         /* Sort and optimize root regions */
+>         do {
+>                 /* Sanitize the root domain so that memregions are sorted */
+> -               rc = sanitize_domain(plat, &root);
+> +               rc = sanitize_domain(&root);
+>                 if (rc) {
+>                         sbi_printf("%s: sanity checks failed for"
+>                                    " %s (error %d)\n", __func__,
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 2.40.1
+>
 
