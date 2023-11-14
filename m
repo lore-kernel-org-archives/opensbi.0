@@ -1,23 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 14 Nov 2023 20:59:42 +0530
-Subject: [PATCH 1/1] lib: sbi: simplify sanitize_domain()
-In-Reply-To: <20231006205926.26599-1-heinrich.schuchardt@canonical.com>
-References: <20231006205926.26599-1-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy03qDHYRkVdweV819D=P3bE_199Td_d=A3ka42=dnz4qA@mail.gmail.com>
+Date: Tue, 14 Nov 2023 21:15:24 +0530
+Subject: [PATCH v2 1/4] platform: generic: thead: move to thead c9xx
+ header to vendor specific postion
+In-Reply-To: <IA1PR20MB495315D187896E99EF4A8747BBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953287B7688E0F5058984BDBBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
+ <IA1PR20MB495315D187896E99EF4A8747BBCAA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy329OVshQD_ciLx85fzFpwabJ6dcfEnkPsTxBS940JYZA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Oct 7, 2023 at 2:30?AM Heinrich Schuchardt
-<heinrich.schuchardt@canonical.com> wrote:
+On Thu, Oct 5, 2023 at 12:28?PM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> Since commit 112daa2e647c ("lib: sbi: Maximize the use of HART index in
-> sbi_domain") the platform parameter is unused.
+> The CSR encoding for t-head c9xx cores is shared across all the
+> platforms with these cores. So move header thead_c9xx.h to the
+> thead subdir.
 >
-> Fixes: 112daa2e647c ("lib: sbi: Maximize the use of HART index in sbi_domain")
-> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
 Looks good to me.
 
@@ -29,58 +30,45 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_domain.c | 9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
+>  platform/generic/allwinner/sun20i-d1.c                        | 2 +-
+>  .../generic/include/{thead_c9xx.h => thead/c9xx_encoding.h}   | 4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+>  rename platform/generic/include/{thead_c9xx.h => thead/c9xx_encoding.h} (98%)
 >
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index fd4a296..4d248d0 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -256,8 +256,7 @@ static const struct sbi_domain_memregion *find_next_subset_region(
->         return ret;
->  }
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index a9a7e47..b960284 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -5,7 +5,7 @@
+>   */
 >
-> -static int sanitize_domain(const struct sbi_platform *plat,
-> -                          struct sbi_domain *dom)
-> +static int sanitize_domain(struct sbi_domain *dom)
->  {
->         u32 i, j, count;
->         struct sbi_domain_memregion treg, *reg, *reg1;
-> @@ -494,7 +493,6 @@ int sbi_domain_register(struct sbi_domain *dom,
->         int rc;
->         struct sbi_domain *tdom;
->         u32 cold_hartid = current_hartid();
-> -       const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+>  #include <platform_override.h>
+> -#include <thead_c9xx.h>
+> +#include <thead/c9xx_encoding.h>
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_io.h>
+>  #include <sbi/sbi_bitops.h>
+> diff --git a/platform/generic/include/thead_c9xx.h b/platform/generic/include/thead/c9xx_encoding.h
+> similarity index 98%
+> rename from platform/generic/include/thead_c9xx.h
+> rename to platform/generic/include/thead/c9xx_encoding.h
+> index bab0408..58adbef 100644
+> --- a/platform/generic/include/thead_c9xx.h
+> +++ b/platform/generic/include/thead/c9xx_encoding.h
+> @@ -1,5 +1,5 @@
+> -#ifndef __RISCV_THEAD_C9XX_H____
+> -#define __RISCV_THEAD_C9XX_H____
+> +#ifndef __RISCV_THEAD_C9XX_ENCODING_H____
+> +#define __RISCV_THEAD_C9XX_ENCODING_H____
 >
->         /* Sanity checks */
->         if (!dom || !assign_mask || domain_finalized)
-> @@ -517,7 +515,7 @@ int sbi_domain_register(struct sbi_domain *dom,
->         }
->
->         /* Sanitize discovered domain */
-> -       rc = sanitize_domain(plat, dom);
-> +       rc = sanitize_domain(dom);
->         if (rc) {
->                 sbi_printf("%s: sanity checks failed for"
->                            " %s (error %d)\n", __func__,
-> @@ -564,7 +562,6 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->         int rc;
->         bool reg_merged;
->         struct sbi_domain_memregion *nreg, *nreg1, *nreg2;
-> -       const struct sbi_platform *plat = sbi_platform_thishart_ptr();
->
->         /* Sanity checks */
->         if (!reg || domain_finalized || !root.regions ||
-> @@ -590,7 +587,7 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->         /* Sort and optimize root regions */
->         do {
->                 /* Sanitize the root domain so that memregions are sorted */
-> -               rc = sanitize_domain(plat, &root);
-> +               rc = sanitize_domain(&root);
->                 if (rc) {
->                         sbi_printf("%s: sanity checks failed for"
->                                    " %s (error %d)\n", __func__,
+>  /* T-HEAD C9xx M mode CSR.  */
+>  #define THEAD_C9XX_CSR_MXSTATUS                0x7c0
 > --
-> 2.40.1
+> 2.42.0
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
