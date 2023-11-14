@@ -1,60 +1,73 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 14 Nov 2023 22:15:58 +0530
-Subject: [PATCH v2 0/5] Add Svadu extension support
-In-Reply-To: <20231024101145.32000-1-yongxuan.wang@sifive.com>
-References: <20231024101145.32000-1-yongxuan.wang@sifive.com>
-Message-ID: <CAAhSdy2ALrnjXMUoA0AondR1-pEPyLCafsZX=N=d2gN7WL3nGQ@mail.gmail.com>
+Date: Tue, 14 Nov 2023 22:26:07 +0530
+Subject: [PATCH v2 1/3] lib: sbi: separate the swap operation of domain region
+In-Reply-To: <IA1PR20MB49533CD1EAD7784957CF4361BBCDA@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB49533A7AB5888E0117F7799BBBCDA@IA1PR20MB4953.namprd20.prod.outlook.com>
+ <IA1PR20MB49533CD1EAD7784957CF4361BBCDA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy3f2gnRPbKy0i1QSRo8xht5EwMaj60yQ9h+GLhNQX4B-w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 24, 2023 at 3:42?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
+On Tue, Oct 10, 2023 at 6:30?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> This series enables Svadu extension support by configuring the menvcfg
-> CSR and, if available, displays the Svadu extension in the boot log.
+> Swapping domain region is a common operation when sorting domain region,
+> so separate it as a function to make code clean.
 >
-> Additionally, we've made some programming improvements in
-> lib/sbi/sbi_hart.c and lib/utils/fdt/fdt_helper.c.
->
-> ---
-> v2:
-> - Rearrange the patches to do the code refactoring first before adding
->   new features
-> - Suggested by Anup and Atish, detect extensions from DT instead of
->   menvcfg CSR
-> - Enable access to some extensions through menvcfg CSR if they are
->   present in the device tree.
->
-> Yong-Xuan Wang (5):
->   lib: sbi: Improve the code of privilege mode and extensions detection
->   lib: sbi: Refactor the code for enable extensions in menvfg CSR
->   lib: sbi: Using one array to define the name of extensions
->   lib: sbi: Detect extensions from the ISA string in DT
->   lib: sbi: Add support for Svadu extension
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
-For backward compatibility with existing OSes, it is better to have
-supervisor OS explicitly enable Svadu using the upcoming SBI
-FWFT extension instead of enabling it unconditionally whenever
-Svadu extension is available.
+Looks good to me.
 
-Regards,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Thanks,
 Anup
 
+> ---
+>  lib/sbi/sbi_domain.c | 16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
 >
->  include/sbi/riscv_encoding.h |   6 +-
->  include/sbi/sbi_hart.h       |  15 +++
->  lib/sbi/sbi_hart.c           | 226 +++++++++++++----------------------
->  lib/utils/fdt/fdt_helper.c   |   5 +-
->  4 files changed, 104 insertions(+), 148 deletions(-)
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index fd4a296..283b598 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -256,11 +256,21 @@ static const struct sbi_domain_memregion *find_next_subset_region(
+>         return ret;
+>  }
+>
+> +static void swap_region(struct sbi_domain_memregion* reg1,
+> +                       struct sbi_domain_memregion* reg2)
+> +{
+> +       struct sbi_domain_memregion treg;
+> +
+> +       sbi_memcpy(&treg, reg1, sizeof(treg));
+> +       sbi_memcpy(reg1, reg2, sizeof(treg));
+> +       sbi_memcpy(reg2, &treg, sizeof(treg));
+> +}
+> +
+>  static int sanitize_domain(const struct sbi_platform *plat,
+>                            struct sbi_domain *dom)
+>  {
+>         u32 i, j, count;
+> -       struct sbi_domain_memregion treg, *reg, *reg1;
+> +       struct sbi_domain_memregion *reg, *reg1;
+>
+>         /* Check possible HARTs */
+>         if (!dom->possible_harts) {
+> @@ -324,9 +334,7 @@ static int sanitize_domain(const struct sbi_platform *plat,
+>                         if (!is_region_before(reg1, reg))
+>                                 continue;
+>
+> -                       sbi_memcpy(&treg, reg1, sizeof(treg));
+> -                       sbi_memcpy(reg1, reg, sizeof(treg));
+> -                       sbi_memcpy(reg, &treg, sizeof(treg));
+> +                       swap_region(reg, reg1);
+>                 }
+>         }
 >
 > --
-> 2.17.1
+> 2.42.0
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
