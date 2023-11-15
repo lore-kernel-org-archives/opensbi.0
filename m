@@ -1,30 +1,79 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 15 Nov 2023 22:59:20 +0800
-Subject: [PATCH v2 0/2] lib: sbi: Improved atomic bit operations
-Message-ID: <20231115145929.488427-1-wxjstz@126.com>
+Date: Wed, 15 Nov 2023 22:59:22 +0800
+Subject: [PATCH v2 2/2] lib: sbi: Replace __atomic_op_bit_ord with __atomic intrinsics
+In-Reply-To: <20231115145929.488427-1-wxjstz@126.com>
+References: <20231115145929.488427-1-wxjstz@126.com>
+Message-ID: <20231115145929.488427-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The original atomic bit operation returns the word before modification,
-but under RV64, int is 32 bits and cannot accommodate one machine word.
-Corrected to return the value of the bit. And correct the comments of
-the function.
+Simplify atomic-related bit operations through __atomic intrinsics.
 
-Changed from v1:
-- Split patch
-- fix comments
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/riscv_atomic.c | 40 ++++++++++++----------------------------
+ 1 file changed, 12 insertions(+), 28 deletions(-)
 
-Xiang W (2):
-  lib: sbi: Fix __atomic_op_bit_ord and comments
-  lib: sbi: Replace __atomic_op_bit_ord with __atomic intrinsics
-
- include/sbi/riscv_atomic.h |  8 ++++----
- lib/sbi/riscv_atomic.c     | 40 ++++++++++++--------------------------
- 2 files changed, 16 insertions(+), 32 deletions(-)
-
+diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
+index 477f709..1c852a1 100644
+--- a/lib/sbi/riscv_atomic.c
++++ b/lib/sbi/riscv_atomic.c
+@@ -206,40 +206,24 @@ unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
+ #endif
+ }
+ 
+-#if (__SIZEOF_POINTER__ == 8)
+-#define __AMO(op) "amo" #op ".d"
+-#elif (__SIZEOF_POINTER__ == 4)
+-#define __AMO(op) "amo" #op ".w"
+-#else
+-#error "Unexpected __SIZEOF_POINTER__"
+-#endif
+-
+-#define __atomic_op_bit_ord(op, mod, nr, addr, ord)                          \
+-	({                                                                   \
+-		unsigned long __res, __mask;                                 \
+-		__mask = BIT_MASK(nr);                                       \
+-		__asm__ __volatile__(__AMO(op) #ord " %0, %2, %1"            \
+-				     : "=r"(__res), "+A"(addr[BIT_WORD(nr)]) \
+-				     : "r"(mod(__mask))                      \
+-				     : "memory");                            \
+-		__res & mask ? 1 : 0;                                        \
+-	})
+-
+-#define __atomic_op_bit(op, mod, nr, addr) \
+-	__atomic_op_bit_ord(op, mod, nr, addr, .aqrl)
+-
+-/* Bitmask modifiers */
+-#define __NOP(x) (x)
+-#define __NOT(x) (~(x))
+-
+ inline int atomic_raw_set_bit(int nr, volatile unsigned long *addr)
+ {
+-	return __atomic_op_bit(or, __NOP, nr, addr);
++	volatile unsigned long *ptr;
++	unsigned long res, mask;
++	mask = BIT_MASK(nr);
++	ptr = &addr[BIT_WORD(nr)];
++	res = __atomic_fetch_or(ptr, mask, __ATOMIC_ACQ_REL);
++	return res & mask ? 1 : 0;
+ }
+ 
+ inline int atomic_raw_clear_bit(int nr, volatile unsigned long *addr)
+ {
+-	return __atomic_op_bit(and, __NOT, nr, addr);
++	volatile unsigned long *ptr;
++	unsigned long res, mask;
++	mask = BIT_MASK(nr);
++	ptr = &addr[BIT_WORD(nr)];
++	res = __atomic_fetch_and(ptr, ~mask, __ATOMIC_ACQ_REL);
++	return res & mask ? 1 : 0;
+ }
+ 
+ inline int atomic_set_bit(int nr, atomic_t *atom)
 -- 
 2.42.0
 
