@@ -1,77 +1,103 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 11:42:53 +0530
-Subject: [PATCH v2] lib: utils/serial: Optimize semihosting_putc implementation
-In-Reply-To: <20231018024205.270-1-cp0613@linux.alibaba.com>
-References: <20231018024205.270-1-cp0613@linux.alibaba.com>
-Message-ID: <CAAhSdy0BphFUER+8kiza-Cw1qG3TD7xMZW9KkJeyAjqgxyqk4g@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:02:01 +0530
+Subject: [PATCH v2 01/11] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+In-Reply-To: <20231019113713.3508153-2-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-2-peterlin@andestech.com>
+Message-ID: <CAAhSdy0iroZcQAgFoHtaeRo9mAWTuF6t9FZSF70fF=2wP=L+6g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 18, 2023 at 8:12?AM <cp0613@linux.alibaba.com> wrote:
+On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> From: Chen Pei <cp0613@linux.alibaba.com>
+> This patch makes the following changes:
 >
-> For some debuggers that do not implement SYSWRITEC and SYSREADC
-> operations, we can use SYSWRITE and SYSREAD instead like the
-> implementation of semihosting_getc().
+> - As sbi_platform_pmu_init() returns a negative error code on
+>   failure, let sbi_pmu_init() to hang by propagating the error
+>   code.
 >
-> Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+> - In order to distinguish the SBI_EFAIL error returned by
+>   sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
+>   that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
+>   generic_pmu_init() ignores such case.
+>
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
->
-> Changed from v1:
-> 1. simplified by calling semihosting_puts directly.
->
 > ---
->  lib/utils/serial/semihosting.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
+> Changes v1 -> v2:
+>   - New patch
+> ---
+>  lib/sbi/sbi_pmu.c           | 5 ++++-
+>  lib/utils/fdt/fdt_pmu.c     | 2 +-
+>  platform/generic/platform.c | 8 +++++++-
+>  3 files changed, 12 insertions(+), 3 deletions(-)
 >
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> index ce65887..a27c69e 100644
-> --- a/lib/utils/serial/semihosting.c
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -160,11 +160,6 @@ static long semihosting_write(long fd, const void *memp, size_t len)
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index f4c8fc4..3cbd4ff 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>         int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
+>         struct sbi_pmu_hart_state *phs;
+>         const struct sbi_platform *plat;
+> +       int rc;
 >
->  /* clang-format on */
+>         if (cold_boot) {
+>                 hw_event_map = sbi_calloc(sizeof(*hw_event_map),
+> @@ -972,7 +973,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
 >
-> -static void semihosting_putc(char ch)
-> -{
-> -       semihosting_trap(SYSWRITEC, &ch);
-> -}
-> -
->  static unsigned long semihosting_puts(const char *str, unsigned long len)
+>                 plat = sbi_platform_ptr(scratch);
+>                 /* Initialize hw pmu events */
+> -               sbi_platform_pmu_init(plat);
+> +               rc = sbi_platform_pmu_init(plat);
+> +               if (rc)
+> +                       return rc;
+>
+>                 /* mcycle & minstret is available always */
+>                 if (!hpm_count)
+> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> index 83301bb..a8d7648 100644
+> --- a/lib/utils/fdt/fdt_pmu.c
+> +++ b/lib/utils/fdt/fdt_pmu.c
+> @@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
+>
+>         pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
+>         if (pmu_offset < 0)
+> -               return SBI_EFAIL;
+> +               return SBI_ENOENT;
+>
+>         event_ctr_map = fdt_getprop(fdt, pmu_offset,
+>                                     "riscv,event-to-mhpmcounters", &len);
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 66a0b77..cb9270d 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
+>
+>  static int generic_pmu_init(void)
 >  {
->         char ch;
-> @@ -183,6 +178,11 @@ static unsigned long semihosting_puts(const char *str, unsigned long len)
->         return (ret < 0) ? 0 : ret;
+> -       return fdt_pmu_setup(fdt_get_address());
+> +       int rc;
+> +
+> +       rc = fdt_pmu_setup(fdt_get_address());
+> +       if (rc && rc != SBI_ENOENT)
+> +               return rc;
+> +
+> +       return 0;
 >  }
 >
-> +static void semihosting_putc(char ch)
-> +{
-> +       semihosting_puts(&ch, 1);
-> +}
-> +
->  static int semihosting_getc(void)
->  {
->         char ch = 0;
+>  static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
 > --
-> 2.25.1
+> 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
