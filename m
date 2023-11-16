@@ -1,174 +1,47 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu, 16 Nov 2023 08:37:06 +0800
-Subject: [PATCH v3 2/2] lib: sbi: Add regions merging when sanitizing domain region
-In-Reply-To: <CAAhSdy3dcSXBcC2BXk+vBhyHMqos0Uf8C-n26RPXP3aTsY+yzg@mail.gmail.com>
-References: <CAAhSdy3dcSXBcC2BXk+vBhyHMqos0Uf8C-n26RPXP3aTsY+yzg@mail.gmail.com>
-Message-ID: <IA1PR20MB49531646A00D16AC4CA87764BBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Wed, 15 Nov 2023 20:03:00 -0500
+Subject: Security and correctness issues around captured FDT pointers
+In-Reply-To: <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
+References: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
+ <CAK9=C2W3d1t+83kNoWhkA81M59Wen2gGa_EcgOJA1U19WJP4mQ@mail.gmail.com>
+ <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
+Message-ID: <43407cfa-5d82-4337-ae99-8ddac8f23bf6@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->On Wed, Nov 15, 2023 at 1:35?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->>
->> As the domain will reject a new memory region which has a sub-regions
->> already in the domain, even the new region is bigger and has the same
->> flags. This problem can be solved by relaxing region restriction and
->> rechecking when adding and sanitizing domains.
->>
->> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
->> Reviewed-by: Anup Patel <anup@brainfault.org>
->> ---
->>  lib/sbi/sbi_domain.c | 68 ++++++++++++++++++++++++++++++--------------
->>  1 file changed, 46 insertions(+), 22 deletions(-)
->>
->> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
->> index 71cb381..ba8ce44 100644
->> --- a/lib/sbi/sbi_domain.c
->> +++ b/lib/sbi/sbi_domain.c
->> @@ -193,12 +193,11 @@ static bool is_region_subset(const struct sbi_domain_memregion *regA,
->>         return false;
->>  }
->>
->> -/** Check if regionA conflicts regionB */
->> -static bool is_region_conflict(const struct sbi_domain_memregion *regA,
->> -                               const struct sbi_domain_memregion *regB)
->> +/** Check if regionA can be replaced by regionB */
->> +static bool is_region_compatible(const struct sbi_domain_memregion *regA,
->> +                                const struct sbi_domain_memregion *regB)
->>  {
->> -       if ((is_region_subset(regA, regB) || is_region_subset(regB, regA)) &&
->> -           regA->flags == regB->flags)
->> +       if (is_region_subset(regA, regB) && regA->flags == regB->flags)
->>                 return true;
->>
->>         return false;
->> @@ -266,6 +265,11 @@ static void swap_region(struct sbi_domain_memregion* reg1,
->>         sbi_memcpy(reg2, &treg, sizeof(treg));
->>  }
->>
->> +static void clear_region(struct sbi_domain_memregion* reg)
->> +{
->> +       sbi_memset(reg, 0x0, sizeof(*reg));
->> +}
->> +
->>  static int sanitize_domain(struct sbi_domain *dom)
->>  {
->>         u32 i, j, count;
->> @@ -314,22 +318,46 @@ static int sanitize_domain(struct sbi_domain *dom)
->>                 return SBI_EINVAL;
->>         }
->>
->> +       /* Remove covered regions */
->> +       while(i < (count - 1)) {
->> +               reg = &dom->regions[i];
->> +               j = i + 1;
->> +               while (j < count) {
->> +                       reg1 = &dom->regions[j];
->> +
->> +                       /* reg1 is sub-region of reg, remove reg1 */
->> +                       if (is_region_compatible(reg1, reg)) {
->> +                               swap_region(reg1, &dom->regions[count - 1]);
->> +                               clear_region(&dom->regions[count - 1]);
->> +                               count--;
->> +                               continue;
->> +                       }
->> +
->> +                       /*
->> +                        * reg is sub-region of reg1, replace reg with reg1
->> +                        * and recheck all other regions.
->> +                        */
->> +                       if (is_region_compatible(reg, reg1)) {
->> +                               swap_region(reg, reg1);
->> +                               swap_region(reg1, &dom->regions[count - 1]);
->> +                               clear_region(&dom->regions[count - 1]);
->
->This does not seem right.
->
->We should disturb the sorted order of regions so all regions
->from i + 1 to count - 1 should be shifted up.
->
+Hi Bo,
 
-It already shift up the region from i + 1 to count - 1.
-In fact, the process can be described as follows:
-
-R[i] -> ... -> R[j] -> ... -> R[c-2] -> R[c-1]        (1)
-  i              j                      count
-
-R[j] -> ... -> R[i] -> ... -> R[c-2] -> R[c-1]        (2)
-  i              j                      count
-
-R[j] -> ... -> R[c-1] -> ... -> R[c-2] -> R[i]        (3)
-  i              j                        count
-
-R[j] -> ... -> R[c-1] -> ... -> R[c-2]                (4)
-  i              j              count
-
-It just replaces pos i with j, the replace pos j with last. This make no
-change for the whole check. It just needs a recheck at pos i with new
-count - 1 boundary after swapping.
-
-The only thing needed to be changed is just replacing pos i with the last,
-without replacing pos i and j. Because we must recheck all the left regions.
-So swapping pos i and j gives no help.
-
-Please correct me if there is something I miss. Thanks.
-
->> +                               count--;
->> +                               goto regions_recheck;
->> +                       }
->> +
->> +                       j++;
->> +               }
->> +
->> +               i++;
->> +regions_recheck:
->> +       }
->> +
->>         /* Sort the memory regions */
->>         for (i = 0; i < (count - 1); i++) {
->>                 reg = &dom->regions[i];
->>                 for (j = i + 1; j < count; j++) {
->>                         reg1 = &dom->regions[j];
+On 2023-11-15 6:25 PM, Bo Gan wrote:
+> On 11/13/23 9:29 AM, Anup Patel wrote:
 >>
->> -                       if (is_region_conflict(reg1, reg)) {
->> -                               sbi_printf("%s: %s conflict between regions "
->> -                                       "(base=0x%lx order=%lu flags=0x%lx) and "
->> -                                       "(base=0x%lx order=%lu flags=0x%lx)\n",
->> -                                       __func__, dom->name,
->> -                                       reg->base, reg->order, reg->flags,
->> -                                       reg1->base, reg1->order, reg1->flags);
->> -                               return SBI_EINVAL;
->> -                       }
->> -
->>                         if (!is_region_before(reg1, reg))
->>                                 continue;
+>> Yes, #1 is mostly safe.
 >>
->> @@ -576,14 +604,10 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->>             (ROOT_REGION_MAX <= root_memregs_count))
->>                 return SBI_EINVAL;
+>> The #2 needs to be fixed in the generic/starfive/jh7110.c and all other places
+>> where it exists.
 >>
->> -       /* Check for conflicts */
->> +       /* Check whether compatible region exists for the new one */
->>         sbi_domain_for_each_memregion(&root, nreg) {
->> -               if (is_region_conflict(reg, nreg)) {
->> -                       sbi_printf("%s: is_region_conflict check failed"
->> -                       " 0x%lx conflicts existing 0x%lx\n", __func__,
->> -                                  reg->base, nreg->base);
->> -                       return SBI_EALREADY;
->> -               }
->> +               if (is_region_compatible(reg, nreg))
->> +                       return 0;
->>         }
+>> We should certainly stop accessing FDT after cold boot hard is done but I don't
+>> think we should zero-out pointers as well.
 >>
->>         /* Append the memregion to root memregions */
->> --
->> 2.42.1
->>
->
->Regards,
->Anup
->
->
+> Thanks for the reply, Anup. I did a little bit more digging on this and I think
+> #1 is only safe when OpenSBI's carrying the FDT itself (through FW_FDT_PATH).
+> Otherwise, we have to make sure FDT will never be accessed after cold boot done.
+> By zeroing-out the pointers, we can avoid speculative access as well. This helps
+> to defense against speculative timing attacks. (Maybe I'm too paranoid?).
+> 
+> Given OpenSBI starts at very early stage, it's probably uncommon to not have
+> FW_FDT_PATH defined. I have a JH7110 on hand, and the OpenSBI (loaded by U-Boot
+> SPL) will carry the FDT built from U-Boot. I'd imagine other boards/vendors do
+> it similarly. Just in case folks really don't have FW_FDT_PATH, can we emit a
+> warning, and suggest the FDT to be protected through other mechanism?
+
+If the FDT comes from U-Boot (the common case) or another prior stage (e.g.
+QEMU), that means the FDT address was provided in a register, and FW_FDT_PATH is
+*not* defined. So we should not assume FW_FDT_PATH is set.
+
+Regards,
+Samuel
+
 
