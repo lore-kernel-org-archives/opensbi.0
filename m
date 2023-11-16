@@ -1,78 +1,43 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 15 Nov 2023 22:59:21 +0800
-Subject: [PATCH v2 1/2] lib: sbi: Fix __atomic_op_bit_ord and comments
-In-Reply-To: <20231115145929.488427-1-wxjstz@126.com>
-References: <20231115145929.488427-1-wxjstz@126.com>
-Message-ID: <20231115145929.488427-2-wxjstz@126.com>
+From: Bo Gan <ganboing@gmail.com>
+Date: Wed, 15 Nov 2023 16:25:48 -0800
+Subject: Security and correctness issues around captured FDT pointers
+In-Reply-To: <CAK9=C2W3d1t+83kNoWhkA81M59Wen2gGa_EcgOJA1U19WJP4mQ@mail.gmail.com>
+References: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
+ <CAK9=C2W3d1t+83kNoWhkA81M59Wen2gGa_EcgOJA1U19WJP4mQ@mail.gmail.com>
+Message-ID: <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The original code returns the value of the word before modification.
-When modifying the upper 32 bits under RV64, the value returned via
-int return will have no meaning. Corrected to return the value of the
-bit. And modify the function description.
+On 11/13/23 9:29 AM, Anup Patel wrote:
+> 
+> Yes, #1 is mostly safe.
+> 
+> The #2 needs to be fixed in the generic/starfive/jh7110.c and all other places
+> where it exists.
+> 
+> We should certainly stop accessing FDT after cold boot hard is done but I don't
+> think we should zero-out pointers as well.
+> 
+Thanks for the reply, Anup. I did a little bit more digging on this and I think
+#1 is only safe when OpenSBI's carrying the FDT itself (through FW_FDT_PATH).
+Otherwise, we have to make sure FDT will never be accessed after cold boot done.
+By zeroing-out the pointers, we can avoid speculative access as well. This helps
+to defense against speculative timing attacks. (Maybe I'm too paranoid?).
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- include/sbi/riscv_atomic.h | 8 ++++----
- lib/sbi/riscv_atomic.c     | 2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+Given OpenSBI starts at very early stage, it's probably uncommon to not have
+FW_FDT_PATH defined. I have a JH7110 on hand, and the OpenSBI (loaded by U-Boot
+SPL) will carry the FDT built from U-Boot. I'd imagine other boards/vendors do
+it similarly. Just in case folks really don't have FW_FDT_PATH, can we emit a
+warning, and suggest the FDT to be protected through other mechanism?
 
-diff --git a/include/sbi/riscv_atomic.h b/include/sbi/riscv_atomic.h
-index 3972e0b..c5aa05e 100644
---- a/include/sbi/riscv_atomic.h
-+++ b/include/sbi/riscv_atomic.h
-@@ -39,14 +39,14 @@ unsigned int atomic_raw_xchg_uint(volatile unsigned int *ptr,
- unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
- 				    unsigned long newval);
- /**
-- * Set a bit in an atomic variable and return the new value.
-+ * Set a bit in an atomic variable and return the value of bit before modify.
-  * @nr : Bit to set.
-  * @atom: atomic variable to modify
-  */
- int atomic_set_bit(int nr, atomic_t *atom);
- 
- /**
-- * Clear a bit in an atomic variable and return the new value.
-+ * Clear a bit in an atomic variable and return the value of bit before modify.
-  * @nr : Bit to set.
-  * @atom: atomic variable to modify
-  */
-@@ -54,14 +54,14 @@ int atomic_set_bit(int nr, atomic_t *atom);
- int atomic_clear_bit(int nr, atomic_t *atom);
- 
- /**
-- * Set a bit in any address and return the new value .
-+ * Set a bit in any address and return the value of bit before modify.
-  * @nr : Bit to set.
-  * @addr: Address to modify
-  */
- int atomic_raw_set_bit(int nr, volatile unsigned long *addr);
- 
- /**
-- * Clear a bit in any address and return the new value .
-+ * Clear a bit in any address and return the value of bit before modify.
-  * @nr : Bit to set.
-  * @addr: Address to modify
-  */
-diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
-index 528686f..477f709 100644
---- a/lib/sbi/riscv_atomic.c
-+++ b/lib/sbi/riscv_atomic.c
-@@ -222,7 +222,7 @@ unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
- 				     : "=r"(__res), "+A"(addr[BIT_WORD(nr)]) \
- 				     : "r"(mod(__mask))                      \
- 				     : "memory");                            \
--		__res;                                                       \
-+		__res & mask ? 1 : 0;                                        \
- 	})
- 
- #define __atomic_op_bit(op, mod, nr, addr) \
--- 
-2.42.0
+For #2, can @Minda Chen or @Wei Liang help take a look? I see no reason to have
+the `const char *compatible` field in `struct pmic`. The compatible string is
+always going to be "stf,axp15060-regulator" in the current implementation, so
+what's point of strcmp it again in `pmic_ops`? If it's for future extension,
+can you strcmp it inside `pm_reset_init`, and use an enum to indicate the model?
 
+Bo
 
