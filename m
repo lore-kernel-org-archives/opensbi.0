@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:15:20 +0530
-Subject: [PATCH v2 05/11] platform: andes: Enable Andes PMU for AE350
-In-Reply-To: <20231019113713.3508153-6-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-6-peterlin@andestech.com>
-Message-ID: <CAAhSdy13q-i0xiEEqJxE3a7SguUHuW+Sp2SPiVPGLVC7CEM9rQ@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:15:59 +0530
+Subject: [PATCH v2 06/11] platform: rzfive: Enable Andes PMU for RZ/Five
+In-Reply-To: <20231019113713.3508153-7-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-7-peterlin@andestech.com>
+Message-ID: <CAAhSdy28SqsNwqHacff-LEgpU7bGM5mBTqHMfgK4aAGt+sK0Ng@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,47 +13,63 @@ Content-Transfer-Encoding: 7bit
 On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Enable Andes PMU extension support for AE350 platforms.
+> Enable Andes PMU extension support for RZ/Five.
+> This patch also staticize renesas_rzfive_early_init() as
+> it is not used outside of this unit.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 > ---
 > Changes v1 -> v2:
->   - Implement ae350_extensions_init()
+>   - Implement renesas_rzfive_extensions_init()
+>   - staticize renesas_rzfive_early_init()
 > ---
->  platform/generic/Kconfig       |  1 +
->  platform/generic/andes/ae350.c | 13 +++++++++++++
->  2 files changed, 14 insertions(+)
+>  platform/generic/Kconfig                 |  1 +
+>  platform/generic/renesas/rzfive/rzfive.c | 16 +++++++++++++++-
+>  2 files changed, 16 insertions(+), 1 deletion(-)
 >
 > diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index e7bd94e..9b2f9c7 100644
+> index 9b2f9c7..d6dafef 100644
 > --- a/platform/generic/Kconfig
 > +++ b/platform/generic/Kconfig
-> @@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
->  config PLATFORM_ANDES_AE350
->         bool "Andes AE350 support"
->         select SYS_ATCSMU
+> @@ -38,6 +38,7 @@ config PLATFORM_RENESAS_RZFIVE
+>         bool "Renesas RZ/Five support"
+>         select ANDES45_PMA
+>         select ANDES_SBI
 > +       select ANDES_PMU
 >         default n
 >
->  config PLATFORM_RENESAS_RZFIVE
-> diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-> index 80eca05..c3f280d 100644
-> --- a/platform/generic/andes/ae350.c
-> +++ b/platform/generic/andes/ae350.c
-> @@ -8,6 +8,7 @@
+>  config PLATFORM_SIFIVE_FU540
+> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+> index a69797b..2f772c8 100644
+> --- a/platform/generic/renesas/rzfive/rzfive.c
+> +++ b/platform/generic/renesas/rzfive/rzfive.c
+> @@ -5,9 +5,11 @@
 >   */
 >
->  #include <platform_override.h>
+>  #include <andes/andes45_pma.h>
 > +#include <andes/andes_pmu.h>
+>  #include <andes/andes_sbi.h>
+>  #include <platform_override.h>
+>  #include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
 >  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/fdt/fdt_fixup.h>
->  #include <sbi_utils/sys/atcsmu.h>
-> @@ -110,6 +111,17 @@ static int ae350_final_init(bool cold_boot, const struct fdt_match *match)
->         return 0;
+>
+>  static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
+> @@ -29,7 +31,7 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
+>                                          array_size(renesas_rzfive_pma_regions));
 >  }
 >
-> +static int ae350_extensions_init(const struct fdt_match *match,
+> -int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+> +static int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+>  {
+>         /*
+>          * Renesas RZ/Five RISC-V SoC has Instruction local memory and
+> @@ -47,6 +49,17 @@ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+>                                             SBI_DOMAIN_MEMREGION_M_RWX);
+>  }
+>
+> +static int renesas_rzfive_extensions_init(const struct fdt_match *match,
 > +                         struct sbi_hart_features *hfeatures)
 > +{
 > +       int rc;
@@ -64,22 +80,16 @@ On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
 > +       return 0;
 > +}
 > +
->  static const struct fdt_match andes_ae350_match[] = {
->         { .compatible = "andestech,ae350" },
->         { },
-> @@ -118,4 +130,5 @@ static const struct fdt_match andes_ae350_match[] = {
->  const struct platform_override andes_ae350 = {
->         .match_table = andes_ae350_match,
->         .final_init  = ae350_final_init,
-> +       .extensions_init = ae350_extensions_init,
+>  static const struct fdt_match renesas_rzfive_match[] = {
+>         { .compatible = "renesas,r9a07g043f01" },
+>         { /* sentinel */ }
+> @@ -57,4 +70,5 @@ const struct platform_override renesas_rzfive = {
+>         .early_init = renesas_rzfive_early_init,
+>         .final_init = renesas_rzfive_final_init,
+>         .vendor_ext_provider = andes_sbi_vendor_ext_provider,
+> +       .extensions_init = renesas_rzfive_extensions_init,
 
-This is not the right way.
-
-Add a new callback pmu_init() in "struct platform_override" and
-implement that here.
-
-The generic_pmu_init() will call pmu_init() in "struct platform_override"
-if it is available otherwise it will call fdt_pmu_setup().
+Same comment as PATCH5.
 
 >  };
 > --
