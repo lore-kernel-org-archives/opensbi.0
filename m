@@ -1,206 +1,156 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu, 16 Nov 2023 16:19:36 +0800
-Subject: [PATCH v3 2/2] lib: sbi: Add regions merging when sanitizing domain region
-In-Reply-To: <CAAhSdy2Dw6r77DS7ZDZk6fhjRKNTCJN-nOC-_9uHJPg05-qr8w@mail.gmail.com>
-References: <CAAhSdy2Dw6r77DS7ZDZk6fhjRKNTCJN-nOC-_9uHJPg05-qr8w@mail.gmail.com>
-Message-ID: <IA1PR20MB49531C1AB0DB4BBBF590227EBBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Thu, 16 Nov 2023 16:32:33 +0800
+Subject: [PATCH v2 1/3] lib: utils/timer: Allow ACLINT MTIMER driver to setup quirks
+In-Reply-To: <CAAhSdy15pM9S95joEberBR7jOuJ2pTWcns2Pb0vn0WXS8GeiPw@mail.gmail.com>
+References: <CAAhSdy15pM9S95joEberBR7jOuJ2pTWcns2Pb0vn0WXS8GeiPw@mail.gmail.com>
+Message-ID: <IA1PR20MB49532FE3429208601E4ADF45BBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->
->On Thu, Nov 16, 2023 at 6:06?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+>On Fri, Oct 13, 2023 at 12:17?PM Inochi Amaoto <inochiama@outlook.com> wrote:
 >>
->>> On Wed, Nov 15, 2023 at 1:35?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->>>>
->>>> As the domain will reject a new memory region which has a sub-regions
->>>> already in the domain, even the new region is bigger and has the same
->>>> flags. This problem can be solved by relaxing region restriction and
->>>> rechecking when adding and sanitizing domains.
->>>>
->>>> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
->>>> Reviewed-by: Anup Patel <anup@brainfault.org>
->>>> ---
->>>>  lib/sbi/sbi_domain.c | 68 ++++++++++++++++++++++++++++++--------------
->>>>  1 file changed, 46 insertions(+), 22 deletions(-)
->>>>
->>>> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
->>>> index 71cb381..ba8ce44 100644
->>>> --- a/lib/sbi/sbi_domain.c
->>>> +++ b/lib/sbi/sbi_domain.c
->>>> @@ -193,12 +193,11 @@ static bool is_region_subset(const struct sbi_domain_memregion *regA,
->>>>         return false;
->>>>  }
->>>>
->>>> -/** Check if regionA conflicts regionB */
->>>> -static bool is_region_conflict(const struct sbi_domain_memregion *regA,
->>>> -                               const struct sbi_domain_memregion *regB)
->>>> +/** Check if regionA can be replaced by regionB */
->>>> +static bool is_region_compatible(const struct sbi_domain_memregion *regA,
->>>> +                                const struct sbi_domain_memregion *regB)
->>>>  {
->>>> -       if ((is_region_subset(regA, regB) || is_region_subset(regB, regA)) &&
->>>> -           regA->flags == regB->flags)
->>>> +       if (is_region_subset(regA, regB) && regA->flags == regB->flags)
->>>>                 return true;
->>>>
->>>>         return false;
->>>> @@ -266,6 +265,11 @@ static void swap_region(struct sbi_domain_memregion* reg1,
->>>>         sbi_memcpy(reg2, &treg, sizeof(treg));
->>>>  }
->>>>
->>>> +static void clear_region(struct sbi_domain_memregion* reg)
->>>> +{
->>>> +       sbi_memset(reg, 0x0, sizeof(*reg));
->>>> +}
->>>> +
->>>>  static int sanitize_domain(struct sbi_domain *dom)
->>>>  {
->>>>         u32 i, j, count;
->>>> @@ -314,22 +318,46 @@ static int sanitize_domain(struct sbi_domain *dom)
->>>>                 return SBI_EINVAL;
->>>>         }
->>>>
->>>> +       /* Remove covered regions */
->>>> +       while(i < (count - 1)) {
->>>> +               reg = &dom->regions[i];
->>>> +               j = i + 1;
->>>> +               while (j < count) {
->>>> +                       reg1 = &dom->regions[j];
->>>> +
->>>> +                       /* reg1 is sub-region of reg, remove reg1 */
->>>> +                       if (is_region_compatible(reg1, reg)) {
->>>> +                               swap_region(reg1, &dom->regions[count - 1]);
->>>> +                               clear_region(&dom->regions[count - 1]);
->>>> +                               count--;
->>>> +                               continue;
->>>> +                       }
->>>> +
->>>> +                       /*
->>>> +                        * reg is sub-region of reg1, replace reg with reg1
->>>> +                        * and recheck all other regions.
->>>> +                        */
->>>> +                       if (is_region_compatible(reg, reg1)) {
->>>> +                               swap_region(reg, reg1);
->>>> +                               swap_region(reg1, &dom->regions[count - 1]);
->>>> +                               clear_region(&dom->regions[count - 1]);
->>>
->>> This does not seem right.
->>>
->>> We should disturb the sorted order of regions so all regions
->> >from i + 1 to count - 1 should be shifted up.
->>>
+>> The quirks checking will cause ACLINT step into a CLINT code path, this
+>> is not expected when ACLINT needs a quirks.
 >>
->> It already shift up the region from i + 1 to count - 1.
->> In fact, the process can be described as follows:
+>> Add more check to ensure the timer is CLINT before applying quirks.
+>> And now apply the general quirks after applying CLINT specific quirks.
 >>
->> R[i] -> ... -> R[j] -> ... -> R[c-2] -> R[c-1]        (1)
->>   i              j                      count
+>> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+>> ---
+>>  lib/utils/timer/fdt_timer_mtimer.c | 17 ++++++++++++++---
+>>  1 file changed, 14 insertions(+), 3 deletions(-)
 >>
->> R[j] -> ... -> R[i] -> ... -> R[c-2] -> R[c-1]        (2)
->>   i              j                      count
+>> diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
+>> index 9eaa11d..fb5917f 100644
+>> --- a/lib/utils/timer/fdt_timer_mtimer.c
+>> +++ b/lib/utils/timer/fdt_timer_mtimer.c
+>> @@ -29,6 +29,12 @@ static SBI_LIST_HEAD(mtn_list);
 >>
->> R[j] -> ... -> R[c-1] -> ... -> R[c-2] -> R[i]        (3)
->>   i              j                        count
+>>  static struct aclint_mtimer_data *mt_reference = NULL;
 >>
->> R[j] -> ... -> R[c-1] -> ... -> R[c-2]                (4)
->>   i              j              count
->>
->> It just replaces pos i with j, the replace pos j with last. This make no
->> change for the whole check. It just needs a recheck at pos i with new
->> count - 1 boundary after swapping.
->>
->> The only thing needed to be changed is just replacing pos i with the last,
->> without replacing pos i and j. Because we must recheck all the left regions.
->> So swapping pos i and j gives no help.
+>> +static int clint_contains_timer(const void *data)
+>> +{
+>> +       const struct timer_mtimer_quirks *quirks = data;
+>> +       return quirks && quirks->mtime_offset;
 >
->This is exactly the problem. You are not maintaining the sorted
->order of the regions.
+>This is already broken because you are not allowing mtime_offset
+>to be zero in quirks.
 >
->..., R[i-1], R[i], R[i+1], ..., R[j-1], R[j], R[j+1], ....,
->R[count-2], R[count-1]
->
->to preserve the sorted order of regions after removal of R[i], this will be
->
->..., R[i-1], R[i+1], ..., R[j-1], R[j], R[j+1], ...., R[count-2], R[count-1]
->
->whereas you patch changes this to
->
->..., R[i-1], R[j], R[i+1], ..., R[j-1], R[count-1], R[j+1], ..., R[count-2]
->
->Further, the checking "reg1 is sub-region of reg, remove reg1" is
->totally redundant if the "Remove covered regions" is moved after
->"Sort the memory regions".
->
->This patch needs to be re-written.
+>Drop clint_contains_timer() function.
 >
 
-OK, I will take it and prepare a new patch for this.
-Thanks for your advice.
+Drop this is OK for me, since it does break things.
 
+>> +}
+>> +
+>>  static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>>                                   const struct fdt_match *match)
+>>  {
+>> @@ -58,7 +64,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>>                 return rc;
+>>         }
+>>
+>> -       if (match->data) { /* SiFive CLINT */
+>> +       if (clint_contains_timer(match->data)) {
+>>                 const struct timer_mtimer_quirks *quirks = match->data;
+>>
+>>                 /* Set CLINT addresses */
+>> @@ -74,8 +80,6 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>>                         mt->mtime_addr = mt->mtime_size = 0;
+>>                 }
+>>                 mt->mtimecmp_addr += quirks->mtime_offset;
+>> -               /* Apply additional CLINT quirks */
+>> -               mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>>         } else { /* RISC-V ACLINT MTIMER */
+>>                 /* Set ACLINT MTIMER addresses */
+>>                 mt->mtime_addr = addr[0];
+>> @@ -84,6 +88,13 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>>                 mt->mtimecmp_size = size[1];
+>>         }
+>>
+>> +       /* Apply additional quirks for CLINT and ACLINT */
+>> +       if (match->data) {
+>> +               const struct timer_mtimer_quirks *quirks = match->data;
+>> +
+>> +               mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>> +       }
+>> +
+>>         /* Check if MTIMER device has shared MTIME address */
+>>         if (mt->mtime_size) {
+>>                 mt->has_shared_mtime = false;
+>> --
+>> 2.42.0
+>>
+>>
+>> --
+>> opensbi mailing list
+>> opensbi at lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>Instead of above, I suggest to do as follows:
+>
+>diff --git a/lib/utils/timer/fdt_timer_mtimer.c
+>b/lib/utils/timer/fdt_timer_mtimer.c
+>index 9eaa11d..0187272 100644
+>--- a/lib/utils/timer/fdt_timer_mtimer.c
+>+++ b/lib/utils/timer/fdt_timer_mtimer.c
+>@@ -16,6 +16,7 @@
+> #include <sbi_utils/timer/aclint_mtimer.h>
+>
+> struct timer_mtimer_quirks {
+>+    bool        custom_aclint;
+>     unsigned int    mtime_offset;
+>     bool        has_64bit_mmio;
+>     bool        without_mtime;
+>@@ -36,6 +37,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>     unsigned long addr[2], size[2];
+>     struct timer_mtimer_node *mtn, *n;
+>     struct aclint_mtimer_data *mt;
+>+    const struct timer_mtimer_quirks *quirks = match->data;
+>
+>     mtn = sbi_zalloc(sizeof(*mtn));
+>     if (!mtn)
+>@@ -58,9 +60,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>         return rc;
+>     }
+>
+>-    if (match->data) { /* SiFive CLINT */
+>-        const struct timer_mtimer_quirks *quirks = match->data;
+>-
+>+    if (quirks && !quirks->custom_aclint) { /* SiFive CLINT */
+>         /* Set CLINT addresses */
+>         mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
+>         mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
+>@@ -74,8 +74,6 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>             mt->mtime_addr = mt->mtime_size = 0;
+>         }
+>         mt->mtimecmp_addr += quirks->mtime_offset;
+>-        /* Apply additional CLINT quirks */
+>-        mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>     } else { /* RISC-V ACLINT MTIMER */
+>         /* Set ACLINT MTIMER addresses */
+>         mt->mtime_addr = addr[0];
+>@@ -84,6 +82,11 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
+>         mt->mtimecmp_size = size[1];
+>     }
+>
+>+    if (quirks) {
+>+        /* Apply additional quirks */
+>+        mt->has_64bit_mmio = quirks->has_64bit_mmio;
+>+    }
+>+
+>     /* Check if MTIMER device has shared MTIME address */
+>     if (mt->mtime_size) {
+>         mt->has_shared_mtime = false;
+>
 >Regards,
 >Anup
 >
->>
->> Please correct me if there is something I miss. Thanks.
->>
->>>> +                               count--;
->>>> +                               goto regions_recheck;
->>>> +                       }
->>>> +
->>>> +                       j++;
->>>> +               }
->>>> +
->>>> +               i++;
->>>> +regions_recheck:
->>>> +       }
->>>> +
->>>>         /* Sort the memory regions */
->>>>         for (i = 0; i < (count - 1); i++) {
->>>>                 reg = &dom->regions[i];
->>>>                 for (j = i + 1; j < count; j++) {
->>>>                         reg1 = &dom->regions[j];
->>>>
->>>> -                       if (is_region_conflict(reg1, reg)) {
->>>> -                               sbi_printf("%s: %s conflict between regions "
->>>> -                                       "(base=0x%lx order=%lu flags=0x%lx) and "
->>>> -                                       "(base=0x%lx order=%lu flags=0x%lx)\n",
->>>> -                                       __func__, dom->name,
->>>> -                                       reg->base, reg->order, reg->flags,
->>>> -                                       reg1->base, reg1->order, reg1->flags);
->>>> -                               return SBI_EINVAL;
->>>> -                       }
->>>> -
->>>>                         if (!is_region_before(reg1, reg))
->>>>                                 continue;
->>>>
->>>> @@ -576,14 +604,10 @@ int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
->>>>             (ROOT_REGION_MAX <= root_memregs_count))
->>>>                 return SBI_EINVAL;
->>>>
->>>> -       /* Check for conflicts */
->>>> +       /* Check whether compatible region exists for the new one */
->>>>         sbi_domain_for_each_memregion(&root, nreg) {
->>>> -               if (is_region_conflict(reg, nreg)) {
->>>> -                       sbi_printf("%s: is_region_conflict check failed"
->>>> -                       " 0x%lx conflicts existing 0x%lx\n", __func__,
->>>> -                                  reg->base, nreg->base);
->>>> -                       return SBI_EALREADY;
->>>> -               }
->>>> +               if (is_region_compatible(reg, nreg))
->>>> +                       return 0;
->>>>         }
->>>>
->>>>         /* Append the memregion to root memregions */
->>>> --
->>>> 2.42.1
->>>>
->>>
->>> Regards,
->>> Anup
->>>
->>>
 >
+
+Yes, this is my alternative options, I will take this advice and rebase
+these patches. Thanks for your advice.
 
