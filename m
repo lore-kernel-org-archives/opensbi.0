@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:02:01 +0530
-Subject: [PATCH v2 01/11] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
-In-Reply-To: <20231019113713.3508153-2-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-2-peterlin@andestech.com>
-Message-ID: <CAAhSdy0iroZcQAgFoHtaeRo9mAWTuF6t9FZSF70fF=2wP=L+6g@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:06:53 +0530
+Subject: [PATCH v2 02/11] sbi: sbi_pmu: Add hw_counter_filter_mode() to
+ pmu device
+In-Reply-To: <20231019113713.3508153-3-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-3-peterlin@andestech.com>
+Message-ID: <CAAhSdy1CjqgChq1ZUkBiHG0zFCh=hsSh2Y2jbdspX2_TzygRNw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,91 +14,66 @@ Content-Transfer-Encoding: 7bit
 On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> This patch makes the following changes:
->
-> - As sbi_platform_pmu_init() returns a negative error code on
->   failure, let sbi_pmu_init() to hang by propagating the error
->   code.
->
-> - In order to distinguish the SBI_EFAIL error returned by
->   sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
->   that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
->   generic_pmu_init() ignores such case.
+> Add support for custom PMU extensions to set inhibit bits
+> on custom CSRs by introducing the PMU device callback
+> hw_counter_filter_mode(). This allows the perf tool to
+> restrict event counting under a specified privileged
+> mode by appending a modifier, e.g. perf record -e event:k
+> to count events only happening in kernel mode.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
+> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 > ---
 > Changes v1 -> v2:
->   - New patch
+>   - No change
 > ---
->  lib/sbi/sbi_pmu.c           | 5 ++++-
->  lib/utils/fdt/fdt_pmu.c     | 2 +-
->  platform/generic/platform.c | 8 +++++++-
->  3 files changed, 12 insertions(+), 3 deletions(-)
+>  include/sbi/sbi_pmu.h | 6 ++++++
+>  lib/sbi/sbi_pmu.c     | 5 ++++-
+>  2 files changed, 10 insertions(+), 1 deletion(-)
 >
+> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> index 16f6877..d63149c 100644
+> --- a/include/sbi/sbi_pmu.h
+> +++ b/include/sbi/sbi_pmu.h
+> @@ -89,6 +89,12 @@ struct sbi_pmu_device {
+>          * Custom function returning the machine-specific irq-bit.
+>          */
+>         int (*hw_counter_irq_bit)(void);
+> +
+> +       /**
+> +        * Custom function to inhibit counting of events while in
+> +        * specified mode.
+> +        */
+> +       void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
+>  };
+>
+>  /** Get the PMU platform device */
 > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index f4c8fc4..3cbd4ff 100644
+> index 3cbd4ff..7e3723f 100644
 > --- a/lib/sbi/sbi_pmu.c
 > +++ b/lib/sbi/sbi_pmu.c
-> @@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
->         int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
->         struct sbi_pmu_hart_state *phs;
->         const struct sbi_platform *plat;
-> +       int rc;
+> @@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+>                 pmu_dev->hw_counter_disable_irq(ctr_idx);
 >
->         if (cold_boot) {
->                 hw_event_map = sbi_calloc(sizeof(*hw_event_map),
-> @@ -972,7 +973,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>         /* Update the inhibit flags based on inhibit flags received from supervisor */
+> -       pmu_update_inhibit_flags(flags, &mhpmevent_val);
+> +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+> +               pmu_update_inhibit_flags(flags, &mhpmevent_val);
+
+
+pmu_update_inhibit_flags() is called from other places as well.
+
+Looks like this patch needs to be rebased on the latest OpenSBI.
+
+> +       if (pmu_dev && pmu_dev->hw_counter_filter_mode)
+> +               pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
 >
->                 plat = sbi_platform_ptr(scratch);
->                 /* Initialize hw pmu events */
-> -               sbi_platform_pmu_init(plat);
-> +               rc = sbi_platform_pmu_init(plat);
-> +               if (rc)
-> +                       return rc;
->
->                 /* mcycle & minstret is available always */
->                 if (!hpm_count)
-> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> index 83301bb..a8d7648 100644
-> --- a/lib/utils/fdt/fdt_pmu.c
-> +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
->
->         pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
->         if (pmu_offset < 0)
-> -               return SBI_EFAIL;
-> +               return SBI_ENOENT;
->
->         event_ctr_map = fdt_getprop(fdt, pmu_offset,
->                                     "riscv,event-to-mhpmcounters", &len);
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 66a0b77..cb9270d 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
->
->  static int generic_pmu_init(void)
->  {
-> -       return fdt_pmu_setup(fdt_get_address());
-> +       int rc;
-> +
-> +       rc = fdt_pmu_setup(fdt_get_address());
-> +       if (rc && rc != SBI_ENOENT)
-> +               return rc;
-> +
-> +       return 0;
->  }
->
->  static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+>  #if __riscv_xlen == 32
+>         csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
 > --
 > 2.34.1
 >
+
+Regards,
+Anup
 
