@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:09:53 +0530
-Subject: [PATCH v2 03/11] platform: include: andes45: Add PMU related CSR defines
-In-Reply-To: <20231019113713.3508153-4-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-4-peterlin@andestech.com>
-Message-ID: <CAAhSdy0bW9KxQ-H9H0wgt6-m1L2uc2m1MK96JkN6jyLPw-=Sfw@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:11:59 +0530
+Subject: [PATCH v2 04/11] platform: andes: Add Andes custom PMU support
+In-Reply-To: <20231019113713.3508153-5-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-5-peterlin@andestech.com>
+Message-ID: <CAAhSdy37QCVw7brmkRC4yxqHfekVpnEm3GqCC4cTYDgfEatABg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,7 +13,13 @@ Content-Transfer-Encoding: 7bit
 On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> This patch adds CSR for Andes PMU extension.
+> Before the ratification of Sscofpmf, the Andes PMU extension
+> was designed to support the sampling and filtering with hardware
+> performance counters, it works with the current SBI PMU extension
+> and Linux SBI PMU driver.
+>
+> This patch implements the PMU device callbacks that update the
+> corresponding bits on custom CSRs.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
@@ -27,53 +33,140 @@ Anup
 
 > ---
 > Changes v1 -> v2:
->   - Rename andes_pmu() -> has_andes_pmu()
+>   - Fix mode filtering in andes_hw_counter_filter_mode()
+>   - Return early if pmu is not supported in andes_pmu_init() (suggested by Prabhakar)
+>   - Don't grant write permissions via CSR_MCOUNTERWEN as not needed
 > ---
->  platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
+>  platform/generic/andes/Kconfig             |  4 ++
+>  platform/generic/andes/andes_pmu.c         | 81 ++++++++++++++++++++++
+>  platform/generic/andes/objects.mk          |  1 +
+>  platform/generic/include/andes/andes_pmu.h |  8 +++
+>  4 files changed, 94 insertions(+)
+>  create mode 100644 platform/generic/andes/andes_pmu.c
+>  create mode 100644 platform/generic/include/andes/andes_pmu.h
 >
-> diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-> index f570994..ce31617 100644
-> --- a/platform/generic/include/andes/andes45.h
-> +++ b/platform/generic/include/andes/andes45.h
-> @@ -12,6 +12,17 @@
->  #define CSR_MDCM_CFG           0xfc1
->  #define CSR_MMSC_CFG           0xfc2
+> diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
+> index a91fb9c..555e4fe 100644
+> --- a/platform/generic/andes/Kconfig
+> +++ b/platform/generic/andes/Kconfig
+> @@ -7,3 +7,7 @@ config ANDES45_PMA
+>  config ANDES_SBI
+>         bool "Andes SBI support"
+>         default n
+> +
+> +config ANDES_PMU
+> +       bool "Andes custom PMU extension support"
+> +       default n
+> diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
+> new file mode 100644
+> index 0000000..0f6ecc0
+> --- /dev/null
+> +++ b/platform/generic/andes/andes_pmu.c
+> @@ -0,0 +1,81 @@
+> +// SPDX-License-Identifier: BSD-2-Clause
+> +/*
+> + * Copyright (C) 2023 Andes Technology Corporation
+> + */
+> +#include <andes/andes45.h>
+> +#include <andes/andes_pmu.h>
+> +#include <sbi/riscv_asm.h>
+> +#include <sbi/sbi_bitops.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_pmu.h>
+> +#include <sbi/sbi_scratch.h>
+> +
+> +static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
+> +{
+> +       unsigned long mip_val;
+> +
+> +       if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
+> +               return;
+> +
+> +       mip_val = csr_read(CSR_MIP);
+> +       if (!(mip_val & MIP_PMOVI))
+> +               csr_clear(CSR_MCOUNTEROVF, BIT(ctr_idx));
+> +
+> +       csr_set(CSR_MCOUNTERINTEN, BIT(ctr_idx));
+> +}
+> +
+> +static void andes_hw_counter_disable_irq(uint32_t ctr_idx)
+> +{
+> +       csr_clear(CSR_MCOUNTERINTEN, BIT(ctr_idx));
+> +}
+> +
+> +static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
+> +{
+> +       if (flags & SBI_PMU_CFG_FLAG_SET_UINH)
+> +               csr_set(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
+> +       else
+> +               csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
+> +
+> +       if (flags & SBI_PMU_CFG_FLAG_SET_SINH)
+> +               csr_set(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
+> +       else
+> +               csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
+> +}
+> +
+> +static struct sbi_pmu_device andes_pmu = {
+> +       .name = "andes_pmu",
+> +       .hw_counter_enable_irq  = andes_hw_counter_enable_irq,
+> +       .hw_counter_disable_irq = andes_hw_counter_disable_irq,
+> +       /*
+> +        * We set delegation of supervisor local interrupts via
+> +        * 18th bit on mslideleg instead of mideleg, so leave
+> +        * hw_counter_irq_bit() callback unimplemented.
+> +        */
+> +       .hw_counter_irq_bit     = NULL,
+> +       .hw_counter_filter_mode = andes_hw_counter_filter_mode
+> +};
+> +
+> +int andes_pmu_init(void)
+> +{
+> +       if (!has_andes_pmu())
+> +               return SBI_ENOTSUPP;
+> +
+> +       /*
+> +        * It is not reasonable for an Andes CPU to support
+> +        * both Andes PMU and standard Sscofpmf, as they
+> +        * serve the same purpose.
+> +        */
+> +       if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+> +                                  SBI_HART_EXT_SSCOFPMF))
+> +               sbi_hart_hang();
+> +
+> +       /* Inhibit HPM counter in M-mode */
+> +       csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
+> +       /* Delegate S-mode local interrupt to S-mode */
+> +       csr_write(CSR_MSLIDELEG, MIP_PMOVI);
+> +
+> +       sbi_pmu_set_device(&andes_pmu);
+> +
+> +       return 0;
+> +}
+> diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
+> index e8f86ea..6a8c66c 100644
+> --- a/platform/generic/andes/objects.mk
+> +++ b/platform/generic/andes/objects.mk
+> @@ -7,3 +7,4 @@ platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
 >
-> +/* Machine Trap Related Registers */
-> +#define CSR_MSLIDELEG          0x7d5
+>  platform-objs-$(CONFIG_ANDES45_PMA) += andes/andes45-pma.o
+>  platform-objs-$(CONFIG_ANDES_SBI) += andes/andes_sbi.o
+> +platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
+> diff --git a/platform/generic/include/andes/andes_pmu.h b/platform/generic/include/andes/andes_pmu.h
+> new file mode 100644
+> index 0000000..70b3a12
+> --- /dev/null
+> +++ b/platform/generic/include/andes/andes_pmu.h
+> @@ -0,0 +1,8 @@
+> +// SPDX-License-Identifier: BSD-2-Clause
 > +
-> +/* Counter Related Registers */
-> +#define CSR_MCOUNTERWEN                0x7ce
-> +#define CSR_MCOUNTERINTEN      0x7cf
-> +#define CSR_MCOUNTERMASK_M     0x7d1
-> +#define CSR_MCOUNTERMASK_S     0x7d2
-> +#define CSR_MCOUNTERMASK_U     0x7d3
-> +#define CSR_MCOUNTEROVF                0x7d4
+> +#ifndef _RISCV_ANDES_PMU_H
+> +#define _RISCV_ANDES_PMU_H
 > +
->  #define MICM_CFG_ISZ_OFFSET            6
->  #define MICM_CFG_ISZ_MASK              (0x7  << MICM_CFG_ISZ_OFFSET)
->
-> @@ -26,4 +37,19 @@
->  #define MCACHE_CTL_CCTL_SUEN_OFFSET    8
->  #define MCACHE_CTL_CCTL_SUEN_MASK      (0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
->
-> +/* Performance monitor */
-> +#define MMSC_CFG_PMNDS_MASK            (1 << 15)
-> +#define MIP_PMOVI                      (1 << 18)
+> +int andes_pmu_init(void);
 > +
-> +#ifndef __ASSEMBLER__
-> +
-> +#define has_andes_pmu()                                        \
-> +({                                                     \
-> +       (((csr_read(CSR_MMSC_CFG) &                     \
-> +          MMSC_CFG_PMNDS_MASK)                         \
-> +         && misa_extension('S')) ? true : false);      \
-> +})
-> +
-> +#endif /* __ASSEMBLER__ */
-> +
->  #endif /* _RISCV_ANDES45_H */
+> +#endif /* _RISCV_ANDES_PMU_H */
 > --
 > 2.34.1
 >
