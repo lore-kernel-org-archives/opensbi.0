@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:06:53 +0530
-Subject: [PATCH v2 02/11] sbi: sbi_pmu: Add hw_counter_filter_mode() to
- pmu device
-In-Reply-To: <20231019113713.3508153-3-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-3-peterlin@andestech.com>
-Message-ID: <CAAhSdy1CjqgChq1ZUkBiHG0zFCh=hsSh2Y2jbdspX2_TzygRNw@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:09:53 +0530
+Subject: [PATCH v2 03/11] platform: include: andes45: Add PMU related CSR defines
+In-Reply-To: <20231019113713.3508153-4-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-4-peterlin@andestech.com>
+Message-ID: <CAAhSdy0bW9KxQ-H9H0wgt6-m1L2uc2m1MK96JkN6jyLPw-=Sfw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,66 +13,68 @@ Content-Transfer-Encoding: 7bit
 On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add support for custom PMU extensions to set inhibit bits
-> on custom CSRs by introducing the PMU device callback
-> hw_counter_filter_mode(). This allows the perf tool to
-> restrict event counting under a specified privileged
-> mode by appending a modifier, e.g. perf record -e event:k
-> to count events only happening in kernel mode.
+> This patch adds CSR for Andes PMU extension.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-> ---
-> Changes v1 -> v2:
->   - No change
-> ---
->  include/sbi/sbi_pmu.h | 6 ++++++
->  lib/sbi/sbi_pmu.c     | 5 ++++-
->  2 files changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> index 16f6877..d63149c 100644
-> --- a/include/sbi/sbi_pmu.h
-> +++ b/include/sbi/sbi_pmu.h
-> @@ -89,6 +89,12 @@ struct sbi_pmu_device {
->          * Custom function returning the machine-specific irq-bit.
->          */
->         int (*hw_counter_irq_bit)(void);
-> +
-> +       /**
-> +        * Custom function to inhibit counting of events while in
-> +        * specified mode.
-> +        */
-> +       void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
->  };
->
->  /** Get the PMU platform device */
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 3cbd4ff..7e3723f 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
->                 pmu_dev->hw_counter_disable_irq(ctr_idx);
->
->         /* Update the inhibit flags based on inhibit flags received from supervisor */
-> -       pmu_update_inhibit_flags(flags, &mhpmevent_val);
-> +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
-> +               pmu_update_inhibit_flags(flags, &mhpmevent_val);
 
+Looks good to me.
 
-pmu_update_inhibit_flags() is called from other places as well.
-
-Looks like this patch needs to be rebased on the latest OpenSBI.
-
-> +       if (pmu_dev && pmu_dev->hw_counter_filter_mode)
-> +               pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
->
->  #if __riscv_xlen == 32
->         csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
-> --
-> 2.34.1
->
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
+
+> ---
+> Changes v1 -> v2:
+>   - Rename andes_pmu() -> has_andes_pmu()
+> ---
+>  platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+>
+> diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+> index f570994..ce31617 100644
+> --- a/platform/generic/include/andes/andes45.h
+> +++ b/platform/generic/include/andes/andes45.h
+> @@ -12,6 +12,17 @@
+>  #define CSR_MDCM_CFG           0xfc1
+>  #define CSR_MMSC_CFG           0xfc2
+>
+> +/* Machine Trap Related Registers */
+> +#define CSR_MSLIDELEG          0x7d5
+> +
+> +/* Counter Related Registers */
+> +#define CSR_MCOUNTERWEN                0x7ce
+> +#define CSR_MCOUNTERINTEN      0x7cf
+> +#define CSR_MCOUNTERMASK_M     0x7d1
+> +#define CSR_MCOUNTERMASK_S     0x7d2
+> +#define CSR_MCOUNTERMASK_U     0x7d3
+> +#define CSR_MCOUNTEROVF                0x7d4
+> +
+>  #define MICM_CFG_ISZ_OFFSET            6
+>  #define MICM_CFG_ISZ_MASK              (0x7  << MICM_CFG_ISZ_OFFSET)
+>
+> @@ -26,4 +37,19 @@
+>  #define MCACHE_CTL_CCTL_SUEN_OFFSET    8
+>  #define MCACHE_CTL_CCTL_SUEN_MASK      (0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
+>
+> +/* Performance monitor */
+> +#define MMSC_CFG_PMNDS_MASK            (1 << 15)
+> +#define MIP_PMOVI                      (1 << 18)
+> +
+> +#ifndef __ASSEMBLER__
+> +
+> +#define has_andes_pmu()                                        \
+> +({                                                     \
+> +       (((csr_read(CSR_MMSC_CFG) &                     \
+> +          MMSC_CFG_PMNDS_MASK)                         \
+> +         && misa_extension('S')) ? true : false);      \
+> +})
+> +
+> +#endif /* __ASSEMBLER__ */
+> +
+>  #endif /* _RISCV_ANDES45_H */
+> --
+> 2.34.1
+>
 
