@@ -1,11 +1,11 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 15:46:41 +0530
-Subject: [PATCH v3 1/3] lib: utils/timer: Allow ACLINT MTIMER driver to
- setup quirks
-In-Reply-To: <IA1PR20MB495301D1E80A07F9C6F0CB4FBBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Thu, 16 Nov 2023 16:09:39 +0530
+Subject: [PATCH v3 2/3] lib: utils/timer: mtimer: add separate T-Head C9xx
+ CLINT mtimer compatible
+In-Reply-To: <IA1PR20MB4953CBA138C8AE2410A21C33BBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
 References: <IA1PR20MB495397CC87AD8A595B45131CBBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
- <IA1PR20MB495301D1E80A07F9C6F0CB4FBBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy3oZW=N0PzSAibRj53K-njkaHWkLDe8-kQ8E5hBkp9aJA@mail.gmail.com>
+ <IA1PR20MB4953CBA138C8AE2410A21C33BBB0A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy34OexruH0=V0qLho+HGzUs06uEVSHJe5Q=aHaAfnBxww@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,13 +14,13 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Nov 16, 2023 at 2:36?PM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> The quirks checking will cause ACLINT step into a CLINT code path, this
-> is not expected when ACLINT needs custom quirks.
->
-> Add a new quirk to identify custom ACLINT, and apply the general quirks
-> after applying CLINT specific quirks.
+> T-HEAD allows soc vendor to map the mtimer and mswi of C9xx clint on
+> different address, which may cause a misuse if use the same compatible
+> string, add a new timer compatible string to avoid this.
 >
 > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> Link: https://lore.kernel.org/linux-riscv/6e48cbe5e60f9ada2fd1fe58e803e127f1a678e5.1696433229.git.unicorn_wang at outlook.com/
+> Reviewed-by: Guo Ren <guoren@kernel.org>
 
 Looks good to me.
 
@@ -30,61 +30,31 @@ Regards,
 Anup
 
 > ---
->  lib/utils/timer/fdt_timer_mtimer.c | 13 ++++++++-----
->  1 file changed, 8 insertions(+), 5 deletions(-)
+>  lib/utils/timer/fdt_timer_mtimer.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 >
 > diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-> index 9eaa11d..29560fb 100644
+> index 29560fb..86ad1aa 100644
 > --- a/lib/utils/timer/fdt_timer_mtimer.c
 > +++ b/lib/utils/timer/fdt_timer_mtimer.c
-> @@ -16,6 +16,7 @@
->  #include <sbi_utils/timer/aclint_mtimer.h>
+> @@ -145,10 +145,17 @@ static const struct timer_mtimer_quirks thead_clint_quirks = {
+>         .without_mtime  = true,
+>  };
 >
->  struct timer_mtimer_quirks {
-> +       bool            custom_aclint;
->         unsigned int    mtime_offset;
->         bool            has_64bit_mmio;
->         bool            without_mtime;
-> @@ -36,6 +37,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
->         unsigned long addr[2], size[2];
->         struct timer_mtimer_node *mtn, *n;
->         struct aclint_mtimer_data *mt;
-> +       const struct timer_mtimer_quirks *quirks = match->data;
->
->         mtn = sbi_zalloc(sizeof(*mtn));
->         if (!mtn)
-> @@ -58,9 +60,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
->                 return rc;
->         }
->
-> -       if (match->data) { /* SiFive CLINT */
-> -               const struct timer_mtimer_quirks *quirks = match->data;
-> -
-> +       if (quirks && !quirks->custom_aclint) { /* SiFive CLINT */
->                 /* Set CLINT addresses */
->                 mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
->                 mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
-> @@ -74,8 +74,6 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
->                         mt->mtime_addr = mt->mtime_size = 0;
->                 }
->                 mt->mtimecmp_addr += quirks->mtime_offset;
-> -               /* Apply additional CLINT quirks */
-> -               mt->has_64bit_mmio = quirks->has_64bit_mmio;
->         } else { /* RISC-V ACLINT MTIMER */
->                 /* Set ACLINT MTIMER addresses */
->                 mt->mtime_addr = addr[0];
-> @@ -84,6 +82,11 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
->                 mt->mtimecmp_size = size[1];
->         }
->
-> +       /* Apply additional quirks */
-> +       if (quirks) {
-> +               mt->has_64bit_mmio = quirks->has_64bit_mmio;
-> +       }
+> +static const struct timer_mtimer_quirks thead_aclint_quirks = {
+> +       .has_64bit_mmio = false,
+> +       .custom_aclint  = true,
+> +};
 > +
->         /* Check if MTIMER device has shared MTIME address */
->         if (mt->mtime_size) {
->                 mt->has_shared_mtime = false;
+>  static const struct fdt_match timer_mtimer_match[] = {
+>         { .compatible = "riscv,clint0", .data = &sifive_clint_quirks },
+>         { .compatible = "sifive,clint0", .data = &sifive_clint_quirks },
+>         { .compatible = "thead,c900-clint", .data = &thead_clint_quirks },
+> +       { .compatible = "thead,c900-aclint-mtimer",
+> +         .data = &thead_aclint_quirks },
+>         { .compatible = "riscv,aclint-mtimer" },
+>         { },
+>  };
 > --
 > 2.42.1
 >
