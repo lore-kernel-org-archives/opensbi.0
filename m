@@ -1,100 +1,76 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:15:59 +0530
-Subject: [PATCH v2 06/11] platform: rzfive: Enable Andes PMU for RZ/Five
-In-Reply-To: <20231019113713.3508153-7-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-7-peterlin@andestech.com>
-Message-ID: <CAAhSdy28SqsNwqHacff-LEgpU7bGM5mBTqHMfgK4aAGt+sK0Ng@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:18:15 +0530
+Subject: [PATCH v2 08/11] lib: utils: fdt_fixup: Allow preserving PMU properties
+In-Reply-To: <20231019113713.3508153-9-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-9-peterlin@andestech.com>
+Message-ID: <CAAhSdy18NUx61ZGnawEin7Jm_YkfriDYn97iOPq3O-G4rzOy9Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
+On Thu, Oct 19, 2023 at 5:11?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Enable Andes PMU extension support for RZ/Five.
-> This patch also staticize renesas_rzfive_early_init() as
-> it is not used outside of this unit.
+> Add a scratch option to control PMU fixup, so the next
+> stage software can dump the PMU node including event
+> mapping information for debugging purposes.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 > ---
 > Changes v1 -> v2:
->   - Implement renesas_rzfive_extensions_init()
->   - staticize renesas_rzfive_early_init()
+>   - New patch
 > ---
->  platform/generic/Kconfig                 |  1 +
->  platform/generic/renesas/rzfive/rzfive.c | 16 +++++++++++++++-
->  2 files changed, 16 insertions(+), 1 deletion(-)
+>  include/sbi/sbi_scratch.h | 2 ++
+>  lib/utils/fdt/fdt_fixup.c | 6 +++++-
+>  2 files changed, 7 insertions(+), 1 deletion(-)
 >
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index 9b2f9c7..d6dafef 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -38,6 +38,7 @@ config PLATFORM_RENESAS_RZFIVE
->         bool "Renesas RZ/Five support"
->         select ANDES45_PMA
->         select ANDES_SBI
-> +       select ANDES_PMU
->         default n
->
->  config PLATFORM_SIFIVE_FU540
-> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> index a69797b..2f772c8 100644
-> --- a/platform/generic/renesas/rzfive/rzfive.c
-> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> @@ -5,9 +5,11 @@
->   */
->
->  #include <andes/andes45_pma.h>
-> +#include <andes/andes_pmu.h>
->  #include <andes/andes_sbi.h>
->  #include <platform_override.h>
->  #include <sbi/sbi_domain.h>
-> +#include <sbi/sbi_error.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->
->  static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
-> @@ -29,7 +31,7 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
->                                          array_size(renesas_rzfive_pma_regions));
->  }
->
-> -int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
-> +static int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
->  {
->         /*
->          * Renesas RZ/Five RISC-V SoC has Instruction local memory and
-> @@ -47,6 +49,17 @@ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
->                                             SBI_DOMAIN_MEMREGION_M_RWX);
->  }
->
-> +static int renesas_rzfive_extensions_init(const struct fdt_match *match,
-> +                         struct sbi_hart_features *hfeatures)
-> +{
-> +       int rc;
-> +       rc = andes_pmu_init();
-> +       if (rc && rc != SBI_ENOTSUPP)
-> +               return rc;
-> +
-> +       return 0;
-> +}
-> +
->  static const struct fdt_match renesas_rzfive_match[] = {
->         { .compatible = "renesas,r9a07g043f01" },
->         { /* sentinel */ }
-> @@ -57,4 +70,5 @@ const struct platform_override renesas_rzfive = {
->         .early_init = renesas_rzfive_early_init,
->         .final_init = renesas_rzfive_final_init,
->         .vendor_ext_provider = andes_sbi_vendor_ext_provider,
-> +       .extensions_init = renesas_rzfive_extensions_init,
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index e6a33ba..7914dfb 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -151,6 +151,8 @@ enum sbi_scratch_options {
+>         SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
+>         /** Enable runtime debug prints */
+>         SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
+> +       /** Preserve PMU node properties */
+> +       SBI_SCRATCH_PRESERVE_PMU_PROP = (1 << 2),
 
-Same comment as PATCH5.
+s/SBI_SCRATCH_PRESERVE_PMU_PROP/SBI_SCRATCH_PRESERVE_PMU_NODE/
 
 >  };
+>
+>  /** Get pointer to sbi_scratch for current HART */
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index 67e2e2e..b0c885f 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -482,6 +482,8 @@ int fdt_reserved_memory_fixup(void *fdt)
+>
+>  void fdt_fixups(void *fdt)
+>  {
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +
+>         fdt_aplic_fixup(fdt);
+>
+>         fdt_imsic_fixup(fdt);
+> @@ -489,5 +491,7 @@ void fdt_fixups(void *fdt)
+>         fdt_plic_fixup(fdt);
+>
+>         fdt_reserved_memory_fixup(fdt);
+> -       fdt_pmu_fixup(fdt);
+> +
+> +       if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_PROP))
+> +               fdt_pmu_fixup(fdt);
+>  }
 > --
 > 2.34.1
 >
+
+Otherwise, it looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
