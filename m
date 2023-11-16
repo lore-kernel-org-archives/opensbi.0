@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:29:16 +0530
-Subject: [PATCH v2 07/11] lib: utils: fdt_fixup: Add fdt_add_pmu_mappings()
- helper function
-In-Reply-To: <20231019113713.3508153-8-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-8-peterlin@andestech.com>
-Message-ID: <CAAhSdy02NNmjqVVr3420=MF5Tbd_DjQpr_kYNJn5N8Z6OvZH6w@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:30:06 +0530
+Subject: [PATCH v2 11/11] docs: pmu: Add Andes PMU node example
+In-Reply-To: <20231019113713.3508153-12-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-12-peterlin@andestech.com>
+Message-ID: <CAAhSdy2fsQVjigCocb2LWZNucwXkigZqnMd6yrB0g3Mqu1=CRA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,230 +13,120 @@ Content-Transfer-Encoding: 7bit
 On Thu, Oct 19, 2023 at 5:11?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add fdt_add_pmu_mappings() that creates entries of riscv,*event-to-mhpm*
-> property from arrays right before fdt_pmu_setup() populating the mapping
-> tables (i.e. hw_event_map[] and fdt_pmu_evt_select[]).
+> Add PMU node example for event index to counter index mapping
+> and selector value translation of Andes' CPUs.
 >
-> The helper function will skip the creation of those properties if a
-> "/pmu" node with "riscv,pmu" compatible string is provided.
+> Currently, there are 4 HPM counters that can be used to monitor
+> all of the events for each hart.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
+> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 
-This patch can be dropped. See my comment in PATCH10.
+Looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
 
 > ---
 > Changes v1 -> v2:
->   - New patch
+>   - sync up with datasheet
 > ---
->  include/sbi_utils/fdt/fdt_fixup.h            | 48 ++++++++++
->  lib/utils/fdt/fdt_fixup.c                    | 95 ++++++++++++++++++++
->  platform/generic/include/platform_override.h |  1 +
->  platform/generic/platform.c                  | 10 ++-
->  4 files changed, 153 insertions(+), 1 deletion(-)
+>  docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 82 insertions(+)
 >
-> diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
-> index ecd55a7..9b72df8 100644
-> --- a/include/sbi_utils/fdt/fdt_fixup.h
-> +++ b/include/sbi_utils/fdt/fdt_fixup.h
-> @@ -19,6 +19,54 @@ struct sbi_cpu_idle_state {
->         uint32_t wakeup_latency_us;
+> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
+> index 8cfa08c..9b48f1e 100644
+> --- a/docs/pmu_support.md
+> +++ b/docs/pmu_support.md
+> @@ -125,3 +125,85 @@ pmu {
+>                                           <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
 >  };
->
-> +struct sbi_pmu_event_select_map {
-> +       /**
-> +        * The description of an entry in
-> +        * riscv,event-to-mhpmevent property
-> +        */
-> +       uint32_t eidx;
-> +       uint64_t select;
-> +};
+>  ```
 > +
-> +struct sbi_pmu_event_counter_map {
-> +       /**
-> +        * The description of an entry in
-> +        * riscv,event-to-mhpmcounters property
-> +        */
-> +       uint32_t eidx_start;
-> +       uint32_t eidx_end;
-> +       uint32_t ctr_map;
-> +};
+> +### Example 3
 > +
-> +struct sbi_pmu_raw_event_counter_map {
-> +       /**
-> +        * The description of an entry in
-> +        * riscv,raw-event-to-mhpmcounters property
-> +        */
-> +       uint64_t select;
-> +       uint64_t select_mask;
-> +       uint32_t ctr_map;
-> +};
-> +
-> +/**
-> + * Add PMU properties in the DT
-> + *
-> + * Add information about event to selector/counter mappings to the
-> + * devicetree.
-> + *
-> + * @param fdt: device tree blob
-> + * @param selects: array of event index to selector value mapping
-> + *                 descriptions, ending with empty element
-> + * @param counters: array of event indexes to counters mapping
-> + *                  descriptions, ending with empty element
-> + * @param rcounters: array of raw events to counters mapping
-> + *                   descriptions, ending with empty element
-> + * @return zero on success and -ve on failure
+> +```
+> +/*
+> + * For Andes 45-series platforms. The encodings can be found in the
+> + * "Machine Performance Monitoring Event Selector" section
+> + * http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
 > + */
-> +int fdt_add_pmu_mappings(void *fdt, const struct sbi_pmu_event_select_map *selects,
-> +               const struct sbi_pmu_event_counter_map *counters,
-> +               const struct sbi_pmu_raw_event_counter_map *rcounters);
-> +
->  /**
->   * Add CPU idle states to cpu nodes in the DT
->   *
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index e213ded..67e2e2e 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -20,6 +20,101 @@
->  #include <sbi_utils/fdt/fdt_pmu.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->
-> +int fdt_add_pmu_mappings(void *fdt, const struct sbi_pmu_event_select_map *selects,
-> +               const struct sbi_pmu_event_counter_map *counters,
-> +               const struct sbi_pmu_raw_event_counter_map *rcounters)
-> +{
-> +       int i, err, pmu_noff, root_noff;
-> +       const char *comp;
-> +       fdt32_t evt_to_mhpmevent[3];
-> +       fdt32_t evt_to_mhpmcounters[3];
-> +       fdt32_t raw_evt_to_mhpmcounters[5];
-> +
-> +       /* Try to locate pmu node */
-> +       pmu_noff = fdt_path_offset(fdt, "/pmu");
-> +
-> +       if (pmu_noff > 0) {
-> +               /*
-> +                * If compatible string is "riscv,pmu",
-> +                * we assume a valid pmu node has been
-> +                * provided.
-> +                */
-> +               comp = fdt_getprop(fdt, pmu_noff, "compatible", NULL);
-> +               if (comp && !strcmp(comp, "riscv,pmu"))
-> +                       return 0;
-> +               else
-> +                       return -FDT_ERR_BADVALUE;
-> +       }
-> +
-> +       if (pmu_noff < 0 && pmu_noff != -FDT_ERR_NOTFOUND)
-> +               return pmu_noff;
-> +
-> +       /*
-> +        * If "riscv,event-to-mhpmevent" is present, "riscv,event-to-mhpmcounters"
-> +        * must be provided as well, but not vice versa (OpenSBI will direct mapping
-> +        * event_idx as selector value).
-> +        */
-> +       if (selects && !counters) {
-> +               sbi_printf("%s: ERR: riscv,event-to-mhpmcounters is mandatory if"
-> +                       " riscv,event-to-mhpmevent is present.", __func__);
-> +               return SBI_EINVAL;
-> +       }
-> +
-> +       /*
-> +        * Create pmu node based on given @selects, @counters
-> +        * and @rcounters.
-> +        */
-> +       root_noff = fdt_path_offset(fdt, "/");
-> +       pmu_noff = fdt_add_subnode(fdt, root_noff, "pmu");
-> +       if  (pmu_noff < 0)
-> +               return pmu_noff;
-> +
-> +       err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
-> +       if (err < 0)
-> +               return err;
-> +
-> +       err = fdt_setprop_string(fdt, pmu_noff, "compatible", "riscv,pmu");
-> +       if (err)
-> +               return err;
-> +
-> +       /* Add riscv,event-to-mhpmevent */
-> +       for (i = 0; selects && selects[i].eidx; i++) {
-> +               evt_to_mhpmevent[0] = cpu_to_fdt32(selects[i].eidx);
-> +               evt_to_mhpmevent[1] = cpu_to_fdt32(selects[i].select >> 32);
-> +               evt_to_mhpmevent[2] = cpu_to_fdt32(selects[i].select & ~0UL);
-> +               err = fdt_appendprop(fdt, pmu_noff, "riscv,event-to-mhpmevent",
-> +                               evt_to_mhpmevent, 3 * sizeof(fdt32_t));
-> +               if (err)
-> +                       return err;
-> +       }
-> +
-> +       /* Add riscv,event-to-mhpmcounters */
-> +       for (i = 0; counters && counters[i].eidx_start; i++) {
-> +               evt_to_mhpmcounters[0] = cpu_to_fdt32(counters[i].eidx_start);
-> +               evt_to_mhpmcounters[1] = cpu_to_fdt32(counters[i].eidx_end);
-> +               evt_to_mhpmcounters[2] = cpu_to_fdt32(counters[i].ctr_map);
-> +               err = fdt_appendprop(fdt, pmu_noff, "riscv,event-to-mhpmcounters",
-> +                               evt_to_mhpmcounters, 3 * sizeof(fdt32_t));
-> +               if (err)
-> +                       return err;
-> +       }
-> +
-> +       /* Add riscv,raw-event-to-mhpmcounters */
-> +       for (i = 0; rcounters && rcounters[i].select; i++) {
-> +               raw_evt_to_mhpmcounters[0] = cpu_to_fdt32(rcounters[i].select >> 32);
-> +               raw_evt_to_mhpmcounters[1] = cpu_to_fdt32(rcounters[i].select & ~0UL);
-> +               raw_evt_to_mhpmcounters[2] = cpu_to_fdt32(rcounters[i].select_mask >> 32);
-> +               raw_evt_to_mhpmcounters[3] = cpu_to_fdt32(rcounters[i].select_mask & ~0UL);
-> +               raw_evt_to_mhpmcounters[4] = cpu_to_fdt32(rcounters[i].ctr_map);
-> +               err = fdt_appendprop(fdt, pmu_noff, "riscv,raw-event-to-mhpmcounters",
-> +                               raw_evt_to_mhpmcounters, 5 * sizeof(fdt32_t));
-> +               if (err)
-> +                       return err;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
->  {
->         int cpu_node, cpus_node, err, idle_states_node;
-> diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-> index bf4b112..bd34d2a 100644
-> --- a/platform/generic/include/platform_override.h
-> +++ b/platform/generic/include/platform_override.h
-> @@ -19,6 +19,7 @@ struct platform_override {
->         u64 (*features)(const struct fdt_match *match);
->         u64 (*tlbr_flush_limit)(const struct fdt_match *match);
->         u32 (*tlb_num_entries)(const struct fdt_match *match);
-> +       int (*fdt_add_pmu_mappings)(void *fdt, const struct fdt_match *match);
->         bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
->         int (*early_init)(bool cold_boot, const struct fdt_match *match);
->         int (*final_init)(bool cold_boot, const struct fdt_match *match);
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index cb9270d..a48a8b7 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -265,9 +265,17 @@ static u32 generic_tlb_num_entries(void)
->
->  static int generic_pmu_init(void)
->  {
-> +       void *fdt = fdt_get_address();
->         int rc;
->
-> -       rc = fdt_pmu_setup(fdt_get_address());
-> +       if (generic_plat && generic_plat->fdt_add_pmu_mappings) {
-> +               rc = generic_plat->fdt_add_pmu_mappings(fdt,
-> +                                                       generic_plat_match);
-> +               if (rc)
-> +                       return rc;
-> +       }
-> +
-> +       rc = fdt_pmu_setup(fdt);
->         if (rc && rc != SBI_ENOENT)
->                 return rc;
->
+> +pmu {
+> +       compatible                      = "riscv,pmu";
+> +       riscv,event-to-mhpmevent =
+> +                                        <0x1 0x0000 0x10>, /* CPU_CYCLES          -> Cycle count */
+> +                                        <0x2 0x0000 0x20>, /* INSTRUCTIONS        -> Retired instruction count */
+> +                                        <0x3 0x0000 0x41>, /* CACHE_REFERENCES    -> D-Cache access */
+> +                                        <0x4 0x0000 0x51>, /* CACHE_MISSES        -> D-Cache miss */
+> +                                        <0x5 0x0000 0x80>, /* BRANCH_INSTRUCTIONS -> Conditional branch instruction count */
+> +                                        <0x6 0x0000 0x02>, /* BRANCH_MISSES       -> Misprediction of conditional branches */
+> +                                        <0x10000 0x0000 0x61>,  /* L1D_READ_ACCESS  -> D-Cache load access */
+> +                                        <0x10001 0x0000 0x71>,  /* L1D_READ_MISS    -> D-Cache load miss */
+> +                                        <0x10002 0x0000 0x81>,  /* L1D_WRITE_ACCESS -> D-Cache store access */
+> +                                        <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
+> +                                        <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
+> +                                        <0x10009 0x0000 0x31>;  /* L1I_READ_MISS    -> I-Cache miss */
+> +       riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
+> +                                                       <0x10000 0x10003 0x78>,
+> +                                                       <0x10008 0x10009 0x78>;
+> +       riscv,raw-event-to-mhpmcounters =
+> +                                               <0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
+> +                                               <0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
+> +                                               <0x0 0x30 0xffffffff 0xffffffff 0x78>, /* Integer load instruction count */
+> +                                               <0x0 0x40 0xffffffff 0xffffffff 0x78>, /* Integer store instruction count */
+> +                                               <0x0 0x50 0xffffffff 0xffffffff 0x78>, /* Atomic instruction count */
+> +                                               <0x0 0x60 0xffffffff 0xffffffff 0x78>, /* System instruction count */
+> +                                               <0x0 0x70 0xffffffff 0xffffffff 0x78>, /* Integer computational instruction count */
+> +                                               <0x0 0x80 0xffffffff 0xffffffff 0x78>, /* Conditional branch instruction count */
+> +                                               <0x0 0x90 0xffffffff 0xffffffff 0x78>, /* Taken conditional branch instruction count */
+> +                                               <0x0 0xA0 0xffffffff 0xffffffff 0x78>, /* JAL instruction count */
+> +                                               <0x0 0xB0 0xffffffff 0xffffffff 0x78>, /* JALR instruction count */
+> +                                               <0x0 0xC0 0xffffffff 0xffffffff 0x78>, /* Return instruction count */
+> +                                               <0x0 0xD0 0xffffffff 0xffffffff 0x78>, /* Control transfer instruction count */
+> +                                               <0x0 0xE0 0xffffffff 0xffffffff 0x78>, /* EXEC.IT instruction count */
+> +                                               <0x0 0xF0 0xffffffff 0xffffffff 0x78>, /* Integer multiplication instruction count */
+> +                                               <0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
+> +                                               <0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
+> +                                               <0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
+> +                                               <0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
+> +                                               <0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
+> +                                               <0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
+> +                                               <0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
+> +                                               <0x0 0x170 0xffffffff 0xffffffff 0x78>, /* Other floating-point instruction count */
+> +                                               <0x0 0x180 0xffffffff 0xffffffff 0x78>, /* Integer multiplication and add/sub instruction count */
+> +                                               <0x0 0x190 0xffffffff 0xffffffff 0x78>, /* Retired operation count */
+> +                                               <0x0 0x01 0xffffffff 0xffffffff 0x78>, /* ILM access */
+> +                                               <0x0 0x11 0xffffffff 0xffffffff 0x78>, /* DLM access */
+> +                                               <0x0 0x21 0xffffffff 0xffffffff 0x78>, /* I-Cache access */
+> +                                               <0x0 0x31 0xffffffff 0xffffffff 0x78>, /* I-Cache miss */
+> +                                               <0x0 0x41 0xffffffff 0xffffffff 0x78>, /* D-Cache access */
+> +                                               <0x0 0x51 0xffffffff 0xffffffff 0x78>, /* D-Cache miss */
+> +                                               <0x0 0x61 0xffffffff 0xffffffff 0x78>, /* D-Cache load access */
+> +                                               <0x0 0x71 0xffffffff 0xffffffff 0x78>, /* D-Cache load miss */
+> +                                               <0x0 0x81 0xffffffff 0xffffffff 0x78>, /* D-Cache store access */
+> +                                               <0x0 0x91 0xffffffff 0xffffffff 0x78>, /* D-Cache store miss */
+> +                                               <0x0 0xA1 0xffffffff 0xffffffff 0x78>, /* D-Cache writeback */
+> +                                               <0x0 0xB1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for I-Cache fill data */
+> +                                               <0x0 0xC1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for D-Cache fill data */
+> +                                               <0x0 0xD1 0xffffffff 0xffffffff 0x78>, /* Uncached fetch data access from bus */
+> +                                               <0x0 0xE1 0xffffffff 0xffffffff 0x78>, /* Uncached load data access from bus */
+> +                                               <0x0 0xF1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached fetch data from bus */
+> +                                               <0x0 0x101 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached load data from bus */
+> +                                               <0x0 0x111 0xffffffff 0xffffffff 0x78>, /* Main ITLB access */
+> +                                               <0x0 0x121 0xffffffff 0xffffffff 0x78>, /* Main ITLB miss */
+> +                                               <0x0 0x131 0xffffffff 0xffffffff 0x78>, /* Main DTLB access */
+> +                                               <0x0 0x141 0xffffffff 0xffffffff 0x78>, /* Main DTLB miss */
+> +                                               <0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
+> +                                               <0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
+> +                                               <0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
+> +                                               <0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
+> +                                               <0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
+> +                                               <0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
+> +};
+> +```
 > --
 > 2.34.1
 >
