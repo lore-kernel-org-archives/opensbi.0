@@ -1,132 +1,79 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 Nov 2023 12:30:06 +0530
-Subject: [PATCH v2 11/11] docs: pmu: Add Andes PMU node example
-In-Reply-To: <20231019113713.3508153-12-peterlin@andestech.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com> <20231019113713.3508153-12-peterlin@andestech.com>
-Message-ID: <CAAhSdy2fsQVjigCocb2LWZNucwXkigZqnMd6yrB0g3Mqu1=CRA@mail.gmail.com>
+Date: Thu, 16 Nov 2023 12:31:03 +0530
+Subject: [PATCH v2 00/11] Add Andes PMU extension support
+In-Reply-To: <20231019113713.3508153-1-peterlin@andestech.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com>
+Message-ID: <CAAhSdy3TRicu-kE=JUesndHwGXmHfCBvAMBcH=Sv8bdqXtOV5g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 19, 2023 at 5:11?PM Yu Chien Peter Lin
+On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add PMU node example for event index to counter index mapping
-> and selector value translation of Andes' CPUs.
+> This patch series enables perf tool to utilize Andes PMU
+> extension via PMU SBI calls, provides PMU device callbacks
+> to achieve event sampling and mode filtering.
 >
-> Currently, there are 4 HPM counters that can be used to monitor
-> all of the events for each hart.
+> This version also introduces a platform override fdt_add_pmu_mappings()
+> to create event mappings before PMU setup if a valid PMU node
+> is missing.
 >
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
-> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+> The last patch provides a PMU node example used on AX45MP cores.
+>
+> The OpenSBI and Linux patches can be found on Andes Technology GitHub
+> - https://github.com/andestech/opensbi/commits/andes-pmu-support-v2
+> - https://github.com/andestech/linux/commits/andes-pmu-support-v2
+>
+> Yu Chien Peter Lin (11):
+>   sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+>   sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
+>   platform: include: andes45: Add PMU related CSR defines
+>   platform: andes: Add Andes custom PMU support
+>   platform: andes: Enable Andes PMU for AE350
+>   platform: rzfive: Enable Andes PMU for RZ/Five
+>   lib: utils: fdt_fixup: Add fdt_add_pmu_mappings() helper function
+>   lib: utils: fdt_fixup: Allow preserving PMU properties
+>   platform: andes: Factor out is_andes() helper
+>   platform: andes: Implement andes_fdt_add_pmu_mappings platform
+>     override
+>   docs: pmu: Add Andes PMU node example
 
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+It would be great to have v3 sooner because next month we
+have OpenSBI v1.4 release.
 
 Regards,
 Anup
 
-> ---
-> Changes v1 -> v2:
->   - sync up with datasheet
-> ---
->  docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 82 insertions(+)
 >
-> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-> index 8cfa08c..9b48f1e 100644
-> --- a/docs/pmu_support.md
-> +++ b/docs/pmu_support.md
-> @@ -125,3 +125,85 @@ pmu {
->                                           <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
->  };
->  ```
-> +
-> +### Example 3
-> +
-> +```
-> +/*
-> + * For Andes 45-series platforms. The encodings can be found in the
-> + * "Machine Performance Monitoring Event Selector" section
-> + * http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
-> + */
-> +pmu {
-> +       compatible                      = "riscv,pmu";
-> +       riscv,event-to-mhpmevent =
-> +                                        <0x1 0x0000 0x10>, /* CPU_CYCLES          -> Cycle count */
-> +                                        <0x2 0x0000 0x20>, /* INSTRUCTIONS        -> Retired instruction count */
-> +                                        <0x3 0x0000 0x41>, /* CACHE_REFERENCES    -> D-Cache access */
-> +                                        <0x4 0x0000 0x51>, /* CACHE_MISSES        -> D-Cache miss */
-> +                                        <0x5 0x0000 0x80>, /* BRANCH_INSTRUCTIONS -> Conditional branch instruction count */
-> +                                        <0x6 0x0000 0x02>, /* BRANCH_MISSES       -> Misprediction of conditional branches */
-> +                                        <0x10000 0x0000 0x61>,  /* L1D_READ_ACCESS  -> D-Cache load access */
-> +                                        <0x10001 0x0000 0x71>,  /* L1D_READ_MISS    -> D-Cache load miss */
-> +                                        <0x10002 0x0000 0x81>,  /* L1D_WRITE_ACCESS -> D-Cache store access */
-> +                                        <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
-> +                                        <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
-> +                                        <0x10009 0x0000 0x31>;  /* L1I_READ_MISS    -> I-Cache miss */
-> +       riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
-> +                                                       <0x10000 0x10003 0x78>,
-> +                                                       <0x10008 0x10009 0x78>;
-> +       riscv,raw-event-to-mhpmcounters =
-> +                                               <0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
-> +                                               <0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
-> +                                               <0x0 0x30 0xffffffff 0xffffffff 0x78>, /* Integer load instruction count */
-> +                                               <0x0 0x40 0xffffffff 0xffffffff 0x78>, /* Integer store instruction count */
-> +                                               <0x0 0x50 0xffffffff 0xffffffff 0x78>, /* Atomic instruction count */
-> +                                               <0x0 0x60 0xffffffff 0xffffffff 0x78>, /* System instruction count */
-> +                                               <0x0 0x70 0xffffffff 0xffffffff 0x78>, /* Integer computational instruction count */
-> +                                               <0x0 0x80 0xffffffff 0xffffffff 0x78>, /* Conditional branch instruction count */
-> +                                               <0x0 0x90 0xffffffff 0xffffffff 0x78>, /* Taken conditional branch instruction count */
-> +                                               <0x0 0xA0 0xffffffff 0xffffffff 0x78>, /* JAL instruction count */
-> +                                               <0x0 0xB0 0xffffffff 0xffffffff 0x78>, /* JALR instruction count */
-> +                                               <0x0 0xC0 0xffffffff 0xffffffff 0x78>, /* Return instruction count */
-> +                                               <0x0 0xD0 0xffffffff 0xffffffff 0x78>, /* Control transfer instruction count */
-> +                                               <0x0 0xE0 0xffffffff 0xffffffff 0x78>, /* EXEC.IT instruction count */
-> +                                               <0x0 0xF0 0xffffffff 0xffffffff 0x78>, /* Integer multiplication instruction count */
-> +                                               <0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
-> +                                               <0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
-> +                                               <0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
-> +                                               <0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
-> +                                               <0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
-> +                                               <0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
-> +                                               <0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
-> +                                               <0x0 0x170 0xffffffff 0xffffffff 0x78>, /* Other floating-point instruction count */
-> +                                               <0x0 0x180 0xffffffff 0xffffffff 0x78>, /* Integer multiplication and add/sub instruction count */
-> +                                               <0x0 0x190 0xffffffff 0xffffffff 0x78>, /* Retired operation count */
-> +                                               <0x0 0x01 0xffffffff 0xffffffff 0x78>, /* ILM access */
-> +                                               <0x0 0x11 0xffffffff 0xffffffff 0x78>, /* DLM access */
-> +                                               <0x0 0x21 0xffffffff 0xffffffff 0x78>, /* I-Cache access */
-> +                                               <0x0 0x31 0xffffffff 0xffffffff 0x78>, /* I-Cache miss */
-> +                                               <0x0 0x41 0xffffffff 0xffffffff 0x78>, /* D-Cache access */
-> +                                               <0x0 0x51 0xffffffff 0xffffffff 0x78>, /* D-Cache miss */
-> +                                               <0x0 0x61 0xffffffff 0xffffffff 0x78>, /* D-Cache load access */
-> +                                               <0x0 0x71 0xffffffff 0xffffffff 0x78>, /* D-Cache load miss */
-> +                                               <0x0 0x81 0xffffffff 0xffffffff 0x78>, /* D-Cache store access */
-> +                                               <0x0 0x91 0xffffffff 0xffffffff 0x78>, /* D-Cache store miss */
-> +                                               <0x0 0xA1 0xffffffff 0xffffffff 0x78>, /* D-Cache writeback */
-> +                                               <0x0 0xB1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for I-Cache fill data */
-> +                                               <0x0 0xC1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for D-Cache fill data */
-> +                                               <0x0 0xD1 0xffffffff 0xffffffff 0x78>, /* Uncached fetch data access from bus */
-> +                                               <0x0 0xE1 0xffffffff 0xffffffff 0x78>, /* Uncached load data access from bus */
-> +                                               <0x0 0xF1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached fetch data from bus */
-> +                                               <0x0 0x101 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached load data from bus */
-> +                                               <0x0 0x111 0xffffffff 0xffffffff 0x78>, /* Main ITLB access */
-> +                                               <0x0 0x121 0xffffffff 0xffffffff 0x78>, /* Main ITLB miss */
-> +                                               <0x0 0x131 0xffffffff 0xffffffff 0x78>, /* Main DTLB access */
-> +                                               <0x0 0x141 0xffffffff 0xffffffff 0x78>, /* Main DTLB miss */
-> +                                               <0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
-> +                                               <0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
-> +                                               <0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
-> +                                               <0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
-> +                                               <0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
-> +                                               <0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
-> +};
-> +```
+>  docs/pmu_support.md                          |  82 ++++
+>  include/sbi/sbi_ecall_interface.h            |   5 +
+>  include/sbi/sbi_pmu.h                        |   6 +
+>  include/sbi/sbi_scratch.h                    |   2 +
+>  include/sbi_utils/fdt/fdt_fixup.h            |  48 +++
+>  lib/sbi/sbi_pmu.c                            |  10 +-
+>  lib/utils/fdt/fdt_fixup.c                    | 101 ++++-
+>  lib/utils/fdt/fdt_pmu.c                      |   2 +-
+>  platform/generic/Kconfig                     |   4 +
+>  platform/generic/andes/Kconfig               |  11 +
+>  platform/generic/andes/ae350.c               |  31 +-
+>  platform/generic/andes/andes_hpm.c           | 381 +++++++++++++++++++
+>  platform/generic/andes/andes_pmu.c           |  81 ++++
+>  platform/generic/andes/objects.mk            |   2 +
+>  platform/generic/include/andes/andes45.h     |  32 ++
+>  platform/generic/include/andes/andes_hpm.h   |  83 ++++
+>  platform/generic/include/andes/andes_pmu.h   |   8 +
+>  platform/generic/include/platform_override.h |   1 +
+>  platform/generic/platform.c                  |  16 +-
+>  platform/generic/renesas/rzfive/rzfive.c     |  18 +-
+>  20 files changed, 909 insertions(+), 15 deletions(-)
+>  create mode 100644 platform/generic/andes/andes_hpm.c
+>  create mode 100644 platform/generic/andes/andes_pmu.c
+>  create mode 100644 platform/generic/include/andes/andes_hpm.h
+>  create mode 100644 platform/generic/include/andes/andes_pmu.h
+>
 > --
 > 2.34.1
 >
