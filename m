@@ -1,168 +1,55 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Fri, 17 Nov 2023 13:05:24 +0800
-Subject: [PATCH] lib: utils/fdt: Allow to use reg-names when parsing ACLINT
-Message-ID: <IA1PR20MB4953124B319AEF3573200E09BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 17 Nov 2023 12:50:13 +0530
+Subject: [PATCH 1/3] include: sbi: macros for mseccfg.sseed and .useed
+In-Reply-To: <20231028224959.95465-2-heinrich.schuchardt@canonical.com>
+References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com> <20231028224959.95465-2-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy31SkYmT+tWTafoSLubEtX2k+awpHAjntWgozvBymx2rA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, the fdt_parse_aclint_node() follows a fixed order to parse
-ACLINT timer. This may cause the undesirable result when the ACLINT
-device does not support mtime without adding an empty entry for it in
-the DT.
+On Sun, Oct 29, 2023 at 4:20?AM Heinrich Schuchardt
+<heinrich.schuchardt@canonical.com> wrote:
+>
+> Define macros to access the sseed and the useed bit in the machine
+> security configuration register (mseccfg).
+>
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
-To be robust, make fdt_parse_aclint_node() support "reg-names" property,
-so it can parse the DT in an order independent way. For compatibility,
-fdt_parse_aclint_node() only use "reg-names" when parsing ACLINT timer,
-and will fallback to the old way if "reg-names" property is not found.
+Looks good to me.
 
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-Link: https://lore.kernel.org/all/20231114-skedaddle-precinct-66c8897227bb at squawk/
----
- lib/utils/fdt/fdt_helper.c | 107 +++++++++++++++++++++++++++++++------
- 1 file changed, 91 insertions(+), 16 deletions(-)
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 9ae7f09..0f42d68 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -216,6 +216,32 @@ int fdt_get_node_addr_size(void *fdt, int node, int index,
- 	return 0;
- }
+Applied this patch to the riscv/opensbi repo.
 
-+int fdt_get_node_addr_size_by_name(void *fdt, int node, const char *name,
-+				   uint64_t *addr, uint64_t *size)
-+{
-+	int i, j, count;
-+	const char *val;
-+	const char *regname;
-+
-+	if (!fdt || node < 0 || !name)
-+		return SBI_EINVAL;
-+
-+	val = fdt_getprop(fdt, node, "reg-names", &count);
-+	if (!val)
-+		return SBI_ENODEV;
-+
-+	for (i = 0, j = 0; i < count; i++, j++) {
-+		regname = val + i;
-+
-+		if (strcmp(name, regname) == 0)
-+			return fdt_get_node_addr_size(fdt, node, j, addr, size);
-+
-+		i += strlen(regname);
-+	}
-+
-+	return SBI_ENODEV;
-+}
-+
- bool fdt_node_is_enabled(void *fdt, int nodeoff)
- {
- 	int len;
-@@ -873,13 +899,66 @@ int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat)
- 	return fdt_parse_plic_node(fdt, nodeoffset, plic);
- }
+Thanks,
+Anup
 
-+int fdt_get_aclint_addr_size_by_name(void *fdt, int nodeoffset,
-+				     unsigned long *out_addr1,
-+				     unsigned long *out_size1,
-+				     unsigned long *out_addr2,
-+				     unsigned long *out_size2)
-+{
-+	int rc;
-+	uint64_t reg_addr, reg_size;
-+
-+	rc = fdt_get_node_addr_size_by_name(fdt, nodeoffset, "mtime",
-+					    &reg_addr, &reg_size);
-+	if (rc < 0 || !reg_size)
-+		reg_addr = reg_size = 0;
-+	*out_addr1 = reg_addr;
-+	*out_size1 = reg_size;
-+
-+	rc = fdt_get_node_addr_size_by_name(fdt, nodeoffset, "mtimecmp",
-+					    &reg_addr, &reg_size);
-+	if (rc < 0 || !reg_size)
-+		return SBI_ENODEV;
-+	*out_addr2 = reg_addr;
-+	*out_size2 = reg_size;
-+
-+	return 0;
-+}
-+
-+int fdt_get_aclint_addr_size(void *fdt, int nodeoffset,
-+			     unsigned long *out_addr1,
-+			     unsigned long *out_size1,
-+			     unsigned long *out_addr2,
-+			     unsigned long *out_size2)
-+{
-+	int rc;
-+	uint64_t reg_addr, reg_size;
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-+				    &reg_addr, &reg_size);
-+	if (rc < 0 || !reg_size)
-+		return SBI_ENODEV;
-+	*out_addr1 = reg_addr;
-+	*out_size1 = reg_size;
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoffset, 1,
-+				    &reg_addr, &reg_size);
-+	if (rc < 0 || !reg_size)
-+		reg_addr = reg_size = 0;
-+	if (out_addr2)
-+		*out_addr2 = reg_addr;
-+	if (out_size2)
-+		*out_size2 = reg_size;
-+
-+	return 0;
-+}
-+
- int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
- 			  unsigned long *out_addr1, unsigned long *out_size1,
- 			  unsigned long *out_addr2, unsigned long *out_size2,
- 			  u32 *out_first_hartid, u32 *out_hart_count)
- {
- 	const fdt32_t *val;
--	uint64_t reg_addr, reg_size;
- 	int i, rc, count, cpu_offset, cpu_intc_offset;
- 	u32 phandle, hwirq, hartid, first_hartid, last_hartid, hart_count;
- 	u32 match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
-@@ -889,21 +968,17 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
- 	    !out_first_hartid || !out_hart_count)
- 		return SBI_EINVAL;
-
--	rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
--				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_size)
--		return SBI_ENODEV;
--	*out_addr1 = reg_addr;
--	*out_size1 = reg_size;
--
--	rc = fdt_get_node_addr_size(fdt, nodeoffset, 1,
--				    &reg_addr, &reg_size);
--	if (rc < 0 || !reg_size)
--		reg_addr = reg_size = 0;
--	if (out_addr2)
--		*out_addr2 = reg_addr;
--	if (out_size2)
--		*out_size2 = reg_size;
-+	if (for_timer && out_addr2 && out_size2 &&
-+	    fdt_getprop(fdt, nodeoffset, "reg-names", NULL))
-+		rc = fdt_get_aclint_addr_size_by_name(fdt, nodeoffset,
-+						      out_addr1, out_size1,
-+						      out_addr2, out_size2);
-+	else
-+		rc = fdt_get_aclint_addr_size(fdt, nodeoffset,
-+					      out_addr1, out_size1,
-+					      out_addr2, out_size2);
-+	if (rc)
-+		return rc;
-
- 	*out_first_hartid = 0;
- 	*out_hart_count = 0;
---
-2.42.1
-
+> ---
+> Just resending this patch which should be merged independent of how
+> we set mseccfg.sseed in future.
+> ---
+>  include/sbi/riscv_encoding.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index a545242..0996d64 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -678,6 +678,10 @@
+>  #define MSECCFG_MMWP                   (_UL(1) << MSECCFG_MMWP_SHIFT)
+>  #define MSECCFG_RLB_SHIFT              (2)
+>  #define MSECCFG_RLB                    (_UL(1) << MSECCFG_RLB_SHIFT)
+> +#define MSECCFG_USEED_SHIFT            (8)
+> +#define MSECCFG_USEED                  (_UL(1) << MSECCFG_USEED_SHIFT)
+> +#define MSECCFG_SSEED_SHIFT            (9)
+> +#define MSECCFG_SSEED                  (_UL(1) << MSECCFG_SSEED_SHIFT)
+>
+>  /* Counter Overflow CSR */
+>  #define CSR_SCOUNTOVF                  0xda0
+> --
+> 2.40.1
+>
 
