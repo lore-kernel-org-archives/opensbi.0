@@ -1,50 +1,94 @@
-From: Minda Chen <minda.chen@starfivetech.com>
-Date: Fri, 17 Nov 2023 17:58:16 +0800
-Subject: Security and correctness issues around captured FDT pointers
-In-Reply-To: <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
-References: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
- <CAK9=C2W3d1t+83kNoWhkA81M59Wen2gGa_EcgOJA1U19WJP4mQ@mail.gmail.com>
- <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
-Message-ID: <49904cce-9b85-462f-929b-6002ef5fb375@starfivetech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 17 Nov 2023 15:59:54 +0530
+Subject: [PATCH 1/2] lib: sbi: Make console_puts/console_putc interchangeable
+In-Reply-To: <20231117010440.105759-1-wxjstz@126.com>
+References: <20231117010440.105759-1-wxjstz@126.com>
+Message-ID: <CAAhSdy0=Yq-HaZT9oSgp_f1R0cNFjbbRBLD3RJHEO6+r6EVxOQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On Fri, Nov 17, 2023 at 6:34?AM Xiang W <wxjstz@126.com> wrote:
+>
+> console_puts/console_putc should replace each other, but the previous
+> sbi_putc can only use console_putc. This patch improves this problem.
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> Reviewed-by: Guo Ren <guoren@kerenl.org>
 
+Looks good to me.
 
-On 2023/11/16 8:25, Bo Gan wrote:
-> On 11/13/23 9:29 AM, Anup Patel wrote:
->>
->> Yes, #1 is mostly safe.
->>
->> The #2 needs to be fixed in the generic/starfive/jh7110.c and all other places
->> where it exists.
->>
->> We should certainly stop accessing FDT after cold boot hard is done but I don't
->> think we should zero-out pointers as well.
->>
-> Thanks for the reply, Anup. I did a little bit more digging on this and I think
-> #1 is only safe when OpenSBI's carrying the FDT itself (through FW_FDT_PATH).
-> Otherwise, we have to make sure FDT will never be accessed after cold boot done.
-> By zeroing-out the pointers, we can avoid speculative access as well. This helps
-> to defense against speculative timing attacks. (Maybe I'm too paranoid?).
-> 
-> Given OpenSBI starts at very early stage, it's probably uncommon to not have
-> FW_FDT_PATH defined. I have a JH7110 on hand, and the OpenSBI (loaded by U-Boot
-> SPL) will carry the FDT built from U-Boot. I'd imagine other boards/vendors do
-> it similarly. Just in case folks really don't have FW_FDT_PATH, can we emit a
-> warning, and suggest the FDT to be protected through other mechanism?
-> 
-> For #2, can @Minda Chen or @Wei Liang help take a look? I see no reason to have
-> the `const char *compatible` field in `struct pmic`. The compatible string is
-> always going to be "stf,axp15060-regulator" in the current implementation, so
-> what's point of strcmp it again in `pmic_ops`? If it's for future extension,
-> can you strcmp it inside `pm_reset_init`, and use an enum to indicate the model?
-> 
-> Bo
-Now just one pmic now. the compatible can be deleted.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-But I don't know what are you changed and 1#  2# mean. I can not find your patch in opensbi mail website. 
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>  lib/sbi/sbi_console.c | 35 +++++++++++++++++------------------
+>  1 file changed, 17 insertions(+), 18 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index 2b3b0a3..ab09a5c 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -37,28 +37,22 @@ int sbi_getc(void)
+>         return -1;
+>  }
+>
+> -void sbi_putc(char ch)
+> -{
+> -       if (console_dev && console_dev->console_putc) {
+> -               if (ch == '\n')
+> -                       console_dev->console_putc('\r');
+> -               console_dev->console_putc(ch);
+> -       }
+> -}
+> -
+>  static unsigned long nputs(const char *str, unsigned long len)
+>  {
+> -       unsigned long i, ret;
+> +       unsigned long i;
+>
+> -       if (console_dev && console_dev->console_puts) {
+> -               ret = console_dev->console_puts(str, len);
+> -       } else {
+> -               for (i = 0; i < len; i++)
+> -                       sbi_putc(str[i]);
+> -               ret = len;
+> +       if (console_dev) {
+> +               if (console_dev->console_puts)
+> +                       return console_dev->console_puts(str, len);
+> +               else if (console_dev->console_putc) {
+> +                       for (i = 0; i < len; i++) {
+> +                               if (str[i] == '\n')
+> +                                       console_dev->console_putc('\r');
+> +                               console_dev->console_putc(str[i]);
+> +                       }
+> +               }
+>         }
+> -
+> -       return ret;
+> +       return len;
+>  }
+>
+>  static void nputs_all(const char *str, unsigned long len)
+> @@ -69,6 +63,11 @@ static void nputs_all(const char *str, unsigned long len)
+>                 p += nputs(&str[p], len - p);
+>  }
+>
+> +void sbi_putc(char ch)
+> +{
+> +       nputs_all(&ch, 1);
+> +}
+> +
+>  void sbi_puts(const char *str)
+>  {
+>         unsigned long len = sbi_strlen(str);
+> --
+> 2.42.0
+>
 
