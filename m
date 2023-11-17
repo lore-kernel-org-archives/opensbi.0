@@ -1,184 +1,93 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 17 Nov 2023 16:08:30 +0530
-Subject: [PATCH] lib: utils/fdt: Allow to use reg-names when parsing ACLINT
-In-Reply-To: <IA1PR20MB4953124B319AEF3573200E09BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB4953124B319AEF3573200E09BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy2x9Gk4NYv9S7Ao4aFhuiFijJmtDDO_-GZxJ6XARyC12w@mail.gmail.com>
+Date: Fri, 17 Nov 2023 16:19:56 +0530
+Subject: [PATCH v2 1/2] lib: sbi: Fix __atomic_op_bit_ord and comments
+In-Reply-To: <20231115145929.488427-2-wxjstz@126.com>
+References: <20231115145929.488427-1-wxjstz@126.com> <20231115145929.488427-2-wxjstz@126.com>
+Message-ID: <CAAhSdy3igwFV7REMOWiZO84xkwuDH53ZUvjRVKTJ8_yPbqGqaw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Nov 17, 2023 at 10:34?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Wed, Nov 15, 2023 at 8:31?PM Xiang W <wxjstz@126.com> wrote:
 >
-> Currently, the fdt_parse_aclint_node() follows a fixed order to parse
-> ACLINT timer. This may cause the undesirable result when the ACLINT
-> device does not support mtime without adding an empty entry for it in
-> the DT.
+> The original code returns the value of the word before modification.
+> When modifying the upper 32 bits under RV64, the value returned via
+> int return will have no meaning. Corrected to return the value of the
+> bit. And modify the function description.
 >
-> To be robust, make fdt_parse_aclint_node() support "reg-names" property,
-> so it can parse the DT in an order independent way. For compatibility,
-> fdt_parse_aclint_node() only use "reg-names" when parsing ACLINT timer,
-> and will fallback to the old way if "reg-names" property is not found.
->
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> Link: https://lore.kernel.org/all/20231114-skedaddle-precinct-66c8897227bb at squawk/
-> ---
->  lib/utils/fdt/fdt_helper.c | 107 +++++++++++++++++++++++++++++++------
->  1 file changed, 91 insertions(+), 16 deletions(-)
->
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 9ae7f09..0f42d68 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -216,6 +216,32 @@ int fdt_get_node_addr_size(void *fdt, int node, int index,
->         return 0;
->  }
->
-> +int fdt_get_node_addr_size_by_name(void *fdt, int node, const char *name,
-> +                                  uint64_t *addr, uint64_t *size)
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-Declare fdt_get_node_addr_size_by_name() in fdt_helper.h
+Looks good to me.
 
-> +{
-> +       int i, j, count;
-> +       const char *val;
-> +       const char *regname;
-> +
-> +       if (!fdt || node < 0 || !name)
-> +               return SBI_EINVAL;
-> +
-> +       val = fdt_getprop(fdt, node, "reg-names", &count);
-> +       if (!val)
-> +               return SBI_ENODEV;
-> +
-> +       for (i = 0, j = 0; i < count; i++, j++) {
-> +               regname = val + i;
-> +
-> +               if (strcmp(name, regname) == 0)
-> +                       return fdt_get_node_addr_size(fdt, node, j, addr, size);
-> +
-> +               i += strlen(regname);
-> +       }
-> +
-> +       return SBI_ENODEV;
-> +}
-> +
->  bool fdt_node_is_enabled(void *fdt, int nodeoff)
->  {
->         int len;
-> @@ -873,13 +899,66 @@ int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat)
->         return fdt_parse_plic_node(fdt, nodeoffset, plic);
->  }
->
-> +int fdt_get_aclint_addr_size_by_name(void *fdt, int nodeoffset,
-> +                                    unsigned long *out_addr1,
-> +                                    unsigned long *out_size1,
-> +                                    unsigned long *out_addr2,
-> +                                    unsigned long *out_size2)
-
-Make this static.
-
-> +{
-> +       int rc;
-> +       uint64_t reg_addr, reg_size;
-> +
-> +       rc = fdt_get_node_addr_size_by_name(fdt, nodeoffset, "mtime",
-> +                                           &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               reg_addr = reg_size = 0;
-> +       *out_addr1 = reg_addr;
-> +       *out_size1 = reg_size;
-> +
-> +       rc = fdt_get_node_addr_size_by_name(fdt, nodeoffset, "mtimecmp",
-> +                                           &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               return SBI_ENODEV;
-> +       *out_addr2 = reg_addr;
-> +       *out_size2 = reg_size;
-> +
-> +       return 0;
-> +}
-> +
-> +int fdt_get_aclint_addr_size(void *fdt, int nodeoffset,
-> +                            unsigned long *out_addr1,
-> +                            unsigned long *out_size1,
-> +                            unsigned long *out_addr2,
-> +                            unsigned long *out_size2)
-
-Make this static.
-
-> +{
-> +       int rc;
-> +       uint64_t reg_addr, reg_size;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> +                                   &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               return SBI_ENODEV;
-> +       *out_addr1 = reg_addr;
-> +       *out_size1 = reg_size;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 1,
-> +                                   &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               reg_addr = reg_size = 0;
-> +       if (out_addr2)
-> +               *out_addr2 = reg_addr;
-> +       if (out_size2)
-> +               *out_size2 = reg_size;
-> +
-> +       return 0;
-> +}
-> +
->  int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
->                           unsigned long *out_addr1, unsigned long *out_size1,
->                           unsigned long *out_addr2, unsigned long *out_size2,
->                           u32 *out_first_hartid, u32 *out_hart_count)
->  {
->         const fdt32_t *val;
-> -       uint64_t reg_addr, reg_size;
->         int i, rc, count, cpu_offset, cpu_intc_offset;
->         u32 phandle, hwirq, hartid, first_hartid, last_hartid, hart_count;
->         u32 match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
-> @@ -889,21 +968,17 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
->             !out_first_hartid || !out_hart_count)
->                 return SBI_EINVAL;
->
-> -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> -                                   &reg_addr, &reg_size);
-> -       if (rc < 0 || !reg_size)
-> -               return SBI_ENODEV;
-> -       *out_addr1 = reg_addr;
-> -       *out_size1 = reg_size;
-> -
-> -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 1,
-> -                                   &reg_addr, &reg_size);
-> -       if (rc < 0 || !reg_size)
-> -               reg_addr = reg_size = 0;
-> -       if (out_addr2)
-> -               *out_addr2 = reg_addr;
-> -       if (out_size2)
-> -               *out_size2 = reg_size;
-> +       if (for_timer && out_addr2 && out_size2 &&
-> +           fdt_getprop(fdt, nodeoffset, "reg-names", NULL))
-> +               rc = fdt_get_aclint_addr_size_by_name(fdt, nodeoffset,
-> +                                                     out_addr1, out_size1,
-> +                                                     out_addr2, out_size2);
-> +       else
-> +               rc = fdt_get_aclint_addr_size(fdt, nodeoffset,
-> +                                             out_addr1, out_size1,
-> +                                             out_addr2, out_size2);
-> +       if (rc)
-> +               return rc;
->
->         *out_first_hartid = 0;
->         *out_hart_count = 0;
-> --
-> 2.42.1
->
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
+
+> ---
+>  include/sbi/riscv_atomic.h | 8 ++++----
+>  lib/sbi/riscv_atomic.c     | 2 +-
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/include/sbi/riscv_atomic.h b/include/sbi/riscv_atomic.h
+> index 3972e0b..c5aa05e 100644
+> --- a/include/sbi/riscv_atomic.h
+> +++ b/include/sbi/riscv_atomic.h
+> @@ -39,14 +39,14 @@ unsigned int atomic_raw_xchg_uint(volatile unsigned int *ptr,
+>  unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
+>                                     unsigned long newval);
+>  /**
+> - * Set a bit in an atomic variable and return the new value.
+> + * Set a bit in an atomic variable and return the value of bit before modify.
+>   * @nr : Bit to set.
+>   * @atom: atomic variable to modify
+>   */
+>  int atomic_set_bit(int nr, atomic_t *atom);
+>
+>  /**
+> - * Clear a bit in an atomic variable and return the new value.
+> + * Clear a bit in an atomic variable and return the value of bit before modify.
+>   * @nr : Bit to set.
+>   * @atom: atomic variable to modify
+>   */
+> @@ -54,14 +54,14 @@ int atomic_set_bit(int nr, atomic_t *atom);
+>  int atomic_clear_bit(int nr, atomic_t *atom);
+>
+>  /**
+> - * Set a bit in any address and return the new value .
+> + * Set a bit in any address and return the value of bit before modify.
+>   * @nr : Bit to set.
+>   * @addr: Address to modify
+>   */
+>  int atomic_raw_set_bit(int nr, volatile unsigned long *addr);
+>
+>  /**
+> - * Clear a bit in any address and return the new value .
+> + * Clear a bit in any address and return the value of bit before modify.
+>   * @nr : Bit to set.
+>   * @addr: Address to modify
+>   */
+> diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
+> index 528686f..477f709 100644
+> --- a/lib/sbi/riscv_atomic.c
+> +++ b/lib/sbi/riscv_atomic.c
+> @@ -222,7 +222,7 @@ unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
+>                                      : "=r"(__res), "+A"(addr[BIT_WORD(nr)]) \
+>                                      : "r"(mod(__mask))                      \
+>                                      : "memory");                            \
+> -               __res;                                                       \
+> +               __res & mask ? 1 : 0;                                        \
+>         })
+>
+>  #define __atomic_op_bit(op, mod, nr, addr) \
+> --
+> 2.42.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
