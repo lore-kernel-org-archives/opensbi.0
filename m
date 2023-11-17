@@ -1,144 +1,50 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 17 Nov 2023 13:29:31 +0530
-Subject: [PATCH] lib: sbi: change sbi_hart_features.extensions as an array
-In-Reply-To: <20231030164046.25108-1-wxjstz@126.com>
-References: <20231030164046.25108-1-wxjstz@126.com>
-Message-ID: <CAAhSdy1EGbRBCWTUdLihA92SewS1n1ecVbVC1f6jStXa-tJMdA@mail.gmail.com>
+From: Minda Chen <minda.chen@starfivetech.com>
+Date: Fri, 17 Nov 2023 17:58:16 +0800
+Subject: Security and correctness issues around captured FDT pointers
+In-Reply-To: <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
+References: <4caf2c9d-36ba-c1e8-8e38-ec733a41e74a@gmail.com>
+ <CAK9=C2W3d1t+83kNoWhkA81M59Wen2gGa_EcgOJA1U19WJP4mQ@mail.gmail.com>
+ <0a3267fa-3dfe-f630-3202-8f6ed6825609@gmail.com>
+Message-ID: <49904cce-9b85-462f-929b-6002ef5fb375@starfivetech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 30, 2023 at 10:11?PM Xiang W <wxjstz@126.com> wrote:
->
-> In the future there may be a lot of ISA extensions, a 'long' may not
-> be able to accommodate, changed to an array for the future.
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
 
-Looks good to me.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+On 2023/11/16 8:25, Bo Gan wrote:
+> On 11/13/23 9:29 AM, Anup Patel wrote:
+>>
+>> Yes, #1 is mostly safe.
+>>
+>> The #2 needs to be fixed in the generic/starfive/jh7110.c and all other places
+>> where it exists.
+>>
+>> We should certainly stop accessing FDT after cold boot hard is done but I don't
+>> think we should zero-out pointers as well.
+>>
+> Thanks for the reply, Anup. I did a little bit more digging on this and I think
+> #1 is only safe when OpenSBI's carrying the FDT itself (through FW_FDT_PATH).
+> Otherwise, we have to make sure FDT will never be accessed after cold boot done.
+> By zeroing-out the pointers, we can avoid speculative access as well. This helps
+> to defense against speculative timing attacks. (Maybe I'm too paranoid?).
+> 
+> Given OpenSBI starts at very early stage, it's probably uncommon to not have
+> FW_FDT_PATH defined. I have a JH7110 on hand, and the OpenSBI (loaded by U-Boot
+> SPL) will carry the FDT built from U-Boot. I'd imagine other boards/vendors do
+> it similarly. Just in case folks really don't have FW_FDT_PATH, can we emit a
+> warning, and suggest the FDT to be protected through other mechanism?
+> 
+> For #2, can @Minda Chen or @Wei Liang help take a look? I see no reason to have
+> the `const char *compatible` field in `struct pmic`. The compatible string is
+> always going to be "stf,axp15060-regulator" in the current implementation, so
+> what's point of strcmp it again in `pmic_ops`? If it's for future extension,
+> can you strcmp it inside `pm_reset_init`, and use an enum to indicate the model?
+> 
+> Bo
+Now just one pmic now. the compatible can be deleted.
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-> ---
->  include/sbi/sbi_hart.h      |  3 ++-
->  lib/sbi/sbi_hart.c          | 32 ++++++++++++--------------------
->  platform/generic/platform.c |  2 +-
->  3 files changed, 15 insertions(+), 22 deletions(-)
->
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index e60f415..3b73f63 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -11,6 +11,7 @@
->  #define __SBI_HART_H__
->
->  #include <sbi/sbi_types.h>
-> +#include <sbi/sbi_bitops.h>
->
->  /** Possible privileged specification versions of a hart */
->  enum sbi_hart_priv_versions {
-> @@ -65,7 +66,7 @@ enum sbi_hart_extensions {
->  struct sbi_hart_features {
->         bool detected;
->         int priv_version;
-> -       unsigned long extensions;
-> +       unsigned long extensions[BITS_TO_LONGS(SBI_HART_EXT_MAX)];
->         unsigned int pmp_count;
->         unsigned int pmp_addr_bits;
->         unsigned long pmp_gran;
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 29d6481..f94eba5 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -614,9 +614,9 @@ static inline void __sbi_hart_update_extension(
->                                         bool enable)
->  {
->         if (enable)
-> -               hfeatures->extensions |= BIT(ext);
-> +               __set_bit(ext, hfeatures->extensions);
->         else
-> -               hfeatures->extensions &= ~BIT(ext);
-> +               __clear_bit(ext, hfeatures->extensions);
->  }
->
->  /**
-> @@ -649,7 +649,7 @@ bool sbi_hart_has_extension(struct sbi_scratch *scratch,
->         struct sbi_hart_features *hfeatures =
->                         sbi_scratch_offset_ptr(scratch, hart_features_offset);
->
-> -       if (hfeatures->extensions & BIT(ext))
-> +       if (__test_bit(ext, hfeatures->extensions))
->                 return true;
->         else
->                 return false;
-> @@ -712,24 +712,16 @@ void sbi_hart_get_extensions_str(struct sbi_scratch *scratch,
->                 return;
->         sbi_memset(extensions_str, 0, nestr);
->
-> -       if (!hfeatures->extensions)
-> -               goto done;
-> -
-> -       do {
-> -               if (hfeatures->extensions & BIT(ext)) {
-> -                       temp = sbi_hart_extension_id2string(ext);
-> -                       if (temp) {
-> -                               sbi_snprintf(extensions_str + offset,
-> -                                            nestr - offset,
-> -                                            "%s,", temp);
-> -                               offset = offset + sbi_strlen(temp) + 1;
-> -                       }
-> +       for_each_set_bit(ext, hfeatures->extensions, SBI_HART_EXT_MAX) {
-> +               temp = sbi_hart_extension_id2string(ext);
-> +               if (temp) {
-> +                       sbi_snprintf(extensions_str + offset,
-> +                                    nestr - offset,
-> +                                    "%s,", temp);
-> +                       offset = offset + sbi_strlen(temp) + 1;
->                 }
-> +       }
->
-> -               ext++;
-> -       } while (ext < SBI_HART_EXT_MAX);
-> -
-> -done:
->         if (offset)
->                 extensions_str[offset - 1] = '\0';
->         else
-> @@ -799,7 +791,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
->                 return 0;
->
->         /* Clear hart features */
-> -       hfeatures->extensions = 0;
-> +       sbi_memset(hfeatures->extensions, 0, sizeof(hfeatures->extensions));
->         hfeatures->pmp_count = 0;
->         hfeatures->mhpm_mask = 0;
->
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 66a0b77..9182faa 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -215,7 +215,7 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
->
->         /* Parse the ISA string from FDT and enable the listed extensions */
->         rc = fdt_parse_isa_extensions(fdt_get_address(), current_hartid(),
-> -                                     &hfeatures->extensions);
-> +                                     hfeatures->extensions);
->
->         if (rc)
->                 return rc;
-> --
-> 2.42.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+But I don't know what are you changed and 1#  2# mean. I can not find your patch in opensbi mail website. 
 
