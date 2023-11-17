@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 17 Nov 2023 12:51:27 +0530
-Subject: [RFC 2/3] lib: sbi: Add Zkr in hart extensions
-In-Reply-To: <20231028224959.95465-3-heinrich.schuchardt@canonical.com>
-References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com> <20231028224959.95465-3-heinrich.schuchardt@canonical.com>
-Message-ID: <CAAhSdy3ASwnDcQW_FE-JF7-2zhQ+-c0_ijBEoYWX+UiJjnZP0g@mail.gmail.com>
+Date: Fri, 17 Nov 2023 13:10:57 +0530
+Subject: [RFC 3/3] lib: sbi: enable seed access in S-mode
+In-Reply-To: <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
+References: <20231028224959.95465-1-heinrich.schuchardt@canonical.com> <20231028224959.95465-4-heinrich.schuchardt@canonical.com>
+Message-ID: <CAAhSdy2CO3JUUYM-W1kT+QLPbzGb9UAg1RfhrCOuvfEvJh2pvw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,66 +13,60 @@ Content-Transfer-Encoding: 7bit
 On Sun, Oct 29, 2023 at 4:20?AM Heinrich Schuchardt
 <heinrich.schuchardt@canonical.com> wrote:
 >
-> - Add Zkr as extension in sbi_hart_extensions enum
-> - Return "zkr" string for Zkr extension from sbi_hart_extension_id2string
+> If ISA extension Zkr is available, set
+>
+>     mseccfg.sseed=1
+>     mseccfg.useed=0
+>
+> This enables access to the seed CSR in S-mode but not in U-mode.
 >
 > Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+> ---
+>  lib/sbi/sbi_hart.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 569596f..5a3e8ee 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -530,6 +530,15 @@ int sbi_hart_unmap_saddr(void)
+>         return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+>  }
+>
+> +static void sbi_hart_zkr_configure(struct sbi_scratch *scratch)
+> +{
+> +       unsigned long mseccfg_val = csr_read(CSR_MSECCFG);
+> +
+> +       mseccfg_val |= MSECCFG_SSEED;
+> +       mseccfg_val &= ~MSECCFG_USEED;
+> +       csr_set(CSR_MSECCFG, mseccfg_val);
+> +}
+> +
+>  int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+>  {
+>         int rc;
+> @@ -551,6 +560,9 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+>                 rc = sbi_hart_oldpmp_configure(scratch, pmp_count,
+>                                                 pmp_gran_log2, pmp_addr_max);
+>
+> +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZKR))
+> +               sbi_hart_zkr_configure(scratch);
+> +
 
-Looks good to me.
+This needs to be done from the mstatus_init() function since it is not
+related to PMP. I have taken care of this at the time of merging this patch.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
-Thanks,
-Anup
-
-> ---
->  include/sbi/sbi_hart.h     | 2 ++
->  lib/sbi/sbi_hart.c         | 3 +++
->  lib/utils/fdt/fdt_helper.c | 1 +
->  3 files changed, 6 insertions(+)
->
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index e60f415..fe1124a 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -40,6 +40,8 @@ enum sbi_hart_extensions {
->         SBI_HART_EXT_ZICNTR,
->         /** HART has Zihpm extension */
->         SBI_HART_EXT_ZIHPM,
-> +       /** HART has Zkr extension */
-> +       SBI_HART_EXT_ZKR,
->         /** Hart has Smcntrpmf extension */
->         SBI_HART_EXT_SMCNTRPMF,
->
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 29d6481..569596f 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -678,6 +678,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
->         case SBI_HART_EXT_ZIHPM:
->                 estr = "zihpm";
->                 break;
-> +       case SBI_HART_EXT_ZKR:
-> +               estr = "zkr";
-> +               break;
->         case SBI_HART_EXT_SMEPMP:
->                 estr = "smepmp";
->                 break;
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 9ae7f09..35be7ba 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -376,6 +376,7 @@ static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
->                         }
->
->                 set_multi_letter_ext("smepmp", SBI_HART_EXT_SMEPMP);
-> +               set_multi_letter_ext("zkr", SBI_HART_EXT_ZKR);
->  #undef set_multi_letter_ext
->         }
->
+>         /*
+>          * As per section 3.7.2 of privileged specification v1.12,
+>          * virtual address translations can be speculatively performed
 > --
 > 2.40.1
 >
+
+Regards,
+Anup
 
