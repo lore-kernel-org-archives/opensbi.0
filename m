@@ -1,38 +1,78 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Sat, 18 Nov 2023 18:01:18 +0530
-Subject: [PATCH v2] lib: utils/fdt: Allow to use reg-names when parsing ACLINT
-In-Reply-To: <IA1PR20MB4953E854596EE7512087A2D6BBB6A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49532E6C3653C0F3EC3EFCDEBBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
- <IA1PR20MB4953E854596EE7512087A2D6BBB6A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAK9=C2V54JtE6BARadugA=CzcFkR6B8fpEvFgzh5qwNYc0XsXA@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 20 Nov 2023 17:52:43 +0800
+Subject: [PATCH 2/2] lib: sbi: Make ipi send/clear and access ipi_type non-reentrant
+In-Reply-To: <20231120095301.105772-1-wxjstz@126.com>
+References: <20231120095301.105772-1-wxjstz@126.com>
+Message-ID: <20231120095301.105772-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 18, 2023 at 12:58?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->
-> Hi Anup,
->
-> Now It seems that kernel prefers to use T-HEAD aclint timer binding for
-> the ACLINT draft, so this patch may be heavily modified. As a result,
-> I suggest to temporarily hold this patch to make sure there is no need to
-> change.
->
-> This related kernel mail is on [1], feel free to give your advice. I will
-> inform you once everything is confirmed.
->
-> [1] https://lore.kernel.org/all/IA1PR20MB4953C82499C5D81D2C6A020BBBB6A at IA1PR20MB4953.namprd20.prod.outlook.com/
+Sending/receiving ipi messages and setting ipi_type should be
+non-reentrant. If reentrant, unexpected errors may occur.
 
-Yes, I was anyway going to wait a few weeks before merging this.
+Signed-off-by: Xiang W <wxjstz@126.com>
+Reported-by: Bo Gan <ganboing@gmail.com>
+---
+ lib/sbi/sbi_ipi.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Regards,
-Anup
+diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+index 30cb315..8e05d28 100644
+--- a/lib/sbi/sbi_ipi.c
++++ b/lib/sbi/sbi_ipi.c
+@@ -11,6 +11,7 @@
+ #include <sbi/riscv_asm.h>
+ #include <sbi/riscv_atomic.h>
+ #include <sbi/riscv_barrier.h>
++#include <sbi/riscv_locks.h>
+ #include <sbi/sbi_bitops.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi/sbi_error.h>
+@@ -25,6 +26,7 @@
+ 
+ struct sbi_ipi_data {
+ 	unsigned long ipi_type;
++	spinlock_t lock;
+ };
+ 
+ _Static_assert(
+@@ -66,9 +68,11 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
+ 	 * Set IPI type on remote hart's scratch area and
+ 	 * trigger the interrupt
+ 	 */
++	spin_lock(&ipi_data->lock);
+ 	atomic_raw_set_bit(event, &ipi_data->ipi_type);
+ 	smp_wmb();
+ 	sbi_ipi_raw_send(remote_hartindex);
++	spin_unlock(&ipi_data->lock);
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
+ 
+@@ -220,8 +224,12 @@ void sbi_ipi_process(void)
+ 	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
++
++	spin_lock(&ipi_data->lock);
+ 	sbi_ipi_raw_clear(hartindex);
+ 	ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
++	spin_unlock(&ipi_data->lock);
++
+ 	ipi_event = 0;
+ 	while (ipi_type) {
+ 		if (ipi_type & 1UL) {
+@@ -289,6 +297,7 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
+ 
+ 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
+ 	ipi_data->ipi_type = 0x00;
++	SPIN_LOCK_INIT(ipi_data->lock);
+ 
+ 	/*
+ 	 * Initialize platform IPI support. This will also clear any
+-- 
+2.42.0
 
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
