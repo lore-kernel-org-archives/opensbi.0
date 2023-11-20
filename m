@@ -1,7 +1,7 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 20 Nov 2023 23:17:02 +0530
+Date: Mon, 20 Nov 2023 23:19:15 +0530
 Subject: [PATCH] lib: sbi: Fix PMP granularity handling in sbi_hart_map_saddr()
-Message-ID: <20231120174702.812200-1-apatel@ventanamicro.com>
+Message-ID: <20231120174915.812345-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
