@@ -1,37 +1,29 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 21 Nov 2023 20:32:59 +0530
-Subject: [PATCH] lib: utils/irqchip: Avoid redundant writes to APLIC CLRIE register
-Message-ID: <20231121150259.902907-1-apatel@ventanamicro.com>
+Date: Tue, 21 Nov 2023 21:47:09 +0530
+Subject: [PATCH 0/2] Allow relaxed MMIO writes in device IPI callbacks
+Message-ID: <20231121161711.904674-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Each APLIC CLRIE register allows disabling 32 interrupt sources at
-a time by writing -1 so no need to write CLRIE register separately
-for each interrupt source.
+This series improves the barrier usage around device IPI callbacks
+such that platform IPI driver can now use relaxed MMIO writes in
+device IPI callbacks.
 
-Fixes: 99792653de29 ("lib: utils/irqchip: Add APLIC initialization
-library")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/utils/irqchip/aplic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+These patches can also be found in the sbi_ipi_barrier_imp_v1 branch
+at: https://github.com/avpatel/opensbi.git
 
-diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index d7fd992..10236e7 100644
---- a/lib/utils/irqchip/aplic.c
-+++ b/lib/utils/irqchip/aplic.c
-@@ -193,7 +193,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 	writel(0, (void *)(aplic->addr + APLIC_DOMAINCFG));
- 
- 	/* Disable all interrupts */
--	for (i = 0; i <= aplic->num_source; i++)
-+	for (i = 0; i <= aplic->num_source; i += 32)
- 		writel(-1U, (void *)(aplic->addr + APLIC_CLRIE_BASE +
- 				     (i / 32) * sizeof(u32)));
- 
+Anup Patel (2):
+  lib: sbi: Allow relaxed MMIO writes in device ipi_send() callback
+  lib: sbi: Allow relaxed MMIO writes in device ipi_clear() callback
+
+ lib/sbi/sbi_ipi.c           | 31 +++++++++++++++++++++++++------
+ lib/utils/ipi/aclint_mswi.c |  4 ++--
+ lib/utils/irqchip/imsic.c   |  4 ++--
+ 3 files changed, 29 insertions(+), 10 deletions(-)
+
 -- 
 2.34.1
 
