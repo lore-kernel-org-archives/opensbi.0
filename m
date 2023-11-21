@@ -1,81 +1,90 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 21 Nov 2023 11:01:57 +0530
-Subject: Question about potential missed IPI events
-In-Reply-To: <9e7edfb2-626d-1232-1c6b-f02fb8fa5131@gmail.com>
-References: <35016005-5bf6-d80b-2a5f-6803afea729e@gmail.com>
- <CAK9=C2W4kTpJUiV99XPMMCtT15E3CTsHwzt7DjMjvpBrKC+TeQ@mail.gmail.com> <9e7edfb2-626d-1232-1c6b-f02fb8fa5131@gmail.com>
-Message-ID: <CAAhSdy3CdRxqwPMLzZN=Yj5GBHYVX8B=CSuSvn5-EJvKCuwLHw@mail.gmail.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Tue, 21 Nov 2023 15:44:14 +0800
+Subject: [PATCH v2 00/11] Add Andes PMU extension support
+In-Reply-To: <CAAhSdy3TRicu-kE=JUesndHwGXmHfCBvAMBcH=Sv8bdqXtOV5g@mail.gmail.com>
+References: <20231019113713.3508153-1-peterlin@andestech.com>
+ <CAAhSdy3TRicu-kE=JUesndHwGXmHfCBvAMBcH=Sv8bdqXtOV5g@mail.gmail.com>
+Message-ID: <ZVxfzg5qYfb53qvL@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 21, 2023 at 10:51?AM Bo Gan <ganboing@gmail.com> wrote:
->
-> On 11/20/23 8:34 PM, Anup Patel wrote:
-> >>
-> >> I doubt it mainly due to 2 reasons:
-> >>
-> >> 1. ipi_dev->ipi_clear is a writel(msip), which has __io_bw (fence w,o) I don't
-> >>      think it helps preventing the writel to happen before xchg. If that happens,
-> >>      it's possible that A missed C's write to ipi_type.
-> >>
-> >> 2. Suppose the ipi_clear() happened before xchg, from A's standpoint, it's a
-> >>      write, not a read. A wasn't reading from msip, but only writing to it. I'm
-> >>      not sure if A's write to msip after C's write (observed by clint) implies
-> >>      A's observing the same order. A is not reading from msip, so what helps to
-> >>      establish this order? Will the RVWMO global memory order help? Can we think
-> >>      of clint as another hart that follows RVWMO?
-> >
-> > The clint HW is supposed to handle writes coming from multiple
-> > harts so we can safely assume that multiple writes reaching to
-> > clint will be completed in the order in which clint observes them.
-> >
-> > Things can only break if hart A does xchg() out-of-order before
-> > writel() issued by ipi_clear() completes.
-> >
-> > This can be understood by an example which is as follows:
-> > 1) hart A orders xchg() before writel() issued by ipi_clear()
-> > 2) hart B is about to do set_bit() for hart A ipi_type but
-> >      hart A does xchg() before hart B does set_bit() so
-> >      hart A will not observe anything in ipi_type
-> > 3) hart B does set_bit() and ipi_send() before hart A does
-> >      writel() from ipi_clear()
-> >
-> > The above result is hart A totally missing IPI from hart B but
-> > this is only possible if hart A orders xchg() before writel() from
-> > ipi_clear(). This is a very very rare scenario not observed on
-> > any RISC-V implementations so far but to prevent this we
-> > need a matching smp_wmb() between ipi_clear() and xchg()
-> > in sbi_ipi_process().
-> >
->
-> Hi Anup,
->
-> Thank you so much for the detailed explanation. I totally get your point.
-> I just have one doubt about smp_wmb. In OpenSBI, smp_wmb is RISCV_FENCE(w,w).
-> If I understand correctly, it won't enforce MMIO order. Given your analysis,
-> I assume you meant wmb(), which is RISCV_FENCE(ow,ow). Am I right? Or do we
-> want more precise fences, such as:
->
->   RISCV_FENCE(w,o) between set_bit(ipi_type) and ipi_dev->ipi_send in Hart B
->   RISCV_FENCE(o,w) between ipi_dev->ipi_clear and xchg(ipi_type) in Hart A
->
-> Let me know your thoughts, and I can make a patch and send to mailing list.
+Hi Anup,
 
-The smp_wmb() is fine between set_bit(ipi_type) and ipi_dev->ipi_send
-but we should use wmb() between ipi_clear() and xchg() in sbi_ipi_process().
+On Thu, Nov 16, 2023 at 12:31:03PM +0530, Anup Patel wrote:
+> On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
+> <peterlin@andestech.com> wrote:
+> >
+> > This patch series enables perf tool to utilize Andes PMU
+> > extension via PMU SBI calls, provides PMU device callbacks
+> > to achieve event sampling and mode filtering.
+> >
+> > This version also introduces a platform override fdt_add_pmu_mappings()
+> > to create event mappings before PMU setup if a valid PMU node
+> > is missing.
+> >
+> > The last patch provides a PMU node example used on AX45MP cores.
+> >
+> > The OpenSBI and Linux patches can be found on Andes Technology GitHub
+> > - https://github.com/andestech/opensbi/commits/andes-pmu-support-v2
+> > - https://github.com/andestech/linux/commits/andes-pmu-support-v2
+> >
+> > Yu Chien Peter Lin (11):
+> >   sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+> >   sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
+> >   platform: include: andes45: Add PMU related CSR defines
+> >   platform: andes: Add Andes custom PMU support
+> >   platform: andes: Enable Andes PMU for AE350
+> >   platform: rzfive: Enable Andes PMU for RZ/Five
+> >   lib: utils: fdt_fixup: Add fdt_add_pmu_mappings() helper function
+> >   lib: utils: fdt_fixup: Allow preserving PMU properties
+> >   platform: andes: Factor out is_andes() helper
+> >   platform: andes: Implement andes_fdt_add_pmu_mappings platform
+> >     override
+> >   docs: pmu: Add Andes PMU node example
+> 
+> It would be great to have v3 sooner because next month we
+> have OpenSBI v1.4 release.
+> 
+> Regards,
+> Anup
 
->
-> Bo
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Thanks for the comments on the series, I will update accordingly
+and submit the next version soon.
 
-Regards,
-Anup
+Best regards,
+Peter Lin
+
+> >
+> >  docs/pmu_support.md                          |  82 ++++
+> >  include/sbi/sbi_ecall_interface.h            |   5 +
+> >  include/sbi/sbi_pmu.h                        |   6 +
+> >  include/sbi/sbi_scratch.h                    |   2 +
+> >  include/sbi_utils/fdt/fdt_fixup.h            |  48 +++
+> >  lib/sbi/sbi_pmu.c                            |  10 +-
+> >  lib/utils/fdt/fdt_fixup.c                    | 101 ++++-
+> >  lib/utils/fdt/fdt_pmu.c                      |   2 +-
+> >  platform/generic/Kconfig                     |   4 +
+> >  platform/generic/andes/Kconfig               |  11 +
+> >  platform/generic/andes/ae350.c               |  31 +-
+> >  platform/generic/andes/andes_hpm.c           | 381 +++++++++++++++++++
+> >  platform/generic/andes/andes_pmu.c           |  81 ++++
+> >  platform/generic/andes/objects.mk            |   2 +
+> >  platform/generic/include/andes/andes45.h     |  32 ++
+> >  platform/generic/include/andes/andes_hpm.h   |  83 ++++
+> >  platform/generic/include/andes/andes_pmu.h   |   8 +
+> >  platform/generic/include/platform_override.h |   1 +
+> >  platform/generic/platform.c                  |  16 +-
+> >  platform/generic/renesas/rzfive/rzfive.c     |  18 +-
+> >  20 files changed, 909 insertions(+), 15 deletions(-)
+> >  create mode 100644 platform/generic/andes/andes_hpm.c
+> >  create mode 100644 platform/generic/andes/andes_pmu.c
+> >  create mode 100644 platform/generic/include/andes/andes_hpm.h
+> >  create mode 100644 platform/generic/include/andes/andes_pmu.h
+> >
+> > --
+> > 2.34.1
+> >
 
