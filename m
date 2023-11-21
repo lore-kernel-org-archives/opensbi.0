@@ -1,130 +1,67 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 21 Nov 2023 10:04:01 +0530
+From: Bo Gan <ganboing@gmail.com>
+Date: Mon, 20 Nov 2023 21:21:34 -0800
 Subject: Question about potential missed IPI events
-In-Reply-To: <35016005-5bf6-d80b-2a5f-6803afea729e@gmail.com>
+In-Reply-To: <CAK9=C2W4kTpJUiV99XPMMCtT15E3CTsHwzt7DjMjvpBrKC+TeQ@mail.gmail.com>
 References: <35016005-5bf6-d80b-2a5f-6803afea729e@gmail.com>
-Message-ID: <CAK9=C2W4kTpJUiV99XPMMCtT15E3CTsHwzt7DjMjvpBrKC+TeQ@mail.gmail.com>
+ <CAK9=C2W4kTpJUiV99XPMMCtT15E3CTsHwzt7DjMjvpBrKC+TeQ@mail.gmail.com>
+Message-ID: <9e7edfb2-626d-1232-1c6b-f02fb8fa5131@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 11, 2023 at 11:36?AM Bo Gan <ganboing@gmail.com> wrote:
->
-> Hi OpenSBI community,
->
-> Current IPI send/recv implementation uses ipi_data->ipi_type to indicate
-> an IPI event pending. In sbi_ipi_send, I see have the following:
->
-> > /*
-> >  * Set IPI type on remote hart's scratch area and
-> >  * trigger the interrupt
-> >  */
-> > atomic_raw_set_bit(event, &ipi_data->ipi_type);
-> > smp_wmb();
-> >
-> > if (ipi_dev && ipi_dev->ipi_send)
-> >       ipi_dev->ipi_send(remote_hartindex)
->
-> And in sbi_ipi_process, the following:
->
-> > if (ipi_dev && ipi_dev->ipi_clear)
-> >       ipi_dev->ipi_clear(hartindex);
-> >
-> > ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
-> > ipi_event = 0;
-> > while (ipi_type) {
->
-> I'm think of if there's any possibility of missed IPIs. Assuming we are
-> talking about sifive/clint (aclint_mswi.c), I know it means that there're
-> both smp_wmb (fence w,w) and __io_bw (fence w,o) between atomic_raw_set_bit
-> and the write to remote hart's msip register in clint. Consider the following
->
-> Right before Hart A ipi_dev->ipi_clear() for the msip write-1 issued by hart B,
+On 11/20/23 8:34 PM, Anup Patel wrote:
+>>
+>> I doubt it mainly due to 2 reasons:
+>>
+>> 1. ipi_dev->ipi_clear is a writel(msip), which has __io_bw (fence w,o) I don't
+>>      think it helps preventing the writel to happen before xchg. If that happens,
+>>      it's possible that A missed C's write to ipi_type.
+>>
+>> 2. Suppose the ipi_clear() happened before xchg, from A's standpoint, it's a
+>>      write, not a read. A wasn't reading from msip, but only writing to it. I'm
+>>      not sure if A's write to msip after C's write (observed by clint) implies
+>>      A's observing the same order. A is not reading from msip, so what helps to
+>>      establish this order? Will the RVWMO global memory order help? Can we think
+>>      of clint as another hart that follows RVWMO?
+> 
+> The clint HW is supposed to handle writes coming from multiple
+> harts so we can safely assume that multiple writes reaching to
+> clint will be completed in the order in which clint observes them.
+> 
+> Things can only break if hart A does xchg() out-of-order before
+> writel() issued by ipi_clear() completes.
+> 
+> This can be understood by an example which is as follows:
+> 1) hart A orders xchg() before writel() issued by ipi_clear()
+> 2) hart B is about to do set_bit() for hart A ipi_type but
+>      hart A does xchg() before hart B does set_bit() so
+>      hart A will not observe anything in ipi_type
+> 3) hart B does set_bit() and ipi_send() before hart A does
+>      writel() from ipi_clear()
+> 
+> The above result is hart A totally missing IPI from hart B but
+> this is only possible if hart A orders xchg() before writel() from
+> ipi_clear(). This is a very very rare scenario not observed on
+> any RISC-V implementations so far but to prevent this we
+> need a matching smp_wmb() between ipi_clear() and xchg()
+> in sbi_ipi_process().
+> 
 
-This means hart A is already in sbi_ipi_process() and has not yet read
-its own ipi_type using atomic_raw_xchg_ulong().
+Hi Anup,
 
-This also means hart B has issued smp_wmb() which is before ipi_send()
-hence the changes in hart A ipi_type done by hart B must be visible to
-hart A.
+Thank you so much for the detailed explanation. I totally get your point.
+I just have one doubt about smp_wmb. In OpenSBI, smp_wmb is RISCV_FENCE(w,w).
+If I understand correctly, it won't enforce MMIO order. Given your analysis,
+I assume you meant wmb(), which is RISCV_FENCE(ow,ow). Am I right? Or do we
+want more precise fences, such as:
 
-> Hart C did an ipi_dev->ipi_send to hart A. Hart A then cleared the msip bit,
+  RISCV_FENCE(w,o) between set_bit(ipi_type) and ipi_dev->ipi_send in Hart B
+  RISCV_FENCE(o,w) between ipi_dev->ipi_clear and xchg(ipi_type) in Hart A
 
-This also means hart C has issued smp_wmb() which is before ipi_send()
-hence the changes in hart A ipi_type done by hart C must be visible to
-hart A.
+Let me know your thoughts, and I can make a patch and send to mailing list.
 
-> resulting in both IPI (from B and C) coalesced to a single one. In this case,
+Bo
 
-This is perfectly fine.
-
-We can have N harts (N > 1) do ipi_send() to hart A just before hart A
-does ipi_clear(). The fact that hart A is about to do ipi_clear() it means
-hart A is already in sbi_ipi_process() and it is going to atomically
-read-n-clear its own ipi_type immediately after ipi_clear() so hart A
-will not miss IPI from any of the N harts.
-
-> A will observe the ipi_type set by B, due to the smp_wmb + __io_bw, and the IPI
-> was indeed generated by B's write to msip. However will the barrier ensure A
-> also observe the write to ipi_type from hart C? For the coalescing to happen,
-
-This is an incorrect understanding of ipi_type. The ipi_type is
-in-fact a bitmask
-of different IPIs muxed over a single physical IPI. Further, we are using atomic
-operations to guarantee multiple harts can safely update ipi_type.
-
-> clint will observe C's write-1 before A's write-0, does it imply A'll observe
-> C's write to ipi_type from xchg?
-
-Yes, xchg() called by hart A will observe hart C's changes to ipi_type because
-we have smp_wmb() just before ipi_send().
-
->
-> I doubt it mainly due to 2 reasons:
->
-> 1. ipi_dev->ipi_clear is a writel(msip), which has __io_bw (fence w,o) I don't
->     think it helps preventing the writel to happen before xchg. If that happens,
->     it's possible that A missed C's write to ipi_type.
->
-> 2. Suppose the ipi_clear() happened before xchg, from A's standpoint, it's a
->     write, not a read. A wasn't reading from msip, but only writing to it. I'm
->     not sure if A's write to msip after C's write (observed by clint) implies
->     A's observing the same order. A is not reading from msip, so what helps to
->     establish this order? Will the RVWMO global memory order help? Can we think
->     of clint as another hart that follows RVWMO?
-
-The clint HW is supposed to handle writes coming from multiple
-harts so we can safely assume that multiple writes reaching to
-clint will be completed in the order in which clint observes them.
-
-Things can only break if hart A does xchg() out-of-order before
-writel() issued by ipi_clear() completes.
-
-This can be understood by an example which is as follows:
-1) hart A orders xchg() before writel() issued by ipi_clear()
-2) hart B is about to do set_bit() for hart A ipi_type but
-    hart A does xchg() before hart B does set_bit() so
-    hart A will not observe anything in ipi_type
-3) hart B does set_bit() and ipi_send() before hart A does
-    writel() from ipi_clear()
-
-The above result is hart A totally missing IPI from hart B but
-this is only possible if hart A orders xchg() before writel() from
-ipi_clear(). This is a very very rare scenario not observed on
-any RISC-V implementations so far but to prevent this we
-need a matching smp_wmb() between ipi_clear() and xchg()
-in sbi_ipi_process().
-
->
-> Bo
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-Regards,
-Anup
 
