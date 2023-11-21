@@ -1,90 +1,38 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Tue, 21 Nov 2023 15:44:14 +0800
-Subject: [PATCH v2 00/11] Add Andes PMU extension support
-In-Reply-To: <CAAhSdy3TRicu-kE=JUesndHwGXmHfCBvAMBcH=Sv8bdqXtOV5g@mail.gmail.com>
-References: <20231019113713.3508153-1-peterlin@andestech.com>
- <CAAhSdy3TRicu-kE=JUesndHwGXmHfCBvAMBcH=Sv8bdqXtOV5g@mail.gmail.com>
-Message-ID: <ZVxfzg5qYfb53qvL@APC323>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 21 Nov 2023 20:32:59 +0530
+Subject: [PATCH] lib: utils/irqchip: Avoid redundant writes to APLIC CLRIE register
+Message-ID: <20231121150259.902907-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+Each APLIC CLRIE register allows disabling 32 interrupt sources at
+a time by writing -1 so no need to write CLRIE register separately
+for each interrupt source.
 
-On Thu, Nov 16, 2023 at 12:31:03PM +0530, Anup Patel wrote:
-> On Thu, Oct 19, 2023 at 5:10?PM Yu Chien Peter Lin
-> <peterlin@andestech.com> wrote:
-> >
-> > This patch series enables perf tool to utilize Andes PMU
-> > extension via PMU SBI calls, provides PMU device callbacks
-> > to achieve event sampling and mode filtering.
-> >
-> > This version also introduces a platform override fdt_add_pmu_mappings()
-> > to create event mappings before PMU setup if a valid PMU node
-> > is missing.
-> >
-> > The last patch provides a PMU node example used on AX45MP cores.
-> >
-> > The OpenSBI and Linux patches can be found on Andes Technology GitHub
-> > - https://github.com/andestech/opensbi/commits/andes-pmu-support-v2
-> > - https://github.com/andestech/linux/commits/andes-pmu-support-v2
-> >
-> > Yu Chien Peter Lin (11):
-> >   sbi: sbi_pmu: Improve sbi_pmu_init() error handling
-> >   sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
-> >   platform: include: andes45: Add PMU related CSR defines
-> >   platform: andes: Add Andes custom PMU support
-> >   platform: andes: Enable Andes PMU for AE350
-> >   platform: rzfive: Enable Andes PMU for RZ/Five
-> >   lib: utils: fdt_fixup: Add fdt_add_pmu_mappings() helper function
-> >   lib: utils: fdt_fixup: Allow preserving PMU properties
-> >   platform: andes: Factor out is_andes() helper
-> >   platform: andes: Implement andes_fdt_add_pmu_mappings platform
-> >     override
-> >   docs: pmu: Add Andes PMU node example
-> 
-> It would be great to have v3 sooner because next month we
-> have OpenSBI v1.4 release.
-> 
-> Regards,
-> Anup
+Fixes: 99792653de29 ("lib: utils/irqchip: Add APLIC initialization
+library")
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ lib/utils/irqchip/aplic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the comments on the series, I will update accordingly
-and submit the next version soon.
+diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+index d7fd992..10236e7 100644
+--- a/lib/utils/irqchip/aplic.c
++++ b/lib/utils/irqchip/aplic.c
+@@ -193,7 +193,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ 	writel(0, (void *)(aplic->addr + APLIC_DOMAINCFG));
+ 
+ 	/* Disable all interrupts */
+-	for (i = 0; i <= aplic->num_source; i++)
++	for (i = 0; i <= aplic->num_source; i += 32)
+ 		writel(-1U, (void *)(aplic->addr + APLIC_CLRIE_BASE +
+ 				     (i / 32) * sizeof(u32)));
+ 
+-- 
+2.34.1
 
-Best regards,
-Peter Lin
-
-> >
-> >  docs/pmu_support.md                          |  82 ++++
-> >  include/sbi/sbi_ecall_interface.h            |   5 +
-> >  include/sbi/sbi_pmu.h                        |   6 +
-> >  include/sbi/sbi_scratch.h                    |   2 +
-> >  include/sbi_utils/fdt/fdt_fixup.h            |  48 +++
-> >  lib/sbi/sbi_pmu.c                            |  10 +-
-> >  lib/utils/fdt/fdt_fixup.c                    | 101 ++++-
-> >  lib/utils/fdt/fdt_pmu.c                      |   2 +-
-> >  platform/generic/Kconfig                     |   4 +
-> >  platform/generic/andes/Kconfig               |  11 +
-> >  platform/generic/andes/ae350.c               |  31 +-
-> >  platform/generic/andes/andes_hpm.c           | 381 +++++++++++++++++++
-> >  platform/generic/andes/andes_pmu.c           |  81 ++++
-> >  platform/generic/andes/objects.mk            |   2 +
-> >  platform/generic/include/andes/andes45.h     |  32 ++
-> >  platform/generic/include/andes/andes_hpm.h   |  83 ++++
-> >  platform/generic/include/andes/andes_pmu.h   |   8 +
-> >  platform/generic/include/platform_override.h |   1 +
-> >  platform/generic/platform.c                  |  16 +-
-> >  platform/generic/renesas/rzfive/rzfive.c     |  18 +-
-> >  20 files changed, 909 insertions(+), 15 deletions(-)
-> >  create mode 100644 platform/generic/andes/andes_hpm.c
-> >  create mode 100644 platform/generic/andes/andes_pmu.c
-> >  create mode 100644 platform/generic/include/andes/andes_hpm.h
-> >  create mode 100644 platform/generic/include/andes/andes_pmu.h
-> >
-> > --
-> > 2.34.1
-> >
 
