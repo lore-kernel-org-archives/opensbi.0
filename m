@@ -1,18 +1,20 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 22 Nov 2023 15:36:12 +0800
-Subject: [PATCH v3 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
+Date: Wed, 22 Nov 2023 15:36:13 +0800
+Subject: [PATCH v3 11/15] platform: andes: Factor out is_andes() helper
 In-Reply-To: <20231122073617.379441-1-peterlin@andestech.com>
 References: <20231122073617.379441-1-peterlin@andestech.com>
-Message-ID: <20231122073617.379441-11-peterlin@andestech.com>
+Message-ID: <20231122073617.379441-12-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a scratch option to control PMU fixup, so the next
-stage software can dump the PMU node including event
-mapping information for debugging purposes.
+We will need is_andes(45) in the following patch,
+so factor out the code that parses marchid to make
+it reusable for checking any Andes CPU variants.
+
+Also improves the comment in ae350_hart_start().
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
@@ -20,48 +22,65 @@ Reviewed-by: Anup Patel <anup@brainfault.org>
 Changes v1 -> v2:
   - New patch
 Changes v2 -> v3:
-  - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
   - Include Anup's RB tag
 ---
- include/sbi/sbi_scratch.h | 2 ++
- lib/utils/fdt/fdt_fixup.c | 6 +++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ platform/generic/andes/ae350.c           | 16 +++++++---------
+ platform/generic/include/andes/andes45.h |  6 ++++++
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index e6a33ba..0f67cde 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -151,6 +151,8 @@ enum sbi_scratch_options {
- 	SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
- 	/** Enable runtime debug prints */
- 	SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
-+	/** Preserve PMU node properties */
-+	SBI_SCRATCH_PRESERVE_PMU_NODE = (1 << 2),
- };
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index dc769b7..088ec07 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -24,16 +24,14 @@ static struct smu_data smu = { 0 };
+ extern void __ae350_enable_coherency_warmboot(void);
+ extern void __ae350_disable_coherency(void);
  
- /** Get pointer to sbi_scratch for current HART */
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index e213ded..cf20edf 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -387,6 +387,8 @@ int fdt_reserved_memory_fixup(void *fdt)
- 
- void fdt_fixups(void *fdt)
+-static __always_inline bool is_andes25(void)
+-{
+-	ulong marchid = csr_read(CSR_MARCHID);
+-	return !!(EXTRACT_FIELD(marchid, CSR_MARCHID_MICROID) == 0xa25);
+-}
+-
+ static int ae350_hart_start(u32 hartid, ulong saddr)
  {
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
- 	fdt_aplic_fixup(fdt);
+-	/* Don't send wakeup command at boot-time */
+-	if (!sbi_init_count(hartid) || (is_andes25() && hartid == 0))
++	/*
++	 * Don't send wakeup command when:
++	 * 1) boot-time
++	 * 2) the target hart is non-sleepable 25-series hart0
++	 */
++	if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
+ 		return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
  
- 	fdt_imsic_fixup(fdt);
-@@ -394,5 +396,7 @@ void fdt_fixups(void *fdt)
- 	fdt_plic_fixup(fdt);
+ 	/* Write wakeup command to the sleep hart */
+@@ -52,7 +50,7 @@ static int ae350_hart_stop(void)
+ 	 * L2-cache, instead of turning it off, it should fall
+ 	 * through and jump to warmboot_addr.
+ 	 */
+-	if (is_andes25() && hartid == 0)
++	if (is_andes(25) && hartid == 0)
+ 		return SBI_ENOTSUPP;
  
- 	fdt_reserved_memory_fixup(fdt);
--	fdt_pmu_fixup(fdt);
+ 	if (!smu_support_sleep_mode(&smu, DEEPSLEEP_MODE, hartid))
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index ce31617..01f63d4 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -43,6 +43,12 @@
+ 
+ #ifndef __ASSEMBLER__
+ 
++#define is_andes(series)				\
++({							\
++	char value = csr_read(CSR_MARCHID) & 0xff;	\
++	(series) == (value >> 4) * 10 + (value & 0x0f);	\
++})
 +
-+	if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_NODE))
-+		fdt_pmu_fixup(fdt);
- }
+ #define has_andes_pmu()					\
+ ({							\
+ 	(((csr_read(CSR_MMSC_CFG) &			\
 -- 
 2.34.1
 
