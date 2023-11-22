@@ -1,125 +1,111 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 22 Nov 2023 15:36:17 +0800
-Subject: [PATCH v3 15/15] docs: pmu: Add Andes PMU node example
-In-Reply-To: <20231122073617.379441-1-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com>
-Message-ID: <20231122073617.379441-16-peterlin@andestech.com>
+From: Guo Ren <guoren@kernel.org>
+Date: Wed, 22 Nov 2023 16:46:51 +0800
+Subject: [PATCH] platform: recalculate heap size to support new tlb entry number
+In-Reply-To: <IA1PR20MB4953BC55F07EE072FE9E4288BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953BC55F07EE072FE9E4288BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAJF2gTRuxfGu+VxCqsSEem9KU90vRs+R-QaATt8rKHdwZPj9gQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PMU node example for event index to counter index mapping
-and selector value translation of Andes' CPUs.
+On Fri, Nov 17, 2023 at 8:10?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+> Previous patch introduct a change that using hart count as the default
+> number of tlb entry in the fifo. This makes the default tlb fifo size
+> grow in square with the number of harts. So the default heap size is
+> not enough to allocate tlb fifo when the hart count is big.
+>
+> Use new formula for default heap size:
+> 0x40 * (__num_hart) ^ 2   -> handle the tlb fifo
+> 0x600 * (__num_hart)      -> remove previous static fifo allocation
+Yes, ^ 2 is not suitable for sg2042.
 
-Currently, there are 4 HPM counters that can be used to monitor
-all of the events for each hart.
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> Fixes: 52fd64b ("platform: Uses hart count as the default size of tlb info")
+> ---
+>  include/sbi/sbi_bitops.h   | 1 +
+>  include/sbi/sbi_heap.h     | 3 +++
+>  include/sbi/sbi_platform.h | 8 ++++++--
+>  lib/sbi/sbi_heap.c         | 2 --
+>  4 files changed, 10 insertions(+), 4 deletions(-)
+>
+> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+> index 48a2090..7d90334 100644
+> --- a/include/sbi/sbi_bitops.h
+> +++ b/include/sbi/sbi_bitops.h
+> @@ -26,6 +26,7 @@
+>  #define BIT_MASK(nr)           (1UL << ((nr) % BITS_PER_LONG))
+>  #define BIT_WORD(bit)          ((bit) / BITS_PER_LONG)
+>  #define BIT_WORD_OFFSET(bit)   ((bit) & (BITS_PER_LONG - 1))
+> +#define BIT_ALIGN(bit, align)  (((bit) + ((align) - 1)) & ~((align) - 1))
+>
+>  #define GENMASK(h, l) \
+>         (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+> diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
+> index 88d176e..16755ec 100644
+> --- a/include/sbi/sbi_heap.h
+> +++ b/include/sbi/sbi_heap.h
+> @@ -12,6 +12,9 @@
+>
+>  #include <sbi/sbi_types.h>
+>
+> +/* Alignment of heap base address and size */
+> +#define HEAP_BASE_ALIGN                        1024
+> +
+>  struct sbi_scratch;
+>
+>  /** Allocate from heap area */
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index 58b9069..609f608 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -44,8 +44,10 @@
+>
+>  #ifndef __ASSEMBLER__
+>
+> +#include <sbi/sbi_bitops.h>
+>  #include <sbi/sbi_ecall_interface.h>
+>  #include <sbi/sbi_error.h>
+> +#include <sbi/sbi_heap.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_version.h>
+>
+> @@ -146,8 +148,10 @@ struct sbi_platform_operations {
+>  #define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE   8192
+>
+>  /** Platform default heap size */
+> -#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
+> -                                       (0x8000 + 0x800 * (__num_hart))
+> +#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)             \
+> +       BIT_ALIGN((0x8000 + 0x600 * (__num_hart) +              \
+> +                  0x40 * (__num_hart) * (__num_hart)),         \
+> +                 HEAP_BASE_ALIGN)
+>
+>  /** Representation of a platform */
+>  struct sbi_platform {
+> diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
+> index 698c377..bcd404b 100644
+> --- a/lib/sbi/sbi_heap.c
+> +++ b/lib/sbi/sbi_heap.c
+> @@ -14,8 +14,6 @@
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_string.h>
+>
+> -/* Alignment of heap base address and size */
+> -#define HEAP_BASE_ALIGN                        1024
+>  /* Minimum size and alignment of heap allocations */
+>  #define HEAP_ALLOC_ALIGN               64
+>  #define HEAP_HOUSEKEEPING_FACTOR       16
+> --
+> 2.42.1
+>
+Maybe the number of 0x600 needs more discussion. Other:
+Reviewed-by: Guo Ren <guoren@kernel.org>
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
-Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
-Changes v1 -> v2:
-  - sync up with datasheet
-Changes v2 -> v3:
-  - Include Anup's RB tag
----
- docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
-
-diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-index 8cfa08c..9b48f1e 100644
---- a/docs/pmu_support.md
-+++ b/docs/pmu_support.md
-@@ -125,3 +125,85 @@ pmu {
- 					  <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
- };
- ```
-+
-+### Example 3
-+
-+```
-+/*
-+ * For Andes 45-series platforms. The encodings can be found in the
-+ * "Machine Performance Monitoring Event Selector" section
-+ * http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
-+ */
-+pmu {
-+	compatible 			= "riscv,pmu";
-+	riscv,event-to-mhpmevent =
-+					 <0x1 0x0000 0x10>, /* CPU_CYCLES          -> Cycle count */
-+					 <0x2 0x0000 0x20>, /* INSTRUCTIONS        -> Retired instruction count */
-+					 <0x3 0x0000 0x41>, /* CACHE_REFERENCES    -> D-Cache access */
-+					 <0x4 0x0000 0x51>, /* CACHE_MISSES        -> D-Cache miss */
-+					 <0x5 0x0000 0x80>, /* BRANCH_INSTRUCTIONS -> Conditional branch instruction count */
-+					 <0x6 0x0000 0x02>, /* BRANCH_MISSES       -> Misprediction of conditional branches */
-+					 <0x10000 0x0000 0x61>,  /* L1D_READ_ACCESS  -> D-Cache load access */
-+					 <0x10001 0x0000 0x71>,  /* L1D_READ_MISS    -> D-Cache load miss */
-+					 <0x10002 0x0000 0x81>,  /* L1D_WRITE_ACCESS -> D-Cache store access */
-+					 <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
-+					 <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
-+					 <0x10009 0x0000 0x31>;  /* L1I_READ_MISS    -> I-Cache miss */
-+	riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
-+							<0x10000 0x10003 0x78>,
-+							<0x10008 0x10009 0x78>;
-+	riscv,raw-event-to-mhpmcounters =
-+						<0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
-+						<0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
-+						<0x0 0x30 0xffffffff 0xffffffff 0x78>, /* Integer load instruction count */
-+						<0x0 0x40 0xffffffff 0xffffffff 0x78>, /* Integer store instruction count */
-+						<0x0 0x50 0xffffffff 0xffffffff 0x78>, /* Atomic instruction count */
-+						<0x0 0x60 0xffffffff 0xffffffff 0x78>, /* System instruction count */
-+						<0x0 0x70 0xffffffff 0xffffffff 0x78>, /* Integer computational instruction count */
-+						<0x0 0x80 0xffffffff 0xffffffff 0x78>, /* Conditional branch instruction count */
-+						<0x0 0x90 0xffffffff 0xffffffff 0x78>, /* Taken conditional branch instruction count */
-+						<0x0 0xA0 0xffffffff 0xffffffff 0x78>, /* JAL instruction count */
-+						<0x0 0xB0 0xffffffff 0xffffffff 0x78>, /* JALR instruction count */
-+						<0x0 0xC0 0xffffffff 0xffffffff 0x78>, /* Return instruction count */
-+						<0x0 0xD0 0xffffffff 0xffffffff 0x78>, /* Control transfer instruction count */
-+						<0x0 0xE0 0xffffffff 0xffffffff 0x78>, /* EXEC.IT instruction count */
-+						<0x0 0xF0 0xffffffff 0xffffffff 0x78>, /* Integer multiplication instruction count */
-+						<0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
-+						<0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
-+						<0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
-+						<0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
-+						<0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
-+						<0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
-+						<0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
-+						<0x0 0x170 0xffffffff 0xffffffff 0x78>, /* Other floating-point instruction count */
-+						<0x0 0x180 0xffffffff 0xffffffff 0x78>, /* Integer multiplication and add/sub instruction count */
-+						<0x0 0x190 0xffffffff 0xffffffff 0x78>, /* Retired operation count */
-+						<0x0 0x01 0xffffffff 0xffffffff 0x78>, /* ILM access */
-+						<0x0 0x11 0xffffffff 0xffffffff 0x78>, /* DLM access */
-+						<0x0 0x21 0xffffffff 0xffffffff 0x78>, /* I-Cache access */
-+						<0x0 0x31 0xffffffff 0xffffffff 0x78>, /* I-Cache miss */
-+						<0x0 0x41 0xffffffff 0xffffffff 0x78>, /* D-Cache access */
-+						<0x0 0x51 0xffffffff 0xffffffff 0x78>, /* D-Cache miss */
-+						<0x0 0x61 0xffffffff 0xffffffff 0x78>, /* D-Cache load access */
-+						<0x0 0x71 0xffffffff 0xffffffff 0x78>, /* D-Cache load miss */
-+						<0x0 0x81 0xffffffff 0xffffffff 0x78>, /* D-Cache store access */
-+						<0x0 0x91 0xffffffff 0xffffffff 0x78>, /* D-Cache store miss */
-+						<0x0 0xA1 0xffffffff 0xffffffff 0x78>, /* D-Cache writeback */
-+						<0x0 0xB1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for I-Cache fill data */
-+						<0x0 0xC1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for D-Cache fill data */
-+						<0x0 0xD1 0xffffffff 0xffffffff 0x78>, /* Uncached fetch data access from bus */
-+						<0x0 0xE1 0xffffffff 0xffffffff 0x78>, /* Uncached load data access from bus */
-+						<0x0 0xF1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached fetch data from bus */
-+						<0x0 0x101 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached load data from bus */
-+						<0x0 0x111 0xffffffff 0xffffffff 0x78>, /* Main ITLB access */
-+						<0x0 0x121 0xffffffff 0xffffffff 0x78>, /* Main ITLB miss */
-+						<0x0 0x131 0xffffffff 0xffffffff 0x78>, /* Main DTLB access */
-+						<0x0 0x141 0xffffffff 0xffffffff 0x78>, /* Main DTLB miss */
-+						<0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
-+						<0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
-+						<0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
-+						<0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
-+						<0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
-+						<0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
-+};
-+```
 -- 
-2.34.1
-
+Best Regards
+ Guo Ren
 
