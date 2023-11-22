@@ -1,21 +1,33 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Wed, 22 Nov 2023 15:41:28 -0800
-Subject: [PATCH v3 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
-In-Reply-To: <20231122073617.379441-11-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-11-peterlin@andestech.com>
-Message-ID: <CAOnJCULG1pDE4ukBJqHuePAwzL8gqeWbB3RO6_nYJeCzjP4=Hw@mail.gmail.com>
+Date: Wed, 22 Nov 2023 15:47:43 -0800
+Subject: [PATCH v3 02/15] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+In-Reply-To: <20231122073617.379441-3-peterlin@andestech.com>
+References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-3-peterlin@andestech.com>
+Message-ID: <CAOnJCUJ14BFthoaBoroQYFDHZqnq60mLTfQ8A7AB9EXo4_yKBA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
+On Tue, Nov 21, 2023 at 11:39?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add a scratch option to control PMU fixup, so the next
-> stage software can dump the PMU node including event
-> mapping information for debugging purposes.
+> This patch makes the following changes:
+>
+> - As sbi_platform_pmu_init() returns a negative error code on
+>   failure, let sbi_pmu_init() to hang by propagating the error
+>   code.
+>
+
+Why ? PMU is not a critical resource for booting the system. A system
+can function without it.
+Do we really want to hang the system booting in case sbi_pmu_init fails ?
+
+> - In order to distinguish the SBI_EFAIL error returned by
+>   sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
+>   that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
+>   generic_pmu_init() ignores such case.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Reviewed-by: Anup Patel <anup@brainfault.org>
@@ -23,54 +35,73 @@ On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
 > Changes v1 -> v2:
 >   - New patch
 > Changes v2 -> v3:
->   - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
 >   - Include Anup's RB tag
 > ---
->  include/sbi/sbi_scratch.h | 2 ++
->  lib/utils/fdt/fdt_fixup.c | 6 +++++-
->  2 files changed, 7 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_pmu.c           | 5 ++++-
+>  lib/utils/fdt/fdt_pmu.c     | 2 +-
+>  platform/generic/platform.c | 8 +++++++-
+>  3 files changed, 12 insertions(+), 3 deletions(-)
 >
-> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> index e6a33ba..0f67cde 100644
-> --- a/include/sbi/sbi_scratch.h
-> +++ b/include/sbi/sbi_scratch.h
-> @@ -151,6 +151,8 @@ enum sbi_scratch_options {
->         SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
->         /** Enable runtime debug prints */
->         SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
-> +       /** Preserve PMU node properties */
-> +       SBI_SCRATCH_PRESERVE_PMU_NODE = (1 << 2),
->  };
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index f4c8fc4..3cbd4ff 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>         int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
+>         struct sbi_pmu_hart_state *phs;
+>         const struct sbi_platform *plat;
+> +       int rc;
 >
->  /** Get pointer to sbi_scratch for current HART */
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index e213ded..cf20edf 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -387,6 +387,8 @@ int fdt_reserved_memory_fixup(void *fdt)
+>         if (cold_boot) {
+>                 hw_event_map = sbi_calloc(sizeof(*hw_event_map),
+> @@ -972,7 +973,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
 >
->  void fdt_fixups(void *fdt)
+>                 plat = sbi_platform_ptr(scratch);
+>                 /* Initialize hw pmu events */
+> -               sbi_platform_pmu_init(plat);
+> +               rc = sbi_platform_pmu_init(plat);
+> +               if (rc)
+> +                       return rc;
+>
+>                 /* mcycle & minstret is available always */
+>                 if (!hpm_count)
+> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> index 83301bb..a8d7648 100644
+> --- a/lib/utils/fdt/fdt_pmu.c
+> +++ b/lib/utils/fdt/fdt_pmu.c
+> @@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
+>
+>         pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
+>         if (pmu_offset < 0)
+> -               return SBI_EFAIL;
+> +               return SBI_ENOENT;
+>
+>         event_ctr_map = fdt_getprop(fdt, pmu_offset,
+>                                     "riscv,event-to-mhpmcounters", &len);
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 85acecd..fa400b9 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
+>
+>  static int generic_pmu_init(void)
 >  {
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> -       return fdt_pmu_setup(fdt_get_address());
+> +       int rc;
 > +
->         fdt_aplic_fixup(fdt);
->
->         fdt_imsic_fixup(fdt);
-> @@ -394,5 +396,7 @@ void fdt_fixups(void *fdt)
->         fdt_plic_fixup(fdt);
->
->         fdt_reserved_memory_fixup(fdt);
-> -       fdt_pmu_fixup(fdt);
+> +       rc = fdt_pmu_setup(fdt_get_address());
+> +       if (rc && rc != SBI_ENOENT)
+> +               return rc;
 > +
-> +       if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_NODE))
-> +               fdt_pmu_fixup(fdt);
+> +       return 0;
 >  }
+>
+>  static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
 > --
 > 2.34.1
 >
 
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
 -- 
 Regards,
 Atish
