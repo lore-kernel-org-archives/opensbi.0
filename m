@@ -1,81 +1,53 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 22 Nov 2023 20:59:04 +0800
-Subject: [PATCH 0/2] Allow relaxed MMIO writes in device IPI callbacks
-In-Reply-To: <CAK9=C2XMVBJq4g7RxEZQ_k4DuT_v85qBm4UafaueoDFxzdRLyw@mail.gmail.com>
-References: <20231121161711.904674-1-apatel@ventanamicro.com>
-	 <b36f2dd2b4e99149394735b9d622d96ad062a4ea.camel@126.com>
-	 <CAK9=C2XMVBJq4g7RxEZQ_k4DuT_v85qBm4UafaueoDFxzdRLyw@mail.gmail.com>
-Message-ID: <81a431789d6ef8281e563a390c38a2ee68e3e0e3.camel@126.com>
+Date: Wed, 22 Nov 2023 21:03:22 +0800
+Subject: [PATCH 2/2] lib: sbi: Make ipi send/clear and access ipi_type
+ non-reentrant
+In-Reply-To: <06a9c1b4-43d9-4fea-3001-047d55ec3c75@gmail.com>
+References: <20231120095301.105772-1-wxjstz@126.com>
+	 <20231120095301.105772-2-wxjstz@126.com>
+	 <3f1751b2c8b0437e72543e2d25f8ef6ae40512fe.camel@126.com>
+	 <06a9c1b4-43d9-4fea-3001-047d55ec3c75@gmail.com>
+Message-ID: <132fa69f18f4d3f2cd2ddb8d6cb1e4f6e67db618.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2023-11-21???? 23:03 +0530?Anup Patel???
-> On Tue, Nov 21, 2023 at 10:18?PM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > ? 2023-11-21???? 21:47 +0530?Anup Patel???
-> > > This series improves the barrier usage around device IPI callbacks
-> > > such that platform IPI driver can now use relaxed MMIO writes in
-> > > device IPI callbacks.
-> > > 
-> > > These patches can also be found in the sbi_ipi_barrier_imp_v1 branch
-> > > at: https://github.com/avpatel/opensbi.git
-> > This patch is partly similar to this one?
-> > https://lists.infradead.org/pipermail/opensbi/2023-November/005931.html
-> > 
-> > Then we may also encounter the following case:
-> > 
-> > ??????????????? hart A???????????? hart B
-> > send ipi--------->|????????????????? |
-> > ????????????????? | clear ipi??????? |
-> > ????????????????? |????????????????? | set ipi_type
-> > ????????????????? |????????????????? |
-> > ????????????????? | xchg ipi_type??? |
-> > ????????????????? |????????????????? |
-> > ????????????????? |<-----------------| send ipi
-> > ????????????????? |????????????????? |
-> > ????????????????? |????????????????? |
+? 2023-11-21???? 16:56 -0800?Bo Gan???
+> > > @@ -220,8 +224,12 @@ void sbi_ipi_process(void)
+> > > ??	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+> > > ? 
+> > > ??	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
+> > > +
+> > > +	spin_lock(&ipi_data->lock);
+> > > ??	sbi_ipi_raw_clear(hartindex);
+> > > ??	ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
+> > > +	spin_unlock(&ipi_data->lock);
+> > > +
+> > > ??	ipi_event = 0;
+> > > ??	while (ipi_type) {
+> > > ??		if (ipi_type & 1UL) {
 > 
-> This case is handled.
+> Hi Xiang,
 > 
-> > 
-> > To deal with this case, my patch:
-> > https://lists.infradead.org/pipermail/opensbi/2023-November/005932.html
+> I think we should drop this, and use Anup's new patch instead. I don't
+> think the spinlock here is helping to ensure the ordering between
 > 
-> Using spinlock for IPI synchronization is very handed
-> and reduces performance.
+> sbi_ipi_raw_clear and xchg(). Furthermore, spinlock in OpenSBI doesn't
+> order IO, so ipi_raw_clear can leak below spin_unlock. Thus, it won't
+> address the race condition in previous discussions.
 > 
-> Functionally we have an IPI mux built on-top of one HW IPI
-> which is functionally similar to the Linux generic IPI-mux.
-
-New patch at
-https://lists.infradead.org/pipermail/opensbi/2023-November/005965.html
+> With Anip's new patch that uses wmb() in both sender and receiver, it
+> fixes the correctness issue, and hopefully has negligible performance
+> impact: See the discussion here:
+> 
+> http://lists.infradead.org/pipermail/opensbi/2023-November/005937.html
+> 
+> Bo
+This bug is not related to reorder. It's one more ipi interrupt is sent.
 
 Regards,
 Xiang W
 
-> 
-> Regards,
-> Anup
-> 
-> > 
-> > Regards,
-> > Xiang W
-> > > 
-> > > Anup Patel (2):
-> > > ? lib: sbi: Allow relaxed MMIO writes in device ipi_send() callback
-> > > ? lib: sbi: Allow relaxed MMIO writes in device ipi_clear() callback
-> > > 
-> > > ?lib/sbi/sbi_ipi.c?????????? | 31 +++++++++++++++++++++++++------
-> > > ?lib/utils/ipi/aclint_mswi.c |? 4 ++--
-> > > ?lib/utils/irqchip/imsic.c?? |? 4 ++--
-> > > ?3 files changed, 29 insertions(+), 10 deletions(-)
-> > > 
-> > > --
-> > > 2.34.1
-> > > 
-> > > 
-> > 
 
