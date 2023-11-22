@@ -1,37 +1,46 @@
 From: Bo Gan <ganboing@gmail.com>
-Date: Tue, 21 Nov 2023 16:44:59 -0800
-Subject: [PATCH 0/2] Allow relaxed MMIO writes in device IPI callbacks
-In-Reply-To: <20231121161711.904674-1-apatel@ventanamicro.com>
-References: <20231121161711.904674-1-apatel@ventanamicro.com>
-Message-ID: <ec81a8a5-f6e7-1301-d3ac-5bb3b09e4ab6@gmail.com>
+Date: Tue, 21 Nov 2023 16:56:05 -0800
+Subject: [PATCH 2/2] lib: sbi: Make ipi send/clear and access ipi_type
+ non-reentrant
+In-Reply-To: <3f1751b2c8b0437e72543e2d25f8ef6ae40512fe.camel@126.com>
+References: <20231120095301.105772-1-wxjstz@126.com>
+ <20231120095301.105772-2-wxjstz@126.com>
+ <3f1751b2c8b0437e72543e2d25f8ef6ae40512fe.camel@126.com>
+Message-ID: <06a9c1b4-43d9-4fea-3001-047d55ec3c75@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 11/21/23 8:17 AM, Anup Patel wrote:
-> This series improves the barrier usage around device IPI callbacks
-> such that platform IPI driver can now use relaxed MMIO writes in
-> device IPI callbacks.
-> 
-> These patches can also be found in the sbi_ipi_barrier_imp_v1 branch
-> at: https://github.com/avpatel/opensbi.git
-> 
-> Anup Patel (2):
->    lib: sbi: Allow relaxed MMIO writes in device ipi_send() callback
->    lib: sbi: Allow relaxed MMIO writes in device ipi_clear() callback
-> 
->   lib/sbi/sbi_ipi.c           | 31 +++++++++++++++++++++++++------
->   lib/utils/ipi/aclint_mswi.c |  4 ++--
->   lib/utils/irqchip/imsic.c   |  4 ++--
->   3 files changed, 29 insertions(+), 10 deletions(-)
-> 
-Hi Anup,
+>> @@ -220,8 +224,12 @@ void sbi_ipi_process(void)
+>>  ?	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+>>   
+>>  ?	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
+>> +
+>> +	spin_lock(&ipi_data->lock);
+>>  ?	sbi_ipi_raw_clear(hartindex);
+>>  ?	ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
+>> +	spin_unlock(&ipi_data->lock);
+>> +
+>>  ?	ipi_event = 0;
+>>  ?	while (ipi_type) {
+>>  ?		if (ipi_type & 1UL) {
 
-Thank you so much for fixing this. I hope my previous discussion helped.
-Would you mind having a Reported-by: Bo Gan <ganboing@gmail.com> ?
-Really appreciate you helping me understand the code.
+Hi Xiang,
+
+I think we should drop this, and use Anup's new patch instead. I don't
+think the spinlock here is helping to ensure the ordering between
+
+sbi_ipi_raw_clear and xchg(). Furthermore, spinlock in OpenSBI doesn't
+order IO, so ipi_raw_clear can leak below spin_unlock. Thus, it won't
+address the race condition in previous discussions.
+
+With Anip's new patch that uses wmb() in both sender and receiver, it
+fixes the correctness issue, and hopefully has negligible performance
+impact: See the discussion here:
+
+http://lists.infradead.org/pipermail/opensbi/2023-November/005937.html
 
 Bo
 
