@@ -1,63 +1,69 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 22 Nov 2023 20:54:38 +0800
+Date: Wed, 22 Nov 2023 20:57:13 +0800
 Subject: [PATCH] lib: sbi: Prevent redundant sbi_ipi_process
-Message-ID: <20231122125444.333876-1-wxjstz@126.com>
+In-Reply-To: <20231122125444.333876-1-wxjstz@126.com>
+References: <20231122125444.333876-1-wxjstz@126.com>
+Message-ID: <cad90ca66225ff5c548f9563771cadef3cf5e41e.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-sbi_ipi_process reads ipi_type through xchg. This may occur between
-set ipi_type and send_ipi, which will result in redundant interrupt
-processing.
+? 2023-11-22???? 20:54 +0800?Xiang W???
+> sbi_ipi_process reads ipi_type through xchg. This may occur between
+> set ipi_type and send_ipi, which will result in redundant interrupt
+> processing.
+> 
+> The specific case is as follows:
+> 
+> ??????????????? hart A???????????? hart B
+> send ipi--------->|????????????????? |
+> ????????????????? | clear ipi??????? |
+> ????????????????? |????????????????? | set ipi_type
+> ????????????????? |????????????????? |
+> ????????????????? | xchg ipi_type??? |
+> ????????????????? |????????????????? |
+> ????????????????? |<-----------------| send ipi
+> ????????????????? |????????????????? |
+> ????????????????? |????????????????? |
+> 
+> This patch fixes this issue.
 
-The specific case is as follows:
+This patch base on
+https://github.com/avpatel/opensbi/tree/sbi_ipi_barrier_imp_v1
 
-                hart A             hart B
-send ipi--------->|                  |
-                  | clear ipi        |
-                  |                  | set ipi_type
-                  |                  |
-                  | xchg ipi_type    |
-                  |                  |
-                  |<-----------------| send ipi
-                  |                  |
-                  |                  |
-
-This patch fixes this issue.
-
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_ipi.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 0bf446a..6f25a7e 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -39,7 +39,7 @@ static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
- static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
- 			u32 event, void *data)
- {
--	int ret;
-+	int ret = 0;
- 	struct sbi_scratch *remote_scratch = NULL;
- 	struct sbi_ipi_data *ipi_data;
- 	const struct sbi_ipi_event_ops *ipi_ops;
-@@ -66,9 +66,8 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
- 	 * Set IPI type on remote hart's scratch area and
- 	 * trigger the interrupt
- 	 */
--	atomic_raw_set_bit(event, &ipi_data->ipi_type);
--
--	ret = sbi_ipi_raw_send(remote_hartindex);
-+	if (__atomic_fetch_or(&ipi_data->ipi_type, BIT(event), __ATOMIC_ACQ_REL) == 0)
-+		ret = sbi_ipi_raw_send(remote_hartindex);
- 
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
- 
--- 
-2.42.0
-
+Regards,
+Xiang W
+> 
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> ---
+> ?lib/sbi/sbi_ipi.c | 7 +++----
+> ?1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 0bf446a..6f25a7e 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -39,7 +39,7 @@ static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
+> ?static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
+> ?			u32 event, void *data)
+> ?{
+> -	int ret;
+> +	int ret = 0;
+> ?	struct sbi_scratch *remote_scratch = NULL;
+> ?	struct sbi_ipi_data *ipi_data;
+> ?	const struct sbi_ipi_event_ops *ipi_ops;
+> @@ -66,9 +66,8 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
+> ?	 * Set IPI type on remote hart's scratch area and
+> ?	 * trigger the interrupt
+> ?	 */
+> -	atomic_raw_set_bit(event, &ipi_data->ipi_type);
+> -
+> -	ret = sbi_ipi_raw_send(remote_hartindex);
+> +	if (__atomic_fetch_or(&ipi_data->ipi_type, BIT(event), __ATOMIC_ACQ_REL) == 0)
+> +		ret = sbi_ipi_raw_send(remote_hartindex);
+> ?
+> ?	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
+> ?
 
