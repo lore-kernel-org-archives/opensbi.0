@@ -1,46 +1,80 @@
-From: Bo Gan <ganboing@gmail.com>
-Date: Tue, 21 Nov 2023 16:56:05 -0800
-Subject: [PATCH 2/2] lib: sbi: Make ipi send/clear and access ipi_type
- non-reentrant
-In-Reply-To: <3f1751b2c8b0437e72543e2d25f8ef6ae40512fe.camel@126.com>
-References: <20231120095301.105772-1-wxjstz@126.com>
- <20231120095301.105772-2-wxjstz@126.com>
- <3f1751b2c8b0437e72543e2d25f8ef6ae40512fe.camel@126.com>
-Message-ID: <06a9c1b4-43d9-4fea-3001-047d55ec3c75@gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 22 Nov 2023 15:36:02 +0800
+Subject: [PATCH v3 00/15] Add Andes PMU extension support
+Message-ID: <20231122073617.379441-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->> @@ -220,8 +224,12 @@ void sbi_ipi_process(void)
->>  ?	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
->>   
->>  ?	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
->> +
->> +	spin_lock(&ipi_data->lock);
->>  ?	sbi_ipi_raw_clear(hartindex);
->>  ?	ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
->> +	spin_unlock(&ipi_data->lock);
->> +
->>  ?	ipi_event = 0;
->>  ?	while (ipi_type) {
->>  ?		if (ipi_type & 1UL) {
+This patch series enables perf tool to utilize Andes PMU
+extension via PMU SBI calls, provides PMU device callbacks
+to achieve event sampling and mode filtering.
 
-Hi Xiang,
+This version mainly fixes single-core freeze when quitting
+'perf top', adds andes_pmu_setup() to provide default event
+mappings when fdt_pmu_setup() can't find PMU node. And add
+Xandespmu to hart extension list so that the inhibit bits
+can be updated in a similar way to how Smcntrpmf does.
 
-I think we should drop this, and use Anup's new patch instead. I don't
-think the spinlock here is helping to ensure the ordering between
+The last patch provides a PMU node example used on AX45MP cores.
 
-sbi_ipi_raw_clear and xchg(). Furthermore, spinlock in OpenSBI doesn't
-order IO, so ipi_raw_clear can leak below spin_unlock. Thus, it won't
-address the race condition in previous discussions.
+The OpenSBI and Linux patches can be found on Andes Technology GitHub
+- https://github.com/andestech/opensbi/commits/andes-pmu-support-v3
+- https://github.com/andestech/linux/commits/andes-pmu-support-v4
 
-With Anip's new patch that uses wmb() in both sender and receiver, it
-fixes the correctness issue, and hopefully has negligible performance
-impact: See the discussion here:
+Leo Yu-Chi Liang (1):
+  lib: ipi: Adjust Andes PLICSW to single-bit-per-hart scheme
 
-http://lists.infradead.org/pipermail/opensbi/2023-November/005937.html
+Yu Chien Peter Lin (14):
+  sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+  lib: sbi: Add Xandespmu in hart extensions
+  sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
+  platform: include: andes45: Add PMU related CSR defines
+  platform: generic: Introduce pmu_init() platform override
+  platform: andes: Add Andes custom PMU support
+  platform: andes: Enable Andes PMU for AE350
+  platform: rzfive: Enable Andes PMU for RZ/Five
+  lib: utils: fdt_fixup: Allow preserving PMU properties
+  platform: andes: Factor out is_andes() helper
+  lib: utils: fdt_pmu: Make the fdt_pmu_evt_select table global variable
+  lib: utils: fdt_pmu: Do not iterate over the fdt_pmu_evt_select table
+  platform: andes: Add Andes default PMU mapping support
+  docs: pmu: Add Andes PMU node example
 
-Bo
+ docs/pmu_support.md                          |  82 ++++
+ include/sbi/sbi_ecall_interface.h            |   5 +
+ include/sbi/sbi_hart.h                       |   2 +
+ include/sbi/sbi_pmu.h                        |   6 +
+ include/sbi/sbi_scratch.h                    |   2 +
+ include/sbi_utils/fdt/fdt_helper.h           |  17 +
+ include/sbi_utils/fdt/fdt_pmu.h              |   6 +
+ include/sbi_utils/ipi/andes_plicsw.h         |  23 +-
+ lib/sbi/sbi_hart.c                           |   3 +
+ lib/sbi/sbi_pmu.c                            |  25 +-
+ lib/utils/fdt/fdt_fixup.c                    |   6 +-
+ lib/utils/fdt/fdt_pmu.c                      |  17 +-
+ lib/utils/ipi/andes_plicsw.c                 | 104 ++---
+ platform/generic/Kconfig                     |   4 +
+ platform/generic/andes/Kconfig               |  15 +
+ platform/generic/andes/ae350.c               |  19 +-
+ platform/generic/andes/andes_hpm.c           | 405 +++++++++++++++++++
+ platform/generic/andes/andes_pmu.c           | 102 +++++
+ platform/generic/andes/objects.mk            |   2 +
+ platform/generic/include/andes/andes45.h     |  32 ++
+ platform/generic/include/andes/andes_hpm.h   |  81 ++++
+ platform/generic/include/andes/andes_pmu.h   |  33 ++
+ platform/generic/include/platform_override.h |   1 +
+ platform/generic/platform.c                  |  11 +-
+ platform/generic/renesas/rzfive/rzfive.c     |   5 +-
+ 25 files changed, 897 insertions(+), 111 deletions(-)
+ create mode 100644 platform/generic/andes/andes_hpm.c
+ create mode 100644 platform/generic/andes/andes_pmu.c
+ create mode 100644 platform/generic/include/andes/andes_hpm.h
+ create mode 100644 platform/generic/include/andes/andes_pmu.h
+
+-- 
+2.34.1
+
 
