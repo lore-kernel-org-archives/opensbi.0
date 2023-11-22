@@ -1,57 +1,99 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 22 Nov 2023 15:36:05 +0800
-Subject: [PATCH v3 03/15] lib: sbi: Add Xandespmu in hart extensions
+Date: Wed, 22 Nov 2023 15:36:06 +0800
+Subject: [PATCH v3 04/15] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
 In-Reply-To: <20231122073617.379441-1-peterlin@andestech.com>
 References: <20231122073617.379441-1-peterlin@andestech.com>
-Message-ID: <20231122073617.379441-4-peterlin@andestech.com>
+Message-ID: <20231122073617.379441-5-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When SBI PMU updates inhibit bits on mcyclecfg and
-minstretcfg, it will check if Smcntrpmf extension
-is supported, we need to check Xandespmu similarly
-in the pmu_fixed_ctr_update_inhibit_bits() so add
-the custom extension to hart extension list.
+Add support for custom PMU extensions to set inhibit bits
+on custom CSRs by introducing the PMU device callback
+hw_counter_filter_mode(). This allows the perf tool to
+restrict event counting under a specified privileged
+mode by appending a modifier, e.g. perf record -e event:k
+to count events only happening in kernel mode.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
+Changes v1 -> v2:
+  - No change
 Changes v2 -> v3:
-  - New patch
+  - Add pmu_dev->hw_counter_filter_mode() in pmu_fixed_ctr_update_inhibit_bits()
 ---
- include/sbi/sbi_hart.h | 2 ++
- lib/sbi/sbi_hart.c     | 3 +++
- 2 files changed, 5 insertions(+)
+ include/sbi/sbi_pmu.h |  6 ++++++
+ lib/sbi/sbi_pmu.c     | 20 ++++++++++++++------
+ 2 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 6ee49ff..811e5f5 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -45,6 +45,8 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_ZKR,
- 	/** Hart has Smcntrpmf extension */
- 	SBI_HART_EXT_SMCNTRPMF,
-+	/** Hart has Xandespmu extension */
-+	SBI_HART_EXT_XANDESPMU,
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index 16f6877..d63149c 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -89,6 +89,12 @@ struct sbi_pmu_device {
+ 	 * Custom function returning the machine-specific irq-bit.
+ 	 */
+ 	int (*hw_counter_irq_bit)(void);
++
++	/**
++	 * Custom function to inhibit counting of events while in
++	 * specified mode.
++	 */
++	void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
+ };
  
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 77eef49..d372af1 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -693,6 +693,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
- 	case SBI_HART_EXT_SMCNTRPMF:
- 		estr = "smcntrpmf";
- 		break;
-+	case SBI_HART_EXT_XANDESPMU:
-+		estr = "xandespmu";
-+		break;
- 	default:
- 		break;
+ /** Get the PMU platform device */
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 3cbd4ff..2f255de 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 		pmu_dev->hw_counter_disable_irq(ctr_idx);
+ 
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+-	pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
+ 
+ #if __riscv_xlen == 32
+ 	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
+@@ -620,7 +623,8 @@ static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
+ #if __riscv_xlen == 32
+ 	uint64_t cfgh_csr_no;
+ #endif
+-	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF) &&
++		!sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
+ 		return fixed_ctr;
+ 
+ 	switch (fixed_ctr) {
+@@ -641,13 +645,17 @@ static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
  	}
+ 
+ 	cfg_val |= MHPMEVENT_MINH;
+-	pmu_update_inhibit_flags(flags, &cfg_val);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF)) {
++		pmu_update_inhibit_flags(flags, &cfg_val);
+ #if __riscv_xlen == 32
+-	csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
+-	csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
++		csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
++		csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
+ #else
+-	csr_write_num(cfg_csr_no, cfg_val);
++		csr_write_num(cfg_csr_no, cfg_val);
+ #endif
++	}
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, fixed_ctr);
+ 	return fixed_ctr;
+ }
+ 
 -- 
 2.34.1
 
