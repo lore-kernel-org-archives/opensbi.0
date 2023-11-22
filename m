@@ -1,107 +1,77 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Wed, 22 Nov 2023 11:44:04 -0800
-Subject: [RFC PATCH] lib: sbi_hart: Store PMP granularity as log base 2
-Message-ID: <20231122194406.229255-1-samuel.holland@sifive.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Wed, 22 Nov 2023 15:41:28 -0800
+Subject: [PATCH v3 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
+In-Reply-To: <20231122073617.379441-11-peterlin@andestech.com>
+References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-11-peterlin@andestech.com>
+Message-ID: <CAOnJCULG1pDE4ukBJqHuePAwzL8gqeWbB3RO6_nYJeCzjP4=Hw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This minimizes the need to call log2roundup() to recover the log value.
+On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
+>
+> Add a scratch option to control PMU fixup, so the next
+> stage software can dump the PMU node including event
+> mapping information for debugging purposes.
+>
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
+> ---
+> Changes v1 -> v2:
+>   - New patch
+> Changes v2 -> v3:
+>   - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
+>   - Include Anup's RB tag
+> ---
+>  include/sbi/sbi_scratch.h | 2 ++
+>  lib/utils/fdt/fdt_fixup.c | 6 +++++-
+>  2 files changed, 7 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index e6a33ba..0f67cde 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -151,6 +151,8 @@ enum sbi_scratch_options {
+>         SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
+>         /** Enable runtime debug prints */
+>         SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
+> +       /** Preserve PMU node properties */
+> +       SBI_SCRATCH_PRESERVE_PMU_NODE = (1 << 2),
+>  };
+>
+>  /** Get pointer to sbi_scratch for current HART */
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index e213ded..cf20edf 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -387,6 +387,8 @@ int fdt_reserved_memory_fixup(void *fdt)
+>
+>  void fdt_fixups(void *fdt)
+>  {
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +
+>         fdt_aplic_fixup(fdt);
+>
+>         fdt_imsic_fixup(fdt);
+> @@ -394,5 +396,7 @@ void fdt_fixups(void *fdt)
+>         fdt_plic_fixup(fdt);
+>
+>         fdt_reserved_memory_fixup(fdt);
+> -       fdt_pmu_fixup(fdt);
+> +
+> +       if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_NODE))
+> +               fdt_pmu_fixup(fdt);
+>  }
+> --
+> 2.34.1
+>
 
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
----
-This actually ends up with a net increase in code size, so it's probably
-not worth merging. I'm sending the patch for completeness.
 
- include/sbi/sbi_hart.h |  4 ++--
- lib/sbi/sbi_hart.c     | 10 +++++-----
- lib/sbi/sbi_init.c     |  2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 6ee49ff..cbcac78 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -71,7 +71,7 @@ struct sbi_hart_features {
- 	unsigned long extensions[BITS_TO_LONGS(SBI_HART_EXT_MAX)];
- 	unsigned int pmp_count;
- 	unsigned int pmp_addr_bits;
--	unsigned long pmp_gran;
-+	unsigned int pmp_gran_log2;
- 	unsigned int mhpm_mask;
- 	unsigned int mhpm_bits;
- };
-@@ -91,7 +91,7 @@ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
- void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
- 			      const char *prefix, const char *suffix);
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
--unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
-+unsigned int sbi_hart_pmp_gran_log2(struct sbi_scratch *scratch);
- unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index bf8792a..5141160 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -267,12 +267,12 @@ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
- 	return hfeatures->pmp_count;
- }
- 
--unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch)
-+unsigned int sbi_hart_pmp_gran_log2(struct sbi_scratch *scratch)
- {
- 	struct sbi_hart_features *hfeatures =
- 			sbi_scratch_offset_ptr(scratch, hart_features_offset);
- 
--	return hfeatures->pmp_gran;
-+	return hfeatures->pmp_gran_log2;
- }
- 
- unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
-@@ -508,7 +508,7 @@ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
- 	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
- 		return SBI_ENOSPC;
- 
--	for (order = log2roundup(MAX(sbi_hart_pmp_granularity(scratch), size));
-+	for (order = MAX(sbi_hart_pmp_gran_log2(scratch), log2roundup(size));
- 	     order <= __riscv_xlen; order++) {
- 		if (order < __riscv_xlen) {
- 			base = addr & ~((1UL << order) - 1UL);
-@@ -547,7 +547,7 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 	if (!pmp_count)
- 		return 0;
- 
--	pmp_gran_log2 = log2roundup(sbi_hart_pmp_granularity(scratch));
-+	pmp_gran_log2 = sbi_hart_pmp_gran_log2(scratch);
- 	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
- 	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
- 
-@@ -871,7 +871,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 	 */
- 	val = hart_pmp_get_allowed_addr();
- 	if (val) {
--		hfeatures->pmp_gran =  1 << (sbi_ffs(val) + 2);
-+		hfeatures->pmp_gran_log2 = sbi_ffs(val) + 2;
- 		hfeatures->pmp_addr_bits = sbi_fls(val) + 1;
- 		/* Detect number of PMP regions. At least PMPADDR0 should be implemented*/
- 		__check_csr_64(CSR_PMPADDR0, 0, val, pmp_count, __pmp_skip);
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index e723553..bfb8300 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -177,7 +177,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_printf("Boot HART PMP Count       : %d\n",
- 		   sbi_hart_pmp_count(scratch));
- 	sbi_printf("Boot HART PMP Granularity : %lu\n",
--		   sbi_hart_pmp_granularity(scratch));
-+		   1UL << sbi_hart_pmp_gran_log2(scratch));
- 	sbi_printf("Boot HART PMP Address Bits: %d\n",
- 		   sbi_hart_pmp_addrbits(scratch));
- 	sbi_printf("Boot HART MHPM Info       : %lu (0x%08x)\n",
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
 -- 
-2.42.0
-
+Regards,
+Atish
 
