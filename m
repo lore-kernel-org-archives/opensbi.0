@@ -1,9 +1,9 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 23 Nov 2023 08:53:11 -0800
-Subject: [PATCH v3 05/15] platform: include: andes45: Add PMU related CSR defines
-In-Reply-To: <20231122073617.379441-6-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-6-peterlin@andestech.com>
-Message-ID: <CAOnJCUKQ0aDd9rO3rf2PBXmK9+9WqOsHyydji5a5hbutUmZGDg@mail.gmail.com>
+Date: Thu, 23 Nov 2023 08:55:37 -0800
+Subject: [PATCH v3 08/15] platform: andes: Enable Andes PMU for AE350
+In-Reply-To: <20231122073617.379441-9-peterlin@andestech.com>
+References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-9-peterlin@andestech.com>
+Message-ID: <CAOnJCUJdS8xENNc2Le3Xf3uqnRbHvA+vPbbQjq8ff+rxe1GY9w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,68 +13,60 @@ Content-Transfer-Encoding: 7bit
 On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> This patch adds CSR for Andes PMU extension.
+> Enable Andes PMU extension support for AE350 platforms.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
 > ---
 > Changes v1 -> v2:
->   - Rename andes_pmu() -> has_andes_pmu()
+>   - Implement ae350_extensions_init()
 > Changes v2 -> v3:
->   - Include Anup's RB tag
+>   - Use the andes_pmu_extensions_init() and andes_pmu_init() provided by andes_pmu.c
+>     We have no plan to introduce other extensions in near future so extensions_init()
+>     bind with andes_pmu_extensions_init() directly.
 > ---
->  platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
+>  platform/generic/Kconfig       | 1 +
+>  platform/generic/andes/ae350.c | 3 +++
+>  2 files changed, 4 insertions(+)
 >
-> diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-> index f570994..ce31617 100644
-> --- a/platform/generic/include/andes/andes45.h
-> +++ b/platform/generic/include/andes/andes45.h
-> @@ -12,6 +12,17 @@
->  #define CSR_MDCM_CFG           0xfc1
->  #define CSR_MMSC_CFG           0xfc2
+> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+> index a902cf3..89e5603 100644
+> --- a/platform/generic/Kconfig
+> +++ b/platform/generic/Kconfig
+> @@ -32,6 +32,7 @@ config PLATFORM_ALLWINNER_D1
+>  config PLATFORM_ANDES_AE350
+>         bool "Andes AE350 support"
+>         select SYS_ATCSMU
+> +       select ANDES_PMU
+>         default n
 >
-> +/* Machine Trap Related Registers */
-> +#define CSR_MSLIDELEG          0x7d5
-> +
-> +/* Counter Related Registers */
-> +#define CSR_MCOUNTERWEN                0x7ce
-> +#define CSR_MCOUNTERINTEN      0x7cf
-> +#define CSR_MCOUNTERMASK_M     0x7d1
-> +#define CSR_MCOUNTERMASK_S     0x7d2
-> +#define CSR_MCOUNTERMASK_U     0x7d3
-> +#define CSR_MCOUNTEROVF                0x7d4
-> +
->  #define MICM_CFG_ISZ_OFFSET            6
->  #define MICM_CFG_ISZ_MASK              (0x7  << MICM_CFG_ISZ_OFFSET)
+>  config PLATFORM_RENESAS_RZFIVE
+> diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+> index 80eca05..dc769b7 100644
+> --- a/platform/generic/andes/ae350.c
+> +++ b/platform/generic/andes/ae350.c
+> @@ -8,6 +8,7 @@
+>   */
 >
-> @@ -26,4 +37,19 @@
->  #define MCACHE_CTL_CCTL_SUEN_OFFSET    8
->  #define MCACHE_CTL_CCTL_SUEN_MASK      (0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
->
-> +/* Performance monitor */
-> +#define MMSC_CFG_PMNDS_MASK            (1 << 15)
-> +#define MIP_PMOVI                      (1 << 18)
-> +
-> +#ifndef __ASSEMBLER__
-> +
-> +#define has_andes_pmu()                                        \
-> +({                                                     \
-> +       (((csr_read(CSR_MMSC_CFG) &                     \
-> +          MMSC_CFG_PMNDS_MASK)                         \
-> +         && misa_extension('S')) ? true : false);      \
-> +})
-> +
-> +#endif /* __ASSEMBLER__ */
-> +
->  #endif /* _RISCV_ANDES45_H */
+>  #include <platform_override.h>
+> +#include <andes/andes_pmu.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>  #include <sbi_utils/fdt/fdt_fixup.h>
+>  #include <sbi_utils/sys/atcsmu.h>
+> @@ -118,4 +119,6 @@ static const struct fdt_match andes_ae350_match[] = {
+>  const struct platform_override andes_ae350 = {
+>         .match_table = andes_ae350_match,
+>         .final_init  = ae350_final_init,
+> +       .extensions_init = andes_pmu_extensions_init,
+> +       .pmu_init = andes_pmu_init,
+>  };
 > --
 > 2.34.1
 >
 
 
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
+
 -- 
 Regards,
 Atish
