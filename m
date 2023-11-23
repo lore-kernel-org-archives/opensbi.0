@@ -1,179 +1,125 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Wed, 22 Nov 2023 20:24:49 -0600
-Subject: [PATCH v3 07/15] platform: andes: Add Andes custom PMU support
-In-Reply-To: <20231122073617.379441-8-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com>
- <20231122073617.379441-8-peterlin@andestech.com>
-Message-ID: <70a378e1-484c-4b77-942a-169a99ad00b5@sifive.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Thu, 23 Nov 2023 19:28:02 +0800
+Subject: [PATCH] platform: recalculate heap size to support new tlb entry number
+In-Reply-To: <CAJF2gTRuxfGu+VxCqsSEem9KU90vRs+R-QaATt8rKHdwZPj9gQ@mail.gmail.com>
+References: <CAJF2gTRuxfGu+VxCqsSEem9KU90vRs+R-QaATt8rKHdwZPj9gQ@mail.gmail.com>
+Message-ID: <IA1PR20MB4953078FCFE4D0B5735867B5BBB9A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2023-11-22 1:36 AM, Yu Chien Peter Lin wrote:
-> Before the ratification of Sscofpmf, the Andes PMU extension
-> was designed to support the sampling and filtering with hardware
-> performance counters (zihpm), it works with the current SBI PMU
-> extension and Linux SBI PMU driver.
-> 
-> We implement 1) the PMU device callbacks that update the
-> corresponding bits on custom CSRs, 2) extentions_init() to detect
-> the hardware support of Andes PMU and initialize the per-hart
-> PMU related CSR, and 3) pmu_init() to register PMU device and
-> populate event mappings (only called by coldboot hart).
-> 
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-> ---
-> Changes v1 -> v2:
->   - Fix mode filtering in andes_hw_counter_filter_mode()
->   - Return early if pmu is not supported in andes_pmu_init() (suggested by Prabhakar)
->   - Don't grant write permissions via CSR_MCOUNTERWEN as not needed
-> Changes v2 -> v3:
->   - Drop Anup's RB tag as we add andes_pmu_extensions_init() to initialize per-hart
->     extension on scratch and move andes_pmu_init() to new added platform override pmu_init()
-> --- 
->  platform/generic/andes/Kconfig             |   8 ++
->  platform/generic/andes/andes_pmu.c         | 102 +++++++++++++++++++++
->  platform/generic/andes/objects.mk          |   1 +
->  platform/generic/include/andes/andes_pmu.h |  33 +++++++
->  4 files changed, 144 insertions(+)
->  create mode 100644 platform/generic/andes/andes_pmu.c
->  create mode 100644 platform/generic/include/andes/andes_pmu.h
-> 
-> diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
-> index a91fb9c..5b2ed91 100644
-> --- a/platform/generic/andes/Kconfig
-> +++ b/platform/generic/andes/Kconfig
-> @@ -7,3 +7,11 @@ config ANDES45_PMA
->  config ANDES_SBI
->  	bool "Andes SBI support"
->  	default n
-> +
-> +config ANDES_PMU
-> +	bool "Andes PMU extension (xandespmu) support"
-> +	default n
-> +	help
-> +	  Andes PMU extension supports the event counter overflow
-> +	  interrupt and mode filtering, similar to the standard
-> +	  Sscofpmf and Smcntrpmf.
-> diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
-> new file mode 100644
-> index 0000000..72003fd
-> --- /dev/null
-> +++ b/platform/generic/andes/andes_pmu.c
-> @@ -0,0 +1,102 @@
-> +// SPDX-License-Identifier: BSD-2-Clause
-> +/*
-> + * andes_pmu.c - Andes PMU device callbacks and platform overrides
-> + *
-> + * Copyright (C) 2023 Andes Technology Corporation
-> + */
-> +
-> +#include <andes/andes45.h>
-> +#include <andes/andes_hpm.h>
-> +#include <andes/andes_pmu.h>
-> +#include <sbi/sbi_bitops.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_pmu.h>
-> +
-> +static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
-> +{
-> +	unsigned long mip_val;
-> +
-> +	if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
-> +		return;
-> +
-> +	mip_val = csr_read(CSR_MIP);
-> +	if (!(mip_val & MIP_PMOVI))
-> +		csr_clear(CSR_MCOUNTEROVF, BIT(ctr_idx));
-> +
-> +	csr_set(CSR_MCOUNTERINTEN, BIT(ctr_idx));
-> +}
-> +
-> +static void andes_hw_counter_disable_irq(uint32_t ctr_idx)
-> +{
-> +	csr_clear(CSR_MCOUNTERINTEN, BIT(ctr_idx));
-> +}
-> +
-> +static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
-> +{
-> +	if (flags & SBI_PMU_CFG_FLAG_SET_UINH)
-> +		csr_set(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
-> +	else
-> +		csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
-> +
-> +	if (flags & SBI_PMU_CFG_FLAG_SET_SINH)
-> +		csr_set(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-> +	else
-> +		csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-> +}
-> +
-> +static struct sbi_pmu_device andes_pmu = {
-> +	.name = "andes_pmu",
-> +	.hw_counter_enable_irq  = andes_hw_counter_enable_irq,
-> +	.hw_counter_disable_irq = andes_hw_counter_disable_irq,
-> +	/*
-> +	 * We set delegation of supervisor local interrupts via
-> +	 * 18th bit on mslideleg instead of mideleg, so leave
-> +	 * hw_counter_irq_bit() callback unimplemented.
-> +	 */
-> +	.hw_counter_irq_bit     = NULL,
-> +	.hw_counter_filter_mode = andes_hw_counter_filter_mode
-> +};
-> +
-> +int andes_pmu_extensions_init(const struct fdt_match *match,
-> +			      struct sbi_hart_features *hfeatures)
-> +{
-> +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +
-> +	if (!has_andes_pmu())
-> +		return 0;
-> +
-> +	/*
-> +	 * Don't expect both Andes PMU and standard Sscofpmf/Smcntrpmf,
-> +	 * are supported as they serve the same purpose.
-> +	 */
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF) ||
-> +		sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))
-> +		return SBI_EINVAL;
 
-If Sscofpmf is supported, don't you want to successfully do nothing?
+>On Fri, Nov 17, 2023 at 8:10?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>>
+>> Previous patch introduct a change that using hart count as the default
+>> number of tlb entry in the fifo. This makes the default tlb fifo size
+>> grow in square with the number of harts. So the default heap size is
+>> not enough to allocate tlb fifo when the hart count is big.
+>>
+>> Use new formula for default heap size:
+>> 0x40 * (__num_hart) ^ 2   -> handle the tlb fifo
+>> 0x600 * (__num_hart)      -> remove previous static fifo allocation
+>Yes, ^ 2 is not suitable for sg2042.
+>
 
-> +	sbi_hart_update_extension(scratch, SBI_HART_EXT_XANDESPMU, true);
-> +
-> +	/* Inhibit all HPM counters in M-mode */
-> +	csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
-> +	/* Delegate counter overflow interrupt to S-mode */
-> +	csr_write(CSR_MSLIDELEG, MIP_PMOVI);
-> +
-> +	return 0;
-> +}
-> +
-> +int andes_pmu_init(const struct fdt_match *match)
-> +{
-> +	int rc;
-> +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
-> +		sbi_pmu_set_device(&andes_pmu);
-> +
-> +	rc = fdt_pmu_setup(fdt_get_address());
+Is there any reason of unsuitability for sg2042. I think this is tight
+lower bound: now we have a tlb fifo with __num_hart entries for each hart.
+So I think ^ 2 is a must, otherwise a OOM will issue.
 
-generic_pmu_init() already calls fdt_pmu_setup().
+>>
+>> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+>> Fixes: 52fd64b ("platform: Uses hart count as the default size of tlb info")
+>> ---
+>>  include/sbi/sbi_bitops.h   | 1 +
+>>  include/sbi/sbi_heap.h     | 3 +++
+>>  include/sbi/sbi_platform.h | 8 ++++++--
+>>  lib/sbi/sbi_heap.c         | 2 --
+>>  4 files changed, 10 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+>> index 48a2090..7d90334 100644
+>> --- a/include/sbi/sbi_bitops.h
+>> +++ b/include/sbi/sbi_bitops.h
+>> @@ -26,6 +26,7 @@
+>>  #define BIT_MASK(nr)           (1UL << ((nr) % BITS_PER_LONG))
+>>  #define BIT_WORD(bit)          ((bit) / BITS_PER_LONG)
+>>  #define BIT_WORD_OFFSET(bit)   ((bit) & (BITS_PER_LONG - 1))
+>> +#define BIT_ALIGN(bit, align)  (((bit) + ((align) - 1)) & ~((align) - 1))
+>>
+>>  #define GENMASK(h, l) \
+>>         (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+>> diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
+>> index 88d176e..16755ec 100644
+>> --- a/include/sbi/sbi_heap.h
+>> +++ b/include/sbi/sbi_heap.h
+>> @@ -12,6 +12,9 @@
+>>
+>>  #include <sbi/sbi_types.h>
+>>
+>> +/* Alignment of heap base address and size */
+>> +#define HEAP_BASE_ALIGN                        1024
+>> +
+>>  struct sbi_scratch;
+>>
+>>  /** Allocate from heap area */
+>> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+>> index 58b9069..609f608 100644
+>> --- a/include/sbi/sbi_platform.h
+>> +++ b/include/sbi/sbi_platform.h
+>> @@ -44,8 +44,10 @@
+>>
+>>  #ifndef __ASSEMBLER__
+>>
+>> +#include <sbi/sbi_bitops.h>
+>>  #include <sbi/sbi_ecall_interface.h>
+>>  #include <sbi/sbi_error.h>
+>> +#include <sbi/sbi_heap.h>
+>>  #include <sbi/sbi_scratch.h>
+>>  #include <sbi/sbi_version.h>
+>>
+>> @@ -146,8 +148,10 @@ struct sbi_platform_operations {
+>>  #define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE   8192
+>>
+>>  /** Platform default heap size */
+>> -#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
+>> -                                       (0x8000 + 0x800 * (__num_hart))
+>> +#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)             \
+>> +       BIT_ALIGN((0x8000 + 0x600 * (__num_hart) +              \
+>> +                  0x40 * (__num_hart) * (__num_hart)),         \
+>> +                 HEAP_BASE_ALIGN)
+>>
+>>  /** Representation of a platform */
+>>  struct sbi_platform {
+>> diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
+>> index 698c377..bcd404b 100644
+>> --- a/lib/sbi/sbi_heap.c
+>> +++ b/lib/sbi/sbi_heap.c
+>> @@ -14,8 +14,6 @@
+>>  #include <sbi/sbi_scratch.h>
+>>  #include <sbi/sbi_string.h>
+>>
+>> -/* Alignment of heap base address and size */
+>> -#define HEAP_BASE_ALIGN                        1024
+>>  /* Minimum size and alignment of heap allocations */
+>>  #define HEAP_ALLOC_ALIGN               64
+>>  #define HEAP_HOUSEKEEPING_FACTOR       16
+>> --
+>> 2.42.1
+>>
+>Maybe the number of 0x600 needs more discussion. Other:
 
-> +	/*
-> +	 * Populate default mappings if device-tree doesn't
-> +	 * provide a valid pmu node.
-> +	 */
-> +	if (rc == SBI_ENOENT)
-> +		return andes_pmu_setup();
+I agree with this. I have no idea about the original value "0x800", so
+I only remove the static allocation of previous tlb info for minimized
+heap allocation.
+Maybe there should be some comment to tell why it need this size.
 
-This function isn't added until patch 14, so this won't compile. Please make
-sure each patch compiles individually.
-
-Regards,
-Samuel
-
+>Reviewed-by: Guo Ren <guoren@kernel.org>
+>
+>--
+>Best Regards
+> Guo Ren
+>
+>
 
