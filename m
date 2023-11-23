@@ -1,125 +1,48 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Thu, 23 Nov 2023 19:28:02 +0800
-Subject: [PATCH] platform: recalculate heap size to support new tlb entry number
-In-Reply-To: <CAJF2gTRuxfGu+VxCqsSEem9KU90vRs+R-QaATt8rKHdwZPj9gQ@mail.gmail.com>
-References: <CAJF2gTRuxfGu+VxCqsSEem9KU90vRs+R-QaATt8rKHdwZPj9gQ@mail.gmail.com>
-Message-ID: <IA1PR20MB4953078FCFE4D0B5735867B5BBB9A@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Thu, 23 Nov 2023 08:34:20 -0800
+Subject: [PATCH] lib: utils/irqchip: Avoid redundant writes to APLIC CLRIE register
+In-Reply-To: <20231121150259.902907-1-apatel@ventanamicro.com>
+References: <20231121150259.902907-1-apatel@ventanamicro.com>
+Message-ID: <CAOnJCUJC5Rn=SsYAWq7feEw96a8dnncD0D9Mfw6NvFzmJR9Xpw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
->On Fri, Nov 17, 2023 at 8:10?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->>
->> Previous patch introduct a change that using hart count as the default
->> number of tlb entry in the fifo. This makes the default tlb fifo size
->> grow in square with the number of harts. So the default heap size is
->> not enough to allocate tlb fifo when the hart count is big.
->>
->> Use new formula for default heap size:
->> 0x40 * (__num_hart) ^ 2   -> handle the tlb fifo
->> 0x600 * (__num_hart)      -> remove previous static fifo allocation
->Yes, ^ 2 is not suitable for sg2042.
+On Tue, Nov 21, 2023 at 7:03?AM Anup Patel <apatel@ventanamicro.com> wrote:
+>
+> Each APLIC CLRIE register allows disabling 32 interrupt sources at
+> a time by writing -1 so no need to write CLRIE register separately
+> for each interrupt source.
+>
+> Fixes: 99792653de29 ("lib: utils/irqchip: Add APLIC initialization
+> library")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  lib/utils/irqchip/aplic.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+> index d7fd992..10236e7 100644
+> --- a/lib/utils/irqchip/aplic.c
+> +++ b/lib/utils/irqchip/aplic.c
+> @@ -193,7 +193,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+>         writel(0, (void *)(aplic->addr + APLIC_DOMAINCFG));
+>
+>         /* Disable all interrupts */
+> -       for (i = 0; i <= aplic->num_source; i++)
+> +       for (i = 0; i <= aplic->num_source; i += 32)
+>                 writel(-1U, (void *)(aplic->addr + APLIC_CLRIE_BASE +
+>                                      (i / 32) * sizeof(u32)));
+>
+> --
+> 2.34.1
 >
 
-Is there any reason of unsuitability for sg2042. I think this is tight
-lower bound: now we have a tlb fifo with __num_hart entries for each hart.
-So I think ^ 2 is a must, otherwise a OOM will issue.
 
->>
->> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
->> Fixes: 52fd64b ("platform: Uses hart count as the default size of tlb info")
->> ---
->>  include/sbi/sbi_bitops.h   | 1 +
->>  include/sbi/sbi_heap.h     | 3 +++
->>  include/sbi/sbi_platform.h | 8 ++++++--
->>  lib/sbi/sbi_heap.c         | 2 --
->>  4 files changed, 10 insertions(+), 4 deletions(-)
->>
->> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
->> index 48a2090..7d90334 100644
->> --- a/include/sbi/sbi_bitops.h
->> +++ b/include/sbi/sbi_bitops.h
->> @@ -26,6 +26,7 @@
->>  #define BIT_MASK(nr)           (1UL << ((nr) % BITS_PER_LONG))
->>  #define BIT_WORD(bit)          ((bit) / BITS_PER_LONG)
->>  #define BIT_WORD_OFFSET(bit)   ((bit) & (BITS_PER_LONG - 1))
->> +#define BIT_ALIGN(bit, align)  (((bit) + ((align) - 1)) & ~((align) - 1))
->>
->>  #define GENMASK(h, l) \
->>         (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
->> diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
->> index 88d176e..16755ec 100644
->> --- a/include/sbi/sbi_heap.h
->> +++ b/include/sbi/sbi_heap.h
->> @@ -12,6 +12,9 @@
->>
->>  #include <sbi/sbi_types.h>
->>
->> +/* Alignment of heap base address and size */
->> +#define HEAP_BASE_ALIGN                        1024
->> +
->>  struct sbi_scratch;
->>
->>  /** Allocate from heap area */
->> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
->> index 58b9069..609f608 100644
->> --- a/include/sbi/sbi_platform.h
->> +++ b/include/sbi/sbi_platform.h
->> @@ -44,8 +44,10 @@
->>
->>  #ifndef __ASSEMBLER__
->>
->> +#include <sbi/sbi_bitops.h>
->>  #include <sbi/sbi_ecall_interface.h>
->>  #include <sbi/sbi_error.h>
->> +#include <sbi/sbi_heap.h>
->>  #include <sbi/sbi_scratch.h>
->>  #include <sbi/sbi_version.h>
->>
->> @@ -146,8 +148,10 @@ struct sbi_platform_operations {
->>  #define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE   8192
->>
->>  /** Platform default heap size */
->> -#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
->> -                                       (0x8000 + 0x800 * (__num_hart))
->> +#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)             \
->> +       BIT_ALIGN((0x8000 + 0x600 * (__num_hart) +              \
->> +                  0x40 * (__num_hart) * (__num_hart)),         \
->> +                 HEAP_BASE_ALIGN)
->>
->>  /** Representation of a platform */
->>  struct sbi_platform {
->> diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
->> index 698c377..bcd404b 100644
->> --- a/lib/sbi/sbi_heap.c
->> +++ b/lib/sbi/sbi_heap.c
->> @@ -14,8 +14,6 @@
->>  #include <sbi/sbi_scratch.h>
->>  #include <sbi/sbi_string.h>
->>
->> -/* Alignment of heap base address and size */
->> -#define HEAP_BASE_ALIGN                        1024
->>  /* Minimum size and alignment of heap allocations */
->>  #define HEAP_ALLOC_ALIGN               64
->>  #define HEAP_HOUSEKEEPING_FACTOR       16
->> --
->> 2.42.1
->>
->Maybe the number of 0x600 needs more discussion. Other:
-
-I agree with this. I have no idea about the original value "0x800", so
-I only remove the static allocation of previous tlb info for minimized
-heap allocation.
-Maybe there should be some comment to tell why it need this size.
-
->Reviewed-by: Guo Ren <guoren@kernel.org>
->
->--
->Best Regards
-> Guo Ren
->
->
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
+-- 
+Regards,
+Atish
 
