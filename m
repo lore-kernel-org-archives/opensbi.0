@@ -1,32 +1,31 @@
 From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Fri, 24 Nov 2023 14:45:47 +0000
-Subject: [PATCH v3 03/15] lib: sbi: Add Xandespmu in hart extensions
-In-Reply-To: <20231122073617.379441-4-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-4-peterlin@andestech.com>
-Message-ID: <CA+V-a8sq-ocEJZXm62NtfqQEgXUSGE=gq+kATX1M3obiL9A8+A@mail.gmail.com>
+Date: Fri, 24 Nov 2023 14:47:47 +0000
+Subject: [PATCH v3 05/15] platform: include: andes45: Add PMU related CSR defines
+In-Reply-To: <20231122073617.379441-6-peterlin@andestech.com>
+References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-6-peterlin@andestech.com>
+Message-ID: <CA+V-a8tEJEy-+O=ksUFGOQV6sdKsSmNe3fDf5Jx8_8W2XCRO2g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 22, 2023 at 7:41?AM Yu Chien Peter Lin
+On Wed, Nov 22, 2023 at 7:40?AM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> When SBI PMU updates inhibit bits on mcyclecfg and
-> minstretcfg, it will check if Smcntrpmf extension
-> is supported, we need to check Xandespmu similarly
-> in the pmu_fixed_ctr_update_inhibit_bits() so add
-> the custom extension to hart extension list.
+> This patch adds CSR for Andes PMU extension.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 > ---
+> Changes v1 -> v2:
+>   - Rename andes_pmu() -> has_andes_pmu()
 > Changes v2 -> v3:
->   - New patch
+>   - Include Anup's RB tag
 > ---
->  include/sbi/sbi_hart.h | 2 ++
->  lib/sbi/sbi_hart.c     | 3 +++
->  2 files changed, 5 insertions(+)
+>  platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
 >
 Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 Tested-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
@@ -34,33 +33,48 @@ Tested-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 Cheers,
 Prabhakar
 
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 6ee49ff..811e5f5 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -45,6 +45,8 @@ enum sbi_hart_extensions {
->         SBI_HART_EXT_ZKR,
->         /** Hart has Smcntrpmf extension */
->         SBI_HART_EXT_SMCNTRPMF,
-> +       /** Hart has Xandespmu extension */
-> +       SBI_HART_EXT_XANDESPMU,
+> diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+> index f570994..ce31617 100644
+> --- a/platform/generic/include/andes/andes45.h
+> +++ b/platform/generic/include/andes/andes45.h
+> @@ -12,6 +12,17 @@
+>  #define CSR_MDCM_CFG           0xfc1
+>  #define CSR_MMSC_CFG           0xfc2
 >
->         /** Maximum index of Hart extension */
->         SBI_HART_EXT_MAX,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 77eef49..d372af1 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -693,6 +693,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
->         case SBI_HART_EXT_SMCNTRPMF:
->                 estr = "smcntrpmf";
->                 break;
-> +       case SBI_HART_EXT_XANDESPMU:
-> +               estr = "xandespmu";
-> +               break;
->         default:
->                 break;
->         }
+> +/* Machine Trap Related Registers */
+> +#define CSR_MSLIDELEG          0x7d5
+> +
+> +/* Counter Related Registers */
+> +#define CSR_MCOUNTERWEN                0x7ce
+> +#define CSR_MCOUNTERINTEN      0x7cf
+> +#define CSR_MCOUNTERMASK_M     0x7d1
+> +#define CSR_MCOUNTERMASK_S     0x7d2
+> +#define CSR_MCOUNTERMASK_U     0x7d3
+> +#define CSR_MCOUNTEROVF                0x7d4
+> +
+>  #define MICM_CFG_ISZ_OFFSET            6
+>  #define MICM_CFG_ISZ_MASK              (0x7  << MICM_CFG_ISZ_OFFSET)
+>
+> @@ -26,4 +37,19 @@
+>  #define MCACHE_CTL_CCTL_SUEN_OFFSET    8
+>  #define MCACHE_CTL_CCTL_SUEN_MASK      (0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
+>
+> +/* Performance monitor */
+> +#define MMSC_CFG_PMNDS_MASK            (1 << 15)
+> +#define MIP_PMOVI                      (1 << 18)
+> +
+> +#ifndef __ASSEMBLER__
+> +
+> +#define has_andes_pmu()                                        \
+> +({                                                     \
+> +       (((csr_read(CSR_MMSC_CFG) &                     \
+> +          MMSC_CFG_PMNDS_MASK)                         \
+> +         && misa_extension('S')) ? true : false);      \
+> +})
+> +
+> +#endif /* __ASSEMBLER__ */
+> +
+>  #endif /* _RISCV_ANDES45_H */
 > --
 > 2.34.1
 >
