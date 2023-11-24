@@ -1,84 +1,70 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Thu, 23 Nov 2023 08:56:19 -0800
-Subject: [PATCH v3 09/15] platform: rzfive: Enable Andes PMU for RZ/Five
-In-Reply-To: <20231122073617.379441-10-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-10-peterlin@andestech.com>
-Message-ID: <CAOnJCUJvFbqhvW=ro6SqN8VNf34+B_=yEsse-ONUHXqa4xz4OA@mail.gmail.com>
+From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+Date: Fri, 24 Nov 2023 12:55:33 +0800
+Subject: [PATCH v2 0/5] Add Svadu extension support
+In-Reply-To: <CAAhSdy2ALrnjXMUoA0AondR1-pEPyLCafsZX=N=d2gN7WL3nGQ@mail.gmail.com>
+References: <20231024101145.32000-1-yongxuan.wang@sifive.com> <CAAhSdy2ALrnjXMUoA0AondR1-pEPyLCafsZX=N=d2gN7WL3nGQ@mail.gmail.com>
+Message-ID: <CAMWQL2j42qmbT0EHsd35yaThJB9r_w8v-ZVuiH+YOs97u2-35w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
+On Wed, Nov 15, 2023 at 12:46?AM Anup Patel <anup@brainfault.org> wrote:
 >
-> Enable Andes PMU extension support for RZ/Five.
-> We also staticize renesas_rzfive_early_init() as
-> it is not used outside of this unit.
+> On Tue, Oct 24, 2023 at 3:42?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
+> >
+> > This series enables Svadu extension support by configuring the menvcfg
+> > CSR and, if available, displays the Svadu extension in the boot log.
+> >
+> > Additionally, we've made some programming improvements in
+> > lib/sbi/sbi_hart.c and lib/utils/fdt/fdt_helper.c.
+> >
+> > ---
+> > v2:
+> > - Rearrange the patches to do the code refactoring first before adding
+> >   new features
+> > - Suggested by Anup and Atish, detect extensions from DT instead of
+> >   menvcfg CSR
+> > - Enable access to some extensions through menvcfg CSR if they are
+> >   present in the device tree.
+> >
+> > Yong-Xuan Wang (5):
+> >   lib: sbi: Improve the code of privilege mode and extensions detection
+> >   lib: sbi: Refactor the code for enable extensions in menvfg CSR
+> >   lib: sbi: Using one array to define the name of extensions
+> >   lib: sbi: Detect extensions from the ISA string in DT
+> >   lib: sbi: Add support for Svadu extension
 >
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-> ---
-> Changes v1 -> v2:
->   - Implement renesas_rzfive_extensions_init()
->   - staticize renesas_rzfive_early_init()
-> Changes v2 -> v3:
->   - Use the andes_pmu_extensions_init() and andes_pmu_init() provided by andes_pmu.c
->     We have no plan to introduce other extensions in near future so extensions_init()
->     bind with andes_pmu_extensions_init() directly.
-> ---
->  platform/generic/Kconfig                 | 1 +
->  platform/generic/renesas/rzfive/rzfive.c | 5 ++++-
->  2 files changed, 5 insertions(+), 1 deletion(-)
+> For backward compatibility with existing OSes, it is better to have
+> supervisor OS explicitly enable Svadu using the upcoming SBI
+> FWFT extension instead of enabling it unconditionally whenever
+> Svadu extension is available.
 >
-> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-> index 89e5603..c9b6011 100644
-> --- a/platform/generic/Kconfig
-> +++ b/platform/generic/Kconfig
-> @@ -39,6 +39,7 @@ config PLATFORM_RENESAS_RZFIVE
->         bool "Renesas RZ/Five support"
->         select ANDES45_PMA
->         select ANDES_SBI
-> +       select ANDES_PMU
->         default n
->
->  config PLATFORM_SIFIVE_FU540
-> diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-> index a69797b..b5b5e65 100644
-> --- a/platform/generic/renesas/rzfive/rzfive.c
-> +++ b/platform/generic/renesas/rzfive/rzfive.c
-> @@ -5,6 +5,7 @@
->   */
->
->  #include <andes/andes45_pma.h>
-> +#include <andes/andes_pmu.h>
->  #include <andes/andes_sbi.h>
->  #include <platform_override.h>
->  #include <sbi/sbi_domain.h>
-> @@ -29,7 +30,7 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
->                                          array_size(renesas_rzfive_pma_regions));
->  }
->
-> -int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
-> +static int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
->  {
->         /*
->          * Renesas RZ/Five RISC-V SoC has Instruction local memory and
-> @@ -57,4 +58,6 @@ const struct platform_override renesas_rzfive = {
->         .early_init = renesas_rzfive_early_init,
->         .final_init = renesas_rzfive_final_init,
->         .vendor_ext_provider = andes_sbi_vendor_ext_provider,
-> +       .extensions_init = andes_pmu_extensions_init,
-> +       .pmu_init = andes_pmu_init,
->  };
-> --
-> 2.34.1
+> Regards,
+> Anup
 >
 
+Hi Anup,
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
--- 
+Thank you! I'll remove the enablement of Svadu extension in the next version.
+
 Regards,
-Atish
+Yong-Xuan
+
+> >
+> >  include/sbi/riscv_encoding.h |   6 +-
+> >  include/sbi/sbi_hart.h       |  15 +++
+> >  lib/sbi/sbi_hart.c           | 226 +++++++++++++----------------------
+> >  lib/utils/fdt/fdt_helper.c   |   5 +-
+> >  4 files changed, 104 insertions(+), 148 deletions(-)
+> >
+> > --
+> > 2.17.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
