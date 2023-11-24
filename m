@@ -1,70 +1,48 @@
-From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-Date: Fri, 24 Nov 2023 12:55:33 +0800
-Subject: [PATCH v2 0/5] Add Svadu extension support
-In-Reply-To: <CAAhSdy2ALrnjXMUoA0AondR1-pEPyLCafsZX=N=d2gN7WL3nGQ@mail.gmail.com>
-References: <20231024101145.32000-1-yongxuan.wang@sifive.com> <CAAhSdy2ALrnjXMUoA0AondR1-pEPyLCafsZX=N=d2gN7WL3nGQ@mail.gmail.com>
-Message-ID: <CAMWQL2j42qmbT0EHsd35yaThJB9r_w8v-ZVuiH+YOs97u2-35w@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 24 Nov 2023 12:49:56 +0530
+Subject: [PATCH] lib: utils/irqchip: Avoid redundant writes to APLIC CLRIE register
+In-Reply-To: <20231121150259.902907-1-apatel@ventanamicro.com>
+References: <20231121150259.902907-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy2BOKWRuPdjfiy-qS5qJAPpugSWm_gPLFoSKAngoacabg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 15, 2023 at 12:46?AM Anup Patel <anup@brainfault.org> wrote:
+On Tue, Nov 21, 2023 at 8:33?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> On Tue, Oct 24, 2023 at 3:42?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
-> >
-> > This series enables Svadu extension support by configuring the menvcfg
-> > CSR and, if available, displays the Svadu extension in the boot log.
-> >
-> > Additionally, we've made some programming improvements in
-> > lib/sbi/sbi_hart.c and lib/utils/fdt/fdt_helper.c.
-> >
-> > ---
-> > v2:
-> > - Rearrange the patches to do the code refactoring first before adding
-> >   new features
-> > - Suggested by Anup and Atish, detect extensions from DT instead of
-> >   menvcfg CSR
-> > - Enable access to some extensions through menvcfg CSR if they are
-> >   present in the device tree.
-> >
-> > Yong-Xuan Wang (5):
-> >   lib: sbi: Improve the code of privilege mode and extensions detection
-> >   lib: sbi: Refactor the code for enable extensions in menvfg CSR
-> >   lib: sbi: Using one array to define the name of extensions
-> >   lib: sbi: Detect extensions from the ISA string in DT
-> >   lib: sbi: Add support for Svadu extension
+> Each APLIC CLRIE register allows disabling 32 interrupt sources at
+> a time by writing -1 so no need to write CLRIE register separately
+> for each interrupt source.
 >
-> For backward compatibility with existing OSes, it is better to have
-> supervisor OS explicitly enable Svadu using the upcoming SBI
-> FWFT extension instead of enabling it unconditionally whenever
-> Svadu extension is available.
->
-> Regards,
-> Anup
->
+> Fixes: 99792653de29 ("lib: utils/irqchip: Add APLIC initialization
+> library")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
-Hi Anup,
-
-Thank you! I'll remove the enablement of Svadu extension in the next version.
+Applied this patch to the riscv/opensbi repo.
 
 Regards,
-Yong-Xuan
+Anup
 
-> >
-> >  include/sbi/riscv_encoding.h |   6 +-
-> >  include/sbi/sbi_hart.h       |  15 +++
-> >  lib/sbi/sbi_hart.c           | 226 +++++++++++++----------------------
-> >  lib/utils/fdt/fdt_helper.c   |   5 +-
-> >  4 files changed, 104 insertions(+), 148 deletions(-)
-> >
-> > --
-> > 2.17.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> ---
+>  lib/utils/irqchip/aplic.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+> index d7fd992..10236e7 100644
+> --- a/lib/utils/irqchip/aplic.c
+> +++ b/lib/utils/irqchip/aplic.c
+> @@ -193,7 +193,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+>         writel(0, (void *)(aplic->addr + APLIC_DOMAINCFG));
+>
+>         /* Disable all interrupts */
+> -       for (i = 0; i <= aplic->num_source; i++)
+> +       for (i = 0; i <= aplic->num_source; i += 32)
+>                 writel(-1U, (void *)(aplic->addr + APLIC_CLRIE_BASE +
+>                                      (i / 32) * sizeof(u32)));
+>
+> --
+> 2.34.1
+>
 
