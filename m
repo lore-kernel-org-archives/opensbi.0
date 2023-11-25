@@ -1,138 +1,82 @@
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Date: Fri, 24 Nov 2023 14:56:10 +0000
-Subject: [PATCH v3 15/15] docs: pmu: Add Andes PMU node example
-In-Reply-To: <20231122073617.379441-16-peterlin@andestech.com>
-References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-16-peterlin@andestech.com>
-Message-ID: <CA+V-a8swa_Vs82Sn02QDVRV7EtviZWt=x-YTQkDgMuRBnrTzPA@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 25 Nov 2023 10:12:06 +0530
+Subject: [PATCH v3 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
+In-Reply-To: <20231122073617.379441-11-peterlin@andestech.com>
+References: <20231122073617.379441-1-peterlin@andestech.com> <20231122073617.379441-11-peterlin@andestech.com>
+Message-ID: <CAAhSdy2iMgXBJcN_OOju3cHTLa6n2hF58YnDK-X5iLAs6NWQKg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 22, 2023 at 7:42?AM Yu Chien Peter Lin
+On Wed, Nov 22, 2023 at 1:10?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add PMU node example for event index to counter index mapping
-> and selector value translation of Andes' CPUs.
->
-> Currently, there are 4 HPM counters that can be used to monitor
-> all of the events for each hart.
+> Add a scratch option to control PMU fixup, so the next
+> stage software can dump the PMU node including event
+> mapping information for debugging purposes.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
-> Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 > Reviewed-by: Anup Patel <anup@brainfault.org>
 > ---
 > Changes v1 -> v2:
->   - sync up with datasheet
+>   - New patch
 > Changes v2 -> v3:
+>   - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
 >   - Include Anup's RB tag
 > ---
->  docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 82 insertions(+)
+>  include/sbi/sbi_scratch.h | 2 ++
+>  lib/utils/fdt/fdt_fixup.c | 6 +++++-
+>  2 files changed, 7 insertions(+), 1 deletion(-)
 >
-Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index e6a33ba..0f67cde 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -151,6 +151,8 @@ enum sbi_scratch_options {
+>         SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
+>         /** Enable runtime debug prints */
+>         SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
+> +       /** Preserve PMU node properties */
+> +       SBI_SCRATCH_PRESERVE_PMU_NODE = (1 << 2),
 
-Cheers,
-Prabhakar
+I have second thoughts about using the scratch option for this.
 
-> diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-> index 8cfa08c..9b48f1e 100644
-> --- a/docs/pmu_support.md
-> +++ b/docs/pmu_support.md
-> @@ -125,3 +125,85 @@ pmu {
->                                           <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
+Let's not waste a bit in the scratch option just for debugging the PMU node.
+
+I suggest adding the kconfig option FDT_FIXUPS_PRESERVE_PMU_NODE
+in <opensbi>lib/utils/fdt/Kconfig and use it in fdt_fixups() function.
+
+Regards,
+Anup
+
 >  };
->  ```
+>
+>  /** Get pointer to sbi_scratch for current HART */
+> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> index e213ded..cf20edf 100644
+> --- a/lib/utils/fdt/fdt_fixup.c
+> +++ b/lib/utils/fdt/fdt_fixup.c
+> @@ -387,6 +387,8 @@ int fdt_reserved_memory_fixup(void *fdt)
+>
+>  void fdt_fixups(void *fdt)
+>  {
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 > +
-> +### Example 3
+>         fdt_aplic_fixup(fdt);
+>
+>         fdt_imsic_fixup(fdt);
+> @@ -394,5 +396,7 @@ void fdt_fixups(void *fdt)
+>         fdt_plic_fixup(fdt);
+>
+>         fdt_reserved_memory_fixup(fdt);
+> -       fdt_pmu_fixup(fdt);
 > +
-> +```
-> +/*
-> + * For Andes 45-series platforms. The encodings can be found in the
-> + * "Machine Performance Monitoring Event Selector" section
-> + * http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
-> + */
-> +pmu {
-> +       compatible                      = "riscv,pmu";
-> +       riscv,event-to-mhpmevent =
-> +                                        <0x1 0x0000 0x10>, /* CPU_CYCLES          -> Cycle count */
-> +                                        <0x2 0x0000 0x20>, /* INSTRUCTIONS        -> Retired instruction count */
-> +                                        <0x3 0x0000 0x41>, /* CACHE_REFERENCES    -> D-Cache access */
-> +                                        <0x4 0x0000 0x51>, /* CACHE_MISSES        -> D-Cache miss */
-> +                                        <0x5 0x0000 0x80>, /* BRANCH_INSTRUCTIONS -> Conditional branch instruction count */
-> +                                        <0x6 0x0000 0x02>, /* BRANCH_MISSES       -> Misprediction of conditional branches */
-> +                                        <0x10000 0x0000 0x61>,  /* L1D_READ_ACCESS  -> D-Cache load access */
-> +                                        <0x10001 0x0000 0x71>,  /* L1D_READ_MISS    -> D-Cache load miss */
-> +                                        <0x10002 0x0000 0x81>,  /* L1D_WRITE_ACCESS -> D-Cache store access */
-> +                                        <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
-> +                                        <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
-> +                                        <0x10009 0x0000 0x31>;  /* L1I_READ_MISS    -> I-Cache miss */
-> +       riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
-> +                                                       <0x10000 0x10003 0x78>,
-> +                                                       <0x10008 0x10009 0x78>;
-> +       riscv,raw-event-to-mhpmcounters =
-> +                                               <0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
-> +                                               <0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
-> +                                               <0x0 0x30 0xffffffff 0xffffffff 0x78>, /* Integer load instruction count */
-> +                                               <0x0 0x40 0xffffffff 0xffffffff 0x78>, /* Integer store instruction count */
-> +                                               <0x0 0x50 0xffffffff 0xffffffff 0x78>, /* Atomic instruction count */
-> +                                               <0x0 0x60 0xffffffff 0xffffffff 0x78>, /* System instruction count */
-> +                                               <0x0 0x70 0xffffffff 0xffffffff 0x78>, /* Integer computational instruction count */
-> +                                               <0x0 0x80 0xffffffff 0xffffffff 0x78>, /* Conditional branch instruction count */
-> +                                               <0x0 0x90 0xffffffff 0xffffffff 0x78>, /* Taken conditional branch instruction count */
-> +                                               <0x0 0xA0 0xffffffff 0xffffffff 0x78>, /* JAL instruction count */
-> +                                               <0x0 0xB0 0xffffffff 0xffffffff 0x78>, /* JALR instruction count */
-> +                                               <0x0 0xC0 0xffffffff 0xffffffff 0x78>, /* Return instruction count */
-> +                                               <0x0 0xD0 0xffffffff 0xffffffff 0x78>, /* Control transfer instruction count */
-> +                                               <0x0 0xE0 0xffffffff 0xffffffff 0x78>, /* EXEC.IT instruction count */
-> +                                               <0x0 0xF0 0xffffffff 0xffffffff 0x78>, /* Integer multiplication instruction count */
-> +                                               <0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
-> +                                               <0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
-> +                                               <0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
-> +                                               <0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
-> +                                               <0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
-> +                                               <0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
-> +                                               <0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
-> +                                               <0x0 0x170 0xffffffff 0xffffffff 0x78>, /* Other floating-point instruction count */
-> +                                               <0x0 0x180 0xffffffff 0xffffffff 0x78>, /* Integer multiplication and add/sub instruction count */
-> +                                               <0x0 0x190 0xffffffff 0xffffffff 0x78>, /* Retired operation count */
-> +                                               <0x0 0x01 0xffffffff 0xffffffff 0x78>, /* ILM access */
-> +                                               <0x0 0x11 0xffffffff 0xffffffff 0x78>, /* DLM access */
-> +                                               <0x0 0x21 0xffffffff 0xffffffff 0x78>, /* I-Cache access */
-> +                                               <0x0 0x31 0xffffffff 0xffffffff 0x78>, /* I-Cache miss */
-> +                                               <0x0 0x41 0xffffffff 0xffffffff 0x78>, /* D-Cache access */
-> +                                               <0x0 0x51 0xffffffff 0xffffffff 0x78>, /* D-Cache miss */
-> +                                               <0x0 0x61 0xffffffff 0xffffffff 0x78>, /* D-Cache load access */
-> +                                               <0x0 0x71 0xffffffff 0xffffffff 0x78>, /* D-Cache load miss */
-> +                                               <0x0 0x81 0xffffffff 0xffffffff 0x78>, /* D-Cache store access */
-> +                                               <0x0 0x91 0xffffffff 0xffffffff 0x78>, /* D-Cache store miss */
-> +                                               <0x0 0xA1 0xffffffff 0xffffffff 0x78>, /* D-Cache writeback */
-> +                                               <0x0 0xB1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for I-Cache fill data */
-> +                                               <0x0 0xC1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for D-Cache fill data */
-> +                                               <0x0 0xD1 0xffffffff 0xffffffff 0x78>, /* Uncached fetch data access from bus */
-> +                                               <0x0 0xE1 0xffffffff 0xffffffff 0x78>, /* Uncached load data access from bus */
-> +                                               <0x0 0xF1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached fetch data from bus */
-> +                                               <0x0 0x101 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached load data from bus */
-> +                                               <0x0 0x111 0xffffffff 0xffffffff 0x78>, /* Main ITLB access */
-> +                                               <0x0 0x121 0xffffffff 0xffffffff 0x78>, /* Main ITLB miss */
-> +                                               <0x0 0x131 0xffffffff 0xffffffff 0x78>, /* Main DTLB access */
-> +                                               <0x0 0x141 0xffffffff 0xffffffff 0x78>, /* Main DTLB miss */
-> +                                               <0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
-> +                                               <0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
-> +                                               <0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
-> +                                               <0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
-> +                                               <0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
-> +                                               <0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
-> +};
-> +```
+> +       if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_NODE))
+> +               fdt_pmu_fixup(fdt);
+>  }
 > --
 > 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
