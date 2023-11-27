@@ -1,40 +1,35 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 26 Nov 2023 18:48:39 +0530
-Subject: [PATCH 0/2] Allow relaxed MMIO writes in device IPI callbacks
-In-Reply-To: <20231121161711.904674-1-apatel@ventanamicro.com>
-References: <20231121161711.904674-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy0zbmfYgKw+gNw5CLJOyUWHE5SDEiDiMAt5xKqn6V3B1g@mail.gmail.com>
+From: Karthik B K <karthik.bk@incoresemi.com>
+Date: Mon, 27 Nov 2023 11:59:56 +0000
+Subject: [QUESTION] Usage of negative number notations on unsigned
+ numbers.
+In-Reply-To: <878r6n76im.fsf@igel.home>
+References: <PN2P287MB0754429FA98AFB8EFD2F4D4BFAB8A@PN2P287MB0754.INDP287.PROD.OUTLOOK.COM>
+ <878r6n76im.fsf@igel.home>
+Message-ID: <PN2P287MB0754BFB8B175A81159CBBF45FABDA@PN2P287MB0754.INDP287.PROD.OUTLOOK.COM>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 21, 2023 at 9:48?PM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> This series improves the barrier usage around device IPI callbacks
-> such that platform IPI driver can now use relaxed MMIO writes in
-> device IPI callbacks.
->
-> These patches can also be found in the sbi_ipi_barrier_imp_v1 branch
-> at: https://github.com/avpatel/opensbi.git
->
-> Anup Patel (2):
->   lib: sbi: Allow relaxed MMIO writes in device ipi_send() callback
->   lib: sbi: Allow relaxed MMIO writes in device ipi_clear() callback
 
-Applied this series to the riscv/opensbi repo.
 
-Regards,
-Anup
 
->
->  lib/sbi/sbi_ipi.c           | 31 +++++++++++++++++++++++++------
->  lib/utils/ipi/aclint_mswi.c |  4 ++--
->  lib/utils/irqchip/imsic.c   |  4 ++--
->  3 files changed, 29 insertions(+), 10 deletions(-)
->
-> --
-> 2.34.1
->
+From:?Andreas Schwab <schwab@linux-m68k.org>
+Sent:?Friday, November 24, 2023 4:38 PM
+To:?Karthik B K <karthik.bk@incoresemi.com>
+Cc:?opensbi at lists.infradead.org <opensbi@lists.infradead.org>
+Subject:?Re: [QUESTION] Usage of negative number notations on unsigned numbers.
+?
+On Nov 24 2023, Karthik B K wrote:
 
+> If so, isn't it safer to use (~0UL) ? This could be a very silent bug. Please correct me if I'm wrong.
+
+The safest way is to write -1 without any suffix.? This is guaranteed to
+evaluate to the maximum value when converted to any unsigned type.
+
+This is with the assumption that the encoding for -1 == 2^32-1.
+I'm still trying to understand what arithmetic negation mean to an unsigned quantity and its representation in UL.
+While 0 has a defined encoding in a UL type, -1 does not!
+
+karthik.
