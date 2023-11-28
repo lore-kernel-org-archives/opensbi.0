@@ -1,126 +1,93 @@
 From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Tue, 28 Nov 2023 14:10:14 +0800
-Subject: [PATCH v3 04/15] sbi: sbi_pmu: Add hw_counter_filter_mode() to
- pmu device
-In-Reply-To: <CAOnJCUK4_H=MeHsUUCDscVD+905k6uV9C3bUUpwuA+kTdsFYUw@mail.gmail.com>
+Date: Tue, 28 Nov 2023 17:57:57 +0800
+Subject: [PATCH v3 10/15] lib: utils: fdt_fixup: Allow preserving PMU
+ properties
+In-Reply-To: <CAAhSdy2iMgXBJcN_OOju3cHTLa6n2hF58YnDK-X5iLAs6NWQKg@mail.gmail.com>
 References: <20231122073617.379441-1-peterlin@andestech.com>
- <20231122073617.379441-5-peterlin@andestech.com>
- <CAOnJCUK4_H=MeHsUUCDscVD+905k6uV9C3bUUpwuA+kTdsFYUw@mail.gmail.com>
-Message-ID: <ZWWERnFB6qoX6XQg@APC323>
+ <20231122073617.379441-11-peterlin@andestech.com>
+ <CAAhSdy2iMgXBJcN_OOju3cHTLa6n2hF58YnDK-X5iLAs6NWQKg@mail.gmail.com>
+Message-ID: <ZWW5pev4P_JxWWyQ@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Atish,
+Hi Anup,
 
-On Wed, Nov 22, 2023 at 04:24:35PM -0800, Atish Patra wrote:
-> On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
+On Sat, Nov 25, 2023 at 10:12:06AM +0530, Anup Patel wrote:
+> On Wed, Nov 22, 2023 at 1:10?PM Yu Chien Peter Lin
 > <peterlin@andestech.com> wrote:
 > >
-> > Add support for custom PMU extensions to set inhibit bits
-> > on custom CSRs by introducing the PMU device callback
-> > hw_counter_filter_mode(). This allows the perf tool to
-> > restrict event counting under a specified privileged
-> > mode by appending a modifier, e.g. perf record -e event:k
-> > to count events only happening in kernel mode.
+> > Add a scratch option to control PMU fixup, so the next
+> > stage software can dump the PMU node including event
+> > mapping information for debugging purposes.
 > >
 > > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+> > Reviewed-by: Anup Patel <anup@brainfault.org>
 > > ---
 > > Changes v1 -> v2:
-> >   - No change
+> >   - New patch
 > > Changes v2 -> v3:
-> >   - Add pmu_dev->hw_counter_filter_mode() in pmu_fixed_ctr_update_inhibit_bits()
+> >   - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
+> >   - Include Anup's RB tag
 > > ---
-> >  include/sbi/sbi_pmu.h |  6 ++++++
-> >  lib/sbi/sbi_pmu.c     | 20 ++++++++++++++------
-> >  2 files changed, 20 insertions(+), 6 deletions(-)
+> >  include/sbi/sbi_scratch.h | 2 ++
+> >  lib/utils/fdt/fdt_fixup.c | 6 +++++-
+> >  2 files changed, 7 insertions(+), 1 deletion(-)
 > >
-> > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> > index 16f6877..d63149c 100644
-> > --- a/include/sbi/sbi_pmu.h
-> > +++ b/include/sbi/sbi_pmu.h
-> > @@ -89,6 +89,12 @@ struct sbi_pmu_device {
-> >          * Custom function returning the machine-specific irq-bit.
-> >          */
-> >         int (*hw_counter_irq_bit)(void);
-> > +
-> > +       /**
-> > +        * Custom function to inhibit counting of events while in
-> > +        * specified mode.
-> > +        */
-> > +       void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
-> >  };
-> >
-> >  /** Get the PMU platform device */
-> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > index 3cbd4ff..2f255de 100644
-> > --- a/lib/sbi/sbi_pmu.c
-> > +++ b/lib/sbi/sbi_pmu.c
-> > @@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
-> >                 pmu_dev->hw_counter_disable_irq(ctr_idx);
-> >
-> >         /* Update the inhibit flags based on inhibit flags received from supervisor */
-> > -       pmu_update_inhibit_flags(flags, &mhpmevent_val);
-> > +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
-> > +               pmu_update_inhibit_flags(flags, &mhpmevent_val);
-> > +       if (pmu_dev && pmu_dev->hw_counter_filter_mode)
-> > +               pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
-> >
-> >  #if __riscv_xlen == 32
-> >         csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
-> > @@ -620,7 +623,8 @@ static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
-> >  #if __riscv_xlen == 32
-> >         uint64_t cfgh_csr_no;
-> >  #endif
-> > -       if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))
-> > +       if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF) &&
-> > +               !sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
+> > diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> > index e6a33ba..0f67cde 100644
+> > --- a/include/sbi/sbi_scratch.h
+> > +++ b/include/sbi/sbi_scratch.h
+> > @@ -151,6 +151,8 @@ enum sbi_scratch_options {
+> >         SBI_SCRATCH_NO_BOOT_PRINTS = (1 << 0),
+> >         /** Enable runtime debug prints */
+> >         SBI_SCRATCH_DEBUG_PRINTS = (1 << 1),
+> > +       /** Preserve PMU node properties */
+> > +       SBI_SCRATCH_PRESERVE_PMU_NODE = (1 << 2),
 > 
-> Instead of adding a check for vendor extension, we can just check for
-> platform specific hw_counter_filter_mode() availability.
+> I have second thoughts about using the scratch option for this.
+> 
+> Let's not waste a bit in the scratch option just for debugging the PMU node.
+> 
+> I suggest adding the kconfig option FDT_FIXUPS_PRESERVE_PMU_NODE
+> in <opensbi>lib/utils/fdt/Kconfig and use it in fdt_fixups() function.
 
-Sure, will do.
+OK, will do.
 
-Regards,
+Best regards,
 Peter Lin
 
-> I would prefer to avoid any vendor specific code if possible. Ideally,
-> all vendor specific details should be abstracted out via pmu-dev.
+> Regards,
+> Anup
 > 
-> >                 return fixed_ctr;
+> >  };
 > >
-> >         switch (fixed_ctr) {
-> > @@ -641,13 +645,17 @@ static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
-> >         }
+> >  /** Get pointer to sbi_scratch for current HART */
+> > diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+> > index e213ded..cf20edf 100644
+> > --- a/lib/utils/fdt/fdt_fixup.c
+> > +++ b/lib/utils/fdt/fdt_fixup.c
+> > @@ -387,6 +387,8 @@ int fdt_reserved_memory_fixup(void *fdt)
 > >
-> >         cfg_val |= MHPMEVENT_MINH;
-> > -       pmu_update_inhibit_flags(flags, &cfg_val);
-> > +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF)) {
-> > +               pmu_update_inhibit_flags(flags, &cfg_val);
-> >  #if __riscv_xlen == 32
-> > -       csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
-> > -       csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
-> > +               csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
-> > +               csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
-> >  #else
-> > -       csr_write_num(cfg_csr_no, cfg_val);
-> > +               csr_write_num(cfg_csr_no, cfg_val);
-> >  #endif
-> > +       }
-> > +       if (pmu_dev && pmu_dev->hw_counter_filter_mode)
-> > +               pmu_dev->hw_counter_filter_mode(flags, fixed_ctr);
-> >         return fixed_ctr;
+> >  void fdt_fixups(void *fdt)
+> >  {
+> > +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> > +
+> >         fdt_aplic_fixup(fdt);
+> >
+> >         fdt_imsic_fixup(fdt);
+> > @@ -394,5 +396,7 @@ void fdt_fixups(void *fdt)
+> >         fdt_plic_fixup(fdt);
+> >
+> >         fdt_reserved_memory_fixup(fdt);
+> > -       fdt_pmu_fixup(fdt);
+> > +
+> > +       if (!(scratch->options & SBI_SCRATCH_PRESERVE_PMU_NODE))
+> > +               fdt_pmu_fixup(fdt);
 > >  }
-> >
 > > --
 > > 2.34.1
 > >
-> 
-> 
-> --
-> Regards,
-> Atish
 
