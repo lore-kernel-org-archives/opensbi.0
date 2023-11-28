@@ -1,68 +1,126 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Tue, 28 Nov 2023 06:01:33 +0000
-Subject: [QUESTION] Usage of negative number notations on unsigned
- numbers.
-In-Reply-To: <1c25a9a7-708f-4840-9c7a-a4dedffb2b0a@incoresemi.com>
-References: <PN2P287MB0754429FA98AFB8EFD2F4D4BFAB8A@PN2P287MB0754.INDP287.PROD.OUTLOOK.COM>
- <878r6n76im.fsf@igel.home>
- <PN2P287MB0754BFB8B175A81159CBBF45FABDA@PN2P287MB0754.INDP287.PROD.OUTLOOK.COM>
- <87leajmm8l.fsf@igel.home>
- <1b2d1b62-e6d7-4de2-9d27-4892a0f2a9dd@incoresemi.com>
- <87h6l7mhqn.fsf@igel.home>
- <1c25a9a7-708f-4840-9c7a-a4dedffb2b0a@incoresemi.com>
-Message-ID: <84CA5E33-E6C9-4DDD-A66E-423C966624C0@jrtc27.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Tue, 28 Nov 2023 14:10:14 +0800
+Subject: [PATCH v3 04/15] sbi: sbi_pmu: Add hw_counter_filter_mode() to
+ pmu device
+In-Reply-To: <CAOnJCUK4_H=MeHsUUCDscVD+905k6uV9C3bUUpwuA+kTdsFYUw@mail.gmail.com>
+References: <20231122073617.379441-1-peterlin@andestech.com>
+ <20231122073617.379441-5-peterlin@andestech.com>
+ <CAOnJCUK4_H=MeHsUUCDscVD+905k6uV9C3bUUpwuA+kTdsFYUw@mail.gmail.com>
+Message-ID: <ZWWERnFB6qoX6XQg@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 28 Nov 2023, at 05:28, Karthik B K <karthik.bk@incoresemi.com> wrote:
-> 
-> On 27/11/23 19:16, Andreas Schwab wrote:
->> On Nov 27 2023, Karthik B K wrote:
->> 
->>> What's the encoding of (2^32-1)UL and (2^64-1)UL ?
->> A value does not have an encoding.  Only a memory location does.
->> 
-> So does a register (container of bits), and a type (signed, unsigned, float).
-> 
-> The "encoding" is dependent on the "container" (reg or mem) and "type" (signed, unsigned, float).
-> 
-> The same bits (11...11) would reflect very different values (-1, 2^32-1, quiteNaN).
-> 
-> The container of (2^32-1) is UInt. 32b unsigned integer. -1 cannot be represented in a 32b unsigned int.
-> 
-> 
-> I'm trying to say, that the unary operator (-) in the expression (-1UL) is an integer arithmetic operator.
-> 
-> The unary operator (-) when applied to an unsigned type, results in the _negative_ of it's (promoted as per _usual arithmetic conversions_) operand, which in this case, is a signed integer.
-> 
-> The result will retain this type. Are we assuming an implicit cast ?
-> 
-> This looks like an illegal set of operations to create the bit pattern we desire (11...11) for an unsigned int.
-> 
-> 
-> Simply put, a -1 in a UL is an oxymoron. Don't you think ?
-> 
-> Please correct me if I'm wrong.
+Hi Atish,
 
-C99 6.2.5p9:
+On Wed, Nov 22, 2023 at 04:24:35PM -0800, Atish Patra wrote:
+> On Tue, Nov 21, 2023 at 11:40?PM Yu Chien Peter Lin
+> <peterlin@andestech.com> wrote:
+> >
+> > Add support for custom PMU extensions to set inhibit bits
+> > on custom CSRs by introducing the PMU device callback
+> > hw_counter_filter_mode(). This allows the perf tool to
+> > restrict event counting under a specified privileged
+> > mode by appending a modifier, e.g. perf record -e event:k
+> > to count events only happening in kernel mode.
+> >
+> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+> > ---
+> > Changes v1 -> v2:
+> >   - No change
+> > Changes v2 -> v3:
+> >   - Add pmu_dev->hw_counter_filter_mode() in pmu_fixed_ctr_update_inhibit_bits()
+> > ---
+> >  include/sbi/sbi_pmu.h |  6 ++++++
+> >  lib/sbi/sbi_pmu.c     | 20 ++++++++++++++------
+> >  2 files changed, 20 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+> > index 16f6877..d63149c 100644
+> > --- a/include/sbi/sbi_pmu.h
+> > +++ b/include/sbi/sbi_pmu.h
+> > @@ -89,6 +89,12 @@ struct sbi_pmu_device {
+> >          * Custom function returning the machine-specific irq-bit.
+> >          */
+> >         int (*hw_counter_irq_bit)(void);
+> > +
+> > +       /**
+> > +        * Custom function to inhibit counting of events while in
+> > +        * specified mode.
+> > +        */
+> > +       void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
+> >  };
+> >
+> >  /** Get the PMU platform device */
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index 3cbd4ff..2f255de 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+> >                 pmu_dev->hw_counter_disable_irq(ctr_idx);
+> >
+> >         /* Update the inhibit flags based on inhibit flags received from supervisor */
+> > -       pmu_update_inhibit_flags(flags, &mhpmevent_val);
+> > +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+> > +               pmu_update_inhibit_flags(flags, &mhpmevent_val);
+> > +       if (pmu_dev && pmu_dev->hw_counter_filter_mode)
+> > +               pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
+> >
+> >  #if __riscv_xlen == 32
+> >         csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
+> > @@ -620,7 +623,8 @@ static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
+> >  #if __riscv_xlen == 32
+> >         uint64_t cfgh_csr_no;
+> >  #endif
+> > -       if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))
+> > +       if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF) &&
+> > +               !sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
+> 
+> Instead of adding a check for vendor extension, we can just check for
+> platform specific hw_counter_filter_mode() availability.
 
-"The range of nonnegative values of a signed integer type is a subrange
-of the corresponding unsigned integer type, and the representation of
-the same value in each type is the same.31) A computation involving
-unsigned operands can never overflow, because a result that cannot be
-represented by the resulting unsigned integer type is reduced modulo
-the number that is one greater than the largest value that can be
-represented by the resulting type.?
+Sure, will do.
 
--1UL (parsed as -(1UL); integer constants start with a digit in the
-grammar, the - (or leading +) is always a normal unary operator) is
-thus well-defined.
+Regards,
+Peter Lin
 
-If you want to learn C, I?d rather not see it happen on this list.
-
-Jess
-
+> I would prefer to avoid any vendor specific code if possible. Ideally,
+> all vendor specific details should be abstracted out via pmu-dev.
+> 
+> >                 return fixed_ctr;
+> >
+> >         switch (fixed_ctr) {
+> > @@ -641,13 +645,17 @@ static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
+> >         }
+> >
+> >         cfg_val |= MHPMEVENT_MINH;
+> > -       pmu_update_inhibit_flags(flags, &cfg_val);
+> > +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF)) {
+> > +               pmu_update_inhibit_flags(flags, &cfg_val);
+> >  #if __riscv_xlen == 32
+> > -       csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
+> > -       csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
+> > +               csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
+> > +               csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
+> >  #else
+> > -       csr_write_num(cfg_csr_no, cfg_val);
+> > +               csr_write_num(cfg_csr_no, cfg_val);
+> >  #endif
+> > +       }
+> > +       if (pmu_dev && pmu_dev->hw_counter_filter_mode)
+> > +               pmu_dev->hw_counter_filter_mode(flags, fixed_ctr);
+> >         return fixed_ctr;
+> >  }
+> >
+> > --
+> > 2.34.1
+> >
+> 
+> 
+> --
+> Regards,
+> Atish
 
