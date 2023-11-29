@@ -1,195 +1,36 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Tue, 28 Nov 2023 19:02:32 +0800
-Subject: [PATCH v3 07/15] platform: andes: Add Andes custom PMU support
-In-Reply-To: <70a378e1-484c-4b77-942a-169a99ad00b5@sifive.com>
-References: <20231122073617.379441-1-peterlin@andestech.com>
- <20231122073617.379441-8-peterlin@andestech.com>
- <70a378e1-484c-4b77-942a-169a99ad00b5@sifive.com>
-Message-ID: <ZWXIyJow9xC8adRf@APC323>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 29 Nov 2023 21:57:00 +0800
+Subject: [PATCH] lib: sbi: skip wait_for_coldboot when coolboot done
+Message-ID: <20231129135717.310197-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Samuel,
+When warmboot via HSM, coolboot has been completed and
+wait_for_coldboot can be skipped to speed up.
 
-Thanks for the review.
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ lib/sbi/sbi_init.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-On Wed, Nov 22, 2023 at 08:24:49PM -0600, Samuel Holland wrote:
-> On 2023-11-22 1:36 AM, Yu Chien Peter Lin wrote:
-> > Before the ratification of Sscofpmf, the Andes PMU extension
-> > was designed to support the sampling and filtering with hardware
-> > performance counters (zihpm), it works with the current SBI PMU
-> > extension and Linux SBI PMU driver.
-> > 
-> > We implement 1) the PMU device callbacks that update the
-> > corresponding bits on custom CSRs, 2) extentions_init() to detect
-> > the hardware support of Andes PMU and initialize the per-hart
-> > PMU related CSR, and 3) pmu_init() to register PMU device and
-> > populate event mappings (only called by coldboot hart).
-> > 
-> > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-> > ---
-> > Changes v1 -> v2:
-> >   - Fix mode filtering in andes_hw_counter_filter_mode()
-> >   - Return early if pmu is not supported in andes_pmu_init() (suggested by Prabhakar)
-> >   - Don't grant write permissions via CSR_MCOUNTERWEN as not needed
-> > Changes v2 -> v3:
-> >   - Drop Anup's RB tag as we add andes_pmu_extensions_init() to initialize per-hart
-> >     extension on scratch and move andes_pmu_init() to new added platform override pmu_init()
-> > --- 
-> >  platform/generic/andes/Kconfig             |   8 ++
-> >  platform/generic/andes/andes_pmu.c         | 102 +++++++++++++++++++++
-> >  platform/generic/andes/objects.mk          |   1 +
-> >  platform/generic/include/andes/andes_pmu.h |  33 +++++++
-> >  4 files changed, 144 insertions(+)
-> >  create mode 100644 platform/generic/andes/andes_pmu.c
-> >  create mode 100644 platform/generic/include/andes/andes_pmu.h
-> > 
-> > diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
-> > index a91fb9c..5b2ed91 100644
-> > --- a/platform/generic/andes/Kconfig
-> > +++ b/platform/generic/andes/Kconfig
-> > @@ -7,3 +7,11 @@ config ANDES45_PMA
-> >  config ANDES_SBI
-> >  	bool "Andes SBI support"
-> >  	default n
-> > +
-> > +config ANDES_PMU
-> > +	bool "Andes PMU extension (xandespmu) support"
-> > +	default n
-> > +	help
-> > +	  Andes PMU extension supports the event counter overflow
-> > +	  interrupt and mode filtering, similar to the standard
-> > +	  Sscofpmf and Smcntrpmf.
-> > diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
-> > new file mode 100644
-> > index 0000000..72003fd
-> > --- /dev/null
-> > +++ b/platform/generic/andes/andes_pmu.c
-> > @@ -0,0 +1,102 @@
-> > +// SPDX-License-Identifier: BSD-2-Clause
-> > +/*
-> > + * andes_pmu.c - Andes PMU device callbacks and platform overrides
-> > + *
-> > + * Copyright (C) 2023 Andes Technology Corporation
-> > + */
-> > +
-> > +#include <andes/andes45.h>
-> > +#include <andes/andes_hpm.h>
-> > +#include <andes/andes_pmu.h>
-> > +#include <sbi/sbi_bitops.h>
-> > +#include <sbi/sbi_error.h>
-> > +#include <sbi/sbi_pmu.h>
-> > +
-> > +static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
-> > +{
-> > +	unsigned long mip_val;
-> > +
-> > +	if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
-> > +		return;
-> > +
-> > +	mip_val = csr_read(CSR_MIP);
-> > +	if (!(mip_val & MIP_PMOVI))
-> > +		csr_clear(CSR_MCOUNTEROVF, BIT(ctr_idx));
-> > +
-> > +	csr_set(CSR_MCOUNTERINTEN, BIT(ctr_idx));
-> > +}
-> > +
-> > +static void andes_hw_counter_disable_irq(uint32_t ctr_idx)
-> > +{
-> > +	csr_clear(CSR_MCOUNTERINTEN, BIT(ctr_idx));
-> > +}
-> > +
-> > +static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
-> > +{
-> > +	if (flags & SBI_PMU_CFG_FLAG_SET_UINH)
-> > +		csr_set(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
-> > +	else
-> > +		csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
-> > +
-> > +	if (flags & SBI_PMU_CFG_FLAG_SET_SINH)
-> > +		csr_set(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-> > +	else
-> > +		csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-> > +}
-> > +
-> > +static struct sbi_pmu_device andes_pmu = {
-> > +	.name = "andes_pmu",
-> > +	.hw_counter_enable_irq  = andes_hw_counter_enable_irq,
-> > +	.hw_counter_disable_irq = andes_hw_counter_disable_irq,
-> > +	/*
-> > +	 * We set delegation of supervisor local interrupts via
-> > +	 * 18th bit on mslideleg instead of mideleg, so leave
-> > +	 * hw_counter_irq_bit() callback unimplemented.
-> > +	 */
-> > +	.hw_counter_irq_bit     = NULL,
-> > +	.hw_counter_filter_mode = andes_hw_counter_filter_mode
-> > +};
-> > +
-> > +int andes_pmu_extensions_init(const struct fdt_match *match,
-> > +			      struct sbi_hart_features *hfeatures)
-> > +{
-> > +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > +
-> > +	if (!has_andes_pmu())
-> > +		return 0;
-> > +
-> > +	/*
-> > +	 * Don't expect both Andes PMU and standard Sscofpmf/Smcntrpmf,
-> > +	 * are supported as they serve the same purpose.
-> > +	 */
-> > +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF) ||
-> > +		sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))
-> > +		return SBI_EINVAL;
-> 
-> If Sscofpmf is supported, don't you want to successfully do nothing?
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index e723553..1f7f522 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -492,7 +492,8 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+ {
+ 	int hstate;
+ 
+-	wait_for_coldboot(scratch, hartid);
++	if (!__smp_load_acquire(&coldboot_done))
++		wait_for_coldboot(scratch, hartid);
+ 
+ 	hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
+ 	if (hstate < 0)
+-- 
+2.42.0
 
-If Sscofpmf is supported, it will return early as has_andes_pmu() above
-is false.
-
-> > +	sbi_hart_update_extension(scratch, SBI_HART_EXT_XANDESPMU, true);
-> > +
-> > +	/* Inhibit all HPM counters in M-mode */
-> > +	csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
-> > +	/* Delegate counter overflow interrupt to S-mode */
-> > +	csr_write(CSR_MSLIDELEG, MIP_PMOVI);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +int andes_pmu_init(const struct fdt_match *match)
-> > +{
-> > +	int rc;
-> > +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > +
-> > +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
-> > +		sbi_pmu_set_device(&andes_pmu);
-> > +
-> > +	rc = fdt_pmu_setup(fdt_get_address());
-> 
-> generic_pmu_init() already calls fdt_pmu_setup().
-
-OK will remove fdt_pmu_setup() here.
-
-> > +	/*
-> > +	 * Populate default mappings if device-tree doesn't
-> > +	 * provide a valid pmu node.
-> > +	 */
-> > +	if (rc == SBI_ENOENT)
-> > +		return andes_pmu_setup();
-> 
-> This function isn't added until patch 14, so this won't compile. Please make
-> sure each patch compiles individually.
-
-Sure, thank you for catching this.
-
-Regards,
-Peter Lin
-
-> Regards,
-> Samuel
-> 
 
