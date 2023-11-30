@@ -1,35 +1,56 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 29 Nov 2023 21:57:00 +0800
-Subject: [PATCH] lib: sbi: skip wait_for_coldboot when coolboot done
-Message-ID: <20231129135717.310197-1-wxjstz@126.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Thu, 30 Nov 2023 10:13:17 +0100
+Subject: [RFC PATCH 0/2] Add support for Supervisor Software Events extension
+Message-ID: <20231130091319.1223849-1-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When warmboot via HSM, coolboot has been completed and
-wait_for_coldboot can be skipped to speed up.
+The SBI Supervisor Software Events (SSE) extensions provides a mechanism
+to inject software events from an SBI implementation to supervisor
+software such that it preempts all other supervisor level traps and
+interrupts [1].
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_init.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Various events are defined and can be send asynchronously to supervisor
+software (RAS, PMU, DEBUG, Asynchronous page fault) from SBI as well
+as platform specific events. Events can be either local (per-hart) or
+global. Events can be nested on top of each other based on priority and
+can interrupt the supervisor mode at any time.
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index e723553..1f7f522 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -492,7 +492,8 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
- {
- 	int hstate;
- 
--	wait_for_coldboot(scratch, hartid);
-+	if (!__smp_load_acquire(&coldboot_done))
-+		wait_for_coldboot(scratch, hartid);
- 
- 	hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
- 	if (hstate < 0)
+This PR adds support for this extension. First commit modifies interrupts
+handling to pass the sbi traps regs through interrupt handlers in order to inject
+SSE events from this context. Second one add the SSE support itself.
+
+A RFC for Linux which uses this extension is available at [2].
+
+Link: https://lists.riscv.org/g/tech-prs/message/515 [1]
+Link: https://lore.kernel.org/linux-riscv/20231026143122.279437-1-cleger at rivosinc.com/ [2]
+
+Cl?ment L?ger (2):
+  lib: sbi: provides regs to sbi_ipi_process()
+  lib: sbi: add support for Supervisor Software Events extension
+
+ include/sbi/sbi_ecall_interface.h |  36 +-
+ include/sbi/sbi_error.h           |   4 +
+ include/sbi/sbi_ipi.h             |   6 +-
+ include/sbi/sbi_sse.h             | 222 +++++++
+ lib/sbi/Kconfig                   |   4 +
+ lib/sbi/objects.mk                |   4 +
+ lib/sbi/sbi_ecall.c               |   7 +-
+ lib/sbi/sbi_ecall_sse.c           |  61 ++
+ lib/sbi/sbi_init.c                |  13 +
+ lib/sbi/sbi_ipi.c                 |  12 +-
+ lib/sbi/sbi_sse.c                 | 963 ++++++++++++++++++++++++++++++
+ lib/sbi/sbi_tlb.c                 |   2 +-
+ lib/sbi/sbi_trap.c                |   4 +-
+ lib/utils/irqchip/imsic.c         |   2 +-
+ 14 files changed, 1327 insertions(+), 13 deletions(-)
+ create mode 100644 include/sbi/sbi_sse.h
+ create mode 100644 lib/sbi/sbi_ecall_sse.c
+ create mode 100644 lib/sbi/sbi_sse.c
+
 -- 
 2.42.0
 
