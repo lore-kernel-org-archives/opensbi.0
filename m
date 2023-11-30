@@ -1,76 +1,61 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 30 Nov 2023 20:42:03 +0800
-Subject: [PATCH v4 05/15] platform: include: andes45: Add PMU related CSR defines
+Date: Thu, 30 Nov 2023 20:42:04 +0800
+Subject: [PATCH v4 06/15] platform: generic: Introduce pmu_init() platform override
 In-Reply-To: <20231130124213.2590640-1-peterlin@andestech.com>
 References: <20231130124213.2590640-1-peterlin@andestech.com>
-Message-ID: <20231130124213.2590640-6-peterlin@andestech.com>
+Message-ID: <20231130124213.2590640-7-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add CSR definitions for Andes PMU extension.
+Add pmu_init() platform override, which will be used to register
+PMU device and populate event mappings.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
 Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Tested-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 ---
-Changes v1 -> v2:
-  - Rename andes_pmu() -> has_andes_pmu()
 Changes v2 -> v3:
-  - Include Anup's RB tag
+  - New patch
 Changes v3 -> v4:
+  - Only return pmu_init override on error so fdt_pmu_setup() can be executed
   - Include RB tags
 ---
- platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-index f570994..ce31617 100644
---- a/platform/generic/include/andes/andes45.h
-+++ b/platform/generic/include/andes/andes45.h
-@@ -12,6 +12,17 @@
- #define CSR_MDCM_CFG		0xfc1
- #define CSR_MMSC_CFG		0xfc2
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index bf4b112..f2a4327 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -27,6 +27,7 @@ struct platform_override {
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
+ 	int (*extensions_init)(const struct fdt_match *match,
+ 			       struct sbi_hart_features *hfeatures);
++	int (*pmu_init)(const struct fdt_match *match);
+ 	void (*fw_init)(void *fdt, const struct fdt_match *match);
+ 	int (*vendor_ext_provider)(long funcid,
+ 				   const struct sbi_trap_regs *regs,
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index fa400b9..f17e94e 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -267,6 +267,12 @@ static int generic_pmu_init(void)
+ {
+ 	int rc;
  
-+/* Machine Trap Related Registers */
-+#define CSR_MSLIDELEG		0x7d5
++	if (generic_plat && generic_plat->pmu_init) {
++		rc = generic_plat->pmu_init(generic_plat_match);
++		if (rc)
++			return rc;
++	}
 +
-+/* Counter Related Registers */
-+#define CSR_MCOUNTERWEN		0x7ce
-+#define CSR_MCOUNTERINTEN	0x7cf
-+#define CSR_MCOUNTERMASK_M	0x7d1
-+#define CSR_MCOUNTERMASK_S	0x7d2
-+#define CSR_MCOUNTERMASK_U	0x7d3
-+#define CSR_MCOUNTEROVF		0x7d4
-+
- #define MICM_CFG_ISZ_OFFSET		6
- #define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
- 
-@@ -26,4 +37,19 @@
- #define MCACHE_CTL_CCTL_SUEN_OFFSET	8
- #define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
- 
-+/* Performance monitor */
-+#define MMSC_CFG_PMNDS_MASK		(1 << 15)
-+#define MIP_PMOVI			(1 << 18)
-+
-+#ifndef __ASSEMBLER__
-+
-+#define has_andes_pmu()					\
-+({							\
-+	(((csr_read(CSR_MMSC_CFG) &			\
-+	   MMSC_CFG_PMNDS_MASK)				\
-+	  && misa_extension('S')) ? true : false);	\
-+})
-+
-+#endif /* __ASSEMBLER__ */
-+
- #endif /* _RISCV_ANDES45_H */
+ 	rc = fdt_pmu_setup(fdt_get_address());
+ 	if (rc && rc != SBI_ENOENT)
+ 		return rc;
 -- 
 2.34.1
 
