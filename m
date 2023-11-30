@@ -1,257 +1,99 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 30 Nov 2023 20:41:59 +0800
-Subject: [PATCH v4 01/15] lib: ipi: Adjust Andes PLICSW to single-bit-per-hart scheme
+Date: Thu, 30 Nov 2023 20:42:00 +0800
+Subject: [PATCH v4 02/15] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
 In-Reply-To: <20231130124213.2590640-1-peterlin@andestech.com>
 References: <20231130124213.2590640-1-peterlin@andestech.com>
-Message-ID: <20231130124213.2590640-2-peterlin@andestech.com>
+Message-ID: <20231130124213.2590640-3-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Leo Yu-Chi Liang <ycliang@andestech.com>
+This patch makes the following changes:
 
-The old scheme doesn't allow sending hart0 self-IPI as the
-corresponding bit on pending register is hardwired to 0, this
-could lead to unhandle IPIs on SMP systems, esp. on single-core.
+- As sbi_platform_pmu_init() returns a negative error code on
+  failure, let sbi_pmu_init() print out the error code with
+  sbi_dprintf().
 
-Furthermore, the limitation of old scheme is 8-core, instead of
-reserving source hart information, we assign bit (x + 1) as the
-enable and pending bit of hartx, this also expands the bootable
-hart number.
+- In order to distinguish the SBI_EFAIL error returned by
+  sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
+  that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
+  generic_pmu_init() ignores such case.
 
-The following diagram shows the enable bits of the new scheme
-on 32-core Andes platform.
-
-   Pending regs: 0x1000  x---0---0---0---0------0---0
-Pending hart ID:             0   1   2   3 ... 30  31
-   Interrupt ID:         0   1   2   3   4 ... 31  32
-                         |   |   |   |   |      |   |
-    Enable regs: 0x2000  x---1---0---0---0-...--0---0---> hart0
-                         |   |   |   |   |      |   |
-                 0x2080  x---0---1---0---0-...--0---0---> hart1
-                         |   |   |   |   |      |   |
-                 0x2100  x---0---0---1---0-...--0---0---> hart2
-                         |   |   |   |   |      |   |
-                 0x2180  x---0---0---0---1-...--0---0---> hart3
-                         .   .   .   .   .      .   .
-                         .   .   .   .   .      .   .
-                         .   .   .   .   .      .   .
-                 0x2f00  x---0---0---0---0-...--1---0---> hart30
-                         |   |   |   |   |      |   |
-                 0x2f80  x---0---0---0---0-...--0---1---> hart31
-                         <-------- word 0 -------><--- word 1 --->
-
-To send IPI to hart0, for example, another hart (including hart0
-itself) will set bit 1 of first word on the pending register.
-
-We also fix indentation in andes_plicsw.h along with this patch.
-
-Fixes: ce7c490719ed ("lib: utils/ipi: Add Andes fdt ipi driver support")
-Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Randolph <randolph@andestech.com>
-Reported-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Link: https://lists.infradead.org/pipermail/opensbi/2023-October/005665.html
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
-Tested-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 ---
-Changes v2 -> v3:
+Changes v1 -> v2:
   - New patch
+Changes v2 -> v3:
+  - Include Anup's RB tag
 Changes v3 -> v4:
-  - Include Prabhakar's RB & TB tags
+  - Use sbi_dprintf() instead of hang on error
+  - Include Prabhakar's RB tag
 ---
- include/sbi_utils/ipi/andes_plicsw.h |  23 +++---
- lib/utils/ipi/andes_plicsw.c         | 104 ++++++++++-----------------
- 2 files changed, 46 insertions(+), 81 deletions(-)
+ lib/sbi/sbi_pmu.c           | 6 +++++-
+ lib/utils/fdt/fdt_pmu.c     | 2 +-
+ platform/generic/platform.c | 8 +++++++-
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi_utils/ipi/andes_plicsw.h b/include/sbi_utils/ipi/andes_plicsw.h
-index e93cda0..0d18444 100644
---- a/include/sbi_utils/ipi/andes_plicsw.h
-+++ b/include/sbi_utils/ipi/andes_plicsw.h
-@@ -13,30 +13,23 @@
- #ifndef _IPI_ANDES_PLICSW_H_
- #define _IPI_ANDES_PLICSW_H_
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 185068b..2ee6e62 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ 	int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
+ 	struct sbi_pmu_hart_state *phs;
+ 	const struct sbi_platform *plat;
++	int rc;
  
--#define PLICSW_PRIORITY_BASE 0x4
-+#define PLICSW_PRIORITY_BASE	0x4
+ 	if (cold_boot) {
+ 		hw_event_map = sbi_calloc(sizeof(*hw_event_map),
+@@ -972,7 +973,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
  
--#define PLICSW_PENDING_BASE 0x1000
--#define PLICSW_PENDING_STRIDE 0x8
-+#define PLICSW_PENDING_BASE	0x1000
+ 		plat = sbi_platform_ptr(scratch);
+ 		/* Initialize hw pmu events */
+-		sbi_platform_pmu_init(plat);
++		rc = sbi_platform_pmu_init(plat);
++		if (rc)
++			sbi_dprintf("%s: platform pmu init failed "
++				    "(error %d)\n", __func__, rc);
  
--#define PLICSW_ENABLE_BASE 0x2000
--#define PLICSW_ENABLE_STRIDE 0x80
-+#define PLICSW_ENABLE_BASE	0x2000
-+#define PLICSW_ENABLE_STRIDE	0x80
+ 		/* mcycle & minstret is available always */
+ 		if (!hpm_count)
+diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+index 83301bb..a8d7648 100644
+--- a/lib/utils/fdt/fdt_pmu.c
++++ b/lib/utils/fdt/fdt_pmu.c
+@@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
  
--#define PLICSW_CONTEXT_BASE 0x200000
--#define PLICSW_CONTEXT_STRIDE 0x1000
--#define PLICSW_CONTEXT_CLAIM 0x4
-+#define PLICSW_CONTEXT_BASE	0x200000
-+#define PLICSW_CONTEXT_STRIDE	0x1000
-+#define PLICSW_CONTEXT_CLAIM	0x4
+ 	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
+ 	if (pmu_offset < 0)
+-		return SBI_EFAIL;
++		return SBI_ENOENT;
  
--#define PLICSW_HART_MASK 0x01010101
--
--#define PLICSW_HART_MAX_NR 8
--
--#define PLICSW_REGION_ALIGN 0x1000
-+#define PLICSW_REGION_ALIGN	0x1000
+ 	event_ctr_map = fdt_getprop(fdt, pmu_offset,
+ 				    "riscv,event-to-mhpmcounters", &len);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 85acecd..fa400b9 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
  
- struct plicsw_data {
- 	unsigned long addr;
- 	unsigned long size;
- 	uint32_t hart_count;
--	/* hart id to source id table */
--	uint32_t source_id[PLICSW_HART_MAX_NR];
- };
- 
- int plicsw_warm_ipi_init(void);
-diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
-index 5693efb..413ac20 100644
---- a/lib/utils/ipi/andes_plicsw.c
-+++ b/lib/utils/ipi/andes_plicsw.c
-@@ -18,77 +18,45 @@
- 
- struct plicsw_data plicsw;
- 
--static inline void plicsw_claim(void)
-+static void plicsw_ipi_send(u32 hart_index)
+ static int generic_pmu_init(void)
  {
--	u32 hartid = current_hartid();
-+	ulong pending_reg;
-+	u32 interrupt_id, word_index, pending_bit;
-+	u32 target_hart = sbi_hartindex_to_hartid(hart_index);
- 
--	if (plicsw.hart_count <= hartid)
-+	if (plicsw.hart_count <= target_hart)
- 		ebreak();
- 
--	plicsw.source_id[hartid] =
--		readl((void *)plicsw.addr + PLICSW_CONTEXT_BASE +
--		      PLICSW_CONTEXT_CLAIM + PLICSW_CONTEXT_STRIDE * hartid);
--}
--
--static inline void plicsw_complete(void)
--{
--	u32 hartid = current_hartid();
--	u32 source = plicsw.source_id[hartid];
--
--	writel(source, (void *)plicsw.addr + PLICSW_CONTEXT_BASE +
--			       PLICSW_CONTEXT_CLAIM +
--			       PLICSW_CONTEXT_STRIDE * hartid);
--}
--
--static inline void plic_sw_pending(u32 target_hart)
--{
- 	/*
--	 * The pending array registers are w1s type.
--	 * IPI pending array mapping as following:
--	 *
--	 * Pending array start address: base + 0x1000
--	 * ---------------------------------
--	 * | hart3 | hart2 | hart1 | hart0 |
--	 * ---------------------------------
--	 * Each hartX can send IPI to another hart by setting the
--	 * bitY to its own region (see the below).
--	 *
--	 * In each hartX region:
--	 * <---------- PICSW_PENDING_STRIDE -------->
--	 * | bit7 | ... | bit3 | bit2 | bit1 | bit0 |
--	 * ------------------------------------------
--	 * The bitY of hartX region indicates that hartX sends an
--	 * IPI to hartY.
-+	 * We assign a single bit for each hart.
-+	 * Bit 0 is hardwired to 0, thus unavailable.
-+	 * Bit(X+1) indicates that IPI is sent to hartX.
- 	 */
--	u32 hartid	    = current_hartid();
--	u32 word_index	    = hartid / 4;
--	u32 per_hart_offset = PLICSW_PENDING_STRIDE * hartid;
--	u32 val		    = 1 << target_hart << per_hart_offset;
-+	interrupt_id = target_hart + 1;
-+	word_index   = interrupt_id / 32;
-+	pending_bit  = interrupt_id % 32;
-+	pending_reg  = plicsw.addr + PLICSW_PENDING_BASE + word_index * 4;
- 
--	writel(val, (void *)plicsw.addr + PLICSW_PENDING_BASE + word_index * 4);
-+	/* Set target hart's mip.MSIP */
-+	writel_relaxed(BIT(pending_bit), (void *)pending_reg);
+-	return fdt_pmu_setup(fdt_get_address());
++	int rc;
++
++	rc = fdt_pmu_setup(fdt_get_address());
++	if (rc && rc != SBI_ENOENT)
++		return rc;
++
++	return 0;
  }
  
--static void plicsw_ipi_send(u32 hart_index)
-+static void plicsw_ipi_clear(u32 hart_index)
- {
- 	u32 target_hart = sbi_hartindex_to_hartid(hart_index);
-+	ulong reg = plicsw.addr + PLICSW_CONTEXT_BASE + PLICSW_CONTEXT_CLAIM +
-+		    PLICSW_CONTEXT_STRIDE * target_hart;
- 
- 	if (plicsw.hart_count <= target_hart)
- 		ebreak();
- 
--	/* Set PLICSW IPI */
--	plic_sw_pending(target_hart);
--}
-+	/* Claim */
-+	u32 source = readl((void *)reg);
- 
--static void plicsw_ipi_clear(u32 hart_index)
--{
--	u32 target_hart = sbi_hartindex_to_hartid(hart_index);
--
--	if (plicsw.hart_count <= target_hart)
--		ebreak();
-+	/* A successful claim will clear mip.MSIP */
- 
--	/* Clear PLICSW IPI */
--	plicsw_claim();
--	plicsw_complete();
-+	/* Complete */
-+	writel(source, (void *)reg);
- }
- 
- static struct sbi_ipi_device plicsw_ipi = {
-@@ -110,22 +78,26 @@ int plicsw_warm_ipi_init(void)
- int plicsw_cold_ipi_init(struct plicsw_data *plicsw)
- {
- 	int rc;
-+	u32 interrupt_id, word_index, enable_bit;
-+	ulong enable_reg, priority_reg;
- 
- 	/* Setup source priority */
--	uint32_t *priority = (void *)plicsw->addr + PLICSW_PRIORITY_BASE;
--
--	for (int i = 0; i < plicsw->hart_count; i++)
--		writel(1, &priority[i]);
--
--	/* Setup target enable */
--	uint32_t enable_mask = PLICSW_HART_MASK;
-+	for (int i = 0; i < plicsw->hart_count; i++) {
-+		priority_reg = plicsw->addr + PLICSW_PRIORITY_BASE + i * 4;
-+		writel(1, (void *)priority_reg);
-+	}
- 
-+	/*
-+	 * Setup enable for each hart, skip non-existent interrupt ID 0
-+	 * which is hardwired to 0.
-+	 */
- 	for (int i = 0; i < plicsw->hart_count; i++) {
--		uint32_t *enable = (void *)plicsw->addr + PLICSW_ENABLE_BASE +
--				   PLICSW_ENABLE_STRIDE * i;
--		writel(enable_mask, enable);
--		writel(enable_mask, enable + 1);
--		enable_mask <<= 1;
-+		interrupt_id = i + 1;
-+		word_index   = interrupt_id / 32;
-+		enable_bit   = interrupt_id % 32;
-+		enable_reg   = plicsw->addr + PLICSW_ENABLE_BASE +
-+			       PLICSW_ENABLE_STRIDE * i + 4 * word_index;
-+		writel(BIT(enable_bit), (void *)enable_reg);
- 	}
- 
- 	/* Add PLICSW region to the root domain */
+ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
 -- 
 2.34.1
 
