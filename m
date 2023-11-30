@@ -1,128 +1,89 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 30 Nov 2023 20:42:13 +0800
-Subject: [PATCH v4 15/15] docs: pmu: Add Andes PMU node example
-In-Reply-To: <20231130124213.2590640-1-peterlin@andestech.com>
-References: <20231130124213.2590640-1-peterlin@andestech.com>
-Message-ID: <20231130124213.2590640-16-peterlin@andestech.com>
+From: Deepak Gupta <debug@rivosinc.com>
+Date: Thu, 30 Nov 2023 10:13:51 -0800
+Subject: [RFC PATCH 0/2] Add support for Supervisor Software Events
+ extension
+In-Reply-To: <20231130091319.1223849-1-cleger@rivosinc.com>
+References: <20231130091319.1223849-1-cleger@rivosinc.com>
+Message-ID: <ZWjQ39BZPzpQfMhz@debug.ba.rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PMU node example for event index to counter index mapping
-and selector value translation of Andes' CPUs.
+On Thu, Nov 30, 2023 at 10:13:17AM +0100, Cl?ment L?ger wrote:
+>The SBI Supervisor Software Events (SSE) extensions provides a mechanism
+>to inject software events from an SBI implementation to supervisor
+>software such that it preempts all other supervisor level traps and
+>interrupts [1].
+>
+>Various events are defined and can be send asynchronously to supervisor
+>software (RAS, PMU, DEBUG, Asynchronous page fault) from SBI as well
+>as platform specific events. Events can be either local (per-hart) or
+>global. Events can be nested on top of each other based on priority and
+>can interrupt the supervisor mode at any time.
+>
+>This PR adds support for this extension. First commit modifies interrupts
+>handling to pass the sbi traps regs through interrupt handlers in order to inject
+>SSE events from this context. Second one add the SSE support itself.
 
-Currently, there are 4 HPM counters that can be used to monitor
-all of the events for each hart.
+Cross-posting my response from github
 
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
-Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
-Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
----
-Changes v1 -> v2:
-  - sync up with datasheet
-Changes v2 -> v3:
-  - Include Anup's RB tag
-Changes v3 -> v4:
-  - Include Prabhakar's RB tag
----
- docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
 
-diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-index 8cfa08c..9b48f1e 100644
---- a/docs/pmu_support.md
-+++ b/docs/pmu_support.md
-@@ -125,3 +125,85 @@ pmu {
- 					  <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
- };
- ```
-+
-+### Example 3
-+
-+```
-+/*
-+ * For Andes 45-series platforms. The encodings can be found in the
-+ * "Machine Performance Monitoring Event Selector" section
-+ * http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
-+ */
-+pmu {
-+	compatible 			= "riscv,pmu";
-+	riscv,event-to-mhpmevent =
-+					 <0x1 0x0000 0x10>, /* CPU_CYCLES          -> Cycle count */
-+					 <0x2 0x0000 0x20>, /* INSTRUCTIONS        -> Retired instruction count */
-+					 <0x3 0x0000 0x41>, /* CACHE_REFERENCES    -> D-Cache access */
-+					 <0x4 0x0000 0x51>, /* CACHE_MISSES        -> D-Cache miss */
-+					 <0x5 0x0000 0x80>, /* BRANCH_INSTRUCTIONS -> Conditional branch instruction count */
-+					 <0x6 0x0000 0x02>, /* BRANCH_MISSES       -> Misprediction of conditional branches */
-+					 <0x10000 0x0000 0x61>,  /* L1D_READ_ACCESS  -> D-Cache load access */
-+					 <0x10001 0x0000 0x71>,  /* L1D_READ_MISS    -> D-Cache load miss */
-+					 <0x10002 0x0000 0x81>,  /* L1D_WRITE_ACCESS -> D-Cache store access */
-+					 <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
-+					 <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
-+					 <0x10009 0x0000 0x31>;  /* L1I_READ_MISS    -> I-Cache miss */
-+	riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
-+							<0x10000 0x10003 0x78>,
-+							<0x10008 0x10009 0x78>;
-+	riscv,raw-event-to-mhpmcounters =
-+						<0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
-+						<0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
-+						<0x0 0x30 0xffffffff 0xffffffff 0x78>, /* Integer load instruction count */
-+						<0x0 0x40 0xffffffff 0xffffffff 0x78>, /* Integer store instruction count */
-+						<0x0 0x50 0xffffffff 0xffffffff 0x78>, /* Atomic instruction count */
-+						<0x0 0x60 0xffffffff 0xffffffff 0x78>, /* System instruction count */
-+						<0x0 0x70 0xffffffff 0xffffffff 0x78>, /* Integer computational instruction count */
-+						<0x0 0x80 0xffffffff 0xffffffff 0x78>, /* Conditional branch instruction count */
-+						<0x0 0x90 0xffffffff 0xffffffff 0x78>, /* Taken conditional branch instruction count */
-+						<0x0 0xA0 0xffffffff 0xffffffff 0x78>, /* JAL instruction count */
-+						<0x0 0xB0 0xffffffff 0xffffffff 0x78>, /* JALR instruction count */
-+						<0x0 0xC0 0xffffffff 0xffffffff 0x78>, /* Return instruction count */
-+						<0x0 0xD0 0xffffffff 0xffffffff 0x78>, /* Control transfer instruction count */
-+						<0x0 0xE0 0xffffffff 0xffffffff 0x78>, /* EXEC.IT instruction count */
-+						<0x0 0xF0 0xffffffff 0xffffffff 0x78>, /* Integer multiplication instruction count */
-+						<0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
-+						<0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
-+						<0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
-+						<0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
-+						<0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
-+						<0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
-+						<0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
-+						<0x0 0x170 0xffffffff 0xffffffff 0x78>, /* Other floating-point instruction count */
-+						<0x0 0x180 0xffffffff 0xffffffff 0x78>, /* Integer multiplication and add/sub instruction count */
-+						<0x0 0x190 0xffffffff 0xffffffff 0x78>, /* Retired operation count */
-+						<0x0 0x01 0xffffffff 0xffffffff 0x78>, /* ILM access */
-+						<0x0 0x11 0xffffffff 0xffffffff 0x78>, /* DLM access */
-+						<0x0 0x21 0xffffffff 0xffffffff 0x78>, /* I-Cache access */
-+						<0x0 0x31 0xffffffff 0xffffffff 0x78>, /* I-Cache miss */
-+						<0x0 0x41 0xffffffff 0xffffffff 0x78>, /* D-Cache access */
-+						<0x0 0x51 0xffffffff 0xffffffff 0x78>, /* D-Cache miss */
-+						<0x0 0x61 0xffffffff 0xffffffff 0x78>, /* D-Cache load access */
-+						<0x0 0x71 0xffffffff 0xffffffff 0x78>, /* D-Cache load miss */
-+						<0x0 0x81 0xffffffff 0xffffffff 0x78>, /* D-Cache store access */
-+						<0x0 0x91 0xffffffff 0xffffffff 0x78>, /* D-Cache store miss */
-+						<0x0 0xA1 0xffffffff 0xffffffff 0x78>, /* D-Cache writeback */
-+						<0x0 0xB1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for I-Cache fill data */
-+						<0x0 0xC1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for D-Cache fill data */
-+						<0x0 0xD1 0xffffffff 0xffffffff 0x78>, /* Uncached fetch data access from bus */
-+						<0x0 0xE1 0xffffffff 0xffffffff 0x78>, /* Uncached load data access from bus */
-+						<0x0 0xF1 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached fetch data from bus */
-+						<0x0 0x101 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for uncached load data from bus */
-+						<0x0 0x111 0xffffffff 0xffffffff 0x78>, /* Main ITLB access */
-+						<0x0 0x121 0xffffffff 0xffffffff 0x78>, /* Main ITLB miss */
-+						<0x0 0x131 0xffffffff 0xffffffff 0x78>, /* Main DTLB access */
-+						<0x0 0x141 0xffffffff 0xffffffff 0x78>, /* Main DTLB miss */
-+						<0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
-+						<0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
-+						<0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
-+						<0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
-+						<0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
-+						<0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
-+};
-+```
--- 
-2.34.1
+I've a general comment on design of SSE which interferes with security.
+This is kind of a TOCTOU issue between kernel (less priv) and opensbi (more priv)
 
+If a control flow integrity scheme (software or hardware assisted) is implemented
+to ensure control safety of kernel indirect branches, then SSE provides a mechanism
+using an attacker can exercise free branches. I believe software base kCFI support
+for riscv is already in mainline.
+
+During time of event registration, kernel provides physical address of context. This
+context structure acts as context to be used for event inject in S (and along with PC,
+SP and other registers) Context to be used where interrupted context of S will be saved
+away so that it can be restored later once injected event has finished its course This
+entire context buffer is mapped in kernel space and thus is vulnerable to memory corruption.
+If any CFI scheme is implemented, its expected that an attacker has "write what anywhere" bug.
+Thus this design allows an attacker to corrupt this context and use mechanisms to trigger events
+that will make M mode to inject events in kernel and thereby allowing free branches (which goes
+against CFI schemes ) in kernel.
+
+Without understanding limitations of opensbi, I would like to propose a solution
+
+During registration, opensbi makes a copy of context structure.
+Similarly interrupted context can also live in protected region in M mode memory
+Let me know what you think.
+
+>
+>A RFC for Linux which uses this extension is available at [2].
+>
+>Link: https://lists.riscv.org/g/tech-prs/message/515 [1]
+>Link: https://lore.kernel.org/linux-riscv/20231026143122.279437-1-cleger at rivosinc.com/ [2]
+>
+>Cl?ment L?ger (2):
+>  lib: sbi: provides regs to sbi_ipi_process()
+>  lib: sbi: add support for Supervisor Software Events extension
+>
+> include/sbi/sbi_ecall_interface.h |  36 +-
+> include/sbi/sbi_error.h           |   4 +
+> include/sbi/sbi_ipi.h             |   6 +-
+> include/sbi/sbi_sse.h             | 222 +++++++
+> lib/sbi/Kconfig                   |   4 +
+> lib/sbi/objects.mk                |   4 +
+> lib/sbi/sbi_ecall.c               |   7 +-
+> lib/sbi/sbi_ecall_sse.c           |  61 ++
+> lib/sbi/sbi_init.c                |  13 +
+> lib/sbi/sbi_ipi.c                 |  12 +-
+> lib/sbi/sbi_sse.c                 | 963 ++++++++++++++++++++++++++++++
+> lib/sbi/sbi_tlb.c                 |   2 +-
+> lib/sbi/sbi_trap.c                |   4 +-
+> lib/utils/irqchip/imsic.c         |   2 +-
+> 14 files changed, 1327 insertions(+), 13 deletions(-)
+> create mode 100644 include/sbi/sbi_sse.h
+> create mode 100644 lib/sbi/sbi_ecall_sse.c
+> create mode 100644 lib/sbi/sbi_sse.c
+>
+>-- 
+>2.42.0
+>
 
