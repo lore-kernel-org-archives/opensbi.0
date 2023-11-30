@@ -1,62 +1,88 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 30 Nov 2023 20:42:08 +0800
-Subject: [PATCH v4 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
+Date: Thu, 30 Nov 2023 20:42:09 +0800
+Subject: [PATCH v4 11/15] platform: andes: Factor out is_andes() helper
 In-Reply-To: <20231130124213.2590640-1-peterlin@andestech.com>
 References: <20231130124213.2590640-1-peterlin@andestech.com>
-Message-ID: <20231130124213.2590640-11-peterlin@andestech.com>
+Message-ID: <20231130124213.2590640-12-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a Kconfig option to control PMU fixup, so the next
-stage software can dump the PMU node including event
-mapping information for debugging purposes.
+We will need is_andes(45) in the following patch,
+so factor out the code that parses marchid to make
+it reusable for checking any Andes CPU variants.
+
+Also improves the comment in ae350_hart_start().
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
 Changes v1 -> v2:
   - New patch
 Changes v2 -> v3:
-  - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
   - Include Anup's RB tag
 Changes v3 -> v4:
-  - Use Kconfig instead (suggested by Anup)
+  - No change
 ---
- lib/utils/fdt/Kconfig     | 7 +++++++
- lib/utils/fdt/fdt_fixup.c | 3 +++
- 2 files changed, 10 insertions(+)
+ platform/generic/andes/ae350.c           | 16 +++++++---------
+ platform/generic/include/andes/andes45.h |  6 ++++++
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/lib/utils/fdt/Kconfig b/lib/utils/fdt/Kconfig
-index 23b003b..9a42d15 100644
---- a/lib/utils/fdt/Kconfig
-+++ b/lib/utils/fdt/Kconfig
-@@ -15,4 +15,11 @@ config FDT_PMU
- 	bool "FDT performance monitoring unit (PMU) support"
- 	default n
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index dc769b7..088ec07 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -24,16 +24,14 @@ static struct smu_data smu = { 0 };
+ extern void __ae350_enable_coherency_warmboot(void);
+ extern void __ae350_disable_coherency(void);
  
-+config FDT_FIXUPS_PRESERVE_PMU_NODE
-+	bool "Preserve PMU node in device-tree"
-+	depends on FDT_PMU
-+	default n
-+	help
-+	  Preserve PMU node properties for debugging purposes.
-+
- endif
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index e213ded..5fc7673 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -394,5 +394,8 @@ void fdt_fixups(void *fdt)
- 	fdt_plic_fixup(fdt);
+-static __always_inline bool is_andes25(void)
+-{
+-	ulong marchid = csr_read(CSR_MARCHID);
+-	return !!(EXTRACT_FIELD(marchid, CSR_MARCHID_MICROID) == 0xa25);
+-}
+-
+ static int ae350_hart_start(u32 hartid, ulong saddr)
+ {
+-	/* Don't send wakeup command at boot-time */
+-	if (!sbi_init_count(hartid) || (is_andes25() && hartid == 0))
++	/*
++	 * Don't send wakeup command when:
++	 * 1) boot-time
++	 * 2) the target hart is non-sleepable 25-series hart0
++	 */
++	if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
+ 		return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
  
- 	fdt_reserved_memory_fixup(fdt);
+ 	/* Write wakeup command to the sleep hart */
+@@ -52,7 +50,7 @@ static int ae350_hart_stop(void)
+ 	 * L2-cache, instead of turning it off, it should fall
+ 	 * through and jump to warmboot_addr.
+ 	 */
+-	if (is_andes25() && hartid == 0)
++	if (is_andes(25) && hartid == 0)
+ 		return SBI_ENOTSUPP;
+ 
+ 	if (!smu_support_sleep_mode(&smu, DEEPSLEEP_MODE, hartid))
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index ce31617..01f63d4 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -43,6 +43,12 @@
+ 
+ #ifndef __ASSEMBLER__
+ 
++#define is_andes(series)				\
++({							\
++	char value = csr_read(CSR_MARCHID) & 0xff;	\
++	(series) == (value >> 4) * 10 + (value & 0x0f);	\
++})
 +
-+#ifndef CONFIG_FDT_FIXUPS_PRESERVE_PMU_NODE
- 	fdt_pmu_fixup(fdt);
-+#endif
- }
+ #define has_andes_pmu()					\
+ ({							\
+ 	(((csr_read(CSR_MMSC_CFG) &			\
 -- 
 2.34.1
 
