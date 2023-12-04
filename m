@@ -1,9 +1,10 @@
 From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 4 Dec 2023 01:05:35 -0800
-Subject: [PATCH v4 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
-In-Reply-To: <20231130124213.2590640-11-peterlin@andestech.com>
-References: <20231130124213.2590640-1-peterlin@andestech.com> <20231130124213.2590640-11-peterlin@andestech.com>
-Message-ID: <CAOnJCUL+e411bQZjcBpB21-yBNxgBRYrgTrqKFqoWWM=xfWMpw@mail.gmail.com>
+Date: Mon, 4 Dec 2023 01:09:26 -0800
+Subject: [PATCH v4 13/15] lib: utils: fdt_pmu: Do not iterate over the
+ fdt_pmu_evt_select table
+In-Reply-To: <20231130124213.2590640-14-peterlin@andestech.com>
+References: <20231130124213.2590640-1-peterlin@andestech.com> <20231130124213.2590640-14-peterlin@andestech.com>
+Message-ID: <CAOnJCU+NTQ=g8_KnNkm5_qZFy0+kNovYq2jK1AtSFPKSOtcdHw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,53 +14,32 @@ Content-Transfer-Encoding: 7bit
 On Thu, Nov 30, 2023 at 4:43?AM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add a Kconfig option to control PMU fixup, so the next
-> stage software can dump the PMU node including event
-> mapping information for debugging purposes.
+> The valid entry count is tracking by hw_event_count so there
+> is no need to check the whole table.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 > ---
-> Changes v1 -> v2:
->   - New patch
 > Changes v2 -> v3:
->   - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
->   - Include Anup's RB tag
+>   - New patch
 > Changes v3 -> v4:
->   - Use Kconfig instead (suggested by Anup)
+>   - No change
 > ---
->  lib/utils/fdt/Kconfig     | 7 +++++++
->  lib/utils/fdt/fdt_fixup.c | 3 +++
->  2 files changed, 10 insertions(+)
+>  lib/utils/fdt/fdt_pmu.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/utils/fdt/Kconfig b/lib/utils/fdt/Kconfig
-> index 23b003b..9a42d15 100644
-> --- a/lib/utils/fdt/Kconfig
-> +++ b/lib/utils/fdt/Kconfig
-> @@ -15,4 +15,11 @@ config FDT_PMU
->         bool "FDT performance monitoring unit (PMU) support"
->         default n
+> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> index cf3220f..c531b9a 100644
+> --- a/lib/utils/fdt/fdt_pmu.c
+> +++ b/lib/utils/fdt/fdt_pmu.c
+> @@ -25,7 +25,7 @@ uint64_t fdt_pmu_get_select_value(uint32_t event_idx)
+>         int i;
+>         struct fdt_pmu_hw_event_select_map *event;
 >
-> +config FDT_FIXUPS_PRESERVE_PMU_NODE
-> +       bool "Preserve PMU node in device-tree"
-> +       depends on FDT_PMU
-> +       default n
-> +       help
-> +         Preserve PMU node properties for debugging purposes.
-> +
->  endif
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index e213ded..5fc7673 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -394,5 +394,8 @@ void fdt_fixups(void *fdt)
->         fdt_plic_fixup(fdt);
->
->         fdt_reserved_memory_fixup(fdt);
-> +
-> +#ifndef CONFIG_FDT_FIXUPS_PRESERVE_PMU_NODE
->         fdt_pmu_fixup(fdt);
-> +#endif
->  }
+> -       for (i = 0; i < SBI_PMU_HW_EVENT_MAX; i++) {
+> +       for (i = 0; i < hw_event_count; i++) {
+>                 event = &fdt_pmu_evt_select[i];
+>                 if (event->eidx == event_idx)
+>                         return event->select;
 > --
 > 2.34.1
 >
