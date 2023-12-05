@@ -1,52 +1,34 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 4 Dec 2023 01:09:26 -0800
-Subject: [PATCH v4 13/15] lib: utils: fdt_pmu: Do not iterate over the
- fdt_pmu_evt_select table
-In-Reply-To: <20231130124213.2590640-14-peterlin@andestech.com>
-References: <20231130124213.2590640-1-peterlin@andestech.com> <20231130124213.2590640-14-peterlin@andestech.com>
-Message-ID: <CAOnJCU+NTQ=g8_KnNkm5_qZFy0+kNovYq2jK1AtSFPKSOtcdHw@mail.gmail.com>
+From: Matt Waltz <matthewwaltzis@gmail.com>
+Date: Mon,  4 Dec 2023 22:11:38 -0700
+Subject: [PATCH] firmware: fix section type for firmware dynamic
+Message-ID: <20231205051138.119568-1-matthewwaltzis@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 30, 2023 at 4:43?AM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> The valid entry count is tracking by hw_event_count so there
-> is no need to check the whole table.
->
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> ---
-> Changes v2 -> v3:
->   - New patch
-> Changes v3 -> v4:
->   - No change
-> ---
->  lib/utils/fdt/fdt_pmu.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> index cf3220f..c531b9a 100644
-> --- a/lib/utils/fdt/fdt_pmu.c
-> +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -25,7 +25,7 @@ uint64_t fdt_pmu_get_select_value(uint32_t event_idx)
->         int i;
->         struct fdt_pmu_hw_event_select_map *event;
->
-> -       for (i = 0; i < SBI_PMU_HW_EVENT_MAX; i++) {
-> +       for (i = 0; i < hw_event_count; i++) {
->                 event = &fdt_pmu_evt_select[i];
->                 if (event->eidx == event_idx)
->                         return event->select;
-> --
-> 2.34.1
->
+This section is only intended to hold data, and should not be executable.
 
+Signed-off-by: Matt Waltz <matthewwaltzis@gmail.com>
+---
+ firmware/fw_dynamic.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
+index 2b60196..ddd0fb4 100644
+--- a/firmware/fw_dynamic.S
++++ b/firmware/fw_dynamic.S
+@@ -129,7 +129,7 @@ fw_options:
+ 	REG_L	a0, (a0)
+ 	ret
+ 
+-	.section .entry, "ax", %progbits
++	.section .data, "aw", %progbits
+ 	.align 3
+ _dynamic_next_arg1:
+ 	RISCV_PTR 0x0
 -- 
-Regards,
-Atish
+2.34.1
+
 
