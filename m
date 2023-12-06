@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Dec 2023 18:01:42 +0530
-Subject: [PATCH v4 10/15] lib: utils: fdt_fixup: Allow preserving PMU properties
-In-Reply-To: <20231130124213.2590640-11-peterlin@andestech.com>
-References: <20231130124213.2590640-1-peterlin@andestech.com> <20231130124213.2590640-11-peterlin@andestech.com>
-Message-ID: <CAAhSdy0NHzXJyEDJwdW35LZK1xHcF=49EsdB2rL73KCR7S4BBw@mail.gmail.com>
+Date: Wed, 6 Dec 2023 18:19:31 +0530
+Subject: [PATCH v4 12/15] lib: utils: fdt_pmu: Make the fdt_pmu_evt_select
+ table global variable
+In-Reply-To: <20231130124213.2590640-13-peterlin@andestech.com>
+References: <20231130124213.2590640-1-peterlin@andestech.com> <20231130124213.2590640-13-peterlin@andestech.com>
+Message-ID: <CAAhSdy1T8iJmKayrOJDgeozU6FhnXH0u_g0AmVT3kmc00qS=vA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,62 +14,124 @@ Content-Transfer-Encoding: 7bit
 On Thu, Nov 30, 2023 at 6:13?PM Yu Chien Peter Lin
 <peterlin@andestech.com> wrote:
 >
-> Add a Kconfig option to control PMU fixup, so the next
-> stage software can dump the PMU node including event
-> mapping information for debugging purposes.
+> To allow platform override pmu_init() filling the translation table
+> fdt_pmu_evt_select[] when PMU node doesn't provide such information,
+> we need to share the table and its entry counter with other .c file.
+>
+> We also define the structures of PMU property in fdt_helper.h, so we
+> can initialize the mappings in arrays.
 >
 > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> ---
+> Changes v2 -> v3:
+>   - New patch
+> Changes v3 -> v4:
+>   - No change
+> ---
+>  include/sbi_utils/fdt/fdt_helper.h | 17 +++++++++++++++++
+>  include/sbi_utils/fdt/fdt_pmu.h    |  6 ++++++
+>  lib/utils/fdt/fdt_pmu.c            | 13 ++++---------
+>  3 files changed, 27 insertions(+), 9 deletions(-)
+>
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index 5c928ff..f6f505b 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -34,6 +34,23 @@ struct platform_uart_data {
+>         unsigned long reg_offset;
+>  };
+>
+> +struct fdt_pmu_hw_event_select_map {
+> +       uint32_t eidx;
+> +       uint64_t select;
+> +};
+> +
+> +struct fdt_pmu_hw_event_counter_map {
+> +       uint32_t eidx_start;
+> +       uint32_t eidx_end;
+> +       uint32_t ctr_map;
+> +};
+> +
+> +struct fdt_pmu_raw_event_counter_map {
+> +       uint64_t select;
+> +       uint64_t select_mask;
+> +       uint32_t ctr_map;
+> +};
+> +
 
-Looks good to me.
+These definitions can be moved to fdt_pmu.h. I will take care of it
+at the time of merging this patch.
+
+>  const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
+>                                        const struct fdt_match *match_table);
+>
+> diff --git a/include/sbi_utils/fdt/fdt_pmu.h b/include/sbi_utils/fdt/fdt_pmu.h
+> index c65cad7..9a13487 100644
+> --- a/include/sbi_utils/fdt/fdt_pmu.h
+> +++ b/include/sbi_utils/fdt/fdt_pmu.h
+> @@ -12,6 +12,7 @@
+>  #define __FDT_PMU_H__
+>
+>  #include <sbi/sbi_types.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+>
+>  #ifdef CONFIG_FDT_PMU
+>
+> @@ -45,6 +46,11 @@ int fdt_pmu_setup(void *fdt);
+>   */
+>  uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
+>
+> +/** The event index to selector value table instance */
+> +extern struct fdt_pmu_hw_event_select_map fdt_pmu_evt_select[];
+> +/** The number of valid entries in fdt_pmu_evt_select[] */
+> +extern uint32_t hw_event_count;
+> +
+>  #else
+>
+>  static inline void fdt_pmu_fixup(void *fdt) { }
+> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+> index a8d7648..cf3220f 100644
+> --- a/lib/utils/fdt/fdt_pmu.c
+> +++ b/lib/utils/fdt/fdt_pmu.c
+> @@ -17,18 +17,13 @@
+>
+>  #define FDT_PMU_HW_EVENT_MAX (SBI_PMU_HW_EVENT_MAX * 2)
+>
+> -struct fdt_pmu_hw_event_select {
+> -       uint32_t eidx;
+> -       uint64_t select;
+> -};
+> -
+> -static struct fdt_pmu_hw_event_select fdt_pmu_evt_select[FDT_PMU_HW_EVENT_MAX] = {0};
+> -static uint32_t hw_event_count;
+> +struct fdt_pmu_hw_event_select_map fdt_pmu_evt_select[FDT_PMU_HW_EVENT_MAX] = {0};
+> +uint32_t hw_event_count;
+>
+>  uint64_t fdt_pmu_get_select_value(uint32_t event_idx)
+>  {
+>         int i;
+> -       struct fdt_pmu_hw_event_select *event;
+> +       struct fdt_pmu_hw_event_select_map *event;
+>
+>         for (i = 0; i < SBI_PMU_HW_EVENT_MAX; i++) {
+>                 event = &fdt_pmu_evt_select[i];
+> @@ -65,7 +60,7 @@ int fdt_pmu_setup(void *fdt)
+>         int i, pmu_offset, len, result;
+>         const u32 *event_val;
+>         const u32 *event_ctr_map;
+> -       struct fdt_pmu_hw_event_select *event;
+> +       struct fdt_pmu_hw_event_select_map *event;
+>         uint64_t raw_selector, select_mask;
+>         u32 event_idx_start, event_idx_end, ctr_map;
+>
+> --
+> 2.34.1
+>
+
+Otherwise, it looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
-
-> ---
-> Changes v1 -> v2:
->   - New patch
-> Changes v2 -> v3:
->   - Rename to SBI_SCRATCH_PRESERVE_PMU_NODE (suggested by Anup)
->   - Include Anup's RB tag
-> Changes v3 -> v4:
->   - Use Kconfig instead (suggested by Anup)
-> ---
->  lib/utils/fdt/Kconfig     | 7 +++++++
->  lib/utils/fdt/fdt_fixup.c | 3 +++
->  2 files changed, 10 insertions(+)
->
-> diff --git a/lib/utils/fdt/Kconfig b/lib/utils/fdt/Kconfig
-> index 23b003b..9a42d15 100644
-> --- a/lib/utils/fdt/Kconfig
-> +++ b/lib/utils/fdt/Kconfig
-> @@ -15,4 +15,11 @@ config FDT_PMU
->         bool "FDT performance monitoring unit (PMU) support"
->         default n
->
-> +config FDT_FIXUPS_PRESERVE_PMU_NODE
-> +       bool "Preserve PMU node in device-tree"
-> +       depends on FDT_PMU
-> +       default n
-> +       help
-> +         Preserve PMU node properties for debugging purposes.
-> +
->  endif
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index e213ded..5fc7673 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -394,5 +394,8 @@ void fdt_fixups(void *fdt)
->         fdt_plic_fixup(fdt);
->
->         fdt_reserved_memory_fixup(fdt);
-> +
-> +#ifndef CONFIG_FDT_FIXUPS_PRESERVE_PMU_NODE
->         fdt_pmu_fixup(fdt);
-> +#endif
->  }
-> --
-> 2.34.1
->
 
