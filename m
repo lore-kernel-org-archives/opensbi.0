@@ -1,109 +1,58 @@
-From: Atish Patra <atishp@atishpatra.org>
-Date: Tue, 5 Dec 2023 17:55:33 -0800
-Subject: [PATCH v4 02/15] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
-In-Reply-To: <20231130124213.2590640-3-peterlin@andestech.com>
-References: <20231130124213.2590640-1-peterlin@andestech.com> <20231130124213.2590640-3-peterlin@andestech.com>
-Message-ID: <CAOnJCUJm_hAiNn8JgkWiRrH47bRfw7PBRh5dGog4+JV=z=yUJg@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 06 Dec 2023 15:46:22 +0800
+Subject: [v1 2/2] lib: sbi_pmu: Fix the counter info function
+In-Reply-To: <20231206010844.1739845-3-atishp@rivosinc.com>
+References: <20231206010844.1739845-1-atishp@rivosinc.com>
+	 <20231206010844.1739845-3-atishp@rivosinc.com>
+Message-ID: <883aa8bf780ce4f8b92ef08efd118b6baf704975.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 30, 2023 at 4:42?AM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> This patch makes the following changes:
->
-> - As sbi_platform_pmu_init() returns a negative error code on
->   failure, let sbi_pmu_init() print out the error code with
->   sbi_dprintf().
->
-> - In order to distinguish the SBI_EFAIL error returned by
->   sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
->   that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
->   generic_pmu_init() ignores such case.
->
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
-> Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+? 2023-12-05???? 17:08 -0800?Atish Patra???
+> The counter info should only return valid hardware counters for the ones
+> set in the counter mask. Otherwise, it will report incorrect number of
+> hardware counters to the supervisor if the platform has discontiguous
+> counters.
+> 
+> Fixes: c744ed77b18c ("lib: sbi_pmu: Enable noncontigous hpm event and counters")
+> 
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 > ---
-> Changes v1 -> v2:
->   - New patch
-> Changes v2 -> v3:
->   - Include Anup's RB tag
-> Changes v3 -> v4:
->   - Use sbi_dprintf() instead of hang on error
->   - Include Prabhakar's RB tag
-> ---
->  lib/sbi/sbi_pmu.c           | 6 +++++-
->  lib/utils/fdt/fdt_pmu.c     | 2 +-
->  platform/generic/platform.c | 8 +++++++-
->  3 files changed, 13 insertions(+), 3 deletions(-)
->
+> ?lib/sbi/sbi_pmu.c | 3 +++
+> ?1 file changed, 3 insertions(+)
+> 
 > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 185068b..2ee6e62 100644
+> index 185068bb1f43..ac5ae0af7da4 100644
 > --- a/lib/sbi/sbi_pmu.c
 > +++ b/lib/sbi/sbi_pmu.c
-> @@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
->         int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
->         struct sbi_pmu_hart_state *phs;
->         const struct sbi_platform *plat;
-> +       int rc;
->
->         if (cold_boot) {
->                 hw_event_map = sbi_calloc(sizeof(*hw_event_map),
-> @@ -972,7 +973,10 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
->
->                 plat = sbi_platform_ptr(scratch);
->                 /* Initialize hw pmu events */
-> -               sbi_platform_pmu_init(plat);
-> +               rc = sbi_platform_pmu_init(plat);
-> +               if (rc)
-> +                       sbi_dprintf("%s: platform pmu init failed "
-> +                                   "(error %d)\n", __func__, rc);
->
->                 /* mcycle & minstret is available always */
->                 if (!hpm_count)
-> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> index 83301bb..a8d7648 100644
-> --- a/lib/utils/fdt/fdt_pmu.c
-> +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -74,7 +74,7 @@ int fdt_pmu_setup(void *fdt)
->
->         pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
->         if (pmu_offset < 0)
-> -               return SBI_EFAIL;
-> +               return SBI_ENOENT;
->
->         event_ctr_map = fdt_getprop(fdt, pmu_offset,
->                                     "riscv,event-to-mhpmcounters", &len);
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 85acecd..fa400b9 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
->
->  static int generic_pmu_init(void)
->  {
-> -       return fdt_pmu_setup(fdt_get_address());
-> +       int rc;
-> +
-> +       rc = fdt_pmu_setup(fdt_get_address());
-> +       if (rc && rc != SBI_ENOENT)
-> +               return rc;
-> +
-> +       return 0;
->  }
->
->  static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
-> --
-> 2.34.1
->
+> @@ -885,6 +885,7 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+> ?	int width;
+> ?	union sbi_pmu_ctr_info cinfo = {0};
+> ?	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +	unsigned long counter_mask = (unsigned long)sbi_hart_mhpm_mask(scratch) | 0x5;
+> ?
+> ?	/* Sanity check. Counter1 is not mapped at all */
+> ?	if (cidx >= total_ctrs || cidx == 1)
+Because counter_mask does not contain counter1, the cidx==1 check can be removed here.
 
-
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
--- 
 Regards,
-Atish
+Xiang W
+
+> @@ -892,6 +893,8 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+> ?
+> ?	/* We have 31 HW counters with 31 being the last index(MHPMCOUNTER31) */
+> ?	if (cidx < num_hw_ctrs) {
+> +		if (!(__test_bit(cidx, &counter_mask)))
+> +			return SBI_EINVAL;
+> ?		cinfo.type = SBI_PMU_CTR_TYPE_HW;
+> ?		cinfo.csr = CSR_CYCLE + cidx;
+> ?		/* mcycle & minstret are always 64 bit */
+> -- 
+> 2.34.1
+> 
+> 
+
 
