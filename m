@@ -1,42 +1,69 @@
 From: Yangyu Chen <cyy@cyyself.name>
-Date: Fri,  8 Dec 2023 06:04:05 +0800
-Subject: [PATCH 1/7] lib: sbi: Probe pmp_count in read-only
+Date: Fri,  8 Dec 2023 06:04:09 +0800
+Subject: [PATCH 5/7] lib: sbi: adjust first usable PMP index to sbi_hart_pmp_reserved
 In-Reply-To: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
 References: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
-Message-ID: <tencent_543699631DAE560C78484D23191FA460AE06@qq.com>
+Message-ID: <tencent_38EE478C58084EE3031FA1609CF690632906@qq.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Some CPU implementations such as T-Head C908 will raise illegal
-instruction exception when writing a different value to some pmpaddr
-which is locked.
-
-To avoid this, a solution is to probe pmp_count in read-only. This will
-not affect the existing CPU implementation as RISC-V Privileged
-Architecture specified that access to a non-existent CSR raises an
-illegal instruction exception.
+Since we have probed the maximum index of locked PMPs and marked PMPs
+reserved from index 0 to it. We can use the number of reserved PMPs as
+the first usable PMP index.
 
 Signed-off-by: Yangyu Chen <cyy@cyyself.name>
 ---
- lib/sbi/sbi_hart.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/sbi/sbi_hart.h | 2 +-
+ lib/sbi/sbi_hart.c     | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 8df655c..aeaff45 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -65,7 +65,7 @@ enum sbi_hart_extensions {
+  * unmapped. sbi_hart_map_saddr/sbi_hart_unmap_saddr function
+  * pair should be used to map/unmap the shared memory.
+  */
+-#define SBI_SMEPMP_RESV_ENTRY		0
++#define SBI_SMEPMP_RESV_ENTRY		sbi_hart_pmp_reserved(scratch)
+ 
+ struct sbi_hart_features {
+ 	bool detected;
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index c948373..49d1454 100644
+index f8f7b82..f836b1c 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -877,7 +877,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 		hfeatures->pmp_gran =  1 << (sbi_ffs(val) + 2);
- 		hfeatures->pmp_addr_bits = sbi_fls(val) + 1;
- 		/* Detect number of PMP regions. At least PMPADDR0 should be implemented*/
--		__check_csr_64(CSR_PMPADDR0, 0, val, pmp_count, __pmp_skip);
-+		__check_csr_64(CSR_PMPADDR0, true, 0, pmp_count, __pmp_skip);
- 	}
- __pmp_skip:
- 	/* Detect number of MHPM counters */
+@@ -401,7 +401,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+ 
+ 	/* Program M-only regions when MML is not set. */
+-	pmp_idx = 0;
++	pmp_idx = sbi_hart_pmp_reserved(scratch);
+ 	sbi_domain_for_each_memregion(dom, reg) {
+ 		/* Skip reserved entry */
+ 		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+@@ -427,7 +427,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 	csr_set(CSR_MSECCFG, MSECCFG_MML);
+ 
+ 	/* Program shared and SU-only regions */
+-	pmp_idx = 0;
++	pmp_idx = sbi_hart_pmp_reserved(scratch);
+ 	sbi_domain_for_each_memregion(dom, reg) {
+ 		/* Skip reserved entry */
+ 		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+@@ -464,7 +464,7 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+ {
+ 	struct sbi_domain_memregion *reg;
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	unsigned int pmp_idx = 0;
++	unsigned int pmp_idx = sbi_hart_pmp_reserved(scratch);
+ 	unsigned int pmp_flags;
+ 	unsigned long pmp_addr;
+ 
 -- 
 2.43.0
 
