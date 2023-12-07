@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 7 Dec 2023 08:59:54 +0530
+Date: Thu, 7 Dec 2023 09:02:18 +0530
 Subject: [v1 1/2] lib: sbi_pmu: Add PMU snapshot definitions
 In-Reply-To: <20231206010844.1739845-2-atishp@rivosinc.com>
 References: <20231206010844.1739845-1-atishp@rivosinc.com> <20231206010844.1739845-2-atishp@rivosinc.com>
-Message-ID: <CAAhSdy0p9jirbBG-ES0_m8SghWJRQyjVUina1xCCannfGktQpw@mail.gmail.com>
+Message-ID: <CAAhSdy0eR3B=rvcd-AVpUu7J0kDhHgXjQCr+qijY_XD-KGZH9Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,14 +20,6 @@ On Wed, Dec 6, 2023 at 6:39?AM Atish Patra <atishp@rivosinc.com> wrote:
 > intended.
 >
 > Signed-off-by: Atish Patra <atishp@rivosinc.com>
-
-Looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
 >  include/sbi/sbi_ecall_interface.h | 3 +++
 >  lib/sbi/sbi_ecall_pmu.c           | 2 ++
@@ -67,10 +59,18 @@ Anup
 >                 break;
 > +       case SBI_EXT_PMU_SNAPSHOT_SET_SHMEM:
 > +               /* fallthrough as OpenSBI doesn't support snapshot yet */
+
+We should also return SBI_ERR_NO_SHMEM when:
+1) SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT is set in PMU start call
+2) SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT is set in PMU stop call.
+
 >         default:
 >                 ret = SBI_ENOTSUPP;
 >         }
 > --
 > 2.34.1
 >
+
+Regards,
+Anup
 
