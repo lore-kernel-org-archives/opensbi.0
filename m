@@ -1,89 +1,75 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Dec 2023 19:53:48 +0530
-Subject: [PATCH v4 00/15] Add Andes PMU extension support
-In-Reply-To: <20231130124213.2590640-1-peterlin@andestech.com>
-References: <20231130124213.2590640-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy0sDZk9xTmVhHyGuc-X_B5U6UhE7-igQWQa+NP0cBUCpw@mail.gmail.com>
+Date: Thu, 7 Dec 2023 08:59:54 +0530
+Subject: [v1 1/2] lib: sbi_pmu: Add PMU snapshot definitions
+In-Reply-To: <20231206010844.1739845-2-atishp@rivosinc.com>
+References: <20231206010844.1739845-1-atishp@rivosinc.com> <20231206010844.1739845-2-atishp@rivosinc.com>
+Message-ID: <CAAhSdy0p9jirbBG-ES0_m8SghWJRQyjVUina1xCCannfGktQpw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 30, 2023 at 6:12?PM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
+On Wed, Dec 6, 2023 at 6:39?AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> This patch series enables perf tool to utilize Andes PMU
-> extension via PMU SBI calls, provides PMU device callbacks
-> to achieve event sampling and mode filtering.
+> OpenSBI doesn't support SBI PMU snapshot yet as there is not much benefit
+> unless the multiple counters overflow at the same time.
 >
-> The last patch provides a PMU node example used on AX45MP cores.
+> Just add the definition and return not supported error at this moment. The
+> default returned error is also not supported. Thus, no functional change
+> intended.
 >
-> The OpenSBI and Linux patches can be found on Andes Technology GitHub
-> - https://github.com/andestech/opensbi/commits/andes-pmu-support-v4
-> - https://github.com/andestech/linux/commits/andes-pmu-support-v4
->
-> For more details about Andes PMU extension, see Counter Related
-> Registers in the AX45MP datasheet:
-> http://www.andestech.com/wp-content/uploads/AX45MP-1C-Rev.-5.0.0-Datasheet.pdf
->
-> Leo Yu-Chi Liang (1):
->   lib: ipi: Adjust Andes PLICSW to single-bit-per-hart scheme
->
-> Yu Chien Peter Lin (14):
->   sbi: sbi_pmu: Improve sbi_pmu_init() error handling
->   lib: sbi: Add XAndesPMU in hart extensions
->   sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device
->   platform: include: andes45: Add PMU related CSR defines
->   platform: generic: Introduce pmu_init() platform override
->   platform: andes: Add Andes custom PMU support
->   platform: andes: Enable Andes PMU for AE350
->   platform: rzfive: Enable Andes PMU for RZ/Five
->   lib: utils: fdt_fixup: Allow preserving PMU properties
->   platform: andes: Factor out is_andes() helper
->   lib: utils: fdt_pmu: Make the fdt_pmu_evt_select table global variable
->   lib: utils: fdt_pmu: Do not iterate over the fdt_pmu_evt_select table
->   platform: andes: Add Andes default PMU mapping support
->   docs: pmu: Add Andes PMU node example
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
-Applied all patches to the riscv/opensbi repo except PATCH14 which
-has pending comment from Atish.
+Looks good to me.
 
-Thanks,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
 Anup
 
+> ---
+>  include/sbi/sbi_ecall_interface.h | 3 +++
+>  lib/sbi/sbi_ecall_pmu.c           | 2 ++
+>  2 files changed, 5 insertions(+)
 >
->  docs/pmu_support.md                          |  82 ++++
->  include/sbi/sbi_ecall_interface.h            |   5 +
->  include/sbi/sbi_hart.h                       |   2 +
->  include/sbi/sbi_pmu.h                        |   6 +
->  include/sbi_utils/fdt/fdt_helper.h           |  17 +
->  include/sbi_utils/fdt/fdt_pmu.h              |   6 +
->  include/sbi_utils/ipi/andes_plicsw.h         |  23 +-
->  lib/sbi/sbi_hart.c                           |   3 +
->  lib/sbi/sbi_pmu.c                            |  26 +-
->  lib/utils/fdt/Kconfig                        |   7 +
->  lib/utils/fdt/fdt_fixup.c                    |   3 +
->  lib/utils/fdt/fdt_pmu.c                      |  17 +-
->  lib/utils/ipi/andes_plicsw.c                 | 104 ++---
->  platform/generic/Kconfig                     |   4 +
->  platform/generic/andes/Kconfig               |  15 +
->  platform/generic/andes/ae350.c               |  19 +-
->  platform/generic/andes/andes_hpm.c           | 405 +++++++++++++++++++
->  platform/generic/andes/andes_pmu.c           | 105 +++++
->  platform/generic/andes/objects.mk            |   2 +
->  platform/generic/include/andes/andes45.h     |  32 ++
->  platform/generic/include/andes/andes_hpm.h   |  81 ++++
->  platform/generic/include/andes/andes_pmu.h   |  34 ++
->  platform/generic/include/platform_override.h |   1 +
->  platform/generic/platform.c                  |  14 +-
->  platform/generic/renesas/rzfive/rzfive.c     |   5 +-
->  25 files changed, 908 insertions(+), 110 deletions(-)
->  create mode 100644 platform/generic/andes/andes_hpm.c
->  create mode 100644 platform/generic/andes/andes_pmu.c
->  create mode 100644 platform/generic/include/andes/andes_hpm.h
->  create mode 100644 platform/generic/include/andes/andes_pmu.h
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 1fe469e37078..b4e6f63e0bf0 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -103,6 +103,7 @@
+>  #define SBI_EXT_PMU_COUNTER_STOP       0x4
+>  #define SBI_EXT_PMU_COUNTER_FW_READ    0x5
+>  #define SBI_EXT_PMU_COUNTER_FW_READ_HI 0x6
+> +#define SBI_EXT_PMU_SNAPSHOT_SET_SHMEM 0x7
 >
+>  /** General pmu event codes specified in SBI PMU extension */
+>  enum sbi_pmu_hw_generic_events_t {
+> @@ -241,9 +242,11 @@ enum sbi_pmu_ctr_type {
+>
+>  /* Flags defined for counter start function */
+>  #define SBI_PMU_START_FLAG_SET_INIT_VALUE (1 << 0)
+> +#define SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT (1 << 1)
+>
+>  /* Flags defined for counter stop function */
+>  #define SBI_PMU_STOP_FLAG_RESET (1 << 0)
+> +#define SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT (1 << 1)
+>
+>  /* SBI function IDs for DBCN extension */
+>  #define SBI_EXT_DBCN_CONSOLE_WRITE             0x0
+> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
+> index 1d5d512eeed7..c58591106d09 100644
+> --- a/lib/sbi/sbi_ecall_pmu.c
+> +++ b/lib/sbi/sbi_ecall_pmu.c
+> @@ -74,6 +74,8 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
+>         case SBI_EXT_PMU_COUNTER_STOP:
+>                 ret = sbi_pmu_ctr_stop(regs->a0, regs->a1, regs->a2);
+>                 break;
+> +       case SBI_EXT_PMU_SNAPSHOT_SET_SHMEM:
+> +               /* fallthrough as OpenSBI doesn't support snapshot yet */
+>         default:
+>                 ret = SBI_ENOTSUPP;
+>         }
 > --
 > 2.34.1
 >
