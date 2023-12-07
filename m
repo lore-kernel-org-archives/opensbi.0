@@ -1,45 +1,48 @@
 From: Yangyu Chen <cyy@cyyself.name>
-Date: Fri,  8 Dec 2023 06:02:01 +0800
-Subject: [PATCH 0/7] lib: sbi: Probe PMP locked entries and adjust first usable PMP index
-Message-ID: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
+Date: Fri,  8 Dec 2023 06:04:06 +0800
+Subject: [PATCH 2/7] lib: sbi: detect the number of PMP entries first
+In-Reply-To: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
+References: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
+Message-ID: <tencent_595E4C50085063265F9560B676806315EE06@qq.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Some platform which has different domains for different CPU cores may
-disable some device by PMP in the bootloader. For example, Canaan
-Kendryte K230 provides SDK which locks some PMP entries in M-Mode
-U-Boot[1]. As a result, the mainline OpenSBI running on this bootloader
-will probe the PMP Count = 1 instead of 64 and PMP Granularity = 4
-instead of 4096, which will cause the OpenSBI to have not enough PMPs to
-set such regions and the only probed PMP entry is locked. Thus, we will
-have no PMP to allow S-Mode main memory access, causing the S-Mode
-software traps due to Instruction Access Fault over and over again and
-never executed.
+To further probe each PMP entry whether is locked or not, we should
+detect the number of PMP entries first.
 
-This patch set probes the PMP locked entries and adjusts the first
-usable PMP index to the maximum index of PMP locked entries + 1. Thus,
-the OpenSBI will skip the PMP entries which are locked before OpenSBI
-starts.
+Signed-off-by: Yangyu Chen <cyy@cyyself.name>
+---
+ lib/sbi/sbi_hart.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-[1] https://github.com/kendryte/k230_sdk/blob/72be167ad4b3a7e91f7cc6abbe576d347b885af4/src/little/uboot/arch/riscv/cpu/k230/cpu.c#L82
-
-Yangyu Chen (7):
-  lib: sbi: Probe pmp_count in read-only
-  lib: sbi: detect the number of PMP entries first
-  lib: sbi: Probe reserved PMP regions before OpenSBI start
-  lib: sbi: probe PMP allowed addr from first usable PMP
-  lib: sbi: adjust first usable PMP index to sbi_hart_pmp_reserved
-  lib: sbi: Not use smepmp if has pmp reserved and MSECCFG.MML=1
-  lib: sbi: show the number of PMP Reserved
-
- include/sbi/sbi_hart.h |  4 +-
- lib/sbi/sbi_hart.c     | 87 +++++++++++++++++++++++++++++++-----------
- lib/sbi/sbi_init.c     |  2 +
- 3 files changed, 69 insertions(+), 24 deletions(-)
-
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 49d1454..eaa69ad 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -868,6 +868,9 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	__check_csr_32(__csr + 0, __rdonly, __wrval, __field, __skip)	\
+ 	__check_csr_32(__csr + 32, __rdonly, __wrval, __field, __skip)
+ 
++	/* Detect number of PMP regions. At least PMPADDR0 should be implemented*/
++	__check_csr_64(CSR_PMPADDR0, true, 0, pmp_count, __pmp_count_probed);
++__pmp_count_probed:
+ 	/**
+ 	 * Detect the allowed address bits & granularity. At least PMPADDR0
+ 	 * should be implemented.
+@@ -876,10 +879,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	if (val) {
+ 		hfeatures->pmp_gran =  1 << (sbi_ffs(val) + 2);
+ 		hfeatures->pmp_addr_bits = sbi_fls(val) + 1;
+-		/* Detect number of PMP regions. At least PMPADDR0 should be implemented*/
+-		__check_csr_64(CSR_PMPADDR0, true, 0, pmp_count, __pmp_skip);
+ 	}
+-__pmp_skip:
+ 	/* Detect number of MHPM counters */
+ 	__check_hpm_csr(CSR_MHPMCOUNTER3, mhpm_mask);
+ 	hfeatures->mhpm_bits = hart_mhpm_get_allowed_bits();
 -- 
 2.43.0
 
