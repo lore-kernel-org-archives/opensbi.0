@@ -1,101 +1,41 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 8 Dec 2023 16:32:05 +0530
-Subject: [PATCH v2 2/2] lib: sbi: Replace __atomic_op_bit_ord with
- __atomic intrinsics
-In-Reply-To: <20231115145929.488427-3-wxjstz@126.com>
-References: <20231115145929.488427-1-wxjstz@126.com> <20231115145929.488427-3-wxjstz@126.com>
-Message-ID: <CAAhSdy2gEKUONstUZPHirxGUjDN==zLd0PxT2SVF5NYo=xYC5g@mail.gmail.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Fri,  8 Dec 2023 19:18:52 +0800
+Subject: [PATCH v2] lib: utils/fdt: Allow to use reg-names when parsing ACLINT
+In-Reply-To: <IA1PR20MB49531D4EFD4626834B5C604ABB8BA@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB49531D4EFD4626834B5C604ABB8BA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <IA1PR20MB4953F06E1A04725F8B376AEBBB8AA@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 15, 2023 at 8:30?PM Xiang W <wxjstz@126.com> wrote:
 >
-> Simplify atomic-related bit operations through __atomic intrinsics.
+>On Sat, Nov 18, 2023 at 12:58?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>>
+>> Hi Anup,
+>>
+>> Now It seems that kernel prefers to use T-HEAD aclint timer binding for
+>> the ACLINT draft, so this patch may be heavily modified. As a result,
+>> I suggest to temporarily hold this patch to make sure there is no need to
+>> change.
+>>
+>> This related kernel mail is on [1], feel free to give your advice. I will
+>> inform you once everything is confirmed.
+>>
+>> [1] https://lore.kernel.org/all/IA1PR20MB4953C82499C5D81D2C6A020BBBB6A at IA1PR20MB4953.namprd20.prod.outlook.com/
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  lib/sbi/riscv_atomic.c | 40 ++++++++++++----------------------------
->  1 file changed, 12 insertions(+), 28 deletions(-)
+>Yes, I was anyway going to wait a few weeks before merging this.
 >
-> diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
-> index 477f709..1c852a1 100644
-> --- a/lib/sbi/riscv_atomic.c
-> +++ b/lib/sbi/riscv_atomic.c
-> @@ -206,40 +206,24 @@ unsigned long atomic_raw_xchg_ulong(volatile unsigned long *ptr,
->  #endif
->  }
+>Regards,
+>Anup
 >
-> -#if (__SIZEOF_POINTER__ == 8)
-> -#define __AMO(op) "amo" #op ".d"
-> -#elif (__SIZEOF_POINTER__ == 4)
-> -#define __AMO(op) "amo" #op ".w"
-> -#else
-> -#error "Unexpected __SIZEOF_POINTER__"
-> -#endif
-> -
-> -#define __atomic_op_bit_ord(op, mod, nr, addr, ord)                          \
-> -       ({                                                                   \
-> -               unsigned long __res, __mask;                                 \
-> -               __mask = BIT_MASK(nr);                                       \
-> -               __asm__ __volatile__(__AMO(op) #ord " %0, %2, %1"            \
-> -                                    : "=r"(__res), "+A"(addr[BIT_WORD(nr)]) \
-> -                                    : "r"(mod(__mask))                      \
-> -                                    : "memory");                            \
-> -               __res & mask ? 1 : 0;                                        \
-> -       })
-> -
-> -#define __atomic_op_bit(op, mod, nr, addr) \
-> -       __atomic_op_bit_ord(op, mod, nr, addr, .aqrl)
-> -
-> -/* Bitmask modifiers */
-> -#define __NOP(x) (x)
-> -#define __NOT(x) (~(x))
-> -
->  inline int atomic_raw_set_bit(int nr, volatile unsigned long *addr)
->  {
-> -       return __atomic_op_bit(or, __NOP, nr, addr);
-> +       volatile unsigned long *ptr;
-> +       unsigned long res, mask;
-> +       mask = BIT_MASK(nr);
-> +       ptr = &addr[BIT_WORD(nr)];
-> +       res = __atomic_fetch_or(ptr, mask, __ATOMIC_ACQ_REL);
 
-The __atomic_op_bit_ord() did not have any fences so we should
-use __ATOMIC_RELAXED instead of __ATOMIC_ACQ_REL. I have
-taken care of this at the time of merging this patch.
+Hi, Anup,
 
-> +       return res & mask ? 1 : 0;
->  }
->
->  inline int atomic_raw_clear_bit(int nr, volatile unsigned long *addr)
->  {
-> -       return __atomic_op_bit(and, __NOT, nr, addr);
-> +       volatile unsigned long *ptr;
-> +       unsigned long res, mask;
-> +       mask = BIT_MASK(nr);
-> +       ptr = &addr[BIT_WORD(nr)];
-> +       res = __atomic_fetch_and(ptr, ~mask, __ATOMIC_ACQ_REL);
+Now the releated binding is already applied. I think it is time to continue.
+Thanks for your effort.
 
-Same as above.
-
-> +       return res & mask ? 1 : 0;
->  }
->
->  inline int atomic_set_bit(int nr, atomic_t *atom)
-> --
-> 2.42.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
+Regards,
+Inochi
 
