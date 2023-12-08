@@ -1,41 +1,94 @@
-From: Inochi Amaoto <inochiama@outlook.com>
-Date: Fri,  8 Dec 2023 19:18:52 +0800
-Subject: [PATCH v2] lib: utils/fdt: Allow to use reg-names when parsing ACLINT
-In-Reply-To: <IA1PR20MB49531D4EFD4626834B5C604ABB8BA@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49531D4EFD4626834B5C604ABB8BA@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <IA1PR20MB4953F06E1A04725F8B376AEBBB8AA@IA1PR20MB4953.namprd20.prod.outlook.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 8 Dec 2023 17:05:06 +0530
+Subject: [PATCH] lib: sbi: Prevent redundant sbi_ipi_process
+In-Reply-To: <20231122125444.333876-1-wxjstz@126.com>
+References: <20231122125444.333876-1-wxjstz@126.com>
+Message-ID: <CAAhSdy2uLzvRrpnai=O3nB7GCn4J2Fe_JA6X1D_KPo2HZzkD=A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On Wed, Nov 22, 2023 at 6:25?PM Xiang W <wxjstz@126.com> wrote:
 >
->On Sat, Nov 18, 2023 at 12:58?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->>
->> Hi Anup,
->>
->> Now It seems that kernel prefers to use T-HEAD aclint timer binding for
->> the ACLINT draft, so this patch may be heavily modified. As a result,
->> I suggest to temporarily hold this patch to make sure there is no need to
->> change.
->>
->> This related kernel mail is on [1], feel free to give your advice. I will
->> inform you once everything is confirmed.
->>
->> [1] https://lore.kernel.org/all/IA1PR20MB4953C82499C5D81D2C6A020BBBB6A at IA1PR20MB4953.namprd20.prod.outlook.com/
+> sbi_ipi_process reads ipi_type through xchg. This may occur between
+> set ipi_type and send_ipi, which will result in redundant interrupt
+> processing.
 >
->Yes, I was anyway going to wait a few weeks before merging this.
+> The specific case is as follows:
 >
->Regards,
->Anup
+>                 hart A             hart B
+> send ipi--------->|                  |
+>                   | clear ipi        |
+>                   |                  | set ipi_type
+>                   |                  |
+>                   | xchg ipi_type    |
+>                   |                  |
+>                   |<-----------------| send ipi
+>                   |                  |
+>                   |                  |
 >
+> This patch fixes this issue.
 
-Hi, Anup,
+The optimization is in the right direction but the commit
+description is not appropriate.
 
-Now the releated binding is already applied. I think it is time to continue.
-Thanks for your effort.
+This optimization is not about addressing a very specific
+case mentioned above rather it's above avoid unnecessary
+send_ipi() call when multiple HARTs try to send IPI to the
+same HART.
 
-Regards,
-Inochi
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> ---
+>  lib/sbi/sbi_ipi.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 0bf446a..6f25a7e 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -39,7 +39,7 @@ static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
+>  static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
+>                         u32 event, void *data)
+>  {
+> -       int ret;
+> +       int ret = 0;
+>         struct sbi_scratch *remote_scratch = NULL;
+>         struct sbi_ipi_data *ipi_data;
+>         const struct sbi_ipi_event_ops *ipi_ops;
+> @@ -66,9 +66,8 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
+>          * Set IPI type on remote hart's scratch area and
+>          * trigger the interrupt
+>          */
+> -       atomic_raw_set_bit(event, &ipi_data->ipi_type);
+> -
+> -       ret = sbi_ipi_raw_send(remote_hartindex);
+> +       if (__atomic_fetch_or(&ipi_data->ipi_type, BIT(event), __ATOMIC_ACQ_REL) == 0)
+
+We should use __ATOMIC_RELAXED here because we already have
+barriers in sbi_ipi_raw_send().
+
+> +               ret = sbi_ipi_raw_send(remote_hartindex);
+>
+>         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
+>
+> --
+> 2.42.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+I have taken care of the above at the time of merging this patch.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
 
