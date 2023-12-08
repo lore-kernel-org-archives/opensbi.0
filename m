@@ -1,130 +1,124 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 8 Dec 2023 22:39:53 +0530
-Subject: [RFC PATCH] lib: sbi_hart: Store PMP granularity as log base 2
-In-Reply-To: <20231122194406.229255-1-samuel.holland@sifive.com>
-References: <20231122194406.229255-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy0x15dE6k21Rfcia2w3NCia9Pj-m=bDbRYP+xZ6aekhkg@mail.gmail.com>
+Date: Fri, 8 Dec 2023 22:59:54 +0530
+Subject: [v2 1/2] lib: sbi_pmu: Add PMU snapshot definitions
+In-Reply-To: <20231207222351.1874852-2-atishp@rivosinc.com>
+References: <20231207222351.1874852-1-atishp@rivosinc.com> <20231207222351.1874852-2-atishp@rivosinc.com>
+Message-ID: <CAAhSdy3kQ6AdKYYDEjKsr+ktpgWPA-mNvMLSZpM+HENJCpFqvA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 23, 2023 at 1:14?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Fri, Dec 8, 2023 at 3:54?AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> This minimizes the need to call log2roundup() to recover the log value.
+> OpenSBI doesn't support SBI PMU snapshot yet as there is not much benefit
+> unless the multiple counters overflow at the same time.
 >
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-> ---
-> This actually ends up with a net increase in code size, so it's probably
-> not worth merging. I'm sending the patch for completeness.
-
-I agree there is not much difference with this patch but I think tracking
-PMP granularity as power-of-2 (log2) is better because OpenSBI domain
-region sizes are also power-of-2.
-
-I rebased this patch on the latest OpenSBI and merged it as well with my
-Reviewed-by.
+> Just add the definition and return not supported error at this moment. The
+> default returned error is also not supported. Thus, no functional change
+> intended.
+>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
 Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
+> ---
+>  include/sbi/sbi_ecall_interface.h | 6 +++++-
+>  include/sbi/sbi_error.h           | 1 +
+>  lib/sbi/sbi_ecall_pmu.c           | 2 ++
+>  lib/sbi/sbi_pmu.c                 | 6 ++++++
+>  4 files changed, 14 insertions(+), 1 deletion(-)
 >
->  include/sbi/sbi_hart.h |  4 ++--
->  lib/sbi/sbi_hart.c     | 10 +++++-----
->  lib/sbi/sbi_init.c     |  2 +-
->  3 files changed, 8 insertions(+), 8 deletions(-)
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 1fe469e37078..d8c646d7b073 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -103,6 +103,7 @@
+>  #define SBI_EXT_PMU_COUNTER_STOP       0x4
+>  #define SBI_EXT_PMU_COUNTER_FW_READ    0x5
+>  #define SBI_EXT_PMU_COUNTER_FW_READ_HI 0x6
+> +#define SBI_EXT_PMU_SNAPSHOT_SET_SHMEM 0x7
 >
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 6ee49ff..cbcac78 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -71,7 +71,7 @@ struct sbi_hart_features {
->         unsigned long extensions[BITS_TO_LONGS(SBI_HART_EXT_MAX)];
->         unsigned int pmp_count;
->         unsigned int pmp_addr_bits;
-> -       unsigned long pmp_gran;
-> +       unsigned int pmp_gran_log2;
->         unsigned int mhpm_mask;
->         unsigned int mhpm_bits;
->  };
-> @@ -91,7 +91,7 @@ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
->  void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
->                               const char *prefix, const char *suffix);
->  unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
-> -unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch);
-> +unsigned int sbi_hart_pmp_gran_log2(struct sbi_scratch *scratch);
->  unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
->  unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
->  int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index bf8792a..5141160 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -267,12 +267,12 @@ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
->         return hfeatures->pmp_count;
->  }
+>  /** General pmu event codes specified in SBI PMU extension */
+>  enum sbi_pmu_hw_generic_events_t {
+> @@ -241,9 +242,11 @@ enum sbi_pmu_ctr_type {
 >
-> -unsigned long sbi_hart_pmp_granularity(struct sbi_scratch *scratch)
-> +unsigned int sbi_hart_pmp_gran_log2(struct sbi_scratch *scratch)
->  {
->         struct sbi_hart_features *hfeatures =
->                         sbi_scratch_offset_ptr(scratch, hart_features_offset);
+>  /* Flags defined for counter start function */
+>  #define SBI_PMU_START_FLAG_SET_INIT_VALUE (1 << 0)
+> +#define SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT (1 << 1)
 >
-> -       return hfeatures->pmp_gran;
-> +       return hfeatures->pmp_gran_log2;
->  }
+>  /* Flags defined for counter stop function */
+>  #define SBI_PMU_STOP_FLAG_RESET (1 << 0)
+> +#define SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT (1 << 1)
 >
->  unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
-> @@ -508,7 +508,7 @@ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
->         if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
->                 return SBI_ENOSPC;
+>  /* SBI function IDs for DBCN extension */
+>  #define SBI_EXT_DBCN_CONSOLE_WRITE             0x0
+> @@ -309,8 +312,9 @@ enum sbi_cppc_reg_id {
+>  #define SBI_ERR_ALREADY_AVAILABLE              -6
+>  #define SBI_ERR_ALREADY_STARTED                        -7
+>  #define SBI_ERR_ALREADY_STOPPED                        -8
+> +#define SBI_ERR_NO_SHMEM                       -9
 >
-> -       for (order = log2roundup(MAX(sbi_hart_pmp_granularity(scratch), size));
-> +       for (order = MAX(sbi_hart_pmp_gran_log2(scratch), log2roundup(size));
->              order <= __riscv_xlen; order++) {
->                 if (order < __riscv_xlen) {
->                         base = addr & ~((1UL << order) - 1UL);
-> @@ -547,7 +547,7 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
->         if (!pmp_count)
->                 return 0;
+> -#define SBI_LAST_ERR                           SBI_ERR_ALREADY_STOPPED
+> +#define SBI_LAST_ERR                           SBI_ERR_NO_SHMEM
 >
-> -       pmp_gran_log2 = log2roundup(sbi_hart_pmp_granularity(scratch));
-> +       pmp_gran_log2 = sbi_hart_pmp_gran_log2(scratch);
->         pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
->         pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
+>  /* clang-format on */
 >
-> @@ -871,7 +871,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
->          */
->         val = hart_pmp_get_allowed_addr();
->         if (val) {
-> -               hfeatures->pmp_gran =  1 << (sbi_ffs(val) + 2);
-> +               hfeatures->pmp_gran_log2 = sbi_ffs(val) + 2;
->                 hfeatures->pmp_addr_bits = sbi_fls(val) + 1;
->                 /* Detect number of PMP regions. At least PMPADDR0 should be implemented*/
->                 __check_csr_64(CSR_PMPADDR0, 0, val, pmp_count, __pmp_skip);
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index e723553..bfb8300 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -177,7 +177,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
->         sbi_printf("Boot HART PMP Count       : %d\n",
->                    sbi_hart_pmp_count(scratch));
->         sbi_printf("Boot HART PMP Granularity : %lu\n",
-> -                  sbi_hart_pmp_granularity(scratch));
-> +                  1UL << sbi_hart_pmp_gran_log2(scratch));
->         sbi_printf("Boot HART PMP Address Bits: %d\n",
->                    sbi_hart_pmp_addrbits(scratch));
->         sbi_printf("Boot HART MHPM Info       : %lu (0x%08x)\n",
+> diff --git a/include/sbi/sbi_error.h b/include/sbi/sbi_error.h
+> index dd65e14b6fcd..7f97506d8bd5 100644
+> --- a/include/sbi/sbi_error.h
+> +++ b/include/sbi/sbi_error.h
+> @@ -23,6 +23,7 @@
+>  #define SBI_EALREADY           SBI_ERR_ALREADY_AVAILABLE
+>  #define SBI_EALREADY_STARTED   SBI_ERR_ALREADY_STARTED
+>  #define SBI_EALREADY_STOPPED   SBI_ERR_ALREADY_STOPPED
+> +#define SBI_ENO_SHMEM          SBI_ERR_NO_SHMEM
+>
+>  #define SBI_ENODEV             -1000
+>  #define SBI_ENOSYS             -1001
+> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
+> index 1d5d512eeed7..c58591106d09 100644
+> --- a/lib/sbi/sbi_ecall_pmu.c
+> +++ b/lib/sbi/sbi_ecall_pmu.c
+> @@ -74,6 +74,8 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
+>         case SBI_EXT_PMU_COUNTER_STOP:
+>                 ret = sbi_pmu_ctr_stop(regs->a0, regs->a1, regs->a2);
+>                 break;
+> +       case SBI_EXT_PMU_SNAPSHOT_SET_SHMEM:
+> +               /* fallthrough as OpenSBI doesn't support snapshot yet */
+>         default:
+>                 ret = SBI_ENOTSUPP;
+>         }
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index 185068bb1f43..1ac8562a9c99 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -442,6 +442,9 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+>         if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+>                 return ret;
+>
+> +       if (flags & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
+> +               return SBI_ENO_SHMEM;
+> +
+>         if (flags & SBI_PMU_START_FLAG_SET_INIT_VALUE)
+>                 bUpdate = true;
+>
+> @@ -540,6 +543,9 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+>         if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+>                 return SBI_EINVAL;
+>
+> +       if (flag & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
+> +               return SBI_ENO_SHMEM;
+> +
+>         for_each_set_bit(i, &cmask, BITS_PER_LONG) {
+>                 cidx = i + cbase;
+>                 event_idx_type = pmu_ctr_validate(phs, cidx, &event_code);
 > --
-> 2.42.0
+> 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
