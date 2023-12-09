@@ -1,77 +1,74 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Sat, 9 Dec 2023 14:35:29 +0530
-Subject: [PATCH v3] firmware: fix section types
-In-Reply-To: <20231205151344.131121-1-matthewwaltzis@gmail.com>
-References: <20231205151344.131121-1-matthewwaltzis@gmail.com>
-Message-ID: <CAK9=C2U6s3m3N_qzvoBKirhCQS3F1SNtsNU8_mFDut+qV-jnUA@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 9 Dec 2023 16:34:56 +0530
+Subject: [PATCH] lib: sbi_tlb: Check tlb_range_flush_limit only once per request
+In-Reply-To: <20231208203532.3640005-1-samuel.holland@sifive.com>
+References: <20231208203532.3640005-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy3VWNhD9ACEPgB68C-EvOv1Mo0ENquij70LFxNFqq9gXA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 5, 2023 at 8:44?PM Matt Waltz <matthewwaltzis@gmail.com> wrote:
+On Sat, Dec 9, 2023 at 2:05?AM Samuel Holland <samuel.holland@sifive.com> wrote:
 >
-> These sections are only intended to hold data, and should not be executable.
+> The tlb_update() callback is called for each destination hart.
+> Move the size check earlier, so it is executed only once.
 >
-> Signed-off-by: Matt Waltz <matthewwaltzis@gmail.com>
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
 Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
 > ---
->  firmware/fw_dynamic.S         | 2 +-
->  firmware/fw_jump.S            | 2 +-
->  firmware/payloads/test_head.S | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
-> index 2b60196..7ff1c6a 100644
-> --- a/firmware/fw_dynamic.S
-> +++ b/firmware/fw_dynamic.S
-> @@ -129,7 +129,7 @@ fw_options:
->         REG_L   a0, (a0)
->         ret
+>  lib/sbi/sbi_tlb.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 >
-> -       .section .entry, "ax", %progbits
-> +       .section .data
->         .align 3
->  _dynamic_next_arg1:
->         RISCV_PTR 0x0
-> diff --git a/firmware/fw_jump.S b/firmware/fw_jump.S
-> index 5b24f8b..ac74dc6 100644
-> --- a/firmware/fw_jump.S
-> +++ b/firmware/fw_jump.S
-> @@ -90,7 +90,7 @@ fw_options:
->  #error "Must define FW_JUMP_ADDR"
->  #endif
+> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+> index dad95088..d3ed56df 100644
+> --- a/lib/sbi/sbi_tlb.c
+> +++ b/lib/sbi/sbi_tlb.c
+> @@ -327,16 +327,6 @@ static int tlb_update(struct sbi_scratch *scratch,
+>         struct sbi_tlb_info *tinfo = data;
+>         u32 curr_hartid = current_hartid();
 >
-> -       .section .entry, "ax", %progbits
-> +       .section .rodata
->         .align 3
->  _jump_addr:
->         RISCV_PTR FW_JUMP_ADDR
-> diff --git a/firmware/payloads/test_head.S b/firmware/payloads/test_head.S
-> index 4852f71..7a2ac12 100644
-> --- a/firmware/payloads/test_head.S
-> +++ b/firmware/payloads/test_head.S
-> @@ -78,7 +78,7 @@ _start_hang:
->         wfi
->         j       _start_hang
+> -       /*
+> -        * If address range to flush is too big then simply
+> -        * upgrade it to flush all because we can only flush
+> -        * 4KB at a time.
+> -        */
+> -       if (tinfo->size > tlb_range_flush_limit) {
+> -               tinfo->start = 0;
+> -               tinfo->size = SBI_TLB_FLUSH_ALL;
+> -       }
+> -
+>         /*
+>          * If the request is to queue a tlb flush entry for itself
+>          * then just do a local flush and return;
+> @@ -385,6 +375,16 @@ int sbi_tlb_request(ulong hmask, ulong hbase, struct sbi_tlb_info *tinfo)
+>         if (!tinfo->local_fn)
+>                 return SBI_EINVAL;
 >
-> -       .section .entry, "ax", %progbits
-> +       .section .data
->         .align  3
->  _hart_lottery:
->         RISCV_PTR       0
+> +       /*
+> +        * If address range to flush is too big then simply
+> +        * upgrade it to flush all because we can only flush
+> +        * 4KB at a time.
+> +        */
+> +       if (tinfo->size > tlb_range_flush_limit) {
+> +               tinfo->start = 0;
+> +               tinfo->size = SBI_TLB_FLUSH_ALL;
+> +       }
+> +
+>         tlb_pmu_incr_fw_ctr(tinfo);
+>
+>         return sbi_ipi_send_many(hmask, hbase, tlb_event, tinfo);
 > --
-> 2.34.1
+> 2.42.0
 >
 >
 > --
