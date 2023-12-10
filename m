@@ -1,62 +1,126 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 10 Dec 2023 10:42:40 +0530
-Subject: [PATCH 2/3] lib: sbi_ipi: Process self-IPIs in sbi_ipi_send()
-In-Reply-To: <20231208212301.3649930-3-samuel.holland@sifive.com>
-References: <20231208212301.3649930-1-samuel.holland@sifive.com> <20231208212301.3649930-3-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy2iO6Ah-H2wwUUcqtF-FcwkBR93LuxiPj5fhMfoOdkceQ@mail.gmail.com>
+Date: Sun, 10 Dec 2023 11:22:18 +0530
+Subject: [PATCH] platform: recalculate heap size to support new tlb entry number
+In-Reply-To: <IA1PR20MB4953BC55F07EE072FE9E4288BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953BC55F07EE072FE9E4288BBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy3sGnMovY3fD970SOCZR6BLE4jg79-Qqhh6v5_kso90zA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Dec 9, 2023 at 2:53?AM Samuel Holland <samuel.holland@sifive.com> wrote:
+On Fri, Nov 17, 2023 at 5:40?PM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> An IPI sent to the local hart can be processed directly instead of
-> triggering the IPI device. This is more efficient, and it avoids a
-> deadlock when the .sync callback is defined. Since interrupts are
-> disabled while handling an ecall, the IPI would not get delivered
-> until the next mret, but sbi_ipi_sync() is called before then.
+> Previous patch introduct a change that using hart count as the default
+
+s/introduct/introduced
+
+> number of tlb entry in the fifo. This makes the default tlb fifo size
+
+s/entry/entries/
+
+> grow in square with the number of harts. So the default heap size is
+> not enough to allocate tlb fifo when the hart count is big.
 >
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+> Use new formula for default heap size:
+> 0x40 * (__num_hart) ^ 2   -> handle the tlb fifo
+> 0x600 * (__num_hart)      -> remove previous static fifo allocation
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> Fixes: 52fd64b ("platform: Uses hart count as the default size of tlb info")
+> ---
+>  include/sbi/sbi_bitops.h   | 1 +
+>  include/sbi/sbi_heap.h     | 3 +++
+>  include/sbi/sbi_platform.h | 8 ++++++--
+>  lib/sbi/sbi_heap.c         | 2 --
+>  4 files changed, 10 insertions(+), 4 deletions(-)
+>
+> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+> index 48a2090..7d90334 100644
+> --- a/include/sbi/sbi_bitops.h
+> +++ b/include/sbi/sbi_bitops.h
+> @@ -26,6 +26,7 @@
+>  #define BIT_MASK(nr)           (1UL << ((nr) % BITS_PER_LONG))
+>  #define BIT_WORD(bit)          ((bit) / BITS_PER_LONG)
+>  #define BIT_WORD_OFFSET(bit)   ((bit) & (BITS_PER_LONG - 1))
+> +#define BIT_ALIGN(bit, align)  (((bit) + ((align) - 1)) & ~((align) - 1))
+>
+>  #define GENMASK(h, l) \
+>         (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+> diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
+> index 88d176e..16755ec 100644
+> --- a/include/sbi/sbi_heap.h
+> +++ b/include/sbi/sbi_heap.h
+> @@ -12,6 +12,9 @@
+>
+>  #include <sbi/sbi_types.h>
+>
+> +/* Alignment of heap base address and size */
+> +#define HEAP_BASE_ALIGN                        1024
+> +
+>  struct sbi_scratch;
+>
+>  /** Allocate from heap area */
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index 58b9069..609f608 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -44,8 +44,10 @@
+>
+>  #ifndef __ASSEMBLER__
+>
+> +#include <sbi/sbi_bitops.h>
+>  #include <sbi/sbi_ecall_interface.h>
+>  #include <sbi/sbi_error.h>
+> +#include <sbi/sbi_heap.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_version.h>
+>
+> @@ -146,8 +148,10 @@ struct sbi_platform_operations {
+>  #define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE   8192
+>
+>  /** Platform default heap size */
+> -#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
+> -                                       (0x8000 + 0x800 * (__num_hart))
+> +#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)             \
+> +       BIT_ALIGN((0x8000 + 0x600 * (__num_hart) +              \
+> +                  0x40 * (__num_hart) * (__num_hart)),         \
+> +                 HEAP_BASE_ALIGN)
 
-Looks good to me.
+This is all heuristic because we can't predict heap requirements of
+platform drivers.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Instead of changing SBI_PLATFORM_DEFAULT_HEAP_SIZE, I
+suggest changing the "platform.heap_size" setting in fw_platform_init()
+of the generic platform. This would imply the above statement.
+
+In the long run (as separate patch), I suggest we define optional
+"opensbi,generic-heap-size" DT property under "/chosen" node and
+have it implemented by fw_platform_init() of generic platform. We
+can also document this optional DT property under
+docs/platform/generic.md
+
+>
+>  /** Representation of a platform */
+>  struct sbi_platform {
+> diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
+> index 698c377..bcd404b 100644
+> --- a/lib/sbi/sbi_heap.c
+> +++ b/lib/sbi/sbi_heap.c
+> @@ -14,8 +14,6 @@
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_string.h>
+>
+> -/* Alignment of heap base address and size */
+> -#define HEAP_BASE_ALIGN                        1024
+>  /* Minimum size and alignment of heap allocations */
+>  #define HEAP_ALLOC_ALIGN               64
+>  #define HEAP_HOUSEKEEPING_FACTOR       16
+> --
+> 2.42.1
+>
 
 Regards,
 Anup
-
-> ---
->
->  lib/sbi/sbi_ipi.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index 1fd24228..ac31cd94 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -60,6 +60,14 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
->                                       remote_hartindex, data);
->                 if (ret != SBI_IPI_UPDATE_SUCCESS)
->                         return ret;
-> +       } else if (scratch == remote_scratch) {
-> +               /*
-> +                * IPI events with an update() callback are expected to return
-> +                * SBI_IPI_UPDATE_BREAK for self-IPIs. For other events, check
-> +                * for self-IPI and execute the callback directly here.
-> +                */
-> +               ipi_ops->process(scratch);
-> +               return 0;
->         }
->
->         /*
-> --
-> 2.42.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
