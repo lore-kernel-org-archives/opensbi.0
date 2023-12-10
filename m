@@ -1,63 +1,43 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 10 Dec 2023 11:41:30 +0530
-Subject: [PATCH] lib: sbi: Improve sbi_hsm_hart_interruptible_mask
-In-Reply-To: <20231127123933.48851-1-wxjstz@126.com>
-References: <20231127123933.48851-1-wxjstz@126.com>
-Message-ID: <CAK9=C2X8T9ZZR1yv1iEsx4MzzJd+grctTZ5CzPpBHA-SObP+Xw@mail.gmail.com>
+Date: Sun, 10 Dec 2023 11:49:33 +0530
+Subject: [PATCH] lib: sbi: skip wait_for_coldboot when coolboot done
+In-Reply-To: <20231129135717.310197-1-wxjstz@126.com>
+References: <20231129135717.310197-1-wxjstz@126.com>
+Message-ID: <CAK9=C2VN2nOF7ro1SCUScMzi=sBuNxEHmSW_kof4oDSDBr1iMw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 27, 2023 at 6:10?PM Xiang W <wxjstz@126.com> wrote:
+On Wed, Nov 29, 2023 at 7:27?PM Xiang W <wxjstz@126.com> wrote:
 >
-> Improve bit scanning with for_each_set_bit.
+> When warmboot via HSM, coolboot has been completed and
+> wait_for_coldboot can be skipped to speed up.
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  lib/sbi/sbi_hsm.c | 10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
+>  lib/sbi/sbi_init.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 147f954..bffac27 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -114,22 +114,18 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
->                                     ulong hbase, ulong *out_hmask)
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index e723553..1f7f522 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -492,7 +492,8 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
 >  {
 >         int hstate;
-> -       ulong i, hmask, dmask;
-> +       ulong i, dmask;
 >
->         *out_hmask = 0;
->         if (!sbi_hartid_valid(hbase))
->                 return SBI_EINVAL;
+> -       wait_for_coldboot(scratch, hartid);
+> +       if (!__smp_load_acquire(&coldboot_done))
+> +               wait_for_coldboot(scratch, hartid);
+
+Better to have this check at the start of wait_for_coldboot()
+implementation.
+
 >
->         dmask = sbi_domain_get_assigned_hartmask(dom, hbase);
-> -       for (i = 0; i < BITS_PER_LONG; i++) {
-> -               hmask = 1UL << i;
-> -               if (!(dmask & hmask))
-> -                       continue;
-> -
-> +       for_each_set_bit(i, &dmask, BITS_PER_LONG) {
-
-We have intentionally avoided using for_each_set_bit() here because
-for_each_set_bit() is quite heavy handed and involves function calls to
-find_first_bit() and find_next_bit. The for_each_set_bitbetter for dealing
-with large bitmaps but for small bitmaps it becomes an overkill.
-
-Also, please keep in mind that sbi_hsm_hart_interruptible_mask() is
-in hot-path because it is called by sbi_ipi_send_many().
-
->                 hstate = __sbi_hsm_hart_get_state(hbase + i);
->                 if (hstate == SBI_HSM_STATE_STARTED ||
->                     hstate == SBI_HSM_STATE_SUSPENDED)
-> -                       *out_hmask |= hmask;
-> +                       *out_hmask |= 1UL << i;
->         }
->
->         return 0;
+>         hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
+>         if (hstate < 0)
 > --
 > 2.42.0
 >
