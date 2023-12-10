@@ -1,59 +1,139 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 10 Dec 2023 13:40:52 +0530
-Subject: [PATCH] lib: sbi_hsm: Put the resume_pending hart in the
- interruptible hart mask
-In-Reply-To: <20231201095147.1791731-1-nick.hu@sifive.com>
-References: <20231201095147.1791731-1-nick.hu@sifive.com>
-Message-ID: <CAK9=C2XPMMzBAeW20SDZhsj492t+gJT1Kdjh75cHAeZD=EeTsQ@mail.gmail.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Sun, 10 Dec 2023 16:18:05 +0800
+Subject: [PATCH] platform: recalculate heap size to support new tlb entry number
+In-Reply-To: <CAAhSdy3sGnMovY3fD970SOCZR6BLE4jg79-Qqhh6v5_kso90zA@mail.gmail.com>
+References: <CAAhSdy3sGnMovY3fD970SOCZR6BLE4jg79-Qqhh6v5_kso90zA@mail.gmail.com>
+Message-ID: <IA1PR20MB49537CE6E90601D08AC96C4ABB88A@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 1, 2023 at 3:22?PM Nick Hu <nick.hu@sifive.com> wrote:
 >
-> Current interruptible hart mask doesn't include the hart which HSM state
-> is SBI_HSM_STATE_RESUME_PENDING. So when there is a request to send an
-> IPI to the hart which is in the resume process, this hart would miss the
-> IPI forever. Put the SBI_HSM_STATE_RESUME_PENDING hart in the
-> interruptible hart mask to fix the issue.
+>On Fri, Nov 17, 2023 at 5:40?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>>
+>> Previous patch introduct a change that using hart count as the default
 >
-> Signed-off-by: Nick Hu <nick.hu@sifive.com>
+>s/introduct/introduced
+>
+>> number of tlb entry in the fifo. This makes the default tlb fifo size
+>
+>s/entry/entries/
+>
+>> grow in square with the number of harts. So the default heap size is
+>> not enough to allocate tlb fifo when the hart count is big.
+>>
+>> Use new formula for default heap size:
+>> 0x40 * (__num_hart) ^ 2   -> handle the tlb fifo
+>> 0x600 * (__num_hart)      -> remove previous static fifo allocation
+>>
+>> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+>> Fixes: 52fd64b ("platform: Uses hart count as the default size of tlb info")
+>> ---
+>>  include/sbi/sbi_bitops.h   | 1 +
+>>  include/sbi/sbi_heap.h     | 3 +++
+>>  include/sbi/sbi_platform.h | 8 ++++++--
+>>  lib/sbi/sbi_heap.c         | 2 --
+>>  4 files changed, 10 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+>> index 48a2090..7d90334 100644
+>> --- a/include/sbi/sbi_bitops.h
+>> +++ b/include/sbi/sbi_bitops.h
+>> @@ -26,6 +26,7 @@
+>>  #define BIT_MASK(nr)           (1UL << ((nr) % BITS_PER_LONG))
+>>  #define BIT_WORD(bit)          ((bit) / BITS_PER_LONG)
+>>  #define BIT_WORD_OFFSET(bit)   ((bit) & (BITS_PER_LONG - 1))
+>> +#define BIT_ALIGN(bit, align)  (((bit) + ((align) - 1)) & ~((align) - 1))
+>>
+>>  #define GENMASK(h, l) \
+>>         (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+>> diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
+>> index 88d176e..16755ec 100644
+>> --- a/include/sbi/sbi_heap.h
+>> +++ b/include/sbi/sbi_heap.h
+>> @@ -12,6 +12,9 @@
+>>
+>>  #include <sbi/sbi_types.h>
+>>
+>> +/* Alignment of heap base address and size */
+>> +#define HEAP_BASE_ALIGN                        1024
+>> +
+>>  struct sbi_scratch;
+>>
+>>  /** Allocate from heap area */
+>> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+>> index 58b9069..609f608 100644
+>> --- a/include/sbi/sbi_platform.h
+>> +++ b/include/sbi/sbi_platform.h
+>> @@ -44,8 +44,10 @@
+>>
+>>  #ifndef __ASSEMBLER__
+>>
+>> +#include <sbi/sbi_bitops.h>
+>>  #include <sbi/sbi_ecall_interface.h>
+>>  #include <sbi/sbi_error.h>
+>> +#include <sbi/sbi_heap.h>
+>>  #include <sbi/sbi_scratch.h>
+>>  #include <sbi/sbi_version.h>
+>>
+>> @@ -146,8 +148,10 @@ struct sbi_platform_operations {
+>>  #define SBI_PLATFORM_DEFAULT_HART_STACK_SIZE   8192
+>>
+>>  /** Platform default heap size */
+>> -#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
+>> -                                       (0x8000 + 0x800 * (__num_hart))
+>> +#define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)             \
+>> +       BIT_ALIGN((0x8000 + 0x600 * (__num_hart) +              \
+>> +                  0x40 * (__num_hart) * (__num_hart)),         \
+>> +                 HEAP_BASE_ALIGN)
+>
+>This is all heuristic because we can't predict heap requirements of
+>platform drivers.
+>
 
-Looks good to me.
+Although it is heuristic, it is like a magic number more. :)
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+>Instead of changing SBI_PLATFORM_DEFAULT_HEAP_SIZE, I
+>suggest changing the "platform.heap_size" setting in fw_platform_init()
+>of the generic platform. This would imply the above statement.
+>
 
-Applied this patch to the riscv/opensbi repo.
+Thanks, I will have a try.
 
-Thanks,
-Anup
+>In the long run (as separate patch), I suggest we define optional
+>"opensbi,generic-heap-size" DT property under "/chosen" node and
+>have it implemented by fw_platform_init() of generic platform. We
+>can also document this optional DT property under
+>docs/platform/generic.md
 
-> ---
->  lib/sbi/sbi_hsm.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+Yes, this is more flexible, the DT is binding to specific device
+and we do not need to calculate it.
+
 >
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 147f954..3d60ceb 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -128,7 +128,8 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+>>
+>>  /** Representation of a platform */
+>>  struct sbi_platform {
+>> diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
+>> index 698c377..bcd404b 100644
+>> --- a/lib/sbi/sbi_heap.c
+>> +++ b/lib/sbi/sbi_heap.c
+>> @@ -14,8 +14,6 @@
+>>  #include <sbi/sbi_scratch.h>
+>>  #include <sbi/sbi_string.h>
+>>
+>> -/* Alignment of heap base address and size */
+>> -#define HEAP_BASE_ALIGN                        1024
+>>  /* Minimum size and alignment of heap allocations */
+>>  #define HEAP_ALLOC_ALIGN               64
+>>  #define HEAP_HOUSEKEEPING_FACTOR       16
+>> --
+>> 2.42.1
+>>
 >
->                 hstate = __sbi_hsm_hart_get_state(hbase + i);
->                 if (hstate == SBI_HSM_STATE_STARTED ||
-> -                   hstate == SBI_HSM_STATE_SUSPENDED)
-> +                   hstate == SBI_HSM_STATE_SUSPENDED ||
-> +                   hstate == SBI_HSM_STATE_RESUME_PENDING)
->                         *out_hmask |= hmask;
->         }
->
-> --
-> 2.34.1
+>Regards,
+>Anup
 >
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
