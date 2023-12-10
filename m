@@ -1,19 +1,19 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 9 Dec 2023 16:34:56 +0530
-Subject: [PATCH] lib: sbi_tlb: Check tlb_range_flush_limit only once per request
-In-Reply-To: <20231208203532.3640005-1-samuel.holland@sifive.com>
-References: <20231208203532.3640005-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy3VWNhD9ACEPgB68C-EvOv1Mo0ENquij70LFxNFqq9gXA@mail.gmail.com>
+Date: Sun, 10 Dec 2023 10:29:35 +0530
+Subject: [PATCH 3/3] lib: sbi_ipi: Drop unnecessary ipi_process check
+In-Reply-To: <20231208212301.3649930-4-samuel.holland@sifive.com>
+References: <20231208212301.3649930-1-samuel.holland@sifive.com> <20231208212301.3649930-4-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy1Q1fuzaUk0nqB5UYL3xDV22Fai_DGUYFLa4asg7oDTLg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Dec 9, 2023 at 2:05?AM Samuel Holland <samuel.holland@sifive.com> wrote:
+On Sat, Dec 9, 2023 at 2:53?AM Samuel Holland <samuel.holland@sifive.com> wrote:
 >
-> The tlb_update() callback is called for each destination hart.
-> Move the size check earlier, so it is executed only once.
+> sbi_ipi_event_create() disallows registering an IPI event with a NULL
+> .process callback, so the function pointer will never be NULL here.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
@@ -26,47 +26,22 @@ Anup
 
 > ---
 >
->  lib/sbi/sbi_tlb.c | 20 ++++++++++----------
->  1 file changed, 10 insertions(+), 10 deletions(-)
+>  lib/sbi/sbi_ipi.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> index dad95088..d3ed56df 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -327,16 +327,6 @@ static int tlb_update(struct sbi_scratch *scratch,
->         struct sbi_tlb_info *tinfo = data;
->         u32 curr_hartid = current_hartid();
->
-> -       /*
-> -        * If address range to flush is too big then simply
-> -        * upgrade it to flush all because we can only flush
-> -        * 4KB at a time.
-> -        */
-> -       if (tinfo->size > tlb_range_flush_limit) {
-> -               tinfo->start = 0;
-> -               tinfo->size = SBI_TLB_FLUSH_ALL;
-> -       }
-> -
->         /*
->          * If the request is to queue a tlb flush entry for itself
->          * then just do a local flush and return;
-> @@ -385,6 +375,16 @@ int sbi_tlb_request(ulong hmask, ulong hbase, struct sbi_tlb_info *tinfo)
->         if (!tinfo->local_fn)
->                 return SBI_EINVAL;
->
-> +       /*
-> +        * If address range to flush is too big then simply
-> +        * upgrade it to flush all because we can only flush
-> +        * 4KB at a time.
-> +        */
-> +       if (tinfo->size > tlb_range_flush_limit) {
-> +               tinfo->start = 0;
-> +               tinfo->size = SBI_TLB_FLUSH_ALL;
-> +       }
-> +
->         tlb_pmu_incr_fw_ctr(tinfo);
->
->         return sbi_ipi_send_many(hmask, hbase, tlb_event, tinfo);
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index ac31cd94..1115912b 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -241,7 +241,7 @@ void sbi_ipi_process(void)
+>         while (ipi_type) {
+>                 if (ipi_type & 1UL) {
+>                         ipi_ops = ipi_ops_array[ipi_event];
+> -                       if (ipi_ops && ipi_ops->process)
+> +                       if (ipi_ops)
+>                                 ipi_ops->process(scratch);
+>                 }
+>                 ipi_type = ipi_type >> 1;
 > --
 > 2.42.0
 >
