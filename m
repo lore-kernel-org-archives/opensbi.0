@@ -1,140 +1,83 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 11 Dec 2023 23:37:38 +0530
-Subject: [PATCH 5/5] lib: sbi: Remove the SBI_ETRAP error code
-In-Reply-To: <20231211180738.891727-1-apatel@ventanamicro.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon, 11 Dec 2023 12:16:03 -0600
+Subject: [PATCH 1/5] lib: sbi_tlb: Reduce size of struct sbi_tlb_info
+In-Reply-To: <20231211180738.891727-2-apatel@ventanamicro.com>
 References: <20231211180738.891727-1-apatel@ventanamicro.com>
-Message-ID: <20231211180738.891727-6-apatel@ventanamicro.com>
+ <20231211180738.891727-2-apatel@ventanamicro.com>
+Message-ID: <9b30161e-f2cb-4943-88c7-78aae9acb54a@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The SBI_ETRAP error code was introduced only for doing trap
-redirection in generic sbi_ecall_handler(). Now the trap
-redirection is moved into sbi_ecall_legacy.c and SBI_ETRAP
-error code is only used in this source file so let us remove
-it.
+Hi Anup,
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- include/sbi/sbi_error.h    |  5 ++---
- lib/sbi/sbi_ecall_legacy.c | 32 ++++++++++++--------------------
- 2 files changed, 14 insertions(+), 23 deletions(-)
+On 2023-12-11 12:07 PM, Anup Patel wrote:
+> Let us reduce the size of struct sbi_tlb_info by doing the
+> following:
+> 1) Change the data type of asid and vmid fields to uint16_t
+> 2) Replace local_fn() function pointer with an enum
+> 
+> Based on the above, the size of struct sbi_tlb_info is reduced
+> by 16 bytes on RV64 and 4 bytes on RV32.
 
-diff --git a/include/sbi/sbi_error.h b/include/sbi/sbi_error.h
-index 7f97506..a77e3f8 100644
---- a/include/sbi/sbi_error.h
-+++ b/include/sbi/sbi_error.h
-@@ -32,9 +32,8 @@
- #define SBI_EILL		-1004
- #define SBI_ENOSPC		-1005
- #define SBI_ENOMEM		-1006
--#define SBI_ETRAP		-1007
--#define SBI_EUNKNOWN		-1008
--#define SBI_ENOENT		-1009
-+#define SBI_EUNKNOWN		-1007
-+#define SBI_ENOENT		-1008
- 
- /* clang-format on */
- 
-diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-index 48bd227..14913c9 100644
---- a/lib/sbi/sbi_ecall_legacy.c
-+++ b/lib/sbi/sbi_ecall_legacy.c
-@@ -24,22 +24,22 @@
- #include <sbi/sbi_unpriv.h>
- #include <sbi/sbi_hart.h>
- 
--static int sbi_load_hart_mask_unpriv(ulong *pmask, ulong *hmask,
--				     struct sbi_trap_info *uptrap)
-+static bool sbi_load_hart_mask_unpriv(ulong *pmask, ulong *hmask,
-+				      struct sbi_trap_info *uptrap)
- {
- 	ulong mask = 0;
- 
- 	if (pmask) {
- 		mask = sbi_load_ulong(pmask, uptrap);
- 		if (uptrap->cause)
--			return SBI_ETRAP;
-+			return false;
- 	} else {
- 		sbi_hsm_hart_interruptible_mask(sbi_domain_thishart_ptr(),
- 						0, &mask);
- 	}
- 	*hmask = mask;
- 
--	return 0;
-+	return true;
- }
- 
- static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
-@@ -70,56 +70,48 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 		sbi_ipi_clear_smode();
- 		break;
- 	case SBI_EXT_0_1_SEND_IPI:
--		ret = sbi_load_hart_mask_unpriv((ulong *)regs->a0,
--						&hmask, &trap);
--		if (ret != SBI_ETRAP) {
-+		if (sbi_load_hart_mask_unpriv((ulong *)regs->a0,
-+						&hmask, &trap)) {
- 			ret = sbi_ipi_send_smode(hmask, 0);
- 		} else {
--			ret = 0;
- 			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
- 		break;
- 	case SBI_EXT_0_1_REMOTE_FENCE_I:
--		ret = sbi_load_hart_mask_unpriv((ulong *)regs->a0,
--						&hmask, &trap);
--		if (ret != SBI_ETRAP) {
-+		if (sbi_load_hart_mask_unpriv((ulong *)regs->a0,
-+						&hmask, &trap)) {
- 			SBI_TLB_INFO_INIT(&tlb_info, 0, 0, 0, 0,
- 					  SBI_TLB_FENCE_I, source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		} else {
--			ret = 0;
- 			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
- 		break;
- 	case SBI_EXT_0_1_REMOTE_SFENCE_VMA:
--		ret = sbi_load_hart_mask_unpriv((ulong *)regs->a0,
--						&hmask, &trap);
--		if (ret != SBI_ETRAP) {
-+		if (sbi_load_hart_mask_unpriv((ulong *)regs->a0,
-+						&hmask, &trap)) {
- 			SBI_TLB_INFO_INIT(&tlb_info, regs->a1, regs->a2, 0, 0,
- 					  SBI_TLB_SFENCE_VMA, source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		} else {
--			ret = 0;
- 			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
- 		break;
- 	case SBI_EXT_0_1_REMOTE_SFENCE_VMA_ASID:
--		ret = sbi_load_hart_mask_unpriv((ulong *)regs->a0,
--						&hmask, &trap);
--		if (ret != SBI_ETRAP) {
-+		if (sbi_load_hart_mask_unpriv((ulong *)regs->a0,
-+						&hmask, &trap)) {
- 			SBI_TLB_INFO_INIT(&tlb_info, regs->a1,
- 					  regs->a2, regs->a3, 0,
- 					  SBI_TLB_SFENCE_VMA_ASID,
- 					  source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		} else {
--			ret = 0;
- 			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
--- 
-2.34.1
+Nice improvement!
+
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  include/sbi/sbi_tlb.h      | 29 +++++++------
+>  lib/sbi/sbi_ecall_legacy.c |  8 ++--
+>  lib/sbi/sbi_ecall_rfence.c | 16 +++----
+>  lib/sbi/sbi_tlb.c          | 89 ++++++++++++++++++++++++++++----------
+>  4 files changed, 92 insertions(+), 50 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_tlb.h b/include/sbi/sbi_tlb.h
+> index 55dcab0..2c50fe8 100644
+> --- a/include/sbi/sbi_tlb.h
+> +++ b/include/sbi/sbi_tlb.h
+> [...]
+>  static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data)
+>  {
+>  	if (unlikely(!data))
+>  		return;
+>  
+> -	if (data->local_fn == sbi_tlb_local_fence_i)
+> +	switch (data->type) {
+> +	case SBI_TLB_FENCE_I:
+>  		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_FENCE_I_SENT);
+> -	else if (data->local_fn == sbi_tlb_local_sfence_vma)
+> +		break;
+> +	case SBI_TLB_SFENCE_VMA:
+>  		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_SENT);
+> -	else if (data->local_fn == sbi_tlb_local_sfence_vma_asid)
+> +		break;
+> +	case SBI_TLB_SFENCE_VMA_ASID:
+>  		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_SENT);
+> -	else if (data->local_fn == sbi_tlb_local_hfence_gvma)
+> -		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_SENT);
+> -	else if (data->local_fn == sbi_tlb_local_hfence_gvma_vmid)
+> +		break;
+> +	case SBI_TLB_HFENCE_GVMA_VMID:
+>  		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_VMID_SENT);
+> -	else if (data->local_fn == sbi_tlb_local_hfence_vvma)
+> -		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_SENT);
+> -	else if (data->local_fn == sbi_tlb_local_hfence_vvma_asid)
+> +		break;
+> +	case SBI_TLB_HFENCE_GVMA:
+> +		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_SENT);
+> +		break;
+> +	case SBI_TLB_HFENCE_VVMA_ASID:
+>  		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
+> +		break;
+> +	case SBI_TLB_HFENCE_VVMA:
+> +		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_SENT);
+> +		break;
+
+These switch cases are all practically the same. Can this be simplified by using
+a lookup table for the PMU event?
+
+Regards,
+Samuel
 
 
