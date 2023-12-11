@@ -1,199 +1,76 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Dec 2023 10:37:13 +0530
-Subject: [PATCH v2] lib: utils/fdt: Allow to use reg-names when parsing ACLINT
-In-Reply-To: <IA1PR20MB49532E6C3653C0F3EC3EFCDEBBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB49532E6C3653C0F3EC3EFCDEBBB7A@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy20yL_MO7BT7bChTHgVZOBkMir0tdM8JV-XyEA5SXSeBg@mail.gmail.com>
+Date: Mon, 11 Dec 2023 10:49:39 +0530
+Subject: [PATCH] lib: sbi_tlb: Check tlb_range_flush_limit only once per request
+In-Reply-To: <20231208203532.3640005-1-samuel.holland@sifive.com>
+References: <20231208203532.3640005-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy22y9Gnhqx+Fer653J75pnJPDAEPF6piPx9GiTFn6+YKg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Nov 17, 2023 at 5:42?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Sat, Dec 9, 2023 at 2:05?AM Samuel Holland <samuel.holland@sifive.com> wrote:
 >
-> Currently, the fdt_parse_aclint_node() follows a fixed order to parse
-> ACLINT timer. This may cause the undesirable result when the ACLINT
-> device does not support mtime without adding an empty entry for it in
-> the DT.
+> The tlb_update() callback is called for each destination hart.
+> Move the size check earlier, so it is executed only once.
 >
-> To be robust, make fdt_parse_aclint_node() support "reg-names" property,
-> so it can parse the DT in an order independent way. For compatibility,
-> fdt_parse_aclint_node() only use "reg-names" when parsing ACLINT timer,
-> and will fallback to the old way if "reg-names" property is not found.
->
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> Link: https://lore.kernel.org/all/20231114-skedaddle-precinct-66c8897227bb at squawk/
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
+Applied this patch to the riscv/opensbi
 
 Thanks,
 Anup
 
 > ---
-> Changed from v1:
-> 1. add fdt_get_node_addr_size_by_name to fdt_helper.h
-> 2. make fdt_get_aclint_addr_size_by_name, fdt_get_aclint_addr_size static
-> ---
->  include/sbi_utils/fdt/fdt_helper.h |   3 +
->  lib/utils/fdt/fdt_helper.c         | 107 ++++++++++++++++++++++++-----
->  2 files changed, 94 insertions(+), 16 deletions(-)
 >
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 5c928ff..430d818 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -48,6 +48,9 @@ int fdt_parse_phandle_with_args(void *fdt, int nodeoff,
->  int fdt_get_node_addr_size(void *fdt, int node, int index,
->                            uint64_t *addr, uint64_t *size);
+>  lib/sbi/sbi_tlb.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 >
-> +int fdt_get_node_addr_size_by_name(void *fdt, int node, const char *name,
-> +                                  uint64_t *addr, uint64_t *size);
-> +
->  bool fdt_node_is_enabled(void *fdt, int nodeoff);
+> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+> index dad95088..d3ed56df 100644
+> --- a/lib/sbi/sbi_tlb.c
+> +++ b/lib/sbi/sbi_tlb.c
+> @@ -327,16 +327,6 @@ static int tlb_update(struct sbi_scratch *scratch,
+>         struct sbi_tlb_info *tinfo = data;
+>         u32 curr_hartid = current_hartid();
 >
->  int fdt_parse_hart_id(void *fdt, int cpu_offset, u32 *hartid);
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 9ae7f09..83299a8 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -216,6 +216,32 @@ int fdt_get_node_addr_size(void *fdt, int node, int index,
->         return 0;
->  }
->
-> +int fdt_get_node_addr_size_by_name(void *fdt, int node, const char *name,
-> +                                  uint64_t *addr, uint64_t *size)
-> +{
-> +       int i, j, count;
-> +       const char *val;
-> +       const char *regname;
-> +
-> +       if (!fdt || node < 0 || !name)
-> +               return SBI_EINVAL;
-> +
-> +       val = fdt_getprop(fdt, node, "reg-names", &count);
-> +       if (!val)
-> +               return SBI_ENODEV;
-> +
-> +       for (i = 0, j = 0; i < count; i++, j++) {
-> +               regname = val + i;
-> +
-> +               if (strcmp(name, regname) == 0)
-> +                       return fdt_get_node_addr_size(fdt, node, j, addr, size);
-> +
-> +               i += strlen(regname);
-> +       }
-> +
-> +       return SBI_ENODEV;
-> +}
-> +
->  bool fdt_node_is_enabled(void *fdt, int nodeoff)
->  {
->         int len;
-> @@ -873,13 +899,66 @@ int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat)
->         return fdt_parse_plic_node(fdt, nodeoffset, plic);
->  }
->
-> +static int fdt_get_aclint_addr_size_by_name(void *fdt, int nodeoffset,
-> +                                           unsigned long *out_addr1,
-> +                                           unsigned long *out_size1,
-> +                                           unsigned long *out_addr2,
-> +                                           unsigned long *out_size2)
-> +{
-> +       int rc;
-> +       uint64_t reg_addr, reg_size;
-> +
-> +       rc = fdt_get_node_addr_size_by_name(fdt, nodeoffset, "mtime",
-> +                                           &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               reg_addr = reg_size = 0;
-> +       *out_addr1 = reg_addr;
-> +       *out_size1 = reg_size;
-> +
-> +       rc = fdt_get_node_addr_size_by_name(fdt, nodeoffset, "mtimecmp",
-> +                                           &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               return SBI_ENODEV;
-> +       *out_addr2 = reg_addr;
-> +       *out_size2 = reg_size;
-> +
-> +       return 0;
-> +}
-> +
-> +static int fdt_get_aclint_addr_size(void *fdt, int nodeoffset,
-> +                                   unsigned long *out_addr1,
-> +                                   unsigned long *out_size1,
-> +                                   unsigned long *out_addr2,
-> +                                   unsigned long *out_size2)
-> +{
-> +       int rc;
-> +       uint64_t reg_addr, reg_size;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> +                                   &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               return SBI_ENODEV;
-> +       *out_addr1 = reg_addr;
-> +       *out_size1 = reg_size;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoffset, 1,
-> +                                   &reg_addr, &reg_size);
-> +       if (rc < 0 || !reg_size)
-> +               reg_addr = reg_size = 0;
-> +       if (out_addr2)
-> +               *out_addr2 = reg_addr;
-> +       if (out_size2)
-> +               *out_size2 = reg_size;
-> +
-> +       return 0;
-> +}
-> +
->  int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
->                           unsigned long *out_addr1, unsigned long *out_size1,
->                           unsigned long *out_addr2, unsigned long *out_size2,
->                           u32 *out_first_hartid, u32 *out_hart_count)
->  {
->         const fdt32_t *val;
-> -       uint64_t reg_addr, reg_size;
->         int i, rc, count, cpu_offset, cpu_intc_offset;
->         u32 phandle, hwirq, hartid, first_hartid, last_hartid, hart_count;
->         u32 match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
-> @@ -889,21 +968,17 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
->             !out_first_hartid || !out_hart_count)
+> -       /*
+> -        * If address range to flush is too big then simply
+> -        * upgrade it to flush all because we can only flush
+> -        * 4KB at a time.
+> -        */
+> -       if (tinfo->size > tlb_range_flush_limit) {
+> -               tinfo->start = 0;
+> -               tinfo->size = SBI_TLB_FLUSH_ALL;
+> -       }
+> -
+>         /*
+>          * If the request is to queue a tlb flush entry for itself
+>          * then just do a local flush and return;
+> @@ -385,6 +375,16 @@ int sbi_tlb_request(ulong hmask, ulong hbase, struct sbi_tlb_info *tinfo)
+>         if (!tinfo->local_fn)
 >                 return SBI_EINVAL;
 >
-> -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 0,
-> -                                   &reg_addr, &reg_size);
-> -       if (rc < 0 || !reg_size)
-> -               return SBI_ENODEV;
-> -       *out_addr1 = reg_addr;
-> -       *out_size1 = reg_size;
-> -
-> -       rc = fdt_get_node_addr_size(fdt, nodeoffset, 1,
-> -                                   &reg_addr, &reg_size);
-> -       if (rc < 0 || !reg_size)
-> -               reg_addr = reg_size = 0;
-> -       if (out_addr2)
-> -               *out_addr2 = reg_addr;
-> -       if (out_size2)
-> -               *out_size2 = reg_size;
-> +       if (for_timer && out_addr2 && out_size2 &&
-> +           fdt_getprop(fdt, nodeoffset, "reg-names", NULL))
-> +               rc = fdt_get_aclint_addr_size_by_name(fdt, nodeoffset,
-> +                                                     out_addr1, out_size1,
-> +                                                     out_addr2, out_size2);
-> +       else
-> +               rc = fdt_get_aclint_addr_size(fdt, nodeoffset,
-> +                                             out_addr1, out_size1,
-> +                                             out_addr2, out_size2);
-> +       if (rc)
-> +               return rc;
+> +       /*
+> +        * If address range to flush is too big then simply
+> +        * upgrade it to flush all because we can only flush
+> +        * 4KB at a time.
+> +        */
+> +       if (tinfo->size > tlb_range_flush_limit) {
+> +               tinfo->start = 0;
+> +               tinfo->size = SBI_TLB_FLUSH_ALL;
+> +       }
+> +
+>         tlb_pmu_incr_fw_ctr(tinfo);
 >
->         *out_first_hartid = 0;
->         *out_hart_count = 0;
+>         return sbi_ipi_send_many(hmask, hbase, tlb_event, tinfo);
 > --
-> 2.42.1
+> 2.42.0
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
