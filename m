@@ -1,53 +1,47 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 12 Dec 2023 14:10:49 +0530
-Subject: [PATCH 7/7] lib: sbi: show the number of PMP Reserved
-In-Reply-To: <tencent_0278C145ED7EC7275CC998B890DA46273E07@qq.com>
-References: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com> <tencent_0278C145ED7EC7275CC998B890DA46273E07@qq.com>
-Message-ID: <CAAhSdy0XY3+8BDK155ZWiuiM7QMoYZLg7_yy_R-CAo8ZbCSbEQ@mail.gmail.com>
+From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+Date: Tue, 12 Dec 2023 08:58:31 +0000
+Subject: [PATCH v3 0/4] Add some programming improvements
+Message-ID: <20231212085835.26824-1-yongxuan.wang@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 8, 2023 at 3:34?AM Yangyu Chen <cyy@cyyself.name> wrote:
->
-> Some PMPs may be locked before OpenSBI starts. Mark index 0 to the
-> highest locked index of PMPs as reserved and show the number of PMPs
-> being reserved in Boot HART details to let the user know.
->
-> Signed-off-by: Yangyu Chen <cyy@cyyself.name>
+In earlier versions, this patchset included the Svadu extension
+enablement. However, based on Anup's suggestion for backward
+compatibility, it's advisable to utilize the FWFT SBI extension to
+enable the Svade extension from S mode rather than unconditionally
+enabling it in OpenSBI. Consequently, I've removed the Svadu patch
+from this series. I will send a separate patch to activate the Svadu
+extension once we have the FWFT SBI extension.
 
-Looks good to me.
+---
+v3:
+- Remove the Svadu patch
+- Rebase to the latest OpenSBI
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+v2:
+- Rearrange the patches to do the code refactoring first before adding
+  new features
+- Suggested by Anup and Atish, detect extensions from DT instead of
+  menvcfg CSR
+- Enable access to some extensions through menvcfg CSR if they are
+  present in the device tree.
 
-Regards,
-Anup
+Yong-Xuan Wang (4):
+  lib: sbi: Improve the code of privilege mode and extensions detection
+  lib: sbi: Refactor the code for enable extensions in menvfg CSR
+  lib: sbi: Using one array to define the name of extensions
+  lib: sbi: Detect extensions from the ISA string in DT
 
-> ---
->  lib/sbi/sbi_init.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index e723553..0d02186 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -174,6 +174,8 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
->         sbi_printf("Boot HART Base ISA        : %s\n", str);
->         sbi_hart_get_extensions_str(scratch, str, sizeof(str));
->         sbi_printf("Boot HART ISA Extensions  : %s\n", str);
-> +       sbi_printf("Boot HART PMP Reserved    : %d\n",
-> +                  sbi_hart_pmp_reserved(scratch));
->         sbi_printf("Boot HART PMP Count       : %d\n",
->                    sbi_hart_pmp_count(scratch));
->         sbi_printf("Boot HART PMP Granularity : %lu\n",
-> --
-> 2.43.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+ include/sbi/riscv_encoding.h |   5 -
+ include/sbi/sbi_hart.h       |  13 +++
+ lib/sbi/sbi_hart.c           | 220 +++++++++++++----------------------
+ lib/utils/fdt/fdt_helper.c   |   6 +-
+ 4 files changed, 96 insertions(+), 148 deletions(-)
+
+-- 
+2.17.1
+
 
