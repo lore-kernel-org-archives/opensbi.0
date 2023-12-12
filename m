@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 12 Dec 2023 14:04:18 +0530
-Subject: [PATCH 5/7] lib: sbi: adjust first usable PMP index to sbi_hart_pmp_reserved
-In-Reply-To: <tencent_38EE478C58084EE3031FA1609CF690632906@qq.com>
-References: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com> <tencent_38EE478C58084EE3031FA1609CF690632906@qq.com>
-Message-ID: <CAAhSdy1bLmR80J5A2a9972o6rD_6WeWdvO2cmuC4BPqONGhnJQ@mail.gmail.com>
+Date: Tue, 12 Dec 2023 14:09:30 +0530
+Subject: [PATCH 6/7] lib: sbi: Not use smepmp if has pmp reserved and MSECCFG.MML=1
+In-Reply-To: <tencent_C0BE4FC10C6D3847295C8418A91096465E07@qq.com>
+References: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com> <tencent_C0BE4FC10C6D3847295C8418A91096465E07@qq.com>
+Message-ID: <CAAhSdy0jmM4QW1q4c=9eePiVmMgH3mV4Na=FO2QCY+Tk47BkRw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,68 +12,41 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Dec 8, 2023 at 3:34?AM Yangyu Chen <cyy@cyyself.name> wrote:
 >
-> Since we have probed the maximum index of locked PMPs and marked PMPs
-> reserved from index 0 to it. We can use the number of reserved PMPs as
-> the first usable PMP index.
->
-> Signed-off-by: Yangyu Chen <cyy@cyyself.name>
+> If the platform already sets any locked PMPs before OpenSBI starts,
+> CSR.MSECCFG.MML should never change by OpenSBI to make the locked PMPs
+> behave as expected.
 
-Looks good to me.
+NACK.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+For platforms with Smepmp, OpenSBI configures M-mode only regions
+before setting mseccfg.MML.
+
+In other words, it is mandatory for platforms with Smepmp to boot
+OpenSBI with mseccfg.RLB = 1 and mseccfg.MML = 0.
 
 Regards,
 Anup
 
+>
+> Signed-off-by: Yangyu Chen <cyy@cyyself.name>
 > ---
->  include/sbi/sbi_hart.h | 2 +-
->  lib/sbi/sbi_hart.c     | 6 +++---
->  2 files changed, 4 insertions(+), 4 deletions(-)
+>  lib/sbi/sbi_hart.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 8df655c..aeaff45 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -65,7 +65,7 @@ enum sbi_hart_extensions {
->   * unmapped. sbi_hart_map_saddr/sbi_hart_unmap_saddr function
->   * pair should be used to map/unmap the shared memory.
->   */
-> -#define SBI_SMEPMP_RESV_ENTRY          0
-> +#define SBI_SMEPMP_RESV_ENTRY          sbi_hart_pmp_reserved(scratch)
->
->  struct sbi_hart_features {
->         bool detected;
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index f8f7b82..f836b1c 100644
+> index f836b1c..fe24e82 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -401,7 +401,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
->         pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+> @@ -559,7 +559,8 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+>         pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
+>         pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
 >
->         /* Program M-only regions when MML is not set. */
-> -       pmp_idx = 0;
-> +       pmp_idx = sbi_hart_pmp_reserved(scratch);
->         sbi_domain_for_each_memregion(dom, reg) {
->                 /* Skip reserved entry */
->                 if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
-> @@ -427,7 +427,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
->         csr_set(CSR_MSECCFG, MSECCFG_MML);
->
->         /* Program shared and SU-only regions */
-> -       pmp_idx = 0;
-> +       pmp_idx = sbi_hart_pmp_reserved(scratch);
->         sbi_domain_for_each_memregion(dom, reg) {
->                 /* Skip reserved entry */
->                 if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
-> @@ -464,7 +464,7 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
->  {
->         struct sbi_domain_memregion *reg;
->         struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> -       unsigned int pmp_idx = 0;
-> +       unsigned int pmp_idx = sbi_hart_pmp_reserved(scratch);
->         unsigned int pmp_flags;
->         unsigned long pmp_addr;
->
+> -       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+> +       if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP) &&
+> +               (csr_read(CSR_MSECCFG) & MSECCFG_MML || !sbi_hart_pmp_reserved(scratch)))
+>                 rc = sbi_hart_smepmp_configure(scratch, pmp_count,
+>                                                 pmp_gran_log2, pmp_addr_max);
+>         else
 > --
 > 2.43.0
 >
