@@ -1,116 +1,88 @@
-From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-Date: Tue, 12 Dec 2023 08:58:35 +0000
-Subject: [PATCH v3 4/4] lib: sbi: Detect extensions from the ISA string in DT
-In-Reply-To: <20231212085835.26824-1-yongxuan.wang@sifive.com>
-References: <20231212085835.26824-1-yongxuan.wang@sifive.com>
-Message-ID: <20231212085835.26824-5-yongxuan.wang@sifive.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 12 Dec 2023 14:28:54 +0530
+Subject: [PATCH 1/5] lib: sbi_tlb: Reduce size of struct sbi_tlb_info
+In-Reply-To: <9b30161e-f2cb-4943-88c7-78aae9acb54a@sifive.com>
+References: <20231211180738.891727-1-apatel@ventanamicro.com>
+ <20231211180738.891727-2-apatel@ventanamicro.com> <9b30161e-f2cb-4943-88c7-78aae9acb54a@sifive.com>
+Message-ID: <CAK9=C2WdOswDu0jWFFnD-=6nr0jnwBo7uSvJff33ypJ+uuYmJg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Enable access to some extensions through menvcfg and show them in "Boot
-HART ISA Extensions" if they are present in the device tree.
+On Mon, Dec 11, 2023 at 11:46?PM Samuel Holland
+<samuel.holland@sifive.com> wrote:
+>
+> Hi Anup,
+>
+> On 2023-12-11 12:07 PM, Anup Patel wrote:
+> > Let us reduce the size of struct sbi_tlb_info by doing the
+> > following:
+> > 1) Change the data type of asid and vmid fields to uint16_t
+> > 2) Replace local_fn() function pointer with an enum
+> >
+> > Based on the above, the size of struct sbi_tlb_info is reduced
+> > by 16 bytes on RV64 and 4 bytes on RV32.
+>
+> Nice improvement!
+>
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  include/sbi/sbi_tlb.h      | 29 +++++++------
+> >  lib/sbi/sbi_ecall_legacy.c |  8 ++--
+> >  lib/sbi/sbi_ecall_rfence.c | 16 +++----
+> >  lib/sbi/sbi_tlb.c          | 89 ++++++++++++++++++++++++++++----------
+> >  4 files changed, 92 insertions(+), 50 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_tlb.h b/include/sbi/sbi_tlb.h
+> > index 55dcab0..2c50fe8 100644
+> > --- a/include/sbi/sbi_tlb.h
+> > +++ b/include/sbi/sbi_tlb.h
+> > [...]
+> >  static void tlb_pmu_incr_fw_ctr(struct sbi_tlb_info *data)
+> >  {
+> >       if (unlikely(!data))
+> >               return;
+> >
+> > -     if (data->local_fn == sbi_tlb_local_fence_i)
+> > +     switch (data->type) {
+> > +     case SBI_TLB_FENCE_I:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_FENCE_I_SENT);
+> > -     else if (data->local_fn == sbi_tlb_local_sfence_vma)
+> > +             break;
+> > +     case SBI_TLB_SFENCE_VMA:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_SENT);
+> > -     else if (data->local_fn == sbi_tlb_local_sfence_vma_asid)
+> > +             break;
+> > +     case SBI_TLB_SFENCE_VMA_ASID:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_SENT);
+> > -     else if (data->local_fn == sbi_tlb_local_hfence_gvma)
+> > -             sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_SENT);
+> > -     else if (data->local_fn == sbi_tlb_local_hfence_gvma_vmid)
+> > +             break;
+> > +     case SBI_TLB_HFENCE_GVMA_VMID:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_VMID_SENT);
+> > -     else if (data->local_fn == sbi_tlb_local_hfence_vvma)
+> > -             sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_SENT);
+> > -     else if (data->local_fn == sbi_tlb_local_hfence_vvma_asid)
+> > +             break;
+> > +     case SBI_TLB_HFENCE_GVMA:
+> > +             sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_SENT);
+> > +             break;
+> > +     case SBI_TLB_HFENCE_VVMA_ASID:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_ASID_SENT);
+> > +             break;
+> > +     case SBI_TLB_HFENCE_VVMA:
+> > +             sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_VVMA_SENT);
+> > +             break;
+>
+> These switch cases are all practically the same. Can this be simplified by using
+> a lookup table for the PMU event?
 
-Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
----
- include/sbi/sbi_hart.h |  6 +++++
- lib/sbi/sbi_hart.c     | 51 +++++++++++++-----------------------------
- 2 files changed, 22 insertions(+), 35 deletions(-)
+Ahh, yes. We can use a lookup table over here. I will update in the
+next revision.
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 77138232..47be251d 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -47,6 +47,12 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_SMCNTRPMF,
- 	/** Hart has Xandespmu extension */
- 	SBI_HART_EXT_XANDESPMU,
-+	/** Hart has Zicboz extension */
-+	SBI_HART_EXT_ZICBOZ,
-+	/** Hart has Zicbom extension */
-+	SBI_HART_EXT_ZICBOM,
-+	/** Hart has Svpbmt extension */
-+	SBI_HART_EXT_SVPBMT,
- 
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 06b5f87e..6a9f6a71 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -112,46 +112,24 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 		menvcfg_val |= ((uint64_t)csr_read(CSR_MENVCFGH)) << 32;
- #endif
- 
--		/*
--		 * Set menvcfg.CBZE == 1
--		 *
--		 * If Zicboz extension is not available then writes to
--		 * menvcfg.CBZE will be ignored because it is a WARL field.
--		 */
--		menvcfg_val |= ENVCFG_CBZE;
-+#define __set_menvcfg_ext(__ext, __bit)					\
-+		if (sbi_hart_has_extension(scratch, __ext)) {		\
-+			menvcfg_val |= __bit;				\
-+		}
- 
- 		/*
--		 * Set menvcfg.CBCFE == 1
--		 *
--		 * If Zicbom extension is not available then writes to
--		 * menvcfg.CBCFE will be ignored because it is a WARL field.
-+		* Enable access to extensions if they are present in the
-+		 * hardware or in the device tree.
- 		 */
--		menvcfg_val |= ENVCFG_CBCFE;
- 
--		/*
--		 * Set menvcfg.CBIE == 3
--		 *
--		 * If Zicbom extension is not available then writes to
--		 * menvcfg.CBIE will be ignored because it is a WARL field.
--		 */
--		menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
-+		__set_menvcfg_ext(SBI_HART_EXT_ZICBOZ, ENVCFG_CBZE);
-+		__set_menvcfg_ext(SBI_HART_EXT_ZICBOM, ENVCFG_CBCFE);
-+		__set_menvcfg_ext(SBI_HART_EXT_ZICBOM,
-+				  ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT);
-+		__set_menvcfg_ext(SBI_HART_EXT_SVPBMT, ENVCFG_PBMTE);
-+		__set_menvcfg_ext(SBI_HART_EXT_SSTC, ENVCFG_STCE);
- 
--		/*
--		 * Set menvcfg.PBMTE == 1 for RV64 or RV128
--		 *
--		 * If Svpbmt extension is not available then menvcfg.PBMTE
--		 * will be read-only zero.
--		 */
--		menvcfg_val |= ENVCFG_PBMTE;
--
--		/*
--		 * The spec doesn't explicitly describe the reset value of menvcfg.
--		 * Enable access to stimecmp if sstc extension is present in the
--		 * hardware.
--		 */
--		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSTC)) {
--			menvcfg_val |= ENVCFG_STCE;
--		}
-+#undef __set_menvcfg_ext
- 
- 		csr_write(CSR_MENVCFG, menvcfg_val);
- #if __riscv_xlen == 32
-@@ -675,6 +653,9 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(zkr, SBI_HART_EXT_ZKR),
- 	__SBI_HART_EXT_DATA(smcntrpmf, SBI_HART_EXT_SMCNTRPMF),
- 	__SBI_HART_EXT_DATA(xandespmu, SBI_HART_EXT_XANDESPMU),
-+	__SBI_HART_EXT_DATA(zicboz, SBI_HART_EXT_ZICBOZ),
-+	__SBI_HART_EXT_DATA(zicbom, SBI_HART_EXT_ZICBOM),
-+	__SBI_HART_EXT_DATA(svpbmt, SBI_HART_EXT_SVPBMT),
- };
- 
- /**
--- 
-2.17.1
-
+Thanks,
+Anup
 
