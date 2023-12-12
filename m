@@ -1,142 +1,87 @@
 From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-Date: Tue, 12 Dec 2023 08:58:32 +0000
-Subject: [PATCH v3 1/4] lib: sbi: Improve the code of privilege mode and extensions detection
+Date: Tue, 12 Dec 2023 08:58:33 +0000
+Subject: [PATCH v3 2/4] lib: sbi: Refactor the code for enable extensions in menvfg CSR
 In-Reply-To: <20231212085835.26824-1-yongxuan.wang@sifive.com>
 References: <20231212085835.26824-1-yongxuan.wang@sifive.com>
-Message-ID: <20231212085835.26824-2-yongxuan.wang@sifive.com>
+Message-ID: <20231212085835.26824-3-yongxuan.wang@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We can enhance the code by creating 2 unified interface with macro  for
-privilege mode and extensions detection, which relies on supported
-privilege modes and CSRs.
+Use 1 variable to store the value of menvcfg.
 
 Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_hart.c | 88 ++++++++++++++++++++--------------------------
- 1 file changed, 38 insertions(+), 50 deletions(-)
+ include/sbi/riscv_encoding.h |  5 -----
+ lib/sbi/sbi_hart.c           | 15 ++++++---------
+ 2 files changed, 6 insertions(+), 14 deletions(-)
 
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 0996d649..f20df761 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -207,13 +207,8 @@
+ 
+ #define MHPMEVENT_SSCOF_MASK		_ULL(0xFFFF000000000000)
+ 
+-#if __riscv_xlen > 32
+ #define ENVCFG_STCE			(_ULL(1) << 63)
+ #define ENVCFG_PBMTE			(_ULL(1) << 62)
+-#else
+-#define ENVCFGH_STCE			(_UL(1) << 31)
+-#define ENVCFGH_PBMTE			(_UL(1) << 30)
+-#endif
+ #define ENVCFG_CBZE			(_UL(1) << 7)
+ #define ENVCFG_CBCFE			(_UL(1) << 6)
+ #define ENVCFG_CBIE_SHIFT		4
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 6acff378..13998f1c 100644
+index 13998f1c..5734c09d 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -807,6 +807,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 	sbi_memset(hfeatures->extensions, 0, sizeof(hfeatures->extensions));
- 	hfeatures->pmp_count = 0;
- 	hfeatures->mhpm_mask = 0;
-+	hfeatures->priv_version = SBI_HART_PRIV_VER_UNKNOWN;
+@@ -108,6 +108,9 @@ static void mstatus_init(struct sbi_scratch *scratch)
  
- #define __check_hpm_csr(__csr, __mask) 					  \
- 	oldval = csr_read_allowed(__csr, (ulong)&trap);			  \
-@@ -899,67 +900,54 @@ __pmp_skip:
- #undef __check_csr_2
- #undef __check_csr
+ 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
+ 		menvcfg_val = csr_read(CSR_MENVCFG);
++#if __riscv_xlen == 32
++		menvcfg_val |= ((uint64_t)csr_read(CSR_MENVCFGH)) << 32;
++#endif
  
--	/* Detect if hart supports Priv v1.10 */
--	val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
--	if (!trap.cause)
--		hfeatures->priv_version = SBI_HART_PRIV_VER_1_10;
+ 		/*
+ 		 * Set menvcfg.CBZE == 1
+@@ -139,9 +142,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 		 * If Svpbmt extension is not available then menvcfg.PBMTE
+ 		 * will be read-only zero.
+ 		 */
+-#if __riscv_xlen > 32
+ 		menvcfg_val |= ENVCFG_PBMTE;
+-#endif
  
--	/* Detect if hart supports Priv v1.11 */
--	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap);
--	if (!trap.cause &&
--	    (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_10))
--		hfeatures->priv_version = SBI_HART_PRIV_VER_1_11;
-+#define __check_priv(__csr, __base_priv, __priv)			\
-+	val = csr_read_allowed(__csr, (ulong)&trap);			\
-+	if (!trap.cause && (hfeatures->priv_version >= __base_priv)) {	\
-+		hfeatures->priv_version = __priv;			\
-+	}
+ 		/*
+ 		 * The spec doesn't explicitly describe the reset value of menvcfg.
+@@ -149,17 +150,13 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 		 * hardware.
+ 		 */
+ 		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSTC)) {
+-#if __riscv_xlen == 32
+-			unsigned long menvcfgh_val;
+-			menvcfgh_val = csr_read(CSR_MENVCFGH);
+-			menvcfgh_val |= ENVCFGH_STCE;
+-			csr_write(CSR_MENVCFGH, menvcfgh_val);
+-#else
+ 			menvcfg_val |= ENVCFG_STCE;
+-#endif
+ 		}
  
-+	/* Detect if hart supports Priv v1.10 */
-+	__check_priv(CSR_MCOUNTEREN,
-+		     SBI_HART_PRIV_VER_UNKNOWN, SBI_HART_PRIV_VER_1_10);
-+	/* Detect if hart supports Priv v1.11 */
-+	__check_priv(CSR_MCOUNTINHIBIT,
-+		     SBI_HART_PRIV_VER_1_10, SBI_HART_PRIV_VER_1_11);
- 	/* Detect if hart supports Priv v1.12 */
--	csr_read_allowed(CSR_MENVCFG, (unsigned long)&trap);
--	if (!trap.cause &&
--	    (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11))
--		hfeatures->priv_version = SBI_HART_PRIV_VER_1_12;
-+	__check_priv(CSR_MENVCFG,
-+		     SBI_HART_PRIV_VER_1_11, SBI_HART_PRIV_VER_1_12);
+ 		csr_write(CSR_MENVCFG, menvcfg_val);
++#if __riscv_xlen == 32
++		csr_write(CSR_MENVCFGH, menvcfg_val >> 32);
++#endif
  
--	/* Counter overflow/filtering is not useful without mcounter/inhibit */
--	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11) {
--		/* Detect if hart supports sscofpmf */
--		csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
--		if (!trap.cause)
--			__sbi_hart_update_extension(hfeatures,
--					SBI_HART_EXT_SSCOFPMF, true);
-+#undef __check_priv_csr
-+
-+#define __check_ext_csr(__base_priv, __csr, __ext)			\
-+	if (hfeatures->priv_version >= __base_priv) {			\
-+		csr_read_allowed(__csr, (ulong)&trap);			\
-+		if (!trap.cause)					\
-+			__sbi_hart_update_extension(hfeatures,		\
-+						    __ext, true);	\
- 	}
- 
-+	/* Counter overflow/filtering is not useful without mcounter/inhibit */
-+	/* Detect if hart supports sscofpmf */
-+	__check_ext_csr(SBI_HART_PRIV_VER_1_11,
-+		        CSR_SCOUNTOVF, SBI_HART_EXT_SSCOFPMF);
- 	/* Detect if hart supports time CSR */
--	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
--	if (!trap.cause)
--		__sbi_hart_update_extension(hfeatures,
--					SBI_HART_EXT_ZICNTR, true);
--
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_TIME, SBI_HART_EXT_ZICNTR);
- 	/* Detect if hart has AIA local interrupt CSRs */
--	csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
--	if (!trap.cause)
--		__sbi_hart_update_extension(hfeatures,
--					SBI_HART_EXT_SMAIA, true);
--
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_MTOPI, SBI_HART_EXT_SMAIA);
- 	/* Detect if hart supports stimecmp CSR(Sstc extension) */
--	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
--		csr_read_allowed(CSR_STIMECMP, (unsigned long)&trap);
--		if (!trap.cause)
--			__sbi_hart_update_extension(hfeatures,
--					SBI_HART_EXT_SSTC, true);
--	}
--
-+	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
-+			CSR_STIMECMP, SBI_HART_EXT_SSTC);
- 	/* Detect if hart supports mstateen CSRs */
--	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
--		val = csr_read_allowed(CSR_MSTATEEN0, (unsigned long)&trap);
--		if (!trap.cause)
--			__sbi_hart_update_extension(hfeatures,
--					SBI_HART_EXT_SMSTATEEN, true);
--	}
--
-+	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
-+			CSR_MSTATEEN0, SBI_HART_EXT_SMSTATEEN);
- 	/* Detect if hart supports smcntrpmf */
--	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
--		csr_read_allowed(CSR_MCYCLECFG, (unsigned long)&trap);
--		if (!trap.cause)
--			__sbi_hart_update_extension(hfeatures,
--					SBI_HART_EXT_SMCNTRPMF, true);
--	}
-+	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
-+			CSR_MCYCLECFG, SBI_HART_EXT_SMCNTRPMF);
-+
-+#undef __check_ext_csr
- 
- 	/* Let platform populate extensions */
- 	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+ 		/* Enable S-mode access to seed CSR */
+ 		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZKR)) {
 -- 
 2.17.1
 
