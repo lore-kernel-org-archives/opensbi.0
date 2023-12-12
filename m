@@ -1,46 +1,142 @@
 From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-Date: Tue, 12 Dec 2023 08:58:31 +0000
-Subject: [PATCH v3 0/4] Add some programming improvements
-Message-ID: <20231212085835.26824-1-yongxuan.wang@sifive.com>
+Date: Tue, 12 Dec 2023 08:58:32 +0000
+Subject: [PATCH v3 1/4] lib: sbi: Improve the code of privilege mode and extensions detection
+In-Reply-To: <20231212085835.26824-1-yongxuan.wang@sifive.com>
+References: <20231212085835.26824-1-yongxuan.wang@sifive.com>
+Message-ID: <20231212085835.26824-2-yongxuan.wang@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In earlier versions, this patchset included the Svadu extension
-enablement. However, based on Anup's suggestion for backward
-compatibility, it's advisable to utilize the FWFT SBI extension to
-enable the Svade extension from S mode rather than unconditionally
-enabling it in OpenSBI. Consequently, I've removed the Svadu patch
-from this series. I will send a separate patch to activate the Svadu
-extension once we have the FWFT SBI extension.
+We can enhance the code by creating 2 unified interface with macro  for
+privilege mode and extensions detection, which relies on supported
+privilege modes and CSRs.
 
+Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
-v3:
-- Remove the Svadu patch
-- Rebase to the latest OpenSBI
+ lib/sbi/sbi_hart.c | 88 ++++++++++++++++++++--------------------------
+ 1 file changed, 38 insertions(+), 50 deletions(-)
 
-v2:
-- Rearrange the patches to do the code refactoring first before adding
-  new features
-- Suggested by Anup and Atish, detect extensions from DT instead of
-  menvcfg CSR
-- Enable access to some extensions through menvcfg CSR if they are
-  present in the device tree.
-
-Yong-Xuan Wang (4):
-  lib: sbi: Improve the code of privilege mode and extensions detection
-  lib: sbi: Refactor the code for enable extensions in menvfg CSR
-  lib: sbi: Using one array to define the name of extensions
-  lib: sbi: Detect extensions from the ISA string in DT
-
- include/sbi/riscv_encoding.h |   5 -
- include/sbi/sbi_hart.h       |  13 +++
- lib/sbi/sbi_hart.c           | 220 +++++++++++++----------------------
- lib/utils/fdt/fdt_helper.c   |   6 +-
- 4 files changed, 96 insertions(+), 148 deletions(-)
-
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6acff378..13998f1c 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -807,6 +807,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	sbi_memset(hfeatures->extensions, 0, sizeof(hfeatures->extensions));
+ 	hfeatures->pmp_count = 0;
+ 	hfeatures->mhpm_mask = 0;
++	hfeatures->priv_version = SBI_HART_PRIV_VER_UNKNOWN;
+ 
+ #define __check_hpm_csr(__csr, __mask) 					  \
+ 	oldval = csr_read_allowed(__csr, (ulong)&trap);			  \
+@@ -899,67 +900,54 @@ __pmp_skip:
+ #undef __check_csr_2
+ #undef __check_csr
+ 
+-	/* Detect if hart supports Priv v1.10 */
+-	val = csr_read_allowed(CSR_MCOUNTEREN, (unsigned long)&trap);
+-	if (!trap.cause)
+-		hfeatures->priv_version = SBI_HART_PRIV_VER_1_10;
+ 
+-	/* Detect if hart supports Priv v1.11 */
+-	val = csr_read_allowed(CSR_MCOUNTINHIBIT, (unsigned long)&trap);
+-	if (!trap.cause &&
+-	    (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_10))
+-		hfeatures->priv_version = SBI_HART_PRIV_VER_1_11;
++#define __check_priv(__csr, __base_priv, __priv)			\
++	val = csr_read_allowed(__csr, (ulong)&trap);			\
++	if (!trap.cause && (hfeatures->priv_version >= __base_priv)) {	\
++		hfeatures->priv_version = __priv;			\
++	}
+ 
++	/* Detect if hart supports Priv v1.10 */
++	__check_priv(CSR_MCOUNTEREN,
++		     SBI_HART_PRIV_VER_UNKNOWN, SBI_HART_PRIV_VER_1_10);
++	/* Detect if hart supports Priv v1.11 */
++	__check_priv(CSR_MCOUNTINHIBIT,
++		     SBI_HART_PRIV_VER_1_10, SBI_HART_PRIV_VER_1_11);
+ 	/* Detect if hart supports Priv v1.12 */
+-	csr_read_allowed(CSR_MENVCFG, (unsigned long)&trap);
+-	if (!trap.cause &&
+-	    (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11))
+-		hfeatures->priv_version = SBI_HART_PRIV_VER_1_12;
++	__check_priv(CSR_MENVCFG,
++		     SBI_HART_PRIV_VER_1_11, SBI_HART_PRIV_VER_1_12);
+ 
+-	/* Counter overflow/filtering is not useful without mcounter/inhibit */
+-	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_11) {
+-		/* Detect if hart supports sscofpmf */
+-		csr_read_allowed(CSR_SCOUNTOVF, (unsigned long)&trap);
+-		if (!trap.cause)
+-			__sbi_hart_update_extension(hfeatures,
+-					SBI_HART_EXT_SSCOFPMF, true);
++#undef __check_priv_csr
++
++#define __check_ext_csr(__base_priv, __csr, __ext)			\
++	if (hfeatures->priv_version >= __base_priv) {			\
++		csr_read_allowed(__csr, (ulong)&trap);			\
++		if (!trap.cause)					\
++			__sbi_hart_update_extension(hfeatures,		\
++						    __ext, true);	\
+ 	}
+ 
++	/* Counter overflow/filtering is not useful without mcounter/inhibit */
++	/* Detect if hart supports sscofpmf */
++	__check_ext_csr(SBI_HART_PRIV_VER_1_11,
++		        CSR_SCOUNTOVF, SBI_HART_EXT_SSCOFPMF);
+ 	/* Detect if hart supports time CSR */
+-	csr_read_allowed(CSR_TIME, (unsigned long)&trap);
+-	if (!trap.cause)
+-		__sbi_hart_update_extension(hfeatures,
+-					SBI_HART_EXT_ZICNTR, true);
+-
++	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
++			CSR_TIME, SBI_HART_EXT_ZICNTR);
+ 	/* Detect if hart has AIA local interrupt CSRs */
+-	csr_read_allowed(CSR_MTOPI, (unsigned long)&trap);
+-	if (!trap.cause)
+-		__sbi_hart_update_extension(hfeatures,
+-					SBI_HART_EXT_SMAIA, true);
+-
++	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
++			CSR_MTOPI, SBI_HART_EXT_SMAIA);
+ 	/* Detect if hart supports stimecmp CSR(Sstc extension) */
+-	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
+-		csr_read_allowed(CSR_STIMECMP, (unsigned long)&trap);
+-		if (!trap.cause)
+-			__sbi_hart_update_extension(hfeatures,
+-					SBI_HART_EXT_SSTC, true);
+-	}
+-
++	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
++			CSR_STIMECMP, SBI_HART_EXT_SSTC);
+ 	/* Detect if hart supports mstateen CSRs */
+-	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
+-		val = csr_read_allowed(CSR_MSTATEEN0, (unsigned long)&trap);
+-		if (!trap.cause)
+-			__sbi_hart_update_extension(hfeatures,
+-					SBI_HART_EXT_SMSTATEEN, true);
+-	}
+-
++	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
++			CSR_MSTATEEN0, SBI_HART_EXT_SMSTATEEN);
+ 	/* Detect if hart supports smcntrpmf */
+-	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
+-		csr_read_allowed(CSR_MCYCLECFG, (unsigned long)&trap);
+-		if (!trap.cause)
+-			__sbi_hart_update_extension(hfeatures,
+-					SBI_HART_EXT_SMCNTRPMF, true);
+-	}
++	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
++			CSR_MCYCLECFG, SBI_HART_EXT_SMCNTRPMF);
++
++#undef __check_ext_csr
+ 
+ 	/* Let platform populate extensions */
+ 	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
 -- 
 2.17.1
 
