@@ -1,47 +1,68 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 12 Dec 2023 15:29:26 +0530
-Subject: [PATCH v2 6/6] lib: sbi: Do not enter OpenSBI with mseccfg.MML == 1
-In-Reply-To: <20231212095926.13371-1-apatel@ventanamicro.com>
-References: <20231212095926.13371-1-apatel@ventanamicro.com>
-Message-ID: <20231212095926.13371-7-apatel@ventanamicro.com>
+Date: Tue, 12 Dec 2023 16:14:28 +0530
+Subject: [PATCH 0/7] lib: sbi: Probe PMP locked entries and adjust first
+ usable PMP index
+In-Reply-To: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
+References: <tencent_A2668222DA598E42B87A318A214D8DBD7C08@qq.com>
+Message-ID: <CAK9=C2Uw-7Fi-icTA70qcF0hv3+=Nu2CkdDV7OhK8+1uhB206g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On platforms with Smepmp, the previous booting stage must enter
-OpenSBI with mseccfg.MML == 0. This allows OpenSBI to configure
-it's own M-mode only regions without depending on the previous
-booting stage.
+On Fri, Dec 8, 2023 at 3:32?AM Yangyu Chen <cyy@cyyself.name> wrote:
+>
+> Some platform which has different domains for different CPU cores may
+> disable some device by PMP in the bootloader. For example, Canaan
+> Kendryte K230 provides SDK which locks some PMP entries in M-Mode
+> U-Boot[1]. As a result, the mainline OpenSBI running on this bootloader
+> will probe the PMP Count = 1 instead of 64 and PMP Granularity = 4
+> instead of 4096, which will cause the OpenSBI to have not enough PMPs to
+> set such regions and the only probed PMP entry is locked. Thus, we will
+> have no PMP to allow S-Mode main memory access, causing the S-Mode
+> software traps due to Instruction Access Fault over and over again and
+> never executed.
+>
+> This patch set probes the PMP locked entries and adjusts the first
+> usable PMP index to the maximum index of PMP locked entries + 1. Thus,
+> the OpenSBI will skip the PMP entries which are locked before OpenSBI
+> starts.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- lib/sbi/sbi_hart.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+I thought about this for quite some time. This idea of previous booting
+staging locking PMP entries is not going to fly.
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 6acff37..16da38d 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -975,6 +975,16 @@ __pmp_skip:
- 	/* Mark hart feature detection done */
- 	hfeatures->detected = true;
- 
-+	/*
-+	 * On platforms with Smepmp, the previous booting stage must
-+	 * enter OpenSBI with mseccfg.MML == 0. This allows OpenSBI
-+	 * to configure it's own M-mode only regions without depending
-+	 * on the previous booting stage.
-+	 */
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP) &&
-+	    (csr_read(CSR_MSECCFG) & MSECCFG_MML))
-+		return SBI_EILL;
-+
- 	return 0;
- }
- 
--- 
-2.34.1
+If you want platform specific reserved PMP entries then you can always
+add a generic platform override which adds these PMP entries.
 
+Please reconsider and fix your boot flow.
+
+Regards,
+Anup
+
+>
+> [1] https://github.com/kendryte/k230_sdk/blob/72be167ad4b3a7e91f7cc6abbe576d347b885af4/src/little/uboot/arch/riscv/cpu/k230/cpu.c#L82
+>
+> Yangyu Chen (7):
+>   lib: sbi: Probe pmp_count in read-only
+>   lib: sbi: detect the number of PMP entries first
+>   lib: sbi: Probe reserved PMP regions before OpenSBI start
+>   lib: sbi: probe PMP allowed addr from first usable PMP
+>   lib: sbi: adjust first usable PMP index to sbi_hart_pmp_reserved
+>   lib: sbi: Not use smepmp if has pmp reserved and MSECCFG.MML=1
+>   lib: sbi: show the number of PMP Reserved
+>
+>  include/sbi/sbi_hart.h |  4 +-
+>  lib/sbi/sbi_hart.c     | 87 +++++++++++++++++++++++++++++++-----------
+>  lib/sbi/sbi_init.c     |  2 +
+>  3 files changed, 69 insertions(+), 24 deletions(-)
+>
+> --
+> 2.43.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
