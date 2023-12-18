@@ -1,21 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 18 Dec 2023 22:45:19 +0530
-Subject: [PATCH 3/3] lib: sbi_ipi: Drop unnecessary ipi_process check
-In-Reply-To: <20231208212301.3649930-4-samuel.holland@sifive.com>
-References: <20231208212301.3649930-1-samuel.holland@sifive.com> <20231208212301.3649930-4-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy1SgwnNgGSps6OG8k2WwQ7oaXLxHu74vaJMLiXPE1J-xg@mail.gmail.com>
+Date: Mon, 18 Dec 2023 22:45:38 +0530
+Subject: [PATCH] lib: sbi: Simplify the initialization of root_hmask in sbi_domain_init
+In-Reply-To: <20231211133003.1243458-1-wxjstz@126.com>
+References: <20231211133003.1243458-1-wxjstz@126.com>
+Message-ID: <CAAhSdy1Xa=kYE61j9FAz7FjdqrwQ8xJXqVj_1-czQwy-xtRAWQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Dec 9, 2023 at 2:53?AM Samuel Holland <samuel.holland@sifive.com> wrote:
+On Mon, Dec 11, 2023 at 7:00?PM Xiang W <wxjstz@126.com> wrote:
 >
-> sbi_ipi_event_create() disallows registering an IPI event with a NULL
-> .process callback, so the function pointer will never be NULL here.
+> The original code has multiple conversions between hartid and
+> hartindex. Can call sbi_hartmask_set_hartindex directly to
+> avoid conversion.
 >
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+
+LGTM.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -24,23 +29,23 @@ Anup
 
 
 > ---
+>  lib/sbi/sbi_domain.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 >
->  lib/sbi/sbi_ipi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 88d25de..4e9f742 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -815,8 +815,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
 >
-> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-> index ac31cd94..1115912b 100644
-> --- a/lib/sbi/sbi_ipi.c
-> +++ b/lib/sbi/sbi_ipi.c
-> @@ -241,7 +241,7 @@ void sbi_ipi_process(void)
->         while (ipi_type) {
->                 if (ipi_type & 1UL) {
->                         ipi_ops = ipi_ops_array[ipi_event];
-> -                       if (ipi_ops && ipi_ops->process)
-> +                       if (ipi_ops)
->                                 ipi_ops->process(scratch);
->                 }
->                 ipi_type = ipi_type >> 1;
+>         /* Root domain possible and assigned HARTs */
+>         for (i = 0; i < plat->hart_count; i++)
+> -               sbi_hartmask_set_hartid(sbi_hartindex_to_hartid(i),
+> -                                       root_hmask);
+> +               sbi_hartmask_set_hartindex(i, root_hmask);
+>
+>         /* Finally register the root domain */
+>         rc = sbi_domain_register(&root, root_hmask);
 > --
 > 2.42.0
 >
