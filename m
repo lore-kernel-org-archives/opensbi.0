@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 19 Dec 2023 15:50:30 +0530
-Subject: [PATCH v3 3/4] lib: sbi: Using one array to define the name of extensions
-In-Reply-To: <20231212085835.26824-4-yongxuan.wang@sifive.com>
-References: <20231212085835.26824-1-yongxuan.wang@sifive.com> <20231212085835.26824-4-yongxuan.wang@sifive.com>
-Message-ID: <CAAhSdy09p2ETFHDgztB-ATqZ-5uCQuMZvdqm=Z3mBNwDP_FLJw@mail.gmail.com>
+Date: Tue, 19 Dec 2023 15:51:49 +0530
+Subject: [PATCH v3 4/4] lib: sbi: Detect extensions from the ISA string in DT
+In-Reply-To: <20231212085835.26824-5-yongxuan.wang@sifive.com>
+References: <20231212085835.26824-1-yongxuan.wang@sifive.com> <20231212085835.26824-5-yongxuan.wang@sifive.com>
+Message-ID: <CAAhSdy35+Wam7HVFqN5gCBpkAVn1uqQV_KXaWaFwHX=AGi7JQA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,155 +12,109 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Dec 12, 2023 at 2:28?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
 >
-> Define an array sbi_hart_ext to map extension ID and name , and use it
-> for ISA parsing and printing out the supported extensions.
+> Enable access to some extensions through menvcfg and show them in "Boot
+> HART ISA Extensions" if they are present in the device tree.
 >
 > Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
 > ---
->  include/sbi/sbi_hart.h     |  7 ++++
->  lib/sbi/sbi_hart.c         | 68 +++++++++++---------------------------
->  lib/utils/fdt/fdt_helper.c |  6 ++--
->  3 files changed, 31 insertions(+), 50 deletions(-)
+>  include/sbi/sbi_hart.h |  6 +++++
+>  lib/sbi/sbi_hart.c     | 51 +++++++++++++-----------------------------
+>  2 files changed, 22 insertions(+), 35 deletions(-)
 >
 > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 0aefc2be..77138232 100644
+> index 77138232..47be251d 100644
 > --- a/include/sbi/sbi_hart.h
 > +++ b/include/sbi/sbi_hart.h
-> @@ -52,6 +52,13 @@ enum sbi_hart_extensions {
->         SBI_HART_EXT_MAX,
->  };
+> @@ -47,6 +47,12 @@ enum sbi_hart_extensions {
+>         SBI_HART_EXT_SMCNTRPMF,
+>         /** Hart has Xandespmu extension */
+>         SBI_HART_EXT_XANDESPMU,
+> +       /** Hart has Zicboz extension */
+> +       SBI_HART_EXT_ZICBOZ,
+> +       /** Hart has Zicbom extension */
+> +       SBI_HART_EXT_ZICBOM,
+> +       /** Hart has Svpbmt extension */
+> +       SBI_HART_EXT_SVPBMT,
 >
-> +struct sbi_hart_ext_data {
-> +       const unsigned int id;
-> +       const char *name;
-> +};
-> +
-> +extern const struct sbi_hart_ext_data sbi_hart_ext[];
-> +
->  /*
->   * Smepmp enforces access boundaries between M-mode and
->   * S/U-mode. When it is enabled, the PMPs are programmed
+>         /** Maximum index of Hart extension */
+>         SBI_HART_EXT_MAX,
 > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 5734c09d..06b5f87e 100644
+> index 06b5f87e..6a9f6a71 100644
 > --- a/lib/sbi/sbi_hart.c
 > +++ b/lib/sbi/sbi_hart.c
-> @@ -659,48 +659,24 @@ bool sbi_hart_has_extension(struct sbi_scratch *scratch,
->                 return false;
->  }
+> @@ -112,46 +112,24 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                 menvcfg_val |= ((uint64_t)csr_read(CSR_MENVCFGH)) << 32;
+>  #endif
 >
-> -static inline char *sbi_hart_extension_id2string(int ext)
-> -{
-> -       char *estr = NULL;
-> -
-> -       switch (ext) {
-> -       case SBI_HART_EXT_SMAIA:
-> -               estr = "smaia";
-> -               break;
-> -       case SBI_HART_EXT_SMSTATEEN:
-> -               estr = "smstateen";
-> -               break;
-> -       case SBI_HART_EXT_SSCOFPMF:
-> -               estr = "sscofpmf";
-> -               break;
-> -       case SBI_HART_EXT_SSTC:
-> -               estr = "sstc";
-> -               break;
-> -       case SBI_HART_EXT_ZICNTR:
-> -               estr = "zicntr";
-> -               break;
-> -       case SBI_HART_EXT_ZIHPM:
-> -               estr = "zihpm";
-> -               break;
-> -       case SBI_HART_EXT_ZKR:
-> -               estr = "zkr";
-> -               break;
-> -       case SBI_HART_EXT_SMEPMP:
-> -               estr = "smepmp";
-> -               break;
-> -       case SBI_HART_EXT_SMCNTRPMF:
-> -               estr = "smcntrpmf";
-> -               break;
-> -       case SBI_HART_EXT_XANDESPMU:
-> -               estr = "xandespmu";
-> -               break;
-> -       default:
-> -               break;
-> -       }
-> -
-> -       return estr;
-> +#define __SBI_HART_EXT_DATA(_name, _id) {      \
-> +       .name = #_name,                         \
-> +       .id = _id,                              \
->  }
->
-> +const struct sbi_hart_ext_data sbi_hart_ext[] = {
-> +       __SBI_HART_EXT_DATA(smaia, SBI_HART_EXT_SMAIA),
-> +       __SBI_HART_EXT_DATA(smepmp, SBI_HART_EXT_SMEPMP),
-> +       __SBI_HART_EXT_DATA(smstateen, SBI_HART_EXT_SMSTATEEN),
-> +       __SBI_HART_EXT_DATA(sscofpmf, SBI_HART_EXT_SSCOFPMF),
-> +       __SBI_HART_EXT_DATA(sstc, SBI_HART_EXT_SSTC),
-> +       __SBI_HART_EXT_DATA(zicntr, SBI_HART_EXT_ZICNTR),
-> +       __SBI_HART_EXT_DATA(zihpm, SBI_HART_EXT_ZIHPM),
-> +       __SBI_HART_EXT_DATA(zkr, SBI_HART_EXT_ZKR),
-> +       __SBI_HART_EXT_DATA(smcntrpmf, SBI_HART_EXT_SMCNTRPMF),
-> +       __SBI_HART_EXT_DATA(xandespmu, SBI_HART_EXT_XANDESPMU),
-> +};
-> +
->  /**
->   * Get the hart extensions in string format
->   *
-> @@ -716,20 +692,16 @@ void sbi_hart_get_extensions_str(struct sbi_scratch *scratch,
->         struct sbi_hart_features *hfeatures =
->                         sbi_scratch_offset_ptr(scratch, hart_features_offset);
->         int offset = 0, ext = 0;
-> -       char *temp;
->
->         if (!extensions_str || nestr <= 0)
->                 return;
->         sbi_memset(extensions_str, 0, nestr);
->
->         for_each_set_bit(ext, hfeatures->extensions, SBI_HART_EXT_MAX) {
-> -               temp = sbi_hart_extension_id2string(ext);
-> -               if (temp) {
-> -                       sbi_snprintf(extensions_str + offset,
-> -                                    nestr - offset,
-> -                                    "%s,", temp);
-> -                       offset = offset + sbi_strlen(temp) + 1;
-> -               }
-> +               sbi_snprintf(extensions_str + offset,
-> +                                nestr - offset,
-> +                                "%s,", sbi_hart_ext[ext].name);
-> +               offset = offset + sbi_strlen(sbi_hart_ext[ext].name) + 1;
->         }
->
->         if (offset)
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 78c1f380..4ed6bbc1 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -401,8 +401,10 @@ static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
->                                 continue;                       \
->                         }
->
-> -               set_multi_letter_ext("smepmp", SBI_HART_EXT_SMEPMP);
-> -               set_multi_letter_ext("zkr", SBI_HART_EXT_ZKR);
-> +               for (j = 0; j < SBI_HART_EXT_MAX; j++) {
-> +                       set_multi_letter_ext(sbi_hart_ext[j].name,
-> +                                            sbi_hart_ext[j].id);
+> -               /*
+> -                * Set menvcfg.CBZE == 1
+> -                *
+> -                * If Zicboz extension is not available then writes to
+> -                * menvcfg.CBZE will be ignored because it is a WARL field.
+> -                */
+> -               menvcfg_val |= ENVCFG_CBZE;
+> +#define __set_menvcfg_ext(__ext, __bit)                                        \
+> +               if (sbi_hart_has_extension(scratch, __ext)) {           \
+> +                       menvcfg_val |= __bit;                           \
 > +               }
->  #undef set_multi_letter_ext
->         }
 >
+>                 /*
+> -                * Set menvcfg.CBCFE == 1
+> -                *
+> -                * If Zicbom extension is not available then writes to
+> -                * menvcfg.CBCFE will be ignored because it is a WARL field.
+> +               * Enable access to extensions if they are present in the
+> +                * hardware or in the device tree.
+>                  */
+> -               menvcfg_val |= ENVCFG_CBCFE;
+>
+> -               /*
+> -                * Set menvcfg.CBIE == 3
+> -                *
+> -                * If Zicbom extension is not available then writes to
+> -                * menvcfg.CBIE will be ignored because it is a WARL field.
+> -                */
+> -               menvcfg_val |= ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT;
+> +               __set_menvcfg_ext(SBI_HART_EXT_ZICBOZ, ENVCFG_CBZE);
+> +               __set_menvcfg_ext(SBI_HART_EXT_ZICBOM, ENVCFG_CBCFE);
+> +               __set_menvcfg_ext(SBI_HART_EXT_ZICBOM,
+> +                                 ENVCFG_CBIE_INV << ENVCFG_CBIE_SHIFT);
+> +               __set_menvcfg_ext(SBI_HART_EXT_SVPBMT, ENVCFG_PBMTE);
+
+Same as PATCH2, we need a #if here since Svpbmt is not available on RV32.
+
+> +               __set_menvcfg_ext(SBI_HART_EXT_SSTC, ENVCFG_STCE);
+>
+> -               /*
+> -                * Set menvcfg.PBMTE == 1 for RV64 or RV128
+> -                *
+> -                * If Svpbmt extension is not available then menvcfg.PBMTE
+> -                * will be read-only zero.
+> -                */
+> -               menvcfg_val |= ENVCFG_PBMTE;
+> -
+> -               /*
+> -                * The spec doesn't explicitly describe the reset value of menvcfg.
+> -                * Enable access to stimecmp if sstc extension is present in the
+> -                * hardware.
+> -                */
+> -               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSTC)) {
+> -                       menvcfg_val |= ENVCFG_STCE;
+> -               }
+> +#undef __set_menvcfg_ext
+>
+>                 csr_write(CSR_MENVCFG, menvcfg_val);
+>  #if __riscv_xlen == 32
+> @@ -675,6 +653,9 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+>         __SBI_HART_EXT_DATA(zkr, SBI_HART_EXT_ZKR),
+>         __SBI_HART_EXT_DATA(smcntrpmf, SBI_HART_EXT_SMCNTRPMF),
+>         __SBI_HART_EXT_DATA(xandespmu, SBI_HART_EXT_XANDESPMU),
+> +       __SBI_HART_EXT_DATA(zicboz, SBI_HART_EXT_ZICBOZ),
+> +       __SBI_HART_EXT_DATA(zicbom, SBI_HART_EXT_ZICBOM),
+> +       __SBI_HART_EXT_DATA(svpbmt, SBI_HART_EXT_SVPBMT),
+>  };
+>
+>  /**
 > --
 > 2.17.1
 >
@@ -169,4 +123,13 @@ Anup
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+I have taken care of the above issue at the time of merging this patch.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
 
