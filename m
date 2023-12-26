@@ -1,18 +1,18 @@
-From: Conor Dooley <conor@kernel.org>
-Date: Tue, 26 Dec 2023 17:27:55 +0000
+From: Gabriel L. Somlo <gsomlo@gmail.com>
+Date: Tue, 26 Dec 2023 12:28:52 -0500
 Subject: Help: commit 6112d58 breaks my kernel boot
 In-Reply-To: <ZYsLGHnhWBPb4T4O@errol.ini.cmu.edu>
 References: <ZYsGfc/U10S0mKna@errol.ini.cmu.edu>
  <20231226-apache-lagging-514fe286ce52@spud>
  <ZYsLGHnhWBPb4T4O@errol.ini.cmu.edu>
-Message-ID: <20231226-chlorine-item-0c57aa524a23@spud>
+Message-ID: <ZYsNVHDBaCbQbAEG@errol.ini.cmu.edu>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 26, 2023 at 12:19:20PM -0500, Gabriel L. Somlo wrote:
+On Tue, Dec 26, 2023 at 12:19:22PM -0500, Gabriel L. Somlo wrote:
 > On Tue, Dec 26, 2023 at 05:11:00PM +0000, Conor Dooley wrote:
 > > On Tue, Dec 26, 2023 at 11:59:41AM -0500, Gabriel L. Somlo wrote:
 > > > Hi,
@@ -36,13 +36,11 @@ On Tue, Dec 26, 2023 at 12:19:20PM -0500, Gabriel L. Somlo wrote:
 > Yes, removing the `reg-names` line from the clint node allows the
 > kernel to boot without issues.
 
-Cool, sounds like a dts issue and not U-Boot's fault then. reg-names is
-not a documented property for the regular clint, so it shouldn't be
-here.
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 228 bytes
-Desc: not available
-URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20231226/4c42f53d/attachment.sig>
+I have to wonder, though, is that the "proper" fix, or just a
+temporary workaround? Is the `reg-names` entry actively "wrong"
+in the context of the rest of my clint node, or is parsing in opensbi
+actually buggy at the moment?
+
+Thanks,
+--G
+
