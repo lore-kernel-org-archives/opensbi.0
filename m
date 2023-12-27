@@ -1,106 +1,75 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Wed, 27 Dec 2023 08:46:11 +0800
-Subject: [PATCH] lib: utils/timer: mtimer: only use regname for aclint
-Message-ID: <IA1PR20MB4953EB763D76C7E83BDBB3B9BB9FA@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Wed, 27 Dec 2023 08:50:47 +0800
+Subject: Help: commit 6112d58 breaks my kernel boot
+In-Reply-To: <ZYtVSrIvNKt2Cjak@Entropy.lan>
+References: <ZYtVSrIvNKt2Cjak@Entropy.lan>
+Message-ID: <IA1PR20MB4953361CEA742E4FA2A94451BB9FA@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The parser will fail if the timer is clint timer and has regname
-property. As the regname is only meaningful for aclint, it is more
-robust to only check regname for aclint timer.
+>On Tue, Dec 26, 2023 at 09:56:56PM +0000, Conor Dooley wrote:
+>> On Tue, Dec 26, 2023 at 12:28:52PM -0500, Gabriel L. Somlo wrote:
+>>> On Tue, Dec 26, 2023 at 12:19:22PM -0500, Gabriel L. Somlo wrote:
+>>>> On Tue, Dec 26, 2023 at 05:11:00PM +0000, Conor Dooley wrote:
+>>>>> On Tue, Dec 26, 2023 at 11:59:41AM -0500, Gabriel L. Somlo wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> I recently updated my opensbi sources, and noticed that commit
+>>>>>> 6112d58 ("lib: utils/fdt: Allow to use reg-names when parsing ACLINT")
+>>>>>> breaks booting the (latest upstream) kernel on my LiteX + 4-core Rocket
+>>>>>> setup. Without that commit, the kernel boots fine. With the commit
+>>>>>> applied, I get:
+>>>>>
+>>>>>> 		L2: clint at 2000000 {
+>>>>>> 			compatible = "riscv,clint0";
+>>>>>> 			interrupts-extended = <&L4 3 &L4 7 &L14 3 &L14 7 &L24 3 &L24 7 &L34 3 &L34 7>;
+>>>>>> 			reg = <0x2000000 0x10000>;
+>>>>>
+>>>>>> 			reg-names = "control";
+>>>>>
+>>>>> If you remove this does it boot?
+>>>>>
+>>>>
+>>>> Yes, removing the `reg-names` line from the clint node allows the
+>>>> kernel to boot without issues.
+>>>
+>>> I have to wonder, though, is that the "proper" fix, or just a
+>>> temporary workaround? Is the `reg-names` entry actively "wrong"
+>>> in the context of the rest of my clint node, or is parsing in opensbi
+>>> actually buggy at the moment?
+>>
+>> The parsing in OpenSBI is binding compliant (as far as I can see from a
+>> brief look at the commit you identified) but I suppose it could be
+>> limited to avoid checking reg-names for things matching the regular clint,
+>> if there are a lot of incorrect devicetrees out there likely to be
+>> affected.
+>
+>As luck would have it, mine is a soft-core fpga-based cpu setup, and
+>the Rocket-provided dts is a sample that can be (and is) edited before
+>deployment -- so I can easily comment out or remove the `reg-names`
+>line in addition to all the other "massaging" I do to the sample they
+>provide. In some plausible future I might even figure out how they
+>generate the dts and submit a patch to stop them from adding the offending
+>line in the first place.
+>
+>It would be a problem for any actual hardware that ships with a "bad"
+>DTS in ROM -- but that's for someone else to complain about... ?
+>
+>Thanks again,
+>--Gabriel
+>
 
-Fixes: 6112d58 ("lib: utils/fdt: Allow to use reg-names when parsing ACLINT")
-Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
----
- include/sbi_utils/fdt/fdt_helper.h | 3 ++-
- lib/utils/fdt/fdt_helper.c         | 5 +++--
- lib/utils/ipi/fdt_ipi_mswi.c       | 2 +-
- lib/utils/timer/fdt_timer_mtimer.c | 5 +++--
- 4 files changed, 9 insertions(+), 6 deletions(-)
+Hi Gabriel,
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 430d818..ab4a80f 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -99,7 +99,8 @@ int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic);
- 
- int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat);
- 
--int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
-+int fdt_parse_aclint_node(void *fdt, int nodeoffset,
-+			  bool for_timer, bool allow_regname,
- 			  unsigned long *out_addr1, unsigned long *out_size1,
- 			  unsigned long *out_addr2, unsigned long *out_size2,
- 			  u32 *out_first_hartid, u32 *out_hart_count);
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index e50f4d8..a0e93b9 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -957,7 +957,8 @@ static int fdt_get_aclint_addr_size(void *fdt, int nodeoffset,
- 	return 0;
- }
- 
--int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
-+int fdt_parse_aclint_node(void *fdt, int nodeoffset,
-+			  bool for_timer, bool allow_regname,
- 			  unsigned long *out_addr1, unsigned long *out_size1,
- 			  unsigned long *out_addr2, unsigned long *out_size2,
- 			  u32 *out_first_hartid, u32 *out_hart_count)
-@@ -972,7 +973,7 @@ int fdt_parse_aclint_node(void *fdt, int nodeoffset, bool for_timer,
- 	    !out_first_hartid || !out_hart_count)
- 		return SBI_EINVAL;
- 
--	if (for_timer && out_addr2 && out_size2 &&
-+	if (for_timer && allow_regname && out_addr2 && out_size2 &&
- 	    fdt_getprop(fdt, nodeoffset, "reg-names", NULL))
- 		rc = fdt_get_aclint_addr_size_by_name(fdt, nodeoffset,
- 						      out_addr1, out_size1,
-diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
-index 5432db6..a709abe 100644
---- a/lib/utils/ipi/fdt_ipi_mswi.c
-+++ b/lib/utils/ipi/fdt_ipi_mswi.c
-@@ -24,7 +24,7 @@ static int ipi_mswi_cold_init(void *fdt, int nodeoff,
- 	if (!ms)
- 		return SBI_ENOMEM;
- 
--	rc = fdt_parse_aclint_node(fdt, nodeoff, false,
-+	rc = fdt_parse_aclint_node(fdt, nodeoff, false, false,
- 				   &ms->addr, &ms->size, NULL, NULL,
- 				   &ms->first_hartid, &ms->hart_count);
- 	if (rc) {
-diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-index 3ba6b8f..9e27e3a 100644
---- a/lib/utils/timer/fdt_timer_mtimer.c
-+++ b/lib/utils/timer/fdt_timer_mtimer.c
-@@ -38,13 +38,14 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 	struct timer_mtimer_node *mtn, *n;
- 	struct aclint_mtimer_data *mt;
- 	const struct timer_mtimer_quirks *quirks = match->data;
-+	bool is_clint = quirks && quirks->is_clint;
- 
- 	mtn = sbi_zalloc(sizeof(*mtn));
- 	if (!mtn)
- 		return SBI_ENOMEM;
- 	mt = &mtn->data;
- 
--	rc = fdt_parse_aclint_node(fdt, nodeoff, true,
-+	rc = fdt_parse_aclint_node(fdt, nodeoff, true, !is_clint,
- 				   &addr[0], &size[0], &addr[1], &size[1],
- 				   &mt->first_hartid, &mt->hart_count);
- 	if (rc) {
-@@ -60,7 +61,7 @@ static int timer_mtimer_cold_init(void *fdt, int nodeoff,
- 		return rc;
- 	}
- 
--	if (quirks && quirks->is_clint) { /* SiFive CLINT */
-+	if (is_clint) { /* SiFive CLINT */
- 		/* Set CLINT addresses */
- 		mt->mtimecmp_addr = addr[0] + ACLINT_DEFAULT_MTIMECMP_OFFSET;
- 		mt->mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE;
--- 
-2.43.0
+I have already submit a new patch to restrict the use of regname to aclint
+only. Can you test that patch? It should solve your problem.
 
+Patch Link:
+https://lists.infradead.org/pipermail/opensbi/2023-December/006191.html
+
+Regards,
+Inochi.
 
