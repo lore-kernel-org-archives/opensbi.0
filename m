@@ -1,59 +1,54 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 27 Dec 2023 11:15:25 +0530
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 27 Dec 2023 11:16:34 +0530
 Subject: [PATCH] lib: sbi: Fix shift bug in sbi_system_reset
-In-Reply-To: <4df52e9199fe4a9632ae7a2f9466afd566e436c0.camel@126.com>
-References: <20231221014432.393824-1-wxjstz@126.com> <CAAhSdy2J71KrU-Qb-Wo3AfoxGZ4jywVQo=xFWBR9PD_8pWEfXw@mail.gmail.com>
- <87le9i8vf0.fsf@linux-m68k.org> <CAK9=C2VZLvj3D60Wtnd3f9U0xH+ffaVQ81ygOR7d5YeLtsUF=Q@mail.gmail.com>
- <b9e904fc-0f5d-4f5d-b42a-4f3f3ea5b169@sifive.com> <4df52e9199fe4a9632ae7a2f9466afd566e436c0.camel@126.com>
-Message-ID: <CAK9=C2V9b-Wa49Es7aPDmxmB2gA+FAUqb0nv7yipN48Wf5QV2Q@mail.gmail.com>
+In-Reply-To: <20231221014432.393824-1-wxjstz@126.com>
+References: <20231221014432.393824-1-wxjstz@126.com>
+Message-ID: <CAAhSdy3peJCgFDmoX0B=YXQZ1Dw3SH1KXHNSCoJgid92r3O0Bw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 27, 2023 at 7:25?AM Xiang W <wxjstz@126.com> wrote:
+On Thu, Dec 21, 2023 at 7:14?AM Xiang W <wxjstz@126.com> wrote:
 >
-> ? 2023-12-26???? 12:03 -0600?Samuel Holland???
-> > On 2023-12-26 9:51 AM, Anup Patel wrote:
-> > > On Mon, Dec 25, 2023 at 3:19?PM Andreas Schwab <schwab@linux-m68k.org> wrote:
-> > > >
-> > > > On Dez 25 2023, Anup Patel wrote:
-> > > >
-> > > > > If "cur_hartid < hbase + BITS_PER_LONG" then
-> > > > > "1UL << (cur_hartid - hbase) == 0x0"
-> > > >
-> > > > If cur_hartid - hbase < BITS_PER_LONG, then 1UL << (cur_hartid - hbase)
-> > > > will not be 0.  If cur_hartid - hbase >= BITS_PER_LONG, then 1UL <<
-> > > > (cur_hartid - hbase) will overflow and be undefined.
-> > >
-> > > I meant "cur_hartid >= hbase + BITS_PER_LONG" which is
-> > > the overflow case.
-> > >
-> > > Since the overflow behavior is undefined, we have the
-> > > explicit check added by this patch.
-> >
-> > As pointed out by Andreas, "cur_hartid - hbase < BITS_PER_LONG" is the only
-> > check needed here. Unsigned wraparound will take care of the case where
-> > cur_hartid < hbase.
-> cur_hartid < hbase is not always true.
+> There is a problem with judging whether the current hart belongs to
+> hmask. If cur_hartid minus hbase is greater than BITS_PER_LONG, the
+> previous hmask will also have a bit cleared incorrectly, which will
+> cause some harts to lose ipi.
 >
-> For example, cur_hartid is 3 and 0-100 belongs to a domain. Here the loop
-> is executed twice, the first time with hbase 0 and the second time with
-> hbase 64. The second loop will have cur_hartid < hbase.
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-The real issue is that overflow behaviour of the left shift operator is
-undefined. No need for further justification on this issue.
+Looks good to me.
 
-Regards,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
+
+> ---
+>  lib/sbi/sbi_system.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >
-> Regards,
-> Xiang W
-> >
-> > Regards,
-> > Samuel
+> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+> index d1fa349..e930272 100644
+> --- a/lib/sbi/sbi_system.c
+> +++ b/lib/sbi/sbi_system.c
+> @@ -72,7 +72,8 @@ void __noreturn sbi_system_reset(u32 reset_type, u32 reset_reason)
+>
+>         /* Send HALT IPI to every hart other than the current hart */
+>         while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &hmask)) {
+> -               if (hbase <= cur_hartid)
+> +               if ((hbase <= cur_hartid)
+> +                         && (cur_hartid < hbase + BITS_PER_LONG))
+>                         hmask &= ~(1UL << (cur_hartid - hbase));
+>                 if (hmask)
+>                         sbi_ipi_send_halt(hmask, hbase);
+> --
+> 2.43.0
 >
 >
 > --
