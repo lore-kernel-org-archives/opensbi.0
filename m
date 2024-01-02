@@ -1,54 +1,45 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 30 Jan 2025 11:17:04 +0530
-Subject: [PATCH 1/1] fdt: fdt_helper: fix typo har't'id
-In-Reply-To: <20241230094413.885968-1-ycliang@andestech.com>
-References: <20241230094413.885968-1-ycliang@andestech.com>
-Message-ID: <CAAhSdy2i=-qibmmcevYVZa053UDs+tW7eMrTEHPqeyhX9=9ZGw@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue,  2 Jan 2024 21:35:48 +0800
+Subject: [PATCH] firmware: fw_base.S: remove _runtime_offset
+Message-ID: <20240102133551.396639-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Dec 30, 2024 at 3:14?PM Leo Yu-Chi Liang <ycliang@andestech.com> wrote:
->
-> s/hard_id/hartid/
->
-> Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+_runtime_offset is a variable not used elsewhere, so remove it.
 
-LGTM.
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ firmware/fw_base.S | 6 ------
+ 1 file changed, 6 deletions(-)
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index f7763f4..04d4f21 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -74,8 +74,6 @@ _try_lottery:
+ 	REG_L	t0, 0(t0)
+ 	/* t1 shall has the address of _fw_start */
+ 	sub	t2, t1, t0
+-	lla	t3, _runtime_offset
+-	REG_S	t2, (t3)
+ 	lla	t0, __rel_dyn_start
+ 	lla	t1, __rel_dyn_end
+ 	beq	t0, t1, _relocate_done
+@@ -500,10 +498,6 @@ _skip_trap_exit_rv32_hyp:
+ 
+ 	.data
+ 	.align 3
+-#ifdef FW_PIC
+-_runtime_offset:
+-	RISCV_PTR	0
+-#endif
+ _relocate_lottery:
+ 	RISCV_PTR	0
+ _boot_status:
+-- 
+2.43.0
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-
-> ---
->  include/sbi_utils/fdt/fdt_helper.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 7329b84c..6a37d971 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -59,7 +59,7 @@ int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
->
->  int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
->
-> -int fdt_parse_isa_extensions(const void *fdt, unsigned int hard_id,
-> +int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
->                              unsigned long *extensions);
->
->  int fdt_parse_gaisler_uart_node(const void *fdt, int nodeoffset,
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
