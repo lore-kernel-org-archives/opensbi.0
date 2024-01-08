@@ -1,541 +1,986 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 5 Jan 2024 22:22:29 +0530
-Subject: [PATCH v2] lib: sbi: Add initial domain context management support
-In-Reply-To: <afe51f54ba1a1e723657f21eba070b84e30e1b90.1703054766.git.2931013282@sjtu.edu.cn>
-References: <afe51f54ba1a1e723657f21eba070b84e30e1b90.1703054766.git.2931013282@sjtu.edu.cn>
-Message-ID: <CAAhSdy3y_CpwpMCyiDTfTiD4CZXZNH8cyoQFJ9JXv+Fmog2U-Q@mail.gmail.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Mon, 8 Jan 2024 11:35:21 +0530
+Subject: [PATCH v1 4/7] lib: sbi: Introduce the SBI debug triggers
+ extension support
+In-Reply-To: <20231219112856.3865827-5-hchauhan@ventanamicro.com>
+References: <20231219112856.3865827-1-hchauhan@ventanamicro.com>
+ <20231219112856.3865827-5-hchauhan@ventanamicro.com>
+Message-ID: <D5678B87-D1A7-46E6-91F1-7A99F19F0F0A@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 20, 2023 at 12:40?PM Qingyu Shang <2931013282@sjtu.edu.cn> wrote:
->
-> The domain context management component in OpenSBI provides basic CPU
-> context management routines for existing OpenSBI domain. As domain
-> extension, it was initially designed to facilitate the suspension
-> and resumption of domains, enabling secure domains to efficiently
-> share CPU resources.
->
-> The patch also provides an addition to the OpenSBI domain to provide
-> updates on hart-domain assignment and declarations of contexts within
-> the domain.
->
-> Signed-off-by: Qingyu Shang <2931013282@sjtu.edu.cn>
+
+
+> On 19-Dec-2023, at 4:58?PM, Himanshu Chauhan <hchauhan@ventanamicro.com> wrote:
+> 
+> RISC-V Debug specification includes Sdtrig ISA extension
+> which describes Trigger Module. Triggers can cause
+> a breakpoint exception or trace action without execution
+> of a special instruction. They can be used to implement
+> hardware breakpoints and watchpoints for native debugging.
+> 
+> The SBI Debut Trigger extension (Draft v6) can be found at:
+> https://lists.riscv.org/g/tech-debug/topic/99825362#1302
+> 
+> This patch is an initial implementation of SBI Debug
+> Trigger Extension (Draft v6) in OpenSBI.
+> 
+> The following features are supported:
+> * mcontrol, mcontrol6 triggers
+> * Breakpoint and trace actions
+> 
+> NOTE: Chained triggers are not supported
+> 
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+
+Hi Anup,
+
+Does this patch look good?
+
+Regards
+Himanshu
+
 > ---
->  docs/domain_support.md           |   2 +
->  include/sbi/sbi_domain.h         |  10 ++
->  include/sbi/sbi_domain_context.h |  80 +++++++++
->  lib/sbi/objects.mk               |   1 +
->  lib/sbi/sbi_domain.c             |  22 +++
->  lib/sbi/sbi_domain_context.c     | 275 +++++++++++++++++++++++++++++++
->  6 files changed, 390 insertions(+)
->  create mode 100755 include/sbi/sbi_domain_context.h
->  create mode 100755 lib/sbi/sbi_domain_context.c
->
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index b285d65ae..c98b83211 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -41,6 +41,7 @@ has following details:
->  * **name** - Name of this domain
->  * **assigned_harts** - HARTs assigned to this domain
->  * **possible_harts** - HARTs possible in this domain
-> +* **hartindex_to_context_table** - Contexts corresponding to possible HARTs
->  * **regions** - Array of memory regions terminated by a memory region
->    with order zero
->  * **boot_hartid** - HART id of the HART booting this domain. The domain
-> @@ -80,6 +81,7 @@ following manner:
->    platform support
->  * **possible_harts** - All valid HARTs of a RISC-V platform are possible
->    HARTs of the ROOT domain
-> +* **hartindex_to_context_table** - Contexts corresponding to ROOT domain's possible HARTs
->  * **regions** - Two memory regions available to the ROOT domain:
->    **A)** A memory region to protect OpenSBI firmware from S-mode and U-mode
->    **B)** A memory region of **order=__riscv_xlen** allowing S-mode and
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index c88dbac63..edfecf599 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -12,6 +12,7 @@
->
->  #include <sbi/sbi_types.h>
->  #include <sbi/sbi_hartmask.h>
-> +#include <sbi/sbi_domain_context.h>
->
->  struct sbi_scratch;
->
-> @@ -176,6 +177,8 @@ struct sbi_domain {
->         char name[64];
->         /** Possible HARTs in this domain */
->         const struct sbi_hartmask *possible_harts;
-> +       /** Contexts for possible HARTs indexed by hartindex */
-> +       struct sbi_context *hartindex_to_context_table[SBI_HARTMASK_MAX_BITS];
->         /** Array of memory regions terminated by a region with order zero */
->         struct sbi_domain_memregion *regions;
->         /** HART id of the HART booting this domain */
-> @@ -237,6 +240,13 @@ bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid);
->  ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
->                                        ulong hbase);
->
-> +/**
-> + * Assign given HART to specified domain
-> + * @param dom pointer to domain
-> + * @param hartid the HART ID
-> + */
-> +void sbi_domain_assign_hart(struct sbi_domain *dom, u32 hartid);
-> +
->  /**
->   * Initialize a domain memory region based on it's physical
->   * address and size.
-> diff --git a/include/sbi/sbi_domain_context.h b/include/sbi/sbi_domain_context.h
-> new file mode 100755
-> index 000000000..5c345ab9a
+> include/sbi/sbi_dbtr.h | 127 +++++++
+> lib/sbi/objects.mk     |   1 +
+> lib/sbi/sbi_dbtr.c     | 742 +++++++++++++++++++++++++++++++++++++++++
+> lib/sbi/sbi_init.c     |   9 +
+> 4 files changed, 879 insertions(+)
+> create mode 100644 include/sbi/sbi_dbtr.h
+> create mode 100644 lib/sbi/sbi_dbtr.c
+> 
+> diff --git a/include/sbi/sbi_dbtr.h b/include/sbi/sbi_dbtr.h
+> new file mode 100644
+> index 0000000..20855ae
 > --- /dev/null
-> +++ b/include/sbi/sbi_domain_context.h
-> @@ -0,0 +1,80 @@
+> +++ b/include/sbi/sbi_dbtr.h
+> @@ -0,0 +1,127 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
-> + * Copyright (c) IPADS at SJTU 2023. All rights reserved.
+> + * Copyright (c) 2023 Ventana Micro Systems, Inc.
+> + *
+> + * Authors:
+> + *   Himanshu Chauhan <hchauhan@ventanamicro.com>
 > + */
 > +
-> +#ifndef __SBI_DOMAIN_CONTEXT_H__
-> +#define __SBI_DOMAIN_CONTEXT_H__
+> +#ifndef __SBI_DBTR_H__
+> +#define __SBI_DBTR_H__
 > +
-> +#include <sbi/sbi_types.h>
-> +#include <sbi/sbi_trap.h>
+> +#include <sbi/riscv_dbtr.h>
+> +
+> +#include <sbi/sbi_hartmask.h>
+> +#include <sbi/sbi_scratch.h>
 > +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_byteorder.h>
 > +
-> +/** Context representation for a hart within a domain */
-> +struct sbi_context {
-> +       /** Trap-related states such as GPRs, mepc, and mstatus */
-> +       struct sbi_trap_regs regs;
-> +
-> +       /** Supervisor status register */
-> +       unsigned long sstatus;
-> +       /** Supervisor interrupt enable register */
-> +       unsigned long sie;
-> +       /** Supervisor trap vector base address register */
-> +       unsigned long stvec;
-> +       /** Supervisor scratch register for temporary storage */
-> +       unsigned long sscratch;
-> +       /** Supervisor exception program counter register */
-> +       unsigned long sepc;
-> +       /** Supervisor cause register */
-> +       unsigned long scause;
-> +       /** Supervisor trap value register */
-> +       unsigned long stval;
-> +       /** Supervisor interrupt pending register */
-> +       unsigned long sip;
-> +       /** Supervisor address translation and protection register */
-> +       unsigned long satp;
-> +       /** Counter-enable register */
-> +       unsigned long scounteren;
-> +       /** Supervisor environment configuration register */
-> +       unsigned long senvcfg;
-> +
-> +       /** Reference to the owning domain */
-> +       struct sbi_domain *dom;
-> +       /** Next context to jump to during context exits */
-> +       struct sbi_context *next_ctx;
-
-The name "next_ctx" is misleading.
-Better to name it "prev_ctx".
-
-> +       /** Is context initialized and idle */
-> +       bool initialized;
+> +enum {
+> + RV_DBTR_DECLARE_BIT(TS, MAPPED, 0), /* trigger mapped to hw trigger */
+> + RV_DBTR_DECLARE_BIT(TS, U, 1),
+> + RV_DBTR_DECLARE_BIT(TS, S, 2),
+> + RV_DBTR_DECLARE_BIT(TS, VU, 3),
+> + RV_DBTR_DECLARE_BIT(TS, VS, 4),
+> + RV_DBTR_DECLARE_BIT(TS, HAVE_TRIG, 5), /* H/w dbtr details available */
+> + RV_DBTR_DECLARE_BIT(TS, HW_IDX, 8), /* Hardware index of trigger */
 > +};
 > +
-> +/** Get the context pointer for a given hart index and domain */
-> +#define sbi_hartindex_to_domain_context(__hartindex, __d) \
-> +       (__d)->hartindex_to_context_table[__hartindex]
+> +enum {
+> + RV_DBTR_DECLARE_BIT_MASK(TS, MAPPED, 1),
+> + RV_DBTR_DECLARE_BIT_MASK(TS, U, 1),
+> + RV_DBTR_DECLARE_BIT_MASK(TS, S, 1),
+> + RV_DBTR_DECLARE_BIT_MASK(TS, VU, 1),
+> + RV_DBTR_DECLARE_BIT_MASK(TS, VS, 1),
+> + RV_DBTR_DECLARE_BIT_MASK(TS, HAVE_TRIG, 1),
+> + RV_DBTR_DECLARE_BIT_MASK(TS, HW_IDX, (__riscv_xlen-9)),
+> +};
 > +
-> +/** Macro to obtain the current hart's context pointer */
-> +#define sbi_domain_context_thishart_ptr()                  \
-> +       sbi_hartindex_to_domain_context(                   \
-> +               sbi_hartid_to_hartindex(current_hartid()), \
-> +               sbi_domain_thishart_ptr())
+> +#if __riscv_xlen == 64
+> +#define SBI_DBTR_SHMEM_INVALID_ADDR 0xFFFFFFFFFFFFFFFFUL
+> +#elif __riscv_xlen == 32
+> +#define SBI_DBTR_SHMEM_INVALID_ADDR 0xFFFFFFFFUL
+> +#error "Unexpected __riscv_xlen"
+> +#endif
 > +
-> +/**
-> + * Enter a specific domain context synchronously
-> + * @param dom pointer to domain
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +int sbi_domain_context_enter(struct sbi_domain *dom);
+> +struct sbi_dbtr_shmem {
+> + unsigned long phys_lo;
+> + unsigned long phys_hi;
+> +};
 > +
-> +/**
-> + * Exit the current domain context, and then return to the caller
-> + * of sbi_domain_context_enter or attempt to start the next domain
-> + * context to be initialized
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +int sbi_domain_context_exit(void);
+> +struct sbi_dbtr_trigger {
+> + unsigned long index;
+> + unsigned long type_mask;
+> + unsigned long state;
+> + unsigned long tdata1;
+> + unsigned long tdata2;
+> + unsigned long tdata3;
+> +};
 > +
-> +/** Initialize contexts for all domains */
-> +int sbi_domain_context_init(struct sbi_scratch *scratch);
+> +struct sbi_dbtr_data_msg {
+> + unsigned long tstate;
+> + unsigned long tdata1;
+> + unsigned long tdata2;
+> + unsigned long tdata3;
+> +};
 > +
-> +#endif // __SBI_DOMAIN_CONTEXT_H__
+> +struct sbi_dbtr_id_msg {
+> + unsigned long idx;
+> +};
+> +
+> +struct sbi_dbtr_hart_triggers_state {
+> + struct sbi_dbtr_trigger triggers[RV_MAX_TRIGGERS];
+> + struct sbi_dbtr_shmem shmem;
+> + u32 total_trigs;
+> + u32 available_trigs;
+> + u32 hartid;
+> +};
+> +
+> +#define TDATA1_GET_TYPE(_t1) \
+> + EXTRACT_FIELD(_t1, RV_DBTR_BIT_MASK(TDATA1, TYPE))
+> +
+> +/* Set the hardware index of trigger in logical trigger state */
+> +#define SET_TRIG_HW_INDEX(_state, _idx) \
+> + do { \
+> + _state &= ~RV_DBTR_BIT_MASK(TS, HW_IDX); \
+> + _state |= (((unsigned long)_idx \
+> +    << RV_DBTR_BIT(TS, HW_IDX)) \
+> +   & RV_DBTR_BIT_MASK(TS, HW_IDX)); \
+> + }while (0);
+> +
+> +/** SBI shared mem messages layout */
+> +struct sbi_dbtr_shmem_entry {
+> + struct sbi_dbtr_data_msg data;
+> + struct sbi_dbtr_id_msg id;
+> +};
+> +
+> +#define SBI_DBTR_SHMEM_ALIGN_MASK               ((__riscv_xlen / 8) - 1)
+> +
+> +/** Initialize debug triggers */
+> +int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot);
+> +
+> +/** SBI DBTR extension functions */
+> +int sbi_dbtr_supported(void);
+> +int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+> + unsigned long shmem_phys_lo,
+> + unsigned long shmem_phys_hi);
+> +int sbi_dbtr_num_trig(unsigned long trig_tdata1, unsigned long *out);
+> +int sbi_dbtr_read_trig(const struct sbi_domain *dom, unsigned long smode,
+> +       unsigned long trig_idx_base, unsigned long trig_count);
+> +int sbi_dbtr_install_trig(const struct sbi_domain *dom, unsigned long smode,
+> +  unsigned long trig_count, unsigned long *out);
+> +int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
+> +    unsigned long trig_idx_mask);
+> +int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+> + unsigned long trig_idx_mask);
+> +int sbi_dbtr_update_trig(const struct sbi_domain *dom,
+> + unsigned long smode,
+> + unsigned long trig_idx_base,
+> + unsigned long trig_idx_mask);
+> +int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
+> +  unsigned long trig_idx_mask);
+> +
+> +int sbi_dbtr_get_total_triggers(void);
+> +
+> +#endif
 > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index c69918701..d4e08ca82 100644
+> index c699187..c7de150 100644
 > --- a/lib/sbi/objects.mk
 > +++ b/lib/sbi/objects.mk
-> @@ -55,6 +55,7 @@ libsbi-objs-$(CONFIG_SBI_ECALL_VENDOR) += sbi_ecall_vendor.o
->  libsbi-objs-y += sbi_bitmap.o
->  libsbi-objs-y += sbi_bitops.o
->  libsbi-objs-y += sbi_console.o
-> +libsbi-objs-y += sbi_domain_context.o
->  libsbi-objs-y += sbi_domain.o
->  libsbi-objs-y += sbi_emulate_csr.o
->  libsbi-objs-y += sbi_fifo.o
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 4e9f7428a..9639561b1 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -82,6 +82,21 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
->         return ret;
->  }
->
-> +void sbi_domain_assign_hart(struct sbi_domain *dom, u32 hartid)
-> +{
-> +       struct sbi_domain *tdom;
-> +       u32 hartindex = sbi_hartid_to_hartindex(hartid);
-> +
-> +       if (!dom || !sbi_hartindex_valid(hartindex))
-> +               return;
-> +
-> +       tdom = sbi_hartindex_to_domain(hartindex);
-> +       if (tdom)
-> +               sbi_hartmask_clear_hartindex(hartindex, &tdom->assigned_harts);
-> +       update_hartindex_to_domain(hartindex, dom);
-> +       sbi_hartmask_set_hartindex(hartindex, &dom->assigned_harts);
-> +}
-> +
->  void sbi_domain_memregion_init(unsigned long addr,
->                                 unsigned long size,
->                                 unsigned long flags,
-> @@ -725,6 +740,13 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
->                 }
->         }
->
-> +       rc = sbi_domain_context_init(scratch);
-> +       if (rc) {
-> +               sbi_printf("%s: domain context init failed (error %d)\n",
-> +                          __func__, rc);
-> +               return rc;
-> +       }
-> +
->         /*
->          * Set the finalized flag so that the root domain
->          * regions can't be changed.
-> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> new file mode 100755
-> index 000000000..90996d91e
+> @@ -70,6 +70,7 @@ libsbi-objs-y += sbi_irqchip.o
+> libsbi-objs-y += sbi_misaligned_ldst.o
+> libsbi-objs-y += sbi_platform.o
+> libsbi-objs-y += sbi_pmu.o
+> +libsbi-objs-y += sbi_dbtr.o
+> libsbi-objs-y += sbi_scratch.o
+> libsbi-objs-y += sbi_string.o
+> libsbi-objs-y += sbi_system.o
+> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+> new file mode 100644
+> index 0000000..1bd29c1
 > --- /dev/null
-> +++ b/lib/sbi/sbi_domain_context.c
-> @@ -0,0 +1,275 @@
+> +++ b/lib/sbi/sbi_dbtr.c
+> @@ -0,0 +1,742 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
-> + * Copyright (c) IPADS at SJTU 2023. All rights reserved.
+> + * Copyright (c) 2023 Ventana Micro Systems, Inc.
+> + *
+> + * Author(s):
+> + *   Himanshu Chauhan <hchauhan@ventanamicro.com>
 > + */
 > +
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/riscv_locks.h>
-> +#include <sbi/riscv_asm.h>
+> +#include <sbi/sbi_ecall_interface.h>
+> +#include <sbi/sbi_csr_detect.h>
+> +#include <sbi/sbi_platform.h>
 > +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_hsm.h>
-> +#include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_trap.h>
+> +#include <sbi/sbi_dbtr.h>
 > +#include <sbi/sbi_heap.h>
-> +#include <sbi/sbi_scratch.h>
-> +#include <sbi/sbi_string.h>
-> +#include <sbi/sbi_domain_context.h>
+> +#include <sbi/riscv_encoding.h>
+> +#include <sbi/riscv_asm.h>
 > +
-> +static spinlock_t domain_startup_lock = SPIN_LOCK_INITIALIZER;
 > +
-> +/**
-> + * Switches the HART context from the current domain to the target domain.
-> + * This includes changing domain assignments and reconfiguring PMP, as well
-> + * as saving and restoring CSRs and trap states.
-> + *
-> + * @param ctx pointer to the current HART context
-> + * @param dom_ctx pointer to the target domain context
+> +/** Offset of pointer to HART's debug triggers info in scratch space */
+> +static unsigned long hart_state_ptr_offset;
+> +
+> +#define dbtr_get_hart_state_ptr(__scratch) \
+> + sbi_scratch_read_type((__scratch), void *, hart_state_ptr_offset)
+> +
+> +#define dbtr_thishart_state_ptr() \
+> + dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr())
+> +
+> +#define dbtr_set_hart_state_ptr(__scratch, __hart_state) \
+> + sbi_scratch_write_type((__scratch), void *, hart_state_ptr_offset, \
+> +       (__hart_state))
+> +
+> +#define INDEX_TO_TRIGGER(_index) \
+> + ({ \
+> + struct sbi_dbtr_trigger *__trg = NULL; \
+> + struct sbi_dbtr_hart_triggers_state *__hs = NULL; \
+> + __hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr()); \
+> + __trg = &__hs->triggers[_index]; \
+> + (__trg); \
+> + })
+> +
+> +#define for_each_trig_entry(_base, _max, _etype, _entry) \
+> + for (int _idx = 0; _entry = ((_etype *)_base + _idx), \
+> +     _idx < _max; \
+> +     _idx++, _entry = ((_etype *)_base + _idx))
+> +
+> +#if __riscv_xlen == 64
+> +#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
+> +#elif __riscv_xlen == 32
+> +#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
+> +#else
+> +#error "Undefined XLEN"
+> +#endif
+> +
+> +static inline int sbi_dbtr_shmem_disabled(void)
+> +{
+> + struct sbi_dbtr_hart_triggers_state *hs = NULL;
+> +
+> + hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
+> +
+> + if (!hs)
+> + return 1;
+> +
+> + return (hs->shmem.phys_lo == SBI_DBTR_SHMEM_INVALID_ADDR &&
+> + hs->shmem.phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR
+> + ? 1 : 0);
+> +}
+> +
+> +static inline void sbi_dbtr_disable_shmem(void)
+> +{
+> + struct sbi_dbtr_hart_triggers_state *hs = NULL;
+> +
+> + hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
+> +
+> + if (!hs)
+> + return;
+> +
+> + hs->shmem.phys_lo = SBI_DBTR_SHMEM_INVALID_ADDR;
+> + hs->shmem.phys_hi = SBI_DBTR_SHMEM_INVALID_ADDR;
+> +}
+> +
+> +static inline void *hart_shmem_base(void)
+> +{
+> + struct sbi_dbtr_shmem* shmem;
+> + unsigned long phys_hi, phys_lo;
+> + struct sbi_dbtr_hart_triggers_state *hs = NULL;
+> +
+> + hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
+> +
+> + if (!hs)
+> + return NULL;
+> +
+> + shmem = &hs->shmem;
+> +
+> + phys_hi = (shmem->phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR
+> +   ? shmem->phys_hi : 0);
+> + phys_lo = (shmem->phys_lo == SBI_DBTR_SHMEM_INVALID_ADDR
+> +   ? 0 : shmem->phys_lo);
+> +
+> + return ((void *)DBTR_SHMEM_MAKE_PHYS(phys_hi, phys_lo));
+> +}
+> +
+> +static void sbi_trigger_init(struct sbi_dbtr_trigger *trig,
+> +     unsigned long type_mask, unsigned long idx)
+> +{
+> + trig->type_mask = type_mask;
+> + trig->state = 0;
+> + trig->tdata1 = 0;
+> + trig->tdata2 = 0;
+> + trig->tdata3 = 0;
+> + trig->index = idx;
+> +}
+> +
+> +static inline struct sbi_dbtr_trigger *sbi_alloc_trigger(void)
+> +{
+> + int i;
+> + struct sbi_dbtr_trigger *f_trig = NULL;
+> + struct sbi_dbtr_hart_triggers_state *hart_state;
+> +
+> + hart_state = dbtr_thishart_state_ptr();
+> + if (!hart_state)
+> + return NULL;
+> +
+> + if (hart_state->available_trigs <= 0)
+> + return NULL;
+> +
+> + for (i = 0; i < hart_state->total_trigs; i++) {
+> + f_trig = INDEX_TO_TRIGGER(i);
+> + if (f_trig->state & RV_DBTR_BIT(TS, MAPPED))
+> + continue;
+> + hart_state->available_trigs--;
+> + break;
+> + }
+> +
+> + if (i == hart_state->total_trigs)
+> + return NULL;
+> +
+> + __set_bit(RV_DBTR_BIT(TS, MAPPED), &f_trig->state);
+> +
+> + return f_trig;
+> +}
+> +
+> +static inline void sbi_free_trigger(struct sbi_dbtr_trigger *trig)
+> +{
+> + struct sbi_dbtr_hart_triggers_state *hart_state;
+> +
+> + if (trig == NULL)
+> + return;
+> +
+> + hart_state = dbtr_thishart_state_ptr();
+> + if (!hart_state)
+> + return;
+> +
+> + trig->state = 0;
+> + trig->tdata1 = 0;
+> + trig->tdata2 = 0;
+> + trig->tdata3 = 0;
+> +
+> + hart_state->available_trigs++;
+> +}
+> +
+> +int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+> +{
+> + struct sbi_trap_info trap = {0};
+> + unsigned long tdata1;
+> + unsigned long val;
+> + int i;
+> + struct sbi_dbtr_hart_triggers_state *hart_state = NULL;
+> +
+> + if (coldboot) {
+> + hart_state_ptr_offset = sbi_scratch_alloc_type_offset(void *);
+> + if (!hart_state_ptr_offset)
+> + return SBI_ENOMEM;
+> + }
+> +
+> + hart_state = dbtr_get_hart_state_ptr(scratch);
+> + if (!hart_state) {
+> + hart_state = sbi_zalloc(sizeof(*hart_state));
+> + if (!hart_state)
+> + return SBI_ENOMEM;
+> + hart_state->hartid = current_hartid();
+> + dbtr_set_hart_state_ptr(scratch, hart_state);
+> + }
+> +
+> + /* disable the shared memory */
+> + sbi_dbtr_disable_shmem();
+> +
+> + for (i = 0; i < RV_MAX_TRIGGERS; i++) {
+> + csr_write_allowed(CSR_TSELECT, (ulong)&trap, i);
+> + if (trap.cause)
+> + break;
+> +
+> + val = csr_read_allowed(CSR_TSELECT, (ulong)&trap);
+> + if (trap.cause)
+> + break;
+> +
+> + /*
+> + * Read back tselect and check that it contains the
+> + * written value
 > + */
-> +static void switch_to_next_domain_context(struct sbi_context *ctx,
-> +                                         struct sbi_context *dom_ctx)
-> +{
-> +       struct sbi_trap_regs *trap_regs;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +       unsigned int pmp_count      = sbi_hart_pmp_count(scratch);
+> + if (val != i)
+> + break;
 > +
-> +       /* Assign the current HART to the domain of the target context */
-> +       sbi_domain_assign_hart(dom_ctx->dom, current_hartid());
-> +
-> +       /* Disable all PMP regions in preparation for re-configuration */
-> +       for (int i = 0; i < pmp_count; i++) {
-> +               pmp_disable(i);
-> +       }
-> +       /* Reconfigure PMP settings for the new domain */
-> +       sbi_hart_pmp_configure(scratch);
-> +
-> +       /* Save current CSR context and restore target domain's CSR context */
-> +       ctx->sstatus    = csr_swap(CSR_SSTATUS, dom_ctx->sstatus);
-> +       ctx->sie        = csr_swap(CSR_SIE, dom_ctx->sie);
-> +       ctx->stvec      = csr_swap(CSR_STVEC, dom_ctx->stvec);
-> +       ctx->sscratch   = csr_swap(CSR_SSCRATCH, dom_ctx->sscratch);
-> +       ctx->sepc       = csr_swap(CSR_SEPC, dom_ctx->sepc);
-> +       ctx->scause     = csr_swap(CSR_SCAUSE, dom_ctx->scause);
-> +       ctx->stval      = csr_swap(CSR_STVAL, dom_ctx->stval);
-> +       ctx->sip        = csr_swap(CSR_SIP, dom_ctx->sip);
-> +       ctx->satp       = csr_swap(CSR_SATP, dom_ctx->satp);
-> +       ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
-> +       ctx->senvcfg    = csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
-> +
-> +       /* Save current trap state and restore target domain's trap state */
-> +       trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
-> +                                            SBI_TRAP_REGS_SIZE);
-> +       sbi_memcpy(&ctx->regs, trap_regs, sizeof(*trap_regs));
-> +       sbi_memcpy(trap_regs, &dom_ctx->regs, sizeof(*trap_regs));
-> +}
-> +
-> +/**
-> + * Starts up the current domain context by booting its boot HART. This
-> + * function verifies that all possible HARTs are properly assigned to the
-> + * domain prior to its startup, guaranteeing the correct initialization
-> + * of contexts. If the assignment is incomplete, the current HART will
-> + * be stoped to await.
+> + val = csr_read_allowed(CSR_TINFO, (ulong)&trap);
+> + if (trap.cause) {
+> + /*
+> + * If reading tinfo caused an exception, the
+> + * debugger must read tdata1 to discover the
+> + * type.
 > + */
-> +static void __noreturn startup_domain_context()
-> +{
-> +       int rc;
-> +       u32 i;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> +       struct sbi_context *ctx     = sbi_domain_context_thishart_ptr();
-> +       struct sbi_domain *dom      = ctx->dom;
+> + tdata1 = csr_read_allowed(CSR_TDATA1,
+> +  (ulong)&trap);
+> + if (trap.cause)
+> + break;
 > +
-> +       /* Check if possible HARTs are all assigned */
-> +       sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-> +               /* If a HART is not assigned, stop the current HART */
-> +               if (!sbi_hartmask_test_hartindex(i, &dom->assigned_harts))
-> +                       sbi_hsm_hart_stop(scratch, true);
-> +       }
-
-Why do all possible HARTs of domain have to be assigned ?
-
-This is very confusing and bloated. Please simplify this.
-
+> + if (TDATA1_GET_TYPE(tdata1) == 0)
+> + break;
 > +
-> +       /* Ensure startup is only executed once by a single executor */
-> +       spin_lock(&domain_startup_lock);
-> +       if (ctx->initialized) {
-> +               spin_unlock(&domain_startup_lock);
-> +               sbi_hsm_hart_stop(scratch, true);
-> +       }
-> +       sbi_hartmask_for_each_hartindex(i, dom->possible_harts)
-> +               sbi_hartindex_to_domain_context(i, dom)
-> +                       ->initialized = true;
-> +       spin_unlock(&domain_startup_lock);
+> + sbi_trigger_init(INDEX_TO_TRIGGER(i),
+> + BIT(TDATA1_GET_TYPE(tdata1)),
+> + i);
+> + hart_state->total_trigs++;
+> + } else {
+> + if (val == 1)
+> + break;
 > +
-> +       /* Startup boot HART of domain */
-> +       if (current_hartid() == dom->boot_hartid) {
-> +               sbi_hart_switch_mode(dom->boot_hartid, dom->next_arg1,
-> +                                    dom->next_addr, dom->next_mode, false);
-> +       } else {
-> +               /* Wait boot HART stopped */
-> +               while (__sbi_hsm_hart_get_state(dom->boot_hartid) !=
-> +                      SBI_HSM_STATE_STOPPED)
-> +                       ;
+> + sbi_trigger_init(INDEX_TO_TRIGGER(i), val, i);
+> + hart_state->total_trigs++;
+> + }
+> + }
 > +
-> +               if ((rc = sbi_hsm_hart_start(scratch, dom, dom->boot_hartid,
-> +                                            dom->next_addr, dom->next_mode,
-> +                                            dom->next_arg1)))
-> +                       sbi_printf("%s: failed to start boot HART %d"
-> +                                  " for %s (error %d)\n",
-> +                                  __func__, dom->boot_hartid, dom->name, rc);
-> +               /* Stop current HART, it will be started by boot HART later */
-> +               sbi_hsm_hart_stop(scratch, true);
-> +       }
+> + hart_state->available_trigs = hart_state->total_trigs;
 > +
-> +       __builtin_unreachable();
+> + return 0;
 > +}
 > +
-> +/**
-> + * Allocates and configures context for all possible HARTs within a
-> + * given domain. Confirm the validity of boot HART and possible HARTs,
-> + * and construct the domain boot-up chain on each HART.
-> + *
-> + * @param hartindex_to_tail_ctx_table the tail context of boot-up chain
-> + * @param dom pointer to the domain being set up
-> + * @return 0 on success and negative error code on failure
+> +int sbi_dbtr_supported(void)
+> +{
+> + struct sbi_dbtr_hart_triggers_state *hs;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return 0;
+> +
+> + return !!hs->total_trigs;
+> +}
+> +
+> +int sbi_dbtr_get_total_triggers(void)
+> +{
+> + struct sbi_dbtr_hart_triggers_state *hs;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return 0;
+> +
+> + return hs->total_trigs;
+> +}
+> +
+> +int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+> + unsigned long shmem_phys_lo,
+> + unsigned long shmem_phys_hi)
+> +{
+> + u32 hartid = current_hartid();
+> + struct sbi_dbtr_hart_triggers_state *hart_state;
+> +
+> + if (smode != PRV_S) {
+> + sbi_dprintf("%s: Non supervisor mode. Access denied\n",
+> +   __func__);
+> + return SBI_ERR_DENIED;
+> + }
+> +
+> + if (dom && !sbi_domain_is_assigned_hart(dom, hartid)) {
+> + sbi_dprintf("%s: calling hart not assigned to this domain\n",
+> +   __func__);
+> + return SBI_ERR_DENIED;
+> + }
+> +
+> + /* call is to disable shared memory */
+> + if (shmem_phys_lo == SBI_DBTR_SHMEM_INVALID_ADDR
+> +    && shmem_phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR) {
+> + sbi_dbtr_disable_shmem();
+> + return SBI_SUCCESS;
+> + }
+> +
+> + /* the shared memory must be disabled on this hart */
+> + if (!sbi_dbtr_shmem_disabled())
+> + return SBI_ERR_ALREADY_AVAILABLE;
+> +
+> + /* lower physical address must be XLEN/8 bytes aligned */
+> + if (shmem_phys_lo & SBI_DBTR_SHMEM_ALIGN_MASK)
+> + return SBI_ERR_INVALID_PARAM;
+> +
+> + if (dom && !sbi_domain_check_addr(dom, shmem_phys_lo, smode,
+> +  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+> + return SBI_ERR_INVALID_ADDRESS;
+> +
+> + if (shmem_phys_hi != SBI_DBTR_SHMEM_INVALID_ADDR) {
+> + if (dom &&
+> +    !sbi_domain_check_addr(dom, shmem_phys_hi, smode,
+> +   SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+> + return SBI_ERR_INVALID_ADDRESS;
+> + }
+> +
+> + hart_state = dbtr_thishart_state_ptr();
+> + if (!hart_state)
+> + return SBI_ERR_FAILED;
+> +
+> + hart_state->shmem.phys_lo = shmem_phys_lo;
+> + hart_state->shmem.phys_hi = shmem_phys_hi;
+> +
+> + return SBI_SUCCESS;
+> +}
+> +
+> +static void dbtr_trigger_setup(struct sbi_dbtr_trigger *trig,
+> +       struct sbi_dbtr_data_msg *recv)
+> +{
+> + unsigned long tdata1;
+> +
+> + if (!trig)
+> + return;
+> +
+> + trig->tdata1 = lle_to_cpu(recv->tdata1);
+> + trig->tdata2 = lle_to_cpu(recv->tdata2);
+> + trig->tdata3 = lle_to_cpu(recv->tdata3);
+> +
+> + tdata1 = lle_to_cpu(recv->tdata1);
+> +
+> + trig->state = 0;
+> +
+> + __set_bit(RV_DBTR_BIT(TS, MAPPED), &trig->state);
+> +
+> + SET_TRIG_HW_INDEX(trig->state, trig->index);
+> +
+> + switch (TDATA1_GET_TYPE(tdata1)) {
+> + case RISCV_DBTR_TRIG_MCONTROL:
+> + if (__test_bit(RV_DBTR_BIT(MC, U), &tdata1))
+> + __set_bit(RV_DBTR_BIT(TS, U), &trig->state);
+> +
+> + if (__test_bit(RV_DBTR_BIT(MC, S), &tdata1))
+> + __set_bit(RV_DBTR_BIT(TS, S), &trig->state);
+> + break;
+> + case RISCV_DBTR_TRIG_MCONTROL6:
+> + if (__test_bit(RV_DBTR_BIT(MC6, U), &tdata1))
+> + __set_bit(RV_DBTR_BIT(TS, U), &trig->state);
+> +
+> + if (__test_bit(RV_DBTR_BIT(MC6, S), &tdata1))
+> + __set_bit(RV_DBTR_BIT(TS, S), &trig->state);
+> +
+> + if (__test_bit(RV_DBTR_BIT(MC6, VU), &tdata1))
+> + __set_bit(RV_DBTR_BIT(TS, VU), &trig->state);
+> +
+> + if (__test_bit(RV_DBTR_BIT(MC6, VS), &tdata1))
+> + __set_bit(RV_DBTR_BIT(TS, VS), &trig->state);
+> + break;
+> + default:
+> + sbi_dprintf("%s: Unknown type (tdata1: 0x%lx Type: %ld)\n",
+> +    __func__, tdata1, TDATA1_GET_TYPE(tdata1));
+> + break;
+> + }
+> +}
+> +
+> +static inline void update_bit(unsigned long new, int nr, volatile unsigned long *addr)
+> +{
+> + if (new)
+> + __set_bit(nr, addr);
+> + else
+> + __clear_bit(nr, addr);
+> +}
+> +
+> +static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+> +{
+> + unsigned long state;
+> + unsigned long tdata1;
+> +
+> + if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> + return;
+> +
+> + state = trig->state;
+> + tdata1 = trig->tdata1;
+> +
+> + switch (TDATA1_GET_TYPE(tdata1)) {
+> + case RISCV_DBTR_TRIG_MCONTROL:
+> + update_bit(state & RV_DBTR_BIT_MASK(TS, U),
+> +   RV_DBTR_BIT(MC, U), &trig->tdata1);
+> + update_bit(state & RV_DBTR_BIT_MASK(TS, S),
+> +   RV_DBTR_BIT(MC, S), &trig->tdata1);
+> + break;
+> + case RISCV_DBTR_TRIG_MCONTROL6:
+> + update_bit(state & RV_DBTR_BIT_MASK(TS, VU),
+> +   RV_DBTR_BIT(MC6, VU), &trig->tdata1);
+> + update_bit(state & RV_DBTR_BIT_MASK(TS, VS),
+> +   RV_DBTR_BIT(MC6, VS), &trig->tdata1);
+> + update_bit(state & RV_DBTR_BIT_MASK(TS, U),
+> +   RV_DBTR_BIT(MC6, U), &trig->tdata1);
+> + update_bit(state & RV_DBTR_BIT_MASK(TS, S),
+> +   RV_DBTR_BIT(MC6, S), &trig->tdata1);
+> + break;
+> + default:
+> + break;
+> + }
+> +
+> + /*
+> + * RISC-V Debug Support v1.0.0 section 5.5:
+> + * Debugger cannot simply set a trigger by writing tdata1, then tdata2,
+> + * etc. The current value of tdata2 might not be legal with the new
+> + * value of tdata1. To help with this situation, it is guaranteed that
+> + * writing 0 to tdata1 disables the trigger, and leaves it in a state
+> + * where tdata2 and tdata3 can be written with any value that makes
+> + * sense for any trigger type supported by this trigger.
 > + */
-> +static int
-> +setup_domain_context(struct sbi_context *hartindex_to_tail_ctx_table[],
-> +                    struct sbi_domain *dom)
-> +{
-> +       int rc;
-> +       u32 i;
-> +       struct sbi_context *dom_ctx;
-> +
-> +       /* Iterate over all possible HARTs and initialize their context */
-> +       sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-> +               dom_ctx = sbi_zalloc(sizeof(struct sbi_context));
-> +               if (!dom_ctx) {
-> +                       rc = SBI_ENOMEM;
-> +                       goto fail_free_all;
-> +               }
-> +
-> +               /* Initialize the domain context and add to domain's context table */
-> +               dom_ctx->dom                       = dom;
-> +               dom->hartindex_to_context_table[i] = dom_ctx;
-> +
-> +               /* If assigned, it would be the head of boot-up chain */
-> +               if (sbi_hartmask_test_hartindex(i, &dom->assigned_harts)) {
-> +                       hartindex_to_tail_ctx_table[i] = dom_ctx;
-> +
-> +                       /* Mark initialized as it's about to startup */
-> +                       dom_ctx->initialized = true;
-> +                       continue;
-> +               }
-> +
-> +               /*
-> +                * If ROOT doamin, it would be the next context of tail context
-> +                * Note: The ROOT domain is the parameter for the last time
-> +                * function call, so the tail context must be present.
-> +                */
-> +               if (dom == &root) {
-> +                       hartindex_to_tail_ctx_table[i]->next_ctx = dom_ctx;
-> +                       continue;
-> +               }
-> +
-> +               /*
-> +                * If not assigned, check that the domain configuration meets the
-> +                * criteria for context management, ensuring that each domain
-> +                * context is capable of proper initialization.
-> +                */
-> +               if (sbi_hartmask_test_hartindex(
-> +                           sbi_hartid_to_hartindex(dom->boot_hartid),
-> +                           &dom->assigned_harts)) {
-> +                       sbi_printf(
-> +                               "%s: %s possible HART mask has unassigned HART %d at "
-> +                               "boot time, whose context can't be initialized\n",
-> +                               __func__, dom->name,
-> +                               sbi_hartindex_to_hartid(i));
-> +                       rc = SBI_EINVAL;
-> +                       goto fail_free_all;
-> +               }
-> +
-> +               if (!hartindex_to_tail_ctx_table[i]) {
-> +                       sbi_printf(
-> +                               "%s: %s possible HART mask has unassignable HART %d, "
-> +                               "domain contexts will never be started up\n",
-> +                               __func__, dom->name,
-> +                               sbi_hartindex_to_hartid(i));
-> +                       rc = SBI_EINVAL;
-> +                       goto fail_free_all;
-> +               }
-> +
-> +               /* If valid, append it to the boot-up chain */
-> +               hartindex_to_tail_ctx_table[i]->next_ctx = dom_ctx;
-> +               hartindex_to_tail_ctx_table[i]           = dom_ctx;
-> +       }
-> +
-> +       return 0;
-> +
-> +fail_free_all:
-> +       /* Free any allocated context data in case of failure */
-> +       sbi_hartmask_for_each_hartindex(i, dom->possible_harts)
-> +               if (dom->hartindex_to_context_table[i])
-> +                       sbi_free(dom->hartindex_to_context_table[i]);
-> +       return rc;
+> + csr_write(CSR_TSELECT, trig->index);
+> + csr_write(CSR_TDATA1, 0x0);
+> + csr_write(CSR_TDATA2, trig->tdata2);
+> + csr_write(CSR_TDATA1, trig->tdata1);
 > +}
 > +
-> +int sbi_domain_context_enter(struct sbi_domain *dom)
+> +static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
 > +{
-> +       struct sbi_context *ctx     = sbi_domain_context_thishart_ptr();
-> +       struct sbi_context *dom_ctx = sbi_hartindex_to_domain_context(
-> +               sbi_hartid_to_hartindex(current_hartid()), dom);
+> + unsigned long tdata1;
 > +
-> +       /* Validate the domain context before entering */
-> +       if (!dom_ctx || !dom_ctx->initialized)
-> +               return SBI_EINVAL;
+> + if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> + return;
 > +
-> +       switch_to_next_domain_context(ctx, dom_ctx);
+> + tdata1 = trig->tdata1;
 > +
-> +       /* Update target domain context's next context to indicate the caller */
-> +       dom_ctx->next_ctx = ctx;
+> + switch (TDATA1_GET_TYPE(tdata1)) {
+> + case RISCV_DBTR_TRIG_MCONTROL:
+> + __clear_bit(RV_DBTR_BIT(MC, U), &trig->tdata1);
+> + __clear_bit(RV_DBTR_BIT(MC, S), &trig->tdata1);
+> + break;
+> + case RISCV_DBTR_TRIG_MCONTROL6:
+> + __clear_bit(RV_DBTR_BIT(MC6, VU), &trig->tdata1);
+> + __clear_bit(RV_DBTR_BIT(MC6, VS), &trig->tdata1);
+> + __clear_bit(RV_DBTR_BIT(MC6, U), &trig->tdata1);
+> + __clear_bit(RV_DBTR_BIT(MC6, S), &trig->tdata1);
+> + break;
+> + default:
+> + break;
+> + }
 > +
-> +       return 0;
+> + csr_write(CSR_TSELECT, trig->index);
+> + csr_write(CSR_TDATA1, trig->tdata1);
 > +}
 > +
-> +int sbi_domain_context_exit(void)
+> +static void dbtr_trigger_clear(struct sbi_dbtr_trigger *trig)
 > +{
-> +       struct sbi_context *ctx     = sbi_domain_context_thishart_ptr();
-> +       struct sbi_context *dom_ctx = ctx->next_ctx;
-> +       bool need_startup;
+> + if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> + return;
 > +
-> +       if (!dom_ctx)
-> +               return SBI_EINVAL;
-> +
-> +       /*
-> +        * Determine if it needs to be startup before switching
-> +        * Note: `initialized` may be updated by another HART after current HART
-> +     * assigned to the domain of context in switch_to_next_domain_context().
-
-Indentation is not right here.
-
-> +        */
-> +       need_startup = !dom_ctx->initialized;
-> +
-> +       switch_to_next_domain_context(ctx, dom_ctx);
-> +
-> +       if (need_startup)
-> +               startup_domain_context(dom_ctx);
-> +
-> +       return 0;
+> + csr_write(CSR_TSELECT, trig->index);
+> + csr_write(CSR_TDATA1, 0x0);
+> + csr_write(CSR_TDATA2, 0x0);
 > +}
 > +
-> +int sbi_domain_context_init(struct sbi_scratch *scratch)
+> +static int dbtr_trigger_supported(unsigned long type)
 > +{
-> +       int rc;
-> +       u32 i;
-> +       struct sbi_domain *dom;
+> + switch (type) {
+> + case RISCV_DBTR_TRIG_MCONTROL:
+> + case RISCV_DBTR_TRIG_MCONTROL6:
+> + return 1;
+> + default:
+> + break;
+> + }
 > +
-> +       /* Track tail context for context boot-up chain construction on HARTs */
-> +       struct sbi_context
-> +               *hartindex_to_tail_ctx_table[SBI_HARTMASK_MAX_BITS] = { 0 };
-
-I don't see any value in setting up all the next_ctx pointer at boot time.
-Lets just leave it NULL because the sbi_domain_context_enter() is
-anyway setting it when entering a domain.
-
-I think the hartindex_to_tail_ctx_table[] can be dropped.
-
-> +
-> +       /* Loop through each user-defined domain to configure its contexts */
-> +       sbi_domain_for_each(i, dom) {
-> +               if (dom != &root && (rc = setup_domain_context(
-> +                                            hartindex_to_tail_ctx_table, dom)))
-> +                       return rc;
-> +       }
-> +
-> +       /* Initialize ROOT domain contexts as default contexts */
-> +       if ((rc = setup_domain_context(hartindex_to_tail_ctx_table, &root)))
-> +               return rc;
-> +
-> +       return 0;
+> + return 0;
 > +}
-> --
-> 2.25.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> +
+> +static int dbtr_trigger_valid(unsigned long type, unsigned long tdata)
+> +{
+> + switch (type) {
+> + case RISCV_DBTR_TRIG_MCONTROL:
+> + if (!(tdata & RV_DBTR_BIT_MASK(MC, DMODE)) &&
+> +    !(tdata & RV_DBTR_BIT_MASK(MC, M)))
+> + return 1;
+> + break;
+> + case RISCV_DBTR_TRIG_MCONTROL6:
+> + if (!(tdata & RV_DBTR_BIT_MASK(MC6, DMODE)) &&
+> +    !(tdata & RV_DBTR_BIT_MASK(MC6, M)))
+> + return 1;
+> + break;
+> + default:
+> + break;
+> + }
+> +
+> + return 0;
+> +}
+> +
+> +int sbi_dbtr_num_trig(unsigned long data, unsigned long *out)
+> +{
+> + unsigned long type = TDATA1_GET_TYPE(data);
+> + u32 hartid = current_hartid();
+> + unsigned long total = 0;
+> + struct sbi_dbtr_trigger *trig;
+> + int i;
+> + struct sbi_dbtr_hart_triggers_state *hs;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return SBI_ERR_FAILED;
+> +
+> + if (data == 0) {
+> + *out = hs->total_trigs;
+> + return SBI_SUCCESS;
+> + }
+> +
+> + for (i = 0; i < hs->total_trigs; i++) {
+> + trig = INDEX_TO_TRIGGER(i);
+> +
+> + if (__test_bit(type, &trig->type_mask))
+> + total++;
+> + }
+> +
+> + sbi_dprintf("%s: hart%d: total triggers of type %lu: %lu\n",
+> +    __func__, hartid, type, total);
+> +
+> + *out = total;
+> + return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_dbtr_read_trig(const struct sbi_domain *dom, unsigned long smode,
+> +       unsigned long trig_idx_base, unsigned long trig_count)
+> +{
+> + struct sbi_dbtr_data_msg *xmit;
+> + u32 hartid = current_hartid();
+> + struct sbi_dbtr_trigger *trig;
+> + struct sbi_dbtr_shmem_entry *entry;
+> + void *shmem_base = NULL;
+> + struct sbi_dbtr_hart_triggers_state *hs = NULL;
+> +
+> + if (smode != PRV_S)
+> + return SBI_ERR_DENIED;
+> + if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
+> + return SBI_ERR_DENIED;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return SBI_ERR_FAILED;
+> +
+> + if (trig_idx_base >= hs->total_trigs ||
+> +    trig_idx_base + trig_count >= hs->total_trigs)
+> + return SBI_ERR_INVALID_PARAM;
+> +
+> + if (sbi_dbtr_shmem_disabled())
+> + return SBI_ERR_NO_SHMEM;
+> +
+> + shmem_base = hart_shmem_base();
+> +
+> + for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+> + sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
+> + xmit = &entry->data;
+> + trig = INDEX_TO_TRIGGER((_idx + trig_idx_base));
+> + xmit->tstate = cpu_to_lle(trig->state);
+> + xmit->tdata1 = cpu_to_lle(trig->tdata1);
+> + xmit->tdata2 = cpu_to_lle(trig->tdata2);
+> + xmit->tdata3 = cpu_to_lle(trig->tdata3);
+> + sbi_hart_unmap_saddr();
+> + }
+> +
+> + return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_dbtr_install_trig(const struct sbi_domain *dom, unsigned long smode,
+> +  unsigned long trig_count, unsigned long *out)
+> +{
+> + u32 hartid = current_hartid();
+> + void *shmem_base = NULL;
+> + struct sbi_dbtr_shmem_entry *entry;
+> + struct sbi_dbtr_data_msg *recv;
+> + struct sbi_dbtr_id_msg *xmit;
+> + unsigned long ctrl;
+> + struct sbi_dbtr_trigger *trig;
+> + struct sbi_dbtr_hart_triggers_state *hs = NULL;
+> +
+> + if (smode != PRV_S)
+> + return SBI_ERR_DENIED;
+> + if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
+> + return SBI_ERR_DENIED;
+> +
+> + if (sbi_dbtr_shmem_disabled())
+> + return SBI_ERR_NO_SHMEM;
+> +
+> + shmem_base = hart_shmem_base();
+> + hs = dbtr_thishart_state_ptr();
+> +
+> + /* Check requested triggers configuration */
+> + for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+> + sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
+> + recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+> + ctrl = recv->tdata1;
+> +
+> + if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl))) {
+> + *out = _idx;
+> + sbi_hart_unmap_saddr();
+> + return SBI_ERR_FAILED;
+> + }
+> +
+> + if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
+> + *out = _idx;
+> + sbi_hart_unmap_saddr();
+> + return SBI_ERR_FAILED;
+> + }
+> + sbi_hart_unmap_saddr();
+> + }
+> +
+> + if (hs->available_trigs < trig_count) {
+> + *out = hs->available_trigs;
+> + return SBI_ERR_FAILED;
+> + }
+> +
+> + /* Install triggers */
+> + for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+> + /*
+> + * Since we have already checked if enough triggers are
+> + * available, trigger allocation must succeed.
+> + */
+> + trig = sbi_alloc_trigger();
+> +
+> + sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
+> +
+> + recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+> + xmit = (struct sbi_dbtr_id_msg *)(&entry->id);
+> +
+> + dbtr_trigger_setup(trig,  recv);
+> + dbtr_trigger_enable(trig);
+> + xmit->idx = cpu_to_lle(trig->index);
+> + sbi_hart_unmap_saddr();
+> + }
+> +
+> + return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
+> +    unsigned long trig_idx_mask)
+> +{
+> + unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+> + unsigned long idx = trig_idx_base;
+> + struct sbi_dbtr_trigger *trig;
+> + struct sbi_dbtr_hart_triggers_state *hs;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return SBI_ERR_FAILED;
+> +
+> + for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+> + trig = INDEX_TO_TRIGGER(idx);
+> + if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> + return SBI_ERR_INVALID_PARAM;
+> +
+> + dbtr_trigger_clear(trig);
+> +
+> + sbi_free_trigger(trig);
+> + }
+> +
+> + return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+> + unsigned long trig_idx_mask)
+> +{
+> + unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+> + unsigned long idx = trig_idx_base;
+> + struct sbi_dbtr_trigger *trig;
+> + struct sbi_dbtr_hart_triggers_state *hs;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return SBI_ERR_FAILED;
+> +
+> + for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+> + trig = INDEX_TO_TRIGGER(idx);
+> + sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
+> + dbtr_trigger_enable(trig);
+> + }
+> +
+> + return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_dbtr_update_trig(const struct sbi_domain *dom,
+> + unsigned long smode,
+> + unsigned long trig_idx_base,
+> + unsigned long trig_idx_mask)
+> +{
+> + unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+> + unsigned long idx = trig_idx_base;
+> + u32 hartid = current_hartid();
+> + struct sbi_dbtr_data_msg *recv;
+> + unsigned long uidx = 0;
+> + struct sbi_dbtr_trigger *trig;
+> + struct sbi_dbtr_shmem_entry *entry;
+> + void *shmem_base = NULL;
+> + struct sbi_dbtr_hart_triggers_state *hs = NULL;
+> +
+> + if (smode != PRV_S)
+> + return SBI_ERR_DENIED;
+> + if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
+> + return SBI_ERR_DENIED;
+> +
+> + if (sbi_dbtr_shmem_disabled())
+> + return SBI_ERR_NO_SHMEM;
+> +
+> + shmem_base = hart_shmem_base();
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return SBI_ERR_FAILED;
+> +
+> + for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+> + trig = INDEX_TO_TRIGGER(idx);
+> +
+> + if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> + return SBI_ERR_INVALID_PARAM;
+> +
+> + entry = (shmem_base + uidx * sizeof(*entry));
+> + recv = &entry->data;
+> +
+> + trig->tdata2 = lle_to_cpu(recv->tdata2);
+> + dbtr_trigger_enable(trig);
+> + uidx++;
+> + }
+> +
+> + return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
+> +  unsigned long trig_idx_mask)
+> +{
+> + unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+> + unsigned long idx = trig_idx_base;
+> + struct sbi_dbtr_trigger *trig;
+> + struct sbi_dbtr_hart_triggers_state *hs;
+> +
+> + hs = dbtr_thishart_state_ptr();
+> + if (!hs)
+> + return SBI_ERR_FAILED;
+> +
+> + for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+> + trig = INDEX_TO_TRIGGER(idx);
+> + dbtr_trigger_disable(trig);
+> + }
+> +
+> + return SBI_SUCCESS;
+> +}
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 6a98e13..0dcde27 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -23,6 +23,7 @@
+> #include <sbi/sbi_irqchip.h>
+> #include <sbi/sbi_platform.h>
+> #include <sbi/sbi_pmu.h>
+> +#include <sbi/sbi_dbtr.h>
+> #include <sbi/sbi_system.h>
+> #include <sbi/sbi_string.h>
+> #include <sbi/sbi_timer.h>
+> @@ -322,6 +323,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> sbi_hart_hang();
+> }
+> 
+> + rc = sbi_dbtr_init(scratch, true);
+> + if (rc)
+> + sbi_hart_hang();
+> +
+> sbi_boot_print_banner(scratch);
+> 
+> rc = sbi_irqchip_init(scratch, true);
+> @@ -439,6 +444,10 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+> if (rc)
+> sbi_hart_hang();
+> 
+> + rc = sbi_dbtr_init(scratch, false);
+> + if (rc)
+> + sbi_hart_hang();
+> +
+> rc = sbi_irqchip_init(scratch, false);
+> if (rc)
+> sbi_hart_hang();
+> -- 
+> 2.34.1
+> 
 
-Regards,
-Anup
 
