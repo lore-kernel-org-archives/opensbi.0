@@ -1,60 +1,53 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue,  9 Jan 2024 22:30:16 +0530
-Subject: [PATCH v3 4/8] lib: sbi: Detect support of debug triggers
+Date: Tue,  9 Jan 2024 22:30:18 +0530
+Subject: [PATCH v3 6/8] include: sbi: Add SBI debug trigger extension related defines
 In-Reply-To: <20240109170020.1731282-1-hchauhan@ventanamicro.com>
 References: <20240109170020.1731282-1-hchauhan@ventanamicro.com>
-Message-ID: <20240109170020.1731282-5-hchauhan@ventanamicro.com>
+Message-ID: <20240109170020.1731282-7-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Detect if debug triggers, sdtrig extension, is supported
-by the CPU. The support is detected by access traps and
-ISA string parsing.
+This patch adds defines for SBI debug trigger extension and
+function IDs to access the extension.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi/sbi_hart.h | 2 ++
- lib/sbi/sbi_hart.c     | 4 ++++
- 2 files changed, 6 insertions(+)
+ include/sbi/sbi_ecall_interface.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 47be251..10dc3df 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -53,6 +53,8 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_ZICBOM,
- 	/** Hart has Svpbmt extension */
- 	SBI_HART_EXT_SVPBMT,
-+	/** Hart has debug trigger extension */
-+	SBI_HART_EXT_SDTRIG,
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index d8c646d..690c31b 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -32,6 +32,7 @@
+ #define SBI_EXT_DBCN				0x4442434E
+ #define SBI_EXT_SUSP				0x53555350
+ #define SBI_EXT_CPPC				0x43505043
++#define SBI_EXT_DBTR				0x44425452
  
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 770fee0..a0ab0c6 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -657,6 +657,7 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(zicboz, SBI_HART_EXT_ZICBOZ),
- 	__SBI_HART_EXT_DATA(zicbom, SBI_HART_EXT_ZICBOM),
- 	__SBI_HART_EXT_DATA(svpbmt, SBI_HART_EXT_SVPBMT),
-+	__SBI_HART_EXT_DATA(sdtrig, SBI_HART_EXT_SDTRIG),
- };
+ /* SBI function IDs for BASE extension*/
+ #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
+@@ -105,6 +106,16 @@
+ #define SBI_EXT_PMU_COUNTER_FW_READ_HI	0x6
+ #define SBI_EXT_PMU_SNAPSHOT_SET_SHMEM	0x7
  
- /**
-@@ -898,6 +899,9 @@ __pmp_skip:
- 	/* Detect if hart supports smcntrpmf */
- 	__check_ext_csr(SBI_HART_PRIV_VER_1_12,
- 			CSR_MCYCLECFG, SBI_HART_EXT_SMCNTRPMF);
-+	/* Detect if hart support sdtrig (debug triggers) */
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_TSELECT, SBI_HART_EXT_SDTRIG);
- 
- #undef __check_ext_csr
- 
++/* SBI function IDs for DBTR extension */
++#define SBI_EXT_DBTR_NUM_TRIGGERS	0x0
++#define SBI_EXT_DBTR_SETUP_SHMEM	0x1
++#define SBI_EXT_DBTR_TRIGGER_READ	0x2
++#define SBI_EXT_DBTR_TRIGGER_INSTALL	0x3
++#define SBI_EXT_DBTR_TRIGGER_UPDATE	0x4
++#define SBI_EXT_DBTR_TRIGGER_UNINSTALL	0x5
++#define SBI_EXT_DBTR_TRIGGER_ENABLE	0x6
++#define SBI_EXT_DBTR_TRIGGER_DISABLE	0x7
++
+ /** General pmu event codes specified in SBI PMU extension */
+ enum sbi_pmu_hw_generic_events_t {
+ 	SBI_PMU_HW_NO_EVENT			= 0,
 -- 
 2.34.1
 
