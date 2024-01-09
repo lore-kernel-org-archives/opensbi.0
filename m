@@ -1,66 +1,158 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Tue,  9 Jan 2024 11:44:52 +0100
-Subject: [RFC PATCH v2 0/4] Add support for Supervisor Software Events extension
-Message-ID: <20240109104500.2080121-1-cleger@rivosinc.com>
+Date: Tue,  9 Jan 2024 11:44:53 +0100
+Subject: [RFC PATCH v2 1/4] lib: sbi: provides regs to sbi_ipi_process()
+In-Reply-To: <20240109104500.2080121-1-cleger@rivosinc.com>
+References: <20240109104500.2080121-1-cleger@rivosinc.com>
+Message-ID: <20240109104500.2080121-2-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The SBI Supervisor Software Events (SSE) extensions provides a mechanism
-to inject software events from an SBI implementation to supervisor
-software such that it preempts all other supervisor level traps and
-interrupts [1]. This RFC implements the V2 version of the spec.
+In order to implement SSE on IPI notifications, provides regs to
+sbi_ipi_process(). This will be used in two cases, global event
+triggered from one cpu to another and ipi injection to a specific hart.
 
-Various events are defined and can be send asynchronously to supervisor
-software (RAS, PMU, DEBUG, Asynchronous page fault) from SBI as well
-as platform specific events. Events can be either local (per-hart) or
-global. Events can be nested on top of each other based on priority and
-can interrupt the supervisor mode at any time.
-
-This PR adds support for this extension. First commit modifies interrupts
-handling to pass the sbi traps regs through interrupt handlers in order to inject
-SSE events from this context. Second one add the SSE support itself and
-the final two commits add SSE support for PMU interrupts.
-
-Link: https://lists.riscv.org/g/tech-prs/message/744 [1]
-
+Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
+ include/sbi/sbi_ipi.h     |  6 ++++--
+ lib/sbi/sbi_ipi.c         | 12 +++++++-----
+ lib/sbi/sbi_tlb.c         |  2 +-
+ lib/sbi/sbi_trap.c        |  4 ++--
+ lib/utils/irqchip/imsic.c |  2 +-
+ 5 files changed, 15 insertions(+), 11 deletions(-)
 
-Changes from v1:
- - Implemented SSE Spec v2
- - Change event state checking (Xiang W)
-
-v1: http://lists.infradead.org/pipermail/opensbi/2023-November/006015.html
-
-Cl?ment L?ger (4):
-  lib: sbi: provides regs to sbi_ipi_process()
-  lib: sbi: add support for Supervisor Software Events extension
-  lib: sbi: trigger SSE PMU event on PMU overflow IRQ
-  lib: sbi: add SBI_EXT_PMU_IRQ_CLEAR
-
- include/sbi/sbi_ecall_interface.h |   49 +-
- include/sbi/sbi_error.h           |    4 +-
- include/sbi/sbi_ipi.h             |    6 +-
- include/sbi/sbi_pmu.h             |    5 +
- include/sbi/sbi_sse.h             |   93 +++
- lib/sbi/Kconfig                   |    4 +
- lib/sbi/objects.mk                |    4 +
- lib/sbi/sbi_ecall_pmu.c           |    3 +
- lib/sbi/sbi_ecall_sse.c           |   58 ++
- lib/sbi/sbi_init.c                |   13 +
- lib/sbi/sbi_ipi.c                 |   14 +-
- lib/sbi/sbi_pmu.c                 |   49 ++
- lib/sbi/sbi_sse.c                 | 1078 +++++++++++++++++++++++++++++
- lib/sbi/sbi_tlb.c                 |    2 +-
- lib/sbi/sbi_trap.c                |   10 +-
- lib/utils/irqchip/imsic.c         |    2 +-
- 16 files changed, 1380 insertions(+), 14 deletions(-)
- create mode 100644 include/sbi/sbi_sse.h
- create mode 100644 lib/sbi/sbi_ecall_sse.c
- create mode 100644 lib/sbi/sbi_sse.c
-
+diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
+index d396233..0b32194 100644
+--- a/include/sbi/sbi_ipi.h
++++ b/include/sbi/sbi_ipi.h
+@@ -11,6 +11,7 @@
+ #define __SBI_IPI_H__
+ 
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_trap.h>
+ 
+ /* clang-format off */
+ 
+@@ -68,7 +69,8 @@ struct sbi_ipi_event_ops {
+ 	 * Note: This is a mandatory callback and it is called on the
+ 	 * remote HART after IPI is triggered.
+ 	 */
+-	void (* process)(struct sbi_scratch *scratch);
++	void (* process)(struct sbi_scratch *scratch,
++			 struct sbi_trap_regs *regs);
+ };
+ 
+ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data);
+@@ -83,7 +85,7 @@ void sbi_ipi_clear_smode(void);
+ 
+ int sbi_ipi_send_halt(ulong hmask, ulong hbase);
+ 
+-void sbi_ipi_process(void);
++void sbi_ipi_process(struct sbi_trap_regs *regs);
+ 
+ int sbi_ipi_raw_send(u32 hartindex);
+ 
+diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+index 048aaa6..269d48a 100644
+--- a/lib/sbi/sbi_ipi.c
++++ b/lib/sbi/sbi_ipi.c
+@@ -186,7 +186,8 @@ void sbi_ipi_event_destroy(u32 event)
+ 	ipi_ops_array[event] = NULL;
+ }
+ 
+-static void sbi_ipi_process_smode(struct sbi_scratch *scratch)
++static void sbi_ipi_process_smode(struct sbi_scratch *scratch,
++				  struct sbi_trap_regs *regs)
+ {
+ 	csr_set(CSR_MIP, MIP_SSIP);
+ }
+@@ -208,7 +209,8 @@ void sbi_ipi_clear_smode(void)
+ 	csr_clear(CSR_MIP, MIP_SSIP);
+ }
+ 
+-static void sbi_ipi_process_halt(struct sbi_scratch *scratch)
++static void sbi_ipi_process_halt(struct sbi_scratch *scratch,
++				 struct sbi_trap_regs *regs)
+ {
+ 	sbi_hsm_hart_stop(scratch, true);
+ }
+@@ -225,7 +227,7 @@ int sbi_ipi_send_halt(ulong hmask, ulong hbase)
+ 	return sbi_ipi_send_many(hmask, hbase, ipi_halt_event, NULL);
+ }
+ 
+-void sbi_ipi_process(void)
++void sbi_ipi_process(struct sbi_trap_regs *regs)
+ {
+ 	unsigned long ipi_type;
+ 	unsigned int ipi_event;
+@@ -244,7 +246,7 @@ void sbi_ipi_process(void)
+ 		if (ipi_type & 1UL) {
+ 			ipi_ops = ipi_ops_array[ipi_event];
+ 			if (ipi_ops)
+-				ipi_ops->process(scratch);
++				ipi_ops->process(scratch, regs);
+ 		}
+ 		ipi_type = ipi_type >> 1;
+ 		ipi_event++;
+@@ -349,7 +351,7 @@ void sbi_ipi_exit(struct sbi_scratch *scratch)
+ 	csr_clear(CSR_MIE, MIP_MSIP);
+ 
+ 	/* Process pending IPIs */
+-	sbi_ipi_process();
++	sbi_ipi_process(NULL);
+ 
+ 	/* Platform exit */
+ 	sbi_platform_ipi_exit(sbi_platform_ptr(scratch));
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index cca319f..3fff519 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -240,7 +240,7 @@ static bool tlb_process_once(struct sbi_scratch *scratch)
+ 	return false;
+ }
+ 
+-static void tlb_process(struct sbi_scratch *scratch)
++static void tlb_process(struct sbi_scratch *scratch, struct sbi_trap_regs *regs)
+ {
+ 	while (tlb_process_once(scratch));
+ }
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index dbf307c..d574ab1 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -206,7 +206,7 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+ 		sbi_timer_process();
+ 		break;
+ 	case IRQ_M_SOFT:
+-		sbi_ipi_process();
++		sbi_ipi_process(regs);
+ 		break;
+ 	case IRQ_M_EXT:
+ 		return sbi_irqchip_process(regs);
+@@ -229,7 +229,7 @@ static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
+ 			sbi_timer_process();
+ 			break;
+ 		case IRQ_M_SOFT:
+-			sbi_ipi_process();
++			sbi_ipi_process(regs);
+ 			break;
+ 		case IRQ_M_EXT:
+ 			rc = sbi_irqchip_process(regs);
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 36ef66c..a207dbc 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -149,7 +149,7 @@ static int imsic_external_irqfn(struct sbi_trap_regs *regs)
+ 
+ 		switch (mirq) {
+ 		case IMSIC_IPI_ID:
+-			sbi_ipi_process();
++			sbi_ipi_process(regs);
+ 			break;
+ 		default:
+ 			sbi_printf("%s: unhandled IRQ%d\n",
 -- 
 2.43.0
 
