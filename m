@@ -1,272 +1,319 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 9 Jan 2024 21:14:09 +0530
-Subject: [PATCH v2 4/7] lib: sbi: Introduce the SBI debug triggers
- extension support
-In-Reply-To: <657E65B9-95F6-45F2-B982-2D93535BA7CE@ventanamicro.com>
-References: <20240108065525.208172-1-hchauhan@ventanamicro.com>
- <20240108065525.208172-5-hchauhan@ventanamicro.com> <CAAhSdy1-iNWgrGJsUsikXTv+U-534+RUkrouv69phXu2bg4H5Q@mail.gmail.com>
- <657E65B9-95F6-45F2-B982-2D93535BA7CE@ventanamicro.com>
-Message-ID: <CAAhSdy01Sa4m2uQ6VZTS=6oy4=Mqbor6LAbuWUVgNMaramLkmg@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 10 Jan 2024 00:51:06 +0800
+Subject: [RFC PATCH 1/2] lib: sbi: Add shared memory region support
+In-Reply-To: <IA1PR20MB495387C9EA9AA34C34952334BB6A2@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495392B203C9DF5A3FF4F4A6BB6A2@IA1PR20MB4953.namprd20.prod.outlook.com>
+	 <IA1PR20MB495387C9EA9AA34C34952334BB6A2@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <61cd1477d6fb3110a2105e8984e97a29d9f2c344.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 9, 2024 at 9:01?PM Himanshu Chauhan
-<hchauhan@ventanamicro.com> wrote:
->
-> Hi Anup,
->
-> > On 09-Jan-2024, at 4:02?PM, Anup Patel <anup@brainfault.org> wrote:
-> >
-> >>
->
-> <snip>
->
-> >> +int sbi_dbtr_install_trig(const struct sbi_domain *dom, unsigned long smode,
-> >> +                         unsigned long trig_count, unsigned long *out)
-> >> +{
-> >> +       u32 hartid = current_hartid();
-> >> +       void *shmem_base = NULL;
-> >> +       struct sbi_dbtr_shmem_entry *entry;
-> >> +       struct sbi_dbtr_data_msg *recv;
-> >> +       struct sbi_dbtr_id_msg *xmit;
-> >> +       unsigned long ctrl;
-> >> +       struct sbi_dbtr_trigger *trig;
-> >> +       struct sbi_dbtr_hart_triggers_state *hs = NULL;
-> >> +
-> >> +       if (smode != PRV_S)
-> >> +               return SBI_ERR_DENIED;
-> >
-> > Same as above, drop the smode check and parameter.
->
-> We cannot completely drop the smode parameter here because it is used for domain address access validation. The check of S_PRV can be dropped.
-
-Okay, at least drop the sanity check.
+? 2024-01-09???? 19:24 +0800?Inochi Amaoto???
+> SBI 2.0 introducts shared memory between SBI and supervisor-mode software,
+> which is needed by various extension. So add inital support for shared
+> memory mechanisms.
+> 
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
+> ---
+> ?include/sbi/sbi_bitops.h |?? 3 +
+> ?include/sbi/sbi_shm.h??? | 129 +++++++++++++++++++++++++++++++++++++++
+> ?lib/sbi/objects.mk?????? |?? 1 +
+> ?lib/sbi/sbi_shm.c??????? | 114 ++++++++++++++++++++++++++++++++++
+> ?4 files changed, 247 insertions(+)
+> ?create mode 100644 include/sbi/sbi_shm.h
+> ?create mode 100644 lib/sbi/sbi_shm.c
+> 
+> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+> index 7d90334..19b478a 100644
+> --- a/include/sbi/sbi_bitops.h
+> +++ b/include/sbi/sbi_bitops.h
+> @@ -28,6 +28,9 @@
+> ?#define BIT_WORD_OFFSET(bit)	((bit) & (BITS_PER_LONG - 1))
+> ?#define BIT_ALIGN(bit, align)	(((bit) + ((align) - 1)) & ~((align) - 1))
+> 
+> +#define IS_BIT_ALIGN(bit, align)	\
+> +	(((bit) & ((align) - 1)) == 0)
+> +
+> ?#define GENMASK(h, l) \
+> ?	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+> 
+> diff --git a/include/sbi/sbi_shm.h b/include/sbi/sbi_shm.h
+> new file mode 100644
+> index 0000000..c50753b
+> --- /dev/null
+> +++ b/include/sbi/sbi_shm.h
+> @@ -0,0 +1,129 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Inochi Amaoto <inochiama@outlook.com>
+> + */
+> +
+> +#ifndef __SBI_SHM_H__
+> +#define __SBI_SHM_H__
+> +
+> +#include <sbi/sbi_byteorder.h>
+> +
+> +#define SBI_SHMEM_M_READABLE		(1UL << 0)
+> +#define SBI_SHMEM_M_WRITABLE		(1UL << 1)
+> +#define SBI_SHMEM_M_EXECUTABLE		(1UL << 2)
+> +#define SBI_SHMEM_S_READABLE		(1UL << 3)
+> +#define SBI_SHMEM_S_WRITABLE		(1UL << 4)
+> +#define SBI_SHMEM_S_EXECUTABLE		(1UL << 5)
+> +
+> +#define SBI_SHMEM_M_RW			\
+> +	(SBI_SHMEM_M_READABLE |		\
+> +	 SBI_SHMEM_M_WRITABLE)
+> +#define SBI_SHMEM_M_RWX			\
+> +	(SBI_SHMEM_M_READABLE |		\
+> +	 SBI_SHMEM_M_WRITABLE |		\
+> +	 SBI_SHMEM_M_EXECUTABLE)
+> +
+> +#define SBI_SHMEM_S_RW			\
+> +	(SBI_SHMEM_S_READABLE |		\
+> +	 SBI_SHMEM_S_WRITABLE)
+> +#define SBI_SHMEM_S_RWX			\
+> +	(SBI_SHMEM_S_READABLE |		\
+> +	 SBI_SHMEM_S_WRITABLE |		\
+> +	 SBI_SHMEM_S_EXECUTABLE)
+> +
+> +#define SBI_SHMEM_S_ACCESS_SHIFT	3
+> +
+> +struct sbi_shmem {
+> +	unsigned long addr;
+> +	unsigned long size;
+> +};
+> +
+> +int sbi_shmem_region_init(unsigned long lo, unsigned long hi,
+> +			? unsigned long size, unsigned long align,
+> +			? struct sbi_shmem *shmem);
+> +void sbi_shmem_region_clear(struct sbi_shmem *shmem);
+> +
+> +int sbi_shmem_region_check(struct sbi_shmem *shmem, unsigned long flags);
+> +
+> +int sbi_shmem_raw_read(struct sbi_shmem *shmem, unsigned long offset,
+> +		?????? void* value, unsigned long size);
+> +int sbi_shmem_raw_write(struct sbi_shmem *shmem, unsigned long offset,
+> +			void* value, unsigned long size);
+> +
+> +static inline int sbi_shmem_read_u8(struct sbi_shmem *shmem,
+> +				??? unsigned long offset,
+> +				??? uint8_t* value)
+> +{
+> +	return sbi_shmem_raw_read(shmem, offset, value, 1);
+> +}
+> +
+> +static inline int sbi_shmem_read_u16(struct sbi_shmem *shmem,
+> +				???? unsigned long offset,
+> +				???? uint16_t* value)
+> +{
+> +	uint16_t tmp;
+> +	int ret = sbi_shmem_raw_write(shmem, offset, &tmp, 2);
+s/sbi_shmem_raw_write/sbi_shmem_raw_read/
+> +
+> +	*value = le16_to_cpu(tmp);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int sbi_shmem_read_u32(struct sbi_shmem *shmem,
+> +				???? unsigned long offset,
+> +				???? uint32_t* value)
+> +{
+> +	uint32_t tmp;
+> +	int ret = sbi_shmem_raw_write(shmem, offset, &tmp, 4);
+s/sbi_shmem_raw_write/sbi_shmem_raw_read/
+> +
+> +	*value = le32_to_cpu(tmp);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int sbi_shmem_read_u64(struct sbi_shmem *shmem,
+> +				???? unsigned long offset,
+> +				???? uint64_t* value)
+> +{
+> +	uint64_t tmp;
+> +	int ret = sbi_shmem_raw_write(shmem, offset, &tmp, 8);
+s/sbi_shmem_raw_write/sbi_shmem_raw_read/
 
 Regards,
-Anup
+Xiang W
+> +
+> +	*value = le64_to_cpu(tmp);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int sbi_shmem_write_u8(struct sbi_shmem *shmem,
+> +				???? unsigned long offset,
+> +				???? uint8_t value)
+> +{
+> +	return sbi_shmem_raw_write(shmem, offset, &value, 1);
+> +}
+> +
+> +static inline int sbi_shmem_write_u16(struct sbi_shmem *shmem,
+> +				????? unsigned long offset,
+> +				????? uint16_t value)
+> +{
+> +	uint16_t tmp = cpu_to_le16(value);
+> +	return sbi_shmem_raw_write(shmem, offset, &tmp, 2);
+> +}
+> +
+> +static inline int sbi_shmem_write_u32(struct sbi_shmem *shmem,
+> +				????? unsigned long offset,
+> +				????? uint32_t value)
+> +{
+> +	uint32_t tmp = cpu_to_le32(value);
+> +	return sbi_shmem_raw_write(shmem, offset, &tmp, 4);
+> +}
+> +
+> +static inline int sbi_shmem_write_u64(struct sbi_shmem *shmem,
+> +				????? unsigned long offset,
+> +				????? uint64_t value)
+> +{
+> +	uint64_t tmp = cpu_to_le64(value);
+> +	return sbi_shmem_raw_write(shmem, offset, &tmp, 8);
+> +}
+> +
+> +
+> +#endif // __SBI_SHM_H__
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index c699187..5ffef06 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -71,6 +71,7 @@ libsbi-objs-y += sbi_misaligned_ldst.o
+> ?libsbi-objs-y += sbi_platform.o
+> ?libsbi-objs-y += sbi_pmu.o
+> ?libsbi-objs-y += sbi_scratch.o
+> +libsbi-objs-y += sbi_shm.o
+> ?libsbi-objs-y += sbi_string.o
+> ?libsbi-objs-y += sbi_system.o
+> ?libsbi-objs-y += sbi_timer.o
+> diff --git a/lib/sbi/sbi_shm.c b/lib/sbi/sbi_shm.c
+> new file mode 100644
+> index 0000000..213edaf
+> --- /dev/null
+> +++ b/lib/sbi/sbi_shm.c
+> @@ -0,0 +1,114 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Inochi Amaoto <inochiama@outlook.com>
+> + */
+> +
+> +#include <sbi/riscv_barrier.h>
+> +#include <sbi/sbi_byteorder.h>
+> +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_shm.h>
+> +#include <sbi/sbi_string.h>
+> +
+> +void sbi_shmem_region_clear(struct sbi_shmem *shmem)
+> +{
+> +	shmem->addr = 0;
+> +	shmem->size = 0;
+> +}
+> +
+> +int sbi_shmem_region_init(unsigned long lo, unsigned long hi,
+> +			? unsigned long size, unsigned long align,
+> +			? struct sbi_shmem *shmem)
+> +{
+> +	if (IS_BIT_ALIGN(lo, align))
+> +		return SBI_EINVAL;
+> +
+> +	if (size == 0)
+> +		return SBI_EINVAL;
+> +
+> +	/* TODO: support address wider than XLEN bits */
+> +	if (hi)
+> +		return SBI_EINVALID_ADDR;
+> +
+> +	shmem->addr = lo;
+> +	shmem->size = size;
+> +
+> +	return 0;
+> +}
+> +
+> +static int __sbi_shmem_region_check(struct sbi_domain *domain,
+> +				??? struct sbi_shmem *shmem,
+> +				??? unsigned long mode, unsigned long flags)
+> +{
+> +	unsigned long access_flags = 0;
+> +	int ret;
+> +
+> +	if (flags & SBI_SHMEM_M_RWX) {
+> +		if (flags & SBI_SHMEM_M_READABLE)
+> +			access_flags |= SBI_DOMAIN_READ;
+> +		if (flags & SBI_SHMEM_M_WRITABLE)
+> +			access_flags |= SBI_DOMAIN_WRITE;
+> +		if (flags & SBI_SHMEM_M_EXECUTABLE)
+> +			access_flags |= SBI_DOMAIN_EXECUTE;
+> +		ret = sbi_domain_check_addr_range(domain,
+> +						? shmem->addr, shmem->size,
+> +						? mode, access_flags);
+> +		if (!ret)
+> +			return SBI_EINVALID_ADDR;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +int sbi_shmem_region_check(struct sbi_shmem *shmem, unsigned long flags)
+> +{
+> +	struct sbi_domain *domain = sbi_domain_thishart_ptr();
+> +	int ret;
+> +
+> +	if (shmem->size == 0)
+> +		return SBI_EINVAL;
+> +
+> +	ret = __sbi_shmem_region_check(domain, shmem, PRV_M, flags);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = __sbi_shmem_region_check(domain, shmem, PRV_S,
+> +				?????? flags >> SBI_SHMEM_S_ACCESS_SHIFT);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +int sbi_shmem_raw_write(struct sbi_shmem *shmem, unsigned long offset,
+> +			void* value, unsigned long size)
+> +{
+> +	void *pos = (void *)(shmem->addr + offset);
+> +
+> +	if (shmem->size <= offset + size)
+> +		return SBI_EINVAL;
+> +
+> +	mb();
+> +	sbi_memcpy(pos, value, size);
+> +	wmb();
+> +
+> +	return 0;
+> +}
+> +
+> +int sbi_shmem_raw_read(struct sbi_shmem *shmem, unsigned long offset,
+> +		?????? void* value, unsigned long size)
+> +{
+> +	void *pos = (void *)(shmem->addr + offset);
+> +
+> +	if (shmem->size <= offset + size)
+> +		return SBI_EINVAL;
+> +
+> +	rmb();
+> +	sbi_memcpy(value, pos, size);
+> +	wmb();
+> +
+> +	return 0;
+> +}
+> --
+> 2.43.0
 
->
-> Regards
-> Himanshu
->
-> >
-> >> +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
-> >> +               return SBI_ERR_DENIED;
-> >> +
-> >> +       if (sbi_dbtr_shmem_disabled())
-> >> +               return SBI_ERR_NO_SHMEM;
-> >> +
-> >> +       shmem_base = hart_shmem_base();
-> >> +       hs = dbtr_thishart_state_ptr();
-> >> +
-> >> +       /* Check requested triggers configuration */
-> >> +       for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-> >> +               sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
-> >> +               recv = (struct sbi_dbtr_data_msg *)(&entry->data);
-> >> +               ctrl = recv->tdata1;
-> >> +
-> >> +               if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl))) {
-> >> +                       *out = _idx;
-> >> +                       sbi_hart_unmap_saddr();
-> >> +                       return SBI_ERR_FAILED;
-> >> +               }
-> >> +
-> >> +               if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
-> >> +                       *out = _idx;
-> >> +                       sbi_hart_unmap_saddr();
-> >> +                       return SBI_ERR_FAILED;
-> >> +               }
-> >> +               sbi_hart_unmap_saddr();
-> >> +       }
-> >> +
-> >> +       if (hs->available_trigs < trig_count) {
-> >> +               *out = hs->available_trigs;
-> >> +               return SBI_ERR_FAILED;
-> >> +       }
-> >> +
-> >> +       /* Install triggers */
-> >> +       for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-> >> +               /*
-> >> +                * Since we have already checked if enough triggers are
-> >> +                * available, trigger allocation must succeed.
-> >> +                */
-> >> +               trig = sbi_alloc_trigger();
-> >> +
-> >> +               sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
-> >> +
-> >> +               recv = (struct sbi_dbtr_data_msg *)(&entry->data);
-> >> +               xmit = (struct sbi_dbtr_id_msg *)(&entry->id);
-> >> +
-> >> +               dbtr_trigger_setup(trig,  recv);
-> >> +               dbtr_trigger_enable(trig);
-> >> +               xmit->idx = cpu_to_lle(trig->index);
-> >> +               sbi_hart_unmap_saddr();
-> >> +       }
-> >> +
-> >> +       return SBI_SUCCESS;
-> >> +}
-> >> +
-> >> +int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
-> >> +                           unsigned long trig_idx_mask)
-> >> +{
-> >> +       unsigned long trig_mask = trig_idx_mask << trig_idx_base;
-> >> +       unsigned long idx = trig_idx_base;
-> >> +       struct sbi_dbtr_trigger *trig;
-> >> +       struct sbi_dbtr_hart_triggers_state *hs;
-> >> +
-> >> +       hs = dbtr_thishart_state_ptr();
-> >> +       if (!hs)
-> >> +               return SBI_ERR_FAILED;
-> >> +
-> >> +       for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
-> >> +               trig = INDEX_TO_TRIGGER(idx);
-> >> +               if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
-> >> +                       return SBI_ERR_INVALID_PARAM;
-> >> +
-> >> +               dbtr_trigger_clear(trig);
-> >> +
-> >> +               sbi_free_trigger(trig);
-> >> +       }
-> >> +
-> >> +       return SBI_SUCCESS;
-> >> +}
-> >> +
-> >> +int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
-> >> +                        unsigned long trig_idx_mask)
-> >> +{
-> >> +       unsigned long trig_mask = trig_idx_mask << trig_idx_base;
-> >> +       unsigned long idx = trig_idx_base;
-> >> +       struct sbi_dbtr_trigger *trig;
-> >> +       struct sbi_dbtr_hart_triggers_state *hs;
-> >> +
-> >> +       hs = dbtr_thishart_state_ptr();
-> >> +       if (!hs)
-> >> +               return SBI_ERR_FAILED;
-> >> +
-> >> +       for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
-> >> +               trig = INDEX_TO_TRIGGER(idx);
-> >> +               sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
-> >> +               dbtr_trigger_enable(trig);
-> >> +       }
-> >> +
-> >> +       return SBI_SUCCESS;
-> >> +}
-> >> +
-> >> +int sbi_dbtr_update_trig(const struct sbi_domain *dom,
-> >> +                        unsigned long smode,
-> >> +                        unsigned long trig_idx_base,
-> >> +                        unsigned long trig_idx_mask)
-> >> +{
-> >> +       unsigned long trig_mask = trig_idx_mask << trig_idx_base;
-> >> +       unsigned long idx = trig_idx_base;
-> >> +       u32 hartid = current_hartid();
-> >> +       struct sbi_dbtr_data_msg *recv;
-> >> +       unsigned long uidx = 0;
-> >> +       struct sbi_dbtr_trigger *trig;
-> >> +       struct sbi_dbtr_shmem_entry *entry;
-> >> +       void *shmem_base = NULL;
-> >> +       struct sbi_dbtr_hart_triggers_state *hs = NULL;
-> >> +
-> >> +       if (smode != PRV_S)
-> >> +               return SBI_ERR_DENIED;
-> >
-> > Same as above, drop the smode check and parameter.
-> >
-> >> +       if (dom && !sbi_domain_is_assigned_hart(dom, hartid))
-> >> +               return SBI_ERR_DENIED;
-> >> +
-> >> +       if (sbi_dbtr_shmem_disabled())
-> >> +               return SBI_ERR_NO_SHMEM;
-> >> +
-> >> +       shmem_base = hart_shmem_base();
-> >> +       hs = dbtr_thishart_state_ptr();
-> >> +       if (!hs)
-> >> +               return SBI_ERR_FAILED;
-> >> +
-> >> +       for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
-> >> +               trig = INDEX_TO_TRIGGER(idx);
-> >> +
-> >> +               if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
-> >> +                       return SBI_ERR_INVALID_PARAM;
-> >> +
-> >> +               entry = (shmem_base + uidx * sizeof(*entry));
-> >> +               recv = &entry->data;
-> >> +
-> >> +               trig->tdata2 = lle_to_cpu(recv->tdata2);
-> >> +               dbtr_trigger_enable(trig);
-> >> +               uidx++;
-> >> +       }
-> >> +
-> >> +       return SBI_SUCCESS;
-> >> +}
-> >> +
-> >> +int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
-> >> +                         unsigned long trig_idx_mask)
-> >> +{
-> >> +       unsigned long trig_mask = trig_idx_mask << trig_idx_base;
-> >> +       unsigned long idx = trig_idx_base;
-> >> +       struct sbi_dbtr_trigger *trig;
-> >> +       struct sbi_dbtr_hart_triggers_state *hs;
-> >> +
-> >> +       hs = dbtr_thishart_state_ptr();
-> >> +       if (!hs)
-> >> +               return SBI_ERR_FAILED;
-> >> +
-> >> +       for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
-> >> +               trig = INDEX_TO_TRIGGER(idx);
-> >> +               dbtr_trigger_disable(trig);
-> >> +       }
-> >> +
-> >> +       return SBI_SUCCESS;
-> >> +}
-> >> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> >> index 6a98e13..0dcde27 100644
-> >> --- a/lib/sbi/sbi_init.c
-> >> +++ b/lib/sbi/sbi_init.c
-> >> @@ -23,6 +23,7 @@
-> >> #include <sbi/sbi_irqchip.h>
-> >> #include <sbi/sbi_platform.h>
-> >> #include <sbi/sbi_pmu.h>
-> >> +#include <sbi/sbi_dbtr.h>
-> >> #include <sbi/sbi_system.h>
-> >> #include <sbi/sbi_string.h>
-> >> #include <sbi/sbi_timer.h>
-> >> @@ -322,6 +323,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >>                sbi_hart_hang();
-> >>        }
-> >>
-> >> +       rc = sbi_dbtr_init(scratch, true);
-> >> +       if (rc)
-> >> +               sbi_hart_hang();
-> >> +
-> >>        sbi_boot_print_banner(scratch);
-> >>
-> >>        rc = sbi_irqchip_init(scratch, true);
-> >> @@ -439,6 +444,10 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
-> >>        if (rc)
-> >>                sbi_hart_hang();
-> >>
-> >> +       rc = sbi_dbtr_init(scratch, false);
-> >> +       if (rc)
-> >> +               sbi_hart_hang();
-> >> +
-> >>        rc = sbi_irqchip_init(scratch, false);
-> >>        if (rc)
-> >>                sbi_hart_hang();
-> >> --
-> >> 2.34.1
-> >>
-> >>
-> >> --
-> >> opensbi mailing list
-> >> opensbi at lists.infradead.org
-> >> http://lists.infradead.org/mailman/listinfo/opensbi
-> >
-> > Regards,
-> > Anup
->
->
 
