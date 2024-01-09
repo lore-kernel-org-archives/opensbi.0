@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 9 Jan 2024 16:03:17 +0530
-Subject: [PATCH v2 5/7] include: sbi: Add SBI debug trigger extension
- related defines
-In-Reply-To: <20240108065525.208172-6-hchauhan@ventanamicro.com>
-References: <20240108065525.208172-1-hchauhan@ventanamicro.com> <20240108065525.208172-6-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy3aVeL-Xjvb6V1Oj5VHKCF01NpPFSJqzU_aWwH5a35kQQ@mail.gmail.com>
+Date: Tue, 9 Jan 2024 16:03:38 +0530
+Subject: [PATCH v2 6/7] lib: sbi: Implement SBI debug trigger extension
+In-Reply-To: <20240108065525.208172-7-hchauhan@ventanamicro.com>
+References: <20240108065525.208172-1-hchauhan@ventanamicro.com> <20240108065525.208172-7-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy3-pcOQNsk-G5gMRbh2TBHzbFbuVCaZ8Zwm_kP4B2u-qA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,8 +13,8 @@ Content-Transfer-Encoding: 7bit
 On Mon, Jan 8, 2024 at 12:25?PM Himanshu Chauhan
 <hchauhan@ventanamicro.com> wrote:
 >
-> This patch adds defines for SBI debug trigger extension and
-> function IDs to access the extension.
+> This patch adds functions to register ecalls for debug triggers
+> and handler to handle the debug trigger function IDs.
 >
 > Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
@@ -27,38 +26,118 @@ Regards,
 Anup
 
 > ---
->  include/sbi/sbi_ecall_interface.h | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+>  lib/sbi/Kconfig          |  4 +++
+>  lib/sbi/objects.mk       |  3 ++
+>  lib/sbi/sbi_ecall_dbtr.c | 73 ++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 80 insertions(+)
+>  create mode 100644 lib/sbi/sbi_ecall_dbtr.c
 >
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index d8c646d..690c31b 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -32,6 +32,7 @@
->  #define SBI_EXT_DBCN                           0x4442434E
->  #define SBI_EXT_SUSP                           0x53555350
->  #define SBI_EXT_CPPC                           0x43505043
-> +#define SBI_EXT_DBTR                           0x44425452
+> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+> index 477775e..81dd2db 100644
+> --- a/lib/sbi/Kconfig
+> +++ b/lib/sbi/Kconfig
+> @@ -46,4 +46,8 @@ config SBI_ECALL_VENDOR
+>         bool "Platform-defined vendor extensions"
+>         default y
 >
->  /* SBI function IDs for BASE extension*/
->  #define SBI_EXT_BASE_GET_SPEC_VERSION          0x0
-> @@ -105,6 +106,16 @@
->  #define SBI_EXT_PMU_COUNTER_FW_READ_HI 0x6
->  #define SBI_EXT_PMU_SNAPSHOT_SET_SHMEM 0x7
->
-> +/* SBI function IDs for DBTR extension */
-> +#define SBI_EXT_DBTR_NUM_TRIGGERS      0x0
-> +#define SBI_EXT_DBTR_SETUP_SHMEM       0x1
-> +#define SBI_EXT_DBTR_TRIGGER_READ      0x2
-> +#define SBI_EXT_DBTR_TRIGGER_INSTALL   0x3
-> +#define SBI_EXT_DBTR_TRIGGER_UPDATE    0x4
-> +#define SBI_EXT_DBTR_TRIGGER_UNINSTALL 0x5
-> +#define SBI_EXT_DBTR_TRIGGER_ENABLE    0x6
-> +#define SBI_EXT_DBTR_TRIGGER_DISABLE   0x7
+> +config SBI_ECALL_DBTR
+> +       bool "Debug Trigger Extension"
+> +       default y
 > +
->  /** General pmu event codes specified in SBI PMU extension */
->  enum sbi_pmu_hw_generic_events_t {
->         SBI_PMU_HW_NO_EVENT                     = 0,
+>  endmenu
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index c7de150..0a50e95 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -52,6 +52,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
+>  carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VENDOR) += ecall_vendor
+>  libsbi-objs-$(CONFIG_SBI_ECALL_VENDOR) += sbi_ecall_vendor.o
+>
+> +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBTR) += ecall_dbtr
+> +libsbi-objs-$(CONFIG_SBI_ECALL_DBTR) += sbi_ecall_dbtr.o
+> +
+>  libsbi-objs-y += sbi_bitmap.o
+>  libsbi-objs-y += sbi_bitops.o
+>  libsbi-objs-y += sbi_console.o
+> diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
+> new file mode 100644
+> index 0000000..0d90043
+> --- /dev/null
+> +++ b/lib/sbi/sbi_ecall_dbtr.c
+> @@ -0,0 +1,73 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2023 Ventana Micro Systems Inc.
+> + *
+> + * Author(s):
+> + *   Himanshu Chauhan <hchauhan@ventanamicro.com>
+> + */
+> +
+> +#include <sbi/sbi_ecall.h>
+> +#include <sbi/sbi_ecall_interface.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_trap.h>
+> +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_dbtr.h>
+> +
+> +static int sbi_ecall_dbtr_handler(unsigned long extid, unsigned long funcid,
+> +                                 struct sbi_trap_regs *regs,
+> +                                 struct sbi_ecall_return *out)
+> +{
+> +       unsigned long smode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >>
+> +                       MSTATUS_MPP_SHIFT;
+> +       const struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> +       int ret = 0;
+> +
+> +       switch (funcid) {
+> +       case SBI_EXT_DBTR_NUM_TRIGGERS:
+> +               ret = sbi_dbtr_num_trig(regs->a0, &out->value);
+> +               break;
+> +       case SBI_EXT_DBTR_SETUP_SHMEM:
+> +               ret = sbi_dbtr_setup_shmem(dom, smode, regs->a0, regs->a1);
+> +               break;
+> +       case SBI_EXT_DBTR_TRIGGER_READ:
+> +               ret = sbi_dbtr_read_trig(dom, smode, regs->a0, regs->a1);
+> +               break;
+> +       case SBI_EXT_DBTR_TRIGGER_INSTALL:
+> +               ret = sbi_dbtr_install_trig(dom, smode, regs->a0, &out->value);
+> +               break;
+> +       case SBI_EXT_DBTR_TRIGGER_UNINSTALL:
+> +               ret = sbi_dbtr_uninstall_trig(regs->a0, regs->a1);
+> +               break;
+> +       case SBI_EXT_DBTR_TRIGGER_ENABLE:
+> +               ret = sbi_dbtr_enable_trig(regs->a0, regs->a1);
+> +               break;
+> +       case SBI_EXT_DBTR_TRIGGER_UPDATE:
+> +               ret = sbi_dbtr_update_trig(dom, smode, regs->a0, regs->a1);
+> +               break;
+> +       case SBI_EXT_DBTR_TRIGGER_DISABLE:
+> +               ret = sbi_dbtr_disable_trig(regs->a0, regs->a1);
+> +               break;
+> +       default:
+> +               ret = SBI_ENOTSUPP;
+> +       };
+> +
+> +       return ret;
+> +}
+> +
+> +struct sbi_ecall_extension ecall_dbtr;
+> +
+> +static int sbi_ecall_dbtr_register_extensions(void)
+> +{
+> +       if (!sbi_dbtr_supported())
+> +               return 0;
+> +
+> +       return sbi_ecall_register_extension(&ecall_dbtr);
+> +}
+> +
+> +struct sbi_ecall_extension ecall_dbtr = {
+> +       .extid_start = SBI_EXT_DBTR,
+> +       .extid_end = SBI_EXT_DBTR,
+> +       .handle = sbi_ecall_dbtr_handler,
+> +       .register_extensions = sbi_ecall_dbtr_register_extensions,
+> +};
 > --
 > 2.34.1
 >
