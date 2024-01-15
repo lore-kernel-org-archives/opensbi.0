@@ -1,26 +1,46 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 15 Jan 2024 23:19:16 +0800
-Subject: [PATCH v2 0/4] Improvements to fw_base.S
-Message-ID: <20240115151930.392299-1-wxjstz@126.com>
+Date: Mon, 15 Jan 2024 23:19:18 +0800
+Subject: [PATCH v2 2/4] firmware: fw_base.S: remove _runtime_offset
+In-Reply-To: <20240115151930.392299-1-wxjstz@126.com>
+References: <20240115151930.392299-1-wxjstz@126.com>
+Message-ID: <20240115151930.392299-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-v2 changes
-- Put the previous two patches into a patch group
-- PATCH3/PATCH4 added
+_runtime_offset is a variable not used elsewhere, so remove it.
 
-Xiang W (4):
-  firmware: fw_base.S: Improve loading u32
-  firmware: fw_base.S: remove _runtime_offset
-  firmware: fw_base.S: Simplify address get in _relocate
-  firmware: fw_base.S: Simplify relocate
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ firmware/fw_base.S | 6 ------
+ 1 file changed, 6 deletions(-)
 
- firmware/fw_base.S | 66 +++++++++++++---------------------------------
- 1 file changed, 18 insertions(+), 48 deletions(-)
-
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 2f30d00..0e1b6fb 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -74,8 +74,6 @@ _try_lottery:
+ 	REG_L	t0, 0(t0)
+ 	/* t1 shall has the address of _fw_start */
+ 	sub	t2, t1, t0
+-	lla	t3, _runtime_offset
+-	REG_S	t2, (t3)
+ 	lla	t0, __rel_dyn_start
+ 	lla	t1, __rel_dyn_end
+ 	beq	t0, t1, _relocate_done
+@@ -500,10 +498,6 @@ _skip_trap_exit_rv32_hyp:
+ 
+ 	.data
+ 	.align 3
+-#ifdef FW_PIC
+-_runtime_offset:
+-	RISCV_PTR	0
+-#endif
+ _relocate_lottery:
+ 	RISCV_PTR	0
+ _boot_status:
 -- 
 2.43.0
 
