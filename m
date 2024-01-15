@@ -1,75 +1,80 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Sun, 14 Jan 2024 09:41:41 +0800
+Date: Mon, 15 Jan 2024 14:24:13 +0800
 Subject: [RFC PATCH v2 0/2] lib: sbi_pmu: Add PMU snapshot extension
-In-Reply-To: <CAHBxVyF-+pC72+jLTLqoYv7tY6isLycEMsM1bu9f+43oeS_ndw@mail.gmail.com>
-References: <CAHBxVyF-+pC72+jLTLqoYv7tY6isLycEMsM1bu9f+43oeS_ndw@mail.gmail.com>
-Message-ID: <IA1PR20MB4953581D5D2D133AFCF6B9CCBB6D2@IA1PR20MB4953.namprd20.prod.outlook.com>
+In-Reply-To: <CAHBxVyFnqNCAdW5UFP7OOxno24Oqd68z1=Ch7_UzQ13+2K6J0Q@mail.gmail.com>
+References: <CAHBxVyFnqNCAdW5UFP7OOxno24Oqd68z1=Ch7_UzQ13+2K6J0Q@mail.gmail.com>
+Message-ID: <IA1PR20MB4953A8A1137D55E202170487BB6C2@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->On Fri, Jan 12, 2024 at 3:22?PM Inochi Amaoto <inochiama@outlook.com> wrote:
->>
->>> On Wed, Jan 10, 2024 at 4:34?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>On Sat, Jan 13, 2024 at 5:41?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+>>>On Fri, Jan 12, 2024 at 3:22?PM Inochi Amaoto <inochiama@outlook.com> wrote:
 >>>>
->>>> Although PMU snapshot extension is not very useful for normal use,
->>>> it can provide a recoverable snapshot for the PMU system. It is useful
->>>> for KVM VMs, especially for VM snapshot.
+>>>>> On Wed, Jan 10, 2024 at 4:34?PM Inochi Amaoto <inochiama@outlook.com> wrote:
+>>>>>>
+>>>>>> Although PMU snapshot extension is not very useful for normal use,
+>>>>>> it can provide a recoverable snapshot for the PMU system. It is useful
+>>>>>> for KVM VMs, especially for VM snapshot.
+>>>>>>
+>>>>>
+>>>>> Can you please further clarify how adding the PMU snapshot support in
+>>>>> OpenSBI helps the KVM VM snapshot?
+>>>>> During a VM snapshot, the host would have saved the values in the vcpu
+>>>>> structure already.
+>>>>> The PMU snapshot save/restore happens only in SBI calls. Thus, the
+>>>>> host has to invoke the SBI call (in context switch path)
+>>>>> to get an updated copy in the shared memory. PMU snapshot helps in
+>>>>> Virtualization as the host virtualizes the counters which
+>>>>> results in traps for each CSR read access within the guest. However,
+>>>>> the host can directly read the CSR as well.
+>>>>>
 >>>>
+>>>> Yes, I have already notice the vcpu have saved these values. IIRC, only
+>>>> `SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT` can restore the interrupt state.
+>>>> This is not useful for the normal run, but may be required when needing
+>>>> a persistent snapshot, (migration and VM snapshot). As a result, the host
+>>>> should only call this when saving/restoring the VM to persistent storage,
+>>>> and should not call this in the normal run for performance issue.
+>>>>
+>>>>> Adding PMU snapshot in OpenSBI may affect negatively as well depending
+>>>>> on the state of the L1 cache and the access latency.
+>>>>> CSR access should be quite fast in most of the implementations. If it
+>>>>> results in a miss, the latency would be even higher as you have to
+>>>>> fetch the data from L2 or DRAM.
+>>>>>
+>>>>
+>>>> I have already notice this latency problem. As I mention before, this
+>>>> should be called by the hypervisor when vcpu init/exit. So this problem
 >>>
->>> Can you please further clarify how adding the PMU snapshot support in
->>> OpenSBI helps the KVM VM snapshot?
->>> During a VM snapshot, the host would have saved the values in the vcpu
->>> structure already.
->>> The PMU snapshot save/restore happens only in SBI calls. Thus, the
->>> host has to invoke the SBI call (in context switch path)
->>> to get an updated copy in the shared memory. PMU snapshot helps in
->>> Virtualization as the host virtualizes the counters which
->>> results in traps for each CSR read access within the guest. However,
->>> the host can directly read the CSR as well.
+>>>Why would a hypervisor call counter start/stop calls during the vcpu
+>>>init/exit path ?
+>>>These are PMU specific snapshots for counters that are in use already.
+>>>Every time there is a context switch
+>>>of a vcpu, the perf subsystem in the host would collect the counter
+>>>value anyways.
+>>>During the VM snapshot, those values would be used. The SBI
+>>>implementation should save the counters
+>>>specified in the counter mask specified in the stop call. If a PMU is
+>>>not in use, it wouldn't matter.
 >>>
->>
->> Yes, I have already notice the vcpu have saved these values. IIRC, only
->> `SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT` can restore the interrupt state.
->> This is not useful for the normal run, but may be required when needing
->> a persistent snapshot, (migration and VM snapshot). As a result, the host
->> should only call this when saving/restoring the VM to persistent storage,
->> and should not call this in the normal run for performance issue.
->>
->>> Adding PMU snapshot in OpenSBI may affect negatively as well depending
->>> on the state of the L1 cache and the access latency.
->>> CSR access should be quite fast in most of the implementations. If it
->>> results in a miss, the latency would be even higher as you have to
->>> fetch the data from L2 or DRAM.
+>>>> may be acceptable. In fact, I found that we can directly implement the
+>>>> vcpu PMU sampling by pass a page for guset to host SBI. But I struggle on
 >>>
->>
->> I have already notice this latency problem. As I mention before, this
->> should be called by the hypervisor when vcpu init/exit. So this problem
+>>>Not sure what do you mean by that. vcpu PMU sampling support patches
+>>>can be found here here[1]
+>>>
+>>>[1] https://lore.kernel.org/lkml/20240110231359.1239367-2-atishp at rivosinc.com/T/#m9943791909628f90ede01303def7f647db81bf9d
+>>>
+>>Thanks for your patch. It seems I have mistaken the PMU OF interrupt for
+>>KVM. It seems that there is no need to delegate the interrupt to SBI when
+>>restoring the VM snapshot, and we can process them all at HS-mode, Right?
 >
->Why would a hypervisor call counter start/stop calls during the vcpu
->init/exit path ?
->These are PMU specific snapshots for counters that are in use already.
->Every time there is a context switch
->of a vcpu, the perf subsystem in the host would collect the counter
->value anyways.
->During the VM snapshot, those values would be used. The SBI
->implementation should save the counters
->specified in the counter mask specified in the stop call. If a PMU is
->not in use, it wouldn't matter.
->
->> may be acceptable. In fact, I found that we can directly implement the
->> vcpu PMU sampling by pass a page for guset to host SBI. But I struggle on
->
->Not sure what do you mean by that. vcpu PMU sampling support patches
->can be found here here[1]
->
->[1] https://lore.kernel.org/lkml/20240110231359.1239367-2-atishp at rivosinc.com/T/#m9943791909628f90ede01303def7f647db81bf9d
+>Yes. KVM doesn?t delegate PMU OF to the gust. KVM receives the interrupt and inject to the guest via AIA irq filtering mechanism.
 >
 
-Thanks for your patch. It seems I have mistaken the PMU OF interrupt for
-KVM. It seems that there is no need to delegate the interrupt to SBI when
-restoring the VM snapshot, and we can process them all at HS-mode, Right?
-
+Thanks, let's drop this patch.
 
