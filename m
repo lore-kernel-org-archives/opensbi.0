@@ -1,39 +1,39 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue,  2 Jan 2024 22:16:24 +0530
-Subject: [PATCH] lib: sbi: Use mask to check the free bit during trigger allocation
-Message-ID: <20240102164624.85482-1-hchauhan@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 17 Jan 2024 18:41:57 +0800
+Subject: [PATCH v3 00/10] Improvements to fw_base.S
+Message-ID: <20240117104212.1055737-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The trigger allocation function uses bit shift instead of mask to check the
-mapped status of the triggers. This causes index 0 to be return always. As a
-result, the older triggers are overwritten.
+v3 changes
+- PATCH5-PATH10 added
 
-Use the mask for MAPPED field in state word to check if the trigger is mapped.
+v2 changes
+- Put the previous two patches into a patch group
+- PATCH3/PATCH4 added
 
-Fixes: 97f234f15 ("lib: sbi: Introduce the SBI debug triggers extension support")
-Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
----
- lib/sbi/sbi_dbtr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Xiang W (10):
+  firmware: fw_base.S: Improve loading u32
+  firmware: fw_base.S: remove _runtime_offset
+  firmware: fw_base.S: Simplify address get in _relocate
+  firmware: fw_base.S: Simplify relocate
+  firmware: fw_base.S: Move _link_start to .rodata section
+  firmware: fw_base: Simplified setup trap handler
+  firmware: fw_dynamic.S: Remove _bad_dynamic_info
+  firmware: fw_base.S: Remove _relocate_lottery
+  firmware: Use C if possible
+  firmware: fw_base.S: Fix arguments passing
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 019e702..7142fed 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -129,7 +129,7 @@ static inline struct sbi_dbtr_trigger *sbi_alloc_trigger(void)
- 
- 	for (i = 0; i < hart_state->total_trigs; i++) {
- 		f_trig = INDEX_TO_TRIGGER(i);
--		if (f_trig->state & RV_DBTR_BIT(TS, MAPPED))
-+		if (f_trig->state & RV_DBTR_BIT_MASK(TS, MAPPED))
- 			continue;
- 		hart_state->available_trigs--;
- 		break;
+ firmware/fw_base.S     | 340 ++++++-----------------------------------
+ firmware/fw_dynamic.S  |  10 +-
+ include/sbi/sbi_init.h |   3 +
+ lib/sbi/sbi_init.c     | 111 +++++++++++++-
+ 4 files changed, 163 insertions(+), 301 deletions(-)
+
 -- 
-2.42.0
+2.43.0
 
 
