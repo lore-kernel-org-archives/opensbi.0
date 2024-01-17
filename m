@@ -1,59 +1,54 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 17 Jan 2024 18:42:00 +0800
-Subject: [PATCH v3 03/10] firmware: fw_base.S: Simplify address get in _relocate
+Date: Wed, 17 Jan 2024 18:42:03 +0800
+Subject: [PATCH v3 06/10] firmware: fw_base: Simplified setup trap handler
 In-Reply-To: <20240117104212.1055737-1-wxjstz@126.com>
 References: <20240117104212.1055737-1-wxjstz@126.com>
-Message-ID: <20240117104212.1055737-4-wxjstz@126.com>
+Message-ID: <20240117104212.1055737-7-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Simplify address get in _relocate. Remove _link_end.
+The same detection was done twice when setting mtvec and trap_exit.
+Merging can reduce code size.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- firmware/fw_base.S | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ firmware/fw_base.S | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 0e1b6fb..3d88704 100644
+index 7c7157d..d4a6d3a 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -97,17 +97,14 @@ _wait_relocate_copy_done:
- 	/* Relocate if load address != link address */
- _relocate:
- 	lla	t0, _link_start
--	REG_L	t0, 0(t0)
--	lla	t1, _link_end
--	REG_L	t1, 0(t1)
--	lla	t2, _load_start
--	REG_L	t2, 0(t2)
-+	REG_L	t0, 0(t0)	  /* link start */
-+	lla	t2, _fw_start	  /* load start */
- 	beq	t0, t2, _relocate_done
--	sub	t3, t1, t0
--	add	t3, t3, t2
-+	sub	t6, t2, t0	  /* runtime offset */
-+	lla	t3, _fw_reloc_end /* load end */
- 	lla	t4, _relocate_done
--	sub	t4, t4, t2
--	add	t4, t4, t0
-+	sub	t1, t3, t6	  /* link end */
-+	sub	t4, t4, t6	  /* link _relocate_done */
- 	blt	t2, t0, _relocate_copy_to_upper
- _relocate_copy_to_lower:
- 	ble	t1, t2, _relocate_copy_to_lower_loop
-@@ -506,8 +503,6 @@ _load_start:
- 	RISCV_PTR	_fw_start
- _link_start:
- 	RISCV_PTR	FW_TEXT_START
--_link_end:
--	RISCV_PTR	_fw_reloc_end
+@@ -452,22 +452,14 @@ _start_warm:
+ 	srli	a5, a5, ('H' - 'A')
+ 	andi	a5, a5, 0x1
+ 	beq	a5, zero, _skip_trap_handler_rv32_hyp
+-	lla	a4, _trap_handler_rv32_hyp
+-_skip_trap_handler_rv32_hyp:
+-#endif
+-	csrw	CSR_MTVEC, a4
+-
+-#if __riscv_xlen == 32
+ 	/* Override trap exit for H-extension */
+-	csrr	a5, CSR_MISA
+-	srli	a5, a5, ('H' - 'A')
+-	andi	a5, a5, 0x1
+-	beq	a5, zero, _skip_trap_exit_rv32_hyp
+-	lla	a4, _trap_exit_rv32_hyp
+ 	csrr	a5, CSR_MSCRATCH
++	lla	a4, _trap_exit_rv32_hyp
+ 	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
+-_skip_trap_exit_rv32_hyp:
++	lla	a4, _trap_handler_rv32_hyp
++_skip_trap_handler_rv32_hyp:
+ #endif
++	csrw	CSR_MTVEC, a4
  
- 	.section .entry, "ax", %progbits
- 	.align 3
+ 	/* Initialize SBI runtime */
+ 	csrr	a0, CSR_MSCRATCH
 -- 
 2.43.0
 
