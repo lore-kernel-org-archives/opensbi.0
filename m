@@ -1,52 +1,37 @@
-From: Nam Cao <namcao@linutronix.de>
-Date: Wed, 17 Jan 2024 13:03:25 +0100
-Subject: [PATCH 1/2] platform: starfive: correct system clock device
- tree node
-In-Reply-To: <CAEn-LTq9iXg--zvTdn=g1G=2EH9vPFHphXj0pRVon8XCdRsh-A@mail.gmail.com>
-References: <088ccae83cf0165d1390627d7e2e782d74941e62.1705490088.git.namcao@linutronix.de>
-	<a0d913ba9ad4283ef2873f08e7bb379c45642306.camel@126.com>
-	<CAEn-LTq9iXg--zvTdn=g1G=2EH9vPFHphXj0pRVon8XCdRsh-A@mail.gmail.com>
-Message-ID: <20240117130325.65e71fdd@namcao>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 17 Jan 2024 20:18:45 +0800
+Subject: [PATCH v2] Makefile: add rebuild
+In-Reply-To: <mvm4jfcxkct.fsf@suse.de>
+References: <20240117105843.1058338-1-wxjstz@126.com>
+	 <mvm4jfcxkct.fsf@suse.de>
+Message-ID: <6653f9b1d27c97dcd9f8e42fba86c938d16b7e1e.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 17 Jan 2024 13:47:13 +0200 David Abdurachmanov <david.abdurachmanov@gmail.com> wrote:
-> On Wed, Jan 17, 2024 at 1:33?PM Xiang W <wxjstz@126.com> wrote:
-> >
-> > ? 2024-01-17???? 12:16 +0100?Nam Cao???  
-> > > Starfive names the system clock device tree node "starfive,jh7110-clkgen"
-> > > in all their git repositories. However, a different name is used in
-> > > upstream U-Boot (and also Linux): "starfive,jh7110-syscrg". Since
-> > > OpenSBI gets the device tree from U-Boot, this inconsistency leads the
-> > > problem that OpenSBI doesn't know the system clock device exists.
-> > >
-> > > Correct this name to keep the consistency.  
-> > This sounds like a problem of u-boot. Directly replacing compatible strings is
-> > not a good way. It is best to try another compatible string after the search
-> > fails.  
+? 2024-01-17???? 12:36 +0100?Andreas Schwab???
+> On Jan 17 2024, Xiang W wrote:
 > 
-> At a quick glance there are no approved bindings for
-> starfive,jh7110-clkgen. There are bindings for starfive,jh7110-syscrg
-> in the Linux tree. IIUC v1 patch to add bindings referenced
-> starfive,jh7110-clkgen compatible, but that's no what landed. U-Boot
-> is supposed to regularly sync their DTS from the kernel tree.
+> > diff --git a/Makefile b/Makefile
+> > index de4e73a..17d0a22 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -688,5 +688,9 @@ endif
+> > ?	$(if $(V), @echo " RM??????? $(src_dir)/cscope*")
+> > ?	$(CMD_PREFIX)rm -f $(src_dir)/cscope*
+> > ?
+> > +# Rule for "make rebuild"
+> > +.PHONY: rebuild
+> > +rebuild: clean all
 > 
-> Most likely OpenSBI stuff was merged before bindings got officially
-> approved in the Linux tree.
+> This will not work in a parallel build, since clean and all will be run
+> in parallel.
+> 
+Thanks, let's drop this patch.
 
-This is also what I think: this stuff is merged to OpenSBI too early.
+Regards,
+Xiang W
 
-However, this patch breaks OpenSBI's compatibility with Starfive's U-Boot.
-So the question is whether we should keep the compatibility with both
-upstream U-Boot and Starfive's U-Boot, or just the upstream one. I would
-say being compatible with upstream U-Boot is sufficient.
-
-That said, if anyone insists on keeping the compatibility with Starfive's
-U-Boot too, I can send a v2.
-
-Best regards,
-Nam
 
