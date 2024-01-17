@@ -1,36 +1,34 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 17 Jan 2024 18:42:02 +0800
-Subject: [PATCH v3 05/10] firmware: fw_base.S: Move _link_start to .rodata section
-In-Reply-To: <20240117104212.1055737-1-wxjstz@126.com>
-References: <20240117104212.1055737-1-wxjstz@126.com>
-Message-ID: <20240117104212.1055737-6-wxjstz@126.com>
+Date: Wed, 17 Jan 2024 18:53:44 +0800
+Subject: [PATCH] Makefile: add rebuild
+Message-ID: <20240117105403.1057264-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-_link_start is readonly, so move it to rodata section.
+Rebuild is useful when need a complete recompile.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- firmware/fw_base.S | 3 +++
- 1 file changed, 3 insertions(+)
+ Makefile | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 18dd0c5..7c7157d 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -482,6 +482,9 @@ _relocate_lottery:
- 	RISCV_PTR	0
- _boot_status:
- 	RISCV_PTR	0
-+
-+	.section .rodata
-+	.align 3
- _link_start:
- 	RISCV_PTR	FW_TEXT_START
+diff --git a/Makefile b/Makefile
+index de4e73a..17d0a22 100644
+--- a/Makefile
++++ b/Makefile
+@@ -688,5 +688,9 @@ endif
+ 	$(if $(V), @echo " RM        $(src_dir)/cscope*")
+ 	$(CMD_PREFIX)rm -f $(src_dir)/cscope*
  
++# Rule for "make rebuild"
++.PHONY: rebuild
++rebuild: clean all
++
+ .PHONY: FORCE
+ FORCE:
 -- 
 2.43.0
 
