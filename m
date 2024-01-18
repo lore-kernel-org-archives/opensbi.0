@@ -1,88 +1,79 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 18 Jan 2024 12:57:03 +0800
-Subject: [PATCH 2/2] platform: starfive: get I2C offset address from
- clocks property
-In-Reply-To: <b05b20a4c97e6e7f752d860355c01c4168f949e2.1705490088.git.namcao@linutronix.de>
-References: <088ccae83cf0165d1390627d7e2e782d74941e62.1705490088.git.namcao@linutronix.de>
-	 <b05b20a4c97e6e7f752d860355c01c4168f949e2.1705490088.git.namcao@linutronix.de>
-Message-ID: <5f4e6f13fe6504fe1a987ae00989c7b02fb32aea.camel@126.com>
+Date: Thu, 18 Jan 2024 15:38:18 +0800
+Subject: [PATCH] Makefile: don't pass -mstrict-align to clang
+In-Reply-To: <20240111092646.97404-1-kalle.wachsmuth@gmail.com>
+References: <20240111092646.97404-1-kalle.wachsmuth@gmail.com>
+Message-ID: <9d3a71f33b28513cd232b5d52bc7a6be13f083cd.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-01-17???? 12:16 +0100?Nam Cao???
-> The current code gets the I2C offset address using the device tree node
-> name: it get the I2C device index from the 4th character in the node
-> name (for example, "i2c5" -> i2c device 5). However, the device tree
-> node's name in U-Boot is actually just "i2c" without the number, so the
-> current code cannot be used with the device tree from U-Boot.
+? 2024-01-11???? 10:26 +0100?Kalle Wachsmuth???
+> Support for that option will be added in LLVM 18:
+> https://github.com/llvm/llvm-project/commit/23ce5368409c760f3dd49d0f17f34772b0b869d8
 > 
-> Get the I2C offset address from the "clocks" property instead.
+> Clang 17.0.6, however, will error when passed the
+> `-mstrict-align` flag.
+> (I'm using Homebrew Clang on macOS.)
 > 
-> Signed-off-by: Nam Cao <namcao@linutronix.de>
-> ---
-> ?platform/generic/starfive/jh7110.c | 19 ++++++++++---------
-> ?1 file changed, 10 insertions(+), 9 deletions(-)
+> Sticking to aligned accesses is the default
+> behavior anyway.
 > 
-> diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-> index 4b22175..846b068 100644
-> --- a/platform/generic/starfive/jh7110.c
-> +++ b/platform/generic/starfive/jh7110.c
-> @@ -29,7 +29,7 @@ struct pmic {
-> ?struct jh7110 {
-> ?	u64 pmu_reg_base;
-> ?	u64 clk_reg_base;
-> -	u32 i2c_index;
-> +	u32 i2c_clk_offset;
-> ?};
-> ?
-> ?static struct pmic pmic_inst;
-> @@ -163,10 +163,7 @@ static void pmic_i2c_clk_enable(void)
-> ?	unsigned long clock_base;
-> ?	unsigned int val;
-> ?
-> -	clock_base = jh7110_inst.clk_reg_base +
-> -		I2C_APB_CLK_OFFSET +
-The I2C_APB_CLK_OFFSET is no longer needed and can be removed.
+If this option will be added in the future, it is best to
+check whether the compiler supports this option through
+the shell.
 
 Regards,
 Xiang W
-> -		(jh7110_inst.i2c_index << 2);
-> -
-> +	clock_base = jh7110_inst.clk_reg_base + jh7110_inst.i2c_clk_offset;
-> ?	val = readl((void *)clock_base);
+> Signed-off-by: Kalle Wachsmuth <kalle.wachsmuth@gmail.com>
+> ---
+> ?Makefile | 8 ++++++--
+> ?1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Makefile b/Makefile
+> index de4e73a..45332a0 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -337,7 +337,7 @@ CFLAGS		+=	-O0
+> ?else
+> ?CFLAGS		+=	-O2
+> ?endif
+> -CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
+> +CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+> ?# enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
+> ?ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+> ?CFLAGS		+=	-mno-save-restore
+> @@ -345,6 +345,9 @@ endif
+> ?CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+> ?CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> ?CFLAGS		+=	$(RELAX_FLAG)
+> +ifneq ($(CC_IS_CLANG),y)
+> +CFLAGS		+=	-mstrict-align
+> +endif
+> ?CFLAGS		+=	$(GENFLAGS)
+> ?CFLAGS		+=	$(platform-cflags-y)
+> ?CFLAGS		+=	-fno-pie -no-pie
+> @@ -355,7 +358,7 @@ CPPFLAGS	+=	$(platform-cppflags-y)
+> ?CPPFLAGS	+=	$(firmware-cppflags-y)
 > ?
-> ?	if (!val)
-> @@ -241,7 +238,8 @@ static struct fdt_reset fdt_reset_pmic = {
-> ?static int starfive_jh7110_inst_init(void *fdt)
-> ?{
-> ?	int noff, rc = 0;
-> -	const char *name;
-> +	const fdt32_t *val;
-> +	int len;
-> ?	u64 addr;
-> ?
-> ?	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-pmu");
-> @@ -261,9 +259,12 @@ static int starfive_jh7110_inst_init(void *fdt)
-> ?	}
-> ?
-> ?	if (pmic_inst.adapter) {
-> -		name = fdt_get_name(fdt, pmic_inst.adapter->id, NULL);
-> -		if (!sbi_strncmp(name, "i2c", 3))
-> -			jh7110_inst.i2c_index = name[3] - '0';
-> +		val = fdt_getprop(fdt, pmic_inst.adapter->id, "clocks", &len);
-> +		/* The clocks property looks like this: clocks = <&syscrg JH7110_SYSCLK_I2C5_APB>;
-> +		 * So check that the length is 8 bytes, and get the offset from the second value
-> +		 */
-> +		if (val && len == 8)
-> +			jh7110_inst.i2c_clk_offset = fdt32_to_cpu(val[1]) << 2;
-> ?		else
-> ?			rc = SBI_EINVAL;
-> ?	}
+> ?ASFLAGS		=	-g -Wall -nostdlib
+> -ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
+> +ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+> ?# enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
+> ?ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+> ?ASFLAGS		+=	-mno-save-restore
+> @@ -364,6 +367,7 @@ ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
+> ?ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+> ?ASFLAGS		+=	$(RELAX_FLAG)
+> ?ifneq ($(CC_IS_CLANG),y)
+> +CFLAGS		+=	-mstrict-align
+> ?ifneq ($(RELAX_FLAG),)
+> ?ASFLAGS		+=	-Wa,$(RELAX_FLAG)
+> ?endif
 > -- 
-> 2.39.2
+> 2.39.3 (Apple Git-145)
 > 
 > 
 
