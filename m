@@ -1,87 +1,124 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 19 Jan 2024 12:12:22 +0800
-Subject: [PATCH v2] Makefile: don't pass -mstrict-align if not supported
-In-Reply-To: <20240118180231.30300-1-kalle.wachsmuth@gmail.com>
-References: <20240118180231.30300-1-kalle.wachsmuth@gmail.com>
-Message-ID: <70d1c545bcf6cfff200266988ab75f175ec6ed9c.camel@126.com>
+From: yangcheng.work@foxmail.com <yangcheng.work@foxmail.com>
+Date: Tue, 23 Jan 2024 16:25:53 +0800
+Subject: [PATCH] lib:firmware: Select preferred boot hart for cold boot.
+Message-ID: <tencent_E524945B0D326FE2C19150B61FACED0A6806@qq.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-01-18???? 19:02 +0100?Kalle Wachsmuth???
-> Support for that option will be added in LLVM 18:
-> https://github.com/llvm/llvm-project/commit/23ce5368409c760f3dd49d0f17f34772b0b869d8
-> 
-> Clang 17.0.6, however, will error when passed the
-> `-mstrict-align` flag.
-> We should only use the flag if it is supported.
-> 
-> Signed-off-by: Kalle Wachsmuth <kalle.wachsmuth@gmail.com>
-LGTM
+From: Cheng Yang <yangcheng.work@foxmail.com>
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> (I'm using Homebrew Clang on macOS.)
-> 
-> ?Makefile | 17 +++++++++++++----
-> ?1 file changed, 13 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index de4e73a..66048c3 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -170,6 +170,9 @@ OPENSBI_LD_PIE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_FLAG) -fP
-> ?# Check whether the compiler supports -m(no-)save-restore
-> ?CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e
-> "-save-restore" >/dev/null && echo n || echo y)
-> 
-> +# Check whether the compiler supports -m(no-)strict-align
-> +CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-
-> mstrict-align\|-mno-unaligned-access" >/dev/null && echo n || echo y)
-> +
-> ?# Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
-> ?CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c
-> /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
-> 
-> @@ -337,11 +340,14 @@ CFLAGS		+=	-O0
-> ?else
-> ?CFLAGS		+=	-O2
-> ?endif
-> -CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
-> -# enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
-> +CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
-> +# Optionally supported flags
-> ?ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> ?CFLAGS		+=	-mno-save-restore
-> ?endif
-> +ifeq ($(CC_SUPPORT_STRICT_ALIGN),y)
-> +CFLAGS		+=	-mstrict-align
-> +endif
-> ?CFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
-> ?CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
-> ?CFLAGS		+=	$(RELAX_FLAG)
-> @@ -355,11 +361,14 @@ CPPFLAGS	+=	$(platform-cppflags-y)
-> ?CPPFLAGS	+=	$(firmware-cppflags-y)
-> 
-> ?ASFLAGS		=	-g -Wall -nostdlib
-> -ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls -mstrict-align
-> -# enable -m(no-)save-restore option by CC_SUPPORT_SAVE_RESTORE
-> +ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
-> +# Optionally supported flags
-> ?ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> ?ASFLAGS		+=	-mno-save-restore
-> ?endif
-> +ifeq ($(CC_SUPPORT_STRICT_ALIGN),y)
-> +ASFLAGS		+=	-mstrict-align
-> +endif
-> ?ASFLAGS		+=	-mabi=$(PLATFORM_RISCV_ABI) -march=$(PLATFORM_RISCV_ISA)
-> ?ASFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
-> ?ASFLAGS		+=	$(RELAX_FLAG)
-> --
-> 2.39.3 (Apple Git-145)
-> 
-> 
+We now use the boot hart in struct fw_dynamic_info to do
+relocate, but use a lottery algorithm when selecting the
+cold boot hart. This may result in using a hart other
+than the preferred boot hart to boot the next stage
+firmware.
+
+sbi_platform_cold_boot_allowed seems to be able to solve
+this problem, but for most platforms all hartids are
+allowed to cold boot. In this case, we still cannot
+guarantee that the hart consistent with the preferred boot
+hart will be used for cold boot.
+
+Therefore, we should also save the preferred boot hart
+information in scratch, so that we can select it first when
+making cold start core selection. If no preferred boot hart
+is specified then the lottery algorithm is used as before.
+
+Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
+---
+ firmware/fw_base.S        |  5 +++++
+ include/sbi/sbi_scratch.h | 11 ++++++++++-
+ lib/sbi/sbi_init.c        | 18 ++++++++++++------
+ 3 files changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index f7763f4..88abd45 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -333,6 +333,11 @@ _scratch_init:
+ #endif
+ 	REG_S	a0, SBI_SCRATCH_OPTIONS_OFFSET(tp)
+ 	MOV_3R	a0, s0, a1, s1, a2, s2
++	/* Store boot hart in scratch space */
++	MOV_3R	s0, a0, s1, a1, s2, a2
++	call	fw_boot_hart
++	REG_S	a0, SBI_SCRATCH_BOOT_HART_OFFSET(tp)
++	MOV_3R	a0, s0, a1, s1, a2, s2
+ 	/* Move to next scratch space */
+ 	add	t1, t1, t2
+ 	blt	t1, s7, _scratch_init
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index e6a33ba..1cf2b5e 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -42,8 +42,10 @@
+ #define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
+ /** Offset of options member in sbi_scratch */
+ #define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
++/** Offset of boot_hart member in sbi_scratch */
++#define SBI_SCRATCH_BOOT_HART_OFFSET		(14 * __SIZEOF_POINTER__)
+ /** Offset of extra space in sbi_scratch */
+-#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(14 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(15 * __SIZEOF_POINTER__)
+ /** Maximum size of sbi_scratch (4KB) */
+ #define SBI_SCRATCH_SIZE			(0x1000)
+ 
+@@ -83,6 +85,8 @@ struct sbi_scratch {
+ 	unsigned long tmp0;
+ 	/** Options for OpenSBI library */
+ 	unsigned long options;
++	/** Preferred boot HART id */
++	unsigned long boot_hart;
+ };
+ 
+ /**
+@@ -144,6 +148,11 @@ _Static_assert(
+ 		== SBI_SCRATCH_OPTIONS_OFFSET,
+ 	"struct sbi_scratch definition has changed, please redefine "
+ 	"SBI_SCRATCH_OPTIONS_OFFSET");
++_Static_assert(
++	offsetof(struct sbi_scratch, boot_hart)
++		== SBI_SCRATCH_BOOT_HART_OFFSET,
++	"struct sbi_scratch definition has changed, please redefine "
++	"SBI_SCRATCH_BOOT_HART_OFFSET");
+ 
+ /** Possible options for OpenSBI library */
+ enum sbi_scratch_options {
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 804b01c..2c631f6 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -573,14 +573,20 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+ 	 * HART because the coldboot HART will be directly jumping to
+ 	 * the next booting stage.
+ 	 *
+-	 * We use a lottery mechanism to select coldboot HART among
+-	 * HARTs which satisfy above condition.
++	 * We select coldboot HART among HARTs which satisfy above condition.
++	 * If the preferred boot hart is not specified, we use a lottery
++	 * algorithm to select a cold boot hart, otherwise the preferred 
++	 * boot core is selected.
+ 	 */
+ 
+-	if (sbi_platform_cold_boot_allowed(plat, hartid)) {
+-		if (next_mode_supported &&
+-		    atomic_xchg(&coldboot_lottery, 1) == 0)
+-			coldboot = true;
++	if (sbi_platform_cold_boot_allowed(plat, hartid) && next_mode_supported) {
++		if (scratch->boot_hart == -1) {
++			if (atomic_xchg(&coldboot_lottery, 1) == 0)
++				coldboot = true;
++		} else {
++			if (scratch->boot_hart == hartid)
++				coldboot = true;
++		}
+ 	}
+ 
+ 	/*
+-- 
+2.34.1
 
 
