@@ -1,34 +1,53 @@
 From: Bo Gan <ganboing@gmail.com>
-Date: Sun, 28 Jan 2024 14:53:05 -0800
-Subject: [PATCH 0/3] Allow platform to handle load/store faults
-Message-ID: <1706482388-533855-1-git-send-email-ganboing@gmail.com>
+Date: Sun, 28 Jan 2024 14:53:07 -0800
+Subject: [PATCH 2/3] include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
+In-Reply-To: <1706482388-533855-1-git-send-email-ganboing@gmail.com>
+References: <1706482388-533855-1-git-send-email-ganboing@gmail.com>
+Message-ID: <1706482388-533855-3-git-send-email-ganboing@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Sometimes a platform wants to trap-n-emulate special devices or filter
-access to physical devices. This patch makes sbi_trap_handler to call
-platform_ops.emulate_load/store and ask platform to fixup the fault.
+Signed-off-by: Bo Gan <ganboing@gmail.com>
+---
+ include/sbi/{sbi_misaligned_ldst.h => sbi_trap_ldst.h} | 0
+ lib/sbi/sbi_trap.c                                     | 2 +-
+ lib/sbi/sbi_trap_ldst.c                                | 2 +-
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+ rename include/sbi/{sbi_misaligned_ldst.h => sbi_trap_ldst.h} (100%)
 
-Bo Gan (3):
-  lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
-  include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
-  lib: sbi: Allow platform to fixup load/store faults
-
- include/sbi/sbi_misaligned_ldst.h                  |  23 ---
- include/sbi/sbi_platform.h                         |  13 ++
- include/sbi/sbi_trap.h                             |   2 +-
- include/sbi/sbi_trap_ldst.h                        |  39 ++++
- lib/sbi/objects.mk                                 |   2 +-
- lib/sbi/sbi_trap.c                                 |  36 ++--
- lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 197 +++++++++++++--------
- 7 files changed, 200 insertions(+), 112 deletions(-)
- delete mode 100644 include/sbi/sbi_misaligned_ldst.h
- create mode 100644 include/sbi/sbi_trap_ldst.h
- rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (62%)
-
+diff --git a/include/sbi/sbi_misaligned_ldst.h b/include/sbi/sbi_trap_ldst.h
+similarity index 100%
+rename from include/sbi/sbi_misaligned_ldst.h
+rename to include/sbi/sbi_trap_ldst.h
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index dbf307c..145db4b 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -17,7 +17,7 @@
+ #include <sbi/sbi_illegal_insn.h>
+ #include <sbi/sbi_ipi.h>
+ #include <sbi/sbi_irqchip.h>
+-#include <sbi/sbi_misaligned_ldst.h>
++#include <sbi/sbi_trap_ldst.h>
+ #include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_timer.h>
+diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+index aa512de..be9a394 100644
+--- a/lib/sbi/sbi_trap_ldst.c
++++ b/lib/sbi/sbi_trap_ldst.c
+@@ -11,7 +11,7 @@
+ #include <sbi/riscv_encoding.h>
+ #include <sbi/riscv_fp.h>
+ #include <sbi/sbi_error.h>
+-#include <sbi/sbi_misaligned_ldst.h>
++#include <sbi/sbi_trap_ldst.h>
+ #include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_trap.h>
+ #include <sbi/sbi_unpriv.h>
 -- 
 2.7.4
 
