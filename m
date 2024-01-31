@@ -1,45 +1,74 @@
 From: Nam Cao <namcao@linutronix.de>
-Date: Wed, 31 Jan 2024 14:09:04 +0100
-Subject: [PATCH 2/5] platform: starfive: rename "stf,axp15060-regulator" -> "x-powers,axp15060"
+Date: Wed, 31 Jan 2024 14:09:03 +0100
+Subject: [PATCH 1/5] platform: starfive: remove redundant compatibility check in pmic_ops
 In-Reply-To: <cover.1706705649.git.namcao@linutronix.de>
 References: <cover.1706705649.git.namcao@linutronix.de>
-Message-ID: <dc1c0ec86fa2838f4d51fda6319646ab14c54e93.1706705649.git.namcao@linutronix.de>
+Message-ID: <9e1ba85be2617f7f8d18c08bba7fcdd8e746b6e5.1706705649.git.namcao@linutronix.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-OpenSBI uses the device tree compatible string "stf,axp15060-regulator"
-for the regulator node. However, the string used by U-Boot (and Linux)
-is actually "x-powers,axp15060". As OpenSBI gets the device tree from
-U-Boot, this causes the regulator device to be undetected, and OpenSBI
-does not use this device to perform board reset/shutdown.
-
-Rename this device tree compatible string to match U-Boot (and Linux).
+pmic_ops() is only called if a compatible device is found in device
+tree. It is redundant for this function to check the compability again.
+Remove this check.
 
 Signed-off-by: Nam Cao <namcao@linutronix.de>
 ---
-Actually "x-powers,axp15060" does not exist in U-Boot at the moment. But
-it is being added:
-https://lore.kernel.org/u-boot/47fd2b2225f52a2d5c3a91494ef7b9036e944199.1706517351.git.namcao at linutronix.de/
-
- platform/generic/starfive/jh7110.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ platform/generic/starfive/jh7110.c | 36 ++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
 diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index 72969e4..9f5261b 100644
+index dcd6306..72969e4 100644
 --- a/platform/generic/starfive/jh7110.c
 +++ b/platform/generic/starfive/jh7110.c
-@@ -227,7 +227,7 @@ static int pm_reset_init(void *fdt, int nodeoff,
+@@ -134,28 +134,26 @@ static void pmic_ops(struct pmic *pmic, int type)
+ 	if (ret)
+ 		return;
+ 
+-	if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
+-		ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
+-					   AXP15060_POWER_REG, &val);
+-
+-		if (ret) {
+-			sbi_printf("%s: cannot read pmic power register\n",
+-				   __func__);
+-			return;
+-		}
++	ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
++					AXP15060_POWER_REG, &val);
++
++	if (ret) {
++		sbi_printf("%s: cannot read pmic power register\n",
++				__func__);
++		return;
++	}
+ 
++	val |= AXP15060_POWER_OFF_BIT;
++	if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
+ 		val |= AXP15060_POWER_OFF_BIT;
+-		if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
+-			val |= AXP15060_POWER_OFF_BIT;
+-		else
+-			val |= AXP15060_RESET_BIT;
++	else
++		val |= AXP15060_RESET_BIT;
+ 
+-		ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
+-					    AXP15060_POWER_REG, val);
+-		if (ret)
+-			sbi_printf("%s: cannot write pmic power register\n",
+-				   __func__);
+-	}
++	ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
++					AXP15060_POWER_REG, val);
++	if (ret)
++		sbi_printf("%s: cannot write pmic power register\n",
++				__func__);
  }
  
- static const struct fdt_match pm_reset_match[] = {
--	{ .compatible = "stf,axp15060-regulator", .data = (void *)true },
-+	{ .compatible = "x-powers,axp15060", .data = (void *)true },
- 	{ },
- };
- 
+ static void pmic_i2c_clk_enable(void)
 -- 
 2.39.2
 
