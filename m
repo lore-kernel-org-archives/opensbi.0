@@ -1,74 +1,50 @@
 From: Nam Cao <namcao@linutronix.de>
-Date: Wed, 31 Jan 2024 14:09:03 +0100
-Subject: [PATCH 1/5] platform: starfive: remove redundant compatibility check in pmic_ops
+Date: Wed, 31 Jan 2024 14:09:06 +0100
+Subject: [PATCH 4/5] platform: starfive: return error if needed devices are not present
 In-Reply-To: <cover.1706705649.git.namcao@linutronix.de>
 References: <cover.1706705649.git.namcao@linutronix.de>
-Message-ID: <9e1ba85be2617f7f8d18c08bba7fcdd8e746b6e5.1706705649.git.namcao@linutronix.de>
+Message-ID: <f06c9c0343b85bb992869add6dff25a18ffee4d7.1706705649.git.namcao@linutronix.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-pmic_ops() is only called if a compatible device is found in device
-tree. It is redundant for this function to check the compability again.
-Remove this check.
+Jh7110's reset driver needs power management device and clock controller
+device to work. Currently, the driver proceed anyway without these
+devices, and invalid addresses (jh7110_inst.pmu_reg_base and
+jh7110_inst.clk_reg_base) are used during reboot, which causes
+unpredictable broken behaviors.
+
+If these devices are not present, return -SBI_ENODEV.
 
 Signed-off-by: Nam Cao <namcao@linutronix.de>
 ---
- platform/generic/starfive/jh7110.c | 36 ++++++++++++++----------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ platform/generic/starfive/jh7110.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index dcd6306..72969e4 100644
+index cb8c48d..f9942d3 100644
 --- a/platform/generic/starfive/jh7110.c
 +++ b/platform/generic/starfive/jh7110.c
-@@ -134,28 +134,26 @@ static void pmic_ops(struct pmic *pmic, int type)
- 	if (ret)
- 		return;
+@@ -246,6 +246,8 @@ static int starfive_jh7110_inst_init(void *fdt)
+ 		if (rc)
+ 			goto err;
+ 		jh7110_inst.pmu_reg_base = addr;
++	} else {
++		return -SBI_ENODEV;
+ 	}
  
--	if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
--		ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
--					   AXP15060_POWER_REG, &val);
--
--		if (ret) {
--			sbi_printf("%s: cannot read pmic power register\n",
--				   __func__);
--			return;
--		}
-+	ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
-+					AXP15060_POWER_REG, &val);
-+
-+	if (ret) {
-+		sbi_printf("%s: cannot read pmic power register\n",
-+				__func__);
-+		return;
-+	}
+ 	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-clkgen");
+@@ -254,6 +256,8 @@ static int starfive_jh7110_inst_init(void *fdt)
+ 		if (rc)
+ 			goto err;
+ 		jh7110_inst.clk_reg_base = addr;
++	} else {
++		return -SBI_ENODEV;
+ 	}
  
-+	val |= AXP15060_POWER_OFF_BIT;
-+	if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
- 		val |= AXP15060_POWER_OFF_BIT;
--		if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
--			val |= AXP15060_POWER_OFF_BIT;
--		else
--			val |= AXP15060_RESET_BIT;
-+	else
-+		val |= AXP15060_RESET_BIT;
- 
--		ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
--					    AXP15060_POWER_REG, val);
--		if (ret)
--			sbi_printf("%s: cannot write pmic power register\n",
--				   __func__);
--	}
-+	ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
-+					AXP15060_POWER_REG, val);
-+	if (ret)
-+		sbi_printf("%s: cannot write pmic power register\n",
-+				__func__);
- }
- 
- static void pmic_i2c_clk_enable(void)
+ 	if (pmic_inst.adapter) {
 -- 
 2.39.2
 
