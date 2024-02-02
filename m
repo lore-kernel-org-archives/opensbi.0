@@ -1,9 +1,12 @@
-From: yang.zhang <gaoshanliukou@163.com>
-Date: Fri, 2 Feb 2024 15:20:08 +0800 (CST)
-Subject: [PATCH] lib: sbi: Add sparse hartid support for mtimer/ipi
-In-Reply-To: <20240201103020.21181-1-gaoshanliukou@163.com>
-References: <20240201103020.21181-1-gaoshanliukou@163.com>
-Message-ID: <52d7cf12.5c73.18d68b06b3f.Coremail.gaoshanliukou@163.com>
+From: Minda Chen <minda.chen@starfivetech.com>
+Date: Fri, 2 Feb 2024 10:47:16 +0000
+Subject: [PATCH 0/5] starfive reboot cleanup & fix
+In-Reply-To: <20240201080107.2c02ea72@namcao>
+References: <cover.1706705649.git.namcao@linutronix.de>
+	<CAK9=C2WDjtb_xtC5FtqYMhB5ZY6Bb4EgaDA+_KccCDAkz+xFOg@mail.gmail.com>
+	<SHXPR01MB0863DF11E5652E164AF74026E643A@SHXPR01MB0863.CHNPR01.prod.partner.outlook.cn>
+ <20240201080107.2c02ea72@namcao>
+Message-ID: <SHXPR01MB08631A3FD01906F1F148003DE642A@SHXPR01MB0863.CHNPR01.prod.partner.outlook.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,85 +15,43 @@ Content-Transfer-Encoding: 7bit
 
 
 
-The purpose of mentioning the "trap-n-emulate AMO" case is just to explain the context when issue happened.
-The key point mayebe not the lock which i used, so i also emulate another case which is rdtime, if the platform does not
-support read time csr, then it would trap, then sbi_emulate_csr_read can handle it correctly.But if trap earlier, then?
-the issue is the same with us.
-I completely agree with you ?If we are talking about other earlier traps,to me, that only means we have a bug in opensbi??So
-i mentioned "?Of course, the above situation will not occur at present".
-But, once we have a bug in opensbi in future, once phs_ptr_offset is zero? then?pmu_thishart_state_ptr would return scratch.fw_base,
-for qemu is 0x80000000, if we don't add a check, it maybe intentionally breake text segment of opensbi, add additional debug difficulty meaningless.
-
-
-
-
-
-
-
-
-
-
-
-
-
-At 2024-02-01 18:30:20, "yang.zhang" <gaoshanliukou@163.com> wrote:
->If hartid is sparse, such as 0, 7, 16..., mtimer/mswi
->can't work well.
->
->Test:
->1.Our platform support SMT, one core contains many harts
->whoes number is configurable, so the hartids is sparse when
->enter Opensbi?
->2.I just simply simulate a scenario on qemu, like below
->"qemu-system-riscv64 -M virt,aia=aplic -m 2g -smp 8 -dtb qemu2cpu.dtb
-> -bios fw_jump.bin ..."
->There are total 8 cpus, but the dts only suppor 2 cpu nodes, hartid are
->0 and 7, so when enter opensbi, just hartid 0 and 7 are running, the others
->are hanged, like sparse hartid.Then the issue happened.
->Logs:
->OpenSBI v1.4-11-g0dcc2e6
->   ____                    _____ ____ _____
->  / __ \                  / ____|  _ \_   _|
-> | |  | |_ __   ___ _ __ | (___ | |_) || |
-> | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
-> | |__| | |_) |  __/ | | |____) | |_) || |_
->  \____/| .__/ \___|_| |_|_____/|____/_____|
->        | |
->        |_|
->
->init_coldboot: timer init failed (error -1000)
->
->Signed-off-by: yang.zhang <gaoshanliukou@163.com>
->---
-> lib/utils/ipi/aclint_mswi.c     | 2 +-
-> lib/utils/timer/aclint_mtimer.c | 2 +-
-> 2 files changed, 2 insertions(+), 2 deletions(-)
->
->diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
->index 4ae6bb1..3bbab8b 100644
->--- a/lib/utils/ipi/aclint_mswi.c
->+++ b/lib/utils/ipi/aclint_mswi.c
->@@ -102,7 +102,7 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
 > 
-> 	/* Update MSWI pointer in scratch space */
-> 	for (i = 0; i < mswi->hart_count; i++) {
->-		scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
->+		scratch = sbi_hartindex_to_scratch(i);
-> 		/*
-> 		 * We don't need to fail if scratch pointer is not available
-> 		 * because we might be dealing with hartid of a HART disabled
->diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
->index 271e625..77d5522 100644
->--- a/lib/utils/timer/aclint_mtimer.c
->+++ b/lib/utils/timer/aclint_mtimer.c
->@@ -218,7 +218,7 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+> On Thu, 1 Feb 2024 05:38:16 +0000 Minda Chen
+> <minda.chen@starfivetech.com> wrote:
+> > > On Wed, Jan 31, 2024 at 6:39?PM Nam Cao <namcao@linutronix.de> wrote:
+> > > >
+> > > > This series:
+> > > >   - add gracefully error handling when reboot devices are not present
+> > > >   - correct a device tree compatibility string
+> > > >   - some minor cleanup
+> > > >
+> > > > This series complements my other series:
+> > > > http://lists.infradead.org/pipermail/opensbi/2024-January/006300.h
+> > > > tml
+> > > >
+> > > > Nam Cao (5):
+> > > >   platform: starfive: remove redundant compatibility check in pmic_ops
+> > > >   platform: starfive: rename "stf,axp15060-regulator" ->
+> > > >     "x-powers,axp15060"
+> > > >   platform: starfive: drop "compatible" from struct pmic
+> > > >   platform: starfive: return error if needed devices are not present
+> > > >   platform: starfive: call starfive_jh7110_inst_init() in
+> > > >     pm_reset_init()
+> > >
+> > > Can someone from StarFive review and test this series ?
+> > >
+> > > Regards,
+> > > Anup
+> > >
+> > Let me review these. But I don't receive this series patch.
 > 
-> 	/* Update MTIMER pointer in scratch space */
-> 	for (i = 0; i < mt->hart_count; i++) {
->-		scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
->+		scratch = sbi_hartindex_to_scratch(i);
-> 		/*
-> 		 * We don't need to fail if scratch pointer is not available
-> 		 * because we might be dealing with hartid of a HART disabled
->-- 
->2.25.1
+> I only sent it to the list. Can you grab the series from there?
+> 
+> Or I can also resend the series and include you as a recipient, if that's more
+> convenient.
+> 
+> Best regards,
+> Nam
+
+Resend the patchset is better. Thanks
+Minda 
