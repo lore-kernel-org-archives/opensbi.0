@@ -1,43 +1,74 @@
 From: Nam Cao <namcao@linutronix.de>
-Date: Fri,  2 Feb 2024 14:43:21 +0100
-Subject: [PATCH v3 0/7] Starfive reboot fix & cleanup
-Message-ID: <cover.1706880734.git.namcao@linutronix.de>
+Date: Fri,  2 Feb 2024 14:43:24 +0100
+Subject: [PATCH v3 3/7] platform: starfive: remove redundant compatibility check in pmic_ops
+In-Reply-To: <cover.1706880734.git.namcao@linutronix.de>
+References: <cover.1706880734.git.namcao@linutronix.de>
+Message-ID: <16ada695eb73656550b0474b6640dc0d42f1f1fe.1706880734.git.namcao@linutronix.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
+pmic_ops() is only called if a compatible device is found in device
+tree. It is redundant for this function to check the compability again.
+Remove this check.
 
-I previously sent 2 separate series fixing the reboot of the Visionfive2
-board. However the Starfive folks did not receive both series, and also
-because the 2 series are closely related; I am merging those 2 separate
-series together and re-send them as a v3.
+Signed-off-by: Nam Cao <namcao@linutronix.de>
+---
+ platform/generic/starfive/jh7110.c | 36 ++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-This series:
- - Rename device tree compatible strings to match U-Boot
- - Fix code that extract I2C address from device tree
- - Cleanup
-
-The device tree nodes in this series have just been merged to U-Boot a few
-days ago. So please use most recent upstream U-Boot for testing this
-series.
-
-Nam Cao (7):
-  platform: starfive: correct system clock device tree node
-  platform: starfive: get I2C offset address from clocks property
-  platform: starfive: remove redundant compatibility check in pmic_ops
-  platform: starfive: rename "stf,axp15060-regulator" ->
-    "x-powers,axp15060"
-  platform: starfive: drop "compatible" from struct pmic
-  platform: starfive: return error if needed devices are not present
-  platform: starfive: call starfive_jh7110_inst_init() in
-    pm_reset_init()
-
- platform/generic/starfive/jh7110.c | 70 ++++++++++++++++--------------
- 1 file changed, 38 insertions(+), 32 deletions(-)
-
+diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
+index 846b068..d3647c2 100644
+--- a/platform/generic/starfive/jh7110.c
++++ b/platform/generic/starfive/jh7110.c
+@@ -134,28 +134,26 @@ static void pmic_ops(struct pmic *pmic, int type)
+ 	if (ret)
+ 		return;
+ 
+-	if (!sbi_strcmp("stf,axp15060-regulator", pmic->compatible)) {
+-		ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
+-					   AXP15060_POWER_REG, &val);
+-
+-		if (ret) {
+-			sbi_printf("%s: cannot read pmic power register\n",
+-				   __func__);
+-			return;
+-		}
++	ret = i2c_adapter_reg_read(pmic->adapter, pmic->dev_addr,
++					AXP15060_POWER_REG, &val);
++
++	if (ret) {
++		sbi_printf("%s: cannot read pmic power register\n",
++				__func__);
++		return;
++	}
+ 
++	val |= AXP15060_POWER_OFF_BIT;
++	if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
+ 		val |= AXP15060_POWER_OFF_BIT;
+-		if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
+-			val |= AXP15060_POWER_OFF_BIT;
+-		else
+-			val |= AXP15060_RESET_BIT;
++	else
++		val |= AXP15060_RESET_BIT;
+ 
+-		ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
+-					    AXP15060_POWER_REG, val);
+-		if (ret)
+-			sbi_printf("%s: cannot write pmic power register\n",
+-				   __func__);
+-	}
++	ret = i2c_adapter_reg_write(pmic->adapter, pmic->dev_addr,
++					AXP15060_POWER_REG, val);
++	if (ret)
++		sbi_printf("%s: cannot write pmic power register\n",
++				__func__);
+ }
+ 
+ static void pmic_i2c_clk_enable(void)
 -- 
 2.39.2
 
