@@ -1,72 +1,41 @@
-From: yang.zhang <gaoshanliukou@163.com>
-Date: Thu,  1 Feb 2024 18:30:20 +0800
-Subject: [PATCH] lib: sbi: Add sparse hartid support for mtimer/ipi
-Message-ID: <20240201103020.21181-1-gaoshanliukou@163.com>
+From: Inochi Amaoto <inochiama@outlook.com>
+Date: Fri,  2 Feb 2024 12:04:38 +0800
+Subject: [PATCH 0/4] Add relocatable address support for jump and payload firmware
+Message-ID: <IA1PR20MB495352218C0BF2CE8D86B3B9BB422@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If hartid is sparse, such as 0, 7, 16..., mtimer/mswi
-can't work well.
+If FW_PIC=y is defined, the jump and payload firmware and will
+be broken if FW_TEXT_START is wrong. This is not the desired behavior.
 
-Test:
-1.Our platform support SMT, one core contains many harts
-whoes number is configurable, so the hartids is sparse when
-enter Opensbi?
-2.I just simply simulate a scenario on qemu, like below
-"qemu-system-riscv64 -M virt,aia=aplic -m 2g -smp 8 -dtb qemu2cpu.dtb
- -bios fw_jump.bin ..."
-There are total 8 cpus, but the dts only suppor 2 cpu nodes, hartid are
-0 and 7, so when enter opensbi, just hartid 0 and 7 are running, the others
-are hanged, like sparse hartid.Then the issue happened.
-Logs:
-OpenSBI v1.4-11-g0dcc2e6
-   ____                    _____ ____ _____
-  / __ \                  / ____|  _ \_   _|
- | |  | |_ __   ___ _ __ | (___ | |_) || |
- | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
- | |__| | |_) |  __/ | | |____) | |_) || |_
-  \____/| .__/ \___|_| |_|_____/|____/_____|
-        | |
-        |_|
+Add some new variable to support relocatable address.
 
-init_coldboot: timer init failed (error -1000)
+build command:
+make BUILD_INFO=y DEBUG=1 FW_PIC=y PLATFORM=generic FW_TEXT_START=0x0
 
-Signed-off-by: yang.zhang <gaoshanliukou@163.com>
----
- lib/utils/ipi/aclint_mswi.c     | 2 +-
- lib/utils/timer/aclint_mtimer.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+test command:
+qemu-system-riscv64 -smp cpus=4 -M virt -m 256M \
+  -bios build/platform/generic/firmware/fw_payload.bin
 
-diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-index 4ae6bb1..3bbab8b 100644
---- a/lib/utils/ipi/aclint_mswi.c
-+++ b/lib/utils/ipi/aclint_mswi.c
-@@ -102,7 +102,7 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
- 
- 	/* Update MSWI pointer in scratch space */
- 	for (i = 0; i < mswi->hart_count; i++) {
--		scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
-+		scratch = sbi_hartindex_to_scratch(i);
- 		/*
- 		 * We don't need to fail if scratch pointer is not available
- 		 * because we might be dealing with hartid of a HART disabled
-diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
-index 271e625..77d5522 100644
---- a/lib/utils/timer/aclint_mtimer.c
-+++ b/lib/utils/timer/aclint_mtimer.c
-@@ -218,7 +218,7 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
- 
- 	/* Update MTIMER pointer in scratch space */
- 	for (i = 0; i < mt->hart_count; i++) {
--		scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
-+		scratch = sbi_hartindex_to_scratch(i);
- 		/*
- 		 * We don't need to fail if scratch pointer is not available
- 		 * because we might be dealing with hartid of a HART disabled
--- 
-2.25.1
+Inochi Amaoto (4):
+  firmware: Add relocatable FW_JUMP_ADDR and FW_JUMP_FDT_ADDR
+  firmware: Add relocatable FW_PAYLOAD_FDT_ADDR
+  platform: Apply relocatable address
+  doc/firmware: add new configuration options for jump and payload
+    firmware
+
+ docs/firmware/fw_jump.md    | 17 ++++++++++++++---
+ docs/firmware/fw_payload.md |  6 ++++++
+ firmware/fw_jump.S          | 20 ++++++++++++++++----
+ firmware/fw_payload.S       |  4 ++++
+ firmware/objects.mk         | 21 +++++++++++++++++++++
+ platform/generic/objects.mk |  8 ++++----
+ 6 files changed, 65 insertions(+), 11 deletions(-)
+
+--
+2.43.0
 
 
