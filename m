@@ -1,68 +1,91 @@
-From: Nam Cao <namcao@linutronix.de>
-Date: Fri,  2 Feb 2024 14:43:28 +0100
-Subject: [PATCH v3 7/7] platform: starfive: call starfive_jh7110_inst_init() in pm_reset_init()
-In-Reply-To: <cover.1706880734.git.namcao@linutronix.de>
+From: Minda Chen <minda.chen@starfivetech.com>
+Date: Sun, 4 Feb 2024 01:02:57 +0000
+Subject: [PATCH v3 2/7] platform: starfive: get I2C offset address from
+ clocks property
+In-Reply-To: <e50c9ecfc7bb63ee0e3cd69d72bc2050d4c39d0c.1706880734.git.namcao@linutronix.de>
 References: <cover.1706880734.git.namcao@linutronix.de>
-Message-ID: <5e478ee9042b05c53ff4d38a65bd5842591f960d.1706880734.git.namcao@linutronix.de>
+ <e50c9ecfc7bb63ee0e3cd69d72bc2050d4c39d0c.1706880734.git.namcao@linutronix.de>
+Message-ID: <SHXPR01MB08633A9427C78CAE2C9397DFE640A@SHXPR01MB0863.CHNPR01.prod.partner.outlook.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The function starfive_jh7110_inst_init() initialize some power
-management unit address and clock addresses, needed for the reset
-driver. It doesn't do anything else, and also the reset driver doesn't
-work without calling this function. Thus, it does not make much sense
-that this function is independent from pm_reset_init().
 
-Delete the separate call to starfive_jh7110_inst_init(), and instead
-just call this function inside pm_reset_init().
 
-Doing this also fixes another problem: if starfive_jh7110_inst_init()
-returns an error code, it gets propagated to final_init() and OpenSBI
-hangs. This hang is not necessary, because failures within
-starfive_jh7110_inst_init() only mean OpenSBI cannot perform reboot or
-shutdown, but the system can still function normally.
+> The current code gets the I2C offset address using the device tree node
+> name: it get the I2C device index from the 4th character in the node name (for
+> example, "i2c5" -> i2c device 5). However, the device tree node's name in
+> U-Boot is actually just "i2c" without the number, so the current code cannot be
+> used with the device tree from U-Boot.
+> 
+> Get the I2C offset address from the "clocks" property instead.
+> 
+> Signed-off-by: Nam Cao <namcao@linutronix.de>
+> ---
+>  platform/generic/starfive/jh7110.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/platform/generic/starfive/jh7110.c
+> b/platform/generic/starfive/jh7110.c
+> index 4b22175..846b068 100644
+> --- a/platform/generic/starfive/jh7110.c
+> +++ b/platform/generic/starfive/jh7110.c
+> @@ -29,7 +29,7 @@ struct pmic {
+>  struct jh7110 {
+>  	u64 pmu_reg_base;
+>  	u64 clk_reg_base;
+> -	u32 i2c_index;
+> +	u32 i2c_clk_offset;
+>  };
+> 
+>  static struct pmic pmic_inst;
+> @@ -163,10 +163,7 @@ static void pmic_i2c_clk_enable(void)
+>  	unsigned long clock_base;
+>  	unsigned int val;
+> 
+> -	clock_base = jh7110_inst.clk_reg_base +
+> -		I2C_APB_CLK_OFFSET +
+> -		(jh7110_inst.i2c_index << 2);
+> -
+> +	clock_base = jh7110_inst.clk_reg_base + jh7110_inst.i2c_clk_offset;
+>  	val = readl((void *)clock_base);
+> 
+Yes , I want to upstream this patch, Thanks
+Delete this macro too.
 
-Signed-off-by: Nam Cao <namcao@linutronix.de>
----
- platform/generic/starfive/jh7110.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+-#define I2C_APB_CLK_OFFSET             0x228
 
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index 63baddb..1577cb4 100644
---- a/platform/generic/starfive/jh7110.c
-+++ b/platform/generic/starfive/jh7110.c
-@@ -191,6 +191,8 @@ static struct sbi_system_reset_device pm_reset = {
- 	.system_reset = pm_system_reset
- };
- 
-+static int starfive_jh7110_inst_init(void *fdt);
-+
- static int pm_reset_init(void *fdt, int nodeoff,
- 			 const struct fdt_match *match)
- {
-@@ -216,6 +218,10 @@ static int pm_reset_init(void *fdt, int nodeoff,
- 
- 	pmic_inst.adapter = adapter;
- 
-+	rc = starfive_jh7110_inst_init(fdt);
-+	if (rc)
-+		return rc;
-+
- 	sbi_system_reset_add_device(&pm_reset);
- 
- 	return 0;
-@@ -279,7 +285,6 @@ static int starfive_jh7110_final_init(bool cold_boot,
- 
- 	if (cold_boot) {
- 		fdt_reset_driver_init(fdt, &fdt_reset_pmic);
--		return starfive_jh7110_inst_init(fdt);
- 	}
- 
- 	return 0;
--- 
-2.39.2
+>  	if (!val)
+> @@ -241,7 +238,8 @@ static struct fdt_reset fdt_reset_pmic = {  static int
+> starfive_jh7110_inst_init(void *fdt)  {
+>  	int noff, rc = 0;
+> -	const char *name;
+> +	const fdt32_t *val;
+> +	int len;
+>  	u64 addr;
+> 
+>  	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-pmu"); @@
+> -261,9 +259,12 @@ static int starfive_jh7110_inst_init(void *fdt)
+>  	}
+> 
+>  	if (pmic_inst.adapter) {
+> -		name = fdt_get_name(fdt, pmic_inst.adapter->id, NULL);
+> -		if (!sbi_strncmp(name, "i2c", 3))
+> -			jh7110_inst.i2c_index = name[3] - '0';
+> +		val = fdt_getprop(fdt, pmic_inst.adapter->id, "clocks", &len);
+> +		/* The clocks property looks like this: clocks = <&syscrg
+> JH7110_SYSCLK_I2C5_APB>;
+> +		 * So check that the length is 8 bytes, and get the offset from the
+> second value
+> +		 */
+> +		if (val && len == 8)
+> +			jh7110_inst.i2c_clk_offset = fdt32_to_cpu(val[1]) << 2;
+>  		else
+>  			rc = SBI_EINVAL;
+>  	}
+> --
+> 2.39.2
 
 
