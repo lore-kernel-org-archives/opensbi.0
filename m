@@ -1,11 +1,11 @@
 From: Minda Chen <minda.chen@starfivetech.com>
-Date: Sun, 4 Feb 2024 01:12:27 +0000
-Subject: [PATCH v3 4/7] platform: starfive: rename
- "stf,axp15060-regulator" -> "x-powers,axp15060"
-In-Reply-To: <e885fedc2fb483d5349eda4170890ed7dbabe510.1706880734.git.namcao@linutronix.de>
+Date: Mon, 5 Feb 2024 01:54:07 +0000
+Subject: [PATCH v3 7/7] platform: starfive: call
+ starfive_jh7110_inst_init() in pm_reset_init()
+In-Reply-To: <5e478ee9042b05c53ff4d38a65bd5842591f960d.1706880734.git.namcao@linutronix.de>
 References: <cover.1706880734.git.namcao@linutronix.de>
- <e885fedc2fb483d5349eda4170890ed7dbabe510.1706880734.git.namcao@linutronix.de>
-Message-ID: <SHXPR01MB0863C62431DF20ABB8779D54E640A@SHXPR01MB0863.CHNPR01.prod.partner.outlook.cn>
+ <5e478ee9042b05c53ff4d38a65bd5842591f960d.1706880734.git.namcao@linutronix.de>
+Message-ID: <SHXPR01MB08635C8CF48CE8DA7C0353A2E647A@SHXPR01MB0863.CHNPR01.prod.partner.outlook.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,37 +13,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 
-
 > 
-> OpenSBI uses the device tree compatible string "stf,axp15060-regulator"
-> for the regulator node. However, the string used by U-Boot (and Linux) is
-> actually "x-powers,axp15060". As OpenSBI gets the device tree from U-Boot,
-> this causes the regulator device to be undetected, and OpenSBI does not use
-> this device to perform board reset/shutdown.
+> The function starfive_jh7110_inst_init() initialize some power management unit
+> address and clock addresses, needed for the reset driver. It doesn't do anything
+> else, and also the reset driver doesn't work without calling this function. Thus, it
+> does not make much sense that this function is independent from
+> pm_reset_init().
 > 
-> Rename this device tree compatible string to match U-Boot (and Linux).
+> Delete the separate call to starfive_jh7110_inst_init(), and instead just call this
+> function inside pm_reset_init().
+> 
+> Doing this also fixes another problem: if starfive_jh7110_inst_init() returns an
+> error code, it gets propagated to final_init() and OpenSBI hangs. This hang is not
+> necessary, because failures within
+> starfive_jh7110_inst_init() only mean OpenSBI cannot perform reboot or
+> shutdown, but the system can still function normally.
 > 
 > Signed-off-by: Nam Cao <namcao@linutronix.de>
 > ---
->  platform/generic/starfive/jh7110.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  platform/generic/starfive/jh7110.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
 > diff --git a/platform/generic/starfive/jh7110.c
 > b/platform/generic/starfive/jh7110.c
-> index d3647c2..385e09c 100644
+> index 63baddb..1577cb4 100644
 > --- a/platform/generic/starfive/jh7110.c
 > +++ b/platform/generic/starfive/jh7110.c
-> @@ -224,7 +224,7 @@ static int pm_reset_init(void *fdt, int nodeoff,  }
-> 
->  static const struct fdt_match pm_reset_match[] = {
-> -	{ .compatible = "stf,axp15060-regulator", .data = (void *)true },
-> +	{ .compatible = "x-powers,axp15060", .data = (void *)true },
->  	{ },
+> @@ -191,6 +191,8 @@ static struct sbi_system_reset_device pm_reset = {
+>  	.system_reset = pm_system_reset
 >  };
 > 
-It is OK.
-But upstream u-boot jh7110 dts file do not contain this compatible?
-Can you also upstream this in u-boot? or I will do this myself
+> +static int starfive_jh7110_inst_init(void *fdt);
+> +
+>  static int pm_reset_init(void *fdt, int nodeoff,
+>  			 const struct fdt_match *match)
+>  {
+> @@ -216,6 +218,10 @@ static int pm_reset_init(void *fdt, int nodeoff,
+> 
+>  	pmic_inst.adapter = adapter;
+> 
+> +	rc = starfive_jh7110_inst_init(fdt);
+> +	if (rc)
+> +		return rc;
+> +
+>  	sbi_system_reset_add_device(&pm_reset);
+> 
+>  	return 0;
+> @@ -279,7 +285,6 @@ static int starfive_jh7110_final_init(bool cold_boot,
+> 
+>  	if (cold_boot) {
+>  		fdt_reset_driver_init(fdt, &fdt_reset_pmic);
+> -		return starfive_jh7110_inst_init(fdt);
+>  	}
+> 
+>  	return 0;
 > --
 > 2.39.2
 
+Test with this series patch? function is work fine.
+ This patch need Anup review. 
