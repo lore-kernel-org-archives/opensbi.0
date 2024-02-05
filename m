@@ -1,36 +1,41 @@
 From: Nam Cao <namcao@linutronix.de>
-Date: Mon,  5 Feb 2024 09:48:55 +0100
-Subject: [PATCH v4 0/7] starfive reboot cleanup & fix 
-Message-ID: <cover.1707122766.git.namcao@linutronix.de>
+Date: Mon,  5 Feb 2024 09:48:56 +0100
+Subject: [PATCH v4 1/7] platform: starfive: correct system clock device tree node
+In-Reply-To: <cover.1707122766.git.namcao@linutronix.de>
+References: <cover.1707122766.git.namcao@linutronix.de>
+Message-ID: <063d675dcf59e79892091b0ef085a6a2ca4f6bee.1707122766.git.namcao@linutronix.de>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series:
- - Rename device tree compatible strings to match U-Boot
- - Fix code that extract I2C address from device tree
- - Cleanup
+Starfive names the system clock device tree node "starfive,jh7110-clkgen"
+in all their git repositories. However, a different name is used in
+upstream U-Boot (and also Linux): "starfive,jh7110-syscrg". Since
+OpenSBI gets the device tree from U-Boot, this inconsistency leads the
+problem that OpenSBI doesn't know the system clock device exists.
 
-The device tree nodes in this series have just been merged to U-Boot a few
-days ago. So please use most recent upstream U-Boot for testing this
-series.
+Correct this name to keep the consistency.
 
-Nam Cao (7):
-  platform: starfive: correct system clock device tree node
-  platform: starfive: get I2C offset address from clocks property
-  platform: starfive: remove redundant compatibility check in pmic_ops
-  platform: starfive: rename "stf,axp15060-regulator" ->
-    "x-powers,axp15060"
-  platform: starfive: drop "compatible" from struct pmic
-  platform: starfive: return error if needed devices are not present
-  platform: starfive: call starfive_jh7110_inst_init() in
-    pm_reset_init()
+Signed-off-by: Nam Cao <namcao@linutronix.de>
+---
+ platform/generic/starfive/jh7110.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- platform/generic/starfive/jh7110.c | 71 ++++++++++++++++--------------
- 1 file changed, 38 insertions(+), 33 deletions(-)
-
+diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
+index dcd6306..4b22175 100644
+--- a/platform/generic/starfive/jh7110.c
++++ b/platform/generic/starfive/jh7110.c
+@@ -252,7 +252,7 @@ static int starfive_jh7110_inst_init(void *fdt)
+ 		jh7110_inst.pmu_reg_base = addr;
+ 	}
+ 
+-	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-clkgen");
++	noff = fdt_node_offset_by_compatible(fdt, -1, "starfive,jh7110-syscrg");
+ 	if (-1 < noff) {
+ 		rc = fdt_get_node_addr_size(fdt, noff, 0, &addr, NULL);
+ 		if (rc)
 -- 
 2.39.2
 
