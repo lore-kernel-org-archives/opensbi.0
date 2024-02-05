@@ -1,39 +1,46 @@
 From: Bo Gan <ganboing@gmail.com>
-Date: Mon,  5 Feb 2024 02:49:57 -0800
-Subject: [PATCH v2 0/3] Allow platform to handle load/store faults
-Message-ID: <1707130200-559404-1-git-send-email-ganboing@gmail.com>
+Date: Mon,  5 Feb 2024 02:49:58 -0800
+Subject: [PATCH v2 1/3] lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
+In-Reply-To: <1707130200-559404-1-git-send-email-ganboing@gmail.com>
+References: <1707130200-559404-1-git-send-email-ganboing@gmail.com>
+Message-ID: <1707130200-559404-2-git-send-email-ganboing@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Sometimes a platform wants to trap-n-emulate special devices or filter
-access to physical devices. This patch makes sbi_trap_handler to call
-platform_ops.emulate_load/store and ask platform to fixup the fault.
+Signed-off-by: Bo Gan <ganboing@gmail.com>
+---
+ lib/sbi/objects.mk                                 | 2 +-
+ lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 0
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (100%)
 
-v2 changes:
--  Added const qualifier to *orig_trap on load/store fault handlers.
-   That addressed Xiang W's comment.
--  Applied clang-format to changed lines.
-
-Bo Gan (3):
-  lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
-  include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
-  lib: sbi: Allow platform to fixup load/store faults
-
- include/sbi/sbi_misaligned_ldst.h                  |  23 ---
- include/sbi/sbi_platform.h                         |  13 ++
- include/sbi/sbi_trap.h                             |   2 +-
- include/sbi/sbi_trap_ldst.h                        |  43 +++++
- lib/sbi/objects.mk                                 |   2 +-
- lib/sbi/sbi_trap.c                                 |  38 ++--
- lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 210 ++++++++++++++-------
- 7 files changed, 218 insertions(+), 113 deletions(-)
- delete mode 100644 include/sbi/sbi_misaligned_ldst.h
- create mode 100644 include/sbi/sbi_trap_ldst.h
- rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (61%)
-
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 0a50e95..204dd6b 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -70,7 +70,6 @@ libsbi-objs-y += sbi_illegal_insn.o
+ libsbi-objs-y += sbi_init.o
+ libsbi-objs-y += sbi_ipi.o
+ libsbi-objs-y += sbi_irqchip.o
+-libsbi-objs-y += sbi_misaligned_ldst.o
+ libsbi-objs-y += sbi_platform.o
+ libsbi-objs-y += sbi_pmu.o
+ libsbi-objs-y += sbi_dbtr.o
+@@ -80,6 +79,7 @@ libsbi-objs-y += sbi_system.o
+ libsbi-objs-y += sbi_timer.o
+ libsbi-objs-y += sbi_tlb.o
+ libsbi-objs-y += sbi_trap.o
++libsbi-objs-y += sbi_trap_ldst.o
+ libsbi-objs-y += sbi_unpriv.o
+ libsbi-objs-y += sbi_expected_trap.o
+ libsbi-objs-y += sbi_cppc.o
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_trap_ldst.c
+similarity index 100%
+rename from lib/sbi/sbi_misaligned_ldst.c
+rename to lib/sbi/sbi_trap_ldst.c
 -- 
 2.7.4
 
