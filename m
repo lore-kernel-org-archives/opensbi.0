@@ -1,76 +1,59 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 5 Feb 2024 10:33:22 +0530
-Subject: [PATCH] fw_base.S: Fix comment errors
-In-Reply-To: <20231217134836.895-1-fmrt19zrmin@163.com>
-References: <20231217134836.895-1-fmrt19zrmin@163.com>
-Message-ID: <CAAhSdy1a-Tbf-8L+19QDkCNsro=t+JrTFmUcp2PB-9JB_FCpbg@mail.gmail.com>
+Date: Mon, 5 Feb 2024 13:13:07 +0530
+Subject: [PATCH] Makefile: Remove unused code and data
+In-Reply-To: <20231219033217.181779-1-wxjstz@126.com>
+References: <20231219033217.181779-1-wxjstz@126.com>
+Message-ID: <CAAhSdy3bHdex+uQgvU83Etis2Y-9kpE3Lz0bNkzK23OORsy0oA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Dec 17, 2023 at 7:18?PM <fmrt19zrmin@163.com> wrote:
+On Tue, Dec 19, 2023 at 9:02?AM Xiang W <wxjstz@126.com> wrote:
 >
-> From: Zhang Runmin <fmrt19zrmin@163.com>
+> Add compiler options to create separate sections for functions and
+> static variables. And add options to the linker to remove unused
+> sections.
 >
-> When calling '_reset_regs', it'll reset all registers except some
-> specific registers (ra, a0, a1, and a2).
->
-> Both boot HART and non-boot HARTs will execute the '_start_warm'
-> function. Therefore, when '_reset_regs' is called in '_start_warm', it
-> will reset all registers except some specific registers (ra, a0, a1 and
-> a2) for both boot HART and non-boot HARTs.
->
-> Signed-off-by: Zhang Runmin <fmrt19zrmin@163.com>
-> ---
->  firmware/fw_base.S | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index f7763f4..ab432ea 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -188,7 +188,7 @@ _relocate_done:
->
->         /* At this point we are running from link address */
->
-> -       /* Reset all registers for boot HART */
-> +       /* Reset all registers except ra, a0, a1 and a2 for boot HART */
->         li      ra, 0
->         call    _reset_regs
->
-> @@ -415,7 +415,10 @@ _wait_for_boot_hart:
->         bne     t0, t1, _wait_for_boot_hart
->
->  _start_warm:
-> -       /* Reset all registers for non-boot HARTs */
-> +       /*
-> +     * Reset all registers except ra, a0, a1 and a2 for both boot HART
-> +     * and non-boot HARTs
-> +     */
-'
-After cold-boot is done, all harts are non-boot harts so this statement
-can be simplified.
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
->         li      ra, 0
->         call    _reset_regs
+This patch breaks OpenSBI with LLVM.
+
+Regards,
+Anup
+
+> ---
+>  Makefile | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/Makefile b/Makefile
+> index de4e73a..fbb64f2 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -331,7 +331,7 @@ GENFLAGS    +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
+>
+> -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+> +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
+>  ifneq ($(DEBUG),)
+>  CFLAGS         +=      -O0
+>  else
+> @@ -377,6 +377,7 @@ ARFLAGS             =       rcs
+>  ELFFLAGS       +=      $(USE_LD_FLAG)
+>  ELFFLAGS       +=      -Wl,--exclude-libs,ALL
+>  ELFFLAGS       +=      -Wl,--build-id=none
+> +ELFFLAGS       +=      -Wl,--gc-sections
+>  ELFFLAGS       +=      $(platform-ldflags-y)
+>  ELFFLAGS       +=      $(firmware-ldflags-y)
 >
 > --
-> 2.25.1
+> 2.43.0
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-I have taken care of the above at the time of merging this patch.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
 
