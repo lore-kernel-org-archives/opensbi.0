@@ -1,23 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 5 Feb 2024 16:43:57 +0530
-Subject: [PATCH 2/2] firmware: always create dynsym section
-In-Reply-To: <20240126152145.60488-2-leon@georgemail.eu>
-References: <20240126152145.60488-1-leon@georgemail.eu> <20240126152145.60488-2-leon@georgemail.eu>
-Message-ID: <CAAhSdy20fT-MhFkHhSNykvKMm9o_2QMK1z5mjDeBdj5NAe6A8w@mail.gmail.com>
+Date: Tue, 6 Feb 2024 12:53:28 +0530
+Subject: [PATCH v3 01/10] firmware: fw_base.S: Improve loading u32
+In-Reply-To: <20240117104212.1055737-2-wxjstz@126.com>
+References: <20240117104212.1055737-1-wxjstz@126.com> <20240117104212.1055737-2-wxjstz@126.com>
+Message-ID: <CAAhSdy1bz0n=-7BAZ11rsTbUqtNpQ0a6iL4BMtRxSBrLRXbm=w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 26, 2024 at 8:52?PM Leon M. Busch-George <leon@georgemail.eu> wrote:
+On Wed, Jan 17, 2024 at 4:12?PM Xiang W <wxjstz@126.com> wrote:
 >
-> With a bare-metal linkers (e.g. riscv64-elf-ld), there exists no dynsym section.
-> The dynsym section is not used by OpenSBI but discarding it makes linkers with dynamic library support unhappy.
+> lwu exists under the current rv64 and should also exist under the rv128
+> in the future, so I modified the conditions of conditional compilation
+> so that it can adapt to the future situation
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-There is no Signed-off-by  in the commit description.
-
-I have taken care of the above at the time of merging this patch.
+Looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -27,25 +28,49 @@ Thanks,
 Anup
 
 > ---
->  firmware/fw_base.ldS | 5 +++++
->  1 file changed, 5 insertions(+)
+>  firmware/fw_base.S | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 >
-> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-> index c15ccdb..fb47984 100644
-> --- a/firmware/fw_base.ldS
-> +++ b/firmware/fw_base.ldS
-> @@ -38,6 +38,11 @@
->                 . = ALIGN(8);
->         }
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index f7763f4..2f30d00 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -358,7 +358,7 @@ _scratch_init:
+>         /* t0 = source FDT start address */
+>         add     t0, a1, zero
+>         /* t2 = source FDT size in big-endian */
+> -#if __riscv_xlen == 64
+> +#if __riscv_xlen > 32
+>         lwu     t2, 4(t0)
+>  #else
+>         lw      t2, 4(t0)
+> @@ -424,7 +424,7 @@ _start_warm:
 >
-> +       .dynsym :
-> +       {
-> +               *(.dynsym)
-> +       }
-> +
->         . = ALIGN(0x1000); /* Ensure next section is page aligned */
->
->         .rela.dyn : {
+>         /* Find HART count and HART stack size */
+>         lla     a4, platform
+> -#if __riscv_xlen == 64
+> +#if __riscv_xlen > 32
+>         lwu     s7, SBI_PLATFORM_HART_COUNT_OFFSET(a4)
+>         lwu     s8, SBI_PLATFORM_HART_STACK_SIZE_OFFSET(a4)
+>  #else
+> @@ -440,7 +440,7 @@ _start_warm:
+>         beqz    s9, 3f
+>         li      a4, 0
+>  1:
+> -#if __riscv_xlen == 64
+> +#if __riscv_xlen > 32
+>         lwu     a5, (s9)
+>  #else
+>         lw      a5, (s9)
+> @@ -527,7 +527,7 @@ _hartid_to_scratch:
+>          * t2 -> Temporary
+>          */
+>         lla     t2, platform
+> -#if __riscv_xlen == 64
+> +#if __riscv_xlen > 32
+>         lwu     t0, SBI_PLATFORM_HART_STACK_SIZE_OFFSET(t2)
+>         lwu     t2, SBI_PLATFORM_HART_COUNT_OFFSET(t2)
+>  #else
 > --
 > 2.43.0
 >
