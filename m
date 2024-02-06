@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 6 Feb 2024 13:11:45 +0530
-Subject: [PATCH v3 06/10] firmware: fw_base: Simplified setup trap handler
-In-Reply-To: <20240117104212.1055737-7-wxjstz@126.com>
-References: <20240117104212.1055737-1-wxjstz@126.com> <20240117104212.1055737-7-wxjstz@126.com>
-Message-ID: <CAAhSdy0BSAjPKjcHipNXzjzxcFFr9Le48b-PdeGpDP4KpSUQiw@mail.gmail.com>
+Date: Tue, 6 Feb 2024 13:13:25 +0530
+Subject: [PATCH v3 07/10] firmware: fw_dynamic.S: Remove _bad_dynamic_info
+In-Reply-To: <20240117104212.1055737-8-wxjstz@126.com>
+References: <20240117104212.1055737-1-wxjstz@126.com> <20240117104212.1055737-8-wxjstz@126.com>
+Message-ID: <CAAhSdy2rNUG2AyHaiyRCsROXSHQ_Zz+Q4mUzwEbMj+gLgf=FNw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +12,7 @@ Content-Transfer-Encoding: 7bit
 
 On Wed, Jan 17, 2024 at 4:12?PM Xiang W <wxjstz@126.com> wrote:
 >
-> The same detection was done twice when setting mtvec and trap_exit.
-> Merging can reduce code size.
+> _bad_dynamic_info is same as _start_hang, so remove it.
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
 
@@ -25,40 +24,39 @@ Regards,
 Anup
 
 > ---
->  firmware/fw_base.S | 16 ++++------------
->  1 file changed, 4 insertions(+), 12 deletions(-)
+>  firmware/fw_dynamic.S | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 7c7157d..d4a6d3a 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -452,22 +452,14 @@ _start_warm:
->         srli    a5, a5, ('H' - 'A')
->         andi    a5, a5, 0x1
->         beq     a5, zero, _skip_trap_handler_rv32_hyp
-> -       lla     a4, _trap_handler_rv32_hyp
-> -_skip_trap_handler_rv32_hyp:
-> -#endif
-> -       csrw    CSR_MTVEC, a4
+> diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
+> index 7ff1c6a..5ee2883 100644
+> --- a/firmware/fw_dynamic.S
+> +++ b/firmware/fw_dynamic.S
+> @@ -11,12 +11,6 @@
+>
+>  #include "fw_base.S"
+>
+> -       .section .entry, "ax", %progbits
+> -       .align 3
+> -_bad_dynamic_info:
+> -       wfi
+> -       j       _bad_dynamic_info
 > -
-> -#if __riscv_xlen == 32
->         /* Override trap exit for H-extension */
-> -       csrr    a5, CSR_MISA
-> -       srli    a5, a5, ('H' - 'A')
-> -       andi    a5, a5, 0x1
-> -       beq     a5, zero, _skip_trap_exit_rv32_hyp
-> -       lla     a4, _trap_exit_rv32_hyp
->         csrr    a5, CSR_MSCRATCH
-> +       lla     a4, _trap_exit_rv32_hyp
->         REG_S   a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
-> -_skip_trap_exit_rv32_hyp:
-> +       lla     a4, _trap_handler_rv32_hyp
-> +_skip_trap_handler_rv32_hyp:
->  #endif
-> +       csrw    CSR_MTVEC, a4
+>         .section .entry, "ax", %progbits
+>         .align 3
+>         .global fw_boot_hart
+> @@ -30,10 +24,10 @@ fw_boot_hart:
+>         /* Sanity checks */
+>         li      a1, FW_DYNAMIC_INFO_MAGIC_VALUE
+>         REG_L   a0, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
+> -       bne     a0, a1, _bad_dynamic_info
+> +       bne     a0, a1, _start_hang
+>         li      a1, FW_DYNAMIC_INFO_VERSION_MAX
+>         REG_L   a0, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+> -       bgt     a0, a1, _bad_dynamic_info
+> +       bgt     a0, a1, _start_hang
 >
->         /* Initialize SBI runtime */
->         csrr    a0, CSR_MSCRATCH
+>         /* Read boot HART id */
+>         li      a1, FW_DYNAMIC_INFO_VERSION_2
 > --
 > 2.43.0
 >
