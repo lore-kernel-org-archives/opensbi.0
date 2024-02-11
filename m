@@ -1,57 +1,125 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 12 Feb 2024 00:11:26 +0800
-Subject: [PATCH v4 2/8] firmware: fw_base.S: Simplify address get
+Date: Mon, 12 Feb 2024 00:11:31 +0800
+Subject: [PATCH v4 7/8] firmware: Improve fw_boot_hart
 In-Reply-To: <20240211161138.2538981-1-wxjstz@126.com>
 References: <20240211161138.2538981-1-wxjstz@126.com>
-Message-ID: <20240211161138.2538981-3-wxjstz@126.com>
+Message-ID: <20240211161138.2538981-8-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Simplify address get. Remove _link_start _link_end _load_start.
+Improve fw_boot_hart to reduce parameter saving and restoration.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- firmware/fw_base.S | 16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ firmware/fw_base.S    |  7 ++-----
+ firmware/fw_dynamic.S | 24 ++++++++++++------------
+ firmware/fw_jump.S    |  6 +++---
+ firmware/fw_payload.S |  6 +++---
+ 4 files changed, 20 insertions(+), 23 deletions(-)
 
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index cd94f15..d418041 100644
+index 30fd616..4de053f 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -52,15 +52,9 @@ _try_lottery:
- 	amoadd.w a6, a7, (a6)
- 	bnez	a6, _wait_for_boot_hart
+@@ -38,14 +38,11 @@
+ 	.globl _start_warm
+ _start:
+ 	/* Find preferred boot HART id */
+-	MOV_3R	s0, a0, s1, a1, s2, a2
+ 	call	fw_boot_hart
+-	add	a6, a0, zero
+-	MOV_3R	a0, s0, a1, s1, a2, s2
+ 	li	a7, -1
+-	beq	a6, a7, _try_lottery
++	beq	t0, a7, _try_lottery
+ 	/* Jump to relocation wait loop if we are not boot hart */
+-	bne	a0, a6, _wait_for_boot_hart
++	bne	a0, t0, _wait_for_boot_hart
+ _try_lottery:
+ 	/* Jump to relocation wait loop if we don't get relocation lottery */
+ 	lla	a6, _boot_status
+diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
+index 5ee2883..52ef320 100644
+--- a/firmware/fw_dynamic.S
++++ b/firmware/fw_dynamic.S
+@@ -17,24 +17,24 @@
+ 	/*
+ 	 * This function is called very early even before
+ 	 * fw_save_info() is called.
+-	 * We can only use a0, a1, and a2 registers here.
+-	 * The boot HART id should be returned in 'a0'.
++	 * We can only use t0, t1, and t2 registers here.
++	 * The boot HART id should be returned in 't0'.
+ 	 */
+ fw_boot_hart:
+ 	/* Sanity checks */
+-	li	a1, FW_DYNAMIC_INFO_MAGIC_VALUE
+-	REG_L	a0, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
+-	bne	a0, a1, _start_hang
+-	li	a1, FW_DYNAMIC_INFO_VERSION_MAX
+-	REG_L	a0, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+-	bgt	a0, a1, _start_hang
++	li	t1, FW_DYNAMIC_INFO_MAGIC_VALUE
++	REG_L	t0, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
++	bne	t0, t1, _start_hang
++	li	t1, FW_DYNAMIC_INFO_VERSION_MAX
++	REG_L	t0, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
++	bgt	t0, t1, _start_hang
  
--	/* Save load address */
--	lla	t0, _load_start
--	lla	t1, _fw_start
--	REG_S	t1, 0(t0)
--
- 	/* relocate the global table content */
--	lla	t0, _link_start
--	REG_L	t0, 0(t0)
--	/* t1 shall has the address of _fw_start */
-+	li	t0, FW_TEXT_START
-+	lla	t1, _fw_start
- 	sub	t2, t1, t0
- 	lla	t0, __rel_dyn_start
- 	lla	t1, __rel_dyn_end
-@@ -398,12 +392,6 @@ _relocate_lottery:
- 	RISCV_PTR	0
- _boot_status:
- 	RISCV_PTR	0
--_load_start:
--	RISCV_PTR	_fw_start
--_link_start:
--	RISCV_PTR	FW_TEXT_START
--_link_end:
--	RISCV_PTR	_fw_reloc_end
+ 	/* Read boot HART id */
+-	li	a1, FW_DYNAMIC_INFO_VERSION_2
+-	blt	a0, a1, 2f
+-	REG_L	a0, FW_DYNAMIC_INFO_BOOT_HART_OFFSET(a2)
++	li	t1, FW_DYNAMIC_INFO_VERSION_2
++	blt	t0, t1, 2f
++	REG_L	t0, FW_DYNAMIC_INFO_BOOT_HART_OFFSET(a2)
+ 	ret
+-2:	li	a0, -1
++2:	li	t0, -1
+ 	ret
  
  	.section .entry, "ax", %progbits
- 	.align 3
+diff --git a/firmware/fw_jump.S b/firmware/fw_jump.S
+index ac74dc6..1775fcd 100644
+--- a/firmware/fw_jump.S
++++ b/firmware/fw_jump.S
+@@ -15,11 +15,11 @@
+ 	/*
+ 	 * This function is called very early even before
+ 	 * fw_save_info() is called.
+-	 * We can only use a0, a1, and a2 registers here.
+-	 * The boot HART id should be returned in 'a0'.
++	 * We can only use t0, t1, and t2 registers here.
++	 * The boot HART id should be returned in 't0'.
+ 	 */
+ fw_boot_hart:
+-	li	a0, -1
++	li	t0, -1
+ 	ret
+ 
+ 	.section .entry, "ax", %progbits
+diff --git a/firmware/fw_payload.S b/firmware/fw_payload.S
+index c53a3bb..985f833 100644
+--- a/firmware/fw_payload.S
++++ b/firmware/fw_payload.S
+@@ -15,11 +15,11 @@
+ 	/*
+ 	 * This function is called very early even before
+ 	 * fw_save_info() is called.
+-	 * We can only use a0, a1, and a2 registers here.
+-	 * The boot HART id should be returned in 'a0'.
++	 * We can only use t0, t1, and t2 registers here.
++	 * The boot HART id should be returned in 't0'.
+ 	 */
+ fw_boot_hart:
+-	li	a0, -1
++	li	t0, -1
+ 	ret
+ 
+ 	.section .entry, "ax", %progbits
 -- 
 2.43.0
 
