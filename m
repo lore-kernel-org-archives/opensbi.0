@@ -1,172 +1,277 @@
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Thu,  8 Feb 2024 09:50:50 +0000
-Subject: [PATCH 4/4] lib: tests: Add sbi_console test
-In-Reply-To: <20240208095050.398522-1-ivan.orlov0322@gmail.com>
-References: <20240208095050.398522-1-ivan.orlov0322@gmail.com>
-Message-ID: <20240208095050.398522-4-ivan.orlov0322@gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 12 Feb 2024 00:11:25 +0800
+Subject: [PATCH v4 1/8] firmware: remove copy-base relocation
+In-Reply-To: <20240211161138.2538981-1-wxjstz@126.com>
+References: <20240211161138.2538981-1-wxjstz@126.com>
+Message-ID: <20240211161138.2538981-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the test suite covering some of the functions from
-lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
-of format specifiers for printf and different strings and characters for
-putc and puts.
+Remove copy-base relocations that are no longer needed.
 
-In order to do that, the test "mocks" the sbi_console_device structure
-by setting the 'console_dev' variable to the virtual console.
-
-This patch depends on the previous patches from the series as it uses
-SBIUnit macros, functions and definitions.
-
-Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_console.c      |   4 ++
- lib/sbi/sbi_console_test.c | 104 +++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_unit.c         |   2 +
- 3 files changed, 110 insertions(+)
- create mode 100644 lib/sbi/sbi_console_test.c
+ Makefile            |   8 +++-
+ README.md           |   5 --
+ docs/firmware/fw.md |   6 ---
+ firmware/fw_base.S  | 110 ++------------------------------------------
+ firmware/objects.mk |  11 -----
+ 5 files changed, 10 insertions(+), 130 deletions(-)
 
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index ab09a5c..d1229d0 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
+diff --git a/Makefile b/Makefile
+index 680c19a..d8cffa6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -179,6 +179,10 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
+ # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+ CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
  
- 	return rc;
- }
++ifneq ($(OPENSBI_LD_PIE),y)
++$(error Your linker does not support creating PIEs, opensbi requires this.)
++endif
 +
-+#ifdef CONFIG_SBIUNIT
-+#include "sbi_console_test.c"
-+#endif
-diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
-new file mode 100644
-index 0000000..8c3b215
---- /dev/null
-+++ b/lib/sbi/sbi_console_test.c
-@@ -0,0 +1,104 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
-+ */
-+#include <sbi/sbi_unit.h>
-+#include <sbi/sbi_heap.h>
-+
-+/*
-+ * Console functions are wrapped in order to mock the console object and don't affect the actual
-+ * console output
-+ */
-+#define CONSOLE_DO(action) ({		\
-+	old_dev = console_dev;		\
-+	console_dev = &new_dev;		\
-+	action;				\
-+	console_dev = old_dev;		\
-+})
-+
-+// We are using a GCC extension here, which allows us to return a value from a block
-+#define CONSOLE_DO_RET(action) ({	\
-+	old_dev = console_dev;		\
-+	console_dev = &new_dev;		\
-+	u64 res = action;		\
-+	console_dev = old_dev;		\
-+	res;				\
-+})
-+
-+#define BUF_LEN 1024
-+
-+static const struct sbi_console_device *old_dev;
-+
-+static char buf[BUF_LEN];
-+static u32 pos;
-+static void test_console_putc(char c)
-+{
-+	buf[pos] = c;
-+	pos = (pos + 1) % BUF_LEN;
-+}
-+
-+static void clear_buf(void)
-+{
-+	pos = 0;
-+	sbi_memset(buf, 0, BUF_LEN);
-+}
-+
-+// Mocking the console
-+static const struct sbi_console_device new_dev = {
-+	.name = "Test console device",
-+	.console_putc = test_console_putc,
-+};
-+
-+static void putc_test(struct sbiunit_test_case *test)
-+{
-+	clear_buf();
-+
-+	CONSOLE_DO(sbi_putc('a'));
-+	SBIUNIT_ASSERT_EQ(test, buf[0], 'a');
-+}
-+
-+#define PUTS_TEST(test, expected, param) do {				\
-+	clear_buf();							\
-+	CONSOLE_DO(sbi_puts(param));					\
-+	SBIUNIT_ASSERT_STREQ(test, buf, expected);			\
-+} while (0)
-+
-+static void puts_test(struct sbiunit_test_case *test)
-+{
-+	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
-+	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
-+	PUTS_TEST(test, "Hello,", "Hello,\0OpenSBI!");
-+}
-+
-+#define PRINTF_TEST(test, expected, format, ...) do {					\
-+	clear_buf();									\
-+	SBIUNIT_ASSERT_EQ(test, CONSOLE_DO_RET(sbi_printf(format, ##__VA_ARGS__)),	\
-+			  sbi_strlen(expected));					\
-+	SBIUNIT_ASSERT_STREQ(test, buf, expected);					\
-+} while (0)
-+
-+static void printf_test(struct sbiunit_test_case *test)
-+{
-+	PRINTF_TEST(test, "Hello", "Hello");
-+	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
-+	PRINTF_TEST(test, "Hello", "%s", "Hello");
-+	PRINTF_TEST(test, "-1", "%d", -1);
-+	PRINTF_TEST(test, "FF", "%X", 255);
-+	PRINTF_TEST(test, "ff", "%x", 255);
-+	PRINTF_TEST(test, "A", "%c", 'A');
-+	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
-+	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
-+	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
-+	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
-+	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
-+}
-+
-+static struct sbiunit_test_case console_test_cases[] = {
-+	SBIUNIT_TEST_CASE(putc_test),
-+	SBIUNIT_TEST_CASE(puts_test),
-+	SBIUNIT_TEST_CASE(printf_test),
-+	{},
-+};
-+
-+SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
-diff --git a/lib/sbi/sbi_unit.c b/lib/sbi/sbi_unit.c
-index 2d3da7f..b2f2063 100644
---- a/lib/sbi/sbi_unit.c
-+++ b/lib/sbi/sbi_unit.c
-@@ -7,8 +7,10 @@
- #include <sbi/sbi_console.h>
+ # Build Info:
+ # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+ # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+@@ -356,7 +360,7 @@ CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ CFLAGS		+=	$(RELAX_FLAG)
+ CFLAGS		+=	$(GENFLAGS)
+ CFLAGS		+=	$(platform-cflags-y)
+-CFLAGS		+=	-fno-pie -no-pie
++CFLAGS		+=	-fPIE -pie
+ CFLAGS		+=	$(firmware-cflags-y)
  
- extern struct sbiunit_test_suite bitmap_test_suite;
-+extern struct sbiunit_test_suite console_test_suite;
- static struct sbiunit_test_suite *test_suites[] = {
- 	&bitmap_test_suite,
-+	&console_test_suite,
- };
+ CPPFLAGS	+=	$(GENFLAGS)
+@@ -365,6 +369,7 @@ CPPFLAGS	+=	$(firmware-cppflags-y)
  
- static void run_test_suite(struct sbiunit_test_suite *suite)
+ ASFLAGS		=	-g -Wall -nostdlib
+ ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
++ASFLAGS		+=	-fpic
+ # Optionally supported flags
+ ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+ ASFLAGS		+=	-mno-save-restore
+@@ -391,6 +396,7 @@ ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
+ ELFFLAGS	+=	-Wl,--exclude-libs,ALL
+ endif
+ ELFFLAGS	+=	-Wl,--build-id=none
++ELFFLAGS	+=	-Wl,--no-dynamic-linker -Wl,-pie
+ ELFFLAGS	+=	$(platform-ldflags-y)
+ ELFFLAGS	+=	$(firmware-ldflags-y)
+ 
+diff --git a/README.md b/README.md
+index 73de8ea..7a24801 100644
+--- a/README.md
++++ b/README.md
+@@ -274,11 +274,6 @@ make CC=riscv64-linux-gnu-gcc LLVM=1
+ These variables must be passed for all the make invocations described in this
+ document.
+ 
+-NOTE: Using Clang with a `riscv*-linux-gnu` GNU binutils linker has been seen
+-to produce broken binaries with missing relocations; it is therefore currently
+-recommended that this combination be avoided or *FW_PIC=n* be used to disable
+-building OpenSBI as a position-independent binary.
+-
+ Building with timestamp and compiler info
+ -----------------------------------------
+ 
+diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
+index 38351c8..2f4deb5 100644
+--- a/docs/firmware/fw.md
++++ b/docs/firmware/fw.md
+@@ -69,12 +69,6 @@ parameters:
+   argument by the prior booting stage.
+ * **FW_FDT_PADDING** - Optional zero bytes padding to the embedded flattened
+   device tree binary file specified by **FW_FDT_PATH** option.
+-* **FW_PIC** - "FW_PIC=y" generates position independent executable firmware
+-  images. OpenSBI can run at arbitrary address with appropriate alignment.
+-  Therefore, the original relocation mechanism ("FW_PIC=n") will be skipped.
+-  In other words, OpenSBI will directly run at the load address without any
+-  code movement. This option requires a toolchain with PIE support, and it
+-  is on by default.
+ 
+ Additionally, each firmware type as a set of type specific configuration
+ parameters. Detailed information for each firmware type can be found in the
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 09894e6..cd94f15 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -14,8 +14,7 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_trap.h>
+ 
+-#define BOOT_STATUS_RELOCATE_DONE	1
+-#define BOOT_STATUS_BOOT_HART_DONE	2
++#define BOOT_STATUS_BOOT_HART_DONE	1
+ 
+ .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
+ 	add	\__d0, \__s0, zero
+@@ -31,16 +30,6 @@
+ 	add	\__d4, \__s4, zero
+ .endm
+ 
+-/*
+- * If __start_reg <= __check_reg and __check_reg < __end_reg then
+- *   jump to __pass
+- */
+-.macro BRANGE __start_reg, __end_reg, __check_reg, __jump_lable
+-	blt	\__check_reg, \__start_reg, 999f
+-	bge	\__check_reg, \__end_reg, 999f
+-	j	\__jump_lable
+-999:
+-.endm
+ 
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+@@ -55,20 +44,19 @@ _start:
+ 	li	a7, -1
+ 	beq	a6, a7, _try_lottery
+ 	/* Jump to relocation wait loop if we are not boot hart */
+-	bne	a0, a6, _wait_relocate_copy_done
++	bne	a0, a6, _wait_for_boot_hart
+ _try_lottery:
+ 	/* Jump to relocation wait loop if we don't get relocation lottery */
+ 	lla	a6, _relocate_lottery
+ 	li	a7, 1
+ 	amoadd.w a6, a7, (a6)
+-	bnez	a6, _wait_relocate_copy_done
++	bnez	a6, _wait_for_boot_hart
+ 
+ 	/* Save load address */
+ 	lla	t0, _load_start
+ 	lla	t1, _fw_start
+ 	REG_S	t1, 0(t0)
+ 
+-#ifdef FW_PIC
+ 	/* relocate the global table content */
+ 	lla	t0, _link_start
+ 	REG_L	t0, 0(t0)
+@@ -90,100 +78,8 @@ _try_lottery:
+ 3:
+ 	addi	t0, t0, (REGBYTES * 3)
+ 	blt	t0, t1, 2b
+-	j	_relocate_done
+-_wait_relocate_copy_done:
+-	j	_wait_for_boot_hart
+-#else
+-	/* Relocate if load address != link address */
+-_relocate:
+-	lla	t0, _link_start
+-	REG_L	t0, 0(t0)
+-	lla	t1, _link_end
+-	REG_L	t1, 0(t1)
+-	lla	t2, _load_start
+-	REG_L	t2, 0(t2)
+-	beq	t0, t2, _relocate_done
+-	sub	t3, t1, t0
+-	add	t3, t3, t2
+-	lla	t4, _relocate_done
+-	sub	t4, t4, t2
+-	add	t4, t4, t0
+-	blt	t2, t0, _relocate_copy_to_upper
+-_relocate_copy_to_lower:
+-	ble	t1, t2, _relocate_copy_to_lower_loop
+-	lla	t3, _relocate_lottery
+-	BRANGE	t2, t1, t3, _start_hang
+-	lla	t3, _boot_status
+-	BRANGE	t2, t1, t3, _start_hang
+-	lla	t3, _relocate
+-	lla	t5, _relocate_done
+-	BRANGE	t2, t1, t3, _start_hang
+-	BRANGE	t2, t1, t5, _start_hang
+-	BRANGE  t3, t5, t2, _start_hang
+-_relocate_copy_to_lower_loop:
+-	REG_L	t3, 0(t2)
+-	REG_S	t3, 0(t0)
+-	add	t0, t0, __SIZEOF_POINTER__
+-	add	t2, t2, __SIZEOF_POINTER__
+-	blt	t0, t1, _relocate_copy_to_lower_loop
+-	jr	t4
+-_relocate_copy_to_upper:
+-	ble	t3, t0, _relocate_copy_to_upper_loop
+-	lla	t2, _relocate_lottery
+-	BRANGE	t0, t3, t2, _start_hang
+-	lla	t2, _boot_status
+-	BRANGE	t0, t3, t2, _start_hang
+-	lla	t2, _relocate
+-	lla	t5, _relocate_done
+-	BRANGE	t0, t3, t2, _start_hang
+-	BRANGE	t0, t3, t5, _start_hang
+-	BRANGE	t2, t5, t0, _start_hang
+-_relocate_copy_to_upper_loop:
+-	add	t3, t3, -__SIZEOF_POINTER__
+-	add	t1, t1, -__SIZEOF_POINTER__
+-	REG_L	t2, 0(t3)
+-	REG_S	t2, 0(t1)
+-	blt	t0, t1, _relocate_copy_to_upper_loop
+-	jr	t4
+-_wait_relocate_copy_done:
+-	lla	t0, _fw_start
+-	lla	t1, _link_start
+-	REG_L	t1, 0(t1)
+-	beq	t0, t1, _wait_for_boot_hart
+-	lla	t2, _boot_status
+-	lla	t3, _wait_for_boot_hart
+-	sub	t3, t3, t0
+-	add	t3, t3, t1
+-1:
+-	/* waitting for relocate copy done (_boot_status == 1) */
+-	li	t4, BOOT_STATUS_RELOCATE_DONE
+-	REG_L	t5, 0(t2)
+-	/* Reduce the bus traffic so that boot hart may proceed faster */
+-	nop
+-	nop
+-	nop
+-	bgt     t4, t5, 1b
+-	jr	t3
+-#endif
+ _relocate_done:
+ 
+-	/*
+-	 * Mark relocate copy done
+-	 * Use _boot_status copy relative to the load address
+-	 */
+-	lla	t0, _boot_status
+-#ifndef FW_PIC
+-	lla	t1, _link_start
+-	REG_L	t1, 0(t1)
+-	lla	t2, _load_start
+-	REG_L	t2, 0(t2)
+-	sub	t0, t0, t1
+-	add	t0, t0, t2
+-#endif
+-	li	t1, BOOT_STATUS_RELOCATE_DONE
+-	REG_S	t1, 0(t0)
+-	fence	rw, rw
+-
+ 	/* At this point we are running from link address */
+ 
+ 	/* Reset all registers except ra, a0, a1 and a2 for boot HART */
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index a1704c4..b2ace75 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -13,17 +13,6 @@ firmware-cflags-y +=
+ firmware-asflags-y +=
+ firmware-ldflags-y +=
+ 
+-ifndef FW_PIC
+-FW_PIC := $(OPENSBI_LD_PIE)
+-endif
+-
+-ifeq ($(FW_PIC),y)
+-firmware-genflags-y +=	-DFW_PIC
+-firmware-asflags-y  +=	-fpic
+-firmware-cflags-y   +=	-fPIE -pie
+-firmware-ldflags-y  +=	-Wl,--no-dynamic-linker -Wl,-pie
+-endif
+-
+ ifdef FW_TEXT_START
+ firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
+ endif
 -- 
-2.34.1
+2.43.0
 
 
