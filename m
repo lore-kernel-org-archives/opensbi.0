@@ -1,62 +1,55 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 12 Feb 2024 00:11:30 +0800
-Subject: [PATCH v4 6/8] firmware: fw_base.S: fix _reset_regs
+Date: Mon, 12 Feb 2024 00:11:27 +0800
+Subject: [PATCH v4 3/8] firmware: fw_base: Simplified setup trap handler
 In-Reply-To: <20240211161138.2538981-1-wxjstz@126.com>
 References: <20240211161138.2538981-1-wxjstz@126.com>
-Message-ID: <20240211161138.2538981-7-wxjstz@126.com>
+Message-ID: <20240211161138.2538981-4-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-a3 and a4 cannot be reset because used in fw_platform_init.
+The same detection was done twice when setting mtvec and trap_exit.
+Merging can reduce code size.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- firmware/fw_base.S | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ firmware/fw_base.S | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 10fee4f..30fd616 100644
+index d418041..f0dd0da 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -77,7 +77,7 @@ _relocate_done:
+@@ -362,22 +362,14 @@ _start_warm:
+ 	srli	a5, a5, ('H' - 'A')
+ 	andi	a5, a5, 0x1
+ 	beq	a5, zero, _skip_trap_handler_rv32_hyp
+-	lla	a4, _trap_handler_rv32_hyp
+-_skip_trap_handler_rv32_hyp:
+-#endif
+-	csrw	CSR_MTVEC, a4
+-
+-#if __riscv_xlen == 32
+ 	/* Override trap exit for H-extension */
+-	csrr	a5, CSR_MISA
+-	srli	a5, a5, ('H' - 'A')
+-	andi	a5, a5, 0x1
+-	beq	a5, zero, _skip_trap_exit_rv32_hyp
+-	lla	a4, _trap_exit_rv32_hyp
+ 	csrr	a5, CSR_MSCRATCH
++	lla	a4, _trap_exit_rv32_hyp
+ 	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
+-_skip_trap_exit_rv32_hyp:
++	lla	a4, _trap_handler_rv32_hyp
++_skip_trap_handler_rv32_hyp:
+ #endif
++	csrw	CSR_MTVEC, a4
  
- 	/* At this point we are running from link address */
- 
--	/* Reset all registers except ra, a0, a1 and a2 for boot HART */
-+	/* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
- 	li	ra, 0
- 	call	_reset_regs
- 
-@@ -304,7 +304,7 @@ _wait_for_boot_hart:
- 	bne	t0, t1, _wait_for_boot_hart
- 
- _start_warm:
--	/* Reset all registers except ra, a0, a1 and a2 for non-boot HARTs */
-+	/* Reset all registers except ra, a0, a1, a2, a3 and a4 for non-boot HART */
- 	li	ra, 0
- 	call	_reset_regs
- 
-@@ -655,7 +655,7 @@ _reset_regs:
- 
- 	/* flush the instruction cache */
- 	fence.i
--	/* Reset all registers except ra, a0, a1 and a2 */
-+	/* Reset all registers except ra, a0, a1, a2, a3 and a4 */
- 	li sp, 0
- 	li gp, 0
- 	li tp, 0
-@@ -664,8 +664,6 @@ _reset_regs:
- 	li t2, 0
- 	li s0, 0
- 	li s1, 0
--	li a3, 0
--	li a4, 0
- 	li a5, 0
- 	li a6, 0
- 	li a7, 0
+ 	/* Initialize SBI runtime */
+ 	csrr	a0, CSR_MSCRATCH
 -- 
 2.43.0
 
