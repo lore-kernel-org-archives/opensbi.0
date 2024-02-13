@@ -1,317 +1,47 @@
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Mon, 12 Feb 2024 22:03:52 +0000
-Subject: [PATCH 2/4] lib: Add SBIUnit testing macros and functions
-In-Reply-To: <20240212-5d311c79e606a9d510631934@orel>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 13 Feb 2024 14:51:34 +0100
+Subject: [PATCH 1/4] docs: Add documentation about tests and SBIUnit
+In-Reply-To: <12c2ecd6-0367-470f-90bf-35a805574147@gmail.com>
 References: <20240208095050.398522-1-ivan.orlov0322@gmail.com>
- <20240208095050.398522-2-ivan.orlov0322@gmail.com>
- <20240212-5d311c79e606a9d510631934@orel>
-Message-ID: <5be9d29f-08d8-40fe-adf0-7ced03303705@gmail.com>
+ <20240212-f61079aa6ee3990c6084ff7c@orel>
+ <12c2ecd6-0367-470f-90bf-35a805574147@gmail.com>
+Message-ID: <20240213-a2478b49c77f64f9f111e96b@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2/12/24 17:36, Andrew Jones wrote:
-> On Thu, Feb 08, 2024 at 09:50:48AM +0000, Ivan Orlov wrote:
->> It is good when the code is covered with tests. Tests help us to keep
->> the code clean and avoid regressions. Also, a good test is always a nice
->> documentation for the code it covers.
->>
->> This and the subsequent patches in this series introduce SBIUnit - the
->> set of macros and functions which simplify the unit test development for
->> OpenSBI and automate tests execution and evaluation.
+On Mon, Feb 12, 2024 at 09:48:02PM +0000, Ivan Orlov wrote:
+> On 2/12/24 17:20, Andrew Jones wrote:
+...
+> > But I think we should be able to add the test suite pointer to an elf
+> > section with the SBIUNIT_TEST_SUITE() macro to avoid this step.
+> > 
 > 
-> The above paragraphs should be dropped.
+> That was an initial idea, however I faced some obstacles during the
+> implementation.
 > 
->>
->> This patch introduces all of the SBIUnit macros and functions which
->> can be used during the test development process. Also, it defines
->> the 'run_all_tests' function, which is being called during the
->> 'init_coldboot' right after printing the boot hart information.
->>
->> Also, add the CONFIG_SBIUNIT Kconfig entry in order to be able to
->> turn the tests on and off. When the CONFIG_SBIUNIT is disabled,
->> the tests and all related code should be excluded completely on the
->> compilation stage (and, apparently, it works in this way).
-> 
-> The '(and, apparently, it works in this way)' should be dropped.
-> 
+> I believe we would like to cover the static functions, as well as use static
+> variables in the tests. In this case, we would include the test in the
+> source we are covering (for instance, include "sbi_console_test.c" in
+> "sbi_console.c"). If we use OpenSBI (libplatsbi.a) as a library when linking
+> firmware, and firmware refers to a symbol from "sbi_console.h", it will
+> automatically link the test code too. This means that firmware should have
+> the test ELF section as well. Manual registration of the tests in
+> 'sbi_unit.c', on the other hand, would not require any effort from the
+> firmware developers if they decide to enable tests for OpenSBI.
 
-Thanks, I'll put this information in the cover letter of V2.
->>
->> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
->> ---
->>   include/sbi/sbi_unit.h | 69 ++++++++++++++++++++++++++++++++++++++++++
->>   lib/sbi/Kconfig        |  4 +++
->>   lib/sbi/objects.mk     |  1 +
->>   lib/sbi/sbi_init.c     |  8 +++++
->>   lib/sbi/sbi_unit.c     | 44 +++++++++++++++++++++++++++
->>   5 files changed, 126 insertions(+)
->>   create mode 100644 include/sbi/sbi_unit.h
->>   create mode 100644 lib/sbi/sbi_unit.c
->>
->> diff --git a/include/sbi/sbi_unit.h b/include/sbi/sbi_unit.h
->> new file mode 100644
->> index 0000000..685e58d
->> --- /dev/null
->> +++ b/include/sbi/sbi_unit.h
->> @@ -0,0 +1,69 @@
->> +/*
->> + * SPDX-License-Identifier: BSD-2-Clause
->> + *
->> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
->> + */
->> +#ifndef __SBI_UNIT_H__
->> +#define __SBI_UNIT_H__
->> +
->> +extern struct sbiunit_test_suite *__start_sbiunit_test_suites;
->> +extern struct sbiunit_test_suite *__end_sbiunit_test_suites;
-> 
-> These start/end pointers don't appear to be used?
-> 
-
-Ah, I just forgot to remove them after implementing the SBIUnit version 
-with a dedicated ELF section for the tests... Thanks!
-
->> +
->> +#include <sbi/sbi_types.h>
->> +#include <sbi/sbi_console.h>
->> +#include <sbi/sbi_string.h>
->> +
->> +#define _CONCAT(a, b) a ## b
->> +#define CONCAT(a, b) _CONCAT(a, b)
-> 
-> This CONCAT macro isn't used.
-> 
->> +
->> +struct sbiunit_test_case {
->> +	char *name;
-> 
-> const char *name ?
-> 
->> +	bool should_run;
-> 
-> Rename 'should_run' to 'enabled'
-> 
-
-Alright, will be done.
-
->> +	bool result;
->> +	void (*test_func)(struct sbiunit_test_case *test);
->> +	void (*onerr)(struct sbiunit_test_case *test);
->> +};
->> +
->> +struct sbiunit_test_suite {
->> +	struct sbiunit_test_case *cases;
->> +	const char *name;
-> 
-> nit: I'd put name first.
-> 
->> +};
->> +
->> +#define SBIUNIT_TEST_CASE(func)	\
->> +	{ .name = #func, .should_run = 1, .result = 0, .test_func = &func }
-> 
-> nit: Should use true/false instead of 1/0.
-> nit: No need for the '&' in front of func.
-> 
->> +
->> +#define SBIUNIT_TEST_SUITE(suite_name, cases_arr) \
->> +	struct sbiunit_test_suite suite_name = { .name = #suite_name, .cases = cases_arr }
->> +
->> +#define SBIUNIT_INFO(test, msg) sbi_printf("%s: %s", test->name, msg)
-> 
-> Maybe some sort of prefix like "SBIUNIT" should be on this line.
-> 
->> +
->> +#define SBIUNIT_EXPECT(test, cond) do {							\
->> +	if (!(cond)) {									\
->> +		test->result = 0;							\
->> +		SBIUNIT_INFO(test, "Condition \"" #cond "\" expected to be true!\n");	\
->> +	}										\
->> +} while (0)
->> +
->> +#define SBIUNIT_ASSERT(test, cond) do {						\
->> +	if (!(cond)) {								\
->> +		test->result = 0;						\
->> +		SBIUNIT_INFO(test, "Condition \"" #cond "\" must be true!\n");	\
->> +		return;								\
-> 
-> Unnecessary 'return'. It's strange that an ASSERT macro doesn't result in
-> an sbi_panic().
-> 
-
-I thought it would be bad if test results in hang, but if it is ok I 
-will rewrite it.
-
->> +	}									\
->> +} while (0)
->> +
->> +#define SBIUNIT_EXPECT_EQ(test, a, b) SBIUNIT_EXPECT(test, a == b)
->> +#define SBIUNIT_ASSERT_EQ(test, a, b) SBIUNIT_ASSERT(test, a == b)
->> +#define SBIUNIT_EXPECT_NE(test, a, b) SBIUNIT_EXPECT(test, a != b)
->> +#define SBIUNIT_ASSERT_NE(test, a, b) SBIUNIT_ASSERT(test, a != b)
-> 
-> These macros need () around their arguments, e.g.
-> 
-> #define SBIUNIT_EXPECT_EQ(test, a, b) SBIUNIT_EXPECT(test, (a) == (b))
-> 
->> +#define SBIUNIT_EXPECT_MEMEQ(test, a, b, len) \
->> +	SBIUNIT_EXPECT(test, sbi_memcmp(a, b, len) == 0)
->> +#define SBIUNIT_ASSERT_MEMEQ(test, a, b, len) \
->> +	SBIUNIT_ASSERT(test, sbi_memcmp(a, b, len) == 0)
->> +#define SBIUNIT_EXPECT_STREQ(test, a, b) \
->> +	SBIUNIT_EXPECT(test, sbi_strcmp(a, b) == 0)
->> +#define SBIUNIT_ASSERT_STREQ(test, a, b) \
->> +	SBIUNIT_ASSERT(test, sbi_strcmp(a, b) == 0)
->> +
->> +void run_all_tests(void);
->> +#endif
->> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
->> index 81dd2db..e3038ee 100644
->> --- a/lib/sbi/Kconfig
->> +++ b/lib/sbi/Kconfig
->> @@ -50,4 +50,8 @@ config SBI_ECALL_DBTR
->>   	bool "Debug Trigger Extension"
->>   	default y
->>   
->> +config SBIUNIT
->> +	bool "Enable SBIUNIT tests"
->> +	default n
->> +
->>   endmenu
->> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
->> index 0a50e95..0a2318b 100644
->> --- a/lib/sbi/objects.mk
->> +++ b/lib/sbi/objects.mk
->> @@ -11,6 +11,7 @@ libsbi-objs-y += riscv_asm.o
->>   libsbi-objs-y += riscv_atomic.o
->>   libsbi-objs-y += riscv_hardfp.o
->>   libsbi-objs-y += riscv_locks.o
->> +libsbi-objs-y += sbi_unit.o
->>   
->>   libsbi-objs-y += sbi_ecall.o
->>   libsbi-objs-y += sbi_ecall_exts.o
->> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
->> index 804b01c..16d0a00 100644
->> --- a/lib/sbi/sbi_init.c
->> +++ b/lib/sbi/sbi_init.c
->> @@ -30,6 +30,10 @@
->>   #include <sbi/sbi_tlb.h>
->>   #include <sbi/sbi_version.h>
->>   
->> +#ifdef CONFIG_SBIUNIT
->> +#include <sbi/sbi_unit.h>
->> +#endif
-> 
-> We can move the '#ifdef CONFIG_SBIUNIT' into the header and then always
-> include it.
-> 
-
-Yeah, makes sense.
-
->> +
->>   #define BANNER                                              \
->>   	"   ____                    _____ ____ _____\n"     \
->>   	"  / __ \\                  / ____|  _ \\_   _|\n"  \
->> @@ -398,6 +402,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->>   
->>   	sbi_boot_print_hart(scratch, hartid);
->>   
->> +#ifdef CONFIG_SBIUNIT
->> +	run_all_tests();
->> +#endif
-> 
-> I was going to suggest that we could provide a stub for
-> !defined(CONFIG_SBIUNIT), but I sort like that the #ifdef annotates that
-> this function is only called with that config enabled. So, either way.
-> 
-
-I think your suggestion is better, it will help avoiding #ifdef 
-"boilerplate" and make the code cleaner.
-
->> +
->>   	/*
->>   	 * Configure PMP at last because if SMEPMP is detected,
->>   	 * M-mode access to the S/U space will be rescinded.
->> diff --git a/lib/sbi/sbi_unit.c b/lib/sbi/sbi_unit.c
->> new file mode 100644
->> index 0000000..9c7efec
->> --- /dev/null
->> +++ b/lib/sbi/sbi_unit.c
->> @@ -0,0 +1,44 @@
->> +/*
->> + * SPDX-License-Identifier: BSD-2-Clause
->> + *
->> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
->> + */
->> +#include <sbi/sbi_unit.h>
->> +#include <sbi/sbi_console.h>
->> +
->> +static struct sbiunit_test_suite *test_suites[] = {
->> +};
->> +
->> +static void run_test_suite(struct sbiunit_test_suite *suite)
->> +{
->> +	struct sbiunit_test_case *s_case;
->> +	u32 count_pass, count_fail;
->> +
->> +	sbi_printf("## Running test suite: %s\n", suite->name);
->> +	count_pass = 0;
->> +	count_fail = 0;
-> 
-> nit: Can set these zero in the declarations above.
-> 
->> +
->> +	s_case = suite->cases;
->> +	while (s_case->should_run) {
->> +		s_case->result = 1;
-> 
-> Why initialize result to pass?
-
-The logic was to set the 'result' to 0 in the SBIUNIT_ASSERT or 
-SBIUNIT_EXPECT, but it really seems confusing so I agree that it might 
-be better to create a 'failed' field and set it to 'true' in the 
-assert/expect.
+Hmm, I see. So maybe we can use the build system's carray?
 
 > 
->> +		s_case->test_func(s_case);
->> +		if (s_case->result)
->> +			count_pass++;
->> +		else
->> +			count_fail++;
->> +		sbi_printf("[%s] %s\n", s_case->result ? "OK" : "FAIL", s_case->name);
-> 
-> Is OK/FAIL what KUnit outputs? I'd expect OK/NOK or PASS/FAIL. We'll also
-> probably want a SKIP sooner or later.
-> 
+> Moreover, manual test declaration will make sure that we included all of the
+> tests. Otherwise, if we define the test in a separate file, it will be
+> linked out unless we refer to symbols from it somewhere.
 
-It looks like KUnit uses 'FAILED' or 'PASSED'. So I will update the 
-messages correspondingly.
+This could possibly be worked around with the linker's --whole-archive
+option.
 
->> +		s_case++;
->> +	}
->> +	sbi_printf("%u SUCCESS / %u FAIL / %u TOTAL\n", count_pass, count_fail,
->> +		   count_pass + count_fail);
->> +}
->> +
->> +void run_all_tests(void)
->> +{
->> +	u32 i;
->> +
->> +	sbi_printf("\n# Running SBIUNIT tests #\n");
->> +
->> +	for (i = 0; i < sizeof(test_suites) / sizeof(test_suites[0]); i++)
-> 
-> We have array_size() in include/sbi/sbi_types.h
-> 
-
-Cool, I'll use it instead.
-
-Thank you!
--- 
-Kind regards,
-Ivan Orlov
-
+Thanks,
+drew
 
