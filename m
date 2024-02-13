@@ -1,46 +1,41 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Tue, 13 Feb 2024 14:51:34 +0100
-Subject: [PATCH 1/4] docs: Add documentation about tests and SBIUnit
-In-Reply-To: <12c2ecd6-0367-470f-90bf-35a805574147@gmail.com>
+Date: Tue, 13 Feb 2024 15:00:37 +0100
+Subject: [PATCH 2/4] lib: Add SBIUnit testing macros and functions
+In-Reply-To: <5be9d29f-08d8-40fe-adf0-7ced03303705@gmail.com>
 References: <20240208095050.398522-1-ivan.orlov0322@gmail.com>
- <20240212-f61079aa6ee3990c6084ff7c@orel>
- <12c2ecd6-0367-470f-90bf-35a805574147@gmail.com>
-Message-ID: <20240213-a2478b49c77f64f9f111e96b@orel>
+ <20240208095050.398522-2-ivan.orlov0322@gmail.com>
+ <20240212-5d311c79e606a9d510631934@orel>
+ <5be9d29f-08d8-40fe-adf0-7ced03303705@gmail.com>
+Message-ID: <20240213-c191a5bbf346ab3ca994f464@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 12, 2024 at 09:48:02PM +0000, Ivan Orlov wrote:
-> On 2/12/24 17:20, Andrew Jones wrote:
+On Mon, Feb 12, 2024 at 10:03:52PM +0000, Ivan Orlov wrote:
+> On 2/12/24 17:36, Andrew Jones wrote:
+> > On Thu, Feb 08, 2024 at 09:50:48AM +0000, Ivan Orlov wrote:
 ...
-> > But I think we should be able to add the test suite pointer to an elf
-> > section with the SBIUNIT_TEST_SUITE() macro to avoid this step.
+> > > +#define SBIUNIT_ASSERT(test, cond) do {						\
+> > > +	if (!(cond)) {								\
+> > > +		test->result = 0;						\
+> > > +		SBIUNIT_INFO(test, "Condition \"" #cond "\" must be true!\n");	\
+> > > +		return;								\
+> > 
+> > Unnecessary 'return'. It's strange that an ASSERT macro doesn't result in
+> > an sbi_panic().
 > > 
 > 
-> That was an initial idea, however I faced some obstacles during the
-> implementation.
-> 
-> I believe we would like to cover the static functions, as well as use static
-> variables in the tests. In this case, we would include the test in the
-> source we are covering (for instance, include "sbi_console_test.c" in
-> "sbi_console.c"). If we use OpenSBI (libplatsbi.a) as a library when linking
-> firmware, and firmware refers to a symbol from "sbi_console.h", it will
-> automatically link the test code too. This means that firmware should have
-> the test ELF section as well. Manual registration of the tests in
-> 'sbi_unit.c', on the other hand, would not require any effort from the
-> firmware developers if they decide to enable tests for OpenSBI.
+> I thought it would be bad if test results in hang, but if it is ok I will
+> rewrite it.
 
-Hmm, I see. So maybe we can use the build system's carray?
-
-> 
-> Moreover, manual test declaration will make sure that we included all of the
-> tests. Otherwise, if we define the test in a separate file, it will be
-> linked out unless we refer to symbols from it somewhere.
-
-This could possibly be worked around with the linker's --whole-archive
-option.
+I think an assert should output its message and then stop all execution.
+Asserts should only be used in situations where failures mean the
+test programmer made an improper assumption. If we don't halt the moment
+we determine the assumption is wrong, then we'll potentially generate
+passing test results, but the tests may not be testing what the test
+programmer thought they were.
 
 Thanks,
 drew
