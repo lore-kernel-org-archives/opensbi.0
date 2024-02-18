@@ -1,161 +1,182 @@
-From: Atish Patra <atishp@rivosinc.com>
-Date: Fri, 16 Feb 2024 16:06:08 -0800
-Subject: [PATCH v1 1/1] lib: sbi: Add support for smcsrind and smcdeleg
-In-Reply-To: <20240217000608.3635372-1-atishp@rivosinc.com>
-References: <20240217000608.3635372-1-atishp@rivosinc.com>
-Message-ID: <20240217000608.3635372-2-atishp@rivosinc.com>
+From: Xiang W <wxjstz@126.com>
+Date: Sun, 18 Feb 2024 13:34:02 +0800
+Subject: [PATCH v2 5/5] lib: tests: Add sbi_console test
+In-Reply-To: <20240215161625.314131-6-ivan.orlov0322@gmail.com>
+References: <20240215161625.314131-1-ivan.orlov0322@gmail.com>
+	 <20240215161625.314131-6-ivan.orlov0322@gmail.com>
+Message-ID: <b55c0465e280bbd774f21ba3937ced5bb4c66cf7.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Smcsrind allows generic indirect CSR access mechanism while
-Smcdeleg allows delegating hpmcounters in Supervisor mode.
+? 2024-02-15???? 16:16 +0000?Ivan Orlov???
+> Add the test suite covering some of the functions from
+> lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
+> of format specifiers for printf and different strings and characters for
+> putc and puts.
+> 
+> In order to do that, the test "mocks" the sbi_console_device structure
+> by setting the 'console_dev' variable to the virtual console.
+> 
+> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+> ---
+> V1 -> V2:
+> - Rewrite using the carray functionality
+> - Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
+> functions: one of them "mocks" the default console device, and
+> the second one restores the old console device.
+> - Fix codestyle issues (comments, etc.)
+> - Remove incorrect 'puts' test
+> - Use updated SBIUNIT_ASSERT_STREQ API
+> 
+> ?lib/sbi/objects.mk???????? |?? 1 +
+> ?lib/sbi/sbi_console.c????? |?? 4 ++
+> ?lib/sbi/sbi_console_test.c | 102 +++++++++++++++++++++++++++++++++++++
+> ?3 files changed, 107 insertions(+)
+> ?create mode 100644 lib/sbi/sbi_console_test.c
+> 
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index b4c273f..9d065fa 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+> ?
+> ?libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+> ?carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+> ?
+> ?libsbi-objs-y += sbi_ecall.o
+> ?libsbi-objs-y += sbi_ecall_exts.o
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index ab09a5c..d1229d0 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
+> ?
+> ?	return rc;
+> ?}
+> +
+> +#ifdef CONFIG_SBIUNIT
+> +#include "sbi_console_test.c"
+> +#endif
+> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
+> new file mode 100644
+> index 0000000..f24b329
+> --- /dev/null
+> +++ b/lib/sbi/sbi_console_test.c
+> @@ -0,0 +1,102 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+> + */
+> +#include <sbi/sbi_unit_test.h>
+> +#include <sbi/sbi_heap.h>
 
-Enable both extensions and set the appropriate bits in mstateen
-and menvcfg.
+sbi_heap.h is not needed.
 
-Co-developed-by: Kaiwen Xue <kaiwenxue1@gmail.com>
-Signed-off-by: Atish Patra <atishp@rivosinc.com>
----
- include/sbi/riscv_encoding.h | 25 ++++++++++++++++++++++---
- include/sbi/sbi_hart.h       |  8 ++++++++
- lib/sbi/sbi_hart.c           | 16 ++++++++++++----
- 3 files changed, 42 insertions(+), 7 deletions(-)
-
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index e74cc0df1c40..57aabd665589 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -209,6 +209,7 @@
- 
- #define ENVCFG_STCE			(_ULL(1) << 63)
- #define ENVCFG_PBMTE			(_ULL(1) << 62)
-+#define ENVCFG_CDE			(_UL(1) << 60)
- #define ENVCFG_CBZE			(_UL(1) << 7)
- #define ENVCFG_CBCFE			(_UL(1) << 6)
- #define ENVCFG_CBIE_SHIFT		4
-@@ -314,6 +315,9 @@
- /* Supervisor Configuration */
- #define CSR_SENVCFG			0x10a
- 
-+/* Supervisor Conter Inhibit */
-+#define CSR_SCOUNTINHIBIT		0x120
-+
- /* Supervisor Trap Handling */
- #define CSR_SSCRATCH			0x140
- #define CSR_SEPC			0x141
-@@ -328,9 +332,14 @@
- /* Supervisor Protection and Translation */
- #define CSR_SATP			0x180
- 
--/* Supervisor-Level Window to Indirectly Accessed Registers (AIA) */
-+/* Supervisor Indirect Register Alias */
- #define CSR_SISELECT			0x150
- #define CSR_SIREG			0x151
-+#define CSR_SIREG2          		0x152
-+#define CSR_SIREG3          		0x153
-+#define CSR_SIREG4          		0x155
-+#define CSR_SIREG5          		0x156
-+#define CSR_SIREG6          		0x157
- 
- /* Supervisor-Level Interrupts (AIA) */
- #define CSR_STOPEI			0x15c
-@@ -391,9 +400,14 @@
- #define CSR_HVIPRIO1			0x646
- #define CSR_HVIPRIO2			0x647
- 
--/* VS-Level Window to Indirectly Accessed Registers (H-extension with AIA) */
-+/* Virtual Supervisor Indirect Alias */
- #define CSR_VSISELECT			0x250
- #define CSR_VSIREG			0x251
-+#define CSR_VSIREG2         		0x252
-+#define CSR_VSIREG3         		0x253
-+#define CSR_VSIREG4         		0x255
-+#define CSR_VSIREG5         		0x256
-+#define CSR_VSIREG6         		0x257
- 
- /* VS-Level Interrupts (H-extension with AIA) */
- #define CSR_VSTOPEI			0x25c
-@@ -694,9 +708,14 @@
- #define CSR_DSCRATCH0			0x7b2
- #define CSR_DSCRATCH1			0x7b3
- 
--/* Machine-Level Window to Indirectly Accessed Registers (AIA) */
-+/* Machine Indirect Register Alias */
- #define CSR_MISELECT			0x350
- #define CSR_MIREG			0x351
-+#define CSR_MIREG2          		0x352
-+#define CSR_MIREG3          		0x353
-+#define CSR_MIREG4          		0x355
-+#define CSR_MIREG5          		0x356
-+#define CSR_MIREG6          		0x357
- 
- /* Machine-Level Interrupts (AIA) */
- #define CSR_MTOPEI			0x35c
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 10dc3df5d2fc..cc78eec6f65a 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -55,6 +55,14 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_SVPBMT,
- 	/** Hart has debug trigger extension */
- 	SBI_HART_EXT_SDTRIG,
-+	/** Hart has Smcsrind extension */
-+	SBI_HART_EXT_SMCSRIND,
-+	/** Hart has Smcdeleg extension */
-+	SBI_HART_EXT_SMCDELEG,
-+	/** Hart has Sscsrind extension */
-+	SBI_HART_EXT_SSCSRIND,
-+	/** Hart has Ssccfg extension */
-+	SBI_HART_EXT_SSCCFG,
- 
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index a0ab0c640035..3d1369441c05 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -95,11 +95,16 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 		mstateen_val |= SMSTATEEN0_HSENVCFG;
- 
- 		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
--			mstateen_val |= (SMSTATEEN0_AIA | SMSTATEEN0_SVSLCT |
--					SMSTATEEN0_IMSIC);
-+			mstateen_val |= (SMSTATEEN0_AIA | SMSTATEEN0_IMSIC);
- 		else
--			mstateen_val &= ~(SMSTATEEN0_AIA | SMSTATEEN0_SVSLCT |
--					SMSTATEEN0_IMSIC);
-+			mstateen_val &= ~(SMSTATEEN0_AIA | SMSTATEEN0_IMSIC);
-+
-+		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA) ||
-+		    sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCSRIND))
-+			mstateen_val |= (SMSTATEEN0_SVSLCT);
-+		else
-+			mstateen_val &= ~(SMSTATEEN0_SVSLCT);
-+
- 		csr_write(CSR_MSTATEEN0, mstateen_val);
- #if __riscv_xlen == 32
- 		csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
-@@ -129,6 +134,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 		__set_menvcfg_ext(SBI_HART_EXT_SVPBMT, ENVCFG_PBMTE)
- #endif
- 		__set_menvcfg_ext(SBI_HART_EXT_SSTC, ENVCFG_STCE)
-+		__set_menvcfg_ext(SBI_HART_EXT_SMCDELEG, ENVCFG_CDE);
- 
- #undef __set_menvcfg_ext
- 
-@@ -658,6 +664,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(zicbom, SBI_HART_EXT_ZICBOM),
- 	__SBI_HART_EXT_DATA(svpbmt, SBI_HART_EXT_SVPBMT),
- 	__SBI_HART_EXT_DATA(sdtrig, SBI_HART_EXT_SDTRIG),
-+	__SBI_HART_EXT_DATA(smcsrind, SBI_HART_EXT_SMCSRIND),
-+	__SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
- };
- 
- /**
--- 
-2.34.1
+Regards,
+Xiang W
+> +
+> +#define TEST_CONSOLE_BUF_LEN 1024
+> +
+> +static const struct sbi_console_device *old_dev;
+> +static char test_console_buf[TEST_CONSOLE_BUF_LEN];
+> +static u32 test_console_buf_pos;
+> +
+> +static void test_console_putc(char c)
+> +{
+> +	test_console_buf[test_console_buf_pos] = c;
+> +	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
+> +}
+> +
+> +static void clear_test_console_buf(void)
+> +{
+> +	test_console_buf_pos = 0;
+> +	test_console_buf[0] = '\0';
+> +}
+> +
+> +static const struct sbi_console_device new_dev = {
+> +	.name = "Test console device",
+> +	.console_putc = test_console_putc,
+> +};
+> +
+> +/* Mock the console device */
+> +static inline void test_console_begin(const struct sbi_console_device *device)
+> +{
+> +	old_dev = console_dev;
+> +	console_dev = device;
+> +}
+> +
+> +static inline void test_console_end(void)
+> +{
+> +	console_dev = old_dev;
+> +}
+> +
+> +static void putc_test(struct sbiunit_test_case *test)
+> +{
+> +	clear_test_console_buf();
+> +
+> +	test_console_begin(&new_dev);
+> +	sbi_putc('a');
+> +	test_console_end();
+> +	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
+> +}
+> +
+> +#define PUTS_TEST(test, expected, str) do {			\
+> +	clear_test_console_buf();				\
+> +	test_console_begin(&new_dev);				\
+> +	sbi_puts(str);						\
+> +	test_console_end();					\
+> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
+> +			???? sbi_strlen(expected));		\
+> +} while (0)
+> +
+> +static void puts_test(struct sbiunit_test_case *test)
+> +{
+> +	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
+> +	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
+> +}
+> +
+> +#define PRINTF_TEST(test, expected, format, ...) do {		\
+> +	clear_test_console_buf();				\
+> +	test_console_begin(&new_dev);				\
+> +	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
+> +	test_console_end();					\
+> +	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
+> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
+> +			???? sbi_strlen(expected));		\
+> +} while (0)
+> +
+> +static void printf_test(struct sbiunit_test_case *test)
+> +{
+> +	PRINTF_TEST(test, "Hello", "Hello");
+> +	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
+> +	PRINTF_TEST(test, "Hello", "%s", "Hello");
+> +	PRINTF_TEST(test, "-1", "%d", -1);
+> +	PRINTF_TEST(test, "FF", "%X", 255);
+> +	PRINTF_TEST(test, "ff", "%x", 255);
+> +	PRINTF_TEST(test, "A", "%c", 'A');
+> +	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
+> +	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
+> +	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
+> +	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
+> +	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
+> +}
+> +
+> +static struct sbiunit_test_case console_test_cases[] = {
+> +	SBIUNIT_TEST_CASE(putc_test),
+> +	SBIUNIT_TEST_CASE(puts_test),
+> +	SBIUNIT_TEST_CASE(printf_test),
+> +	{},
+> +};
+> +
+> +SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
+> -- 
+> 2.34.1
+> 
+> 
 
 
