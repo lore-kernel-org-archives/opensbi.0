@@ -1,182 +1,89 @@
-From: Xiang W <wxjstz@126.com>
-Date: Sun, 18 Feb 2024 13:34:02 +0800
+From: Ivan Orlov <ivan.orlov0322@gmail.com>
+Date: Sun, 18 Feb 2024 20:54:28 +0000
 Subject: [PATCH v2 5/5] lib: tests: Add sbi_console test
-In-Reply-To: <20240215161625.314131-6-ivan.orlov0322@gmail.com>
+In-Reply-To: <b55c0465e280bbd774f21ba3937ced5bb4c66cf7.camel@126.com>
 References: <20240215161625.314131-1-ivan.orlov0322@gmail.com>
-	 <20240215161625.314131-6-ivan.orlov0322@gmail.com>
-Message-ID: <b55c0465e280bbd774f21ba3937ced5bb4c66cf7.camel@126.com>
+ <20240215161625.314131-6-ivan.orlov0322@gmail.com>
+ <b55c0465e280bbd774f21ba3937ced5bb4c66cf7.camel@126.com>
+Message-ID: <f89b60f4-5cfc-45cd-acba-944543632530@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-02-15???? 16:16 +0000?Ivan Orlov???
-> Add the test suite covering some of the functions from
-> lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
-> of format specifiers for printf and different strings and characters for
-> putc and puts.
+On 2/18/24 05:34, Xiang W wrote:
+> ? 2024-02-15???? 16:16 +0000?Ivan Orlov???
+>> Add the test suite covering some of the functions from
+>> lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
+>> of format specifiers for printf and different strings and characters for
+>> putc and puts.
+>>
+>> In order to do that, the test "mocks" the sbi_console_device structure
+>> by setting the 'console_dev' variable to the virtual console.
+>>
+>> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+>> ---
+>> V1 -> V2:
+>> - Rewrite using the carray functionality
+>> - Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
+>> functions: one of them "mocks" the default console device, and
+>> the second one restores the old console device.
+>> - Fix codestyle issues (comments, etc.)
+>> - Remove incorrect 'puts' test
+>> - Use updated SBIUNIT_ASSERT_STREQ API
+>>
+>>  ?lib/sbi/objects.mk???????? |?? 1 +
+>>  ?lib/sbi/sbi_console.c????? |?? 4 ++
+>>  ?lib/sbi/sbi_console_test.c | 102 +++++++++++++++++++++++++++++++++++++
+>>  ?3 files changed, 107 insertions(+)
+>>  ?create mode 100644 lib/sbi/sbi_console_test.c
+>>
+>> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+>> index b4c273f..9d065fa 100644
+>> --- a/lib/sbi/objects.mk
+>> +++ b/lib/sbi/objects.mk
+>> @@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+>>   
+>>  ?libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+>>  ?carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
+>> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+>>   
+>>  ?libsbi-objs-y += sbi_ecall.o
+>>  ?libsbi-objs-y += sbi_ecall_exts.o
+>> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+>> index ab09a5c..d1229d0 100644
+>> --- a/lib/sbi/sbi_console.c
+>> +++ b/lib/sbi/sbi_console.c
+>> @@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
+>>   
+>>  ?	return rc;
+>>  ?}
+>> +
+>> +#ifdef CONFIG_SBIUNIT
+>> +#include "sbi_console_test.c"
+>> +#endif
+>> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
+>> new file mode 100644
+>> index 0000000..f24b329
+>> --- /dev/null
+>> +++ b/lib/sbi/sbi_console_test.c
+>> @@ -0,0 +1,102 @@
+>> +/*
+>> + * SPDX-License-Identifier: BSD-2-Clause
+>> + *
+>> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+>> + */
+>> +#include <sbi/sbi_unit_test.h>
+>> +#include <sbi/sbi_heap.h>
 > 
-> In order to do that, the test "mocks" the sbi_console_device structure
-> by setting the 'console_dev' variable to the virtual console.
+> sbi_heap.h is not needed.
 > 
-> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-> ---
-> V1 -> V2:
-> - Rewrite using the carray functionality
-> - Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
-> functions: one of them "mocks" the default console device, and
-> the second one restores the old console device.
-> - Fix codestyle issues (comments, etc.)
-> - Remove incorrect 'puts' test
-> - Use updated SBIUNIT_ASSERT_STREQ API
-> 
-> ?lib/sbi/objects.mk???????? |?? 1 +
-> ?lib/sbi/sbi_console.c????? |?? 4 ++
-> ?lib/sbi/sbi_console_test.c | 102 +++++++++++++++++++++++++++++++++++++
-> ?3 files changed, 107 insertions(+)
-> ?create mode 100644 lib/sbi/sbi_console_test.c
-> 
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index b4c273f..9d065fa 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
-> ?
-> ?libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
-> ?carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
-> ?
-> ?libsbi-objs-y += sbi_ecall.o
-> ?libsbi-objs-y += sbi_ecall_exts.o
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index ab09a5c..d1229d0 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
-> ?
-> ?	return rc;
-> ?}
-> +
-> +#ifdef CONFIG_SBIUNIT
-> +#include "sbi_console_test.c"
-> +#endif
-> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
-> new file mode 100644
-> index 0000000..f24b329
-> --- /dev/null
-> +++ b/lib/sbi/sbi_console_test.c
-> @@ -0,0 +1,102 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
-> + */
-> +#include <sbi/sbi_unit_test.h>
-> +#include <sbi/sbi_heap.h>
 
-sbi_heap.h is not needed.
+Thanks, I'll fix it in V3.
 
-Regards,
-Xiang W
-> +
-> +#define TEST_CONSOLE_BUF_LEN 1024
-> +
-> +static const struct sbi_console_device *old_dev;
-> +static char test_console_buf[TEST_CONSOLE_BUF_LEN];
-> +static u32 test_console_buf_pos;
-> +
-> +static void test_console_putc(char c)
-> +{
-> +	test_console_buf[test_console_buf_pos] = c;
-> +	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
-> +}
-> +
-> +static void clear_test_console_buf(void)
-> +{
-> +	test_console_buf_pos = 0;
-> +	test_console_buf[0] = '\0';
-> +}
-> +
-> +static const struct sbi_console_device new_dev = {
-> +	.name = "Test console device",
-> +	.console_putc = test_console_putc,
-> +};
-> +
-> +/* Mock the console device */
-> +static inline void test_console_begin(const struct sbi_console_device *device)
-> +{
-> +	old_dev = console_dev;
-> +	console_dev = device;
-> +}
-> +
-> +static inline void test_console_end(void)
-> +{
-> +	console_dev = old_dev;
-> +}
-> +
-> +static void putc_test(struct sbiunit_test_case *test)
-> +{
-> +	clear_test_console_buf();
-> +
-> +	test_console_begin(&new_dev);
-> +	sbi_putc('a');
-> +	test_console_end();
-> +	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
-> +}
-> +
-> +#define PUTS_TEST(test, expected, str) do {			\
-> +	clear_test_console_buf();				\
-> +	test_console_begin(&new_dev);				\
-> +	sbi_puts(str);						\
-> +	test_console_end();					\
-> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
-> +			???? sbi_strlen(expected));		\
-> +} while (0)
-> +
-> +static void puts_test(struct sbiunit_test_case *test)
-> +{
-> +	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
-> +	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
-> +}
-> +
-> +#define PRINTF_TEST(test, expected, format, ...) do {		\
-> +	clear_test_console_buf();				\
-> +	test_console_begin(&new_dev);				\
-> +	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
-> +	test_console_end();					\
-> +	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
-> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
-> +			???? sbi_strlen(expected));		\
-> +} while (0)
-> +
-> +static void printf_test(struct sbiunit_test_case *test)
-> +{
-> +	PRINTF_TEST(test, "Hello", "Hello");
-> +	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
-> +	PRINTF_TEST(test, "Hello", "%s", "Hello");
-> +	PRINTF_TEST(test, "-1", "%d", -1);
-> +	PRINTF_TEST(test, "FF", "%X", 255);
-> +	PRINTF_TEST(test, "ff", "%x", 255);
-> +	PRINTF_TEST(test, "A", "%c", 'A');
-> +	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
-> +	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
-> +	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
-> +	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
-> +	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
-> +}
-> +
-> +static struct sbiunit_test_case console_test_cases[] = {
-> +	SBIUNIT_TEST_CASE(putc_test),
-> +	SBIUNIT_TEST_CASE(puts_test),
-> +	SBIUNIT_TEST_CASE(printf_test),
-> +	{},
-> +};
-> +
-> +SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
-> -- 
-> 2.34.1
-> 
-> 
+-- 
+Kind regards,
+Ivan Orlov
 
 
