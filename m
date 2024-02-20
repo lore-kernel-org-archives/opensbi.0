@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 20 Feb 2024 16:12:47 +0530
-Subject: [PATCH v3 2/4] docs: Add OpenSBI DT configuration guide.
-In-Reply-To: <tencent_5F0F58AA15AB481BB7126486C4FCA38FEC07@qq.com>
-References: <20240208031434.3201705-1-yangcheng.work@foxmail.com> <tencent_5F0F58AA15AB481BB7126486C4FCA38FEC07@qq.com>
-Message-ID: <CAAhSdy1jnyUaEciobDRKAVgnffGrjj+BVUyFC2U7bunshQv6XQ@mail.gmail.com>
+Date: Tue, 20 Feb 2024 16:13:52 +0530
+Subject: [PATCH v3 3/4] platform: generic: Parse system suspend test from
+ config node.
+In-Reply-To: <tencent_BAE2CFD156362A6CF8CA52A4825B12727E06@qq.com>
+References: <20240208031434.3201705-1-yangcheng.work@foxmail.com> <tencent_BAE2CFD156362A6CF8CA52A4825B12727E06@qq.com>
+Message-ID: <CAAhSdy2xmb50fUU8UL4-nuuzUCWgaeYi4U0_Eu+Hrv2yD_wykw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,13 +13,12 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Feb 8, 2024 at 8:50?AM Cheng Yang <yangcheng.work@foxmail.com> wrote:
 >
-> This patch add docs/opensbi_config.md which describes the
-> "/chosen/opensbi-config" DT node and properties
+> This patch update generic_domains_init() so that "system-suspend-test"
+> is parsed from "/chosen/opensbi-config" DT node.
 >
 > Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
 
-The docs/opensbi_config.md needs to be added to docs/doxygen.cfg otherwise
-it looks good to me.
+LGTM.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -28,99 +28,22 @@ Thanks,
 Anup
 
 > ---
->  docs/opensbi_config.md | 83 ++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 83 insertions(+)
->  create mode 100644 docs/opensbi_config.md
+>  platform/generic/platform.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/docs/opensbi_config.md b/docs/opensbi_config.md
-> new file mode 100644
-> index 0000000..0c42443
-> --- /dev/null
-> +++ b/docs/opensbi_config.md
-> @@ -0,0 +1,83 @@
-> +OpenSBI Device Tree Configuration Guideline
-> +==================================
-> +
-> +Some configurations of OpenSBI's Generic Platform can be described
-> +in the **device tree (DT) blob** (or flattened device tree) passed
-> +to the OpenSBI firmwares by the previous booting stage. OpenSBI will
-> +parse and use these configurations during the boot phase, but delete
-> +them from the device tree at the end of cold boot.
-> +
-> +### OpenSBI Configuration Node
-> +
-> +All nodes related to OpenSBI configuration should be under the OpenSBI
-> +configuration DT node. The **/chosen** DT node is the preferred parent
-> +of the OpenSBI configuration DT node.
-> +
-> +The DT properties of a domain configuration DT node are as follows:
-> +
-> +* **compatible** (Mandatory) - The compatible string of the OpenSBI
-> +  configuration. This DT property should have value *"opensbi,config"*
-> +
-> +* **cold-boot-harts** (Optional) - If a platform lacks an override
-> +  cold_boot_allowed() mechanism, this DT property specifies that a
-> +  set of harts is permitted to perform a cold boot. Otherwise, all
-> +  harts are allowed to cold boot.
-> +
-> +The OpenSBI Configuration Node will be deleted at the end of cold boot
-> +(replace the node (subtree) with nop tags).
-> +
-> +### Example
-> +
-> +```text
-> +    chosen {
-> +        opensbi-config {
-> +            compatible = "opensbi,config";
-> +            cold-boot-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
-> +        };
-> +    };
-> +
-> +    cpus {
-> +        #address-cells = <1>;
-> +        #size-cells = <0>;
-> +        timebase-frequency = <10000000>;
-> +
-> +        cpu0: cpu at 0 {
-> +            device_type = "cpu";
-> +            reg = <0x00>;
-> +            compatible = "riscv";
-> +            ...
-> +        };
-> +
-> +        cpu1: cpu at 1 {
-> +            device_type = "cpu";
-> +            reg = <0x01>;
-> +            compatible = "riscv";
-> +            ...
-> +        };
-> +
-> +        cpu2: cpu at 2 {
-> +            device_type = "cpu";
-> +            reg = <0x02>;
-> +            compatible = "riscv";
-> +            ...
-> +        };
-> +
-> +        cpu3: cpu at 3 {
-> +            device_type = "cpu";
-> +            reg = <0x03>;
-> +            compatible = "riscv";
-> +            ...
-> +        };
-> +
-> +        cpu4: cpu at 4 {
-> +            device_type = "cpu";
-> +            reg = <0x04>;
-> +            compatible = "riscv";
-> +            ...
-> +        };
-> +    };
-> +
-> +    uart1: serial at 10011000 {
-> +        ...
-> +    };
-> +```
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 5f76193..407d5b1 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -316,7 +316,7 @@ static int generic_domains_init(void)
+>
+>         if (offset >= 0) {
+>                 offset = fdt_node_offset_by_compatible(fdt, offset,
+> -                                                      "opensbi,domain,config");
+> +                                                      "opensbi,config");
+>                 if (offset >= 0 &&
+>                     fdt_get_property(fdt, offset, "system-suspend-test", NULL))
+>                         sbi_system_suspend_test_enable();
 > --
 > 2.34.1
 >
