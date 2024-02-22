@@ -1,69 +1,78 @@
-From: Nam Cao <namcao@linutronix.de>
-Date: Thu, 22 Feb 2024 09:16:19 +0100
-Subject: [PATCH v5 6/6] platform: starfive: call starfive_jh7110_inst_init() in pm_reset_init()
-In-Reply-To: <20240222081619.275869-1-namcao@linutronix.de>
-References: <20240222081619.275869-1-namcao@linutronix.de>
-Message-ID: <20240222081619.275869-7-namcao@linutronix.de>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 22 Feb 2024 17:18:38 +0800
+Subject: [PATCH] platform: andes: Drop andes_pmu_setup()
+Message-ID: <20240222091838.182184-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The function starfive_jh7110_inst_init() initialize some power
-management unit address and clock addresses, needed for the reset
-driver. It doesn't do anything else, and also the reset driver doesn't
-work without calling this function. Thus, it does not make much sense
-that this function is independent from pm_reset_init().
+andes_pmu_setup() [1] was intended to populate event mapping from
+hardcoded arrays, however, this increases firmware size and we should
+just use PMU DT node [2] instead.
 
-Delete the separate call to starfive_jh7110_inst_init(), and instead
-just call this function inside pm_reset_init().
-
-Doing this also fixes another problem: if starfive_jh7110_inst_init()
-returns an error code, it gets propagated to final_init() and OpenSBI
-hangs. This hang is not necessary, because failures within
-starfive_jh7110_inst_init() only mean OpenSBI cannot perform reboot or
-shutdown, but the system can still function normally.
-
-Signed-off-by: Nam Cao <namcao@linutronix.de>
-Tested-by: Minda Chen <minda.chen@starfivetech.com>
+Link: https://lists.infradead.org/pipermail/opensbi/2023-November/006032.html [1]
+Link: https://github.com/riscv-software-src/opensbi/blob/v1.4/docs/pmu_support.md#example-3 [2]
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
- platform/generic/starfive/jh7110.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ platform/generic/andes/andes_pmu.c         | 12 ------------
+ platform/generic/include/andes/andes_hpm.h | 12 ------------
+ 2 files changed, 24 deletions(-)
+ delete mode 100644 platform/generic/include/andes/andes_hpm.h
 
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index 6990425..c25e645 100644
---- a/platform/generic/starfive/jh7110.c
-+++ b/platform/generic/starfive/jh7110.c
-@@ -190,6 +190,8 @@ static struct sbi_system_reset_device pm_reset = {
- 	.system_reset = pm_system_reset
- };
+diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
+index 4b2d45b..479fb9a 100644
+--- a/platform/generic/andes/andes_pmu.c
++++ b/platform/generic/andes/andes_pmu.c
+@@ -6,7 +6,6 @@
+  */
  
-+static int starfive_jh7110_inst_init(void *fdt);
-+
- static int pm_reset_init(void *fdt, int nodeoff,
- 			 const struct fdt_match *match)
+ #include <andes/andes45.h>
+-#include <andes/andes_hpm.h>
+ #include <andes/andes_pmu.h>
+ #include <sbi/sbi_bitops.h>
+ #include <sbi/sbi_error.h>
+@@ -86,20 +85,9 @@ int andes_pmu_extensions_init(const struct fdt_match *match,
+ int andes_pmu_init(const struct fdt_match *match)
  {
-@@ -215,6 +217,10 @@ static int pm_reset_init(void *fdt, int nodeoff,
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+-	void *fdt = fdt_get_address();
+-	int pmu_offset;
  
- 	pmic_inst.adapter = adapter;
+ 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
+ 		sbi_pmu_set_device(&andes_pmu);
  
-+	rc = starfive_jh7110_inst_init(fdt);
-+	if (rc)
-+		return rc;
-+
- 	sbi_system_reset_add_device(&pm_reset);
- 
+-	/*
+-	 * Populate default mappings if device-tree doesn't
+-	 * provide a valid pmu node.
+-	 */
+-	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
+-	if (pmu_offset < 0)
+-		return (pmu_offset == -FDT_ERR_NOTFOUND) ? andes_pmu_setup()
+-							 : SBI_EFAIL;
+-
  	return 0;
-@@ -278,7 +284,6 @@ static int starfive_jh7110_final_init(bool cold_boot,
- 
- 	if (cold_boot) {
- 		fdt_reset_driver_init(fdt, &fdt_reset_pmic);
--		return starfive_jh7110_inst_init(fdt);
- 	}
- 
- 	return 0;
+ }
+diff --git a/platform/generic/include/andes/andes_hpm.h b/platform/generic/include/andes/andes_hpm.h
+deleted file mode 100644
+index b4d71b9..0000000
+--- a/platform/generic/include/andes/andes_hpm.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/*
+- * SPDX-License-Identifier: BSD-2-Clause
+- *
+- * Copyright (c) 2023 Andes Technology Corporation
+- */
+-
+-#ifndef _ANDES_HPM_H_
+-#define _ANDES_HPM_H_
+-
+-static inline int andes_pmu_setup(void) { return 0; }
+-
+-#endif /* _ANDES_HPM_H_ */
 -- 
-2.39.2
+2.34.1
 
 
