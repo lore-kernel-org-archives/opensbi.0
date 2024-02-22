@@ -1,78 +1,56 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 22 Feb 2024 17:18:38 +0800
-Subject: [PATCH] platform: andes: Drop andes_pmu_setup()
-Message-ID: <20240222091838.182184-1-peterlin@andestech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 22 Feb 2024 18:25:37 +0530
+Subject: [PATCH v5 0/6] starfive reboot cleanup & fix
+In-Reply-To: <20240222081619.275869-1-namcao@linutronix.de>
+References: <20240222081619.275869-1-namcao@linutronix.de>
+Message-ID: <CAAhSdy0M_pGXptDY7RgVSuQdv=PF-ZyLpHHqe8RVnzP6NR8ddA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-andes_pmu_setup() [1] was intended to populate event mapping from
-hardcoded arrays, however, this increases firmware size and we should
-just use PMU DT node [2] instead.
+On Thu, Feb 22, 2024 at 1:46?PM Nam Cao <namcao@linutronix.de> wrote:
+>
+> This series:
+>  - Rename device tree compatible strings to match U-Boot
+>  - Fix code that extract I2C address from device tree
+>  - Cleanup
+>
+> v5:
+>  - Collect reviewed-by and tested-by tags
+>  - squash 2 commits:
+>      platform: starfive: remove redundant compatibility check in pmic_ops
+>      platform: starfive: drop "compatible" from struct pmic
+>
+>
+> Nam Cao (6):
+>   platform: starfive: correct system clock device tree node
+>   platform: starfive: get I2C offset address from clocks property
+>   platform: starfive: remove redundant compatibility check in pmic_ops
+>   platform: starfive: rename "stf,axp15060-regulator" ->
+>     "x-powers,axp15060"
+>   platform: starfive: return error if needed devices are not present
+>   platform: starfive: call starfive_jh7110_inst_init() in
+>     pm_reset_init()
 
-Link: https://lists.infradead.org/pipermail/opensbi/2023-November/006032.html [1]
-Link: https://github.com/riscv-software-src/opensbi/blob/v1.4/docs/pmu_support.md#example-3 [2]
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
----
- platform/generic/andes/andes_pmu.c         | 12 ------------
- platform/generic/include/andes/andes_hpm.h | 12 ------------
- 2 files changed, 24 deletions(-)
- delete mode 100644 platform/generic/include/andes/andes_hpm.h
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
-index 4b2d45b..479fb9a 100644
---- a/platform/generic/andes/andes_pmu.c
-+++ b/platform/generic/andes/andes_pmu.c
-@@ -6,7 +6,6 @@
-  */
- 
- #include <andes/andes45.h>
--#include <andes/andes_hpm.h>
- #include <andes/andes_pmu.h>
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_error.h>
-@@ -86,20 +85,9 @@ int andes_pmu_extensions_init(const struct fdt_match *match,
- int andes_pmu_init(const struct fdt_match *match)
- {
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
--	void *fdt = fdt_get_address();
--	int pmu_offset;
- 
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
- 		sbi_pmu_set_device(&andes_pmu);
- 
--	/*
--	 * Populate default mappings if device-tree doesn't
--	 * provide a valid pmu node.
--	 */
--	pmu_offset = fdt_node_offset_by_compatible(fdt, -1, "riscv,pmu");
--	if (pmu_offset < 0)
--		return (pmu_offset == -FDT_ERR_NOTFOUND) ? andes_pmu_setup()
--							 : SBI_EFAIL;
--
- 	return 0;
- }
-diff --git a/platform/generic/include/andes/andes_hpm.h b/platform/generic/include/andes/andes_hpm.h
-deleted file mode 100644
-index b4d71b9..0000000
---- a/platform/generic/include/andes/andes_hpm.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/*
-- * SPDX-License-Identifier: BSD-2-Clause
-- *
-- * Copyright (c) 2023 Andes Technology Corporation
-- */
--
--#ifndef _ANDES_HPM_H_
--#define _ANDES_HPM_H_
--
--static inline int andes_pmu_setup(void) { return 0; }
--
--#endif /* _ANDES_HPM_H_ */
--- 
-2.34.1
+Applied this series to the riscv/opensbi repo.
 
+Thanks,
+Anup
+
+>
+>  platform/generic/starfive/jh7110.c | 71 ++++++++++++++++--------------
+>  1 file changed, 38 insertions(+), 33 deletions(-)
+>
+> --
+> 2.39.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
