@@ -1,167 +1,46 @@
 From: Inochi Amaoto <inochiama@outlook.com>
-Date: Fri, 23 Feb 2024 15:37:34 +0800
-Subject: [PATCH 1/4] firmware: Add relocatable FW_JUMP_ADDR and
- FW_JUMP_FDT_ADDR
-In-Reply-To: <CAAhSdy0eD+gMJk6nuWy2Rs-NLYDpsKHB25jU_+pN9ZUteHc0qg@mail.gmail.com>
-References: <IA1PR20MB495352218C0BF2CE8D86B3B9BB422@IA1PR20MB4953.namprd20.prod.outlook.com>
- <IA1PR20MB4953C326B2BADDFFAB32987BBB422@IA1PR20MB4953.namprd20.prod.outlook.com>
- <CAAhSdy3y7x5gorsW9LKpLS0ucYrOmse4-v8HwgqYnD8r9iKP5Q@mail.gmail.com>
- <IA1PR20MB49538587A5ECDF140EDD4613BB552@IA1PR20MB4953.namprd20.prod.outlook.com>
- <CAAhSdy0eD+gMJk6nuWy2Rs-NLYDpsKHB25jU_+pN9ZUteHc0qg@mail.gmail.com>
-Message-ID: <IA1PR20MB4953E1883A2CE65DFE459F0CBB552@IA1PR20MB4953.namprd20.prod.outlook.com>
+Date: Fri, 23 Feb 2024 16:17:20 +0800
+Subject: [PATCH v2 0/4] Add relocatable address support for jump and payload firmware
+Message-ID: <IA1PR20MB495379ECC11096AEEBC4C691BB552@IA1PR20MB4953.namprd20.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 23, 2024 at 12:59:30PM +0530, Anup Patel wrote:
-> On Fri, Feb 23, 2024 at 12:51?PM Inochi Amaoto <inochiama@outlook.com> wrote:
-> >
-> > On Fri, Feb 23, 2024 at 10:28:49AM +0530, Anup Patel wrote:
-> > > On Fri, Feb 2, 2024 at 9:35?AM Inochi Amaoto <inochiama@outlook.com> wrote:
-> > > >
-> > > > If FW_PIC=y is defined, the fw_jump.bin will be broken if
-> > > > FW_TEXT_START is wrong. This is not the desired behavior.
-> > >
-> > > We should support FW_JUMP_OFFSET, irrespective of whether
-> > > FW_PIC is defined or not.
-> > >
-> >
-> > In fact, this patch allows to use FW_JUMP_OFFSET when FW_PIC=n.
-> > But It will expand to FW_JUMP_ADDR to use old path.
-> > I think your meaning is to drop this expansion and using
-> > FW_JUMP_OFFSET directly, right?
-> 
-> Yes, FW_JUMP_ADDR should not be derived from FW_JUMP_OFFSET
-> so that platforms can specify any one.
-> 
+If FW_PIC=y is defined, the jump and payload firmware and will
+be broken if FW_TEXT_START is wrong. This is not the desired behavior.
 
-Thanks. I will support this.
+Add some new variable to support relocatable address.
 
-> > I use this code path because of the binary size, but I am not
-> > sure which way is better. Is using OFFSET code path better?
-> >
-> > > >
-> > > > Add two new variables to identify relocatable jump address:
-> > > > FW_JUMP_OFFSET and FW_JUMP_FDT_ADDR. To keep the existing
-> > > > ABI, FW_JUMP_ADDR and FW_JUMP_FDT_ADDR is prefered if they
-> > > > are defined. And these two new variables will convert to
-> > > > the old one if compiler does not support PIC.
-> > > >
-> > > > Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-> > > > ---
-> > > >  firmware/fw_jump.S  | 20 ++++++++++++++++----
-> > > >  firmware/objects.mk | 15 +++++++++++++++
-> > > >  2 files changed, 31 insertions(+), 4 deletions(-)
-> > > >
-> > > > diff --git a/firmware/fw_jump.S b/firmware/fw_jump.S
-> > > > index ac74dc6..0ad2398 100644
-> > > > --- a/firmware/fw_jump.S
-> > > > +++ b/firmware/fw_jump.S
-> > > > @@ -46,6 +46,10 @@ fw_save_info:
-> > > >  fw_next_arg1:
-> > > >  #ifdef FW_JUMP_FDT_ADDR
-> > > >         li      a0, FW_JUMP_FDT_ADDR
-> > > > +#elif defined(FW_JUMP_FDT_OFFSET)
-> > > > +       lla     a0, _fw_start
-> > > > +       li      a1, FW_JUMP_FDT_OFFSET
-> > > > +       add     a0, a0, a1
-> > > >  #else
-> > > >         add     a0, a1, zero
-> > > >  #endif
-> > > > @@ -59,7 +63,13 @@ fw_next_arg1:
-> > > >          * The next address should be returned in 'a0'.
-> > > >          */
-> > > >  fw_next_addr:
-> > > > +#ifdef FW_JUMP_ADDR
-> > > >         lla     a0, _jump_addr
-> > > > +#elif defined(FW_JUMP_OFFSET)
-> > > > +       lla     a0, _fw_start
-> > > > +       li      a1, FW_JUMP_OFFSET
-> > > > +       add     a0, a0, a1
-> > >
-> > > What if both FW_JUMP_ADDR and FW_JUMP_OFFSET are not available ?
-> > >
-> >
-> > The build will failed, see the change in the below.
-> >
-> > > > +#endif
-> > > >         REG_L   a0, (a0)
-> > > >         ret
-> > > >
-> > > > @@ -86,11 +96,13 @@ fw_options:
-> > > >         add     a0, zero, zero
-> > > >         ret
-> > > >
-> > > > -#ifndef FW_JUMP_ADDR
-> > > > -#error "Must define FW_JUMP_ADDR"
-> > > > -#endif
-> > > > -
-> > > > +#ifdef FW_JUMP_ADDR
-> > > >         .section .rodata
-> > > >         .align 3
-> > > >  _jump_addr:
-> > > >         RISCV_PTR FW_JUMP_ADDR
-> > > > +#else
-> > > > +#ifndef FW_JUMP_OFFSET
-> > > > +#error "Must define at least FW_JUMP_ADDR or FW_JUMP_OFFSET"
-> > > > +#endif
-> > > > +#endif
-> > > > diff --git a/firmware/objects.mk b/firmware/objects.mk
-> > > > index a1704c4..248706d 100644
-> > > > --- a/firmware/objects.mk
-> > > > +++ b/firmware/objects.mk
-> > > > @@ -35,12 +35,27 @@ firmware-genflags-y += -DFW_FDT_PADDING=$(FW_FDT_PADDING)
-> > > >  endif
-> > > >  endif
-> > > >
-> > > > +ifeq ($(FW_PIC),n)
-> > >
-> > > Let's not condition this upon FW_PIC.
-> > >
-> > > Instead this should be:
-> > >
-> > > ifdef FW_JUMP_OFFSET
-> > >
-> >
-> > This is already included in the change below, If it supports
-> > FW_PIC=n, this should be removed.
-> 
-> Lets just remove this ifeq block so that FW_JUMP_ADDR is
-> totally independent of FW_JUMP_OFFSET.
-> 
-> >
-> > > > +  ifndef FW_JUMP_ADDR
-> > > > +    FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + $(FW_JUMP_OFFSET))))
-> > > > +  endif
-> > > > +  ifndef FW_JUMP_FDT_ADDR
-> > > > +    FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + $(FW_JUMP_FDT_OFFSET))))
-> > > > +  endif
-> > > > +endif
-> > > > +
-> > > >  firmware-bins-$(FW_DYNAMIC) += fw_dynamic.bin
-> > > >
-> > > >  firmware-bins-$(FW_JUMP) += fw_jump.bin
-> > > > +ifdef FW_JUMP_OFFSET
-> > > > +firmware-genflags-$(FW_JUMP) += -DFW_JUMP_OFFSET=$(FW_JUMP_OFFSET)
-> > > > +endif
-> > > >  ifdef FW_JUMP_ADDR
-> > > >  firmware-genflags-$(FW_JUMP) += -DFW_JUMP_ADDR=$(FW_JUMP_ADDR)
-> > > >  endif
-> > > > +ifdef FW_JUMP_FDT_OFFSET
-> > > > +firmware-genflags-$(FW_JUMP) += -DFW_JUMP_FDT_OFFSET=$(FW_JUMP_FDT_OFFSET)
-> > > > +endif
-> > > >  ifdef FW_JUMP_FDT_ADDR
-> > > >  firmware-genflags-$(FW_JUMP) += -DFW_JUMP_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
-> > > >  endif
-> > > > --
-> > > > 2.43.0
-> > > >
-> > >
-> > > Regards,
-> > > Anup
-> 
-> Regards,
-> Anup
+build command:
+make BUILD_INFO=y DEBUG=1 FW_PIC=y PLATFORM=generic FW_TEXT_START=0x0
+
+test command:
+qemu-system-riscv64 -smp cpus=4 -M virt -m 256M \
+  -bios build/platform/generic/firmware/fw_payload.bin
+
+Changed from v1:
+1. allow to use <X>_OFFSET when FW_PIC=n
+2. fix wrong fw_next_address when using offset address.
+
+Inochi Amaoto (4):
+  firmware: Add relocatable FW_JUMP_ADDR and FW_JUMP_FDT_ADDR
+  firmware: Add relocatable FW_PAYLOAD_FDT_ADDR
+  platform: Apply relocatable address
+  doc/firmware: add new configuration options for jump and payload
+    firmware
+
+ docs/firmware/fw_jump.md     | 17 ++++++++++++++---
+ docs/firmware/fw_payload.md  |  6 ++++++
+ firmware/fw_jump.S           | 18 ++++++++++++++----
+ firmware/fw_payload.S        |  4 ++++
+ firmware/objects.mk          |  9 +++++++++
+ platform/generic/objects.mk  |  8 ++++----
+ platform/template/objects.mk | 17 +++++++++++++++++
+ 7 files changed, 68 insertions(+), 11 deletions(-)
+
+--
+2.43.2
+
 
