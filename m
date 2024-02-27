@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 27 Feb 2024 12:01:29 +0530
-Subject: [PATCH v2 1/3] lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
-In-Reply-To: <1707130200-559404-2-git-send-email-ganboing@gmail.com>
-References: <1707130200-559404-1-git-send-email-ganboing@gmail.com> <1707130200-559404-2-git-send-email-ganboing@gmail.com>
-Message-ID: <CAAhSdy1Bnx7ZQB_NCdKAmi5ervuukg8k9=gkCvn77drNS0o2rA@mail.gmail.com>
+Date: Tue, 27 Feb 2024 12:01:35 +0530
+Subject: [PATCH v2 2/3] include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
+In-Reply-To: <1707130200-559404-3-git-send-email-ganboing@gmail.com>
+References: <1707130200-559404-1-git-send-email-ganboing@gmail.com> <1707130200-559404-3-git-send-email-ganboing@gmail.com>
+Message-ID: <CAAhSdy32+Pyig7q=szmJ-8G1-=mAtuEy=TSnrWSYM6DM8SO__Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,8 +13,17 @@ Content-Transfer-Encoding: 7bit
 On Mon, Feb 5, 2024 at 4:20?PM Bo Gan <ganboing@gmail.com> wrote:
 >
 > Signed-off-by: Bo Gan <ganboing@gmail.com>
+> ---
+>  include/sbi/{sbi_misaligned_ldst.h => sbi_trap_ldst.h} | 0
+>  lib/sbi/sbi_trap.c                                     | 2 +-
+>  lib/sbi/sbi_trap_ldst.c                                | 2 +-
+>  3 files changed, 2 insertions(+), 2 deletions(-)
+>  rename include/sbi/{sbi_misaligned_ldst.h => sbi_trap_ldst.h} (100%)
 
-LGTM.
+You need to rename __SBI_MISALIGNED_LDST_H__ in sbi_misaligned_ldst.h
+to __SBI_TRAP_LDST_H__
+
+Otherwise, it looks good to me.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -22,36 +31,37 @@ Regards,
 Anup
 
 
-> ---
->  lib/sbi/objects.mk                                 | 2 +-
->  lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 0
->  2 files changed, 1 insertion(+), 1 deletion(-)
->  rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (100%)
 >
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index 0a50e95..204dd6b 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -70,7 +70,6 @@ libsbi-objs-y += sbi_illegal_insn.o
->  libsbi-objs-y += sbi_init.o
->  libsbi-objs-y += sbi_ipi.o
->  libsbi-objs-y += sbi_irqchip.o
-> -libsbi-objs-y += sbi_misaligned_ldst.o
->  libsbi-objs-y += sbi_platform.o
->  libsbi-objs-y += sbi_pmu.o
->  libsbi-objs-y += sbi_dbtr.o
-> @@ -80,6 +79,7 @@ libsbi-objs-y += sbi_system.o
->  libsbi-objs-y += sbi_timer.o
->  libsbi-objs-y += sbi_tlb.o
->  libsbi-objs-y += sbi_trap.o
-> +libsbi-objs-y += sbi_trap_ldst.o
->  libsbi-objs-y += sbi_unpriv.o
->  libsbi-objs-y += sbi_expected_trap.o
->  libsbi-objs-y += sbi_cppc.o
-> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_trap_ldst.c
+> diff --git a/include/sbi/sbi_misaligned_ldst.h b/include/sbi/sbi_trap_ldst.h
 > similarity index 100%
-> rename from lib/sbi/sbi_misaligned_ldst.c
-> rename to lib/sbi/sbi_trap_ldst.c
+> rename from include/sbi/sbi_misaligned_ldst.h
+> rename to include/sbi/sbi_trap_ldst.h
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index dbf307c..145db4b 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -17,7 +17,7 @@
+>  #include <sbi/sbi_illegal_insn.h>
+>  #include <sbi/sbi_ipi.h>
+>  #include <sbi/sbi_irqchip.h>
+> -#include <sbi/sbi_misaligned_ldst.h>
+> +#include <sbi/sbi_trap_ldst.h>
+>  #include <sbi/sbi_pmu.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_timer.h>
+> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+> index aa512de..be9a394 100644
+> --- a/lib/sbi/sbi_trap_ldst.c
+> +++ b/lib/sbi/sbi_trap_ldst.c
+> @@ -11,7 +11,7 @@
+>  #include <sbi/riscv_encoding.h>
+>  #include <sbi/riscv_fp.h>
+>  #include <sbi/sbi_error.h>
+> -#include <sbi/sbi_misaligned_ldst.h>
+> +#include <sbi/sbi_trap_ldst.h>
+>  #include <sbi/sbi_pmu.h>
+>  #include <sbi/sbi_trap.h>
+>  #include <sbi/sbi_unpriv.h>
 > --
 > 2.7.4
 >
