@@ -1,68 +1,43 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 27 Feb 2024 12:01:35 +0530
-Subject: [PATCH v2 2/3] include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
-In-Reply-To: <1707130200-559404-3-git-send-email-ganboing@gmail.com>
-References: <1707130200-559404-1-git-send-email-ganboing@gmail.com> <1707130200-559404-3-git-send-email-ganboing@gmail.com>
-Message-ID: <CAAhSdy32+Pyig7q=szmJ-8G1-=mAtuEy=TSnrWSYM6DM8SO__Q@mail.gmail.com>
+From: cmax@mailbox.org <cmax@mailbox.org>
+Date: Tue, 27 Feb 2024 21:07:43 +0100
+Subject: [PATCH] lib: sbi_domain: Fix PMP condition for addresses
+Message-ID: <20240227200743.22661-1-cmax@mailbox.org>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 5, 2024 at 4:20?PM Bo Gan <ganboing@gmail.com> wrote:
->
-> Signed-off-by: Bo Gan <ganboing@gmail.com>
-> ---
->  include/sbi/{sbi_misaligned_ldst.h => sbi_trap_ldst.h} | 0
->  lib/sbi/sbi_trap.c                                     | 2 +-
->  lib/sbi/sbi_trap_ldst.c                                | 2 +-
->  3 files changed, 2 insertions(+), 2 deletions(-)
->  rename include/sbi/{sbi_misaligned_ldst.h => sbi_trap_ldst.h} (100%)
+From: max <cmax@mailbox.org>
 
-You need to rename __SBI_MISALIGNED_LDST_H__ in sbi_misaligned_ldst.h
-to __SBI_TRAP_LDST_H__
+In order to put an address/size into an NAPOT PMP region, the address
+needs to be aligned to the size shifted two to the right.
 
-Otherwise, it looks good to me.
+Example:
+fw_start: 0x80040000
+fw_size:  0x00040000
+PMP address: 0x80040000 | (0x00040000 >> 2)
+fw_size is valid, but not in the current implementation
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: max <cmax@mailbox.org>
+---
+ lib/sbi/sbi_domain.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-Anup
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 4e9f742..94ee717 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -749,7 +749,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 		return SBI_EINVAL;
+ 	}
+ 
+-	if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
++	if ((scratch->fw_start & ((scratch->fw_rw_offset >> 2) - 1)) != 0) {
+ 		sbi_printf("%s: fw_start and fw_rw_offset not aligned\n",
+ 			   __func__);
+ 		return SBI_EINVAL;
+-- 
+2.43.0
 
-
->
-> diff --git a/include/sbi/sbi_misaligned_ldst.h b/include/sbi/sbi_trap_ldst.h
-> similarity index 100%
-> rename from include/sbi/sbi_misaligned_ldst.h
-> rename to include/sbi/sbi_trap_ldst.h
-> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index dbf307c..145db4b 100644
-> --- a/lib/sbi/sbi_trap.c
-> +++ b/lib/sbi/sbi_trap.c
-> @@ -17,7 +17,7 @@
->  #include <sbi/sbi_illegal_insn.h>
->  #include <sbi/sbi_ipi.h>
->  #include <sbi/sbi_irqchip.h>
-> -#include <sbi/sbi_misaligned_ldst.h>
-> +#include <sbi/sbi_trap_ldst.h>
->  #include <sbi/sbi_pmu.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_timer.h>
-> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-> index aa512de..be9a394 100644
-> --- a/lib/sbi/sbi_trap_ldst.c
-> +++ b/lib/sbi/sbi_trap_ldst.c
-> @@ -11,7 +11,7 @@
->  #include <sbi/riscv_encoding.h>
->  #include <sbi/riscv_fp.h>
->  #include <sbi/sbi_error.h>
-> -#include <sbi/sbi_misaligned_ldst.h>
-> +#include <sbi/sbi_trap_ldst.h>
->  #include <sbi/sbi_pmu.h>
->  #include <sbi/sbi_trap.h>
->  #include <sbi/sbi_unpriv.h>
-> --
-> 2.7.4
->
 
