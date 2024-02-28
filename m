@@ -1,200 +1,191 @@
 From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Wed, 28 Feb 2024 16:01:41 +0000
-Subject: [PATCH v2 1/5] docs: Add documentation about tests and SBIUnit
-In-Reply-To: <20240228-82fb0c4b75bdfb2507c80100@orel>
+Date: Wed, 28 Feb 2024 16:12:13 +0000
+Subject: [PATCH v2 2/5] lib: Add SBIUnit testing macros and functions
+In-Reply-To: <20240228-3b952164f9b56135e30a6282@orel>
 References: <20240215161625.314131-1-ivan.orlov0322@gmail.com>
- <20240215161625.314131-2-ivan.orlov0322@gmail.com>
- <20240228-82fb0c4b75bdfb2507c80100@orel>
-Message-ID: <89312def-69e0-4b9a-9969-19cd9971930f@gmail.com>
+ <20240215161625.314131-3-ivan.orlov0322@gmail.com>
+ <20240228-3b952164f9b56135e30a6282@orel>
+Message-ID: <2e16bf64-ea2b-4063-91f1-fc08b827559b@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2/28/24 13:47, Andrew Jones wrote:
-> On Thu, Feb 15, 2024 at 04:16:21PM +0000, Ivan Orlov wrote:
->> This patch contains the documentation for SBIUnit. It describes:
->>
->> - What is SBIUnit
->> - Simple test writing scenario
->> - How we can cover static functions
->> - How we can "mock" structures in order to test the functions which
->> operate on them
->> - SBIUnit API Reference
->>
->> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
->> ---
->> V1 -> V2:
->> - Use more appropriate language
->> - Update the documentation in accordance with SBIUnit API and
->> structure changes
->> - Remove the redundant documentation for every SBIUNIT_* macro.
->> - Make the documentation follow the 80-characters rule.
->>
->>   docs/writing_tests.md | 131 ++++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 131 insertions(+)
->>   create mode 100644 docs/writing_tests.md
->>
->> diff --git a/docs/writing_tests.md b/docs/writing_tests.md
->> new file mode 100644
->> index 0000000..279d35b
->> --- /dev/null
->> +++ b/docs/writing_tests.md
->> @@ -0,0 +1,131 @@
->> +Writing tests for OpenSBI
->> +=========================
+On 2/28/24 14:19, Andrew Jones wrote:
+
+>> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+>> + */
+>> +#ifdef CONFIG_SBIUNIT
+>> +#ifndef __SBI_UNIT_H__
+>> +#define __SBI_UNIT_H__
 >> +
->> +SBIUnit
->> +-------
->> +SBIUnit is a set of macros and functions which simplify the test development and
->> +automate the test execution and evaluation. All of the SBIUnit definitions are
->> +in the `include/sbi/sbi_unit_test.h` header file, and implementations are
->> +available in `lib/sbi/sbi_unit_test.c`.
->> +
->> +Simple SBIUnit test
->> +-------------------
->> +
->> +For instance, we would like to test the following function from
->> +`lib/sbi/sbi_string.c`:
->> +
->> +```c
->> +size_t sbi_strlen(const char *str)
->> +{
->> +	unsigned long ret = 0;
->> +
->> +	while (*str != '\0') {
->> +		ret++;
->> +		str++;
->> +	}
->> +
->> +	return ret;
->> +}
->> +```
->> +
->> +Which calculates the string length.
-> 
-> Lowercase 'w' in which, since this line is a continuation of the sentence
-> started above.
-> 
->> +
->> +Create the file `lib/sbi/sbi_string_test.c` with the following content:
->> +
->> +```c
->> +#include <sbi/sbi_unit_test.h>
+>> +#include <sbi/sbi_types.h>
+>> +#include <sbi/sbi_console.h>
 >> +#include <sbi/sbi_string.h>
 >> +
->> +static void strlen_test(struct sbiunit_test_case *test)
->> +{
->> +	SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
->> +	SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hell\0o"), 4);
->> +}
->> +
->> +static struct sbiunit_test_case string_test_cases[] = {
->> +	SBIUNIT_TEST_CASE(strlen_test),
->> +	{},
+>> +struct sbiunit_test_case {
+>> +	const char *name;
+>> +	bool enabled;
+>> +	bool failed;
+>> +	void (*test_func)(struct sbiunit_test_case *test);
+>> +	void (*onerr)(struct sbiunit_test_case *test);
+> 
+> Please rename to on_error()
+> 
+
+Hmm, it looks like this 'onerr' is not used anywhere, so I'll just get 
+rid of it in the V3.
+
 >> +};
 >> +
->> +SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
->> +```
+>> +struct sbiunit_test_suite {
+>> +	const char *name;
+>> +	struct sbiunit_test_case *cases;
+>> +};
 >> +
->> +Then, add the corresponding Makefile entries to `lib/sbi/objects.mk`:
->> +```lang-makefile
->> +...
->> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
->> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
->> +```
+>> +#define SBIUNIT_TEST_CASE(func)		\
+>> +	{				\
+>> +		.name = #func,		\
+>> +		.enabled = true,	\
+>> +		.failed = false,	\
+>> +		.test_func = (func)	\
+>> +	}
 >> +
->> +Run `make clean` in order to regenerate the carray-related files, recompile
->> +OpenSBI with CONFIG_SBIUNIT option enabled and run it in the QEMU.
->> +You will see something like this:
->> +```
->> +# make PLATFORM=generic run
->> +...
->> +# Running SBIUNIT tests #
->> +...
->> +## Running test suite: string_test_suite
->> +[PASSED] strlen_test
->> +1 PASSED / 0 FAILED / 1 TOTAL
->> +```
+>> +#define SBIUNIT_TEST_SUITE(suite_name, cases_arr)		\
+>> +	struct sbiunit_test_suite suite_name = {		\
+>> +		.name = #suite_name,				\
+>> +		.cases = cases_arr				\
+>> +	}
 >> +
->> +Now let's try to change this test in the way that it will fail:
+>> +#define _sbiunit_msg(test, msg) "[SBIUnit] [%s:%d]: %s: %s", __FILE__,	\
+>> +				__LINE__, test->name, msg
 >> +
->> +```c
->> +- SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
->> ++ SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 100);
->> +```
+>> +#define SBIUNIT_INFO(test, msg) sbi_printf(_sbiunit_msg(test, msg))
+>> +#define SBIUNIT_PANIC(test, msg) sbi_panic(_sbiunit_msg(test, msg))
 >> +
->> +`make all` and `make run` it again:
->> +```
->> +...
->> +# Running SBIUNIT tests #
->> +...
->> +## Running test suite: string_test_suite
->> +[SBIUnit] [.../opensbi/lib/sbi/sbi_string_test.c:6]: strlen_test: Condition
->> +"(sbi_strlen("Hello")) == (100)" expected to be true!
+>> +#define SBIUNIT_EXPECT(test, cond) do {							\
+>> +	if (!(cond)) {									\
+>> +		test->failed = true;							\
+>> +		SBIUNIT_INFO(test, "Condition \"" #cond "\" expected to be true!\n");	\
+>> +	}										\
+>> +} while (0)
+>> +
+>> +#define SBIUNIT_ASSERT(test, cond) do {						\
+>> +	if (!(cond)) {								\
+>> +		test->failed = true;						\
 > 
-> If the test will output the above all on one line, then the document
-> should also use a single line even though it will exceed 80 chars.
+> No need to set failed since the next line calls panic.
 > 
->> +[FAILED] strlen_test
->> +0 PASSED / 1 FAILED / 1 TOTAL
->> +```
->> +Covering the static functions / using the static definitions
->> +------------------------------------------------------------
+
+Yeah, I agree.
+
+>> +		SBIUNIT_PANIC(test, "Condition \"" #cond "\" must be true!\n");	\
+>> +	}									\
+>> +} while (0)
 >> +
->> +SBIUnit also allows you to test static functions. In order to do so, simply
->> +include your test source in the file you would like to test. Complementing the
->> +example above, just add this to the
->> +`lib/sbi/sbi_string.c` file:
+>> +#define SBIUNIT_EXPECT_EQ(test, a, b) SBIUNIT_EXPECT(test, (a) == (b))
+>> +#define SBIUNIT_ASSERT_EQ(test, a, b) SBIUNIT_ASSERT(test, (a) == (b))
+>> +#define SBIUNIT_EXPECT_NE(test, a, b) SBIUNIT_EXPECT(test, (a) != (b))
+>> +#define SBIUNIT_ASSERT_NE(test, a, b) SBIUNIT_ASSERT(test, (a) != (b))
+>> +#define SBIUNIT_EXPECT_MEMEQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_memcmp(a, b, len))
+>> +#define SBIUNIT_ASSERT_MEMEQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_memcmp(a, b, len))
+>> +#define SBIUNIT_EXPECT_STREQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_strncmp(a, b, len))
+>> +#define SBIUNIT_ASSERT_STREQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_strncmp(a, b, len))
 >> +
->> +```c
->> +#ifdef CONFIG_SBIUNIT
->> +#include "sbi_string_test.c"
+>> +void run_all_tests(void);
 >> +#endif
->> +```
+>> +#else
+>> +#define run_all_tests()
+>> +#endif
+>> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+>> index 81dd2db..e3038ee 100644
+>> --- a/lib/sbi/Kconfig
+>> +++ b/lib/sbi/Kconfig
+>> @@ -50,4 +50,8 @@ config SBI_ECALL_DBTR
+>>   	bool "Debug Trigger Extension"
+>>   	default y
+>>   
+>> +config SBIUNIT
+>> +	bool "Enable SBIUNIT tests"
+>> +	default n
 >> +
->> +In this case you should only add a new carray entry pointing to the test suite
->> +to `lib/sbi/objects.mk`:
->> +```lang-makefile
->> +...
->> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
->> +```
+>>   endmenu
+>> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+>> index 0a50e95..08959f1 100644
+>> --- a/lib/sbi/objects.mk
+>> +++ b/lib/sbi/objects.mk
+>> @@ -11,6 +11,8 @@ libsbi-objs-y += riscv_asm.o
+>>   libsbi-objs-y += riscv_atomic.o
+>>   libsbi-objs-y += riscv_hardfp.o
+>>   libsbi-objs-y += riscv_locks.o
+>> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
+>> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+>>   
+>>   libsbi-objs-y += sbi_ecall.o
+>>   libsbi-objs-y += sbi_ecall_exts.o
+>> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+>> index 804b01c..796cccc 100644
+>> --- a/lib/sbi/sbi_init.c
+>> +++ b/lib/sbi/sbi_init.c
+>> @@ -29,6 +29,7 @@
+>>   #include <sbi/sbi_timer.h>
+>>   #include <sbi/sbi_tlb.h>
+>>   #include <sbi/sbi_version.h>
+>> +#include <sbi/sbi_unit_test.h>
+>>   
+>>   #define BANNER                                              \
+>>   	"   ____                    _____ ____ _____\n"     \
+>> @@ -398,6 +399,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>>   
+>>   	sbi_boot_print_hart(scratch, hartid);
+>>   
+>> +	run_all_tests();
 >> +
->> +You don't have to compile the `sbi_string_test.o` separately, because the
->> +test code will be included into the `sbi_string` object file.
+>>   	/*
+>>   	 * Configure PMP at last because if SMEPMP is detected,
+>>   	 * M-mode access to the S/U space will be rescinded.
+>> diff --git a/lib/sbi/sbi_unit_test.c b/lib/sbi/sbi_unit_test.c
+>> new file mode 100644
+>> index 0000000..f4988d8
+>> --- /dev/null
+>> +++ b/lib/sbi/sbi_unit_test.c
+>> @@ -0,0 +1,43 @@
+>> +/*
+>> + * SPDX-License-Identifier: BSD-2-Clause
+>> + *
+>> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+>> + */
+>> +#include <sbi/sbi_unit_test.h>
+>> +#include <sbi/sbi_types.h>
+>> +#include <sbi/sbi_console.h>
 >> +
->> +See example in `lib/sbi/sbi_console_test.c`, where statically declared
->> +`console_dev` variable is used to mock the `sbi_console_device` structure.
+>> +extern struct sbiunit_test_suite *sbi_unit_tests[];
+>> +extern unsigned long sbi_unit_tests_size;
 >> +
->> +"Mocking" the structures
->> +------------------------
->> +See the example of structure "mocking" in the `lib/sbi/sbi_console_test.c`,
->> +where the sbi_console_device structure was mocked to be used in various
->> +console-related functions in order to test them.
+>> +static void run_test_suite(struct sbiunit_test_suite *suite)
+>> +{
+>> +	struct sbiunit_test_case *s_case;
+>> +	u32 count_pass = 0, count_fail = 0;
 >> +
->> +API Reference
->> +-------------
->> +All of the `SBIUNIT_EXPECT_*` macros will cause a test case to fail if the
->> +corresponding conditions are not met, however, the execution of a particular
->> +test case will not be stopped.
+>> +	sbi_printf("## Running test suite: %s\n", suite->name);
 >> +
->> +All of the `SBIUNIT_ASSERT_*` macros will cause a test case to fail and stop
->> +immediately, triggering the panic.
+>> +	s_case = suite->cases;
+>> +	while (s_case->enabled) {
 > 
-> s/the panic/a panic/
-> 
->> -- 
->> 2.34.1
->>
-> 
-> Other than the nits,
+> Can't test cases be enabled/disabled sparsely? Shouldn't we instead
+> loop while s_case->name is not NULL? And we need to ensure the cases
+> array always has an empty case at the end.
 > 
 
-Hi Andrew,
+They can't be enabled/disabled separately at the moment, but I believe 
+it would be good to have such a functionality in the future, when we 
+have more tests. Also, I reckon we should be able to iterate and execute 
+the test even if it has no name: technically it doesn't mean that the 
+test is invalid, and breaking the tests execution completely in this 
+case would be pretty implicit and non-obvious for the test developer...
 
-Thank you so much for the review. I'll make the suggested changes and 
-send the V3.
+Thank you for the review!
 
 -- 
 Kind regards,
