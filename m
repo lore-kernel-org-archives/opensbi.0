@@ -1,45 +1,55 @@
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Wed, 28 Feb 2024 17:10:11 +0000
-Subject: [PATCH v2 2/5] lib: Add SBIUnit testing macros and functions
-In-Reply-To: <20240228-b8e4253e844b44a4d90e92d5@orel>
-References: <20240215161625.314131-1-ivan.orlov0322@gmail.com>
- <20240215161625.314131-3-ivan.orlov0322@gmail.com>
- <20240228-3b952164f9b56135e30a6282@orel>
- <2e16bf64-ea2b-4063-91f1-fc08b827559b@gmail.com>
- <20240228-15428229b0969d4d57210313@orel>
- <5169c824-531c-4520-b211-466fda16b529@gmail.com>
- <20240228-b8e4253e844b44a4d90e92d5@orel>
-Message-ID: <c94a2fa5-f1c5-4002-8176-dac9bc194023@gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Thu, 29 Feb 2024 10:36:47 +0800
+Subject: [PATCH] lib: sbi_domain: Fix PMP condition for addresses
+In-Reply-To: <20240227200743.22661-1-cmax@mailbox.org>
+References: <20240227200743.22661-1-cmax@mailbox.org>
+Message-ID: <272de5922603af4a3080eba37b2368bb8b3ead64.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2/28/24 17:00, Andrew Jones wrote:
-> On Wed, Feb 28, 2024 at 04:43:59PM +0000, Ivan Orlov wrote:
->> On 2/28/24 16:30, Andrew Jones wrote:
->>
->>> If a no-name test is OK, then the stop condition should be
->>> s_case->test_func being NULL.
->>>
->>
->> Yeah, I guess we can check the test_func. Thanks!
->>
->> Also, I believe it would be good to mention that we need the last test cases
->> array entry to be empty in the documentation, so it will be more explicit
->> for a developer. I'll do that in the V3 if it is OK with you.
->>
+? 2024-02-27???? 21:07 +0100?cmax at mailbox.org???
+> From: max <cmax@mailbox.org>
 > 
-> Sure. You can define an 'END_CASE = { }' type of macro and put it in the
-> document's code examples. That'd probably be enough, but you could also
-> add a sentence to explicitly state it's required too.
-> 
+> In order to put an address/size into an NAPOT PMP region, the address
+> needs to be aligned to the size shifted two to the right.
+The address that needs to be aligned is
+scratch->fw_start
+scratch->fw_start + scratch->fw_rw_offset
 
-Great, thanks! Perhaps I could define it as SBIUNIT_END_CASE macro and 
-use in other tests as well.
--- 
-Kind regards,
-Ivan Orlov
+Regards,
+Xiang W
+
+> 
+> Example:
+> fw_start: 0x80040000
+> fw_size:? 0x00040000
+> PMP address: 0x80040000 | (0x00040000 >> 2)
+> fw_size is valid, but not in the current implementation
+> 
+> Signed-off-by: max <cmax@mailbox.org>
+> ---
+> ?lib/sbi/sbi_domain.c | 2 +-
+> ?1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 4e9f742..94ee717 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -749,7 +749,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+> ?		return SBI_EINVAL;
+> ?	}
+> ?
+> -	if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
+> +	if ((scratch->fw_start & ((scratch->fw_rw_offset >> 2) - 1)) != 0) {
+> ?		sbi_printf("%s: fw_start and fw_rw_offset not aligned\n",
+> ?			?? __func__);
+> ?		return SBI_EINVAL;
+> -- 
+> 2.43.0
+> 
+> 
 
 
