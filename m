@@ -1,176 +1,58 @@
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Fri,  1 Mar 2024 16:00:45 +0000
-Subject: [PATCH v3 4/4] lib: tests: Add sbi_console test
-In-Reply-To: <20240301160046.267814-1-ivan.orlov0322@gmail.com>
-References: <20240301160046.267814-1-ivan.orlov0322@gmail.com>
-Message-ID: <20240301160046.267814-5-ivan.orlov0322@gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Sat,  2 Mar 2024 15:42:21 +0800
+Subject: [PATCH v5 2/8] firmware: fw_base.S: Simplify address get
+In-Reply-To: <20240302074235.12643-1-wxjstz@126.com>
+References: <20240302074235.12643-1-wxjstz@126.com>
+Message-ID: <20240302074235.12643-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the test suite covering some of the functions from
-lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
-of format specifiers for printf and different strings and characters for
-putc and puts.
+Simplify address get. Remove _link_start _link_end _load_start.
 
-In order to do that, the test "mocks" the sbi_console_device structure
-by setting the 'console_dev' variable to the virtual console.
-
-Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
-V1 -> V2:
-- Rewrite using the carray functionality
-- Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
-functions: one of them "mocks" the default console device, and
-the second one restores the old console device.
-- Fix codestyle issues (comments, etc.)
-- Remove incorrect 'puts' test
-- Use updated SBIUNIT_ASSERT_STREQ API
-V2 -> V3:
-- Remove unused include statement
-- Rename "new_dev" => "test_console_dev"
-- Use SBIUNIT_END_CASE macro in the test cases list instead of '{}'
+ firmware/fw_base.S | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
- lib/sbi/objects.mk         |   1 +
- lib/sbi/sbi_console.c      |   4 ++
- lib/sbi/sbi_console_test.c | 101 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 106 insertions(+)
- create mode 100644 lib/sbi/sbi_console_test.c
-
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index b4c273f..9d065fa 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index cd94f15..d418041 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -52,15 +52,9 @@ _try_lottery:
+ 	amoadd.w a6, a7, (a6)
+ 	bnez	a6, _wait_for_boot_hart
  
- libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
- carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+-	/* Save load address */
+-	lla	t0, _load_start
+-	lla	t1, _fw_start
+-	REG_S	t1, 0(t0)
+-
+ 	/* relocate the global table content */
+-	lla	t0, _link_start
+-	REG_L	t0, 0(t0)
+-	/* t1 shall has the address of _fw_start */
++	li	t0, FW_TEXT_START
++	lla	t1, _fw_start
+ 	sub	t2, t1, t0
+ 	lla	t0, __rel_dyn_start
+ 	lla	t1, __rel_dyn_end
+@@ -398,12 +392,6 @@ _relocate_lottery:
+ 	RISCV_PTR	0
+ _boot_status:
+ 	RISCV_PTR	0
+-_load_start:
+-	RISCV_PTR	_fw_start
+-_link_start:
+-	RISCV_PTR	FW_TEXT_START
+-_link_end:
+-	RISCV_PTR	_fw_reloc_end
  
- libsbi-objs-y += sbi_ecall.o
- libsbi-objs-y += sbi_ecall_exts.o
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index ab09a5c..d1229d0 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
- 
- 	return rc;
- }
-+
-+#ifdef CONFIG_SBIUNIT
-+#include "sbi_console_test.c"
-+#endif
-diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
-new file mode 100644
-index 0000000..734a68c
---- /dev/null
-+++ b/lib/sbi/sbi_console_test.c
-@@ -0,0 +1,101 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
-+ */
-+#include <sbi/sbi_unit_test.h>
-+
-+#define TEST_CONSOLE_BUF_LEN 1024
-+
-+static const struct sbi_console_device *old_dev;
-+static char test_console_buf[TEST_CONSOLE_BUF_LEN];
-+static u32 test_console_buf_pos;
-+
-+static void test_console_putc(char c)
-+{
-+	test_console_buf[test_console_buf_pos] = c;
-+	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
-+}
-+
-+static void clear_test_console_buf(void)
-+{
-+	test_console_buf_pos = 0;
-+	test_console_buf[0] = '\0';
-+}
-+
-+static const struct sbi_console_device test_console_dev = {
-+	.name = "Test console device",
-+	.console_putc = test_console_putc,
-+};
-+
-+/* Mock the console device */
-+static inline void test_console_begin(const struct sbi_console_device *device)
-+{
-+	old_dev = console_dev;
-+	console_dev = device;
-+}
-+
-+static inline void test_console_end(void)
-+{
-+	console_dev = old_dev;
-+}
-+
-+static void putc_test(struct sbiunit_test_case *test)
-+{
-+	clear_test_console_buf();
-+
-+	test_console_begin(&test_console_dev);
-+	sbi_putc('a');
-+	test_console_end();
-+	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
-+}
-+
-+#define PUTS_TEST(test, expected, str) do {			\
-+	clear_test_console_buf();				\
-+	test_console_begin(&test_console_dev);			\
-+	sbi_puts(str);						\
-+	test_console_end();					\
-+	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
-+			     sbi_strlen(expected));		\
-+} while (0)
-+
-+static void puts_test(struct sbiunit_test_case *test)
-+{
-+	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
-+	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
-+}
-+
-+#define PRINTF_TEST(test, expected, format, ...) do {		\
-+	clear_test_console_buf();				\
-+	test_console_begin(&test_console_dev);			\
-+	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
-+	test_console_end();					\
-+	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
-+	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
-+			     sbi_strlen(expected));		\
-+} while (0)
-+
-+static void printf_test(struct sbiunit_test_case *test)
-+{
-+	PRINTF_TEST(test, "Hello", "Hello");
-+	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
-+	PRINTF_TEST(test, "Hello", "%s", "Hello");
-+	PRINTF_TEST(test, "-1", "%d", -1);
-+	PRINTF_TEST(test, "FF", "%X", 255);
-+	PRINTF_TEST(test, "ff", "%x", 255);
-+	PRINTF_TEST(test, "A", "%c", 'A');
-+	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
-+	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
-+	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
-+	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
-+	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
-+}
-+
-+static struct sbiunit_test_case console_test_cases[] = {
-+	SBIUNIT_TEST_CASE(putc_test),
-+	SBIUNIT_TEST_CASE(puts_test),
-+	SBIUNIT_TEST_CASE(printf_test),
-+	SBIUNIT_END_CASE,
-+};
-+
-+SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
+ 	.section .entry, "ax", %progbits
+ 	.align 3
 -- 
-2.34.1
+2.43.0
 
 
