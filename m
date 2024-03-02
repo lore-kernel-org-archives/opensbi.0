@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 2 Mar 2024 18:55:31 +0530
-Subject: [PATCH v5 6/8] firmware: fw_base.S: fix _reset_regs
-In-Reply-To: <20240302074235.12643-7-wxjstz@126.com>
-References: <20240302074235.12643-1-wxjstz@126.com> <20240302074235.12643-7-wxjstz@126.com>
-Message-ID: <CAAhSdy3Pcb74oPj44mZM4FDQy=C8E2Pn10wzMS--2W=DTfnqmw@mail.gmail.com>
+Date: Sat, 2 Mar 2024 18:58:22 +0530
+Subject: [PATCH v5 7/8] firmware: Improve fw_boot_hart
+In-Reply-To: <20240302074235.12643-8-wxjstz@126.com>
+References: <20240302074235.12643-1-wxjstz@126.com> <20240302074235.12643-8-wxjstz@126.com>
+Message-ID: <CAAhSdy1kBCtBwx5viXNjkKp4im8S2N-wESTeecdAGdHB-YR_=g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,62 +12,129 @@ Content-Transfer-Encoding: 7bit
 
 On Sat, Mar 2, 2024 at 1:13?PM Xiang W <wxjstz@126.com> wrote:
 >
-> a3 and a4 cannot be reset because used in fw_platform_init.
+> Improve fw_boot_hart to reduce parameter saving and restoration.
 >
 > Signed-off-by: Xiang W <wxjstz@126.com>
-
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
->  firmware/fw_base.S | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
+>  firmware/fw_base.S    |  7 ++-----
+>  firmware/fw_dynamic.S | 24 ++++++++++++------------
+>  firmware/fw_jump.S    |  6 +++---
+>  firmware/fw_payload.S |  6 +++---
+>  4 files changed, 20 insertions(+), 23 deletions(-)
 >
 > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 6f40d82..a798545 100644
+> index a798545..df5f769 100644
 > --- a/firmware/fw_base.S
 > +++ b/firmware/fw_base.S
-> @@ -77,7 +77,7 @@ _relocate_done:
+> @@ -38,14 +38,11 @@
+>         .globl _start_warm
+>  _start:
+>         /* Find preferred boot HART id */
+> -       MOV_3R  s0, a0, s1, a1, s2, a2
+>         call    fw_boot_hart
+> -       add     a6, a0, zero
+> -       MOV_3R  a0, s0, a1, s1, a2, s2
+
+NACK to this patch.
+
+In future, someone might accidentally clobber the
+a0 to a2 registers in fw_boot_hart without knowing
+that caller is not preserving.
+
+This patch achieves 0 improvement.
+
+>         li      a7, -1
+> -       beq     a6, a7, _try_lottery
+> +       beq     t0, a7, _try_lottery
+>         /* Jump to relocation wait loop if we are not boot hart */
+> -       bne     a0, a6, _wait_for_boot_hart
+> +       bne     a0, t0, _wait_for_boot_hart
+>  _try_lottery:
+>         /* Jump to relocation wait loop if we don't get relocation lottery */
+>         lla     a6, _boot_status
+> diff --git a/firmware/fw_dynamic.S b/firmware/fw_dynamic.S
+> index 5ee2883..52ef320 100644
+> --- a/firmware/fw_dynamic.S
+> +++ b/firmware/fw_dynamic.S
+> @@ -17,24 +17,24 @@
+>         /*
+>          * This function is called very early even before
+>          * fw_save_info() is called.
+> -        * We can only use a0, a1, and a2 registers here.
+> -        * The boot HART id should be returned in 'a0'.
+> +        * We can only use t0, t1, and t2 registers here.
+> +        * The boot HART id should be returned in 't0'.
+>          */
+>  fw_boot_hart:
+>         /* Sanity checks */
+> -       li      a1, FW_DYNAMIC_INFO_MAGIC_VALUE
+> -       REG_L   a0, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
+> -       bne     a0, a1, _start_hang
+> -       li      a1, FW_DYNAMIC_INFO_VERSION_MAX
+> -       REG_L   a0, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+> -       bgt     a0, a1, _start_hang
+> +       li      t1, FW_DYNAMIC_INFO_MAGIC_VALUE
+> +       REG_L   t0, FW_DYNAMIC_INFO_MAGIC_OFFSET(a2)
+> +       bne     t0, t1, _start_hang
+> +       li      t1, FW_DYNAMIC_INFO_VERSION_MAX
+> +       REG_L   t0, FW_DYNAMIC_INFO_VERSION_OFFSET(a2)
+> +       bgt     t0, t1, _start_hang
 >
->         /* At this point we are running from link address */
+>         /* Read boot HART id */
+> -       li      a1, FW_DYNAMIC_INFO_VERSION_2
+> -       blt     a0, a1, 2f
+> -       REG_L   a0, FW_DYNAMIC_INFO_BOOT_HART_OFFSET(a2)
+> +       li      t1, FW_DYNAMIC_INFO_VERSION_2
+> +       blt     t0, t1, 2f
+> +       REG_L   t0, FW_DYNAMIC_INFO_BOOT_HART_OFFSET(a2)
+>         ret
+> -2:     li      a0, -1
+> +2:     li      t0, -1
+>         ret
 >
-> -       /* Reset all registers except ra, a0, a1 and a2 for boot HART */
-> +       /* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
->         li      ra, 0
->         call    _reset_regs
+>         .section .entry, "ax", %progbits
+> diff --git a/firmware/fw_jump.S b/firmware/fw_jump.S
+> index ebf297f..ba46697 100644
+> --- a/firmware/fw_jump.S
+> +++ b/firmware/fw_jump.S
+> @@ -15,11 +15,11 @@
+>         /*
+>          * This function is called very early even before
+>          * fw_save_info() is called.
+> -        * We can only use a0, a1, and a2 registers here.
+> -        * The boot HART id should be returned in 'a0'.
+> +        * We can only use t0, t1, and t2 registers here.
+> +        * The boot HART id should be returned in 't0'.
+>          */
+>  fw_boot_hart:
+> -       li      a0, -1
+> +       li      t0, -1
+>         ret
 >
-> @@ -304,7 +304,7 @@ _wait_for_boot_hart:
->         bne     t0, t1, _wait_for_boot_hart
+>         .section .entry, "ax", %progbits
+> diff --git a/firmware/fw_payload.S b/firmware/fw_payload.S
+> index 3c8433e..02fd172 100644
+> --- a/firmware/fw_payload.S
+> +++ b/firmware/fw_payload.S
+> @@ -15,11 +15,11 @@
+>         /*
+>          * This function is called very early even before
+>          * fw_save_info() is called.
+> -        * We can only use a0, a1, and a2 registers here.
+> -        * The boot HART id should be returned in 'a0'.
+> +        * We can only use t0, t1, and t2 registers here.
+> +        * The boot HART id should be returned in 't0'.
+>          */
+>  fw_boot_hart:
+> -       li      a0, -1
+> +       li      t0, -1
+>         ret
 >
->  _start_warm:
-> -       /* Reset all registers except ra, a0, a1 and a2 for non-boot HARTs */
-> +       /* Reset all registers except ra, a0, a1, a2, a3 and a4 for non-boot HART */
->         li      ra, 0
->         call    _reset_regs
->
-> @@ -655,7 +655,7 @@ _reset_regs:
->
->         /* flush the instruction cache */
->         fence.i
-> -       /* Reset all registers except ra, a0, a1 and a2 */
-> +       /* Reset all registers except ra, a0, a1, a2, a3 and a4 */
->         li sp, 0
->         li gp, 0
->         li tp, 0
-> @@ -664,8 +664,6 @@ _reset_regs:
->         li t2, 0
->         li s0, 0
->         li s1, 0
-> -       li a3, 0
-> -       li a4, 0
->         li a5, 0
->         li a6, 0
->         li a7, 0
+>         .section .entry, "ax", %progbits
 > --
 > 2.43.0
 >
+
+Regards,
+Anup
 
