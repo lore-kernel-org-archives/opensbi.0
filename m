@@ -1,163 +1,188 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 4 Mar 2024 14:34:11 +0100
-Subject: [PATCH v3 3/4] lib: tests: Add a test for sbi_bitmap
-In-Reply-To: <20240301160046.267814-4-ivan.orlov0322@gmail.com>
+Date: Mon, 4 Mar 2024 14:44:21 +0100
+Subject: [PATCH v3 4/4] lib: tests: Add sbi_console test
+In-Reply-To: <20240301160046.267814-5-ivan.orlov0322@gmail.com>
 References: <20240301160046.267814-1-ivan.orlov0322@gmail.com>
- <20240301160046.267814-4-ivan.orlov0322@gmail.com>
-Message-ID: <20240304-a3de26be35b9ab9b07c9b155@orel>
+ <20240301160046.267814-5-ivan.orlov0322@gmail.com>
+Message-ID: <20240304-606a8d381108df845a8a365d@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 01, 2024 at 04:00:44PM +0000, Ivan Orlov wrote:
-> Add test suite covering all of the functions from lib/sbi/sbi_bitmap.c:
-> __bitmap_and, __bitmap_or and __bitmap_xor.
+On Fri, Mar 01, 2024 at 04:00:45PM +0000, Ivan Orlov wrote:
+> Add the test suite covering some of the functions from
+> lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
+> of format specifiers for printf and different strings and characters for
+> putc and puts.
+> 
+> In order to do that, the test "mocks" the sbi_console_device structure
+> by setting the 'console_dev' variable to the virtual console.
 > 
 > Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 > ---
 > V1 -> V2:
-> - Extract the part of the commit description to the cover letter
-> - Update to use the carray functionality instead of placing the pointer
-> to the test suite directly into the sources
-> - Fix codestyle issues
-> - Use the references to the data_* arrays when defining the expected
-> test results, instead of repeating the same numbers again and again
+> - Rewrite using the carray functionality
+> - Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
+> functions: one of them "mocks" the default console device, and
+> the second one restores the old console device.
+> - Fix codestyle issues (comments, etc.)
+> - Remove incorrect 'puts' test
+> - Use updated SBIUNIT_ASSERT_STREQ API
 > V2 -> V3:
-> - Use the SBIUNIT_END_CASE macro in the test cases list instead of '{}'
-> - Remove redundant 'include' statement
+> - Remove unused include statement
+> - Rename "new_dev" => "test_console_dev"
+> - Use SBIUNIT_END_CASE macro in the test cases list instead of '{}'
 > 
->  lib/sbi/objects.mk        |   3 ++
->  lib/sbi/sbi_bitmap_test.c | 102 ++++++++++++++++++++++++++++++++++++++
->  2 files changed, 105 insertions(+)
->  create mode 100644 lib/sbi/sbi_bitmap_test.c
+>  lib/sbi/objects.mk         |   1 +
+>  lib/sbi/sbi_console.c      |   4 ++
+>  lib/sbi/sbi_console_test.c | 101 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 106 insertions(+)
+>  create mode 100644 lib/sbi/sbi_console_test.c
 > 
 > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index 08959f1..b4c273f 100644
+> index b4c273f..9d065fa 100644
 > --- a/lib/sbi/objects.mk
 > +++ b/lib/sbi/objects.mk
-> @@ -14,6 +14,9 @@ libsbi-objs-y += riscv_locks.o
->  libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
->  libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+> @@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
 >  
-> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-> +
+>  libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+>  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+>  
 >  libsbi-objs-y += sbi_ecall.o
 >  libsbi-objs-y += sbi_ecall_exts.o
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index ab09a5c..d1229d0 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
 >  
-> diff --git a/lib/sbi/sbi_bitmap_test.c b/lib/sbi/sbi_bitmap_test.c
+>  	return rc;
+>  }
+> +
+> +#ifdef CONFIG_SBIUNIT
+> +#include "sbi_console_test.c"
+> +#endif
+> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
 > new file mode 100644
-> index 0000000..2563934
+> index 0000000..734a68c
 > --- /dev/null
-> +++ b/lib/sbi/sbi_bitmap_test.c
-> @@ -0,0 +1,102 @@
+> +++ b/lib/sbi/sbi_console_test.c
+> @@ -0,0 +1,101 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
 > + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
 > + */
-> +#include <sbi/sbi_bitmap.h>
 > +#include <sbi/sbi_unit_test.h>
 > +
-> +#define DATA_SIZE sizeof(data_zero)
-> +#define DATA_BIT_SIZE (DATA_SIZE * 8)
+> +#define TEST_CONSOLE_BUF_LEN 1024
 > +
-> +static u64 data_a[] = { 0xDEADBEEF, 0x00BAB10C, 0x1BADB002, 0xABADBABE };
-> +static u64 data_b[] = { 0xC00010FF, 0x00BAB10C, 0xBAAAAAAD, 0xBADDCAFE };
-> +static u64 data_zero[] = { 0, 0, 0, 0 };
+> +static const struct sbi_console_device *old_dev;
+> +static char test_console_buf[TEST_CONSOLE_BUF_LEN];
+> +static u32 test_console_buf_pos;
 > +
-> +static void bitmap_and_test(struct sbiunit_test_case *test)
+> +static void test_console_putc(char c)
 > +{
-> +	u64 res[DATA_SIZE];
-> +	u64 a_and_b[] = { data_a[0] & data_b[0], data_a[1] & data_b[1],
-> +			  data_a[2] & data_b[2], data_a[3] & data_b[3] };
-> +
-> +	__bitmap_and(res, data_a, data_b, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, a_and_b, DATA_SIZE);
-> +
-> +	/* a & a = a */
-> +	__bitmap_and(res, data_a, data_a, DATA_BIT_SIZE);
-> +	SBIUNIT_ASSERT_MEMEQ(test, res, data_a, DATA_SIZE);
-> +
-> +	/* a & 0 = 0 */
-> +	__bitmap_and(res, data_a, data_zero, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-> +
-> +	/* 0 & 0 = 0 */
-> +	__bitmap_and(res, data_zero, data_zero, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-> +
-> +	sbi_memcpy(res, data_zero, DATA_SIZE);
-> +	/* Cover zero 'bits' argument */
-> +	__bitmap_and(res, data_a, data_b, 0);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
+> +	test_console_buf[test_console_buf_pos] = c;
+> +	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
 > +}
 > +
-> +static void bitmap_or_test(struct sbiunit_test_case *test)
+> +static void clear_test_console_buf(void)
 > +{
-> +	u64 res[DATA_SIZE];
-> +	u64 a_or_b[] = { data_a[0] | data_b[0], data_a[1] | data_b[1],
-> +			 data_a[2] | data_b[2], data_a[3] | data_b[3] };
-> +
-> +	__bitmap_or(res, data_a, data_b, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, a_or_b, DATA_SIZE);
-> +
-> +	/* a | a = a */
-> +	__bitmap_or(res, data_a, data_a, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_a, DATA_SIZE);
-> +
-> +	/* a | 0 = a */
-> +	__bitmap_or(res, data_a, data_zero, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_a, DATA_SIZE);
-> +
-> +	/* 0 | 0 = 0 */
-> +	__bitmap_or(res, data_zero, data_zero, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-> +
-> +	sbi_memcpy(res, data_zero, DATA_SIZE);
-> +	__bitmap_or(res, data_a, data_b, 0);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
+> +	test_console_buf_pos = 0;
+> +	test_console_buf[0] = '\0';
 > +}
 > +
-> +static void bitmap_xor_test(struct sbiunit_test_case *test)
+> +static const struct sbi_console_device test_console_dev = {
+> +	.name = "Test console device",
+> +	.console_putc = test_console_putc,
+> +};
+> +
+> +/* Mock the console device */
+> +static inline void test_console_begin(const struct sbi_console_device *device)
 > +{
-> +	u64 res[DATA_SIZE];
-> +	u64 a_xor_b[] = { data_a[0] ^ data_b[0], data_a[1] ^ data_b[1],
-> +			  data_a[2] ^ data_b[2], data_a[3] ^ data_b[3] };
-> +
-> +	__bitmap_xor(res, data_a, data_b, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, a_xor_b, DATA_SIZE);
-> +
-> +	/* a ^ 0 = a */
-> +	__bitmap_xor(res, data_a, data_zero, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_a, DATA_SIZE);
-> +
-> +	/* a ^ a = 0 */
-> +	__bitmap_xor(res, data_a, data_a, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-> +
-> +	/* 0 ^ 0 = 0 */
-> +	__bitmap_xor(res, data_zero, data_zero, DATA_BIT_SIZE);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-> +
-> +	sbi_memcpy(res, data_zero, DATA_SIZE);
-> +	__bitmap_xor(res, data_a, data_b, 0);
-> +	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
+> +	old_dev = console_dev;
+> +	console_dev = device;
 > +}
 > +
-> +static struct sbiunit_test_case bitmap_test_cases[] = {
-> +	SBIUNIT_TEST_CASE(bitmap_and_test),
-> +	SBIUNIT_TEST_CASE(bitmap_or_test),
-> +	SBIUNIT_TEST_CASE(bitmap_xor_test),
+> +static inline void test_console_end(void)
+> +{
+> +	console_dev = old_dev;
+> +}
+> +
+> +static void putc_test(struct sbiunit_test_case *test)
+> +{
+> +	clear_test_console_buf();
+> +
+
+stray blank line
+
+> +	test_console_begin(&test_console_dev);
+> +	sbi_putc('a');
+> +	test_console_end();
+> +	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
+> +}
+> +
+> +#define PUTS_TEST(test, expected, str) do {			\
+> +	clear_test_console_buf();				\
+> +	test_console_begin(&test_console_dev);			\
+> +	sbi_puts(str);						\
+> +	test_console_end();					\
+> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
+> +			     sbi_strlen(expected));		\
+> +} while (0)
+> +
+> +static void puts_test(struct sbiunit_test_case *test)
+> +{
+> +	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
+> +	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
+> +}
+> +
+> +#define PRINTF_TEST(test, expected, format, ...) do {		\
+> +	clear_test_console_buf();				\
+> +	test_console_begin(&test_console_dev);			\
+> +	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
+> +	test_console_end();					\
+> +	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
+> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
+> +			     sbi_strlen(expected));		\
+> +} while (0)
+> +
+> +static void printf_test(struct sbiunit_test_case *test)
+> +{
+> +	PRINTF_TEST(test, "Hello", "Hello");
+> +	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
+> +	PRINTF_TEST(test, "Hello", "%s", "Hello");
+> +	PRINTF_TEST(test, "-1", "%d", -1);
+> +	PRINTF_TEST(test, "FF", "%X", 255);
+> +	PRINTF_TEST(test, "ff", "%x", 255);
+> +	PRINTF_TEST(test, "A", "%c", 'A');
+> +	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
+> +	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
+> +	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
+> +	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
+> +	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
+> +}
+> +
+> +static struct sbiunit_test_case console_test_cases[] = {
+> +	SBIUNIT_TEST_CASE(putc_test),
+> +	SBIUNIT_TEST_CASE(puts_test),
+> +	SBIUNIT_TEST_CASE(printf_test),
 > +	SBIUNIT_END_CASE,
 > +};
 > +
-> +SBIUNIT_TEST_SUITE(bitmap_test_suite, bitmap_test_cases);
+> +SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
 > -- 
 > 2.34.1
 >
 
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+Will there ever be a chance that more than one hart will run these tests
+simultaneously? If so, we need to take a lock in PUTS_TEST and
+PRINTF_TEST.
+
+Thanks,
+drew
 
