@@ -1,180 +1,162 @@
-From: Atish Patra <atishp@rivosinc.com>
-Date: Sun, 3 Mar 2024 22:53:51 -0800
-Subject: [PATCH v1 1/1] lib: sbi: Add support for smcsrind and smcdeleg
-In-Reply-To: <CAAhSdy0sgr5_a7wLNna4zfEw+Xc5XoDVzRonCbLp5Q_bU-xy3A@mail.gmail.com>
-References: <20240217000608.3635372-1-atishp@rivosinc.com>
- <20240217000608.3635372-2-atishp@rivosinc.com>
- <CAAhSdy0sgr5_a7wLNna4zfEw+Xc5XoDVzRonCbLp5Q_bU-xy3A@mail.gmail.com>
-Message-ID: <f8855386-1a1b-4302-bc31-8f423cd93297@rivosinc.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 4 Mar 2024 13:03:33 +0530
+Subject: [PATCH] lib: sbi_misaligned_ldst: Add handling of C.LHU/C.LH and C.SH
+In-Reply-To: <CAGKtFavBwdKbN+Gu90NEQAa8TDnvqSveH_bbWrHJb0xgQQH9Ww@mail.gmail.com>
+References: <20240226055644.881161-1-nylon.chen@sifive.com>
+ <CAK9=C2X+UOdj3AUkxpyOS=PwE+xEsyQSr+zknAscLih2eR0S+g@mail.gmail.com> <CAGKtFavBwdKbN+Gu90NEQAa8TDnvqSveH_bbWrHJb0xgQQH9Ww@mail.gmail.com>
+Message-ID: <CAAhSdy3eOAT7S16ENuP756W2T2W6JrXzk+mN-Gsy19VRt_z--g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-On 3/3/24 20:52, Anup Patel wrote:
-> On Sat, Feb 17, 2024 at 5:36?AM Atish Patra <atishp@rivosinc.com> wrote:
->> Smcsrind allows generic indirect CSR access mechanism while
->> Smcdeleg allows delegating hpmcounters in Supervisor mode.
->>
->> Enable both extensions and set the appropriate bits in mstateen
->> and menvcfg.
->>
->> Co-developed-by: Kaiwen Xue <kaiwenxue1@gmail.com>
->> Signed-off-by: Atish Patra <atishp@rivosinc.com>
->> ---
->>   include/sbi/riscv_encoding.h | 25 ++++++++++++++++++++++---
->>   include/sbi/sbi_hart.h       |  8 ++++++++
->>   lib/sbi/sbi_hart.c           | 16 ++++++++++++----
->>   3 files changed, 42 insertions(+), 7 deletions(-)
->>
->> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
->> index e74cc0df1c40..57aabd665589 100644
->> --- a/include/sbi/riscv_encoding.h
->> +++ b/include/sbi/riscv_encoding.h
->> @@ -209,6 +209,7 @@
->>
->>   #define ENVCFG_STCE                    (_ULL(1) << 63)
->>   #define ENVCFG_PBMTE                   (_ULL(1) << 62)
->> +#define ENVCFG_CDE                     (_UL(1) << 60)
-> This needs to be _ULL(1) otherwise it breaks compilation on RV32.
-> I have taken care of this at the time of merging this patch.
+On Mon, Mar 4, 2024 at 11:50?AM Nylon Chen <nylon7717@gmail.com> wrote:
 >
-> Please fix your work-flow and always test on both RV32 and RV64.
+> Anup Patel <apatel@ventanamicro.com> ? 2024?3?4? ?? ??1:12???
+> >
+> > On Mon, Feb 26, 2024 at 11:27?AM Nylon Chen <nylon.chen@sifive.com> wrote:
+> > >
+> > > From: "Nylon Chen" <nylon.chen@sifive.com>
+> > >
+> > > Added exception handling for compressed instructions C.LHU, C.LH, and
+> > > C.SH from the zcb extension to the sbi_misaligned_ldst library.
+> > >
+> > > Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
+> > > ---
+> > >  include/sbi/riscv_encoding.h  |  7 +++++++
+> > >  lib/sbi/sbi_misaligned_ldst.c | 10 ++++++++++
+> > >  2 files changed, 17 insertions(+)
+> > >
+> > > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> > > index e74cc0d..3d77e26 100644
+> > > --- a/include/sbi/riscv_encoding.h
+> > > +++ b/include/sbi/riscv_encoding.h
+> > > @@ -837,6 +837,13 @@
+> > >  #define INSN_MATCH_C_FSWSP             0xe002
+> > >  #define INSN_MASK_C_FSWSP              0xe003
+> > >
+> > > +#define INSN_MATCH_C_LHU               0x8400
+> > > +#define INSN_MASK_C_LHU                0xfc43
+> > > +#define INSN_MATCH_C_LH                0x8440
+> > > +#define INSN_MASK_C_LH                 0xfc43
+> > > +#define INSN_MATCH_C_SH                0x8c00
+> > > +#define INSN_MASK_C_SH                 0xfc43
+> > > +
+> > >  #define INSN_MASK_WFI                  0xffffff00
+> > >  #define INSN_MATCH_WFI                 0x10500000
+> > >
+> > > diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+> > > index aa512de..9ca225a 100644
+> > > --- a/lib/sbi/sbi_misaligned_ldst.c
+> > > +++ b/lib/sbi/sbi_misaligned_ldst.c
+> > > @@ -123,6 +123,13 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+> > >                 len = 4;
+> > >  #endif
+> > >  #endif
+> > > +       } else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
+> > > +               len = 2;
+> > > +               insn = RVC_RS2S(insn) << SH_RD;
+> > > +       } else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
+> > > +               len = 2;
+> > > +               shift = 8 * (sizeof(ulong) - len);
+> > > +               insn = RVC_RS2S(insn) << SH_RD;
+> > >         } else {
+> > >                 uptrap.epc = regs->mepc;
+> > >                 uptrap.cause = CAUSE_MISALIGNED_LOAD;
+> > > @@ -237,6 +244,9 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+> > >                 val.data_ulong = GET_F32_RS2C(insn, regs);
+> > >  #endif
+> > >  #endif
+> > > +       } else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
+> > > +               len             = 2;
+> > > +               val.data_ulong = GET_RS2S(insn, regs);
+> >
+> > Don't need to handle "c.sb" instruction ??
+> Hi Anup, thanks for your feedback.
+>
+> in my opinion, because it's a byte so I don't think we'll encounter
+> any misaligned issues.
+>
+> I also wrote the following test program to specifically test c.sb, and
+> indeed, it doesn't require any exception handler.
 
-This was a typo. Apologies for the oversight.
-I will make sure to verify on both RV32/RV64 next time.
+Ahh, yes. We certainly don't need for the misaligned load/store handling.
+
+There is a separate series from Bo Gan where we are re-purposing the
+misaligned load/store handling for emulating load/store upon access
+fault. I got mixed-up between two separate patches.
 
 Regards,
-Atish
+Anup
 
-> Regards,
-> Anup
 >
->>   #define ENVCFG_CBZE                    (_UL(1) << 7)
->>   #define ENVCFG_CBCFE                   (_UL(1) << 6)
->>   #define ENVCFG_CBIE_SHIFT              4
->> @@ -314,6 +315,9 @@
->>   /* Supervisor Configuration */
->>   #define CSR_SENVCFG                    0x10a
->>
->> +/* Supervisor Conter Inhibit */
->> +#define CSR_SCOUNTINHIBIT              0x120
->> +
->>   /* Supervisor Trap Handling */
->>   #define CSR_SSCRATCH                   0x140
->>   #define CSR_SEPC                       0x141
->> @@ -328,9 +332,14 @@
->>   /* Supervisor Protection and Translation */
->>   #define CSR_SATP                       0x180
->>
->> -/* Supervisor-Level Window to Indirectly Accessed Registers (AIA) */
->> +/* Supervisor Indirect Register Alias */
->>   #define CSR_SISELECT                   0x150
->>   #define CSR_SIREG                      0x151
->> +#define CSR_SIREG2                     0x152
->> +#define CSR_SIREG3                     0x153
->> +#define CSR_SIREG4                     0x155
->> +#define CSR_SIREG5                     0x156
->> +#define CSR_SIREG6                     0x157
->>
->>   /* Supervisor-Level Interrupts (AIA) */
->>   #define CSR_STOPEI                     0x15c
->> @@ -391,9 +400,14 @@
->>   #define CSR_HVIPRIO1                   0x646
->>   #define CSR_HVIPRIO2                   0x647
->>
->> -/* VS-Level Window to Indirectly Accessed Registers (H-extension with AIA) */
->> +/* Virtual Supervisor Indirect Alias */
->>   #define CSR_VSISELECT                  0x250
->>   #define CSR_VSIREG                     0x251
->> +#define CSR_VSIREG2                    0x252
->> +#define CSR_VSIREG3                    0x253
->> +#define CSR_VSIREG4                    0x255
->> +#define CSR_VSIREG5                    0x256
->> +#define CSR_VSIREG6                    0x257
->>
->>   /* VS-Level Interrupts (H-extension with AIA) */
->>   #define CSR_VSTOPEI                    0x25c
->> @@ -694,9 +708,14 @@
->>   #define CSR_DSCRATCH0                  0x7b2
->>   #define CSR_DSCRATCH1                  0x7b3
->>
->> -/* Machine-Level Window to Indirectly Accessed Registers (AIA) */
->> +/* Machine Indirect Register Alias */
->>   #define CSR_MISELECT                   0x350
->>   #define CSR_MIREG                      0x351
->> +#define CSR_MIREG2                     0x352
->> +#define CSR_MIREG3                     0x353
->> +#define CSR_MIREG4                     0x355
->> +#define CSR_MIREG5                     0x356
->> +#define CSR_MIREG6                     0x357
->>
->>   /* Machine-Level Interrupts (AIA) */
->>   #define CSR_MTOPEI                     0x35c
->> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
->> index 10dc3df5d2fc..cc78eec6f65a 100644
->> --- a/include/sbi/sbi_hart.h
->> +++ b/include/sbi/sbi_hart.h
->> @@ -55,6 +55,14 @@ enum sbi_hart_extensions {
->>          SBI_HART_EXT_SVPBMT,
->>          /** Hart has debug trigger extension */
->>          SBI_HART_EXT_SDTRIG,
->> +       /** Hart has Smcsrind extension */
->> +       SBI_HART_EXT_SMCSRIND,
->> +       /** Hart has Smcdeleg extension */
->> +       SBI_HART_EXT_SMCDELEG,
->> +       /** Hart has Sscsrind extension */
->> +       SBI_HART_EXT_SSCSRIND,
->> +       /** Hart has Ssccfg extension */
->> +       SBI_HART_EXT_SSCCFG,
->>
->>          /** Maximum index of Hart extension */
->>          SBI_HART_EXT_MAX,
->> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
->> index a0ab0c640035..3d1369441c05 100644
->> --- a/lib/sbi/sbi_hart.c
->> +++ b/lib/sbi/sbi_hart.c
->> @@ -95,11 +95,16 @@ static void mstatus_init(struct sbi_scratch *scratch)
->>                  mstateen_val |= SMSTATEEN0_HSENVCFG;
->>
->>                  if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
->> -                       mstateen_val |= (SMSTATEEN0_AIA | SMSTATEEN0_SVSLCT |
->> -                                       SMSTATEEN0_IMSIC);
->> +                       mstateen_val |= (SMSTATEEN0_AIA | SMSTATEEN0_IMSIC);
->>                  else
->> -                       mstateen_val &= ~(SMSTATEEN0_AIA | SMSTATEEN0_SVSLCT |
->> -                                       SMSTATEEN0_IMSIC);
->> +                       mstateen_val &= ~(SMSTATEEN0_AIA | SMSTATEEN0_IMSIC);
->> +
->> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA) ||
->> +                   sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCSRIND))
->> +                       mstateen_val |= (SMSTATEEN0_SVSLCT);
->> +               else
->> +                       mstateen_val &= ~(SMSTATEEN0_SVSLCT);
->> +
->>                  csr_write(CSR_MSTATEEN0, mstateen_val);
->>   #if __riscv_xlen == 32
->>                  csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
->> @@ -129,6 +134,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
->>                  __set_menvcfg_ext(SBI_HART_EXT_SVPBMT, ENVCFG_PBMTE)
->>   #endif
->>                  __set_menvcfg_ext(SBI_HART_EXT_SSTC, ENVCFG_STCE)
->> +               __set_menvcfg_ext(SBI_HART_EXT_SMCDELEG, ENVCFG_CDE);
->>
->>   #undef __set_menvcfg_ext
->>
->> @@ -658,6 +664,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
->>          __SBI_HART_EXT_DATA(zicbom, SBI_HART_EXT_ZICBOM),
->>          __SBI_HART_EXT_DATA(svpbmt, SBI_HART_EXT_SVPBMT),
->>          __SBI_HART_EXT_DATA(sdtrig, SBI_HART_EXT_SDTRIG),
->> +       __SBI_HART_EXT_DATA(smcsrind, SBI_HART_EXT_SMCSRIND),
->> +       __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
->>   };
->>
->>   /**
->> --
->> 2.34.1
->>
+> /* Check whether there is an address misalignment issue in the store
+> byte instruction of zcb externsion. */
+> void checkStoreB(unsigned char* memory, size_t offset, unsigned char
+> value_byte) {
+>     asm volatile (
+>         "c.sb %[value_byte], 0(%[addr])"
+>         :
+>         : [value_byte] "r" (value_byte), [addr] "r" (memory + offset)
+>         : "memory"
+>     );
+>
+>     printf("Store (c.sb) operation at address: 0x%lx\n", (unsigned
+> long)(memory + offset));
+>
+>     if (memcmp(memory + offset, &value_byte, sizeof(unsigned char)) == 0) {
+>         printf("Store (c.sb) operation is correct: 0x%X\n", value_byte);
+>     } else {
+>         printf("Store (c.sb) operation may have address misalignment
+> issues.\n");
+>     }
+> }
+>
+> int main() {
+>     size_t size = 10;
+>     unsigned char* memory = (unsigned char*)malloc(size);
+>
+>     if (memory == NULL) {
+>         fprintf(stderr, "Memory allocation failed.\n");
+>         return 1;
+>     }
+>
+>     size_t offset = 1;
+>
+>     checkStoreB(memory, offset, 0x42);
+> ...
+> }
+>
+> >
+> > >         } else {
+> > >                 uptrap.epc = regs->mepc;
+> > >                 uptrap.cause = CAUSE_MISALIGNED_STORE;
+> > > --
+> > > 2.34.1
+> > >
+> > >
+> > > --
+> > > opensbi mailing list
+> > > opensbi at lists.infradead.org
+> > > http://lists.infradead.org/mailman/listinfo/opensbi
+> >
+> > Regards,
+> > Anup
+>
+>
+>
+> --
+>
+> ==========================================
+> sifive system software  team ???
+>
+> Cell phone:  0989057854
+> E-mail: nylon7717 at gmail.com
+> ==========================================
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
