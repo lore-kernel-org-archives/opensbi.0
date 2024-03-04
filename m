@@ -1,109 +1,30 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon,  4 Mar 2024 20:15:48 +0800
-Subject: [PATCH v6 1/5] firmware: fw_base.S: Simplify address get
-In-Reply-To: <20240304121557.502655-1-wxjstz@126.com>
-References: <20240304121557.502655-1-wxjstz@126.com>
-Message-ID: <20240304121557.502655-2-wxjstz@126.com>
+Date: Mon,  4 Mar 2024 20:15:47 +0800
+Subject: [PATCH v6 0/5] Improvements to fw_base.S
+Message-ID: <20240304121557.502655-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Simplify address get. Remove _link_start _link_end _load_start.
+v6 changes:
+- drop patch1 firmware: remove copy-base relocation
+- drop patch7 firmware: Improve fw_boot_hart
+- drop patch8 firmware: Use C if possible
+- rebase code
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- firmware/fw_base.S | 44 +++++++++++---------------------------------
- 1 file changed, 11 insertions(+), 33 deletions(-)
+Xiang W (5):
+  firmware: fw_base.S: Simplify address get
+  firmware: fw_base: Simplified setup trap handler
+  firmware: fw_dynamic.S: Remove _bad_dynamic_info
+  firmware: fw_base.S: Remove _relocate_lottery
+  firmware: fw_base.S: fix _reset_regs
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 09894e6..c657bd9 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -63,17 +63,11 @@ _try_lottery:
- 	amoadd.w a6, a7, (a6)
- 	bnez	a6, _wait_relocate_copy_done
- 
--	/* Save load address */
--	lla	t0, _load_start
--	lla	t1, _fw_start
--	REG_S	t1, 0(t0)
--
- #ifdef FW_PIC
- 	/* relocate the global table content */
--	lla	t0, _link_start
--	REG_L	t0, 0(t0)
--	/* t1 shall has the address of _fw_start */
--	sub	t2, t1, t0
-+	li	t0, FW_TEXT_START	/* link start */
-+	lla	t1, _fw_start		/* load start */
-+	sub	t2, t1, t0		/* load offset */
- 	lla	t0, __rel_dyn_start
- 	lla	t1, __rel_dyn_end
- 	beq	t0, t1, _relocate_done
-@@ -96,18 +90,14 @@ _wait_relocate_copy_done:
- #else
- 	/* Relocate if load address != link address */
- _relocate:
--	lla	t0, _link_start
--	REG_L	t0, 0(t0)
--	lla	t1, _link_end
--	REG_L	t1, 0(t1)
--	lla	t2, _load_start
--	REG_L	t2, 0(t2)
-+	li	t0, FW_TEXT_START	/* link start */
-+	lla	t2, _fw_start		/* load start */
-+	lla	t3, _fw_reloc_end	/* load end */
-+	sub	t6, t2, t0		/* load offset */
-+	sub	t1, t3, t6		/* link end */
- 	beq	t0, t2, _relocate_done
--	sub	t3, t1, t0
--	add	t3, t3, t2
- 	lla	t4, _relocate_done
--	sub	t4, t4, t2
--	add	t4, t4, t0
-+	sub	t4, t4, t6
- 	blt	t2, t0, _relocate_copy_to_upper
- _relocate_copy_to_lower:
- 	ble	t1, t2, _relocate_copy_to_lower_loop
-@@ -147,8 +137,7 @@ _relocate_copy_to_upper_loop:
- 	jr	t4
- _wait_relocate_copy_done:
- 	lla	t0, _fw_start
--	lla	t1, _link_start
--	REG_L	t1, 0(t1)
-+	li	t1, FW_TEXT_START
- 	beq	t0, t1, _wait_for_boot_hart
- 	lla	t2, _boot_status
- 	lla	t3, _wait_for_boot_hart
-@@ -173,12 +162,7 @@ _relocate_done:
- 	 */
- 	lla	t0, _boot_status
- #ifndef FW_PIC
--	lla	t1, _link_start
--	REG_L	t1, 0(t1)
--	lla	t2, _load_start
--	REG_L	t2, 0(t2)
--	sub	t0, t0, t1
--	add	t0, t0, t2
-+	add	t0, t0, t6
- #endif
- 	li	t1, BOOT_STATUS_RELOCATE_DONE
- 	REG_S	t1, 0(t0)
-@@ -502,12 +486,6 @@ _relocate_lottery:
- 	RISCV_PTR	0
- _boot_status:
- 	RISCV_PTR	0
--_load_start:
--	RISCV_PTR	_fw_start
--_link_start:
--	RISCV_PTR	FW_TEXT_START
--_link_end:
--	RISCV_PTR	_fw_reloc_end
- 
- 	.section .entry, "ax", %progbits
- 	.align 3
+ firmware/fw_base.S    | 85 ++++++++++++-------------------------------
+ firmware/fw_dynamic.S | 10 +----
+ 2 files changed, 26 insertions(+), 69 deletions(-)
+
 -- 
 2.43.0
 
