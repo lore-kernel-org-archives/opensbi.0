@@ -1,161 +1,251 @@
 From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Mon,  4 Mar 2024 21:45:50 +0000
-Subject: [PATCH v4 3/4] lib: tests: Add a test for sbi_bitmap
+Date: Mon,  4 Mar 2024 21:45:49 +0000
+Subject: [PATCH v4 2/4] lib: Add SBIUnit testing macros and functions
 In-Reply-To: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
 References: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
-Message-ID: <20240304214551.365057-4-ivan.orlov0322@gmail.com>
+Message-ID: <20240304214551.365057-3-ivan.orlov0322@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add test suite covering all of the functions from lib/sbi/sbi_bitmap.c:
-__bitmap_and, __bitmap_or and __bitmap_xor.
+This patch introduces all of the SBIUnit macros and functions which
+can be used during the test development process. Also, it defines
+the 'run_all_tests' function, which is being called during the
+'init_coldboot' right after printing the boot hart information.
+
+Also, add the CONFIG_SBIUNIT Kconfig entry in order to be able to
+turn the tests on and off. When the CONFIG_SBIUNIT is disabled,
+the tests and all related code is excluded completely on the
+compilation stage.
 
 Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 ---
 V1 -> V2:
-- Extract the part of the commit description to the cover letter
-- Update to use the carray functionality instead of placing the pointer
-to the test suite directly into the sources
+- Rename the sources to have 'test' in the names: 'sbi_unit.c' =>
+'sbi_unit_test.c', 'sbi_unit.h' => 'sbi_unit_test.h'.
+- Rewrite using the carray functionality instead of placing the
+pointers to the test suites into the source explicitly.
+- Add 'ifdef' into the sbi_unit_test header file so we could
+avoid writing a lot of 'ifdef' in other files.
+- Get rid of unused symbols and macros
+- Change the behaviour of SBIUNIT_ASSERT_* functions: now they trigger
+sbi_panic if the assertion fails.
+- Add a 'SBIUnit' prefix to the SBIUNIT_INFO macro message
+- Rename the sbiunit_test_case structure fields, and use true/false
+instead of 1/0
+- Change the logic of the test fail detection: now we have the 'failed'
+sbiunit_test_case structure field instead of the 'result'. 'failed'
+field gets set to 'true' if an assertion or an expectaion fails.
 - Fix codestyle issues
-- Use the references to the data_* arrays when defining the expected
-test results, instead of repeating the same numbers again and again
+- Add 'len' parameter to SBIUNIT_*_STREQ
 V2 -> V3:
-- Use the SBIUNIT_END_CASE macro in the test cases list instead of '{}'
-- Remove redundant 'include' statement
+- Remove redundant 'onerr' field from 'sbiunit_test_case' struct
+- Remove setting of the 'failed' field for the test case struct in case
+of assert (because panic() is called after that)
+- Add 'SBIUNIT_END_CASE' macro, which should be placed at the end of a
+test cases list
+- Remove redundant 'enabled' field of the test case, as currently we
+can't enable/disable tests separately; Now we iterate the test cases
+until we face test_func == NULL
 V3 -> V4:
 - No changes
 
- lib/sbi/objects.mk        |   3 ++
- lib/sbi/sbi_bitmap_test.c | 102 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 105 insertions(+)
- create mode 100644 lib/sbi/sbi_bitmap_test.c
+ include/sbi/sbi_unit_test.h   | 71 +++++++++++++++++++++++++++++++++++
+ lib/sbi/Kconfig               |  4 ++
+ lib/sbi/objects.mk            |  2 +
+ lib/sbi/sbi_init.c            |  3 ++
+ lib/sbi/sbi_unit_test.c       | 43 +++++++++++++++++++++
+ lib/sbi/sbi_unit_tests.carray |  3 ++
+ 6 files changed, 126 insertions(+)
+ create mode 100644 include/sbi/sbi_unit_test.h
+ create mode 100644 lib/sbi/sbi_unit_test.c
+ create mode 100644 lib/sbi/sbi_unit_tests.carray
 
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 08959f1..b4c273f 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -14,6 +14,9 @@ libsbi-objs-y += riscv_locks.o
- libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
- libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
- 
-+libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-+
- libsbi-objs-y += sbi_ecall.o
- libsbi-objs-y += sbi_ecall_exts.o
- 
-diff --git a/lib/sbi/sbi_bitmap_test.c b/lib/sbi/sbi_bitmap_test.c
+diff --git a/include/sbi/sbi_unit_test.h b/include/sbi/sbi_unit_test.h
 new file mode 100644
-index 0000000..2563934
+index 0000000..c63d900
 --- /dev/null
-+++ b/lib/sbi/sbi_bitmap_test.c
-@@ -0,0 +1,102 @@
++++ b/include/sbi/sbi_unit_test.h
+@@ -0,0 +1,71 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
 + */
-+#include <sbi/sbi_bitmap.h>
-+#include <sbi/sbi_unit_test.h>
++#ifdef CONFIG_SBIUNIT
++#ifndef __SBI_UNIT_H__
++#define __SBI_UNIT_H__
 +
-+#define DATA_SIZE sizeof(data_zero)
-+#define DATA_BIT_SIZE (DATA_SIZE * 8)
++#include <sbi/sbi_types.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_string.h>
 +
-+static u64 data_a[] = { 0xDEADBEEF, 0x00BAB10C, 0x1BADB002, 0xABADBABE };
-+static u64 data_b[] = { 0xC00010FF, 0x00BAB10C, 0xBAAAAAAD, 0xBADDCAFE };
-+static u64 data_zero[] = { 0, 0, 0, 0 };
-+
-+static void bitmap_and_test(struct sbiunit_test_case *test)
-+{
-+	u64 res[DATA_SIZE];
-+	u64 a_and_b[] = { data_a[0] & data_b[0], data_a[1] & data_b[1],
-+			  data_a[2] & data_b[2], data_a[3] & data_b[3] };
-+
-+	__bitmap_and(res, data_a, data_b, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, a_and_b, DATA_SIZE);
-+
-+	/* a & a = a */
-+	__bitmap_and(res, data_a, data_a, DATA_BIT_SIZE);
-+	SBIUNIT_ASSERT_MEMEQ(test, res, data_a, DATA_SIZE);
-+
-+	/* a & 0 = 0 */
-+	__bitmap_and(res, data_a, data_zero, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+
-+	/* 0 & 0 = 0 */
-+	__bitmap_and(res, data_zero, data_zero, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+
-+	sbi_memcpy(res, data_zero, DATA_SIZE);
-+	/* Cover zero 'bits' argument */
-+	__bitmap_and(res, data_a, data_b, 0);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+}
-+
-+static void bitmap_or_test(struct sbiunit_test_case *test)
-+{
-+	u64 res[DATA_SIZE];
-+	u64 a_or_b[] = { data_a[0] | data_b[0], data_a[1] | data_b[1],
-+			 data_a[2] | data_b[2], data_a[3] | data_b[3] };
-+
-+	__bitmap_or(res, data_a, data_b, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, a_or_b, DATA_SIZE);
-+
-+	/* a | a = a */
-+	__bitmap_or(res, data_a, data_a, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_a, DATA_SIZE);
-+
-+	/* a | 0 = a */
-+	__bitmap_or(res, data_a, data_zero, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_a, DATA_SIZE);
-+
-+	/* 0 | 0 = 0 */
-+	__bitmap_or(res, data_zero, data_zero, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+
-+	sbi_memcpy(res, data_zero, DATA_SIZE);
-+	__bitmap_or(res, data_a, data_b, 0);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+}
-+
-+static void bitmap_xor_test(struct sbiunit_test_case *test)
-+{
-+	u64 res[DATA_SIZE];
-+	u64 a_xor_b[] = { data_a[0] ^ data_b[0], data_a[1] ^ data_b[1],
-+			  data_a[2] ^ data_b[2], data_a[3] ^ data_b[3] };
-+
-+	__bitmap_xor(res, data_a, data_b, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, a_xor_b, DATA_SIZE);
-+
-+	/* a ^ 0 = a */
-+	__bitmap_xor(res, data_a, data_zero, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_a, DATA_SIZE);
-+
-+	/* a ^ a = 0 */
-+	__bitmap_xor(res, data_a, data_a, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+
-+	/* 0 ^ 0 = 0 */
-+	__bitmap_xor(res, data_zero, data_zero, DATA_BIT_SIZE);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+
-+	sbi_memcpy(res, data_zero, DATA_SIZE);
-+	__bitmap_xor(res, data_a, data_b, 0);
-+	SBIUNIT_EXPECT_MEMEQ(test, res, data_zero, DATA_SIZE);
-+}
-+
-+static struct sbiunit_test_case bitmap_test_cases[] = {
-+	SBIUNIT_TEST_CASE(bitmap_and_test),
-+	SBIUNIT_TEST_CASE(bitmap_or_test),
-+	SBIUNIT_TEST_CASE(bitmap_xor_test),
-+	SBIUNIT_END_CASE,
++struct sbiunit_test_case {
++	const char *name;
++	bool failed;
++	void (*test_func)(struct sbiunit_test_case *test);
 +};
 +
-+SBIUNIT_TEST_SUITE(bitmap_test_suite, bitmap_test_cases);
++struct sbiunit_test_suite {
++	const char *name;
++	struct sbiunit_test_case *cases;
++};
++
++#define SBIUNIT_TEST_CASE(func)		\
++	{				\
++		.name = #func,		\
++		.failed = false,	\
++		.test_func = (func)	\
++	}
++
++#define SBIUNIT_END_CASE { }
++
++#define SBIUNIT_TEST_SUITE(suite_name, cases_arr)		\
++	struct sbiunit_test_suite suite_name = {		\
++		.name = #suite_name,				\
++		.cases = cases_arr				\
++	}
++
++#define _sbiunit_msg(test, msg) "[SBIUnit] [%s:%d]: %s: %s", __FILE__,	\
++				__LINE__, test->name, msg
++
++#define SBIUNIT_INFO(test, msg) sbi_printf(_sbiunit_msg(test, msg))
++#define SBIUNIT_PANIC(test, msg) sbi_panic(_sbiunit_msg(test, msg))
++
++#define SBIUNIT_EXPECT(test, cond) do {							\
++	if (!(cond)) {									\
++		test->failed = true;							\
++		SBIUNIT_INFO(test, "Condition \"" #cond "\" expected to be true!\n");	\
++	}										\
++} while (0)
++
++#define SBIUNIT_ASSERT(test, cond) do {						\
++	if (!(cond))								\
++		SBIUNIT_PANIC(test, "Condition \"" #cond "\" must be true!\n");	\
++} while (0)
++
++#define SBIUNIT_EXPECT_EQ(test, a, b) SBIUNIT_EXPECT(test, (a) == (b))
++#define SBIUNIT_ASSERT_EQ(test, a, b) SBIUNIT_ASSERT(test, (a) == (b))
++#define SBIUNIT_EXPECT_NE(test, a, b) SBIUNIT_EXPECT(test, (a) != (b))
++#define SBIUNIT_ASSERT_NE(test, a, b) SBIUNIT_ASSERT(test, (a) != (b))
++#define SBIUNIT_EXPECT_MEMEQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_memcmp(a, b, len))
++#define SBIUNIT_ASSERT_MEMEQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_memcmp(a, b, len))
++#define SBIUNIT_EXPECT_STREQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_strncmp(a, b, len))
++#define SBIUNIT_ASSERT_STREQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_strncmp(a, b, len))
++
++void run_all_tests(void);
++#endif
++#else
++#define run_all_tests()
++#endif
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index 81dd2db..e3038ee 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -50,4 +50,8 @@ config SBI_ECALL_DBTR
+ 	bool "Debug Trigger Extension"
+ 	default y
+ 
++config SBIUNIT
++	bool "Enable SBIUNIT tests"
++	default n
++
+ endmenu
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 0a50e95..08959f1 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -11,6 +11,8 @@ libsbi-objs-y += riscv_asm.o
+ libsbi-objs-y += riscv_atomic.o
+ libsbi-objs-y += riscv_hardfp.o
+ libsbi-objs-y += riscv_locks.o
++libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
++libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+ 
+ libsbi-objs-y += sbi_ecall.o
+ libsbi-objs-y += sbi_ecall_exts.o
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 804b01c..796cccc 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -29,6 +29,7 @@
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_tlb.h>
+ #include <sbi/sbi_version.h>
++#include <sbi/sbi_unit_test.h>
+ 
+ #define BANNER                                              \
+ 	"   ____                    _____ ____ _____\n"     \
+@@ -398,6 +399,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 
+ 	sbi_boot_print_hart(scratch, hartid);
+ 
++	run_all_tests();
++
+ 	/*
+ 	 * Configure PMP at last because if SMEPMP is detected,
+ 	 * M-mode access to the S/U space will be rescinded.
+diff --git a/lib/sbi/sbi_unit_test.c b/lib/sbi/sbi_unit_test.c
+new file mode 100644
+index 0000000..1987838
+--- /dev/null
++++ b/lib/sbi/sbi_unit_test.c
+@@ -0,0 +1,43 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
++ */
++#include <sbi/sbi_unit_test.h>
++#include <sbi/sbi_types.h>
++#include <sbi/sbi_console.h>
++
++extern struct sbiunit_test_suite *sbi_unit_tests[];
++extern unsigned long sbi_unit_tests_size;
++
++static void run_test_suite(struct sbiunit_test_suite *suite)
++{
++	struct sbiunit_test_case *s_case;
++	u32 count_pass = 0, count_fail = 0;
++
++	sbi_printf("## Running test suite: %s\n", suite->name);
++
++	s_case = suite->cases;
++	while (s_case->test_func) {
++		s_case->test_func(s_case);
++		if (s_case->failed)
++			count_fail++;
++		else
++			count_pass++;
++		sbi_printf("[%s] %s\n", s_case->failed ? "FAILED" : "PASSED",
++			   s_case->name);
++		s_case++;
++	}
++	sbi_printf("%u PASSED / %u FAILED / %u TOTAL\n", count_pass, count_fail,
++		   count_pass + count_fail);
++}
++
++void run_all_tests(void)
++{
++	u32 i;
++
++	sbi_printf("\n# Running SBIUNIT tests #\n");
++
++	for (i = 0; i < sbi_unit_tests_size; i++)
++		run_test_suite(sbi_unit_tests[i]);
++}
+diff --git a/lib/sbi/sbi_unit_tests.carray b/lib/sbi/sbi_unit_tests.carray
+new file mode 100644
+index 0000000..8d6069b
+--- /dev/null
++++ b/lib/sbi/sbi_unit_tests.carray
+@@ -0,0 +1,3 @@
++HEADER: sbi/sbi_unit_test.h
++TYPE: struct sbiunit_test_suite
++NAME: sbi_unit_tests
 -- 
 2.34.1
 
