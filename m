@@ -1,78 +1,109 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon,  4 Mar 2024 20:15:51 +0800
-Subject: [PATCH v6 4/5] firmware: fw_base.S: Remove _relocate_lottery
+Date: Mon,  4 Mar 2024 20:15:48 +0800
+Subject: [PATCH v6 1/5] firmware: fw_base.S: Simplify address get
 In-Reply-To: <20240304121557.502655-1-wxjstz@126.com>
 References: <20240304121557.502655-1-wxjstz@126.com>
-Message-ID: <20240304121557.502655-5-wxjstz@126.com>
+Message-ID: <20240304121557.502655-2-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Remove _relocate_lottery and use _boot_status instead
+Simplify address get. Remove _link_start _link_end _load_start.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- firmware/fw_base.S | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ firmware/fw_base.S | 44 +++++++++++---------------------------------
+ 1 file changed, 11 insertions(+), 33 deletions(-)
 
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index d87c0a5..d83397e 100644
+index 09894e6..c657bd9 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -14,8 +14,9 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_trap.h>
- 
--#define BOOT_STATUS_RELOCATE_DONE	1
--#define BOOT_STATUS_BOOT_HART_DONE	2
-+#define BOOT_STATUS_LOTTERY_DONE	1
-+#define BOOT_STATUS_RELOCATE_DONE	2
-+#define BOOT_STATUS_BOOT_HART_DONE	3
- 
- .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
- 	add	\__d0, \__s0, zero
-@@ -58,9 +59,9 @@ _start:
- 	bne	a0, a6, _wait_relocate_copy_done
- _try_lottery:
- 	/* Jump to relocation wait loop if we don't get relocation lottery */
--	lla	a6, _relocate_lottery
--	li	a7, 1
--	amoadd.w a6, a7, (a6)
-+	lla	a6, _boot_status
-+	li	a7, BOOT_STATUS_LOTTERY_DONE
-+	amoswap.w a6, a7, (a6)
+@@ -63,17 +63,11 @@ _try_lottery:
+ 	amoadd.w a6, a7, (a6)
  	bnez	a6, _wait_relocate_copy_done
  
+-	/* Save load address */
+-	lla	t0, _load_start
+-	lla	t1, _fw_start
+-	REG_S	t1, 0(t0)
+-
  #ifdef FW_PIC
-@@ -101,8 +102,6 @@ _relocate:
+ 	/* relocate the global table content */
+-	lla	t0, _link_start
+-	REG_L	t0, 0(t0)
+-	/* t1 shall has the address of _fw_start */
+-	sub	t2, t1, t0
++	li	t0, FW_TEXT_START	/* link start */
++	lla	t1, _fw_start		/* load start */
++	sub	t2, t1, t0		/* load offset */
+ 	lla	t0, __rel_dyn_start
+ 	lla	t1, __rel_dyn_end
+ 	beq	t0, t1, _relocate_done
+@@ -96,18 +90,14 @@ _wait_relocate_copy_done:
+ #else
+ 	/* Relocate if load address != link address */
+ _relocate:
+-	lla	t0, _link_start
+-	REG_L	t0, 0(t0)
+-	lla	t1, _link_end
+-	REG_L	t1, 0(t1)
+-	lla	t2, _load_start
+-	REG_L	t2, 0(t2)
++	li	t0, FW_TEXT_START	/* link start */
++	lla	t2, _fw_start		/* load start */
++	lla	t3, _fw_reloc_end	/* load end */
++	sub	t6, t2, t0		/* load offset */
++	sub	t1, t3, t6		/* link end */
+ 	beq	t0, t2, _relocate_done
+-	sub	t3, t1, t0
+-	add	t3, t3, t2
+ 	lla	t4, _relocate_done
+-	sub	t4, t4, t2
+-	add	t4, t4, t0
++	sub	t4, t4, t6
  	blt	t2, t0, _relocate_copy_to_upper
  _relocate_copy_to_lower:
  	ble	t1, t2, _relocate_copy_to_lower_loop
--	lla	t3, _relocate_lottery
--	BRANGE	t2, t1, t3, _start_hang
- 	lla	t3, _boot_status
- 	BRANGE	t2, t1, t3, _start_hang
- 	lla	t3, _relocate
-@@ -119,8 +118,6 @@ _relocate_copy_to_lower_loop:
+@@ -147,8 +137,7 @@ _relocate_copy_to_upper_loop:
  	jr	t4
- _relocate_copy_to_upper:
- 	ble	t3, t0, _relocate_copy_to_upper_loop
--	lla	t2, _relocate_lottery
--	BRANGE	t0, t3, t2, _start_hang
+ _wait_relocate_copy_done:
+ 	lla	t0, _fw_start
+-	lla	t1, _link_start
+-	REG_L	t1, 0(t1)
++	li	t1, FW_TEXT_START
+ 	beq	t0, t1, _wait_for_boot_hart
  	lla	t2, _boot_status
- 	BRANGE	t0, t3, t2, _start_hang
- 	lla	t2, _relocate
-@@ -474,8 +471,6 @@ _skip_trap_handler_rv32_hyp:
- 
- 	.data
- 	.align 3
--_relocate_lottery:
--	RISCV_PTR	0
+ 	lla	t3, _wait_for_boot_hart
+@@ -173,12 +162,7 @@ _relocate_done:
+ 	 */
+ 	lla	t0, _boot_status
+ #ifndef FW_PIC
+-	lla	t1, _link_start
+-	REG_L	t1, 0(t1)
+-	lla	t2, _load_start
+-	REG_L	t2, 0(t2)
+-	sub	t0, t0, t1
+-	add	t0, t0, t2
++	add	t0, t0, t6
+ #endif
+ 	li	t1, BOOT_STATUS_RELOCATE_DONE
+ 	REG_S	t1, 0(t0)
+@@ -502,12 +486,6 @@ _relocate_lottery:
+ 	RISCV_PTR	0
  _boot_status:
  	RISCV_PTR	0
+-_load_start:
+-	RISCV_PTR	_fw_start
+-_link_start:
+-	RISCV_PTR	FW_TEXT_START
+-_link_end:
+-	RISCV_PTR	_fw_reloc_end
  
+ 	.section .entry, "ax", %progbits
+ 	.align 3
 -- 
 2.43.0
 
