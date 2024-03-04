@@ -1,201 +1,253 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 4 Mar 2024 14:27:40 +0100
-Subject: [PATCH v3 1/4] docs: Add documentation about tests and SBIUnit
-In-Reply-To: <20240301160046.267814-2-ivan.orlov0322@gmail.com>
+Date: Mon, 4 Mar 2024 14:32:56 +0100
+Subject: [PATCH v3 2/4] lib: Add SBIUnit testing macros and functions
+In-Reply-To: <20240301160046.267814-3-ivan.orlov0322@gmail.com>
 References: <20240301160046.267814-1-ivan.orlov0322@gmail.com>
- <20240301160046.267814-2-ivan.orlov0322@gmail.com>
-Message-ID: <20240304-7a11229488c09eeee6f3f751@orel>
+ <20240301160046.267814-3-ivan.orlov0322@gmail.com>
+Message-ID: <20240304-3b0b3521fed1518b287e2fb6@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 01, 2024 at 04:00:42PM +0000, Ivan Orlov wrote:
-> This patch contains the documentation for SBIUnit. It describes:
+On Fri, Mar 01, 2024 at 04:00:43PM +0000, Ivan Orlov wrote:
+> This patch introduces all of the SBIUnit macros and functions which
+> can be used during the test development process. Also, it defines
+> the 'run_all_tests' function, which is being called during the
+> 'init_coldboot' right after printing the boot hart information.
 > 
-> - What is SBIUnit
-> - Simple test writing scenario
-> - How we can cover static functions
-> - How we can "mock" structures in order to test the functions which
-> operate on them
-> - SBIUnit API Reference
+> Also, add the CONFIG_SBIUNIT Kconfig entry in order to be able to
+> turn the tests on and off. When the CONFIG_SBIUNIT is disabled,
+> the tests and all related code is excluded completely on the
+> compilation stage.
 > 
 > Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 > ---
 > V1 -> V2:
-> - Use more appropriate language
-> - Update the documentation in accordance with SBIUnit API and
-> structure changes
-> - Remove the redundant documentation for every SBIUNIT_* macro.
-> - Make the documentation follow the 80-characters rule.
+> - Rename the sources to have 'test' in the names: 'sbi_unit.c' =>
+> 'sbi_unit_test.c', 'sbi_unit.h' => 'sbi_unit_test.h'.
+> - Rewrite using the carray functionality instead of placing the
+> pointers to the test suites into the source explicitly.
+> - Add 'ifdef' into the sbi_unit_test header file so we could
+> avoid writing a lot of 'ifdef' in other files.
+> - Get rid of unused symbols and macros
+> - Change the behaviour of SBIUNIT_ASSERT_* functions: now they trigger
+> sbi_panic if the assertion fails.
+> - Add a 'SBIUnit' prefix to the SBIUNIT_INFO macro message
+> - Rename the sbiunit_test_case structure fields, and use true/false
+> instead of 1/0
+> - Change the logic of the test fail detection: now we have the 'failed'
+> sbiunit_test_case structure field instead of the 'result'. 'failed'
+> field gets set to 'true' if an assertion or an expectaion fails.
+> - Fix codestyle issues
+> - Add 'len' parameter to SBIUNIT_*_STREQ
 > V2 -> V3:
-> - Fix a few typos
-> - Provide the expected console output as it is, without following 80-chars
-> rule
-> - Update the example test source: use SBIUNIT_END_CASE macro instead of
-> "{}"
-> - Add the paragraph about the manual removal of the 'build/' directory
-> in order to regenerate carray-related files. Currently, that's the only
-> reliable way to regenerate them if carray Makefile variable changes, and
-> it is going to be fixed in the future.
+> - Remove redundant 'onerr' field from 'sbiunit_test_case' struct
+> - Remove setting of the 'failed' field for the test case struct in case
+> of assert (because panic() is called after that)
+> - Add 'SBIUNIT_END_CASE' macro, which should be placed at the end of a
+> test cases list
+> - Remove redundant 'enabled' field of the test case, as currently we
+> can't enable/disable tests separately; Now we iterate the test cases
+> until we face test_func == NULL
 > 
->  docs/writing_tests.md | 133 ++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 133 insertions(+)
->  create mode 100644 docs/writing_tests.md
+>  include/sbi/sbi_unit_test.h   | 71 +++++++++++++++++++++++++++++++++++
+>  lib/sbi/Kconfig               |  4 ++
+>  lib/sbi/objects.mk            |  2 +
+>  lib/sbi/sbi_init.c            |  3 ++
+>  lib/sbi/sbi_unit_test.c       | 43 +++++++++++++++++++++
+>  lib/sbi/sbi_unit_tests.carray |  3 ++
+>  6 files changed, 126 insertions(+)
+>  create mode 100644 include/sbi/sbi_unit_test.h
+>  create mode 100644 lib/sbi/sbi_unit_test.c
+>  create mode 100644 lib/sbi/sbi_unit_tests.carray
 > 
-> diff --git a/docs/writing_tests.md b/docs/writing_tests.md
+> diff --git a/include/sbi/sbi_unit_test.h b/include/sbi/sbi_unit_test.h
 > new file mode 100644
-> index 0000000..a1f11e5
+> index 0000000..c63d900
 > --- /dev/null
-> +++ b/docs/writing_tests.md
-> @@ -0,0 +1,133 @@
-> +Writing tests for OpenSBI
-> +=========================
+> +++ b/include/sbi/sbi_unit_test.h
+> @@ -0,0 +1,71 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+> + */
+> +#ifdef CONFIG_SBIUNIT
+> +#ifndef __SBI_UNIT_H__
+> +#define __SBI_UNIT_H__
 > +
-> +SBIUnit
-> +-------
-> +SBIUnit is a set of macros and functions which simplify the test development and
-> +automate the test execution and evaluation. All of the SBIUnit definitions are
-> +in the `include/sbi/sbi_unit_test.h` header file, and implementations are
-> +available in `lib/sbi/sbi_unit_test.c`.
-> +
-> +Simple SBIUnit test
-> +-------------------
-> +
-> +For instance, we would like to test the following function from
-> +`lib/sbi/sbi_string.c`:
-> +
-> +```c
-> +size_t sbi_strlen(const char *str)
-> +{
-> +	unsigned long ret = 0;
-> +
-> +	while (*str != '\0') {
-> +		ret++;
-> +		str++;
-> +	}
-> +
-> +	return ret;
-> +}
-> +```
-> +
-> +which calculates the string length.
-> +
-> +Create the file `lib/sbi/sbi_string_test.c` with the following content:
-> +
-> +```c
-> +#include <sbi/sbi_unit_test.h>
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_console.h>
 > +#include <sbi/sbi_string.h>
 > +
-> +static void strlen_test(struct sbiunit_test_case *test)
-> +{
-> +	SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
-> +	SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hell\0o"), 4);
-> +}
-> +
-> +static struct sbiunit_test_case string_test_cases[] = {
-> +	SBIUNIT_TEST_CASE(strlen_test),
-> +	SBIUNIT_END_CASE,
+> +struct sbiunit_test_case {
+> +	const char *name;
+> +	bool failed;
+> +	void (*test_func)(struct sbiunit_test_case *test);
 > +};
 > +
-> +SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
-> +```
+> +struct sbiunit_test_suite {
+> +	const char *name;
+> +	struct sbiunit_test_case *cases;
+> +};
 > +
-> +Then, add the corresponding Makefile entries to `lib/sbi/objects.mk`:
-> +```lang-makefile
-> +...
-> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
-> +```
+> +#define SBIUNIT_TEST_CASE(func)		\
+> +	{				\
+> +		.name = #func,		\
+> +		.failed = false,	\
+> +		.test_func = (func)	\
+> +	}
 > +
-> +If you compiled OpenSBI with CONFIG_SBIUNIT enabled before, you may need to
-> +manually remove the build folder in order to regenerate the carray files:
-> +`rm -rf build/`.
+> +#define SBIUNIT_END_CASE { }
 > +
-> +Recompile OpenSBI with CONFIG_SBIUNIT option enabled and run it in the QEMU.
-
-s/CONFIG_SBIUNIT/the CONFIG_SBIUNIT/
-s/the QEMU/QEMU/
-
-> +You will see something like this:
-> +```
-> +# make PLATFORM=generic run
-> +...
-> +# Running SBIUNIT tests #
-> +...
-> +## Running test suite: string_test_suite
-> +[PASSED] strlen_test
-> +1 PASSED / 0 FAILED / 1 TOTAL
-> +```
+> +#define SBIUNIT_TEST_SUITE(suite_name, cases_arr)		\
+> +	struct sbiunit_test_suite suite_name = {		\
+> +		.name = #suite_name,				\
+> +		.cases = cases_arr				\
+> +	}
 > +
-> +Now let's try to change this test in the way that it will fail:
+> +#define _sbiunit_msg(test, msg) "[SBIUnit] [%s:%d]: %s: %s", __FILE__,	\
+> +				__LINE__, test->name, msg
 > +
-> +```c
-> +- SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
-> ++ SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 100);
-> +```
+> +#define SBIUNIT_INFO(test, msg) sbi_printf(_sbiunit_msg(test, msg))
+> +#define SBIUNIT_PANIC(test, msg) sbi_panic(_sbiunit_msg(test, msg))
 > +
-> +`make all` and `make run` it again:
-> +```
-> +...
-> +# Running SBIUNIT tests #
-> +...
-> +## Running test suite: string_test_suite
-> +[SBIUnit] [.../opensbi/lib/sbi/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
-> +[FAILED] strlen_test
-> +0 PASSED / 1 FAILED / 1 TOTAL
-> +```
-> +Covering the static functions / using the static definitions
-> +------------------------------------------------------------
+> +#define SBIUNIT_EXPECT(test, cond) do {							\
+> +	if (!(cond)) {									\
+> +		test->failed = true;							\
+> +		SBIUNIT_INFO(test, "Condition \"" #cond "\" expected to be true!\n");	\
+> +	}										\
+> +} while (0)
 > +
-> +SBIUnit also allows you to test static functions. In order to do so, simply
-> +include your test source in the file you would like to test. Complementing the
-> +example above, just add this to the
-> +`lib/sbi/sbi_string.c` file:
+> +#define SBIUNIT_ASSERT(test, cond) do {						\
+> +	if (!(cond))								\
+> +		SBIUNIT_PANIC(test, "Condition \"" #cond "\" must be true!\n");	\
+> +} while (0)
 > +
-> +```c
-> +#ifdef CONFIG_SBIUNIT
-> +#include "sbi_string_test.c"
+> +#define SBIUNIT_EXPECT_EQ(test, a, b) SBIUNIT_EXPECT(test, (a) == (b))
+> +#define SBIUNIT_ASSERT_EQ(test, a, b) SBIUNIT_ASSERT(test, (a) == (b))
+> +#define SBIUNIT_EXPECT_NE(test, a, b) SBIUNIT_EXPECT(test, (a) != (b))
+> +#define SBIUNIT_ASSERT_NE(test, a, b) SBIUNIT_ASSERT(test, (a) != (b))
+> +#define SBIUNIT_EXPECT_MEMEQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_memcmp(a, b, len))
+> +#define SBIUNIT_ASSERT_MEMEQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_memcmp(a, b, len))
+> +#define SBIUNIT_EXPECT_STREQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_strncmp(a, b, len))
+> +#define SBIUNIT_ASSERT_STREQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_strncmp(a, b, len))
+> +
+> +void run_all_tests(void);
 > +#endif
-> +```
+> +#else
+> +#define run_all_tests()
+> +#endif
+> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+> index 81dd2db..e3038ee 100644
+> --- a/lib/sbi/Kconfig
+> +++ b/lib/sbi/Kconfig
+> @@ -50,4 +50,8 @@ config SBI_ECALL_DBTR
+>  	bool "Debug Trigger Extension"
+>  	default y
+>  
+> +config SBIUNIT
+> +	bool "Enable SBIUNIT tests"
+> +	default n
 > +
-> +In this case you should only add a new carray entry pointing to the test suite
-> +to `lib/sbi/objects.mk`:
-> +```lang-makefile
-> +...
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
-> +```
+>  endmenu
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index 0a50e95..08959f1 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -11,6 +11,8 @@ libsbi-objs-y += riscv_asm.o
+>  libsbi-objs-y += riscv_atomic.o
+>  libsbi-objs-y += riscv_hardfp.o
+>  libsbi-objs-y += riscv_locks.o
+> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
+> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+>  
+>  libsbi-objs-y += sbi_ecall.o
+>  libsbi-objs-y += sbi_ecall_exts.o
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 804b01c..796cccc 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -29,6 +29,7 @@
+>  #include <sbi/sbi_timer.h>
+>  #include <sbi/sbi_tlb.h>
+>  #include <sbi/sbi_version.h>
+> +#include <sbi/sbi_unit_test.h>
+>  
+>  #define BANNER                                              \
+>  	"   ____                    _____ ____ _____\n"     \
+> @@ -398,6 +399,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>  
+>  	sbi_boot_print_hart(scratch, hartid);
+>  
+> +	run_all_tests();
 > +
-> +You don't have to compile the `sbi_string_test.o` separately, because the
-> +test code will be included into the `sbi_string` object file.
+>  	/*
+>  	 * Configure PMP at last because if SMEPMP is detected,
+>  	 * M-mode access to the S/U space will be rescinded.
+> diff --git a/lib/sbi/sbi_unit_test.c b/lib/sbi/sbi_unit_test.c
+> new file mode 100644
+> index 0000000..1987838
+> --- /dev/null
+> +++ b/lib/sbi/sbi_unit_test.c
+> @@ -0,0 +1,43 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+> + */
+> +#include <sbi/sbi_unit_test.h>
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_console.h>
 > +
-> +See example in `lib/sbi/sbi_console_test.c`, where statically declared
-> +`console_dev` variable is used to mock the `sbi_console_device` structure.
+> +extern struct sbiunit_test_suite *sbi_unit_tests[];
+> +extern unsigned long sbi_unit_tests_size;
 > +
-> +"Mocking" the structures
-> +------------------------
-> +See the example of structure "mocking" in the `lib/sbi/sbi_console_test.c`,
-> +where the sbi_console_device structure was mocked to be used in various
-> +console-related functions in order to test them.
+> +static void run_test_suite(struct sbiunit_test_suite *suite)
+> +{
+> +	struct sbiunit_test_case *s_case;
+> +	u32 count_pass = 0, count_fail = 0;
 > +
-> +API Reference
-> +-------------
-> +All of the `SBIUNIT_EXPECT_*` macros will cause a test case to fail if the
-> +corresponding conditions are not met, however, the execution of a particular
-> +test case will not be stopped.
+> +	sbi_printf("## Running test suite: %s\n", suite->name);
 > +
-> +All of the `SBIUNIT_ASSERT_*` macros will cause a test case to fail and stop
-> +immediately, triggering a panic.
+> +	s_case = suite->cases;
+> +	while (s_case->test_func) {
+> +		s_case->test_func(s_case);
+> +		if (s_case->failed)
+> +			count_fail++;
+> +		else
+> +			count_pass++;
+> +		sbi_printf("[%s] %s\n", s_case->failed ? "FAILED" : "PASSED",
+> +			   s_case->name);
+> +		s_case++;
+> +	}
+> +	sbi_printf("%u PASSED / %u FAILED / %u TOTAL\n", count_pass, count_fail,
+> +		   count_pass + count_fail);
+> +}
+> +
+> +void run_all_tests(void)
+> +{
+> +	u32 i;
+> +
+> +	sbi_printf("\n# Running SBIUNIT tests #\n");
+> +
+> +	for (i = 0; i < sbi_unit_tests_size; i++)
+> +		run_test_suite(sbi_unit_tests[i]);
+> +}
+> diff --git a/lib/sbi/sbi_unit_tests.carray b/lib/sbi/sbi_unit_tests.carray
+> new file mode 100644
+> index 0000000..8d6069b
+> --- /dev/null
+> +++ b/lib/sbi/sbi_unit_tests.carray
+> @@ -0,0 +1,3 @@
+> +HEADER: sbi/sbi_unit_test.h
+> +TYPE: struct sbiunit_test_suite
+> +NAME: sbi_unit_tests
 > -- 
 > 2.34.1
 >
 
-Other than the 'the' removal/addition,
-
 Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-
-Thanks,
-drew
-
 
