@@ -1,251 +1,185 @@
 From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Mon,  4 Mar 2024 21:45:49 +0000
-Subject: [PATCH v4 2/4] lib: Add SBIUnit testing macros and functions
+Date: Mon,  4 Mar 2024 21:45:51 +0000
+Subject: [PATCH v4 4/4] lib: tests: Add sbi_console test
 In-Reply-To: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
 References: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
-Message-ID: <20240304214551.365057-3-ivan.orlov0322@gmail.com>
+Message-ID: <20240304214551.365057-5-ivan.orlov0322@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch introduces all of the SBIUnit macros and functions which
-can be used during the test development process. Also, it defines
-the 'run_all_tests' function, which is being called during the
-'init_coldboot' right after printing the boot hart information.
+Add the test suite covering some of the functions from
+lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
+of format specifiers for printf and different strings and characters for
+putc and puts.
 
-Also, add the CONFIG_SBIUNIT Kconfig entry in order to be able to
-turn the tests on and off. When the CONFIG_SBIUNIT is disabled,
-the tests and all related code is excluded completely on the
-compilation stage.
+In order to do that, the test "mocks" the sbi_console_device structure
+by setting the 'console_dev' variable to the virtual console.
 
 Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 ---
 V1 -> V2:
-- Rename the sources to have 'test' in the names: 'sbi_unit.c' =>
-'sbi_unit_test.c', 'sbi_unit.h' => 'sbi_unit_test.h'.
-- Rewrite using the carray functionality instead of placing the
-pointers to the test suites into the source explicitly.
-- Add 'ifdef' into the sbi_unit_test header file so we could
-avoid writing a lot of 'ifdef' in other files.
-- Get rid of unused symbols and macros
-- Change the behaviour of SBIUNIT_ASSERT_* functions: now they trigger
-sbi_panic if the assertion fails.
-- Add a 'SBIUnit' prefix to the SBIUNIT_INFO macro message
-- Rename the sbiunit_test_case structure fields, and use true/false
-instead of 1/0
-- Change the logic of the test fail detection: now we have the 'failed'
-sbiunit_test_case structure field instead of the 'result'. 'failed'
-field gets set to 'true' if an assertion or an expectaion fails.
-- Fix codestyle issues
-- Add 'len' parameter to SBIUNIT_*_STREQ
+- Rewrite using the carray functionality
+- Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
+functions: one of them "mocks" the default console device, and
+the second one restores the old console device.
+- Fix codestyle issues (comments, etc.)
+- Remove incorrect 'puts' test
+- Use updated SBIUNIT_ASSERT_STREQ API
 V2 -> V3:
-- Remove redundant 'onerr' field from 'sbiunit_test_case' struct
-- Remove setting of the 'failed' field for the test case struct in case
-of assert (because panic() is called after that)
-- Add 'SBIUNIT_END_CASE' macro, which should be placed at the end of a
-test cases list
-- Remove redundant 'enabled' field of the test case, as currently we
-can't enable/disable tests separately; Now we iterate the test cases
-until we face test_func == NULL
+- Remove unused include statement
+- Rename "new_dev" => "test_console_dev"
+- Use SBIUNIT_END_CASE macro in the test cases list instead of '{}'
 V3 -> V4:
-- No changes
+- Add 'test_console_lock' spinlock and corresponding locking in the
+'PUTS_TEST' and 'PRINTF_TEST' macros. At the moment, there is no chance
+that tests will run simultaneously on multiple harts, but locking still
+makes the whole thing more robust and protects from possible mistakes in
+the future.
 
- include/sbi/sbi_unit_test.h   | 71 +++++++++++++++++++++++++++++++++++
- lib/sbi/Kconfig               |  4 ++
- lib/sbi/objects.mk            |  2 +
- lib/sbi/sbi_init.c            |  3 ++
- lib/sbi/sbi_unit_test.c       | 43 +++++++++++++++++++++
- lib/sbi/sbi_unit_tests.carray |  3 ++
- 6 files changed, 126 insertions(+)
- create mode 100644 include/sbi/sbi_unit_test.h
- create mode 100644 lib/sbi/sbi_unit_test.c
- create mode 100644 lib/sbi/sbi_unit_tests.carray
+ lib/sbi/objects.mk         |   1 +
+ lib/sbi/sbi_console.c      |   4 ++
+ lib/sbi/sbi_console_test.c | 105 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 110 insertions(+)
+ create mode 100644 lib/sbi/sbi_console_test.c
 
-diff --git a/include/sbi/sbi_unit_test.h b/include/sbi/sbi_unit_test.h
-new file mode 100644
-index 0000000..c63d900
---- /dev/null
-+++ b/include/sbi/sbi_unit_test.h
-@@ -0,0 +1,71 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
-+ */
-+#ifdef CONFIG_SBIUNIT
-+#ifndef __SBI_UNIT_H__
-+#define __SBI_UNIT_H__
-+
-+#include <sbi/sbi_types.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_string.h>
-+
-+struct sbiunit_test_case {
-+	const char *name;
-+	bool failed;
-+	void (*test_func)(struct sbiunit_test_case *test);
-+};
-+
-+struct sbiunit_test_suite {
-+	const char *name;
-+	struct sbiunit_test_case *cases;
-+};
-+
-+#define SBIUNIT_TEST_CASE(func)		\
-+	{				\
-+		.name = #func,		\
-+		.failed = false,	\
-+		.test_func = (func)	\
-+	}
-+
-+#define SBIUNIT_END_CASE { }
-+
-+#define SBIUNIT_TEST_SUITE(suite_name, cases_arr)		\
-+	struct sbiunit_test_suite suite_name = {		\
-+		.name = #suite_name,				\
-+		.cases = cases_arr				\
-+	}
-+
-+#define _sbiunit_msg(test, msg) "[SBIUnit] [%s:%d]: %s: %s", __FILE__,	\
-+				__LINE__, test->name, msg
-+
-+#define SBIUNIT_INFO(test, msg) sbi_printf(_sbiunit_msg(test, msg))
-+#define SBIUNIT_PANIC(test, msg) sbi_panic(_sbiunit_msg(test, msg))
-+
-+#define SBIUNIT_EXPECT(test, cond) do {							\
-+	if (!(cond)) {									\
-+		test->failed = true;							\
-+		SBIUNIT_INFO(test, "Condition \"" #cond "\" expected to be true!\n");	\
-+	}										\
-+} while (0)
-+
-+#define SBIUNIT_ASSERT(test, cond) do {						\
-+	if (!(cond))								\
-+		SBIUNIT_PANIC(test, "Condition \"" #cond "\" must be true!\n");	\
-+} while (0)
-+
-+#define SBIUNIT_EXPECT_EQ(test, a, b) SBIUNIT_EXPECT(test, (a) == (b))
-+#define SBIUNIT_ASSERT_EQ(test, a, b) SBIUNIT_ASSERT(test, (a) == (b))
-+#define SBIUNIT_EXPECT_NE(test, a, b) SBIUNIT_EXPECT(test, (a) != (b))
-+#define SBIUNIT_ASSERT_NE(test, a, b) SBIUNIT_ASSERT(test, (a) != (b))
-+#define SBIUNIT_EXPECT_MEMEQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_memcmp(a, b, len))
-+#define SBIUNIT_ASSERT_MEMEQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_memcmp(a, b, len))
-+#define SBIUNIT_EXPECT_STREQ(test, a, b, len) SBIUNIT_EXPECT(test, !sbi_strncmp(a, b, len))
-+#define SBIUNIT_ASSERT_STREQ(test, a, b, len) SBIUNIT_ASSERT(test, !sbi_strncmp(a, b, len))
-+
-+void run_all_tests(void);
-+#endif
-+#else
-+#define run_all_tests()
-+#endif
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index 81dd2db..e3038ee 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -50,4 +50,8 @@ config SBI_ECALL_DBTR
- 	bool "Debug Trigger Extension"
- 	default y
- 
-+config SBIUNIT
-+	bool "Enable SBIUNIT tests"
-+	default n
-+
- endmenu
 diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 0a50e95..08959f1 100644
+index b4c273f..9d065fa 100644
 --- a/lib/sbi/objects.mk
 +++ b/lib/sbi/objects.mk
-@@ -11,6 +11,8 @@ libsbi-objs-y += riscv_asm.o
- libsbi-objs-y += riscv_atomic.o
- libsbi-objs-y += riscv_hardfp.o
- libsbi-objs-y += riscv_locks.o
-+libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
-+libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+@@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+ 
+ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
++carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
  
  libsbi-objs-y += sbi_ecall.o
  libsbi-objs-y += sbi_ecall_exts.o
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 804b01c..796cccc 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -29,6 +29,7 @@
- #include <sbi/sbi_timer.h>
- #include <sbi/sbi_tlb.h>
- #include <sbi/sbi_version.h>
-+#include <sbi/sbi_unit_test.h>
+diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+index ab09a5c..d1229d0 100644
+--- a/lib/sbi/sbi_console.c
++++ b/lib/sbi/sbi_console.c
+@@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
  
- #define BANNER                                              \
- 	"   ____                    _____ ____ _____\n"     \
-@@ -398,6 +399,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 
- 	sbi_boot_print_hart(scratch, hartid);
- 
-+	run_all_tests();
+ 	return rc;
+ }
 +
- 	/*
- 	 * Configure PMP at last because if SMEPMP is detected,
- 	 * M-mode access to the S/U space will be rescinded.
-diff --git a/lib/sbi/sbi_unit_test.c b/lib/sbi/sbi_unit_test.c
++#ifdef CONFIG_SBIUNIT
++#include "sbi_console_test.c"
++#endif
+diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
 new file mode 100644
-index 0000000..1987838
+index 0000000..29f4ac1
 --- /dev/null
-+++ b/lib/sbi/sbi_unit_test.c
-@@ -0,0 +1,43 @@
++++ b/lib/sbi/sbi_console_test.c
+@@ -0,0 +1,105 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
 + */
 +#include <sbi/sbi_unit_test.h>
-+#include <sbi/sbi_types.h>
-+#include <sbi/sbi_console.h>
 +
-+extern struct sbiunit_test_suite *sbi_unit_tests[];
-+extern unsigned long sbi_unit_tests_size;
++#define TEST_CONSOLE_BUF_LEN 1024
 +
-+static void run_test_suite(struct sbiunit_test_suite *suite)
++static const struct sbi_console_device *old_dev;
++static char test_console_buf[TEST_CONSOLE_BUF_LEN];
++static u32 test_console_buf_pos;
++static spinlock_t test_console_lock = SPIN_LOCK_INITIALIZER;
++
++static void test_console_putc(char c)
 +{
-+	struct sbiunit_test_case *s_case;
-+	u32 count_pass = 0, count_fail = 0;
-+
-+	sbi_printf("## Running test suite: %s\n", suite->name);
-+
-+	s_case = suite->cases;
-+	while (s_case->test_func) {
-+		s_case->test_func(s_case);
-+		if (s_case->failed)
-+			count_fail++;
-+		else
-+			count_pass++;
-+		sbi_printf("[%s] %s\n", s_case->failed ? "FAILED" : "PASSED",
-+			   s_case->name);
-+		s_case++;
-+	}
-+	sbi_printf("%u PASSED / %u FAILED / %u TOTAL\n", count_pass, count_fail,
-+		   count_pass + count_fail);
++	test_console_buf[test_console_buf_pos] = c;
++	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
 +}
 +
-+void run_all_tests(void)
++static void clear_test_console_buf(void)
 +{
-+	u32 i;
-+
-+	sbi_printf("\n# Running SBIUNIT tests #\n");
-+
-+	for (i = 0; i < sbi_unit_tests_size; i++)
-+		run_test_suite(sbi_unit_tests[i]);
++	test_console_buf_pos = 0;
++	test_console_buf[0] = '\0';
 +}
-diff --git a/lib/sbi/sbi_unit_tests.carray b/lib/sbi/sbi_unit_tests.carray
-new file mode 100644
-index 0000000..8d6069b
---- /dev/null
-+++ b/lib/sbi/sbi_unit_tests.carray
-@@ -0,0 +1,3 @@
-+HEADER: sbi/sbi_unit_test.h
-+TYPE: struct sbiunit_test_suite
-+NAME: sbi_unit_tests
++
++static const struct sbi_console_device test_console_dev = {
++	.name = "Test console device",
++	.console_putc = test_console_putc,
++};
++
++/* Mock the console device */
++static inline void test_console_begin(const struct sbi_console_device *device)
++{
++	old_dev = console_dev;
++	console_dev = device;
++}
++
++static inline void test_console_end(void)
++{
++	console_dev = old_dev;
++}
++
++static void putc_test(struct sbiunit_test_case *test)
++{
++	clear_test_console_buf();
++	test_console_begin(&test_console_dev);
++	sbi_putc('a');
++	test_console_end();
++	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
++}
++
++#define PUTS_TEST(test, expected, str) do {			\
++	spin_lock(&test_console_lock);				\
++	clear_test_console_buf();				\
++	test_console_begin(&test_console_dev);			\
++	sbi_puts(str);						\
++	test_console_end();					\
++	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
++			     sbi_strlen(expected));		\
++	spin_unlock(&test_console_lock);			\
++} while (0)
++
++static void puts_test(struct sbiunit_test_case *test)
++{
++	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
++	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
++}
++
++#define PRINTF_TEST(test, expected, format, ...) do {		\
++	spin_lock(&test_console_lock);				\
++	clear_test_console_buf();				\
++	test_console_begin(&test_console_dev);			\
++	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
++	test_console_end();					\
++	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
++	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
++			     sbi_strlen(expected));		\
++	spin_unlock(&test_console_lock);			\
++} while (0)
++
++static void printf_test(struct sbiunit_test_case *test)
++{
++	PRINTF_TEST(test, "Hello", "Hello");
++	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
++	PRINTF_TEST(test, "Hello", "%s", "Hello");
++	PRINTF_TEST(test, "-1", "%d", -1);
++	PRINTF_TEST(test, "FF", "%X", 255);
++	PRINTF_TEST(test, "ff", "%x", 255);
++	PRINTF_TEST(test, "A", "%c", 'A');
++	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
++	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
++	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
++	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
++	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
++}
++
++static struct sbiunit_test_case console_test_cases[] = {
++	SBIUNIT_TEST_CASE(putc_test),
++	SBIUNIT_TEST_CASE(puts_test),
++	SBIUNIT_TEST_CASE(printf_test),
++	SBIUNIT_END_CASE,
++};
++
++SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
 -- 
 2.34.1
 
