@@ -1,174 +1,173 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 3 Mar 2024 10:02:56 +0530
-Subject: [PATCH v3 6/6] lib: sbi: call platform load/store emulators
-In-Reply-To: <CAAhSdy3rrTxGioFY75+Ki-fu5ni8J+ZLjaofCO=rpopfR9y-kA@mail.gmail.com>
-References: <1709378725-56656-1-git-send-email-ganboing@gmail.com>
- <1709378725-56656-7-git-send-email-ganboing@gmail.com> <CAAhSdy3rrTxGioFY75+Ki-fu5ni8J+ZLjaofCO=rpopfR9y-kA@mail.gmail.com>
-Message-ID: <CAK9=C2XPjWZ=xXEb253G=r_G1dxBtTm07dWe9jbwykcKZE0+cQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 4 Mar 2024 09:39:48 +0530
+Subject: [PATCH v1 1/1] lib: sbi: Add support for smcsrind and smcdeleg
+In-Reply-To: <20240217000608.3635372-2-atishp@rivosinc.com>
+References: <20240217000608.3635372-1-atishp@rivosinc.com> <20240217000608.3635372-2-atishp@rivosinc.com>
+Message-ID: <CAAhSdy1eGFQ=qPGubWi-KP5AumNazuEya93_Nt+vckir6sSQ7Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Mar 2, 2024 at 6:48?PM Anup Patel <anup@brainfault.org> wrote:
+On Sat, Feb 17, 2024 at 5:36?AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> On Sat, Mar 2, 2024 at 4:55?PM Bo Gan <ganboing@gmail.com> wrote:
-> >
-> > sbi_load/store_fault_handler now tries to call platform emulators
-> > if defined. Otherwise, redirects the fault.
-> >
-> > We let the handler fail if the trap was originated from M mode. In
-> > this case, something must be very wrong and we should not attempt
-> > to access sbi_platform_ptr(sbi_scratch_thishart_ptr()).
-> >
-> > Signed-off-by: Bo Gan <ganboing@gmail.com>
-> > ---
-> >  include/sbi/sbi_platform.h | 25 +++++++++++++++++++++++++
-> >  lib/sbi/sbi_trap_ldst.c    | 17 +++++++++++++++--
-> >  2 files changed, 40 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> > index 06247dc..c556925 100644
-> > --- a/include/sbi/sbi_platform.h
-> > +++ b/include/sbi/sbi_platform.h
-> > @@ -48,6 +48,7 @@
-> >  #include <sbi/sbi_error.h>
-> >  #include <sbi/sbi_scratch.h>
-> >  #include <sbi/sbi_version.h>
-> > +#include <sbi/sbi_trap_ldst.h>
-> >
-> >  struct sbi_domain_memregion;
-> >  struct sbi_ecall_return;
-> > @@ -686,6 +687,30 @@ static inline int sbi_platform_vendor_ext_provider(
-> >         return SBI_ENOTSUPP;
-> >  }
-> >
-> > +static inline int
-> > +sbi_platform_emulate_load(const struct sbi_platform *plat,
-> > +                         struct sbi_trap_regs *regs,
-> > +                         const struct sbi_trap_info *orig_trap)
-> > +{
-> > +       if (plat && sbi_platform_ops(plat)->emulate_load) {
-> > +               return sbi_trap_emulate_load(
-> > +                       regs, orig_trap, sbi_platform_ops(plat)->emulate_load);
-> > +       }
-> > +       return sbi_trap_redirect(regs, orig_trap);
-> > +}
-> > +
-> > +static inline int
-> > +sbi_platform_emulate_store(const struct sbi_platform *plat,
-> > +                          struct sbi_trap_regs *regs,
-> > +                          const struct sbi_trap_info *orig_trap)
-> > +{
-> > +       if (plat && sbi_platform_ops(plat)->emulate_store) {
-> > +               return sbi_trap_emulate_store(
-> > +                       regs, orig_trap, sbi_platform_ops(plat)->emulate_store);
-> > +       }
-> > +       return sbi_trap_redirect(regs, orig_trap);
-> > +}
-> > +
+> Smcsrind allows generic indirect CSR access mechanism while
+> Smcdeleg allows delegating hpmcounters in Supervisor mode.
 >
-> These should be implemented as follows:
+> Enable both extensions and set the appropriate bits in mstateen
+> and menvcfg.
 >
-> static inline int
-> sbi_platform_emulate_load(const struct sbi_platform *plat,
->                          int rlen, union sbi_reg_data *out_val)
-> {
->        if (plat && sbi_platform_ops(plat)->emulate_load) {
->                return sbi_platform_ops(plat)->emulate_load(rlen, out_val);
->        }
->        return SBI_ENOTSUPP;
-> }
->
-> static inline int
-> sbi_platform_emulate_store(const struct sbi_platform *plat,
->                           int wlen, union sbi_reg_data in_val)
-> {
->        if (plat && sbi_platform_ops(plat)->emulate_store) {
->                return sbi_platform_ops(plat)->emulate_store(wlen, in_val);
->        }
->        return SBI_ENOTSUPP;
-> }
+> Co-developed-by: Kaiwen Xue <kaiwenxue1@gmail.com>
+> Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
-We also need "addr" parameter so this should be:
+LGTM.
 
-static inline int
-sbi_platform_emulate_load(const struct sbi_platform *plat,
-                         unsigned long addr, int rlen, union
-sbi_ldst_data *out_val)
-{
-       if (plat && sbi_platform_ops(plat)->emulate_load) {
-               return sbi_platform_ops(plat)->emulate_load(addr, rlen, out_val);
-       }
-       return SBI_ENOTSUPP;
-}
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-static inline int
-sbi_platform_emulate_store(const struct sbi_platform *plat,
-                          unsigned long addr, int wlen, union
-sbi_ldst_data in_val)
-{
-       if (plat && sbi_platform_ops(plat)->emulate_store) {
-               return sbi_platform_ops(plat)->emulate_store(addr, wlen, in_val);
-       }
-       return SBI_ENOTSUPP;
-}
+Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
+> ---
+>  include/sbi/riscv_encoding.h | 25 ++++++++++++++++++++++---
+>  include/sbi/sbi_hart.h       |  8 ++++++++
+>  lib/sbi/sbi_hart.c           | 16 ++++++++++++----
+>  3 files changed, 42 insertions(+), 7 deletions(-)
 >
-> >  #endif
-> >
-> >  #endif
-> > diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-> > index 5516954..606830e 100644
-> > --- a/lib/sbi/sbi_trap_ldst.c
-> > +++ b/lib/sbi/sbi_trap_ldst.c
-> > @@ -15,6 +15,7 @@
-> >  #include <sbi/sbi_pmu.h>
-> >  #include <sbi/sbi_trap.h>
-> >  #include <sbi/sbi_unpriv.h>
-> > +#include <sbi/sbi_platform.h>
-> >
-> >  static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
-> >                                         ulong addr_offset)
-> > @@ -294,11 +295,23 @@ int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
-> >  int sbi_load_fault_handler(struct sbi_trap_regs *regs,
-> >                            const struct sbi_trap_info *orig_trap)
-> >  {
-> > -       return sbi_trap_redirect(regs, orig_trap);
-> > +       /* If fault came from M mode, just fail */
-> > +       if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M) {
-> > +               return SBI_EINVAL;
-> > +       }
-> > +
-> > +       return sbi_platform_emulate_load(sbi_platform_thishart_ptr(), regs,
-> > +                                        orig_trap);
-> >  }
-> >
-> >  int sbi_store_fault_handler(struct sbi_trap_regs *regs,
-> >                             const struct sbi_trap_info *orig_trap)
-> >  {
-> > -       return sbi_trap_redirect(regs, orig_trap);
-> > +       /* If fault came from M mode, just fail */
-> > +       if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M) {
-> > +               return SBI_EINVAL;
-> > +       }
-> > +
-> > +       return sbi_platform_emulate_store(sbi_platform_thishart_ptr(), regs,
-> > +                                         orig_trap);
-> >  }
-> > --
-> > 2.7.4
-> >
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index e74cc0df1c40..57aabd665589 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -209,6 +209,7 @@
 >
-> Regards,
-> Anup
+>  #define ENVCFG_STCE                    (_ULL(1) << 63)
+>  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
+> +#define ENVCFG_CDE                     (_UL(1) << 60)
+>  #define ENVCFG_CBZE                    (_UL(1) << 7)
+>  #define ENVCFG_CBCFE                   (_UL(1) << 6)
+>  #define ENVCFG_CBIE_SHIFT              4
+> @@ -314,6 +315,9 @@
+>  /* Supervisor Configuration */
+>  #define CSR_SENVCFG                    0x10a
 >
+> +/* Supervisor Conter Inhibit */
+> +#define CSR_SCOUNTINHIBIT              0x120
+> +
+>  /* Supervisor Trap Handling */
+>  #define CSR_SSCRATCH                   0x140
+>  #define CSR_SEPC                       0x141
+> @@ -328,9 +332,14 @@
+>  /* Supervisor Protection and Translation */
+>  #define CSR_SATP                       0x180
+>
+> -/* Supervisor-Level Window to Indirectly Accessed Registers (AIA) */
+> +/* Supervisor Indirect Register Alias */
+>  #define CSR_SISELECT                   0x150
+>  #define CSR_SIREG                      0x151
+> +#define CSR_SIREG2                     0x152
+> +#define CSR_SIREG3                     0x153
+> +#define CSR_SIREG4                     0x155
+> +#define CSR_SIREG5                     0x156
+> +#define CSR_SIREG6                     0x157
+>
+>  /* Supervisor-Level Interrupts (AIA) */
+>  #define CSR_STOPEI                     0x15c
+> @@ -391,9 +400,14 @@
+>  #define CSR_HVIPRIO1                   0x646
+>  #define CSR_HVIPRIO2                   0x647
+>
+> -/* VS-Level Window to Indirectly Accessed Registers (H-extension with AIA) */
+> +/* Virtual Supervisor Indirect Alias */
+>  #define CSR_VSISELECT                  0x250
+>  #define CSR_VSIREG                     0x251
+> +#define CSR_VSIREG2                    0x252
+> +#define CSR_VSIREG3                    0x253
+> +#define CSR_VSIREG4                    0x255
+> +#define CSR_VSIREG5                    0x256
+> +#define CSR_VSIREG6                    0x257
+>
+>  /* VS-Level Interrupts (H-extension with AIA) */
+>  #define CSR_VSTOPEI                    0x25c
+> @@ -694,9 +708,14 @@
+>  #define CSR_DSCRATCH0                  0x7b2
+>  #define CSR_DSCRATCH1                  0x7b3
+>
+> -/* Machine-Level Window to Indirectly Accessed Registers (AIA) */
+> +/* Machine Indirect Register Alias */
+>  #define CSR_MISELECT                   0x350
+>  #define CSR_MIREG                      0x351
+> +#define CSR_MIREG2                     0x352
+> +#define CSR_MIREG3                     0x353
+> +#define CSR_MIREG4                     0x355
+> +#define CSR_MIREG5                     0x356
+> +#define CSR_MIREG6                     0x357
+>
+>  /* Machine-Level Interrupts (AIA) */
+>  #define CSR_MTOPEI                     0x35c
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 10dc3df5d2fc..cc78eec6f65a 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -55,6 +55,14 @@ enum sbi_hart_extensions {
+>         SBI_HART_EXT_SVPBMT,
+>         /** Hart has debug trigger extension */
+>         SBI_HART_EXT_SDTRIG,
+> +       /** Hart has Smcsrind extension */
+> +       SBI_HART_EXT_SMCSRIND,
+> +       /** Hart has Smcdeleg extension */
+> +       SBI_HART_EXT_SMCDELEG,
+> +       /** Hart has Sscsrind extension */
+> +       SBI_HART_EXT_SSCSRIND,
+> +       /** Hart has Ssccfg extension */
+> +       SBI_HART_EXT_SSCCFG,
+>
+>         /** Maximum index of Hart extension */
+>         SBI_HART_EXT_MAX,
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index a0ab0c640035..3d1369441c05 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -95,11 +95,16 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                 mstateen_val |= SMSTATEEN0_HSENVCFG;
+>
+>                 if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
+> -                       mstateen_val |= (SMSTATEEN0_AIA | SMSTATEEN0_SVSLCT |
+> -                                       SMSTATEEN0_IMSIC);
+> +                       mstateen_val |= (SMSTATEEN0_AIA | SMSTATEEN0_IMSIC);
+>                 else
+> -                       mstateen_val &= ~(SMSTATEEN0_AIA | SMSTATEEN0_SVSLCT |
+> -                                       SMSTATEEN0_IMSIC);
+> +                       mstateen_val &= ~(SMSTATEEN0_AIA | SMSTATEEN0_IMSIC);
+> +
+> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA) ||
+> +                   sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCSRIND))
+> +                       mstateen_val |= (SMSTATEEN0_SVSLCT);
+> +               else
+> +                       mstateen_val &= ~(SMSTATEEN0_SVSLCT);
+> +
+>                 csr_write(CSR_MSTATEEN0, mstateen_val);
+>  #if __riscv_xlen == 32
+>                 csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
+> @@ -129,6 +134,7 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                 __set_menvcfg_ext(SBI_HART_EXT_SVPBMT, ENVCFG_PBMTE)
+>  #endif
+>                 __set_menvcfg_ext(SBI_HART_EXT_SSTC, ENVCFG_STCE)
+> +               __set_menvcfg_ext(SBI_HART_EXT_SMCDELEG, ENVCFG_CDE);
+>
+>  #undef __set_menvcfg_ext
+>
+> @@ -658,6 +664,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+>         __SBI_HART_EXT_DATA(zicbom, SBI_HART_EXT_ZICBOM),
+>         __SBI_HART_EXT_DATA(svpbmt, SBI_HART_EXT_SVPBMT),
+>         __SBI_HART_EXT_DATA(sdtrig, SBI_HART_EXT_SDTRIG),
+> +       __SBI_HART_EXT_DATA(smcsrind, SBI_HART_EXT_SMCSRIND),
+> +       __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
+>  };
+>
+>  /**
 > --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 2.34.1
+>
 
