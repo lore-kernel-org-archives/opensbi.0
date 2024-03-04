@@ -1,162 +1,79 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 4 Mar 2024 13:03:33 +0530
-Subject: [PATCH] lib: sbi_misaligned_ldst: Add handling of C.LHU/C.LH and C.SH
-In-Reply-To: <CAGKtFavBwdKbN+Gu90NEQAa8TDnvqSveH_bbWrHJb0xgQQH9Ww@mail.gmail.com>
-References: <20240226055644.881161-1-nylon.chen@sifive.com>
- <CAK9=C2X+UOdj3AUkxpyOS=PwE+xEsyQSr+zknAscLih2eR0S+g@mail.gmail.com> <CAGKtFavBwdKbN+Gu90NEQAa8TDnvqSveH_bbWrHJb0xgQQH9Ww@mail.gmail.com>
-Message-ID: <CAAhSdy3eOAT7S16ENuP756W2T2W6JrXzk+mN-Gsy19VRt_z--g@mail.gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Mon,  4 Mar 2024 20:15:51 +0800
+Subject: [PATCH v6 4/5] firmware: fw_base.S: Remove _relocate_lottery
+In-Reply-To: <20240304121557.502655-1-wxjstz@126.com>
+References: <20240304121557.502655-1-wxjstz@126.com>
+Message-ID: <20240304121557.502655-5-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 4, 2024 at 11:50?AM Nylon Chen <nylon7717@gmail.com> wrote:
->
-> Anup Patel <apatel@ventanamicro.com> ? 2024?3?4? ?? ??1:12???
-> >
-> > On Mon, Feb 26, 2024 at 11:27?AM Nylon Chen <nylon.chen@sifive.com> wrote:
-> > >
-> > > From: "Nylon Chen" <nylon.chen@sifive.com>
-> > >
-> > > Added exception handling for compressed instructions C.LHU, C.LH, and
-> > > C.SH from the zcb extension to the sbi_misaligned_ldst library.
-> > >
-> > > Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
-> > > ---
-> > >  include/sbi/riscv_encoding.h  |  7 +++++++
-> > >  lib/sbi/sbi_misaligned_ldst.c | 10 ++++++++++
-> > >  2 files changed, 17 insertions(+)
-> > >
-> > > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> > > index e74cc0d..3d77e26 100644
-> > > --- a/include/sbi/riscv_encoding.h
-> > > +++ b/include/sbi/riscv_encoding.h
-> > > @@ -837,6 +837,13 @@
-> > >  #define INSN_MATCH_C_FSWSP             0xe002
-> > >  #define INSN_MASK_C_FSWSP              0xe003
-> > >
-> > > +#define INSN_MATCH_C_LHU               0x8400
-> > > +#define INSN_MASK_C_LHU                0xfc43
-> > > +#define INSN_MATCH_C_LH                0x8440
-> > > +#define INSN_MASK_C_LH                 0xfc43
-> > > +#define INSN_MATCH_C_SH                0x8c00
-> > > +#define INSN_MASK_C_SH                 0xfc43
-> > > +
-> > >  #define INSN_MASK_WFI                  0xffffff00
-> > >  #define INSN_MATCH_WFI                 0x10500000
-> > >
-> > > diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
-> > > index aa512de..9ca225a 100644
-> > > --- a/lib/sbi/sbi_misaligned_ldst.c
-> > > +++ b/lib/sbi/sbi_misaligned_ldst.c
-> > > @@ -123,6 +123,13 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
-> > >                 len = 4;
-> > >  #endif
-> > >  #endif
-> > > +       } else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
-> > > +               len = 2;
-> > > +               insn = RVC_RS2S(insn) << SH_RD;
-> > > +       } else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
-> > > +               len = 2;
-> > > +               shift = 8 * (sizeof(ulong) - len);
-> > > +               insn = RVC_RS2S(insn) << SH_RD;
-> > >         } else {
-> > >                 uptrap.epc = regs->mepc;
-> > >                 uptrap.cause = CAUSE_MISALIGNED_LOAD;
-> > > @@ -237,6 +244,9 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
-> > >                 val.data_ulong = GET_F32_RS2C(insn, regs);
-> > >  #endif
-> > >  #endif
-> > > +       } else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
-> > > +               len             = 2;
-> > > +               val.data_ulong = GET_RS2S(insn, regs);
-> >
-> > Don't need to handle "c.sb" instruction ??
-> Hi Anup, thanks for your feedback.
->
-> in my opinion, because it's a byte so I don't think we'll encounter
-> any misaligned issues.
->
-> I also wrote the following test program to specifically test c.sb, and
-> indeed, it doesn't require any exception handler.
+Remove _relocate_lottery and use _boot_status instead
 
-Ahh, yes. We certainly don't need for the misaligned load/store handling.
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ firmware/fw_base.S | 17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-There is a separate series from Bo Gan where we are re-purposing the
-misaligned load/store handling for emulating load/store upon access
-fault. I got mixed-up between two separate patches.
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index d87c0a5..d83397e 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -14,8 +14,9 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_trap.h>
+ 
+-#define BOOT_STATUS_RELOCATE_DONE	1
+-#define BOOT_STATUS_BOOT_HART_DONE	2
++#define BOOT_STATUS_LOTTERY_DONE	1
++#define BOOT_STATUS_RELOCATE_DONE	2
++#define BOOT_STATUS_BOOT_HART_DONE	3
+ 
+ .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
+ 	add	\__d0, \__s0, zero
+@@ -58,9 +59,9 @@ _start:
+ 	bne	a0, a6, _wait_relocate_copy_done
+ _try_lottery:
+ 	/* Jump to relocation wait loop if we don't get relocation lottery */
+-	lla	a6, _relocate_lottery
+-	li	a7, 1
+-	amoadd.w a6, a7, (a6)
++	lla	a6, _boot_status
++	li	a7, BOOT_STATUS_LOTTERY_DONE
++	amoswap.w a6, a7, (a6)
+ 	bnez	a6, _wait_relocate_copy_done
+ 
+ #ifdef FW_PIC
+@@ -101,8 +102,6 @@ _relocate:
+ 	blt	t2, t0, _relocate_copy_to_upper
+ _relocate_copy_to_lower:
+ 	ble	t1, t2, _relocate_copy_to_lower_loop
+-	lla	t3, _relocate_lottery
+-	BRANGE	t2, t1, t3, _start_hang
+ 	lla	t3, _boot_status
+ 	BRANGE	t2, t1, t3, _start_hang
+ 	lla	t3, _relocate
+@@ -119,8 +118,6 @@ _relocate_copy_to_lower_loop:
+ 	jr	t4
+ _relocate_copy_to_upper:
+ 	ble	t3, t0, _relocate_copy_to_upper_loop
+-	lla	t2, _relocate_lottery
+-	BRANGE	t0, t3, t2, _start_hang
+ 	lla	t2, _boot_status
+ 	BRANGE	t0, t3, t2, _start_hang
+ 	lla	t2, _relocate
+@@ -474,8 +471,6 @@ _skip_trap_handler_rv32_hyp:
+ 
+ 	.data
+ 	.align 3
+-_relocate_lottery:
+-	RISCV_PTR	0
+ _boot_status:
+ 	RISCV_PTR	0
+ 
+-- 
+2.43.0
 
-Regards,
-Anup
-
->
-> /* Check whether there is an address misalignment issue in the store
-> byte instruction of zcb externsion. */
-> void checkStoreB(unsigned char* memory, size_t offset, unsigned char
-> value_byte) {
->     asm volatile (
->         "c.sb %[value_byte], 0(%[addr])"
->         :
->         : [value_byte] "r" (value_byte), [addr] "r" (memory + offset)
->         : "memory"
->     );
->
->     printf("Store (c.sb) operation at address: 0x%lx\n", (unsigned
-> long)(memory + offset));
->
->     if (memcmp(memory + offset, &value_byte, sizeof(unsigned char)) == 0) {
->         printf("Store (c.sb) operation is correct: 0x%X\n", value_byte);
->     } else {
->         printf("Store (c.sb) operation may have address misalignment
-> issues.\n");
->     }
-> }
->
-> int main() {
->     size_t size = 10;
->     unsigned char* memory = (unsigned char*)malloc(size);
->
->     if (memory == NULL) {
->         fprintf(stderr, "Memory allocation failed.\n");
->         return 1;
->     }
->
->     size_t offset = 1;
->
->     checkStoreB(memory, offset, 0x42);
-> ...
-> }
->
-> >
-> > >         } else {
-> > >                 uptrap.epc = regs->mepc;
-> > >                 uptrap.cause = CAUSE_MISALIGNED_STORE;
-> > > --
-> > > 2.34.1
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
-> > Regards,
-> > Anup
->
->
->
-> --
->
-> ==========================================
-> sifive system software  team ???
->
-> Cell phone:  0989057854
-> E-mail: nylon7717 at gmail.com
-> ==========================================
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
