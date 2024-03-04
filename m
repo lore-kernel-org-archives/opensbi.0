@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 4 Mar 2024 09:39:48 +0530
+Date: Mon, 4 Mar 2024 10:22:03 +0530
 Subject: [PATCH v1 1/1] lib: sbi: Add support for smcsrind and smcdeleg
 In-Reply-To: <20240217000608.3635372-2-atishp@rivosinc.com>
 References: <20240217000608.3635372-1-atishp@rivosinc.com> <20240217000608.3635372-2-atishp@rivosinc.com>
-Message-ID: <CAAhSdy1eGFQ=qPGubWi-KP5AumNazuEya93_Nt+vckir6sSQ7Q@mail.gmail.com>
+Message-ID: <CAAhSdy0sgr5_a7wLNna4zfEw+Xc5XoDVzRonCbLp5Q_bU-xy3A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -20,16 +20,6 @@ On Sat, Feb 17, 2024 at 5:36?AM Atish Patra <atishp@rivosinc.com> wrote:
 >
 > Co-developed-by: Kaiwen Xue <kaiwenxue1@gmail.com>
 > Signed-off-by: Atish Patra <atishp@rivosinc.com>
-
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
 > ---
 >  include/sbi/riscv_encoding.h | 25 ++++++++++++++++++++++---
 >  include/sbi/sbi_hart.h       |  8 ++++++++
@@ -45,6 +35,15 @@ Anup
 >  #define ENVCFG_STCE                    (_ULL(1) << 63)
 >  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
 > +#define ENVCFG_CDE                     (_UL(1) << 60)
+
+This needs to be _ULL(1) otherwise it breaks compilation on RV32.
+I have taken care of this@the time of merging this patch.
+
+Please fix your work-flow and always test on both RV32 and RV64.
+
+Regards,
+Anup
+
 >  #define ENVCFG_CBZE                    (_UL(1) << 7)
 >  #define ENVCFG_CBCFE                   (_UL(1) << 6)
 >  #define ENVCFG_CBIE_SHIFT              4
