@@ -1,55 +1,63 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon,  4 Mar 2024 20:15:49 +0800
-Subject: [PATCH v6 2/5] firmware: fw_base: Simplified setup trap handler
+Date: Mon,  4 Mar 2024 20:15:52 +0800
+Subject: [PATCH v6 5/5] firmware: fw_base.S: fix _reset_regs
 In-Reply-To: <20240304121557.502655-1-wxjstz@126.com>
 References: <20240304121557.502655-1-wxjstz@126.com>
-Message-ID: <20240304121557.502655-3-wxjstz@126.com>
+Message-ID: <20240304121557.502655-6-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The same detection was done twice when setting mtvec and trap_exit.
-Merging can reduce code size.
+a3 and a4 cannot be reset because used in fw_platform_init.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- firmware/fw_base.S | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ firmware/fw_base.S | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index c657bd9..d87c0a5 100644
+index d83397e..126b067 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -456,22 +456,14 @@ _start_warm:
- 	srli	a5, a5, ('H' - 'A')
- 	andi	a5, a5, 0x1
- 	beq	a5, zero, _skip_trap_handler_rv32_hyp
--	lla	a4, _trap_handler_rv32_hyp
--_skip_trap_handler_rv32_hyp:
--#endif
--	csrw	CSR_MTVEC, a4
--
--#if __riscv_xlen == 32
- 	/* Override trap exit for H-extension */
--	csrr	a5, CSR_MISA
--	srli	a5, a5, ('H' - 'A')
--	andi	a5, a5, 0x1
--	beq	a5, zero, _skip_trap_exit_rv32_hyp
--	lla	a4, _trap_exit_rv32_hyp
- 	csrr	a5, CSR_MSCRATCH
-+	lla	a4, _trap_exit_rv32_hyp
- 	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
--_skip_trap_exit_rv32_hyp:
-+	lla	a4, _trap_handler_rv32_hyp
-+_skip_trap_handler_rv32_hyp:
- #endif
-+	csrw	CSR_MTVEC, a4
+@@ -167,7 +167,7 @@ _relocate_done:
  
- 	/* Initialize SBI runtime */
- 	csrr	a0, CSR_MSCRATCH
+ 	/* At this point we are running from link address */
+ 
+-	/* Reset all registers except ra, a0, a1 and a2 for boot HART */
++	/* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
+ 	li	ra, 0
+ 	call	_reset_regs
+ 
+@@ -394,7 +394,7 @@ _wait_for_boot_hart:
+ 	bne	t0, t1, _wait_for_boot_hart
+ 
+ _start_warm:
+-	/* Reset all registers except ra, a0, a1 and a2 for non-boot HARTs */
++	/* Reset all registers except ra, a0, a1, a2, a3 and a4 for non-boot HART */
+ 	li	ra, 0
+ 	call	_reset_regs
+ 
+@@ -745,7 +745,7 @@ _reset_regs:
+ 
+ 	/* flush the instruction cache */
+ 	fence.i
+-	/* Reset all registers except ra, a0, a1 and a2 */
++	/* Reset all registers except ra, a0, a1, a2, a3 and a4 */
+ 	li sp, 0
+ 	li gp, 0
+ 	li tp, 0
+@@ -754,8 +754,6 @@ _reset_regs:
+ 	li t2, 0
+ 	li s0, 0
+ 	li s1, 0
+-	li a3, 0
+-	li a4, 0
+ 	li a5, 0
+ 	li a6, 0
+ 	li a7, 0
 -- 
 2.43.0
 
