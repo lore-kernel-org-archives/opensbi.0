@@ -1,190 +1,33 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Tue, 5 Mar 2024 13:23:32 +0100
-Subject: [PATCH v4 4/4] lib: tests: Add sbi_console test
-In-Reply-To: <20240304214551.365057-5-ivan.orlov0322@gmail.com>
-References: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
- <20240304214551.365057-5-ivan.orlov0322@gmail.com>
-Message-ID: <20240305-666e55c90ba499b71af09007@orel>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 05 Mar 2024 20:27:29 +0800
+Subject: [PATCH] firmware: Prevent _start from not being at the beginning
+In-Reply-To: <mvm4jdlt0vt.fsf@suse.de>
+References: <20240305103134.874444-1-wxjstz@126.com>
+	 <mvm4jdlt0vt.fsf@suse.de>
+Message-ID: <0490c4994930eee7f7e9c50030e0a0c704db38d5.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 04, 2024 at 09:45:51PM +0000, Ivan Orlov wrote:
-> Add the test suite covering some of the functions from
-> lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
-> of format specifiers for printf and different strings and characters for
-> putc and puts.
+? 2024-03-05???? 11:43 +0100?Andreas Schwab???
+> On M?r 05 2024, Xiang W wrote:
 > 
-> In order to do that, the test "mocks" the sbi_console_device structure
-> by setting the 'console_dev' variable to the virtual console.
+> > There are multiple .entry sections in opensbi, and _start may be put
+> > after other .entry sections, which may cause problems. The patch fix
+> > this issue.
 > 
-> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-> ---
-> V1 -> V2:
-> - Rewrite using the carray functionality
-> - Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
-> functions: one of them "mocks" the default console device, and
-> the second one restores the old console device.
-> - Fix codestyle issues (comments, etc.)
-> - Remove incorrect 'puts' test
-> - Use updated SBIUNIT_ASSERT_STREQ API
-> V2 -> V3:
-> - Remove unused include statement
-> - Rename "new_dev" => "test_console_dev"
-> - Use SBIUNIT_END_CASE macro in the test cases list instead of '{}'
-> V3 -> V4:
-> - Add 'test_console_lock' spinlock and corresponding locking in the
-> 'PUTS_TEST' and 'PRINTF_TEST' macros. At the moment, there is no chance
-> that tests will run simultaneously on multiple harts, but locking still
-> makes the whole thing more robust and protects from possible mistakes in
-> the future.
+> That should not be a problem.? Since it is passed as the first object
+> file to the linker it is guaranteed to be placed first.
 > 
->  lib/sbi/objects.mk         |   1 +
->  lib/sbi/sbi_console.c      |   4 ++
->  lib/sbi/sbi_console_test.c | 105 +++++++++++++++++++++++++++++++++++++
->  3 files changed, 110 insertions(+)
->  create mode 100644 lib/sbi/sbi_console_test.c
-> 
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index b4c273f..9d065fa 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
->  
->  libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
->  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
->  
->  libsbi-objs-y += sbi_ecall.o
->  libsbi-objs-y += sbi_ecall_exts.o
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index ab09a5c..d1229d0 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
->  
->  	return rc;
->  }
-> +
-> +#ifdef CONFIG_SBIUNIT
-> +#include "sbi_console_test.c"
-> +#endif
-> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
-> new file mode 100644
-> index 0000000..29f4ac1
-> --- /dev/null
-> +++ b/lib/sbi/sbi_console_test.c
-> @@ -0,0 +1,105 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
-> + */
-> +#include <sbi/sbi_unit_test.h>
-> +
-> +#define TEST_CONSOLE_BUF_LEN 1024
-> +
-> +static const struct sbi_console_device *old_dev;
-> +static char test_console_buf[TEST_CONSOLE_BUF_LEN];
-> +static u32 test_console_buf_pos;
-> +static spinlock_t test_console_lock = SPIN_LOCK_INITIALIZER;
-> +
-> +static void test_console_putc(char c)
-> +{
-> +	test_console_buf[test_console_buf_pos] = c;
-> +	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
-> +}
-> +
-> +static void clear_test_console_buf(void)
-> +{
-> +	test_console_buf_pos = 0;
-> +	test_console_buf[0] = '\0';
-> +}
-> +
-> +static const struct sbi_console_device test_console_dev = {
-> +	.name = "Test console device",
-> +	.console_putc = test_console_putc,
-> +};
-> +
-> +/* Mock the console device */
-> +static inline void test_console_begin(const struct sbi_console_device *device)
-> +{
-> +	old_dev = console_dev;
-> +	console_dev = device;
-> +}
-> +
-> +static inline void test_console_end(void)
-> +{
-> +	console_dev = old_dev;
-> +}
-> +
-> +static void putc_test(struct sbiunit_test_case *test)
-> +{
-> +	clear_test_console_buf();
-> +	test_console_begin(&test_console_dev);
-> +	sbi_putc('a');
-> +	test_console_end();
-> +	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
-> +}
-> +
-> +#define PUTS_TEST(test, expected, str) do {			\
-> +	spin_lock(&test_console_lock);				\
-> +	clear_test_console_buf();				\
-> +	test_console_begin(&test_console_dev);			\
-> +	sbi_puts(str);						\
-> +	test_console_end();					\
-> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
-> +			     sbi_strlen(expected));		\
-> +	spin_unlock(&test_console_lock);			\
-> +} while (0)
-> +
-> +static void puts_test(struct sbiunit_test_case *test)
-> +{
-> +	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
-> +	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
-> +}
-> +
-> +#define PRINTF_TEST(test, expected, format, ...) do {		\
-> +	spin_lock(&test_console_lock);				\
-> +	clear_test_console_buf();				\
-> +	test_console_begin(&test_console_dev);			\
-> +	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
-> +	test_console_end();					\
-> +	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
-> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
-> +			     sbi_strlen(expected));		\
-> +	spin_unlock(&test_console_lock);			\
-> +} while (0)
-> +
-> +static void printf_test(struct sbiunit_test_case *test)
-> +{
-> +	PRINTF_TEST(test, "Hello", "Hello");
-> +	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
-> +	PRINTF_TEST(test, "Hello", "%s", "Hello");
-> +	PRINTF_TEST(test, "-1", "%d", -1);
-> +	PRINTF_TEST(test, "FF", "%X", 255);
-> +	PRINTF_TEST(test, "ff", "%x", 255);
-> +	PRINTF_TEST(test, "A", "%c", 'A');
-> +	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
-> +	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
-> +	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
-> +	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
-> +	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
-> +}
-> +
-> +static struct sbiunit_test_case console_test_cases[] = {
-> +	SBIUNIT_TEST_CASE(putc_test),
-> +	SBIUNIT_TEST_CASE(puts_test),
-> +	SBIUNIT_TEST_CASE(printf_test),
-> +	SBIUNIT_END_CASE,
-> +};
-> +
-> +SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
-> -- 
-> 2.34.1
->
+Thank you for your reply
 
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+Is this the default behavior of the linker or is there any standard
+provision? If there are no standards, modifications will still be?
+needed.
+
+Regards,
+Xiang W
+
 
