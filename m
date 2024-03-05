@@ -1,202 +1,190 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Tue, 5 Mar 2024 13:20:04 +0100
-Subject: [PATCH v4 1/4] docs: Add documentation about tests and SBIUnit
-In-Reply-To: <20240304214551.365057-2-ivan.orlov0322@gmail.com>
+Date: Tue, 5 Mar 2024 13:23:32 +0100
+Subject: [PATCH v4 4/4] lib: tests: Add sbi_console test
+In-Reply-To: <20240304214551.365057-5-ivan.orlov0322@gmail.com>
 References: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
- <20240304214551.365057-2-ivan.orlov0322@gmail.com>
-Message-ID: <20240305-b059f717f9efb7f50844a891@orel>
+ <20240304214551.365057-5-ivan.orlov0322@gmail.com>
+Message-ID: <20240305-666e55c90ba499b71af09007@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 04, 2024 at 09:45:48PM +0000, Ivan Orlov wrote:
-> This patch contains the documentation for SBIUnit. It describes:
+On Mon, Mar 04, 2024 at 09:45:51PM +0000, Ivan Orlov wrote:
+> Add the test suite covering some of the functions from
+> lib/sbi/sbi_console.c: putc, puts and printf. The test covers a variety
+> of format specifiers for printf and different strings and characters for
+> putc and puts.
 > 
-> - What is SBIUnit
-> - Simple test writing scenario
-> - How we can cover static functions
-> - How we can "mock" structures in order to test the functions which
-> operate on them
-> - SBIUnit API Reference
+> In order to do that, the test "mocks" the sbi_console_device structure
+> by setting the 'console_dev' variable to the virtual console.
 > 
 > Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-
-I already gave an r-b on this patch. The changelog doesn't say anything,
-other than what I pointed out, has changed, so I won't review it again. If
-more changes were made that kept you from adding my r-b, then please
-point those out. Otherwise here it is again,
-
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-
-Thanks,
-drew
-
 > ---
 > V1 -> V2:
-> - Use more appropriate language
-> - Update the documentation in accordance with SBIUnit API and
-> structure changes
-> - Remove the redundant documentation for every SBIUNIT_* macro.
-> - Make the documentation follow the 80-characters rule.
+> - Rewrite using the carray functionality
+> - Replace CONSOLE_DO and CONSOLE_DO_RET macros with two inline
+> functions: one of them "mocks" the default console device, and
+> the second one restores the old console device.
+> - Fix codestyle issues (comments, etc.)
+> - Remove incorrect 'puts' test
+> - Use updated SBIUNIT_ASSERT_STREQ API
 > V2 -> V3:
-> - Fix a few typos
-> - Provide the expected console output as it is, without following 80-chars
-> rule
-> - Update the example test source: use SBIUNIT_END_CASE macro instead of
-> "{}"
-> - Add the paragraph about the manual removal of the 'build/' directory
-> in order to regenerate carray-related files. Currently, that's the only
-> reliable way to regenerate them if carray Makefile variable changes, and
-> it is going to be fixed in the future.
+> - Remove unused include statement
+> - Rename "new_dev" => "test_console_dev"
+> - Use SBIUNIT_END_CASE macro in the test cases list instead of '{}'
 > V3 -> V4:
-> - Fix 'the' articles in the text
+> - Add 'test_console_lock' spinlock and corresponding locking in the
+> 'PUTS_TEST' and 'PRINTF_TEST' macros. At the moment, there is no chance
+> that tests will run simultaneously on multiple harts, but locking still
+> makes the whole thing more robust and protects from possible mistakes in
+> the future.
 > 
->  docs/writing_tests.md | 133 ++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 133 insertions(+)
->  create mode 100644 docs/writing_tests.md
+>  lib/sbi/objects.mk         |   1 +
+>  lib/sbi/sbi_console.c      |   4 ++
+>  lib/sbi/sbi_console_test.c | 105 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 110 insertions(+)
+>  create mode 100644 lib/sbi/sbi_console_test.c
 > 
-> diff --git a/docs/writing_tests.md b/docs/writing_tests.md
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index b4c273f..9d065fa 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -16,6 +16,7 @@ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+>  
+>  libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+>  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+>  
+>  libsbi-objs-y += sbi_ecall.o
+>  libsbi-objs-y += sbi_ecall_exts.o
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index ab09a5c..d1229d0 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -488,3 +488,7 @@ int sbi_console_init(struct sbi_scratch *scratch)
+>  
+>  	return rc;
+>  }
+> +
+> +#ifdef CONFIG_SBIUNIT
+> +#include "sbi_console_test.c"
+> +#endif
+> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/sbi_console_test.c
 > new file mode 100644
-> index 0000000..56d0ca3
+> index 0000000..29f4ac1
 > --- /dev/null
-> +++ b/docs/writing_tests.md
-> @@ -0,0 +1,133 @@
-> +Writing tests for OpenSBI
-> +=========================
-> +
-> +SBIUnit
-> +-------
-> +SBIUnit is a set of macros and functions which simplify the test development and
-> +automate the test execution and evaluation. All of the SBIUnit definitions are
-> +in the `include/sbi/sbi_unit_test.h` header file, and implementations are
-> +available in `lib/sbi/sbi_unit_test.c`.
-> +
-> +Simple SBIUnit test
-> +-------------------
-> +
-> +For instance, we would like to test the following function from
-> +`lib/sbi/sbi_string.c`:
-> +
-> +```c
-> +size_t sbi_strlen(const char *str)
-> +{
-> +	unsigned long ret = 0;
-> +
-> +	while (*str != '\0') {
-> +		ret++;
-> +		str++;
-> +	}
-> +
-> +	return ret;
-> +}
-> +```
-> +
-> +which calculates the string length.
-> +
-> +Create the file `lib/sbi/sbi_string_test.c` with the following content:
-> +
-> +```c
+> +++ b/lib/sbi/sbi_console_test.c
+> @@ -0,0 +1,105 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Author: Ivan Orlov <ivan.orlov0322@gmail.com>
+> + */
 > +#include <sbi/sbi_unit_test.h>
-> +#include <sbi/sbi_string.h>
 > +
-> +static void strlen_test(struct sbiunit_test_case *test)
+> +#define TEST_CONSOLE_BUF_LEN 1024
+> +
+> +static const struct sbi_console_device *old_dev;
+> +static char test_console_buf[TEST_CONSOLE_BUF_LEN];
+> +static u32 test_console_buf_pos;
+> +static spinlock_t test_console_lock = SPIN_LOCK_INITIALIZER;
+> +
+> +static void test_console_putc(char c)
 > +{
-> +	SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
-> +	SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hell\0o"), 4);
+> +	test_console_buf[test_console_buf_pos] = c;
+> +	test_console_buf_pos = (test_console_buf_pos + 1) % TEST_CONSOLE_BUF_LEN;
 > +}
 > +
-> +static struct sbiunit_test_case string_test_cases[] = {
-> +	SBIUNIT_TEST_CASE(strlen_test),
+> +static void clear_test_console_buf(void)
+> +{
+> +	test_console_buf_pos = 0;
+> +	test_console_buf[0] = '\0';
+> +}
+> +
+> +static const struct sbi_console_device test_console_dev = {
+> +	.name = "Test console device",
+> +	.console_putc = test_console_putc,
+> +};
+> +
+> +/* Mock the console device */
+> +static inline void test_console_begin(const struct sbi_console_device *device)
+> +{
+> +	old_dev = console_dev;
+> +	console_dev = device;
+> +}
+> +
+> +static inline void test_console_end(void)
+> +{
+> +	console_dev = old_dev;
+> +}
+> +
+> +static void putc_test(struct sbiunit_test_case *test)
+> +{
+> +	clear_test_console_buf();
+> +	test_console_begin(&test_console_dev);
+> +	sbi_putc('a');
+> +	test_console_end();
+> +	SBIUNIT_ASSERT_EQ(test, test_console_buf[0], 'a');
+> +}
+> +
+> +#define PUTS_TEST(test, expected, str) do {			\
+> +	spin_lock(&test_console_lock);				\
+> +	clear_test_console_buf();				\
+> +	test_console_begin(&test_console_dev);			\
+> +	sbi_puts(str);						\
+> +	test_console_end();					\
+> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
+> +			     sbi_strlen(expected));		\
+> +	spin_unlock(&test_console_lock);			\
+> +} while (0)
+> +
+> +static void puts_test(struct sbiunit_test_case *test)
+> +{
+> +	PUTS_TEST(test, "Hello, OpenSBI!", "Hello, OpenSBI!");
+> +	PUTS_TEST(test, "Hello,\r\nOpenSBI!", "Hello,\nOpenSBI!");
+> +}
+> +
+> +#define PRINTF_TEST(test, expected, format, ...) do {		\
+> +	spin_lock(&test_console_lock);				\
+> +	clear_test_console_buf();				\
+> +	test_console_begin(&test_console_dev);			\
+> +	size_t __res = sbi_printf(format, ##__VA_ARGS__);	\
+> +	test_console_end();					\
+> +	SBIUNIT_ASSERT_EQ(test, __res, sbi_strlen(expected));	\
+> +	SBIUNIT_ASSERT_STREQ(test, test_console_buf, expected,	\
+> +			     sbi_strlen(expected));		\
+> +	spin_unlock(&test_console_lock);			\
+> +} while (0)
+> +
+> +static void printf_test(struct sbiunit_test_case *test)
+> +{
+> +	PRINTF_TEST(test, "Hello", "Hello");
+> +	PRINTF_TEST(test, "3 5 7", "%d %d %d", 3, 5, 7);
+> +	PRINTF_TEST(test, "Hello", "%s", "Hello");
+> +	PRINTF_TEST(test, "-1", "%d", -1);
+> +	PRINTF_TEST(test, "FF", "%X", 255);
+> +	PRINTF_TEST(test, "ff", "%x", 255);
+> +	PRINTF_TEST(test, "A", "%c", 'A');
+> +	PRINTF_TEST(test, "1fe", "%p", (void *)0x1fe);
+> +	PRINTF_TEST(test, "4294967295", "%u", 4294967295U);
+> +	PRINTF_TEST(test, "-2147483647", "%ld", -2147483647l);
+> +	PRINTF_TEST(test, "-9223372036854775807", "%lld", -9223372036854775807LL);
+> +	PRINTF_TEST(test, "18446744073709551615", "%llu", 18446744073709551615ULL);
+> +}
+> +
+> +static struct sbiunit_test_case console_test_cases[] = {
+> +	SBIUNIT_TEST_CASE(putc_test),
+> +	SBIUNIT_TEST_CASE(puts_test),
+> +	SBIUNIT_TEST_CASE(printf_test),
 > +	SBIUNIT_END_CASE,
 > +};
 > +
-> +SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
-> +```
-> +
-> +Then, add the corresponding Makefile entries to `lib/sbi/objects.mk`:
-> +```lang-makefile
-> +...
-> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
-> +```
-> +
-> +If you compiled OpenSBI with CONFIG_SBIUNIT enabled before, you may need to
-> +manually remove the build folder in order to regenerate the carray files:
-> +`rm -rf build/`.
-> +
-> +Recompile OpenSBI with the CONFIG_SBIUNIT option enabled and run it in QEMU.
-> +You will see something like this:
-> +```
-> +# make PLATFORM=generic run
-> +...
-> +# Running SBIUNIT tests #
-> +...
-> +## Running test suite: string_test_suite
-> +[PASSED] strlen_test
-> +1 PASSED / 0 FAILED / 1 TOTAL
-> +```
-> +
-> +Now let's try to change this test in the way that it will fail:
-> +
-> +```c
-> +- SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
-> ++ SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 100);
-> +```
-> +
-> +`make all` and `make run` it again:
-> +```
-> +...
-> +# Running SBIUNIT tests #
-> +...
-> +## Running test suite: string_test_suite
-> +[SBIUnit] [.../opensbi/lib/sbi/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
-> +[FAILED] strlen_test
-> +0 PASSED / 1 FAILED / 1 TOTAL
-> +```
-> +Covering the static functions / using the static definitions
-> +------------------------------------------------------------
-> +
-> +SBIUnit also allows you to test static functions. In order to do so, simply
-> +include your test source in the file you would like to test. Complementing the
-> +example above, just add this to the
-> +`lib/sbi/sbi_string.c` file:
-> +
-> +```c
-> +#ifdef CONFIG_SBIUNIT
-> +#include "sbi_string_test.c"
-> +#endif
-> +```
-> +
-> +In this case you should only add a new carray entry pointing to the test suite
-> +to `lib/sbi/objects.mk`:
-> +```lang-makefile
-> +...
-> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
-> +```
-> +
-> +You don't have to compile the `sbi_string_test.o` separately, because the
-> +test code will be included into the `sbi_string` object file.
-> +
-> +See example in `lib/sbi/sbi_console_test.c`, where statically declared
-> +`console_dev` variable is used to mock the `sbi_console_device` structure.
-> +
-> +"Mocking" the structures
-> +------------------------
-> +See the example of structure "mocking" in the `lib/sbi/sbi_console_test.c`,
-> +where the sbi_console_device structure was mocked to be used in various
-> +console-related functions in order to test them.
-> +
-> +API Reference
-> +-------------
-> +All of the `SBIUNIT_EXPECT_*` macros will cause a test case to fail if the
-> +corresponding conditions are not met, however, the execution of a particular
-> +test case will not be stopped.
-> +
-> +All of the `SBIUNIT_ASSERT_*` macros will cause a test case to fail and stop
-> +immediately, triggering a panic.
+> +SBIUNIT_TEST_SUITE(console_test_suite, console_test_cases);
 > -- 
 > 2.34.1
-> 
+>
+
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
