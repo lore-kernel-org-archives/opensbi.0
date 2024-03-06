@@ -1,47 +1,55 @@
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Tue, 5 Mar 2024 13:27:55 +0000
-Subject: [PATCH v4 1/4] docs: Add documentation about tests and SBIUnit
-In-Reply-To: <20240305-b059f717f9efb7f50844a891@orel>
-References: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
- <20240304214551.365057-2-ivan.orlov0322@gmail.com>
- <20240305-b059f717f9efb7f50844a891@orel>
-Message-ID: <76a18f42-35d3-485c-8971-175c55ef5da4@gmail.com>
+From: Bo Gan <ganboing@gmail.com>
+Date: Tue,  5 Mar 2024 18:35:33 -0800
+Subject: [PATCH v4 0/7] Allow platform to handle load/store faults
+Message-ID: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 3/5/24 12:20, Andrew Jones wrote:
-> On Mon, Mar 04, 2024 at 09:45:48PM +0000, Ivan Orlov wrote:
->> This patch contains the documentation for SBIUnit. It describes:
->>
->> - What is SBIUnit
->> - Simple test writing scenario
->> - How we can cover static functions
->> - How we can "mock" structures in order to test the functions which
->> operate on them
->> - SBIUnit API Reference
->>
->> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-> 
-> I already gave an r-b on this patch. The changelog doesn't say anything,
-> other than what I pointed out, has changed, so I won't review it again. If
-> more changes were made that kept you from adding my r-b, then please
-> point those out. Otherwise here it is again,
-> 
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-> 
+Sometimes a platform wants to trap-n-emulate special devices or filter
+access to physical devices. This patch makes sbi_trap_handler to call
+platform_ops.emulate_load/store and ask platform to fixup the fault.
 
-Hi Andrew,
+v4 changes:
+-  Addressed comments from Anup -- sbi_trap related details should
+   not be visable to platform code.
+-  Minor fixes -- splitting patches and renames suggested by Anup.
 
-Thank you for the review and sorry, I thought the "Reviewed-by" tag is 
-only inherited when no changes at all were made since the previous version.
+v3 changes:
+-  Addressed comments from Anup by breaking down the patchset and
+   new sbi_platform_emulate_load/store helper functions.
+-  Reworked the return value of sbi_trap_ld/st_emulator to support
+   (>0) successful emulation (==0) trap_redirect (<0) real failure.
 
-The only change for this particular patch is the fix of "the" articles 
-in the text, which you've pointed out in the previous version.
+v2 changes:
+-  Added const qualifier to *orig_trap on load/store fault handlers.
+   That addressed Xiang W's comment.
+-  Applied clang-format to changed lines.
+
+Bo Gan (7):
+  lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
+  include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
+  lib: sbi: change prototype of sbi_trap_redirect
+  lib: sbi: change prototype of sbi_misaligned_load/store_handler
+  lib: sbi: abstract out insn decoding to unify mem fault handlers
+  include: sbi: add emulate_load/store handler to platform ops
+  lib: sbi: call platform load/store emulators
+
+ include/sbi/sbi_misaligned_ldst.h                  |  23 ---
+ include/sbi/sbi_platform.h                         |  53 +++++
+ include/sbi/sbi_trap.h                             |   2 +-
+ include/sbi/sbi_trap_ldst.h                        |  35 ++++
+ lib/sbi/objects.mk                                 |   2 +-
+ lib/sbi/sbi_trap.c                                 |  38 ++--
+ lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 213 +++++++++++++++------
+ 7 files changed, 265 insertions(+), 101 deletions(-)
+ delete mode 100644 include/sbi/sbi_misaligned_ldst.h
+ create mode 100644 include/sbi/sbi_trap_ldst.h
+ rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (54%)
+
 -- 
-Kind regards,
-Ivan Orlov
+2.7.4
 
 
