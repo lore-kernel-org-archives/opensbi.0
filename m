@@ -1,156 +1,90 @@
-From: Bo Gan <ganboing@gmail.com>
-Date: Tue,  5 Mar 2024 18:35:40 -0800
-Subject: [PATCH v4 7/7] lib: sbi: call platform load/store emulators
-In-Reply-To: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
-References: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
-Message-ID: <1709692540-77803-8-git-send-email-ganboing@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 6 Mar 2024 11:16:40 +0530
+Subject: [PATCH] lib: sbi_misaligned_ldst: Add handling of C.LHU/C.LH and C.SH
+In-Reply-To: <20240226055644.881161-1-nylon.chen@sifive.com>
+References: <20240226055644.881161-1-nylon.chen@sifive.com>
+Message-ID: <CAAhSdy1pFtV3Qx3AHZ8YhU46Nu3Lz-YHe868M4Hau8MHfGLG5w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-sbi_load/store_access_handler now tries to call platform emulators
-if defined. Otherwise, redirects the fault. If the platform code
-returns failure, this means the H/S/U has accessed the emulated
-devices in an unexpected manner, which is very likely caused by
-buggy code in H/S/U. We redirect the fault, so lower privileged
-level can get notified, and act accordingly. (E.g., oops in Linux)
+On Mon, Feb 26, 2024 at 11:26?AM Nylon Chen <nylon.chen@sifive.com> wrote:
+>
+> From: "Nylon Chen" <nylon.chen@sifive.com>
+>
+> Added exception handling for compressed instructions C.LHU, C.LH, and
+> C.SH from the zcb extension to the sbi_misaligned_ldst library.
+>
+> Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
 
-We let the handler truly fail if the trap was originated from M mode.
-In this case, something must be very wrong and we should just fail.
+LGTM.
 
-Signed-off-by: Bo Gan <ganboing@gmail.com>
----
- include/sbi/sbi_platform.h | 45 +++++++++++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_trap_ldst.c    | 37 +++++++++++++++++++++++++++++++++++--
- 2 files changed, 80 insertions(+), 2 deletions(-)
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index f962aa4..581935a 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -48,6 +48,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_version.h>
-+#include <sbi/sbi_trap_ldst.h>
- 
- struct sbi_domain_memregion;
- struct sbi_ecall_return;
-@@ -683,6 +684,50 @@ static inline int sbi_platform_vendor_ext_provider(
- 	return SBI_ENOTSUPP;
- }
- 
-+/**
-+ * Ask platform to emulate the trapped load
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ * @param rlen length of the load: 1/2/4/8...
-+ * @param addr virtual address of the load. Platform needs to page-walk and
-+ *        find the physical address if necessary
-+ * @param out_val value loaded
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+static inline int sbi_platform_emulate_load(const struct sbi_platform *plat,
-+					    int rlen, unsigned long addr,
-+					    union sbi_ldst_data *out_val)
-+{
-+	if (plat && sbi_platform_ops(plat)->emulate_load) {
-+		return sbi_platform_ops(plat)->emulate_load(rlen, addr,
-+							    out_val);
-+	}
-+	return SBI_ENOTSUPP;
-+}
-+
-+/**
-+ * Ask platform to emulate the trapped store
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ * @param wlen length of the store: 1/2/4/8...
-+ * @param addr virtual address of the store. Platform needs to page-walk and
-+ *        find the physical address if necessary
-+ * @param in_val value to store
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+static inline int sbi_platform_emulate_store(const struct sbi_platform *plat,
-+					     int wlen, unsigned long addr,
-+					     union sbi_ldst_data in_val)
-+{
-+	if (plat && sbi_platform_ops(plat)->emulate_store) {
-+		return sbi_platform_ops(plat)->emulate_store(wlen, addr,
-+							     in_val);
-+	}
-+	return SBI_ENOTSUPP;
-+}
-+
- #endif
- 
- #endif
-diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-index 7e4a007..0425ccb 100644
---- a/lib/sbi/sbi_trap_ldst.c
-+++ b/lib/sbi/sbi_trap_ldst.c
-@@ -15,6 +15,7 @@
- #include <sbi/sbi_pmu.h>
- #include <sbi/sbi_trap.h>
- #include <sbi/sbi_unpriv.h>
-+#include <sbi/sbi_platform.h>
- 
- /**
-  * Load emulator callback:
-@@ -309,14 +310,46 @@ int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
- 				      sbi_misaligned_st_emulator);
- }
- 
-+static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
-+				  struct sbi_trap_regs *regs,
-+				  const struct sbi_trap_info *orig_trap)
-+{
-+	/* If fault came from M mode, just fail */
-+	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
-+		return SBI_EINVAL;
-+
-+	/* If platform emulator failed, we redirect instead of fail */
-+	if (sbi_platform_emulate_load(sbi_platform_thishart_ptr(), rlen,
-+				      orig_trap->tval, out_val))
-+		return sbi_trap_redirect(regs, orig_trap);
-+
-+	return rlen;
-+}
-+
- int sbi_load_access_handler(struct sbi_trap_regs *regs,
- 			    const struct sbi_trap_info *orig_trap)
- {
--	return sbi_trap_redirect(regs, orig_trap);
-+	return sbi_trap_emulate_load(regs, orig_trap, sbi_ld_access_emulator);
-+}
-+
-+static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
-+				  struct sbi_trap_regs *regs,
-+				  const struct sbi_trap_info *orig_trap)
-+{
-+	/* If fault came from M mode, just fail */
-+	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
-+		return SBI_EINVAL;
-+
-+	/* If platform emulator failed, we redirect instead of fail */
-+	if (sbi_platform_emulate_store(sbi_platform_thishart_ptr(), wlen,
-+				       orig_trap->tval, in_val))
-+		return sbi_trap_redirect(regs, orig_trap);
-+
-+	return wlen;
- }
- 
- int sbi_store_access_handler(struct sbi_trap_regs *regs,
- 			     const struct sbi_trap_info *orig_trap)
- {
--	return sbi_trap_redirect(regs, orig_trap);
-+	return sbi_trap_emulate_store(regs, orig_trap, sbi_st_access_emulator);
- }
--- 
-2.7.4
+Applied this patch to the riscv/opensbi repo.
 
+Thanks,
+Anup
+
+> ---
+>  include/sbi/riscv_encoding.h  |  7 +++++++
+>  lib/sbi/sbi_misaligned_ldst.c | 10 ++++++++++
+>  2 files changed, 17 insertions(+)
+>
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index e74cc0d..3d77e26 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -837,6 +837,13 @@
+>  #define INSN_MATCH_C_FSWSP             0xe002
+>  #define INSN_MASK_C_FSWSP              0xe003
+>
+> +#define INSN_MATCH_C_LHU               0x8400
+> +#define INSN_MASK_C_LHU                0xfc43
+> +#define INSN_MATCH_C_LH                0x8440
+> +#define INSN_MASK_C_LH                 0xfc43
+> +#define INSN_MATCH_C_SH                0x8c00
+> +#define INSN_MASK_C_SH                 0xfc43
+> +
+>  #define INSN_MASK_WFI                  0xffffff00
+>  #define INSN_MATCH_WFI                 0x10500000
+>
+> diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_misaligned_ldst.c
+> index aa512de..9ca225a 100644
+> --- a/lib/sbi/sbi_misaligned_ldst.c
+> +++ b/lib/sbi/sbi_misaligned_ldst.c
+> @@ -123,6 +123,13 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+>                 len = 4;
+>  #endif
+>  #endif
+> +       } else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
+> +               len = 2;
+> +               insn = RVC_RS2S(insn) << SH_RD;
+> +       } else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
+> +               len = 2;
+> +               shift = 8 * (sizeof(ulong) - len);
+> +               insn = RVC_RS2S(insn) << SH_RD;
+>         } else {
+>                 uptrap.epc = regs->mepc;
+>                 uptrap.cause = CAUSE_MISALIGNED_LOAD;
+> @@ -237,6 +244,9 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+>                 val.data_ulong = GET_F32_RS2C(insn, regs);
+>  #endif
+>  #endif
+> +       } else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
+> +               len             = 2;
+> +               val.data_ulong = GET_RS2S(insn, regs);
+>         } else {
+>                 uptrap.epc = regs->mepc;
+>                 uptrap.cause = CAUSE_MISALIGNED_STORE;
+> --
+> 2.34.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
