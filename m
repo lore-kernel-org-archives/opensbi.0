@@ -1,315 +1,50 @@
 From: Bo Gan <ganboing@gmail.com>
-Date: Tue,  5 Mar 2024 18:35:38 -0800
-Subject: [PATCH v4 5/7] lib: sbi: abstract out insn decoding to unify mem fault handlers
+Date: Tue,  5 Mar 2024 18:35:39 -0800
+Subject: [PATCH v4 6/7] include: sbi: add emulate_load/store handler to platform ops
 In-Reply-To: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
 References: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
-Message-ID: <1709692540-77803-6-git-send-email-ganboing@gmail.com>
+Message-ID: <1709692540-77803-7-git-send-email-ganboing@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch abstracts out the instruction decoding part of misaligned ld/st
-fault handlers, so it can be reused by ld/st access fault handlers.
-Also Added lb/lbu/sb decoding. (previously unreachable by misaligned fault)
-
-sbi_trap_emulate_load/store is now the common handler which takes a `emu`
-parameter that is responsible for emulating the misaligned or access fault.
-The `emu` callback is expected to fixup the fault, and based on the return
-code of `emu`, sbi_trap_emulate_load/store will:
-
-  r/wlen => the fixup is successful and regs/mepc needs to be updated.
-  0      => the fixup is successful, but regs/mepc should be left untouched
-            (this is usually used if `emu` does `sbi_trap_redirect`)
-  -err   => failed, sbi_trap_error will be called
-
-For now, load/store access faults are blindly redirected. It will be
-enhanced in the following patches.
+This patch allows the platform to define load/store emulators. This
+enables a platform to trap-and-emulate special devices or filter
+access to existing physical devices.
 
 Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- include/sbi/sbi_trap_ldst.h |  13 +++-
- lib/sbi/sbi_trap.c          |  13 +++-
- lib/sbi/sbi_trap_ldst.c     | 150 ++++++++++++++++++++++++++++++++------------
- 3 files changed, 132 insertions(+), 44 deletions(-)
+ include/sbi/sbi_platform.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
-index 5f0ed92..9cab4e4 100644
---- a/include/sbi/sbi_trap_ldst.h
-+++ b/include/sbi/sbi_trap_ldst.h
-@@ -13,7 +13,12 @@
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_trap.h>
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 2fb33e1..f962aa4 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -53,6 +53,7 @@ struct sbi_domain_memregion;
+ struct sbi_ecall_return;
+ struct sbi_trap_regs;
+ struct sbi_hart_features;
++union sbi_ldst_data;
  
--struct sbi_trap_regs;
-+union sbi_ldst_data {
-+	u64 data_u64;
-+	u32 data_u32;
-+	u8 data_bytes[8];
-+	ulong data_ulong;
-+};
- 
- int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
- 				const struct sbi_trap_info *orig_trap);
-@@ -21,4 +26,10 @@ int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
- int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
- 				 const struct sbi_trap_info *orig_trap);
- 
-+int sbi_load_access_handler(struct sbi_trap_regs *regs,
-+			    const struct sbi_trap_info *orig_trap);
+ /** Possible feature flags of a platform */
+ enum sbi_platform_features {
+@@ -139,6 +140,13 @@ struct sbi_platform_operations {
+ 	int (*vendor_ext_provider)(long funcid,
+ 				   struct sbi_trap_regs *regs,
+ 				   struct sbi_ecall_return *out);
 +
-+int sbi_store_access_handler(struct sbi_trap_regs *regs,
-+			     const struct sbi_trap_info *orig_trap);
-+
- #endif
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index e379984..c665013 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -299,10 +299,12 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
- 		msg = "illegal instruction handler failed";
- 		break;
- 	case CAUSE_MISALIGNED_LOAD:
-+		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
- 		rc  = sbi_misaligned_load_handler(regs, &trap);
- 		msg = "misaligned load handler failed";
- 		break;
- 	case CAUSE_MISALIGNED_STORE:
-+		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
- 		rc  = sbi_misaligned_store_handler(regs, &trap);
- 		msg = "misaligned store handler failed";
- 		break;
-@@ -312,10 +314,15 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
- 		msg = "ecall handler failed";
- 		break;
- 	case CAUSE_LOAD_ACCESS:
-+		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_LOAD);
-+		rc  = sbi_load_access_handler(regs, &trap);
-+		msg = "load fault handler failed";
-+		break;
- 	case CAUSE_STORE_ACCESS:
--		sbi_pmu_ctr_incr_fw(mcause == CAUSE_LOAD_ACCESS ?
--			SBI_PMU_FW_ACCESS_LOAD : SBI_PMU_FW_ACCESS_STORE);
--		/* fallthrough */
-+		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_STORE);
-+		rc  = sbi_store_access_handler(regs, &trap);
-+		msg = "store fault handler failed";
-+		break;
- 	default:
- 		/* If the trap came from S or U mode, redirect it there */
- 		msg = "trap redirect failed";
-diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-index 1fb0ed6..7e4a007 100644
---- a/lib/sbi/sbi_trap_ldst.c
-+++ b/lib/sbi/sbi_trap_ldst.c
-@@ -16,11 +16,23 @@
- #include <sbi/sbi_trap.h>
- #include <sbi/sbi_unpriv.h>
++	/** platform specific handler to fixup load fault */
++	int (*emulate_load)(int rlen, unsigned long addr,
++			    union sbi_ldst_data *out_val);
++	/** platform specific handler to fixup store fault */
++	int (*emulate_store)(int wlen, unsigned long addr,
++			     union sbi_ldst_data in_val);
+ };
  
--union reg_data {
--	u8 data_bytes[8];
--	ulong data_ulong;
--	u64 data_u64;
--};
-+/**
-+ * Load emulator callback:
-+ *
-+ * @return rlen=success, 0=success w/o regs modification, or negative error
-+ */
-+typedef int (*sbi_trap_ld_emulator)(int rlen, union sbi_ldst_data *out_val,
-+				    struct sbi_trap_regs *regs,
-+				    const struct sbi_trap_info *orig_trap);
-+
-+/**
-+ * Store emulator callback:
-+ *
-+ * @return wlen=success, 0=success w/o regs modification, or negative error
-+ */
-+typedef int (*sbi_trap_st_emulator)(int wlen, union sbi_ldst_data in_val,
-+				    struct sbi_trap_regs *regs,
-+				    const struct sbi_trap_info *orig_trap);
- 
- static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
- 					ulong addr_offset)
-@@ -34,15 +46,14 @@ static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
- 		return orig_tinst | (addr_offset << SH_RS1);
- }
- 
--int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
--				const struct sbi_trap_info *orig_trap)
-+static int sbi_trap_emulate_load(struct sbi_trap_regs *regs,
-+				 const struct sbi_trap_info *orig_trap,
-+				 sbi_trap_ld_emulator emu)
- {
- 	ulong insn, insn_len;
--	union reg_data val;
-+	union sbi_ldst_data val = { 0 };
- 	struct sbi_trap_info uptrap;
--	int i, fp = 0, shift = 0, len = 0;
--
--	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
-+	int rc, fp = 0, shift = 0, len = 0;
- 
- 	if (orig_trap->tinst & 0x1) {
- 		/*
-@@ -64,7 +75,12 @@ int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
- 		insn_len = INSN_LEN(insn);
- 	}
- 
--	if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
-+	if ((insn & INSN_MASK_LB) == INSN_MATCH_LB) {
-+		len   = 1;
-+		shift = 8 * (sizeof(ulong) - len);
-+	} else if ((insn & INSN_MASK_LBU) == INSN_MATCH_LBU) {
-+		len = 1;
-+	} else if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
- 		len   = 4;
- 		shift = 8 * (sizeof(ulong) - len);
- #if __riscv_xlen == 64
-@@ -127,17 +143,10 @@ int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
- 		return sbi_trap_redirect(regs, orig_trap);
- 	}
- 
--	val.data_u64 = 0;
--	for (i = 0; i < len; i++) {
--		val.data_bytes[i] =
--			sbi_load_u8((void *)(orig_trap->tval + i), &uptrap);
--		if (uptrap.cause) {
--			uptrap.epc   = regs->mepc;
--			uptrap.tinst = sbi_misaligned_tinst_fixup(
--				orig_trap->tinst, uptrap.tinst, i);
--			return sbi_trap_redirect(regs, &uptrap);
--		}
--	}
-+	rc = emu(len, &val, regs, orig_trap);
-+
-+	if (rc <= 0)
-+		return rc;
- 
- 	if (!fp)
- 		SET_RD(insn, regs, ((long)(val.data_ulong << shift)) >> shift);
-@@ -153,15 +162,14 @@ int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
- 	return 0;
- }
- 
--int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
--				 const struct sbi_trap_info *orig_trap)
-+static int sbi_trap_emulate_store(struct sbi_trap_regs *regs,
-+				  const struct sbi_trap_info *orig_trap,
-+				  sbi_trap_st_emulator emu)
- {
- 	ulong insn, insn_len;
--	union reg_data val;
-+	union sbi_ldst_data val;
- 	struct sbi_trap_info uptrap;
--	int i, len = 0;
--
--	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
-+	int rc, len = 0;
- 
- 	if (orig_trap->tinst & 0x1) {
- 		/*
-@@ -185,7 +193,9 @@ int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
- 
- 	val.data_ulong = GET_RS2(insn, regs);
- 
--	if ((insn & INSN_MASK_SW) == INSN_MATCH_SW) {
-+	if ((insn & INSN_MASK_SB) == INSN_MATCH_SB) {
-+		len = 1;
-+	} else if ((insn & INSN_MASK_SW) == INSN_MATCH_SW) {
- 		len = 4;
- #if __riscv_xlen == 64
- 	} else if ((insn & INSN_MASK_SD) == INSN_MATCH_SD) {
-@@ -235,18 +245,78 @@ int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
- 		return sbi_trap_redirect(regs, orig_trap);
- 	}
- 
--	for (i = 0; i < len; i++) {
--		sbi_store_u8((void *)(orig_trap->tval + i), val.data_bytes[i],
--			     &uptrap);
--		if (uptrap.cause) {
--			uptrap.epc   = regs->mepc;
--			uptrap.tinst = sbi_misaligned_tinst_fixup(
--				orig_trap->tinst, uptrap.tinst, i);
--			return sbi_trap_redirect(regs, &uptrap);
--		}
--	}
-+	rc = emu(len, val, regs, orig_trap);
-+
-+	if (rc <= 0)
-+		return rc;
- 
- 	regs->mepc += insn_len;
- 
- 	return 0;
- }
-+
-+static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
-+				      struct sbi_trap_regs *regs,
-+				      const struct sbi_trap_info *orig_trap)
-+{
-+	struct sbi_trap_info uptrap;
-+	int i;
-+
-+	for (i = 0; i < rlen; i++) {
-+		out_val->data_bytes[i] =
-+			sbi_load_u8((void *)(orig_trap->tval + i), &uptrap);
-+		if (uptrap.cause) {
-+			uptrap.epc   = regs->mepc;
-+			uptrap.tinst = sbi_misaligned_tinst_fixup(
-+				orig_trap->tinst, uptrap.tinst, i);
-+			return sbi_trap_redirect(regs, &uptrap);
-+		}
-+	}
-+	return rlen;
-+}
-+
-+int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
-+				const struct sbi_trap_info *orig_trap)
-+{
-+	return sbi_trap_emulate_load(regs, orig_trap,
-+				     sbi_misaligned_ld_emulator);
-+}
-+
-+static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
-+				      struct sbi_trap_regs *regs,
-+				      const struct sbi_trap_info *orig_trap)
-+{
-+	struct sbi_trap_info uptrap;
-+	int i;
-+
-+	for (i = 0; i < wlen; i++) {
-+		sbi_store_u8((void *)(orig_trap->tval + i),
-+			     in_val.data_bytes[i], &uptrap);
-+		if (uptrap.cause) {
-+			uptrap.epc   = regs->mepc;
-+			uptrap.tinst = sbi_misaligned_tinst_fixup(
-+				orig_trap->tinst, uptrap.tinst, i);
-+			return sbi_trap_redirect(regs, &uptrap);
-+		}
-+	}
-+	return wlen;
-+}
-+
-+int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
-+				 const struct sbi_trap_info *orig_trap)
-+{
-+	return sbi_trap_emulate_store(regs, orig_trap,
-+				      sbi_misaligned_st_emulator);
-+}
-+
-+int sbi_load_access_handler(struct sbi_trap_regs *regs,
-+			    const struct sbi_trap_info *orig_trap)
-+{
-+	return sbi_trap_redirect(regs, orig_trap);
-+}
-+
-+int sbi_store_access_handler(struct sbi_trap_regs *regs,
-+			     const struct sbi_trap_info *orig_trap)
-+{
-+	return sbi_trap_redirect(regs, orig_trap);
-+}
+ /** Platform default per-HART stack size for exception/interrupt handling */
 -- 
 2.7.4
 
