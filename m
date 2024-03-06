@@ -1,54 +1,47 @@
 From: Bo Gan <ganboing@gmail.com>
-Date: Tue,  5 Mar 2024 18:35:33 -0800
-Subject: [PATCH v4 0/7] Allow platform to handle load/store faults
-Message-ID: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
+Date: Tue,  5 Mar 2024 18:35:34 -0800
+Subject: [PATCH v4 1/7] lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
+In-Reply-To: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
+References: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
+Message-ID: <1709692540-77803-2-git-send-email-ganboing@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Sometimes a platform wants to trap-n-emulate special devices or filter
-access to physical devices. This patch makes sbi_trap_handler to call
-platform_ops.emulate_load/store and ask platform to fixup the fault.
+Signed-off-by: Bo Gan <ganboing@gmail.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+ lib/sbi/objects.mk                                 | 2 +-
+ lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 0
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (100%)
 
-v4 changes:
--  Addressed comments from Anup -- sbi_trap related details should
-   not be visable to platform code.
--  Minor fixes -- splitting patches and renames suggested by Anup.
-
-v3 changes:
--  Addressed comments from Anup by breaking down the patchset and
-   new sbi_platform_emulate_load/store helper functions.
--  Reworked the return value of sbi_trap_ld/st_emulator to support
-   (>0) successful emulation (==0) trap_redirect (<0) real failure.
-
-v2 changes:
--  Added const qualifier to *orig_trap on load/store fault handlers.
-   That addressed Xiang W's comment.
--  Applied clang-format to changed lines.
-
-Bo Gan (7):
-  lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
-  include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
-  lib: sbi: change prototype of sbi_trap_redirect
-  lib: sbi: change prototype of sbi_misaligned_load/store_handler
-  lib: sbi: abstract out insn decoding to unify mem fault handlers
-  include: sbi: add emulate_load/store handler to platform ops
-  lib: sbi: call platform load/store emulators
-
- include/sbi/sbi_misaligned_ldst.h                  |  23 ---
- include/sbi/sbi_platform.h                         |  53 +++++
- include/sbi/sbi_trap.h                             |   2 +-
- include/sbi/sbi_trap_ldst.h                        |  35 ++++
- lib/sbi/objects.mk                                 |   2 +-
- lib/sbi/sbi_trap.c                                 |  38 ++--
- lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 213 +++++++++++++++------
- 7 files changed, 265 insertions(+), 101 deletions(-)
- delete mode 100644 include/sbi/sbi_misaligned_ldst.h
- create mode 100644 include/sbi/sbi_trap_ldst.h
- rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (54%)
-
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 0a50e95..204dd6b 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -70,7 +70,6 @@ libsbi-objs-y += sbi_illegal_insn.o
+ libsbi-objs-y += sbi_init.o
+ libsbi-objs-y += sbi_ipi.o
+ libsbi-objs-y += sbi_irqchip.o
+-libsbi-objs-y += sbi_misaligned_ldst.o
+ libsbi-objs-y += sbi_platform.o
+ libsbi-objs-y += sbi_pmu.o
+ libsbi-objs-y += sbi_dbtr.o
+@@ -80,6 +79,7 @@ libsbi-objs-y += sbi_system.o
+ libsbi-objs-y += sbi_timer.o
+ libsbi-objs-y += sbi_tlb.o
+ libsbi-objs-y += sbi_trap.o
++libsbi-objs-y += sbi_trap_ldst.o
+ libsbi-objs-y += sbi_unpriv.o
+ libsbi-objs-y += sbi_expected_trap.o
+ libsbi-objs-y += sbi_cppc.o
+diff --git a/lib/sbi/sbi_misaligned_ldst.c b/lib/sbi/sbi_trap_ldst.c
+similarity index 100%
+rename from lib/sbi/sbi_misaligned_ldst.c
+rename to lib/sbi/sbi_trap_ldst.c
 -- 
 2.7.4
 
