@@ -1,41 +1,202 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 9 Mar 2024 19:14:33 +0530
-Subject: [PATCH v6 0/5] Improvements to fw_base.S
-In-Reply-To: <20240304121557.502655-1-wxjstz@126.com>
-References: <20240304121557.502655-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3RVsgnzrxfXu=rxEdyCeRW=Ve3PATsRRiqcWyvnaTxEQ@mail.gmail.com>
+Date: Sun, 10 Mar 2024 10:18:09 +0530
+Subject: [PATCH v4 1/4] docs: Add documentation about tests and SBIUnit
+In-Reply-To: <20240304214551.365057-2-ivan.orlov0322@gmail.com>
+References: <20240304214551.365057-1-ivan.orlov0322@gmail.com> <20240304214551.365057-2-ivan.orlov0322@gmail.com>
+Message-ID: <CAAhSdy2OG74-Vhj8vrm+fGwUjEVKBtYPHCGh43_uaSF4KYDwBA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 4, 2024 at 5:46?PM Xiang W <wxjstz@126.com> wrote:
+On Tue, Mar 5, 2024 at 3:15?AM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
 >
-> v6 changes:
-> - drop patch1 firmware: remove copy-base relocation
-> - drop patch7 firmware: Improve fw_boot_hart
-> - drop patch8 firmware: Use C if possible
-> - rebase code
+> This patch contains the documentation for SBIUnit. It describes:
 >
-> Xiang W (5):
->   firmware: fw_base.S: Simplify address get
->   firmware: fw_base: Simplified setup trap handler
->   firmware: fw_dynamic.S: Remove _bad_dynamic_info
->   firmware: fw_base.S: Remove _relocate_lottery
->   firmware: fw_base.S: fix _reset_regs
+> - What is SBIUnit
+> - Simple test writing scenario
+> - How we can cover static functions
+> - How we can "mock" structures in order to test the functions which
+> operate on them
+> - SBIUnit API Reference
+>
+> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+> ---
+> V1 -> V2:
+> - Use more appropriate language
+> - Update the documentation in accordance with SBIUnit API and
+> structure changes
+> - Remove the redundant documentation for every SBIUNIT_* macro.
+> - Make the documentation follow the 80-characters rule.
+> V2 -> V3:
+> - Fix a few typos
+> - Provide the expected console output as it is, without following 80-chars
+> rule
+> - Update the example test source: use SBIUNIT_END_CASE macro instead of
+> "{}"
+> - Add the paragraph about the manual removal of the 'build/' directory
+> in order to regenerate carray-related files. Currently, that's the only
+> reliable way to regenerate them if carray Makefile variable changes, and
+> it is going to be fixed in the future.
+> V3 -> V4:
+> - Fix 'the' articles in the text
+>
+>  docs/writing_tests.md | 133 ++++++++++++++++++++++++++++++++++++++++++
 
-Applied this series to the riscv/opensbi repo.
+Since this is a new MD file under docs, we should also add it to the
+list of INPUT files in docs/doxygen.cfg
+
+I have taken care of this at the time of merging this patch.
+
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
+>  1 file changed, 133 insertions(+)
+>  create mode 100644 docs/writing_tests.md
 >
->  firmware/fw_base.S    | 85 ++++++++++++-------------------------------
->  firmware/fw_dynamic.S | 10 +----
->  2 files changed, 26 insertions(+), 69 deletions(-)
->
+> diff --git a/docs/writing_tests.md b/docs/writing_tests.md
+> new file mode 100644
+> index 0000000..56d0ca3
+> --- /dev/null
+> +++ b/docs/writing_tests.md
+> @@ -0,0 +1,133 @@
+> +Writing tests for OpenSBI
+> +=========================
+> +
+> +SBIUnit
+> +-------
+> +SBIUnit is a set of macros and functions which simplify the test development and
+> +automate the test execution and evaluation. All of the SBIUnit definitions are
+> +in the `include/sbi/sbi_unit_test.h` header file, and implementations are
+> +available in `lib/sbi/sbi_unit_test.c`.
+> +
+> +Simple SBIUnit test
+> +-------------------
+> +
+> +For instance, we would like to test the following function from
+> +`lib/sbi/sbi_string.c`:
+> +
+> +```c
+> +size_t sbi_strlen(const char *str)
+> +{
+> +       unsigned long ret = 0;
+> +
+> +       while (*str != '\0') {
+> +               ret++;
+> +               str++;
+> +       }
+> +
+> +       return ret;
+> +}
+> +```
+> +
+> +which calculates the string length.
+> +
+> +Create the file `lib/sbi/sbi_string_test.c` with the following content:
+> +
+> +```c
+> +#include <sbi/sbi_unit_test.h>
+> +#include <sbi/sbi_string.h>
+> +
+> +static void strlen_test(struct sbiunit_test_case *test)
+> +{
+> +       SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
+> +       SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hell\0o"), 4);
+> +}
+> +
+> +static struct sbiunit_test_case string_test_cases[] = {
+> +       SBIUNIT_TEST_CASE(strlen_test),
+> +       SBIUNIT_END_CASE,
+> +};
+> +
+> +SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
+> +```
+> +
+> +Then, add the corresponding Makefile entries to `lib/sbi/objects.mk`:
+> +```lang-makefile
+> +...
+> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+> +```
+> +
+> +If you compiled OpenSBI with CONFIG_SBIUNIT enabled before, you may need to
+> +manually remove the build folder in order to regenerate the carray files:
+> +`rm -rf build/`.
+> +
+> +Recompile OpenSBI with the CONFIG_SBIUNIT option enabled and run it in QEMU.
+> +You will see something like this:
+> +```
+> +# make PLATFORM=generic run
+> +...
+> +# Running SBIUNIT tests #
+> +...
+> +## Running test suite: string_test_suite
+> +[PASSED] strlen_test
+> +1 PASSED / 0 FAILED / 1 TOTAL
+> +```
+> +
+> +Now let's try to change this test in the way that it will fail:
+> +
+> +```c
+> +- SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 5);
+> ++ SBIUNIT_EXPECT_EQ(test, sbi_strlen("Hello"), 100);
+> +```
+> +
+> +`make all` and `make run` it again:
+> +```
+> +...
+> +# Running SBIUNIT tests #
+> +...
+> +## Running test suite: string_test_suite
+> +[SBIUnit] [.../opensbi/lib/sbi/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
+> +[FAILED] strlen_test
+> +0 PASSED / 1 FAILED / 1 TOTAL
+> +```
+> +Covering the static functions / using the static definitions
+> +------------------------------------------------------------
+> +
+> +SBIUnit also allows you to test static functions. In order to do so, simply
+> +include your test source in the file you would like to test. Complementing the
+> +example above, just add this to the
+> +`lib/sbi/sbi_string.c` file:
+> +
+> +```c
+> +#ifdef CONFIG_SBIUNIT
+> +#include "sbi_string_test.c"
+> +#endif
+> +```
+> +
+> +In this case you should only add a new carray entry pointing to the test suite
+> +to `lib/sbi/objects.mk`:
+> +```lang-makefile
+> +...
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+> +```
+> +
+> +You don't have to compile the `sbi_string_test.o` separately, because the
+> +test code will be included into the `sbi_string` object file.
+> +
+> +See example in `lib/sbi/sbi_console_test.c`, where statically declared
+> +`console_dev` variable is used to mock the `sbi_console_device` structure.
+> +
+> +"Mocking" the structures
+> +------------------------
+> +See the example of structure "mocking" in the `lib/sbi/sbi_console_test.c`,
+> +where the sbi_console_device structure was mocked to be used in various
+> +console-related functions in order to test them.
+> +
+> +API Reference
+> +-------------
+> +All of the `SBIUNIT_EXPECT_*` macros will cause a test case to fail if the
+> +corresponding conditions are not met, however, the execution of a particular
+> +test case will not be stopped.
+> +
+> +All of the `SBIUNIT_ASSERT_*` macros will cause a test case to fail and stop
+> +immediately, triggering a panic.
 > --
-> 2.43.0
+> 2.34.1
 >
 
