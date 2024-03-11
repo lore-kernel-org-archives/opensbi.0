@@ -1,151 +1,261 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 11 Mar 2024 21:39:44 +0530
-Subject: [PATCH 9/9] lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
-In-Reply-To: <20240311160944.1233523-1-apatel@ventanamicro.com>
-References: <20240311160944.1233523-1-apatel@ventanamicro.com>
-Message-ID: <20240311160944.1233523-10-apatel@ventanamicro.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 12 Mar 2024 00:03:59 +0800
+Subject: [PATCH v2] firmware: remove copy-base relocation
+Message-ID: <20240311161114.201904-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_trap_error() should dump state of all in-flight traps upon
-failure in a nested trap so extend it accordingly.
+Remove copy-base relocations that are no longer needed.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_trap.c | 104 ++++++++++++++++++++++++++-------------------
- 1 file changed, 60 insertions(+), 44 deletions(-)
+v2 changes:
+- Split from "[PATCH v5 0/8] Improvements to fw_base.S"
+- rebase to the latest master branch
 
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index b0fa5fd..1c9cf1f 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -23,54 +23,70 @@
- #include <sbi/sbi_timer.h>
+ Makefile            |  8 +++-
+ README.md           |  5 ---
+ docs/firmware/fw.md |  6 ---
+ firmware/fw_base.S  | 98 ++-------------------------------------------
+ firmware/objects.mk | 11 -----
+ 5 files changed, 10 insertions(+), 118 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 680c19a..d8cffa6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -179,6 +179,10 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
+ # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+ CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
+ 
++ifneq ($(OPENSBI_LD_PIE),y)
++$(error Your linker does not support creating PIEs, opensbi requires this.)
++endif
++
+ # Build Info:
+ # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
+ # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
+@@ -356,7 +360,7 @@ CFLAGS		+=	-mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
+ CFLAGS		+=	$(RELAX_FLAG)
+ CFLAGS		+=	$(GENFLAGS)
+ CFLAGS		+=	$(platform-cflags-y)
+-CFLAGS		+=	-fno-pie -no-pie
++CFLAGS		+=	-fPIE -pie
+ CFLAGS		+=	$(firmware-cflags-y)
+ 
+ CPPFLAGS	+=	$(GENFLAGS)
+@@ -365,6 +369,7 @@ CPPFLAGS	+=	$(firmware-cppflags-y)
+ 
+ ASFLAGS		=	-g -Wall -nostdlib
+ ASFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
++ASFLAGS		+=	-fpic
+ # Optionally supported flags
+ ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+ ASFLAGS		+=	-mno-save-restore
+@@ -391,6 +396,7 @@ ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
+ ELFFLAGS	+=	-Wl,--exclude-libs,ALL
+ endif
+ ELFFLAGS	+=	-Wl,--build-id=none
++ELFFLAGS	+=	-Wl,--no-dynamic-linker -Wl,-pie
+ ELFFLAGS	+=	$(platform-ldflags-y)
+ ELFFLAGS	+=	$(firmware-ldflags-y)
+ 
+diff --git a/README.md b/README.md
+index 73de8ea..7a24801 100644
+--- a/README.md
++++ b/README.md
+@@ -274,11 +274,6 @@ make CC=riscv64-linux-gnu-gcc LLVM=1
+ These variables must be passed for all the make invocations described in this
+ document.
+ 
+-NOTE: Using Clang with a `riscv*-linux-gnu` GNU binutils linker has been seen
+-to produce broken binaries with missing relocations; it is therefore currently
+-recommended that this combination be avoided or *FW_PIC=n* be used to disable
+-building OpenSBI as a position-independent binary.
+-
+ Building with timestamp and compiler info
+ -----------------------------------------
+ 
+diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
+index 38351c8..2f4deb5 100644
+--- a/docs/firmware/fw.md
++++ b/docs/firmware/fw.md
+@@ -69,12 +69,6 @@ parameters:
+   argument by the prior booting stage.
+ * **FW_FDT_PADDING** - Optional zero bytes padding to the embedded flattened
+   device tree binary file specified by **FW_FDT_PATH** option.
+-* **FW_PIC** - "FW_PIC=y" generates position independent executable firmware
+-  images. OpenSBI can run at arbitrary address with appropriate alignment.
+-  Therefore, the original relocation mechanism ("FW_PIC=n") will be skipped.
+-  In other words, OpenSBI will directly run at the load address without any
+-  code movement. This option requires a toolchain with PIE support, and it
+-  is on by default.
+ 
+ Additionally, each firmware type as a set of type specific configuration
+ parameters. Detailed information for each firmware type can be found in the
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 126b067..6013db3 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -15,8 +15,7 @@
  #include <sbi/sbi_trap.h>
  
--static void __noreturn sbi_trap_error(const char *msg, int rc,
--				      ulong mcause, ulong mtval, ulong mtval2,
--				      ulong mtinst, struct sbi_trap_regs *regs)
-+static void sbi_trap_error_one(struct sbi_trap_context *tcntx,
-+			       const char *prefix, u32 hartid, u32 depth)
- {
--	u32 hartid = current_hartid();
-+	const struct sbi_trap_info *trap = tcntx->trap;
-+	struct sbi_trap_regs *regs = tcntx->regs;
+ #define BOOT_STATUS_LOTTERY_DONE	1
+-#define BOOT_STATUS_RELOCATE_DONE	2
+-#define BOOT_STATUS_BOOT_HART_DONE	3
++#define BOOT_STATUS_BOOT_HART_DONE	2
  
--	sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
--	sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
--		   __func__, hartid, mcause, mtval);
-+	sbi_printf("\n");
-+	sbi_printf("%s: hart%d: trap%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
-+		   prefix, hartid, depth, trap->cause, trap->tval);
- 	if (misa_extension('H')) {
--		sbi_printf("%s: hart%d: mtval2=0x%" PRILX
-+		sbi_printf("%s: hart%d: trap%d: mtval2=0x%" PRILX
- 			   " mtinst=0x%" PRILX "\n",
--			   __func__, hartid, mtval2, mtinst);
-+			   prefix, hartid, depth, trap->tval2, trap->tinst);
- 	}
--	sbi_printf("%s: hart%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
--		   __func__, hartid, regs->mepc, regs->mstatus);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "ra", regs->ra, "sp", regs->sp);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "gp", regs->gp, "tp", regs->tp);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "s0", regs->s0, "s1", regs->s1);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "a0", regs->a0, "a1", regs->a1);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "a2", regs->a2, "a3", regs->a3);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "a4", regs->a4, "a5", regs->a5);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "a6", regs->a6, "a7", regs->a7);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "s2", regs->s2, "s3", regs->s3);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "s4", regs->s4, "s5", regs->s5);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "s6", regs->s6, "s7", regs->s7);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "s8", regs->s8, "s9", regs->s9);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "s10", regs->s10, "s11", regs->s11);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "t0", regs->t0, "t1", regs->t1);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "t2", regs->t2, "t3", regs->t3);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
--		   hartid, "t4", regs->t4, "t5", regs->t5);
--	sbi_printf("%s: hart%d: %s=0x%" PRILX "\n", __func__, hartid, "t6",
--		   regs->t6);
-+	sbi_printf("%s: hart%d: trap%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
-+		   prefix, hartid, depth, regs->mepc, regs->mstatus);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "ra", regs->ra, "sp", regs->sp);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "gp", regs->gp, "tp", regs->tp);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "s0", regs->s0, "s1", regs->s1);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "a0", regs->a0, "a1", regs->a1);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "a2", regs->a2, "a3", regs->a3);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "a4", regs->a4, "a5", regs->a5);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "a6", regs->a6, "a7", regs->a7);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "s2", regs->s2, "s3", regs->s3);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "s4", regs->s4, "s5", regs->s5);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "s6", regs->s6, "s7", regs->s7);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "s8", regs->s8, "s9", regs->s9);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "s10", regs->s10, "s11", regs->s11);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "t0", regs->t0, "t1", regs->t1);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "t2", regs->t2, "t3", regs->t3);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "t4", regs->t4, "t5", regs->t5);
-+	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX "\n", prefix,
-+		   hartid, depth, "t6", regs->t6);
-+}
-+
-+static void __noreturn sbi_trap_error(const char *msg, int rc,
-+				      struct sbi_trap_context *tcntx)
-+{
-+	u32 depth = 0, hartid = current_hartid();
-+	struct sbi_trap_context *tc;
-+
-+	for (tc = tcntx; tc; tc = tc->prev_context)
-+		depth++;
-+
-+	sbi_printf("\n");
-+	sbi_printf("%s: hart%d: trap%d: %s (error %d)\n", __func__,
-+		   hartid, depth - 1, msg, rc);
-+	for (tc = tcntx; tc; tc = tc->prev_context)
-+		sbi_trap_error_one(tc, __func__, hartid, --depth);
+ .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
+ 	add	\__d0, \__s0, zero
+@@ -32,17 +31,6 @@
+ 	add	\__d4, \__s4, zero
+ .endm
  
- 	sbi_hart_hang();
- }
-@@ -340,7 +356,7 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+-/*
+- * If __start_reg <= __check_reg and __check_reg < __end_reg then
+- *   jump to __pass
+- */
+-.macro BRANGE __start_reg, __end_reg, __check_reg, __jump_lable
+-	blt	\__check_reg, \__start_reg, 999f
+-	bge	\__check_reg, \__end_reg, 999f
+-	j	\__jump_lable
+-999:
+-.endm
+-
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+ 	.globl _start
+@@ -56,15 +44,14 @@ _start:
+ 	li	a7, -1
+ 	beq	a6, a7, _try_lottery
+ 	/* Jump to relocation wait loop if we are not boot hart */
+-	bne	a0, a6, _wait_relocate_copy_done
++	bne	a0, a6, _wait_for_boot_hart
+ _try_lottery:
+ 	/* Jump to relocation wait loop if we don't get relocation lottery */
+ 	lla	a6, _boot_status
+ 	li	a7, BOOT_STATUS_LOTTERY_DONE
+ 	amoswap.w a6, a7, (a6)
+-	bnez	a6, _wait_relocate_copy_done
++	bnez	a6, _wait_for_boot_hart
  
- trap_done:
- 	if (rc)
--		sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
-+		sbi_trap_error(msg, rc, &tcntx);
- 	sbi_trap_set_context(scratch, tcntx.prev_context);
- 	return regs;
- }
+-#ifdef FW_PIC
+ 	/* relocate the global table content */
+ 	li	t0, FW_TEXT_START	/* link start */
+ 	lla	t1, _fw_start		/* load start */
+@@ -85,86 +72,7 @@ _try_lottery:
+ 3:
+ 	addi	t0, t0, (REGBYTES * 3)
+ 	blt	t0, t1, 2b
+-	j	_relocate_done
+-_wait_relocate_copy_done:
+-	j	_wait_for_boot_hart
+-#else
+-	/* Relocate if load address != link address */
+-_relocate:
+-	li	t0, FW_TEXT_START	/* link start */
+-	lla	t2, _fw_start		/* load start */
+-	lla	t3, _fw_reloc_end	/* load end */
+-	sub	t6, t2, t0		/* load offset */
+-	sub	t1, t3, t6		/* link end */
+-	beq	t0, t2, _relocate_done
+-	lla	t4, _relocate_done
+-	sub	t4, t4, t6
+-	blt	t2, t0, _relocate_copy_to_upper
+-_relocate_copy_to_lower:
+-	ble	t1, t2, _relocate_copy_to_lower_loop
+-	lla	t3, _boot_status
+-	BRANGE	t2, t1, t3, _start_hang
+-	lla	t3, _relocate
+-	lla	t5, _relocate_done
+-	BRANGE	t2, t1, t3, _start_hang
+-	BRANGE	t2, t1, t5, _start_hang
+-	BRANGE  t3, t5, t2, _start_hang
+-_relocate_copy_to_lower_loop:
+-	REG_L	t3, 0(t2)
+-	REG_S	t3, 0(t0)
+-	add	t0, t0, __SIZEOF_POINTER__
+-	add	t2, t2, __SIZEOF_POINTER__
+-	blt	t0, t1, _relocate_copy_to_lower_loop
+-	jr	t4
+-_relocate_copy_to_upper:
+-	ble	t3, t0, _relocate_copy_to_upper_loop
+-	lla	t2, _boot_status
+-	BRANGE	t0, t3, t2, _start_hang
+-	lla	t2, _relocate
+-	lla	t5, _relocate_done
+-	BRANGE	t0, t3, t2, _start_hang
+-	BRANGE	t0, t3, t5, _start_hang
+-	BRANGE	t2, t5, t0, _start_hang
+-_relocate_copy_to_upper_loop:
+-	add	t3, t3, -__SIZEOF_POINTER__
+-	add	t1, t1, -__SIZEOF_POINTER__
+-	REG_L	t2, 0(t3)
+-	REG_S	t2, 0(t1)
+-	blt	t0, t1, _relocate_copy_to_upper_loop
+-	jr	t4
+-_wait_relocate_copy_done:
+-	lla	t0, _fw_start
+-	li	t1, FW_TEXT_START
+-	beq	t0, t1, _wait_for_boot_hart
+-	lla	t2, _boot_status
+-	lla	t3, _wait_for_boot_hart
+-	sub	t3, t3, t0
+-	add	t3, t3, t1
+-1:
+-	/* waitting for relocate copy done (_boot_status == 1) */
+-	li	t4, BOOT_STATUS_RELOCATE_DONE
+-	REG_L	t5, 0(t2)
+-	/* Reduce the bus traffic so that boot hart may proceed faster */
+-	nop
+-	nop
+-	nop
+-	bgt     t4, t5, 1b
+-	jr	t3
+-#endif
+ _relocate_done:
+-
+-	/*
+-	 * Mark relocate copy done
+-	 * Use _boot_status copy relative to the load address
+-	 */
+-	lla	t0, _boot_status
+-#ifndef FW_PIC
+-	add	t0, t0, t6
+-#endif
+-	li	t1, BOOT_STATUS_RELOCATE_DONE
+-	REG_S	t1, 0(t0)
+-	fence	rw, rw
+-
+ 	/* At this point we are running from link address */
+ 
+ 	/* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index 3ae0a28..e6b364b 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -13,17 +13,6 @@ firmware-cflags-y +=
+ firmware-asflags-y +=
+ firmware-ldflags-y +=
+ 
+-ifndef FW_PIC
+-FW_PIC := $(OPENSBI_LD_PIE)
+-endif
+-
+-ifeq ($(FW_PIC),y)
+-firmware-genflags-y +=	-DFW_PIC
+-firmware-asflags-y  +=	-fpic
+-firmware-cflags-y   +=	-fPIE -pie
+-firmware-ldflags-y  +=	-Wl,--no-dynamic-linker -Wl,-pie
+-endif
+-
+ ifdef FW_TEXT_START
+ firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
+ endif
 -- 
-2.34.1
+2.43.0
 
 
