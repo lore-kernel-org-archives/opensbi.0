@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Mar 2024 09:48:31 +0530
-Subject: [PATCH v4 6/7] include: sbi: add emulate_load/store handler to
- platform ops
-In-Reply-To: <1709692540-77803-7-git-send-email-ganboing@gmail.com>
-References: <1709692540-77803-1-git-send-email-ganboing@gmail.com> <1709692540-77803-7-git-send-email-ganboing@gmail.com>
-Message-ID: <CAAhSdy1LO71BT+V=cScFy2aN6yvp8LcPJF3voz0PRdELLTPRqw@mail.gmail.com>
+Date: Mon, 11 Mar 2024 10:30:31 +0530
+Subject: [PATCH v4 7/7] lib: sbi: call platform load/store emulators
+In-Reply-To: <1709692540-77803-8-git-send-email-ganboing@gmail.com>
+References: <1709692540-77803-1-git-send-email-ganboing@gmail.com> <1709692540-77803-8-git-send-email-ganboing@gmail.com>
+Message-ID: <CAAhSdy33ogX7QxfvHpu4ucZ6X=baMMZdQ9nU0tgADx=7KdV1Fg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,9 +12,15 @@ Content-Transfer-Encoding: 7bit
 
 On Wed, Mar 6, 2024 at 8:06?AM Bo Gan <ganboing@gmail.com> wrote:
 >
-> This patch allows the platform to define load/store emulators. This
-> enables a platform to trap-and-emulate special devices or filter
-> access to existing physical devices.
+> sbi_load/store_access_handler now tries to call platform emulators
+> if defined. Otherwise, redirects the fault. If the platform code
+> returns failure, this means the H/S/U has accessed the emulated
+> devices in an unexpected manner, which is very likely caused by
+> buggy code in H/S/U. We redirect the fault, so lower privileged
+> level can get notified, and act accordingly. (E.g., oops in Linux)
+>
+> We let the handler truly fail if the trap was originated from M mode.
+> In this case, something must be very wrong and we should just fail.
 >
 > Signed-off-by: Bo Gan <ganboing@gmail.com>
 
@@ -27,35 +32,134 @@ Regards,
 Anup
 
 > ---
->  include/sbi/sbi_platform.h | 8 ++++++++
->  1 file changed, 8 insertions(+)
+>  include/sbi/sbi_platform.h | 45 +++++++++++++++++++++++++++++++++++++++++++++
+>  lib/sbi/sbi_trap_ldst.c    | 37 +++++++++++++++++++++++++++++++++++--
+>  2 files changed, 80 insertions(+), 2 deletions(-)
 >
 > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 2fb33e1..f962aa4 100644
+> index f962aa4..581935a 100644
 > --- a/include/sbi/sbi_platform.h
 > +++ b/include/sbi/sbi_platform.h
-> @@ -53,6 +53,7 @@ struct sbi_domain_memregion;
+> @@ -48,6 +48,7 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_version.h>
+> +#include <sbi/sbi_trap_ldst.h>
+>
+>  struct sbi_domain_memregion;
 >  struct sbi_ecall_return;
->  struct sbi_trap_regs;
->  struct sbi_hart_features;
-> +union sbi_ldst_data;
+> @@ -683,6 +684,50 @@ static inline int sbi_platform_vendor_ext_provider(
+>         return SBI_ENOTSUPP;
+>  }
 >
->  /** Possible feature flags of a platform */
->  enum sbi_platform_features {
-> @@ -139,6 +140,13 @@ struct sbi_platform_operations {
->         int (*vendor_ext_provider)(long funcid,
->                                    struct sbi_trap_regs *regs,
->                                    struct sbi_ecall_return *out);
+> +/**
+> + * Ask platform to emulate the trapped load
+> + *
+> + * @param plat pointer to struct sbi_platform
+> + * @param rlen length of the load: 1/2/4/8...
+> + * @param addr virtual address of the load. Platform needs to page-walk and
+> + *        find the physical address if necessary
+> + * @param out_val value loaded
+> + *
+> + * @return 0 on success and negative error code on failure
+> + */
+> +static inline int sbi_platform_emulate_load(const struct sbi_platform *plat,
+> +                                           int rlen, unsigned long addr,
+> +                                           union sbi_ldst_data *out_val)
+> +{
+> +       if (plat && sbi_platform_ops(plat)->emulate_load) {
+> +               return sbi_platform_ops(plat)->emulate_load(rlen, addr,
+> +                                                           out_val);
+> +       }
+> +       return SBI_ENOTSUPP;
+> +}
 > +
-> +       /** platform specific handler to fixup load fault */
-> +       int (*emulate_load)(int rlen, unsigned long addr,
-> +                           union sbi_ldst_data *out_val);
-> +       /** platform specific handler to fixup store fault */
-> +       int (*emulate_store)(int wlen, unsigned long addr,
-> +                            union sbi_ldst_data in_val);
->  };
+> +/**
+> + * Ask platform to emulate the trapped store
+> + *
+> + * @param plat pointer to struct sbi_platform
+> + * @param wlen length of the store: 1/2/4/8...
+> + * @param addr virtual address of the store. Platform needs to page-walk and
+> + *        find the physical address if necessary
+> + * @param in_val value to store
+> + *
+> + * @return 0 on success and negative error code on failure
+> + */
+> +static inline int sbi_platform_emulate_store(const struct sbi_platform *plat,
+> +                                            int wlen, unsigned long addr,
+> +                                            union sbi_ldst_data in_val)
+> +{
+> +       if (plat && sbi_platform_ops(plat)->emulate_store) {
+> +               return sbi_platform_ops(plat)->emulate_store(wlen, addr,
+> +                                                            in_val);
+> +       }
+> +       return SBI_ENOTSUPP;
+> +}
+> +
+>  #endif
 >
->  /** Platform default per-HART stack size for exception/interrupt handling */
+>  #endif
+> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+> index 7e4a007..0425ccb 100644
+> --- a/lib/sbi/sbi_trap_ldst.c
+> +++ b/lib/sbi/sbi_trap_ldst.c
+> @@ -15,6 +15,7 @@
+>  #include <sbi/sbi_pmu.h>
+>  #include <sbi/sbi_trap.h>
+>  #include <sbi/sbi_unpriv.h>
+> +#include <sbi/sbi_platform.h>
+>
+>  /**
+>   * Load emulator callback:
+> @@ -309,14 +310,46 @@ int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
+>                                       sbi_misaligned_st_emulator);
+>  }
+>
+> +static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
+> +                                 struct sbi_trap_regs *regs,
+> +                                 const struct sbi_trap_info *orig_trap)
+> +{
+> +       /* If fault came from M mode, just fail */
+> +       if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
+> +               return SBI_EINVAL;
+> +
+> +       /* If platform emulator failed, we redirect instead of fail */
+> +       if (sbi_platform_emulate_load(sbi_platform_thishart_ptr(), rlen,
+> +                                     orig_trap->tval, out_val))
+> +               return sbi_trap_redirect(regs, orig_trap);
+> +
+> +       return rlen;
+> +}
+> +
+>  int sbi_load_access_handler(struct sbi_trap_regs *regs,
+>                             const struct sbi_trap_info *orig_trap)
+>  {
+> -       return sbi_trap_redirect(regs, orig_trap);
+> +       return sbi_trap_emulate_load(regs, orig_trap, sbi_ld_access_emulator);
+> +}
+> +
+> +static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
+> +                                 struct sbi_trap_regs *regs,
+> +                                 const struct sbi_trap_info *orig_trap)
+> +{
+> +       /* If fault came from M mode, just fail */
+> +       if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
+> +               return SBI_EINVAL;
+> +
+> +       /* If platform emulator failed, we redirect instead of fail */
+> +       if (sbi_platform_emulate_store(sbi_platform_thishart_ptr(), wlen,
+> +                                      orig_trap->tval, in_val))
+> +               return sbi_trap_redirect(regs, orig_trap);
+> +
+> +       return wlen;
+>  }
+>
+>  int sbi_store_access_handler(struct sbi_trap_regs *regs,
+>                              const struct sbi_trap_info *orig_trap)
+>  {
+> -       return sbi_trap_redirect(regs, orig_trap);
+> +       return sbi_trap_emulate_store(regs, orig_trap, sbi_st_access_emulator);
+>  }
 > --
 > 2.7.4
 >
