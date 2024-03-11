@@ -1,81 +1,143 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 11 Mar 2024 21:39:37 +0530
-Subject: [PATCH 2/9] include: sbi: Add trap_context pointer in struct sbi_scratch
+Date: Mon, 11 Mar 2024 21:39:38 +0530
+Subject: [PATCH 3/9] lib: sbi: Introduce trap context
 In-Reply-To: <20240311160944.1233523-1-apatel@ventanamicro.com>
 References: <20240311160944.1233523-1-apatel@ventanamicro.com>
-Message-ID: <20240311160944.1233523-3-apatel@ventanamicro.com>
+Message-ID: <20240311160944.1233523-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-To track nested traps, the struct sbi_scratch needs a pointer the
-current trap context so add trap_context pointer in struct sbi_context.
+Club pointers to struct sbi_trap_regs and struct sbi_trap_info a new
+struct sbi_trap_context (aka trap context).
+
+To track nested traps, the struct sbi_scratch points to the current
+trap context and the trap context has pointer to pervious context of
+previous trap.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- firmware/fw_base.S        |  3 ++-
- include/sbi/sbi_scratch.h | 15 ++++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ include/sbi/sbi_trap.h | 22 ++++++++++++++++++++++
+ lib/sbi/sbi_trap.c     | 35 ++++++++++++++++++++++-------------
+ 2 files changed, 44 insertions(+), 13 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index c404d8b..539fd1d 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -298,7 +298,8 @@ _scratch_init:
- 	/* Store hartid-to-scratch function address in scratch space */
- 	lla	a4, _hartid_to_scratch
- 	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
--	/* Clear tmp0 in scratch space */
-+	/* Clear trap_context and tmp0 in scratch space */
-+	REG_S	zero, SBI_SCRATCH_TRAP_CONTEXT_OFFSET(tp)
- 	REG_S	zero, SBI_SCRATCH_TMP0_OFFSET(tp)
- 	/* Store firmware options in scratch space */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index 55b937f..12e6a98 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -36,12 +36,14 @@
- #define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(9 * __SIZEOF_POINTER__)
- /** Offset of hartid_to_scratch member in sbi_scratch */
- #define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(10 * __SIZEOF_POINTER__)
-+/** Offset of trap_context member in sbi_scratch */
-+#define SBI_SCRATCH_TRAP_CONTEXT_OFFSET		(11 * __SIZEOF_POINTER__)
- /** Offset of tmp0 member in sbi_scratch */
--#define SBI_SCRATCH_TMP0_OFFSET			(11 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
- /** Offset of options member in sbi_scratch */
--#define SBI_SCRATCH_OPTIONS_OFFSET		(12 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
- /** Offset of extra space in sbi_scratch */
--#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(13 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(14 * __SIZEOF_POINTER__)
- /** Maximum size of sbi_scratch (4KB) */
- #define SBI_SCRATCH_SIZE			(0x1000)
+diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+index 15ccd0b..513a82e 100644
+--- a/include/sbi/sbi_trap.h
++++ b/include/sbi/sbi_trap.h
+@@ -117,6 +117,7 @@
+ #ifndef __ASSEMBLER__
  
-@@ -75,6 +77,8 @@ struct sbi_scratch {
- 	unsigned long platform_addr;
- 	/** Address of HART ID to sbi_scratch conversion function */
- 	unsigned long hartid_to_scratch;
-+	/** Address of current trap context */
-+	unsigned long trap_context;
- 	/** Temporary storage */
- 	unsigned long tmp0;
- 	/** Options for OpenSBI library */
-@@ -125,6 +129,11 @@ _Static_assert(
- 		== SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET,
- 	"struct sbi_scratch definition has changed, please redefine "
- 	"SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, trap_context)
-+		== SBI_SCRATCH_TRAP_CONTEXT_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_TRAP_CONTEXT_OFFSET");
- _Static_assert(
- 	offsetof(struct sbi_scratch, tmp0)
- 		== SBI_SCRATCH_TMP0_OFFSET,
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_scratch.h>
+ 
+ /** Representation of register state at time of trap/interrupt */
+ struct sbi_trap_regs {
+@@ -208,6 +209,16 @@ struct sbi_trap_info {
+ 	unsigned long gva;
+ };
+ 
++/** Representation of trap context saved on stack */
++struct sbi_trap_context {
++	/** Pointer to previous trap context */
++	struct sbi_trap_context *prev_context;
++	/** Pointer to register state */
++	struct sbi_trap_regs *regs;
++	/** Pointer to trap details */
++	const struct sbi_trap_info *trap;
++};
++
+ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+ {
+ 	/*
+@@ -227,6 +238,17 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+ 		      const struct sbi_trap_info *trap);
+ 
++static inline struct sbi_trap_context *sbi_trap_get_context(struct sbi_scratch *scratch)
++{
++	return (scratch) ? (void *)scratch->trap_context : NULL;
++}
++
++static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
++					struct sbi_trap_context *tcntx)
++{
++	scratch->trap_context = (unsigned long)tcntx;
++}
++
+ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
+ 
+ #endif
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index e514066..dba267c 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -266,6 +266,8 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+ 	const char *msg = "trap handler failed";
+ 	ulong mcause = csr_read(CSR_MCAUSE);
+ 	ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	struct sbi_trap_context tcntx;
+ 	struct sbi_trap_info trap;
+ 
+ 	if (misa_extension('H')) {
+@@ -273,25 +275,31 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+ 		mtinst = csr_read(CSR_MTINST);
+ 	}
+ 
++	/* Original trap_info */
++	trap.epc     = regs->mepc;
++	trap.cause   = mcause;
++	trap.tval    = mtval;
++	trap.tval2   = mtval2;
++	trap.tinst   = mtinst;
++	trap.gva     = sbi_regs_gva(regs);
++
++	/* Setup trap context */
++	tcntx.prev_context = sbi_trap_get_context(scratch);
++	tcntx.regs         = regs;
++	tcntx.trap         = &trap;
++
++	/* Update trap context pointer */
++	sbi_trap_set_context(scratch, &tcntx);
++
+ 	if (mcause & (1UL << (__riscv_xlen - 1))) {
+ 		if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+ 					   SBI_HART_EXT_SMAIA))
+ 			rc = sbi_trap_aia_irq(regs, mcause);
+ 		else
+ 			rc = sbi_trap_nonaia_irq(regs, mcause);
+-		if (rc) {
+-			msg = "unhandled local interrupt";
+-			goto trap_error;
+-		}
+-		return regs;
++		msg = "unhandled local interrupt";
++		goto trap_done;
+ 	}
+-	/* Original trap_info */
+-	trap.epc   = regs->mepc;
+-	trap.cause = mcause;
+-	trap.tval  = mtval;
+-	trap.tval2 = mtval2;
+-	trap.tinst = mtinst;
+-	trap.gva   = sbi_regs_gva(regs);
+ 
+ 	switch (mcause) {
+ 	case CAUSE_ILLEGAL_INSTRUCTION:
+@@ -330,8 +338,9 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+ 		break;
+ 	}
+ 
+-trap_error:
++trap_done:
+ 	if (rc)
+ 		sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
++	sbi_trap_set_context(scratch, tcntx.prev_context);
+ 	return regs;
+ }
 -- 
 2.34.1
 
