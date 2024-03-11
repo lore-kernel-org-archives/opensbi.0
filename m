@@ -1,280 +1,154 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Mon, 11 Mar 2024 17:14:38 +0000
-Subject: [PATCH v2] firmware: remove copy-base relocation
-In-Reply-To: <20240311161114.201904-1-wxjstz@126.com>
-References: <20240311161114.201904-1-wxjstz@126.com>
-Message-ID: <FFC93AA0-2AD1-427C-96DD-A0BCDA504274@jrtc27.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon, 11 Mar 2024 12:32:19 -0500
+Subject: [PATCH 3/9] lib: sbi: Introduce trap context
+In-Reply-To: <20240311160944.1233523-4-apatel@ventanamicro.com>
+References: <20240311160944.1233523-1-apatel@ventanamicro.com>
+ <20240311160944.1233523-4-apatel@ventanamicro.com>
+Message-ID: <66b421cf-a5e8-4a46-b4d0-f8f702a28697@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 11 Mar 2024, at 16:03, Xiang W <wxjstz@126.com> wrote:
+Hi Anup,
+
+On 2024-03-11 11:09 AM, Anup Patel wrote:
+> Club pointers to struct sbi_trap_regs and struct sbi_trap_info a new
+> struct sbi_trap_context (aka trap context).
 > 
-> Remove copy-base relocations that are no longer needed.
+> To track nested traps, the struct sbi_scratch points to the current
+> trap context and the trap context has pointer to pervious context of
+> previous trap.
 > 
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
-> v2 changes:
-> - Split from "[PATCH v5 0/8] Improvements to fw_base.S"
-> - rebase to the latest master branch
+>  include/sbi/sbi_trap.h | 22 ++++++++++++++++++++++
+>  lib/sbi/sbi_trap.c     | 35 ++++++++++++++++++++++-------------
+>  2 files changed, 44 insertions(+), 13 deletions(-)
 > 
-> Makefile            |  8 +++-
-> README.md           |  5 ---
-> docs/firmware/fw.md |  6 ---
-> firmware/fw_base.S  | 98 ++-------------------------------------------
-> firmware/objects.mk | 11 -----
-> 5 files changed, 10 insertions(+), 118 deletions(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index 680c19a..d8cffa6 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -179,6 +179,10 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
-> # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
-> CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
-> 
-> +ifneq ($(OPENSBI_LD_PIE),y)
-> +$(error Your linker does not support creating PIEs, opensbi requires this.)
-> +endif
+> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+> index 15ccd0b..513a82e 100644
+> --- a/include/sbi/sbi_trap.h
+> +++ b/include/sbi/sbi_trap.h
+> @@ -117,6 +117,7 @@
+>  #ifndef __ASSEMBLER__
+>  
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/sbi_scratch.h>
+>  
+>  /** Representation of register state at time of trap/interrupt */
+>  struct sbi_trap_regs {
+> @@ -208,6 +209,16 @@ struct sbi_trap_info {
+>  	unsigned long gva;
+>  };
+>  
+> +/** Representation of trap context saved on stack */
+> +struct sbi_trap_context {
+> +	/** Pointer to previous trap context */
+> +	struct sbi_trap_context *prev_context;
+> +	/** Pointer to register state */
+> +	struct sbi_trap_regs *regs;
+> +	/** Pointer to trap details */
+> +	const struct sbi_trap_info *trap;
+
+It would be more efficient to embed these two structures inside the context
+instead of pointing to them. The assembly code wouldn't have to fill out
+sbi_trap_info or prev_context even if it allocates the whole sbi_trap_context.
+
+Regards,
+Samuel
+
+> +};
 > +
-> # Build Info:
-> # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
-> # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
-> @@ -356,7 +360,7 @@ CFLAGS += -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
-> CFLAGS += $(RELAX_FLAG)
-> CFLAGS += $(GENFLAGS)
-> CFLAGS += $(platform-cflags-y)
-> -CFLAGS += -fno-pie -no-pie
-> +CFLAGS += -fPIE -pie
-> CFLAGS += $(firmware-cflags-y)
-> 
-> CPPFLAGS += $(GENFLAGS)
-> @@ -365,6 +369,7 @@ CPPFLAGS += $(firmware-cppflags-y)
-> 
-> ASFLAGS = -g -Wall -nostdlib
-> ASFLAGS += -fno-omit-frame-pointer -fno-optimize-sibling-calls
-> +ASFLAGS += -fpic
-
-This isn?t your code, as you?re just moving it around, but this should
-be -fPIE too. Otherwise la will unnecessarily be lga rather than lla.
-
-> # Optionally supported flags
-> ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> ASFLAGS += -mno-save-restore
-> @@ -391,6 +396,7 @@ ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
-> ELFFLAGS += -Wl,--exclude-libs,ALL
-> endif
-> ELFFLAGS += -Wl,--build-id=none
-> +ELFFLAGS += -Wl,--no-dynamic-linker -Wl,-pie
-> ELFFLAGS += $(platform-ldflags-y)
-> ELFFLAGS += $(firmware-ldflags-y)
-> 
-> diff --git a/README.md b/README.md
-> index 73de8ea..7a24801 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -274,11 +274,6 @@ make CC=riscv64-linux-gnu-gcc LLVM=1
-> These variables must be passed for all the make invocations described in this
-> document.
-> 
-> -NOTE: Using Clang with a `riscv*-linux-gnu` GNU binutils linker has been seen
-> -to produce broken binaries with missing relocations; it is therefore currently
-> -recommended that this combination be avoided or *FW_PIC=n* be used to disable
-> -building OpenSBI as a position-independent binary.
-> -
-
-The first part of this is still true.
-
-Jess
-
-> Building with timestamp and compiler info
-> -----------------------------------------
-> 
-> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
-> index 38351c8..2f4deb5 100644
-> --- a/docs/firmware/fw.md
-> +++ b/docs/firmware/fw.md
-> @@ -69,12 +69,6 @@ parameters:
->   argument by the prior booting stage.
-> * **FW_FDT_PADDING** - Optional zero bytes padding to the embedded flattened
->   device tree binary file specified by **FW_FDT_PATH** option.
-> -* **FW_PIC** - "FW_PIC=y" generates position independent executable firmware
-> -  images. OpenSBI can run at arbitrary address with appropriate alignment.
-> -  Therefore, the original relocation mechanism ("FW_PIC=n") will be skipped.
-> -  In other words, OpenSBI will directly run at the load address without any
-> -  code movement. This option requires a toolchain with PIE support, and it
-> -  is on by default.
-> 
-> Additionally, each firmware type as a set of type specific configuration
-> parameters. Detailed information for each firmware type can be found in the
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 126b067..6013db3 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -15,8 +15,7 @@
-> #include <sbi/sbi_trap.h>
-> 
-> #define BOOT_STATUS_LOTTERY_DONE 1
-> -#define BOOT_STATUS_RELOCATE_DONE 2
-> -#define BOOT_STATUS_BOOT_HART_DONE 3
-> +#define BOOT_STATUS_BOOT_HART_DONE 2
-> 
-> .macro MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
-> add \__d0, \__s0, zero
-> @@ -32,17 +31,6 @@
-> add \__d4, \__s4, zero
-> .endm
-> 
-> -/*
-> - * If __start_reg <= __check_reg and __check_reg < __end_reg then
-> - *   jump to __pass
-> - */
-> -.macro BRANGE __start_reg, __end_reg, __check_reg, __jump_lable
-> - blt \__check_reg, \__start_reg, 999f
-> - bge \__check_reg, \__end_reg, 999f
-> - j \__jump_lable
-> -999:
-> -.endm
-> -
-> .section .entry, "ax", %progbits
-> .align 3
-> .globl _start
-> @@ -56,15 +44,14 @@ _start:
-> li a7, -1
-> beq a6, a7, _try_lottery
-> /* Jump to relocation wait loop if we are not boot hart */
-> - bne a0, a6, _wait_relocate_copy_done
-> + bne a0, a6, _wait_for_boot_hart
-> _try_lottery:
-> /* Jump to relocation wait loop if we don't get relocation lottery */
-> lla a6, _boot_status
-> li a7, BOOT_STATUS_LOTTERY_DONE
-> amoswap.w a6, a7, (a6)
-> - bnez a6, _wait_relocate_copy_done
-> + bnez a6, _wait_for_boot_hart
-> 
-> -#ifdef FW_PIC
-> /* relocate the global table content */
-> li t0, FW_TEXT_START /* link start */
-> lla t1, _fw_start /* load start */
-> @@ -85,86 +72,7 @@ _try_lottery:
-> 3:
-> addi t0, t0, (REGBYTES * 3)
-> blt t0, t1, 2b
-> - j _relocate_done
-> -_wait_relocate_copy_done:
-> - j _wait_for_boot_hart
-> -#else
-> - /* Relocate if load address != link address */
-> -_relocate:
-> - li t0, FW_TEXT_START /* link start */
-> - lla t2, _fw_start /* load start */
-> - lla t3, _fw_reloc_end /* load end */
-> - sub t6, t2, t0 /* load offset */
-> - sub t1, t3, t6 /* link end */
-> - beq t0, t2, _relocate_done
-> - lla t4, _relocate_done
-> - sub t4, t4, t6
-> - blt t2, t0, _relocate_copy_to_upper
-> -_relocate_copy_to_lower:
-> - ble t1, t2, _relocate_copy_to_lower_loop
-> - lla t3, _boot_status
-> - BRANGE t2, t1, t3, _start_hang
-> - lla t3, _relocate
-> - lla t5, _relocate_done
-> - BRANGE t2, t1, t3, _start_hang
-> - BRANGE t2, t1, t5, _start_hang
-> - BRANGE  t3, t5, t2, _start_hang
-> -_relocate_copy_to_lower_loop:
-> - REG_L t3, 0(t2)
-> - REG_S t3, 0(t0)
-> - add t0, t0, __SIZEOF_POINTER__
-> - add t2, t2, __SIZEOF_POINTER__
-> - blt t0, t1, _relocate_copy_to_lower_loop
-> - jr t4
-> -_relocate_copy_to_upper:
-> - ble t3, t0, _relocate_copy_to_upper_loop
-> - lla t2, _boot_status
-> - BRANGE t0, t3, t2, _start_hang
-> - lla t2, _relocate
-> - lla t5, _relocate_done
-> - BRANGE t0, t3, t2, _start_hang
-> - BRANGE t0, t3, t5, _start_hang
-> - BRANGE t2, t5, t0, _start_hang
-> -_relocate_copy_to_upper_loop:
-> - add t3, t3, -__SIZEOF_POINTER__
-> - add t1, t1, -__SIZEOF_POINTER__
-> - REG_L t2, 0(t3)
-> - REG_S t2, 0(t1)
-> - blt t0, t1, _relocate_copy_to_upper_loop
-> - jr t4
-> -_wait_relocate_copy_done:
-> - lla t0, _fw_start
-> - li t1, FW_TEXT_START
-> - beq t0, t1, _wait_for_boot_hart
-> - lla t2, _boot_status
-> - lla t3, _wait_for_boot_hart
-> - sub t3, t3, t0
-> - add t3, t3, t1
-> -1:
-> - /* waitting for relocate copy done (_boot_status == 1) */
-> - li t4, BOOT_STATUS_RELOCATE_DONE
-> - REG_L t5, 0(t2)
-> - /* Reduce the bus traffic so that boot hart may proceed faster */
-> - nop
-> - nop
-> - nop
-> - bgt     t4, t5, 1b
-> - jr t3
-> -#endif
-> _relocate_done:
-> -
-> - /*
-> - * Mark relocate copy done
-> - * Use _boot_status copy relative to the load address
-> - */
-> - lla t0, _boot_status
-> -#ifndef FW_PIC
-> - add t0, t0, t6
-> -#endif
-> - li t1, BOOT_STATUS_RELOCATE_DONE
-> - REG_S t1, 0(t0)
-> - fence rw, rw
-> -
-> /* At this point we are running from link address */
-> 
-> /* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
-> diff --git a/firmware/objects.mk b/firmware/objects.mk
-> index 3ae0a28..e6b364b 100644
-> --- a/firmware/objects.mk
-> +++ b/firmware/objects.mk
-> @@ -13,17 +13,6 @@ firmware-cflags-y +=
-> firmware-asflags-y +=
-> firmware-ldflags-y +=
-> 
-> -ifndef FW_PIC
-> -FW_PIC := $(OPENSBI_LD_PIE)
-> -endif
-> -
-> -ifeq ($(FW_PIC),y)
-> -firmware-genflags-y += -DFW_PIC
-> -firmware-asflags-y  += -fpic
-> -firmware-cflags-y   += -fPIE -pie
-> -firmware-ldflags-y  += -Wl,--no-dynamic-linker -Wl,-pie
-> -endif
-> -
-> ifdef FW_TEXT_START
-> firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
-> endif
-> -- 
-> 2.43.0
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+>  static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+>  {
+>  	/*
+> @@ -227,6 +238,17 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+>  int sbi_trap_redirect(struct sbi_trap_regs *regs,
+>  		      const struct sbi_trap_info *trap);
+>  
+> +static inline struct sbi_trap_context *sbi_trap_get_context(struct sbi_scratch *scratch)
+> +{
+> +	return (scratch) ? (void *)scratch->trap_context : NULL;
+> +}
+> +
+> +static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
+> +					struct sbi_trap_context *tcntx)
+> +{
+> +	scratch->trap_context = (unsigned long)tcntx;
+> +}
+> +
+>  struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
+>  
+>  #endif
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index e514066..dba267c 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -266,6 +266,8 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>  	const char *msg = "trap handler failed";
+>  	ulong mcause = csr_read(CSR_MCAUSE);
+>  	ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
+> +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> +	struct sbi_trap_context tcntx;
+>  	struct sbi_trap_info trap;
+>  
+>  	if (misa_extension('H')) {
+> @@ -273,25 +275,31 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>  		mtinst = csr_read(CSR_MTINST);
+>  	}
+>  
+> +	/* Original trap_info */
+> +	trap.epc     = regs->mepc;
+> +	trap.cause   = mcause;
+> +	trap.tval    = mtval;
+> +	trap.tval2   = mtval2;
+> +	trap.tinst   = mtinst;
+> +	trap.gva     = sbi_regs_gva(regs);
+> +
+> +	/* Setup trap context */
+> +	tcntx.prev_context = sbi_trap_get_context(scratch);
+> +	tcntx.regs         = regs;
+> +	tcntx.trap         = &trap;
+> +
+> +	/* Update trap context pointer */
+> +	sbi_trap_set_context(scratch, &tcntx);
+> +
+>  	if (mcause & (1UL << (__riscv_xlen - 1))) {
+>  		if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+>  					   SBI_HART_EXT_SMAIA))
+>  			rc = sbi_trap_aia_irq(regs, mcause);
+>  		else
+>  			rc = sbi_trap_nonaia_irq(regs, mcause);
+> -		if (rc) {
+> -			msg = "unhandled local interrupt";
+> -			goto trap_error;
+> -		}
+> -		return regs;
+> +		msg = "unhandled local interrupt";
+> +		goto trap_done;
+>  	}
+> -	/* Original trap_info */
+> -	trap.epc   = regs->mepc;
+> -	trap.cause = mcause;
+> -	trap.tval  = mtval;
+> -	trap.tval2 = mtval2;
+> -	trap.tinst = mtinst;
+> -	trap.gva   = sbi_regs_gva(regs);
+>  
+>  	switch (mcause) {
+>  	case CAUSE_ILLEGAL_INSTRUCTION:
+> @@ -330,8 +338,9 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>  		break;
+>  	}
+>  
+> -trap_error:
+> +trap_done:
+>  	if (rc)
+>  		sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
+> +	sbi_trap_set_context(scratch, tcntx.prev_context);
+>  	return regs;
+>  }
 
 
