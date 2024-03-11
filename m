@@ -1,65 +1,47 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Mar 2024 10:59:09 +0530
-Subject: [PATCH v4 0/7] Allow platform to handle load/store faults
-In-Reply-To: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
-References: <1709692540-77803-1-git-send-email-ganboing@gmail.com>
-Message-ID: <CAAhSdy2t2A_sWW1EWsL39SP+BcW4SfrUHce8OOd7iEeXe9f=yg@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Mon, 11 Mar 2024 21:39:35 +0530
+Subject: [PATCH 0/9] Improve trap handling for nested traps
+Message-ID: <20240311160944.1233523-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 6, 2024 at 8:06?AM Bo Gan <ganboing@gmail.com> wrote:
->
-> Sometimes a platform wants to trap-n-emulate special devices or filter
-> access to physical devices. This patch makes sbi_trap_handler to call
-> platform_ops.emulate_load/store and ask platform to fixup the fault.
->
-> v4 changes:
-> -  Addressed comments from Anup -- sbi_trap related details should
->    not be visable to platform code.
-> -  Minor fixes -- splitting patches and renames suggested by Anup.
->
-> v3 changes:
-> -  Addressed comments from Anup by breaking down the patchset and
->    new sbi_platform_emulate_load/store helper functions.
-> -  Reworked the return value of sbi_trap_ld/st_emulator to support
->    (>0) successful emulation (==0) trap_redirect (<0) real failure.
->
-> v2 changes:
-> -  Added const qualifier to *orig_trap on load/store fault handlers.
->    That addressed Xiang W's comment.
-> -  Applied clang-format to changed lines.
->
-> Bo Gan (7):
->   lib: sbi: rename sbi_misaligned_ldst.c to sbi_trap_ldst.c
->   include: sbi: rename sbi_misaligned_ldst.h to sbi_trap_ldst.h
->   lib: sbi: change prototype of sbi_trap_redirect
->   lib: sbi: change prototype of sbi_misaligned_load/store_handler
->   lib: sbi: abstract out insn decoding to unify mem fault handlers
->   include: sbi: add emulate_load/store handler to platform ops
->   lib: sbi: call platform load/store emulators
+Nested traps will be a common when dealing with RAS error traps so
+this series improves trap handling for nested traps by introducing
+a linked-list based trap context chain.
 
-Applied this series to the riscv/opensbi repo.
+These patches can also be found the trap_handling_imp_v1 branch at
+https://github.com/avpatel/opensbi.git
 
-Thanks,
-Anup
+Anup Patel (9):
+  lib: sbi: Remove sbi_trap_exit() and related code
+  include: sbi: Add trap_context pointer in struct sbi_scratch
+  lib: sbi: Introduce trap context
+  lib: sbi: Simplify parameters of misaligned and access fault handlers
+  lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
+  lib: sbi: Remove regs paramter of sbi_irqchip_process()
+  lib: sbi: Remove regs parameter from trap irq handling functions
+  lib: sbi: Pass trap context pointer to sbi_ecall_handler()
+  lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
 
->
->  include/sbi/sbi_misaligned_ldst.h                  |  23 ---
->  include/sbi/sbi_platform.h                         |  53 +++++
->  include/sbi/sbi_trap.h                             |   2 +-
->  include/sbi/sbi_trap_ldst.h                        |  35 ++++
->  lib/sbi/objects.mk                                 |   2 +-
->  lib/sbi/sbi_trap.c                                 |  38 ++--
->  lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} | 213 +++++++++++++++------
->  7 files changed, 265 insertions(+), 101 deletions(-)
->  delete mode 100644 include/sbi/sbi_misaligned_ldst.h
->  create mode 100644 include/sbi/sbi_trap_ldst.h
->  rename lib/sbi/{sbi_misaligned_ldst.c => sbi_trap_ldst.c} (54%)
->
-> --
-> 2.7.4
->
+ firmware/fw_base.S             |  14 +--
+ include/sbi/sbi_ecall.h        |   4 +-
+ include/sbi/sbi_illegal_insn.h |   4 +-
+ include/sbi/sbi_irqchip.h      |   5 +-
+ include/sbi/sbi_scratch.h      |  14 +--
+ include/sbi/sbi_trap.h         |  24 ++++-
+ include/sbi/sbi_trap_ldst.h    |  12 +--
+ lib/sbi/sbi_ecall.c            |   3 +-
+ lib/sbi/sbi_illegal_insn.c     |  14 +--
+ lib/sbi/sbi_irqchip.c          |  10 +-
+ lib/sbi/sbi_trap.c             | 186 +++++++++++++++++----------------
+ lib/sbi/sbi_trap_ldst.c        |  67 ++++++------
+ lib/utils/irqchip/imsic.c      |   2 +-
+ 13 files changed, 185 insertions(+), 174 deletions(-)
+
+-- 
+2.34.1
+
 
