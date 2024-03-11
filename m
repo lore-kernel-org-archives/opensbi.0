@@ -1,63 +1,224 @@
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Sun, 10 Mar 2024 20:21:17 +0000
-Subject: [PATCH v4 1/4] docs: Add documentation about tests and SBIUnit
-In-Reply-To: <CAAhSdy2OG74-Vhj8vrm+fGwUjEVKBtYPHCGh43_uaSF4KYDwBA@mail.gmail.com>
-References: <20240304214551.365057-1-ivan.orlov0322@gmail.com>
- <20240304214551.365057-2-ivan.orlov0322@gmail.com>
- <CAAhSdy2OG74-Vhj8vrm+fGwUjEVKBtYPHCGh43_uaSF4KYDwBA@mail.gmail.com>
-Message-ID: <d68980bb-3dc9-45bf-9539-fb6ad7f4badd@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 11 Mar 2024 09:35:17 +0530
+Subject: [PATCH v4 4/7] lib: sbi: change prototype of sbi_misaligned_load/store_handler
+In-Reply-To: <1709692540-77803-5-git-send-email-ganboing@gmail.com>
+References: <1709692540-77803-1-git-send-email-ganboing@gmail.com> <1709692540-77803-5-git-send-email-ganboing@gmail.com>
+Message-ID: <CAAhSdy0+B=eNBB4KP7GrOfLAnS2+0nA=ggnRN+efoVwSWfy8gQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 3/10/24 04:48, Anup Patel wrote:
-> On Tue, Mar 5, 2024 at 3:15?AM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
->>
->> This patch contains the documentation for SBIUnit. It describes:
->>
->> - What is SBIUnit
->> - Simple test writing scenario
->> - How we can cover static functions
->> - How we can "mock" structures in order to test the functions which
->> operate on them
->> - SBIUnit API Reference
->>
->> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
->> ---
->> V1 -> V2:
->> - Use more appropriate language
->> - Update the documentation in accordance with SBIUnit API and
->> structure changes
->> - Remove the redundant documentation for every SBIUNIT_* macro.
->> - Make the documentation follow the 80-characters rule.
->> V2 -> V3:
->> - Fix a few typos
->> - Provide the expected console output as it is, without following 80-chars
->> rule
->> - Update the example test source: use SBIUNIT_END_CASE macro instead of
->> "{}"
->> - Add the paragraph about the manual removal of the 'build/' directory
->> in order to regenerate carray-related files. Currently, that's the only
->> reliable way to regenerate them if carray Makefile variable changes, and
->> it is going to be fixed in the future.
->> V3 -> V4:
->> - Fix 'the' articles in the text
->>
->>   docs/writing_tests.md | 133 ++++++++++++++++++++++++++++++++++++++++++
-> 
-> Since this is a new MD file under docs, we should also add it to the
-> list of INPUT files in docs/doxygen.cfg
-> 
-> I have taken care of this at the time of merging this patch.
-> 
-> 
+On Wed, Mar 6, 2024 at 8:06?AM Bo Gan <ganboing@gmail.com> wrote:
+>
+> This simplifies both handlers such that when the handler needs to
+> redirect the original trap, it's readily available.
+>
+> Signed-off-by: Bo Gan <ganboing@gmail.com>
 
-Ah, sorry, I missed that. Thank you for adding it into the right place.
+LGTM.
 
--- 
-Kind regards,
-Ivan Orlov
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Regards,
+Anup
+
+> ---
+>  include/sbi/sbi_trap_ldst.h |  9 ++++----
+>  lib/sbi/sbi_trap.c          | 21 ++++++++++---------
+>  lib/sbi/sbi_trap_ldst.c     | 50 +++++++++++++++++----------------------------
+>  3 files changed, 35 insertions(+), 45 deletions(-)
+>
+> diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
+> index 9bbd237..5f0ed92 100644
+> --- a/include/sbi/sbi_trap_ldst.h
+> +++ b/include/sbi/sbi_trap_ldst.h
+> @@ -11,13 +11,14 @@
+>  #define __SBI_TRAP_LDST_H__
+>
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/sbi_trap.h>
+>
+>  struct sbi_trap_regs;
+>
+> -int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+> -                               struct sbi_trap_regs *regs);
+> +int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
+> +                               const struct sbi_trap_info *orig_trap);
+>
+> -int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+> -                                struct sbi_trap_regs *regs);
+> +int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
+> +                                const struct sbi_trap_info *orig_trap);
+>
+>  #endif
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index 1024981..e379984 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -285,6 +285,13 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>                 }
+>                 return regs;
+>         }
+> +       /* Original trap_info */
+> +       trap.epc   = regs->mepc;
+> +       trap.cause = mcause;
+> +       trap.tval  = mtval;
+> +       trap.tval2 = mtval2;
+> +       trap.tinst = mtinst;
+> +       trap.gva   = sbi_regs_gva(regs);
+>
+>         switch (mcause) {
+>         case CAUSE_ILLEGAL_INSTRUCTION:
+> @@ -292,11 +299,11 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>                 msg = "illegal instruction handler failed";
+>                 break;
+>         case CAUSE_MISALIGNED_LOAD:
+> -               rc = sbi_misaligned_load_handler(mtval, mtval2, mtinst, regs);
+> +               rc  = sbi_misaligned_load_handler(regs, &trap);
+>                 msg = "misaligned load handler failed";
+>                 break;
+>         case CAUSE_MISALIGNED_STORE:
+> -               rc  = sbi_misaligned_store_handler(mtval, mtval2, mtinst, regs);
+> +               rc  = sbi_misaligned_store_handler(regs, &trap);
+>                 msg = "misaligned store handler failed";
+>                 break;
+>         case CAUSE_SUPERVISOR_ECALL:
+> @@ -311,14 +318,8 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+>                 /* fallthrough */
+>         default:
+>                 /* If the trap came from S or U mode, redirect it there */
+> -               trap.epc = regs->mepc;
+> -               trap.cause = mcause;
+> -               trap.tval = mtval;
+> -               trap.tval2 = mtval2;
+> -               trap.tinst = mtinst;
+> -               trap.gva   = sbi_regs_gva(regs);
+> -
+> -               rc = sbi_trap_redirect(regs, &trap);
+> +               msg = "trap redirect failed";
+> +               rc  = sbi_trap_redirect(regs, &trap);
+>                 break;
+>         }
+>
+> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+> index be9a394..1fb0ed6 100644
+> --- a/lib/sbi/sbi_trap_ldst.c
+> +++ b/lib/sbi/sbi_trap_ldst.c
+> @@ -34,8 +34,8 @@ static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+>                 return orig_tinst | (addr_offset << SH_RS1);
+>  }
+>
+> -int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+> -                               struct sbi_trap_regs *regs)
+> +int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
+> +                               const struct sbi_trap_info *orig_trap)
+>  {
+>         ulong insn, insn_len;
+>         union reg_data val;
+> @@ -44,13 +44,13 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+>
+>         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
+>
+> -       if (tinst & 0x1) {
+> +       if (orig_trap->tinst & 0x1) {
+>                 /*
+>                  * Bit[0] == 1 implies trapped instruction value is
+>                  * transformed instruction or custom instruction.
+>                  */
+> -               insn = tinst | INSN_16BIT_MASK;
+> -               insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
+> +               insn     = orig_trap->tinst | INSN_16BIT_MASK;
+> +               insn_len = (orig_trap->tinst & 0x2) ? INSN_LEN(insn) : 2;
+>         } else {
+>                 /*
+>                  * Bit[0] == 0 implies trapped instruction value is
+> @@ -124,23 +124,17 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+>  #endif
+>  #endif
+>         } else {
+> -               uptrap.epc = regs->mepc;
+> -               uptrap.cause = CAUSE_MISALIGNED_LOAD;
+> -               uptrap.tval = addr;
+> -               uptrap.tval2 = tval2;
+> -               uptrap.tinst = tinst;
+> -               uptrap.gva   = sbi_regs_gva(regs);
+> -               return sbi_trap_redirect(regs, &uptrap);
+> +               return sbi_trap_redirect(regs, orig_trap);
+>         }
+>
+>         val.data_u64 = 0;
+>         for (i = 0; i < len; i++) {
+> -               val.data_bytes[i] = sbi_load_u8((void *)(addr + i),
+> -                                               &uptrap);
+> +               val.data_bytes[i] =
+> +                       sbi_load_u8((void *)(orig_trap->tval + i), &uptrap);
+>                 if (uptrap.cause) {
+> -                       uptrap.epc = regs->mepc;
+> +                       uptrap.epc   = regs->mepc;
+>                         uptrap.tinst = sbi_misaligned_tinst_fixup(
+> -                               tinst, uptrap.tinst, i);
+> +                               orig_trap->tinst, uptrap.tinst, i);
+>                         return sbi_trap_redirect(regs, &uptrap);
+>                 }
+>         }
+> @@ -159,8 +153,8 @@ int sbi_misaligned_load_handler(ulong addr, ulong tval2, ulong tinst,
+>         return 0;
+>  }
+>
+> -int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+> -                                struct sbi_trap_regs *regs)
+> +int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
+> +                                const struct sbi_trap_info *orig_trap)
+>  {
+>         ulong insn, insn_len;
+>         union reg_data val;
+> @@ -169,13 +163,13 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+>
+>         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
+>
+> -       if (tinst & 0x1) {
+> +       if (orig_trap->tinst & 0x1) {
+>                 /*
+>                  * Bit[0] == 1 implies trapped instruction value is
+>                  * transformed instruction or custom instruction.
+>                  */
+> -               insn = tinst | INSN_16BIT_MASK;
+> -               insn_len = (tinst & 0x2) ? INSN_LEN(insn) : 2;
+> +               insn     = orig_trap->tinst | INSN_16BIT_MASK;
+> +               insn_len = (orig_trap->tinst & 0x2) ? INSN_LEN(insn) : 2;
+>         } else {
+>                 /*
+>                  * Bit[0] == 0 implies trapped instruction value is
+> @@ -238,22 +232,16 @@ int sbi_misaligned_store_handler(ulong addr, ulong tval2, ulong tinst,
+>  #endif
+>  #endif
+>         } else {
+> -               uptrap.epc = regs->mepc;
+> -               uptrap.cause = CAUSE_MISALIGNED_STORE;
+> -               uptrap.tval = addr;
+> -               uptrap.tval2 = tval2;
+> -               uptrap.tinst = tinst;
+> -               uptrap.gva   = sbi_regs_gva(regs);
+> -               return sbi_trap_redirect(regs, &uptrap);
+> +               return sbi_trap_redirect(regs, orig_trap);
+>         }
+>
+>         for (i = 0; i < len; i++) {
+> -               sbi_store_u8((void *)(addr + i), val.data_bytes[i],
+> +               sbi_store_u8((void *)(orig_trap->tval + i), val.data_bytes[i],
+>                              &uptrap);
+>                 if (uptrap.cause) {
+> -                       uptrap.epc = regs->mepc;
+> +                       uptrap.epc   = regs->mepc;
+>                         uptrap.tinst = sbi_misaligned_tinst_fixup(
+> -                               tinst, uptrap.tinst, i);
+> +                               orig_trap->tinst, uptrap.tinst, i);
+>                         return sbi_trap_redirect(regs, &uptrap);
+>                 }
+>         }
+> --
+> 2.7.4
+>
 
