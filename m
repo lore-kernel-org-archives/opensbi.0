@@ -1,232 +1,58 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 12 Mar 2024 15:31:23 +0530
-Subject: [PATCH] lib: sbi: Remove epc from struct sbi_trap_info
-In-Reply-To: <20240311174754.3803421-1-samuel.holland@sifive.com>
-References: <20240311174754.3803421-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy3as9W4YaAFeEoxXXXt6-eqo-iA-jgbbMZqNUiwJr8GpQ@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 12 Mar 2024 15:57:54 +0530
+Subject: [PATCH v2 00/10] Improve trap handling for nested traps
+Message-ID: <20240312102804.1436376-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 11, 2024 at 11:18?PM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> In the only places this value is used, it duplicates mepc from
-> struct sbi_trap_regs.
->
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Nested traps will be a common when dealing with RAS error traps so
+this series improves trap handling for nested traps by introducing
+a linked-list based trap context chain.
 
-LGTM.
+These patches can also be found the trap_handling_imp_v2 branch at
+https://github.com/avpatel/opensbi.git
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Changes since v1:
+ - Include samuel's patch in the series
+ - Embed sbi_trap_regs and sbi_trap_info in the new
+   struct sbi_trap_context
+ - Drop the mcause parameter of sbi_trap_aia_irq()
 
-I will include this patch in my series to manage conflicts.
+Anup Patel (9):
+  lib: sbi: Remove sbi_trap_exit() and related code
+  include: sbi: Add trap_context pointer in struct sbi_scratch
+  lib: sbi: Introduce trap context
+  lib: sbi: Simplify parameters of misaligned and access fault handlers
+  lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
+  lib: sbi: Remove regs paramter of sbi_irqchip_process()
+  lib: sbi: Remove regs parameter from trap irq handling functions
+  lib: sbi: Pass trap context pointer to sbi_ecall_handler()
+  lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
 
-Regards,
-Anup
+Samuel Holland (1):
+  lib: sbi: Remove epc from struct sbi_trap_info
 
-> ---
->
->  include/sbi/sbi_trap.h      | 16 ++++++----------
->  lib/sbi/sbi_ecall_legacy.c  |  4 ----
->  lib/sbi/sbi_expected_trap.S |  4 ----
->  lib/sbi/sbi_illegal_insn.c  |  2 --
->  lib/sbi/sbi_trap.c          |  5 ++---
->  lib/sbi/sbi_trap_ldst.c     |  4 ----
->  6 files changed, 8 insertions(+), 27 deletions(-)
->
-> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-> index 2727bdbc..37576942 100644
-> --- a/include/sbi/sbi_trap.h
-> +++ b/include/sbi/sbi_trap.h
-> @@ -87,20 +87,18 @@
->  /** Last member index in sbi_trap_regs */
->  #define SBI_TRAP_REGS_last                     35
->
-> -/** Index of epc member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_epc                      0
->  /** Index of cause member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_cause                    1
-> +#define SBI_TRAP_INFO_cause                    0
->  /** Index of tval member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_tval                     2
-> +#define SBI_TRAP_INFO_tval                     1
->  /** Index of tval2 member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_tval2                    3
-> +#define SBI_TRAP_INFO_tval2                    2
->  /** Index of tinst member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_tinst                    4
-> +#define SBI_TRAP_INFO_tinst                    3
->  /** Index of gva member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_gva                      5
-> +#define SBI_TRAP_INFO_gva                      4
->  /** Last member index in sbi_trap_info */
-> -#define SBI_TRAP_INFO_last                     6
-> +#define SBI_TRAP_INFO_last                     5
->
->  /* clang-format on */
->
-> @@ -194,8 +192,6 @@ struct sbi_trap_regs {
->
->  /** Representation of trap details */
->  struct sbi_trap_info {
-> -       /** epc Trap program counter */
-> -       unsigned long epc;
->         /** cause Trap exception cause */
->         unsigned long cause;
->         /** tval Trap value */
-> diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-> index 14913c96..9a1ae1e4 100644
-> --- a/lib/sbi/sbi_ecall_legacy.c
-> +++ b/lib/sbi/sbi_ecall_legacy.c
-> @@ -74,7 +74,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
->                                                 &hmask, &trap)) {
->                         ret = sbi_ipi_send_smode(hmask, 0);
->                 } else {
-> -                       trap.epc = regs->mepc;
->                         sbi_trap_redirect(regs, &trap);
->                         out->skip_regs_update = true;
->                 }
-> @@ -86,7 +85,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
->                                           SBI_TLB_FENCE_I, source_hart);
->                         ret = sbi_tlb_request(hmask, 0, &tlb_info);
->                 } else {
-> -                       trap.epc = regs->mepc;
->                         sbi_trap_redirect(regs, &trap);
->                         out->skip_regs_update = true;
->                 }
-> @@ -98,7 +96,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
->                                           SBI_TLB_SFENCE_VMA, source_hart);
->                         ret = sbi_tlb_request(hmask, 0, &tlb_info);
->                 } else {
-> -                       trap.epc = regs->mepc;
->                         sbi_trap_redirect(regs, &trap);
->                         out->skip_regs_update = true;
->                 }
-> @@ -112,7 +109,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
->                                           source_hart);
->                         ret = sbi_tlb_request(hmask, 0, &tlb_info);
->                 } else {
-> -                       trap.epc = regs->mepc;
->                         sbi_trap_redirect(regs, &trap);
->                         out->skip_regs_update = true;
->                 }
-> diff --git a/lib/sbi/sbi_expected_trap.S b/lib/sbi/sbi_expected_trap.S
-> index 1f2d6b97..99dede5f 100644
-> --- a/lib/sbi/sbi_expected_trap.S
-> +++ b/lib/sbi/sbi_expected_trap.S
-> @@ -23,8 +23,6 @@
->         .global __sbi_expected_trap
->  __sbi_expected_trap:
->         /* Without H-extension so, MTVAL2 and MTINST CSRs and GVA not available */
-> -       csrr    a4, CSR_MEPC
-> -       REG_S   a4, SBI_TRAP_INFO_OFFSET(epc)(a3)
->         csrr    a4, CSR_MCAUSE
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
->         csrr    a4, CSR_MTVAL
-> @@ -41,8 +39,6 @@ __sbi_expected_trap:
->         .global __sbi_expected_trap_hext
->  __sbi_expected_trap_hext:
->         /* With H-extension so, MTVAL2 and MTINST CSRs and GVA available */
-> -       csrr    a4, CSR_MEPC
-> -       REG_S   a4, SBI_TRAP_INFO_OFFSET(epc)(a3)
->         csrr    a4, CSR_MCAUSE
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
->         csrr    a4, CSR_MTVAL
-> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-> index 2be47575..dd0b3c12 100644
-> --- a/lib/sbi/sbi_illegal_insn.c
-> +++ b/lib/sbi/sbi_illegal_insn.c
-> @@ -25,7 +25,6 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
->  {
->         struct sbi_trap_info trap;
->
-> -       trap.epc = regs->mepc;
->         trap.cause = CAUSE_ILLEGAL_INSTRUCTION;
->         trap.tval = insn;
->         trap.tval2 = 0;
-> @@ -156,7 +155,6 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
->         if (unlikely((insn & 3) != 3)) {
->                 insn = sbi_get_insn(regs->mepc, &uptrap);
->                 if (uptrap.cause) {
-> -                       uptrap.epc = regs->mepc;
->                         return sbi_trap_redirect(regs, &uptrap);
->                 }
->                 if ((insn & 3) != 3)
-> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index c6650130..c9db73f9 100644
-> --- a/lib/sbi/sbi_trap.c
-> +++ b/lib/sbi/sbi_trap.c
-> @@ -140,7 +140,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
->         if (next_virt) {
->                 /* Update VS-mode exception info */
->                 csr_write(CSR_VSTVAL, trap->tval);
-> -               csr_write(CSR_VSEPC, trap->epc);
-> +               csr_write(CSR_VSEPC, regs->mepc);
->                 csr_write(CSR_VSCAUSE, trap->cause);
->
->                 /* Set MEPC to VS-mode exception vector base */
-> @@ -171,7 +171,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
->         } else {
->                 /* Update S-mode exception info */
->                 csr_write(CSR_STVAL, trap->tval);
-> -               csr_write(CSR_SEPC, trap->epc);
-> +               csr_write(CSR_SEPC, regs->mepc);
->                 csr_write(CSR_SCAUSE, trap->cause);
->
->                 /* Set MEPC to S-mode exception vector base */
-> @@ -286,7 +286,6 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
->                 return regs;
->         }
->         /* Original trap_info */
-> -       trap.epc   = regs->mepc;
->         trap.cause = mcause;
->         trap.tval  = mtval;
->         trap.tval2 = mtval2;
-> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-> index d864ad19..5a0537b1 100644
-> --- a/lib/sbi/sbi_trap_ldst.c
-> +++ b/lib/sbi/sbi_trap_ldst.c
-> @@ -70,7 +70,6 @@ static int sbi_trap_emulate_load(struct sbi_trap_regs *regs,
->                  */
->                 insn = sbi_get_insn(regs->mepc, &uptrap);
->                 if (uptrap.cause) {
-> -                       uptrap.epc = regs->mepc;
->                         return sbi_trap_redirect(regs, &uptrap);
->                 }
->                 insn_len = INSN_LEN(insn);
-> @@ -193,7 +192,6 @@ static int sbi_trap_emulate_store(struct sbi_trap_regs *regs,
->                  */
->                 insn = sbi_get_insn(regs->mepc, &uptrap);
->                 if (uptrap.cause) {
-> -                       uptrap.epc = regs->mepc;
->                         return sbi_trap_redirect(regs, &uptrap);
->                 }
->                 insn_len = INSN_LEN(insn);
-> @@ -277,7 +275,6 @@ static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
->                 out_val->data_bytes[i] =
->                         sbi_load_u8((void *)(orig_trap->tval + i), &uptrap);
->                 if (uptrap.cause) {
-> -                       uptrap.epc   = regs->mepc;
->                         uptrap.tinst = sbi_misaligned_tinst_fixup(
->                                 orig_trap->tinst, uptrap.tinst, i);
->                         return sbi_trap_redirect(regs, &uptrap);
-> @@ -304,7 +301,6 @@ static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
->                 sbi_store_u8((void *)(orig_trap->tval + i),
->                              in_val.data_bytes[i], &uptrap);
->                 if (uptrap.cause) {
-> -                       uptrap.epc   = regs->mepc;
->                         uptrap.tinst = sbi_misaligned_tinst_fixup(
->                                 orig_trap->tinst, uptrap.tinst, i);
->                         return sbi_trap_redirect(regs, &uptrap);
-> --
-> 2.43.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+ firmware/fw_base.S             |  76 +++++++++----
+ include/sbi/sbi_ecall.h        |   4 +-
+ include/sbi/sbi_illegal_insn.h |   4 +-
+ include/sbi/sbi_irqchip.h      |   5 +-
+ include/sbi/sbi_scratch.h      |  14 +--
+ include/sbi/sbi_trap.h         |  45 ++++++--
+ include/sbi/sbi_trap_ldst.h    |  12 +-
+ lib/sbi/sbi_ecall.c            |   3 +-
+ lib/sbi/sbi_ecall_legacy.c     |   4 -
+ lib/sbi/sbi_expected_trap.S    |   4 -
+ lib/sbi/sbi_illegal_insn.c     |  16 ++-
+ lib/sbi/sbi_irqchip.c          |  10 +-
+ lib/sbi/sbi_trap.c             | 195 +++++++++++++++------------------
+ lib/sbi/sbi_trap_ldst.c        |  71 ++++++------
+ lib/utils/irqchip/imsic.c      |   2 +-
+ 15 files changed, 240 insertions(+), 225 deletions(-)
+
+-- 
+2.34.1
+
 
