@@ -1,215 +1,167 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 12 Mar 2024 15:57:55 +0530
-Subject: [PATCH v2 01/10] lib: sbi: Remove epc from struct sbi_trap_info
+Date: Tue, 12 Mar 2024 15:57:56 +0530
+Subject: [PATCH v2 02/10] lib: sbi: Remove sbi_trap_exit() and related code
 In-Reply-To: <20240312102804.1436376-1-apatel@ventanamicro.com>
 References: <20240312102804.1436376-1-apatel@ventanamicro.com>
-Message-ID: <20240312102804.1436376-2-apatel@ventanamicro.com>
+Message-ID: <20240312102804.1436376-3-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Samuel Holland <samuel.holland@sifive.com>
+Over the years, no uses of sbi_trap_exit() have been found so remove
+it and also remove related code from fw_base.S and sbi_scratch.h.
 
-In the only places this value is used, it duplicates mepc from
-struct sbi_trap_regs.
-
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 ---
- include/sbi/sbi_trap.h      | 16 ++++++----------
- lib/sbi/sbi_ecall_legacy.c  |  4 ----
- lib/sbi/sbi_expected_trap.S |  4 ----
- lib/sbi/sbi_illegal_insn.c  |  2 --
- lib/sbi/sbi_trap.c          |  5 ++---
- lib/sbi/sbi_trap_ldst.c     |  4 ----
- 6 files changed, 8 insertions(+), 27 deletions(-)
+ firmware/fw_base.S        | 11 -----------
+ include/sbi/sbi_scratch.h | 15 +++------------
+ include/sbi/sbi_trap.h    |  2 --
+ lib/sbi/sbi_trap.c        | 19 -------------------
+ 4 files changed, 3 insertions(+), 44 deletions(-)
 
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 126b067..c404d8b 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -298,9 +298,6 @@ _scratch_init:
+ 	/* Store hartid-to-scratch function address in scratch space */
+ 	lla	a4, _hartid_to_scratch
+ 	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
+-	/* Store trap-exit function address in scratch space */
+-	lla	a4, _trap_exit
+-	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(tp)
+ 	/* Clear tmp0 in scratch space */
+ 	REG_S	zero, SBI_SCRATCH_TMP0_OFFSET(tp)
+ 	/* Store firmware options in scratch space */
+@@ -453,10 +450,6 @@ _start_warm:
+ 	srli	a5, a5, ('H' - 'A')
+ 	andi	a5, a5, 0x1
+ 	beq	a5, zero, _skip_trap_handler_rv32_hyp
+-	/* Override trap exit for H-extension */
+-	csrr	a5, CSR_MSCRATCH
+-	lla	a4, _trap_exit_rv32_hyp
+-	REG_S	a4, SBI_SCRATCH_TRAP_EXIT_OFFSET(a5)
+ 	lla	a4, _trap_handler_rv32_hyp
+ _skip_trap_handler_rv32_hyp:
+ #endif
+@@ -695,7 +688,6 @@ memcmp:
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+ 	.globl _trap_handler
+-	.globl _trap_exit
+ _trap_handler:
+ 	TRAP_SAVE_AND_SETUP_SP_T0
+ 
+@@ -705,7 +697,6 @@ _trap_handler:
+ 
+ 	TRAP_CALL_C_ROUTINE
+ 
+-_trap_exit:
+ 	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
+ 
+ 	TRAP_RESTORE_MEPC_MSTATUS 0
+@@ -718,7 +709,6 @@ _trap_exit:
+ 	.section .entry, "ax", %progbits
+ 	.align 3
+ 	.globl _trap_handler_rv32_hyp
+-	.globl _trap_exit_rv32_hyp
+ _trap_handler_rv32_hyp:
+ 	TRAP_SAVE_AND_SETUP_SP_T0
+ 
+@@ -728,7 +718,6 @@ _trap_handler_rv32_hyp:
+ 
+ 	TRAP_CALL_C_ROUTINE
+ 
+-_trap_exit_rv32_hyp:
+ 	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
+ 
+ 	TRAP_RESTORE_MEPC_MSTATUS 1
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index e6a33ba..55b937f 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -36,14 +36,12 @@
+ #define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(9 * __SIZEOF_POINTER__)
+ /** Offset of hartid_to_scratch member in sbi_scratch */
+ #define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(10 * __SIZEOF_POINTER__)
+-/** Offset of trap_exit member in sbi_scratch */
+-#define SBI_SCRATCH_TRAP_EXIT_OFFSET		(11 * __SIZEOF_POINTER__)
+ /** Offset of tmp0 member in sbi_scratch */
+-#define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_TMP0_OFFSET			(11 * __SIZEOF_POINTER__)
+ /** Offset of options member in sbi_scratch */
+-#define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_OPTIONS_OFFSET		(12 * __SIZEOF_POINTER__)
+ /** Offset of extra space in sbi_scratch */
+-#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(14 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(13 * __SIZEOF_POINTER__)
+ /** Maximum size of sbi_scratch (4KB) */
+ #define SBI_SCRATCH_SIZE			(0x1000)
+ 
+@@ -77,8 +75,6 @@ struct sbi_scratch {
+ 	unsigned long platform_addr;
+ 	/** Address of HART ID to sbi_scratch conversion function */
+ 	unsigned long hartid_to_scratch;
+-	/** Address of trap exit function */
+-	unsigned long trap_exit;
+ 	/** Temporary storage */
+ 	unsigned long tmp0;
+ 	/** Options for OpenSBI library */
+@@ -129,11 +125,6 @@ _Static_assert(
+ 		== SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET,
+ 	"struct sbi_scratch definition has changed, please redefine "
+ 	"SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET");
+-_Static_assert(
+-	offsetof(struct sbi_scratch, trap_exit)
+-		== SBI_SCRATCH_TRAP_EXIT_OFFSET,
+-	"struct sbi_scratch definition has changed, please redefine "
+-	"SBI_SCRATCH_TRAP_EXIT_OFFSET");
+ _Static_assert(
+ 	offsetof(struct sbi_scratch, tmp0)
+ 		== SBI_SCRATCH_TMP0_OFFSET,
 diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index 2727bdb..3757694 100644
+index 3757694..a6032ab 100644
 --- a/include/sbi/sbi_trap.h
 +++ b/include/sbi/sbi_trap.h
-@@ -87,20 +87,18 @@
- /** Last member index in sbi_trap_regs */
- #define SBI_TRAP_REGS_last			35
+@@ -225,8 +225,6 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
  
--/** Index of epc member in sbi_trap_info */
--#define SBI_TRAP_INFO_epc			0
- /** Index of cause member in sbi_trap_info */
--#define SBI_TRAP_INFO_cause			1
-+#define SBI_TRAP_INFO_cause			0
- /** Index of tval member in sbi_trap_info */
--#define SBI_TRAP_INFO_tval			2
-+#define SBI_TRAP_INFO_tval			1
- /** Index of tval2 member in sbi_trap_info */
--#define SBI_TRAP_INFO_tval2			3
-+#define SBI_TRAP_INFO_tval2			2
- /** Index of tinst member in sbi_trap_info */
--#define SBI_TRAP_INFO_tinst			4
-+#define SBI_TRAP_INFO_tinst			3
- /** Index of gva member in sbi_trap_info */
--#define SBI_TRAP_INFO_gva			5
-+#define SBI_TRAP_INFO_gva			4
- /** Last member index in sbi_trap_info */
--#define SBI_TRAP_INFO_last			6
-+#define SBI_TRAP_INFO_last			5
+ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
  
- /* clang-format on */
+-void __noreturn sbi_trap_exit(const struct sbi_trap_regs *regs);
+-
+ #endif
  
-@@ -194,8 +192,6 @@ struct sbi_trap_regs {
- 
- /** Representation of trap details */
- struct sbi_trap_info {
--	/** epc Trap program counter */
--	unsigned long epc;
- 	/** cause Trap exception cause */
- 	unsigned long cause;
- 	/** tval Trap value */
-diff --git a/lib/sbi/sbi_ecall_legacy.c b/lib/sbi/sbi_ecall_legacy.c
-index 14913c9..9a1ae1e 100644
---- a/lib/sbi/sbi_ecall_legacy.c
-+++ b/lib/sbi/sbi_ecall_legacy.c
-@@ -74,7 +74,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 						&hmask, &trap)) {
- 			ret = sbi_ipi_send_smode(hmask, 0);
- 		} else {
--			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
-@@ -86,7 +85,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 					  SBI_TLB_FENCE_I, source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		} else {
--			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
-@@ -98,7 +96,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 					  SBI_TLB_SFENCE_VMA, source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		} else {
--			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
-@@ -112,7 +109,6 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
- 					  source_hart);
- 			ret = sbi_tlb_request(hmask, 0, &tlb_info);
- 		} else {
--			trap.epc = regs->mepc;
- 			sbi_trap_redirect(regs, &trap);
- 			out->skip_regs_update = true;
- 		}
-diff --git a/lib/sbi/sbi_expected_trap.S b/lib/sbi/sbi_expected_trap.S
-index 1f2d6b9..99dede5 100644
---- a/lib/sbi/sbi_expected_trap.S
-+++ b/lib/sbi/sbi_expected_trap.S
-@@ -23,8 +23,6 @@
- 	.global __sbi_expected_trap
- __sbi_expected_trap:
- 	/* Without H-extension so, MTVAL2 and MTINST CSRs and GVA not available */
--	csrr	a4, CSR_MEPC
--	REG_S	a4, SBI_TRAP_INFO_OFFSET(epc)(a3)
- 	csrr	a4, CSR_MCAUSE
- 	REG_S	a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
- 	csrr	a4, CSR_MTVAL
-@@ -41,8 +39,6 @@ __sbi_expected_trap:
- 	.global __sbi_expected_trap_hext
- __sbi_expected_trap_hext:
- 	/* With H-extension so, MTVAL2 and MTINST CSRs and GVA available */
--	csrr	a4, CSR_MEPC
--	REG_S	a4, SBI_TRAP_INFO_OFFSET(epc)(a3)
- 	csrr	a4, CSR_MCAUSE
- 	REG_S	a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
- 	csrr	a4, CSR_MTVAL
-diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-index 2be4757..dd0b3c1 100644
---- a/lib/sbi/sbi_illegal_insn.c
-+++ b/lib/sbi/sbi_illegal_insn.c
-@@ -25,7 +25,6 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
- {
- 	struct sbi_trap_info trap;
- 
--	trap.epc = regs->mepc;
- 	trap.cause = CAUSE_ILLEGAL_INSTRUCTION;
- 	trap.tval = insn;
- 	trap.tval2 = 0;
-@@ -156,7 +155,6 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
- 	if (unlikely((insn & 3) != 3)) {
- 		insn = sbi_get_insn(regs->mepc, &uptrap);
- 		if (uptrap.cause) {
--			uptrap.epc = regs->mepc;
- 			return sbi_trap_redirect(regs, &uptrap);
- 		}
- 		if ((insn & 3) != 3)
+ #endif
 diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index c665013..c9db73f 100644
+index c9db73f..b059c4b 100644
 --- a/lib/sbi/sbi_trap.c
 +++ b/lib/sbi/sbi_trap.c
-@@ -140,7 +140,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 	if (next_virt) {
- 		/* Update VS-mode exception info */
- 		csr_write(CSR_VSTVAL, trap->tval);
--		csr_write(CSR_VSEPC, trap->epc);
-+		csr_write(CSR_VSEPC, regs->mepc);
- 		csr_write(CSR_VSCAUSE, trap->cause);
- 
- 		/* Set MEPC to VS-mode exception vector base */
-@@ -171,7 +171,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 	} else {
- 		/* Update S-mode exception info */
- 		csr_write(CSR_STVAL, trap->tval);
--		csr_write(CSR_SEPC, trap->epc);
-+		csr_write(CSR_SEPC, regs->mepc);
- 		csr_write(CSR_SCAUSE, trap->cause);
- 
- 		/* Set MEPC to S-mode exception vector base */
-@@ -286,7 +286,6 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
- 		return regs;
- 	}
- 	/* Original trap_info */
--	trap.epc   = regs->mepc;
- 	trap.cause = mcause;
- 	trap.tval  = mtval;
- 	trap.tval2 = mtval2;
-diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-index d864ad1..5a0537b 100644
---- a/lib/sbi/sbi_trap_ldst.c
-+++ b/lib/sbi/sbi_trap_ldst.c
-@@ -70,7 +70,6 @@ static int sbi_trap_emulate_load(struct sbi_trap_regs *regs,
- 		 */
- 		insn = sbi_get_insn(regs->mepc, &uptrap);
- 		if (uptrap.cause) {
--			uptrap.epc = regs->mepc;
- 			return sbi_trap_redirect(regs, &uptrap);
- 		}
- 		insn_len = INSN_LEN(insn);
-@@ -193,7 +192,6 @@ static int sbi_trap_emulate_store(struct sbi_trap_regs *regs,
- 		 */
- 		insn = sbi_get_insn(regs->mepc, &uptrap);
- 		if (uptrap.cause) {
--			uptrap.epc = regs->mepc;
- 			return sbi_trap_redirect(regs, &uptrap);
- 		}
- 		insn_len = INSN_LEN(insn);
-@@ -277,7 +275,6 @@ static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
- 		out_val->data_bytes[i] =
- 			sbi_load_u8((void *)(orig_trap->tval + i), &uptrap);
- 		if (uptrap.cause) {
--			uptrap.epc   = regs->mepc;
- 			uptrap.tinst = sbi_misaligned_tinst_fixup(
- 				orig_trap->tinst, uptrap.tinst, i);
- 			return sbi_trap_redirect(regs, &uptrap);
-@@ -304,7 +301,6 @@ static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
- 		sbi_store_u8((void *)(orig_trap->tval + i),
- 			     in_val.data_bytes[i], &uptrap);
- 		if (uptrap.cause) {
--			uptrap.epc   = regs->mepc;
- 			uptrap.tinst = sbi_misaligned_tinst_fixup(
- 				orig_trap->tinst, uptrap.tinst, i);
- 			return sbi_trap_redirect(regs, &uptrap);
+@@ -334,22 +334,3 @@ trap_error:
+ 		sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
+ 	return regs;
+ }
+-
+-typedef void (*trap_exit_t)(const struct sbi_trap_regs *regs);
+-
+-/**
+- * Exit trap/interrupt handling
+- *
+- * This function is called by non-firmware code to abruptly exit
+- * trap/interrupt handling and resume execution at context pointed
+- * by given register state.
+- *
+- * @param regs pointer to register state
+- */
+-void __noreturn sbi_trap_exit(const struct sbi_trap_regs *regs)
+-{
+-	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+-
+-	((trap_exit_t)scratch->trap_exit)(regs);
+-	__builtin_unreachable();
+-}
 -- 
 2.34.1
 
