@@ -1,57 +1,67 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 12 Mar 2024 10:50:17 +0530
-Subject: [PATCH 7/9] lib: sbi: Remove regs parameter from trap irq
- handling functions
-In-Reply-To: <6a80c047-6d47-415e-9230-904f860f0d3b@sifive.com>
+Date: Tue, 12 Mar 2024 10:55:47 +0530
+Subject: [PATCH 3/9] lib: sbi: Introduce trap context
+In-Reply-To: <66b421cf-a5e8-4a46-b4d0-f8f702a28697@sifive.com>
 References: <20240311160944.1233523-1-apatel@ventanamicro.com>
- <20240311160944.1233523-8-apatel@ventanamicro.com> <6a80c047-6d47-415e-9230-904f860f0d3b@sifive.com>
-Message-ID: <CAAhSdy3i5BWdDSJA8aK3c+B2ai9+aVtdUAUYamsL9T3B927+XQ@mail.gmail.com>
+ <20240311160944.1233523-4-apatel@ventanamicro.com> <66b421cf-a5e8-4a46-b4d0-f8f702a28697@sifive.com>
+Message-ID: <CAAhSdy0B5Bq+-ix-_0iDvyvkv1RN8M40Ot-enGLdCDM8+pa2Tg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 12, 2024 at 1:17?AM Samuel Holland
+On Mon, Mar 11, 2024 at 11:02?PM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
 > Hi Anup,
 >
 > On 2024-03-11 11:09 AM, Anup Patel wrote:
-> > The trap irq handling functions no longer require regs parameter
-> > so remove it.
+> > Club pointers to struct sbi_trap_regs and struct sbi_trap_info a new
+> > struct sbi_trap_context (aka trap context).
+> >
+> > To track nested traps, the struct sbi_scratch points to the current
+> > trap context and the trap context has pointer to pervious context of
+> > previous trap.
 > >
 > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > > ---
-> >  lib/sbi/sbi_trap.c | 12 ++++++------
-> >  1 file changed, 6 insertions(+), 6 deletions(-)
+> >  include/sbi/sbi_trap.h | 22 ++++++++++++++++++++++
+> >  lib/sbi/sbi_trap.c     | 35 ++++++++++++++++++++++-------------
+> >  2 files changed, 44 insertions(+), 13 deletions(-)
 > >
-> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> > index e6ef6d1..a50e466 100644
-> > --- a/lib/sbi/sbi_trap.c
-> > +++ b/lib/sbi/sbi_trap.c
-> > @@ -198,9 +198,9 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >       return 0;
-> >  }
+> > diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+> > index 15ccd0b..513a82e 100644
+> > --- a/include/sbi/sbi_trap.h
+> > +++ b/include/sbi/sbi_trap.h
+> > @@ -117,6 +117,7 @@
+> >  #ifndef __ASSEMBLER__
 > >
-> > -static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
-> > +static int sbi_trap_nonaia_irq(unsigned long mcause)
-> >  {
-> > -     mcause &= ~(1UL << (__riscv_xlen - 1));
-> > +     mcause &= ~BIT(__riscv_xlen - 1);
-> >       switch (mcause) {
-> >       case IRQ_M_TIMER:
-> >               sbi_timer_process();
-> > @@ -217,7 +217,7 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
-> >       return 0;
-> >  }
+> >  #include <sbi/sbi_types.h>
+> > +#include <sbi/sbi_scratch.h>
 > >
-> > -static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
-> > +static int sbi_trap_aia_irq(unsigned long mcause)
+> >  /** Representation of register state at time of trap/interrupt */
+> >  struct sbi_trap_regs {
+> > @@ -208,6 +209,16 @@ struct sbi_trap_info {
+> >       unsigned long gva;
+> >  };
+> >
+> > +/** Representation of trap context saved on stack */
+> > +struct sbi_trap_context {
+> > +     /** Pointer to previous trap context */
+> > +     struct sbi_trap_context *prev_context;
+> > +     /** Pointer to register state */
+> > +     struct sbi_trap_regs *regs;
+> > +     /** Pointer to trap details */
+> > +     const struct sbi_trap_info *trap;
 >
-> The mcause parameter is not used in this function either.
+> It would be more efficient to embed these two structures inside the context
+> instead of pointing to them. The assembly code wouldn't have to fill out
+> sbi_trap_info or prev_context even if it allocates the whole sbi_trap_context.
 
-Ahh, yes. I will drop it in the next revision.
+Actually, I was already thinking of minimizing the pointer chasing.
+
+Let me try to do this in the next revision.
 
 Regards,
 Anup
@@ -60,24 +70,96 @@ Anup
 > Regards,
 > Samuel
 >
+> > +};
+> > +
+> >  static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
 > >  {
-> >       int rc;
-> >       unsigned long mtopi;
-> > @@ -291,12 +291,12 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
-> >       /* Update trap context pointer */
-> >       sbi_trap_set_context(scratch, &tcntx);
+> >       /*
+> > @@ -227,6 +238,17 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+> >  int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >                     const struct sbi_trap_info *trap);
 > >
-> > -     if (mcause & (1UL << (__riscv_xlen - 1))) {
-> > +     if (mcause & BIT(__riscv_xlen - 1)) {
+> > +static inline struct sbi_trap_context *sbi_trap_get_context(struct sbi_scratch *scratch)
+> > +{
+> > +     return (scratch) ? (void *)scratch->trap_context : NULL;
+> > +}
+> > +
+> > +static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
+> > +                                     struct sbi_trap_context *tcntx)
+> > +{
+> > +     scratch->trap_context = (unsigned long)tcntx;
+> > +}
+> > +
+> >  struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
+> >
+> >  #endif
+> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> > index e514066..dba267c 100644
+> > --- a/lib/sbi/sbi_trap.c
+> > +++ b/lib/sbi/sbi_trap.c
+> > @@ -266,6 +266,8 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> >       const char *msg = "trap handler failed";
+> >       ulong mcause = csr_read(CSR_MCAUSE);
+> >       ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
+> > +     struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> > +     struct sbi_trap_context tcntx;
+> >       struct sbi_trap_info trap;
+> >
+> >       if (misa_extension('H')) {
+> > @@ -273,25 +275,31 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> >               mtinst = csr_read(CSR_MTINST);
+> >       }
+> >
+> > +     /* Original trap_info */
+> > +     trap.epc     = regs->mepc;
+> > +     trap.cause   = mcause;
+> > +     trap.tval    = mtval;
+> > +     trap.tval2   = mtval2;
+> > +     trap.tinst   = mtinst;
+> > +     trap.gva     = sbi_regs_gva(regs);
+> > +
+> > +     /* Setup trap context */
+> > +     tcntx.prev_context = sbi_trap_get_context(scratch);
+> > +     tcntx.regs         = regs;
+> > +     tcntx.trap         = &trap;
+> > +
+> > +     /* Update trap context pointer */
+> > +     sbi_trap_set_context(scratch, &tcntx);
+> > +
+> >       if (mcause & (1UL << (__riscv_xlen - 1))) {
 > >               if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
 > >                                          SBI_HART_EXT_SMAIA))
-> > -                     rc = sbi_trap_aia_irq(regs, mcause);
-> > +                     rc = sbi_trap_aia_irq(mcause);
+> >                       rc = sbi_trap_aia_irq(regs, mcause);
 > >               else
-> > -                     rc = sbi_trap_nonaia_irq(regs, mcause);
-> > +                     rc = sbi_trap_nonaia_irq(mcause);
-> >               msg = "unhandled local interrupt";
-> >               goto trap_done;
+> >                       rc = sbi_trap_nonaia_irq(regs, mcause);
+> > -             if (rc) {
+> > -                     msg = "unhandled local interrupt";
+> > -                     goto trap_error;
+> > -             }
+> > -             return regs;
+> > +             msg = "unhandled local interrupt";
+> > +             goto trap_done;
 > >       }
+> > -     /* Original trap_info */
+> > -     trap.epc   = regs->mepc;
+> > -     trap.cause = mcause;
+> > -     trap.tval  = mtval;
+> > -     trap.tval2 = mtval2;
+> > -     trap.tinst = mtinst;
+> > -     trap.gva   = sbi_regs_gva(regs);
+> >
+> >       switch (mcause) {
+> >       case CAUSE_ILLEGAL_INSTRUCTION:
+> > @@ -330,8 +338,9 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> >               break;
+> >       }
+> >
+> > -trap_error:
+> > +trap_done:
+> >       if (rc)
+> >               sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
+> > +     sbi_trap_set_context(scratch, tcntx.prev_context);
+> >       return regs;
+> >  }
 >
 
