@@ -1,88 +1,123 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 12 Mar 2024 15:58:00 +0530
-Subject: [PATCH v2 06/10] lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
+Date: Tue, 12 Mar 2024 15:58:01 +0530
+Subject: [PATCH v2 07/10] lib: sbi: Remove regs paramter of sbi_irqchip_process()
 In-Reply-To: <20240312102804.1436376-1-apatel@ventanamicro.com>
 References: <20240312102804.1436376-1-apatel@ventanamicro.com>
-Message-ID: <20240312102804.1436376-7-apatel@ventanamicro.com>
+Message-ID: <20240312102804.1436376-8-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The struct sbi_trap_context already has the information needed by
-sbi_illegal_insn_handler() so directly pass struct sbi_trap_context
-pointer to this function.
+The irqchip handlers will typically not need pointer to trap registers
+so remove regs paramter of sbi_irqchip_process().
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_illegal_insn.h |  4 ++--
- lib/sbi/sbi_illegal_insn.c     | 14 +++++++-------
- lib/sbi/sbi_trap.c             |  2 +-
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ include/sbi/sbi_irqchip.h |  5 ++---
+ lib/sbi/sbi_irqchip.c     | 10 +++++-----
+ lib/sbi/sbi_trap.c        |  4 ++--
+ lib/utils/irqchip/imsic.c |  2 +-
+ 4 files changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/include/sbi/sbi_illegal_insn.h b/include/sbi/sbi_illegal_insn.h
-index 0397935..7be72ac 100644
---- a/include/sbi/sbi_illegal_insn.h
-+++ b/include/sbi/sbi_illegal_insn.h
-@@ -12,8 +12,8 @@
- 
+diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
+index 6acc6e3..0ed02eb 100644
+--- a/include/sbi/sbi_irqchip.h
++++ b/include/sbi/sbi_irqchip.h
+@@ -13,7 +13,6 @@
  #include <sbi/sbi_types.h>
  
+ struct sbi_scratch;
 -struct sbi_trap_regs;
-+struct sbi_trap_context;
  
--int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs);
-+int sbi_illegal_insn_handler(struct sbi_trap_context *tcntx);
+ /**
+  * Set external interrupt handling function
+@@ -23,7 +22,7 @@ struct sbi_trap_regs;
+  *
+  * @param fn function pointer for handling external irqs
+  */
+-void sbi_irqchip_set_irqfn(int (*fn)(struct sbi_trap_regs *regs));
++void sbi_irqchip_set_irqfn(int (*fn)(void));
  
- #endif
-diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-index dd0b3c1..29c5d74 100644
---- a/lib/sbi/sbi_illegal_insn.c
-+++ b/lib/sbi/sbi_illegal_insn.c
-@@ -136,8 +136,9 @@ static const illegal_insn_func illegal_insn_table[32] = {
- 	truly_illegal_insn  /* 31 */
- };
+ /**
+  * Process external interrupts
+@@ -33,7 +32,7 @@ void sbi_irqchip_set_irqfn(int (*fn)(struct sbi_trap_regs *regs));
+  *
+  * @param regs pointer for trap registers
+  */
+-int sbi_irqchip_process(struct sbi_trap_regs *regs);
++int sbi_irqchip_process(void);
  
--int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
-+int sbi_illegal_insn_handler(struct sbi_trap_context *tcntx)
+ /** Initialize interrupt controllers */
+ int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot);
+diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
+index 24128be..0ae604a 100644
+--- a/lib/sbi/sbi_irqchip.c
++++ b/lib/sbi/sbi_irqchip.c
+@@ -10,22 +10,22 @@
+ #include <sbi/sbi_irqchip.h>
+ #include <sbi/sbi_platform.h>
+ 
+-static int default_irqfn(struct sbi_trap_regs *regs)
++static int default_irqfn(void)
  {
-+	ulong insn = tcntx->trap.tval;
- 	struct sbi_trap_info uptrap;
- 
- 	/*
-@@ -153,13 +154,12 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
- 
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ILLEGAL_INSN);
- 	if (unlikely((insn & 3) != 3)) {
--		insn = sbi_get_insn(regs->mepc, &uptrap);
--		if (uptrap.cause) {
--			return sbi_trap_redirect(regs, &uptrap);
--		}
-+		insn = sbi_get_insn(tcntx->regs.mepc, &uptrap);
-+		if (uptrap.cause)
-+			return sbi_trap_redirect(&tcntx->regs, &uptrap);
- 		if ((insn & 3) != 3)
--			return truly_illegal_insn(insn, regs);
-+			return truly_illegal_insn(insn, &tcntx->regs);
- 	}
- 
--	return illegal_insn_table[(insn & 0x7c) >> 2](insn, regs);
-+	return illegal_insn_table[(insn & 0x7c) >> 2](insn, &tcntx->regs);
+ 	return SBI_ENODEV;
  }
+ 
+-static int (*ext_irqfn)(struct sbi_trap_regs *regs) = default_irqfn;
++static int (*ext_irqfn)(void) = default_irqfn;
+ 
+-void sbi_irqchip_set_irqfn(int (*fn)(struct sbi_trap_regs *regs))
++void sbi_irqchip_set_irqfn(int (*fn)(void))
+ {
+ 	if (fn)
+ 		ext_irqfn = fn;
+ }
+ 
+-int sbi_irqchip_process(struct sbi_trap_regs *regs)
++int sbi_irqchip_process(void)
+ {
+-	return ext_irqfn(regs);
++	return ext_irqfn();
+ }
+ 
+ int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot)
 diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index a2afb0a..4e691df 100644
+index 4e691df..72b1788 100644
 --- a/lib/sbi/sbi_trap.c
 +++ b/lib/sbi/sbi_trap.c
-@@ -285,7 +285,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
- 
- 	switch (mcause) {
- 	case CAUSE_ILLEGAL_INSTRUCTION:
--		rc  = sbi_illegal_insn_handler(tcntx->trap.tval, regs);
-+		rc  = sbi_illegal_insn_handler(tcntx);
- 		msg = "illegal instruction handler failed";
+@@ -209,7 +209,7 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+ 		sbi_ipi_process();
  		break;
- 	case CAUSE_MISALIGNED_LOAD:
+ 	case IRQ_M_EXT:
+-		return sbi_irqchip_process(regs);
++		return sbi_irqchip_process();
+ 	default:
+ 		return SBI_ENOENT;
+ 	}
+@@ -232,7 +232,7 @@ static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
+ 			sbi_ipi_process();
+ 			break;
+ 		case IRQ_M_EXT:
+-			rc = sbi_irqchip_process(regs);
++			rc = sbi_irqchip_process();
+ 			if (rc)
+ 				return rc;
+ 			break;
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 36ef66c..f2a35c6 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -140,7 +140,7 @@ int imsic_get_target_file(u32 hartid)
+ 	return imsic_get_hart_file(scratch);
+ }
+ 
+-static int imsic_external_irqfn(struct sbi_trap_regs *regs)
++static int imsic_external_irqfn(void)
+ {
+ 	ulong mirq;
+ 
 -- 
 2.34.1
 
