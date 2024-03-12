@@ -1,96 +1,83 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 12 Mar 2024 10:48:39 +0530
-Subject: [PATCH 0/9] Improve trap handling for nested traps
-In-Reply-To: <8d651bf3-eb4d-f37e-fa1f-07576afdc32c@gmail.com>
+Date: Tue, 12 Mar 2024 10:50:17 +0530
+Subject: [PATCH 7/9] lib: sbi: Remove regs parameter from trap irq
+ handling functions
+In-Reply-To: <6a80c047-6d47-415e-9230-904f860f0d3b@sifive.com>
 References: <20240311160944.1233523-1-apatel@ventanamicro.com>
- <32748c25-1331-8324-0a15-0000d763caee@gmail.com> <CAAhSdy1GhzLu-tgTfsGkvVcMGKioF23zZ-n+vMaM2QJRnGR0kg@mail.gmail.com>
- <8d651bf3-eb4d-f37e-fa1f-07576afdc32c@gmail.com>
-Message-ID: <CAAhSdy0-rRR63cTmRJ_-aCSNjM_=r6VwX37kqdby3sr2=++8iw@mail.gmail.com>
+ <20240311160944.1233523-8-apatel@ventanamicro.com> <6a80c047-6d47-415e-9230-904f860f0d3b@sifive.com>
+Message-ID: <CAAhSdy3i5BWdDSJA8aK3c+B2ai9+aVtdUAUYamsL9T3B927+XQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 12, 2024 at 10:03?AM Bo Gan <ganboing@gmail.com> wrote:
+On Tue, Mar 12, 2024 at 1:17?AM Samuel Holland
+<samuel.holland@sifive.com> wrote:
 >
-> On 3/11/24 8:43 PM, Anup Patel wrote:
-> > On Tue, Mar 12, 2024 at 6:31?AM Bo Gan <ganboing@gmail.com> wrote:
-> >>
-> >> On 3/11/24 9:09 AM, Anup Patel wrote:
-> >>> Nested traps will be a common when dealing with RAS error traps so
-> >>> this series improves trap handling for nested traps by introducing
-> >>> a linked-list based trap context chain.
-> >>>
-> >>> These patches can also be found the trap_handling_imp_v1 branch at
-> >>> https://github.com/avpatel/opensbi.git
-> >>>
-> >>> Anup Patel (9):
-> >>>     lib: sbi: Remove sbi_trap_exit() and related code
-> >>>     include: sbi: Add trap_context pointer in struct sbi_scratch
-> >>>     lib: sbi: Introduce trap context
-> >>>     lib: sbi: Simplify parameters of misaligned and access fault handlers
-> >>>     lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
-> >>>     lib: sbi: Remove regs paramter of sbi_irqchip_process()
-> >>>     lib: sbi: Remove regs parameter from trap irq handling functions
-> >>>     lib: sbi: Pass trap context pointer to sbi_ecall_handler()
-> >>>     lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
-> >>>
-> >>>    firmware/fw_base.S             |  14 +--
-> >>>    include/sbi/sbi_ecall.h        |   4 +-
-> >>>    include/sbi/sbi_illegal_insn.h |   4 +-
-> >>>    include/sbi/sbi_irqchip.h      |   5 +-
-> >>>    include/sbi/sbi_scratch.h      |  14 +--
-> >>>    include/sbi/sbi_trap.h         |  24 ++++-
-> >>>    include/sbi/sbi_trap_ldst.h    |  12 +--
-> >>>    lib/sbi/sbi_ecall.c            |   3 +-
-> >>>    lib/sbi/sbi_illegal_insn.c     |  14 +--
-> >>>    lib/sbi/sbi_irqchip.c          |  10 +-
-> >>>    lib/sbi/sbi_trap.c             | 186 +++++++++++++++++----------------
-> >>>    lib/sbi/sbi_trap_ldst.c        |  67 ++++++------
-> >>>    lib/utils/irqchip/imsic.c      |   2 +-
-> >>>    13 files changed, 185 insertions(+), 174 deletions(-)
-> >>>
-> >>
-> >> Hi Anup,
-> >>
-> >> Can you help providing an example for nested traps and the RAS extension?
-> >> The closest spec I can find (https://github.com/riscv/riscv-ssrastraps) is
-> >> still empty. I'm wondering where I can find the related documentation.
+> Hi Anup,
+>
+> On 2024-03-11 11:09 AM, Anup Patel wrote:
+> > The trap irq handling functions no longer require regs parameter
+> > so remove it.
 > >
-> > Refer, "3.1.15. Machine Cause Register" of the draft Priv v1.13 specification.
-> > https://github.com/riscv/riscv-isa-manual/releases/download/riscv-isa-release-157641b-2024-03-12/priv-isa-asciidoc.pdf
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  lib/sbi/sbi_trap.c | 12 ++++++------
+> >  1 file changed, 6 insertions(+), 6 deletions(-)
 > >
-> > Regards,
-> > Anup
+> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> > index e6ef6d1..a50e466 100644
+> > --- a/lib/sbi/sbi_trap.c
+> > +++ b/lib/sbi/sbi_trap.c
+> > @@ -198,9 +198,9 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >       return 0;
+> >  }
 > >
+> > -static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+> > +static int sbi_trap_nonaia_irq(unsigned long mcause)
+> >  {
+> > -     mcause &= ~(1UL << (__riscv_xlen - 1));
+> > +     mcause &= ~BIT(__riscv_xlen - 1);
+> >       switch (mcause) {
+> >       case IRQ_M_TIMER:
+> >               sbi_timer_process();
+> > @@ -217,7 +217,7 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+> >       return 0;
+> >  }
+> >
+> > -static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
+> > +static int sbi_trap_aia_irq(unsigned long mcause)
 >
->
-> Hi Anup, Thanks for the pointer. I know what nested trap is. My concern is when do
-> we expect such trap to happen? Does it mean for every memory access in M mode, it
-> might trigger a RAS fault, causing a nested trap? Or even the fault can be delivered
-> asynchronously?
+> The mcause parameter is not used in this function either.
 
-RAS error can occur at any time. A synchronous RAS errors will be taken
-as an exception (mcause = 19) whereas asynchronous RAS errors will be
-taken as RAS local interrupt or RAS external interrupt (through interrupt
-controller).
-
-Only RAS synchronous errors can cause nested trap.
-
-> If that's the case, how can we even safely handle nested traps? E.g.,
-> The entry of _trap_handler doesn't look like reentrant-safe to me. Perhaps you plan
-> to enhance it in later patches.
->
-
-The _trap_handler pushes the register state on stack. It already takes care
-of nesting by continuing the same SP if the trap was taken while in M-mode.
-
-If _trap_handler() did not support nesting then I would not be able to test
-this series.
-
-Refer, TRAP_SAVE_AND_SETUP_SP_T0() in fw_base.S
+Ahh, yes. I will drop it in the next revision.
 
 Regards,
 Anup
+
+>
+> Regards,
+> Samuel
+>
+> >  {
+> >       int rc;
+> >       unsigned long mtopi;
+> > @@ -291,12 +291,12 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> >       /* Update trap context pointer */
+> >       sbi_trap_set_context(scratch, &tcntx);
+> >
+> > -     if (mcause & (1UL << (__riscv_xlen - 1))) {
+> > +     if (mcause & BIT(__riscv_xlen - 1)) {
+> >               if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+> >                                          SBI_HART_EXT_SMAIA))
+> > -                     rc = sbi_trap_aia_irq(regs, mcause);
+> > +                     rc = sbi_trap_aia_irq(mcause);
+> >               else
+> > -                     rc = sbi_trap_nonaia_irq(regs, mcause);
+> > +                     rc = sbi_trap_nonaia_irq(mcause);
+> >               msg = "unhandled local interrupt";
+> >               goto trap_done;
+> >       }
+>
 
