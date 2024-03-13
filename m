@@ -1,118 +1,104 @@
 From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Wed, 13 Mar 2024 15:01:57 +0000
-Subject: [PATCH 1/2] lib: tests: Move tests to a separate directory
+Date: Wed, 13 Mar 2024 15:01:58 +0000
+Subject: [PATCH 2/2] docs/writing_tests: Update tests paths
 In-Reply-To: <20240313150158.204455-1-ivan.orlov0322@gmail.com>
 References: <20240313150158.204455-1-ivan.orlov0322@gmail.com>
-Message-ID: <20240313150158.204455-2-ivan.orlov0322@gmail.com>
+Message-ID: <20240313150158.204455-3-ivan.orlov0322@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move all of the SBIUnit-related code into the lib/sbi/tests directory.
-Update 'Makefile' to index objects from the tests subdirectory.
-
-I don't think creating the full separate list of Makefile variables
-(libsbitests-objs-path-y, libsbitests-object-mks, etc. as it is done for
-libsbiutils) is necessary for the tests because:
-
-1) `lib/sbi/tests/objects.mk` is already indexed into
-'libsbi-objects-mks' since the find expression for the libsbi-object-mks
-variable looks for objects.mk files in the nested directories as well).
-
-2) Tests are tightly coupled with the `lib/sbi/` sources, therefore it
-may be reasonable to store the list of lib/sbi and lib/sbi/tests object
-files together in the libsbi-objs-path-y variable.
-
-Additionally, update relative paths in the tests where necessary.
+Since the tests should be moved to the lib/sbi/tests directory, the
+documentation should be updated correspondingly. So, update the paths
+where they have to be changed.
 
 Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 ---
- Makefile                                  | 2 ++
- lib/sbi/objects.mk                        | 6 ------
- lib/sbi/sbi_console.c                     | 2 +-
- lib/sbi/tests/objects.mk                  | 6 ++++++
- lib/sbi/{ => tests}/sbi_bitmap_test.c     | 0
- lib/sbi/{ => tests}/sbi_console_test.c    | 0
- lib/sbi/{ => tests}/sbi_unit_test.c       | 0
- lib/sbi/{ => tests}/sbi_unit_tests.carray | 0
- 8 files changed, 9 insertions(+), 7 deletions(-)
- create mode 100644 lib/sbi/tests/objects.mk
- rename lib/sbi/{ => tests}/sbi_bitmap_test.c (100%)
- rename lib/sbi/{ => tests}/sbi_console_test.c (100%)
- rename lib/sbi/{ => tests}/sbi_unit_test.c (100%)
- rename lib/sbi/{ => tests}/sbi_unit_tests.carray (100%)
+ docs/writing_tests.md | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 680c19a..eef321e 100644
---- a/Makefile
-+++ b/Makefile
-@@ -247,6 +247,8 @@ include $(firmware-object-mks)
+diff --git a/docs/writing_tests.md b/docs/writing_tests.md
+index 56d0ca3..816adba 100644
+--- a/docs/writing_tests.md
++++ b/docs/writing_tests.md
+@@ -6,7 +6,7 @@ SBIUnit
+ SBIUnit is a set of macros and functions which simplify the test development and
+ automate the test execution and evaluation. All of the SBIUnit definitions are
+ in the `include/sbi/sbi_unit_test.h` header file, and implementations are
+-available in `lib/sbi/sbi_unit_test.c`.
++available in `lib/sbi/tests/sbi_unit_test.c`.
  
- # Setup list of objects
- libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(build_dir)/lib/sbi/$(obj))
-+# Index unit tests
-+libsbi-objs-path-y+=$(foreach obj,$(libsbitests-objs-y),$(build_dir)/lib/sbi/tests/$(obj))
- ifdef PLATFORM
- libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(platform_build_dir)/lib/utils/$(obj))
- platform-objs-path-y=$(foreach obj,$(platform-objs-y),$(platform_build_dir)/$(obj))
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 2bed7f3..5d06d25 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -11,12 +11,6 @@ libsbi-objs-y += riscv_asm.o
- libsbi-objs-y += riscv_atomic.o
- libsbi-objs-y += riscv_hardfp.o
- libsbi-objs-y += riscv_locks.o
--libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
--libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
--
--libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
--carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
--carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+ Simple SBIUnit test
+ -------------------
+@@ -30,7 +30,7 @@ size_t sbi_strlen(const char *str)
  
- libsbi-objs-y += sbi_ecall.o
- libsbi-objs-y += sbi_ecall_exts.o
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index d1229d0..8d1ad2e 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -490,5 +490,5 @@ int sbi_console_init(struct sbi_scratch *scratch)
- }
+ which calculates the string length.
  
+-Create the file `lib/sbi/sbi_string_test.c` with the following content:
++Create the file `lib/sbi/tests/sbi_string_test.c` with the following content:
+ 
+ ```c
+ #include <sbi/sbi_unit_test.h>
+@@ -50,10 +50,10 @@ static struct sbiunit_test_case string_test_cases[] = {
+ SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
+ ```
+ 
+-Then, add the corresponding Makefile entries to `lib/sbi/objects.mk`:
++Then, add the corresponding Makefile entries to `lib/sbi/tests/objects.mk`:
+ ```lang-makefile
+ ...
+-libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
++libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
+ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+ ```
+ 
+@@ -86,7 +86,7 @@ Now let's try to change this test in the way that it will fail:
+ # Running SBIUNIT tests #
+ ...
+ ## Running test suite: string_test_suite
+-[SBIUnit] [.../opensbi/lib/sbi/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
++[SBIUnit] [.../opensbi/lib/sbi/tests/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
+ [FAILED] strlen_test
+ 0 PASSED / 1 FAILED / 1 TOTAL
+ ```
+@@ -95,17 +95,16 @@ Covering the static functions / using the static definitions
+ 
+ SBIUnit also allows you to test static functions. In order to do so, simply
+ include your test source in the file you would like to test. Complementing the
+-example above, just add this to the
+-`lib/sbi/sbi_string.c` file:
++example above, just add this to the `lib/sbi/sbi_string.c` file:
+ 
+ ```c
  #ifdef CONFIG_SBIUNIT
--#include "sbi_console_test.c"
-+#include "tests/sbi_console_test.c"
+-#include "sbi_string_test.c"
++#include "tests/sbi_string_test.c"
  #endif
-diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
-new file mode 100644
-index 0000000..0397172
---- /dev/null
-+++ b/lib/sbi/tests/objects.mk
-@@ -0,0 +1,6 @@
-+libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
-+libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
-+
-+libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
-diff --git a/lib/sbi/sbi_bitmap_test.c b/lib/sbi/tests/sbi_bitmap_test.c
-similarity index 100%
-rename from lib/sbi/sbi_bitmap_test.c
-rename to lib/sbi/tests/sbi_bitmap_test.c
-diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/tests/sbi_console_test.c
-similarity index 100%
-rename from lib/sbi/sbi_console_test.c
-rename to lib/sbi/tests/sbi_console_test.c
-diff --git a/lib/sbi/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
-similarity index 100%
-rename from lib/sbi/sbi_unit_test.c
-rename to lib/sbi/tests/sbi_unit_test.c
-diff --git a/lib/sbi/sbi_unit_tests.carray b/lib/sbi/tests/sbi_unit_tests.carray
-similarity index 100%
-rename from lib/sbi/sbi_unit_tests.carray
-rename to lib/sbi/tests/sbi_unit_tests.carray
+ ```
+ 
+ In this case you should only add a new carray entry pointing to the test suite
+-to `lib/sbi/objects.mk`:
++to `lib/sbi/tests/objects.mk`:
+ ```lang-makefile
+ ...
+ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+@@ -114,12 +113,12 @@ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+ You don't have to compile the `sbi_string_test.o` separately, because the
+ test code will be included into the `sbi_string` object file.
+ 
+-See example in `lib/sbi/sbi_console_test.c`, where statically declared
++See example in `lib/sbi/tests/sbi_console_test.c`, where statically declared
+ `console_dev` variable is used to mock the `sbi_console_device` structure.
+ 
+ "Mocking" the structures
+ ------------------------
+-See the example of structure "mocking" in the `lib/sbi/sbi_console_test.c`,
++See the example of structure "mocking" in `lib/sbi/tests/sbi_console_test.c`,
+ where the sbi_console_device structure was mocked to be used in various
+ console-related functions in order to test them.
+ 
 -- 
 2.34.1
 
