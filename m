@@ -1,169 +1,183 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue, 12 Mar 2024 12:21:41 -0500
-Subject: [PATCH v2 10/10] lib: sbi: Extend sbi_trap_error() to dump state
- in a nested trap
-In-Reply-To: <20240312102804.1436376-11-apatel@ventanamicro.com>
-References: <20240312102804.1436376-1-apatel@ventanamicro.com>
- <20240312102804.1436376-11-apatel@ventanamicro.com>
-Message-ID: <67baa190-dd59-4709-a392-5c93536f77df@sifive.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 13 Mar 2024 09:48:52 +0800
+Subject: [PATCH] lib: sbi: Remove gva from struct sbi_trap_info
+Message-ID: <20240313015237.761227-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2024-03-12 5:28 AM, Anup Patel wrote:
-> The sbi_trap_error() should dump state of all in-flight traps upon
-> failure in a nested trap so extend it accordingly.
-> 
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
->  lib/sbi/sbi_trap.c | 104 ++++++++++++++++++++++++++-------------------
->  1 file changed, 60 insertions(+), 44 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index 0b35d1a..83598a4 100644
-> --- a/lib/sbi/sbi_trap.c
-> +++ b/lib/sbi/sbi_trap.c
-> @@ -23,54 +23,70 @@
->  #include <sbi/sbi_timer.h>
->  #include <sbi/sbi_trap.h>
->  
-> -static void __noreturn sbi_trap_error(const char *msg, int rc,
-> -				      const struct sbi_trap_info *trap,
-> -				      const struct sbi_trap_regs *regs)
-> +static void sbi_trap_error_one(struct sbi_trap_context *tcntx,
-> +			       const char *prefix, u32 hartid, u32 depth)
->  {
-> -	u32 hartid = current_hartid();
-> +	const struct sbi_trap_info *trap = &tcntx->trap;
-> +	struct sbi_trap_regs *regs = &tcntx->regs;
+gva is only used in sbi_trap_redirect and can be calculated from
+sbi_trap_regs through sbi_regs_gva.
 
-It looks like you are constifying these where possible; the whole tcntx can be
-const here and in sbi_trap_error().
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+This patch base on
+"[PATCH v2 00/10] Improve trap handling for nested traps"
 
->  
-> -	sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
-> -	sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
-> -		   __func__, hartid, trap->cause, trap->tval);
-> +	sbi_printf("\n");
-> +	sbi_printf("%s: hart%d: trap%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
-> +		   prefix, hartid, depth, trap->cause, trap->tval);
->  	if (misa_extension('H')) {
-> -		sbi_printf("%s: hart%d: mtval2=0x%" PRILX
-> +		sbi_printf("%s: hart%d: trap%d: mtval2=0x%" PRILX
->  			   " mtinst=0x%" PRILX "\n",
-> -			   __func__, hartid, trap->tval2, trap->tinst);
-> +			   prefix, hartid, depth, trap->tval2, trap->tinst);
->  	}
-> -	sbi_printf("%s: hart%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
-> -		   __func__, hartid, regs->mepc, regs->mstatus);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "ra", regs->ra, "sp", regs->sp);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "gp", regs->gp, "tp", regs->tp);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "s0", regs->s0, "s1", regs->s1);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "a0", regs->a0, "a1", regs->a1);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "a2", regs->a2, "a3", regs->a3);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "a4", regs->a4, "a5", regs->a5);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "a6", regs->a6, "a7", regs->a7);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "s2", regs->s2, "s3", regs->s3);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "s4", regs->s4, "s5", regs->s5);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "s6", regs->s6, "s7", regs->s7);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "s8", regs->s8, "s9", regs->s9);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "s10", regs->s10, "s11", regs->s11);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "t0", regs->t0, "t1", regs->t1);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "t2", regs->t2, "t3", regs->t3);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
-> -		   hartid, "t4", regs->t4, "t5", regs->t5);
-> -	sbi_printf("%s: hart%d: %s=0x%" PRILX "\n", __func__, hartid, "t6",
-> -		   regs->t6);
-> +	sbi_printf("%s: hart%d: trap%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
-> +		   prefix, hartid, depth, regs->mepc, regs->mstatus);
+ firmware/fw_base.S          | 19 +++----------------
+ include/sbi/sbi_trap.h      |  6 +-----
+ lib/sbi/sbi_expected_trap.S | 17 ++---------------
+ lib/sbi/sbi_illegal_insn.c  |  1 -
+ lib/sbi/sbi_trap.c          |  2 +-
+ 5 files changed, 7 insertions(+), 38 deletions(-)
 
-All of the CSR printf lines should use the same format string as the GPRs below.
-This saves 120 bytes of .rodata at the cost of 32 bytes of .text.
-
-For the series:
-
-Tested-by: Samuel Holland <samuel.holland@sifive.com>
-
-including by sticking an ebreak in the middle of the load/store emulation code.
-
-Regards,
-Samuel
-
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "ra", regs->ra, "sp", regs->sp);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "gp", regs->gp, "tp", regs->tp);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "s0", regs->s0, "s1", regs->s1);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "a0", regs->a0, "a1", regs->a1);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "a2", regs->a2, "a3", regs->a3);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "a4", regs->a4, "a5", regs->a5);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "a6", regs->a6, "a7", regs->a7);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "s2", regs->s2, "s3", regs->s3);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "s4", regs->s4, "s5", regs->s5);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "s6", regs->s6, "s7", regs->s7);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "s8", regs->s8, "s9", regs->s9);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "s10", regs->s10, "s11", regs->s11);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "t0", regs->t0, "t1", regs->t1);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "t2", regs->t2, "t3", regs->t3);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "t4", regs->t4, "t5", regs->t5);
-> +	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX "\n", prefix,
-> +		   hartid, depth, "t6", regs->t6);
-> +}
-> +
-> +static void __noreturn sbi_trap_error(const char *msg, int rc,
-> +				      struct sbi_trap_context *tcntx)
-> +{
-> +	u32 depth = 0, hartid = current_hartid();
-> +	struct sbi_trap_context *tc;
-> +
-> +	for (tc = tcntx; tc; tc = tc->prev_context)
-> +		depth++;
-> +
-> +	sbi_printf("\n");
-> +	sbi_printf("%s: hart%d: trap%d: %s (error %d)\n", __func__,
-> +		   hartid, depth - 1, msg, rc);
-> +	for (tc = tcntx; tc; tc = tc->prev_context)
-> +		sbi_trap_error_one(tc, __func__, hartid, --depth);
->  
->  	sbi_hart_hang();
->  }
-> @@ -321,7 +337,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
->  
->  trap_done:
->  	if (rc)
-> -		sbi_trap_error(msg, rc, trap, regs);
-> +		sbi_trap_error(msg, rc, tcntx);
->  	sbi_trap_set_context(scratch, tcntx->prev_context);
->  	return tcntx;
->  }
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 967cca5..7e172ad 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -625,7 +625,7 @@ memcmp:
+ 	REG_S	t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
+ .endm
+ 
+-.macro	TRAP_SAVE_INFO have_mstatush have_h_extension
++.macro	TRAP_SAVE_INFO have_h_extension
+ 	csrr	t0, CSR_MCAUSE
+ 	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(cause))(sp)
+ 	csrr	t0, CSR_MTVAL
+@@ -635,20 +635,11 @@ memcmp:
+ 	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
+ 	csrr	t0, CSR_MTINST
+ 	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
+-	.if \have_mstatush
+-	csrr	t0, CSR_MSTATUSH
+-	srli	t0, t0, MSTATUSH_GVA_SHIFT
+-	.else
+-	csrr	t0, CSR_MSTATUS
+-	srli	t0, t0, MSTATUS_GVA_SHIFT
+-	.endif
+-	and	t0, t0, 0x1
+ .else
+ 	REG_S	zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
+ 	REG_S	zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
+ 	add	t0, zero, zero
+ .endif
+-	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
+ .endm
+ 
+ .macro	TRAP_CALL_C_ROUTINE
+@@ -720,7 +711,7 @@ _trap_handler:
+ 
+ 	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+ 
+-	TRAP_SAVE_INFO 0 0
++	TRAP_SAVE_INFO 0
+ 
+ 	TRAP_CALL_C_ROUTINE
+ 
+@@ -746,11 +737,7 @@ _trap_handler_hyp:
+ 
+ 	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+ 
+-#if __riscv_xlen == 32
+-	TRAP_SAVE_INFO 1 1
+-#else
+-	TRAP_SAVE_INFO 0 1
+-#endif
++	TRAP_SAVE_INFO 1
+ 
+ 	TRAP_CALL_C_ROUTINE
+ 
+diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+index f7c170e..ff475ca 100644
+--- a/include/sbi/sbi_trap.h
++++ b/include/sbi/sbi_trap.h
+@@ -95,10 +95,8 @@
+ #define SBI_TRAP_INFO_tval2			2
+ /** Index of tinst member in sbi_trap_info */
+ #define SBI_TRAP_INFO_tinst			3
+-/** Index of gva member in sbi_trap_info */
+-#define SBI_TRAP_INFO_gva			4
+ /** Last member index in sbi_trap_info */
+-#define SBI_TRAP_INFO_last			5
++#define SBI_TRAP_INFO_last			4
+ 
+ /* clang-format on */
+ 
+@@ -206,8 +204,6 @@ struct sbi_trap_info {
+ 	unsigned long tval2;
+ 	/** tinst Trap instruction */
+ 	unsigned long tinst;
+-	/** gva Guest virtual address in tval flag */
+-	unsigned long gva;
+ };
+ 
+ /** Representation of trap context saved on stack */
+diff --git a/lib/sbi/sbi_expected_trap.S b/lib/sbi/sbi_expected_trap.S
+index 99dede5..6823c46 100644
+--- a/lib/sbi/sbi_expected_trap.S
++++ b/lib/sbi/sbi_expected_trap.S
+@@ -22,14 +22,13 @@
+ 	.align 3
+ 	.global __sbi_expected_trap
+ __sbi_expected_trap:
+-	/* Without H-extension so, MTVAL2 and MTINST CSRs and GVA not available */
++	/* Without H-extension so, MTVAL2 and MTINST CSRs not available */
+ 	csrr	a4, CSR_MCAUSE
+ 	REG_S	a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
+ 	csrr	a4, CSR_MTVAL
+ 	REG_S	a4, SBI_TRAP_INFO_OFFSET(tval)(a3)
+ 	REG_S	zero, SBI_TRAP_INFO_OFFSET(tval2)(a3)
+ 	REG_S	zero, SBI_TRAP_INFO_OFFSET(tinst)(a3)
+-	REG_S	zero, SBI_TRAP_INFO_OFFSET(gva)(a3)
+ 	csrr	a4, CSR_MEPC
+ 	addi	a4, a4, 4
+ 	csrw	CSR_MEPC, a4
+@@ -38,7 +37,7 @@ __sbi_expected_trap:
+ 	.align 3
+ 	.global __sbi_expected_trap_hext
+ __sbi_expected_trap_hext:
+-	/* With H-extension so, MTVAL2 and MTINST CSRs and GVA available */
++	/* With H-extension so, MTVAL2 and MTINST CSRs available */
+ 	csrr	a4, CSR_MCAUSE
+ 	REG_S	a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
+ 	csrr	a4, CSR_MTVAL
+@@ -47,18 +46,6 @@ __sbi_expected_trap_hext:
+ 	REG_S	a4, SBI_TRAP_INFO_OFFSET(tval2)(a3)
+ 	csrr	a4, CSR_MTINST
+ 	REG_S	a4, SBI_TRAP_INFO_OFFSET(tinst)(a3)
+-
+-	/* Extract GVA bit from MSTATUS or MSTATUSH */
+-#if __riscv_xlen == 32
+-	csrr	a4, CSR_MSTATUSH
+-	srli	a4, a4, MSTATUSH_GVA_SHIFT
+-#else
+-	csrr	a4, CSR_MSTATUS
+-	srli	a4, a4, MSTATUS_GVA_SHIFT
+-#endif
+-	andi	a4, a4, 1
+-	REG_S	a4, SBI_TRAP_INFO_OFFSET(gva)(a3)
+-
+ 	csrr	a4, CSR_MEPC
+ 	addi	a4, a4, 4
+ 	csrw	CSR_MEPC, a4
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index 29c5d74..e912234 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -29,7 +29,6 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
+ 	trap.tval = insn;
+ 	trap.tval2 = 0;
+ 	trap.tinst = 0;
+-	trap.gva   = 0;
+ 
+ 	return sbi_trap_redirect(regs, &trap);
+ }
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index 83598a4..01077f2 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -146,7 +146,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+ 		hstatus &= ~HSTATUS_SPV;
+ 		hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
+ 		hstatus &= ~HSTATUS_GVA;
+-		hstatus |= (trap->gva) ? HSTATUS_GVA : 0;
++		hstatus |= sbi_regs_gva(regs) ? HSTATUS_GVA : 0;
+ 		csr_write(CSR_HSTATUS, hstatus);
+ 		csr_write(CSR_HTVAL, trap->tval2);
+ 		csr_write(CSR_HTINST, trap->tinst);
+-- 
+2.43.0
 
 
