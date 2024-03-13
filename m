@@ -1,11 +1,11 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Wed, 13 Mar 2024 14:47:31 +0100
-Subject: [PATCH v2 09/10] lib: sbi: Pass trap context pointer to
- sbi_ecall_handler()
-In-Reply-To: <20240312102804.1436376-10-apatel@ventanamicro.com>
+Date: Wed, 13 Mar 2024 14:51:22 +0100
+Subject: [PATCH v2 08/10] lib: sbi: Remove regs parameter from trap irq
+ handling functions
+In-Reply-To: <20240312102804.1436376-9-apatel@ventanamicro.com>
 References: <20240312102804.1436376-1-apatel@ventanamicro.com>
- <20240312102804.1436376-10-apatel@ventanamicro.com>
-Message-ID: <ae2f7a90-c560-423a-9826-15d045b365ba@rivosinc.com>
+ <20240312102804.1436376-9-apatel@ventanamicro.com>
+Message-ID: <e26eb846-f252-4671-ab94-01e8557d8aa7@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,71 +15,64 @@ Content-Transfer-Encoding: 7bit
 
 
 On 12/03/2024 11:28, Anup Patel wrote:
-> To be consistent with other trap handlers, pass trap context pointer
-> to sbi_ecall_handler().
+> The trap irq handling functions no longer require regs parameter
+> so remove it.
 > 
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
->  include/sbi/sbi_ecall.h | 4 ++--
->  lib/sbi/sbi_ecall.c     | 3 ++-
->  lib/sbi/sbi_trap.c      | 2 +-
->  3 files changed, 5 insertions(+), 4 deletions(-)
+>  lib/sbi/sbi_trap.c | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
 > 
-> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-> index 0bf42d1..0b35eff 100644
-> --- a/include/sbi/sbi_ecall.h
-> +++ b/include/sbi/sbi_ecall.h
-> @@ -18,7 +18,7 @@
->  #define SBI_OPENSBI_IMPID		1
->  
->  struct sbi_trap_regs;
-> -struct sbi_trap_info;
-> +struct sbi_trap_context;
->  
->  struct sbi_ecall_return {
->  	/* Return flag to skip register update */
-> @@ -87,7 +87,7 @@ int sbi_ecall_register_extension(struct sbi_ecall_extension *ext);
->  
->  void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext);
->  
-> -int sbi_ecall_handler(struct sbi_trap_regs *regs);
-> +int sbi_ecall_handler(struct sbi_trap_context *tcntx);
->  
->  int sbi_ecall_init(void);
->  
-> diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-> index 631c5dd..d4fc58c 100644
-> --- a/lib/sbi/sbi_ecall.c
-> +++ b/lib/sbi/sbi_ecall.c
-> @@ -95,9 +95,10 @@ void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext)
->  		sbi_list_del_init(&ext->head);
->  }
->  
-> -int sbi_ecall_handler(struct sbi_trap_regs *regs)
-> +int sbi_ecall_handler(struct sbi_trap_context *tcntx)
->  {
->  	int ret = 0;
-> +	struct sbi_trap_regs *regs = &tcntx->regs;
->  	struct sbi_ecall_extension *ext;
->  	unsigned long extension_id = regs->a7;
->  	unsigned long func_id = regs->a6;
 > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index ebf454d..0b35d1a 100644
+> index 72b1788..ebf454d 100644
 > --- a/lib/sbi/sbi_trap.c
 > +++ b/lib/sbi/sbi_trap.c
-> @@ -299,7 +299,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+> @@ -198,10 +198,9 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+>  	return 0;
+>  }
+>  
+> -static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+> +static int sbi_trap_nonaia_irq(unsigned long irq)
+>  {
+> -	mcause &= ~(1UL << (__riscv_xlen - 1));
+> -	switch (mcause) {
+> +	switch (irq) {
+>  	case IRQ_M_TIMER:
+>  		sbi_timer_process();
 >  		break;
->  	case CAUSE_SUPERVISOR_ECALL:
->  	case CAUSE_MACHINE_ECALL:
-> -		rc  = sbi_ecall_handler(regs);
-> +		rc  = sbi_ecall_handler(tcntx);
->  		msg = "ecall handler failed";
->  		break;
->  	case CAUSE_LOAD_ACCESS:
+> @@ -217,7 +216,7 @@ static int sbi_trap_nonaia_irq(struct sbi_trap_regs *regs, ulong mcause)
+>  	return 0;
+>  }
+>  
+> -static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
+> +static int sbi_trap_aia_irq(void)
+>  {
+>  	int rc;
+>  	unsigned long mtopi;
+> @@ -273,12 +272,12 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+>  	tcntx->prev_context = sbi_trap_get_context(scratch);
+>  	sbi_trap_set_context(scratch, tcntx);
+>  
+> -	if (mcause & (1UL << (__riscv_xlen - 1))) {
+> +	if (mcause & BIT(__riscv_xlen - 1)) {
 
-Reviewed-by: Cl?ment L?ger <cleger@rivosinc.com>
+Hi Anup,
+
+You could probably add a define for BIT(__riscv_xlen - 1) such as
+MCAUSE_IRQ_MASK.
 
 Thanks,
 
 Cl?ment
+
+>  		if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+>  					   SBI_HART_EXT_SMAIA))
+> -			rc = sbi_trap_aia_irq(regs, mcause);
+> +			rc = sbi_trap_aia_irq();
+>  		else
+> -			rc = sbi_trap_nonaia_irq(regs, mcause);
+> +			rc = sbi_trap_nonaia_irq(mcause & ~BIT(__riscv_xlen - 1));
+>  		msg = "unhandled local interrupt";
+>  		goto trap_done;
+>  	}
 
