@@ -1,147 +1,117 @@
-From: Vivian Wang <dramforever@live.com>
-Date: Sat, 16 Mar 2024 01:36:40 +0800
-Subject: [RFC PATCH 2/2] firmware: Add support for Linux kernel image header
+From: Bo Gan <ganboing@gmail.com>
+Date: Fri, 15 Mar 2024 17:28:20 -0700
+Subject: [RFC PATCH 0/2] Add support for Linux kernel image header
 In-Reply-To: <TYYP286MB1439244707DDDB3B2734D67AC6282@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
 References: <TYYP286MB1439244707DDDB3B2734D67AC6282@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <TYYP286MB1439018D4870E37EC35172A3C6282@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
+Message-ID: <1bd8a789-2eae-a3ae-935f-190937f8e51f@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The firmwares fw_payload and fw_jump support the same entrypoint ABI as
-M-mode Linux. To support booting theses firmware images from bootloaders
-already supporting M-mode Linux, add a compatible header to the firmware
-image.
+On 3/15/24 10:34 AM, Vivian Wang wrote:
+> It is very convenient to use M-mode U-Boot during development to load M-mode
+> software for testing. This series makes it easy to load OpenSBI and an S-mode
+> operating system while passing it an initramfs, an FDT, and a command line from
+> U-Boot with the existing "booti" command. Any other bootloader supporting
+> M-mode Linux should work analogously.
+> 
+> To achieve this, a header compatible with that of Linux is added at the
+> beginning of fw_payload and fw_jump. Since the header starts with a jump to the
+> actual start of code, this is not a problem if no such bootloader is used. A
+> config option is also added so users can opt out of this header.
+> 
 
-The header starts with a jump to skip to the actual code, so including
-it does not affect operation without a bootloader.
+It looks like this patch is specifically tailored for the "booti" command, because
+it expects a Linux header to load. I don't think this is necessary and openSBI
+should not care about or carry OS level stuff. Instead of "faking" openSBI as a
+Linux Image, why not use the more flexible FIT image in U-Boot, where you can
+specify all needed pieces, openSBI, Linux, initrd, dtb and so on, then do "bootm"?
 
-Signed-off-by: Vivian Wang <dramforever@live.com>
----
- firmware/Kconfig                   | 17 +++++++++++++++
- firmware/fw_base.ldS               |  5 +++++
- firmware/fw_header_linux.S         | 34 ++++++++++++++++++++++++++++++
- firmware/fw_jump.S                 |  1 +
- firmware/fw_payload.S              |  1 +
- platform/generic/configs/defconfig |  1 +
- 6 files changed, 59 insertions(+)
- create mode 100644 firmware/fw_header_linux.S
+> Patch 1 makes the byteorder macros available in assembly code so that patch 2
+> can use them.
+> 
+> To test this, you will need:
+> 
+> - QEMU (qemu-system-riscv64), tested with 8.1.3
+> - M-mode U-Boot with config qemu-riscv64_defconfig (u-boot.bin), tested with
+>    version 2023.07.02
+> - Linux for riscv64 (Image)
+> - An initramfs image for testing (init.cpio)
+> 
+> Some assumptions are made about the memory layout used by QEMU.
+> 
+> Build OpenSBI:
+> 
+>    make PLATFORM=generic FW_PAYLOAD_PATH=Image
+> 
+> Firstly, test that the firmware images still work as before:
+> 
+>    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
+>      -bios fw_payload.bin
+> 
+> This one should eventually panic at "VFS: Unable to mount root fs on
+> unknown-block(0,0)" because it does not have an initramfs.
+> 
+>    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
+>      -bios fw_jump.bin \
+>      -kernel Image \
+>      -initrd init.cpio \
+>      -append "earlycon"
+> 
+> This one should work just fine.
+> 
+> Then, test that the firmwares are now loadable by U-Boot:
+> 
+>    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
+>      -bios u-boot.bin \
+>      -device loader,addr=0x90000000,file=fw_payload.bin \
+>      -device loader,addr=0xa0000000,file=init.cpio
+> 
+>    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
+>      -bios u-boot.bin \
+>      -device loader,addr=0x80200000,file=Image \
+>      -device loader,addr=0x90000000,file=fw_jump.bin \
+>      -device loader,addr=0xa0000000,file=init.cpio
+> 
+> Run these command in U-Boot, making changes as needed:
+> 
+>    => fdt addr -c
+>    Control fdt: bf730af0
+> 
+>    => # Change source address to match control fdt
+>    => fdt move bf730af0 b0000000
+>    Working FDT set to b0000000
+> 
+>    => setenv bootargs "earlycon"
+> 
+>    => # Change initramfs size to match actual size
+>    => booti 0x90000000 0xa0000000:0x12d400 0xb0000000
+> 
+> Once in Linux:
+> 
+>    $ cat /proc/cmdline # Check that the kernel command line is correct
+>    $ cat /proc/cpuinfo # Check that SMP boot works
+> 
+> Vivian Wang (2):
+>    include: sbi: Support byteorder macros in assembly
+>    firmware: Add support for Linux kernel image header
+> 
+>   firmware/Kconfig                   | 17 +++++++++
+>   firmware/fw_base.ldS               |  5 +++
+>   firmware/fw_header_linux.S         | 34 ++++++++++++++++++
+>   firmware/fw_jump.S                 |  1 +
+>   firmware/fw_payload.S              |  1 +
+>   include/sbi/sbi_byteorder.h        | 55 ++++++++++++++++--------------
+>   platform/generic/configs/defconfig |  1 +
+>   7 files changed, 89 insertions(+), 25 deletions(-)
+>   create mode 100644 firmware/fw_header_linux.S
+> 
+> --
+> 2.42.0
+> 
+> 
 
-diff --git a/firmware/Kconfig b/firmware/Kconfig
-index d6e0506..50ec340 100644
---- a/firmware/Kconfig
-+++ b/firmware/Kconfig
-@@ -1 +1,18 @@
- # SPDX-License-Identifier: BSD-2-Clause
-+
-+menu "Firmware Configuration"
-+
-+choice FW_HEADER
-+	bool "Include Firmware Header"
-+	optional
-+
-+config FW_HEADER_LINUX
-+	bool "Linux Kernel Image"
-+	help
-+	  Compatibility with Linux kernel image header, for fw_jump and fw_payload
-+
-+	  See: https://www.kernel.org/doc/html/v6.8/arch/riscv/boot-image-header.html
-+
-+endchoice
-+
-+endmenu
-diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-index fb47984..6a3b21b 100644
---- a/firmware/fw_base.ldS
-+++ b/firmware/fw_base.ldS
-@@ -15,6 +15,11 @@
- 
- 	/* Beginning of the code section */
- 
-+	.header :
-+	{
-+		*(.header)
-+	}
-+
- 	.text :
-  	{
- 		PROVIDE(_text_start = .);
-diff --git a/firmware/fw_header_linux.S b/firmware/fw_header_linux.S
-new file mode 100644
-index 0000000..fbd0cf9
---- /dev/null
-+++ b/firmware/fw_header_linux.S
-@@ -0,0 +1,34 @@
-+/* SPDX-License-Identifier: BSD-2-Clause */
-+
-+#include <sbi/sbi_byteorder.h>
-+
-+#ifdef CONFIG_FW_HEADER_LINUX
-+
-+	/*
-+	 * Compatibility with Linux kernel image header, for fw_jump and fw_payload
-+	 *
-+	 * See: https://www.kernel.org/doc/html/v6.8/arch/riscv/boot-image-header.html
-+	 */
-+
-+	.section .header, "a", %progbits
-+
-+	/* 8 bytes at beginning reserved for code */
-+	j _start
-+	.align 3
-+
-+	/* We want to be loaded at start of RAM, so text_offset is 0 */
-+	.dword 0					/* text_offset */
-+	.dword cpu_to_le64(_fw_reloc_end - _fw_start)	/* image_size */
-+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-+	.dword 0					/* flags: Not big-endian */
-+#else
-+	.dword 1					/* flags: Big-endian */
-+#endif
-+	.word cpu_to_le16(0x0002)			/* version (0.2) */
-+	.word 0						/* res1 */
-+	.dword 0					/* res2 */
-+	.ascii "RISCV\0\0\0"				/* magic */
-+	.ascii "RSC\x05"				/* magic2 */
-+	.word 0						/* res3 */
-+
-+#endif /* CONFIG_FW_HEADER_LINUX */
-diff --git a/firmware/fw_jump.S b/firmware/fw_jump.S
-index ebf297f..9b2ddda 100644
---- a/firmware/fw_jump.S
-+++ b/firmware/fw_jump.S
-@@ -8,6 +8,7 @@
-  */
- 
- #include "fw_base.S"
-+#include "fw_header_linux.S"
- 
- 	.section .entry, "ax", %progbits
- 	.align 3
-diff --git a/firmware/fw_payload.S b/firmware/fw_payload.S
-index 3c8433e..e324f6d 100644
---- a/firmware/fw_payload.S
-+++ b/firmware/fw_payload.S
-@@ -8,6 +8,7 @@
-  */
- 
- #include "fw_base.S"
-+#include "fw_header_linux.S"
- 
- 	.section .entry, "ax", %progbits
- 	.align 3
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 1ce6a12..4f7217b 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -42,3 +42,4 @@ CONFIG_SERIAL_SEMIHOSTING=y
- CONFIG_FDT_TIMER=y
- CONFIG_FDT_TIMER_MTIMER=y
- CONFIG_FDT_TIMER_PLMT=y
-+CONFIG_FW_HEADER_LINUX=y
--- 
-2.42.0
-
+Bo
 
