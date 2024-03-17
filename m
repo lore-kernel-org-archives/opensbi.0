@@ -1,357 +1,109 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 17 Mar 2024 16:53:31 +0530
-Subject: [PATCH v2 04/10] lib: sbi: Introduce trap context
-In-Reply-To: <ea9d8d87b4530c486c187a1fdc1d20964da42869.camel@126.com>
+Date: Sun, 17 Mar 2024 16:58:25 +0530
+Subject: [PATCH v2 06/10] lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
+In-Reply-To: <a731a7b8-97b5-4345-a36a-e4114c820f66@rivosinc.com>
 References: <20240312102804.1436376-1-apatel@ventanamicro.com>
- <20240312102804.1436376-5-apatel@ventanamicro.com> <ea9d8d87b4530c486c187a1fdc1d20964da42869.camel@126.com>
-Message-ID: <CAAhSdy3J4j1C66X1+2x3xiuiBHyMTD0MGKs3nj6B2K5jQvEOUA@mail.gmail.com>
+ <20240312102804.1436376-7-apatel@ventanamicro.com> <a731a7b8-97b5-4345-a36a-e4114c820f66@rivosinc.com>
+Message-ID: <CAAhSdy2z7jqnw1gQgwOZAKDSs6jTE_gqQfjtxtYWxD9rwVKHOw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 13, 2024 at 10:28?AM Xiang W <wxjstz@126.com> wrote:
+On Wed, Mar 13, 2024 at 7:12?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> ? 2024-03-12???? 15:57 +0530?Anup Patel???
-> > Club the struct sbi_trap_regs and struct sbi_trap_info a new
-> > struct sbi_trap_context (aka trap context) which must be saved
-> > by low-level trap handler before calling sbi_trap_handler().
-> >
-> > To track nested traps, the struct sbi_scratch points to the current
-> > trap context and the trap context has pointer to pervious context
-> > of previous trap.
+>
+>
+> On 12/03/2024 11:28, Anup Patel wrote:
+> > The struct sbi_trap_context already has the information needed by
+> > sbi_illegal_insn_handler() so directly pass struct sbi_trap_context
+> > pointer to this function.
 > >
 > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > > ---
-> >  firmware/fw_base.S     | 62 ++++++++++++++++++++++++++++++++++--------
-> >  include/sbi/sbi_trap.h | 29 +++++++++++++++++++-
-> >  lib/sbi/sbi_trap.c     | 58 +++++++++++++++++----------------------
-> >  3 files changed, 103 insertions(+), 46 deletions(-)
+> >  include/sbi/sbi_illegal_insn.h |  4 ++--
+> >  lib/sbi/sbi_illegal_insn.c     | 14 +++++++-------
+> >  lib/sbi/sbi_trap.c             |  2 +-
+> >  3 files changed, 10 insertions(+), 10 deletions(-)
 > >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> > index 539fd1d..967cca5 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -446,14 +446,12 @@ _start_warm:
-> >
-> >       /* Setup trap handler */
-> >       lla     a4, _trap_handler
-> > -#if __riscv_xlen == 32
-> >       csrr    a5, CSR_MISA
-> >       srli    a5, a5, ('H' - 'A')
-> >       andi    a5, a5, 0x1
-> > -     beq     a5, zero, _skip_trap_handler_rv32_hyp
-> > -     lla     a4, _trap_handler_rv32_hyp
-> > -_skip_trap_handler_rv32_hyp:
-> > -#endif
-> > +     beq     a5, zero, _skip_trap_handler_hyp
-> > +     lla     a4, _trap_handler_hyp
-> > +_skip_trap_handler_hyp:
-> >       csrw    CSR_MTVEC, a4
-> >
-> >       /* Initialize SBI runtime */
-> > @@ -564,10 +562,10 @@ memcmp:
-> >       xor     t0, tp, t0
-> >
-> >       /* Save original SP on exception stack */
-> > -     REG_S   sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_REGS_SIZE)(t0)
-> > +     REG_S   sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_CONTEXT_SIZE)(t0)
-> >
-> > -     /* Set SP to exception stack and make room for trap registers */
-> > -     add     sp, t0, -(SBI_TRAP_REGS_SIZE)
-> > +     /* Set SP to exception stack and make room for trap context */
-> > +     add     sp, t0, -(SBI_TRAP_CONTEXT_SIZE)
-> >
-> >       /* Restore T0 from scratch space */
-> >       REG_L   t0, SBI_SCRATCH_TMP0_OFFSET(tp)
-> > @@ -627,6 +625,32 @@ memcmp:
-> >       REG_S   t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
-> >  .endm
-> >
-> > +.macro       TRAP_SAVE_INFO have_mstatush have_h_extension
-> > +     csrr    t0, CSR_MCAUSE
-> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(cause))(sp)
-> > +     csrr    t0, CSR_MTVAL
-> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval))(sp)
-> > +.if \have_h_extension
-> > +     csrr    t0, CSR_MTVAL2
-> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
-> > +     csrr    t0, CSR_MTINST
-> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
-> > +     .if \have_mstatush
-> > +     csrr    t0, CSR_MSTATUSH
-> > +     srli    t0, t0, MSTATUSH_GVA_SHIFT
-> > +     .else
-> > +     csrr    t0, CSR_MSTATUS
-> > +     srli    t0, t0, MSTATUS_GVA_SHIFT
-> > +     .endif
-> > +     and     t0, t0, 0x1
-> > +.else
-> > +     REG_S   zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
-> > +     REG_S   zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
-> > +     add     t0, zero, zero
-> > +.endif
-> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
-> > +.endm
-> > +
-> >  .macro       TRAP_CALL_C_ROUTINE
-> >       /* Call C routine */
-> >       add     a0, sp, zero
-> > @@ -696,6 +720,8 @@ _trap_handler:
-> >
-> >       TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
-> >
-> > +     TRAP_SAVE_INFO 0 0
-> > +
-> >       TRAP_CALL_C_ROUTINE
-> >
-> >       TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-> > @@ -706,27 +732,39 @@ _trap_handler:
-> >
-> >       mret
-> >
-> > -#if __riscv_xlen == 32
-> >       .section .entry, "ax", %progbits
-> >       .align 3
-> > -     .globl _trap_handler_rv32_hyp
-> > -_trap_handler_rv32_hyp:
-> > +     .globl _trap_handler_hyp
-> > +_trap_handler_hyp:
-> >       TRAP_SAVE_AND_SETUP_SP_T0
-> >
-> > +#if __riscv_xlen == 32
-> >       TRAP_SAVE_MEPC_MSTATUS 1
-> > +#else
-> > +     TRAP_SAVE_MEPC_MSTATUS 0
-> > +#endif
-> >
-> >       TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
-> >
-> > +#if __riscv_xlen == 32
-> > +     TRAP_SAVE_INFO 1 1
-> > +#else
-> > +     TRAP_SAVE_INFO 0 1
-> > +#endif
-> > +
-> >       TRAP_CALL_C_ROUTINE
-> >
-> >       TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-> >
-> > +#if __riscv_xlen == 32
-> >       TRAP_RESTORE_MEPC_MSTATUS 1
-> > +#else
-> > +     TRAP_RESTORE_MEPC_MSTATUS 0
-> > +#endif
-> >
-> >       TRAP_RESTORE_A0_T0
-> >
-> >       mret
-> > -#endif
-> >
-> >       .section .entry, "ax", %progbits
-> >       .align 3
-> > diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-> > index a6032ab..f7c170e 100644
-> > --- a/include/sbi/sbi_trap.h
-> > +++ b/include/sbi/sbi_trap.h
-> > @@ -112,9 +112,15 @@
-> >  /** Size (in bytes) of sbi_trap_info */
-> >  #define SBI_TRAP_INFO_SIZE SBI_TRAP_INFO_OFFSET(last)
-> >
-> > +/** Size (in bytes) of sbi_trap_context */
-> > +#define SBI_TRAP_CONTEXT_SIZE (SBI_TRAP_REGS_SIZE + \
-> > +                            SBI_TRAP_INFO_SIZE + \
-> > +                            __SIZEOF_POINTER__)
-> > +
-> >  #ifndef __ASSEMBLER__
+> > diff --git a/include/sbi/sbi_illegal_insn.h b/include/sbi/sbi_illegal_insn.h
+> > index 0397935..7be72ac 100644
+> > --- a/include/sbi/sbi_illegal_insn.h
+> > +++ b/include/sbi/sbi_illegal_insn.h
+> > @@ -12,8 +12,8 @@
 > >
 > >  #include <sbi/sbi_types.h>
-> > +#include <sbi/sbi_scratch.h>
 > >
-> >  /** Representation of register state at time of trap/interrupt */
-> >  struct sbi_trap_regs {
-> > @@ -204,6 +210,16 @@ struct sbi_trap_info {
-> >       unsigned long gva;
-> >  };
+> > -struct sbi_trap_regs;
+> > +struct sbi_trap_context;
 > >
-> > +/** Representation of trap context saved on stack */
-> > +struct sbi_trap_context {
-> > +     /** Register state */
-> > +     struct sbi_trap_regs regs;
-> > +     /** Trap details */
-> > +     struct sbi_trap_info trap;
-> > +     /** Pointer to previous trap context */
-> > +     struct sbi_trap_context *prev_context;
-> > +};
-> > +
-> >  static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
-> >  {
-> >       /*
-> > @@ -223,7 +239,18 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
-> >  int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >                     const struct sbi_trap_info *trap);
-> >
-> > -struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
-> > +static inline struct sbi_trap_context *sbi_trap_get_context(struct sbi_scratch *scratch)
-> > +{
-> > +     return (scratch) ? (void *)scratch->trap_context : NULL;
-> > +}
-> > +
-> > +static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
-> > +                                     struct sbi_trap_context *tcntx)
-> > +{
-> > +     scratch->trap_context = (unsigned long)tcntx;
-> > +}
-> > +
-> > +struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx);
+> > -int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs);
+> > +int sbi_illegal_insn_handler(struct sbi_trap_context *tcntx);
 > >
 > >  #endif
+> > diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+> > index dd0b3c1..29c5d74 100644
+> > --- a/lib/sbi/sbi_illegal_insn.c
+> > +++ b/lib/sbi/sbi_illegal_insn.c
+> > @@ -136,8 +136,9 @@ static const illegal_insn_func illegal_insn_table[32] = {
+> >       truly_illegal_insn  /* 31 */
+> >  };
 > >
-> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> > index b059c4b..4dbda06 100644
-> > --- a/lib/sbi/sbi_trap.c
-> > +++ b/lib/sbi/sbi_trap.c
-> > @@ -24,18 +24,18 @@
-> >  #include <sbi/sbi_trap.h>
-> >
-> >  static void __noreturn sbi_trap_error(const char *msg, int rc,
-> > -                                   ulong mcause, ulong mtval, ulong mtval2,
-> > -                                   ulong mtinst, struct sbi_trap_regs *regs)
-> > +                                   const struct sbi_trap_info *trap,
-> > +                                   const struct sbi_trap_regs *regs)
+> > -int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+> > +int sbi_illegal_insn_handler(struct sbi_trap_context *tcntx)
 > >  {
-> >       u32 hartid = current_hartid();
-> >
-> >       sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
-> >       sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
-> > -                __func__, hartid, mcause, mtval);
-> > +                __func__, hartid, trap->cause, trap->tval);
-> >       if (misa_extension('H')) {
-> >               sbi_printf("%s: hart%d: mtval2=0x%" PRILX
-> >                          " mtinst=0x%" PRILX "\n",
-> > -                        __func__, hartid, mtval2, mtinst);
-> > +                        __func__, hartid, trap->tval2, trap->tinst);
-> >       }
-> >       sbi_printf("%s: hart%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
-> >                  __func__, hartid, regs->mepc, regs->mstatus);
-> > @@ -258,20 +258,20 @@ static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
-> >   * 6. Stack pointer (SP) is setup for current HART
-> >   * 7. Interrupts are disabled in MSTATUS CSR
-> >   *
-> > - * @param regs pointer to register state
-> > + * @param tcntx pointer to trap context
-> >   */
-> > -struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
-> > +struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
-> >  {
-> >       int rc = SBI_ENOTSUPP;
-> >       const char *msg = "trap handler failed";
-> > -     ulong mcause = csr_read(CSR_MCAUSE);
-> > -     ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
-> > -     struct sbi_trap_info trap;
-> > +     struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > +     const struct sbi_trap_info *trap = &tcntx->trap;
-> > +     struct sbi_trap_regs *regs = &tcntx->regs;
-> > +     ulong mcause = tcntx->trap.cause;
-> >
-> > -     if (misa_extension('H')) {
-> > -             mtval2 = csr_read(CSR_MTVAL2);
-> > -             mtinst = csr_read(CSR_MTINST);
-> > -     }
-> > +     /* Update trap context pointer */
-> > +     tcntx->prev_context = sbi_trap_get_context(scratch);
-> If the exception comes from S mode, tcntx will point to the same memory address.
-> At this time prev_context will be the same as tcntx and needs to be avoided.
+> > +     ulong insn = tcntx->trap.tval;
+>
+> Maybe add some intermediate variable:
+>
+>         struct sbi_trap_regs *regs = &tcntx->regs;
+>
+> So you won't have to modify anything below.
 
-When we come from S/U-mode, the trap context pointer on scratch is NULL
-hence prev_context will be NULL as well.
-
-Also, when we go back to S/U-mode, the trap context pointer on scratch is
-set to prev_context again (i.e. NULL).
+OKay, I will update.
 
 Regards,
 Anup
 
 >
 > Regards,
-> Xiang W
-> > +     sbi_trap_set_context(scratch, tcntx);
+>
+> Cl?ment
+>
+> >       struct sbi_trap_info uptrap;
 > >
-> >       if (mcause & (1UL << (__riscv_xlen - 1))) {
-> >               if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-> > @@ -279,32 +279,23 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
-> >                       rc = sbi_trap_aia_irq(regs, mcause);
-> >               else
-> >                       rc = sbi_trap_nonaia_irq(regs, mcause);
-> > -             if (rc) {
-> > -                     msg = "unhandled local interrupt";
-> > -                     goto trap_error;
+> >       /*
+> > @@ -153,13 +154,12 @@ int sbi_illegal_insn_handler(ulong insn, struct sbi_trap_regs *regs)
+> >
+> >       sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ILLEGAL_INSN);
+> >       if (unlikely((insn & 3) != 3)) {
+> > -             insn = sbi_get_insn(regs->mepc, &uptrap);
+> > -             if (uptrap.cause) {
+> > -                     return sbi_trap_redirect(regs, &uptrap);
 > > -             }
-> > -             return regs;
-> > +             msg = "unhandled local interrupt";
-> > +             goto trap_done;
+> > +             insn = sbi_get_insn(tcntx->regs.mepc, &uptrap);
+> > +             if (uptrap.cause)
+> > +                     return sbi_trap_redirect(&tcntx->regs, &uptrap);
+> >               if ((insn & 3) != 3)
+> > -                     return truly_illegal_insn(insn, regs);
+> > +                     return truly_illegal_insn(insn, &tcntx->regs);
 > >       }
-> > -     /* Original trap_info */
-> > -     trap.cause = mcause;
-> > -     trap.tval  = mtval;
-> > -     trap.tval2 = mtval2;
-> > -     trap.tinst = mtinst;
-> > -     trap.gva   = sbi_regs_gva(regs);
+> >
+> > -     return illegal_insn_table[(insn & 0x7c) >> 2](insn, regs);
+> > +     return illegal_insn_table[(insn & 0x7c) >> 2](insn, &tcntx->regs);
+> >  }
+> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> > index a2afb0a..4e691df 100644
+> > --- a/lib/sbi/sbi_trap.c
+> > +++ b/lib/sbi/sbi_trap.c
+> > @@ -285,7 +285,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
 > >
 > >       switch (mcause) {
 > >       case CAUSE_ILLEGAL_INSTRUCTION:
-> > -             rc  = sbi_illegal_insn_handler(mtval, regs);
-> > +             rc  = sbi_illegal_insn_handler(tcntx->trap.tval, regs);
+> > -             rc  = sbi_illegal_insn_handler(tcntx->trap.tval, regs);
+> > +             rc  = sbi_illegal_insn_handler(tcntx);
 > >               msg = "illegal instruction handler failed";
 > >               break;
 > >       case CAUSE_MISALIGNED_LOAD:
-> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
-> > -             rc  = sbi_misaligned_load_handler(regs, &trap);
-> > +             rc  = sbi_misaligned_load_handler(regs, trap);
-> >               msg = "misaligned load handler failed";
-> >               break;
-> >       case CAUSE_MISALIGNED_STORE:
-> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
-> > -             rc  = sbi_misaligned_store_handler(regs, &trap);
-> > +             rc  = sbi_misaligned_store_handler(regs, trap);
-> >               msg = "misaligned store handler failed";
-> >               break;
-> >       case CAUSE_SUPERVISOR_ECALL:
-> > @@ -314,23 +305,24 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
-> >               break;
-> >       case CAUSE_LOAD_ACCESS:
-> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_LOAD);
-> > -             rc  = sbi_load_access_handler(regs, &trap);
-> > +             rc  = sbi_load_access_handler(regs, trap);
-> >               msg = "load fault handler failed";
-> >               break;
-> >       case CAUSE_STORE_ACCESS:
-> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_STORE);
-> > -             rc  = sbi_store_access_handler(regs, &trap);
-> > +             rc  = sbi_store_access_handler(regs, trap);
-> >               msg = "store fault handler failed";
-> >               break;
-> >       default:
-> >               /* If the trap came from S or U mode, redirect it there */
-> >               msg = "trap redirect failed";
-> > -             rc  = sbi_trap_redirect(regs, &trap);
-> > +             rc  = sbi_trap_redirect(regs, trap);
-> >               break;
-> >       }
-> >
-> > -trap_error:
-> > +trap_done:
-> >       if (rc)
-> > -             sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
-> > -     return regs;
-> > +             sbi_trap_error(msg, rc, trap, regs);
-> > +     sbi_trap_set_context(scratch, tcntx->prev_context);
-> > +     return tcntx;
-> >  }
-> > --
-> > 2.34.1
-> >
-> >
->
 
