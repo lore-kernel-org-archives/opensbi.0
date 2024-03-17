@@ -1,117 +1,357 @@
-From: Bo Gan <ganboing@gmail.com>
-Date: Fri, 15 Mar 2024 17:28:20 -0700
-Subject: [RFC PATCH 0/2] Add support for Linux kernel image header
-In-Reply-To: <TYYP286MB1439244707DDDB3B2734D67AC6282@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-References: <TYYP286MB1439244707DDDB3B2734D67AC6282@TYYP286MB1439.JPNP286.PROD.OUTLOOK.COM>
-Message-ID: <1bd8a789-2eae-a3ae-935f-190937f8e51f@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sun, 17 Mar 2024 16:53:31 +0530
+Subject: [PATCH v2 04/10] lib: sbi: Introduce trap context
+In-Reply-To: <ea9d8d87b4530c486c187a1fdc1d20964da42869.camel@126.com>
+References: <20240312102804.1436376-1-apatel@ventanamicro.com>
+ <20240312102804.1436376-5-apatel@ventanamicro.com> <ea9d8d87b4530c486c187a1fdc1d20964da42869.camel@126.com>
+Message-ID: <CAAhSdy3J4j1C66X1+2x3xiuiBHyMTD0MGKs3nj6B2K5jQvEOUA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 3/15/24 10:34 AM, Vivian Wang wrote:
-> It is very convenient to use M-mode U-Boot during development to load M-mode
-> software for testing. This series makes it easy to load OpenSBI and an S-mode
-> operating system while passing it an initramfs, an FDT, and a command line from
-> U-Boot with the existing "booti" command. Any other bootloader supporting
-> M-mode Linux should work analogously.
-> 
-> To achieve this, a header compatible with that of Linux is added at the
-> beginning of fw_payload and fw_jump. Since the header starts with a jump to the
-> actual start of code, this is not a problem if no such bootloader is used. A
-> config option is also added so users can opt out of this header.
-> 
+On Wed, Mar 13, 2024 at 10:28?AM Xiang W <wxjstz@126.com> wrote:
+>
+> ? 2024-03-12???? 15:57 +0530?Anup Patel???
+> > Club the struct sbi_trap_regs and struct sbi_trap_info a new
+> > struct sbi_trap_context (aka trap context) which must be saved
+> > by low-level trap handler before calling sbi_trap_handler().
+> >
+> > To track nested traps, the struct sbi_scratch points to the current
+> > trap context and the trap context has pointer to pervious context
+> > of previous trap.
+> >
+> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> > ---
+> >  firmware/fw_base.S     | 62 ++++++++++++++++++++++++++++++++++--------
+> >  include/sbi/sbi_trap.h | 29 +++++++++++++++++++-
+> >  lib/sbi/sbi_trap.c     | 58 +++++++++++++++++----------------------
+> >  3 files changed, 103 insertions(+), 46 deletions(-)
+> >
+> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> > index 539fd1d..967cca5 100644
+> > --- a/firmware/fw_base.S
+> > +++ b/firmware/fw_base.S
+> > @@ -446,14 +446,12 @@ _start_warm:
+> >
+> >       /* Setup trap handler */
+> >       lla     a4, _trap_handler
+> > -#if __riscv_xlen == 32
+> >       csrr    a5, CSR_MISA
+> >       srli    a5, a5, ('H' - 'A')
+> >       andi    a5, a5, 0x1
+> > -     beq     a5, zero, _skip_trap_handler_rv32_hyp
+> > -     lla     a4, _trap_handler_rv32_hyp
+> > -_skip_trap_handler_rv32_hyp:
+> > -#endif
+> > +     beq     a5, zero, _skip_trap_handler_hyp
+> > +     lla     a4, _trap_handler_hyp
+> > +_skip_trap_handler_hyp:
+> >       csrw    CSR_MTVEC, a4
+> >
+> >       /* Initialize SBI runtime */
+> > @@ -564,10 +562,10 @@ memcmp:
+> >       xor     t0, tp, t0
+> >
+> >       /* Save original SP on exception stack */
+> > -     REG_S   sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_REGS_SIZE)(t0)
+> > +     REG_S   sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_CONTEXT_SIZE)(t0)
+> >
+> > -     /* Set SP to exception stack and make room for trap registers */
+> > -     add     sp, t0, -(SBI_TRAP_REGS_SIZE)
+> > +     /* Set SP to exception stack and make room for trap context */
+> > +     add     sp, t0, -(SBI_TRAP_CONTEXT_SIZE)
+> >
+> >       /* Restore T0 from scratch space */
+> >       REG_L   t0, SBI_SCRATCH_TMP0_OFFSET(tp)
+> > @@ -627,6 +625,32 @@ memcmp:
+> >       REG_S   t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
+> >  .endm
+> >
+> > +.macro       TRAP_SAVE_INFO have_mstatush have_h_extension
+> > +     csrr    t0, CSR_MCAUSE
+> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(cause))(sp)
+> > +     csrr    t0, CSR_MTVAL
+> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval))(sp)
+> > +.if \have_h_extension
+> > +     csrr    t0, CSR_MTVAL2
+> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
+> > +     csrr    t0, CSR_MTINST
+> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
+> > +     .if \have_mstatush
+> > +     csrr    t0, CSR_MSTATUSH
+> > +     srli    t0, t0, MSTATUSH_GVA_SHIFT
+> > +     .else
+> > +     csrr    t0, CSR_MSTATUS
+> > +     srli    t0, t0, MSTATUS_GVA_SHIFT
+> > +     .endif
+> > +     and     t0, t0, 0x1
+> > +.else
+> > +     REG_S   zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
+> > +     REG_S   zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
+> > +     add     t0, zero, zero
+> > +.endif
+> > +     REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
+> > +.endm
+> > +
+> >  .macro       TRAP_CALL_C_ROUTINE
+> >       /* Call C routine */
+> >       add     a0, sp, zero
+> > @@ -696,6 +720,8 @@ _trap_handler:
+> >
+> >       TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+> >
+> > +     TRAP_SAVE_INFO 0 0
+> > +
+> >       TRAP_CALL_C_ROUTINE
+> >
+> >       TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
+> > @@ -706,27 +732,39 @@ _trap_handler:
+> >
+> >       mret
+> >
+> > -#if __riscv_xlen == 32
+> >       .section .entry, "ax", %progbits
+> >       .align 3
+> > -     .globl _trap_handler_rv32_hyp
+> > -_trap_handler_rv32_hyp:
+> > +     .globl _trap_handler_hyp
+> > +_trap_handler_hyp:
+> >       TRAP_SAVE_AND_SETUP_SP_T0
+> >
+> > +#if __riscv_xlen == 32
+> >       TRAP_SAVE_MEPC_MSTATUS 1
+> > +#else
+> > +     TRAP_SAVE_MEPC_MSTATUS 0
+> > +#endif
+> >
+> >       TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
+> >
+> > +#if __riscv_xlen == 32
+> > +     TRAP_SAVE_INFO 1 1
+> > +#else
+> > +     TRAP_SAVE_INFO 0 1
+> > +#endif
+> > +
+> >       TRAP_CALL_C_ROUTINE
+> >
+> >       TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
+> >
+> > +#if __riscv_xlen == 32
+> >       TRAP_RESTORE_MEPC_MSTATUS 1
+> > +#else
+> > +     TRAP_RESTORE_MEPC_MSTATUS 0
+> > +#endif
+> >
+> >       TRAP_RESTORE_A0_T0
+> >
+> >       mret
+> > -#endif
+> >
+> >       .section .entry, "ax", %progbits
+> >       .align 3
+> > diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+> > index a6032ab..f7c170e 100644
+> > --- a/include/sbi/sbi_trap.h
+> > +++ b/include/sbi/sbi_trap.h
+> > @@ -112,9 +112,15 @@
+> >  /** Size (in bytes) of sbi_trap_info */
+> >  #define SBI_TRAP_INFO_SIZE SBI_TRAP_INFO_OFFSET(last)
+> >
+> > +/** Size (in bytes) of sbi_trap_context */
+> > +#define SBI_TRAP_CONTEXT_SIZE (SBI_TRAP_REGS_SIZE + \
+> > +                            SBI_TRAP_INFO_SIZE + \
+> > +                            __SIZEOF_POINTER__)
+> > +
+> >  #ifndef __ASSEMBLER__
+> >
+> >  #include <sbi/sbi_types.h>
+> > +#include <sbi/sbi_scratch.h>
+> >
+> >  /** Representation of register state at time of trap/interrupt */
+> >  struct sbi_trap_regs {
+> > @@ -204,6 +210,16 @@ struct sbi_trap_info {
+> >       unsigned long gva;
+> >  };
+> >
+> > +/** Representation of trap context saved on stack */
+> > +struct sbi_trap_context {
+> > +     /** Register state */
+> > +     struct sbi_trap_regs regs;
+> > +     /** Trap details */
+> > +     struct sbi_trap_info trap;
+> > +     /** Pointer to previous trap context */
+> > +     struct sbi_trap_context *prev_context;
+> > +};
+> > +
+> >  static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+> >  {
+> >       /*
+> > @@ -223,7 +239,18 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+> >  int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> >                     const struct sbi_trap_info *trap);
+> >
+> > -struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs);
+> > +static inline struct sbi_trap_context *sbi_trap_get_context(struct sbi_scratch *scratch)
+> > +{
+> > +     return (scratch) ? (void *)scratch->trap_context : NULL;
+> > +}
+> > +
+> > +static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
+> > +                                     struct sbi_trap_context *tcntx)
+> > +{
+> > +     scratch->trap_context = (unsigned long)tcntx;
+> > +}
+> > +
+> > +struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx);
+> >
+> >  #endif
+> >
+> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> > index b059c4b..4dbda06 100644
+> > --- a/lib/sbi/sbi_trap.c
+> > +++ b/lib/sbi/sbi_trap.c
+> > @@ -24,18 +24,18 @@
+> >  #include <sbi/sbi_trap.h>
+> >
+> >  static void __noreturn sbi_trap_error(const char *msg, int rc,
+> > -                                   ulong mcause, ulong mtval, ulong mtval2,
+> > -                                   ulong mtinst, struct sbi_trap_regs *regs)
+> > +                                   const struct sbi_trap_info *trap,
+> > +                                   const struct sbi_trap_regs *regs)
+> >  {
+> >       u32 hartid = current_hartid();
+> >
+> >       sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
+> >       sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
+> > -                __func__, hartid, mcause, mtval);
+> > +                __func__, hartid, trap->cause, trap->tval);
+> >       if (misa_extension('H')) {
+> >               sbi_printf("%s: hart%d: mtval2=0x%" PRILX
+> >                          " mtinst=0x%" PRILX "\n",
+> > -                        __func__, hartid, mtval2, mtinst);
+> > +                        __func__, hartid, trap->tval2, trap->tinst);
+> >       }
+> >       sbi_printf("%s: hart%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
+> >                  __func__, hartid, regs->mepc, regs->mstatus);
+> > @@ -258,20 +258,20 @@ static int sbi_trap_aia_irq(struct sbi_trap_regs *regs, ulong mcause)
+> >   * 6. Stack pointer (SP) is setup for current HART
+> >   * 7. Interrupts are disabled in MSTATUS CSR
+> >   *
+> > - * @param regs pointer to register state
+> > + * @param tcntx pointer to trap context
+> >   */
+> > -struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> > +struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+> >  {
+> >       int rc = SBI_ENOTSUPP;
+> >       const char *msg = "trap handler failed";
+> > -     ulong mcause = csr_read(CSR_MCAUSE);
+> > -     ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
+> > -     struct sbi_trap_info trap;
+> > +     struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> > +     const struct sbi_trap_info *trap = &tcntx->trap;
+> > +     struct sbi_trap_regs *regs = &tcntx->regs;
+> > +     ulong mcause = tcntx->trap.cause;
+> >
+> > -     if (misa_extension('H')) {
+> > -             mtval2 = csr_read(CSR_MTVAL2);
+> > -             mtinst = csr_read(CSR_MTINST);
+> > -     }
+> > +     /* Update trap context pointer */
+> > +     tcntx->prev_context = sbi_trap_get_context(scratch);
+> If the exception comes from S mode, tcntx will point to the same memory address.
+> At this time prev_context will be the same as tcntx and needs to be avoided.
 
-It looks like this patch is specifically tailored for the "booti" command, because
-it expects a Linux header to load. I don't think this is necessary and openSBI
-should not care about or carry OS level stuff. Instead of "faking" openSBI as a
-Linux Image, why not use the more flexible FIT image in U-Boot, where you can
-specify all needed pieces, openSBI, Linux, initrd, dtb and so on, then do "bootm"?
+When we come from S/U-mode, the trap context pointer on scratch is NULL
+hence prev_context will be NULL as well.
 
-> Patch 1 makes the byteorder macros available in assembly code so that patch 2
-> can use them.
-> 
-> To test this, you will need:
-> 
-> - QEMU (qemu-system-riscv64), tested with 8.1.3
-> - M-mode U-Boot with config qemu-riscv64_defconfig (u-boot.bin), tested with
->    version 2023.07.02
-> - Linux for riscv64 (Image)
-> - An initramfs image for testing (init.cpio)
-> 
-> Some assumptions are made about the memory layout used by QEMU.
-> 
-> Build OpenSBI:
-> 
->    make PLATFORM=generic FW_PAYLOAD_PATH=Image
-> 
-> Firstly, test that the firmware images still work as before:
-> 
->    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
->      -bios fw_payload.bin
-> 
-> This one should eventually panic at "VFS: Unable to mount root fs on
-> unknown-block(0,0)" because it does not have an initramfs.
-> 
->    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
->      -bios fw_jump.bin \
->      -kernel Image \
->      -initrd init.cpio \
->      -append "earlycon"
-> 
-> This one should work just fine.
-> 
-> Then, test that the firmwares are now loadable by U-Boot:
-> 
->    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
->      -bios u-boot.bin \
->      -device loader,addr=0x90000000,file=fw_payload.bin \
->      -device loader,addr=0xa0000000,file=init.cpio
-> 
->    qemu-system-riscv64 -M virt -smp 2 -m 1G -nographic \
->      -bios u-boot.bin \
->      -device loader,addr=0x80200000,file=Image \
->      -device loader,addr=0x90000000,file=fw_jump.bin \
->      -device loader,addr=0xa0000000,file=init.cpio
-> 
-> Run these command in U-Boot, making changes as needed:
-> 
->    => fdt addr -c
->    Control fdt: bf730af0
-> 
->    => # Change source address to match control fdt
->    => fdt move bf730af0 b0000000
->    Working FDT set to b0000000
-> 
->    => setenv bootargs "earlycon"
-> 
->    => # Change initramfs size to match actual size
->    => booti 0x90000000 0xa0000000:0x12d400 0xb0000000
-> 
-> Once in Linux:
-> 
->    $ cat /proc/cmdline # Check that the kernel command line is correct
->    $ cat /proc/cpuinfo # Check that SMP boot works
-> 
-> Vivian Wang (2):
->    include: sbi: Support byteorder macros in assembly
->    firmware: Add support for Linux kernel image header
-> 
->   firmware/Kconfig                   | 17 +++++++++
->   firmware/fw_base.ldS               |  5 +++
->   firmware/fw_header_linux.S         | 34 ++++++++++++++++++
->   firmware/fw_jump.S                 |  1 +
->   firmware/fw_payload.S              |  1 +
->   include/sbi/sbi_byteorder.h        | 55 ++++++++++++++++--------------
->   platform/generic/configs/defconfig |  1 +
->   7 files changed, 89 insertions(+), 25 deletions(-)
->   create mode 100644 firmware/fw_header_linux.S
-> 
-> --
-> 2.42.0
-> 
-> 
+Also, when we go back to S/U-mode, the trap context pointer on scratch is
+set to prev_context again (i.e. NULL).
 
-Bo
+Regards,
+Anup
+
+>
+> Regards,
+> Xiang W
+> > +     sbi_trap_set_context(scratch, tcntx);
+> >
+> >       if (mcause & (1UL << (__riscv_xlen - 1))) {
+> >               if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+> > @@ -279,32 +279,23 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> >                       rc = sbi_trap_aia_irq(regs, mcause);
+> >               else
+> >                       rc = sbi_trap_nonaia_irq(regs, mcause);
+> > -             if (rc) {
+> > -                     msg = "unhandled local interrupt";
+> > -                     goto trap_error;
+> > -             }
+> > -             return regs;
+> > +             msg = "unhandled local interrupt";
+> > +             goto trap_done;
+> >       }
+> > -     /* Original trap_info */
+> > -     trap.cause = mcause;
+> > -     trap.tval  = mtval;
+> > -     trap.tval2 = mtval2;
+> > -     trap.tinst = mtinst;
+> > -     trap.gva   = sbi_regs_gva(regs);
+> >
+> >       switch (mcause) {
+> >       case CAUSE_ILLEGAL_INSTRUCTION:
+> > -             rc  = sbi_illegal_insn_handler(mtval, regs);
+> > +             rc  = sbi_illegal_insn_handler(tcntx->trap.tval, regs);
+> >               msg = "illegal instruction handler failed";
+> >               break;
+> >       case CAUSE_MISALIGNED_LOAD:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
+> > -             rc  = sbi_misaligned_load_handler(regs, &trap);
+> > +             rc  = sbi_misaligned_load_handler(regs, trap);
+> >               msg = "misaligned load handler failed";
+> >               break;
+> >       case CAUSE_MISALIGNED_STORE:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
+> > -             rc  = sbi_misaligned_store_handler(regs, &trap);
+> > +             rc  = sbi_misaligned_store_handler(regs, trap);
+> >               msg = "misaligned store handler failed";
+> >               break;
+> >       case CAUSE_SUPERVISOR_ECALL:
+> > @@ -314,23 +305,24 @@ struct sbi_trap_regs *sbi_trap_handler(struct sbi_trap_regs *regs)
+> >               break;
+> >       case CAUSE_LOAD_ACCESS:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_LOAD);
+> > -             rc  = sbi_load_access_handler(regs, &trap);
+> > +             rc  = sbi_load_access_handler(regs, trap);
+> >               msg = "load fault handler failed";
+> >               break;
+> >       case CAUSE_STORE_ACCESS:
+> >               sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_STORE);
+> > -             rc  = sbi_store_access_handler(regs, &trap);
+> > +             rc  = sbi_store_access_handler(regs, trap);
+> >               msg = "store fault handler failed";
+> >               break;
+> >       default:
+> >               /* If the trap came from S or U mode, redirect it there */
+> >               msg = "trap redirect failed";
+> > -             rc  = sbi_trap_redirect(regs, &trap);
+> > +             rc  = sbi_trap_redirect(regs, trap);
+> >               break;
+> >       }
+> >
+> > -trap_error:
+> > +trap_done:
+> >       if (rc)
+> > -             sbi_trap_error(msg, rc, mcause, mtval, mtval2, mtinst, regs);
+> > -     return regs;
+> > +             sbi_trap_error(msg, rc, trap, regs);
+> > +     sbi_trap_set_context(scratch, tcntx->prev_context);
+> > +     return tcntx;
+> >  }
+> > --
+> > 2.34.1
+> >
+> >
+>
 
