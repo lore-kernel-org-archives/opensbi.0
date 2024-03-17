@@ -1,83 +1,262 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 17 Mar 2024 18:32:24 +0530
-Subject: [PATCH v3 03/10] include: sbi: Add trap_context pointer in struct sbi_scratch
+Date: Sun, 17 Mar 2024 18:32:26 +0530
+Subject: [PATCH v3 05/10] lib: sbi: Simplify parameters of misaligned and access fault handlers
 In-Reply-To: <20240317130231.1705888-1-apatel@ventanamicro.com>
 References: <20240317130231.1705888-1-apatel@ventanamicro.com>
-Message-ID: <20240317130231.1705888-4-apatel@ventanamicro.com>
+Message-ID: <20240317130231.1705888-6-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-To track nested traps, the struct sbi_scratch needs a pointer the
-current trap context so add trap_context pointer in struct sbi_context.
+The struct sbi_trap_context already has the information needed by
+misaligned load/store and access fault load/store handlers so directly
+pass struct sbi_trap_context pointer to these functions.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 Tested-by: Samuel Holland <samuel.holland@sifive.com>
+Reviewed-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- firmware/fw_base.S        |  3 ++-
- include/sbi/sbi_scratch.h | 15 ++++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ include/sbi/sbi_trap_ldst.h | 12 +++----
+ lib/sbi/sbi_trap.c          |  8 ++---
+ lib/sbi/sbi_trap_ldst.c     | 67 ++++++++++++++++++-------------------
+ 3 files changed, 40 insertions(+), 47 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index c404d8b..539fd1d 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -298,7 +298,8 @@ _scratch_init:
- 	/* Store hartid-to-scratch function address in scratch space */
- 	lla	a4, _hartid_to_scratch
- 	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
--	/* Clear tmp0 in scratch space */
-+	/* Clear trap_context and tmp0 in scratch space */
-+	REG_S	zero, SBI_SCRATCH_TRAP_CONTEXT_OFFSET(tp)
- 	REG_S	zero, SBI_SCRATCH_TMP0_OFFSET(tp)
- 	/* Store firmware options in scratch space */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
-diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-index 55b937f..12e6a98 100644
---- a/include/sbi/sbi_scratch.h
-+++ b/include/sbi/sbi_scratch.h
-@@ -36,12 +36,14 @@
- #define SBI_SCRATCH_PLATFORM_ADDR_OFFSET	(9 * __SIZEOF_POINTER__)
- /** Offset of hartid_to_scratch member in sbi_scratch */
- #define SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET	(10 * __SIZEOF_POINTER__)
-+/** Offset of trap_context member in sbi_scratch */
-+#define SBI_SCRATCH_TRAP_CONTEXT_OFFSET		(11 * __SIZEOF_POINTER__)
- /** Offset of tmp0 member in sbi_scratch */
--#define SBI_SCRATCH_TMP0_OFFSET			(11 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
- /** Offset of options member in sbi_scratch */
--#define SBI_SCRATCH_OPTIONS_OFFSET		(12 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
- /** Offset of extra space in sbi_scratch */
--#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(13 * __SIZEOF_POINTER__)
-+#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(14 * __SIZEOF_POINTER__)
- /** Maximum size of sbi_scratch (4KB) */
- #define SBI_SCRATCH_SIZE			(0x1000)
+diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
+index 9cab4e4..8aee316 100644
+--- a/include/sbi/sbi_trap_ldst.h
++++ b/include/sbi/sbi_trap_ldst.h
+@@ -20,16 +20,12 @@ union sbi_ldst_data {
+ 	ulong data_ulong;
+ };
  
-@@ -75,6 +77,8 @@ struct sbi_scratch {
- 	unsigned long platform_addr;
- 	/** Address of HART ID to sbi_scratch conversion function */
- 	unsigned long hartid_to_scratch;
-+	/** Address of current trap context */
-+	unsigned long trap_context;
- 	/** Temporary storage */
- 	unsigned long tmp0;
- 	/** Options for OpenSBI library */
-@@ -125,6 +129,11 @@ _Static_assert(
- 		== SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET,
- 	"struct sbi_scratch definition has changed, please redefine "
- 	"SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET");
-+_Static_assert(
-+	offsetof(struct sbi_scratch, trap_context)
-+		== SBI_SCRATCH_TRAP_CONTEXT_OFFSET,
-+	"struct sbi_scratch definition has changed, please redefine "
-+	"SBI_SCRATCH_TRAP_CONTEXT_OFFSET");
- _Static_assert(
- 	offsetof(struct sbi_scratch, tmp0)
- 		== SBI_SCRATCH_TMP0_OFFSET,
+-int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
+-				const struct sbi_trap_info *orig_trap);
++int sbi_misaligned_load_handler(struct sbi_trap_context *tcntx);
+ 
+-int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
+-				 const struct sbi_trap_info *orig_trap);
++int sbi_misaligned_store_handler(struct sbi_trap_context *tcntx);
+ 
+-int sbi_load_access_handler(struct sbi_trap_regs *regs,
+-			    const struct sbi_trap_info *orig_trap);
++int sbi_load_access_handler(struct sbi_trap_context *tcntx);
+ 
+-int sbi_store_access_handler(struct sbi_trap_regs *regs,
+-			     const struct sbi_trap_info *orig_trap);
++int sbi_store_access_handler(struct sbi_trap_context *tcntx);
+ 
+ #endif
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index 4dbda06..a2afb0a 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -290,12 +290,12 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+ 		break;
+ 	case CAUSE_MISALIGNED_LOAD:
+ 		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
+-		rc  = sbi_misaligned_load_handler(regs, trap);
++		rc  = sbi_misaligned_load_handler(tcntx);
+ 		msg = "misaligned load handler failed";
+ 		break;
+ 	case CAUSE_MISALIGNED_STORE:
+ 		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
+-		rc  = sbi_misaligned_store_handler(regs, trap);
++		rc  = sbi_misaligned_store_handler(tcntx);
+ 		msg = "misaligned store handler failed";
+ 		break;
+ 	case CAUSE_SUPERVISOR_ECALL:
+@@ -305,12 +305,12 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+ 		break;
+ 	case CAUSE_LOAD_ACCESS:
+ 		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_LOAD);
+-		rc  = sbi_load_access_handler(regs, trap);
++		rc  = sbi_load_access_handler(tcntx);
+ 		msg = "load fault handler failed";
+ 		break;
+ 	case CAUSE_STORE_ACCESS:
+ 		sbi_pmu_ctr_incr_fw(SBI_PMU_FW_ACCESS_STORE);
+-		rc  = sbi_store_access_handler(regs, trap);
++		rc  = sbi_store_access_handler(tcntx);
+ 		msg = "store fault handler failed";
+ 		break;
+ 	default:
+diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+index 5a0537b..f9c0241 100644
+--- a/lib/sbi/sbi_trap_ldst.c
++++ b/lib/sbi/sbi_trap_ldst.c
+@@ -12,7 +12,6 @@
+ #include <sbi/riscv_fp.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_trap_ldst.h>
+-#include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_trap.h>
+ #include <sbi/sbi_unpriv.h>
+ #include <sbi/sbi_platform.h>
+@@ -23,8 +22,7 @@
+  * @return rlen=success, 0=success w/o regs modification, or negative error
+  */
+ typedef int (*sbi_trap_ld_emulator)(int rlen, union sbi_ldst_data *out_val,
+-				    struct sbi_trap_regs *regs,
+-				    const struct sbi_trap_info *orig_trap);
++				    struct sbi_trap_context *tcntx);
+ 
+ /**
+  * Store emulator callback:
+@@ -32,8 +30,7 @@ typedef int (*sbi_trap_ld_emulator)(int rlen, union sbi_ldst_data *out_val,
+  * @return wlen=success, 0=success w/o regs modification, or negative error
+  */
+ typedef int (*sbi_trap_st_emulator)(int wlen, union sbi_ldst_data in_val,
+-				    struct sbi_trap_regs *regs,
+-				    const struct sbi_trap_info *orig_trap);
++				    struct sbi_trap_context *tcntx);
+ 
+ static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+ 					ulong addr_offset)
+@@ -47,10 +44,11 @@ static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+ 		return orig_tinst | (addr_offset << SH_RS1);
+ }
+ 
+-static int sbi_trap_emulate_load(struct sbi_trap_regs *regs,
+-				 const struct sbi_trap_info *orig_trap,
++static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
+ 				 sbi_trap_ld_emulator emu)
+ {
++	const struct sbi_trap_info *orig_trap = &tcntx->trap;
++	struct sbi_trap_regs *regs = &tcntx->regs;
+ 	ulong insn, insn_len;
+ 	union sbi_ldst_data val = { 0 };
+ 	struct sbi_trap_info uptrap;
+@@ -150,8 +148,7 @@ static int sbi_trap_emulate_load(struct sbi_trap_regs *regs,
+ 		return sbi_trap_redirect(regs, orig_trap);
+ 	}
+ 
+-	rc = emu(len, &val, regs, orig_trap);
+-
++	rc = emu(len, &val, tcntx);
+ 	if (rc <= 0)
+ 		return rc;
+ 
+@@ -169,10 +166,11 @@ static int sbi_trap_emulate_load(struct sbi_trap_regs *regs,
+ 	return 0;
+ }
+ 
+-static int sbi_trap_emulate_store(struct sbi_trap_regs *regs,
+-				  const struct sbi_trap_info *orig_trap,
++static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
+ 				  sbi_trap_st_emulator emu)
+ {
++	const struct sbi_trap_info *orig_trap = &tcntx->trap;
++	struct sbi_trap_regs *regs = &tcntx->regs;
+ 	ulong insn, insn_len;
+ 	union sbi_ldst_data val;
+ 	struct sbi_trap_info uptrap;
+@@ -254,8 +252,7 @@ static int sbi_trap_emulate_store(struct sbi_trap_regs *regs,
+ 		return sbi_trap_redirect(regs, orig_trap);
+ 	}
+ 
+-	rc = emu(len, val, regs, orig_trap);
+-
++	rc = emu(len, val, tcntx);
+ 	if (rc <= 0)
+ 		return rc;
+ 
+@@ -265,9 +262,10 @@ static int sbi_trap_emulate_store(struct sbi_trap_regs *regs,
+ }
+ 
+ static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
+-				      struct sbi_trap_regs *regs,
+-				      const struct sbi_trap_info *orig_trap)
++				      struct sbi_trap_context *tcntx)
+ {
++	const struct sbi_trap_info *orig_trap = &tcntx->trap;
++	struct sbi_trap_regs *regs = &tcntx->regs;
+ 	struct sbi_trap_info uptrap;
+ 	int i;
+ 
+@@ -283,17 +281,16 @@ static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
+ 	return rlen;
+ }
+ 
+-int sbi_misaligned_load_handler(struct sbi_trap_regs *regs,
+-				const struct sbi_trap_info *orig_trap)
++int sbi_misaligned_load_handler(struct sbi_trap_context *tcntx)
+ {
+-	return sbi_trap_emulate_load(regs, orig_trap,
+-				     sbi_misaligned_ld_emulator);
++	return sbi_trap_emulate_load(tcntx, sbi_misaligned_ld_emulator);
+ }
+ 
+ static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
+-				      struct sbi_trap_regs *regs,
+-				      const struct sbi_trap_info *orig_trap)
++				      struct sbi_trap_context *tcntx)
+ {
++	const struct sbi_trap_info *orig_trap = &tcntx->trap;
++	struct sbi_trap_regs *regs = &tcntx->regs;
+ 	struct sbi_trap_info uptrap;
+ 	int i;
+ 
+@@ -309,17 +306,17 @@ static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
+ 	return wlen;
+ }
+ 
+-int sbi_misaligned_store_handler(struct sbi_trap_regs *regs,
+-				 const struct sbi_trap_info *orig_trap)
++int sbi_misaligned_store_handler(struct sbi_trap_context *tcntx)
+ {
+-	return sbi_trap_emulate_store(regs, orig_trap,
+-				      sbi_misaligned_st_emulator);
++	return sbi_trap_emulate_store(tcntx, sbi_misaligned_st_emulator);
+ }
+ 
+ static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
+-				  struct sbi_trap_regs *regs,
+-				  const struct sbi_trap_info *orig_trap)
++				  struct sbi_trap_context *tcntx)
+ {
++	const struct sbi_trap_info *orig_trap = &tcntx->trap;
++	struct sbi_trap_regs *regs = &tcntx->regs;
++
+ 	/* If fault came from M mode, just fail */
+ 	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
+ 		return SBI_EINVAL;
+@@ -332,16 +329,17 @@ static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
+ 	return rlen;
+ }
+ 
+-int sbi_load_access_handler(struct sbi_trap_regs *regs,
+-			    const struct sbi_trap_info *orig_trap)
++int sbi_load_access_handler(struct sbi_trap_context *tcntx)
+ {
+-	return sbi_trap_emulate_load(regs, orig_trap, sbi_ld_access_emulator);
++	return sbi_trap_emulate_load(tcntx, sbi_ld_access_emulator);
+ }
+ 
+ static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
+-				  struct sbi_trap_regs *regs,
+-				  const struct sbi_trap_info *orig_trap)
++				  struct sbi_trap_context *tcntx)
+ {
++	const struct sbi_trap_info *orig_trap = &tcntx->trap;
++	struct sbi_trap_regs *regs = &tcntx->regs;
++
+ 	/* If fault came from M mode, just fail */
+ 	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
+ 		return SBI_EINVAL;
+@@ -354,8 +352,7 @@ static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
+ 	return wlen;
+ }
+ 
+-int sbi_store_access_handler(struct sbi_trap_regs *regs,
+-			     const struct sbi_trap_info *orig_trap)
++int sbi_store_access_handler(struct sbi_trap_context *tcntx)
+ {
+-	return sbi_trap_emulate_store(regs, orig_trap, sbi_st_access_emulator);
++	return sbi_trap_emulate_store(tcntx, sbi_st_access_emulator);
+ }
 -- 
 2.34.1
 
