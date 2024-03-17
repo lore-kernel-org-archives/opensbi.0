@@ -1,79 +1,151 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 17 Mar 2024 18:32:30 +0530
-Subject: [PATCH v3 09/10] lib: sbi: Pass trap context pointer to sbi_ecall_handler()
+Date: Sun, 17 Mar 2024 18:32:31 +0530
+Subject: [PATCH v3 10/10] lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
 In-Reply-To: <20240317130231.1705888-1-apatel@ventanamicro.com>
 References: <20240317130231.1705888-1-apatel@ventanamicro.com>
-Message-ID: <20240317130231.1705888-10-apatel@ventanamicro.com>
+Message-ID: <20240317130231.1705888-11-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-To be consistent with other trap handlers, pass trap context pointer
-to sbi_ecall_handler().
+The sbi_trap_error() should dump state of all in-flight traps upon
+failure in a nested trap so extend it accordingly.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 Tested-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- include/sbi/sbi_ecall.h | 4 ++--
- lib/sbi/sbi_ecall.c     | 3 ++-
- lib/sbi/sbi_trap.c      | 2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ lib/sbi/sbi_trap.c | 105 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 60 insertions(+), 45 deletions(-)
 
-diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-index 0bf42d1..0b35eff 100644
---- a/include/sbi/sbi_ecall.h
-+++ b/include/sbi/sbi_ecall.h
-@@ -18,7 +18,7 @@
- #define SBI_OPENSBI_IMPID		1
- 
- struct sbi_trap_regs;
--struct sbi_trap_info;
-+struct sbi_trap_context;
- 
- struct sbi_ecall_return {
- 	/* Return flag to skip register update */
-@@ -87,7 +87,7 @@ int sbi_ecall_register_extension(struct sbi_ecall_extension *ext);
- 
- void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext);
- 
--int sbi_ecall_handler(struct sbi_trap_regs *regs);
-+int sbi_ecall_handler(struct sbi_trap_context *tcntx);
- 
- int sbi_ecall_init(void);
- 
-diff --git a/lib/sbi/sbi_ecall.c b/lib/sbi/sbi_ecall.c
-index 631c5dd..d4fc58c 100644
---- a/lib/sbi/sbi_ecall.c
-+++ b/lib/sbi/sbi_ecall.c
-@@ -95,9 +95,10 @@ void sbi_ecall_unregister_extension(struct sbi_ecall_extension *ext)
- 		sbi_list_del_init(&ext->head);
- }
- 
--int sbi_ecall_handler(struct sbi_trap_regs *regs)
-+int sbi_ecall_handler(struct sbi_trap_context *tcntx)
- {
- 	int ret = 0;
-+	struct sbi_trap_regs *regs = &tcntx->regs;
- 	struct sbi_ecall_extension *ext;
- 	unsigned long extension_id = regs->a7;
- 	unsigned long func_id = regs->a6;
 diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index 2462763..060cec6 100644
+index 060cec6..175560f 100644
 --- a/lib/sbi/sbi_trap.c
 +++ b/lib/sbi/sbi_trap.c
-@@ -299,7 +299,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
- 		break;
- 	case CAUSE_SUPERVISOR_ECALL:
- 	case CAUSE_MACHINE_ECALL:
--		rc  = sbi_ecall_handler(regs);
-+		rc  = sbi_ecall_handler(tcntx);
- 		msg = "ecall handler failed";
- 		break;
- 	case CAUSE_LOAD_ACCESS:
+@@ -23,54 +23,69 @@
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_trap.h>
+ 
+-static void __noreturn sbi_trap_error(const char *msg, int rc,
+-				      const struct sbi_trap_info *trap,
+-				      const struct sbi_trap_regs *regs)
++static void sbi_trap_error_one(const struct sbi_trap_context *tcntx,
++			       const char *prefix, u32 hartid, u32 depth)
+ {
+-	u32 hartid = current_hartid();
++	const struct sbi_trap_info *trap = &tcntx->trap;
++	const struct sbi_trap_regs *regs = &tcntx->regs;
+ 
+-	sbi_printf("%s: hart%d: %s (error %d)\n", __func__, hartid, msg, rc);
+-	sbi_printf("%s: hart%d: mcause=0x%" PRILX " mtval=0x%" PRILX "\n",
+-		   __func__, hartid, trap->cause, trap->tval);
++	sbi_printf("\n");
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "mcause", trap->cause, "mtval", trap->tval);
+ 	if (misa_extension('H')) {
+-		sbi_printf("%s: hart%d: mtval2=0x%" PRILX
+-			   " mtinst=0x%" PRILX "\n",
+-			   __func__, hartid, trap->tval2, trap->tinst);
++		sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++			   hartid, depth, "mtval2", trap->tval2, "mtinst", trap->tinst);
+ 	}
+-	sbi_printf("%s: hart%d: mepc=0x%" PRILX " mstatus=0x%" PRILX "\n",
+-		   __func__, hartid, regs->mepc, regs->mstatus);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "ra", regs->ra, "sp", regs->sp);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "gp", regs->gp, "tp", regs->tp);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "s0", regs->s0, "s1", regs->s1);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "a0", regs->a0, "a1", regs->a1);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "a2", regs->a2, "a3", regs->a3);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "a4", regs->a4, "a5", regs->a5);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "a6", regs->a6, "a7", regs->a7);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "s2", regs->s2, "s3", regs->s3);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "s4", regs->s4, "s5", regs->s5);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "s6", regs->s6, "s7", regs->s7);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "s8", regs->s8, "s9", regs->s9);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "s10", regs->s10, "s11", regs->s11);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "t0", regs->t0, "t1", regs->t1);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "t2", regs->t2, "t3", regs->t3);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", __func__,
+-		   hartid, "t4", regs->t4, "t5", regs->t5);
+-	sbi_printf("%s: hart%d: %s=0x%" PRILX "\n", __func__, hartid, "t6",
+-		   regs->t6);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "mepc", regs->mepc, "mstatus", regs->mstatus);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "ra", regs->ra, "sp", regs->sp);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "gp", regs->gp, "tp", regs->tp);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "s0", regs->s0, "s1", regs->s1);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "a0", regs->a0, "a1", regs->a1);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "a2", regs->a2, "a3", regs->a3);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "a4", regs->a4, "a5", regs->a5);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "a6", regs->a6, "a7", regs->a7);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "s2", regs->s2, "s3", regs->s3);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "s4", regs->s4, "s5", regs->s5);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "s6", regs->s6, "s7", regs->s7);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "s8", regs->s8, "s9", regs->s9);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "s10", regs->s10, "s11", regs->s11);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "t0", regs->t0, "t1", regs->t1);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "t2", regs->t2, "t3", regs->t3);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX " %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "t4", regs->t4, "t5", regs->t5);
++	sbi_printf("%s: hart%d: trap%d: %s=0x%" PRILX "\n", prefix,
++		   hartid, depth, "t6", regs->t6);
++}
++
++static void __noreturn sbi_trap_error(const char *msg, int rc,
++				      const struct sbi_trap_context *tcntx)
++{
++	u32 depth = 0, hartid = current_hartid();
++	const struct sbi_trap_context *tc;
++
++	for (tc = tcntx; tc; tc = tc->prev_context)
++		depth++;
++
++	sbi_printf("\n");
++	sbi_printf("%s: hart%d: trap%d: %s (error %d)\n", __func__,
++		   hartid, depth - 1, msg, rc);
++	for (tc = tcntx; tc; tc = tc->prev_context)
++		sbi_trap_error_one(tc, __func__, hartid, --depth);
+ 
+ 	sbi_hart_hang();
+ }
+@@ -321,7 +336,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+ 
+ trap_done:
+ 	if (rc)
+-		sbi_trap_error(msg, rc, trap, regs);
++		sbi_trap_error(msg, rc, tcntx);
+ 	sbi_trap_set_context(scratch, tcntx->prev_context);
+ 	return tcntx;
+ }
 -- 
 2.34.1
 
