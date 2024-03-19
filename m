@@ -1,72 +1,77 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 19 Mar 2024 11:36:52 +0530
-Subject: [PATCH v3 00/10] Improve trap handling for nested traps
-In-Reply-To: <20240317130231.1705888-1-apatel@ventanamicro.com>
-References: <20240317130231.1705888-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy2Lch_=24QOn39ygWqh90RgmOLd6dbH+SDzzP2BVpQrcQ@mail.gmail.com>
+From: Christoph Müllner <christoph.muellner@vrull.eu>
+Date: Tue, 19 Mar 2024 10:26:42 +0100
+Subject: [PATCH] platform: generic: allwinner: sun20i-d1: Remove duplicated CSR definitions
+Message-ID: <20240319092642.1254434-1-christoph.muellner@vrull.eu>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Mar 17, 2024 at 6:32?PM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> Nested traps will be a common when dealing with RAS error traps so
-> this series improves trap handling for nested traps by introducing
-> a linked-list based trap context chain.
->
-> These patches can also be found the trap_handling_imp_v3 branch at
-> https://github.com/avpatel/opensbi.git
->
-> Changes since v2:
->  - Addressed comments in PATCH4, PATCH6, PATCH7, PATCH8, and PATCH10.
->
-> Changes since v1:
->  - Include samuel's patch in the series
->  - Embed sbi_trap_regs and sbi_trap_info in the new
->    struct sbi_trap_context
->  - Drop the mcause parameter of sbi_trap_aia_irq()
->
-> Anup Patel (9):
->   lib: sbi: Remove sbi_trap_exit() and related code
->   include: sbi: Add trap_context pointer in struct sbi_scratch
->   lib: sbi: Introduce trap context
->   lib: sbi: Simplify parameters of misaligned and access fault handlers
->   lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
->   lib: sbi: Remove regs paramter of sbi_irqchip_process()
->   lib: sbi: Remove regs parameter from trap irq handling functions
->   lib: sbi: Pass trap context pointer to sbi_ecall_handler()
->   lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
->
-> Samuel Holland (1):
->   lib: sbi: Remove epc from struct sbi_trap_info
+All T-Head CSRs are already defined in thead/c9xx_encoding.h.
+Let's reuse the values from there instead of redefining them with
+a slightly different name.
 
-Applied this series to the riscv/opensbi repo.
+Signed-off-by: Christoph M?llner <christoph.muellner@vrull.eu>
+---
+ platform/generic/allwinner/sun20i-d1.c | 27 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-Thanks,
-Anup
+diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+index e9388db..ed19d5d 100644
+--- a/platform/generic/allwinner/sun20i-d1.c
++++ b/platform/generic/allwinner/sun20i-d1.c
+@@ -33,15 +33,6 @@
+ #define RISCV_CFG_BGR_REG		0xd0c
+ #define PPU_BGR_REG			0x1ac
+ 
+-/*
+- * CSRs
+- */
+-
+-#define CSR_MXSTATUS			0x7c0
+-#define CSR_MHCR			0x7c1
+-#define CSR_MCOR			0x7c2
+-#define CSR_MHINT			0x7c5
+-
+ static unsigned long csr_mxstatus;
+ static unsigned long csr_mhcr;
+ static unsigned long csr_mhint;
+@@ -49,24 +40,24 @@ static unsigned long csr_mhint;
+ static void sun20i_d1_csr_save(void)
+ {
+ 	/* Save custom CSRs. */
+-	csr_mxstatus	= csr_read(CSR_MXSTATUS);
+-	csr_mhcr	= csr_read(CSR_MHCR);
+-	csr_mhint	= csr_read(CSR_MHINT);
++	csr_mxstatus	= csr_read(THEAD_C9XX_CSR_MXSTATUS);
++	csr_mhcr	= csr_read(THEAD_C9XX_CSR_MHCR);
++	csr_mhint	= csr_read(THEAD_C9XX_CSR_MHINT);
+ 
+ 	/* Flush and disable caches. */
+-	csr_write(CSR_MCOR, 0x22);
+-	csr_write(CSR_MHCR, 0x0);
++	csr_write(THEAD_C9XX_CSR_MCOR, 0x22);
++	csr_write(THEAD_C9XX_CSR_MHCR, 0x0);
+ }
+ 
+ static void sun20i_d1_csr_restore(void)
+ {
+ 	/* Invalidate caches and the branch predictor. */
+-	csr_write(CSR_MCOR, 0x70013);
++	csr_write(THEAD_C9XX_CSR_MCOR, 0x70013);
+ 
+ 	/* Restore custom CSRs, including the cache state. */
+-	csr_write(CSR_MXSTATUS,	csr_mxstatus);
+-	csr_write(CSR_MHCR,	csr_mhcr);
+-	csr_write(CSR_MHINT,	csr_mhint);
++	csr_write(THEAD_C9XX_CSR_MXSTATUS, csr_mxstatus);
++	csr_write(THEAD_C9XX_CSR_MHCR, csr_mhcr);
++	csr_write(THEAD_C9XX_CSR_MHINT, csr_mhint);
+ }
+ 
+ /*
+-- 
+2.44.0
 
->
->  firmware/fw_base.S             |  76 +++++++++----
->  include/sbi/riscv_encoding.h   |   2 +
->  include/sbi/sbi_ecall.h        |   4 +-
->  include/sbi/sbi_illegal_insn.h |   4 +-
->  include/sbi/sbi_irqchip.h      |   5 +-
->  include/sbi/sbi_scratch.h      |  14 +--
->  include/sbi/sbi_trap.h         |  45 ++++++--
->  include/sbi/sbi_trap_ldst.h    |  12 +-
->  lib/sbi/sbi_ecall.c            |   3 +-
->  lib/sbi/sbi_ecall_legacy.c     |   4 -
->  lib/sbi/sbi_expected_trap.S    |   4 -
->  lib/sbi/sbi_illegal_insn.c     |   9 +-
->  lib/sbi/sbi_irqchip.c          |  10 +-
->  lib/sbi/sbi_trap.c             | 196 +++++++++++++++------------------
->  lib/sbi/sbi_trap_ldst.c        |  71 ++++++------
->  lib/utils/irqchip/imsic.c      |   2 +-
->  16 files changed, 239 insertions(+), 222 deletions(-)
->
-> --
-> 2.34.1
->
 
