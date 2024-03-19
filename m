@@ -1,155 +1,69 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 19 Mar 2024 20:29:29 +0530
-Subject: [PATCH 1/2] lib: sbi: Simplify wait_for_coldboot() implementation
+Date: Tue, 19 Mar 2024 20:29:30 +0530
+Subject: [PATCH 2/2] lib: sbi: Wakeup non-coldboot HARTs early in the coldboot path
 In-Reply-To: <20240319145930.1827176-1-apatel@ventanamicro.com>
 References: <20240319145930.1827176-1-apatel@ventanamicro.com>
-Message-ID: <20240319145930.1827176-2-apatel@ventanamicro.com>
+Message-ID: <20240319145930.1827176-3-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On QEMU virt machine with large number of HARTs, some of the HARTs
-randomly fail to come out of wait_for_coldboot() due to one of the
-following race-conditions:
+Currently, all non-coldboot HARTs busy spin in wait_for_coldboot()
+until the entire coldboot init sequence is completed.
 
-1) Failing HARTs are not able to acquire the coldboot_lock and
-   update the coldboot_hartmask in wait_for_coldboot() before
-   the coldboot HART acquires the coldboot_lock and sends IPI
-   in wake_coldboot_harts() hence the failing HARTs never
-   receive IPI from the coldboot HART.
+This means:
+1) On QEMU, all non-coldboot HARTs will eat host CPU time and
+   also slow down the coldboot HART until the entire coldboot
+   init sequence is completed.
+2) On real HW, all non-coldboot HARTs will consume more CPU
+   power until the entire coldboot init sequence is completed.
 
-2) Failing HARTs acquire the coldbood_lock and update the
-   coldboot_hartmask before coldboot HART does sbi_scratch_init()
-   so the sbi_hartmask_set_hartid() does not update the
-   coldboot_hartmask on the failing HARTs hence they never
-   receive IPI from the coldboot HART.
-
-To address this, use a simple busy-loop in wait_for_coldboot() for
-polling on coldboot_done flag.
+To address this, wake up all non-coldboot HARTs as early as
+possible in the coldboot init sequence.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/riscv_barrier.h |  6 +++-
- lib/sbi/sbi_init.c          | 70 ++-----------------------------------
- 2 files changed, 8 insertions(+), 68 deletions(-)
+ lib/sbi/sbi_init.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/riscv_barrier.h b/include/sbi/riscv_barrier.h
-index 1fba8b8..3d4a038 100644
---- a/include/sbi/riscv_barrier.h
-+++ b/include/sbi/riscv_barrier.h
-@@ -40,7 +40,11 @@
- #define smp_wmb()		RISCV_FENCE(w,w)
- 
- /* CPU relax for busy loop */
--#define cpu_relax()		asm volatile ("" : : : "memory")
-+#define cpu_relax()						\
-+do {								\
-+	unsigned long __t;					\
-+	__asm__ __volatile__ ("div %0, %0, zero" : "=r" (__t));	\
-+} while (0)
- 
- /* clang-format on */
- 
 diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 796cccc..b3f3e38 100644
+index b3f3e38..8fdc8de 100644
 --- a/lib/sbi/sbi_init.c
 +++ b/lib/sbi/sbi_init.c
-@@ -10,7 +10,6 @@
- #include <sbi/riscv_asm.h>
- #include <sbi/riscv_atomic.h>
- #include <sbi/riscv_barrier.h>
--#include <sbi/riscv_locks.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_cppc.h>
- #include <sbi/sbi_domain.h>
-@@ -190,82 +189,19 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
- }
+@@ -243,6 +243,14 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	if (rc)
+ 		sbi_hart_hang();
  
--static spinlock_t coldboot_lock = SPIN_LOCK_INITIALIZER;
--static struct sbi_hartmask coldboot_wait_hmask = { 0 };
--
- static unsigned long coldboot_done;
++	/*
++	 * All non-coldboot HARTs do HSM initialization (i.e. enter HSM state
++	 * machine) at the start of the warmboot path so it is wasteful to
++	 * have these HARTs busy spin in wait_for_coldboot() until coldboot
++	 * path is completed.
++	 */
++	wake_coldboot_harts(scratch, hartid);
++
+ 	rc = sbi_platform_early_init(plat, true);
+ 	if (rc)
+ 		sbi_hart_hang();
+@@ -348,8 +356,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
  
- static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
- {
--	unsigned long saved_mie, cmip;
+-	wake_coldboot_harts(scratch, hartid);
 -
--	if (__smp_load_acquire(&coldboot_done))
--		return;
--
--	/* Save MIE CSR */
--	saved_mie = csr_read(CSR_MIE);
--
--	/* Set MSIE and MEIE bits to receive IPI */
--	csr_set(CSR_MIE, MIP_MSIP | MIP_MEIP);
--
--	/* Acquire coldboot lock */
--	spin_lock(&coldboot_lock);
--
--	/* Mark current HART as waiting */
--	sbi_hartmask_set_hartid(hartid, &coldboot_wait_hmask);
--
--	/* Release coldboot lock */
--	spin_unlock(&coldboot_lock);
--
--	/* Wait for coldboot to finish using WFI */
--	while (!__smp_load_acquire(&coldboot_done)) {
--		do {
--			wfi();
--			cmip = csr_read(CSR_MIP);
--		 } while (!(cmip & (MIP_MSIP | MIP_MEIP)));
--	}
--
--	/* Acquire coldboot lock */
--	spin_lock(&coldboot_lock);
--
--	/* Unmark current HART as waiting */
--	sbi_hartmask_clear_hartid(hartid, &coldboot_wait_hmask);
--
--	/* Release coldboot lock */
--	spin_unlock(&coldboot_lock);
--
--	/* Restore MIE CSR */
--	csr_write(CSR_MIE, saved_mie);
--
--	/*
--	 * The wait for coldboot is common for both warm startup and
--	 * warm resume path so clearing IPI here would result in losing
--	 * an IPI in warm resume path.
--	 *
--	 * Also, the sbi_platform_ipi_init() called from sbi_ipi_init()
--	 * will automatically clear IPI for current HART.
--	 */
-+	/* Wait for coldboot to finish */
-+	while (!__smp_load_acquire(&coldboot_done))
-+		cpu_relax();
- }
+ 	count = sbi_scratch_offset_ptr(scratch, init_count_offset);
+ 	(*count)++;
  
- static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
- {
--	u32 i, hartindex = sbi_hartid_to_hartindex(hartid);
--
- 	/* Mark coldboot done */
- 	__smp_store_release(&coldboot_done, 1);
--
--	/* Acquire coldboot lock */
--	spin_lock(&coldboot_lock);
--
--	/* Send an IPI to all HARTs waiting for coldboot */
--	sbi_hartmask_for_each_hartindex(i, &coldboot_wait_hmask) {
--		if (i == hartindex)
--			continue;
--		sbi_ipi_raw_send(i);
--	}
--
--	/* Release coldboot lock */
--	spin_unlock(&coldboot_lock);
- }
+@@ -369,6 +375,7 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+ 	count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
+ 	(*count)++;
  
- static unsigned long entry_count_offset;
++	/* Note: This has to be first thing in warmboot init sequence */
+ 	rc = sbi_hsm_init(scratch, hartid, false);
+ 	if (rc)
+ 		sbi_hart_hang();
 -- 
 2.34.1
 
