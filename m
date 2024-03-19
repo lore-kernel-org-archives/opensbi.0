@@ -1,115 +1,70 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 19 Mar 2024 11:26:10 +0530
-Subject: [PATCH 2/2] docs/writing_tests: Update tests paths
-In-Reply-To: <20240313150158.204455-3-ivan.orlov0322@gmail.com>
-References: <20240313150158.204455-1-ivan.orlov0322@gmail.com> <20240313150158.204455-3-ivan.orlov0322@gmail.com>
-Message-ID: <CAAhSdy2u72u4AAN6Q9tXs5iPYLXckKWhE3BfTt9APyOyyMmx6A@mail.gmail.com>
+Date: Tue, 19 Mar 2024 11:36:52 +0530
+Subject: [PATCH v3 00/10] Improve trap handling for nested traps
+In-Reply-To: <20240317130231.1705888-1-apatel@ventanamicro.com>
+References: <20240317130231.1705888-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy2Lch_=24QOn39ygWqh90RgmOLd6dbH+SDzzP2BVpQrcQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 13, 2024 at 8:32?PM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
+On Sun, Mar 17, 2024 at 6:32?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> Since the tests should be moved to the lib/sbi/tests directory, the
-> documentation should be updated correspondingly. So, update the paths
-> where they have to be changed.
+> Nested traps will be a common when dealing with RAS error traps so
+> this series improves trap handling for nested traps by introducing
+> a linked-list based trap context chain.
 >
-> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+> These patches can also be found the trap_handling_imp_v3 branch at
+> https://github.com/avpatel/opensbi.git
+>
+> Changes since v2:
+>  - Addressed comments in PATCH4, PATCH6, PATCH7, PATCH8, and PATCH10.
+>
+> Changes since v1:
+>  - Include samuel's patch in the series
+>  - Embed sbi_trap_regs and sbi_trap_info in the new
+>    struct sbi_trap_context
+>  - Drop the mcause parameter of sbi_trap_aia_irq()
+>
+> Anup Patel (9):
+>   lib: sbi: Remove sbi_trap_exit() and related code
+>   include: sbi: Add trap_context pointer in struct sbi_scratch
+>   lib: sbi: Introduce trap context
+>   lib: sbi: Simplify parameters of misaligned and access fault handlers
+>   lib: sbi: Simplify parameters of sbi_illegal_insn_handler()
+>   lib: sbi: Remove regs paramter of sbi_irqchip_process()
+>   lib: sbi: Remove regs parameter from trap irq handling functions
+>   lib: sbi: Pass trap context pointer to sbi_ecall_handler()
+>   lib: sbi: Extend sbi_trap_error() to dump state in a nested trap
+>
+> Samuel Holland (1):
+>   lib: sbi: Remove epc from struct sbi_trap_info
 
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
+Applied this series to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
-> ---
->  docs/writing_tests.md | 21 ++++++++++-----------
->  1 file changed, 10 insertions(+), 11 deletions(-)
 >
-> diff --git a/docs/writing_tests.md b/docs/writing_tests.md
-> index 56d0ca3..816adba 100644
-> --- a/docs/writing_tests.md
-> +++ b/docs/writing_tests.md
-> @@ -6,7 +6,7 @@ SBIUnit
->  SBIUnit is a set of macros and functions which simplify the test development and
->  automate the test execution and evaluation. All of the SBIUnit definitions are
->  in the `include/sbi/sbi_unit_test.h` header file, and implementations are
-> -available in `lib/sbi/sbi_unit_test.c`.
-> +available in `lib/sbi/tests/sbi_unit_test.c`.
->
->  Simple SBIUnit test
->  -------------------
-> @@ -30,7 +30,7 @@ size_t sbi_strlen(const char *str)
->
->  which calculates the string length.
->
-> -Create the file `lib/sbi/sbi_string_test.c` with the following content:
-> +Create the file `lib/sbi/tests/sbi_string_test.c` with the following content:
->
->  ```c
->  #include <sbi/sbi_unit_test.h>
-> @@ -50,10 +50,10 @@ static struct sbiunit_test_case string_test_cases[] = {
->  SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
->  ```
->
-> -Then, add the corresponding Makefile entries to `lib/sbi/objects.mk`:
-> +Then, add the corresponding Makefile entries to `lib/sbi/tests/objects.mk`:
->  ```lang-makefile
->  ...
-> -libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
-> +libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
->  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
->  ```
->
-> @@ -86,7 +86,7 @@ Now let's try to change this test in the way that it will fail:
->  # Running SBIUNIT tests #
->  ...
->  ## Running test suite: string_test_suite
-> -[SBIUnit] [.../opensbi/lib/sbi/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
-> +[SBIUnit] [.../opensbi/lib/sbi/tests/sbi_string_test.c:6]: strlen_test: Condition "(sbi_strlen("Hello")) == (100)" expected to be true!
->  [FAILED] strlen_test
->  0 PASSED / 1 FAILED / 1 TOTAL
->  ```
-> @@ -95,17 +95,16 @@ Covering the static functions / using the static definitions
->
->  SBIUnit also allows you to test static functions. In order to do so, simply
->  include your test source in the file you would like to test. Complementing the
-> -example above, just add this to the
-> -`lib/sbi/sbi_string.c` file:
-> +example above, just add this to the `lib/sbi/sbi_string.c` file:
->
->  ```c
->  #ifdef CONFIG_SBIUNIT
-> -#include "sbi_string_test.c"
-> +#include "tests/sbi_string_test.c"
->  #endif
->  ```
->
->  In this case you should only add a new carray entry pointing to the test suite
-> -to `lib/sbi/objects.mk`:
-> +to `lib/sbi/tests/objects.mk`:
->  ```lang-makefile
->  ...
->  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
-> @@ -114,12 +113,12 @@ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
->  You don't have to compile the `sbi_string_test.o` separately, because the
->  test code will be included into the `sbi_string` object file.
->
-> -See example in `lib/sbi/sbi_console_test.c`, where statically declared
-> +See example in `lib/sbi/tests/sbi_console_test.c`, where statically declared
->  `console_dev` variable is used to mock the `sbi_console_device` structure.
->
->  "Mocking" the structures
->  ------------------------
-> -See the example of structure "mocking" in the `lib/sbi/sbi_console_test.c`,
-> +See the example of structure "mocking" in `lib/sbi/tests/sbi_console_test.c`,
->  where the sbi_console_device structure was mocked to be used in various
->  console-related functions in order to test them.
+>  firmware/fw_base.S             |  76 +++++++++----
+>  include/sbi/riscv_encoding.h   |   2 +
+>  include/sbi/sbi_ecall.h        |   4 +-
+>  include/sbi/sbi_illegal_insn.h |   4 +-
+>  include/sbi/sbi_irqchip.h      |   5 +-
+>  include/sbi/sbi_scratch.h      |  14 +--
+>  include/sbi/sbi_trap.h         |  45 ++++++--
+>  include/sbi/sbi_trap_ldst.h    |  12 +-
+>  lib/sbi/sbi_ecall.c            |   3 +-
+>  lib/sbi/sbi_ecall_legacy.c     |   4 -
+>  lib/sbi/sbi_expected_trap.S    |   4 -
+>  lib/sbi/sbi_illegal_insn.c     |   9 +-
+>  lib/sbi/sbi_irqchip.c          |  10 +-
+>  lib/sbi/sbi_trap.c             | 196 +++++++++++++++------------------
+>  lib/sbi/sbi_trap_ldst.c        |  71 ++++++------
+>  lib/utils/irqchip/imsic.c      |   2 +-
+>  16 files changed, 239 insertions(+), 222 deletions(-)
 >
 > --
 > 2.34.1
