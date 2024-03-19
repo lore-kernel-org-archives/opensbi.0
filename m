@@ -1,207 +1,142 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 19 Mar 2024 10:55:13 +0530
-Subject: [PATCH] lib: sbi: Remove gva from struct sbi_trap_info
-In-Reply-To: <20240313015237.761227-1-wxjstz@126.com>
-References: <20240313015237.761227-1-wxjstz@126.com>
-Message-ID: <CAAhSdy3tv=5YyzYdjKXPqdZ0OKHxukGcCha=iRfmUdg1GjM3dw@mail.gmail.com>
+Date: Tue, 19 Mar 2024 11:25:34 +0530
+Subject: [PATCH 1/2] lib: tests: Move tests to a separate directory
+In-Reply-To: <20240313150158.204455-2-ivan.orlov0322@gmail.com>
+References: <20240313150158.204455-1-ivan.orlov0322@gmail.com> <20240313150158.204455-2-ivan.orlov0322@gmail.com>
+Message-ID: <CAAhSdy39Hb3ifkk=P-1sEFYBqR0A+rnN4U8xQ7=J9d0JY6tpDw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 13, 2024 at 7:22?AM Xiang W <wxjstz@126.com> wrote:
+On Wed, Mar 13, 2024 at 8:32?PM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
 >
-> gva is only used in sbi_trap_redirect and can be calculated from
-> sbi_trap_regs through sbi_regs_gva.
-
-gva was added to sbi_trap_regs for specific cases where
-we take a trap from VS/VU-mode to M-mode and gva is not
-set but we redirect such trap to HS-mode with gva set.
-
-Example: let's say we have HW where time CSR is
-trap-n-emulated by M-mode and HW has H-extension
-but does not update mtval CSR upon illegal instruction
-traps. In this case, whenever VS/VU-mode access time
-CSR, it will trap to M-mode as illegal instruction trap and
-M-mode but by the time M-mode tries to read VS/VU-mode
-instruction the guest page is swapped-out by some other
-CPU and M-mode is not able to read VS/VU-mode. In
-this situation, M-mode has to redirect the guest page
-fault to HS-mode with gva bit set in hstatus CSR.
-
-Regards,
-Anup
-
-
+> Move all of the SBIUnit-related code into the lib/sbi/tests directory.
+> Update 'Makefile' to index objects from the tests subdirectory.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> I don't think creating the full separate list of Makefile variables
+> (libsbitests-objs-path-y, libsbitests-object-mks, etc. as it is done for
+> libsbiutils) is necessary for the tests because:
+>
+> 1) `lib/sbi/tests/objects.mk` is already indexed into
+> 'libsbi-objects-mks' since the find expression for the libsbi-object-mks
+> variable looks for objects.mk files in the nested directories as well).
+>
+> 2) Tests are tightly coupled with the `lib/sbi/` sources, therefore it
+> may be reasonable to store the list of lib/sbi and lib/sbi/tests object
+> files together in the libsbi-objs-path-y variable.
+>
+> Additionally, update relative paths in the tests where necessary.
+>
+> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 > ---
-> This patch base on
-> "[PATCH v2 00/10] Improve trap handling for nested traps"
+>  Makefile                                  | 2 ++
+>  lib/sbi/objects.mk                        | 6 ------
+>  lib/sbi/sbi_console.c                     | 2 +-
+>  lib/sbi/tests/objects.mk                  | 6 ++++++
+>  lib/sbi/{ => tests}/sbi_bitmap_test.c     | 0
+>  lib/sbi/{ => tests}/sbi_console_test.c    | 0
+>  lib/sbi/{ => tests}/sbi_unit_test.c       | 0
+>  lib/sbi/{ => tests}/sbi_unit_tests.carray | 0
+>  8 files changed, 9 insertions(+), 7 deletions(-)
+>  create mode 100644 lib/sbi/tests/objects.mk
+>  rename lib/sbi/{ => tests}/sbi_bitmap_test.c (100%)
+>  rename lib/sbi/{ => tests}/sbi_console_test.c (100%)
+>  rename lib/sbi/{ => tests}/sbi_unit_test.c (100%)
+>  rename lib/sbi/{ => tests}/sbi_unit_tests.carray (100%)
 >
->  firmware/fw_base.S          | 19 +++----------------
->  include/sbi/sbi_trap.h      |  6 +-----
->  lib/sbi/sbi_expected_trap.S | 17 ++---------------
->  lib/sbi/sbi_illegal_insn.c  |  1 -
->  lib/sbi/sbi_trap.c          |  2 +-
->  5 files changed, 7 insertions(+), 38 deletions(-)
+> diff --git a/Makefile b/Makefile
+> index 680c19a..eef321e 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -247,6 +247,8 @@ include $(firmware-object-mks)
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 967cca5..7e172ad 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -625,7 +625,7 @@ memcmp:
->         REG_S   t6, SBI_TRAP_REGS_OFFSET(t6)(sp)
->  .endm
->
-> -.macro TRAP_SAVE_INFO have_mstatush have_h_extension
-> +.macro TRAP_SAVE_INFO have_h_extension
->         csrr    t0, CSR_MCAUSE
->         REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(cause))(sp)
->         csrr    t0, CSR_MTVAL
-> @@ -635,20 +635,11 @@ memcmp:
->         REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
->         csrr    t0, CSR_MTINST
->         REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
-> -       .if \have_mstatush
-> -       csrr    t0, CSR_MSTATUSH
-> -       srli    t0, t0, MSTATUSH_GVA_SHIFT
-> -       .else
-> -       csrr    t0, CSR_MSTATUS
-> -       srli    t0, t0, MSTATUS_GVA_SHIFT
-> -       .endif
-> -       and     t0, t0, 0x1
->  .else
->         REG_S   zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
->         REG_S   zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
->         add     t0, zero, zero
->  .endif
-> -       REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
->  .endm
->
->  .macro TRAP_CALL_C_ROUTINE
-> @@ -720,7 +711,7 @@ _trap_handler:
->
->         TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
->
-> -       TRAP_SAVE_INFO 0 0
-> +       TRAP_SAVE_INFO 0
->
->         TRAP_CALL_C_ROUTINE
->
-> @@ -746,11 +737,7 @@ _trap_handler_hyp:
->
->         TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
->
-> -#if __riscv_xlen == 32
-> -       TRAP_SAVE_INFO 1 1
-> -#else
-> -       TRAP_SAVE_INFO 0 1
-> -#endif
-> +       TRAP_SAVE_INFO 1
->
->         TRAP_CALL_C_ROUTINE
->
-> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-> index f7c170e..ff475ca 100644
-> --- a/include/sbi/sbi_trap.h
-> +++ b/include/sbi/sbi_trap.h
-> @@ -95,10 +95,8 @@
->  #define SBI_TRAP_INFO_tval2                    2
->  /** Index of tinst member in sbi_trap_info */
->  #define SBI_TRAP_INFO_tinst                    3
-> -/** Index of gva member in sbi_trap_info */
-> -#define SBI_TRAP_INFO_gva                      4
->  /** Last member index in sbi_trap_info */
-> -#define SBI_TRAP_INFO_last                     5
-> +#define SBI_TRAP_INFO_last                     4
->
->  /* clang-format on */
->
-> @@ -206,8 +204,6 @@ struct sbi_trap_info {
->         unsigned long tval2;
->         /** tinst Trap instruction */
->         unsigned long tinst;
-> -       /** gva Guest virtual address in tval flag */
-> -       unsigned long gva;
->  };
->
->  /** Representation of trap context saved on stack */
-> diff --git a/lib/sbi/sbi_expected_trap.S b/lib/sbi/sbi_expected_trap.S
-> index 99dede5..6823c46 100644
-> --- a/lib/sbi/sbi_expected_trap.S
-> +++ b/lib/sbi/sbi_expected_trap.S
-> @@ -22,14 +22,13 @@
->         .align 3
->         .global __sbi_expected_trap
->  __sbi_expected_trap:
-> -       /* Without H-extension so, MTVAL2 and MTINST CSRs and GVA not available */
-> +       /* Without H-extension so, MTVAL2 and MTINST CSRs not available */
->         csrr    a4, CSR_MCAUSE
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
->         csrr    a4, CSR_MTVAL
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(tval)(a3)
->         REG_S   zero, SBI_TRAP_INFO_OFFSET(tval2)(a3)
->         REG_S   zero, SBI_TRAP_INFO_OFFSET(tinst)(a3)
-> -       REG_S   zero, SBI_TRAP_INFO_OFFSET(gva)(a3)
->         csrr    a4, CSR_MEPC
->         addi    a4, a4, 4
->         csrw    CSR_MEPC, a4
-> @@ -38,7 +37,7 @@ __sbi_expected_trap:
->         .align 3
->         .global __sbi_expected_trap_hext
->  __sbi_expected_trap_hext:
-> -       /* With H-extension so, MTVAL2 and MTINST CSRs and GVA available */
-> +       /* With H-extension so, MTVAL2 and MTINST CSRs available */
->         csrr    a4, CSR_MCAUSE
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(cause)(a3)
->         csrr    a4, CSR_MTVAL
-> @@ -47,18 +46,6 @@ __sbi_expected_trap_hext:
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(tval2)(a3)
->         csrr    a4, CSR_MTINST
->         REG_S   a4, SBI_TRAP_INFO_OFFSET(tinst)(a3)
+>  # Setup list of objects
+>  libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(build_dir)/lib/sbi/$(obj))
+> +# Index unit tests
+> +libsbi-objs-path-y+=$(foreach obj,$(libsbitests-objs-y),$(build_dir)/lib/sbi/tests/$(obj))
+
+No need for changing top-level Makefile.
+
+>  ifdef PLATFORM
+>  libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(platform_build_dir)/lib/utils/$(obj))
+>  platform-objs-path-y=$(foreach obj,$(platform-objs-y),$(platform_build_dir)/$(obj))
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index 2bed7f3..5d06d25 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -11,12 +11,6 @@ libsbi-objs-y += riscv_asm.o
+>  libsbi-objs-y += riscv_atomic.o
+>  libsbi-objs-y += riscv_hardfp.o
+>  libsbi-objs-y += riscv_locks.o
+> -libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
+> -libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
 > -
-> -       /* Extract GVA bit from MSTATUS or MSTATUSH */
-> -#if __riscv_xlen == 32
-> -       csrr    a4, CSR_MSTATUSH
-> -       srli    a4, a4, MSTATUSH_GVA_SHIFT
-> -#else
-> -       csrr    a4, CSR_MSTATUS
-> -       srli    a4, a4, MSTATUS_GVA_SHIFT
-> -#endif
-> -       andi    a4, a4, 1
-> -       REG_S   a4, SBI_TRAP_INFO_OFFSET(gva)(a3)
-> -
->         csrr    a4, CSR_MEPC
->         addi    a4, a4, 4
->         csrw    CSR_MEPC, a4
-> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-> index 29c5d74..e912234 100644
-> --- a/lib/sbi/sbi_illegal_insn.c
-> +++ b/lib/sbi/sbi_illegal_insn.c
-> @@ -29,7 +29,6 @@ static int truly_illegal_insn(ulong insn, struct sbi_trap_regs *regs)
->         trap.tval = insn;
->         trap.tval2 = 0;
->         trap.tinst = 0;
-> -       trap.gva   = 0;
+> -libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+> -carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
+> -carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
 >
->         return sbi_trap_redirect(regs, &trap);
+>  libsbi-objs-y += sbi_ecall.o
+>  libsbi-objs-y += sbi_ecall_exts.o
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index d1229d0..8d1ad2e 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -490,5 +490,5 @@ int sbi_console_init(struct sbi_scratch *scratch)
 >  }
-> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> index 83598a4..01077f2 100644
-> --- a/lib/sbi/sbi_trap.c
-> +++ b/lib/sbi/sbi_trap.c
-> @@ -146,7 +146,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
->                 hstatus &= ~HSTATUS_SPV;
->                 hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
->                 hstatus &= ~HSTATUS_GVA;
-> -               hstatus |= (trap->gva) ? HSTATUS_GVA : 0;
-> +               hstatus |= sbi_regs_gva(regs) ? HSTATUS_GVA : 0;
->                 csr_write(CSR_HSTATUS, hstatus);
->                 csr_write(CSR_HTVAL, trap->tval2);
->                 csr_write(CSR_HTINST, trap->tinst);
-> --
-> 2.43.0
 >
+>  #ifdef CONFIG_SBIUNIT
+> -#include "sbi_console_test.c"
+> +#include "tests/sbi_console_test.c"
+>  #endif
+
+We can simply drop including "tests/sbi_console_test.c" by
+relaxing the check in sbi_console_set_device().
+
+> diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
+> new file mode 100644
+> index 0000000..0397172
+> --- /dev/null
+> +++ b/lib/sbi/tests/objects.mk
+> @@ -0,0 +1,6 @@
+> +libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
+> +libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
+> +
+> +libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
+
+We just need "tests/" prefix to above objects. Just like we do
+in various objects.mk under utils directory.
+
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+> diff --git a/lib/sbi/sbi_bitmap_test.c b/lib/sbi/tests/sbi_bitmap_test.c
+> similarity index 100%
+> rename from lib/sbi/sbi_bitmap_test.c
+> rename to lib/sbi/tests/sbi_bitmap_test.c
+> diff --git a/lib/sbi/sbi_console_test.c b/lib/sbi/tests/sbi_console_test.c
+> similarity index 100%
+> rename from lib/sbi/sbi_console_test.c
+> rename to lib/sbi/tests/sbi_console_test.c
+> diff --git a/lib/sbi/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
+> similarity index 100%
+> rename from lib/sbi/sbi_unit_test.c
+> rename to lib/sbi/tests/sbi_unit_test.c
+> diff --git a/lib/sbi/sbi_unit_tests.carray b/lib/sbi/tests/sbi_unit_tests.carray
+> similarity index 100%
+> rename from lib/sbi/sbi_unit_tests.carray
+> rename to lib/sbi/tests/sbi_unit_tests.carray
+> --
+> 2.34.1
+>
+
+I have taken care of the above minor issues at the time of merging
+this patch.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
 
