@@ -1,56 +1,66 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 20 Mar 2024 11:08:02 +0530
-Subject: [PATCH 2/2] platform: generic: allwinner: Optimize current hart
- scratch access
-In-Reply-To: <20240318144932.4165729-3-samuel.holland@sifive.com>
-References: <20240318144932.4165729-1-samuel.holland@sifive.com> <20240318144932.4165729-3-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy1a_x7-xE_4egefYVqaCqz+zaVU_A23QDnZOLtc8kAzFA@mail.gmail.com>
+Date: Wed, 20 Mar 2024 11:12:07 +0530
+Subject: [PATCH] docs: writing_tests: Make docs correspond the latest changes
+In-Reply-To: <20240319160239.303765-1-ivan.orlov0322@gmail.com>
+References: <20240319160239.303765-1-ivan.orlov0322@gmail.com>
+Message-ID: <CAAhSdy1Vp5k2CaJZ67d46fHX6ZJaY6bgaW9+m_90TjSXaVC7OQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 18, 2024 at 8:19?PM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Tue, Mar 19, 2024 at 9:32?PM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
 >
-> The address of the local scratch area is stored in each hart's mscratch
-> CSR. It is more efficient to read the CSR than to compute the address
-> from the hart ID.
+> We should store test object files list in the `libsbi-objs-y` Makefile
+> variable, not in `libsbitests-objs-y`. Update the documentation
+> correspondingly.
 >
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+> Since we don't use the `console_dev` static variable directly in the
+> `sbi_console_test` unit test anymore, remove the paragraph which says
+> that we do.
+>
+> Fixes: 86224ec36aed ("docs/writing_tests: Update tests paths")
+> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 
 LGTM.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Regards,
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
 > ---
+>  docs/writing_tests.md | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
 >
->  platform/generic/allwinner/sun20i-d1.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/docs/writing_tests.md b/docs/writing_tests.md
+> index 816adba..2ce887a 100644
+> --- a/docs/writing_tests.md
+> +++ b/docs/writing_tests.md
+> @@ -53,8 +53,8 @@ SBIUNIT_TEST_SUITE(string_test_suite, string_test_cases);
+>  Then, add the corresponding Makefile entries to `lib/sbi/tests/objects.mk`:
+>  ```lang-makefile
+>  ...
+> -libsbitests-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
+>  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+> +libsbi-objs-$(CONFIG_SBIUNIT) += sbi_string_test.o
+>  ```
 >
-> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
-> index e9388dba..67559b24 100644
-> --- a/platform/generic/allwinner/sun20i-d1.c
-> +++ b/platform/generic/allwinner/sun20i-d1.c
-> @@ -151,7 +151,7 @@ static void sun20i_d1_riscv_cfg_restore(void)
+>  If you compiled OpenSBI with CONFIG_SBIUNIT enabled before, you may need to
+> @@ -113,9 +113,6 @@ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += string_test_suite
+>  You don't have to compile the `sbi_string_test.o` separately, because the
+>  test code will be included into the `sbi_string` object file.
 >
->  static void sun20i_d1_riscv_cfg_init(void)
->  {
-> -       u64 entry = sbi_hartid_to_scratch(0)->warmboot_addr;
-> +       u64 entry = sbi_scratch_thishart_ptr()->warmboot_addr;
->
->         /* Enable MMIO access. */
->         writel_relaxed(CCU_BGR_ENABLE, SUN20I_D1_CCU_BASE + RISCV_CFG_BGR_REG);
+> -See example in `lib/sbi/tests/sbi_console_test.c`, where statically declared
+> -`console_dev` variable is used to mock the `sbi_console_device` structure.
+> -
+>  "Mocking" the structures
+>  ------------------------
+>  See the example of structure "mocking" in `lib/sbi/tests/sbi_console_test.c`,
 > --
-> 2.43.1
+> 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
