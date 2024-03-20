@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 20 Mar 2024 11:06:52 +0530
-Subject: [PATCH 1/2] lib: utils/timer: Optimize current hart scratch access
-In-Reply-To: <20240318144932.4165729-2-samuel.holland@sifive.com>
-References: <20240318144932.4165729-1-samuel.holland@sifive.com> <20240318144932.4165729-2-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy3BYxCzk2CdUhgrrCfFGxicqUvcE7kpne6AMJBBudRa1w@mail.gmail.com>
+Date: Wed, 20 Mar 2024 11:08:02 +0530
+Subject: [PATCH 2/2] platform: generic: allwinner: Optimize current hart
+ scratch access
+In-Reply-To: <20240318144932.4165729-3-samuel.holland@sifive.com>
+References: <20240318144932.4165729-1-samuel.holland@sifive.com> <20240318144932.4165729-3-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy1a_x7-xE_4egefYVqaCqz+zaVU_A23QDnZOLtc8kAzFA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -28,60 +29,22 @@ Anup
 
 > ---
 >
->  lib/utils/timer/aclint_mtimer.c | 18 +++---------------
->  1 file changed, 3 insertions(+), 15 deletions(-)
+>  platform/generic/allwinner/sun20i-d1.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
-> index 271e6252..9acb26eb 100644
-> --- a/lib/utils/timer/aclint_mtimer.c
-> +++ b/lib/utils/timer/aclint_mtimer.c
-> @@ -72,14 +72,10 @@ static u64 mtimer_value(void)
->  static void mtimer_event_stop(void)
+> diff --git a/platform/generic/allwinner/sun20i-d1.c b/platform/generic/allwinner/sun20i-d1.c
+> index e9388dba..67559b24 100644
+> --- a/platform/generic/allwinner/sun20i-d1.c
+> +++ b/platform/generic/allwinner/sun20i-d1.c
+> @@ -151,7 +151,7 @@ static void sun20i_d1_riscv_cfg_restore(void)
+>
+>  static void sun20i_d1_riscv_cfg_init(void)
 >  {
->         u32 target_hart = current_hartid();
-> -       struct sbi_scratch *scratch;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->         struct aclint_mtimer_data *mt;
->         u64 *time_cmp;
+> -       u64 entry = sbi_hartid_to_scratch(0)->warmboot_addr;
+> +       u64 entry = sbi_scratch_thishart_ptr()->warmboot_addr;
 >
-> -       scratch = sbi_hartid_to_scratch(target_hart);
-> -       if (!scratch)
-> -               return;
-> -
->         mt = mtimer_get_hart_data_ptr(scratch);
->         if (!mt)
->                 return;
-> @@ -92,14 +88,10 @@ static void mtimer_event_stop(void)
->  static void mtimer_event_start(u64 next_event)
->  {
->         u32 target_hart = current_hartid();
-> -       struct sbi_scratch *scratch;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->         struct aclint_mtimer_data *mt;
->         u64 *time_cmp;
->
-> -       scratch = sbi_hartid_to_scratch(target_hart);
-> -       if (!scratch)
-> -               return;
-> -
->         mt = mtimer_get_hart_data_ptr(scratch);
->         if (!mt)
->                 return;
-> @@ -155,13 +147,9 @@ int aclint_mtimer_warm_init(void)
->  {
->         u64 *mt_time_cmp;
->         u32 target_hart = current_hartid();
-> -       struct sbi_scratch *scratch;
-> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->         struct aclint_mtimer_data *mt;
->
-> -       scratch = sbi_hartid_to_scratch(target_hart);
-> -       if (!scratch)
-> -               return SBI_ENOENT;
-> -
->         mt = mtimer_get_hart_data_ptr(scratch);
->         if (!mt)
->                 return SBI_ENODEV;
+>         /* Enable MMIO access. */
+>         writel_relaxed(CCU_BGR_ENABLE, SUN20I_D1_CCU_BASE + RISCV_CFG_BGR_REG);
 > --
 > 2.43.1
 >
