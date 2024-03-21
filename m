@@ -1,100 +1,117 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Thu, 21 Mar 2024 16:57:15 +0100
-Subject: [PATCH v3 0/3]  Add support for Supervisor Software Events extension
-Message-ID: <20240321155720.1966860-1-cleger@rivosinc.com>
+Date: Thu, 21 Mar 2024 16:57:17 +0100
+Subject: [PATCH v3 2/3] lib: sbi: Implement SBI SSE extension
+In-Reply-To: <20240321155720.1966860-1-cleger@rivosinc.com>
+References: <20240321155720.1966860-1-cleger@rivosinc.com>
+Message-ID: <20240321155720.1966860-3-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The SBI Supervisor Software Events (SSE) extensions provides a mechanism
-to inject software events from an SBI implementation to supervisor
-software such that it preempts all other supervisor level traps and
-interrupts [1]. This series implements the V3 version of the spec.
+The SBI SSE extension defines a set of function that can be called to
+register and handle supervisor sofwtare events. This patch implements
+all of the functionality defined in the specification.
 
-Various events are defined and can be send asynchronously to supervisor
-software (RAS, PMU, DEBUG, Asynchronous page fault) from SBI as well
-as platform specific events. Events can be either local (per-hart) or
-global. Events can be nested on top of each other based on priority and
-can interrupt the supervisor mode at any time.
-
-This implementation can be tested using kvm-unit-tests [2] with the
-following commands:
-
-Build kvm-unit-tests:
-
-$ git clone https://github.com/clementleger/kvm-unit-tests.git
-$ cd kvm-unit-tests
-$ git switch dev/cleger/sse
-$ ./configure --arch=riscv64 --cross-prefix=$CROSS_COMPILE
-$ make
-
-Run using Qemu:
-
-$ ./qemu-system-riscv64 \
-        -smp 4 \
-        -M virt \
-        -cpu rv64 \
-        -nographic \
-        -serial mon:stdio \
-        -bios <opensbi>/build/platform/generic/firmware/fw_jump.bin \
-        -kernel <kvm-unit-tests>/riscv/sbi_sse.flat
-
-An implementation of a SSE "client" in linux is available [3].
-This series can be found on github [5].
-
-Link: https://lists.riscv.org/g/tech-prs/message/798 [1]
-Link: https://github.com/clementleger/kvm-unit-tests/tree/dev/cleger/sse [2]
-Link: https://github.com/rivosinc/linux/tree/dev/cleger/sse [3]
-Link: http://lists.infradead.org/pipermail/opensbi/2024-March/006670.html [4]
-Link: https://github.com/rivosinc/opensbi/tree/dev/cleger/sse_v3 [5]
-
+Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
-
-Changes from v3:
- - Changes to follow v3 SSE specification
- - Use masks instead of struct with bitfields for status
- - Rework locking
- - SSE pending event processing is now done upon returning to previous
-   mode
-
-v2: http://lists.infradead.org/pipermail/opensbi/2024-January/006223.html
-
-Changes from v2:
- - Move local/global event count initialization out of sse_global_init()
- - Remove PMU_IRQ_CLEAR SBI call and clear IRQ on SSE event completion
- - Change SBI_ERR_X to SBI_EXX defines
- - Add guards for invalid __riscv_xlen values
- - Update parameters passing (a6, a7)
-
-v1: http://lists.infradead.org/pipermail/opensbi/2023-November/006015.html
-
-Changes from v1:
- - Implemented SSE Spec v2
- - Change event state checking (Xiang W)
-
-Cl?ment L?ger (3):
-  lib: sbi: Add support for Supervisor Software Events extension
-  lib: sbi: Implement SBI SSE extension
-  lib: sbi: Add SSE support for PMU events
-
- include/sbi/sbi_ecall_interface.h |   79 +-
- include/sbi/sbi_error.h           |    2 +
- include/sbi/sbi_pmu.h             |    3 +
- include/sbi/sbi_sse.h             |   94 +++
- lib/sbi/Kconfig                   |    4 +
- lib/sbi/objects.mk                |    4 +
- lib/sbi/sbi_ecall_sse.c           |   57 ++
- lib/sbi/sbi_init.c                |   13 +
- lib/sbi/sbi_pmu.c                 |   51 ++
- lib/sbi/sbi_sse.c                 | 1131 +++++++++++++++++++++++++++++
- lib/sbi/sbi_trap.c                |   11 +
- 11 files changed, 1448 insertions(+), 1 deletion(-)
- create mode 100644 include/sbi/sbi_sse.h
+ lib/sbi/Kconfig         |  4 +++
+ lib/sbi/objects.mk      |  3 +++
+ lib/sbi/sbi_ecall_sse.c | 57 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 64 insertions(+)
  create mode 100644 lib/sbi/sbi_ecall_sse.c
- create mode 100644 lib/sbi/sbi_sse.c
 
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index e3038ee..5db201d 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -54,4 +54,8 @@ config SBIUNIT
+ 	bool "Enable SBIUNIT tests"
+ 	default n
+ 
++config SBI_ECALL_SSE
++       bool "SSE extension"
++       default y
++
+ endmenu
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 2b9ac1f..b1c4a50 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -55,6 +55,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_VENDOR) += sbi_ecall_vendor.o
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBTR) += ecall_dbtr
+ libsbi-objs-$(CONFIG_SBI_ECALL_DBTR) += sbi_ecall_dbtr.o
+ 
++carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_SSE) += ecall_sse
++libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
++
+ libsbi-objs-y += sbi_bitmap.o
+ libsbi-objs-y += sbi_bitops.o
+ libsbi-objs-y += sbi_console.o
+diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
+new file mode 100644
+index 0000000..cda96af
+--- /dev/null
++++ b/lib/sbi/sbi_ecall_sse.c
+@@ -0,0 +1,57 @@
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_ecall.h>
++#include <sbi/sbi_trap.h>
++#include <sbi/sbi_sse.h>
++
++static int sbi_ecall_sse_handler(unsigned long extid, unsigned long funcid,
++				  struct sbi_trap_regs *regs,
++				  struct sbi_ecall_return *out)
++{
++	int ret;
++
++	switch (funcid) {
++	case SBI_EXT_SSE_READ_ATTR:
++		ret = sbi_sse_read_attrs(regs->a0, regs->a1, regs->a2, regs->a3,
++					 regs->a4);
++		break;
++	case SBI_EXT_SSE_WRITE_ATTR:
++		ret = sbi_sse_write_attrs(regs->a0, regs->a1, regs->a2,
++					 regs->a3, regs->a4);
++		break;
++	case SBI_EXT_SSE_REGISTER:
++		ret = sbi_sse_register(regs->a0, regs->a1, regs->a2);
++		break;
++	case SBI_EXT_SSE_UNREGISTER:
++		ret = sbi_sse_unregister(regs->a0);
++		break;
++	case SBI_EXT_SSE_ENABLE:
++		ret = sbi_sse_enable(regs->a0);
++		break;
++	case SBI_EXT_SSE_DISABLE:
++		ret = sbi_sse_disable(regs->a0);
++		break;
++	case SBI_EXT_SSE_COMPLETE:
++		ret = sbi_sse_complete(regs, out);
++		break;
++	case SBI_EXT_SSE_INJECT:
++		ret = sbi_sse_inject_from_ecall(regs->a0, regs->a1, out);
++		break;
++	default:
++		ret = SBI_ENOTSUPP;
++	}
++	return ret;
++}
++
++struct sbi_ecall_extension ecall_sse;
++
++static int sbi_ecall_sse_register_extensions(void)
++{
++	return sbi_ecall_register_extension(&ecall_sse);
++}
++
++struct sbi_ecall_extension ecall_sse = {
++	.extid_start		= SBI_EXT_SSE,
++	.extid_end		= SBI_EXT_SSE,
++	.register_extensions	= sbi_ecall_sse_register_extensions,
++	.handle			= sbi_ecall_sse_handler,
++};
 -- 
 2.43.0
 
