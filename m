@@ -1,48 +1,173 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Wed, 20 Mar 2024 16:45:31 +0100
-Subject: [PATCH v2] lib: sbi: Add missing sscrind and sscfg extensions in sbi_hart_ext[]
-Message-ID: <20240320154531.1496553-1-cleger@rivosinc.com>
+Date: Thu, 21 Mar 2024 16:57:18 +0100
+Subject: [PATCH v3 3/3] lib: sbi: Add SSE support for PMU events
+In-Reply-To: <20240321155720.1966860-1-cleger@rivosinc.com>
+References: <20240321155720.1966860-1-cleger@rivosinc.com>
+Message-ID: <20240321155720.1966860-4-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_hart_ext[] array is missing these two extensions ids. It is
-expected that this array contains all the extensions declaration at the
-same index of the SBI_HART_EXT_* define. Without this, when adding a new
-extension, there is a mismatch between ids and extension names and it
-can even display corrupted extension names.
+Add SSE callbacks registration to PMU driver in order to disable
+interrupt delegation for PMU interrupts. When interrupts are undelegated
+send the PMU SSE event upon LCOFIP IRQ.
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-
 ---
+ include/sbi/sbi_pmu.h |  3 +++
+ lib/sbi/sbi_pmu.c     | 51 +++++++++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_trap.c    |  6 +++++
+ 3 files changed, 60 insertions(+)
 
-Changes in v2:
- - Add _Static_assert() to check sbi_hart_ext[] array size
-
----
- lib/sbi/sbi_hart.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 3d13694..80efeaa 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -666,8 +666,13 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(sdtrig, SBI_HART_EXT_SDTRIG),
- 	__SBI_HART_EXT_DATA(smcsrind, SBI_HART_EXT_SMCSRIND),
- 	__SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
-+	__SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
-+	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
- };
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index 7d32a4d..8b1e08c 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -11,6 +11,7 @@
+ #define __SBI_PMU_H__
  
-+_Static_assert(array_size(sbi_hart_ext) == SBI_HART_EXT_MAX,
-+	       "sbi_hart_ext[] array should contain all extensions ids");
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_trap.h>
+ 
+ struct sbi_scratch;
+ 
+@@ -150,4 +151,6 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+ 
+ int sbi_pmu_ctr_incr_fw(enum sbi_pmu_fw_event_code_id fw_id);
+ 
++void sbi_pmu_ovf_irq();
 +
- /**
-  * Get the hart extensions in string format
-  *
+ #endif
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 62a6465..b9e8454 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -17,6 +17,7 @@
+ #include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
++#include <sbi/sbi_sse.h>
+ 
+ /** Information about hardware counters */
+ struct sbi_pmu_hw_event {
+@@ -62,6 +63,8 @@ struct sbi_pmu_hart_state {
+ 	uint32_t active_events[SBI_PMU_HW_CTR_MAX + SBI_PMU_FW_CTR_MAX];
+ 	/* Bitmap of firmware counters started */
+ 	unsigned long fw_counters_started;
++	/* if true, SSE is enabled */
++	bool sse_enabled;
+ 	/*
+ 	 * Counter values for SBI firmware events and event codes
+ 	 * for platform firmware events. Both are mutually exclusive
+@@ -300,6 +303,16 @@ int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32
+ 				    SBI_PMU_EVENT_RAW_IDX, cmap, select, select_mask);
+ }
+ 
++void sbi_pmu_ovf_irq()
++{
++	/*
++	 * We need to disable LCOFIP before returning to S-mode or we will loop
++	 * on LCOFIP being triggered
++	 */
++	csr_clear(CSR_MIE, MIP_LCOFIP);
++	sbi_sse_inject_event(SBI_SSE_EVENT_LOCAL_PMU);
++}
++
+ static int pmu_ctr_enable_irq_hw(int ctr_idx)
+ {
+ 	unsigned long mhpmevent_csr;
+@@ -575,6 +588,10 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+ 		}
+ 	}
+ 
++	/* Clear MIP_LCOFIP to avoid spurious interrupts */
++	if (phs->sse_enabled)
++		csr_clear(CSR_MIP, MIP_LCOFIP);
++
+ 	return ret;
+ }
+ 
+@@ -962,6 +979,7 @@ static void pmu_reset_event_map(struct sbi_pmu_hart_state *phs)
+ 	for (j = 0; j < SBI_PMU_FW_CTR_MAX; j++)
+ 		phs->fw_counters_data[j] = 0;
+ 	phs->fw_counters_started = 0;
++	phs->sse_enabled = 0;
+ }
+ 
+ const struct sbi_pmu_device *sbi_pmu_get_device(void)
+@@ -993,6 +1011,37 @@ void sbi_pmu_exit(struct sbi_scratch *scratch)
+ 	pmu_reset_event_map(phs);
+ }
+ 
++static void pmu_sse_enable(uint32_t event_id)
++{
++	struct sbi_pmu_hart_state *phs = pmu_thishart_state_ptr();
++
++	phs->sse_enabled = true;
++	csr_clear(CSR_MIDELEG, sbi_pmu_irq_bit());
++	csr_clear(CSR_MIP, MIP_LCOFIP);
++	csr_set(CSR_MIE, MIP_LCOFIP);
++}
++
++static void pmu_sse_disable(uint32_t event_id)
++{
++	struct sbi_pmu_hart_state *phs = pmu_thishart_state_ptr();
++
++	csr_clear(CSR_MIE, MIP_LCOFIP);
++	csr_clear(CSR_MIP, MIP_LCOFIP);
++	csr_set(CSR_MIDELEG, sbi_pmu_irq_bit());
++	phs->sse_enabled = false;
++}
++
++static void pmu_sse_complete(uint32_t event_id)
++{
++	csr_set(CSR_MIE, MIP_LCOFIP);
++}
++
++static const struct sbi_sse_cb_ops pmu_sse_cb_ops = {
++	.enable_cb = pmu_sse_enable,
++	.disable_cb = pmu_sse_disable,
++	.complete_cb = pmu_sse_complete,
++};
++
+ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ {
+ 	int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
+@@ -1032,6 +1081,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ 		total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+ 	}
+ 
++	sbi_sse_set_cb_ops(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
++
+ 	phs = pmu_get_hart_state_ptr(scratch);
+ 	if (!phs) {
+ 		phs = sbi_zalloc(sizeof(*phs));
+diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+index 624b45e..b4f3a17 100644
+--- a/lib/sbi/sbi_trap.c
++++ b/lib/sbi/sbi_trap.c
+@@ -223,6 +223,9 @@ static int sbi_trap_nonaia_irq(unsigned long irq)
+ 	case IRQ_M_SOFT:
+ 		sbi_ipi_process();
+ 		break;
++	case IRQ_PMU_OVF:
++		sbi_pmu_ovf_irq();
++		break;
+ 	case IRQ_M_EXT:
+ 		return sbi_irqchip_process();
+ 	default:
+@@ -246,6 +249,9 @@ static int sbi_trap_aia_irq(void)
+ 		case IRQ_M_SOFT:
+ 			sbi_ipi_process();
+ 			break;
++		case IRQ_PMU_OVF:
++			sbi_pmu_ovf_irq();
++			break;
+ 		case IRQ_M_EXT:
+ 			rc = sbi_irqchip_process();
+ 			if (rc)
 -- 
 2.43.0
 
