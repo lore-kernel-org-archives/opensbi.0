@@ -1,124 +1,40 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue, 26 Mar 2024 08:13:39 +0530
-Subject: [PATCH v3 2/3] lib: sbi: Implement SBI SSE extension
-In-Reply-To: <20240321155720.1966860-3-cleger@rivosinc.com>
-References: <20240321155720.1966860-1-cleger@rivosinc.com>
- <20240321155720.1966860-3-cleger@rivosinc.com>
-Message-ID: <7E233DCA-95E0-4E8F-B8A4-CD3EC1EA9039@ventanamicro.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 27 Mar 2024 13:23:44 +0800
+Subject: [PATCH] sbi: sbi_domain_context: Check privilege spec version before accessing S-mode CSRs
+Message-ID: <20240327052344.2264839-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Reviewed-by: Himanshu Chauhan <hchauhan at ventanamicro.com <mailto:hchauhan@ventanamicro.com>>
+SCOUNTEREN and SENVCFG may not be supported on certain RISC-V core,
+so check the existence of these CSRs via privilege spec version to
+prevent illegal instructions.
 
-> On 21-Mar-2024, at 9:27?PM, Cl?ment L?ger <cleger@rivosinc.com> wrote:
-> 
-> The SBI SSE extension defines a set of function that can be called to
-> register and handle supervisor sofwtare events. This patch implements
-> all of the functionality defined in the specification.
-> 
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-> ---
-> lib/sbi/Kconfig         |  4 +++
-> lib/sbi/objects.mk      |  3 +++
-> lib/sbi/sbi_ecall_sse.c | 57 +++++++++++++++++++++++++++++++++++++++++
-> 3 files changed, 64 insertions(+)
-> create mode 100644 lib/sbi/sbi_ecall_sse.c
-> 
-> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-> index e3038ee..5db201d 100644
-> --- a/lib/sbi/Kconfig
-> +++ b/lib/sbi/Kconfig
-> @@ -54,4 +54,8 @@ config SBIUNIT
-> bool "Enable SBIUNIT tests"
-> default n
-> 
-> +config SBI_ECALL_SSE
-> +       bool "SSE extension"
-> +       default y
-> +
-> endmenu
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index 2b9ac1f..b1c4a50 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -55,6 +55,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_VENDOR) += sbi_ecall_vendor.o
-> carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_DBTR) += ecall_dbtr
-> libsbi-objs-$(CONFIG_SBI_ECALL_DBTR) += sbi_ecall_dbtr.o
-> 
-> +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_SSE) += ecall_sse
-> +libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
-> +
-> libsbi-objs-y += sbi_bitmap.o
-> libsbi-objs-y += sbi_bitops.o
-> libsbi-objs-y += sbi_console.o
-> diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
-> new file mode 100644
-> index 0000000..cda96af
-> --- /dev/null
-> +++ b/lib/sbi/sbi_ecall_sse.c
-> @@ -0,0 +1,57 @@
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_ecall.h>
-> +#include <sbi/sbi_trap.h>
-> +#include <sbi/sbi_sse.h>
-> +
-> +static int sbi_ecall_sse_handler(unsigned long extid, unsigned long funcid,
-> +  struct sbi_trap_regs *regs,
-> +  struct sbi_ecall_return *out)
-> +{
-> + int ret;
-> +
-> + switch (funcid) {
-> + case SBI_EXT_SSE_READ_ATTR:
-> + ret = sbi_sse_read_attrs(regs->a0, regs->a1, regs->a2, regs->a3,
-> + regs->a4);
-> + break;
-> + case SBI_EXT_SSE_WRITE_ATTR:
-> + ret = sbi_sse_write_attrs(regs->a0, regs->a1, regs->a2,
-> + regs->a3, regs->a4);
-> + break;
-> + case SBI_EXT_SSE_REGISTER:
-> + ret = sbi_sse_register(regs->a0, regs->a1, regs->a2);
-> + break;
-> + case SBI_EXT_SSE_UNREGISTER:
-> + ret = sbi_sse_unregister(regs->a0);
-> + break;
-> + case SBI_EXT_SSE_ENABLE:
-> + ret = sbi_sse_enable(regs->a0);
-> + break;
-> + case SBI_EXT_SSE_DISABLE:
-> + ret = sbi_sse_disable(regs->a0);
-> + break;
-> + case SBI_EXT_SSE_COMPLETE:
-> + ret = sbi_sse_complete(regs, out);
-> + break;
-> + case SBI_EXT_SSE_INJECT:
-> + ret = sbi_sse_inject_from_ecall(regs->a0, regs->a1, out);
-> + break;
-> + default:
-> + ret = SBI_ENOTSUPP;
-> + }
-> + return ret;
-> +}
-> +
-> +struct sbi_ecall_extension ecall_sse;
-> +
-> +static int sbi_ecall_sse_register_extensions(void)
-> +{
-> + return sbi_ecall_register_extension(&ecall_sse);
-> +}
-> +
-> +struct sbi_ecall_extension ecall_sse = {
-> + .extid_start = SBI_EXT_SSE,
-> + .extid_end = SBI_EXT_SSE,
-> + .register_extensions = sbi_ecall_sse_register_extensions,
-> + .handle = sbi_ecall_sse_handler,
-> +};
-> -- 
-> 2.43.0
-> 
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ lib/sbi/sbi_domain_context.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 9213c1ac..05ba0699 100755
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -55,8 +55,10 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 	ctx->stval	= csr_swap(CSR_STVAL, dom_ctx->stval);
+ 	ctx->sip	= csr_swap(CSR_SIP, dom_ctx->sip);
+ 	ctx->satp	= csr_swap(CSR_SATP, dom_ctx->satp);
+-	ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
+-	ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
++		ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
++		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
+ 
+ 	/* Save current trap state and restore target domain's trap state */
+ 	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
+-- 
+2.34.1
 
 
