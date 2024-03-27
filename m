@@ -1,79 +1,65 @@
 From: Christoph Müllner <christoph.muellner@vrull.eu>
-Date: Wed, 27 Mar 2024 11:11:30 +0100
-Subject: [PATCH 2/9] platform: generic: Add mechanism to handle CSR reads/writes in overrides
+Date: Wed, 27 Mar 2024 11:11:31 +0100
+Subject: [PATCH 3/9] lib: sbi_emulate_csr: Utilize platform hooks for unknown CSRs
 In-Reply-To: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
 References: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
-Message-ID: <20240327101137.3644359-3-christoph.muellner@vrull.eu>
+Message-ID: <20240327101137.3644359-4-christoph.muellner@vrull.eu>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Overrides may want to provide access to custom CSRs.
-Let's add a layer that allows platform overrides to implement CSR read/write
-handlers, where custom CSRs can be accessed.
-This utilizes the corresponding platform hooks to access CSRs.
+In case we trap during CSR accesses, we have a few defined CSRs
+that are gracefully emulated. In case we don't know what to do
+with an unknown CSR, let's give the platform a chance to handle
+the CSR access.
 
 Signed-off-by: Christoph M?llner <christoph.muellner@vrull.eu>
 ---
- platform/generic/include/platform_override.h |  4 ++++
- platform/generic/platform.c                  | 20 ++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ lib/sbi/sbi_emulate_csr.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index b0585c2..6802126 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -34,6 +34,10 @@ struct platform_override {
- 				   struct sbi_trap_regs *regs,
- 				   struct sbi_ecall_return *out,
- 				   const struct fdt_match *match);
-+	int (*read_csr)(int csr_num, struct sbi_trap_regs *regs,
-+			ulong *csr_val);
-+	int (*write_csr)(int csr_num, struct sbi_trap_regs *regs,
-+			 ulong csr_val);
- };
+diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
+index 5f3b111..a6cb855 100644
+--- a/lib/sbi/sbi_emulate_csr.c
++++ b/lib/sbi/sbi_emulate_csr.c
+@@ -14,6 +14,7 @@
+ #include <sbi/sbi_emulate_csr.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
++#include <sbi/sbi_platform.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_timer.h>
+ #include <sbi/sbi_trap.h>
+@@ -147,7 +148,8 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+ #undef switchcase_hpm
  
- #endif
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 1f46b76..07fa9cc 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -273,6 +273,24 @@ static int generic_vendor_ext_provider(long funcid,
- 						 generic_plat_match);
- }
+ 	default:
+-		ret = SBI_ENOTSUPP;
++		ret = sbi_platform_read_csr(sbi_platform_ptr(scratch),
++					    csr_num, regs, csr_val);
+ 		break;
+ 	}
  
-+static int generic_read_csr(int csr_num, struct sbi_trap_regs *regs,
-+			    ulong *csr_val)
-+{
-+	if (generic_plat && generic_plat->read_csr)
-+		return generic_plat->read_csr(csr_num, regs, csr_val);
-+
-+	return SBI_ENOTSUPP;
-+}
-+
-+static int generic_write_csr(int csr_num, struct sbi_trap_regs *regs,
-+			     ulong csr_val)
-+{
-+	if (generic_plat && generic_plat->write_csr)
-+		return generic_plat->write_csr(csr_num, regs, csr_val);
-+
-+	return SBI_ENOTSUPP;
-+}
-+
- static void generic_early_exit(void)
+@@ -162,6 +164,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+ 			  ulong csr_val)
  {
- 	if (generic_plat && generic_plat->early_exit)
-@@ -408,6 +426,8 @@ const struct sbi_platform_operations platform_ops = {
- 	.timer_exit		= fdt_timer_exit,
- 	.vendor_ext_check	= generic_vendor_ext_check,
- 	.vendor_ext_provider	= generic_vendor_ext_provider,
-+	.read_csr		= generic_read_csr,
-+	.write_csr		= generic_write_csr,
- };
+ 	int ret = 0;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+ #if __riscv_xlen == 32
+ 	bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
+@@ -185,7 +188,8 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+ 		break;
+ #endif
+ 	default:
+-		ret = SBI_ENOTSUPP;
++		ret = sbi_platform_write_csr(sbi_platform_ptr(scratch),
++					     csr_num, regs, csr_val);
+ 		break;
+ 	}
  
- struct sbi_platform platform = {
 -- 
 2.44.0
 
