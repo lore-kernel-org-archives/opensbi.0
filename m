@@ -1,215 +1,65 @@
-From: Cheng Yang <yangcheng.work@foxmail.com>
-Date: Wed, 27 Mar 2024 18:00:31 +0800
-Subject: [PATCH 1/1] lib:sbi:platform:generic: Improved mlevel imsic check and init.
-Message-ID: <tencent_31CF56C022E7DC0A907313738EE2B3AB6009@qq.com>
+From: Christoph Müllner <christoph.muellner@vrull.eu>
+Date: Wed, 27 Mar 2024 11:11:28 +0100
+Subject: [PATCH 0/9] T-Head: Allow read access to th.mxstatus CSR
+Message-ID: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The current mlevel imsic check is only for the platform, which
-may cause hart without imsic in the platform to trigger an
-illegal instruction exception when initializing imsic. For
-example, the platform contains a management hart that only
-supports wired interrupts.
+On T-Head C9xx harts, the th.mxstatus CSR provides valuable information
+about the available vendor extensions. As this CSR is only accessible in
+M-mode, we need to provide a mechanism for other modes to access this
+information. This patchset solves this by extending the existing
+platform abstraction such that platforms (or platform overrides)
+can provide a CSR read/write handler.
 
-This patch will check whether each hart has imsic according
-to fdt and record it in a bitmap, and only allow harts with
-imsic to initialize imsic to avoid triggering illegal instruction
-exceptions.
+A CSR read-handler for th.mxstatus is then added that is utilized by
+the Allwinner D1, the T-Head TH1520, and the Sophgo SG2042.
+Further, a generic mvendorid-based platform override is added that also
+enables the CSR read-handler for th.mxstatus (needed for QEMU).
 
-Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
----
- include/sbi/sbi_platform.h         |  8 ++++--
- include/sbi_utils/fdt/fdt_helper.h |  4 ++-
- lib/sbi/sbi_init.c                 |  2 +-
- lib/utils/fdt/fdt_helper.c         | 44 ++++++++++++++++++++++++------
- platform/generic/platform.c        | 22 +++++++++++----
- 5 files changed, 61 insertions(+), 19 deletions(-)
+The CSR is documented here:
+  https://github.com/T-head-Semi/thead-extension-spec/pull/45
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 581935a..f62d23d 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -75,7 +75,7 @@ struct sbi_platform_operations {
- 	bool (*cold_boot_allowed)(u32 hartid);
- 
- 	/* Platform nascent initialization */
--	int (*nascent_init)(void);
-+	int (*nascent_init)(u32 hartid);
- 
- 	/** Platform early initialization */
- 	int (*early_init)(bool cold_boot);
-@@ -395,10 +395,12 @@ static inline bool sbi_platform_cold_boot_allowed(
-  *
-  * @return 0 on success and negative error code on failure
-  */
--static inline int sbi_platform_nascent_init(const struct sbi_platform *plat)
-+static inline int sbi_platform_nascent_init(
-+					const struct sbi_platform *plat,
-+					u32 hartid)
- {
- 	if (plat && sbi_platform_ops(plat)->nascent_init)
--		return sbi_platform_ops(plat)->nascent_init();
-+		return sbi_platform_ops(plat)->nascent_init(hartid);
- 	return 0;
- }
- 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index ab4a80f..1b7fdeb 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -12,6 +12,7 @@
- 
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_platform.h>
- 
- struct fdt_match {
- 	const char *compatible;
-@@ -89,7 +90,8 @@ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic);
- 
- struct imsic_data;
- 
--bool fdt_check_imsic_mlevel(void *fdt);
-+int fdt_check_imsic_mlevel(void *fdt, struct sbi_platform *plat,
-+						   unsigned long *imsic_bitmap);
- 
- int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic);
- 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 796cccc..8320f94 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -591,7 +591,7 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 	 * that platform can initialize platform specific per-HART CSRs
- 	 * or per-HART devices.
- 	 */
--	if (sbi_platform_nascent_init(plat))
-+	if (sbi_platform_nascent_init(plat, hartid))
- 		sbi_hart_hang();
- 
- 	if (coldboot)
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index a0e93b9..6e81ea6 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -764,27 +764,53 @@ skip_delegate_parse:
- 	return 0;
- }
- 
--bool fdt_check_imsic_mlevel(void *fdt)
-+int fdt_check_imsic_mlevel(void *fdt, struct sbi_platform *plat, unsigned long *imsic_bitmap)
- {
- 	const fdt32_t *val;
--	int i, len, noff = 0;
-+	int i, len, err, cpu_offset, cpu_intc_offset, noff = 0;
-+	u32 phandle, hwirq, hartid;
-+
-+	bitmap_zero(imsic_bitmap, SBI_HARTMASK_MAX_BITS);
- 
- 	if (!fdt)
--		return false;
-+		return SBI_ENODEV;
- 
- 	while ((noff = fdt_node_offset_by_compatible(fdt, noff,
- 						     "riscv,imsics")) >= 0) {
- 		val = fdt_getprop(fdt, noff, "interrupts-extended", &len);
--		if (val && len > sizeof(fdt32_t)) {
--			len = len / sizeof(fdt32_t);
--			for (i = 0; i < len; i += 2) {
--				if (fdt32_to_cpu(val[i + 1]) == IRQ_M_EXT)
--					return true;
-+		if (!val || len < sizeof(fdt32_t))
-+			continue;
-+
-+		len = len / sizeof(fdt32_t);
-+		for (i = 0; i < len; i += 2) {
-+			phandle = fdt32_to_cpu(val[i]);
-+			hwirq = fdt32_to_cpu(val[i + 1]);
-+
-+			if (hwirq != IRQ_M_EXT)
-+				continue;
-+
-+			cpu_intc_offset = fdt_node_offset_by_phandle(fdt, phandle);
-+			if (cpu_intc_offset < 0)
-+				continue;
-+
-+			cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-+			if (cpu_offset < 0)
-+				continue;
-+
-+			err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+			if (err)
-+				return SBI_EINVAL;
-+
-+			for (int i = 0; i < plat->hart_count; i++) {
-+				if (hartid == plat->hart_index2id[i]) {
-+					bitmap_set(imsic_bitmap, i, 1);
-+					break;
-+				}
- 			}
- 		}
- 	}
- 
--	return false;
-+	return SBI_OK;
- }
- 
- int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic)
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 1f46b76..015e01d 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -70,10 +70,10 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
- }
- 
- extern struct sbi_platform platform;
--static bool platform_has_mlevel_imsic = false;
- static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
- 
- static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
-+static DECLARE_BITMAP(generic_hart_has_mlevel_imsic, SBI_HARTMASK_MAX_BITS);
- 
- /*
-  * The fw_platform_coldboot_harts_init() function is called by fw_platform_init() 
-@@ -186,7 +186,11 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 
- 	platform.hart_count = hart_count;
- 	platform.heap_size = fw_platform_calculate_heap_size(hart_count);
--	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
-+
-+	rc = fdt_check_imsic_mlevel(fdt, &platform, 
-+								generic_hart_has_mlevel_imsic);
-+	if (rc)
-+		goto fail;
- 
- 	fw_platform_coldboot_harts_init(fdt);
- 
-@@ -212,10 +216,18 @@ static bool generic_cold_boot_allowed(u32 hartid)
- 	return false;
- }
- 
--static int generic_nascent_init(void)
-+static int generic_nascent_init(u32 hartid)
- {
--	if (platform_has_mlevel_imsic)
--		imsic_local_irqchip_init();
-+	for (int i = 0; i < platform.hart_count; i++) {
-+		if (hartid != platform.hart_index2id[i])
-+			continue;
-+
-+		if (bitmap_test(generic_hart_has_mlevel_imsic, i)) {
-+			imsic_local_irqchip_init();
-+			break;
-+		}
-+	}
-+
- 	return 0;
- }
- 
+For QEMU this patch depends on
+  https://lists.gnu.org/archive/html/qemu-devel/2024-03/msg06368.html
+
+Christoph M?llner (9):
+  sbi_platform: Add mechanism to handle CSR reads/writes in platform
+  platform: generic: Add mechanism to handle CSR reads/writes in
+    overrides
+  lib: sbi_emulate_csr: Utilize platform hooks for unknown CSRs
+  platform: generic: thead: Add CSR read handler for T-Head C9xx
+  {allwinner/sun20i-d1,sophgo/sg2042,thead-generic}: Enable T-Head CSR
+    read access
+  platform: thead: Rename thead-generic to thead-th1520
+  platform: generic: Add mechanism to match via mvendorid
+  platform: generic: thead: Add definition of T-Head's vendor ID
+  platform: generic: Add generic T-Head override
+
+ include/sbi/sbi_platform.h                    | 48 +++++++++++++++
+ lib/sbi/sbi_emulate_csr.c                     |  8 ++-
+ platform/generic/Kconfig                      | 12 +++-
+ platform/generic/allwinner/sun20i-d1.c        |  2 +
+ platform/generic/configs/defconfig            |  3 +-
+ platform/generic/include/platform_override.h  |  5 ++
+ platform/generic/include/thead/c9xx_csr.h     | 16 +++++
+ .../generic/include/thead/c9xx_encoding.h     |  2 +
+ platform/generic/platform.c                   | 58 ++++++++++++++++++-
+ platform/generic/sophgo/sg2042.c              |  2 +
+ platform/generic/thead/Kconfig                |  4 ++
+ platform/generic/thead/objects.mk             |  9 ++-
+ platform/generic/thead/thead-generic.c        | 42 +++-----------
+ platform/generic/thead/thead-th1520.c         | 55 ++++++++++++++++++
+ platform/generic/thead/thead_c9xx_csr.c       | 30 ++++++++++
+ 15 files changed, 252 insertions(+), 44 deletions(-)
+ create mode 100644 platform/generic/include/thead/c9xx_csr.h
+ create mode 100644 platform/generic/thead/thead-th1520.c
+ create mode 100644 platform/generic/thead/thead_c9xx_csr.c
+
 -- 
-2.34.1
+2.44.0
 
 
