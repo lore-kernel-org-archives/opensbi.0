@@ -1,45 +1,53 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 28 Mar 2024 11:33:02 +0800
-Subject: [PATCH v2 1/2] sbi: sbi_domain_context: Check privilege spec version before accessing S-mode CSRs
+Date: Thu, 28 Mar 2024 11:33:03 +0800
+Subject: [PATCH v2 2/2] sbi: sbi_domain_context: Add spinlock for updating domain assigned_harts
 In-Reply-To: <20240328033303.883674-1-peterlin@andestech.com>
 References: <20240328033303.883674-1-peterlin@andestech.com>
-Message-ID: <20240328033303.883674-2-peterlin@andestech.com>
+Message-ID: <20240328033303.883674-3-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-SCOUNTEREN and SENVCFG may not be supported on certain RISC-V core,
-so check the existence of these CSRs via privilege spec version to
-prevent illegal instructions.
+Add spinlock protection to avoid race condition on assigned_harts
+during domain context switching.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Signed-off-by: Alvin Chang <alvinga@andestech.com>
 ---
 Changes v2:
-  - No change
+  - New patch
 ---
- lib/sbi/sbi_domain_context.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_domain_context.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index d83a2ba2..a41dc8c7 100755
+index a41dc8c7..e891c22a 100755
 --- a/lib/sbi/sbi_domain_context.c
 +++ b/lib/sbi/sbi_domain_context.c
-@@ -54,8 +54,10 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
- 	ctx->scause	= csr_swap(CSR_SCAUSE, dom_ctx->scause);
- 	ctx->stval	= csr_swap(CSR_STVAL, dom_ctx->stval);
- 	ctx->satp	= csr_swap(CSR_SATP, dom_ctx->satp);
--	ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
--	ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
-+	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
-+		ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
-+	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
-+		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
+@@ -15,6 +15,8 @@
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_domain_context.h>
  
- 	/* Save current trap state and restore target domain's trap state */
- 	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
++static spinlock_t assigned_harts_lock = SPIN_LOCK_INITIALIZER;
++
+ /**
+  * Switches the HART context from the current domain to the target domain.
+  * This includes changing domain assignments and reconfiguring PMP, as well
+@@ -34,10 +36,12 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 
+ 	/* Assign current hart to target domain */
+ 	hartindex = sbi_hartid_to_hartindex(current_hartid());
++	spin_lock(&assigned_harts_lock);
+ 	sbi_hartmask_clear_hartindex(
+ 		hartindex, &sbi_domain_thishart_ptr()->assigned_harts);
+ 	sbi_update_hartindex_to_domain(hartindex, dom);
+ 	sbi_hartmask_set_hartindex(hartindex, &dom->assigned_harts);
++	spin_unlock(&assigned_harts_lock);
+ 
+ 	/* Reconfigure PMP settings for the new domain */
+ 	for (int i = 0; i < pmp_count; i++) {
 -- 
 2.34.1
 
