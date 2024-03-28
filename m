@@ -1,25 +1,45 @@
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Thu, 28 Mar 2024 11:33:01 +0800
-Subject: [PATCH v2 0/2] Minor fixes for domain context switch
-Message-ID: <20240328033303.883674-1-peterlin@andestech.com>
+Date: Thu, 28 Mar 2024 11:33:02 +0800
+Subject: [PATCH v2 1/2] sbi: sbi_domain_context: Check privilege spec version before accessing S-mode CSRs
+In-Reply-To: <20240328033303.883674-1-peterlin@andestech.com>
+References: <20240328033303.883674-1-peterlin@andestech.com>
+Message-ID: <20240328033303.883674-2-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fix illegal instruction caused by non-existent S-mode CSRs and
-race condition when updating domain assigned_harts.
+SCOUNTEREN and SENVCFG may not be supported on certain RISC-V core,
+so check the existence of these CSRs via privilege spec version to
+prevent illegal instructions.
 
-Yu Chien Peter Lin (2):
-  sbi: sbi_domain_context: Check privilege spec version before accessing
-    S-mode CSRs
-  sbi: sbi_domain_context: Add spinlock for updating domain
-    assigned_harts
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Signed-off-by: Alvin Chang <alvinga@andestech.com>
+---
+Changes v2:
+  - No change
+---
+ lib/sbi/sbi_domain_context.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
- lib/sbi/sbi_domain_context.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index d83a2ba2..a41dc8c7 100755
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -54,8 +54,10 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 	ctx->scause	= csr_swap(CSR_SCAUSE, dom_ctx->scause);
+ 	ctx->stval	= csr_swap(CSR_STVAL, dom_ctx->stval);
+ 	ctx->satp	= csr_swap(CSR_SATP, dom_ctx->satp);
+-	ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
+-	ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
++		ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
++		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
+ 
+ 	/* Save current trap state and restore target domain's trap state */
+ 	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
 -- 
 2.34.1
 
