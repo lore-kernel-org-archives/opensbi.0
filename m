@@ -1,17 +1,26 @@
-From: Qingfang Deng <dqfext@gmail.com>
-Date: Wed, 27 Mar 2024 21:16:37 +0800
-Subject: [PATCH 0/9] T-Head: Allow read access to th.mxstatus CSR
-In-Reply-To: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
-References: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
-Message-ID: <20240327131637.1934-1-dqfext@gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 28 Mar 2024 11:33:01 +0800
+Subject: [PATCH v2 0/2] Minor fixes for domain context switch
+Message-ID: <20240328033303.883674-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Christoph,
+Fix illegal instruction caused by non-existent S-mode CSRs and
+race condition when updating domain assigned_harts.
 
-You don't need the access to MXSTATUS. There is SXSTATUS which is a
-read-only mirror of MXSTATUS in S-mode.
+Yu Chien Peter Lin (2):
+  sbi: sbi_domain_context: Check privilege spec version before accessing
+    S-mode CSRs
+  sbi: sbi_domain_context: Add spinlock for updating domain
+    assigned_harts
+
+ lib/sbi/sbi_domain_context.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+-- 
+2.34.1
+
 
