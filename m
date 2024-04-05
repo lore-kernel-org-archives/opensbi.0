@@ -1,25 +1,26 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 5 Apr 2024 17:45:39 +0530
-Subject: [PATCH 0/2] Optimize current hart scratch access
-In-Reply-To: <20240318144932.4165729-1-samuel.holland@sifive.com>
-References: <20240318144932.4165729-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy2zG0MUkPt1Z7tcEy+f0Cz8hkT7GhSF2OjeZ9wdzs+CsQ@mail.gmail.com>
+Date: Fri, 5 Apr 2024 17:56:12 +0530
+Subject: [PATCH 0/2] Coldboot wait improvements
+In-Reply-To: <20240319145930.1827176-1-apatel@ventanamicro.com>
+References: <20240319145930.1827176-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy0_Wo22dUmhgc0++Qsg8aoOL6rZmaPZRUSB+3cBOYEKUA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 18, 2024 at 8:19?PM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Tue, Mar 19, 2024 at 8:29?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> These patches save about 280 bytes of code size in the generic platform
-> firmware.
+> These are some of the simplifications/improvements which were found
+> upon trying QEMU virt machine with large number of HARTs.
 >
+> These patches can also be found in the coldboot_wait_simplify_v1
+> branch at https://github.com/avpatel/opensbi.git
 >
-> Samuel Holland (2):
->   lib: utils/timer: Optimize current hart scratch access
->   platform: generic: allwinner: Optimize current hart scratch access
+> Anup Patel (2):
+>   lib: sbi: Simplify wait_for_coldboot() implementation
+>   lib: sbi: Wakeup non-coldboot HARTs early in the coldboot path
 
 Applied this series to the riscv/opensbi repo.
 
@@ -27,16 +28,10 @@ Regards,
 Anup
 
 >
->  lib/utils/timer/aclint_mtimer.c        | 18 +++---------------
->  platform/generic/allwinner/sun20i-d1.c |  2 +-
->  2 files changed, 4 insertions(+), 16 deletions(-)
+>  include/sbi/riscv_barrier.h |  6 ++-
+>  lib/sbi/sbi_init.c          | 81 ++++++-------------------------------
+>  2 files changed, 17 insertions(+), 70 deletions(-)
 >
 > --
-> 2.43.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> 2.34.1
 
