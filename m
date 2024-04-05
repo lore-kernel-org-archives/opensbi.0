@@ -1,37 +1,60 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 5 Apr 2024 17:56:12 +0530
-Subject: [PATCH 0/2] Coldboot wait improvements
-In-Reply-To: <20240319145930.1827176-1-apatel@ventanamicro.com>
-References: <20240319145930.1827176-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy0_Wo22dUmhgc0++Qsg8aoOL6rZmaPZRUSB+3cBOYEKUA@mail.gmail.com>
+Date: Fri, 5 Apr 2024 18:05:11 +0530
+Subject: [PATCH v2 1/2] sbi: sbi_domain_context: Check privilege spec
+ version before accessing S-mode CSRs
+In-Reply-To: <20240328033303.883674-2-peterlin@andestech.com>
+References: <20240328033303.883674-1-peterlin@andestech.com> <20240328033303.883674-2-peterlin@andestech.com>
+Message-ID: <CAAhSdy2X6JJRdpZfSLzrMzJd5SVDQrWKhcSa=n7CerxmeqVDWw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 19, 2024 at 8:29?PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Thu, Mar 28, 2024 at 9:03?AM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> These are some of the simplifications/improvements which were found
-> upon trying QEMU virt machine with large number of HARTs.
+> SCOUNTEREN and SENVCFG may not be supported on certain RISC-V core,
+> so check the existence of these CSRs via privilege spec version to
+> prevent illegal instructions.
 >
-> These patches can also be found in the coldboot_wait_simplify_v1
-> branch at https://github.com/avpatel/opensbi.git
->
-> Anup Patel (2):
->   lib: sbi: Simplify wait_for_coldboot() implementation
->   lib: sbi: Wakeup non-coldboot HARTs early in the coldboot path
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Signed-off-by: Alvin Chang <alvinga@andestech.com>
 
-Applied this series to the riscv/opensbi repo.
+LGTM.
 
-Regards,
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
+> ---
+> Changes v2:
+>   - No change
+> ---
+>  lib/sbi/sbi_domain_context.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 >
->  include/sbi/riscv_barrier.h |  6 ++-
->  lib/sbi/sbi_init.c          | 81 ++++++-------------------------------
->  2 files changed, 17 insertions(+), 70 deletions(-)
+> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+> index d83a2ba2..a41dc8c7 100755
+> --- a/lib/sbi/sbi_domain_context.c
+> +++ b/lib/sbi/sbi_domain_context.c
+> @@ -54,8 +54,10 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+>         ctx->scause     = csr_swap(CSR_SCAUSE, dom_ctx->scause);
+>         ctx->stval      = csr_swap(CSR_STVAL, dom_ctx->stval);
+>         ctx->satp       = csr_swap(CSR_SATP, dom_ctx->satp);
+> -       ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
+> -       ctx->senvcfg    = csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
+> +       if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
+> +               ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
+> +       if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
+> +               ctx->senvcfg    = csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
 >
+>         /* Save current trap state and restore target domain's trap state */
+>         trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
 > --
 > 2.34.1
+>
 
