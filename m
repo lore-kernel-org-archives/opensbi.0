@@ -1,270 +1,112 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 5 Apr 2024 17:09:59 +0530
-Subject: [PATCH v3 1/2] firmware: remove copy-base relocation
-In-Reply-To: <20240312082504.499847-2-wxjstz@126.com>
-References: <20240312082504.499847-1-wxjstz@126.com> <20240312082504.499847-2-wxjstz@126.com>
-Message-ID: <CAAhSdy0RZCm1caiMaoY0-RC7R1uma0Zc9+Rxq7fyVo7CEL9GuA@mail.gmail.com>
+Date: Fri, 5 Apr 2024 17:16:13 +0530
+Subject: [PATCH v3 0/3] Add support for Supervisor Software Events extension
+In-Reply-To: <20240321155720.1966860-1-cleger@rivosinc.com>
+References: <20240321155720.1966860-1-cleger@rivosinc.com>
+Message-ID: <CAAhSdy0tpU4=Kn6XjqztDxWUdU5gAwP-9V_V+DctJKY-6ySOcQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 12, 2024 at 1:56?PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Mar 21, 2024 at 9:27?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Remove copy-base relocations that are no longer needed.
+> The SBI Supervisor Software Events (SSE) extensions provides a mechanism
+> to inject software events from an SBI implementation to supervisor
+> software such that it preempts all other supervisor level traps and
+> interrupts [1]. This series implements the V3 version of the spec.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-> Tested-by: Samuel Holland <samuel.holland@sifive.com>
-
-LGTM.
+> Various events are defined and can be send asynchronously to supervisor
+> software (RAS, PMU, DEBUG, Asynchronous page fault) from SBI as well
+> as platform specific events. Events can be either local (per-hart) or
+> global. Events can be nested on top of each other based on priority and
+> can interrupt the supervisor mode at any time.
+>
+> This implementation can be tested using kvm-unit-tests [2] with the
+> following commands:
+>
+> Build kvm-unit-tests:
+>
+> $ git clone https://github.com/clementleger/kvm-unit-tests.git
+> $ cd kvm-unit-tests
+> $ git switch dev/cleger/sse
+> $ ./configure --arch=riscv64 --cross-prefix=$CROSS_COMPILE
+> $ make
+>
+> Run using Qemu:
+>
+> $ ./qemu-system-riscv64 \
+>         -smp 4 \
+>         -M virt \
+>         -cpu rv64 \
+>         -nographic \
+>         -serial mon:stdio \
+>         -bios <opensbi>/build/platform/generic/firmware/fw_jump.bin \
+>         -kernel <kvm-unit-tests>/riscv/sbi_sse.flat
+>
+> An implementation of a SSE "client" in linux is available [3].
+> This series can be found on github [5].
+>
+> Link: https://lists.riscv.org/g/tech-prs/message/798 [1]
+> Link: https://github.com/clementleger/kvm-unit-tests/tree/dev/cleger/sse [2]
+> Link: https://github.com/rivosinc/linux/tree/dev/cleger/sse [3]
+> Link: http://lists.infradead.org/pipermail/opensbi/2024-March/006670.html [4]
+> Link: https://github.com/rivosinc/opensbi/tree/dev/cleger/sse_v3 [5]
+>
+> ---
+>
+> Changes from v3:
+>  - Changes to follow v3 SSE specification
+>  - Use masks instead of struct with bitfields for status
+>  - Rework locking
+>  - SSE pending event processing is now done upon returning to previous
+>    mode
+>
+> v2: http://lists.infradead.org/pipermail/opensbi/2024-January/006223.html
+>
+> Changes from v2:
+>  - Move local/global event count initialization out of sse_global_init()
+>  - Remove PMU_IRQ_CLEAR SBI call and clear IRQ on SSE event completion
+>  - Change SBI_ERR_X to SBI_EXX defines
+>  - Add guards for invalid __riscv_xlen values
+>  - Update parameters passing (a6, a7)
+>
+> v1: http://lists.infradead.org/pipermail/opensbi/2023-November/006015.html
+>
+> Changes from v1:
+>  - Implemented SSE Spec v2
+>  - Change event state checking (Xiang W)
+>
+> Cl?ment L?ger (3):
+>   lib: sbi: Add support for Supervisor Software Events extension
+>   lib: sbi: Implement SBI SSE extension
+>   lib: sbi: Add SSE support for PMU events
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
+Applied this series to the riscv/opensbi repo.
 
 Thanks,
 Anup
 
-> ---
->  Makefile            |  8 +++-
->  README.md           |  3 +-
->  docs/firmware/fw.md |  6 ---
->  firmware/fw_base.S  | 98 ++-------------------------------------------
->  firmware/objects.mk | 11 -----
->  5 files changed, 11 insertions(+), 115 deletions(-)
 >
-> diff --git a/Makefile b/Makefile
-> index 680c19a..50f634e 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -179,6 +179,10 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
->  # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
->  CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
+>  include/sbi/sbi_ecall_interface.h |   79 +-
+>  include/sbi/sbi_error.h           |    2 +
+>  include/sbi/sbi_pmu.h             |    3 +
+>  include/sbi/sbi_sse.h             |   94 +++
+>  lib/sbi/Kconfig                   |    4 +
+>  lib/sbi/objects.mk                |    4 +
+>  lib/sbi/sbi_ecall_sse.c           |   57 ++
+>  lib/sbi/sbi_init.c                |   13 +
+>  lib/sbi/sbi_pmu.c                 |   51 ++
+>  lib/sbi/sbi_sse.c                 | 1131 +++++++++++++++++++++++++++++
+>  lib/sbi/sbi_trap.c                |   11 +
+>  11 files changed, 1448 insertions(+), 1 deletion(-)
+>  create mode 100644 include/sbi/sbi_sse.h
+>  create mode 100644 lib/sbi/sbi_ecall_sse.c
+>  create mode 100644 lib/sbi/sbi_sse.c
 >
-> +ifneq ($(OPENSBI_LD_PIE),y)
-> +$(error Your linker does not support creating PIEs, opensbi requires this.)
-> +endif
-> +
->  # Build Info:
->  # OPENSBI_BUILD_TIME_STAMP -- the compilation time stamp
->  # OPENSBI_BUILD_COMPILER_VERSION -- the compiler version info
-> @@ -356,7 +360,7 @@ CFLAGS              +=      -mcmodel=$(PLATFORM_RISCV_CODE_MODEL)
->  CFLAGS         +=      $(RELAX_FLAG)
->  CFLAGS         +=      $(GENFLAGS)
->  CFLAGS         +=      $(platform-cflags-y)
-> -CFLAGS         +=      -fno-pie -no-pie
-> +CFLAGS         +=      -fPIE -pie
->  CFLAGS         +=      $(firmware-cflags-y)
->
->  CPPFLAGS       +=      $(GENFLAGS)
-> @@ -365,6 +369,7 @@ CPPFLAGS    +=      $(firmware-cppflags-y)
->
->  ASFLAGS                =       -g -Wall -nostdlib
->  ASFLAGS                +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls
-> +ASFLAGS                +=      -fPIE
->  # Optionally supported flags
->  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
->  ASFLAGS                +=      -mno-save-restore
-> @@ -391,6 +396,7 @@ ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
->  ELFFLAGS       +=      -Wl,--exclude-libs,ALL
->  endif
->  ELFFLAGS       +=      -Wl,--build-id=none
-> +ELFFLAGS       +=      -Wl,--no-dynamic-linker -Wl,-pie
->  ELFFLAGS       +=      $(platform-ldflags-y)
->  ELFFLAGS       +=      $(firmware-ldflags-y)
->
-> diff --git a/README.md b/README.md
-> index 73de8ea..cbae73a 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -276,8 +276,7 @@ document.
->
->  NOTE: Using Clang with a `riscv*-linux-gnu` GNU binutils linker has been seen
->  to produce broken binaries with missing relocations; it is therefore currently
-> -recommended that this combination be avoided or *FW_PIC=n* be used to disable
-> -building OpenSBI as a position-independent binary.
-> +recommended that this combination be avoided.
->
->  Building with timestamp and compiler info
->  -----------------------------------------
-> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
-> index 38351c8..2f4deb5 100644
-> --- a/docs/firmware/fw.md
-> +++ b/docs/firmware/fw.md
-> @@ -69,12 +69,6 @@ parameters:
->    argument by the prior booting stage.
->  * **FW_FDT_PADDING** - Optional zero bytes padding to the embedded flattened
->    device tree binary file specified by **FW_FDT_PATH** option.
-> -* **FW_PIC** - "FW_PIC=y" generates position independent executable firmware
-> -  images. OpenSBI can run at arbitrary address with appropriate alignment.
-> -  Therefore, the original relocation mechanism ("FW_PIC=n") will be skipped.
-> -  In other words, OpenSBI will directly run at the load address without any
-> -  code movement. This option requires a toolchain with PIE support, and it
-> -  is on by default.
->
->  Additionally, each firmware type as a set of type specific configuration
->  parameters. Detailed information for each firmware type can be found in the
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 126b067..6013db3 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -15,8 +15,7 @@
->  #include <sbi/sbi_trap.h>
->
->  #define BOOT_STATUS_LOTTERY_DONE       1
-> -#define BOOT_STATUS_RELOCATE_DONE      2
-> -#define BOOT_STATUS_BOOT_HART_DONE     3
-> +#define BOOT_STATUS_BOOT_HART_DONE     2
->
->  .macro MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
->         add     \__d0, \__s0, zero
-> @@ -32,17 +31,6 @@
->         add     \__d4, \__s4, zero
->  .endm
->
-> -/*
-> - * If __start_reg <= __check_reg and __check_reg < __end_reg then
-> - *   jump to __pass
-> - */
-> -.macro BRANGE __start_reg, __end_reg, __check_reg, __jump_lable
-> -       blt     \__check_reg, \__start_reg, 999f
-> -       bge     \__check_reg, \__end_reg, 999f
-> -       j       \__jump_lable
-> -999:
-> -.endm
-> -
->         .section .entry, "ax", %progbits
->         .align 3
->         .globl _start
-> @@ -56,15 +44,14 @@ _start:
->         li      a7, -1
->         beq     a6, a7, _try_lottery
->         /* Jump to relocation wait loop if we are not boot hart */
-> -       bne     a0, a6, _wait_relocate_copy_done
-> +       bne     a0, a6, _wait_for_boot_hart
->  _try_lottery:
->         /* Jump to relocation wait loop if we don't get relocation lottery */
->         lla     a6, _boot_status
->         li      a7, BOOT_STATUS_LOTTERY_DONE
->         amoswap.w a6, a7, (a6)
-> -       bnez    a6, _wait_relocate_copy_done
-> +       bnez    a6, _wait_for_boot_hart
->
-> -#ifdef FW_PIC
->         /* relocate the global table content */
->         li      t0, FW_TEXT_START       /* link start */
->         lla     t1, _fw_start           /* load start */
-> @@ -85,86 +72,7 @@ _try_lottery:
->  3:
->         addi    t0, t0, (REGBYTES * 3)
->         blt     t0, t1, 2b
-> -       j       _relocate_done
-> -_wait_relocate_copy_done:
-> -       j       _wait_for_boot_hart
-> -#else
-> -       /* Relocate if load address != link address */
-> -_relocate:
-> -       li      t0, FW_TEXT_START       /* link start */
-> -       lla     t2, _fw_start           /* load start */
-> -       lla     t3, _fw_reloc_end       /* load end */
-> -       sub     t6, t2, t0              /* load offset */
-> -       sub     t1, t3, t6              /* link end */
-> -       beq     t0, t2, _relocate_done
-> -       lla     t4, _relocate_done
-> -       sub     t4, t4, t6
-> -       blt     t2, t0, _relocate_copy_to_upper
-> -_relocate_copy_to_lower:
-> -       ble     t1, t2, _relocate_copy_to_lower_loop
-> -       lla     t3, _boot_status
-> -       BRANGE  t2, t1, t3, _start_hang
-> -       lla     t3, _relocate
-> -       lla     t5, _relocate_done
-> -       BRANGE  t2, t1, t3, _start_hang
-> -       BRANGE  t2, t1, t5, _start_hang
-> -       BRANGE  t3, t5, t2, _start_hang
-> -_relocate_copy_to_lower_loop:
-> -       REG_L   t3, 0(t2)
-> -       REG_S   t3, 0(t0)
-> -       add     t0, t0, __SIZEOF_POINTER__
-> -       add     t2, t2, __SIZEOF_POINTER__
-> -       blt     t0, t1, _relocate_copy_to_lower_loop
-> -       jr      t4
-> -_relocate_copy_to_upper:
-> -       ble     t3, t0, _relocate_copy_to_upper_loop
-> -       lla     t2, _boot_status
-> -       BRANGE  t0, t3, t2, _start_hang
-> -       lla     t2, _relocate
-> -       lla     t5, _relocate_done
-> -       BRANGE  t0, t3, t2, _start_hang
-> -       BRANGE  t0, t3, t5, _start_hang
-> -       BRANGE  t2, t5, t0, _start_hang
-> -_relocate_copy_to_upper_loop:
-> -       add     t3, t3, -__SIZEOF_POINTER__
-> -       add     t1, t1, -__SIZEOF_POINTER__
-> -       REG_L   t2, 0(t3)
-> -       REG_S   t2, 0(t1)
-> -       blt     t0, t1, _relocate_copy_to_upper_loop
-> -       jr      t4
-> -_wait_relocate_copy_done:
-> -       lla     t0, _fw_start
-> -       li      t1, FW_TEXT_START
-> -       beq     t0, t1, _wait_for_boot_hart
-> -       lla     t2, _boot_status
-> -       lla     t3, _wait_for_boot_hart
-> -       sub     t3, t3, t0
-> -       add     t3, t3, t1
-> -1:
-> -       /* waitting for relocate copy done (_boot_status == 1) */
-> -       li      t4, BOOT_STATUS_RELOCATE_DONE
-> -       REG_L   t5, 0(t2)
-> -       /* Reduce the bus traffic so that boot hart may proceed faster */
-> -       nop
-> -       nop
-> -       nop
-> -       bgt     t4, t5, 1b
-> -       jr      t3
-> -#endif
->  _relocate_done:
-> -
-> -       /*
-> -        * Mark relocate copy done
-> -        * Use _boot_status copy relative to the load address
-> -        */
-> -       lla     t0, _boot_status
-> -#ifndef FW_PIC
-> -       add     t0, t0, t6
-> -#endif
-> -       li      t1, BOOT_STATUS_RELOCATE_DONE
-> -       REG_S   t1, 0(t0)
-> -       fence   rw, rw
-> -
->         /* At this point we are running from link address */
->
->         /* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
-> diff --git a/firmware/objects.mk b/firmware/objects.mk
-> index 3ae0a28..e6b364b 100644
-> --- a/firmware/objects.mk
-> +++ b/firmware/objects.mk
-> @@ -13,17 +13,6 @@ firmware-cflags-y +=
->  firmware-asflags-y +=
->  firmware-ldflags-y +=
->
-> -ifndef FW_PIC
-> -FW_PIC := $(OPENSBI_LD_PIE)
-> -endif
-> -
-> -ifeq ($(FW_PIC),y)
-> -firmware-genflags-y += -DFW_PIC
-> -firmware-asflags-y  += -fpic
-> -firmware-cflags-y   += -fPIE -pie
-> -firmware-ldflags-y  += -Wl,--no-dynamic-linker -Wl,-pie
-> -endif
-> -
->  ifdef FW_TEXT_START
->  firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
->  endif
 > --
 > 2.43.0
 >
