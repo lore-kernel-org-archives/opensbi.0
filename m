@@ -1,10 +1,10 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Sat, 6 Apr 2024 11:37:31 +0530
+Date: Sat, 6 Apr 2024 11:40:59 +0530
 Subject: [PATCH v3 0/3] Add support for Supervisor Software Events extension
 In-Reply-To: <d9ca6f45-2721-4d3c-9a56-b09d76dd7536@sifive.com>
 References: <20240321155720.1966860-1-cleger@rivosinc.com> <CAAhSdy0tpU4=Kn6XjqztDxWUdU5gAwP-9V_V+DctJKY-6ySOcQ@mail.gmail.com>
  <d9ca6f45-2721-4d3c-9a56-b09d76dd7536@sifive.com>
-Message-ID: <CAK9=C2XFP4+m5vKQ106KRc7w_1j6aZVTZ2_t8QWMiiS7HsJi0Q@mail.gmail.com>
+Message-ID: <CAK9=C2Ww=uTcT0smXqzAmYEZgsTfgd2Q=BF+S6osWrr0HkARMg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -98,19 +98,13 @@ On Fri, Apr 5, 2024 at 10:28?PM Samuel Holland
 > specification has not even been merged. Or is the master branch not expected to
 > be forward-compatible with the SBI spec?
 
-In OpenSBI, we treat SBI extensions in draft state as experimental. The
-Linux kernel anyway does not accept patches for draft specifications so
-keeping it experiential in OpenSBI is fine.
-
-Further, we only increment the advertised SBI spec version in OpenSBI
-after the SBI spec is frozen.
-
-This approach has helped us make progress on other dependent work.
-For example, RAS efforts in OpenSBI depend heavily on the SBI SSE
-series (this series).
+Please go ahead and send patches for your recent comments
+on this series. There was no comment on this series for quite
+some time and Himanshu already tested it hence it was merged.
 
 Regards,
 Anup
+
 
 >
 > Regards,
