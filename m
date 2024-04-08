@@ -1,57 +1,36 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 8 Apr 2024 10:14:32 +0530
-Subject: [PATCH 2/2] Makefile: Remove unnecessary dependencies
-In-Reply-To: <20240318205002.366134-2-samuel.holland@sifive.com>
-References: <20240318205002.366134-1-samuel.holland@sifive.com> <20240318205002.366134-2-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy0JjHvErGbt6fmsutiLqPAH_bcRF56+xsrkzhKf-5sdmw@mail.gmail.com>
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+Date: Mon,  8 Apr 2024 09:29:04 +0200
+Subject: [PATCH 1/1] lib: sbi: sse_event_get() may return NULL
+Message-ID: <20240408072904.48833-1-heinrich.schuchardt@canonical.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 19, 2024 at 2:20?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> The rule included from auto.conf.cmd adds a dependency on every Kconfig
-> file, so these two Kconfig files do not need to be specified again here.
->
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+sse_event_get() may return NULL. We should not dereference the return value
+in sbi_sse_exit() without checking.
 
-LGTM.
+Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
+Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+---
+ lib/sbi/sbi_sse.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-Tested-by: Anup Patel <anup@brainfault.org>
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index a686692..f0729f9 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -1119,7 +1119,7 @@ void sbi_sse_exit(struct sbi_scratch *scratch)
+ 	for (i = 0; i < EVENT_COUNT; i++) {
+ 		e = sse_event_get(supported_events[i]);
+ 
+-		if (e->attrs.hartid != current_hartid())
++		if (!e || e->attrs.hartid != current_hartid())
+ 			continue;
+ 
+ 		if (sse_event_state(e) > SBI_SSE_STATE_REGISTERED) {
+-- 
+2.43.0
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-> ---
->
->  Makefile | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/Makefile b/Makefile
-> index c3d45460..c033932f 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -223,7 +223,7 @@ savedefconfig: $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
->         $(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
->         $(CMD_PREFIX)$(src_dir)/scripts/Kconfiglib/savedefconfig.py --kconfig $(src_dir)/Kconfig --out $(KCONFIG_DIR)/defconfig
->
-> -$(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG) $(platform_src_dir)/Kconfig $(src_dir)/Kconfig
-> +$(KCONFIG_CONFIG): $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG)
->         $(CMD_PREFIX)mkdir -p $(KCONFIG_DIR)
->         $(CMD_PREFIX)$(src_dir)/scripts/Kconfiglib/defconfig.py --kconfig $(src_dir)/Kconfig $(platform_src_dir)/configs/$(PLATFORM_DEFCONFIG)
->
-> --
-> 2.43.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
