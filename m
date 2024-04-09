@@ -1,7 +1,7 @@
 From: Pope B.Lei <popeblei@gmail.com>
-Date: Tue,  9 Apr 2024 10:18:25 +0800
+Date: Tue,  9 Apr 2024 10:24:10 +0800
 Subject: [PATCH] lib: sbi: Refine the settings for switching to Virtual Supervisor Mode.
-Message-ID: <20240409021825.2022-1-popeblei@gmail.com>
+Message-ID: <20240409022410.1866-1-popeblei@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,7 +18,7 @@ Signed-off-by: Pope B.Lei <popeblei@gmail.com>
  1 file changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 3d13694..a6283b5 100644
+index 3d13694..e145cdc 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
 @@ -1041,10 +1041,17 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
@@ -34,7 +34,7 @@ index 3d13694..a6283b5 100644
 +		    csr_write(CSR_VSSCRATCH, 0);
 +		    csr_write(CSR_VSIE, 0);
 +		    csr_write(CSR_VSATP, 0);
-+		} else if (true == next_virt){
++		} else if (false == next_virt){
 +		    csr_write(CSR_STVEC, next_addr);
 +		    csr_write(CSR_SSCRATCH, 0);
 +		    csr_write(CSR_SIE, 0);
