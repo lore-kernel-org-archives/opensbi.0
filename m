@@ -1,51 +1,30 @@
-From: Pope B.Lei <popeblei@gmail.com>
-Date: Tue,  9 Apr 2024 17:23:04 +0800
-Subject: [PATCH] lib: sbi: Refine the settings for switching to Virtual Supervisor Mode.
-Message-ID: <20240409092304.569-1-popeblei@gmail.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Tue,  9 Apr 2024 12:02:01 +0200
+Subject: [PATCH 0/7] lib: sbi: sse: fixes after review
+Message-ID: <20240409100216.263256-1-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Although Mstatus.MPV is set, before executing mret, access to VS mode
-registers should use the actual register addresses, not the pseudonyms
-of S registers.
+This small series addresses a few comments from Samuel that were made
+after the series was merged.
 
-Signed-off-by: Pope B.Lei <popeblei@gmail.com>
----
-V1 -> V2: Simplify the if condition
-- 
- lib/sbi/sbi_hart.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+Cl?ment L?ger (7):
+  lib: sbi: sse: fix typos, comments and spacing errors
+  lib: sbi: sse: rename sse_hart_unlock() to sse_enabled_event_unlock()
+  lib: sbi: sse: simplify 32bits overflow check
+  lib: sbi: sse: remove superfluous sbi_list_empty() check
+  lib: sbi: sse: call enable callback before sending IPI
+  lib: sbi: sse: use PRV_S instead of hardcoded value for mode
+  lib: sbi: sse: check handler entry to belong to supervisor mode
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 3d13694..ccdd12f 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -1041,10 +1041,17 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
- 	csr_write(CSR_MEPC, next_addr);
- 
- 	if (next_mode == PRV_S) {
--		csr_write(CSR_STVEC, next_addr);
--		csr_write(CSR_SSCRATCH, 0);
--		csr_write(CSR_SIE, 0);
--		csr_write(CSR_SATP, 0);
-+		if (next_virt) {
-+		    csr_write(CSR_VSTVEC, next_addr);
-+		    csr_write(CSR_VSSCRATCH, 0);
-+		    csr_write(CSR_VSIE, 0);
-+		    csr_write(CSR_VSATP, 0);
-+		} else {
-+		    csr_write(CSR_STVEC, next_addr);
-+		    csr_write(CSR_SSCRATCH, 0);
-+		    csr_write(CSR_SIE, 0);
-+		    csr_write(CSR_SATP, 0);
-+		}
- 	} else if (next_mode == PRV_U) {
- 		if (misa_extension('N')) {
- 			csr_write(CSR_UTVEC, next_addr);
+ include/sbi/sbi_ecall_interface.h | 24 +++++++-------
+ lib/sbi/sbi_sse.c                 | 53 ++++++++++++++++---------------
+ 2 files changed, 40 insertions(+), 37 deletions(-)
+
 -- 
-2.35.2.windows.1
+2.43.0
 
 
