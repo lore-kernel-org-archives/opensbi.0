@@ -1,39 +1,62 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Tue,  9 Apr 2024 12:02:07 +0200
-Subject: [PATCH 6/7] lib: sbi: sse: use PRV_S instead of hardcoded value for mode
-In-Reply-To: <20240409100216.263256-1-cleger@rivosinc.com>
-References: <20240409100216.263256-1-cleger@rivosinc.com>
-Message-ID: <20240409100216.263256-7-cleger@rivosinc.com>
+From: Xiang W <wxjstz@126.com>
+Date: Tue, 09 Apr 2024 18:34:00 +0800
+Subject: [PATCH] lib: sbi: Refine the settings for switching to Virtual
+ Supervisor Mode.
+In-Reply-To: <20240409092304.569-1-popeblei@gmail.com>
+References: <20240409092304.569-1-popeblei@gmail.com>
+Message-ID: <c04f15f24a43c4f44d6ceb63620ae74f8f308ec4.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Rather then passing 1 to sbi_domain_check_addr_range() for supervisor
-mode, use PRV_S.
+? 2024-04-09???? 17:23 +0800?Pope B.Lei???
+> Although Mstatus.MPV is set, before executing mret, access to VS mode
+> registers should use the actual register addresses, not the pseudonyms
+> of S registers.
+> 
+> Signed-off-by: Pope B.Lei <popeblei@gmail.com>
+> ---
+Next time, please remember that v2 is missing from the subject.
 
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
----
- lib/sbi/sbi_sse.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+otherwise look good to me.
 
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 8b448bf..85137c2 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -837,8 +837,8 @@ int sbi_sse_attr_check(uint32_t base_attr_id, uint32_t attr_count,
- 		return SBI_EINVALID_ADDR;
- 
- 	if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(), phys_lo,
--					 sizeof(unsigned long) * attr_count, 1,
--					 access))
-+					 sizeof(unsigned long) * attr_count,
-+					 PRV_S, access))
- 		return SBI_EINVALID_ADDR;
- 
- 	return SBI_OK;
--- 
-2.43.0
+Reviewed-by: Xiang W <wxjstz@126.com>
+> V1 -> V2: Simplify the if condition
+> - 
+> ?lib/sbi/sbi_hart.c | 15 +++++++++++----
+> ?1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 3d13694..ccdd12f 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -1041,10 +1041,17 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
+> ?	csr_write(CSR_MEPC, next_addr);
+> ?
+> ?	if (next_mode == PRV_S) {
+> -		csr_write(CSR_STVEC, next_addr);
+> -		csr_write(CSR_SSCRATCH, 0);
+> -		csr_write(CSR_SIE, 0);
+> -		csr_write(CSR_SATP, 0);
+> +		if (next_virt) {
+> +		??? csr_write(CSR_VSTVEC, next_addr);
+> +		??? csr_write(CSR_VSSCRATCH, 0);
+> +		??? csr_write(CSR_VSIE, 0);
+> +		??? csr_write(CSR_VSATP, 0);
+> +		} else {
+> +		??? csr_write(CSR_STVEC, next_addr);
+> +		??? csr_write(CSR_SSCRATCH, 0);
+> +		??? csr_write(CSR_SIE, 0);
+> +		??? csr_write(CSR_SATP, 0);
+> +		}
+> ?	} else if (next_mode == PRV_U) {
+> ?		if (misa_extension('N')) {
+> ?			csr_write(CSR_UTVEC, next_addr);
+> -- 
+> 2.35.2.windows.1
+> 
+> 
 
 
