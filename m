@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 10 Apr 2024 13:34:00 +0800
+Date: Wed, 10 Apr 2024 13:45:46 +0800
 Subject: [PATCH v2 1/1] lib:sbi:platform:generic: Improved mlevel imsic
  check and init.
 In-Reply-To: <tencent_10C64A54A4B7DB1A724422DC1140B609AC06@qq.com>
 References: <tencent_10C64A54A4B7DB1A724422DC1140B609AC06@qq.com>
-Message-ID: <8c32c25ae5fc969513cd466581894a080e72f53e.camel@126.com>
+Message-ID: <8511a7a2fa44842cfd95b17b041aa619adffbda9.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -189,10 +189,6 @@ Content-Transfer-Encoding: 7bit
 > -	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
 > +
 > +	rc = fdt_check_imsic_mlevel(fdt, &platform, 
-trailing whitespace.
-
-Regards,
-Xiang W
 > +								generic_hart_has_mlevel_imsic);
 > +	if (rc)
 > +		goto fail;
@@ -210,6 +206,10 @@ Xiang W
 > -		imsic_local_irqchip_init();
 > +	for (int i = 0; i < platform.hart_count; i++) {
 > +		if (hartid != platform.hart_index2id[i])
+s/platform.hart_index2id/generic_hart_index2id/
+
+Regards,
+Xiang W
 > +			continue;
 > +
 > +		if (bitmap_test(generic_hart_has_mlevel_imsic, i)) {
@@ -221,9 +221,5 @@ Xiang W
 > ?	return 0;
 > ?}
 > ?
-> -- 
-> 2.34.1
-> 
-> 
 
 
