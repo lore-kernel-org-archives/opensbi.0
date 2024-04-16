@@ -1,231 +1,112 @@
-From: Cheng Yang <yangcheng.work@foxmail.com>
-Date: Wed, 10 Apr 2024 17:27:51 +0800
-Subject: [PATCH v5] lib:sbi:platform:generic: Improved mlevel imsic check and init.
-Message-ID: <tencent_B70E64F2449AA3D56C0A58DC95B1C86BB707@qq.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Tue, 16 Apr 2024 13:02:13 +0800
+Subject: [PATCH v3] sbi: sbi_domain_context: Add spinlock for updating domain assigned_harts
+Message-ID: <20240416050213.665461-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The current mlevel imsic check is only for the platform, which
-may cause hart without imsic in the platform to trigger an
-illegal instruction exception when initializing imsic. For
-example, the platform contains a management hart that only
-supports wired interrupts.
+From: Alvin Chang <alvinga@andestech.com>
 
-This patch will check whether each hart has imsic according
-to fdt and record it in a bitmap, and only allow harts with
-imsic to initialize imsic to avoid triggering illegal instruction
-exceptions.
+Add spinlock protection to avoid race condition on assigned_harts
+during domain context switching. Also, rename/add variables for
+accessing the corresponding domain of target/current context.
 
-Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
-Changes V4 -> V5:
-  - Fixed the issue where patch cannot be applied due to the editor automatically removing trailing spaces.
-Changes V3 -> V4:
-  - Rebase to the latest master branch.
-Changes V2 -> V3:
-  - Trailing whitespace.
-  - Replace platform.hart_index2id to generic_hart_index2id.
-Changes V1 -> V2:
-  - Add the processing of plat->hart_index2id be NULL in fdt_check_imsic_mlevel.
+Signed-off-by: Alvin Chang <alvinga@andestech.com>
+Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
- include/sbi/sbi_platform.h         |  8 ++++--
- include/sbi_utils/fdt/fdt_helper.h |  4 ++-
- lib/sbi/sbi_init.c                 |  2 +-
- lib/utils/fdt/fdt_helper.c         | 45 ++++++++++++++++++++++++------
- platform/generic/platform.c        | 26 ++++++++++++-----
- 5 files changed, 64 insertions(+), 21 deletions(-)
+ include/sbi/sbi_domain.h     |  3 +++
+ lib/sbi/sbi_domain.c         |  3 +++
+ lib/sbi/sbi_domain_context.c | 27 +++++++++++++++++----------
+ 3 files changed, 23 insertions(+), 10 deletions(-)
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 581935a..f62d23d 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -75,7 +75,7 @@ struct sbi_platform_operations {
- 	bool (*cold_boot_allowed)(u32 hartid);
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 5432dacb..02765777 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -10,6 +10,7 @@
+ #ifndef __SBI_DOMAIN_H__
+ #define __SBI_DOMAIN_H__
  
- 	/* Platform nascent initialization */
--	int (*nascent_init)(void);
-+	int (*nascent_init)(u32 hartid);
- 
- 	/** Platform early initialization */
- 	int (*early_init)(bool cold_boot);
-@@ -395,10 +395,12 @@ static inline bool sbi_platform_cold_boot_allowed(
-  *
-  * @return 0 on success and negative error code on failure
-  */
--static inline int sbi_platform_nascent_init(const struct sbi_platform *plat)
-+static inline int sbi_platform_nascent_init(
-+					const struct sbi_platform *plat,
-+					u32 hartid)
- {
- 	if (plat && sbi_platform_ops(plat)->nascent_init)
--		return sbi_platform_ops(plat)->nascent_init();
-+		return sbi_platform_ops(plat)->nascent_init(hartid);
- 	return 0;
- }
- 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index ab4a80f..1b7fdeb 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -12,6 +12,7 @@
- 
++#include <sbi/riscv_locks.h>
  #include <sbi/sbi_types.h>
- #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_platform.h>
- 
- struct fdt_match {
- 	const char *compatible;
-@@ -89,7 +90,8 @@ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic);
- 
- struct imsic_data;
- 
--bool fdt_check_imsic_mlevel(void *fdt);
-+int fdt_check_imsic_mlevel(void *fdt, struct sbi_platform *plat,
-+						   unsigned long *imsic_bitmap);
- 
- int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic);
- 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 389172a..96f71a4 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -545,7 +545,7 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 	 * that platform can initialize platform specific per-HART CSRs
- 	 * or per-HART devices.
+ #include <sbi/sbi_hartmask.h>
+ #include <sbi/sbi_domain_context.h>
+@@ -174,6 +175,8 @@ struct sbi_domain {
+ 	 * in the coldboot path
  	 */
--	if (sbi_platform_nascent_init(plat))
-+	if (sbi_platform_nascent_init(plat, hartid))
- 		sbi_hart_hang();
+ 	struct sbi_hartmask assigned_harts;
++	/** Spinlock for accessing assigned_harts */
++	spinlock_t assigned_harts_lock;
+ 	/** Name of this domain */
+ 	char name[64];
+ 	/** Possible HARTs in this domain */
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 50749f15..51770d8d 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -555,6 +555,9 @@ int sbi_domain_register(struct sbi_domain *dom,
+ 	dom->index = domain_count++;
+ 	domidx_to_domain_table[dom->index] = dom;
  
- 	if (coldboot)
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index a0e93b9..ae5d9cc 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -764,27 +764,54 @@ skip_delegate_parse:
- 	return 0;
- }
++	/* Initialize spinlock for dom->assigned_harts */
++	SPIN_LOCK_INIT(dom->assigned_harts_lock);
++
+ 	/* Clear assigned HARTs of domain */
+ 	sbi_hartmask_clear_all(&dom->assigned_harts);
  
--bool fdt_check_imsic_mlevel(void *fdt)
-+int fdt_check_imsic_mlevel(void *fdt, struct sbi_platform *plat, unsigned long *imsic_bitmap)
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index a41dc8c7..a3d3988d 100755
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -26,18 +26,23 @@
+ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 					  struct sbi_context *dom_ctx)
  {
- 	const fdt32_t *val;
--	int i, len, noff = 0;
-+	int i, h, len, err, cpu_offset, cpu_intc_offset, noff = 0;
-+	u32 phandle, hwirq, hartid;
+-	u32 hartindex;
++	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+ 	struct sbi_trap_regs *trap_regs;
+-	struct sbi_domain *dom = dom_ctx->dom;
++	struct sbi_domain *current_dom = ctx->dom;
++	struct sbi_domain *target_dom = dom_ctx->dom;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+ 
+ 	/* Assign current hart to target domain */
+-	hartindex = sbi_hartid_to_hartindex(current_hartid());
+-	sbi_hartmask_clear_hartindex(
+-		hartindex, &sbi_domain_thishart_ptr()->assigned_harts);
+-	sbi_update_hartindex_to_domain(hartindex, dom);
+-	sbi_hartmask_set_hartindex(hartindex, &dom->assigned_harts);
++	spin_lock(&current_dom->assigned_harts_lock);
++	sbi_hartmask_clear_hartindex(hartindex, &current_dom->assigned_harts);
++	spin_unlock(&current_dom->assigned_harts_lock);
 +
-+	bitmap_zero(imsic_bitmap, SBI_HARTMASK_MAX_BITS);
- 
- 	if (!fdt)
--		return false;
-+		return SBI_ENODEV;
- 
- 	while ((noff = fdt_node_offset_by_compatible(fdt, noff,
- 						     "riscv,imsics")) >= 0) {
- 		val = fdt_getprop(fdt, noff, "interrupts-extended", &len);
--		if (val && len > sizeof(fdt32_t)) {
--			len = len / sizeof(fdt32_t);
--			for (i = 0; i < len; i += 2) {
--				if (fdt32_to_cpu(val[i + 1]) == IRQ_M_EXT)
--					return true;
-+		if (!val || len < sizeof(fdt32_t))
-+			continue;
++	sbi_update_hartindex_to_domain(hartindex, target_dom);
 +
-+		len = len / sizeof(fdt32_t);
-+		for (i = 0; i < len; i += 2) {
-+			phandle = fdt32_to_cpu(val[i]);
-+			hwirq = fdt32_to_cpu(val[i + 1]);
-+
-+			if (hwirq != IRQ_M_EXT)
-+				continue;
-+
-+			cpu_intc_offset = fdt_node_offset_by_phandle(fdt, phandle);
-+			if (cpu_intc_offset < 0)
-+				continue;
-+
-+			cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
-+			if (cpu_offset < 0)
-+				continue;
-+
-+			err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+			if (err)
-+				return SBI_EINVAL;
-+
-+			for (int i = 0; i < plat->hart_count; i++) {
-+				h = plat->hart_index2id ? plat->hart_index2id[i] : i;
-+				if (hartid == h) {
-+					bitmap_set(imsic_bitmap, i, 1);
-+					break;
-+				}
- 			}
- 		}
- 	}
++	spin_lock(&target_dom->assigned_harts_lock);
++	sbi_hartmask_set_hartindex(hartindex, &target_dom->assigned_harts);
++	spin_unlock(&target_dom->assigned_harts_lock);
  
--	return false;
-+	return SBI_OK;
- }
- 
- int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic)
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 1f46b76..00f8f86 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -70,15 +70,15 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
- }
- 
- extern struct sbi_platform platform;
--static bool platform_has_mlevel_imsic = false;
- static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
- 
- static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
-+static DECLARE_BITMAP(generic_hart_has_mlevel_imsic, SBI_HARTMASK_MAX_BITS);
- 
- /*
-- * The fw_platform_coldboot_harts_init() function is called by fw_platform_init() 
-+ * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
-  * function to initialize the cold boot harts allowed by the generic platform
-- * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config" 
-+ * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
-  * DT node. If there is no "cold-boot-harts" in DT, all harts will be allowed.
-  */
- static void fw_platform_coldboot_harts_init(void *fdt)
-@@ -186,7 +186,11 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 
- 	platform.hart_count = hart_count;
- 	platform.heap_size = fw_platform_calculate_heap_size(hart_count);
--	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
-+
-+	rc = fdt_check_imsic_mlevel(fdt, &platform,
-+								generic_hart_has_mlevel_imsic);
-+	if (rc)
-+		goto fail;
- 
- 	fw_platform_coldboot_harts_init(fdt);
- 
-@@ -212,10 +216,18 @@ static bool generic_cold_boot_allowed(u32 hartid)
- 	return false;
- }
- 
--static int generic_nascent_init(void)
-+static int generic_nascent_init(u32 hartid)
- {
--	if (platform_has_mlevel_imsic)
--		imsic_local_irqchip_init();
-+	for (int i = 0; i < platform.hart_count; i++) {
-+		if (hartid != generic_hart_index2id[i])
-+			continue;
-+
-+		if (bitmap_test(generic_hart_has_mlevel_imsic, i)) {
-+			imsic_local_irqchip_init();
-+			break;
-+		}
-+	}
-+
- 	return 0;
- }
- 
+ 	/* Reconfigure PMP settings for the new domain */
+ 	for (int i = 0; i < pmp_count; i++) {
+@@ -71,9 +76,11 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 	/* If target domain context is not initialized or runnable */
+ 	if (!dom_ctx->initialized) {
+ 		/* Startup boot HART of target domain */
+-		if (current_hartid() == dom->boot_hartid)
+-			sbi_hart_switch_mode(dom->boot_hartid, dom->next_arg1,
+-					     dom->next_addr, dom->next_mode,
++		if (current_hartid() == target_dom->boot_hartid)
++			sbi_hart_switch_mode(target_dom->boot_hartid,
++					     target_dom->next_arg1,
++					     target_dom->next_addr,
++					     target_dom->next_mode,
+ 					     false);
+ 		else
+ 			sbi_hsm_hart_stop(scratch, true);
 -- 
 2.34.1
 
