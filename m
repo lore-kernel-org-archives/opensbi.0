@@ -1,92 +1,100 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Thu, 18 Apr 2024 15:54:17 +0200
-Subject: [RFC PATCH 1/4] lib: sbi: factorize previous virtualization mode read from regs
+Date: Thu, 18 Apr 2024 15:54:19 +0200
+Subject: [RFC PATCH 3/4] lib: sbi: implement SBI_FWFT_DOUBLE_TRAP_ENABLE
 In-Reply-To: <20240418135421.1452709-1-cleger@rivosinc.com>
 References: <20240418135421.1452709-1-cleger@rivosinc.com>
-Message-ID: <20240418135421.1452709-2-cleger@rivosinc.com>
+Message-ID: <20240418135421.1452709-4-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The same pattern is used at multiple places to verify in which mode
-the exception was actually taken. Factorize it.
+Add support for double trap firmware feature
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- include/sbi/sbi_trap.h    |  9 +++++++++
- lib/sbi/sbi_emulate_csr.c | 12 ++----------
- lib/sbi/sbi_trap.c        |  6 +-----
- 3 files changed, 12 insertions(+), 15 deletions(-)
+ lib/sbi/sbi_fwft.c | 53 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 52 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index f7c170e..b0c47ce 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -236,6 +236,15 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
- #endif
+diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+index 78fbd45..965d47a 100644
+--- a/lib/sbi/sbi_fwft.c
++++ b/lib/sbi/sbi_fwft.c
+@@ -34,7 +34,7 @@ static unsigned long fwft_ptr_offset;
+ 
+ #define MIS_DELEG (1UL << CAUSE_MISALIGNED_LOAD | 1UL << CAUSE_MISALIGNED_STORE)
+ 
+-#define SUPPORTED_FEATURE_COUNT	3
++#define SUPPORTED_FEATURE_COUNT	4
+ 
+ struct fwft_config;
+ 
+@@ -149,6 +149,51 @@ static int sbi_get_adue(struct fwft_config *conf, unsigned long *value)
+ 	return SBI_OK;
  }
  
-+static inline bool sbi_regs_from_virt(const struct sbi_trap_regs *regs)
-+{
 +#if __riscv_xlen == 32
-+	return (regs->mstatusH & MSTATUSH_MPV) ? true : false;
++# define CSR_MENVCFG_DBLTRP	CSR_MENVCFGH
++# define DBLTRP_DTE	(ENVCFG_DTE >> 32)
 +#else
-+	return (regs->mstatus & MSTATUS_MPV) ? true : false;
++# define CSR_MENVCFG_DBLTRP	CSR_MENVCFG
++# define DBLTRP_DTE	ENVCFG_DTE
 +#endif
++
++static int sbi_double_trap_supported(struct fwft_config *conf)
++{
++	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				    SBI_HART_EXT_SSDBLTRP))
++		return SBI_ENOTSUPP;
++
++	return SBI_OK;
 +}
 +
- int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      const struct sbi_trap_info *trap);
++static int sbi_set_double_trap_enable(struct fwft_config *conf,
++				      unsigned long value)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SSDBLTRP))
++		return SBI_ENOTSUPP;
++
++	if (value)
++		csr_set(CSR_MENVCFG_DBLTRP, DBLTRP_DTE);
++	else
++		csr_clear(CSR_MENVCFG_DBLTRP, DBLTRP_DTE);
++
++	return SBI_SUCCESS;
++}
++
++static int sbi_get_double_trap_enable(struct fwft_config *conf,
++				      unsigned long *value)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SSDBLTRP))
++		return SBI_ENOTSUPP;
++
++	*value = (csr_read(CSR_MENVCFG_DBLTRP) & DBLTRP_DTE) != 0;
++
++	return SBI_SUCCESS;
++}
  
-diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-index 5f3b111..4036946 100644
---- a/lib/sbi/sbi_emulate_csr.c
-+++ b/lib/sbi/sbi_emulate_csr.c
-@@ -48,11 +48,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
- 	int ret = 0;
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
--#if __riscv_xlen == 32
--	bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
--#else
--	bool virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
--#endif
-+	bool virt = sbi_regs_from_virt(regs);
- 
- 	switch (csr_num) {
- 	case CSR_HTIMEDELTA:
-@@ -163,11 +159,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
  {
- 	int ret = 0;
- 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
--#if __riscv_xlen == 32
--	bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
--#else
--	bool virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
--#endif
-+	bool virt = sbi_regs_from_virt(regs);
- 
- 	switch (csr_num) {
- 	case CSR_HTIMEDELTA:
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index b4f3a17..8bd2183 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -103,11 +103,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      const struct sbi_trap_info *trap)
- {
- 	ulong hstatus, vsstatus, prev_mode;
--#if __riscv_xlen == 32
--	bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
--#else
--	bool prev_virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
--#endif
-+	bool prev_virt = sbi_regs_from_virt(regs);
- 	/* By default, we redirect to HS-mode */
- 	bool next_virt = false;
- 
+@@ -223,6 +268,12 @@ static const struct fwft_feature features[] =
+ 		.set = sbi_set_misaligned_delegation,
+ 		.get = sbi_get_misaligned_delegation,
+ 	},
++	{
++		.id = SBI_FWFT_DOUBLE_TRAP,
++		.supported = sbi_double_trap_supported,
++		.set = sbi_set_double_trap_enable,
++		.get = sbi_get_double_trap_enable,
++	},
+ 	{
+ 		.id = SBI_FWFT_USEED,
+ 		.supported = sbi_useed_supported,
 -- 
 2.43.0
 
