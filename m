@@ -1,42 +1,38 @@
-From: Christoph Müllner <christoph.muellner@vrull.eu>
-Date: Tue, 23 Apr 2024 17:42:50 +0200
-Subject: [PATCH] lib: sbi: Issue a PAUSE hint between spins in spin_lock()
-Message-ID: <20240423154250.3797276-1-christoph.muellner@vrull.eu>
+From: Ivan Orlov <ivan.orlov0322@gmail.com>
+Date: Tue, 23 Apr 2024 16:52:42 +0100
+Subject: [PATCH 0/3] Add two tests and improve SBIUnit
+Message-ID: <20240423155245.14541-1-ivan.orlov0322@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-RISC-V's Zihintpause extension includes a PAUSE instruction that
-is designed to reduce engergy consumption while executing spin-wait
-code sequences.  It is encoded as a HINT, which means that it
-behaves like a NOP on systems that don't implement Zihintpause.
+This patch series intriduces two more tests for OpenSBI:
 
-Binutils supports Zihintpause since 2.36, so this patch uses
-the ".insn" directive to keep the code compatible with older
-toolchains.
+- spinlocks test (for functions from `riscv_locks.h`)
+- atomics test (for functions from `riscv_atomic.h`)
 
-Signed-off-by: Christoph M?llner <christoph.muellner@vrull.eu>
----
- lib/sbi/riscv_locks.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Also, it adds a functionality of defining the init function for the
+test suite. It allows us to initialize global variables used in the
+multiple test cases (see the atomic test in this patch series).
 
-diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
-index acab776..3c26a77 100644
---- a/lib/sbi/riscv_locks.c
-+++ b/lib/sbi/riscv_locks.c
-@@ -61,7 +61,8 @@ void spin_lock(spinlock_t *lock)
- 		"1:	and	%2, %0, %5\n"
- 		"	beq	%1, %2, 2f\n"
- 
--		/* If not, then spin on the lock. */
-+		/* If not, then issue a PAUSE hint and spin on the lock. */
-+		"	.insn	i 0x0f, 0, x0, x0, 0x010\n"
- 		"	lw	%0, %3\n"
- 		RISCV_ACQUIRE_BARRIER
- 		"	j	1b\n"
+
+Ivan Orlov (3):
+  lib: tests: Add test suite init function
+  lib: tests: Add test for atomic_t
+  lib: tests: Add test for spinlocks
+
+ include/sbi/sbi_unit_test.h       |   2 +
+ lib/sbi/tests/objects.mk          |   6 ++
+ lib/sbi/tests/riscv_atomic_test.c | 143 ++++++++++++++++++++++++++++++
+ lib/sbi/tests/riscv_locks_test.c  |  41 +++++++++
+ lib/sbi/tests/sbi_unit_test.c     |   3 +
+ 5 files changed, 195 insertions(+)
+ create mode 100644 lib/sbi/tests/riscv_atomic_test.c
+ create mode 100644 lib/sbi/tests/riscv_locks_test.c
+
 -- 
-2.44.0
+2.34.1
 
 
