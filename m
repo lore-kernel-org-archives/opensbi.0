@@ -1,37 +1,63 @@
 From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Date: Tue, 23 Apr 2024 16:52:42 +0100
-Subject: [PATCH 0/3] Add two tests and improve SBIUnit
-Message-ID: <20240423155245.14541-1-ivan.orlov0322@gmail.com>
+Date: Tue, 23 Apr 2024 16:52:43 +0100
+Subject: [PATCH 1/3] lib: tests: Add test suite init function
+In-Reply-To: <20240423155245.14541-1-ivan.orlov0322@gmail.com>
+References: <20240423155245.14541-1-ivan.orlov0322@gmail.com>
+Message-ID: <20240423155245.14541-2-ivan.orlov0322@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch series intriduces two more tests for OpenSBI:
+Allow to define an init function for the test suite. It could help us
+to initialize global variable once, and use them in multiple test cases
+after the initialization.
 
-- spinlocks test (for functions from `riscv_locks.h`)
-- atomics test (for functions from `riscv_atomic.h`)
+For instance, if multiple test cases use the same atomic_t var, it
+could be helpful to call ATOMIC_INIT once during the suite
+initialization.
 
-Also, it adds a functionality of defining the init function for the
-test suite. It allows us to initialize global variables used in the
-multiple test cases (see the atomic test in this patch series).
+Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+---
+ include/sbi/sbi_unit_test.h   | 2 ++
+ lib/sbi/tests/sbi_unit_test.c | 3 +++
+ 2 files changed, 5 insertions(+)
 
-
-Ivan Orlov (3):
-  lib: tests: Add test suite init function
-  lib: tests: Add test for atomic_t
-  lib: tests: Add test for spinlocks
-
- include/sbi/sbi_unit_test.h       |   2 +
- lib/sbi/tests/objects.mk          |   6 ++
- lib/sbi/tests/riscv_atomic_test.c | 143 ++++++++++++++++++++++++++++++
- lib/sbi/tests/riscv_locks_test.c  |  41 +++++++++
- lib/sbi/tests/sbi_unit_test.c     |   3 +
- 5 files changed, 195 insertions(+)
- create mode 100644 lib/sbi/tests/riscv_atomic_test.c
- create mode 100644 lib/sbi/tests/riscv_locks_test.c
-
+diff --git a/include/sbi/sbi_unit_test.h b/include/sbi/sbi_unit_test.h
+index c63d900..448c048 100644
+--- a/include/sbi/sbi_unit_test.h
++++ b/include/sbi/sbi_unit_test.h
+@@ -19,6 +19,7 @@ struct sbiunit_test_case {
+ 
+ struct sbiunit_test_suite {
+ 	const char *name;
++	void (*init)(void);
+ 	struct sbiunit_test_case *cases;
+ };
+ 
+@@ -34,6 +35,7 @@ struct sbiunit_test_suite {
+ #define SBIUNIT_TEST_SUITE(suite_name, cases_arr)		\
+ 	struct sbiunit_test_suite suite_name = {		\
+ 		.name = #suite_name,				\
++		.init = NULL,					\
+ 		.cases = cases_arr				\
+ 	}
+ 
+diff --git a/lib/sbi/tests/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
+index 1987838..c2a0be6 100644
+--- a/lib/sbi/tests/sbi_unit_test.c
++++ b/lib/sbi/tests/sbi_unit_test.c
+@@ -17,6 +17,9 @@ static void run_test_suite(struct sbiunit_test_suite *suite)
+ 
+ 	sbi_printf("## Running test suite: %s\n", suite->name);
+ 
++	if (suite->init)
++		suite->init();
++
+ 	s_case = suite->cases;
+ 	while (s_case->test_func) {
+ 		s_case->test_func(s_case);
 -- 
 2.34.1
 
