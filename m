@@ -1,36 +1,67 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 23 Apr 2024 22:57:40 +0800
-Subject: [PATCH v2 4/5] lib: sbi: fix DBTR_SHMEM_MAKE_PHYS for RV64
+Date: Tue, 23 Apr 2024 22:57:38 +0800
+Subject: [PATCH v2 2/5] lib: sbi: Remove unnecessary sbi_dbtr_shmem_disabled
 In-Reply-To: <20240423145743.392718-1-wxjstz@126.com>
 References: <20240423145743.392718-1-wxjstz@126.com>
-Message-ID: <20240423145743.392718-5-wxjstz@126.com>
+Message-ID: <20240423145743.392718-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Obtaining a 64-bit address under rv64 does not require combining
-32-bit registers
+The code of hart_shmem_base is similar to sbi_dbtr_shmem_disabled.
+When hart_shmem_base is used, sbi_dbtr_shmem_disabled can be
+removed.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_dbtr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sbi/sbi_dbtr.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 4093a82..29be9bb 100644
+index 5b07285..ceff185 100644
 --- a/lib/sbi/sbi_dbtr.c
 +++ b/lib/sbi/sbi_dbtr.c
-@@ -48,7 +48,7 @@ static unsigned long hart_state_ptr_offset;
- 	     _idx++, _entry = ((_etype *)_base + _idx))
+@@ -537,10 +537,9 @@ int sbi_dbtr_read_trig(unsigned long smode,
+ 	    trig_idx_base + trig_count >= hs->total_trigs)
+ 		return SBI_ERR_INVALID_PARAM;
  
- #if __riscv_xlen == 64
--#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
-+#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (_p_lo)
- #elif __riscv_xlen == 32
- #define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
- #else
+-	if (sbi_dbtr_shmem_disabled())
+-		return SBI_ERR_NO_SHMEM;
+-
+ 	shmem_base = hart_shmem_base();
++	if (shmem_base == NULL)
++		return SBI_ERR_NO_SHMEM;
+ 
+ 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+ 		sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
+@@ -567,10 +566,10 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+ 
+-	if (sbi_dbtr_shmem_disabled())
++	shmem_base = hart_shmem_base();
++	if (shmem_base == NULL)
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	shmem_base = hart_shmem_base();
+ 	hs = dbtr_thishart_state_ptr();
+ 
+ 	/* Check requested triggers configuration */
+@@ -679,10 +678,10 @@ int sbi_dbtr_update_trig(unsigned long smode,
+ 	void *shmem_base = NULL;
+ 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+ 
+-	if (sbi_dbtr_shmem_disabled())
++	shmem_base = hart_shmem_base();
++	if (shmem_base == NULL)
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	shmem_base = hart_shmem_base();
+ 	hs = dbtr_thishart_state_ptr();
+ 	if (!hs)
+ 		return SBI_ERR_FAILED;
 -- 
 2.43.0
 
