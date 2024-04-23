@@ -1,36 +1,48 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 23 Apr 2024 22:51:41 +0800
-Subject: [PATCH 3/5] lib: sbi: Removal unnecessary check dbtr_thishart_state_ptr
+Date: Tue, 23 Apr 2024 22:51:43 +0800
+Subject: [PATCH 5/5] lib: sbi: Fixed memory permission check in sbi_dbtr_setup_shmem
 In-Reply-To: <20240423145147.391425-1-wxjstz@126.com>
 References: <20240423145147.391425-1-wxjstz@126.com>
-Message-ID: <20240423145147.391425-4-wxjstz@126.com>
+Message-ID: <20240423145147.391425-6-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-After getting hart_shmem_base, dbtr_thishart_state_ptr cannot be
-empty. So remove check code.
+The previous code detected shmem_phys_hi and shmem_phys_lo as two
+addresses. fix this bug
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_dbtr.c | 2 --
- 1 file changed, 2 deletions(-)
+ lib/sbi/sbi_dbtr.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
 diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 478852e..9e0bdf6 100644
+index 878fa64..9cedd40 100644
 --- a/lib/sbi/sbi_dbtr.c
 +++ b/lib/sbi/sbi_dbtr.c
-@@ -683,8 +683,6 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 		return SBI_ERR_NO_SHMEM;
+@@ -293,17 +293,11 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+ 	if (shmem_phys_lo & SBI_DBTR_SHMEM_ALIGN_MASK)
+ 		return SBI_ERR_INVALID_PARAM;
  
- 	hs = dbtr_thishart_state_ptr();
--	if (!hs)
--		return SBI_ERR_FAILED;
+-	if (dom && !sbi_domain_check_addr(dom, shmem_phys_lo, smode,
+-					  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
++	if (dom && !sbi_domain_check_addr(dom,
++		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
++		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+ 		return SBI_ERR_INVALID_ADDRESS;
  
- 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
- 		trig = INDEX_TO_TRIGGER(idx);
+-	if (shmem_phys_hi != SBI_DBTR_SHMEM_INVALID_ADDR) {
+-		if (dom &&
+-		    !sbi_domain_check_addr(dom, shmem_phys_hi, smode,
+-					   SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+-			return SBI_ERR_INVALID_ADDRESS;
+-	}
+-
+ 	hart_state = dbtr_thishart_state_ptr();
+ 	if (!hart_state)
+ 		return SBI_ERR_FAILED;
 -- 
 2.43.0
 
