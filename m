@@ -1,5 +1,5 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Mon, 29 Apr 2024 13:16:44 +0100
+Date: Mon, 29 Apr 2024 14:11:13 +0100
 Subject: [PATCH 1/3] Makefile: clean auto-generated *.c files properly
 In-Reply-To: <20240429-8f8b7bfd81689a43c0b68be4@orel>
 References: <20240401213438.590209-1-ivan.orlov0322@gmail.com>
@@ -11,7 +11,7 @@ References: <20240401213438.590209-1-ivan.orlov0322@gmail.com>
  <88d05469-2fd1-40df-b8bf-0fb6652ea76d@gmail.com>
  <8f9ec7cd-0346-4f9e-919c-9b6e8f8a77c8@codethink.co.uk>
  <20240429-8f8b7bfd81689a43c0b68be4@orel>
-Message-ID: <cc413493-389c-4396-82f9-ec9684b7f165@codethink.co.uk>
+Message-ID: <e26bab2f-a9af-4729-89ca-b98d912ccac1@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -113,6 +113,10 @@ On 29/04/2024 09:52, Andrew Jones wrote:
 > 
 > I prefer changing the name of the generated C file to include 'carray'
 > and then just using RM *.carray.c
+
+Either Ivan or I will try and get a look at this, not sure how much
+will end up getting changed?
+
 > 
 >>
 >>  From 7e1f02ebdd168a329a9a393f3a25c74d6b5f837d Mon Sep 17 00:00:00 2001
@@ -149,10 +153,7 @@ On 29/04/2024 09:52, Andrew Jones wrote:
 > 
 > Thanks,
 > drew
-
-At this point should we just get the patch for "scripts/carray.sh: Add 
-comment to generated files" merged and debate the best way to deal with
-the cleaning?
+> 
 
 -- 
 Ben Dooks				http://www.codethink.co.uk/
