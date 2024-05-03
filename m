@@ -1,36 +1,49 @@
 From: Xiang W <wxjstz@126.com>
-Date: Fri,  3 May 2024 21:53:35 +0800
-Subject: [PATCH v3 3/6] lib: sbi: fix DBTR_SHMEM_MAKE_PHYS for RV64
+Date: Fri,  3 May 2024 21:53:37 +0800
+Subject: [PATCH v3 5/6] lib: sbi: fix return type of sbi_dbtr_shmem_disabled
 In-Reply-To: <20240503135340.310030-1-wxjstz@126.com>
 References: <20240503135340.310030-1-wxjstz@126.com>
-Message-ID: <20240503135340.310030-4-wxjstz@126.com>
+Message-ID: <20240503135340.310030-6-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Obtaining a 64-bit address under rv64 does not require combining
-32-bit registers
+Modify the return value of the sbi_dbtr_shmem_disabled function to
+bool to make the semantics clearer.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_dbtr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sbi/sbi_dbtr.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 3cc1ef8..94fd049 100644
+index a95f087..6950378 100644
 --- a/lib/sbi/sbi_dbtr.c
 +++ b/lib/sbi/sbi_dbtr.c
-@@ -48,7 +48,7 @@ static unsigned long hart_state_ptr_offset;
- 	     _idx++, _entry = ((_etype *)_base + _idx))
+@@ -55,18 +55,18 @@ static unsigned long hart_state_ptr_offset;
+ #error "Undefined XLEN"
+ #endif
  
- #if __riscv_xlen == 64
--#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
-+#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (_p_lo)
- #elif __riscv_xlen == 32
- #define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
- #else
+-static inline int sbi_dbtr_shmem_disabled(void)
++static inline bool sbi_dbtr_shmem_disabled(void)
+ {
+ 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+ 
+ 	hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
+ 
+ 	if (!hs)
+-		return 1;
++		return true;
+ 
+ 	return (hs->shmem.phys_lo == SBI_DBTR_SHMEM_INVALID_ADDR &&
+ 		hs->shmem.phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR
+-		? 1 : 0);
++		? true : false);
+ }
+ 
+ static inline void sbi_dbtr_disable_shmem(void)
 -- 
 2.43.0
 
