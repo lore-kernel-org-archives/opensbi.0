@@ -1,50 +1,37 @@
 From: Xiang W <wxjstz@126.com>
-Date: Fri,  3 May 2024 21:53:36 +0800
-Subject: [PATCH v3 4/6] lib: sbi: Fixed memory permission check in sbi_dbtr_setup_shmem
+Date: Fri, 03 May 2024 21:57:21 +0800
+Subject: [PATCH v3 0/6] miscellaneous about sbi_dtbr
 In-Reply-To: <20240503135340.310030-1-wxjstz@126.com>
 References: <20240503135340.310030-1-wxjstz@126.com>
-Message-ID: <20240503135340.310030-5-wxjstz@126.com>
+Message-ID: <248415745182e1c97aa138d0da754332436f3198.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The previous code detected shmem_phys_hi and shmem_phys_lo as two
-addresses. fix this bug
+? 2024-05-03???? 21:53 +0800?Xiang W???
 
-Signed-off-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
----
- lib/sbi/sbi_dbtr.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+v3 changes:
+- remove PATCH2 suggest by Himanshu
+- Add PATCH5 fix return type of sbi_dbtr_shmem_disabled suggest by Himanshu
+- Add PATCH6 simplify inline function in sbi_dtbr.c
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 94fd049..a95f087 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -293,17 +293,11 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 	if (shmem_phys_lo & SBI_DBTR_SHMEM_ALIGN_MASK)
- 		return SBI_ERR_INVALID_PARAM;
- 
--	if (dom && !sbi_domain_check_addr(dom, shmem_phys_lo, smode,
--					  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
-+	if (dom && !sbi_domain_check_addr(dom,
-+		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
-+		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
- 		return SBI_ERR_INVALID_ADDRESS;
- 
--	if (shmem_phys_hi != SBI_DBTR_SHMEM_INVALID_ADDR) {
--		if (dom &&
--		    !sbi_domain_check_addr(dom, shmem_phys_hi, smode,
--					   SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
--			return SBI_ERR_INVALID_ADDRESS;
--	}
--
- 	hart_state = dbtr_thishart_state_ptr();
- 	if (!hart_state)
- 		return SBI_ERR_FAILED;
--- 
-2.43.0
+Regards,
+Xiang W
+> v2 changes:
+> - fix shmem_base checking in PATCH2
+> 
+> Xiang W (6):
+> ? lib: sbi: fix hart_shmem_base
+> ? lib: sbi: Removal unnecessary check dbtr_thishart_state_ptr
+> ? lib: sbi: fix DBTR_SHMEM_MAKE_PHYS for RV64
+> ? lib: sbi: Fixed memory permission check in sbi_dbtr_setup_shmem
+> ? lib: sbi: fix return type of sbi_dbtr_shmem_disabled
+> ? lib: sbi: simplify inline function in sbi_dtbr.c
+> 
+> ?lib/sbi/sbi_dbtr.c | 97 +++++++++++++++++-----------------------------
+> ?1 file changed, 36 insertions(+), 61 deletions(-)
+> 
 
 
