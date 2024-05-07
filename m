@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 May 2024 14:20:02 +0530
-Subject: [PATCH 4/7] lib: sbi: sse: remove superfluous sbi_list_empty() check
-In-Reply-To: <20240409100216.263256-5-cleger@rivosinc.com>
-References: <20240409100216.263256-1-cleger@rivosinc.com> <20240409100216.263256-5-cleger@rivosinc.com>
-Message-ID: <CAAhSdy0H8Qne-vCSxuHUAJVafwbBAcvV=B46VBBQyFnPA89c0A@mail.gmail.com>
+Date: Tue, 7 May 2024 17:17:01 +0530
+Subject: [PATCH 5/7] lib: sbi: sse: call enable callback before sending IPI
+In-Reply-To: <20240409100216.263256-6-cleger@rivosinc.com>
+References: <20240409100216.263256-1-cleger@rivosinc.com> <20240409100216.263256-6-cleger@rivosinc.com>
+Message-ID: <CAAhSdy30w6bsy089VZM4UzBu5U72ffApzfzocDUaf3JdPYFwGQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +12,8 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Apr 9, 2024 at 3:32?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> The list loop below that check is actually not looping if the list is
-> empty so there was no need for this check.
+> Move the enable callback call before sending the IPI. Even though the
+> event is locked and no race condition can happen, this is more logical.
 >
 > Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 > Reported-by: Samuel Holland <samuel.holland@sifive.com>
@@ -26,23 +26,29 @@ Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_sse.c | 3 ---
->  1 file changed, 3 deletions(-)
+>  lib/sbi/sbi_sse.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index cd8a539..61d1f78 100644
+> index 61d1f78..8b448bf 100644
 > --- a/lib/sbi/sbi_sse.c
 > +++ b/lib/sbi/sbi_sse.c
-> @@ -578,9 +578,6 @@ void sbi_sse_process_pending_events(struct sbi_trap_regs *regs)
+> @@ -686,12 +686,12 @@ static int sse_event_enable(struct sbi_sse_event *e)
+>         sse_event_set_state(e, SBI_SSE_STATE_ENABLED);
+>         sse_event_add_to_list(e);
 >
->         spin_lock(&state->enabled_event_lock);
+> -       if (sse_event_pending(e))
+> +       sse_event_invoke_cb(e, enable_cb);
+> +
+> +       if (sse_event_is_global(e) && sse_event_pending(e))
+>                 sbi_ipi_send_many(1, e->attrs.hartid, sse_ipi_inject_event,
+>                                   NULL);
 >
-> -       if (sbi_list_empty(&state->enabled_event_list))
-> -               goto out;
+> -       sse_event_invoke_cb(e, enable_cb);
 > -
->         sbi_list_for_each_entry(e, &state->enabled_event_list, node) {
->                 ret = sse_event_check_inject(e, regs);
->                 if (ret)
+>         return SBI_OK;
+>  }
+>
 > --
 > 2.43.0
 >
