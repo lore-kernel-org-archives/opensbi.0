@@ -1,67 +1,278 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 May 2024 18:26:20 +0530
-Subject: [PATCH v3] lib: sbi: Refine the settings for switching to Virtual
- Supervisor Mode.
-In-Reply-To: <20240410020521.1898-1-popeblei@gmail.com>
-References: <20240410020521.1898-1-popeblei@gmail.com>
-Message-ID: <CAAhSdy3kWqstGLsHGA0J7smLc35UU+Z1nOzNcj+f0AeRWseyAA@mail.gmail.com>
+Date: Tue, 7 May 2024 18:44:13 +0530
+Subject: [PATCH v5] lib:sbi:platform:generic: Improved mlevel imsic check
+ and init.
+In-Reply-To: <tencent_B70E64F2449AA3D56C0A58DC95B1C86BB707@qq.com>
+References: <tencent_B70E64F2449AA3D56C0A58DC95B1C86BB707@qq.com>
+Message-ID: <CAAhSdy2QhWVS=gADWXu9YVjO9_1PbsN8Ev6Ap-21MGCdghmwZQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Apr 10, 2024 at 7:35?AM Pope B.Lei <popeblei@gmail.com> wrote:
+On Wed, Apr 10, 2024 at 2:58?PM Cheng Yang <yangcheng.work@foxmail.com> wrote:
 >
-> Although Mstatus.MPV is set, before executing mret, access to VS mode
-> registers should use the actual register addresses, not the pseudonyms
-> of S registers.
+> The current mlevel imsic check is only for the platform, which
+> may cause hart without imsic in the platform to trigger an
+> illegal instruction exception when initializing imsic. For
+> example, the platform contains a management hart that only
+> supports wired interrupts.
 >
-> Signed-off-by: Pope B.Lei <popeblei@gmail.com>
+> This patch will check whether each hart has imsic according
+> to fdt and record it in a bitmap, and only allow harts with
+> imsic to initialize imsic to avoid triggering illegal instruction
+> exceptions.
+>
+> Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
 
-LGTM.
+We don't need such a complex solution using bitmap because we
+can simply extend imsic_local_irqchip_init() as follows:
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index f2a35c6..02e3a33 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -12,6 +12,7 @@
+ #include <sbi/riscv_io.h>
+ #include <sbi/riscv_encoding.h>
+ #include <sbi/sbi_console.h>
++#include <sbi/sbi_csr_detect.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi/sbi_ipi.h>
+ #include <sbi/sbi_irqchip.h>
+@@ -222,6 +223,8 @@ static void imsic_local_eix_update(unsigned long base_id,
 
-Applied this patch to the riscv/opensbi repo.
+ void imsic_local_irqchip_init(void)
+ {
++    struct sbi_trap_info trap = { 0 };
++
+     /*
+      * This function is expected to be called from:
+      * 1) nascent_init() platform callback which is called
+@@ -231,6 +234,11 @@ void imsic_local_irqchip_init(void)
+      *    in boot-up path.
+      */
 
-Thanks,
++    /* If Smaia not available then do nothing */
++    csr_read_allowed(CSR_MTOPI, (ulong)&trap);
++    if (trap.cause)
++        return;
++
+     /* Setup threshold to allow all enabled interrupts */
+     imsic_csr_write(IMSIC_EITHRESHOLD, IMSIC_ENABLE_EITHRESHOLD);
+
+Regards,
 Anup
 
+> Changes V4 -> V5:
+>   - Fixed the issue where patch cannot be applied due to the editor automatically removing trailing spaces.
+> Changes V3 -> V4:
+>   - Rebase to the latest master branch.
+> Changes V2 -> V3:
+>   - Trailing whitespace.
+>   - Replace platform.hart_index2id to generic_hart_index2id.
+> Changes V1 -> V2:
+>   - Add the processing of plat->hart_index2id be NULL in fdt_check_imsic_mlevel.
 > ---
-> V1 -> V2: Simplify the if condition
-> V2 -> V3: Format indentation to tabs.
->  lib/sbi/sbi_hart.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
+>  include/sbi/sbi_platform.h         |  8 ++++--
+>  include/sbi_utils/fdt/fdt_helper.h |  4 ++-
+>  lib/sbi/sbi_init.c                 |  2 +-
+>  lib/utils/fdt/fdt_helper.c         | 45 ++++++++++++++++++++++++------
+>  platform/generic/platform.c        | 26 ++++++++++++-----
+>  5 files changed, 64 insertions(+), 21 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 3d13694..ea75e74 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -1041,10 +1041,17 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
->         csr_write(CSR_MEPC, next_addr);
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index 581935a..f62d23d 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -75,7 +75,7 @@ struct sbi_platform_operations {
+>         bool (*cold_boot_allowed)(u32 hartid);
 >
->         if (next_mode == PRV_S) {
-> -               csr_write(CSR_STVEC, next_addr);
-> -               csr_write(CSR_SSCRATCH, 0);
-> -               csr_write(CSR_SIE, 0);
-> -               csr_write(CSR_SATP, 0);
-> +               if (next_virt) {
-> +                       csr_write(CSR_VSTVEC, next_addr);
-> +                       csr_write(CSR_VSSCRATCH, 0);
-> +                       csr_write(CSR_VSIE, 0);
-> +                       csr_write(CSR_VSATP, 0);
-> +               } else {
-> +                       csr_write(CSR_STVEC, next_addr);
-> +                       csr_write(CSR_SSCRATCH, 0);
-> +                       csr_write(CSR_SIE, 0);
-> +                       csr_write(CSR_SATP, 0);
+>         /* Platform nascent initialization */
+> -       int (*nascent_init)(void);
+> +       int (*nascent_init)(u32 hartid);
+>
+>         /** Platform early initialization */
+>         int (*early_init)(bool cold_boot);
+> @@ -395,10 +395,12 @@ static inline bool sbi_platform_cold_boot_allowed(
+>   *
+>   * @return 0 on success and negative error code on failure
+>   */
+> -static inline int sbi_platform_nascent_init(const struct sbi_platform *plat)
+> +static inline int sbi_platform_nascent_init(
+> +                                       const struct sbi_platform *plat,
+> +                                       u32 hartid)
+>  {
+>         if (plat && sbi_platform_ops(plat)->nascent_init)
+> -               return sbi_platform_ops(plat)->nascent_init();
+> +               return sbi_platform_ops(plat)->nascent_init(hartid);
+>         return 0;
+>  }
+>
+> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+> index ab4a80f..1b7fdeb 100644
+> --- a/include/sbi_utils/fdt/fdt_helper.h
+> +++ b/include/sbi_utils/fdt/fdt_helper.h
+> @@ -12,6 +12,7 @@
+>
+>  #include <sbi/sbi_types.h>
+>  #include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_platform.h>
+>
+>  struct fdt_match {
+>         const char *compatible;
+> @@ -89,7 +90,8 @@ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic);
+>
+>  struct imsic_data;
+>
+> -bool fdt_check_imsic_mlevel(void *fdt);
+> +int fdt_check_imsic_mlevel(void *fdt, struct sbi_platform *plat,
+> +                                                  unsigned long *imsic_bitmap);
+>
+>  int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic);
+>
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 389172a..96f71a4 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -545,7 +545,7 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+>          * that platform can initialize platform specific per-HART CSRs
+>          * or per-HART devices.
+>          */
+> -       if (sbi_platform_nascent_init(plat))
+> +       if (sbi_platform_nascent_init(plat, hartid))
+>                 sbi_hart_hang();
+>
+>         if (coldboot)
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index a0e93b9..ae5d9cc 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -764,27 +764,54 @@ skip_delegate_parse:
+>         return 0;
+>  }
+>
+> -bool fdt_check_imsic_mlevel(void *fdt)
+> +int fdt_check_imsic_mlevel(void *fdt, struct sbi_platform *plat, unsigned long *imsic_bitmap)
+>  {
+>         const fdt32_t *val;
+> -       int i, len, noff = 0;
+> +       int i, h, len, err, cpu_offset, cpu_intc_offset, noff = 0;
+> +       u32 phandle, hwirq, hartid;
+> +
+> +       bitmap_zero(imsic_bitmap, SBI_HARTMASK_MAX_BITS);
+>
+>         if (!fdt)
+> -               return false;
+> +               return SBI_ENODEV;
+>
+>         while ((noff = fdt_node_offset_by_compatible(fdt, noff,
+>                                                      "riscv,imsics")) >= 0) {
+>                 val = fdt_getprop(fdt, noff, "interrupts-extended", &len);
+> -               if (val && len > sizeof(fdt32_t)) {
+> -                       len = len / sizeof(fdt32_t);
+> -                       for (i = 0; i < len; i += 2) {
+> -                               if (fdt32_to_cpu(val[i + 1]) == IRQ_M_EXT)
+> -                                       return true;
+> +               if (!val || len < sizeof(fdt32_t))
+> +                       continue;
+> +
+> +               len = len / sizeof(fdt32_t);
+> +               for (i = 0; i < len; i += 2) {
+> +                       phandle = fdt32_to_cpu(val[i]);
+> +                       hwirq = fdt32_to_cpu(val[i + 1]);
+> +
+> +                       if (hwirq != IRQ_M_EXT)
+> +                               continue;
+> +
+> +                       cpu_intc_offset = fdt_node_offset_by_phandle(fdt, phandle);
+> +                       if (cpu_intc_offset < 0)
+> +                               continue;
+> +
+> +                       cpu_offset = fdt_parent_offset(fdt, cpu_intc_offset);
+> +                       if (cpu_offset < 0)
+> +                               continue;
+> +
+> +                       err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+> +                       if (err)
+> +                               return SBI_EINVAL;
+> +
+> +                       for (int i = 0; i < plat->hart_count; i++) {
+> +                               h = plat->hart_index2id ? plat->hart_index2id[i] : i;
+> +                               if (hartid == h) {
+> +                                       bitmap_set(imsic_bitmap, i, 1);
+> +                                       break;
+> +                               }
+>                         }
+>                 }
+>         }
+>
+> -       return false;
+> +       return SBI_OK;
+>  }
+>
+>  int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic)
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 1f46b76..00f8f86 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -70,15 +70,15 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
+>  }
+>
+>  extern struct sbi_platform platform;
+> -static bool platform_has_mlevel_imsic = false;
+>  static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
+>
+>  static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
+> +static DECLARE_BITMAP(generic_hart_has_mlevel_imsic, SBI_HARTMASK_MAX_BITS);
+>
+>  /*
+> - * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
+> + * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
+>   * function to initialize the cold boot harts allowed by the generic platform
+> - * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
+> + * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
+>   * DT node. If there is no "cold-boot-harts" in DT, all harts will be allowed.
+>   */
+>  static void fw_platform_coldboot_harts_init(void *fdt)
+> @@ -186,7 +186,11 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+>
+>         platform.hart_count = hart_count;
+>         platform.heap_size = fw_platform_calculate_heap_size(hart_count);
+> -       platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
+> +
+> +       rc = fdt_check_imsic_mlevel(fdt, &platform,
+> +                                                               generic_hart_has_mlevel_imsic);
+> +       if (rc)
+> +               goto fail;
+>
+>         fw_platform_coldboot_harts_init(fdt);
+>
+> @@ -212,10 +216,18 @@ static bool generic_cold_boot_allowed(u32 hartid)
+>         return false;
+>  }
+>
+> -static int generic_nascent_init(void)
+> +static int generic_nascent_init(u32 hartid)
+>  {
+> -       if (platform_has_mlevel_imsic)
+> -               imsic_local_irqchip_init();
+> +       for (int i = 0; i < platform.hart_count; i++) {
+> +               if (hartid != generic_hart_index2id[i])
+> +                       continue;
+> +
+> +               if (bitmap_test(generic_hart_has_mlevel_imsic, i)) {
+> +                       imsic_local_irqchip_init();
+> +                       break;
 > +               }
->         } else if (next_mode == PRV_U) {
->                 if (misa_extension('N')) {
->                         csr_write(CSR_UTVEC, next_addr);
+> +       }
+> +
+>         return 0;
+>  }
+>
 > --
-> 2.35.2.windows.1
+> 2.34.1
 >
 >
 > --
