@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 May 2024 17:17:01 +0530
-Subject: [PATCH 5/7] lib: sbi: sse: call enable callback before sending IPI
-In-Reply-To: <20240409100216.263256-6-cleger@rivosinc.com>
-References: <20240409100216.263256-1-cleger@rivosinc.com> <20240409100216.263256-6-cleger@rivosinc.com>
-Message-ID: <CAAhSdy30w6bsy089VZM4UzBu5U72ffApzfzocDUaf3JdPYFwGQ@mail.gmail.com>
+Date: Tue, 7 May 2024 17:17:56 +0530
+Subject: [PATCH 6/7] lib: sbi: sse: use PRV_S instead of hardcoded value
+ for mode
+In-Reply-To: <20240409100216.263256-7-cleger@rivosinc.com>
+References: <20240409100216.263256-1-cleger@rivosinc.com> <20240409100216.263256-7-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1qUvUeKJKrcLR0O0Fd5rPrjU_BEbvaZ68my=mHTsBMqA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,11 +13,10 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Apr 9, 2024 at 3:32?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Move the enable callback call before sending the IPI. Even though the
-> event is locked and no race condition can happen, this is more logical.
+> Rather then passing 1 to sbi_domain_check_addr_range() for supervisor
+> mode, use PRV_S.
 >
 > Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-> Reported-by: Samuel Holland <samuel.holland@sifive.com>
 
 LGTM.
 
@@ -26,29 +26,24 @@ Regards,
 Anup
 
 > ---
->  lib/sbi/sbi_sse.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  lib/sbi/sbi_sse.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 61d1f78..8b448bf 100644
+> index 8b448bf..85137c2 100644
 > --- a/lib/sbi/sbi_sse.c
 > +++ b/lib/sbi/sbi_sse.c
-> @@ -686,12 +686,12 @@ static int sse_event_enable(struct sbi_sse_event *e)
->         sse_event_set_state(e, SBI_SSE_STATE_ENABLED);
->         sse_event_add_to_list(e);
+> @@ -837,8 +837,8 @@ int sbi_sse_attr_check(uint32_t base_attr_id, uint32_t attr_count,
+>                 return SBI_EINVALID_ADDR;
 >
-> -       if (sse_event_pending(e))
-> +       sse_event_invoke_cb(e, enable_cb);
-> +
-> +       if (sse_event_is_global(e) && sse_event_pending(e))
->                 sbi_ipi_send_many(1, e->attrs.hartid, sse_ipi_inject_event,
->                                   NULL);
+>         if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(), phys_lo,
+> -                                        sizeof(unsigned long) * attr_count, 1,
+> -                                        access))
+> +                                        sizeof(unsigned long) * attr_count,
+> +                                        PRV_S, access))
+>                 return SBI_EINVALID_ADDR;
 >
-> -       sse_event_invoke_cb(e, enable_cb);
-> -
 >         return SBI_OK;
->  }
->
 > --
 > 2.43.0
 >
