@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 May 2024 11:32:20 +0530
-Subject: [PATCH 1/3] lib: tests: Add test suite init function
-In-Reply-To: <20240423155245.14541-2-ivan.orlov0322@gmail.com>
-References: <20240423155245.14541-1-ivan.orlov0322@gmail.com> <20240423155245.14541-2-ivan.orlov0322@gmail.com>
-Message-ID: <CAAhSdy3=ymtTCxx-NR4W-jAdU2Y3m4WD+1jXH0N3oRTjN8VrhQ@mail.gmail.com>
+Date: Tue, 7 May 2024 11:32:37 +0530
+Subject: [PATCH 2/3] lib: tests: Add test for atomic_t
+In-Reply-To: <20240423155245.14541-3-ivan.orlov0322@gmail.com>
+References: <20240423155245.14541-1-ivan.orlov0322@gmail.com> <20240423155245.14541-3-ivan.orlov0322@gmail.com>
+Message-ID: <CAAhSdy0gJmcMLm2-FtJKgpOAHPjYDayJnhYrwL7PS_VppEbOtw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,13 +12,21 @@ Content-Transfer-Encoding: 7bit
 
 On Tue, Apr 23, 2024 at 9:23?PM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
 >
-> Allow to define an init function for the test suite. It could help us
-> to initialize global variable once, and use them in multiple test cases
-> after the initialization.
+> Implement the test which covers some of the functions from the
+> `riscv_atomic.h` header file. The test contains 9 test cases:
 >
-> For instance, if multiple test cases use the same atomic_t var, it
-> could be helpful to call ATOMIC_INIT once during the suite
-> initialization.
+> 1) atomic read/write test
+> 2) add/return test
+> 3) sub/return test
+> 4) cmpxchg test
+> 5) atomic_xchg test
+> 6) atomic_raw_set_bit test
+> 7) atomic_raw_clear_bit test
+> 8) atomic_set_bit test
+> 9) atomic_clear_bit test
+>
+> Some of the test cases operate on the `test_atomic` variable. It gets
+> initialized in the suite init function.
 >
 > Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 
@@ -32,44 +40,171 @@ Thanks,
 Anup
 
 > ---
->  include/sbi/sbi_unit_test.h   | 2 ++
->  lib/sbi/tests/sbi_unit_test.c | 3 +++
->  2 files changed, 5 insertions(+)
+>  lib/sbi/tests/objects.mk          |   3 +
+>  lib/sbi/tests/riscv_atomic_test.c | 143 ++++++++++++++++++++++++++++++
+>  2 files changed, 146 insertions(+)
+>  create mode 100644 lib/sbi/tests/riscv_atomic_test.c
 >
-> diff --git a/include/sbi/sbi_unit_test.h b/include/sbi/sbi_unit_test.h
-> index c63d900..448c048 100644
-> --- a/include/sbi/sbi_unit_test.h
-> +++ b/include/sbi/sbi_unit_test.h
-> @@ -19,6 +19,7 @@ struct sbiunit_test_case {
+> diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
+> index 5ce188a..ba588dc 100644
+> --- a/lib/sbi/tests/objects.mk
+> +++ b/lib/sbi/tests/objects.mk
+> @@ -6,3 +6,6 @@ libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_bitmap_test.o
 >
->  struct sbiunit_test_suite {
->         const char *name;
-> +       void (*init)(void);
->         struct sbiunit_test_case *cases;
->  };
->
-> @@ -34,6 +35,7 @@ struct sbiunit_test_suite {
->  #define SBIUNIT_TEST_SUITE(suite_name, cases_arr)              \
->         struct sbiunit_test_suite suite_name = {                \
->                 .name = #suite_name,                            \
-> +               .init = NULL,                                   \
->                 .cases = cases_arr                              \
->         }
->
-> diff --git a/lib/sbi/tests/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
-> index 1987838..c2a0be6 100644
-> --- a/lib/sbi/tests/sbi_unit_test.c
-> +++ b/lib/sbi/tests/sbi_unit_test.c
-> @@ -17,6 +17,9 @@ static void run_test_suite(struct sbiunit_test_suite *suite)
->
->         sbi_printf("## Running test suite: %s\n", suite->name);
->
-> +       if (suite->init)
-> +               suite->init();
+>  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
+>  libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_console_test.o
 > +
->         s_case = suite->cases;
->         while (s_case->test_func) {
->                 s_case->test_func(s_case);
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += atomic_test_suite
+> +libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_atomic_test.o
+> diff --git a/lib/sbi/tests/riscv_atomic_test.c b/lib/sbi/tests/riscv_atomic_test.c
+> new file mode 100644
+> index 0000000..8a17a5f
+> --- /dev/null
+> +++ b/lib/sbi/tests/riscv_atomic_test.c
+> @@ -0,0 +1,143 @@
+> +#include <sbi/sbi_unit_test.h>
+> +#include <sbi/riscv_atomic.h>
+> +#include <sbi/sbi_bitops.h>
+> +
+> +#define ATOMIC_TEST_VAL1 239l
+> +#define ATOMIC_TEST_VAL2 30l
+> +#define ATOMIC_TEST_VAL3 2024l
+> +
+> +#define ATOMIC_TEST_BIT_NUM 3
+> +
+> +#define ATOMIC_TEST_RAW_BIT_CELL 1
+> +#define ATOMIC_TEST_RAW_BIT_NUM 15
+> +
+> +static atomic_t test_atomic;
+> +
+> +static void atomic_test_suite_init(void)
+> +{
+> +       ATOMIC_INIT(&test_atomic, 0);
+> +}
+> +
+> +static void atomic_rw_test(struct sbiunit_test_case *test)
+> +{
+> +       /* We should read the same value as we've written */
+> +       atomic_write(&test_atomic, ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), ATOMIC_TEST_VAL1);
+> +       /* Negative value should also work */
+> +       atomic_write(&test_atomic, -ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), -ATOMIC_TEST_VAL1);
+> +}
+> +
+> +static void add_return_test(struct sbiunit_test_case *test)
+> +{
+> +       atomic_write(&test_atomic, ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_add_return(&test_atomic, ATOMIC_TEST_VAL2),
+> +                         ATOMIC_TEST_VAL1 + ATOMIC_TEST_VAL2);
+> +       /* The atomic value should be updated as well */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), ATOMIC_TEST_VAL1 + ATOMIC_TEST_VAL2);
+> +}
+> +
+> +static void sub_return_test(struct sbiunit_test_case *test)
+> +{
+> +       atomic_write(&test_atomic, ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_sub_return(&test_atomic, ATOMIC_TEST_VAL2),
+> +                         ATOMIC_TEST_VAL1 - ATOMIC_TEST_VAL2);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), ATOMIC_TEST_VAL1 - ATOMIC_TEST_VAL2);
+> +}
+> +
+> +static void cmpxchg_test(struct sbiunit_test_case *test)
+> +{
+> +       atomic_write(&test_atomic, ATOMIC_TEST_VAL1);
+> +       /* if current value != expected, it stays the same */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_cmpxchg(&test_atomic, ATOMIC_TEST_VAL2, ATOMIC_TEST_VAL3),
+> +                         ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), ATOMIC_TEST_VAL1);
+> +       /* if current value == expected, it gets updated */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_cmpxchg(&test_atomic, ATOMIC_TEST_VAL1, ATOMIC_TEST_VAL2),
+> +                         ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), ATOMIC_TEST_VAL2);
+> +}
+> +
+> +static void atomic_xchg_test(struct sbiunit_test_case *test)
+> +{
+> +       atomic_write(&test_atomic, ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_xchg(&test_atomic, ATOMIC_TEST_VAL2), ATOMIC_TEST_VAL1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), ATOMIC_TEST_VAL2);
+> +}
+> +
+> +static void atomic_raw_set_bit_test(struct sbiunit_test_case *test)
+> +{
+> +       unsigned long data[] = {0, 0, 0};
+> +       /* the bitpos points to the bit of one of the elements of the `data` array */
+> +       size_t bitpos = ATOMIC_TEST_RAW_BIT_CELL * BITS_PER_LONG + ATOMIC_TEST_RAW_BIT_NUM;
+> +
+> +       /* check if the bit we set actually gets set */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_raw_set_bit(bitpos, data), 0);
+> +       SBIUNIT_EXPECT_EQ(test, data[ATOMIC_TEST_RAW_BIT_CELL], 1 << ATOMIC_TEST_RAW_BIT_NUM);
+> +
+> +       /* Other elements of the `data` array should stay untouched */
+> +       SBIUNIT_EXPECT_EQ(test, data[0], 0);
+> +       SBIUNIT_EXPECT_EQ(test, data[2], 0);
+> +
+> +       /* check that if we set the bit twice it stays set */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_raw_set_bit(bitpos, data), 1);
+> +       SBIUNIT_EXPECT_EQ(test, data[ATOMIC_TEST_RAW_BIT_CELL], 1 << ATOMIC_TEST_RAW_BIT_NUM);
+> +}
+> +
+> +static void atomic_raw_clear_bit_test(struct sbiunit_test_case *test)
+> +{
+> +       unsigned long data[] = {~1UL, 1 << ATOMIC_TEST_RAW_BIT_NUM, ~1UL};
+> +       /* the bitpos points to the bit of one of the elements of the `data` array */
+> +       size_t bitpos = ATOMIC_TEST_RAW_BIT_CELL * BITS_PER_LONG + ATOMIC_TEST_RAW_BIT_NUM;
+> +
+> +       /* check if the bit we clear actually gets cleared */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_raw_clear_bit(bitpos, data), 1);
+> +       SBIUNIT_EXPECT_EQ(test, data[ATOMIC_TEST_RAW_BIT_CELL], 0);
+> +
+> +       /* Other elements of the `data` array should stay untouched */
+> +       SBIUNIT_EXPECT_EQ(test, data[0], ~1UL);
+> +       SBIUNIT_EXPECT_EQ(test, data[2], ~1UL);
+> +
+> +       /* check that if we clear the bit twice it stays cleared */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_raw_clear_bit(bitpos, data), 0);
+> +       SBIUNIT_EXPECT_EQ(test, data[ATOMIC_TEST_RAW_BIT_CELL], 0);
+> +}
+> +
+> +static void atomic_set_bit_test(struct sbiunit_test_case *test)
+> +{
+> +       atomic_write(&test_atomic, 0);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_set_bit(ATOMIC_TEST_BIT_NUM, &test_atomic), 0);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), 1 << ATOMIC_TEST_BIT_NUM);
+> +       /* If we set the bit twice, it stays 1 */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_set_bit(ATOMIC_TEST_BIT_NUM, &test_atomic), 1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), 1 << ATOMIC_TEST_BIT_NUM);
+> +}
+> +
+> +static void atomic_clear_bit_test(struct sbiunit_test_case *test)
+> +{
+> +       atomic_write(&test_atomic, 1 << ATOMIC_TEST_BIT_NUM);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_clear_bit(ATOMIC_TEST_BIT_NUM, &test_atomic), 1);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), 0);
+> +       /* if we clear the bit twice, it stays 0 */
+> +       SBIUNIT_EXPECT_EQ(test, atomic_clear_bit(ATOMIC_TEST_BIT_NUM, &test_atomic), 0);
+> +       SBIUNIT_EXPECT_EQ(test, atomic_read(&test_atomic), 0);
+> +}
+> +
+> +static struct sbiunit_test_case atomic_test_cases[] = {
+> +       SBIUNIT_TEST_CASE(atomic_rw_test),
+> +       SBIUNIT_TEST_CASE(add_return_test),
+> +       SBIUNIT_TEST_CASE(sub_return_test),
+> +       SBIUNIT_TEST_CASE(cmpxchg_test),
+> +       SBIUNIT_TEST_CASE(atomic_xchg_test),
+> +       SBIUNIT_TEST_CASE(atomic_raw_set_bit_test),
+> +       SBIUNIT_TEST_CASE(atomic_raw_clear_bit_test),
+> +       SBIUNIT_TEST_CASE(atomic_set_bit_test),
+> +       SBIUNIT_TEST_CASE(atomic_clear_bit_test),
+> +       SBIUNIT_END_CASE,
+> +};
+> +
+> +const struct sbiunit_test_suite atomic_test_suite = {
+> +       .name = "atomic_test_suite",
+> +       .cases = atomic_test_cases,
+> +       .init = atomic_test_suite_init
+> +};
 > --
 > 2.34.1
 >
