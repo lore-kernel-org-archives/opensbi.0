@@ -1,37 +1,76 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 03 May 2024 21:57:21 +0800
-Subject: [PATCH v3 0/6] miscellaneous about sbi_dtbr
-In-Reply-To: <20240503135340.310030-1-wxjstz@126.com>
-References: <20240503135340.310030-1-wxjstz@126.com>
-Message-ID: <248415745182e1c97aa138d0da754332436f3198.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 7 May 2024 11:32:20 +0530
+Subject: [PATCH 1/3] lib: tests: Add test suite init function
+In-Reply-To: <20240423155245.14541-2-ivan.orlov0322@gmail.com>
+References: <20240423155245.14541-1-ivan.orlov0322@gmail.com> <20240423155245.14541-2-ivan.orlov0322@gmail.com>
+Message-ID: <CAAhSdy3=ymtTCxx-NR4W-jAdU2Y3m4WD+1jXH0N3oRTjN8VrhQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-05-03???? 21:53 +0800?Xiang W???
+On Tue, Apr 23, 2024 at 9:23?PM Ivan Orlov <ivan.orlov0322@gmail.com> wrote:
+>
+> Allow to define an init function for the test suite. It could help us
+> to initialize global variable once, and use them in multiple test cases
+> after the initialization.
+>
+> For instance, if multiple test cases use the same atomic_t var, it
+> could be helpful to call ATOMIC_INIT once during the suite
+> initialization.
+>
+> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
 
-v3 changes:
-- remove PATCH2 suggest by Himanshu
-- Add PATCH5 fix return type of sbi_dbtr_shmem_disabled suggest by Himanshu
-- Add PATCH6 simplify inline function in sbi_dtbr.c
+LGTM.
 
-Regards,
-Xiang W
-> v2 changes:
-> - fix shmem_base checking in PATCH2
-> 
-> Xiang W (6):
-> ? lib: sbi: fix hart_shmem_base
-> ? lib: sbi: Removal unnecessary check dbtr_thishart_state_ptr
-> ? lib: sbi: fix DBTR_SHMEM_MAKE_PHYS for RV64
-> ? lib: sbi: Fixed memory permission check in sbi_dbtr_setup_shmem
-> ? lib: sbi: fix return type of sbi_dbtr_shmem_disabled
-> ? lib: sbi: simplify inline function in sbi_dtbr.c
-> 
-> ?lib/sbi/sbi_dbtr.c | 97 +++++++++++++++++-----------------------------
-> ?1 file changed, 36 insertions(+), 61 deletions(-)
-> 
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>  include/sbi/sbi_unit_test.h   | 2 ++
+>  lib/sbi/tests/sbi_unit_test.c | 3 +++
+>  2 files changed, 5 insertions(+)
+>
+> diff --git a/include/sbi/sbi_unit_test.h b/include/sbi/sbi_unit_test.h
+> index c63d900..448c048 100644
+> --- a/include/sbi/sbi_unit_test.h
+> +++ b/include/sbi/sbi_unit_test.h
+> @@ -19,6 +19,7 @@ struct sbiunit_test_case {
+>
+>  struct sbiunit_test_suite {
+>         const char *name;
+> +       void (*init)(void);
+>         struct sbiunit_test_case *cases;
+>  };
+>
+> @@ -34,6 +35,7 @@ struct sbiunit_test_suite {
+>  #define SBIUNIT_TEST_SUITE(suite_name, cases_arr)              \
+>         struct sbiunit_test_suite suite_name = {                \
+>                 .name = #suite_name,                            \
+> +               .init = NULL,                                   \
+>                 .cases = cases_arr                              \
+>         }
+>
+> diff --git a/lib/sbi/tests/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
+> index 1987838..c2a0be6 100644
+> --- a/lib/sbi/tests/sbi_unit_test.c
+> +++ b/lib/sbi/tests/sbi_unit_test.c
+> @@ -17,6 +17,9 @@ static void run_test_suite(struct sbiunit_test_suite *suite)
+>
+>         sbi_printf("## Running test suite: %s\n", suite->name);
+>
+> +       if (suite->init)
+> +               suite->init();
+> +
+>         s_case = suite->cases;
+>         while (s_case->test_func) {
+>                 s_case->test_func(s_case);
+> --
+> 2.34.1
+>
 
