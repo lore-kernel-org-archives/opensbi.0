@@ -1,132 +1,73 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 7 May 2024 20:43:41 +0530
-Subject: [PATCH v3] sbi: sbi_domain_context: Add spinlock for updating
- domain assigned_harts
-In-Reply-To: <20240416050213.665461-1-peterlin@andestech.com>
-References: <20240416050213.665461-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy0x_BnP=NJ2bhcun8S_=tjJqeEcSoKaEuXDY5sp-0i9BQ@mail.gmail.com>
+From: Cyan Yang <cyan.yang@sifive.com>
+Date: Wed, 8 May 2024 14:53:20 +0800
+Subject: [PATCH] lib: utils/irqchip: Add sanity checks to
+ imsic_warm_irqchip_init()
+In-Reply-To: <CAAhSdy0_2tsMWjAJTbgrfY+U9Wngs5WWHREQm8E0=2ZOGGAjqg@mail.gmail.com>
+References: <20240409144547.87893-1-cyan.yang@sifive.com>
+ <CAAhSdy0_2tsMWjAJTbgrfY+U9Wngs5WWHREQm8E0=2ZOGGAjqg@mail.gmail.com>
+Message-ID: <ZjshYHp4wESBeTVb@cyan-mbp>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 16, 2024 at 10:32?AM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> From: Alvin Chang <alvinga@andestech.com>
->
-> Add spinlock protection to avoid race condition on assigned_harts
-> during domain context switching. Also, rename/add variables for
-> accessing the corresponding domain of target/current context.
->
-> Signed-off-by: Alvin Chang <alvinga@andestech.com>
-> Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+On Tue, May 07, 2024 at 06:09:25PM +0530, Anup Patel wrote:
+> On Tue, Apr 9, 2024 at 8:25?PM Cyan Yang <cyan.yang@sifive.com> wrote:
+> >
+> > Add sanity checks for per-HART IMSIC pointer in warm init flow, similar to
+> > what the cold init flow does. This will help prevent any misuse of the
+> > data in scratch space.
+> 
+> Can you elaborate on the kind of misuse which can happen ?
+> 
 
-The functions sbi_system_suspend(), sbi_domain_finalize() and
-sbi_domain_is_assigned_hart() should also use assigned_harts_lock
-for completeness. I have taken care of this at the time of merging
-this patch.
+We found a case that if a caller misused this function on a platform without
+imsic, the extra check will be needed here since "imsic_get_data()" will not
+guarantee to return a null pointer. 
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+It's not a normal case, of course, but since this is not a static function,
+having more sanity checks could help prevent the unexpected results.
 
-Applied this patch to the riscv/opensbi repo.
+Regards,
+Cyan
 
-Thanks,
-Anup
-
-> ---
->  include/sbi/sbi_domain.h     |  3 +++
->  lib/sbi/sbi_domain.c         |  3 +++
->  lib/sbi/sbi_domain_context.c | 27 +++++++++++++++++----------
->  3 files changed, 23 insertions(+), 10 deletions(-)
->
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index 5432dacb..02765777 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -10,6 +10,7 @@
->  #ifndef __SBI_DOMAIN_H__
->  #define __SBI_DOMAIN_H__
->
-> +#include <sbi/riscv_locks.h>
->  #include <sbi/sbi_types.h>
->  #include <sbi/sbi_hartmask.h>
->  #include <sbi/sbi_domain_context.h>
-> @@ -174,6 +175,8 @@ struct sbi_domain {
->          * in the coldboot path
->          */
->         struct sbi_hartmask assigned_harts;
-> +       /** Spinlock for accessing assigned_harts */
-> +       spinlock_t assigned_harts_lock;
->         /** Name of this domain */
->         char name[64];
->         /** Possible HARTs in this domain */
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 50749f15..51770d8d 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -555,6 +555,9 @@ int sbi_domain_register(struct sbi_domain *dom,
->         dom->index = domain_count++;
->         domidx_to_domain_table[dom->index] = dom;
->
-> +       /* Initialize spinlock for dom->assigned_harts */
-> +       SPIN_LOCK_INIT(dom->assigned_harts_lock);
-> +
->         /* Clear assigned HARTs of domain */
->         sbi_hartmask_clear_all(&dom->assigned_harts);
->
-> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> index a41dc8c7..a3d3988d 100755
-> --- a/lib/sbi/sbi_domain_context.c
-> +++ b/lib/sbi/sbi_domain_context.c
-> @@ -26,18 +26,23 @@
->  static void switch_to_next_domain_context(struct sbi_context *ctx,
->                                           struct sbi_context *dom_ctx)
->  {
-> -       u32 hartindex;
-> +       u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
->         struct sbi_trap_regs *trap_regs;
-> -       struct sbi_domain *dom = dom_ctx->dom;
-> +       struct sbi_domain *current_dom = ctx->dom;
-> +       struct sbi_domain *target_dom = dom_ctx->dom;
->         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->         unsigned int pmp_count = sbi_hart_pmp_count(scratch);
->
->         /* Assign current hart to target domain */
-> -       hartindex = sbi_hartid_to_hartindex(current_hartid());
-> -       sbi_hartmask_clear_hartindex(
-> -               hartindex, &sbi_domain_thishart_ptr()->assigned_harts);
-> -       sbi_update_hartindex_to_domain(hartindex, dom);
-> -       sbi_hartmask_set_hartindex(hartindex, &dom->assigned_harts);
-> +       spin_lock(&current_dom->assigned_harts_lock);
-> +       sbi_hartmask_clear_hartindex(hartindex, &current_dom->assigned_harts);
-> +       spin_unlock(&current_dom->assigned_harts_lock);
-> +
-> +       sbi_update_hartindex_to_domain(hartindex, target_dom);
-> +
-> +       spin_lock(&target_dom->assigned_harts_lock);
-> +       sbi_hartmask_set_hartindex(hartindex, &target_dom->assigned_harts);
-> +       spin_unlock(&target_dom->assigned_harts_lock);
->
->         /* Reconfigure PMP settings for the new domain */
->         for (int i = 0; i < pmp_count; i++) {
-> @@ -71,9 +76,11 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
->         /* If target domain context is not initialized or runnable */
->         if (!dom_ctx->initialized) {
->                 /* Startup boot HART of target domain */
-> -               if (current_hartid() == dom->boot_hartid)
-> -                       sbi_hart_switch_mode(dom->boot_hartid, dom->next_arg1,
-> -                                            dom->next_addr, dom->next_mode,
-> +               if (current_hartid() == target_dom->boot_hartid)
-> +                       sbi_hart_switch_mode(target_dom->boot_hartid,
-> +                                            target_dom->next_arg1,
-> +                                            target_dom->next_addr,
-> +                                            target_dom->next_mode,
->                                              false);
->                 else
->                         sbi_hsm_hart_stop(scratch, true);
-> --
-> 2.34.1
->
+> >
+> > Signed-off-by: Cyan Yang <cyan.yang@sifive.com>
+> > ---
+> >  lib/utils/irqchip/imsic.c | 7 ++++++-
+> >  1 file changed, 6 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+> > index f2a35c6..e6a3657 100644
+> > --- a/lib/utils/irqchip/imsic.c
+> > +++ b/lib/utils/irqchip/imsic.c
+> > @@ -243,10 +243,15 @@ void imsic_local_irqchip_init(void)
+> >
+> >  int imsic_warm_irqchip_init(void)
+> >  {
+> > +       int rc;
+> >         struct imsic_data *imsic = imsic_get_data(current_hartid());
+> >
+> >         /* Sanity checks */
+> > -       if (!imsic || !imsic->targets_mmode)
+> > +       rc = imsic_data_check(imsic);
+> > +       if (rc)
+> > +               return rc;
+> > +
+> > +       if (!imsic->targets_mmode)
+> >                 return SBI_EINVAL;
+> >
+> >         /* Disable all interrupts */
+> > --
+> > 2.39.3 (Apple Git-146)
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> Regards,
+> Anup
 
