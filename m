@@ -1,9 +1,10 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Thu, 9 May 2024 16:11:38 +0530
-Subject: [PATCH] lib: sbi: Put event after use in sbi_sse_exit() loop
-In-Reply-To: <20240509071228.1401289-1-apatel@ventanamicro.com>
-References: <20240509071228.1401289-1-apatel@ventanamicro.com>
-Message-ID: <5697a19f-089d-4bbe-b93f-cea00c24f287@ventanamicro.com>
+Date: Thu, 9 May 2024 16:13:27 +0530
+Subject: [PATCH v2 4/5] lib: sbi: fix DBTR_SHMEM_MAKE_PHYS for RV64
+In-Reply-To: <20240423145743.392718-5-wxjstz@126.com>
+References: <20240423145743.392718-1-wxjstz@126.com>
+ <20240423145743.392718-5-wxjstz@126.com>
+Message-ID: <98bad5f6-a24f-4d64-9251-5d1d0f2a7366@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,45 +13,29 @@ Content-Transfer-Encoding: 7bit
 
 
 
-On 09/05/24 12:42, Anup Patel wrote:
-> Currently, the sbi_sse_exit() gets event in a loop but does not put
-> it back after use. This results in global events remaining locked
-> causing hangs on sub-sequent calls to sse_event_get() for global
-> events.
+On 23/04/24 20:27, Xiang W wrote:
+> Obtaining a 64-bit address under rv64 does not require combining
+> 32-bit registers
 > 
-> Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->   lib/sbi/sbi_sse.c | 9 +++++++--
->   1 file changed, 7 insertions(+), 2 deletions(-)
+>   lib/sbi/sbi_dbtr.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 18dfdb6..0cd6ba6 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -1121,13 +1121,18 @@ void sbi_sse_exit(struct sbi_scratch *scratch)
+> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+> index 4093a82..29be9bb 100644
+> --- a/lib/sbi/sbi_dbtr.c
+> +++ b/lib/sbi/sbi_dbtr.c
+> @@ -48,7 +48,7 @@ static unsigned long hart_state_ptr_offset;
+>   	     _idx++, _entry = ((_etype *)_base + _idx))
 >   
->   	for (i = 0; i < EVENT_COUNT; i++) {
->   		e = sse_event_get(supported_events[i]);
-> -
-> -		if (!e || e->attrs.hartid != current_hartid())
-> +		if (!e)
->   			continue;
->   
-> +		if (e->attrs.hartid != current_hartid())
-> +			goto skip;
-> +
->   		if (sse_event_state(e) > SBI_SSE_STATE_REGISTERED) {
->   			sbi_printf("Event %d in invalid state at exit", i);
->   			sse_event_set_state(e, SBI_SSE_STATE_UNUSED);
->   		}
-> +
-> +skip:
-> +		sse_event_put(e);
->   	}
->   }
-
-LGTM.
+>   #if __riscv_xlen == 64
+> -#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
+> +#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (_p_lo)
+>   #elif __riscv_xlen == 32
+>   #define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
+>   #else
+LGTM
 
 Reviewed-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
