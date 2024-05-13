@@ -1,189 +1,37 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 13 May 2024 18:03:33 +0530
-Subject: [PATCH v3 6/6] lib: sbi: simplify inline function in sbi_dtbr.c
-In-Reply-To: <20240503135340.310030-7-wxjstz@126.com>
-References: <20240503135340.310030-1-wxjstz@126.com> <20240503135340.310030-7-wxjstz@126.com>
-Message-ID: <CAAhSdy3D5U=LONMfNLpmthxdK2tK6yOptNRR8HweAPxU8AmRxA@mail.gmail.com>
+Date: Mon, 13 May 2024 18:04:05 +0530
+Subject: [PATCH v3 0/6] miscellaneous about sbi_dtbr
+In-Reply-To: <20240503135340.310030-1-wxjstz@126.com>
+References: <20240503135340.310030-1-wxjstz@126.com>
+Message-ID: <CAAhSdy2cQW=YcL9TideATZsVEH_3eQ7LSPRH8Bm8JM8bAhjv3A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, May 3, 2024 at 7:24?PM Xiang W <wxjstz@126.com> wrote:
+On Fri, May 3, 2024 at 7:23?PM Xiang W <wxjstz@126.com> wrote:
 >
->  The inline function can simplify the code by setting some call
->  restrictions. This ensures logical smoothness
+> v2 changes:
+> - fix shmem_base checking in PATCH2
 >
->  Signed-off-by: Xiang W <wxjstz@126.com>
+> Xiang W (6):
+>   lib: sbi: fix hart_shmem_base
+>   lib: sbi: Removal unnecessary check dbtr_thishart_state_ptr
+>   lib: sbi: fix DBTR_SHMEM_MAKE_PHYS for RV64
+>   lib: sbi: Fixed memory permission check in sbi_dbtr_setup_shmem
+>   lib: sbi: fix return type of sbi_dbtr_shmem_disabled
+>   lib: sbi: simplify inline function in sbi_dtbr.c
 
-LGTM.
+Applied this series to the riscv/opensbi repo.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
+Thanks,
 Anup
 
-> ---
->  lib/sbi/sbi_dbtr.c | 78 +++++++++++++++++++---------------------------
->  1 file changed, 32 insertions(+), 46 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-> index 6950378..9c92af6 100644
-> --- a/lib/sbi/sbi_dbtr.c
-> +++ b/lib/sbi/sbi_dbtr.c
-> @@ -55,49 +55,29 @@ static unsigned long hart_state_ptr_offset;
->  #error "Undefined XLEN"
->  #endif
+>  lib/sbi/sbi_dbtr.c | 97 +++++++++++++++++-----------------------------
+>  1 file changed, 36 insertions(+), 61 deletions(-)
 >
-> -static inline bool sbi_dbtr_shmem_disabled(void)
-> +/* must call with hs != NULL */
-> +static inline bool sbi_dbtr_shmem_disabled(
-> +       struct sbi_dbtr_hart_triggers_state *hs)
->  {
-> -       struct sbi_dbtr_hart_triggers_state *hs = NULL;
-> -
-> -       hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
-> -
-> -       if (!hs)
-> -               return true;
-> -
->         return (hs->shmem.phys_lo == SBI_DBTR_SHMEM_INVALID_ADDR &&
->                 hs->shmem.phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR
->                 ? true : false);
->  }
->
-> -static inline void sbi_dbtr_disable_shmem(void)
-> +/* must call with hs != NULL */
-> +static inline void sbi_dbtr_disable_shmem(
-> +       struct sbi_dbtr_hart_triggers_state *hs)
->  {
-> -       struct sbi_dbtr_hart_triggers_state *hs = NULL;
-> -
-> -       hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
-> -
-> -       if (!hs)
-> -               return;
-> -
->         hs->shmem.phys_lo = SBI_DBTR_SHMEM_INVALID_ADDR;
->         hs->shmem.phys_hi = SBI_DBTR_SHMEM_INVALID_ADDR;
->  }
->
-> -static inline void *hart_shmem_base(void)
-> +/* must call with hs which is not disabled */
-> +static inline void *hart_shmem_base(
-> +       struct sbi_dbtr_hart_triggers_state *hs)
->  {
-> -       unsigned long phys_hi, phys_lo;
-> -       struct sbi_dbtr_hart_triggers_state *hs = NULL;
-> -
-> -       hs = dbtr_get_hart_state_ptr(sbi_scratch_thishart_ptr());
-> -       if (!hs)
-> -               return NULL;
-> -
-> -       phys_hi = hs->shmem.phys_hi;
-> -       phys_lo = hs->shmem.phys_lo;
-> -
-> -       if (phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR && phys_hi == phys_lo)
-> -               return NULL;
-> -
-> -       return ((void *)(unsigned long)DBTR_SHMEM_MAKE_PHYS(phys_hi, phys_lo));
-> +       return ((void *)(unsigned long)DBTR_SHMEM_MAKE_PHYS(
-> +                       hs->shmem.phys_hi, hs->shmem.phys_lo));
->  }
->
->  static void sbi_trigger_init(struct sbi_dbtr_trigger *trig,
-> @@ -186,7 +166,7 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
->         }
->
->         /* disable the shared memory */
-> -       sbi_dbtr_disable_shmem();
-> +       sbi_dbtr_disable_shmem(hart_state);
->
->         /* Skip probing triggers if already probed */
->         if (hart_state->probed)
-> @@ -278,15 +258,19 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
->                 return SBI_ERR_DENIED;
->         }
->
-> +       hart_state = dbtr_thishart_state_ptr();
-> +       if (!hart_state)
-> +               return SBI_ERR_FAILED;
-> +
->         /* call is to disable shared memory */
->         if (shmem_phys_lo == SBI_DBTR_SHMEM_INVALID_ADDR
->             && shmem_phys_hi == SBI_DBTR_SHMEM_INVALID_ADDR) {
-> -               sbi_dbtr_disable_shmem();
-> +               sbi_dbtr_disable_shmem(hart_state);
->                 return SBI_SUCCESS;
->         }
->
->         /* the shared memory must be disabled on this hart */
-> -       if (!sbi_dbtr_shmem_disabled())
-> +       if (!sbi_dbtr_shmem_disabled(hart_state))
->                 return SBI_ERR_ALREADY_AVAILABLE;
->
->         /* lower physical address must be XLEN/8 bytes aligned */
-> @@ -298,10 +282,6 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
->                   SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
->                 return SBI_ERR_INVALID_ADDRESS;
->
-> -       hart_state = dbtr_thishart_state_ptr();
-> -       if (!hart_state)
-> -               return SBI_ERR_FAILED;
-> -
->         hart_state->shmem.phys_lo = shmem_phys_lo;
->         hart_state->shmem.phys_hi = shmem_phys_hi;
->
-> @@ -531,10 +511,10 @@ int sbi_dbtr_read_trig(unsigned long smode,
->             trig_idx_base + trig_count >= hs->total_trigs)
->                 return SBI_ERR_INVALID_PARAM;
->
-> -       if (sbi_dbtr_shmem_disabled())
-> +       if (sbi_dbtr_shmem_disabled(hs))
->                 return SBI_ERR_NO_SHMEM;
->
-> -       shmem_base = hart_shmem_base();
-> +       shmem_base = hart_shmem_base(hs);
->
->         for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
->                 sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
-> @@ -561,11 +541,14 @@ int sbi_dbtr_install_trig(unsigned long smode,
->         struct sbi_dbtr_trigger *trig;
->         struct sbi_dbtr_hart_triggers_state *hs = NULL;
->
-> -       if (sbi_dbtr_shmem_disabled())
-> +       hs = dbtr_thishart_state_ptr();
-> +       if (!hs)
-> +               return SBI_ERR_FAILED;
-> +
-> +       if (sbi_dbtr_shmem_disabled(hs))
->                 return SBI_ERR_NO_SHMEM;
->
-> -       shmem_base = hart_shmem_base();
-> -       hs = dbtr_thishart_state_ptr();
-> +       shmem_base = hart_shmem_base(hs);
->
->         /* Check requested triggers configuration */
->         for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-> @@ -673,11 +656,14 @@ int sbi_dbtr_update_trig(unsigned long smode,
->         void *shmem_base = NULL;
->         struct sbi_dbtr_hart_triggers_state *hs = NULL;
->
-> -       if (sbi_dbtr_shmem_disabled())
-> +       hs = dbtr_thishart_state_ptr();
-> +       if (!hs)
-> +               return SBI_ERR_FAILED;
-> +
-> +       if (sbi_dbtr_shmem_disabled(hs))
->                 return SBI_ERR_NO_SHMEM;
->
-> -       shmem_base = hart_shmem_base();
-> -       hs = dbtr_thishart_state_ptr();
-> +       shmem_base = hart_shmem_base(hs);
->
->         for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
->                 trig = INDEX_TO_TRIGGER(idx);
 > --
 > 2.43.0
 >
