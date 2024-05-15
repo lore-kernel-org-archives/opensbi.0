@@ -1,25 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 15 May 2024 11:51:50 +0530
-Subject: [PATCH] utils/reset: Add SG2042 hwmon MCU support.
-In-Reply-To: <IA1PR20MB495312D269EE55F16721F872BB142@IA1PR20MB4953.namprd20.prod.outlook.com>
-References: <IA1PR20MB495312D269EE55F16721F872BB142@IA1PR20MB4953.namprd20.prod.outlook.com>
-Message-ID: <CAAhSdy1-4EhZzg2N3-M2Gu_Dxh541WrjhpshSS5cy1ODyrPE1w@mail.gmail.com>
+Date: Wed, 15 May 2024 11:55:37 +0530
+Subject: [PATCH] lib: sbi: Put event after use in sbi_sse_exit() loop
+In-Reply-To: <20240509071228.1401289-1-apatel@ventanamicro.com>
+References: <20240509071228.1401289-1-apatel@ventanamicro.com>
+Message-ID: <CAAhSdy0f64C9bsSkA+sd5f7W1sfWGFLS5RC1Mu2A0Rg1oujx7w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Apr 28, 2024 at 6:54?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+On Thu, May 9, 2024 at 12:42?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> SG2042 uses an onboard MCU to provide reset function.
-> Add reset driver to support this onboard MCU.
+> Currently, the sbi_sse_exit() gets event in a loop but does not put
+> it back after use. This results in global events remaining locked
+> causing hangs on sub-sequent calls to sse_event_get() for global
+> events.
 >
-> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
-
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+> Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -27,180 +26,35 @@ Thanks,
 Anup
 
 > ---
->  lib/utils/reset/Kconfig                      |   4 +
->  lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c | 114 +++++++++++++++++++
->  lib/utils/reset/objects.mk                   |   3 +
->  platform/generic/configs/defconfig           |   1 +
->  4 files changed, 122 insertions(+)
->  create mode 100644 lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c
+>  lib/sbi/sbi_sse.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
 >
-> diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
-> index b26260d..6c077fe 100644
-> --- a/lib/utils/reset/Kconfig
-> +++ b/lib/utils/reset/Kconfig
-> @@ -24,6 +24,10 @@ config FDT_RESET_HTIF
->         select SYS_HTIF
->         default n
+> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+> index 18dfdb6..0cd6ba6 100644
+> --- a/lib/sbi/sbi_sse.c
+> +++ b/lib/sbi/sbi_sse.c
+> @@ -1121,13 +1121,18 @@ void sbi_sse_exit(struct sbi_scratch *scratch)
 >
-> +config FDT_RESET_SG2042_HWMON_MCU
-> +       bool "Sophgo SG2042 hwmon MCU FDT reset driver"
-> +       default n
-> +
->  config FDT_RESET_SUNXI_WDT
->         bool "Sunxi WDT FDT reset driver"
->         default n
-> diff --git a/lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c b/lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c
-> new file mode 100644
-> index 0000000..51bd74a
-> --- /dev/null
-> +++ b/lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c
-> @@ -0,0 +1,114 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2023 Lin Chunzhi <chunzhi.lin@sophgo.com>
-> + */
-> +
-> +#include <libfdt.h>
-> +#include <sbi/sbi_hart.h>
-> +#include <sbi/sbi_types.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_system.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
-> +#include <sbi_utils/reset/fdt_reset.h>
-> +#include <sbi_utils/i2c/fdt_i2c.h>
-> +
-> +#define MANGO_BOARD_TYPE_MASK          0x80
-> +
-> +#define REG_BOARD_TYPE                 0x00
-> +#define REG_CMD                                0x03
-> +
-> +#define CMD_POWEROFF                   0x02
-> +#define CMD_RESET                      0x03
-> +#define CMD_REBOOT                     0x07
-> +
-> +static struct i2c_adapter *mcu_adapter = NULL;
-> +static uint32_t mcu_reg = 0;
-> +
-> +static int sg2042_mcu_reset_check(u32 type, u32 reason)
-> +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               return 1;
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +               return 255;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static void sg2042_mcu_reset(u32 type, u32 reason)
-> +{
-> +       switch (type) {
-> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
-> +               i2c_adapter_reg_write(mcu_adapter, mcu_reg,
-> +                                     REG_CMD, CMD_POWEROFF);
-> +               break;
-> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-> +               i2c_adapter_reg_write(mcu_adapter, mcu_reg,
-> +                                     REG_CMD, CMD_REBOOT);
-> +               break;
-> +       }
-> +}
-> +
-> +static struct sbi_system_reset_device sg2042_mcu_reset_device = {
-> +       .name = "sg2042-mcu-reset",
-> +       .system_reset_check = sg2042_mcu_reset_check,
-> +       .system_reset = sg2042_mcu_reset
-> +};
-> +
-> +static int sg2042_mcu_reset_check_board(struct i2c_adapter *adap, uint32_t reg)
-> +{
-> +       static uint8_t val;
-> +       int ret;
-> +
-> +       /* check board type */
-> +       ret = i2c_adapter_reg_read(adap, reg, REG_BOARD_TYPE, &val);
-> +       if (ret)
-> +               return ret;
-> +
-> +       if (!(val & MANGO_BOARD_TYPE_MASK))
-> +               return SBI_ENODEV;
-> +
-> +       return 0;
-> +}
-> +
-> +static int sg2042_mcu_reset_init(void *fdt, int nodeoff,
-> +                                const struct fdt_match *match)
-> +{
-> +       int ret, i2c_bus;
-> +       uint64_t addr;
-> +
-> +       ret = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-> +       if (ret)
-> +               return ret;
-> +
-> +       mcu_reg = addr;
-> +
-> +       i2c_bus = fdt_parent_offset(fdt, nodeoff);
-> +       if (i2c_bus < 0)
-> +               return i2c_bus;
-> +
-> +       ret = fdt_i2c_adapter_get(fdt, i2c_bus, &mcu_adapter);
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret = sg2042_mcu_reset_check_board(mcu_adapter, mcu_reg);
-> +
-> +       sbi_system_reset_add_device(&sg2042_mcu_reset_device);
-> +
-> +       return 0;
-> +}
-> +
-> +static const struct fdt_match sg2042_mcu_reset_match[] = {
-> +       { .compatible = "sophgo,sg2042-hwmon-mcu", .data = (void *)true},
-> +       { },
-> +};
-> +
-> +struct fdt_reset fdt_reset_sg2042_mcu = {
-> +       .match_table = sg2042_mcu_reset_match,
-> +       .init = sg2042_mcu_reset_init,
-> +};
-> diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-> index b522234..44944ca 100644
-> --- a/lib/utils/reset/objects.mk
-> +++ b/lib/utils/reset/objects.mk
-> @@ -20,6 +20,9 @@ libsbiutils-objs-$(CONFIG_FDT_RESET_GPIO) += reset/fdt_reset_gpio.o
->  carray-fdt_reset_drivers-$(CONFIG_FDT_RESET_HTIF) += fdt_reset_htif
->  libsbiutils-objs-$(CONFIG_FDT_RESET_HTIF) += reset/fdt_reset_htif.o
+>         for (i = 0; i < EVENT_COUNT; i++) {
+>                 e = sse_event_get(supported_events[i]);
+> -
+> -               if (!e || e->attrs.hartid != current_hartid())
+> +               if (!e)
+>                         continue;
 >
-> +carray-fdt_reset_drivers-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += fdt_reset_sg2042_mcu
-> +libsbiutils-objs-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += reset/fdt_reset_sg2042_hwmon_mcu.o
+> +               if (e->attrs.hartid != current_hartid())
+> +                       goto skip;
 > +
->  carray-fdt_reset_drivers-$(CONFIG_FDT_RESET_SUNXI_WDT) += fdt_reset_sunxi_wdt
->  libsbiutils-objs-$(CONFIG_FDT_RESET_SUNXI_WDT) += reset/fdt_reset_sunxi_wdt.o
->
-> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 1ce6a12..079bc4f 100644
-> --- a/platform/generic/configs/defconfig
-> +++ b/platform/generic/configs/defconfig
-> @@ -27,6 +27,7 @@ CONFIG_FDT_RESET_ATCWDT200=y
->  CONFIG_FDT_RESET_GPIO=y
->  CONFIG_FDT_RESET_HTIF=y
->  CONFIG_FDT_RESET_SUNXI_WDT=y
-> +CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
->  CONFIG_FDT_RESET_SYSCON=y
->  CONFIG_FDT_SERIAL=y
->  CONFIG_FDT_SERIAL_CADENCE=y
+>                 if (sse_event_state(e) > SBI_SSE_STATE_REGISTERED) {
+>                         sbi_printf("Event %d in invalid state at exit", i);
+>                         sse_event_set_state(e, SBI_SSE_STATE_UNUSED);
+>                 }
+> +
+> +skip:
+> +               sse_event_put(e);
+>         }
+>  }
 > --
-> 2.44.0
+> 2.34.1
 >
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
