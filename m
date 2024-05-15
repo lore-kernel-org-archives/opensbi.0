@@ -1,72 +1,206 @@
-From: Cheng Yang <yangcheng.work@foxmail.com>
-Date: Wed, 15 May 2024 14:15:14 +0800
-Subject: [PATCH v6] lib:utils:irqchip: Check before initializing imsic.
-Message-ID: <tencent_3519B70BE4D4C496A3FAEC5DD8981581C807@qq.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 15 May 2024 11:51:50 +0530
+Subject: [PATCH] utils/reset: Add SG2042 hwmon MCU support.
+In-Reply-To: <IA1PR20MB495312D269EE55F16721F872BB142@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB495312D269EE55F16721F872BB142@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy1-4EhZzg2N3-M2Gu_Dxh541WrjhpshSS5cy1ODyrPE1w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The current mlevel imsic check is only for the platform, which
-may cause hart without imsic in the platform to trigger an
-illegal instruction exception when initializing imsic. For
-example, the platform contains a management hart that only
-supports wired interrupts.
+On Sun, Apr 28, 2024 at 6:54?AM Inochi Amaoto <inochiama@outlook.com> wrote:
+>
+> SG2042 uses an onboard MCU to provide reset function.
+> Add reset driver to support this onboard MCU.
+>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
-This patch will check if each hart supports Smaia extension
-before doing imsic initialization to avoid triggering illegal
-instruction exceptions.
+LGTM.
 
-Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
-Changes V5 -> V6:
-  - Use csr_read_allowed instead of bitmap to simplify checking if hart supports Imsic, suggestion from Anup.
-Changes V4 -> V5:
-  - Fixed the issue where patch cannot be applied due to the editor automatically removing trailing spaces.
-Changes V3 -> V4:
-  - Rebase to the latest master branch.
-Changes V2 -> V3:
-  - Trailing whitespace.
-  - Replace platform.hart_index2id to generic_hart_index2id.
-Changes V1 -> V2:
-  - Add the processing of plat->hart_index2id be NULL in fdt_check_imsic_mlevel.
----
- lib/utils/irqchip/imsic.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index f2a35c6..fad1beb 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -12,6 +12,7 @@
- #include <sbi/riscv_io.h>
- #include <sbi/riscv_encoding.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_csr_detect.h>
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_irqchip.h>
-@@ -222,6 +223,7 @@ static void imsic_local_eix_update(unsigned long base_id,
- 
- void imsic_local_irqchip_init(void)
- {
-+	struct sbi_trap_info trap = { 0 };
- 	/*
- 	 * This function is expected to be called from:
- 	 * 1) nascent_init() platform callback which is called
-@@ -231,6 +233,11 @@ void imsic_local_irqchip_init(void)
- 	 *    in boot-up path.
- 	 */
- 
-+	/* If Smaia not available then do nothing */
-+	csr_read_allowed(CSR_MTOPI, (ulong)&trap);
-+	if (trap.cause)
-+		return;
-+
- 	/* Setup threshold to allow all enabled interrupts */
- 	imsic_csr_write(IMSIC_EITHRESHOLD, IMSIC_ENABLE_EITHRESHOLD);
- 
--- 
-2.34.1
+Applied this patch to the riscv/opensbi repo.
 
+Thanks,
+Anup
+
+> ---
+>  lib/utils/reset/Kconfig                      |   4 +
+>  lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c | 114 +++++++++++++++++++
+>  lib/utils/reset/objects.mk                   |   3 +
+>  platform/generic/configs/defconfig           |   1 +
+>  4 files changed, 122 insertions(+)
+>  create mode 100644 lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c
+>
+> diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
+> index b26260d..6c077fe 100644
+> --- a/lib/utils/reset/Kconfig
+> +++ b/lib/utils/reset/Kconfig
+> @@ -24,6 +24,10 @@ config FDT_RESET_HTIF
+>         select SYS_HTIF
+>         default n
+>
+> +config FDT_RESET_SG2042_HWMON_MCU
+> +       bool "Sophgo SG2042 hwmon MCU FDT reset driver"
+> +       default n
+> +
+>  config FDT_RESET_SUNXI_WDT
+>         bool "Sunxi WDT FDT reset driver"
+>         default n
+> diff --git a/lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c b/lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c
+> new file mode 100644
+> index 0000000..51bd74a
+> --- /dev/null
+> +++ b/lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c
+> @@ -0,0 +1,114 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2023 Lin Chunzhi <chunzhi.lin@sophgo.com>
+> + */
+> +
+> +#include <libfdt.h>
+> +#include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_system.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/reset/fdt_reset.h>
+> +#include <sbi_utils/i2c/fdt_i2c.h>
+> +
+> +#define MANGO_BOARD_TYPE_MASK          0x80
+> +
+> +#define REG_BOARD_TYPE                 0x00
+> +#define REG_CMD                                0x03
+> +
+> +#define CMD_POWEROFF                   0x02
+> +#define CMD_RESET                      0x03
+> +#define CMD_REBOOT                     0x07
+> +
+> +static struct i2c_adapter *mcu_adapter = NULL;
+> +static uint32_t mcu_reg = 0;
+> +
+> +static int sg2042_mcu_reset_check(u32 type, u32 reason)
+> +{
+> +       switch (type) {
+> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +               return 1;
+> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> +               return 255;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static void sg2042_mcu_reset(u32 type, u32 reason)
+> +{
+> +       switch (type) {
+> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +               i2c_adapter_reg_write(mcu_adapter, mcu_reg,
+> +                                     REG_CMD, CMD_POWEROFF);
+> +               break;
+> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> +               i2c_adapter_reg_write(mcu_adapter, mcu_reg,
+> +                                     REG_CMD, CMD_REBOOT);
+> +               break;
+> +       }
+> +}
+> +
+> +static struct sbi_system_reset_device sg2042_mcu_reset_device = {
+> +       .name = "sg2042-mcu-reset",
+> +       .system_reset_check = sg2042_mcu_reset_check,
+> +       .system_reset = sg2042_mcu_reset
+> +};
+> +
+> +static int sg2042_mcu_reset_check_board(struct i2c_adapter *adap, uint32_t reg)
+> +{
+> +       static uint8_t val;
+> +       int ret;
+> +
+> +       /* check board type */
+> +       ret = i2c_adapter_reg_read(adap, reg, REG_BOARD_TYPE, &val);
+> +       if (ret)
+> +               return ret;
+> +
+> +       if (!(val & MANGO_BOARD_TYPE_MASK))
+> +               return SBI_ENODEV;
+> +
+> +       return 0;
+> +}
+> +
+> +static int sg2042_mcu_reset_init(void *fdt, int nodeoff,
+> +                                const struct fdt_match *match)
+> +{
+> +       int ret, i2c_bus;
+> +       uint64_t addr;
+> +
+> +       ret = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
+> +       if (ret)
+> +               return ret;
+> +
+> +       mcu_reg = addr;
+> +
+> +       i2c_bus = fdt_parent_offset(fdt, nodeoff);
+> +       if (i2c_bus < 0)
+> +               return i2c_bus;
+> +
+> +       ret = fdt_i2c_adapter_get(fdt, i2c_bus, &mcu_adapter);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret = sg2042_mcu_reset_check_board(mcu_adapter, mcu_reg);
+> +
+> +       sbi_system_reset_add_device(&sg2042_mcu_reset_device);
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct fdt_match sg2042_mcu_reset_match[] = {
+> +       { .compatible = "sophgo,sg2042-hwmon-mcu", .data = (void *)true},
+> +       { },
+> +};
+> +
+> +struct fdt_reset fdt_reset_sg2042_mcu = {
+> +       .match_table = sg2042_mcu_reset_match,
+> +       .init = sg2042_mcu_reset_init,
+> +};
+> diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+> index b522234..44944ca 100644
+> --- a/lib/utils/reset/objects.mk
+> +++ b/lib/utils/reset/objects.mk
+> @@ -20,6 +20,9 @@ libsbiutils-objs-$(CONFIG_FDT_RESET_GPIO) += reset/fdt_reset_gpio.o
+>  carray-fdt_reset_drivers-$(CONFIG_FDT_RESET_HTIF) += fdt_reset_htif
+>  libsbiutils-objs-$(CONFIG_FDT_RESET_HTIF) += reset/fdt_reset_htif.o
+>
+> +carray-fdt_reset_drivers-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += fdt_reset_sg2042_mcu
+> +libsbiutils-objs-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += reset/fdt_reset_sg2042_hwmon_mcu.o
+> +
+>  carray-fdt_reset_drivers-$(CONFIG_FDT_RESET_SUNXI_WDT) += fdt_reset_sunxi_wdt
+>  libsbiutils-objs-$(CONFIG_FDT_RESET_SUNXI_WDT) += reset/fdt_reset_sunxi_wdt.o
+>
+> diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+> index 1ce6a12..079bc4f 100644
+> --- a/platform/generic/configs/defconfig
+> +++ b/platform/generic/configs/defconfig
+> @@ -27,6 +27,7 @@ CONFIG_FDT_RESET_ATCWDT200=y
+>  CONFIG_FDT_RESET_GPIO=y
+>  CONFIG_FDT_RESET_HTIF=y
+>  CONFIG_FDT_RESET_SUNXI_WDT=y
+> +CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
+>  CONFIG_FDT_RESET_SYSCON=y
+>  CONFIG_FDT_SERIAL=y
+>  CONFIG_FDT_SERIAL_CADENCE=y
+> --
+> 2.44.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
