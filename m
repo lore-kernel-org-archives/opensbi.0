@@ -1,41 +1,21 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 16 May 2024 11:13:59 +0530
-Subject: [PATCH v6] lib:utils:irqchip: Check before initializing imsic.
-In-Reply-To: <tencent_3519B70BE4D4C496A3FAEC5DD8981581C807@qq.com>
-References: <tencent_3519B70BE4D4C496A3FAEC5DD8981581C807@qq.com>
-Message-ID: <CAAhSdy0OTOXA=BeTmJrtV8=pm7PJ9-B8Wd=GNU69zmXiJDGVdA@mail.gmail.com>
+Date: Thu, 16 May 2024 11:16:00 +0530
+Subject: [PATCH] platform: generic: thead: add Sophgo CV18XX/SG200X series
+In-Reply-To: <IA1PR20MB4953463968312055179421F0BBE32@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953463968312055179421F0BBE32@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy2_0VhO6pGc2wkWvV4pyZbmZ5wWgzcJ5nyDPUDA27Kj=w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, May 15, 2024 at 11:46?AM Cheng Yang <yangcheng.work@foxmail.com> wrote:
+On Tue, May 14, 2024 at 10:23?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> The current mlevel imsic check is only for the platform, which
-> may cause hart without imsic in the platform to trigger an
-> illegal instruction exception when initializing imsic. For
-> example, the platform contains a management hart that only
-> supports wired interrupts.
+> The Sophgo CV18XX/SG200X series SoCs have a standard C906
+> core. Add support for it.
 >
-> This patch will check if each hart supports Smaia extension
-> before doing imsic initialization to avoid triggering illegal
-> instruction exceptions.
->
-> Signed-off-by: Cheng Yang <yangcheng.work@foxmail.com>
-> Changes V5 -> V6:
->   - Use csr_read_allowed instead of bitmap to simplify checking if hart supports Imsic, suggestion from Anup.
-> Changes V4 -> V5:
->   - Fixed the issue where patch cannot be applied due to the editor automatically removing trailing spaces.
-> Changes V3 -> V4:
->   - Rebase to the latest master branch.
-> Changes V2 -> V3:
->   - Trailing whitespace.
->   - Replace platform.hart_index2id to generic_hart_index2id.
-> Changes V1 -> V2:
->   - Add the processing of plat->hart_index2id be NULL in fdt_check_imsic_mlevel.
-> ---
->  lib/utils/irqchip/imsic.c | 7 +++++++
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
 LGTM.
 
@@ -46,41 +26,36 @@ Applied this patch to the riscv/opensbi repo.
 Thanks,
 Anup
 
->  1 file changed, 7 insertions(+)
+> ---
+>  platform/generic/thead/thead-generic.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 >
-> diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-> index f2a35c6..fad1beb 100644
-> --- a/lib/utils/irqchip/imsic.c
-> +++ b/lib/utils/irqchip/imsic.c
-> @@ -12,6 +12,7 @@
->  #include <sbi/riscv_io.h>
->  #include <sbi/riscv_encoding.h>
->  #include <sbi/sbi_console.h>
-> +#include <sbi/sbi_csr_detect.h>
->  #include <sbi/sbi_domain.h>
->  #include <sbi/sbi_ipi.h>
->  #include <sbi/sbi_irqchip.h>
-> @@ -222,6 +223,7 @@ static void imsic_local_eix_update(unsigned long base_id,
+> diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
+> index 3b59a0d..c82e0c1 100644
+> --- a/platform/generic/thead/thead-generic.c
+> +++ b/platform/generic/thead/thead-generic.c
+> @@ -49,7 +49,15 @@ static struct thead_generic_quirks canaan_k230_quirks = {
+>         .errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
+>  };
 >
->  void imsic_local_irqchip_init(void)
->  {
-> +       struct sbi_trap_info trap = { 0 };
->         /*
->          * This function is expected to be called from:
->          * 1) nascent_init() platform callback which is called
-> @@ -231,6 +233,11 @@ void imsic_local_irqchip_init(void)
->          *    in boot-up path.
->          */
->
-> +       /* If Smaia not available then do nothing */
-> +       csr_read_allowed(CSR_MTOPI, (ulong)&trap);
-> +       if (trap.cause)
-> +               return;
+> +static struct thead_generic_quirks sophgo_cv1800_quirks = {
+> +       .errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
+> +};
 > +
->         /* Setup threshold to allow all enabled interrupts */
->         imsic_csr_write(IMSIC_EITHRESHOLD, IMSIC_ENABLE_EITHRESHOLD);
+>  static const struct fdt_match thead_generic_match[] = {
+> +       { .compatible = "sophgo,cv1800b", .data = &sophgo_cv1800_quirks },
+> +       { .compatible = "sophgo,cv1812h", .data = &sophgo_cv1800_quirks },
+> +       { .compatible = "sophgo,sg2000", .data = &sophgo_cv1800_quirks },
+> +       { .compatible = "sophgo,sg2002", .data = &sophgo_cv1800_quirks },
+>         { .compatible = "thead,th1520", .data = &thead_th1520_quirks },
+>         { .compatible = "canaan,kendryte-k230", .data = &canaan_k230_quirks },
+>         { },
+> --
+> 2.45.0
+>
 >
 > --
-> 2.34.1
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
