@@ -1,47 +1,130 @@
-From: Cyan Yang <cyan.yang@sifive.com>
-Date: Thu, 16 May 2024 16:32:43 +0800
-Subject: [PATCH] lib: utils/irqchip: Add sanity checks in imsic_get_data() and imsic_get_target_file()
-Message-ID: <20240516083243.19770-1-cyan.yang@sifive.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Thu, 16 May 2024 14:30:28 +0200
+Subject: [PATCH] lib: sbi: sse: handle missing writable attributes
+Message-ID: <20240516123029.18379-1-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add extra sanity checks to prevent the caller getting the invalid result from
-imsic_get_data() or imsic_get_target_file() when imsic is not initialized
-correctly.
+The spec states that a6, a7, flags and sepc are writable but the
+implementation was not allowing that. Add support for these 4 writable
+attributes.
 
-Signed-off-by: Cyan Yang <cyan.yang@sifive.com>
+Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- lib/utils/irqchip/imsic.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/sbi/sbi_sse.c | 66 +++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 47 insertions(+), 19 deletions(-)
 
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index 02e3a33..7d6993e 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -123,6 +123,9 @@ struct imsic_data *imsic_get_data(u32 hartid)
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index 0cd6ba6..e39963f 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -335,30 +335,49 @@ static int sse_event_set_hart_id_check(struct sbi_sse_event *e,
+ static int sse_event_set_attr_check(struct sbi_sse_event *e, uint32_t attr_id,
+ 				    unsigned long val)
  {
- 	struct sbi_scratch *scratch;
- 
-+	if (!imsic_ptr_offset)
-+		return NULL;
+-	int ret = SBI_OK;
+-
+ 	switch (attr_id) {
+ 	case SBI_SSE_ATTR_CONFIG:
++		if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
++			return SBI_EINVALID_STATE;
 +
- 	scratch = sbi_hartid_to_scratch(hartid);
- 	if (!scratch)
- 		return NULL;
-@@ -134,6 +137,9 @@ int imsic_get_target_file(u32 hartid)
- {
- 	struct sbi_scratch *scratch;
- 
-+	if (!imsic_file_offset)
-+		return SBI_ENOENT;
+ 		if (val & ~SBI_SSE_ATTR_CONFIG_ONESHOT)
+-			ret = SBI_EINVAL;
+-		break;
++			return SBI_EINVAL;
 +
- 	scratch = sbi_hartid_to_scratch(hartid);
- 	if (!scratch)
- 		return SBI_ENOENT;
++		return SBI_OK;
+ 	case SBI_SSE_ATTR_PRIO:
++		if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
++			return SBI_EINVALID_STATE;
++
+ #if __riscv_xlen > 32
+-		if (val != (uint32_t)val) {
+-			ret = SBI_EINVAL;
+-			break;
+-		}
++		if (val != (uint32_t)val)
++			return SBI_EINVAL;
+ #endif
+-		break;
++		return SBI_OK;
+ 	case SBI_SSE_ATTR_PREFERRED_HART:
+-		ret = sse_event_set_hart_id_check(e, val);
+-		break;
++		if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
++			return SBI_EINVALID_STATE;
++
++		return sse_event_set_hart_id_check(e, val);
++	case SBI_SSE_ATTR_INTERRUPTED_FLAGS:
++		if (val & ~(SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPP |
++			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPIE |
++			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPV |
++			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPVP))
++			return SBI_EINVAL;
++		__attribute__((__fallthrough__));
++	case SBI_SSE_ATTR_INTERRUPTED_SEPC:
++	case SBI_SSE_ATTR_INTERRUPTED_A6:
++	case SBI_SSE_ATTR_INTERRUPTED_A7:
++		if (sse_event_state(e) != SBI_SSE_STATE_RUNNING)
++			return SBI_EINVALID_STATE;
++
++		if (current_hartid() != e->attrs.hartid)
++			return SBI_EINVAL;
++
++		return SBI_OK;
+ 	default:
+-		ret = SBI_EBAD_RANGE;
+-		break;
++		return SBI_EBAD_RANGE;
+ 	}
+-
+-	return ret;
+ }
+ 
+ static void sse_event_set_attr(struct sbi_sse_event *e, uint32_t attr_id,
+@@ -375,6 +394,19 @@ static void sse_event_set_attr(struct sbi_sse_event *e, uint32_t attr_id,
+ 		e->attrs.hartid = val;
+ 		sse_event_invoke_cb(e, set_hartid_cb, val);
+ 		break;
++
++	case SBI_SSE_ATTR_INTERRUPTED_SEPC:
++		e->attrs.interrupted.sepc = val;
++		break;
++	case SBI_SSE_ATTR_INTERRUPTED_FLAGS:
++		e->attrs.interrupted.flags = val;
++		break;
++	case SBI_SSE_ATTR_INTERRUPTED_A6:
++		e->attrs.interrupted.a6 = val;
++		break;
++	case SBI_SSE_ATTR_INTERRUPTED_A7:
++		e->attrs.interrupted.a7 = val;
++		break;
+ 	}
+ }
+ 
+@@ -903,9 +935,6 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
+ 	uint32_t id, end_id = base_attr_id + attr_count;
+ 	unsigned long *attrs = (unsigned long *)input_phys;
+ 
+-	if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
+-		return SBI_EINVALID_STATE;
+-
+ 	sbi_hart_map_saddr(input_phys, sizeof(unsigned long) * attr_count);
+ 
+ 	for (id = base_attr_id; id < end_id; id++) {
+@@ -944,7 +973,6 @@ int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+ 		return SBI_EINVAL;
+ 
+ 	ret = sse_write_attrs(e, base_attr_id, attr_count, input_phys_lo);
+-
+ 	sse_event_put(e);
+ 
+ 	return ret;
 -- 
-2.39.3 (Apple Git-146)
+2.43.0
 
 
