@@ -1,128 +1,47 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Thu, 16 May 2024 08:56:56 +0200
-Subject: [PATCH] firmware: Bring back FW_TEXT_START as an optional
- parameter
-In-Reply-To: <20240515062722.974003-1-apatel@ventanamicro.com>
-References: <20240515062722.974003-1-apatel@ventanamicro.com>
-Message-ID: <6d0a04ed-d3eb-4c84-91f9-8fff03035726@rivosinc.com>
+From: Cyan Yang <cyan.yang@sifive.com>
+Date: Thu, 16 May 2024 16:32:43 +0800
+Subject: [PATCH] lib: utils/irqchip: Add sanity checks in imsic_get_data() and imsic_get_target_file()
+Message-ID: <20240516083243.19770-1-cyan.yang@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Add extra sanity checks to prevent the caller getting the invalid result from
+imsic_get_data() or imsic_get_target_file() when imsic is not initialized
+correctly.
 
+Signed-off-by: Cyan Yang <cyan.yang@sifive.com>
+---
+ lib/utils/irqchip/imsic.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-On 15/05/2024 08:27, Anup Patel wrote:
-> Bring back FW_TEXT_START as an optional parameter to allow users
-> explicitly specify compile time address for loading debug symbols.
-> When not specified, the FW_TEXT_START is assumed to be 0.
-> 
-> Fixes: d4d2582eef7a ("firmware: remove FW_TEXT_START")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> ---
->  docs/firmware/fw.md            | 3 +++
->  firmware/fw_base.S             | 4 +++-
->  firmware/fw_base.ldS           | 3 ++-
->  firmware/fw_payload.elf.ldS    | 2 +-
->  firmware/objects.mk            | 6 ++++++
->  firmware/payloads/test.elf.ldS | 2 +-
->  6 files changed, 16 insertions(+), 4 deletions(-)
-> 
-> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
-> index 3cc0262..d298096 100644
-> --- a/docs/firmware/fw.md
-> +++ b/docs/firmware/fw.md
-> @@ -61,6 +61,9 @@ Firmware Configuration and Compilation
->  All firmware types support the following common compile time configuration
->  parameters:
->  
-> +* **FW_TEXT_START** - Defines the compile time address of the OpenSBI
-> +  firmware. This configuration parameter is optional and assumed to be
-> +  `0` if not specified.
->  * **FW_FDT_PATH** - Path to an external flattened device tree binary file to
->    be embedded in the *.rodata* section of the final firmware. If this option
->    is not provided then the firmware will expect the FDT to be passed as an
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 9f995a2..b950c0b 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -53,7 +53,9 @@ _try_lottery:
->  	bnez	a6, _wait_for_boot_hart
->  
->  	/* relocate the global table content */
-> -	lla	t2, _fw_start
-> +	li	t0, FW_TEXT_START	/* link start */
-> +	lla	t1, _fw_start		/* load start */
-> +	sub	t2, t1, t0		/* load offset */
->  	lla	t0, __rel_dyn_start
->  	lla	t1, __rel_dyn_end
->  	beq	t0, t1, _relocate_done
-> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-> index 9d11db5..fb47984 100644
-> --- a/firmware/fw_base.ldS
-> +++ b/firmware/fw_base.ldS
-> @@ -7,7 +7,8 @@
->   *   Anup Patel <anup.patel@wdc.com>
->   */
->  
-> -	/* Don't add any section before _fw_start */
-> +	. = FW_TEXT_START;
-> +	/* Don't add any section between FW_TEXT_START and _fw_start */
->  	PROVIDE(_fw_start = .);
->  
->  	. = ALIGN(0x1000); /* Need this to create proper sections */
-> diff --git a/firmware/fw_payload.elf.ldS b/firmware/fw_payload.elf.ldS
-> index 94e1ac6..f1a544b 100644
-> --- a/firmware/fw_payload.elf.ldS
-> +++ b/firmware/fw_payload.elf.ldS
-> @@ -15,7 +15,7 @@ SECTIONS
->  	#include "fw_base.ldS"
->  
->  #ifdef FW_PAYLOAD_OFFSET
-> -	. = FW_PAYLOAD_OFFSET;
-> +	. = FW_TEXT_START + FW_PAYLOAD_OFFSET;
->  #else
->  	. = ALIGN(FW_PAYLOAD_ALIGN);
->  #endif
-> diff --git a/firmware/objects.mk b/firmware/objects.mk
-> index a51ff65..a90485d 100644
-> --- a/firmware/objects.mk
-> +++ b/firmware/objects.mk
-> @@ -13,6 +13,12 @@ firmware-cflags-y +=
->  firmware-asflags-y +=
->  firmware-ldflags-y +=
->  
-> +ifdef FW_TEXT_START
-> +firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
-> +else
-> +firmware-genflags-y += -DFW_TEXT_START=0x0
-> +endif
-> +
->  ifdef FW_FDT_PATH
->  firmware-genflags-y += -DFW_FDT_PATH=\"$(FW_FDT_PATH)\"
->  ifdef FW_FDT_PADDING
-> diff --git a/firmware/payloads/test.elf.ldS b/firmware/payloads/test.elf.ldS
-> index 08e008f..2328a1b 100644
-> --- a/firmware/payloads/test.elf.ldS
-> +++ b/firmware/payloads/test.elf.ldS
-> @@ -13,7 +13,7 @@ ENTRY(_start)
->  SECTIONS
->  {
->  #ifdef FW_PAYLOAD_OFFSET
-> -	. = FW_PAYLOAD_OFFSET;
-> +	. = FW_TEXT_START + FW_PAYLOAD_OFFSET;
->  #else
->  	. = ALIGN(FW_PAYLOAD_ALIGN);
->  #endif
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 02e3a33..7d6993e 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -123,6 +123,9 @@ struct imsic_data *imsic_get_data(u32 hartid)
+ {
+ 	struct sbi_scratch *scratch;
+ 
++	if (!imsic_ptr_offset)
++		return NULL;
++
+ 	scratch = sbi_hartid_to_scratch(hartid);
+ 	if (!scratch)
+ 		return NULL;
+@@ -134,6 +137,9 @@ int imsic_get_target_file(u32 hartid)
+ {
+ 	struct sbi_scratch *scratch;
+ 
++	if (!imsic_file_offset)
++		return SBI_ENOENT;
++
+ 	scratch = sbi_hartid_to_scratch(hartid);
+ 	if (!scratch)
+ 		return SBI_ENOENT;
+-- 
+2.39.3 (Apple Git-146)
 
-Hi Anup,
-
-Tested-by: Cl?ment L?ger <cleger@rivosinc.com>
-
-In the meantime, I added elf ET_DYN support to spike, I'll send the patches.
-
-Thanks,
-
-Cl?ment
 
