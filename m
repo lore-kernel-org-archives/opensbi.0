@@ -1,92 +1,128 @@
-From: Cyan Yang <cyan.yang@sifive.com>
-Date: Thu, 16 May 2024 14:54:58 +0800
-Subject: [PATCH] lib: utils/irqchip: Add sanity checks to imsic_warm_irqchip_init()
-In-Reply-To: <CAAhSdy2HBGTavDvkmax1hgjS-QXFrtctVUKSavOjY3SodpbO2w@mail.gmail.com>
-References: <20240409144547.87893-1-cyan.yang@sifive.com> <CAAhSdy0_2tsMWjAJTbgrfY+U9Wngs5WWHREQm8E0=2ZOGGAjqg@mail.gmail.com>
- <ZjshYHp4wESBeTVb@cyan-mbp> <CAAhSdy2HBGTavDvkmax1hgjS-QXFrtctVUKSavOjY3SodpbO2w@mail.gmail.com>
-Message-ID: <CANn7AkE+C_TJGmmKS97NMc8hSQgGXdGaG_fAi4Ah0vO_tYJo+A@mail.gmail.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Thu, 16 May 2024 08:56:56 +0200
+Subject: [PATCH] firmware: Bring back FW_TEXT_START as an optional
+ parameter
+In-Reply-To: <20240515062722.974003-1-apatel@ventanamicro.com>
+References: <20240515062722.974003-1-apatel@ventanamicro.com>
+Message-ID: <6d0a04ed-d3eb-4c84-91f9-8fff03035726@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, May 14, 2024 at 2:08?PM Anup Patel <anup@brainfault.org> wrote:
->
-> On Wed, May 8, 2024 at 12:23?PM Cyan Yang <cyan.yang@sifive.com> wrote:
-> >
-> > On Tue, May 07, 2024 at 06:09:25PM +0530, Anup Patel wrote:
-> > > On Tue, Apr 9, 2024 at 8:25?PM Cyan Yang <cyan.yang@sifive.com> wrote:
-> > > >
-> > > > Add sanity checks for per-HART IMSIC pointer in warm init flow, similar to
-> > > > what the cold init flow does. This will help prevent any misuse of the
-> > > > data in scratch space.
-> > >
-> > > Can you elaborate on the kind of misuse which can happen ?
-> > >
-> >
-> > We found a case that if a caller misused this function on a platform without
-> > imsic, the extra check will be needed here since "imsic_get_data()" will not
-> > guarantee to return a null pointer.
-> >
-> > It's not a normal case, of course, but since this is not a static function,
-> > having more sanity checks could help prevent the unexpected results.
->
-> If that's the case then imsic_get_data() should return NULL if
-> imsic_ptr_offset == 0
 
-Yes, your suggestion will fix the root cause directly. Also, I found that
-imsic_get_target_file() has the same issue. So I will submit another patch
-to check imsic_ptr_offset in imsic_get_data() and imsic_file_offset in
-imsic_get_target_file() and return NULL if the offset is not set.
+
+On 15/05/2024 08:27, Anup Patel wrote:
+> Bring back FW_TEXT_START as an optional parameter to allow users
+> explicitly specify compile time address for loading debug symbols.
+> When not specified, the FW_TEXT_START is assumed to be 0.
+> 
+> Fixes: d4d2582eef7a ("firmware: remove FW_TEXT_START")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  docs/firmware/fw.md            | 3 +++
+>  firmware/fw_base.S             | 4 +++-
+>  firmware/fw_base.ldS           | 3 ++-
+>  firmware/fw_payload.elf.ldS    | 2 +-
+>  firmware/objects.mk            | 6 ++++++
+>  firmware/payloads/test.elf.ldS | 2 +-
+>  6 files changed, 16 insertions(+), 4 deletions(-)
+> 
+> diff --git a/docs/firmware/fw.md b/docs/firmware/fw.md
+> index 3cc0262..d298096 100644
+> --- a/docs/firmware/fw.md
+> +++ b/docs/firmware/fw.md
+> @@ -61,6 +61,9 @@ Firmware Configuration and Compilation
+>  All firmware types support the following common compile time configuration
+>  parameters:
+>  
+> +* **FW_TEXT_START** - Defines the compile time address of the OpenSBI
+> +  firmware. This configuration parameter is optional and assumed to be
+> +  `0` if not specified.
+>  * **FW_FDT_PATH** - Path to an external flattened device tree binary file to
+>    be embedded in the *.rodata* section of the final firmware. If this option
+>    is not provided then the firmware will expect the FDT to be passed as an
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 9f995a2..b950c0b 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -53,7 +53,9 @@ _try_lottery:
+>  	bnez	a6, _wait_for_boot_hart
+>  
+>  	/* relocate the global table content */
+> -	lla	t2, _fw_start
+> +	li	t0, FW_TEXT_START	/* link start */
+> +	lla	t1, _fw_start		/* load start */
+> +	sub	t2, t1, t0		/* load offset */
+>  	lla	t0, __rel_dyn_start
+>  	lla	t1, __rel_dyn_end
+>  	beq	t0, t1, _relocate_done
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index 9d11db5..fb47984 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -7,7 +7,8 @@
+>   *   Anup Patel <anup.patel@wdc.com>
+>   */
+>  
+> -	/* Don't add any section before _fw_start */
+> +	. = FW_TEXT_START;
+> +	/* Don't add any section between FW_TEXT_START and _fw_start */
+>  	PROVIDE(_fw_start = .);
+>  
+>  	. = ALIGN(0x1000); /* Need this to create proper sections */
+> diff --git a/firmware/fw_payload.elf.ldS b/firmware/fw_payload.elf.ldS
+> index 94e1ac6..f1a544b 100644
+> --- a/firmware/fw_payload.elf.ldS
+> +++ b/firmware/fw_payload.elf.ldS
+> @@ -15,7 +15,7 @@ SECTIONS
+>  	#include "fw_base.ldS"
+>  
+>  #ifdef FW_PAYLOAD_OFFSET
+> -	. = FW_PAYLOAD_OFFSET;
+> +	. = FW_TEXT_START + FW_PAYLOAD_OFFSET;
+>  #else
+>  	. = ALIGN(FW_PAYLOAD_ALIGN);
+>  #endif
+> diff --git a/firmware/objects.mk b/firmware/objects.mk
+> index a51ff65..a90485d 100644
+> --- a/firmware/objects.mk
+> +++ b/firmware/objects.mk
+> @@ -13,6 +13,12 @@ firmware-cflags-y +=
+>  firmware-asflags-y +=
+>  firmware-ldflags-y +=
+>  
+> +ifdef FW_TEXT_START
+> +firmware-genflags-y += -DFW_TEXT_START=$(FW_TEXT_START)
+> +else
+> +firmware-genflags-y += -DFW_TEXT_START=0x0
+> +endif
+> +
+>  ifdef FW_FDT_PATH
+>  firmware-genflags-y += -DFW_FDT_PATH=\"$(FW_FDT_PATH)\"
+>  ifdef FW_FDT_PADDING
+> diff --git a/firmware/payloads/test.elf.ldS b/firmware/payloads/test.elf.ldS
+> index 08e008f..2328a1b 100644
+> --- a/firmware/payloads/test.elf.ldS
+> +++ b/firmware/payloads/test.elf.ldS
+> @@ -13,7 +13,7 @@ ENTRY(_start)
+>  SECTIONS
+>  {
+>  #ifdef FW_PAYLOAD_OFFSET
+> -	. = FW_PAYLOAD_OFFSET;
+> +	. = FW_TEXT_START + FW_PAYLOAD_OFFSET;
+>  #else
+>  	. = ALIGN(FW_PAYLOAD_ALIGN);
+>  #endif
+
+Hi Anup,
+
+Tested-by: Cl?ment L?ger <cleger@rivosinc.com>
+
+In the meantime, I added elf ET_DYN support to spike, I'll send the patches.
 
 Thanks,
-Cyan
 
->
-> Regards,
-> Anup
->
-> >
-> > Regards,
-> > Cyan
-> >
-> > > >
-> > > > Signed-off-by: Cyan Yang <cyan.yang@sifive.com>
-> > > > ---
-> > > >  lib/utils/irqchip/imsic.c | 7 ++++++-
-> > > >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > > >
-> > > > diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-> > > > index f2a35c6..e6a3657 100644
-> > > > --- a/lib/utils/irqchip/imsic.c
-> > > > +++ b/lib/utils/irqchip/imsic.c
-> > > > @@ -243,10 +243,15 @@ void imsic_local_irqchip_init(void)
-> > > >
-> > > >  int imsic_warm_irqchip_init(void)
-> > > >  {
-> > > > +       int rc;
-> > > >         struct imsic_data *imsic = imsic_get_data(current_hartid());
-> > > >
-> > > >         /* Sanity checks */
-> > > > -       if (!imsic || !imsic->targets_mmode)
-> > > > +       rc = imsic_data_check(imsic);
-> > > > +       if (rc)
-> > > > +               return rc;
-> > > > +
-> > > > +       if (!imsic->targets_mmode)
-> > > >                 return SBI_EINVAL;
-> > > >
-> > > >         /* Disable all interrupts */
-> > > > --
-> > > > 2.39.3 (Apple Git-146)
-> > > >
-> > > >
-> > > > --
-> > > > opensbi mailing list
-> > > > opensbi at lists.infradead.org
-> > > > http://lists.infradead.org/mailman/listinfo/opensbi
-> > >
-> > > Regards,
-> > > Anup
+Cl?ment
 
