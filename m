@@ -1,85 +1,47 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 21 May 2024 10:04:20 +0530
-Subject: [PATCH] lib: sbi: Issue a PAUSE hint between spins in spin_lock()
-In-Reply-To: <CAEg0e7gi+CYX0r9s_SpnQAk+2ABDea2WEXZrDQYW9sO-Emm4QQ@mail.gmail.com>
-References: <20240423154250.3797276-1-christoph.muellner@vrull.eu>
- <CAAhSdy2aA+JwB0zU_m6WL8cgRvcfD4DmP1yu9iJw_mGSojEc0A@mail.gmail.com> <CAEg0e7gi+CYX0r9s_SpnQAk+2ABDea2WEXZrDQYW9sO-Emm4QQ@mail.gmail.com>
-Message-ID: <CAAhSdy27oU3enf9WBpfAc3-oxyGy+Db9DbZ_0RrVSCA+6xgTQw@mail.gmail.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Tue, 21 May 2024 15:58:28 +0200
+Subject: [PATCH v1 0/5] Add SBI FWFT extension support
+Message-ID: <20240521135835.371485-1-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, May 15, 2024 at 12:50?PM Christoph M?llner
-<christoph.muellner@vrull.eu> wrote:
->
-> On Wed, May 15, 2024 at 8:31?AM Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Tue, Apr 23, 2024 at 9:13?PM Christoph M?llner
-> > <christoph.muellner@vrull.eu> wrote:
-> > >
-> > > RISC-V's Zihintpause extension includes a PAUSE instruction that
-> > > is designed to reduce engergy consumption while executing spin-wait
-> > > code sequences.  It is encoded as a HINT, which means that it
-> > > behaves like a NOP on systems that don't implement Zihintpause.
-> > >
-> > > Binutils supports Zihintpause since 2.36, so this patch uses
-> > > the ".insn" directive to keep the code compatible with older
-> > > toolchains.
-> > >
-> > > Signed-off-by: Christoph M?llner <christoph.muellner@vrull.eu>
-> > > ---
-> > >  lib/sbi/riscv_locks.c | 3 ++-
-> > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > >
-> > > diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
-> > > index acab776..3c26a77 100644
-> > > --- a/lib/sbi/riscv_locks.c
-> > > +++ b/lib/sbi/riscv_locks.c
-> > > @@ -61,7 +61,8 @@ void spin_lock(spinlock_t *lock)
-> > >                 "1:     and     %2, %0, %5\n"
-> > >                 "       beq     %1, %2, 2f\n"
-> > >
-> > > -               /* If not, then spin on the lock. */
-> > > +               /* If not, then issue a PAUSE hint and spin on the lock. */
-> > > +               "       .insn   i 0x0f, 0, x0, x0, 0x010\n"
-> >
-> > There are a lot of platforms without Zihintpause so we need
-> > instruction patching here.
->
-> PAUSE is encoded as a HINT instruction (FENCE instruction with pred=W,
-> succ=0, fm=0, rd=x0, and rs1=x0):
->   https://github.com/riscv/riscv-isa-manual/blob/main/src/zihintpause.adoc
-> HINT instructions are part of rv32i (base):
->   https://github.com/riscv/riscv-isa-manual/blob/main/src/rv32.adoc#rv32i-hints
->
-> I.e., if the platform does not have Zihintpause, then this will be a
-> HINT that behaves like a NOP.
-> But it is always a valid instruction (even if Zihintpause is not implemented).
+This series adds support for SBI FWFT extension. SVADU ISA extension is
+added in order to add support for FWFT SBI_FWFT_PTE_AD_HW_UPDATING
+feature.
 
-Fair enough but to be aligned with Linux let's use PAUSE in
-cpu_relax() rather than spin_locks().
+FWFT extension is not yet ratified but will be present in SBI V3.0 [1]
 
-I would prefer using WRS in spin_locks() with instruction patching.
+Link: https://lists.riscv.org/g/tech-prs/message/924 [1]
 
-Regards,
-Anup
+---
 
->
-> >
-> > >                 "       lw      %0, %3\n"
-> > >                 RISCV_ACQUIRE_BARRIER
-> > >                 "       j       1b\n"
-> > > --
-> > > 2.44.0
-> > >
-> > >
-> > > --
-> > > opensbi mailing list
-> > > opensbi at lists.infradead.org
-> > > http://lists.infradead.org/mailman/listinfo/opensbi
-> >
-> > Regards,
-> > Anup
+Cl?ment L?ger (5):
+  lib: sbi: Add SVADU extension support
+  lib: sbi: add support for firmware features extension
+  lib: sbi: fwft: add support for SBI_FWFT_MISALIGNED_EXC_DELEG
+  lib: sbi: fwft: add support for SBI_FWFT_PTE_AD_HW_UPDATING
+  lib: sbi: implement SBI FWFT extension
+
+ include/sbi/riscv_encoding.h      |   1 +
+ include/sbi/sbi_ecall_interface.h |  28 +++
+ include/sbi/sbi_fwft.h            |  23 +++
+ include/sbi/sbi_hart.h            |   2 +
+ lib/sbi/Kconfig                   |   4 +
+ lib/sbi/objects.mk                |   4 +
+ lib/sbi/sbi_ecall_fwft.c          |  49 ++++++
+ lib/sbi/sbi_fwft.c                | 272 ++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hart.c                |   9 +
+ lib/sbi/sbi_hsm.c                 |  15 ++
+ lib/sbi/sbi_init.c                |  11 ++
+ 11 files changed, 418 insertions(+)
+ create mode 100644 include/sbi/sbi_fwft.h
+ create mode 100644 lib/sbi/sbi_ecall_fwft.c
+ create mode 100644 lib/sbi/sbi_fwft.c
+
+-- 
+2.43.0
+
 
