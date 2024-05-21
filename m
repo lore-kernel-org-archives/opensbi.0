@@ -1,77 +1,134 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Tue, 21 May 2024 15:58:29 +0200
-Subject: [PATCH v1 1/5] lib: sbi: Add SVADU extension support
+Date: Tue, 21 May 2024 15:58:32 +0200
+Subject: [PATCH v1 4/5] lib: sbi: fwft: add support for SBI_FWFT_PTE_AD_HW_UPDATING
 In-Reply-To: <20240521135835.371485-1-cleger@rivosinc.com>
 References: <20240521135835.371485-1-cleger@rivosinc.com>
-Message-ID: <20240521135835.371485-2-cleger@rivosinc.com>
+Message-ID: <20240521135835.371485-5-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add SVADU ISA extension support. By default, clear the ADUE bit to
-maintain backward-compatibility.
+Add support for SBI_FWFT_PTE_AD_HW_UPDATING based on SVADU presence.
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- include/sbi/riscv_encoding.h | 1 +
- include/sbi/sbi_hart.h       | 2 ++
- lib/sbi/sbi_hart.c           | 9 +++++++++
- 3 files changed, 12 insertions(+)
+ lib/sbi/sbi_fwft.c | 56 ++++++++++++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hsm.c  | 12 ++++++++++
+ 2 files changed, 68 insertions(+)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index d914828..477fa3a 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -211,6 +211,7 @@
+diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+index 54c6642..bf5d4d4 100644
+--- a/lib/sbi/sbi_fwft.c
++++ b/lib/sbi/sbi_fwft.c
+@@ -101,6 +101,56 @@ static int fwft_get_misaligned_delegation(struct fwft_config *conf,
+ 	return SBI_OK;
+ }
  
- #define ENVCFG_STCE			(_ULL(1) << 63)
- #define ENVCFG_PBMTE			(_ULL(1) << 62)
-+#define ENVCFG_ADUE			(_ULL(1) << 61)
- #define ENVCFG_CDE			(_ULL(1) << 60)
- #define ENVCFG_CBZE			(_UL(1) << 7)
- #define ENVCFG_CBCFE			(_UL(1) << 6)
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index cc78eec..10dd90c 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -63,6 +63,8 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_SSCSRIND,
- 	/** Hart has Ssccfg extension */
- 	SBI_HART_EXT_SSCCFG,
-+	/** Hart has Svadu extension */
-+	SBI_HART_EXT_SVADU,
- 
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index cd974cc..2170a82 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -148,6 +148,14 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 			csr_set(CSR_MSECCFG, MSECCFG_SSEED);
- 			csr_clear(CSR_MSECCFG, MSECCFG_USEED);
- 		}
++static int fwft_adue_supported(struct fwft_config *conf)
++{
++	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				    SBI_HART_EXT_SVADU))
++		return SBI_ENOTSUPP;
 +
-+		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SVADU)) {
++	return SBI_OK;
++}
++
 +#if __riscv_xlen == 32
-+			csr_clear(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
++#define MENVCFG_REG(__val) \
++	(__builtin_ffsll(__val) > 32 ? CSR_MENVCFGH : CSR_MENVCFG)
++#define MENVCFG_VAL(__val) \
++	(__builtin_ffsll(__val) > 32 ? (__val) >> 32 : (__val))
 +#else
-+			csr_clear(CSR_MENVCFG, ENVCFG_ADUE);
++#define MENVCFG_REG(__val) CSR_MENVCFG
++#define MENVCFG_VAL(__val) (__val)
 +#endif
-+		}
- 	}
- 
- 	/* Disable all interrupts */
-@@ -668,6 +676,7 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
- 	__SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
- 	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
-+	__SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
++
++static int fwft_set_adue(struct fwft_config *conf, unsigned long value)
++{
++	if (value)
++#if __riscv_xlen == 32
++		csr_set(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
++#else
++		csr_set(CSR_MENVCFG, ENVCFG_ADUE);
++#endif
++	else
++#if __riscv_xlen == 32
++		csr_clear(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
++#else
++		csr_clear(CSR_MENVCFG, ENVCFG_ADUE);
++#endif
++
++	return SBI_OK;
++}
++
++static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
++{
++	unsigned long cfg;
++#if __riscv_xlen == 32
++	cfg = csr_read(CSR_MENVCFGH) & (ENVCFG_ADUE >> 32);
++#else
++	cfg = csr_read(CSR_MENVCFG) & ENVCFG_ADUE;
++#endif
++	*value = cfg != 0;
++
++	return SBI_OK;
++}
++
+ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+ {
+ 	int i;
+@@ -186,6 +236,12 @@ static const struct fwft_feature features[] =
+ 		.set = fwft_set_misaligned_delegation,
+ 		.get = fwft_get_misaligned_delegation,
+ 	},
++	{
++		.id = SBI_FWFT_PTE_AD_HW_UPDATING,
++		.supported = fwft_adue_supported,
++		.set = fwft_set_adue,
++		.get = fwft_get_adue,
++	},
  };
  
- _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 47edab2..9a74d2c 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -45,6 +45,10 @@ struct sbi_hsm_data {
+ 	unsigned long saved_mie;
+ 	unsigned long saved_mip;
+ 	unsigned long saved_hedeleg;
++	unsigned long saved_menvcfg;
++#if __riscv_xlen == 32
++	unsigned long saved_menvcfgh;
++#endif
+ 	atomic_t start_ticket;
+ };
+ 
+@@ -419,6 +423,10 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+ 	hdata->saved_mie = csr_read(CSR_MIE);
+ 	hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
+ 	hdata->saved_hedeleg = csr_read(CSR_HEDELEG);
++#if __riscv_xlen == 32
++	hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
++#endif
++	hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
+ }
+ 
+ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+@@ -426,6 +434,10 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
++	csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
++#if __riscv_xlen == 32
++	csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
++#endif
+ 	csr_write(CSR_HEDELEG, hdata->saved_hedeleg);
+ 	csr_write(CSR_MIE, hdata->saved_mie);
+ 	csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
 -- 
 2.43.0
 
