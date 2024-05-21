@@ -1,134 +1,113 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Tue, 21 May 2024 15:58:32 +0200
-Subject: [PATCH v1 4/5] lib: sbi: fwft: add support for SBI_FWFT_PTE_AD_HW_UPDATING
+Date: Tue, 21 May 2024 15:58:33 +0200
+Subject: [PATCH v1 5/5] lib: sbi: implement SBI FWFT extension
 In-Reply-To: <20240521135835.371485-1-cleger@rivosinc.com>
 References: <20240521135835.371485-1-cleger@rivosinc.com>
-Message-ID: <20240521135835.371485-5-cleger@rivosinc.com>
+Message-ID: <20240521135835.371485-6-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add support for SBI_FWFT_PTE_AD_HW_UPDATING based on SVADU presence.
+The SBI FWFT extension defines a set of function that can be called to
+control the configuration of some platform features (misaligned
+trap delegation, etc). This patch implements sbi_fwft_set() and
+sbi_fwft_get() as defined in the specification [1].
 
+Link: https://lists.riscv.org/g/tech-prs/message/924 [1]
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- lib/sbi/sbi_fwft.c | 56 ++++++++++++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_hsm.c  | 12 ++++++++++
- 2 files changed, 68 insertions(+)
+ lib/sbi/Kconfig          |  4 ++++
+ lib/sbi/objects.mk       |  3 +++
+ lib/sbi/sbi_ecall_fwft.c | 49 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 56 insertions(+)
+ create mode 100644 lib/sbi/sbi_ecall_fwft.c
 
-diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-index 54c6642..bf5d4d4 100644
---- a/lib/sbi/sbi_fwft.c
-+++ b/lib/sbi/sbi_fwft.c
-@@ -101,6 +101,56 @@ static int fwft_get_misaligned_delegation(struct fwft_config *conf,
- 	return SBI_OK;
- }
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index cc8e031..6cf54ce 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -38,6 +38,10 @@ config SBI_ECALL_CPPC
+ 	bool "CPPC extension"
+ 	default y
  
-+static int fwft_adue_supported(struct fwft_config *conf)
-+{
-+	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+				    SBI_HART_EXT_SVADU))
-+		return SBI_ENOTSUPP;
++config SBI_ECALL_FWFT
++	bool "Firmware Feature extension"
++	default y
 +
-+	return SBI_OK;
+ config SBI_ECALL_LEGACY
+ 	bool "SBI v0.1 legacy extensions"
+ 	default y
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 221e72c..211abad 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -46,6 +46,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_CPPC) += ecall_cppc
+ libsbi-objs-$(CONFIG_SBI_ECALL_CPPC) += sbi_ecall_cppc.o
+ 
++carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_FWFT) += ecall_fwft
++libsbi-objs-$(CONFIG_SBI_ECALL_FWFT) += sbi_ecall_fwft.o
++
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
+ libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
+ 
+diff --git a/lib/sbi/sbi_ecall_fwft.c b/lib/sbi/sbi_ecall_fwft.c
+new file mode 100644
+index 0000000..267cbab
+--- /dev/null
++++ b/lib/sbi/sbi_ecall_fwft.c
+@@ -0,0 +1,49 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2024 Rivos Inc.
++ *
++ * Authors:
++ *   Cl?ment L?ger <cleger@rivosinc.com>
++ */
++
++#include <sbi/sbi_ecall.h>
++#include <sbi/sbi_ecall_interface.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_fwft.h>
++#include <sbi/sbi_trap.h>
++
++static int sbi_ecall_fwft_handler(unsigned long extid, unsigned long funcid,
++				 struct sbi_trap_regs *regs,
++				 struct sbi_ecall_return *out)
++{
++	int ret = 0;
++
++	switch (funcid) {
++	case SBI_EXT_FWFT_SET:
++		ret = sbi_fwft_set(regs->a0, regs->a1, regs->a2);
++		break;
++	case SBI_EXT_FWFT_GET:
++		ret = sbi_fwft_get(regs->a0, &out->value);
++		break;
++	default:
++		ret = SBI_ENOTSUPP;
++		break;
++	}
++
++	return ret;
 +}
 +
-+#if __riscv_xlen == 32
-+#define MENVCFG_REG(__val) \
-+	(__builtin_ffsll(__val) > 32 ? CSR_MENVCFGH : CSR_MENVCFG)
-+#define MENVCFG_VAL(__val) \
-+	(__builtin_ffsll(__val) > 32 ? (__val) >> 32 : (__val))
-+#else
-+#define MENVCFG_REG(__val) CSR_MENVCFG
-+#define MENVCFG_VAL(__val) (__val)
-+#endif
++struct sbi_ecall_extension ecall_fwft;
 +
-+static int fwft_set_adue(struct fwft_config *conf, unsigned long value)
++static int sbi_ecall_fwft_register_extensions(void)
 +{
-+	if (value)
-+#if __riscv_xlen == 32
-+		csr_set(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
-+#else
-+		csr_set(CSR_MENVCFG, ENVCFG_ADUE);
-+#endif
-+	else
-+#if __riscv_xlen == 32
-+		csr_clear(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
-+#else
-+		csr_clear(CSR_MENVCFG, ENVCFG_ADUE);
-+#endif
-+
-+	return SBI_OK;
++	return sbi_ecall_register_extension(&ecall_fwft);
 +}
 +
-+static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
-+{
-+	unsigned long cfg;
-+#if __riscv_xlen == 32
-+	cfg = csr_read(CSR_MENVCFGH) & (ENVCFG_ADUE >> 32);
-+#else
-+	cfg = csr_read(CSR_MENVCFG) & ENVCFG_ADUE;
-+#endif
-+	*value = cfg != 0;
-+
-+	return SBI_OK;
-+}
-+
- static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
- {
- 	int i;
-@@ -186,6 +236,12 @@ static const struct fwft_feature features[] =
- 		.set = fwft_set_misaligned_delegation,
- 		.get = fwft_get_misaligned_delegation,
- 	},
-+	{
-+		.id = SBI_FWFT_PTE_AD_HW_UPDATING,
-+		.supported = fwft_adue_supported,
-+		.set = fwft_set_adue,
-+		.get = fwft_get_adue,
-+	},
- };
- 
- int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 47edab2..9a74d2c 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -45,6 +45,10 @@ struct sbi_hsm_data {
- 	unsigned long saved_mie;
- 	unsigned long saved_mip;
- 	unsigned long saved_hedeleg;
-+	unsigned long saved_menvcfg;
-+#if __riscv_xlen == 32
-+	unsigned long saved_menvcfgh;
-+#endif
- 	atomic_t start_ticket;
- };
- 
-@@ -419,6 +423,10 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
- 	hdata->saved_mie = csr_read(CSR_MIE);
- 	hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
- 	hdata->saved_hedeleg = csr_read(CSR_HEDELEG);
-+#if __riscv_xlen == 32
-+	hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
-+#endif
-+	hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
- }
- 
- static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
-@@ -426,6 +434,10 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 
-+	csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
-+#if __riscv_xlen == 32
-+	csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
-+#endif
- 	csr_write(CSR_HEDELEG, hdata->saved_hedeleg);
- 	csr_write(CSR_MIE, hdata->saved_mie);
- 	csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
++struct sbi_ecall_extension ecall_fwft = {
++	.extid_start = SBI_EXT_FWFT,
++	.extid_end = SBI_EXT_FWFT,
++	.register_extensions = sbi_ecall_fwft_register_extensions,
++	.handle = sbi_ecall_fwft_handler,
++};
 -- 
 2.43.0
 
