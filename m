@@ -1,114 +1,93 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Tue, 21 May 2024 15:58:33 +0200
-Subject: [PATCH v1 5/5] lib: sbi: implement SBI FWFT extension
-In-Reply-To: <20240521135835.371485-1-cleger@rivosinc.com>
-References: <20240521135835.371485-1-cleger@rivosinc.com>
-Message-ID: <20240521135835.371485-6-cleger@rivosinc.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 22 May 2024 08:06:04 +0530
+Subject: [PATCH v1 1/5] lib: sbi: Add SVADU extension support
+In-Reply-To: <20240521135835.371485-2-cleger@rivosinc.com>
+References: <20240521135835.371485-1-cleger@rivosinc.com> <20240521135835.371485-2-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1ECbAe9ArY2GWqmbydFDBbeSAtVw3dVsyrweQ_LM-9Fg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The SBI FWFT extension defines a set of function that can be called to
-control the configuration of some platform features (misaligned
-trap delegation, etc). This patch implements sbi_fwft_set() and
-sbi_fwft_get() as defined in the specification [1].
+On Tue, May 21, 2024 at 8:31?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>
+> Add SVADU ISA extension support. By default, clear the ADUE bit to
+> maintain backward-compatibility.
+>
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 
-Link: https://lists.riscv.org/g/tech-prs/message/924 [1]
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
----
- lib/sbi/Kconfig          |  4 ++++
- lib/sbi/objects.mk       |  3 +++
- lib/sbi/sbi_ecall_fwft.c | 49 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 56 insertions(+)
- create mode 100644 lib/sbi/sbi_ecall_fwft.c
+LGTM.
 
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index cc8e031..6cf54ce 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -38,6 +38,10 @@ config SBI_ECALL_CPPC
- 	bool "CPPC extension"
- 	default y
- 
-+config SBI_ECALL_FWFT
-+	bool "Firmware Feature extension"
-+	default y
-+
- config SBI_ECALL_LEGACY
- 	bool "SBI v0.1 legacy extensions"
- 	default y
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 221e72c..211abad 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -46,6 +46,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_CPPC) += ecall_cppc
- libsbi-objs-$(CONFIG_SBI_ECALL_CPPC) += sbi_ecall_cppc.o
- 
-+carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_FWFT) += ecall_fwft
-+libsbi-objs-$(CONFIG_SBI_ECALL_FWFT) += sbi_ecall_fwft.o
-+
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
- libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
- 
-diff --git a/lib/sbi/sbi_ecall_fwft.c b/lib/sbi/sbi_ecall_fwft.c
-new file mode 100644
-index 0000000..267cbab
---- /dev/null
-+++ b/lib/sbi/sbi_ecall_fwft.c
-@@ -0,0 +1,49 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2024 Rivos Inc.
-+ *
-+ * Authors:
-+ *   Cl?ment L?ger <cleger@rivosinc.com>
-+ */
-+
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_fwft.h>
-+#include <sbi/sbi_trap.h>
-+
-+static int sbi_ecall_fwft_handler(unsigned long extid, unsigned long funcid,
-+				 struct sbi_trap_regs *regs,
-+				 struct sbi_ecall_return *out)
-+{
-+	int ret = 0;
-+
-+	switch (funcid) {
-+	case SBI_EXT_FWFT_SET:
-+		ret = sbi_fwft_set(regs->a0, regs->a1, regs->a2);
-+		break;
-+	case SBI_EXT_FWFT_GET:
-+		ret = sbi_fwft_get(regs->a0, &out->value);
-+		break;
-+	default:
-+		ret = SBI_ENOTSUPP;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+struct sbi_ecall_extension ecall_fwft;
-+
-+static int sbi_ecall_fwft_register_extensions(void)
-+{
-+	return sbi_ecall_register_extension(&ecall_fwft);
-+}
-+
-+struct sbi_ecall_extension ecall_fwft = {
-+	.extid_start = SBI_EXT_FWFT,
-+	.extid_end = SBI_EXT_FWFT,
-+	.register_extensions = sbi_ecall_fwft_register_extensions,
-+	.handle = sbi_ecall_fwft_handler,
-+};
--- 
-2.43.0
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Regards,
+Anup
+
+> ---
+>  include/sbi/riscv_encoding.h | 1 +
+>  include/sbi/sbi_hart.h       | 2 ++
+>  lib/sbi/sbi_hart.c           | 9 +++++++++
+>  3 files changed, 12 insertions(+)
+>
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index d914828..477fa3a 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -211,6 +211,7 @@
+>
+>  #define ENVCFG_STCE                    (_ULL(1) << 63)
+>  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
+> +#define ENVCFG_ADUE                    (_ULL(1) << 61)
+>  #define ENVCFG_CDE                     (_ULL(1) << 60)
+>  #define ENVCFG_CBZE                    (_UL(1) << 7)
+>  #define ENVCFG_CBCFE                   (_UL(1) << 6)
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index cc78eec..10dd90c 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -63,6 +63,8 @@ enum sbi_hart_extensions {
+>         SBI_HART_EXT_SSCSRIND,
+>         /** Hart has Ssccfg extension */
+>         SBI_HART_EXT_SSCCFG,
+> +       /** Hart has Svadu extension */
+> +       SBI_HART_EXT_SVADU,
+>
+>         /** Maximum index of Hart extension */
+>         SBI_HART_EXT_MAX,
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index cd974cc..2170a82 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -148,6 +148,14 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>                         csr_set(CSR_MSECCFG, MSECCFG_SSEED);
+>                         csr_clear(CSR_MSECCFG, MSECCFG_USEED);
+>                 }
+> +
+> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SVADU)) {
+> +#if __riscv_xlen == 32
+> +                       csr_clear(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
+> +#else
+> +                       csr_clear(CSR_MENVCFG, ENVCFG_ADUE);
+> +#endif
+> +               }
+>         }
+>
+>         /* Disable all interrupts */
+> @@ -668,6 +676,7 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+>         __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
+>         __SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
+>         __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
+> +       __SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
+>  };
+>
+>  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+> --
+> 2.43.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
