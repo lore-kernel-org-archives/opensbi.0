@@ -1,22 +1,24 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 23 May 2024 18:01:16 +0530
-Subject: [PATCH] lib: sbi: sse: handle missing writable attributes
-In-Reply-To: <20240516123029.18379-1-cleger@rivosinc.com>
-References: <20240516123029.18379-1-cleger@rivosinc.com>
-Message-ID: <CAAhSdy02qDr0g3TRdr1eDJ202S4tFh=AUqg5ozySBsUUynB7fw@mail.gmail.com>
+Date: Thu, 23 May 2024 18:02:02 +0530
+Subject: [PATCH v2] lib: utils/gpio: respect flag GPIO_FLAG_ACTIVE_LOW
+In-Reply-To: <IA1PR20MB4953FBF81F8044CDC23E245FBBF42@IA1PR20MB4953.namprd20.prod.outlook.com>
+References: <IA1PR20MB4953FBF81F8044CDC23E245FBBF42@IA1PR20MB4953.namprd20.prod.outlook.com>
+Message-ID: <CAAhSdy1NS8UmTACJu18GJAFf1g90u96FsnvAcVx7tGWb1F-J1g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, May 16, 2024 at 6:00?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+On Thu, May 23, 2024 at 10:37?AM Inochi Amaoto <inochiama@outlook.com> wrote:
 >
-> The spec states that a6, a7, flags and sepc are writable but the
-> implementation was not allowing that. Add support for these 4 writable
-> attributes.
+> "gpio-poweroff" and "gpio-restart" always set gpio to high to
+> active the function, but some chips need a low signal to active.
+> Fortunately, it can be achieved by setting GPIO_FLAG_ACTIVE_LOW
+> for the gpio. Implement this flag support for the gpio library
+> so the gpio reset can function well.
 >
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> Signed-off-by: Inochi Amaoto <inochiama@outlook.com>
 
 LGTM.
 
@@ -28,118 +30,57 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_sse.c | 66 +++++++++++++++++++++++++++++++++--------------
->  1 file changed, 47 insertions(+), 19 deletions(-)
+> Changed from v1:
+> 1. drop unnecessary braces.
+> 2. fix typo in title.
+> ---
+>  lib/utils/gpio/gpio.c | 14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 0cd6ba6..e39963f 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -335,30 +335,49 @@ static int sse_event_set_hart_id_check(struct sbi_sse_event *e,
->  static int sse_event_set_attr_check(struct sbi_sse_event *e, uint32_t attr_id,
->                                     unsigned long val)
+> diff --git a/lib/utils/gpio/gpio.c b/lib/utils/gpio/gpio.c
+> index 3a3a6b2..6ffe929 100644
+> --- a/lib/utils/gpio/gpio.c
+> +++ b/lib/utils/gpio/gpio.c
+> @@ -73,17 +73,26 @@ int gpio_direction_output(struct gpio_pin *gp, int value)
+>         if (!gp->chip->direction_output)
+>                 return SBI_ENOSYS;
+>
+> +       if (gp->flags & GPIO_FLAG_ACTIVE_LOW)
+> +               value = value == 0 ? 1 : 0;
+> +
+>         return gp->chip->direction_output(gp, value);
+>  }
+>
+>  int gpio_get(struct gpio_pin *gp)
 >  {
-> -       int ret = SBI_OK;
-> -
->         switch (attr_id) {
->         case SBI_SSE_ATTR_CONFIG:
-> +               if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
-> +                       return SBI_EINVALID_STATE;
+> +       int value;
 > +
->                 if (val & ~SBI_SSE_ATTR_CONFIG_ONESHOT)
-> -                       ret = SBI_EINVAL;
-> -               break;
-> +                       return SBI_EINVAL;
-> +
-> +               return SBI_OK;
->         case SBI_SSE_ATTR_PRIO:
-> +               if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
-> +                       return SBI_EINVALID_STATE;
-> +
->  #if __riscv_xlen > 32
-> -               if (val != (uint32_t)val) {
-> -                       ret = SBI_EINVAL;
-> -                       break;
-> -               }
-> +               if (val != (uint32_t)val)
-> +                       return SBI_EINVAL;
->  #endif
-> -               break;
-> +               return SBI_OK;
->         case SBI_SSE_ATTR_PREFERRED_HART:
-> -               ret = sse_event_set_hart_id_check(e, val);
-> -               break;
-> +               if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
-> +                       return SBI_EINVALID_STATE;
-> +
-> +               return sse_event_set_hart_id_check(e, val);
-> +       case SBI_SSE_ATTR_INTERRUPTED_FLAGS:
-> +               if (val & ~(SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPP |
-> +                           SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPIE |
-> +                           SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPV |
-> +                           SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPVP))
-> +                       return SBI_EINVAL;
-> +               __attribute__((__fallthrough__));
-> +       case SBI_SSE_ATTR_INTERRUPTED_SEPC:
-> +       case SBI_SSE_ATTR_INTERRUPTED_A6:
-> +       case SBI_SSE_ATTR_INTERRUPTED_A7:
-> +               if (sse_event_state(e) != SBI_SSE_STATE_RUNNING)
-> +                       return SBI_EINVALID_STATE;
-> +
-> +               if (current_hartid() != e->attrs.hartid)
-> +                       return SBI_EINVAL;
-> +
-> +               return SBI_OK;
->         default:
-> -               ret = SBI_EBAD_RANGE;
-> -               break;
-> +               return SBI_EBAD_RANGE;
->         }
-> -
-> -       return ret;
->  }
->
->  static void sse_event_set_attr(struct sbi_sse_event *e, uint32_t attr_id,
-> @@ -375,6 +394,19 @@ static void sse_event_set_attr(struct sbi_sse_event *e, uint32_t attr_id,
->                 e->attrs.hartid = val;
->                 sse_event_invoke_cb(e, set_hartid_cb, val);
->                 break;
-> +
-> +       case SBI_SSE_ATTR_INTERRUPTED_SEPC:
-> +               e->attrs.interrupted.sepc = val;
-> +               break;
-> +       case SBI_SSE_ATTR_INTERRUPTED_FLAGS:
-> +               e->attrs.interrupted.flags = val;
-> +               break;
-> +       case SBI_SSE_ATTR_INTERRUPTED_A6:
-> +               e->attrs.interrupted.a6 = val;
-> +               break;
-> +       case SBI_SSE_ATTR_INTERRUPTED_A7:
-> +               e->attrs.interrupted.a7 = val;
-> +               break;
->         }
->  }
->
-> @@ -903,9 +935,6 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
->         uint32_t id, end_id = base_attr_id + attr_count;
->         unsigned long *attrs = (unsigned long *)input_phys;
->
-> -       if (sse_event_state(e) >= SBI_SSE_STATE_ENABLED)
-> -               return SBI_EINVALID_STATE;
-> -
->         sbi_hart_map_saddr(input_phys, sizeof(unsigned long) * attr_count);
->
->         for (id = base_attr_id; id < end_id; id++) {
-> @@ -944,7 +973,6 @@ int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+>         if (!gp || !gp->chip || (gp->chip->ngpio <= gp->offset))
 >                 return SBI_EINVAL;
+>         if (!gp->chip->get)
+>                 return SBI_ENOSYS;
 >
->         ret = sse_write_attrs(e, base_attr_id, attr_count, input_phys_lo);
-> -
->         sse_event_put(e);
+> -       return gp->chip->get(gp);
+> +       value = gp->chip->get(gp);
+> +
+> +       if (gp->flags & GPIO_FLAG_ACTIVE_LOW)
+> +               value = value == 0 ? 1 : 0;
+> +       return value;
+>  }
 >
->         return ret;
+>  int gpio_set(struct gpio_pin *gp, int value)
+> @@ -93,6 +102,9 @@ int gpio_set(struct gpio_pin *gp, int value)
+>         if (!gp->chip->set)
+>                 return SBI_ENOSYS;
+>
+> +       if (gp->flags & GPIO_FLAG_ACTIVE_LOW)
+> +               value = value == 0 ? 1 : 0;
+> +
+>         gp->chip->set(gp, value);
+>         return 0;
+>  }
 > --
-> 2.43.0
+> 2.45.1
 >
 >
 > --
