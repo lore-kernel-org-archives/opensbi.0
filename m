@@ -1,59 +1,113 @@
-From: Pope B.Lei <popeblei@gmail.com>
-Date: Wed, 29 May 2024 16:18:07 +0800
-Subject: [PATCH v1] "Reset registers to enhance robustness."
-In-Reply-To: <7F496AAA-FEBA-4327-A4B9-53E08F13F8CB@jrtc27.com>
-References: <20240529073747.505-1-popeblei@gmail.com> <7F496AAA-FEBA-4327-A4B9-53E08F13F8CB@jrtc27.com>
-Message-ID: <CAECSvgYzVBK2C_k6Ohud2nBZ3r8y4pfCNGJ=NqECpd=Sr5Jq7w@mail.gmail.com>
+From: Rajnesh Kanwal <rkanwal@rivosinc.com>
+Date: Wed, 29 May 2024 16:02:10 +0100
+Subject: [PATCH] lib: sbi: Enable Control Transfer Records (CTR) Ext using xstateen.
+Message-ID: <20240529150210.125200-1-rkanwal@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Due to the completeness of Opensbi's functionality and its excellent,
-stable code, I use Opensbi to boot multiple cores for testing in the
-DV system tests of multi-core RISCV SOCs. The DV verification system
-is also a real system, and in a certain sense, using Opensbi during
-the DV verification phase is even more valuable.
+The Control Transfer Records (CTR) extension provides a method to
+record a limited branch history in register-accessible internal chip
+storage.
 
-On Wed, May 29, 2024 at 3:40?PM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 29 May 2024, at 08:37, Pope B.Lei <popeblei@gmail.com> wrote:
-> >
-> > Signed-off-by: Pope B.Lei <popeblei@gmail.com>
-> > ---
-> > V1: If the registers are not initialized, they may remain in an x-state in certain DV verification environments
->
-> Don?t do that then? If you want equal traces, use a well-defined start
-> or use smarter trace equivalence checking. The code being added serves
-> zero practical purpose in a real system.
->
-> Jess
->
-> > due to the lack of written values, causing the x-state to propagate during the boot process. Adding register initialization enhances robustness.
-> > firmware/fw_base.S | 2 ++
-> > 1 file changed, 2 insertions(+)
-> >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> > index b950c0b..10889a9 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -36,6 +36,8 @@
-> > .globl _start
-> > .globl _start_warm
-> > _start:
-> > + /* Reset registers to enhance robustness. */
-> > + call _reset_regs
-> > /* Find preferred boot HART id */
-> > MOV_3R s0, a0, s1, a1, s2, a2
-> > call fw_boot_hart
-> > --
-> > 2.35.2.windows.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
->
+This extension is similar to Arch LBR in x86 and BRBE in ARM.
+The Extension has been stable and the latest release can be found here
+https://github.com/riscv/riscv-control-transfer-records/release
+
+Signed-off-by: Rajnesh Kanwal <rkanwal@rivosinc.com>
+---
+ include/sbi/riscv_encoding.h | 13 +++++++++++++
+ include/sbi/sbi_hart.h       |  4 ++++
+ lib/sbi/sbi_hart.c           | 13 +++++++++++++
+ 3 files changed, 30 insertions(+)
+
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index d914828..eb3361c 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -357,6 +357,17 @@
+ #define CSR_SSTATEEN2			0x10E
+ #define CSR_SSTATEEN3			0x10F
+ 
++/* Machine-Level Control transfer records CSRs */
++#define CSR_MCTRCTL                     0x34e
++
++/* Supervisor-Level Control transfer records CSRs */
++#define CSR_SCTRCTL                     0x14e
++#define CSR_SCTRSTATUS                  0x14f
++#define CSR_SCTRDEPTH                   0x15f
++
++/* VS-Level Control transfer records CSRs */
++#define CSR_VSCTRCTL                    0x24e
++
+ /* ===== Hypervisor-level CSRs ===== */
+ 
+ /* Hypervisor Trap Setup (H-extension) */
+@@ -773,6 +784,8 @@
+ #define SMSTATEEN0_CS			(_ULL(1) << SMSTATEEN0_CS_SHIFT)
+ #define SMSTATEEN0_FCSR_SHIFT		1
+ #define SMSTATEEN0_FCSR			(_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
++#define SMSTATEEN0_CTR_SHIFT		54
++#define SMSTATEEN0_CTR			(_ULL(1) << SMSTATEEN0_CTR_SHIFT)
+ #define SMSTATEEN0_CONTEXT_SHIFT	57
+ #define SMSTATEEN0_CONTEXT		(_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
+ #define SMSTATEEN0_IMSIC_SHIFT		58
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index cc78eec..c4eddb4 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -63,6 +63,10 @@ enum sbi_hart_extensions {
+ 	SBI_HART_EXT_SSCSRIND,
+ 	/** Hart has Ssccfg extension */
+ 	SBI_HART_EXT_SSCCFG,
++	/** HART has CTR M-mode CSRs */
++	SBI_HART_EXT_SMCTR,
++	/** HART has CTR S-mode CSRs */
++	SBI_HART_EXT_SSCTR,
+ 
+ 	/** Maximum index of Hart extension */
+ 	SBI_HART_EXT_MAX,
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index cd974cc..db2f157 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -105,6 +105,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 		else
+ 			mstateen_val &= ~(SMSTATEEN0_SVSLCT);
+ 
++		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCTR))
++			mstateen_val |= SMSTATEEN0_CTR;
++		else
++			mstateen_val &= ~SMSTATEEN0_CTR;
++
+ 		csr_write(CSR_MSTATEEN0, mstateen_val);
+ #if __riscv_xlen == 32
+ 		csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
+@@ -668,6 +673,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+ 	__SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
+ 	__SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
+ 	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
++	__SBI_HART_EXT_DATA(smctr, SBI_HART_EXT_SMCTR),
++	__SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
+ };
+ 
+ _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+@@ -921,6 +928,12 @@ __pmp_skip:
+ 	/* Save trap based detection of Zicntr */
+ 	has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
+ 
++	/* Detect if hart has Control Transfer Record CSRs */
++	csr_read_allowed(CSR_MCTRCTL, (unsigned long)&trap);
++	if (!trap.cause)
++		__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_SMCTR,
++					    true);
++
+ 	/* Let platform populate extensions */
+ 	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+ 					  hfeatures);
+-- 
+2.34.1
+
 
