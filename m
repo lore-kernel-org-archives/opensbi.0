@@ -1,64 +1,366 @@
-From: Pope B.Lei <popeblei@gmail.com>
-Date: Thu, 30 May 2024 10:56:50 +0800
-Subject: [PATCH v1] "Reset registers to enhance robustness."
-In-Reply-To: <5bd477ae147a02b0cb9f349c8ac7481ed6211f83.camel@126.com>
-References: <20240529073747.505-1-popeblei@gmail.com> <5bd477ae147a02b0cb9f349c8ac7481ed6211f83.camel@126.com>
-Message-ID: <CAECSvgbgZYwnsiS4PNsSU+BMb36a0-E2YP2CQz-oizFOxi8FPg@mail.gmail.com>
+From: Ben Zong-You Xie <ben717@andestech.com>
+Date: Fri, 31 May 2024 13:19:04 +0800
+Subject: [PATCH] platform: generic: andes: Refine Andes PMA related code
+Message-ID: <20240531051904.3119195-1-ben717@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dear Xiang:
-     You are right. In actual use, I will add an operation to set the
-parameter to a fixed value. However, since this is just an operation
-in the DV environment, I didn't push it.
+This patch refines the Andes PMA related code. The main change is
+refactor andes_pma_[read|write]_cfg() and andes_pma_[read|write]_addr()
+into new functions andes_pma_[read|write]_num().
 
-    Referring to the approach of the kernel, my understanding is that
-it is worthwhile to clean up irrelevant content in the context during
-a switch.
-    https://patchwork.kernel.org/project/linux-mm/patch/20190624054311.30256-17-hch at lst.de/
+Also, fix some coding style problems.
 
-Regards,
-B.Lei
+Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
+---
+ platform/generic/andes/andes_pma.c         | 215 ++++++++-------------
+ platform/generic/include/andes/andes_pma.h |   2 +
+ 2 files changed, 81 insertions(+), 136 deletions(-)
 
-On Thu, May 30, 2024 at 9:08?AM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2024-05-29???? 15:37 +0800?Pope B.Lei???
-> > Signed-off-by: Pope B.Lei <popeblei@gmail.com>
-> > ---
-> > V1: If the registers are not initialized, they may remain in an x-state in certain DV verification environments due to the lack of written
-> > values, causing the x-state to propagate during the boot process. Adding register initialization enhances robustness.
->
-> In DV system, all registers should be written to prevent the existence of registers
-> in x-state state. _reset_regs cannot write all registers for parameter passing. If
-> all registers are written, it will affect the function of opensbi.
->
-> So I don't think it's a good way to stop a register from having x-state state.
->
-> Regards,
-> Xiang W
->
-> >  firmware/fw_base.S | 2 ++
-> >  1 file changed, 2 insertions(+)
-> >
-> > diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> > index b950c0b..10889a9 100644
-> > --- a/firmware/fw_base.S
-> > +++ b/firmware/fw_base.S
-> > @@ -36,6 +36,8 @@
-> >       .globl _start
-> >       .globl _start_warm
-> >  _start:
-> > +     /* Reset registers to enhance robustness. */
-> > +     call    _reset_regs
-> >       /* Find preferred boot HART id */
-> >       MOV_3R  s0, a0, s1, a1, s2, a2
-> >       call    fw_boot_hart
-> > --
-> > 2.35.2.windows.1
-> >
-> >
->
+diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
+index d5ea594..321074a 100644
+--- a/platform/generic/andes/andes_pma.c
++++ b/platform/generic/andes/andes_pma.c
+@@ -1,12 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+  * Copyright (C) 2023 Renesas Electronics Corp.
+- *
+- * Copyright (c) 2020 Andes Technology Corporation
++ * Copyright (c) 2024 Andes Technology Corporation
+  *
+  * Authors:
+- *      Nick Hu <nickhu@andestech.com>
+- *      Nylon Chen <nylon7@andestech.com>
++ *      Ben Zong-You Xie <ben717@andestech.com>
+  *      Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+  */
+ 
+@@ -19,124 +17,81 @@
+ #include <sbi/sbi_error.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
+-static inline unsigned long andes_pma_read_cfg(unsigned int pma_cfg_off)
++static unsigned long andes_pma_read_num(unsigned int csr_num)
+ {
+-#define switchcase_pma_cfg_read(__pma_cfg_off, __val)		\
+-	case __pma_cfg_off:					\
+-		__val = csr_read(__pma_cfg_off);		\
++#define switchcase_csr_read(__csr_num, __val)		\
++	case __csr_num:					\
++		__val = csr_read(__csr_num);		\
+ 		break;
+-#define switchcase_pma_cfg_read_2(__pma_cfg_off, __val)		\
+-	switchcase_pma_cfg_read(__pma_cfg_off + 0, __val)	\
+-	switchcase_pma_cfg_read(__pma_cfg_off + 2, __val)
++#define switchcase_csr_read_2(__csr_num, __val)		\
++	switchcase_csr_read(__csr_num + 0, __val)	\
++	switchcase_csr_read(__csr_num + 1, __val)
++#define switchcase_csr_read_4(__csr_num, __val)		\
++	switchcase_csr_read_2(__csr_num + 0, __val)	\
++	switchcase_csr_read_2(__csr_num + 2, __val)
++#define switchcase_csr_read_8(__csr_num, __val)		\
++	switchcase_csr_read_4(__csr_num + 0, __val)	\
++	switchcase_csr_read_4(__csr_num + 4, __val)
++#define switchcase_csr_read_16(__csr_num, __val)	\
++	switchcase_csr_read_8(__csr_num + 0, __val)	\
++	switchcase_csr_read_8(__csr_num + 8, __val)
+ 
+ 	unsigned long ret = 0;
+ 
+-	switch (pma_cfg_off) {
+-	switchcase_pma_cfg_read_2(CSR_PMACFG0, ret)
+-
++	switch (csr_num) {
++	switchcase_csr_read_4(CSR_PMACFG0, ret)
++	switchcase_csr_read_16(CSR_PMAADDR0, ret)
+ 	default:
+-		sbi_panic("%s: Unknown PMA CFG offset %#x", __func__, pma_cfg_off);
++		sbi_panic("%s: Unknown Andes PMA CSR %#x", __func__, csr_num);
+ 		break;
+ 	}
+ 
+ 	return ret;
+ 
+-#undef switchcase_pma_cfg_read_2
+-#undef switchcase_pma_cfg_read
++#undef switchcase_csr_read_16
++#undef switchcase_csr_read_8
++#undef switchcase_csr_read_4
++#undef switchcase_csr_read_2
++#undef switchcase_csr_read
+ }
+ 
+-static inline void andes_pma_write_cfg(unsigned int pma_cfg_off, unsigned long val)
++static void andes_pma_write_num(unsigned int csr_num, unsigned long val)
+ {
+-#define switchcase_pma_cfg_write(__pma_cfg_off, __val)		\
+-	case __pma_cfg_off:					\
+-		csr_write(__pma_cfg_off, __val);		\
++#define switchcase_csr_write(__csr_num, __val)		\
++	case __csr_num:					\
++		csr_write(__csr_num, __val);		\
+ 		break;
+-#define switchcase_pma_cfg_write_2(__pma_cfg_off, __val)	\
+-	switchcase_pma_cfg_write(__pma_cfg_off + 0, __val)	\
+-	switchcase_pma_cfg_write(__pma_cfg_off + 2, __val)
+-
+-	switch (pma_cfg_off) {
+-	switchcase_pma_cfg_write_2(CSR_PMACFG0, val)
+-
++#define switchcase_csr_write_2(__csr_num, __val)	\
++	switchcase_csr_write(__csr_num + 0, __val)	\
++	switchcase_csr_write(__csr_num + 1, __val)
++#define switchcase_csr_write_4(__csr_num, __val)	\
++	switchcase_csr_write_2(__csr_num + 0, __val)	\
++	switchcase_csr_write_2(__csr_num + 2, __val)
++#define switchcase_csr_write_8(__csr_num, __val)	\
++	switchcase_csr_write_4(__csr_num + 0, __val)	\
++	switchcase_csr_write_4(__csr_num + 4, __val)
++#define switchcase_csr_write_16(__csr_num, __val)	\
++	switchcase_csr_write_8(__csr_num + 0, __val)	\
++	switchcase_csr_write_8(__csr_num + 8, __val)
++
++	switch (csr_num) {
++	switchcase_csr_write_4(CSR_PMACFG0, val)
++	switchcase_csr_write_16(CSR_PMAADDR0, val)
+ 	default:
+-		sbi_panic("%s: Unknown PMA CFG offset %#x", __func__, pma_cfg_off);
++		sbi_panic("%s: Unknown Andes PMA CSR %#x", __func__, csr_num);
+ 		break;
+ 	}
+ 
+-#undef switchcase_pma_cfg_write_2
+-#undef switchcase_pma_cfg_write
++#undef switchcase_csr_write_16
++#undef switchcase_csr_write_8
++#undef switchcase_csr_write_4
++#undef switchcase_csr_write_2
++#undef switchcase_csr_write
+ }
+ 
+-static inline void andes_pma_write_addr(unsigned int pma_addr_off, unsigned long val)
++static inline bool not_napot(unsigned long addr, unsigned long size)
+ {
+-#define switchcase_pma_write(__pma_addr_off, __val)		\
+-	case __pma_addr_off:					\
+-		csr_write(__pma_addr_off, __val);		\
+-		break;
+-#define switchcase_pma_write_2(__pma_addr_off, __val)		\
+-	switchcase_pma_write(__pma_addr_off + 0, __val)		\
+-	switchcase_pma_write(__pma_addr_off + 1, __val)
+-#define switchcase_pma_write_4(__pma_addr_off, __val)		\
+-	switchcase_pma_write_2(__pma_addr_off + 0, __val)	\
+-	switchcase_pma_write_2(__pma_addr_off + 2, __val)
+-#define switchcase_pma_write_8(__pma_addr_off, __val)		\
+-	switchcase_pma_write_4(__pma_addr_off + 0, __val)	\
+-	switchcase_pma_write_4(__pma_addr_off + 4, __val)
+-#define switchcase_pma_write_16(__pma_addr_off, __val)		\
+-	switchcase_pma_write_8(__pma_addr_off + 0, __val)	\
+-	switchcase_pma_write_8(__pma_addr_off + 8, __val)
+-
+-	switch (pma_addr_off) {
+-	switchcase_pma_write_16(CSR_PMAADDR0, val)
+-
+-	default:
+-		sbi_panic("%s: Unknown PMA ADDR offset %#x", __func__, pma_addr_off);
+-		break;
+-	}
+-
+-#undef switchcase_pma_write_16
+-#undef switchcase_pma_write_8
+-#undef switchcase_pma_write_4
+-#undef switchcase_pma_write_2
+-#undef switchcase_pma_write
+-}
+-
+-static inline unsigned long andes_pma_read_addr(unsigned int pma_addr_off)
+-{
+-#define switchcase_pma_read(__pma_addr_off, __val)		\
+-	case __pma_addr_off:					\
+-		__val = csr_read(__pma_addr_off);		\
+-		break;
+-#define switchcase_pma_read_2(__pma_addr_off, __val)		\
+-	switchcase_pma_read(__pma_addr_off + 0, __val)		\
+-	switchcase_pma_read(__pma_addr_off + 1, __val)
+-#define switchcase_pma_read_4(__pma_addr_off, __val)		\
+-	switchcase_pma_read_2(__pma_addr_off + 0, __val)	\
+-	switchcase_pma_read_2(__pma_addr_off + 2, __val)
+-#define switchcase_pma_read_8(__pma_addr_off, __val)		\
+-	switchcase_pma_read_4(__pma_addr_off + 0, __val)	\
+-	switchcase_pma_read_4(__pma_addr_off + 4, __val)
+-#define switchcase_pma_read_16(__pma_addr_off, __val)		\
+-	switchcase_pma_read_8(__pma_addr_off + 0, __val)	\
+-	switchcase_pma_read_8(__pma_addr_off + 8, __val)
+-
+-	unsigned long ret = 0;
+-
+-	switch (pma_addr_off) {
+-	switchcase_pma_read_16(CSR_PMAADDR0, ret)
+-
+-	default:
+-		sbi_panic("%s: Unknown PMA ADDR offset %#x", __func__, pma_addr_off);
+-		break;
+-	}
+-
+-	return ret;
+-
+-#undef switchcase_pma_read_16
+-#undef switchcase_pma_read_8
+-#undef switchcase_pma_read_4
+-#undef switchcase_pma_read_2
+-#undef switchcase_pma_read
++	return ((size & (size - 1)) || (addr & (size - 1)));
+ }
+ 
+ static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
+@@ -149,36 +104,24 @@ static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
+ 	unsigned long pmaaddr;
+ 	char *pmaxcfg;
+ 
+-	/* Check for 4KiB granularity */
+-	if (size < (1 << 12))
+-		return SBI_EINVAL;
+-
+-	/* Check size is power of 2 */
+-	if (size & (size - 1))
+-		return SBI_EINVAL;
+-
+-	if (entry_id > 15)
+-		return SBI_EINVAL;
+-
+-	if (!(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
++	/* Check for a 4KiB granularity NAPOT region*/
++	if (size < ANDES_PMA_GRANULARITY || not_napot(addr, size) ||
++	    !(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
+ 		return SBI_EINVAL;
+ 
+-	if ((addr & (size - 1)) != 0)
+-		return SBI_EINVAL;
+-
+-	pma_cfg_addr = entry_id / 8 ? CSR_PMACFG0 + 2 : CSR_PMACFG0;
+-	pmacfg_val = andes_pma_read_cfg(pma_cfg_addr);
++	pma_cfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
++	pmacfg_val = andes_pma_read_num(pma_cfg_addr);
+ 	pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
+ 	*pmaxcfg = 0;
+ 	*pmaxcfg = pma_region->flags;
+ 
+-	andes_pma_write_cfg(pma_cfg_addr, pmacfg_val);
++	andes_pma_write_num(pma_cfg_addr, pmacfg_val);
+ 
+ 	pmaaddr = (addr >> 2) + (size >> 3) - 1;
+ 
+-	andes_pma_write_addr(CSR_PMAADDR0 + entry_id, pmaaddr);
++	andes_pma_write_num(CSR_PMAADDR0 + entry_id, pmaaddr);
+ 
+-	return andes_pma_read_addr(CSR_PMAADDR0 + entry_id) == pmaaddr ?
++	return andes_pma_read_num(CSR_PMAADDR0 + entry_id) == pmaaddr ?
+ 	       pmaaddr : SBI_EINVAL;
+ }
+ 
+@@ -202,19 +145,20 @@ static int andes_fdt_pma_resv(void *fdt, const struct andes_pma_region *pma,
+ 
+ 	if (na > 1 && addr_high) {
+ 		sbi_snprintf(name, sizeof(name),
+-			     "pma_resv%d@%x,%x", index,
+-			     addr_high, addr_low);
++			     "pma_resv%d@%x,%x",
++			     index, addr_high, addr_low);
+ 	} else {
+ 		sbi_snprintf(name, sizeof(name),
+-			     "pma_resv%d@%x", index,
+-			     addr_low);
++			     "pma_resv%d@%x",
++			     index, addr_low);
+ 	}
+ 	subnode = fdt_add_subnode(fdt, parent, name);
+ 	if (subnode < 0)
+ 		return subnode;
+ 
+ 	if (pma->shared_dma) {
+-		err = fdt_setprop_string(fdt, subnode, "compatible", "shared-dma-pool");
++		err = fdt_setprop_string(fdt, subnode, "compatible",
++					 "shared-dma-pool");
+ 		if (err < 0)
+ 			return err;
+ 	}
+@@ -259,14 +203,14 @@ static int andes_fdt_reserved_memory_fixup(void *fdt,
+ {
+ 	int parent;
+ 
+-	/* try to locate the reserved memory node */
++	/* Try to locate the reserved memory node */
+ 	parent = fdt_path_offset(fdt, "/reserved-memory");
+ 	if (parent < 0) {
+ 		int na = fdt_address_cells(fdt, 0);
+ 		int ns = fdt_size_cells(fdt, 0);
+ 		int err;
+ 
+-		/* if such node does not exist, create one */
++		/* If such node does not exist, create one */
+ 		parent = fdt_add_subnode(fdt, 0, "reserved-memory");
+ 		if (parent < 0)
+ 			return parent;
+@@ -307,17 +251,13 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+ 		return SBI_ENOTSUPP;
+ 
+ 	/* Configure the PMA regions */
++	dt_populate_cnt = 0;
+ 	for (i = 0; i < pma_regions_count; i++) {
+ 		pa = andes_pma_setup(&pma_regions[i], i);
+ 		if (pa == SBI_EINVAL)
+ 			return SBI_EINVAL;
+-	}
+-
+-	dt_populate_cnt = 0;
+-	for (i = 0; i < pma_regions_count; i++) {
+-		if (!pma_regions[i].dt_populate)
+-			continue;
+-		dt_populate_cnt++;
++		else if (pma_regions[i].dt_populate)
++			dt_populate_cnt++;
+ 	}
+ 
+ 	if (!dt_populate_cnt)
+@@ -325,7 +265,8 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+ 
+ 	fdt = fdt_get_address();
+ 
+-	ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + (64 * dt_populate_cnt));
++	ret = fdt_open_into(fdt, fdt,
++			    fdt_totalsize(fdt) + (64 * dt_populate_cnt));
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -333,7 +274,9 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+ 		if (!pma_regions[i].dt_populate)
+ 			continue;
+ 
+-		ret = andes_fdt_reserved_memory_fixup(fdt, &pma_regions[i], j++);
++		ret = andes_fdt_reserved_memory_fixup(fdt,
++						      &pma_regions[i],
++						      j++);
+ 		if (ret)
+ 			return ret;
+ 	}
+diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
+index bbc09cd..5ea1247 100644
+--- a/platform/generic/include/andes/andes_pma.h
++++ b/platform/generic/include/andes/andes_pma.h
+@@ -10,6 +10,8 @@
+ 
+ #define ANDES_MAX_PMA_REGIONS			16
+ 
++#define ANDES_PMA_GRANULARITY			(1 << 12)
++
+ /* Naturally aligned power of 2 region */
+ #define ANDES_PMACFG_ETYP_NAPOT			3
+ 
+-- 
+2.34.1
+
 
