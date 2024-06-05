@@ -1,40 +1,60 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed,  5 Jun 2024 12:00:14 +0530
-Subject: [PATCH] lib: utils/fdt: Fix DT property for APLIC delegation
-Message-ID: <20240605063014.2255006-1-apatel@ventanamicro.com>
+From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+Date: Wed,  5 Jun 2024 20:11:08 +0800
+Subject: [PATCH v4 0/2] Add Svade and Svadu extensions support
+Message-ID: <20240605121110.14784-1-yongxuan.wang@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-During Linux AIA driver review, the APLIC DT property for interrupt
-delegation was renamed to "riscv,delegation" so let's use the new DT
-property name and fallback to old DT property name if the new DT
-property name is not available.
+This series enables Svade and Svadu extensions support by configuring the
+menvcfg CSR. Both of them control the hardware behavior when the PTE A/D
+bits need to be set. Regrading the mailing thread[1], we have 4 possible
+combinations of these extensions in the device tree, OpenSBI should
+modifiy DT to specify the current hardware behavior before we have SBI
+FWFT extension. The 4 possibilities are:
 
-Fixes: 34612193af92 ("lib: utils/irqchip: Add FDT based driver for APLIC")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+1. Neither svade nor svadu in DT: default to svade.
+2. Only svade in DT: use svade.
+3. Only svadu in DT: use svadu.
+4. Both svade and svadu in DT: default to svade.
+
+This series also add a FDT fixup patch to remove Svadu when both
+extensions are present in DT.
+
+[1] https://lore.kernel.org/linux-kernel/20240527-e9845c06619bca5cd285098c at orel/T/#m29644eb88e241ec282df4ccd5199514e913b06ee
+
 ---
- lib/utils/fdt/fdt_helper.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+v4:
+- Add the Svade and Svadu support
+- Add a FDT fixup patch (Alexandre)
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index a0e93b9..9a945af 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -720,7 +720,9 @@ aplic_msi_parent_done:
- 		deleg->child_index = 0;
- 	}
- 
--	del = fdt_getprop(fdt, nodeoff, "riscv,delegate", &len);
-+	del = fdt_getprop(fdt, nodeoff, "riscv,delegation", &len);
-+	if (!del)
-+		del = fdt_getprop(fdt, nodeoff, "riscv,delegate", &len);
- 	if (!del || len < (3 * sizeof(fdt32_t)))
- 		goto skip_delegate_parse;
- 	d = 0;
+v3:
+- Remove the Svadu patch
+- Rebase to the latest OpenSBI
+
+v2:
+- Rearrange the patches to do the code refactoring first before adding
+  new features
+- Suggested by Anup and Atish, detect extensions from DT instead of
+  menvcfg CSR
+- Enable access to some extensions through menvcfg CSR if they are
+  present in the device tree.
+
+
+
+Yong-Xuan Wang (2):
+  lib: sbi: Add support for Svade and Svadu extensions
+  lib: utils/fdt: fixup DT when both Svade and Svadu are in DT
+
+ include/sbi/riscv_encoding.h |  1 +
+ include/sbi/sbi_hart.h       |  4 ++
+ lib/sbi/sbi_hart.c           | 12 ++++++
+ lib/utils/fdt/fdt_fixup.c    | 71 +++++++++++++++++++++++++++++++++++-
+ 4 files changed, 86 insertions(+), 2 deletions(-)
+
 -- 
-2.34.1
+2.17.1
 
 
