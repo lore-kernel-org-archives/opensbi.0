@@ -1,39 +1,49 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu,  6 Jun 2024 17:17:13 +0800
-Subject: [PATCH 1/4] include: sbi_utils: fixup fdt_get_address
+Date: Thu,  6 Jun 2024 17:17:16 +0800
+Subject: [PATCH 4/4] lib: sbi: Initialize the console as early as possible
 In-Reply-To: <20240606091723.896477-1-wxjstz@126.com>
 References: <20240606091723.896477-1-wxjstz@126.com>
-Message-ID: <20240606091723.896477-2-wxjstz@126.com>
+Message-ID: <20240606091723.896477-5-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-root.next_arg1 will be NULL before sbi_domain_init, which will cause
-fdt address to be NULL before sbi_domain is initialized. This patch
-fixes this.
+Move console initialization to the front of init_coldboot so that
+more information can be output
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi_utils/fdt/fdt_helper.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_init.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index ab4a80f..67e6dc7 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -116,7 +116,9 @@ int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 389172a..b14cd03 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -214,6 +214,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	unsigned long *count;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
- static inline void *fdt_get_address(void)
- {
--	return (void *)root.next_arg1;
-+	if (root.next_arg1)
-+		return (void *)root.next_arg1;
-+	return sbi_scratch_thishart_arg1_ptr();
- }
++	rc = sbi_console_init(scratch);
++	if (rc)
++		sbi_hart_hang();
++
+ 	/* Note: This has to be first thing in coldboot init sequence */
+ 	rc = sbi_scratch_init(scratch);
+ 	if (rc)
+@@ -260,10 +264,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	if (rc)
+ 		sbi_hart_hang();
  
- #endif /* __FDT_HELPER_H__ */
+-	rc = sbi_console_init(scratch);
+-	if (rc)
+-		sbi_hart_hang();
+-
+ 	rc = sbi_sse_init(scratch, true);
+ 	if (rc) {
+ 		sbi_printf("%s: sse init failed (error %d)\n", __func__, rc);
 -- 
 2.43.0
 
