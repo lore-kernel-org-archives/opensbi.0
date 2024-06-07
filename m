@@ -1,35 +1,67 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu,  6 Jun 2024 17:17:12 +0800
-Subject: [PATCH 0/4] Initialize the console as early as possible
-Message-ID: <20240606091723.896477-1-wxjstz@126.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 7 Jun 2024 19:39:28 +0800
+Subject: [PATCH] sbi: sbi_domain_context: Fix trap context for domain context switching
+Message-ID: <20240607113928.1241938-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Initializing the console as early as possible can output more useful
-information. This series of patches is used to initialize the console
-as early as possible.
+Save/restore sbi_trap_context during domain context switching to
+ensure proper trap handling and isolation. This maintains correct
+domain-specific state, avoiding context corruption.
 
-This series of patches is based on a previous patch
-http://lists.infradead.org/pipermail/opensbi/2024-May/006960.html
+Fixes: abea949721bc ("lib: sbi: Introduce trap context")
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Alvin Chang <alvinga@andestech.com>
+Tested-by: Alvin Chang <alvinga@andestech.com>
+---
+ include/sbi/sbi_domain_context.h | 2 +-
+ lib/sbi/sbi_domain_context.c     | 9 ++++-----
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-Xiang W (4):
-  include: sbi_utils: fixup fdt_get_address
-  lib: sbi: Add domains_init to sbi_console_device
-  lib: utils/serial: add domains_init for 8250
-  lib: sbi: Initialize the console as early as possible
-
- include/sbi/sbi_console.h           |  3 +++
- include/sbi_utils/fdt/fdt_helper.h  |  4 +++-
- include/sbi_utils/serial/uart8250.h |  1 +
- lib/sbi/sbi_domain.c                | 10 ++++++++++
- lib/sbi/sbi_init.c                  |  8 ++++----
- lib/utils/serial/uart8250.c         | 28 +++++++++++++++++++---------
- 6 files changed, 40 insertions(+), 14 deletions(-)
-
+diff --git a/include/sbi/sbi_domain_context.h b/include/sbi/sbi_domain_context.h
+index edba764f..0d25884a 100755
+--- a/include/sbi/sbi_domain_context.h
++++ b/include/sbi/sbi_domain_context.h
+@@ -14,7 +14,7 @@
+ /** Context representation for a hart within a domain */
+ struct sbi_context {
+ 	/** Trap-related states such as GPRs, mepc, and mstatus */
+-	struct sbi_trap_regs regs;
++	struct sbi_trap_context trap_ctx;
+ 
+ 	/** Supervisor status register */
+ 	unsigned long sstatus;
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 75285918..49a2f769 100755
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -27,7 +27,7 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 					  struct sbi_context *dom_ctx)
+ {
+ 	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+-	struct sbi_trap_regs *trap_regs;
++	struct sbi_trap_context *trap_ctx;
+ 	struct sbi_domain *current_dom = ctx->dom;
+ 	struct sbi_domain *target_dom = dom_ctx->dom;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+@@ -66,10 +66,9 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
+ 
+ 	/* Save current trap state and restore target domain's trap state */
+-	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
+-					     SBI_TRAP_REGS_SIZE);
+-	sbi_memcpy(&ctx->regs, trap_regs, sizeof(*trap_regs));
+-	sbi_memcpy(trap_regs, &dom_ctx->regs, sizeof(*trap_regs));
++	trap_ctx = sbi_trap_get_context(scratch);
++	sbi_memcpy(&ctx->trap_ctx, trap_ctx, sizeof(*trap_ctx));
++	sbi_memcpy(trap_ctx, &dom_ctx->trap_ctx, sizeof(*trap_ctx));
+ 
+ 	/* Mark current context structure initialized because context saved */
+ 	ctx->initialized = true;
 -- 
-2.43.0
+2.34.1
 
 
