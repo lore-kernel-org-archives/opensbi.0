@@ -1,103 +1,137 @@
-From: Christoph Müllner <christoph.muellner@vrull.eu>
-Date: Mon, 10 Jun 2024 12:42:02 +0200
-Subject: [PATCH 0/9] T-Head: Allow read access to th.mxstatus CSR
-In-Reply-To: <CAAhSdy2qpEqcoUD8f6R34kJCTtctyg3ukvCMC6=4homvAzeACw@mail.gmail.com>
-References: <20240327101137.3644359-1-christoph.muellner@vrull.eu> <CAAhSdy2qpEqcoUD8f6R34kJCTtctyg3ukvCMC6=4homvAzeACw@mail.gmail.com>
-Message-ID: <CAEg0e7hvShNLmmqCxYw4xBCYf-hrgMNivyGbWFW6MZzSXK9-Ow@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 10 Jun 2024 16:25:14 +0530
+Subject: [RFC PATCH 4/4] lib: sbi: add support for the Smdbltrp extension
+In-Reply-To: <20240418135421.1452709-5-cleger@rivosinc.com>
+References: <20240418135421.1452709-1-cleger@rivosinc.com> <20240418135421.1452709-5-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1J-PjFgBzzfjqEPgeE70HvpghX-M8G-BFrtSOucPDYkg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 10, 2024 at 12:28?PM Anup Patel <anup@brainfault.org> wrote:
+On Thu, Apr 18, 2024 at 7:25?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Hi Christoph,
+> Add support for the Smdbltrp[1]. Fuirst thing to do is clearing MDT on
+> entry after setting the first MTVEC (since MDT is reste to 1).
+> Additionnaly, during trap handling, clear MDT once all critical CSRs
+> have been saved and in return path, restore MSTATUS before restoring
+> MEPC to avoid taking another trap which would clobber it.
 >
-> On Wed, Mar 27, 2024 at 3:41?PM Christoph M?llner
-> <christoph.muellner@vrull.eu> wrote:
-> >
-> > On T-Head C9xx harts, the th.mxstatus CSR provides valuable information
-> > about the available vendor extensions. As this CSR is only accessible in
-> > M-mode, we need to provide a mechanism for other modes to access this
-> > information. This patchset solves this by extending the existing
-> > platform abstraction such that platforms (or platform overrides)
-> > can provide a CSR read/write handler.
-> >
-> > A CSR read-handler for th.mxstatus is then added that is utilized by
-> > the Allwinner D1, the T-Head TH1520, and the Sophgo SG2042.
-> > Further, a generic mvendorid-based platform override is added that also
-> > enables the CSR read-handler for th.mxstatus (needed for QEMU).
-> >
-> > The CSR is documented here:
-> >   https://github.com/T-head-Semi/thead-extension-spec/pull/45
-> >
-> > For QEMU this patch depends on
-> >   https://lists.gnu.org/archive/html/qemu-devel/2024-03/msg06368.html
-> >
-> > Christoph M?llner (9):
-> >   sbi_platform: Add mechanism to handle CSR reads/writes in platform
-> >   platform: generic: Add mechanism to handle CSR reads/writes in
-> >     overrides
-> >   lib: sbi_emulate_csr: Utilize platform hooks for unknown CSRs
-> >   platform: generic: thead: Add CSR read handler for T-Head C9xx
-> >   {allwinner/sun20i-d1,sophgo/sg2042,thead-generic}: Enable T-Head CSR
-> >     read access
-> >   platform: thead: Rename thead-generic to thead-th1520
-> >   platform: generic: Add mechanism to match via mvendorid
-> >   platform: generic: thead: Add definition of T-Head's vendor ID
-> >   platform: generic: Add generic T-Head override
+> Link: https://github.com/riscv/riscv-double-trap/releases/download/v0.56/riscv-double-trap.pdf [1]
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> ---
+>  firmware/fw_base.S           | 29 ++++++++++++++++++++++++++---
+>  include/sbi/riscv_encoding.h |  2 ++
+>  2 files changed, 28 insertions(+), 3 deletions(-)
 >
-> There is no activity on this series so I assume it is abandoned.
-
-Yes, this can be abandoned.
-
-> My only comment is that exposing M-mode CSRs to S-mode via
-> CSR trap-n-emulate has been discouraged. If you really require
-> to expose read-only information to supervisor software then prefer
-> DT/ACPI.
-
-Besides th.mxstatus there is also th.sxstatus to access the same
-information from S-mode. So, no need to access th.mxstatus from Linux
-anymore and thus no need for this series.
-
-And yes, exposing the vendor extensions implied by that CSR bit
-via DT/ACPI would be the better approach.
-
-Thanks,
-Christoph
-
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 9f995a2..cd71ef4 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -31,6 +31,16 @@
+>         add     \__d4, \__s4, zero
+>  .endm
 >
-> Regards,
-> Anup
+> +.macro CLEAR_MDT tmp, have_mstatush
+> +       .if \have_mstatush
+> +       li      \tmp, MSTATUSH_MDT
+> +       csrc    CSR_MSTATUSH, \tmp
+> +       .else
+> +       li      \tmp, MSTATUS_MDT
+> +       csrc    CSR_MSTATUS, \tmp
+> +       .endif
+> +.endm
+> +
+>         .section .entry, "ax", %progbits
+>         .align 3
+>         .globl _start
+> @@ -89,6 +99,13 @@ _bss_zero:
+>         lla     s4, _start_hang
+>         csrw    CSR_MTVEC, s4
 >
-> >
-> >  include/sbi/sbi_platform.h                    | 48 +++++++++++++++
-> >  lib/sbi/sbi_emulate_csr.c                     |  8 ++-
-> >  platform/generic/Kconfig                      | 12 +++-
-> >  platform/generic/allwinner/sun20i-d1.c        |  2 +
-> >  platform/generic/configs/defconfig            |  3 +-
-> >  platform/generic/include/platform_override.h  |  5 ++
-> >  platform/generic/include/thead/c9xx_csr.h     | 16 +++++
-> >  .../generic/include/thead/c9xx_encoding.h     |  2 +
-> >  platform/generic/platform.c                   | 58 ++++++++++++++++++-
-> >  platform/generic/sophgo/sg2042.c              |  2 +
-> >  platform/generic/thead/Kconfig                |  4 ++
-> >  platform/generic/thead/objects.mk             |  9 ++-
-> >  platform/generic/thead/thead-generic.c        | 42 +++-----------
-> >  platform/generic/thead/thead-th1520.c         | 55 ++++++++++++++++++
-> >  platform/generic/thead/thead_c9xx_csr.c       | 30 ++++++++++
-> >  15 files changed, 252 insertions(+), 44 deletions(-)
-> >  create mode 100644 platform/generic/include/thead/c9xx_csr.h
-> >  create mode 100644 platform/generic/thead/thead-th1520.c
-> >  create mode 100644 platform/generic/thead/thead_c9xx_csr.c
-> >
-> > --
-> > 2.44.0
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> +       /* We are now ready to take a trap, clear MDT */
+> +#if __riscv_xlen > 32
+> +       CLEAR_MDT t0, 0
+> +#else
+> +       CLEAR_MDT t0, 1
+> +#endif
+> +
+
+This should be done just before calling sbi_init() so that
+we clear MDT even when the CPU is power-down and
+power-up at runtime.
+
+>         /* Setup temporary stack */
+>         lla     s4, _fw_end
+>         li      s5, (SBI_SCRATCH_SIZE * 2)
+> @@ -555,6 +572,9 @@ memcmp:
+>         li      t0, 0
+>  .endif
+>         REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
+> +
+> +       /* We are ready to take another trap, clear MDT */
+> +       CLEAR_MDT t0, \have_mstatush
+
+Better to do this in TRAP_CALL_C_ROUTINE() before entering
+sbi_trap_handler().
+
+>  .endm
+>
+>  .macro TRAP_CALL_C_ROUTINE
+> @@ -597,15 +617,18 @@ memcmp:
+>  .endm
+>
+>  .macro TRAP_RESTORE_MEPC_MSTATUS have_mstatush
+> -       /* Restore MEPC and MSTATUS CSRs */
+> -       REG_L   t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
+> -       csrw    CSR_MEPC, t0
+> +       /*
+> +        * Restore MSTATUS and MEPC CSRs starting with MSTATUS to set MDT
+> +        * flags since we can not take a trap now or MEPC would be cloberred
+
+s/cloberred/clobbered/
+
+> +        */
+>         REG_L   t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
+>         csrw    CSR_MSTATUS, t0
+>         .if \have_mstatush
+>         REG_L   t0, SBI_TRAP_REGS_OFFSET(mstatusH)(a0)
+>         csrw    CSR_MSTATUSH, t0
+>         .endif
+> +       REG_L   t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
+> +       csrw    CSR_MEPC, t0
+>  .endm
+>
+>  .macro TRAP_RESTORE_A0_T0
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 8628e5a..eed28f2 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -42,12 +42,14 @@
+>  #define MSTATUS_GVA                    _ULL(0x0000004000000000)
+>  #define MSTATUS_GVA_SHIFT              38
+>  #define MSTATUS_MPV                    _ULL(0x0000008000000000)
+> +#define MSTATUS_MDT                    _ULL(0x0000200000000000)
+>  #else
+>  #define MSTATUSH_SBE                   _UL(0x00000010)
+>  #define MSTATUSH_MBE                   _UL(0x00000020)
+>  #define MSTATUSH_GVA                   _UL(0x00000040)
+>  #define MSTATUSH_GVA_SHIFT             6
+>  #define MSTATUSH_MPV                   _UL(0x00000080)
+> +#define MSTATUSH_MDT                   _UL(0x00002000)
+>  #endif
+>  #define MSTATUS32_SD                   _UL(0x80000000)
+>  #define MSTATUS64_SD                   _ULL(0x8000000000000000)
+> --
+> 2.43.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Anup
 
