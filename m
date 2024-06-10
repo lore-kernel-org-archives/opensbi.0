@@ -1,9 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 10 Jun 2024 16:25:14 +0530
-Subject: [RFC PATCH 4/4] lib: sbi: add support for the Smdbltrp extension
-In-Reply-To: <20240418135421.1452709-5-cleger@rivosinc.com>
-References: <20240418135421.1452709-1-cleger@rivosinc.com> <20240418135421.1452709-5-cleger@rivosinc.com>
-Message-ID: <CAAhSdy1J-PjFgBzzfjqEPgeE70HvpghX-M8G-BFrtSOucPDYkg@mail.gmail.com>
+Date: Mon, 10 Jun 2024 16:26:04 +0530
+Subject: [RFC PATCH 1/4] lib: sbi: factorize previous virtualization mode
+ read from regs
+In-Reply-To: <20240418135421.1452709-2-cleger@rivosinc.com>
+References: <20240418135421.1452709-1-cleger@rivosinc.com> <20240418135421.1452709-2-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1kjFAoYu_mMZ3RguQ0agcOv-bJ_mnv9185dTGHTAdXug@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,117 +13,91 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Apr 18, 2024 at 7:25?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Add support for the Smdbltrp[1]. Fuirst thing to do is clearing MDT on
-> entry after setting the first MTVEC (since MDT is reste to 1).
-> Additionnaly, during trap handling, clear MDT once all critical CSRs
-> have been saved and in return path, restore MSTATUS before restoring
-> MEPC to avoid taking another trap which would clobber it.
+> The same pattern is used at multiple places to verify in which mode
+> the exception was actually taken. Factorize it.
 >
-> Link: https://github.com/riscv/riscv-double-trap/releases/download/v0.56/riscv-double-trap.pdf [1]
 > Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+
+LGTM.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
->  firmware/fw_base.S           | 29 ++++++++++++++++++++++++++---
->  include/sbi/riscv_encoding.h |  2 ++
->  2 files changed, 28 insertions(+), 3 deletions(-)
+>  include/sbi/sbi_trap.h    |  9 +++++++++
+>  lib/sbi/sbi_emulate_csr.c | 12 ++----------
+>  lib/sbi/sbi_trap.c        |  6 +-----
+>  3 files changed, 12 insertions(+), 15 deletions(-)
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index 9f995a2..cd71ef4 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -31,6 +31,16 @@
->         add     \__d4, \__s4, zero
->  .endm
->
-> +.macro CLEAR_MDT tmp, have_mstatush
-> +       .if \have_mstatush
-> +       li      \tmp, MSTATUSH_MDT
-> +       csrc    CSR_MSTATUSH, \tmp
-> +       .else
-> +       li      \tmp, MSTATUS_MDT
-> +       csrc    CSR_MSTATUS, \tmp
-> +       .endif
-> +.endm
-> +
->         .section .entry, "ax", %progbits
->         .align 3
->         .globl _start
-> @@ -89,6 +99,13 @@ _bss_zero:
->         lla     s4, _start_hang
->         csrw    CSR_MTVEC, s4
->
-> +       /* We are now ready to take a trap, clear MDT */
-> +#if __riscv_xlen > 32
-> +       CLEAR_MDT t0, 0
-> +#else
-> +       CLEAR_MDT t0, 1
-> +#endif
-> +
-
-This should be done just before calling sbi_init() so that
-we clear MDT even when the CPU is power-down and
-power-up at runtime.
-
->         /* Setup temporary stack */
->         lla     s4, _fw_end
->         li      s5, (SBI_SCRATCH_SIZE * 2)
-> @@ -555,6 +572,9 @@ memcmp:
->         li      t0, 0
->  .endif
->         REG_S   t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
-> +
-> +       /* We are ready to take another trap, clear MDT */
-> +       CLEAR_MDT t0, \have_mstatush
-
-Better to do this in TRAP_CALL_C_ROUTINE() before entering
-sbi_trap_handler().
-
->  .endm
->
->  .macro TRAP_CALL_C_ROUTINE
-> @@ -597,15 +617,18 @@ memcmp:
->  .endm
->
->  .macro TRAP_RESTORE_MEPC_MSTATUS have_mstatush
-> -       /* Restore MEPC and MSTATUS CSRs */
-> -       REG_L   t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-> -       csrw    CSR_MEPC, t0
-> +       /*
-> +        * Restore MSTATUS and MEPC CSRs starting with MSTATUS to set MDT
-> +        * flags since we can not take a trap now or MEPC would be cloberred
-
-s/cloberred/clobbered/
-
-> +        */
->         REG_L   t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
->         csrw    CSR_MSTATUS, t0
->         .if \have_mstatush
->         REG_L   t0, SBI_TRAP_REGS_OFFSET(mstatusH)(a0)
->         csrw    CSR_MSTATUSH, t0
->         .endif
-> +       REG_L   t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-> +       csrw    CSR_MEPC, t0
->  .endm
->
->  .macro TRAP_RESTORE_A0_T0
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 8628e5a..eed28f2 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -42,12 +42,14 @@
->  #define MSTATUS_GVA                    _ULL(0x0000004000000000)
->  #define MSTATUS_GVA_SHIFT              38
->  #define MSTATUS_MPV                    _ULL(0x0000008000000000)
-> +#define MSTATUS_MDT                    _ULL(0x0000200000000000)
->  #else
->  #define MSTATUSH_SBE                   _UL(0x00000010)
->  #define MSTATUSH_MBE                   _UL(0x00000020)
->  #define MSTATUSH_GVA                   _UL(0x00000040)
->  #define MSTATUSH_GVA_SHIFT             6
->  #define MSTATUSH_MPV                   _UL(0x00000080)
-> +#define MSTATUSH_MDT                   _UL(0x00002000)
+> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+> index f7c170e..b0c47ce 100644
+> --- a/include/sbi/sbi_trap.h
+> +++ b/include/sbi/sbi_trap.h
+> @@ -236,6 +236,15 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
 >  #endif
->  #define MSTATUS32_SD                   _UL(0x80000000)
->  #define MSTATUS64_SD                   _ULL(0x8000000000000000)
+>  }
+>
+> +static inline bool sbi_regs_from_virt(const struct sbi_trap_regs *regs)
+> +{
+> +#if __riscv_xlen == 32
+> +       return (regs->mstatusH & MSTATUSH_MPV) ? true : false;
+> +#else
+> +       return (regs->mstatus & MSTATUS_MPV) ? true : false;
+> +#endif
+> +}
+> +
+>  int sbi_trap_redirect(struct sbi_trap_regs *regs,
+>                       const struct sbi_trap_info *trap);
+>
+> diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
+> index 5f3b111..4036946 100644
+> --- a/lib/sbi/sbi_emulate_csr.c
+> +++ b/lib/sbi/sbi_emulate_csr.c
+> @@ -48,11 +48,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+>         int ret = 0;
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> -#if __riscv_xlen == 32
+> -       bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
+> -#else
+> -       bool virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
+> -#endif
+> +       bool virt = sbi_regs_from_virt(regs);
+>
+>         switch (csr_num) {
+>         case CSR_HTIMEDELTA:
+> @@ -163,11 +159,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+>  {
+>         int ret = 0;
+>         ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> -#if __riscv_xlen == 32
+> -       bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
+> -#else
+> -       bool virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
+> -#endif
+> +       bool virt = sbi_regs_from_virt(regs);
+>
+>         switch (csr_num) {
+>         case CSR_HTIMEDELTA:
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index b4f3a17..8bd2183 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -103,11 +103,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+>                       const struct sbi_trap_info *trap)
+>  {
+>         ulong hstatus, vsstatus, prev_mode;
+> -#if __riscv_xlen == 32
+> -       bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
+> -#else
+> -       bool prev_virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
+> -#endif
+> +       bool prev_virt = sbi_regs_from_virt(regs);
+>         /* By default, we redirect to HS-mode */
+>         bool next_virt = false;
+>
 > --
 > 2.43.0
 >
@@ -131,7 +106,4 @@ s/cloberred/clobbered/
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Regards,
-Anup
 
