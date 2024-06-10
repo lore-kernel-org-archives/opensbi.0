@@ -1,56 +1,88 @@
-From: Gabriel Somlo <gsomlo@gmail.com>
-Date: Fri,  7 Jun 2024 14:23:42 -0400
-Subject: [PATCH] lib: serial: fix RX path in litex-uart
-Message-ID: <20240607182342.117143-1-gsomlo@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 10 Jun 2024 15:58:24 +0530
+Subject: [PATCH 0/9] T-Head: Allow read access to th.mxstatus CSR
+In-Reply-To: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
+References: <20240327101137.3644359-1-christoph.muellner@vrull.eu>
+Message-ID: <CAAhSdy2qpEqcoUD8f6R34kJCTtctyg3ukvCMC6=4homvAzeACw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When used to read characters from the terminal (e.g., when the SBI
-console is used via ecall from linux with `console=hvc0`), we must
-acknowledge receipt of each character to "pop" it off the LiteUART
-hardware queue, and allow the next character to be made available.
+Hi Christoph,
 
-Fixes: 52af6e4b ("lib: utils: Add LiteX UART support")
-Suggested-by: Dolu1990 <charles.papon.90@gmail.com>
-Signed-off-by: Gabriel Somlo <gsomlo@gmail.com>
----
- lib/utils/serial/litex-uart.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+On Wed, Mar 27, 2024 at 3:41?PM Christoph M?llner
+<christoph.muellner@vrull.eu> wrote:
+>
+> On T-Head C9xx harts, the th.mxstatus CSR provides valuable information
+> about the available vendor extensions. As this CSR is only accessible in
+> M-mode, we need to provide a mechanism for other modes to access this
+> information. This patchset solves this by extending the existing
+> platform abstraction such that platforms (or platform overrides)
+> can provide a CSR read/write handler.
+>
+> A CSR read-handler for th.mxstatus is then added that is utilized by
+> the Allwinner D1, the T-Head TH1520, and the Sophgo SG2042.
+> Further, a generic mvendorid-based platform override is added that also
+> enables the CSR read-handler for th.mxstatus (needed for QEMU).
+>
+> The CSR is documented here:
+>   https://github.com/T-head-Semi/thead-extension-spec/pull/45
+>
+> For QEMU this patch depends on
+>   https://lists.gnu.org/archive/html/qemu-devel/2024-03/msg06368.html
+>
+> Christoph M?llner (9):
+>   sbi_platform: Add mechanism to handle CSR reads/writes in platform
+>   platform: generic: Add mechanism to handle CSR reads/writes in
+>     overrides
+>   lib: sbi_emulate_csr: Utilize platform hooks for unknown CSRs
+>   platform: generic: thead: Add CSR read handler for T-Head C9xx
+>   {allwinner/sun20i-d1,sophgo/sg2042,thead-generic}: Enable T-Head CSR
+>     read access
+>   platform: thead: Rename thead-generic to thead-th1520
+>   platform: generic: Add mechanism to match via mvendorid
+>   platform: generic: thead: Add definition of T-Head's vendor ID
+>   platform: generic: Add generic T-Head override
 
-diff --git a/lib/utils/serial/litex-uart.c b/lib/utils/serial/litex-uart.c
-index f843bf3..caf8699 100644
---- a/lib/utils/serial/litex-uart.c
-+++ b/lib/utils/serial/litex-uart.c
-@@ -20,6 +20,8 @@
- #define UART_REG_EV_PENDING	4
- #define UART_REG_EV_ENABLE	5
- 
-+#define UART_EV_RX		0x2
-+
- /* clang-format on */
- 
- static volatile u32 *uart_base;
-@@ -42,10 +44,14 @@ static void litex_uart_putc(char ch)
- 
- static int litex_uart_getc(void)
- {
-+	int ret;
-+
- 	if (get_reg(UART_REG_RXEMPTY))
- 		return -1;
--	else
--		return get_reg(UART_REG_RXTX);
-+
-+	ret = get_reg(UART_REG_RXTX);
-+	set_reg(UART_REG_EV_PENDING, UART_EV_RX); /* ack. char read */
-+	return ret;
- }
- 
- static struct sbi_console_device litex_console = {
--- 
-2.45.1
+There is no activity on this series so I assume it is abandoned.
 
+My only comment is that exposing M-mode CSRs to S-mode via
+CSR trap-n-emulate has been discouraged. If you really require
+to expose read-only information to supervisor software then prefer
+DT/ACPI.
+
+Regards,
+Anup
+
+>
+>  include/sbi/sbi_platform.h                    | 48 +++++++++++++++
+>  lib/sbi/sbi_emulate_csr.c                     |  8 ++-
+>  platform/generic/Kconfig                      | 12 +++-
+>  platform/generic/allwinner/sun20i-d1.c        |  2 +
+>  platform/generic/configs/defconfig            |  3 +-
+>  platform/generic/include/platform_override.h  |  5 ++
+>  platform/generic/include/thead/c9xx_csr.h     | 16 +++++
+>  .../generic/include/thead/c9xx_encoding.h     |  2 +
+>  platform/generic/platform.c                   | 58 ++++++++++++++++++-
+>  platform/generic/sophgo/sg2042.c              |  2 +
+>  platform/generic/thead/Kconfig                |  4 ++
+>  platform/generic/thead/objects.mk             |  9 ++-
+>  platform/generic/thead/thead-generic.c        | 42 +++-----------
+>  platform/generic/thead/thead-th1520.c         | 55 ++++++++++++++++++
+>  platform/generic/thead/thead_c9xx_csr.c       | 30 ++++++++++
+>  15 files changed, 252 insertions(+), 44 deletions(-)
+>  create mode 100644 platform/generic/include/thead/c9xx_csr.h
+>  create mode 100644 platform/generic/thead/thead-th1520.c
+>  create mode 100644 platform/generic/thead/thead_c9xx_csr.c
+>
+> --
+> 2.44.0
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
