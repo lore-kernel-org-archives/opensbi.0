@@ -1,58 +1,37 @@
 From: Xiang W <wxjstz@126.com>
-Date: Tue, 11 Jun 2024 19:19:34 +0800
-Subject: [PATCH 7/7] lib: utils/reset: Fix fdt_reset to search for more dt nodes
+Date: Tue, 11 Jun 2024 19:19:29 +0800
+Subject: [PATCH 2/7] lib: utils/timer: Skip initialize timer when dt is not enabled
 In-Reply-To: <20240611111937.1459876-1-wxjstz@126.com>
 References: <20240611111937.1459876-1-wxjstz@126.com>
-Message-ID: <20240611111937.1459876-8-wxjstz@126.com>
+Message-ID: <20240611111937.1459876-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If there are multiple dt nodes, the previous code only tries to match
-the first one, which may lose initialization.
+When the dt node has a status property and the value is not ok or
+okay, skip initializing timer.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/utils/reset/fdt_reset.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ lib/utils/timer/fdt_timer.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/lib/utils/reset/fdt_reset.c b/lib/utils/reset/fdt_reset.c
-index 327fb99..df67da1 100644
---- a/lib/utils/reset/fdt_reset.c
-+++ b/lib/utils/reset/fdt_reset.c
-@@ -22,18 +22,18 @@ int fdt_reset_driver_init(void *fdt, struct fdt_reset *drv)
- 	int noff, rc = SBI_ENODEV;
- 	const struct fdt_match *match;
- 
--	noff = fdt_find_match(fdt, -1, drv->match_table, &match);
--	if (noff < 0)
--		return SBI_ENODEV;
--
--	if (!fdt_node_is_enabled(fdt, noff))
--		return SBI_ENODEV;
--
--	if (drv->init) {
--		rc = drv->init(fdt, noff, match);
--		if (rc && rc != SBI_ENODEV) {
--			sbi_printf("%s: %s init failed, %d\n",
--				   __func__, match->compatible, rc);
-+	noff = -1;
-+	while ((noff = fdt_find_match(fdt, noff,
-+				drv->match_table, &match)) >= 0) {
-+		if (!fdt_node_is_enabled(fdt, noff))
-+			continue;
+diff --git a/lib/utils/timer/fdt_timer.c b/lib/utils/timer/fdt_timer.c
+index 62426a7..f468730 100644
+--- a/lib/utils/timer/fdt_timer.c
++++ b/lib/utils/timer/fdt_timer.c
+@@ -44,6 +44,9 @@ static int fdt_timer_cold_init(void)
+ 		noff = -1;
+ 		while ((noff = fdt_find_match(fdt, noff,
+ 					drv->match_table, &match)) >= 0) {
++			if (!fdt_node_is_enabled(fdt, noff))
++				continue;
 +
-+		if (drv->init) {
-+			rc = drv->init(fdt, noff, match);
-+			if (rc && rc != SBI_ENODEV) {
-+				sbi_printf("%s: %s init failed, %d\n",
-+					__func__, match->compatible, rc);
-+			}
- 		}
- 	}
- 
+ 			/* drv->cold_init must not be NULL */
+ 			if (drv->cold_init == NULL)
+ 				return SBI_EFAIL;
 -- 
 2.43.0
 
