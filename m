@@ -1,65 +1,37 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 11 Jun 2024 19:31:53 +0800
-Subject: [PATCH] lib: utils/fdt: fdt_find_match skip disabled node
-In-Reply-To: <CAAhSdy2RBfzk2i5s3bcOfrf8OVP0tZe_K=9FyEvdC-rqrBONOw@mail.gmail.com>
-References: <20240527015627.629207-1-wxjstz@126.com>
-	 <CAAhSdy2RBfzk2i5s3bcOfrf8OVP0tZe_K=9FyEvdC-rqrBONOw@mail.gmail.com>
-Message-ID: <1508ae4c9b37db34e7599d263e74db5aeb3538a6.camel@126.com>
+From: Yong Li <yong.li@intel.com>
+Date: Wed, 12 Jun 2024 11:24:28 +0800
+Subject: [PATCH] lib:sbi fix the trap_regs point misalignment issue
+Message-ID: <477b211d01c6f1cefb8b38adac4f41dc00c358fd.1718162420.git.yong.li@intel.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-06-11???? 14:32 +0530?Anup Patel???
-> On Mon, May 27, 2024 at 7:26?AM Xiang W <wxjstz@126.com> wrote:
-> > 
-> > Some node in devicetree are disabled and need to be skipped during
-> > initialization.
-> 
-> The fdt_find_match() only finds matching DT nodes irrespective
-> of the status of the DT node.
-> 
-> Instead of changing the behavior of fdt_find_match(), the
-> fdt_node_is_enabled() should be called separately by individual
-> driver frameworks.
-Thanks for review.
+This is to make the trap_regs pointer consistant with the one in
+CSR_MSCRATCH, in which a new sbi_trap_info and sbi_trap_context
+were introduced which caused the regression issue in domain context
 
-New patch at:
-https://patchwork.ozlabs.org/project/opensbi/list/?series=410357
+Cc: Yu Chien Peter Lin <peterlin@andestech.com>
+Signed-off-by: Yong Li <yong.li@intel.com>
+---
+ lib/sbi/sbi_domain_context.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-Xiang W
-> 
-> Regards,
-> Anup
-> 
-> > 
-> > Signed-off-by: Xiang W <wxjstz@126.com>
-> > ---
-> > ?lib/utils/fdt/fdt_helper.c | 8 +++++---
-> > ?1 file changed, 5 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> > index a0e93b9..ef627b7 100644
-> > --- a/lib/utils/fdt/fdt_helper.c
-> > +++ b/lib/utils/fdt/fdt_helper.c
-> > @@ -65,9 +65,11 @@ int fdt_find_match(void *fdt, int startoff,
-> > ??????????????? nodeoff = fdt_node_offset_by_compatible(fdt, startoff,
-> > ??????????????????????????????????????????????? match_table->compatible);
-> > ??????????????? if (nodeoff >= 0) {
-> > -?????????????????????? if (out_match)
-> > -?????????????????????????????? *out_match = match_table;
-> > -?????????????????????? return nodeoff;
-> > +?????????????????????? if (fdt_node_is_enabled(fdt, nodeoff)) {
-> > +?????????????????????????????? if (out_match)
-> > +?????????????????????????????????????? *out_match = match_table;
-> > +?????????????????????????????? return nodeoff;
-> > +?????????????????????? }
-> > ??????????????? }
-> > ??????????????? match_table++;
-> > ??????? }
-> > --
-> > 2.43.0
-> > 
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 7528591..5a8f616 100755
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -67,7 +67,7 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+ 
+ 	/* Save current trap state and restore target domain's trap state */
+ 	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
+-					     SBI_TRAP_REGS_SIZE);
++					     SBI_TRAP_CONTEXT_SIZE);
+ 	sbi_memcpy(&ctx->regs, trap_regs, sizeof(*trap_regs));
+ 	sbi_memcpy(trap_regs, &dom_ctx->regs, sizeof(*trap_regs));
+ 
+-- 
+2.25.1
+
 
