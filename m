@@ -1,37 +1,93 @@
-From: Yong Li <yong.li@intel.com>
-Date: Wed, 12 Jun 2024 11:24:28 +0800
-Subject: [PATCH] lib:sbi fix the trap_regs point misalignment issue
-Message-ID: <477b211d01c6f1cefb8b38adac4f41dc00c358fd.1718162420.git.yong.li@intel.com>
+From: Li, Yong <yong.li@intel.com>
+Date: Thu, 13 Jun 2024 02:42:43 +0000
+Subject: [PATCH] sbi: sbi_domain_context: Fix trap context for domain
+ context switching
+In-Reply-To: <20240607113928.1241938-1-peterlin@andestech.com>
+References: <20240607113928.1241938-1-peterlin@andestech.com>
+Message-ID: <SJ2PR11MB8539A68E1BA720DE46FC4DBCFBC12@SJ2PR11MB8539.namprd11.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This is to make the trap_regs pointer consistant with the one in
-CSR_MSCRATCH, in which a new sbi_trap_info and sbi_trap_context
-were introduced which caused the regression issue in domain context
+Hi Peter,
 
-Cc: Yu Chien Peter Lin <peterlin@andestech.com>
-Signed-off-by: Yong Li <yong.li@intel.com>
----
- lib/sbi/sbi_domain_context.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> -----Original Message-----
+> From: opensbi <opensbi-bounces@lists.infradead.org> On Behalf Of Yu Chien
+> Peter Lin
+> Sent: Friday, June 7, 2024 7:39 PM
+> To: opensbi at lists.infradead.org
+> Cc: anup at brainfault.org; tim609 at andestech.com; Yu Chien Peter Lin
+> <peterlin@andestech.com>; Alvin Chang <alvinga@andestech.com>
+> Subject: [PATCH] sbi: sbi_domain_context: Fix trap context for domain context
+> switching
+> 
+> Save/restore sbi_trap_context during domain context switching to ensure
+> proper trap handling and isolation. This maintains correct domain-specific
+> state, avoiding context corruption.
+> 
+> Fixes: abea949721bc ("lib: sbi: Introduce trap context")
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Alvin Chang <alvinga@andestech.com>
+> Tested-by: Alvin Chang <alvinga@andestech.com>
 
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 7528591..5a8f616 100755
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -67,7 +67,7 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
- 
- 	/* Save current trap state and restore target domain's trap state */
- 	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
--					     SBI_TRAP_REGS_SIZE);
-+					     SBI_TRAP_CONTEXT_SIZE);
- 	sbi_memcpy(&ctx->regs, trap_regs, sizeof(*trap_regs));
- 	sbi_memcpy(trap_regs, &dom_ctx->regs, sizeof(*trap_regs));
- 
--- 
-2.25.1
+Reviewed-by: Yong Li <yong.li@intel.com>
+Tested-by: Yong Li <yong.li@intel.com>
 
+> ---
+>  include/sbi/sbi_domain_context.h | 2 +-
+>  lib/sbi/sbi_domain_context.c     | 9 ++++-----
+>  2 files changed, 5 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_domain_context.h
+> b/include/sbi/sbi_domain_context.h
+> index edba764f..0d25884a 100755
+> --- a/include/sbi/sbi_domain_context.h
+> +++ b/include/sbi/sbi_domain_context.h
+> @@ -14,7 +14,7 @@
+>  /** Context representation for a hart within a domain */  struct sbi_context {
+>  	/** Trap-related states such as GPRs, mepc, and mstatus */
+> -	struct sbi_trap_regs regs;
+> +	struct sbi_trap_context trap_ctx;
+> 
+>  	/** Supervisor status register */
+>  	unsigned long sstatus;
+> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c index
+> 75285918..49a2f769 100755
+> --- a/lib/sbi/sbi_domain_context.c
+> +++ b/lib/sbi/sbi_domain_context.c
+> @@ -27,7 +27,7 @@ static void switch_to_next_domain_context(struct
+> sbi_context *ctx,
+>  					  struct sbi_context *dom_ctx)
+>  {
+>  	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+> -	struct sbi_trap_regs *trap_regs;
+> +	struct sbi_trap_context *trap_ctx;
+>  	struct sbi_domain *current_dom = ctx->dom;
+>  	struct sbi_domain *target_dom = dom_ctx->dom;
+>  	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr(); @@ -66,10
+> +66,9 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+>  		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx-
+> >senvcfg);
+> 
+>  	/* Save current trap state and restore target domain's trap state */
+> -	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
+> -					     SBI_TRAP_REGS_SIZE);
+> -	sbi_memcpy(&ctx->regs, trap_regs, sizeof(*trap_regs));
+> -	sbi_memcpy(trap_regs, &dom_ctx->regs, sizeof(*trap_regs));
+> +	trap_ctx = sbi_trap_get_context(scratch);
+> +	sbi_memcpy(&ctx->trap_ctx, trap_ctx, sizeof(*trap_ctx));
+> +	sbi_memcpy(trap_ctx, &dom_ctx->trap_ctx, sizeof(*trap_ctx));
+> 
+>  	/* Mark current context structure initialized because context saved */
+>  	ctx->initialized = true;
+> --
+> 2.34.1
+> 
+> 
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
