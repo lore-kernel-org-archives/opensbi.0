@@ -1,58 +1,50 @@
-From: Li, Yong <yong.li@intel.com>
-Date: Thu, 13 Jun 2024 02:53:53 +0000
-Subject: [PATCH] lib:sbi fix the trap_regs point misalignment issue
-In-Reply-To: <477b211d01c6f1cefb8b38adac4f41dc00c358fd.1718162420.git.yong.li@intel.com>
-References: <477b211d01c6f1cefb8b38adac4f41dc00c358fd.1718162420.git.yong.li@intel.com>
-Message-ID: <SJ2PR11MB8539E8A63388D892576E812AFBC12@SJ2PR11MB8539.namprd11.prod.outlook.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 13 Jun 2024 18:54:47 +0530
+Subject: [PATCH 1/7] lib: utils/ipi: Skip initialize ipi when dt is not enabled
+In-Reply-To: <20240611111937.1459876-2-wxjstz@126.com>
+References: <20240611111937.1459876-1-wxjstz@126.com> <20240611111937.1459876-2-wxjstz@126.com>
+Message-ID: <CAAhSdy3X3KfX7ccFJxd7T+H74uLnDpSkx5K3ubMWrQUJChMweQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On Tue, Jun 11, 2024 at 4:49?PM Xiang W <wxjstz@126.com> wrote:
+>
+> When the dt node has a status property and the value is not ok or
+> okay, skip initializing ipi.
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
 
-> -----Original Message-----
-> From: Li, Yong <yong.li@intel.com>
-> Sent: Wednesday, June 12, 2024 11:24 AM
-> To: opensbi at lists.infradead.org
-> Cc: Li, Yong <yong.li@intel.com>; Yu Chien Peter Lin
-> <peterlin@andestech.com>
-> Subject: [PATCH] lib:sbi fix the trap_regs point misalignment issue
-> 
-> This is to make the trap_regs pointer consistant with the one in
-> CSR_MSCRATCH, in which a new sbi_trap_info and sbi_trap_context were
-> introduced which caused the regression issue in domain context
-> 
-> Cc: Yu Chien Peter Lin <peterlin@andestech.com>
-> Signed-off-by: Yong Li <yong.li@intel.com>
+LGTM.
 
-This patch has been covered in previous Peter's patch,
-"sbi: sbi_domain_context: Fix trap context for domain context switching"
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-No need to follow. 
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
-Yong Li
+Anup
 
 > ---
->  lib/sbi/sbi_domain_context.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c index
-> 7528591..5a8f616 100755
-> --- a/lib/sbi/sbi_domain_context.c
-> +++ b/lib/sbi/sbi_domain_context.c
-> @@ -67,7 +67,7 @@ static void switch_to_next_domain_context(struct
-> sbi_context *ctx,
-> 
->  	/* Save current trap state and restore target domain's trap state */
->  	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
-> -					     SBI_TRAP_REGS_SIZE);
-> +					     SBI_TRAP_CONTEXT_SIZE);
->  	sbi_memcpy(&ctx->regs, trap_regs, sizeof(*trap_regs));
->  	sbi_memcpy(trap_regs, &dom_ctx->regs, sizeof(*trap_regs));
-> 
+>  lib/utils/ipi/fdt_ipi.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+> index 7762aba..0b75093 100644
+> --- a/lib/utils/ipi/fdt_ipi.c
+> +++ b/lib/utils/ipi/fdt_ipi.c
+> @@ -44,6 +44,9 @@ static int fdt_ipi_cold_init(void)
+>                 noff = -1;
+>                 while ((noff = fdt_find_match(fdt, noff,
+>                                         drv->match_table, &match)) >= 0) {
+> +                       if (!fdt_node_is_enabled(fdt, noff))
+> +                               continue;
+> +
+>                         /* drv->cold_init must not be NULL */
+>                         if (drv->cold_init == NULL)
+>                                 return SBI_EFAIL;
 > --
-> 2.25.1
-
+> 2.43.0
+>
 
