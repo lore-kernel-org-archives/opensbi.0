@@ -1,135 +1,380 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 18 Jun 2024 16:10:28 +0530
-Subject: [PATCH] lib: sbi: Enable Control Transfer Records (CTR) Ext using xstateen.
-In-Reply-To: <20240529150210.125200-1-rkanwal@rivosinc.com>
-References: <20240529150210.125200-1-rkanwal@rivosinc.com>
-Message-ID: <CAAhSdy14BLF=foVd_ByojzFO=tzYSKGGfVDOD_TWtunBBfxq=A@mail.gmail.com>
+Date: Tue, 18 Jun 2024 16:21:38 +0530
+Subject: [PATCH] platform: generic: andes: Refine Andes PMA related code
+In-Reply-To: <20240531051904.3119195-1-ben717@andestech.com>
+References: <20240531051904.3119195-1-ben717@andestech.com>
+Message-ID: <CAAhSdy3EGaF4=x3oDSAWJ6gNBMozQ_+3+stZHBkvJkVuVeTubw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Rajnesh,
-
-On Wed, May 29, 2024 at 8:32?PM Rajnesh Kanwal <rkanwal@rivosinc.com> wrote:
+On Fri, May 31, 2024 at 10:49?AM Ben Zong-You Xie <ben717@andestech.com> wrote:
 >
-> The Control Transfer Records (CTR) extension provides a method to
-> record a limited branch history in register-accessible internal chip
-> storage.
+> This patch refines the Andes PMA related code. The main change is
+> refactor andes_pma_[read|write]_cfg() and andes_pma_[read|write]_addr()
+> into new functions andes_pma_[read|write]_num().
 >
-> This extension is similar to Arch LBR in x86 and BRBE in ARM.
-> The Extension has been stable and the latest release can be found here
-> https://github.com/riscv/riscv-control-transfer-records/release
+> Also, fix some coding style problems.
 >
-> Signed-off-by: Rajnesh Kanwal <rkanwal@rivosinc.com>
+> Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
 
-We will be needing a SBI FWFT extension feature to explicitly
-enable/disable CTR because:
-1) Hypervisors (such as KVM) needs a way to know when
-Guest/VM starts/stops using CTR. This information will allow
-hypervisors to optimize Guest/VM world switch when CTR is
-available.
-2) Keeping is CTR enabled by default opens a side-channel
-between multiple OpenSBI domains or between multiple
-Guest/VM.
+I don't have access to any Andes platform but functionally this looks
+okay to me.
 
-Based on the above, I suggest you propose a new feature for
-SBI FWFT extension in PRS TG and update this series accordingly.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Regards,
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
 Anup
 
 > ---
->  include/sbi/riscv_encoding.h | 13 +++++++++++++
->  include/sbi/sbi_hart.h       |  4 ++++
->  lib/sbi/sbi_hart.c           | 13 +++++++++++++
->  3 files changed, 30 insertions(+)
+>  platform/generic/andes/andes_pma.c         | 215 ++++++++-------------
+>  platform/generic/include/andes/andes_pma.h |   2 +
+>  2 files changed, 81 insertions(+), 136 deletions(-)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index d914828..eb3361c 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -357,6 +357,17 @@
->  #define CSR_SSTATEEN2                  0x10E
->  #define CSR_SSTATEEN3                  0x10F
+> diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
+> index d5ea594..321074a 100644
+> --- a/platform/generic/andes/andes_pma.c
+> +++ b/platform/generic/andes/andes_pma.c
+> @@ -1,12 +1,10 @@
+>  // SPDX-License-Identifier: GPL-2.0
+>  /*
+>   * Copyright (C) 2023 Renesas Electronics Corp.
+> - *
+> - * Copyright (c) 2020 Andes Technology Corporation
+> + * Copyright (c) 2024 Andes Technology Corporation
+>   *
+>   * Authors:
+> - *      Nick Hu <nickhu@andestech.com>
+> - *      Nylon Chen <nylon7@andestech.com>
+> + *      Ben Zong-You Xie <ben717@andestech.com>
+>   *      Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+>   */
 >
-> +/* Machine-Level Control transfer records CSRs */
-> +#define CSR_MCTRCTL                     0x34e
+> @@ -19,124 +17,81 @@
+>  #include <sbi/sbi_error.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
+>
+> -static inline unsigned long andes_pma_read_cfg(unsigned int pma_cfg_off)
+> +static unsigned long andes_pma_read_num(unsigned int csr_num)
+>  {
+> -#define switchcase_pma_cfg_read(__pma_cfg_off, __val)          \
+> -       case __pma_cfg_off:                                     \
+> -               __val = csr_read(__pma_cfg_off);                \
+> +#define switchcase_csr_read(__csr_num, __val)          \
+> +       case __csr_num:                                 \
+> +               __val = csr_read(__csr_num);            \
+>                 break;
+> -#define switchcase_pma_cfg_read_2(__pma_cfg_off, __val)                \
+> -       switchcase_pma_cfg_read(__pma_cfg_off + 0, __val)       \
+> -       switchcase_pma_cfg_read(__pma_cfg_off + 2, __val)
+> +#define switchcase_csr_read_2(__csr_num, __val)                \
+> +       switchcase_csr_read(__csr_num + 0, __val)       \
+> +       switchcase_csr_read(__csr_num + 1, __val)
+> +#define switchcase_csr_read_4(__csr_num, __val)                \
+> +       switchcase_csr_read_2(__csr_num + 0, __val)     \
+> +       switchcase_csr_read_2(__csr_num + 2, __val)
+> +#define switchcase_csr_read_8(__csr_num, __val)                \
+> +       switchcase_csr_read_4(__csr_num + 0, __val)     \
+> +       switchcase_csr_read_4(__csr_num + 4, __val)
+> +#define switchcase_csr_read_16(__csr_num, __val)       \
+> +       switchcase_csr_read_8(__csr_num + 0, __val)     \
+> +       switchcase_csr_read_8(__csr_num + 8, __val)
+>
+>         unsigned long ret = 0;
+>
+> -       switch (pma_cfg_off) {
+> -       switchcase_pma_cfg_read_2(CSR_PMACFG0, ret)
+> -
+> +       switch (csr_num) {
+> +       switchcase_csr_read_4(CSR_PMACFG0, ret)
+> +       switchcase_csr_read_16(CSR_PMAADDR0, ret)
+>         default:
+> -               sbi_panic("%s: Unknown PMA CFG offset %#x", __func__, pma_cfg_off);
+> +               sbi_panic("%s: Unknown Andes PMA CSR %#x", __func__, csr_num);
+>                 break;
+>         }
+>
+>         return ret;
+>
+> -#undef switchcase_pma_cfg_read_2
+> -#undef switchcase_pma_cfg_read
+> +#undef switchcase_csr_read_16
+> +#undef switchcase_csr_read_8
+> +#undef switchcase_csr_read_4
+> +#undef switchcase_csr_read_2
+> +#undef switchcase_csr_read
+>  }
+>
+> -static inline void andes_pma_write_cfg(unsigned int pma_cfg_off, unsigned long val)
+> +static void andes_pma_write_num(unsigned int csr_num, unsigned long val)
+>  {
+> -#define switchcase_pma_cfg_write(__pma_cfg_off, __val)         \
+> -       case __pma_cfg_off:                                     \
+> -               csr_write(__pma_cfg_off, __val);                \
+> +#define switchcase_csr_write(__csr_num, __val)         \
+> +       case __csr_num:                                 \
+> +               csr_write(__csr_num, __val);            \
+>                 break;
+> -#define switchcase_pma_cfg_write_2(__pma_cfg_off, __val)       \
+> -       switchcase_pma_cfg_write(__pma_cfg_off + 0, __val)      \
+> -       switchcase_pma_cfg_write(__pma_cfg_off + 2, __val)
+> -
+> -       switch (pma_cfg_off) {
+> -       switchcase_pma_cfg_write_2(CSR_PMACFG0, val)
+> -
+> +#define switchcase_csr_write_2(__csr_num, __val)       \
+> +       switchcase_csr_write(__csr_num + 0, __val)      \
+> +       switchcase_csr_write(__csr_num + 1, __val)
+> +#define switchcase_csr_write_4(__csr_num, __val)       \
+> +       switchcase_csr_write_2(__csr_num + 0, __val)    \
+> +       switchcase_csr_write_2(__csr_num + 2, __val)
+> +#define switchcase_csr_write_8(__csr_num, __val)       \
+> +       switchcase_csr_write_4(__csr_num + 0, __val)    \
+> +       switchcase_csr_write_4(__csr_num + 4, __val)
+> +#define switchcase_csr_write_16(__csr_num, __val)      \
+> +       switchcase_csr_write_8(__csr_num + 0, __val)    \
+> +       switchcase_csr_write_8(__csr_num + 8, __val)
 > +
-> +/* Supervisor-Level Control transfer records CSRs */
-> +#define CSR_SCTRCTL                     0x14e
-> +#define CSR_SCTRSTATUS                  0x14f
-> +#define CSR_SCTRDEPTH                   0x15f
+> +       switch (csr_num) {
+> +       switchcase_csr_write_4(CSR_PMACFG0, val)
+> +       switchcase_csr_write_16(CSR_PMAADDR0, val)
+>         default:
+> -               sbi_panic("%s: Unknown PMA CFG offset %#x", __func__, pma_cfg_off);
+> +               sbi_panic("%s: Unknown Andes PMA CSR %#x", __func__, csr_num);
+>                 break;
+>         }
+>
+> -#undef switchcase_pma_cfg_write_2
+> -#undef switchcase_pma_cfg_write
+> +#undef switchcase_csr_write_16
+> +#undef switchcase_csr_write_8
+> +#undef switchcase_csr_write_4
+> +#undef switchcase_csr_write_2
+> +#undef switchcase_csr_write
+>  }
+>
+> -static inline void andes_pma_write_addr(unsigned int pma_addr_off, unsigned long val)
+> +static inline bool not_napot(unsigned long addr, unsigned long size)
+>  {
+> -#define switchcase_pma_write(__pma_addr_off, __val)            \
+> -       case __pma_addr_off:                                    \
+> -               csr_write(__pma_addr_off, __val);               \
+> -               break;
+> -#define switchcase_pma_write_2(__pma_addr_off, __val)          \
+> -       switchcase_pma_write(__pma_addr_off + 0, __val)         \
+> -       switchcase_pma_write(__pma_addr_off + 1, __val)
+> -#define switchcase_pma_write_4(__pma_addr_off, __val)          \
+> -       switchcase_pma_write_2(__pma_addr_off + 0, __val)       \
+> -       switchcase_pma_write_2(__pma_addr_off + 2, __val)
+> -#define switchcase_pma_write_8(__pma_addr_off, __val)          \
+> -       switchcase_pma_write_4(__pma_addr_off + 0, __val)       \
+> -       switchcase_pma_write_4(__pma_addr_off + 4, __val)
+> -#define switchcase_pma_write_16(__pma_addr_off, __val)         \
+> -       switchcase_pma_write_8(__pma_addr_off + 0, __val)       \
+> -       switchcase_pma_write_8(__pma_addr_off + 8, __val)
+> -
+> -       switch (pma_addr_off) {
+> -       switchcase_pma_write_16(CSR_PMAADDR0, val)
+> -
+> -       default:
+> -               sbi_panic("%s: Unknown PMA ADDR offset %#x", __func__, pma_addr_off);
+> -               break;
+> -       }
+> -
+> -#undef switchcase_pma_write_16
+> -#undef switchcase_pma_write_8
+> -#undef switchcase_pma_write_4
+> -#undef switchcase_pma_write_2
+> -#undef switchcase_pma_write
+> -}
+> -
+> -static inline unsigned long andes_pma_read_addr(unsigned int pma_addr_off)
+> -{
+> -#define switchcase_pma_read(__pma_addr_off, __val)             \
+> -       case __pma_addr_off:                                    \
+> -               __val = csr_read(__pma_addr_off);               \
+> -               break;
+> -#define switchcase_pma_read_2(__pma_addr_off, __val)           \
+> -       switchcase_pma_read(__pma_addr_off + 0, __val)          \
+> -       switchcase_pma_read(__pma_addr_off + 1, __val)
+> -#define switchcase_pma_read_4(__pma_addr_off, __val)           \
+> -       switchcase_pma_read_2(__pma_addr_off + 0, __val)        \
+> -       switchcase_pma_read_2(__pma_addr_off + 2, __val)
+> -#define switchcase_pma_read_8(__pma_addr_off, __val)           \
+> -       switchcase_pma_read_4(__pma_addr_off + 0, __val)        \
+> -       switchcase_pma_read_4(__pma_addr_off + 4, __val)
+> -#define switchcase_pma_read_16(__pma_addr_off, __val)          \
+> -       switchcase_pma_read_8(__pma_addr_off + 0, __val)        \
+> -       switchcase_pma_read_8(__pma_addr_off + 8, __val)
+> -
+> -       unsigned long ret = 0;
+> -
+> -       switch (pma_addr_off) {
+> -       switchcase_pma_read_16(CSR_PMAADDR0, ret)
+> -
+> -       default:
+> -               sbi_panic("%s: Unknown PMA ADDR offset %#x", __func__, pma_addr_off);
+> -               break;
+> -       }
+> -
+> -       return ret;
+> -
+> -#undef switchcase_pma_read_16
+> -#undef switchcase_pma_read_8
+> -#undef switchcase_pma_read_4
+> -#undef switchcase_pma_read_2
+> -#undef switchcase_pma_read
+> +       return ((size & (size - 1)) || (addr & (size - 1)));
+>  }
+>
+>  static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
+> @@ -149,36 +104,24 @@ static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
+>         unsigned long pmaaddr;
+>         char *pmaxcfg;
+>
+> -       /* Check for 4KiB granularity */
+> -       if (size < (1 << 12))
+> -               return SBI_EINVAL;
+> -
+> -       /* Check size is power of 2 */
+> -       if (size & (size - 1))
+> -               return SBI_EINVAL;
+> -
+> -       if (entry_id > 15)
+> -               return SBI_EINVAL;
+> -
+> -       if (!(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
+> +       /* Check for a 4KiB granularity NAPOT region*/
+> +       if (size < ANDES_PMA_GRANULARITY || not_napot(addr, size) ||
+> +           !(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
+>                 return SBI_EINVAL;
+>
+> -       if ((addr & (size - 1)) != 0)
+> -               return SBI_EINVAL;
+> -
+> -       pma_cfg_addr = entry_id / 8 ? CSR_PMACFG0 + 2 : CSR_PMACFG0;
+> -       pmacfg_val = andes_pma_read_cfg(pma_cfg_addr);
+> +       pma_cfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
+> +       pmacfg_val = andes_pma_read_num(pma_cfg_addr);
+>         pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
+>         *pmaxcfg = 0;
+>         *pmaxcfg = pma_region->flags;
+>
+> -       andes_pma_write_cfg(pma_cfg_addr, pmacfg_val);
+> +       andes_pma_write_num(pma_cfg_addr, pmacfg_val);
+>
+>         pmaaddr = (addr >> 2) + (size >> 3) - 1;
+>
+> -       andes_pma_write_addr(CSR_PMAADDR0 + entry_id, pmaaddr);
+> +       andes_pma_write_num(CSR_PMAADDR0 + entry_id, pmaaddr);
+>
+> -       return andes_pma_read_addr(CSR_PMAADDR0 + entry_id) == pmaaddr ?
+> +       return andes_pma_read_num(CSR_PMAADDR0 + entry_id) == pmaaddr ?
+>                pmaaddr : SBI_EINVAL;
+>  }
+>
+> @@ -202,19 +145,20 @@ static int andes_fdt_pma_resv(void *fdt, const struct andes_pma_region *pma,
+>
+>         if (na > 1 && addr_high) {
+>                 sbi_snprintf(name, sizeof(name),
+> -                            "pma_resv%d@%x,%x", index,
+> -                            addr_high, addr_low);
+> +                            "pma_resv%d@%x,%x",
+> +                            index, addr_high, addr_low);
+>         } else {
+>                 sbi_snprintf(name, sizeof(name),
+> -                            "pma_resv%d@%x", index,
+> -                            addr_low);
+> +                            "pma_resv%d@%x",
+> +                            index, addr_low);
+>         }
+>         subnode = fdt_add_subnode(fdt, parent, name);
+>         if (subnode < 0)
+>                 return subnode;
+>
+>         if (pma->shared_dma) {
+> -               err = fdt_setprop_string(fdt, subnode, "compatible", "shared-dma-pool");
+> +               err = fdt_setprop_string(fdt, subnode, "compatible",
+> +                                        "shared-dma-pool");
+>                 if (err < 0)
+>                         return err;
+>         }
+> @@ -259,14 +203,14 @@ static int andes_fdt_reserved_memory_fixup(void *fdt,
+>  {
+>         int parent;
+>
+> -       /* try to locate the reserved memory node */
+> +       /* Try to locate the reserved memory node */
+>         parent = fdt_path_offset(fdt, "/reserved-memory");
+>         if (parent < 0) {
+>                 int na = fdt_address_cells(fdt, 0);
+>                 int ns = fdt_size_cells(fdt, 0);
+>                 int err;
+>
+> -               /* if such node does not exist, create one */
+> +               /* If such node does not exist, create one */
+>                 parent = fdt_add_subnode(fdt, 0, "reserved-memory");
+>                 if (parent < 0)
+>                         return parent;
+> @@ -307,17 +251,13 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+>                 return SBI_ENOTSUPP;
+>
+>         /* Configure the PMA regions */
+> +       dt_populate_cnt = 0;
+>         for (i = 0; i < pma_regions_count; i++) {
+>                 pa = andes_pma_setup(&pma_regions[i], i);
+>                 if (pa == SBI_EINVAL)
+>                         return SBI_EINVAL;
+> -       }
+> -
+> -       dt_populate_cnt = 0;
+> -       for (i = 0; i < pma_regions_count; i++) {
+> -               if (!pma_regions[i].dt_populate)
+> -                       continue;
+> -               dt_populate_cnt++;
+> +               else if (pma_regions[i].dt_populate)
+> +                       dt_populate_cnt++;
+>         }
+>
+>         if (!dt_populate_cnt)
+> @@ -325,7 +265,8 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+>
+>         fdt = fdt_get_address();
+>
+> -       ret = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + (64 * dt_populate_cnt));
+> +       ret = fdt_open_into(fdt, fdt,
+> +                           fdt_totalsize(fdt) + (64 * dt_populate_cnt));
+>         if (ret < 0)
+>                 return ret;
+>
+> @@ -333,7 +274,9 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+>                 if (!pma_regions[i].dt_populate)
+>                         continue;
+>
+> -               ret = andes_fdt_reserved_memory_fixup(fdt, &pma_regions[i], j++);
+> +               ret = andes_fdt_reserved_memory_fixup(fdt,
+> +                                                     &pma_regions[i],
+> +                                                     j++);
+>                 if (ret)
+>                         return ret;
+>         }
+> diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
+> index bbc09cd..5ea1247 100644
+> --- a/platform/generic/include/andes/andes_pma.h
+> +++ b/platform/generic/include/andes/andes_pma.h
+> @@ -10,6 +10,8 @@
+>
+>  #define ANDES_MAX_PMA_REGIONS                  16
+>
+> +#define ANDES_PMA_GRANULARITY                  (1 << 12)
 > +
-> +/* VS-Level Control transfer records CSRs */
-> +#define CSR_VSCTRCTL                    0x24e
-> +
->  /* ===== Hypervisor-level CSRs ===== */
+>  /* Naturally aligned power of 2 region */
+>  #define ANDES_PMACFG_ETYP_NAPOT                        3
 >
->  /* Hypervisor Trap Setup (H-extension) */
-> @@ -773,6 +784,8 @@
->  #define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
->  #define SMSTATEEN0_FCSR_SHIFT          1
->  #define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
-> +#define SMSTATEEN0_CTR_SHIFT           54
-> +#define SMSTATEEN0_CTR                 (_ULL(1) << SMSTATEEN0_CTR_SHIFT)
->  #define SMSTATEEN0_CONTEXT_SHIFT       57
->  #define SMSTATEEN0_CONTEXT             (_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
->  #define SMSTATEEN0_IMSIC_SHIFT         58
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index cc78eec..c4eddb4 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -63,6 +63,10 @@ enum sbi_hart_extensions {
->         SBI_HART_EXT_SSCSRIND,
->         /** Hart has Ssccfg extension */
->         SBI_HART_EXT_SSCCFG,
-> +       /** HART has CTR M-mode CSRs */
-> +       SBI_HART_EXT_SMCTR,
-> +       /** HART has CTR S-mode CSRs */
-> +       SBI_HART_EXT_SSCTR,
->
->         /** Maximum index of Hart extension */
->         SBI_HART_EXT_MAX,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index cd974cc..db2f157 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -105,6 +105,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
->                 else
->                         mstateen_val &= ~(SMSTATEEN0_SVSLCT);
->
-> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCTR))
-> +                       mstateen_val |= SMSTATEEN0_CTR;
-> +               else
-> +                       mstateen_val &= ~SMSTATEEN0_CTR;
-> +
->                 csr_write(CSR_MSTATEEN0, mstateen_val);
->  #if __riscv_xlen == 32
->                 csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
-> @@ -668,6 +673,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
->         __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
->         __SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
->         __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
-> +       __SBI_HART_EXT_DATA(smctr, SBI_HART_EXT_SMCTR),
-> +       __SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
->  };
->
->  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
-> @@ -921,6 +928,12 @@ __pmp_skip:
->         /* Save trap based detection of Zicntr */
->         has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
->
-> +       /* Detect if hart has Control Transfer Record CSRs */
-> +       csr_read_allowed(CSR_MCTRCTL, (unsigned long)&trap);
-> +       if (!trap.cause)
-> +               __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_SMCTR,
-> +                                           true);
-> +
->         /* Let platform populate extensions */
->         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
->                                           hfeatures);
 > --
 > 2.34.1
 >
