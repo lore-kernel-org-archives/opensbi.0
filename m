@@ -1,101 +1,349 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 18 Jun 2024 16:44:42 +0530
-Subject: [PATCH v4 1/2] lib: sbi: Add support for Svade and Svadu extensions
-In-Reply-To: <20240605121110.14784-2-yongxuan.wang@sifive.com>
-References: <20240605121110.14784-1-yongxuan.wang@sifive.com> <20240605121110.14784-2-yongxuan.wang@sifive.com>
-Message-ID: <CAAhSdy12myby_5bVQw-W_L2vbUM0-kJtEUGpMmh9=9Q-ZNaikA@mail.gmail.com>
+Date: Tue, 18 Jun 2024 21:22:06 +0530
+Subject: [PATCH v2 1/4] lib: sbi: add support for firmware features extension
+In-Reply-To: <20240617154110.4007865-2-cleger@rivosinc.com>
+References: <20240617154110.4007865-1-cleger@rivosinc.com> <20240617154110.4007865-2-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1MQXYs_GA0qT_12=E5p5KkaMJh7L+FrYyxSC5hvM20Zg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 5, 2024 at 5:41?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
+On Mon, Jun 17, 2024 at 9:11?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Add support for Svade and Svadu extensions. When both are present in the
-> device tree, the M-mode firmware should select the Svade extension
-> to comply with the RVA23 profile, which mandates Svade and lists Svadu as
-> an optional extension.
+> This extension allows the software running in supervisor mode to control
+> the behavior of various features of the SBI [1]. Implement the support
+> for such extension.
 >
-> Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+> Link: https://lists.riscv.org/g/tech-prs/message/924 [1]
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 
 LGTM.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
+Regards,
 Anup
 
 > ---
->  include/sbi/riscv_encoding.h |  1 +
->  include/sbi/sbi_hart.h       |  4 ++++
->  lib/sbi/sbi_hart.c           | 12 ++++++++++++
->  3 files changed, 17 insertions(+)
+>  include/sbi/sbi_ecall_interface.h |  27 +++++
+>  include/sbi/sbi_fwft.h            |  23 ++++
+>  lib/sbi/objects.mk                |   1 +
+>  lib/sbi/sbi_fwft.c                | 178 ++++++++++++++++++++++++++++++
+>  lib/sbi/sbi_init.c                |  11 ++
+>  5 files changed, 240 insertions(+)
+>  create mode 100644 include/sbi/sbi_fwft.h
+>  create mode 100644 lib/sbi/sbi_fwft.c
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index d914828e13af..477fa3a1ad86 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -211,6 +211,7 @@
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 2600b66..e9a8167 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -34,6 +34,7 @@
+>  #define SBI_EXT_CPPC                           0x43505043
+>  #define SBI_EXT_DBTR                           0x44425452
+>  #define SBI_EXT_SSE                            0x535345
+> +#define SBI_EXT_FWFT                           0x46574654
 >
->  #define ENVCFG_STCE                    (_ULL(1) << 63)
->  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
-> +#define ENVCFG_ADUE                    (_ULL(1) << 61)
->  #define ENVCFG_CDE                     (_ULL(1) << 60)
->  #define ENVCFG_CBZE                    (_UL(1) << 7)
->  #define ENVCFG_CBCFE                   (_UL(1) << 6)
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index cc78eec6f65a..81ec061d36a9 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -63,6 +63,10 @@ enum sbi_hart_extensions {
->         SBI_HART_EXT_SSCSRIND,
->         /** Hart has Ssccfg extension */
->         SBI_HART_EXT_SSCCFG,
-> +       /** Hart has Svade extension */
-> +       SBI_HART_EXT_SVADE,
-> +       /** Hart has Svadu extension */
-> +       SBI_HART_EXT_SVADU,
+>  /* SBI function IDs for BASE extension*/
+>  #define SBI_EXT_BASE_GET_SPEC_VERSION          0x0
+> @@ -117,6 +118,32 @@
+>  #define SBI_EXT_DBTR_TRIGGER_ENABLE    0x6
+>  #define SBI_EXT_DBTR_TRIGGER_DISABLE   0x7
 >
->         /** Maximum index of Hart extension */
->         SBI_HART_EXT_MAX,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index cd974cc1a8da..c3667019b9a1 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -135,9 +135,19 @@ static void mstatus_init(struct sbi_scratch *scratch)
->  #endif
->                 __set_menvcfg_ext(SBI_HART_EXT_SSTC, ENVCFG_STCE)
->                 __set_menvcfg_ext(SBI_HART_EXT_SMCDELEG, ENVCFG_CDE);
-> +               __set_menvcfg_ext(SBI_HART_EXT_SVADU, ENVCFG_ADUE);
->
->  #undef __set_menvcfg_ext
->
-> +               /*
-> +                * When both Svade and Svadu are present in DT, the default scheme for managing
-> +                * the PTE A/D bits should use Svade. Check Svadu before Svade extension to ensure
-> +                * that the ADUE bit is cleared when the Svade support are specified.
-> +                */
+> +/* SBI function IDs for FW feature extension */
+> +#define SBI_EXT_FWFT_SET               0x0
+> +#define SBI_EXT_FWFT_GET               0x1
 > +
-> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SVADE))
-> +                       menvcfg_val &= ~ENVCFG_ADUE;
+> +enum sbi_fwft_feature_t {
+> +       SBI_FWFT_MISALIGNED_EXC_DELEG           = 0x0,
+> +       SBI_FWFT_LANDING_PAD                    = 0x1,
+> +       SBI_FWFT_SHADOW_STACK                   = 0x2,
+> +       SBI_FWFT_DOUBLE_TRAP                    = 0x3,
+> +       SBI_FWFT_PTE_AD_HW_UPDATING             = 0x4,
+> +       SBI_FWFT_LOCAL_RESERVED_START           = 0x5,
+> +       SBI_FWFT_LOCAL_RESERVED_END             = 0x3fffffff,
+> +       SBI_FWFT_LOCAL_PLATFORM_START           = 0x40000000,
+> +       SBI_FWFT_LOCAL_PLATFORM_END             = 0x7fffffff,
 > +
->                 csr_write(CSR_MENVCFG, menvcfg_val);
->  #if __riscv_xlen == 32
->                 csr_write(CSR_MENVCFGH, menvcfg_val >> 32);
-> @@ -668,6 +678,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
->         __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
->         __SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
->         __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
-> +       __SBI_HART_EXT_DATA(svade, SBI_HART_EXT_SVADE),
-> +       __SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
->  };
+> +       SBI_FWFT_GLOBAL_RESERVED_START          = 0x80000000,
+> +       SBI_FWFT_GLOBAL_RESERVED_END            = 0xbfffffff,
+> +       SBI_FWFT_GLOBAL_PLATFORM_START          = 0xc0000000,
+> +       SBI_FWFT_GLOBAL_PLATFORM_END            = 0xffffffff,
+> +};
+> +
+> +#define SBI_FWFT_GLOBAL_FEATURE_BIT            (1 << 31)
+> +#define SBI_FWFT_PLATFORM_FEATURE_BIT          (1 << 30)
+> +
+> +#define SBI_FWFT_SET_FLAG_LOCK                 (1 << 0)
+> +
+>  /** General pmu event codes specified in SBI PMU extension */
+>  enum sbi_pmu_hw_generic_events_t {
+>         SBI_PMU_HW_NO_EVENT                     = 0,
+> diff --git a/include/sbi/sbi_fwft.h b/include/sbi/sbi_fwft.h
+> new file mode 100644
+> index 0000000..2148820
+> --- /dev/null
+> +++ b/include/sbi/sbi_fwft.h
+> @@ -0,0 +1,23 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Rivos Inc.
+> + *
+> + * Authors:
+> + *   Cl?ment L?ger <cleger@rivosinc.com>
+> + */
+> +
+> +#ifndef __SBI_FW_FEATURE_H__
+> +#define __SBI_FW_FEATURE_H__
+> +
+> +#include <sbi/sbi_ecall_interface.h>
+> +
+> +struct sbi_scratch;
+> +
+> +int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
+> +                unsigned long flags);
+> +int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val);
+> +
+> +int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot);
+> +
+> +#endif
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index b1c4a50..221e72c 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -65,6 +65,7 @@ libsbi-objs-y += sbi_domain_context.o
+>  libsbi-objs-y += sbi_domain.o
+>  libsbi-objs-y += sbi_emulate_csr.o
+>  libsbi-objs-y += sbi_fifo.o
+> +libsbi-objs-y += sbi_fwft.o
+>  libsbi-objs-y += sbi_hart.o
+>  libsbi-objs-y += sbi_heap.o
+>  libsbi-objs-y += sbi_math.o
+> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+> new file mode 100644
+> index 0000000..b302b5d
+> --- /dev/null
+> +++ b/lib/sbi/sbi_fwft.c
+> @@ -0,0 +1,178 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Rivos Inc.
+> + *
+> + * Authors:
+> + *   Cl?ment L?ger <cleger@rivosinc.com>
+> + */
+> +
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_bitmap.h>
+> +#include <sbi/sbi_ecall_interface.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_hart.h>
+> +#include <sbi/sbi_heap.h>
+> +#include <sbi/sbi_scratch.h>
+> +#include <sbi/sbi_string.h>
+> +#include <sbi/sbi_types.h>
+> +
+> +#include <sbi/riscv_asm.h>
+> +#include <sbi/riscv_encoding.h>
+> +
+> +/** Offset of pointer to FWFT HART state in scratch space */
+> +static unsigned long fwft_ptr_offset;
+> +
+> +#define fwft_get_hart_state_ptr(__scratch)                             \
+> +       sbi_scratch_read_type((__scratch), void *, fwft_ptr_offset)
+> +
+> +#define fwft_thishart_state_ptr()                                      \
+> +       fwft_get_hart_state_ptr(sbi_scratch_thishart_ptr())
+> +
+> +#define fwft_set_hart_state_ptr(__scratch, __phs)                      \
+> +       sbi_scratch_write_type((__scratch), void *, fwft_ptr_offset, (__phs))
+> +
+> +struct fwft_config;
+> +
+> +struct fwft_feature {
+> +       enum sbi_fwft_feature_t id;
+> +       int (*supported)(struct fwft_config *conf);
+> +       int (*set)(struct fwft_config *conf, unsigned long value);
+> +       int (*get)(struct fwft_config *conf, unsigned long *value);
+> +};
+> +
+> +struct fwft_config {
+> +       const struct fwft_feature *feature;
+> +       unsigned long flags;
+> +};
+> +
+> +struct fwft_hart_state {
+> +       unsigned int config_count;
+> +       struct fwft_config configs[];
+> +};
+> +
+> +static const unsigned long fwft_defined_features[] = {
+> +       SBI_FWFT_MISALIGNED_EXC_DELEG,
+> +       SBI_FWFT_LANDING_PAD,
+> +       SBI_FWFT_SHADOW_STACK,
+> +       SBI_FWFT_DOUBLE_TRAP,
+> +       SBI_FWFT_PTE_AD_HW_UPDATING,
+> +};
+> +
+> +static bool fwft_is_defined_feature(enum sbi_fwft_feature_t feature)
+> +{
+> +       int i;
+> +
+> +       for (i = 0; i < array_size(fwft_defined_features); i++) {
+> +               if (fwft_defined_features[i] == feature)
+> +                       return true;
+> +       }
+> +
+> +       return false;
+> +}
+> +
+> +static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+> +{
+> +       int i;
+> +       struct fwft_hart_state *fhs = fwft_thishart_state_ptr();
+> +
+> +       if (feature & SBI_FWFT_GLOBAL_FEATURE_BIT)
+> +               return NULL;
+> +
+> +       for (i = 0; i < fhs->config_count; i++){
+> +               if (feature == fhs->configs[i].feature->id)
+> +                       return &fhs->configs[i];
+> +       }
+> +
+> +       return NULL;
+> +}
+> +
+> +static int fwft_get_feature(enum sbi_fwft_feature_t feature,
+> +                           struct fwft_config **conf)
+> +{
+> +       int ret;
+> +       struct fwft_config *tconf;
+> +
+> +       tconf = get_feature_config(feature);
+> +       if (!tconf) {
+> +               if (fwft_is_defined_feature(feature))
+> +                       return SBI_ENOTSUPP;
+> +
+> +               return SBI_EDENIED;
+> +       }
+> +
+> +       if (tconf->feature->supported) {
+> +               ret = tconf->feature->supported(tconf);
+> +               if (ret)
+> +                       return ret;
+> +       }
+> +       *conf = tconf;
+> +
+> +       return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
+> +                unsigned long flags)
+> +{
+> +       int ret;
+> +       struct fwft_config *conf;
+> +
+> +       ret = fwft_get_feature(feature, &conf);
+> +       if (ret)
+> +               return ret;
+> +
+> +       if ((flags & ~SBI_FWFT_SET_FLAG_LOCK) != 0)
+> +               return SBI_ERR_INVALID_PARAM;
+> +
+> +       if (conf->flags & SBI_FWFT_SET_FLAG_LOCK)
+> +               return SBI_EDENIED;
+> +
+> +       ret = conf->feature->set(conf, value);
+> +       if (ret)
+> +               return ret;
+> +
+> +       conf->flags = flags;
+> +
+> +       return SBI_OK;
+> +}
+> +
+> +int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
+> +{
+> +       int ret;
+> +       struct fwft_config *conf;
+> +
+> +       ret = fwft_get_feature(feature, &conf);
+> +       if (ret)
+> +               return ret;
+> +
+> +       return conf->feature->get(conf, out_val);
+> +}
+> +
+> +static const struct fwft_feature features[] = {};
+> +
+> +int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
+> +{
+> +       int i;
+> +       struct fwft_hart_state *fhs;
+> +
+> +       if (cold_boot) {
+> +               fwft_ptr_offset = sbi_scratch_alloc_type_offset(void *);
+> +               if (!fwft_ptr_offset)
+> +                       return SBI_ENOMEM;
+> +       }
+> +
+> +       fhs = fwft_get_hart_state_ptr(scratch);
+> +       if (!fhs) {
+> +               fhs = sbi_zalloc(sizeof(fhs) + array_size(features) * sizeof(struct fwft_config));
+> +               if (!fhs)
+> +                       return SBI_ENOMEM;
+> +
+> +               fhs->config_count = array_size(features);
+> +               for (i = 0; i < array_size(features); i++)
+> +                       fhs->configs[i].feature = &features[i];
+> +
+> +               fwft_set_hart_state_ptr(scratch, fhs);
+> +       }
+> +
+> +       return 0;
+> +}
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 389172a..0f9e14c 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -14,6 +14,7 @@
+>  #include <sbi/sbi_cppc.h>
+>  #include <sbi/sbi_domain.h>
+>  #include <sbi/sbi_ecall.h>
+> +#include <sbi/sbi_fwft.h>
+>  #include <sbi/sbi_hart.h>
+>  #include <sbi/sbi_hartmask.h>
+>  #include <sbi/sbi_heap.h>
+> @@ -308,6 +309,12 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
 >
->  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+> +       rc = sbi_fwft_init(scratch, true);
+> +       if (rc) {
+> +               sbi_printf("%s: fwft init failed (error %d)\n", __func__, rc);
+> +               sbi_hart_hang();
+> +       }
+> +
+>         /*
+>          * Note: Finalize domains after HSM initialization so that we
+>          * can startup non-root domains.
+> @@ -423,6 +430,10 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> +       rc = sbi_fwft_init(scratch, false);
+> +       if (rc)
+> +               sbi_hart_hang();
+> +
+>         rc = sbi_platform_final_init(plat, false);
+>         if (rc)
+>                 sbi_hart_hang();
 > --
-> 2.17.1
+> 2.45.2
 >
 >
 > --
