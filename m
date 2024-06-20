@@ -1,165 +1,233 @@
-From: Atish Kumar Patra <atishp@rivosinc.com>
-Date: Wed, 19 Jun 2024 17:03:05 -0700
-Subject: [PATCH] lib: sbi: Enable Control Transfer Records (CTR) Ext using xstateen.
-In-Reply-To: <CAAhSdy14BLF=foVd_ByojzFO=tzYSKGGfVDOD_TWtunBBfxq=A@mail.gmail.com>
-References: <20240529150210.125200-1-rkanwal@rivosinc.com> <CAAhSdy14BLF=foVd_ByojzFO=tzYSKGGfVDOD_TWtunBBfxq=A@mail.gmail.com>
-Message-ID: <CAHBxVyGECqgH-RFzaGt-cNJR4jSpLCgBSUm+1B6Emwb2Watbfg@mail.gmail.com>
+From: Atish Patra <atishp@atishpatra.org>
+Date: Wed, 19 Jun 2024 17:38:14 -0700
+Subject: [RFC PATCH] sbi: sbi_domain_context: Add 'domain context
+ switched' firmware event
+In-Reply-To: <CAAhSdy3Onk0uzGNd_LKVngxyVycQuRSRi13Lbw0owCsx8VWsnw@mail.gmail.com>
+References: <20240607114935.1291206-1-peterlin@andestech.com>
+ <CAAhSdy2VpurN4tTqpe9LNp15CBisV0yUAkTHqHGDsLBNCPpFjg@mail.gmail.com> <CAAhSdy3Onk0uzGNd_LKVngxyVycQuRSRi13Lbw0owCsx8VWsnw@mail.gmail.com>
+Message-ID: <CAOnJCUJRwMnvBzb=0UUWrQCKbTbd_0w4R91Q4devt1Mgz=6bAA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 18, 2024 at 3:40?AM Anup Patel <anup@brainfault.org> wrote:
+On Thu, Jun 13, 2024 at 6:50?AM Anup Patel <anup@brainfault.org> wrote:
 >
-> Hi Rajnesh,
+> +Atish
 >
-> On Wed, May 29, 2024 at 8:32?PM Rajnesh Kanwal <rkanwal@rivosinc.com> wrote:
+> On Thu, Jun 13, 2024 at 7:03?PM Anup Patel <anup@brainfault.org> wrote:
 > >
-> > The Control Transfer Records (CTR) extension provides a method to
-> > record a limited branch history in register-accessible internal chip
-> > storage.
+> > On Fri, Jun 7, 2024 at 5:19?PM Yu Chien Peter Lin
+> > <peterlin@andestech.com> wrote:
+> > >
+> > > Event codes 256-65534 are reserved for counting SBI-specific firmware events.
+> > > Allocate event code 256 as the 'domain context switched' firmware event. This
+> > > enables the perf tool to monitor trusted application invocations.
+> > >
+> > >   $ perf stat -e r8000000000000100 optee_example_random
+> > >   Invoking TA to generate random UUID...
+> > >   TA generated UUID value = 0xd1dafb5b988373c9a14d1a85361b436
+> > >
+> > >    Performance counter stats for 'optee_example_random':
+> > >
+> > >                   96      r8000000000000100
+> > >
+> > >          0.186135100 seconds time elapsed
+> > >
+> > >          0.051499000 seconds user
+> > >          0.125070000 seconds sys
+> > >
+> > > Also, factor out valid event code checking to the fw_event_code_valid()
+> > > function.
+> > >
+> > > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> > > Reviewed-by: Alvin Chang <alvinga@andestech.com>
+> > > ---
+> > >  include/sbi/sbi_ecall_interface.h |  9 +++++--
+> > >  lib/sbi/sbi_domain_context.c      |  3 +++
+> > >  lib/sbi/sbi_pmu.c                 | 43 +++++++++++++++++++------------
+> > >  3 files changed, 36 insertions(+), 19 deletions(-)
+> > >
+> > > diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> > > index ec845c88..aff9ec4c 100644
+> > > --- a/include/sbi/sbi_ecall_interface.h
+> > > +++ b/include/sbi/sbi_ecall_interface.h
+> > > @@ -199,13 +199,18 @@ enum sbi_pmu_fw_event_code_id {
+> > >         SBI_PMU_FW_HFENCE_VVMA_RCVD     = 19,
+> > >         SBI_PMU_FW_HFENCE_VVMA_ASID_SENT = 20,
+> > >         SBI_PMU_FW_HFENCE_VVMA_ASID_RCVD = 21,
+> > > -       SBI_PMU_FW_MAX,
+> > > +       SBI_PMU_FW_LAST,
+> > >         /*
+> > >          * Event codes 22 to 255 are reserved for future use.
+> > > +        */
+> > > +       SBI_PMU_FW_MAX                  = 255,
+> > > +       SBI_PMU_FW_DOMAIN_CONTEXT_SWITCHED = 256,
+> > > +       SBI_PMU_FW_IMPL_LAST,
+> > > +       /*
+> > >          * Event codes 256 to 65534 are reserved for SBI implementation
+> > >          * specific custom firmware events.
+> > >          */
+> > > -       SBI_PMU_FW_RESERVED_MAX = 0xFFFE,
+> > > +       SBI_PMU_FW_IMPL_MAX = 0xFFFE,
 > >
-> > This extension is similar to Arch LBR in x86 and BRBE in ARM.
-> > The Extension has been stable and the latest release can be found here
-> > https://github.com/riscv/riscv-control-transfer-records/release
-> >
-> > Signed-off-by: Rajnesh Kanwal <rkanwal@rivosinc.com>
+> > Need first discuss these SBI PMU spec changes in RVI PRS TG
+> > before we can review it here.
+>
+> Thinking about this more, do we really need this to be an
+> OpenSBI specific event ?
+>
+> I am leaning towards "yes" but need others to chime in.
 >
 
-+Beeman Strong
+I agree. I am not sure which other SBI implementations support domains anyways.
+If we decide to add it as an implementation specific event, should we
+add a scheme to encode implementation ID
+in the event code ? The lower 8 bits can indicate the SBI implementation ID.
 
-> We will be needing a SBI FWFT extension feature to explicitly
-> enable/disable CTR because:
-> 1) Hypervisors (such as KVM) needs a way to know when
-> Guest/VM starts/stops using CTR. This information will allow
-> hypervisors to optimize Guest/VM world switch when CTR is
-> available.
-
-Yes. This will be useful for virtualization but it will add more costs
-when non-virtualization scenarios.
-Because you have to enable/disable CTR at every context switch.
-If SBI PMU is in use, the cost probably won't matter as we have tons
-of SBI calls for other PMU functionality anyways.
-However, it adds extra cost if counter delegation is in use.
-
-To avoid this cost, the PMU driver can enable/disable CTR only if
-SBI_PMU is in use. This will work for virtualization as well
-SBI PMU is the only way to get PMU working reliably if virtualization
-is enabled. Thoughts ?
-
-> 2) Keeping is CTR enabled by default opens a side-channel
-> between multiple OpenSBI domains or between multiple
-> Guest/VM.
->
-
-We must clear the CTR buffer on domain context switch to avoid this.
-For the process context switch path, we clear the entries.
-
-For Guest/VM, we probably should do something like that in KVM as well.
-
-> Based on the above, I suggest you propose a new feature for
-> SBI FWFT extension in PRS TG and update this series accordingly.
->
 > Regards,
 > Anup
 >
-> > ---
-> >  include/sbi/riscv_encoding.h | 13 +++++++++++++
-> >  include/sbi/sbi_hart.h       |  4 ++++
-> >  lib/sbi/sbi_hart.c           | 13 +++++++++++++
-> >  3 files changed, 30 insertions(+)
 > >
-> > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> > index d914828..eb3361c 100644
-> > --- a/include/sbi/riscv_encoding.h
-> > +++ b/include/sbi/riscv_encoding.h
-> > @@ -357,6 +357,17 @@
-> >  #define CSR_SSTATEEN2                  0x10E
-> >  #define CSR_SSTATEEN3                  0x10F
+> > Regards,
+> > Anup
 > >
-> > +/* Machine-Level Control transfer records CSRs */
-> > +#define CSR_MCTRCTL                     0x34e
-> > +
-> > +/* Supervisor-Level Control transfer records CSRs */
-> > +#define CSR_SCTRCTL                     0x14e
-> > +#define CSR_SCTRSTATUS                  0x14f
-> > +#define CSR_SCTRDEPTH                   0x15f
-> > +
-> > +/* VS-Level Control transfer records CSRs */
-> > +#define CSR_VSCTRCTL                    0x24e
-> > +
-> >  /* ===== Hypervisor-level CSRs ===== */
-> >
-> >  /* Hypervisor Trap Setup (H-extension) */
-> > @@ -773,6 +784,8 @@
-> >  #define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
-> >  #define SMSTATEEN0_FCSR_SHIFT          1
-> >  #define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
-> > +#define SMSTATEEN0_CTR_SHIFT           54
-> > +#define SMSTATEEN0_CTR                 (_ULL(1) << SMSTATEEN0_CTR_SHIFT)
-> >  #define SMSTATEEN0_CONTEXT_SHIFT       57
-> >  #define SMSTATEEN0_CONTEXT             (_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
-> >  #define SMSTATEEN0_IMSIC_SHIFT         58
-> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> > index cc78eec..c4eddb4 100644
-> > --- a/include/sbi/sbi_hart.h
-> > +++ b/include/sbi/sbi_hart.h
-> > @@ -63,6 +63,10 @@ enum sbi_hart_extensions {
-> >         SBI_HART_EXT_SSCSRIND,
-> >         /** Hart has Ssccfg extension */
-> >         SBI_HART_EXT_SSCCFG,
-> > +       /** HART has CTR M-mode CSRs */
-> > +       SBI_HART_EXT_SMCTR,
-> > +       /** HART has CTR S-mode CSRs */
-> > +       SBI_HART_EXT_SSCTR,
-> >
-> >         /** Maximum index of Hart extension */
-> >         SBI_HART_EXT_MAX,
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index cd974cc..db2f157 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -105,6 +105,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
-> >                 else
-> >                         mstateen_val &= ~(SMSTATEEN0_SVSLCT);
-> >
-> > +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCTR))
-> > +                       mstateen_val |= SMSTATEEN0_CTR;
-> > +               else
-> > +                       mstateen_val &= ~SMSTATEEN0_CTR;
-> > +
-> >                 csr_write(CSR_MSTATEEN0, mstateen_val);
-> >  #if __riscv_xlen == 32
-> >                 csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
-> > @@ -668,6 +673,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
-> >         __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
-> >         __SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
-> >         __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
-> > +       __SBI_HART_EXT_DATA(smctr, SBI_HART_EXT_SMCTR),
-> > +       __SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
-> >  };
-> >
-> >  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
-> > @@ -921,6 +928,12 @@ __pmp_skip:
-> >         /* Save trap based detection of Zicntr */
-> >         has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
-> >
-> > +       /* Detect if hart has Control Transfer Record CSRs */
-> > +       csr_read_allowed(CSR_MCTRCTL, (unsigned long)&trap);
-> > +       if (!trap.cause)
-> > +               __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_SMCTR,
-> > +                                           true);
-> > +
-> >         /* Let platform populate extensions */
-> >         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
-> >                                           hfeatures);
-> > --
-> > 2.34.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+> > >         /*
+> > >          * Event code 0xFFFF is used for platform specific firmware
+> > >          * events where the event data contains any event specific information.
+> > > diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+> > > index d9395490..d0b174c9 100755
+> > > --- a/lib/sbi/sbi_domain_context.c
+> > > +++ b/lib/sbi/sbi_domain_context.c
+> > > @@ -11,6 +11,7 @@
+> > >  #include <sbi/sbi_hsm.h>
+> > >  #include <sbi/sbi_hart.h>
+> > >  #include <sbi/sbi_heap.h>
+> > > +#include <sbi/sbi_pmu.h>
+> > >  #include <sbi/sbi_scratch.h>
+> > >  #include <sbi/sbi_string.h>
+> > >  #include <sbi/sbi_domain_context.h>
+> > > @@ -33,6 +34,8 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
+> > >         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> > >         unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+> > >
+> > > +       sbi_pmu_ctr_incr_fw(SBI_PMU_FW_DOMAIN_CONTEXT_SWITCHED);
+> > > +
+> > >         /* Assign current hart to target domain */
+> > >         spin_lock(&current_dom->assigned_harts_lock);
+> > >         sbi_hartmask_clear_hartindex(hartindex, &current_dom->assigned_harts);
+> > > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > > index b9e84543..fd3e70f2 100644
+> > > --- a/lib/sbi/sbi_pmu.c
+> > > +++ b/lib/sbi/sbi_pmu.c
+> > > @@ -130,6 +130,23 @@ static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
+> > >         return false;
+> > >  }
+> > >
+> > > +static bool fw_event_code_valid(uint32_t event_idx_code)
+> > > +{
+> > > +       /* Standard firmware events */
+> > > +       if ((0 <= event_idx_code) &&
+> > > +           (event_idx_code < SBI_PMU_FW_LAST))
+> > > +               return true;
+> > > +       /* Implementation specific events */
+> > > +       if ((SBI_PMU_FW_MAX < event_idx_code) &&
+> > > +           (event_idx_code < SBI_PMU_FW_IMPL_LAST))
+> > > +               return true;
+> > > +       /* Platform specific firmware events */
+> > > +       if (event_idx_code == SBI_PMU_FW_PLATFORM)
+> > > +               return true;
+> > > +
+> > > +       return false;
+> > > +}
+> > > +
+> > >  static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
+> > >                               unsigned long event_idx, uint64_t edata)
+> > >  {
+> > > @@ -143,9 +160,7 @@ static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
+> > >                 event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
+> > >                 break;
+> > >         case SBI_PMU_EVENT_TYPE_FW:
+> > > -               if ((event_idx_code >= SBI_PMU_FW_MAX &&
+> > > -                   event_idx_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > > -                   event_idx_code > SBI_PMU_FW_PLATFORM)
+> > > +               if (!fw_event_code_valid(event_idx_code))
+> > >                         return SBI_EINVAL;
+> > >
+> > >                 if (SBI_PMU_FW_PLATFORM == event_idx_code &&
+> > > @@ -153,7 +168,7 @@ static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
+> > >                         return pmu_dev->fw_event_validate_encoding(phs->hartid,
+> > >                                                                    edata);
+> > >                 else
+> > > -                       event_idx_code_max = SBI_PMU_FW_MAX;
+> > > +                       event_idx_code_max = SBI_PMU_FW_IMPL_MAX;
+> > >                 break;
+> > >         case SBI_PMU_EVENT_TYPE_HW_CACHE:
+> > >                 cache_ops_result = event_idx_code &
+> > > @@ -217,9 +232,7 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
+> > >         if (event_idx_type != SBI_PMU_EVENT_TYPE_FW)
+> > >                 return SBI_EINVAL;
+> > >
+> > > -       if ((event_code >= SBI_PMU_FW_MAX &&
+> > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > > -           event_code > SBI_PMU_FW_PLATFORM)
+> > > +       if (!fw_event_code_valid(event_code))
+> > >                 return SBI_EINVAL;
+> > >
+> > >         if (SBI_PMU_FW_PLATFORM == event_code) {
+> > > @@ -414,9 +427,7 @@ static int pmu_ctr_start_fw(struct sbi_pmu_hart_state *phs,
+> > >                             uint64_t event_data, uint64_t ival,
+> > >                             bool ival_update)
+> > >  {
+> > > -       if ((event_code >= SBI_PMU_FW_MAX &&
+> > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > > -           event_code > SBI_PMU_FW_PLATFORM)
+> > > +       if (!fw_event_code_valid(event_code))
+> > >                 return SBI_EINVAL;
+> > >
+> > >         if (SBI_PMU_FW_PLATFORM == event_code) {
+> > > @@ -518,9 +529,7 @@ static int pmu_ctr_stop_fw(struct sbi_pmu_hart_state *phs,
+> > >  {
+> > >         int ret;
+> > >
+> > > -       if ((event_code >= SBI_PMU_FW_MAX &&
+> > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > > -           event_code > SBI_PMU_FW_PLATFORM)
+> > > +       if (!fw_event_code_valid(event_code))
+> > >                 return SBI_EINVAL;
+> > >
+> > >         if (SBI_PMU_FW_PLATFORM == event_code &&
+> > > @@ -792,9 +801,7 @@ static int pmu_ctr_find_fw(struct sbi_pmu_hart_state *phs,
+> > >  {
+> > >         int i, cidx;
+> > >
+> > > -       if ((event_code >= SBI_PMU_FW_MAX &&
+> > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
+> > > -           event_code > SBI_PMU_FW_PLATFORM)
+> > > +       if (!fw_event_code_valid(event_code))
+> > >                 return SBI_EINVAL;
+> > >
+> > >         for_each_set_bit(i, &cmask, BITS_PER_LONG) {
+> > > @@ -907,8 +914,10 @@ int sbi_pmu_ctr_incr_fw(enum sbi_pmu_fw_event_code_id fw_id)
+> > >         if (likely(!phs->fw_counters_started))
+> > >                 return 0;
+> > >
+> > > -       if (unlikely(fw_id >= SBI_PMU_FW_MAX))
+> > > +       if (unlikely((fw_id == SBI_PMU_FW_PLATFORM) ||
+> > > +                    !fw_event_code_valid(fw_id))) {
+> > >                 return SBI_EINVAL;
+> > > +       }
+> > >
+> > >         for (cidx = num_hw_ctrs; cidx < total_ctrs; cidx++) {
+> > >                 if (get_cidx_code(phs->active_events[cidx]) == fw_id &&
+> > > --
+> > > 2.34.1
+> > >
+
+
+
+-- 
+Regards,
+Atish
 
