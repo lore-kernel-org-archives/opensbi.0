@@ -1,131 +1,165 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 19 Jun 2024 18:19:05 +0530
-Subject: [PATCH v3 4/4] lib: sbi: implement SBI FWFT extension
-In-Reply-To: <20240619094244.603628-5-cleger@rivosinc.com>
-References: <20240619094244.603628-1-cleger@rivosinc.com> <20240619094244.603628-5-cleger@rivosinc.com>
-Message-ID: <CAAhSdy0JJwwayzarrGhPmm0MgpwPXLJxLmrXsuEiA37SiEjvqw@mail.gmail.com>
+From: Atish Kumar Patra <atishp@rivosinc.com>
+Date: Wed, 19 Jun 2024 17:03:05 -0700
+Subject: [PATCH] lib: sbi: Enable Control Transfer Records (CTR) Ext using xstateen.
+In-Reply-To: <CAAhSdy14BLF=foVd_ByojzFO=tzYSKGGfVDOD_TWtunBBfxq=A@mail.gmail.com>
+References: <20240529150210.125200-1-rkanwal@rivosinc.com> <CAAhSdy14BLF=foVd_ByojzFO=tzYSKGGfVDOD_TWtunBBfxq=A@mail.gmail.com>
+Message-ID: <CAHBxVyGECqgH-RFzaGt-cNJR4jSpLCgBSUm+1B6Emwb2Watbfg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 19, 2024 at 3:13?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+On Tue, Jun 18, 2024 at 3:40?AM Anup Patel <anup@brainfault.org> wrote:
 >
-> The SBI FWFT extension defines a set of function that can be called to
-> control the configuration of some platform features (misaligned
-> trap delegation, etc). This patch implements sbi_fwft_set() and
-> sbi_fwft_get() as defined in the specification [1].
+> Hi Rajnesh,
 >
-> Link: https://lists.riscv.org/g/tech-prs/message/924 [1]
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> On Wed, May 29, 2024 at 8:32?PM Rajnesh Kanwal <rkanwal@rivosinc.com> wrote:
+> >
+> > The Control Transfer Records (CTR) extension provides a method to
+> > record a limited branch history in register-accessible internal chip
+> > storage.
+> >
+> > This extension is similar to Arch LBR in x86 and BRBE in ARM.
+> > The Extension has been stable and the latest release can be found here
+> > https://github.com/riscv/riscv-control-transfer-records/release
+> >
+> > Signed-off-by: Rajnesh Kanwal <rkanwal@rivosinc.com>
+>
 
-I had already reviewed the previous revision of this patch.
++Beeman Strong
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+> We will be needing a SBI FWFT extension feature to explicitly
+> enable/disable CTR because:
+> 1) Hypervisors (such as KVM) needs a way to know when
+> Guest/VM starts/stops using CTR. This information will allow
+> hypervisors to optimize Guest/VM world switch when CTR is
+> available.
 
-Applied this patch to the riscv/opensbi repo.
+Yes. This will be useful for virtualization but it will add more costs
+when non-virtualization scenarios.
+Because you have to enable/disable CTR at every context switch.
+If SBI PMU is in use, the cost probably won't matter as we have tons
+of SBI calls for other PMU functionality anyways.
+However, it adds extra cost if counter delegation is in use.
 
-Thanks,
-Anup
+To avoid this cost, the PMU driver can enable/disable CTR only if
+SBI_PMU is in use. This will work for virtualization as well
+SBI PMU is the only way to get PMU working reliably if virtualization
+is enabled. Thoughts ?
 
-> ---
->  lib/sbi/Kconfig          |  4 ++++
->  lib/sbi/objects.mk       |  3 +++
->  lib/sbi/sbi_ecall_fwft.c | 49 ++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 56 insertions(+)
->  create mode 100644 lib/sbi/sbi_ecall_fwft.c
+> 2) Keeping is CTR enabled by default opens a side-channel
+> between multiple OpenSBI domains or between multiple
+> Guest/VM.
 >
-> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-> index cc8e031..6cf54ce 100644
-> --- a/lib/sbi/Kconfig
-> +++ b/lib/sbi/Kconfig
-> @@ -38,6 +38,10 @@ config SBI_ECALL_CPPC
->         bool "CPPC extension"
->         default y
+
+We must clear the CTR buffer on domain context switch to avoid this.
+For the process context switch path, we clear the entries.
+
+For Guest/VM, we probably should do something like that in KVM as well.
+
+> Based on the above, I suggest you propose a new feature for
+> SBI FWFT extension in PRS TG and update this series accordingly.
 >
-> +config SBI_ECALL_FWFT
-> +       bool "Firmware Feature extension"
-> +       default y
-> +
->  config SBI_ECALL_LEGACY
->         bool "SBI v0.1 legacy extensions"
->         default y
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index 221e72c..211abad 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -46,6 +46,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_DBCN) += sbi_ecall_dbcn.o
->  carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_CPPC) += ecall_cppc
->  libsbi-objs-$(CONFIG_SBI_ECALL_CPPC) += sbi_ecall_cppc.o
+> Regards,
+> Anup
 >
-> +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_FWFT) += ecall_fwft
-> +libsbi-objs-$(CONFIG_SBI_ECALL_FWFT) += sbi_ecall_fwft.o
-> +
->  carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_LEGACY) += ecall_legacy
->  libsbi-objs-$(CONFIG_SBI_ECALL_LEGACY) += sbi_ecall_legacy.o
->
-> diff --git a/lib/sbi/sbi_ecall_fwft.c b/lib/sbi/sbi_ecall_fwft.c
-> new file mode 100644
-> index 0000000..267cbab
-> --- /dev/null
-> +++ b/lib/sbi/sbi_ecall_fwft.c
-> @@ -0,0 +1,49 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2024 Rivos Inc.
-> + *
-> + * Authors:
-> + *   Cl?ment L?ger <cleger@rivosinc.com>
-> + */
-> +
-> +#include <sbi/sbi_ecall.h>
-> +#include <sbi/sbi_ecall_interface.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_fwft.h>
-> +#include <sbi/sbi_trap.h>
-> +
-> +static int sbi_ecall_fwft_handler(unsigned long extid, unsigned long funcid,
-> +                                struct sbi_trap_regs *regs,
-> +                                struct sbi_ecall_return *out)
-> +{
-> +       int ret = 0;
-> +
-> +       switch (funcid) {
-> +       case SBI_EXT_FWFT_SET:
-> +               ret = sbi_fwft_set(regs->a0, regs->a1, regs->a2);
-> +               break;
-> +       case SBI_EXT_FWFT_GET:
-> +               ret = sbi_fwft_get(regs->a0, &out->value);
-> +               break;
-> +       default:
-> +               ret = SBI_ENOTSUPP;
-> +               break;
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +struct sbi_ecall_extension ecall_fwft;
-> +
-> +static int sbi_ecall_fwft_register_extensions(void)
-> +{
-> +       return sbi_ecall_register_extension(&ecall_fwft);
-> +}
-> +
-> +struct sbi_ecall_extension ecall_fwft = {
-> +       .extid_start = SBI_EXT_FWFT,
-> +       .extid_end = SBI_EXT_FWFT,
-> +       .register_extensions = sbi_ecall_fwft_register_extensions,
-> +       .handle = sbi_ecall_fwft_handler,
-> +};
-> --
-> 2.45.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+> > ---
+> >  include/sbi/riscv_encoding.h | 13 +++++++++++++
+> >  include/sbi/sbi_hart.h       |  4 ++++
+> >  lib/sbi/sbi_hart.c           | 13 +++++++++++++
+> >  3 files changed, 30 insertions(+)
+> >
+> > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> > index d914828..eb3361c 100644
+> > --- a/include/sbi/riscv_encoding.h
+> > +++ b/include/sbi/riscv_encoding.h
+> > @@ -357,6 +357,17 @@
+> >  #define CSR_SSTATEEN2                  0x10E
+> >  #define CSR_SSTATEEN3                  0x10F
+> >
+> > +/* Machine-Level Control transfer records CSRs */
+> > +#define CSR_MCTRCTL                     0x34e
+> > +
+> > +/* Supervisor-Level Control transfer records CSRs */
+> > +#define CSR_SCTRCTL                     0x14e
+> > +#define CSR_SCTRSTATUS                  0x14f
+> > +#define CSR_SCTRDEPTH                   0x15f
+> > +
+> > +/* VS-Level Control transfer records CSRs */
+> > +#define CSR_VSCTRCTL                    0x24e
+> > +
+> >  /* ===== Hypervisor-level CSRs ===== */
+> >
+> >  /* Hypervisor Trap Setup (H-extension) */
+> > @@ -773,6 +784,8 @@
+> >  #define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
+> >  #define SMSTATEEN0_FCSR_SHIFT          1
+> >  #define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
+> > +#define SMSTATEEN0_CTR_SHIFT           54
+> > +#define SMSTATEEN0_CTR                 (_ULL(1) << SMSTATEEN0_CTR_SHIFT)
+> >  #define SMSTATEEN0_CONTEXT_SHIFT       57
+> >  #define SMSTATEEN0_CONTEXT             (_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
+> >  #define SMSTATEEN0_IMSIC_SHIFT         58
+> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> > index cc78eec..c4eddb4 100644
+> > --- a/include/sbi/sbi_hart.h
+> > +++ b/include/sbi/sbi_hart.h
+> > @@ -63,6 +63,10 @@ enum sbi_hart_extensions {
+> >         SBI_HART_EXT_SSCSRIND,
+> >         /** Hart has Ssccfg extension */
+> >         SBI_HART_EXT_SSCCFG,
+> > +       /** HART has CTR M-mode CSRs */
+> > +       SBI_HART_EXT_SMCTR,
+> > +       /** HART has CTR S-mode CSRs */
+> > +       SBI_HART_EXT_SSCTR,
+> >
+> >         /** Maximum index of Hart extension */
+> >         SBI_HART_EXT_MAX,
+> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> > index cd974cc..db2f157 100644
+> > --- a/lib/sbi/sbi_hart.c
+> > +++ b/lib/sbi/sbi_hart.c
+> > @@ -105,6 +105,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
+> >                 else
+> >                         mstateen_val &= ~(SMSTATEEN0_SVSLCT);
+> >
+> > +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCTR))
+> > +                       mstateen_val |= SMSTATEEN0_CTR;
+> > +               else
+> > +                       mstateen_val &= ~SMSTATEEN0_CTR;
+> > +
+> >                 csr_write(CSR_MSTATEEN0, mstateen_val);
+> >  #if __riscv_xlen == 32
+> >                 csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
+> > @@ -668,6 +673,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+> >         __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
+> >         __SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
+> >         __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
+> > +       __SBI_HART_EXT_DATA(smctr, SBI_HART_EXT_SMCTR),
+> > +       __SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
+> >  };
+> >
+> >  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+> > @@ -921,6 +928,12 @@ __pmp_skip:
+> >         /* Save trap based detection of Zicntr */
+> >         has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
+> >
+> > +       /* Detect if hart has Control Transfer Record CSRs */
+> > +       csr_read_allowed(CSR_MCTRCTL, (unsigned long)&trap);
+> > +       if (!trap.cause)
+> > +               __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_SMCTR,
+> > +                                           true);
+> > +
+> >         /* Let platform populate extensions */
+> >         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+> >                                           hfeatures);
+> > --
+> > 2.34.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
 
