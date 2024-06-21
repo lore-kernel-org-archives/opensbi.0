@@ -1,135 +1,142 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 21 Jun 2024 17:38:29 +0530
-Subject: [PATCH v4 2/2] lib: utils/fdt: fixup DT when both Svade and Svadu
- are in DT
-In-Reply-To: <20240605121110.14784-3-yongxuan.wang@sifive.com>
-References: <20240605121110.14784-1-yongxuan.wang@sifive.com> <20240605121110.14784-3-yongxuan.wang@sifive.com>
-Message-ID: <CAAhSdy1AaiLVLwFp5gfeEo18z_mqKozDsnPY-yHgiqixzMy18Q@mail.gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Fri, 21 Jun 2024 15:50:43 +0200
+Subject: [PATCH v3 2/4] lib: sbi: fwft: add support for
+ SBI_FWFT_MISALIGNED_EXC_DELEG
+In-Reply-To: <20240619094244.603628-3-cleger@rivosinc.com>
+References: <20240619094244.603628-1-cleger@rivosinc.com>
+ <20240619094244.603628-3-cleger@rivosinc.com>
+Message-ID: <20240621-40c8b1acabcbc3e306e855e8@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 5, 2024 at 5:41?PM Yong-Xuan Wang <yongxuan.wang@sifive.com> wrote:
->
-> Delete Svadu when bot Svade and Svadu are present in DT. This will be
-> removed after we have FWFT support.
->
-> Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-
-I think we don't need this anymore since SBI FWFT support is
-merged as experimental.
-
-Regards,
-Anup
-
+On Wed, Jun 19, 2024 at 11:42:40AM GMT, Cl?ment L?ger wrote:
+> Add support for SBI_FWFT_MISALIGNED_EXC_DELEG withing FWFT support. This
+> support allows to delegate misaligned accesses traps.
+> 
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 > ---
->  lib/utils/fdt/fdt_fixup.c | 71 +++++++++++++++++++++++++++++++++++++--
->  1 file changed, 69 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index 974b1b883eb4..77a2bee79d95 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -13,6 +13,7 @@
->  #include <sbi/sbi_domain.h>
->  #include <sbi/sbi_math.h>
->  #include <sbi/sbi_hart.h>
-> +#include <sbi/sbi_heap.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
->  #include <sbi/sbi_error.h>
-> @@ -108,9 +109,11 @@ int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
->  void fdt_cpu_fixup(void *fdt)
->  {
->         struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> -       int err, cpu_offset, cpus_offset, len;
-> -       const char *mmu_type;
-> +       int err, cpu_offset, cpus_offset, len, idx;
-> +       const char *mmu_type, *isa;
-> +       char *new_isa = NULL;
->         u32 hartid;
-> +       bool has_svadu, has_svade;
->
->         err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
->         if (err < 0)
-> @@ -139,6 +142,70 @@ void fdt_cpu_fixup(void *fdt)
->                     !mmu_type || !len)
->                         fdt_setprop_string(fdt, cpu_offset, "status",
->                                            "disabled");
+>  lib/sbi/sbi_fwft.c | 39 ++++++++++++++++++++++++++++++++++++++-
+>  lib/sbi/sbi_hsm.c  |  3 +++
+>  2 files changed, 41 insertions(+), 1 deletion(-)
+> 
+> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+> index b302b5d..289a344 100644
+> --- a/lib/sbi/sbi_fwft.c
+> +++ b/lib/sbi/sbi_fwft.c
+> @@ -32,6 +32,8 @@ static unsigned long fwft_ptr_offset;
+>  #define fwft_set_hart_state_ptr(__scratch, __phs)			\
+>  	sbi_scratch_write_type((__scratch), void *, fwft_ptr_offset, (__phs))
+>  
+> +#define MIS_DELEG (1UL << CAUSE_MISALIGNED_LOAD | 1UL << CAUSE_MISALIGNED_STORE)
 > +
-> +               /*
-> +                * Delete Svadu when both Svade and Svadu are in DT. This will be removed after
-> +                * we have FWFT extension.
-> +                */
-> +
-> +               isa = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-> +               if (isa) {
-> +                       has_svadu = has_svade = false;
-> +                       idx = 0;
-> +
-> +                       for (int i = 0; i < len; i++) {
-> +                               if (isa[i] != '_')
-> +                                       continue;
-> +
-> +                               /* Skip the '_' character */
-> +                               if (!sbi_strncmp(isa + i + 1, "svadu", 5)) {
-> +                                       has_svadu = true;
-> +                                       idx = i + 1;
-> +                               } else if (!sbi_strncmp(isa + i + 1, "svade", 5)) {
-> +                                       has_svade = true;
-> +                               }
-> +                       }
-> +
-> +                       if (has_svadu && has_svade) {
-> +                               new_isa = sbi_calloc(sizeof(char), len - 6);
-> +
-> +                               idx--;
-> +                               sbi_memcpy(new_isa, isa, idx);
-> +                               sbi_memcpy(new_isa + idx, isa + idx + 6, sbi_strlen(isa + idx + 6));
-> +
-> +                               fdt_setprop_string(fdt, cpu_offset, "riscv,isa", new_isa);
-> +                               sbi_free(new_isa);
-> +                       }
-> +               }
-> +
-> +               isa = fdt_getprop(fdt, cpu_offset, "riscv,isa-extensions", &len);
-> +               if (isa) {
-> +                       idx = fdt_stringlist_search(fdt, cpu_offset, "riscv,isa-extensions",
-> +                                                   "svadu");
-> +                       has_svade = fdt_stringlist_contains(isa, len, "svade");
-> +
-> +                       if (idx >= 0 && has_svade) {
-> +                               const char *p;
-> +                               int len1, len2;
-> +
-> +                               new_isa = sbi_calloc(sizeof(char), len - 6);
-> +                               p = fdt_stringlist_get(fdt, cpu_offset, "riscv,isa-extensions",
-> +                                                      idx, &len1);
-> +                               len2 = p - isa;
-> +                               sbi_memcpy(new_isa, isa, len2);
-> +
-> +                               p = fdt_stringlist_get(fdt, cpu_offset, "riscv,isa-extensions",
-> +                                                      idx + 1, &len1);
-> +
-> +                               if (p)
-> +                                       sbi_memcpy(new_isa + len2, isa + len2 + 6,
-> +                                                  isa + len - p + 1);
-> +
-> +                               fdt_setprop(fdt, cpu_offset, "riscv,isa-extensions", new_isa,
-> +                                           len - 6);
-> +                               sbi_free(new_isa);
-> +                       }
-> +               }
->         }
+>  struct fwft_config;
+>  
+>  struct fwft_feature {
+> @@ -71,6 +73,33 @@ static bool fwft_is_defined_feature(enum sbi_fwft_feature_t feature)
+>  	return false;
 >  }
->
-> --
-> 2.17.1
->
->
-> --
+>  
+> +static int fwft_misaligned_delegation_supported(struct fwft_config *conf)
+> +{
+> +	if (!misa_extension('S'))
+> +		return SBI_ENOTSUPP;
+> +
+> +	return SBI_OK;
+> +}
+> +
+> +static int fwft_set_misaligned_delegation(struct fwft_config *conf,
+> +					 unsigned long value)
+> +{
+> +	if (value)
+> +		csr_set(CSR_MEDELEG, MIS_DELEG);
+> +	else
+> +		csr_clear(CSR_MEDELEG, MIS_DELEG);
+
+Sorry for my late review. This should be
+
+  if (value == 1)
+     csr_set(CSR_MEDELEG, MIS_DELEG);
+  else if (value == 0)
+     csr_clear(CSR_MEDELEG, MIS_DELEG);
+  else
+     return SBI_EINVAL;
+
+It's unlikely we'll ever extend the inputs/behaviors, but if we don't
+check for the inputs explicitly now, then we never can.
+
+And same comment for SBI_FWFT_PTE_AD_HW_UPDATING.
+
+Thanks,
+drew
+
+> +
+> +	return SBI_OK;
+> +}
+> +
+> +static int fwft_get_misaligned_delegation(struct fwft_config *conf,
+> +					 unsigned long *value)
+> +{
+> +	*value = (csr_read(CSR_MEDELEG) & MIS_DELEG) != 0;
+> +
+> +	return SBI_OK;
+> +}
+> +
+>  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+>  {
+>  	int i;
+> @@ -148,7 +177,15 @@ int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
+>  	return conf->feature->get(conf, out_val);
+>  }
+>  
+> -static const struct fwft_feature features[] = {};
+> +static const struct fwft_feature features[] =
+> +{
+> +	{
+> +		.id = SBI_FWFT_MISALIGNED_EXC_DELEG,
+> +		.supported = fwft_misaligned_delegation_supported,
+> +		.set = fwft_set_misaligned_delegation,
+> +		.get = fwft_get_misaligned_delegation,
+> +	},
+> +};
+>  
+>  int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
+>  {
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index be48d64..2b23e13 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -44,6 +44,7 @@ struct sbi_hsm_data {
+>  	unsigned long suspend_type;
+>  	unsigned long saved_mie;
+>  	unsigned long saved_mip;
+> +	unsigned long saved_medeleg;
+>  	atomic_t start_ticket;
+>  };
+>  
+> @@ -417,6 +418,7 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+>  
+>  	hdata->saved_mie = csr_read(CSR_MIE);
+>  	hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
+> +	hdata->saved_medeleg = csr_read(CSR_MEDELEG);
+>  }
+>  
+>  static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+> @@ -424,6 +426,7 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+>  	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>  							    hart_data_offset);
+>  
+> +	csr_write(CSR_MEDELEG, hdata->saved_medeleg);
+>  	csr_write(CSR_MIE, hdata->saved_mie);
+>  	csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
+>  }
+> -- 
+> 2.45.2
+> 
+> 
+> -- 
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
