@@ -1,82 +1,214 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 21 Jun 2024 22:55:05 +0800
-Subject: [PATCH 0/4] Initialize the console as early as possible
-In-Reply-To: <20240621-334f59a4e3446a62fefecdbf@orel>
-References: <20240606091723.896477-1-wxjstz@126.com>
-	 <CAAhSdy3b8-wzwPobWeLASX5jE77GWixYVhiOt7+NQ_kYtsHzYQ@mail.gmail.com>
-	 <20240621-334f59a4e3446a62fefecdbf@orel>
-Message-ID: <ccf0fae34f964d231554c4397e986d21611ab3fb.camel@126.com>
+From: Atish Kumar Patra <atishp@rivosinc.com>
+Date: Fri, 21 Jun 2024 10:41:38 -0700
+Subject: [PATCH] lib: sbi: Enable Control Transfer Records (CTR) Ext using xstateen.
+In-Reply-To: <CAAhSdy2vG37rGdb9avFvp7pXP1p83tPfuxB5szMttUgQf2Rv+g@mail.gmail.com>
+References: <20240529150210.125200-1-rkanwal@rivosinc.com> <CAAhSdy14BLF=foVd_ByojzFO=tzYSKGGfVDOD_TWtunBBfxq=A@mail.gmail.com>
+ <CAHBxVyGECqgH-RFzaGt-cNJR4jSpLCgBSUm+1B6Emwb2Watbfg@mail.gmail.com> <CAAhSdy2vG37rGdb9avFvp7pXP1p83tPfuxB5szMttUgQf2Rv+g@mail.gmail.com>
+Message-ID: <CAHBxVyGcJmAzBGxtwkMsC48rsjAWCKuNZKgk8jSU8a+hP_azEQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-06-21???? 16:02 +0200?Andrew Jones???
-> On Fri, Jun 21, 2024 at 05:37:07PM GMT, Anup Patel wrote:
-> > On Thu, Jun 6, 2024 at 2:47?PM Xiang W <wxjstz@126.com> wrote:
-> > > 
-> > > Initializing the console as early as possible can output more useful
-> > > information. This series of patches is used to initialize the console
-> > > as early as possible.
-> > > 
-> > > This series of patches is based on a previous patch
-> > > http://lists.infradead.org/pipermail/opensbi/2024-May/006960.html
-> > > 
-> > > Xiang W (4):
-> > > ? include: sbi_utils: fixup fdt_get_address
-> > > ? lib: sbi: Add domains_init to sbi_console_device
-> > > ? lib: utils/serial: add domains_init for 8250
-> > > ? lib: sbi: Initialize the console as early as possible
-> > 
-> > The problem with this series is that it is changing the order
-> > of platform callback in coldboot path because sbi_scratch_init,
-> > sbi_heap_init, and sbi_domain_init should always be the
-> > first things done in the coldboot path.
-> > 
-> > Instead, I suggest the following:
-> > 1) Update generic platform to call generic_console_init()
-> > ???? from generic_early_init() in coldboot path and don't
-> > ???? provide the console_init() callback.
-> > 2) Update all other platform to do similar thing as #1
-> > 3) Drop sbi_console_init(), sbi_platform_console_init() and
-> > ??? console_init() callback.
-> > 
-> > For prints before sbi_platform_early_init(), the sbi_console.c
-> > can implement a small circular buffer which is flushed whenever
-> > some driver sets a console device.
-> 
-> Almost two years ago I wrote an SBI console ring buffer patch. I never
-> polished and posted it, but I could maybe dig it back up.
+On Fri, Jun 21, 2024 at 4:44?AM Anup Patel <anup@brainfault.org> wrote:
+>
+> On Thu, Jun 20, 2024 at 5:33?AM Atish Kumar Patra <atishp@rivosinc.com> wrote:
+> >
+> > On Tue, Jun 18, 2024 at 3:40?AM Anup Patel <anup@brainfault.org> wrote:
+> > >
+> > > Hi Rajnesh,
+> > >
+> > > On Wed, May 29, 2024 at 8:32?PM Rajnesh Kanwal <rkanwal@rivosinc.com> wrote:
+> > > >
+> > > > The Control Transfer Records (CTR) extension provides a method to
+> > > > record a limited branch history in register-accessible internal chip
+> > > > storage.
+> > > >
+> > > > This extension is similar to Arch LBR in x86 and BRBE in ARM.
+> > > > The Extension has been stable and the latest release can be found here
+> > > > https://github.com/riscv/riscv-control-transfer-records/release
+> > > >
+> > > > Signed-off-by: Rajnesh Kanwal <rkanwal@rivosinc.com>
+> > >
+> >
+> > +Beeman Strong
+> >
+> > > We will be needing a SBI FWFT extension feature to explicitly
+> > > enable/disable CTR because:
+> > > 1) Hypervisors (such as KVM) needs a way to know when
+> > > Guest/VM starts/stops using CTR. This information will allow
+> > > hypervisors to optimize Guest/VM world switch when CTR is
+> > > available.
+> >
+> > Yes. This will be useful for virtualization but it will add more costs
+> > when non-virtualization scenarios.
+> > Because you have to enable/disable CTR at every context switch.
+>
+> Well, it is not on every context switch. The CTR will be enabled only
+> when task using CTR is scheduled-in and CTR will be disabled
+> only when a task using CTR is schedule-out.
+>
 
-waitting for your patch.
+I meant context switch for a process using CTR. So we are saying the same thing.
+I think we can do better by disabling it while context switching in if
+the next process
+is not going to use CTR. We already check that while clearing the CTR entries.
 
-Regards,
-Xiang W
-> 
-> Thanks,
-> drew
-> 
-> > 
-> > > 
-> > > ?include/sbi/sbi_console.h?????????? |? 3 +++
-> > > ?include/sbi_utils/fdt/fdt_helper.h? |? 4 +++-
-> > > ?include/sbi_utils/serial/uart8250.h |? 1 +
-> > > ?lib/sbi/sbi_domain.c??????????????? | 10 ++++++++++
-> > > ?lib/sbi/sbi_init.c????????????????? |? 8 ++++----
-> > > ?lib/utils/serial/uart8250.c???????? | 28 +++++++++++++++++++---------
-> > > ?6 files changed, 40 insertions(+), 14 deletions(-)
-> > > 
-> > > --
-> > > 2.43.0
-> > > 
-> > 
-> > Regards,
-> > Anup
-> > 
-> > -- 
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
+We need to check if it will work if perf is going to be attached to an
+already running process.
 
+> > If SBI PMU is in use, the cost probably won't matter as we have tons
+> > of SBI calls for other PMU functionality anyways.
+> > However, it adds extra cost if counter delegation is in use.
+> >
+> > To avoid this cost, the PMU driver can enable/disable CTR only if
+> > SBI_PMU is in use. This will work for virtualization as well
+> > SBI PMU is the only way to get PMU working reliably if virtualization
+> > is enabled. Thoughts ?
+>
+> We can't decide to enable/disable CTR in Linux based on SBI
+> PMU usage because there will be platforms where SBI PMU
+> is used natively and inside Guest/VM.
+>
+> Instead, I suggest that SBI implementation (such as OpenSBI)
+> which prefer keeping CTR always enabled should implement
+> CTR firmware feature as though it is always-enabled and can't
+> be disabled. In other words, for such SBI implementations the
+> sbi_fwft_set() for CTR firmware feature will always return
+> SBI_ERR_DENIED.
+>
+> Similarly, SBI implementations (such KVM) which prefer lazy
+> context-switching of CTR will keep CTR disabled by default
+> and will expect the supervisor to explicitly enable/disable
+> CTR using sbi_fwft_set().
+>
+> Using the above, PMU drivers (both SBI PMU based and
+> counter delegation based) can decide whether enabling/disabling
+> CTR upon sched-in/sched-out is required or not.
+>
+
+Makes sense. This is a better scheme. Thanks!
+
+> >
+> > > 2) Keeping is CTR enabled by default opens a side-channel
+> > > between multiple OpenSBI domains or between multiple
+> > > Guest/VM.
+> > >
+> >
+> > We must clear the CTR buffer on domain context switch to avoid this.
+> > For the process context switch path, we clear the entries.
+> >
+> > For Guest/VM, we probably should do something like that in KVM as well.
+>
+> Yes, I agree. This is straight forward.
+>
+> Regards,
+> Anup
+>
+> >
+> > > Based on the above, I suggest you propose a new feature for
+> > > SBI FWFT extension in PRS TG and update this series accordingly.
+> > >
+> > > Regards,
+> > > Anup
+> > >
+> > > > ---
+> > > >  include/sbi/riscv_encoding.h | 13 +++++++++++++
+> > > >  include/sbi/sbi_hart.h       |  4 ++++
+> > > >  lib/sbi/sbi_hart.c           | 13 +++++++++++++
+> > > >  3 files changed, 30 insertions(+)
+> > > >
+> > > > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> > > > index d914828..eb3361c 100644
+> > > > --- a/include/sbi/riscv_encoding.h
+> > > > +++ b/include/sbi/riscv_encoding.h
+> > > > @@ -357,6 +357,17 @@
+> > > >  #define CSR_SSTATEEN2                  0x10E
+> > > >  #define CSR_SSTATEEN3                  0x10F
+> > > >
+> > > > +/* Machine-Level Control transfer records CSRs */
+> > > > +#define CSR_MCTRCTL                     0x34e
+> > > > +
+> > > > +/* Supervisor-Level Control transfer records CSRs */
+> > > > +#define CSR_SCTRCTL                     0x14e
+> > > > +#define CSR_SCTRSTATUS                  0x14f
+> > > > +#define CSR_SCTRDEPTH                   0x15f
+> > > > +
+> > > > +/* VS-Level Control transfer records CSRs */
+> > > > +#define CSR_VSCTRCTL                    0x24e
+> > > > +
+> > > >  /* ===== Hypervisor-level CSRs ===== */
+> > > >
+> > > >  /* Hypervisor Trap Setup (H-extension) */
+> > > > @@ -773,6 +784,8 @@
+> > > >  #define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
+> > > >  #define SMSTATEEN0_FCSR_SHIFT          1
+> > > >  #define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
+> > > > +#define SMSTATEEN0_CTR_SHIFT           54
+> > > > +#define SMSTATEEN0_CTR                 (_ULL(1) << SMSTATEEN0_CTR_SHIFT)
+> > > >  #define SMSTATEEN0_CONTEXT_SHIFT       57
+> > > >  #define SMSTATEEN0_CONTEXT             (_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
+> > > >  #define SMSTATEEN0_IMSIC_SHIFT         58
+> > > > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> > > > index cc78eec..c4eddb4 100644
+> > > > --- a/include/sbi/sbi_hart.h
+> > > > +++ b/include/sbi/sbi_hart.h
+> > > > @@ -63,6 +63,10 @@ enum sbi_hart_extensions {
+> > > >         SBI_HART_EXT_SSCSRIND,
+> > > >         /** Hart has Ssccfg extension */
+> > > >         SBI_HART_EXT_SSCCFG,
+> > > > +       /** HART has CTR M-mode CSRs */
+> > > > +       SBI_HART_EXT_SMCTR,
+> > > > +       /** HART has CTR S-mode CSRs */
+> > > > +       SBI_HART_EXT_SSCTR,
+> > > >
+> > > >         /** Maximum index of Hart extension */
+> > > >         SBI_HART_EXT_MAX,
+> > > > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> > > > index cd974cc..db2f157 100644
+> > > > --- a/lib/sbi/sbi_hart.c
+> > > > +++ b/lib/sbi/sbi_hart.c
+> > > > @@ -105,6 +105,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
+> > > >                 else
+> > > >                         mstateen_val &= ~(SMSTATEEN0_SVSLCT);
+> > > >
+> > > > +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCTR))
+> > > > +                       mstateen_val |= SMSTATEEN0_CTR;
+> > > > +               else
+> > > > +                       mstateen_val &= ~SMSTATEEN0_CTR;
+> > > > +
+> > > >                 csr_write(CSR_MSTATEEN0, mstateen_val);
+> > > >  #if __riscv_xlen == 32
+> > > >                 csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
+> > > > @@ -668,6 +673,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+> > > >         __SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
+> > > >         __SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
+> > > >         __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
+> > > > +       __SBI_HART_EXT_DATA(smctr, SBI_HART_EXT_SMCTR),
+> > > > +       __SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
+> > > >  };
+> > > >
+> > > >  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+> > > > @@ -921,6 +928,12 @@ __pmp_skip:
+> > > >         /* Save trap based detection of Zicntr */
+> > > >         has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
+> > > >
+> > > > +       /* Detect if hart has Control Transfer Record CSRs */
+> > > > +       csr_read_allowed(CSR_MCTRCTL, (unsigned long)&trap);
+> > > > +       if (!trap.cause)
+> > > > +               __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_SMCTR,
+> > > > +                                           true);
+> > > > +
+> > > >         /* Let platform populate extensions */
+> > > >         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+> > > >                                           hfeatures);
+> > > > --
+> > > > 2.34.1
+> > > >
+> > > >
+> > > > --
+> > > > opensbi mailing list
+> > > > opensbi at lists.infradead.org
+> > > > http://lists.infradead.org/mailman/listinfo/opensbi
 
