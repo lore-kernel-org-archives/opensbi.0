@@ -1,140 +1,71 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Fri, 21 Jun 2024 15:50:43 +0200
-Subject: [PATCH v3 2/4] lib: sbi: fwft: add support for
- SBI_FWFT_MISALIGNED_EXC_DELEG
-In-Reply-To: <20240619094244.603628-3-cleger@rivosinc.com>
-References: <20240619094244.603628-1-cleger@rivosinc.com>
- <20240619094244.603628-3-cleger@rivosinc.com>
-Message-ID: <20240621-40c8b1acabcbc3e306e855e8@orel>
+Date: Fri, 21 Jun 2024 16:02:50 +0200
+Subject: [PATCH 0/4] Initialize the console as early as possible
+In-Reply-To: <CAAhSdy3b8-wzwPobWeLASX5jE77GWixYVhiOt7+NQ_kYtsHzYQ@mail.gmail.com>
+References: <20240606091723.896477-1-wxjstz@126.com>
+ <CAAhSdy3b8-wzwPobWeLASX5jE77GWixYVhiOt7+NQ_kYtsHzYQ@mail.gmail.com>
+Message-ID: <20240621-334f59a4e3446a62fefecdbf@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jun 19, 2024 at 11:42:40AM GMT, Cl?ment L?ger wrote:
-> Add support for SBI_FWFT_MISALIGNED_EXC_DELEG withing FWFT support. This
-> support allows to delegate misaligned accesses traps.
+On Fri, Jun 21, 2024 at 05:37:07PM GMT, Anup Patel wrote:
+> On Thu, Jun 6, 2024 at 2:47?PM Xiang W <wxjstz@126.com> wrote:
+> >
+> > Initializing the console as early as possible can output more useful
+> > information. This series of patches is used to initialize the console
+> > as early as possible.
+> >
+> > This series of patches is based on a previous patch
+> > http://lists.infradead.org/pipermail/opensbi/2024-May/006960.html
+> >
+> > Xiang W (4):
+> >   include: sbi_utils: fixup fdt_get_address
+> >   lib: sbi: Add domains_init to sbi_console_device
+> >   lib: utils/serial: add domains_init for 8250
+> >   lib: sbi: Initialize the console as early as possible
 > 
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-> ---
->  lib/sbi/sbi_fwft.c | 39 ++++++++++++++++++++++++++++++++++++++-
->  lib/sbi/sbi_hsm.c  |  3 +++
->  2 files changed, 41 insertions(+), 1 deletion(-)
+> The problem with this series is that it is changing the order
+> of platform callback in coldboot path because sbi_scratch_init,
+> sbi_heap_init, and sbi_domain_init should always be the
+> first things done in the coldboot path.
 > 
-> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-> index b302b5d..289a344 100644
-> --- a/lib/sbi/sbi_fwft.c
-> +++ b/lib/sbi/sbi_fwft.c
-> @@ -32,6 +32,8 @@ static unsigned long fwft_ptr_offset;
->  #define fwft_set_hart_state_ptr(__scratch, __phs)			\
->  	sbi_scratch_write_type((__scratch), void *, fwft_ptr_offset, (__phs))
->  
-> +#define MIS_DELEG (1UL << CAUSE_MISALIGNED_LOAD | 1UL << CAUSE_MISALIGNED_STORE)
-> +
->  struct fwft_config;
->  
->  struct fwft_feature {
-> @@ -71,6 +73,33 @@ static bool fwft_is_defined_feature(enum sbi_fwft_feature_t feature)
->  	return false;
->  }
->  
-> +static int fwft_misaligned_delegation_supported(struct fwft_config *conf)
-> +{
-> +	if (!misa_extension('S'))
-> +		return SBI_ENOTSUPP;
-> +
-> +	return SBI_OK;
-> +}
-> +
-> +static int fwft_set_misaligned_delegation(struct fwft_config *conf,
-> +					 unsigned long value)
-> +{
-> +	if (value)
-> +		csr_set(CSR_MEDELEG, MIS_DELEG);
-> +	else
-> +		csr_clear(CSR_MEDELEG, MIS_DELEG);
+> Instead, I suggest the following:
+> 1) Update generic platform to call generic_console_init()
+>      from generic_early_init() in coldboot path and don't
+>      provide the console_init() callback.
+> 2) Update all other platform to do similar thing as #1
+> 3) Drop sbi_console_init(), sbi_platform_console_init() and
+>     console_init() callback.
+> 
+> For prints before sbi_platform_early_init(), the sbi_console.c
+> can implement a small circular buffer which is flushed whenever
+> some driver sets a console device.
 
-Sorry for my late review. This should be
-
-  if (value == 1)
-     csr_set(CSR_MEDELEG, MIS_DELEG);
-  else if (value == 0)
-     csr_clear(CSR_MEDELEG, MIS_DELEG);
-  else
-     return SBI_EINVAL;
-
-It's unlikely we'll ever extend the inputs/behaviors, but if we don't
-check for the inputs explicitly now, then we never can.
-
-And same comment for SBI_FWFT_PTE_AD_HW_UPDATING.
+Almost two years ago I wrote an SBI console ring buffer patch. I never
+polished and posted it, but I could maybe dig it back up.
 
 Thanks,
 drew
 
-> +
-> +	return SBI_OK;
-> +}
-> +
-> +static int fwft_get_misaligned_delegation(struct fwft_config *conf,
-> +					 unsigned long *value)
-> +{
-> +	*value = (csr_read(CSR_MEDELEG) & MIS_DELEG) != 0;
-> +
-> +	return SBI_OK;
-> +}
-> +
->  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
->  {
->  	int i;
-> @@ -148,7 +177,15 @@ int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
->  	return conf->feature->get(conf, out_val);
->  }
->  
-> -static const struct fwft_feature features[] = {};
-> +static const struct fwft_feature features[] =
-> +{
-> +	{
-> +		.id = SBI_FWFT_MISALIGNED_EXC_DELEG,
-> +		.supported = fwft_misaligned_delegation_supported,
-> +		.set = fwft_set_misaligned_delegation,
-> +		.get = fwft_get_misaligned_delegation,
-> +	},
-> +};
->  
->  int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
->  {
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index be48d64..2b23e13 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -44,6 +44,7 @@ struct sbi_hsm_data {
->  	unsigned long suspend_type;
->  	unsigned long saved_mie;
->  	unsigned long saved_mip;
-> +	unsigned long saved_medeleg;
->  	atomic_t start_ticket;
->  };
->  
-> @@ -417,6 +418,7 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
->  
->  	hdata->saved_mie = csr_read(CSR_MIE);
->  	hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
-> +	hdata->saved_medeleg = csr_read(CSR_MEDELEG);
->  }
->  
->  static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
-> @@ -424,6 +426,7 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
->  	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->  							    hart_data_offset);
->  
-> +	csr_write(CSR_MEDELEG, hdata->saved_medeleg);
->  	csr_write(CSR_MIE, hdata->saved_mie);
->  	csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
->  }
-> -- 
-> 2.45.2
 > 
+> >
+> >  include/sbi/sbi_console.h           |  3 +++
+> >  include/sbi_utils/fdt/fdt_helper.h  |  4 +++-
+> >  include/sbi_utils/serial/uart8250.h |  1 +
+> >  lib/sbi/sbi_domain.c                | 10 ++++++++++
+> >  lib/sbi/sbi_init.c                  |  8 ++++----
+> >  lib/utils/serial/uart8250.c         | 28 +++++++++++++++++++---------
+> >  6 files changed, 40 insertions(+), 14 deletions(-)
+> >
+> > --
+> > 2.43.0
+> >
+> 
+> Regards,
+> Anup
 > 
 > -- 
 > opensbi mailing list
