@@ -1,281 +1,71 @@
-From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Tue, 25 Jun 2024 11:16:46 +0800
-Subject: [RFC PATCH] sbi: sbi_domain_context: Add 'domain context
- switched' firmware event
-In-Reply-To: <CAOnJCUJRwMnvBzb=0UUWrQCKbTbd_0w4R91Q4devt1Mgz=6bAA@mail.gmail.com>
-References: <20240607114935.1291206-1-peterlin@andestech.com>
- <CAAhSdy2VpurN4tTqpe9LNp15CBisV0yUAkTHqHGDsLBNCPpFjg@mail.gmail.com>
- <CAAhSdy3Onk0uzGNd_LKVngxyVycQuRSRi13Lbw0owCsx8VWsnw@mail.gmail.com>
- <CAOnJCUJRwMnvBzb=0UUWrQCKbTbd_0w4R91Q4devt1Mgz=6bAA@mail.gmail.com>
-Message-ID: <Zno2nj6ZCbhvgoyM@APC323>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Tue, 25 Jun 2024 12:06:56 +0200
+Subject: [PATCH 1/2] lib: sbi: fwft: check feature value to be exactly 1
+ or 0
+In-Reply-To: <20240624102918.1410501-1-cleger@rivosinc.com>
+References: <20240624102918.1410501-1-cleger@rivosinc.com>
+Message-ID: <20240625-9b23a32c8d0cb9df18f5a53f@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Atish,
-
-On Wed, Jun 19, 2024 at 05:38:14PM -0700, Atish Patra wrote:
-> [EXTERNAL MAIL]
+On Mon, Jun 24, 2024 at 12:29:08PM GMT, Cl?ment L?ger wrote:
+> As stated by the spec and pointed out by Andrew Jones, the value passed
+> for MISALIGNED_EXC_DELEG and PTE_AD_HW_UPDATING should be either 0 or 1.
+> Add check for these values and return SBI_EINVAL if not.
 > 
-> On Thu, Jun 13, 2024 at 6:50?AM Anup Patel <anup@brainfault.org> wrote:
-> >
-> > +Atish
-> >
-> > On Thu, Jun 13, 2024 at 7:03?PM Anup Patel <anup@brainfault.org> wrote:
-> > >
-> > > On Fri, Jun 7, 2024 at 5:19?PM Yu Chien Peter Lin
-> > > <peterlin@andestech.com> wrote:
-> > > >
-> > > > Event codes 256-65534 are reserved for counting SBI-specific firmware events.
-> > > > Allocate event code 256 as the 'domain context switched' firmware event. This
-> > > > enables the perf tool to monitor trusted application invocations.
-> > > >
-> > > >   $ perf stat -e r8000000000000100 optee_example_random
-> > > >   Invoking TA to generate random UUID...
-> > > >   TA generated UUID value = 0xd1dafb5b988373c9a14d1a85361b436
-> > > >
-> > > >    Performance counter stats for 'optee_example_random':
-> > > >
-> > > >                   96      r8000000000000100
-> > > >
-> > > >          0.186135100 seconds time elapsed
-> > > >
-> > > >          0.051499000 seconds user
-> > > >          0.125070000 seconds sys
-> > > >
-> > > > Also, factor out valid event code checking to the fw_event_code_valid()
-> > > > function.
-> > > >
-> > > > Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> > > > Reviewed-by: Alvin Chang <alvinga@andestech.com>
-> > > > ---
-> > > >  include/sbi/sbi_ecall_interface.h |  9 +++++--
-> > > >  lib/sbi/sbi_domain_context.c      |  3 +++
-> > > >  lib/sbi/sbi_pmu.c                 | 43 +++++++++++++++++++------------
-> > > >  3 files changed, 36 insertions(+), 19 deletions(-)
-> > > >
-> > > > diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> > > > index ec845c88..aff9ec4c 100644
-> > > > --- a/include/sbi/sbi_ecall_interface.h
-> > > > +++ b/include/sbi/sbi_ecall_interface.h
-> > > > @@ -199,13 +199,18 @@ enum sbi_pmu_fw_event_code_id {
-> > > >         SBI_PMU_FW_HFENCE_VVMA_RCVD     = 19,
-> > > >         SBI_PMU_FW_HFENCE_VVMA_ASID_SENT = 20,
-> > > >         SBI_PMU_FW_HFENCE_VVMA_ASID_RCVD = 21,
-> > > > -       SBI_PMU_FW_MAX,
-> > > > +       SBI_PMU_FW_LAST,
-> > > >         /*
-> > > >          * Event codes 22 to 255 are reserved for future use.
-> > > > +        */
-> > > > +       SBI_PMU_FW_MAX                  = 255,
-> > > > +       SBI_PMU_FW_DOMAIN_CONTEXT_SWITCHED = 256,
-> > > > +       SBI_PMU_FW_IMPL_LAST,
-> > > > +       /*
-> > > >          * Event codes 256 to 65534 are reserved for SBI implementation
-> > > >          * specific custom firmware events.
-> > > >          */
-> > > > -       SBI_PMU_FW_RESERVED_MAX = 0xFFFE,
-> > > > +       SBI_PMU_FW_IMPL_MAX = 0xFFFE,
-> > >
-> > > Need first discuss these SBI PMU spec changes in RVI PRS TG
-> > > before we can review it here.
-> >
-> > Thinking about this more, do we really need this to be an
-> > OpenSBI specific event ?
-> >
-> > I am leaning towards "yes" but need others to chime in.
-> >
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> ---
+>  lib/sbi/sbi_fwft.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
 > 
-> I agree. I am not sure which other SBI implementations support domains anyways.
-> If we decide to add it as an implementation specific event, should we
-> add a scheme to encode implementation ID
-> in the event code ? The lower 8 bits can indicate the SBI implementation ID.
+> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+> index aff087f..595819b 100644
+> --- a/lib/sbi/sbi_fwft.c
+> +++ b/lib/sbi/sbi_fwft.c
+> @@ -84,10 +84,12 @@ static int fwft_misaligned_delegation_supported(struct fwft_config *conf)
+>  static int fwft_set_misaligned_delegation(struct fwft_config *conf,
+>  					 unsigned long value)
+>  {
+> -	if (value)
+> +	if (value == 1)
+>  		csr_set(CSR_MEDELEG, MIS_DELEG);
+> -	else
+> +	else if (value == 0)
+>  		csr_clear(CSR_MEDELEG, MIS_DELEG);
+> +	else
+> +		return SBI_EINVAL;
+>  
+>  	return SBI_OK;
+>  }
+> @@ -111,18 +113,20 @@ static int fwft_adue_supported(struct fwft_config *conf)
+>  
+>  static int fwft_set_adue(struct fwft_config *conf, unsigned long value)
+>  {
+> -	if (value)
+> +	if (value == 1)
+>  #if __riscv_xlen == 32
+>  		csr_set(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
+>  #else
+>  		csr_set(CSR_MENVCFG, ENVCFG_ADUE);
+>  #endif
+> -	else
+> +	else if (value == 0)
+>  #if __riscv_xlen == 32
+>  		csr_clear(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
+>  #else
+>  		csr_clear(CSR_MENVCFG, ENVCFG_ADUE);
+>  #endif
+> +	else
+> +		return SBI_EINVAL;
+>  
+>  	return SBI_OK;
+>  }
+> -- 
+> 2.45.2
+>
 
-How about using upper 8 bits for implementation ID. Except that the
-last SBI implementation (impl. ID#254) has only 255 events, each one
-has lower 8 bits available to encode 256 events.
-
-event_idx.code[15:8]: impl. ID + 1
-event_idx.code[ 7:0]: event ID
- 
-              0000 0000 | 1111 1111 |   255 | Standard FW event#255
-===============================================================================
-impl. ID#0    0000 0001 | 0000 0000 |   256 | BBL-specific FW event#0
-(256 events)  0000 0001 | 0000 0001 |   257 | BBL-specific FW event#1
-              ...
-              0000 0001 | 1111 1111 |   511 | BBL-specific FW event#255
--------------------------------------------------------------------------------
-impl. ID#1    0000 0010 | 0000 0000 |   512 | OpenSBI-specific FW event#0
-(256 events)  0000 0010 | 0000 0001 |   513 | OpenSBI-specific FW event#1
-              ...
-              0000 0010 | 1111 1111 |   767 | OpenSBI-specific FW event#255
--------------------------------------------------------------------------------
-...
--------------------------------------------------------------------------------
-impl. ID#253  1111 1110 | 0000 0000 | 65024 | XXX-specific FW event#0
-(256 events)  1111 1110 | 0000 0001 | 65025 | XXX-specific FW event#1
-              ...
-              1111 1110 | 1111 1111 | 65279 | XXX-specific FW event#255
--------------------------------------------------------------------------------
-impl. ID#254  1111 1111 | 0000 0000 | 65280 | XXX-specific FW event#0
-(255 events)  1111 1111 | 0000 0001 | 65281 | XXX-specific FW event#1
-              ...
-              1111 1111 | 1111 1110 | 65534 | XXX-specific FW event#255
-===============================================================================
-              1111 1111 | 1111 1111 | 65535 | RISC-V platform specific FW event
-
-Given that there are only 9 SBI implementations at this point, I'm
-not sure if 8-bit field for the SBI impl. ID is a waste of bits.
- 
-Thoughts on this approach?
-
-Thanks,
-Peter Lin
-
-> > Regards,
-> > Anup
-> >
-> > >
-> > > Regards,
-> > > Anup
-> > >
-> > > >         /*
-> > > >          * Event code 0xFFFF is used for platform specific firmware
-> > > >          * events where the event data contains any event specific information.
-> > > > diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> > > > index d9395490..d0b174c9 100755
-> > > > --- a/lib/sbi/sbi_domain_context.c
-> > > > +++ b/lib/sbi/sbi_domain_context.c
-> > > > @@ -11,6 +11,7 @@
-> > > >  #include <sbi/sbi_hsm.h>
-> > > >  #include <sbi/sbi_hart.h>
-> > > >  #include <sbi/sbi_heap.h>
-> > > > +#include <sbi/sbi_pmu.h>
-> > > >  #include <sbi/sbi_scratch.h>
-> > > >  #include <sbi/sbi_string.h>
-> > > >  #include <sbi/sbi_domain_context.h>
-> > > > @@ -33,6 +34,8 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
-> > > >         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-> > > >         unsigned int pmp_count = sbi_hart_pmp_count(scratch);
-> > > >
-> > > > +       sbi_pmu_ctr_incr_fw(SBI_PMU_FW_DOMAIN_CONTEXT_SWITCHED);
-> > > > +
-> > > >         /* Assign current hart to target domain */
-> > > >         spin_lock(&current_dom->assigned_harts_lock);
-> > > >         sbi_hartmask_clear_hartindex(hartindex, &current_dom->assigned_harts);
-> > > > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> > > > index b9e84543..fd3e70f2 100644
-> > > > --- a/lib/sbi/sbi_pmu.c
-> > > > +++ b/lib/sbi/sbi_pmu.c
-> > > > @@ -130,6 +130,23 @@ static bool pmu_event_select_overlap(struct sbi_pmu_hw_event *evt,
-> > > >         return false;
-> > > >  }
-> > > >
-> > > > +static bool fw_event_code_valid(uint32_t event_idx_code)
-> > > > +{
-> > > > +       /* Standard firmware events */
-> > > > +       if ((0 <= event_idx_code) &&
-> > > > +           (event_idx_code < SBI_PMU_FW_LAST))
-> > > > +               return true;
-> > > > +       /* Implementation specific events */
-> > > > +       if ((SBI_PMU_FW_MAX < event_idx_code) &&
-> > > > +           (event_idx_code < SBI_PMU_FW_IMPL_LAST))
-> > > > +               return true;
-> > > > +       /* Platform specific firmware events */
-> > > > +       if (event_idx_code == SBI_PMU_FW_PLATFORM)
-> > > > +               return true;
-> > > > +
-> > > > +       return false;
-> > > > +}
-> > > > +
-> > > >  static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
-> > > >                               unsigned long event_idx, uint64_t edata)
-> > > >  {
-> > > > @@ -143,9 +160,7 @@ static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
-> > > >                 event_idx_code_max = SBI_PMU_HW_GENERAL_MAX;
-> > > >                 break;
-> > > >         case SBI_PMU_EVENT_TYPE_FW:
-> > > > -               if ((event_idx_code >= SBI_PMU_FW_MAX &&
-> > > > -                   event_idx_code <= SBI_PMU_FW_RESERVED_MAX) ||
-> > > > -                   event_idx_code > SBI_PMU_FW_PLATFORM)
-> > > > +               if (!fw_event_code_valid(event_idx_code))
-> > > >                         return SBI_EINVAL;
-> > > >
-> > > >                 if (SBI_PMU_FW_PLATFORM == event_idx_code &&
-> > > > @@ -153,7 +168,7 @@ static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
-> > > >                         return pmu_dev->fw_event_validate_encoding(phs->hartid,
-> > > >                                                                    edata);
-> > > >                 else
-> > > > -                       event_idx_code_max = SBI_PMU_FW_MAX;
-> > > > +                       event_idx_code_max = SBI_PMU_FW_IMPL_MAX;
-> > > >                 break;
-> > > >         case SBI_PMU_EVENT_TYPE_HW_CACHE:
-> > > >                 cache_ops_result = event_idx_code &
-> > > > @@ -217,9 +232,7 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
-> > > >         if (event_idx_type != SBI_PMU_EVENT_TYPE_FW)
-> > > >                 return SBI_EINVAL;
-> > > >
-> > > > -       if ((event_code >= SBI_PMU_FW_MAX &&
-> > > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
-> > > > -           event_code > SBI_PMU_FW_PLATFORM)
-> > > > +       if (!fw_event_code_valid(event_code))
-> > > >                 return SBI_EINVAL;
-> > > >
-> > > >         if (SBI_PMU_FW_PLATFORM == event_code) {
-> > > > @@ -414,9 +427,7 @@ static int pmu_ctr_start_fw(struct sbi_pmu_hart_state *phs,
-> > > >                             uint64_t event_data, uint64_t ival,
-> > > >                             bool ival_update)
-> > > >  {
-> > > > -       if ((event_code >= SBI_PMU_FW_MAX &&
-> > > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
-> > > > -           event_code > SBI_PMU_FW_PLATFORM)
-> > > > +       if (!fw_event_code_valid(event_code))
-> > > >                 return SBI_EINVAL;
-> > > >
-> > > >         if (SBI_PMU_FW_PLATFORM == event_code) {
-> > > > @@ -518,9 +529,7 @@ static int pmu_ctr_stop_fw(struct sbi_pmu_hart_state *phs,
-> > > >  {
-> > > >         int ret;
-> > > >
-> > > > -       if ((event_code >= SBI_PMU_FW_MAX &&
-> > > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
-> > > > -           event_code > SBI_PMU_FW_PLATFORM)
-> > > > +       if (!fw_event_code_valid(event_code))
-> > > >                 return SBI_EINVAL;
-> > > >
-> > > >         if (SBI_PMU_FW_PLATFORM == event_code &&
-> > > > @@ -792,9 +801,7 @@ static int pmu_ctr_find_fw(struct sbi_pmu_hart_state *phs,
-> > > >  {
-> > > >         int i, cidx;
-> > > >
-> > > > -       if ((event_code >= SBI_PMU_FW_MAX &&
-> > > > -           event_code <= SBI_PMU_FW_RESERVED_MAX) ||
-> > > > -           event_code > SBI_PMU_FW_PLATFORM)
-> > > > +       if (!fw_event_code_valid(event_code))
-> > > >                 return SBI_EINVAL;
-> > > >
-> > > >         for_each_set_bit(i, &cmask, BITS_PER_LONG) {
-> > > > @@ -907,8 +914,10 @@ int sbi_pmu_ctr_incr_fw(enum sbi_pmu_fw_event_code_id fw_id)
-> > > >         if (likely(!phs->fw_counters_started))
-> > > >                 return 0;
-> > > >
-> > > > -       if (unlikely(fw_id >= SBI_PMU_FW_MAX))
-> > > > +       if (unlikely((fw_id == SBI_PMU_FW_PLATFORM) ||
-> > > > +                    !fw_event_code_valid(fw_id))) {
-> > > >                 return SBI_EINVAL;
-> > > > +       }
-> > > >
-> > > >         for (cidx = num_hw_ctrs; cidx < total_ctrs; cidx++) {
-> > > >                 if (get_cidx_code(phs->active_events[cidx]) == fw_id &&
-> > > > --
-> > > > 2.34.1
-> > > >
-> 
-> 
-> 
-> --
-> Regards,
-> Atish
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
