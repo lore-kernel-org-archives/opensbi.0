@@ -1,403 +1,301 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 27 Jun 2024 01:48:12 +0800
-Subject: [PATCH 1/3] lib: sbi: Add tor type PMP support
+Date: Thu, 27 Jun 2024 01:48:13 +0800
+Subject: [PATCH 2/3] lib: sbi: Introduce size to sbi_domain_memregion
 In-Reply-To: <20240626174816.2837278-1-wxjstz@126.com>
 References: <20240626174816.2837278-1-wxjstz@126.com>
-Message-ID: <20240626174816.2837278-2-wxjstz@126.com>
+Message-ID: <20240626174816.2837278-3-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-tor type PMP can save the number of PMP configuration registers in
-certain scenarios. This patch add support
+In order to support tor type pmp, introduce size to
+sbi_domain_memregion.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi/riscv_asm.h |   6 +-
- lib/sbi/riscv_asm.c     | 190 +++++++++++++++++++++++-----------------
- lib/sbi/sbi_hart.c      |  29 +++---
- 3 files changed, 132 insertions(+), 93 deletions(-)
+ include/sbi/sbi_domain.h | 37 ++++++++++++++++++
+ lib/sbi/sbi_domain.c     | 82 ++++++++++++++++++++--------------------
+ lib/sbi/sbi_hart.c       | 15 ++++----
+ 3 files changed, 85 insertions(+), 49 deletions(-)
 
-diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
-index 2c34635..60036fa 100644
---- a/include/sbi/riscv_asm.h
-+++ b/include/sbi/riscv_asm.h
-@@ -187,11 +187,11 @@ int pmp_disable(unsigned int n);
- /* Check if the matching field is set */
- int is_pmp_entry_mapped(unsigned long entry);
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index a6e99c6..f97f62e 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -32,6 +32,14 @@ struct sbi_domain_memregion {
+ 	 * It has to be minimum 3 and maximum __riscv_xlen
+ 	 */
+ 	unsigned long order;
++
++	/**
++	 * when size is not equal to 0, order is invalid
++	 * When the size of the memory region is not a power of 2,
++	 * it is represented by size.
++	 */
++	unsigned long size;
++
+ 	/**
+ 	 * Base address of memory region
+ 	 * It must be 2^order aligned address
+@@ -227,6 +235,35 @@ extern struct sbi_domain *domidx_to_domain_table[];
+ /** Iterate over each memory region of a domain */
+ #define sbi_domain_for_each_memregion(__d, __r) \
+ 	for ((__r) = (__d)->regions; (__r)->order; (__r)++)
++/**
++ * Calculate the start address of the memory region
++ * @param r pointer to memory region
++ * @return start address of the memory region
++ */
++static inline unsigned long memregion_start(const struct sbi_domain_memregion *r)
++{
++	if (r->size)
++		return r->base;
++	if (r->order < __riscv_xlen)
++		return r->base;
++	else
++		return 0;
++}
++
++/**
++ * Calculate the end addresses of the memory region
++ * @param r pointer to memory region
++ * @return end addresses of the memory region
++ */
++static inline unsigned long memregion_end(const struct sbi_domain_memregion *r)
++{
++	if (r->size)
++		return r->base + r->size - 1;
++	if (r->order < __riscv_xlen)
++		return r->base + BIT(r->order) - 1;
++	else
++		return -1UL;
++}
  
--int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
--	    unsigned long log2len);
-+int pmp_set(unsigned int *n, unsigned long prot, unsigned long addr,
-+	    unsigned long end);
+ /**
+  * Check whether given HART is assigned to specified domain
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 374ac36..9a9fce1 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -40,6 +40,10 @@ struct sbi_domain root = {
  
- int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
--	    unsigned long *log2len);
-+	    unsigned long *end_out);
+ static unsigned long domain_hart_ptr_offset;
  
- #endif /* !__ASSEMBLER__ */
- 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 05b8c7c..b763ec5 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -8,8 +8,10 @@
-  */
- 
- #include <sbi/riscv_asm.h>
-+#include <sbi/sbi_bitops.h>
- #include <sbi/riscv_encoding.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_math.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_console.h>
- 
-@@ -258,29 +260,52 @@ static unsigned long ctz(unsigned long x)
++static const struct sbi_domain_memregion *find_region(
++						const struct sbi_domain *dom,
++						unsigned long addr);
++
+ struct sbi_domain *sbi_hartindex_to_domain(u32 hartindex)
+ {
+ 	struct sbi_scratch *scratch;
+@@ -96,6 +100,12 @@ ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
  	return ret;
  }
  
--int pmp_disable(unsigned int n)
-+static void pmp_rw(unsigned int n,
-+			unsigned long *cfg_in, unsigned long *addr_in,
-+			unsigned long *cfg_out, unsigned long *addr_out)
- {
--	int pmpcfg_csr, pmpcfg_shift;
- 	unsigned long cfgmask, pmpcfg;
-+	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
- 
--	if (n >= PMP_COUNT)
--		return SBI_EINVAL;
--
-+	if (cfg_in || cfg_out) {
- #if __riscv_xlen == 32
--	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--	pmpcfg_shift = (n & 3) << 3;
-+		pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
-+		pmpcfg_shift = (n & 3) << 3;
- #elif __riscv_xlen == 64
--	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
--	pmpcfg_shift = (n & 7) << 3;
-+		pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
-+		pmpcfg_shift = (n & 7) << 3;
- #else
- # error "Unexpected __riscv_xlen"
- #endif
- 
--	/* Clear the address matching bits to disable the pmp entry */
--	cfgmask = ~(0xffUL << pmpcfg_shift);
--	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
-+		cfgmask = ~(0xffUL << pmpcfg_shift);
-+		pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
-+		if (cfg_out)
-+			*cfg_out = pmpcfg >> pmpcfg_shift;
-+		if (cfg_in) {
-+			pmpcfg |= ((*cfg_in << pmpcfg_shift) & ~cfgmask);
-+			csr_write_num(pmpcfg_csr, pmpcfg);
-+		}
-+	}
-+
-+	if (addr_in || addr_out) {
-+		pmpaddr_csr = CSR_PMPADDR0 + n;
-+		if (addr_out)
-+			*addr_out = csr_read_num(pmpaddr_csr);
-+		if (addr_in)
-+			csr_write_num(pmpaddr_csr, *addr_in);
-+	}
++static inline bool
++in_memregion(const struct sbi_domain_memregion *r, unsigned long addr)
++{
++	return memregion_start(r) <= addr && addr <= memregion_end(r);
 +}
 +
-+int pmp_disable(unsigned int n)
-+{
-+	unsigned long pmpcfg;
-+
-+	if (n >= PMP_COUNT)
-+		return SBI_EINVAL;
+ void sbi_domain_memregion_init(unsigned long addr,
+ 				unsigned long size,
+ 				unsigned long flags,
+@@ -120,6 +130,7 @@ void sbi_domain_memregion_init(unsigned long addr,
  
--	csr_write_num(pmpcfg_csr, pmpcfg);
-+	pmpcfg = 0;
-+	pmp_rw(n, &pmpcfg, NULL, NULL, NULL);
- 
- 	return SBI_OK;
- }
-@@ -289,99 +314,94 @@ int is_pmp_entry_mapped(unsigned long entry)
+ 	if (reg) {
+ 		reg->base = base;
++		reg->size = 0;
+ 		reg->order = order;
+ 		reg->flags = flags;
+ 	}
+@@ -130,8 +141,8 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ 			   unsigned long access_flags)
  {
- 	unsigned long prot;
- 	unsigned long addr;
--	unsigned long log2len;
-+	unsigned long end;
+ 	bool rmmio, mmio = false;
+-	struct sbi_domain_memregion *reg;
+-	unsigned long rstart, rend, rflags, rwx = 0, rrwx = 0;
++	const struct sbi_domain_memregion *reg;
++	unsigned long rflags, rwx = 0, rrwx = 0;
  
--	pmp_get(entry, &prot, &addr, &log2len);
-+	pmp_get(entry, &prot, &addr, &end);
+ 	if (!dom)
+ 		return false;
+@@ -153,22 +164,18 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ 	if (access_flags & SBI_DOMAIN_MMIO)
+ 		mmio = true;
  
- 	/* If address matching bits are non-zero, the entry is enable */
- 	if (prot & PMP_A)
+-	sbi_domain_for_each_memregion(dom, reg) {
++	reg = find_region(dom, addr);
++	if (reg) {
+ 		rflags = reg->flags;
+ 		rrwx = (mode == PRV_M ?
+ 			(rflags & SBI_DOMAIN_MEMREGION_M_ACCESS_MASK) :
+ 			(rflags & SBI_DOMAIN_MEMREGION_SU_ACCESS_MASK)
+ 			>> SBI_DOMAIN_MEMREGION_SU_ACCESS_SHIFT);
+ 
+-		rstart = reg->base;
+-		rend = (reg->order < __riscv_xlen) ?
+-			rstart + ((1UL << reg->order) - 1) : -1UL;
+-		if (rstart <= addr && addr <= rend) {
+-			rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? true : false;
+-			if (mmio != rmmio)
+-				return false;
+-			return ((rrwx & rwx) == rwx) ? true : false;
+-		}
++		rmmio = (rflags & SBI_DOMAIN_MEMREGION_MMIO) ? true : false;
++		if (mmio != rmmio)
++			return false;
++		return ((rrwx & rwx) == rwx) ? true : false;
+ 	}
+ 
+ 	return (mode == PRV_M) ? true : false;
+@@ -177,6 +184,9 @@ bool sbi_domain_check_addr(const struct sbi_domain *dom,
+ /* Check if region complies with constraints */
+ static bool is_region_valid(const struct sbi_domain_memregion *reg)
+ {
++	if (reg->size)
++		return sbi_popcount(reg->size) > 2 ? true : false;
++
+ 	if (reg->order < 3 || __riscv_xlen < reg->order)
+ 		return false;
+ 
+@@ -193,18 +203,9 @@ static bool is_region_valid(const struct sbi_domain_memregion *reg)
+ static bool is_region_subset(const struct sbi_domain_memregion *regA,
+ 			     const struct sbi_domain_memregion *regB)
+ {
+-	ulong regA_start = regA->base;
+-	ulong regA_end = regA->base + (BIT(regA->order) - 1);
+-	ulong regB_start = regB->base;
+-	ulong regB_end = regB->base + (BIT(regB->order) - 1);
+-
+-	if ((regB_start <= regA_start) &&
+-	    (regA_start < regB_end) &&
+-	    (regB_start < regA_end) &&
+-	    (regA_end <= regB_end))
+-		return true;
+-
+-	return false;
++	ulong regA_start = memregion_start(regA);
++	ulong regA_end = memregion_end(regA);
++	return in_memregion(regB, regA_start) && in_memregion(regB, regA_end);
+ }
+ 
+ /** Check if regionA can be replaced by regionB */
+@@ -221,10 +222,12 @@ static bool is_region_compatible(const struct sbi_domain_memregion *regA,
+ static bool is_region_before(const struct sbi_domain_memregion *regA,
+ 			     const struct sbi_domain_memregion *regB)
+ {
+-	if (regA->order < regB->order)
++	unsigned long regA_s = memregion_end(regA) - memregion_start(regA);
++	unsigned long regB_s = memregion_end(regB) - memregion_start(regB);
++	if (regA_s < regB_s)
  		return true;
  
-+	pmp_get(entry + 1, &prot, &addr, &end);
-+	if ((prot & PMP_A) == PMP_A_TOR)
-+		return true;
-+
- 	return false;
- }
+-	if ((regA->order == regB->order) &&
++	if ((regA_s == regB_s) &&
+ 	    (regA->base < regB->base))
+ 		return true;
  
--int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
--	    unsigned long log2len)
-+int pmp_set(unsigned int *idx, unsigned long prot, unsigned long addr, unsigned long end)
+@@ -235,14 +238,10 @@ static const struct sbi_domain_memregion *find_region(
+ 						const struct sbi_domain *dom,
+ 						unsigned long addr)
  {
--	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
--	unsigned long cfgmask, pmpcfg;
-+	unsigned int n = *idx;
-+	unsigned long log2len, size;
- 	unsigned long addrmask, pmpaddr;
+-	unsigned long rstart, rend;
+ 	struct sbi_domain_memregion *reg;
  
--	/* check parameters */
--	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
-+	if (end <= addr)
- 		return SBI_EINVAL;
- 
--	/* calculate PMP register and offset */
--#if __riscv_xlen == 32
--	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--	pmpcfg_shift = (n & 3) << 3;
--#elif __riscv_xlen == 64
--	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
--	pmpcfg_shift = (n & 7) << 3;
--#else
--# error "Unexpected __riscv_xlen"
--#endif
--	pmpaddr_csr = CSR_PMPADDR0 + n;
--
--	/* encode PMP config */
--	prot &= ~PMP_A;
--	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
--	cfgmask = ~(0xffUL << pmpcfg_shift);
--	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
--	pmpcfg |= ((prot << pmpcfg_shift) & ~cfgmask);
--
--	/* encode PMP address */
--	if (log2len == PMP_SHIFT) {
--		pmpaddr = (addr >> PMP_SHIFT);
--	} else {
--		if (log2len == __riscv_xlen) {
--			pmpaddr = -1UL;
-+	size = end - addr + 1;
-+	if ((end - addr == -1UL) || (sbi_popcount(size) == 1)) {
-+		log2len = log2roundup(size);
-+		if (end - addr == -1UL)
-+			log2len = __riscv_xlen;
-+		if (n >= PMP_COUNT || log2len < PMP_SHIFT)
-+			return SBI_EINVAL;
-+
-+		/* encode PMP config */
-+		prot &= ~PMP_A;
-+		prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
-+
-+		/* encode PMP address */
-+		if (log2len == PMP_SHIFT) {
-+			pmpaddr = (addr >> PMP_SHIFT);
- 		} else {
--			addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
--			pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
--			pmpaddr |= (addrmask >> 1);
-+			if (log2len == __riscv_xlen) {
-+				pmpaddr = -1UL;
-+			} else {
-+				addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
-+				pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
-+				pmpaddr |= (addrmask >> 1);
-+			}
- 		}
-+		pmp_rw(n, &prot, &pmpaddr, NULL, NULL);
-+		n++;
-+		*idx = n;
-+		return 0;
+ 	sbi_domain_for_each_memregion(dom, reg) {
+-		rstart = reg->base;
+-		rend = (reg->order < __riscv_xlen) ?
+-			rstart + ((1UL << reg->order) - 1) : -1UL;
+-		if (rstart <= addr && addr <= rend)
++		if (in_memregion(reg, addr))
+ 			return reg;
  	}
  
--	/* write csrs */
--	csr_write_num(pmpaddr_csr, pmpaddr);
--	csr_write_num(pmpcfg_csr, pmpcfg);
-+	if (n + 1 >= PMP_COUNT)
-+		return SBI_EINVAL;
-+
-+	addr = addr >> PMP_SHIFT;
-+	end = (end + 1) >> PMP_SHIFT;
-+
-+	prot &= ~PMP_A;
-+	pmp_rw(n, &prot, &addr, NULL, NULL);
-+	n++;
+@@ -262,7 +261,8 @@ static const struct sbi_domain_memregion *find_next_subset_region(
+ 			continue;
  
-+	prot |= PMP_A_TOR;
-+	pmp_rw(n, &prot, &end, NULL, NULL);
-+	n++;
-+
-+	*idx = n;
- 	return 0;
- }
- 
- int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
--	    unsigned long *log2len)
-+	    unsigned long *end_out)
- {
--	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
--	unsigned long cfgmask, pmpcfg, prot;
--	unsigned long t1, addr, len;
-+	unsigned long prot, prot_a;
-+	unsigned long t1, addr, len, end;
- 
- 	/* check parameters */
--	if (n >= PMP_COUNT || !prot_out || !addr_out || !log2len)
-+	if (n >= PMP_COUNT || !prot_out || !addr_out || !end_out)
- 		return SBI_EINVAL;
--	*prot_out = *addr_out = *log2len = 0;
--
--	/* calculate PMP register and offset */
--#if __riscv_xlen == 32
--	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--	pmpcfg_shift = (n & 3) << 3;
--#elif __riscv_xlen == 64
--	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
--	pmpcfg_shift = (n & 7) << 3;
--#else
--# error "Unexpected __riscv_xlen"
--#endif
--	pmpaddr_csr = CSR_PMPADDR0 + n;
- 
--	/* decode PMP config */
--	cfgmask = (0xffUL << pmpcfg_shift);
--	pmpcfg	= csr_read_num(pmpcfg_csr) & cfgmask;
--	prot	= pmpcfg >> pmpcfg_shift;
-+	end = 0;
-+	pmp_rw(n, NULL, NULL, &prot, &addr);
- 
- 	/* decode PMP address */
--	if ((prot & PMP_A) == PMP_A_NAPOT) {
--		addr = csr_read_num(pmpaddr_csr);
-+	prot_a = prot & PMP_A;
-+	if (prot_a == PMP_A_NAPOT) {
- 		if (addr == -1UL) {
- 			addr	= 0;
- 			len	= __riscv_xlen;
-@@ -390,15 +410,27 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
- 			addr	= (addr & ~((1UL << t1) - 1)) << PMP_SHIFT;
- 			len	= (t1 + PMP_SHIFT + 1);
- 		}
--	} else {
--		addr	= csr_read_num(pmpaddr_csr) << PMP_SHIFT;
-+		end	= addr + (1UL << len) - 1;
-+	}
-+	if (prot_a == PMP_A_NA4) {
-+		addr	= addr << PMP_SHIFT;
- 		len	= PMP_SHIFT;
-+		end	= addr + (1UL << len) - 1;
-+	}
-+	if(prot_a == PMP_A_TOR) {
-+		end = addr;
-+		if (n > 0)
-+			pmp_rw(n - 1, NULL, NULL, NULL, &addr);
-+		else
-+			addr = 0;
-+		addr = addr << PMP_SHIFT;
-+		end = (end << PMP_SHIFT) - 1;
+ 		if (!ret || (sreg->base < ret->base) ||
+-		    ((sreg->base == ret->base) && (sreg->order < ret->order)))
++		    ((sreg->base == ret->base) &&
++			    (memregion_end(sreg) < memregion_end(ret))))
+ 			ret = sreg;
  	}
  
- 	/* return details */
- 	*prot_out    = prot;
- 	*addr_out    = addr;
--	*log2len     = len;
-+	*end_out     = end;
+@@ -314,8 +314,8 @@ static int sanitize_domain(struct sbi_domain *dom)
+ 	sbi_domain_for_each_memregion(dom, reg) {
+ 		if (!is_region_valid(reg)) {
+ 			sbi_printf("%s: %s has invalid region base=0x%lx "
+-				   "order=%lu flags=0x%lx\n", __func__,
+-				   dom->name, reg->base, reg->order,
++				   "order=%lu size=%lu flags=0x%lx\n", __func__,
++				   dom->name, reg->base, reg->order, reg->size,
+ 				   reg->flags);
+ 			return SBI_EINVAL;
+ 		}
+@@ -423,10 +423,11 @@ bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+ 		sreg = find_next_subset_region(dom, reg, addr);
+ 		if (sreg)
+ 			addr = sreg->base;
+-		else if (reg->order < __riscv_xlen)
+-			addr = reg->base + (1UL << reg->order);
+-		else
+-			break;
++		else {
++			addr = memregion_end(reg) + 1;
++			if (addr == 0)
++				break;
++		}
+ 	}
  
- 	return 0;
- }
+ 	return true;
+@@ -455,9 +456,8 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+ 
+ 	i = 0;
+ 	sbi_domain_for_each_memregion(dom, reg) {
+-		rstart = reg->base;
+-		rend = (reg->order < __riscv_xlen) ?
+-			rstart + ((1UL << reg->order) - 1) : -1UL;
++		rstart = memregion_start(reg);
++		rend = memregion_end(reg);
+ 
+ 		sbi_printf("Domain%d Region%02d    %s: 0x%" PRILX "-0x%" PRILX " ",
+ 			   dom->index, i, suffix, rstart, rend);
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index c366701..acf0926 100644
+index acf0926..982e77a 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -349,16 +349,18 @@ static unsigned int sbi_hart_get_smepmp_flags(struct sbi_scratch *scratch,
- static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
- 				struct sbi_domain *dom,
- 				struct sbi_domain_memregion *reg,
--				unsigned int pmp_idx,
-+				unsigned int *pmp_idx,
- 				unsigned int pmp_flags,
- 				unsigned int pmp_log2gran,
+@@ -355,10 +355,9 @@ static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
  				unsigned long pmp_addr_max)
  {
  	unsigned long pmp_addr = reg->base >> PMP_SHIFT;
--
--	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
--		pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
--	} else {
-+	unsigned long start = reg->base;
-+	unsigned long end = reg->order < __riscv_xlen ?
-+				start + BIT(reg->order) - 1: -1UL;
-+	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max)
-+		pmp_set(pmp_idx, pmp_flags, start, end);
-+	else {
+-	unsigned long start = reg->base;
+-	unsigned long end = reg->order < __riscv_xlen ?
+-				start + BIT(reg->order) - 1: -1UL;
+-	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max)
++	unsigned long start = memregion_start(reg);
++	unsigned long end = memregion_end(reg);
++	if ((1 << pmp_log2gran) - 1 <= end - start && pmp_addr < pmp_addr_max)
+ 		pmp_set(pmp_idx, pmp_flags, start, end);
+ 	else {
  		sbi_printf("Can not configure pmp for domain %s because"
- 			   " memory region address 0x%lx or size 0x%lx "
- 			   "is not in range.\n", dom->name, reg->base,
-@@ -403,7 +405,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
- 		if (!pmp_flags)
- 			return 0;
- 
--		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
-+		sbi_hart_smepmp_set(scratch, dom, reg, &pmp_idx, pmp_flags,
- 				    pmp_log2gran, pmp_addr_max);
- 	}
- 
-@@ -429,7 +431,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
- 		if (!pmp_flags)
- 			return 0;
- 
--		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
-+		sbi_hart_smepmp_set(scratch, dom, reg, &pmp_idx, pmp_flags,
- 				    pmp_log2gran, pmp_addr_max);
- 	}
- 
-@@ -450,7 +452,7 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	unsigned int pmp_idx = 0;
- 	unsigned int pmp_flags;
--	unsigned long pmp_addr;
-+	unsigned long pmp_addr, start, end;
- 
- 	sbi_domain_for_each_memregion(dom, reg) {
- 		if (pmp_count <= pmp_idx)
-@@ -473,8 +475,11 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+@@ -475,10 +474,10 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
  			pmp_flags |= PMP_X;
  
  		pmp_addr = reg->base >> PMP_SHIFT;
-+		start = reg->base;
-+		end = reg->order < __riscv_xlen ?
-+			start + BIT(reg->order) - 1 : -1UL;
- 		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
--			pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
-+			pmp_set(&pmp_idx, pmp_flags, start, end);
+-		start = reg->base;
+-		end = reg->order < __riscv_xlen ?
+-			start + BIT(reg->order) - 1 : -1UL;
+-		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
++		start = memregion_start(reg);
++		end = memregion_end(reg);
++		if ((1 << pmp_log2gran) - 1 <= end - start &&
++				pmp_addr < pmp_addr_max) {
+ 			pmp_set(&pmp_idx, pmp_flags, start, end);
  		} else {
  			sbi_printf("Can not configure pmp for domain %s because"
- 				   " memory region address 0x%lx or size 0x%lx "
-@@ -489,8 +494,9 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
- int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
- {
- 	/* shared R/W access for M and S/U mode */
-+	unsigned int n = SBI_SMEPMP_RESV_ENTRY;
- 	unsigned int pmp_flags = (PMP_W | PMP_X);
--	unsigned long order, base = 0;
-+	unsigned long order, base = 0, end;
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
- 	/* If Smepmp is not supported no special mapping is required */
-@@ -514,7 +520,8 @@ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
- 		}
- 	}
- 
--	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
-+	end = base + (1UL << order) - 1;
-+	pmp_set(&n, pmp_flags, base, end);
- 
- 	return SBI_OK;
- }
 -- 
 2.43.0
 
