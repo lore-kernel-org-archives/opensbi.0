@@ -1,149 +1,97 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 28 Jun 2024 08:40:56 +0530
-Subject: [PATCH v2 1/1] lib: sbi: check incoming dbtr shmem address
-In-Reply-To: <20240627121228.67874-1-geomatsi@gmail.com>
-References: <20240627121228.67874-1-geomatsi@gmail.com>
-Message-ID: <CAAhSdy3C=7_D=LpK2kdSu5P7uBprzdJZ3PgNctw=CMUFY37bTg@mail.gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 28 Jun 2024 16:24:39 +0800
+Subject: [RFC PATCH] lib: utils: fdt_domain: Use consistent device-tree address when next-arg1 is missing
+Message-ID: <20240628082439.2873497-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 27, 2024 at 5:42?PM Sergey Matyukevich <geomatsi@gmail.com> wrote:
->
-> Current Debug Trigger SBI extension proposal suggests to activate
-> shmem area and obtain its physical address from S-mode software
-> in the following way:
->
-> : If both `shmem_phys_lo` and `shmem_phys_hi` parameters are not
-> : all-ones bitwise then `shmem_phys_lo` specifies the lower XLEN
-> : bits and `shmem_phys_hi` specifies the upper XLEN bits of the
-> : shared memory physical base address. The `shmem_phys_lo` MUST
-> : be `(XLEN / 8)` byte aligned and the size of shared memory is
-> : assumed to be `trig_max * (XLEN / 2)` bytes.
->
-> For more details see the current version of the proposal:
-> - https://lists.riscv.org/g/tech-debug/message/1302
->
-> On the other hand, on RV32, the M-mode can only access the first 4GB of
-> the physical address space because M-mode does not have MMU to access
-> full 34-bit physical address space. Similarly, on RV64, the M-mode can
-> only access memory addressed by 64 bits.
->
-> This commit checks shmem address in function sbi_dbtr_setup_shmem
-> to make sure that shmem_phys_hi part of the valid address is zero.
-> Besides, the macro DBTR_SHMEM_MAKE_PHYS is updated to take into
-> account only low XLEN part.
->
-> Signed-off-by: Sergey Matyukevich <geomatsi@gmail.com>
+The diagram shows the boot-flow involving OP-TEE OS initialization:
 
-Please carry the Reviewed-by tags obtained on previous revisions.
+    (1)-----------+
+     | U-Boot SPL |
+     +------------+
+         |
+         v
+    (2)-------------------------------------------------------------+
+     | OpenSBI (fw_dynamic)                                         |
+     |                (4)------------------------+                  |
+     |                 | optee dispatcher driver |                  |
+     +-----------------+-------^---------|-------+------------------+
+M-mode   |  (coldboot domain)  |         |
+---------+--(trusted domain)---+----+----+-(untrusted domain)--------
+S-mode   |                     |    |    |
+         v                     |    |    v
+    (3)---------------------------+ |(5)----------------------------+
+     | OP-TEE OS                  | | | U-Boot                      |
+     +----------------------------+ | +-----------------------------+
+                                    |    |
+                                    |    v
+                                    |(6)----------------------------+
+                                    | | Linux                       |
+                                    | +-----------------------------+
 
-Applied this patch to the riscv/opensbi repo.
+As OP-TEE OS has device-tree node fixups that need to be passed
+through the next boot stages, such as reserved memory node shown
+below:
 
-Thanks,
-Anup
+  reserved-memory {
+    #address-cells = <0x00000002>;
+    #size-cells = <0x00000002>;
+    ranges;
+    optee_core at f1000000 {
+      no-map;
+      reg = <0x00000000 0xf1000000   // OP-TEE OS base address
+             0x00000000 0x01000000>;
+    };
+    <...>
+  };
 
-> ---
->
-> Tested RV32 and RV64 using QEMU and patches from Himanshu Chauhan kernel
-> tree https://github.com/hschauhan/riscv-linux/blob/linux-6.8-rc5-sdtrig
-> with the following patch on top of it:
->
-> : diff --git a/arch/riscv/kernel/hw_breakpoint.c b/arch/riscv/kernel/hw_breakpoint.c
-> : index fe8215868530..adab63a80336 100644
-> : --- a/arch/riscv/kernel/hw_breakpoint.c
-> : +++ b/arch/riscv/kernel/hw_breakpoint.c
-> : @@ -27,16 +27,6 @@ static int dbtr_total_num __ro_after_init;
-> :  static int dbtr_type __ro_after_init;
-> :  static int dbtr_init __ro_after_init;
-> :
-> : -#if __riscv_xlen == 64
-> : -#define MEM_HI(_m)     ((u64)_m >> 32)
-> : -#define MEM_LO(_m)     ((u64)_m & 0xFFFFFFFFUL)
-> : -#elif __riscv_xlen == 32
-> : -#define MEM_HI(_m)     (((u64)_m >> 32) & 0x3)
-> : -#define MEM_LO(_m)     ((u64)_m & 0xFFFFFFFFUL)
-> : -#else
-> : -#error "Unknown __riscv_xlen"
-> : -#endif
-> : -
-> :  static int arch_smp_setup_sbi_shmem(unsigned int cpu)
-> :  {
-> :         struct sbi_dbtr_shmem_entry *dbtr_shmem;
-> : @@ -52,10 +42,14 @@ static int arch_smp_setup_sbi_shmem(unsigned int cpu)
-> :
-> :         shmem_pa = __pa(dbtr_shmem);
-> :
-> : -       ret = sbi_ecall(SBI_EXT_DBTR, SBI_EXT_DBTR_SETUP_SHMEM,
-> : -                       (!MEM_LO(shmem_pa) ? 0xFFFFFFFFUL : MEM_LO(shmem_pa)),
-> : -                       (!MEM_HI(shmem_pa) ? 0xFFFFFFFFUL : MEM_HI(shmem_pa)),
-> : -                        0, 0, 0, 0);
-> : +       if (IS_ENABLED(CONFIG_32BIT))
-> : +               ret = sbi_ecall(SBI_EXT_DBTR, SBI_EXT_DBTR_SETUP_SHMEM,
-> : +                               lower_32_bits(shmem_pa),
-> : +                               upper_32_bits(shmem_pa),
-> : +                               0, 0, 0, 0);
-> : +       else
-> : +               ret = sbi_ecall(SBI_EXT_DBTR, SBI_EXT_DBTR_SETUP_SHMEM,
-> : +                               shmem_pa, 0, 0, 0, 0, 0);
-> :
-> :         if (ret.error) {
-> :                 switch(ret.error) {
->
->
-> Changes RFC (v1) -> v2
-> - align with DBTR SBI extension proposal
->
->  lib/sbi/sbi_dbtr.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
->
-> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-> index 9c92af6..6e2083e 100644
-> --- a/lib/sbi/sbi_dbtr.c
-> +++ b/lib/sbi/sbi_dbtr.c
-> @@ -47,13 +47,7 @@ static unsigned long hart_state_ptr_offset;
->              _idx < _max;                                               \
->              _idx++, _entry = ((_etype *)_base + _idx))
->
-> -#if __riscv_xlen == 64
->  #define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (_p_lo)
-> -#elif __riscv_xlen == 32
-> -#define DBTR_SHMEM_MAKE_PHYS(_p_hi, _p_lo) (((u64)(_p_hi) << 32) | (_p_lo))
-> -#else
-> -#error "Undefined XLEN"
-> -#endif
->
->  /* must call with hs != NULL */
->  static inline bool sbi_dbtr_shmem_disabled(
-> @@ -277,6 +271,20 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
->         if (shmem_phys_lo & SBI_DBTR_SHMEM_ALIGN_MASK)
->                 return SBI_ERR_INVALID_PARAM;
->
-> +       /*
-> +       * On RV32, the M-mode can only access the first 4GB of
-> +       * the physical address space because M-mode does not have
-> +       * MMU to access full 34-bit physical address space.
-> +       * So fail if the upper 32 bits of the physical address
-> +       * is non-zero on RV32.
-> +       *
-> +       * On RV64, kernel sets upper 64bit address part to zero.
-> +       * So fail if the upper 64bit of the physical address
-> +       * is non-zero on RV64.
-> +       */
-> +       if (shmem_phys_hi)
-> +               return SBI_EINVALID_ADDR;
-> +
->         if (dom && !sbi_domain_check_addr(dom,
->                   DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
->                   SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
-> --
-> 2.45.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Instead of using 0x0 as default value, allow identical next-arg1
+to be used by non-coldboot domain (i.e., untrusted domain), when
+the next-arg1 is not provided.
+
+Also, update the document about next-arg1 of domain instance.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Alvin Chang <alvinga@andestech.com>
+---
+ docs/domain_support.md     | 4 +---
+ lib/utils/fdt/fdt_domain.c | 3 +--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index b34e43a..1a40068 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -180,9 +180,7 @@ The DT properties of a domain instance DT node are as follows:
+   boot HART of the domain instance.
+ * **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
+   domain instance. If this DT property is not available and coldboot HART
+-  is not assigned to the domain instance then **0x0** is used as default
+-  value. If this DT property is not available and coldboot HART is assigned
+-  to the domain instance then **next booting stage arg1 of coldboot HART**
++  is not assigned to the domain instance then **next booting stage arg1 of coldboot HART**
+   is used as default value.
+ * **next-addr** (Optional) - The 64 bit next booting stage address for the
+   domain instance. If this DT property is not available and coldboot HART
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index fa1c357..a13daa6 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -395,8 +395,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 		val64 = fdt32_to_cpu(val[0]);
+ 		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
+ 	} else {
+-		if (domain_offset == *cold_domain_offset)
+-			val64 = sbi_scratch_thishart_ptr()->next_arg1;
++		val64 = sbi_scratch_thishart_ptr()->next_arg1;
+ 	}
+ 	dom->next_arg1 = val64;
+ 
+-- 
+2.34.1
+
 
