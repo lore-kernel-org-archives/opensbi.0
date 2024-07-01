@@ -1,40 +1,55 @@
 From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 1 Jul 2024 08:26:20 +0200
-Subject: [PATCH v2 2/3] lib: sbi: dump logs when crash
-In-Reply-To: <20240624141903.2305676-3-wxjstz@126.com>
+Date: Mon, 1 Jul 2024 08:26:32 +0200
+Subject: [PATCH v2 3/3] lib: sbi: Make the console print buffer size
+ configurable
+In-Reply-To: <20240624141903.2305676-4-wxjstz@126.com>
 References: <20240624141903.2305676-1-wxjstz@126.com>
- <20240624141903.2305676-3-wxjstz@126.com>
-Message-ID: <20240701-d12ce66efe0628ce321e646c@orel>
+ <20240624141903.2305676-4-wxjstz@126.com>
+Message-ID: <20240701-b9d1586ac43b46a51d006c5b@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 24, 2024 at 10:18:58PM GMT, Xiang W wrote:
-> When opensbi crashes, try to initialize the console in order to
-> output error messages.
+On Mon, Jun 24, 2024 at 10:18:59PM GMT, Xiang W wrote:
+> Before the console is initialized, the contents of the console print
+> will be cached. If there is a lot of information that needs to be
+> output before the console is initialized, can configure it through
+> make menuconfig.
 > 
 > Signed-off-by: Xiang W <wxjstz@126.com>
 > ---
->  lib/sbi/sbi_hart.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  lib/sbi/Kconfig       | 4 ++++
+>  lib/sbi/sbi_console.c | 2 +-
+>  2 files changed, 5 insertions(+), 1 deletion(-)
 > 
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index c366701..48ec97c 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -1010,6 +1010,10 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+> index 6cf54ce..fb6852e 100644
+> --- a/lib/sbi/Kconfig
+> +++ b/lib/sbi/Kconfig
+> @@ -62,4 +62,8 @@ config SBI_ECALL_SSE
+>  	bool "SSE extension"
+>  	default y
 >  
->  void __attribute__((noreturn)) sbi_hart_hang(void)
->  {
-> +	/* Try to initialize the console to output some error messages */
-> +	if (sbi_console_get_device() == NULL)
-> +		sbi_console_init(sbi_scratch_thishart_ptr());
+> +config SBI_CONSOLE_TBUF_MAX
+> +	int "console print buffer size (bytes)"
+> +	default 256
 > +
->  	while (1)
->  		wfi();
->  	__builtin_unreachable();
+>  endmenu
+> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
+> index 1a91f88..acf9f6b 100644
+> --- a/lib/sbi/sbi_console.c
+> +++ b/lib/sbi/sbi_console.c
+> @@ -14,7 +14,7 @@
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_string.h>
+>  
+> -#define CONSOLE_TBUF_MAX 256
+> +#define CONSOLE_TBUF_MAX CONFIG_SBI_CONSOLE_TBUF_MAX
+>  
+>  static const struct sbi_console_device *console_dev = NULL;
+>  static char console_tbuf[CONSOLE_TBUF_MAX];
 > -- 
 > 2.43.0
 >
