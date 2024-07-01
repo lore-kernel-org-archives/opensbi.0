@@ -1,9 +1,7 @@
 From: zhangdongdong@eswincomputing.com <zhangdongdong@eswincomputing.com>
-Date: Mon,  1 Jul 2024 10:30:06 +0800
-Subject: [PATCH 1/1] lib:tests: add math test suite
-In-Reply-To: <20240701023006.16977-1-zhangdongdong@eswincomputing.com>
-References: <20240701023006.16977-1-zhangdongdong@eswincomputing.com>
-Message-ID: <20240701023006.16977-2-zhangdongdong@eswincomputing.com>
+Date: Mon,  1 Jul 2024 10:45:16 +0800
+Subject: [PATCH] lib:sbi: Enhance CSR Handling in system_opcode_insn
+Message-ID: <20240701024516.20320-1-zhangdongdong@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,88 +10,145 @@ Content-Transfer-Encoding: 7bit
 
 From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 
-This patch introduces a new math test suite to the SBI unit
-tests. The changes include:
+- Completed TODO in `system_opcode_insn` to ensure CSR read/write
+  instruction handling.
+- Refactored to use new macros `GET_RS1_NUM` and `GET_CSR_NUM`.
+- Updated `GET_RM` macro and replaced hardcoded funct3 values with
+  constants (`CSRRW`, `CSRRS`, `CSRRC`, etc.).
+- Removed redundant `GET_RM` from `riscv_fp.h`.
+- Improved validation and error handling for CSR instructions.
 
-* Updating lib/sbi/tests/objects.mk to include
-  math_test_suite and sbi_math_test.o.
-* Adding a new file lib/sbi/tests/sbi_math_test.c which
-  contains tests for log2roundup function using various cases.
-
-The addition of this test suite ensures that mathematical
-functions are verified and work as expected.
+This patch enhances the clarity and correctness of CSR handling
+in `system_opcode_insn`.
 
 Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 ---
- lib/sbi/tests/objects.mk      |  3 +++
- lib/sbi/tests/sbi_math_test.c | 46 +++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+)
- create mode 100644 lib/sbi/tests/sbi_math_test.c
+ include/sbi/riscv_encoding.h | 19 +++++++++++++++++-
+ include/sbi/riscv_fp.h       |  1 -
+ lib/sbi/sbi_illegal_insn.c   | 37 +++++++++++++++++++++++-------------
+ 3 files changed, 42 insertions(+), 15 deletions(-)
 
-diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
-index 8f27289..82b6061 100644
---- a/lib/sbi/tests/objects.mk
-+++ b/lib/sbi/tests/objects.mk
-@@ -12,3 +12,6 @@ libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_atomic_test.o
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 477fa3a..5146654 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -947,7 +947,10 @@
+ #define REG_PTR(insn, pos, regs)	\
+ 	(ulong *)((ulong)(regs) + REG_OFFSET(insn, pos))
  
- carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += locks_test_suite
- libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_locks_test.o
+-#define GET_RM(insn)			(((insn) >> 12) & 7)
++#define GET_RM(insn) ((insn & MASK_FUNCT3) >> SHIFT_FUNCT3)
 +
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += math_test_suite
-+libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_math_test.o
-\ No newline at end of file
-diff --git a/lib/sbi/tests/sbi_math_test.c b/lib/sbi/tests/sbi_math_test.c
-new file mode 100644
-index 0000000..81ed832
---- /dev/null
-+++ b/lib/sbi/tests/sbi_math_test.c
-@@ -0,0 +1,46 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright  2024  Beijing ESWIN Computing Technology Co., Ltd.
-+ *
-+ * Author: Dongdong Zhang <zhangdongdong@eswincomputing.com>
-+ */
-+#include <sbi/sbi_math.h>
-+#include <sbi/sbi_unit_test.h>
++#define GET_RS1_NUM(insn)		((insn & MASK_RS1) >> 15)
++#define GET_CSR_NUM(insn)		((insn & MASK_CSR) >> SHIFT_CSR)
+ 
+ #define GET_RS1(insn, regs)		(*REG_PTR(insn, SH_RS1, regs))
+ #define GET_RS2(insn, regs)		(*REG_PTR(insn, SH_RS2, regs))
+@@ -959,7 +962,21 @@
+ #define IMM_I(insn)			((s32)(insn) >> 20)
+ #define IMM_S(insn)			(((s32)(insn) >> 25 << 5) | \
+ 					 (s32)(((insn) >> 7) & 0x1f))
 +
-+static void log2roundup_test(struct sbiunit_test_case *test)
-+{
-+    struct {
-+        unsigned long input;
-+        unsigned long expected;
-+    } cases[] = {
-+        {1, 0},
-+        {2, 1},
-+        {3, 2},
-+        {4, 2},
-+        {5, 3},
-+        {8, 3},
-+        {9, 4},
-+        {15, 4},
-+        {16, 4},
-+        {17, 5},
-+        {31, 5},
-+        {32, 5},
-+        {33, 6},
-+        {63, 6},
-+        {64, 6},
-+        {65, 7},
-+    };
+ #define MASK_FUNCT3			0x7000
++#define MASK_RS1			0xf8000
++#define MASK_CSR            0xfff
 +
-+    for (int i = 0; i < sizeof(cases)/sizeof(cases[0]); i++) {
-+        unsigned long result = log2roundup(cases[i].input);
-+        SBIUNIT_EXPECT_EQ(test, result, cases[i].expected);
-+    }
-+}
++#define SHIFT_FUNCT3    12
++#define SHIFT_CSR       20
 +
-+static struct sbiunit_test_case math_test_cases[] = {
-+    SBIUNIT_TEST_CASE(log2roundup_test),
-+    SBIUNIT_END_CASE,
-+};
 +
-+SBIUNIT_TEST_SUITE(math_test_suite, math_test_cases);
++#define CSRRW 1
++#define CSRRS 2
++#define CSRRC 3
++#define CSRRWI 5
++#define CSRRSI 6
++#define CSRRCI 7
+ 
+ /* clang-format on */
+ 
+diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
+index 3141c1c..f523c56 100644
+--- a/include/sbi/riscv_fp.h
++++ b/include/sbi/riscv_fp.h
+@@ -15,7 +15,6 @@
+ #include <sbi/sbi_types.h>
+ 
+ #define GET_PRECISION(insn) (((insn) >> 25) & 3)
+-#define GET_RM(insn) (((insn) >> 12) & 7)
+ #define PRECISION_S 0
+ #define PRECISION_D 1
+ 
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index ed6f111..7086a5e 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -48,9 +48,10 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 
+ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ {
+-	int do_write, rs1_num = (insn >> 15) & 0x1f;
+-	ulong rs1_val = GET_RS1(insn, regs);
+-	int csr_num   = (u32)insn >> 20;
++	bool do_write	= false;
++	int rs1_num	= GET_RS1_NUM(insn);
++	ulong rs1_val	= GET_RS1(insn, regs);
++	int csr_num	= GET_CSR_NUM((u32)insn);
+ 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+ 	ulong csr_val, new_csr_val;
+ 
+@@ -60,32 +61,42 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 		return SBI_EFAIL;
+ 	}
+ 
+-	/* TODO: Ensure that we got CSR read/write instruction */
++	/* Ensure that we got CSR read/write instruction */
++	int funct3 = GET_RM(insn);
++	if ((funct3 < 1 || funct3 > 3) && (funct3 < 5 || funct3 > 7)) {
++		sbi_printf("%s: Invalid opcode for CSR read/write instruction",
++			   __func__);
++		return truly_illegal_insn(insn, regs);
++	}
+ 
+ 	if (sbi_emulate_csr_read(csr_num, regs, &csr_val))
+ 		return truly_illegal_insn(insn, regs);
+ 
+ 	do_write = rs1_num;
+-	switch (GET_RM(insn)) {
+-	case 1:
++	switch (funct3) {
++	case CSRRW:
+ 		new_csr_val = rs1_val;
+-		do_write    = 1;
++		do_write    = true;
+ 		break;
+-	case 2:
++	case CSRRS:
+ 		new_csr_val = csr_val | rs1_val;
++		do_write    = (rs1_num != 0);
+ 		break;
+-	case 3:
++	case CSRRC:
+ 		new_csr_val = csr_val & ~rs1_val;
++		do_write    = (rs1_num != 0);
+ 		break;
+-	case 5:
++	case CSRRWI:
+ 		new_csr_val = rs1_num;
+-		do_write    = 1;
++		do_write    = true;
+ 		break;
+-	case 6:
++	case CSRRSI:
+ 		new_csr_val = csr_val | rs1_num;
++		do_write    = (rs1_num != 0);
+ 		break;
+-	case 7:
++	case CSRRCI:
+ 		new_csr_val = csr_val & ~rs1_num;
++		do_write    = (rs1_num != 0);
+ 		break;
+ 	default:
+ 		return truly_illegal_insn(insn, regs);
 -- 
 2.17.1
 
