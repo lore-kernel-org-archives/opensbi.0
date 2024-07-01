@@ -1,176 +1,171 @@
-From: Heiko Stuebner <heiko@sntech.de>
-Date: Fri,  1 Apr 2022 03:08:39 +0200
-Subject: [PATCH 2/2] platform: add thead-c9xx specific platform-overrides
-In-Reply-To: <20220401010839.1343551-1-heiko@sntech.de>
-References: <20220401010839.1343551-1-heiko@sntech.de>
-Message-ID: <20220401010839.1343551-2-heiko@sntech.de>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 1 Jul 2024 11:20:37 +0200
+Subject: [PATCH] lib:sbi: Enhance CSR Handling in system_opcode_insn
+In-Reply-To: <20240701024516.20320-1-zhangdongdong@eswincomputing.com>
+References: <20240701024516.20320-1-zhangdongdong@eswincomputing.com>
+Message-ID: <20240701-843601b1dc18aee9a657be49@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Guo Ren <guoren@linux.alibaba.com>
+On Mon, Jul 01, 2024 at 10:45:16AM GMT, zhangdongdong at eswincomputing.com wrote:
+> From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> 
+> - Completed TODO in `system_opcode_insn` to ensure CSR read/write
+>   instruction handling.
+> - Refactored to use new macros `GET_RS1_NUM` and `GET_CSR_NUM`.
+> - Updated `GET_RM` macro and replaced hardcoded funct3 values with
+>   constants (`CSRRW`, `CSRRS`, `CSRRC`, etc.).
+> - Removed redundant `GET_RM` from `riscv_fp.h`.
+> - Improved validation and error handling for CSR instructions.
+> 
+> This patch enhances the clarity and correctness of CSR handling
+> in `system_opcode_insn`.
+> 
+> Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> ---
+>  include/sbi/riscv_encoding.h | 19 +++++++++++++++++-
+>  include/sbi/riscv_fp.h       |  1 -
+>  lib/sbi/sbi_illegal_insn.c   | 37 +++++++++++++++++++++++-------------
+>  3 files changed, 42 insertions(+), 15 deletions(-)
+> 
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 477fa3a..5146654 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -947,7 +947,10 @@
+>  #define REG_PTR(insn, pos, regs)	\
+>  	(ulong *)((ulong)(regs) + REG_OFFSET(insn, pos))
+>  
+> -#define GET_RM(insn)			(((insn) >> 12) & 7)
+> +#define GET_RM(insn) ((insn & MASK_FUNCT3) >> SHIFT_FUNCT3)
+> +
+> +#define GET_RS1_NUM(insn)		((insn & MASK_RS1) >> 15)
+> +#define GET_CSR_NUM(insn)		((insn & MASK_CSR) >> SHIFT_CSR)
+>  
+>  #define GET_RS1(insn, regs)		(*REG_PTR(insn, SH_RS1, regs))
+>  #define GET_RS2(insn, regs)		(*REG_PTR(insn, SH_RS2, regs))
+> @@ -959,7 +962,21 @@
+>  #define IMM_I(insn)			((s32)(insn) >> 20)
+>  #define IMM_S(insn)			(((s32)(insn) >> 25 << 5) | \
+>  					 (s32)(((insn) >> 7) & 0x1f))
+> +
+>  #define MASK_FUNCT3			0x7000
+> +#define MASK_RS1			0xf8000
+> +#define MASK_CSR            0xfff
+> +
+> +#define SHIFT_FUNCT3    12
+> +#define SHIFT_CSR       20
+> +
+> +
+> +#define CSRRW 1
+> +#define CSRRS 2
+> +#define CSRRC 3
+> +#define CSRRWI 5
+> +#define CSRRSI 6
+> +#define CSRRCI 7
+>  
+>  /* clang-format on */
+>  
+> diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
+> index 3141c1c..f523c56 100644
+> --- a/include/sbi/riscv_fp.h
+> +++ b/include/sbi/riscv_fp.h
+> @@ -15,7 +15,6 @@
+>  #include <sbi/sbi_types.h>
+>  
+>  #define GET_PRECISION(insn) (((insn) >> 25) & 3)
+> -#define GET_RM(insn) (((insn) >> 12) & 7)
+>  #define PRECISION_S 0
+>  #define PRECISION_D 1
+>  
+> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+> index ed6f111..7086a5e 100644
+> --- a/lib/sbi/sbi_illegal_insn.c
+> +++ b/lib/sbi/sbi_illegal_insn.c
+> @@ -48,9 +48,10 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+>  
+>  static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+>  {
+> -	int do_write, rs1_num = (insn >> 15) & 0x1f;
+> -	ulong rs1_val = GET_RS1(insn, regs);
+> -	int csr_num   = (u32)insn >> 20;
+> +	bool do_write	= false;
+> +	int rs1_num	= GET_RS1_NUM(insn);
+> +	ulong rs1_val	= GET_RS1(insn, regs);
+> +	int csr_num	= GET_CSR_NUM((u32)insn);
+>  	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+>  	ulong csr_val, new_csr_val;
+>  
+> @@ -60,32 +61,42 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+>  		return SBI_EFAIL;
+>  	}
+>  
+> -	/* TODO: Ensure that we got CSR read/write instruction */
+> +	/* Ensure that we got CSR read/write instruction */
+> +	int funct3 = GET_RM(insn);
+> +	if ((funct3 < 1 || funct3 > 3) && (funct3 < 5 || funct3 > 7)) {
 
-The PMU on T-Head C9xx SoCs works differently with additional
-CSRs and needs additional vendor ecalls to function correctly
-both for initializing and mapping events to counters.
+This looks complicated. Isn't it just
 
-Add a fdt-matched T-Head platform for this and
-disable the SBI PMU extension for it.
+ (func3 < 1 || func3 > 7 || func3 == 4)
 
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
----
- lib/sbi/sbi_ecall_pmu.c       |  7 +++
- platform/generic/objects.mk   |  1 +
- platform/generic/platform.c   |  2 +
- platform/generic/thead_c9xx.c | 91 +++++++++++++++++++++++++++++++++++
- 4 files changed, 101 insertions(+)
- create mode 100644 platform/generic/thead_c9xx.c
+Thanks,
+drew
 
-diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-index 9ee9e81..5f6f7c9 100644
---- a/lib/sbi/sbi_ecall_pmu.c
-+++ b/lib/sbi/sbi_ecall_pmu.c
-@@ -76,6 +76,13 @@ static int sbi_ecall_pmu_probe(unsigned long extid, unsigned long *out_val)
- {
- 	/* PMU extension is always enabled */
- 	*out_val = 1;
-+
-+	/* Some T-Head socs have a non-spec PMU */
-+	if (csr_read(CSR_MVENDORID) == 0x5b7 &&
-+	    csr_read(CSR_MARCHID) == 0 &&
-+	    csr_read(CSR_MIMPID) == 0)
-+		*out_val = 0;
-+
- 	return 0;
- }
- 
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index cb15a18..0d6c228 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -10,3 +10,4 @@
- platform-objs-y += platform.o
- platform-objs-y += sifive_fu540.o
- platform-objs-y += sifive_fu740.o
-+platform-objs-y += thead_c9xx.o
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index f05da8e..1a797dc 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -25,10 +25,12 @@
- 
- extern const struct platform_override sifive_fu540;
- extern const struct platform_override sifive_fu740;
-+extern const struct platform_override thead_c9xx;
- 
- static const struct platform_override *special_platforms[] = {
- 	&sifive_fu540,
- 	&sifive_fu740,
-+	&thead_c9xx,
- };
- 
- static const struct platform_override *generic_plat = NULL;
-diff --git a/platform/generic/thead_c9xx.c b/platform/generic/thead_c9xx.c
-new file mode 100644
-index 0000000..782d4e7
---- /dev/null
-+++ b/platform/generic/thead_c9xx.c
-@@ -0,0 +1,91 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2022 Heiko Stuebner <heiko@sntech.de>
-+ *
-+ * Authors:
-+ *   Heiko Stuebner <heiko@sntech.de>
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/sbi_const.h>
-+#include <sbi/sbi_trap.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/fdt/fdt_fixup.h>
-+
-+enum sbi_ext_thead_fid {
-+	SBI_EXT_THEAD_PMU_INIT = 0,
-+	SBI_EXT_THEAD_PMU_MAP,
-+};
-+
-+#define CSR_MCOUNTERWEN	0x7c9
-+
-+static void thead_c9xx_pmu_init(void)
-+{
-+	unsigned long interrupts;
-+
-+	interrupts = csr_read(CSR_MIDELEG) | (1 << 17);
-+	csr_write(CSR_MIDELEG, interrupts);
-+
-+	/* CSR_MCOUNTEREN has already been set in mstatus_init() */
-+	csr_write(CSR_MCOUNTERWEN, 0xffffffff);
-+	csr_write(CSR_MHPMEVENT3, 1);
-+	csr_write(CSR_MHPMEVENT4, 2);
-+	csr_write(CSR_MHPMEVENT5, 3);
-+	csr_write(CSR_MHPMEVENT6, 4);
-+	csr_write(CSR_MHPMEVENT7, 5);
-+	csr_write(CSR_MHPMEVENT8, 6);
-+	csr_write(CSR_MHPMEVENT9, 7);
-+	csr_write(CSR_MHPMEVENT10, 8);
-+	csr_write(CSR_MHPMEVENT11, 9);
-+	csr_write(CSR_MHPMEVENT12, 10);
-+	csr_write(CSR_MHPMEVENT13, 11);
-+	csr_write(CSR_MHPMEVENT14, 12);
-+	csr_write(CSR_MHPMEVENT15, 13);
-+	csr_write(CSR_MHPMEVENT16, 14);
-+	csr_write(CSR_MHPMEVENT17, 15);
-+	csr_write(CSR_MHPMEVENT18, 16);
-+	csr_write(CSR_MHPMEVENT19, 17);
-+	csr_write(CSR_MHPMEVENT20, 18);
-+	csr_write(CSR_MHPMEVENT21, 19);
-+	csr_write(CSR_MHPMEVENT22, 20);
-+	csr_write(CSR_MHPMEVENT23, 21);
-+	csr_write(CSR_MHPMEVENT24, 22);
-+	csr_write(CSR_MHPMEVENT25, 23);
-+	csr_write(CSR_MHPMEVENT26, 24);
-+	csr_write(CSR_MHPMEVENT27, 25);
-+	csr_write(CSR_MHPMEVENT28, 26);
-+}
-+
-+static void thead_c9xx_pmu_map(unsigned long idx, unsigned long event_id)
-+{
-+	if (idx >= 3 && idx <= 31)
-+		csr_write_num(CSR_MHPMEVENT3 + idx - 3, event_id);
-+}
-+
-+#include <sbi/sbi_console.h>
-+static int thead_c9xx_vendor_ext_provider(long extid, long funcid,
-+					  const struct sbi_trap_regs *regs,
-+					  unsigned long *out_value,
-+					  struct sbi_trap_info *out_trap)
-+{
-+	switch (funcid) {
-+	case SBI_EXT_THEAD_PMU_MAP:
-+		thead_c9xx_pmu_map(regs->a0, regs->a1);
-+		break;
-+	case SBI_EXT_THEAD_PMU_INIT:
-+		thead_c9xx_pmu_init();
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct fdt_match thead_c9xx_match[] = {
-+	{ .compatible = "allwinner,sun20i-d1" },
-+	{ },
-+};
-+
-+const struct platform_override thead_c9xx = {
-+	.match_table = thead_c9xx_match,
-+	.vendor_ext_provider = thead_c9xx_vendor_ext_provider,
-+};
--- 
-2.35.1
-
+> +		sbi_printf("%s: Invalid opcode for CSR read/write instruction",
+> +			   __func__);
+> +		return truly_illegal_insn(insn, regs);
+> +	}
+>  
+>  	if (sbi_emulate_csr_read(csr_num, regs, &csr_val))
+>  		return truly_illegal_insn(insn, regs);
+>  
+>  	do_write = rs1_num;
+> -	switch (GET_RM(insn)) {
+> -	case 1:
+> +	switch (funct3) {
+> +	case CSRRW:
+>  		new_csr_val = rs1_val;
+> -		do_write    = 1;
+> +		do_write    = true;
+>  		break;
+> -	case 2:
+> +	case CSRRS:
+>  		new_csr_val = csr_val | rs1_val;
+> +		do_write    = (rs1_num != 0);
+>  		break;
+> -	case 3:
+> +	case CSRRC:
+>  		new_csr_val = csr_val & ~rs1_val;
+> +		do_write    = (rs1_num != 0);
+>  		break;
+> -	case 5:
+> +	case CSRRWI:
+>  		new_csr_val = rs1_num;
+> -		do_write    = 1;
+> +		do_write    = true;
+>  		break;
+> -	case 6:
+> +	case CSRRSI:
+>  		new_csr_val = csr_val | rs1_num;
+> +		do_write    = (rs1_num != 0);
+>  		break;
+> -	case 7:
+> +	case CSRRCI:
+>  		new_csr_val = csr_val & ~rs1_num;
+> +		do_write    = (rs1_num != 0);
+>  		break;
+>  	default:
+>  		return truly_illegal_insn(insn, regs);
+> -- 
+> 2.17.1
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
