@@ -1,89 +1,182 @@
-From: Conor Dooley <conor@kernel.org>
-Date: Tue,  2 Jul 2024 11:59:11 +0100
-Subject: [PATCH v1] lib: utils/fdt: Add support for parsing riscv,isa-extensions
-Message-ID: <20240702105913.1843900-2-conor@kernel.org>
+From: DongdongZhang <zhangdongdong@eswincomputing.com>
+Date: Wed, 3 Jul 2024 09:45:38 +0800 (GMT+08:00)
+Subject: [PATCH] lib:sbi: Enhance CSR Handling in system_opcode_insn
+In-Reply-To: <20240701-843601b1dc18aee9a657be49@orel>
+References: <20240701024516.20320-1-zhangdongdong@eswincomputing.com>
+ <20240701-843601b1dc18aee9a657be49@orel>
+Message-ID: <2860f279.4385.1907644ccf7.Coremail.zhangdongdong@eswincomputing.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Conor Dooley <conor.dooley@microchip.com>
-
-A new property has been added, with an extensive rationale at [1], that
-can be used in place of "riscv,isa" to indicate what extensions are
-supported by a given platform that is a list of strings rather than a
-single string. There are some differences between the new property,
-"riscv,isa-extensions" and the incumbent "riscv,isa" - chief among them
-for the sake of parsing being the list of strings, as opposed to a
-string. Another advantage is strictly defined meanings for each string
-in a dt-binding, rather than deriving meaning from RVI standards. This
-may likely to some divergence over time, but, at least for now, there's
-no relevant differences between the two for an M-Mode program.
-
-Add support for the new property in OpenSBI, prioritising it, before
-falling back to the, now deprecated, "riscv,isa" property if it is not
-present.
-
-Link: https://lore.kernel.org/all/20230702-eats-scorebook-c951f170d29f at spud/ [1]
-Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
----
- lib/utils/fdt/fdt_helper.c | 27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
-
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 9a945af..b7f7e07 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -411,6 +411,18 @@ static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
- 	return 0;
- }
- 
-+static void fdt_parse_isa_extensions_one_hart(const char *isa,
-+					      unsigned long *extensions,
-+					      int len)
-+{
-+	size_t i;
-+
-+	for (i = 0; i < SBI_HART_EXT_MAX; i++) {
-+		if (fdt_stringlist_contains(isa, len, sbi_hart_ext[i].name))
-+			__set_bit(sbi_hart_ext[i].id, extensions);
-+	}
-+}
-+
- static int fdt_parse_isa_all_harts(void *fdt)
- {
- 	u32 hartid;
-@@ -434,10 +446,6 @@ static int fdt_parse_isa_all_harts(void *fdt)
- 		if (!fdt_node_is_enabled(fdt, cpu_offset))
- 			continue;
- 
--		val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
--		if (!val || len <= 0)
--			return SBI_ENOENT;
--
- 		scratch = sbi_hartid_to_scratch(hartid);
- 		if (!scratch)
- 			return SBI_ENOENT;
-@@ -445,6 +453,17 @@ static int fdt_parse_isa_all_harts(void *fdt)
- 		hart_exts = sbi_scratch_offset_ptr(scratch,
- 						   fdt_isa_bitmap_offset);
- 
-+		val = fdt_getprop(fdt, cpu_offset, "riscv,isa-extensions", &len);
-+		if (val && len > 0) {
-+			fdt_parse_isa_extensions_one_hart((const char *)val,
-+							  hart_exts, len);
-+			continue;
-+		}
-+
-+		val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
-+		if (!val || len <= 0)
-+			return SBI_ENOENT;
-+
- 		err = fdt_parse_isa_one_hart((const char *)val, hart_exts);
- 		if (err)
- 			return err;
--- 
-2.43.0
 
 
+
+> -----????-----???:"Andrew Jones" <ajones@ventanamicro.com>????:2024-07-01 17:20:37 (???)???:zhangdongdong at eswincomputing.com??:opensbi at lists.infradead.org??:Re: [PATCH] lib:sbi: Enhance CSR Handling in system_opcode_insn
+> 
+> On Mon, Jul 01, 2024 at 10:45:16AM GMT, zhangdongdong at eswincomputing.com wrote:
+> > From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> > 
+> > - Completed TODO in `system_opcode_insn` to ensure CSR read/write
+> >   instruction handling.
+> > - Refactored to use new macros `GET_RS1_NUM` and `GET_CSR_NUM`.
+> > - Updated `GET_RM` macro and replaced hardcoded funct3 values with
+> >   constants (`CSRRW`, `CSRRS`, `CSRRC`, etc.).
+> > - Removed redundant `GET_RM` from `riscv_fp.h`.
+> > - Improved validation and error handling for CSR instructions.
+> > 
+> > This patch enhances the clarity and correctness of CSR handling
+> > in `system_opcode_insn`.
+> > 
+> > Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> > ---
+> >  include/sbi/riscv_encoding.h | 19 +++++++++++++++++-
+> >  include/sbi/riscv_fp.h       |  1 -
+> >  lib/sbi/sbi_illegal_insn.c   | 37 +++++++++++++++++++++++-------------
+> >  3 files changed, 42 insertions(+), 15 deletions(-)
+> > 
+> > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> > index 477fa3a..5146654 100644
+> > --- a/include/sbi/riscv_encoding.h
+> > +++ b/include/sbi/riscv_encoding.h
+> > @@ -947,7 +947,10 @@
+> >  #define REG_PTR(insn, pos, regs)	\
+> >  	(ulong *)((ulong)(regs) + REG_OFFSET(insn, pos))
+> >  
+> > -#define GET_RM(insn)			(((insn) >> 12) & 7)
+> > +#define GET_RM(insn) ((insn & MASK_FUNCT3) >> SHIFT_FUNCT3)
+> > +
+> > +#define GET_RS1_NUM(insn)		((insn & MASK_RS1) >> 15)
+> > +#define GET_CSR_NUM(insn)		((insn & MASK_CSR) >> SHIFT_CSR)
+> >  
+> >  #define GET_RS1(insn, regs)		(*REG_PTR(insn, SH_RS1, regs))
+> >  #define GET_RS2(insn, regs)		(*REG_PTR(insn, SH_RS2, regs))
+> > @@ -959,7 +962,21 @@
+> >  #define IMM_I(insn)			((s32)(insn) >> 20)
+> >  #define IMM_S(insn)			(((s32)(insn) >> 25 << 5) | \
+> >  					 (s32)(((insn) >> 7) & 0x1f))
+> > +
+> >  #define MASK_FUNCT3			0x7000
+> > +#define MASK_RS1			0xf8000
+> > +#define MASK_CSR            0xfff
+> > +
+> > +#define SHIFT_FUNCT3    12
+> > +#define SHIFT_CSR       20
+> > +
+> > +
+> > +#define CSRRW 1
+> > +#define CSRRS 2
+> > +#define CSRRC 3
+> > +#define CSRRWI 5
+> > +#define CSRRSI 6
+> > +#define CSRRCI 7
+> >  
+> >  /* clang-format on */
+> >  
+> > diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
+> > index 3141c1c..f523c56 100644
+> > --- a/include/sbi/riscv_fp.h
+> > +++ b/include/sbi/riscv_fp.h
+> > @@ -15,7 +15,6 @@
+> >  #include <sbi/sbi_types.h>
+> >  
+> >  #define GET_PRECISION(insn) (((insn) >> 25) & 3)
+> > -#define GET_RM(insn) (((insn) >> 12) & 7)
+> >  #define PRECISION_S 0
+> >  #define PRECISION_D 1
+> >  
+> > diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+> > index ed6f111..7086a5e 100644
+> > --- a/lib/sbi/sbi_illegal_insn.c
+> > +++ b/lib/sbi/sbi_illegal_insn.c
+> > @@ -48,9 +48,10 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+> >  
+> >  static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+> >  {
+> > -	int do_write, rs1_num = (insn >> 15) & 0x1f;
+> > -	ulong rs1_val = GET_RS1(insn, regs);
+> > -	int csr_num   = (u32)insn >> 20;
+> > +	bool do_write	= false;
+> > +	int rs1_num	= GET_RS1_NUM(insn);
+> > +	ulong rs1_val	= GET_RS1(insn, regs);
+> > +	int csr_num	= GET_CSR_NUM((u32)insn);
+> >  	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
+> >  	ulong csr_val, new_csr_val;
+> >  
+> > @@ -60,32 +61,42 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+> >  		return SBI_EFAIL;
+> >  	}
+> >  
+> > -	/* TODO: Ensure that we got CSR read/write instruction */
+> > +	/* Ensure that we got CSR read/write instruction */
+> > +	int funct3 = GET_RM(insn);
+> > +	if ((funct3 < 1 || funct3 > 3) && (funct3 < 5 || funct3 > 7)) {
+> 
+> This looks complicated. Isn't it just
+> 
+>  (func3 < 1 || func3 > 7 || func3 == 4)
+> 
+> Thanks,
+> drew
+> 
+Hi Drew,
+
+Thank you for your feedback. You are right. I will update the patch as suggested.
+
+Best regards,
+Dongdong
+> > +		sbi_printf("%s: Invalid opcode for CSR read/write instruction",
+> > +			   __func__);
+> > +		return truly_illegal_insn(insn, regs);
+> > +	}
+> >  
+> >  	if (sbi_emulate_csr_read(csr_num, regs, &csr_val))
+> >  		return truly_illegal_insn(insn, regs);
+> >  
+> >  	do_write = rs1_num;
+> > -	switch (GET_RM(insn)) {
+> > -	case 1:
+> > +	switch (funct3) {
+> > +	case CSRRW:
+> >  		new_csr_val = rs1_val;
+> > -		do_write    = 1;
+> > +		do_write    = true;
+> >  		break;
+> > -	case 2:
+> > +	case CSRRS:
+> >  		new_csr_val = csr_val | rs1_val;
+> > +		do_write    = (rs1_num != 0);
+> >  		break;
+> > -	case 3:
+> > +	case CSRRC:
+> >  		new_csr_val = csr_val & ~rs1_val;
+> > +		do_write    = (rs1_num != 0);
+> >  		break;
+> > -	case 5:
+> > +	case CSRRWI:
+> >  		new_csr_val = rs1_num;
+> > -		do_write    = 1;
+> > +		do_write    = true;
+> >  		break;
+> > -	case 6:
+> > +	case CSRRSI:
+> >  		new_csr_val = csr_val | rs1_num;
+> > +		do_write    = (rs1_num != 0);
+> >  		break;
+> > -	case 7:
+> > +	case CSRRCI:
+> >  		new_csr_val = csr_val & ~rs1_num;
+> > +		do_write    = (rs1_num != 0);
+> >  		break;
+> >  	default:
+> >  		return truly_illegal_insn(insn, regs);
+> > -- 
+> > 2.17.1
+> > 
+> > 
+> > -- 
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
