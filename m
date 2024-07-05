@@ -1,49 +1,47 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 5 Jul 2024 12:25:19 +0530
-Subject: [PATCH v2 2/3] lib: sbi: dump logs when crash
-In-Reply-To: <20240624141903.2305676-3-wxjstz@126.com>
-References: <20240624141903.2305676-1-wxjstz@126.com> <20240624141903.2305676-3-wxjstz@126.com>
-Message-ID: <CAAhSdy2=NCdWH+7iG3a2_dYYbSJFfi2Xciqo1=GciOLKjgKWuw@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Fri,  5 Jul 2024 12:44:58 +0530
+Subject: [PATCH 0/6] Early console buffer for OpenSBI
+Message-ID: <20240705071504.50988-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 24, 2024 at 7:49?PM Xiang W <wxjstz@126.com> wrote:
->
-> When opensbi crashes, try to initialize the console in order to
-> output error messages.
->
-> Signed-off-by: Xiang W <wxjstz@126.com>
-> ---
->  lib/sbi/sbi_hart.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index c366701..48ec97c 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -1010,6 +1010,10 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
->
->  void __attribute__((noreturn)) sbi_hart_hang(void)
->  {
-> +       /* Try to initialize the console to output some error messages */
-> +       if (sbi_console_get_device() == NULL)
-> +               sbi_console_init(sbi_scratch_thishart_ptr());
-> +
+This series tries to improve OpenSBI debugging by:
+1) Registering console device via platform early_init()
+2) Introducing early console buffer
 
-If a crash happened early then this will again change the order
-in which platform console_init() is called as compared to other
-functions in init_coldboot().
+These patches can also be found in the console_early_probe_v1
+branch at: https://github.com/avpatel/opensbi.git
 
->         while (1)
->                 wfi();
->         __builtin_unreachable();
-> --
-> 2.43.0
->
+Anup Patel (6):
+  platform: Setup serial console device in early_init()
+  lib: sbi: Remove sbi_console_init() and console_init() platform
+    callback
+  lib: sbi: Optimize fifo enqueue/dequeue for basic data types
+  lib: sbi: Allow forceful queueing of data in sbi_fifo_enqueue()
+  include: sbi: Add macros to create FIFO as local or global variable
+  lib: sbi: Introduce an early console buffer for caching early prints
 
-Regards,
-Anup
+ include/sbi/sbi_console.h          |  2 -
+ include/sbi/sbi_fifo.h             | 14 +++++-
+ include/sbi/sbi_platform.h         | 17 -------
+ lib/sbi/Kconfig                    |  6 ++-
+ lib/sbi/sbi_console.c              | 36 ++++++++++-----
+ lib/sbi/sbi_fifo.c                 | 72 +++++++++++++++++++++++++-----
+ lib/sbi/sbi_init.c                 |  4 --
+ lib/sbi/sbi_sse.c                  |  2 +-
+ lib/sbi/sbi_tlb.c                  |  3 +-
+ platform/fpga/ariane/platform.c    | 26 ++++-------
+ platform/fpga/openpiton/platform.c | 20 ++-------
+ platform/generic/platform.c        | 21 ++++-----
+ platform/kendryte/k210/platform.c  | 18 +++-----
+ platform/nuclei/ux600/platform.c   | 18 +++-----
+ platform/template/platform.c       | 18 +++-----
+ 15 files changed, 151 insertions(+), 126 deletions(-)
+
+-- 
+2.34.1
+
 
