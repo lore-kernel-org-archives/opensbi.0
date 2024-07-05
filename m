@@ -1,109 +1,84 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri,  5 Jul 2024 12:45:00 +0530
-Subject: [PATCH 2/6] lib: sbi: Remove sbi_console_init() and console_init() platform callback
+Date: Fri,  5 Jul 2024 12:45:01 +0530
+Subject: [PATCH 3/6] lib: sbi: Optimize fifo enqueue/dequeue for basic data types
 In-Reply-To: <20240705071504.50988-1-apatel@ventanamicro.com>
 References: <20240705071504.50988-1-apatel@ventanamicro.com>
-Message-ID: <20240705071504.50988-3-apatel@ventanamicro.com>
+Message-ID: <20240705071504.50988-4-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Now that all platforms have been updated to initialize serial console
-device in early_init(), the sbi_console_init() and console_init()
-platform callback are redundant hence remove them.
+Don't use sbi_memcpy() for basic data types in fifo enqueue/dequeue
+instead use direct type-cast and assignment.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_console.h  |  2 --
- include/sbi/sbi_platform.h | 17 -----------------
- lib/sbi/sbi_console.c      | 11 -----------
- lib/sbi/sbi_init.c         |  4 ----
- 4 files changed, 34 deletions(-)
+ lib/sbi/sbi_fifo.c | 43 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 40 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi/sbi_console.h b/include/sbi/sbi_console.h
-index 0979765..3097db1 100644
---- a/include/sbi/sbi_console.h
-+++ b/include/sbi/sbi_console.h
-@@ -58,8 +58,6 @@ void sbi_console_set_device(const struct sbi_console_device *dev);
+diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c
+index 72c6d39..9199a30 100644
+--- a/lib/sbi/sbi_fifo.c
++++ b/lib/sbi/sbi_fifo.c
+@@ -66,7 +66,26 @@ static inline void  __sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data)
+ 	if (head >= fifo->num_entries)
+ 		head = head - fifo->num_entries;
  
- struct sbi_scratch;
+-	sbi_memcpy((char *)fifo->queue + head * fifo->entry_size, data, fifo->entry_size);
++	switch (fifo->entry_size) {
++	case 1:
++		*(char *)(fifo->queue + head * fifo->entry_size) = *(char *)data;
++		break;
++	case 2:
++		*(u16 *)(fifo->queue + head * fifo->entry_size) = *(u16 *)data;
++		break;
++	case 4:
++		*(u32 *)(fifo->queue + head * fifo->entry_size) = *(u32 *)data;
++		break;
++#if __riscv_xlen > 32
++	case 8:
++		*(u64 *)(fifo->queue + head * fifo->entry_size) = *(u64 *)data;
++		break;
++#endif
++	default:
++		sbi_memcpy(fifo->queue + head * fifo->entry_size,
++			   data, fifo->entry_size);
++		break;
++	}
  
--int sbi_console_init(struct sbi_scratch *scratch);
--
- #define SBI_ASSERT(cond, args) do { \
- 	if (unlikely(!(cond))) \
- 		sbi_panic args; \
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 581935a..7b3ac4b 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -111,9 +111,6 @@ struct sbi_platform_operations {
- 	/** Get platform specific mhpmevent value */
- 	uint64_t (*pmu_xlate_to_mhpmevent)(uint32_t event_idx, uint64_t data);
- 
--	/** Initialize the platform console */
--	int (*console_init)(void);
--
- 	/** Initialize the platform interrupt controller for current HART */
- 	int (*irqchip_init)(bool cold_boot);
- 	/** Exit the platform interrupt controller for current HART */
-@@ -549,20 +546,6 @@ static inline uint64_t sbi_platform_pmu_xlate_to_mhpmevent(const struct sbi_plat
- 	return 0;
+ 	fifo->avail++;
  }
+@@ -184,8 +203,26 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data)
+ 		return SBI_ENOENT;
+ 	}
  
--/**
-- * Initialize the platform console
-- *
-- * @param plat pointer to struct sbi_platform
-- *
-- * @return 0 on success and negative error code on failure
-- */
--static inline int sbi_platform_console_init(const struct sbi_platform *plat)
--{
--	if (plat && sbi_platform_ops(plat)->console_init)
--		return sbi_platform_ops(plat)->console_init();
--	return 0;
--}
--
- /**
-  * Initialize the platform interrupt controller for current HART
-  *
-diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-index d3ec461..194529d 100644
---- a/lib/sbi/sbi_console.c
-+++ b/lib/sbi/sbi_console.c
-@@ -477,14 +477,3 @@ void sbi_console_set_device(const struct sbi_console_device *dev)
+-	sbi_memcpy(data, (char *)fifo->queue + (u32)fifo->tail * fifo->entry_size,
+-	       fifo->entry_size);
++	switch (fifo->entry_size) {
++	case 1:
++		*(char *)data = *(char *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
++		break;
++	case 2:
++		*(u16 *)data = *(u16 *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
++		break;
++	case 4:
++		*(u32 *)data = *(u32 *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
++		break;
++#if __riscv_xlen > 32
++	case 8:
++		*(u64 *)data = *(u64 *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
++		break;
++#endif
++	default:
++		sbi_memcpy(data, fifo->queue + (u32)fifo->tail * fifo->entry_size,
++			   fifo->entry_size);
++		break;
++	}
  
- 	console_dev = dev;
- }
--
--int sbi_console_init(struct sbi_scratch *scratch)
--{
--	int rc = sbi_platform_console_init(sbi_platform_ptr(scratch));
--
--	/* console is not a necessary device */
--	if (rc == SBI_ENODEV)
--		return 0;
--
--	return rc;
--}
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 0f9e14c..d80efe9 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -261,10 +261,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_console_init(scratch);
--	if (rc)
--		sbi_hart_hang();
--
- 	rc = sbi_sse_init(scratch, true);
- 	if (rc) {
- 		sbi_printf("%s: sse init failed (error %d)\n", __func__, rc);
+ 	fifo->avail--;
+ 	fifo->tail++;
 -- 
 2.34.1
 
