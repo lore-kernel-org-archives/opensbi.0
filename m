@@ -1,28 +1,29 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 23 Jul 2024 10:16:07 +0530
-Subject: [PATCH] lib:tests: enhance test output with colored pass/fail messages
-In-Reply-To: <20240701021728.10462-1-zhangdongdong@eswincomputing.com>
-References: <20240701021728.10462-1-zhangdongdong@eswincomputing.com>
-Message-ID: <CAAhSdy33Y4ZAy8bjDfDYNgOzcbrC7WzA0VJ3cqTfk-W9wQbn2Q@mail.gmail.com>
+Date: Tue, 23 Jul 2024 10:20:18 +0530
+Subject: [PATCH 1/1] lib:tests: add math test suite
+In-Reply-To: <20240701023006.16977-2-zhangdongdong@eswincomputing.com>
+References: <20240701023006.16977-1-zhangdongdong@eswincomputing.com> <20240701023006.16977-2-zhangdongdong@eswincomputing.com>
+Message-ID: <CAAhSdy2Gbnie92+WkgFekgzJzX-m-6L+Vtr5kZ=w=HYXtA9zyg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 1, 2024 at 7:48?AM <zhangdongdong@eswincomputing.com> wrote:
+On Mon, Jul 1, 2024 at 8:00?AM <zhangdongdong@eswincomputing.com> wrote:
 >
 > From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 >
-> This patch improves the readability of the SBI unit test
-> output by adding color-coded status messages.
+> This patch introduces a new math test suite to the SBI unit
+> tests. The changes include:
 >
-> Adding ANSI color codes for green (pass) and red (fail)
-> in sbi_unit_test.c.
+> * Updating lib/sbi/tests/objects.mk to include
+>   math_test_suite and sbi_math_test.o.
+> * Adding a new file lib/sbi/tests/sbi_math_test.c which
+>   contains tests for log2roundup function using various cases.
 >
-> Now, the test results will be displayed in green for passed
-> tests and red for failed tests, making it easier to quickly
-> distinguish between them.
+> The addition of this test suite ensures that mathematical
+> functions are verified and work as expected.
 >
 > Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 
@@ -37,40 +38,75 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/tests/sbi_unit_test.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
+>  lib/sbi/tests/objects.mk      |  3 +++
+>  lib/sbi/tests/sbi_math_test.c | 46 +++++++++++++++++++++++++++++++++++
+>  2 files changed, 49 insertions(+)
+>  create mode 100644 lib/sbi/tests/sbi_math_test.c
 >
-> diff --git a/lib/sbi/tests/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
-> index c2a0be6..cd09166 100644
-> --- a/lib/sbi/tests/sbi_unit_test.c
-> +++ b/lib/sbi/tests/sbi_unit_test.c
-> @@ -7,6 +7,10 @@
->  #include <sbi/sbi_types.h>
->  #include <sbi/sbi_console.h>
+> diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
+> index 8f27289..82b6061 100644
+> --- a/lib/sbi/tests/objects.mk
+> +++ b/lib/sbi/tests/objects.mk
+> @@ -12,3 +12,6 @@ libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_atomic_test.o
 >
-> +#define ANSI_COLOR_GREEN "\x1b[32m"
-> +#define ANSI_COLOR_RED "\x1b[31m"
-> +#define ANSI_COLOR_RESET "\x1b[0m"
+>  carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += locks_test_suite
+>  libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_locks_test.o
 > +
->  extern struct sbiunit_test_suite *sbi_unit_tests[];
->  extern unsigned long sbi_unit_tests_size;
->
-> @@ -27,10 +31,13 @@ static void run_test_suite(struct sbiunit_test_suite *suite)
->                         count_fail++;
->                 else
->                         count_pass++;
-> -               sbi_printf("[%s] %s\n", s_case->failed ? "FAILED" : "PASSED",
-> -                          s_case->name);
-> +               sbi_printf("%s[%s]%s %s\n",
-> +                          s_case->failed ? ANSI_COLOR_RED : ANSI_COLOR_GREEN,
-> +                          s_case->failed ? "FAILED" : "PASSED",
-> +                          ANSI_COLOR_RESET, s_case->name);
->                 s_case++;
->         }
+> +carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += math_test_suite
+> +libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_math_test.o
+> \ No newline at end of file
+> diff --git a/lib/sbi/tests/sbi_math_test.c b/lib/sbi/tests/sbi_math_test.c
+> new file mode 100644
+> index 0000000..81ed832
+> --- /dev/null
+> +++ b/lib/sbi/tests/sbi_math_test.c
+> @@ -0,0 +1,46 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright  2024  Beijing ESWIN Computing Technology Co., Ltd.
+> + *
+> + * Author: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> + */
+> +#include <sbi/sbi_math.h>
+> +#include <sbi/sbi_unit_test.h>
 > +
->         sbi_printf("%u PASSED / %u FAILED / %u TOTAL\n", count_pass, count_fail,
->                    count_pass + count_fail);
->  }
+> +static void log2roundup_test(struct sbiunit_test_case *test)
+> +{
+> +    struct {
+> +        unsigned long input;
+> +        unsigned long expected;
+> +    } cases[] = {
+> +        {1, 0},
+> +        {2, 1},
+> +        {3, 2},
+> +        {4, 2},
+> +        {5, 3},
+> +        {8, 3},
+> +        {9, 4},
+> +        {15, 4},
+> +        {16, 4},
+> +        {17, 5},
+> +        {31, 5},
+> +        {32, 5},
+> +        {33, 6},
+> +        {63, 6},
+> +        {64, 6},
+> +        {65, 7},
+> +    };
+> +
+> +    for (int i = 0; i < sizeof(cases)/sizeof(cases[0]); i++) {
+> +        unsigned long result = log2roundup(cases[i].input);
+> +        SBIUNIT_EXPECT_EQ(test, result, cases[i].expected);
+> +    }
+> +}
+> +
+> +static struct sbiunit_test_case math_test_cases[] = {
+> +    SBIUNIT_TEST_CASE(log2roundup_test),
+> +    SBIUNIT_END_CASE,
+> +};
+> +
+> +SBIUNIT_TEST_SUITE(math_test_suite, math_test_cases);
 > --
 > 2.17.1
 >
