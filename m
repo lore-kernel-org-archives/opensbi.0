@@ -1,40 +1,34 @@
 From: Ben Zong-You Xie <ben717@andestech.com>
-Date: Tue, 23 Jul 2024 15:57:27 +0800
-Subject: [PATCH 3/4] platform: generic: andes: add a new Andes SBI call to set up a PMA entry
+Date: Tue, 23 Jul 2024 15:57:28 +0800
+Subject: [PATCH 4/4] platform: generic: andes: add a new Andes SBI call to free a PMA entry
 In-Reply-To: <20240723075728.587110-1-ben717@andestech.com>
 References: <20240723075728.587110-1-ben717@andestech.com>
-Message-ID: <20240723075728.587110-4-ben717@andestech.com>
+Message-ID: <20240723075728.587110-5-ben717@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Implement a new Andes SBI call, which is to set up a NAPOT region
-with given memory attributes.
+Add a new Andes SBI call to free a PMA entry, and reset the memory
+attributes for the corresponding NAPOT region.
 
 Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
 ---
- platform/generic/andes/andes_pma.c         | 110 +++++++++++++++++++++
- platform/generic/andes/andes_sbi.c         |   9 +-
- platform/generic/include/andes/andes_pma.h |  22 ++++-
- 3 files changed, 137 insertions(+), 4 deletions(-)
+ platform/generic/andes/andes_pma.c         | 65 ++++++++++++++++------
+ platform/generic/andes/andes_sbi.c         |  4 ++
+ platform/generic/include/andes/andes_pma.h |  9 +++
+ 3 files changed, 61 insertions(+), 17 deletions(-)
 
 diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
-index a884bf7..70039ca 100644
+index 70039ca..be61005 100644
 --- a/platform/generic/andes/andes_pma.c
 +++ b/platform/generic/andes/andes_pma.c
-@@ -94,6 +94,74 @@ static inline bool not_napot(unsigned long addr, unsigned long size)
- 	return ((size & (size - 1)) || (addr & (size - 1)));
+@@ -120,6 +120,27 @@ static char get_pmaxcfg(int entry_id)
+ 	return *pmaxcfg;
  }
  
-+static inline bool is_pma_entry_disable(char pmaxcfg)
-+{
-+	return (pmaxcfg & ANDES_PMACFG_ETYP_MASK) == ANDES_PMACFG_ETYP_OFF ?
-+	       true : false;
-+}
-+
-+static char get_pmaxcfg(int entry_id)
++static void set_pmaxcfg(int entry_id, char flags)
 +{
 +	unsigned int pmacfg_addr;
 +	unsigned long pmacfg_val;
@@ -51,175 +45,113 @@ index a884bf7..70039ca 100644
 +#else
 +#error "Unexpected __riscv_xlen"
 +#endif
-+	return *pmaxcfg;
++	*pmaxcfg = flags;
++	andes_pma_write_num(pmacfg_addr, pmacfg_val);
 +}
 +
-+static void decode_pmaaddrx(int entry_id, unsigned long *start,
-+			    unsigned long *size)
-+{
-+	unsigned long pmaaddr;
-+	int k;
+ static void decode_pmaaddrx(int entry_id, unsigned long *start,
+ 			    unsigned long *size)
+ {
+@@ -167,30 +188,14 @@ static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
+ {
+ 	unsigned long size = pma_region->size;
+ 	unsigned long addr = pma_region->pa;
+-	unsigned int pma_cfg_addr;
+-	unsigned long pmacfg_val;
+ 	unsigned long pmaaddr;
+-	char *pmaxcfg;
+ 
+ 	/* Check for a 4KiB granularity NAPOT region*/
+ 	if (size < ANDES_PMA_GRANULARITY || not_napot(addr, size) ||
+ 	    !(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
+ 		return SBI_EINVAL;
+ 
+-#if __riscv_xlen == 64
+-	pma_cfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
+-	pmacfg_val = andes_pma_read_num(pma_cfg_addr);
+-	pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
+-#elif __riscv_xlen == 32
+-	pma_cfg_addr = CSR_PMACFG0 + (entry_id / 4);
+-	pmacfg_val = andes_pma_read_num(pma_cfg_addr);
+-	pmaxcfg = (char *)&pmacfg_val + (entry_id % 4);
+-#else
+-#error "Unexpected __riscv_xlen"
+-#endif
+-	*pmaxcfg = pma_region->flags;
+-
+-	andes_pma_write_num(pma_cfg_addr, pmacfg_val);
++	set_pmaxcfg(entry_id, pma_region->flags);
+ 
+ 	pmaaddr = (addr >> 2) + (size >> 3) - 1;
+ 
+@@ -404,3 +409,29 @@ int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags)
+ 
+ 	return SBI_SUCCESS;
+ }
 +
-+	/**
-+	 * Given $pmaaddr, let k = # of trailing 1s of $pmaaddr
-+	 * size = 2 ^ (k + 3)
-+	 * start = 4 * ($pmaaddr - (size / 8) + 1)
-+	 */
-+	pmaaddr = andes_pma_read_num(CSR_PMAADDR0 + entry_id);
-+	k = sbi_ffz(pmaaddr);
-+	*size = 1 << (k + 3);
-+	*start = (pmaaddr - (1 << k) + 1) << 2;
-+}
-+
-+static bool has_pma_region_overlap(unsigned long start, unsigned long size)
++int andes_sbi_free_pma(unsigned long pa)
 +{
-+	unsigned long _start, _size, _end, end;
++	unsigned long start, size;
 +	char pmaxcfg;
 +
-+	end = start + size - 1;
 +	for (int i = 0; i < ANDES_MAX_PMA_REGIONS; i++) {
 +		pmaxcfg = get_pmaxcfg(i);
 +		if (is_pma_entry_disable(pmaxcfg))
 +			continue;
 +
-+		decode_pmaaddrx(i, &_start, &_size);
-+		_end = _start + _size - 1;
++		decode_pmaaddrx(i, &start, &size);
++		if (start != pa)
++			continue;
 +
-+		if (MAX(start, _start) <= MIN(end, _end)) {
-+			sbi_printf(
-+				"ERROR %s(): %#lx ~ %#lx overlaps with PMA%d: %#lx ~ %#lx\n",
-+				__func__, start, end, i, _start, _end);
-+			return true;
-+		}
++		set_pmaxcfg(i, ANDES_PMACFG_ETYP_OFF);
++		andes_pma_write_num(CSR_PMAADDR0 + i, 0);
++
++		return SBI_SUCCESS;
 +	}
 +
-+	return false;
-+}
++	sbi_printf("ERROR %s(): Failed to find the entry with PA %#lx\n",
++		   __func__, pa);
 +
- static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
- 				     unsigned int entry_id)
- {
-@@ -294,3 +362,45 @@ bool andes_sbi_probe_pma(void)
- {
- 	return (csr_read(CSR_MMSC_CFG) & MMSC_CFG_PPMA_MASK) ? true : false;
- }
-+
-+int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags)
-+{
-+	unsigned int entry_id;
-+	unsigned long rc;
-+	char pmaxcfg;
-+	struct andes_pma_region region;
-+
-+	if (!andes_sbi_probe_pma()) {
-+		sbi_printf("ERROR %s(): Platform does not support PPMA.\n",
-+			   __func__);
-+		return SBI_ERR_NOT_SUPPORTED;
-+	}
-+
-+	if (has_pma_region_overlap(pa, size))
-+		return SBI_ERR_INVALID_PARAM;
-+
-+	for (entry_id = 0; entry_id < ANDES_MAX_PMA_REGIONS; entry_id++) {
-+		pmaxcfg = get_pmaxcfg(entry_id);
-+		if (is_pma_entry_disable(pmaxcfg)) {
-+			region.pa = pa;
-+			region.size = size;
-+			region.flags = flags;
-+			break;
-+		}
-+	}
-+
-+	if (entry_id == ANDES_MAX_PMA_REGIONS) {
-+		sbi_printf("ERROR %s(): All PMA entries have run out\n",
-+			   __func__);
-+		return SBI_ERR_FAILED;
-+	}
-+
-+	rc = andes_pma_setup(&region, entry_id);
-+	if (rc == SBI_EINVAL) {
-+		sbi_printf("ERROR %s(): Failed to set PMAADDR%d\n",
-+			   __func__, entry_id);
-+		return SBI_ERR_FAILED;
-+	}
-+
-+	return SBI_SUCCESS;
++	return SBI_ERR_FAILED;
 +}
 diff --git a/platform/generic/andes/andes_sbi.c b/platform/generic/andes/andes_sbi.c
-index a7ca4a5..0e4a43d 100644
+index 0e4a43d..0e1e59e 100644
 --- a/platform/generic/andes/andes_sbi.c
 +++ b/platform/generic/andes/andes_sbi.c
-@@ -13,6 +13,7 @@ enum sbi_ext_andes_fid {
- 	SBI_EXT_ANDES_FID0 = 0, /* Reserved for future use */
+@@ -14,6 +14,7 @@ enum sbi_ext_andes_fid {
  	SBI_EXT_ANDES_IOCP_SW_WORKAROUND,
  	SBI_EXT_ANDES_PMA_PROBE,
-+	SBI_EXT_ANDES_PMA_SET,
+ 	SBI_EXT_ANDES_PMA_SET,
++	SBI_EXT_ANDES_PMA_FREE,
  };
  
  static bool andes_cache_controllable(void)
-@@ -39,6 +40,7 @@ int andes_sbi_vendor_ext_provider(long funcid,
- 				  struct sbi_ecall_return *out,
- 				  const struct fdt_match *match)
- {
-+	int ret = 0;
- 	switch (funcid) {
- 	case SBI_EXT_ANDES_IOCP_SW_WORKAROUND:
- 		out->value = andes_apply_iocp_sw_workaround();
-@@ -46,10 +48,13 @@ int andes_sbi_vendor_ext_provider(long funcid,
- 	case SBI_EXT_ANDES_PMA_PROBE:
- 		out->value = andes_sbi_probe_pma();
+@@ -51,6 +52,9 @@ int andes_sbi_vendor_ext_provider(long funcid,
+ 	case SBI_EXT_ANDES_PMA_SET:
+ 		ret = andes_sbi_set_pma(regs->a0, regs->a1, regs->a2);
  		break;
-+	case SBI_EXT_ANDES_PMA_SET:
-+		ret = andes_sbi_set_pma(regs->a0, regs->a1, regs->a2);
++	case SBI_EXT_ANDES_PMA_FREE:
++		ret = andes_sbi_free_pma(regs->a0);
 +		break;
  
  	default:
--		return SBI_EINVAL;
-+		ret = SBI_ENOTSUPP;
- 	}
- 
--	return 0;
-+	return ret;
- }
+ 		ret = SBI_ENOTSUPP;
 diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
-index 147dca1..487d9bf 100644
+index 487d9bf..e2d5279 100644
 --- a/platform/generic/include/andes/andes_pma.h
 +++ b/platform/generic/include/andes/andes_pma.h
-@@ -12,11 +12,15 @@
- 
- #define ANDES_PMA_GRANULARITY			(1 << 12)
- 
-+#define ANDES_PMACFG_ETYP_OFFSET		0
-+#define ANDES_PMACFG_ETYP_MASK			(3 << ANDES_PMACFG_ETYP_OFFSET)
-+#define ANDES_PMACFG_ETYP_OFF			(0 << ANDES_PMACFG_ETYP_OFFSET)
- /* Naturally aligned power of 2 region */
--#define ANDES_PMACFG_ETYP_NAPOT			3
-+#define ANDES_PMACFG_ETYP_NAPOT			(3 << ANDES_PMACFG_ETYP_OFFSET)
- 
-+#define ANDES_PMACFG_MTYP_OFFSET		2
- /* Memory, Non-cacheable, Bufferable */
--#define ANDES_PMACFG_MTYP_MEM_NON_CACHE_BUF	(3 << 2)
-+#define ANDES_PMACFG_MTYP_MEM_NON_CACHE_BUF	(3 << ANDES_PMACFG_MTYP_OFFSET)
- 
- /**
-  * struct andes_pma_region - Describes PMA regions
-@@ -59,4 +63,18 @@ int andes_pma_setup_regions(const struct andes_pma_region *pma_regions,
+@@ -77,4 +77,13 @@ bool andes_sbi_probe_pma(void);
   */
- bool andes_sbi_probe_pma(void);
+ int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags);
  
 +/**
-+ * Set a NAPOT region with given memory attributes
-+ * @param pa: Start address of the NAPOT region
-+ * @param size: Size of the NAPOT region
-+ * @param flags: Memory attributes set to the NAPOT region
++ * Reset the memory attribute of a NAPOT region
++ * @param pa Start address of the NAPOT region
 + *
 + * @return SBI_SUCCESS on success
-+ * @return SBI_ERR_NOT_SUPPORTED if hardware does not support PPMA features
-+ * @return SBI_ERR_INVALID_PARAM if the given region is overlapped with the
-+ *	   region that has been set already
-+ * @return SBI_ERR_FAILED if available entries have run out or setup fails
++ * @return SBI_ERR_FAILED if the given region is not set before
 + */
-+int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags);
++int andes_sbi_free_pma(unsigned long pa);
 +
  #endif /* _ANDES_PMA_H_ */
 -- 
