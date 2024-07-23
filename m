@@ -1,113 +1,82 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 23 Jul 2024 10:10:47 +0530
-Subject: [RFC PATCH] lib: utils: fdt_domain: Use consistent device-tree
- address when next-arg1 is missing
-In-Reply-To: <20240628082439.2873497-1-peterlin@andestech.com>
-References: <20240628082439.2873497-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy2zijbCV=eEPjv_2QvmRbn5iOs6bAUgQHKt_uUKDCdkYQ@mail.gmail.com>
+Date: Tue, 23 Jul 2024 10:16:07 +0530
+Subject: [PATCH] lib:tests: enhance test output with colored pass/fail messages
+In-Reply-To: <20240701021728.10462-1-zhangdongdong@eswincomputing.com>
+References: <20240701021728.10462-1-zhangdongdong@eswincomputing.com>
+Message-ID: <CAAhSdy33Y4ZAy8bjDfDYNgOzcbrC7WzA0VJ3cqTfk-W9wQbn2Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jun 28, 2024 at 1:54?PM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
+On Mon, Jul 1, 2024 at 7:48?AM <zhangdongdong@eswincomputing.com> wrote:
 >
-> The diagram shows the boot-flow involving OP-TEE OS initialization:
+> From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 >
->     (1)-----------+
->      | U-Boot SPL |
->      +------------+
->          |
->          v
->     (2)-------------------------------------------------------------+
->      | OpenSBI (fw_dynamic)                                         |
->      |                (4)------------------------+                  |
->      |                 | optee dispatcher driver |                  |
->      +-----------------+-------^---------|-------+------------------+
-> M-mode   |  (coldboot domain)  |         |
-> ---------+--(trusted domain)---+----+----+-(untrusted domain)--------
-> S-mode   |                     |    |    |
->          v                     |    |    v
->     (3)---------------------------+ |(5)----------------------------+
->      | OP-TEE OS                  | | | U-Boot                      |
->      +----------------------------+ | +-----------------------------+
->                                     |    |
->                                     |    v
->                                     |(6)----------------------------+
->                                     | | Linux                       |
->                                     | +-----------------------------+
+> This patch improves the readability of the SBI unit test
+> output by adding color-coded status messages.
 >
-> As OP-TEE OS has device-tree node fixups that need to be passed
-> through the next boot stages, such as reserved memory node shown
-> below:
+> Adding ANSI color codes for green (pass) and red (fail)
+> in sbi_unit_test.c.
 >
->   reserved-memory {
->     #address-cells = <0x00000002>;
->     #size-cells = <0x00000002>;
->     ranges;
->     optee_core at f1000000 {
->       no-map;
->       reg = <0x00000000 0xf1000000   // OP-TEE OS base address
->              0x00000000 0x01000000>;
->     };
->     <...>
->   };
+> Now, the test results will be displayed in green for passed
+> tests and red for failed tests, making it easier to quickly
+> distinguish between them.
 >
-> Instead of using 0x0 as default value, allow identical next-arg1
-> to be used by non-coldboot domain (i.e., untrusted domain), when
-> the next-arg1 is not provided.
->
-> Also, update the document about next-arg1 of domain instance.
->
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Alvin Chang <alvinga@andestech.com>
+> Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
 
-This approach looks good to me.
+Need a space between "lib:" and "tests:" in the patch subject. Otherwise,
+looks good to me. I will take care of this at the time of merging this patch.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
-I will wait 2 more days to see if anyone has objections.
+Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
 > ---
->  docs/domain_support.md     | 4 +---
->  lib/utils/fdt/fdt_domain.c | 3 +--
->  2 files changed, 2 insertions(+), 5 deletions(-)
+>  lib/sbi/tests/sbi_unit_test.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
 >
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index b34e43a..1a40068 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -180,9 +180,7 @@ The DT properties of a domain instance DT node are as follows:
->    boot HART of the domain instance.
->  * **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
->    domain instance. If this DT property is not available and coldboot HART
-> -  is not assigned to the domain instance then **0x0** is used as default
-> -  value. If this DT property is not available and coldboot HART is assigned
-> -  to the domain instance then **next booting stage arg1 of coldboot HART**
-> +  is not assigned to the domain instance then **next booting stage arg1 of coldboot HART**
->    is used as default value.
->  * **next-addr** (Optional) - The 64 bit next booting stage address for the
->    domain instance. If this DT property is not available and coldboot HART
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index fa1c357..a13daa6 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -395,8 +395,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
->                 val64 = fdt32_to_cpu(val[0]);
->                 val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
->         } else {
-> -               if (domain_offset == *cold_domain_offset)
-> -                       val64 = sbi_scratch_thishart_ptr()->next_arg1;
-> +               val64 = sbi_scratch_thishart_ptr()->next_arg1;
+> diff --git a/lib/sbi/tests/sbi_unit_test.c b/lib/sbi/tests/sbi_unit_test.c
+> index c2a0be6..cd09166 100644
+> --- a/lib/sbi/tests/sbi_unit_test.c
+> +++ b/lib/sbi/tests/sbi_unit_test.c
+> @@ -7,6 +7,10 @@
+>  #include <sbi/sbi_types.h>
+>  #include <sbi/sbi_console.h>
+>
+> +#define ANSI_COLOR_GREEN "\x1b[32m"
+> +#define ANSI_COLOR_RED "\x1b[31m"
+> +#define ANSI_COLOR_RESET "\x1b[0m"
+> +
+>  extern struct sbiunit_test_suite *sbi_unit_tests[];
+>  extern unsigned long sbi_unit_tests_size;
+>
+> @@ -27,10 +31,13 @@ static void run_test_suite(struct sbiunit_test_suite *suite)
+>                         count_fail++;
+>                 else
+>                         count_pass++;
+> -               sbi_printf("[%s] %s\n", s_case->failed ? "FAILED" : "PASSED",
+> -                          s_case->name);
+> +               sbi_printf("%s[%s]%s %s\n",
+> +                          s_case->failed ? ANSI_COLOR_RED : ANSI_COLOR_GREEN,
+> +                          s_case->failed ? "FAILED" : "PASSED",
+> +                          ANSI_COLOR_RESET, s_case->name);
+>                 s_case++;
 >         }
->         dom->next_arg1 = val64;
+> +
+>         sbi_printf("%u PASSED / %u FAILED / %u TOTAL\n", count_pass, count_fail,
+>                    count_pass + count_fail);
+>  }
+> --
+> 2.17.1
+>
 >
 > --
-> 2.34.1
->
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
