@@ -1,75 +1,94 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 24 Jul 2024 11:05:24 +0530
-Subject: [PATCH] lib: sbi_hsm: Save/restore menvcfg only when it exists
-In-Reply-To: <20240710142629.2327391-1-samuel.holland@sifive.com>
-References: <20240710142629.2327391-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy2pKdh8K4bnRxRogcHf=+FD0thU1PkZBHE++sP+Sm2RVg@mail.gmail.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Wed, 24 Jul 2024 11:07:36 +0530
+Subject: [PATCH 3/6] lib: sbi: Optimize fifo enqueue/dequeue for basic
+ data types
+In-Reply-To: <20240705071504.50988-4-apatel@ventanamicro.com>
+References: <20240705071504.50988-1-apatel@ventanamicro.com> <20240705071504.50988-4-apatel@ventanamicro.com>
+Message-ID: <CAPd4Wex-iEv3J4_dHMSVki6+JWLaHgmg_y5=A4F2Cw5S9XbK9w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 10, 2024 at 7:56?PM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Fri, Jul 5, 2024 at 12:45?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> Attempting to access the menvcfg CSR raises an illegal instruction
-> exception on hardware which implements Sm1p11 or older.
+> Don't use sbi_memcpy() for basic data types in fifo enqueue/dequeue
+> instead use direct type-cast and assignment.
 >
-> Fixes: e9ee9678ba50 ("lib: sbi: fwft: add support for SBI_FWFT_PTE_AD_HW_UPDATING")
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-
-This is a critical fix. I think we should have an incremental
-1.5.1 release with this fix.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
+>  lib/sbi/sbi_fifo.c | 43 ++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 40 insertions(+), 3 deletions(-)
 >
->  lib/sbi/sbi_hsm.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
+> diff --git a/lib/sbi/sbi_fifo.c b/lib/sbi/sbi_fifo.c
+> index 72c6d39..9199a30 100644
+> --- a/lib/sbi/sbi_fifo.c
+> +++ b/lib/sbi/sbi_fifo.c
+> @@ -66,7 +66,26 @@ static inline void  __sbi_fifo_enqueue(struct sbi_fifo *fifo, void *data)
+>         if (head >= fifo->num_entries)
+>                 head = head - fifo->num_entries;
 >
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 7e32af37..3706acfb 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -423,10 +423,12 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
->         hdata->saved_mie = csr_read(CSR_MIE);
->         hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
->         hdata->saved_medeleg = csr_read(CSR_MEDELEG);
-> +       if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
->  #if __riscv_xlen == 32
-> -       hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
-> +               hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
->  #endif
-> -       hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
-> +               hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
+> -       sbi_memcpy((char *)fifo->queue + head * fifo->entry_size, data, fifo->entry_size);
+> +       switch (fifo->entry_size) {
+> +       case 1:
+> +               *(char *)(fifo->queue + head * fifo->entry_size) = *(char *)data;
+> +               break;
+> +       case 2:
+> +               *(u16 *)(fifo->queue + head * fifo->entry_size) = *(u16 *)data;
+> +               break;
+> +       case 4:
+> +               *(u32 *)(fifo->queue + head * fifo->entry_size) = *(u32 *)data;
+> +               break;
+> +#if __riscv_xlen > 32
+> +       case 8:
+> +               *(u64 *)(fifo->queue + head * fifo->entry_size) = *(u64 *)data;
+> +               break;
+> +#endif
+> +       default:
+> +               sbi_memcpy(fifo->queue + head * fifo->entry_size,
+> +                          data, fifo->entry_size);
+> +               break;
 > +       }
+>
+>         fifo->avail++;
 >  }
+> @@ -184,8 +203,26 @@ int sbi_fifo_dequeue(struct sbi_fifo *fifo, void *data)
+>                 return SBI_ENOENT;
+>         }
 >
->  static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
-> @@ -434,10 +436,12 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
->         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
->                                                             hart_data_offset);
->
-> -       csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
-> +       if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
-> +               csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
->  #if __riscv_xlen == 32
-> -       csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
-> +               csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
->  #endif
+> -       sbi_memcpy(data, (char *)fifo->queue + (u32)fifo->tail * fifo->entry_size,
+> -              fifo->entry_size);
+> +       switch (fifo->entry_size) {
+> +       case 1:
+> +               *(char *)data = *(char *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
+> +               break;
+> +       case 2:
+> +               *(u16 *)data = *(u16 *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
+> +               break;
+> +       case 4:
+> +               *(u32 *)data = *(u32 *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
+> +               break;
+> +#if __riscv_xlen > 32
+> +       case 8:
+> +               *(u64 *)data = *(u64 *)(fifo->queue + (u32)fifo->tail * fifo->entry_size);
+> +               break;
+> +#endif
+> +       default:
+> +               sbi_memcpy(data, fifo->queue + (u32)fifo->tail * fifo->entry_size,
+> +                          fifo->entry_size);
+> +               break;
 > +       }
->         csr_write(CSR_MEDELEG, hdata->saved_medeleg);
->         csr_write(CSR_MIE, hdata->saved_mie);
->         csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
+>
+>         fifo->avail--;
+>         fifo->tail++;
 > --
-> 2.45.1
+> 2.34.1
+>
+ LGTM
+
+Reviewed-By: Himanshu Chauhan <hchauhan@ventanamicro.com>
+
 >
 >
 > --
