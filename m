@@ -1,10 +1,9 @@
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Wed, 24 Jul 2024 11:09:03 +0530
-Subject: [PATCH 6/6] lib: sbi: Introduce an early console buffer for
- caching early prints
-In-Reply-To: <20240705071504.50988-7-apatel@ventanamicro.com>
-References: <20240705071504.50988-1-apatel@ventanamicro.com> <20240705071504.50988-7-apatel@ventanamicro.com>
-Message-ID: <CAPd4Wex566ieJ+ke9EiW3AOWh94vJw9EMRuSx1EUUDVQadfgSA@mail.gmail.com>
+Date: Wed, 24 Jul 2024 11:10:07 +0530
+Subject: [PATCH 1/6] platform: Setup serial console device in early_init()
+In-Reply-To: <20240705071504.50988-2-apatel@ventanamicro.com>
+References: <20240705071504.50988-1-apatel@ventanamicro.com> <20240705071504.50988-2-apatel@ventanamicro.com>
+Message-ID: <CAPd4WewBnxstB_su9-TeXLy3QDa9V7OJMWYiqTYrqqjvk+jaZA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,120 +12,337 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Jul 5, 2024 at 12:45?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> The console device is registered by platform only in early_init()
-> callback so any prints before this point will be lost. Introduce an
-> early console buffer for caching prints before platform early_init().
->
-> For crashes before platform early_init(), users can simply dump the
-> contents of the console_early_buffer[] string using a debugger. The
-> relative address of the console_early_buffer[] string can be found
-> using following two commands:
->
-> CONSOLE_EARLY_FIFO_ADDR=`${CROSS_COMPILE}objdump -D \
-> build/platform/generic/firmware/fw_dynamic.elf | \
-> grep "<console_early_fifo>:" | awk '{print $1}'`
->
-> ${CROSS_COMPILE}objdump -R build/platform/generic/firmware/fw_dynamic.elf | \
-> grep $CONSOLE_EARLY_FIFO_ADDR | awk '{print $3}'
+> The sbi_console_init() does not do any special initialization so
+> setup serial console device in early_init() so that console prints
+> work as early as possible.
 >
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
->  lib/sbi/Kconfig       |  6 +++++-
->  lib/sbi/sbi_console.c | 27 +++++++++++++++++++++++++++
->  2 files changed, 32 insertions(+), 1 deletion(-)
+>  platform/fpga/ariane/platform.c    | 26 +++++++++-----------------
+>  platform/fpga/openpiton/platform.c | 20 ++++----------------
+>  platform/generic/platform.c        | 21 +++++++++++----------
+>  platform/kendryte/k210/platform.c  | 18 ++++++------------
+>  platform/nuclei/ux600/platform.c   | 18 +++++++-----------
+>  platform/template/platform.c       | 18 ++++++------------
+>  6 files changed, 43 insertions(+), 78 deletions(-)
 >
-> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-> index 6cf54ce..bd8ba2b 100644
-> --- a/lib/sbi/Kconfig
-> +++ b/lib/sbi/Kconfig
-> @@ -1,6 +1,10 @@
->  # SPDX-License-Identifier: BSD-2-Clause
->
-> -menu "SBI Extension Support"
-> +menu "Generic SBI Support"
-> +
-> +config CONSOLE_EARLY_BUFFER_SIZE
-> +       int "Early console buffer size (bytes)"
-> +       default 256
->
->  config SBI_ECALL_TIME
->         bool "Timer extension"
-> diff --git a/lib/sbi/sbi_console.c b/lib/sbi/sbi_console.c
-> index 194529d..d760885 100644
-> --- a/lib/sbi/sbi_console.c
-> +++ b/lib/sbi/sbi_console.c
-> @@ -9,6 +9,7 @@
->
->  #include <sbi/riscv_locks.h>
->  #include <sbi/sbi_console.h>
-> +#include <sbi/sbi_fifo.h>
+> diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
+> index 8be5e6c..8d46d88 100644
+> --- a/platform/fpga/ariane/platform.c
+> +++ b/platform/fpga/ariane/platform.c
+> @@ -7,7 +7,6 @@
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_encoding.h>
+>  #include <sbi/riscv_io.h>
+> -#include <sbi/sbi_console.h>
+>  #include <sbi/sbi_const.h>
 >  #include <sbi/sbi_hart.h>
 >  #include <sbi/sbi_platform.h>
->  #include <sbi/sbi_scratch.h>
-> @@ -21,6 +22,15 @@ static char console_tbuf[CONSOLE_TBUF_MAX];
->  static u32 console_tbuf_len;
->  static spinlock_t console_out_lock            = SPIN_LOCK_INITIALIZER;
->
-> +#ifdef CONFIG_CONSOLE_EARLY_BUFFER_SIZE
-> +#define CONSOLE_EARLY_BUFFER_SIZE      CONFIG_CONSOLE_EARLY_BUFFER_SIZE
-> +#else
-> +#define CONSOLE_EARLY_BUFFER_SIZE      256
-> +#endif
-> +static char console_early_buffer[CONSOLE_EARLY_BUFFER_SIZE] = { 0 };
-> +static SBI_FIFO_DEFINE(console_early_fifo, console_early_buffer, \
-> +                      CONSOLE_EARLY_BUFFER_SIZE, sizeof(char));
+> @@ -67,8 +66,15 @@ static struct aclint_mtimer_data mtimer = {
+>   */
+>  static int ariane_early_init(bool cold_boot)
+>  {
+> -       /* For now nothing to do. */
+> -       return 0;
+> +       if (!cold_boot)
+> +               return 0;
 > +
->  bool sbi_isprintable(char c)
->  {
->         if (((31 < c) && (c < 127)) || (c == '\f') || (c == '\r') ||
-> @@ -39,6 +49,7 @@ int sbi_getc(void)
+> +       return uart8250_init(ARIANE_UART_ADDR,
+> +                            ARIANE_UART_FREQ,
+> +                            ARIANE_UART_BAUDRATE,
+> +                            ARIANE_UART_REG_SHIFT,
+> +                            ARIANE_UART_REG_WIDTH,
+> +                            ARIANE_UART_REG_OFFSET);
+>  }
 >
->  static unsigned long nputs(const char *str, unsigned long len)
->  {
-> +       char ch;
->         unsigned long i;
+>  /*
+> @@ -87,19 +93,6 @@ static int ariane_final_init(bool cold_boot)
+>         return 0;
+>  }
 >
->         if (console_dev) {
-> @@ -51,6 +62,11 @@ static unsigned long nputs(const char *str, unsigned long len)
->                                 console_dev->console_putc(str[i]);
->                         }
->                 }
-> +       } else {
-> +               for (i = 0; i < len; i++) {
-> +                       ch = str[i];
-> +                       sbi_fifo_enqueue(&console_early_fifo, &ch, true);
-> +               }
+> -/*
+> - * Initialize the ariane console.
+> - */
+> -static int ariane_console_init(void)
+> -{
+> -       return uart8250_init(ARIANE_UART_ADDR,
+> -                            ARIANE_UART_FREQ,
+> -                            ARIANE_UART_BAUDRATE,
+> -                            ARIANE_UART_REG_SHIFT,
+> -                            ARIANE_UART_REG_WIDTH,
+> -                            ARIANE_UART_REG_OFFSET);
+> -}
+> -
+>  static int plic_ariane_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
+>  {
+>         int ret;
+> @@ -175,7 +168,6 @@ static int ariane_timer_init(bool cold_boot)
+>  const struct sbi_platform_operations platform_ops = {
+>         .early_init = ariane_early_init,
+>         .final_init = ariane_final_init,
+> -       .console_init = ariane_console_init,
+>         .irqchip_init = ariane_irqchip_init,
+>         .ipi_init = ariane_ipi_init,
+>         .timer_init = ariane_timer_init,
+> diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+> index 2317a89..dd74a0c 100644
+> --- a/platform/fpga/openpiton/platform.c
+> +++ b/platform/fpga/openpiton/platform.c
+> @@ -6,7 +6,6 @@
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_encoding.h>
+>  #include <sbi/riscv_io.h>
+> -#include <sbi/sbi_console.h>
+>  #include <sbi/sbi_const.h>
+>  #include <sbi/sbi_hart.h>
+>  #include <sbi/sbi_platform.h>
+> @@ -103,7 +102,10 @@ static int openpiton_early_init(bool cold_boot)
+>                                     ACLINT_DEFAULT_MTIMECMP_OFFSET;
 >         }
->         return len;
->  }
-> @@ -472,8 +488,19 @@ const struct sbi_console_device *sbi_console_get_device(void)
 >
->  void sbi_console_set_device(const struct sbi_console_device *dev)
+> -       return 0;
+> +       return uart8250_init(uart.addr, uart.freq, uart.baud,
+> +                            OPENPITON_DEFAULT_UART_REG_SHIFT,
+> +                            OPENPITON_DEFAULT_UART_REG_WIDTH,
+> +                            OPENPITON_DEFAULT_UART_REG_OFFSET);
+>  }
+>
+>  /*
+> @@ -122,19 +124,6 @@ static int openpiton_final_init(bool cold_boot)
+>         return 0;
+>  }
+>
+> -/*
+> - * Initialize the openpiton console.
+> - */
+> -static int openpiton_console_init(void)
+> -{
+> -       return uart8250_init(uart.addr,
+> -                            uart.freq,
+> -                            uart.baud,
+> -                            OPENPITON_DEFAULT_UART_REG_SHIFT,
+> -                            OPENPITON_DEFAULT_UART_REG_WIDTH,
+> -                            OPENPITON_DEFAULT_UART_REG_OFFSET);
+> -}
+> -
+>  static int plic_openpiton_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
 >  {
-> +       char ch;
-> +       bool flush_early_fifo = false;
-> +
->         if (!dev)
->                 return;
+>         int ret;
+> @@ -210,7 +199,6 @@ static int openpiton_timer_init(bool cold_boot)
+>  const struct sbi_platform_operations platform_ops = {
+>         .early_init = openpiton_early_init,
+>         .final_init = openpiton_final_init,
+> -       .console_init = openpiton_console_init,
+>         .irqchip_init = openpiton_irqchip_init,
+>         .ipi_init = openpiton_ipi_init,
+>         .timer_init = openpiton_timer_init,
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 1f46b76..3470474 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -221,9 +221,19 @@ static int generic_nascent_init(void)
 >
-> +       if (!console_dev)
-> +               flush_early_fifo = true;
+>  static int generic_early_init(bool cold_boot)
+>  {
+> -       if (cold_boot)
+> +       int rc;
 > +
->         console_dev = dev;
-> +
-> +       if (flush_early_fifo) {
-> +               while (!sbi_fifo_dequeue(&console_early_fifo, &ch))
-> +                       sbi_putc(ch);
+> +       if (cold_boot) {
+>                 fdt_reset_init();
+>
+> +               if (semihosting_enabled())
+> +                       rc = semihosting_init();
+> +               else
+> +                       rc = fdt_serial_init();
+> +               if (rc)
+> +                       return rc;
 > +       }
+> +
+>         if (!generic_plat || !generic_plat->early_init)
+>                 return 0;
+>
+> @@ -378,14 +388,6 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+>         return evt_val;
 >  }
+>
+> -static int generic_console_init(void)
+> -{
+> -       if (semihosting_enabled())
+> -               return semihosting_init();
+> -       else
+> -               return fdt_serial_init();
+> -}
+> -
+>  const struct sbi_platform_operations platform_ops = {
+>         .cold_boot_allowed      = generic_cold_boot_allowed,
+>         .nascent_init           = generic_nascent_init,
+> @@ -395,7 +397,6 @@ const struct sbi_platform_operations platform_ops = {
+>         .final_exit             = generic_final_exit,
+>         .extensions_init        = generic_extensions_init,
+>         .domains_init           = generic_domains_init,
+> -       .console_init           = generic_console_init,
+>         .irqchip_init           = fdt_irqchip_init,
+>         .irqchip_exit           = fdt_irqchip_exit,
+>         .ipi_init               = fdt_ipi_init,
+> diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
+> index 27b23f7..531adcd 100644
+> --- a/platform/kendryte/k210/platform.c
+> +++ b/platform/kendryte/k210/platform.c
+> @@ -9,7 +9,6 @@
+>
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_encoding.h>
+> -#include <sbi/sbi_console.h>
+>  #include <sbi/sbi_const.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_system.h>
+> @@ -109,10 +108,13 @@ static struct sbi_system_reset_device k210_reset = {
+>
+>  static int k210_early_init(bool cold_boot)
+>  {
+> -       if (cold_boot)
+> -               sbi_system_reset_add_device(&k210_reset);
+> +       if (!cold_boot)
+> +               return 0;
+>
+> -       return 0;
+> +       sbi_system_reset_add_device(&k210_reset);
+> +
+> +       return sifive_uart_init(K210_UART_BASE_ADDR, k210_get_clk_freq(),
+> +                               K210_UART_BAUDRATE);
+>  }
+>
+>  static int k210_final_init(bool cold_boot)
+> @@ -130,12 +132,6 @@ static int k210_final_init(bool cold_boot)
+>         return 0;
+>  }
+>
+> -static int k210_console_init(void)
+> -{
+> -       return sifive_uart_init(K210_UART_BASE_ADDR, k210_get_clk_freq(),
+> -                               K210_UART_BAUDRATE);
+> -}
+> -
+>  static int k210_irqchip_init(bool cold_boot)
+>  {
+>         int rc;
+> @@ -181,8 +177,6 @@ const struct sbi_platform_operations platform_ops = {
+>
+>         .final_init     = k210_final_init,
+>
+> -       .console_init   = k210_console_init,
+> -
+>         .irqchip_init = k210_irqchip_init,
+>
+>         .ipi_init  = k210_ipi_init,
+> diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
+> index f688b50..2289366 100644
+> --- a/platform/nuclei/ux600/platform.c
+> +++ b/platform/nuclei/ux600/platform.c
+> @@ -11,7 +11,6 @@
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/riscv_io.h>
+>  #include <sbi/riscv_encoding.h>
+> -#include <sbi/sbi_console.h>
+>  #include <sbi/sbi_const.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_system.h>
+> @@ -150,8 +149,10 @@ static int ux600_early_init(bool cold_boot)
+>  {
+>         u32 regval;
+>
+> -       if (cold_boot)
+> -               sbi_system_reset_add_device(&ux600_reset);
+> +       if (!cold_boot)
+> +               return 0;
+> +
+> +       sbi_system_reset_add_device(&ux600_reset);
+>
+>         /* Measure CPU Frequency using Timer */
+>         ux600_clk_freq = ux600_get_clk_freq();
+> @@ -163,7 +164,9 @@ static int ux600_early_init(bool cold_boot)
+>         regval = readl((void *)(UX600_GPIO_ADDR + UX600_GPIO_IOF_EN_OFS)) |
+>                 UX600_GPIO_IOF_UART0_MASK;
+>         writel(regval, (void *)(UX600_GPIO_ADDR + UX600_GPIO_IOF_EN_OFS));
+> -       return 0;
+> +
+> +       return sifive_uart_init(UX600_DEBUG_UART, ux600_clk_freq,
+> +                               UX600_UART_BAUDRATE);
+>  }
+>
+>  static void ux600_modify_dt(void *fdt)
+> @@ -184,12 +187,6 @@ static int ux600_final_init(bool cold_boot)
+>         return 0;
+>  }
+>
+> -static int ux600_console_init(void)
+> -{
+> -       return sifive_uart_init(UX600_DEBUG_UART, ux600_clk_freq,
+> -                               UX600_UART_BAUDRATE);
+> -}
+> -
+>  static int ux600_irqchip_init(bool cold_boot)
+>  {
+>         int rc;
+> @@ -234,7 +231,6 @@ static int ux600_timer_init(bool cold_boot)
+>  const struct sbi_platform_operations platform_ops = {
+>         .early_init             = ux600_early_init,
+>         .final_init             = ux600_final_init,
+> -       .console_init           = ux600_console_init,
+>         .irqchip_init           = ux600_irqchip_init,
+>         .ipi_init               = ux600_ipi_init,
+>         .timer_init             = ux600_timer_init,
+> diff --git a/platform/template/platform.c b/platform/template/platform.c
+> index 4b3f2ac..b4d30a5 100644
+> --- a/platform/template/platform.c
+> +++ b/platform/template/platform.c
+> @@ -64,7 +64,12 @@ static struct aclint_mtimer_data mtimer = {
+>   */
+>  static int platform_early_init(bool cold_boot)
+>  {
+> -       return 0;
+> +       if (!cold_boot)
+> +               return 0;
+> +
+> +       /* Example if the generic UART8250 driver is used */
+> +       return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
+> +                            PLATFORM_UART_BAUDRATE, 0, 1, 0);
+>  }
+>
+>  /*
+> @@ -75,16 +80,6 @@ static int platform_final_init(bool cold_boot)
+>         return 0;
+>  }
+>
+> -/*
+> - * Initialize the platform console.
+> - */
+> -static int platform_console_init(void)
+> -{
+> -       /* Example if the generic UART8250 driver is used */
+> -       return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
+> -                            PLATFORM_UART_BAUDRATE, 0, 1, 0);
+> -}
+> -
+>  /*
+>   * Initialize the platform interrupt controller for current HART.
+>   */
+> @@ -143,7 +138,6 @@ static int platform_timer_init(bool cold_boot)
+>  const struct sbi_platform_operations platform_ops = {
+>         .early_init             = platform_early_init,
+>         .final_init             = platform_final_init,
+> -       .console_init           = platform_console_init,
+>         .irqchip_init           = platform_irqchip_init,
+>         .ipi_init               = platform_ipi_init,
+>         .timer_init             = platform_timer_init
 > --
 > 2.34.1
->
 
 LGTM
 
 Reviewed-By: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
+>
 >
 > --
 > opensbi mailing list
