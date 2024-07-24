@@ -1,160 +1,79 @@
-From: Ben Zong-You Xie <ben717@andestech.com>
-Date: Tue, 23 Jul 2024 15:57:28 +0800
-Subject: [PATCH 4/4] platform: generic: andes: add a new Andes SBI call to free a PMA entry
-In-Reply-To: <20240723075728.587110-1-ben717@andestech.com>
-References: <20240723075728.587110-1-ben717@andestech.com>
-Message-ID: <20240723075728.587110-5-ben717@andestech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 24 Jul 2024 11:05:24 +0530
+Subject: [PATCH] lib: sbi_hsm: Save/restore menvcfg only when it exists
+In-Reply-To: <20240710142629.2327391-1-samuel.holland@sifive.com>
+References: <20240710142629.2327391-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy2pKdh8K4bnRxRogcHf=+FD0thU1PkZBHE++sP+Sm2RVg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a new Andes SBI call to free a PMA entry, and reset the memory
-attributes for the corresponding NAPOT region.
+On Wed, Jul 10, 2024 at 7:56?PM Samuel Holland
+<samuel.holland@sifive.com> wrote:
+>
+> Attempting to access the menvcfg CSR raises an illegal instruction
+> exception on hardware which implements Sm1p11 or older.
+>
+> Fixes: e9ee9678ba50 ("lib: sbi: fwft: add support for SBI_FWFT_PTE_AD_HW_UPDATING")
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
----
- platform/generic/andes/andes_pma.c         | 65 ++++++++++++++++------
- platform/generic/andes/andes_sbi.c         |  4 ++
- platform/generic/include/andes/andes_pma.h |  9 +++
- 3 files changed, 61 insertions(+), 17 deletions(-)
+This is a critical fix. I think we should have an incremental
+1.5.1 release with this fix.
 
-diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
-index 70039ca..be61005 100644
---- a/platform/generic/andes/andes_pma.c
-+++ b/platform/generic/andes/andes_pma.c
-@@ -120,6 +120,27 @@ static char get_pmaxcfg(int entry_id)
- 	return *pmaxcfg;
- }
- 
-+static void set_pmaxcfg(int entry_id, char flags)
-+{
-+	unsigned int pmacfg_addr;
-+	unsigned long pmacfg_val;
-+	char *pmaxcfg;
-+
-+#if __riscv_xlen == 64
-+	pmacfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
-+	pmacfg_val = andes_pma_read_num(pmacfg_addr);
-+	pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
-+#elif __riscv_xlen == 32
-+	pmacfg_addr = CSR_PMACFG0 + (entry_id / 4);
-+	pmacfg_val = andes_pma_read_num(pmacfg_addr);
-+	pmaxcfg = (char *)&pmacfg_val + (entry_id % 4);
-+#else
-+#error "Unexpected __riscv_xlen"
-+#endif
-+	*pmaxcfg = flags;
-+	andes_pma_write_num(pmacfg_addr, pmacfg_val);
-+}
-+
- static void decode_pmaaddrx(int entry_id, unsigned long *start,
- 			    unsigned long *size)
- {
-@@ -167,30 +188,14 @@ static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
- {
- 	unsigned long size = pma_region->size;
- 	unsigned long addr = pma_region->pa;
--	unsigned int pma_cfg_addr;
--	unsigned long pmacfg_val;
- 	unsigned long pmaaddr;
--	char *pmaxcfg;
- 
- 	/* Check for a 4KiB granularity NAPOT region*/
- 	if (size < ANDES_PMA_GRANULARITY || not_napot(addr, size) ||
- 	    !(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
- 		return SBI_EINVAL;
- 
--#if __riscv_xlen == 64
--	pma_cfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
--	pmacfg_val = andes_pma_read_num(pma_cfg_addr);
--	pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
--#elif __riscv_xlen == 32
--	pma_cfg_addr = CSR_PMACFG0 + (entry_id / 4);
--	pmacfg_val = andes_pma_read_num(pma_cfg_addr);
--	pmaxcfg = (char *)&pmacfg_val + (entry_id % 4);
--#else
--#error "Unexpected __riscv_xlen"
--#endif
--	*pmaxcfg = pma_region->flags;
--
--	andes_pma_write_num(pma_cfg_addr, pmacfg_val);
-+	set_pmaxcfg(entry_id, pma_region->flags);
- 
- 	pmaaddr = (addr >> 2) + (size >> 3) - 1;
- 
-@@ -404,3 +409,29 @@ int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags)
- 
- 	return SBI_SUCCESS;
- }
-+
-+int andes_sbi_free_pma(unsigned long pa)
-+{
-+	unsigned long start, size;
-+	char pmaxcfg;
-+
-+	for (int i = 0; i < ANDES_MAX_PMA_REGIONS; i++) {
-+		pmaxcfg = get_pmaxcfg(i);
-+		if (is_pma_entry_disable(pmaxcfg))
-+			continue;
-+
-+		decode_pmaaddrx(i, &start, &size);
-+		if (start != pa)
-+			continue;
-+
-+		set_pmaxcfg(i, ANDES_PMACFG_ETYP_OFF);
-+		andes_pma_write_num(CSR_PMAADDR0 + i, 0);
-+
-+		return SBI_SUCCESS;
-+	}
-+
-+	sbi_printf("ERROR %s(): Failed to find the entry with PA %#lx\n",
-+		   __func__, pa);
-+
-+	return SBI_ERR_FAILED;
-+}
-diff --git a/platform/generic/andes/andes_sbi.c b/platform/generic/andes/andes_sbi.c
-index 0e4a43d..0e1e59e 100644
---- a/platform/generic/andes/andes_sbi.c
-+++ b/platform/generic/andes/andes_sbi.c
-@@ -14,6 +14,7 @@ enum sbi_ext_andes_fid {
- 	SBI_EXT_ANDES_IOCP_SW_WORKAROUND,
- 	SBI_EXT_ANDES_PMA_PROBE,
- 	SBI_EXT_ANDES_PMA_SET,
-+	SBI_EXT_ANDES_PMA_FREE,
- };
- 
- static bool andes_cache_controllable(void)
-@@ -51,6 +52,9 @@ int andes_sbi_vendor_ext_provider(long funcid,
- 	case SBI_EXT_ANDES_PMA_SET:
- 		ret = andes_sbi_set_pma(regs->a0, regs->a1, regs->a2);
- 		break;
-+	case SBI_EXT_ANDES_PMA_FREE:
-+		ret = andes_sbi_free_pma(regs->a0);
-+		break;
- 
- 	default:
- 		ret = SBI_ENOTSUPP;
-diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
-index 487d9bf..e2d5279 100644
---- a/platform/generic/include/andes/andes_pma.h
-+++ b/platform/generic/include/andes/andes_pma.h
-@@ -77,4 +77,13 @@ bool andes_sbi_probe_pma(void);
-  */
- int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags);
- 
-+/**
-+ * Reset the memory attribute of a NAPOT region
-+ * @param pa Start address of the NAPOT region
-+ *
-+ * @return SBI_SUCCESS on success
-+ * @return SBI_ERR_FAILED if the given region is not set before
-+ */
-+int andes_sbi_free_pma(unsigned long pa);
-+
- #endif /* _ANDES_PMA_H_ */
--- 
-2.34.1
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>
+>  lib/sbi/sbi_hsm.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+>
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 7e32af37..3706acfb 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -423,10 +423,12 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+>         hdata->saved_mie = csr_read(CSR_MIE);
+>         hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
+>         hdata->saved_medeleg = csr_read(CSR_MEDELEG);
+> +       if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
+>  #if __riscv_xlen == 32
+> -       hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
+> +               hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
+>  #endif
+> -       hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
+> +               hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
+> +       }
+>  }
+>
+>  static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+> @@ -434,10 +436,12 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+>                                                             hart_data_offset);
+>
+> -       csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
+> +       if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
+> +               csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
+>  #if __riscv_xlen == 32
+> -       csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
+> +               csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
+>  #endif
+> +       }
+>         csr_write(CSR_MEDELEG, hdata->saved_medeleg);
+>         csr_write(CSR_MIE, hdata->saved_mie);
+>         csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
+> --
+> 2.45.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
