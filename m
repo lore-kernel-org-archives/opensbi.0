@@ -1,57 +1,101 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 24 Jul 2024 12:20:52 +0530
-Subject: [PATCH 0/6] Early console buffer for OpenSBI
-In-Reply-To: <20240705071504.50988-1-apatel@ventanamicro.com>
-References: <20240705071504.50988-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy0yTVw5MEQLiZ7gfWwP8ZL36BG6x2tSGqPYMqhqRSnWYA@mail.gmail.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 24 Jul 2024 23:00:54 +0800
+Subject: [PATCH v2] lib: utils: fdt_domain: Use consistent device-tree address when next-arg1 is missing
+Message-ID: <20240724150054.3052794-1-peterlin@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 5, 2024 at 12:45?PM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> This series tries to improve OpenSBI debugging by:
-> 1) Registering console device via platform early_init()
-> 2) Introducing early console buffer
->
-> These patches can also be found in the console_early_probe_v1
-> branch at: https://github.com/avpatel/opensbi.git
->
-> Anup Patel (6):
->   platform: Setup serial console device in early_init()
->   lib: sbi: Remove sbi_console_init() and console_init() platform
->     callback
->   lib: sbi: Optimize fifo enqueue/dequeue for basic data types
->   lib: sbi: Allow forceful queueing of data in sbi_fifo_enqueue()
->   include: sbi: Add macros to create FIFO as local or global variable
->   lib: sbi: Introduce an early console buffer for caching early prints
+The diagram shown below illustrates the boot-flow involving OP-TEE OS
+initialization.
 
-Applied this series to the riscv/opensbi repo.
+    (1)-----------+
+     | U-Boot SPL |
+     +------------+
+         |
+         v
+    (2)-------------------------------------------------------------+
+     | OpenSBI (fw_dynamic)                                         |
+     |                (4)------------------------+                  |
+     |                 | optee dispatcher driver |                  |
+     +-----------------+-------^---------|-------+------------------+
+M-mode   |                     |         |
+---------+--[trusted domain]---+----.----+--[untrusted domain]-------
+S-mode   |  (coldboot domain)  |    |    |
+         v                     |    |    v
+    (3)---------------------------+ |(5)----------------------------+
+     | OP-TEE OS                  | | | U-Boot                      |
+     +----------------------------+ | +-----------------------------+
+                                    |    |
+                                    |    v
+                                    |(6)----------------------------+
+                                    | | Linux                       |
+                                    | +-----------------------------+
 
-Regards,
-Anup
+As OP-TEE OS has device-tree node fixups that need to be passed
+through to the next boot stages, e.g. the reserved memory node:
 
->
->  include/sbi/sbi_console.h          |  2 -
->  include/sbi/sbi_fifo.h             | 14 +++++-
->  include/sbi/sbi_platform.h         | 17 -------
->  lib/sbi/Kconfig                    |  6 ++-
->  lib/sbi/sbi_console.c              | 36 ++++++++++-----
->  lib/sbi/sbi_fifo.c                 | 72 +++++++++++++++++++++++++-----
->  lib/sbi/sbi_init.c                 |  4 --
->  lib/sbi/sbi_sse.c                  |  2 +-
->  lib/sbi/sbi_tlb.c                  |  3 +-
->  platform/fpga/ariane/platform.c    | 26 ++++-------
->  platform/fpga/openpiton/platform.c | 20 ++-------
->  platform/generic/platform.c        | 21 ++++-----
->  platform/kendryte/k210/platform.c  | 18 +++-----
->  platform/nuclei/ux600/platform.c   | 18 +++-----
->  platform/template/platform.c       | 18 +++-----
->  15 files changed, 151 insertions(+), 126 deletions(-)
->
-> --
-> 2.34.1
->
+  reserved-memory {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    ranges;
+    optee_core at f1000000 {
+      no-map;
+      reg = <0x0 0xf1000000   // OP-TEE OS base address
+             0x0 0x01000000>;
+    };
+    <...>
+  };
+
+Instead of using 0x0 as the default value, allow identical next-arg1
+to be used by non-coldboot domain (i.e., untrusted domain) when the
+property is not provided.
+
+Also, update the description of next-arg1 property in the document.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Alvin Chang <alvinga@andestech.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+Changes v1 -> v2:
+- Improve commit message, no functional change
+---
+ docs/domain_support.md     | 4 +---
+ lib/utils/fdt/fdt_domain.c | 3 +--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index b34e43a..1a40068 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -180,9 +180,7 @@ The DT properties of a domain instance DT node are as follows:
+   boot HART of the domain instance.
+ * **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
+   domain instance. If this DT property is not available and coldboot HART
+-  is not assigned to the domain instance then **0x0** is used as default
+-  value. If this DT property is not available and coldboot HART is assigned
+-  to the domain instance then **next booting stage arg1 of coldboot HART**
++  is not assigned to the domain instance then **next booting stage arg1 of coldboot HART**
+   is used as default value.
+ * **next-addr** (Optional) - The 64 bit next booting stage address for the
+   domain instance. If this DT property is not available and coldboot HART
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index fa1c357..a13daa6 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -395,8 +395,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 		val64 = fdt32_to_cpu(val[0]);
+ 		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
+ 	} else {
+-		if (domain_offset == *cold_domain_offset)
+-			val64 = sbi_scratch_thishart_ptr()->next_arg1;
++		val64 = sbi_scratch_thishart_ptr()->next_arg1;
+ 	}
+ 	dom->next_arg1 = val64;
+ 
+-- 
+2.45.2
+
 
