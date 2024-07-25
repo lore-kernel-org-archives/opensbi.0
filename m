@@ -1,100 +1,47 @@
-From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 24 Jul 2024 23:00:54 +0800
-Subject: [PATCH v2] lib: utils: fdt_domain: Use consistent device-tree address when next-arg1 is missing
-Message-ID: <20240724150054.3052794-1-peterlin@andestech.com>
+From: Gregor Haas <gregorhaas1997@gmail.com>
+Date: Thu, 25 Jul 2024 15:51:52 -0700
+Subject: [PATCH] lib: utils: fdt_domain: Make opensbi-domain optional in CPU specification
+Message-ID: <20240725225152.1143010-1-gregorhaas1997@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The diagram shown below illustrates the boot-flow involving OP-TEE OS
-initialization.
-
-    (1)-----------+
-     | U-Boot SPL |
-     +------------+
-         |
-         v
-    (2)-------------------------------------------------------------+
-     | OpenSBI (fw_dynamic)                                         |
-     |                (4)------------------------+                  |
-     |                 | optee dispatcher driver |                  |
-     +-----------------+-------^---------|-------+------------------+
-M-mode   |                     |         |
----------+--[trusted domain]---+----.----+--[untrusted domain]-------
-S-mode   |  (coldboot domain)  |    |    |
-         v                     |    |    v
-    (3)---------------------------+ |(5)----------------------------+
-     | OP-TEE OS                  | | | U-Boot                      |
-     +----------------------------+ | +-----------------------------+
-                                    |    |
-                                    |    v
-                                    |(6)----------------------------+
-                                    | | Linux                       |
-                                    | +-----------------------------+
-
-As OP-TEE OS has device-tree node fixups that need to be passed
-through to the next boot stages, e.g. the reserved memory node:
-
-  reserved-memory {
-    #address-cells = <2>;
-    #size-cells = <2>;
-    ranges;
-    optee_core at f1000000 {
-      no-map;
-      reg = <0x0 0xf1000000   // OP-TEE OS base address
-             0x0 0x01000000>;
-    };
-    <...>
-  };
-
-Instead of using 0x0 as the default value, allow identical next-arg1
-to be used by non-coldboot domain (i.e., untrusted domain) when the
-property is not provided.
-
-Also, update the description of next-arg1 property in the document.
-
-Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-Reviewed-by: Alvin Chang <alvinga@andestech.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
+The domain_support.md documentation states that "the HART to domain instance
+assignment can be parsed from the device tree using *optional* DT property
+opensbi-domain in each CPU DT node". However, the current implementation does
+not treat this parameter as optional when determining which HARTs to assign to
+a freshly discovered domain from the device tree, causing an effect where every
+HART in the system must be explicitly assigned to a domain only if a domain is
+specified in the device tree. Instead, this patch simply ignores CPUs that do
+not specify a domain, and does not attempt to assign them into the recently
+discovered domain.
 ---
-Changes v1 -> v2:
-- Improve commit message, no functional change
----
- docs/domain_support.md     | 4 +---
- lib/utils/fdt/fdt_domain.c | 3 +--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ lib/utils/fdt/fdt_domain.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index b34e43a..1a40068 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -180,9 +180,7 @@ The DT properties of a domain instance DT node are as follows:
-   boot HART of the domain instance.
- * **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
-   domain instance. If this DT property is not available and coldboot HART
--  is not assigned to the domain instance then **0x0** is used as default
--  value. If this DT property is not available and coldboot HART is assigned
--  to the domain instance then **next booting stage arg1 of coldboot HART**
-+  is not assigned to the domain instance then **next booting stage arg1 of coldboot HART**
-   is used as default value.
- * **next-addr** (Optional) - The 64 bit next booting stage address for the
-   domain instance. If this DT property is not available and coldboot HART
 diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index fa1c357..a13daa6 100644
+index fa1c357..3623c6b 100644
 --- a/lib/utils/fdt/fdt_domain.c
 +++ b/lib/utils/fdt/fdt_domain.c
-@@ -395,8 +395,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 		val64 = fdt32_to_cpu(val[0]);
- 		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
- 	} else {
--		if (domain_offset == *cold_domain_offset)
--			val64 = sbi_scratch_thishart_ptr()->next_arg1;
-+		val64 = sbi_scratch_thishart_ptr()->next_arg1;
- 	}
- 	dom->next_arg1 = val64;
+@@ -459,12 +459,12 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
+ 			continue;
  
++		// This is an optional property for CPUs, so just continue if not present
+ 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
+-		if (!val || len < 4) {
+-			err = SBI_EINVAL;
+-			goto fail_free_all;
+-		}
++		if (!val || len < 4)
++			continue;
+ 
++		// However, if the tag exists, it should point to a valid domain instance
+ 		doffset = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
+ 		if (doffset < 0) {
+ 			err = doffset;
 -- 
 2.45.2
 
