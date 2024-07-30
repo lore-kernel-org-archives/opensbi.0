@@ -1,7 +1,7 @@
 From: Eric Lin <eric.lin@sifive.com>
-Date: Tue, 30 Jul 2024 17:24:01 +0800
-Subject: [PATCH] include: Adjust Sscofpmf mhpmevent mask for upper 8 bits
-Message-ID: <20240730092401.8182-1-eric.lin@sifive.com>
+Date: Tue, 30 Jul 2024 17:30:22 +0800
+Subject: [RFC PATCH] include: Adjust Sscofpmf mhpmevent mask for upper 8 bits
+Message-ID: <20240730093022.11665-1-eric.lin@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
