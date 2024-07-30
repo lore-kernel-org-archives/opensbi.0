@@ -1,48 +1,44 @@
-From: Gregor Haas <gregorhaas1997@gmail.com>
-Date: Thu, 25 Jul 2024 15:51:52 -0700
-Subject: [PATCH] lib: utils: fdt_domain: Make opensbi-domain optional in CPU specification
-Message-ID: <20240725225152.1143010-1-gregorhaas1997@gmail.com>
+From: Eric Lin <eric.lin@sifive.com>
+Date: Tue, 30 Jul 2024 17:24:01 +0800
+Subject: [PATCH] include: Adjust Sscofpmf mhpmevent mask for upper 8 bits
+Message-ID: <20240730092401.8182-1-eric.lin@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The domain_support.md documentation states that "the HART to domain instance
-assignment can be parsed from the device tree using *optional* DT property
-opensbi-domain in each CPU DT node". However, the current implementation does
-not treat this parameter as optional when determining which HARTs to assign to
-a freshly discovered domain from the device tree, causing an effect where every
-HART in the system must be explicitly assigned to a domain only if a domain is
-specified in the device tree. Instead, this patch simply ignores CPUs that do
-not specify a domain, and does not attempt to assign them into the recently
-discovered domain.
----
- lib/utils/fdt/fdt_domain.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Currently, OpenSBI reserves the upper 16 bits in mhpmevent for
+the Sscofpmf extension.
 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index fa1c357..3623c6b 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -459,12 +459,12 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 		if (!fdt_node_is_enabled(fdt, cpu_offset))
- 			continue;
+However, according to the Sscofpmf extension specification[1],
+it only defines the upper 8 bits in mhpmevent for privilege mode
+inhibit and counter overflow disable. Other bits are defined by
+the platform for event selection.
+
+Since vendors might define raw event encoding exceeding 48 bits in
+mhpmevent, we should adjust the MHPMEVENT_SSCOF_MASK to support it.
+
+Link: https://github.com/riscvarchive/riscv-count-overflow [1]
+Signed-off-by: Eric Lin <eric.lin@sifive.com>
+---
+ include/sbi/riscv_encoding.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 477fa3a1..2ed05f24 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -207,7 +207,7 @@
  
-+		// This is an optional property for CPUs, so just continue if not present
- 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
--		if (!val || len < 4) {
--			err = SBI_EINVAL;
--			goto fail_free_all;
--		}
-+		if (!val || len < 4)
-+			continue;
+ #endif
  
-+		// However, if the tag exists, it should point to a valid domain instance
- 		doffset = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
- 		if (doffset < 0) {
- 			err = doffset;
+-#define MHPMEVENT_SSCOF_MASK		_ULL(0xFFFF000000000000)
++#define MHPMEVENT_SSCOF_MASK		_ULL(0xFF00000000000000)
+ 
+ #define ENVCFG_STCE			(_ULL(1) << 63)
+ #define ENVCFG_PBMTE			(_ULL(1) << 62)
 -- 
-2.45.2
+2.43.2
 
 
