@@ -1,9 +1,9 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue, 30 Jul 2024 21:58:48 -0700
-Subject: [PATCH 07/16] lib: utils/irqchip: Constify FDT pointers in parsing functions
+Date: Tue, 30 Jul 2024 21:58:49 -0700
+Subject: [PATCH 08/16] lib: utils/regmap: Constify FDT pointers in parsing functions
 In-Reply-To: <20240731045931.2446799-1-samuel.holland@sifive.com>
 References: <20240731045931.2446799-1-samuel.holland@sifive.com>
-Message-ID: <20240731045931.2446799-8-samuel.holland@sifive.com>
+Message-ID: <20240731045931.2446799-9-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,100 +16,87 @@ constifying the parameter type.
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- include/sbi_utils/irqchip/fdt_irqchip.h | 2 +-
- lib/utils/irqchip/fdt_irqchip.c         | 2 +-
- lib/utils/irqchip/fdt_irqchip_aplic.c   | 4 ++--
- lib/utils/irqchip/fdt_irqchip_imsic.c   | 6 +++---
- lib/utils/irqchip/fdt_irqchip_plic.c    | 4 ++--
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ include/sbi_utils/regmap/fdt_regmap.h | 6 +++---
+ lib/utils/regmap/fdt_regmap.c         | 8 ++++----
+ lib/utils/regmap/fdt_regmap_syscon.c  | 2 +-
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/include/sbi_utils/irqchip/fdt_irqchip.h b/include/sbi_utils/irqchip/fdt_irqchip.h
-index 63e9fd9e..bc02c0c8 100644
---- a/include/sbi_utils/irqchip/fdt_irqchip.h
-+++ b/include/sbi_utils/irqchip/fdt_irqchip.h
-@@ -16,7 +16,7 @@
- 
- struct fdt_irqchip {
+diff --git a/include/sbi_utils/regmap/fdt_regmap.h b/include/sbi_utils/regmap/fdt_regmap.h
+index 403dd7d4..86e72442 100644
+--- a/include/sbi_utils/regmap/fdt_regmap.h
++++ b/include/sbi_utils/regmap/fdt_regmap.h
+@@ -17,15 +17,15 @@ struct fdt_phandle_args;
+ /** FDT based regmap driver */
+ struct fdt_regmap {
  	const struct fdt_match *match_table;
--	int (*cold_init)(void *fdt, int nodeoff, const struct fdt_match *match);
-+	int (*cold_init)(const void *fdt, int nodeoff, const struct fdt_match *match);
- 	int (*warm_init)(void);
- 	void (*exit)(void);
+-	int (*init)(void *fdt, int nodeoff, u32 phandle,
++	int (*init)(const void *fdt, int nodeoff, u32 phandle,
+ 		    const struct fdt_match *match);
  };
-diff --git a/lib/utils/irqchip/fdt_irqchip.c b/lib/utils/irqchip/fdt_irqchip.c
-index c38b1d85..b4f054ae 100644
---- a/lib/utils/irqchip/fdt_irqchip.c
-+++ b/lib/utils/irqchip/fdt_irqchip.c
-@@ -53,7 +53,7 @@ static int fdt_irqchip_cold_init(void)
- 	int pos, noff, rc;
- 	struct fdt_irqchip *drv;
- 	const struct fdt_match *match;
--	void *fdt = fdt_get_address();
-+	const void *fdt = fdt_get_address();
  
- 	for (pos = 0; pos < fdt_irqchip_drivers_size; pos++) {
- 		drv = fdt_irqchip_drivers[pos];
-diff --git a/lib/utils/irqchip/fdt_irqchip_aplic.c b/lib/utils/irqchip/fdt_irqchip_aplic.c
-index 583a3e30..6eb6e085 100644
---- a/lib/utils/irqchip/fdt_irqchip_aplic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_aplic.c
-@@ -22,8 +22,8 @@ static int irqchip_aplic_warm_init(void)
- 	return 0;
- }
+ /** Get regmap instance based on phandle */
+-int fdt_regmap_get_by_phandle(void *fdt, u32 phandle,
++int fdt_regmap_get_by_phandle(const void *fdt, u32 phandle,
+ 			      struct regmap **out_rmap);
  
--static int irqchip_aplic_cold_init(void *fdt, int nodeoff,
--				  const struct fdt_match *match)
-+static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
-+				   const struct fdt_match *match)
- {
- 	int rc;
- 	struct aplic_data *pd;
-diff --git a/lib/utils/irqchip/fdt_irqchip_imsic.c b/lib/utils/irqchip/fdt_irqchip_imsic.c
-index 4eb18545..ca62b427 100644
---- a/lib/utils/irqchip/fdt_irqchip_imsic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_imsic.c
+ /** Get regmap instance based on "regmap" property of the specified DT node */
+-int fdt_regmap_get(void *fdt, int nodeoff, struct regmap **out_rmap);
++int fdt_regmap_get(const void *fdt, int nodeoff, struct regmap **out_rmap);
+ 
+ #endif
+diff --git a/lib/utils/regmap/fdt_regmap.c b/lib/utils/regmap/fdt_regmap.c
+index fffac1de..f02d2f07 100644
+--- a/lib/utils/regmap/fdt_regmap.c
++++ b/lib/utils/regmap/fdt_regmap.c
 @@ -16,7 +16,7 @@
- #include <sbi_utils/irqchip/fdt_irqchip.h>
- #include <sbi_utils/irqchip/imsic.h>
+ extern struct fdt_regmap *fdt_regmap_drivers[];
+ extern unsigned long fdt_regmap_drivers_size;
  
--static int irqchip_imsic_update_hartid_table(void *fdt, int nodeoff,
-+static int irqchip_imsic_update_hartid_table(const void *fdt, int nodeoff,
- 					     struct imsic_data *id)
+-static int fdt_regmap_init(void *fdt, int nodeoff, u32 phandle)
++static int fdt_regmap_init(const void *fdt, int nodeoff, u32 phandle)
  {
- 	const fdt32_t *val;
-@@ -58,8 +58,8 @@ static int irqchip_imsic_update_hartid_table(void *fdt, int nodeoff,
+ 	int pos, rc;
+ 	struct fdt_regmap *drv;
+@@ -39,7 +39,7 @@ static int fdt_regmap_init(void *fdt, int nodeoff, u32 phandle)
+ 	return SBI_ENOSYS;
+ }
+ 
+-static int fdt_regmap_find(void *fdt, int nodeoff, u32 phandle,
++static int fdt_regmap_find(const void *fdt, int nodeoff, u32 phandle,
+ 			   struct regmap **out_rmap)
+ {
+ 	int rc;
+@@ -63,7 +63,7 @@ static int fdt_regmap_find(void *fdt, int nodeoff, u32 phandle,
  	return 0;
  }
  
--static int irqchip_imsic_cold_init(void *fdt, int nodeoff,
--				    const struct fdt_match *match)
-+static int irqchip_imsic_cold_init(const void *fdt, int nodeoff,
-+				   const struct fdt_match *match)
+-int fdt_regmap_get_by_phandle(void *fdt, u32 phandle,
++int fdt_regmap_get_by_phandle(const void *fdt, u32 phandle,
+ 			      struct regmap **out_rmap)
  {
- 	int rc;
- 	struct imsic_data *id;
-diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-index 829c5ee2..a8aa4fcd 100644
---- a/lib/utils/irqchip/fdt_irqchip_plic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-@@ -85,7 +85,7 @@ static int irqchip_plic_warm_init(void)
- 				      plic_get_hart_scontext(scratch));
+ 	int pnodeoff;
+@@ -78,7 +78,7 @@ int fdt_regmap_get_by_phandle(void *fdt, u32 phandle,
+ 	return fdt_regmap_find(fdt, pnodeoff, phandle, out_rmap);
  }
  
--static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
-+static int irqchip_plic_update_hartid_table(const void *fdt, int nodeoff,
- 					    struct plic_data *pd)
+-int fdt_regmap_get(void *fdt, int nodeoff, struct regmap **out_rmap)
++int fdt_regmap_get(const void *fdt, int nodeoff, struct regmap **out_rmap)
  {
+ 	int len;
  	const fdt32_t *val;
-@@ -132,7 +132,7 @@ static int irqchip_plic_update_hartid_table(void *fdt, int nodeoff,
+diff --git a/lib/utils/regmap/fdt_regmap_syscon.c b/lib/utils/regmap/fdt_regmap_syscon.c
+index d87b6e09..a95f2515 100644
+--- a/lib/utils/regmap/fdt_regmap_syscon.c
++++ b/lib/utils/regmap/fdt_regmap_syscon.c
+@@ -159,7 +159,7 @@ static int regmap_syscon_write_be32(struct regmap *rmap, unsigned int reg,
  	return 0;
  }
  
--static int irqchip_plic_cold_init(void *fdt, int nodeoff,
-+static int irqchip_plic_cold_init(const void *fdt, int nodeoff,
- 				  const struct fdt_match *match)
+-static int regmap_syscon_init(void *fdt, int nodeoff, u32 phandle,
++static int regmap_syscon_init(const void *fdt, int nodeoff, u32 phandle,
+ 			      const struct fdt_match *match)
  {
- 	int rc;
+ 	struct syscon_regmap *srm;
 -- 
 2.45.1
 
