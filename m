@@ -1,9 +1,9 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue, 30 Jul 2024 21:58:46 -0700
-Subject: [PATCH 05/16] lib: utils/i2c: Constify FDT pointers in parsing functions
+Date: Tue, 30 Jul 2024 21:58:47 -0700
+Subject: [PATCH 06/16] lib: utils/ipi: Constify FDT pointers in parsing functions
 In-Reply-To: <20240731045931.2446799-1-samuel.holland@sifive.com>
 References: <20240731045931.2446799-1-samuel.holland@sifive.com>
-Message-ID: <20240731045931.2446799-6-samuel.holland@sifive.com>
+Message-ID: <20240731045931.2446799-7-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -16,92 +16,66 @@ constifying the parameter type.
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- include/sbi_utils/i2c/fdt_i2c.h | 4 ++--
- lib/utils/i2c/fdt_i2c.c         | 6 +++---
- lib/utils/i2c/fdt_i2c_dw.c      | 4 ++--
- lib/utils/i2c/fdt_i2c_sifive.c  | 4 ++--
- 4 files changed, 9 insertions(+), 9 deletions(-)
+ include/sbi_utils/ipi/fdt_ipi.h | 2 +-
+ lib/utils/ipi/fdt_ipi.c         | 2 +-
+ lib/utils/ipi/fdt_ipi_mswi.c    | 2 +-
+ lib/utils/ipi/fdt_ipi_plicsw.c  | 4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/sbi_utils/i2c/fdt_i2c.h b/include/sbi_utils/i2c/fdt_i2c.h
-index c6e33399..65758ec2 100644
---- a/include/sbi_utils/i2c/fdt_i2c.h
-+++ b/include/sbi_utils/i2c/fdt_i2c.h
-@@ -15,12 +15,12 @@
- /** FDT based I2C adapter driver */
- struct fdt_i2c_adapter {
+diff --git a/include/sbi_utils/ipi/fdt_ipi.h b/include/sbi_utils/ipi/fdt_ipi.h
+index 1dd9062d..c6245201 100644
+--- a/include/sbi_utils/ipi/fdt_ipi.h
++++ b/include/sbi_utils/ipi/fdt_ipi.h
+@@ -16,7 +16,7 @@
+ 
+ struct fdt_ipi {
  	const struct fdt_match *match_table;
--	int (*init)(void *fdt, int nodeoff,
-+	int (*init)(const void *fdt, int nodeoff,
- 		    const struct fdt_match *match);
+-	int (*cold_init)(void *fdt, int nodeoff, const struct fdt_match *match);
++	int (*cold_init)(const void *fdt, int nodeoff, const struct fdt_match *match);
+ 	int (*warm_init)(void);
+ 	void (*exit)(void);
  };
+diff --git a/lib/utils/ipi/fdt_ipi.c b/lib/utils/ipi/fdt_ipi.c
+index 0b75093e..959cf57d 100644
+--- a/lib/utils/ipi/fdt_ipi.c
++++ b/lib/utils/ipi/fdt_ipi.c
+@@ -36,7 +36,7 @@ static int fdt_ipi_cold_init(void)
+ 	int pos, noff, rc;
+ 	struct fdt_ipi *drv;
+ 	const struct fdt_match *match;
+-	void *fdt = fdt_get_address();
++	const void *fdt = fdt_get_address();
  
- /** Get I2C adapter identified by nodeoff */
--int fdt_i2c_adapter_get(void *fdt, int nodeoff,
-+int fdt_i2c_adapter_get(const void *fdt, int nodeoff,
- 			struct i2c_adapter **out_adapter);
+ 	for (pos = 0; pos < fdt_ipi_drivers_size; pos++) {
+ 		drv = fdt_ipi_drivers[pos];
+diff --git a/lib/utils/ipi/fdt_ipi_mswi.c b/lib/utils/ipi/fdt_ipi_mswi.c
+index a709abe1..c78dead1 100644
+--- a/lib/utils/ipi/fdt_ipi_mswi.c
++++ b/lib/utils/ipi/fdt_ipi_mswi.c
+@@ -13,7 +13,7 @@
+ #include <sbi_utils/ipi/fdt_ipi.h>
+ #include <sbi_utils/ipi/aclint_mswi.h>
  
- #endif
-diff --git a/lib/utils/i2c/fdt_i2c.c b/lib/utils/i2c/fdt_i2c.c
-index 6fd35dd0..d23b40db 100644
---- a/lib/utils/i2c/fdt_i2c.c
-+++ b/lib/utils/i2c/fdt_i2c.c
-@@ -20,7 +20,7 @@
- extern struct fdt_i2c_adapter *fdt_i2c_adapter_drivers[];
- extern unsigned long fdt_i2c_adapter_drivers_size;
- 
--static int fdt_i2c_adapter_init(void *fdt, int nodeoff)
-+static int fdt_i2c_adapter_init(const void *fdt, int nodeoff)
- {
- 	int pos, rc;
- 	struct fdt_i2c_adapter *drv;
-@@ -43,7 +43,7 @@ static int fdt_i2c_adapter_init(void *fdt, int nodeoff)
- 	return SBI_ENOSYS;
- }
- 
--static int fdt_i2c_adapter_find(void *fdt, int nodeoff,
-+static int fdt_i2c_adapter_find(const void *fdt, int nodeoff,
- 				struct i2c_adapter **out_adapter)
+-static int ipi_mswi_cold_init(void *fdt, int nodeoff,
++static int ipi_mswi_cold_init(const void *fdt, int nodeoff,
+ 			      const struct fdt_match *match)
  {
  	int rc;
-@@ -67,7 +67,7 @@ static int fdt_i2c_adapter_find(void *fdt, int nodeoff,
- 	return 0;
- }
+diff --git a/lib/utils/ipi/fdt_ipi_plicsw.c b/lib/utils/ipi/fdt_ipi_plicsw.c
+index bf29bfc1..32885745 100644
+--- a/lib/utils/ipi/fdt_ipi_plicsw.c
++++ b/lib/utils/ipi/fdt_ipi_plicsw.c
+@@ -17,8 +17,8 @@
  
--int fdt_i2c_adapter_get(void *fdt, int nodeoff,
-+int fdt_i2c_adapter_get(const void *fdt, int nodeoff,
- 			struct i2c_adapter **out_adapter)
+ extern struct plicsw_data plicsw;
+ 
+-int fdt_plicsw_cold_ipi_init(void *fdt, int nodeoff,
+-				const struct fdt_match *match)
++int fdt_plicsw_cold_ipi_init(const void *fdt, int nodeoff,
++			     const struct fdt_match *match)
  {
  	int rc;
-diff --git a/lib/utils/i2c/fdt_i2c_dw.c b/lib/utils/i2c/fdt_i2c_dw.c
-index 358ad3c7..7d14ea0d 100644
---- a/lib/utils/i2c/fdt_i2c_dw.c
-+++ b/lib/utils/i2c/fdt_i2c_dw.c
-@@ -15,8 +15,8 @@
- #include <sbi_utils/i2c/dw_i2c.h>
- #include <sbi_utils/i2c/fdt_i2c.h>
  
--static int fdt_dw_i2c_init(void *fdt, int nodeoff,
--			     const struct fdt_match *match)
-+static int fdt_dw_i2c_init(const void *fdt, int nodeoff,
-+			   const struct fdt_match *match)
- {
- 	int rc;
- 	struct dw_i2c_adapter *adapter;
-diff --git a/lib/utils/i2c/fdt_i2c_sifive.c b/lib/utils/i2c/fdt_i2c_sifive.c
-index 11740624..b420a7da 100644
---- a/lib/utils/i2c/fdt_i2c_sifive.c
-+++ b/lib/utils/i2c/fdt_i2c_sifive.c
-@@ -230,8 +230,8 @@ static int sifive_i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr,
- 	return 0;
- }
- 
--static int sifive_i2c_init(void *fdt, int nodeoff,
--			    const struct fdt_match *match)
-+static int sifive_i2c_init(const void *fdt, int nodeoff,
-+			   const struct fdt_match *match)
- {
- 	int rc;
- 	struct sifive_i2c_adapter *adapter;
 -- 
 2.45.1
 
