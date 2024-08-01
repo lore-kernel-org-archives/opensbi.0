@@ -1,24 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 1 Aug 2024 20:15:41 +0530
-Subject: [PATCH] lib: sbi: fwft: fix incorrect size passed to sbi_zalloc()
-In-Reply-To: <20240801124811.5249-1-carlos.lopezr4096@gmail.com>
-References: <20240801124811.5249-1-carlos.lopezr4096@gmail.com>
-Message-ID: <CAAhSdy0Viir2L66_LAVgjPkwQ+U_CweWdY1Ephqom6ecZ2FJvQ@mail.gmail.com>
+Date: Thu, 1 Aug 2024 20:16:04 +0530
+Subject: [PATCH] lib: sbi: check result of pmp_get() in is_pmp_entry_mapped()
+In-Reply-To: <20240801125852.5361-1-carlos.lopezr4096@gmail.com>
+References: <20240801125852.5361-1-carlos.lopezr4096@gmail.com>
+Message-ID: <CAAhSdy1hAXW-pAZ4DzmV=4USGp3T=07D9SGjCf6uJRo05WDCHw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 1, 2024 at 6:20?PM Carlos L?pez <carlos.lopezr4096@gmail.com> wrote:
+On Thu, Aug 1, 2024 at 6:36?PM Carlos L?pez <carlos.lopezr4096@gmail.com> wrote:
 >
-> The fwt_hart_state struct inciludes a flexible array member, so its
-> allocation size will be that of the struct itself, plus that of each
-> of the members in the array. When calculating this size, instead of
-> taking the size of the struct, the size of a pointer to it was taken,
-> which is incorrect. Luckily, this happenned to not produce memory
-> corruption because the size of the non-flexible members of the struct
-> is the same as the size of a pointer.
+> pmp_get() may return an error if the given entry, given by the caller
+> of is_pmp_entry_mapped(), is invalid. This results in the output
+> parameters for pmp_get() being uninitialized. To avoid using garbage
+> values, check the result and return early if necessary.
+>
+> This issue is not being hit because at the moment
+> is_pmp_entry_mapped() is only being called from a single site with a
+> valid hardcoded value.
 >
 > Signed-off-by: Carlos L?pez <carlos.lopezr4096@gmail.com>
 
@@ -30,22 +31,23 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_fwft.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  lib/sbi/riscv_asm.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-> index f1ae915..ef881ef 100644
-> --- a/lib/sbi/sbi_fwft.c
-> +++ b/lib/sbi/sbi_fwft.c
-> @@ -251,7 +251,7 @@ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
+> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+> index 05b8c7c..c7d75ac 100644
+> --- a/lib/sbi/riscv_asm.c
+> +++ b/lib/sbi/riscv_asm.c
+> @@ -291,7 +291,8 @@ int is_pmp_entry_mapped(unsigned long entry)
+>         unsigned long addr;
+>         unsigned long log2len;
 >
->         fhs = fwft_get_hart_state_ptr(scratch);
->         if (!fhs) {
-> -               fhs = sbi_zalloc(sizeof(fhs) + array_size(features) * sizeof(struct fwft_config));
-> +               fhs = sbi_zalloc(sizeof(*fhs) + array_size(features) * sizeof(struct fwft_config));
->                 if (!fhs)
->                         return SBI_ENOMEM;
+> -       pmp_get(entry, &prot, &addr, &log2len);
+> +       if (pmp_get(entry, &prot, &addr, &log2len) != 0)
+> +               return false;
 >
+>         /* If address matching bits are non-zero, the entry is enable */
+>         if (prot & PMP_A)
 > --
 > 2.39.2
 >
