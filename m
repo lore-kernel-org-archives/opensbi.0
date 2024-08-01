@@ -1,42 +1,61 @@
-From: Carlos López <carlos.lopezr4096@gmail.com>
-Date: Thu,  1 Aug 2024 14:58:52 +0200
-Subject: [PATCH] lib: sbi: check result of pmp_get() in is_pmp_entry_mapped()
-Message-ID: <20240801125852.5361-1-carlos.lopezr4096@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 1 Aug 2024 20:04:29 +0530
+Subject: [RFC PATCH] include: Adjust Sscofpmf mhpmevent mask for upper 8 bits
+In-Reply-To: <20240730093022.11665-1-eric.lin@sifive.com>
+References: <20240730093022.11665-1-eric.lin@sifive.com>
+Message-ID: <CAAhSdy23qdUQOETAUSjGLUJoHBroacLbbup3xJecnkhyPt_dSg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-pmp_get() may return an error if the given entry, given by the caller
-of is_pmp_entry_mapped(), is invalid. This results in the output
-parameters for pmp_get() being uninitialized. To avoid using garbage
-values, check the result and return early if necessary.
+On Tue, Jul 30, 2024 at 3:00?PM Eric Lin <eric.lin@sifive.com> wrote:
+>
+> Currently, OpenSBI reserves the upper 16 bits in mhpmevent for
+> the Sscofpmf extension.
+>
+> However, according to the Sscofpmf extension specification[1],
+> it only defines the upper 8 bits in mhpmevent for privilege mode
+> inhibit and counter overflow disable. Other bits are defined by
+> the platform for event selection.
+>
+> Since vendors might define raw event encoding exceeding 48 bits in
+> mhpmevent, we should adjust the MHPMEVENT_SSCOF_MASK to support it.
+>
+> Link: https://github.com/riscvarchive/riscv-count-overflow [1]
+> Signed-off-by: Eric Lin <eric.lin@sifive.com>
 
-This issue is not being hit because at the moment
-is_pmp_entry_mapped() is only being called from a single site with a
-valid hardcoded value.
+Actually, only the upper 6 bits of mhpmevent CSR are defined as-per
+Sscofpmf in the integrated Priv spec.
 
-Signed-off-by: Carlos L?pez <carlos.lopezr4096@gmail.com>
----
- lib/sbi/riscv_asm.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I have updated this patch accordingly at the time of merging this patch.
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 05b8c7c..c7d75ac 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -291,7 +291,8 @@ int is_pmp_entry_mapped(unsigned long entry)
- 	unsigned long addr;
- 	unsigned long log2len;
- 
--	pmp_get(entry, &prot, &addr, &log2len);
-+	if (pmp_get(entry, &prot, &addr, &log2len) != 0)
-+		return false;
- 
- 	/* If address matching bits are non-zero, the entry is enable */
- 	if (prot & PMP_A)
--- 
-2.39.2
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+
+> ---
+>  include/sbi/riscv_encoding.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 477fa3a1..2ed05f24 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -207,7 +207,7 @@
+>
+>  #endif
+>
+> -#define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
+> +#define MHPMEVENT_SSCOF_MASK           _ULL(0xFF00000000000000)
+>
+>  #define ENVCFG_STCE                    (_ULL(1) << 63)
+>  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
+> --
+> 2.43.2
+>
 
