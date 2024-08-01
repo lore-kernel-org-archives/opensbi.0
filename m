@@ -1,64 +1,56 @@
-From: Leo Yu-Chi Liang <ycliang@andestech.com>
-Date: Thu, 1 Aug 2024 15:26:32 +0800
-Subject: [PATCH v3 2/2] util: atcsmu.c: modify sbi_printf() formatting
-In-Reply-To: <20240801072632.2402741-1-ycliang@andestech.com>
-References: <20240801072632.2402741-1-ycliang@andestech.com>
-Message-ID: <20240801072632.2402741-2-ycliang@andestech.com>
+From: Carlos López <carlos.lopezr4096@gmail.com>
+Date: Thu,  1 Aug 2024 14:27:42 +0200
+Subject: [PATCH] lib: sbi: dbtr: fix potential NULL pointer dereferences
+Message-ID: <20240801122742.5001-1-carlos.lopezr4096@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Yu Chien Peter Lin <peterlin@andestech.com>
+In several dbtr functions, we first check that the dbtr trigger is not
+NULL and that its state is what we expect. However, it only makes
+sense to perform the second check if the dbtr trigger is not NULL.
+Othwerwise we will dereference a NULL pointer. Thus, change the
+condition so that it shortcuts to the first check if necessary.
 
-Beautify multi-line printing.
-
-Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
-Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Signed-off-by: Carlos L?pez <carlos.lopezr4096@gmail.com>
 ---
- lib/utils/sys/atcsmu.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ lib/sbi/sbi_dbtr.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/lib/utils/sys/atcsmu.c b/lib/utils/sys/atcsmu.c
-index 676c91f4..2cba0eb7 100644
---- a/lib/utils/sys/atcsmu.c
-+++ b/lib/utils/sys/atcsmu.c
-@@ -37,17 +37,15 @@ inline bool smu_support_sleep_mode(struct smu_data *smu, u32 sleep_mode,
- 	switch (sleep_mode) {
- 	case LIGHTSLEEP_MODE:
- 		if (EXTRACT_FIELD(pcs_cfg, PCS_CFG_LIGHT_SLEEP) == 0) {
--			sbi_printf(
--				"SMU: hart%d (PCS%d) does not support light sleep mode\n",
--				hartid, hartid + 3);
-+			sbi_printf("SMU: hart%d (PCS%d) does not support light sleep mode\n",
-+				   hartid, hartid + 3);
- 			return false;
- 		}
- 		break;
- 	case DEEPSLEEP_MODE:
- 		if (EXTRACT_FIELD(pcs_cfg, PCS_CFG_DEEP_SLEEP) == 0) {
--			sbi_printf(
--				"SMU: hart%d (PCS%d) does not support deep sleep mode\n",
--				hartid, hartid + 3);
-+			sbi_printf("SMU: hart%d (PCS%d) does not support deep sleep mode\n",
-+				   hartid, hartid + 3);
- 			return false;
- 		}
- 		break;
-@@ -83,9 +81,8 @@ inline int smu_set_reset_vector(struct smu_data *smu, ulong wakeup_addr,
- 	reset_vector = ((u64)vec_hi << 32) | vec_lo;
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 6e2083e..27a8b91 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -357,7 +357,7 @@ static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+ 	unsigned long state;
+ 	unsigned long tdata1;
  
- 	if (reset_vector != (u64)wakeup_addr) {
--		sbi_printf(
--			"hart%d (PCS%d): Failed to program the reset vector.\n",
--			hartid, hartid + 3);
-+		sbi_printf("hart%d (PCS%d): Failed to program the reset vector.\n",
-+			   hartid, hartid + 3);
- 		return SBI_EFAIL;
- 	} else
- 		return 0;
+-	if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
++	if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+ 		return;
+ 
+ 	state = trig->state;
+@@ -403,7 +403,7 @@ static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
+ {
+ 	unsigned long tdata1;
+ 
+-	if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
++	if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+ 		return;
+ 
+ 	tdata1 = trig->tdata1;
+@@ -429,7 +429,7 @@ static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
+ 
+ static void dbtr_trigger_clear(struct sbi_dbtr_trigger *trig)
+ {
+-	if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
++	if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+ 		return;
+ 
+ 	csr_write(CSR_TSELECT, trig->index);
 -- 
-2.34.1
+2.39.2
 
 
