@@ -1,81 +1,71 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 2 Aug 2024 08:44:27 +0530
-Subject: [RFC PATCH] include: Adjust Sscofpmf mhpmevent mask for upper 8 bits
-In-Reply-To: <CAHBxVyEZ8QwH1DvsRfm+w-f_=T6tva4jXVVnVtpLxw0JbEwrtQ@mail.gmail.com>
-References: <20240730093022.11665-1-eric.lin@sifive.com> <CAAhSdy23qdUQOETAUSjGLUJoHBroacLbbup3xJecnkhyPt_dSg@mail.gmail.com>
- <CAHBxVyEZ8QwH1DvsRfm+w-f_=T6tva4jXVVnVtpLxw0JbEwrtQ@mail.gmail.com>
-Message-ID: <CAAhSdy3kDScouieZA-ZMhiY1aRH7YsztJetBEf-sBRqMFg4MJA@mail.gmail.com>
+Date: Fri, 2 Aug 2024 08:50:45 +0530
+Subject: [PATCH] lib: sbi: dbtr: fix potential NULL pointer dereferences
+In-Reply-To: <20240801122742.5001-1-carlos.lopezr4096@gmail.com>
+References: <20240801122742.5001-1-carlos.lopezr4096@gmail.com>
+Message-ID: <CAAhSdy1CT5eBaNvXep7ew9eCGPVA968p6q_BdzDiDQANdE5XGw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 1, 2024 at 11:15?PM Atish Kumar Patra <atishp@rivosinc.com> wrote:
+On Thu, Aug 1, 2024 at 6:03?PM Carlos L?pez <carlos.lopezr4096@gmail.com> wrote:
 >
-> On Thu, Aug 1, 2024 at 7:34?AM Anup Patel <anup@brainfault.org> wrote:
-> >
-> > On Tue, Jul 30, 2024 at 3:00?PM Eric Lin <eric.lin@sifive.com> wrote:
-> > >
-> > > Currently, OpenSBI reserves the upper 16 bits in mhpmevent for
-> > > the Sscofpmf extension.
-> > >
-> > > However, according to the Sscofpmf extension specification[1],
-> > > it only defines the upper 8 bits in mhpmevent for privilege mode
-> > > inhibit and counter overflow disable. Other bits are defined by
-> > > the platform for event selection.
-> > >
-> > > Since vendors might define raw event encoding exceeding 48 bits in
-> > > mhpmevent, we should adjust the MHPMEVENT_SSCOF_MASK to support it.
-> > >
-> > > Link: https://github.com/riscvarchive/riscv-count-overflow [1]
-> > > Signed-off-by: Eric Lin <eric.lin@sifive.com>
-> >
-> > Actually, only the upper 6 bits of mhpmevent CSR are defined as-per
-> > Sscofpmf in the integrated Priv spec.
-> >
+> In several dbtr functions, we first check that the dbtr trigger is not
+> NULL and that its state is what we expect. However, it only makes
+> sense to perform the second check if the dbtr trigger is not NULL.
+> Othwerwise we will dereference a NULL pointer. Thus, change the
+> condition so that it shortcuts to the first check if necessary.
 >
-> That may be the result of an integration issue. I cross checked the
-> ratified spec
-> which had 8 bits allocated (56:57 are reserved). The Smcntrpmf extension in the
-> integrated spec also have 8 bits citing sscofpmf example. I have filed
-> an issue in isa manual repo for clarification
->
-> https://github.com/riscv/riscv-isa-manual/issues/1578
+> Signed-off-by: Carlos L?pez <carlos.lopezr4096@gmail.com>
 
-Thanks for confirming, I have kept this patch as-is.
+Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
+> ---
+>  lib/sbi/sbi_dbtr.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> > I have updated this patch accordingly at the time of merging this patch.
-> >
-> > Reviewed-by: Anup Patel <anup@brainfault.org>
-> >
-> > Applied this patch to the riscv/opensbi repo.
-> >
-> > Thanks,
-> > Anup
-> >
-> > > ---
-> > >  include/sbi/riscv_encoding.h | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> > > index 477fa3a1..2ed05f24 100644
-> > > --- a/include/sbi/riscv_encoding.h
-> > > +++ b/include/sbi/riscv_encoding.h
-> > > @@ -207,7 +207,7 @@
-> > >
-> > >  #endif
-> > >
-> > > -#define MHPMEVENT_SSCOF_MASK           _ULL(0xFFFF000000000000)
-> > > +#define MHPMEVENT_SSCOF_MASK           _ULL(0xFF00000000000000)
-> > >
-> > >  #define ENVCFG_STCE                    (_ULL(1) << 63)
-> > >  #define ENVCFG_PBMTE                   (_ULL(1) << 62)
-> > > --
-> > > 2.43.2
-> > >
+> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+> index 6e2083e..27a8b91 100644
+> --- a/lib/sbi/sbi_dbtr.c
+> +++ b/lib/sbi/sbi_dbtr.c
+> @@ -357,7 +357,7 @@ static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+>         unsigned long state;
+>         unsigned long tdata1;
+>
+> -       if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> +       if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+>                 return;
+>
+>         state = trig->state;
+> @@ -403,7 +403,7 @@ static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
+>  {
+>         unsigned long tdata1;
+>
+> -       if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> +       if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+>                 return;
+>
+>         tdata1 = trig->tdata1;
+> @@ -429,7 +429,7 @@ static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
+>
+>  static void dbtr_trigger_clear(struct sbi_dbtr_trigger *trig)
+>  {
+> -       if (!trig && !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> +       if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+>                 return;
+>
+>         csr_write(CSR_TSELECT, trig->index);
+> --
+> 2.39.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
