@@ -1,51 +1,38 @@
-From: Daniel Henrique Barboza <dbarboza@ventanamicro.com>
-Date: Mon,  5 Aug 2024 09:46:32 -0300
-Subject: [PATCH] Makefile: fix OPENSBI_VERSION_GIT build with submodules
-Message-ID: <20240805124632.1732560-1-dbarboza@ventanamicro.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Mon, 5 Aug 2024 18:28:28 +0530
+Subject: Announcing the librpmi project
+Message-ID: <CAK9=C2WXs+3SEO8kZNTa8S=vagz_Kf7avYUrLv6P7k91-sa+vw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When building OpenSBI via a submodule, OPENSBI_VERSION_GIT can be left
-unset in case '.git' isn't a dir. This is the case when building OpenSBI
-as a QEMU submodule:
+Hi All,
 
-$ cat .git
-gitdir: ../../.git/modules/roms/opensbi
+We are delighted to announce the librpmi project hosted under RISC-V
+GitHub at https://github.com/riscv-software-src/librpmi.git
 
-As a result, building OpenSBI tag v1.5.1 in QEMU will result in a binary
-that will have "OpenSBI v1.5" as a banner.
+The librpmi is intended to be a common RPMI implementation which can be used by:
+a) RISC-V platform vendors to implement RPMI services in their
+platform microcontroller firmware
+b) System-level partitions to implement RPMI services running as
+separate OpenSBI domain
+c) Hypervisors/emulators/simulators to emulate RPMI services for the Guest/VM
 
-Use "git rev-parse --git-dir" instead of checking if '.git' is a dir to
-detect if the current dir is a git repo.
+The librpmi project is very young and we are eager to receive
+feedback, participation, and contribution from all RISC-V members and
+RISC-V contributors. Currently, the librpmi development and
+discussions happen through GitHub pull requests and GitHub issues but
+these processes may evolve over time based on community feedback.
 
-Signed-off-by: Daniel Henrique Barboza <dbarboza@ventanamicro.com>
----
- Makefile | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Initial testing of the librpmi project has been done by using it to
+emulate RPMI services on QEMU RISC-V. These can be tried from the
+dev-upstream branch of the following repos:
+1) https://github.com/ventanamicro/qemu.git
+2) https://github.com/ventanamicro/opensbi.git
+3) https://github.com/ventanamicro/linux.git
 
-diff --git a/Makefile b/Makefile
-index 9c7fd4d..1497174 100644
---- a/Makefile
-+++ b/Makefile
-@@ -91,7 +91,13 @@ endif
- # Find library version
- OPENSBI_VERSION_MAJOR=`grep "define OPENSBI_VERSION_MAJOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MAJOR.*\([0-9][0-9]*\)/\1/'`
- OPENSBI_VERSION_MINOR=`grep "define OPENSBI_VERSION_MINOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MINOR.*\([0-9][0-9]*\)/\1/'`
--OPENSBI_VERSION_GIT=$(shell if [ -d $(src_dir)/.git ]; then git describe 2> /dev/null; fi)
-+OPENSBI_VERSION_GIT=
-+
-+# Detect 'git' presence before issuing 'git' commands
-+GIT_AVAIL=$(shell command -v git 2> /dev/null)
-+ifneq ($(GIT_AVAIL),)
-+OPENSBI_VERSION_GIT=$(shell git rev-parse --git-dir &> /dev/null && git describe 2> /dev/null)
-+endif
- 
- # Setup compilation commands
- ifneq ($(LLVM),)
--- 
-2.45.2
-
+On behalf of Ventana Micro Systems,
+Rahul Pathak, Subrahmanya Lingappa and Anup Patel
 
