@@ -1,277 +1,280 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue,  6 Aug 2024 13:03:29 +0530
-Subject: [PATCH 07/16] lib: utils/suspend: Add RPMI system suspend driver
+Date: Tue,  6 Aug 2024 13:03:30 +0530
+Subject: [PATCH 08/16] lib: utils: Add simple FDT based HSM driver framework
 In-Reply-To: <20240806073338.1856901-1-apatel@ventanamicro.com>
 References: <20240806073338.1856901-1-apatel@ventanamicro.com>
-Message-ID: <20240806073338.1856901-8-apatel@ventanamicro.com>
+Message-ID: <20240806073338.1856901-9-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Subrahmanya Lingappa <slingappa@ventanamicro.com>
+The generic platform can have multiple HSM drivers so add a simple
+FDT based HSM driver framework.
 
-Add RPMI based system suspend driver.
-
-To test this, execute the follwoing in Linux:
- $ echo mem > /sys/power/state
-
-To wake up, execute the following command on qemu monitor terminal:
- (qemu) system_wakeup
-
-Signed-off-by: Subrahmanya Lingappa <slingappa@ventanamicro.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi_utils/mailbox/rpmi_msgprot.h |  34 ++++++
- lib/utils/suspend/Kconfig                |   9 ++
- lib/utils/suspend/fdt_suspend_rpmi.c     | 137 +++++++++++++++++++++++
- lib/utils/suspend/objects.mk             |   3 +
- platform/generic/configs/defconfig       |   1 +
- 5 files changed, 184 insertions(+)
- create mode 100644 lib/utils/suspend/fdt_suspend_rpmi.c
+ include/sbi_utils/hsm/fdt_hsm.h      | 39 ++++++++++++
+ lib/utils/Kconfig                    |  2 +
+ lib/utils/hsm/Kconfig                | 10 ++++
+ lib/utils/hsm/fdt_hsm.c              | 89 ++++++++++++++++++++++++++++
+ lib/utils/hsm/fdt_hsm_drivers.carray |  3 +
+ lib/utils/hsm/objects.mk             | 11 ++++
+ platform/generic/configs/defconfig   |  1 +
+ platform/generic/platform.c          |  6 ++
+ 8 files changed, 161 insertions(+)
+ create mode 100644 include/sbi_utils/hsm/fdt_hsm.h
+ create mode 100644 lib/utils/hsm/Kconfig
+ create mode 100644 lib/utils/hsm/fdt_hsm.c
+ create mode 100644 lib/utils/hsm/fdt_hsm_drivers.carray
+ create mode 100644 lib/utils/hsm/objects.mk
 
-diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
-index 4ede28dd..a2403c90 100644
---- a/include/sbi_utils/mailbox/rpmi_msgprot.h
-+++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
-@@ -5,6 +5,7 @@
-  *
-  * Authors:
-  *   Rahul Pathak <rpathak@ventanamicro.com>
-+ *   Subrahmanya Lingappa <slingappa@ventanamicro.com>
-  */
- 
- #ifndef __RPMI_MSGPROT_H__
-@@ -149,6 +150,7 @@ enum rpmi_servicegroup_id {
- 	RPMI_SRVGRP_ID_MIN = 0,
- 	RPMI_SRVGRP_BASE = 0x00001,
- 	RPMI_SRVGRP_SYSTEM_RESET = 0x00002,
-+	RPMI_SRVGRP_SYSTEM_SUSPEND = 0x00003,
- 	RPMI_SRVGRP_ID_MAX_COUNT,
- };
- 
-@@ -209,4 +211,36 @@ struct rpmi_sysrst_get_reset_attributes_resp {
- 	u32 flags;
- };
- 
-+/** RPMI System Suspend ServiceGroup Service IDs */
-+enum rpmi_system_suspend_service_id {
-+	RPMI_SYSSUSP_SRV_ENABLE_NOTIFICATION = 0x01,
-+	RPMI_SYSSUSP_SRV_GET_SYSTEM_SUSPEND_ATTRIBUTES = 0x02,
-+	RPMI_SYSSUSP_SRV_SYSTEM_SUSPEND = 0x03,
-+	RPMI_SYSSUSP_SRV_ID_MAX_COUNT,
-+};
-+
-+/** Request for system suspend attributes */
-+struct rpmi_syssusp_get_attr_req {
-+	u32 susp_type;
-+};
-+
-+/** Response for system suspend attributes */
-+struct rpmi_syssusp_get_attr_resp {
-+	s32 status;
-+#define RPMI_SYSSUSP_FLAGS_CUSTOM_RESUME_ADDR_SUPPORTED	(1U << 31)
-+#define RPMI_SYSSUSP_FLAGS_SUPPORTED			(1U << 30)
-+	u32 flags;
-+};
-+
-+struct rpmi_syssusp_suspend_req {
-+	u32 hartid;
-+	u32 suspend_type;
-+	u32 resume_addr_lo;
-+	u32 resume_addr_hi;
-+};
-+
-+struct rpmi_syssusp_suspend_resp {
-+	s32 status;
-+};
-+
- #endif /* !__RPMI_MSGPROT_H__ */
-diff --git a/lib/utils/suspend/Kconfig b/lib/utils/suspend/Kconfig
-index 416ae795..2cbea75c 100644
---- a/lib/utils/suspend/Kconfig
-+++ b/lib/utils/suspend/Kconfig
-@@ -7,4 +7,13 @@ config FDT_SUSPEND
- 	depends on FDT
- 	default n
- 
-+if FDT_SUSPEND
-+
-+config FDT_SUSPEND_RPMI
-+	bool "FDT RPMI suspend driver"
-+	depends on FDT_MAILBOX && RPMI_MAILBOX
-+	default n
-+
-+endif
-+
- endmenu
-diff --git a/lib/utils/suspend/fdt_suspend_rpmi.c b/lib/utils/suspend/fdt_suspend_rpmi.c
+diff --git a/include/sbi_utils/hsm/fdt_hsm.h b/include/sbi_utils/hsm/fdt_hsm.h
 new file mode 100644
-index 00000000..aa5db128
+index 00000000..7076873c
 --- /dev/null
-+++ b/lib/utils/suspend/fdt_suspend_rpmi.c
-@@ -0,0 +1,137 @@
++++ b/include/sbi_utils/hsm/fdt_hsm.h
+@@ -0,0 +1,39 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2024 Ventana Micro Systems Inc.
 + *
 + * Authors:
-+ *   Subrahmanya Lingappa <slingappa@ventanamicro.com>
++ *   Anup Patel <apatel@ventanamicro.com>
 + */
 +
-+#include <libfdt.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/riscv_asm.h>
++#ifndef __FDT_HSM_H__
++#define __FDT_HSM_H__
++
++#include <sbi/sbi_types.h>
++
++#ifdef CONFIG_FDT_HSM
++
++struct fdt_hsm {
++	const struct fdt_match *match_table;
++	int (*fdt_fixup)(void *fdt);
++	int (*cold_init)(void *fdt, int nodeoff, const struct fdt_match *match);
++	int (*warm_init)(void);
++	void (*exit)(void);
++};
++
++int fdt_hsm_fixup(void *fdt);
++
++void fdt_hsm_exit(void);
++
++int fdt_hsm_init(bool cold_boot);
++
++#else
++
++static inline int fdt_hsm_fixup(void *fdt) { return 0; }
++static inline void fdt_hsm_exit(void) { }
++static inline int fdt_hsm_init(bool cold_boot) { return 0; }
++
++#endif
++
++#endif
+diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
+index 3f32c1ca..c860a185 100644
+--- a/lib/utils/Kconfig
++++ b/lib/utils/Kconfig
+@@ -6,6 +6,8 @@ source "$(OPENSBI_SRC_DIR)/lib/utils/fdt/Kconfig"
+ 
+ source "$(OPENSBI_SRC_DIR)/lib/utils/gpio/Kconfig"
+ 
++source "$(OPENSBI_SRC_DIR)/lib/utils/hsm/Kconfig"
++
+ source "$(OPENSBI_SRC_DIR)/lib/utils/i2c/Kconfig"
+ 
+ source "$(OPENSBI_SRC_DIR)/lib/utils/ipi/Kconfig"
+diff --git a/lib/utils/hsm/Kconfig b/lib/utils/hsm/Kconfig
+new file mode 100644
+index 00000000..31506116
+--- /dev/null
++++ b/lib/utils/hsm/Kconfig
+@@ -0,0 +1,10 @@
++# SPDX-License-Identifier: BSD-2-Clause
++
++menu "HSM Device Support"
++
++config FDT_HSM
++	bool "FDT based HSM drivers"
++	depends on FDT
++	default n
++
++endmenu
+diff --git a/lib/utils/hsm/fdt_hsm.c b/lib/utils/hsm/fdt_hsm.c
+new file mode 100644
+index 00000000..7166dce8
+--- /dev/null
++++ b/lib/utils/hsm/fdt_hsm.c
+@@ -0,0 +1,89 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2024 Ventana Micro Systems Inc.
++ *
++ * Authors:
++ *   Anup Patel <apatel@ventanamicro.com>
++ */
++
++#include <sbi/sbi_error.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/mailbox/fdt_mailbox.h>
-+#include <sbi_utils/mailbox/mailbox.h>
-+#include <sbi_utils/mailbox/rpmi_mailbox.h>
-+#include <sbi_utils/suspend/fdt_suspend.h>
++#include <sbi_utils/hsm/fdt_hsm.h>
 +
-+struct rpmi_syssusp {
-+	struct mbox_chan *chan;
-+	bool cust_res_addr_supported;
-+	bool suspend_supported;
-+};
++/* List of FDT HSM drivers generated at compile time */
++extern struct fdt_hsm *fdt_hsm_drivers[];
++extern unsigned long fdt_hsm_drivers_size;
 +
-+static struct rpmi_syssusp syssusp_ctx;
++static struct fdt_hsm *current_driver = NULL;
 +
-+static int rpmi_syssusp_attrs(uint32_t *attrs)
++int fdt_hsm_fixup(void *fdt)
 +{
-+	int rc;
-+	struct rpmi_syssusp_get_attr_resp resp;
-+	struct rpmi_syssusp_get_attr_req req;
-+
-+	req.susp_type = SBI_SUSP_SLEEP_TYPE_SUSPEND;
-+
-+	rc = rpmi_normal_request_with_status(
-+		syssusp_ctx.chan, RPMI_SYSSUSP_SRV_GET_SYSTEM_SUSPEND_ATTRIBUTES,
-+		&req, rpmi_u32_count(req), rpmi_u32_count(req),
-+		&resp, rpmi_u32_count(resp), rpmi_u32_count(resp));
-+	if (rc)
-+		return rc;
-+
-+	*attrs = resp.flags;
-+
++	if (current_driver && current_driver->fdt_fixup)
++		return current_driver->fdt_fixup(fdt);
 +	return 0;
 +}
 +
-+static int rpmi_syssusp(uint32_t suspend_type, ulong resume_addr)
++void fdt_hsm_exit(void)
 +{
-+	int rc;
-+	struct rpmi_syssusp_suspend_req req;
-+	struct rpmi_syssusp_suspend_resp resp;
++	if (current_driver && current_driver->exit)
++		current_driver->exit();
++}
 +
-+	req.hartid = current_hartid();
-+	req.suspend_type = suspend_type;
-+	req.resume_addr_lo = resume_addr;
-+	req.resume_addr_hi = (u64)resume_addr  >> 32;
-+
-+	rc = rpmi_normal_request_with_status(
-+			syssusp_ctx.chan, RPMI_SYSSUSP_SRV_SYSTEM_SUSPEND,
-+			&req, rpmi_u32_count(req), rpmi_u32_count(req),
-+			&resp, rpmi_u32_count(resp), rpmi_u32_count(resp));
-+	if (rc)
-+		return rc;
-+
-+	/* Wait for interrupt */
-+	wfi();
-+
++static int fdt_hsm_warm_init(void)
++{
++	if (current_driver && current_driver->warm_init)
++		return current_driver->warm_init();
 +	return 0;
 +}
 +
-+static int rpmi_system_suspend_check(u32 sleep_type)
++static int fdt_hsm_cold_init(void)
 +{
-+	return ((sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND) &&
-+		syssusp_ctx.suspend_supported) ? 0 : SBI_EINVAL;
-+}
++	int pos, noff, rc;
++	struct fdt_hsm *drv;
++	const struct fdt_match *match;
++	void *fdt = fdt_get_address();
 +
-+static int rpmi_system_suspend(u32 sleep_type, ulong resume_addr)
-+{
-+	int rc;
++	for (pos = 0; pos < fdt_hsm_drivers_size; pos++) {
++		drv = fdt_hsm_drivers[pos];
 +
-+	if (sleep_type != SBI_SUSP_SLEEP_TYPE_SUSPEND)
-+		return SBI_ENOTSUPP;
++		noff = -1;
++		while ((noff = fdt_find_match(fdt, noff,
++					drv->match_table, &match)) >= 0) {
++			/* drv->cold_init must not be NULL */
++			if (drv->cold_init == NULL)
++				return SBI_EFAIL;
 +
-+	rc = rpmi_syssusp(sleep_type, resume_addr);
-+	if (rc)
-+		return rc;
++			rc = drv->cold_init(fdt, noff, match);
++			if (rc == SBI_ENODEV)
++				continue;
++			if (rc)
++				return rc;
++			current_driver = drv;
 +
-+	return 0;
-+}
-+
-+static struct sbi_system_suspend_device rpmi_suspend_dev = {
-+	.name = "rpmi-system-suspend",
-+	.system_suspend_check = rpmi_system_suspend_check,
-+	.system_suspend = rpmi_system_suspend,
-+};
-+
-+static int rpmi_suspend_init(void *fdt, int nodeoff,
-+			     const struct fdt_match *match)
-+{
-+	int rc;
-+	uint32_t attrs = 0;
-+
-+	/* If channel already available then do nothing. */
-+	if (syssusp_ctx.chan)
-+		return 0;
++			/*
++			 * We can have multiple HSM devices on multi-die or
++			 * multi-socket systems so we cannot break here.
++			 */
++		}
++	}
 +
 +	/*
-+	 * If channel request failed then other end does not support
-+	 * suspend service group so do nothing.
++	 * On some single-hart system there is no need for HSM,
++	 * so we cannot return a failure here
 +	 */
-+	rc = fdt_mailbox_request_chan(fdt, nodeoff, 0, &syssusp_ctx.chan);
-+	if (rc)
-+		return 0;
-+
-+	/* Get suspend attributes */
-+	rc = rpmi_syssusp_attrs(&attrs);
-+	if (rc)
-+		return rc;
-+
-+	syssusp_ctx.suspend_supported = attrs & RPMI_SYSSUSP_FLAGS_SUPPORTED;
-+	syssusp_ctx.cust_res_addr_supported =
-+			attrs & RPMI_SYSSUSP_FLAGS_CUSTOM_RESUME_ADDR_SUPPORTED;
-+
-+	sbi_system_suspend_set_device(&rpmi_suspend_dev);
-+
 +	return 0;
 +}
 +
-+static const struct fdt_match rpmi_suspend_match[] = {
-+	{ .compatible = "riscv,rpmi-system-suspend" },
-+	{},
-+};
++int fdt_hsm_init(bool cold_boot)
++{
++	int rc;
 +
-+struct fdt_suspend fdt_suspend_rpmi = {
-+	.match_table = rpmi_suspend_match,
-+	.init = rpmi_suspend_init,
-+};
-diff --git a/lib/utils/suspend/objects.mk b/lib/utils/suspend/objects.mk
-index 30d897d1..657670a8 100644
---- a/lib/utils/suspend/objects.mk
-+++ b/lib/utils/suspend/objects.mk
-@@ -9,3 +9,6 @@
- 
- libsbiutils-objs-$(CONFIG_FDT_SUSPEND) += suspend/fdt_suspend.o
- libsbiutils-objs-$(CONFIG_FDT_SUSPEND) += suspend/fdt_suspend_drivers.carray.o
++	if (cold_boot) {
++		rc = fdt_hsm_cold_init();
++		if (rc)
++			return rc;
++	}
 +
-+carray-fdt_suspend_drivers-$(CONFIG_FDT_SUSPEND_RPMI) += fdt_suspend_rpmi
-+libsbiutils-objs-$(CONFIG_FDT_SUSPEND_RPMI) += suspend/fdt_suspend_rpmi.o
++	return fdt_hsm_warm_init();
++}
+diff --git a/lib/utils/hsm/fdt_hsm_drivers.carray b/lib/utils/hsm/fdt_hsm_drivers.carray
+new file mode 100644
+index 00000000..21396db2
+--- /dev/null
++++ b/lib/utils/hsm/fdt_hsm_drivers.carray
+@@ -0,0 +1,3 @@
++HEADER: sbi_utils/hsm/fdt_hsm.h
++TYPE: struct fdt_hsm
++NAME: fdt_hsm_drivers
+diff --git a/lib/utils/hsm/objects.mk b/lib/utils/hsm/objects.mk
+new file mode 100644
+index 00000000..49337bf5
+--- /dev/null
++++ b/lib/utils/hsm/objects.mk
+@@ -0,0 +1,11 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++# Copyright (c) 2024 Ventana Micro Systems Inc.
++#
++# Authors:
++#   Anup Patel <apatel@ventanamicro.com>
++#
++
++libsbiutils-objs-$(CONFIG_FDT_HSM) += hsm/fdt_hsm.o
++libsbiutils-objs-$(CONFIG_FDT_HSM) += hsm/fdt_hsm_drivers.carray.o
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index ec439d74..54300fb5 100644
+index 54300fb5..2efc7136 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -45,6 +45,7 @@ CONFIG_FDT_SERIAL_UART8250=y
- CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
- CONFIG_SERIAL_SEMIHOSTING=y
- CONFIG_FDT_SUSPEND=y
-+CONFIG_FDT_SUSPEND_RPMI=y
- CONFIG_FDT_TIMER=y
- CONFIG_FDT_TIMER_MTIMER=y
- CONFIG_FDT_TIMER_PLMT=y
+@@ -10,6 +10,7 @@ CONFIG_FDT_GPIO=y
+ CONFIG_FDT_GPIO_DESIGNWARE=y
+ CONFIG_FDT_GPIO_SIFIVE=y
+ CONFIG_FDT_GPIO_STARFIVE=y
++CONFIG_FDT_HSM=y
+ CONFIG_FDT_I2C=y
+ CONFIG_FDT_I2C_SIFIVE=y
+ CONFIG_FDT_I2C_DW=y
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 138a54c2..bcd7133b 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -21,6 +21,7 @@
+ #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/fdt/fdt_pmu.h>
++#include <sbi_utils/hsm/fdt_hsm.h>
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/irqchip/imsic.h>
+ #include <sbi_utils/serial/fdt_serial.h>
+@@ -236,6 +237,8 @@ static int generic_early_init(bool cold_boot)
+ 			return rc;
+ 	}
+ 
++	fdt_hsm_init(cold_boot);
++
+ 	if (!generic_plat || !generic_plat->early_init)
+ 		return 0;
+ 
+@@ -261,6 +264,7 @@ static int generic_final_init(bool cold_boot)
+ 	fdt_cpu_fixup(fdt);
+ 	fdt_fixups(fdt);
+ 	fdt_domain_fixup(fdt);
++	fdt_hsm_fixup(fdt);
+ 
+ 	if (generic_plat && generic_plat->fdt_fixup) {
+ 		rc = generic_plat->fdt_fixup(fdt, generic_plat_match);
+@@ -287,6 +291,8 @@ static int generic_vendor_ext_provider(long funcid,
+ 
+ static void generic_early_exit(void)
+ {
++	fdt_hsm_exit();
++
+ 	if (generic_plat && generic_plat->early_exit)
+ 		generic_plat->early_exit(generic_plat_match);
+ }
 -- 
 2.34.1
 
