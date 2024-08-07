@@ -1,44 +1,67 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 7 Aug 2024 12:18:44 +0530
-Subject: [PATCH v2 0/2] lib: sbi: Heap improvements for SMMTT
-In-Reply-To: <20240710210924.817753-1-gregorhaas1997@gmail.com>
-References: <20240710210924.817753-1-gregorhaas1997@gmail.com>
-Message-ID: <CAAhSdy1ZaVg6eBbbiFjaU+erosnCyQ+KAteq-=nwqOFmwQB_Mw@mail.gmail.com>
+From: Yu-Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 7 Aug 2024 17:24:50 +0800
+Subject: [PATCH 14/16] lib: sbi: Implement SBI MPXY extension
+In-Reply-To: <20240806073338.1856901-15-apatel@ventanamicro.com>
+References: <20240806073338.1856901-1-apatel@ventanamicro.com>
+ <20240806073338.1856901-15-apatel@ventanamicro.com>
+Message-ID: <ZrM9Yir0L5o5NAJL@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 11, 2024 at 2:39?AM Gregor Haas <gregorhaas1997@gmail.com> wrote:
->
-> This patch series includes two changes to the SBI heap implementation, primarily
-> to enable future work on the SMMTT implementation. First, it enables allocations
-> from multiple independent heaps on separate memory regions. Then, it adds a simple
-> implementation for sbi_memalign for use in allocating aligned memory.
+Hi Anup,
 
-This is useful for managing RAS CPER record memory as well.
+On Tue, Aug 06, 2024 at 01:03:36PM +0530, Anup Patel wrote:
+> [EXTERNAL MAIL]
+> 
+> Implement the SBI MPXY extension which provides an SBI interface to
+> the supervisor software for send messages via MPXY framework.
+> 
+> Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+> Co-developed-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  include/sbi/sbi_ecall_interface.h | 10 +++++
+>  lib/sbi/Kconfig                   |  3 ++
+>  lib/sbi/objects.mk                |  3 ++
+>  lib/sbi/sbi_ecall_mpxy.c          | 68 +++++++++++++++++++++++++++++++
+>  4 files changed, 84 insertions(+)
+>  create mode 100644 lib/sbi/sbi_ecall_mpxy.c
+> 
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 6b993b18..085b33e7 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -35,6 +35,7 @@
+>  #define SBI_EXT_DBTR                           0x44425452
+>  #define SBI_EXT_SSE                            0x535345
+>  #define SBI_EXT_FWFT                           0x46574654
+> +#define SBI_EXT_MPXY                           0x4D505859
+> 
+>  /* SBI function IDs for BASE extension*/
+>  #define SBI_EXT_BASE_GET_SPEC_VERSION          0x0
+> @@ -406,6 +407,15 @@ enum sbi_sse_state {
+>  #define SBI_SSE_EVENT_GLOBAL_BIT               (1 << 15)
+>  #define SBI_SSE_EVENT_PLATFORM_BIT             (1 << 14)
+> 
+> +/* SBI function IDs for MPXY extension */
+> +#define SBI_EXT_MPXY_SET_SHMEM                 0x0
+> +#define SBI_EXT_MPXY_GET_CHANNEL_IDS           0x1
 
->
-> See the individual commit messages in this series for more technical details.
->
-> Gregor Haas (2):
->   lib: sbi: Support multiple heaps
->   lib: sbi: Implement aligned memory allocators
->
->  include/sbi/sbi_heap.h |  23 ++++++
->  lib/sbi/sbi_heap.c     | 181 +++++++++++++++++++++++++++++------------
->  2 files changed, 151 insertions(+), 53 deletions(-)
->
-> --
-> 2.45.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+I am unable to find this FID from the thread:
+https://lists.riscv.org/g/tech-rpmi/message/89
 
-Regards,
-Anup
+Could you please let me know if there's an updated
+version of the MPXY Chapter?
+
+Thanks,
+Peter Lin
+
+> +#define SBI_EXT_MPXY_READ_ATTRS                        0x2
+> +#define SBI_EXT_MPXY_WRITE_ATTRS               0x3
+> +#define SBI_EXT_MPXY_SEND_MSG_WITH_RESP                0x4
+> +#define SBI_EXT_MPXY_SEND_MSG_NO_RESP          0x5
+> +#define SBI_EXT_MPXY_GET_NOTIFICATION_EVENTS   0x6
 
