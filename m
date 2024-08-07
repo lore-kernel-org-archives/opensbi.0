@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 7 Aug 2024 12:17:21 +0530
-Subject: [PATCH v2 2/2] lib: sbi: Implement aligned memory allocators
-In-Reply-To: <20240710210924.817753-3-gregorhaas1997@gmail.com>
-References: <20240710210924.817753-1-gregorhaas1997@gmail.com> <20240710210924.817753-3-gregorhaas1997@gmail.com>
-Message-ID: <CAAhSdy0CWtAuMaihp0H24oW6Bf7cPs4HBe99ecjKwms1zC9Y+g@mail.gmail.com>
+Date: Wed, 7 Aug 2024 12:18:44 +0530
+Subject: [PATCH v2 0/2] lib: sbi: Heap improvements for SMMTT
+In-Reply-To: <20240710210924.817753-1-gregorhaas1997@gmail.com>
+References: <20240710210924.817753-1-gregorhaas1997@gmail.com>
+Message-ID: <CAAhSdy1ZaVg6eBbbiFjaU+erosnCyQ+KAteq-=nwqOFmwQB_Mw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,99 +12,24 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Jul 11, 2024 at 2:39?AM Gregor Haas <gregorhaas1997@gmail.com> wrote:
 >
-> This change adds a simple implementation of sbi_memalign(), for future use in
-> allocating aligned memory for SMMTT tables.
+> This patch series includes two changes to the SBI heap implementation, primarily
+> to enable future work on the SMMTT implementation. First, it enables allocations
+> from multiple independent heaps on separate memory regions. Then, it adds a simple
+> implementation for sbi_memalign for use in allocating aligned memory.
 
-Add "Signed-off-by" here.
+This is useful for managing RAS CPER record memory as well.
 
-> ---
->  include/sbi/sbi_heap.h |  5 +++++
->  lib/sbi/sbi_heap.c     | 37 ++++++++++++++++++++++++++++++++++---
->  2 files changed, 39 insertions(+), 3 deletions(-)
 >
-> diff --git a/include/sbi/sbi_heap.h b/include/sbi/sbi_heap.h
-> index a3f5a0c..468ad11 100644
-> --- a/include/sbi/sbi_heap.h
-> +++ b/include/sbi/sbi_heap.h
-> @@ -24,6 +24,11 @@ struct sbi_scratch;
->  void *sbi_malloc(size_t size);
->  void *sbi_malloc_from(struct heap_control *hpctrl, size_t size);
+> See the individual commit messages in this series for more technical details.
 >
-> +/** Allocate aligned from heap area */
-> +void *sbi_memalign(size_t alignment, size_t size);
-> +void *sbi_memalign_from(struct heap_control *hpctrl, size_t alignment,
-> +                       size_t size);
-> +
->  /** Zero allocate from heap area */
->  void *sbi_zalloc(size_t size);
->  void *sbi_zalloc_from(struct heap_control *hpctrl, size_t size);
-> diff --git a/lib/sbi/sbi_heap.c b/lib/sbi/sbi_heap.c
-> index 3be56f3..af18692 100644
-> --- a/lib/sbi/sbi_heap.c
-> +++ b/lib/sbi/sbi_heap.c
-> @@ -37,7 +37,8 @@ struct heap_control {
+> Gregor Haas (2):
+>   lib: sbi: Support multiple heaps
+>   lib: sbi: Implement aligned memory allocators
 >
->  static struct heap_control global_hpctrl;
+>  include/sbi/sbi_heap.h |  23 ++++++
+>  lib/sbi/sbi_heap.c     | 181 +++++++++++++++++++++++++++++------------
+>  2 files changed, 151 insertions(+), 53 deletions(-)
 >
-> -void *sbi_malloc_from(struct heap_control *hpctrl, size_t size)
-> +static void *alloc_with_align(struct heap_control *hpctrl,
-> +                             size_t align, size_t size)
->  {
->         void *ret = NULL;
->         struct heap_node *n, *np;
-> @@ -45,8 +46,8 @@ void *sbi_malloc_from(struct heap_control *hpctrl, size_t size)
->         if (!size)
->                 return NULL;
->
-> -       size += HEAP_ALLOC_ALIGN - 1;
-> -       size &= ~((unsigned long)HEAP_ALLOC_ALIGN - 1);
-> +       size += align - 1;
-> +       size &= ~((unsigned long)align - 1);
->
->         spin_lock(&hpctrl->lock);
->
-> @@ -80,11 +81,41 @@ void *sbi_malloc_from(struct heap_control *hpctrl, size_t size)
->         return ret;
->  }
->
-> +void *sbi_malloc_from(struct heap_control *hpctrl, size_t size)
-> +{
-> +       return alloc_with_align(hpctrl, HEAP_ALLOC_ALIGN, size);
-> +}
-> +
->  void *sbi_malloc(size_t size)
->  {
->         return sbi_malloc_from(&global_hpctrl, size);
->  }
->
-> +void *sbi_memalign_from(struct heap_control *hpctrl, size_t alignment,
-> +                       size_t size)
-> +{
-> +       if(alignment < HEAP_ALLOC_ALIGN) {
-> +               alignment = HEAP_ALLOC_ALIGN;
-> +       }
-> +
-> +       // Make sure alignment is power of two
-> +       if((alignment & (alignment - 1)) != 0) {
-> +               return NULL;
-> +       }
-> +
-> +       // Make sure size is multiple of alignment
-> +       if(size % alignment != 0) {
-> +               return NULL;
-> +       }
-> +
-> +       return alloc_with_align(hpctrl, alignment, size);
-> +}
-> +
-> +void *sbi_memalign(size_t alignment, size_t size)
-> +{
-> +       return sbi_memalign_from(&global_hpctrl, alignment, size);
-> +}
-> +
->  void *sbi_zalloc_from(struct heap_control *hpctrl, size_t size)
->  {
->         void *ret = sbi_malloc_from(hpctrl, size);
 > --
 > 2.45.2
 >
