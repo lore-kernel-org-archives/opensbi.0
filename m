@@ -1,9 +1,9 @@
 From: Zhang Runmin <runmin.zhang@ingenic.com>
-Date: Wed, 14 Aug 2024 21:01:47 +0800
-Subject: [PATCHv2] lib: Delete redundant `ulong`
-In-Reply-To: <5e68a847e2e53db899336ca73b831247a6b817c3.camel@126.com>
-References: <5e68a847e2e53db899336ca73b831247a6b817c3.camel@126.com>
-Message-ID: <6c54d5461bc49b803c8d00552c56f46d2bb77744.1723640100.git.runmin.zhang@ingenic.com>
+Date: Wed, 14 Aug 2024 21:23:01 +0800
+Subject: [PATCHv3] lib: Delete redundant `ulong`
+In-Reply-To: <6c54d5461bc49b803c8d00552c56f46d2bb77744.1723640100.git.runmin.zhang@ingenic.com>
+References: <6c54d5461bc49b803c8d00552c56f46d2bb77744.1723640100.git.runmin.zhang@ingenic.com>
+Message-ID: <6ec68ac059535474f9bb04a7f5496bd2cf04a9c9.1723641333.git.runmin.zhang@ingenic.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,6 +18,8 @@ where uses csr_read/write_allowed macros.
 
 Signed-off-by: Zhang RunMin <runmin.zhang@ingenic.com>
 ---
+v3:
+- Fix the formatting problems caused by deleting ulong
 v2:
 - Fix similar problems in:
   lib/sbi/sbi_hart.c
@@ -27,9 +29,9 @@ v1:
   lib/sbi/sbi_dbtr.c
 ---
  lib/sbi/sbi_dbtr.c        |  9 +++++----
- lib/sbi/sbi_hart.c        | 26 +++++++++++++-------------
+ lib/sbi/sbi_hart.c        | 28 ++++++++++++++--------------
  lib/utils/irqchip/imsic.c |  2 +-
- 3 files changed, 19 insertions(+), 18 deletions(-)
+ 3 files changed, 20 insertions(+), 19 deletions(-)
 
 diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
 index 27a8b91..60c37b4 100644
@@ -69,7 +71,7 @@ index 27a8b91..60c37b4 100644
  				break;
  
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index c366701..44c6eac 100644
+index c366701..cc364fa 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
 @@ -723,13 +723,13 @@ static unsigned long hart_pmp_get_allowed_addr(void)
@@ -119,22 +121,24 @@ index c366701..44c6eac 100644
 +	oldval = csr_read_allowed(__csr, &trap);			  \
  	if (!trap.cause) {						  \
 -		csr_write_allowed(__csr, (ulong)&trap, 1UL);		  \
-+		csr_write_allowed(__csr, &trap, 1UL);		  \
++		csr_write_allowed(__csr, &trap, 1UL);			  \
  		if (!trap.cause && csr_swap(__csr, oldval) == 1UL) {	  \
  			(hfeatures->__mask) |= 1 << (__csr - CSR_MCYCLE); \
  		}							  \
-@@ -810,12 +810,12 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+@@ -809,13 +809,13 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	__check_hpm_csr_8(__csr + 0, __mask) 			  \
  	__check_hpm_csr_8(__csr + 8, __mask)
  
- #define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
+-#define __check_csr(__csr, __rdonly, __wrval, __field, __skip)	\
 -	oldval = csr_read_allowed(__csr, (ulong)&trap);			\
++#define __check_csr(__csr, __rdonly, __wrval, __field, __skip)		\
 +	oldval = csr_read_allowed(__csr, &trap);			\
  	if (!trap.cause) {						\
  		if (__rdonly) {						\
  			(hfeatures->__field)++;				\
  		} else {						\
 -			csr_write_allowed(__csr, (ulong)&trap, __wrval);\
-+			csr_write_allowed(__csr, &trap, __wrval);\
++			csr_write_allowed(__csr, &trap, __wrval);	\
  			if (!trap.cause) {				\
  				if (csr_swap(__csr, oldval) == __wrval)	\
  					(hfeatures->__field)++;		\
@@ -143,7 +147,7 @@ index c366701..44c6eac 100644
  
  #define __check_priv(__csr, __base_priv, __priv)			\
 -	val = csr_read_allowed(__csr, (ulong)&trap);			\
-+	val = csr_read_allowed(__csr, &trap);			\
++	val = csr_read_allowed(__csr, &trap);				\
  	if (!trap.cause && (hfeatures->priv_version >= __base_priv)) {	\
  		hfeatures->priv_version = __priv;			\
  	}
@@ -152,7 +156,7 @@ index c366701..44c6eac 100644
  #define __check_ext_csr(__base_priv, __csr, __ext)			\
  	if (hfeatures->priv_version >= __base_priv) {			\
 -		csr_read_allowed(__csr, (ulong)&trap);			\
-+		csr_read_allowed(__csr, &trap);			\
++		csr_read_allowed(__csr, &trap);				\
  		if (!trap.cause)					\
  			__sbi_hart_update_extension(hfeatures,		\
  						    __ext, true);	\
