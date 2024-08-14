@@ -1,52 +1,59 @@
-From: Gregor Haas <gregorhaas1997@gmail.com>
-Date: Thu,  8 Aug 2024 20:47:12 -0700
-Subject: [PATCH v2 1/1] lib: utils: fdt_domain: Make opensbi-domain optional in CPU specification
-In-Reply-To: <20240809034712.24857-1-gregorhaas1997@gmail.com>
-References: <20240809034712.24857-1-gregorhaas1997@gmail.com>
-Message-ID: <20240809034712.24857-2-gregorhaas1997@gmail.com>
+From: Zhang Runmin <runmin.zhang@ingenic.com>
+Date: Wed, 14 Aug 2024 11:17:49 +0800
+Subject: [PATCH] lib: sbi: dbtr: Delete redundant `ulong`
+Message-ID: <20240814031749.2741251-1-runmin.zhang@ingenic.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The domain_support.md documentation states that "the HART to domain instance
-assignment can be parsed from the device tree using *optional* DT property
-opensbi-domain in each CPU DT node". However, the current implementation does
-not treat this parameter as optional when determining which HARTs to assign to
-a freshly discovered domain from the device tree, causing an effect where every
-HART in the system must be explicitly assigned to a domain only if a domain is
-specified in the device tree. Instead, this patch simply ignores CPUs that do
-not specify a domain, and does not attempt to assign them into the recently
-discovered domain.
+From: Zhang RunMin <runmin.zhang@ingenic.com>
 
-Signed-off-by: Gregor Haas <gregorhaas1997@gmail.com>
+In `csr_read_allowed` and `csr_write_allowed` macros, has already
+converted second param to `ulong`.
 ---
- lib/utils/fdt/fdt_domain.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/sbi/sbi_dbtr.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index fa1c357..c6ee127 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -459,12 +459,12 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 		if (!fdt_node_is_enabled(fdt, cpu_offset))
- 			continue;
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 27a8b91..60c37b4 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -167,11 +167,12 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+ 		goto _probed;
  
-+		/* This is an optional property */
- 		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
--		if (!val || len < 4) {
--			err = SBI_EINVAL;
--			goto fail_free_all;
--		}
-+		if (!val || len < 4)
-+			continue;
+ 	for (i = 0; i < RV_MAX_TRIGGERS; i++) {
+-		csr_write_allowed(CSR_TSELECT, (ulong)&trap, i);
++		// CSR_TESLECT 0x7a0
++		csr_write_allowed(CSR_TSELECT, &trap, i);
+ 		if (trap.cause)
+ 			break;
  
-+		/* However, it should be valid if specified */
- 		doffset = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
- 		if (doffset < 0) {
- 			err = doffset;
+-		val = csr_read_allowed(CSR_TSELECT, (ulong)&trap);
++		val = csr_read_allowed(CSR_TSELECT, &trap);
+ 		if (trap.cause)
+ 			break;
+ 
+@@ -182,7 +183,7 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+ 		if (val != i)
+ 			break;
+ 
+-		val = csr_read_allowed(CSR_TINFO, (ulong)&trap);
++		val = csr_read_allowed(CSR_TINFO, &trap);
+ 		if (trap.cause) {
+ 			/*
+ 			 * If reading tinfo caused an exception, the
+@@ -190,7 +191,7 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+ 			 * type.
+ 			 */
+ 			tdata1 = csr_read_allowed(CSR_TDATA1,
+-						  (ulong)&trap);
++						  &trap);
+ 			if (trap.cause)
+ 				break;
+ 
 -- 
-2.45.2
+2.25.1
 
 
