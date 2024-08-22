@@ -1,117 +1,30 @@
 From: Deepak Gupta <debug@rivosinc.com>
-Date: Thu, 22 Aug 2024 10:48:28 -0700
-Subject: [PATCH v3 4/4] lib: sbi: fwft: implement landing pad and shadow stack fwft interface
-In-Reply-To: <20240822174828.4031332-1-debug@rivosinc.com>
+Date: Thu, 22 Aug 2024 11:14:10 -0700
+Subject: [PATCH v3 2/4] lib: sbi: Zicfilp/Zicfiss detection and elp cfi
+ state reflect back in status
+In-Reply-To: <20240822174828.4031332-3-debug@rivosinc.com>
 References: <20240822174828.4031332-1-debug@rivosinc.com>
-Message-ID: <20240822174828.4031332-5-debug@rivosinc.com>
+ <20240822174828.4031332-3-debug@rivosinc.com>
+Message-ID: <Zsd/8kP6sJ4vGWiY@debug.ba.rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Supervisor software can enable control flow integrity features for itself
-using fwft feature `SBI_FWFT_LANDING_PAD` and `SBI_FWFT_SHADOW_STACK`.
-This patch implements the mechanism to enable both these fwft.
+On Thu, Aug 22, 2024 at 10:48:26AM -0700, Deepak Gupta wrote:
+>This patch adds support for zicfilp / zicfiss detection in sbi_hart.c
+>If zicfilp and zicfiss are detected, this patch turns on menvcfg.LPE and
+>menvcfg.SSE
 
-Signed-off-by: Deepak Gupta <debug@rivosinc.com>
----
- lib/sbi/sbi_fwft.c | 74 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+Note to self.
+Comment needs fixup. Turn on of LPE and SSE is via FWFT
 
-diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-index ef881ef..747bc88 100644
---- a/lib/sbi/sbi_fwft.c
-+++ b/lib/sbi/sbi_fwft.c
-@@ -145,6 +145,68 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
- 	return SBI_OK;
- }
- 
-+static int fwft_lpad_supported(struct fwft_config *conf)
-+{
-+	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+				    SBI_HART_EXT_ZICFILP))
-+		return SBI_ENOTSUPP;
-+
-+	return SBI_OK;
-+}
-+
-+static int fwft_enable_lpad(struct fwft_config *conf, unsigned long value)
-+{
-+	if (value == 1)
-+		csr_set(CSR_MENVCFG, ENVCFG_LPE);
-+	else if (value == 0)
-+		csr_clear(CSR_MENVCFG, ENVCFG_LPE);
-+	else
-+		return SBI_EINVAL;
-+
-+	return SBI_OK;
-+}
-+
-+static int fwft_get_lpad(struct fwft_config *conf, unsigned long *value)
-+{
-+	unsigned long cfg;
-+
-+	cfg = csr_read(CSR_MENVCFG) & ENVCFG_LPE;
-+	*value = cfg != 0;
-+
-+	return SBI_OK;
-+}
-+
-+static int fwft_sstack_supported(struct fwft_config *conf)
-+{
-+	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+				    SBI_HART_EXT_ZICFISS))
-+		return SBI_ENOTSUPP;
-+
-+	return SBI_OK;
-+}
-+
-+static int fwft_enable_sstack(struct fwft_config *conf, unsigned long value)
-+{
-+	if (value == 1)
-+		csr_set(CSR_MENVCFG, ENVCFG_SSE);
-+	else if (value == 0)
-+		csr_clear(CSR_MENVCFG, ENVCFG_SSE);
-+	else
-+		return SBI_EINVAL;
-+
-+	return SBI_OK;
-+}
-+
-+static int fwft_get_sstack(struct fwft_config *conf, unsigned long *value)
-+{
-+	unsigned long cfg;
-+
-+	cfg = csr_read(CSR_MENVCFG) & ENVCFG_SSE;
-+	*value = cfg != 0;
-+
-+	return SBI_OK;
-+}
-+
- static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
- {
- 	int i;
-@@ -236,6 +298,18 @@ static const struct fwft_feature features[] =
- 		.set = fwft_set_adue,
- 		.get = fwft_get_adue,
- 	},
-+	{
-+		.id = SBI_FWFT_LANDING_PAD,
-+		.supported = fwft_lpad_supported,
-+		.set = fwft_enable_lpad,
-+		.get = fwft_get_lpad,
-+	},
-+	{
-+		.id = SBI_FWFT_SHADOW_STACK,
-+		.supported = fwft_sstack_supported,
-+		.set = fwft_enable_sstack,
-+		.get = fwft_get_sstack,
-+	},
- };
- 
- int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
--- 
-2.44.0
-
+>
+>Zicfilp records status of hart's ELP state in *status csr. Missing landing pad
+>sets MPELP in mstatus. When SBI is redirecting back to S/VS/HS, SPELP is
+>set in sstatus/vsstatus.
+>
+>Signed-off-by: Deepak Gupta <debug@rivosinc.com>
+>---
 
