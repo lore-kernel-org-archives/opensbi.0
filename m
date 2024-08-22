@@ -1,39 +1,37 @@
 From: Deepak Gupta <debug@rivosinc.com>
-Date: Wed, 21 Aug 2024 23:50:49 -0700
-Subject: [PATCH v2 3/3] lib: sbi: sw check exception delegation
-In-Reply-To: <20240822065049.3923308-1-debug@rivosinc.com>
-References: <20240822065049.3923308-1-debug@rivosinc.com>
-Message-ID: <20240822065049.3923308-4-debug@rivosinc.com>
+Date: Thu, 22 Aug 2024 10:48:24 -0700
+Subject: [PATCH v3 0/4] zicfilp and zicfiss support in opensbi
+Message-ID: <20240822174828.4031332-1-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-zicfiss and zicfilp introduces new exception (cause=18). Delegate this
-exception to S mode because cfi violations in U / S will be reported
-via this exception.
+v3 for zicfilp and zicfiss support in opensbi
 
-Signed-off-by: Deepak Gupta <debug@rivosinc.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 ---
- lib/sbi/sbi_hart.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+v3:
+ - added fwft implementation for shadow stack and landing pad interface
+v2:
+ - added mpelp for 32bit (mstatush) and its handling in trad redirection
+ - removed default SSE enabling. it'll break shadow stack enabled kernel
+ - put sw check delegation at correct place
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 0636021..1f6c4c8 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -207,7 +207,8 @@ static int delegate_traps(struct sbi_scratch *scratch)
- 	if (sbi_platform_has_mfaults_delegation(plat))
- 		exceptions |= (1U << CAUSE_FETCH_PAGE_FAULT) |
- 			      (1U << CAUSE_LOAD_PAGE_FAULT) |
--			      (1U << CAUSE_STORE_PAGE_FAULT);
-+			      (1U << CAUSE_STORE_PAGE_FAULT)|
-+			      (1U << CAUSE_SW_CHECK_EXCP);
- 
- 	/*
- 	 * If hypervisor extension available then we only handle hypervisor
+Deepak Gupta (4):
+  include: adding support for Zicfilp / Zicfiss encodings
+  lib: sbi: Zicfilp/Zicfiss detection and elp cfi state reflect back in
+    status
+  lib: sbi: sw check exception delegation
+  lib: sbi: fwft: implement landing pad and shadow stack fwft interface
+
+ include/sbi/riscv_encoding.h |  7 ++++
+ include/sbi/sbi_hart.h       |  3 ++
+ lib/sbi/sbi_fwft.c           | 74 ++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hart.c           | 21 +++++++++-
+ lib/sbi/sbi_trap.c           | 20 ++++++++++
+ 5 files changed, 124 insertions(+), 1 deletion(-)
+
 -- 
 2.44.0
 
