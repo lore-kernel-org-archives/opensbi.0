@@ -1,139 +1,116 @@
 From: Deepak Gupta <debug@rivosinc.com>
-Date: Thu, 22 Aug 2024 10:48:26 -0700
-Subject: [PATCH v3 2/4] lib: sbi: Zicfilp/Zicfiss detection and elp cfi state reflect back in status
+Date: Thu, 22 Aug 2024 10:48:28 -0700
+Subject: [PATCH v3 4/4] lib: sbi: fwft: implement landing pad and shadow stack fwft interface
 In-Reply-To: <20240822174828.4031332-1-debug@rivosinc.com>
 References: <20240822174828.4031332-1-debug@rivosinc.com>
-Message-ID: <20240822174828.4031332-3-debug@rivosinc.com>
+Message-ID: <20240822174828.4031332-5-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds support for zicfilp / zicfiss detection in sbi_hart.c
-If zicfilp and zicfiss are detected, this patch turns on menvcfg.LPE and
-menvcfg.SSE
-
-Zicfilp records status of hart's ELP state in *status csr. Missing landing pad
-sets MPELP in mstatus. When SBI is redirecting back to S/VS/HS, SPELP is
-set in sstatus/vsstatus.
+Supervisor software can enable control flow integrity features for itself
+using fwft feature `SBI_FWFT_LANDING_PAD` and `SBI_FWFT_SHADOW_STACK`.
+This patch implements the mechanism to enable both these fwft.
 
 Signed-off-by: Deepak Gupta <debug@rivosinc.com>
 ---
- include/sbi/sbi_hart.h |  3 +++
- lib/sbi/sbi_hart.c     | 18 ++++++++++++++++++
- lib/sbi/sbi_trap.c     | 20 ++++++++++++++++++++
- 3 files changed, 41 insertions(+)
+ lib/sbi/sbi_fwft.c | 74 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 81ec061..2aa6867 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -67,6 +67,9 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_SVADE,
- 	/** Hart has Svadu extension */
- 	SBI_HART_EXT_SVADU,
-+	/** HART has zicfiss & zicfilp extension */
-+	SBI_HART_EXT_ZICFILP,
-+	SBI_HART_EXT_ZICFISS,
+diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+index ef881ef..747bc88 100644
+--- a/lib/sbi/sbi_fwft.c
++++ b/lib/sbi/sbi_fwft.c
+@@ -145,6 +145,68 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
+ 	return SBI_OK;
+ }
  
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index c366701..0636021 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -680,6 +680,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
- 	__SBI_HART_EXT_DATA(svade, SBI_HART_EXT_SVADE),
- 	__SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
-+	__SBI_HART_EXT_DATA(zicfilp, SBI_HART_EXT_ZICFILP),
-+	__SBI_HART_EXT_DATA(zicfiss, SBI_HART_EXT_ZICFISS),
++static int fwft_lpad_supported(struct fwft_config *conf)
++{
++	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				    SBI_HART_EXT_ZICFILP))
++		return SBI_ENOTSUPP;
++
++	return SBI_OK;
++}
++
++static int fwft_enable_lpad(struct fwft_config *conf, unsigned long value)
++{
++	if (value == 1)
++		csr_set(CSR_MENVCFG, ENVCFG_LPE);
++	else if (value == 0)
++		csr_clear(CSR_MENVCFG, ENVCFG_LPE);
++	else
++		return SBI_EINVAL;
++
++	return SBI_OK;
++}
++
++static int fwft_get_lpad(struct fwft_config *conf, unsigned long *value)
++{
++	unsigned long cfg;
++
++	cfg = csr_read(CSR_MENVCFG) & ENVCFG_LPE;
++	*value = cfg != 0;
++
++	return SBI_OK;
++}
++
++static int fwft_sstack_supported(struct fwft_config *conf)
++{
++	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				    SBI_HART_EXT_ZICFISS))
++		return SBI_ENOTSUPP;
++
++	return SBI_OK;
++}
++
++static int fwft_enable_sstack(struct fwft_config *conf, unsigned long value)
++{
++	if (value == 1)
++		csr_set(CSR_MENVCFG, ENVCFG_SSE);
++	else if (value == 0)
++		csr_clear(CSR_MENVCFG, ENVCFG_SSE);
++	else
++		return SBI_EINVAL;
++
++	return SBI_OK;
++}
++
++static int fwft_get_sstack(struct fwft_config *conf, unsigned long *value)
++{
++	unsigned long cfg;
++
++	cfg = csr_read(CSR_MENVCFG) & ENVCFG_SSE;
++	*value = cfg != 0;
++
++	return SBI_OK;
++}
++
+ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+ {
+ 	int i;
+@@ -236,6 +298,18 @@ static const struct fwft_feature features[] =
+ 		.set = fwft_set_adue,
+ 		.get = fwft_get_adue,
+ 	},
++	{
++		.id = SBI_FWFT_LANDING_PAD,
++		.supported = fwft_lpad_supported,
++		.set = fwft_enable_lpad,
++		.get = fwft_get_lpad,
++	},
++	{
++		.id = SBI_FWFT_SHADOW_STACK,
++		.supported = fwft_sstack_supported,
++		.set = fwft_enable_sstack,
++		.get = fwft_get_sstack,
++	},
  };
  
- _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
-@@ -776,6 +778,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 	unsigned long val, oldval;
- 	bool has_zicntr = false;
- 	int rc;
-+	bool ssp_exist, elp_exist;
- 
- 	/* If hart features already detected then do nothing */
- 	if (hfeatures->detected)
-@@ -933,6 +936,21 @@ __pmp_skip:
- 	/* Save trap based detection of Zicntr */
- 	has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
- 
-+	if (hfeatures->priv_version >= SBI_HART_PRIV_VER_1_12) {
-+		val = csr_read_allowed(CSR_SSP, (unsigned long)&trap);
-+		ssp_exist = trap.cause == 0;
-+		if (ssp_exist)
-+			__sbi_hart_update_extension(hfeatures,
-+					SBI_HART_EXT_ZICFISS, true);
-+
-+		csr_set(CSR_MSTATUS, MSTATUS_MPELP);
-+		val = csr_read_clear(CSR_MSTATUS, MSTATUS_MPELP);
-+		elp_exist = val & MSTATUS_MPELP;
-+		if (elp_exist)
-+			__sbi_hart_update_extension(hfeatures,
-+					SBI_HART_EXT_ZICFILP, true);
-+	}
-+
- 	/* Let platform populate extensions */
- 	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
- 					  hfeatures);
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index b4f3a17..e2502f2 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -103,6 +103,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      const struct sbi_trap_info *trap)
- {
- 	ulong hstatus, vsstatus, prev_mode;
-+	bool elp = false;
- #if __riscv_xlen == 32
- 	bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
- #else
-@@ -116,6 +117,17 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 	if (prev_mode != PRV_S && prev_mode != PRV_U)
- 		return SBI_ENOTSUPP;
- 
-+	/* If extension has support for CFI, clear MPELP because redirecting to VS or (H)S */
-+	if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(), SBI_HART_EXT_ZICFILP)) {
-+#if __riscv_xlen == 32
-+		elp = regs->mstatusH & MSTATUSH_MPELP;
-+		regs->mstatusH &= ~MSTATUSH_MPELP;
-+#else
-+		elp = regs->mstatus & MSTATUS_MPELP;
-+		regs->mstatus &= ~MSTATUS_MPELP;
-+#endif
-+	}
-+
- 	/* If exceptions came from VS/VU-mode, redirect to VS-mode if
- 	 * delegated in hedeleg
- 	 */
-@@ -169,6 +181,10 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		/* Get VS-mode SSTATUS CSR */
- 		vsstatus = csr_read(CSR_VSSTATUS);
- 
-+		/*if elp was set, set it back in vsstatus */
-+		if (elp)
-+			vsstatus |= MSTATUS_SPELP;
-+
- 		/* Set SPP for VS-mode */
- 		vsstatus &= ~SSTATUS_SPP;
- 		if (prev_mode == PRV_S)
-@@ -209,6 +225,10 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 
- 		/* Clear SIE for S-mode */
- 		regs->mstatus &= ~MSTATUS_SIE;
-+
-+		/* if elp was set, set it back in mstatus */
-+		if (elp)
-+			regs->mstatus |= MSTATUS_SPELP;
- 	}
- 
- 	return 0;
+ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
 -- 
 2.44.0
 
