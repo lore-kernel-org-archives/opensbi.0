@@ -1,80 +1,116 @@
 From: Deepak Gupta <debug@rivosinc.com>
-Date: Fri, 23 Aug 2024 11:47:32 -0700
-Subject: [PATCH v4 1/4] include: adding support for Zicfilp / Zicfiss encodings
+Date: Fri, 23 Aug 2024 11:47:35 -0700
+Subject: [PATCH v4 4/4] lib: sbi: fwft: implement landing pad and shadow stack fwft interface
 In-Reply-To: <20240823184735.4154272-1-debug@rivosinc.com>
 References: <20240823184735.4154272-1-debug@rivosinc.com>
-Message-ID: <20240823184735.4154272-2-debug@rivosinc.com>
+Message-ID: <20240823184735.4154272-5-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Zicfilp / Zicfiss extension (see link) introduces b2 (LPE) in menvcfg CSR to
-enable landing pads and b3 (SSE) in menvcfg CSR to enable shadow stack and
-landing pad for privilege less than M. Additionally extension introduces new
-bits in *status for recording landing pad state and a new exception type
-`software check exception` with cause=0x12.
-
-Link: https://github.com/riscv/riscv-cfi
+Supervisor software can enable control flow integrity features for itself
+using fwft feature `SBI_FWFT_LANDING_PAD` and `SBI_FWFT_SHADOW_STACK`.
+This patch implements the mechanism to enable both these fwft.
 
 Signed-off-by: Deepak Gupta <debug@rivosinc.com>
 ---
- include/sbi/riscv_encoding.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+ lib/sbi/sbi_fwft.c | 74 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index 2ed05f2..fa1d373 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -32,6 +32,7 @@
- #define MSTATUS_TVM			_UL(0x00100000)
- #define MSTATUS_TW			_UL(0x00200000)
- #define MSTATUS_TSR			_UL(0x00400000)
-+#define MSTATUS_SPELP		_UL(0x00800000)
- #define MSTATUS32_SD			_UL(0x80000000)
- #if __riscv_xlen == 64
- #define MSTATUS_UXL			_ULL(0x0000000300000000)
-@@ -41,12 +42,14 @@
- #define MSTATUS_GVA			_ULL(0x0000004000000000)
- #define MSTATUS_GVA_SHIFT		38
- #define MSTATUS_MPV			_ULL(0x0000008000000000)
-+#define MSTATUS_MPELP		_ULL(0x0000020000000000)
- #else
- #define MSTATUSH_SBE			_UL(0x00000010)
- #define MSTATUSH_MBE			_UL(0x00000020)
- #define MSTATUSH_GVA			_UL(0x00000040)
- #define MSTATUSH_GVA_SHIFT		6
- #define MSTATUSH_MPV			_UL(0x00000080)
-+#define MSTATUSH_MPELP			_UL(0x00000200)
- #endif
- #define MSTATUS32_SD			_UL(0x80000000)
- #define MSTATUS64_SD			_ULL(0x8000000000000000)
-@@ -220,6 +223,8 @@
- #define ENVCFG_CBIE_ILL			_UL(0x0)
- #define ENVCFG_CBIE_FLUSH		_UL(0x1)
- #define ENVCFG_CBIE_INV			_UL(0x3)
-+#define ENVCFG_SSE			(_UL(1) << 3)
-+#define ENVCFG_LPE			(_UL(1) << 2)
- #define ENVCFG_FIOM			_UL(0x1)
+diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+index ef881ef..747bc88 100644
+--- a/lib/sbi/sbi_fwft.c
++++ b/lib/sbi/sbi_fwft.c
+@@ -145,6 +145,68 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
+ 	return SBI_OK;
+ }
  
- /* ===== User-level CSRs ===== */
-@@ -228,6 +233,7 @@
- #define CSR_USTATUS			0x000
- #define CSR_UIE				0x004
- #define CSR_UTVEC			0x005
-+#define CSR_SSP				0x011
++static int fwft_lpad_supported(struct fwft_config *conf)
++{
++	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				    SBI_HART_EXT_ZICFILP))
++		return SBI_ENOTSUPP;
++
++	return SBI_OK;
++}
++
++static int fwft_enable_lpad(struct fwft_config *conf, unsigned long value)
++{
++	if (value == 1)
++		csr_set(CSR_MENVCFG, ENVCFG_LPE);
++	else if (value == 0)
++		csr_clear(CSR_MENVCFG, ENVCFG_LPE);
++	else
++		return SBI_EINVAL;
++
++	return SBI_OK;
++}
++
++static int fwft_get_lpad(struct fwft_config *conf, unsigned long *value)
++{
++	unsigned long cfg;
++
++	cfg = csr_read(CSR_MENVCFG) & ENVCFG_LPE;
++	*value = cfg != 0;
++
++	return SBI_OK;
++}
++
++static int fwft_sstack_supported(struct fwft_config *conf)
++{
++	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				    SBI_HART_EXT_ZICFISS))
++		return SBI_ENOTSUPP;
++
++	return SBI_OK;
++}
++
++static int fwft_enable_sstack(struct fwft_config *conf, unsigned long value)
++{
++	if (value == 1)
++		csr_set(CSR_MENVCFG, ENVCFG_SSE);
++	else if (value == 0)
++		csr_clear(CSR_MENVCFG, ENVCFG_SSE);
++	else
++		return SBI_EINVAL;
++
++	return SBI_OK;
++}
++
++static int fwft_get_sstack(struct fwft_config *conf, unsigned long *value)
++{
++	unsigned long cfg;
++
++	cfg = csr_read(CSR_MENVCFG) & ENVCFG_SSE;
++	*value = cfg != 0;
++
++	return SBI_OK;
++}
++
+ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+ {
+ 	int i;
+@@ -236,6 +298,18 @@ static const struct fwft_feature features[] =
+ 		.set = fwft_set_adue,
+ 		.get = fwft_get_adue,
+ 	},
++	{
++		.id = SBI_FWFT_LANDING_PAD,
++		.supported = fwft_lpad_supported,
++		.set = fwft_enable_lpad,
++		.get = fwft_get_lpad,
++	},
++	{
++		.id = SBI_FWFT_SHADOW_STACK,
++		.supported = fwft_sstack_supported,
++		.set = fwft_enable_sstack,
++		.get = fwft_get_sstack,
++	},
+ };
  
- /* User Trap Handling (N-extension) */
- #define CSR_USCRATCH			0x040
-@@ -763,6 +769,7 @@
- #define CAUSE_FETCH_PAGE_FAULT		0xc
- #define CAUSE_LOAD_PAGE_FAULT		0xd
- #define CAUSE_STORE_PAGE_FAULT		0xf
-+#define CAUSE_SW_CHECK_EXCP			0x12
- #define CAUSE_FETCH_GUEST_PAGE_FAULT	0x14
- #define CAUSE_LOAD_GUEST_PAGE_FAULT	0x15
- #define CAUSE_VIRTUAL_INST_FAULT	0x16
+ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
 -- 
 2.44.0
 
