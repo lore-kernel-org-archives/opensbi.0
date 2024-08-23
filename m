@@ -1,179 +1,113 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 23 Aug 2024 17:25:33 +0530
-Subject: [PATCH 4/4] platform: generic: andes: add a new Andes SBI call to
- free a PMA entry
-In-Reply-To: <20240723075728.587110-5-ben717@andestech.com>
-References: <20240723075728.587110-1-ben717@andestech.com> <20240723075728.587110-5-ben717@andestech.com>
-Message-ID: <CAAhSdy1KxSDm6ZChceafGo-x_t1kF=O+0jrWa3qfoWE32xpPXQ@mail.gmail.com>
+Date: Fri, 23 Aug 2024 17:26:44 +0530
+Subject: [PATCH v2] lib: utils: fdt_domain: Use consistent device-tree
+ address when next-arg1 is missing
+In-Reply-To: <20240724150054.3052794-1-peterlin@andestech.com>
+References: <20240724150054.3052794-1-peterlin@andestech.com>
+Message-ID: <CAAhSdy2vn-hRb1GJZh9ryLM59ua0wSXDNZCDho3jBiFwAf0btQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 23, 2024 at 1:27?PM Ben Zong-You Xie <ben717@andestech.com> wrote:
+On Wed, Jul 24, 2024 at 8:31?PM Yu Chien Peter Lin
+<peterlin@andestech.com> wrote:
 >
-> Add a new Andes SBI call to free a PMA entry, and reset the memory
-> attributes for the corresponding NAPOT region.
+> The diagram shown below illustrates the boot-flow involving OP-TEE OS
+> initialization.
 >
-> Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
-> ---
->  platform/generic/andes/andes_pma.c         | 65 ++++++++++++++++------
->  platform/generic/andes/andes_sbi.c         |  4 ++
->  platform/generic/include/andes/andes_pma.h |  9 +++
->  3 files changed, 61 insertions(+), 17 deletions(-)
+>     (1)-----------+
+>      | U-Boot SPL |
+>      +------------+
+>          |
+>          v
+>     (2)-------------------------------------------------------------+
+>      | OpenSBI (fw_dynamic)                                         |
+>      |                (4)------------------------+                  |
+>      |                 | optee dispatcher driver |                  |
+>      +-----------------+-------^---------|-------+------------------+
+> M-mode   |                     |         |
+> ---------+--[trusted domain]---+----.----+--[untrusted domain]-------
+> S-mode   |  (coldboot domain)  |    |    |
+>          v                     |    |    v
+>     (3)---------------------------+ |(5)----------------------------+
+>      | OP-TEE OS                  | | | U-Boot                      |
+>      +----------------------------+ | +-----------------------------+
+>                                     |    |
+>                                     |    v
+>                                     |(6)----------------------------+
+>                                     | | Linux                       |
+>                                     | +-----------------------------+
 >
-> diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
-> index 70039ca..be61005 100644
-> --- a/platform/generic/andes/andes_pma.c
-> +++ b/platform/generic/andes/andes_pma.c
-> @@ -120,6 +120,27 @@ static char get_pmaxcfg(int entry_id)
->         return *pmaxcfg;
->  }
+> As OP-TEE OS has device-tree node fixups that need to be passed
+> through to the next boot stages, e.g. the reserved memory node:
 >
-> +static void set_pmaxcfg(int entry_id, char flags)
-> +{
-> +       unsigned int pmacfg_addr;
-> +       unsigned long pmacfg_val;
-> +       char *pmaxcfg;
-> +
-> +#if __riscv_xlen == 64
-> +       pmacfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
-> +       pmacfg_val = andes_pma_read_num(pmacfg_addr);
-> +       pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
-> +#elif __riscv_xlen == 32
-> +       pmacfg_addr = CSR_PMACFG0 + (entry_id / 4);
-> +       pmacfg_val = andes_pma_read_num(pmacfg_addr);
-> +       pmaxcfg = (char *)&pmacfg_val + (entry_id % 4);
-> +#else
-> +#error "Unexpected __riscv_xlen"
-> +#endif
-> +       *pmaxcfg = flags;
-> +       andes_pma_write_num(pmacfg_addr, pmacfg_val);
-> +}
-> +
->  static void decode_pmaaddrx(int entry_id, unsigned long *start,
->                             unsigned long *size)
->  {
-> @@ -167,30 +188,14 @@ static unsigned long andes_pma_setup(const struct andes_pma_region *pma_region,
->  {
->         unsigned long size = pma_region->size;
->         unsigned long addr = pma_region->pa;
-> -       unsigned int pma_cfg_addr;
-> -       unsigned long pmacfg_val;
->         unsigned long pmaaddr;
-> -       char *pmaxcfg;
+>   reserved-memory {
+>     #address-cells = <2>;
+>     #size-cells = <2>;
+>     ranges;
+>     optee_core at f1000000 {
+>       no-map;
+>       reg = <0x0 0xf1000000   // OP-TEE OS base address
+>              0x0 0x01000000>;
+>     };
+>     <...>
+>   };
 >
->         /* Check for a 4KiB granularity NAPOT region*/
->         if (size < ANDES_PMA_GRANULARITY || not_napot(addr, size) ||
->             !(pma_region->flags & ANDES_PMACFG_ETYP_NAPOT))
->                 return SBI_EINVAL;
+> Instead of using 0x0 as the default value, allow identical next-arg1
+> to be used by non-coldboot domain (i.e., untrusted domain) when the
+> property is not provided.
 >
-> -#if __riscv_xlen == 64
-> -       pma_cfg_addr = CSR_PMACFG0 + ((entry_id / 8) ? 2 : 0);
-> -       pmacfg_val = andes_pma_read_num(pma_cfg_addr);
-> -       pmaxcfg = (char *)&pmacfg_val + (entry_id % 8);
-> -#elif __riscv_xlen == 32
-> -       pma_cfg_addr = CSR_PMACFG0 + (entry_id / 4);
-> -       pmacfg_val = andes_pma_read_num(pma_cfg_addr);
-> -       pmaxcfg = (char *)&pmacfg_val + (entry_id % 4);
-> -#else
-> -#error "Unexpected __riscv_xlen"
-> -#endif
-> -       *pmaxcfg = pma_region->flags;
-> -
-> -       andes_pma_write_num(pma_cfg_addr, pmacfg_val);
-> +       set_pmaxcfg(entry_id, pma_region->flags);
+> Also, update the description of next-arg1 property in the document.
 >
->         pmaaddr = (addr >> 2) + (size >> 3) - 1;
->
-> @@ -404,3 +409,29 @@ int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags)
->
->         return SBI_SUCCESS;
->  }
-> +
-> +int andes_sbi_free_pma(unsigned long pa)
-> +{
-> +       unsigned long start, size;
-> +       char pmaxcfg;
-> +
+> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+> Reviewed-by: Alvin Chang <alvinga@andestech.com>
+> Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Need a check on andes_sbi_probe_pma() here. I will take care of it
-at the time of merging this patch.
-
-> +       for (int i = 0; i < ANDES_MAX_PMA_REGIONS; i++) {
-> +               pmaxcfg = get_pmaxcfg(i);
-> +               if (is_pma_entry_disable(pmaxcfg))
-> +                       continue;
-> +
-> +               decode_pmaaddrx(i, &start, &size);
-> +               if (start != pa)
-> +                       continue;
-> +
-> +               set_pmaxcfg(i, ANDES_PMACFG_ETYP_OFF);
-> +               andes_pma_write_num(CSR_PMAADDR0 + i, 0);
-> +
-> +               return SBI_SUCCESS;
-> +       }
-> +
-> +       sbi_printf("ERROR %s(): Failed to find the entry with PA %#lx\n",
-> +                  __func__, pa);
-> +
-> +       return SBI_ERR_FAILED;
-> +}
-> diff --git a/platform/generic/andes/andes_sbi.c b/platform/generic/andes/andes_sbi.c
-> index 0e4a43d..0e1e59e 100644
-> --- a/platform/generic/andes/andes_sbi.c
-> +++ b/platform/generic/andes/andes_sbi.c
-> @@ -14,6 +14,7 @@ enum sbi_ext_andes_fid {
->         SBI_EXT_ANDES_IOCP_SW_WORKAROUND,
->         SBI_EXT_ANDES_PMA_PROBE,
->         SBI_EXT_ANDES_PMA_SET,
-> +       SBI_EXT_ANDES_PMA_FREE,
->  };
->
->  static bool andes_cache_controllable(void)
-> @@ -51,6 +52,9 @@ int andes_sbi_vendor_ext_provider(long funcid,
->         case SBI_EXT_ANDES_PMA_SET:
->                 ret = andes_sbi_set_pma(regs->a0, regs->a1, regs->a2);
->                 break;
-> +       case SBI_EXT_ANDES_PMA_FREE:
-> +               ret = andes_sbi_free_pma(regs->a0);
-> +               break;
->
->         default:
->                 ret = SBI_ENOTSUPP;
-> diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
-> index 487d9bf..e2d5279 100644
-> --- a/platform/generic/include/andes/andes_pma.h
-> +++ b/platform/generic/include/andes/andes_pma.h
-> @@ -77,4 +77,13 @@ bool andes_sbi_probe_pma(void);
->   */
->  int andes_sbi_set_pma(unsigned long pa, unsigned long size, u8 flags);
->
-> +/**
-> + * Reset the memory attribute of a NAPOT region
-> + * @param pa Start address of the NAPOT region
-> + *
-> + * @return SBI_SUCCESS on success
-> + * @return SBI_ERR_FAILED if the given region is not set before
-> + */
-> +int andes_sbi_free_pma(unsigned long pa);
-> +
->  #endif /* _ANDES_PMA_H_ */
-> --
-> 2.34.1
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
-
-Otherwise, looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
+
+> ---
+> Changes v1 -> v2:
+> - Improve commit message, no functional change
+> ---
+>  docs/domain_support.md     | 4 +---
+>  lib/utils/fdt/fdt_domain.c | 3 +--
+>  2 files changed, 2 insertions(+), 5 deletions(-)
+>
+> diff --git a/docs/domain_support.md b/docs/domain_support.md
+> index b34e43a..1a40068 100644
+> --- a/docs/domain_support.md
+> +++ b/docs/domain_support.md
+> @@ -180,9 +180,7 @@ The DT properties of a domain instance DT node are as follows:
+>    boot HART of the domain instance.
+>  * **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
+>    domain instance. If this DT property is not available and coldboot HART
+> -  is not assigned to the domain instance then **0x0** is used as default
+> -  value. If this DT property is not available and coldboot HART is assigned
+> -  to the domain instance then **next booting stage arg1 of coldboot HART**
+> +  is not assigned to the domain instance then **next booting stage arg1 of coldboot HART**
+>    is used as default value.
+>  * **next-addr** (Optional) - The 64 bit next booting stage address for the
+>    domain instance. If this DT property is not available and coldboot HART
+> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+> index fa1c357..a13daa6 100644
+> --- a/lib/utils/fdt/fdt_domain.c
+> +++ b/lib/utils/fdt/fdt_domain.c
+> @@ -395,8 +395,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+>                 val64 = fdt32_to_cpu(val[0]);
+>                 val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
+>         } else {
+> -               if (domain_offset == *cold_domain_offset)
+> -                       val64 = sbi_scratch_thishart_ptr()->next_arg1;
+> +               val64 = sbi_scratch_thishart_ptr()->next_arg1;
+>         }
+>         dom->next_arg1 = val64;
+>
+> --
+> 2.45.2
+>
 
