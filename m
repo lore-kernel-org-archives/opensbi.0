@@ -1,185 +1,70 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 23 Aug 2024 13:43:56 +0530
-Subject: [PATCH v2 1/1] lib:sbi: Enhance CSR Handling in system_opcode_insn
-In-Reply-To: <20240718054357.18756-2-zhangdongdong@eswincomputing.com>
-References: <20240718054357.18756-1-zhangdongdong@eswincomputing.com> <20240718054357.18756-2-zhangdongdong@eswincomputing.com>
-Message-ID: <CAAhSdy3-EF8p9Es91mHkhb4a3UvzNRgOnfGRFOHaHg5BhmxF1Q@mail.gmail.com>
+Date: Fri, 23 Aug 2024 17:25:18 +0530
+Subject: [PATCH 1/4] platform: generic: Kconfig: add the description for
+ Andes PMA feature
+In-Reply-To: <20240723075728.587110-2-ben717@andestech.com>
+References: <20240723075728.587110-1-ben717@andestech.com> <20240723075728.587110-2-ben717@andestech.com>
+Message-ID: <CAAhSdy2mRUEk6_xu9ejz7gTgWb2zJj-LGeO0YHw-1h_V6yH4vA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 18, 2024 at 11:14?AM <zhangdongdong@eswincomputing.com> wrote:
+On Tue, Jul 23, 2024 at 1:27?PM Ben Zong-You Xie <ben717@andestech.com> wrote:
 >
-> From: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> Describe Andes PPMA in the config option, and select it for AE350
+> platform.
 >
-> - Completed TODO in `system_opcode_insn` to ensure CSR read/write
->   instruction handling.
-> - Refactored to use new macros `GET_RS1_NUM` and `GET_CSR_NUM`.
-> - Updated `GET_RM` macro and replaced hardcoded funct3 values with
->   constants (`CSRRW`, `CSRRS`, `CSRRC`, etc.).
-> - Removed redundant `GET_RM` from `riscv_fp.h`.
-> - Improved validation and error handling for CSR instructions.
->
-> This patch enhances the clarity and correctness of CSR handling
-> in `system_opcode_insn`.
->
-> Signed-off-by: Dongdong Zhang <zhangdongdong@eswincomputing.com>
+> Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
+
+LGTM.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Thanks,
+Anup
+
+
 > ---
->  include/sbi/riscv_encoding.h | 19 +++++++++++++++++-
->  include/sbi/riscv_fp.h       |  1 -
->  lib/sbi/sbi_illegal_insn.c   | 37 +++++++++++++++++++++++-------------
->  3 files changed, 42 insertions(+), 15 deletions(-)
+>  platform/generic/Kconfig       | 1 +
+>  platform/generic/andes/Kconfig | 5 +++++
+>  2 files changed, 6 insertions(+)
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 477fa3a..5146654 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -947,7 +947,10 @@
->  #define REG_PTR(insn, pos, regs)       \
->         (ulong *)((ulong)(regs) + REG_OFFSET(insn, pos))
+> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+> index 6642a6e..688da3f 100644
+> --- a/platform/generic/Kconfig
+> +++ b/platform/generic/Kconfig
+> @@ -33,6 +33,7 @@ config PLATFORM_ANDES_AE350
+>         bool "Andes AE350 support"
+>         select SYS_ATCSMU
+>         select ANDES_PMU
+> +       select ANDES_PMA
+>         default n
 >
-> -#define GET_RM(insn)                   (((insn) >> 12) & 7)
-> +#define GET_RM(insn) ((insn & MASK_FUNCT3) >> SHIFT_FUNCT3)
-
-Use tabs for macro alignment
-
-> +
-> +#define GET_RS1_NUM(insn)              ((insn & MASK_RS1) >> 15)
-> +#define GET_CSR_NUM(insn)              ((insn & MASK_CSR) >> SHIFT_CSR)
+>  config PLATFORM_RENESAS_RZFIVE
+> diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
+> index 138710b..6edd67d 100644
+> --- a/platform/generic/andes/Kconfig
+> +++ b/platform/generic/andes/Kconfig
+> @@ -3,6 +3,11 @@
+>  config ANDES_PMA
+>         bool "Andes PMA support"
+>         default n
+> +       help
+> +         Programmable PMA(PPMA) is a feature for Andes. PPMA allows
+> +         dynamic adjustment of memory attributes in the runtime.
+> +         It contains a configurable amount of PMA entries implemented
+> +         as CSRs to control the attributes of memory locations in interest.
 >
->  #define GET_RS1(insn, regs)            (*REG_PTR(insn, SH_RS1, regs))
->  #define GET_RS2(insn, regs)            (*REG_PTR(insn, SH_RS2, regs))
-> @@ -959,7 +962,21 @@
->  #define IMM_I(insn)                    ((s32)(insn) >> 20)
->  #define IMM_S(insn)                    (((s32)(insn) >> 25 << 5) | \
->                                          (s32)(((insn) >> 7) & 0x1f))
-> +
->  #define MASK_FUNCT3                    0x7000
-> +#define MASK_RS1                       0xf8000
-> +#define MASK_CSR            0xfff
-
-This define should be 0xfff00000
-
-> +
-> +#define SHIFT_FUNCT3    12
-> +#define SHIFT_CSR       20
-> +
-> +
-
-Redundant newline.
-
-> +#define CSRRW 1
-> +#define CSRRS 2
-> +#define CSRRC 3
-> +#define CSRRWI 5
-> +#define CSRRSI 6
-> +#define CSRRCI 7
->
->  /* clang-format on */
->
-> diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
-> index 3141c1c..f523c56 100644
-> --- a/include/sbi/riscv_fp.h
-> +++ b/include/sbi/riscv_fp.h
-> @@ -15,7 +15,6 @@
->  #include <sbi/sbi_types.h>
->
->  #define GET_PRECISION(insn) (((insn) >> 25) & 3)
-> -#define GET_RM(insn) (((insn) >> 12) & 7)
->  #define PRECISION_S 0
->  #define PRECISION_D 1
->
-> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-> index ed6f111..e4acf05 100644
-> --- a/lib/sbi/sbi_illegal_insn.c
-> +++ b/lib/sbi/sbi_illegal_insn.c
-> @@ -48,9 +48,10 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
->
->  static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
->  {
-> -       int do_write, rs1_num = (insn >> 15) & 0x1f;
-> -       ulong rs1_val = GET_RS1(insn, regs);
-> -       int csr_num   = (u32)insn >> 20;
-> +       bool do_write   = false;
-> +       int rs1_num     = GET_RS1_NUM(insn);
-> +       ulong rs1_val   = GET_RS1(insn, regs);
-> +       int csr_num     = GET_CSR_NUM((u32)insn);
->         ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->         ulong csr_val, new_csr_val;
->
-> @@ -60,32 +61,42 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
->                 return SBI_EFAIL;
->         }
->
-> -       /* TODO: Ensure that we got CSR read/write instruction */
-> +       /* Ensure that we got CSR read/write instruction */
-> +       int funct3 = GET_RM(insn);
-> +       if (funct3 == 0 || funct3 == 4) {
-> +               sbi_printf("%s: Invalid opcode for CSR read/write instruction",
-> +                          __func__);
-> +               return truly_illegal_insn(insn, regs);
-> +       }
->
->         if (sbi_emulate_csr_read(csr_num, regs, &csr_val))
->                 return truly_illegal_insn(insn, regs);
->
->         do_write = rs1_num;
-
-No need for this assignment.
-
-> -       switch (GET_RM(insn)) {
-> -       case 1:
-> +       switch (funct3) {
-> +       case CSRRW:
->                 new_csr_val = rs1_val;
-> -               do_write    = 1;
-> +               do_write    = true;
->                 break;
-> -       case 2:
-> +       case CSRRS:
->                 new_csr_val = csr_val | rs1_val;
-> +               do_write    = (rs1_num != 0);
->                 break;
-> -       case 3:
-> +       case CSRRC:
->                 new_csr_val = csr_val & ~rs1_val;
-> +               do_write    = (rs1_num != 0);
->                 break;
-> -       case 5:
-> +       case CSRRWI:
->                 new_csr_val = rs1_num;
-> -               do_write    = 1;
-> +               do_write    = true;
->                 break;
-> -       case 6:
-> +       case CSRRSI:
->                 new_csr_val = csr_val | rs1_num;
-> +               do_write    = (rs1_num != 0);
->                 break;
-> -       case 7:
-> +       case CSRRCI:
->                 new_csr_val = csr_val & ~rs1_num;
-> +               do_write    = (rs1_num != 0);
->                 break;
->         default:
->                 return truly_illegal_insn(insn, regs);
+>  config ANDES_SBI
+>         bool "Andes SBI support"
 > --
-> 2.17.1
+> 2.34.1
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-I have addressed the above comments at the time of merging this patch.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
 
