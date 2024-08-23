@@ -1,113 +1,40 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 23 Aug 2024 17:26:44 +0530
-Subject: [PATCH v2] lib: utils: fdt_domain: Use consistent device-tree
- address when next-arg1 is missing
-In-Reply-To: <20240724150054.3052794-1-peterlin@andestech.com>
-References: <20240724150054.3052794-1-peterlin@andestech.com>
-Message-ID: <CAAhSdy2vn-hRb1GJZh9ryLM59ua0wSXDNZCDho3jBiFwAf0btQ@mail.gmail.com>
+From: Deepak Gupta <debug@rivosinc.com>
+Date: Fri, 23 Aug 2024 11:47:31 -0700
+Subject: [PATCH v4 0/4] zicfilp and zicfiss support in opensbi
+Message-ID: <20240823184735.4154272-1-debug@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 24, 2024 at 8:31?PM Yu Chien Peter Lin
-<peterlin@andestech.com> wrote:
->
-> The diagram shown below illustrates the boot-flow involving OP-TEE OS
-> initialization.
->
->     (1)-----------+
->      | U-Boot SPL |
->      +------------+
->          |
->          v
->     (2)-------------------------------------------------------------+
->      | OpenSBI (fw_dynamic)                                         |
->      |                (4)------------------------+                  |
->      |                 | optee dispatcher driver |                  |
->      +-----------------+-------^---------|-------+------------------+
-> M-mode   |                     |         |
-> ---------+--[trusted domain]---+----.----+--[untrusted domain]-------
-> S-mode   |  (coldboot domain)  |    |    |
->          v                     |    |    v
->     (3)---------------------------+ |(5)----------------------------+
->      | OP-TEE OS                  | | | U-Boot                      |
->      +----------------------------+ | +-----------------------------+
->                                     |    |
->                                     |    v
->                                     |(6)----------------------------+
->                                     | | Linux                       |
->                                     | +-----------------------------+
->
-> As OP-TEE OS has device-tree node fixups that need to be passed
-> through to the next boot stages, e.g. the reserved memory node:
->
->   reserved-memory {
->     #address-cells = <2>;
->     #size-cells = <2>;
->     ranges;
->     optee_core at f1000000 {
->       no-map;
->       reg = <0x0 0xf1000000   // OP-TEE OS base address
->              0x0 0x01000000>;
->     };
->     <...>
->   };
->
-> Instead of using 0x0 as the default value, allow identical next-arg1
-> to be used by non-coldboot domain (i.e., untrusted domain) when the
-> property is not provided.
->
-> Also, update the description of next-arg1 property in the document.
->
-> Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-> Reviewed-by: Alvin Chang <alvinga@andestech.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+v4 for zicfilp and zicfiss support in opensbi
 
-Applied this patch to the riscv/opensbi repo.
+---
+v4:
+ - fixed up commit message in patch 2
+v3:
+ - added fwft implementation for shadow stack and landing pad interface
+v2:
+ - added mpelp for 32bit (mstatush) and its handling in trad redirection
+ - removed default SSE enabling. it'll break shadow stack enabled kernel
+ - put sw check delegation at correct place
 
-Thanks,
-Anup
+Deepak Gupta (4):
+  include: adding support for Zicfilp / Zicfiss encodings
+  lib: sbi: Zicfilp/Zicfiss detection and elp cfi state reflect back in
+    status
+  lib: sbi: sw check exception delegation
+  lib: sbi: fwft: implement landing pad and shadow stack fwft interface
 
-> ---
-> Changes v1 -> v2:
-> - Improve commit message, no functional change
-> ---
->  docs/domain_support.md     | 4 +---
->  lib/utils/fdt/fdt_domain.c | 3 +--
->  2 files changed, 2 insertions(+), 5 deletions(-)
->
-> diff --git a/docs/domain_support.md b/docs/domain_support.md
-> index b34e43a..1a40068 100644
-> --- a/docs/domain_support.md
-> +++ b/docs/domain_support.md
-> @@ -180,9 +180,7 @@ The DT properties of a domain instance DT node are as follows:
->    boot HART of the domain instance.
->  * **next-arg1** (Optional) - The 64 bit next booting stage arg1 for the
->    domain instance. If this DT property is not available and coldboot HART
-> -  is not assigned to the domain instance then **0x0** is used as default
-> -  value. If this DT property is not available and coldboot HART is assigned
-> -  to the domain instance then **next booting stage arg1 of coldboot HART**
-> +  is not assigned to the domain instance then **next booting stage arg1 of coldboot HART**
->    is used as default value.
->  * **next-addr** (Optional) - The 64 bit next booting stage address for the
->    domain instance. If this DT property is not available and coldboot HART
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index fa1c357..a13daa6 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -395,8 +395,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
->                 val64 = fdt32_to_cpu(val[0]);
->                 val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
->         } else {
-> -               if (domain_offset == *cold_domain_offset)
-> -                       val64 = sbi_scratch_thishart_ptr()->next_arg1;
-> +               val64 = sbi_scratch_thishart_ptr()->next_arg1;
->         }
->         dom->next_arg1 = val64;
->
-> --
-> 2.45.2
->
+ include/sbi/riscv_encoding.h |  7 ++++
+ include/sbi/sbi_hart.h       |  3 ++
+ lib/sbi/sbi_fwft.c           | 74 ++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hart.c           | 21 +++++++++-
+ lib/sbi/sbi_trap.c           | 20 ++++++++++
+ 5 files changed, 124 insertions(+), 1 deletion(-)
+
+-- 
+2.44.0
+
 
