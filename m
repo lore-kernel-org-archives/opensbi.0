@@ -1,41 +1,68 @@
-From: Kele Zhang <1952088712@qq.com>
-Date: Sat, 24 Aug 2024 16:19:32 +0800
-Subject: [PATCH 2/2] Makefile: Remove -g from default CFLAGS
-In-Reply-To: <cover.1724487146.git.1952088712@qq.com>
-References: <cover.1724487146.git.1952088712@qq.com>
-Message-ID: <tencent_07F41222A743779181827FB2F0EAE7BECE08@qq.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 24 Aug 2024 14:12:45 +0530
+Subject: [PATCH v2 1/1] lib: utils: fdt_domain: Make opensbi-domain
+ optional in CPU specification
+In-Reply-To: <20240809034712.24857-2-gregorhaas1997@gmail.com>
+References: <20240809034712.24857-1-gregorhaas1997@gmail.com> <20240809034712.24857-2-gregorhaas1997@gmail.com>
+Message-ID: <CAAhSdy3gHyYeH=SkZVRtASY407e+WgmqDVmMScXesfmfWsHxTQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Remove `-g` from default CFLAGS as it should not be used in production
-builds. Adjust optimization level to `-Og` when DEBUG is enabled.
+On Fri, Aug 9, 2024 at 9:17?AM Gregor Haas <gregorhaas1997@gmail.com> wrote:
+>
 
-Signed-off-by: Kele Zhang <1952088712@qq.com>
-Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
----
- Makefile | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+s/CPU specification/CPU node/
 
-diff --git a/Makefile b/Makefile
-index 9abea9f..bcec588 100644
---- a/Makefile
-+++ b/Makefile
-@@ -346,9 +346,9 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
- GENFLAGS	+=	$(platform-genflags-y)
- GENFLAGS	+=	$(firmware-genflags-y)
- 
--CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections -Wl,--gc-sections
-+CFLAGS		=	-Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections -Wl,--gc-sections
- ifneq ($(DEBUG),)
--CFLAGS		+=	-O0 -Wl,--print-gc-sections
-+CFLAGS		+=	-Og -Wl,--print-gc-sections
- else
- CFLAGS		+=	-O2
- endif
--- 
-2.34.1
+> The domain_support.md documentation states that "the HART to domain instance
+> assignment can be parsed from the device tree using *optional* DT property
+> opensbi-domain in each CPU DT node". However, the current implementation does
+> not treat this parameter as optional when determining which HARTs to assign to
+> a freshly discovered domain from the device tree, causing an effect where every
+> HART in the system must be explicitly assigned to a domain only if a domain is
+> specified in the device tree. Instead, this patch simply ignores CPUs that do
+> not specify a domain, and does not attempt to assign them into the recently
+> discovered domain.
+>
+> Signed-off-by: Gregor Haas <gregorhaas1997@gmail.com>
+> ---
+>  lib/utils/fdt/fdt_domain.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+> index fa1c357..c6ee127 100644
+> --- a/lib/utils/fdt/fdt_domain.c
+> +++ b/lib/utils/fdt/fdt_domain.c
+> @@ -459,12 +459,12 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
+>                 if (!fdt_node_is_enabled(fdt, cpu_offset))
+>                         continue;
+>
+> +               /* This is an optional property */
+>                 val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
+> -               if (!val || len < 4) {
+> -                       err = SBI_EINVAL;
+> -                       goto fail_free_all;
+> -               }
+> +               if (!val || len < 4)
+> +                       continue;
+>
+> +               /* However, it should be valid if specified */
+>                 doffset = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
+>                 if (doffset < 0) {
+>                         err = doffset;
+> --
+> 2.45.2
+>
 
+Otherwise, this looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+I have taken care of the above comment at the time of merging this patch.
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
 
