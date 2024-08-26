@@ -1,75 +1,45 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Sun, 25 Aug 2024 09:33:05 +0530
-Subject: [PATCH] platform: generic: Fix fw_platform_coldboot_harts_init() function
-Message-ID: <20240825040305.3947940-1-apatel@ventanamicro.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 26 Aug 2024 13:00:58 +0200
+Subject: [PATCH] lib: sbi: Add additional range checks for RV32
+In-Reply-To: <CAAhSdy2DrwQ94GgOAtAodQ=hxGog8ovmjoR+9+RnXCMx2bmfWw@mail.gmail.com>
+References: <20240814122959.49914-2-ajones@ventanamicro.com>
+ <CAAhSdy2DrwQ94GgOAtAodQ=hxGog8ovmjoR+9+RnXCMx2bmfWw@mail.gmail.com>
+Message-ID: <20240826-e18e6c0b91536fe454490d16@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-It is possible that the OpenSBI config DT node is present but
-the "cold-boot-harts" DT property is not present. In this case,
-the fw_platform_coldboot_harts_init() will do nothing which
-in-turn causes OpenSBI firmware hang at boot time.
+On Sat, Aug 24, 2024 at 02:38:31PM GMT, Anup Patel wrote:
+> On Wed, Aug 14, 2024 at 6:02?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+> >
+> > On RV32, M-mode can only access the first 4G of the physical
+> > address space because M-mode does not have an MMU to access the
+> > full 34-bit physical address space. While we already ensure
+> > the "hi" registers of RV32 physical address inputs are zero we
+> > need to also ensure that the low register plus the size does
+> > not cross into 4G address space. The check added to
+> > sbi_domain_check_addr_range() should be enough for both DBCN
+> > and SSE, but DBCN returns a different error code for high
+> > addresses, so we patch that check too.
+> >
+> > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> >
+> > ---
+> >
+> > Should the SSE functions return SBI_ERR_FAILED in this case like DBCN
+> > does? We'd need to patch the SSE spec to call out SBI_ERR_FAILED as
+> > "Failed to write due to I/O errors." like DBCN does too.
+> 
+> Instead of special-casing wrap-around check separately for each SBI
+> extension, I suggest:
+> 1) Add one more requirement in section 3.2 of the SBI spec to prevent
+> wrap-around
+> 2) Update sbi_domain_check_addr_range() like this patch does.
 
-To address the above issue, fallback to the default approach
-when the "cold-boot-harts" DT property is not present.
+Sounds good to me.
 
-Fixes: 67ce5a763cfb ("platform: generic: Add support for specify coldboot harts in DT")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- platform/generic/platform.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
-
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 8a0ace83..d1fa84bd 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -102,26 +102,26 @@ static void fw_platform_coldboot_harts_init(const void *fdt)
- 		goto default_config;
- 
- 	val = fdt_getprop(fdt, config_offset, "cold-boot-harts", &len);
--	len = len / sizeof(u32);
--	if (val && len) {
--		for (int i = 0; i < len; i++) {
--			cpu_offset = fdt_node_offset_by_phandle(fdt,
--							fdt32_to_cpu(val[i]));
--			if (cpu_offset < 0)
--				goto default_config;
-+	if (!val || !len)
-+		goto default_config;
- 
--			err = fdt_parse_hart_id(fdt, cpu_offset, &val32);
--			if (err)
--				goto default_config;
-+	len = len / sizeof(u32);
-+	for (int i = 0; i < len; i++) {
-+		cpu_offset = fdt_node_offset_by_phandle(fdt,
-+						fdt32_to_cpu(val[i]));
-+		if (cpu_offset < 0)
-+			goto default_config;
- 
--			if (!fdt_node_is_enabled(fdt, cpu_offset))
--				continue;
-+		err = fdt_parse_hart_id(fdt, cpu_offset, &val32);
-+		if (err)
-+			goto default_config;
- 
--			for (int i = 0; i < platform.hart_count; i++) {
--				if (val32 == generic_hart_index2id[i])
--					bitmap_set(generic_coldboot_harts, i, 1);
--			}
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
- 
-+		for (int i = 0; i < platform.hart_count; i++) {
-+			if (val32 == generic_hart_index2id[i])
-+				bitmap_set(generic_coldboot_harts, i, 1);
- 		}
- 	}
- 
--- 
-2.34.1
-
+Thanks,
+drew
 
