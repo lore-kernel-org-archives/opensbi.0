@@ -1,36 +1,79 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Wed, 28 Aug 2024 16:01:06 +0100
-Subject: [PATCH 2/2] Makefile: Remove -g from default CFLAGS
-In-Reply-To: <CAEUhbmVB=qBxgYxTA9c4fZEXVTVNarJqqMjnHm_QFF_MGts3jA@mail.gmail.com>
-References: <cover.1724487146.git.1952088712@qq.com>
- <tencent_07F41222A743779181827FB2F0EAE7BECE08@qq.com>
- <CAEUhbmVB=qBxgYxTA9c4fZEXVTVNarJqqMjnHm_QFF_MGts3jA@mail.gmail.com>
-Message-ID: <46E64025-292E-41C9-A4CE-6971EE800948@jrtc27.com>
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Wed, 28 Aug 2024 23:05:00 +0800
+Subject: [PATCH 1/2] Makefile: enable --gc-sections
+In-Reply-To: <tencent_48AE88FE505E24B2609EACA57A9A2F35BD06@qq.com>
+References: <cover.1724487146.git.1952088712@qq.com> <tencent_48AE88FE505E24B2609EACA57A9A2F35BD06@qq.com>
+Message-ID: <CAEUhbmWO4j4bnr7K70jscibbcrJR0rtieFVpJsos4qWO2=CCTQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 28 Aug 2024, at 15:50, Bin Meng <bmeng.cn@gmail.com> wrote:
-> 
-> On Sat, Aug 24, 2024 at 4:22?PM Kele Zhang <1952088712@qq.com> wrote:
->> 
->> Remove `-g` from default CFLAGS as it should not be used in production
->> builds. Adjust optimization level to `-Og` when DEBUG is enabled.
-> 
-> The production build does not use ELF images to program onto the board
-> but the plain binary image instead. So `-g`should be fine.
+On Sat, Aug 24, 2024 at 4:19?PM Kele Zhang <1952088712@qq.com> wrote:
+>
+> The --gc-sections option enables the linker to perform garbage
+> collection of unreferenced code and data, thereby reducing the binary
+> size.
+>
+> The -ffunction-sections option will place each function into a separate
+> section, so it is necessary to add .text.* to the linker script.
+>
+> Signed-off-by: Kele Zhang <1952088712@qq.com>
+> Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
+> Signed-off-by: Zhangjin Wu <falcon@tinylab.org>
+> ---
+>  Makefile                    | 4 ++--
+>  firmware/fw_base.ldS        | 1 +
+>  firmware/fw_payload.elf.ldS | 2 +-
+>  3 files changed, 4 insertions(+), 3 deletions(-)
+>
+> diff --git a/Makefile b/Makefile
+> index 9c7fd4d..9abea9f 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -346,9 +346,9 @@ GENFLAGS    +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
+>
+> -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+> +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections -Wl,--gc-sections
 
-And even for boards that do, -g is the right thing to do. If you don?t
-want debugging symbols, strip the binary, but it?s useful to default to
-including them; distributions generally do exactly that, stripping the
-installed binary but keeping the debug symbols around in a separate
-.debug file.
+--gc-sections should be put in the ELFFLAGS
 
-Debug symbols also aren?t loaded into memory, they only exist on disk,
-so the only cost is a bit of disk space.
+>  ifneq ($(DEBUG),)
+> -CFLAGS         +=      -O0
+> +CFLAGS         +=      -O0 -Wl,--print-gc-sections
+>  else
+>  CFLAGS         +=      -O2
+>  endif
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index fb47984..a33746a 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -20,6 +20,7 @@
+>                 PROVIDE(_text_start = .);
+>                 *(.entry)
+>                 *(.text)
+> +               *(.text.*)
+>                 . = ALIGN(8);
+>                 PROVIDE(_text_end = .);
+>         }
+> diff --git a/firmware/fw_payload.elf.ldS b/firmware/fw_payload.elf.ldS
+> index f1a544b..4e1f011 100644
+> --- a/firmware/fw_payload.elf.ldS
+> +++ b/firmware/fw_payload.elf.ldS
+> @@ -23,7 +23,7 @@ SECTIONS
+>         .payload :
+>         {
+>                 PROVIDE(_payload_start = .);
+> -               *(.payload)
+> +               KEEP(*(.payload))
+>                 . = ALIGN(8);
+>                 PROVIDE(_payload_end = .);
+>         }
+> --
 
-Jess
-
+Regards,
+Bin
 
