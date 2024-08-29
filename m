@@ -1,37 +1,66 @@
 From: Kele Zhang <zhangcola2003@gmail.com>
-Date: Thu, 29 Aug 2024 20:11:58 +0000
-Subject: [PATCH v2 0/1] Enable Dead Code Elimination
-Message-ID: <cover.1724959010.git.zhangcola2003@gmail.com>
+Date: Thu, 29 Aug 2024 20:12:10 +0000
+Subject: [PATCH v2 1/1] Makefile: enable --gc-sections
+In-Reply-To: <cover.1724959010.git.zhangcola2003@gmail.com>
+References: <cover.1724959010.git.zhangcola2003@gmail.com>
+Message-ID: <004ed61b6c6743ab87a369bc6202b4b1c50de89d.1724959010.git.zhangcola2003@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch enables `--gc-sections`. Dead Code Elimination (DCE) can
-reduce binary size and the attack surface without introducing side
-effects, and it has been used in the Linux kernel for many years.
+The --gc-sections option enables the linker to perform garbage
+collection of unreferenced code and data, thereby reducing the binary
+size.
 
-After testing, enabling DCE does not affect the normal functionality of
-OpenSBI.
+The -ffunction-sections option will place each function into a separate
+section, so it is necessary to add .text.* to the linker script.
 
+Signed-off-by: Kele Zhang <zhangcola2003@gmail.com>
+Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
+Signed-off-by: Zhangjin Wu <falcon@tinylab.org>
 ---
-v1: https://lists.infradead.org/pipermail/opensbi/2024-August/007286.html
-
----
-Changes in v2:
-- Move --gc-sections to ELFFLAGS
-- Remove redundant KEEP() 
-
-Kele Zhang (1):
-  Makefile: enable --gc-sections
-
  Makefile             | 5 +++--
  firmware/fw_base.ldS | 1 +
  2 files changed, 4 insertions(+), 2 deletions(-)
 
-
-base-commit: c4940a9517486413cd676fc8032bb55f9d4e2778
+diff --git a/Makefile b/Makefile
+index e5a0f19..44db5d4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -355,9 +355,9 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
+ GENFLAGS	+=	$(platform-genflags-y)
+ GENFLAGS	+=	$(firmware-genflags-y)
+ 
+-CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
++CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
+ ifneq ($(DEBUG),)
+-CFLAGS		+=	-O0
++CFLAGS		+=	-O0 -Wl,--print-gc-sections
+ else
+ CFLAGS		+=	-O2
+ endif
+@@ -406,6 +406,7 @@ ASFLAGS		+=	$(firmware-asflags-y)
+ ARFLAGS		=	rcs
+ 
+ ELFFLAGS	+=	$(USE_LD_FLAG)
++ELFFLAGS	+=	-Wl,--gc-sections
+ ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
+ ELFFLAGS	+=	-Wl,--exclude-libs,ALL
+ endif
+diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+index fb47984..a33746a 100644
+--- a/firmware/fw_base.ldS
++++ b/firmware/fw_base.ldS
+@@ -20,6 +20,7 @@
+ 		PROVIDE(_text_start = .);
+ 		*(.entry)
+ 		*(.text)
++		*(.text.*)
+ 		. = ALIGN(8);
+ 		PROVIDE(_text_end = .);
+ 	}
 -- 
 2.34.1
 
