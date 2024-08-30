@@ -1,119 +1,120 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Fri, 30 Aug 2024 08:49:12 -0700
-Subject: [PATCH 08/12] lib: sbi: Update __sbi_hsm_hart_get_state() to take a hart index
+Date: Fri, 30 Aug 2024 08:49:15 -0700
+Subject: [PATCH 11/12] lib: sbi: Update sbi_{entry,init}_count() to take a hart index
 In-Reply-To: <20240830154929.3971790-1-samuel.holland@sifive.com>
 References: <20240830154929.3971790-1-samuel.holland@sifive.com>
-Message-ID: <20240830154929.3971790-9-samuel.holland@sifive.com>
+Message-ID: <20240830154929.3971790-12-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This removes some hartindex conversions in sbi_system_suspend(), but is
-mostly intended to support refactoring sbi_hsm_hart_interruptible_mask()
-to work exclusively with struct sbi_hartmask.
+All callers already have the hartindex available, so this removes a
+hartid to hartindex conversion.
 
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- include/sbi/sbi_hsm.h |  2 +-
- lib/sbi/sbi_hsm.c     | 12 ++++++++----
- lib/sbi/sbi_system.c  |  9 ++++-----
- 3 files changed, 13 insertions(+), 10 deletions(-)
+ include/sbi/sbi_init.h         | 4 ++--
+ lib/sbi/sbi_hsm.c              | 4 ++--
+ lib/sbi/sbi_init.c             | 8 ++++----
+ platform/generic/andes/ae350.c | 6 ++++--
+ 4 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
-index 4b5601ba..d8ca459d 100644
---- a/include/sbi/sbi_hsm.h
-+++ b/include/sbi/sbi_hsm.h
-@@ -72,7 +72,7 @@ int sbi_hsm_hart_suspend(struct sbi_scratch *scratch, u32 suspend_type,
- 			 ulong raddr, ulong rmode, ulong arg1);
- bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
- 			       long newstate);
--int __sbi_hsm_hart_get_state(u32 hartid);
-+int __sbi_hsm_hart_get_state(u32 hartindex);
- int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
- int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
- 				    ulong hbase, ulong *out_hmask);
+diff --git a/include/sbi/sbi_init.h b/include/sbi/sbi_init.h
+index 9640fee9..c9013ea4 100644
+--- a/include/sbi/sbi_init.h
++++ b/include/sbi/sbi_init.h
+@@ -16,9 +16,9 @@ struct sbi_scratch;
+ 
+ void __noreturn sbi_init(struct sbi_scratch *scratch);
+ 
+-unsigned long sbi_entry_count(u32 hartid);
++unsigned long sbi_entry_count(u32 hartindex);
+ 
+-unsigned long sbi_init_count(u32 hartid);
++unsigned long sbi_init_count(u32 hartindex);
+ 
+ void __noreturn sbi_exit(struct sbi_scratch *scratch);
+ 
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index ab11b119..5af3c4af 100644
+index e7e31ad5..5679819c 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -60,12 +60,12 @@ bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
- 	return __sbi_hsm_hart_change_state(hdata, oldstate, newstate);
+@@ -324,8 +324,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
+ 	if (!hsm_start_ticket_acquire(hdata))
+ 		return SBI_EINVAL;
+ 
+-	init_count = sbi_init_count(hartid);
+-	entry_count = sbi_entry_count(hartid);
++	init_count = sbi_init_count(hartindex);
++	entry_count = sbi_entry_count(hartindex);
+ 
+ 	rscratch->next_arg1 = arg1;
+ 	rscratch->next_addr = saddr;
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 7443010e..18d33088 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -551,7 +551,7 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+ 		init_warmboot(scratch, hartid);
  }
  
--int __sbi_hsm_hart_get_state(u32 hartid)
-+int __sbi_hsm_hart_get_state(u32 hartindex)
+-unsigned long sbi_entry_count(u32 hartid)
++unsigned long sbi_entry_count(u32 hartindex)
  {
- 	struct sbi_hsm_data *hdata;
  	struct sbi_scratch *scratch;
+ 	unsigned long *entry_count;
+@@ -559,7 +559,7 @@ unsigned long sbi_entry_count(u32 hartid)
+ 	if (!entry_count_offset)
+ 		return 0;
  
 -	scratch = sbi_hartid_to_scratch(hartid);
 +	scratch = sbi_hartindex_to_scratch(hartindex);
  	if (!scratch)
- 		return SBI_EINVAL;
+ 		return 0;
  
-@@ -75,10 +75,12 @@ int __sbi_hsm_hart_get_state(u32 hartid)
+@@ -568,7 +568,7 @@ unsigned long sbi_entry_count(u32 hartid)
+ 	return *entry_count;
+ }
  
- int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid)
+-unsigned long sbi_init_count(u32 hartid)
++unsigned long sbi_init_count(u32 hartindex)
+ {
+ 	struct sbi_scratch *scratch;
+ 	unsigned long *init_count;
+@@ -576,7 +576,7 @@ unsigned long sbi_init_count(u32 hartid)
+ 	if (!init_count_offset)
+ 		return 0;
+ 
+-	scratch = sbi_hartid_to_scratch(hartid);
++	scratch = sbi_hartindex_to_scratch(hartindex);
+ 	if (!scratch)
+ 		return 0;
+ 
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index 3ad6c856..0da3ae51 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -27,13 +27,15 @@ extern void __ae350_disable_coherency(void);
+ 
+ static int ae350_hart_start(u32 hartid, ulong saddr)
  {
 +	u32 hartindex = sbi_hartid_to_hartindex(hartid);
 +
- 	if (!sbi_domain_is_assigned_hart(dom, hartid))
- 		return SBI_EINVAL;
+ 	/*
+ 	 * Don't send wakeup command when:
+ 	 * 1) boot-time
+ 	 * 2) the target hart is non-sleepable 25-series hart0
+ 	 */
+-	if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
+-		return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
++	if (!sbi_init_count(hartindex) || (is_andes(25) && hartid == 0))
++		return sbi_ipi_raw_send(hartindex);
  
--	return __sbi_hsm_hart_get_state(hartid);
-+	return __sbi_hsm_hart_get_state(hartindex);
- }
- 
- /*
-@@ -120,6 +122,7 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
- {
- 	int hstate;
- 	ulong i, hmask, dmask;
-+	u32 hartindex;
- 
- 	*out_hmask = 0;
- 	if (!sbi_hartid_valid(hbase))
-@@ -131,7 +134,8 @@ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
- 		if (!(dmask & hmask))
- 			continue;
- 
--		hstate = __sbi_hsm_hart_get_state(hbase + i);
-+		hartindex = sbi_hartid_to_hartindex(hbase + i);
-+		hstate = __sbi_hsm_hart_get_state(hartindex);
- 		if (hstate == SBI_HSM_STATE_STARTED ||
- 		    hstate == SBI_HSM_STATE_SUSPENDED ||
- 		    hstate == SBI_HSM_STATE_RESUME_PENDING)
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index f3c49bbd..8e624fdd 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -142,9 +142,9 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	void (*jump_warmboot)(void) = (void (*)(void))scratch->warmboot_addr;
--	unsigned int hartid = current_hartid();
-+	unsigned int hartindex = current_hartindex();
- 	unsigned long prev_mode;
--	unsigned long i, j;
-+	unsigned long i;
- 	int ret;
- 
- 	if (!dom || !dom->system_suspend_allowed)
-@@ -163,9 +163,8 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
- 		return SBI_EFAIL;
- 
- 	spin_lock(&dom->assigned_harts_lock);
--	sbi_hartmask_for_each_hartindex(j, &dom->assigned_harts) {
--		i = sbi_hartindex_to_hartid(j);
--		if (i == hartid)
-+	sbi_hartmask_for_each_hartindex(i, &dom->assigned_harts) {
-+		if (i == hartindex)
- 			continue;
- 		if (__sbi_hsm_hart_get_state(i) != SBI_HSM_STATE_STOPPED) {
- 			spin_unlock(&dom->assigned_harts_lock);
+ 	/* Write wakeup command to the sleep hart */
+ 	smu_set_command(&smu, WAKEUP_CMD, hartid);
 -- 
 2.45.1
 
