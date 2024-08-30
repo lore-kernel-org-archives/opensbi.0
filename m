@@ -1,71 +1,51 @@
-From: Atish Patra <atishp@rivosinc.com>
-Date: Thu, 29 Aug 2024 18:03:55 -0700
-Subject: [PATCH] docs: Remove github PR as an option
-Message-ID: <20240829-doc_pr_fix-v1-1-a123ea4cf769@rivosinc.com>
+From: Zong Li <zong.li@sifive.com>
+Date: Fri, 30 Aug 2024 11:16:10 +0800
+Subject: [PATCH] include: sbi_bitops: add ULL version for BIT and GENMASK
+Message-ID: <20240830031610.32730-1-zong.li@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-OpenSBI development workflow is mailing list based from the
-beginning. Initially, github PRs were added as an option but it turned
-out that it is not feasible to support both github PR and mailing list
-based workflows. Hence, all the PRs has been redirected to use the
-mailing list from a long time. In fact, it is source of confusion to
-have both options.
+Add BIT_ULL and GENMASK_ULL for dealing with 64-bits data on
+32-bits CPU, then we don't need to separate the operation to
+low part and high part. For instance, the MMIO register is
+64 bits wide.
 
-Update the documentation to reflect the reality.
-
-Signed-off-by: Atish Patra <atishp@rivosinc.com>
+Signed-off-by: Zong Li <zong.li@sifive.com>
 ---
- docs/contributing.md | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ include/sbi/sbi_bitops.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/docs/contributing.md b/docs/contributing.md
-index 78d909e474ca..4d08c6473855 100644
---- a/docs/contributing.md
-+++ b/docs/contributing.md
-@@ -1,17 +1,15 @@
- OpenSBI Contribution Guideline
- ==============================
+diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
+index 7d90334..3ddac77 100644
+--- a/include/sbi/sbi_bitops.h
++++ b/include/sbi/sbi_bitops.h
+@@ -14,6 +14,8 @@
  
--All contributions to OpenSBI can be sent in the following ways:
--1. Email patches to the OpenSBI mailing list at `opensbi at lists.infradead.org`
--2. GitHub Pull Requests (PRs) to the [OpenSBI main repository]
-+All contributions to OpenSBI must be sent via email patches to the OpenSBI
-+mailing list at `opensbi at lists.infradead.org`
+ #define BITS_PER_LONG		(8 * __SIZEOF_LONG__)
  
- To join the OpenSBI mailing list, please visit the [OpenSBI infradead page].
++#define BITS_PER_LONG_LONG	64
++
+ #define EXTRACT_FIELD(val, which) \
+ 	(((val) & (which)) / ((which) & ~((which)-1)))
+ #define INSERT_FIELD(val, which, fieldval) \
+@@ -28,9 +30,13 @@
+ #define BIT_WORD_OFFSET(bit)	((bit) & (BITS_PER_LONG - 1))
+ #define BIT_ALIGN(bit, align)	(((bit) + ((align) - 1)) & ~((align) - 1))
  
--The OpenSBI maintainers prefer patches via the OpenSBI mailing list
--(option 1 above) so that they are visible to a wider audience. All
--accepted patches on the OpenSBI mailing list will be taken by any of
--the OpenSBI maintainers and merged into the [OpenSBI main repository]
--using GitHub PRs.
-+The mailing list based patch approach is preferred over github PRs so that they
-+are visible to a wider audience. All accepted patches on the OpenSBI mailing
-+list will be taken by one of the OpenSBI maintainers and merged into the
-+[OpenSBI main repository].
++#define BIT_ULL(nr)		(1ULL << (nr))
++
+ #define GENMASK(h, l) \
+ 	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
  
- All contributed work must follow the following rules:
- 1. OpenSBI code should be written in accordance to the [Linux coding style].
-@@ -33,9 +31,6 @@ riscv/opensbi repository. Instead, prefer using a fork of the riscv/opensbi main
- repository and branches within that fork to create pull requests.
- 7. A maintainer cannot merge his own pull requests in the riscv/opensbi main
- repository.
--8. A pull request must get at least one review from a maintainer.
--9. A pull request must spend at least 24 hours in review to allow for other
--developers to review.
- 
- -----------------------------------------------------------------------
- 
-
----
-base-commit: c4940a9517486413cd676fc8032bb55f9d4e2778
-change-id: 20240829-doc_pr_fix-886dcb124632
---
-Regards,
-Atish patra
++#define GENMASK_ULL(h, l) \
++	(((~0ULL) - (1ULL << (l)) + 1) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
+ /**
+  * sbi_ffs - find first (less-significant) set bit in a long word.
+  * @word: The word to search
+-- 
+2.17.1
 
 
