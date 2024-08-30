@@ -1,53 +1,74 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Fri, 30 Aug 2024 08:49:05 -0700
-Subject: [PATCH 01/12] lib: sbi_init: Remove obsolete hartid check
+Date: Fri, 30 Aug 2024 08:49:06 -0700
+Subject: [PATCH 02/12] include: sbi: Store the hart index in struct sbi_scratch
 In-Reply-To: <20240830154929.3971790-1-samuel.holland@sifive.com>
 References: <20240830154929.3971790-1-samuel.holland@sifive.com>
-Message-ID: <20240830154929.3971790-2-samuel.holland@sifive.com>
+Message-ID: <20240830154929.3971790-3-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This check has been obsolete since commit c51f02cf143b ("include:
-sbi_platform: Introduce HART index to HART id table"). It originally
-filtered out harts that were disabled in the FDT, but those harts are
-omitted from the hart_index2id table, so they will hang in fw_base.S
-after the "Find HART index" loop and never enter sbi_init().
+This is a more efficient way to get the index of the current hart than
+calling a function to loop through the hartindex -> hartid lookup table.
 
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- lib/sbi/sbi_init.c | 10 ----------
- 1 file changed, 10 deletions(-)
+ firmware/fw_base.S        |  2 ++
+ include/sbi/sbi_scratch.h | 10 +++++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index d80efe97..7443010e 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -500,21 +500,11 @@ static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
-  */
- void __noreturn sbi_init(struct sbi_scratch *scratch)
- {
--	u32 i, h;
--	bool hartid_valid		= false;
- 	bool next_mode_supported	= false;
- 	bool coldboot			= false;
- 	u32 hartid			= current_hartid();
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index b950c0b8..30dc28f0 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -218,6 +218,8 @@ _scratch_init:
+ #endif
+ 	REG_S	a0, SBI_SCRATCH_OPTIONS_OFFSET(tp)
+ 	MOV_3R	a0, s0, a1, s1, a2, s2
++	/* Store hart index in scratch space */
++	REG_S	t1, SBI_SCRATCH_HARTINDEX_OFFSET(tp)
+ 	/* Move to next scratch space */
+ 	add	t1, t1, t2
+ 	blt	t1, s7, _scratch_init
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index 12e6a983..9ae4f891 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -42,8 +42,10 @@
+ #define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
+ /** Offset of options member in sbi_scratch */
+ #define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
++/** Offset of hartindex member in sbi_scratch */
++#define SBI_SCRATCH_HARTINDEX_OFFSET		(14 * __SIZEOF_POINTER__)
+ /** Offset of extra space in sbi_scratch */
+-#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(14 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(15 * __SIZEOF_POINTER__)
+ /** Maximum size of sbi_scratch (4KB) */
+ #define SBI_SCRATCH_SIZE			(0x1000)
  
--	for (i = 0; i < plat->hart_count; i++) {
--		h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
--		if (h == hartid)
--			hartid_valid = true;
--	}
--	if (!hartid_valid)
--		sbi_hart_hang();
--
- 	switch (scratch->next_mode) {
- 	case PRV_M:
- 		next_mode_supported = true;
+@@ -83,6 +85,8 @@ struct sbi_scratch {
+ 	unsigned long tmp0;
+ 	/** Options for OpenSBI library */
+ 	unsigned long options;
++	/** Index of the hart */
++	unsigned long hartindex;
+ };
+ 
+ /**
+@@ -202,6 +206,10 @@ do {									\
+ 					= (__type)(__ptr);		\
+ } while (0)
+ 
++/** Get the hart index of the current hart */
++#define current_hartindex() \
++	(sbi_scratch_thishart_ptr()->hartindex)
++
+ /** Last HART index having a sbi_scratch pointer */
+ extern u32 last_hartindex_having_scratch;
+ 
 -- 
 2.45.1
 
