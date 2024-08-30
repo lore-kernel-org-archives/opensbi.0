@@ -1,120 +1,208 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Fri, 30 Aug 2024 08:49:15 -0700
-Subject: [PATCH 11/12] lib: sbi: Update sbi_{entry,init}_count() to take a hart index
+Date: Fri, 30 Aug 2024 08:49:13 -0700
+Subject: [PATCH 09/12] lib: sbi: Use sbi_hartmask in sbi_hsm_hart_interruptible_mask()
 In-Reply-To: <20240830154929.3971790-1-samuel.holland@sifive.com>
 References: <20240830154929.3971790-1-samuel.holland@sifive.com>
-Message-ID: <20240830154929.3971790-12-samuel.holland@sifive.com>
+Message-ID: <20240830154929.3971790-10-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-All callers already have the hartindex available, so this removes a
-hartid to hartindex conversion.
+This removes several hartid/hartindex conversions, as well as two loops
+through the mask for broadcast IPIs.
 
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- include/sbi/sbi_init.h         | 4 ++--
- lib/sbi/sbi_hsm.c              | 4 ++--
- lib/sbi/sbi_init.c             | 8 ++++----
- platform/generic/andes/ae350.c | 6 ++++--
- 4 files changed, 12 insertions(+), 10 deletions(-)
+ include/sbi/sbi_domain.h | 11 +++++------
+ include/sbi/sbi_hsm.h    |  3 ++-
+ lib/sbi/sbi_domain.c     | 13 ++++++-------
+ lib/sbi/sbi_hsm.c        | 37 ++++++++++++++-----------------------
+ lib/sbi/sbi_ipi.c        | 32 +++++++++++++-------------------
+ 5 files changed, 40 insertions(+), 56 deletions(-)
 
-diff --git a/include/sbi/sbi_init.h b/include/sbi/sbi_init.h
-index 9640fee9..c9013ea4 100644
---- a/include/sbi/sbi_init.h
-+++ b/include/sbi/sbi_init.h
-@@ -16,9 +16,9 @@ struct sbi_scratch;
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 2c905941..639f9e57 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -237,14 +237,13 @@ extern struct sbi_domain *domidx_to_domain_table[];
+ bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid);
  
- void __noreturn sbi_init(struct sbi_scratch *scratch);
+ /**
+- * Get ulong assigned HART mask for given domain and HART base ID
++ * Get the assigned HART mask for given domain
+  * @param dom pointer to domain
+- * @param hbase the HART base ID
+- * @return ulong possible HART mask
+- * Note: the return ulong mask will be set to zero on failure.
++ * @param mask the output hartmask to fill
++ * @return 0 on success and SBI_Exxx (< 0) on failure
+  */
+-ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
+-				       ulong hbase);
++int sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
++				     struct sbi_hartmask *mask);
  
--unsigned long sbi_entry_count(u32 hartid);
-+unsigned long sbi_entry_count(u32 hartindex);
+ /**
+  * Initialize a domain memory region based on it's physical
+diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+index d8ca459d..e4b92c80 100644
+--- a/include/sbi/sbi_hsm.h
++++ b/include/sbi/sbi_hsm.h
+@@ -10,6 +10,7 @@
+ #ifndef __SBI_HSM_H__
+ #define __SBI_HSM_H__
  
--unsigned long sbi_init_count(u32 hartid);
-+unsigned long sbi_init_count(u32 hartindex);
++#include <sbi/sbi_hartmask.h>
+ #include <sbi/sbi_types.h>
  
- void __noreturn sbi_exit(struct sbi_scratch *scratch);
+ /** Hart state managment device */
+@@ -75,7 +76,7 @@ bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
+ int __sbi_hsm_hart_get_state(u32 hartindex);
+ int sbi_hsm_hart_get_state(const struct sbi_domain *dom, u32 hartid);
+ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+-				    ulong hbase, ulong *out_hmask);
++				    struct sbi_hartmask *mask);
+ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch);
+ void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+ 					  u32 hartid);
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 374ac36b..58cd9aaa 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -77,20 +77,19 @@ bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartid)
+ 	return ret;
+ }
  
+-ulong sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
+-				       ulong hbase)
++int sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
++				     struct sbi_hartmask *mask)
+ {
+ 	ulong ret = 0;
+ 	struct sbi_domain *tdom = (struct sbi_domain *)dom;
+ 
+-	if (!dom)
++	if (!dom) {
++		sbi_hartmask_clear_all(mask);
+ 		return 0;
++	}
+ 
+ 	spin_lock(&tdom->assigned_harts_lock);
+-	for (int i = 0; i < 8 * sizeof(ret); i++) {
+-		if (sbi_hartmask_test_hartid(hbase + i, &tdom->assigned_harts))
+-			ret |= 1UL << i;
+-	}
++	*mask = tdom->assigned_harts;
+ 	spin_unlock(&tdom->assigned_harts_lock);
+ 
+ 	return ret;
 diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index e7e31ad5..5679819c 100644
+index 5af3c4af..e25dd161 100644
 --- a/lib/sbi/sbi_hsm.c
 +++ b/lib/sbi/sbi_hsm.c
-@@ -324,8 +324,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	if (!hsm_start_ticket_acquire(hdata))
- 		return SBI_EINVAL;
- 
--	init_count = sbi_init_count(hartid);
--	entry_count = sbi_entry_count(hartid);
-+	init_count = sbi_init_count(hartindex);
-+	entry_count = sbi_entry_count(hartindex);
- 
- 	rscratch->next_arg1 = arg1;
- 	rscratch->next_addr = saddr;
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 7443010e..18d33088 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -551,7 +551,7 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 		init_warmboot(scratch, hartid);
+@@ -110,36 +110,27 @@ static void hsm_start_ticket_release(struct sbi_hsm_data *hdata)
  }
  
--unsigned long sbi_entry_count(u32 hartid)
-+unsigned long sbi_entry_count(u32 hartindex)
+ /**
+- * Get ulong HART mask for given HART base ID
++ * Get the mask of harts which are valid IPI targets
+  * @param dom the domain to be used for output HART mask
+- * @param hbase the HART base ID
+- * @param out_hmask the output ulong HART mask
++ * @param mask the output hartmask to fill
+  * @return 0 on success and SBI_Exxx (< 0) on failure
+- * Note: the output HART mask will be set to zero on failure as well.
+  */
+ int sbi_hsm_hart_interruptible_mask(const struct sbi_domain *dom,
+-				    ulong hbase, ulong *out_hmask)
++				    struct sbi_hartmask *mask)
  {
- 	struct sbi_scratch *scratch;
- 	unsigned long *entry_count;
-@@ -559,7 +559,7 @@ unsigned long sbi_entry_count(u32 hartid)
- 	if (!entry_count_offset)
- 		return 0;
+-	int hstate;
+-	ulong i, hmask, dmask;
+-	u32 hartindex;
++	int hstate, ret;
++	u32 i;
  
--	scratch = sbi_hartid_to_scratch(hartid);
-+	scratch = sbi_hartindex_to_scratch(hartindex);
- 	if (!scratch)
- 		return 0;
+-	*out_hmask = 0;
+-	if (!sbi_hartid_valid(hbase))
+-		return SBI_EINVAL;
++	ret = sbi_domain_get_assigned_hartmask(dom, mask);
++	if (ret)
++		return ret;
  
-@@ -568,7 +568,7 @@ unsigned long sbi_entry_count(u32 hartid)
- 	return *entry_count;
- }
+-	dmask = sbi_domain_get_assigned_hartmask(dom, hbase);
+-	for (i = 0; i < BITS_PER_LONG; i++) {
+-		hmask = 1UL << i;
+-		if (!(dmask & hmask))
+-			continue;
+-
+-		hartindex = sbi_hartid_to_hartindex(hbase + i);
+-		hstate = __sbi_hsm_hart_get_state(hartindex);
+-		if (hstate == SBI_HSM_STATE_STARTED ||
+-		    hstate == SBI_HSM_STATE_SUSPENDED ||
+-		    hstate == SBI_HSM_STATE_RESUME_PENDING)
+-			*out_hmask |= hmask;
++	sbi_hartmask_for_each_hartindex(i, mask) {
++		hstate = __sbi_hsm_hart_get_state(i);
++		if (hstate != SBI_HSM_STATE_STARTED &&
++		    hstate != SBI_HSM_STATE_SUSPENDED &&
++		    hstate != SBI_HSM_STATE_RESUME_PENDING)
++			sbi_hartmask_clear_hartindex(i, mask);
+ 	}
  
--unsigned long sbi_init_count(u32 hartid)
-+unsigned long sbi_init_count(u32 hartindex)
+ 	return 0;
+diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+index 0cffa0af..337ed175 100644
+--- a/lib/sbi/sbi_ipi.c
++++ b/lib/sbi/sbi_ipi.c
+@@ -111,31 +111,25 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
  {
- 	struct sbi_scratch *scratch;
- 	unsigned long *init_count;
-@@ -576,7 +576,7 @@ unsigned long sbi_init_count(u32 hartid)
- 	if (!init_count_offset)
- 		return 0;
+ 	int rc = 0;
+ 	bool retry_needed;
+-	ulong i, m;
+-	struct sbi_hartmask target_mask = {0};
++	ulong i;
++	struct sbi_hartmask target_mask;
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
  
--	scratch = sbi_hartid_to_scratch(hartid);
-+	scratch = sbi_hartindex_to_scratch(hartindex);
- 	if (!scratch)
- 		return 0;
- 
-diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index 3ad6c856..0da3ae51 100644
---- a/platform/generic/andes/ae350.c
-+++ b/platform/generic/andes/ae350.c
-@@ -27,13 +27,15 @@ extern void __ae350_disable_coherency(void);
- 
- static int ae350_hart_start(u32 hartid, ulong saddr)
- {
-+	u32 hartindex = sbi_hartid_to_hartindex(hartid);
+ 	/* Find the target harts */
++	rc = sbi_hsm_hart_interruptible_mask(dom, &target_mask);
++	if (rc)
++		return rc;
 +
- 	/*
- 	 * Don't send wakeup command when:
- 	 * 1) boot-time
- 	 * 2) the target hart is non-sleepable 25-series hart0
- 	 */
--	if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
--		return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
-+	if (!sbi_init_count(hartindex) || (is_andes(25) && hartid == 0))
-+		return sbi_ipi_raw_send(hartindex);
+ 	if (hbase != -1UL) {
+-		rc = sbi_hsm_hart_interruptible_mask(dom, hbase, &m);
+-		if (rc)
+-			return rc;
+-		m &= hmask;
+-
+-		for (i = hbase; m; i++, m >>= 1) {
+-			if (m & 1UL)
+-				sbi_hartmask_set_hartid(i, &target_mask);
+-		}
+-	} else {
+-		hbase = 0;
+-		while (!sbi_hsm_hart_interruptible_mask(dom, hbase, &m)) {
+-			for (i = hbase; m; i++, m >>= 1) {
+-				if (m & 1UL)
+-					sbi_hartmask_set_hartid(i, &target_mask);
+-			}
+-			hbase += BITS_PER_LONG;
++		struct sbi_hartmask tmp_mask = { 0 };
++
++		for (i = hbase; hmask; i++, hmask >>= 1) {
++			if (hmask & 1UL)
++				sbi_hartmask_set_hartid(i, &tmp_mask);
+ 		}
++
++		sbi_hartmask_and(&target_mask, &target_mask, &tmp_mask);
+ 	}
  
- 	/* Write wakeup command to the sleep hart */
- 	smu_set_command(&smu, WAKEUP_CMD, hartid);
+ 	/* Send IPIs */
 -- 
 2.45.1
 
