@@ -1,95 +1,57 @@
-From: cola zhang <zhangcola2003@gmail.com>
-Date: Sun, 1 Sep 2024 20:35:39 +0800
-Subject: [PATCH v2 1/1] Makefile: enable --gc-sections
-In-Reply-To: <df0d4f6a7f033e4aebe0dc1ceaf502ff25cfd875.camel@126.com>
-References: <cover.1724959010.git.zhangcola2003@gmail.com> <004ed61b6c6743ab87a369bc6202b4b1c50de89d.1724959010.git.zhangcola2003@gmail.com>
- <CAEUhbmWzoCX5QkdNW_eYO2HB1Ok61H4pRdS4-r=JEMbVk_A18w@mail.gmail.com>
- <CALtR8V1fcjkrV=v_DdV_HRmg8K8-xkKei-nToQyDsNEaa4X3xw@mail.gmail.com> <df0d4f6a7f033e4aebe0dc1ceaf502ff25cfd875.camel@126.com>
-Message-ID: <CALtR8V3dCmfm2JhG5wy8qRpyWow_RMpraNd_0CBLQSN-S50=pQ@mail.gmail.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Sun,  1 Sep 2024 09:36:58 -0700
+Subject: [PATCH] Makefile: Make .carray.c files depend on carray.sh
+Message-ID: <20240901163712.307806-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Xiang W <wxjstz@126.com> ?2024?9?1??? 20:15???
->
-> ? 2024-09-01???? 19:51 +0800?cola zhang???
-> > Bin Meng <bmeng.cn@gmail.com> ?2024?9?1??? 19:12???
-> > >
-> > > On Fri, Aug 30, 2024 at 4:12?AM Kele Zhang <zhangcola2003@gmail.com> wrote:
-> > > >
-> > > > The --gc-sections option enables the linker to perform garbage
-> > > > collection of unreferenced code and data, thereby reducing the binary
-> > > > size.
-> > > >
-> > > > The -ffunction-sections option will place each function into a separate
-> > > > section, so it is necessary to add .text.* to the linker script.
-> > > >
-> > > > Signed-off-by: Kele Zhang <zhangcola2003@gmail.com>
-> > > > Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
-> > > > Signed-off-by: Zhangjin Wu <falcon@tinylab.org>
-> > > > ---
-> > > >  Makefile             | 5 +++--
-> > > >  firmware/fw_base.ldS | 1 +
-> > > >  2 files changed, 4 insertions(+), 2 deletions(-)
-> > > >
-> > > > diff --git a/Makefile b/Makefile
-> > > > index e5a0f19..44db5d4 100644
-> > > > --- a/Makefile
-> > > > +++ b/Makefile
-> > > > @@ -355,9 +355,9 @@ GENFLAGS    +=      $(libsbiutils-genflags-y)
-> > > >  GENFLAGS       +=      $(platform-genflags-y)
-> > > >  GENFLAGS       +=      $(firmware-genflags-y)
-> > > >
-> > > > -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
-> > > > +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-
-> > > > sections
-> > > >  ifneq ($(DEBUG),)
-> > > > -CFLAGS         +=      -O0
-> > > > +CFLAGS         +=      -O0 -Wl,--print-gc-sections
-> > >
-> > > This should be put into the ELF flags too.
-> >
-> > Are ELFflags the flags that take effect during linking?
-> > -ffunction-sections -fdata-sections will take effect during compilation.
-> > Enabling them will generate different .s files and will not affect the behavior
-> > of the linker. So isn't it better to put them in cflags?
->
-> -Wl,--print-gc-sections move to ELFFLAGS
+Force carray C source files to be regenerated when the script changes,
+since their contents depend on the script's output.
 
-Sorry, I didn't see clearly. This indeed needs to be modified.
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
+I have an upcoming patch series that modifies carray.sh, and it would be
+helpful to have this fix already merged, to avoid needing to `make clean`
+after trying out the series.
 
->
-> Regards,
-> Xiang W
-> >
-> > >
-> > > >  else
-> > > >  CFLAGS         +=      -O2
-> > > >  endif
-> > > > @@ -406,6 +406,7 @@ ASFLAGS             +=      $(firmware-asflags-y)
-> > > >  ARFLAGS                =       rcs
-> > > >
-> > > >  ELFFLAGS       +=      $(USE_LD_FLAG)
-> > > > +ELFFLAGS       +=      -Wl,--gc-sections
-> > > >  ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
-> > > >  ELFFLAGS       +=      -Wl,--exclude-libs,ALL
-> > > >  endif
-> > > > diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-> > > > index fb47984..a33746a 100644
-> > > > --- a/firmware/fw_base.ldS
-> > > > +++ b/firmware/fw_base.ldS
-> > > > @@ -20,6 +20,7 @@
-> > > >                 PROVIDE(_text_start = .);
-> > > >                 *(.entry)
-> > > >                 *(.text)
-> > > > +               *(.text.*)
-> > > >                 . = ALIGN(8);
-> > > >                 PROVIDE(_text_end = .);
-> > > >         }
-> > >
-> > > Regards,
-> > > Bin
->
+ Makefile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index e5a0f19e..f0012f6d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -528,7 +528,7 @@ $(build_dir)/%.dep: $(src_dir)/%.carray $(KCONFIG_AUTOHEADER)
+ 	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
+ 	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
+ 
+-$(build_dir)/%.carray.c: $(src_dir)/%.carray
++$(build_dir)/%.carray.c: $(src_dir)/%.carray $(src_dir)/scripts/carray.sh
+ 	$(call compile_carray,$@,$<)
+ 
+ $(build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_AUTOHEADER)
+@@ -556,7 +556,7 @@ $(platform_build_dir)/%.dep: $(platform_src_dir)/%.carray $(KCONFIG_AUTOHEADER)
+ 	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
+ 	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
+ 
+-$(platform_build_dir)/%.carray.c: $(platform_src_dir)/%.carray
++$(platform_build_dir)/%.carray.c: $(platform_src_dir)/%.carray $(src_dir)/scripts/carray.sh
+ 	$(call compile_carray,$@,$<)
+ 
+ $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c $(KCONFIG_AUTOHEADER)
+@@ -599,7 +599,7 @@ $(platform_build_dir)/%.dep: $(src_dir)/%.carray $(KCONFIG_AUTOHEADER)
+ 	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
+ 	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
+ 
+-$(platform_build_dir)/%.carray.c: $(src_dir)/%.carray
++$(platform_build_dir)/%.carray.c: $(src_dir)/%.carray $(src_dir)/scripts/carray.sh
+ 	$(call compile_carray,$@,$<)
+ 
+ $(platform_build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_AUTOHEADER)
+-- 
+2.45.1
+
 
