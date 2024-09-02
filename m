@@ -1,72 +1,40 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Sun, 01 Sep 2024 23:20:22 +0100
-Subject: [PATCH] Makefile: Make .carray.c files depend on carray.sh
-In-Reply-To: <20240901163712.307806-1-samuel.holland@sifive.com>
-References: <20240901163712.307806-1-samuel.holland@sifive.com>
-Message-ID: <459fb3bef98296b9964e1a10283406a5@codethink.co.uk>
+From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+Date: Mon,  2 Sep 2024 13:21:10 +0300
+Subject: [PATCH] lib: sbi: fix number of PMP entries detection
+Message-ID: <20240902102110.1311636-1-vladimir.kondratiev@mobileye.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+CSR_PMPADDRn lower bits may read all-0 or all-1, depending on
+the configuration. For TOR it is all-0, for NAPOT - all-1.
 
+Thus if PMP entry was pre-configured as NAPOT, original code would
+stop scanning because value read back not equal to the written one.
 
-On 2024-09-01 17:36, Samuel Holland wrote:
-> Force carray C source files to be regenerated when the script changes,
-> since their contents depend on the script's output.
-> 
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-> ---
-> I have an upcoming patch series that modifies carray.sh, and it would 
-> be
-> helpful to have this fix already merged, to avoid needing to `make 
-> clean`
-> after trying out the series.
+Mask lower bits before comparison to fix this
 
-That looks reasobable, but not had the chance to test
+Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+---
+ lib/sbi/sbi_hart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->  Makefile | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index e5a0f19e..f0012f6d 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -528,7 +528,7 @@ $(build_dir)/%.dep: $(src_dir)/%.carray 
-> $(KCONFIG_AUTOHEADER)
->  	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
->  	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
-> 
-> -$(build_dir)/%.carray.c: $(src_dir)/%.carray
-> +$(build_dir)/%.carray.c: $(src_dir)/%.carray 
-> $(src_dir)/scripts/carray.sh
->  	$(call compile_carray,$@,$<)
-> 
->  $(build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_AUTOHEADER)
-> @@ -556,7 +556,7 @@ $(platform_build_dir)/%.dep: 
-> $(platform_src_dir)/%.carray $(KCONFIG_AUTOHEADER)
->  	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
->  	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
-> 
-> -$(platform_build_dir)/%.carray.c: $(platform_src_dir)/%.carray
-> +$(platform_build_dir)/%.carray.c: $(platform_src_dir)/%.carray 
-> $(src_dir)/scripts/carray.sh
->  	$(call compile_carray,$@,$<)
-> 
->  $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c 
-> $(KCONFIG_AUTOHEADER)
-> @@ -599,7 +599,7 @@ $(platform_build_dir)/%.dep: $(src_dir)/%.carray 
-> $(KCONFIG_AUTOHEADER)
->  	$(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
->  	$(call compile_gen_dep,$@,.o,$(@:.dep=.c))
-> 
-> -$(platform_build_dir)/%.carray.c: $(src_dir)/%.carray
-> +$(platform_build_dir)/%.carray.c: $(src_dir)/%.carray 
-> $(src_dir)/scripts/carray.sh
->  	$(call compile_carray,$@,$<)
-> 
->  $(platform_build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_AUTOHEADER)
-> --
-> 2.45.1
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index cc364fac2cc8..61cddc2b1d0f 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -817,7 +817,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 		} else {						\
+ 			csr_write_allowed(__csr, &trap, __wrval);	\
+ 			if (!trap.cause) {				\
+-				if (csr_swap(__csr, oldval) == __wrval)	\
++				if ((csr_swap(__csr, oldval) & __wrval) == __wrval)	\
+ 					(hfeatures->__field)++;		\
+ 				else					\
+ 					goto __skip;			\
+-- 
+2.37.3
+
 
