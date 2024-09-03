@@ -1,40 +1,50 @@
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Date: Mon,  2 Sep 2024 13:21:10 +0300
-Subject: [PATCH] lib: sbi: fix number of PMP entries detection
-Message-ID: <20240902102110.1311636-1-vladimir.kondratiev@mobileye.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon,  2 Sep 2024 21:06:48 -0700
+Subject: [PATCH 0/2] Manage timer driver lifecycle from SBI core
+Message-ID: <20240903040814.622145-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-CSR_PMPADDRn lower bits may read all-0 or all-1, depending on
-the configuration. For TOR it is all-0, for NAPOT - all-1.
+For three kinds of devices (IPI, irqchip, and timer) the platform is
+responsible for implementing extra warm init and exit lifecycle hooks.
+Since the driver lifecycle is the same regardless of platform, I think
+it makes sense to call these lifecycle functions from the SBI core, not
+the platform. This produces smaller code since we don't need to track
+the current driver in multiple places. And since it makes the FDT driver
+interface the same for all kinds of devices, it allows us to reuse the
+same FDT scan/match/init code across all of them.
 
-Thus if PMP entry was pre-configured as NAPOT, original code would
-stop scanning because value read back not equal to the written one.
+This series converts the timer drivers. I am sending the IPI and irqchip
+conversions separately since they are independent.
 
-Mask lower bits before comparison to fix this
 
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- lib/sbi/sbi_hart.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Samuel Holland (2):
+  lib: sbi_timer: Call driver warm_init from SBI core
+  platform: Drop timer warm init and exit hooks
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index cc364fac2cc8..61cddc2b1d0f 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -817,7 +817,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
- 		} else {						\
- 			csr_write_allowed(__csr, &trap, __wrval);	\
- 			if (!trap.cause) {				\
--				if (csr_swap(__csr, oldval) == __wrval)	\
-+				if ((csr_swap(__csr, oldval) & __wrval) == __wrval)	\
- 					(hfeatures->__field)++;		\
- 				else					\
- 					goto __skip;			\
+ include/sbi/sbi_platform.h              | 25 ++++----------------
+ include/sbi/sbi_timer.h                 |  3 +++
+ include/sbi_utils/timer/aclint_mtimer.h |  2 --
+ include/sbi_utils/timer/andes_plmt.h    |  1 -
+ include/sbi_utils/timer/fdt_timer.h     |  9 ++-----
+ lib/sbi/sbi_timer.c                     | 15 +++++++++---
+ lib/utils/timer/aclint_mtimer.c         |  3 ++-
+ lib/utils/timer/andes_plmt.c            | 23 +++++++++---------
+ lib/utils/timer/fdt_timer.c             | 31 +------------------------
+ lib/utils/timer/fdt_timer_mtimer.c      |  2 --
+ lib/utils/timer/fdt_timer_plmt.c        |  2 --
+ platform/fpga/ariane/platform.c         | 14 +++--------
+ platform/fpga/openpiton/platform.c      | 14 +++--------
+ platform/generic/platform.c             |  1 -
+ platform/kendryte/k210/platform.c       | 12 ++--------
+ platform/nuclei/ux600/platform.c        | 12 ++--------
+ platform/template/platform.c            | 14 +++--------
+ 17 files changed, 50 insertions(+), 133 deletions(-)
+
 -- 
-2.37.3
+2.45.1
 
 
