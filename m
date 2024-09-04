@@ -1,76 +1,58 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue,  3 Sep 2024 13:53:10 -0700
-Subject: [PATCH] Makefile: Separate libsbi objects for each platform
-Message-ID: <20240903205345.2088737-1-samuel.holland@sifive.com>
+Date: Tue,  3 Sep 2024 18:24:09 -0700
+Subject: [PATCH 0/3] Manage IPI driver lifecycle from SBI core
+Message-ID: <20240904012508.3626840-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Since commit 22f38ee6c658 ("lib: sbi_ecall: Add Kconfig option for each
-extension"), the libsbi object file contents depend on the Kconfig
-configuration, so these files may be different across platforms. As a
-result, each platform should get a separate copy of these object files,
-corresponding to that platform's configuration.
+For three kinds of devices (IPI, irqchip, and timer) the platform is
+responsible for implementing extra warm init and exit lifecycle hooks.
+Since the driver lifecycle is the same regardless of platform, I think
+it makes sense to call these lifecycle functions from the SBI core, not
+the platform. This produces smaller code since we don't need to track
+the current driver in multiple places. And since it makes the FDT driver
+interface the same for all kinds of devices, it allows us to reuse the
+same FDT scan/match/init code across all of them.
 
-This change also allows building for multiple platforms in parallel.
+This series converts the IPI drivers. This is the most trivial of the
+three, since all of the logic in the existing IPI .warm_init hooks is
+actually a duplicate of the .ipi_clear hook in struct sbi_ipi_device.
 
-Fixes: 22f38ee6c658 ("lib: sbi_ecall: Add Kconfig option for each extension")
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
----
-Note that Kconfig is not used for the generic (no PLATFORM set) libsbi
-build. But this is actually equivalent to all Kconfig options being
-disabled. As a result, since the referenced commit, the generic libsbi
-only supports the base SBI extension and none of the others. I don't
-know how we want to fix this -- does anyone even use libsbi anymore?
+I sent the timer conversion here[1], and the irqchip conversion is
+upcoming and is the largest of the three.
 
- Makefile | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+[1]: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
 
-diff --git a/Makefile b/Makefile
-index e5a0f19e..ccb2e138 100644
---- a/Makefile
-+++ b/Makefile
-@@ -264,11 +264,13 @@ include $(libsbiutils-object-mks)
- include $(firmware-object-mks)
- 
- # Setup list of objects
--libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(build_dir)/lib/sbi/$(obj))
- ifdef PLATFORM
-+libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(platform_build_dir)/lib/sbi/$(obj))
- libsbiutils-objs-path-y=$(foreach obj,$(libsbiutils-objs-y),$(platform_build_dir)/lib/utils/$(obj))
- platform-objs-path-y=$(foreach obj,$(platform-objs-y),$(platform_build_dir)/$(obj))
- firmware-bins-path-y=$(foreach bin,$(firmware-bins-y),$(platform_build_dir)/firmware/$(bin))
-+else
-+libsbi-objs-path-y=$(foreach obj,$(libsbi-objs-y),$(build_dir)/lib/sbi/$(obj))
- endif
- firmware-elfs-path-y=$(firmware-bins-path-y:.bin=.elf)
- firmware-objs-path-y=$(firmware-bins-path-y:.bin=.o)
-@@ -504,9 +506,10 @@ compile_gen_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
- 	     echo " GEN-DEP   $(subst $(build_dir)/,,$(1))"; \
- 	     echo "$(1:.dep=$(2)): $(3)" >> $(1)
- 
--targets-y  = $(build_dir)/lib/libsbi.a
- ifdef PLATFORM
- targets-y += $(platform_build_dir)/lib/libplatsbi.a
-+else
-+targets-y  = $(build_dir)/lib/libsbi.a
- endif
- targets-y += $(firmware-bins-path-y)
- 
-@@ -565,6 +568,11 @@ $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c $(KCONFIG_AUTOHEADER)
- $(platform_build_dir)/%.o: $(platform_src_dir)/%.c $(KCONFIG_AUTOHEADER)
- 	$(call compile_cc,$@,$<)
- 
-+ifeq ($(BUILD_INFO),y)
-+$(platform_build_dir)/lib/sbi/sbi_init.o: $(libsbi_dir)/sbi_init.c FORCE
-+	$(call compile_cc,$@,$<)
-+endif
-+
- $(platform_build_dir)/%.dep: $(platform_src_dir)/%.S
- 	$(call compile_as_dep,$@,$<)
- 
+
+Samuel Holland (3):
+  lib: sbi_ipi: Make .ipi_clear always target the current hart
+  lib: sbi_ipi: Move initial IPI clear to sbi_ipi_init()
+  platform: Drop IPI warm init and exit hooks
+
+ include/sbi/sbi_ipi.h                |  6 +++---
+ include/sbi/sbi_platform.h           | 25 +++++-----------------
+ include/sbi_utils/ipi/aclint_mswi.h  |  2 --
+ include/sbi_utils/ipi/andes_plicsw.h |  2 --
+ include/sbi_utils/ipi/fdt_ipi.h      |  9 ++------
+ lib/sbi/sbi_hsm.c                    |  2 +-
+ lib/sbi/sbi_init.c                   |  2 +-
+ lib/sbi/sbi_ipi.c                    | 24 +++++++++------------
+ lib/utils/ipi/aclint_mswi.c          | 19 +++--------------
+ lib/utils/ipi/andes_plicsw.c         | 14 ++-----------
+ lib/utils/ipi/fdt_ipi.c              | 31 +---------------------------
+ lib/utils/ipi/fdt_ipi_mswi.c         |  2 --
+ lib/utils/ipi/fdt_ipi_plicsw.c       |  2 --
+ platform/fpga/ariane/platform.c      | 14 +++----------
+ platform/fpga/openpiton/platform.c   | 14 +++----------
+ platform/generic/platform.c          |  1 -
+ platform/kendryte/k210/platform.c    | 12 ++---------
+ platform/nuclei/ux600/platform.c     | 12 ++---------
+ platform/template/platform.c         | 14 +++----------
+ 19 files changed, 41 insertions(+), 166 deletions(-)
+
 -- 
 2.45.1
 
