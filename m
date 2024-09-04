@@ -1,40 +1,59 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue,  3 Sep 2024 19:09:36 -0700
-Subject: [PATCH 0/3] Unify driver cold init function prototypes
-Message-ID: <20240904021006.3653559-1-samuel.holland@sifive.com>
+Date: Tue,  3 Sep 2024 19:09:37 -0700
+Subject: [PATCH 1/3] lib: utils/gpio: Remove fdt_gpio_driver() function
+In-Reply-To: <20240904021006.3653559-1-samuel.holland@sifive.com>
+References: <20240904021006.3653559-1-samuel.holland@sifive.com>
+Message-ID: <20240904021006.3653559-2-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently two kinds of FDT drivers (GPIO and regmap) use a different
-prototype for their driver init functions, additionally passing in the
-phandle of the FDT node. However, it turns out that using the phandle is
-not necessary. It's only used as a unique ID for a device instance, but
-the FDT node offset works just as well for this purpuse, and in fact the
-I2C drivers use the FDT node offset as the device ID already.
+This function looks up a chip's driver by matching known drivers against
+chip->driver, but that is equivalent to using chip->driver directly.
 
-By removing the phandle argument from these driver init functions, all
-FDT drivers now use the same init function prototype, which will allow
-further code reuse in the future.
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
+ lib/utils/gpio/fdt_gpio.c | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-Samuel Holland (3):
-  lib: utils/gpio: Remove fdt_gpio_driver() function
-  lib: utils/gpio: Use FDT node offset as GPIO chip ID
-  lib: utils/regmap: Use FDT node offset as regmap ID
-
- include/sbi_utils/gpio/fdt_gpio.h     |  2 +-
- include/sbi_utils/regmap/fdt_regmap.h |  2 +-
- lib/utils/gpio/fdt_gpio.c             | 40 ++++++---------------------
- lib/utils/gpio/fdt_gpio_designware.c  |  4 +--
- lib/utils/gpio/fdt_gpio_sifive.c      |  4 +--
- lib/utils/gpio/fdt_gpio_starfive.c    |  4 +--
- lib/utils/regmap/fdt_regmap.c         | 14 +++++-----
- lib/utils/regmap/fdt_regmap_syscon.c  |  4 +--
- 8 files changed, 26 insertions(+), 48 deletions(-)
-
+diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
+index d8d847f1..6422c45f 100644
+--- a/lib/utils/gpio/fdt_gpio.c
++++ b/lib/utils/gpio/fdt_gpio.c
+@@ -16,21 +16,6 @@
+ extern struct fdt_gpio *fdt_gpio_drivers[];
+ extern unsigned long fdt_gpio_drivers_size;
+ 
+-static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
+-{
+-	int pos;
+-
+-	if (!chip)
+-		return NULL;
+-
+-	for (pos = 0; pos < fdt_gpio_drivers_size; pos++) {
+-		if (chip->driver == fdt_gpio_drivers[pos])
+-			return fdt_gpio_drivers[pos];
+-	}
+-
+-	return NULL;
+-}
+-
+ static int fdt_gpio_init(const void *fdt, u32 phandle)
+ {
+ 	int pos, nodeoff, rc;
+@@ -112,7 +97,7 @@ int fdt_gpio_pin_get(const void *fdt, int nodeoff, int index,
+ 	if (rc)
+ 		return rc;
+ 
+-	drv = fdt_gpio_driver(chip);
++	drv = chip->driver;
+ 	if (!drv || !drv->xlate)
+ 		return SBI_ENOSYS;
+ 
 -- 
 2.45.1
 
