@@ -1,83 +1,55 @@
-From: Kele Zhang <zhangcola2003@gmail.com>
-Date: Thu,  5 Sep 2024 09:31:46 +0000
-Subject: [PATCH v3 1/1] Makefile: enable --gc-sections
-In-Reply-To: <cover.1725521174.git.zhangcola2003@gmail.com>
-References: <cover.1725521174.git.zhangcola2003@gmail.com>
-Message-ID: <272cb6e3f54b13f6a21319a9c1f0a1d7c5dd83fa.1725521174.git.zhangcola2003@gmail.com>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 9 Sep 2024 15:21:34 +0200
+Subject: [PATCH] lib: sbi: Add additional range checks for RV32
+In-Reply-To: <20240826-e18e6c0b91536fe454490d16@orel>
+References: <20240814122959.49914-2-ajones@ventanamicro.com>
+ <CAAhSdy2DrwQ94GgOAtAodQ=hxGog8ovmjoR+9+RnXCMx2bmfWw@mail.gmail.com>
+ <20240826-e18e6c0b91536fe454490d16@orel>
+Message-ID: <20240909-efe23e5cd68ff494369d5f91@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The --gc-sections option enables the linker to perform garbage
-collection of unreferenced code and data, thereby reducing the binary
-size.
+On Mon, Aug 26, 2024 at 01:00:58PM GMT, Andrew Jones wrote:
+> On Sat, Aug 24, 2024 at 02:38:31PM GMT, Anup Patel wrote:
+> > On Wed, Aug 14, 2024 at 6:02?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+> > >
+> > > On RV32, M-mode can only access the first 4G of the physical
+> > > address space because M-mode does not have an MMU to access the
+> > > full 34-bit physical address space. While we already ensure
+> > > the "hi" registers of RV32 physical address inputs are zero we
+> > > need to also ensure that the low register plus the size does
+> > > not cross into 4G address space. The check added to
+> > > sbi_domain_check_addr_range() should be enough for both DBCN
+> > > and SSE, but DBCN returns a different error code for high
+> > > addresses, so we patch that check too.
+> > >
+> > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> > >
+> > > ---
+> > >
+> > > Should the SSE functions return SBI_ERR_FAILED in this case like DBCN
+> > > does? We'd need to patch the SSE spec to call out SBI_ERR_FAILED as
+> > > "Failed to write due to I/O errors." like DBCN does too.
+> > 
+> > Instead of special-casing wrap-around check separately for each SBI
+> > extension, I suggest:
+> > 1) Add one more requirement in section 3.2 of the SBI spec to prevent
+> > wrap-around
+> > 2) Update sbi_domain_check_addr_range() like this patch does.
+> 
+> Sounds good to me.
+>
 
-The -ffunction-sections option will place each function into a separate
-section, so it is necessary to add .text.* to the linker script.
+I've created https://github.com/riscv-non-isa/riscv-sbi-doc/pull/164 for
+the spec side of things. For v2 of this patch I think it's best to
+change sbi_domain_check_addr_range() to return an error rather than a
+boolean and then for cases like hi != 0 and lo + size > max-lo we can
+return errors other than SBI_ERR_INVALID_ADDR without having to duplicate
+checks which are currently outside the function.
 
-Signed-off-by: Kele Zhang <zhangcola2003@gmail.com>
-Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
-Signed-off-by: Zhangjin Wu <falcon@tinylab.org>
----
- Makefile             | 15 +++++++++------
- firmware/fw_base.ldS |  1 +
- 2 files changed, 10 insertions(+), 6 deletions(-)
-
-diff --git a/Makefile b/Makefile
-index e5a0f19..30ba3b6 100644
---- a/Makefile
-+++ b/Makefile
-@@ -355,12 +355,7 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
- GENFLAGS	+=	$(platform-genflags-y)
- GENFLAGS	+=	$(firmware-genflags-y)
- 
--CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
--ifneq ($(DEBUG),)
--CFLAGS		+=	-O0
--else
--CFLAGS		+=	-O2
--endif
-+CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
- CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
- # Optionally supported flags
- ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-@@ -406,6 +401,7 @@ ASFLAGS		+=	$(firmware-asflags-y)
- ARFLAGS		=	rcs
- 
- ELFFLAGS	+=	$(USE_LD_FLAG)
-+ELFFLAGS	+=	-Wl,--gc-sections
- ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
- ELFFLAGS	+=	-Wl,--exclude-libs,ALL
- endif
-@@ -424,6 +420,13 @@ MERGEFLAGS	+=	-m elf$(PLATFORM_RISCV_XLEN)lriscv
- 
- DTSCPPFLAGS	=	$(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assembler-with-cpp
- 
-+ifneq ($(DEBUG),)
-+CFLAGS		+=	-O0
-+ELFFLAGS	+=  -Wl,--print-gc-sections
-+else
-+CFLAGS		+=	-O2
-+endif
-+
- # Setup functions for compilation
- define dynamic_flags
- -I$(shell dirname $(2)) -D__OBJNAME__=$(subst -,_,$(shell basename $(1) .o))
-diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
-index fb47984..a33746a 100644
---- a/firmware/fw_base.ldS
-+++ b/firmware/fw_base.ldS
-@@ -20,6 +20,7 @@
- 		PROVIDE(_text_start = .);
- 		*(.entry)
- 		*(.text)
-+		*(.text.*)
- 		. = ALIGN(8);
- 		PROVIDE(_text_end = .);
- 	}
--- 
-2.43.0
-
+Thanks,
+drew
 
