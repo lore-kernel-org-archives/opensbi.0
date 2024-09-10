@@ -1,136 +1,137 @@
-From: Himanshu Chauhan <hchauhan@ventanamicro.com>
-Date: Tue, 10 Sep 2024 18:54:49 +0530
-Subject: [PATCH] lib: sbi: Add support to mask/unmask SSE events
-Message-ID: <20240910132449.1977063-1-hchauhan@ventanamicro.com>
+From: Deepak Gupta <debug@rivosinc.com>
+Date: Tue, 10 Sep 2024 09:00:07 -0700
+Subject: [PATCH v4 4/4] lib: sbi: fwft: implement landing pad and shadow
+ stack fwft interface
+In-Reply-To: <1a7057d7-51ad-4048-9eaa-822724453ec6@rivosinc.com>
+References: <20240823184735.4154272-1-debug@rivosinc.com>
+ <20240823184735.4154272-5-debug@rivosinc.com>
+ <1a7057d7-51ad-4048-9eaa-822724453ec6@rivosinc.com>
+Message-ID: <ZuBtB2jv/WbEyP4h@debug.ba.rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A hart in non-retentive suspend state can't handle software events
-until the hart has come out of the non-retentive suspend and restored
-the hart state.
+On Tue, Sep 10, 2024 at 08:59:00AM +0200, Cl?ment L?ger wrote:
+>
+>
+>On 23/08/2024 20:47, Deepak Gupta wrote:
+>> Supervisor software can enable control flow integrity features for itself
+>> using fwft feature `SBI_FWFT_LANDING_PAD` and `SBI_FWFT_SHADOW_STACK`.
+>> This patch implements the mechanism to enable both these fwft.
+>>
+>> Signed-off-by: Deepak Gupta <debug@rivosinc.com>
+>> ---
+>>  lib/sbi/sbi_fwft.c | 74 ++++++++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 74 insertions(+)
+>>
+>> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+>> index ef881ef..747bc88 100644
+>> --- a/lib/sbi/sbi_fwft.c
+>> +++ b/lib/sbi/sbi_fwft.c
+>> @@ -145,6 +145,68 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
+>>  	return SBI_OK;
+>>  }
+>>
+>> +static int fwft_lpad_supported(struct fwft_config *conf)
+>> +{
+>> +	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+>> +				    SBI_HART_EXT_ZICFILP))
+>> +		return SBI_ENOTSUPP;
+>> +
+>> +	return SBI_OK;
+>> +}
+>> +
+>> +static int fwft_enable_lpad(struct fwft_config *conf, unsigned long value)
+>> +{
+>> +	if (value == 1)
+>> +		csr_set(CSR_MENVCFG, ENVCFG_LPE);
+>> +	else if (value == 0)
+>> +		csr_clear(CSR_MENVCFG, ENVCFG_LPE);
+>> +	else
+>> +		return SBI_EINVAL;
+>> +
+>> +	return SBI_OK;
+>> +}
+>> +
+>> +static int fwft_get_lpad(struct fwft_config *conf, unsigned long *value)
+>> +{
+>> +	unsigned long cfg;
+>> +
+>> +	cfg = csr_read(CSR_MENVCFG) & ENVCFG_LPE;
+>> +	*value = cfg != 0;
+>> +
+>> +	return SBI_OK;
+>> +}
+>> +
+>> +static int fwft_sstack_supported(struct fwft_config *conf)
+>> +{
+>> +	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
+>> +				    SBI_HART_EXT_ZICFISS))
+>> +		return SBI_ENOTSUPP;
+>> +
+>> +	return SBI_OK;
+>> +}
+>> +
+>> +static int fwft_enable_sstack(struct fwft_config *conf, unsigned long value)
+>> +{
+>> +	if (value == 1)
+>> +		csr_set(CSR_MENVCFG, ENVCFG_SSE);
+>> +	else if (value == 0)
+>> +		csr_clear(CSR_MENVCFG, ENVCFG_SSE);
+>> +	else
+>> +		return SBI_EINVAL;
+>> +
+>> +	return SBI_OK;
+>> +}
+>> +
+>> +static int fwft_get_sstack(struct fwft_config *conf, unsigned long *value)
+>> +{
+>> +	unsigned long cfg;
+>> +
+>> +	cfg = csr_read(CSR_MENVCFG) & ENVCFG_SSE;
+>> +	*value = cfg != 0;
+>> +
+>> +	return SBI_OK;
+>> +}
+>> +
+>>  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+>>  {
+>>  	int i;
+>> @@ -236,6 +298,18 @@ static const struct fwft_feature features[] =
+>>  		.set = fwft_set_adue,
+>>  		.get = fwft_get_adue,
+>>  	},
+>> +	{
+>> +		.id = SBI_FWFT_LANDING_PAD,
+>> +		.supported = fwft_lpad_supported,
+>> +		.set = fwft_enable_lpad,
+>> +		.get = fwft_get_lpad,
+>> +	},
+>> +	{
+>> +		.id = SBI_FWFT_SHADOW_STACK,
+>> +		.supported = fwft_sstack_supported,
+>> +		.set = fwft_enable_sstack,
+>> +		.get = fwft_get_sstack,
+>> +	},
+>>  };
+>>
+>>  int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
+>
+>
+>Hey Deepak,
+>
+>LGTM, the only thing that could be done (but I guess that'll be for me
+>when I submit the double trap feature) is factorizing the MENVCFG
+>read/write function since we'll have 3 features doing almost the same thing.
+>
 
-To support this, define separate hart mask/unmask functions for the
-SSE extension which allow supervisor software to globally mask/unmask
-software event delivery on the calling hart.
+Since you've thoughts on this on how to handle it, I'll leave it for you.
 
-Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
----
- include/sbi/sbi_ecall_interface.h |  2 ++
- include/sbi/sbi_sse.h             |  2 ++
- lib/sbi/sbi_ecall_sse.c           |  6 ++++++
- lib/sbi/sbi_sse.c                 | 31 +++++++++++++++++++++++++++++++
- 4 files changed, 41 insertions(+)
+>But that's really optional for you.
+>
+>Reviewed-by: Cl?ment L?ger <cleger@rivosinc.com>
 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index 085b33e7..3bf8f1da 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -342,6 +342,8 @@ enum sbi_cppc_reg_id {
- #define SBI_EXT_SSE_DISABLE		0x00000005
- #define SBI_EXT_SSE_COMPLETE		0x00000006
- #define SBI_EXT_SSE_INJECT		0x00000007
-+#define SBI_EXT_SSE_HART_MASK		0x00000008
-+#define SBI_EXT_SSE_HART_UNMASK		0x00000009
- 
- /* SBI SSE Event Attributes. */
- enum sbi_sse_attr_id {
-diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
-index e5b0ad69..7419698a 100644
---- a/include/sbi/sbi_sse.h
-+++ b/include/sbi/sbi_sse.h
-@@ -78,6 +78,8 @@ void sbi_sse_exit(struct sbi_scratch *scratch);
- int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
- 		     unsigned long handler_entry_arg);
- int sbi_sse_unregister(uint32_t event_id);
-+int sbi_sse_hart_mask(void);
-+int sbi_sse_hart_unmask(void);
- int sbi_sse_enable(uint32_t event_id);
- int sbi_sse_disable(uint32_t event_id);
- int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out);
-diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
-index a28a033e..beddc2cd 100644
---- a/lib/sbi/sbi_ecall_sse.c
-+++ b/lib/sbi/sbi_ecall_sse.c
-@@ -36,6 +36,12 @@ static int sbi_ecall_sse_handler(unsigned long extid, unsigned long funcid,
- 	case SBI_EXT_SSE_INJECT:
- 		ret = sbi_sse_inject_from_ecall(regs->a0, regs->a1, out);
- 		break;
-+	case SBI_EXT_SSE_HART_MASK:
-+		ret = sbi_sse_hart_mask();
-+		break;
-+	case SBI_EXT_SSE_HART_UNMASK:
-+		ret = sbi_sse_hart_unmask();
-+		break;
- 	default:
- 		ret = SBI_ENOTSUPP;
- 	}
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 52172fcd..e9085324 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -141,6 +141,12 @@ struct sse_hart_state {
- 	 * List of local events allocated at boot time.
- 	 */
- 	struct sbi_sse_event *local_events;
-+
-+	/**
-+	 * State to track if the hart is ready to take sse events.
-+	 * One hart cannot modify this state of another hart.
-+	 */
-+	bool sse_masked;
- };
- 
- /**
-@@ -608,6 +614,11 @@ void sbi_sse_process_pending_events(struct sbi_trap_regs *regs)
- 	struct sbi_sse_event *e;
- 	struct sse_hart_state *state = sse_thishart_state_ptr();
- 
-+	/* if sse is masked on this hart, do nothing */
-+	if (state->sse_masked) {
-+		return;
-+	}
-+
- 	spin_lock(&state->enabled_event_lock);
- 
- 	sbi_list_for_each_entry(e, &state->enabled_event_list, node) {
-@@ -805,6 +816,24 @@ int sbi_sse_disable(uint32_t event_id)
- 	return ret;
- }
- 
-+int sbi_sse_hart_mask(void)
-+{
-+	struct sse_hart_state *state = sse_thishart_state_ptr();
-+
-+	state->sse_masked = true;
-+
-+	return SBI_SUCCESS;
-+}
-+
-+int sbi_sse_hart_unmask(void)
-+{
-+	struct sse_hart_state *state = sse_thishart_state_ptr();
-+
-+	state->sse_masked = false;
-+
-+	return SBI_SUCCESS;
-+}
-+
- int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hartid,
- 			      struct sbi_ecall_return *out)
- {
-@@ -1123,6 +1152,8 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
- 
- 		shs->local_events = (struct sbi_sse_event *)(shs + 1);
- 
-+		/* SSE events are masked until hart unmasks them */
-+		shs->sse_masked = true;
- 		sse_set_hart_state_ptr(scratch, shs);
- 	}
- 
--- 
-2.34.1
-
+Thanks.
 
