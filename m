@@ -1,85 +1,28 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Thu, 12 Sep 2024 14:10:48 +0200
-Subject: [PATCH 4/5] lib: sbi: implement firmware feature SBI_FWFT_DOUBLE_TRAP
-In-Reply-To: <20240912121052.2959596-1-cleger@rivosinc.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Thu, 12 Sep 2024 17:42:46 -0500
+Subject: [PATCH 1/5] lib: sbi: factorize previous virtualization mode read
+ from regs
+In-Reply-To: <20240912121052.2959596-2-cleger@rivosinc.com>
 References: <20240912121052.2959596-1-cleger@rivosinc.com>
-Message-ID: <20240912121052.2959596-5-cleger@rivosinc.com>
+ <20240912121052.2959596-2-cleger@rivosinc.com>
+Message-ID: <9696e34b-b7ce-4368-ae57-83ccc9cd403c@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add support for double trap firmware feature.
+On 2024-09-12 7:10 AM, Cl?ment L?ger wrote:
+> The same pattern is used at multiple places to verify in which mode
+> the exception was actually taken. Factorize it.
+> 
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> ---
+>  include/sbi/sbi_trap.h    |  9 +++++++++
+>  lib/sbi/sbi_emulate_csr.c | 12 ++----------
+>  lib/sbi/sbi_trap.c        |  6 +-----
+>  3 files changed, 12 insertions(+), 15 deletions(-)
 
-NOTE: this commit depends on the ratification of the new SSE event
-id for double trap [1].
-
-Link: https://lists.riscv.org/g/tech-prs/message/985 [1]
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
----
- include/sbi/riscv_encoding.h |  3 ++-
- lib/sbi/sbi_fwft.c           | 25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 1 deletion(-)
-
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index 5b3bbc5..1d83434 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -214,7 +214,8 @@
- #define ENVCFG_ADUE_SHIFT		61
- #define ENVCFG_ADUE			(_ULL(1) << ENVCFG_ADUE_SHIFT)
- #define ENVCFG_CDE			(_ULL(1) << 60)
--#define ENVCFG_DTE			(_ULL(1) << 59)
-+#define ENVCFG_DTE_SHIFT		59
-+#define ENVCFG_DTE			(_ULL(1) << ENVCFG_DTE_SHIFT)
- #define ENVCFG_CBZE			(_UL(1) << 7)
- #define ENVCFG_CBCFE			(_UL(1) << 6)
- #define ENVCFG_CBIE_SHIFT		4
-diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-index bc9cfd1..227ce83 100644
---- a/lib/sbi/sbi_fwft.c
-+++ b/lib/sbi/sbi_fwft.c
-@@ -155,6 +155,25 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
- 	return fwft_menvcfg_read_bit(value, ENVCFG_ADUE_SHIFT);
- }
- 
-+static int fwft_double_trap_supported(struct fwft_config *conf)
-+{
-+	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+				    SBI_HART_EXT_SSDBLTRP))
-+		return SBI_ENOTSUPP;
-+
-+	return SBI_OK;
-+}
-+
-+static int fwft_set_double_trap(struct fwft_config *conf, unsigned long value)
-+{
-+	return fwft_menvcfg_set_bit(value, ENVCFG_DTE_SHIFT);
-+}
-+
-+static int fwft_get_double_trap(struct fwft_config *conf, unsigned long *value)
-+{
-+	return fwft_menvcfg_read_bit(value, ENVCFG_DTE_SHIFT);
-+}
-+
- static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
- {
- 	int i;
-@@ -246,6 +265,12 @@ static const struct fwft_feature features[] =
- 		.set = fwft_set_adue,
- 		.get = fwft_get_adue,
- 	},
-+	{
-+		.id = SBI_FWFT_DOUBLE_TRAP,
-+		.supported = fwft_double_trap_supported,
-+		.set = fwft_set_double_trap,
-+		.get = fwft_get_double_trap,
-+	},
- };
- 
- int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
--- 
-2.45.2
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 
 
