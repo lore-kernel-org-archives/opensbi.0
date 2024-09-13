@@ -1,11 +1,11 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Fri, 13 Sep 2024 08:59:15 +0200
+Date: Fri, 13 Sep 2024 11:52:23 +0200
 Subject: [PATCH 5/5] lib: sbi: add Smdbltrp ISA extension support
 In-Reply-To: <dc333a64-2ed9-40f8-a11a-96b09c7da017@sifive.com>
 References: <20240912121052.2959596-1-cleger@rivosinc.com>
  <20240912121052.2959596-6-cleger@rivosinc.com>
  <dc333a64-2ed9-40f8-a11a-96b09c7da017@sifive.com>
-Message-ID: <733e5a38-f50c-48b1-a3b3-84b530517288@rivosinc.com>
+Message-ID: <f63745a1-d3a3-4728-9745-29ba28d29ff1@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -50,15 +50,6 @@ On 13/09/2024 01:50, Samuel Holland wrote:
 > 
 > Why not put the __riscv_xlen check inside the macro? Then it doesn't need the
 > have_mstatush parameter.
-
-The rationale is that this macro is used in a place were have_mstatush
-has already been computed. It seems easier than adding yet another level
-of nesting in that function, but I can use __riscv_xlen if you prefer.
-
-Thanks,
-
-Cl?ment
-
 > 
 >> +.endm
 >> +
@@ -80,6 +71,18 @@ Cl?ment
 > even set yet. Also this needs to go after _start_warm so it gets run on all
 > harts. So I think this should go after the other write to CSR_MTVEC, near the
 > call to sbi_init().
+
+Actually, if we don't clear MDT, if a trap happens, it will trigger a
+M-mode double trap. Since a temporary trap handler is set, we can let
+the trap happen without generating a M-mode double trap (which would end
+up in either a cpu_abort() (at least in qemu) or a NMI interrupt. I'm
+not sure which one is better though (either hang in the temporary trap
+handler or cpu abort.
+
+Thanks,
+
+Cl?ment
+
 > 
 > Regards,
 > Samuel
