@@ -1,11 +1,10 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Fri, 13 Sep 2024 13:11:25 -0500
-Subject: [PATCH v2 5/6] lib: sbi: implement firmware feature
- SBI_FWFT_DOUBLE_TRAP
-In-Reply-To: <20240913143419.3258868-6-cleger@rivosinc.com>
+Date: Fri, 13 Sep 2024 13:15:05 -0500
+Subject: [PATCH v2 6/6] lib: sbi: add Smdbltrp ISA extension support
+In-Reply-To: <20240913143419.3258868-7-cleger@rivosinc.com>
 References: <20240913143419.3258868-1-cleger@rivosinc.com>
- <20240913143419.3258868-6-cleger@rivosinc.com>
-Message-ID: <833cc267-9f7e-44ac-ad7d-79a35a17c417@sifive.com>
+ <20240913143419.3258868-7-cleger@rivosinc.com>
+Message-ID: <2420fb1b-f87e-46bd-9b57-6f5d58345e8f@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,77 +12,121 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 On 2024-09-13 9:34 AM, Cl?ment L?ger wrote:
-> Add support for double trap firmware feature.
+> Add support for the Smdbltrp[1] ISA extension. First thing to do is
+> clearing MDT on entry after setting the first MTVEC (since MDT is
+> reset to 1). Additionally, during trap handling, clear MDT once all
+> critical CSRs have been saved and in return path, restore MSTATUS before
+> restoring MEPC to avoid taking another trap which would clobber it.
 > 
-> Link: https://lists.riscv.org/g/tech-prs/message/985 [1]
+> Link: https://github.com/riscv/riscv-double-trap/releases/download/v0.56/riscv-double-trap.pdf [1]
 > Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 > ---
->  include/sbi/riscv_encoding.h |  3 ++-
->  lib/sbi/sbi_fwft.c           | 25 +++++++++++++++++++++++++
->  2 files changed, 27 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 5b3bbc5..1d83434 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -214,7 +214,8 @@
->  #define ENVCFG_ADUE_SHIFT		61
->  #define ENVCFG_ADUE			(_ULL(1) << ENVCFG_ADUE_SHIFT)
->  #define ENVCFG_CDE			(_ULL(1) << 60)
-> -#define ENVCFG_DTE			(_ULL(1) << 59)
-> +#define ENVCFG_DTE_SHIFT		59
-> +#define ENVCFG_DTE			(_ULL(1) << ENVCFG_DTE_SHIFT)
->  #define ENVCFG_CBZE			(_UL(1) << 7)
->  #define ENVCFG_CBCFE			(_UL(1) << 6)
->  #define ENVCFG_CBIE_SHIFT		4
-> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-> index c818afd..39bd592 100644
-> --- a/lib/sbi/sbi_fwft.c
-> +++ b/lib/sbi/sbi_fwft.c
-> @@ -155,6 +155,25 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
->  	return fwft_menvcfg_read_bit(value, ENVCFG_ADUE_SHIFT);
->  }
->  
-> +static int fwft_double_trap_supported(struct fwft_config *conf)
-> +{
-> +	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-> +				    SBI_HART_EXT_SSDBLTRP))
-> +		return SBI_ENOTSUPP;
-> +
-> +	return SBI_OK;
-> +}
-> +
-> +static int fwft_set_double_trap(struct fwft_config *conf, unsigned long value)
-> +{
-> +	return fwft_menvcfg_set_bit(value, ENVCFG_DTE_SHIFT);
-> +}
-> +
-> +static int fwft_get_double_trap(struct fwft_config *conf, unsigned long *value)
-> +{
-> +	return fwft_menvcfg_read_bit(value, ENVCFG_DTE_SHIFT);
-> +}
-> +
+>  firmware/fw_base.S           | 33 ++++++++++++++++++++++++++++++---
+>  include/sbi/riscv_encoding.h |  2 ++
+>  2 files changed, 32 insertions(+), 3 deletions(-)
 
-nit: to be sorted, these functions should go above fwft_adue_supported(). But
-it's a trivial concern, so:
+I didn't see you had sent v2 until after replying to the other thread. This
+looks good to me!
 
 Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 
->  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
->  {
->  	int i;
-> @@ -240,6 +259,12 @@ static const struct fwft_feature features[] =
->  		.set = fwft_set_misaligned_delegation,
->  		.get = fwft_get_misaligned_delegation,
->  	},
-> +	{
-> +		.id = SBI_FWFT_DOUBLE_TRAP,
-> +		.supported = fwft_double_trap_supported,
-> +		.set = fwft_set_double_trap,
-> +		.get = fwft_get_double_trap,
-> +	},
->  	{
->  		.id = SBI_FWFT_PTE_AD_HW_UPDATING,
->  		.supported = fwft_adue_supported,
+> 
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index b950c0b..3703cd6 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -31,6 +31,16 @@
+>  	add	\__d4, \__s4, zero
+>  .endm
+>  
+> +.macro CLEAR_MDT tmp
+> +#if __riscv_xlen == 32
+> +	li 	\tmp, MSTATUSH_MDT
+> +	csrc	CSR_MSTATUSH, \tmp
+> +#else
+> +	li 	\tmp, MSTATUS_MDT
+> +	csrc	CSR_MSTATUS, \tmp
+> +#endif
+> +.endm
+> +
+>  	.section .entry, "ax", %progbits
+>  	.align 3
+>  	.globl _start
+> @@ -91,6 +101,14 @@ _bss_zero:
+>  	lla	s4, _start_hang
+>  	csrw	CSR_MTVEC, s4
+>  
+> +	/*
+> +	 * While at this point, trap handling is rudimentary, if a trap happens,
+> +	 * it will end up in _start_hang which is enough to hook up a GDB. Clear
+> +	 * MDT to avoid generating a double trap and thus entering a
+> +	 * critical-error state.
+> +	 */
+> +	CLEAR_MDT t0
+> +
+>  	/* Setup temporary stack */
+>  	lla	s4, _fw_end
+>  	li	s5, (SBI_SCRATCH_SIZE * 2)
+> @@ -362,6 +380,9 @@ _start_warm:
+>  _skip_trap_handler_hyp:
+>  	csrw	CSR_MTVEC, a4
+>  
+> +	/* Clear MDT here again for all harts */
+> +	CLEAR_MDT t0
+> +
+>  	/* Initialize SBI runtime */
+>  	csrr	a0, CSR_MSCRATCH
+>  	call	sbi_init
+> @@ -557,6 +578,9 @@ memcmp:
+>  	li	t0, 0
+>  .endif
+>  	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
+> +
+> +	/* We are ready to take another trap, clear MDT */
+> +	CLEAR_MDT t0
+>  .endm
+>  
+>  .macro	TRAP_CALL_C_ROUTINE
+> @@ -599,15 +623,18 @@ memcmp:
+>  .endm
+>  
+>  .macro	TRAP_RESTORE_MEPC_MSTATUS have_mstatush
+> -	/* Restore MEPC and MSTATUS CSRs */
+> -	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
+> -	csrw	CSR_MEPC, t0
+> +	/*
+> +	 * Restore MSTATUS and MEPC CSRs starting with MSTATUS to set MDT
+> +	 * flags since we can not take a trap now or MEPC would be cloberred
+> +	 */
+>  	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
+>  	csrw	CSR_MSTATUS, t0
+>  	.if \have_mstatush
+>  	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(a0)
+>  	csrw	CSR_MSTATUSH, t0
+>  	.endif
+> +	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
+> +	csrw	CSR_MEPC, t0
+>  .endm
+>  
+>  .macro TRAP_RESTORE_A0_T0
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 1d83434..c0e459c 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -41,12 +41,14 @@
+>  #define MSTATUS_GVA			_ULL(0x0000004000000000)
+>  #define MSTATUS_GVA_SHIFT		38
+>  #define MSTATUS_MPV			_ULL(0x0000008000000000)
+> +#define MSTATUS_MDT			_ULL(0x0000040000000000)
+>  #else
+>  #define MSTATUSH_SBE			_UL(0x00000010)
+>  #define MSTATUSH_MBE			_UL(0x00000020)
+>  #define MSTATUSH_GVA			_UL(0x00000040)
+>  #define MSTATUSH_GVA_SHIFT		6
+>  #define MSTATUSH_MPV			_UL(0x00000080)
+> +#define MSTATUSH_MDT			_UL(0x00000400)
+>  #endif
+>  #define MSTATUS32_SD			_UL(0x80000000)
+>  #define MSTATUS64_SD			_ULL(0x8000000000000000)
 
 
