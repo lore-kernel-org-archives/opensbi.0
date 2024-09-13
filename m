@@ -1,52 +1,137 @@
-From: Xiang W <wxjstz@126.com>
-Date: Fri, 13 Sep 2024 12:36:39 +0800
-Subject: [PATCH] firmware: fw_base.S: fix multi-core boot bug.
-Message-ID: <20240913043703.3781585-1-wxjstz@126.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Fri, 13 Sep 2024 08:33:38 +0200
+Subject: [PATCH 3/5] lib: sbi: fwft: factorize menvcfg read/write
+In-Reply-To: <0980f7b0-3a56-441b-87e8-a69a0b1406a2@sifive.com>
+References: <20240912121052.2959596-1-cleger@rivosinc.com>
+ <20240912121052.2959596-4-cleger@rivosinc.com>
+ <0980f7b0-3a56-441b-87e8-a69a0b1406a2@sifive.com>
+Message-ID: <e05430ad-3cf2-4461-a358-be6c7a85fd8c@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: "dong.yang" <dong.yang@sophgo.com>
 
-In a multi-core startup scenario, if both _try_lottery and
-_wait_for_boot_hart use the data in the _boot_status address, when
-a CPU enters OpenSBI later than boot hart set the _boot_status to
-BOOT_STATUS_BOOT_HART_DONE, the CPU will modify _boot_status to 1
-by amoswap.w and will never be awakened in _wait_for_boot_hart.
-So let _try_lottery and _boot_status use data from two addresses.
 
-Signed-off-by: dong.yang <dong.yang@sophgo.com>
-Reviewed-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
----
- firmware/fw_base.S | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On 13/09/2024 01:40, Samuel Holland wrote:
+> Hi Cl?ment,
+> 
+> On 2024-09-12 7:10 AM, Cl?ment L?ger wrote:
+>> MENVCFG access will be used as well for double trap, landing pad and
+>> shadow stack fwft support. Factorize that in a common function.
+>>
+>> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+>> ---
+>>  include/sbi/riscv_encoding.h |  3 ++-
+>>  lib/sbi/sbi_fwft.c           | 50 +++++++++++++++++++++---------------
+>>  2 files changed, 32 insertions(+), 21 deletions(-)
+>>
+>> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+>> index 4728c63..5b3bbc5 100644
+>> --- a/include/sbi/riscv_encoding.h
+>> +++ b/include/sbi/riscv_encoding.h
+>> @@ -211,7 +211,8 @@
+>>  
+>>  #define ENVCFG_STCE			(_ULL(1) << 63)
+>>  #define ENVCFG_PBMTE			(_ULL(1) << 62)
+>> -#define ENVCFG_ADUE			(_ULL(1) << 61)
+>> +#define ENVCFG_ADUE_SHIFT		61
+>> +#define ENVCFG_ADUE			(_ULL(1) << ENVCFG_ADUE_SHIFT)
+>>  #define ENVCFG_CDE			(_ULL(1) << 60)
+>>  #define ENVCFG_DTE			(_ULL(1) << 59)
+>>  #define ENVCFG_CBZE			(_UL(1) << 7)
+>> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+>> index ef881ef..bc9cfd1 100644
+>> --- a/lib/sbi/sbi_fwft.c
+>> +++ b/lib/sbi/sbi_fwft.c
+>> @@ -111,40 +111,50 @@ static int fwft_adue_supported(struct fwft_config *conf)
+>>  	return SBI_OK;
+>>  }
+>>  
+>> -static int fwft_set_adue(struct fwft_config *conf, unsigned long value)
+>> +static int fwft_menvcfg_set_bit(unsigned long value, unsigned long bit)
+> 
+> I would suggest moving these helper functions above
+> fwft_misaligned_delegation_supported() so they are not in the middle of the ADUE
+> feature. (And the functions need to be earlier in the file if the functions are
+> sorted by feature ID.) Otherwise this change looks good.
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index b950c0b..0971612 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -47,7 +47,7 @@ _start:
- 	bne	a0, a6, _wait_for_boot_hart
- _try_lottery:
- 	/* Jump to relocation wait loop if we don't get relocation lottery */
--	lla	a6, _boot_status
-+	lla	a6, _relocate_lottery
- 	li	a7, BOOT_STATUS_LOTTERY_DONE
- 	amoswap.w a6, a7, (a6)
- 	bnez	a6, _wait_for_boot_hart
-@@ -371,6 +371,8 @@ _skip_trap_handler_hyp:
- 
- 	.data
- 	.align 3
-+_relocate_lottery:
-+	RISCV_PTR   0
- _boot_status:
- 	RISCV_PTR	0
- 
--- 
-2.45.2
+Yes sure !
+
+Thanks,
+
+Cl?ment
+
+> 
+> Regards,
+> Samuel
+> 
+>>  {
+>> -	if (value == 1)
+>> -#if __riscv_xlen == 32
+>> -		csr_set(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
+>> -#else
+>> -		csr_set(CSR_MENVCFG, ENVCFG_ADUE);
+>> -#endif
+>> -	else if (value == 0)
+>> -#if __riscv_xlen == 32
+>> -		csr_clear(CSR_MENVCFGH, ENVCFG_ADUE >> 32);
+>> -#else
+>> -		csr_clear(CSR_MENVCFG, ENVCFG_ADUE);
+>> -#endif
+>> -	else
+>> +	if (value == 1) {
+>> +		if (bit >= 32 && __riscv_xlen == 32)
+>> +			csr_set(CSR_MENVCFGH, _ULL(1) << (bit - 32));
+>> +		else
+>> +			csr_set(CSR_MENVCFG, _ULL(1) << bit);
+>> +
+>> +	} else if (value == 0) {
+>> +		if (bit >= 32 && __riscv_xlen == 32)
+>> +			csr_clear(CSR_MENVCFGH, _ULL(1) << (bit - 32));
+>> +		else
+>> +			csr_clear(CSR_MENVCFG, _ULL(1) << bit);
+>> +	} else {
+>>  		return SBI_EINVAL;
+>> +	}
+>>  
+>>  	return SBI_OK;
+>>  }
+>>  
+>> -static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
+>> +static int fwft_menvcfg_read_bit(unsigned long *value, unsigned long bit)
+>>  {
+>>  	unsigned long cfg;
+>>  
+>> -#if __riscv_xlen == 32
+>> -	cfg = csr_read(CSR_MENVCFGH) & (ENVCFG_ADUE >> 32);
+>> -#else
+>> -	cfg = csr_read(CSR_MENVCFG) & ENVCFG_ADUE;
+>> -#endif
+>> +	if (bit >= 32 && __riscv_xlen == 32)
+>> +		cfg = csr_read(CSR_MENVCFGH) & (_ULL(1) << (bit - 32));
+>> +	else
+>> +		cfg = csr_read(CSR_MENVCFG) & (_ULL(1) << bit);
+>> +
+>>  	*value = cfg != 0;
+>>  
+>>  	return SBI_OK;
+>>  }
+>>  
+>> +static int fwft_set_adue(struct fwft_config *conf, unsigned long value)
+>> +{
+>> +	return fwft_menvcfg_set_bit(value, ENVCFG_ADUE_SHIFT);
+>> +}
+>> +
+>> +static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
+>> +{
+>> +	return fwft_menvcfg_read_bit(value, ENVCFG_ADUE_SHIFT);
+>> +}
+>> +
+>>  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+>>  {
+>>  	int i;
+> 
 
 
