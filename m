@@ -1,153 +1,52 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Thu, 12 Sep 2024 20:42:58 -0500
-Subject: [PATCH] lib: sbi: Add support to mask/unmask SSE events
-In-Reply-To: <20240910132449.1977063-1-hchauhan@ventanamicro.com>
-References: <20240910132449.1977063-1-hchauhan@ventanamicro.com>
-Message-ID: <bb38cdaa-99f9-417f-be3f-5609ac85a0e2@sifive.com>
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 13 Sep 2024 12:36:39 +0800
+Subject: [PATCH] firmware: fw_base.S: fix multi-core boot bug.
+Message-ID: <20240913043703.3781585-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Himanshu,
+From: "dong.yang" <dong.yang@sophgo.com>
 
-On 2024-09-10 8:24 AM, Himanshu Chauhan wrote:
-> A hart in non-retentive suspend state can't handle software events
-> until the hart has come out of the non-retentive suspend and restored
-> the hart state.
-> 
-> To support this, define separate hart mask/unmask functions for the
-> SSE extension which allow supervisor software to globally mask/unmask
-> software event delivery on the calling hart.
-> 
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
-> ---
->  include/sbi/sbi_ecall_interface.h |  2 ++
->  include/sbi/sbi_sse.h             |  2 ++
->  lib/sbi/sbi_ecall_sse.c           |  6 ++++++
->  lib/sbi/sbi_sse.c                 | 31 +++++++++++++++++++++++++++++++
->  4 files changed, 41 insertions(+)
-> 
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index 085b33e7..3bf8f1da 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -342,6 +342,8 @@ enum sbi_cppc_reg_id {
->  #define SBI_EXT_SSE_DISABLE		0x00000005
->  #define SBI_EXT_SSE_COMPLETE		0x00000006
->  #define SBI_EXT_SSE_INJECT		0x00000007
-> +#define SBI_EXT_SSE_HART_MASK		0x00000008
-> +#define SBI_EXT_SSE_HART_UNMASK		0x00000009
+In a multi-core startup scenario, if both _try_lottery and
+_wait_for_boot_hart use the data in the _boot_status address, when
+a CPU enters OpenSBI later than boot hart set the _boot_status to
+BOOT_STATUS_BOOT_HART_DONE, the CPU will modify _boot_status to 1
+by amoswap.w and will never be awakened in _wait_for_boot_hart.
+So let _try_lottery and _boot_status use data from two addresses.
 
-These function IDs are swapped compared to the proposed spec.
+Signed-off-by: dong.yang <dong.yang@sophgo.com>
+Reviewed-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
+Reviewed-by: Xiang W <wxjstz@126.com>
+---
+ firmware/fw_base.S | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
->  
->  /* SBI SSE Event Attributes. */
->  enum sbi_sse_attr_id {
-> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
-> index e5b0ad69..7419698a 100644
-> --- a/include/sbi/sbi_sse.h
-> +++ b/include/sbi/sbi_sse.h
-> @@ -78,6 +78,8 @@ void sbi_sse_exit(struct sbi_scratch *scratch);
->  int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
->  		     unsigned long handler_entry_arg);
->  int sbi_sse_unregister(uint32_t event_id);
-> +int sbi_sse_hart_mask(void);
-> +int sbi_sse_hart_unmask(void);
->  int sbi_sse_enable(uint32_t event_id);
->  int sbi_sse_disable(uint32_t event_id);
->  int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out);
-> diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
-> index a28a033e..beddc2cd 100644
-> --- a/lib/sbi/sbi_ecall_sse.c
-> +++ b/lib/sbi/sbi_ecall_sse.c
-> @@ -36,6 +36,12 @@ static int sbi_ecall_sse_handler(unsigned long extid, unsigned long funcid,
->  	case SBI_EXT_SSE_INJECT:
->  		ret = sbi_sse_inject_from_ecall(regs->a0, regs->a1, out);
->  		break;
-> +	case SBI_EXT_SSE_HART_MASK:
-> +		ret = sbi_sse_hart_mask();
-> +		break;
-> +	case SBI_EXT_SSE_HART_UNMASK:
-> +		ret = sbi_sse_hart_unmask();
-> +		break;
->  	default:
->  		ret = SBI_ENOTSUPP;
->  	}
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 52172fcd..e9085324 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -141,6 +141,12 @@ struct sse_hart_state {
->  	 * List of local events allocated at boot time.
->  	 */
->  	struct sbi_sse_event *local_events;
-> +
-> +	/**
-> +	 * State to track if the hart is ready to take sse events.
-> +	 * One hart cannot modify this state of another hart.
-> +	 */
-> +	bool sse_masked;
-
-"sse_" is a bit redundant here, since this whole structure is SSE state.
-
->  };
->  
->  /**
-> @@ -608,6 +614,11 @@ void sbi_sse_process_pending_events(struct sbi_trap_regs *regs)
->  	struct sbi_sse_event *e;
->  	struct sse_hart_state *state = sse_thishart_state_ptr();
->  
-> +	/* if sse is masked on this hart, do nothing */
-> +	if (state->sse_masked) {
-> +		return;
-> +	}
-
-This will block global events if the preferred hart has events masked.
-sse_event_is_ready() needs to ignore the preferred hartid in that case, so the
-event can be injected on another hart.
-
-Regards,
-Samuel
-
-> +
->  	spin_lock(&state->enabled_event_lock);
->  
->  	sbi_list_for_each_entry(e, &state->enabled_event_list, node) {
-> @@ -805,6 +816,24 @@ int sbi_sse_disable(uint32_t event_id)
->  	return ret;
->  }
->  
-> +int sbi_sse_hart_mask(void)
-> +{
-> +	struct sse_hart_state *state = sse_thishart_state_ptr();
-> +
-> +	state->sse_masked = true;
-> +
-> +	return SBI_SUCCESS;
-> +}
-> +
-> +int sbi_sse_hart_unmask(void)
-> +{
-> +	struct sse_hart_state *state = sse_thishart_state_ptr();
-> +
-> +	state->sse_masked = false;
-> +
-> +	return SBI_SUCCESS;
-> +}
-> +
->  int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hartid,
->  			      struct sbi_ecall_return *out)
->  {
-> @@ -1123,6 +1152,8 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
->  
->  		shs->local_events = (struct sbi_sse_event *)(shs + 1);
->  
-> +		/* SSE events are masked until hart unmasks them */
-> +		shs->sse_masked = true;
->  		sse_set_hart_state_ptr(scratch, shs);
->  	}
->  
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index b950c0b..0971612 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -47,7 +47,7 @@ _start:
+ 	bne	a0, a6, _wait_for_boot_hart
+ _try_lottery:
+ 	/* Jump to relocation wait loop if we don't get relocation lottery */
+-	lla	a6, _boot_status
++	lla	a6, _relocate_lottery
+ 	li	a7, BOOT_STATUS_LOTTERY_DONE
+ 	amoswap.w a6, a7, (a6)
+ 	bnez	a6, _wait_for_boot_hart
+@@ -371,6 +371,8 @@ _skip_trap_handler_hyp:
+ 
+ 	.data
+ 	.align 3
++_relocate_lottery:
++	RISCV_PTR   0
+ _boot_status:
+ 	RISCV_PTR	0
+ 
+-- 
+2.45.2
 
 
