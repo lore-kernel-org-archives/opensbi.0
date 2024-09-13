@@ -1,130 +1,153 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Thu, 12 Sep 2024 18:50:11 -0500
-Subject: [PATCH 5/5] lib: sbi: add Smdbltrp ISA extension support
-In-Reply-To: <20240912121052.2959596-6-cleger@rivosinc.com>
-References: <20240912121052.2959596-1-cleger@rivosinc.com>
- <20240912121052.2959596-6-cleger@rivosinc.com>
-Message-ID: <dc333a64-2ed9-40f8-a11a-96b09c7da017@sifive.com>
+Date: Thu, 12 Sep 2024 20:42:58 -0500
+Subject: [PATCH] lib: sbi: Add support to mask/unmask SSE events
+In-Reply-To: <20240910132449.1977063-1-hchauhan@ventanamicro.com>
+References: <20240910132449.1977063-1-hchauhan@ventanamicro.com>
+Message-ID: <bb38cdaa-99f9-417f-be3f-5609ac85a0e2@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Cl?ment,
+Hi Himanshu,
 
-On 2024-09-12 7:10 AM, Cl?ment L?ger wrote:
-> Add support for the Smdbltrp[1] ISA extension. First thing to do is
-> clearing MDT on entry after setting the first MTVEC (since MDT is
-> reset to 1). Additionally, during trap handling, clear MDT once all
-> critical CSRs have been saved and in return path, restore MSTATUS before
-> restoring MEPC to avoid taking another trap which would clobber it.
+On 2024-09-10 8:24 AM, Himanshu Chauhan wrote:
+> A hart in non-retentive suspend state can't handle software events
+> until the hart has come out of the non-retentive suspend and restored
+> the hart state.
 > 
-> Link: https://github.com/riscv/riscv-double-trap/releases/download/v0.56/riscv-double-trap.pdf [1]
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> To support this, define separate hart mask/unmask functions for the
+> SSE extension which allow supervisor software to globally mask/unmask
+> software event delivery on the calling hart.
+> 
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 > ---
->  firmware/fw_base.S           | 29 ++++++++++++++++++++++++++---
->  include/sbi/riscv_encoding.h |  2 ++
->  2 files changed, 28 insertions(+), 3 deletions(-)
+>  include/sbi/sbi_ecall_interface.h |  2 ++
+>  include/sbi/sbi_sse.h             |  2 ++
+>  lib/sbi/sbi_ecall_sse.c           |  6 ++++++
+>  lib/sbi/sbi_sse.c                 | 31 +++++++++++++++++++++++++++++++
+>  4 files changed, 41 insertions(+)
 > 
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index b950c0b..01d5f51 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -31,6 +31,16 @@
->  	add	\__d4, \__s4, zero
->  .endm
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 085b33e7..3bf8f1da 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -342,6 +342,8 @@ enum sbi_cppc_reg_id {
+>  #define SBI_EXT_SSE_DISABLE		0x00000005
+>  #define SBI_EXT_SSE_COMPLETE		0x00000006
+>  #define SBI_EXT_SSE_INJECT		0x00000007
+> +#define SBI_EXT_SSE_HART_MASK		0x00000008
+> +#define SBI_EXT_SSE_HART_UNMASK		0x00000009
+
+These function IDs are swapped compared to the proposed spec.
+
 >  
-> +.macro CLEAR_MDT tmp, have_mstatush
-> +	.if \have_mstatush
-> +	li 	\tmp, MSTATUSH_MDT
-> +	csrc	CSR_MSTATUSH, \tmp
-> +	.else
-> +	li 	\tmp, MSTATUS_MDT
-> +	csrc	CSR_MSTATUS, \tmp
-> +	.endif
-
-Why not put the __riscv_xlen check inside the macro? Then it doesn't need the
-have_mstatush parameter.
-
-> +.endm
+>  /* SBI SSE Event Attributes. */
+>  enum sbi_sse_attr_id {
+> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
+> index e5b0ad69..7419698a 100644
+> --- a/include/sbi/sbi_sse.h
+> +++ b/include/sbi/sbi_sse.h
+> @@ -78,6 +78,8 @@ void sbi_sse_exit(struct sbi_scratch *scratch);
+>  int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
+>  		     unsigned long handler_entry_arg);
+>  int sbi_sse_unregister(uint32_t event_id);
+> +int sbi_sse_hart_mask(void);
+> +int sbi_sse_hart_unmask(void);
+>  int sbi_sse_enable(uint32_t event_id);
+>  int sbi_sse_disable(uint32_t event_id);
+>  int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out);
+> diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
+> index a28a033e..beddc2cd 100644
+> --- a/lib/sbi/sbi_ecall_sse.c
+> +++ b/lib/sbi/sbi_ecall_sse.c
+> @@ -36,6 +36,12 @@ static int sbi_ecall_sse_handler(unsigned long extid, unsigned long funcid,
+>  	case SBI_EXT_SSE_INJECT:
+>  		ret = sbi_sse_inject_from_ecall(regs->a0, regs->a1, out);
+>  		break;
+> +	case SBI_EXT_SSE_HART_MASK:
+> +		ret = sbi_sse_hart_mask();
+> +		break;
+> +	case SBI_EXT_SSE_HART_UNMASK:
+> +		ret = sbi_sse_hart_unmask();
+> +		break;
+>  	default:
+>  		ret = SBI_ENOTSUPP;
+>  	}
+> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+> index 52172fcd..e9085324 100644
+> --- a/lib/sbi/sbi_sse.c
+> +++ b/lib/sbi/sbi_sse.c
+> @@ -141,6 +141,12 @@ struct sse_hart_state {
+>  	 * List of local events allocated at boot time.
+>  	 */
+>  	struct sbi_sse_event *local_events;
 > +
->  	.section .entry, "ax", %progbits
->  	.align 3
->  	.globl _start
-> @@ -91,6 +101,13 @@ _bss_zero:
->  	lla	s4, _start_hang
->  	csrw	CSR_MTVEC, s4
->  
-> +	/* We are now ready to take a trap, clear MDT */
-> +#if __riscv_xlen > 32
-> +	CLEAR_MDT t0, 0
-> +#else
-> +	CLEAR_MDT t0, 1
-> +#endif
+> +	/**
+> +	 * State to track if the hart is ready to take sse events.
+> +	 * One hart cannot modify this state of another hart.
+> +	 */
+> +	bool sse_masked;
 
-I don't think we're really ready to take a trap here; the stack pointer is not
-even set yet. Also this needs to go after _start_warm so it gets run on all
-harts. So I think this should go after the other write to CSR_MTVEC, near the
-call to sbi_init().
+"sse_" is a bit redundant here, since this whole structure is SSE state.
+
+>  };
+>  
+>  /**
+> @@ -608,6 +614,11 @@ void sbi_sse_process_pending_events(struct sbi_trap_regs *regs)
+>  	struct sbi_sse_event *e;
+>  	struct sse_hart_state *state = sse_thishart_state_ptr();
+>  
+> +	/* if sse is masked on this hart, do nothing */
+> +	if (state->sse_masked) {
+> +		return;
+> +	}
+
+This will block global events if the preferred hart has events masked.
+sse_event_is_ready() needs to ignore the preferred hartid in that case, so the
+event can be injected on another hart.
 
 Regards,
 Samuel
 
 > +
->  	/* Setup temporary stack */
->  	lla	s4, _fw_end
->  	li	s5, (SBI_SCRATCH_SIZE * 2)
-> @@ -557,6 +574,9 @@ memcmp:
->  	li	t0, 0
->  .endif
->  	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
+>  	spin_lock(&state->enabled_event_lock);
+>  
+>  	sbi_list_for_each_entry(e, &state->enabled_event_list, node) {
+> @@ -805,6 +816,24 @@ int sbi_sse_disable(uint32_t event_id)
+>  	return ret;
+>  }
+>  
+> +int sbi_sse_hart_mask(void)
+> +{
+> +	struct sse_hart_state *state = sse_thishart_state_ptr();
 > +
-> +	/* We are ready to take another trap, clear MDT */
-> +	CLEAR_MDT t0, \have_mstatush
->  .endm
+> +	state->sse_masked = true;
+> +
+> +	return SBI_SUCCESS;
+> +}
+> +
+> +int sbi_sse_hart_unmask(void)
+> +{
+> +	struct sse_hart_state *state = sse_thishart_state_ptr();
+> +
+> +	state->sse_masked = false;
+> +
+> +	return SBI_SUCCESS;
+> +}
+> +
+>  int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hartid,
+>  			      struct sbi_ecall_return *out)
+>  {
+> @@ -1123,6 +1152,8 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
 >  
->  .macro	TRAP_CALL_C_ROUTINE
-> @@ -599,15 +619,18 @@ memcmp:
->  .endm
+>  		shs->local_events = (struct sbi_sse_event *)(shs + 1);
 >  
->  .macro	TRAP_RESTORE_MEPC_MSTATUS have_mstatush
-> -	/* Restore MEPC and MSTATUS CSRs */
-> -	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-> -	csrw	CSR_MEPC, t0
-> +	/*
-> +	 * Restore MSTATUS and MEPC CSRs starting with MSTATUS to set MDT
-> +	 * flags since we can not take a trap now or MEPC would be cloberred
-> +	 */
->  	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
->  	csrw	CSR_MSTATUS, t0
->  	.if \have_mstatush
->  	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(a0)
->  	csrw	CSR_MSTATUSH, t0
->  	.endif
-> +	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-> +	csrw	CSR_MEPC, t0
->  .endm
+> +		/* SSE events are masked until hart unmasks them */
+> +		shs->sse_masked = true;
+>  		sse_set_hart_state_ptr(scratch, shs);
+>  	}
 >  
->  .macro TRAP_RESTORE_A0_T0
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 1d83434..c0e459c 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -41,12 +41,14 @@
->  #define MSTATUS_GVA			_ULL(0x0000004000000000)
->  #define MSTATUS_GVA_SHIFT		38
->  #define MSTATUS_MPV			_ULL(0x0000008000000000)
-> +#define MSTATUS_MDT			_ULL(0x0000040000000000)
->  #else
->  #define MSTATUSH_SBE			_UL(0x00000010)
->  #define MSTATUSH_MBE			_UL(0x00000020)
->  #define MSTATUSH_GVA			_UL(0x00000040)
->  #define MSTATUSH_GVA_SHIFT		6
->  #define MSTATUSH_MPV			_UL(0x00000080)
-> +#define MSTATUSH_MDT			_UL(0x00000400)
->  #endif
->  #define MSTATUS32_SD			_UL(0x80000000)
->  #define MSTATUS64_SD			_ULL(0x8000000000000000)
 
 
