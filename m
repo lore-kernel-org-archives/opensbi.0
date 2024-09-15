@@ -1,132 +1,42 @@
-From: Atish Kumar Patra <atishp@rivosinc.com>
-Date: Sat, 14 Sep 2024 10:43:44 -0700
-Subject: [PATCH v5 2/4] lib: sbi: add zicfilp/zicfiss and elp cfi state
- reflect back in status
-In-Reply-To: <d7df3c5e-f84b-4b16-a7d0-d52fca76da37@sifive.com>
-References: <20240910163522.2584936-1-debug@rivosinc.com> <20240910163522.2584936-3-debug@rivosinc.com>
- <d7df3c5e-f84b-4b16-a7d0-d52fca76da37@sifive.com>
-Message-ID: <CAHBxVyG_ErKNSZhVBeUHs=jrmrn=MPJiPeTuPVT2FaJ87HfVGg@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Sun, 15 Sep 2024 21:34:26 +0530
+Subject: [PATCH] include: sbi: Don't unconditionally define '__always_inline'
+Message-ID: <20240915160426.1136309-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Sep 14, 2024 at 10:04?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> On 2024-09-10 11:35 AM, Deepak Gupta wrote:
-> > This patch adds support to check for zicfilp / zicfiss extension.
-> >
-> > zicfilp record status of hart's ELP state in *status csr. Missing landing pad
-> > sets MPELP in mstatus. When SBI is redirecting back to S/VS/HS, SPELP is
-> > set in sstatus/vsstatus.
-> >
-> > Signed-off-by: Deepak Gupta <debug@rivosinc.com>
-> > ---
-> >  include/sbi/sbi_hart.h |  3 +++
-> >  lib/sbi/sbi_hart.c     |  2 ++
-> >  lib/sbi/sbi_trap.c     | 20 ++++++++++++++++++++
-> >  3 files changed, 25 insertions(+)
-> >
-> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> > index 81ec061..2aa6867 100644
-> > --- a/include/sbi/sbi_hart.h
-> > +++ b/include/sbi/sbi_hart.h
-> > @@ -67,6 +67,9 @@ enum sbi_hart_extensions {
-> >       SBI_HART_EXT_SVADE,
-> >       /** Hart has Svadu extension */
-> >       SBI_HART_EXT_SVADU,
-> > +     /** HART has zicfiss & zicfilp extension */
-> > +     SBI_HART_EXT_ZICFILP,
-> > +     SBI_HART_EXT_ZICFISS,
-> >
+From: Elyes Haouas <ehaouas@noos.fr>
 
-nit: Just to follow the convention above, let's split the comment
-into individual extensions.
+Update __always_inline macro define to fix opensbi upstream
+build for coreboot.
+Refer, https://qa.coreboot.org/job/coreboot-gerrit/257449/testReport/junit/(root)/clang/EMULATION_QEMU_RISCV_RV64_/
 
-However, I am not sure if those comments provide any additional info
-as most of the comments above the extension have the exact same extension
-name in lowercase which is not that useful.
+Closes: https://github.com/riscv-software-src/opensbi/issues/366
+Signed-off-by: Elyes Haouas <ehaouas@noos.fr>
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ include/sbi/sbi_types.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> >       /** Maximum index of Hart extension */
-> >       SBI_HART_EXT_MAX,
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index c366701..e1bc346 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -680,6 +680,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
-> >       __SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
-> >       __SBI_HART_EXT_DATA(svade, SBI_HART_EXT_SVADE),
-> >       __SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
-> > +     __SBI_HART_EXT_DATA(zicfilp, SBI_HART_EXT_ZICFILP),
-> > +     __SBI_HART_EXT_DATA(zicfiss, SBI_HART_EXT_ZICFISS),
-> >  };
-> >
-> >  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
-> > diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-> > index b4f3a17..e2502f2 100644
-> > --- a/lib/sbi/sbi_trap.c
-> > +++ b/lib/sbi/sbi_trap.c
-> > @@ -103,6 +103,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >                     const struct sbi_trap_info *trap)
-> >  {
-> >       ulong hstatus, vsstatus, prev_mode;
-> > +     bool elp = false;
-> >  #if __riscv_xlen == 32
-> >       bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
-> >  #else
-> > @@ -116,6 +117,17 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >       if (prev_mode != PRV_S && prev_mode != PRV_U)
-> >               return SBI_ENOTSUPP;
-> >
-> > +     /* If extension has support for CFI, clear MPELP because redirecting to VS or (H)S */
->
-> Did you mean "If hart has support for CFI" here?
->
-> > +     if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(), SBI_HART_EXT_ZICFILP)) {
-> > +#if __riscv_xlen == 32
-> > +             elp = regs->mstatusH & MSTATUSH_MPELP;
-> > +             regs->mstatusH &= ~MSTATUSH_MPELP;
-> > +#else
-> > +             elp = regs->mstatus & MSTATUS_MPELP;
-> > +             regs->mstatus &= ~MSTATUS_MPELP;
-> > +#endif
-> > +     }
-> > +
-> >       /* If exceptions came from VS/VU-mode, redirect to VS-mode if
-> >        * delegated in hedeleg
-> >        */
-> > @@ -169,6 +181,10 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >               /* Get VS-mode SSTATUS CSR */
-> >               vsstatus = csr_read(CSR_VSSTATUS);
-> >
-> > +             /*if elp was set, set it back in vsstatus */
->
-> Missing space before "if". With this fixed:
->
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
->
-> > +             if (elp)
-> > +                     vsstatus |= MSTATUS_SPELP;
-> > +
-> >               /* Set SPP for VS-mode */
-> >               vsstatus &= ~SSTATUS_SPP;
-> >               if (prev_mode == PRV_S)
-> > @@ -209,6 +225,10 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
-> >
-> >               /* Clear SIE for S-mode */
-> >               regs->mstatus &= ~MSTATUS_SIE;
-> > +
-> > +             /* if elp was set, set it back in mstatus */
-> > +             if (elp)
-> > +                     regs->mstatus |= MSTATUS_SPELP;
-> >       }
-> >
-> >       return 0;
->
+diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
+index def88bba..a9943d29 100644
+--- a/include/sbi/sbi_types.h
++++ b/include/sbi/sbi_types.h
+@@ -69,7 +69,10 @@ typedef uint64_t		be64_t;
+ #define __packed		__attribute__((packed))
+ #define __noreturn		__attribute__((noreturn))
+ #define __aligned(x)		__attribute__((aligned(x)))
++
++#ifndef __always_inline
+ #define __always_inline	inline __attribute__((always_inline))
++#endif
+ 
+ #define likely(x) __builtin_expect((x), 1)
+ #define unlikely(x) __builtin_expect((x), 0)
+-- 
+2.43.0
 
-With Samuel's suggestion fixed,
-
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
 
