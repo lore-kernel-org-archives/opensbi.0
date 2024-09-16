@@ -1,102 +1,78 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 16 Sep 2024 09:28:03 +0200
-Subject: [PATCH v2 5/6] lib: sbi: implement firmware feature
- SBI_FWFT_DOUBLE_TRAP
-In-Reply-To: <833cc267-9f7e-44ac-ad7d-79a35a17c417@sifive.com>
-References: <20240913143419.3258868-1-cleger@rivosinc.com>
- <20240913143419.3258868-6-cleger@rivosinc.com>
- <833cc267-9f7e-44ac-ad7d-79a35a17c417@sifive.com>
-Message-ID: <7f6d7cc4-1b91-42ea-b6c0-e1cee5d39551@rivosinc.com>
+From: Hui Min Mina Chou <minachou@andestech.com>
+Date: Mon, 16 Sep 2024 17:56:36 +0800
+Subject: [PATCH] top: Add .editorconfig to set basic coding styles
+Message-ID: <20240916095636.603355-1-minachou@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+EditorConfig [1] ensures consistent coding styles for developers
+collaborating on the same project across various editors and IDEs. By
+adopting the Linux project's .editorconfig settings [2] and applying
+them to OpenSBI, it helps users maintain uniform indentation across
+different IDEs and version control systems, improving development
+efficiency.
 
+The main difference from Linux project is the addition of
+'trim_trailing_whitespace = true', which removes trailing whitespace
+before newlines. This change affects only three files in OpenSBI, but
+it improves overall code consistency.
 
-On 13/09/2024 20:11, Samuel Holland wrote:
-> On 2024-09-13 9:34 AM, Cl?ment L?ger wrote:
->> Add support for double trap firmware feature.
->>
->> Link: https://lists.riscv.org/g/tech-prs/message/985 [1]
->> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->> ---
->>  include/sbi/riscv_encoding.h |  3 ++-
->>  lib/sbi/sbi_fwft.c           | 25 +++++++++++++++++++++++++
->>  2 files changed, 27 insertions(+), 1 deletion(-)
->>
->> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
->> index 5b3bbc5..1d83434 100644
->> --- a/include/sbi/riscv_encoding.h
->> +++ b/include/sbi/riscv_encoding.h
->> @@ -214,7 +214,8 @@
->>  #define ENVCFG_ADUE_SHIFT		61
->>  #define ENVCFG_ADUE			(_ULL(1) << ENVCFG_ADUE_SHIFT)
->>  #define ENVCFG_CDE			(_ULL(1) << 60)
->> -#define ENVCFG_DTE			(_ULL(1) << 59)
->> +#define ENVCFG_DTE_SHIFT		59
->> +#define ENVCFG_DTE			(_ULL(1) << ENVCFG_DTE_SHIFT)
->>  #define ENVCFG_CBZE			(_UL(1) << 7)
->>  #define ENVCFG_CBCFE			(_UL(1) << 6)
->>  #define ENVCFG_CBIE_SHIFT		4
->> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
->> index c818afd..39bd592 100644
->> --- a/lib/sbi/sbi_fwft.c
->> +++ b/lib/sbi/sbi_fwft.c
->> @@ -155,6 +155,25 @@ static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
->>  	return fwft_menvcfg_read_bit(value, ENVCFG_ADUE_SHIFT);
->>  }
->>  
->> +static int fwft_double_trap_supported(struct fwft_config *conf)
->> +{
->> +	if (!sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
->> +				    SBI_HART_EXT_SSDBLTRP))
->> +		return SBI_ENOTSUPP;
->> +
->> +	return SBI_OK;
->> +}
->> +
->> +static int fwft_set_double_trap(struct fwft_config *conf, unsigned long value)
->> +{
->> +	return fwft_menvcfg_set_bit(value, ENVCFG_DTE_SHIFT);
->> +}
->> +
->> +static int fwft_get_double_trap(struct fwft_config *conf, unsigned long *value)
->> +{
->> +	return fwft_menvcfg_read_bit(value, ENVCFG_DTE_SHIFT);
->> +}
->> +
-> 
-> nit: to be sorted, these functions should go above fwft_adue_supported(). But
-> it's a trivial concern, so:
+ $ grep -nr "\s$" --include={*.{c,dts,h,lds,ldS,mk,s,S.py},Kconfig,Makefile,Makefile.*} .
+ ./include/sbi_utils/fdt/fdt_fixup.h:4: * Implement platform specific DT fixups on top of libfdt.
+ ./platform/generic/platform.c:79: * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
+ ./platform/generic/platform.c:81: * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
 
-Oh damn, I sorted the entries but not the functions. No worries, I'll
-resend a V3.
+Link: https://editorconfig.org/ [1]
+Link: https://lore.kernel.org/lkml/ZbAbmchIO8Cd5hNd at surfacebook.localdomain/T/ [2]
+Signed-off-by: Hui Min Mina Chou <minachou@andestech.com>
+---
+ .editorconfig | 21 +++++++++++++++++++++
+ .gitignore    |  1 +
+ 2 files changed, 22 insertions(+)
+ create mode 100644 .editorconfig
 
-Thanks,
-
-Cl?ment
-
-> 
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-> 
->>  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
->>  {
->>  	int i;
->> @@ -240,6 +259,12 @@ static const struct fwft_feature features[] =
->>  		.set = fwft_set_misaligned_delegation,
->>  		.get = fwft_get_misaligned_delegation,
->>  	},
->> +	{
->> +		.id = SBI_FWFT_DOUBLE_TRAP,
->> +		.supported = fwft_double_trap_supported,
->> +		.set = fwft_set_double_trap,
->> +		.get = fwft_get_double_trap,
->> +	},
->>  	{
->>  		.id = SBI_FWFT_PTE_AD_HW_UPDATING,
->>  		.supported = fwft_adue_supported,
-> 
+diff --git a/.editorconfig b/.editorconfig
+new file mode 100644
+index 000000000000..e66b1ca3d6e7
+--- /dev/null
++++ b/.editorconfig
+@@ -0,0 +1,21 @@
++# SPDX-License-Identifier: GPL-2.0-only
++# See here for more information about the format and editor support:
++# https://editorconfig.org/
++
++root = true
++
++[{*.{c,dts,h,lds,ldS,mk,s,S},Kconfig,Makefile,Makefile.*}]
++charset = utf-8
++end_of_line = lf
++trim_trailing_whitespace = true
++insert_final_newline = true
++indent_style = tab
++indent_size = 8
++
++[*.py]
++charset = utf-8
++end_of_line = lf
++trim_trailing_whitespace = true
++insert_final_newline = true
++indent_style = space
++indent_size = 4
+diff --git a/.gitignore b/.gitignore
+index a519d67f5c54..424302b38337 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -5,5 +5,6 @@
+ !.clang-format
+ !.gitignore
++!.editorconfig
+ 
+ # Object files
+ *.o
+-- 
+2.34.1
 
 
