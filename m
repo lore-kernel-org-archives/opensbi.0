@@ -1,136 +1,163 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 16 Sep 2024 16:08:19 +0200
-Subject: [PATCH v3 2/7] lib: sbi: factorize previous mode computation
+Date: Mon, 16 Sep 2024 16:08:20 +0200
+Subject: [PATCH v3 3/7] lib: sbi: add Ssdbltrp ISA extension support
 In-Reply-To: <20240916140824.3343921-1-cleger@rivosinc.com>
 References: <20240916140824.3343921-1-cleger@rivosinc.com>
-Message-ID: <20240916140824.3343921-3-cleger@rivosinc.com>
+Message-ID: <20240916140824.3343921-4-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Previous privilege mode retrieval from mstatus is done at different
-places, factorize it rather than copy/pasting it again.
+Add Ssdbltrp trap handler support for S-mode double trap handling. If
+the trap is received while in VS-mode, then the trap is redirected to
+S-mode. If caught while in HS-mode, then an error is returned to the top
+trap handler which will panic.
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 ---
- include/sbi/sbi_trap.h     | 5 +++++
- lib/sbi/sbi_emulate_csr.c  | 4 ++--
- lib/sbi/sbi_illegal_insn.c | 2 +-
- lib/sbi/sbi_system.c       | 2 +-
- lib/sbi/sbi_trap.c         | 4 ++--
- lib/sbi/sbi_trap_ldst.c    | 4 ++--
- 6 files changed, 13 insertions(+), 8 deletions(-)
+ include/sbi/riscv_encoding.h |  2 ++
+ include/sbi/sbi_hart.h       |  3 ++-
+ include/sbi/sbi_trap_ldst.h  |  2 ++
+ lib/sbi/objects.mk           |  1 +
+ lib/sbi/sbi_double_trap.c    | 30 ++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hart.c           |  4 ++++
+ lib/sbi/sbi_trap.c           |  4 ++++
+ 7 files changed, 45 insertions(+), 1 deletion(-)
+ create mode 100644 lib/sbi/sbi_double_trap.c
 
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index b0c47ce..d5182bf 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -245,6 +245,11 @@ static inline bool sbi_regs_from_virt(const struct sbi_trap_regs *regs)
- #endif
- }
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 2e4391f..4728c63 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -213,6 +213,7 @@
+ #define ENVCFG_PBMTE			(_ULL(1) << 62)
+ #define ENVCFG_ADUE			(_ULL(1) << 61)
+ #define ENVCFG_CDE			(_ULL(1) << 60)
++#define ENVCFG_DTE			(_ULL(1) << 59)
+ #define ENVCFG_CBZE			(_UL(1) << 7)
+ #define ENVCFG_CBCFE			(_UL(1) << 6)
+ #define ENVCFG_CBIE_SHIFT		4
+@@ -763,6 +764,7 @@
+ #define CAUSE_FETCH_PAGE_FAULT		0xc
+ #define CAUSE_LOAD_PAGE_FAULT		0xd
+ #define CAUSE_STORE_PAGE_FAULT		0xf
++#define CAUSE_DOUBLE_TRAP		0x10
+ #define CAUSE_FETCH_GUEST_PAGE_FAULT	0x14
+ #define CAUSE_LOAD_GUEST_PAGE_FAULT	0x15
+ #define CAUSE_VIRTUAL_INST_FAULT	0x16
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 81ec061..8aef2a1 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -67,7 +67,8 @@ enum sbi_hart_extensions {
+ 	SBI_HART_EXT_SVADE,
+ 	/** Hart has Svadu extension */
+ 	SBI_HART_EXT_SVADU,
+-
++	/** Hart has Ssdbltrp extension */
++	SBI_HART_EXT_SSDBLTRP,
+ 	/** Maximum index of Hart extension */
+ 	SBI_HART_EXT_MAX,
+ };
+diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
+index 8aee316..4c5cc37 100644
+--- a/include/sbi/sbi_trap_ldst.h
++++ b/include/sbi/sbi_trap_ldst.h
+@@ -28,4 +28,6 @@ int sbi_load_access_handler(struct sbi_trap_context *tcntx);
  
-+static inline int sbi_mstatus_prev_mode(unsigned long mstatus)
-+{
-+	return (mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+}
+ int sbi_store_access_handler(struct sbi_trap_context *tcntx);
+ 
++int sbi_double_trap_handler(struct sbi_trap_context *tcntx);
 +
- int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      const struct sbi_trap_info *trap);
+ #endif
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 535aa70..7be943f 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -66,6 +66,7 @@ libsbi-objs-y += sbi_bitops.o
+ libsbi-objs-y += sbi_console.o
+ libsbi-objs-y += sbi_domain_context.o
+ libsbi-objs-y += sbi_domain.o
++libsbi-objs-y += sbi_double_trap.o
+ libsbi-objs-y += sbi_emulate_csr.o
+ libsbi-objs-y += sbi_fifo.o
+ libsbi-objs-y += sbi_fwft.o
+diff --git a/lib/sbi/sbi_double_trap.c b/lib/sbi/sbi_double_trap.c
+new file mode 100644
+index 0000000..96f2fa5
+--- /dev/null
++++ b/lib/sbi/sbi_double_trap.c
+@@ -0,0 +1,30 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2024 Rivos Inc.
++ *
++ * Authors:
++ *   Cl?ment L?ger <clement.leger@rivosinc.com>
++ */
++
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_ecall_interface.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_sse.h>
++#include <sbi/sbi_trap.h>
++
++int sbi_double_trap_handler(struct sbi_trap_context *tcntx)
++{
++	struct sbi_trap_regs *regs = &tcntx->regs;
++	const struct sbi_trap_info *trap = &tcntx->trap;
++	bool prev_virt = sbi_regs_from_virt(regs);
++
++	if (sbi_mstatus_prev_mode(regs->mstatus) != PRV_S)
++		return SBI_ERR_INVALID_PARAM;
++
++	/* Exception was taken in VS-mode, redirect it to S-mode */
++	if (prev_virt)
++		return sbi_trap_redirect(regs, trap);
++
++	return SBI_ENOTSUPP;
++}
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index cc364fa..d6b9a0a 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -117,6 +117,9 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 		menvcfg_val |= ((uint64_t)csr_read(CSR_MENVCFGH)) << 32;
+ #endif
  
-diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-index a5b825d..9efd85c 100644
---- a/lib/sbi/sbi_emulate_csr.c
-+++ b/lib/sbi/sbi_emulate_csr.c
-@@ -46,7 +46,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
- {
- 	int ret = 0;
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
--	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
- 	bool virt = sbi_regs_from_virt(regs);
++		/* Disable double trap by default */
++		menvcfg_val &= ~ENVCFG_DTE;
++
+ #define __set_menvcfg_ext(__ext, __bits)				\
+ 		if (sbi_hart_has_extension(scratch, __ext))		\
+ 			menvcfg_val |= __bits;
+@@ -680,6 +683,7 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+ 	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
+ 	__SBI_HART_EXT_DATA(svade, SBI_HART_EXT_SVADE),
+ 	__SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
++	__SBI_HART_EXT_DATA(ssdbltrp, SBI_HART_EXT_SSDBLTRP),
+ };
  
- 	switch (csr_num) {
-@@ -153,7 +153,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
- 			  ulong csr_val)
- {
- 	int ret = 0;
--	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
- 	bool virt = sbi_regs_from_virt(regs);
- 
- 	switch (csr_num) {
-diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
-index e1d2cd3..784bc4c 100644
---- a/lib/sbi/sbi_illegal_insn.c
-+++ b/lib/sbi/sbi_illegal_insn.c
-@@ -52,7 +52,7 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
- 	int rs1_num	= GET_RS1_NUM(insn);
- 	ulong rs1_val	= GET_RS1(insn, regs);
- 	int csr_num	= GET_CSR_NUM((u32)insn);
--	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
- 	ulong csr_val, new_csr_val;
- 
- 	if (prev_mode == PRV_M) {
-diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
-index c068b72..01ad767 100644
---- a/lib/sbi/sbi_system.c
-+++ b/lib/sbi/sbi_system.c
-@@ -167,7 +167,7 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
- 	if (ret != SBI_OK)
- 		return ret;
- 
--	prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+	prev_mode = sbi_mstatus_prev_mode(csr_read(CSR_MSTATUS));
- 	if (prev_mode != PRV_S && prev_mode != PRV_U)
- 		return SBI_EFAIL;
- 
+ _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
 diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index 8bd2183..55cd22d 100644
+index 55cd22d..56d6ac2 100644
 --- a/lib/sbi/sbi_trap.c
 +++ b/lib/sbi/sbi_trap.c
-@@ -108,7 +108,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 	bool next_virt = false;
- 
- 	/* Sanity check on previous mode */
--	prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
-+	prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
- 	if (prev_mode != PRV_S && prev_mode != PRV_U)
- 		return SBI_ENOTSUPP;
- 
-@@ -341,7 +341,7 @@ trap_done:
- 	if (rc)
- 		sbi_trap_error(msg, rc, tcntx);
- 
--	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) != PRV_M)
-+	if (sbi_mstatus_prev_mode(regs->mstatus) != PRV_M)
- 		sbi_sse_process_pending_events(regs);
- 
- 	sbi_trap_set_context(scratch, tcntx->prev_context);
-diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-index f9c0241..ebc4a92 100644
---- a/lib/sbi/sbi_trap_ldst.c
-+++ b/lib/sbi/sbi_trap_ldst.c
-@@ -318,7 +318,7 @@ static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
- 	struct sbi_trap_regs *regs = &tcntx->regs;
- 
- 	/* If fault came from M mode, just fail */
--	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
-+	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
- 		return SBI_EINVAL;
- 
- 	/* If platform emulator failed, we redirect instead of fail */
-@@ -341,7 +341,7 @@ static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
- 	struct sbi_trap_regs *regs = &tcntx->regs;
- 
- 	/* If fault came from M mode, just fail */
--	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
-+	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
- 		return SBI_EINVAL;
- 
- 	/* If platform emulator failed, we redirect instead of fail */
+@@ -330,6 +330,10 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
+ 		rc  = sbi_store_access_handler(tcntx);
+ 		msg = "store fault handler failed";
+ 		break;
++	case CAUSE_DOUBLE_TRAP:
++		rc  = sbi_double_trap_handler(tcntx);
++		msg = "double trap handler failed";
++		break;
+ 	default:
+ 		/* If the trap came from S or U mode, redirect it there */
+ 		msg = "trap redirect failed";
 -- 
 2.45.2
 
