@@ -1,105 +1,86 @@
-From: Inochi Amaoto <inochiama@gmail.com>
-Date: Mon, 16 Sep 2024 15:25:15 +0800
-Subject: [PATCH 2/2] platform: introduce DT-based configurable heap size
-In-Reply-To: <20240916072405.628158-1-inochiama@gmail.com>
-References: <20240916072405.628158-1-inochiama@gmail.com>
-Message-ID: <20240916072516.628461-2-inochiama@gmail.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Mon, 16 Sep 2024 09:26:49 +0200
+Subject: [PATCH v2 3/6] lib: sbi: send a double trap SSE event to
+ supervisor
+In-Reply-To: <cc01485e-eb06-449d-b51c-4dc32290e4b4@sifive.com>
+References: <20240913143419.3258868-1-cleger@rivosinc.com>
+ <20240913143419.3258868-4-cleger@rivosinc.com>
+ <cc01485e-eb06-449d-b51c-4dc32290e4b4@sifive.com>
+Message-ID: <828065a3-4e92-40e2-8cdb-d7290bcc46fa@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The default heap size will work for most platforms, but for some
-special platforms, the heap is too small to hold all the information
-or is too big so that it take too much ram. Introduce configurable
-heap should solve this problem and make all generic platforms happy.
 
-Add DT-based heap-size for the generic platform.
 
-Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
----
- docs/opensbi_config.md      |  4 ++++
- platform/generic/platform.c | 28 +++++++++++++++++++++++++---
- 2 files changed, 29 insertions(+), 3 deletions(-)
+On 13/09/2024 20:07, Samuel Holland wrote:
+> On 2024-09-13 9:34 AM, Cl?ment L?ger wrote:
+>> In case the double trap handler is called and the double trap happened
+>> in supervisor mode, send a double trap SSE event.
+>>
+>> NOTE: this commit depends on the ratification of the new SSE event
+>> id for double trap [1].
+>>
+>> Link: https://lists.riscv.org/g/tech-prs/message/985 [1]
+>> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+>> ---
+>>  include/sbi/sbi_ecall_interface.h | 1 +
+>>  lib/sbi/sbi_double_trap.c         | 2 +-
+>>  lib/sbi/sbi_sse.c                 | 1 +
+>>  3 files changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+>> index e9a8167..5428fba 100644
+>> --- a/include/sbi/sbi_ecall_interface.h
+>> +++ b/include/sbi/sbi_ecall_interface.h
+>> @@ -379,6 +379,7 @@ enum sbi_sse_state {
+>>  
+>>  /* SBI SSE Event IDs. */
+>>  #define SBI_SSE_EVENT_LOCAL_RAS			0x00000000
+>> +#define SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP		0x00000001
+>>  #define SBI_SSE_EVENT_LOCAL_PLAT_0_START	0x00004000
+>>  #define SBI_SSE_EVENT_LOCAL_PLAT_0_END		0x00007fff
+>>  #define SBI_SSE_EVENT_GLOBAL_RAS		0x00008000
+>> diff --git a/lib/sbi/sbi_double_trap.c b/lib/sbi/sbi_double_trap.c
+>> index b961645..60ea0b1 100644
+>> --- a/lib/sbi/sbi_double_trap.c
+>> +++ b/lib/sbi/sbi_double_trap.c
+>> @@ -23,5 +23,5 @@ int sbi_double_trap_handler(struct sbi_trap_context *tcntx)
+>>  	if (prev_virt)
+>>  		return sbi_trap_redirect(regs, trap);
+>>  
+>> -	return SBI_ENOTSUPP;
+>> +	return sbi_sse_inject_event(SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP);
+> 
+> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+> 
+> (sbi_sse_inject_event() doesn't check anywhere that the trap came from a lower
+> privilege mode, like sbi_trap_redirect() does. But that's fine for double trap,
+> because a double trap from M-mode doesn't go through the normal trap handler.)
 
-diff --git a/docs/opensbi_config.md b/docs/opensbi_config.md
-index 1b710f1..c620379 100644
---- a/docs/opensbi_config.md
-+++ b/docs/opensbi_config.md
-@@ -23,6 +23,9 @@ The DT properties of a domain configuration DT node are as follows:
-   set of harts is permitted to perform a cold boot. Otherwise, all
-   harts are allowed to cold boot.
- 
-+* **heap-size** (Optional) - When present, the SBI will initialize
-+  the heap with the set value (This value is in byte).
-+
- * **system-suspend-test** (Optional) - When present, enable a system
-   suspend test implementation which simply waits five seconds and issues a WFI.
- 
-@@ -36,6 +39,7 @@ The OpenSBI Configuration Node will be deleted at the end of cold boot
-         opensbi-config {
-             compatible = "opensbi,config";
-             cold-boot-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
-+            heap-size = <0x400000>;
-             system-suspend-test;
-         };
-     };
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 49d877d..c8e988e 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -69,6 +69,28 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
- 	return BIT_ALIGN(heap_size, HEAP_BASE_ALIGN);
- }
- 
-+static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count)
-+{
-+	int chosen_offset, config_offset, len;
-+	const fdt32_t *val;
-+
-+	/* Get the heap size from device tree */
-+	chosen_offset = fdt_path_offset(fdt, "/chosen");
-+	if (chosen_offset < 0)
-+		goto default_config;
-+
-+	config_offset = fdt_node_offset_by_compatible(fdt, chosen_offset, "opensbi,config");
-+	if (config_offset < 0)
-+		goto default_config;
-+
-+	val = (fdt32_t *)fdt_getprop(fdt, config_offset, "heap-size", &len);
-+	if (len > 0 && val)
-+		return fdt32_to_cpu(*val);
-+
-+default_config:
-+	return fw_platform_calculate_heap_size(hart_count);
-+}
-+
- extern struct sbi_platform platform;
- static bool platform_has_mlevel_imsic = false;
- static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
-@@ -76,9 +98,9 @@ static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
- static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
- 
- /*
-- * The fw_platform_coldboot_harts_init() function is called by fw_platform_init() 
-+ * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
-  * function to initialize the cold boot harts allowed by the generic platform
-- * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config" 
-+ * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
-  * DT node. If there is no "cold-boot-harts" in DT, all harts will be allowed.
-  */
- static void fw_platform_coldboot_harts_init(const void *fdt)
-@@ -185,7 +207,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 	}
- 
- 	platform.hart_count = hart_count;
--	platform.heap_size = fw_platform_calculate_heap_size(hart_count);
-+	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
- 	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
- 
- 	fw_platform_coldboot_harts_init(fdt);
--- 
-2.46.1
+Maybe this one is ok but you are right, better be safe than sorry ! I'll
+add a check in the V3.
+
+Thanks !
+
+Cl?ment
+
+> 
+>>  }
+>> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+>> index 52172fc..b5f076a 100644
+>> --- a/lib/sbi/sbi_sse.c
+>> +++ b/lib/sbi/sbi_sse.c
+>> @@ -41,6 +41,7 @@
+>>  
+>>  static const uint32_t supported_events[] = {
+>>  	SBI_SSE_EVENT_LOCAL_RAS,
+>> +	SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP,
+>>  	SBI_SSE_EVENT_GLOBAL_RAS,
+>>  	SBI_SSE_EVENT_LOCAL_PMU,
+>>  	SBI_SSE_EVENT_LOCAL_SOFTWARE,
+> 
 
 
