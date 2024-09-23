@@ -1,51 +1,63 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 23 Sep 2024 17:26:51 +0530
-Subject: [PATCH 0/9] OpenSBI domain data support
-Message-ID: <20240923115700.381916-1-apatel@ventanamicro.com>
+Date: Mon, 23 Sep 2024 17:26:52 +0530
+Subject: [PATCH 1/9] lib: utils/ipi: Use sbi_domain_root_add_memrange() for ACLINT mswi
+In-Reply-To: <20240923115700.381916-1-apatel@ventanamicro.com>
+References: <20240923115700.381916-1-apatel@ventanamicro.com>
+Message-ID: <20240923115700.381916-2-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series extends the OpenSBI domain support to allow per-domain
-data from different parts of OpenSBI. Also extend OpenSBI domain
-context as the first user of OpenSBI domain data support.
+The sbi_domain_root_add_memrange() should be preferred for creating
+multiple memregions over a range. Update ACLINT mswi driver to use
+sbi_domain_root_add_memrange() instead of explicity registering
+memregions.
 
-The first 7 patches of this series are miscellaneous improvements
-which were pending for quite some time.
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ lib/utils/ipi/aclint_mswi.c | 20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-These patches can also be found in the sbi_domain_imp_v1 branch at:
-https://github.com/avpatel/opensbi.git
-
-Anup Patel (9):
-  lib: utils/ipi: Use sbi_domain_root_add_memrange() for ACLINT mswi
-  lib: utils/irqchip: Use sbi_domain_root_add_memrange() for IMSIC
-  lib: utils/irqchip: Use sbi_domain_root_add_memrange() for APLIC
-  lib: sbi_domain: Make sbi_domain_root_add_memregion() as local
-    function
-  lib: utils/fdt: Use sbi_domain_memregion_init() when parsing domains
-  include: sbi: Remove cyclic include in sbi_domain_context.h
-  lib: sbi: Introduce domain data
-  lib: sbi_domain: Use domain data support for per-domain hart context
-  docs: Remove hartindex_to_context_table from domain_support.md
-
- docs/domain_support.md           |   2 -
- include/sbi/sbi_domain.h         |  15 +---
- include/sbi/sbi_domain_context.h |  58 +++----------
- include/sbi/sbi_domain_data.h    |  93 +++++++++++++++++++++
- lib/sbi/objects.mk               |   1 +
- lib/sbi/sbi_domain.c             |  24 +++++-
- lib/sbi/sbi_domain_context.c     | 106 +++++++++++++++++++++---
- lib/sbi/sbi_domain_data.c        | 138 +++++++++++++++++++++++++++++++
- lib/utils/fdt/fdt_domain.c       |  14 ++--
- lib/utils/ipi/aclint_mswi.c      |  20 ++---
- lib/utils/irqchip/aplic.c        |  11 +--
- lib/utils/irqchip/imsic.c        |  14 ++--
- 12 files changed, 384 insertions(+), 112 deletions(-)
- create mode 100755 include/sbi/sbi_domain_data.h
- create mode 100755 lib/sbi/sbi_domain_data.c
-
+diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
+index 4ae6bb1c..39edacba 100644
+--- a/lib/utils/ipi/aclint_mswi.c
++++ b/lib/utils/ipi/aclint_mswi.c
+@@ -84,8 +84,6 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
+ 	u32 i;
+ 	int rc;
+ 	struct sbi_scratch *scratch;
+-	unsigned long pos, region_size;
+-	struct sbi_domain_memregion reg;
+ 
+ 	/* Sanity checks */
+ 	if (!mswi || (mswi->addr & (ACLINT_MSWI_ALIGN - 1)) ||
+@@ -114,18 +112,12 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
+ 	}
+ 
+ 	/* Add MSWI regions to the root domain */
+-	for (pos = 0; pos < mswi->size; pos += ACLINT_MSWI_ALIGN) {
+-		region_size = ((mswi->size - pos) < ACLINT_MSWI_ALIGN) ?
+-			      (mswi->size - pos) : ACLINT_MSWI_ALIGN;
+-		sbi_domain_memregion_init(mswi->addr + pos, region_size,
+-					  (SBI_DOMAIN_MEMREGION_MMIO |
+-					   SBI_DOMAIN_MEMREGION_M_READABLE |
+-					   SBI_DOMAIN_MEMREGION_M_WRITABLE),
+-					  &reg);
+-		rc = sbi_domain_root_add_memregion(&reg);
+-		if (rc)
+-			return rc;
+-	}
++	rc = sbi_domain_root_add_memrange(mswi->addr, mswi->size, ACLINT_MSWI_ALIGN,
++					  SBI_DOMAIN_MEMREGION_MMIO |
++					  SBI_DOMAIN_MEMREGION_M_READABLE |
++					  SBI_DOMAIN_MEMREGION_M_WRITABLE);
++	if (rc)
++		return rc;
+ 
+ 	sbi_ipi_set_device(&aclint_mswi);
+ 
 -- 
 2.43.0
 
