@@ -1,67 +1,74 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 23 Sep 2024 17:26:55 +0530
-Subject: [PATCH 4/9] lib: sbi_domain: Make sbi_domain_root_add_memregion() as local function
+Date: Mon, 23 Sep 2024 17:26:56 +0530
+Subject: [PATCH 5/9] lib: utils/fdt: Use sbi_domain_memregion_init() when parsing domains
 In-Reply-To: <20240923115700.381916-1-apatel@ventanamicro.com>
 References: <20240923115700.381916-1-apatel@ventanamicro.com>
-Message-ID: <20240923115700.381916-5-apatel@ventanamicro.com>
+Message-ID: <20240923115700.381916-6-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The sbi_domain_root_add_memregion() is only used within sbi_domain
-implementation so make rename and make it a local function.
+Use sbi_domain_memregion_init() at the time of parsing domains from
+FDT so that sbi_domain_memregion_init() is always used for setting
+up all memregions.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_domain.h | 10 ----------
- lib/sbi/sbi_domain.c     |  4 ++--
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ lib/utils/fdt/fdt_domain.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 313ae156..22aa8e50 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -293,16 +293,6 @@ void sbi_domain_dump_all(const char *suffix);
- int sbi_domain_register(struct sbi_domain *dom,
- 			const struct sbi_hartmask *assign_mask);
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 4fde50f5..4bc7ed86 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -253,8 +253,8 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
+ 	u32 val32;
+ 	u64 val64;
+ 	const u32 *val;
++	unsigned long base, order, flags;
+ 	struct parse_region_data *preg = opaque;
+-	struct sbi_domain_memregion *region;
  
--/**
-- * Add a memory region to the root domain
-- * @param reg pointer to the memory region to be added
-- *
-- * @return 0 on success
-- * @return SBI_EALREADY if memory region conflicts with the existing one
-- * @return SBI_EINVAL otherwise
-- */
--int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg);
--
- /**
-  * Add a memory range with its flags to the root domain
-  * @param addr start physical address of memory range
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 7198e27e..04e70d3b 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -590,7 +590,7 @@ int sbi_domain_register(struct sbi_domain *dom,
- 	return 0;
- }
+ 	/*
+ 	 * Non-root domains cannot add a region with only M-mode
+@@ -271,7 +271,6 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
+ 	/* Find next region of the domain */
+ 	if (preg->max_regions <= preg->region_count)
+ 		return SBI_ENOSPC;
+-	region = &preg->dom->regions[preg->region_count];
  
--int sbi_domain_root_add_memregion(const struct sbi_domain_memregion *reg)
-+static int root_add_memregion(const struct sbi_domain_memregion *reg)
- {
- 	int rc;
- 	bool reg_merged;
-@@ -668,7 +668,7 @@ int sbi_domain_root_add_memrange(unsigned long addr, unsigned long size,
- 				(end - pos) : align;
+ 	/* Read "base" DT property */
+ 	val = fdt_getprop(fdt, region_offset, "base", &len);
+@@ -279,7 +278,7 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
+ 		return SBI_EINVAL;
+ 	val64 = fdt32_to_cpu(val[0]);
+ 	val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
+-	region->base = val64;
++	base = val64;
  
- 		sbi_domain_memregion_init(pos, rsize, region_flags, &reg);
--		rc = sbi_domain_root_add_memregion(&reg);
-+		rc = root_add_memregion(&reg);
- 		if (rc)
- 			return rc;
- 		pos += rsize;
+ 	/* Read "order" DT property */
+ 	val = fdt_getprop(fdt, region_offset, "order", &len);
+@@ -288,12 +287,15 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
+ 	val32 = fdt32_to_cpu(*val);
+ 	if (val32 < 3 || __riscv_xlen < val32)
+ 		return SBI_EINVAL;
+-	region->order = val32;
++	order = val32;
+ 
+ 	/* Read "mmio" DT property */
+-	region->flags = region_access & SBI_DOMAIN_MEMREGION_ACCESS_MASK;
++	flags = region_access & SBI_DOMAIN_MEMREGION_ACCESS_MASK;
+ 	if (fdt_get_property(fdt, region_offset, "mmio", NULL))
+-		region->flags |= SBI_DOMAIN_MEMREGION_MMIO;
++		flags |= SBI_DOMAIN_MEMREGION_MMIO;
++
++	sbi_domain_memregion_init(base, (order == __riscv_xlen) ? ~0UL : BIT(order),
++				  flags, &preg->dom->regions[preg->region_count]);
+ 
+ 	preg->region_count++;
+ 
 -- 
 2.43.0
 
