@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 25 Sep 2024 18:11:50 +0530
-Subject: [PATCH 04/12] lib: sbi_sse: Cache the event's target hart index
-In-Reply-To: <20240830154929.3971790-5-samuel.holland@sifive.com>
-References: <20240830154929.3971790-1-samuel.holland@sifive.com> <20240830154929.3971790-5-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy3u_v6MeWPDvr4Zm0+YCX2baeB6F+WGRwL-H6PwhAa4zQ@mail.gmail.com>
+Date: Wed, 25 Sep 2024 18:12:07 +0530
+Subject: [PATCH 05/12] lib: utils/irqchip: Look up IMSIC data by hart index
+In-Reply-To: <20240830154929.3971790-6-samuel.holland@sifive.com>
+References: <20240830154929.3971790-1-samuel.holland@sifive.com> <20240830154929.3971790-6-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy09=-F7n+-FoZGN4AQBk37ai_WExBNAXau6n3DrnrUvUQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,8 +13,7 @@ Content-Transfer-Encoding: 7bit
 On Fri, Aug 30, 2024 at 9:19?PM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> This avoids needing to map the target hartid to a hart index when
-> enabling or disabling an event, and provides a net code size reduction.
+> This avoids needing to map a hartid to a hart index.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
@@ -29,46 +28,72 @@ Anup
 
 > ---
 >
->  lib/sbi/sbi_sse.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
+>  include/sbi_utils/irqchip/imsic.h |  4 ++--
+>  lib/utils/irqchip/imsic.c         | 10 +++++-----
+>  2 files changed, 7 insertions(+), 7 deletions(-)
 >
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 52172fcd..365a878f 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -108,6 +108,7 @@ assert_field_offset(interrupted.a7, SBI_SSE_ATTR_INTERRUPTED_A7);
->  struct sbi_sse_event {
->         struct sbi_sse_event_attrs attrs;
->         uint32_t event_id;
-> +       u32 hartindex;
->         const struct sbi_sse_cb_ops *cb_ops;
->         struct sbi_dlist node;
->  };
-> @@ -197,7 +198,7 @@ static bool sse_event_is_local(struct sbi_sse_event *e)
->   */
->  static struct sse_hart_state *sse_get_hart_state(struct sbi_sse_event *e)
->  {
-> -       struct sbi_scratch *s = sbi_hartid_to_scratch(e->attrs.hartid);
-> +       struct sbi_scratch *s = sbi_hartindex_to_scratch(e->hartindex);
+> diff --git a/include/sbi_utils/irqchip/imsic.h b/include/sbi_utils/irqchip/imsic.h
+> index e295771e..bc9292d3 100644
+> --- a/include/sbi_utils/irqchip/imsic.h
+> +++ b/include/sbi_utils/irqchip/imsic.h
+> @@ -37,9 +37,9 @@ struct imsic_data {
 >
->         return sse_get_hart_state_ptr(s);
+>  int imsic_map_hartid_to_data(u32 hartid, struct imsic_data *imsic, int file);
+>
+> -struct imsic_data *imsic_get_data(u32 hartid);
+> +struct imsic_data *imsic_get_data(u32 hartindex);
+>
+> -int imsic_get_target_file(u32 hartid);
+> +int imsic_get_target_file(u32 hartindex);
+>
+>  void imsic_local_irqchip_init(void);
+>
+> diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+> index bac72d21..ee532bb4 100644
+> --- a/lib/utils/irqchip/imsic.c
+> +++ b/lib/utils/irqchip/imsic.c
+> @@ -119,28 +119,28 @@ int imsic_map_hartid_to_data(u32 hartid, struct imsic_data *imsic, int file)
+>         return 0;
 >  }
-> @@ -392,6 +393,7 @@ static void sse_event_set_attr(struct sbi_sse_event *e, uint32_t attr_id,
->                 break;
->         case SBI_SSE_ATTR_PREFERRED_HART:
->                 e->attrs.hartid = val;
-> +               e->hartindex = sbi_hartid_to_hartindex(val);
->                 sse_event_invoke_cb(e, set_hartid_cb, val);
->                 break;
 >
-> @@ -1017,6 +1019,7 @@ int sbi_sse_unregister(uint32_t event_id)
->  static void sse_event_init(struct sbi_sse_event *e, uint32_t event_id)
+> -struct imsic_data *imsic_get_data(u32 hartid)
+> +struct imsic_data *imsic_get_data(u32 hartindex)
 >  {
->         e->event_id = event_id;
-> +       e->hartindex = current_hartindex();
->         e->attrs.hartid = current_hartid();
->         /* Declare all events as injectable */
->         e->attrs.status |= BIT(SBI_SSE_ATTR_STATUS_INJECT_OFFSET);
+>         struct sbi_scratch *scratch;
+>
+>         if (!imsic_ptr_offset)
+>                 return NULL;
+>
+> -       scratch = sbi_hartid_to_scratch(hartid);
+> +       scratch = sbi_hartindex_to_scratch(hartindex);
+>         if (!scratch)
+>                 return NULL;
+>
+>         return imsic_get_hart_data_ptr(scratch);
+>  }
+>
+> -int imsic_get_target_file(u32 hartid)
+> +int imsic_get_target_file(u32 hartindex)
+>  {
+>         struct sbi_scratch *scratch;
+>
+>         if (!imsic_file_offset)
+>                 return SBI_ENOENT;
+>
+> -       scratch = sbi_hartid_to_scratch(hartid);
+> +       scratch = sbi_hartindex_to_scratch(hartindex);
+>         if (!scratch)
+>                 return SBI_ENOENT;
+>
+> @@ -257,7 +257,7 @@ void imsic_local_irqchip_init(void)
+>
+>  int imsic_warm_irqchip_init(void)
+>  {
+> -       struct imsic_data *imsic = imsic_get_data(current_hartid());
+> +       struct imsic_data *imsic = imsic_get_data(current_hartindex());
+>
+>         /* Sanity checks */
+>         if (!imsic || !imsic->targets_mmode)
 > --
 > 2.45.1
 >
