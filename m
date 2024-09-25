@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 25 Sep 2024 12:14:06 +0530
-Subject: [PATCH 02/12] include: sbi: Store the hart index in struct sbi_scratch
-In-Reply-To: <20240830154929.3971790-3-samuel.holland@sifive.com>
-References: <20240830154929.3971790-1-samuel.holland@sifive.com> <20240830154929.3971790-3-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy05+7tkuLEpjz0eX-1ek4XfqgKRNejBESH7AUuYe7WbgA@mail.gmail.com>
+Date: Wed, 25 Sep 2024 12:14:27 +0530
+Subject: [PATCH 03/12] lib: sbi: Use current_hartindex() where possible
+In-Reply-To: <20240830154929.3971790-4-samuel.holland@sifive.com>
+References: <20240830154929.3971790-1-samuel.holland@sifive.com> <20240830154929.3971790-4-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy1Y7oRtG=i2s8mbnSfwC72jDDNNH8uSziUozZuxcrY2+w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,11 +13,8 @@ Content-Transfer-Encoding: 7bit
 On Fri, Aug 30, 2024 at 10:31?PM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> This is a more efficient way to get the index of the current hart than
-> calling a function to loop through the hartindex -> hartid lookup table.
-
-Good improvement.
-
+> This avoids calls to the expensive sbi_hartid_to_hartindex() function
+> and also makes the firmware smaller.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
@@ -32,59 +29,101 @@ Anup
 
 > ---
 >
->  firmware/fw_base.S        |  2 ++
->  include/sbi/sbi_scratch.h | 10 +++++++++-
->  2 files changed, 11 insertions(+), 1 deletion(-)
+>  include/sbi/sbi_domain.h         | 2 +-
+>  include/sbi/sbi_domain_context.h | 7 +++----
+>  lib/sbi/sbi_domain_context.c     | 6 +++---
+>  lib/sbi/sbi_hsm.c                | 2 +-
+>  lib/sbi/sbi_ipi.c                | 2 +-
+>  5 files changed, 9 insertions(+), 10 deletions(-)
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index b950c0b8..30dc28f0 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -218,6 +218,8 @@ _scratch_init:
->  #endif
->         REG_S   a0, SBI_SCRATCH_OPTIONS_OFFSET(tp)
->         MOV_3R  a0, s0, a1, s1, a2, s2
-> +       /* Store hart index in scratch space */
-> +       REG_S   t1, SBI_SCRATCH_HARTINDEX_OFFSET(tp)
->         /* Move to next scratch space */
->         add     t1, t1, t2
->         blt     t1, s7, _scratch_init
-> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> index 12e6a983..9ae4f891 100644
-> --- a/include/sbi/sbi_scratch.h
-> +++ b/include/sbi/sbi_scratch.h
-> @@ -42,8 +42,10 @@
->  #define SBI_SCRATCH_TMP0_OFFSET                        (12 * __SIZEOF_POINTER__)
->  /** Offset of options member in sbi_scratch */
->  #define SBI_SCRATCH_OPTIONS_OFFSET             (13 * __SIZEOF_POINTER__)
-> +/** Offset of hartindex member in sbi_scratch */
-> +#define SBI_SCRATCH_HARTINDEX_OFFSET           (14 * __SIZEOF_POINTER__)
->  /** Offset of extra space in sbi_scratch */
-> -#define SBI_SCRATCH_EXTRA_SPACE_OFFSET         (14 * __SIZEOF_POINTER__)
-> +#define SBI_SCRATCH_EXTRA_SPACE_OFFSET         (15 * __SIZEOF_POINTER__)
->  /** Maximum size of sbi_scratch (4KB) */
->  #define SBI_SCRATCH_SIZE                       (0x1000)
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index a6e99c63..2c905941 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -211,7 +211,7 @@ void sbi_update_hartindex_to_domain(u32 hartindex, struct sbi_domain *dom);
 >
-> @@ -83,6 +85,8 @@ struct sbi_scratch {
->         unsigned long tmp0;
->         /** Options for OpenSBI library */
->         unsigned long options;
-> +       /** Index of the hart */
-> +       unsigned long hartindex;
->  };
+>  /** Get pointer to sbi_domain for current HART */
+>  #define sbi_domain_thishart_ptr() \
+> -       sbi_hartindex_to_domain(sbi_hartid_to_hartindex(current_hartid()))
+> +       sbi_hartindex_to_domain(current_hartindex())
+>
+>  /** Index to domain table */
+>  extern struct sbi_domain *domidx_to_domain_table[];
+> diff --git a/include/sbi/sbi_domain_context.h b/include/sbi/sbi_domain_context.h
+> index 0d25884a..a92f338b 100755
+> --- a/include/sbi/sbi_domain_context.h
+> +++ b/include/sbi/sbi_domain_context.h
+> @@ -52,10 +52,9 @@ struct sbi_context {
+>         (__d)->hartindex_to_context_table[__hartindex]
+>
+>  /** Macro to obtain the current hart's context pointer */
+> -#define sbi_domain_context_thishart_ptr()                  \
+> -       sbi_hartindex_to_domain_context(                   \
+> -               sbi_hartid_to_hartindex(current_hartid()), \
+> -               sbi_domain_thishart_ptr())
+> +#define sbi_domain_context_thishart_ptr() \
+> +       sbi_hartindex_to_domain_context(current_hartindex(), \
+> +                                       sbi_domain_thishart_ptr())
 >
 >  /**
-> @@ -202,6 +206,10 @@ do {                                                                       \
->                                         = (__type)(__ptr);              \
->  } while (0)
+>   * Enter a specific domain context synchronously
+> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+> index 49a2f769..33cb6ed7 100755
+> --- a/lib/sbi/sbi_domain_context.c
+> +++ b/lib/sbi/sbi_domain_context.c
+> @@ -26,7 +26,7 @@
+>  static void switch_to_next_domain_context(struct sbi_context *ctx,
+>                                           struct sbi_context *dom_ctx)
+>  {
+> -       u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+> +       u32 hartindex = current_hartindex();
+>         struct sbi_trap_context *trap_ctx;
+>         struct sbi_domain *current_dom = ctx->dom;
+>         struct sbi_domain *target_dom = dom_ctx->dom;
+> @@ -91,7 +91,7 @@ int sbi_domain_context_enter(struct sbi_domain *dom)
+>  {
+>         struct sbi_context *ctx = sbi_domain_context_thishart_ptr();
+>         struct sbi_context *dom_ctx = sbi_hartindex_to_domain_context(
+> -               sbi_hartid_to_hartindex(current_hartid()), dom);
+> +               current_hartindex(), dom);
 >
-> +/** Get the hart index of the current hart */
-> +#define current_hartindex() \
-> +       (sbi_scratch_thishart_ptr()->hartindex)
-> +
->  /** Last HART index having a sbi_scratch pointer */
->  extern u32 last_hartindex_having_scratch;
+>         /* Validate the domain context existence */
+>         if (!dom_ctx)
+> @@ -107,7 +107,7 @@ int sbi_domain_context_enter(struct sbi_domain *dom)
 >
+>  int sbi_domain_context_exit(void)
+>  {
+> -       u32 i, hartindex = sbi_hartid_to_hartindex(current_hartid());
+> +       u32 i, hartindex = current_hartindex();
+>         struct sbi_domain *dom;
+>         struct sbi_context *ctx = sbi_domain_context_thishart_ptr();
+>         struct sbi_context *dom_ctx, *tmp;
+> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+> index 3706acfb..ab11b119 100644
+> --- a/lib/sbi/sbi_hsm.c
+> +++ b/lib/sbi/sbi_hsm.c
+> @@ -261,7 +261,7 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+>                         hdata = sbi_scratch_offset_ptr(rscratch,
+>                                                        hart_data_offset);
+>                         ATOMIC_INIT(&hdata->state,
+> -                                   (sbi_hartindex_to_hartid(i) == hartid) ?
+> +                                   (i == current_hartindex()) ?
+>                                     SBI_HSM_STATE_START_PENDING :
+>                                     SBI_HSM_STATE_STOPPED);
+>                         ATOMIC_INIT(&hdata->start_ticket, 0);
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 048aaa66..505aafd8 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -233,7 +233,7 @@ void sbi_ipi_process(void)
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         struct sbi_ipi_data *ipi_data =
+>                         sbi_scratch_offset_ptr(scratch, ipi_data_off);
+> -       u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
+> +       u32 hartindex = current_hartindex();
+>
+>         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
+>         sbi_ipi_raw_clear(hartindex);
 > --
 > 2.45.1
 >
