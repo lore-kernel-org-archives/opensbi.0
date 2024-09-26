@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 26 Sep 2024 18:24:41 +0530
-Subject: [PATCH 11/12] lib: sbi: Update sbi_{entry,init}_count() to take a
- hart index
-In-Reply-To: <20240830154929.3971790-12-samuel.holland@sifive.com>
-References: <20240830154929.3971790-1-samuel.holland@sifive.com> <20240830154929.3971790-12-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy0kHeuWY9Twq6iz5kWGa9=VKb8VY70HmLQrToeRdSFtPg@mail.gmail.com>
+Date: Thu, 26 Sep 2024 18:24:56 +0530
+Subject: [PATCH 12/12] lib: sbi: Remove unused hartid parameters
+In-Reply-To: <20240830154929.3971790-13-samuel.holland@sifive.com>
+References: <20240830154929.3971790-1-samuel.holland@sifive.com> <20240830154929.3971790-13-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy0YA_DaW2BExfYk+3B6sPnuVeDVXVCT1vhwfCscgxLTVg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,12 +13,9 @@ Content-Transfer-Encoding: 7bit
 On Fri, Aug 30, 2024 at 10:31?PM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> All callers already have the hartindex available, so this removes a
-> hartid to hartindex conversion.
+> None of these functions use their hartid parameter.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-
-LGTM.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -30,105 +26,112 @@ Anup
 
 > ---
 >
->  include/sbi/sbi_init.h         | 4 ++--
->  lib/sbi/sbi_hsm.c              | 4 ++--
->  lib/sbi/sbi_init.c             | 8 ++++----
->  platform/generic/andes/ae350.c | 6 ++++--
->  4 files changed, 12 insertions(+), 10 deletions(-)
+>  include/sbi/sbi_hsm.h |  2 +-
+>  lib/sbi/sbi_hsm.c     |  6 +++---
+>  lib/sbi/sbi_init.c    | 12 ++++++------
+>  3 files changed, 10 insertions(+), 10 deletions(-)
 >
-> diff --git a/include/sbi/sbi_init.h b/include/sbi/sbi_init.h
-> index 9640fee9..c9013ea4 100644
-> --- a/include/sbi/sbi_init.h
-> +++ b/include/sbi/sbi_init.h
-> @@ -16,9 +16,9 @@ struct sbi_scratch;
+> diff --git a/include/sbi/sbi_hsm.h b/include/sbi/sbi_hsm.h
+> index e4b92c80..ae098f45 100644
+> --- a/include/sbi/sbi_hsm.h
+> +++ b/include/sbi/sbi_hsm.h
+> @@ -59,7 +59,7 @@ const struct sbi_hsm_device *sbi_hsm_get_device(void);
 >
->  void __noreturn sbi_init(struct sbi_scratch *scratch);
+>  void sbi_hsm_set_device(const struct sbi_hsm_device *dev);
 >
-> -unsigned long sbi_entry_count(u32 hartid);
-> +unsigned long sbi_entry_count(u32 hartindex);
+> -int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot);
+> +int sbi_hsm_init(struct sbi_scratch *scratch, bool cold_boot);
+>  void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch);
 >
-> -unsigned long sbi_init_count(u32 hartid);
-> +unsigned long sbi_init_count(u32 hartindex);
->
->  void __noreturn sbi_exit(struct sbi_scratch *scratch);
->
+>  int sbi_hsm_hart_start(struct sbi_scratch *scratch,
 > diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index e7e31ad5..5679819c 100644
+> index 5679819c..58a33798 100644
 > --- a/lib/sbi/sbi_hsm.c
 > +++ b/lib/sbi/sbi_hsm.c
-> @@ -324,8 +324,8 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
->         if (!hsm_start_ticket_acquire(hdata))
->                 return SBI_EINVAL;
+> @@ -157,7 +157,7 @@ void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+>         sbi_hart_switch_mode(hartid, next_arg1, next_addr, next_mode, false);
+>  }
 >
-> -       init_count = sbi_init_count(hartid);
-> -       entry_count = sbi_entry_count(hartid);
-> +       init_count = sbi_init_count(hartindex);
-> +       entry_count = sbi_entry_count(hartindex);
+> -static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
+> +static void sbi_hsm_hart_wait(struct sbi_scratch *scratch)
+>  {
+>         unsigned long saved_mie;
+>         struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+> @@ -236,7 +236,7 @@ static void hsm_device_hart_resume(void)
+>                 hsm_dev->hart_resume();
+>  }
 >
->         rscratch->next_arg1 = arg1;
->         rscratch->next_addr = saddr;
+> -int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+> +int sbi_hsm_init(struct sbi_scratch *scratch, bool cold_boot)
+>  {
+>         u32 i;
+>         struct sbi_scratch *rscratch;
+> @@ -262,7 +262,7 @@ int sbi_hsm_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+>                         ATOMIC_INIT(&hdata->start_ticket, 0);
+>                 }
+>         } else {
+> -               sbi_hsm_hart_wait(scratch, hartid);
+> +               sbi_hsm_hart_wait(scratch);
+>         }
+>
+>         return 0;
 > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 7443010e..18d33088 100644
+> index 18d33088..cccd723d 100644
 > --- a/lib/sbi/sbi_init.c
 > +++ b/lib/sbi/sbi_init.c
-> @@ -551,7 +551,7 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
->                 init_warmboot(scratch, hartid);
+> @@ -193,14 +193,14 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+>
+>  static unsigned long coldboot_done;
+>
+> -static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> +static void wait_for_coldboot(struct sbi_scratch *scratch)
+>  {
+>         /* Wait for coldboot to finish */
+>         while (!__smp_load_acquire(&coldboot_done))
+>                 cpu_relax();
 >  }
 >
-> -unsigned long sbi_entry_count(u32 hartid)
-> +unsigned long sbi_entry_count(u32 hartindex)
+> -static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
+> +static void wake_coldboot_harts(struct sbi_scratch *scratch)
 >  {
->         struct sbi_scratch *scratch;
->         unsigned long *entry_count;
-> @@ -559,7 +559,7 @@ unsigned long sbi_entry_count(u32 hartid)
->         if (!entry_count_offset)
->                 return 0;
+>         /* Mark coldboot done */
+>         __smp_store_release(&coldboot_done, 1);
+> @@ -241,7 +241,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>         count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
+>         (*count)++;
 >
-> -       scratch = sbi_hartid_to_scratch(hartid);
-> +       scratch = sbi_hartindex_to_scratch(hartindex);
->         if (!scratch)
->                 return 0;
+> -       rc = sbi_hsm_init(scratch, hartid, true);
+> +       rc = sbi_hsm_init(scratch, true);
+>         if (rc)
+>                 sbi_hart_hang();
 >
-> @@ -568,7 +568,7 @@ unsigned long sbi_entry_count(u32 hartid)
->         return *entry_count;
->  }
->
-> -unsigned long sbi_init_count(u32 hartid)
-> +unsigned long sbi_init_count(u32 hartindex)
->  {
->         struct sbi_scratch *scratch;
->         unsigned long *init_count;
-> @@ -576,7 +576,7 @@ unsigned long sbi_init_count(u32 hartid)
->         if (!init_count_offset)
->                 return 0;
->
-> -       scratch = sbi_hartid_to_scratch(hartid);
-> +       scratch = sbi_hartindex_to_scratch(hartindex);
->         if (!scratch)
->                 return 0;
->
-> diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-> index 3ad6c856..0da3ae51 100644
-> --- a/platform/generic/andes/ae350.c
-> +++ b/platform/generic/andes/ae350.c
-> @@ -27,13 +27,15 @@ extern void __ae350_disable_coherency(void);
->
->  static int ae350_hart_start(u32 hartid, ulong saddr)
->  {
-> +       u32 hartindex = sbi_hartid_to_hartindex(hartid);
-> +
->         /*
->          * Don't send wakeup command when:
->          * 1) boot-time
->          * 2) the target hart is non-sleepable 25-series hart0
+> @@ -251,7 +251,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>          * have these HARTs busy spin in wait_for_coldboot() until coldboot
+>          * path is completed.
 >          */
-> -       if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
-> -               return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
-> +       if (!sbi_init_count(hartindex) || (is_andes(25) && hartid == 0))
-> +               return sbi_ipi_raw_send(hartindex);
+> -       wake_coldboot_harts(scratch, hartid);
+> +       wake_coldboot_harts(scratch);
 >
->         /* Write wakeup command to the sleep hart */
->         smu_set_command(&smu, WAKEUP_CMD, hartid);
+>         rc = sbi_platform_early_init(plat, true);
+>         if (rc)
+> @@ -386,7 +386,7 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>         (*count)++;
+>
+>         /* Note: This has to be first thing in warmboot init sequence */
+> -       rc = sbi_hsm_init(scratch, hartid, false);
+> +       rc = sbi_hsm_init(scratch, false);
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> @@ -470,7 +470,7 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+>  {
+>         int hstate;
+>
+> -       wait_for_coldboot(scratch, hartid);
+> +       wait_for_coldboot(scratch);
+>
+>         hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
+>         if (hstate < 0)
 > --
 > 2.45.1
 >
