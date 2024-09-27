@@ -1,52 +1,74 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 27 Sep 2024 10:53:05 +0530
-Subject: [PATCH] include: sbi: Don't unconditionally define '__always_inline'
-In-Reply-To: <20240915160426.1136309-1-apatel@ventanamicro.com>
-References: <20240915160426.1136309-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy1-Ayi9R1s6ejtDB4wsPGLZjM691c0+ocRweKTAcig+MA@mail.gmail.com>
+Date: Fri, 27 Sep 2024 11:07:45 +0530
+Subject: [PATCH] firmware: fw_base.S: fix multi-core boot bug.
+In-Reply-To: <20240913043703.3781585-1-wxjstz@126.com>
+References: <20240913043703.3781585-1-wxjstz@126.com>
+Message-ID: <CAAhSdy12erg2ObZAeBVUAV=DzwFurOe-yE2HDP_WgOGoXQ84wg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Sep 15, 2024 at 9:34?PM Anup Patel <apatel@ventanamicro.com> wrote:
+On Fri, Sep 13, 2024 at 10:07?AM Xiang W <wxjstz@126.com> wrote:
 >
-> From: Elyes Haouas <ehaouas@noos.fr>
+> From: "dong.yang" <dong.yang@sophgo.com>
 >
-> Update __always_inline macro define to fix opensbi upstream
-> build for coreboot.
-> Refer, https://qa.coreboot.org/job/coreboot-gerrit/257449/testReport/junit/(root)/clang/EMULATION_QEMU_RISCV_RV64_/
+> In a multi-core startup scenario, if both _try_lottery and
+> _wait_for_boot_hart use the data in the _boot_status address, when
+> a CPU enters OpenSBI later than boot hart set the _boot_status to
+> BOOT_STATUS_BOOT_HART_DONE, the CPU will modify _boot_status to 1
+> by amoswap.w and will never be awakened in _wait_for_boot_hart.
+> So let _try_lottery and _boot_status use data from two addresses.
 >
-> Closes: https://github.com/riscv-software-src/opensbi/issues/366
-> Signed-off-by: Elyes Haouas <ehaouas@noos.fr>
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: dong.yang <dong.yang@sophgo.com>
+> Reviewed-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
+
+First of all, we need a Fixes tag in the commit description.
+
+> ---
+>  firmware/fw_base.S | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index b950c0b..0971612 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -47,7 +47,7 @@ _start:
+>         bne     a0, a6, _wait_for_boot_hart
+>  _try_lottery:
+>         /* Jump to relocation wait loop if we don't get relocation lottery */
+> -       lla     a6, _boot_status
+> +       lla     a6, _relocate_lottery
+
+The _relocate_lottery should be named _boot_lottery.
+
+>         li      a7, BOOT_STATUS_LOTTERY_DONE
+
+This macro needs to be renamed as well.
+
+>         amoswap.w a6, a7, (a6)
+>         bnez    a6, _wait_for_boot_hart
+> @@ -371,6 +371,8 @@ _skip_trap_handler_hyp:
+>
+>         .data
+>         .align 3
+> +_relocate_lottery:
+> +       RISCV_PTR   0
+>  _boot_status:
+>         RISCV_PTR       0
+>
+> --
+> 2.45.2
+>
+
+I have taken care of the above comments at the time of merging this patch.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
-
-> ---
->  include/sbi/sbi_types.h | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
-> index def88bba..a9943d29 100644
-> --- a/include/sbi/sbi_types.h
-> +++ b/include/sbi/sbi_types.h
-> @@ -69,7 +69,10 @@ typedef uint64_t             be64_t;
->  #define __packed               __attribute__((packed))
->  #define __noreturn             __attribute__((noreturn))
->  #define __aligned(x)           __attribute__((aligned(x)))
-> +
-> +#ifndef __always_inline
->  #define __always_inline        inline __attribute__((always_inline))
-> +#endif
->
->  #define likely(x) __builtin_expect((x), 1)
->  #define unlikely(x) __builtin_expect((x), 0)
-> --
-> 2.43.0
->
 
