@@ -1,69 +1,62 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 27 Sep 2024 11:07:45 +0530
-Subject: [PATCH] firmware: fw_base.S: fix multi-core boot bug.
-In-Reply-To: <20240913043703.3781585-1-wxjstz@126.com>
-References: <20240913043703.3781585-1-wxjstz@126.com>
-Message-ID: <CAAhSdy12erg2ObZAeBVUAV=DzwFurOe-yE2HDP_WgOGoXQ84wg@mail.gmail.com>
+Date: Fri, 27 Sep 2024 13:12:39 +0530
+Subject: [PATCH] lib: sbi: fix missing high 32bits when sbi_cppc_write on rv32
+In-Reply-To: <20240923013832.477015-1-wxjstz@126.com>
+References: <20240923013832.477015-1-wxjstz@126.com>
+Message-ID: <CAAhSdy2Otjic3FDK4SGgd2WQyQiuK+e94q_bW1FQ-OszozAQ1w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 13, 2024 at 10:07?AM Xiang W <wxjstz@126.com> wrote:
+On Mon, Sep 23, 2024 at 7:09?AM Xiang W <wxjstz@126.com> wrote:
 >
-> From: "dong.yang" <dong.yang@sophgo.com>
+> sbi_cppc_write was writing to the a1 register only, which under rv32
+> would cause the high 32 bits to always be 0. This patch fixes that.
 >
-> In a multi-core startup scenario, if both _try_lottery and
-> _wait_for_boot_hart use the data in the _boot_status address, when
-> a CPU enters OpenSBI later than boot hart set the _boot_status to
-> BOOT_STATUS_BOOT_HART_DONE, the CPU will modify _boot_status to 1
-> by amoswap.w and will never be awakened in _wait_for_boot_hart.
-> So let _try_lottery and _boot_status use data from two addresses.
->
-> Signed-off-by: dong.yang <dong.yang@sophgo.com>
-> Reviewed-by: Xing Xiaoguang <xiaoguang.xing@sophgo.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
+> Resolves: https://github.com/riscv-software-src/opensbi/issues/334
 
-First of all, we need a Fixes tag in the commit description.
+Always use "Closes:" in the commit description when fixing a GitHub issue.
+This allows GitHub to automatically close the issue once the patch is
+merged.
 
+>
+> Signed-off-by: Xiang W <wxjstz@126.com>
+> Reported-by: Wesley Norris <repnop@outlook.com>
 > ---
->  firmware/fw_base.S | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_ecall_cppc.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 >
-> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-> index b950c0b..0971612 100644
-> --- a/firmware/fw_base.S
-> +++ b/firmware/fw_base.S
-> @@ -47,7 +47,7 @@ _start:
->         bne     a0, a6, _wait_for_boot_hart
->  _try_lottery:
->         /* Jump to relocation wait loop if we don't get relocation lottery */
-> -       lla     a6, _boot_status
-> +       lla     a6, _relocate_lottery
+> diff --git a/lib/sbi/sbi_ecall_cppc.c b/lib/sbi/sbi_ecall_cppc.c
+> index c26bb40..f3747b0 100644
+> --- a/lib/sbi/sbi_ecall_cppc.c
+> +++ b/lib/sbi/sbi_ecall_cppc.c
+> @@ -32,7 +32,13 @@ static int sbi_ecall_cppc_handler(unsigned long extid, unsigned long funcid,
+>  #endif
+>                 break;
+>         case SBI_EXT_CPPC_WRITE:
+> -               ret = sbi_cppc_write(regs->a0, regs->a1);
+> +#if __riscv_xlen == 32
+> +               temp = regs->a2;
+> +               temp = (temp << 32) | regs->a1;
+> +else
 
-The _relocate_lottery should be named _boot_lottery.
+s/else/#else/
 
->         li      a7, BOOT_STATUS_LOTTERY_DONE
+Make sure your patches are at least compile tested before sending.
 
-This macro needs to be renamed as well.
-
->         amoswap.w a6, a7, (a6)
->         bnez    a6, _wait_for_boot_hart
-> @@ -371,6 +371,8 @@ _skip_trap_handler_hyp:
->
->         .data
->         .align 3
-> +_relocate_lottery:
-> +       RISCV_PTR   0
->  _boot_status:
->         RISCV_PTR       0
->
+> +               temp = regs->a1;
+> +#endif
+> +               ret = sbi_cppc_write(regs->a0, temp);
+>                 break;
+>         case SBI_EXT_CPPC_PROBE:
+>                 ret = sbi_cppc_probe(regs->a0);
 > --
 > 2.45.2
 >
 
-I have taken care of the above comments at the time of merging this patch.
+I have taken care of the above issues at the time of merging this patch.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
