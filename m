@@ -1,34 +1,30 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Fri, 27 Sep 2024 10:46:28 +0530
-Subject: [PATCH] lib: utils/ipi: Fix hartid wrongly used as hart index
-In-Reply-To: <20240831022751.81875-1-samuel.holland@sifive.com>
-References: <20240831022751.81875-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy3OVkJ2C+g9og5UFJPkG56Q=eZOGNvw423fEXA8w4+VHQ@mail.gmail.com>
+Date: Fri, 27 Sep 2024 10:48:49 +0530
+Subject: [PATCH] Makefile: Make .carray.c files depend on carray.sh
+In-Reply-To: <20240901163712.307806-1-samuel.holland@sifive.com>
+References: <20240901163712.307806-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy2At2d-KEEhcNC44+ma51Poy5zowb2i=Mfx6=8mBO1PNw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Aug 31, 2024 at 7:57?AM Samuel Holland
+On Sun, Sep 1, 2024 at 10:07?PM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> Since commit 78c667b6fc07 ("lib: sbi: Prefer hartindex over hartid in
-> IPI framework"), The .ipi_clear callback functions take a hart index,
-> not a hartid. However, these warm_init functions were never updated.
+> Force carray C source files to be regenerated when the script changes,
+> since their contents depend on the script's output.
 >
-> Fixes: 78c667b6fc07 ("lib: sbi: Prefer hartindex over hartid in IPI framework")
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 > ---
-> These functions could be updated to use current_hartindex() once that
-> API is added, and I will do that if I send a v2 of the hartindex series.
+> I have an upcoming patch series that modifies carray.sh, and it would be
+> helpful to have this fix already merged, to avoid needing to `make clean`
+> after trying out the series.
 
 LGTM.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
-
-I have updated this patch to use current_hartindex() at the time of
-merging this patch.
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -36,39 +32,40 @@ Thanks,
 Anup
 
 >
->  lib/utils/ipi/aclint_mswi.c  | 2 +-
->  lib/utils/ipi/andes_plicsw.c | 4 +---
->  2 files changed, 2 insertions(+), 4 deletions(-)
+>  Makefile | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-> index 4ae6bb1c..905c1996 100644
-> --- a/lib/utils/ipi/aclint_mswi.c
-> +++ b/lib/utils/ipi/aclint_mswi.c
-> @@ -74,7 +74,7 @@ static struct sbi_ipi_device aclint_mswi = {
->  int aclint_mswi_warm_init(void)
->  {
->         /* Clear IPI for current HART */
-> -       mswi_ipi_clear(current_hartid());
-> +       mswi_ipi_clear(sbi_hartid_to_hartindex(current_hartid()));
+> diff --git a/Makefile b/Makefile
+> index e5a0f19e..f0012f6d 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -528,7 +528,7 @@ $(build_dir)/%.dep: $(src_dir)/%.carray $(KCONFIG_AUTOHEADER)
+>         $(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
+>         $(call compile_gen_dep,$@,.o,$(@:.dep=.c))
 >
->         return 0;
->  }
-> diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
-> index 413ac20e..37dc4f64 100644
-> --- a/lib/utils/ipi/andes_plicsw.c
-> +++ b/lib/utils/ipi/andes_plicsw.c
-> @@ -67,10 +67,8 @@ static struct sbi_ipi_device plicsw_ipi = {
+> -$(build_dir)/%.carray.c: $(src_dir)/%.carray
+> +$(build_dir)/%.carray.c: $(src_dir)/%.carray $(src_dir)/scripts/carray.sh
+>         $(call compile_carray,$@,$<)
 >
->  int plicsw_warm_ipi_init(void)
->  {
-> -       u32 hartid = current_hartid();
-> -
->         /* Clear PLICSW IPI */
-> -       plicsw_ipi_clear(hartid);
-> +       plicsw_ipi_clear(sbi_hartid_to_hartindex(current_hartid()));
+>  $(build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_AUTOHEADER)
+> @@ -556,7 +556,7 @@ $(platform_build_dir)/%.dep: $(platform_src_dir)/%.carray $(KCONFIG_AUTOHEADER)
+>         $(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
+>         $(call compile_gen_dep,$@,.o,$(@:.dep=.c))
 >
->         return 0;
->  }
+> -$(platform_build_dir)/%.carray.c: $(platform_src_dir)/%.carray
+> +$(platform_build_dir)/%.carray.c: $(platform_src_dir)/%.carray $(src_dir)/scripts/carray.sh
+>         $(call compile_carray,$@,$<)
+>
+>  $(platform_build_dir)/%.dep: $(platform_src_dir)/%.c $(KCONFIG_AUTOHEADER)
+> @@ -599,7 +599,7 @@ $(platform_build_dir)/%.dep: $(src_dir)/%.carray $(KCONFIG_AUTOHEADER)
+>         $(call compile_gen_dep,$@,.c,$< $(KCONFIG_AUTOHEADER))
+>         $(call compile_gen_dep,$@,.o,$(@:.dep=.c))
+>
+> -$(platform_build_dir)/%.carray.c: $(src_dir)/%.carray
+> +$(platform_build_dir)/%.carray.c: $(src_dir)/%.carray $(src_dir)/scripts/carray.sh
+>         $(call compile_carray,$@,$<)
+>
+>  $(platform_build_dir)/%.dep: $(src_dir)/%.c $(KCONFIG_AUTOHEADER)
 > --
 > 2.45.1
 >
