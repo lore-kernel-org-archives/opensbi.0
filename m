@@ -1,45 +1,83 @@
 From: Kele Zhang <zhangcola2003@gmail.com>
-Date: Tue,  1 Oct 2024 23:05:34 +0000
-Subject: [PATCH v4 0/1] Enable Dead Code Elimination
-Message-ID: <cover.1727823614.git.zhangcola2003@gmail.com>
+Date: Tue,  1 Oct 2024 23:05:51 +0000
+Subject: [PATCH v4 1/1] Makefile: enable --gc-sections
+In-Reply-To: <cover.1727823614.git.zhangcola2003@gmail.com>
+References: <cover.1727823614.git.zhangcola2003@gmail.com>
+Message-ID: <09f89be252e5ea08820909ad6a1bb93866b438c8.1727823614.git.zhangcola2003@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch enables `--gc-sections`. Dead Code Elimination (DCE) can
-reduce binary size and the attack surface without introducing side
-effects, and it has been used in the Linux kernel for many years.
+The --gc-sections option enables the linker to perform garbage
+collection of unreferenced code and data, thereby reducing the binary
+size.
 
-After testing, enabling DCE does not affect the normal functionality of
-OpenSBI.
+The -ffunction-sections option will place each function into a separate
+section, so it is necessary to add .text.* to the linker script.
 
+Signed-off-by: Kele Zhang <zhangcola2003@gmail.com>
+Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
+Signed-off-by: Zhangjin Wu <falcon@tinylab.org>
+Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 ---
-v1: https://lists.infradead.org/pipermail/opensbi/2024-August/007286.html
-v2: https://lists.infradead.org/pipermail/opensbi/2024-August/007301.html
-v3: https://lists.infradead.org/pipermail/opensbi/2024-September/007344.html
----
-Changes in v2:
-- Move --gc-sections to ELFFLAGS
-- Remove redundant KEEP()
-
-Changes in v3:
-- Move --print-gc-sections to ifneq ($(DEBUG),)
-- Move "ifneq ($(DEBUG),)" to the latter part of the Makefile, ensuring
-that "ELFFLAGS  +=      $(USE_LD_FLAG)" remains at the beginning.
-
-Changes in v4:
-- fix: replace spaces with tabs for consistent indentation
----
-
-Kele Zhang (1):
-  Makefile: enable --gc-sections
-
  Makefile             | 15 +++++++++------
  firmware/fw_base.ldS |  1 +
  2 files changed, 10 insertions(+), 6 deletions(-)
 
+diff --git a/Makefile b/Makefile
+index f0012f6..dae282c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -355,12 +355,7 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
+ GENFLAGS	+=	$(platform-genflags-y)
+ GENFLAGS	+=	$(firmware-genflags-y)
+ 
+-CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+-ifneq ($(DEBUG),)
+-CFLAGS		+=	-O0
+-else
+-CFLAGS		+=	-O2
+-endif
++CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
+ CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
+ # Optionally supported flags
+ ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+@@ -406,6 +401,7 @@ ASFLAGS		+=	$(firmware-asflags-y)
+ ARFLAGS		=	rcs
+ 
+ ELFFLAGS	+=	$(USE_LD_FLAG)
++ELFFLAGS	+=	-Wl,--gc-sections
+ ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
+ ELFFLAGS	+=	-Wl,--exclude-libs,ALL
+ endif
+@@ -424,6 +420,13 @@ MERGEFLAGS	+=	-m elf$(PLATFORM_RISCV_XLEN)lriscv
+ 
+ DTSCPPFLAGS	=	$(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assembler-with-cpp
+ 
++ifneq ($(DEBUG),)
++CFLAGS		+=	-O0
++ELFFLAGS	+=	-Wl,--print-gc-sections
++else
++CFLAGS		+=	-O2
++endif
++
+ # Setup functions for compilation
+ define dynamic_flags
+ -I$(shell dirname $(2)) -D__OBJNAME__=$(subst -,_,$(shell basename $(1) .o))
+diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+index fb47984..a33746a 100644
+--- a/firmware/fw_base.ldS
++++ b/firmware/fw_base.ldS
+@@ -20,6 +20,7 @@
+ 		PROVIDE(_text_start = .);
+ 		*(.entry)
+ 		*(.text)
++		*(.text.*)
+ 		. = ALIGN(8);
+ 		PROVIDE(_text_end = .);
+ 	}
 -- 
 2.43.0
 
