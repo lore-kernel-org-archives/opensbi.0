@@ -1,57 +1,46 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Tue, 31 Dec 2024 11:01:20 +0000
-Subject: [PATCH] lib: utils/irqchip: Optimize `fdt_parse_aplic_node`
- function
-In-Reply-To: <20241231081223.111470-1-huangborong@bosc.ac.cn>
-References: <20241231081223.111470-1-huangborong@bosc.ac.cn>
-Message-ID: <F7E10112-FD6D-44F8-92D1-32EBAB97286B@jrtc27.com>
+From: Kele Zhang <zhangcola2003@gmail.com>
+Date: Tue,  1 Oct 2024 23:05:34 +0000
+Subject: [PATCH v4 0/1] Enable Dead Code Elimination
+Message-ID: <cover.1727823614.git.zhangcola2003@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 31 Dec 2024, at 08:12, Huang Borong <huangborong@bosc.ac.cn> wrote:
-> 
-> - Remove redundant memset for the "aplic" parameter
-> - Initialize "imsic" with zero
+This patch enables `--gc-sections`. Dead Code Elimination (DCE) can
+reduce binary size and the attack surface without introducing side
+effects, and it has been used in the Linux kernel for many years.
 
-This is the ?what? but not the ?why?.
+After testing, enabling DCE does not affect the normal functionality of
+OpenSBI.
 
-Jess
+---
+v1: https://lists.infradead.org/pipermail/opensbi/2024-August/007286.html
+v2: https://lists.infradead.org/pipermail/opensbi/2024-August/007301.html
+v3: https://lists.infradead.org/pipermail/opensbi/2024-September/007344.html
+---
+Changes in v2:
+- Move --gc-sections to ELFFLAGS
+- Remove redundant KEEP()
 
-> Signed-off-by: Huang Borong <huangborong@bosc.ac.cn>
-> ---
-> lib/utils/fdt/fdt_helper.c | 3 +--
-> 1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cb350e5..e92484c 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -630,14 +630,13 @@ int fdt_parse_aplic_node(const void *fdt, int nodeoff, struct aplic_data *aplic)
-> bool child_found;
-> const fdt32_t *val;
-> const fdt32_t *del;
-> - struct imsic_data imsic;
-> + struct imsic_data imsic = { 0 };
-> int i, j, d, dcnt, len, noff, rc;
-> uint64_t reg_addr, reg_size;
-> struct aplic_delegate_data *deleg;
-> 
-> if (nodeoff < 0 || !aplic || !fdt)
-> return SBI_ENODEV;
-> - memset(aplic, 0, sizeof(*aplic));
-> 
-> rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
-> if (rc < 0 || !reg_addr || !reg_size)
-> -- 
-> 2.34.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+Changes in v3:
+- Move --print-gc-sections to ifneq ($(DEBUG),)
+- Move "ifneq ($(DEBUG),)" to the latter part of the Makefile, ensuring
+that "ELFFLAGS  +=      $(USE_LD_FLAG)" remains at the beginning.
+
+Changes in v4:
+- fix: replace spaces with tabs for consistent indentation
+---
+
+Kele Zhang (1):
+  Makefile: enable --gc-sections
+
+ Makefile             | 15 +++++++++------
+ firmware/fw_base.ldS |  1 +
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+-- 
+2.43.0
 
 
