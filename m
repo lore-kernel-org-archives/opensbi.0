@@ -1,11 +1,10 @@
 From: Yu-Chien Peter Lin <peterlin@andestech.com>
-Date: Fri, 4 Oct 2024 18:51:55 +0800
-Subject: [PATCH 8/9] lib: sbi_domain: Use domain data support for
- per-domain hart context
-In-Reply-To: <20240923115700.381916-9-apatel@ventanamicro.com>
+Date: Fri, 4 Oct 2024 18:56:38 +0800
+Subject: [PATCH 7/9] lib: sbi: Introduce domain data
+In-Reply-To: <20240923115700.381916-8-apatel@ventanamicro.com>
 References: <20240923115700.381916-1-apatel@ventanamicro.com>
- <20240923115700.381916-9-apatel@ventanamicro.com>
-Message-ID: <Zv_IywVUKv7W40Jq@APC323>
+ <20240923115700.381916-8-apatel@ventanamicro.com>
+Message-ID: <Zv_J5s9xFYKKKOxt@APC323>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -14,319 +13,335 @@ Content-Transfer-Encoding: 7bit
 
 Hi Anup,
 
-I noticed a few minor non-functional issues.
-
-On Mon, Sep 23, 2024 at 05:26:59PM +0530, Anup Patel wrote:
-> The per-domain hartindex_to_context_table[] is yet another per-domain
-> data required for implementing hart entry into (or exit from) domain.
-> 
-> Use the recently added domain data support for per-domain hart context
-> so that a dedicated hartindex_to_context_table[] in struct sbi_domain
-> is not needed.
+On Mon, Sep 23, 2024 at 05:26:58PM +0530, Anup Patel wrote:
+> Different parts of OpenSBI require their own per-domain data so
+> introduce domain data (or sbi_domain_data) which can be registered
+> by any part of OpenSBI. Using the domain data, the domain framework
+> will create a data pointer for every domain which can be used to
+> maintain some per-domain state.
 > 
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
->  include/sbi/sbi_domain.h         |   2 -
->  include/sbi/sbi_domain_context.h |  57 +++--------------
->  lib/sbi/sbi_domain.c             |   9 ++-
->  lib/sbi/sbi_domain_context.c     | 104 +++++++++++++++++++++++++++----
->  4 files changed, 110 insertions(+), 62 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-> index 60d7a776..1ecf3116 100644
-> --- a/include/sbi/sbi_domain.h
-> +++ b/include/sbi/sbi_domain.h
-> @@ -176,8 +176,6 @@ struct sbi_domain {
->  	char name[64];
->  	/** Possible HARTs in this domain */
->  	const struct sbi_hartmask *possible_harts;
-> -	/** Contexts for possible HARTs indexed by hartindex */
-> -	struct sbi_context *hartindex_to_context_table[SBI_HARTMASK_MAX_BITS];
->  	/** Array of memory regions terminated by a region with order zero */
->  	struct sbi_domain_memregion *regions;
->  	/** HART id of the HART booting this domain */
-> diff --git a/include/sbi/sbi_domain_context.h b/include/sbi/sbi_domain_context.h
-> index 3f43b622..31a3a7f8 100755
-> --- a/include/sbi/sbi_domain_context.h
-> +++ b/include/sbi/sbi_domain_context.h
-> @@ -8,56 +8,9 @@
->  #define __SBI_DOMAIN_CONTEXT_H__
->  
->  #include <sbi/sbi_types.h>
-> -#include <sbi/sbi_trap.h>
->  
->  struct sbi_domain;
->  
-> -/** Context representation for a hart within a domain */
-> -struct sbi_context {
-> -	/** Trap-related states such as GPRs, mepc, and mstatus */
-> -	struct sbi_trap_context trap_ctx;
-> -
-> -	/** Supervisor status register */
-> -	unsigned long sstatus;
-> -	/** Supervisor interrupt enable register */
-> -	unsigned long sie;
-> -	/** Supervisor trap vector base address register */
-> -	unsigned long stvec;
-> -	/** Supervisor scratch register for temporary storage */
-> -	unsigned long sscratch;
-> -	/** Supervisor exception program counter register */
-> -	unsigned long sepc;
-> -	/** Supervisor cause register */
-> -	unsigned long scause;
-> -	/** Supervisor trap value register */
-> -	unsigned long stval;
-> -	/** Supervisor interrupt pending register */
-> -	unsigned long sip;
-> -	/** Supervisor address translation and protection register */
-> -	unsigned long satp;
-> -	/** Counter-enable register */
-> -	unsigned long scounteren;
-> -	/** Supervisor environment configuration register */
-> -	unsigned long senvcfg;
-> -
-> -	/** Reference to the owning domain */
-> -	struct sbi_domain *dom;
-> -	/** Previous context (caller) to jump to during context exits */
-> -	struct sbi_context *prev_ctx;
-> -	/** Is context initialized and runnable */
-> -	bool initialized;
-> -};
-> -
-> -/** Get the context pointer for a given hart index and domain */
-> -#define sbi_hartindex_to_domain_context(__hartindex, __d) \
-> -	(__d)->hartindex_to_context_table[__hartindex]
-> -
-> -/** Macro to obtain the current hart's context pointer */
-> -#define sbi_domain_context_thishart_ptr()                  \
-> -	sbi_hartindex_to_domain_context(                   \
-> -		sbi_hartid_to_hartindex(current_hartid()), \
-> -		sbi_domain_thishart_ptr())
-> -
->  /**
->   * Enter a specific domain context synchronously
->   * @param dom pointer to domain
-> @@ -75,4 +28,14 @@ int sbi_domain_context_enter(struct sbi_domain *dom);
->   */
->  int sbi_domain_context_exit(void);
->  
-> +/**
-> + * Initialize domain context support
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +int sbi_domain_context_init(void);
-> +
-> +/* Deinitialize domain context support */
-> +void sbi_domain_context_deinit(void);
-> +
->  #endif // __SBI_DOMAIN_CONTEXT_H__
-> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-> index 22c5c752..ee6e2569 100644
-> --- a/lib/sbi/sbi_domain.c
-> +++ b/lib/sbi/sbi_domain.c
-> @@ -781,11 +781,16 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
->  	if (!domain_hart_ptr_offset)
->  		return SBI_ENOMEM;
->  
-> +	/* Initialize domain context support */
-> +	rc = sbi_domain_context_init();
-> +	if (rc)
-> +		goto fail_free_domain_hart_ptr_offset;
-> +
->  	root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
->  	if (!root_memregs) {
->  		sbi_printf("%s: no memory for root regions\n", __func__);
->  		rc = SBI_ENOMEM;
-> -		goto fail_free_domain_hart_ptr_offset;
-> +		goto fail_deinit_context;
->  	}
->  	root.regions = root_memregs;
->  
-> @@ -850,6 +855,8 @@ fail_free_root_hmask:
->  	sbi_free(root_hmask);
->  fail_free_root_memregs:
->  	sbi_free(root_memregs);
-> +fail_deinit_context:
-> +	sbi_domain_context_deinit();
->  fail_free_domain_hart_ptr_offset:
->  	sbi_scratch_free_offset(domain_hart_ptr_offset);
->  	return rc;
-> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> index 29e2d280..b70db41e 100755
-> --- a/lib/sbi/sbi_domain_context.c
-> +++ b/lib/sbi/sbi_domain_context.c
-> @@ -14,6 +14,76 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
->  #include <sbi/sbi_domain.h>
-> +#include <sbi/sbi_trap.h>
-> +
-> +/** Context representation for a hart within a domain */
-> +struct hart_context {
-> +	/** Trap-related states such as GPRs, mepc, and mstatus */
-> +	struct sbi_trap_context trap_ctx;
-> +
-> +	/** Supervisor status register */
-> +	unsigned long sstatus;
-> +	/** Supervisor interrupt enable register */
-> +	unsigned long sie;
-> +	/** Supervisor trap vector base address register */
-> +	unsigned long stvec;
-> +	/** Supervisor scratch register for temporary storage */
-> +	unsigned long sscratch;
-> +	/** Supervisor exception program counter register */
-> +	unsigned long sepc;
-> +	/** Supervisor cause register */
-> +	unsigned long scause;
-> +	/** Supervisor trap value register */
-> +	unsigned long stval;
-> +	/** Supervisor interrupt pending register */
-> +	unsigned long sip;
-> +	/** Supervisor address translation and protection register */
-> +	unsigned long satp;
-> +	/** Counter-enable register */
-> +	unsigned long scounteren;
-> +	/** Supervisor environment configuration register */
-> +	unsigned long senvcfg;
-> +
-> +	/** Reference to the owning domain */
-> +	struct sbi_domain *dom;
-> +	/** Previous context (caller) to jump to during context exits */
-> +	struct hart_context *prev_ctx;
-> +	/** Is context initialized and runnable */
-> +	bool initialized;
-> +};
-> +
-> +struct domain_context_priv {
-> +	/** Contexts for possible HARTs indexed by hartindex */
-> +	struct hart_context *hartindex_to_context_table[SBI_HARTMASK_MAX_BITS];
-> +};
-> +
-> +static struct sbi_domain_data dcpriv = {
-> +	.data_size = sizeof(struct domain_context_priv),
-> +};
-> +
-> +static inline struct hart_context *hart_context_get(struct sbi_domain *dom,
-> +						    u32 hartindex)
-> +{
-> +	struct domain_context_priv *dcp = sbi_domain_data_ptr(dom, &dcpriv);
-> +
-> +	return (dcp && hartindex < SBI_HARTMASK_MAX_BITS) ?
-> +		dcp->hartindex_to_context_table[hartindex] : NULL;
-> +}
-> +
-> +static void hart_context_set(struct sbi_domain *dom, u32 hartindex,
-> +			     struct hart_context *hc)
-> +{
-> +	struct domain_context_priv *dcp = sbi_domain_data_ptr(dom, &dcpriv);
-> +
-> +	if (dcp && hartindex < SBI_HARTMASK_MAX_BITS) {
-> +		dcp->hartindex_to_context_table[hartindex] = hc;
-> +	}
-> +}
-> +
-> +/** Macro to obtain the current hart's context pointer */
-> +#define hart_context_thishart_get()					\
-> +	hart_context_get(sbi_domain_thishart_ptr(),			\
-> +			 sbi_hartid_to_hartindex(current_hartid()))
+>  include/sbi/sbi_domain.h      |   3 +
+>  include/sbi/sbi_domain_data.h |  93 +++++++++++++++++++++++
+>  lib/sbi/objects.mk            |   1 +
+>  lib/sbi/sbi_domain.c          |  11 +++
+>  lib/sbi/sbi_domain_data.c     | 138 ++++++++++++++++++++++++++++++++++
+>  5 files changed, 246 insertions(+)
+>  create mode 100755 include/sbi/sbi_domain_data.h
+>  create mode 100755 lib/sbi/sbi_domain_data.c
 
-Perhaps we could simplify this by using current_hartindex().
+The file permission is executable.
 
->  
->  /**
->   * Switches the HART context from the current domain to the target domain.
-> @@ -23,8 +93,8 @@
->   * @param ctx pointer to the current HART context
->   * @param dom_ctx pointer to the target domain context
->   */
-> -static void switch_to_next_domain_context(struct sbi_context *ctx,
-> -					  struct sbi_context *dom_ctx)
-> +static void switch_to_next_domain_context(struct hart_context *ctx,
-> +					  struct hart_context *dom_ctx)
->  {
->  	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
->  	struct sbi_trap_context *trap_ctx;
-> @@ -89,9 +159,9 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
->  
->  int sbi_domain_context_enter(struct sbi_domain *dom)
->  {
-> -	struct sbi_context *ctx = sbi_domain_context_thishart_ptr();
-> -	struct sbi_context *dom_ctx = sbi_hartindex_to_domain_context(
-> -		sbi_hartid_to_hartindex(current_hartid()), dom);
-> +	struct hart_context *ctx = hart_context_thishart_get();
-> +	struct hart_context *dom_ctx = hart_context_get(dom,
-> +				sbi_hartid_to_hartindex(current_hartid()));
->  
->  	/* Validate the domain context existence */
->  	if (!dom_ctx)
-> @@ -109,8 +179,8 @@ int sbi_domain_context_exit(void)
->  {
->  	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
->  	struct sbi_domain *dom;
-> -	struct sbi_context *ctx = sbi_domain_context_thishart_ptr();
-> -	struct sbi_context *dom_ctx, *tmp;
-> +	struct hart_context *ctx = hart_context_thishart_get();
-> +	struct hart_context *dom_ctx, *tmp;
->  
->  	/*
->  	 * If it's first time to call `exit` on the current hart, no
-> @@ -123,16 +193,16 @@ int sbi_domain_context_exit(void)
->  							 dom->possible_harts))
->  				continue;
->  
-> -			dom_ctx = sbi_zalloc(sizeof(struct sbi_context));
-> +			dom_ctx = sbi_zalloc(sizeof(struct hart_context));
->  			if (!dom_ctx)
->  				return SBI_ENOMEM;
->  
->  			/* Bind context and domain */
->  			dom_ctx->dom				   = dom;
-
-The indentation might need to be updated.
 
 Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
 
 Best regards,
 Peter Lin
 
-> -			dom->hartindex_to_context_table[hartindex] = dom_ctx;
-> +			hart_context_set(dom, hartindex, dom_ctx);
->  		}
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index 22aa8e50..60d7a776 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -15,6 +15,7 @@
+>  #include <sbi/sbi_types.h>
+>  #include <sbi/sbi_hartmask.h>
+>  #include <sbi/sbi_domain_context.h>
+> +#include <sbi/sbi_domain_data.h>
 >  
-> -		ctx = sbi_domain_context_thishart_ptr();
-> +		ctx = hart_context_thishart_get();
+>  struct sbi_scratch;
+>  
+> @@ -163,6 +164,8 @@ struct sbi_domain_memregion {
+>  struct sbi_domain {
+>  	/** Node in linked list of domains */
+>  	struct sbi_dlist node;
+> +	/** Internal state of per-domain data */
+> +	struct sbi_domain_data_priv data_priv;
+>  	/** Logical index of this domain */
+>  	u32 index;
+>  	/** HARTs assigned to this domain */
+> diff --git a/include/sbi/sbi_domain_data.h b/include/sbi/sbi_domain_data.h
+> new file mode 100755
+> index 00000000..7eeafdce
+> --- /dev/null
+> +++ b/include/sbi/sbi_domain_data.h
+> @@ -0,0 +1,93 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Ventana Micro Systems Inc.
+> + */
+> +
+> +#ifndef __SBI_DOMAIN_DATA_H__
+> +#define __SBI_DOMAIN_DATA_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_list.h>
+> +
+> +struct sbi_domain;
+> +
+> +/** Maximum domain data per-domain */
+> +#define SBI_DOMAIN_MAX_DATA_PTRS		32
+> +
+> +/** Representation of per-domain data */
+> +struct sbi_domain_data_priv {
+> +	/** Array of domain data pointers indexed by domain data identifier */
+> +	void *idx_to_data_ptr[SBI_DOMAIN_MAX_DATA_PTRS];
+> +};
+> +
+> +/** Representation of a domain data */
+> +struct sbi_domain_data {
+> +	/**
+> +	 * Head is used for maintaining data list
+> +	 *
+> +	 * Note: initialized by domain framework
+> +	 */
+> +	struct sbi_dlist head;
+> +	/**
+> +	 * Identifier which used to locate per-domain data
+> +	 *
+> +	 * Note: initialized by domain framework
+> +	 */
+> +	unsigned long data_idx;
+> +	/** Size of per-domain data */
+> +	unsigned long data_size;
+> +	/** Optional callback to setup domain data */
+> +	int (*data_setup)(struct sbi_domain *dom,
+> +			  struct sbi_domain_data *data, void *data_ptr);
+> +	/** Optional callback to cleanup domain data */
+> +	void (*data_cleanup)(struct sbi_domain *dom,
+> +			     struct sbi_domain_data *data, void *data_ptr);
+> +};
+> +
+> +/**
+> + * Get per-domain data pointer for a given domain
+> + * @param dom pointer to domain
+> + * @param data pointer to domain data
+> + *
+> + * @return per-domain data pointer
+> + */
+> +void *sbi_domain_data_ptr(struct sbi_domain *dom, struct sbi_domain_data *data);
+> +
+> +/**
+> + * Setup all domain data for a domain
+> + * @param dom pointer to domain
+> + *
+> + * @return 0 on success and negative error code on failure
+> + *
+> + * Note: This function is used internally within domain framework.
+> + */
+> +int sbi_domain_setup_data(struct sbi_domain *dom);
+> +
+> +/**
+> + * Cleanup all domain data for a domain
+> + * @param dom pointer to domain
+> + *
+> + * Note: This function is used internally within domain framework.
+> + */
+> +void sbi_domain_cleanup_data(struct sbi_domain *dom);
+> +
+> +/**
+> + * Register a domain data
+> + * @param hndl pointer to domain data
+> + *
+> + * @return 0 on success and negative error code on failure
+> + *
+> + * Note: This function must be used only in cold boot path.
+> + */
+> +int sbi_domain_register_data(struct sbi_domain_data *data);
+> +
+> +/**
+> + * Unregister a domain data
+> + * @param hndl pointer to domain data
+> + *
+> + * Note: This function must be used only in cold boot path.
+> + */
+> +void sbi_domain_unregister_data(struct sbi_domain_data *data);
+> +
+> +#endif
+> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+> index 535aa709..0b114bbd 100644
+> --- a/lib/sbi/objects.mk
+> +++ b/lib/sbi/objects.mk
+> @@ -65,6 +65,7 @@ libsbi-objs-y += sbi_bitmap.o
+>  libsbi-objs-y += sbi_bitops.o
+>  libsbi-objs-y += sbi_console.o
+>  libsbi-objs-y += sbi_domain_context.o
+> +libsbi-objs-y += sbi_domain_data.o
+>  libsbi-objs-y += sbi_domain.o
+>  libsbi-objs-y += sbi_emulate_csr.o
+>  libsbi-objs-y += sbi_fifo.o
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 04e70d3b..22c5c752 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -587,6 +587,15 @@ int sbi_domain_register(struct sbi_domain *dom,
+>  		}
 >  	}
 >  
->  	dom_ctx = ctx->prev_ctx;
-> @@ -144,7 +214,7 @@ int sbi_domain_context_exit(void)
->  			if (dom == &root || dom == sbi_domain_thishart_ptr())
->  				continue;
->  
-> -			tmp = sbi_hartindex_to_domain_context(hartindex, dom);
-> +			tmp = hart_context_get(dom, hartindex);
->  			if (tmp && !tmp->initialized) {
->  				dom_ctx = tmp;
->  				break;
-> @@ -154,9 +224,19 @@ int sbi_domain_context_exit(void)
->  
->  	/* Take the root domain context if fail to find */
->  	if (!dom_ctx)
-> -		dom_ctx = sbi_hartindex_to_domain_context(hartindex, &root);
-> +		dom_ctx = hart_context_get(&root, hartindex);
->  
->  	switch_to_next_domain_context(ctx, dom_ctx);
->  
+> +	/* Setup data for the discovered domain */
+> +	rc = sbi_domain_setup_data(dom);
+> +	if (rc) {
+> +		sbi_printf("%s: domain data setup failed for %s (error %d)\n",
+> +			   __func__, dom->name, rc);
+> +		sbi_list_del(&dom->node);
+> +		return rc;
+> +	}
+> +
 >  	return 0;
 >  }
+>  
+> @@ -753,6 +762,8 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+>  	struct sbi_domain_memregion *root_memregs;
+>  	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>  
+> +	SBI_INIT_LIST_HEAD(&domain_list);
 > +
-> +int sbi_domain_context_init(void)
+>  	if (scratch->fw_rw_offset == 0 ||
+>  	    (scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0) {
+>  		sbi_printf("%s: fw_rw_offset is not a power of 2 (0x%lx)\n",
+> diff --git a/lib/sbi/sbi_domain_data.c b/lib/sbi/sbi_domain_data.c
+> new file mode 100755
+> index 00000000..04f0edf9
+> --- /dev/null
+> +++ b/lib/sbi/sbi_domain_data.c
+> @@ -0,0 +1,138 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Ventana Micro Systems Inc.
+> + */
+> +
+> +#include <sbi/sbi_bitmap.h>
+> +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_heap.h>
+> +
+> +static SBI_LIST_HEAD(data_list);
+> +static DECLARE_BITMAP(data_idx_bmap, SBI_DOMAIN_MAX_DATA_PTRS);
+> +
+> +void *sbi_domain_data_ptr(struct sbi_domain *dom, struct sbi_domain_data *data)
 > +{
-> +	return sbi_domain_register_data(&dcpriv);
+> +	if (dom && data && data->data_idx < SBI_DOMAIN_MAX_DATA_PTRS)
+> +		return dom->data_priv.idx_to_data_ptr[data->data_idx];
+> +
+> +	return NULL;
 > +}
 > +
-> +void sbi_domain_context_deinit(void)
+> +static int domain_setup_data_one(struct sbi_domain *dom,
+> +				 struct sbi_domain_data *data)
 > +{
-> +	sbi_domain_unregister_data(&dcpriv);
+> +	struct sbi_domain_data_priv *priv = &dom->data_priv;
+> +	void *data_ptr;
+> +	int rc;
+> +
+> +	if (priv->idx_to_data_ptr[data->data_idx])
+> +		return SBI_EALREADY;
+> +
+> +	data_ptr = sbi_zalloc(data->data_size);
+> +	if (!data_ptr) {
+> +		sbi_domain_cleanup_data(dom);
+> +		return SBI_ENOMEM;
+> +	}
+> +
+> +	if (data->data_setup) {
+> +		rc = data->data_setup(dom, data, data_ptr);
+> +		if (rc) {
+> +			sbi_free(data_ptr);
+> +			return rc;
+> +		}
+> +	}
+> +
+> +	priv->idx_to_data_ptr[data->data_idx] = data_ptr;
+> +	return 0;
+> +}
+> +
+> +static void domain_cleanup_data_one(struct sbi_domain *dom,
+> +				    struct sbi_domain_data *data)
+> +{
+> +	struct sbi_domain_data_priv *priv = &dom->data_priv;
+> +	void *data_ptr;
+> +
+> +	data_ptr = priv->idx_to_data_ptr[data->data_idx];
+> +	if (!data_ptr)
+> +		return;
+> +
+> +	if (data->data_cleanup)
+> +		data->data_cleanup(dom, data, data_ptr);
+> +
+> +	sbi_free(data_ptr);
+> +	priv->idx_to_data_ptr[data->data_idx] = NULL;
+> +}
+> +
+> +int sbi_domain_setup_data(struct sbi_domain *dom)
+> +{
+> +	struct sbi_domain_data *data;
+> +	int rc;
+> +
+> +	if (!dom)
+> +		return SBI_EINVAL;
+> +
+> +	sbi_list_for_each_entry(data, &data_list, head) {
+> +		rc = domain_setup_data_one(dom, data);
+> +		if (rc) {
+> +			sbi_domain_cleanup_data(dom);
+> +			return rc;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +void sbi_domain_cleanup_data(struct sbi_domain *dom)
+> +{
+> +	struct sbi_domain_data *data;
+> +
+> +	if (!dom)
+> +		return;
+> +
+> +	sbi_list_for_each_entry(data, &data_list, head)
+> +		domain_cleanup_data_one(dom, data);
+> +}
+> +
+> +int sbi_domain_register_data(struct sbi_domain_data *data)
+> +{
+> +	struct sbi_domain *dom;
+> +	u32 data_idx;
+> +	int rc;
+> +
+> +	if (!data || !data->data_size)
+> +		return SBI_EINVAL;
+> +
+> +	for (data_idx = 0; data_idx < SBI_DOMAIN_MAX_DATA_PTRS; data_idx++) {
+> +		if (!bitmap_test(data_idx_bmap, data_idx))
+> +			break;
+> +	}
+> +	if (SBI_DOMAIN_MAX_DATA_PTRS <= data_idx)
+> +		return SBI_ENOSPC;
+> +	bitmap_set(data_idx_bmap, data_idx, 1);
+> +
+> +	data->data_idx = data_idx;
+> +	sbi_list_add_tail(&data->head, &data_list);
+> +
+> +	sbi_domain_for_each(dom) {
+> +		rc = domain_setup_data_one(dom, data);
+> +		if (rc) {
+> +			sbi_domain_unregister_data(data);
+> +			return rc;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +void sbi_domain_unregister_data(struct sbi_domain_data *data)
+> +{
+> +	struct sbi_domain *dom;
+> +
+> +	sbi_domain_for_each(dom)
+> +		domain_cleanup_data_one(dom, data);
+> +
+> +	sbi_list_del(&data->head);
+> +	bitmap_clear(data_idx_bmap, data->data_idx, 1);
 > +}
 
