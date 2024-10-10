@@ -1,55 +1,58 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 10 Oct 2024 14:30:49 +0530
-Subject: [PATCH v2 0/9] OpenSBI domain data support
-Message-ID: <20241010090058.179381-1-apatel@ventanamicro.com>
+Date: Thu, 10 Oct 2024 14:30:51 +0530
+Subject: [PATCH v2 2/9] lib: utils/irqchip: Use sbi_domain_root_add_memrange() for IMSIC
+In-Reply-To: <20241010090058.179381-1-apatel@ventanamicro.com>
+References: <20241010090058.179381-1-apatel@ventanamicro.com>
+Message-ID: <20241010090058.179381-3-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This series extends the OpenSBI domain support to allow per-domain
-data from different parts of OpenSBI. Also extend OpenSBI domain
-context as the first user of OpenSBI domain data support.
+The sbi_domain_root_add_memrange() should be preferred for creating
+multiple memregions over a range. Update IMSIC driver to use
+sbi_domain_root_add_memrange() instead of explicitly registering
+memregions.
 
-The first 6 patches of this series are miscellaneous improvements
-which were pending for quite some time.
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+---
+ lib/utils/irqchip/imsic.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-These patches can also be found in the sbi_domain_imp_v2 branch at:
-https://github.com/avpatel/opensbi.git
-
-Changes since v1:
- - Typo fixes in PATCH1 to PATCH4
- - Use current_hartindex() wherever applicable in PATCH8
-
-Anup Patel (9):
-  lib: utils/ipi: Use sbi_domain_root_add_memrange() for ACLINT mswi
-  lib: utils/irqchip: Use sbi_domain_root_add_memrange() for IMSIC
-  lib: utils/irqchip: Use sbi_domain_root_add_memrange() for APLIC
-  lib: sbi_domain: Make sbi_domain_root_add_memregion() as local
-    function
-  lib: utils/fdt: Use sbi_domain_memregion_init() when parsing domains
-  include: sbi: Remove cyclic include in sbi_domain_context.h
-  lib: sbi: Introduce domain data
-  lib: sbi_domain: Use domain data support for per-domain hart context
-  docs: Remove hartindex_to_context_table from domain_support.md
-
- docs/domain_support.md           |   2 -
- include/sbi/sbi_domain.h         |  15 +---
- include/sbi/sbi_domain_context.h |  57 +++----------
- include/sbi/sbi_domain_data.h    |  93 +++++++++++++++++++++
- lib/sbi/objects.mk               |   1 +
- lib/sbi/sbi_domain.c             |  24 +++++-
- lib/sbi/sbi_domain_context.c     | 105 ++++++++++++++++++++---
- lib/sbi/sbi_domain_data.c        | 138 +++++++++++++++++++++++++++++++
- lib/utils/fdt/fdt_domain.c       |  14 ++--
- lib/utils/ipi/aclint_mswi.c      |  20 ++---
- lib/utils/irqchip/aplic.c        |  11 +--
- lib/utils/irqchip/imsic.c        |  14 ++--
- 12 files changed, 383 insertions(+), 111 deletions(-)
- create mode 100644 include/sbi/sbi_domain_data.h
- create mode 100644 lib/sbi/sbi_domain_data.c
-
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index ee532bb4..ae8b31e0 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -348,7 +348,6 @@ int imsic_data_check(struct imsic_data *imsic)
+ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+ {
+ 	int i, rc;
+-	struct sbi_domain_memregion reg;
+ 
+ 	/* Sanity checks */
+ 	rc = imsic_data_check(imsic);
+@@ -378,13 +377,12 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+ 
+ 	/* Add IMSIC regions to the root domain */
+ 	for (i = 0; i < IMSIC_MAX_REGS && imsic->regs[i].size; i++) {
+-		sbi_domain_memregion_init(imsic->regs[i].addr,
+-					  imsic->regs[i].size,
+-					  (SBI_DOMAIN_MEMREGION_MMIO |
+-					   SBI_DOMAIN_MEMREGION_M_READABLE |
+-					   SBI_DOMAIN_MEMREGION_M_WRITABLE),
+-					  &reg);
+-		rc = sbi_domain_root_add_memregion(&reg);
++		rc = sbi_domain_root_add_memrange(imsic->regs[i].addr,
++						  imsic->regs[i].size,
++						  IMSIC_MMIO_PAGE_SZ,
++						  SBI_DOMAIN_MEMREGION_MMIO |
++						  SBI_DOMAIN_MEMREGION_M_READABLE |
++						  SBI_DOMAIN_MEMREGION_M_WRITABLE);
+ 		if (rc)
+ 			return rc;
+ 	}
 -- 
 2.43.0
 
