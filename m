@@ -1,41 +1,47 @@
 From: Xiang W <wxjstz@126.com>
-Date: Thu, 17 Oct 2024 01:53:19 +0800
-Subject: [PATCH] lib: sbi: Fix integer overflow in is_region_subset
-Message-ID: <20241016175348.149869-1-wxjstz@126.com>
+Date: Thu, 17 Oct 2024 02:04:14 +0800
+Subject: [RFC PATCH 0/2] Improve pmp support
+Message-ID: <8822e93d5747663d1928c4240e480796a45a36e7.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When calculating the end address of memregion, shifting may overflow.
-Add code to avoid it.
+Sv32 supports 2^34 physical memory under RV32. Previously, pmp only supported
+ 2^Xlen physical memory, and the physical memory was limited to 4G under rv32.
+ This patch hopes to remove this limitation.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_domain.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Xiang W (2):
+  lib: sbi: Improve pmp_get/pmp_set
+  lib: sbi: Using word addresses in memregion
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index feb2392..4c10cb1 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -191,9 +191,13 @@ static bool is_region_subset(const struct sbi_domain_memregion *regA,
- 			     const struct sbi_domain_memregion *regB)
- {
- 	ulong regA_start = regA->base;
--	ulong regA_end = regA->base + (BIT(regA->order) - 1);
-+	ulong regA_end = regA->order < __riscv_xlen ?
-+			    regA->base + (BIT(regA->order) - 1) :
-+			    -1UL;
- 	ulong regB_start = regB->base;
--	ulong regB_end = regB->base + (BIT(regB->order) - 1);
-+	ulong regB_end = regB->order < __riscv_xlen ?
-+			    regB->base + (BIT(regB->order) - 1) :
-+			    -1UL;
- 
- 	if ((regB_start <= regA_start) &&
- 	    (regA_start < regB_end) &&
+ include/sbi/sbi_domain.h                 | 45 ++++++++-----
+ lib/sbi/riscv_asm.c                      | 42 ++++++------
+ lib/sbi/sbi_dbtr.c                       | 15 +----
+ lib/sbi/sbi_domain.c                     | 85 ++++++++++++++----------
+ lib/sbi/sbi_ecall_dbcn.c                 | 18 +----
+ lib/sbi/sbi_hart.c                       |  8 +--
+ lib/sbi/sbi_hsm.c                        |  4 +-
+ lib/sbi/sbi_sse.c                        | 22 ++----
+ lib/sbi/sbi_system.c                     |  2 +-
+ lib/utils/fdt/fdt_domain.c               |  4 +-
+ lib/utils/fdt/fdt_fixup.c                |  2 +-
+ lib/utils/ipi/aclint_mswi.c              |  3 +-
+ lib/utils/ipi/andes_plicsw.c             |  4 +-
+ lib/utils/irqchip/aplic.c                |  2 +-
+ lib/utils/irqchip/imsic.c                |  4 +-
+ lib/utils/irqchip/plic.c                 |  5 +-
+ lib/utils/regmap/fdt_regmap_syscon.c     |  2 +-
+ lib/utils/serial/cadence-uart.c          |  3 +-
+ lib/utils/serial/fdt_serial_htif.c       |  3 +-
+ lib/utils/serial/uart8250.c              |  3 +-
+ lib/utils/timer/aclint_mtimer.c          | 50 ++++++++------
+ lib/utils/timer/andes_plmt.c             |  5 +-
+ platform/generic/renesas/rzfive/rzfive.c |  5 +-
+ platform/generic/sophgo/sg2042.c         |  6 +-
+ 24 files changed, 173 insertions(+), 169 deletions(-)
+
 -- 
 2.45.2
 
