@@ -1,93 +1,136 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Fri, 18 Oct 2024 10:40:02 +0200
-Subject: [PATCH v4 1/7] lib: sbi: factorize previous virtualization mode read from regs
+Date: Fri, 18 Oct 2024 10:40:03 +0200
+Subject: [PATCH v4 2/7] lib: sbi: factorize previous mode computation
 In-Reply-To: <20241018084010.406285-1-cleger@rivosinc.com>
 References: <20241018084010.406285-1-cleger@rivosinc.com>
-Message-ID: <20241018084010.406285-2-cleger@rivosinc.com>
+Message-ID: <20241018084010.406285-3-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The same pattern is used at multiple places to verify in which mode
-the exception was actually taken. Factorize it.
+Previous privilege mode retrieval from mstatus is done at different
+places, factorize it rather than copy/pasting it again.
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 ---
- include/sbi/sbi_trap.h    |  9 +++++++++
- lib/sbi/sbi_emulate_csr.c | 12 ++----------
- lib/sbi/sbi_trap.c        |  6 +-----
- 3 files changed, 12 insertions(+), 15 deletions(-)
+ include/sbi/sbi_trap.h     | 5 +++++
+ lib/sbi/sbi_emulate_csr.c  | 4 ++--
+ lib/sbi/sbi_illegal_insn.c | 2 +-
+ lib/sbi/sbi_system.c       | 2 +-
+ lib/sbi/sbi_trap.c         | 4 ++--
+ lib/sbi/sbi_trap_ldst.c    | 4 ++--
+ 6 files changed, 13 insertions(+), 8 deletions(-)
 
 diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index f7c170e..b0c47ce 100644
+index b0c47ce..d5182bf 100644
 --- a/include/sbi/sbi_trap.h
 +++ b/include/sbi/sbi_trap.h
-@@ -236,6 +236,15 @@ static inline unsigned long sbi_regs_gva(const struct sbi_trap_regs *regs)
+@@ -245,6 +245,11 @@ static inline bool sbi_regs_from_virt(const struct sbi_trap_regs *regs)
  #endif
  }
  
-+static inline bool sbi_regs_from_virt(const struct sbi_trap_regs *regs)
++static inline int sbi_mstatus_prev_mode(unsigned long mstatus)
 +{
-+#if __riscv_xlen == 32
-+	return (regs->mstatusH & MSTATUSH_MPV) ? true : false;
-+#else
-+	return (regs->mstatus & MSTATUS_MPV) ? true : false;
-+#endif
++	return (mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
 +}
 +
  int sbi_trap_redirect(struct sbi_trap_regs *regs,
  		      const struct sbi_trap_info *trap);
  
 diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
-index 3adec78..a5a04cd 100644
+index a5a04cd..c2253c8 100644
 --- a/lib/sbi/sbi_emulate_csr.c
 +++ b/lib/sbi/sbi_emulate_csr.c
-@@ -47,11 +47,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+@@ -46,7 +46,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
+ {
  	int ret = 0;
  	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
--#if __riscv_xlen == 32
--	bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
--#else
--	bool virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
--#endif
-+	bool virt = sbi_regs_from_virt(regs);
+-	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
++	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
+ 	bool virt = sbi_regs_from_virt(regs);
  
  	switch (csr_num) {
- 	case CSR_HTIMEDELTA:
-@@ -157,11 +153,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+@@ -152,7 +152,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
+ 			  ulong csr_val)
  {
  	int ret = 0;
- 	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
--#if __riscv_xlen == 32
--	bool virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
--#else
--	bool virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
--#endif
-+	bool virt = sbi_regs_from_virt(regs);
+-	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
++	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
+ 	bool virt = sbi_regs_from_virt(regs);
  
  	switch (csr_num) {
- 	case CSR_HTIMEDELTA:
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index e1d2cd3..784bc4c 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -52,7 +52,7 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 	int rs1_num	= GET_RS1_NUM(insn);
+ 	ulong rs1_val	= GET_RS1(insn, regs);
+ 	int csr_num	= GET_CSR_NUM((u32)insn);
+-	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
++	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
+ 	ulong csr_val, new_csr_val;
+ 
+ 	if (prev_mode == PRV_M) {
+diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
+index 8e624fd..cd0f4ba 100644
+--- a/lib/sbi/sbi_system.c
++++ b/lib/sbi/sbi_system.c
+@@ -158,7 +158,7 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
+ 	if (ret != SBI_OK)
+ 		return ret;
+ 
+-	prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
++	prev_mode = sbi_mstatus_prev_mode(csr_read(CSR_MSTATUS));
+ 	if (prev_mode != PRV_S && prev_mode != PRV_U)
+ 		return SBI_EFAIL;
+ 
 diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index 176e174..ff0668e 100644
+index ff0668e..fd70e67 100644
 --- a/lib/sbi/sbi_trap.c
 +++ b/lib/sbi/sbi_trap.c
-@@ -104,11 +104,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- {
- 	ulong hstatus, vsstatus, prev_mode;
- 	bool elp = false;
--#if __riscv_xlen == 32
--	bool prev_virt = (regs->mstatusH & MSTATUSH_MPV) ? true : false;
--#else
--	bool prev_virt = (regs->mstatus & MSTATUS_MPV) ? true : false;
--#endif
-+	bool prev_virt = sbi_regs_from_virt(regs);
- 	/* By default, we redirect to HS-mode */
+@@ -109,7 +109,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
  	bool next_virt = false;
  
+ 	/* Sanity check on previous mode */
+-	prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
++	prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
+ 	if (prev_mode != PRV_S && prev_mode != PRV_U)
+ 		return SBI_ENOTSUPP;
+ 
+@@ -361,7 +361,7 @@ trap_done:
+ 	if (rc)
+ 		sbi_trap_error(msg, rc, tcntx);
+ 
+-	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) != PRV_M)
++	if (sbi_mstatus_prev_mode(regs->mstatus) != PRV_M)
+ 		sbi_sse_process_pending_events(regs);
+ 
+ 	sbi_trap_set_context(scratch, tcntx->prev_context);
+diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+index f9c0241..ebc4a92 100644
+--- a/lib/sbi/sbi_trap_ldst.c
++++ b/lib/sbi/sbi_trap_ldst.c
+@@ -318,7 +318,7 @@ static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
+ 	struct sbi_trap_regs *regs = &tcntx->regs;
+ 
+ 	/* If fault came from M mode, just fail */
+-	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
++	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
+ 		return SBI_EINVAL;
+ 
+ 	/* If platform emulator failed, we redirect instead of fail */
+@@ -341,7 +341,7 @@ static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
+ 	struct sbi_trap_regs *regs = &tcntx->regs;
+ 
+ 	/* If fault came from M mode, just fail */
+-	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
++	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
+ 		return SBI_EINVAL;
+ 
+ 	/* If platform emulator failed, we redirect instead of fail */
 -- 
 2.45.2
 
