@@ -1,132 +1,262 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Fri, 18 Oct 2024 10:40:08 +0200
-Subject: [PATCH v4 7/7] lib: sbi: add Smdbltrp ISA extension support
-In-Reply-To: <20241018084010.406285-1-cleger@rivosinc.com>
-References: <20241018084010.406285-1-cleger@rivosinc.com>
-Message-ID: <20241018084010.406285-8-cleger@rivosinc.com>
+From: Vivian Wang <uwu@dram.page>
+Date: Fri, 18 Oct 2024 19:49:11 +0800
+Subject: [PATCH 1/1] platform: Add xiangshan platform
+In-Reply-To: <49a23408.4723.1929981ba14.Coremail.qinshaoqing@bosc.ac.cn>
+References: <49a23408.4723.1929981ba14.Coremail.qinshaoqing@bosc.ac.cn>
+Message-ID: <47b9aa64-513e-4094-b6b6-ef988212f1cd@dram.page>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add support for the Smdbltrp[1] ISA extension. First thing to do is
-clearing MDT on entry after setting the first MTVEC (since MDT is
-reset to 1). Additionally, during trap handling, clear MDT once all
-critical CSRs have been saved and in return path, restore MSTATUS/H
-before restoring MEPC to avoid taking another trap which would clobber
-it.
+On 10/17/24 16:04, Shaoqing Qin wrote:
+> platform: Add xiangshan platform
+>
+> Add  the basic configuration for xiangshan platform.
 
-Link: https://github.com/riscv/riscv-double-trap/releases/download/v0.56/riscv-double-trap.pdf [1]
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
----
- firmware/fw_base.S           | 37 +++++++++++++++++++++++++++++++-----
- include/sbi/riscv_encoding.h |  4 +++-
- 2 files changed, 35 insertions(+), 6 deletions(-)
+It seems that there are no platform quirks, so there's no need for a
+separate platform. Just use the generic platform and write a devicetree.
+You'll need one for U-Boot or Linux or FreeBSD etc anyway.
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 4a2652e..d027e5e 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -31,6 +31,16 @@
- 	add	\__d4, \__s4, zero
- .endm
- 
-+.macro CLEAR_MDT tmp
-+#if __riscv_xlen == 32
-+	li 	\tmp, MSTATUSH_MDT
-+	csrc	CSR_MSTATUSH, \tmp
-+#else
-+	li 	\tmp, MSTATUS_MDT
-+	csrc	CSR_MSTATUS, \tmp
-+#endif
-+.endm
-+
- 	.section .entry, "ax", %progbits
- 	.align 3
- 	.globl _start
-@@ -91,6 +101,14 @@ _bss_zero:
- 	lla	s4, _start_hang
- 	csrw	CSR_MTVEC, s4
- 
-+	/*
-+	 * While at this point, trap handling is rudimentary, if a trap happens,
-+	 * it will end up in _start_hang which is enough to hook up a GDB. Clear
-+	 * MDT to avoid generating a double trap and thus entering a
-+	 * critical-error state.
-+	 */
-+	CLEAR_MDT t0
-+
- 	/* Setup temporary stack */
- 	lla	s4, _fw_end
- 	li	s5, (SBI_SCRATCH_SIZE * 2)
-@@ -348,6 +366,9 @@ _start_warm:
- _skip_trap_handler_hyp:
- 	csrw	CSR_MTVEC, a4
- 
-+	/* Clear MDT here again for all harts */
-+	CLEAR_MDT t0
-+
- 	/* Initialize SBI runtime */
- 	csrr	a0, CSR_MSCRATCH
- 	call	sbi_init
-@@ -545,6 +566,9 @@ memcmp:
- 	li	t0, 0
- .endif
- 	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
-+
-+	/* We are ready to take another trap, clear MDT */
-+	CLEAR_MDT t0
- .endm
- 
- .macro	TRAP_CALL_C_ROUTINE
-@@ -587,15 +611,18 @@ memcmp:
- .endm
- 
- .macro	TRAP_RESTORE_MEPC_MSTATUS have_mstatush
--	/* Restore MEPC and MSTATUS CSRs */
--	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
--	csrw	CSR_MEPC, t0
--	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
--	csrw	CSR_MSTATUS, t0
-+	/*
-+	 * Restore MSTATUS and MEPC CSRs starting with MSTATUS/H to set MDT
-+	 * flags since we can not take a trap now or MEPC would be cloberred
-+	 */
- 	.if \have_mstatush
- 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatusH)(a0)
- 	csrw	CSR_MSTATUSH, t0
- 	.endif
-+	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
-+	csrw	CSR_MSTATUS, t0
-+	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-+	csrw	CSR_MEPC, t0
- .endm
- 
- .macro TRAP_RESTORE_A0_T0
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index 174cc9c..38997ef 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -42,7 +42,8 @@
- #define MSTATUS_GVA			_ULL(0x0000004000000000)
- #define MSTATUS_GVA_SHIFT		38
- #define MSTATUS_MPV			_ULL(0x0000008000000000)
--#define MSTATUS_MPELP		_ULL(0x0000020000000000)
-+#define MSTATUS_MPELP			_ULL(0x0000020000000000)
-+#define MSTATUS_MDT			_ULL(0x0000040000000000)
- #else
- #define MSTATUSH_SBE			_UL(0x00000010)
- #define MSTATUSH_MBE			_UL(0x00000020)
-@@ -50,6 +51,7 @@
- #define MSTATUSH_GVA_SHIFT		6
- #define MSTATUSH_MPV			_UL(0x00000080)
- #define MSTATUSH_MPELP			_UL(0x00000200)
-+#define MSTATUSH_MDT			_UL(0x00000400)
- #endif
- #define MSTATUS32_SD			_UL(0x80000000)
- #define MSTATUS64_SD			_ULL(0x8000000000000000)
--- 
-2.45.2
+If Xiangshan KMH needs extra drivers for whatever "SYSCTL" is, add them
+as, well, drivers.
+
+dram
+
+> Signed-off-by: Shaoqing Qin <qinshaoqing@bosc.ac.cn>
+> ---
+>  platform/xiangshan/kmh/Kconfig           |   9 ++
+>  platform/xiangshan/kmh/configs/defconfig |   0
+>  platform/xiangshan/kmh/objects.mk        |  28 ++++++
+>  platform/xiangshan/kmh/platform.c        | 118 +++++++++++++++++++++++
+>  platform/xiangshan/kmh/platform.h        |  37 +++++++
+>  5 files changed, 192 insertions(+)
+>  create mode 100644 platform/xiangshan/kmh/Kconfig
+>  create mode 100644 platform/xiangshan/kmh/configs/defconfig
+>  create mode 100644 platform/xiangshan/kmh/objects.mk
+>  create mode 100644 platform/xiangshan/kmh/platform.c
+>  create mode 100644 platform/xiangshan/kmh/platform.h
+>
+> diff --git a/platform/xiangshan/kmh/Kconfig b/platform/xiangshan/kmh/Kconfig
+> new file mode 100644
+> index 0000000..b6776f3
+> --- /dev/null
+> +++ b/platform/xiangshan/kmh/Kconfig
+> @@ -0,0 +1,9 @@
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +
+> +config PLATFORM_KMH
+> +	bool
+> +	select FDT
+> +	select IPI_MSWI
+> +	select SERIAL_UART8250
+> +	select TIMER_MTIMER
+> +	default y
+> diff --git a/platform/xiangshan/kmh/configs/defconfig b/platform/xiangshan/kmh/configs/defconfig
+> new file mode 100644
+> index 0000000..e69de29
+> diff --git a/platform/xiangshan/kmh/objects.mk b/platform/xiangshan/kmh/objects.mk
+> new file mode 100644
+> index 0000000..8f3e7e1
+> --- /dev/null
+> +++ b/platform/xiangshan/kmh/objects.mk
+> @@ -0,0 +1,28 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +# Copyright (c) 2024 Beijing Institute of Open Source Chip (BOSC).
+> +#
+> +# Authors:
+> +#   Shaoqing Qin <qinshaoqing@bosc.ac.cn>
+> +#
+> +
+> +# Compiler flags
+> +platform-cppflags-y =
+> +platform-cflags-y =
+> +platform-asflags-y =
+> +platform-ldflags-y =
+> +
+> +# Objects to build
+> +platform-objs-y += platform.o
+> +
+> +# Blobs to build
+> +FW_DYNAMIC=y
+> +FW_JUMP=y
+> +# This needs to be 2MB aligned for 64-bit system
+> +FW_JUMP_OFFSET=0x400000
+> +FW_JUMP_FDT_OFFSET=0x200000
+> +FW_PAYLOAD=y
+> +# This needs to be 2MB aligned for 64-bit system
+> +FW_PAYLOAD_OFFSET=0x400000
+> +FW_PAYLOAD_FDT_OFFSET=$(FW_JUMP_FDT_OFFSET)
+> diff --git a/platform/xiangshan/kmh/platform.c b/platform/xiangshan/kmh/platform.c
+> new file mode 100644
+> index 0000000..9ee037e
+> --- /dev/null
+> +++ b/platform/xiangshan/kmh/platform.c
+> @@ -0,0 +1,118 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Beijing Institute of Open Source Chip (BOSC).
+> + *
+> + * Authors:
+> + *   Shaoqing Qin <qinshaoqing@bosc.ac.cn>
+> + */
+> +
+> +#include <sbi/riscv_asm.h>
+> +#include <sbi/riscv_encoding.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_const.h>
+> +#include <sbi/sbi_platform.h>
+> +#include <sbi/sbi_system.h>
+> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <sbi_utils/fdt/fdt_fixup.h>
+> +#include <sbi_utils/ipi/aclint_mswi.h>
+> +#include <sbi_utils/irqchip/plic.h>
+> +#include <sbi_utils/timer/aclint_mtimer.h>
+> +#include <sbi_utils/serial/uart8250.h>
+> +#include "platform.h"
+> +
+> +static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = {0};
+> +
+> +static struct aclint_mswi_data mswi = {
+> +	.addr = KMH_ACLINT_MSWI_ADDR,
+> +	.size = ACLINT_MSWI_SIZE,
+> +	.first_hartid = 0,
+> +	.hart_count = KMH_HART_COUNT,
+> +};
+> +
+> +static struct aclint_mtimer_data mtimer = {
+> +	.mtime_freq = KMH_ACLINT_MTIMER_FREQ,
+> +	.mtime_addr = KMH_ACLINT_MTIMER_ADDR +
+> +		      ACLINT_DEFAULT_MTIME_OFFSET,
+> +	.mtime_size = ACLINT_DEFAULT_MTIME_SIZE,
+> +	.mtimecmp_addr = KMH_ACLINT_MTIMER_ADDR +
+> +			 ACLINT_DEFAULT_MTIMECMP_OFFSET,
+> +	.mtimecmp_size = ACLINT_DEFAULT_MTIMECMP_SIZE,
+> +	.first_hartid = 0,
+> +	.hart_count = KMH_HART_COUNT,
+> +	.has_64bit_mmio = true,
+> +};
+> +
+> +static int kmh_early_init(bool cold_boot)
+> +{
+> +	if (!cold_boot)
+> +		return 0;
+> +
+> +	return uart8250_init(KMH_UART_ADDR,
+> +			     KMH_UART_FREQ,
+> +			     KMH_UART_BAUDRATE,
+> +			     KMH_UART_REG_SHIFT,
+> +			     KMH_UART_REG_WIDTH,
+> +			     KMH_UART_REG_OFFSET);
+> +}
+> +
+> +static int kmh_final_init(bool cold_boot)
+> +{
+> +	void *fdt;
+> +
+> +	if (!cold_boot)
+> +		return 0;
+> +
+> +	fdt = fdt_get_address_rw();
+> +
+> +	fdt_cpu_fixup(fdt);
+> +	fdt_fixups(fdt);
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +static int kmh_ipi_init(bool cold_boot)
+> +{
+> +	int ret;
+> +
+> +	if (cold_boot) {
+> +		ret = aclint_mswi_cold_init(&mswi);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return aclint_mswi_warm_init();
+> +}
+> +
+> +static int kmh_timer_init(bool cold_boot)
+> +{
+> +	int ret;
+> +
+> +	if (cold_boot) {
+> +		ret = aclint_mtimer_cold_init(&mtimer, NULL);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return aclint_mtimer_warm_init();
+> +}
+> +
+> +const struct sbi_platform_operations platform_ops = {
+> +	.early_init	= kmh_early_init,
+> +	.final_init	= kmh_final_init,
+> +	.ipi_init  = kmh_ipi_init,
+> +	.timer_init	   = kmh_timer_init,
+> +};
+> +
+> +const struct sbi_platform platform = {
+> +	.opensbi_version	= OPENSBI_VERSION,
+> +	.platform_version   	= SBI_PLATFORM_VERSION(0x0, 0x01),
+> +	.name			= "kmh",
+> +	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
+> +	.hart_count		= KMH_HART_COUNT,
+> +	.hart_index2id		= generic_hart_index2id,
+> +	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
+> +	.heap_size		= SBI_PLATFORM_DEFAULT_HEAP_SIZE(KMH_HART_COUNT),
+> +	.platform_ops_addr	= (unsigned long)&platform_ops
+> +};
+> diff --git a/platform/xiangshan/kmh/platform.h b/platform/xiangshan/kmh/platform.h
+> new file mode 100644
+> index 0000000..86dee85
+> --- /dev/null
+> +++ b/platform/xiangshan/kmh/platform.h
+> @@ -0,0 +1,37 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2024 Beijing Institute of Open Source Chip (BOSC)
+> + *
+> + * Authors:
+> + *   Shaoqing Qin <qinshaoqing@bosc.ac.cn>
+> + */
+> +#ifndef _KMH_PLATFORM_H_
+> +#define _KMH_PLATFORM_H_
+> +
+> +#include <sbi/riscv_io.h>
+> +
+> +#define KMH_HART_COUNT		1
+> +
+> +#define KMH_UART_ADDR	  0x310b0000ULL
+> +#define KMH_UART_FREQ	  50000000
+> +#define KMH_UART_BAUDRATE  115200
+> +#define KMH_UART_REG_SHIFT			2
+> +#define KMH_UART_REG_WIDTH			4
+> +#define KMH_UART_REG_OFFSET			0
+> +
+> +#define KMH_ACLINT_MTIMER_FREQ	500000
+> +#define KMH_CLK0_FREQ		26000000UL
+> +#define KMH_PLIC_NUM_SOURCES	65
+> +
+> +/* Registers base address */
+> +#define KMH_SYSCTL_BASE_ADDR	0x50440000ULL
+> +#define KMH_CLINT_BASE_ADDR	0x38000000ULL
+> +#define KMH_ACLINT_MSWI_ADDR	\
+> +		(KMH_CLINT_BASE_ADDR + CLINT_MSWI_OFFSET)
+> +#define KMH_ACLINT_MTIMER_ADDR \
+> +		(KMH_CLINT_BASE_ADDR + CLINT_MTIMER_OFFSET)
+> +#define KMH_PLIC_BASE_ADDR	0x0C000000ULL
+> +#define KMH_PLIC_BASE_SIZE	(0x200000ULL + (KMH_HART_COUNT * 0x1000))
+> +
+> +#endif /* _KMH_PLATFORM_H_ */
+
 
 
