@@ -1,31 +1,34 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Mon, 21 Oct 2024 21:38:13 -0500
-Subject: [PATCH v4 7/7] lib: sbi: add Smdbltrp ISA extension support
-In-Reply-To: <20241018084010.406285-8-cleger@rivosinc.com>
-References: <20241018084010.406285-1-cleger@rivosinc.com>
- <20241018084010.406285-8-cleger@rivosinc.com>
-Message-ID: <cc3da7ea-1166-4deb-90e8-ca65c127a95a@sifive.com>
+From: Zhang Runmin <runmin.zhang@ingenic.com>
+Date: Wed, 23 Oct 2024 15:20:49 +0800
+Subject: include: sbi: Fix typo error
+Message-ID: <26d04436b267d54453d1c055641dc0247edf8c36.1729667906.git.runmin.zhang@ingenic.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 2024-10-18 3:40 AM, Cl?ment L?ger wrote:
-> Add support for the Smdbltrp[1] ISA extension. First thing to do is
-> clearing MDT on entry after setting the first MTVEC (since MDT is
-> reset to 1). Additionally, during trap handling, clear MDT once all
-> critical CSRs have been saved and in return path, restore MSTATUS/H
-> before restoring MEPC to avoid taking another trap which would clobber
-> it.
-> 
-> Link: https://github.com/riscv/riscv-double-trap/releases/download/v0.56/riscv-double-trap.pdf [1]
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-> ---
->  firmware/fw_base.S           | 37 +++++++++++++++++++++++++++++++-----
->  include/sbi/riscv_encoding.h |  4 +++-
->  2 files changed, 35 insertions(+), 6 deletions(-)
+From: Zhang RunMin <runmin.zhang@ingenic.com>
 
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+Signed-off-by: Zhang RunMin <runmin.zhang@ingenic.com>
+---
+ include/sbi/sbi_scratch.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index 9ae4f89..f3c2175 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -22,7 +22,7 @@
+ #define SBI_SCRATCH_FW_RW_OFFSET		(2 * __SIZEOF_POINTER__)
+ /** Offset of fw_heap_offset member in sbi_scratch */
+ #define SBI_SCRATCH_FW_HEAP_OFFSET		(3 * __SIZEOF_POINTER__)
+-/** Offset of fw_heap_size_offset member in sbi_scratch */
++/** Offset of fw_heap_size member in sbi_scratch */
+ #define SBI_SCRATCH_FW_HEAP_SIZE_OFFSET		(4 * __SIZEOF_POINTER__)
+ /** Offset of next_arg1 member in sbi_scratch */
+ #define SBI_SCRATCH_NEXT_ARG1_OFFSET		(5 * __SIZEOF_POINTER__)
+-- 
+2.25.1
 
 
