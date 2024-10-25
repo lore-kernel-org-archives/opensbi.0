@@ -1,93 +1,61 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Fri, 25 Oct 2024 13:48:27 -0500
-Subject: [PATCH] include: sbi: Optimize reads of mhartid and mscratch
-In-Reply-To: <CAAhSdy1JvKh87ASA-Vw8Hi-XDMjwMOZc8gpsG92t-p29WhHJ8Q@mail.gmail.com>
-References: <20240830163533.4019822-1-samuel.holland@sifive.com>
- <CAAhSdy1JvKh87ASA-Vw8Hi-XDMjwMOZc8gpsG92t-p29WhHJ8Q@mail.gmail.com>
-Message-ID: <b3aae8cb-1529-4222-8085-f677b36f98e5@sifive.com>
+Date: Fri, 25 Oct 2024 11:59:45 -0700
+Subject: [PATCH v2 0/3] Manage IPI driver lifecycle from SBI core
+Message-ID: <20241025185950.1371610-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Anup,
+For three kinds of devices (IPI, irqchip, and timer) the platform is
+responsible for implementing extra warm init and exit lifecycle hooks.
+Since the driver lifecycle is the same regardless of platform, I think
+it makes sense to call these lifecycle functions from the SBI core, not
+the platform. This produces smaller code since we don't need to track
+the current driver in multiple places. And since it makes the FDT driver
+interface the same for all kinds of devices, it allows us to reuse the
+same FDT scan/match/init code across all of them.
 
-On 2024-09-27 12:07 AM, Anup Patel wrote:
-> On Fri, Aug 30, 2024 at 10:06?PM Samuel Holland
-> <samuel.holland@sifive.com> wrote:
->>
->> csr_read() is marked as volatile and clobbering memory, which is
->> generally the safe thing to do. However, these two CSRs do not have any
->> side effects, and the values returned do not change between calls. The
->> compiler can generate better code if we allow it to reorder calls to
->> these functions and cache the return value. This change reduces code
->> size by about 200 bytes.
-> 
-> Why not introduce csr_read_relaxed() for such CSRs and use that instead?
+This series converts the IPI drivers. This is the most trivial of the
+three, since all of the logic in the existing IPI .warm_init hooks is
+actually a duplicate of the .ipi_clear hook in struct sbi_ipi_device.
 
-That's a good idea. I've done this for v2.
+I sent the timer conversion here[1], and the irqchip conversion is
+upcoming and is the largest of the three.
 
-Regards,
-Samuel
+[1]: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
 
->> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
->> ---
->>
->>  include/sbi/riscv_asm.h   | 10 +++++++++-
->>  include/sbi/sbi_scratch.h | 11 +++++++++--
->>  2 files changed, 18 insertions(+), 3 deletions(-)
->>
->> diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
->> index 2c34635a..a439f935 100644
->> --- a/include/sbi/riscv_asm.h
->> +++ b/include/sbi/riscv_asm.h
->> @@ -163,7 +163,15 @@ void csr_write_num(int csr_num, unsigned long val);
->>         } while (0)
->>
->>  /* Get current HART id */
->> -#define current_hartid()       ((unsigned int)csr_read(CSR_MHARTID))
->> +static inline unsigned int current_hartid(void)
->> +{
->> +       unsigned int hartid;
->> +
->> +       /* Do not use csr_read() so the compiler can cache the value. */
->> +       __asm__ ("csrr %0, mhartid" : "=r"(hartid));
->> +
->> +       return hartid;
->> +}
->>
->>  /* determine CPU extension, return non-zero support */
->>  int misa_extension_imp(char ext);
->> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
->> index 12e6a983..28b6d7c9 100644
->> --- a/include/sbi/sbi_scratch.h
->> +++ b/include/sbi/sbi_scratch.h
->> @@ -154,8 +154,15 @@ enum sbi_scratch_options {
->>  };
->>
->>  /** Get pointer to sbi_scratch for current HART */
->> -#define sbi_scratch_thishart_ptr() \
->> -       ((struct sbi_scratch *)csr_read(CSR_MSCRATCH))
->> +static inline struct sbi_scratch *sbi_scratch_thishart_ptr(void)
->> +{
->> +       struct sbi_scratch *scratch;
->> +
->> +       /* Do not use csr_read() so the compiler can cache the value. */
->> +       __asm__ ("csrr %0, mscratch" : "=r"(scratch));
->> +
->> +       return scratch;
->> +}
->>
->>  /** Get Arg1 of next booting stage for current HART */
->>  #define sbi_scratch_thishart_arg1_ptr() \
->> --
->> 2.45.1
->>
->>
->> --
->> opensbi mailing list
->> opensbi at lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/opensbi
+Changes in v2:
+ - Rebase on master branch (minor conflict with cae230c93556)
+
+Samuel Holland (3):
+  lib: sbi_ipi: Make .ipi_clear always target the current hart
+  lib: sbi_ipi: Move initial IPI clear to sbi_ipi_init()
+  platform: Drop IPI warm init and exit hooks
+
+ include/sbi/sbi_ipi.h                |  6 +++---
+ include/sbi/sbi_platform.h           | 25 +++++-----------------
+ include/sbi_utils/ipi/aclint_mswi.h  |  2 --
+ include/sbi_utils/ipi/andes_plicsw.h |  2 --
+ include/sbi_utils/ipi/fdt_ipi.h      |  9 ++------
+ lib/sbi/sbi_hsm.c                    |  2 +-
+ lib/sbi/sbi_init.c                   |  2 +-
+ lib/sbi/sbi_ipi.c                    | 24 +++++++++------------
+ lib/utils/ipi/aclint_mswi.c          | 19 +++--------------
+ lib/utils/ipi/andes_plicsw.c         | 12 ++---------
+ lib/utils/ipi/fdt_ipi.c              | 31 +---------------------------
+ lib/utils/ipi/fdt_ipi_mswi.c         |  2 --
+ lib/utils/ipi/fdt_ipi_plicsw.c       |  2 --
+ platform/fpga/ariane/platform.c      | 14 +++----------
+ platform/fpga/openpiton/platform.c   | 14 +++----------
+ platform/generic/platform.c          |  1 -
+ platform/kendryte/k210/platform.c    | 12 ++---------
+ platform/nuclei/ux600/platform.c     | 12 ++---------
+ platform/template/platform.c         | 14 +++----------
+ 19 files changed, 41 insertions(+), 164 deletions(-)
+
+-- 
+2.45.1
 
 
