@@ -1,163 +1,89 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 25 Oct 2024 23:05:23 +0530
-Subject: [PATCH v2 1/1] lib: sbi: Add support to mask/unmask SSE events
-In-Reply-To: <20240923055626.1146237-2-hchauhan@ventanamicro.com>
-References: <20240923055626.1146237-1-hchauhan@ventanamicro.com> <20240923055626.1146237-2-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy28FRiJQvtTCbSTdp3GOU7roweqSGfB4q4hVPQKfDTD7g@mail.gmail.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Fri, 25 Oct 2024 11:36:22 -0700
+Subject: [PATCH v2] lib: utils/gpio: designware: Allocate chips on the heap
+Message-ID: <20241025183624.1358982-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Sep 23, 2024 at 11:26?AM Himanshu Chauhan
-<hchauhan@ventanamicro.com> wrote:
->
-> Add functions to globally mask/unmask supervisor software events
-> on the calling hart.
->
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+This reduces firmware size for SoCs which do not use this driver.
 
-LGTM.
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Changes in v2:
+ - Free the allocated chip if gpio_chip_add() fails.
 
-Applied this patch to the riscv/opensbi repo.
+ lib/utils/gpio/fdt_gpio_designware.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-Thanks,
-Anup
+diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
+index 20701a15..b5baf1c1 100644
+--- a/lib/utils/gpio/fdt_gpio_designware.c
++++ b/lib/utils/gpio/fdt_gpio_designware.c
+@@ -13,11 +13,11 @@
+ 
+ #include <sbi/riscv_io.h>
+ #include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
+ 
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/gpio/fdt_gpio.h>
+ 
+-#define DW_GPIO_CHIP_MAX	4	/* need 1 per bank in use */
+ #define DW_GPIO_PINS_MAX	32
+ 
+ #define DW_GPIO_DDR	0x4
+@@ -32,9 +32,6 @@ struct dw_gpio_chip {
+ 
+ extern struct fdt_gpio fdt_gpio_designware;
+ 
+-static unsigned int dw_gpio_chip_count;
+-static struct dw_gpio_chip dw_gpio_chip_array[DW_GPIO_CHIP_MAX];
+-
+ #define pin_to_chip(__p) container_of((__p)->chip, struct dw_gpio_chip, chip);
+ 
+ static int dw_gpio_direction_output(struct gpio_pin *gp, int value)
+@@ -86,9 +83,6 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
+ 	uint64_t addr;
+ 	int rc, poff, nr_pins, bank, len;
+ 
+-	if (dw_gpio_chip_count >= DW_GPIO_CHIP_MAX)
+-		return SBI_ENOSPC;
+-
+ 	/* need to get parent for the address property  */
+ 	poff = fdt_parent_offset(fdt, nodeoff);
+ 	if (poff < 0)
+@@ -110,7 +104,9 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
+ 		return SBI_EINVAL;
+ 	nr_pins = fdt32_to_cpu(*val);
+ 
+-	chip = &dw_gpio_chip_array[dw_gpio_chip_count];
++	chip = sbi_zalloc(sizeof(*chip));
++	if (!chip)
++		return SBI_ENOMEM;
+ 
+ 	chip->dr = (void *)(uintptr_t)addr + (bank * 0xc);
+ 	chip->ext = (void *)(uintptr_t)addr + (bank * 4) + 0x50;
+@@ -121,10 +117,13 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
+ 	chip->chip.direction_output = dw_gpio_direction_output;
+ 	rc = gpio_chip_add(&chip->chip);
+ 	if (rc)
+-		return rc;
++		goto err_free_chip;
+ 
+-	dw_gpio_chip_count++;
+ 	return 0;
++
++err_free_chip:
++	sbi_free(chip);
++	return rc;
+ }
+ 
+ /* since we're only probed when used, match on port not main controller node */
+-- 
+2.45.1
 
-> ---
->  include/sbi/sbi_ecall_interface.h |  2 ++
->  include/sbi/sbi_sse.h             |  2 ++
->  lib/sbi/sbi_ecall_sse.c           |  6 +++++
->  lib/sbi/sbi_sse.c                 | 43 +++++++++++++++++++++++++++++++
->  4 files changed, 53 insertions(+)
->
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index e9a81677..40ab32aa 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -341,6 +341,8 @@ enum sbi_cppc_reg_id {
->  #define SBI_EXT_SSE_DISABLE            0x00000005
->  #define SBI_EXT_SSE_COMPLETE           0x00000006
->  #define SBI_EXT_SSE_INJECT             0x00000007
-> +#define SBI_EXT_SSE_HART_UNMASK                0x00000008
-> +#define SBI_EXT_SSE_HART_MASK          0x00000009
->
->  /* SBI SSE Event Attributes. */
->  enum sbi_sse_attr_id {
-> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
-> index e5b0ad69..7419698a 100644
-> --- a/include/sbi/sbi_sse.h
-> +++ b/include/sbi/sbi_sse.h
-> @@ -78,6 +78,8 @@ void sbi_sse_exit(struct sbi_scratch *scratch);
->  int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
->                      unsigned long handler_entry_arg);
->  int sbi_sse_unregister(uint32_t event_id);
-> +int sbi_sse_hart_mask(void);
-> +int sbi_sse_hart_unmask(void);
->  int sbi_sse_enable(uint32_t event_id);
->  int sbi_sse_disable(uint32_t event_id);
->  int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out);
-> diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
-> index a28a033e..beddc2cd 100644
-> --- a/lib/sbi/sbi_ecall_sse.c
-> +++ b/lib/sbi/sbi_ecall_sse.c
-> @@ -36,6 +36,12 @@ static int sbi_ecall_sse_handler(unsigned long extid, unsigned long funcid,
->         case SBI_EXT_SSE_INJECT:
->                 ret = sbi_sse_inject_from_ecall(regs->a0, regs->a1, out);
->                 break;
-> +       case SBI_EXT_SSE_HART_MASK:
-> +               ret = sbi_sse_hart_mask();
-> +               break;
-> +       case SBI_EXT_SSE_HART_UNMASK:
-> +               ret = sbi_sse_hart_unmask();
-> +               break;
->         default:
->                 ret = SBI_ENOTSUPP;
->         }
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 52172fcd..aff64268 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -141,6 +141,12 @@ struct sse_hart_state {
->          * List of local events allocated at boot time.
->          */
->         struct sbi_sse_event *local_events;
-> +
-> +       /**
-> +        * State to track if the hart is ready to take sse events.
-> +        * One hart cannot modify this state of another hart.
-> +        */
-> +       bool masked;
->  };
->
->  /**
-> @@ -608,6 +614,10 @@ void sbi_sse_process_pending_events(struct sbi_trap_regs *regs)
->         struct sbi_sse_event *e;
->         struct sse_hart_state *state = sse_thishart_state_ptr();
->
-> +       /* if sse is masked on this hart, do nothing */
-> +       if (state->masked)
-> +               return;
-> +
->         spin_lock(&state->enabled_event_lock);
->
->         sbi_list_for_each_entry(e, &state->enabled_event_list, node) {
-> @@ -805,6 +815,36 @@ int sbi_sse_disable(uint32_t event_id)
->         return ret;
->  }
->
-> +int sbi_sse_hart_mask(void)
-> +{
-> +       struct sse_hart_state *state = sse_thishart_state_ptr();
-> +
-> +       if (!state)
-> +               return SBI_EFAIL;
-> +
-> +       if (state->masked)
-> +               return SBI_EALREADY_STARTED;
-> +
-> +       state->masked = true;
-> +
-> +       return SBI_SUCCESS;
-> +}
-> +
-> +int sbi_sse_hart_unmask(void)
-> +{
-> +       struct sse_hart_state *state = sse_thishart_state_ptr();
-> +
-> +       if (!state)
-> +               return SBI_EFAIL;
-> +
-> +       if (!state->masked)
-> +               return SBI_EALREADY_STOPPED;
-> +
-> +       state->masked = false;
-> +
-> +       return SBI_SUCCESS;
-> +}
-> +
->  int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hartid,
->                               struct sbi_ecall_return *out)
->  {
-> @@ -1123,6 +1163,9 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
->
->                 shs->local_events = (struct sbi_sse_event *)(shs + 1);
->
-> +               /* SSE events are masked until hart unmasks them */
-> +               shs->masked = true;
-> +
->                 sse_set_hart_state_ptr(scratch, shs);
->         }
->
-> --
-> 2.43.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
