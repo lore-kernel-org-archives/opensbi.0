@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 28 Oct 2024 17:58:22 +0530
-Subject: [PATCH v2] lib: utils/gpio: designware: Allocate chips on the heap
-In-Reply-To: <20241025183624.1358982-1-samuel.holland@sifive.com>
-References: <20241025183624.1358982-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy1g0afKGEbYgCQKDqoAkkuCCX_Jj_brd1hvuy2GyU7jcQ@mail.gmail.com>
+Date: Mon, 28 Oct 2024 17:58:53 +0530
+Subject: [PATCH v2] include: sbi: Optimize reads of mhartid and mscratch
+In-Reply-To: <20241025184608.1365606-1-samuel.holland@sifive.com>
+References: <20241025184608.1365606-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy1-vjYjR48O-F+psK_okyyZ=wqgmoBDiMDG02PGpr8MUw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,7 +13,12 @@ Content-Transfer-Encoding: 7bit
 On Sat, Oct 26, 2024 at 12:43?AM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> This reduces firmware size for SoCs which do not use this driver.
+> csr_read() is marked as volatile and clobbering memory, which is
+> generally the safe thing to do. However, these two CSRs do not have any
+> side effects, and the values returned do not change between calls. The
+> compiler can generate better code if we allow it to reorder calls to
+> these functions and cache the return value. Introduce csr_read_relaxed()
+> for this use case.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
@@ -29,75 +34,53 @@ Anup
 > ---
 >
 > Changes in v2:
->  - Free the allocated chip if gpio_chip_add() fails.
+>  - Add csr_read_relaxed() instead of open-coding the assembly
 >
->  lib/utils/gpio/fdt_gpio_designware.c | 19 +++++++++----------
->  1 file changed, 9 insertions(+), 10 deletions(-)
+>  include/sbi/riscv_asm.h   | 10 +++++++++-
+>  include/sbi/sbi_scratch.h |  2 +-
+>  2 files changed, 10 insertions(+), 2 deletions(-)
 >
-> diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
-> index 20701a15..b5baf1c1 100644
-> --- a/lib/utils/gpio/fdt_gpio_designware.c
-> +++ b/lib/utils/gpio/fdt_gpio_designware.c
-> @@ -13,11 +13,11 @@
+> diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
+> index 2c34635a..4605db20 100644
+> --- a/include/sbi/riscv_asm.h
+> +++ b/include/sbi/riscv_asm.h
+> @@ -101,6 +101,14 @@
+>                 __v;                                            \
+>         })
 >
->  #include <sbi/riscv_io.h>
->  #include <sbi/sbi_error.h>
-> +#include <sbi/sbi_heap.h>
->
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/gpio/fdt_gpio.h>
->
-> -#define DW_GPIO_CHIP_MAX       4       /* need 1 per bank in use */
->  #define DW_GPIO_PINS_MAX       32
->
->  #define DW_GPIO_DDR    0x4
-> @@ -32,9 +32,6 @@ struct dw_gpio_chip {
->
->  extern struct fdt_gpio fdt_gpio_designware;
->
-> -static unsigned int dw_gpio_chip_count;
-> -static struct dw_gpio_chip dw_gpio_chip_array[DW_GPIO_CHIP_MAX];
-> -
->  #define pin_to_chip(__p) container_of((__p)->chip, struct dw_gpio_chip, chip);
->
->  static int dw_gpio_direction_output(struct gpio_pin *gp, int value)
-> @@ -86,9 +83,6 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
->         uint64_t addr;
->         int rc, poff, nr_pins, bank, len;
->
-> -       if (dw_gpio_chip_count >= DW_GPIO_CHIP_MAX)
-> -               return SBI_ENOSPC;
-> -
->         /* need to get parent for the address property  */
->         poff = fdt_parent_offset(fdt, nodeoff);
->         if (poff < 0)
-> @@ -110,7 +104,9 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
->                 return SBI_EINVAL;
->         nr_pins = fdt32_to_cpu(*val);
->
-> -       chip = &dw_gpio_chip_array[dw_gpio_chip_count];
-> +       chip = sbi_zalloc(sizeof(*chip));
-> +       if (!chip)
-> +               return SBI_ENOMEM;
->
->         chip->dr = (void *)(uintptr_t)addr + (bank * 0xc);
->         chip->ext = (void *)(uintptr_t)addr + (bank * 4) + 0x50;
-> @@ -121,10 +117,13 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
->         chip->chip.direction_output = dw_gpio_direction_output;
->         rc = gpio_chip_add(&chip->chip);
->         if (rc)
-> -               return rc;
-> +               goto err_free_chip;
->
-> -       dw_gpio_chip_count++;
->         return 0;
+> +/* Variant of csr_read() that allows the compiler to cache the value. */
+> +#define csr_read_relaxed(csr)                                     \
+> +       ({                                                        \
+> +               register unsigned long __v;                       \
+> +               __asm__ ("csrr %0, " __ASM_STR(csr) : "=r"(__v)); \
+> +               __v;                                              \
+> +       })
 > +
-> +err_free_chip:
-> +       sbi_free(chip);
-> +       return rc;
->  }
+>  #define csr_write(csr, val)                                        \
+>         ({                                                         \
+>                 unsigned long __v = (unsigned long)(val);          \
+> @@ -163,7 +171,7 @@ void csr_write_num(int csr_num, unsigned long val);
+>         } while (0)
 >
->  /* since we're only probed when used, match on port not main controller node */
+>  /* Get current HART id */
+> -#define current_hartid()       ((unsigned int)csr_read(CSR_MHARTID))
+> +#define current_hartid()       ((unsigned int)csr_read_relaxed(CSR_MHARTID))
+>
+>  /* determine CPU extension, return non-zero support */
+>  int misa_extension_imp(char ext);
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index 9ae4f891..9cd7b0d6 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -159,7 +159,7 @@ enum sbi_scratch_options {
+>
+>  /** Get pointer to sbi_scratch for current HART */
+>  #define sbi_scratch_thishart_ptr() \
+> -       ((struct sbi_scratch *)csr_read(CSR_MSCRATCH))
+> +       ((struct sbi_scratch *)csr_read_relaxed(CSR_MSCRATCH))
+>
+>  /** Get Arg1 of next booting stage for current HART */
+>  #define sbi_scratch_thishart_arg1_ptr() \
 > --
 > 2.45.1
 >
