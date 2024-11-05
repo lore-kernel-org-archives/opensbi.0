@@ -1,82 +1,59 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Mon,  4 Nov 2024 20:20:02 -0800
-Subject: [PATCH 0/6] Deduplicate driver initialization code
-Message-ID: <20241105042240.2994849-1-samuel.holland@sifive.com>
+Date: Mon,  4 Nov 2024 20:20:03 -0800
+Subject: [PATCH 1/6] lib: utils/gpio: Remove fdt_gpio_driver() function
+In-Reply-To: <20241105042240.2994849-1-samuel.holland@sifive.com>
+References: <20241105042240.2994849-1-samuel.holland@sifive.com>
+Message-ID: <20241105042240.2994849-2-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Upstreaming support for some of SiFive's security and power management
-features will require adding some new driver subsystems (e.g. caches,
-WorldGuard gadgets, power management domains, etc.). To avoid copy-and-
-pasting the FDT-based driver matching code to each new subsystem, this
-series refactors it into some efficient and easily-reusable helper
-functions.
+This function looks up a chip's driver by matching known drivers against
+chip->driver, but that is equivalent to using chip->driver directly.
 
-This series only converts three existing subsystems to use the new
-helpers, but the remaining subsystems are trivial to convert once the
-corresponding patch series I have already sent is applied:
- - gpio: http://lists.infradead.org/pipermail/opensbi/2024-September/007340.html
- - ipi: http://lists.infradead.org/pipermail/opensbi/2024-October/007546.html
- - irqchip: http://lists.infradead.org/pipermail/opensbi/2024-November/007555.html
- - regmap: http://lists.infradead.org/pipermail/opensbi/2024-September/007340.html
- - timer: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
+ lib/utils/gpio/fdt_gpio.c | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-Samuel Holland (6):
-  lib: utils/gpio: Remove fdt_gpio_driver() function
-  treewide: Make carray arrays const and NULL-terminated
-  lib: utils/fdt: Add helpers for generic driver initialization
-  lib: utils/i2c: Use fdt_driver for initialization
-  lib: utils/reset: Use fdt_driver for initialization
-  lib: utils/serial: Use fdt_driver for initialization
-
- include/sbi_utils/fdt/fdt_driver.h           | 59 +++++++++++++++
- include/sbi_utils/i2c/fdt_i2c.h              |  8 +-
- include/sbi_utils/reset/fdt_reset.h          | 15 +---
- include/sbi_utils/serial/fdt_serial.h        |  6 +-
- lib/sbi/sbi_ecall.c                          |  5 +-
- lib/sbi/tests/sbi_unit_test.c                |  5 +-
- lib/utils/fdt/fdt_driver.c                   | 80 ++++++++++++++++++++
- lib/utils/fdt/objects.mk                     |  1 +
- lib/utils/gpio/fdt_gpio.c                    | 22 +-----
- lib/utils/i2c/fdt_i2c.c                      | 31 +-------
- lib/utils/i2c/fdt_i2c_adapter_drivers.carray |  2 +-
- lib/utils/i2c/fdt_i2c_dw.c                   |  2 +-
- lib/utils/i2c/fdt_i2c_sifive.c               |  2 +-
- lib/utils/ipi/fdt_ipi.c                      |  5 +-
- lib/utils/irqchip/fdt_irqchip.c              |  5 +-
- lib/utils/regmap/fdt_regmap.c                |  5 +-
- lib/utils/reset/fdt_reset.c                  | 37 +--------
- lib/utils/reset/fdt_reset_atcwdt200.c        |  2 +-
- lib/utils/reset/fdt_reset_drivers.carray     |  2 +-
- lib/utils/reset/fdt_reset_gpio.c             |  4 +-
- lib/utils/reset/fdt_reset_htif.c             |  2 +-
- lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c |  2 +-
- lib/utils/reset/fdt_reset_sunxi_wdt.c        |  2 +-
- lib/utils/reset/fdt_reset_syscon.c           |  4 +-
- lib/utils/serial/fdt_serial.c                | 53 ++-----------
- lib/utils/serial/fdt_serial_cadence.c        |  2 +-
- lib/utils/serial/fdt_serial_drivers.carray   |  2 +-
- lib/utils/serial/fdt_serial_gaisler.c        |  2 +-
- lib/utils/serial/fdt_serial_htif.c           |  2 +-
- lib/utils/serial/fdt_serial_litex.c          |  2 +-
- lib/utils/serial/fdt_serial_renesas_scif.c   |  2 +-
- lib/utils/serial/fdt_serial_shakti.c         |  2 +-
- lib/utils/serial/fdt_serial_sifive.c         |  2 +-
- lib/utils/serial/fdt_serial_uart8250.c       |  2 +-
- lib/utils/serial/fdt_serial_xlnx_uartlite.c  |  2 +-
- lib/utils/timer/fdt_timer.c                  |  5 +-
- platform/generic/platform.c                  |  5 +-
- platform/generic/sifive/fu740.c              |  9 ++-
- platform/generic/starfive/jh7110.c           |  9 ++-
- scripts/carray.sh                            |  7 +-
- 40 files changed, 211 insertions(+), 205 deletions(-)
- create mode 100644 include/sbi_utils/fdt/fdt_driver.h
- create mode 100644 lib/utils/fdt/fdt_driver.c
-
+diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
+index d8d847f1..6422c45f 100644
+--- a/lib/utils/gpio/fdt_gpio.c
++++ b/lib/utils/gpio/fdt_gpio.c
+@@ -16,21 +16,6 @@
+ extern struct fdt_gpio *fdt_gpio_drivers[];
+ extern unsigned long fdt_gpio_drivers_size;
+ 
+-static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
+-{
+-	int pos;
+-
+-	if (!chip)
+-		return NULL;
+-
+-	for (pos = 0; pos < fdt_gpio_drivers_size; pos++) {
+-		if (chip->driver == fdt_gpio_drivers[pos])
+-			return fdt_gpio_drivers[pos];
+-	}
+-
+-	return NULL;
+-}
+-
+ static int fdt_gpio_init(const void *fdt, u32 phandle)
+ {
+ 	int pos, nodeoff, rc;
+@@ -112,7 +97,7 @@ int fdt_gpio_pin_get(const void *fdt, int nodeoff, int index,
+ 	if (rc)
+ 		return rc;
+ 
+-	drv = fdt_gpio_driver(chip);
++	drv = chip->driver;
+ 	if (!drv || !drv->xlate)
+ 		return SBI_ENOSYS;
+ 
 -- 
 2.45.1
 
