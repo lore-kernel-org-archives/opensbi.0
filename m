@@ -1,157 +1,71 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 4 Nov 2024 11:06:28 +0100
-Subject: [PATCH v4 2/7] lib: sbi: factorize previous mode computation
-In-Reply-To: <3ca793bd-dd1e-44ff-9c0c-8f9960ea19ce@sifive.com>
-References: <20241018084010.406285-1-cleger@rivosinc.com>
- <20241018084010.406285-3-cleger@rivosinc.com>
- <3ca793bd-dd1e-44ff-9c0c-8f9960ea19ce@sifive.com>
-Message-ID: <d8c8f97f-294f-439a-83c7-2bea1fa617df@rivosinc.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon,  4 Nov 2024 20:10:01 -0800
+Subject: [PATCH 0/9] Manage irqchip driver lifecycle from SBI core
+Message-ID: <20241105041015.2949808-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+For three kinds of devices (IPI, irqchip, and timer) the platform is
+responsible for implementing extra warm init and exit lifecycle hooks.
+Since the driver lifecycle is the same regardless of platform, I think
+it makes sense to call these lifecycle functions from the SBI core, not
+the platform. This produces smaller code since we don't need to track
+the current driver in multiple places. And since it makes the FDT driver
+interface the same for all kinds of devices, it allows us to reuse the
+same FDT scan/match/init code across all of them.
+
+This series converts the irqchip drivers. This is the most complicated
+of the three conversions, because it required significant refactoring in
+the PLIC driver. Much of that refactoring is useful for other reasons
+(more generic power management flows), but I mostly limited the changes
+to what was needed for removing the driver .warm_init hook. I tested
+this series on Allwinner D1 and verified that cpuidle still works.
+
+I sent the IPI conversion here[1], and the timer conversion here[2].
+
+[1]: http://lists.infradead.org/pipermail/opensbi/2024-October/007546.html
+[2]: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
 
 
-On 22/10/2024 04:32, Samuel Holland wrote:
-> On 2024-10-18 3:40 AM, Cl?ment L?ger wrote:
->> Previous privilege mode retrieval from mstatus is done at different
->> places, factorize it rather than copy/pasting it again.
->>
->> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->> ---
->>  include/sbi/sbi_trap.h     | 5 +++++
->>  lib/sbi/sbi_emulate_csr.c  | 4 ++--
->>  lib/sbi/sbi_illegal_insn.c | 2 +-
->>  lib/sbi/sbi_system.c       | 2 +-
->>  lib/sbi/sbi_trap.c         | 4 ++--
->>  lib/sbi/sbi_trap_ldst.c    | 4 ++--
->>  6 files changed, 13 insertions(+), 8 deletions(-)
->>
->> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
->> index b0c47ce..d5182bf 100644
->> --- a/include/sbi/sbi_trap.h
->> +++ b/include/sbi/sbi_trap.h
->> @@ -245,6 +245,11 @@ static inline bool sbi_regs_from_virt(const struct sbi_trap_regs *regs)
->>  #endif
->>  }
->>  
->> +static inline int sbi_mstatus_prev_mode(unsigned long mstatus)
->> +{
->> +	return (mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->> +}
->> +
->>  int sbi_trap_redirect(struct sbi_trap_regs *regs,
->>  		      const struct sbi_trap_info *trap);
->>  
->> diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
->> index a5a04cd..c2253c8 100644
->> --- a/lib/sbi/sbi_emulate_csr.c
->> +++ b/lib/sbi/sbi_emulate_csr.c
->> @@ -46,7 +46,7 @@ int sbi_emulate_csr_read(int csr_num, struct sbi_trap_regs *regs,
->>  {
->>  	int ret = 0;
->>  	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
->> -	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->> +	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
->>  	bool virt = sbi_regs_from_virt(regs);
->>  
->>  	switch (csr_num) {
->> @@ -152,7 +152,7 @@ int sbi_emulate_csr_write(int csr_num, struct sbi_trap_regs *regs,
->>  			  ulong csr_val)
->>  {
->>  	int ret = 0;
->> -	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->> +	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
->>  	bool virt = sbi_regs_from_virt(regs);
->>  
->>  	switch (csr_num) {
->> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
->> index e1d2cd3..784bc4c 100644
->> --- a/lib/sbi/sbi_illegal_insn.c
->> +++ b/lib/sbi/sbi_illegal_insn.c
->> @@ -52,7 +52,7 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
->>  	int rs1_num	= GET_RS1_NUM(insn);
->>  	ulong rs1_val	= GET_RS1(insn, regs);
->>  	int csr_num	= GET_CSR_NUM((u32)insn);
->> -	ulong prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->> +	ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
->>  	ulong csr_val, new_csr_val;
->>  
->>  	if (prev_mode == PRV_M) {
->> diff --git a/lib/sbi/sbi_system.c b/lib/sbi/sbi_system.c
->> index 8e624fd..cd0f4ba 100644
->> --- a/lib/sbi/sbi_system.c
->> +++ b/lib/sbi/sbi_system.c
->> @@ -158,7 +158,7 @@ int sbi_system_suspend(u32 sleep_type, ulong resume_addr, ulong opaque)
->>  	if (ret != SBI_OK)
->>  		return ret;
->>  
->> -	prev_mode = (csr_read(CSR_MSTATUS) & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->> +	prev_mode = sbi_mstatus_prev_mode(csr_read(CSR_MSTATUS));
-> 
-> I think this is a bug, since this field will get clobbered by a nested trap
-> while in M-mode. But this is not your bug, so:
+Samuel Holland (9):
+  lib: utils/irqchip: plic: Allow enabling IRQs by default
+  lib: utils/irqchip: plic: Move delegation to base PLIC driver
+  lib: utils/irqchip: plic: Provide a hartindex to context map
+  lib: utils/irqchip: plic: Common PM save/restore
+  lib: utils/irqchip: Move per-hart data from fdt_plic to plic
+  lib: sbi_irqchip: Register devices during cold init
+  lib: sbi_irqchip: Call driver warm_init from SBI core
+  platform: Drop irqchip warm init and exit hooks
+  lib: sbi_irqchip: Set the IRQ handler when registering a chip
 
-Hi Samuel,
+ include/sbi/sbi_irqchip.h                    |  24 ++-
+ include/sbi/sbi_platform.h                   |  25 +--
+ include/sbi_utils/irqchip/fdt_irqchip.h      |  10 +-
+ include/sbi_utils/irqchip/fdt_irqchip_plic.h |  33 ---
+ include/sbi_utils/irqchip/imsic.h            |   2 -
+ include/sbi_utils/irqchip/plic.h             |  32 +--
+ lib/sbi/sbi_irqchip.c                        |  36 ++--
+ lib/utils/irqchip/aplic.c                    |   7 +
+ lib/utils/irqchip/fdt_irqchip.c              |  57 +----
+ lib/utils/irqchip/fdt_irqchip_aplic.c        |   8 -
+ lib/utils/irqchip/fdt_irqchip_imsic.c        |   1 -
+ lib/utils/irqchip/fdt_irqchip_plic.c         | 135 ++----------
+ lib/utils/irqchip/imsic.c                    |  13 +-
+ lib/utils/irqchip/plic.c                     | 209 ++++++++++++++-----
+ platform/fpga/ariane/platform.c              |  39 +---
+ platform/fpga/openpiton/platform.c           |  41 +---
+ platform/generic/allwinner/sun20i-d1.c       |  36 +---
+ platform/generic/platform.c                  |   1 -
+ platform/kendryte/k210/platform.c            |  17 +-
+ platform/nuclei/ux600/platform.c             |  17 +-
+ platform/template/platform.c                 |  21 +-
+ 21 files changed, 300 insertions(+), 464 deletions(-)
+ delete mode 100644 include/sbi_utils/irqchip/fdt_irqchip_plic.h
 
-Nice catch, I can take care of it if you don't already have a fix.
-
-Thanks,
-
-Cl?ment
-
-> 
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-> 
->>  	if (prev_mode != PRV_S && prev_mode != PRV_U)
->>  		return SBI_EFAIL;
->>  
->> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
->> index ff0668e..fd70e67 100644
->> --- a/lib/sbi/sbi_trap.c
->> +++ b/lib/sbi/sbi_trap.c
->> @@ -109,7 +109,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
->>  	bool next_virt = false;
->>  
->>  	/* Sanity check on previous mode */
->> -	prev_mode = (regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
->> +	prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
->>  	if (prev_mode != PRV_S && prev_mode != PRV_U)
->>  		return SBI_ENOTSUPP;
->>  
->> @@ -361,7 +361,7 @@ trap_done:
->>  	if (rc)
->>  		sbi_trap_error(msg, rc, tcntx);
->>  
->> -	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) != PRV_M)
->> +	if (sbi_mstatus_prev_mode(regs->mstatus) != PRV_M)
->>  		sbi_sse_process_pending_events(regs);
->>  
->>  	sbi_trap_set_context(scratch, tcntx->prev_context);
->> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
->> index f9c0241..ebc4a92 100644
->> --- a/lib/sbi/sbi_trap_ldst.c
->> +++ b/lib/sbi/sbi_trap_ldst.c
->> @@ -318,7 +318,7 @@ static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
->>  	struct sbi_trap_regs *regs = &tcntx->regs;
->>  
->>  	/* If fault came from M mode, just fail */
->> -	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
->> +	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
->>  		return SBI_EINVAL;
->>  
->>  	/* If platform emulator failed, we redirect instead of fail */
->> @@ -341,7 +341,7 @@ static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
->>  	struct sbi_trap_regs *regs = &tcntx->regs;
->>  
->>  	/* If fault came from M mode, just fail */
->> -	if (((regs->mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT) == PRV_M)
->> +	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
->>  		return SBI_EINVAL;
->>  
->>  	/* If platform emulator failed, we redirect instead of fail */
-> 
+-- 
+2.45.1
 
 
