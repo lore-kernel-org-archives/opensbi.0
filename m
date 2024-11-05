@@ -1,70 +1,200 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Mon,  4 Nov 2024 20:10:01 -0800
-Subject: [PATCH 0/9] Manage irqchip driver lifecycle from SBI core
-Message-ID: <20241105041015.2949808-1-samuel.holland@sifive.com>
+Date: Mon,  4 Nov 2024 20:10:02 -0800
+Subject: [PATCH 1/9] lib: utils/irqchip: plic: Allow enabling IRQs by default
+In-Reply-To: <20241105041015.2949808-1-samuel.holland@sifive.com>
+References: <20241105041015.2949808-1-samuel.holland@sifive.com>
+Message-ID: <20241105041015.2949808-2-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-For three kinds of devices (IPI, irqchip, and timer) the platform is
-responsible for implementing extra warm init and exit lifecycle hooks.
-Since the driver lifecycle is the same regardless of platform, I think
-it makes sense to call these lifecycle functions from the SBI core, not
-the platform. This produces smaller code since we don't need to track
-the current driver in multiple places. And since it makes the FDT driver
-interface the same for all kinds of devices, it allows us to reuse the
-same FDT scan/match/init code across all of them.
+Unlike other platforms, Ariane and OpenPiton enable all IRQs by default.
+This was described in commit b44e844880d0 ("Add support for Ariane FPGA
+SoC") as "due to some issue of the design." Add this workaround behind a
+flag in plic_warm_irqchip_init(), so every platform can use the same
+warm init function.
 
-This series converts the irqchip drivers. This is the most complicated
-of the three conversions, because it required significant refactoring in
-the PLIC driver. Much of that refactoring is useful for other reasons
-(more generic power management flows), but I mostly limited the changes
-to what was needed for removing the driver .warm_init hook. I tested
-this series on Allwinner D1 and verified that cpuidle still works.
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
-I sent the IPI conversion here[1], and the timer conversion here[2].
+ include/sbi_utils/irqchip/plic.h   |  7 ++++---
+ lib/utils/irqchip/plic.c           | 17 +++++++++++------
+ platform/fpga/ariane/platform.c    | 25 +++----------------------
+ platform/fpga/openpiton/platform.c | 25 +++----------------------
+ 4 files changed, 21 insertions(+), 53 deletions(-)
 
-[1]: http://lists.infradead.org/pipermail/opensbi/2024-October/007546.html
-[2]: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
-
-
-Samuel Holland (9):
-  lib: utils/irqchip: plic: Allow enabling IRQs by default
-  lib: utils/irqchip: plic: Move delegation to base PLIC driver
-  lib: utils/irqchip: plic: Provide a hartindex to context map
-  lib: utils/irqchip: plic: Common PM save/restore
-  lib: utils/irqchip: Move per-hart data from fdt_plic to plic
-  lib: sbi_irqchip: Register devices during cold init
-  lib: sbi_irqchip: Call driver warm_init from SBI core
-  platform: Drop irqchip warm init and exit hooks
-  lib: sbi_irqchip: Set the IRQ handler when registering a chip
-
- include/sbi/sbi_irqchip.h                    |  24 ++-
- include/sbi/sbi_platform.h                   |  25 +--
- include/sbi_utils/irqchip/fdt_irqchip.h      |  10 +-
- include/sbi_utils/irqchip/fdt_irqchip_plic.h |  33 ---
- include/sbi_utils/irqchip/imsic.h            |   2 -
- include/sbi_utils/irqchip/plic.h             |  32 +--
- lib/sbi/sbi_irqchip.c                        |  36 ++--
- lib/utils/irqchip/aplic.c                    |   7 +
- lib/utils/irqchip/fdt_irqchip.c              |  57 +----
- lib/utils/irqchip/fdt_irqchip_aplic.c        |   8 -
- lib/utils/irqchip/fdt_irqchip_imsic.c        |   1 -
- lib/utils/irqchip/fdt_irqchip_plic.c         | 135 ++----------
- lib/utils/irqchip/imsic.c                    |  13 +-
- lib/utils/irqchip/plic.c                     | 209 ++++++++++++++-----
- platform/fpga/ariane/platform.c              |  39 +---
- platform/fpga/openpiton/platform.c           |  41 +---
- platform/generic/allwinner/sun20i-d1.c       |  36 +---
- platform/generic/platform.c                  |   1 -
- platform/kendryte/k210/platform.c            |  17 +-
- platform/nuclei/ux600/platform.c             |  17 +-
- platform/template/platform.c                 |  21 +-
- 21 files changed, 300 insertions(+), 464 deletions(-)
- delete mode 100644 include/sbi_utils/irqchip/fdt_irqchip_plic.h
-
+diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
+index 2eda6310..5da09055 100644
+--- a/include/sbi_utils/irqchip/plic.h
++++ b/include/sbi_utils/irqchip/plic.h
+@@ -16,8 +16,12 @@ struct plic_data {
+ 	unsigned long addr;
+ 	unsigned long size;
+ 	unsigned long num_src;
++	unsigned long flags;
+ };
+ 
++/** Work around a bug on Ariane that requires enabling interrupts at boot */
++#define PLIC_FLAG_ARIANE_BUG		BIT(0)
++
+ /* So far, priorities on all consumers of these functions fit in 8 bits. */
+ void plic_priority_save(const struct plic_data *plic, u8 *priority, u32 num);
+ 
+@@ -30,9 +34,6 @@ void plic_context_save(const struct plic_data *plic, int context_id,
+ void plic_context_restore(const struct plic_data *plic, int context_id,
+ 			  const u32 *enable, u32 threshold, u32 num);
+ 
+-int plic_context_init(const struct plic_data *plic, int context_id,
+-		      bool enable, u32 threshold);
+-
+ int plic_warm_irqchip_init(const struct plic_data *plic,
+ 			   int m_cntx_id, int s_cntx_id);
+ 
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 193e3201..c66a6886 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -121,8 +121,8 @@ void plic_context_restore(const struct plic_data *plic, int context_id,
+ 	plic_set_thresh(plic, context_id, threshold);
+ }
+ 
+-int plic_context_init(const struct plic_data *plic, int context_id,
+-		      bool enable, u32 threshold)
++static int plic_context_init(const struct plic_data *plic, int context_id,
++			     bool enable, u32 threshold)
+ {
+ 	u32 ie_words, ie_value;
+ 
+@@ -143,18 +143,23 @@ int plic_context_init(const struct plic_data *plic, int context_id,
+ int plic_warm_irqchip_init(const struct plic_data *plic,
+ 			   int m_cntx_id, int s_cntx_id)
+ {
++	bool enable;
+ 	int ret;
+ 
+-	/* By default, disable all IRQs for M-mode of target HART */
++	/*
++	 * By default, disable all IRQs for the target HART. Ariane
++	 * has a bug which requires enabling all interrupts at boot.
++	 */
++	enable = plic->flags & PLIC_FLAG_ARIANE_BUG;
++
+ 	if (m_cntx_id > -1) {
+-		ret = plic_context_init(plic, m_cntx_id, false, 0x7);
++		ret = plic_context_init(plic, m_cntx_id, enable, 0x7);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	/* By default, disable all IRQs for S-mode of target HART */
+ 	if (s_cntx_id > -1) {
+-		ret = plic_context_init(plic, s_cntx_id, false, 0x7);
++		ret = plic_context_init(plic, s_cntx_id, enable, 0x7);
+ 		if (ret)
+ 			return ret;
+ 	}
+diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
+index ec0584ab..b21d9ba9 100644
+--- a/platform/fpga/ariane/platform.c
++++ b/platform/fpga/ariane/platform.c
+@@ -39,6 +39,7 @@ static struct plic_data plic = {
+ 	.addr = ARIANE_PLIC_ADDR,
+ 	.size = ARIANE_PLIC_SIZE,
+ 	.num_src = ARIANE_PLIC_NUM_SOURCES,
++	.flags = PLIC_FLAG_ARIANE_BUG,
+ };
+ 
+ static struct aclint_mswi_data mswi = {
+@@ -93,27 +94,6 @@ static int ariane_final_init(bool cold_boot)
+ 	return 0;
+ }
+ 
+-static int plic_ariane_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
+-{
+-	int ret;
+-
+-	/* By default, enable all IRQs for M-mode of target HART */
+-	if (m_cntx_id > -1) {
+-		ret = plic_context_init(&plic, m_cntx_id, true, 0x1);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	/* Enable all IRQs for S-mode of target HART */
+-	if (s_cntx_id > -1) {
+-		ret = plic_context_init(&plic, s_cntx_id, true, 0x0);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	return 0;
+-}
+-
+ /*
+  * Initialize the ariane interrupt controller for current HART.
+  */
+@@ -127,7 +107,8 @@ static int ariane_irqchip_init(bool cold_boot)
+ 		if (ret)
+ 			return ret;
+ 	}
+-	return plic_ariane_warm_irqchip_init(2 * hartid, 2 * hartid + 1);
++
++	return plic_warm_irqchip_init(&plic, 2 * hartid, 2 * hartid + 1);
+ }
+ 
+ /*
+diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
+index 81cc48f4..c1e84b61 100644
+--- a/platform/fpga/openpiton/platform.c
++++ b/platform/fpga/openpiton/platform.c
+@@ -43,6 +43,7 @@ static struct plic_data plic = {
+ 	.addr = OPENPITON_DEFAULT_PLIC_ADDR,
+ 	.size = OPENPITON_DEFAULT_PLIC_SIZE,
+ 	.num_src = OPENPITON_DEFAULT_PLIC_NUM_SOURCES,
++	.flags = PLIC_FLAG_ARIANE_BUG,
+ };
+ 
+ static struct aclint_mswi_data mswi = {
+@@ -124,27 +125,6 @@ static int openpiton_final_init(bool cold_boot)
+ 	return 0;
+ }
+ 
+-static int plic_openpiton_warm_irqchip_init(int m_cntx_id, int s_cntx_id)
+-{
+-	int ret;
+-
+-	/* By default, enable all IRQs for M-mode of target HART */
+-	if (m_cntx_id > -1) {
+-		ret = plic_context_init(&plic, m_cntx_id, true, 0x1);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	/* Enable all IRQs for S-mode of target HART */
+-	if (s_cntx_id > -1) {
+-		ret = plic_context_init(&plic, s_cntx_id, true, 0x0);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	return 0;
+-}
+-
+ /*
+  * Initialize the openpiton interrupt controller for current HART.
+  */
+@@ -158,7 +138,8 @@ static int openpiton_irqchip_init(bool cold_boot)
+ 		if (ret)
+ 			return ret;
+ 	}
+-	return plic_openpiton_warm_irqchip_init(2 * hartid, 2 * hartid + 1);
++
++	return plic_warm_irqchip_init(&plic, 2 * hartid, 2 * hartid + 1);
+ }
+ 
+ /*
 -- 
 2.45.1
 
