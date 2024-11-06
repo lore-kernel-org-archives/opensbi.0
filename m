@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Nov 2024 11:29:38 +0530
-Subject: [PATCH 2/3] lib: utils/gpio: Use FDT node offset as GPIO chip ID
-In-Reply-To: <20240904021006.3653559-3-samuel.holland@sifive.com>
-References: <20240904021006.3653559-1-samuel.holland@sifive.com> <20240904021006.3653559-3-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy0iaj-cXC5+mRm5-bzxYbednDKN3eBAHd7THGDGfoLA6Q@mail.gmail.com>
+Date: Wed, 6 Nov 2024 11:30:02 +0530
+Subject: [PATCH 3/3] lib: utils/regmap: Use FDT node offset as regmap ID
+In-Reply-To: <20240904021006.3653559-4-samuel.holland@sifive.com>
+References: <20240904021006.3653559-1-samuel.holland@sifive.com> <20240904021006.3653559-4-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy3bALdrJG+WC+w9PU+pkHuGPuj-wgBXc5V5WQ7SeSHiMg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -33,52 +33,39 @@ Anup
 
 > ---
 >
->  include/sbi_utils/gpio/fdt_gpio.h    |  2 +-
->  lib/utils/gpio/fdt_gpio.c            | 23 ++++++++---------------
->  lib/utils/gpio/fdt_gpio_designware.c |  4 ++--
->  lib/utils/gpio/fdt_gpio_sifive.c     |  4 ++--
->  lib/utils/gpio/fdt_gpio_starfive.c   |  4 ++--
->  5 files changed, 15 insertions(+), 22 deletions(-)
+>  include/sbi_utils/regmap/fdt_regmap.h |  2 +-
+>  lib/utils/regmap/fdt_regmap.c         | 14 +++++++-------
+>  lib/utils/regmap/fdt_regmap_syscon.c  |  4 ++--
+>  3 files changed, 10 insertions(+), 10 deletions(-)
 >
-> diff --git a/include/sbi_utils/gpio/fdt_gpio.h b/include/sbi_utils/gpio/fdt_gpio.h
-> index 303ef632..ab9304bf 100644
-> --- a/include/sbi_utils/gpio/fdt_gpio.h
-> +++ b/include/sbi_utils/gpio/fdt_gpio.h
-> @@ -20,7 +20,7 @@ struct fdt_gpio {
->         int (*xlate)(struct gpio_chip *chip,
->                      const struct fdt_phandle_args *pargs,
->                      struct gpio_pin *out_pin);
+> diff --git a/include/sbi_utils/regmap/fdt_regmap.h b/include/sbi_utils/regmap/fdt_regmap.h
+> index 86e72442..de946f27 100644
+> --- a/include/sbi_utils/regmap/fdt_regmap.h
+> +++ b/include/sbi_utils/regmap/fdt_regmap.h
+> @@ -17,7 +17,7 @@ struct fdt_phandle_args;
+>  /** FDT based regmap driver */
+>  struct fdt_regmap {
+>         const struct fdt_match *match_table;
 > -       int (*init)(const void *fdt, int nodeoff, u32 phandle,
 > +       int (*init)(const void *fdt, int nodeoff,
 >                     const struct fdt_match *match);
 >  };
 >
-> diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
-> index 6422c45f..953fa13a 100644
-> --- a/lib/utils/gpio/fdt_gpio.c
-> +++ b/lib/utils/gpio/fdt_gpio.c
-> @@ -16,17 +16,12 @@
->  extern struct fdt_gpio *fdt_gpio_drivers[];
->  extern unsigned long fdt_gpio_drivers_size;
+> diff --git a/lib/utils/regmap/fdt_regmap.c b/lib/utils/regmap/fdt_regmap.c
+> index f02d2f07..933938fb 100644
+> --- a/lib/utils/regmap/fdt_regmap.c
+> +++ b/lib/utils/regmap/fdt_regmap.c
+> @@ -16,7 +16,7 @@
+>  extern struct fdt_regmap *fdt_regmap_drivers[];
+>  extern unsigned long fdt_regmap_drivers_size;
 >
-> -static int fdt_gpio_init(const void *fdt, u32 phandle)
-> +static int fdt_gpio_init(const void *fdt, int nodeoff)
+> -static int fdt_regmap_init(const void *fdt, int nodeoff, u32 phandle)
+> +static int fdt_regmap_init(const void *fdt, int nodeoff)
 >  {
-> -       int pos, nodeoff, rc;
-> +       int pos, rc;
->         struct fdt_gpio *drv;
->         const struct fdt_match *match;
->
-> -       /* Find node offset */
-> -       nodeoff = fdt_node_offset_by_phandle(fdt, phandle);
-> -       if (nodeoff < 0)
-> -               return nodeoff;
-> -
->         /* Check "gpio-controller" property */
->         if (!fdt_getprop(fdt, nodeoff, "gpio-controller", &rc))
->                 return SBI_EINVAL;
-> @@ -37,7 +32,7 @@ static int fdt_gpio_init(const void *fdt, u32 phandle)
->
+>         int pos, rc;
+>         struct fdt_regmap *drv;
+> @@ -27,7 +27,7 @@ static int fdt_regmap_init(const void *fdt, int nodeoff, u32 phandle)
+>                 drv = fdt_regmap_drivers[pos];
 >                 match = fdt_match_node(fdt, nodeoff, drv->match_table);
 >                 if (match && drv->init) {
 > -                       rc = drv->init(fdt, nodeoff, phandle, match);
@@ -86,115 +73,62 @@ Anup
 >                         if (rc == SBI_ENODEV)
 >                                 continue;
 >                         if (rc)
-> @@ -49,20 +44,20 @@ static int fdt_gpio_init(const void *fdt, u32 phandle)
+> @@ -39,20 +39,20 @@ static int fdt_regmap_init(const void *fdt, int nodeoff, u32 phandle)
 >         return SBI_ENOSYS;
 >  }
 >
-> -static int fdt_gpio_chip_find(const void *fdt, u32 phandle,
-> +static int fdt_gpio_chip_find(const void *fdt, int nodeoff,
->                               struct gpio_chip **out_chip)
+> -static int fdt_regmap_find(const void *fdt, int nodeoff, u32 phandle,
+> +static int fdt_regmap_find(const void *fdt, int nodeoff,
+>                            struct regmap **out_rmap)
 >  {
 >         int rc;
-> -       struct gpio_chip *chip = gpio_chip_find(phandle);
-> +       struct gpio_chip *chip = gpio_chip_find(nodeoff);
+> -       struct regmap *rmap = regmap_find(phandle);
+> +       struct regmap *rmap = regmap_find(nodeoff);
 >
->         if (!chip) {
->                 /* GPIO chip not found so initialize matching driver */
-> -               rc = fdt_gpio_init(fdt, phandle);
-> +               rc = fdt_gpio_init(fdt, nodeoff);
+>         if (!rmap) {
+>                 /* Regmap not found so initialize matching driver */
+> -               rc = fdt_regmap_init(fdt, nodeoff, phandle);
+> +               rc = fdt_regmap_init(fdt, nodeoff);
 >                 if (rc)
 >                         return rc;
 >
->                 /* Try to find GPIO chip again */
-> -               chip = gpio_chip_find(phandle);
-> +               chip = gpio_chip_find(nodeoff);
->                 if (!chip)
+>                 /* Try to find regmap again */
+> -               rmap = regmap_find(phandle);
+> +               rmap = regmap_find(nodeoff);
+>                 if (!rmap)
 >                         return SBI_ENOSYS;
 >         }
-> @@ -77,7 +72,6 @@ int fdt_gpio_pin_get(const void *fdt, int nodeoff, int index,
->                      struct gpio_pin *out_pin)
->  {
->         int rc;
-> -       u32 phandle;
->         struct fdt_gpio *drv;
->         struct gpio_chip *chip = NULL;
->         struct fdt_phandle_args pargs;
-> @@ -92,8 +86,7 @@ int fdt_gpio_pin_get(const void *fdt, int nodeoff, int index,
->         if (rc)
->                 return rc;
+> @@ -75,7 +75,7 @@ int fdt_regmap_get_by_phandle(const void *fdt, u32 phandle,
+>         if (pnodeoff < 0)
+>                 return pnodeoff;
 >
-> -       phandle = fdt_get_phandle(fdt, pargs.node_offset);
-> -       rc = fdt_gpio_chip_find(fdt, phandle, &chip);
-> +       rc = fdt_gpio_chip_find(fdt, pargs.node_offset, &chip);
->         if (rc)
->                 return rc;
+> -       return fdt_regmap_find(fdt, pnodeoff, phandle, out_rmap);
+> +       return fdt_regmap_find(fdt, pnodeoff, out_rmap);
+>  }
 >
-> diff --git a/lib/utils/gpio/fdt_gpio_designware.c b/lib/utils/gpio/fdt_gpio_designware.c
-> index 20701a15..36733bb4 100644
-> --- a/lib/utils/gpio/fdt_gpio_designware.c
-> +++ b/lib/utils/gpio/fdt_gpio_designware.c
-> @@ -78,7 +78,7 @@ static void dw_gpio_set(struct gpio_pin *gp, int value)
->   * bank A is the only one with irq support but we're not using it here
->  */
+>  int fdt_regmap_get(const void *fdt, int nodeoff, struct regmap **out_rmap)
+> diff --git a/lib/utils/regmap/fdt_regmap_syscon.c b/lib/utils/regmap/fdt_regmap_syscon.c
+> index a95f2515..ba559086 100644
+> --- a/lib/utils/regmap/fdt_regmap_syscon.c
+> +++ b/lib/utils/regmap/fdt_regmap_syscon.c
+> @@ -159,7 +159,7 @@ static int regmap_syscon_write_be32(struct regmap *rmap, unsigned int reg,
+>         return 0;
+>  }
 >
-> -static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
-> +static int dw_gpio_init_bank(const void *fdt, int nodeoff,
->                              const struct fdt_match *match)
->  {
->         struct dw_gpio_chip *chip;
-> @@ -115,7 +115,7 @@ static int dw_gpio_init_bank(const void *fdt, int nodeoff, u32 phandle,
->         chip->dr = (void *)(uintptr_t)addr + (bank * 0xc);
->         chip->ext = (void *)(uintptr_t)addr + (bank * 4) + 0x50;
->         chip->chip.driver = &fdt_gpio_designware;
-> -       chip->chip.id = phandle;
-> +       chip->chip.id = nodeoff;
->         chip->chip.ngpio = nr_pins;
->         chip->chip.set = dw_gpio_set;
->         chip->chip.direction_output = dw_gpio_direction_output;
-> diff --git a/lib/utils/gpio/fdt_gpio_sifive.c b/lib/utils/gpio/fdt_gpio_sifive.c
-> index e5dbe2be..d96bf775 100644
-> --- a/lib/utils/gpio/fdt_gpio_sifive.c
-> +++ b/lib/utils/gpio/fdt_gpio_sifive.c
-> @@ -62,7 +62,7 @@ static void sifive_gpio_set(struct gpio_pin *gp, int value)
->
->  extern struct fdt_gpio fdt_gpio_sifive;
->
-> -static int sifive_gpio_init(const void *fdt, int nodeoff, u32 phandle,
-> +static int sifive_gpio_init(const void *fdt, int nodeoff,
->                             const struct fdt_match *match)
->  {
->         int rc;
-> @@ -81,7 +81,7 @@ static int sifive_gpio_init(const void *fdt, int nodeoff, u32 phandle,
->
->         chip->addr = addr;
->         chip->chip.driver = &fdt_gpio_sifive;
-> -       chip->chip.id = phandle;
-> +       chip->chip.id = nodeoff;
->         chip->chip.ngpio = SIFIVE_GPIO_PINS_DEF;
->         chip->chip.direction_output = sifive_gpio_direction_output;
->         chip->chip.set = sifive_gpio_set;
-> diff --git a/lib/utils/gpio/fdt_gpio_starfive.c b/lib/utils/gpio/fdt_gpio_starfive.c
-> index d84ff1fe..55752425 100644
-> --- a/lib/utils/gpio/fdt_gpio_starfive.c
-> +++ b/lib/utils/gpio/fdt_gpio_starfive.c
-> @@ -71,7 +71,7 @@ static void starfive_gpio_set(struct gpio_pin *gp, int value)
->
->  extern struct fdt_gpio fdt_gpio_starfive;
->
-> -static int starfive_gpio_init(const void *fdt, int nodeoff, u32 phandle,
-> +static int starfive_gpio_init(const void *fdt, int nodeoff,
+> -static int regmap_syscon_init(const void *fdt, int nodeoff, u32 phandle,
+> +static int regmap_syscon_init(const void *fdt, int nodeoff,
 >                               const struct fdt_match *match)
 >  {
->         int rc;
-> @@ -90,7 +90,7 @@ static int starfive_gpio_init(const void *fdt, int nodeoff, u32 phandle,
+>         struct syscon_regmap *srm;
+> @@ -188,7 +188,7 @@ static int regmap_syscon_init(const void *fdt, int nodeoff, u32 phandle,
+>                 goto fail_free_syscon;
+>         srm->addr = addr;
 >
->         chip->addr = addr;
->         chip->chip.driver = &fdt_gpio_starfive;
-> -       chip->chip.id = phandle;
-> +       chip->chip.id = nodeoff;
->         chip->chip.ngpio = STARFIVE_GPIO_PINS_DEF;
->         chip->chip.direction_output = starfive_gpio_direction_output;
->         chip->chip.set = starfive_gpio_set;
+> -       srm->rmap.id = phandle;
+> +       srm->rmap.id = nodeoff;
+>         srm->rmap.reg_shift = 0;
+>         srm->rmap.reg_stride = srm->reg_io_width * 8;
+>         srm->rmap.reg_base = 0;
 > --
 > 2.45.1
 >
