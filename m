@@ -1,98 +1,94 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Nov 2024 16:19:13 +0530
-Subject: [PATCH] Support TOR mode in pmp_set
-In-Reply-To: <20240926131659.1477-1-popeblei@gmail.com>
-References: <20240926131659.1477-1-popeblei@gmail.com>
-Message-ID: <CAAhSdy2jxq2sfk9Pc3T+_ZDQU_bqs=Mrbay-jJhL70mcdHExDA@mail.gmail.com>
+Date: Wed, 6 Nov 2024 16:26:25 +0530
+Subject: [PATCH] top: Add .editorconfig to set basic coding styles
+In-Reply-To: <20240916095636.603355-1-minachou@andestech.com>
+References: <20240916095636.603355-1-minachou@andestech.com>
+Message-ID: <CAAhSdy1As9hbPGpG4QoDK+NFYALoGN-yGTpn-wqwYEkmxcUfuw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Sep 26, 2024 at 6:47?PM Pope B.Lei <popeblei@gmail.com> wrote:
-
-TOR mode requires two PMP entries to mark the start and end of a region.
-
-Please refer to my response on "[PATCH 0/3] Add support for tor type pmp"
-thread.
-
+On Mon, Sep 16, 2024 at 3:26?PM Hui Min Mina Chou
+<minachou@andestech.com> wrote:
 >
-> Signed-off-by: Pope B.Lei <popeblei@gmail.com>
-> ---
->  include/sbi/riscv_encoding.h |  2 ++
->  lib/sbi/riscv_asm.c          | 19 ++++++++++++++++---
->  2 files changed, 18 insertions(+), 3 deletions(-)
+> EditorConfig [1] ensures consistent coding styles for developers
+> collaborating on the same project across various editors and IDEs. By
+> adopting the Linux project's .editorconfig settings [2] and applying
+> them to OpenSBI, it helps users maintain uniform indentation across
+> different IDEs and version control systems, improving development
+> efficiency.
 >
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 980abdb..387c011 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -154,6 +154,8 @@
->  #define PMP_A_NAPOT                    _UL(0x18)
->  #define PMP_L                          _UL(0x80)
+> The main difference from Linux project is the addition of
+> 'trim_trailing_whitespace = true', which removes trailing whitespace
+> before newlines. This change affects only three files in OpenSBI, but
+> it improves overall code consistency.
 >
-> +#define PMP_USE_TOR                    _UL(0x00)
-> +
->  #define PMP_SHIFT                      2
->  #define PMP_COUNT                      64
->  #if __riscv_xlen == 64
-> diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-> index c7d75ac..4518b2c 100644
-> --- a/lib/sbi/riscv_asm.c
-> +++ b/lib/sbi/riscv_asm.c
-> @@ -309,7 +309,7 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
->         unsigned long addrmask, pmpaddr;
+>  $ grep -nr "\s$" --include={*.{c,dts,h,lds,ldS,mk,s,S.py},Kconfig,Makefile,Makefile.*} .
+>  ./include/sbi_utils/fdt/fdt_fixup.h:4: * Implement platform specific DT fixups on top of libfdt.
+>  ./platform/generic/platform.c:79: * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
+>  ./platform/generic/platform.c:81: * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
 >
->         /* check parameters */
-> -       if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
-> +       if (n >= PMP_COUNT || log2len > __riscv_xlen || (log2len < PMP_SHIFT && log2len != PMP_USE_TOR ))
->                 return SBI_EINVAL;
->
->         /* calculate PMP register and offset */
-> @@ -326,13 +326,26 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
->
->         /* encode PMP config */
->         prot &= ~PMP_A;
-> -       prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
-> +
-> +       switch(log2len){
-> +               case PMP_USE_TOR:{
-> +                       prot |= PMP_A_TOR;
-> +                       break;
-> +               }
-> +               case PMP_SHIFT:{
-> +                       prot |= PMP_A_NA4;
-> +                       break;
-> +               }
-> +               default:
-> +                       prot |= PMP_A_NAPOT;
-> +       }
-> +
->         cfgmask = ~(0xffUL << pmpcfg_shift);
->         pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
->         pmpcfg |= ((prot << pmpcfg_shift) & ~cfgmask);
->
->         /* encode PMP address */
-> -       if (log2len == PMP_SHIFT) {
-> +       if (log2len == PMP_SHIFT || log2len == PMP_USE_TOR) {
+> Link: https://editorconfig.org/ [1]
+> Link: https://lore.kernel.org/lkml/ZbAbmchIO8Cd5hNd at surfacebook.localdomain/T/ [2]
+> Signed-off-by: Hui Min Mina Chou <minachou@andestech.com>
 
-This is only programming one PMP entry but for TOR we need
-two PMP entries per-region.
+LGTM.
 
-Also, what about pmp_get() ?
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-In general, let's avoid TOR PMP entries as much as possible.
+Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
-
->                 pmpaddr = (addr >> PMP_SHIFT);
->         } else {
->                 if (log2len == __riscv_xlen) {
+> ---
+>  .editorconfig | 21 +++++++++++++++++++++
+>  .gitignore    |  1 +
+>  2 files changed, 22 insertions(+)
+>  create mode 100644 .editorconfig
+>
+> diff --git a/.editorconfig b/.editorconfig
+> new file mode 100644
+> index 000000000000..e66b1ca3d6e7
+> --- /dev/null
+> +++ b/.editorconfig
+> @@ -0,0 +1,21 @@
+> +# SPDX-License-Identifier: GPL-2.0-only
+> +# See here for more information about the format and editor support:
+> +# https://editorconfig.org/
+> +
+> +root = true
+> +
+> +[{*.{c,dts,h,lds,ldS,mk,s,S},Kconfig,Makefile,Makefile.*}]
+> +charset = utf-8
+> +end_of_line = lf
+> +trim_trailing_whitespace = true
+> +insert_final_newline = true
+> +indent_style = tab
+> +indent_size = 8
+> +
+> +[*.py]
+> +charset = utf-8
+> +end_of_line = lf
+> +trim_trailing_whitespace = true
+> +insert_final_newline = true
+> +indent_style = space
+> +indent_size = 4
+> diff --git a/.gitignore b/.gitignore
+> index a519d67f5c54..424302b38337 100644
+> --- a/.gitignore
+> +++ b/.gitignore
+> @@ -5,5 +5,6 @@
+>  !.clang-format
+>  !.gitignore
+> +!.editorconfig
+>
+>  # Object files
+>  *.o
 > --
-> 2.35.2.windows.1
+> 2.34.1
 >
 >
 > --
