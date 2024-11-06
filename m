@@ -1,38 +1,28 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 Nov 2024 16:26:25 +0530
-Subject: [PATCH] top: Add .editorconfig to set basic coding styles
-In-Reply-To: <20240916095636.603355-1-minachou@andestech.com>
-References: <20240916095636.603355-1-minachou@andestech.com>
-Message-ID: <CAAhSdy1As9hbPGpG4QoDK+NFYALoGN-yGTpn-wqwYEkmxcUfuw@mail.gmail.com>
+Date: Wed, 6 Nov 2024 16:36:27 +0530
+Subject: [PATCH v4 1/1] Makefile: enable --gc-sections
+In-Reply-To: <09f89be252e5ea08820909ad6a1bb93866b438c8.1727823614.git.zhangcola2003@gmail.com>
+References: <cover.1727823614.git.zhangcola2003@gmail.com> <09f89be252e5ea08820909ad6a1bb93866b438c8.1727823614.git.zhangcola2003@gmail.com>
+Message-ID: <CAAhSdy1B+UV27R6+B_3um7pO857uGRhKvF-AypQR_hwTfWUdxA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Sep 16, 2024 at 3:26?PM Hui Min Mina Chou
-<minachou@andestech.com> wrote:
+On Wed, Oct 2, 2024 at 6:16?AM Kele Zhang <zhangcola2003@gmail.com> wrote:
 >
-> EditorConfig [1] ensures consistent coding styles for developers
-> collaborating on the same project across various editors and IDEs. By
-> adopting the Linux project's .editorconfig settings [2] and applying
-> them to OpenSBI, it helps users maintain uniform indentation across
-> different IDEs and version control systems, improving development
-> efficiency.
+> The --gc-sections option enables the linker to perform garbage
+> collection of unreferenced code and data, thereby reducing the binary
+> size.
 >
-> The main difference from Linux project is the addition of
-> 'trim_trailing_whitespace = true', which removes trailing whitespace
-> before newlines. This change affects only three files in OpenSBI, but
-> it improves overall code consistency.
+> The -ffunction-sections option will place each function into a separate
+> section, so it is necessary to add .text.* to the linker script.
 >
->  $ grep -nr "\s$" --include={*.{c,dts,h,lds,ldS,mk,s,S.py},Kconfig,Makefile,Makefile.*} .
->  ./include/sbi_utils/fdt/fdt_fixup.h:4: * Implement platform specific DT fixups on top of libfdt.
->  ./platform/generic/platform.c:79: * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
->  ./platform/generic/platform.c:81: * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
->
-> Link: https://editorconfig.org/ [1]
-> Link: https://lore.kernel.org/lkml/ZbAbmchIO8Cd5hNd at surfacebook.localdomain/T/ [2]
-> Signed-off-by: Hui Min Mina Chou <minachou@andestech.com>
+> Signed-off-by: Kele Zhang <zhangcola2003@gmail.com>
+> Signed-off-by: Yuan Tan <tanyuan@tinylab.org>
+> Signed-off-by: Zhangjin Wu <falcon@tinylab.org>
+> Reviewed-by: Bin Meng <bmeng.cn@gmail.com>
 
 LGTM.
 
@@ -44,51 +34,64 @@ Thanks,
 Anup
 
 > ---
->  .editorconfig | 21 +++++++++++++++++++++
->  .gitignore    |  1 +
->  2 files changed, 22 insertions(+)
->  create mode 100644 .editorconfig
+>  Makefile             | 15 +++++++++------
+>  firmware/fw_base.ldS |  1 +
+>  2 files changed, 10 insertions(+), 6 deletions(-)
 >
-> diff --git a/.editorconfig b/.editorconfig
-> new file mode 100644
-> index 000000000000..e66b1ca3d6e7
-> --- /dev/null
-> +++ b/.editorconfig
-> @@ -0,0 +1,21 @@
-> +# SPDX-License-Identifier: GPL-2.0-only
-> +# See here for more information about the format and editor support:
-> +# https://editorconfig.org/
-> +
-> +root = true
-> +
-> +[{*.{c,dts,h,lds,ldS,mk,s,S},Kconfig,Makefile,Makefile.*}]
-> +charset = utf-8
-> +end_of_line = lf
-> +trim_trailing_whitespace = true
-> +insert_final_newline = true
-> +indent_style = tab
-> +indent_size = 8
-> +
-> +[*.py]
-> +charset = utf-8
-> +end_of_line = lf
-> +trim_trailing_whitespace = true
-> +insert_final_newline = true
-> +indent_style = space
-> +indent_size = 4
-> diff --git a/.gitignore b/.gitignore
-> index a519d67f5c54..424302b38337 100644
-> --- a/.gitignore
-> +++ b/.gitignore
-> @@ -5,5 +5,6 @@
->  !.clang-format
->  !.gitignore
-> +!.editorconfig
+> diff --git a/Makefile b/Makefile
+> index f0012f6..dae282c 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -355,12 +355,7 @@ GENFLAGS   +=      $(libsbiutils-genflags-y)
+>  GENFLAGS       +=      $(platform-genflags-y)
+>  GENFLAGS       +=      $(firmware-genflags-y)
 >
->  # Object files
->  *.o
+> -CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+> -ifneq ($(DEBUG),)
+> -CFLAGS         +=      -O0
+> -else
+> -CFLAGS         +=      -O2
+> -endif
+> +CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
+>  CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls
+>  # Optionally supported flags
+>  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+> @@ -406,6 +401,7 @@ ASFLAGS             +=      $(firmware-asflags-y)
+>  ARFLAGS                =       rcs
+>
+>  ELFFLAGS       +=      $(USE_LD_FLAG)
+> +ELFFLAGS       +=      -Wl,--gc-sections
+>  ifeq ($(OPENSBI_LD_EXCLUDE_LIBS),y)
+>  ELFFLAGS       +=      -Wl,--exclude-libs,ALL
+>  endif
+> @@ -424,6 +420,13 @@ MERGEFLAGS +=      -m elf$(PLATFORM_RISCV_XLEN)lriscv
+>
+>  DTSCPPFLAGS    =       $(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assembler-with-cpp
+>
+> +ifneq ($(DEBUG),)
+> +CFLAGS         +=      -O0
+> +ELFFLAGS       +=      -Wl,--print-gc-sections
+> +else
+> +CFLAGS         +=      -O2
+> +endif
+> +
+>  # Setup functions for compilation
+>  define dynamic_flags
+>  -I$(shell dirname $(2)) -D__OBJNAME__=$(subst -,_,$(shell basename $(1) .o))
+> diff --git a/firmware/fw_base.ldS b/firmware/fw_base.ldS
+> index fb47984..a33746a 100644
+> --- a/firmware/fw_base.ldS
+> +++ b/firmware/fw_base.ldS
+> @@ -20,6 +20,7 @@
+>                 PROVIDE(_text_start = .);
+>                 *(.entry)
+>                 *(.text)
+> +               *(.text.*)
+>                 . = ALIGN(8);
+>                 PROVIDE(_text_end = .);
+>         }
 > --
-> 2.34.1
+> 2.43.0
 >
 >
 > --
