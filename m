@@ -1,10 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sat, 9 Nov 2024 14:24:42 +0530
-Subject: [PATCH v2 1/2] platform: ensure enough heap size with debug
- triggers extension
-In-Reply-To: <20240920073738.597300-2-inochiama@gmail.com>
-References: <20240920073738.597300-1-inochiama@gmail.com> <20240920073738.597300-2-inochiama@gmail.com>
-Message-ID: <CAAhSdy17mNYbT5ynOMMoFDw1Dov=g8pnakBiWGG7ykeKPdb29A@mail.gmail.com>
+Date: Sat, 9 Nov 2024 14:28:43 +0530
+Subject: [PATCH v2 2/2] platform: introduce DT-based configurable heap size
+In-Reply-To: <20240920073738.597300-3-inochiama@gmail.com>
+References: <20240920073738.597300-1-inochiama@gmail.com> <20240920073738.597300-3-inochiama@gmail.com>
+Message-ID: <CAAhSdy23oohL6ttBRcpYmUN7vWsxqEQ785R=Lxyt_hZHLRbnqQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,45 +12,99 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Sep 20, 2024 at 1:09?PM Inochi Amaoto <inochiama@gmail.com> wrote:
 >
-> DBTR introduce a big heap allocation to store hart state, this is
-> allocated percpu and needs big space when CPU number is high.
+> The default heap size will work for most platforms, but for some
+> special platforms, the heap is too small to hold all the information
+> or is too big so that it take too much ram. Introduce configurable
+> heap should solve this problem and make all generic platforms happy.
 >
-> Increase the percpu part to fix this problem, and decrease the
-> fixed part to avoid too big heap size.
+> Add DT-based heap-size for the generic platform.
 >
-> Fixes: 97f234f (lib: sbi: Introduce the SBI debug triggers extension support)
 > Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
 > ---
->  include/sbi/sbi_platform.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  docs/opensbi_config.md      |  4 ++++
+>  platform/generic/platform.c | 28 +++++++++++++++++++++++++---
+>  2 files changed, 29 insertions(+), 3 deletions(-)
 >
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 7b3ac4b..d1c556c 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -152,7 +152,7 @@ struct sbi_platform_operations {
+> diff --git a/docs/opensbi_config.md b/docs/opensbi_config.md
+> index 1b710f1..c620379 100644
+> --- a/docs/opensbi_config.md
+> +++ b/docs/opensbi_config.md
+> @@ -23,6 +23,9 @@ The DT properties of a domain configuration DT node are as follows:
+>    set of harts is permitted to perform a cold boot. Otherwise, all
+>    harts are allowed to cold boot.
 >
->  /** Platform default heap size */
->  #define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
-> -                                       (0x8000 + 0x800 * (__num_hart))
-> +                                       (0x4000 + 0x2000 * (__num_hart))
+> +* **heap-size** (Optional) - When present, the SBI will initialize
+> +  the heap with the set value (This value is in byte).
 
-The per-HART DTBR state is 1536 bytes so I don't see the point
-in such an arbitrary increase.
+The description can be "When present, the specified value is used
+as the size of the heap in bytes."
 
-How about below ?
-
- #define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
--                                       (0x8000 + 0x800 * (__num_hart))
-+                                       (0x8000 + 0x1000 * (__num_hart))
-
-Regards,
-Anup
-
+> +
+>  * **system-suspend-test** (Optional) - When present, enable a system
+>    suspend test implementation which simply waits five seconds and issues a WFI.
 >
->  /** Representation of a platform */
->  struct sbi_platform {
+> @@ -36,6 +39,7 @@ The OpenSBI Configuration Node will be deleted at the end of cold boot
+>          opensbi-config {
+>              compatible = "opensbi,config";
+>              cold-boot-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
+> +            heap-size = <0x400000>;
+>              system-suspend-test;
+>          };
+>      };
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 49d877d..5ddf425 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -69,6 +69,28 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
+>         return BIT_ALIGN(heap_size, HEAP_BASE_ALIGN);
+>  }
+>
+> +static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count)
+> +{
+> +       int chosen_offset, config_offset, len;
+> +       const fdt32_t *val;
+> +
+> +       /* Get the heap size from device tree */
+> +       chosen_offset = fdt_path_offset(fdt, "/chosen");
+> +       if (chosen_offset < 0)
+> +               goto default_config;
+> +
+> +       config_offset = fdt_node_offset_by_compatible(fdt, chosen_offset, "opensbi,config");
+> +       if (config_offset < 0)
+> +               goto default_config;
+> +
+> +       val = (fdt32_t *)fdt_getprop(fdt, config_offset, "heap-size", &len);
+> +       if (len > 0 && val)
+> +               return BIT_ALIGN(fdt32_to_cpu(*val), HEAP_BASE_ALIGN);
+> +
+> +default_config:
+> +       return fw_platform_calculate_heap_size(hart_count);
+> +}
+> +
+>  extern struct sbi_platform platform;
+>  static bool platform_has_mlevel_imsic = false;
+>  static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
+> @@ -76,9 +98,9 @@ static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
+>  static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
+>
+>  /*
+> - * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
+> + * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
+>   * function to initialize the cold boot harts allowed by the generic platform
+> - * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
+> + * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
+>   * DT node. If there is no "cold-boot-harts" in DT, all harts will be allowed.
+>   */
+>  static void fw_platform_coldboot_harts_init(const void *fdt)
+> @@ -185,7 +207,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+>         }
+>
+>         platform.hart_count = hart_count;
+> -       platform.heap_size = fw_platform_calculate_heap_size(hart_count);
+> +       platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
+>         platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
+>
+>         fw_platform_coldboot_harts_init(fdt);
 > --
 > 2.46.1
 >
@@ -60,4 +113,11 @@ Anup
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Otherwise, this looks good to me.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
 
