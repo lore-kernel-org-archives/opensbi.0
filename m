@@ -1,73 +1,70 @@
-From: Inochi Amaoto <inochiama@gmail.com>
-Date: Sat, 9 Nov 2024 17:55:38 +0800
-Subject: [PATCH v2 1/2] platform: ensure enough heap size with debug
- triggers extension
-In-Reply-To: <CAAhSdy17mNYbT5ynOMMoFDw1Dov=g8pnakBiWGG7ykeKPdb29A@mail.gmail.com>
-References: <20240920073738.597300-1-inochiama@gmail.com>
- <20240920073738.597300-2-inochiama@gmail.com>
- <CAAhSdy17mNYbT5ynOMMoFDw1Dov=g8pnakBiWGG7ykeKPdb29A@mail.gmail.com>
-Message-ID: <b6yjkuxtbdfxxb7adffyiaikqujshhacfqajzdzfei4z2jjns7@my3ldatybfta>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 11 Nov 2024 10:21:52 +0800
+Subject: [PATCH 1/6] lib: utils/gpio: Remove fdt_gpio_driver() function
+In-Reply-To: <20241105042240.2994849-2-samuel.holland@sifive.com>
+References: <20241105042240.2994849-1-samuel.holland@sifive.com>
+	 <20241105042240.2994849-2-samuel.holland@sifive.com>
+Message-ID: <3b5ce458af8ce31480eb1045bbd9dd85ee137246.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 09, 2024 at 02:24:42PM +0530, Anup Patel wrote:
-> On Fri, Sep 20, 2024 at 1:09?PM Inochi Amaoto <inochiama@gmail.com> wrote:
-> >
-> > DBTR introduce a big heap allocation to store hart state, this is
-> > allocated percpu and needs big space when CPU number is high.
-> >
-> > Increase the percpu part to fix this problem, and decrease the
-> > fixed part to avoid too big heap size.
-> >
-> > Fixes: 97f234f (lib: sbi: Introduce the SBI debug triggers extension support)
-> > Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
-> > Reviewed-by: Xiang W <wxjstz@126.com>
-> > ---
-> >  include/sbi/sbi_platform.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> > index 7b3ac4b..d1c556c 100644
-> > --- a/include/sbi/sbi_platform.h
-> > +++ b/include/sbi/sbi_platform.h
-> > @@ -152,7 +152,7 @@ struct sbi_platform_operations {
-> >
-> >  /** Platform default heap size */
-> >  #define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
-> > -                                       (0x8000 + 0x800 * (__num_hart))
-> > +                                       (0x4000 + 0x2000 * (__num_hart))
+? 2024-11-04?? 20:20 -0800?Samuel Holland???
+> This function looks up a chip's driver by matching known drivers against
+> chip->driver, but that is equivalent to using chip->driver directly.
 > 
-> The per-HART DTBR state is 1536 bytes so I don't see the point
-> in such an arbitrary increase.
-> 
-> How about below ?
-> 
->  #define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
-> -                                       (0x8000 + 0x800 * (__num_hart))
-> +                                       (0x8000 + 0x1000 * (__num_hart))
-> 
-> Regards,
-> Anup
-> 
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-Yeah, it is OK for me. I will change the formula to 0x1000 per hart,
-thanks.
+This patch has been merged.
+https://github.com/riscv-software-src/opensbi/commit/598cf961d82a12afa3ccbed9645edae2275b76f3
 
 Regards,
-Inochi
+Xiang W
+> ---
+> 
+> ?lib/utils/gpio/fdt_gpio.c | 17 +----------------
+> ?1 file changed, 1 insertion(+), 16 deletions(-)
+> 
+> diff --git a/lib/utils/gpio/fdt_gpio.c b/lib/utils/gpio/fdt_gpio.c
+> index d8d847f1..6422c45f 100644
+> --- a/lib/utils/gpio/fdt_gpio.c
+> +++ b/lib/utils/gpio/fdt_gpio.c
+> @@ -16,21 +16,6 @@
+> ?extern struct fdt_gpio *fdt_gpio_drivers[];
+> ?extern unsigned long fdt_gpio_drivers_size;
+> ?
+> -static struct fdt_gpio *fdt_gpio_driver(struct gpio_chip *chip)
+> -{
+> -	int pos;
+> -
+> -	if (!chip)
+> -		return NULL;
+> -
+> -	for (pos = 0; pos < fdt_gpio_drivers_size; pos++) {
+> -		if (chip->driver == fdt_gpio_drivers[pos])
+> -			return fdt_gpio_drivers[pos];
+> -	}
+> -
+> -	return NULL;
+> -}
+> -
+> ?static int fdt_gpio_init(const void *fdt, u32 phandle)
+> ?{
+> ?	int pos, nodeoff, rc;
+> @@ -112,7 +97,7 @@ int fdt_gpio_pin_get(const void *fdt, int nodeoff, int index,
+> ?	if (rc)
+> ?		return rc;
+> ?
+> -	drv = fdt_gpio_driver(chip);
+> +	drv = chip->driver;
+> ?	if (!drv || !drv->xlate)
+> ?		return SBI_ENOSYS;
+> ?
+> -- 
+> 2.45.1
+> 
+> 
 
-> >
-> >  /** Representation of a platform */
-> >  struct sbi_platform {
-> > --
-> > 2.46.1
-> >
-> >
-> > --
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
 
