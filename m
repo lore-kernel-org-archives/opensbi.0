@@ -1,108 +1,207 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Mon, 11 Nov 2024 14:02:44 -0800
-Subject: [PATCH v2 00/11] Deduplicate driver initialization code
-Message-ID: <20241111220304.1228821-1-samuel.holland@sifive.com>
+Date: Mon, 11 Nov 2024 14:02:46 -0800
+Subject: [PATCH v2 02/11] lib: utils/fdt: Add helpers for generic driver initialization
+In-Reply-To: <20241111220304.1228821-1-samuel.holland@sifive.com>
+References: <20241111220304.1228821-1-samuel.holland@sifive.com>
+Message-ID: <20241111220304.1228821-3-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Upstreaming support for some of SiFive's security and power management
-features will require adding some new driver subsystems (e.g. caches,
-WorldGuard gadgets, power management domains, etc.). To avoid copy-and-
-pasting the FDT-based driver matching code to each new subsystem, this
-series refactors it into some efficient and easily-reusable helper
-functions.
+Currently, each driver subsystem contains its own code for matching
+drivers against the platform's devicetree blob. This bloats firmware
+size because the several FDT scanning loops are almost exact copies of
+each other, and is confusing because the loops do have some subtle
+differences. Furthermore, the existing match algorithm is inefficient:
+it scans the FDT structure separately for each driver in the list. A
+faster algorithm scans the FDT blob only once, matching all drivers in
+the list for each `compatible` property seen.
 
-Version 2 of this series converts everything but the irqchip subsystem
-to use the new helpers. Once the irqchip subsystem is converted, the old
-fdt_find_match() helper can be removed. The following series prepares
-the irqchip subsystem for conversion to use the fdt_driver helpers:
-http://lists.infradead.org/pipermail/opensbi/2024-November/007555.html
+Add new helpers implementing this faster algorithm. Since they must
+iterate through the list of drivers, the driver structure cannot be
+opaque. However, since the driver list is an array of pointers, the
+`struct fdt_driver` can be embedded in a subsystem-specific driver
+structure if needed. These three helpers cover all existing use cases
+for driver initialization within OpenSBI.
 
-Changes in v2:
- - Shell script cleanup in carray.sh
- - Update carray.sh to support embedding struct fdt_driver
- - Add conversion of gpio drivers
- - Add conversion of ipi drivers
- - Add conversion of regmap drivers
- - Add conversion of timer drivers
+An additional benefit of centralized driver initialization is the
+consistent use of fdt_node_is_enabled().
 
-Samuel Holland (11):
-  treewide: Make carray arrays const and NULL-terminated
-  lib: utils/fdt: Add helpers for generic driver initialization
-  scripts/carray.sh: Avoid useless use of cat
-  scripts/carray.sh: Allow referencing a struct member
-  lib: utils/gpio: Use fdt_driver for initialization
-  lib: utils/i2c: Use fdt_driver for initialization
-  lib: utils/ipi: Use fdt_driver for initialization
-  lib: utils/regmap: Use fdt_driver for initialization
-  lib: utils/reset: Use fdt_driver for initialization
-  lib: utils/serial: Use fdt_driver for initialization
-  lib: utils/timer: Use fdt_driver for initialization
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
- include/sbi_utils/fdt/fdt_driver.h           | 59 +++++++++++++++
- include/sbi_utils/gpio/fdt_gpio.h            |  5 +-
- include/sbi_utils/gpio/gpio.h                |  2 +-
- include/sbi_utils/i2c/fdt_i2c.h              |  8 +-
- include/sbi_utils/ipi/fdt_ipi.h              |  6 +-
- include/sbi_utils/regmap/fdt_regmap.h        |  8 +-
- include/sbi_utils/reset/fdt_reset.h          | 15 +---
- include/sbi_utils/serial/fdt_serial.h        |  6 +-
- include/sbi_utils/timer/fdt_timer.h          |  6 +-
- lib/sbi/sbi_ecall.c                          |  5 +-
- lib/sbi/tests/sbi_unit_test.c                |  5 +-
- lib/utils/fdt/fdt_driver.c                   | 80 ++++++++++++++++++++
- lib/utils/fdt/objects.mk                     |  1 +
- lib/utils/gpio/fdt_gpio.c                    | 28 +------
- lib/utils/gpio/fdt_gpio_designware.c         | 10 ++-
- lib/utils/gpio/fdt_gpio_drivers.carray       |  4 +-
- lib/utils/gpio/fdt_gpio_sifive.c             | 10 ++-
- lib/utils/gpio/fdt_gpio_starfive.c           | 10 ++-
- lib/utils/i2c/fdt_i2c.c                      | 31 +-------
- lib/utils/i2c/fdt_i2c_adapter_drivers.carray |  2 +-
- lib/utils/i2c/fdt_i2c_dw.c                   |  2 +-
- lib/utils/i2c/fdt_i2c_sifive.c               |  2 +-
- lib/utils/ipi/fdt_ipi.c                      | 43 +----------
- lib/utils/ipi/fdt_ipi_drivers.carray         |  2 +-
- lib/utils/ipi/fdt_ipi_mswi.c                 |  4 +-
- lib/utils/ipi/fdt_ipi_plicsw.c               |  4 +-
- lib/utils/irqchip/fdt_irqchip.c              |  5 +-
- lib/utils/regmap/fdt_regmap.c                | 29 +------
- lib/utils/regmap/fdt_regmap_drivers.carray   |  2 +-
- lib/utils/regmap/fdt_regmap_syscon.c         |  2 +-
- lib/utils/reset/fdt_reset.c                  | 37 +--------
- lib/utils/reset/fdt_reset_atcwdt200.c        |  2 +-
- lib/utils/reset/fdt_reset_drivers.carray     |  2 +-
- lib/utils/reset/fdt_reset_gpio.c             |  4 +-
- lib/utils/reset/fdt_reset_htif.c             |  2 +-
- lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c |  2 +-
- lib/utils/reset/fdt_reset_sunxi_wdt.c        |  2 +-
- lib/utils/reset/fdt_reset_syscon.c           |  4 +-
- lib/utils/serial/fdt_serial.c                | 53 ++-----------
- lib/utils/serial/fdt_serial_cadence.c        |  2 +-
- lib/utils/serial/fdt_serial_drivers.carray   |  2 +-
- lib/utils/serial/fdt_serial_gaisler.c        |  2 +-
- lib/utils/serial/fdt_serial_htif.c           |  2 +-
- lib/utils/serial/fdt_serial_litex.c          |  2 +-
- lib/utils/serial/fdt_serial_renesas_scif.c   |  2 +-
- lib/utils/serial/fdt_serial_shakti.c         |  2 +-
- lib/utils/serial/fdt_serial_sifive.c         |  2 +-
- lib/utils/serial/fdt_serial_uart8250.c       |  2 +-
- lib/utils/serial/fdt_serial_xlnx_uartlite.c  |  2 +-
- lib/utils/timer/fdt_timer.c                  | 40 +---------
- lib/utils/timer/fdt_timer_drivers.carray     |  2 +-
- lib/utils/timer/fdt_timer_mtimer.c           |  4 +-
- lib/utils/timer/fdt_timer_plmt.c             |  4 +-
- platform/generic/platform.c                  |  5 +-
- platform/generic/sifive/fu740.c              |  9 ++-
- platform/generic/starfive/jh7110.c           |  9 ++-
- scripts/carray.sh                            | 22 ++++--
- 57 files changed, 267 insertions(+), 352 deletions(-)
+(no changes since v1)
+
+ include/sbi_utils/fdt/fdt_driver.h | 59 ++++++++++++++++++++++
+ lib/utils/fdt/fdt_driver.c         | 80 ++++++++++++++++++++++++++++++
+ lib/utils/fdt/objects.mk           |  1 +
+ 3 files changed, 140 insertions(+)
  create mode 100644 include/sbi_utils/fdt/fdt_driver.h
  create mode 100644 lib/utils/fdt/fdt_driver.c
 
+diff --git a/include/sbi_utils/fdt/fdt_driver.h b/include/sbi_utils/fdt/fdt_driver.h
+new file mode 100644
+index 00000000..f6fd26f9
+--- /dev/null
++++ b/include/sbi_utils/fdt/fdt_driver.h
+@@ -0,0 +1,59 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * fdt_driver.h - Generic support for initializing drivers from DT nodes.
++ *
++ * Copyright (c) 2024 SiFive
++ */
++
++#ifndef __FDT_DRIVER_H__
++#define __FDT_DRIVER_H__
++
++#include <sbi_utils/fdt/fdt_helper.h>
++
++struct fdt_driver {
++	const struct fdt_match *match_table;
++	int (*init)(const void *fdt, int nodeoff,
++		    const struct fdt_match *match);
++};
++
++/**
++ * Initialize a driver instance for a specific DT node
++ *
++ * @param fdt devicetree blob
++ * @param nodeoff offset of a node in the devicetree blob
++ * @param drivers NULL-terminated array of drivers to match against this node
++ *
++ * @return 0 if a driver was matched and successfully initialized or a negative
++ * error code on failure
++ */
++int fdt_driver_init_by_offset(const void *fdt, int nodeoff,
++			      const struct fdt_driver *const *drivers);
++
++/**
++ * Initialize a driver instance for each DT node that matches any of the
++ * provided drivers
++ *
++ * @param fdt devicetree blob
++ * @param drivers NULL-terminated array of drivers to match against each node
++ *
++ * @return 0 if drivers for all matches (if any) were successfully initialized
++ * or a negative error code on failure
++ */
++int fdt_driver_init_all(const void *fdt,
++			const struct fdt_driver *const *drivers);
++
++/**
++ * Initialize a driver instance for the first DT node that matches any of the
++ * provided drivers
++ *
++ * @param fdt devicetree blob
++ * @param drivers NULL-terminated array of drivers to match against each node
++ *
++ * @return 0 if a driver was matched and successfully initialized or a negative
++ * error code on failure
++ */
++int fdt_driver_init_one(const void *fdt,
++			const struct fdt_driver *const *drivers);
++
++#endif /* __FDT_DRIVER_H__ */
+diff --git a/lib/utils/fdt/fdt_driver.c b/lib/utils/fdt/fdt_driver.c
+new file mode 100644
+index 00000000..586ea8aa
+--- /dev/null
++++ b/lib/utils/fdt/fdt_driver.c
+@@ -0,0 +1,80 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2024 SiFive
++ */
++
++#include <libfdt.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_error.h>
++#include <sbi_utils/fdt/fdt_driver.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++int fdt_driver_init_by_offset(const void *fdt, int nodeoff,
++			      const struct fdt_driver *const *drivers)
++{
++	const struct fdt_driver *driver;
++	const struct fdt_match *match;
++	const void *prop;
++	int len, rc;
++
++	if (!fdt_node_is_enabled(fdt, nodeoff))
++		return SBI_ENODEV;
++
++	prop = fdt_getprop(fdt, nodeoff, "compatible", &len);
++	if (!prop)
++		return SBI_ENODEV;
++
++	while ((driver = *drivers++)) {
++		for (match = driver->match_table; match->compatible; match++) {
++			if (!fdt_stringlist_contains(prop, len, match->compatible))
++				continue;
++
++			rc = driver->init(fdt, nodeoff, match);
++			if (rc < 0) {
++				const char *name;
++
++				name = fdt_get_name(fdt, nodeoff, NULL);
++				sbi_printf("%s: %s (%s) init failed: %d\n",
++					   __func__, name, match->compatible, rc);
++			}
++
++			return rc;
++		}
++	}
++
++	return SBI_ENODEV;
++}
++
++static int fdt_driver_init_scan(const void *fdt,
++				const struct fdt_driver *const *drivers,
++				bool one)
++{
++	int nodeoff, rc;
++
++	for (nodeoff = fdt_next_node(fdt, -1, NULL);
++	     nodeoff >= 0;
++	     nodeoff = fdt_next_node(fdt, nodeoff, NULL)) {
++		rc = fdt_driver_init_by_offset(fdt, nodeoff, drivers);
++		if (rc == SBI_ENODEV)
++			continue;
++		if (rc < 0)
++			return rc;
++		if (one)
++			return 0;
++	}
++
++	return one ? SBI_ENODEV : 0;
++}
++
++int fdt_driver_init_all(const void *fdt,
++			const struct fdt_driver *const *drivers)
++{
++	return fdt_driver_init_scan(fdt, drivers, false);
++}
++
++int fdt_driver_init_one(const void *fdt,
++			const struct fdt_driver *const *drivers)
++{
++	return fdt_driver_init_scan(fdt, drivers, true);
++}
+diff --git a/lib/utils/fdt/objects.mk b/lib/utils/fdt/objects.mk
+index 5cede811..1a2298be 100644
+--- a/lib/utils/fdt/objects.mk
++++ b/lib/utils/fdt/objects.mk
+@@ -7,4 +7,5 @@
+ libsbiutils-objs-$(CONFIG_FDT_DOMAIN) += fdt/fdt_domain.o
+ libsbiutils-objs-$(CONFIG_FDT_PMU) += fdt/fdt_pmu.o
+ libsbiutils-objs-$(CONFIG_FDT) += fdt/fdt_helper.o
++libsbiutils-objs-$(CONFIG_FDT) += fdt/fdt_driver.o
+ libsbiutils-objs-$(CONFIG_FDT) += fdt/fdt_fixup.o
 -- 
 2.45.1
 
