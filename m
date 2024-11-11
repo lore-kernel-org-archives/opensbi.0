@@ -1,27 +1,35 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Nov 2024 17:58:13 +0530
-Subject: [PATCH v3 2/2] platform: introduce DT-based configurable heap size
-In-Reply-To: <20241111022737.336991-3-inochiama@gmail.com>
-References: <20241111022737.336991-1-inochiama@gmail.com> <20241111022737.336991-3-inochiama@gmail.com>
-Message-ID: <CAAhSdy0Fb4bmikA9dxeaZk8L1eFG5kZzxroxMZGpvD1bDNT+3Q@mail.gmail.com>
+Date: Mon, 11 Nov 2024 18:28:03 +0530
+Subject: [PATCH v2 1/3] lib: sbi_ipi: Make .ipi_clear always target the
+ current hart
+In-Reply-To: <20241025185950.1371610-2-samuel.holland@sifive.com>
+References: <20241025185950.1371610-1-samuel.holland@sifive.com> <20241025185950.1371610-2-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy1RbPM3b3dPnS5J5f=Uwa84e2DKLitMCqhU0uPjyZy+dw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 11, 2024 at 7:58?AM Inochi Amaoto <inochiama@gmail.com> wrote:
+On Sat, Oct 26, 2024 at 12:45?AM Samuel Holland
+<samuel.holland@sifive.com> wrote:
 >
-> The default heap size will work for most platforms, but for some
-> special platforms, the heap is too small to hold all the information
-> or is too big so that it take too much ram. Introduce configurable
-> heap should solve this problem and make all generic platforms happy.
+> All existing users of this operation target the current hart, and it
+> seems unlikely that a future user will need to clear the pending IPI
+> status of a remote hart. Simplify the logic by changing .ipi_clear (and
+> its wrapper sbi_ipi_raw_clear()) to always operate on the current hart.
 >
-> Add DT-based heap-size for the generic platform.
+> This incidentally fixes a bug introduced in commit 78c667b6fc07 ("lib:
+> sbi: Prefer hartindex over hartid in IPI framework"), which changed the
+> .ipi_clear parameter from a hartid to a hart index, but failed to update
+> the warm_init functions to match.
 >
-> Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
-> Reviewed-by: Xiang W <wxjstz@126.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
+> Fixes: 78c667b6fc07 ("lib: sbi: Prefer hartindex over hartid in IPI framework")
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+
+LGTM.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
@@ -29,87 +37,155 @@ Thanks,
 Anup
 
 > ---
->  docs/opensbi_config.md      |  4 ++++
->  platform/generic/platform.c | 28 +++++++++++++++++++++++++---
->  2 files changed, 29 insertions(+), 3 deletions(-)
 >
-> diff --git a/docs/opensbi_config.md b/docs/opensbi_config.md
-> index 1b710f1..104d82c 100644
-> --- a/docs/opensbi_config.md
-> +++ b/docs/opensbi_config.md
-> @@ -23,6 +23,9 @@ The DT properties of a domain configuration DT node are as follows:
->    set of harts is permitted to perform a cold boot. Otherwise, all
->    harts are allowed to cold boot.
+> Changes in v2:
+>  - Rebase on master branch (minor conflict with cae230c93556)
 >
-> +* **heap-size** (Optional) - When present, the specified value is used
-> +  as the size of the heap in bytes.
-> +
->  * **system-suspend-test** (Optional) - When present, enable a system
->    suspend test implementation which simply waits five seconds and issues a WFI.
+>  include/sbi/sbi_ipi.h        |  6 +++---
+>  lib/sbi/sbi_init.c           |  2 +-
+>  lib/sbi/sbi_ipi.c            |  7 +++----
+>  lib/utils/ipi/aclint_mswi.c  | 13 ++++---------
+>  lib/utils/ipi/andes_plicsw.c |  6 +++---
+>  5 files changed, 14 insertions(+), 20 deletions(-)
 >
-> @@ -36,6 +39,7 @@ The OpenSBI Configuration Node will be deleted at the end of cold boot
->          opensbi-config {
->              compatible = "opensbi,config";
->              cold-boot-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
-> +            heap-size = <0x400000>;
->              system-suspend-test;
->          };
->      };
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 921c494..a22db49 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -69,6 +69,28 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
->         return BIT_ALIGN(heap_size, HEAP_BASE_ALIGN);
+> diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
+> index d3962334..62d61304 100644
+> --- a/include/sbi/sbi_ipi.h
+> +++ b/include/sbi/sbi_ipi.h
+> @@ -26,8 +26,8 @@ struct sbi_ipi_device {
+>         /** Send IPI to a target HART index */
+>         void (*ipi_send)(u32 hart_index);
+>
+> -       /** Clear IPI for a target HART index */
+> -       void (*ipi_clear)(u32 hart_index);
+> +       /** Clear IPI for the current hart */
+> +       void (*ipi_clear)(void);
+>  };
+>
+>  enum sbi_ipi_update_type {
+> @@ -87,7 +87,7 @@ void sbi_ipi_process(void);
+>
+>  int sbi_ipi_raw_send(u32 hartindex);
+>
+> -void sbi_ipi_raw_clear(u32 hartindex);
+> +void sbi_ipi_raw_clear(void);
+>
+>  const struct sbi_ipi_device *sbi_ipi_get_device(void);
+>
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index cccd723d..8a2cfaef 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -479,7 +479,7 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
+>         if (hstate == SBI_HSM_STATE_SUSPENDED) {
+>                 init_warm_resume(scratch, hartid);
+>         } else {
+> -               sbi_ipi_raw_clear(sbi_hartid_to_hartindex(hartid));
+> +               sbi_ipi_raw_clear();
+>                 init_warm_startup(scratch, hartid);
+>         }
+>  }
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 337ed175..33b4d9b3 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -237,10 +237,9 @@ void sbi_ipi_process(void)
+>         struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         struct sbi_ipi_data *ipi_data =
+>                         sbi_scratch_offset_ptr(scratch, ipi_data_off);
+> -       u32 hartindex = current_hartindex();
+>
+>         sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
+> -       sbi_ipi_raw_clear(hartindex);
+> +       sbi_ipi_raw_clear();
+>
+>         ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
+>         ipi_event = 0;
+> @@ -275,10 +274,10 @@ int sbi_ipi_raw_send(u32 hartindex)
+>         return 0;
 >  }
 >
-> +static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count)
-> +{
-> +       int chosen_offset, config_offset, len;
-> +       const fdt32_t *val;
-> +
-> +       /* Get the heap size from device tree */
-> +       chosen_offset = fdt_path_offset(fdt, "/chosen");
-> +       if (chosen_offset < 0)
-> +               goto default_config;
-> +
-> +       config_offset = fdt_node_offset_by_compatible(fdt, chosen_offset, "opensbi,config");
-> +       if (config_offset < 0)
-> +               goto default_config;
-> +
-> +       val = (fdt32_t *)fdt_getprop(fdt, config_offset, "heap-size", &len);
-> +       if (len > 0 && val)
-> +               return BIT_ALIGN(fdt32_to_cpu(*val), HEAP_BASE_ALIGN);
-> +
-> +default_config:
-> +       return fw_platform_calculate_heap_size(hart_count);
-> +}
-> +
->  extern struct sbi_platform platform;
->  static bool platform_has_mlevel_imsic = false;
->  static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
-> @@ -76,9 +98,9 @@ static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
->  static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
+> -void sbi_ipi_raw_clear(u32 hartindex)
+> +void sbi_ipi_raw_clear(void)
+>  {
+>         if (ipi_dev && ipi_dev->ipi_clear)
+> -               ipi_dev->ipi_clear(hartindex);
+> +               ipi_dev->ipi_clear();
 >
->  /*
-> - * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
-> + * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
->   * function to initialize the cold boot harts allowed by the generic platform
-> - * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
-> + * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
->   * DT node. If there is no "cold-boot-harts" in DT, all harts will be allowed.
->   */
->  static void fw_platform_coldboot_harts_init(const void *fdt)
-> @@ -185,7 +207,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
->         }
+>         /*
+>          * Ensure that memory or MMIO writes after this
+> diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
+> index 0ef3d003..2cd7a530 100644
+> --- a/lib/utils/ipi/aclint_mswi.c
+> +++ b/lib/utils/ipi/aclint_mswi.c
+> @@ -45,24 +45,19 @@ static void mswi_ipi_send(u32 hart_index)
+>                         mswi->first_hartid]);
+>  }
 >
->         platform.hart_count = hart_count;
-> -       platform.heap_size = fw_platform_calculate_heap_size(hart_count);
-> +       platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
->         platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
+> -static void mswi_ipi_clear(u32 hart_index)
+> +static void mswi_ipi_clear(void)
+>  {
+>         u32 *msip;
+> -       struct sbi_scratch *scratch;
+> +       struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>         struct aclint_mswi_data *mswi;
 >
->         fw_platform_coldboot_harts_init(fdt);
+> -       scratch = sbi_hartindex_to_scratch(hart_index);
+> -       if (!scratch)
+> -               return;
+> -
+>         mswi = mswi_get_hart_data_ptr(scratch);
+>         if (!mswi)
+>                 return;
+>
+>         /* Clear ACLINT IPI */
+>         msip = (void *)mswi->addr;
+> -       writel_relaxed(0, &msip[sbi_hartindex_to_hartid(hart_index) -
+> -                       mswi->first_hartid]);
+> +       writel_relaxed(0, &msip[current_hartid() - mswi->first_hartid]);
+>  }
+>
+>  static struct sbi_ipi_device aclint_mswi = {
+> @@ -74,7 +69,7 @@ static struct sbi_ipi_device aclint_mswi = {
+>  int aclint_mswi_warm_init(void)
+>  {
+>         /* Clear IPI for current HART */
+> -       mswi_ipi_clear(current_hartindex());
+> +       mswi_ipi_clear();
+>
+>         return 0;
+>  }
+> diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
+> index 18c79e2b..626699f9 100644
+> --- a/lib/utils/ipi/andes_plicsw.c
+> +++ b/lib/utils/ipi/andes_plicsw.c
+> @@ -41,9 +41,9 @@ static void plicsw_ipi_send(u32 hart_index)
+>         writel_relaxed(BIT(pending_bit), (void *)pending_reg);
+>  }
+>
+> -static void plicsw_ipi_clear(u32 hart_index)
+> +static void plicsw_ipi_clear(void)
+>  {
+> -       u32 target_hart = sbi_hartindex_to_hartid(hart_index);
+> +       u32 target_hart = current_hartid();
+>         ulong reg = plicsw.addr + PLICSW_CONTEXT_BASE + PLICSW_CONTEXT_CLAIM +
+>                     PLICSW_CONTEXT_STRIDE * target_hart;
+>
+> @@ -68,7 +68,7 @@ static struct sbi_ipi_device plicsw_ipi = {
+>  int plicsw_warm_ipi_init(void)
+>  {
+>         /* Clear PLICSW IPI */
+> -       plicsw_ipi_clear(current_hartindex());
+> +       plicsw_ipi_clear();
+>
+>         return 0;
+>  }
 > --
-> 2.47.0
+> 2.45.1
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
