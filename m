@@ -1,107 +1,93 @@
-From: Inochi Amaoto <inochiama@gmail.com>
-Date: Mon, 11 Nov 2024 10:27:34 +0800
-Subject: [PATCH v3 2/2] platform: introduce DT-based configurable heap size
-In-Reply-To: <20241111022737.336991-1-inochiama@gmail.com>
-References: <20241111022737.336991-1-inochiama@gmail.com>
-Message-ID: <20241111022737.336991-3-inochiama@gmail.com>
+From: Xiang W <wxjstz@126.com>
+Date: Mon, 11 Nov 2024 10:50:02 +0800
+Subject: [PATCH 0/6] Deduplicate driver initialization code
+In-Reply-To: <20241105042240.2994849-1-samuel.holland@sifive.com>
+References: <20241105042240.2994849-1-samuel.holland@sifive.com>
+Message-ID: <70b785b94146780a697ac2a3132a073d6a7c6433.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The default heap size will work for most platforms, but for some
-special platforms, the heap is too small to hold all the information
-or is too big so that it take too much ram. Introduce configurable
-heap should solve this problem and make all generic platforms happy.
+? 2024-11-04?? 20:20 -0800?Samuel Holland???
+> Upstreaming support for some of SiFive's security and power management
+> features will require adding some new driver subsystems (e.g. caches,
+> WorldGuard gadgets, power management domains, etc.). To avoid copy-and-
+> pasting the FDT-based driver matching code to each new subsystem, this
+> series refactors it into some efficient and easily-reusable helper
+> functions.
+> 
+> This series only converts three existing subsystems to use the new
+> helpers, but the remaining subsystems are trivial to convert once the
+> corresponding patch series I have already sent is applied:
+> ?- gpio: http://lists.infradead.org/pipermail/opensbi/2024-September/007340.html
+> ?- ipi: http://lists.infradead.org/pipermail/opensbi/2024-October/007546.html
+> ?- irqchip: http://lists.infradead.org/pipermail/opensbi/2024-November/007555.html
+> ?- regmap: http://lists.infradead.org/pipermail/opensbi/2024-September/007340.html
+> ?- timer: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
+> 
 
-Add DT-based heap-size for the generic platform.
+This series of patches requires rebase to master
 
-Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
-Reviewed-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
----
- docs/opensbi_config.md      |  4 ++++
- platform/generic/platform.c | 28 +++++++++++++++++++++++++---
- 2 files changed, 29 insertions(+), 3 deletions(-)
+Regards,
+Xiang W
 
-diff --git a/docs/opensbi_config.md b/docs/opensbi_config.md
-index 1b710f1..104d82c 100644
---- a/docs/opensbi_config.md
-+++ b/docs/opensbi_config.md
-@@ -23,6 +23,9 @@ The DT properties of a domain configuration DT node are as follows:
-   set of harts is permitted to perform a cold boot. Otherwise, all
-   harts are allowed to cold boot.
- 
-+* **heap-size** (Optional) - When present, the specified value is used
-+  as the size of the heap in bytes.
-+
- * **system-suspend-test** (Optional) - When present, enable a system
-   suspend test implementation which simply waits five seconds and issues a WFI.
- 
-@@ -36,6 +39,7 @@ The OpenSBI Configuration Node will be deleted at the end of cold boot
-         opensbi-config {
-             compatible = "opensbi,config";
-             cold-boot-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
-+            heap-size = <0x400000>;
-             system-suspend-test;
-         };
-     };
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 921c494..a22db49 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -69,6 +69,28 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
- 	return BIT_ALIGN(heap_size, HEAP_BASE_ALIGN);
- }
- 
-+static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count)
-+{
-+	int chosen_offset, config_offset, len;
-+	const fdt32_t *val;
-+
-+	/* Get the heap size from device tree */
-+	chosen_offset = fdt_path_offset(fdt, "/chosen");
-+	if (chosen_offset < 0)
-+		goto default_config;
-+
-+	config_offset = fdt_node_offset_by_compatible(fdt, chosen_offset, "opensbi,config");
-+	if (config_offset < 0)
-+		goto default_config;
-+
-+	val = (fdt32_t *)fdt_getprop(fdt, config_offset, "heap-size", &len);
-+	if (len > 0 && val)
-+		return BIT_ALIGN(fdt32_to_cpu(*val), HEAP_BASE_ALIGN);
-+
-+default_config:
-+	return fw_platform_calculate_heap_size(hart_count);
-+}
-+
- extern struct sbi_platform platform;
- static bool platform_has_mlevel_imsic = false;
- static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
-@@ -76,9 +98,9 @@ static u32 generic_hart_index2id[SBI_HARTMASK_MAX_BITS] = { 0 };
- static DECLARE_BITMAP(generic_coldboot_harts, SBI_HARTMASK_MAX_BITS);
- 
- /*
-- * The fw_platform_coldboot_harts_init() function is called by fw_platform_init() 
-+ * The fw_platform_coldboot_harts_init() function is called by fw_platform_init()
-  * function to initialize the cold boot harts allowed by the generic platform
-- * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config" 
-+ * according to the DT property "cold-boot-harts" in "/chosen/opensbi-config"
-  * DT node. If there is no "cold-boot-harts" in DT, all harts will be allowed.
-  */
- static void fw_platform_coldboot_harts_init(const void *fdt)
-@@ -185,7 +207,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 	}
- 
- 	platform.hart_count = hart_count;
--	platform.heap_size = fw_platform_calculate_heap_size(hart_count);
-+	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
- 	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
- 
- 	fw_platform_coldboot_harts_init(fdt);
--- 
-2.47.0
-
+> 
+> Samuel Holland (6):
+> ? lib: utils/gpio: Remove fdt_gpio_driver() function
+> ? treewide: Make carray arrays const and NULL-terminated
+> ? lib: utils/fdt: Add helpers for generic driver initialization
+> ? lib: utils/i2c: Use fdt_driver for initialization
+> ? lib: utils/reset: Use fdt_driver for initialization
+> ? lib: utils/serial: Use fdt_driver for initialization
+> 
+> ?include/sbi_utils/fdt/fdt_driver.h?????????? | 59 +++++++++++++++
+> ?include/sbi_utils/i2c/fdt_i2c.h????????????? |? 8 +-
+> ?include/sbi_utils/reset/fdt_reset.h????????? | 15 +---
+> ?include/sbi_utils/serial/fdt_serial.h??????? |? 6 +-
+> ?lib/sbi/sbi_ecall.c????????????????????????? |? 5 +-
+> ?lib/sbi/tests/sbi_unit_test.c??????????????? |? 5 +-
+> ?lib/utils/fdt/fdt_driver.c?????????????????? | 80 ++++++++++++++++++++
+> ?lib/utils/fdt/objects.mk???????????????????? |? 1 +
+> ?lib/utils/gpio/fdt_gpio.c??????????????????? | 22 +-----
+> ?lib/utils/i2c/fdt_i2c.c????????????????????? | 31 +-------
+> ?lib/utils/i2c/fdt_i2c_adapter_drivers.carray |? 2 +-
+> ?lib/utils/i2c/fdt_i2c_dw.c?????????????????? |? 2 +-
+> ?lib/utils/i2c/fdt_i2c_sifive.c?????????????? |? 2 +-
+> ?lib/utils/ipi/fdt_ipi.c????????????????????? |? 5 +-
+> ?lib/utils/irqchip/fdt_irqchip.c????????????? |? 5 +-
+> ?lib/utils/regmap/fdt_regmap.c??????????????? |? 5 +-
+> ?lib/utils/reset/fdt_reset.c????????????????? | 37 +--------
+> ?lib/utils/reset/fdt_reset_atcwdt200.c??????? |? 2 +-
+> ?lib/utils/reset/fdt_reset_drivers.carray???? |? 2 +-
+> ?lib/utils/reset/fdt_reset_gpio.c???????????? |? 4 +-
+> ?lib/utils/reset/fdt_reset_htif.c???????????? |? 2 +-
+> ?lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c |? 2 +-
+> ?lib/utils/reset/fdt_reset_sunxi_wdt.c??????? |? 2 +-
+> ?lib/utils/reset/fdt_reset_syscon.c?????????? |? 4 +-
+> ?lib/utils/serial/fdt_serial.c??????????????? | 53 ++-----------
+> ?lib/utils/serial/fdt_serial_cadence.c??????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_drivers.carray?? |? 2 +-
+> ?lib/utils/serial/fdt_serial_gaisler.c??????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_htif.c?????????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_litex.c????????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_renesas_scif.c?? |? 2 +-
+> ?lib/utils/serial/fdt_serial_shakti.c???????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_sifive.c???????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_uart8250.c?????? |? 2 +-
+> ?lib/utils/serial/fdt_serial_xlnx_uartlite.c? |? 2 +-
+> ?lib/utils/timer/fdt_timer.c????????????????? |? 5 +-
+> ?platform/generic/platform.c????????????????? |? 5 +-
+> ?platform/generic/sifive/fu740.c????????????? |? 9 ++-
+> ?platform/generic/starfive/jh7110.c?????????? |? 9 ++-
+> ?scripts/carray.sh??????????????????????????? |? 7 +-
+> ?40 files changed, 211 insertions(+), 205 deletions(-)
+> ?create mode 100644 include/sbi_utils/fdt/fdt_driver.h
+> ?create mode 100644 lib/utils/fdt/fdt_driver.c
+> 
+> -- 
+> 2.45.1
+> 
+> 
 
