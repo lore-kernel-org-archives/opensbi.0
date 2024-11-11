@@ -1,24 +1,29 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 11 Nov 2024 17:57:10 +0530
-Subject: include: sbi: Fix typo error
-In-Reply-To: <26d04436b267d54453d1c055641dc0247edf8c36.1729667906.git.runmin.zhang@ingenic.com>
-References: <26d04436b267d54453d1c055641dc0247edf8c36.1729667906.git.runmin.zhang@ingenic.com>
-Message-ID: <CAAhSdy3x9QPTStQx750+Ccf7Ecuxrxee8egTDTtA6r-eE9dD0Q@mail.gmail.com>
+Date: Mon, 11 Nov 2024 17:57:37 +0530
+Subject: [PATCH v3 1/2] platform: ensure enough heap size with debug
+ triggers extension
+In-Reply-To: <20241111022737.336991-2-inochiama@gmail.com>
+References: <20241111022737.336991-1-inochiama@gmail.com> <20241111022737.336991-2-inochiama@gmail.com>
+Message-ID: <CAAhSdy1xbHm4bZoP1eGn2xTqJOi1-UuXgdb7LDjm4qqfJiVfoA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 23, 2024 at 1:10?PM Zhang Runmin <runmin.zhang@ingenic.com> wrote:
+On Mon, Nov 11, 2024 at 7:58?AM Inochi Amaoto <inochiama@gmail.com> wrote:
 >
-> From: Zhang RunMin <runmin.zhang@ingenic.com>
+> DBTR introduce a big heap allocation to store hart state, this is
+> allocated percpu and needs big space when CPU number is high.
 >
+> Increase the percpu part to fix this problem, and decrease the
+> fixed part to avoid too big heap size.
+>
+> Fixes: 97f234f (lib: sbi: Introduce the SBI debug triggers extension support)
+> Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
+> Reviewed-by: Xiang W <wxjstz@126.com>
 
-Please don't leave patch description empty. This time I have added
-a single sentence at the time of merging this patch.
-
-> Signed-off-by: Zhang RunMin <runmin.zhang@ingenic.com>
+LGTM.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -26,25 +31,26 @@ Applied this patch to the riscv/opensbi repo.
 
 Thanks,
 Anup
+
 > ---
->  include/sbi/sbi_scratch.h | 2 +-
+>  include/sbi/sbi_platform.h | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
-> index 9ae4f89..f3c2175 100644
-> --- a/include/sbi/sbi_scratch.h
-> +++ b/include/sbi/sbi_scratch.h
-> @@ -22,7 +22,7 @@
->  #define SBI_SCRATCH_FW_RW_OFFSET               (2 * __SIZEOF_POINTER__)
->  /** Offset of fw_heap_offset member in sbi_scratch */
->  #define SBI_SCRATCH_FW_HEAP_OFFSET             (3 * __SIZEOF_POINTER__)
-> -/** Offset of fw_heap_size_offset member in sbi_scratch */
-> +/** Offset of fw_heap_size member in sbi_scratch */
->  #define SBI_SCRATCH_FW_HEAP_SIZE_OFFSET                (4 * __SIZEOF_POINTER__)
->  /** Offset of next_arg1 member in sbi_scratch */
->  #define SBI_SCRATCH_NEXT_ARG1_OFFSET           (5 * __SIZEOF_POINTER__)
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index d7af309..3e21a62 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -150,7 +150,7 @@ struct sbi_platform_operations {
+>
+>  /** Platform default heap size */
+>  #define SBI_PLATFORM_DEFAULT_HEAP_SIZE(__num_hart)     \
+> -                                       (0x8000 + 0x800 * (__num_hart))
+> +                                       (0x8000 + 0x1000 * (__num_hart))
+>
+>  /** Representation of a platform */
+>  struct sbi_platform {
 > --
-> 2.25.1
+> 2.47.0
 >
 >
 > --
