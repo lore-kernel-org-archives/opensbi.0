@@ -1,93 +1,54 @@
-From: Xiang W <wxjstz@126.com>
-Date: Mon, 11 Nov 2024 10:50:02 +0800
-Subject: [PATCH 0/6] Deduplicate driver initialization code
-In-Reply-To: <20241105042240.2994849-1-samuel.holland@sifive.com>
-References: <20241105042240.2994849-1-samuel.holland@sifive.com>
-Message-ID: <70b785b94146780a697ac2a3132a073d6a7c6433.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 11 Nov 2024 17:57:10 +0530
+Subject: include: sbi: Fix typo error
+In-Reply-To: <26d04436b267d54453d1c055641dc0247edf8c36.1729667906.git.runmin.zhang@ingenic.com>
+References: <26d04436b267d54453d1c055641dc0247edf8c36.1729667906.git.runmin.zhang@ingenic.com>
+Message-ID: <CAAhSdy3x9QPTStQx750+Ccf7Ecuxrxee8egTDTtA6r-eE9dD0Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-11-04?? 20:20 -0800?Samuel Holland???
-> Upstreaming support for some of SiFive's security and power management
-> features will require adding some new driver subsystems (e.g. caches,
-> WorldGuard gadgets, power management domains, etc.). To avoid copy-and-
-> pasting the FDT-based driver matching code to each new subsystem, this
-> series refactors it into some efficient and easily-reusable helper
-> functions.
-> 
-> This series only converts three existing subsystems to use the new
-> helpers, but the remaining subsystems are trivial to convert once the
-> corresponding patch series I have already sent is applied:
-> ?- gpio: http://lists.infradead.org/pipermail/opensbi/2024-September/007340.html
-> ?- ipi: http://lists.infradead.org/pipermail/opensbi/2024-October/007546.html
-> ?- irqchip: http://lists.infradead.org/pipermail/opensbi/2024-November/007555.html
-> ?- regmap: http://lists.infradead.org/pipermail/opensbi/2024-September/007340.html
-> ?- timer: http://lists.infradead.org/pipermail/opensbi/2024-September/007332.html
-> 
+On Wed, Oct 23, 2024 at 1:10?PM Zhang Runmin <runmin.zhang@ingenic.com> wrote:
+>
+> From: Zhang RunMin <runmin.zhang@ingenic.com>
+>
 
-This series of patches requires rebase to master
+Please don't leave patch description empty. This time I have added
+a single sentence at the time of merging this patch.
 
-Regards,
-Xiang W
+> Signed-off-by: Zhang RunMin <runmin.zhang@ingenic.com>
 
-> 
-> Samuel Holland (6):
-> ? lib: utils/gpio: Remove fdt_gpio_driver() function
-> ? treewide: Make carray arrays const and NULL-terminated
-> ? lib: utils/fdt: Add helpers for generic driver initialization
-> ? lib: utils/i2c: Use fdt_driver for initialization
-> ? lib: utils/reset: Use fdt_driver for initialization
-> ? lib: utils/serial: Use fdt_driver for initialization
-> 
-> ?include/sbi_utils/fdt/fdt_driver.h?????????? | 59 +++++++++++++++
-> ?include/sbi_utils/i2c/fdt_i2c.h????????????? |? 8 +-
-> ?include/sbi_utils/reset/fdt_reset.h????????? | 15 +---
-> ?include/sbi_utils/serial/fdt_serial.h??????? |? 6 +-
-> ?lib/sbi/sbi_ecall.c????????????????????????? |? 5 +-
-> ?lib/sbi/tests/sbi_unit_test.c??????????????? |? 5 +-
-> ?lib/utils/fdt/fdt_driver.c?????????????????? | 80 ++++++++++++++++++++
-> ?lib/utils/fdt/objects.mk???????????????????? |? 1 +
-> ?lib/utils/gpio/fdt_gpio.c??????????????????? | 22 +-----
-> ?lib/utils/i2c/fdt_i2c.c????????????????????? | 31 +-------
-> ?lib/utils/i2c/fdt_i2c_adapter_drivers.carray |? 2 +-
-> ?lib/utils/i2c/fdt_i2c_dw.c?????????????????? |? 2 +-
-> ?lib/utils/i2c/fdt_i2c_sifive.c?????????????? |? 2 +-
-> ?lib/utils/ipi/fdt_ipi.c????????????????????? |? 5 +-
-> ?lib/utils/irqchip/fdt_irqchip.c????????????? |? 5 +-
-> ?lib/utils/regmap/fdt_regmap.c??????????????? |? 5 +-
-> ?lib/utils/reset/fdt_reset.c????????????????? | 37 +--------
-> ?lib/utils/reset/fdt_reset_atcwdt200.c??????? |? 2 +-
-> ?lib/utils/reset/fdt_reset_drivers.carray???? |? 2 +-
-> ?lib/utils/reset/fdt_reset_gpio.c???????????? |? 4 +-
-> ?lib/utils/reset/fdt_reset_htif.c???????????? |? 2 +-
-> ?lib/utils/reset/fdt_reset_sg2042_hwmon_mcu.c |? 2 +-
-> ?lib/utils/reset/fdt_reset_sunxi_wdt.c??????? |? 2 +-
-> ?lib/utils/reset/fdt_reset_syscon.c?????????? |? 4 +-
-> ?lib/utils/serial/fdt_serial.c??????????????? | 53 ++-----------
-> ?lib/utils/serial/fdt_serial_cadence.c??????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_drivers.carray?? |? 2 +-
-> ?lib/utils/serial/fdt_serial_gaisler.c??????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_htif.c?????????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_litex.c????????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_renesas_scif.c?? |? 2 +-
-> ?lib/utils/serial/fdt_serial_shakti.c???????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_sifive.c???????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_uart8250.c?????? |? 2 +-
-> ?lib/utils/serial/fdt_serial_xlnx_uartlite.c? |? 2 +-
-> ?lib/utils/timer/fdt_timer.c????????????????? |? 5 +-
-> ?platform/generic/platform.c????????????????? |? 5 +-
-> ?platform/generic/sifive/fu740.c????????????? |? 9 ++-
-> ?platform/generic/starfive/jh7110.c?????????? |? 9 ++-
-> ?scripts/carray.sh??????????????????????????? |? 7 +-
-> ?40 files changed, 211 insertions(+), 205 deletions(-)
-> ?create mode 100644 include/sbi_utils/fdt/fdt_driver.h
-> ?create mode 100644 lib/utils/fdt/fdt_driver.c
-> 
-> -- 
-> 2.45.1
-> 
-> 
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Applied this patch to the riscv/opensbi repo.
+
+Thanks,
+Anup
+> ---
+>  include/sbi/sbi_scratch.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index 9ae4f89..f3c2175 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -22,7 +22,7 @@
+>  #define SBI_SCRATCH_FW_RW_OFFSET               (2 * __SIZEOF_POINTER__)
+>  /** Offset of fw_heap_offset member in sbi_scratch */
+>  #define SBI_SCRATCH_FW_HEAP_OFFSET             (3 * __SIZEOF_POINTER__)
+> -/** Offset of fw_heap_size_offset member in sbi_scratch */
+> +/** Offset of fw_heap_size member in sbi_scratch */
+>  #define SBI_SCRATCH_FW_HEAP_SIZE_OFFSET                (4 * __SIZEOF_POINTER__)
+>  /** Offset of next_arg1 member in sbi_scratch */
+>  #define SBI_SCRATCH_NEXT_ARG1_OFFSET           (5 * __SIZEOF_POINTER__)
+> --
+> 2.25.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
