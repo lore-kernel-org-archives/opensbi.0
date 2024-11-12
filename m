@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 12 Nov 2024 09:43:36 +0530
+Date: Tue, 12 Nov 2024 09:50:21 +0530
 Subject: [PATCH 3/9] lib: utils/irqchip: plic: Provide a hartindex to
  context map
 In-Reply-To: <20241105041015.2949808-4-samuel.holland@sifive.com>
 References: <20241105041015.2949808-1-samuel.holland@sifive.com> <20241105041015.2949808-4-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy15x=J3eLxDHNtjiPh+dtmzspE_wTSrLaN9u_gaegX32Q@mail.gmail.com>
+Message-ID: <CAAhSdy1QaFk=1w0F0e3Tv5WXZLStJPsPbT90u4STT5zPV3daJA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,14 +18,6 @@ On Tue, Nov 5, 2024 at 9:40?AM Samuel Holland <samuel.holland@sifive.com> wrote:
 > and allows for further refactoring.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
-
 > ---
 >
 >  include/sbi_utils/irqchip/plic.h     | 14 +++++--
@@ -208,6 +200,15 @@ Anup
 > -
 > -       pd = sbi_zalloc(sizeof(*pd));
 > +       pd = sbi_zalloc(PLIC_DATA_SIZE(plat->hart_count));
+
+A minor issue is that we are over-allocating context_map when
+there are multiple PLICs targeting different sets of HART.
+
+This can be improved as a separate patch or part of this patch.
+
+Regards,
+Anup
+
 >         if (!pd)
 >                 return SBI_ENOMEM;
 >
