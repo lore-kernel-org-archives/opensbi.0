@@ -1,42 +1,68 @@
-From: Atish Patra <atishp@rivosinc.com>
-Date: Tue, 19 Nov 2024 11:34:39 -0800
-Subject: [PATCH 5/5] include: sbi: Change spec version to 3.0
-In-Reply-To: <20241119-pmu_event_info-v1-0-5f287a6f0135@rivosinc.com>
-References: <20241119-pmu_event_info-v1-0-5f287a6f0135@rivosinc.com>
-Message-ID: <20241119-pmu_event_info-v1-5-5f287a6f0135@rivosinc.com>
+From: Xiang W <wxjstz@126.com>
+Date: Fri, 22 Nov 2024 10:45:39 +0800
+Subject: [PATCH] sbi: fwft: clear the config lock when warm boot
+In-Reply-To: <20241115073308.905612-1-nick.hu@sifive.com>
+References: <20241115073308.905612-1-nick.hu@sifive.com>
+Message-ID: <8beb6688547faf55b8807e7f849ae58da23214c4.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-SBI version 3.0 is on its way for ratification. Change the
-spec version for easier testing of SBI v3.0 features.
+? 2024-11-15?? 15:33 +0800?Nick Hu???
+> The hotplug cpu should clear the fwft config's SBI_FWFT_SET_FLAG_LOCK
+> in the warm boot flow otherwise the cpu can't set the menvcfg.sse by
+> SBI_EXT_FWFT_SET sbi call and cause the illegal instruction when
+> accessing the CSR_SSP in kernel.
+> 
+> Signed-off-by: Nick Hu <nick.hu@sifive.com>
 
-Signed-off-by: Atish Patra <atishp@rivosinc.com>
+In sbi_fwft_init, the memory for fwft_hart_state is allocated by?
+sbi_zalloc, which ensures that flags is 0. So no additional code
+is needed to clear the SBI_FWFT_SET_FLAG_LOCK bit.
 
----
-This patch can be merged after SBI v3.0 is frozen.
----
----
- include/sbi/sbi_ecall.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
-index 0b35eff76a19..eda7f14bf2af 100644
---- a/include/sbi/sbi_ecall.h
-+++ b/include/sbi/sbi_ecall.h
-@@ -13,7 +13,7 @@
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_list.h>
- 
--#define SBI_ECALL_VERSION_MAJOR		2
-+#define SBI_ECALL_VERSION_MAJOR		3
- #define SBI_ECALL_VERSION_MINOR		0
- #define SBI_OPENSBI_IMPID		1
- 
-
--- 
-2.34.1
+Regards,
+Xiang W
+> ---
+> ?lib/sbi/sbi_fwft.c | 15 +++++++++++++++
+> ?1 file changed, 15 insertions(+)
+> 
+> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+> index 9cf14c16..0cb165b4 100644
+> --- a/lib/sbi/sbi_fwft.c
+> +++ b/lib/sbi/sbi_fwft.c
+> @@ -311,6 +311,18 @@ static int fwft_get_feature(enum sbi_fwft_feature_t feature,
+> ?	return SBI_SUCCESS;
+> ?}
+> ?
+> +static void fwft_clear_config_lock(enum sbi_fwft_feature_t feature)
+> +{
+> +	int ret;
+> +	struct fwft_config *conf;
+> +
+> +	ret = fwft_get_feature(feature, &conf);
+> +	if (ret)
+> +		return;
+> +
+> +	conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
+> +}
+> +
+> ?int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
+> ?		 unsigned long flags)
+> ?{
+> @@ -414,5 +426,8 @@ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
+> ?		fwft_set_hart_state_ptr(scratch, fhs);
+> ?	}
+> ?
+> +	for (i = 0; i < array_size(features); i++)
+> +		fwft_clear_config_lock(features[i].id);
+> +
+> ?	return 0;
+> ?}
+> -- 
+> 2.34.1
+> 
+> 
 
 
