@@ -1,52 +1,55 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Thu, 28 Nov 2024 17:45:37 +0000
-Subject: [PATCH v2 03/11] scripts/carray.sh: Avoid useless use of cat
-In-Reply-To: <CAAhSdy1=k6rDGToAj3DTaVGcHGJk1+rmGFNBGDa=c3v1PqrqTw@mail.gmail.com>
-References: <20241111220304.1228821-1-samuel.holland@sifive.com>
- <20241111220304.1228821-4-samuel.holland@sifive.com>
- <CAAhSdy0nhyPEyjyt6uFpj6vNWga54h1_WNzRjUN6r_Ld1MD0PQ@mail.gmail.com>
- <fc7cb0a0-8a46-49a3-af1a-ab1cbf3e7ca7@codethink.co.uk>
- <CAAhSdy1=k6rDGToAj3DTaVGcHGJk1+rmGFNBGDa=c3v1PqrqTw@mail.gmail.com>
-Message-ID: <d18af3b4-73a2-47b6-9acd-0978b3cd827c@codethink.co.uk>
+From: Igor Melnikov <imel@purelymail.com>
+Date: Thu, 28 Nov 2024 23:15:02 +0100
+Subject: [PATCH v2] Makefile: Fix POSIX grep for multiple patterns
+Message-ID: <20241128222001.65861-1-imel@purelymail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 28/11/2024 12:36, Anup Patel wrote:
-> On Thu, Nov 28, 2024 at 6:05?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
->>
->> On 28/11/2024 12:33, Anup Patel wrote:
->>> On Tue, Nov 12, 2024 at 3:33?AM Samuel Holland
->>> <samuel.holland@sifive.com> wrote:
->>>>
->>>> awk(1) takes input files as positional arguments, so there is no need
->>>> to read the file with cat(1).
->>>>
->>>> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
->>>
->>> LGTM.
->>>
->>> Reviewed-by: Anup Patel <anup@brainfault.org>
->>>
->>> Regards,
->>> Anup
->>>
->>
->> Should I follow up with my patch to just make this one awk script?
-> 
-> Yes, please rebase and send v2 of your patch.
+grep -e "-mstrict-align\|-mno-unaligned-access" makes use of GNU grep's
+backslash-escaped alternation operator \| which is available in basic
+regular expression syntax (BRE) mode.
 
-Ok, I've been having a test with latest git, got the fixups and changes
-for the work Samuel did done and a diff against PLATFORM=generic build
-done to check the build didn't get broken.
+However, in POSIX grep's BRE mode | is an ordinary character which, when
+backslash-escaped, matches itself. Therefore, the search pattern becomes
+a plain string '-mstrict-align|-mno-unaligned-access' which obviously
+never matches the expected error and CC_SUPPORT_STRICT_ALIGN is always set
+to y.
 
-I'll probably put a new version out tomorrow
+When cross-compiling with LLVM on amd64-unknown-openbsd7.6 host for
+riscv64-unknown-elf target this results in a compilation error:
 
+clang: error: unsupported option '-mno-unaligned-access' for target
+'riscv64-unknown-elf'
+
+Using multiple -e options for this case maintains consistent behaviour
+across different grep implementations and fixes the issue.
+
+Signed-off-by: Igor Melnikov <imel@purelymail.com>
+---
+ Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index dae282c..d9cee49 100644
+--- a/Makefile
++++ b/Makefile
+@@ -184,10 +184,10 @@ OPENSBI_LD_EXCLUDE_LIBS := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_
+ CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e "-save-restore" >/dev/null && echo n || echo y)
+ 
+ # Check whether the compiler supports -m(no-)strict-align
+-CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align\|-mno-unaligned-access" >/dev/null && echo n || echo y)
++CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align" -e "-mno-unaligned-access" >/dev/null && echo n || echo y)
+ 
+ # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+-CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
++CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
+ 
+ ifneq ($(OPENSBI_LD_PIE),y)
+ $(error Your linker does not support creating PIEs, opensbi requires this.)
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+2.46.1
 
-https://www.codethink.co.uk/privacy.html
 
