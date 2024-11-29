@@ -1,192 +1,628 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Fri, 29 Nov 2024 21:20:51 +0530
-Subject: [PATCH v2 16/17] lib: utils: Add simple FDT based MPXY driver framework
+Date: Fri, 29 Nov 2024 21:20:52 +0530
+Subject: [PATCH v2 17/17] lib: utils/mpxy: Add RPMI client driver for MPXY
 In-Reply-To: <20241129155052.2866712-1-apatel@ventanamicro.com>
 References: <20241129155052.2866712-1-apatel@ventanamicro.com>
-Message-ID: <20241129155052.2866712-17-apatel@ventanamicro.com>
+Message-ID: <20241129155052.2866712-18-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The generic platform can have multiple MPXY drivers so add a simple
-FDT based MPXY driver framework.
+From: Rahul Pathak <rpathak@ventanamicro.com>
 
+Add a generic RPMI mailbox client driver which provides a MPXY channel.
+Initially, this driver only supports RPMI clock service group but can
+be extended to support multiple RPMI service groups.
+
+Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+Co-developed-by: Anup Patel <apatel@ventanamicro.com>
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi_utils/mpxy/fdt_mpxy.h      | 26 ++++++++++++++++++++++++++
- lib/utils/Kconfig                      |  2 ++
- lib/utils/mpxy/Kconfig                 | 10 ++++++++++
- lib/utils/mpxy/fdt_mpxy.c              | 22 ++++++++++++++++++++++
- lib/utils/mpxy/fdt_mpxy_drivers.carray |  3 +++
- lib/utils/mpxy/objects.mk              | 11 +++++++++++
- platform/generic/configs/defconfig     |  1 +
- platform/generic/platform.c            | 10 ++++++++++
- 8 files changed, 85 insertions(+)
- create mode 100644 include/sbi_utils/mpxy/fdt_mpxy.h
- create mode 100644 lib/utils/mpxy/Kconfig
- create mode 100644 lib/utils/mpxy/fdt_mpxy.c
- create mode 100644 lib/utils/mpxy/fdt_mpxy_drivers.carray
- create mode 100644 lib/utils/mpxy/objects.mk
+ include/sbi_utils/mailbox/rpmi_msgprot.h |  93 +++++
+ lib/utils/mpxy/Kconfig                   |   9 +
+ lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c      | 442 +++++++++++++++++++++++
+ lib/utils/mpxy/objects.mk                |   3 +
+ platform/generic/configs/defconfig       |   1 +
+ 5 files changed, 548 insertions(+)
+ create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
 
-diff --git a/include/sbi_utils/mpxy/fdt_mpxy.h b/include/sbi_utils/mpxy/fdt_mpxy.h
-new file mode 100644
-index 00000000..2ba9d28f
---- /dev/null
-+++ b/include/sbi_utils/mpxy/fdt_mpxy.h
-@@ -0,0 +1,26 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2024 Ventana Micro Systems Inc.
-+ *
-+ * Authors:
-+ *   Anup Patel <apatel@ventanamicro.com>
-+ */
-+
-+#ifndef __FDT_MPXY_H__
-+#define __FDT_MPXY_H__
-+
-+#include <sbi/sbi_types.h>
-+#include <sbi_utils/fdt/fdt_driver.h>
-+
-+#ifdef CONFIG_FDT_MPXY
-+
-+void fdt_mpxy_init(const void *fdt);
-+
-+#else
-+
-+static inline void fdt_mpxy_init(const void *fdt) { }
-+
-+#endif
-+
-+#endif
-diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-index 002d6f8f..901ba564 100644
---- a/lib/utils/Kconfig
-+++ b/lib/utils/Kconfig
-@@ -32,4 +32,6 @@ source "$(OPENSBI_SRC_DIR)/lib/utils/sys/Kconfig"
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index f7c80360..9575dc72 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -201,6 +201,7 @@ enum rpmi_servicegroup_id {
+ 	RPMI_SRVGRP_SYSTEM_SUSPEND = 0x0003,
+ 	RPMI_SRVGRP_HSM = 0x0004,
+ 	RPMI_SRVGRP_CPPC = 0x0005,
++	RPMI_SRVGRP_CLOCK = 0x0007,
+ 	RPMI_SRVGRP_ID_MAX_COUNT,
  
- source "$(OPENSBI_SRC_DIR)/lib/utils/timer/Kconfig"
+ 	/* Reserved range for service groups */
+@@ -511,4 +512,96 @@ struct rpmi_cppc_hart_list_resp {
+ 	u32 hartid[(RPMI_MSG_DATA_SIZE(RPMI_SLOT_SIZE_MIN) - (sizeof(u32) * 3)) / sizeof(u32)];
+ };
  
-+source "$(OPENSBI_SRC_DIR)/lib/utils/mpxy/Kconfig"
++/** RPMI Clock ServiceGroup Service IDs */
++enum rpmi_clock_service_id {
++	RPMI_CLOCK_SRV_ENABLE_NOTIFICATION = 0x01,
++	RPMI_CLOCK_SRV_GET_NUM_CLOCKS = 0x02,
++	RPMI_CLOCK_SRV_GET_ATTRIBUTES = 0x03,
++	RPMI_CLOCK_SRV_GET_SUPPORTED_RATES = 0x04,
++	RPMI_CLOCK_SRV_SET_CONFIG = 0x05,
++	RPMI_CLOCK_SRV_GET_CONFIG = 0x06,
++	RPMI_CLOCK_SRV_SET_RATE = 0x07,
++	RPMI_CLOCK_SRV_GET_RATE = 0x08,
++	RPMI_CLOCK_SRV_MAX_COUNT,
++};
 +
- endmenu
++struct rpmi_clock_get_num_clocks_resp {
++	s32 status;
++	u32 num_clocks;
++};
++
++struct rpmi_clock_get_attributes_req {
++	u32 clock_id;
++};
++
++struct rpmi_clock_get_attributes_resp {
++	s32 status;
++#define RPMI_CLOCK_FLAGS_FORMAT_POS		30
++#define RPMI_CLOCK_FLAGS_FORMAT_MASK		\
++			(3U << RPMI_CLOCK_FLAGS_CLOCK_FORMAT_POS)
++#define RPMI_CLOCK_FLAGS_FORMAT_DISCRETE	0
++#define RPMI_CLOCK_FLAGS_FORMAT_LINEAR		1
++	u32 flags;
++	u32 num_rates;
++	u32 transition_latency;
++	u8 name[16];
++};
++
++struct rpmi_clock_get_supported_rates_req {
++	u32 clock_id;
++	u32 clock_rate_index;
++};
++
++struct rpmi_clock_get_supported_rates_resp {
++	s32 status;
++	u32 flags;
++	u32 remaining;
++	u32 returned;
++	u32 clock_rate[0];
++};
++
++struct rpmi_clock_set_config_req {
++	u32 clock_id;
++#define RPMI_CLOCK_CONFIG_ENABLE		(1U << 0)
++	u32 config;
++};
++
++struct rpmi_clock_set_config_resp {
++	s32 status;
++};
++
++struct rpmi_clock_get_config_req {
++	u32 clock_id;
++};
++
++struct rpmi_clock_get_config_resp {
++	s32 status;
++	u32 config;
++};
++
++struct rpmi_clock_set_rate_req {
++	u32 clock_id;
++#define RPMI_CLOCK_SET_RATE_FLAGS_MASK		(3U << 0)
++#define RPMI_CLOCK_SET_RATE_FLAGS_ROUND_DOWN	0
++#define RPMI_CLOCK_SET_RATE_FLAGS_ROUND_UP	1
++#define RPMI_CLOCK_SET_RATE_FLAGS_ROUND_PLAT	2
++	u32 flags;
++	u32 clock_rate_low;
++	u32 clock_rate_high;
++};
++
++struct rpmi_clock_set_rate_resp {
++	s32 status;
++};
++
++struct rpmi_clock_get_rate_req {
++	u32 clock_id;
++};
++
++struct rpmi_clock_get_rate_resp {
++	s32 status;
++	u32 clock_rate_low;
++	u32 clock_rate_high;
++};
++
+ #endif /* !__RPMI_MSGPROT_H__ */
 diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
-new file mode 100644
-index 00000000..d084b09a
---- /dev/null
+index d084b09a..131fb91a 100644
+--- a/lib/utils/mpxy/Kconfig
 +++ b/lib/utils/mpxy/Kconfig
-@@ -0,0 +1,10 @@
-+# SPDX-License-Identifier: BSD-2-Clause
+@@ -7,4 +7,13 @@ config FDT_MPXY
+ 	depends on FDT
+ 	default n
+ 
++if FDT_MPXY
 +
-+menu "MPXY Device Support"
-+
-+config FDT_MPXY
-+	bool "FDT based MPXY drivers"
-+	depends on FDT
++config FDT_MPXY_RPMI_MBOX
++	bool "FDT MPXY mailbox client driver"
++	depends on FDT_MAILBOX
 +	default n
 +
-+endmenu
-diff --git a/lib/utils/mpxy/fdt_mpxy.c b/lib/utils/mpxy/fdt_mpxy.c
++endif
++
+ endmenu
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
 new file mode 100644
-index 00000000..6984ec74
+index 00000000..c09a4c52
 --- /dev/null
-+++ b/lib/utils/mpxy/fdt_mpxy.c
-@@ -0,0 +1,22 @@
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
+@@ -0,0 +1,442 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2024 Ventana Micro Systems Inc.
 + *
 + * Authors:
++ *   Rahul Pathak <rpathak@ventanamicro.com>
 + *   Anup Patel <apatel@ventanamicro.com>
 + */
 +
++#include <libfdt.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
++#include <sbi/sbi_mpxy.h>
++#include <sbi_utils/fdt/fdt_helper.h>
 +#include <sbi_utils/mpxy/fdt_mpxy.h>
++#include <sbi_utils/mailbox/fdt_mailbox.h>
++#include <sbi_utils/mailbox/rpmi_msgprot.h>
++#include <sbi/sbi_console.h>
 +
-+/* List of FDT MPXY drivers generated at compile time */
-+extern const struct fdt_driver *const fdt_mpxy_drivers[];
++#define RPMI_MAJOR_VER		(1)
++#define RPMI_MINOR_VER		(0)
 +
-+void fdt_mpxy_init(const void *fdt)
++/** Convert the mpxy attribute ID to attribute array index */
++#define attr_id2index(attr_id)	(attr_id - SBI_MPXY_ATTR_MSGPROTO_ATTR_START)
++
++enum mpxy_msgprot_rpmi_attr_id {
++	MPXY_MSGPROT_RPMI_ATTR_SERVICEGROUP_ID = SBI_MPXY_ATTR_MSGPROTO_ATTR_START,
++	MPXY_MSGPROT_RPMI_ATTR_SERVICEGROUP_VERSION,
++	MPXY_MSGPROT_RPMI_ATTR_MAX_ID,
++};
++
++/**
++ * MPXY message protocol attributes for RPMI
++ * Order of attribute fields must follow the
++ * attribute IDs in `enum mpxy_msgprot_rpmi_attr_id`
++ */
++struct mpxy_rpmi_channel_attrs {
++	u32 servicegrp_id;
++	u32 servicegrp_ver;
++};
++
++/* RPMI mbox data per service group */
++struct mpxy_mbox_data {
++	u32 servicegrp_id;
++	u32 num_services;
++	u32 notifications_support;
++	void *priv_data;
++};
++
++/* RPMI service data per service group */
++struct rpmi_service_data {
++	u8 id;
++	u32 min_tx_len;
++	u32 max_tx_len;
++	u32 min_rx_len;
++	u32 max_rx_len;
++};
++
++/**
++ * MPXY mbox instance per MPXY channel. This ties
++ * an MPXY channel with an RPMI Service group.
++ */
++struct mpxy_mbox {
++	struct mbox_chan *chan;
++	struct mpxy_mbox_data *mbox_data;
++	struct mpxy_rpmi_channel_attrs msgprot_attrs;
++	struct sbi_mpxy_channel channel;
++};
++
++/** Make sure all attributes are packed for direct memcpy */
++#define assert_field_offset(field, attr_offset)				\
++	_Static_assert(							\
++		((offsetof(struct mpxy_rpmi_channel_attrs, field)) /	\
++		 sizeof(u32)) == (attr_offset - SBI_MPXY_ATTR_MSGPROTO_ATTR_START),\
++		"field " #field						\
++		" from struct mpxy_rpmi_channel_attrs invalid offset, expected " #attr_offset)
++
++assert_field_offset(servicegrp_id, MPXY_MSGPROT_RPMI_ATTR_SERVICEGROUP_ID);
++
++/**
++ * Discover the RPMI service data using message_id
++ * MPXY message_id == RPMI service_id
++ */
++static struct rpmi_service_data *mpxy_find_rpmi_srvid(u32 message_id,
++					struct mpxy_mbox_data *mbox_data)
 +{
-+	/*
-+	 * Platforms might have multiple MPXY devices or might not
-+	 * have any MPXY devices so don't fail.
-+	 */
-+	fdt_driver_init_all(fdt, fdt_mpxy_drivers);
-+}
-diff --git a/lib/utils/mpxy/fdt_mpxy_drivers.carray b/lib/utils/mpxy/fdt_mpxy_drivers.carray
-new file mode 100644
-index 00000000..3cac0155
---- /dev/null
-+++ b/lib/utils/mpxy/fdt_mpxy_drivers.carray
-@@ -0,0 +1,3 @@
-+HEADER: sbi_utils/mpxy/fdt_mpxy.h
-+TYPE: const struct fdt_driver
-+NAME: fdt_mpxy_drivers
-diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
-new file mode 100644
-index 00000000..43e73c94
---- /dev/null
-+++ b/lib/utils/mpxy/objects.mk
-@@ -0,0 +1,11 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (c) 2024 Ventana Micro Systems Inc.
-+#
-+# Authors:
-+#   Anup Patel <apatel@ventanamicro.com>
-+#
++	int mid = 0;
++	struct rpmi_service_data *srv = mbox_data->priv_data;
++	for (mid = 0; srv[mid].id < mbox_data->num_services; mid++) {
++		if (srv[mid].id == (u8)message_id)
++			return &srv[mid];
++	}
 +
-+libsbiutils-objs-$(CONFIG_FDT_MPXY) += mpxy/fdt_mpxy.o
-+libsbiutils-objs-$(CONFIG_FDT_MPXY) += mpxy/fdt_mpxy_drivers.carray.o
++	return NULL;
++}
++
++/** Copy attributes word size */
++static void mpxy_copy_attrs(u32 *outmem, u32 *inmem, u32 count)
++{
++	u32 idx;
++	for (idx = 0; idx < count; idx++)
++		outmem[idx] = cpu_to_le32(inmem[idx]);
++}
++
++static int mpxy_mbox_read_attributes(struct sbi_mpxy_channel *channel,
++				     u32 *outmem, u32 base_attr_id,
++				     u32 attr_count)
++{
++	u32 end_id;
++	struct mpxy_mbox *rmb =
++		container_of(channel, struct mpxy_mbox, channel);
++
++	u32 *attr_array = (u32 *)&rmb->msgprot_attrs;
++
++	end_id = base_attr_id + attr_count - 1;
++
++	if (end_id >= MPXY_MSGPROT_RPMI_ATTR_MAX_ID)
++		return SBI_EBAD_RANGE;
++
++	mpxy_copy_attrs(outmem, &attr_array[attr_id2index(base_attr_id)],
++			attr_count);
++
++	return SBI_OK;
++}
++
++/**
++ * Verify the channel standard attribute wrt to write permission
++ * and the value to be set if valid or not.
++ * Only attributes needs to be checked which are defined Read/Write
++ * permission. Other with Readonly permission will result in error.
++ *
++ * Attributes values to be written must also be checked because
++ * before writing a range of attributes, we need to make sure that
++ * either complete range of attributes is written successfully or not
++ * at all.
++ */
++static int mpxy_check_write_attr(u32 attr_id, u32 attr_val)
++{
++	int ret = SBI_OK;
++
++	switch(attr_id) {
++	/** All RO access attributes falls under default */
++	default:
++		ret = SBI_EBAD_RANGE;
++	};
++
++	return ret;
++}
++
++static void mpxy_write_attr(struct mpxy_rpmi_channel_attrs *attrs,
++			   u32 attr_id,
++			   u32 attr_val)
++{
++	/* No writable attributes in RPMI */
++}
++
++static int mpxy_mbox_write_attributes(struct sbi_mpxy_channel *channel,
++				     u32 *outmem, u32 base_attr_id,
++				     u32 attr_count)
++{
++	int ret, mem_idx;
++	u32 end_id, attr_val, idx;
++	struct mpxy_mbox *rmb =
++		container_of(channel, struct mpxy_mbox, channel);
++
++	end_id = base_attr_id + attr_count - 1;
++
++	if (end_id >= MPXY_MSGPROT_RPMI_ATTR_MAX_ID)
++		return SBI_EBAD_RANGE;
++
++	mem_idx = 0;
++	for (idx = base_attr_id; idx <= end_id; idx++) {
++		attr_val = le32_to_cpu(outmem[mem_idx++]);
++		ret = mpxy_check_write_attr(idx, attr_val);
++		if (ret)
++			return ret;
++	}
++
++	mem_idx = 0;
++	for (idx = base_attr_id; idx <= end_id; idx++) {
++		attr_val = le32_to_cpu(outmem[mem_idx++]);
++		mpxy_write_attr(&rmb->msgprot_attrs, idx, attr_val);
++	}
++
++	return SBI_OK;
++}
++
++static int __mpxy_mbox_send_message(struct sbi_mpxy_channel *channel,
++				  u32 message_id, void *tx, u32 tx_len,
++				  void *rx, u32 rx_max_len,
++				  unsigned long *ack_len)
++{
++	int ret;
++	u32 rx_len = 0;
++	struct mbox_xfer xfer;
++	struct rpmi_message_args args = {0};
++	struct mpxy_mbox *rmb =
++		container_of(channel, struct mpxy_mbox, channel);
++	struct rpmi_service_data *srv =
++			mpxy_find_rpmi_srvid(message_id, rmb->mbox_data);
++	if (!srv)
++		return SBI_ENOTSUPP;
++
++	/** message data size to be sent is in the
++	 * supported service data size range */
++	if (tx_len < srv->min_tx_len || tx_len > srv->max_tx_len)
++		return SBI_EFAIL;
++
++	if (ack_len) {
++		/** MPXY buffer cannnot hold service min response data */
++		if (rx_max_len < srv->min_rx_len)
++			return SBI_EFAIL;
++
++		/* Max rx data size it can expect */
++		if (srv->max_rx_len < channel->attrs.msg_data_maxlen)
++			rx_len = srv->max_rx_len;
++		else
++			rx_len = channel->attrs.msg_data_maxlen;
++
++		args.type = RPMI_MSG_NORMAL_REQUEST;
++		args.flags = (rx) ? 0 : RPMI_MSG_FLAGS_NO_RX;
++		args.service_id = srv->id;
++		mbox_xfer_init_txrx(&xfer, &args,
++				    tx, tx_len, RPMI_DEF_TX_TIMEOUT,
++				    rx, rx_len, RPMI_DEF_RX_TIMEOUT);
++	}
++	else {
++		args.type = RPMI_MSG_POSTED_REQUEST;
++		args.flags = RPMI_MSG_FLAGS_NO_RX;
++		args.service_id = srv->id;
++		mbox_xfer_init_tx(&xfer, &args,
++				  tx, tx_len, RPMI_DEF_TX_TIMEOUT);
++	}
++
++	ret = mbox_chan_xfer(rmb->chan, &xfer);
++	if (ret)
++		return ret;
++
++	if (ack_len)
++		*ack_len = args.rx_data_len;
++
++	return SBI_OK;
++}
++
++static int mpxy_mbox_send_message_withresp(struct sbi_mpxy_channel *channel,
++				  u32 message_id, void *tx, u32 tx_len,
++				  void *rx, u32 rx_max_len,
++				  unsigned long *ack_len)
++{
++	return __mpxy_mbox_send_message(channel, message_id, tx, tx_len,
++				 rx, rx_max_len, ack_len);
++}
++
++static int mpxy_mbox_send_message_withoutresp(struct sbi_mpxy_channel *channel,
++				  u32 message_id, void *tx, u32 tx_len)
++{
++	return __mpxy_mbox_send_message(channel, message_id, tx, tx_len,
++				 NULL, 0, NULL);
++}
++
++static int mpxy_mbox_get_notifications(struct sbi_mpxy_channel *channel,
++				       void *eventsbuf, u32 bufsize,
++				       unsigned long *events_len)
++{
++	return SBI_ENOTSUPP;
++}
++
++static int mpxy_mbox_init(const void *fdt, int nodeoff,
++			  const struct fdt_match *match)
++{
++	int rc, len;
++	const fdt32_t *val;
++	u32 channel_id;
++	struct mpxy_mbox *rmb;
++	struct mbox_chan *chan;
++	const struct mpxy_mbox_data *data = match->data;
++
++	/* Allocate context for RPXY mbox client */
++	rmb = sbi_zalloc(sizeof(*rmb));
++	if (!rmb)
++		return SBI_ENOMEM;
++
++	/*
++	 * If channel request failed then other end does not support
++	 * service group so do nothing.
++	 */
++	rc = fdt_mailbox_request_chan(fdt, nodeoff, 0, &chan);
++	if (rc) {
++		sbi_free(rmb);
++		return SBI_ENODEV;
++	}
++
++	/* Match channel service group id */
++	if (data->servicegrp_id != chan->chan_args[0]) {
++		mbox_controller_free_chan(chan);
++		sbi_free(rmb);
++		return SBI_EINVAL;
++	}
++
++	/*
++	 * The "riscv,sbi-mpxy-channel-id" DT property is mandatory
++	 * for MPXY RPMI mailbox client driver so if this is not
++	 * present then try other drivers.
++	 */
++	val = fdt_getprop(fdt, nodeoff, "riscv,sbi-mpxy-channel-id", &len);
++	if (len > 0 && val)
++		channel_id = fdt32_to_cpu(*val);
++	else {
++		mbox_controller_free_chan(chan);
++		sbi_free(rmb);
++		return SBI_ENODEV;
++	}
++
++	/* Setup MPXY mbox client */
++	/* Channel ID*/
++	rmb->channel.channel_id = channel_id;
++	/* Callback for read RPMI attributes */
++	rmb->channel.read_attributes = mpxy_mbox_read_attributes;
++	/* Callback for write RPMI attributes */
++	rmb->channel.write_attributes = mpxy_mbox_write_attributes;
++	/* Callback for sending RPMI message */
++	rmb->channel.send_message_with_response =
++					mpxy_mbox_send_message_withresp;
++	rmb->channel.send_message_without_response =
++					mpxy_mbox_send_message_withoutresp;
++	/* Callback to get RPMI notifications */
++	rmb->channel.get_notification_events = mpxy_mbox_get_notifications;
++
++	/* No callback to switch events state data */
++	rmb->channel.switch_eventsstate = NULL;
++
++	/* RPMI Message Protocol ID */
++	rmb->channel.attrs.msg_proto_id = SBI_MPXY_MSGPROTO_RPMI_ID;
++	/* RPMI Message Protocol Version */
++	rmb->channel.attrs.msg_proto_version =
++		SBI_MPXY_MSGPROTO_VERSION(RPMI_MAJOR_VER, RPMI_MINOR_VER);
++
++	/* RPMI supported max message data length(bytes), same for
++	 * all service groups */
++	rmb->channel.attrs.msg_data_maxlen =
++					RPMI_MSG_DATA_SIZE(RPMI_SLOT_SIZE_MIN);
++	/* RPMI message send timeout(milliseconds)
++	 * same for all service groups */
++	rmb->channel.attrs.msg_send_timeout = RPMI_DEF_TX_TIMEOUT;
++	rmb->channel.attrs.msg_completion_timeout =
++				RPMI_DEF_TX_TIMEOUT + RPMI_DEF_RX_TIMEOUT;
++
++	/* RPMI message protocol attributes */
++	rmb->msgprot_attrs.servicegrp_id = data->servicegrp_id;
++	rmb->msgprot_attrs.servicegrp_ver =
++			SBI_MPXY_MSGPROTO_VERSION(RPMI_MAJOR_VER, RPMI_MINOR_VER);
++
++	rmb->mbox_data = (struct mpxy_mbox_data *)data;
++	rmb->chan = chan;
++
++	/* Register RPXY service group */
++	rc = sbi_mpxy_register_channel(&rmb->channel);
++	if (rc) {
++		mbox_controller_free_chan(chan);
++		sbi_free(rmb);
++		return rc;
++	}
++
++	return SBI_OK;
++}
++
++static struct rpmi_service_data clock_services[] = {
++{
++	.id = RPMI_CLOCK_SRV_ENABLE_NOTIFICATION,
++	.min_tx_len = sizeof(struct rpmi_enable_notification_req),
++	.max_tx_len = sizeof(struct rpmi_enable_notification_req),
++	.min_rx_len = sizeof(struct rpmi_enable_notification_resp),
++	.max_rx_len = sizeof(struct rpmi_enable_notification_resp),
++},
++{
++	.id = RPMI_CLOCK_SRV_GET_NUM_CLOCKS,
++	.min_tx_len = 0,
++	.max_tx_len = 0,
++	.min_rx_len = sizeof(struct rpmi_clock_get_num_clocks_resp),
++	.max_rx_len = sizeof(struct rpmi_clock_get_num_clocks_resp),
++},
++{
++	.id = RPMI_CLOCK_SRV_GET_ATTRIBUTES,
++	.min_tx_len = sizeof(struct rpmi_clock_get_attributes_req),
++	.max_tx_len = sizeof(struct rpmi_clock_get_attributes_req),
++	.min_rx_len = sizeof(struct rpmi_clock_get_attributes_resp),
++	.max_rx_len = sizeof(struct rpmi_clock_get_attributes_resp),
++},
++{
++	.id = RPMI_CLOCK_SRV_GET_SUPPORTED_RATES,
++	.min_tx_len = sizeof(struct rpmi_clock_get_supported_rates_req),
++	.max_tx_len = sizeof(struct rpmi_clock_get_supported_rates_req),
++	.min_rx_len = sizeof(struct rpmi_clock_get_supported_rates_resp),
++	.max_rx_len = -1U,
++},
++{
++	.id = RPMI_CLOCK_SRV_SET_CONFIG,
++	.min_tx_len = sizeof(struct rpmi_clock_set_config_req),
++	.max_tx_len = sizeof(struct rpmi_clock_set_config_req),
++	.min_rx_len = sizeof(struct rpmi_clock_set_config_resp),
++	.max_rx_len = sizeof(struct rpmi_clock_set_config_resp),
++},
++{
++	.id = RPMI_CLOCK_SRV_GET_CONFIG,
++	.min_tx_len = sizeof(struct rpmi_clock_get_config_req),
++	.max_tx_len = sizeof(struct rpmi_clock_get_config_req),
++	.min_rx_len = sizeof(struct rpmi_clock_get_config_resp),
++	.max_rx_len = sizeof(struct rpmi_clock_get_config_resp),
++},
++{
++	.id = RPMI_CLOCK_SRV_SET_RATE,
++	.min_tx_len = sizeof(struct rpmi_clock_set_rate_req),
++	.max_tx_len = sizeof(struct rpmi_clock_set_rate_req),
++	.min_rx_len = sizeof(struct rpmi_clock_set_rate_resp),
++	.max_rx_len = sizeof(struct rpmi_clock_set_rate_resp),
++},
++{
++	.id = RPMI_CLOCK_SRV_GET_RATE,
++	.min_tx_len = sizeof(struct rpmi_clock_get_rate_req),
++	.max_tx_len = sizeof(struct rpmi_clock_get_rate_req),
++	.min_rx_len = sizeof(struct rpmi_clock_get_rate_resp),
++	.max_rx_len = sizeof(struct rpmi_clock_get_rate_resp),
++},
++};
++
++static struct mpxy_mbox_data clock_data = {
++	.servicegrp_id = RPMI_SRVGRP_CLOCK,
++	.num_services = RPMI_CLOCK_SRV_MAX_COUNT,
++	.notifications_support = 1,
++	.priv_data = clock_services,
++};
++
++static const struct fdt_match mpxy_mbox_match[] = {
++	{ .compatible = "riscv,rpmi-mpxy-clock", .data = &clock_data },
++	{ },
++};
++
++struct fdt_driver fdt_mpxy_rpmi_mbox = {
++	.match_table = mpxy_mbox_match,
++	.init = mpxy_mbox_init,
++};
+diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
+index 43e73c94..ccb28b55 100644
+--- a/lib/utils/mpxy/objects.mk
++++ b/lib/utils/mpxy/objects.mk
+@@ -9,3 +9,6 @@
+ 
+ libsbiutils-objs-$(CONFIG_FDT_MPXY) += mpxy/fdt_mpxy.o
+ libsbiutils-objs-$(CONFIG_FDT_MPXY) += mpxy/fdt_mpxy_drivers.carray.o
++
++carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_MBOX) += fdt_mpxy_rpmi_mbox
++libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MBOX) += mpxy/fdt_mpxy_rpmi_mbox.o
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 384918f9..1f0880ee 100644
+index 1f0880ee..e23b38b2 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -53,3 +53,4 @@ CONFIG_FDT_SUSPEND_RPMI=y
- CONFIG_FDT_TIMER=y
+@@ -54,3 +54,4 @@ CONFIG_FDT_TIMER=y
  CONFIG_FDT_TIMER_MTIMER=y
  CONFIG_FDT_TIMER_PLMT=y
-+CONFIG_FDT_MPXY=y
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 6f830744..f7888b43 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -17,6 +17,7 @@
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_tlb.h>
-+#include <sbi_utils/mpxy/fdt_mpxy.h>
- #include <sbi_utils/cppc/fdt_cppc.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
-@@ -414,6 +415,14 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
- 	return evt_val;
- }
- 
-+static int generic_mpxy_init(void)
-+{
-+	const void *fdt = fdt_get_address();
-+
-+	fdt_mpxy_init(fdt);
-+	return 0;
-+}
-+
- const struct sbi_platform_operations platform_ops = {
- 	.cold_boot_allowed	= generic_cold_boot_allowed,
- 	.nascent_init		= generic_nascent_init,
-@@ -430,6 +439,7 @@ const struct sbi_platform_operations platform_ops = {
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
- 	.get_tlb_num_entries	= generic_tlb_num_entries,
- 	.timer_init		= fdt_timer_init,
-+	.mpxy_init		= generic_mpxy_init,
- 	.vendor_ext_check	= generic_vendor_ext_check,
- 	.vendor_ext_provider	= generic_vendor_ext_provider,
- };
+ CONFIG_FDT_MPXY=y
++CONFIG_FDT_MPXY_RPMI_MBOX=y
 -- 
 2.43.0
 
