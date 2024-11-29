@@ -1,55 +1,34 @@
-From: Igor Melnikov <imel@purelymail.com>
-Date: Thu, 28 Nov 2024 23:15:02 +0100
-Subject: [PATCH v2] Makefile: Fix POSIX grep for multiple patterns
-Message-ID: <20241128222001.65861-1-imel@purelymail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 29 Nov 2024 08:44:44 +0530
+Subject: [PATCH 0/2] lib: sbi: fixes a few SSE errors
+In-Reply-To: <20241125105303.1113607-1-cleger@rivosinc.com>
+References: <20241125105303.1113607-1-cleger@rivosinc.com>
+Message-ID: <CAAhSdy2RVh63sp=Yh7=hOuoOFnMmTsyA6D_3D6e_9qx38YT9cg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-grep -e "-mstrict-align\|-mno-unaligned-access" makes use of GNU grep's
-backslash-escaped alternation operator \| which is available in basic
-regular expression syntax (BRE) mode.
+On Mon, Nov 25, 2024 at 4:24?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>
+> While reviewing kvm-unit-tests, Andrew Jones found a few implementation
+> errors. This small series fixes them.
+>
+> Cl?ment L?ger (2):
+>   lib: sbi: fix GLOBAL_PLAT_DEFINE
+>   lib: sbi: sse: Fix a6 and a7 register content upon injection
 
-However, in POSIX grep's BRE mode | is an ordinary character which, when
-backslash-escaped, matches itself. Therefore, the search pattern becomes
-a plain string '-mstrict-align|-mno-unaligned-access' which obviously
-never matches the expected error and CC_SUPPORT_STRICT_ALIGN is always set
-to y.
+Do you have corresponding changes in Linux SSE implementation ?
 
-When cross-compiling with LLVM on amd64-unknown-openbsd7.6 host for
-riscv64-unknown-elf target this results in a compilation error:
+Recently, we had found few more issues and fixed the Linux SSE
+implementation which is available in dev-upstream branch at:
+https://github.com/ventanamicro/linux.git
 
-clang: error: unsupported option '-mno-unaligned-access' for target
-'riscv64-unknown-elf'
+Particularly, the Linux SSE entry/exit was not saving and restoring
+sscratch CSR in all paths which caused the kernel to crash in certain
+cases. The above mentioned branch already has the fix for it.
 
-Using multiple -e options for this case maintains consistent behaviour
-across different grep implementations and fixes the issue.
-
-Signed-off-by: Igor Melnikov <imel@purelymail.com>
----
- Makefile | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/Makefile b/Makefile
-index dae282c..d9cee49 100644
---- a/Makefile
-+++ b/Makefile
-@@ -184,10 +184,10 @@ OPENSBI_LD_EXCLUDE_LIBS := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_
- CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e "-save-restore" >/dev/null && echo n || echo y)
- 
- # Check whether the compiler supports -m(no-)strict-align
--CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align\|-mno-unaligned-access" >/dev/null && echo n || echo y)
-+CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align" -e "-mno-unaligned-access" >/dev/null && echo n || echo y)
- 
- # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
--CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
-+CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
- 
- ifneq ($(OPENSBI_LD_PIE),y)
- $(error Your linker does not support creating PIEs, opensbi requires this.)
--- 
-2.46.1
-
+Regards,
+Anup
 
