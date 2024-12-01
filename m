@@ -1,67 +1,75 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Sun, 1 Dec 2024 11:18:32 +0000
-Subject: [PATCH] scripts/carray: change to using single .awk script to
- generate .c
-In-Reply-To: <9c9747f0-cd66-45c9-99e2-8d848da72f17@codethink.co.uk>
-References: <20241129100948.73391-1-ben.dooks@codethink.co.uk>
- <CAAhSdy3vwJ8waRcZMiR9mCayMHYGHiPELPREBSzd=Jq9qb+J_w@mail.gmail.com>
- <9c9747f0-cd66-45c9-99e2-8d848da72f17@codethink.co.uk>
-Message-ID: <51f6d0ac-b3eb-49aa-b305-71f1d2754f89@codethink.co.uk>
+From: Anup Patel <anup@brainfault.org>
+Date: Sun, 1 Dec 2024 18:58:06 +0530
+Subject: [PATCH v2] Makefile: Fix POSIX grep for multiple patterns
+In-Reply-To: <20241128222001.65861-1-imel@purelymail.com>
+References: <20241128222001.65861-1-imel@purelymail.com>
+Message-ID: <CAAhSdy3NmixFTt0DmsrHikGxvBsyPKh_TYQrJEhbg9fUQjAwHg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 01/12/2024 11:12, Ben Dooks wrote:
-> On 01/12/2024 11:08, Anup Patel wrote:
->> On Fri, Nov 29, 2024 at 3:39?PM Ben Dooks <ben.dooks@codethink.co.uk> 
->> wrote:
->>>
->>> The shell script makes multiple call-outs to awk to get information
->>> from the configuration file. It would be easier to just write the
->>> whole thing in one .awk script and have the makefile altered to call
->>> that instead.
->>>
->>> There should be no functional difference other than the script type
->>> and has been tested with PLATFORM=generic build. This should be both
->>> quicker and easier to understand.
->>>
->>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
->>> ---
->>> v2:
->>> ?? - updated with the new bits from Samuel Holland's changes
->>> ?? - minor tweaks to the awk script to fix the output spacing
->>
->> The "./scripts/carray.awk -h" is not showing the help text.
->>
->> Also, I tried compiling OpenSBI with this patch on Ubuntu 24.04
->> but it does not boot because the generated C arrays are empty.
-> 
-> Hmm, it might be worth adding an option to warn if the lists are
-> zero length?
-> 
-> I seem to have forgotten to add -h
-> 
-> I'll try running it under standard awk, I think my debian install
-> maybe using gawk by default.
-> 
-> Does anyone know if awk has some way of deal with options? I couldn't
-> find anything that shows anything like getopt() library.
-> 
-> Thanks.
-> 
+On Fri, Nov 29, 2024 at 3:49?AM Igor Melnikov <imel@purelymail.com> wrote:
+>
+> grep -e "-mstrict-align\|-mno-unaligned-access" makes use of GNU grep's
+> backslash-escaped alternation operator \| which is available in basic
+> regular expression syntax (BRE) mode.
+>
+> However, in POSIX grep's BRE mode | is an ordinary character which, when
+> backslash-escaped, matches itself. Therefore, the search pattern becomes
+> a plain string '-mstrict-align|-mno-unaligned-access' which obviously
+> never matches the expected error and CC_SUPPORT_STRICT_ALIGN is always set
+> to y.
+>
+> When cross-compiling with LLVM on amd64-unknown-openbsd7.6 host for
+> riscv64-unknown-elf target this results in a compilation error:
+>
+> clang: error: unsupported option '-mno-unaligned-access' for target
+> 'riscv64-unknown-elf'
+>
+> Using multiple -e options for this case maintains consistent behaviour
+> across different grep implementations and fixes the issue.
+>
+> Signed-off-by: Igor Melnikov <imel@purelymail.com>
 
-I found an issue with -h is that (g)awk takes this as an argument
-for itself.
+LGTM.
 
-I am considering moving to wrapping the awk in bash and having bash
-sort the arguments out and then invoking the awk directly from the
-bash script. I'll look at this for v3.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
--- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+Applied this patch to the riscv/opensbi repo.
 
-https://www.codethink.co.uk/privacy.html
+Thanks,
+Anup
+
+
+> ---
+>  Makefile | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/Makefile b/Makefile
+> index dae282c..d9cee49 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -184,10 +184,10 @@ OPENSBI_LD_EXCLUDE_LIBS := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_
+>  CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e "-save-restore" >/dev/null && echo n || echo y)
+>
+>  # Check whether the compiler supports -m(no-)strict-align
+> -CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align\|-mno-unaligned-access" >/dev/null && echo n || echo y)
+> +CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align" -e "-mno-unaligned-access" >/dev/null && echo n || echo y)
+>
+>  # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+> -CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep "zicsr\|zifencei" > /dev/null && echo n || echo y)
+> +CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
+>
+>  ifneq ($(OPENSBI_LD_PIE),y)
+>  $(error Your linker does not support creating PIEs, opensbi requires this.)
+> --
+> 2.46.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
