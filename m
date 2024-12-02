@@ -1,35 +1,51 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Mon,  2 Dec 2024 11:03:32 +0000
-Subject: [RFC 1/5] add build container for ubunti 18.04
+Date: Mon,  2 Dec 2024 11:03:35 +0000
+Subject: [RFC 4/5] script/carry.sh: send error to stderr
 In-Reply-To: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
 References: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241202110336.332490-2-ben.dooks@codethink.co.uk>
+Message-ID: <20241202110336.332490-5-ben.dooks@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a podman/docker container for Ubuntu 18.04 for
-build testing on older systems which might not have
-the same support as a developer has.
+Send the errors to stderr, otherwise they end up being
+written to the file the script was redirecting to in the
+Makefile
+
+Also, use EOF block to make it easier to redirect
 
 Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
- containers/ubuntu_1804/Containerfile | 4 ++++
- 1 file changed, 4 insertions(+)
- create mode 100644 containers/ubuntu_1804/Containerfile
+ scripts/carray.sh | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/containers/ubuntu_1804/Containerfile b/containers/ubuntu_1804/Containerfile
-new file mode 100644
-index 0000000..c2279db
---- /dev/null
-+++ b/containers/ubuntu_1804/Containerfile
-@@ -0,0 +1,4 @@
-+FROM ubuntu:18.04
+diff --git a/scripts/carray.sh b/scripts/carray.sh
+index fb985c8..a2b05d3 100755
+--- a/scripts/carray.sh
++++ b/scripts/carray.sh
+@@ -2,12 +2,14 @@
+ 
+ function usage()
+ {
+-	echo "Usage:"
+-	echo " $0 [options]"
+-	echo "Options:"
+-	echo "     -h                   Display help or usage"
+-	echo "     -i <input_config>    Input config file"
+-	echo "     -l <variable_list>   List of variables in the array (Optional)"
++	cat <<EOF >&2
++Usage:  $0 [options]
 +
-+RUN apt-get update && apt-get install build-essential gcc-riscv64-linux-gnu -y
-+
++Options:
++     -h                   Display help or usage
++     -i <input_config>    Input config file
++     -l <variable_list>   List of variables in the array (Optional)
++EOF
+ 	exit 1;
+ }
+ 
 -- 
 2.37.2.352.g3c44437643
 
