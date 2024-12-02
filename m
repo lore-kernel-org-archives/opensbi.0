@@ -1,37 +1,32 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Mon,  2 Dec 2024 11:03:34 +0000
-Subject: [RFC 3/5] remove carry output if scripts/carray.sh fails
+Date: Mon,  2 Dec 2024 11:03:33 +0000
+Subject: [RFC 2/5] add ~ files to .gitignore
 In-Reply-To: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
 References: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241202110336.332490-4-ben.dooks@codethink.co.uk>
+Message-ID: <20241202110336.332490-3-ben.dooks@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If the script fails, we end up trying to build either
-an empty or damaged .c file. Just remove it and let
-gcc fail on non-existant file.
+Ignore temporary files, and avoid accidentally adding them
+to a commit.
 
 Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
- Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Makefile b/Makefile
-index dae282c..a798691 100644
---- a/Makefile
-+++ b/Makefile
-@@ -502,7 +502,7 @@ compile_d2c = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
- compile_carray = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
- 	     echo " CARRAY    $(subst $(build_dir)/,,$(1))"; \
- 	     $(eval CARRAY_VAR_LIST := $(carray-$(subst .carray.c,,$(shell basename $(1)))-y)) \
--	     $(src_dir)/scripts/carray.sh -i $(2) -l "$(CARRAY_VAR_LIST)" > $(1)
-+	     $(src_dir)/scripts/carray.sh -i $(2) -l "$(CARRAY_VAR_LIST)" > $(1) || rm $(1)
- compile_gen_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
- 	     echo " GEN-DEP   $(subst $(build_dir)/,,$(1))"; \
- 	     echo "$(1:.dep=$(2)): $(3)" >> $(1)
+diff --git a/.gitignore b/.gitignore
+index 424302b..94caeb9 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -19,3 +19,4 @@ install/
+ # Development friendly files
+ tags
+ cscope*
++*~
 -- 
 2.37.2.352.g3c44437643
 
