@@ -1,186 +1,37 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Mon,  2 Dec 2024 11:03:36 +0000
-Subject: [RFC 5/5] scripts/carray: change to using single awk invocation to generate .c
+Date: Mon,  2 Dec 2024 11:03:34 +0000
+Subject: [RFC 3/5] remove carry output if scripts/carray.sh fails
 In-Reply-To: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
 References: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241202110336.332490-6-ben.dooks@codethink.co.uk>
+Message-ID: <20241202110336.332490-4-ben.dooks@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The shell script makes multiple call-outs to awk to get information
-from the configuration file. It would be easier to just write the
-whole thing in one .awk script and have the makefile altered to call
-that instead.
-
-There should be no functional difference other than the script type
-and has been tested with PLATFORM=generic build. This should be both
-quicker and easier to understand.
+If the script fails, we end up trying to build either
+an empty or damaged .c file. Just remove it and let
+gcc fail on non-existant file.
 
 Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
-v2:
-  - updated with the new bits from Samuel Holland's changes
-  - minor tweaks to the awk script to fix the output spacings
-v3:
-  - fixups for not being rather reliant on gawk (not on all distros)
-  - send error messages to stderr, otherwise they end up in .c output
-  - add no-var list a warning
-  - add debug output on env variable
-  - make awk script part of .sh script (easier to deal with change)
-  - fix rebase issues
----
- scripts/carray.sh | 132 ++++++++++++++++++++++++++++++++++------------
- 1 file changed, 99 insertions(+), 33 deletions(-)
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/scripts/carray.sh b/scripts/carray.sh
-index a2b05d3..475dfec 100755
---- a/scripts/carray.sh
-+++ b/scripts/carray.sh
-@@ -45,42 +45,108 @@ if [ ! -f "${CONFIG_FILE}" ]; then
- 	usage
- fi
- 
--TYPE_HEADER=$(awk '{ if ($1 == "HEADER:") { printf $2; exit 0; } }' "${CONFIG_FILE}")
--if [ -z "${TYPE_HEADER}" ]; then
--	echo "Must specify HEADER: in input config file"
--	usage
--fi
-+# use single awk script to run conversion, but leave in .sh file as awk is
-+# bad for getopt, and leaves the original script name alone.
- 
--TYPE_NAME=$(awk '{ if ($1 == "TYPE:") { printf $2; for (i=3; i<=NF; i++) printf " %s", $i; exit 0; } }' "${CONFIG_FILE}")
--if [ -z "${TYPE_NAME}" ]; then
--	echo "Must specify TYPE: in input config file"
--	usage
--fi
-+awk -v"SCRIPT_NAME=${CONFIG_FILE}" -v "SCRIPT_NAME=`basename $0`" -v"VARLIST=${VAR_LIST}" '
-+function array_length@
-+{
-+    result = 0
- 
--ARRAY_NAME=$(awk '{ if ($1 == "NAME:") { printf $2; exit 0; } }' "${CONFIG_FILE}")
--if [ -z "${ARRAY_NAME}" ]; then
--	echo "Must specify NAME: in input config file"
--	usage
--fi
-+    for (i in a)
-+	result++
- 
--MEMBER_NAME=$(awk '{ if ($1 == "MEMBER-NAME:") { printf $2; exit 0; } }' "${CONFIG_FILE}")
--MEMBER_TYPE=$(awk '{ if ($1 == "MEMBER-TYPE:") { printf $2; for (i=3; i<=NF; i++) printf " %s", $i; exit 0; } }' "${CONFIG_FILE}")
--if [ -n "${MEMBER_NAME}" ] && [ -z "${MEMBER_TYPE}" ]; then
--	echo "Must specify MEMBER-TYPE: when using MEMBER-NAME:"
--	usage
--fi
-+    return result
-+}
- 
--printf "// Generated with $(basename $0) from $(basename ${CONFIG_FILE})\n"
--printf "#include <%s>\n\n" "${TYPE_HEADER}"
-+function get_fields(start, end)
-+{
-+    result = $start;
- 
--for VAR in ${VAR_LIST}; do
--	printf "extern %s %s;\n" "${TYPE_NAME}" "${VAR}"
--done
--printf "\n"
-+    for (nr = start+1; nr <= end; nr++) {
-+	result = result " " $nr
-+    }
-+    return result;
-+}
-+
-+BEGIN {
-+      split(VARLIST,VAR_LIST," ")
-+}
-+
-+# process items from the config file
-+
-+/^HEADER:/	{ TYPE_HEADER = $2 }
-+/^TYPE:/	{ TYPE_NAME = get_fields(2, NF); }
-+/^NAME:/	{ ARRAY_NAME = $2}
-+/^MEMBER-NAME:/	{ MEMBER_NAME = $2 }
-+/^MEMBER-TYPE:/ { MEMBER_TYPE = get_fields(2, NF); }
-+
-+# code to dump the generated .c file once config file is processed
-+
-+END {
-+    # enable for debug
-+    if (length(ENVIRON["CARRAY_DEBUG"]) > 0) {
-+	print "ARRAY_NAME  " ARRAY_NAME > "/dev/stderr"
-+	print "TYPE_HEADER " TYPE_HEADER > "/dev/stderr"
-+	print "TYPE_NAME   " TYPE_NAME > "/dev/stderr"
-+
-+	print "VAR_LIST length is " array_length(VAR_LIST) > "/dev/stderr"
-+	for (v in VAR_LIST) {
-+	    print "VAR_LIST " v  " = " VAR_LIST[v] > "/dev/stderr"
-+	}
-+    }
-+
-+    if (array_length(VAR_LIST) == 0) {
-+	print "Warning; no VAR list on command line"  > "/dev/stderr"
-+    }
-+
-+    if (length(ARRAY_NAME) == 0) {
-+	print "Must specify NAME: in input config file"  > "/dev/stderr"
-+	exit 1
-+    }
-+
-+    if (length(TYPE_NAME) == 0) {
-+	print "Must specify TYPE: in input config file"  > "/dev/stderr"
-+	exit 1
-+    }
-+
-+    if (length(TYPE_HEADER) == 0) {
-+	print "Must specify HEADER: in input config file"  > "/dev/stderr"
-+	exit 1
-+    }
-+
-+    if (length(MEMBER_NAME) > 0 && length(MEMBER_TYPE) == 0) {
-+	print "Must specify MEMBER-TYPE: when using MEMBER-NAME:" > "/dev/stderr"
-+	exit 1
-+    }
-+
-+    printf "// Generated with %s from %s\n", SCRIPT_NAME, CONFIG_FILE
-+    printf "// DO NOT EDIT THIS FILE DIRECTLY\n"
-+    printf "\n"
-+    printf("#include <%s>\n\n", TYPE_HEADER)
-+
-+    for (v in VAR_LIST) {
-+	printf("extern %s %s;\n", TYPE_NAME, VAR_LIST[v])
-+    }
-+    print ""
-+
-+    if (length(MEMBER_TYPE) > 0) {
-+	TYPE_NAME = MEMBER_TYPE;
-+    }
-+
-+    if (length(MEMBER_NAME) > 0) {
-+	VAR_SUFFIX = "." MEMBER_NAME;
-+    } else {
-+	VAR_SUFFIX = ""
-+    }
-+
-+    printf("%s *const %s[] = {\n", TYPE_NAME, ARRAY_NAME)
-+    for (v in VAR_LIST) {
-+	printf("\t&%s%s,\n", VAR_LIST[v], VAR_SUFFIX)
-+    }
-+    printf("\tNULL\n");
-+
-+    printf("};\n");
-+}
-+' < ${CONFIG_FILE} || usage
- 
--printf "%s *const %s[] = {\n" "${MEMBER_TYPE:-${TYPE_NAME}}" "${ARRAY_NAME}"
--for VAR in ${VAR_LIST}; do
--	printf "\t&%s,\n" "${VAR}${MEMBER_NAME:+.}${MEMBER_NAME}"
--done
--	printf "\tNULL\n"
--printf "};\n"
+diff --git a/Makefile b/Makefile
+index dae282c..a798691 100644
+--- a/Makefile
++++ b/Makefile
+@@ -502,7 +502,7 @@ compile_d2c = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ compile_carray = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo " CARRAY    $(subst $(build_dir)/,,$(1))"; \
+ 	     $(eval CARRAY_VAR_LIST := $(carray-$(subst .carray.c,,$(shell basename $(1)))-y)) \
+-	     $(src_dir)/scripts/carray.sh -i $(2) -l "$(CARRAY_VAR_LIST)" > $(1)
++	     $(src_dir)/scripts/carray.sh -i $(2) -l "$(CARRAY_VAR_LIST)" > $(1) || rm $(1)
+ compile_gen_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+ 	     echo " GEN-DEP   $(subst $(build_dir)/,,$(1))"; \
+ 	     echo "$(1:.dep=$(2)): $(3)" >> $(1)
 -- 
 2.37.2.352.g3c44437643
 
