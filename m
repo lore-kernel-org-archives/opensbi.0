@@ -1,161 +1,134 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Mon, 2 Dec 2024 16:28:14 -0600
-Subject: [PATCH 4/5] lib: sbi_pmu: Implement SBI PMU event info function
-In-Reply-To: <20241119-pmu_event_info-v1-4-5f287a6f0135@rivosinc.com>
+From: Atish Kumar Patra <atishp@rivosinc.com>
+Date: Mon, 2 Dec 2024 16:05:01 -0800
+Subject: [PATCH 1/5] lib: sbi_pmu: PMU raw event v2 support
+In-Reply-To: <e9fa6915-4c33-43ae-9414-e20c62611c3b@sifive.com>
 References: <20241119-pmu_event_info-v1-0-5f287a6f0135@rivosinc.com>
- <20241119-pmu_event_info-v1-4-5f287a6f0135@rivosinc.com>
-Message-ID: <943ac286-b7cd-44b5-bbf3-e88982ae2cea@sifive.com>
+ <20241119-pmu_event_info-v1-1-5f287a6f0135@rivosinc.com> <e9fa6915-4c33-43ae-9414-e20c62611c3b@sifive.com>
+Message-ID: <CAHBxVyHcmt38qbWGvtJKeOjCTLy+a4gjpY6iv2CAfycqAHRCYg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Atish,
+On Mon, Dec 2, 2024 at 2:17?PM Samuel Holland <samuel.holland@sifive.com> wrote:
+>
+> Hi Atish,
+>
+> On 2024-11-19 1:34 PM, Atish Patra wrote:
+> > As per the updated ISA specification and SBI PMU v3.0, lower 56
+> > bits are available for the platform to implement mhpmeventX
+> > encoding. Implement the PMU raw event V2 support defined in SBI
+> > v3.0 which allows more bits for platforms to encode the raw events.
+> >
+> > Signed-off-by: Atish Patra <atishp@rivosinc.com>
+> > ---
+> >  include/sbi/sbi_ecall_interface.h |  2 ++
+> >  lib/sbi/sbi_pmu.c                 | 14 +++++++++-----
+> >  platform/generic/platform.c       |  3 ++-
+> >  3 files changed, 13 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> > index 3aa574669e72..bcb7359f20c5 100644
+> > --- a/include/sbi/sbi_ecall_interface.h
+> > +++ b/include/sbi/sbi_ecall_interface.h
+> > @@ -245,6 +245,7 @@ enum sbi_pmu_event_type_id {
+> >       SBI_PMU_EVENT_TYPE_HW                           = 0x0,
+> >       SBI_PMU_EVENT_TYPE_HW_CACHE                     = 0x1,
+> >       SBI_PMU_EVENT_TYPE_HW_RAW                       = 0x2,
+> > +     SBI_PMU_EVENT_TYPE_HW_RAW_V2                    = 0x3,
+> >       SBI_PMU_EVENT_TYPE_FW                           = 0xf,
+> >       SBI_PMU_EVENT_TYPE_MAX,
+> >  };
+> > @@ -261,6 +262,7 @@ enum sbi_pmu_ctr_type {
+> >  #define SBI_PMU_EVENT_IDX_TYPE_MASK (0xF << SBI_PMU_EVENT_IDX_TYPE_OFFSET)
+> >  #define SBI_PMU_EVENT_IDX_CODE_MASK 0xFFFF
+> >  #define SBI_PMU_EVENT_RAW_IDX 0x20000
+> > +#define SBI_PMU_EVENT_RAW_V2_IDX 0x30000
+> >
+> >  #define SBI_PMU_EVENT_IDX_INVALID 0xFFFFFFFF
+> >
+> > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> > index b9e845430fcb..14d6a0da984c 100644
+> > --- a/lib/sbi/sbi_pmu.c
+> > +++ b/lib/sbi/sbi_pmu.c
+> > @@ -172,6 +172,7 @@ static int pmu_event_validate(struct sbi_pmu_hart_state *phs,
+> >                       return SBI_EINVAL;
+> >               break;
+> >       case SBI_PMU_EVENT_TYPE_HW_RAW:
+> > +     case SBI_PMU_EVENT_TYPE_HW_RAW_V2:
+> >               event_idx_code_max = 1; // event_idx.code should be zero
+> >               break;
+> >       default:
+> > @@ -259,7 +260,8 @@ static int pmu_add_hw_event_map(u32 eidx_start, u32 eidx_end, u32 cmap,
+> >
+> >       /* Sanity check */
+> >       for (i = 0; i < num_hw_events; i++) {
+> > -             if (eidx_start == SBI_PMU_EVENT_RAW_IDX)
+> > +             if (eidx_start == SBI_PMU_EVENT_RAW_IDX ||
+> > +                     eidx_start == SBI_PMU_EVENT_RAW_V2_IDX)
+> >               /* All raw events have same event idx. Just do sanity check on select */
+> >                       is_overlap = pmu_event_select_overlap(&hw_event_map[i],
+> >                                                             select, select_mask);
+> > @@ -290,8 +292,8 @@ reset_event:
+> >   */
+> >  int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap)
+> >  {
+> > -     if ((eidx_start > eidx_end) || eidx_start == SBI_PMU_EVENT_RAW_IDX ||
+> > -          eidx_end == SBI_PMU_EVENT_RAW_IDX)
+> > +     if ((eidx_start > eidx_end) || eidx_start >= SBI_PMU_EVENT_RAW_V2_IDX ||
+> > +          eidx_end >= SBI_PMU_EVENT_RAW_V2_IDX)
+> >               return SBI_EINVAL;
+>
+> I may be misunderstanding this code, but this condition seems to be trying to
+> exclude raw events. So I believe it should check `>= SBI_PMU_EVENT_RAW_IDX` --
+> this function should fail for both raw and raw v2 events.
+>
 
-On 2024-11-19 1:34 PM, Atish Patra wrote:
-> Allow the supervisor software to query about the event using the
-> new function. This supports both firmware and hardware events.
-> The hardware event presence is verified hw_event_map which is populated
-> via PMU device tree node. The firmware event presence is checked through
-> event validation function which should take care of both standard and
-> platform firmware events.
-> 
-> Signed-off-by: Atish Patra <atishp@rivosinc.com>
-> ---
->  include/sbi/sbi_pmu.h   |  2 ++
->  lib/sbi/sbi_ecall_pmu.c |  3 ++
->  lib/sbi/sbi_pmu.c       | 76 +++++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 81 insertions(+)
-> 
-> diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-> index 8b1e08c81f30..3649d476475a 100644
-> --- a/include/sbi/sbi_pmu.h
-> +++ b/include/sbi/sbi_pmu.h
-> @@ -142,6 +142,8 @@ int sbi_pmu_ctr_start(unsigned long cidx_base, unsigned long cidx_mask,
->  		      unsigned long flags, uint64_t ival);
->  
->  int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info);
-> +int sbi_pmu_event_get_info(unsigned long shmem_lo, unsigned long shmem_high,
-> +						   unsigned long num_events, unsigned long flags);
->  
->  unsigned long sbi_pmu_num_ctr(void);
->  
-> diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-> index 40a63a626f6b..ae7aeca9b8f8 100644
-> --- a/lib/sbi/sbi_ecall_pmu.c
-> +++ b/lib/sbi/sbi_ecall_pmu.c
-> @@ -73,6 +73,9 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
->  	case SBI_EXT_PMU_COUNTER_STOP:
->  		ret = sbi_pmu_ctr_stop(regs->a0, regs->a1, regs->a2);
->  		break;
-> +	case SBI_EXT_PMU_EVENT_GET_INFO:
-> +		ret = sbi_pmu_event_get_info(regs->a0, regs->a1, regs->a2, regs->a3);
-> +		break;
->  	case SBI_EXT_PMU_SNAPSHOT_SET_SHMEM:
->  		/* fallthrough as OpenSBI doesn't support snapshot yet */
->  	default:
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 1ed578bac23e..3fc50c0b25e2 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -10,6 +10,7 @@
->  #include <sbi/riscv_asm.h>
->  #include <sbi/sbi_bitops.h>
->  #include <sbi/sbi_console.h>
-> +#include <sbi/sbi_domain.h>
->  #include <sbi/sbi_ecall_interface.h>
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_heap.h>
-> @@ -968,6 +969,81 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
->  	return 0;
->  }
->  
-> +int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys_hi,
-> +			   unsigned long num_events, unsigned long flags)
-> +{
-> +	unsigned long shmem_size = num_events * sizeof(struct sbi_pmu_event_info);
-> +	int i, j, event_type;
-> +	struct sbi_pmu_event_info *einfo;
-> +	struct sbi_pmu_hart_state *phs = pmu_thishart_state_ptr();
-> +	uint32_t event_idx;
-> +	struct sbi_pmu_hw_event *temp;
-> +	bool found = false;
-> +
-> +	if (flags != 0)
-> +		return SBI_ERR_INVALID_PARAM;
-> +
-> +	/** Check shared memory size and address aligned to 16 byte */
-> +	if (!num_events || (shmem_phys_lo & 0xF))
-> +		return SBI_ERR_INVALID_PARAM;
-> +
-> +	/*
-> +	 * On RV32, the M-mode can only access the first 4GB of
-> +	 * the physical address space because M-mode does not have
-> +	 * MMU to access full 34-bit physical address space.
-> +	 *
-> +	 * Based on above, we simply fail if the upper 32bits of
-> +	 * the physical address (i.e. a2 register) is non-zero on
-> +	 * RV32.
-> +	 */
-> +	if (shmem_phys_hi)
-> +		return SBI_EINVALID_ADDR;
-> +
-> +	if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
-> +					 shmem_phys_lo, shmem_size, PRV_S,
-> +					 SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
-> +		return SBI_ERR_INVALID_ADDRESS;
-> +
-> +	sbi_hart_map_saddr(shmem_phys_lo, shmem_size);
-> +
-> +	einfo = (struct sbi_pmu_event_info *)(shmem_phys_lo);
-> +	for (i = 0; i < num_events; i++) {
-> +		event_idx = einfo[i].event_idx;
-> +		event_type = pmu_event_validate(phs, event_idx, einfo[i].event_data);
-> +		if (event_type < 0) {
-> +			einfo[i].output = 0;
-> +		} else {
-> +			for (j = 0; j < num_hw_events; j++) {
-> +				temp = &hw_event_map[j];
-> +				if (temp->start_idx <= event_idx && event_idx <= temp->end_idx) {
-> +					found = true;
-> +					break;
+You are correct. This was a typo. I will send a fixup patch as this
+patch is already merged.
+Thanks for catching this.
 
-Won't this check succeed for every raw event (since they all have the same
-event_idx), so the `break` will prevent the block below from ever executing?
-
-Regards,
-Samuel
-
-> +				}
-> +				/* For raw events, event data is used as the select value */
-> +				if (event_idx == SBI_PMU_EVENT_RAW_IDX ||
-> +					event_idx == SBI_PMU_EVENT_RAW_V2_IDX) {
-> +					uint64_t select_mask = temp->select_mask;
-> +
-> +					/* just match the selector */
-> +					if (temp->select == (einfo[i].event_data & select_mask)) {
-> +						found = true;
-> +						break;
-> +					}
-> +				}
-> +			}
-> +			if (found)
-> +				einfo[i].output = 1;
-> +			else
-> +				einfo[i].output = 0;
-> +			found = false;
-> +		}
-> +	}
-> +
-> +	sbi_hart_unmap_saddr();
-> +
-> +	return 0;
-> +}
-> +
->  static void pmu_reset_event_map(struct sbi_pmu_hart_state *phs)
->  {
->  	int j;
-> 
-
+> Regards,
+> Samuel
+>
+> >
+> >       return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0, 0);
+> > @@ -299,8 +301,9 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap)
+> >
+> >  int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32 cmap)
+> >  {
+> > +     sbi_printf("%s: select %lx select_mask %lx cmap %x\n", __func__, select, select_mask, cmap);
+> >       return pmu_add_hw_event_map(SBI_PMU_EVENT_RAW_IDX,
+> > -                                 SBI_PMU_EVENT_RAW_IDX, cmap, select, select_mask);
+> > +                                 SBI_PMU_EVENT_RAW_V2_IDX, cmap, select, select_mask);
+> >  }
+> >
+> >  void sbi_pmu_ovf_irq()
+> > @@ -736,7 +739,8 @@ static int pmu_ctr_find_hw(struct sbi_pmu_hart_state *phs,
+> >                       continue;
+> >
+> >               /* For raw events, event data is used as the select value */
+> > -             if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
+> > +             if (event_idx == SBI_PMU_EVENT_RAW_IDX ||
+> > +                     event_idx == SBI_PMU_EVENT_RAW_V2_IDX) {
+> >                       uint64_t select_mask = temp->select_mask;
+> >
+> >                       /* The non-event map bits of data should match the selector */
+> > diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> > index 3b20ffbe780a..03cf019c2936 100644
+> > --- a/platform/generic/platform.c
+> > +++ b/platform/generic/platform.c
+> > @@ -393,7 +393,8 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+> >       uint64_t evt_val = 0;
+> >
+> >       /* data is valid only for raw events and is equal to event selector */
+> > -     if (event_idx == SBI_PMU_EVENT_RAW_IDX)
+> > +     if (event_idx == SBI_PMU_EVENT_RAW_IDX ||
+> > +             event_idx == SBI_PMU_EVENT_RAW_V2_IDX)
+> >               evt_val = data;
+> >       else {
+> >               /**
+> >
+>
 
