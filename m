@@ -1,61 +1,63 @@
 From: Michael Neuling <michaelneuling@tenstorrent.com>
-Date: Wed,  4 Dec 2024 05:54:51 +0000
-Subject: [PATCH 1/2] lib: utils/serial: Cleanup int vs bool in semihosting_init() definitions
-Message-ID: <20241204055452.652401-1-michaelneuling@tenstorrent.com>
+Date: Wed,  4 Dec 2024 05:54:52 +0000
+Subject: [PATCH 2/2] include: Fix compiling bool with C23 enabled compilers
+In-Reply-To: <20241204055452.652401-1-michaelneuling@tenstorrent.com>
+References: <20241204055452.652401-1-michaelneuling@tenstorrent.com>
+Message-ID: <20241204055452.652401-2-michaelneuling@tenstorrent.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-These are inconsistent. This is also needed for a future patches to
-enable C23 language dialect.
+C23 pre-definies bool so we need to gate our defines.
+
+Without this C23 enabled compiler gives this error:
+
+   CC        lib/sbi/riscv_asm.o
+  In file included from /home/mneuling/src/opensbi/include/sbi/sbi_scratch.h:54,
+		   from /home/mneuling/src/opensbi/include/sbi/sbi_platform.h:49,
+		   from /home/mneuling/src/opensbi/lib/sbi/riscv_asm.c:13:
+  /home/mneuling/src/opensbi/include/sbi/sbi_types.h:47:33: error: two or more data types in declaration specifiers
+     47 | typedef int                     bool;
+	|                                 ^~~~
+  /home/mneuling/src/opensbi/include/sbi/sbi_types.h:47:1: error: useless type name in empty declaration [-Werror]
+     47 | typedef int                     bool;
+	| ^~~~~~~
+  cc1: all warnings being treated as errors
 
 Signed-off-by: Michael Neuling <michaelneuling@tenstorrent.com>
 ---
- include/sbi_utils/serial/semihosting.h | 8 ++++----
- lib/utils/serial/semihosting.c         | 4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/sbi/sbi_types.h | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi_utils/serial/semihosting.h b/include/sbi_utils/serial/semihosting.h
-index 8cc4a86c3a..0ef20cc2e4 100644
---- a/include/sbi_utils/serial/semihosting.h
-+++ b/include/sbi_utils/serial/semihosting.h
-@@ -37,11 +37,11 @@ enum semihosting_open_mode {
- };
- 
- #ifdef CONFIG_SERIAL_SEMIHOSTING
--int semihosting_init(void);
--int semihosting_enabled(void);
-+bool semihosting_init(void);
-+bool semihosting_enabled(void);
- #else
--static inline int semihosting_init(void) { return SBI_ENODEV; }
--static inline int semihosting_enabled(void) { return 0; }
-+static inline bool semihosting_init(void) { return SBI_ENODEV; }
-+static inline bool semihosting_enabled(void) { return 0; }
+diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
+index def88bbad2..3f054f481a 100644
+--- a/include/sbi/sbi_types.h
++++ b/include/sbi/sbi_types.h
+@@ -44,7 +44,12 @@ typedef unsigned long long	uint64_t;
+ #error "Unexpected __riscv_xlen"
  #endif
  
- #endif
-diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-index 19ebaa07e3..320a5834d6 100644
---- a/lib/utils/serial/semihosting.c
-+++ b/lib/utils/serial/semihosting.c
-@@ -198,12 +198,12 @@ static struct sbi_console_device semihosting_console = {
- 	.console_getc = semihosting_getc
- };
++#if __STDC_VERSION__ < 202311L
+ typedef int			bool;
++#define true			1
++#define false			0
++#endif
++
+ typedef unsigned long		ulong;
+ typedef unsigned long		uintptr_t;
+ typedef unsigned long		size_t;
+@@ -61,9 +66,6 @@ typedef uint32_t		be32_t;
+ typedef uint64_t		le64_t;
+ typedef uint64_t		be64_t;
  
--int semihosting_init(void)
-+bool semihosting_init(void)
- {
- 	semihosting_infd = semihosting_open(":tt", MODE_READ);
- 	semihosting_outfd = semihosting_open(":tt", MODE_WRITE);
+-#define true			1
+-#define false			0
+-
+ #define NULL			((void *)0)
  
- 	sbi_console_set_device(&semihosting_console);
- 
--	return 0;
-+	return false;
- }
+ #define __packed		__attribute__((packed))
 -- 
 2.34.1
 
