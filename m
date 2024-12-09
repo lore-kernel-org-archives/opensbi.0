@@ -1,38 +1,86 @@
-From: Richard Hughes <richard@hughsie.com>
-Date: Mon, 09 Dec 2024 16:59:29 +0000
-Subject: [PATCH 1/1] Add a SBOM template in CycloneDX format
-In-Reply-To: <342E5AE9-FA77-4575-AEA3-F26622265121@jrtc27.com>
-References: <20241209120653.996455-1-richard@hughsie.com> <20241209120653.996455-2-richard@hughsie.com> <E27C80FB-7AAD-48FB-81F2-AAFC57EB3B32@jrtc27.com> <L2zXq4ayvAmRO2t_N_GnLTebeZ1r8tjTWMwHQt21Bet-vxgLDqa_1S2lXINWxkVlTx5xOT4A-r60scuREbYkCGvUotYesTaA_4AbCkm5bbM=@hughsie.com> <FB9D4FFD-6C1C-4A10-B25E-7CD3214793F7@jrtc27.com> <bAfV35H0RKEHDIb3-uCfWVYzFiPpl1f8MNFX9O-gDXrGIkSPQ1CntcLZfH8pc2wYoLKlHW53KEchekjlswWjqD-R5LAOTjqfiGS4ZQ2lXho=@hughsie.com> <342E5AE9-FA77-4575-AEA3-F26622265121@jrtc27.com>
-Message-ID: <7GtZFAmJz91q6u0SHPwrELUXLeMf7EwmPRP3anyUl5z7_5huRFeU1Yil1z7jpNAZxE2OzdsbDdzzLfdbaBIDNoKuHhoAgrAClpSIsjxlVn8=@hughsie.com>
+From: Atish Kumar Patra <atishp@rivosinc.com>
+Date: Mon, 9 Dec 2024 10:40:40 -0800
+Subject: [PATCH 0/3] lib: sbi: fix PMU SSE event handling
+In-Reply-To: <58e73071-c475-434d-9277-50e98e14d4fb@rivosinc.com>
+References: <20241206205958.1055770-1-cleger@rivosinc.com> <CAOnJCUJ8mJF+SYoxC4hkyRTxVJJThGm4hw4CGd5--abEMjfeRw@mail.gmail.com>
+ <31b16dc4-e733-4ed9-acb8-b1d91250bd94@rivosinc.com> <58e73071-c475-434d-9277-50e98e14d4fb@rivosinc.com>
+Message-ID: <CAHBxVyGgBpQMruiwYxQ5Sf0Suqf-ocj5h2YDby8PDVqq2OQdOA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Monday, 9 December 2024 at 16:37, Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> I don?t mean you have to use it that way in consumers. Just that if
-> you?re adding the file to upstream projects you should do the work to
-> integrate it into their build systems so others can benefit.
+On Mon, Dec 9, 2024 at 12:55?AM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>
+>
+>
+> On 09/12/2024 09:36, Cl?ment L?ger wrote:
+> >
+> >
+> > On 06/12/2024 23:25, Atish Patra wrote:
+> >> On Fri, Dec 6, 2024 at 1:00?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+> >>>
+> >>> While reworking the Linux SSE support, it appears that the PMU event
+> >>> should not be available if the SSCOFPMF extension is not available since
+> >>> there would be no IRQ. The specification isn't really clear on that point
+> >>> so this is more like a RFC to check that. Ideally, the sse register call
+> >>
+> >> Can you send a patch for SBI spec ? I think we can call it a local PMU
+> >> overflow event
+> >> rather than a PMU.
+> >
+> > Yes sure, that makes more sense.  I'll also modify the possible return
+> > value for register to add NOT_SUPPORTED in case some dependencies are
+> > missing
+>
+> While thinking about it, should we actually return ERR_INVALID_PARAM or
+> add a new ERR_NOT_SUPPORTED if the event is not supported due to missing
+> dependencies ? It seems like it is different but I'm not sure it adds
+> any valuable information (ie, the caller is not going to do anything
+> special about it)
+>
 
-Adding it to the upstream build system is pointless without installing or embedding the artifact somewhere. There was a murmuring of a proposal that we could install the dist'd post-processed file in something like /usr/share/sbom but the details are still being worked on and I don't think opensbi would be terribly useful in a docker image or as an rpm anyway.
+IMO, we should add ERR_NOT_SUPPORTED as ERR_INVALID_PARAM indicates
+that event_id
+is not valid. But ERR_NOT_SUPPORTED will indicate that event_id is
+valid but the firmware doesn't support
+this event for some reasons (e.g missing ISA dependency being one of them)
 
-> IMO the single string field is better than this nonsense format
+> Cl?ment
+>
+> >
+> > Thanks,
+> >
+> > Cl?ment
+> >
+> >>
+> >> We can add a note about the Sscofpmf dependency as well.
+> >>
+> >>> should allow to refuse registering an event if the dependencies are not
+> >>> satisfied but does not allow this yet.
+> >>>
+> >>> Cl?ment L?ger (3):
+> >>>   lib: sbi: sse: Return a value from the register callback
+> >>>   lib: sbi: sse: Disable injection if callbacks are set
+> >>>   lib: sbi: pmu: Set a SSE register_cb() for event availability
+> >>>
+> >>>  include/sbi/sbi_sse.h |  2 +-
+> >>>  lib/sbi/sbi_pmu.c     | 11 +++++++++++
+> >>>  lib/sbi/sbi_sse.c     | 19 +++++++++++++++++--
+> >>>  3 files changed, 29 insertions(+), 3 deletions(-)
+> >>>
+> >>> --
+> >>> 2.45.2
+> >>>
+> >>>
+> >>> --
+> >>> opensbi mailing list
+> >>> opensbi at lists.infradead.org
+> >>> http://lists.infradead.org/mailman/listinfo/opensbi
+> >>
+> >>
+> >>
+> >
+>
 
-Okay...
-
-> But better still would be doing the proper thing and having a list of
-> author objects, so ideally extend your tooling to support the new
-> format rather than pretend it doesn?t exist, and if you can?t do that
-> then adopt the old format fully.
-
-We do support multiple authors in the uSWID project, but only the SWID format and CycloneDX format >= 1.6 support it. I've attached a new patch without the authors sections, and uswid --fixup will auto-add the sections as required in the specific format.
-
-Richard
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 0001-Add-a-SBOM-template-in-CycloneDX-format.patch
-Type: text/x-patch
-Size: 1459 bytes
-Desc: not available
-URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20241209/13d1f7f4/attachment-0001.bin>
