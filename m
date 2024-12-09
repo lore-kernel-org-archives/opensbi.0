@@ -1,78 +1,35 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 9 Dec 2024 09:55:13 +0100
-Subject: [PATCH 0/3] lib: sbi: fix PMU SSE event handling
-In-Reply-To: <31b16dc4-e733-4ed9-acb8-b1d91250bd94@rivosinc.com>
-References: <20241206205958.1055770-1-cleger@rivosinc.com>
- <CAOnJCUJ8mJF+SYoxC4hkyRTxVJJThGm4hw4CGd5--abEMjfeRw@mail.gmail.com>
- <31b16dc4-e733-4ed9-acb8-b1d91250bd94@rivosinc.com>
-Message-ID: <58e73071-c475-434d-9277-50e98e14d4fb@rivosinc.com>
+From: Richard Hughes <hughsient@gmail.com>
+Date: Mon,  9 Dec 2024 12:05:08 +0000
+Subject: [PATCH 0/1] Add a SBOM template in CycloneDX format
+Message-ID: <20241209120653.996455-1-richard@hughsie.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Hi,
 
+My name is Richard Hughes and I'm a developer at Red Hat. I'm the maintainer of fwupd and LVFS, and am trying to improve software supply chain security by encouraging OEMs, ODMs and IBVs to ship Software Bill of Materials with each firmware binary blob (SBOMs).
 
-On 09/12/2024 09:36, Cl?ment L?ger wrote:
-> 
-> 
-> On 06/12/2024 23:25, Atish Patra wrote:
->> On Fri, Dec 6, 2024 at 1:00?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
->>>
->>> While reworking the Linux SSE support, it appears that the PMU event
->>> should not be available if the SSCOFPMF extension is not available since
->>> there would be no IRQ. The specification isn't really clear on that point
->>> so this is more like a RFC to check that. Ideally, the sse register call
->>
->> Can you send a patch for SBI spec ? I think we can call it a local PMU
->> overflow event
->> rather than a PMU.
-> 
-> Yes sure, that makes more sense.  I'll also modify the possible return
-> value for register to add NOT_SUPPORTED in case some dependencies are
-> missing
+I'm working alongside lots of other companies proactively trying to do the right thing. The reason I've opened this pull request is because your project is either used in the build process of a firmware we care about (e.g. EDK II, or coreboot) or is built into the firmware binary itself. Although my personal focus is on firmware, the SBOM file is in CycloneDX format (one of the most popular industry standards) which makes it also useful when building containers or OS images too.
 
-While thinking about it, should we actually return ERR_INVALID_PARAM or
-add a new ERR_NOT_SUPPORTED if the event is not supported due to missing
-dependencies ? It seems like it is different but I'm not sure it adds
-any valuable information (ie, the caller is not going to do anything
-special about it)
+I would like to contribute this template SBOM file into your project that gets included into source control with substituted values that get populated automatically. I'm not super familiar with OpenSBI, and so I've done my best populating the project values -- but please point out any that are incorrect and I'll fix them up. I've also put the sbom.cdx.json file in what I feel is the right place, but please say if you want me to put it somewhere different or name it a different thing; the directory and sbom prefix are unimportant.
 
-Cl?ment
+I couldn?t find any existing CVEs that reference your project, so I?ve created a CPE reference that seems plausible. Please let me know if you know of a better CPE to use.
 
-> 
-> Thanks,
-> 
-> Cl?ment
-> 
->>
->> We can add a note about the Sscofpmf dependency as well.
->>
->>> should allow to refuse registering an event if the dependencies are not
->>> satisfied but does not allow this yet.
->>>
->>> Cl?ment L?ger (3):
->>>   lib: sbi: sse: Return a value from the register callback
->>>   lib: sbi: sse: Disable injection if callbacks are set
->>>   lib: sbi: pmu: Set a SSE register_cb() for event availability
->>>
->>>  include/sbi/sbi_sse.h |  2 +-
->>>  lib/sbi/sbi_pmu.c     | 11 +++++++++++
->>>  lib/sbi/sbi_sse.c     | 19 +++++++++++++++++--
->>>  3 files changed, 29 insertions(+), 3 deletions(-)
->>>
->>> --
->>> 2.45.2
->>>
->>>
->>> --
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
->>
->>
->>
-> 
+The various firmware build tools will take these incomplete SBOM files and then build them into a complete composite SBOM to represent the firmware. Having an upstream reference to what the PURL and CPE values should be means we have something we can trust; I could quite easily spin up a web-service that we say "what CPE do we use for X" -> cpe:2.3:a:Y:Z:::::::: but we don't actually know if that's still true, up to date, or what the supplier actually wants them to be. Putting the template upstream means we can trust the values we find in the checked out code during the build process.
+
+I've written a bit more about this proposal here https://blogs.gnome.org/hughsie/2024/11/14/firmware-sboms-for-open-source-projects/ and there's also lot more information about firmware SBOMs here: https://lvfs.readthedocs.io/en/latest/sbom.html ? many thanks for your time.
+
+Richard Hughes (1):
+  Add a SBOM template in CycloneDX format
+
+ docs/sbom.cdx.json | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+ create mode 100644 docs/sbom.cdx.json
+
+-- 
+2.47.1
 
 
