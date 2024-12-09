@@ -1,62 +1,68 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 Dec 2024 09:26:50 +0530
+Date: Mon, 9 Dec 2024 09:27:04 +0530
 Subject: [PATCH v2] lib: sbi_misaligned_ldst: Add handling of vector load/store
-In-Reply-To: <184B496F-4FF4-4F5A-9B81-14E2A3F4CADC@jrtc27.com>
+In-Reply-To: <6BE06954-1FDD-4D8C-ADB5-DDD7C2B9DE37@jrtc27.com>
 References: <20241206032149.1828583-1-nylon.chen@sifive.com>
- <CAAhSdy3uNa9JDeV6OUFSaUgFa7OMN_p6kbQtcAvjKfB1J7CWww@mail.gmail.com>
- <810ba88d-9a67-44c7-9b13-f17f3e603c82@rivosinc.com> <CAK9=C2ULHsQNAiWLXO-XLUC96Q-VsaTMXFL7SYcbOLRALoSYXw@mail.gmail.com>
- <184B496F-4FF4-4F5A-9B81-14E2A3F4CADC@jrtc27.com>
-Message-ID: <CAAhSdy27MK21MF5a4g-6PywToe82=QoTYM7b_Da0D7oVf50dVQ@mail.gmail.com>
+ <CAAhSdy3uNa9JDeV6OUFSaUgFa7OMN_p6kbQtcAvjKfB1J7CWww@mail.gmail.com> <6BE06954-1FDD-4D8C-ADB5-DDD7C2B9DE37@jrtc27.com>
+Message-ID: <CAAhSdy2HgzMAM_ECv58=+meZA8S_TD5FmCXYUrQ4u0guFNMcPA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Dec 9, 2024 at 1:57?AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
+On Mon, Dec 9, 2024 at 1:58?AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
 >
-> On 7 Dec 2024, at 14:31, Anup Patel <apatel@ventanamicro.com> wrote:
+> On 6 Dec 2024, at 12:18, Anup Patel <anup@brainfault.org> wrote:
 > >
-> > On Sat, Dec 7, 2024 at 2:27?AM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+> > On Fri, Dec 6, 2024 at 8:40?AM Nylon Chen <nylon.chen@sifive.com> wrote:
 > >>
-> >> Hi Anup & Nylon,
+> >> Add exception handling vector instructions from
 > >>
-> >> This commits breaks openSBI boot on my setup. A quick analysis of the
-> >> problem shows that the changes to objects.mk now allows GCC to generate
-> >> vector assembly in OpenSBI. It now crashes in bitmap_zero() really early
-> >> (Used in fw_platform_coldboot_harts_init()) due to vector instructions
-> >> being used:
+> >> the vector extension to the sbi_misaligned_ldst library.
 > >>
-> >>   0x0000000080007800 <+474>:   mv      a0,s2
-> >>   0x0000000080007802 <+476>:   sw      a5,88(s4)
-> >>   0x0000000080007806 <+480>:   jal     0x8001adbe <fdt_check_imsic_mlevel>
-> >> => 0x000000008000780a <+484>:   vsetivli        zero,2,e64,m1,ta,ma
-> >>   0x000000008000780e <+488>:   vmv.v.i v1,0
-> >>   0x0000000080007812 <+492>:   mv      a5,a0
+> >> This implementation references the misaligned_vec_ldst
+> >> implementation in the riscv-pk project.
 > >>
-> >>
-> >> And then it raises an illegal instruction probably because V isn't
-> >> enabled. But I'm guessing we do not expect to use vector code in OpenSBI
-> >> at all ? I'm using a fairly new qemu if that is of any help
-> >> (248f9209edfd289e7d97fb323e5075ccd55cc157).
+> >> Co-developed-by: Zong Li <zong.li@sifive.com>
+> >> Signed-off-by: Zong Li <zong.li@sifive.com>
+> >> Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
+> >> Reviewed-by: Andy Chiu <andy.chiu@sifive.com>
+> >> Reviewed-by: Anup Patel <anup@brainfault.org>
 > >
-> > Ahh, it seems auto-vectorization is enabled by default.
+> > I updated the commit description and replaced spaces with tabs
+> > for alignment at a few places at the time of merging this patch.
 > >
-> > We certainly don't want to use vector code in OpenSBI
-> > at the moment.
+> > Applied this patch to the riscv/opensbi repo.
 > >
-> > How about using the compiler command-line option to
-> > force disable auto-vectorization ?
+> > Thanks,
+> > Anup
+> >
+> >> ---
+> >> Makefile                     |  11 +-
+> >> include/sbi/riscv_encoding.h | 385 ++++++++++++++++++++++++++++++++++-
+> >> include/sbi/sbi_trap_ldst.h  |   9 +
+> >> lib/sbi/objects.mk           |   1 +
+> >> lib/sbi/sbi_trap_ldst.c      |  23 ++-
+> >> lib/sbi/sbi_trap_v_ldst.c    | 341 +++++++++++++++++++++++++++++++
+> >> 6 files changed, 758 insertions(+), 12 deletions(-)
+> >> create mode 100644 lib/sbi/sbi_trap_v_ldst.c
+> >>
+> >> diff --git a/Makefile b/Makefile
+> >> index d9cee49..5ac95a0 100644
+> >> --- a/Makefile
+> >> +++ b/Makefile
+> >> @@ -189,6 +189,9 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
+> >> # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+> >> CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
+> >>
+> >> +# Check whether the assembler and the compiler support the Vector extension
+> >> +CC_SUPPORT_VECT := $(shell echo | $(CC) -dM -E -march=rv$(OPENSBI_CC_XLEN)gv - | grep -q riscv.*vector && echo y || echo n)
 >
-> Just don?t put V in the ISA string? The assembly already does
+> No 2>/dev/null on that CC invocation?
 >
->     .option arch, +v
->
-> AFAICT there?s no reason for any C to be compiled with V.
 
-This is certainly another way but my worry is compilation would
-fail for older toolchains without vector support hence my suggestion
-to disable auto-vectorization.
+Ahh, yes. This needs to be fixed.
 
 Regards,
 Anup
