@@ -1,91 +1,55 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Mon, 9 Dec 2024 15:46:21 +0000
+From: Richard Hughes <richard@hughsie.com>
+Date: Mon, 09 Dec 2024 16:01:42 +0000
 Subject: [PATCH 1/1] Add a SBOM template in CycloneDX format
-In-Reply-To: <20241209120653.996455-2-richard@hughsie.com>
-References: <20241209120653.996455-1-richard@hughsie.com>
- <20241209120653.996455-2-richard@hughsie.com>
-Message-ID: <E27C80FB-7AAD-48FB-81F2-AAFC57EB3B32@jrtc27.com>
+In-Reply-To: <E27C80FB-7AAD-48FB-81F2-AAFC57EB3B32@jrtc27.com>
+References: <20241209120653.996455-1-richard@hughsie.com> <20241209120653.996455-2-richard@hughsie.com> <E27C80FB-7AAD-48FB-81F2-AAFC57EB3B32@jrtc27.com>
+Message-ID: <L2zXq4ayvAmRO2t_N_GnLTebeZ1r8tjTWMwHQt21Bet-vxgLDqa_1S2lXINWxkVlTx5xOT4A-r60scuREbYkCGvUotYesTaA_4AbCkm5bbM=@hughsie.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9 Dec 2024, at 12:05, Richard Hughes <hughsient@gmail.com> wrote:
-> 
-> Improve supply chain security by including a SBOM file with substituted values.
-> 
-> This will be used to construct a composite platform SBOM.
-> 
-> Signed-off-by: Richard Hughes <richard@hughsie.com>
-> ---
-> docs/sbom.cdx.json | 43 +++++++++++++++++++++++++++++++++++++++++++
-> 1 file changed, 43 insertions(+)
-> create mode 100644 docs/sbom.cdx.json
-> 
-> diff --git a/docs/sbom.cdx.json b/docs/sbom.cdx.json
-> new file mode 100644
-> index 0000000..d300807
-> --- /dev/null
-> +++ b/docs/sbom.cdx.json
-> @@ -0,0 +1,43 @@
-> +{
-> +  "bomFormat": "CycloneDX",
-> +  "specVersion": "1.6",
-> +  "version": 1,
-> +  "metadata": {
-> +    "authors": [
-> +      {
-> +        "name": "@VCS_SBOM_AUTHORS@"
+On Monday, 9 December 2024 at 15:46, Jessica Clarke <jrtc27@jrtc27.com> wrote:
+> What turns this template into the actual file? And surely this isn?t
+> the right templating for a list here? A set of authors is not a
+> singular author?s name.
 
-What turns this template into the actual file? And surely this isn?t
-the right templating for a list here? A set of authors is not a
-singular author?s name.
+Right, agreed. The way this works now is that we do a recursive clone of all the firmware components when building either EDK II or coreboot, and then we use a tool called uswid to "find" all the SBOM components and populate the tokenized values automatically. I've written a bit about it here: https://blogs.gnome.org/hughsie/2024/11/14/firmware-sboms-for-open-source-projects/
 
-Jess
+In the case of OpenSBI the finished component looks like this:
 
-> +      }
-> +    ]
-> +  },
-> +  "components": [
-> +    {
-> +      "type": "library",
-> +      "bom-ref": "pkg:github/riscv-software-src/opensbi@@VCS_TAG@",
-> +      "cpe": "cpe:2.3:a:riscv:opensbi:@VCS_TAG@:*:*:*:*:*:*:*",
-> +      "name": "OpenSBI",
-> +      "version": "@VCS_VERSION@",
-> +      "description": "Open Source Supervisor Binary Interface for RISC-V",
-> +      "authors": [
-> +        {
-> +          "name": "@VCS_AUTHORS@"
-> +        }
-> +      ],
-> +      "supplier": {
-> +        "name": "RISC-V Foundation"
-> +      },
-> +      "licenses": [
-> +        {
-> +          "license": {
-> +            "id": "BSD-2-Clause"
-> +          }
-> +        }
-> +      ],
-> +      "externalReferences": [
-> +        {
-> +          "type": "vcs",
-> +          "url": "https://github.com/riscv-software-src/opensbi"
-> +        }
-> +      ]
-> +    }
-> +  ]
-> +}
-> -- 
-> 2.47.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+    {
+      "type": "library",
+      "cpe": "cpe:2.3:a:riscv:opensbi:1.5.1:*:*:*:*:*:*:*",
+      "name": "OpenSBI",
+      "version": "1.5.1",
+      "description": "Open Source Supervisor Binary Interface for RISC-V",
+      "bom-ref": "pkg:github/riscv-software-src/opensbi at 1.5.1",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/riscv-software-src/opensbi"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "url": "https://spdx.org/licenses/BSD-2-Clause.html",
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "supplier": {
+        "name": "RISC-V Foundation"
+      },
+      "authors": [
+        {
+          "name": "Anup Patel, Atish Patra, Bin Meng, Samuel Holland, Xiang W, Damien Le Moal, Heinrich Schuchardt, Yu Chien Peter Lin, Himanshu Chauhan, Inochi Amaoto, Alistair Francis, Andrew Jones, Cl?ment L?ger, Mayuresh Chitale, Nikita Shubin, Vivian Wang, Rahul Pathak, Ivan Orlov, Lad Prabhakar, Jessica Clarke, Xiang Wang, Abner Chang, Ben Zong-You Xie, Guo Ren, Liu Yibin, Nylon Chen, Bo Gan, Dong Du, Olof Johansson, Daniel Schaefer, Jan Remes, Nam Cao, Nick Kossifidis"
+        }
+      ]
+    }
+
+Richard
 
 
