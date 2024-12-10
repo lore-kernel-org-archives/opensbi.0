@@ -1,71 +1,32 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 10 Dec 2024 10:47:50 +0530
-Subject: [PATCH 2/2] Makefile: Don't enable V-extension using -march option
-In-Reply-To: <F69C12E2-861F-4609-93ED-2D74CE5FC574@jrtc27.com>
-References: <20241210041647.397206-1-apatel@ventanamicro.com>
- <20241210041647.397206-3-apatel@ventanamicro.com> <F69C12E2-861F-4609-93ED-2D74CE5FC574@jrtc27.com>
-Message-ID: <CAAhSdy3JV_TSBT-D5mC-CsfH2GPdvRXAApVC_5j+e5qGVuo2Qw@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Tue, 10 Dec 2024 10:53:24 +0530
+Subject: [PATCH v2 0/2] OpenSBI LLVM related fixes
+Message-ID: <20241210052326.407237-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 10, 2024 at 10:38?AM Jessica Clarke <jrtc27@jrtc27.com> wrote:
->
-> On 10 Dec 2024, at 04:16, Anup Patel <apatel@ventanamicro.com> wrote:
-> >
-> > Enabling V-extension using -march option causes OpenSBI boot-time
-> > hang with LLVM compiler.
-> >
-> > As a work-around, don't enable V-extension using -march option and
-> > instead use a custom OpenSBI specific define inform availability of
-> > V-extension to lib/sbi/sbi_trap_v_ldst.c.
-> >
-> > Fixes: c2acc5e5b0d8 ("lib: sbi_misaligned_ldst: Add handling of vector load/store")
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > ---
-> > Makefile                  | 8 ++++----
-> > lib/sbi/sbi_trap_v_ldst.c | 5 +++--
-> > 2 files changed, 7 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/Makefile b/Makefile
-> > index 5ac95a0f..7e0a1399 100644
-> > --- a/Makefile
-> > +++ b/Makefile
-> > @@ -190,7 +190,7 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
-> > CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
-> >
-> > # Check whether the assembler and the compiler support the Vector extension
-> > -CC_SUPPORT_VECT := $(shell echo | $(CC) -dM -E -march=rv$(OPENSBI_CC_XLEN)gv - | grep -q riscv.*vector && echo y || echo n)
-> > +CC_SUPPORT_VECT := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)gv -dM -E -x c /dev/null 2>&1 | grep -q riscv.*vector && echo y || echo n)
-> >
-> > ifneq ($(OPENSBI_LD_PIE),y)
-> > $(error Your linker does not support creating PIEs, opensbi requires this.)
-> > @@ -298,9 +298,6 @@ endif
-> > ifndef PLATFORM_RISCV_ISA
-> >   ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> >     PLATFORM_RISCV_ISA := rv$(PLATFORM_RISCV_XLEN)imafdc
-> > -    ifeq ($(CC_SUPPORT_VECT), y)
-> > -      PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)v
-> > -    endif
-> >     ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
-> >       PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)_zicsr_zifencei
-> >     endif
-> > @@ -363,6 +360,9 @@ GENFLAGS += $(firmware-genflags-y)
-> > CFLAGS = -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
-> > CFLAGS += -fno-omit-frame-pointer -fno-optimize-sibling-calls
-> > # Optionally supported flags
-> > +ifeq ($(CC_SUPPORT_VECT),y)
-> > +CFLAGS += -DOPENSBI_CC_SUPPORT_VECT -fno-tree-vectorize
->
-> The latter isn?t needed now you don?t enable V. Clang ignores it, even,
-> it?s a flag that?s tied to GCC?s internals.
->
+This series does few LLVM related fixes encountered using
+"Ubuntu clang version 18.1.3 (1ubuntu1)".
 
-It's a left-over from an alternate patch which I was working on.
-I will drop this option in the next revision.
+These patches can also be found in the riscv_llvm_compile_fixes_v2
+branch at: https://github.com/avpatel/opensbi.git
 
-Regards,
-Anup
+Changes since v1:
+ - Removed -fno-tree-vectorize from PATCH2
+
+Anup Patel (2):
+  lib: utils/fdt_cppc_rpmi: Fix compile error with LLVM
+  Makefile: Don't enable V-extension using -march option
+
+ Makefile                       | 8 ++++----
+ lib/sbi/sbi_trap_v_ldst.c      | 5 +++--
+ lib/utils/cppc/fdt_cppc_rpmi.c | 7 +++++--
+ 3 files changed, 12 insertions(+), 8 deletions(-)
+
+-- 
+2.43.0
+
 
