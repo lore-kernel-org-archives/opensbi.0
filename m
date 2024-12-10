@@ -1,18 +1,19 @@
-From: Xiang W <wxjstz@126.com>
-Date: Tue, 10 Dec 2024 13:05:25 +0800
+From: Jessica Clarke <jrtc27@jrtc27.com>
+Date: Tue, 10 Dec 2024 05:08:17 +0000
 Subject: [PATCH 2/2] Makefile: Don't enable V-extension using -march
  option
 In-Reply-To: <20241210041647.397206-3-apatel@ventanamicro.com>
 References: <20241210041647.397206-1-apatel@ventanamicro.com>
-	 <20241210041647.397206-3-apatel@ventanamicro.com>
-Message-ID: <f667f172212d3b320c55b0816dfca07567be6887.camel@126.com>
+ <20241210041647.397206-3-apatel@ventanamicro.com>
+Message-ID: <F69C12E2-861F-4609-93ED-2D74CE5FC574@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-12-10?? 09:46 +0530?Anup Patel???
+On 10 Dec 2024, at 04:16, Anup Patel <apatel@ventanamicro.com> wrote:
+> 
 > Enabling V-extension using -march option causes OpenSBI boot-time
 > hang with LLVM compiler.
 > 
@@ -23,73 +24,43 @@ Content-Transfer-Encoding: 7bit
 > Fixes: c2acc5e5b0d8 ("lib: sbi_misaligned_ldst: Add handling of vector load/store")
 > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > ---
-> ?Makefile????????????????? | 8 ++++----
-> ?lib/sbi/sbi_trap_v_ldst.c | 5 +++--
-> ?2 files changed, 7 insertions(+), 6 deletions(-)
+> Makefile                  | 8 ++++----
+> lib/sbi/sbi_trap_v_ldst.c | 5 +++--
+> 2 files changed, 7 insertions(+), 6 deletions(-)
 > 
 > diff --git a/Makefile b/Makefile
 > index 5ac95a0f..7e0a1399 100644
 > --- a/Makefile
 > +++ b/Makefile
 > @@ -190,7 +190,7 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
-> ?CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c
-> /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
-> ?
-> ?# Check whether the assembler and the compiler support the Vector extension
+> CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
+> 
+> # Check whether the assembler and the compiler support the Vector extension
 > -CC_SUPPORT_VECT := $(shell echo | $(CC) -dM -E -march=rv$(OPENSBI_CC_XLEN)gv - | grep -q riscv.*vector && echo y || echo n)
-> +CC_SUPPORT_VECT := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)gv -dM -E -x c /dev/null 2>&1 | grep -q
-> riscv.*vector && echo y || echo n)
-> ?
-> ?ifneq ($(OPENSBI_LD_PIE),y)
-> ?$(error Your linker does not support creating PIEs, opensbi requires this.)
+> +CC_SUPPORT_VECT := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)gv -dM -E -x c /dev/null 2>&1 | grep -q riscv.*vector && echo y || echo n)
+> 
+> ifneq ($(OPENSBI_LD_PIE),y)
+> $(error Your linker does not support creating PIEs, opensbi requires this.)
 > @@ -298,9 +298,6 @@ endif
-> ?ifndef PLATFORM_RISCV_ISA
-> ?? ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> ???? PLATFORM_RISCV_ISA := rv$(PLATFORM_RISCV_XLEN)imafdc
-> -??? ifeq ($(CC_SUPPORT_VECT), y)
-> -????? PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)v
-> -??? endif
-> ???? ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
-> ?????? PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)_zicsr_zifencei
-> ???? endif
-> @@ -363,6 +360,9 @@ GENFLAGS	+=	$(firmware-genflags-y)
-> ?CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-
-> sections
-> ?CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
-> ?# Optionally supported flags
+> ifndef PLATFORM_RISCV_ISA
+>   ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
+>     PLATFORM_RISCV_ISA := rv$(PLATFORM_RISCV_XLEN)imafdc
+> -    ifeq ($(CC_SUPPORT_VECT), y)
+> -      PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)v
+> -    endif
+>     ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
+>       PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)_zicsr_zifencei
+>     endif
+> @@ -363,6 +360,9 @@ GENFLAGS += $(firmware-genflags-y)
+> CFLAGS = -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
+> CFLAGS += -fno-omit-frame-pointer -fno-optimize-sibling-calls
+> # Optionally supported flags
 > +ifeq ($(CC_SUPPORT_VECT),y)
-> +CFLAGS		+=	-DOPENSBI_CC_SUPPORT_VECT -fno-tree-vectorize
-> +endif
-Suggest adding an else branch to add $(warning) to indicate that the toolchain needs to be updated.
+> +CFLAGS += -DOPENSBI_CC_SUPPORT_VECT -fno-tree-vectorize
 
-Regards,
-Xiang W
-> ?ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> ?CFLAGS		+=	-mno-save-restore
-> ?endif
-> diff --git a/lib/sbi/sbi_trap_v_ldst.c b/lib/sbi/sbi_trap_v_ldst.c
-> index 9929215c..75b79baa 100644
-> --- a/lib/sbi/sbi_trap_v_ldst.c
-> +++ b/lib/sbi/sbi_trap_v_ldst.c
-> @@ -17,7 +17,8 @@
-> ?#include <sbi/sbi_unpriv.h>
-> ?#include <sbi/sbi_trap.h>
-> ?
-> -#ifdef __riscv_vector
-> +#ifdef OPENSBI_CC_SUPPORT_VECT
-> +
-> ?#define VLEN_MAX 65536
-> ?
-> ?static inline void set_vreg(ulong vlenb, ulong which,
-> @@ -340,4 +341,4 @@ int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
-> ?{
-> ?	return 0;
-> ?}
-> -#endif /* __riscv_vector? */
-> +#endif /* OPENSBI_CC_SUPPORT_VECT? */
-> -- 
-> 2.43.0
-> 
-> 
+The latter isn?t needed now you don?t enable V. Clang ignores it, even,
+it?s a flag that?s tied to GCC?s internals.
+
+Jess
 
 
