@@ -1,142 +1,196 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Tue, 10 Dec 2024 10:48:49 +0100
-Subject: [PATCH 1/3] lib: sbi: sse: Return a value from the register
- callback
-In-Reply-To: <2b795dc4-4a32-47d8-8b6e-c833b0a8f25f@rivosinc.com>
-References: <20241206205958.1055770-1-cleger@rivosinc.com>
- <20241206205958.1055770-2-cleger@rivosinc.com>
- <a4837a51-4cc1-43c0-8fc6-bd6baf53e7ae@sifive.com>
- <2b795dc4-4a32-47d8-8b6e-c833b0a8f25f@rivosinc.com>
-Message-ID: <a6cfd31d-369b-4c13-bff9-3effb3a4969a@rivosinc.com>
+Date: Tue, 10 Dec 2024 18:05:49 +0100
+Subject: [PATCH v2 1/4] lib: sbi: sse: return an error value from sse_event_get()
+In-Reply-To: <20241210170553.1034872-1-cleger@rivosinc.com>
+References: <20241210170553.1034872-1-cleger@rivosinc.com>
+Message-ID: <20241210170553.1034872-2-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Since event support will be checked in the next commits, return a value
+from sse_event_get() to allow propagating it. This will be used to
+report SBI_ERR_NOT_SUPPORTED when an event isn't supported.
 
+Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+---
+ lib/sbi/sbi_sse.c | 69 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 35 insertions(+), 34 deletions(-)
 
-On 10/12/2024 10:29, Cl?ment L?ger wrote:
-> 
-> 
-> On 09/12/2024 21:04, Samuel Holland wrote:
->> Hi Cl?ment,
->>
->> On 2024-12-06 2:59 PM, Cl?ment L?ger wrote:
->>> Some events might not be available to registration due to missing
->>> dependencies (ISA extensions for instance). Return an 'int' from the
->>> register_cb() callback so that this can be handled.
->>>
->>> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->>> ---
->>>  include/sbi/sbi_sse.h |  2 +-
->>>  lib/sbi/sbi_sse.c     | 16 ++++++++++++++--
->>>  2 files changed, 15 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
->>> index 7419698a..58bd2ae0 100644
->>> --- a/include/sbi/sbi_sse.h
->>> +++ b/include/sbi/sbi_sse.h
->>> @@ -36,7 +36,7 @@ struct sbi_sse_cb_ops {
->>>  	/**
->>>  	 * Called when the SBI_EXT_SSE_REGISTER is invoked on the event.
->>>  	 */
->>> -	void (*register_cb)(uint32_t event_id);
->>> +	int (*register_cb)(uint32_t event_id);
->>>  
->>>  	/**
->>>  	 * Called when the SBI_EXT_SSE_UNREGISTER is invoked on the event.
->>> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
->>> index bf5620e8..5679c26f 100644
->>> --- a/lib/sbi/sbi_sse.c
->>> +++ b/lib/sbi/sbi_sse.c
->>> @@ -50,6 +50,15 @@ static const uint32_t supported_events[] = {
->>>  
->>>  #define EVENT_COUNT array_size(supported_events)
->>>  
->>> +#define sse_event_invoke_cb_ret(_event, _cb, ...)                             \
->>> +	({                                                                    \
->>> +		int __ret = 0;                                                \
->>> +		if (_event->cb_ops && _event->cb_ops->_cb)                    \
->>
->> Shouldn't registration fail (except for the explicit "software injected" events)
->> if no callback ops are registered (i.e. _event->cb_ops is NULL)? Right now
->> OpenSBI has no support to generate RAS events, so those have no callback ops,
->> but S-mode can still register and inject them.
-> 
-> If registration fails, this would make the testing the "blank" SSE
-> implementation more difficult to test (particularly priority handling)
-> since only the global and local software injectable events would be
-> available. But that is still possible. I mean, the spec does not say
-> anything about that so we might assume whatever we want.
-> 
->>
->> Should we require callback ops to expose a SSE event? Should we remove an event
->> ID from `supported_events` if the corresponding driver is not compiled in?
-
-Woops, forgot to answer that as well.
-
-I guess you are actually right, exposing the event without being
-actually able to handle them is probably wrong. This means some driver
-would be able to request them but fails to receive any event. With the
-addition of SBI_ERR_NOT_SUPPORTED return value, we'll be able to handle
-that properly so I think we will go that way of refuse register for
-events that do not have a register_cb() callback.
-
-Thanks,
-
-Cl?ment
-
-
->>
->>> +			__ret = _event->cb_ops->_cb(_event->event_id,         \
->>> +						   ##__VA_ARGS__);            \
->>> +		__ret;							      \
->>> +	})
->>> +
->>>  #define sse_event_invoke_cb(_event, _cb, ...)                                 \
->>>  	{                                                                     \
->>>  		if (_event->cb_ops && _event->cb_ops->_cb)                    \
->>> @@ -423,16 +432,19 @@ static int sse_event_register(struct sbi_sse_event *e,
->>>  			      unsigned long handler_entry_pc,
->>>  			      unsigned long handler_entry_arg)
->>>  {
->>> +	int ret;
->>
->> minor: blank line needed here.
-> 
-> Yes sure, I'll add it.
-> 
-> Thanks,
-> 
-> Cl?ment
-> 
->>
->> Since the issue described above is an existing issue:
->>
->> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
->>
->> Regards,
->> Samuel
->>
->>>  	if (sse_event_state(e) != SBI_SSE_STATE_UNUSED)
->>>  		return SBI_EINVALID_STATE;
->>>  
->>> +	ret = sse_event_invoke_cb_ret(e, register_cb);
->>> +	if (ret)
->>> +		return ret;
->>> +
->>>  	e->attrs.entry.pc = handler_entry_pc;
->>>  	e->attrs.entry.arg = handler_entry_arg;
->>>  
->>>  	sse_event_set_state(e, SBI_SSE_STATE_REGISTERED);
->>>  
->>> -	sse_event_invoke_cb(e, register_cb);
->>> -
->>>  	return 0;
->>>  }
->>>  
->>
-> 
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index c9f9a9dd..ed07844a 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -244,7 +244,7 @@ static void sse_event_set_state(struct sbi_sse_event *e,
+ 	e->attrs.status |= new_state;
+ }
+ 
+-static struct sbi_sse_event *sse_event_get(uint32_t event_id)
++static int sse_event_get(uint32_t event_id, struct sbi_sse_event **eret)
+ {
+ 	unsigned int i;
+ 	struct sbi_sse_event *e;
+@@ -255,19 +255,22 @@ static struct sbi_sse_event *sse_event_get(uint32_t event_id)
+ 			e = &global_events[i].event;
+ 			if (e->event_id == event_id) {
+ 				spin_lock(&global_events[i].lock);
+-				return e;
++				*eret = e;
++				return SBI_SUCCESS;
+ 			}
+ 		}
+ 	} else {
+ 		shs = sse_thishart_state_ptr();
+ 		for (i = 0; i < local_event_count; i++) {
+ 			e = &shs->local_events[i];
+-			if (e->event_id == event_id)
+-				return e;
++			if (e->event_id == event_id) {
++				*eret = e;
++				return SBI_SUCCESS;
++			}
+ 		}
+ 	}
+ 
+-	return NULL;
++	return SBI_EINVAL;
+ }
+ 
+ static void sse_event_put(struct sbi_sse_event *e)
+@@ -653,8 +656,7 @@ static void sse_ipi_inject_process(struct sbi_scratch *scratch)
+ 
+ 	/* Mark all queued events as pending */
+ 	while (!sbi_fifo_dequeue(sse_inject_fifo_r, &evt)) {
+-		e = sse_event_get(evt.event_id);
+-		if (!e)
++		if (sse_event_get(evt.event_id, &e))
+ 			continue;
+ 
+ 		sse_event_set_pending(e);
+@@ -696,10 +698,9 @@ static int sse_inject_event(uint32_t event_id, unsigned long hartid)
+ 	int ret;
+ 	struct sbi_sse_event *e;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
+-
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	/* In case of global event, provided hart_id is ignored */
+ 	if (sse_event_is_global(e))
+@@ -788,9 +789,9 @@ int sbi_sse_enable(uint32_t event_id)
+ 	int ret;
+ 	struct sbi_sse_event *e;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	sse_enabled_event_lock(e);
+ 	ret = sse_event_enable(e);
+@@ -805,9 +806,9 @@ int sbi_sse_disable(uint32_t event_id)
+ 	int ret;
+ 	struct sbi_sse_event *e;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	sse_enabled_event_lock(e);
+ 	ret = sse_event_disable(e);
+@@ -865,14 +866,15 @@ int sbi_sse_inject_event(uint32_t event_id)
+ 
+ int sbi_sse_set_cb_ops(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+ {
++	int ret;
+ 	struct sbi_sse_event *e;
+ 
+ 	if (cb_ops->set_hartid_cb && !EVENT_IS_GLOBAL(event_id))
+ 		return SBI_EINVAL;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	e->cb_ops = cb_ops;
+ 	sse_event_put(e);
+@@ -943,9 +945,9 @@ int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
+ 	if (ret)
+ 		return ret;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	sbi_hart_map_saddr(output_phys_lo, sizeof(unsigned long) * attr_count);
+ 
+@@ -1008,9 +1010,9 @@ int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+ 	if (ret)
+ 		return ret;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	ret = sse_write_attrs(e, base_attr_id, attr_count, input_phys_lo);
+ 	sse_event_put(e);
+@@ -1033,9 +1035,9 @@ int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
+ 					 SBI_DOMAIN_EXECUTE))
+ 		return SBI_EINVALID_ADDR;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	ret = sse_event_register(e, handler_entry_pc, handler_entry_arg);
+ 	sse_event_put(e);
+@@ -1048,9 +1050,9 @@ int sbi_sse_unregister(uint32_t event_id)
+ 	int ret;
+ 	struct sbi_sse_event *e;
+ 
+-	e = sse_event_get(event_id);
+-	if (!e)
+-		return SBI_EINVAL;
++	ret = sse_event_get(event_id, &e);
++	if (ret)
++		return ret;
+ 
+ 	ret = sse_event_unregister(e);
+ 	sse_event_put(e);
+@@ -1192,8 +1194,7 @@ void sbi_sse_exit(struct sbi_scratch *scratch)
+ 	struct sbi_sse_event *e;
+ 
+ 	for (i = 0; i < EVENT_COUNT; i++) {
+-		e = sse_event_get(supported_events[i]);
+-		if (!e)
++		if (sse_event_get(supported_events[i], &e))
+ 			continue;
+ 
+ 		if (e->attrs.hartid != current_hartid())
+-- 
+2.45.2
 
 
