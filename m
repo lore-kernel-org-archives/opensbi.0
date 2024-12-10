@@ -1,12 +1,11 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Tue, 10 Dec 2024 10:12:20 +0100
-Subject: [PATCH 3/3] lib: sbi: pmu: Set a SSE register_cb() for event
- availability
-In-Reply-To: <b35d0465-6968-41c6-ab6f-a03b98b31307@sifive.com>
+Date: Tue, 10 Dec 2024 10:23:37 +0100
+Subject: [PATCH 2/3] lib: sbi: sse: Disable injection if callbacks are set
+In-Reply-To: <CAHBxVyHWPQHwp89bMmi5F7DmVb0n+B1OfRVZ1sQLCxm5kvB7qw@mail.gmail.com>
 References: <20241206205958.1055770-1-cleger@rivosinc.com>
- <20241206205958.1055770-4-cleger@rivosinc.com>
- <b35d0465-6968-41c6-ab6f-a03b98b31307@sifive.com>
-Message-ID: <e1378f38-d8e0-4009-a6f1-de28574e1b4c@rivosinc.com>
+ <20241206205958.1055770-3-cleger@rivosinc.com>
+ <CAHBxVyHWPQHwp89bMmi5F7DmVb0n+B1OfRVZ1sQLCxm5kvB7qw@mail.gmail.com>
+Message-ID: <c904b724-c115-48d9-8605-9c819500f0c0@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -15,58 +14,46 @@ Content-Transfer-Encoding: 7bit
 
 
 
-On 09/12/2024 21:07, Samuel Holland wrote:
-> On 2024-12-06 2:59 PM, Cl?ment L?ger wrote:
->> Since the SSE event can work only when the LCOFIP interrupt is available,
->> check for the Sscofpmf extension to be available in the SSE register
->> callback.
+On 09/12/2024 19:46, Atish Kumar Patra wrote:
+> On Fri, Dec 6, 2024 at 1:00?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>>
+>> Once a 'driver' as registered callback for an event, disable event
+>> injection for that event to avoid messing up with the driver.
+>>
 > 
-> Is this a hard limitation, or could the driver be made to work whenever
-> sbi_pmu_irq_bit() returns a valid bit?
+> Why ? To avoid DoS type attacks ?
+> 
+> Otherwise, I think inject is useful to test/debug the driver without
+> actually triggering the hardware events which can generate the SSE.
 
-Hi Samuel,
-
-I guess you are right since that should also work for the ANDES platform
-that have a PMU IRQ but does not support SSCOFPMF. So it would be better
-to actually use sbi_pmu_irq_bit().
-
-Thanks !
+Yeah, this is not strictly necessary, but that does not seemed right to
+me to allow generating event without any real reason. This can be
+dropped if needed.
 
 Cl?ment
 
 > 
-> Since this accurately reflects the current implementation:
-> 
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-> 
 >> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 >> ---
->>  lib/sbi/sbi_pmu.c | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
+>>  lib/sbi/sbi_sse.c | 3 +++
+>>  1 file changed, 3 insertions(+)
 >>
->> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
->> index 0696ab5e..0851abad 100644
->> --- a/lib/sbi/sbi_pmu.c
->> +++ b/lib/sbi/sbi_pmu.c
->> @@ -1110,7 +1110,18 @@ static void pmu_sse_complete(uint32_t event_id)
->>  	csr_set(CSR_MIE, MIP_LCOFIP);
->>  }
->>  
->> +static int pmu_sse_register(uint32_t event_id)
->> +{
->> +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+>> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+>> index 5679c26f..f9340381 100644
+>> --- a/lib/sbi/sbi_sse.c
+>> +++ b/lib/sbi/sbi_sse.c
+>> @@ -887,6 +887,9 @@ int sbi_sse_set_cb_ops(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+>>                 return SBI_EINVAL;
+>>
+>>         e->cb_ops = cb_ops;
+>> +       /* Do not mess with events that are handled by drivers */
+>> +       e->attrs.status &= ~BIT(SBI_SSE_ATTR_STATUS_INJECT_OFFSET);
 >> +
->> +	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
->> +		return SBI_ERR_FAILED;
->> +
->> +	return SBI_SUCCESS;
->> +}
->> +
->>  static const struct sbi_sse_cb_ops pmu_sse_cb_ops = {
->> +	.register_cb = pmu_sse_register,
->>  	.enable_cb = pmu_sse_enable,
->>  	.disable_cb = pmu_sse_disable,
->>  	.complete_cb = pmu_sse_complete,
-> 
+>>         sse_event_put(e);
+>>
+>>         return SBI_OK;
+>> --
+>> 2.45.2
+>>
 
 
