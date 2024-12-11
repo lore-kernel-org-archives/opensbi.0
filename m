@@ -1,145 +1,118 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 11 Dec 2024 11:25:49 +0800
-Subject: [PATCH 2/2] Makefile: Don't enable V-extension using -march
- option
-In-Reply-To: <0CDA85D6-F9BE-406D-B570-F967181B0F25@jrtc27.com>
-References: <20241210041647.397206-1-apatel@ventanamicro.com>
-	 <20241210041647.397206-3-apatel@ventanamicro.com>
-	 <f667f172212d3b320c55b0816dfca07567be6887.camel@126.com>
-	 <CAAhSdy3YH42=4WH7ykXbRpvw+JcmfsOspKTisQJ9W9DfYg9maQ@mail.gmail.com>
-	 <e91493bce6cd7c198238e6c7117ead3309bee094.camel@126.com>
-	 <0CDA85D6-F9BE-406D-B570-F967181B0F25@jrtc27.com>
-Message-ID: <524ec1f47a8421cb0013631b22488974fa2a0032.camel@126.com>
+Date: Wed, 11 Dec 2024 17:59:44 +0800
+Subject: [PATCH v2 1/2] lib: utils/fdt_cppc_rpmi: Fix compile error with
+ LLVM
+In-Reply-To: <20241210052326.407237-2-apatel@ventanamicro.com>
+References: <20241210052326.407237-1-apatel@ventanamicro.com>
+	 <20241210052326.407237-2-apatel@ventanamicro.com>
+Message-ID: <0a1fc5683a0fbb1d55f82beac22881a1ca6cefdf.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-12-11?? 02:58 +0000?Jessica Clarke???
-> On 11 Dec 2024, at 02:41, Xiang W <wxjstz@126.com> wrote:
-> > 
-> > ? 2024-12-10?? 10:46 +0530?Anup Patel???
-> > > On Tue, Dec 10, 2024 at 10:35?AM Xiang W <wxjstz@126.com> wrote:
-> > > > 
-> > > > ? 2024-12-10?? 09:46 +0530?Anup Patel???
-> > > > > Enabling V-extension using -march option causes OpenSBI boot-time
-> > > > > hang with LLVM compiler.
-> > > > > 
-> > > > > As a work-around, don't enable V-extension using -march option and
-> > > > > instead use a custom OpenSBI specific define inform availability of
-> > > > > V-extension to lib/sbi/sbi_trap_v_ldst.c.
-> > > > > 
-> > > > > Fixes: c2acc5e5b0d8 ("lib: sbi_misaligned_ldst: Add handling of vector load/store")
-> > > > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > > > > ---
-> > > > > ?Makefile????????????????? | 8 ++++----
-> > > > > ?lib/sbi/sbi_trap_v_ldst.c | 5 +++--
-> > > > > ?2 files changed, 7 insertions(+), 6 deletions(-)
-> > > > > 
-> > > > > diff --git a/Makefile b/Makefile
-> > > > > index 5ac95a0f..7e0a1399 100644
-> > > > > --- a/Makefile
-> > > > > +++ b/Makefile
-> > > > > @@ -190,7 +190,7 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
-> > > > > ?CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x
-> > > > > c
-> > > > > /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
-> > > > > 
-> > > > > ?# Check whether the assembler and the compiler support the Vector extension
-> > > > > -CC_SUPPORT_VECT := $(shell echo | $(CC) -dM -E -march=rv$(OPENSBI_CC_XLEN)gv - | grep -q riscv.*vector && echo y || echo n)
-> > > > > +CC_SUPPORT_VECT := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)gv -dM -E -x c /dev/null 2>&1 |
-> > > > > grep
-> > > > > -q
-> > > > > riscv.*vector && echo y || echo n)
-> > > > > 
-> > > > > ?ifneq ($(OPENSBI_LD_PIE),y)
-> > > > > ?$(error Your linker does not support creating PIEs, opensbi requires this.)
-> > > > > @@ -298,9 +298,6 @@ endif
-> > > > > ?ifndef PLATFORM_RISCV_ISA
-> > > > > ?? ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> > > > > ???? PLATFORM_RISCV_ISA := rv$(PLATFORM_RISCV_XLEN)imafdc
-> > > > > -??? ifeq ($(CC_SUPPORT_VECT), y)
-> > > > > -????? PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)v
-> > > > > -??? endif
-> > > > > ???? ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
-> > > > > ?????? PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)_zicsr_zifencei
-> > > > > ???? endif
-> > > > > @@ -363,6 +360,9 @@ GENFLAGS? +=????? $(firmware-genflags-y)
-> > > > > ?CFLAGS?????????????? =?????? -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections
-> > > > > -
-> > > > > fdata-
-> > > > > sections
-> > > > > ?CFLAGS?????????????? +=????? -fno-omit-frame-pointer -fno-optimize-sibling-calls
-> > > > > ?# Optionally supported flags
-> > > > > +ifeq ($(CC_SUPPORT_VECT),y)
-> > > > > +CFLAGS?????????????? +=????? -DOPENSBI_CC_SUPPORT_VECT -fno-tree-vectorize
-> > > > > +endif
-> > > > Suggest adding an else branch to add $(warning) to indicate that the toolchain needs to be updated.
-> > > 
-> > > I don't think such a warning is needed. The Linux kernel also does not
-> > > warn about it.
-> > If the warning is not added to the makefile, it can only be used to generateOPENSBI_CC_SUPPORT_VECT macros in place of the __riscv_vector
-> > macros, which
-> > only adds to the complexity. It is recommended to remove the detection of the
-> > v extension from the makefile and revert to using __riscv_vector in 
-> > sbi_trap_v_ldst.c.
+? 2024-12-10?? 10:53 +0530?Anup Patel???
+> The following error is observed when compiling fdt_cppc_rpmi
+> driver using LLVM:
 > 
-> Without V enabled you won?t get __riscv_vector defined. Enabling V
-> outside of code that?s explicitly expecting to use vectors is wrong, as
-> discussed before. Defining __riscv_vector manually would also be wrong,
-> and could break compiler headers. The only correct approach is to have
-> a different macro defined, with V not in the default -march.
+> lib/utils/cppc/fdt_cppc_rpmi.c:87:3: error: label followed by a declaration is a C23 extension [-Werror,-Wc23-extensions]
+> ?? 87 |???????????????? u64 db_val_u64 = 0;
 > 
-Thank for the reply
+> To fix the above issue, move the variable declaration at the
+> start of function.
+> 
+> Fixes: 591a98bdd549 ("lib: utils/cppc: Add RPMI CPPC driver")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+> ?lib/utils/cppc/fdt_cppc_rpmi.c | 7 +++++--
+> ?1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
+> index 26e2d4f6..b6789901 100644
+> --- a/lib/utils/cppc/fdt_cppc_rpmi.c
+> +++ b/lib/utils/cppc/fdt_cppc_rpmi.c
+> @@ -59,6 +59,11 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
+> ?	u8 db_val_u8 = 0;
+> ?	u16 db_val_u16 = 0;
+> ?	u32 db_val_u32 = 0;
+> +#if __riscv_xlen != 32
+> +	u64 db_val_u64 = 0;
+> +#else
+> +	u32 db_val_u32_hi = 0;
+> +#endif
+> ?
+> ?	switch (cppc->fc_db_width) {
+> ?	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_8:
+> @@ -84,14 +89,12 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
+> ?		break;
+> ?	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_64:
+> ?#if __riscv_xlen != 32
+> -		u64 db_val_u64 = 0;
+> ?		db_val_u64 = readq((void *)cppc->fc_db_addr);
+> ?		db_val_u64 = cppc->fc_db_setmask |
+> ?				(db_val_u64 & cppc->fc_db_preservemask);
+> ?
+> ?		writeq(db_val_u64, (void *)cppc->fc_db_addr);
+> ?#else
+> -		u32 db_val_u32_hi = 0;
+> ?		db_val_u32 = readl((void *)cppc->fc_db_addr);
+> ?		db_val_u32_hi = readl((void *)(cppc->fc_db_addr + 4));
+> ?
+> -- 
+> 2.43.0
+> 
+> 
+
+We may be able to remove db_val_u32_hi. as follows
 
 Regards,
 Xiang W
-> Jess
-> 
-> > Xiang W
-> > > 
-> > > Regards,
-> > > Anup
-> > > 
-> > > > 
-> > > > Regards,
-> > > > Xiang W
-> > > > > ?ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> > > > > ?CFLAGS?????????????? +=????? -mno-save-restore
-> > > > > ?endif
-> > > > > diff --git a/lib/sbi/sbi_trap_v_ldst.c b/lib/sbi/sbi_trap_v_ldst.c
-> > > > > index 9929215c..75b79baa 100644
-> > > > > --- a/lib/sbi/sbi_trap_v_ldst.c
-> > > > > +++ b/lib/sbi/sbi_trap_v_ldst.c
-> > > > > @@ -17,7 +17,8 @@
-> > > > > ?#include <sbi/sbi_unpriv.h>
-> > > > > ?#include <sbi/sbi_trap.h>
-> > > > > 
-> > > > > -#ifdef __riscv_vector
-> > > > > +#ifdef OPENSBI_CC_SUPPORT_VECT
-> > > > > +
-> > > > > ?#define VLEN_MAX 65536
-> > > > > 
-> > > > > ?static inline void set_vreg(ulong vlenb, ulong which,
-> > > > > @@ -340,4 +341,4 @@ int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
-> > > > > ?{
-> > > > > ????? return 0;
-> > > > > ?}
-> > > > > -#endif /* __riscv_vector? */
-> > > > > +#endif /* OPENSBI_CC_SUPPORT_VECT? */
-> > > > > --
-> > > > > 2.43.0
-> > > > > 
-> > > > > 
-> > > > 
-> > 
-> > 
-> > 
-> > -- 
-> > opensbi mailing list
-> > opensbi at lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/opensbi
-> 
+
+diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
+index 26e2d4f6..f1f757ff 100644
+--- a/lib/utils/cppc/fdt_cppc_rpmi.c
++++ b/lib/utils/cppc/fdt_cppc_rpmi.c
+@@ -59,6 +59,7 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
+ 	u8 db_val_u8 = 0;
+ 	u16 db_val_u16 = 0;
+ 	u32 db_val_u32 = 0;
++	u64 db_val_u64 = 0;
+ 
+ 	switch (cppc->fc_db_width) {
+ 	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_8:
+@@ -84,24 +85,20 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
+ 		break;
+ 	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_64:
+ #if __riscv_xlen != 32
+-		u64 db_val_u64 = 0;
+ 		db_val_u64 = readq((void *)cppc->fc_db_addr);
+ 		db_val_u64 = cppc->fc_db_setmask |
+ 				(db_val_u64 & cppc->fc_db_preservemask);
+ 
+ 		writeq(db_val_u64, (void *)cppc->fc_db_addr);
+ #else
+-		u32 db_val_u32_hi = 0;
+-		db_val_u32 = readl((void *)cppc->fc_db_addr);
+-		db_val_u32_hi = readl((void *)(cppc->fc_db_addr + 4));
+-
+-		db_val_u32 = (u32)cppc->fc_db_setmask |
+-				(db_val_u32 & (u32)cppc->fc_db_preservemask);
+-		db_val_u32_hi = (u32)(cppc->fc_db_setmask >> 32) |
+-				(db_val_u32 & (u32)(cppc->fc_db_preservemask >> 32));
++		db_val_u64 = readl((void *)(cppc->fc_db_addr + 4));
++		db_val_u64 <<= 32;
++		db_val_u64 |= readl((void *)cppc->fc_db_addr);
++		db_val_u64 = cppc->fc_db_setmask |
++				(db_val_u64 & cppc->fc_db_preservemask);
+ 
+-		writel(db_val_u32, (void *)cppc->fc_db_addr);
+-		writel(db_val_u32_hi, (void *)(cppc->fc_db_addr + 4));
++		writel(db_val_u64, (void *)cppc->fc_db_addr);
++		writel(db_val_u64 >> 32, (void *)(cppc->fc_db_addr + 4));
+ #endif
+ 		break;
+ 	default:
+
 
 
