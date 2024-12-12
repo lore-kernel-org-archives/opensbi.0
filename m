@@ -1,118 +1,72 @@
 From: Xiang W <wxjstz@126.com>
-Date: Wed, 11 Dec 2024 17:59:44 +0800
-Subject: [PATCH v2 1/2] lib: utils/fdt_cppc_rpmi: Fix compile error with
- LLVM
-In-Reply-To: <20241210052326.407237-2-apatel@ventanamicro.com>
-References: <20241210052326.407237-1-apatel@ventanamicro.com>
-	 <20241210052326.407237-2-apatel@ventanamicro.com>
-Message-ID: <0a1fc5683a0fbb1d55f82beac22881a1ca6cefdf.camel@126.com>
+Date: Thu, 12 Dec 2024 08:48:34 +0800
+Subject: [PATCH 1/2] lib: utils/serial: Cleanup int vs bool in
+ semihosting_init() definitions
+In-Reply-To: <20241204055452.652401-1-michaelneuling@tenstorrent.com>
+References: <20241204055452.652401-1-michaelneuling@tenstorrent.com>
+Message-ID: <cad597ce46ce89e599689966f7a2f5ec35366774.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2024-12-10?? 10:53 +0530?Anup Patel???
-> The following error is observed when compiling fdt_cppc_rpmi
-> driver using LLVM:
+? 2024-12-04?? 05:54 +0000?Michael Neuling???
+> These are inconsistent. This is also needed for a future patches to
+> enable C23 language dialect.
 > 
-> lib/utils/cppc/fdt_cppc_rpmi.c:87:3: error: label followed by a declaration is a C23 extension [-Werror,-Wc23-extensions]
-> ?? 87 |???????????????? u64 db_val_u64 = 0;
-> 
-> To fix the above issue, move the variable declaration at the
-> start of function.
-> 
-> Fixes: 591a98bdd549 ("lib: utils/cppc: Add RPMI CPPC driver")
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Michael Neuling <michaelneuling@tenstorrent.com>
 > ---
-> ?lib/utils/cppc/fdt_cppc_rpmi.c | 7 +++++--
-> ?1 file changed, 5 insertions(+), 2 deletions(-)
+> ?include/sbi_utils/serial/semihosting.h | 8 ++++----
+> ?lib/utils/serial/semihosting.c???????? | 4 ++--
+> ?2 files changed, 6 insertions(+), 6 deletions(-)
 > 
-> diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
-> index 26e2d4f6..b6789901 100644
-> --- a/lib/utils/cppc/fdt_cppc_rpmi.c
-> +++ b/lib/utils/cppc/fdt_cppc_rpmi.c
-> @@ -59,6 +59,11 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
-> ?	u8 db_val_u8 = 0;
-> ?	u16 db_val_u16 = 0;
-> ?	u32 db_val_u32 = 0;
-> +#if __riscv_xlen != 32
-> +	u64 db_val_u64 = 0;
-> +#else
-> +	u32 db_val_u32_hi = 0;
-> +#endif
+> diff --git a/include/sbi_utils/serial/semihosting.h b/include/sbi_utils/serial/semihosting.h
+> index 8cc4a86c3a..0ef20cc2e4 100644
+> --- a/include/sbi_utils/serial/semihosting.h
+> +++ b/include/sbi_utils/serial/semihosting.h
+> @@ -37,11 +37,11 @@ enum semihosting_open_mode {
+> ?};
 > ?
-> ?	switch (cppc->fc_db_width) {
-> ?	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_8:
-> @@ -84,14 +89,12 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
-> ?		break;
-> ?	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_64:
-> ?#if __riscv_xlen != 32
-> -		u64 db_val_u64 = 0;
-> ?		db_val_u64 = readq((void *)cppc->fc_db_addr);
-> ?		db_val_u64 = cppc->fc_db_setmask |
-> ?				(db_val_u64 & cppc->fc_db_preservemask);
-> ?
-> ?		writeq(db_val_u64, (void *)cppc->fc_db_addr);
+> ?#ifdef CONFIG_SERIAL_SEMIHOSTING
+> -int semihosting_init(void);
+> -int semihosting_enabled(void);
+> +bool semihosting_init(void);
+> +bool semihosting_enabled(void);
 > ?#else
-> -		u32 db_val_u32_hi = 0;
-> ?		db_val_u32 = readl((void *)cppc->fc_db_addr);
-> ?		db_val_u32_hi = readl((void *)(cppc->fc_db_addr + 4));
-> ?
-> -- 
-> 2.43.0
-> 
-> 
-
-We may be able to remove db_val_u32_hi. as follows
+> -static inline int semihosting_init(void) { return SBI_ENODEV; }
+> -static inline int semihosting_enabled(void) { return 0; }
+> +static inline bool semihosting_init(void) { return SBI_ENODEV; }
+> +static inline bool semihosting_enabled(void) { return 0; }
+The bool type should return true or false.
 
 Regards,
 Xiang W
-
-diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
-index 26e2d4f6..f1f757ff 100644
---- a/lib/utils/cppc/fdt_cppc_rpmi.c
-+++ b/lib/utils/cppc/fdt_cppc_rpmi.c
-@@ -59,6 +59,7 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
- 	u8 db_val_u8 = 0;
- 	u16 db_val_u16 = 0;
- 	u32 db_val_u32 = 0;
-+	u64 db_val_u64 = 0;
- 
- 	switch (cppc->fc_db_width) {
- 	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_8:
-@@ -84,24 +85,20 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
- 		break;
- 	case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_64:
- #if __riscv_xlen != 32
--		u64 db_val_u64 = 0;
- 		db_val_u64 = readq((void *)cppc->fc_db_addr);
- 		db_val_u64 = cppc->fc_db_setmask |
- 				(db_val_u64 & cppc->fc_db_preservemask);
- 
- 		writeq(db_val_u64, (void *)cppc->fc_db_addr);
- #else
--		u32 db_val_u32_hi = 0;
--		db_val_u32 = readl((void *)cppc->fc_db_addr);
--		db_val_u32_hi = readl((void *)(cppc->fc_db_addr + 4));
--
--		db_val_u32 = (u32)cppc->fc_db_setmask |
--				(db_val_u32 & (u32)cppc->fc_db_preservemask);
--		db_val_u32_hi = (u32)(cppc->fc_db_setmask >> 32) |
--				(db_val_u32 & (u32)(cppc->fc_db_preservemask >> 32));
-+		db_val_u64 = readl((void *)(cppc->fc_db_addr + 4));
-+		db_val_u64 <<= 32;
-+		db_val_u64 |= readl((void *)cppc->fc_db_addr);
-+		db_val_u64 = cppc->fc_db_setmask |
-+				(db_val_u64 & cppc->fc_db_preservemask);
- 
--		writel(db_val_u32, (void *)cppc->fc_db_addr);
--		writel(db_val_u32_hi, (void *)(cppc->fc_db_addr + 4));
-+		writel(db_val_u64, (void *)cppc->fc_db_addr);
-+		writel(db_val_u64 >> 32, (void *)(cppc->fc_db_addr + 4));
- #endif
- 		break;
- 	default:
-
+> ?#endif
+> ?
+> ?#endif
+> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
+> index 19ebaa07e3..320a5834d6 100644
+> --- a/lib/utils/serial/semihosting.c
+> +++ b/lib/utils/serial/semihosting.c
+> @@ -198,12 +198,12 @@ static struct sbi_console_device semihosting_console = {
+> ?	.console_getc = semihosting_getc
+> ?};
+> ?
+> -int semihosting_init(void)
+> +bool semihosting_init(void)
+> ?{
+> ?	semihosting_infd = semihosting_open(":tt", MODE_READ);
+> ?	semihosting_outfd = semihosting_open(":tt", MODE_WRITE);
+> ?
+> ?	sbi_console_set_device(&semihosting_console);
+> ?
+> -	return 0;
+> +	return false;
+> ?}
+> -- 
+> 2.34.1
+> 
+> 
 
 
