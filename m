@@ -1,92 +1,59 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Thu, 12 Dec 2024 09:27:19 +0100
-Subject: [PATCH v2 3/4] lib: sbi: sse: add a is_supported_cb() callback
-In-Reply-To: <0754e304-2f4d-4370-b70b-f15210934a6c@sifive.com>
-References: <20241210170553.1034872-1-cleger@rivosinc.com>
- <20241210170553.1034872-4-cleger@rivosinc.com>
- <0754e304-2f4d-4370-b70b-f15210934a6c@sifive.com>
-Message-ID: <0b6f3b50-5a89-49b4-887c-b33577e5e13e@rivosinc.com>
+Date: Thu, 12 Dec 2024 21:34:16 +0100
+Subject: [PATCH v3 0/5] lib: sbi: sse: rework event availability
+Message-ID: <20241212203422.1887665-1-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+While reworking the Linux SSE support, it appears that the PMU event
+should not be available if the SSCOFPMF extension is not available since
+there would be no IRQ. A request to modify the specification has been
+send in order to add the possibility to return SBI_ENOTSUPP (see [1]).
+This small series modifies the SSE core to detect event support at boot
+time using a new callback and return SBI_ENOTSUPP if needed.
 
+Link: https://lists.riscv.org/g/tech-prs/message/1123 [1]
 
-On 10/12/2024 19:45, Samuel Holland wrote:
-> Hi Cl?ment,
-> 
-> On 2024-12-10 11:05 AM, Cl?ment L?ger wrote:
->> This callback will be used to expose the availability of events based on
->> the presence of the dependencies (PMU Overflow IRQ for the PMU Overflow
->> SSE event for instance). Drivers that want to handle an SSE event will
->> need to register callbacks for the SSE event with at least the
->> is_supported_cb() callback implemented. Now that this callback is
->> implemented, set all non software events as not supported by default.
->>
->> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->> ---
->>  include/sbi/sbi_sse.h |  5 +++++
->>  lib/sbi/sbi_sse.c     | 11 +++++++----
->>  2 files changed, 12 insertions(+), 4 deletions(-)
->>
->> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
->> index 7419698a..1eab4f8b 100644
->> --- a/include/sbi/sbi_sse.h
->> +++ b/include/sbi/sbi_sse.h
->> @@ -52,6 +52,11 @@ struct sbi_sse_cb_ops {
->>  	 * Called when the SBI_EXT_SSE_DISABLE is invoked on the event.
->>  	 */
->>  	void (*disable_cb)(uint32_t event_id);
->> +
->> +	/**
->> +	 * Called at init to check if an event is supported.
->> +	 */
->> +	bool (*is_supported_cb)(uint32_t event_id);
->>  };
->>  
->>  /* Set the callback operations for an event
->> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
->> index 4c186a22..31002a7d 100644
->> --- a/lib/sbi/sbi_sse.c
->> +++ b/lib/sbi/sbi_sse.c
->> @@ -46,10 +46,10 @@ struct sse_event_info {
->>  };
->>  
->>  static struct sse_event_info valid_events[] = {
->> -	{.event_id = SBI_SSE_EVENT_LOCAL_RAS, .supported = true},
->> -	{.event_id = SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP, .supported = true},
->> -	{.event_id = SBI_SSE_EVENT_GLOBAL_RAS, .supported = true},
->> -	{.event_id = SBI_SSE_EVENT_LOCAL_PMU, .supported = true},
->> +	{.event_id = SBI_SSE_EVENT_LOCAL_RAS, .supported = false},
->> +	{.event_id = SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP, .supported = false},
->> +	{.event_id = SBI_SSE_EVENT_GLOBAL_RAS, .supported = false},
->> +	{.event_id = SBI_SSE_EVENT_LOCAL_PMU, .supported = false},
-> 
-> This change breaks bisectability, because the PMU callback isn't added until the
-> next commit. So I would suggest moving this hunk to a separate final commit. The
-> commit looks good otherwise.
+---
 
-True, I'll move it to the end of the series.
+Changes in V3:
+ - Rework is_supported_cb() to allow per-hart local event availability
+ - Remove now useless cached_version of is_supported.
+ - Fix eret check + potential empty eret in case event_is_supported()
+   returns SBI_SUCCESS.
+ - Split commit to set all non software events as non injectable at the
+   end of the series.
+ - Fix usage of sbi_pmu_irq_bit() in sbi_pmu.c
 
-> 
-> Regards,
-> Samuel
-> 
->>  	{.event_id = SBI_SSE_EVENT_LOCAL_SOFTWARE, .supported = true},
->>  	{.event_id = SBI_SSE_EVENT_GLOBAL_SOFTWARE, .supported = true},
->>  };
->> @@ -1106,6 +1106,9 @@ static void sse_event_info_init(void)
->>  
->>  	for (i = 0; i < EVENT_COUNT; i++) {
->>  		info = &valid_events[i];
->> +		if (info->cb_ops && info->cb_ops->is_supported_cb)
->> +			info->supported = info->cb_ops->is_supported_cb(info->event_id);
->> +
->>  		if (!info->supported)
->>  			continue;
->>  
-> 
+Changes in v2:
+ - Add an sse_event_info struct that stores 'cb_ops' as well as 'supported'
+ - Move SSE initialization after all other "drivers" init.
+ - Split changes in multiple commits
+ - Added an is_supported callback to check for event availability
+
+Cl?ment L?ger (5):
+  lib: sbi: pmu: fix usage of sbi_pmu_irq_bit()
+  lib: sbi: sse: return an error value from sse_event_get()
+  lib: sbi: sse: rework event availability
+  lib: sbi: pmu: add an sse .is_supported_cb callback implementation
+  lib: sbi: sse: set non-software events as unsupported
+
+ include/sbi/riscv_encoding.h                  |   1 -
+ include/sbi/sbi_pmu.h                         |   3 +
+ include/sbi/sbi_sse.h                         |   5 +
+ lib/sbi/sbi_hart.c                            |   2 +-
+ lib/sbi/sbi_init.c                            |  21 +-
+ lib/sbi/sbi_pmu.c                             |  55 ++--
+ lib/sbi/sbi_sse.c                             | 240 +++++++++++++-----
+ lib/sbi/sbi_trap.c                            |  17 +-
+ .../generic/include/thead/c9xx_encoding.h     |   1 -
+ platform/generic/thead/thead_c9xx_pmu.c       |   2 +-
+ 10 files changed, 240 insertions(+), 107 deletions(-)
+
+-- 
+2.45.2
 
 
