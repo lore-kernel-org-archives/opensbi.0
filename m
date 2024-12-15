@@ -1,58 +1,54 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 15 Dec 2024 11:59:19 +0530
-Subject: [PATCH 2/2] lib: sbi: sse: Fix a6 and a7 register content upon injection
-In-Reply-To: <20241125105303.1113607-3-cleger@rivosinc.com>
-References: <20241125105303.1113607-1-cleger@rivosinc.com> <20241125105303.1113607-3-cleger@rivosinc.com>
-Message-ID: <CAAhSdy2kfFxYSuWPGzPf5Z4vi3QBP9h_7f4R6jL3Vnwccs2mkw@mail.gmail.com>
+Date: Sun, 15 Dec 2024 12:03:57 +0530
+Subject: [RFC 1/5] add build container for ubunti 18.04
+In-Reply-To: <20241202110336.332490-2-ben.dooks@codethink.co.uk>
+References: <20241202110336.332490-1-ben.dooks@codethink.co.uk> <20241202110336.332490-2-ben.dooks@codethink.co.uk>
+Message-ID: <CAAhSdy39weP8Lt3JodJMfXYTyDBRjoVkFr95PjULYh01s88woQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 25, 2024 at 4:24?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+On Mon, Dec 2, 2024 at 4:38?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
+
+Typo in subject.
+
+s/ubunti/ubuntu/
+
 >
-> The specification states that a6 contains the current hart id and a7
-> contains the entry argument. This was inverted in the current
-> implementation.
+> Add a podman/docker container for Ubuntu 18.04 for
+> build testing on older systems which might not have
+> the same support as a developer has.
 >
-> Reported-by: Andrew Jones <andrew.jones@linux.dev>
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-
-LGTM.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 > ---
->  lib/sbi/sbi_sse.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  containers/ubuntu_1804/Containerfile | 4 ++++
+>  1 file changed, 4 insertions(+)
+>  create mode 100644 containers/ubuntu_1804/Containerfile
 >
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index bf5620e..c9f9a9d 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -509,8 +509,8 @@ static void sse_event_inject(struct sbi_sse_event *e,
->         csr_write(CSR_SEPC, regs->mepc);
->
->         /* Setup entry context */
-> -       regs->a6 = e->attrs.entry.arg;
-> -       regs->a7 = current_hartid();
-> +       regs->a6 = current_hartid();
-> +       regs->a7 = e->attrs.entry.arg;
->         regs->mepc = e->attrs.entry.pc;
->
->         /* Return to S-mode with virtualization disabled */
+> diff --git a/containers/ubuntu_1804/Containerfile b/containers/ubuntu_1804/Containerfile
+> new file mode 100644
+> index 0000000..c2279db
+> --- /dev/null
+> +++ b/containers/ubuntu_1804/Containerfile
+
+Need some documentation about how to use this file.
+
+> @@ -0,0 +1,4 @@
+> +FROM ubuntu:18.04
+> +
+> +RUN apt-get update && apt-get install build-essential gcc-riscv64-linux-gnu -y
+> +
 > --
-> 2.45.2
+> 2.37.2.352.g3c44437643
 >
 >
 > --
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
+
+Regards,
+Anup
 
