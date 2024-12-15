@@ -1,10 +1,10 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 15 Dec 2024 14:20:32 +0530
-Subject: [PATCH 1/2] lib: sbi_pmu: Fix the sanity check condition for hw
- event map
-In-Reply-To: <20241204-pmu_event_info_fixes-v1-1-05c484c7345b@rivosinc.com>
-References: <20241204-pmu_event_info_fixes-v1-0-05c484c7345b@rivosinc.com> <20241204-pmu_event_info_fixes-v1-1-05c484c7345b@rivosinc.com>
-Message-ID: <CAAhSdy2YM1ru42ZFf_PTt9ziZyUcSo9jTStu5HRtp1eO5UOPUg@mail.gmail.com>
+Date: Sun, 15 Dec 2024 14:20:45 +0530
+Subject: [PATCH 2/2] lib: sbi_pmu: Verify the raw events first during
+ event info
+In-Reply-To: <20241204-pmu_event_info_fixes-v1-2-05c484c7345b@rivosinc.com>
+References: <20241204-pmu_event_info_fixes-v1-0-05c484c7345b@rivosinc.com> <20241204-pmu_event_info_fixes-v1-2-05c484c7345b@rivosinc.com>
+Message-ID: <CAAhSdy3e_OJxZhvaYRGGqDE3Yhx0J1O472V3QW5sruJo5cC-8w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,11 +13,12 @@ Content-Transfer-Encoding: 7bit
 
 On Thu, Dec 5, 2024 at 6:13?AM Atish Patra <atishp@rivosinc.com> wrote:
 >
-> The hardware event map function invoked from platform code should
-> exclude any raw events as there is a separate function for the raw
-> events.
+> The raw events have same event_idx. Thus, the event info sanity check
+> only relies on the select mask. The raw event check should be done first
+> so that regular hardware events can be verified using event idx range
+> check.
 >
-> Fixes: d8a483fc7fd0 ("lib: sbi_pmu: PMU raw event v2 support")
+> Fixes: e4345842168b ("lib: sbi_pmu: Implement SBI PMU event info function")
 >
 > Signed-off-by: Atish Patra <atishp@rivosinc.com>
 
@@ -31,24 +32,40 @@ Thanks,
 Anup
 
 > ---
->  lib/sbi/sbi_pmu.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  lib/sbi/sbi_pmu.c | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
 >
 > diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 0696ab5e568a..dca52eb1edbe 100644
+> index dca52eb1edbe..73ef0ca00d86 100644
 > --- a/lib/sbi/sbi_pmu.c
 > +++ b/lib/sbi/sbi_pmu.c
-> @@ -293,8 +293,8 @@ reset_event:
->   */
->  int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap)
->  {
-> -       if ((eidx_start > eidx_end) || eidx_start >= SBI_PMU_EVENT_RAW_V2_IDX ||
-> -            eidx_end >= SBI_PMU_EVENT_RAW_V2_IDX)
-> +       if ((eidx_start > eidx_end) || eidx_start >= SBI_PMU_EVENT_RAW_IDX ||
-> +            eidx_end >= SBI_PMU_EVENT_RAW_IDX)
->                 return SBI_EINVAL;
->
->         return pmu_add_hw_event_map(eidx_start, eidx_end, cmap, 0, 0);
+> @@ -1014,20 +1014,19 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
+>                 } else {
+>                         for (j = 0; j < num_hw_events; j++) {
+>                                 temp = &hw_event_map[j];
+> -                               if (temp->start_idx <= event_idx && event_idx <= temp->end_idx) {
+> -                                       found = true;
+> -                                       break;
+> -                               }
+>                                 /* For raw events, event data is used as the select value */
+>                                 if (event_idx == SBI_PMU_EVENT_RAW_IDX ||
+>                                         event_idx == SBI_PMU_EVENT_RAW_V2_IDX) {
+> -                                       uint64_t select_mask = temp->select_mask;
+> -
+>                                         /* just match the selector */
+> -                                       if (temp->select == (einfo[i].event_data & select_mask)) {
+> +                                       if (temp->select == (einfo[i].event_data &
+> +                                                                       temp->select_mask)) {
+>                                                 found = true;
+>                                                 break;
+>                                         }
+> +                               } else if (temp->start_idx <= event_idx &&
+> +                                          event_idx <= temp->end_idx) {
+> +                                       found = true;
+> +                                       break;
+>                                 }
+>                         }
+>                         if (found)
 >
 > --
 > 2.34.1
