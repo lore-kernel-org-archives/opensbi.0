@@ -1,192 +1,61 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 15 Dec 2024 12:48:08 +0530
-Subject: [RFC 5/5] scripts/carray: change to using single awk invocation
- to generate .c
-In-Reply-To: <20241202110336.332490-6-ben.dooks@codethink.co.uk>
-References: <20241202110336.332490-1-ben.dooks@codethink.co.uk> <20241202110336.332490-6-ben.dooks@codethink.co.uk>
-Message-ID: <CAAhSdy3HbCu_DcR_PC7N2sCEMunRWupKdWa1qh-0tVt1La5R9g@mail.gmail.com>
+Date: Sun, 15 Dec 2024 12:49:33 +0530
+Subject: [RFC 4/5] script/carry.sh: send error to stderr
+In-Reply-To: <20241202110336.332490-5-ben.dooks@codethink.co.uk>
+References: <20241202110336.332490-1-ben.dooks@codethink.co.uk> <20241202110336.332490-5-ben.dooks@codethink.co.uk>
+Message-ID: <CAAhSdy016uNZ5OrrXgcDPB_D60ju-1xHE=2h4oeTOow-ftUW+Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Dec 2, 2024 at 4:39?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
+On Mon, Dec 2, 2024 at 4:38?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
 >
-> The shell script makes multiple call-outs to awk to get information
-> from the configuration file. It would be easier to just write the
-> whole thing in one .awk script and have the makefile altered to call
-> that instead.
+> Send the errors to stderr, otherwise they end up being
+> written to the file the script was redirecting to in the
+> Makefile
 >
-> There should be no functional difference other than the script type
-> and has been tested with PLATFORM=generic build. This should be both
-> quicker and easier to understand.
+> Also, use EOF block to make it easier to redirect
 >
 > Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+
+LGTM.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
-> v2:
->   - updated with the new bits from Samuel Holland's changes
->   - minor tweaks to the awk script to fix the output spacings
-> v3:
->   - fixups for not being rather reliant on gawk (not on all distros)
->   - send error messages to stderr, otherwise they end up in .c output
->   - add no-var list a warning
->   - add debug output on env variable
->   - make awk script part of .sh script (easier to deal with change)
->   - fix rebase issues
-> ---
->  scripts/carray.sh | 132 ++++++++++++++++++++++++++++++++++------------
->  1 file changed, 99 insertions(+), 33 deletions(-)
+>  scripts/carray.sh | 14 ++++++++------
+>  1 file changed, 8 insertions(+), 6 deletions(-)
 >
 > diff --git a/scripts/carray.sh b/scripts/carray.sh
-> index a2b05d3..475dfec 100755
+> index fb985c8..a2b05d3 100755
 > --- a/scripts/carray.sh
 > +++ b/scripts/carray.sh
-> @@ -45,42 +45,108 @@ if [ ! -f "${CONFIG_FILE}" ]; then
->         usage
->  fi
+> @@ -2,12 +2,14 @@
 >
-> -TYPE_HEADER=$(awk '{ if ($1 == "HEADER:") { printf $2; exit 0; } }' "${CONFIG_FILE}")
-> -if [ -z "${TYPE_HEADER}" ]; then
-> -       echo "Must specify HEADER: in input config file"
-> -       usage
-> -fi
-> +# use single awk script to run conversion, but leave in .sh file as awk is
-> +# bad for getopt, and leaves the original script name alone.
+>  function usage()
+>  {
+> -       echo "Usage:"
+> -       echo " $0 [options]"
+> -       echo "Options:"
+> -       echo "     -h                   Display help or usage"
+> -       echo "     -i <input_config>    Input config file"
+> -       echo "     -l <variable_list>   List of variables in the array (Optional)"
+> +       cat <<EOF >&2
+> +Usage:  $0 [options]
+> +
+> +Options:
+> +     -h                   Display help or usage
+> +     -i <input_config>    Input config file
+> +     -l <variable_list>   List of variables in the array (Optional)
+> +EOF
+>         exit 1;
+>  }
 >
-> -TYPE_NAME=$(awk '{ if ($1 == "TYPE:") { printf $2; for (i=3; i<=NF; i++) printf " %s", $i; exit 0; } }' "${CONFIG_FILE}")
-> -if [ -z "${TYPE_NAME}" ]; then
-> -       echo "Must specify TYPE: in input config file"
-> -       usage
-> -fi
-> +awk -v"SCRIPT_NAME=${CONFIG_FILE}" -v "SCRIPT_NAME=`basename $0`" -v"VARLIST=${VAR_LIST}" '
-
-The first "SCRIPT_NAME=" should be "CONFIG_FILE=".
-
-> +function array_length(a)
-> +{
-> +    result = 0
->
-> -ARRAY_NAME=$(awk '{ if ($1 == "NAME:") { printf $2; exit 0; } }' "${CONFIG_FILE}")
-> -if [ -z "${ARRAY_NAME}" ]; then
-> -       echo "Must specify NAME: in input config file"
-> -       usage
-> -fi
-> +    for (i in a)
-> +       result++
->
-> -MEMBER_NAME=$(awk '{ if ($1 == "MEMBER-NAME:") { printf $2; exit 0; } }' "${CONFIG_FILE}")
-> -MEMBER_TYPE=$(awk '{ if ($1 == "MEMBER-TYPE:") { printf $2; for (i=3; i<=NF; i++) printf " %s", $i; exit 0; } }' "${CONFIG_FILE}")
-> -if [ -n "${MEMBER_NAME}" ] && [ -z "${MEMBER_TYPE}" ]; then
-> -       echo "Must specify MEMBER-TYPE: when using MEMBER-NAME:"
-> -       usage
-> -fi
-> +    return result
-> +}
->
-> -printf "// Generated with $(basename $0) from $(basename ${CONFIG_FILE})\n"
-> -printf "#include <%s>\n\n" "${TYPE_HEADER}"
-> +function get_fields(start, end)
-> +{
-> +    result = $start;
->
-> -for VAR in ${VAR_LIST}; do
-> -       printf "extern %s %s;\n" "${TYPE_NAME}" "${VAR}"
-> -done
-> -printf "\n"
-> +    for (nr = start+1; nr <= end; nr++) {
-> +       result = result " " $nr
-> +    }
-> +    return result;
-> +}
-> +
-> +BEGIN {
-> +      split(VARLIST,VAR_LIST," ")
-> +}
-> +
-> +# process items from the config file
-> +
-> +/^HEADER:/     { TYPE_HEADER = $2 }
-> +/^TYPE:/       { TYPE_NAME = get_fields(2, NF); }
-> +/^NAME:/       { ARRAY_NAME = $2}
-> +/^MEMBER-NAME:/        { MEMBER_NAME = $2 }
-> +/^MEMBER-TYPE:/ { MEMBER_TYPE = get_fields(2, NF); }
-> +
-> +# code to dump the generated .c file once config file is processed
-> +
-> +END {
-> +    # enable for debug
-> +    if (length(ENVIRON["CARRAY_DEBUG"]) > 0) {
-> +       print "ARRAY_NAME  " ARRAY_NAME > "/dev/stderr"
-> +       print "TYPE_HEADER " TYPE_HEADER > "/dev/stderr"
-> +       print "TYPE_NAME   " TYPE_NAME > "/dev/stderr"
-> +
-> +       print "VAR_LIST length is " array_length(VAR_LIST) > "/dev/stderr"
-> +       for (v in VAR_LIST) {
-> +           print "VAR_LIST " v  " = " VAR_LIST[v] > "/dev/stderr"
-> +       }
-> +    }
-> +
-> +    if (array_length(VAR_LIST) == 0) {
-> +       print "Warning; no VAR list on command line"  > "/dev/stderr"
-> +    }
-> +
-> +    if (length(ARRAY_NAME) == 0) {
-> +       print "Must specify NAME: in input config file"  > "/dev/stderr"
-> +       exit 1
-> +    }
-> +
-> +    if (length(TYPE_NAME) == 0) {
-> +       print "Must specify TYPE: in input config file"  > "/dev/stderr"
-> +       exit 1
-> +    }
-> +
-> +    if (length(TYPE_HEADER) == 0) {
-> +       print "Must specify HEADER: in input config file"  > "/dev/stderr"
-> +       exit 1
-> +    }
-> +
-> +    if (length(MEMBER_NAME) > 0 && length(MEMBER_TYPE) == 0) {
-> +       print "Must specify MEMBER-TYPE: when using MEMBER-NAME:" > "/dev/stderr"
-> +       exit 1
-> +    }
-> +
-> +    printf "// Generated with %s from %s\n", SCRIPT_NAME, CONFIG_FILE
-> +    printf "// DO NOT EDIT THIS FILE DIRECTLY\n"
-> +    printf "\n"
-> +    printf("#include <%s>\n\n", TYPE_HEADER)
-> +
-> +    for (v in VAR_LIST) {
-> +       printf("extern %s %s;\n", TYPE_NAME, VAR_LIST[v])
-> +    }
-> +    print ""
-> +
-> +    if (length(MEMBER_TYPE) > 0) {
-> +       TYPE_NAME = MEMBER_TYPE;
-> +    }
-> +
-> +    if (length(MEMBER_NAME) > 0) {
-> +       VAR_SUFFIX = "." MEMBER_NAME;
-> +    } else {
-> +       VAR_SUFFIX = ""
-> +    }
-> +
-> +    printf("%s *const %s[] = {\n", TYPE_NAME, ARRAY_NAME)
-> +    for (v in VAR_LIST) {
-> +       printf("\t&%s%s,\n", VAR_LIST[v], VAR_SUFFIX)
-> +    }
-> +    printf("\tNULL\n");
-> +
-> +    printf("};\n");
-> +}
-> +' < ${CONFIG_FILE} || usage
->
-> -printf "%s *const %s[] = {\n" "${MEMBER_TYPE:-${TYPE_NAME}}" "${ARRAY_NAME}"
-> -for VAR in ${VAR_LIST}; do
-> -       printf "\t&%s,\n" "${VAR}${MEMBER_NAME:+.}${MEMBER_NAME}"
-> -done
-> -       printf "\tNULL\n"
-> -printf "};\n"
 > --
 > 2.37.2.352.g3c44437643
 >
@@ -195,11 +64,4 @@ The first "SCRIPT_NAME=" should be "CONFIG_FILE=".
 > opensbi mailing list
 > opensbi at lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/opensbi
-
-Otherwise, it looks good to me.
-
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
-Anup
 
