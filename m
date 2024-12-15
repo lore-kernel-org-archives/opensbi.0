@@ -1,101 +1,57 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 15 Dec 2024 11:34:14 +0530
-Subject: [PATCH v2 2/2] Makefile: Don't enable V-extension using -march option
-In-Reply-To: <bb66a790-cc05-437f-9561-e8f64de5da59@sifive.com>
-References: <20241210052326.407237-1-apatel@ventanamicro.com>
- <20241210052326.407237-3-apatel@ventanamicro.com> <bb66a790-cc05-437f-9561-e8f64de5da59@sifive.com>
-Message-ID: <CAAhSdy3JgbdybTvNNOiPTqqUbbppbC=fMz3+2L_BBaXZ5uM03A@mail.gmail.com>
+Date: Sun, 15 Dec 2024 11:59:04 +0530
+Subject: [PATCH 1/2] lib: sbi: fix GLOBAL_PLAT_DEFINE
+In-Reply-To: <20241125105303.1113607-2-cleger@rivosinc.com>
+References: <20241125105303.1113607-1-cleger@rivosinc.com> <20241125105303.1113607-2-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1nvBQfCPLNecskPhw4aNhr1uN4DNK3-M4p1GD9q5Cz2w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 11, 2024 at 5:41?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Mon, Nov 25, 2024 at 4:24?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> On 2024-12-09 11:23 PM, Anup Patel wrote:
-> > Enabling V-extension using -march option causes OpenSBI boot-time
-> > hang with LLVM compiler.
-> >
-> > As a work-around, don't enable V-extension using -march option and
-> > instead use a custom OpenSBI specific define inform availability of
-> > V-extension to lib/sbi/sbi_trap_v_ldst.c.
-> >
-> > Fixes: c2acc5e5b0d8 ("lib: sbi_misaligned_ldst: Add handling of vector load/store")
-> > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-> > ---
-> >  Makefile                  | 8 ++++----
-> >  lib/sbi/sbi_trap_v_ldst.c | 5 +++--
-> >  2 files changed, 7 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/Makefile b/Makefile
-> > index 5ac95a0f..1b949a9f 100644
-> > --- a/Makefile
-> > +++ b/Makefile
-> > @@ -190,7 +190,7 @@ CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib
-> >  CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null 2>&1 | grep -e "zicsr" -e "zifencei" > /dev/null && echo n || echo y)
-> >
-> >  # Check whether the assembler and the compiler support the Vector extension
-> > -CC_SUPPORT_VECT := $(shell echo | $(CC) -dM -E -march=rv$(OPENSBI_CC_XLEN)gv - | grep -q riscv.*vector && echo y || echo n)
-> > +CC_SUPPORT_VECT := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)gv -dM -E -x c /dev/null 2>&1 | grep -q riscv.*vector && echo y || echo n)
-> >
-> >  ifneq ($(OPENSBI_LD_PIE),y)
-> >  $(error Your linker does not support creating PIEs, opensbi requires this.)
-> > @@ -298,9 +298,6 @@ endif
-> >  ifndef PLATFORM_RISCV_ISA
-> >    ifneq ($(PLATFORM_RISCV_TOOLCHAIN_DEFAULT), 1)
-> >      PLATFORM_RISCV_ISA := rv$(PLATFORM_RISCV_XLEN)imafdc
-> > -    ifeq ($(CC_SUPPORT_VECT), y)
-> > -      PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)v
-> > -    endif
-> >      ifeq ($(CC_SUPPORT_ZICSR_ZIFENCEI), y)
-> >        PLATFORM_RISCV_ISA := $(PLATFORM_RISCV_ISA)_zicsr_zifencei
-> >      endif
-> > @@ -363,6 +360,9 @@ GENFLAGS  +=      $(firmware-genflags-y)
-> >  CFLAGS               =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
-> >  CFLAGS               +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls
-> >  # Optionally supported flags
-> > +ifeq ($(CC_SUPPORT_VECT),y)
-> > +CFLAGS               +=      -DOPENSBI_CC_SUPPORT_VECT
+> Fix GLOBAL_PLAT_0_START/END definitions. The specification states that
+> the beginning of the range is 0xc000 and the end is 0xffff.
 >
-> nit: Since you're changing this, could you please spell out "VECTOR"? The
-> abbreviation isn't great for greppability.
+> Reported-by: Andrew Jones <andrew.jones@linux.dev>
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 
-I have taken care of this at the time of merging this patch.
+LGTM.
 
->
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
+> ---
+>  include/sbi/sbi_ecall_interface.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> > +endif
-> >  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
-> >  CFLAGS               +=      -mno-save-restore
-> >  endif
-> > diff --git a/lib/sbi/sbi_trap_v_ldst.c b/lib/sbi/sbi_trap_v_ldst.c
-> > index 9929215c..75b79baa 100644
-> > --- a/lib/sbi/sbi_trap_v_ldst.c
-> > +++ b/lib/sbi/sbi_trap_v_ldst.c
-> > @@ -17,7 +17,8 @@
-> >  #include <sbi/sbi_unpriv.h>
-> >  #include <sbi/sbi_trap.h>
-> >
-> > -#ifdef __riscv_vector
-> > +#ifdef OPENSBI_CC_SUPPORT_VECT
-> > +
-> >  #define VLEN_MAX 65536
-> >
-> >  static inline void set_vreg(ulong vlenb, ulong which,
-> > @@ -340,4 +341,4 @@ int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
-> >  {
-> >       return 0;
-> >  }
-> > -#endif /* __riscv_vector  */
-> > +#endif /* OPENSBI_CC_SUPPORT_VECT  */
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index 3aa5746..7e14d6c 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -386,8 +386,8 @@ enum sbi_sse_state {
+>  #define SBI_SSE_EVENT_LOCAL_PLAT_0_START       0x00004000
+>  #define SBI_SSE_EVENT_LOCAL_PLAT_0_END         0x00007fff
+>  #define SBI_SSE_EVENT_GLOBAL_RAS               0x00008000
+> -#define SBI_SSE_EVENT_GLOBAL_PLAT_0_START      0x00004000
+> -#define SBI_SSE_EVENT_GLOBAL_PLAT_0_END                0x00007fff
+> +#define SBI_SSE_EVENT_GLOBAL_PLAT_0_START      0x0000c000
+> +#define SBI_SSE_EVENT_GLOBAL_PLAT_0_END                0x0000ffff
 >
+>  #define SBI_SSE_EVENT_LOCAL_PMU                        0x00010000
+>  #define SBI_SSE_EVENT_LOCAL_PLAT_1_START       0x00014000
+> --
+> 2.45.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
