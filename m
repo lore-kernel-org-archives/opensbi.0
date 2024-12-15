@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 15 Dec 2024 11:59:04 +0530
-Subject: [PATCH 1/2] lib: sbi: fix GLOBAL_PLAT_DEFINE
-In-Reply-To: <20241125105303.1113607-2-cleger@rivosinc.com>
-References: <20241125105303.1113607-1-cleger@rivosinc.com> <20241125105303.1113607-2-cleger@rivosinc.com>
-Message-ID: <CAAhSdy1nvBQfCPLNecskPhw4aNhr1uN4DNK3-M4p1GD9q5Cz2w@mail.gmail.com>
+Date: Sun, 15 Dec 2024 11:59:19 +0530
+Subject: [PATCH 2/2] lib: sbi: sse: Fix a6 and a7 register content upon injection
+In-Reply-To: <20241125105303.1113607-3-cleger@rivosinc.com>
+References: <20241125105303.1113607-1-cleger@rivosinc.com> <20241125105303.1113607-3-cleger@rivosinc.com>
+Message-ID: <CAAhSdy2kfFxYSuWPGzPf5Z4vi3QBP9h_7f4R6jL3Vnwccs2mkw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,8 +12,9 @@ Content-Transfer-Encoding: 7bit
 
 On Mon, Nov 25, 2024 at 4:24?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Fix GLOBAL_PLAT_0_START/END definitions. The specification states that
-> the beginning of the range is 0xc000 and the end is 0xffff.
+> The specification states that a6 contains the current hart id and a7
+> contains the entry argument. This was inverted in the current
+> implementation.
 >
 > Reported-by: Andrew Jones <andrew.jones@linux.dev>
 > Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
@@ -28,24 +29,24 @@ Thanks,
 Anup
 
 > ---
->  include/sbi/sbi_ecall_interface.h | 4 ++--
+>  lib/sbi/sbi_sse.c | 4 ++--
 >  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index 3aa5746..7e14d6c 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -386,8 +386,8 @@ enum sbi_sse_state {
->  #define SBI_SSE_EVENT_LOCAL_PLAT_0_START       0x00004000
->  #define SBI_SSE_EVENT_LOCAL_PLAT_0_END         0x00007fff
->  #define SBI_SSE_EVENT_GLOBAL_RAS               0x00008000
-> -#define SBI_SSE_EVENT_GLOBAL_PLAT_0_START      0x00004000
-> -#define SBI_SSE_EVENT_GLOBAL_PLAT_0_END                0x00007fff
-> +#define SBI_SSE_EVENT_GLOBAL_PLAT_0_START      0x0000c000
-> +#define SBI_SSE_EVENT_GLOBAL_PLAT_0_END                0x0000ffff
+> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+> index bf5620e..c9f9a9d 100644
+> --- a/lib/sbi/sbi_sse.c
+> +++ b/lib/sbi/sbi_sse.c
+> @@ -509,8 +509,8 @@ static void sse_event_inject(struct sbi_sse_event *e,
+>         csr_write(CSR_SEPC, regs->mepc);
 >
->  #define SBI_SSE_EVENT_LOCAL_PMU                        0x00010000
->  #define SBI_SSE_EVENT_LOCAL_PLAT_1_START       0x00014000
+>         /* Setup entry context */
+> -       regs->a6 = e->attrs.entry.arg;
+> -       regs->a7 = current_hartid();
+> +       regs->a6 = current_hartid();
+> +       regs->a7 = e->attrs.entry.arg;
+>         regs->mepc = e->attrs.entry.pc;
+>
+>         /* Return to S-mode with virtualization disabled */
 > --
 > 2.45.2
 >
