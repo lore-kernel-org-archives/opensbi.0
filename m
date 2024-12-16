@@ -1,37 +1,40 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 16 Dec 2024 22:21:42 +0100
-Subject: [PATCH v4 5/5] lib: sbi: pmu: add the PMU SSE event only if overflow IRQ is supported
-In-Reply-To: <20241216212144.3379890-1-cleger@rivosinc.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon, 16 Dec 2024 15:48:22 -0600
+Subject: [PATCH v4 1/5] lib: sbi: pmu: fix usage of sbi_pmu_irq_bit()
+In-Reply-To: <20241216212144.3379890-2-cleger@rivosinc.com>
 References: <20241216212144.3379890-1-cleger@rivosinc.com>
-Message-ID: <20241216212144.3379890-6-cleger@rivosinc.com>
+ <20241216212144.3379890-2-cleger@rivosinc.com>
+Message-ID: <a1a66acb-aaaf-480e-b418-97ac06c61bad@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the PMU SSE event only if an overflow irq bit is present.
+On 2024-12-16 3:21 PM, Cl?ment L?ger wrote:
+> While sbi_pmu_irq_bit() was used to delegate irq to S-mode, LCOFIP usage
+> was still hardcoded in various places. This lead to change the returned
 
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
----
- lib/sbi/sbi_pmu.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+typo: lead -> led
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index eb31f3e9..83a95b6d 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -1166,7 +1166,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 		total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
- 	}
- 
--	sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
-+	if (sbi_pmu_irq_bit() >= 0)
-+		sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
- 
- 	phs = pmu_get_hart_state_ptr(scratch);
- 	if (!phs) {
--- 
-2.45.2
+> value of sbi_pmu_irq_bit() to be a bit number rather than a bit mask
+> since it returns an 'int' and we need to obtain the bit number itself to
+> handle it in the IRQs handlers. Add a similar function to return the
+> irq mask which can also be used where the mask is required rather than
+> the bit itself.
+> 
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> ---
+>  include/sbi/sbi_pmu.h                         |  3 ++
+>  lib/sbi/sbi_hart.c                            |  2 +-
+>  lib/sbi/sbi_pmu.c                             | 42 ++++++++++++-------
+>  lib/sbi/sbi_trap.c                            | 15 ++++---
+>  .../generic/include/thead/c9xx_encoding.h     |  1 -
+>  platform/generic/thead/thead_c9xx_pmu.c       |  2 +-
+>  6 files changed, 41 insertions(+), 24 deletions(-)
+
+Looks great, thanks!
+
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 
 
