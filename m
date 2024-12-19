@@ -1,43 +1,54 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Tue, 17 Dec 2024 18:47:01 +0000
-Subject: [RFC 5/5] scripts/carray: change to using single awk invocation
- to generate .c
-In-Reply-To: <CAAhSdy0EzhGpkknusotcsudw-k_YVYKH1rTNJauiLL5WTS+jQg@mail.gmail.com>
-References: <20241202110336.332490-1-ben.dooks@codethink.co.uk>
- <20241202110336.332490-6-ben.dooks@codethink.co.uk>
- <CAAhSdy0EzhGpkknusotcsudw-k_YVYKH1rTNJauiLL5WTS+jQg@mail.gmail.com>
-Message-ID: <ead6e31d-896e-49d4-9cba-bcf3816911f7@codethink.co.uk>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Wed, 18 Dec 2024 21:02:38 -0800
+Subject: [PATCH v2 1/2] platform: generic: Initialize console before other drivers
+Message-ID: <20241219050250.3861915-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 15/12/2024 08:24, Anup Patel wrote:
-> On Mon, Dec 2, 2024 at 4:39?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
->>
->> The shell script makes multiple call-outs to awk to get information
->> from the configuration file. It would be easier to just write the
->> whole thing in one .awk script and have the makefile altered to call
->> that instead.
->>
->> There should be no functional difference other than the script type
->> and has been tested with PLATFORM=generic build. This should be both
->> quicker and easier to understand.
->>
->> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> 
-> I have taken care of my comment on this patch. I also tested it
-> at my end.
-> 
-> Applied this patch to the riscv/opensbi repo.
->
+Initialize serial drivers first, so messages printed by other drivers do
+not need to use the early console buffer.
 
-Great, thanks for sorting.
+Suggested-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
+Changes in v2:
+ - New patch for v2
+
+ platform/generic/platform.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 350d2517..c03ed88e 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -250,17 +250,17 @@ static int generic_early_init(bool cold_boot)
+ 	int rc;
+ 
+ 	if (cold_boot) {
+-		fdt_reset_init(fdt);
+-		fdt_suspend_init(fdt);
+-		fdt_hsm_init(fdt);
+-		fdt_cppc_init(fdt);
+-
+ 		if (semihosting_enabled())
+ 			rc = semihosting_init();
+ 		else
+ 			rc = fdt_serial_init(fdt);
+ 		if (rc)
+ 			return rc;
++
++		fdt_cppc_init(fdt);
++		fdt_hsm_init(fdt);
++		fdt_reset_init(fdt);
++		fdt_suspend_init(fdt);
+ 	}
+ 
+ 	if (!generic_plat || !generic_plat->early_init)
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+2.45.1
 
-https://www.codethink.co.uk/privacy.html
 
