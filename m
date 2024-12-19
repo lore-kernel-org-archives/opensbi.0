@@ -1,74 +1,67 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 19 Dec 2024 11:04:02 +0530
-Subject: [PATCH] lib: utils: improvement rpmi_cppc_fc_db_trigger
-In-Reply-To: <20241215112602.745461-1-wxjstz@126.com>
-References: <20241215112602.745461-1-wxjstz@126.com>
-Message-ID: <CAAhSdy0tGDni2C30gPEZwjHUB40-s3uc-sWPxwP5M1M5j5AOeA@mail.gmail.com>
+Date: Thu, 19 Dec 2024 11:14:00 +0530
+Subject: [PATCH v2 1/2] platform: generic: Initialize console before other drivers
+In-Reply-To: <20241219050250.3861915-1-samuel.holland@sifive.com>
+References: <20241219050250.3861915-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy1E_u_25vTafJii4Cy4eBBsZgVND0_MAsGjNW2irL5i1A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Dec 15, 2024 at 4:57?PM Xiang W <wxjstz@126.com> wrote:
+On Thu, Dec 19, 2024 at 10:32?AM Samuel Holland
+<samuel.holland@sifive.com> wrote:
 >
-> Improve 64-bit operation under rv32 and remove db_val_u32_hi.
+> Initialize serial drivers first, so messages printed by other drivers do
+> not need to use the early console buffer.
 >
-> Signed-off-by: Xiang W <wxjstz@126.com>
+> Suggested-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-Changed patch subject to "lib: utils: Improve rpmi_cppc_fc_db_trigger()
-for RV32" at the time of merging this patch.
+LGTM.
 
-Applied this patch to the riscv/opensbi repo.
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
-Thanks,
+Regards,
 Anup
 
 > ---
->  lib/utils/cppc/fdt_cppc_rpmi.c | 21 +++++++--------------
->  1 file changed, 7 insertions(+), 14 deletions(-)
 >
-> diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
-> index b6789901..4946ed14 100644
-> --- a/lib/utils/cppc/fdt_cppc_rpmi.c
-> +++ b/lib/utils/cppc/fdt_cppc_rpmi.c
-> @@ -59,11 +59,7 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
->         u8 db_val_u8 = 0;
->         u16 db_val_u16 = 0;
->         u32 db_val_u32 = 0;
-> -#if __riscv_xlen != 32
->         u64 db_val_u64 = 0;
-> -#else
-> -       u32 db_val_u32_hi = 0;
-> -#endif
+> Changes in v2:
+>  - New patch for v2
 >
->         switch (cppc->fc_db_width) {
->         case RPMI_CPPC_FAST_CHANNEL_DB_WIDTH_8:
-> @@ -95,16 +91,13 @@ static void rpmi_cppc_fc_db_trigger(struct rpmi_cppc *cppc)
+>  platform/generic/platform.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 >
->                 writeq(db_val_u64, (void *)cppc->fc_db_addr);
->  #else
-> -               db_val_u32 = readl((void *)cppc->fc_db_addr);
-> -               db_val_u32_hi = readl((void *)(cppc->fc_db_addr + 4));
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 350d2517..c03ed88e 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -250,17 +250,17 @@ static int generic_early_init(bool cold_boot)
+>         int rc;
+>
+>         if (cold_boot) {
+> -               fdt_reset_init(fdt);
+> -               fdt_suspend_init(fdt);
+> -               fdt_hsm_init(fdt);
+> -               fdt_cppc_init(fdt);
 > -
-> -               db_val_u32 = (u32)cppc->fc_db_setmask |
-> -                               (db_val_u32 & (u32)cppc->fc_db_preservemask);
-> -               db_val_u32_hi = (u32)(cppc->fc_db_setmask >> 32) |
-> -                               (db_val_u32 & (u32)(cppc->fc_db_preservemask >> 32));
-> -
-> -               writel(db_val_u32, (void *)cppc->fc_db_addr);
-> -               writel(db_val_u32_hi, (void *)(cppc->fc_db_addr + 4));
-> +               db_val_u64 = readl((void *)(cppc->fc_db_addr + 4));
-> +               db_val_u64 <<= 32;
-> +               db_val_u64 |= readl((void *)cppc->fc_db_addr);
-> +               db_val_u64 = cppc->fc_db_setmask |
-> +                               (db_val_u64 & cppc->fc_db_preservemask);
-> +               writel(db_val_u64, (void *)cppc->fc_db_addr);
-> +               writel(db_val_u64 >> 32, (void *)(cppc->fc_db_addr + 4));
->  #endif
->                 break;
->         default:
+>                 if (semihosting_enabled())
+>                         rc = semihosting_init();
+>                 else
+>                         rc = fdt_serial_init(fdt);
+>                 if (rc)
+>                         return rc;
+> +
+> +               fdt_cppc_init(fdt);
+> +               fdt_hsm_init(fdt);
+> +               fdt_reset_init(fdt);
+> +               fdt_suspend_init(fdt);
+>         }
+>
+>         if (!generic_plat || !generic_plat->early_init)
 > --
-> 2.45.2
+> 2.45.1
 >
 
