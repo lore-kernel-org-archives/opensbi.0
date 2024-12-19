@@ -1,220 +1,377 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 19 Dec 2024 11:31:46 +0530
-Subject: [PATCH] lib: utils: Mark RPMI drivers as experimental
-In-Reply-To: <a0664c53-adc9-4429-8edf-ad8c9f4dec41@sifive.com>
-References: <20241215212950.3701559-1-samuel.holland@sifive.com>
- <CAAhSdy3C4GxBpxzs1+LwC8To6DFTm8c_y7kabMV6OaX3UD74Fg@mail.gmail.com>
- <5b47284c-885f-478a-a1ba-4505ba0e0916@sifive.com> <CAAhSdy29F5Pu-tsrnwfR1GwFCUwaTUdACNxzbquMat-ZLv2FvQ@mail.gmail.com>
- <a0664c53-adc9-4429-8edf-ad8c9f4dec41@sifive.com>
-Message-ID: <CAAhSdy3apqAbbF7FMU8AM9_gTfdb3n=vZ59rPeyb-1TBzPBd7A@mail.gmail.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu, 19 Dec 2024 22:42:27 +0530
+Subject: [PATCH v4 3/5] lib: sbi: sse: allow adding new events
+In-Reply-To: <20241216212144.3379890-4-cleger@rivosinc.com>
+References: <20241216212144.3379890-1-cleger@rivosinc.com> <20241216212144.3379890-4-cleger@rivosinc.com>
+Message-ID: <CAK9=C2UCeWfDAWYvp8U6otSrwdRu6jjdOr_p0ftQ8oZCCLTb+g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 19, 2024 at 10:32?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Tue, Dec 17, 2024 at 2:52?AM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Hi Anup,
+> In order to allow events to be dynamically added, remove the existing
+> static array of events and use a simply linked list of supported events.
+> This allows us to move the cb_ops into this list and associated it with
+> an event_id. Drivers can now register cb_ops before bringing up the sse
+> core to handle additional events (platform ones for instance).
 >
-> On 2024-12-16 10:40 PM, Anup Patel wrote:
-> > On Mon, Dec 16, 2024 at 10:46?PM Samuel Holland
-> > <samuel.holland@sifive.com> wrote:
-> >> On 2024-12-16 11:01 AM, Anup Patel wrote:
-> >>> On Mon, Dec 16, 2024 at 2:59?AM Samuel Holland
-> >>> <samuel.holland@sifive.com> wrote:
-> >>>>
-> >>>> These drivers were merged on an experimental basis without the RPMI
-> >>>> specification being frozen. As a result, they may not be compatible with
-> >>>> the frozen version of the RPMI protocol. Additionally, their devicetree
-> >>>> bindings have not been reviewed and are subject to change. Warn the user
-> >>>> that these drivers make no compatibility guarantees, and that their
-> >>>> behavior and devicetree bindings may change incompatibly in future
-> >>>> versions of OpenSBI.
-> >>>>
-> >>>> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-> >>>> ---
-> >>>>
-> >>>>  include/sbi_utils/fdt/fdt_driver.h         | 1 +
-> >>>>  lib/utils/cppc/fdt_cppc_rpmi.c             | 1 +
-> >>>>  lib/utils/fdt/fdt_driver.c                 | 4 ++++
-> >>>>  lib/utils/hsm/fdt_hsm_rpmi.c               | 1 +
-> >>>>  lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 1 +
-> >>>>  lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c        | 1 +
-> >>>>  lib/utils/reset/fdt_reset_rpmi.c           | 1 +
-> >>>>  lib/utils/suspend/fdt_suspend_rpmi.c       | 1 +
-> >>>>  8 files changed, 11 insertions(+)
-> >>>>
-> >>>> diff --git a/include/sbi_utils/fdt/fdt_driver.h b/include/sbi_utils/fdt/fdt_driver.h
-> >>>> index f6fd26f9..12ffe3f9 100644
-> >>>> --- a/include/sbi_utils/fdt/fdt_driver.h
-> >>>> +++ b/include/sbi_utils/fdt/fdt_driver.h
-> >>>> @@ -15,6 +15,7 @@ struct fdt_driver {
-> >>>>         const struct fdt_match *match_table;
-> >>>>         int (*init)(const void *fdt, int nodeoff,
-> >>>>                     const struct fdt_match *match);
-> >>>> +       bool experimental;
-> >>>>  };
-> >>>>
-> >>>>  /**
-> >>>> diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
-> >>>> index b6789901..3b7006ce 100644
-> >>>> --- a/lib/utils/cppc/fdt_cppc_rpmi.c
-> >>>> +++ b/lib/utils/cppc/fdt_cppc_rpmi.c
-> >>>> @@ -377,4 +377,5 @@ static const struct fdt_match rpmi_cppc_match[] = {
-> >>>>  struct fdt_driver fdt_cppc_rpmi = {
-> >>>>         .match_table = rpmi_cppc_match,
-> >>>>         .init = rpmi_cppc_cold_init,
-> >>>> +       .experimental = true,
-> >>>>  };
-> >>>> diff --git a/lib/utils/fdt/fdt_driver.c b/lib/utils/fdt/fdt_driver.c
-> >>>> index 586ea8aa..87bd866d 100644
-> >>>> --- a/lib/utils/fdt/fdt_driver.c
-> >>>> +++ b/lib/utils/fdt/fdt_driver.c
-> >>>> @@ -30,6 +30,10 @@ int fdt_driver_init_by_offset(const void *fdt, int nodeoff,
-> >>>>                         if (!fdt_stringlist_contains(prop, len, match->compatible))
-> >>>>                                 continue;
-> >>>>
-> >>>> +                       if (driver->experimental)
-> >>>> +                               sbi_printf("WARNING: %s is experimental and may have incompatible changes\n",
-> >>>> +                                          match->compatible);
-> >>>> +
-> >>>
-> >>> Overall this is a good change but we should shorten this message.
-> >>
-> >> Do you have a specific suggestion? If not, I'll plan to go with:
-> >>
-> >>         "WARNING: experimental driver %s is unstable\n"
-> >
-> > I think the following is sufficient:
-> >      "WARNING: %s driver is experimental and may change\n"
-> >
-> >>
-> >>> Also, the default CONSOLE_EARLY_BUFFER_SIZE is small at the
-> >>> moment.
-> >>
-> >> This could be mitigated by moving fdt_serial_init() earlier in
-> >> generic_early_init() (as a separate change). I don't think any of those other
-> >> subsystems need to be initialized before the console.
-> >
-> > Agreed. Lets do fdt_serial_init() in generic_early_init() for coldboot path
-> > as the first thing.
+> sbi_sse_init() now allocates as many events as present in the linked
+> list. Events can now be added with sbi_sse_add_event() which allows to
+> add new supported events with some callback operations if any. If an
+> event is not to be supported, then sbi_sse_add_event() should not be
+> called. This approach currently consider that local events are to be
+> supported on all harts (ie, they all support the same ISA or
+> dependencies). If per-hart event availability needs to be supported,
+> then, an is_supported() callback could be added later and called for
+> each hart.
 >
-> I've made both changes for v2.
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> ---
+>  include/sbi/sbi_sse.h |   8 +--
+>  lib/sbi/sbi_init.c    |  24 +++++----
+>  lib/sbi/sbi_pmu.c     |   2 +-
+>  lib/sbi/sbi_sse.c     | 121 +++++++++++++++++++++++++++---------------
+>  4 files changed, 97 insertions(+), 58 deletions(-)
 >
-> >>> Also, can you do something similar for experimental SBI extensions ?
-> >>
-> >> Where would you expect the warning (if any) to be printed? If I put it in
-> >> sbi_ecall_register_extension(), it would be printed for all defconfig users,
-> >> since FWFT/MPXY/SSE are enabled by default. Is that what you are expecting?
-> >
-> > How about adding it in sbi_ecall_init() after the extension has been
-> > successfully registered ?
+> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
+> index 7419698a..fb796545 100644
+> --- a/include/sbi/sbi_sse.h
+> +++ b/include/sbi/sbi_sse.h
+> @@ -54,12 +54,12 @@ struct sbi_sse_cb_ops {
+>         void (*disable_cb)(uint32_t event_id);
+>  };
 >
-> I could do that. I am hesitant to do so because the warning will be printed for
-
-Okay, make sense.
-
-> all users, not just those using/testing the new extensions, which could be
-> confusing. If you think this is the best solution, I'll send a patch for it.
-> Here are two possible alternatives:
+> -/* Set the callback operations for an event
+> - * @param event_id Event identifier (SBI_SSE_EVENT_*)
+> - * @param cb_ops Callback operations
+> +/* Add a supported event with associated callback operations
+> + * @param event_id Event identifier (SBI_SSE_EVENT_* or a custom platform one)
+> + * @param cb_ops Callback operations (Can be NULL if any)
+>   * @return 0 on success, error otherwise
+>   */
+> -int sbi_sse_set_cb_ops(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops);
+> +int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops);
 >
-> 1) Change the experimental SBI extensions to use the "Experimental SBI Extension
-> Space (EIDs #0x08000000 - #0x08FFFFFF)" until they are ratified. This seems to
-> be what that range was intended for.
-
-OpenSBI has never used the experimental SBI extension space but KVM selftests
-does use this space. Just changing SBI extension ID will not help much because
-it won't remind us everyday like a boot-time print would.
-
+>  /* Inject an event to the current hard
+>   * @param event_id Event identifier (SBI_SSE_EVENT_*)
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 0736345d..505767ed 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -262,12 +262,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>         if (rc)
+>                 sbi_hart_hang();
 >
-> 2) Disable the experimental SBI extensions in the defconfig, so users must opt
-> in to the experimental functionality. (Or this change could be combined with the
-> warning.)
+> -       rc = sbi_sse_init(scratch, true);
+> -       if (rc) {
+> -               sbi_printf("%s: sse init failed (error %d)\n", __func__, rc);
+> -               sbi_hart_hang();
+> -       }
+> -
+>         rc = sbi_pmu_init(scratch, true);
+>         if (rc) {
+>                 sbi_printf("%s: pmu init failed (error %d)\n",
+> @@ -342,6 +336,16 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+>                 sbi_hart_hang();
+>         }
+>
+> +       /*
+> +        * Note: SSE events callbacks can be registered by other drivers so
+> +        * sbi_sse_init() needs to be called after all drivers have been probed.
+> +        */
+> +       rc = sbi_sse_init(scratch, true);
+> +       if (rc) {
+> +               sbi_printf("%s: sse init failed (error %d)\n", __func__, rc);
+> +               sbi_hart_hang();
+> +       }
+> +
+>         /*
+>          * Note: Ecall initialization should be after platform final
+>          * initialization so that all available platform devices are
+> @@ -404,10 +408,6 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> -       rc = sbi_sse_init(scratch, false);
+> -       if (rc)
+> -               sbi_hart_hang();
+> -
+>         rc = sbi_pmu_init(scratch, false);
+>         if (rc)
+>                 sbi_hart_hang();
+> @@ -440,6 +440,10 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+>         if (rc)
+>                 sbi_hart_hang();
+>
+> +       rc = sbi_sse_init(scratch, false);
+> +       if (rc)
+> +               sbi_hart_hang();
+> +
+>         /*
+>          * Configure PMP at last because if SMEPMP is detected,
+>          * M-mode access to the S/U space will be rescinded.
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> index c6df45a7..eb31f3e9 100644
+> --- a/lib/sbi/sbi_pmu.c
+> +++ b/lib/sbi/sbi_pmu.c
+> @@ -1166,7 +1166,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+>                 total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+>         }
+>
+> -       sbi_sse_set_cb_ops(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
+> +       sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
+>
+>         phs = pmu_get_hart_state_ptr(scratch);
+>         if (!phs) {
+> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+> index f710338e..665dc693 100644
+> --- a/lib/sbi/sbi_sse.c
+> +++ b/lib/sbi/sbi_sse.c
+> @@ -39,21 +39,11 @@
+>
+>  #define EVENT_IS_GLOBAL(__event_id) ((__event_id) & SBI_SSE_EVENT_GLOBAL_BIT)
+>
+> -static const uint32_t supported_events[] = {
+> -       SBI_SSE_EVENT_LOCAL_RAS,
+> -       SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP,
+> -       SBI_SSE_EVENT_GLOBAL_RAS,
+> -       SBI_SSE_EVENT_LOCAL_PMU,
+> -       SBI_SSE_EVENT_LOCAL_SOFTWARE,
+> -       SBI_SSE_EVENT_GLOBAL_SOFTWARE,
+> -};
+> -
+> -#define EVENT_COUNT array_size(supported_events)
+> -
+>  #define sse_event_invoke_cb(_event, _cb, ...)                                 \
+>         {                                                                     \
+> -               if (_event->cb_ops && _event->cb_ops->_cb)                    \
+> -                       _event->cb_ops->_cb(_event->event_id, ##__VA_ARGS__); \
+> +               const struct sbi_sse_cb_ops *__ops = _event->info->cb_ops;    \
+> +               if (__ops && __ops->_cb)                                      \
+> +                       __ops->_cb(_event->event_id, ##__VA_ARGS__);          \
+>         }
+>
+>  struct sse_entry_state {
+> @@ -110,7 +100,7 @@ struct sbi_sse_event {
+>         struct sbi_sse_event_attrs attrs;
+>         uint32_t event_id;
+>         u32 hartindex;
+> -       const struct sbi_sse_cb_ops *cb_ops;
+> +       struct sse_event_info *info;
+>         struct sbi_dlist node;
+>  };
+>
+> @@ -166,6 +156,11 @@ struct sse_global_event {
+>          */
+>         spinlock_t lock;
+>  };
+> +struct sse_event_info {
+> +       uint32_t event_id;
+> +       const struct sbi_sse_cb_ops *cb_ops;
+> +       struct sse_event_info *next;
 
-The problem is most users use defconfig and with this more folks will have to
-maintain a separate out-of-tree defconfig with the experimental SBI extensions
-enabled. Plus, even in this approach we are silent about experimental SBI
-extensions at boot-time.
-
-How about this ?
-
-We can soften boot-time print for experimental SBI extensions.
-
-For example, we print the following just below "Runtime SBI Version":
-    Available SBI Extensions: legacy, base, time, ipi, rfence, hsm,
-pmu, srst, susp, dbcn, cppc
-    Experimental SBI Extensions: fwft, sse, mpxy, dbtr
-
-The second line above for experimental SBI extensions won't be printed
-if there are no experimental SBI extensions.
+Why not use sbi_dlist here ?
 
 Regards,
 Anup
 
+> +};
 >
-> Regards,
-> Samuel
+>  static unsigned int local_event_count;
+>  static unsigned int global_event_count;
+> @@ -180,6 +175,30 @@ static u32 sse_ipi_inject_event = SBI_IPI_EVENT_MAX;
 >
-> >>>>                         rc = driver->init(fdt, nodeoff, match);
-> >>>>                         if (rc < 0) {
-> >>>>                                 const char *name;
-> >>>> diff --git a/lib/utils/hsm/fdt_hsm_rpmi.c b/lib/utils/hsm/fdt_hsm_rpmi.c
-> >>>> index 975d3484..66fa0fe2 100644
-> >>>> --- a/lib/utils/hsm/fdt_hsm_rpmi.c
-> >>>> +++ b/lib/utils/hsm/fdt_hsm_rpmi.c
-> >>>> @@ -359,4 +359,5 @@ static const struct fdt_match rpmi_hsm_match[] = {
-> >>>>  struct fdt_driver fdt_hsm_rpmi = {
-> >>>>         .match_table = rpmi_hsm_match,
-> >>>>         .init = rpmi_hsm_cold_init,
-> >>>> +       .experimental = true,
-> >>>>  };
-> >>>> diff --git a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-> >>>> index 91db4e96..b8bd3cd6 100644
-> >>>> --- a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-> >>>> +++ b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-> >>>> @@ -768,6 +768,7 @@ struct fdt_mailbox fdt_mailbox_rpmi_shmem = {
-> >>>>         .driver = {
-> >>>>                 .match_table = rpmi_shmem_mbox_match,
-> >>>>                 .init = rpmi_shmem_mbox_init,
-> >>>> +               .experimental = true,
-> >>>>         },
-> >>>>         .xlate = fdt_mailbox_simple_xlate,
-> >>>>  };
-> >>>> diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-> >>>> index c09a4c52..78020eae 100644
-> >>>> --- a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-> >>>> +++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-> >>>> @@ -439,4 +439,5 @@ static const struct fdt_match mpxy_mbox_match[] = {
-> >>>>  struct fdt_driver fdt_mpxy_rpmi_mbox = {
-> >>>>         .match_table = mpxy_mbox_match,
-> >>>>         .init = mpxy_mbox_init,
-> >>>> +       .experimental = true,
-> >>>>  };
-> >>>> diff --git a/lib/utils/reset/fdt_reset_rpmi.c b/lib/utils/reset/fdt_reset_rpmi.c
-> >>>> index 1ec4396b..70826b96 100644
-> >>>> --- a/lib/utils/reset/fdt_reset_rpmi.c
-> >>>> +++ b/lib/utils/reset/fdt_reset_rpmi.c
-> >>>> @@ -138,4 +138,5 @@ static const struct fdt_match rpmi_reset_match[] = {
-> >>>>  struct fdt_driver fdt_reset_rpmi = {
-> >>>>         .match_table = rpmi_reset_match,
-> >>>>         .init = rpmi_reset_init,
-> >>>> +       .experimental = true,
-> >>>>  };
-> >>>> diff --git a/lib/utils/suspend/fdt_suspend_rpmi.c b/lib/utils/suspend/fdt_suspend_rpmi.c
-> >>>> index 11696648..07ff5198 100644
-> >>>> --- a/lib/utils/suspend/fdt_suspend_rpmi.c
-> >>>> +++ b/lib/utils/suspend/fdt_suspend_rpmi.c
-> >>>> @@ -135,4 +135,5 @@ static const struct fdt_match rpmi_suspend_match[] = {
-> >>>>  struct fdt_driver fdt_suspend_rpmi = {
-> >>>>         .match_table = rpmi_suspend_match,
-> >>>>         .init = rpmi_suspend_init,
-> >>>> +       .experimental = true,
-> >>>>  };
-> >>>> --
-> >>>> 2.45.1
-> >>>>
-> >>
+>  static int sse_ipi_inject_send(unsigned long hartid, uint32_t event_id);
+>
+> +struct sse_event_info global_software_event = {
+> +       .event_id = SBI_SSE_EVENT_GLOBAL_SOFTWARE,
+> +       .next = NULL,
+> +};
+> +
+> +struct sse_event_info local_software_event = {
+> +       .event_id = SBI_SSE_EVENT_LOCAL_SOFTWARE,
+> +       .next = &global_software_event,
+> +};
+> +
+> +static struct sse_event_info *supported_events = &local_software_event;
+> +
+> +static struct sse_event_info *sse_event_info_get(uint32_t event_id)
+> +{
+> +       struct sse_event_info *info;
+> +
+> +       for (info = supported_events; info; info = info->next) {
+> +               if (info->event_id == event_id)
+> +                       return info;
+> +       }
+> +
+> +       return NULL;
+> +}
+> +
+>  static unsigned long sse_event_state(struct sbi_sse_event *e)
+>  {
+>         return e->attrs.status & SBI_SSE_ATTR_STATUS_STATE_MASK;
+> @@ -867,20 +886,31 @@ int sbi_sse_inject_event(uint32_t event_id)
+>         return sse_inject_event(event_id, current_hartid());
+>  }
+>
+> -int sbi_sse_set_cb_ops(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+> +int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+>  {
+> -       int ret;
+> -       struct sbi_sse_event *e;
+> +       struct sse_event_info *info;
+>
+> -       if (cb_ops->set_hartid_cb && !EVENT_IS_GLOBAL(event_id))
+> +       /* Do not allow adding an event twice */
+> +       info = sse_event_info_get(event_id);
+> +       if (info)
+>                 return SBI_EINVAL;
+>
+> -       ret = sse_event_get(event_id, &e);
+> -       if (ret)
+> -               return ret;
+> +       if (cb_ops && cb_ops->set_hartid_cb && !EVENT_IS_GLOBAL(event_id))
+> +               return SBI_EINVAL;
+>
+> -       e->cb_ops = cb_ops;
+> -       sse_event_put(e);
+> +       info = sbi_zalloc(sizeof(*info));
+> +       if (!info)
+> +               return SBI_ENOMEM;
+> +
+> +       info->cb_ops = cb_ops;
+> +       info->event_id = event_id;
+> +
+> +       /*
+> +        * Add the new event at the head of the linked list of supported
+> +        * events.
+> +        */
+> +       info->next = supported_events;
+> +       supported_events =  info;
+>
+>         return SBI_OK;
+>  }
+> @@ -1063,9 +1093,10 @@ int sbi_sse_unregister(uint32_t event_id)
+>         return ret;
+>  }
+>
+> -static void sse_event_init(struct sbi_sse_event *e, uint32_t event_id)
+> +static void sse_event_init(struct sbi_sse_event *e, struct sse_event_info *info)
+>  {
+> -       e->event_id = event_id;
+> +       e->event_id = info->event_id;
+> +       e->info = info;
+>         e->hartindex = current_hartindex();
+>         e->attrs.hartid = current_hartid();
+>         /* Declare all events as injectable */
+> @@ -1074,10 +1105,10 @@ static void sse_event_init(struct sbi_sse_event *e, uint32_t event_id)
+>
+>  static void sse_event_count_init()
+>  {
+> -       unsigned int i;
+> +       struct sse_event_info *info;
+>
+> -       for (i = 0; i < EVENT_COUNT; i++) {
+> -               if (EVENT_IS_GLOBAL(supported_events[i]))
+> +       for (info = supported_events; info; info = info->next) {
+> +               if (EVENT_IS_GLOBAL(info->event_id))
+>                         global_event_count++;
+>                 else
+>                         local_event_count++;
+> @@ -1087,18 +1118,19 @@ static void sse_event_count_init()
+>  static int sse_global_init()
+>  {
+>         struct sbi_sse_event *e;
+> -       unsigned int i, ev = 0;
+> +       unsigned int ev = 0;
+> +       struct sse_event_info *info;
+>
+>         global_events = sbi_zalloc(sizeof(*global_events) * global_event_count);
+>         if (!global_events)
+>                 return SBI_ENOMEM;
+>
+> -       for (i = 0; i < EVENT_COUNT; i++) {
+> -               if (!EVENT_IS_GLOBAL(supported_events[i]))
+> +       for (info = supported_events; info; info = info->next) {
+> +               if (!EVENT_IS_GLOBAL(info->event_id))
+>                         continue;
+>
+>                 e = &global_events[ev].event;
+> -               sse_event_init(e, supported_events[i]);
+> +               sse_event_init(e, info);
+>                 SPIN_LOCK_INIT(global_events[ev].lock);
+>
+>                 ev++;
+> @@ -1109,16 +1141,16 @@ static int sse_global_init()
+>
+>  static void sse_local_init(struct sse_hart_state *shs)
+>  {
+> -       unsigned int i, ev = 0;
+> +       unsigned int ev = 0;
+> +       struct sse_event_info *info;
+>
+>         SBI_INIT_LIST_HEAD(&shs->enabled_event_list);
+>         SPIN_LOCK_INIT(shs->enabled_event_lock);
+>
+> -       for (i = 0; i < EVENT_COUNT; i++) {
+> -               if (EVENT_IS_GLOBAL(supported_events[i]))
+> +       for (info = supported_events; info; info = info->next) {
+> +               if (EVENT_IS_GLOBAL(info->event_id))
+>                         continue;
+> -
+> -               sse_event_init(&shs->local_events[ev++], supported_events[i]);
+> +               sse_event_init(&shs->local_events[ev++], info);
+>         }
+>  }
+>
+> @@ -1148,7 +1180,8 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
+>                 }
+>
+>                 sse_inject_fifo_mem_off = sbi_scratch_alloc_offset(
+> -                       EVENT_COUNT * sizeof(struct sse_ipi_inject_data));
+> +                       (global_event_count + local_event_count) *
+> +                       sizeof(struct sse_ipi_inject_data));
+>                 if (!sse_inject_fifo_mem_off) {
+>                         sbi_scratch_free_offset(sse_inject_fifo_off);
+>                         sbi_scratch_free_offset(shs_ptr_off);
+> @@ -1185,7 +1218,8 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
+>         sse_inject_mem =
+>                 sbi_scratch_offset_ptr(scratch, sse_inject_fifo_mem_off);
+>
+> -       sbi_fifo_init(sse_inject_q, sse_inject_mem, EVENT_COUNT,
+> +       sbi_fifo_init(sse_inject_q, sse_inject_mem,
+> +                     (global_event_count + local_event_count),
+>                       sizeof(struct sse_ipi_inject_data));
+>
+>         return 0;
+> @@ -1193,18 +1227,19 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
+>
+>  void sbi_sse_exit(struct sbi_scratch *scratch)
+>  {
+> -       int i;
+>         struct sbi_sse_event *e;
+> +       struct sse_event_info *info;
+>
+> -       for (i = 0; i < EVENT_COUNT; i++) {
+> -               if (sse_event_get(supported_events[i], &e))
+> +       for (info = supported_events; info; info = info->next) {
+> +               if (sse_event_get(info->event_id, &e))
+>                         continue;
+>
+>                 if (e->attrs.hartid != current_hartid())
+>                         goto skip;
+>
+>                 if (sse_event_state(e) > SBI_SSE_STATE_REGISTERED) {
+> -                       sbi_printf("Event %d in invalid state at exit", i);
+> +                       sbi_printf("Event %d in invalid state at exit",
+> +                                  info->event_id);
+>                         sse_event_set_state(e, SBI_SSE_STATE_UNUSED);
+>                 }
+>
+> --
+> 2.45.2
 >
 
