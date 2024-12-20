@@ -1,77 +1,93 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Fri, 20 Dec 2024 16:02:02 +0000
-Subject: [RFC 3/7] opensbi: add option to set big-endian mode at run-time
+Date: Fri, 20 Dec 2024 16:02:03 +0000
+Subject: [RFC 4/7] opensbi: make io little-endian for big endian build
 In-Reply-To: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
 References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241220160206.1989527-4-ben.dooks@codethink.co.uk>
+Message-ID: <20241220160206.1989527-5-ben.dooks@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add option to switch M-mode to BE at start by setting the
-MSTATUS.MBE bit early on in the initialisation code and
-ensure it stays set when hart is reinitialised.
+Generally IO is little endian, if we're running in big-endian
+mode then swap the byte ordering in the IO accessors.
 
 Reviewed-by: Lawrence Hunter <lawrence.hunter@codethink.co.uk>
 Reviewed-by: Roan Richmod <roan.richmond@codethink.co.uk>
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Ben Dooks <ben.doosk@codethink.co.uk>
 ---
- Kconfig            | 4 ++++
- firmware/fw_base.S | 8 ++++++++
- lib/sbi/sbi_hart.c | 4 ++++
- 3 files changed, 16 insertions(+)
+ include/sbi/riscv_io.h | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
-diff --git a/Kconfig b/Kconfig
-index cc7b5bc..6c6236f 100644
---- a/Kconfig
-+++ b/Kconfig
-@@ -7,6 +7,10 @@ config OPENSBI_BE
- 	help
- 	  Say Y here if you like fun challenges
+diff --git a/include/sbi/riscv_io.h b/include/sbi/riscv_io.h
+index 4913232..a8fa579 100644
+--- a/include/sbi/riscv_io.h
++++ b/include/sbi/riscv_io.h
+@@ -12,6 +12,7 @@
  
-+config OPENSBI_BE_SET
-+	bool "Set M-Mode to be big-endian in startup code"
-+	depends on OPENSBI_BE
-+
- config OPENSBI_SRC_DIR
- 	string
- 	option env="OPENSBI_SRC_DIR"
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index d027e5e..f8ad6db 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -46,6 +46,14 @@
- 	.globl _start
- 	.globl _start_warm
- _start:
-+#ifdef CONFIG_OPENSBI_BE_SET
-+#if __riscv_xlen == 64
-+	li	s0, MSTATUS_MBE
-+	csrs	CSR_MSTATUS, s0
+ #include <sbi/riscv_barrier.h>
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_byteorder.h>
+ 
+ static inline void __raw_writeb(u8 val, volatile void *addr)
+ {
+@@ -73,22 +74,32 @@ static inline u64 __raw_readq(const volatile void *addr)
+ 
+ /* clang-format off */
+ 
++#ifdef CONFIG_OPENSBI_BE
++#define io_conv16(__x) cpu_to_le16(__x)
++#define io_conv32(__x) cpu_to_le32(__x)
++#define io_conv64(__x) cpu_to_le64(__x)
 +#else
-+#error not done for 32bit
-+#endif
-+#endif
- 	/* Find preferred boot HART id */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
- 	call	fw_boot_hart
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 0451fcb..39311c4 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -39,6 +39,10 @@ static void mstatus_init(struct sbi_scratch *scratch)
- 	uint64_t mhpmevent_init_val = 0;
- 	uint64_t menvcfg_val, mstateen_val;
- 
-+#ifdef CONFIG_OPENSBI_BE_SET
-+	mstatus_val |= MSTATUS_MBE;
++#define io_conv16(__x) (__x)
++#define io_conv32(__x) (__x)
++#define io_conv64(__x) (__x)
 +#endif
 +
- 	/* Enable FPU */
- 	if (misa_extension('D') || misa_extension('F'))
- 		mstatus_val |=  MSTATUS_FS;
+ #define __io_rbr()		do {} while (0)
+ #define __io_rar()		do {} while (0)
+ #define __io_rbw()		do {} while (0)
+ #define __io_raw()		do {} while (0)
+ 
+ #define readb_relaxed(c)	({ u8  __v; __io_rbr(); __v = __raw_readb(c); __io_rar(); __v; })
+-#define readw_relaxed(c)	({ u16 __v; __io_rbr(); __v = __raw_readw(c); __io_rar(); __v; })
+-#define readl_relaxed(c)	({ u32 __v; __io_rbr(); __v = __raw_readl(c); __io_rar(); __v; })
++#define readw_relaxed(c)	({ u16 __v; __io_rbr(); __v = __raw_readw(c); __io_rar(); io_conv16(__v); })
++#define readl_relaxed(c)	({ u32 __v; __io_rbr(); __v = __raw_readl(c); __io_rar(); io_conv32(__v); })
+ 
+ #define writeb_relaxed(v,c)	({ __io_rbw(); __raw_writeb((v),(c)); __io_raw(); })
+-#define writew_relaxed(v,c)	({ __io_rbw(); __raw_writew((v),(c)); __io_raw(); })
+-#define writel_relaxed(v,c)	({ __io_rbw(); __raw_writel((v),(c)); __io_raw(); })
++#define writew_relaxed(v,c)	({ __io_rbw(); __raw_writew(io_conv16(v),(c)); __io_raw(); })
++#define writel_relaxed(v,c)	({ __io_rbw(); __raw_writel(io_conv32(v),(c)); __io_raw(); })
+ 
+ #if __riscv_xlen != 32
+-#define readq_relaxed(c)	({ u64 __v; __io_rbr(); __v = __raw_readq(c); __io_rar(); __v; })
+-#define writeq_relaxed(v,c)	({ __io_rbw(); __raw_writeq((v),(c)); __io_raw(); })
++#define readq_relaxed(c)	({ u64 __v; __io_rbr(); __v = __raw_readq(c); __io_rar(); io_conv64(__v); })
++#define writeq_relaxed(v,c)	({ __io_rbw(); __raw_writeq(io_conv64(v),(c)); __io_raw(); })
+ #endif
+ 
+ #define __io_br()	do {} while (0)
+@@ -97,12 +108,12 @@ static inline u64 __raw_readq(const volatile void *addr)
+ #define __io_aw()	do {} while (0)
+ 
+ #define readb(c)	({ u8  __v; __io_br(); __v = __raw_readb(c); __io_ar(); __v; })
+-#define readw(c)	({ u16 __v; __io_br(); __v = __raw_readw(c); __io_ar(); __v; })
+-#define readl(c)	({ u32 __v; __io_br(); __v = __raw_readl(c); __io_ar(); __v; })
++#define readw(c)	({ u16 __v; __io_br(); __v = __raw_readw(c); __io_ar(); io_conv16(__v); })
++#define readl(c)	({ u32 __v; __io_br(); __v = __raw_readl(c); __io_ar(); io_conv32(__v); })
+ 
+ #define writeb(v,c)	({ __io_bw(); __raw_writeb((v),(c)); __io_aw(); })
+-#define writew(v,c)	({ __io_bw(); __raw_writew((v),(c)); __io_aw(); })
+-#define writel(v,c)	({ __io_bw(); __raw_writel((v),(c)); __io_aw(); })
++#define writew(v,c)	({ __io_bw(); __raw_writew(io_conv16(v),(c)); __io_aw(); })
++#define writel(v,c)	({ __io_bw(); __raw_writel(io_conv32(v),(c)); __io_aw(); })
+ 
+ #if __riscv_xlen != 32
+ #define readq(c)	({ u64 __v; __io_br(); __v = __raw_readq(c); __io_ar(); __v; })
 -- 
 2.37.2.352.g3c44437643
 
