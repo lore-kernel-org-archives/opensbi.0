@@ -1,93 +1,100 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Fri, 20 Dec 2024 16:02:03 +0000
-Subject: [RFC 4/7] opensbi: make io little-endian for big endian build
+Date: Fri, 20 Dec 2024 16:02:00 +0000
+Subject: [RFC 1/7] opensbi: use .insn for instrcutions to fix endian
 In-Reply-To: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
 References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241220160206.1989527-5-ben.dooks@codethink.co.uk>
+Message-ID: <20241220160206.1989527-2-ben.dooks@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Generally IO is little endian, if we're running in big-endian
-mode then swap the byte ordering in the IO accessors.
+Using .word for creating instructions means they are written in
+the data endian, not the instruction endian. Change .word to .insn
+to tell the assembler it is creating custom instructions.
 
 Reviewed-by: Lawrence Hunter <lawrence.hunter@codethink.co.uk>
 Reviewed-by: Roan Richmod <roan.richmond@codethink.co.uk>
-Signed-off-by: Ben Dooks <ben.doosk@codethink.co.uk>
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
- include/sbi/riscv_io.h | 31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ lib/sbi/sbi_hfence.S | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/include/sbi/riscv_io.h b/include/sbi/riscv_io.h
-index 4913232..a8fa579 100644
---- a/include/sbi/riscv_io.h
-+++ b/include/sbi/riscv_io.h
-@@ -12,6 +12,7 @@
+diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
+index e11e650..6f91372 100644
+--- a/lib/sbi/sbi_hfence.S
++++ b/lib/sbi/sbi_hfence.S
+@@ -32,7 +32,7 @@ __sbi_hfence_gvma_vmid_gpa:
+ 	 * HFENCE.GVMA a0, a1
+ 	 * 0110001 01011 01010 000 00000 1110011
+ 	 */
+-	.word 0x62b50073
++	.insn 0x62b50073
+ 	ret
  
- #include <sbi/riscv_barrier.h>
- #include <sbi/sbi_types.h>
-+#include <sbi/sbi_byteorder.h>
+ 	.align 3
+@@ -44,7 +44,7 @@ __sbi_hfence_gvma_vmid:
+ 	 * HFENCE.GVMA zero, a0
+ 	 * 0110001 01010 00000 000 00000 1110011
+ 	 */
+-	.word 0x62a00073
++	.insn 0x62a00073
+ 	ret
  
- static inline void __raw_writeb(u8 val, volatile void *addr)
- {
-@@ -73,22 +74,32 @@ static inline u64 __raw_readq(const volatile void *addr)
+ 	.align 3
+@@ -56,7 +56,7 @@ __sbi_hfence_gvma_gpa:
+ 	 * HFENCE.GVMA a0
+ 	 * 0110001 00000 01010 000 00000 1110011
+ 	 */
+-	.word 0x62050073
++	.insn 0x62050073
+ 	ret
  
- /* clang-format off */
+ 	.align 3
+@@ -68,7 +68,7 @@ __sbi_hfence_gvma_all:
+ 	 * HFENCE.GVMA
+ 	 * 0110001 00000 00000 000 00000 1110011
+ 	 */
+-	.word 0x62000073
++	.insn 0x62000073
+ 	ret
  
-+#ifdef CONFIG_OPENSBI_BE
-+#define io_conv16(__x) cpu_to_le16(__x)
-+#define io_conv32(__x) cpu_to_le32(__x)
-+#define io_conv64(__x) cpu_to_le64(__x)
-+#else
-+#define io_conv16(__x) (__x)
-+#define io_conv32(__x) (__x)
-+#define io_conv64(__x) (__x)
-+#endif
-+
- #define __io_rbr()		do {} while (0)
- #define __io_rar()		do {} while (0)
- #define __io_rbw()		do {} while (0)
- #define __io_raw()		do {} while (0)
+ 	/*
+@@ -95,7 +95,7 @@ __sbi_hfence_vvma_asid_va:
+ 	 * HFENCE.VVMA a0, a1
+ 	 * 0010001 01011 01010 000 00000 1110011
+ 	 */
+-	.word 0x22b50073
++	.insn 0x22b50073
+ 	ret
  
- #define readb_relaxed(c)	({ u8  __v; __io_rbr(); __v = __raw_readb(c); __io_rar(); __v; })
--#define readw_relaxed(c)	({ u16 __v; __io_rbr(); __v = __raw_readw(c); __io_rar(); __v; })
--#define readl_relaxed(c)	({ u32 __v; __io_rbr(); __v = __raw_readl(c); __io_rar(); __v; })
-+#define readw_relaxed(c)	({ u16 __v; __io_rbr(); __v = __raw_readw(c); __io_rar(); io_conv16(__v); })
-+#define readl_relaxed(c)	({ u32 __v; __io_rbr(); __v = __raw_readl(c); __io_rar(); io_conv32(__v); })
+ 	.align 3
+@@ -107,7 +107,7 @@ __sbi_hfence_vvma_asid:
+ 	 * HFENCE.VVMA zero, a0
+ 	 * 0010001 01010 00000 000 00000 1110011
+ 	 */
+-	.word 0x22a00073
++	.insn 0x22a00073
+ 	ret
  
- #define writeb_relaxed(v,c)	({ __io_rbw(); __raw_writeb((v),(c)); __io_raw(); })
--#define writew_relaxed(v,c)	({ __io_rbw(); __raw_writew((v),(c)); __io_raw(); })
--#define writel_relaxed(v,c)	({ __io_rbw(); __raw_writel((v),(c)); __io_raw(); })
-+#define writew_relaxed(v,c)	({ __io_rbw(); __raw_writew(io_conv16(v),(c)); __io_raw(); })
-+#define writel_relaxed(v,c)	({ __io_rbw(); __raw_writel(io_conv32(v),(c)); __io_raw(); })
+ 	.align 3
+@@ -119,7 +119,7 @@ __sbi_hfence_vvma_va:
+ 	 * HFENCE.VVMA zero, a0
+ 	 * 0010001 00000 01010 000 00000 1110011
+ 	 */
+-	.word 0x22050073
++	.insn 0x22050073
+ 	ret
  
- #if __riscv_xlen != 32
--#define readq_relaxed(c)	({ u64 __v; __io_rbr(); __v = __raw_readq(c); __io_rar(); __v; })
--#define writeq_relaxed(v,c)	({ __io_rbw(); __raw_writeq((v),(c)); __io_raw(); })
-+#define readq_relaxed(c)	({ u64 __v; __io_rbr(); __v = __raw_readq(c); __io_rar(); io_conv64(__v); })
-+#define writeq_relaxed(v,c)	({ __io_rbw(); __raw_writeq(io_conv64(v),(c)); __io_raw(); })
- #endif
- 
- #define __io_br()	do {} while (0)
-@@ -97,12 +108,12 @@ static inline u64 __raw_readq(const volatile void *addr)
- #define __io_aw()	do {} while (0)
- 
- #define readb(c)	({ u8  __v; __io_br(); __v = __raw_readb(c); __io_ar(); __v; })
--#define readw(c)	({ u16 __v; __io_br(); __v = __raw_readw(c); __io_ar(); __v; })
--#define readl(c)	({ u32 __v; __io_br(); __v = __raw_readl(c); __io_ar(); __v; })
-+#define readw(c)	({ u16 __v; __io_br(); __v = __raw_readw(c); __io_ar(); io_conv16(__v); })
-+#define readl(c)	({ u32 __v; __io_br(); __v = __raw_readl(c); __io_ar(); io_conv32(__v); })
- 
- #define writeb(v,c)	({ __io_bw(); __raw_writeb((v),(c)); __io_aw(); })
--#define writew(v,c)	({ __io_bw(); __raw_writew((v),(c)); __io_aw(); })
--#define writel(v,c)	({ __io_bw(); __raw_writel((v),(c)); __io_aw(); })
-+#define writew(v,c)	({ __io_bw(); __raw_writew(io_conv16(v),(c)); __io_aw(); })
-+#define writel(v,c)	({ __io_bw(); __raw_writel(io_conv32(v),(c)); __io_aw(); })
- 
- #if __riscv_xlen != 32
- #define readq(c)	({ u64 __v; __io_br(); __v = __raw_readq(c); __io_ar(); __v; })
+ 	.align 3
+@@ -131,5 +131,5 @@ __sbi_hfence_vvma_all:
+ 	 * HFENCE.VVMA
+ 	 * 0010001 00000 00000 000 00000 1110011
+ 	 */
+-	.word 0x22000073
++	.insn 0x22000073
+ 	ret
 -- 
 2.37.2.352.g3c44437643
 
