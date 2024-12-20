@@ -1,100 +1,89 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Fri, 20 Dec 2024 16:02:00 +0000
-Subject: [RFC 1/7] opensbi: use .insn for instrcutions to fix endian
+Date: Fri, 20 Dec 2024 16:02:01 +0000
+Subject: [RFC 2/7] opensbi: add build config for building big-endian
 In-Reply-To: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
 References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241220160206.1989527-2-ben.dooks@codethink.co.uk>
+Message-ID: <20241220160206.1989527-3-ben.dooks@codethink.co.uk>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Using .word for creating instructions means they are written in
-the data endian, not the instruction endian. Change .word to .insn
-to tell the assembler it is creating custom instructions.
+Add a build option for big-endian OpenSBI build.
 
 Reviewed-by: Lawrence Hunter <lawrence.hunter@codethink.co.uk>
 Reviewed-by: Roan Richmod <roan.richmond@codethink.co.uk>
 Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
- lib/sbi/sbi_hfence.S | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ Kconfig  |  5 +++++
+ Makefile | 18 ++++++++++++++++--
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_hfence.S b/lib/sbi/sbi_hfence.S
-index e11e650..6f91372 100644
---- a/lib/sbi/sbi_hfence.S
-+++ b/lib/sbi/sbi_hfence.S
-@@ -32,7 +32,7 @@ __sbi_hfence_gvma_vmid_gpa:
- 	 * HFENCE.GVMA a0, a1
- 	 * 0110001 01011 01010 000 00000 1110011
- 	 */
--	.word 0x62b50073
-+	.insn 0x62b50073
- 	ret
+diff --git a/Kconfig b/Kconfig
+index acfc138..cc7b5bc 100644
+--- a/Kconfig
++++ b/Kconfig
+@@ -2,6 +2,11 @@
  
- 	.align 3
-@@ -44,7 +44,7 @@ __sbi_hfence_gvma_vmid:
- 	 * HFENCE.GVMA zero, a0
- 	 * 0110001 01010 00000 000 00000 1110011
- 	 */
--	.word 0x62a00073
-+	.insn 0x62a00073
- 	ret
+ mainmenu "OpenSBI $(OPENSBI_PLATFORM) Configuration"
  
- 	.align 3
-@@ -56,7 +56,7 @@ __sbi_hfence_gvma_gpa:
- 	 * HFENCE.GVMA a0
- 	 * 0110001 00000 01010 000 00000 1110011
- 	 */
--	.word 0x62050073
-+	.insn 0x62050073
- 	ret
++config OPENSBI_BE
++	bool "Build OpenSBI big-endian"
++	help
++	  Say Y here if you like fun challenges
++
+ config OPENSBI_SRC_DIR
+ 	string
+ 	option env="OPENSBI_SRC_DIR"
+diff --git a/Makefile b/Makefile
+index d9cee49..3b6d981 100644
+--- a/Makefile
++++ b/Makefile
+@@ -357,6 +357,9 @@ GENFLAGS	+=	$(firmware-genflags-y)
  
- 	.align 3
-@@ -68,7 +68,7 @@ __sbi_hfence_gvma_all:
- 	 * HFENCE.GVMA
- 	 * 0110001 00000 00000 000 00000 1110011
- 	 */
--	.word 0x62000073
-+	.insn 0x62000073
- 	ret
+ CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
+ CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
++ifeq ($(CONFIG_OPENSBI_BE),y)
++CFLAGS		+=	-mbig-endian
++endif
+ # Optionally supported flags
+ ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
+ CFLAGS		+=	-mno-save-restore
+@@ -397,6 +400,9 @@ endif
+ ASFLAGS		+=	$(GENFLAGS)
+ ASFLAGS		+=	$(platform-asflags-y)
+ ASFLAGS		+=	$(firmware-asflags-y)
++ifeq ($(CONFIG_OPENSBI_BE),y)
++ASFLAGS		+=	-mbig-endian
++endif
  
- 	/*
-@@ -95,7 +95,7 @@ __sbi_hfence_vvma_asid_va:
- 	 * HFENCE.VVMA a0, a1
- 	 * 0010001 01011 01010 000 00000 1110011
- 	 */
--	.word 0x22b50073
-+	.insn 0x22b50073
- 	ret
+ ARFLAGS		=	rcs
  
- 	.align 3
-@@ -107,7 +107,7 @@ __sbi_hfence_vvma_asid:
- 	 * HFENCE.VVMA zero, a0
- 	 * 0010001 01010 00000 000 00000 1110011
- 	 */
--	.word 0x22a00073
-+	.insn 0x22a00073
- 	ret
+@@ -410,13 +416,21 @@ ELFFLAGS	+=	-Wl,--no-dynamic-linker -Wl,-pie
+ ELFFLAGS	+=	$(platform-ldflags-y)
+ ELFFLAGS	+=	$(firmware-ldflags-y)
  
- 	.align 3
-@@ -119,7 +119,7 @@ __sbi_hfence_vvma_va:
- 	 * HFENCE.VVMA zero, a0
- 	 * 0010001 00000 01010 000 00000 1110011
- 	 */
--	.word 0x22050073
-+	.insn 0x22050073
- 	ret
++ifeq ($(CONFIG_OPENSBI_BE),y)
++FULL_ENDIAN=big
++SMALL_ENDIAN=b
++else
++FULL_ENDIAN=little
++SMALL_ENDIAN=l
++endif
++
+ MERGEFLAGS	+=	-r
+ ifeq ($(LD_IS_LLD),y)
+ MERGEFLAGS	+=	-b elf
+ else
+-MERGEFLAGS	+=	-b elf$(PLATFORM_RISCV_XLEN)-littleriscv
++MERGEFLAGS	+=	-b elf$(PLATFORM_RISCV_XLEN)-$(FULL_ENDIAN)riscv
+ endif
+-MERGEFLAGS	+=	-m elf$(PLATFORM_RISCV_XLEN)lriscv
++MERGEFLAGS	+=	-m elf$(PLATFORM_RISCV_XLEN)$(SMALL_ENDIAN)riscv
  
- 	.align 3
-@@ -131,5 +131,5 @@ __sbi_hfence_vvma_all:
- 	 * HFENCE.VVMA
- 	 * 0010001 00000 00000 000 00000 1110011
- 	 */
--	.word 0x22000073
-+	.insn 0x22000073
- 	ret
+ DTSCPPFLAGS	=	$(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assembler-with-cpp
+ 
 -- 
 2.37.2.352.g3c44437643
 
