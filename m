@@ -1,64 +1,65 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Fri, 20 Dec 2024 16:02:04 +0000
-Subject: [RFC 5/7] internal: add big/little endian to boot print
-In-Reply-To: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
-References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk>
-Message-ID: <20241220160206.1989527-6-ben.dooks@codethink.co.uk>
+From: Anup Patel <anup@brainfault.org>
+Date: Sat, 21 Dec 2024 18:32:04 +0530
+Subject: [PATCH v2 1/2] platform: generic: Initialize console before other drivers
+In-Reply-To: <20241219050250.3861915-1-samuel.holland@sifive.com>
+References: <20241219050250.3861915-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy2z6maTE5MPuQfQZPOnt3R=+ZtgAkzn_T877vhM9GcKPA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Make a nice new banner for our big endian system.
----
- lib/sbi/sbi_init.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+On Thu, Dec 19, 2024 at 10:32?AM Samuel Holland
+<samuel.holland@sifive.com> wrote:
+>
+> Initialize serial drivers first, so messages printed by other drivers do
+> not need to use the early console buffer.
+>
+> Suggested-by: Anup Patel <anup@brainfault.org>
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 8a2cfae..9009f78 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -32,6 +32,17 @@
- #include <sbi/sbi_version.h>
- #include <sbi/sbi_unit_test.h>
- 
-+#ifdef CONFIG_OPENSBI_BE
-+#define ENDIAN "big-endian "
-+#define BANNER	\
-+        "   ___                   ____  ____ ___    ____  _____ \n"	\
-+        "  / _ \\ _ __   ___ _ __ / ___|| __ )_ _|  | __ )| ____|\n"	\
-+        " | | | | '_ \\ / _ \\ '_ \\ \\ ___ \\|  _ \\| |   |  _ \\|  _|  \n"	\
-+        " | |_| | |_) |  __/ | | |___) | |_) | |   | |_) | |___ \n"	\
-+        "  \\___/| .__/ \\___|_| |_|____/|____/___|  |____/|_____|\n"	\
-+        "       |_|                                             \n\n"
-+#else
-+#define ENDIAN "little-endian "
- #define BANNER                                              \
- 	"   ____                    _____ ____ _____\n"     \
- 	"  / __ \\                  / ____|  _ \\_   _|\n"  \
-@@ -41,6 +52,8 @@
- 	"  \\____/| .__/ \\___|_| |_|_____/|____/_____|\n"  \
- 	"        | |\n"                                     \
- 	"        |_|\n\n"
-+#endif
-+
- 
- static void sbi_boot_print_banner(struct sbi_scratch *scratch)
- {
-@@ -48,9 +61,9 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
- 		return;
- 
- #ifdef OPENSBI_VERSION_GIT
--	sbi_printf("\nOpenSBI %s\n", OPENSBI_VERSION_GIT);
-+	sbi_printf("\nOpenSBI %s%s\n", ENDIAN, OPENSBI_VERSION_GIT);
- #else
--	sbi_printf("\nOpenSBI v%d.%d\n", OPENSBI_VERSION_MAJOR,
-+	sbi_printf("\nOpenSBI %sv%d.%d\n", ENDIAN, OPENSBI_VERSION_MAJOR,
- 		   OPENSBI_VERSION_MINOR);
- #endif
- 
--- 
-2.37.2.352.g3c44437643
+Applied this patch to the riscv/opensbi repo.
 
+Thanks,
+Anup
+
+> ---
+>
+> Changes in v2:
+>  - New patch for v2
+>
+>  platform/generic/platform.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index 350d2517..c03ed88e 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -250,17 +250,17 @@ static int generic_early_init(bool cold_boot)
+>         int rc;
+>
+>         if (cold_boot) {
+> -               fdt_reset_init(fdt);
+> -               fdt_suspend_init(fdt);
+> -               fdt_hsm_init(fdt);
+> -               fdt_cppc_init(fdt);
+> -
+>                 if (semihosting_enabled())
+>                         rc = semihosting_init();
+>                 else
+>                         rc = fdt_serial_init(fdt);
+>                 if (rc)
+>                         return rc;
+> +
+> +               fdt_cppc_init(fdt);
+> +               fdt_hsm_init(fdt);
+> +               fdt_reset_init(fdt);
+> +               fdt_suspend_init(fdt);
+>         }
+>
+>         if (!generic_plat || !generic_plat->early_init)
+> --
+> 2.45.1
+>
 
