@@ -1,160 +1,134 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Tue, 24 Dec 2024 12:00:36 +0530
-Subject: [PATCH 2/2] lib: sbi: Improve the alignment of boot-time prints
-In-Reply-To: <20241222060328.469014-2-apatel@ventanamicro.com>
-References: <20241222060328.469014-1-apatel@ventanamicro.com> <20241222060328.469014-2-apatel@ventanamicro.com>
-Message-ID: <CAK9=C2WvPc7COE6N0zAobUDWtx4QQULWztRt-tkasZGuxpmD6A@mail.gmail.com>
+Date: Tue, 24 Dec 2024 13:58:24 +0530
+Subject: [PATCH] lib: utils: Fix irqchip registration for PLIC and APLIC
+Message-ID: <20241224082825.710540-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Dec 22, 2024 at 11:33?AM Anup Patel <apatel@ventanamicro.com> wrote:
->
-> Addtion of "Experimental SBI Extensions" to the boot-time prints
-> disturbs the alignment of other prints so adjust all boot-time
-> prints accordingly.
->
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Currently, the same irqchip instance is registered for multiple PLIC
+and APLIC instances which causes the sbi_list_for_each_entry() loop
+in the sbi_irqchip_init() to hang at boot-time.
 
-Applied this patch to the riscv/opensbi repo.
+To address the above issue, register a separate irqchip instance for
+each PLIC and APLIC instance.
 
-Regards,
-Anup
+Fixes: 2dd6eaf68055 ("lib: sbi_irqchip: Call driver warm_init from SBI core")
+Reported-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ include/sbi_utils/irqchip/aplic.h | 4 ++++
+ include/sbi_utils/irqchip/plic.h  | 4 ++++
+ lib/utils/irqchip/aplic.c         | 6 +-----
+ lib/utils/irqchip/plic.c          | 8 ++------
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-> ---
->  lib/sbi/sbi_init.c | 62 +++++++++++++++++++++++-----------------------
->  1 file changed, 31 insertions(+), 31 deletions(-)
->
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index cef658a2..58030cf2 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -83,56 +83,56 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
->                 return;
->
->         /* Platform details */
-> -       sbi_printf("Platform Name             : %s\n",
-> +       sbi_printf("Platform Name               : %s\n",
->                    sbi_platform_name(plat));
->         sbi_platform_get_features_str(plat, str, sizeof(str));
-> -       sbi_printf("Platform Features         : %s\n", str);
-> -       sbi_printf("Platform HART Count       : %u\n",
-> +       sbi_printf("Platform Features           : %s\n", str);
-> +       sbi_printf("Platform HART Count         : %u\n",
->                    sbi_platform_hart_count(plat));
->         idev = sbi_ipi_get_device();
-> -       sbi_printf("Platform IPI Device       : %s\n",
-> +       sbi_printf("Platform IPI Device         : %s\n",
->                    (idev) ? idev->name : "---");
->         tdev = sbi_timer_get_device();
-> -       sbi_printf("Platform Timer Device     : %s @ %luHz\n",
-> +       sbi_printf("Platform Timer Device       : %s @ %luHz\n",
->                    (tdev) ? tdev->name : "---",
->                    (tdev) ? tdev->timer_freq : 0);
->         cdev = sbi_console_get_device();
-> -       sbi_printf("Platform Console Device   : %s\n",
-> +       sbi_printf("Platform Console Device     : %s\n",
->                    (cdev) ? cdev->name : "---");
->         hdev = sbi_hsm_get_device();
-> -       sbi_printf("Platform HSM Device       : %s\n",
-> +       sbi_printf("Platform HSM Device         : %s\n",
->                    (hdev) ? hdev->name : "---");
->         pdev = sbi_pmu_get_device();
-> -       sbi_printf("Platform PMU Device       : %s\n",
-> +       sbi_printf("Platform PMU Device         : %s\n",
->                    (pdev) ? pdev->name : "---");
->         srdev = sbi_system_reset_get_device(SBI_SRST_RESET_TYPE_COLD_REBOOT, 0);
-> -       sbi_printf("Platform Reboot Device    : %s\n",
-> +       sbi_printf("Platform Reboot Device      : %s\n",
->                    (srdev) ? srdev->name : "---");
->         srdev = sbi_system_reset_get_device(SBI_SRST_RESET_TYPE_SHUTDOWN, 0);
-> -       sbi_printf("Platform Shutdown Device  : %s\n",
-> +       sbi_printf("Platform Shutdown Device    : %s\n",
->                    (srdev) ? srdev->name : "---");
->         susp_dev = sbi_system_suspend_get_device();
-> -       sbi_printf("Platform Suspend Device   : %s\n",
-> +       sbi_printf("Platform Suspend Device     : %s\n",
->                    (susp_dev) ? susp_dev->name : "---");
->         cppc_dev = sbi_cppc_get_device();
-> -       sbi_printf("Platform CPPC Device      : %s\n",
-> +       sbi_printf("Platform CPPC Device        : %s\n",
->                    (cppc_dev) ? cppc_dev->name : "---");
->
->         /* Firmware details */
-> -       sbi_printf("Firmware Base             : 0x%lx\n", scratch->fw_start);
-> -       sbi_printf("Firmware Size             : %d KB\n",
-> +       sbi_printf("Firmware Base               : 0x%lx\n", scratch->fw_start);
-> +       sbi_printf("Firmware Size               : %d KB\n",
->                    (u32)(scratch->fw_size / 1024));
-> -       sbi_printf("Firmware RW Offset        : 0x%lx\n", scratch->fw_rw_offset);
-> -       sbi_printf("Firmware RW Size          : %d KB\n",
-> +       sbi_printf("Firmware RW Offset          : 0x%lx\n", scratch->fw_rw_offset);
-> +       sbi_printf("Firmware RW Size            : %d KB\n",
->                    (u32)((scratch->fw_size - scratch->fw_rw_offset) / 1024));
-> -       sbi_printf("Firmware Heap Offset      : 0x%lx\n", scratch->fw_heap_offset);
-> -       sbi_printf("Firmware Heap Size        : "
-> +       sbi_printf("Firmware Heap Offset        : 0x%lx\n", scratch->fw_heap_offset);
-> +       sbi_printf("Firmware Heap Size          : "
->                    "%d KB (total), %d KB (reserved), %d KB (used), %d KB (free)\n",
->                    (u32)(scratch->fw_heap_size / 1024),
->                    (u32)(sbi_heap_reserved_space() / 1024),
->                    (u32)(sbi_heap_used_space() / 1024),
->                    (u32)(sbi_heap_free_space() / 1024));
-> -       sbi_printf("Firmware Scratch Size     : "
-> +       sbi_printf("Firmware Scratch Size       : "
->                    "%d B (total), %d B (used), %d B (free)\n",
->                    SBI_SCRATCH_SIZE,
->                    (u32)sbi_scratch_used_space(),
-> @@ -154,7 +154,7 @@ static void sbi_boot_print_domains(struct sbi_scratch *scratch)
->                 return;
->
->         /* Domain details */
-> -       sbi_domain_dump_all("      ");
-> +       sbi_domain_dump_all("        ");
->  }
->
->  static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
-> @@ -174,26 +174,26 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
->         }
->
->         /* Boot HART details */
-> -       sbi_printf("Boot HART ID              : %u\n", hartid);
-> -       sbi_printf("Boot HART Domain          : %s\n", dom->name);
-> +       sbi_printf("Boot HART ID                : %u\n", hartid);
-> +       sbi_printf("Boot HART Domain            : %s\n", dom->name);
->         sbi_hart_get_priv_version_str(scratch, str, sizeof(str));
-> -       sbi_printf("Boot HART Priv Version    : %s\n", str);
-> +       sbi_printf("Boot HART Priv Version      : %s\n", str);
->         misa_string(xlen, str, sizeof(str));
-> -       sbi_printf("Boot HART Base ISA        : %s\n", str);
-> +       sbi_printf("Boot HART Base ISA          : %s\n", str);
->         sbi_hart_get_extensions_str(scratch, str, sizeof(str));
-> -       sbi_printf("Boot HART ISA Extensions  : %s\n", str);
-> -       sbi_printf("Boot HART PMP Count       : %d\n",
-> +       sbi_printf("Boot HART ISA Extensions    : %s\n", str);
-> +       sbi_printf("Boot HART PMP Count         : %d\n",
->                    sbi_hart_pmp_count(scratch));
-> -       sbi_printf("Boot HART PMP Granularity : %u bits\n",
-> +       sbi_printf("Boot HART PMP Granularity   : %u bits\n",
->                    sbi_hart_pmp_log2gran(scratch));
-> -       sbi_printf("Boot HART PMP Address Bits: %d\n",
-> +       sbi_printf("Boot HART PMP Address Bits  : %d\n",
->                    sbi_hart_pmp_addrbits(scratch));
-> -       sbi_printf("Boot HART MHPM Info       : %lu (0x%08x)\n",
-> +       sbi_printf("Boot HART MHPM Info         : %lu (0x%08x)\n",
->                    sbi_popcount(sbi_hart_mhpm_mask(scratch)),
->                    sbi_hart_mhpm_mask(scratch));
-> -       sbi_printf("Boot HART Debug Triggers  : %d triggers\n",
-> +       sbi_printf("Boot HART Debug Triggers    : %d triggers\n",
->                    sbi_dbtr_get_total_triggers());
-> -       sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
-> +       sbi_hart_delegation_dump(scratch, "Boot HART ", "           ");
->  }
->
->  static unsigned long coldboot_done;
-> --
-> 2.43.0
->
+diff --git a/include/sbi_utils/irqchip/aplic.h b/include/sbi_utils/irqchip/aplic.h
+index 82682e8a..e31f48a4 100644
+--- a/include/sbi_utils/irqchip/aplic.h
++++ b/include/sbi_utils/irqchip/aplic.h
+@@ -12,6 +12,7 @@
+ #define __IRQCHIP_APLIC_H__
+ 
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_irqchip.h>
+ 
+ #define APLIC_MAX_DELEGATE	16
+ 
+@@ -30,6 +31,9 @@ struct aplic_delegate_data {
+ };
+ 
+ struct aplic_data {
++	/* Private members */
++	struct sbi_irqchip_device irqchip;
++	/* Public members */
+ 	unsigned long addr;
+ 	unsigned long size;
+ 	unsigned long num_idc;
+diff --git a/include/sbi_utils/irqchip/plic.h b/include/sbi_utils/irqchip/plic.h
+index a173871e..18aa7469 100644
+--- a/include/sbi_utils/irqchip/plic.h
++++ b/include/sbi_utils/irqchip/plic.h
+@@ -11,8 +11,12 @@
+ #define __IRQCHIP_PLIC_H__
+ 
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_irqchip.h>
+ 
+ struct plic_data {
++	/* Private members */
++	struct sbi_irqchip_device irqchip;
++	/* Public members */
+ 	unsigned long addr;
+ 	unsigned long size;
+ 	unsigned long num_src;
+diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+index 27371849..72906d5d 100644
+--- a/lib/utils/irqchip/aplic.c
++++ b/lib/utils/irqchip/aplic.c
+@@ -12,7 +12,6 @@
+ #include <sbi/sbi_console.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi/sbi_error.h>
+-#include <sbi/sbi_irqchip.h>
+ #include <sbi_utils/irqchip/aplic.h>
+ 
+ #define APLIC_MAX_IDC			(1UL << 14)
+@@ -166,9 +165,6 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
+ 	return 0;
+ }
+ 
+-static struct sbi_irqchip_device aplic_device = {
+-};
+-
+ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ {
+ 	int rc;
+@@ -280,7 +276,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ 	}
+ 
+ 	/* Register irqchip device */
+-	sbi_irqchip_add_device(&aplic_device);
++	sbi_irqchip_add_device(&aplic->irqchip);
+ 
+ 	return 0;
+ }
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 7761ae98..8b2190f8 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -15,7 +15,6 @@
+ #include <sbi/sbi_domain.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_heap.h>
+-#include <sbi/sbi_irqchip.h>
+ #include <sbi/sbi_string.h>
+ #include <sbi_utils/irqchip/plic.h>
+ 
+@@ -221,10 +220,6 @@ static int plic_warm_irqchip_init(struct sbi_irqchip_device *dev)
+ 	return 0;
+ }
+ 
+-static struct sbi_irqchip_device plic_device = {
+-	.warm_init	= plic_warm_irqchip_init,
+-};
+-
+ int plic_cold_irqchip_init(struct plic_data *plic)
+ {
+ 	int i, ret;
+@@ -284,7 +279,8 @@ int plic_cold_irqchip_init(struct plic_data *plic)
+ 	}
+ 
+ 	/* Register irqchip device */
+-	sbi_irqchip_add_device(&plic_device);
++	plic->irqchip.warm_init = plic_warm_irqchip_init;
++	sbi_irqchip_add_device(&plic->irqchip);
+ 
+ 	return 0;
+ }
+-- 
+2.43.0
+
 
