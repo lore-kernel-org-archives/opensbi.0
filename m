@@ -1,33 +1,41 @@
-From: Leo Yu-Chi Liang <ycliang@andestech.com>
-Date: Mon, 30 Dec 2024 17:44:13 +0800
-Subject: [PATCH 1/1] fdt: fdt_helper: fix typo har't'id
-Message-ID: <20241230094413.885968-1-ycliang@andestech.com>
+From: Huang Borong <huangborong@bosc.ac.cn>
+Date: Tue, 31 Dec 2024 16:12:23 +0800
+Subject: [PATCH] lib: utils/irqchip: Optimize `fdt_parse_aplic_node` function
+Message-ID: <20241231081223.111470-1-huangborong@bosc.ac.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-s/hard_id/hartid/
+- Remove redundant memset for the "aplic" parameter
+- Initialize "imsic" with zero
 
-Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+Signed-off-by: Huang Borong <huangborong@bosc.ac.cn>
 ---
- include/sbi_utils/fdt/fdt_helper.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/utils/fdt/fdt_helper.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 7329b84c..6a37d971 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -59,7 +59,7 @@ int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..e92484c 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -630,14 +630,13 @@ int fdt_parse_aplic_node(const void *fdt, int nodeoff, struct aplic_data *aplic)
+ 	bool child_found;
+ 	const fdt32_t *val;
+ 	const fdt32_t *del;
+-	struct imsic_data imsic;
++	struct imsic_data imsic = { 0 };
+ 	int i, j, d, dcnt, len, noff, rc;
+ 	uint64_t reg_addr, reg_size;
+ 	struct aplic_delegate_data *deleg;
  
- int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
+ 	if (nodeoff < 0 || !aplic || !fdt)
+ 		return SBI_ENODEV;
+-	memset(aplic, 0, sizeof(*aplic));
  
--int fdt_parse_isa_extensions(const void *fdt, unsigned int hard_id,
-+int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
- 			     unsigned long *extensions);
- 
- int fdt_parse_gaisler_uart_node(const void *fdt, int nodeoffset,
+ 	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
+ 	if (rc < 0 || !reg_addr || !reg_size)
 -- 
 2.34.1
 
