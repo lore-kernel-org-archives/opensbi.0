@@ -1,39 +1,47 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Thu,  2 Jan 2025 14:39:15 +0100
-Subject: [PATCH v5 6/6] lib: sbi: pmu: add the PMU SSE event only if overflow IRQ is supported
-In-Reply-To: <20250102133916.413899-1-cleger@rivosinc.com>
-References: <20250102133916.413899-1-cleger@rivosinc.com>
-Message-ID: <20250102133916.413899-7-cleger@rivosinc.com>
+From: Huang Borong <huangborong@bosc.ac.cn>
+Date: Fri,  3 Jan 2025 10:38:28 +0800
+Subject: [PATCH] lib: utils/fdt: update fdt_parse_aplic_node()
+Message-ID: <20250103023828.26925-1-huangborong@bosc.ac.cn>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the PMU SSE event only if an overflow irq bit is present.
+1. Initialize struct imsic_data imsic to 0 at definition to prevent the
+   use of uninitialized memory, ensuring the variable starts with known
+   values.
 
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+2. Remove the redundant memset call on the "aplic" parameter since the
+   memory for aplic is allocated using sbi_zalloc() by the caller
+   irqchip_aplic_cold_init(), which guarantees it is already set to 0.
+
+Signed-off-by: Huang Borong <huangborong@bosc.ac.cn>
 ---
- lib/sbi/sbi_pmu.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/utils/fdt/fdt_helper.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 6e69a4dc..40b898fe 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -1165,7 +1165,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..e92484c 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -630,14 +630,13 @@ int fdt_parse_aplic_node(const void *fdt, int nodeoff, struct aplic_data *aplic)
+ 	bool child_found;
+ 	const fdt32_t *val;
+ 	const fdt32_t *del;
+-	struct imsic_data imsic;
++	struct imsic_data imsic = { 0 };
+ 	int i, j, d, dcnt, len, noff, rc;
+ 	uint64_t reg_addr, reg_size;
+ 	struct aplic_delegate_data *deleg;
  
- 		total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+ 	if (nodeoff < 0 || !aplic || !fdt)
+ 		return SBI_ENODEV;
+-	memset(aplic, 0, sizeof(*aplic));
  
--		sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
-+		if (sbi_pmu_irq_bit() >= 0)
-+			sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
- 	}
- 
- 	phs = pmu_get_hart_state_ptr(scratch);
+ 	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
+ 	if (rc < 0 || !reg_addr || !reg_size)
 -- 
-2.45.2
+2.34.1
 
 
