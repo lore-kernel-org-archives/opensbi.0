@@ -1,83 +1,45 @@
 From: Chao-ying Fu <icebergfu@gmail.com>
-Date: Thu,  9 Jan 2025 15:08:53 -0800
-Subject: [PATCH] Work with hartid equal to or greater than SBI_HARTMASK_MAX_BITS.
-Message-ID: <20250109230853.2440-1-cfu@mips.com>
+Date: Thu,  9 Jan 2025 15:32:41 -0800
+Subject: [PATCH] Convert hartid to hart index to get scratch.
+Message-ID: <20250109233241.2491-1-cfu@mips.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
-so we should remove the check.
+Hartid may not be sequential, so we need to use index to get scratch.
 ---
- lib/utils/fdt/fdt_domain.c  | 3 ---
- lib/utils/fdt/fdt_helper.c  | 9 ---------
- platform/generic/platform.c | 3 ---
- 3 files changed, 15 deletions(-)
+ lib/utils/ipi/aclint_mswi.c     | 2 +-
+ lib/utils/timer/aclint_mtimer.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 4bc7ed8..6bc63c2 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -471,9 +471,6 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
- 		if (err)
- 			continue;
+diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
+index 9e55078..e22903f 100644
+--- a/lib/utils/ipi/aclint_mswi.c
++++ b/lib/utils/ipi/aclint_mswi.c
+@@ -87,7 +87,7 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
  
--		if (SBI_HARTMASK_MAX_BITS <= val32)
--			continue;
--
- 		if (!fdt_node_is_enabled(fdt, cpu_offset))
- 			continue;
+ 	/* Update MSWI pointer in scratch space */
+ 	for (i = 0; i < mswi->hart_count; i++) {
+-		scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
++		scratch = sbi_hartindex_to_scratch(sbi_hartid_to_hartindex(mswi->first_hartid) + i);
+ 		/*
+ 		 * We don't need to fail if scratch pointer is not available
+ 		 * because we might be dealing with hartid of a HART disabled
+diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+index 3db3c3b..eb80f24 100644
+--- a/lib/utils/timer/aclint_mtimer.c
++++ b/lib/utils/timer/aclint_mtimer.c
+@@ -206,7 +206,7 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
  
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index cb350e5..aec08fa 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -1032,9 +1032,6 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
- 		if (rc)
- 			continue;
- 
--		if (SBI_HARTMASK_MAX_BITS <= hartid)
--			continue;
--
- 		if (match_hwirq == hwirq) {
- 			if (hartid < first_hartid)
- 				first_hartid = hartid;
-@@ -1097,9 +1094,6 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
- 		if (rc)
- 			continue;
- 
--		if (SBI_HARTMASK_MAX_BITS <= hartid)
--			continue;
--
- 		if (hwirq == IRQ_M_TIMER)
- 			hcount++;
- 	}
-@@ -1153,9 +1147,6 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
- 		if (rc)
- 			continue;
- 
--		if (SBI_HARTMASK_MAX_BITS <= hartid)
--			continue;
--
- 		if (hwirq == IRQ_M_SOFT)
- 			hcount++;
- 	}
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index c03ed88..331ff8e 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -200,9 +200,6 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
- 		if (rc)
- 			continue;
- 
--		if (SBI_HARTMASK_MAX_BITS <= hartid)
--			continue;
--
- 		if (!fdt_node_is_enabled(fdt, cpu_offset))
- 			continue;
- 
+ 	/* Update MTIMER pointer in scratch space */
+ 	for (i = 0; i < mt->hart_count; i++) {
+-		scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
++		scratch = sbi_hartindex_to_scratch(sbi_hartid_to_hartindex(mt->first_hartid) + i);
+ 		/*
+ 		 * We don't need to fail if scratch pointer is not available
+ 		 * because we might be dealing with hartid of a HART disabled
 -- 
 2.47.1
 
