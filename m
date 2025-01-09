@@ -1,50 +1,84 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 08 Jan 2025 10:25:38 +0800
-Subject: [PATCH] lib: utils: Make the enforce permission bit
- configurable from DT
-In-Reply-To: <20250107024314.28611-1-duchao@eswincomputing.com>
-References: <20250107024314.28611-1-duchao@eswincomputing.com>
-Message-ID: <5800798b82d700d7eead20b48e37e8836306cbf1.camel@126.com>
+From: Chao-ying Fu <icebergfu@gmail.com>
+Date: Thu,  9 Jan 2025 15:08:53 -0800
+Subject: [PATCH] Work with hartid equal to or greater than SBI_HARTMASK_MAX_BITS.
+Message-ID: <20250109230853.2440-1-cfu@mips.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2025-01-07?? 02:43 +0000?Chao Du???
-> The domain_support.md documentation states that the enforce permission
-> bit (BIT[6]) could be set in the "regions" property of a domain
-> instance DT node. However, this bit is masked in the current
-> implementation. This patch unmasks the bit to make it configurable
-> from DT.
-> 
-> Signed-off-by: Chao Du <duchao@eswincomputing.com>
-look good to me.
+Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
+so we should remove the check.
+---
+ lib/utils/fdt/fdt_domain.c  | 3 ---
+ lib/utils/fdt/fdt_helper.c  | 9 ---------
+ platform/generic/platform.c | 3 ---
+ 3 files changed, 15 deletions(-)
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> ---
-> ?lib/utils/fdt/fdt_domain.c | 4 +++-
-> ?1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 4bc7ed8..d7efc56 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -289,8 +289,10 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
-> ?		return SBI_EINVAL;
-> ?	order = val32;
-> ?
-> +	flags = region_access & (SBI_DOMAIN_MEMREGION_ACCESS_MASK
-> +				| SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS);
-> +
-> ?	/* Read "mmio" DT property */
-> -	flags = region_access & SBI_DOMAIN_MEMREGION_ACCESS_MASK;
-> ?	if (fdt_get_property(fdt, region_offset, "mmio", NULL))
-> ?		flags |= SBI_DOMAIN_MEMREGION_MMIO;
-> ?
-> -- 
-> 2.34.1
-> 
-> 
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 4bc7ed8..6bc63c2 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -471,9 +471,6 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
+ 		if (err)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= val32)
+-			continue;
+-
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
+ 			continue;
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..aec08fa 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -1032,9 +1032,6 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
+-			continue;
+-
+ 		if (match_hwirq == hwirq) {
+ 			if (hartid < first_hartid)
+ 				first_hartid = hartid;
+@@ -1097,9 +1094,6 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
+-			continue;
+-
+ 		if (hwirq == IRQ_M_TIMER)
+ 			hcount++;
+ 	}
+@@ -1153,9 +1147,6 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
+-			continue;
+-
+ 		if (hwirq == IRQ_M_SOFT)
+ 			hcount++;
+ 	}
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index c03ed88..331ff8e 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -200,9 +200,6 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
+-			continue;
+-
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
+ 			continue;
+ 
+-- 
+2.47.1
 
 
