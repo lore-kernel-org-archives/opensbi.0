@@ -1,62 +1,111 @@
 From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 10 Jan 2025 00:52:35 +0000
-Subject: [PATCH] Add a counter and debug printf to change the latency
- inside tlb_sync
-In-Reply-To: <20250110000301.2620-1-cfu@mips.com>
-References: <20250110000301.2620-1-cfu@mips.com>
-Message-ID: <35430B00-3D3C-4922-B425-F4C08A1A4802@jrtc27.com>
+Date: Fri, 10 Jan 2025 00:57:30 +0000
+Subject: [PATCH] Work with hartid equal to or greater than
+ SBI_HARTMASK_MAX_BITS.
+In-Reply-To: <20250109230853.2440-1-cfu@mips.com>
+References: <20250109230853.2440-1-cfu@mips.com>
+Message-ID: <835E687C-AF11-4AA7-844D-67280CDB4AC0@jrtc27.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10 Jan 2025, at 00:03, Chao-ying Fu <icebergfu@gmail.com> wrote:
+On 9 Jan 2025, at 23:08, Chao-ying Fu <icebergfu@gmail.com> wrote:
 > 
-> The tlb_sync loop is slowed down by variable latency to avoid
-> livelock on some platforms.
+> Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
+> so we should remove the check.
 
-I don?t understand ?by variable latency?. It doesn?t do anything but
-print.
+The checks aren?t there for fun, they?re required. From sbi_hartmask.h:
 
-> ---
-> lib/sbi/sbi_tlb.c | 6 ++++++
-> 1 file changed, 6 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-> index 01b31f4..d46b95c 100644
-> --- a/lib/sbi/sbi_tlb.c
-> +++ b/lib/sbi/sbi_tlb.c
-> @@ -247,6 +247,7 @@ static void tlb_process(struct sbi_scratch *scratch)
-> 
-> static void tlb_sync(struct sbi_scratch *scratch)
-> {
-> + int count = 0;
-> atomic_t *tlb_sync =
-> sbi_scratch_offset_ptr(scratch, tlb_sync_off);
-> 
-> @@ -256,6 +257,11 @@ static void tlb_sync(struct sbi_scratch *scratch)
-> * consume fifo requests to avoid deadlock.
-> */
-> tlb_process_once(scratch);
-> + count++;
+> /**
+>  * Maximum number of bits in a hartmask
+>  *
+>  * The hartmask is indexed using physical HART id so this define
+>  * also represents the maximum number of HART ids generic OpenSBI
+>  * can handle.
+>  */
 
-Technically this could overflow, and count is signed, so UB...
+OpenSBI does not support hart IDs outside this range today, so there is
+real work to do if that?s needed, not just deleting checks. Otherwise
+you?re going to end up with out-of-bounds memory accesses.
 
-> + if ((count % 20) == 0) {
-> + sbi_dprintf("tlb_sync loop count = %d value = %ld\n",
-> +    count, atomic_read(tlb_sync));
-
-What value does this add? 20 isn?t that big...
-
-If your goal is to avoid spinning and hammering memory, use pause?
+I?m concerned that none of the patches you?ve sent just now seem to
+have been thought through properly. Whilst I?m sure you have the best
+intentions, I also note that this kind of patch is precisely the kind
+of patch one might make were one to want to insert vulnerabilities into
+core system components.
 
 Jess
 
-> + }
-> }
+> ---
+> lib/utils/fdt/fdt_domain.c  | 3 ---
+> lib/utils/fdt/fdt_helper.c  | 9 ---------
+> platform/generic/platform.c | 3 ---
+> 3 files changed, 15 deletions(-)
 > 
-> return;
+> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+> index 4bc7ed8..6bc63c2 100644
+> --- a/lib/utils/fdt/fdt_domain.c
+> +++ b/lib/utils/fdt/fdt_domain.c
+> @@ -471,9 +471,6 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
+> if (err)
+> continue;
+> 
+> - if (SBI_HARTMASK_MAX_BITS <= val32)
+> - continue;
+> -
+> if (!fdt_node_is_enabled(fdt, cpu_offset))
+> continue;
+> 
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index cb350e5..aec08fa 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -1032,9 +1032,6 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+> if (rc)
+> continue;
+> 
+> - if (SBI_HARTMASK_MAX_BITS <= hartid)
+> - continue;
+> -
+> if (match_hwirq == hwirq) {
+> if (hartid < first_hartid)
+> first_hartid = hartid;
+> @@ -1097,9 +1094,6 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
+> if (rc)
+> continue;
+> 
+> - if (SBI_HARTMASK_MAX_BITS <= hartid)
+> - continue;
+> -
+> if (hwirq == IRQ_M_TIMER)
+> hcount++;
+> }
+> @@ -1153,9 +1147,6 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
+> if (rc)
+> continue;
+> 
+> - if (SBI_HARTMASK_MAX_BITS <= hartid)
+> - continue;
+> -
+> if (hwirq == IRQ_M_SOFT)
+> hcount++;
+> }
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index c03ed88..331ff8e 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -200,9 +200,6 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+> if (rc)
+> continue;
+> 
+> - if (SBI_HARTMASK_MAX_BITS <= hartid)
+> - continue;
+> -
+> if (!fdt_node_is_enabled(fdt, cpu_offset))
+> continue;
+> 
 > -- 
 > 2.47.1
 > 
