@@ -1,44 +1,29 @@
-From: Chao-ying Fu <icebergfu@gmail.com>
-Date: Thu,  9 Jan 2025 16:03:01 -0800
-Subject: [PATCH] Add a counter and debug printf to change the latency inside tlb_sync
-Message-ID: <20250110000301.2620-1-cfu@mips.com>
+From: Inochi Amaoto <inochiama@gmail.com>
+Date: Fri, 10 Jan 2025 08:42:28 +0800
+Subject: [PATCH] Work with hartid equal to or greater than
+ SBI_HARTMASK_MAX_BITS.
+In-Reply-To: <20250109230853.2440-1-cfu@mips.com>
+References: <20250109230853.2440-1-cfu@mips.com>
+Message-ID: <xg5stvhp7uqggy2mr3jtloueoqxyfjqezc3ohgrhyvpqmbgbpn@6qqfwuvw5gfm>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The tlb_sync loop is slowed down by variable latency to avoid
-livelock on some platforms.
----
- lib/sbi/sbi_tlb.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Thu, Jan 09, 2025 at 03:08:53PM -0800, Chao-ying Fu wrote:
+> Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
+> so we should remove the check.
+> ---
+>  lib/utils/fdt/fdt_domain.c  | 3 ---
+>  lib/utils/fdt/fdt_helper.c  | 9 ---------
+>  platform/generic/platform.c | 3 ---
+>  3 files changed, 15 deletions(-)
+> 
 
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index 01b31f4..d46b95c 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -247,6 +247,7 @@ static void tlb_process(struct sbi_scratch *scratch)
- 
- static void tlb_sync(struct sbi_scratch *scratch)
- {
-+	int count = 0;
- 	atomic_t *tlb_sync =
- 			sbi_scratch_offset_ptr(scratch, tlb_sync_off);
- 
-@@ -256,6 +257,11 @@ static void tlb_sync(struct sbi_scratch *scratch)
- 		 * consume fifo requests to avoid deadlock.
- 		 */
- 		tlb_process_once(scratch);
-+		count++;
-+		if ((count % 20) == 0) {
-+			sbi_dprintf("tlb_sync loop count = %d value = %ld\n",
-+				    count, atomic_read(tlb_sync));
-+		}
- 	}
- 
- 	return;
--- 
-2.47.1
+Is there a specific platform to test this patch? This also applies
+to your other patches.
 
+Regards,
+Inochi
 
