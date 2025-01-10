@@ -1,57 +1,44 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 10 Jan 2025 00:30:17 +0000
-Subject: [PATCH] Add a dummy register to sbi_trap_regs
-In-Reply-To: <20250109235219.2568-1-cfu@mips.com>
-References: <20250109235219.2568-1-cfu@mips.com>
-Message-ID: <6AAED77F-C41F-4850-8CB3-43C3AB40F2D7@jrtc27.com>
+From: Chao-ying Fu <icebergfu@gmail.com>
+Date: Thu,  9 Jan 2025 16:03:01 -0800
+Subject: [PATCH] Add a counter and debug printf to change the latency inside tlb_sync
+Message-ID: <20250110000301.2620-1-cfu@mips.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9 Jan 2025, at 23:52, Chao-ying Fu <icebergfu@gmail.com> wrote:
-> 
-> SBI_TRAP_CONTEXT_SIZE becomes a multiple of 8 bytes for RV32
-> or 16 bytes for RV64, so we have sp aligned to 8 or 16 bytes
-> to have better performance on some platforms,
-> ---
-> include/sbi/sbi_trap.h | 6 +++++-
-> 1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-> index d5182bf..df99d8e 100644
-> --- a/include/sbi/sbi_trap.h
-> +++ b/include/sbi/sbi_trap.h
-> @@ -84,8 +84,10 @@
-> #define SBI_TRAP_REGS_mstatus 33
-> /** Index of mstatusH member in sbi_trap_regs */
-> #define SBI_TRAP_REGS_mstatusH 34
-> +/** Index of a dummy register */
-> +#define SBI_TRAP_REGS_dummy 35
-> /** Last member index in sbi_trap_regs */
-> -#define SBI_TRAP_REGS_last 35
-> +#define SBI_TRAP_REGS_last 36
-> 
-> /** Index of cause member in sbi_trap_info */
-> #define SBI_TRAP_INFO_cause 0
-> @@ -194,6 +196,8 @@ struct sbi_trap_regs {
-> unsigned long mstatus;
-> /** mstatusH register state (only for 32-bit) */
-> unsigned long mstatusH;
-> + /** a dummy register */
-> + unsigned long dummy;
+The tlb_sync loop is slowed down by variable latency to avoid
+livelock on some platforms.
+---
+ lib/sbi/sbi_tlb.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-This is ugly and fragile for when changes are made to the structure.
-Either make SBI_TRAP_CONTEXT_SIZE round up the size or, if for some
-reason that doesn?t work, you can always make the struct type
-overaligned.
-
-Also, sp is aligned to 16 bytes anyway, that?s mandated by the ABI. So
-I don?t understand your justification.
-
-Strong NAK.
-
-Jess
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index 01b31f4..d46b95c 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -247,6 +247,7 @@ static void tlb_process(struct sbi_scratch *scratch)
+ 
+ static void tlb_sync(struct sbi_scratch *scratch)
+ {
++	int count = 0;
+ 	atomic_t *tlb_sync =
+ 			sbi_scratch_offset_ptr(scratch, tlb_sync_off);
+ 
+@@ -256,6 +257,11 @@ static void tlb_sync(struct sbi_scratch *scratch)
+ 		 * consume fifo requests to avoid deadlock.
+ 		 */
+ 		tlb_process_once(scratch);
++		count++;
++		if ((count % 20) == 0) {
++			sbi_dprintf("tlb_sync loop count = %d value = %ld\n",
++				    count, atomic_read(tlb_sync));
++		}
+ 	}
+ 
+ 	return;
+-- 
+2.47.1
 
 
