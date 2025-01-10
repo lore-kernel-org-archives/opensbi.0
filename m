@@ -1,49 +1,42 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 10 Jan 2025 19:12:03 +0000
-Subject: [PATCH] Add a counter and debug printf to change the latency
- inside tlb_sync
-In-Reply-To: <B03A7A01-2DD4-497D-A465-9A56901A7F98@jrtc27.com>
-References: <20250110000301.2620-1-cfu@mips.com>
- <35430B00-3D3C-4922-B425-F4C08A1A4802@jrtc27.com>
- <38b6bf1b-37b4-4cd8-bcab-a3c5537546a1@gmail.com>
- <CAM1rFzFkH2r=w1WSRaYeqGKETHnR9TRcMnPKd+5s0KnoEHToJQ@mail.gmail.com>
- <B03A7A01-2DD4-497D-A465-9A56901A7F98@jrtc27.com>
-Message-ID: <9FA52FF6-E706-40C4-A1AA-E20E087A5F48@jrtc27.com>
+From: Chao-ying Fu <icebergfu@gmail.com>
+Date: Thu, 9 Jan 2025 18:33:34 -0800
+Subject: [PATCH] Add RISCV_ISA_ZALRSC_ONLY to rewrite amo instructions via
+ lr and sc
+In-Reply-To: <64a3e024-ed34-4ab2-8161-708920702911@gmail.com>
+References: <20250110002447.2758-1-cfu@mips.com> <64a3e024-ed34-4ab2-8161-708920702911@gmail.com>
+Message-ID: <CAM1rFzG31uEE6ghzeVMsBBoZfZNWdEJToF2QJvx8ftACf41Fxg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 10 Jan 2025, at 19:08, Jessica Clarke <jrtc27@jrtc27.com> wrote:
-> 
-> On 10 Jan 2025, at 02:16, Chao-ying Fu <icebergfu@gmail.com> wrote:
->> 
->> On Thu, Jan 9, 2025 at 5:18?PM Bo Gan <ganboing@gmail.com> wrote:
->>> 
->>> Hi Chaoying,
->>> 
->>> I don't think this patch does anything at all. Using printf to delay is naive.
->>> Can you give concrete example of how the livelock happened and when it happens
->>> some precise number on the performance impact?
->> 
->> Yes, the patch is naive, and we can treat it as the debug patch.
->> However, this patch does help us to avoid livelock.
->> From our 24-hart configuration, one hart cannot update the variable
->> tlb_sync, because another hart always wins to read the value. Then,
->> the tlb_sync loop never exits.
-> 
-> That sounds like your core violates the forward progress guarantee
-> required by the RISC-V spec.
+On Thu, Jan 9, 2025 at 5:12?PM Bo Gan <ganboing@gmail.com> wrote:
+>
+> Hi Chaoying,
+>
+> On 1/9/25 16:24, Chao-ying Fu wrote:
+> > Some platforms implement lr and sc in hardware, and emulate amo
+> > instructions via the exception handler. To get better performance,
+> > we use lr and sc only, when the config is defined.
+>
+> This comment seems to be self-contradictory. If the core does not support
+> amo, then there's no way currently in opensbi to trap/emulate it through
+> exception handler. Thus, from your description, it's not only performance,
+> but correctness instead. Also do you have a concrete example of such HW?
+> I wonder if it's worthwhile to maintain for such special HW. I know the
+> S7 hart in hifive/unmatched and starfive/jh7110 works the other way around:
+> it only supports AMO, but not lr/sc.
 
-Except atomic_add_return uses amoadd.d.aqrl, which doesn?t even need
-such a guarantee, because it?s a single instruction, so that?s saying
-your hart can wedge on AMOs. Unless you?ve also patched OpenSBI to use
-LR/SC there, in which case we?re back to the forward progress guarantee
-being violated.
+Our core implements extra custom illegal instruction exceptions for
+amo instructions and has custom exception vector address. We have
+assembly source code to emulate amo via lr and sc in our platform
+code. We will post our platform patch to OpenSBI later.
+Note that without this patch, the original code still can run.
+However, if we just replace amo with lr and sc directly in OpenSBI, we
+don't need to run through our custom exception handler.
+Thanks a lot!
 
-I have serious concerns about this implementation.
-
-Jess
-
+Regards,
+Chao-ying
 
