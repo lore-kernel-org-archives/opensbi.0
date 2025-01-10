@@ -1,75 +1,38 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Fri, 10 Jan 2025 14:15:55 +0100
-Subject: [PATCH v6 6/7] lib: sbi: sse: return SBI_ENOTSUPP for unsupported events
+Date: Fri, 10 Jan 2025 14:15:56 +0100
+Subject: [PATCH v6 7/7] lib: sbi: pmu: add the PMU SSE event only if overflow IRQ is supported
 In-Reply-To: <20250110131557.3261411-1-cleger@rivosinc.com>
 References: <20250110131557.3261411-1-cleger@rivosinc.com>
-Message-ID: <20250110131557.3261411-7-cleger@rivosinc.com>
+Message-ID: <20250110131557.3261411-8-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If a standard event was not found in the list of events that are handled
-by harts but belongs to the standard event list defined by the
-specification, return SBI_ENOTSUPP. Without that, we can not
-distinguish a non implemented standard event from a non valid one.
+Add the PMU SSE event only if an overflow irq bit is present.
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 Reviewed-by: Atish Patra <atishp@rivosinc.com>
 ---
- lib/sbi/sbi_sse.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ lib/sbi/sbi_pmu.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 005eb56e..9f22375f 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -190,6 +190,31 @@ struct sse_event_info local_software_event = {
- static SBI_SLIST_HEAD(supported_events, sse_event_info) =
- 				SBI_SLIST_HEAD_INIT(&local_software_event);
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 6e69a4dc..40b898fe 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -1165,7 +1165,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
  
-+/*
-+ * This array is used to distinguish between standard event and platform
-+ * events in order to return SBI_ERR_NOT_SUPPORTED for them.
-+ */
-+static const uint32_t standard_events[] = {
-+	SBI_SSE_EVENT_LOCAL_RAS,
-+	SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP,
-+	SBI_SSE_EVENT_GLOBAL_RAS,
-+	SBI_SSE_EVENT_LOCAL_PMU,
-+	SBI_SSE_EVENT_LOCAL_SOFTWARE,
-+	SBI_SSE_EVENT_GLOBAL_SOFTWARE,
-+};
-+
-+static bool sse_is_standard_event(uint32_t event_id)
-+{
-+	int i;
-+
-+	for (i = 0; i < array_size(standard_events); i++) {
-+		if (event_id == standard_events[i])
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- static struct sse_event_info *sse_event_info_get(uint32_t event_id)
- {
- 	struct sse_event_info *info;
-@@ -295,6 +320,11 @@ static int sse_event_get(uint32_t event_id, struct sbi_sse_event **eret)
- 		}
+ 		total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
+ 
+-		sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
++		if (sbi_pmu_irq_bit() >= 0)
++			sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
  	}
  
-+	/* Check if the event is a standard one but not supported */
-+	if (sse_is_standard_event(event_id))
-+		return SBI_ENOTSUPP;
-+
-+	/* If not supported nor a standard event, it is invalid */
- 	return SBI_EINVAL;
- }
- 
+ 	phs = pmu_get_hart_state_ptr(scratch);
 -- 
 2.47.1
 
