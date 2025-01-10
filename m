@@ -1,118 +1,165 @@
-From: Jessica Clarke <jrtc27@jrtc27.com>
-Date: Fri, 10 Jan 2025 00:57:30 +0000
-Subject: [PATCH] Work with hartid equal to or greater than
- SBI_HARTMASK_MAX_BITS.
-In-Reply-To: <20250109230853.2440-1-cfu@mips.com>
-References: <20250109230853.2440-1-cfu@mips.com>
-Message-ID: <835E687C-AF11-4AA7-844D-67280CDB4AC0@jrtc27.com>
+From: Chao-ying Fu <icebergfu@gmail.com>
+Date: Thu,  9 Jan 2025 16:24:47 -0800
+Subject: [PATCH] Add RISCV_ISA_ZALRSC_ONLY to rewrite amo instructions via lr and sc
+Message-ID: <20250110002447.2758-1-cfu@mips.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9 Jan 2025, at 23:08, Chao-ying Fu <icebergfu@gmail.com> wrote:
-> 
-> Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
-> so we should remove the check.
+Some platforms implement lr and sc in hardware, and emulate amo
+instructions via the exception handler. To get better performance,
+we use lr and sc only, when the config is defined.
+---
+ firmware/fw_base.S       |  8 ++++++
+ lib/sbi/riscv_atomic.c   | 54 ++++++++++++++++++++++++++++++++++++++++
+ lib/sbi/riscv_locks.c    |  7 ++++++
+ platform/generic/Kconfig |  4 +++
+ 4 files changed, 73 insertions(+)
 
-The checks aren?t there for fun, they?re required. From sbi_hartmask.h:
-
-> /**
->  * Maximum number of bits in a hartmask
->  *
->  * The hartmask is indexed using physical HART id so this define
->  * also represents the maximum number of HART ids generic OpenSBI
->  * can handle.
->  */
-
-OpenSBI does not support hart IDs outside this range today, so there is
-real work to do if that?s needed, not just deleting checks. Otherwise
-you?re going to end up with out-of-bounds memory accesses.
-
-I?m concerned that none of the patches you?ve sent just now seem to
-have been thought through properly. Whilst I?m sure you have the best
-intentions, I also note that this kind of patch is precisely the kind
-of patch one might make were one to want to insert vulnerabilities into
-core system components.
-
-Jess
-
-> ---
-> lib/utils/fdt/fdt_domain.c  | 3 ---
-> lib/utils/fdt/fdt_helper.c  | 9 ---------
-> platform/generic/platform.c | 3 ---
-> 3 files changed, 15 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 4bc7ed8..6bc63c2 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -471,9 +471,6 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
-> if (err)
-> continue;
-> 
-> - if (SBI_HARTMASK_MAX_BITS <= val32)
-> - continue;
-> -
-> if (!fdt_node_is_enabled(fdt, cpu_offset))
-> continue;
-> 
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cb350e5..aec08fa 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -1032,9 +1032,6 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
-> if (rc)
-> continue;
-> 
-> - if (SBI_HARTMASK_MAX_BITS <= hartid)
-> - continue;
-> -
-> if (match_hwirq == hwirq) {
-> if (hartid < first_hartid)
-> first_hartid = hartid;
-> @@ -1097,9 +1094,6 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
-> if (rc)
-> continue;
-> 
-> - if (SBI_HARTMASK_MAX_BITS <= hartid)
-> - continue;
-> -
-> if (hwirq == IRQ_M_TIMER)
-> hcount++;
-> }
-> @@ -1153,9 +1147,6 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
-> if (rc)
-> continue;
-> 
-> - if (SBI_HARTMASK_MAX_BITS <= hartid)
-> - continue;
-> -
-> if (hwirq == IRQ_M_SOFT)
-> hcount++;
-> }
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index c03ed88..331ff8e 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -200,9 +200,6 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
-> if (rc)
-> continue;
-> 
-> - if (SBI_HARTMASK_MAX_BITS <= hartid)
-> - continue;
-> -
-> if (!fdt_node_is_enabled(fdt, cpu_offset))
-> continue;
-> 
-> -- 
-> 2.47.1
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index d027e5e..835d64a 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -59,8 +59,16 @@ _try_lottery:
+ 	/* Jump to relocation wait loop if we don't get relocation lottery */
+ 	lla	a6, _boot_lottery
+ 	li	a7, BOOT_LOTTERY_ACQUIRED
++#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+ 	amoswap.w a6, a7, (a6)
+ 	bnez	a6, _wait_for_boot_hart
++#else
++_sc_fail:
++	lr.w	t0, (a6)
++	sc.w	t1, a7, (a6)
++	bnez	t1, _sc_fail
++	bnez	t0, _wait_for_boot_hart
++#endif
+ 
+ 	/* relocate the global table content */
+ 	li	t0, FW_TEXT_START	/* link start */
+diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
+index 32cf3f0..c5f47eb 100644
+--- a/lib/sbi/riscv_atomic.c
++++ b/lib/sbi/riscv_atomic.c
+@@ -31,6 +31,7 @@ void atomic_write(atomic_t *atom, long value)
+ 
+ long atomic_add_return(atomic_t *atom, long value)
+ {
++#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+ 	long ret;
+ #if __SIZEOF_LONG__ == 4
+ 	__asm__ __volatile__("	amoadd.w.aqrl  %1, %2, %0"
+@@ -43,6 +44,27 @@ long atomic_add_return(atomic_t *atom, long value)
+ 			     : "r"(value)
+ 			     : "memory");
+ #endif
++#else
++	long ret, temp;
++#if __SIZEOF_LONG__ == 4
++	__asm__ __volatile__("1:lr.w.aqrl	%1,%0\n"
++			     "  add	%2,%1,%3\n"
++			     "  sc.w.aqrl	%2,%2,%0\n"
++			     "  bnez	%2,1b"
++			     : "+A"(atom->counter), "=&r"(ret), "=&r"(temp)
++			     : "r"(value)
++			     : "memory");
++#elif __SIZEOF_LONG__ == 8
++	__asm__ __volatile__("1:lr.d.aqrl	%1,%0\n"
++			     "  add	%2,%1,%3\n"
++			     "  sc.d.aqrl	%2,%2,%0\n"
++			     "  bnez	%2,1b"
++			     : "+A"(atom->counter), "=&r"(ret), "=&r"(temp)
++			     : "r"(value)
++			     : "memory");
++#endif
++#endif
++
+ 	return ret + value;
+ }
+ 
+@@ -51,6 +73,7 @@ long atomic_sub_return(atomic_t *atom, long value)
+ 	return atomic_add_return(atom, -value);
+ }
+ 
++#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+ #define __axchg(ptr, new, size)							\
+ 	({									\
+ 		__typeof__(ptr) __ptr = (ptr);					\
+@@ -76,6 +99,37 @@ long atomic_sub_return(atomic_t *atom, long value)
+ 		}								\
+ 		__ret;								\
+ 	})
++#else
++#define __axchg(ptr, new, size)							\
++	({									\
++		__typeof__(ptr) __ptr = (ptr);					\
++		__typeof__(new) __new = (new);					\
++		__typeof__(*(ptr)) __ret, __temp;					\
++		switch (size) {							\
++		case 4:								\
++			__asm__ __volatile__ (					\
++				"1:	lr.w.aqrl %0, %1\n"			\
++				"	sc.w.aqrl %2, %3, %1\n"			\
++				"	bnez	  %2, 1b\n"			\
++				: "=&r" (__ret), "+A" (*__ptr), "=&r" (__temp)	\
++				: "r" (__new)					\
++				: "memory");					\
++			break;							\
++		case 8:								\
++			__asm__ __volatile__ (					\
++				"1:	lr.d.aqrl %0, %1\n"			\
++				"	sc.d.aqrl %2, %3, %1\n"			\
++				"	bnez	  %2, 1b\n"			\
++				: "=&r" (__ret), "+A" (*__ptr), "=&r" (__temp)	\
++				: "r" (__new)					\
++				: "memory");					\
++			break;							\
++		default:							\
++			break;							\
++		}								\
++		__ret;								\
++	})
++#endif
+ 
+ #define axchg(ptr, x)								\
+ 	({									\
+diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
+index acab776..11f87bf 100644
+--- a/lib/sbi/riscv_locks.c
++++ b/lib/sbi/riscv_locks.c
+@@ -53,7 +53,14 @@ void spin_lock(spinlock_t *lock)
+ 
+ 	__asm__ __volatile__(
+ 		/* Atomically increment the next ticket. */
++#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+ 		"	amoadd.w.aqrl	%0, %4, %3\n"
++#else
++		"3:	lr.w.aqrl	%0, %3\n"
++		"	add	%1, %0, %4\n"
++		"	sc.w.aqrl	%1, %1, %3\n"
++		"	bnez	%1, 3b\n"
++#endif
+ 
+ 		/* Did we get the lock? */
+ 		"	srli	%1, %0, %6\n"
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 688da3f..a5ecbd5 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -7,6 +7,10 @@ config PLATFORM_GENERIC
+ 	select FDT_PMU
+ 	default y
+ 
++config RISCV_ISA_ZALRSC_ONLY
++	bool "Use lr/sc only"
++	default n
++
+ if PLATFORM_GENERIC
+ 
+ config PLATFORM_GENERIC_NAME
+-- 
+2.47.1
 
 
