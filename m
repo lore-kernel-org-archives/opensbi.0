@@ -1,39 +1,41 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Fri, 10 Jan 2025 14:15:56 +0100
-Subject: [PATCH v6 7/7] lib: sbi: pmu: add the PMU SSE event only if overflow IRQ is supported
-In-Reply-To: <20250110131557.3261411-1-cleger@rivosinc.com>
-References: <20250110131557.3261411-1-cleger@rivosinc.com>
-Message-ID: <20250110131557.3261411-8-cleger@rivosinc.com>
+From: Chao-ying Fu <icebergfu@gmail.com>
+Date: Thu, 9 Jan 2025 17:20:08 -0800
+Subject: [PATCH] Work with hartid equal to or greater than SBI_HARTMASK_MAX_BITS.
+In-Reply-To: <xg5stvhp7uqggy2mr3jtloueoqxyfjqezc3ohgrhyvpqmbgbpn@6qqfwuvw5gfm>
+References: <20250109230853.2440-1-cfu@mips.com> <xg5stvhp7uqggy2mr3jtloueoqxyfjqezc3ohgrhyvpqmbgbpn@6qqfwuvw5gfm>
+Message-ID: <CAM1rFzHCYzZh1mzrHv3MOojgeHT4v4TPC7sK2Nu5Mbn4pT_YKw@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the PMU SSE event only if an overflow irq bit is present.
+On Thu, Jan 9, 2025 at 4:43?PM Inochi Amaoto <inochiama@gmail.com> wrote:
+>
+> On Thu, Jan 09, 2025 at 03:08:53PM -0800, Chao-ying Fu wrote:
+> > Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
+> > so we should remove the check.
+> > ---
+> >  lib/utils/fdt/fdt_domain.c  | 3 ---
+> >  lib/utils/fdt/fdt_helper.c  | 9 ---------
+> >  platform/generic/platform.c | 3 ---
+> >  3 files changed, 15 deletions(-)
+> >
+>
+> Is there a specific platform to test this patch? This also applies
+> to your other patches.
+>
+> Regards,
+> Inochi
+We run OpenSBI and Linux on FPGA boards, RTL simulations, or QEMU. One
+example of 24 hart ids is as follows.
+0x0, 0x1, 0x10, 0x11, 0x20, 0x21, 0x30, 0x31,
+0x10000, 0x10001, 0x10010, 0x10011, 0x10020, 0x10021, 0x10030, 0x10031,
+0x20000, 0x20001, 0x20010, 0x20011, 0x20020, 0x20021, 0x20030, 0x20031.
+After removing the hart id check, OpenSBI is fine.
+Note that last year OpenSBI changed to use hart index to access the array.
+Thanks!
 
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
----
- lib/sbi/sbi_pmu.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 6e69a4dc..40b898fe 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -1165,7 +1165,8 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 
- 		total_ctrs = num_hw_ctrs + SBI_PMU_FW_CTR_MAX;
- 
--		sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
-+		if (sbi_pmu_irq_bit() >= 0)
-+			sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU, &pmu_sse_cb_ops);
- 	}
- 
- 	phs = pmu_get_hart_state_ptr(scratch);
--- 
-2.47.1
-
+Regards,
+Chao-ying
 
