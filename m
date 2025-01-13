@@ -1,49 +1,55 @@
-From: Chao-ying Fu <icebergfu@gmail.com>
-Date: Thu, 9 Jan 2025 18:36:38 -0800
-Subject: [PATCH] Align the scratch allocation to 64 bytes
-In-Reply-To: <6e9d769ee4e71a6da4eeb0ecf7084aea04d3ab86.camel@126.com>
-References: <20250110003451.2800-1-cfu@mips.com> <6e9d769ee4e71a6da4eeb0ecf7084aea04d3ab86.camel@126.com>
-Message-ID: <CAM1rFzHH=HHM-EZoFRBLAwtw4mEniWDEO0fvk0fr3qK+PyVh1Q@mail.gmail.com>
+From: Inochi Amaoto <inochiama@gmail.com>
+Date: Mon, 13 Jan 2025 15:33:12 +0800
+Subject: [PATCH] platform: generic: thead: add Sophgo SG2044
+Message-ID: <20250113073314.1080900-1-inochiama@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jan 9, 2025 at 8:15?PM Xiang W <wxjstz@126.com> wrote:
->
-> ? 2025-01-09?? 16:34 -0800?Chao-ying Fu???
-> > We increase the scratch allocation alignment to 64 bytes
-> > as the cache line size, to avoid two atomic variables from
-> > the same cache line that may cause livelock on some platforms.
-> > ---
-> >  lib/sbi/sbi_scratch.c | 11 +++++++++--
-> >  1 file changed, 9 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> > index ccbbc68..6b161bc 100644
-> > --- a/lib/sbi/sbi_scratch.c
-> > +++ b/lib/sbi/sbi_scratch.c
-> > @@ -14,6 +14,9 @@
-> >  #include <sbi/sbi_scratch.h>
-> >  #include <sbi/sbi_string.h>
-> >
-> > +/* Minimum size and alignment of scratch allocations */
-> > +#define SCRATCH_ALLOC_ALIGN 64
-> This appears to be a platform-specific need and should not affect all platforms.
-> Can be like this:
->
-> #ifndef SCRATCH_ALLOC_ALIGN
-> #define SCRATCH_ALLOC_ALIGN __SIZEOF_POINTER__
-> #endif
->
-> Regards,
-> Xiang W
+The Sophgo SG2044 is a new version of C920, although it supports
+sscofpmf, it still needs this pmu quirks its cores.
 
-Yes, I will revise the patch to use the original alignment, if
-SCRATCH_ALLOC_ALIGN is not defined.
-Thanks a lot!
+Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
+---
+ platform/generic/thead/thead-generic.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-Regards,
-Chao-ying
+diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
+index be64831..fedb614 100644
+--- a/platform/generic/thead/thead-generic.c
++++ b/platform/generic/thead/thead-generic.c
+@@ -45,21 +45,18 @@ static struct thead_generic_quirks thead_th1520_quirks = {
+ 	.errata = THEAD_QUIRK_ERRATA_TLB_FLUSH | THEAD_QUIRK_ERRATA_THEAD_PMU,
+ };
+ 
+-static struct thead_generic_quirks canaan_k230_quirks = {
+-	.errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
+-};
+-
+-static struct thead_generic_quirks sophgo_cv1800_quirks = {
++static struct thead_generic_quirks thead_pmu_quirks = {
+ 	.errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
+ };
+ 
+ static const struct fdt_match thead_generic_match[] = {
+-	{ .compatible = "sophgo,cv1800b", .data = &sophgo_cv1800_quirks },
+-	{ .compatible = "sophgo,cv1812h", .data = &sophgo_cv1800_quirks },
+-	{ .compatible = "sophgo,sg2000", .data = &sophgo_cv1800_quirks },
+-	{ .compatible = "sophgo,sg2002", .data = &sophgo_cv1800_quirks },
++	{ .compatible = "canaan,kendryte-k230", .data = &thead_pmu_quirks },
++	{ .compatible = "sophgo,cv1800b", .data = &thead_pmu_quirks },
++	{ .compatible = "sophgo,cv1812h", .data = &thead_pmu_quirks },
++	{ .compatible = "sophgo,sg2000", .data = &thead_pmu_quirks },
++	{ .compatible = "sophgo,sg2002", .data = &thead_pmu_quirks },
++	{ .compatible = "sophgo,sg2044", .data = &thead_pmu_quirks },
+ 	{ .compatible = "thead,th1520", .data = &thead_th1520_quirks },
+-	{ .compatible = "canaan,kendryte-k230", .data = &canaan_k230_quirks },
+ 	{ },
+ };
+ 
+-- 
+2.48.0
+
 
