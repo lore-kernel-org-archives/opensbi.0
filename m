@@ -1,55 +1,82 @@
-From: Inochi Amaoto <inochiama@gmail.com>
-Date: Mon, 13 Jan 2025 15:33:12 +0800
-Subject: [PATCH] platform: generic: thead: add Sophgo SG2044
-Message-ID: <20250113073314.1080900-1-inochiama@gmail.com>
+From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
+Date: Wed, 15 Jan 2025 15:46:07 -0800
+Subject: [PATCH v2] Work with hartid equal to or greater than SBI_HARTMASK_MAX_BITS
+In-Reply-To: <20250109230853.2440-1-cfu@mips.com>
+References: <20250109230853.2440-1-cfu@mips.com>
+Message-ID: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The Sophgo SG2044 is a new version of C920, although it supports
-sscofpmf, it still needs this pmu quirks its cores.
-
-Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
+Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
+so we should remove the original check. Instead we check the hart index
+against SBI_HARTMASK_MAX_BITS.
 ---
- platform/generic/thead/thead-generic.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ lib/utils/fdt/fdt_domain.c  | 2 +-
+ lib/utils/fdt/fdt_helper.c  | 6 +++---
+ platform/generic/platform.c | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
-index be64831..fedb614 100644
---- a/platform/generic/thead/thead-generic.c
-+++ b/platform/generic/thead/thead-generic.c
-@@ -45,21 +45,18 @@ static struct thead_generic_quirks thead_th1520_quirks = {
- 	.errata = THEAD_QUIRK_ERRATA_TLB_FLUSH | THEAD_QUIRK_ERRATA_THEAD_PMU,
- };
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 4bc7ed8..7d10d10 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -471,7 +471,7 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
+ 		if (err)
+ 			continue;
  
--static struct thead_generic_quirks canaan_k230_quirks = {
--	.errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
--};
--
--static struct thead_generic_quirks sophgo_cv1800_quirks = {
-+static struct thead_generic_quirks thead_pmu_quirks = {
- 	.errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
- };
+-		if (SBI_HARTMASK_MAX_BITS <= val32)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(val32))
+ 			continue;
  
- static const struct fdt_match thead_generic_match[] = {
--	{ .compatible = "sophgo,cv1800b", .data = &sophgo_cv1800_quirks },
--	{ .compatible = "sophgo,cv1812h", .data = &sophgo_cv1800_quirks },
--	{ .compatible = "sophgo,sg2000", .data = &sophgo_cv1800_quirks },
--	{ .compatible = "sophgo,sg2002", .data = &sophgo_cv1800_quirks },
-+	{ .compatible = "canaan,kendryte-k230", .data = &thead_pmu_quirks },
-+	{ .compatible = "sophgo,cv1800b", .data = &thead_pmu_quirks },
-+	{ .compatible = "sophgo,cv1812h", .data = &thead_pmu_quirks },
-+	{ .compatible = "sophgo,sg2000", .data = &thead_pmu_quirks },
-+	{ .compatible = "sophgo,sg2002", .data = &thead_pmu_quirks },
-+	{ .compatible = "sophgo,sg2044", .data = &thead_pmu_quirks },
- 	{ .compatible = "thead,th1520", .data = &thead_th1520_quirks },
--	{ .compatible = "canaan,kendryte-k230", .data = &canaan_k230_quirks },
- 	{ },
- };
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..4673921 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -1032,7 +1032,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+ 		if (rc)
+ 			continue;
  
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
+ 			continue;
+ 
+ 		if (match_hwirq == hwirq) {
+@@ -1097,7 +1097,7 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
+ 			continue;
+ 
+ 		if (hwirq == IRQ_M_TIMER)
+@@ -1153,7 +1153,7 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
+ 			continue;
+ 
+ 		if (hwirq == IRQ_M_SOFT)
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index c03ed88..6ec0d73 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -200,7 +200,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= hart_count)
+ 			continue;
+ 
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
 -- 
-2.48.0
+2.43.0
 
 
