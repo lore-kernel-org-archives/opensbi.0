@@ -1,91 +1,62 @@
-From: Xiang W <wxjstz@126.com>
-Date: Thu, 16 Jan 2025 09:01:30 +0800
-Subject: [PATCH v2] Work with hartid equal to or greater than
- SBI_HARTMASK_MAX_BITS
-In-Reply-To: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
-References: <20250109230853.2440-1-cfu@mips.com>
-	 <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
-Message-ID: <14347d8963297af5ed578e70655e2a88401cf564.camel@126.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu, 16 Jan 2025 21:26:39 +0530
+Subject: [PATCH 00/12] More RPMI and MPXY updates
+Message-ID: <20250116155651.103782-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2025-01-15?? 15:46 -0800?Raj Vishwanathan???
-> Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
-> so we should remove the original check. Instead we check the hart index
-> against SBI_HARTMASK_MAX_BITS.
-> ---
-> ?lib/utils/fdt/fdt_domain.c? | 2 +-
-> ?lib/utils/fdt/fdt_helper.c? | 6 +++---
-> ?platform/generic/platform.c | 2 +-
-> ?3 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 4bc7ed8..7d10d10 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -471,7 +471,7 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
-> ?		if (err)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= val32)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(val32))
-> ?			continue;
-> ?
-> ?		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cb350e5..4673921 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -1032,7 +1032,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
-> ?			continue;
-> ?
-> ?		if (match_hwirq == hwirq) {
-> @@ -1097,7 +1097,7 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
-> ?			continue;
-> ?
-> ?		if (hwirq == IRQ_M_TIMER)
-> @@ -1153,7 +1153,7 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
-> ?			continue;
-> ?
-> ?		if (hwirq == IRQ_M_SOFT)
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index c03ed88..6ec0d73 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -200,7 +200,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= hart_count)
-> ?			continue;
-s/continue/break
+This series does the following:
+1) MPXY driver and framework cleanups
+2) Update RPMI drivers as-per latest specification
+3) Add MPXY RPMI driver for System MSI service group
 
-Regards,
-Xiang W
-> ?
-> ?		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> -- 
-> 2.43.0
-> 
-> 
+These patches can also be found in the rpmi_updates_v1 branch at:
+https://github.com/avpatel/opensbi.git
+
+To test these patches, use the dev-upstream branch of the following repos:
+* https://github.com/ventanamicro/qemu.git
+* https://github.com/ventanamicro/linux.git
+
+To enable QEMU RPMI emulation (using librpmi) for virt machine, use
+"virt,rpmi=on,aia=aplic-imsic" as the QEMU machine name.
+
+Anup Patel (12):
+  lib: utils: Split the FDT MPXY RPMI mailbox client into two parts
+  lib: utils: Constantify mpxy_rpmi_mbox_data in mpxy_rpmi_mbox
+  lib: utils: Introduce optional MPXY RPMI service group operations
+  lib: sbi: Fix capability bit assignment in MPXY framework
+  lib: sbi: Improve local variable declarations in MPXY framework
+  lib: utils: Drop notifications from MPXY RPMI mailbox client
+  lib: utils: Improve variable declarations in MPXY RPMI mailbox client
+  include: sbi_utils: Include mailbox.h in rpmi_mailbox.h header
+  lib: utils: Implement get_attribute() for the RPMI shared memory
+    mailbox
+  lib: utils: Populate MPXY channel attributes from RPMI channel
+    attributes
+  include: sbi_utils: Update RPMI service group IDs and BASE service
+    group
+  lib: utils: Add MPXY RPMI mailbox driver for System MSI service group
+
+ include/sbi_utils/mailbox/rpmi_mailbox.h    |   1 +
+ include/sbi_utils/mailbox/rpmi_msgprot.h    | 117 +++++++-
+ include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h |  84 ++++++
+ lib/sbi/sbi_mpxy.c                          |  77 ++---
+ lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c  |  39 ++-
+ lib/utils/mpxy/Kconfig                      |  16 +-
+ lib/utils/mpxy/fdt_mpxy_rpmi_clock.c        |  91 ++++++
+ lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c         | 312 +++++++-------------
+ lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c       | 208 +++++++++++++
+ lib/utils/mpxy/objects.mk                   |   7 +-
+ platform/generic/configs/defconfig          |   2 +
+ 11 files changed, 684 insertions(+), 270 deletions(-)
+ create mode 100644 include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h
+ create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_clock.c
+ create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
+
+-- 
+2.43.0
 
 
