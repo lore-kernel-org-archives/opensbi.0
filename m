@@ -1,109 +1,199 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 16 Jan 2025 21:26:48 +0530
-Subject: [PATCH 09/12] lib: utils: Implement get_attribute() for the RPMI shared memory mailbox
+Date: Thu, 16 Jan 2025 21:26:49 +0530
+Subject: [PATCH 10/12] lib: utils: Populate MPXY channel attributes from RPMI channel attributes
 In-Reply-To: <20250116155651.103782-1-apatel@ventanamicro.com>
 References: <20250116155651.103782-1-apatel@ventanamicro.com>
-Message-ID: <20250116155651.103782-10-apatel@ventanamicro.com>
+Message-ID: <20250116155651.103782-11-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-To allow clients query service group version of a RPMI mailbox channel,
-implement get_attribute() callback for the RPMI shared memory mailbox
-controller.
+Use the RPMI mailbox channel attributes to populate MPXY channel
+attributes instead of hard coding them.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi_utils/mailbox/rpmi_msgprot.h   | 13 +++++++-
- lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 35 ++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 1 deletion(-)
+ include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h |   3 -
+ lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c         | 101 +++++++++++++-------
+ 2 files changed, 65 insertions(+), 39 deletions(-)
 
-diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
-index 9575dc72..17d678a3 100644
---- a/include/sbi_utils/mailbox/rpmi_msgprot.h
-+++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
-@@ -175,7 +175,7 @@ enum rpmi_error {
- 	RPMI_ERR_VENDOR_START	= -128,
- };
+diff --git a/include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h b/include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h
+index 53a8d8bd..ed41d0ac 100644
+--- a/include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h
++++ b/include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h
+@@ -16,9 +16,6 @@
+ #include <sbi_utils/mailbox/rpmi_msgprot.h>
+ #include <sbi_utils/mpxy/fdt_mpxy.h>
  
--/** RPMI Message Arguments */
-+/** RPMI Mailbox Message Arguments */
- struct rpmi_message_args {
- 	u32 flags;
- #define RPMI_MSG_FLAGS_NO_TX		(1U << 0)
-@@ -189,6 +189,17 @@ struct rpmi_message_args {
- 	u32 rx_data_len;
- };
+-#define MPXY_RPMI_MAJOR_VER		(1)
+-#define MPXY_RPMI_MINOR_VER		(0)
+-
+ /** Convert the mpxy attribute ID to attribute array index */
+ #define attr_id2index(attr_id)	(attr_id - SBI_MPXY_ATTR_MSGPROTO_ATTR_START)
  
-+/** RPMI Mailbox Channel Attribute IDs */
-+enum rpmi_channel_attribute_id {
-+	RPMI_CHANNEL_ATTR_PROTOCOL_VERSION = 0,
-+	RPMI_CHANNEL_ATTR_MAX_DATA_LEN,
-+	RPMI_CHANNEL_ATTR_TX_TIMEOUT,
-+	RPMI_CHANNEL_ATTR_RX_TIMEOUT,
-+	RPMI_CHANNEL_ATTR_SERVICEGROUP_ID,
-+	RPMI_CHANNEL_ATTR_SERVICEGROUP_VERSION,
-+	RPMI_CHANNEL_ATTR_MAX,
-+};
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
+index 27f4c571..8378070b 100644
+--- a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
+@@ -212,14 +212,14 @@ static int mpxy_mbox_send_message_withoutresp(struct sbi_mpxy_channel *channel,
+ 
+ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *match)
+ {
++	u32 channel_id, servicegrp_ver, pro_ver, max_data_len, tx_tout, rx_tout;
+ 	const struct mpxy_rpmi_mbox_data *data = match->data;
+ 	struct mpxy_rpmi_mbox *rmb;
+ 	struct mbox_chan *chan;
+ 	const fdt32_t *val;
+-	u32 channel_id;
+ 	int rc, len;
+ 
+-	/* Allocate context for RPXY mbox client */
++	/* Allocate context for MPXY mbox client */
+ 	rmb = sbi_zalloc(sizeof(*rmb));
+ 	if (!rmb)
+ 		return SBI_ENOMEM;
+@@ -230,29 +230,57 @@ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *ma
+ 	 */
+ 	rc = fdt_mailbox_request_chan(fdt, nodeoff, 0, &chan);
+ 	if (rc) {
+-		sbi_free(rmb);
+-		return SBI_ENODEV;
++		rc = SBI_ENODEV;
++		goto fail_free_client;
+ 	}
+ 
+ 	/* Match channel service group id */
+ 	if (data->servicegrp_id != chan->chan_args[0]) {
+-		mbox_controller_free_chan(chan);
+-		sbi_free(rmb);
+-		return SBI_EINVAL;
++		rc = SBI_EINVAL;
++		goto fail_free_chan;
+ 	}
+ 
++	/* Get channel protocol version */
++	rc = mbox_chan_get_attribute(chan, RPMI_CHANNEL_ATTR_PROTOCOL_VERSION,
++				     &pro_ver);
++	if (rc)
++		goto fail_free_chan;
 +
- /*
-  * RPMI SERVICEGROUPS AND SERVICES
-  */
-diff --git a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-index b8bd3cd6..e9f52c7a 100644
---- a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-+++ b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-@@ -490,6 +490,40 @@ static int rpmi_shmem_mbox_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
- 	return 0;
++	/* Get channel maximum data length */
++	rc = mbox_chan_get_attribute(chan, RPMI_CHANNEL_ATTR_MAX_DATA_LEN,
++				     &max_data_len);
++	if (rc)
++		goto fail_free_chan;
++
++	/* Get channel Tx timeout */
++	rc = mbox_chan_get_attribute(chan, RPMI_CHANNEL_ATTR_TX_TIMEOUT,
++				     &tx_tout);
++	if (rc)
++		goto fail_free_chan;
++
++	/* Get channel Rx timeout */
++	rc = mbox_chan_get_attribute(chan, RPMI_CHANNEL_ATTR_RX_TIMEOUT,
++				     &rx_tout);
++	if (rc)
++		goto fail_free_chan;
++
++	/* Get channel service group version */
++	rc = mbox_chan_get_attribute(chan, RPMI_CHANNEL_ATTR_SERVICEGROUP_VERSION,
++				     &servicegrp_ver);
++	if (rc)
++		goto fail_free_chan;
++
+ 	/*
+ 	 * The "riscv,sbi-mpxy-channel-id" DT property is mandatory
+ 	 * for MPXY RPMI mailbox client driver so if this is not
+ 	 * present then try other drivers.
+ 	 */
+ 	val = fdt_getprop(fdt, nodeoff, "riscv,sbi-mpxy-channel-id", &len);
+-	if (len > 0 && val)
++	if (len > 0 && val) {
+ 		channel_id = fdt32_to_cpu(*val);
+-	else {
+-		mbox_controller_free_chan(chan);
+-		sbi_free(rmb);
+-		return SBI_ENODEV;
++	} else {
++		rc = SBI_ENODEV;
++		goto fail_free_chan;
+ 	}
+ 
+ 	/* Setup MPXY mbox client */
+@@ -271,23 +299,23 @@ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *ma
+ 	/* RPMI Message Protocol ID */
+ 	rmb->channel.attrs.msg_proto_id = SBI_MPXY_MSGPROTO_RPMI_ID;
+ 	/* RPMI Message Protocol Version */
+-	rmb->channel.attrs.msg_proto_version =
+-		SBI_MPXY_MSGPROTO_VERSION(MPXY_RPMI_MAJOR_VER, MPXY_RPMI_MINOR_VER);
+-
+-	/* RPMI supported max message data length(bytes), same for
+-	 * all service groups */
+-	rmb->channel.attrs.msg_data_maxlen =
+-					RPMI_MSG_DATA_SIZE(RPMI_SLOT_SIZE_MIN);
+-	/* RPMI message send timeout(milliseconds)
+-	 * same for all service groups */
+-	rmb->channel.attrs.msg_send_timeout = RPMI_DEF_TX_TIMEOUT;
+-	rmb->channel.attrs.msg_completion_timeout =
+-				RPMI_DEF_TX_TIMEOUT + RPMI_DEF_RX_TIMEOUT;
+-
+-	/* RPMI message protocol attributes */
++	rmb->channel.attrs.msg_proto_version = pro_ver;
++
++	/*
++	 * RPMI supported max message data length(bytes), same for
++	 * all service groups
++	 */
++	rmb->channel.attrs.msg_data_maxlen = max_data_len;
++	/*
++	 * RPMI message send timeout(milliseconds)
++	 * same for all service groups
++	 */
++	rmb->channel.attrs.msg_send_timeout = tx_tout;
++	rmb->channel.attrs.msg_completion_timeout = tx_tout + rx_tout;
++
++	/* RPMI service group attributes */
+ 	rmb->msgprot_attrs.servicegrp_id = data->servicegrp_id;
+-	rmb->msgprot_attrs.servicegrp_ver =
+-			SBI_MPXY_MSGPROTO_VERSION(MPXY_RPMI_MAJOR_VER, MPXY_RPMI_MINOR_VER);
++	rmb->msgprot_attrs.servicegrp_ver = servicegrp_ver;
+ 
+ 	rmb->mbox_data = data;
+ 	rmb->chan = chan;
+@@ -295,11 +323,8 @@ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *ma
+ 	/* Setup RPMI service group context */
+ 	if (data->group_ops->setup_group) {
+ 		rc = data->group_ops->setup_group(&rmb->group_context, chan, data);
+-		if (rc) {
+-			mbox_controller_free_chan(chan);
+-			sbi_free(rmb);
+-			return rc;
+-		}
++		if (rc)
++			goto fail_free_chan;
+ 	}
+ 
+ 	/* Register RPMI service group */
+@@ -307,10 +332,14 @@ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *ma
+ 	if (rc) {
+ 		if (data->group_ops->cleanup_group)
+ 			data->group_ops->cleanup_group(rmb->group_context);
+-		mbox_controller_free_chan(chan);
+-		sbi_free(rmb);
+-		return rc;
++		goto fail_free_chan;
+ 	}
+ 
+ 	return SBI_OK;
++
++fail_free_chan:
++	mbox_controller_free_chan(chan);
++fail_free_client:
++	sbi_free(rmb);
++	return rc;
  }
- 
-+static int rpmi_shmem_mbox_get_attribute(struct mbox_chan *chan,
-+					 int attr_id, void *out_value)
-+{
-+	struct rpmi_shmem_mbox_controller *mctl =
-+			container_of(chan->mbox,
-+				     struct rpmi_shmem_mbox_controller,
-+				     controller);
-+	struct rpmi_srvgrp_chan *srvgrp_chan = to_srvgrp_chan(chan);
-+
-+	switch (attr_id) {
-+	case RPMI_CHANNEL_ATTR_PROTOCOL_VERSION:
-+		*((u32 *)out_value) = mctl->spec_version;
-+		break;
-+	case RPMI_CHANNEL_ATTR_MAX_DATA_LEN:
-+		*((u32 *)out_value) = RPMI_MSG_DATA_SIZE(mctl->slot_size);
-+		break;
-+	case RPMI_CHANNEL_ATTR_TX_TIMEOUT:
-+		*((u32 *)out_value) = RPMI_DEF_TX_TIMEOUT;
-+		break;
-+	case RPMI_CHANNEL_ATTR_RX_TIMEOUT:
-+		*((u32 *)out_value) = RPMI_DEF_RX_TIMEOUT;
-+		break;
-+	case RPMI_CHANNEL_ATTR_SERVICEGROUP_ID:
-+		*((u32 *)out_value) = srvgrp_chan->servicegroup_id;
-+		break;
-+	case RPMI_CHANNEL_ATTR_SERVICEGROUP_VERSION:
-+		*((u32 *)out_value) = srvgrp_chan->servicegroup_version;
-+		break;
-+	default:
-+		return SBI_ENOTSUPP;
-+	}
-+
-+	return 0;
-+}
- 
- static struct mbox_chan *rpmi_shmem_mbox_request_chan(
- 						struct mbox_controller *mbox,
-@@ -665,6 +699,7 @@ static int rpmi_shmem_mbox_init(const void *fdt, int nodeoff,
- 	mctl->controller.request_chan = rpmi_shmem_mbox_request_chan;
- 	mctl->controller.free_chan = rpmi_shmem_mbox_free_chan;
- 	mctl->controller.xfer = rpmi_shmem_mbox_xfer;
-+	mctl->controller.get_attribute = rpmi_shmem_mbox_get_attribute;
- 	ret = mbox_controller_add(&mctl->controller);
- 	if (ret)
- 		goto fail_free_controller;
 -- 
 2.43.0
 
