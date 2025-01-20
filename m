@@ -1,35 +1,94 @@
 From: Xiang W <wxjstz@126.com>
-Date: Mon, 20 Jan 2025 11:13:16 +0800
-Subject: [PATCH] firmware: fw_base.S: Fix comments for _wait_for_boot_hart
-Message-ID: <20250120031329.650013-1-wxjstz@126.com>
+Date: Mon, 20 Jan 2025 11:58:15 +0800
+Subject: [PATCH v2] We add a new configuration
+ CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT as an int
+In-Reply-To: <20250119200448.662074-1-Raj.Vishwanathan@gmail.com>
+References: <20250110003451.2800-1-cfu@mips.com>
+	 <20250119200448.662074-1-Raj.Vishwanathan@gmail.com>
+Message-ID: <714057c8c16ced6cf35c08bd3ac8a5e34cc87ed1.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Due to some historical issues, the value of BOOT_STATUS_BOOT_HART_DONE
-has changed and the comment message needs to be corrected.
+? 2025-01-19?? 12:04 -0800?Raj Vishwanathan???
+> If it is set to 0 or not defined, we will continue with the previous
+> defintion of allocating pointer size chunks. Otherwise we will use the
+> chacheline size of 64.
+> We have the option of increasing the scratch allocation alignment to 64 bytes
+> as the cache line size, to avoid two atomic variables from
+> the same cache line that may cause livelock on some platforms.
+> ---
+> ?lib/sbi/Kconfig?????? |? 8 ++++++++
+> ?lib/sbi/sbi_scratch.c | 18 ++++++++++++++++--
+> ?2 files changed, 24 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+> index c6cc04b..1ffa170 100644
+> --- a/lib/sbi/Kconfig
+> +++ b/lib/sbi/Kconfig
+> @@ -69,4 +69,12 @@ config SBI_ECALL_SSE
+> ?config SBI_ECALL_MPXY
+> ?	bool "MPXY extension"
+> ?	default y
+> +config SBI_SCRATCH_ALLOC_ALIGNMENT
+> +	int? "Scratch allocation alignment"
+> +	default 0
+> +	help
+> +	? We provide the option for allocation alignment to 64 bytes to avoid 
+> +	? livelock on certain platforms due to atomic variables from the same 
+> +	? cache line.? Leave it 0 for default behaviour.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- firmware/fw_base.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Don't stress 64 bytes specifically
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index d027e5e2..536bcd26 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -292,7 +292,7 @@ _fdt_reloc_done:
- 	REG_S	t0, 0(t1)
- 	j	_start_warm
- 
--	/* waiting for boot hart to be done (_boot_status == 2) */
-+	/* waiting for boot hart to be done (_boot_status == BOOT_STATUS_BOOT_HART_DONE) */
- _wait_for_boot_hart:
- 	li	t0, BOOT_STATUS_BOOT_HART_DONE
- 	lla	t1, _boot_status
--- 
-2.45.2
+Customise the size of the alignment to allocate from the extra space in
+sbi_scratch. Leave it 0 for default behaviour
+
+Regards,
+Xiang W
+
+> +
+> ?endmenu
+> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+> index ccbbc68..88ea3c7 100644
+> --- a/lib/sbi/sbi_scratch.c
+> +++ b/lib/sbi/sbi_scratch.c
+> @@ -14,6 +14,13 @@
+> ?#include <sbi/sbi_scratch.h>
+> ?#include <sbi/sbi_string.h>
+> ?
+> +#if !defined(CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT) || (CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT==0)
+> +#define SCRATCH_ALLOC_ALIGNMENT __SIZEOF_POINTER__
+> +#else
+> +#define SCRATCH_ALLOC_ALIGNMENT CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT
+> +#endif
+> +
+> +
+> ?u32 last_hartindex_having_scratch = 0;
+> ?u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
+> ?struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
+> @@ -70,8 +77,15 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
+> ?	if (!size)
+> ?		return 0;
+> ?
+> -	size += __SIZEOF_POINTER__ - 1;
+> -	size &= ~((unsigned long)__SIZEOF_POINTER__ - 1);
+> +	/*
+> +	 * We let the allocation align to the cache line size, so
+> +	 * certain platforms due to atomic variables from the same cache line.
+> +	 * This ensures that the LR/SC variables are in a separate cache line 
+> +	 * to avoid live lock.
+> +	 */
+> +
+> +	size += SCRATCH_ALLOC_ALIGNMENT- 1;
+> +	size &= ~((unsigned long)SCRATCH_ALLOC_ALIGNMENT - 1);
+> ?
+> ?	spin_lock(&extra_lock);
+> ?
+> -- 
+> 2.43.0
+> 
+> 
 
 
