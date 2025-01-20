@@ -1,128 +1,389 @@
 From: Anup Patel <apatel@ventanamicro.com>
-Date: Mon, 20 Jan 2025 14:07:35 +0530
-Subject: [PATCH 07/12] lib: utils: Improve variable declarations in MPXY
- RPMI mailbox client
-In-Reply-To: <45221536-7f45-4054-8e93-3dc8a391bb19@sifive.com>
+Date: Mon, 20 Jan 2025 14:46:02 +0530
+Subject: [PATCH 12/12] lib: utils: Add MPXY RPMI mailbox driver for System
+ MSI service group
+In-Reply-To: <4949be0f-3d9b-42b8-88d5-05f2c40d1363@sifive.com>
 References: <20250116155651.103782-1-apatel@ventanamicro.com>
- <20250116155651.103782-8-apatel@ventanamicro.com> <45221536-7f45-4054-8e93-3dc8a391bb19@sifive.com>
-Message-ID: <CAK9=C2XNqtNmTgk2MejSx+JehnqGMk1=kTZm2M1e7y=a_Uev=w@mail.gmail.com>
+ <20250116155651.103782-13-apatel@ventanamicro.com> <4949be0f-3d9b-42b8-88d5-05f2c40d1363@sifive.com>
+Message-ID: <CAK9=C2XEbC0DQO=nRW-Q74hWEgk5PfLb4px8bTfQNZNEyucG7Q@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 20, 2025 at 4:35?AM Samuel Holland
+On Mon, Jan 20, 2025 at 4:41?AM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
+> Hi Anup,
+>
 > On 2025-01-16 9:56 AM, Anup Patel wrote:
-> > The local variable declarations should be at the start of function
-> > and preferrably organized like a inverted pyramid.
+> > The supervisor software can directly receive most of the system MSIs
+> > except P2A doorbell and MSIs preferred to be handled in M-mode.
+> >
+> > Add MPXY RPMI mailbox client driver for the System MSI service group.
 > >
 > > Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 > > ---
-> >  lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c | 31 ++++++++++++-----------------
-> >  1 file changed, 13 insertions(+), 18 deletions(-)
+> >  include/sbi_utils/mailbox/rpmi_msgprot.h |  88 ++++++++++
+> >  lib/utils/mpxy/Kconfig                   |   4 +
+> >  lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c    | 208 +++++++++++++++++++++++
+> >  lib/utils/mpxy/objects.mk                |   3 +
+> >  platform/generic/configs/defconfig       |   1 +
+> >  5 files changed, 304 insertions(+)
+> >  create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
 > >
-> > diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-> > index 26b9e6a6..27f4c571 100644
-> > --- a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-> > +++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-> > @@ -34,8 +34,8 @@ struct mpxy_rpmi_mbox {
-> >  static const struct mpxy_rpmi_service_data *mpxy_find_rpmi_srvid(u32 message_id,
-> >                                       const struct mpxy_rpmi_mbox_data *mbox_data)
-> >  {
-> > -     int mid = 0;
-> >       const struct mpxy_rpmi_service_data *srv = mbox_data->service_data;
-> > +     int mid = 0;
+> > diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+> > index 363cc653..8d8fa5e5 100644
+> > --- a/include/sbi_utils/mailbox/rpmi_msgprot.h
+> > +++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+> > @@ -208,6 +208,7 @@ enum rpmi_channel_attribute_id {
+> >  enum rpmi_servicegroup_id {
+> >       RPMI_SRVGRP_ID_MIN = 0,
+> >       RPMI_SRVGRP_BASE = 0x0001,
+> > +     RPMI_SRVGRP_SYSTEM_MSI = 0x0002,
+> >       RPMI_SRVGRP_SYSTEM_RESET = 0x0003,
+> >       RPMI_SRVGRP_SYSTEM_SUSPEND = 0x0004,
+> >       RPMI_SRVGRP_HSM = 0x0005,
+> > @@ -267,6 +268,93 @@ struct rpmi_base_get_platform_info_resp {
+> >       char plat_info[];
+> >  };
 > >
-> >       for (mid = 0; srv[mid].id < mbox_data->num_services; mid++) {
-> >               if (srv[mid].id == (u8)message_id)
-> > @@ -57,12 +57,10 @@ static int mpxy_mbox_read_attributes(struct sbi_mpxy_channel *channel,
-> >                                    u32 *outmem, u32 base_attr_id,
-> >                                    u32 attr_count)
-> >  {
-> > -     u32 end_id;
-> >       struct mpxy_rpmi_mbox *rmb =
-> >               container_of(channel, struct mpxy_rpmi_mbox, channel);
-> >       u32 *attr_array = (u32 *)&rmb->msgprot_attrs;
-> > -
-> > -     end_id = base_attr_id + attr_count - 1;
-> > +     u32 end_id = base_attr_id + attr_count - 1;
+> > +/** RPMI System MSI ServiceGroup Service IDs */
+> > +enum rpmi_sysmsi_service_id {
+> > +     RPMI_SYSMSI_SRV_ENABLE_NOTIFICATION = 0x01,
+> > +     RPMI_SYSMSI_SRV_GET_ATTRIBUTES = 0x2,
+> > +     RPMI_SYSMSI_SRV_GET_MSI_ATTRIBUTES = 0x3,
+> > +     RPMI_SYSMSI_SRV_SET_MSI_STATE = 0x4,
+> > +     RPMI_SYSMSI_SRV_GET_MSI_STATE = 0x5,
+> > +     RPMI_SYSMSI_SRV_SET_MSI_TARGET = 0x6,
+> > +     RPMI_SYSMSI_SRV_GET_MSI_TARGET = 0x7,
+> > +     RPMI_SYSMSI_SRV_ID_MAX_COUNT,
+> > +};
+> > +
+> > +/** Response for system MSI service group attributes */
+> > +struct rpmi_sysmsi_get_attributes_resp {
+> > +     s32 status;
+> > +     u32 sys_num_msi;
+> > +     u32 p2a_db_index;
+> > +     u32 flag0;
+> > +     u32 flag1;
+> > +};
+> > +
+> > +/** Request for system MSI attributes */
+> > +struct rpmi_sysmsi_get_msi_attributes_req {
+> > +     u32 sys_msi_index;
+> > +};
+> > +
+> > +/** Response for system MSI attributes */
+> > +struct rpmi_sysmsi_get_msi_attributes_resp {
+> > +     s32 status;
+> > +     u32 flag0;
+> > +     u32 flag1;
+> > +     u8 name[16];
+> > +};
+> > +
+> > +#define RPMI_SYSMSI_MSI_ATTRIBUTES_FLAG0_PREF_PRIV   (1U << 0)
+> > +
+> > +/** Request for system MSI set state */
+> > +struct rpmi_sysmsi_set_msi_state_req {
+> > +     u32 sys_msi_index;
+> > +     u32 sys_msi_state;
+> > +};
+> > +
+> > +#define RPMI_SYSMSI_MSI_STATE_ENABLE                 (1U << 0)
+> > +#define RPMI_SYSMSI_MSI_STATE_PENDING                        (1U << 1)
+> > +
+> > +/** Response for system MSI set state */
+> > +struct rpmi_sysmsi_set_msi_state_resp {
+> > +     s32 status;
+> > +};
+> > +
+> > +/** Request for system MSI get state */
+> > +struct rpmi_sysmsi_get_msi_state_req {
+> > +     u32 sys_msi_index;
+> > +};
+> > +
+> > +/** Response for system MSI get state */
+> > +struct rpmi_sysmsi_get_msi_state_resp {
+> > +     s32 status;
+> > +     u32 sys_msi_state;
+> > +};
+> > +
+> > +/** Request for system MSI set target */
+> > +struct rpmi_sysmsi_set_msi_target_req {
+> > +     u32 sys_msi_index;
+> > +     u32 sys_msi_address_low;
+> > +     u32 sys_msi_address_high;
+> > +     u32 sys_msi_data;
+> > +};
+> > +
+> > +/** Response for system MSI set target */
+> > +struct rpmi_sysmsi_set_msi_target_resp {
+> > +     s32 status;
+> > +};
+> > +
+> > +/** Request for system MSI get target */
+> > +struct rpmi_sysmsi_get_msi_target_req {
+> > +     u32 sys_msi_index;
+> > +};
+> > +
+> > +/** Response for system MSI get target */
+> > +struct rpmi_sysmsi_get_msi_target_resp {
+> > +     s32 status;
+> > +     u32 sys_msi_address_low;
+> > +     u32 sys_msi_address_high;
+> > +     u32 sys_msi_data;
+> > +};
+> > +
+> >  /** RPMI System Reset ServiceGroup Service IDs */
+> >  enum rpmi_system_reset_service_id {
+> >       RPMI_SYSRST_SRV_ENABLE_NOTIFICATION = 0x01,
+> > diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
+> > index ff88f24f..8d1f5183 100644
+> > --- a/lib/utils/mpxy/Kconfig
+> > +++ b/lib/utils/mpxy/Kconfig
+> > @@ -18,6 +18,10 @@ config FDT_MPXY_RPMI_CLOCK
+> >       bool "MPXY driver for RPMI clock service group"
+> >       default n
 > >
-> >       if (end_id >= MPXY_MSGPROT_RPMI_ATTR_MAX_ID)
-> >               return SBI_EBAD_RANGE;
-> > @@ -108,12 +106,11 @@ static int mpxy_mbox_write_attributes(struct sbi_mpxy_channel *channel,
-> >                                    u32 *outmem, u32 base_attr_id,
-> >                                    u32 attr_count)
-> >  {
-> > -     int ret, mem_idx;
-> > -     u32 end_id, attr_val, idx;
-> >       struct mpxy_rpmi_mbox *rmb =
-> >               container_of(channel, struct mpxy_rpmi_mbox, channel);
-> > -
-> > -     end_id = base_attr_id + attr_count - 1;
-> > +     u32 end_id = base_attr_id + attr_count - 1;
-> > +     u32 attr_val, idx;
-> > +     int ret, mem_idx;
+> > +config FDT_MPXY_RPMI_SYSMSI
+> > +     bool "MPXY driver for RPMI system MSI service group"
+> > +     default n
+> > +
+> >  endif
 > >
-> >       if (end_id >= MPXY_MSGPROT_RPMI_ATTR_MAX_ID)
-> >               return SBI_EBAD_RANGE;
-> > @@ -140,15 +137,15 @@ static int __mpxy_mbox_send_message(struct sbi_mpxy_channel *channel,
-> >                                 void *rx, u32 rx_max_len,
-> >                                 unsigned long *ack_len)
-> >  {
-> > -     int ret;
-> > -     u32 rx_len = 0;
-> > -     struct mbox_xfer xfer;
-> > -     struct rpmi_message_args args = {0};
-> >       struct mpxy_rpmi_mbox *rmb =
-> >               container_of(channel, struct mpxy_rpmi_mbox, channel);
-> >       const struct mpxy_rpmi_mbox_data *data = rmb->mbox_data;
-> >       const struct mpxy_rpmi_service_data *srv =
-> >               mpxy_find_rpmi_srvid(message_id, data);
-> > +     struct rpmi_message_args args = {0};
-> > +     struct mbox_xfer xfer;
-> > +     u32 rx_len = 0;
-> > +     int ret;
-> >
-> >       if (!srv)
-> >               return SBI_ENOTSUPP;
-> > @@ -215,12 +212,12 @@ static int mpxy_mbox_send_message_withoutresp(struct sbi_mpxy_channel *channel,
-> >
-> >  int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *match)
-> >  {
-> > -     int rc, len;
-> > +     const struct mpxy_rpmi_mbox_data *data = match->data;
-> > +     struct mpxy_rpmi_mbox *rmb;
-> > +     struct mbox_chan *chan;
-> >       const fdt32_t *val;
-> >       u32 channel_id;
-> > -     struct mbox_chan *chan;
-> > -     struct mpxy_rpmi_mbox *rmb;
-> > -     const struct mpxy_rpmi_mbox_data *data = match->data;
-> > +     int rc, len;
-> >
-> >       /* Allocate context for RPXY mbox client */
-> >       rmb = sbi_zalloc(sizeof(*rmb));
-> > @@ -270,8 +267,6 @@ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *ma
-> >                                       mpxy_mbox_send_message_withresp;
-> >       rmb->channel.send_message_without_response =
-> >                                       mpxy_mbox_send_message_withoutresp;
-> > -     /* No callback to switch events state data */
-> > -     rmb->channel.switch_eventsstate = NULL;
+> >  endmenu
+> > diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
+> > new file mode 100644
+> > index 00000000..3dacf28f
+> > --- /dev/null
+> > +++ b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
+> > @@ -0,0 +1,208 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2025 Ventana Micro Systems Inc.
+> > + */
+> > +
+> > +#include <sbi/sbi_bitmap.h>
+> > +#include <sbi/sbi_domain.h>
+> > +#include <sbi/sbi_byteorder.h>
+> > +#include <sbi/sbi_heap.h>
+> > +#include <sbi_utils/mailbox/rpmi_mailbox.h>
+> > +#include <sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h>
+> > +
+> > +struct mpxy_rpmi_sysmsi {
+> > +     u32 sys_num_msi;
+> > +     unsigned long *sys_msi_denied_bmap;
+> > +};
+> > +
+> > +static int mpxy_rpmi_sysmis_xfer(void *context, struct mbox_chan *chan,
+> > +                              struct mbox_xfer *xfer)
+> > +{
+> > +     struct rpmi_message_args *args = xfer->args;
+> > +     struct mpxy_rpmi_sysmsi *smg = context;
+> > +     u64 sys_msi_address;
+> > +     u32 sys_msi_index;
+> > +     int rc = 0;
+> > +
+> > +     if (!xfer->rx || args->type != RPMI_MSG_NORMAL_REQUEST)
+> > +             return 0;
+> > +
+> > +     switch (args->service_id) {
+> > +     case RPMI_SYSMSI_SRV_GET_ATTRIBUTES:
+> > +             ((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_SUCCESS);
+> > +             ((u32 *)xfer->rx)[1] = cpu_to_le32(smg->sys_num_msi);
+> > +             ((u32 *)xfer->rx)[2] = -1U;
+> > +             ((u32 *)xfer->rx)[3] = 0;
+> > +             ((u32 *)xfer->rx)[4] = 0;
+> > +             args->rx_data_len = 5 * sizeof(u32);
+> > +             break;
+> > +     case RPMI_SYSMSI_SRV_GET_MSI_ATTRIBUTES:
+> > +     case RPMI_SYSMSI_SRV_SET_MSI_STATE:
+> > +     case RPMI_SYSMSI_SRV_GET_MSI_STATE:
+> > +     case RPMI_SYSMSI_SRV_SET_MSI_TARGET:
+> > +     case RPMI_SYSMSI_SRV_GET_MSI_TARGET:
+> > +             sys_msi_index = le32_to_cpu(((u32 *)xfer->tx)[0]);
+> > +             if (smg->sys_num_msi <= sys_msi_index) {
+> > +                     ((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_ERR_INVALID_PARAM);
+> > +                     args->rx_data_len = sizeof(u32);
+> > +                     break;
+> > +             }
+> > +             if (bitmap_test(smg->sys_msi_denied_bmap, sys_msi_index)) {
+> > +                     ((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_ERR_DENIED);
+> > +                     args->rx_data_len = sizeof(u32);
+> > +                     break;
+> > +             }
+> > +             if (args->service_id == RPMI_SYSMSI_SRV_SET_MSI_TARGET) {
+> > +                     sys_msi_address = le32_to_cpu(((u32 *)xfer->tx)[1]);
+> > +                     sys_msi_address |= ((u64)le32_to_cpu(((u32 *)xfer->tx)[2])) << 32;
+> > +                     if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
+> > +                                                      sys_msi_address, 0x4, PRV_S,
+> > +                                                      SBI_DOMAIN_READ | SBI_DOMAIN_WRITE)) {
+> > +                             ((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_ERR_INVALID_ADDR);
+> > +                             args->rx_data_len = sizeof(u32);
+> > +                             break;
+> > +                     }
+> > +             }
+> > +             rc = mbox_chan_xfer(chan, xfer);
+> > +             break;
+> > +     default:
+> > +             ((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_ERR_NOTSUPP);
+> > +             args->rx_data_len = sizeof(u32);
+> > +             break;
+> > +     };
+> > +
+> > +     return rc;
+> > +}
+> > +
+> > +static void mpxy_rpmi_sysmsi_cleanup(void *context)
+> > +{
+> > +     struct mpxy_rpmi_sysmsi *smg = context;
+> > +
+> > +     sbi_free(smg->sys_msi_denied_bmap);
+> > +     sbi_free(smg);
+> > +}
+> > +
+> > +static int mpxy_rpmi_sysmsi_setup(void **context, struct mbox_chan *chan,
+> > +                               const struct mpxy_rpmi_mbox_data *data)
+> > +{
+> > +     struct rpmi_sysmsi_get_msi_attributes_resp gmaresp;
+> > +     struct rpmi_sysmsi_get_msi_attributes_req gmareq;
+> > +     struct rpmi_sysmsi_get_attributes_resp garesp;
+> > +     struct mpxy_rpmi_sysmsi *smg;
+> > +     int rc, i;
+> > +
+> > +     rc = rpmi_normal_request_with_status(chan, RPMI_SYSMSI_SRV_GET_ATTRIBUTES,
+> > +                                          NULL, 0, 0, &garesp, rpmi_u32_count(garesp),
+> > +                                          rpmi_u32_count(garesp));
+> > +     if (rc)
+> > +             return rc;
+> > +
+> > +     smg = sbi_zalloc(sizeof(*smg));
+> > +     if (!smg)
+> > +             return SBI_ENOMEM;
+> > +
+> > +     smg->sys_num_msi = garesp.sys_num_msi;
+> > +     smg->sys_msi_denied_bmap = sbi_zalloc(bitmap_estimate_size(smg->sys_num_msi));
+> > +     if (!smg->sys_msi_denied_bmap) {
+> > +             sbi_free(smg);
+> > +             return SBI_ENOMEM;
+> > +     }
+> > +
+> > +     for (i = 0; i < smg->sys_num_msi; i++) {
+> > +             gmareq.sys_msi_index = i;
+> > +             rc = rpmi_normal_request_with_status(chan,
+> > +                                                  RPMI_SYSMSI_SRV_GET_MSI_ATTRIBUTES,
+> > +                                                  &gmareq, rpmi_u32_count(gmareq),
+> > +                                                  rpmi_u32_count(gmareq),
+> > +                                                  &gmaresp, rpmi_u32_count(gmaresp),
+> > +                                                  rpmi_u32_count(gmaresp));
+> > +             if (rc) {
+> > +                     mpxy_rpmi_sysmsi_cleanup(smg);
+> > +                     return rc;
+> > +             }
+> > +
+> > +             if (garesp.p2a_db_index == i ||
+> > +                 (gmaresp.flag0 & RPMI_SYSMSI_MSI_ATTRIBUTES_FLAG0_PREF_PRIV))
+> > +                     bitmap_set(smg->sys_msi_denied_bmap, i, 1);
+> > +     }
+> > +
 >
-> Does this belong as part of the previous patch? Either way:
+> Is my understanding correct that this function will eventually contain code to
+> wire up the P2A doorbell to M-mode for notification support?
 
-Yes, this change should be part of the previous patch. I will update.
+This driver will only block supervisor access to the P2A doorbell system
+MSI whereas the RPMI shared memory mailbox driver will detect and
+configure P2A doorbell system MSI.
+
+This means two OpenSBI drivers (this driver and RPMI shared memory
+mailbox driver) will share the RPMI System MSI mailbox channel.
 
 >
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+> > +     *context = smg;
+> > +     return 0;
+> > +}
+> > +
+> > +static struct mpxy_rpmi_service_group_ops sysmsi_ops = {
+> > +     .xfer_group = mpxy_rpmi_sysmis_xfer,
+> > +     .setup_group = mpxy_rpmi_sysmsi_setup,
+> > +     .cleanup_group = mpxy_rpmi_sysmsi_cleanup,
+> > +};
+> > +
+> > +static struct mpxy_rpmi_service_data sysmsi_services[] = {
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_ENABLE_NOTIFICATION,
+> > +     .min_tx_len = sizeof(struct rpmi_enable_notification_req),
+> > +     .max_tx_len = sizeof(struct rpmi_enable_notification_req),
+> > +     .min_rx_len = sizeof(struct rpmi_enable_notification_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_enable_notification_resp),
+> > +},
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_GET_ATTRIBUTES,
+> > +     .min_tx_len = 0,
+> > +     .max_tx_len = 0,
+> > +     .min_rx_len = sizeof(struct rpmi_sysmsi_get_attributes_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_sysmsi_get_attributes_resp),
+> > +},
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_GET_MSI_ATTRIBUTES,
+> > +     .min_tx_len = sizeof(struct rpmi_sysmsi_get_msi_attributes_req),
+> > +     .max_tx_len = sizeof(struct rpmi_sysmsi_get_msi_attributes_req),
+> > +     .min_rx_len = sizeof(struct rpmi_sysmsi_get_msi_attributes_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_sysmsi_get_msi_attributes_resp),
+> > +},
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_SET_MSI_STATE,
+> > +     .min_tx_len = sizeof(struct rpmi_sysmsi_set_msi_state_req),
+> > +     .max_tx_len = sizeof(struct rpmi_sysmsi_set_msi_state_req),
+> > +     .min_rx_len = sizeof(struct rpmi_sysmsi_set_msi_state_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_sysmsi_set_msi_state_resp),
+> > +},
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_GET_MSI_STATE,
+> > +     .min_tx_len = sizeof(struct rpmi_sysmsi_get_msi_state_req),
+> > +     .max_tx_len = sizeof(struct rpmi_sysmsi_get_msi_state_req),
+> > +     .min_rx_len = sizeof(struct rpmi_sysmsi_get_msi_state_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_sysmsi_get_msi_state_resp),
+> > +},
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_SET_MSI_TARGET,
+> > +     .min_tx_len = sizeof(struct rpmi_sysmsi_set_msi_target_req),
+> > +     .max_tx_len = sizeof(struct rpmi_sysmsi_set_msi_target_req),
+> > +     .min_rx_len = sizeof(struct rpmi_sysmsi_set_msi_target_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_sysmsi_set_msi_target_resp),
+> > +},
+> > +{
+> > +     .id = RPMI_SYSMSI_SRV_GET_MSI_TARGET,
+> > +     .min_tx_len = sizeof(struct rpmi_sysmsi_get_msi_target_req),
+> > +     .max_tx_len = sizeof(struct rpmi_sysmsi_get_msi_target_req),
+> > +     .min_rx_len = sizeof(struct rpmi_sysmsi_get_msi_target_resp),
+> > +     .max_rx_len = sizeof(struct rpmi_sysmsi_get_msi_target_resp),
+> > +},
+> > +};
+> > +
+> > +static struct mpxy_rpmi_mbox_data sysmsi_data = {
+> > +     .servicegrp_id = RPMI_SRVGRP_SYSTEM_MSI,
+> > +     .num_services = RPMI_SYSMSI_SRV_ID_MAX_COUNT,
+> > +     .service_data = sysmsi_services,
+> > +     .group_ops = &sysmsi_ops,
+> > +};
+> > +
+> > +static const struct fdt_match sysmsi_match[] = {
+> > +     { .compatible = "riscv,rpmi-mpxy-system-msi", .data = &sysmsi_data },
+> > +     { },
+> > +};
+> > +
+> > +struct fdt_driver fdt_mpxy_rpmi_sysmsi = {
+> > +     .match_table = sysmsi_match,
+> > +     .init = mpxy_rpmi_mbox_init,
+> > +     .experimental = true,
+> > +};
 >
-> >
-> >       /* RPMI Message Protocol ID */
-> >       rmb->channel.attrs.msg_proto_id = SBI_MPXY_MSGPROTO_RPMI_ID;
->
+> All of these object definitions should be `const`.
+
+Okay, I will update.
 
 Regards,
 Anup
