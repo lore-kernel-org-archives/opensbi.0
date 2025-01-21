@@ -1,105 +1,86 @@
-From: Raj Vishwanathan <rvishwanathan@mips.com>
-Date: Mon, 20 Jan 2025 18:56:06 +0000
-Subject: [EXTERNAL]Re: [PATCH v2] We add a new configuration
- CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT as an int
-In-Reply-To: <714057c8c16ced6cf35c08bd3ac8a5e34cc87ed1.camel@126.com>
-References: <20250110003451.2800-1-cfu@mips.com>
-	 <20250119200448.662074-1-Raj.Vishwanathan@gmail.com>
- <714057c8c16ced6cf35c08bd3ac8a5e34cc87ed1.camel@126.com>
-Message-ID: <BL0PR22MB23859271E150263E3B19A64ACEE72@BL0PR22MB2385.namprd22.prod.outlook.com>
+From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
+Date: Mon, 20 Jan 2025 17:12:34 -0800
+Subject: [PATCH v3] Work with hartid equal to or greater than SBI_HARTMASK_MAX_BITS
+In-Reply-To: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
+References: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
+Message-ID: <20250121011234.717311-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Xiang W.
-Sounds good. Will update it the text in Kconfig. The reason for 64 bytes was to align it with the?cacheline size.
+Some platforms use hartid that is equal to greater than SBI_HARTMASK_MAX_BITS,
+so we should remove the original check. Instead we check the hart index
+against SBI_HARTMASK_MAX_BITS.
 
-Raj
------Original Message-----
-From: Xiang W <wxjstz@126.com> 
-Sent: Sunday, January 19, 2025 7:58 PM
-To: Raj Vishwanathan <raj.vishwanathan@gmail.com>; opensbi at lists.infradead.org
-Cc: Raj Vishwanathan <rvishwanathan@mips.com>
-Subject: [EXTERNAL]Re: [PATCH v2] We add a new configuration CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT as an int
+Update: Make hart_count > SBI_HARTMASK_MAX_BITS a catastrophic failure. The reviewer suggested continue, immediate failure quickly will localize the issue.
+---
+ lib/utils/fdt/fdt_domain.c  | 2 +-
+ lib/utils/fdt/fdt_helper.c  | 6 +++---
+ platform/generic/platform.c | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-[You don't often get email from wxjstz at 126.com. Learn why this is important at https://aka.ms/LearnAboutSenderIdentification ]
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 4bc7ed8..7d10d10 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -471,7 +471,7 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
+ 		if (err)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= val32)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(val32))
+ 			continue;
+ 
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..4673921 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -1032,7 +1032,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
+ 			continue;
+ 
+ 		if (match_hwirq == hwirq) {
+@@ -1097,7 +1097,7 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
+ 			continue;
+ 
+ 		if (hwirq == IRQ_M_TIMER)
+@@ -1153,7 +1153,7 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
++		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
+ 			continue;
+ 
+ 		if (hwirq == IRQ_M_SOFT)
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index c03ed88..c8a7a59 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -200,8 +200,8 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 		if (rc)
+ 			continue;
+ 
+-		if (SBI_HARTMASK_MAX_BITS <= hartid)
+-			continue;
++		if (SBI_HARTMASK_MAX_BITS <= hart_count)
++			goto fail;
+ 
+ 		if (!fdt_node_is_enabled(fdt, cpu_offset))
+ 			continue;
+-- 
+2.43.0
 
-? 2025-01-19?? 12:04 -0800?Raj Vishwanathan???
-> If it is set to 0 or not defined, we will continue with the previous 
-> defintion of allocating pointer size chunks. Otherwise we will use the 
-> chacheline size of 64.
-> We have the option of increasing the scratch allocation alignment to 
-> 64 bytes as the cache line size, to avoid two atomic variables from 
-> the same cache line that may cause livelock on some platforms.
-> ---
->  lib/sbi/Kconfig       |? 8 ++++++++
->  lib/sbi/sbi_scratch.c | 18 ++++++++++++++++--
->  2 files changed, 24 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig index c6cc04b..1ffa170 
-> 100644
-> --- a/lib/sbi/Kconfig
-> +++ b/lib/sbi/Kconfig
-> @@ -69,4 +69,12 @@ config SBI_ECALL_SSE  config SBI_ECALL_MPXY
->       bool "MPXY extension"
->       default y
-> +config SBI_SCRATCH_ALLOC_ALIGNMENT
-> +     int  "Scratch allocation alignment"
-> +     default 0
-> +     help
-> +       We provide the option for allocation alignment to 64 bytes to avoid
-> +       livelock on certain platforms due to atomic variables from the same
-> +       cache line.  Leave it 0 for default behaviour.
-
-Don't stress 64 bytes specifically
-
-Customise the size of the alignment to allocate from the extra space in sbi_scratch. Leave it 0 for default behaviour
-
-Regards,
-Xiang W
-
-> +
->  endmenu
-> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c index 
-> ccbbc68..88ea3c7 100644
-> --- a/lib/sbi/sbi_scratch.c
-> +++ b/lib/sbi/sbi_scratch.c
-> @@ -14,6 +14,13 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
->
-> +#if !defined(CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT) || 
-> +(CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT==0)
-> +#define SCRATCH_ALLOC_ALIGNMENT __SIZEOF_POINTER__ #else #define 
-> +SCRATCH_ALLOC_ALIGNMENT CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT
-> +#endif
-> +
-> +
->  u32 last_hartindex_having_scratch = 0;
->  u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };  
-> struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 
-> 1] = { 0 }; @@ -70,8 +77,15 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
->       if (!size)
->               return 0;
->
-> -     size += __SIZEOF_POINTER__ - 1;
-> -     size &= ~((unsigned long)__SIZEOF_POINTER__ - 1);
-> +     /*
-> +      * We let the allocation align to the cache line size, so
-> +      * certain platforms due to atomic variables from the same cache line.
-> +      * This ensures that the LR/SC variables are in a separate cache line
-> +      * to avoid live lock.
-> +      */
-> +
-> +     size += SCRATCH_ALLOC_ALIGNMENT- 1;
-> +     size &= ~((unsigned long)SCRATCH_ALLOC_ALIGNMENT - 1);
->
->       spin_lock(&extra_lock);
->
-> --
-> 2.43.0
->
->
 
