@@ -1,9 +1,9 @@
 From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
-Date: Fri, 24 Jan 2025 15:26:30 -0800
+Date: Mon, 27 Jan 2025 12:20:17 -0800
 Subject: [PATCH v3] New configuration CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT
-In-Reply-To: <20250119200448.662074-1-Raj.Vishwanathan@gmail.com>
-References: <20250119200448.662074-1-Raj.Vishwanathan@gmail.com>
-Message-ID: <20250124232630.916302-1-Raj.Vishwanathan@gmail.com>
+In-Reply-To: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
+References: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
+Message-ID: <20250127202017.1043240-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -18,13 +18,14 @@ We use the scratch allocation alignment to 64 bytes or cacheline size,
 to avoid two atomic variables from the same cache line causing livelock
 on some platforms.
 
+Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
+---
+
 Changes in V2:
 	Remove platform specific references to 64 bytes in the configuration
 
 Changes in V3:
 	Remove platform specific references in 64 bytes in the comments
-
-Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
 ---
  lib/sbi/Kconfig       |  7 +++++++
  lib/sbi/sbi_scratch.c | 14 ++++++++++++--
