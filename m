@@ -1,77 +1,92 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Thu, 30 Jan 2025 10:49:34 +0530
-Subject: [PATCH v6 4/7] include: lib: add a simple simply linked list implementation
-In-Reply-To: <20250110131557.3261411-5-cleger@rivosinc.com>
-References: <20250110131557.3261411-1-cleger@rivosinc.com> <20250110131557.3261411-5-cleger@rivosinc.com>
-Message-ID: <CAAhSdy2UuRBsQp9B11ht-zuqDt2OtNDw-XzAuct4XGn7K_TG8w@mail.gmail.com>
+Date: Thu, 30 Jan 2025 11:07:18 +0530
+Subject: [PATCH v6 0/7] lib: sbi: sse: rework event availability
+In-Reply-To: <20250110131557.3261411-1-cleger@rivosinc.com>
+References: <20250110131557.3261411-1-cleger@rivosinc.com>
+Message-ID: <CAAhSdy0i_T2Ryw=MQoP+2qLgDRqtAmrsnzxctS2Rf2MxipSV-A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Typo in patch subject "simple simply".
-
 On Fri, Jan 10, 2025 at 6:55?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
-> Add a simple linked list implementation when double linked list are not
-> needed. This allows to easily have statically defined linked list that
-> can be extended at runtime.
+> While reworking the Linux SSE support, it appears that the PMU event
+> should not be available if the SSCOFPMF extension is not available since
+> there would be no IRQ. A request to modify the specification has been
+> send in order to add the possibility to return SBI_ENOTSUPP (see [1]).
+> This small series modifies the SSE core to allow adding new events at
+> boot time using sbi_sse_add_event(). Aditionally, it now returns
+> SBI_ERR_NOT_SUPPORTED if the requested event can not be handled by any
+> driver.
 >
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> Link: https://lists.riscv.org/g/tech-prs/message/1123 [1]
+>
+> ---
+> Changes in V6
+>  - Add double trap event if dbltrp extension is available
+>
+> Changes in V5
+>  - Remove a blank line before sse_event_info
+>  - Move PMU call to sbi_sse_add_event() in cold_boot path.
+>  - Move simply-linked list implementation to a separate header.
+>
+> Changes in V4:
+>  - Used unsigned long for pmu_rq_bit_mask()
+>  - Moved pmu irq check in default case rather than hot path
+>  - Changed the supported event array to be a list, allowing for drivers
+>    to register additional handled events.
+>  - Check for supported events at init time.
+>  - Remove the need for is_supported callback
+>
+> Changes in V3:
+>  - Rework is_supported_cb() to allow per-hart local event availability
+>  - Remove now useless cached_version of is_supported.
+>  - Fix eret check + potential empty eret in case event_is_supported()
+>    returns SBI_SUCCESS.
+>  - Split commit to set all non software events as non injectable at the
+>    end of the series.
+>  - Fix usage of sbi_pmu_irq_bit() in sbi_pmu.c
+>
+> Changes in v2:
+>  - Add an sse_event_info struct that stores 'cb_ops' as well as 'supported'
+>  - Move SSE initialization after all other "drivers" init.
+>  - Split changes in multiple commits
+>  - Added an is_supported callback to check for event availability
+>
+> Cl?ment L?ger (7):
+>   lib: sbi: pmu: fix usage of sbi_pmu_irq_bit()
+>   lib: sbi: move sbi_double_trap_handler() to a dedicated header
+>   lib: sbi: sse: return an error value from sse_event_get()
+>   include: lib: add a simple simply linked list implementation
+>   lib: sbi: sse: allow adding new events
+>   lib: sbi: sse: return SBI_ENOTSUPP for unsupported events
+>   lib: sbi: pmu: add the PMU SSE event only if overflow IRQ is supported
 
-Otherwise, it looks good to me. I will take care of the above
-comment at the time of merging this patch.
+Applied this series to the riscv/opensbi repo.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
-
-Regards,
+Thanks,
 Anup
 
-> ---
->  include/sbi/sbi_slist.h | 33 +++++++++++++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
+>
+>  include/sbi/sbi_double_trap.h                 |  20 ++
+>  include/sbi/sbi_pmu.h                         |   3 +
+>  include/sbi/sbi_slist.h                       |  33 +++
+>  include/sbi/sbi_sse.h                         |   8 +-
+>  include/sbi/sbi_trap_ldst.h                   |   2 -
+>  lib/sbi/sbi_double_trap.c                     |   7 +
+>  lib/sbi/sbi_hart.c                            |   2 +-
+>  lib/sbi/sbi_init.c                            |  27 ++-
+>  lib/sbi/sbi_pmu.c                             |  47 ++--
+>  lib/sbi/sbi_sse.c                             | 209 ++++++++++++------
+>  lib/sbi/sbi_trap.c                            |  16 +-
+>  .../generic/include/thead/c9xx_encoding.h     |   1 -
+>  platform/generic/thead/thead_c9xx_pmu.c       |   2 +-
+>  13 files changed, 264 insertions(+), 113 deletions(-)
+>  create mode 100644 include/sbi/sbi_double_trap.h
 >  create mode 100644 include/sbi/sbi_slist.h
 >
-> diff --git a/include/sbi/sbi_slist.h b/include/sbi/sbi_slist.h
-> new file mode 100644
-> index 00000000..e4b83cfd
-> --- /dev/null
-> +++ b/include/sbi/sbi_slist.h
-> @@ -0,0 +1,33 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Simple simply-linked list library.
-> + *
-> + * Copyright (c) 2025 Rivos Inc.
-> + *
-> + * Authors:
-> + *   Cl?ment L?ger <cleger@rivosinc.com>
-> + */
-> +
-> +#ifndef __SBI_SLIST_H__
-> +#define __SBI_SLIST_H__
-> +
-> +#include <sbi/sbi_types.h>
-> +
-> +#define SBI_SLIST_HEAD_INIT(_ptr)      (_ptr)
-> +#define SBI_SLIST_HEAD(_lname, _stype) struct _stype *_lname
-> +#define SBI_SLIST_NODE(_stype) SBI_SLIST_HEAD(next, _stype)
-> +#define SBI_SLIST_NODE_INIT(_ptr) .next = _ptr
-> +
-> +#define SBI_INIT_SLIST_HEAD(_head) (_head) = NULL
-> +
-> +#define SBI_SLIST_ADD(_ptr, _head) \
-> +do { \
-> +       (_ptr)->next = _head; \
-> +       (_head) = _ptr; \
-> +} while (0)
-> +
-> +#define SBI_SLIST_FOR_EACH_ENTRY(_ptr, _head) \
-> +       for (_ptr = _head; _ptr; _ptr = _ptr->next)
-> +
-> +#endif
 > --
 > 2.47.1
 >
