@@ -1,98 +1,94 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 29 Jan 2025 17:07:39 +0800
-Subject: [PATCH v3] Check that hartid is within the SBI_HARTMASK_MAX_BITS
-In-Reply-To: <20250128213330.1443268-1-Raj.Vishwanathan@gmail.com>
-References: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
-	 <20250128213330.1443268-1-Raj.Vishwanathan@gmail.com>
-Message-ID: <c245880b5f99089b4dd011a71d137e7a31bfdea4.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 30 Jan 2025 10:46:43 +0530
+Subject: [PATCH v6 2/7] lib: sbi: move sbi_double_trap_handler() to a
+ dedicated header
+In-Reply-To: <20250110131557.3261411-3-cleger@rivosinc.com>
+References: <20250110131557.3261411-1-cleger@rivosinc.com> <20250110131557.3261411-3-cleger@rivosinc.com>
+Message-ID: <CAAhSdy1zXYwbgERRW9zLoHDQR+GAPuF6BW_peoapwcASq4P5oA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2025-01-28?? 13:33 -0800?Raj Vishwanathan???
-> It is possible that hartid may not be sequential and it should not be validated
-> against SBI_HARTMASK_MAX_BITS. Instead we should check the index of the hartid, hart index, against SBI_HARTMASK_MAX_BITS.
-> 
-> Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
-LGTM
+On Fri, Jan 10, 2025 at 6:55?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>
+> We will add new functions to sbi_double_trap.c in order to register an
+> SSE event, split this to a header as part of preparation work.
+>
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 
-Reviewed-by: Xiang W <wxjstz@126.com>
-> --
-> Changes in V2:
-> ??? Update: Make hart_count > SBI_HARTMASK_MAX_BITS a catastrophic failure.
-> 
-> Changes in V1:
-> ??? Ignore if hart_count is more than SBI_HARTMASK_MAX_BITS.
+LGTM.
+
+Reviewed-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
-> ?lib/utils/fdt/fdt_domain.c? | 2 +-
-> ?lib/utils/fdt/fdt_helper.c? | 6 +++---
-> ?platform/generic/platform.c | 4 ++--
-> ?3 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-> index 4bc7ed8..7d10d10 100644
-> --- a/lib/utils/fdt/fdt_domain.c
-> +++ b/lib/utils/fdt/fdt_domain.c
-> @@ -471,7 +471,7 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
-> ?		if (err)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= val32)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(val32))
-> ?			continue;
-> ?
-> ?		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cb350e5..4673921 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -1032,7 +1032,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
-> ?			continue;
-> ?
-> ?		if (match_hwirq == hwirq) {
-> @@ -1097,7 +1097,7 @@ int fdt_parse_plmt_node(const void *fdt, int nodeoffset, unsigned long *plmt_bas
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
-> ?			continue;
-> ?
-> ?		if (hwirq == IRQ_M_TIMER)
-> @@ -1153,7 +1153,7 @@ int fdt_parse_plicsw_node(const void *fdt, int nodeoffset, unsigned long *plicsw
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> +		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(hartid))
-> ?			continue;
-> ?
-> ?		if (hwirq == IRQ_M_SOFT)
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index c03ed88..027ec89 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -200,8 +200,8 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
-> ?		if (rc)
-> ?			continue;
-> ?
-> -		if (SBI_HARTMASK_MAX_BITS <= hartid)
-> -			continue;
-> +		if (SBI_HARTMASK_MAX_BITS <= hart_count)
-> +			break;
-> ?
-> ?		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> ?			continue;
-> -- 
-> 2.43.0
-> 
-> 
-
+>  include/sbi/sbi_double_trap.h | 20 ++++++++++++++++++++
+>  include/sbi/sbi_trap_ldst.h   |  2 --
+>  lib/sbi/sbi_trap.c            |  1 +
+>  3 files changed, 21 insertions(+), 2 deletions(-)
+>  create mode 100644 include/sbi/sbi_double_trap.h
+>
+> diff --git a/include/sbi/sbi_double_trap.h b/include/sbi/sbi_double_trap.h
+> new file mode 100644
+> index 00000000..c3d64dfd
+> --- /dev/null
+> +++ b/include/sbi/sbi_double_trap.h
+> @@ -0,0 +1,20 @@
+> +/*
+> + * SPDX-License-Identifier: BSD-2-Clause
+> + *
+> + * Copyright (c) 2025 Rivos Inc.
+> + *
+> + * Authors:
+> + *   Cl?ment L?ger <cleger@rivosinc.com>
+> + */
+> +
+> +#ifndef __SBI_DOUBLE_TRAP_H__
+> +#define __SBI_DOUBLE_TRAP_H__
+> +
+> +#include <sbi/sbi_types.h>
+> +#include <sbi/sbi_trap.h>
+> +
+> +int sbi_double_trap_handler(struct sbi_trap_context *tcntx);
+> +
+> +void sbi_double_trap_init(struct sbi_scratch *scratch);
+> +
+> +#endif
+> diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
+> index 34877ccc..a6a6c75b 100644
+> --- a/include/sbi/sbi_trap_ldst.h
+> +++ b/include/sbi/sbi_trap_ldst.h
+> @@ -28,8 +28,6 @@ int sbi_load_access_handler(struct sbi_trap_context *tcntx);
+>
+>  int sbi_store_access_handler(struct sbi_trap_context *tcntx);
+>
+> -int sbi_double_trap_handler(struct sbi_trap_context *tcntx);
+> -
+>  ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+>                                  ulong addr_offset);
+>
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index 242ffe9b..e63a563b 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -11,6 +11,7 @@
+>  #include <sbi/riscv_encoding.h>
+>  #include <sbi/sbi_bitops.h>
+>  #include <sbi/sbi_console.h>
+> +#include <sbi/sbi_double_trap.h>
+>  #include <sbi/sbi_ecall.h>
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_hart.h>
+> --
+> 2.47.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
