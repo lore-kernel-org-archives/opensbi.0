@@ -1,55 +1,57 @@
 From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
-Date: Thu,  6 Feb 2025 11:22:40 -0800
-Subject: [PATCH v2] Align SBI trap registers to a nice boundary for performance reasons.
-In-Reply-To: <20250109235219.2568-1-cfu@mips.com>
-References: <20250109235219.2568-1-cfu@mips.com>
-Message-ID: <20250206192240.142107-1-Raj.Vishwanathan@gmail.com>
+Date: Fri,  7 Feb 2025 13:34:08 -0800
+Subject: [PATCH] Convert hartid to hart index to get scratch.
+In-Reply-To: <20250109233241.2491-1-cfu@mips.com>
+References: <20250109233241.2491-1-cfu@mips.com>
+Message-ID: <20250207213422.175358-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Align SBI_TRAP_CONTEXT_SIZE to a multiple of 16 bytes. If it is not
-aligned to 16 bytes for RV64, it can create performance problems.
-Aligning it correctly can fix the performance issues.
+Any feedback on this patch? 
+The hartid's may not be sequential. We need to use the index to get the scratch.
 
-Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
---
-Test: Performance issues seen and fix Verified on FPGA.
-Other methods.
-   Run qemu with monitor to check the SP during cpu_in
-   and cpu_out.
-   Add sbi_printf to the function sbi_trap_handler to check
-   the alignment of sbi_trap_context
----
- include/sbi/sbi_trap.h | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Raj
 
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index d5182bf..82e9c08 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -112,13 +112,16 @@
- /** Size (in bytes) of sbi_trap_info */
- #define SBI_TRAP_INFO_SIZE SBI_TRAP_INFO_OFFSET(last)
- 
-+/** Stack pointer is aligned to 16 bytes */
-+#define STACK_BOUNDARY            16
-+#define ALIGN_TO_BOUNDARY(x,a) (((x) + (a) - 1) & ~((a) - 1))
-+
- /** Size (in bytes) of sbi_trap_context */
--#define SBI_TRAP_CONTEXT_SIZE (SBI_TRAP_REGS_SIZE + \
--			       SBI_TRAP_INFO_SIZE + \
--			       __SIZEOF_POINTER__)
-+#define SBI_TRAP_CONTEXT_SIZE ALIGN_TO_BOUNDARY((SBI_TRAP_REGS_SIZE + \
-+                               SBI_TRAP_INFO_SIZE + \
-+                               __SIZEOF_POINTER__),STACK_BOUNDARY)
- 
- #ifndef __ASSEMBLER__
--
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_scratch.h>
+On Thu, Jan 9, 2025 at 4:07?PM Chao-ying Fu <icebergfu@gmail.com> wrote:
+>
+> Hartid may not be sequential, so we need to use index to get scratch.
+> ---
+>  lib/utils/ipi/aclint_mswi.c     | 2 +-
+>  lib/utils/timer/aclint_mtimer.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
+> index 9e55078..e22903f 100644
+> --- a/lib/utils/ipi/aclint_mswi.c
+> +++ b/lib/utils/ipi/aclint_mswi.c
+> @@ -87,7 +87,7 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
+>
+>         /* Update MSWI pointer in scratch space */
+>         for (i = 0; i < mswi->hart_count; i++) {
+> -               scratch = sbi_hartid_to_scratch(mswi->first_hartid + i);
+> +               scratch = sbi_hartindex_to_scratch(sbi_hartid_to_hartindex(mswi->first_hartid) + i);
+>                 /*
+>                  * We don't need to fail if scratch pointer is not available
+>                  * because we might be dealing with hartid of a HART disabled
+> diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+> index 3db3c3b..eb80f24 100644
+> --- a/lib/utils/timer/aclint_mtimer.c
+> +++ b/lib/utils/timer/aclint_mtimer.c
+> @@ -206,7 +206,7 @@ int aclint_mtimer_cold_init(struct aclint_mtimer_data *mt,
+>
+>         /* Update MTIMER pointer in scratch space */
+>         for (i = 0; i < mt->hart_count; i++) {
+> -               scratch = sbi_hartid_to_scratch(mt->first_hartid + i);
+> +               scratch = sbi_hartindex_to_scratch(sbi_hartid_to_hartindex(mt->first_hartid) + i);
+>                 /*
+>                  * We don't need to fail if scratch pointer is not available
+>                  * because we might be dealing with hartid of a HART disabled
+> --
+> 2.47.1
+>
  
 -- 
 2.43.0
