@@ -1,100 +1,71 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 11 Feb 2025 16:24:56 +0530
-Subject: [RFC 4/7] opensbi: make io little-endian for big endian build
-In-Reply-To: <20241220160206.1989527-5-ben.dooks@codethink.co.uk>
-References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk> <20241220160206.1989527-5-ben.dooks@codethink.co.uk>
-Message-ID: <CAAhSdy26VKPZxk1fMTcYXrrSy9KwsA64pD2oROVwm-cSaSUD4Q@mail.gmail.com>
+Date: Tue, 11 Feb 2025 16:29:17 +0530
+Subject: [RFC 5/7] internal: add big/little endian to boot print
+In-Reply-To: <20241220160206.1989527-6-ben.dooks@codethink.co.uk>
+References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk> <20241220160206.1989527-6-ben.dooks@codethink.co.uk>
+Message-ID: <CAAhSdy1vwmwH4CD7rjkxuJ3unskeP-oZR0DT1d1oxUirfZDWwg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Dec 20, 2024 at 9:32?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
+On Fri, Dec 20, 2024 at 10:40?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
 >
-> Generally IO is little endian, if we're running in big-endian
-> mode then swap the byte ordering in the IO accessors.
->
-> Reviewed-by: Lawrence Hunter <lawrence.hunter@codethink.co.uk>
-> Reviewed-by: Roan Richmod <roan.richmond@codethink.co.uk>
-> Signed-off-by: Ben Dooks <ben.doosk@codethink.co.uk>
+> Make a nice new banner for our big endian system.
 > ---
->  include/sbi/riscv_io.h | 31 +++++++++++++++++++++----------
->  1 file changed, 21 insertions(+), 10 deletions(-)
+>  lib/sbi/sbi_init.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
 >
-> diff --git a/include/sbi/riscv_io.h b/include/sbi/riscv_io.h
-> index 4913232..a8fa579 100644
-> --- a/include/sbi/riscv_io.h
-> +++ b/include/sbi/riscv_io.h
-> @@ -12,6 +12,7 @@
->
->  #include <sbi/riscv_barrier.h>
->  #include <sbi/sbi_types.h>
-> +#include <sbi/sbi_byteorder.h>
->
->  static inline void __raw_writeb(u8 val, volatile void *addr)
->  {
-> @@ -73,22 +74,32 @@ static inline u64 __raw_readq(const volatile void *addr)
->
->  /* clang-format off */
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index 8a2cfae..9009f78 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -32,6 +32,17 @@
+>  #include <sbi/sbi_version.h>
+>  #include <sbi/sbi_unit_test.h>
 >
 > +#ifdef CONFIG_OPENSBI_BE
-> +#define io_conv16(__x) cpu_to_le16(__x)
-> +#define io_conv32(__x) cpu_to_le32(__x)
-> +#define io_conv64(__x) cpu_to_le64(__x)
+> +#define ENDIAN "big-endian "
+> +#define BANNER \
+> +        "   ___                   ____  ____ ___    ____  _____ \n"    \
+> +        "  / _ \\ _ __   ___ _ __ / ___|| __ )_ _|  | __ )| ____|\n"   \
+> +        " | | | | '_ \\ / _ \\ '_ \\ \\ ___ \\|  _ \\| |   |  _ \\|  _|  \n"   \
+> +        " | |_| | |_) |  __/ | | |___) | |_) | |   | |_) | |___ \n"    \
+> +        "  \\___/| .__/ \\___|_| |_|____/|____/___|  |____/|_____|\n"  \
+> +        "       |_|                                             \n\n"
 > +#else
-> +#define io_conv16(__x) (__x)
-> +#define io_conv32(__x) (__x)
-> +#define io_conv64(__x) (__x)
+> +#define ENDIAN "little-endian "
+>  #define BANNER                                              \
+>         "   ____                    _____ ____ _____\n"     \
+>         "  / __ \\                  / ____|  _ \\_   _|\n"  \
+> @@ -41,6 +52,8 @@
+>         "  \\____/| .__/ \\___|_| |_|_____/|____/_____|\n"  \
+>         "        | |\n"                                     \
+>         "        |_|\n\n"
 > +#endif
-
-No need for these io_convXY() macros. You can directly
-use cpu_to_leXY() macros because these macros won't
-change byte ordering on a LE system.
-
 > +
->  #define __io_rbr()             do {} while (0)
->  #define __io_rar()             do {} while (0)
->  #define __io_rbw()             do {} while (0)
->  #define __io_raw()             do {} while (0)
 >
->  #define readb_relaxed(c)       ({ u8  __v; __io_rbr(); __v = __raw_readb(c); __io_rar(); __v; })
-> -#define readw_relaxed(c)       ({ u16 __v; __io_rbr(); __v = __raw_readw(c); __io_rar(); __v; })
-> -#define readl_relaxed(c)       ({ u32 __v; __io_rbr(); __v = __raw_readl(c); __io_rar(); __v; })
-> +#define readw_relaxed(c)       ({ u16 __v; __io_rbr(); __v = __raw_readw(c); __io_rar(); io_conv16(__v); })
-> +#define readl_relaxed(c)       ({ u32 __v; __io_rbr(); __v = __raw_readl(c); __io_rar(); io_conv32(__v); })
+>  static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+>  {
+> @@ -48,9 +61,9 @@ static void sbi_boot_print_banner(struct sbi_scratch *scratch)
+>                 return;
 >
->  #define writeb_relaxed(v,c)    ({ __io_rbw(); __raw_writeb((v),(c)); __io_raw(); })
-> -#define writew_relaxed(v,c)    ({ __io_rbw(); __raw_writew((v),(c)); __io_raw(); })
-> -#define writel_relaxed(v,c)    ({ __io_rbw(); __raw_writel((v),(c)); __io_raw(); })
-> +#define writew_relaxed(v,c)    ({ __io_rbw(); __raw_writew(io_conv16(v),(c)); __io_raw(); })
-> +#define writel_relaxed(v,c)    ({ __io_rbw(); __raw_writel(io_conv32(v),(c)); __io_raw(); })
->
->  #if __riscv_xlen != 32
-> -#define readq_relaxed(c)       ({ u64 __v; __io_rbr(); __v = __raw_readq(c); __io_rar(); __v; })
-> -#define writeq_relaxed(v,c)    ({ __io_rbw(); __raw_writeq((v),(c)); __io_raw(); })
-> +#define readq_relaxed(c)       ({ u64 __v; __io_rbr(); __v = __raw_readq(c); __io_rar(); io_conv64(__v); })
-> +#define writeq_relaxed(v,c)    ({ __io_rbw(); __raw_writeq(io_conv64(v),(c)); __io_raw(); })
+>  #ifdef OPENSBI_VERSION_GIT
+> -       sbi_printf("\nOpenSBI %s\n", OPENSBI_VERSION_GIT);
+> +       sbi_printf("\nOpenSBI %s%s\n", ENDIAN, OPENSBI_VERSION_GIT);
+>  #else
+> -       sbi_printf("\nOpenSBI v%d.%d\n", OPENSBI_VERSION_MAJOR,
+> +       sbi_printf("\nOpenSBI %sv%d.%d\n", ENDIAN, OPENSBI_VERSION_MAJOR,
+>                    OPENSBI_VERSION_MINOR);
+
+Endianness is a property of the underlying platform or RISC-V
+implementation so it is better to print it as:
+"Platform Endianness       : little"
+or something similar.
+
 >  #endif
 >
->  #define __io_br()      do {} while (0)
-> @@ -97,12 +108,12 @@ static inline u64 __raw_readq(const volatile void *addr)
->  #define __io_aw()      do {} while (0)
->
->  #define readb(c)       ({ u8  __v; __io_br(); __v = __raw_readb(c); __io_ar(); __v; })
-> -#define readw(c)       ({ u16 __v; __io_br(); __v = __raw_readw(c); __io_ar(); __v; })
-> -#define readl(c)       ({ u32 __v; __io_br(); __v = __raw_readl(c); __io_ar(); __v; })
-> +#define readw(c)       ({ u16 __v; __io_br(); __v = __raw_readw(c); __io_ar(); io_conv16(__v); })
-> +#define readl(c)       ({ u32 __v; __io_br(); __v = __raw_readl(c); __io_ar(); io_conv32(__v); })
->
->  #define writeb(v,c)    ({ __io_bw(); __raw_writeb((v),(c)); __io_aw(); })
-> -#define writew(v,c)    ({ __io_bw(); __raw_writew((v),(c)); __io_aw(); })
-> -#define writel(v,c)    ({ __io_bw(); __raw_writel((v),(c)); __io_aw(); })
-> +#define writew(v,c)    ({ __io_bw(); __raw_writew(io_conv16(v),(c)); __io_aw(); })
-> +#define writel(v,c)    ({ __io_bw(); __raw_writel(io_conv32(v),(c)); __io_aw(); })
->
->  #if __riscv_xlen != 32
->  #define readq(c)       ({ u64 __v; __io_br(); __v = __raw_readq(c); __io_ar(); __v; })
 > --
 > 2.37.2.352.g3c44437643
 >
