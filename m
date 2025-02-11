@@ -1,26 +1,25 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 11 Feb 2025 17:11:04 +0530
-Subject: [PATCH] lib: utils/fdt: update fdt_parse_aplic_node()
-In-Reply-To: <20250103023828.26925-1-huangborong@bosc.ac.cn>
-References: <20250103023828.26925-1-huangborong@bosc.ac.cn>
-Message-ID: <CAAhSdy0RmtpPW2w-wKTub-ws9jdU1V96UuyrxkzceO_yVcu3Gg@mail.gmail.com>
+Date: Tue, 11 Feb 2025 19:35:49 +0530
+Subject: [PATCH] lib: utils: Make the enforce permission bit configurable
+ from DT
+In-Reply-To: <20250107024314.28611-1-duchao@eswincomputing.com>
+References: <20250107024314.28611-1-duchao@eswincomputing.com>
+Message-ID: <CAAhSdy2=KA1b1un=FtHJ82xR-8DVa1VgG6ktF6=o2Noxvg7D1A@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 3, 2025 at 8:09?AM Huang Borong <huangborong@bosc.ac.cn> wrote:
+On Tue, Jan 7, 2025 at 8:13?AM Chao Du <duchao@eswincomputing.com> wrote:
 >
-> 1. Initialize struct imsic_data imsic to 0 at definition to prevent the
->    use of uninitialized memory, ensuring the variable starts with known
->    values.
+> The domain_support.md documentation states that the enforce permission
+> bit (BIT[6]) could be set in the "regions" property of a domain
+> instance DT node. However, this bit is masked in the current
+> implementation. This patch unmasks the bit to make it configurable
+> from DT.
 >
-> 2. Remove the redundant memset call on the "aplic" parameter since the
->    memory for aplic is allocated using sbi_zalloc() by the caller
->    irqchip_aplic_cold_init(), which guarantees it is already set to 0.
->
-> Signed-off-by: Huang Borong <huangborong@bosc.ac.cn>
+> Signed-off-by: Chao Du <duchao@eswincomputing.com>
 
 LGTM.
 
@@ -32,29 +31,25 @@ Thanks,
 Anup
 
 > ---
->  lib/utils/fdt/fdt_helper.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+>  lib/utils/fdt/fdt_domain.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 >
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cb350e5..e92484c 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -630,14 +630,13 @@ int fdt_parse_aplic_node(const void *fdt, int nodeoff, struct aplic_data *aplic)
->         bool child_found;
->         const fdt32_t *val;
->         const fdt32_t *del;
-> -       struct imsic_data imsic;
-> +       struct imsic_data imsic = { 0 };
->         int i, j, d, dcnt, len, noff, rc;
->         uint64_t reg_addr, reg_size;
->         struct aplic_delegate_data *deleg;
+> diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+> index 4bc7ed8..d7efc56 100644
+> --- a/lib/utils/fdt/fdt_domain.c
+> +++ b/lib/utils/fdt/fdt_domain.c
+> @@ -289,8 +289,10 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
+>                 return SBI_EINVAL;
+>         order = val32;
 >
->         if (nodeoff < 0 || !aplic || !fdt)
->                 return SBI_ENODEV;
-> -       memset(aplic, 0, sizeof(*aplic));
+> +       flags = region_access & (SBI_DOMAIN_MEMREGION_ACCESS_MASK
+> +                               | SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS);
+> +
+>         /* Read "mmio" DT property */
+> -       flags = region_access & SBI_DOMAIN_MEMREGION_ACCESS_MASK;
+>         if (fdt_get_property(fdt, region_offset, "mmio", NULL))
+>                 flags |= SBI_DOMAIN_MEMREGION_MMIO;
 >
->         rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
->         if (rc < 0 || !reg_addr || !reg_size)
 > --
 > 2.34.1
 >
