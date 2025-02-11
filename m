@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Tue, 11 Feb 2025 16:16:03 +0530
-Subject: [RFC 2/7] opensbi: add build config for building big-endian
-In-Reply-To: <20241220160206.1989527-3-ben.dooks@codethink.co.uk>
-References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk> <20241220160206.1989527-3-ben.dooks@codethink.co.uk>
-Message-ID: <CAAhSdy0_ykZ3a3Ku9SY3cE6Q4UZV0Ue_UJxMidXKUwYEqH9Vdw@mail.gmail.com>
+Date: Tue, 11 Feb 2025 16:19:50 +0530
+Subject: [RFC 3/7] opensbi: add option to set big-endian mode at run-time
+In-Reply-To: <20241220160206.1989527-4-ben.dooks@codethink.co.uk>
+References: <20241220160206.1989527-1-ben.dooks@codethink.co.uk> <20241220160206.1989527-4-ben.dooks@codethink.co.uk>
+Message-ID: <CAAhSdy2n3vMUSeZCcDu+dtjTxQzHnTUC1CxWU7Ay4j-xreG5XQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,85 +12,75 @@ Content-Transfer-Encoding: 7bit
 
 On Fri, Dec 20, 2024 at 10:40?PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
 >
-> Add a build option for big-endian OpenSBI build.
+> Add option to switch M-mode to BE at start by setting the
+> MSTATUS.MBE bit early on in the initialisation code and
+> ensure it stays set when hart is reinitialised.
 >
 > Reviewed-by: Lawrence Hunter <lawrence.hunter@codethink.co.uk>
 > Reviewed-by: Roan Richmod <roan.richmond@codethink.co.uk>
 > Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 > ---
->  Kconfig  |  5 +++++
->  Makefile | 18 ++++++++++++++++--
->  2 files changed, 21 insertions(+), 2 deletions(-)
+>  Kconfig            | 4 ++++
+>  firmware/fw_base.S | 8 ++++++++
+>  lib/sbi/sbi_hart.c | 4 ++++
+>  3 files changed, 16 insertions(+)
 >
 > diff --git a/Kconfig b/Kconfig
-> index acfc138..cc7b5bc 100644
+> index cc7b5bc..6c6236f 100644
 > --- a/Kconfig
 > +++ b/Kconfig
-> @@ -2,6 +2,11 @@
+> @@ -7,6 +7,10 @@ config OPENSBI_BE
+>         help
+>           Say Y here if you like fun challenges
 >
->  mainmenu "OpenSBI $(OPENSBI_PLATFORM) Configuration"
->
-> +config OPENSBI_BE
-> +       bool "Build OpenSBI big-endian"
-> +       help
-> +         Say Y here if you like fun challenges
+> +config OPENSBI_BE_SET
+> +       bool "Set M-Mode to be big-endian in startup code"
+> +       depends on OPENSBI_BE
 > +
-
-Instead of this kconfig option, I would suggest using the toplevel make
-parameter "PLATFORM_RISCV_BE=1" to be consistent with other
-PLATFORM_RISCV_xyz make parameters.
-
 >  config OPENSBI_SRC_DIR
 >         string
 >         option env="OPENSBI_SRC_DIR"
-> diff --git a/Makefile b/Makefile
-> index d9cee49..3b6d981 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -357,6 +357,9 @@ GENFLAGS    +=      $(firmware-genflags-y)
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index d027e5e..f8ad6db 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -46,6 +46,14 @@
+>         .globl _start
+>         .globl _start_warm
+>  _start:
+> +#ifdef CONFIG_OPENSBI_BE_SET
+
+Instead of kconfig option you can simply use
+"#if __BYTE_ORDER == __BIG_ENDIAN"
+
+> +#if __riscv_xlen == 64
+> +       li      s0, MSTATUS_MBE
+> +       csrs    CSR_MSTATUS, s0
+> +#else
+> +#error not done for 32bit
+> +#endif
+> +#endif
+>         /* Find preferred boot HART id */
+>         MOV_3R  s0, a0, s1, a1, s2, a2
+>         call    fw_boot_hart
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 0451fcb..39311c4 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -39,6 +39,10 @@ static void mstatus_init(struct sbi_scratch *scratch)
+>         uint64_t mhpmevent_init_val = 0;
+>         uint64_t menvcfg_val, mstateen_val;
 >
->  CFLAGS         =       -g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
->  CFLAGS         +=      -fno-omit-frame-pointer -fno-optimize-sibling-calls
-> +ifeq ($(CONFIG_OPENSBI_BE),y)
-> +CFLAGS         +=      -mbig-endian
-> +endif
->  # Optionally supported flags
->  ifeq ($(CC_SUPPORT_SAVE_RESTORE),y)
->  CFLAGS         +=      -mno-save-restore
-> @@ -397,6 +400,9 @@ endif
->  ASFLAGS                +=      $(GENFLAGS)
->  ASFLAGS                +=      $(platform-asflags-y)
->  ASFLAGS                +=      $(firmware-asflags-y)
-> +ifeq ($(CONFIG_OPENSBI_BE),y)
-> +ASFLAGS                +=      -mbig-endian
-> +endif
->
->  ARFLAGS                =       rcs
->
-> @@ -410,13 +416,21 @@ ELFFLAGS  +=      -Wl,--no-dynamic-linker -Wl,-pie
->  ELFFLAGS       +=      $(platform-ldflags-y)
->  ELFFLAGS       +=      $(firmware-ldflags-y)
->
-> +ifeq ($(CONFIG_OPENSBI_BE),y)
-> +FULL_ENDIAN=big
-> +SMALL_ENDIAN=b
-> +else
-> +FULL_ENDIAN=little
-> +SMALL_ENDIAN=l
-> +endif
+> +#ifdef CONFIG_OPENSBI_BE_SET
+> +       mstatus_val |= MSTATUS_MBE;
+> +#endif
 > +
->  MERGEFLAGS     +=      -r
->  ifeq ($(LD_IS_LLD),y)
->  MERGEFLAGS     +=      -b elf
->  else
-> -MERGEFLAGS     +=      -b elf$(PLATFORM_RISCV_XLEN)-littleriscv
-> +MERGEFLAGS     +=      -b elf$(PLATFORM_RISCV_XLEN)-$(FULL_ENDIAN)riscv
->  endif
-> -MERGEFLAGS     +=      -m elf$(PLATFORM_RISCV_XLEN)lriscv
-> +MERGEFLAGS     +=      -m elf$(PLATFORM_RISCV_XLEN)$(SMALL_ENDIAN)riscv
->
->  DTSCPPFLAGS    =       $(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assembler-with-cpp
->
+
+Same as above.
+
+>         /* Enable FPU */
+>         if (misa_extension('D') || misa_extension('F'))
+>                 mstatus_val |=  MSTATUS_FS;
 > --
 > 2.37.2.352.g3c44437643
 >
