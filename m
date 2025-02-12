@@ -1,125 +1,211 @@
-From: Xiang W <wxjstz@126.com>
-Date: Wed, 12 Feb 2025 19:23:22 +0800
-Subject: [PATCH v2 3/4] lib: sbi: fwft: Fix error return value for
- feature > 32 bits
-In-Reply-To: <8464bd3b-8444-498e-8135-4f679c1af3fe@rivosinc.com>
-References: <20250124165202.465445-1-cleger@rivosinc.com>
-	 <20250124165202.465445-4-cleger@rivosinc.com>
-	 <dfc7cd26f725db45810810b60a3ff1acf46735a5.camel@126.com>
-	 <8464bd3b-8444-498e-8135-4f679c1af3fe@rivosinc.com>
-Message-ID: <08b8072310ba2b83a3e4cde2bb1ba56aa2816530.camel@126.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 12 Feb 2025 17:56:05 +0530
+Subject: [PATCH] Add RISCV_ISA_ZALRSC_ONLY to rewrite amo instructions via
+ lr and sc
+In-Reply-To: <20250110002447.2758-1-cfu@mips.com>
+References: <20250110002447.2758-1-cfu@mips.com>
+Message-ID: <CAAhSdy3HioW4E2=6g2ZPJ5ser0+UNVDf+Zon_T4ZFo7-L5pSZA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-? 2025-02-11?? 11:42 +0100?Cl?ment L?ger???
-> 
-> 
-> On 11/02/2025 04:37, Xiang W wrote:
-> > ? 2025-01-24?? 17:51 +0100?Cl?ment L?ger???
-> > > Based on the spec, invalid feature should return SBI_ERR_INVALID_PARAM.
-> > > This was not the case with the current implementation since the upper 32
-> > > bits were not considered when checking the feature thus returning
-> > > SBI_ERR_DENIED. Fix that by passing the raw unsigned long rather than
-> > > the enum to be sure we are passing the full 64 bits and then check for
-> > > upper bits to be cleared.
-> > > 
-> > > Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-> > > ---
-> > > ?include/sbi/sbi_fwft.h |? 4 ++--
-> > > ?lib/sbi/sbi_fwft.c???? | 10 +++++++---
-> > > ?2 files changed, 9 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/include/sbi/sbi_fwft.h b/include/sbi/sbi_fwft.h
-> > > index 2148820e..a9caa863 100644
-> > > --- a/include/sbi/sbi_fwft.h
-> > > +++ b/include/sbi/sbi_fwft.h
-> > > @@ -14,9 +14,9 @@
-> > > ?
-> > > ?struct sbi_scratch;
-> > > ?
-> > > -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
-> > > +int sbi_fwft_set(unsigned long feature, unsigned long value,
-> > > ?		 unsigned long flags);
-> > > -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val);
-> > > +int sbi_fwft_get(unsigned long feature, unsigned long *out_val);
-> > > ?
-> > > ?int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot);
-> > > ?
-> > > diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-> > > index c46006d4..85f8a638 100644
-> > > --- a/lib/sbi/sbi_fwft.c
-> > > +++ b/lib/sbi/sbi_fwft.c
-> > > @@ -287,12 +287,16 @@ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
-> > > ?	return NULL;
-> > > ?}
-> > > ?
-> > > -static int fwft_get_feature(enum sbi_fwft_feature_t feature,
-> > > +static int fwft_get_feature(unsigned long feature,
-> > > ?			??? struct fwft_config **conf)
-> > > ?{
-> > > ?	int ret;
-> > > ?	struct fwft_config *tconf;
-> > > ?
-> > > +	/* Feature are defined as 32 bits identifiers */
-> > > +	if (feature & ~(BIT_ULL(32) - 1))
-> > > +		return SBI_EINVAL;
-> > > +
-> > We can specify the type of enumeration at the time of definition in the 
-> > following way
-> > 
-> > enum sbi_fwft_feature_t : long {
-> 
-> TIL !:) After searching a bit, it seems like this is only available
-> since C23. Is this something we allow in OpenSBI ?
-> 
-> Thanks,
-> 
-> Cl?ment
+On Fri, Jan 10, 2025 at 6:28?AM Chao-ying Fu <icebergfu@gmail.com> wrote:
+>
+> Some platforms implement lr and sc in hardware, and emulate amo
+> instructions via the exception handler. To get better performance,
+> we use lr and sc only, when the config is defined.
 
-Add a value to the enumeration
+Currently, A-extension (Zaamo + Zalrsc) is mandatory for OpenSBI.
+(Refer, docs/platform_requirements.md) so supporting
 
-enum sbi_fwft_feature_t {
-	......
-	SBI_FWFT_NOT_USED_ANYWHERE              = -1UL
-};
 
-The compiler will select the appropriate type to save the -1UL.
+
+> ---
+>  firmware/fw_base.S       |  8 ++++++
+>  lib/sbi/riscv_atomic.c   | 54 ++++++++++++++++++++++++++++++++++++++++
+>  lib/sbi/riscv_locks.c    |  7 ++++++
+>  platform/generic/Kconfig |  4 +++
+>  4 files changed, 73 insertions(+)
+>
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index d027e5e..835d64a 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -59,8 +59,16 @@ _try_lottery:
+>         /* Jump to relocation wait loop if we don't get relocation lottery */
+>         lla     a6, _boot_lottery
+>         li      a7, BOOT_LOTTERY_ACQUIRED
+> +#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+>         amoswap.w a6, a7, (a6)
+>         bnez    a6, _wait_for_boot_hart
+> +#else
+> +_sc_fail:
+> +       lr.w    t0, (a6)
+> +       sc.w    t1, a7, (a6)
+> +       bnez    t1, _sc_fail
+> +       bnez    t0, _wait_for_boot_hart
+> +#endif
+>
+>         /* relocate the global table content */
+>         li      t0, FW_TEXT_START       /* link start */
+> diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
+> index 32cf3f0..c5f47eb 100644
+> --- a/lib/sbi/riscv_atomic.c
+> +++ b/lib/sbi/riscv_atomic.c
+> @@ -31,6 +31,7 @@ void atomic_write(atomic_t *atom, long value)
+>
+>  long atomic_add_return(atomic_t *atom, long value)
+>  {
+> +#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+
+This should be "#ifdef __riscv_atomic"
+
+>         long ret;
+>  #if __SIZEOF_LONG__ == 4
+>         __asm__ __volatile__("  amoadd.w.aqrl  %1, %2, %0"
+> @@ -43,6 +44,27 @@ long atomic_add_return(atomic_t *atom, long value)
+>                              : "r"(value)
+>                              : "memory");
+>  #endif
+> +#else
+
+This should be "#elif __riscv_zalrsc"
+
+> +       long ret, temp;
+> +#if __SIZEOF_LONG__ == 4
+> +       __asm__ __volatile__("1:lr.w.aqrl       %1,%0\n"
+> +                            "  add     %2,%1,%3\n"
+> +                            "  sc.w.aqrl       %2,%2,%0\n"
+> +                            "  bnez    %2,1b"
+> +                            : "+A"(atom->counter), "=&r"(ret), "=&r"(temp)
+> +                            : "r"(value)
+> +                            : "memory");
+> +#elif __SIZEOF_LONG__ == 8
+> +       __asm__ __volatile__("1:lr.d.aqrl       %1,%0\n"
+> +                            "  add     %2,%1,%3\n"
+> +                            "  sc.d.aqrl       %2,%2,%0\n"
+> +                            "  bnez    %2,1b"
+> +                            : "+A"(atom->counter), "=&r"(ret), "=&r"(temp)
+> +                            : "r"(value)
+> +                            : "memory");
+> +#endif
+
+There should be "#else error" here.
+
+> +#endif
+> +
+>         return ret + value;
+>  }
+>
+> @@ -51,6 +73,7 @@ long atomic_sub_return(atomic_t *atom, long value)
+>         return atomic_add_return(atom, -value);
+>  }
+>
+> +#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+
+Same as above.
+
+>  #define __axchg(ptr, new, size)                                                        \
+>         ({                                                                      \
+>                 __typeof__(ptr) __ptr = (ptr);                                  \
+> @@ -76,6 +99,37 @@ long atomic_sub_return(atomic_t *atom, long value)
+>                 }                                                               \
+>                 __ret;                                                          \
+>         })
+> +#else
+
+Same as above.
+
+> +#define __axchg(ptr, new, size)                                                        \
+> +       ({                                                                      \
+> +               __typeof__(ptr) __ptr = (ptr);                                  \
+> +               __typeof__(new) __new = (new);                                  \
+> +               __typeof__(*(ptr)) __ret, __temp;                                       \
+> +               switch (size) {                                                 \
+> +               case 4:                                                         \
+> +                       __asm__ __volatile__ (                                  \
+> +                               "1:     lr.w.aqrl %0, %1\n"                     \
+> +                               "       sc.w.aqrl %2, %3, %1\n"                 \
+> +                               "       bnez      %2, 1b\n"                     \
+> +                               : "=&r" (__ret), "+A" (*__ptr), "=&r" (__temp)  \
+> +                               : "r" (__new)                                   \
+> +                               : "memory");                                    \
+> +                       break;                                                  \
+> +               case 8:                                                         \
+> +                       __asm__ __volatile__ (                                  \
+> +                               "1:     lr.d.aqrl %0, %1\n"                     \
+> +                               "       sc.d.aqrl %2, %3, %1\n"                 \
+> +                               "       bnez      %2, 1b\n"                     \
+> +                               : "=&r" (__ret), "+A" (*__ptr), "=&r" (__temp)  \
+> +                               : "r" (__new)                                   \
+> +                               : "memory");                                    \
+> +                       break;                                                  \
+> +               default:                                                        \
+> +                       break;                                                  \
+> +               }                                                               \
+> +               __ret;                                                          \
+> +       })
+> +#endif
+>
+>  #define axchg(ptr, x)                                                          \
+>         ({                                                                      \
+> diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
+> index acab776..11f87bf 100644
+> --- a/lib/sbi/riscv_locks.c
+> +++ b/lib/sbi/riscv_locks.c
+> @@ -53,7 +53,14 @@ void spin_lock(spinlock_t *lock)
+>
+>         __asm__ __volatile__(
+>                 /* Atomically increment the next ticket. */
+> +#ifndef CONFIG_RISCV_ISA_ZALRSC_ONLY
+
+Same as above.
+
+>                 "       amoadd.w.aqrl   %0, %4, %3\n"
+> +#else
+
+Same as above.
+
+> +               "3:     lr.w.aqrl       %0, %3\n"
+> +               "       add     %1, %0, %4\n"
+> +               "       sc.w.aqrl       %1, %1, %3\n"
+> +               "       bnez    %1, 3b\n"
+> +#endif
+>
+>                 /* Did we get the lock? */
+>                 "       srli    %1, %0, %6\n"
+> diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+> index 688da3f..a5ecbd5 100644
+> --- a/platform/generic/Kconfig
+> +++ b/platform/generic/Kconfig
+> @@ -7,6 +7,10 @@ config PLATFORM_GENERIC
+>         select FDT_PMU
+>         default y
+>
+> +config RISCV_ISA_ZALRSC_ONLY
+> +       bool "Use lr/sc only"
+> +       default n
+> +
+
+Drop this config option.
+
+Platform without proper A-extension should compile
+OpenSBI with PLATFORM_RISCV_ISA=rv64im_zalrsc_zicsr.
+
+>  if PLATFORM_GENERIC
+>
+>  config PLATFORM_GENERIC_NAME
+> --
+> 2.47.1
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
-Xiang W
-> 
-> > 
-> > In this way we don't need to change the declaration of the function, 
-> > and we don't need the extra detection of the high 32 bits, because 
-> > get_feature_config would return a null pointer because it couldn't
-> > find the
-> > 
-> > Regards,
-> > Xiang W
-> > > ?	tconf = get_feature_config(feature);
-> > > ?	if (!tconf) {
-> > > ?		if (fwft_is_defined_feature(feature))
-> > > @@ -323,7 +327,7 @@ static void fwft_clear_config_lock(enum sbi_fwft_feature_t feature)
-> > > ?	conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
-> > > ?}
-> > > ?
-> > > -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
-> > > +int sbi_fwft_set(unsigned long feature, unsigned long value,
-> > > ?		 unsigned long flags)
-> > > ?{
-> > > ?	int ret;
-> > > @@ -348,7 +352,7 @@ int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
-> > > ?	return SBI_OK;
-> > > ?}
-> > > ?
-> > > -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
-> > > +int sbi_fwft_get(unsigned long feature, unsigned long *out_val)
-> > > ?{
-> > > ?	int ret;
-> > > ?	struct fwft_config *conf;
-> > 
-
+Anup
 
