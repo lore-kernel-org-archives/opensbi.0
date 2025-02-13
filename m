@@ -1,46 +1,45 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Thu, 13 Feb 2025 10:25:03 +0100
-Subject: [PATCH] lib: sbi: sse: fix invalid errors returned for sse_hart_mask/unmask()
-Message-ID: <20250213092507.735642-1-cleger@rivosinc.com>
+From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
+Date: Thu, 13 Feb 2025 11:52:11 -0800
+Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are aligned
+In-Reply-To: <0250109233241.2491-1-cfu@mips.com>
+References: <0250109233241.2491-1-cfu@mips.com>
+Message-ID: <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When called twice, sse_hart_mask()/sse_hart_unmask() should return
-SBI_EALREADY_STOPPED/SBI_EALREADY_STARTED. This was currently inverted.
+Harts associated with an ACLINT_MSWI need not have sequential hartids.
+It is insufficient to use first_hartid and hart_count. To account for
+non-sequential hart ids, include the empty hard-ids' generate hart-count.
 
-Fixes: b919daf49582 ("lib: sbi: Add support to mask/unmask SSE events")
-Reported-by: Andrew Jones <ajones@ventanamicro.com>
-Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
 ---
- lib/sbi/sbi_sse.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 9f22375f..2f9bdef8 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -882,7 +882,7 @@ int sbi_sse_hart_mask(void)
- 		return SBI_EFAIL;
+hart_count = last_hart_id - first_hart_id +1
+count = number of harts
+For sequential hart_id's, count = hart_count
+For non-sequential hart_id's, count  < hart_count
+---
+ lib/utils/fdt/fdt_helper.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..bb3fddd 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
  
- 	if (state->masked)
--		return SBI_EALREADY_STARTED;
-+		return SBI_EALREADY_STOPPED;
+ 	if ((last_hartid >= first_hartid) && first_hartid != -1U) {
+ 		*out_first_hartid = first_hartid;
+-		count = last_hartid - first_hartid + 1;
+-		*out_hart_count = (hart_count < count) ? hart_count : count;
++		*out_hart_count  = last_hartid - first_hartid + 1;
+ 	}
  
- 	state->masked = true;
- 
-@@ -897,7 +897,7 @@ int sbi_sse_hart_unmask(void)
- 		return SBI_EFAIL;
- 
- 	if (!state->masked)
--		return SBI_EALREADY_STOPPED;
-+		return SBI_EALREADY_STARTED;
- 
- 	state->masked = false;
- 
+ 	return 0;
 -- 
-2.47.2
+2.43.0
 
 
