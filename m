@@ -1,90 +1,61 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Thu, 13 Feb 2025 14:48:39 -0800
-Subject: [PATCH 2/2] lib: utils/fdt: Allocate fdt_pmu_evt_select on the heap
-In-Reply-To: <20250213225024.3586544-1-samuel.holland@sifive.com>
-References: <20250213225024.3586544-1-samuel.holland@sifive.com>
-Message-ID: <20250213225024.3586544-2-samuel.holland@sifive.com>
+Date: Thu, 13 Feb 2025 16:58:46 -0600
+Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are
+ aligned
+In-Reply-To: <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
+References: <0250109233241.2491-1-cfu@mips.com>
+ <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
+Message-ID: <e4795dbc-0186-4261-9110-799f6a6c7b9b@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This reduces .bss size by 8 KiB, and should reduce overall memory usage
-since most platforms will have significantly fewer than 512 entries in
-this table. At the same time, it removes the fixed table size limit.
-Since the table is only used within fdt_pmu.c, instead of updating the
-extern declaration, make the table local to this file.
+Hi Raj,
 
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
----
+On 2025-02-13 1:52 PM, Raj Vishwanathan wrote:
+> Harts associated with an ACLINT_MSWI need not have sequential hartids.
+> It is insufficient to use first_hartid and hart_count. To account for
+> non-sequential hart ids, include the empty hard-ids' generate hart-count.
 
- include/sbi_utils/fdt/fdt_pmu.h |  5 -----
- lib/utils/fdt/fdt_pmu.c         | 17 +++++++++++------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+This doesn't help, because the expression (hartid - first_hartid) is still used
+to calculate MMIO addresses. See for example mtimer_event_start() and
+mswi_ipi_send(). If there is a gap in the hartids mapped to the ACLINT
+MTIMER/MSWI indexes, these functions will compute the wrong MMIO address and
+fail to set the timer or send an IPI.
 
-diff --git a/include/sbi_utils/fdt/fdt_pmu.h b/include/sbi_utils/fdt/fdt_pmu.h
-index b31d8351..3879e111 100644
---- a/include/sbi_utils/fdt/fdt_pmu.h
-+++ b/include/sbi_utils/fdt/fdt_pmu.h
-@@ -62,11 +62,6 @@ int fdt_pmu_setup(const void *fdt);
-  */
- uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
- 
--/** The event index to selector value table instance */
--extern struct fdt_pmu_hw_event_select_map fdt_pmu_evt_select[];
--/** The number of valid entries in fdt_pmu_evt_select[] */
--extern uint32_t hw_event_count;
--
- #else
- 
- static inline void fdt_pmu_fixup(void *fdt) { }
-diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-index 22760603..ee76d87f 100644
---- a/lib/utils/fdt/fdt_pmu.c
-+++ b/lib/utils/fdt/fdt_pmu.c
-@@ -11,15 +11,14 @@
- #include <libfdt.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_heap.h>
- #include <sbi/sbi_pmu.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/fdt/fdt_pmu.h>
- 
--#define FDT_PMU_HW_EVENT_MAX (SBI_PMU_HW_EVENT_MAX * 2)
--
--struct fdt_pmu_hw_event_select_map fdt_pmu_evt_select[FDT_PMU_HW_EVENT_MAX] = {0};
--uint32_t hw_event_count;
-+static struct fdt_pmu_hw_event_select_map *fdt_pmu_evt_select;
-+static uint32_t hw_event_count;
- 
- uint64_t fdt_pmu_get_select_value(uint32_t event_idx)
- {
-@@ -91,13 +90,19 @@ int fdt_pmu_setup(const void *fdt)
- 				"riscv,event-to-mhpmevent", &len);
- 	if (event_val) {
- 		len = len / (sizeof(u32) * 3);
-+
-+		hw_event_count = len;
-+		fdt_pmu_evt_select = sbi_calloc(hw_event_count,
-+						sizeof(*fdt_pmu_evt_select));
-+		if (!fdt_pmu_evt_select)
-+			return SBI_ENOMEM;
-+
- 		for (i = 0; i < len; i++) {
--			event = &fdt_pmu_evt_select[hw_event_count];
-+			event = &fdt_pmu_evt_select[i];
- 			event->eidx = fdt32_to_cpu(event_val[3 * i]);
- 			event->select = fdt32_to_cpu(event_val[3 * i + 1]);
- 			event->select = (event->select << 32) |
- 					fdt32_to_cpu(event_val[3 * i + 2]);
--			hw_event_count++;
- 		}
- 	}
- 
--- 
-2.47.0
+Either each device instance needs an array of [ACLINT index] => [hart index]
+mappings, or the ACLINT index needs to be recorded separately in a new per-hart
+scratch variable.
+
+Regards,
+Samuel
+
+> Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
+> ---
+> 
+> hart_count = last_hart_id - first_hart_id +1
+> count = number of harts
+> For sequential hart_id's, count = hart_count
+> For non-sequential hart_id's, count  < hart_count
+> ---
+>  lib/utils/fdt/fdt_helper.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+> index cb350e5..bb3fddd 100644
+> --- a/lib/utils/fdt/fdt_helper.c
+> +++ b/lib/utils/fdt/fdt_helper.c
+> @@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+>  
+>  	if ((last_hartid >= first_hartid) && first_hartid != -1U) {
+>  		*out_first_hartid = first_hartid;
+> -		count = last_hartid - first_hartid + 1;
+> -		*out_hart_count = (hart_count < count) ? hart_count : count;
+> +		*out_hart_count  = last_hartid - first_hartid + 1;
+>  	}
+>  
+>  	return 0;
 
 
