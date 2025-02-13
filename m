@@ -1,80 +1,56 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Thu, 13 Feb 2025 14:24:46 -0800
-Subject: [PATCH] lib: utils: Constify FDT driver definitions
-Message-ID: <20250213222457.3581142-1-samuel.holland@sifive.com>
+Date: Thu, 13 Feb 2025 14:48:38 -0800
+Subject: [PATCH 1/2] lib: utils/fdt: Remove redundant PMU property length checks
+Message-ID: <20250213225024.3586544-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The carray referencing these definitions assumes they are const.
+If a property value is too small, len will be zero after the division
+on the next line, so the property will be ignored. This is the same
+behavior as when the length check fails. Furthermore, the first two
+length checks were already ineffectual, because each item in those
+arrays is 12 bytes long, not 8.
 
-Fixes: 6a26726e08e4 ("lib/utils: reset: Add RPMI System Reset driver")
-Fixes: 13f55f33a1d3 ("lib: utils/suspend: Add RPMI system suspend driver")
-Fixes: 33ee9b8240fe ("lib: utils/hsm: Add RPMI HSM driver")
-Fixes: 591a98bdd549 ("lib: utils/cppc: Add RPMI CPPC driver")
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- lib/utils/cppc/fdt_cppc_rpmi.c       | 2 +-
- lib/utils/hsm/fdt_hsm_rpmi.c         | 2 +-
- lib/utils/reset/fdt_reset_rpmi.c     | 2 +-
- lib/utils/suspend/fdt_suspend_rpmi.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ lib/utils/fdt/fdt_pmu.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
-index 39342198..efcea652 100644
---- a/lib/utils/cppc/fdt_cppc_rpmi.c
-+++ b/lib/utils/cppc/fdt_cppc_rpmi.c
-@@ -367,7 +367,7 @@ static const struct fdt_match rpmi_cppc_match[] = {
- 	{},
- };
+diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
+index 64de569e..22760603 100644
+--- a/lib/utils/fdt/fdt_pmu.c
++++ b/lib/utils/fdt/fdt_pmu.c
+@@ -74,7 +74,7 @@ int fdt_pmu_setup(const void *fdt)
  
--struct fdt_driver fdt_cppc_rpmi = {
-+const struct fdt_driver fdt_cppc_rpmi = {
- 	.match_table = rpmi_cppc_match,
- 	.init = rpmi_cppc_cold_init,
- 	.experimental = true,
-diff --git a/lib/utils/hsm/fdt_hsm_rpmi.c b/lib/utils/hsm/fdt_hsm_rpmi.c
-index 5142c3e6..cc78436f 100644
---- a/lib/utils/hsm/fdt_hsm_rpmi.c
-+++ b/lib/utils/hsm/fdt_hsm_rpmi.c
-@@ -356,7 +356,7 @@ static const struct fdt_match rpmi_hsm_match[] = {
- 	{},
- };
+ 	event_ctr_map = fdt_getprop(fdt, pmu_offset,
+ 				    "riscv,event-to-mhpmcounters", &len);
+-	if (event_ctr_map && len >= 8) {
++	if (event_ctr_map) {
+ 		len = len / (sizeof(u32) * 3);
+ 		for (i = 0; i < len; i++) {
+ 			event_idx_start = fdt32_to_cpu(event_ctr_map[3 * i]);
+@@ -89,7 +89,7 @@ int fdt_pmu_setup(const void *fdt)
  
--struct fdt_driver fdt_hsm_rpmi = {
-+const struct fdt_driver fdt_hsm_rpmi = {
- 	.match_table = rpmi_hsm_match,
- 	.init = rpmi_hsm_cold_init,
- 	.experimental = true,
-diff --git a/lib/utils/reset/fdt_reset_rpmi.c b/lib/utils/reset/fdt_reset_rpmi.c
-index 15d3c6d5..81b21d0f 100644
---- a/lib/utils/reset/fdt_reset_rpmi.c
-+++ b/lib/utils/reset/fdt_reset_rpmi.c
-@@ -135,7 +135,7 @@ static const struct fdt_match rpmi_reset_match[] = {
- 	{},
- };
+ 	event_val = fdt_getprop(fdt, pmu_offset,
+ 				"riscv,event-to-mhpmevent", &len);
+-	if (event_val && len >= 8) {
++	if (event_val) {
+ 		len = len / (sizeof(u32) * 3);
+ 		for (i = 0; i < len; i++) {
+ 			event = &fdt_pmu_evt_select[hw_event_count];
+@@ -103,7 +103,7 @@ int fdt_pmu_setup(const void *fdt)
  
--struct fdt_driver fdt_reset_rpmi = {
-+const struct fdt_driver fdt_reset_rpmi = {
- 	.match_table = rpmi_reset_match,
- 	.init = rpmi_reset_init,
- 	.experimental = true,
-diff --git a/lib/utils/suspend/fdt_suspend_rpmi.c b/lib/utils/suspend/fdt_suspend_rpmi.c
-index b08c33e9..f9baa23c 100644
---- a/lib/utils/suspend/fdt_suspend_rpmi.c
-+++ b/lib/utils/suspend/fdt_suspend_rpmi.c
-@@ -132,7 +132,7 @@ static const struct fdt_match rpmi_suspend_match[] = {
- 	{},
- };
- 
--struct fdt_driver fdt_suspend_rpmi = {
-+const struct fdt_driver fdt_suspend_rpmi = {
- 	.match_table = rpmi_suspend_match,
- 	.init = rpmi_suspend_init,
- 	.experimental = true,
+ 	event_val = fdt_getprop(fdt, pmu_offset,
+ 				"riscv,raw-event-to-mhpmcounters", &len);
+-	if (event_val && len >= 20) {
++	if (event_val) {
+ 		len = len / (sizeof(u32) * 5);
+ 		for (i = 0; i < len; i++) {
+ 			raw_selector = fdt32_to_cpu(event_val[5 * i]);
 -- 
 2.47.0
 
