@@ -1,45 +1,81 @@
-From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
-Date: Thu, 13 Feb 2025 11:52:11 -0800
-Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are aligned
-In-Reply-To: <0250109233241.2491-1-cfu@mips.com>
-References: <0250109233241.2491-1-cfu@mips.com>
-Message-ID: <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Thu, 13 Feb 2025 14:24:46 -0800
+Subject: [PATCH] lib: utils: Constify FDT driver definitions
+Message-ID: <20250213222457.3581142-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Harts associated with an ACLINT_MSWI need not have sequential hartids.
-It is insufficient to use first_hartid and hart_count. To account for
-non-sequential hart ids, include the empty hard-ids' generate hart-count.
+The carray referencing these definitions assumes they are const.
 
-Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
+Fixes: 6a26726e08e4 ("lib/utils: reset: Add RPMI System Reset driver")
+Fixes: 13f55f33a1d3 ("lib: utils/suspend: Add RPMI system suspend driver")
+Fixes: 33ee9b8240fe ("lib: utils/hsm: Add RPMI HSM driver")
+Fixes: 591a98bdd549 ("lib: utils/cppc: Add RPMI CPPC driver")
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
-hart_count = last_hart_id - first_hart_id +1
-count = number of harts
-For sequential hart_id's, count = hart_count
-For non-sequential hart_id's, count  < hart_count
----
- lib/utils/fdt/fdt_helper.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/utils/cppc/fdt_cppc_rpmi.c       | 2 +-
+ lib/utils/hsm/fdt_hsm_rpmi.c         | 2 +-
+ lib/utils/reset/fdt_reset_rpmi.c     | 2 +-
+ lib/utils/suspend/fdt_suspend_rpmi.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index cb350e5..bb3fddd 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
+index 39342198..efcea652 100644
+--- a/lib/utils/cppc/fdt_cppc_rpmi.c
++++ b/lib/utils/cppc/fdt_cppc_rpmi.c
+@@ -367,7 +367,7 @@ static const struct fdt_match rpmi_cppc_match[] = {
+ 	{},
+ };
  
- 	if ((last_hartid >= first_hartid) && first_hartid != -1U) {
- 		*out_first_hartid = first_hartid;
--		count = last_hartid - first_hartid + 1;
--		*out_hart_count = (hart_count < count) ? hart_count : count;
-+		*out_hart_count  = last_hartid - first_hartid + 1;
- 	}
+-struct fdt_driver fdt_cppc_rpmi = {
++const struct fdt_driver fdt_cppc_rpmi = {
+ 	.match_table = rpmi_cppc_match,
+ 	.init = rpmi_cppc_cold_init,
+ 	.experimental = true,
+diff --git a/lib/utils/hsm/fdt_hsm_rpmi.c b/lib/utils/hsm/fdt_hsm_rpmi.c
+index 5142c3e6..cc78436f 100644
+--- a/lib/utils/hsm/fdt_hsm_rpmi.c
++++ b/lib/utils/hsm/fdt_hsm_rpmi.c
+@@ -356,7 +356,7 @@ static const struct fdt_match rpmi_hsm_match[] = {
+ 	{},
+ };
  
- 	return 0;
+-struct fdt_driver fdt_hsm_rpmi = {
++const struct fdt_driver fdt_hsm_rpmi = {
+ 	.match_table = rpmi_hsm_match,
+ 	.init = rpmi_hsm_cold_init,
+ 	.experimental = true,
+diff --git a/lib/utils/reset/fdt_reset_rpmi.c b/lib/utils/reset/fdt_reset_rpmi.c
+index 15d3c6d5..81b21d0f 100644
+--- a/lib/utils/reset/fdt_reset_rpmi.c
++++ b/lib/utils/reset/fdt_reset_rpmi.c
+@@ -135,7 +135,7 @@ static const struct fdt_match rpmi_reset_match[] = {
+ 	{},
+ };
+ 
+-struct fdt_driver fdt_reset_rpmi = {
++const struct fdt_driver fdt_reset_rpmi = {
+ 	.match_table = rpmi_reset_match,
+ 	.init = rpmi_reset_init,
+ 	.experimental = true,
+diff --git a/lib/utils/suspend/fdt_suspend_rpmi.c b/lib/utils/suspend/fdt_suspend_rpmi.c
+index b08c33e9..f9baa23c 100644
+--- a/lib/utils/suspend/fdt_suspend_rpmi.c
++++ b/lib/utils/suspend/fdt_suspend_rpmi.c
+@@ -132,7 +132,7 @@ static const struct fdt_match rpmi_suspend_match[] = {
+ 	{},
+ };
+ 
+-struct fdt_driver fdt_suspend_rpmi = {
++const struct fdt_driver fdt_suspend_rpmi = {
+ 	.match_table = rpmi_suspend_match,
+ 	.init = rpmi_suspend_init,
+ 	.experimental = true,
 -- 
-2.43.0
+2.47.0
 
 
