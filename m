@@ -1,143 +1,189 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Fri, 14 Feb 2025 11:25:54 +0100
-Subject: [PATCH v2 3/4] lib: sbi: fwft: Fix error return value for feature
- > 32 bits
-In-Reply-To: <08b8072310ba2b83a3e4cde2bb1ba56aa2816530.camel@126.com>
-References: <20250124165202.465445-1-cleger@rivosinc.com>
- <20250124165202.465445-4-cleger@rivosinc.com>
- <dfc7cd26f725db45810810b60a3ff1acf46735a5.camel@126.com>
- <8464bd3b-8444-498e-8135-4f679c1af3fe@rivosinc.com>
- <08b8072310ba2b83a3e4cde2bb1ba56aa2816530.camel@126.com>
-Message-ID: <8853ce96-cfad-40d9-9bbe-d69c59cfc09d@rivosinc.com>
+Date: Fri, 14 Feb 2025 13:04:43 +0100
+Subject: [PATCH] lib: sbi: sse: return SBI_EINVAL for parameters > 32 bits
+Message-ID: <20250214120445.1106042-1-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+The SBI specification states that event id, attributes and attributes
+count are stored on 32 bits. In order to check them properly, pass
+unsigned long to the SSE interface and check these parameters to be
+within correct bounds.
 
+Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+---
+ include/sbi/sbi_sse.h   | 18 +++++++++---------
+ include/sbi/sbi_types.h |  2 ++
+ lib/sbi/sbi_sse.c       | 30 +++++++++++++++++-------------
+ 3 files changed, 28 insertions(+), 22 deletions(-)
 
-On 12/02/2025 12:23, Xiang W wrote:
-> ? 2025-02-11?? 11:42 +0100?Cl?ment L?ger???
->>
->>
->> On 11/02/2025 04:37, Xiang W wrote:
->>> ? 2025-01-24?? 17:51 +0100?Cl?ment L?ger???
->>>> Based on the spec, invalid feature should return SBI_ERR_INVALID_PARAM.
->>>> This was not the case with the current implementation since the upper 32
->>>> bits were not considered when checking the feature thus returning
->>>> SBI_ERR_DENIED. Fix that by passing the raw unsigned long rather than
->>>> the enum to be sure we are passing the full 64 bits and then check for
->>>> upper bits to be cleared.
->>>>
->>>> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->>>> ---
->>>> ?include/sbi/sbi_fwft.h |? 4 ++--
->>>> ?lib/sbi/sbi_fwft.c???? | 10 +++++++---
->>>> ?2 files changed, 9 insertions(+), 5 deletions(-)
->>>>
->>>> diff --git a/include/sbi/sbi_fwft.h b/include/sbi/sbi_fwft.h
->>>> index 2148820e..a9caa863 100644
->>>> --- a/include/sbi/sbi_fwft.h
->>>> +++ b/include/sbi/sbi_fwft.h
->>>> @@ -14,9 +14,9 @@
->>>> ?
->>>> ?struct sbi_scratch;
->>>> ?
->>>> -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
->>>> +int sbi_fwft_set(unsigned long feature, unsigned long value,
->>>> ?		 unsigned long flags);
->>>> -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val);
->>>> +int sbi_fwft_get(unsigned long feature, unsigned long *out_val);
->>>> ?
->>>> ?int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot);
->>>> ?
->>>> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
->>>> index c46006d4..85f8a638 100644
->>>> --- a/lib/sbi/sbi_fwft.c
->>>> +++ b/lib/sbi/sbi_fwft.c
->>>> @@ -287,12 +287,16 @@ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
->>>> ?	return NULL;
->>>> ?}
->>>> ?
->>>> -static int fwft_get_feature(enum sbi_fwft_feature_t feature,
->>>> +static int fwft_get_feature(unsigned long feature,
->>>> ?			??? struct fwft_config **conf)
->>>> ?{
->>>> ?	int ret;
->>>> ?	struct fwft_config *tconf;
->>>> ?
->>>> +	/* Feature are defined as 32 bits identifiers */
->>>> +	if (feature & ~(BIT_ULL(32) - 1))
->>>> +		return SBI_EINVAL;
->>>> +
->>> We can specify the type of enumeration at the time of definition in the 
->>> following way
->>>
->>> enum sbi_fwft_feature_t : long {
->>
->> TIL !:) After searching a bit, it seems like this is only available
->> since C23. Is this something we allow in OpenSBI ?
->>
->> Thanks,
->>
->> Cl?ment
-> 
-> Add a value to the enumeration
-> 
-> enum sbi_fwft_feature_t {
-> 	......
-> 	SBI_FWFT_NOT_USED_ANYWHERE              = -1UL
-> };
-> 
-> The compiler will select the appropriate type to save the -1UL.
-
-I prefer to keep it as is, the enum only contains what is needed, the
-interface uses unsigned long and validates them to be passed to other
-functions.
-
-Moreover doing so would be wrong regarding to the spec which states that
-features are 32 bits identifier. So modifying the feature enum storage
-to accommodate the internal interface is wrong.
-
-Regards,
-
-Cl?ment
-
-> 
-> Regards,
-> Xiang W
->>
->>>
->>> In this way we don't need to change the declaration of the function, 
->>> and we don't need the extra detection of the high 32 bits, because 
->>> get_feature_config would return a null pointer because it couldn't
->>> find the
->>>
->>> Regards,
->>> Xiang W
->>>> ?	tconf = get_feature_config(feature);
->>>> ?	if (!tconf) {
->>>> ?		if (fwft_is_defined_feature(feature))
->>>> @@ -323,7 +327,7 @@ static void fwft_clear_config_lock(enum sbi_fwft_feature_t feature)
->>>> ?	conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
->>>> ?}
->>>> ?
->>>> -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
->>>> +int sbi_fwft_set(unsigned long feature, unsigned long value,
->>>> ?		 unsigned long flags)
->>>> ?{
->>>> ?	int ret;
->>>> @@ -348,7 +352,7 @@ int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
->>>> ?	return SBI_OK;
->>>> ?}
->>>> ?
->>>> -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
->>>> +int sbi_fwft_get(unsigned long feature, unsigned long *out_val)
->>>> ?{
->>>> ?	int ret;
->>>> ?	struct fwft_config *conf;
->>>
-> 
+diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
+index fb796545..21084c5c 100644
+--- a/include/sbi/sbi_sse.h
++++ b/include/sbi/sbi_sse.h
+@@ -75,21 +75,21 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot);
+ void sbi_sse_exit(struct sbi_scratch *scratch);
+ 
+ /* Interface called from sbi_ecall_sse.c */
+-int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
++int sbi_sse_register(unsigned long event_id, unsigned long handler_entry_pc,
+ 		     unsigned long handler_entry_arg);
+-int sbi_sse_unregister(uint32_t event_id);
++int sbi_sse_unregister(unsigned long event_id);
+ int sbi_sse_hart_mask(void);
+ int sbi_sse_hart_unmask(void);
+-int sbi_sse_enable(uint32_t event_id);
+-int sbi_sse_disable(uint32_t event_id);
++int sbi_sse_enable(unsigned long event_id);
++int sbi_sse_disable(unsigned long event_id);
+ int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out);
+-int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hart_id,
++int sbi_sse_inject_from_ecall(unsigned long event_id, unsigned long hart_id,
+ 			      struct sbi_ecall_return *out);
+-int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
+-		       uint32_t attr_count, unsigned long output_phys_lo,
++int sbi_sse_read_attrs(unsigned long event_id, unsigned long base_attr_id,
++		       unsigned long attr_count, unsigned long output_phys_lo,
+ 		       unsigned long output_phys_hi);
+-int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+-			uint32_t attr_count, unsigned long input_phys_lo,
++int sbi_sse_write_attrs(unsigned long event_id, unsigned long base_attr_id,
++			unsigned long attr_count, unsigned long input_phys_lo,
+ 			unsigned long input_phys_hi);
+ 
+ #endif
+diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
+index 90b0d458..efcde21f 100644
+--- a/include/sbi/sbi_types.h
++++ b/include/sbi/sbi_types.h
+@@ -108,6 +108,8 @@ typedef uint64_t		be64_t;
+ #define ROUNDUP(a, b) ((((a)-1) / (b) + 1) * (b))
+ #define ROUNDDOWN(a, b) ((a) / (b) * (b))
+ 
++#define fits_on_32_bits(value) (((value) & ~(BIT_ULL(32) - 1)) == 0)
++
+ /* clang-format on */
+ 
+ #else
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index 9f22375f..5e8e9ab4 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -291,12 +291,15 @@ static void sse_event_set_state(struct sbi_sse_event *e,
+ 	e->attrs.status |= new_state;
+ }
+ 
+-static int sse_event_get(uint32_t event_id, struct sbi_sse_event **eret)
++static int sse_event_get(unsigned long event_id, struct sbi_sse_event **eret)
+ {
+ 	unsigned int i;
+ 	struct sbi_sse_event *e;
+ 	struct sse_hart_state *shs;
+ 
++	if (!fits_on_32_bits(event_id))
++	        return SBI_EINVAL;
++
+ 	if (!eret)
+ 		return SBI_EINVAL;
+ 
+@@ -748,7 +751,7 @@ static int sse_ipi_inject_send(unsigned long hartid, uint32_t event_id)
+ 	return SBI_OK;
+ }
+ 
+-static int sse_inject_event(uint32_t event_id, unsigned long hartid)
++static int sse_inject_event(unsigned long event_id, unsigned long hartid)
+ {
+ 	int ret;
+ 	struct sbi_sse_event *e;
+@@ -839,7 +842,7 @@ int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out)
+ 	return ret;
+ }
+ 
+-int sbi_sse_enable(uint32_t event_id)
++int sbi_sse_enable(unsigned long event_id)
+ {
+ 	int ret;
+ 	struct sbi_sse_event *e;
+@@ -856,7 +859,7 @@ int sbi_sse_enable(uint32_t event_id)
+ 	return ret;
+ }
+ 
+-int sbi_sse_disable(uint32_t event_id)
++int sbi_sse_disable(unsigned long event_id)
+ {
+ 	int ret;
+ 	struct sbi_sse_event *e;
+@@ -904,7 +907,7 @@ int sbi_sse_hart_unmask(void)
+ 	return SBI_SUCCESS;
+ }
+ 
+-int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hartid,
++int sbi_sse_inject_from_ecall(unsigned long event_id, unsigned long hartid,
+ 			      struct sbi_ecall_return *out)
+ {
+ 	if (!sbi_domain_is_assigned_hart(sbi_domain_thishart_ptr(),
+@@ -943,14 +946,15 @@ int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+ 	return SBI_OK;
+ }
+ 
+-int sbi_sse_attr_check(uint32_t base_attr_id, uint32_t attr_count,
++int sbi_sse_attr_check(unsigned long base_attr_id, unsigned long attr_count,
+ 		       unsigned long phys_lo, unsigned long phys_hi,
+ 		       unsigned long access)
+ {
+ 	const unsigned align = __riscv_xlen >> 3;
+ 	uint64_t end_id = (uint64_t)base_attr_id + (attr_count - 1);
+ 
+-	if (attr_count == 0)
++	if (attr_count == 0 || !fits_on_32_bits(base_attr_id) ||
++	    !fits_on_32_bits(attr_count))
+ 		return SBI_ERR_INVALID_PARAM;
+ 
+ 	if (end_id >= SBI_SSE_ATTR_MAX)
+@@ -992,8 +996,8 @@ static void copy_attrs(unsigned long *out, const unsigned long *in,
+ 		out[i] = in[i];
+ }
+ 
+-int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
+-		       uint32_t attr_count, unsigned long output_phys_lo,
++int sbi_sse_read_attrs(unsigned long event_id, unsigned long base_attr_id,
++		       unsigned long attr_count, unsigned long output_phys_lo,
+ 		       unsigned long output_phys_hi)
+ {
+ 	int ret;
+@@ -1059,8 +1063,8 @@ out:
+ 	return ret;
+ }
+ 
+-int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+-			uint32_t attr_count, unsigned long input_phys_lo,
++int sbi_sse_write_attrs(unsigned long event_id, unsigned long base_attr_id,
++			unsigned long attr_count, unsigned long input_phys_lo,
+ 			unsigned long input_phys_hi)
+ {
+ 	int ret = 0;
+@@ -1081,7 +1085,7 @@ int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+ 	return ret;
+ }
+ 
+-int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
++int sbi_sse_register(unsigned long event_id, unsigned long handler_entry_pc,
+ 		     unsigned long handler_entry_arg)
+ {
+ 	int ret;
+@@ -1106,7 +1110,7 @@ int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
+ 	return ret;
+ }
+ 
+-int sbi_sse_unregister(uint32_t event_id)
++int sbi_sse_unregister(unsigned long event_id)
+ {
+ 	int ret;
+ 	struct sbi_sse_event *e;
+-- 
+2.47.2
 
 
