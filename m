@@ -1,73 +1,60 @@
-From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
-Date: Thu, 13 Feb 2025 22:01:19 -0800
-Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are aligned
-In-Reply-To: <e4795dbc-0186-4261-9110-799f6a6c7b9b@sifive.com>
-References: <0250109233241.2491-1-cfu@mips.com> <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
- <e4795dbc-0186-4261-9110-799f6a6c7b9b@sifive.com>
-Message-ID: <CA+-5cKfDpb_OFvf5UF0rA2n01jX69nuO1AkGL0PkVSvzy91xoQ@mail.gmail.com>
+From: Alex Studer <alex@studer.dev>
+Date: Fri, 14 Feb 2025 01:27:38 -0500
+Subject: [PATCH] lib: utils/irqchip: Match against more specific compatible strings first
+Message-ID: <20250214062738.2941749-1-alex@studer.dev>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Samuel
+The T-HEAD C90x PLIC has some special quirks, such as the S-mode
+delegation bit. OpenSBI currently handles this by checking the compatible
+string in the device tree.
 
-Thanks for the quick review. I took a quick look and in our case,
-where the hart-id's are not sequential,  I see that there will be gaps
-in the MMIO space but nothing should break
+However, this matching is done in the order of the fdt_match array. So if
+a device tree contains both strings, for example:
 
-I will do a deeper study and respond specifically to your questions.
+	compatible = "thead,c900-plic", "riscv,plic0";
 
-Raj
+Then OpenSBI will match against the generic "riscv,plic0" string, since
+that appears first in the fdt_match array. This means it will fail to set
+the S-mode delegation bit, and Linux will fail to boot. In some cases, it
+is not possible to change the compatible string to just the T-HEAD PLIC,
+as older versions of Linux only recognize the RISC-V compatible string.
 
-On Thu, Feb 13, 2025 at 2:58?PM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> Hi Raj,
->
-> On 2025-02-13 1:52 PM, Raj Vishwanathan wrote:
-> > Harts associated with an ACLINT_MSWI need not have sequential hartids.
-> > It is insufficient to use first_hartid and hart_count. To account for
-> > non-sequential hart ids, include the empty hard-ids' generate hart-count.
->
-> This doesn't help, because the expression (hartid - first_hartid) is still used
-> to calculate MMIO addresses. See for example mtimer_event_start() and
-> mswi_ipi_send(). If there is a gap in the hartids mapped to the ACLINT
-> MTIMER/MSWI indexes, these functions will compute the wrong MMIO address and
-> fail to set the timer or send an IPI.
->
-> Either each device instance needs an array of [ACLINT index] => [hart index]
-> mappings, or the ACLINT index needs to be recorded separately in a new per-hart
-> scratch variable.
->
-> Regards,
-> Samuel
->
-> > Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
-> > ---
-> >
-> > hart_count = last_hart_id - first_hart_id +1
-> > count = number of harts
-> > For sequential hart_id's, count = hart_count
-> > For non-sequential hart_id's, count  < hart_count
-> > ---
-> >  lib/utils/fdt/fdt_helper.c | 3 +--
-> >  1 file changed, 1 insertion(+), 2 deletions(-)
-> >
-> > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> > index cb350e5..bb3fddd 100644
-> > --- a/lib/utils/fdt/fdt_helper.c
-> > +++ b/lib/utils/fdt/fdt_helper.c
-> > @@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
-> >
-> >       if ((last_hartid >= first_hartid) && first_hartid != -1U) {
-> >               *out_first_hartid = first_hartid;
-> > -             count = last_hartid - first_hartid + 1;
-> > -             *out_hart_count = (hart_count < count) ? hart_count : count;
-> > +             *out_hart_count  = last_hartid - first_hartid + 1;
-> >       }
-> >
-> >       return 0;
->
+This patch fixes that by moving the RISC-V string to the end, ensuring
+that the more specific options get matched first.
+
+Signed-off-by: Alex Studer <alex@studer.dev>
+---
+ lib/utils/irqchip/fdt_irqchip_plic.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+index 494358d..59898d2 100644
+--- a/lib/utils/irqchip/fdt_irqchip_plic.c
++++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+@@ -98,10 +98,16 @@ fail_free_data:
+ 
+ static const struct fdt_match irqchip_plic_match[] = {
+ 	{ .compatible = "andestech,nceplic100" },
+-	{ .compatible = "riscv,plic0" },
+ 	{ .compatible = "sifive,plic-1.0.0" },
+ 	{ .compatible = "thead,c900-plic",
+ 	  .data = (void *)(PLIC_FLAG_THEAD_DELEGATION | PLIC_FLAG_ENABLE_PM) },
++
++	/*
++	 * We keep the generic RISC-V PLIC at the end.
++	 * This ensures we match against more specific options first.
++	 * (This is important if the PLIC has quirks, like the T-HEAD PLIC.)
++	 */
++	{ .compatible = "riscv,plic0" },
+ 	{ /* sentinel */ }
+ };
+ 
+-- 
+2.48.1
+
+
 
