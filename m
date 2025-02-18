@@ -1,58 +1,97 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 18 Feb 2025 16:20:45 +0530
-Subject: [PATCH 3/3] README: Remove comment about boolin toolchains being
- 64-bit only
-In-Reply-To: <20250205034454.3464-4-joel@jms.id.au>
-References: <20250205034454.3464-1-joel@jms.id.au> <20250205034454.3464-4-joel@jms.id.au>
-Message-ID: <CAAhSdy2JRMkCyS1h0MUC-UPdfSFcHv_X_qNi+tKeobcy-Xs4Qg@mail.gmail.com>
+From: Akshay Behl <akshaybehl231@gmail.com>
+Date: Tue, 18 Feb 2025 23:57:50 +0530
+Subject: [PATCH] lib: add tests for sbi_ecall functionality
+Message-ID: <20250218182750.226327-1-akshaybehl231@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 5, 2025 at 9:15?AM Joel Stanley <joel@jms.id.au> wrote:
->
-> As of January 2025 they have riscv32-ilp32d and riscv64-lp64d:
->
->  https://toolchains.bootlin.com/releases_riscv32-ilp32d.html
->  https://toolchains.bootlin.com/releases_riscv64-lp64d.html
->
-> Signed-off-by: Joel Stanley <joel@jms.id.au>
+This patch adds unit tests for verifying the sbi_ecall version,
+impid handling, and extension registration functions. The tests
+ensure that the extension registration and unregistration work as
+expected.
 
-LGTM.
+Signed-off-by: Akshay Behl <akshaybehl231@gmail.com>
+---
+ lib/sbi/tests/objects.mk       |  5 +++-
+ lib/sbi/tests/sbi_ecall_test.c | 49 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+), 1 deletion(-)
+ create mode 100644 lib/sbi/tests/sbi_ecall_test.c
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
+index 16608fa..0bf6a83 100644
+--- a/lib/sbi/tests/objects.mk
++++ b/lib/sbi/tests/objects.mk
+@@ -14,4 +14,7 @@ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += locks_test_suite
+ libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_locks_test.o
+ 
+ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += math_test_suite
+-libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_math_test.o
+\ No newline at end of file
++libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_math_test.o
++
++carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += ecall_test_suite
++libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_ecall_test.o
+\ No newline at end of file
+diff --git a/lib/sbi/tests/sbi_ecall_test.c b/lib/sbi/tests/sbi_ecall_test.c
+new file mode 100644
+index 0000000..c555cd4
+--- /dev/null
++++ b/lib/sbi/tests/sbi_ecall_test.c
+@@ -0,0 +1,49 @@
++#include <sbi/sbi_unit_test.h>
++#include <sbi/sbi_ecall.h>
++
++static void test_sbi_ecall_version(struct sbiunit_test_case *test)
++{
++    SBIUNIT_EXPECT_EQ(test, sbi_ecall_version_major(), SBI_ECALL_VERSION_MAJOR);
++    SBIUNIT_EXPECT_EQ(test, sbi_ecall_version_minor(), SBI_ECALL_VERSION_MINOR);
++}
++
++static void test_sbi_ecall_impid(struct sbiunit_test_case *test)
++{
++    unsigned long old_impid = sbi_ecall_get_impid();
++    sbi_ecall_set_impid(42);
++    SBIUNIT_EXPECT_EQ(test, sbi_ecall_get_impid(), 42);
++    sbi_ecall_set_impid(old_impid);
++}
++
++static int dummy_handler(unsigned long extid, unsigned long funcid,
++                         struct sbi_trap_regs *regs,
++                         struct sbi_ecall_return *out)
++{
++    return 0;
++}
++
++static void test_sbi_ecall_register_find_extension(struct sbiunit_test_case *test)
++{
++    struct sbi_ecall_extension test_ext = {
++        /*large extid_start for no overlap*/
++        .extid_start = 0x80,
++        .extid_end = 0x80,
++        .name = "TestExt",
++        .handle = dummy_handler,
++    };
++
++    SBIUNIT_EXPECT_EQ(test, sbi_ecall_register_extension(&test_ext), 0);
++    SBIUNIT_EXPECT_EQ(test, sbi_ecall_find_extension(0x80), &test_ext);
++
++    sbi_ecall_unregister_extension(&test_ext);
++    SBIUNIT_EXPECT_EQ(test, sbi_ecall_find_extension(0x80), NULL);
++}
++
++static struct sbiunit_test_case ecall_tests[] = {
++    SBIUNIT_TEST_CASE(test_sbi_ecall_version),
++    SBIUNIT_TEST_CASE(test_sbi_ecall_impid),
++    SBIUNIT_TEST_CASE(test_sbi_ecall_register_find_extension),
++    SBIUNIT_END_CASE,
++};
++
++SBIUNIT_TEST_SUITE(ecall_test_suite, ecall_tests);
+\ No newline at end of file
+-- 
+2.34.1
 
-Applied this patch to the riscv/opensbi repo.
-
-Thanks,
-Anup
-
-> ---
->  README.md | 3 ---
->  1 file changed, 3 deletions(-)
->
-> diff --git a/README.md b/README.md
-> index db816c5d0d57..2795cc1a5ff0 100644
-> --- a/README.md
-> +++ b/README.md
-> @@ -115,9 +115,6 @@ address with appropriate alignment. Bare-metal GNU toolchains (e.g.
->  *riscv64-unknown-elf-gcc*) cannot be used. *Clang/LLVM* can still generate PIE
->  images if a bare-metal triple is used (e.g. *-target riscv64-unknown-elf*).
->
-> -Please note that only a 64-bit version of the toolchain is available in
-> -the Bootlin toolchain repository for now.
-> -
->  In addition to a toolchain, OpenSBI also requires the following packages on
->  the host:
->
-> --
-> 2.47.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
