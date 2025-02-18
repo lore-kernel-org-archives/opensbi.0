@@ -1,199 +1,166 @@
 From: Alvin Chang <alvinga@andestech.com>
-Date: Tue, 18 Feb 2025 13:48:35 +0800
-Subject: [PATCH 2/4] lib: sbi_domain: Introduce per-domain MPXY state data
+Date: Tue, 18 Feb 2025 13:48:36 +0800
+Subject: [PATCH 3/4] lib: sbi_mpxy: Convert MPXY state to per-domain data
 In-Reply-To: <20250218054837.2328180-1-alvinga@andestech.com>
 References: <20250218054837.2328180-1-alvinga@andestech.com>
-Message-ID: <20250218054837.2328180-3-alvinga@andestech.com>
+Message-ID: <20250218054837.2328180-4-alvinga@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When multiple supervisor domains need to communicate with OpenSBI
-through MPXY channel, they will allocate shared memory from their
-own memory region (e.g. using alloc_pages() in Linux; memalign()
-in OP-TEE OS), thus the MPXY state need to be per-domain and
-per-hart data.
+Now MPXY state is per-domain data. Allocate per-domain and per-hart MPXY
+state in sbi_mpxy_init(). Use sbi_domain_mpxy_state_thishart_ptr() to
+get pointer to MPXY state of current hart in current domain.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 Co-developed-by: Yong Li <yong.li@intel.com>
 Signed-off-by: Yong Li <yong.li@intel.com>
 Reviewed-by: Alvin Chang <alvinga@andestech.com>
 ---
- include/sbi/sbi_domain.h            |  1 +
- include/sbi/sbi_domain_mpxy_state.h | 50 +++++++++++++++++++++++++++++
- lib/sbi/objects.mk                  |  1 +
- lib/sbi/sbi_domain.c                |  9 +++++-
- lib/sbi/sbi_domain_mpxy_state.c     | 47 +++++++++++++++++++++++++++
- 5 files changed, 107 insertions(+), 1 deletion(-)
- create mode 100644 include/sbi/sbi_domain_mpxy_state.h
- create mode 100644 lib/sbi/sbi_domain_mpxy_state.c
+ lib/sbi/sbi_mpxy.c | 57 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 25 deletions(-)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 8a2b123..800d67e 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_domain_context.h>
- #include <sbi/sbi_domain_data.h>
-+#include <sbi/sbi_domain_mpxy_state.h>
+diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
+index cf40e83..ebfce3b 100644
+--- a/lib/sbi/sbi_mpxy.c
++++ b/lib/sbi/sbi_mpxy.c
+@@ -11,6 +11,7 @@
+ #include <sbi/sbi_domain.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
++#include <sbi/sbi_heap.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_mpxy.h>
+ #include <sbi/sbi_scratch.h>
+@@ -22,9 +23,6 @@
+ /** Shared memory size across all harts */
+ static unsigned long mpxy_shmem_size = PAGE_SIZE;
  
- struct sbi_scratch;
+-/** Offset of pointer to MPXY state in scratch space */
+-static unsigned long mpxy_state_offset;
+-
+ /** List of MPXY proxy channels */
+ static SBI_LIST_HEAD(mpxy_channel_list);
  
-diff --git a/include/sbi/sbi_domain_mpxy_state.h b/include/sbi/sbi_domain_mpxy_state.h
-new file mode 100644
-index 0000000..c5e3cdc
---- /dev/null
-+++ b/include/sbi/sbi_domain_mpxy_state.h
-@@ -0,0 +1,50 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2024 Intel Corporation.
-+ * Copyright (c) 2024-2025 Andes Technology Corporation.
-+ */
-+
-+#ifndef __SBI_DOMAIN_MPXY_STATE_H__
-+#define __SBI_DOMAIN_MPXY_STATE_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+struct sbi_domain;
-+struct mpxy_state;
-+
-+/**
-+ * Get per-domain MPXY state pointer for a given domain and HART index
-+ * @param dom pointer to domain
-+ * @param hartindex the HART index
-+ *
-+ * @return per-domain MPXY state pointer for given HART index
-+ */
-+struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
-+					     u32 hartindex);
-+
-+/**
-+ * Set per-domain MPXY state pointer for a given domain and HART index
-+ * @param dom pointer to domain
-+ * @param hartindex the HART index
-+ * @param ms pointer to MPXY state
-+ */
-+void sbi_domain_set_mpxy_state(struct sbi_domain *dom, u32 hartindex,
-+			       struct mpxy_state *ms);
-+
-+/** Macro to obtain the current hart's MPXY state pointer */
-+#define sbi_domain_mpxy_state_thishart_ptr()			\
-+	sbi_domain_get_mpxy_state(sbi_domain_thishart_ptr(),	\
-+				  current_hartindex())
-+
-+/**
-+ * Initialize domain MPXY state support
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_domain_mpxy_state_init(void);
-+
-+/* Deinitialize domain MPXY state support */
-+void sbi_domain_mpxy_state_deinit(void);
-+
-+#endif
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 9cb2842..a728e9b 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -69,6 +69,7 @@ libsbi-objs-y += sbi_bitops.o
- libsbi-objs-y += sbi_console.o
- libsbi-objs-y += sbi_domain_context.o
- libsbi-objs-y += sbi_domain_data.o
-+libsbi-objs-y += sbi_domain_mpxy_state.o
- libsbi-objs-y += sbi_domain.o
- libsbi-objs-y += sbi_double_trap.o
- libsbi-objs-y += sbi_emulate_csr.o
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 1cf7e2d..734e6f6 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -785,11 +785,16 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	if (rc)
- 		goto fail_free_domain_hart_ptr_offset;
+@@ -156,7 +154,7 @@ bool sbi_mpxy_channel_available(void)
  
-+	/* Initialize domain MPXY state support */
-+	rc = sbi_domain_mpxy_state_init();
-+	if (rc)
-+		goto fail_deinit_context;
-+
- 	root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
- 	if (!root_memregs) {
- 		sbi_printf("%s: no memory for root regions\n", __func__);
- 		rc = SBI_ENOMEM;
--		goto fail_deinit_context;
-+		goto fail_deinit_mpxy_state;
- 	}
- 	root.regions = root_memregs;
+ static void mpxy_std_attrs_init(struct sbi_mpxy_channel *channel)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	u32 capability = 0;
  
-@@ -854,6 +859,8 @@ fail_free_root_hmask:
- 	sbi_free(root_hmask);
- fail_free_root_memregs:
- 	sbi_free(root_memregs);
-+fail_deinit_mpxy_state:
-+	sbi_domain_mpxy_state_deinit();
- fail_deinit_context:
- 	sbi_domain_context_deinit();
- fail_free_domain_hart_ptr_offset:
-diff --git a/lib/sbi/sbi_domain_mpxy_state.c b/lib/sbi/sbi_domain_mpxy_state.c
-new file mode 100644
-index 0000000..45f63a9
---- /dev/null
-+++ b/lib/sbi/sbi_domain_mpxy_state.c
-@@ -0,0 +1,47 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2024 Intel Corporation.
-+ * Copyright (c) 2024-2025 Andes Technology Corporation.
-+ */
+ 	/* Reset values */
+@@ -227,21 +225,30 @@ int sbi_mpxy_register_channel(struct sbi_mpxy_channel *channel)
+ 
+ int sbi_mpxy_init(struct sbi_scratch *scratch)
+ {
++	struct sbi_domain *dom;
+ 	struct mpxy_state *ms;
+-
+-	mpxy_state_offset = sbi_scratch_alloc_type_offset(struct mpxy_state);
+-	if (!mpxy_state_offset)
+-		return SBI_ENOMEM;
+-
+-	/**
+-	 * TODO: Proper support for checking msi support from platform.
+-	 * Currently disable msi and sse and use polling
+-	 */
+-	ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+-	ms->msi_avail = false;
+-	ms->sse_avail = false;
+-
+-	sbi_mpxy_shmem_disable(ms);
++	u32 i;
 +
-+#include <sbi/sbi_domain.h>
++	/* Loop through each domain to configure its MPXY state */
++	sbi_domain_for_each(dom) {
++		sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++			ms = sbi_zalloc(sizeof(*ms));
++			if (!ms)
++				return SBI_ENOMEM;
 +
-+struct domain_mpxy_state_priv {
-+	/** MPXY state for possible HARTs indexed by hartindex */
-+	struct mpxy_state *hartindex_to_mpxy_state_table[SBI_HARTMASK_MAX_BITS];
-+};
++			/*
++			 * TODO: Proper support for checking msi support from
++			 * platform. Currently disable msi and sse and use
++			 * polling
++			 */
++			ms->msi_avail = false;
++			ms->sse_avail = false;
 +
-+static struct sbi_domain_data dmspriv = {
-+	.data_size = sizeof(struct domain_mpxy_state_priv),
-+};
++			sbi_mpxy_shmem_disable(ms);
 +
-+struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
-+					     u32 hartindex)
-+{
-+	struct domain_mpxy_state_priv *dmsp =
-+		sbi_domain_data_ptr(dom, &dmspriv);
-+
-+	return (dmsp && hartindex < SBI_HARTMASK_MAX_BITS) ?
-+		dmsp->hartindex_to_mpxy_state_table[hartindex] : NULL;
-+}
-+
-+void sbi_domain_set_mpxy_state(struct sbi_domain *dom, u32 hartindex,
-+			       struct mpxy_state *ms)
-+{
-+	struct domain_mpxy_state_priv *dmsp =
-+		sbi_domain_data_ptr(dom, &dmspriv);
-+
-+	if (dmsp && hartindex < SBI_HARTMASK_MAX_BITS)
-+		dmsp->hartindex_to_mpxy_state_table[hartindex] = ms;
-+}
-+
-+int sbi_domain_mpxy_state_init(void)
-+{
-+	return sbi_domain_register_data(&dmspriv);
-+}
-+
-+void sbi_domain_mpxy_state_deinit(void)
-+{
-+	sbi_domain_unregister_data(&dmspriv);
-+}
++			sbi_domain_set_mpxy_state(dom, i, ms);
++		}
++	}
+ 
+ 	return sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
+ }
+@@ -255,7 +262,7 @@ int sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
+ 		       unsigned long shmem_phys_hi,
+ 		       unsigned long flags)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	unsigned long *ret_buf;
+ 
+ 	/** Disable shared memory if both hi and lo have all bit 1s */
+@@ -297,7 +304,7 @@ int sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
+ 
+ int sbi_mpxy_get_channel_ids(u32 start_index)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	u32 remaining, returned, max_channelids;
+ 	u32 node_index = 0, node_ret = 0;
+ 	struct sbi_mpxy_channel *channel;
+@@ -348,7 +355,7 @@ int sbi_mpxy_get_channel_ids(u32 start_index)
+ 
+ int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	int ret = SBI_SUCCESS;
+ 	u32 *attr_ptr, end_id;
+ 	void *shmem_base;
+@@ -464,7 +471,7 @@ static int mpxy_check_write_std_attr(struct sbi_mpxy_channel *channel,
+ static void mpxy_write_std_attr(struct sbi_mpxy_channel *channel, u32 attr_id,
+ 			        u32 attr_val)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	struct sbi_mpxy_channel_attrs *attrs = &channel->attrs;
+ 
+ 	switch(attr_id) {
+@@ -498,7 +505,7 @@ static void mpxy_write_std_attr(struct sbi_mpxy_channel *channel, u32 attr_id,
+ 
+ int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	u32 *mem_ptr, attr_id, end_id, attr_val;
+ 	struct sbi_mpxy_channel *channel;
+ 	int ret, mem_idx;
+@@ -588,7 +595,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
+ 			  unsigned long msg_data_len,
+ 			  unsigned long *resp_data_len)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	struct sbi_mpxy_channel *channel;
+ 	void *shmem_base, *resp_buf;
+ 	u32 resp_bufsize;
+@@ -646,7 +653,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
+ 
+ int sbi_mpxy_get_notification_events(u32 channel_id, unsigned long *events_len)
+ {
+-	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
++	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	struct sbi_mpxy_channel *channel;
+ 	void *eventsbuf, *shmem_base;
+ 	int ret;
 -- 
 2.34.1
 
