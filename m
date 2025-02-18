@@ -1,77 +1,36 @@
 From: Alvin Chang <alvinga@andestech.com>
-Date: Tue, 18 Feb 2025 13:48:34 +0800
-Subject: [PATCH 1/4] lib: sbi_mpxy: Export MPXY data structures
-In-Reply-To: <20250218054837.2328180-1-alvinga@andestech.com>
-References: <20250218054837.2328180-1-alvinga@andestech.com>
-Message-ID: <20250218054837.2328180-2-alvinga@andestech.com>
+Date: Tue, 18 Feb 2025 13:48:33 +0800
+Subject: [PATCH 0/4] lib: sbi: Introduce per-domain MPXY state
+Message-ID: <20250218054837.2328180-1-alvinga@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move MPXY data structures from private C source file to public header so
-that other modules can reference them.
+When multiple supervisor domains need to communicate with OpenSBI
+through MPXY channel, they will allocate shared memory from their
+own memory region, thus the MPXY state need to be per-domain and
+per-hart data.
 
-Signed-off-by: Alvin Chang <alvinga@andestech.com>
-Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
----
- include/sbi/sbi_mpxy.h | 15 +++++++++++++++
- lib/sbi/sbi_mpxy.c     | 15 ---------------
- 2 files changed, 15 insertions(+), 15 deletions(-)
+Alvin Chang (4):
+  lib: sbi_mpxy: Export MPXY data structures
+  lib: sbi_domain: Introduce per-domain MPXY state data
+  lib: sbi_mpxy: Convert MPXY state to per-domain data
+  lib: sbi: sbi_init: Allocate MPXY state for each domain
 
-diff --git a/include/sbi/sbi_mpxy.h b/include/sbi/sbi_mpxy.h
-index 9da2791..5e5836c 100644
---- a/include/sbi/sbi_mpxy.h
-+++ b/include/sbi/sbi_mpxy.h
-@@ -14,6 +14,21 @@
- 
- struct sbi_scratch;
- 
-+/** Per hart shared memory */
-+struct mpxy_shmem {
-+	unsigned long shmem_addr_lo;
-+	unsigned long shmem_addr_hi;
-+};
-+
-+struct mpxy_state {
-+	/* MSI support in MPXY */
-+	bool msi_avail;
-+	/* SSE support in MPXY */
-+	bool sse_avail;
-+	/* MPXY Shared memory details */
-+	struct mpxy_shmem shmem;
-+};
-+
- #define SBI_MPXY_MSGPROTO_VERSION(Major, Minor) ((Major << 16) | Minor)
- 
- enum sbi_mpxy_attr_id {
-diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
-index c5d9d1b..cf40e83 100644
---- a/lib/sbi/sbi_mpxy.c
-+++ b/lib/sbi/sbi_mpxy.c
-@@ -74,21 +74,6 @@ static SBI_LIST_HEAD(mpxy_channel_list);
- #error "Undefined XLEN"
- #endif
- 
--/** Per hart shared memory */
--struct mpxy_shmem {
--	unsigned long shmem_addr_lo;
--	unsigned long shmem_addr_hi;
--};
--
--struct mpxy_state {
--	/* MSI support in MPXY */
--	bool msi_avail;
--	/* SSE support in MPXY */
--	bool sse_avail;
--	/* MPXY Shared memory details */
--	struct mpxy_shmem shmem;
--};
--
- /** Disable hart shared memory */
- static inline void sbi_mpxy_shmem_disable(struct mpxy_state *ms)
- {
+ include/sbi/sbi_domain.h            |  1 +
+ include/sbi/sbi_domain_mpxy_state.h | 50 ++++++++++++++++++++
+ include/sbi/sbi_mpxy.h              | 15 ++++++
+ lib/sbi/objects.mk                  |  1 +
+ lib/sbi/sbi_domain.c                |  9 +++-
+ lib/sbi/sbi_domain_mpxy_state.c     | 47 +++++++++++++++++++
+ lib/sbi/sbi_init.c                  | 15 ++++--
+ lib/sbi/sbi_mpxy.c                  | 72 +++++++++++++----------------
+ 8 files changed, 164 insertions(+), 46 deletions(-)
+ create mode 100644 include/sbi/sbi_domain_mpxy_state.h
+ create mode 100644 lib/sbi/sbi_domain_mpxy_state.c
+
 -- 
 2.34.1
 
