@@ -1,17 +1,17 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 19 Feb 2025 22:15:13 +0530
-Subject: [PATCH 2/3] lib: sbi: fwft: Return SBI_ERR_DENIED_LOCKED when
+Date: Wed, 19 Feb 2025 22:16:20 +0530
+Subject: [PATCH v2 2/4] lib: sbi: fwft: Return SBI_ERR_DENIED_LOCKED when
  setting a locked feature
-In-Reply-To: <20250123160537.3420975-3-cleger@rivosinc.com>
-References: <20250123160537.3420975-1-cleger@rivosinc.com> <20250123160537.3420975-3-cleger@rivosinc.com>
-Message-ID: <CAAhSdy0NE7Whp_hJhcjKjdGpgX2Aaj7jhhdNsCs3iuitWo8csA@mail.gmail.com>
+In-Reply-To: <20250124165202.465445-3-cleger@rivosinc.com>
+References: <20250124165202.465445-1-cleger@rivosinc.com> <20250124165202.465445-3-cleger@rivosinc.com>
+Message-ID: <CAAhSdy3kBDwiTChgac1_CxgC+UXdM24gDifT89WiptbhgGM-=w@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jan 23, 2025 at 9:36?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+On Fri, Jan 24, 2025 at 10:23?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
 >
 > Latest modifications to the spec mandates that a set on a lock feature
 > returns SBI_ERR_DENIED_LOCKED.
