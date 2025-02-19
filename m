@@ -1,27 +1,40 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Wed, 19 Feb 2025 18:28:17 +0530
-Subject: [PATCH 2/2] lib: utils/fdt: Allocate fdt_pmu_evt_select on the heap
-In-Reply-To: <20250213225024.3586544-2-samuel.holland@sifive.com>
-References: <20250213225024.3586544-1-samuel.holland@sifive.com> <20250213225024.3586544-2-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy0z5_S4kZp4Y-oC6KE4MFa6_KKiFa9=Gj1LRFyQb5xigQ@mail.gmail.com>
+Date: Wed, 19 Feb 2025 22:05:11 +0530
+Subject: [PATCH] lib: utils/irqchip: Match against more specific
+ compatible strings first
+In-Reply-To: <20250214062738.2941749-1-alex@studer.dev>
+References: <20250214062738.2941749-1-alex@studer.dev>
+Message-ID: <CAAhSdy3Fyn=dbGMnARizeRb+1YMBq4xWc28xy=6Se4fia_HCsg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 14, 2025 at 4:20?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
+On Fri, Feb 14, 2025 at 11:58?AM Alex Studer <alex@studer.dev> wrote:
 >
-> This reduces .bss size by 8 KiB, and should reduce overall memory usage
-> since most platforms will have significantly fewer than 512 entries in
-> this table. At the same time, it removes the fixed table size limit.
-> Since the table is only used within fdt_pmu.c, instead of updating the
-> extern declaration, make the table local to this file.
+> The T-HEAD C90x PLIC has some special quirks, such as the S-mode
+> delegation bit. OpenSBI currently handles this by checking the compatible
+> string in the device tree.
 >
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+> However, this matching is done in the order of the fdt_match array. So if
+> a device tree contains both strings, for example:
+>
+>         compatible = "thead,c900-plic", "riscv,plic0";
+>
+> Then OpenSBI will match against the generic "riscv,plic0" string, since
+> that appears first in the fdt_match array. This means it will fail to set
+> the S-mode delegation bit, and Linux will fail to boot. In some cases, it
+> is not possible to change the compatible string to just the T-HEAD PLIC,
+> as older versions of Linux only recognize the RISC-V compatible string.
+>
+> This patch fixes that by moving the RISC-V string to the end, ensuring
+> that the more specific options get matched first.
+>
+> Signed-off-by: Alex Studer <alex@studer.dev>
 
-LGTM.
+For now this patch is okay but ideally we should fix fdt_driver_init_by_offset()
+to match the compatible strings of a node in correct order (left-to-right).
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
@@ -31,74 +44,34 @@ Thanks,
 Anup
 
 > ---
+>  lib/utils/irqchip/fdt_irqchip_plic.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 >
->  include/sbi_utils/fdt/fdt_pmu.h |  5 -----
->  lib/utils/fdt/fdt_pmu.c         | 17 +++++++++++------
->  2 files changed, 11 insertions(+), 11 deletions(-)
+> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
+> index 494358d..59898d2 100644
+> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
+> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
+> @@ -98,10 +98,16 @@ fail_free_data:
 >
-> diff --git a/include/sbi_utils/fdt/fdt_pmu.h b/include/sbi_utils/fdt/fdt_pmu.h
-> index b31d8351..3879e111 100644
-> --- a/include/sbi_utils/fdt/fdt_pmu.h
-> +++ b/include/sbi_utils/fdt/fdt_pmu.h
-> @@ -62,11 +62,6 @@ int fdt_pmu_setup(const void *fdt);
->   */
->  uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
->
-> -/** The event index to selector value table instance */
-> -extern struct fdt_pmu_hw_event_select_map fdt_pmu_evt_select[];
-> -/** The number of valid entries in fdt_pmu_evt_select[] */
-> -extern uint32_t hw_event_count;
-> -
->  #else
->
->  static inline void fdt_pmu_fixup(void *fdt) { }
-> diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-> index 22760603..ee76d87f 100644
-> --- a/lib/utils/fdt/fdt_pmu.c
-> +++ b/lib/utils/fdt/fdt_pmu.c
-> @@ -11,15 +11,14 @@
->  #include <libfdt.h>
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_error.h>
-> +#include <sbi/sbi_heap.h>
->  #include <sbi/sbi_pmu.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi_utils/fdt/fdt_helper.h>
->  #include <sbi_utils/fdt/fdt_pmu.h>
->
-> -#define FDT_PMU_HW_EVENT_MAX (SBI_PMU_HW_EVENT_MAX * 2)
-> -
-> -struct fdt_pmu_hw_event_select_map fdt_pmu_evt_select[FDT_PMU_HW_EVENT_MAX] = {0};
-> -uint32_t hw_event_count;
-> +static struct fdt_pmu_hw_event_select_map *fdt_pmu_evt_select;
-> +static uint32_t hw_event_count;
->
->  uint64_t fdt_pmu_get_select_value(uint32_t event_idx)
->  {
-> @@ -91,13 +90,19 @@ int fdt_pmu_setup(const void *fdt)
->                                 "riscv,event-to-mhpmevent", &len);
->         if (event_val) {
->                 len = len / (sizeof(u32) * 3);
+>  static const struct fdt_match irqchip_plic_match[] = {
+>         { .compatible = "andestech,nceplic100" },
+> -       { .compatible = "riscv,plic0" },
+>         { .compatible = "sifive,plic-1.0.0" },
+>         { .compatible = "thead,c900-plic",
+>           .data = (void *)(PLIC_FLAG_THEAD_DELEGATION | PLIC_FLAG_ENABLE_PM) },
 > +
-> +               hw_event_count = len;
-> +               fdt_pmu_evt_select = sbi_calloc(hw_event_count,
-> +                                               sizeof(*fdt_pmu_evt_select));
-> +               if (!fdt_pmu_evt_select)
-> +                       return SBI_ENOMEM;
-> +
->                 for (i = 0; i < len; i++) {
-> -                       event = &fdt_pmu_evt_select[hw_event_count];
-> +                       event = &fdt_pmu_evt_select[i];
->                         event->eidx = fdt32_to_cpu(event_val[3 * i]);
->                         event->select = fdt32_to_cpu(event_val[3 * i + 1]);
->                         event->select = (event->select << 32) |
->                                         fdt32_to_cpu(event_val[3 * i + 2]);
-> -                       hw_event_count++;
->                 }
->         }
+> +       /*
+> +        * We keep the generic RISC-V PLIC at the end.
+> +        * This ensures we match against more specific options first.
+> +        * (This is important if the PLIC has quirks, like the T-HEAD PLIC.)
+> +        */
+> +       { .compatible = "riscv,plic0" },
+>         { /* sentinel */ }
+>  };
 >
 > --
-> 2.47.0
+> 2.48.1
+>
 >
 >
 > --
