@@ -1,58 +1,114 @@
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Thu, 20 Feb 2025 11:16:23 +0530
-Subject: [PATCH] scripts: Fix firmware binaries compilation in create-binary-archive.sh
-Message-ID: <20250220054623.1002666-1-apatel@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 20 Feb 2025 11:29:52 +0530
+Subject: [PATCH 1/2] lib: utils/fdt: Respect compatible string fallback priority
+In-Reply-To: <20250219204258.261765-1-samuel.holland@sifive.com>
+References: <20250219204258.261765-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy3GAavv3KvOT4wZog8saO+1tiyoo_G8Qtqk30K=7ytqtg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, the generic libsbi.a is compiled in create-binary-archive.sh
-before platform specific firmwares so a libsbi.a without any SBI extension
-gets linked to the platform specific firmwares. To address this, remove
-the temporary build directory in create-binary-archive.sh before using it.
+On Thu, Feb 20, 2025 at 2:13?AM Samuel Holland
+<samuel.holland@sifive.com> wrote:
+>
+> When matching drivers to DT nodes, always match all drivers against the
+> first compatible string before considering fallback compatible strings.
+> This ensures the most specific match is always selected, regardless of
+> the order of the drivers or match structures, as long as no compatible
+> string appears in multiple match structures.
+>
+> Fixes: 1ccc52c427f3 ("lib: utils/fdt: Add helpers for generic driver initialization")
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- scripts/create-binary-archive.sh | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+LGTM.
 
-diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
-index 9d56f2f4..73bdef21 100755
---- a/scripts/create-binary-archive.sh
-+++ b/scripts/create-binary-archive.sh
-@@ -112,11 +112,12 @@ build_opensbi() {
- 	esac
- 
- 	# Ensure output directory is present
--	mkdir -p "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
-+	mkdir -p "${BUILD_OUTPUT_PATH}"
- 
- 	# Build and install generic library
- 	echo "Build and install generic library XLEN=${BUILD_RISCV_XLEN}"
- 	echo ""
-+	rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
- 	make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi -j "${BUILD_NUM_THREADS}"
- 	echo ""
- 
-@@ -125,6 +126,7 @@ build_opensbi() {
- 	do
- 		echo "Build and install PLATFORM=${BUILD_PLATFORM_SUBDIR[${INDEX}]} XLEN=${BUILD_RISCV_XLEN}"
- 		echo ""
-+		rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
- 		make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM="${BUILD_PLATFORM_SUBDIR[${INDEX}]}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libplatsbi install_firmwares -j "${BUILD_NUM_THREADS}"
- 		echo ""
- 	done
-@@ -133,6 +135,7 @@ build_opensbi() {
- 	if [ "${BUILD_DOCS}" == "yes" ]; then
- 		echo "Build and install docs"
- 		echo ""
-+		rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
- 		make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" install_docs
- 		echo ""
- 	fi
--- 
-2.43.0
+Reviewed-by: Anup Patel <anup@brainfault.org>
 
+Regards,
+Anup
+
+> ---
+>
+>  lib/utils/fdt/fdt_driver.c | 46 +++++++++++++++++++++-----------------
+>  1 file changed, 25 insertions(+), 21 deletions(-)
+>
+> diff --git a/lib/utils/fdt/fdt_driver.c b/lib/utils/fdt/fdt_driver.c
+> index f6707c0e..39385ce9 100644
+> --- a/lib/utils/fdt/fdt_driver.c
+> +++ b/lib/utils/fdt/fdt_driver.c
+> @@ -15,39 +15,43 @@ int fdt_driver_init_by_offset(const void *fdt, int nodeoff,
+>  {
+>         const struct fdt_driver *driver;
+>         const struct fdt_match *match;
+> -       const void *prop;
+> -       int len, rc;
+> +       int compat_len, prop_len, rc;
+> +       const char *compat_str;
+>
+>         if (!fdt_node_is_enabled(fdt, nodeoff))
+>                 return SBI_ENODEV;
+>
+> -       prop = fdt_getprop(fdt, nodeoff, "compatible", &len);
+> -       if (!prop)
+> +       compat_str = fdt_getprop(fdt, nodeoff, "compatible", &prop_len);
+> +       if (!compat_str)
+>                 return SBI_ENODEV;
+>
+> -       while ((driver = *drivers++)) {
+> -               for (match = driver->match_table; match->compatible; match++) {
+> -                       if (!fdt_stringlist_contains(prop, len, match->compatible))
+> -                               continue;
+> +       while ((compat_len = strnlen(compat_str, prop_len) + 1) <= prop_len) {
+> +               for (int i = 0; (driver = drivers[i]); i++)
+> +                       for (match = driver->match_table; match->compatible; match++)
+> +                               if (!memcmp(match->compatible, compat_str, compat_len))
+> +                                       goto found;
+>
+> -                       if (driver->experimental)
+> -                               sbi_printf("WARNING: %s driver is experimental and may change\n",
+> -                                          match->compatible);
+> +               compat_str += compat_len;
+> +               prop_len -= compat_len;
+> +       }
+>
+> -                       rc = driver->init(fdt, nodeoff, match);
+> -                       if (rc < 0) {
+> -                               const char *name;
+> +       return SBI_ENODEV;
+>
+> -                               name = fdt_get_name(fdt, nodeoff, NULL);
+> -                               sbi_printf("%s: %s (%s) init failed: %d\n",
+> -                                          __func__, name, match->compatible, rc);
+> -                       }
+> +found:
+> +       if (driver->experimental)
+> +               sbi_printf("WARNING: %s driver is experimental and may change\n",
+> +                          match->compatible);
+>
+> -                       return rc;
+> -               }
+> +       rc = driver->init(fdt, nodeoff, match);
+> +       if (rc < 0) {
+> +               const char *name;
+> +
+> +               name = fdt_get_name(fdt, nodeoff, NULL);
+> +               sbi_printf("%s: %s (%s) init failed: %d\n",
+> +                          __func__, name, match->compatible, rc);
+>         }
+>
+> -       return SBI_ENODEV;
+> +       return rc;
+>  }
+>
+>  static int fdt_driver_init_scan(const void *fdt,
+> --
+> 2.47.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
