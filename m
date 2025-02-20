@@ -1,49 +1,58 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Wed, 19 Feb 2025 12:42:52 -0800
-Subject: [PATCH 2/2] Revert "lib: utils/irqchip: Match against more specific compatible strings first"
-In-Reply-To: <20250219204258.261765-1-samuel.holland@sifive.com>
-References: <20250219204258.261765-1-samuel.holland@sifive.com>
-Message-ID: <20250219204258.261765-2-samuel.holland@sifive.com>
+From: Anup Patel <apatel@ventanamicro.com>
+Date: Thu, 20 Feb 2025 11:16:23 +0530
+Subject: [PATCH] scripts: Fix firmware binaries compilation in create-binary-archive.sh
+Message-ID: <20250220054623.1002666-1-apatel@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This reverts commit 6019259dfbdf9322858b4e7cfc3d1448376e2aa0.
+Currently, the generic libsbi.a is compiled in create-binary-archive.sh
+before platform specific firmwares so a libsbi.a without any SBI extension
+gets linked to the platform specific firmwares. To address this, remove
+the temporary build directory in create-binary-archive.sh before using it.
 
-Now that fdt_driver_init_by_offset() respects the compatible string
-fallback priority order, this workaround is no longer necessary.
-
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
+ scripts/create-binary-archive.sh | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- lib/utils/irqchip/fdt_irqchip_plic.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
-
-diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-index 59898d24..494358d8 100644
---- a/lib/utils/irqchip/fdt_irqchip_plic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-@@ -98,16 +98,10 @@ fail_free_data:
+diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
+index 9d56f2f4..73bdef21 100755
+--- a/scripts/create-binary-archive.sh
++++ b/scripts/create-binary-archive.sh
+@@ -112,11 +112,12 @@ build_opensbi() {
+ 	esac
  
- static const struct fdt_match irqchip_plic_match[] = {
- 	{ .compatible = "andestech,nceplic100" },
-+	{ .compatible = "riscv,plic0" },
- 	{ .compatible = "sifive,plic-1.0.0" },
- 	{ .compatible = "thead,c900-plic",
- 	  .data = (void *)(PLIC_FLAG_THEAD_DELEGATION | PLIC_FLAG_ENABLE_PM) },
--
--	/*
--	 * We keep the generic RISC-V PLIC at the end.
--	 * This ensures we match against more specific options first.
--	 * (This is important if the PLIC has quirks, like the T-HEAD PLIC.)
--	 */
--	{ .compatible = "riscv,plic0" },
- 	{ /* sentinel */ }
- };
+ 	# Ensure output directory is present
+-	mkdir -p "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
++	mkdir -p "${BUILD_OUTPUT_PATH}"
  
+ 	# Build and install generic library
+ 	echo "Build and install generic library XLEN=${BUILD_RISCV_XLEN}"
+ 	echo ""
++	rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
+ 	make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi -j "${BUILD_NUM_THREADS}"
+ 	echo ""
+ 
+@@ -125,6 +126,7 @@ build_opensbi() {
+ 	do
+ 		echo "Build and install PLATFORM=${BUILD_PLATFORM_SUBDIR[${INDEX}]} XLEN=${BUILD_RISCV_XLEN}"
+ 		echo ""
++		rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
+ 		make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM="${BUILD_PLATFORM_SUBDIR[${INDEX}]}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libplatsbi install_firmwares -j "${BUILD_NUM_THREADS}"
+ 		echo ""
+ 	done
+@@ -133,6 +135,7 @@ build_opensbi() {
+ 	if [ "${BUILD_DOCS}" == "yes" ]; then
+ 		echo "Build and install docs"
+ 		echo ""
++		rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
+ 		make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" install_docs
+ 		echo ""
+ 	fi
 -- 
-2.47.2
+2.43.0
 
 
