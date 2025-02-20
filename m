@@ -1,66 +1,35 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 20 Feb 2025 11:30:06 +0530
-Subject: [PATCH 2/2] Revert "lib: utils/irqchip: Match against more
- specific compatible strings first"
-In-Reply-To: <20250219204258.261765-2-samuel.holland@sifive.com>
-References: <20250219204258.261765-1-samuel.holland@sifive.com> <20250219204258.261765-2-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy2WKMuYs_Y0LDsbf8_dxSU8j+syQV3KXkdo7fsVXPCgQg@mail.gmail.com>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Thu, 20 Feb 2025 14:44:41 +0530
+Subject: [PATCH] lib: sbi: Return SBI_EALREADY error code if SSE event is present
+Message-ID: <20250220091441.33730-1-hchauhan@ventanamicro.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 20, 2025 at 2:13?AM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> This reverts commit 6019259dfbdf9322858b4e7cfc3d1448376e2aa0.
->
-> Now that fdt_driver_init_by_offset() respects the compatible string
-> fallback priority order, this workaround is no longer necessary.
->
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Return SBI_EALREADY error code instead of SBI_INVAL, in case an
+event is already added to the supported list.
 
-LGTM.
+Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+---
+ lib/sbi/sbi_sse.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index 9f22375..295d9bc 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -926,7 +926,7 @@ int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+ 	/* Do not allow adding an event twice */
+ 	info = sse_event_info_get(event_id);
+ 	if (info)
+-		return SBI_EINVAL;
++		return SBI_EALREADY;
+ 
+ 	if (cb_ops && cb_ops->set_hartid_cb && !EVENT_IS_GLOBAL(event_id))
+ 		return SBI_EINVAL;
+-- 
+2.43.0
 
-Regards,
-Anup
-
-> ---
->
->  lib/utils/irqchip/fdt_irqchip_plic.c | 8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
->
-> diff --git a/lib/utils/irqchip/fdt_irqchip_plic.c b/lib/utils/irqchip/fdt_irqchip_plic.c
-> index 59898d24..494358d8 100644
-> --- a/lib/utils/irqchip/fdt_irqchip_plic.c
-> +++ b/lib/utils/irqchip/fdt_irqchip_plic.c
-> @@ -98,16 +98,10 @@ fail_free_data:
->
->  static const struct fdt_match irqchip_plic_match[] = {
->         { .compatible = "andestech,nceplic100" },
-> +       { .compatible = "riscv,plic0" },
->         { .compatible = "sifive,plic-1.0.0" },
->         { .compatible = "thead,c900-plic",
->           .data = (void *)(PLIC_FLAG_THEAD_DELEGATION | PLIC_FLAG_ENABLE_PM) },
-> -
-> -       /*
-> -        * We keep the generic RISC-V PLIC at the end.
-> -        * This ensures we match against more specific options first.
-> -        * (This is important if the PLIC has quirks, like the T-HEAD PLIC.)
-> -        */
-> -       { .compatible = "riscv,plic0" },
->         { /* sentinel */ }
->  };
->
-> --
-> 2.47.2
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
