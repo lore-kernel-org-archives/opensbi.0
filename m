@@ -1,53 +1,88 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 20 Feb 2025 21:54:31 +0530
-Subject: [PATCH] lib: sbi: Return SBI_EALREADY error code if SSE event is present
-In-Reply-To: <20250220091441.33730-1-hchauhan@ventanamicro.com>
-References: <20250220091441.33730-1-hchauhan@ventanamicro.com>
-Message-ID: <CAAhSdy1CZHLP_Q-QHGPcbyAEkpWzdjrp+b+c0OWTLGB7ERgf=w@mail.gmail.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Thu, 20 Feb 2025 09:53:01 -0800
+Subject: [PATCH] lib: sbi: Avoid GOT indirection for global symbol references
+Message-ID: <20250220175307.9672-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 20, 2025 at 2:48?PM Himanshu Chauhan
-<hchauhan@ventanamicro.com> wrote:
->
-> Return SBI_EALREADY error code instead of SBI_INVAL, in case an
-> event is already added to the supported list.
->
-> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+OpenSBI is compiled with -fPIE, which generally implies dynamic linking.
+This causes the compiler to generate GOT references for global symbols
+in order to support runtime symbol interposition. However, OpenSBI does
+not actually perform dynamic linking, so the GOT indirection just adds
+unnecessary overhead.
 
-LGTM.
+The GOT references can be avoided by declaring global symbols with
+hidden visibility, thus making them local to this dynamic object and
+non-interposable. GCC/Clang's -fvisibility parameter is insufficient for
+this purpose when referencing objects from other translation units;
+either __attribute__((visibility(...)) or the pragma is required. Use
+the pragma since it is easier to apply to every symbol. Additionally
+clean up the one GOT reference from inline assembly.
 
-Reviewed-by: Anup Patel <anup@brainfault.org>
+With this change, a firmware linked with LLD does not contain either a
+GOT or a PLT, and a firmware linked with BFD ld contains only a GOT with
+a single (unreferenced, legacy) _GLOBAL_OFFSET_TABLE_ entry.
 
-Regards,
-Anup
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+---
 
-> ---
->  lib/sbi/sbi_sse.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-> index 9f22375..295d9bc 100644
-> --- a/lib/sbi/sbi_sse.c
-> +++ b/lib/sbi/sbi_sse.c
-> @@ -926,7 +926,7 @@ int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
->         /* Do not allow adding an event twice */
->         info = sse_event_info_get(event_id);
->         if (info)
-> -               return SBI_EINVAL;
-> +               return SBI_EALREADY;
->
->         if (cb_ops && cb_ops->set_hartid_cb && !EVENT_IS_GLOBAL(event_id))
->                 return SBI_EINVAL;
-> --
-> 2.43.0
->
->
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+ Makefile                       |  1 +
+ include/sbi/sbi_visibility.h   | 16 ++++++++++++++++
+ lib/utils/serial/semihosting.c |  2 +-
+ 3 files changed, 18 insertions(+), 1 deletion(-)
+ create mode 100644 include/sbi/sbi_visibility.h
+
+diff --git a/Makefile b/Makefile
+index 419ce66b..7de3fc96 100644
+--- a/Makefile
++++ b/Makefile
+@@ -350,6 +350,7 @@ ifeq ($(BUILD_INFO),y)
+ GENFLAGS	+=	-DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
+ GENFLAGS	+=	-DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
+ endif
++GENFLAGS	+=	-include $(include_dir)/sbi/sbi_visibility.h
+ ifdef PLATFORM
+ GENFLAGS	+=	-include $(KCONFIG_AUTOHEADER)
+ endif
+diff --git a/include/sbi/sbi_visibility.h b/include/sbi/sbi_visibility.h
+new file mode 100644
+index 00000000..e9c401c5
+--- /dev/null
++++ b/include/sbi/sbi_visibility.h
+@@ -0,0 +1,16 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 SiFive
++ */
++
++#ifndef __SBI_VISIBILITY_H__
++#define __SBI_VISIBILITY_H__
++
++/*
++ * Declare all global objects with hidden visibility so access is PC-relative
++ * instead of going through the GOT.
++ */
++#pragma GCC visibility push(hidden)
++
++#endif
+diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
+index 19ebaa07..3a42ba60 100644
+--- a/lib/utils/serial/semihosting.c
++++ b/lib/utils/serial/semihosting.c
+@@ -67,7 +67,7 @@ bool semihosting_enabled(void)
+ 		"	mret\n"
+ 		"_semihost_test_vector_next:\n"
+ 
+-		"	la %[tmp], _semihost_test_vector\n"
++		"	lla %[tmp], _semihost_test_vector\n"
+ 		"	csrrw %[tmp], mtvec, %[tmp]\n"
+ 		"	.align 4\n"
+ 		"	slli zero, zero, 0x1f\n"
+-- 
+2.47.2
+
 
