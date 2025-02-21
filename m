@@ -1,93 +1,63 @@
-From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
-Date: Thu, 20 Feb 2025 14:43:02 -0800
-Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are aligned
-In-Reply-To: <CA+-5cKfDpb_OFvf5UF0rA2n01jX69nuO1AkGL0PkVSvzy91xoQ@mail.gmail.com>
-References: <0250109233241.2491-1-cfu@mips.com> <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
- <e4795dbc-0186-4261-9110-799f6a6c7b9b@sifive.com> <CA+-5cKfDpb_OFvf5UF0rA2n01jX69nuO1AkGL0PkVSvzy91xoQ@mail.gmail.com>
-Message-ID: <CA+-5cKdL9BoJKE9JLAixPp1qwvuhu0VTzAXHTKQeb0OmqMPFGg@mail.gmail.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Thu, 20 Feb 2025 16:09:07 -0800
+Subject: [PATCH 0/5] Cache CPU information from the DT
+Message-ID: <20250221000922.83812-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Samuel
+It turns out that OpenSBI spends a lot of time repeatedly parsing the
+FDT to get information about the CPUs and local interrupt controllers.
+Caching this information can significantly speed up cold boot. For
+example, on the HiFive Premier P550 board (4 cores, PLIC, CLINT),
+applying this series decreased boot time by a third, from 6.35 ms to
+4.23 ms (with SBI_SCRATCH_NO_BOOT_PRINTS set). The impact would be even
+larger on systems with more cores. And this series comes with a net
+decrease in code size for the generic platform.
 
-I reviewed the two files for mstimer and mswi_ipi and they seem to be
-correct. We use the same "hartid - first_hartid" to access MMIO
-addresses. So, the current  mtimer_event_start() and mswi_ipi_send()
-implementations work as is.
+To be conservative, I avoided using cached information inside FDT fixup
+functions, as changes to the devicetree may invalidate the offsets
+(though the phandles would still be accurate).
 
->>Either each device instance needs an array of [ACLINT index] => [hart index]
->>mappings, or the ACLINT index needs to be recorded separately in a new per-hart
->>scratch variable.
+Since the cached information is stored in the scratch space, I did not
+find a good way to combine the parsing with the generic
+fw_platform_init().
 
-ACLINT index is actually "hartid - first_hartid"
+This series depends on the "Hart Count Enhancements" series[1] for the
+new for_each_hartindex() macro.
 
-Let me know if you have any further comments.
+[1]: https://patchwork.ozlabs.org/project/opensbi/list/?series=445371
 
-Raj
 
-On Thu, Feb 13, 2025 at 10:01?PM Raj Vishwanathan
-<raj.vishwanathan@gmail.com> wrote:
->
-> Samuel
->
-> Thanks for the quick review. I took a quick look and in our case,
-> where the hart-id's are not sequential,  I see that there will be gaps
-> in the MMIO space but nothing should break
->
-> I will do a deeper study and respond specifically to your questions.
->
-> Raj
->
-> On Thu, Feb 13, 2025 at 2:58?PM Samuel Holland
-> <samuel.holland@sifive.com> wrote:
-> >
-> > Hi Raj,
-> >
-> > On 2025-02-13 1:52 PM, Raj Vishwanathan wrote:
-> > > Harts associated with an ACLINT_MSWI need not have sequential hartids.
-> > > It is insufficient to use first_hartid and hart_count. To account for
-> > > non-sequential hart ids, include the empty hard-ids' generate hart-count.
-> >
-> > This doesn't help, because the expression (hartid - first_hartid) is still used
-> > to calculate MMIO addresses. See for example mtimer_event_start() and
-> > mswi_ipi_send(). If there is a gap in the hartids mapped to the ACLINT
-> > MTIMER/MSWI indexes, these functions will compute the wrong MMIO address and
-> > fail to set the timer or send an IPI.
-> >
-> > Either each device instance needs an array of [ACLINT index] => [hart index]
-> > mappings, or the ACLINT index needs to be recorded separately in a new per-hart
-> > scratch variable.
-> >
-> > Regards,
-> > Samuel
-> >
-> > > Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
-> > > ---
-> > >
-> > > hart_count = last_hart_id - first_hart_id +1
-> > > count = number of harts
-> > > For sequential hart_id's, count = hart_count
-> > > For non-sequential hart_id's, count  < hart_count
-> > > ---
-> > >  lib/utils/fdt/fdt_helper.c | 3 +--
-> > >  1 file changed, 1 insertion(+), 2 deletions(-)
-> > >
-> > > diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> > > index cb350e5..bb3fddd 100644
-> > > --- a/lib/utils/fdt/fdt_helper.c
-> > > +++ b/lib/utils/fdt/fdt_helper.c
-> > > @@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
-> > >
-> > >       if ((last_hartid >= first_hartid) && first_hartid != -1U) {
-> > >               *out_first_hartid = first_hartid;
-> > > -             count = last_hartid - first_hartid + 1;
-> > > -             *out_hart_count = (hart_count < count) ? hart_count : count;
-> > > +             *out_hart_count  = last_hartid - first_hartid + 1;
-> > >       }
-> > >
-> > >       return 0;
-> >
+Samuel Holland (5):
+  lib utils/fdt: Drop fdt_parse_max_enabled_hart_id()
+  lib: utils/fdt: Cache CPU information from the DT
+  lib: utils/fdt: Used cached CPU DT information
+  lib: utils: Use fdt_cpu_intc_phandle_to_hartindex()
+  lib: utils: Use fdt_cpu_get_timebase_frequency()
+
+ include/sbi_utils/fdt/fdt_cpu.h       |  57 +++++++++++
+ include/sbi_utils/fdt/fdt_helper.h    |   4 -
+ include/sbi_utils/irqchip/imsic.h     |   2 +-
+ lib/utils/fdt/fdt_cpu.c               | 110 +++++++++++++++++++++
+ lib/utils/fdt/fdt_domain.c            | 117 +++++++---------------
+ lib/utils/fdt/fdt_helper.c            | 133 ++++----------------------
+ lib/utils/fdt/objects.mk              |   1 +
+ lib/utils/irqchip/fdt_irqchip_imsic.c |  19 +---
+ lib/utils/irqchip/fdt_irqchip_plic.c  |  21 +---
+ lib/utils/irqchip/imsic.c             |   6 +-
+ lib/utils/timer/fdt_timer_mtimer.c    |   7 +-
+ lib/utils/timer/fdt_timer_plmt.c      |   8 +-
+ platform/fpga/openpiton/platform.c    |  11 ++-
+ platform/generic/platform.c           |   5 +
+ platform/kendryte/k210/platform.c     |  10 ++
+ 15 files changed, 264 insertions(+), 247 deletions(-)
+ create mode 100644 include/sbi_utils/fdt/fdt_cpu.h
+ create mode 100644 lib/utils/fdt/fdt_cpu.c
+
+-- 
+2.47.2
+
 
