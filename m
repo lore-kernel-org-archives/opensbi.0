@@ -1,153 +1,117 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Thu, 20 Feb 2025 16:09:12 -0800
-Subject: [PATCH 5/5] lib: utils: Use fdt_cpu_get_timebase_frequency()
-In-Reply-To: <20250221000922.83812-1-samuel.holland@sifive.com>
-References: <20250221000922.83812-1-samuel.holland@sifive.com>
-Message-ID: <20250221000922.83812-6-samuel.holland@sifive.com>
+From: Junhui Liu <junhui.liu@pigmoral.tech>
+Date: Sun, 23 Feb 2025 23:29:08 +0800
+Subject: [PATCH] lib: utils/serial: Add PXA UARTs support
+Message-ID: <20250223-pxa-uart-support-v1-1-5dc4234e2e05@pigmoral.tech>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Since fdt_cpu_init() already parsed the /cpus node, use the cached value
-instead of parsing the DT again.
+The PXA variant of the uart8250 adds the UART Unit Enable bit (UUE) that
+needs to be set to enable the XScale PXA UART. And it is required for
+some RISC-V SoCs like the Spacemit K1 that implement the PXA UART.
 
-The logic should otherwise be equivalent.
+This introduces the "intel,xscale-uart" compatible to handle setting the
+UUE bit.
 
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Signed-off-by: Junhui Liu <junhui.liu@pigmoral.tech>
 ---
+ include/sbi_utils/serial/uart8250.h    |  4 +++-
+ lib/utils/serial/fdt_serial_uart8250.c |  7 +++++--
+ lib/utils/serial/uart8250.c            | 11 +++++++++--
+ 3 files changed, 17 insertions(+), 5 deletions(-)
 
- include/sbi_utils/fdt/fdt_helper.h |  2 --
- lib/utils/fdt/fdt_helper.c         | 21 ---------------------
- lib/utils/timer/fdt_timer_mtimer.c |  7 ++++---
- lib/utils/timer/fdt_timer_plmt.c   |  8 +++++---
- platform/fpga/openpiton/platform.c |  6 +++---
- 5 files changed, 12 insertions(+), 32 deletions(-)
-
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index f94e535f..0d81efcc 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -51,8 +51,6 @@ bool fdt_node_is_enabled(const void *fdt, int nodeoff);
+diff --git a/include/sbi_utils/serial/uart8250.h b/include/sbi_utils/serial/uart8250.h
+index d4a8c136a4552c8045a3c83820a35ae2ae86e810..39f4b316ff631159cc81284460fcaf92490be310 100644
+--- a/include/sbi_utils/serial/uart8250.h
++++ b/include/sbi_utils/serial/uart8250.h
+@@ -12,7 +12,9 @@
  
- int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid);
+ #include <sbi/sbi_types.h>
  
--int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
--
- int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
- 			     unsigned long *extensions);
++#define UART_CAP_UUE	BIT(0)	/* Check UUE capability for XScale PXA UARTs */
++
+ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
+-		  u32 reg_width, u32 reg_offset);
++		  u32 reg_width, u32 reg_offset, u32 capabilities);
  
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 088e5045..772096bd 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -266,27 +266,6 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid)
- 	return 0;
+ #endif
+diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
+index af5ceac924873216a85374b6c937af1b067841d0..02ca92e1ae4659f712559efed4f4399c80f9871e 100644
+--- a/lib/utils/serial/fdt_serial_uart8250.c
++++ b/lib/utils/serial/fdt_serial_uart8250.c
+@@ -14,8 +14,9 @@
+ static int serial_uart8250_init(const void *fdt, int nodeoff,
+ 				const struct fdt_match *match)
+ {
+-	int rc;
+ 	struct platform_uart_data uart = { 0 };
++	ulong capabilities = (ulong)match->data;
++	int rc;
+ 
+ 	rc = fdt_parse_uart_node(fdt, nodeoff, &uart);
+ 	if (rc)
+@@ -23,13 +24,15 @@ static int serial_uart8250_init(const void *fdt, int nodeoff,
+ 
+ 	return uart8250_init(uart.addr, uart.freq, uart.baud,
+ 			     uart.reg_shift, uart.reg_io_width,
+-			     uart.reg_offset);
++			     uart.reg_offset, capabilities);
  }
  
--int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq)
--{
--	const fdt32_t *val;
--	int len, cpus_offset;
--
--	if (!fdt || !freq)
--		return SBI_EINVAL;
--
--	cpus_offset = fdt_path_offset(fdt, "/cpus");
--	if (cpus_offset < 0)
--		return cpus_offset;
--
--	val = fdt_getprop(fdt, cpus_offset, "timebase-frequency", &len);
--	if (len > 0 && val)
--		*freq = fdt32_to_cpu(*val);
--	else
--		return SBI_ENOENT;
--
--	return 0;
--}
--
- #define RISCV_ISA_EXT_NAME_LEN_MAX	32
+ static const struct fdt_match serial_uart8250_match[] = {
+ 	{ .compatible = "ns16550" },
+ 	{ .compatible = "ns16550a" },
+ 	{ .compatible = "snps,dw-apb-uart" },
++	{ .compatible = "intel,xscale-uart",
++	  .data = (void *)UART_CAP_UUE },
+ 	{ },
+ };
  
- static unsigned long fdt_isa_bitmap_offset;
-diff --git a/lib/utils/timer/fdt_timer_mtimer.c b/lib/utils/timer/fdt_timer_mtimer.c
-index 224534d8..7dfc63f3 100644
---- a/lib/utils/timer/fdt_timer_mtimer.c
-+++ b/lib/utils/timer/fdt_timer_mtimer.c
-@@ -11,6 +11,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_list.h>
-+#include <sbi_utils/fdt/fdt_cpu.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/timer/fdt_timer.h>
- #include <sbi_utils/timer/aclint_mtimer.h>
-@@ -55,10 +56,10 @@ static int timer_mtimer_cold_init(const void *fdt, int nodeoff,
- 	mt->has_64bit_mmio = true;
- 	mt->has_shared_mtime = false;
+diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
+index 1fe053f860e56e7a447259dadb649734ff5016b0..4932fe9f1cc6f5ae196cefa08393eb2f21c8244c 100644
+--- a/lib/utils/serial/uart8250.c
++++ b/lib/utils/serial/uart8250.c
+@@ -39,6 +39,12 @@
+ #define UART_LSR_DR		0x01	/* Receiver data ready */
+ #define UART_LSR_BRK_ERROR_BITS	0x1E	/* BI, FE, PE, OE bits */
  
--	rc = fdt_parse_timebase_frequency(fdt, &mt->mtime_freq);
--	if (rc) {
-+	mt->mtime_freq = fdt_cpu_get_timebase_frequency();
-+	if (!mt->mtime_freq) {
- 		sbi_free(mtn);
--		return rc;
-+		return SBI_ENOENT;
++/* The XScale PXA UARTs define these bits */
++#define UART_IER_DMAE		0x80	/* DMA Requests Enable */
++#define UART_IER_UUE		0x40	/* UART Unit Enable */
++#define UART_IER_NRZE		0x20	/* NRZ coding Enable */
++#define UART_IER_RTOIE		0x10	/* Receiver Time Out Interrupt Enable */
++
+ /* clang-format on */
+ 
+ static volatile char *uart8250_base;
+@@ -93,7 +99,7 @@ static struct sbi_console_device uart8250_console = {
+ };
+ 
+ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
+-		  u32 reg_width, u32 reg_offset)
++		  u32 reg_width, u32 reg_offset, u32 capabilities)
+ {
+ 	u16 bdiv = 0;
+ 
+@@ -109,7 +115,8 @@ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
  	}
  
- 	if (is_clint) { /* SiFive CLINT */
-diff --git a/lib/utils/timer/fdt_timer_plmt.c b/lib/utils/timer/fdt_timer_plmt.c
-index 1e146689..23ca8f3d 100644
---- a/lib/utils/timer/fdt_timer_plmt.c
-+++ b/lib/utils/timer/fdt_timer_plmt.c
-@@ -7,6 +7,8 @@
-  *   Yu Chien Peter Lin <peterlin@andestech.com>
-  */
+ 	/* Disable all interrupts */
+-	set_reg(UART_IER_OFFSET, 0x00);
++	set_reg(UART_IER_OFFSET, (capabilities & UART_CAP_UUE) ?
++				 UART_IER_UUE : 0x00);
+ 	/* Enable DLAB */
+ 	set_reg(UART_LCR_OFFSET, 0x80);
  
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_cpu.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/timer/fdt_timer.h>
- #include <sbi_utils/timer/andes_plmt.h>
-@@ -27,9 +29,9 @@ static int fdt_plmt_cold_timer_init(const void *fdt, int nodeoff,
- 	plmt.time_val = (u64 *)plmt_base;
- 	plmt.time_cmp = (u64 *)(plmt_base + 0x8);
- 
--	rc = fdt_parse_timebase_frequency(fdt, &plmt.timer_freq);
--	if (rc)
--		return rc;
-+	plmt.timer_freq = fdt_cpu_get_timebase_frequency();
-+	if (!plmt.timer_freq)
-+		return SBI_ENOENT;
- 
- 	rc = plmt_cold_timer_init(&plmt);
- 	if (rc)
-diff --git a/platform/fpga/openpiton/platform.c b/platform/fpga/openpiton/platform.c
-index 2789c5c8..3a7d0ac9 100644
---- a/platform/fpga/openpiton/platform.c
-+++ b/platform/fpga/openpiton/platform.c
-@@ -80,8 +80,8 @@ static int openpiton_early_init(bool cold_boot)
- 	const void *fdt;
- 	struct platform_uart_data uart_data = { 0 };
- 	struct plic_data plic_data;
--	unsigned long aclint_freq;
- 	uint64_t clint_addr;
-+	u32 aclint_freq;
- 	int rc;
- 
- 	if (!cold_boot)
-@@ -100,8 +100,8 @@ static int openpiton_early_init(bool cold_boot)
- 	if (!rc)
- 		plic = plic_data;
- 
--	rc = fdt_parse_timebase_frequency(fdt, &aclint_freq);
--	if (!rc)
-+	aclint_freq = fdt_cpu_get_timebase_frequency();
-+	if (aclint_freq)
- 		mtimer.mtime_freq = aclint_freq;
- 
- 	rc = fdt_parse_compat_addr(fdt, &clint_addr, "riscv,clint0");
+
+---
+base-commit: 1ad199124479b9944d5dddc2119e6da9f088f7a7
+change-id: 20250223-pxa-uart-support-b9482a6b7297
+
+Best regards,
 -- 
-2.47.2
+Junhui Liu <junhui.liu@pigmoral.tech>
 
 
