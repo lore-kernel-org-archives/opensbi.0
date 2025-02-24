@@ -1,117 +1,115 @@
-From: Junhui Liu <junhui.liu@pigmoral.tech>
-Date: Sun, 23 Feb 2025 23:29:08 +0800
-Subject: [PATCH] lib: utils/serial: Add PXA UARTs support
-Message-ID: <20250223-pxa-uart-support-v1-1-5dc4234e2e05@pigmoral.tech>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Mon, 24 Feb 2025 10:20:05 +0100
+Subject: [PATCH v2 3/4] lib: sbi: fwft: Fix error return value for feature
+ > 32 bits
+In-Reply-To: <CAAhSdy2z52F0-PydSe4TtTnGdZv9UcOo5faBLmqfTsw-euSPyg@mail.gmail.com>
+References: <20250124165202.465445-1-cleger@rivosinc.com>
+ <20250124165202.465445-4-cleger@rivosinc.com>
+ <CAAhSdy2z52F0-PydSe4TtTnGdZv9UcOo5faBLmqfTsw-euSPyg@mail.gmail.com>
+Message-ID: <6949e0af-594a-4966-b90f-8cfa4937b696@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The PXA variant of the uart8250 adds the UART Unit Enable bit (UUE) that
-needs to be set to enable the XScale PXA UART. And it is required for
-some RISC-V SoCs like the Spacemit K1 that implement the PXA UART.
 
-This introduces the "intel,xscale-uart" compatible to handle setting the
-UUE bit.
 
-Signed-off-by: Junhui Liu <junhui.liu@pigmoral.tech>
----
- include/sbi_utils/serial/uart8250.h    |  4 +++-
- lib/utils/serial/fdt_serial_uart8250.c |  7 +++++--
- lib/utils/serial/uart8250.c            | 11 +++++++++--
- 3 files changed, 17 insertions(+), 5 deletions(-)
+On 19/02/2025 17:49, Anup Patel wrote:
+> On Fri, Jan 24, 2025 at 10:23?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>>
+>> Based on the spec, invalid feature should return SBI_ERR_INVALID_PARAM.
+>> This was not the case with the current implementation since the upper 32
+>> bits were not considered when checking the feature thus returning
+>> SBI_ERR_DENIED. Fix that by passing the raw unsigned long rather than
+>> the enum to be sure we are passing the full 64 bits and then check for
+>> upper bits to be cleared.
+>>
+>> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+>> ---
+>>  include/sbi/sbi_fwft.h |  4 ++--
+>>  lib/sbi/sbi_fwft.c     | 10 +++++++---
+>>  2 files changed, 9 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/include/sbi/sbi_fwft.h b/include/sbi/sbi_fwft.h
+>> index 2148820e..a9caa863 100644
+>> --- a/include/sbi/sbi_fwft.h
+>> +++ b/include/sbi/sbi_fwft.h
+>> @@ -14,9 +14,9 @@
+>>
+>>  struct sbi_scratch;
+>>
+>> -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
+>> +int sbi_fwft_set(unsigned long feature, unsigned long value,
+>>                  unsigned long flags);
+>> -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val);
+>> +int sbi_fwft_get(unsigned long feature, unsigned long *out_val);
+> 
+> The feature should be uint32_t as defined by the SBI spec.
+> 
+> Also, the uint32_t overflow check if required should be done in
+> sbi_ecall_fwft_handler().
 
-diff --git a/include/sbi_utils/serial/uart8250.h b/include/sbi_utils/serial/uart8250.h
-index d4a8c136a4552c8045a3c83820a35ae2ae86e810..39f4b316ff631159cc81284460fcaf92490be310 100644
---- a/include/sbi_utils/serial/uart8250.h
-+++ b/include/sbi_utils/serial/uart8250.h
-@@ -12,7 +12,9 @@
- 
- #include <sbi/sbi_types.h>
- 
-+#define UART_CAP_UUE	BIT(0)	/* Check UUE capability for XScale PXA UARTs */
-+
- int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
--		  u32 reg_width, u32 reg_offset);
-+		  u32 reg_width, u32 reg_offset, u32 capabilities);
- 
- #endif
-diff --git a/lib/utils/serial/fdt_serial_uart8250.c b/lib/utils/serial/fdt_serial_uart8250.c
-index af5ceac924873216a85374b6c937af1b067841d0..02ca92e1ae4659f712559efed4f4399c80f9871e 100644
---- a/lib/utils/serial/fdt_serial_uart8250.c
-+++ b/lib/utils/serial/fdt_serial_uart8250.c
-@@ -14,8 +14,9 @@
- static int serial_uart8250_init(const void *fdt, int nodeoff,
- 				const struct fdt_match *match)
- {
--	int rc;
- 	struct platform_uart_data uart = { 0 };
-+	ulong capabilities = (ulong)match->data;
-+	int rc;
- 
- 	rc = fdt_parse_uart_node(fdt, nodeoff, &uart);
- 	if (rc)
-@@ -23,13 +24,15 @@ static int serial_uart8250_init(const void *fdt, int nodeoff,
- 
- 	return uart8250_init(uart.addr, uart.freq, uart.baud,
- 			     uart.reg_shift, uart.reg_io_width,
--			     uart.reg_offset);
-+			     uart.reg_offset, capabilities);
- }
- 
- static const struct fdt_match serial_uart8250_match[] = {
- 	{ .compatible = "ns16550" },
- 	{ .compatible = "ns16550a" },
- 	{ .compatible = "snps,dw-apb-uart" },
-+	{ .compatible = "intel,xscale-uart",
-+	  .data = (void *)UART_CAP_UUE },
- 	{ },
- };
- 
-diff --git a/lib/utils/serial/uart8250.c b/lib/utils/serial/uart8250.c
-index 1fe053f860e56e7a447259dadb649734ff5016b0..4932fe9f1cc6f5ae196cefa08393eb2f21c8244c 100644
---- a/lib/utils/serial/uart8250.c
-+++ b/lib/utils/serial/uart8250.c
-@@ -39,6 +39,12 @@
- #define UART_LSR_DR		0x01	/* Receiver data ready */
- #define UART_LSR_BRK_ERROR_BITS	0x1E	/* BI, FE, PE, OE bits */
- 
-+/* The XScale PXA UARTs define these bits */
-+#define UART_IER_DMAE		0x80	/* DMA Requests Enable */
-+#define UART_IER_UUE		0x40	/* UART Unit Enable */
-+#define UART_IER_NRZE		0x20	/* NRZ coding Enable */
-+#define UART_IER_RTOIE		0x10	/* Receiver Time Out Interrupt Enable */
-+
- /* clang-format on */
- 
- static volatile char *uart8250_base;
-@@ -93,7 +99,7 @@ static struct sbi_console_device uart8250_console = {
- };
- 
- int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
--		  u32 reg_width, u32 reg_offset)
-+		  u32 reg_width, u32 reg_offset, u32 capabilities)
- {
- 	u16 bdiv = 0;
- 
-@@ -109,7 +115,8 @@ int uart8250_init(unsigned long base, u32 in_freq, u32 baudrate, u32 reg_shift,
- 	}
- 
- 	/* Disable all interrupts */
--	set_reg(UART_IER_OFFSET, 0x00);
-+	set_reg(UART_IER_OFFSET, (capabilities & UART_CAP_UUE) ?
-+				 UART_IER_UUE : 0x00);
- 	/* Enable DLAB */
- 	set_reg(UART_LCR_OFFSET, 0x80);
- 
+Yes, I'll re-spin that patch with the SSE one as well.
 
----
-base-commit: 1ad199124479b9944d5dddc2119e6da9f088f7a7
-change-id: 20250223-pxa-uart-support-b9482a6b7297
+Thanks,
 
-Best regards,
--- 
-Junhui Liu <junhui.liu@pigmoral.tech>
+Cl?ment
+
+> 
+> Regards,
+> Anup
+> 
+>>
+>>  int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot);
+>>
+>> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
+>> index c46006d4..85f8a638 100644
+>> --- a/lib/sbi/sbi_fwft.c
+>> +++ b/lib/sbi/sbi_fwft.c
+>> @@ -287,12 +287,16 @@ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
+>>         return NULL;
+>>  }
+>>
+>> -static int fwft_get_feature(enum sbi_fwft_feature_t feature,
+>> +static int fwft_get_feature(unsigned long feature,
+>>                             struct fwft_config **conf)
+>>  {
+>>         int ret;
+>>         struct fwft_config *tconf;
+>>
+>> +       /* Feature are defined as 32 bits identifiers */
+>> +       if (feature & ~(BIT_ULL(32) - 1))
+>> +               return SBI_EINVAL;
+>> +
+>>         tconf = get_feature_config(feature);
+>>         if (!tconf) {
+>>                 if (fwft_is_defined_feature(feature))
+>> @@ -323,7 +327,7 @@ static void fwft_clear_config_lock(enum sbi_fwft_feature_t feature)
+>>         conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
+>>  }
+>>
+>> -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
+>> +int sbi_fwft_set(unsigned long feature, unsigned long value,
+>>                  unsigned long flags)
+>>  {
+>>         int ret;
+>> @@ -348,7 +352,7 @@ int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
+>>         return SBI_OK;
+>>  }
+>>
+>> -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
+>> +int sbi_fwft_get(unsigned long feature, unsigned long *out_val)
+>>  {
+>>         int ret;
+>>         struct fwft_config *conf;
+>> --
+>> 2.47.1
+>>
+>>
+>> --
+>> opensbi mailing list
+>> opensbi at lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
 
 
