@@ -1,115 +1,40 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 24 Feb 2025 10:20:05 +0100
-Subject: [PATCH v2 3/4] lib: sbi: fwft: Fix error return value for feature
- > 32 bits
-In-Reply-To: <CAAhSdy2z52F0-PydSe4TtTnGdZv9UcOo5faBLmqfTsw-euSPyg@mail.gmail.com>
-References: <20250124165202.465445-1-cleger@rivosinc.com>
- <20250124165202.465445-4-cleger@rivosinc.com>
- <CAAhSdy2z52F0-PydSe4TtTnGdZv9UcOo5faBLmqfTsw-euSPyg@mail.gmail.com>
-Message-ID: <6949e0af-594a-4966-b90f-8cfa4937b696@rivosinc.com>
+From: Alvin Chang <alvinga@andestech.com>
+Date: Tue, 25 Feb 2025 09:16:36 +0800
+Subject: [PATCH v2 0/4] lib: sbi: Introduce per-domain MPXY state
+Message-ID: <20250225011640.949660-1-alvinga@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+When multiple supervisor domains need to communicate with OpenSBI
+through MPXY channel, they will allocate shared memory from their
+own memory region, thus the MPXY state need to be per-domain and
+per-hart data.
 
+Changes since v1:
+  - Addressed conflict with master branch
 
-On 19/02/2025 17:49, Anup Patel wrote:
-> On Fri, Jan 24, 2025 at 10:23?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
->>
->> Based on the spec, invalid feature should return SBI_ERR_INVALID_PARAM.
->> This was not the case with the current implementation since the upper 32
->> bits were not considered when checking the feature thus returning
->> SBI_ERR_DENIED. Fix that by passing the raw unsigned long rather than
->> the enum to be sure we are passing the full 64 bits and then check for
->> upper bits to be cleared.
->>
->> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->> ---
->>  include/sbi/sbi_fwft.h |  4 ++--
->>  lib/sbi/sbi_fwft.c     | 10 +++++++---
->>  2 files changed, 9 insertions(+), 5 deletions(-)
->>
->> diff --git a/include/sbi/sbi_fwft.h b/include/sbi/sbi_fwft.h
->> index 2148820e..a9caa863 100644
->> --- a/include/sbi/sbi_fwft.h
->> +++ b/include/sbi/sbi_fwft.h
->> @@ -14,9 +14,9 @@
->>
->>  struct sbi_scratch;
->>
->> -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
->> +int sbi_fwft_set(unsigned long feature, unsigned long value,
->>                  unsigned long flags);
->> -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val);
->> +int sbi_fwft_get(unsigned long feature, unsigned long *out_val);
-> 
-> The feature should be uint32_t as defined by the SBI spec.
-> 
-> Also, the uint32_t overflow check if required should be done in
-> sbi_ecall_fwft_handler().
+Alvin Chang (4):
+  lib: sbi_mpxy: Export MPXY data structures
+  lib: sbi_domain: Introduce per-domain MPXY state data
+  lib: sbi_mpxy: Convert MPXY state to per-domain data
+  lib: sbi: sbi_init: Allocate MPXY state for each domain
 
-Yes, I'll re-spin that patch with the SSE one as well.
+ include/sbi/sbi_domain.h            |  1 +
+ include/sbi/sbi_domain_mpxy_state.h | 50 ++++++++++++++++++++
+ include/sbi/sbi_mpxy.h              | 15 ++++++
+ lib/sbi/objects.mk                  |  1 +
+ lib/sbi/sbi_domain.c                |  9 +++-
+ lib/sbi/sbi_domain_mpxy_state.c     | 47 +++++++++++++++++++
+ lib/sbi/sbi_init.c                  | 16 ++++---
+ lib/sbi/sbi_mpxy.c                  | 72 +++++++++++++----------------
+ 8 files changed, 164 insertions(+), 47 deletions(-)
+ create mode 100644 include/sbi/sbi_domain_mpxy_state.h
+ create mode 100644 lib/sbi/sbi_domain_mpxy_state.c
 
-Thanks,
-
-Cl?ment
-
-> 
-> Regards,
-> Anup
-> 
->>
->>  int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot);
->>
->> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
->> index c46006d4..85f8a638 100644
->> --- a/lib/sbi/sbi_fwft.c
->> +++ b/lib/sbi/sbi_fwft.c
->> @@ -287,12 +287,16 @@ static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
->>         return NULL;
->>  }
->>
->> -static int fwft_get_feature(enum sbi_fwft_feature_t feature,
->> +static int fwft_get_feature(unsigned long feature,
->>                             struct fwft_config **conf)
->>  {
->>         int ret;
->>         struct fwft_config *tconf;
->>
->> +       /* Feature are defined as 32 bits identifiers */
->> +       if (feature & ~(BIT_ULL(32) - 1))
->> +               return SBI_EINVAL;
->> +
->>         tconf = get_feature_config(feature);
->>         if (!tconf) {
->>                 if (fwft_is_defined_feature(feature))
->> @@ -323,7 +327,7 @@ static void fwft_clear_config_lock(enum sbi_fwft_feature_t feature)
->>         conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
->>  }
->>
->> -int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
->> +int sbi_fwft_set(unsigned long feature, unsigned long value,
->>                  unsigned long flags)
->>  {
->>         int ret;
->> @@ -348,7 +352,7 @@ int sbi_fwft_set(enum sbi_fwft_feature_t feature, unsigned long value,
->>         return SBI_OK;
->>  }
->>
->> -int sbi_fwft_get(enum sbi_fwft_feature_t feature, unsigned long *out_val)
->> +int sbi_fwft_get(unsigned long feature, unsigned long *out_val)
->>  {
->>         int ret;
->>         struct fwft_config *conf;
->> --
->> 2.47.1
->>
->>
->> --
->> opensbi mailing list
->> opensbi at lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/opensbi
+-- 
+2.34.1
 
 
