@@ -1,200 +1,115 @@
-From: Alvin Chang <alvinga@andestech.com>
-Date: Tue, 25 Feb 2025 09:16:38 +0800
-Subject: [PATCH v2 2/4] lib: sbi_domain: Introduce per-domain MPXY state data
-In-Reply-To: <20250225011640.949660-1-alvinga@andestech.com>
-References: <20250225011640.949660-1-alvinga@andestech.com>
-Message-ID: <20250225011640.949660-3-alvinga@andestech.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon, 24 Feb 2025 20:00:15 -0600
+Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are
+ aligned
+In-Reply-To: <CA+-5cKdL9BoJKE9JLAixPp1qwvuhu0VTzAXHTKQeb0OmqMPFGg@mail.gmail.com>
+References: <0250109233241.2491-1-cfu@mips.com>
+ <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
+ <e4795dbc-0186-4261-9110-799f6a6c7b9b@sifive.com>
+ <CA+-5cKfDpb_OFvf5UF0rA2n01jX69nuO1AkGL0PkVSvzy91xoQ@mail.gmail.com>
+ <CA+-5cKdL9BoJKE9JLAixPp1qwvuhu0VTzAXHTKQeb0OmqMPFGg@mail.gmail.com>
+Message-ID: <0d49fa8c-9f0c-4386-bf96-26a15a59be02@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When multiple supervisor domains need to communicate with OpenSBI
-through MPXY channel, they will allocate shared memory from their
-own memory region (e.g. using alloc_pages() in Linux; memalign()
-in OP-TEE OS), thus the MPXY state need to be per-domain and
-per-hart data.
+Hi Raj,
 
-Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-Co-developed-by: Yong Li <yong.li@intel.com>
-Signed-off-by: Yong Li <yong.li@intel.com>
-Reviewed-by: Alvin Chang <alvinga@andestech.com>
----
- include/sbi/sbi_domain.h            |  1 +
- include/sbi/sbi_domain_mpxy_state.h | 50 +++++++++++++++++++++++++++++
- lib/sbi/objects.mk                  |  1 +
- lib/sbi/sbi_domain.c                |  9 +++++-
- lib/sbi/sbi_domain_mpxy_state.c     | 47 +++++++++++++++++++++++++++
- 5 files changed, 107 insertions(+), 1 deletion(-)
- create mode 100644 include/sbi/sbi_domain_mpxy_state.h
- create mode 100644 lib/sbi/sbi_domain_mpxy_state.c
+On 2025-02-20 4:43 PM, Raj Vishwanathan wrote:
+> I reviewed the two files for mstimer and mswi_ipi and they seem to be
+> correct. We use the same "hartid - first_hartid" to access MMIO
+> addresses. So, the current  mtimer_event_start() and mswi_ipi_send()
+> implementations work as is.
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index e9cff0b..9d88234 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_domain_context.h>
- #include <sbi/sbi_domain_data.h>
-+#include <sbi/sbi_domain_mpxy_state.h>
- 
- struct sbi_scratch;
- 
-diff --git a/include/sbi/sbi_domain_mpxy_state.h b/include/sbi/sbi_domain_mpxy_state.h
-new file mode 100644
-index 0000000..c5e3cdc
---- /dev/null
-+++ b/include/sbi/sbi_domain_mpxy_state.h
-@@ -0,0 +1,50 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2024 Intel Corporation.
-+ * Copyright (c) 2024-2025 Andes Technology Corporation.
-+ */
-+
-+#ifndef __SBI_DOMAIN_MPXY_STATE_H__
-+#define __SBI_DOMAIN_MPXY_STATE_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+struct sbi_domain;
-+struct mpxy_state;
-+
-+/**
-+ * Get per-domain MPXY state pointer for a given domain and HART index
-+ * @param dom pointer to domain
-+ * @param hartindex the HART index
-+ *
-+ * @return per-domain MPXY state pointer for given HART index
-+ */
-+struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
-+					     u32 hartindex);
-+
-+/**
-+ * Set per-domain MPXY state pointer for a given domain and HART index
-+ * @param dom pointer to domain
-+ * @param hartindex the HART index
-+ * @param ms pointer to MPXY state
-+ */
-+void sbi_domain_set_mpxy_state(struct sbi_domain *dom, u32 hartindex,
-+			       struct mpxy_state *ms);
-+
-+/** Macro to obtain the current hart's MPXY state pointer */
-+#define sbi_domain_mpxy_state_thishart_ptr()			\
-+	sbi_domain_get_mpxy_state(sbi_domain_thishart_ptr(),	\
-+				  current_hartindex())
-+
-+/**
-+ * Initialize domain MPXY state support
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_domain_mpxy_state_init(void);
-+
-+/* Deinitialize domain MPXY state support */
-+void sbi_domain_mpxy_state_deinit(void);
-+
-+#endif
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 9cb2842..a728e9b 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -69,6 +69,7 @@ libsbi-objs-y += sbi_bitops.o
- libsbi-objs-y += sbi_console.o
- libsbi-objs-y += sbi_domain_context.o
- libsbi-objs-y += sbi_domain_data.o
-+libsbi-objs-y += sbi_domain_mpxy_state.o
- libsbi-objs-y += sbi_domain.o
- libsbi-objs-y += sbi_double_trap.o
- libsbi-objs-y += sbi_emulate_csr.o
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 51c82a7..bd5d0ef 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -800,11 +800,16 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	if (rc)
- 		goto fail_free_domain_hart_ptr_offset;
- 
-+	/* Initialize domain MPXY state support */
-+	rc = sbi_domain_mpxy_state_init();
-+	if (rc)
-+		goto fail_deinit_context;
-+
- 	root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
- 	if (!root_memregs) {
- 		sbi_printf("%s: no memory for root regions\n", __func__);
- 		rc = SBI_ENOMEM;
--		goto fail_deinit_context;
-+		goto fail_deinit_mpxy_state;
- 	}
- 	root.regions = root_memregs;
- 
-@@ -869,6 +874,8 @@ fail_free_root_hmask:
- 	sbi_free(root_hmask);
- fail_free_root_memregs:
- 	sbi_free(root_memregs);
-+fail_deinit_mpxy_state:
-+	sbi_domain_mpxy_state_deinit();
- fail_deinit_context:
- 	sbi_domain_context_deinit();
- fail_free_domain_hart_ptr_offset:
-diff --git a/lib/sbi/sbi_domain_mpxy_state.c b/lib/sbi/sbi_domain_mpxy_state.c
-new file mode 100644
-index 0000000..45f63a9
---- /dev/null
-+++ b/lib/sbi/sbi_domain_mpxy_state.c
-@@ -0,0 +1,47 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2024 Intel Corporation.
-+ * Copyright (c) 2024-2025 Andes Technology Corporation.
-+ */
-+
-+#include <sbi/sbi_domain.h>
-+
-+struct domain_mpxy_state_priv {
-+	/** MPXY state for possible HARTs indexed by hartindex */
-+	struct mpxy_state *hartindex_to_mpxy_state_table[SBI_HARTMASK_MAX_BITS];
-+};
-+
-+static struct sbi_domain_data dmspriv = {
-+	.data_size = sizeof(struct domain_mpxy_state_priv),
-+};
-+
-+struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
-+					     u32 hartindex)
-+{
-+	struct domain_mpxy_state_priv *dmsp =
-+		sbi_domain_data_ptr(dom, &dmspriv);
-+
-+	return (dmsp && hartindex < SBI_HARTMASK_MAX_BITS) ?
-+		dmsp->hartindex_to_mpxy_state_table[hartindex] : NULL;
-+}
-+
-+void sbi_domain_set_mpxy_state(struct sbi_domain *dom, u32 hartindex,
-+			       struct mpxy_state *ms)
-+{
-+	struct domain_mpxy_state_priv *dmsp =
-+		sbi_domain_data_ptr(dom, &dmspriv);
-+
-+	if (dmsp && hartindex < SBI_HARTMASK_MAX_BITS)
-+		dmsp->hartindex_to_mpxy_state_table[hartindex] = ms;
-+}
-+
-+int sbi_domain_mpxy_state_init(void)
-+{
-+	return sbi_domain_register_data(&dmspriv);
-+}
-+
-+void sbi_domain_mpxy_state_deinit(void)
-+{
-+	sbi_domain_unregister_data(&dmspriv);
-+}
--- 
-2.34.1
+OK, I looked at the MIPS P8700 reference manual and see what you mean: "The MSIP
+register for hart mhartid is accessed at GCR_BASE + 0x50000 + 4 *
+mhartid[11:0]." So there is no gap in the mapping, instead there is a gap in the
+register space.
+
+>>> Either each device instance needs an array of [ACLINT index] => [hart index]
+>>> mappings, or the ACLINT index needs to be recorded separately in a new per-hart
+>>> scratch variable.
+> 
+> ACLINT index is actually "hartid - first_hartid"
+> 
+> Let me know if you have any further comments.
+> 
+> Raj
+> 
+> On Thu, Feb 13, 2025 at 10:01?PM Raj Vishwanathan
+> <raj.vishwanathan@gmail.com> wrote:
+>>
+>> Samuel
+>>
+>> Thanks for the quick review. I took a quick look and in our case,
+>> where the hart-id's are not sequential,  I see that there will be gaps
+>> in the MMIO space but nothing should break
+>>
+>> I will do a deeper study and respond specifically to your questions.
+>>
+>> Raj
+>>
+>> On Thu, Feb 13, 2025 at 2:58?PM Samuel Holland
+>> <samuel.holland@sifive.com> wrote:
+>>>
+>>> Hi Raj,
+>>>
+>>> On 2025-02-13 1:52 PM, Raj Vishwanathan wrote:
+>>>> Harts associated with an ACLINT_MSWI need not have sequential hartids.
+>>>> It is insufficient to use first_hartid and hart_count. To account for
+>>>> non-sequential hart ids, include the empty hard-ids' generate hart-count.
+
+s/hard/hart/
+
+>>>
+>>> This doesn't help, because the expression (hartid - first_hartid) is still used
+>>> to calculate MMIO addresses. See for example mtimer_event_start() and
+>>> mswi_ipi_send(). If there is a gap in the hartids mapped to the ACLINT
+>>> MTIMER/MSWI indexes, these functions will compute the wrong MMIO address and
+>>> fail to set the timer or send an IPI.
+>>>
+>>> Either each device instance needs an array of [ACLINT index] => [hart index]
+>>> mappings, or the ACLINT index needs to be recorded separately in a new per-hart
+>>> scratch variable.
+>>>
+>>> Regards,
+>>> Samuel
+>>>
+>>>> Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
+>>>> ---
+>>>>
+>>>> hart_count = last_hart_id - first_hart_id +1
+>>>> count = number of harts
+>>>> For sequential hart_id's, count = hart_count
+>>>> For non-sequential hart_id's, count  < hart_count
+>>>> ---
+>>>>  lib/utils/fdt/fdt_helper.c | 3 +--
+>>>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+>>>> index cb350e5..bb3fddd 100644
+>>>> --- a/lib/utils/fdt/fdt_helper.c
+>>>> +++ b/lib/utils/fdt/fdt_helper.c
+>>>> @@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+>>>>
+>>>>       if ((last_hartid >= first_hartid) && first_hartid != -1U) {
+>>>>               *out_first_hartid = first_hartid;
+>>>> -             count = last_hartid - first_hartid + 1;
+>>>> -             *out_hart_count = (hart_count < count) ? hart_count : count;
+>>>> +             *out_hart_count  = last_hartid - first_hartid + 1;
+
+Now that I understand the context, this looks like the right change to make.
+
+Please remove the hart_count variable entirely, since it is now unused. Also
+please fix the spacing in this line. With those changes:
+
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+
+>>>>       }
+>>>>
+>>>>       return 0;
+>>>
 
 
