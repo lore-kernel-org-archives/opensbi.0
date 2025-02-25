@@ -1,124 +1,276 @@
-From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
-Date: Mon, 24 Feb 2025 21:44:10 -0800
-Subject: [PATCH v2] lib: utils: Make sure that hartid and the scratch are aligned
-In-Reply-To: <0d49fa8c-9f0c-4386-bf96-26a15a59be02@sifive.com>
-References: <0250109233241.2491-1-cfu@mips.com> <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
- <e4795dbc-0186-4261-9110-799f6a6c7b9b@sifive.com> <CA+-5cKfDpb_OFvf5UF0rA2n01jX69nuO1AkGL0PkVSvzy91xoQ@mail.gmail.com>
- <CA+-5cKdL9BoJKE9JLAixPp1qwvuhu0VTzAXHTKQeb0OmqMPFGg@mail.gmail.com> <0d49fa8c-9f0c-4386-bf96-26a15a59be02@sifive.com>
-Message-ID: <CA+-5cKeSMebAedQktLx6oFaVdtVB8RCqKuOEnQh6=7mneDYHZQ@mail.gmail.com>
+From: Clément Léger <cleger@rivosinc.com>
+Date: Tue, 25 Feb 2025 11:06:57 +0100
+Subject: [PATCH] lib: sbi: sse: return SBI_EINVAL for parameters > 32 bits
+In-Reply-To: <CAAhSdy0eHr_kJsor6L+EC4NYv6v0GrQALBOmUL+8gvJgF9t_5w@mail.gmail.com>
+References: <20250214120445.1106042-1-cleger@rivosinc.com>
+ <CAAhSdy23hMfbn_A5Xn__KiYzhqE1=-RDbv2Kwj9gt8y-MipycQ@mail.gmail.com>
+ <74d5d1ce-5530-44a9-a085-31aebbcd177b@rivosinc.com>
+ <CAAhSdy1WGPOdfqgf0GCex-fOnWyf9PDv0JWrYZFBrc3m6H8Fvw@mail.gmail.com>
+ <8c39f947-00ae-4f3b-ba73-1b195f2f7b52@rivosinc.com>
+ <CAAhSdy0eHr_kJsor6L+EC4NYv6v0GrQALBOmUL+8gvJgF9t_5w@mail.gmail.com>
+Message-ID: <6a6b8885-2c93-4b05-9af3-3e1f729313a6@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Samuel
 
-I appreciate your response. I will make the changes and send out the
-changes soon.
 
-Many thanks
+On 17/02/2025 11:56, Anup Patel wrote:
+> On Mon, Feb 17, 2025 at 1:57?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>>
+>>
+>>
+>> On 17/02/2025 05:20, Anup Patel wrote:
+>>> On Fri, Feb 14, 2025 at 6:25?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>>>>
+>>>>
+>>>>
+>>>> On 14/02/2025 13:38, Anup Patel wrote:
+>>>>> On Fri, Feb 14, 2025 at 5:35?PM Cl?ment L?ger <cleger@rivosinc.com> wrote:
+>>>>>>
+>>>>>> The SBI specification states that event id, attributes and attributes
+>>>>>> count are stored on 32 bits. In order to check them properly, pass
+>>>>>> unsigned long to the SSE interface and check these parameters to be
+>>>>>> within correct bounds.
+>>>>>
+>>>>> I think it is much simpler to do this check in sbi_ecall_sse_handler() itself.
+>>>>
+>>>> Yeah I thought of that option but keeping all the checks at the same
+>>>> place sound better to me. If you really want these checks in
+>>>> sbi_ecall_sse.c, then I'll move them though.
+>>>
+>>> The downside of this patch is that various sbi_sse_xyz() function
+>>> prototypes don't align with the prototypes in SBI spec. Personally,
+>>> I am leaning towards keeping the uint32_t check in sbi_ecall_sse_handler()
+>>> but if you like the current approach then we will go ahead with this
+>>> patch.
+>>
+>> That a good point, I'll modify it then. I could do the sdame thing as
+>> well for fwft.
+> 
+> No need to return an error when event_id is wider than 32bits because we
+> have the following text in the "chapter 3. Binary encoding":
+> 
+> "Every SBI function should prefer unsigned long as the data type. It keeps
+> the specification simple and easily adaptable for all RISC-V ISA types. In case
+> the data is defined as 32bit wide, higher privilege software must ensure that
+> it only uses 32 bit data. Parameters that are 2?XLEN bits wide are passed in
+> a pair of argument registers, with the low-order XLEN bits in the lower-numbered
+> register and the high-order XLEN bits in the higher-numbered register."
+> 
+> We only need to ensure that OpenSBI uses lower 32bits of wider event_id.
 
-Raj
+AFAIU, we actually do not need to do anything specific then since
+casting the event ids to uint32_t will truncate them.
 
-On Mon, Feb 24, 2025 at 6:00?PM Samuel Holland
-<samuel.holland@sifive.com> wrote:
->
-> Hi Raj,
->
-> On 2025-02-20 4:43 PM, Raj Vishwanathan wrote:
-> > I reviewed the two files for mstimer and mswi_ipi and they seem to be
-> > correct. We use the same "hartid - first_hartid" to access MMIO
-> > addresses. So, the current  mtimer_event_start() and mswi_ipi_send()
-> > implementations work as is.
->
-> OK, I looked at the MIPS P8700 reference manual and see what you mean: "The MSIP
-> register for hart mhartid is accessed at GCR_BASE + 0x50000 + 4 *
-> mhartid[11:0]." So there is no gap in the mapping, instead there is a gap in the
-> register space.
->
-> >>> Either each device instance needs an array of [ACLINT index] => [hart index]
-> >>> mappings, or the ACLINT index needs to be recorded separately in a new per-hart
-> >>> scratch variable.
-> >
-> > ACLINT index is actually "hartid - first_hartid"
-> >
-> > Let me know if you have any further comments.
-> >
-> > Raj
-> >
-> > On Thu, Feb 13, 2025 at 10:01?PM Raj Vishwanathan
-> > <raj.vishwanathan@gmail.com> wrote:
-> >>
-> >> Samuel
-> >>
-> >> Thanks for the quick review. I took a quick look and in our case,
-> >> where the hart-id's are not sequential,  I see that there will be gaps
-> >> in the MMIO space but nothing should break
-> >>
-> >> I will do a deeper study and respond specifically to your questions.
-> >>
-> >> Raj
-> >>
-> >> On Thu, Feb 13, 2025 at 2:58?PM Samuel Holland
-> >> <samuel.holland@sifive.com> wrote:
-> >>>
-> >>> Hi Raj,
-> >>>
-> >>> On 2025-02-13 1:52 PM, Raj Vishwanathan wrote:
-> >>>> Harts associated with an ACLINT_MSWI need not have sequential hartids.
-> >>>> It is insufficient to use first_hartid and hart_count. To account for
-> >>>> non-sequential hart ids, include the empty hard-ids' generate hart-count.
->
-> s/hard/hart/
->
-> >>>
-> >>> This doesn't help, because the expression (hartid - first_hartid) is still used
-> >>> to calculate MMIO addresses. See for example mtimer_event_start() and
-> >>> mswi_ipi_send(). If there is a gap in the hartids mapped to the ACLINT
-> >>> MTIMER/MSWI indexes, these functions will compute the wrong MMIO address and
-> >>> fail to set the timer or send an IPI.
-> >>>
-> >>> Either each device instance needs an array of [ACLINT index] => [hart index]
-> >>> mappings, or the ACLINT index needs to be recorded separately in a new per-hart
-> >>> scratch variable.
-> >>>
-> >>> Regards,
-> >>> Samuel
-> >>>
-> >>>> Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
-> >>>> ---
-> >>>>
-> >>>> hart_count = last_hart_id - first_hart_id +1
-> >>>> count = number of harts
-> >>>> For sequential hart_id's, count = hart_count
-> >>>> For non-sequential hart_id's, count  < hart_count
-> >>>> ---
-> >>>>  lib/utils/fdt/fdt_helper.c | 3 +--
-> >>>>  1 file changed, 1 insertion(+), 2 deletions(-)
-> >>>>
-> >>>> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> >>>> index cb350e5..bb3fddd 100644
-> >>>> --- a/lib/utils/fdt/fdt_helper.c
-> >>>> +++ b/lib/utils/fdt/fdt_helper.c
-> >>>> @@ -1046,8 +1046,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
-> >>>>
-> >>>>       if ((last_hartid >= first_hartid) && first_hartid != -1U) {
-> >>>>               *out_first_hartid = first_hartid;
-> >>>> -             count = last_hartid - first_hartid + 1;
-> >>>> -             *out_hart_count = (hart_count < count) ? hart_count : count;
-> >>>> +             *out_hart_count  = last_hartid - first_hartid + 1;
->
-> Now that I understand the context, this looks like the right change to make.
->
-> Please remove the hart_count variable entirely, since it is now unused. Also
-> please fix the spacing in this line. With those changes:
->
-> Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
->
-> >>>>       }
-> >>>>
-> >>>>       return 0;
-> >>>
->
+Thanks,
+
+Cl?ment
+
+> 
+> Regards,
+> Anup
+> 
+>>
+>> Thanks,
+>>
+>> Cl?ment
+>>
+>>>
+>>> Regards,
+>>> Anup
+>>>
+>>>>
+>>>> Regards,
+>>>>
+>>>> Cl?ment
+>>>>
+>>>>>
+>>>>> Regards,
+>>>>> Anup
+>>>>>
+>>>>>>
+>>>>>> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+>>>>>> ---
+>>>>>>  include/sbi/sbi_sse.h   | 18 +++++++++---------
+>>>>>>  include/sbi/sbi_types.h |  2 ++
+>>>>>>  lib/sbi/sbi_sse.c       | 30 +++++++++++++++++-------------
+>>>>>>  3 files changed, 28 insertions(+), 22 deletions(-)
+>>>>>>
+>>>>>> diff --git a/include/sbi/sbi_sse.h b/include/sbi/sbi_sse.h
+>>>>>> index fb796545..21084c5c 100644
+>>>>>> --- a/include/sbi/sbi_sse.h
+>>>>>> +++ b/include/sbi/sbi_sse.h
+>>>>>> @@ -75,21 +75,21 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot);
+>>>>>>  void sbi_sse_exit(struct sbi_scratch *scratch);
+>>>>>>
+>>>>>>  /* Interface called from sbi_ecall_sse.c */
+>>>>>> -int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
+>>>>>> +int sbi_sse_register(unsigned long event_id, unsigned long handler_entry_pc,
+>>>>>>                      unsigned long handler_entry_arg);
+>>>>>> -int sbi_sse_unregister(uint32_t event_id);
+>>>>>> +int sbi_sse_unregister(unsigned long event_id);
+>>>>>>  int sbi_sse_hart_mask(void);
+>>>>>>  int sbi_sse_hart_unmask(void);
+>>>>>> -int sbi_sse_enable(uint32_t event_id);
+>>>>>> -int sbi_sse_disable(uint32_t event_id);
+>>>>>> +int sbi_sse_enable(unsigned long event_id);
+>>>>>> +int sbi_sse_disable(unsigned long event_id);
+>>>>>>  int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out);
+>>>>>> -int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hart_id,
+>>>>>> +int sbi_sse_inject_from_ecall(unsigned long event_id, unsigned long hart_id,
+>>>>>>                               struct sbi_ecall_return *out);
+>>>>>> -int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
+>>>>>> -                      uint32_t attr_count, unsigned long output_phys_lo,
+>>>>>> +int sbi_sse_read_attrs(unsigned long event_id, unsigned long base_attr_id,
+>>>>>> +                      unsigned long attr_count, unsigned long output_phys_lo,
+>>>>>>                        unsigned long output_phys_hi);
+>>>>>> -int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+>>>>>> -                       uint32_t attr_count, unsigned long input_phys_lo,
+>>>>>> +int sbi_sse_write_attrs(unsigned long event_id, unsigned long base_attr_id,
+>>>>>> +                       unsigned long attr_count, unsigned long input_phys_lo,
+>>>>>>                         unsigned long input_phys_hi);
+>>>>>>
+>>>>>>  #endif
+>>>>>> diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
+>>>>>> index 90b0d458..efcde21f 100644
+>>>>>> --- a/include/sbi/sbi_types.h
+>>>>>> +++ b/include/sbi/sbi_types.h
+>>>>>> @@ -108,6 +108,8 @@ typedef uint64_t            be64_t;
+>>>>>>  #define ROUNDUP(a, b) ((((a)-1) / (b) + 1) * (b))
+>>>>>>  #define ROUNDDOWN(a, b) ((a) / (b) * (b))
+>>>>>>
+>>>>>> +#define fits_on_32_bits(value) (((value) & ~(BIT_ULL(32) - 1)) == 0)
+>>>>>> +
+>>>>>>  /* clang-format on */
+>>>>>>
+>>>>>>  #else
+>>>>>> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+>>>>>> index 9f22375f..5e8e9ab4 100644
+>>>>>> --- a/lib/sbi/sbi_sse.c
+>>>>>> +++ b/lib/sbi/sbi_sse.c
+>>>>>> @@ -291,12 +291,15 @@ static void sse_event_set_state(struct sbi_sse_event *e,
+>>>>>>         e->attrs.status |= new_state;
+>>>>>>  }
+>>>>>>
+>>>>>> -static int sse_event_get(uint32_t event_id, struct sbi_sse_event **eret)
+>>>>>> +static int sse_event_get(unsigned long event_id, struct sbi_sse_event **eret)
+>>>>>>  {
+>>>>>>         unsigned int i;
+>>>>>>         struct sbi_sse_event *e;
+>>>>>>         struct sse_hart_state *shs;
+>>>>>>
+>>>>>> +       if (!fits_on_32_bits(event_id))
+>>>>>> +               return SBI_EINVAL;
+>>>>>> +
+>>>>>>         if (!eret)
+>>>>>>                 return SBI_EINVAL;
+>>>>>>
+>>>>>> @@ -748,7 +751,7 @@ static int sse_ipi_inject_send(unsigned long hartid, uint32_t event_id)
+>>>>>>         return SBI_OK;
+>>>>>>  }
+>>>>>>
+>>>>>> -static int sse_inject_event(uint32_t event_id, unsigned long hartid)
+>>>>>> +static int sse_inject_event(unsigned long event_id, unsigned long hartid)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>>         struct sbi_sse_event *e;
+>>>>>> @@ -839,7 +842,7 @@ int sbi_sse_complete(struct sbi_trap_regs *regs, struct sbi_ecall_return *out)
+>>>>>>         return ret;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_enable(uint32_t event_id)
+>>>>>> +int sbi_sse_enable(unsigned long event_id)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>>         struct sbi_sse_event *e;
+>>>>>> @@ -856,7 +859,7 @@ int sbi_sse_enable(uint32_t event_id)
+>>>>>>         return ret;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_disable(uint32_t event_id)
+>>>>>> +int sbi_sse_disable(unsigned long event_id)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>>         struct sbi_sse_event *e;
+>>>>>> @@ -904,7 +907,7 @@ int sbi_sse_hart_unmask(void)
+>>>>>>         return SBI_SUCCESS;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_inject_from_ecall(uint32_t event_id, unsigned long hartid,
+>>>>>> +int sbi_sse_inject_from_ecall(unsigned long event_id, unsigned long hartid,
+>>>>>>                               struct sbi_ecall_return *out)
+>>>>>>  {
+>>>>>>         if (!sbi_domain_is_assigned_hart(sbi_domain_thishart_ptr(),
+>>>>>> @@ -943,14 +946,15 @@ int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+>>>>>>         return SBI_OK;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_attr_check(uint32_t base_attr_id, uint32_t attr_count,
+>>>>>> +int sbi_sse_attr_check(unsigned long base_attr_id, unsigned long attr_count,
+>>>>>>                        unsigned long phys_lo, unsigned long phys_hi,
+>>>>>>                        unsigned long access)
+>>>>>>  {
+>>>>>>         const unsigned align = __riscv_xlen >> 3;
+>>>>>>         uint64_t end_id = (uint64_t)base_attr_id + (attr_count - 1);
+>>>>>>
+>>>>>> -       if (attr_count == 0)
+>>>>>> +       if (attr_count == 0 || !fits_on_32_bits(base_attr_id) ||
+>>>>>> +           !fits_on_32_bits(attr_count))
+>>>>>>                 return SBI_ERR_INVALID_PARAM;
+>>>>>>
+>>>>>>         if (end_id >= SBI_SSE_ATTR_MAX)
+>>>>>> @@ -992,8 +996,8 @@ static void copy_attrs(unsigned long *out, const unsigned long *in,
+>>>>>>                 out[i] = in[i];
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
+>>>>>> -                      uint32_t attr_count, unsigned long output_phys_lo,
+>>>>>> +int sbi_sse_read_attrs(unsigned long event_id, unsigned long base_attr_id,
+>>>>>> +                      unsigned long attr_count, unsigned long output_phys_lo,
+>>>>>>                        unsigned long output_phys_hi)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>> @@ -1059,8 +1063,8 @@ out:
+>>>>>>         return ret;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+>>>>>> -                       uint32_t attr_count, unsigned long input_phys_lo,
+>>>>>> +int sbi_sse_write_attrs(unsigned long event_id, unsigned long base_attr_id,
+>>>>>> +                       unsigned long attr_count, unsigned long input_phys_lo,
+>>>>>>                         unsigned long input_phys_hi)
+>>>>>>  {
+>>>>>>         int ret = 0;
+>>>>>> @@ -1081,7 +1085,7 @@ int sbi_sse_write_attrs(uint32_t event_id, uint32_t base_attr_id,
+>>>>>>         return ret;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
+>>>>>> +int sbi_sse_register(unsigned long event_id, unsigned long handler_entry_pc,
+>>>>>>                      unsigned long handler_entry_arg)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>> @@ -1106,7 +1110,7 @@ int sbi_sse_register(uint32_t event_id, unsigned long handler_entry_pc,
+>>>>>>         return ret;
+>>>>>>  }
+>>>>>>
+>>>>>> -int sbi_sse_unregister(uint32_t event_id)
+>>>>>> +int sbi_sse_unregister(unsigned long event_id)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>>         struct sbi_sse_event *e;
+>>>>>> --
+>>>>>> 2.47.2
+>>>>>>
+>>>>>>
+>>>>>> --
+>>>>>> opensbi mailing list
+>>>>>> opensbi at lists.infradead.org
+>>>>>> http://lists.infradead.org/mailman/listinfo/opensbi
+>>>>
+>>
+
 
