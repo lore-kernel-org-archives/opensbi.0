@@ -1,36 +1,70 @@
-From: Yao Zi <ziyao@disroot.org>
-Date: Tue, 25 Feb 2025 15:41:01 +0000
-Subject: [PATCH 0/2] Register Zicntr in FDT when emulating is possible
-Message-ID: <20250225154103.5229-1-ziyao@disroot.org>
+From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
+Date: Tue, 25 Feb 2025 13:16:14 -0800
+Subject: [PATCH v3] lib: utils: Make sure that hartid and the scratch are aligned
+In-Reply-To: <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
+References: <20250213195211.15587-1-Raj.Vishwanathan@gmail.com>
+Message-ID: <20250225211614.858474-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-OpenSBI is capable of emulating time CSR on HARTs without a full Zicntr
-extension. Previously, we hardcoded Zicntr extension in the devicetree
-for these cores, like JH7110 in mainline Linux[1]. This doesn't reflect
-the hardware and may confuse pre-SBI bootloaders, like U-Boot running in
-M-Mode.
+Harts associated with an ACLINT_MSWI need not have sequential hartids.
+It is insufficient to use first_hartid and hart_count. To account for
+non-sequential hart ids, include the empty hart-ids' generate hart-count.
 
-To solve the issue, let's register Zicntr in FDT dynamically for cores
-supporting it by SBI emulation, allowing pre-SBI stages to detect Zicntr
-availability reliably with riscv,isa-extensions.
+Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
+---
+hart_count = last_hart_id - first_hart_id +1
+count = number of harts
+For sequential hart_id's, count = hart_count
+For non-sequential hart_id's, count  < hart_count
+---
+ lib/utils/fdt/fdt_helper.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-[1]: https://elixir.bootlin.com/linux/v6.14-rc3/source/arch/riscv/boot/dts/starfive/jh7110.dtsi#L61
-
-Yao Zi (2):
-  lib: sbi: hart: Detect existence of cycle and instret CSRs for Zicntr
-  lib: utils: fdt: Claim Zicntr if time CSR emulation is possible
-
- include/sbi/sbi_hart.h    |  8 ++++++--
- lib/sbi/sbi_hart.c        | 30 ++++++++++++++++++++++--------
- lib/sbi/sbi_timer.c       |  2 +-
- lib/utils/fdt/fdt_fixup.c | 30 +++++++++++++++++++++++++++++-
- 4 files changed, 58 insertions(+), 12 deletions(-)
-
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..ccf2d5f 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -986,7 +986,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+ {
+ 	const fdt32_t *val;
+ 	int i, rc, count, cpu_offset, cpu_intc_offset;
+-	u32 phandle, hwirq, hartid, first_hartid, last_hartid, hart_count;
++	u32 phandle, hwirq, hartid, first_hartid, last_hartid;
+ 	u32 match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
+ 
+ 	if (nodeoffset < 0 || !fdt ||
+@@ -1015,7 +1015,7 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+ 	count = count / sizeof(fdt32_t);
+ 
+ 	first_hartid = -1U;
+-	hart_count = last_hartid = 0;
++	last_hartid = 0;
+ 	for (i = 0; i < (count / 2); i++) {
+ 		phandle = fdt32_to_cpu(val[2 * i]);
+ 		hwirq = fdt32_to_cpu(val[(2 * i) + 1]);
+@@ -1040,16 +1040,13 @@ int fdt_parse_aclint_node(const void *fdt, int nodeoffset,
+ 				first_hartid = hartid;
+ 			if (hartid > last_hartid)
+ 				last_hartid = hartid;
+-			hart_count++;
+ 		}
+ 	}
+ 
+ 	if ((last_hartid >= first_hartid) && first_hartid != -1U) {
+ 		*out_first_hartid = first_hartid;
+-		count = last_hartid - first_hartid + 1;
+-		*out_hart_count = (hart_count < count) ? hart_count : count;
++		*out_hart_count  = last_hartid - first_hartid + 1;
+ 	}
+-
+ 	return 0;
+ }
+ 
 -- 
-2.48.1
+2.43.0
 
 
