@@ -1,162 +1,38 @@
-From: Yao Zi <ziyao@disroot.org>
-Date: Wed, 26 Feb 2025 07:04:28 +0000
-Subject: [PATCH 1/2] lib: sbi: hart: Detect existence of cycle and
- instret CSRs for Zicntr
-In-Reply-To: <5e9867e939c4dd7fdde983b4b9bb771f979bf750.camel@126.com>
-References: <20250225154103.5229-1-ziyao@disroot.org>
- <20250225154103.5229-2-ziyao@disroot.org>
- <5e9867e939c4dd7fdde983b4b9bb771f979bf750.camel@126.com>
-Message-ID: <Z768_AdieJkbdbkC@pie.lan>
+From: dramforever <dramforever@live.com>
+Date: Wed, 26 Feb 2025 17:02:06 +0800
+Subject: [PATCH] lib: sbi: Fix typo CSR_CYCLE -> CSR_TIME
+Message-ID: <OSYPR01MB544544D142CAB27158601F80C6C22@OSYPR01MB5445.jpnprd01.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 26, 2025 at 02:26:50PM +0800, Xiang W wrote:
-> ? 2025-02-25?? 15:41 +0000?Yao Zi???
-> > Zicntr extension specifies three RO CSRs, time, cycle and instret. It
-> remove 'R0'
+When emulating CSR_TIME, the hpm_allowed check should be for CSR_TIME,
+not for CSR_CYCLE.
 
-It's RO (read only), not R0. Did you misread it?
+Fixes: beef2f693785 ("lib: sbi: Respect scounteren when emulating the
+time CSR")
+Signed-off-by: Vivian Wang <dramforever@live.com>
+---
+ lib/sbi/sbi_emulate_csr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-For reference,
+diff --git a/lib/sbi/sbi_emulate_csr.c b/lib/sbi/sbi_emulate_csr.c
+index c2253c8..73b371e 100644
+--- a/lib/sbi/sbi_emulate_csr.c
++++ b/lib/sbi/sbi_emulate_csr.c
+@@ -62,7 +62,7 @@ int sbi_emulate_csr_read(int csr_num, struct
+sbi_trap_regs *regs,
+ 		*csr_val = csr_read(CSR_MCYCLE);
+ 		break;
+ 	case CSR_TIME:
+-		if (!hpm_allowed(csr_num - CSR_CYCLE, prev_mode, virt))
++		if (!hpm_allowed(csr_num - CSR_TIME, prev_mode, virt))
+ 			return SBI_ENOTSUPP;
+ 		/*
+ 		 * We emulate TIME CSR for both Host (HS/U-mode) and
+-- 
+2.47.2
 
-> RISC-V ISAs provide a set of up to thirty-two 64-bit performance
-> counters and timers that are accessible via unprivileged XLEN-bit
-> read-only CSR registers 0xC00?0xC1F (when XLEN=32, the upper 32 bits
-> are accessed via CSR registers 0xC80?0xC9F). These counters are
-> divided between the "Zicntr" and "Zihpm" extensions.[1]
-
-Anyway, I could fix the commit message to prevent possible confusion.
-
-> Regards,
-> Xiang W
-
-Best regards,
-Yao Zi
-
-[1]: The RISC-V Instruction Set, Manual Volume I:
-     Unprivileged Architecture (Version 2024041) Chapter 8
-
-> > isn't precise to report Zicntr is fully supported with only time CSR
-> > detected.
-> > 
-> > Since CSR emulating code only cares about the availablity of time CSR,
-> > add additional definitions to represent the existance of cycle and
-> > instret CSRs.
-> > 
-> > Signed-off-by: Yao Zi <ziyao@disroot.org>
-> > ---
-> > ?include/sbi/sbi_hart.h |? 8 ++++++--
-> > ?lib/sbi/sbi_hart.c???? | 30 ++++++++++++++++++++++--------
-> > ?lib/sbi/sbi_timer.c??? |? 2 +-
-> > ?3 files changed, 29 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> > index 4c36c77..0a740cf 100644
-> > --- a/include/sbi/sbi_hart.h
-> > +++ b/include/sbi/sbi_hart.h
-> > @@ -37,8 +37,12 @@ enum sbi_hart_extensions {
-> > ?	SBI_HART_EXT_SSCOFPMF,
-> > ?	/** HART has Sstc extension */
-> > ?	SBI_HART_EXT_SSTC,
-> > -	/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
-> > -	SBI_HART_EXT_ZICNTR,
-> > +	/** HART has HW time CSR, as specified in Zicntr extension */
-> > +	SBI_HART_EXT_ZICNTR_TIME,
-> > +	/** HART has HW cycle CSR, as specified in Zicntr extension */
-> > +	SBI_HART_EXT_ZICNTR_CYCLE,
-> > +	/** HART has HW instret CSR, as specified in Zicntr extension */
-> > +	SBI_HART_EXT_ZICNTR_INSTRET,
-> > ?	/** HART has Zihpm extension */
-> > ?	SBI_HART_EXT_ZIHPM,
-> > ?	/** HART has Zkr extension */
-> > diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> > index 8e2979b..e1d630d 100644
-> > --- a/lib/sbi/sbi_hart.c
-> > +++ b/lib/sbi/sbi_hart.c
-> > @@ -669,7 +669,9 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
-> > ?	__SBI_HART_EXT_DATA(smstateen, SBI_HART_EXT_SMSTATEEN),
-> > ?	__SBI_HART_EXT_DATA(sscofpmf, SBI_HART_EXT_SSCOFPMF),
-> > ?	__SBI_HART_EXT_DATA(sstc, SBI_HART_EXT_SSTC),
-> > -	__SBI_HART_EXT_DATA(zicntr, SBI_HART_EXT_ZICNTR),
-> > +	__SBI_HART_EXT_DATA(zicntr_time, SBI_HART_EXT_ZICNTR_TIME),
-> > +	__SBI_HART_EXT_DATA(zicntr_cycle, SBI_HART_EXT_ZICNTR_CYCLE),
-> > +	__SBI_HART_EXT_DATA(zicntr_instret, SBI_HART_EXT_ZICNTR_INSTRET),
-> > ?	__SBI_HART_EXT_DATA(zihpm, SBI_HART_EXT_ZIHPM),
-> > ?	__SBI_HART_EXT_DATA(zkr, SBI_HART_EXT_ZKR),
-> > ?	__SBI_HART_EXT_DATA(smcntrpmf, SBI_HART_EXT_SMCNTRPMF),
-> > @@ -782,7 +784,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
-> > ?	struct sbi_hart_features *hfeatures =
-> > ?		sbi_scratch_offset_ptr(scratch, hart_features_offset);
-> > ?	unsigned long val, oldval;
-> > -	bool has_zicntr = false;
-> > +	bool has_time = false, has_cycle = false, has_instret = false;
-> > ?	int rc;
-> > ?
-> > ?	/* If hart features already detected then do nothing */
-> > @@ -919,7 +921,13 @@ __pmp_skip:
-> > ?			CSR_SCOUNTOVF, SBI_HART_EXT_SSCOFPMF);
-> > ?	/* Detect if hart supports time CSR */
-> > ?	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-> > -			CSR_TIME, SBI_HART_EXT_ZICNTR);
-> > +			CSR_TIME, SBI_HART_EXT_ZICNTR_TIME);
-> > +	/* Detect if hart supports cycle CSR */
-> > +	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-> > +			CSR_CYCLE, SBI_HART_EXT_ZICNTR_CYCLE);
-> > +	/* Detect if hart supports instret CSR */
-> > +	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-> > +			CSR_INSTRET, SBI_HART_EXT_ZICNTR_INSTRET);
-> > ?	/* Detect if hart has AIA local interrupt CSRs */
-> > ?	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-> > ?			CSR_MTOPI, SBI_HART_EXT_SMAIA);
-> > @@ -938,8 +946,10 @@ __pmp_skip:
-> > ?
-> > ?#undef __check_ext_csr
-> > ?
-> > -	/* Save trap based detection of Zicntr */
-> > -	has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
-> > +	/* Save trap based detection of Zicntr CSRs */
-> > +	has_time = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_TIME);
-> > +	has_cycle = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_CYCLE);
-> > +	has_instret = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_INSTRET);
-> > ?
-> > ?	/* Let platform populate extensions */
-> > ?	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
-> > @@ -947,9 +957,13 @@ __pmp_skip:
-> > ?	if (rc)
-> > ?		return rc;
-> > ?
-> > -	/* Zicntr should only be detected using traps */
-> > -	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR,
-> > -				??? has_zicntr);
-> > +	/* Zicntr CSRs should only be detected using traps */
-> > +	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_TIME,
-> > +				??? has_time);
-> > +	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_CYCLE,
-> > +				??? has_cycle);
-> > +	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_INSTRET,
-> > +				??? has_instret);
-> > ?
-> > ?	/* Extensions implied by other extensions and features */
-> > ?	if (hfeatures->mhpm_mask)
-> > diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
-> > index 86e0db5..b4db4ca 100644
-> > --- a/lib/sbi/sbi_timer.c
-> > +++ b/lib/sbi/sbi_timer.c
-> > @@ -190,7 +190,7 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
-> > ?		if (!time_delta_off)
-> > ?			return SBI_ENOMEM;
-> > ?
-> > -		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR))
-> > +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_TIME))
-> > ?			get_time_val = get_ticks;
-> > ?
-> > ?		ret = sbi_platform_timer_init(plat);
-> > -- 
-> > 2.48.1
-> > 
-> > 
-> 
 
