@@ -1,96 +1,141 @@
-From: Chao-ying Fu <icebergfu@gmail.com>
-Date: Tue, 25 Feb 2025 16:53:35 -0800
-Subject: [PATCH v2 11/11] Initialize MIPS custom PMA registers
-In-Reply-To: <CAAhSdy2jObwq5SUymwVmwMhcQ_h0-4OJuhwitgcVN2gPq2B=XQ@mail.gmail.com>
-References: <CAAhSdy2jObwq5SUymwVmwMhcQ_h0-4OJuhwitgcVN2gPq2B=XQ@mail.gmail.com>
-Message-ID: <20250226005335.19498-11-cfu@mips.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 26 Feb 2025 14:26:50 +0800
+Subject: [PATCH 1/2] lib: sbi: hart: Detect existence of cycle and
+ instret CSRs for Zicntr
+In-Reply-To: <20250225154103.5229-2-ziyao@disroot.org>
+References: <20250225154103.5229-1-ziyao@disroot.org>
+	 <20250225154103.5229-2-ziyao@disroot.org>
+Message-ID: <5e9867e939c4dd7fdde983b4b9bb771f979bf750.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Before PMP set up, we need to set up MIPS custom PMA registers.
----
- lib/sbi/riscv_asm.c | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+? 2025-02-25?? 15:41 +0000?Yao Zi???
+> Zicntr extension specifies three RO CSRs, time, cycle and instret. It
+remove 'R0'
 
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index c7d75ac..ca7edbe 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -12,6 +12,9 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_console.h>
-+#ifdef CONFIG_PLATFORM_MIPS_P8700
-+#include <mips/p8700.h>
-+#endif
- 
- /* determine CPU extension, return non-zero support */
- int misa_extension_imp(char ext)
-@@ -119,6 +122,9 @@ unsigned long csr_read_num(int csr_num)
- 	unsigned long ret = 0;
- 
- 	switch (csr_num) {
-+#ifdef CONFIG_PLATFORM_MIPS_P8700
-+	switchcase_csr_read_16(CSR_MIPSPMACFG0, ret)
-+#endif
- 	switchcase_csr_read_16(CSR_PMPCFG0, ret)
- 	switchcase_csr_read_64(CSR_PMPADDR0, ret)
- 	switchcase_csr_read(CSR_MCYCLE, ret)
-@@ -199,6 +205,9 @@ void csr_write_num(int csr_num, unsigned long val)
- 	switchcase_csr_write_32(__csr_num + 32, __val)
- 
- 	switch (csr_num) {
-+#ifdef CONFIG_PLATFORM_MIPS_P8700
-+	switchcase_csr_write_16(CSR_MIPSPMACFG0, val)
-+#endif
- 	switchcase_csr_write_16(CSR_PMPCFG0, val)
- 	switchcase_csr_write_64(CSR_PMPADDR0, val)
- 	switchcase_csr_write(CSR_MCYCLE, val)
-@@ -301,6 +310,29 @@ int is_pmp_entry_mapped(unsigned long entry)
- 	return false;
- }
- 
-+#ifdef CONFIG_PLATFORM_MIPS_P8700
-+extern unsigned long _fw_start;
-+static void pma_set(unsigned int n, unsigned long addr)
-+{
-+	int pmacfg_csr, pmacfg_shift;
-+	unsigned long cfgmask;
-+	unsigned long pmacfg, cca;
-+
-+	pmacfg_csr = (CSR_MIPSPMACFG0 + (n >> 2)) & ~1;
-+	pmacfg_shift = (n & 7) << 3;
-+	cfgmask = ~(0xffUL << pmacfg_shift);
-+
-+	/* Read pmacfg to change cacheability */
-+        pmacfg  = (csr_read_num(pmacfg_csr) & cfgmask);
-+        if (addr >= (unsigned long)&_fw_start)
-+                cca = CCA_CACHE_ENABLE | PMA_SPECULATION;
-+        else
-+                cca = CCA_CACHE_DISABLE;
-+        pmacfg |= ((cca << pmacfg_shift) & ~cfgmask);
-+        csr_write_num(pmacfg_csr, pmacfg);
-+}
-+#endif
-+
- int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- 	    unsigned long log2len)
- {
-@@ -312,6 +344,10 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- 	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
- 		return SBI_EINVAL;
- 
-+#ifdef CONFIG_PLATFORM_MIPS_P8700
-+	pma_set(n, addr);
-+#endif
-+
- 	/* calculate PMP register and offset */
- #if __riscv_xlen == 32
- 	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--- 
-2.47.1
+Regards,
+Xiang W
+> isn't precise to report Zicntr is fully supported with only time CSR
+> detected.
+> 
+> Since CSR emulating code only cares about the availablity of time CSR,
+> add additional definitions to represent the existance of cycle and
+> instret CSRs.
+> 
+> Signed-off-by: Yao Zi <ziyao@disroot.org>
+> ---
+> ?include/sbi/sbi_hart.h |? 8 ++++++--
+> ?lib/sbi/sbi_hart.c???? | 30 ++++++++++++++++++++++--------
+> ?lib/sbi/sbi_timer.c??? |? 2 +-
+> ?3 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 4c36c77..0a740cf 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -37,8 +37,12 @@ enum sbi_hart_extensions {
+> ?	SBI_HART_EXT_SSCOFPMF,
+> ?	/** HART has Sstc extension */
+> ?	SBI_HART_EXT_SSTC,
+> -	/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> -	SBI_HART_EXT_ZICNTR,
+> +	/** HART has HW time CSR, as specified in Zicntr extension */
+> +	SBI_HART_EXT_ZICNTR_TIME,
+> +	/** HART has HW cycle CSR, as specified in Zicntr extension */
+> +	SBI_HART_EXT_ZICNTR_CYCLE,
+> +	/** HART has HW instret CSR, as specified in Zicntr extension */
+> +	SBI_HART_EXT_ZICNTR_INSTRET,
+> ?	/** HART has Zihpm extension */
+> ?	SBI_HART_EXT_ZIHPM,
+> ?	/** HART has Zkr extension */
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 8e2979b..e1d630d 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -669,7 +669,9 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+> ?	__SBI_HART_EXT_DATA(smstateen, SBI_HART_EXT_SMSTATEEN),
+> ?	__SBI_HART_EXT_DATA(sscofpmf, SBI_HART_EXT_SSCOFPMF),
+> ?	__SBI_HART_EXT_DATA(sstc, SBI_HART_EXT_SSTC),
+> -	__SBI_HART_EXT_DATA(zicntr, SBI_HART_EXT_ZICNTR),
+> +	__SBI_HART_EXT_DATA(zicntr_time, SBI_HART_EXT_ZICNTR_TIME),
+> +	__SBI_HART_EXT_DATA(zicntr_cycle, SBI_HART_EXT_ZICNTR_CYCLE),
+> +	__SBI_HART_EXT_DATA(zicntr_instret, SBI_HART_EXT_ZICNTR_INSTRET),
+> ?	__SBI_HART_EXT_DATA(zihpm, SBI_HART_EXT_ZIHPM),
+> ?	__SBI_HART_EXT_DATA(zkr, SBI_HART_EXT_ZKR),
+> ?	__SBI_HART_EXT_DATA(smcntrpmf, SBI_HART_EXT_SMCNTRPMF),
+> @@ -782,7 +784,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+> ?	struct sbi_hart_features *hfeatures =
+> ?		sbi_scratch_offset_ptr(scratch, hart_features_offset);
+> ?	unsigned long val, oldval;
+> -	bool has_zicntr = false;
+> +	bool has_time = false, has_cycle = false, has_instret = false;
+> ?	int rc;
+> ?
+> ?	/* If hart features already detected then do nothing */
+> @@ -919,7 +921,13 @@ __pmp_skip:
+> ?			CSR_SCOUNTOVF, SBI_HART_EXT_SSCOFPMF);
+> ?	/* Detect if hart supports time CSR */
+> ?	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> -			CSR_TIME, SBI_HART_EXT_ZICNTR);
+> +			CSR_TIME, SBI_HART_EXT_ZICNTR_TIME);
+> +	/* Detect if hart supports cycle CSR */
+> +	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> +			CSR_CYCLE, SBI_HART_EXT_ZICNTR_CYCLE);
+> +	/* Detect if hart supports instret CSR */
+> +	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> +			CSR_INSTRET, SBI_HART_EXT_ZICNTR_INSTRET);
+> ?	/* Detect if hart has AIA local interrupt CSRs */
+> ?	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> ?			CSR_MTOPI, SBI_HART_EXT_SMAIA);
+> @@ -938,8 +946,10 @@ __pmp_skip:
+> ?
+> ?#undef __check_ext_csr
+> ?
+> -	/* Save trap based detection of Zicntr */
+> -	has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
+> +	/* Save trap based detection of Zicntr CSRs */
+> +	has_time = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_TIME);
+> +	has_cycle = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_CYCLE);
+> +	has_instret = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_INSTRET);
+> ?
+> ?	/* Let platform populate extensions */
+> ?	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+> @@ -947,9 +957,13 @@ __pmp_skip:
+> ?	if (rc)
+> ?		return rc;
+> ?
+> -	/* Zicntr should only be detected using traps */
+> -	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR,
+> -				??? has_zicntr);
+> +	/* Zicntr CSRs should only be detected using traps */
+> +	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_TIME,
+> +				??? has_time);
+> +	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_CYCLE,
+> +				??? has_cycle);
+> +	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_INSTRET,
+> +				??? has_instret);
+> ?
+> ?	/* Extensions implied by other extensions and features */
+> ?	if (hfeatures->mhpm_mask)
+> diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> index 86e0db5..b4db4ca 100644
+> --- a/lib/sbi/sbi_timer.c
+> +++ b/lib/sbi/sbi_timer.c
+> @@ -190,7 +190,7 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
+> ?		if (!time_delta_off)
+> ?			return SBI_ENOMEM;
+> ?
+> -		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR))
+> +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_TIME))
+> ?			get_time_val = get_ticks;
+> ?
+> ?		ret = sbi_platform_timer_init(plat);
+> -- 
+> 2.48.1
+> 
+> 
 
 
