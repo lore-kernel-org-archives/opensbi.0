@@ -1,27 +1,26 @@
 From: Chao-ying Fu <icebergfu@gmail.com>
-Date: Tue, 25 Feb 2025 16:53:30 -0800
-Subject: [PATCH v2 06/11] platform: generic: mips: add an entry function
+Date: Tue, 25 Feb 2025 16:53:31 -0800
+Subject: [PATCH v2 07/11] platform: generic: mips: add the platform file.
 In-Reply-To: <CAAhSdy2jObwq5SUymwVmwMhcQ_h0-4OJuhwitgcVN2gPq2B=XQ@mail.gmail.com>
 References: <CAAhSdy2jObwq5SUymwVmwMhcQ_h0-4OJuhwitgcVN2gPq2B=XQ@mail.gmail.com>
-Message-ID: <20250226005335.19498-6-cfu@mips.com>
+Message-ID: <20250226005335.19498-7-cfu@mips.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-All harts run the same entry function to initialize
-MIPS custom CSR registers and CM registers.
+We add the platform file for MIPS P8700.
 ---
- platform/generic/mips/cps-vec.S | 202 ++++++++++++++++++++++++++++++++
+ platform/generic/mips/p8700.c | 202 ++++++++++++++++++++++++++++++++++
  1 file changed, 202 insertions(+)
- create mode 100644 platform/generic/mips/cps-vec.S
+ create mode 100644 platform/generic/mips/p8700.c
 
-diff --git a/platform/generic/mips/cps-vec.S b/platform/generic/mips/cps-vec.S
+diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
 new file mode 100644
-index 0000000..5049532
+index 0000000..1bd627f
 --- /dev/null
-+++ b/platform/generic/mips/cps-vec.S
++++ b/platform/generic/mips/p8700.c
 @@ -0,0 +1,202 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
@@ -30,201 +29,201 @@ index 0000000..5049532
 + *
 + */
 +
-+#include <sbi/riscv_encoding.h>
++#include <platform_override.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_hsm.h>
++#include <sbi/sbi_timer.h>
++#include <sbi_utils/fdt/fdt_helper.h>
 +#include <mips/p8700.h>
++#include <mips/mips-cm.h>
 +
-+	.text
-+	.align	12
-+	.globl	mips_cps_core_entry
-+mips_cps_core_entry:
-+	j	1f
++extern void mips_cps_core_entry(void);
 +
-+	.align	2
-+nmi_vector:
-+	j	1f
++#if CLUSTERS_IN_PLATFORM > 1
++static void power_up_other_cluster(u32 hartid)
++{
++	unsigned int stat;
++	unsigned int timeout;
++	bool local_p = (cpu_cluster(current_hartid()) == cpu_cluster(hartid));
 +
-+	.align	2
-+cacheerr_vector:
-+	j	1f
++	/* Power up cluster cl core 0 hart 0 */
++	write_cpc_pwrup_ctl(hartid, 1, local_p);
 +
-+	.align	2
-+debugexc_vector:
-+	j	1f
++	/* Wait for the CM to start up */
++	timeout = 100;
++	while (true) {
++		stat = read_cpc_cm_stat_conf(hartid, local_p);
++		stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
++		if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U5)
++			break;
 +
-+	.align	2
-+1:
-+	li	x1, 0
-+	li	x2, 0
-+	li	x3, 0
-+	li	x4, 0
-+	li	x5, 0
-+	li	x6, 0
-+	li	x7, 0
-+	li	x8, 0
-+	li	x9, 0
-+	li	x10, 0
-+	li	x11, 0
-+	li	x12, 0
-+	li	x13, 0
-+	li	x14, 0
-+	li	x15, 0
-+	li	x16, 0
-+	li	x17, 0
-+	li	x18, 0
-+	li	x19, 0
-+	li	x20, 0
-+	li	x21, 0
-+	li	x22, 0
-+	li	x23, 0
-+	li	x24, 0
-+	li	x25, 0
-+	li	x26, 0
-+	li	x27, 0
-+	li	x28, 0
-+	li	x29, 0
-+	li	x30, 0
-+	li	x31, 0
++		/* Delay a little while before we start warning */
++		if (timeout) {
++			sbi_dprintf("Delay a little while before we start warning\n");
++			timeout--;
++		}
++		else {
++			sbi_printf("Waiting for cluster %u CM to power up... STAT_CONF=0x%x\n",
++				   cpu_cluster(hartid), stat);
++			break;
++		}
++	}
++}
++#endif
 +
-+	/* a0 has mhartid */
-+	csrr	a0, CSR_MHARTID
++static int mips_hart_start(u32 hartid, ulong saddr)
++{
++	unsigned int stat;
++	unsigned int timeout;
++	bool local_p = (cpu_cluster(current_hartid()) == cpu_cluster(hartid));
 +
-+	/* Test mhartid lowest 4 bits */
-+	andi	t0, a0, 0xf
-+	bnez	t0, setup_pmp
++	/* Hart 0 is the boot hart, and we don't use the CPC cmd to start.  */
++	if (hartid == 0)
++		return SBI_ENOTSUPP;
 +
-+	/* Cluster cl Core co Hart 0 */
-+	li	s0, CM_BASE
++	if (cpu_hart(hartid) == 0) {
++		/* Change cluster cl core co hart 0 reset base */
++		write_gcr_co_reset_base(hartid,
++					(unsigned long)mips_cps_core_entry, local_p);
 +
-+cm_relocate_done:
-+	li	t0, GCR_CORE_COH_EN_EN
++		/* Ensure its coherency is disabled */
++		write_gcr_co_coherence(hartid, 0, local_p);
 +
-+	/* Get core number to update CM_BASE */
-+	srl	t1, a0, MHARTID_CORE_SHIFT
-+	andi	t1, t1, MHARTID_CORE_MASK
-+	sll	t1, t1, CM_BASE_CORE_SHIFT
-+	add	s0, s0, t1
-+	INDEXED(sd, t0, t1, GCR_OFF_LOCAL + GCR_CORE_COH_EN, s0)
-+	fence
++		/* Start cluster cl core co hart 0 */
++		write_cpc_co_vp_run(hartid, 1 << cpu_hart(hartid), local_p);
 +
-+setup_pmp:
-+	li	t0, DRAM_PMP_ADDR
-+	csrw	CSR_PMPADDR14, t0
-+	li	t0, 0x1fffffffffffffff # All from 0x0
-+	csrw	CSR_PMPADDR15, t0
-+	li	t0, ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<56)|((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<48)
-+	csrw	CSR_PMPCFG2, t0
-+	/* Set cacheable for pmp6, uncacheable for pmp7 */
-+	li	t0, (CCA_CACHE_DISABLE << 56)|(CCA_CACHE_ENABLE << 48)
-+	csrw	CSR_MIPSPMACFG2, t0
-+	/* Reset pmpcfg0 */
-+	csrw	CSR_PMPCFG0, zero
-+	/* Reset pmacfg0 */
-+	csrw	CSR_MIPSPMACFG0, zero
-+	fence
++		/* Reset cluster cl core co hart 0 */
++		write_cpc_co_cmd(hartid, CPC_Cx_CMD_RESET, local_p);
 +
-+per_cluster:
-+	li	t0, 0xffff
-+	and	t0, t0, a0
-+	bnez	t0, per_core
++		timeout = 100;
++		while (true) {
++			stat = read_cpc_co_stat_conf(hartid, local_p);
++			stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
++			if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U6)
++				break;
 +
-+	/* L2 Prefetch */
-+	li	t0, 0xfffff110
-+	sw	t0, L2_PFT_CONTROL_OFFSET(s0)
-+	li	t0, 0x15ff
-+	sw	t0, L2_PFT_CONTROL_B_OFFSET(s0)
++			/* Delay a little while before we start warning */
++			if (timeout) {
++				sbi_timer_mdelay(10);
++				timeout--;
++			}
++			else {
++				sbi_printf("Waiting for cluster %u core %u hart %u to start... STAT_CONF=0x%x\n",
++					   cpu_cluster(hartid),
++					   cpu_core(hartid), cpu_hart(hartid),
++					   stat);
++				break;
++			}
++		}
++	}
++	else {
++		write_gcr_co_reset_base(hartid,
++					(unsigned long)mips_cps_core_entry, local_p);
++		write_cpc_co_vp_run(hartid, 1 << cpu_hart(hartid), local_p);
++	}
 +
-+per_core:
-+	andi	t0, a0, 0xf
-+	bnez	t0, per_hart
++	return 0;
++}
 +
-+	/* Enable Load Pair */
-+	/* Enable Store Pair */
-+	/* Enable HTW */
-+	li      t0, (1<<12)|(1<<13)|(1<<7)
-+	csrc    CSR_MIPSCONFIG7, t0
++static int mips_hart_stop()
++{
++	u32 hartid = current_hartid();
++	bool local_p = (cpu_cluster(current_hartid()) == cpu_cluster(hartid));
 +
-+	/* Disable noRFO */
-+	li	t0, (1<<25)
-+	csrs	CSR_MIPSCONFIG7, t0
++	/* Hart 0 is the boot hart, and we don't use the CPC cmd to stop.  */
++	if (hartid == 0)
++		return SBI_ENOTSUPP;
 +
-+	/* Disable misaligned load/store to have misaligned address exceptions */
-+	li	t0, (1<<9)
-+	csrs	CSR_MIPSCONFIG7, t0
++	write_cpc_co_vp_stop(hartid, 1 << cpu_hart(hartid), local_p);
 +
-+	/* Enable L1-D$ Prefetch */
-+	li	t0, 0xff
-+	csrw	CSR_MIPSCONFIG11, t0
++	return 0;
++}
 +
-+	li	t0, 4
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++static const struct sbi_hsm_device mips_hsm = {
++	.name		= "mips_hsm",
++	.hart_start	= mips_hart_start,
++	.hart_stop	= mips_hart_stop,
++};
 +
-+	li	t0, 0x104
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++static int mips_p8700_final_init(bool cold_boot, void *fdt,
++			     const struct fdt_match *match)
++{
++	if (cold_boot)
++		sbi_hsm_set_device(&mips_hsm);
 +
-+	li	t0, 0x204
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++	return 0;
++}
 +
-+	li	t0, 0x304
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++static int mips_p8700_early_init(bool cold_boot, const void *fdt,
++			     const struct fdt_match *match)
++{
++	int rc;
 +
-+	li	t0, 0x404
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++	if (cold_boot)
++	{
++#if CLUSTERS_IN_PLATFORM > 1
++		int i;
++		/* Power up other clusters in the platform. */
++		for (i = 1; i < CLUSTERS_IN_PLATFORM; i++) {
++			power_up_other_cluster(i << NEW_CLUSTER_SHIFT);
++		}
++#endif
 +
-+	li	t0, 0x504
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++		/* For the CPC mtime region, the minimum size is 0x10000. */
++		rc = sbi_domain_root_add_memrange(CM_BASE, SIZE_FOR_CPC_MTIME,
++						  P8700_ALIGN,
++						  (SBI_DOMAIN_MEMREGION_MMIO |
++						   SBI_DOMAIN_MEMREGION_M_READABLE |
++						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
++		if (rc)
++			return rc;
 +
-+	li	t0, 0x604
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++		/* For the APLIC and ACLINT m-mode region */
++		rc = sbi_domain_root_add_memrange(AIA_BASE, SIZE_FOR_AIA_M_MODE,
++						  P8700_ALIGN,
++						  (SBI_DOMAIN_MEMREGION_MMIO |
++						   SBI_DOMAIN_MEMREGION_M_READABLE |
++						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
++		if (rc)
++			return rc;
 +
-+	li	t0, 0x704
-+	csrs	CSR_MIPSCONFIG8, t0
-+	li	t0, 8
-+	csrs	CSR_MIPSCONFIG9, t0
-+	fence
-+	fence.i
++#if CLUSTERS_IN_PLATFORM > 1
++		for (i = 0; i < CLUSTERS_IN_PLATFORM; i++) {
++			/* For the CPC mtime region, the minimum size is 0x10000. */
++			rc = sbi_domain_root_add_memrange(GLOBAL_CM_BASE[i], SIZE_FOR_CPC_MTIME,
++							  P8700_ALIGN,
++							  (SBI_DOMAIN_MEMREGION_MMIO |
++							   SBI_DOMAIN_MEMREGION_M_READABLE |
++							   SBI_DOMAIN_MEMREGION_M_WRITABLE));
++			if (rc)
++				return rc;
 +
-+per_hart:
-+	/* Set up mipstvec */
-+	lla	t0, mipstvec_handler_stw
-+	ori	t0, t0, 1
-+	csrw	CSR_MIPSTVEC, t0
++			/* For the APLIC and ACLINT m-mode region */
++			rc = sbi_domain_root_add_memrange(AIA_BASE - CM_BASE + GLOBAL_CM_BASE[i], SIZE_FOR_AIA_M_MODE,
++							  P8700_ALIGN,
++							  (SBI_DOMAIN_MEMREGION_MMIO |
++							   SBI_DOMAIN_MEMREGION_M_READABLE |
++							   SBI_DOMAIN_MEMREGION_M_WRITABLE));
++			if (rc)
++				return rc;
++		}
++#endif
++	}
 +
-+	/* Let hart 0 jump to _start */
-+	beqz	a0, 1f
-+	lla	t0, _start_warm
-+	jr	t0
-+1:
-+	lla	t0, _start
-+	jr	t0
++	return 0;
++}
 +
++static const struct fdt_match mips_p8700_match[] = {
++	{ .compatible = "mips,p8700" },
++	{ },
++};
++
++const struct platform_override mips_p8700 = {
++	.match_table = mips_p8700_match,
++	.early_init = mips_p8700_early_init,
++	.final_init = mips_p8700_final_init,
++};
 -- 
 2.47.1
 
