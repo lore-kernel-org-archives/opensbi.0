@@ -1,58 +1,143 @@
-From: Jan Reinhard <jan.reinhard@sysgo.com>
-Date: Mon, 3 Mar 2025 15:42:56 +0100
-Subject: vectored interrupt mode not an option for stvec
-Message-ID: <d3efe4c5-d9cc-4664-a779-40fb5cafd427@sysgo.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon, 3 Mar 2025 08:53:51 -0600
+Subject: [PATCH 1/4] lib: sbi_scratch: Apply bounds check to platform
+ hart_count
+In-Reply-To: <CAMSwOgpP9ecscbiiD=Wd+cf4EvLWVwXduHb07uFLAyqhVTvZOg@mail.gmail.com_9b4e6db0_release>
+References: <20250220184233.23802-1-samuel.holland@sifive.com>
+ <20250220184233.23802-2-samuel.holland@sifive.com>
+ <CAMSwOgpP9ecscbiiD=Wd+cf4EvLWVwXduHb07uFLAyqhVTvZOg@mail.gmail.com_9b4e6db0_release>
+Message-ID: <72525c18-ce60-4781-818f-7870f6cf31d8@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hello OpenSBI member,
+Hi Rahul,
 
-as described in my issue on the OpenSBI Repository, Vectored mode for 
-stvec is not possible right now:
-https://github.com/riscv-software-src/opensbi/issues/391
+On 2025-03-03 8:41 AM, Rahul Pathak wrote:
+> On Fri, Feb 21, 2025 at 12:13?AM Samuel Holland
+> <samuel.holland@sifive.com> wrote:
+>>
+>> The internal limit on the number of harts is SBI_HARTMASK_MAX_BITS, as
+>> this value determines the size of various bitmaps and arrays (including
+>> hartindex_to_hartid_table and hartindex_to_scratch_table). Clamp the
+>> value provided by the platform, and drop the extra array element.
+>>
+>> Update the documentation to indicate that hart_index2id must be sized
+>> based on hart_count, and that hart indexes must be contiguous. As of
+>> commit 5e90e54a1a53 ("lib: utils:Check that hartid is valid"), there is
+>> no restriction on the valid hart ID values.
+>>
+>> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+>> ---
+>>
+>>  include/sbi/sbi_platform.h | 11 +++--------
+>>  lib/sbi/sbi_scratch.c      | 14 +++++++++-----
+>>  2 files changed, 12 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+>> index 6d5fbc7d..5e50c997 100644
+>> --- a/include/sbi/sbi_platform.h
+>> +++ b/include/sbi/sbi_platform.h
+>> @@ -169,7 +169,7 @@ struct sbi_platform {
+>>         char name[64];
+>>         /** Supported features */
+>>         u64 features;
+>> -       /** Total number of HARTs */
+>> +       /** Total number of HARTs (at most SBI_HARTMASK_MAX_BITS) */
+>>         u32 hart_count;
+>>         /** Per-HART stack size for exception/interrupt handling */
+>>         u32 hart_stack_size;
+>> @@ -184,17 +184,12 @@ struct sbi_platform {
+>>         /**
+>>          * HART index to HART id table
+>>          *
+>> -        * For used HART index <abc>:
+>> +        * If hart_index2id != NULL then the table must contain a mapping
+>> +        * for each HART index 0 <= <abc> < hart_count:
+>>          *     hart_index2id[<abc>] = some HART id
+>> -        * For unused HART index <abc>:
+>> -        *     hart_index2id[<abc>] = -1U
+>>          *
+>>          * If hart_index2id == NULL then we assume identity mapping
+>>          *     hart_index2id[<abc>] = <abc>
+>> -        *
+>> -        * We have only two restrictions:
+>> -        * 1. HART index < sbi_platform hart_count
+>> -        * 2. HART id < SBI_HARTMASK_MAX_BITS
+>>          */
+>>         const u32 *hart_index2id;
+>>  };
+>> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+>> index ccbbc68e..5a9e935b 100644
+>> --- a/lib/sbi/sbi_scratch.c
+>> +++ b/lib/sbi/sbi_scratch.c
+>> @@ -15,8 +15,8 @@
+>>  #include <sbi/sbi_string.h>
+>>
+>>  u32 last_hartindex_having_scratch = 0;
+>> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
+>> -struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
+>> +u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { -1U };
+>> +struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS] = { 0 };
+>>
+>>  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+>>  static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
+>> @@ -36,17 +36,21 @@ typedef struct sbi_scratch *(*hartid2scratch)(ulong hartid, ulong hartindex);
+>>
+>>  int sbi_scratch_init(struct sbi_scratch *scratch)
+>>  {
+>> -       u32 i, h;
+>> +       u32 i, h, hart_count;
+>>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>>
+>> -       for (i = 0; i < plat->hart_count; i++) {
+>> +       hart_count = plat->hart_count;
+>> +       if (hart_count > SBI_HARTMASK_MAX_BITS)
+>> +               hart_count = SBI_HARTMASK_MAX_BITS;
+>>
+> From a platform perspective case where hart_count > SBI_HARTMASK_MAX_BITS
+> Since its a limitation of SBI to not be able to represent all what
+> platform expects. Is it a
+> point of failure and it should not continue from here or it should
+> silently move forward with
+> what SBI can accommodate?
 
-I was asked to provide a patch to make it possible. I attached it to 
-this mail.
+Only OpenSBI the implementation has this limitation, not SBI more generally.
+
+I would expect a good quality implementation to crash or hang only as a last
+resort. In this case, the system can continue running normally, with a reduced
+number of harts available to lower privilege modes. The remaining harts remain
+safely off or parked in M-mode. S-mode software will be aware of the issue when
+sbi_hsm_hart_start() fails to start the excess harts, but it should already
+expect to handle errors from that function, so it would be just another instance
+of the interface working as intended.
 
 Regards,
-Jan
+Samuel
 
--- 
-Mit freundlichen Gr??en / Best regards / Cordialement
+>>
+>> +       for (i = 0; i < hart_count; i++) {
+>>                 h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
+>>                 hartindex_to_hartid_table[i] = h;
+>>                 hartindex_to_scratch_table[i] =
+>>                         ((hartid2scratch)scratch->hartid_to_scratch)(h, i);
+>>         }
+>>
+>> -       last_hartindex_having_scratch = plat->hart_count - 1;
+>> +       last_hartindex_having_scratch = hart_count - 1;
+>>
+>>         return 0;
+>>  }
+>> --
+>> 2.47.2
+>>
+>>
+>> --
+>> opensbi mailing list
+>> opensbi at lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
+> 
 
-Jan Reinhard
-Security Engineer
-jan.reinhard at sysgo.com
-Phone: +49 (0) 6136 9948 735
 
-SYSGO GmbH
-Am Pfaffenstein 8 | 55270 Klein-Winternheim | Germany
-
-www.sysgo.com | www.sysgo.com/news
-
-Data protection information in accordance with article 13 GDPR: www.sysgo.com/privacy-policy
-
--------------- next part --------------
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index e63a563..363e91f 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -205,6 +205,8 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 
- 		/* Set MEPC to S-mode exception vector base */
- 		regs->mepc = csr_read(CSR_STVEC);
-+       /* clear the mode field */
-+       regs->mepc &= ~0x3;
- 
- 		/* Set MPP to S-mode */
- 		regs->mstatus &= ~MSTATUS_MPP;
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: smime.p7s
-Type: application/pkcs7-signature
-Size: 3031 bytes
-Desc: S/MIME Cryptographic Signature
-URL: <http://lists.infradead.org/pipermail/opensbi/attachments/20250303/07ebf7e7/attachment.p7s>
