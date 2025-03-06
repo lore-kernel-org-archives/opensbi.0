@@ -1,117 +1,109 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue, 4 Mar 2025 20:01:39 -0600
-Subject: [PATCH v3] New configuration CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT
-In-Reply-To: <CA+-5cKft3U5CSvje47tcqkRdQMAU1kYxYeKUdSRA+E0ZTW7sVg@mail.gmail.com>
-References: <20250115234607.410148-1-Raj.Vishwanathan@gmail.com>
- <20250127202017.1043240-1-Raj.Vishwanathan@gmail.com>
- <CAK9=C2XT1HGr+wih9YJ=vgXnxrgPrFH1JKHpS=wp4miOAnPo+A@mail.gmail.com>
- <CA+-5cKft3U5CSvje47tcqkRdQMAU1kYxYeKUdSRA+E0ZTW7sVg@mail.gmail.com>
-Message-ID: <7ad7f8cf-e89c-4ed2-8671-3c3b36a0593e@sifive.com>
+From: Xiang W <wxjstz@126.com>
+Date: Thu, 06 Mar 2025 10:18:02 +0800
+Subject: [PATCH] lib: sbi_trap: Add support for vectored interrupts
+In-Reply-To: <20250305014729.3143535-1-samuel.holland@sifive.com>
+References: <d3efe4c5-d9cc-4664-a779-40fb5cafd427@sysgo.com>
+	 <20250305014729.3143535-1-samuel.holland@sifive.com>
+Message-ID: <df5bafa03314aaccc4458a2aa3762f3fa680c71e.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Raj,
-
-On 2025-03-04 6:31 PM, Raj Vishwanathan wrote:
-> Hi Anup
+? 2025-03-04?? 17:45 -0800?Samuel Holland???
+> When redirecting an exception to S-mode, transform the (v)stvec CSR
+> value as described in the privileged spec to derive the S-mode PC.
+> Since OpenSBI never redirects interrupts, only synchronous exceptions,
+> the only action needed is to mask out the (v)stvec.MODE field.
 > 
-> I have been reviewing your suggestions, and I am a bit confused by them.
+> Reported-by: Jan Reinhard <jan.reinhard@sysgo.com>
+> Closes: https://github.com/riscv-software-src/opensbi/issues/391
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+> ---
+> Hi Jan,
 > 
-> ---------------------- Snipped to retain only the relevant bits
-> --------------------------
->  The scratch allocation happens too early in the boot to get the
-> platform override  return values (from parsing the device tree.)
+> Thanks for your bug report and the patch!
+> 
+> OpenSBI requires patches to be signed off in accordance with the
+> Developer Certificate of Origin (DCO)[1], and sent as complete commits
+> as with git format-patch/git send-email.
+> 
+> Since the fix is trivial now that we are aware of the bug, I took the
+> liberty of sending a more complete patch, so you don't have to deal with
+> a bunch of processes just to get the bug fixed. If you'd rather resend
+> your own patch per the Contribution Guidelines[1], that is fine too.
+> 
+> Regards,
+> Samuel
+> 
+> [1]: https://github.com/riscv-software-src/opensbi/blob/master/docs/contributing.md
+> 
+> ?include/sbi/riscv_encoding.h | 2 ++
+> ?lib/sbi/sbi_trap.c?????????? | 4 ++--
+> ?2 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> index 03c68a57..1846d750 100644
+> --- a/include/sbi/riscv_encoding.h
+> +++ b/include/sbi/riscv_encoding.h
+> @@ -85,6 +85,8 @@
+> ?#define HSTATUS_GVA			_UL(0x00000040)
+> ?#define HSTATUS_VSBE			_UL(0x00000020)
+> ?
+> +#define MTVEC_MODE			_UL(0x00000003)
+> +
+> ?#define MCAUSE_IRQ_MASK			(_UL(1) << (__riscv_xlen - 1))
+> ?
+> ?#define IRQ_S_SOFT			1
+> diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
+> index e63a563b..f41db4d1 100644
+> --- a/lib/sbi/sbi_trap.c
+> +++ b/lib/sbi/sbi_trap.c
+> @@ -169,7 +169,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> ?		csr_write(CSR_VSCAUSE, trap->cause);
+> ?
+> ?		/* Set MEPC to VS-mode exception vector base */
+> -		regs->mepc = csr_read(CSR_VSTVEC);
+> +		regs->mepc = csr_read(CSR_VSTVEC) & ~MTVEC_MODE;
+> ?
+> ?		/* Set MPP to VS-mode */
+> ?		regs->mstatus &= ~MSTATUS_MPP;
+> @@ -204,7 +204,7 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
+> ?		csr_write(CSR_SCAUSE, trap->cause);
+> ?
+> ?		/* Set MEPC to S-mode exception vector base */
+> -		regs->mepc = csr_read(CSR_STVEC);
+> +		regs->mepc = csr_read(CSR_STVEC) & ~MTVEC_MODE;
+> ?
+> ?		/* Set MPP to S-mode */
+> ?		regs->mstatus &= ~MSTATUS_MPP;
 
-Overrides for the generic platform happen in fw_platform_init(), which is called
-before scratch space is set up. This function also already has logic to parse
-properties of harts from the devicetree, so it is a good place to put your new
-override logic.
+We don't need to work with the low bits of xTVEC because spec requires:
 
-> The other issue is that riscv,cbom-block-size is a per-hart value and
-> testing all kinds of combinations may become unnecessarily
-> complicated.
+-------------------------------------------------------------------------------------------------------
+3.1.14. Machine Exception Program Counter (mepc)
 
-If the goal is to have each allocation in a separate cache line, then you always
-want the maximum value across all harts, right?
+mepc is an MXLEN-bit read/write register formatted as shown in Figure 21. The low bit of mepc
+(mepc[0]) is always zero. On implementations that support only IALIGN=32, the two low bits
+(mepc[1:0]) are always zero.
 
-> If the general configuration value is not acceptable, I can move the
-> configuration to a platform specific configuration.
+If an implementation allows IALIGN to be either 16 or 32 (by changing CSR misa, for example), then,
+whenever IALIGN=32, bit mepc[1] is masked on reads so that it appears to be 0. This masking occurs
+also for the implicit read by the MRET instruction. Though masked, mepc[1] remains writable when
+IALIGN=32.
 
-As Anup said, we want to avoid build-time configuration as much as possible, so
-a single OpenSBI binary can run on the widest variety of platforms. So a runtime
-override is the best way to go, even if it requires some refactoring.
+mepc is a WARL register that must be able to hold all valid virtual addresses. It need not be capable of
+holding all possible invalid addresses. Prior to writing mepc, implementations may convert an invalid
+address into some other invalid address that mepc is capable of holding.
+-------------------------------------------------------------------------------------------------------
 
 Regards,
-Samuel
+Xiang W
 
-> Let me know your thoughts
+> -- 
+> 2.47.2
 > 
-> 
-> On Mon, Feb 10, 2025 at 8:45?PM Anup Patel <apatel@ventanamicro.com> wrote:
-> 
->> Introducing a kconfig option is not going to fly since we have to
->> re-compile separately for platforms while we are trying our best
->> to support the same firmware binary for multiple platforms.
->>
->> Instead, I suggest the following:
->> 1) The default scratch allocation alignment can be __SIZEOF_POINTER__
->> 2) Introduce get_cache_line_size() operation in "struct sbi_platform_operations"
->>     which platforms can use to return desired "cache line size for allocations".
->> 3) For generic platform, the get_cache_line_size() return value can be based
->>     on the "riscv,cbom-block-size" property of CPU DT nodes OR based on
->>     platform_overrride.
->> 4) The sbi_scratch_init() should sanity check the value returned by platform
->>      get_cache_line_size() before using it as minimum allocation size for
->>      scratch allocations.
->>
->> Regards,
->> Anup
->>
->>
->>>  endmenu
->>> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
->>> index ccbbc68..0f1be58 100644
->>> --- a/lib/sbi/sbi_scratch.c
->>> +++ b/lib/sbi/sbi_scratch.c
->>> @@ -14,6 +14,16 @@
->>>  #include <sbi/sbi_scratch.h>
->>>  #include <sbi/sbi_string.h>
->>>
->>> +/*
->>> + * We do the scratch allocation on the basis of a user configuration.
->>> + */
->>> +#if !defined(CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT) || (CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT==0)
->>> +#define SCRATCH_ALLOC_ALIGNMENT __SIZEOF_POINTER__
->>> +#else
->>> +#define SCRATCH_ALLOC_ALIGNMENT CONFIG_SBI_SCRATCH_ALLOC_ALIGNMENT
->>> +#endif
->>> +
->>> +
->>>  u32 last_hartindex_having_scratch = 0;
->>>  u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
->>>  struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
->>> @@ -70,8 +80,8 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
->>>         if (!size)
->>>                 return 0;
->>>
->>> -       size += __SIZEOF_POINTER__ - 1;
->>> -       size &= ~((unsigned long)__SIZEOF_POINTER__ - 1);
->>> +       size += SCRATCH_ALLOC_ALIGNMENT- 1;
->>> +       size &= ~((unsigned long)SCRATCH_ALLOC_ALIGNMENT - 1);
->>>
->>>         spin_lock(&extra_lock);
->>>
->>> --
->>> 2.43.0
->>>
->>>
->>> --
->>> opensbi mailing list
->>> opensbi at lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/opensbi
 > 
 
 
