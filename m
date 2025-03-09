@@ -1,120 +1,195 @@
-From: Atish Kumar Patra <atishp@rivosinc.com>
-Date: Fri, 7 Mar 2025 10:00:40 -0800
-Subject: [PATCH v3] lib: sbi: Enable Control Transfer Records (CTR) Ext
- using xstateen.
-In-Reply-To: <20250307124451.122828-1-rkanwal@rivosinc.com>
-References: <20250307124451.122828-1-rkanwal@rivosinc.com>
-Message-ID: <CAHBxVyFuiDRQhMkV7SV7toDCt6atNJT4cpkPG=aevVMfH_vx1w@mail.gmail.com>
+From: Raj Vishwanathan <raj.vishwanathan@gmail.com>
+Date: Sun,  9 Mar 2025 07:44:17 -0700
+Subject: [PATCH v4] Set the scratch allocation to alignment to cacheline size.
+In-Reply-To: <20250127202017.1043240-1-Raj.Vishwanathan@gmail.com>
+References: <20250127202017.1043240-1-Raj.Vishwanathan@gmail.com>
+Message-ID: <20250309144417.36572-1-Raj.Vishwanathan@gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 7, 2025 at 4:44?AM Rajnesh Kanwal <rkanwal@rivosinc.com> wrote:
->
-> The Control Transfer Records (CTR) extension provides a method to
-> record a limited branch history in register-accessible internal chip
-> storage.
->
-> This extension is similar to Arch LBR in x86 and BRBE in ARM.
-> The Extension has been stable and the latest release can be found here
-> https://github.com/riscv/riscv-control-transfer-records/release
->
-> Signed-off-by: Rajnesh Kanwal <rkanwal@rivosinc.com>
->
-> ---
-> Changes in V3:
->         Removed FWFT bit. It was discussed in tech-prs group to
->         use trap and enable approach rather than FWFT bit. Trap
->         and enable approach leads to letter number of traps than
->         enabling and disabling FWFT bit on each CTR usage.
->         https://lists.riscv.org/g/tech-prs/message/1339
->
-> Changes in V2:
->         Added FWFT bit for CTR.
-> ---
->  include/sbi/riscv_encoding.h | 13 +++++++++++++
->  include/sbi/sbi_hart.h       |  4 ++++
->  lib/sbi/sbi_hart.c           |  7 +++++++
->  3 files changed, 24 insertions(+)
->
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index 03c68a57..f3e2afd5 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -375,6 +375,17 @@
->  #define CSR_SSTATEEN2                  0x10E
->  #define CSR_SSTATEEN3                  0x10F
->
-> +/* Machine-Level Control transfer records CSRs */
-> +#define CSR_MCTRCTL                     0x34e
-> +
-> +/* Supervisor-Level Control transfer records CSRs */
-> +#define CSR_SCTRCTL                     0x14e
-> +#define CSR_SCTRSTATUS                  0x14f
-> +#define CSR_SCTRDEPTH                   0x15f
-> +
-> +/* VS-Level Control transfer records CSRs */
-> +#define CSR_VSCTRCTL                    0x24e
-> +
->  /* ===== Hypervisor-level CSRs ===== */
->
->  /* Hypervisor Trap Setup (H-extension) */
-> @@ -799,6 +810,8 @@
->  #define SMSTATEEN0_CS                  (_ULL(1) << SMSTATEEN0_CS_SHIFT)
->  #define SMSTATEEN0_FCSR_SHIFT          1
->  #define SMSTATEEN0_FCSR                        (_ULL(1) << SMSTATEEN0_FCSR_SHIFT)
-> +#define SMSTATEEN0_CTR_SHIFT           54
-> +#define SMSTATEEN0_CTR                 (_ULL(1) << SMSTATEEN0_CTR_SHIFT)
->  #define SMSTATEEN0_CONTEXT_SHIFT       57
->  #define SMSTATEEN0_CONTEXT             (_ULL(1) << SMSTATEEN0_CONTEXT_SHIFT)
->  #define SMSTATEEN0_IMSIC_SHIFT         58
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 4c36c778..c3a7feb7 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -75,6 +75,10 @@ enum sbi_hart_extensions {
->         SBI_HART_EXT_ZICFISS,
->         /** Hart has Ssdbltrp extension */
->         SBI_HART_EXT_SSDBLTRP,
-> +       /** HART has CTR M-mode CSRs */
-> +       SBI_HART_EXT_SMCTR,
-> +       /** HART has CTR S-mode CSRs */
-> +       SBI_HART_EXT_SSCTR,
->
->         /** Maximum index of Hart extension */
->         SBI_HART_EXT_MAX,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 8e2979b5..c343805c 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -105,6 +105,11 @@ static void mstatus_init(struct sbi_scratch *scratch)
->                 else
->                         mstateen_val &= ~(SMSTATEEN0_SVSLCT);
->
-> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCTR))
-> +                       mstateen_val |= SMSTATEEN0_CTR;
-> +               else
-> +                       mstateen_val &= ~SMSTATEEN0_CTR;
-> +
->                 csr_write(CSR_MSTATEEN0, mstateen_val);
->  #if __riscv_xlen == 32
->                 csr_write(CSR_MSTATEEN0H, mstateen_val >> 32);
-> @@ -688,6 +693,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
->         __SBI_HART_EXT_DATA(zicfilp, SBI_HART_EXT_ZICFILP),
->         __SBI_HART_EXT_DATA(zicfiss, SBI_HART_EXT_ZICFISS),
->         __SBI_HART_EXT_DATA(ssdbltrp, SBI_HART_EXT_SSDBLTRP),
-> +       __SBI_HART_EXT_DATA(smctr, SBI_HART_EXT_SMCTR),
-> +       __SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
->  };
->
+We set the scratch allocation alignment to cacheline size,specified by
+riscv,cbom-block-size in the dts file to avoid two atomic variables from
+the same cache line causing livelock on some platforms. If the cacheline
+is not specified, we set it a default value.
 
-LGTM.
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
+---
+Changes in V3:
+    Remove platform specific references to 64 Bytes.
+Changes in V2:
+    Added a new configuration to get the alignment size.
+Change in V1:
+    Original Patch
+---
+ include/sbi/sbi_platform.h         |  2 ++
+ include/sbi_utils/fdt/fdt_helper.h |  1 +
+ lib/sbi/sbi_scratch.c              | 34 ++++++++++++++++++++++++++++--
+ lib/utils/fdt/fdt_helper.c         | 24 +++++++++++++++++++++
+ platform/generic/platform.c        |  9 ++++++++
+ 5 files changed, 68 insertions(+), 2 deletions(-)
 
->  _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
-> --
-> 2.43.0
->
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 6d5fbc7..0cea0fe 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -197,6 +197,8 @@ struct sbi_platform {
+ 	 * 2. HART id < SBI_HARTMASK_MAX_BITS
+ 	 */
+ 	const u32 *hart_index2id;
++	/** Allocation alignment for Scratch */
++	u32 cbom_block_size;
+ };
+ 
+ /**
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 7329b84..0b82159 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -55,6 +55,7 @@ bool fdt_node_is_enabled(const void *fdt, int nodeoff);
+ 
+ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid);
+ 
++int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, u32 *cbom_block_size);
+ int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
+ 
+ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
+diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+index ccbbc68..8df54cc 100644
+--- a/lib/sbi/sbi_scratch.c
++++ b/lib/sbi/sbi_scratch.c
+@@ -14,6 +14,8 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
+ 
++#define DEFAULT_SCRATCH_ALLOC_ALIGN __SIZEOF_POINTER__
++
+ u32 last_hartindex_having_scratch = 0;
+ u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
+ struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
+@@ -21,6 +23,27 @@ struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0
+ static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+ static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
+ 
++static u32 sbi_get_scratch_alloc_align(void)
++{
++	struct sbi_scratch *rscratch;
++	const struct sbi_platform *plat;
++	u32 hartid;
++	u32 hart_index;
++	/*
++	 * Get the alignment size. We will return DEFAULT_SCRATCH_ALLOC_ALIGNMENT
++	 * or riscv,cbom_block_size
++	 */
++	hartid = current_hartid();
++	hart_index = sbi_hartid_to_hartindex(hartid);
++	rscratch = sbi_hartindex_to_scratch(hart_index);
++	if (!rscratch)
++		return DEFAULT_SCRATCH_ALLOC_ALIGN;
++	plat = sbi_platform_ptr(rscratch);
++	if (!plat)
++		return DEFAULT_SCRATCH_ALLOC_ALIGN;
++	return plat->cbom_block_size ? plat->cbom_block_size : \
++									DEFAULT_SCRATCH_ALLOC_ALIGN;
++}
+ u32 sbi_hartid_to_hartindex(u32 hartid)
+ {
+ 	u32 i;
+@@ -57,6 +80,7 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
+ 	void *ptr;
+ 	unsigned long ret = 0;
+ 	struct sbi_scratch *rscratch;
++	u32 scratch_alloc_align = 0;
+ 
+ 	/*
+ 	 * We have a simple brain-dead allocator which never expects
+@@ -70,8 +94,14 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
+ 	if (!size)
+ 		return 0;
+ 
+-	size += __SIZEOF_POINTER__ - 1;
+-	size &= ~((unsigned long)__SIZEOF_POINTER__ - 1);
++	scratch_alloc_align = sbi_get_scratch_alloc_align();
++
++	/*
++     * We let the allocation align to cacheline bytes to avoid livelock on
++     * certain platforms due to atomic variables from the same cache line.
++     */
++    size += scratch_alloc_align - 1;
++    size &= ~((unsigned long)scratch_alloc_align - 1);
+ 
+ 	spin_lock(&extra_lock);
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index cb350e5..bea4fdc 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -287,6 +287,30 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid)
+ 
+ 	return 0;
+ }
++int fdt_parse_cbom_block_size(const void *fdt,int cpu_offset,u32 *cbom_block_size)
++{
++    int len;
++    const void *prop;
++    const fdt32_t *val;
++
++    if (!fdt || cpu_offset < 0)
++        return SBI_EINVAL;
++
++    prop = fdt_getprop(fdt, cpu_offset, "device_type", &len);
++    if (!prop || !len)
++        return SBI_EINVAL;
++    if (strncmp (prop, "cpu", strlen ("cpu")))
++        return SBI_EINVAL;
++
++    val = fdt_getprop(fdt, cpu_offset, "riscv,cbom-block-size", &len);
++    if (!val || len < sizeof(fdt32_t))
++        return SBI_EINVAL;
++
++    if (cbom_block_size)
++        *cbom_block_size = fdt32_to_cpu(*val);
++    return 0;
++
++}
+ 
+ int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid)
+ {
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index c03ed88..53abf0b 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -174,6 +174,9 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 	const void *fdt = (void *)arg1;
+ 	u32 hartid, hart_count = 0;
+ 	int rc, root_offset, cpus_offset, cpu_offset, len;
++	u32 cbom_block_size = __SIZEOF_POINTER__;
++	u32 tmp;
++
+ 
+ 	root_offset = fdt_path_offset(fdt, "/");
+ 	if (root_offset < 0)
+@@ -207,11 +210,17 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 			continue;
+ 
+ 		generic_hart_index2id[hart_count++] = hartid;
++		rc = fdt_parse_cbom_block_size(fdt, cpu_offset,&tmp);
++		if (rc)
++			continue;
++		tmp = tmp ? tmp : __SIZEOF_POINTER__;
++		cbom_block_size = MAX(tmp,cbom_block_size);
+ 	}
+ 
+ 	platform.hart_count = hart_count;
+ 	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
+ 	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
++	platform.cbom_block_size = cbom_block_size;
+ 
+ 	fw_platform_coldboot_harts_init(fdt);
+ 
+-- 
+2.43.0
+
 
