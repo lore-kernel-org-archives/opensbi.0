@@ -1,118 +1,130 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 16 Mar 2025 11:56:16 +0530
-Subject: [PATCH 1/2] sbi: Introduce sbi_hartmask_weight
-In-Reply-To: <20250314163021.154530-5-ajones@ventanamicro.com>
-References: <20250314163021.154530-4-ajones@ventanamicro.com> <20250314163021.154530-5-ajones@ventanamicro.com>
-Message-ID: <CAAhSdy0UdyQgyvmz2d-KZ+rp=3==_SmtVGMHJZk=MJ6pcG7amQ@mail.gmail.com>
+Date: Sun, 16 Mar 2025 11:59:30 +0530
+Subject: [PATCH 2/2] lib: sbi_ipi: Return error for invalid hartids
+In-Reply-To: <CAK9=C2W9bv9rEB2OKf=cXj9WR=T_1ygCwJ+NOdMtec=EjJaiNQ@mail.gmail.com>
+References: <20250314163021.154530-4-ajones@ventanamicro.com>
+ <20250314163021.154530-6-ajones@ventanamicro.com> <c3d6baae077d2ee5015e709edd477002f23a8fe1.camel@126.com>
+ <20250315-3b8fa85cf3a12cf25ebda46e@orel> <CAK9=C2W9bv9rEB2OKf=cXj9WR=T_1ygCwJ+NOdMtec=EjJaiNQ@mail.gmail.com>
+Message-ID: <CAAhSdy2E8_thcV_n3gLYjK29wNrdcv7PUth2NKdhE=su0H9uYA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 14, 2025 at 10:00?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+On Sat, Mar 15, 2025 at 4:50?PM Anup Patel <apatel@ventanamicro.com> wrote:
 >
-> Provide a function to count the number of set bits in a hartmask,
-> which builds on a new function for the same that operates on a
-> bitmask. While at it, improve the performance of sbi_popcount()
-> which is used in the implementation.
+> On Sat, Mar 15, 2025 at 4:20?PM Andrew Jones <ajones@ventanamicro.com> wrote:
+> >
+> > On Sat, Mar 15, 2025 at 12:19:30PM +0800, Xiang W wrote:
+> > > ? 2025-03-14?? 17:30 +0100?Andrew Jones???
+> > > > sbi_send_ipi() should return SBI_ERR_INVALID_PARAM if even one hartid
+> > > > constructed from hart_mask_base and hart_mask, is not valid.
+> > > >
+> > > > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> > > > ---
+> > > >  lib/sbi/sbi_ipi.c | 9 +++++++++
+> > > >  1 file changed, 9 insertions(+)
+> > > >
+> > > > diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> > > > index 52898d302376..2de459b089ff 100644
+> > > > --- a/lib/sbi/sbi_ipi.c
+> > > > +++ b/lib/sbi/sbi_ipi.c
+> > > > @@ -116,6 +116,11 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+> > > >     struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> > > >     struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+> > > >
+> > > > +   if (hmask == 0 && hbase != -1UL) {
+> > > > +           /* Nothing to do, but it's not an error either. */
+> > > > +           return 0;
+> > > > +   }
+> > > > +
+> > > A modification here would change the original intent of the function.
+> > > lib/sbi/sbi_system.c#L72 will eventually call sbi_ipi_send_many(0, -1, ...)
+> >
+> > How could the above condition affect that call where hbase == -1? This
+> > condition explicitly checks that hbase != -1.
+> >
+> > > for sending ipi interrupts to all harts, this modification breaks
+> > > sbi_system_reset
+> >
+> > Is that an assertion based on a failed test? Because it looks like it
+> > should still work to me.
+> >
+> > (kvm-unit-tests SBI testing also tests IPI broadcast, and it's still
+> > passing.)
 >
-> Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
+> sbi_ipi_send_many() is an internal function used from a variety of
+> places. Xiang concern is correct because for system reset should
+> HALT all CPUs before issuing the actual platform specific reset
+> operation. If we have to change something then sbi_ipi_send_smode()
+> is the right place because that's the function called via SBI calls.
+>
+> Now hart_mask = 0 and hart_mask_base = -1UL are indeed valid
+> parameters and represents "All HARTs" as-per SBI spec. Refer,
+> the following text from "3.1. Hart list parameter":
+>
+> "In a single SBI function call, the maximum number of harts that
+> can be set is always XLEN. If a lower privilege mode needs to
+> pass information about more than XLEN harts, it must invoke the
+> SBI function multiple times. hart_mask_base can be set to -1 to
+> indicate that hart_mask shall be ignored and all available harts
+> must be considered."
+>
+> In the "Table 7. IPI Send Errors" should be further refined to say
+> the following for SBI_ERR_INVALID_PARAM:
+>
+> "At least one hartid constructed from hart_mask_base and
+> hart_mask as-per section 3.1 , is not valid, i.e. either the hartid
+> is not enabled by the platform or is not available to the supervisor."
 
-LGTM.
+Please ignore this comment. I misread the "if ()" check added by
+this patch. Indeed, the sbi_ipi_send_many(0, -1, ...) call from system
+reset won't be impacted by "if (hmask == 0 && hbase != -1UL)" in
+sbi_ipi_send_many().
+
+Apologies for the noise.
 
 Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Regards,
 Anup
 
-> ---
->  include/sbi/sbi_bitmap.h   | 13 +++++++++++++
->  include/sbi/sbi_bitops.h   | 22 +++++++++++++++-------
->  include/sbi/sbi_hartmask.h | 11 +++++++++++
->  3 files changed, 39 insertions(+), 7 deletions(-)
 >
-> diff --git a/include/sbi/sbi_bitmap.h b/include/sbi/sbi_bitmap.h
-> index 354476c9dd81..596bcc7daa87 100644
-> --- a/include/sbi/sbi_bitmap.h
-> +++ b/include/sbi/sbi_bitmap.h
-> @@ -130,4 +130,17 @@ static inline void bitmap_xor(unsigned long *dst, const unsigned long *src1,
->                 __bitmap_xor(dst, src1, src2, nbits);
->  }
+> Regards,
+> Anup
 >
-> +static inline int bitmap_weight(const unsigned long *src, int nbits)
-> +{
-> +       int i, res = 0;
-> +
-> +       for (i = 0; i < nbits / BITS_PER_LONG; i++)
-> +               res += sbi_popcount(src[i]);
-> +
-> +       if (nbits % BITS_PER_LONG)
-> +               res += sbi_popcount(src[i] & BITMAP_LAST_WORD_MASK(nbits));
-> +
-> +       return res;
-> +}
-> +
->  #endif
-> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
-> index 3ddac777d887..d7825e81ea05 100644
-> --- a/include/sbi/sbi_bitops.h
-> +++ b/include/sbi/sbi_bitops.h
-> @@ -125,14 +125,22 @@ static inline unsigned long sbi_fls(unsigned long word)
->   */
->  static inline unsigned long sbi_popcount(unsigned long word)
->  {
-> -       unsigned long count = 0;
-> +       unsigned long count;
->
-> -       while (word) {
-> -               word &= word - 1;
-> -               count++;
-> -       }
-> -
-> -       return count;
-> +#if BITS_PER_LONG == 64
-> +       count = word - ((word >> 1) & 0x5555555555555555ul);
-> +       count = (count & 0x3333333333333333ul) + ((count >> 2) & 0x3333333333333333ul);
-> +       count = (count + (count >> 4)) & 0x0F0F0F0F0F0F0F0Ful;
-> +       count = count + (count >> 8);
-> +       count = count + (count >> 16);
-> +       return (count + (count >> 32)) & 0x00000000000000FFul;
-> +#else
-> +       count = word - ((word >> 1) & 0x55555555);
-> +       count = (count & 0x33333333) + ((count >> 2) & 0x33333333);
-> +       count = (count + (count >> 4)) & 0x0F0F0F0F;
-> +       count = count + (count >> 8);
-> +       return (count + (count >> 16)) & 0x000000FF;
-> +#endif
->  }
->
->  #define for_each_set_bit(bit, addr, size) \
-> diff --git a/include/sbi/sbi_hartmask.h b/include/sbi/sbi_hartmask.h
-> index 07a8c076bd0a..200ab6e53e4c 100644
-> --- a/include/sbi/sbi_hartmask.h
-> +++ b/include/sbi/sbi_hartmask.h
-> @@ -181,6 +181,17 @@ static inline void sbi_hartmask_xor(struct sbi_hartmask *dstp,
->                    sbi_hartmask_bits(src2p), SBI_HARTMASK_MAX_BITS);
->  }
->
-> +/**
-> + * Count of bits in *srcp
-> + * @param srcp the hartmask to count bits in
-> + *
-> + * Return: count of bits set in *srcp
-> + */
-> +static inline int sbi_hartmask_weight(const struct sbi_hartmask *srcp)
-> +{
-> +       return bitmap_weight(sbi_hartmask_bits(srcp), SBI_HARTMASK_MAX_BITS);
-> +}
-> +
->  /**
->   * Iterate over each HART index in hartmask
->   * __i hart index
-> --
-> 2.48.1
->
+> >
+> > drew
+> >
+> > >
+> > > Regards,
+> > > Xiang W
+> > > >     /* Find the target harts */
+> > > >     rc = sbi_hsm_hart_interruptible_mask(dom, &target_mask);
+> > > >     if (rc)
+> > > > @@ -123,6 +128,7 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+> > > >
+> > > >     if (hbase != -1UL) {
+> > > >             struct sbi_hartmask tmp_mask = { 0 };
+> > > > +           int count = sbi_popcount(hmask);
+> > > >
+> > > >             for (i = hbase; hmask; i++, hmask >>= 1) {
+> > > >                     if (hmask & 1UL)
+> > > > @@ -130,6 +136,9 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+> > > >             }
+> > > >
+> > > >             sbi_hartmask_and(&target_mask, &target_mask, &tmp_mask);
+> > > > +
+> > > > +           if (sbi_hartmask_weight(&target_mask) != count)
+> > > > +                   return SBI_EINVAL;
+> > > >     }
+> > > >
+> > > >     /* Send IPIs */
+> > > > --
+> > > > 2.48.1
+> > > >
+> > >
 >
 > --
 > opensbi mailing list
