@@ -1,10 +1,10 @@
 From: Xiang W <wxjstz@126.com>
-Date: Sun, 16 Mar 2025 14:46:46 +0800
-Subject: [PATCH 1/2] sbi: Introduce sbi_hartmask_weight
-In-Reply-To: <20250314163021.154530-5-ajones@ventanamicro.com>
+Date: Mon, 17 Mar 2025 12:56:59 +0800
+Subject: [PATCH 2/2] lib: sbi_ipi: Return error for invalid hartids
+In-Reply-To: <20250314163021.154530-6-ajones@ventanamicro.com>
 References: <20250314163021.154530-4-ajones@ventanamicro.com>
-	 <20250314163021.154530-5-ajones@ventanamicro.com>
-Message-ID: <f40f3c722837acc104294e3031a5f279f10b18cb.camel@126.com>
+	 <20250314163021.154530-6-ajones@ventanamicro.com>
+Message-ID: <280f0d644396086c1e70c2ca4353ade3e37e2711.camel@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -12,101 +12,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 ? 2025-03-14?? 17:30 +0100?Andrew Jones???
-> Provide a function to count the number of set bits in a hartmask,
-> which builds on a new function for the same that operates on a
-> bitmask. While at it, improve the performance of sbi_popcount()
-> which is used in the implementation.
+> sbi_send_ipi() should return SBI_ERR_INVALID_PARAM if even one hartid
+> constructed from hart_mask_base and hart_mask, is not valid.
 > 
 > Signed-off-by: Andrew Jones <ajones@ventanamicro.com>
 > ---
-> ?include/sbi/sbi_bitmap.h?? | 13 +++++++++++++
-> ?include/sbi/sbi_bitops.h?? | 22 +++++++++++++++-------
-> ?include/sbi/sbi_hartmask.h | 11 +++++++++++
-> ?3 files changed, 39 insertions(+), 7 deletions(-)
+> ?lib/sbi/sbi_ipi.c | 9 +++++++++
+> ?1 file changed, 9 insertions(+)
 > 
-> diff --git a/include/sbi/sbi_bitmap.h b/include/sbi/sbi_bitmap.h
-> index 354476c9dd81..596bcc7daa87 100644
-> --- a/include/sbi/sbi_bitmap.h
-> +++ b/include/sbi/sbi_bitmap.h
-> @@ -130,4 +130,17 @@ static inline void bitmap_xor(unsigned long *dst, const unsigned long *src1,
-> ?		__bitmap_xor(dst, src1, src2, nbits);
-> ?}
+> diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
+> index 52898d302376..2de459b089ff 100644
+> --- a/lib/sbi/sbi_ipi.c
+> +++ b/lib/sbi/sbi_ipi.c
+> @@ -116,6 +116,11 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+> ?	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+> ?	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 > ?
-> +static inline int bitmap_weight(const unsigned long *src, int nbits)
-> +{
-> +	int i, res = 0;
+> +	if (hmask == 0 && hbase != -1UL) {
+> +		/* Nothing to do, but it's not an error either. */
+> +		return 0;
+> +	}
 > +
-> +	for (i = 0; i < nbits / BITS_PER_LONG; i++)
-> +		res += sbi_popcount(src[i]);
-> +
-> +	if (nbits % BITS_PER_LONG)
-> +		res += sbi_popcount(src[i] & BITMAP_LAST_WORD_MASK(nbits));
-> +
-> +	return res;
-> +}
-> +
-> ?#endif
-> diff --git a/include/sbi/sbi_bitops.h b/include/sbi/sbi_bitops.h
-> index 3ddac777d887..d7825e81ea05 100644
-> --- a/include/sbi/sbi_bitops.h
-> +++ b/include/sbi/sbi_bitops.h
-> @@ -125,14 +125,22 @@ static inline unsigned long sbi_fls(unsigned long word)
-> ? */
-> ?static inline unsigned long sbi_popcount(unsigned long word)
-> ?{
-> -	unsigned long count = 0;
-> +	unsigned long count;
+> ?	/* Find the target harts */
+> ?	rc = sbi_hsm_hart_interruptible_mask(dom, &target_mask);
+> ?	if (rc)
+> @@ -123,6 +128,7 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
 > ?
-> -	while (word) {
-> -		word &= word - 1;
-> -		count++;
-> -	}
-> -
-> -	return count;
-> +#if BITS_PER_LONG == 64
-> +	count = word - ((word >> 1) & 0x5555555555555555ul);
-> +	count = (count & 0x3333333333333333ul) + ((count >> 2) & 0x3333333333333333ul);
-> +	count = (count + (count >> 4)) & 0x0F0F0F0F0F0F0F0Ful;
-> +	count = count + (count >> 8);
-> +	count = count + (count >> 16);
-> +	return (count + (count >> 32)) & 0x00000000000000FFul;
-> +#else
-> +	count = word - ((word >> 1) & 0x55555555);
-> +	count = (count & 0x33333333) + ((count >> 2) & 0x33333333);
-> +	count = (count + (count >> 4)) & 0x0F0F0F0F;
-> +	count = count + (count >> 8);
-> +	return (count + (count >> 16)) & 0x000000FF;
-> +#endif
-This is an optimisation that can be put into a separate patch
+> ?	if (hbase != -1UL) {
+> ?		struct sbi_hartmask tmp_mask = { 0 };
+> +		int count = sbi_popcount(hmask);
+> ?
+> ?		for (i = hbase; hmask; i++, hmask >>= 1) {
+> ?			if (hmask & 1UL)
+> @@ -130,6 +136,9 @@ int sbi_ipi_send_many(ulong hmask, ulong hbase, u32 event, void *data)
+> ?		}
+> ?
+> ?		sbi_hartmask_and(&target_mask, &target_mask, &tmp_mask);
+> +
+> +		if (sbi_hartmask_weight(&target_mask) != count)
+> +			return SBI_EINVAL;
+If hmask is equal to 0 and hbase is equal to -1, count will be 0.
+This will always return SBI_EINVAL. Need to add some code to skip 
+this case
 
 Regards,
 Xiang W
-
-> ?}
+> ?	}
 > ?
-> ?#define for_each_set_bit(bit, addr, size) \
-> diff --git a/include/sbi/sbi_hartmask.h b/include/sbi/sbi_hartmask.h
-> index 07a8c076bd0a..200ab6e53e4c 100644
-> --- a/include/sbi/sbi_hartmask.h
-> +++ b/include/sbi/sbi_hartmask.h
-> @@ -181,6 +181,17 @@ static inline void sbi_hartmask_xor(struct sbi_hartmask *dstp,
-> ?		?? sbi_hartmask_bits(src2p), SBI_HARTMASK_MAX_BITS);
-> ?}
-> ?
-> +/**
-> + * Count of bits in *srcp
-> + * @param srcp the hartmask to count bits in
-> + *
-> + * Return: count of bits set in *srcp
-> + */
-> +static inline int sbi_hartmask_weight(const struct sbi_hartmask *srcp)
-> +{
-> +	return bitmap_weight(sbi_hartmask_bits(srcp), SBI_HARTMASK_MAX_BITS);
-> +}
-> +
-> ?/**
-> ? * Iterate over each HART index in hartmask
-> ? * __i hart index
+> ?	/* Send IPIs */
 > -- 
 > 2.48.1
 > 
