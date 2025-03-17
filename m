@@ -1,36 +1,45 @@
 From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 17 Mar 2025 11:54:20 +0100
-Subject: [PATCH 2/6] lib: sbi: sse: Fix format string for event invalid state
+Date: Mon, 17 Mar 2025 11:54:21 +0100
+Subject: [PATCH 3/6] lib: sbi: sse: Return SBI_EDENIED for read only parameters.
 In-Reply-To: <20250317105426.631243-1-cleger@rivosinc.com>
 References: <20250317105426.631243-1-cleger@rivosinc.com>
-Message-ID: <20250317105426.631243-3-cleger@rivosinc.com>
+Message-ID: <20250317105426.631243-4-cleger@rivosinc.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a missing newline and modify the display value of the event id to
-use hex representation.
+The SSE specification did specified that read only parameters should
+return SBI_EBADRANGE but was modified recently to return SBI_EDENIED.
 
 Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
 ---
- lib/sbi/sbi_sse.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sbi/sbi_sse.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 4722ddc4..a30fad54 100644
+index a30fad54..ac714b8a 100644
 --- a/lib/sbi/sbi_sse.c
 +++ b/lib/sbi/sbi_sse.c
-@@ -1268,7 +1268,7 @@ void sbi_sse_exit(struct sbi_scratch *scratch)
- 			goto skip;
+@@ -388,7 +388,7 @@ static int sse_event_set_hart_id_check(struct sbi_sse_event *e,
+ 	struct sbi_domain *hd = sbi_domain_thishart_ptr();
  
- 		if (sse_event_state(e) > SBI_SSE_STATE_REGISTERED) {
--			sbi_printf("Event %d in invalid state at exit",
-+			sbi_printf("Event 0x%x in invalid state at exit\n",
- 				   info->event_id);
- 			sse_event_set_state(e, SBI_SSE_STATE_UNUSED);
- 		}
+ 	if (!sse_event_is_global(e))
+-		return SBI_EBAD_RANGE;
++		return SBI_EDENIED;
+ 
+ 	if (!sbi_domain_is_assigned_hart(hd, sbi_hartid_to_hartindex(hartid)))
+ 		return SBI_EINVAL;
+@@ -444,7 +444,7 @@ static int sse_event_set_attr_check(struct sbi_sse_event *e, uint32_t attr_id,
+ 
+ 		return SBI_OK;
+ 	default:
+-		return SBI_EBAD_RANGE;
++		return SBI_EDENIED;
+ 	}
+ }
+ 
 -- 
 2.47.2
 
