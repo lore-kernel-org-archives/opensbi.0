@@ -1,81 +1,252 @@
-From: Anup Patel <anup@brainfault.org>
-Date: Sun, 23 Mar 2025 09:52:33 +0530
-Subject: [PATCH v2 4/4] lib: sbi: sbi_init: Allocate MPXY state for each domain
-In-Reply-To: <20250225011640.949660-5-alvinga@andestech.com>
-References: <20250225011640.949660-1-alvinga@andestech.com> <20250225011640.949660-5-alvinga@andestech.com>
-Message-ID: <CAAhSdy3KuUNYB2UOpGXDb3hC3N8-gV8ts5bwsQFJ3Xuvpxu1nA@mail.gmail.com>
+From: Alvin Che-Chia Chang(張哲嘉) <alvinga@andestech.com>
+Date: Sun, 23 Mar 2025 07:50:21 +0000
+Subject: [PATCH v2 2/4] lib: sbi_domain: Introduce per-domain MPXY state
+ data
+In-Reply-To: <CAAhSdy2qB9baH5bhq+sSYbDRhsGdSFrwc_xhbjeZnJqG2wbPxA@mail.gmail.com>
+References: <20250225011640.949660-1-alvinga@andestech.com>
+ <20250225011640.949660-3-alvinga@andestech.com>
+ <CAAhSdy2qB9baH5bhq+sSYbDRhsGdSFrwc_xhbjeZnJqG2wbPxA@mail.gmail.com>
+Message-ID: <SEYPR03MB6700E1692AC8E6C0C88C47F6A8A52@SEYPR03MB6700.apcprd03.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 25, 2025 at 6:47?AM Alvin Chang <alvinga@andestech.com> wrote:
+Hi Anup,
+
+> -----Original Message-----
+> From: Anup Patel <anup@brainfault.org>
+> Sent: Sunday, March 23, 2025 12:18 PM
+> To: Alvin Che-Chia Chang(???) <alvinga@andestech.com>
+> Cc: opensbi at lists.infradead.org; Yu-Chien Peter Lin <peter.lin@sifive.com>;
+> Yong Li <yong.li@intel.com>
+> Subject: Re: [PATCH v2 2/4] lib: sbi_domain: Introduce per-domain MPXY state
+> data
 >
-> Each domain need its own shared memory region. Adjust the
-> sbi_mpxy_init() after sbi_domain_finalize() so OpenSBI
-> can populate domains from device-tree and allocate their
-> own MPXY state.
+> [EXTERNAL MAIL]
+>
+> On Tue, Feb 25, 2025 at 6:47?AM Alvin Chang <alvinga@andestech.com>
+> wrote:
+> >
+> > When multiple supervisor domains need to communicate with OpenSBI
+> > through MPXY channel, they will allocate shared memory from their own
+> > memory region (e.g. using alloc_pages() in Linux; memalign() in OP-TEE
+> > OS), thus the MPXY state need to be per-domain and per-hart data.
+> >
+> > Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
+> > Co-developed-by: Yong Li <yong.li@intel.com>
+> > Signed-off-by: Yong Li <yong.li@intel.com>
+> > Reviewed-by: Alvin Chang <alvinga@andestech.com>
+> > ---
+> >  include/sbi/sbi_domain.h            |  1 +
+> >  include/sbi/sbi_domain_mpxy_state.h | 50
+> +++++++++++++++++++++++++++++
+> >  lib/sbi/objects.mk                  |  1 +
+> >  lib/sbi/sbi_domain.c                |  9 +++++-
+> >  lib/sbi/sbi_domain_mpxy_state.c     | 47
+> +++++++++++++++++++++++++++
+>
+> No need for a separate sbi_domain_mpxy_state.c and
+> sbi_domain_mpxy_state.h
+>
+> The sbi_mpxy_init() can do sbi_domain_register_data() instead of doing it very
+> early in sbi_domain_init. This means we can squash this change into your
+> PATCH3 and drop PATCH1.
 
-Even if MXPY shared memory is per-domain, it is the supervisor
-software running inside the domain that will set up the MPXY
-shared memory and there is no role of OpenSBI here.
-
-This patch is not needed.
+Good idea! It makes sense.
+I will test it and send PR v3 soon.
 
 Regards,
-Anup
+Alvin
 
 >
-> Signed-off-by: Yong Li <yong.li@intel.com>
-> Tested-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-> Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-> Tested-by: Alvin Chang <alvinga@andestech.com>
-> Reviewed-by: Alvin Chang <alvinga@andestech.com>
-> ---
->  lib/sbi/sbi_init.c | 16 ++++++++++------
->  1 file changed, 10 insertions(+), 6 deletions(-)
->
-> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> index 62c3268..e144e61 100644
-> --- a/lib/sbi/sbi_init.c
-> +++ b/lib/sbi/sbi_init.c
-> @@ -313,12 +313,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->                 sbi_hart_hang();
->         }
->
-> -       rc = sbi_mpxy_init(scratch);
-> -       if (rc) {
-> -               sbi_printf("%s: mpxy init failed (error %d)\n", __func__, rc);
-> -               sbi_hart_hang();
-> -       }
-> -
->         /*
->          * Note: Finalize domains after HSM initialization
->          * Note: Finalize domains before HART PMP configuration so
-> @@ -331,6 +325,16 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
->                 sbi_hart_hang();
->         }
->
-> +       /*
-> +        * Note: Each domain needs its own MPXY shared memory region.
-> +        * Note: Initialize the MPXY after sbi_domain_finalize().
-> +        */
-> +       rc = sbi_mpxy_init(scratch);
-> +       if (rc) {
-> +               sbi_printf("%s: mpxy init failed (error %d)\n", __func__, rc);
-> +               sbi_hart_hang();
-> +       }
-> +
->         /*
->          * Note: Platform final initialization should be after finalizing
->          * domains so that it sees correct domain assignment and PMP
-> --
-> 2.34.1
+> Regards,
+> Anup
 >
 >
-> --
-> opensbi mailing list
-> opensbi at lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+>
+>
+> >  5 files changed, 107 insertions(+), 1 deletion(-)  create mode 100644
+> > include/sbi/sbi_domain_mpxy_state.h
+> >  create mode 100644 lib/sbi/sbi_domain_mpxy_state.c
+> >
+> > diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h index
+> > e9cff0b..9d88234 100644
+> > --- a/include/sbi/sbi_domain.h
+> > +++ b/include/sbi/sbi_domain.h
+> > @@ -16,6 +16,7 @@
+> >  #include <sbi/sbi_hartmask.h>
+> >  #include <sbi/sbi_domain_context.h>
+> >  #include <sbi/sbi_domain_data.h>
+> > +#include <sbi/sbi_domain_mpxy_state.h>
+> >
+> >  struct sbi_scratch;
+> >
+> > diff --git a/include/sbi/sbi_domain_mpxy_state.h
+> > b/include/sbi/sbi_domain_mpxy_state.h
+> > new file mode 100644
+> > index 0000000..c5e3cdc
+> > --- /dev/null
+> > +++ b/include/sbi/sbi_domain_mpxy_state.h
+> > @@ -0,0 +1,50 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2024 Intel Corporation.
+> > + * Copyright (c) 2024-2025 Andes Technology Corporation.
+> > + */
+> > +
+> > +#ifndef __SBI_DOMAIN_MPXY_STATE_H__
+> > +#define __SBI_DOMAIN_MPXY_STATE_H__
+> > +
+> > +#include <sbi/sbi_types.h>
+> > +
+> > +struct sbi_domain;
+> > +struct mpxy_state;
+> > +
+> > +/**
+> > + * Get per-domain MPXY state pointer for a given domain and HART
+> > +index
+> > + * @param dom pointer to domain
+> > + * @param hartindex the HART index
+> > + *
+> > + * @return per-domain MPXY state pointer for given HART index  */
+> > +struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
+> > +                                            u32 hartindex);
+> > +
+> > +/**
+> > + * Set per-domain MPXY state pointer for a given domain and HART
+> > +index
+> > + * @param dom pointer to domain
+> > + * @param hartindex the HART index
+> > + * @param ms pointer to MPXY state
+> > + */
+> > +void sbi_domain_set_mpxy_state(struct sbi_domain *dom, u32 hartindex,
+> > +                              struct mpxy_state *ms);
+> > +
+> > +/** Macro to obtain the current hart's MPXY state pointer */
+> > +#define sbi_domain_mpxy_state_thishart_ptr()                   \
+> > +       sbi_domain_get_mpxy_state(sbi_domain_thishart_ptr(),    \
+> > +                                 current_hartindex())
+> > +
+> > +/**
+> > + * Initialize domain MPXY state support
+> > + *
+> > + * @return 0 on success and negative error code on failure  */ int
+> > +sbi_domain_mpxy_state_init(void);
+> > +
+> > +/* Deinitialize domain MPXY state support */ void
+> > +sbi_domain_mpxy_state_deinit(void);
+> > +
+> > +#endif
+> > diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk index
+> > 9cb2842..a728e9b 100644
+> > --- a/lib/sbi/objects.mk
+> > +++ b/lib/sbi/objects.mk
+> > @@ -69,6 +69,7 @@ libsbi-objs-y += sbi_bitops.o  libsbi-objs-y +=
+> > sbi_console.o  libsbi-objs-y += sbi_domain_context.o  libsbi-objs-y +=
+> > sbi_domain_data.o
+> > +libsbi-objs-y += sbi_domain_mpxy_state.o
+> >  libsbi-objs-y += sbi_domain.o
+> >  libsbi-objs-y += sbi_double_trap.o
+> >  libsbi-objs-y += sbi_emulate_csr.o
+> > diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c index
+> > 51c82a7..bd5d0ef 100644
+> > --- a/lib/sbi/sbi_domain.c
+> > +++ b/lib/sbi/sbi_domain.c
+> > @@ -800,11 +800,16 @@ int sbi_domain_init(struct sbi_scratch *scratch,
+> u32 cold_hartid)
+> >         if (rc)
+> >                 goto fail_free_domain_hart_ptr_offset;
+> >
+> > +       /* Initialize domain MPXY state support */
+> > +       rc = sbi_domain_mpxy_state_init();
+> > +       if (rc)
+> > +               goto fail_deinit_context;
+> > +
+> >         root_memregs = sbi_calloc(sizeof(*root_memregs),
+> ROOT_REGION_MAX + 1);
+> >         if (!root_memregs) {
+> >                 sbi_printf("%s: no memory for root regions\n",
+> __func__);
+> >                 rc = SBI_ENOMEM;
+> > -               goto fail_deinit_context;
+> > +               goto fail_deinit_mpxy_state;
+> >         }
+> >         root.regions = root_memregs;
+> >
+> > @@ -869,6 +874,8 @@ fail_free_root_hmask:
+> >         sbi_free(root_hmask);
+> >  fail_free_root_memregs:
+> >         sbi_free(root_memregs);
+> > +fail_deinit_mpxy_state:
+> > +       sbi_domain_mpxy_state_deinit();
+> >  fail_deinit_context:
+> >         sbi_domain_context_deinit();
+> >  fail_free_domain_hart_ptr_offset:
+> > diff --git a/lib/sbi/sbi_domain_mpxy_state.c
+> > b/lib/sbi/sbi_domain_mpxy_state.c new file mode 100644 index
+> > 0000000..45f63a9
+> > --- /dev/null
+> > +++ b/lib/sbi/sbi_domain_mpxy_state.c
+> > @@ -0,0 +1,47 @@
+> > +/*
+> > + * SPDX-License-Identifier: BSD-2-Clause
+> > + *
+> > + * Copyright (c) 2024 Intel Corporation.
+> > + * Copyright (c) 2024-2025 Andes Technology Corporation.
+> > + */
+> > +
+> > +#include <sbi/sbi_domain.h>
+> > +
+> > +struct domain_mpxy_state_priv {
+> > +       /** MPXY state for possible HARTs indexed by hartindex */
+> > +       struct mpxy_state
+> > +*hartindex_to_mpxy_state_table[SBI_HARTMASK_MAX_BITS];
+> > +};
+> > +
+> > +static struct sbi_domain_data dmspriv = {
+> > +       .data_size = sizeof(struct domain_mpxy_state_priv), };
+> > +
+> > +struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
+> > +                                            u32 hartindex) {
+> > +       struct domain_mpxy_state_priv *dmsp =
+> > +               sbi_domain_data_ptr(dom, &dmspriv);
+> > +
+> > +       return (dmsp && hartindex < SBI_HARTMASK_MAX_BITS) ?
+> > +               dmsp->hartindex_to_mpxy_state_table[hartindex] :
+> NULL;
+> > +}
+> > +
+> > +void sbi_domain_set_mpxy_state(struct sbi_domain *dom, u32 hartindex,
+> > +                              struct mpxy_state *ms) {
+> > +       struct domain_mpxy_state_priv *dmsp =
+> > +               sbi_domain_data_ptr(dom, &dmspriv);
+> > +
+> > +       if (dmsp && hartindex < SBI_HARTMASK_MAX_BITS)
+> > +               dmsp->hartindex_to_mpxy_state_table[hartindex] =
+> ms; }
+> > +
+> > +int sbi_domain_mpxy_state_init(void)
+> > +{
+> > +       return sbi_domain_register_data(&dmspriv);
+> > +}
+> > +
+> > +void sbi_domain_mpxy_state_deinit(void)
+> > +{
+> > +       sbi_domain_unregister_data(&dmspriv);
+> > +}
+> > --
+> > 2.34.1
+> >
+> >
+> > --
+> > opensbi mailing list
+> > opensbi at lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+CONFIDENTIALITY NOTICE:
 
+This e-mail (and its attachments) may contain confidential and legally privileged information or information protected from disclosure. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein is strictly prohibited. In this case, please immediately notify the sender by return e-mail, delete the message (and any accompanying documents) and destroy all printed hard copies. Thank you for your cooperation.
+
+Copyright ANDES TECHNOLOGY CORPORATION - All Rights Reserved.
