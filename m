@@ -1,68 +1,51 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Sun, 23 Mar 2025 21:18:53 +0530
-Subject: [PATCH] scripts: Fix firmware binaries compilation in create-binary-archive.sh
-In-Reply-To: <20250220054623.1002666-1-apatel@ventanamicro.com>
-References: <20250220054623.1002666-1-apatel@ventanamicro.com>
-Message-ID: <CAAhSdy1xdaSWYQ-=t0e0BRfMmJq=VppmXU1Avzu3OdsXeivr_Q@mail.gmail.com>
+Date: Sun, 23 Mar 2025 21:19:27 +0530
+Subject: [PATCH] lib: sbi: Return SBI_EALREADY error code if SSE event is present
+In-Reply-To: <20250220091441.33730-1-hchauhan@ventanamicro.com>
+References: <20250220091441.33730-1-hchauhan@ventanamicro.com>
+Message-ID: <CAAhSdy1hBLxp7GYUErzHaCC71qP9nNVA3CZuKNjhpcK=beNP0g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 20, 2025 at 11:16?AM Anup Patel <apatel@ventanamicro.com> wrote:
+On Thu, Feb 20, 2025 at 2:48?PM Himanshu Chauhan
+<hchauhan@ventanamicro.com> wrote:
 >
-> Currently, the generic libsbi.a is compiled in create-binary-archive.sh
-> before platform specific firmwares so a libsbi.a without any SBI extension
-> gets linked to the platform specific firmwares. To address this, remove
-> the temporary build directory in create-binary-archive.sh before using it.
+> Return SBI_EALREADY error code instead of SBI_INVAL, in case an
+> event is already added to the supported list.
 >
-> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
 Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
 > ---
->  scripts/create-binary-archive.sh | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
+>  lib/sbi/sbi_sse.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/scripts/create-binary-archive.sh b/scripts/create-binary-archive.sh
-> index 9d56f2f4..73bdef21 100755
-> --- a/scripts/create-binary-archive.sh
-> +++ b/scripts/create-binary-archive.sh
-> @@ -112,11 +112,12 @@ build_opensbi() {
->         esac
+> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+> index 9f22375..295d9bc 100644
+> --- a/lib/sbi/sbi_sse.c
+> +++ b/lib/sbi/sbi_sse.c
+> @@ -926,7 +926,7 @@ int sbi_sse_add_event(uint32_t event_id, const struct sbi_sse_cb_ops *cb_ops)
+>         /* Do not allow adding an event twice */
+>         info = sse_event_info_get(event_id);
+>         if (info)
+> -               return SBI_EINVAL;
+> +               return SBI_EALREADY;
 >
->         # Ensure output directory is present
-> -       mkdir -p "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
-> +       mkdir -p "${BUILD_OUTPUT_PATH}"
->
->         # Build and install generic library
->         echo "Build and install generic library XLEN=${BUILD_RISCV_XLEN}"
->         echo ""
-> +       rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
->         make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libsbi -j "${BUILD_NUM_THREADS}"
->         echo ""
->
-> @@ -125,6 +126,7 @@ build_opensbi() {
->         do
->                 echo "Build and install PLATFORM=${BUILD_PLATFORM_SUBDIR[${INDEX}]} XLEN=${BUILD_RISCV_XLEN}"
->                 echo ""
-> +               rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
->                 make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" PLATFORM="${BUILD_PLATFORM_SUBDIR[${INDEX}]}" PLATFORM_RISCV_XLEN="${BUILD_RISCV_XLEN}" install_libplatsbi install_firmwares -j "${BUILD_NUM_THREADS}"
->                 echo ""
->         done
-> @@ -133,6 +135,7 @@ build_opensbi() {
->         if [ "${BUILD_DOCS}" == "yes" ]; then
->                 echo "Build and install docs"
->                 echo ""
-> +               rm -rf "${BUILD_OUTPUT_PATH}/${BUILD_NAME}"
->                 make -C "${BUILD_OPENSBI_SOURCE_PATH}" O="${BUILD_OUTPUT_PATH}/${BUILD_NAME}" I="${BUILD_OUTPUT_PATH}/${BUILD_ARCHIVE_NAME}" install_docs
->                 echo ""
->         fi
+>         if (cb_ops && cb_ops->set_hartid_cb && !EVENT_IS_GLOBAL(event_id))
+>                 return SBI_EINVAL;
 > --
 > 2.43.0
 >
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
