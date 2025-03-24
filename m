@@ -1,9 +1,9 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 24 Mar 2025 18:24:17 +0530
-Subject: [PATCH 1/4] lib: sbi_scratch: Apply bounds check to platform hart_count
-In-Reply-To: <20250220184233.23802-2-samuel.holland@sifive.com>
-References: <20250220184233.23802-1-samuel.holland@sifive.com> <20250220184233.23802-2-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy055RopqjFn+8TRM5MFFuJVpRnfBwcV4LzZz9LtzpaACg@mail.gmail.com>
+Date: Mon, 24 Mar 2025 18:24:44 +0530
+Subject: [PATCH 2/4] lib: sbi_scratch: Optimize hartid and scratch lookup
+In-Reply-To: <20250220184233.23802-3-samuel.holland@sifive.com>
+References: <20250220184233.23802-1-samuel.holland@sifive.com> <20250220184233.23802-3-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy2_VGLbs7V773VcOXnu=PCbFEYk54GRimvrVM7EkkR3HA@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
@@ -13,15 +13,13 @@ Content-Transfer-Encoding: 7bit
 On Fri, Feb 21, 2025 at 12:12?AM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> The internal limit on the number of harts is SBI_HARTMASK_MAX_BITS, as
-> this value determines the size of various bitmaps and arrays (including
-> hartindex_to_hartid_table and hartindex_to_scratch_table). Clamp the
-> value provided by the platform, and drop the extra array element.
->
-> Update the documentation to indicate that hart_index2id must be sized
-> based on hart_count, and that hart indexes must be contiguous. As of
-> commit 5e90e54a1a53 ("lib: utils:Check that hartid is valid"), there is
-> no restriction on the valid hart ID values.
+> The compiler generates much better code for sbi_hartindex_to_hartid()
+> and sbi_hartindex_to_scratch() when using a constant for the bounds
+> check. This works out nicely because the underlying arrays are already
+> a constant size, so the only change needed is to fill the remainder of
+> each array with the appropriate default/out-of-bounds value. The
+> ellipsis in the designated initializer is a GCC extension (also
+> supported by Clang), but avoids runtime initialization of the array.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
@@ -36,83 +34,49 @@ Anup
 
 > ---
 >
->  include/sbi/sbi_platform.h | 11 +++--------
->  lib/sbi/sbi_scratch.c      | 14 +++++++++-----
->  2 files changed, 12 insertions(+), 13 deletions(-)
+>  include/sbi/sbi_scratch.h | 6 +++---
+>  lib/sbi/sbi_scratch.c     | 4 ++--
+>  2 files changed, 5 insertions(+), 5 deletions(-)
 >
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 6d5fbc7d..5e50c997 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -169,7 +169,7 @@ struct sbi_platform {
->         char name[64];
->         /** Supported features */
->         u64 features;
-> -       /** Total number of HARTs */
-> +       /** Total number of HARTs (at most SBI_HARTMASK_MAX_BITS) */
->         u32 hart_count;
->         /** Per-HART stack size for exception/interrupt handling */
->         u32 hart_stack_size;
-> @@ -184,17 +184,12 @@ struct sbi_platform {
->         /**
->          * HART index to HART id table
->          *
-> -        * For used HART index <abc>:
-> +        * If hart_index2id != NULL then the table must contain a mapping
-> +        * for each HART index 0 <= <abc> < hart_count:
->          *     hart_index2id[<abc>] = some HART id
-> -        * For unused HART index <abc>:
-> -        *     hart_index2id[<abc>] = -1U
->          *
->          * If hart_index2id == NULL then we assume identity mapping
->          *     hart_index2id[<abc>] = <abc>
-> -        *
-> -        * We have only two restrictions:
-> -        * 1. HART index < sbi_platform hart_count
-> -        * 2. HART id < SBI_HARTMASK_MAX_BITS
->          */
->         const u32 *hart_index2id;
->  };
+> diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+> index 0d188d12..1ec1710e 100644
+> --- a/include/sbi/sbi_scratch.h
+> +++ b/include/sbi/sbi_scratch.h
+> @@ -226,7 +226,7 @@ extern u32 hartindex_to_hartid_table[];
+>  /** Get sbi_scratch from HART index */
+>  #define sbi_hartindex_to_hartid(__hartindex)           \
+>  ({                                                     \
+> -       ((__hartindex) <= sbi_scratch_last_hartindex()) ?\
+> +       ((__hartindex) < SBI_HARTMASK_MAX_BITS) ?       \
+>         hartindex_to_hartid_table[__hartindex] : -1U;   \
+>  })
+>
+> @@ -236,8 +236,8 @@ extern struct sbi_scratch *hartindex_to_scratch_table[];
+>  /** Get sbi_scratch from HART index */
+>  #define sbi_hartindex_to_scratch(__hartindex)          \
+>  ({                                                     \
+> -       ((__hartindex) <= sbi_scratch_last_hartindex()) ?\
+> -       hartindex_to_scratch_table[__hartindex] : NULL;\
+> +       ((__hartindex) < SBI_HARTMASK_MAX_BITS) ?       \
+> +       hartindex_to_scratch_table[__hartindex] : NULL; \
+>  })
+>
+>  /**
 > diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> index ccbbc68e..5a9e935b 100644
+> index 5a9e935b..e1cc5658 100644
 > --- a/lib/sbi/sbi_scratch.c
 > +++ b/lib/sbi/sbi_scratch.c
 > @@ -15,8 +15,8 @@
 >  #include <sbi/sbi_string.h>
 >
 >  u32 last_hartindex_having_scratch = 0;
-> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
-> -struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
-> +u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { -1U };
-> +struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS] = { 0 };
+> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { -1U };
+> -struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS] = { 0 };
+> +u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { [0 ... SBI_HARTMASK_MAX_BITS-1] = -1U };
+> +struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS];
 >
 >  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
 >  static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
-> @@ -36,17 +36,21 @@ typedef struct sbi_scratch *(*hartid2scratch)(ulong hartid, ulong hartindex);
->
->  int sbi_scratch_init(struct sbi_scratch *scratch)
->  {
-> -       u32 i, h;
-> +       u32 i, h, hart_count;
->         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
->
-> -       for (i = 0; i < plat->hart_count; i++) {
-> +       hart_count = plat->hart_count;
-> +       if (hart_count > SBI_HARTMASK_MAX_BITS)
-> +               hart_count = SBI_HARTMASK_MAX_BITS;
-> +
-> +       for (i = 0; i < hart_count; i++) {
->                 h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
->                 hartindex_to_hartid_table[i] = h;
->                 hartindex_to_scratch_table[i] =
->                         ((hartid2scratch)scratch->hartid_to_scratch)(h, i);
->         }
->
-> -       last_hartindex_having_scratch = plat->hart_count - 1;
-> +       last_hartindex_having_scratch = hart_count - 1;
->
->         return 0;
->  }
 > --
 > 2.47.2
 >
