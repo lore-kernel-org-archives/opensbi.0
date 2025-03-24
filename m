@@ -1,74 +1,86 @@
-From: Clément Léger <cleger@rivosinc.com>
-Date: Mon, 24 Mar 2025 18:02:57 +0100
-Subject: [PATCH 3/6] lib: sbi: sse: Return SBI_EDENIED for read only
- parameters.
-In-Reply-To: <20250324-38c2a7772fb7bbe8a15e2d6a@orel>
+From: Andrew Jones <ajones@ventanamicro.com>
+Date: Mon, 24 Mar 2025 18:03:16 +0100
+Subject: [PATCH 4/6] lib: sbi: sse: Rename STATUS* interrupted flags to
+ SSTATUS*
+In-Reply-To: <20250317105426.631243-5-cleger@rivosinc.com>
 References: <20250317105426.631243-1-cleger@rivosinc.com>
- <20250317105426.631243-4-cleger@rivosinc.com>
- <20250324-38c2a7772fb7bbe8a15e2d6a@orel>
-Message-ID: <66fe7daf-e934-4135-b07a-89d403cf12c7@rivosinc.com>
+ <20250317105426.631243-5-cleger@rivosinc.com>
+Message-ID: <20250324-d7bf83d80c9179595646e632@orel>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-On 24/03/2025 18:01, Andrew Jones wrote:
-> On Mon, Mar 17, 2025 at 11:54:21AM +0100, Cl?ment L?ger wrote:
->> The SSE specification did specified that read only parameters should
->> return SBI_EBADRANGE but was modified recently to return SBI_EDENIED.
->>
->> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
->> ---
->>  lib/sbi/sbi_sse.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
->> index a30fad54..ac714b8a 100644
->> --- a/lib/sbi/sbi_sse.c
->> +++ b/lib/sbi/sbi_sse.c
->> @@ -388,7 +388,7 @@ static int sse_event_set_hart_id_check(struct sbi_sse_event *e,
->>  	struct sbi_domain *hd = sbi_domain_thishart_ptr();
->>  
->>  	if (!sse_event_is_global(e))
->> -		return SBI_EBAD_RANGE;
->> +		return SBI_EDENIED;
->>  
->>  	if (!sbi_domain_is_assigned_hart(hd, sbi_hartid_to_hartindex(hartid)))
->>  		return SBI_EINVAL;
->> @@ -444,7 +444,7 @@ static int sse_event_set_attr_check(struct sbi_sse_event *e, uint32_t attr_id,
->>  
->>  		return SBI_OK;
->>  	default:
->> -		return SBI_EBAD_RANGE;
->> +		return SBI_EDENIED;
+On Mon, Mar 17, 2025 at 11:54:22AM +0100, Cl?ment L?ger wrote:
+> As raised by Andrew on the kvm-unit-test review, this flags are meant to
+> hold SSTATUS bits in the specification. Rename them to match that.
 > 
-> This confused me at first. Maybe a comment pointing out that
-> sbi_sse_attr_check() already confirmed we're in range and
-> this switch default just catches read-only attributes would
-> be helpful.
-
-Yes sure, I'll do that in the next version.
-
-Thanks,
-
-Cl?ment
-
+> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
+> ---
+>  include/sbi/sbi_ecall_interface.h |  4 ++--
+>  lib/sbi/sbi_sse.c                 | 12 ++++++------
+>  2 files changed, 8 insertions(+), 8 deletions(-)
 > 
-> Otherwise,
-> 
-> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-> 
-> Thanks,
-> drew
-> 
->>  	}
->>  }
->>  
->> -- 
->> 2.47.2
->>
+> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+> index bd694aa8..51e42eed 100644
+> --- a/include/sbi/sbi_ecall_interface.h
+> +++ b/include/sbi/sbi_ecall_interface.h
+> @@ -380,8 +380,8 @@ enum sbi_sse_attr_id {
+>  
+>  #define SBI_SSE_ATTR_CONFIG_ONESHOT	(1 << 0)
+>  
+> -#define SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPP	BIT(0)
+> -#define SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPIE	BIT(1)
+> +#define SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPP	BIT(0)
+> +#define SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPIE	BIT(1)
+>  #define SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPV	BIT(2)
+>  #define SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPVP	BIT(3)
+>  
+> diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+> index ac714b8a..fb7ccf05 100644
+> --- a/lib/sbi/sbi_sse.c
+> +++ b/lib/sbi/sbi_sse.c
+> @@ -427,8 +427,8 @@ static int sse_event_set_attr_check(struct sbi_sse_event *e, uint32_t attr_id,
+>  
+>  		return sse_event_set_hart_id_check(e, val);
+>  	case SBI_SSE_ATTR_INTERRUPTED_FLAGS:
+> -		if (val & ~(SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPP |
+> -			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPIE |
+> +		if (val & ~(SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPP |
+> +			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPIE |
+>  			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPV |
+>  			    SBI_SSE_ATTR_INTERRUPTED_FLAGS_HSTATUS_SPVP))
+>  			return SBI_EINVAL;
+> @@ -513,9 +513,9 @@ static unsigned long sse_interrupted_flags(unsigned long mstatus)
+>  	unsigned long hstatus, flags = 0;
+>  
+>  	if (mstatus & (MSTATUS_SPIE))
+> -		flags |= SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPIE;
+> +		flags |= SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPIE;
+>  	if (mstatus & (MSTATUS_SPP))
+> -		flags |= SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPP;
+> +		flags |= SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPP;
+>  
+>  	if (misa_extension('H')) {
+>  		hstatus = csr_read(CSR_HSTATUS);
+> @@ -626,11 +626,11 @@ static void sse_event_resume(struct sbi_sse_event *e,
+>  		regs->mstatus |= MSTATUS_SIE;
+>  
+>  	regs->mstatus &= ~MSTATUS_SPIE;
+> -	if (i_ctx->flags & SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPIE)
+> +	if (i_ctx->flags & SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPIE)
+>  		regs->mstatus |= MSTATUS_SPIE;
+>  
+>  	regs->mstatus &= ~MSTATUS_SPP;
+> -	if (i_ctx->flags & SBI_SSE_ATTR_INTERRUPTED_FLAGS_STATUS_SPP)
+> +	if (i_ctx->flags & SBI_SSE_ATTR_INTERRUPTED_FLAGS_SSTATUS_SPP)
+>  		regs->mstatus |= MSTATUS_SPP;
+>  
+>  	regs->a7 = i_ctx->a7;
+> -- 
+> 2.47.2
+>
 
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
 
