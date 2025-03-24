@@ -1,259 +1,113 @@
-From: Alvin Chang <alvinga@andestech.com>
-Date: Mon, 24 Mar 2025 14:39:51 +0800
-Subject: [PATCH v3] lib: sbi_mpxy: Change MPXY state as per-domain data
-Message-ID: <20250324063951.2834253-1-alvinga@andestech.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 24 Mar 2025 17:00:41 +0530
+Subject: [PATCH 1/2] lib: utils/fdt: Respect compatible string fallback priority
+In-Reply-To: <20250219204258.261765-1-samuel.holland@sifive.com>
+References: <20250219204258.261765-1-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy3wq1T22MLgT07H5pK38fgb2wGbzJSM1qn0pELW0cv8_g@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-OpenSBI supports multiple supervisor domains run on same platform. When
-these supervisor domains want to communicate with OpenSBI through MPXY
-channels, they will allocate MPXY shared memory from their own memory
-regions. Therefore, the MPXY state data structure must be per-domain and
-per-hart data structure.
+On Thu, Feb 20, 2025 at 2:13?AM Samuel Holland
+<samuel.holland@sifive.com> wrote:
+>
+> When matching drivers to DT nodes, always match all drivers against the
+> first compatible string before considering fallback compatible strings.
+> This ensures the most specific match is always selected, regardless of
+> the order of the drivers or match structures, as long as no compatible
+> string appears in multiple match structures.
+>
+> Fixes: 1ccc52c427f3 ("lib: utils/fdt: Add helpers for generic driver initialization")
+> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
-This commit registers per-domain MPXY state data in sbi_mpxy_init(). The
-original MPXY state allocated in scratch region is also removed. We also
-replace sbi_scratch_thishart_offset_ptr() macro as new
-sbi_domain_mpxy_state_thishart_ptr() macro which gets MPXY state from
-per-domain data.
+Applied this patch to the riscv/opensbi repo.
 
-Signed-off-by: Alvin Chang <alvinga@andestech.com>
-Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
----
- include/sbi/sbi_mpxy.h |  16 +++++++
- lib/sbi/sbi_mpxy.c     | 100 +++++++++++++++++++++++++++++++----------
- 2 files changed, 92 insertions(+), 24 deletions(-)
+Thanks,
+Anup
 
-diff --git a/include/sbi/sbi_mpxy.h b/include/sbi/sbi_mpxy.h
-index 9da2791..169f028 100644
---- a/include/sbi/sbi_mpxy.h
-+++ b/include/sbi/sbi_mpxy.h
-@@ -12,6 +12,7 @@
- 
- #include <sbi/sbi_list.h>
- 
-+struct sbi_domain;
- struct sbi_scratch;
- 
- #define SBI_MPXY_MSGPROTO_VERSION(Major, Minor) ((Major << 16) | Minor)
-@@ -182,4 +183,19 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
- int sbi_mpxy_get_notification_events(u32 channel_id,
- 					unsigned long *events_len);
- 
-+/**
-+ * Get per-domain MPXY state pointer for a given domain and HART index
-+ * @param dom pointer to domain
-+ * @param hartindex the HART index
-+ *
-+ * @return per-domain MPXY state pointer for given HART index
-+ */
-+struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
-+					     u32 hartindex);
-+
-+/** Macro to obtain the current hart's MPXY state pointer in current domain */
-+#define sbi_domain_mpxy_state_thishart_ptr()			\
-+	sbi_domain_get_mpxy_state(sbi_domain_thishart_ptr(),	\
-+				  current_hartindex())
-+
- #endif
-diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
-index c5d9d1b..4a14c4f 100644
---- a/lib/sbi/sbi_mpxy.c
-+++ b/lib/sbi/sbi_mpxy.c
-@@ -11,6 +11,7 @@
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_heap.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_mpxy.h>
- #include <sbi/sbi_scratch.h>
-@@ -22,9 +23,6 @@
- /** Shared memory size across all harts */
- static unsigned long mpxy_shmem_size = PAGE_SIZE;
- 
--/** Offset of pointer to MPXY state in scratch space */
--static unsigned long mpxy_state_offset;
--
- /** List of MPXY proxy channels */
- static SBI_LIST_HEAD(mpxy_channel_list);
- 
-@@ -89,6 +87,12 @@ struct mpxy_state {
- 	struct mpxy_shmem shmem;
- };
- 
-+/** Per domain MPXY state */
-+struct domain_mpxy_state_priv {
-+	/** MPXY state for possible HARTs indexed by hartindex */
-+	struct mpxy_state *hartindex_to_mpxy_state_table[SBI_HARTMASK_MAX_BITS];
-+};
-+
- /** Disable hart shared memory */
- static inline void sbi_mpxy_shmem_disable(struct mpxy_state *ms)
- {
-@@ -171,7 +175,7 @@ bool sbi_mpxy_channel_available(void)
- 
- static void mpxy_std_attrs_init(struct sbi_mpxy_channel *channel)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	u32 capability = 0;
- 
- 	/* Reset values */
-@@ -240,25 +244,73 @@ int sbi_mpxy_register_channel(struct sbi_mpxy_channel *channel)
- 	return SBI_OK;
- }
- 
--int sbi_mpxy_init(struct sbi_scratch *scratch)
-+/** Setup per domain MPXY state data */
-+static int domain_mpxy_state_data_setup(struct sbi_domain *dom,
-+					struct sbi_domain_data *data,
-+					void *data_ptr)
- {
-+	struct domain_mpxy_state_priv *dmsp = data_ptr;
- 	struct mpxy_state *ms;
-+	u32 i;
-+
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-+		ms = sbi_zalloc(sizeof(*ms));
-+		if (!ms)
-+			return SBI_ENOMEM;
-+
-+		/*
-+		 * TODO: Proper support for checking msi support from
-+		 * platform. Currently disable msi and sse and use
-+		 * polling
-+		 */
-+		ms->msi_avail = false;
-+		ms->sse_avail = false;
- 
--	mpxy_state_offset = sbi_scratch_alloc_type_offset(struct mpxy_state);
--	if (!mpxy_state_offset)
--		return SBI_ENOMEM;
-+		sbi_mpxy_shmem_disable(ms);
-+
-+		dmsp->hartindex_to_mpxy_state_table[i] = ms;
-+	}
- 
--	/**
--	 * TODO: Proper support for checking msi support from platform.
--	 * Currently disable msi and sse and use polling
--	 */
--	ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
--	ms->msi_avail = false;
--	ms->sse_avail = false;
-+	return 0;
-+}
- 
--	sbi_mpxy_shmem_disable(ms);
-+/** Cleanup per domain MPXY state data */
-+static void domain_mpxy_state_data_cleanup(struct sbi_domain *dom,
-+					   struct sbi_domain_data *data,
-+					   void *data_ptr)
-+{
-+	struct domain_mpxy_state_priv *dmsp = data_ptr;
-+	u32 i;
-+
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts)
-+		sbi_free(dmsp->hartindex_to_mpxy_state_table[i]);
-+}
-+
-+static struct sbi_domain_data dmspriv = {
-+	.data_size = sizeof(struct domain_mpxy_state_priv),
-+	.data_setup = domain_mpxy_state_data_setup,
-+	.data_cleanup = domain_mpxy_state_data_cleanup,
-+};
-+
-+struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
-+					     u32 hartindex)
-+{
-+	struct domain_mpxy_state_priv *dmsp =
-+		sbi_domain_data_ptr(dom, &dmspriv);
-+
-+	return (dmsp && hartindex < SBI_HARTMASK_MAX_BITS) ?
-+		dmsp->hartindex_to_mpxy_state_table[hartindex] : NULL;
-+}
-+
-+int sbi_mpxy_init(struct sbi_scratch *scratch)
-+{
-+	int ret;
-+
-+	ret = sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
-+	if (ret)
-+		return ret;
- 
--	return sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
-+	return sbi_domain_register_data(&dmspriv);
- }
- 
- unsigned long sbi_mpxy_get_shmem_size(void)
-@@ -270,7 +322,7 @@ int sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
- 		       unsigned long shmem_phys_hi,
- 		       unsigned long flags)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	unsigned long *ret_buf;
- 
- 	/** Disable shared memory if both hi and lo have all bit 1s */
-@@ -312,7 +364,7 @@ int sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
- 
- int sbi_mpxy_get_channel_ids(u32 start_index)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	u32 remaining, returned, max_channelids;
- 	u32 node_index = 0, node_ret = 0;
- 	struct sbi_mpxy_channel *channel;
-@@ -363,7 +415,7 @@ int sbi_mpxy_get_channel_ids(u32 start_index)
- 
- int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	int ret = SBI_SUCCESS;
- 	u32 *attr_ptr, end_id;
- 	void *shmem_base;
-@@ -479,7 +531,7 @@ static int mpxy_check_write_std_attr(struct sbi_mpxy_channel *channel,
- static void mpxy_write_std_attr(struct sbi_mpxy_channel *channel, u32 attr_id,
- 			        u32 attr_val)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	struct sbi_mpxy_channel_attrs *attrs = &channel->attrs;
- 
- 	switch(attr_id) {
-@@ -513,7 +565,7 @@ static void mpxy_write_std_attr(struct sbi_mpxy_channel *channel, u32 attr_id,
- 
- int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	u32 *mem_ptr, attr_id, end_id, attr_val;
- 	struct sbi_mpxy_channel *channel;
- 	int ret, mem_idx;
-@@ -603,7 +655,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
- 			  unsigned long msg_data_len,
- 			  unsigned long *resp_data_len)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	struct sbi_mpxy_channel *channel;
- 	void *shmem_base, *resp_buf;
- 	u32 resp_bufsize;
-@@ -661,7 +713,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
- 
- int sbi_mpxy_get_notification_events(u32 channel_id, unsigned long *events_len)
- {
--	struct mpxy_state *ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-+	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
- 	struct sbi_mpxy_channel *channel;
- 	void *eventsbuf, *shmem_base;
- 	int ret;
--- 
-2.43.0
 
+> ---
+>
+>  lib/utils/fdt/fdt_driver.c | 46 +++++++++++++++++++++-----------------
+>  1 file changed, 25 insertions(+), 21 deletions(-)
+>
+> diff --git a/lib/utils/fdt/fdt_driver.c b/lib/utils/fdt/fdt_driver.c
+> index f6707c0e..39385ce9 100644
+> --- a/lib/utils/fdt/fdt_driver.c
+> +++ b/lib/utils/fdt/fdt_driver.c
+> @@ -15,39 +15,43 @@ int fdt_driver_init_by_offset(const void *fdt, int nodeoff,
+>  {
+>         const struct fdt_driver *driver;
+>         const struct fdt_match *match;
+> -       const void *prop;
+> -       int len, rc;
+> +       int compat_len, prop_len, rc;
+> +       const char *compat_str;
+>
+>         if (!fdt_node_is_enabled(fdt, nodeoff))
+>                 return SBI_ENODEV;
+>
+> -       prop = fdt_getprop(fdt, nodeoff, "compatible", &len);
+> -       if (!prop)
+> +       compat_str = fdt_getprop(fdt, nodeoff, "compatible", &prop_len);
+> +       if (!compat_str)
+>                 return SBI_ENODEV;
+>
+> -       while ((driver = *drivers++)) {
+> -               for (match = driver->match_table; match->compatible; match++) {
+> -                       if (!fdt_stringlist_contains(prop, len, match->compatible))
+> -                               continue;
+> +       while ((compat_len = strnlen(compat_str, prop_len) + 1) <= prop_len) {
+> +               for (int i = 0; (driver = drivers[i]); i++)
+> +                       for (match = driver->match_table; match->compatible; match++)
+> +                               if (!memcmp(match->compatible, compat_str, compat_len))
+> +                                       goto found;
+>
+> -                       if (driver->experimental)
+> -                               sbi_printf("WARNING: %s driver is experimental and may change\n",
+> -                                          match->compatible);
+> +               compat_str += compat_len;
+> +               prop_len -= compat_len;
+> +       }
+>
+> -                       rc = driver->init(fdt, nodeoff, match);
+> -                       if (rc < 0) {
+> -                               const char *name;
+> +       return SBI_ENODEV;
+>
+> -                               name = fdt_get_name(fdt, nodeoff, NULL);
+> -                               sbi_printf("%s: %s (%s) init failed: %d\n",
+> -                                          __func__, name, match->compatible, rc);
+> -                       }
+> +found:
+> +       if (driver->experimental)
+> +               sbi_printf("WARNING: %s driver is experimental and may change\n",
+> +                          match->compatible);
+>
+> -                       return rc;
+> -               }
+> +       rc = driver->init(fdt, nodeoff, match);
+> +       if (rc < 0) {
+> +               const char *name;
+> +
+> +               name = fdt_get_name(fdt, nodeoff, NULL);
+> +               sbi_printf("%s: %s (%s) init failed: %d\n",
+> +                          __func__, name, match->compatible, rc);
+>         }
+>
+> -       return SBI_ENODEV;
+> +       return rc;
+>  }
+>
+>  static int fdt_driver_init_scan(const void *fdt,
+> --
+> 2.47.2
+>
+>
+> --
+> opensbi mailing list
+> opensbi at lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
