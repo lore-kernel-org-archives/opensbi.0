@@ -1,39 +1,36 @@
 From: Leo Yu-Chi Liang <ycliang@andestech.com>
-Date: Mon, 24 Mar 2025 12:39:43 +0800
-Subject: [PATCH 1/1] docs: pmu_support: fix example typos
-Message-ID: <20250324043943.2513070-1-ycliang@andestech.com>
+Date: Mon, 24 Mar 2025 13:15:31 +0800
+Subject: [PATCH 1/1] lib: sbi: Allow programmable counters to monitor cycle/instret events for Andes PMU
+Message-ID: <20250324051531.2592949-1-ycliang@andestech.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The (event ID & "second column mask") should equal
-the "first column match value". Modify the example
-to fit the description.
+Referencing commit 0c304b661965
+("lib: sbi: Allow programmable counters to monitor cycle/instret events")
+to support this functionality for Andes PMU.
 
 Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
- docs/pmu_support.md | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_pmu.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-index 9b48f1e..b552e67 100644
---- a/docs/pmu_support.md
-+++ b/docs/pmu_support.md
-@@ -74,10 +74,10 @@ pmu {
- 						  <0x10000 0x10033 0x000ff000>;
- 					/* For event ID 0x0002 */
- 	riscv,raw-event-to-mhpmcounters = <0x0000 0x0002 0xffffffff 0xffffffff 0x00000f8>,
--					/* For event ID 0-4 */
-+					/* For event ID 0-15 */
- 					<0x0 0x0 0xffffffff 0xfffffff0 0x00000ff0>,
- 					/* For event ID 0xffffffff0000000f - 0xffffffff000000ff */
--					<0xffffffff 0x0 0xffffffff 0xffffff0f 0x00000ff0>;
-+					<0xffffffff 0xf 0xffffffff 0xffffff0f 0x00000ff0>;
- };
- ```
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 40b898f..1873f07 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -737,7 +737,8 @@ static int pmu_ctr_find_hw(struct sbi_pmu_hart_state *phs,
+ 	 */
+ 	fixed_ctr = pmu_ctr_find_fixed_hw(event_idx);
+ 	if (fixed_ctr >= 0 &&
+-	    !sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++	    !sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF) &&
++	    !sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
+ 		return pmu_fixed_ctr_update_inhibit_bits(fixed_ctr, flags);
  
+ 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_11)
 -- 
 2.34.1
 
