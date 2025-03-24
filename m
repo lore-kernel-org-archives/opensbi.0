@@ -1,95 +1,61 @@
-From: Andrew Jones <ajones@ventanamicro.com>
-Date: Mon, 24 Mar 2025 16:37:14 +0100
-Subject: [PATCH v2 4/4] lib: sbi: Clear lock only for local events
-In-Reply-To: <20250124165202.465445-5-cleger@rivosinc.com>
-References: <20250124165202.465445-1-cleger@rivosinc.com>
- <20250124165202.465445-5-cleger@rivosinc.com>
-Message-ID: <20250324-1bebff0668faab3ab96620ac@orel>
+From: Samuel Holland <samuel.holland@sifive.com>
+Date: Mon, 24 Mar 2025 08:48:04 -0700
+Subject: [PATCH v2 0/5] Cache CPU information from the DT
+Message-ID: <20250324154858.4147529-1-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 24, 2025 at 05:51:59PM +0100, Cl?ment L?ger wrote:
-> Upon hart reset, only the local events state should be reset. While this
-> implicitely worked since fwft_get_feature() return NULL for global
-> events this is a bit fragile to do so. Additionally, the loop on feature
-> list plus the call to fwft_get_feature was unneeded since we already have
-> a direct access to the fwft hart state and thus can directly reset lock
-> flags for each config. Lastly, we can only clear the lock when the fwft
-> hart state was already allocated, in the other case, it is allocated with
-> a zalloc which guarantees us that the feature flags are clear at boot.
-> 
-> Signed-off-by: Cl?ment L?ger <cleger@rivosinc.com>
-> ---
->  lib/sbi/sbi_fwft.c | 26 ++++++++++++++++----------
->  1 file changed, 16 insertions(+), 10 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-> index 85f8a638..d946e9db 100644
-> --- a/lib/sbi/sbi_fwft.c
-> +++ b/lib/sbi/sbi_fwft.c
-> @@ -271,12 +271,17 @@ static int fwft_get_pmlen(struct fwft_config *conf, unsigned long *value)
->  }
->  #endif
->  
-> +static bool fwft_feature_is_global(enum sbi_fwft_feature_t feature)
-> +{
-> +	return feature & SBI_FWFT_GLOBAL_FEATURE_BIT;
-> +}
-> +
->  static struct fwft_config* get_feature_config(enum sbi_fwft_feature_t feature)
->  {
->  	int i;
->  	struct fwft_hart_state *fhs = fwft_thishart_state_ptr();
->  
-> -	if (feature & SBI_FWFT_GLOBAL_FEATURE_BIT)
-> +	if (fwft_feature_is_global(feature))
->  		return NULL;
->  
->  	for (i = 0; i < fhs->config_count; i++){
-> @@ -315,16 +320,18 @@ static int fwft_get_feature(unsigned long feature,
->  	return SBI_SUCCESS;
->  }
->  
-> -static void fwft_clear_config_lock(enum sbi_fwft_feature_t feature)
-> +static void fwft_clear_local_lock(struct fwft_hart_state *fhs)
->  {
-> -	int ret;
-> +	int i;
->  	struct fwft_config *conf;
->  
-> -	ret = fwft_get_feature(feature, &conf);
-> -	if (ret)
-> -		return;
-> +	for (i = 0; i < fhs->config_count; i++) {
-> +		conf = &fhs->configs[i];
-> +		if (fwft_feature_is_global(conf->feature->id))
-> +			continue;
->  
-> -	conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
-> +		conf->flags &= ~SBI_FWFT_SET_FLAG_LOCK;
-> +	}
->  }
->  
->  int sbi_fwft_set(unsigned long feature, unsigned long value,
-> @@ -428,10 +435,9 @@ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
->  			fhs->configs[i].feature = &features[i];
->  
->  		fwft_set_hart_state_ptr(scratch, fhs);
-> +	} else {
-> +		fwft_clear_local_lock(fhs);
->  	}
->  
-> -	for (i = 0; i < array_size(features); i++)
-> -		fwft_clear_config_lock(features[i].id);
-> -
->  	return 0;
->  }
-> -- 
-> 2.47.1
->
+It turns out that OpenSBI spends a lot of time repeatedly parsing the
+FDT to get information about the CPUs and local interrupt controllers.
+Caching this information can significantly speed up cold boot. For
+example, on the HiFive Premier P550 board (4 cores, PLIC, CLINT),
+applying this series decreased boot time by a third, from 6.35 ms to
+4.23 ms (with SBI_SCRATCH_NO_BOOT_PRINTS set). The impact would be even
+larger on systems with more cores. And this series comes with a net
+decrease in code size for the generic platform.
 
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+To be conservative, I avoided using cached information inside FDT fixup
+functions, as changes to the devicetree may invalidate the offsets
+(though the phandles would still be accurate).
+
+Since the cached information is stored in the scratch space, I did not
+find a good way to combine the parsing with the generic
+fw_platform_init().
+
+Changes in v2:
+ - Rename for_each_hartindex() to sbi_for_each_hartindex()
+ - Add missing include of fdt_cpu.h in fdt_helper.c
+
+Samuel Holland (5):
+  lib utils/fdt: Drop fdt_parse_max_enabled_hart_id()
+  lib: utils/fdt: Cache CPU information from the DT
+  lib: utils/fdt: Used cached CPU DT information
+  lib: utils: Use fdt_cpu_intc_phandle_to_hartindex()
+  lib: utils: Use fdt_cpu_get_timebase_frequency()
+
+ include/sbi_utils/fdt/fdt_cpu.h       |  57 +++++++++++
+ include/sbi_utils/fdt/fdt_helper.h    |   4 -
+ include/sbi_utils/irqchip/imsic.h     |   2 +-
+ lib/utils/fdt/fdt_cpu.c               | 110 +++++++++++++++++++++
+ lib/utils/fdt/fdt_domain.c            | 117 +++++++---------------
+ lib/utils/fdt/fdt_helper.c            | 133 ++++----------------------
+ lib/utils/fdt/objects.mk              |   1 +
+ lib/utils/irqchip/fdt_irqchip_imsic.c |  19 +---
+ lib/utils/irqchip/fdt_irqchip_plic.c  |  21 +---
+ lib/utils/irqchip/imsic.c             |   6 +-
+ lib/utils/timer/fdt_timer_mtimer.c    |   7 +-
+ lib/utils/timer/fdt_timer_plmt.c      |   8 +-
+ platform/fpga/openpiton/platform.c    |  11 ++-
+ platform/generic/platform.c           |   5 +
+ platform/kendryte/k210/platform.c     |  10 ++
+ 15 files changed, 264 insertions(+), 247 deletions(-)
+ create mode 100644 include/sbi_utils/fdt/fdt_cpu.h
+ create mode 100644 lib/utils/fdt/fdt_cpu.c
+
+-- 
+2.47.2
+
 
