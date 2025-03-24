@@ -1,40 +1,27 @@
 From: Anup Patel <anup@brainfault.org>
-Date: Mon, 24 Mar 2025 17:23:08 +0530
-Subject: [PATCH] lib: sbi: Avoid GOT indirection for global symbol references
-In-Reply-To: <20250220175307.9672-1-samuel.holland@sifive.com>
-References: <20250220175307.9672-1-samuel.holland@sifive.com>
-Message-ID: <CAAhSdy3xRDOLDd8=eC_J+_hBiMuVrAUFOuFPEpU49LzhHdfV3A@mail.gmail.com>
+Date: Mon, 24 Mar 2025 18:24:17 +0530
+Subject: [PATCH 1/4] lib: sbi_scratch: Apply bounds check to platform hart_count
+In-Reply-To: <20250220184233.23802-2-samuel.holland@sifive.com>
+References: <20250220184233.23802-1-samuel.holland@sifive.com> <20250220184233.23802-2-samuel.holland@sifive.com>
+Message-ID: <CAAhSdy055RopqjFn+8TRM5MFFuJVpRnfBwcV4LzZz9LtzpaACg@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 20, 2025 at 11:23?PM Samuel Holland
+On Fri, Feb 21, 2025 at 12:12?AM Samuel Holland
 <samuel.holland@sifive.com> wrote:
 >
-> OpenSBI is compiled with -fPIE, which generally implies dynamic linking.
-> This causes the compiler to generate GOT references for global symbols
-> in order to support runtime symbol interposition. However, OpenSBI does
-> not actually perform dynamic linking, so the GOT indirection just adds
-> unnecessary overhead.
+> The internal limit on the number of harts is SBI_HARTMASK_MAX_BITS, as
+> this value determines the size of various bitmaps and arrays (including
+> hartindex_to_hartid_table and hartindex_to_scratch_table). Clamp the
+> value provided by the platform, and drop the extra array element.
 >
-> The GOT references can be avoided by declaring global symbols with
-> hidden visibility, thus making them local to this dynamic object and
-> non-interposable. GCC/Clang's -fvisibility parameter is insufficient for
-> this purpose when referencing objects from other translation units;
-> either __attribute__((visibility(...)) or the pragma is required. Use
-> the pragma since it is easier to apply to every symbol. Additionally
-> clean up the one GOT reference from inline assembly.
-
-Out of curiosity, I did try -fvisibility=hidden parameter because that
-seemed much cleaner. Unfortunately, -fvisibility=hidden is indeed
-insufficient in this case.
-
->
-> With this change, a firmware linked with LLD does not contain either a
-> GOT or a PLT, and a firmware linked with BFD ld contains only a GOT with
-> a single (unreferenced, legacy) _GLOBAL_OFFSET_TABLE_ entry.
+> Update the documentation to indicate that hart_index2id must be sized
+> based on hart_count, and that hart indexes must be contiguous. As of
+> commit 5e90e54a1a53 ("lib: utils:Check that hartid is valid"), there is
+> no restriction on the valid hart ID values.
 >
 > Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 
@@ -44,64 +31,88 @@ Reviewed-by: Anup Patel <anup@brainfault.org>
 
 Applied this patch to the riscv/opensbi repo.
 
-Regards,
+Thanks,
 Anup
 
 > ---
 >
->  Makefile                       |  1 +
->  include/sbi/sbi_visibility.h   | 16 ++++++++++++++++
->  lib/utils/serial/semihosting.c |  2 +-
->  3 files changed, 18 insertions(+), 1 deletion(-)
->  create mode 100644 include/sbi/sbi_visibility.h
+>  include/sbi/sbi_platform.h | 11 +++--------
+>  lib/sbi/sbi_scratch.c      | 14 +++++++++-----
+>  2 files changed, 12 insertions(+), 13 deletions(-)
 >
-> diff --git a/Makefile b/Makefile
-> index 419ce66b..7de3fc96 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -350,6 +350,7 @@ ifeq ($(BUILD_INFO),y)
->  GENFLAGS       +=      -DOPENSBI_BUILD_TIME_STAMP="\"$(OPENSBI_BUILD_TIME_STAMP)\""
->  GENFLAGS       +=      -DOPENSBI_BUILD_COMPILER_VERSION="\"$(OPENSBI_BUILD_COMPILER_VERSION)\""
->  endif
-> +GENFLAGS       +=      -include $(include_dir)/sbi/sbi_visibility.h
->  ifdef PLATFORM
->  GENFLAGS       +=      -include $(KCONFIG_AUTOHEADER)
->  endif
-> diff --git a/include/sbi/sbi_visibility.h b/include/sbi/sbi_visibility.h
-> new file mode 100644
-> index 00000000..e9c401c5
-> --- /dev/null
-> +++ b/include/sbi/sbi_visibility.h
-> @@ -0,0 +1,16 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2025 SiFive
-> + */
-> +
-> +#ifndef __SBI_VISIBILITY_H__
-> +#define __SBI_VISIBILITY_H__
-> +
-> +/*
-> + * Declare all global objects with hidden visibility so access is PC-relative
-> + * instead of going through the GOT.
-> + */
-> +#pragma GCC visibility push(hidden)
-> +
-> +#endif
-> diff --git a/lib/utils/serial/semihosting.c b/lib/utils/serial/semihosting.c
-> index 19ebaa07..3a42ba60 100644
-> --- a/lib/utils/serial/semihosting.c
-> +++ b/lib/utils/serial/semihosting.c
-> @@ -67,7 +67,7 @@ bool semihosting_enabled(void)
->                 "       mret\n"
->                 "_semihost_test_vector_next:\n"
+> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> index 6d5fbc7d..5e50c997 100644
+> --- a/include/sbi/sbi_platform.h
+> +++ b/include/sbi/sbi_platform.h
+> @@ -169,7 +169,7 @@ struct sbi_platform {
+>         char name[64];
+>         /** Supported features */
+>         u64 features;
+> -       /** Total number of HARTs */
+> +       /** Total number of HARTs (at most SBI_HARTMASK_MAX_BITS) */
+>         u32 hart_count;
+>         /** Per-HART stack size for exception/interrupt handling */
+>         u32 hart_stack_size;
+> @@ -184,17 +184,12 @@ struct sbi_platform {
+>         /**
+>          * HART index to HART id table
+>          *
+> -        * For used HART index <abc>:
+> +        * If hart_index2id != NULL then the table must contain a mapping
+> +        * for each HART index 0 <= <abc> < hart_count:
+>          *     hart_index2id[<abc>] = some HART id
+> -        * For unused HART index <abc>:
+> -        *     hart_index2id[<abc>] = -1U
+>          *
+>          * If hart_index2id == NULL then we assume identity mapping
+>          *     hart_index2id[<abc>] = <abc>
+> -        *
+> -        * We have only two restrictions:
+> -        * 1. HART index < sbi_platform hart_count
+> -        * 2. HART id < SBI_HARTMASK_MAX_BITS
+>          */
+>         const u32 *hart_index2id;
+>  };
+> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+> index ccbbc68e..5a9e935b 100644
+> --- a/lib/sbi/sbi_scratch.c
+> +++ b/lib/sbi/sbi_scratch.c
+> @@ -15,8 +15,8 @@
+>  #include <sbi/sbi_string.h>
 >
-> -               "       la %[tmp], _semihost_test_vector\n"
-> +               "       lla %[tmp], _semihost_test_vector\n"
->                 "       csrrw %[tmp], mtvec, %[tmp]\n"
->                 "       .align 4\n"
->                 "       slli zero, zero, 0x1f\n"
+>  u32 last_hartindex_having_scratch = 0;
+> -u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
+> -struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
+> +u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { -1U };
+> +struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS] = { 0 };
+>
+>  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
+>  static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
+> @@ -36,17 +36,21 @@ typedef struct sbi_scratch *(*hartid2scratch)(ulong hartid, ulong hartindex);
+>
+>  int sbi_scratch_init(struct sbi_scratch *scratch)
+>  {
+> -       u32 i, h;
+> +       u32 i, h, hart_count;
+>         const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+>
+> -       for (i = 0; i < plat->hart_count; i++) {
+> +       hart_count = plat->hart_count;
+> +       if (hart_count > SBI_HARTMASK_MAX_BITS)
+> +               hart_count = SBI_HARTMASK_MAX_BITS;
+> +
+> +       for (i = 0; i < hart_count; i++) {
+>                 h = (plat->hart_index2id) ? plat->hart_index2id[i] : i;
+>                 hartindex_to_hartid_table[i] = h;
+>                 hartindex_to_scratch_table[i] =
+>                         ((hartid2scratch)scratch->hartid_to_scratch)(h, i);
+>         }
+>
+> -       last_hartindex_having_scratch = plat->hart_count - 1;
+> +       last_hartindex_having_scratch = hart_count - 1;
+>
+>         return 0;
+>  }
 > --
 > 2.47.2
 >
