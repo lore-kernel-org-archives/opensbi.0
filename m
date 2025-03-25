@@ -1,365 +1,163 @@
-From: Alvin Che-Chia Chang(張哲嘉) <alvinga@andestech.com>
-Date: Tue, 25 Mar 2025 07:18:45 +0000
-Subject: [PATCH v3] lib: sbi_mpxy: Change MPXY state as per-domain data
-In-Reply-To: <7f0bfd80-a6d1-47f3-941e-76e562253ecd@sifive.com>
-References: <20250324063951.2834253-1-alvinga@andestech.com>
- <8ff01bb2-ff96-4223-983b-54c05f5c60fd@sifive.com>
- <SEYPR03MB6700306C62ED4EEA4ACACA39A8A72@SEYPR03MB6700.apcprd03.prod.outlook.com>
- <7f0bfd80-a6d1-47f3-941e-76e562253ecd@sifive.com>
-Message-ID: <SEYPR03MB67004FE30ECE33D867B1BE57A8A72@SEYPR03MB6700.apcprd03.prod.outlook.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 25 Mar 2025 13:45:25 +0530
+Subject: [PATCH 1/2] lib: sbi: hart: Detect existence of cycle and instret
+ CSRs for Zicntr
+In-Reply-To: <20250225154103.5229-2-ziyao@disroot.org>
+References: <20250225154103.5229-1-ziyao@disroot.org> <20250225154103.5229-2-ziyao@disroot.org>
+Message-ID: <CAAhSdy0LhKVEmvOHNObyDHDixCZ+GQh=hWK+g3NZVFWHBrmKnQ@mail.gmail.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Samuel,
+On Tue, Feb 25, 2025 at 10:14?PM Yao Zi <ziyao@disroot.org> wrote:
+>
+> Zicntr extension specifies three RO CSRs, time, cycle and instret. It
+> isn't precise to report Zicntr is fully supported with only time CSR
+> detected.
+>
+> Since CSR emulating code only cares about the availablity of time CSR,
+> add additional definitions to represent the existance of cycle and
+> instret CSRs.
+>
+> Signed-off-by: Yao Zi <ziyao@disroot.org>
+> ---
+>  include/sbi/sbi_hart.h |  8 ++++++--
+>  lib/sbi/sbi_hart.c     | 30 ++++++++++++++++++++++--------
+>  lib/sbi/sbi_timer.c    |  2 +-
+>  3 files changed, 29 insertions(+), 11 deletions(-)
+>
+> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+> index 4c36c77..0a740cf 100644
+> --- a/include/sbi/sbi_hart.h
+> +++ b/include/sbi/sbi_hart.h
+> @@ -37,8 +37,12 @@ enum sbi_hart_extensions {
+>         SBI_HART_EXT_SSCOFPMF,
+>         /** HART has Sstc extension */
+>         SBI_HART_EXT_SSTC,
+> -       /** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
+> -       SBI_HART_EXT_ZICNTR,
+> +       /** HART has HW time CSR, as specified in Zicntr extension */
+> +       SBI_HART_EXT_ZICNTR_TIME,
+> +       /** HART has HW cycle CSR, as specified in Zicntr extension */
+> +       SBI_HART_EXT_ZICNTR_CYCLE,
+> +       /** HART has HW instret CSR, as specified in Zicntr extension */
+> +       SBI_HART_EXT_ZICNTR_INSTRET,
 
-> -----Original Message-----
-> From: Samuel Holland <samuel.holland@sifive.com>
-> Sent: Tuesday, March 25, 2025 11:23 AM
-> To: Alvin Che-Chia Chang(???) <alvinga@andestech.com>;
+Zicntr_time, Zicntr_cycle, and Zicntr_instret are not real extension
+names so let's not add pseudo extension names.
+
+Instead, I suggest introducing "enum sbi_hart_csrs" for CSRs
+detected at boot-time. We will also need "csrs" bitmap in
+"struct sbi_hart_features".
+
+The new "enum sbi_hart_csrs" can have:
+SBI_HART_CSR_CYCLE,
+SBI_HART_CSR_TIME,
+SBI_HART_CSR_INSTRET
+
+These bits will be set in "struct sbi_hart_features" when
+corresponding CSRs are detected at boot-time.
+
+The SBI_HART_EXT_ZICNTR is only available when all
+three SBI_HART_CSR_CYCLE, SBI_HART_CSR_TIME,
+and SBI_HART_CSR_INSTRET are available.
+
+>         /** HART has Zihpm extension */
+>         SBI_HART_EXT_ZIHPM,
+>         /** HART has Zkr extension */
+> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+> index 8e2979b..e1d630d 100644
+> --- a/lib/sbi/sbi_hart.c
+> +++ b/lib/sbi/sbi_hart.c
+> @@ -669,7 +669,9 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+>         __SBI_HART_EXT_DATA(smstateen, SBI_HART_EXT_SMSTATEEN),
+>         __SBI_HART_EXT_DATA(sscofpmf, SBI_HART_EXT_SSCOFPMF),
+>         __SBI_HART_EXT_DATA(sstc, SBI_HART_EXT_SSTC),
+> -       __SBI_HART_EXT_DATA(zicntr, SBI_HART_EXT_ZICNTR),
+> +       __SBI_HART_EXT_DATA(zicntr_time, SBI_HART_EXT_ZICNTR_TIME),
+> +       __SBI_HART_EXT_DATA(zicntr_cycle, SBI_HART_EXT_ZICNTR_CYCLE),
+> +       __SBI_HART_EXT_DATA(zicntr_instret, SBI_HART_EXT_ZICNTR_INSTRET),
+>         __SBI_HART_EXT_DATA(zihpm, SBI_HART_EXT_ZIHPM),
+>         __SBI_HART_EXT_DATA(zkr, SBI_HART_EXT_ZKR),
+>         __SBI_HART_EXT_DATA(smcntrpmf, SBI_HART_EXT_SMCNTRPMF),
+> @@ -782,7 +784,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+>         struct sbi_hart_features *hfeatures =
+>                 sbi_scratch_offset_ptr(scratch, hart_features_offset);
+>         unsigned long val, oldval;
+> -       bool has_zicntr = false;
+> +       bool has_time = false, has_cycle = false, has_instret = false;
+>         int rc;
+>
+>         /* If hart features already detected then do nothing */
+> @@ -919,7 +921,13 @@ __pmp_skip:
+>                         CSR_SCOUNTOVF, SBI_HART_EXT_SSCOFPMF);
+>         /* Detect if hart supports time CSR */
+>         __check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> -                       CSR_TIME, SBI_HART_EXT_ZICNTR);
+> +                       CSR_TIME, SBI_HART_EXT_ZICNTR_TIME);
+> +       /* Detect if hart supports cycle CSR */
+> +       __check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> +                       CSR_CYCLE, SBI_HART_EXT_ZICNTR_CYCLE);
+> +       /* Detect if hart supports instret CSR */
+> +       __check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+> +                       CSR_INSTRET, SBI_HART_EXT_ZICNTR_INSTRET);
+>         /* Detect if hart has AIA local interrupt CSRs */
+>         __check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+>                         CSR_MTOPI, SBI_HART_EXT_SMAIA);
+> @@ -938,8 +946,10 @@ __pmp_skip:
+>
+>  #undef __check_ext_csr
+>
+> -       /* Save trap based detection of Zicntr */
+> -       has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
+> +       /* Save trap based detection of Zicntr CSRs */
+> +       has_time = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_TIME);
+> +       has_cycle = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_CYCLE);
+> +       has_instret = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_INSTRET);
+>
+>         /* Let platform populate extensions */
+>         rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+> @@ -947,9 +957,13 @@ __pmp_skip:
+>         if (rc)
+>                 return rc;
+>
+> -       /* Zicntr should only be detected using traps */
+> -       __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR,
+> -                                   has_zicntr);
+> +       /* Zicntr CSRs should only be detected using traps */
+> +       __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_TIME,
+> +                                   has_time);
+> +       __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_CYCLE,
+> +                                   has_cycle);
+> +       __sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR_INSTRET,
+> +                                   has_instret);
+>
+>         /* Extensions implied by other extensions and features */
+>         if (hfeatures->mhpm_mask)
+> diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+> index 86e0db5..b4db4ca 100644
+> --- a/lib/sbi/sbi_timer.c
+> +++ b/lib/sbi/sbi_timer.c
+> @@ -190,7 +190,7 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
+>                 if (!time_delta_off)
+>                         return SBI_ENOMEM;
+>
+> -               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR))
+> +               if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR_TIME))
+>                         get_time_val = get_ticks;
+>
+>                 ret = sbi_platform_timer_init(plat);
+> --
+> 2.48.1
+>
+>
+> --
+> opensbi mailing list
 > opensbi at lists.infradead.org
-> Cc: anup at brainfault.org; peter.lin at sifive.com; yong.li at intel.com
-> Subject: Re: [PATCH v3] lib: sbi_mpxy: Change MPXY state as per-domain data
->
-> [EXTERNAL MAIL]
->
-> Hi Alvin,
->
-> On 2025-03-24 10:13 PM, Alvin Che-Chia Chang(???) wrote:
-> > Hi Samuel,
-> >
-> >> -----Original Message-----
-> >> From: Samuel Holland <samuel.holland@sifive.com>
-> >> Sent: Tuesday, March 25, 2025 10:26 AM
-> >> To: Alvin Che-Chia Chang(???) <alvinga@andestech.com>;
-> >> opensbi at lists.infradead.org
-> >> Cc: anup at brainfault.org; peter.lin at sifive.com; yong.li at intel.com
-> >> Subject: Re: [PATCH v3] lib: sbi_mpxy: Change MPXY state as
-> >> per-domain data
-> >>
-> >> [EXTERNAL MAIL]
-> >>
-> >> Hi Alvin,
-> >>
-> >> On 2025-03-24 1:39 AM, Alvin Chang wrote:
-> >>> OpenSBI supports multiple supervisor domains run on same platform.
-> >>> When these supervisor domains want to communicate with OpenSBI
-> >>> through MPXY channels, they will allocate MPXY shared memory from
-> >>> their own memory regions. Therefore, the MPXY state data structure
-> >>> must be per-domain and per-hart data structure.
-> >>>
-> >>> This commit registers per-domain MPXY state data in sbi_mpxy_init().
-> >>> The original MPXY state allocated in scratch region is also removed.
-> >>> We also replace sbi_scratch_thishart_offset_ptr() macro as new
-> >>> sbi_domain_mpxy_state_thishart_ptr() macro which gets MPXY state
-> >>> from per-domain data.
-> >>>
-> >>> Signed-off-by: Alvin Chang <alvinga@andestech.com>
-> >>> Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-> >>> ---
-> >>>  include/sbi/sbi_mpxy.h |  16 +++++++
-> >>>  lib/sbi/sbi_mpxy.c     | 100
-> >> +++++++++++++++++++++++++++++++----------
-> >>>  2 files changed, 92 insertions(+), 24 deletions(-)
-> >>>
-> >>> diff --git a/include/sbi/sbi_mpxy.h b/include/sbi/sbi_mpxy.h index
-> >>> 9da2791..169f028 100644
-> >>> --- a/include/sbi/sbi_mpxy.h
-> >>> +++ b/include/sbi/sbi_mpxy.h
-> >>> @@ -12,6 +12,7 @@
-> >>>
-> >>>  #include <sbi/sbi_list.h>
-> >>>
-> >>> +struct sbi_domain;
-> >>>  struct sbi_scratch;
-> >>>
-> >>>  #define SBI_MPXY_MSGPROTO_VERSION(Major, Minor) ((Major << 16) |
-> >>> Minor) @@ -182,4 +183,19 @@ int sbi_mpxy_send_message(u32
-> >> channel_id,
-> >>> u8 msg_id,  int sbi_mpxy_get_notification_events(u32 channel_id,
-> >>>                                       unsigned long
-> *events_len);
-> >>>
-> >>> +/**
-> >>> + * Get per-domain MPXY state pointer for a given domain and HART
-> >>> +index
-> >>> + * @param dom pointer to domain
-> >>> + * @param hartindex the HART index
-> >>> + *
-> >>> + * @return per-domain MPXY state pointer for given HART index  */
-> >>> +struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain
-> *dom,
-> >>> +                                          u32 hartindex);
-> >>> +
-> >>> +/** Macro to obtain the current hart's MPXY state pointer in
-> >>> +current
-> >> domain */
-> >>> +#define sbi_domain_mpxy_state_thishart_ptr()                 \
-> >>> +     sbi_domain_get_mpxy_state(sbi_domain_thishart_ptr(),    \
-> >>> +                               current_hartindex())
-> >>> +
-> >>>  #endif
-> >>> diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c index
-> >>> c5d9d1b..4a14c4f 100644
-> >>> --- a/lib/sbi/sbi_mpxy.c
-> >>> +++ b/lib/sbi/sbi_mpxy.c
-> >>> @@ -11,6 +11,7 @@
-> >>>  #include <sbi/sbi_domain.h>
-> >>>  #include <sbi/sbi_error.h>
-> >>>  #include <sbi/sbi_hart.h>
-> >>> +#include <sbi/sbi_heap.h>
-> >>>  #include <sbi/sbi_platform.h>
-> >>>  #include <sbi/sbi_mpxy.h>
-> >>>  #include <sbi/sbi_scratch.h>
-> >>> @@ -22,9 +23,6 @@
-> >>>  /** Shared memory size across all harts */  static unsigned long
-> >>> mpxy_shmem_size = PAGE_SIZE;
-> >>>
-> >>> -/** Offset of pointer to MPXY state in scratch space */ -static
-> >>> unsigned long mpxy_state_offset;
-> >>> -
-> >>>  /** List of MPXY proxy channels */
-> >>>  static SBI_LIST_HEAD(mpxy_channel_list);
-> >>>
-> >>> @@ -89,6 +87,12 @@ struct mpxy_state {
-> >>>       struct mpxy_shmem shmem;
-> >>>  };
-> >>>
-> >>> +/** Per domain MPXY state */
-> >>> +struct domain_mpxy_state_priv {
-> >>> +     /** MPXY state for possible HARTs indexed by hartindex */
-> >>> +     struct mpxy_state
-> >>> +*hartindex_to_mpxy_state_table[SBI_HARTMASK_MAX_BITS];
-> >>
-> >> Please don't hardcode SBI_HARTMASK_MAX_BITS here. You can use
-> >> sbi_hart_count() to update .data_size before calling
-> >> sbi_domain_register_data(). Unfortunately, a struct cannot contain a
-> >> flexible array member by itself, so you'll either need to get rid of
-> >> the struct or add a dummy member.
-> >
-> > It seems we can use zero-length array in struct here.
-> >
-> >         struct domain_mpxy_state_priv {
-> >                 struct mpxy_state *hartindex_to_mpxy_state_table[0];
-> >         };
-> >
-> > The value of .data_size would be:
-> >
-> >         dmspriv.data_size = sizeof(struct mpxy_state *) *
-> > sbi_hart_count();
->
-> Right, and this is the same expression you would need if there was no struct
-> and the type of dmsp was `struct mpxy_state **`.
-
-I decide to remove that structure and use `struct mpxy_state **` as you suggested.
-Please check v4 patch.
-
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 Regards,
-Alvin
+Anup
 
->
-> > Do you have better idea?
->
-> I don't have a strong opinion. The zero-sized array is a somewhat
-> deprecated/controversial GCC extension, and using `struct mpxy_state **`
-> produces similarly complex code, but if you prefer the struct, it should be fine.
->
-> Regards,
-> Samuel
->
-> >>
-> >>> +};
-> >>> +
-> >>>  /** Disable hart shared memory */
-> >>>  static inline void sbi_mpxy_shmem_disable(struct mpxy_state *ms)  {
-> >>> @@ -171,7 +175,7 @@ bool sbi_mpxy_channel_available(void)
-> >>>
-> >>>  static void mpxy_std_attrs_init(struct sbi_mpxy_channel *channel)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       u32 capability = 0;
-> >>>
-> >>>       /* Reset values */
-> >>> @@ -240,25 +244,73 @@ int sbi_mpxy_register_channel(struct
-> >> sbi_mpxy_channel *channel)
-> >>>       return SBI_OK;
-> >>>  }
-> >>>
-> >>> -int sbi_mpxy_init(struct sbi_scratch *scratch)
-> >>> +/** Setup per domain MPXY state data */ static int
-> >>> +domain_mpxy_state_data_setup(struct sbi_domain *dom,
-> >>> +                                     struct sbi_domain_data
-> >> *data,
-> >>> +                                     void *data_ptr)
-> >>>  {
-> >>> +     struct domain_mpxy_state_priv *dmsp = data_ptr;
-> >>>       struct mpxy_state *ms;
-> >>> +     u32 i;
-> >>> +
-> >>> +     sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-> >>> +             ms = sbi_zalloc(sizeof(*ms));
-> >>> +             if (!ms)
-> >>> +                     return SBI_ENOMEM;
-> >>> +
-> >>> +             /*
-> >>> +              * TODO: Proper support for checking msi support from
-> >>> +              * platform. Currently disable msi and sse and use
-> >>> +              * polling
-> >>> +              */
-> >>> +             ms->msi_avail = false;
-> >>> +             ms->sse_avail = false;
-> >>>
-> >>> -     mpxy_state_offset = sbi_scratch_alloc_type_offset(struct
-> mpxy_state);
-> >>> -     if (!mpxy_state_offset)
-> >>> -             return SBI_ENOMEM;
-> >>> +             sbi_mpxy_shmem_disable(ms);
-> >>> +
-> >>> +             dmsp->hartindex_to_mpxy_state_table[i] = ms;
-> >>> +     }
-> >>>
-> >>> -     /**
-> >>> -      * TODO: Proper support for checking msi support from platform.
-> >>> -      * Currently disable msi and sse and use polling
-> >>> -      */
-> >>> -     ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> -     ms->msi_avail = false;
-> >>> -     ms->sse_avail = false;
-> >>> +     return 0;
-> >>> +}
-> >>>
-> >>> -     sbi_mpxy_shmem_disable(ms);
-> >>> +/** Cleanup per domain MPXY state data */ static void
-> >>> +domain_mpxy_state_data_cleanup(struct sbi_domain *dom,
-> >>> +                                        struct sbi_domain_data
-> >> *data,
-> >>> +                                        void *data_ptr) {
-> >>> +     struct domain_mpxy_state_priv *dmsp = data_ptr;
-> >>> +     u32 i;
-> >>> +
-> >>> +     sbi_hartmask_for_each_hartindex(i, dom->possible_harts)
-> >>> +             sbi_free(dmsp->hartindex_to_mpxy_state_table[i]);
-> >>> +}
-> >>> +
-> >>> +static struct sbi_domain_data dmspriv = {
-> >>> +     .data_size = sizeof(struct domain_mpxy_state_priv),
-> >>> +     .data_setup = domain_mpxy_state_data_setup,
-> >>> +     .data_cleanup = domain_mpxy_state_data_cleanup, };
-> >>> +
-> >>> +struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain
-> *dom,
-> >>> +                                          u32 hartindex) {
-> >>> +     struct domain_mpxy_state_priv *dmsp =
-> >>> +             sbi_domain_data_ptr(dom, &dmspriv);
-> >>> +
-> >>> +     return (dmsp && hartindex < SBI_HARTMASK_MAX_BITS) ?
-> >>
-> >> sbi_hartindex_valid() would be appropriate here.
-> >
-> > Will use sbi_hartindex_valid() here, thanks!
-> >
-> >
-> > Regards,
-> > Alvin
-> >
-> >>
-> >> Regards,
-> >> Samuel
-> >>
-> >>> +             dmsp->hartindex_to_mpxy_state_table[hartindex] :
-> NULL;
-> >>> + }
-> >>> +
-> >>> +int sbi_mpxy_init(struct sbi_scratch *scratch) {
-> >>> +     int ret;
-> >>> +
-> >>> +     ret = sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
-> >>> +     if (ret)
-> >>> +             return ret;
-> >>>
-> >>> -     return sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
-> >>> +     return sbi_domain_register_data(&dmspriv);
-> >>>  }
-> >>>
-> >>>  unsigned long sbi_mpxy_get_shmem_size(void) @@ -270,7 +322,7 @@
-> int
-> >>> sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
-> >>>                      unsigned long shmem_phys_hi,
-> >>>                      unsigned long flags)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       unsigned long *ret_buf;
-> >>>
-> >>>       /** Disable shared memory if both hi and lo have all bit 1s */
-> >>> @@ -312,7 +364,7 @@ int sbi_mpxy_set_shmem(unsigned long
-> >>> shmem_phys_lo,
-> >>>
-> >>>  int sbi_mpxy_get_channel_ids(u32 start_index)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       u32 remaining, returned, max_channelids;
-> >>>       u32 node_index = 0, node_ret = 0;
-> >>>       struct sbi_mpxy_channel *channel; @@ -363,7 +415,7 @@ int
-> >>> sbi_mpxy_get_channel_ids(u32 start_index)
-> >>>
-> >>>  int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32
-> >>> attr_count)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       int ret = SBI_SUCCESS;
-> >>>       u32 *attr_ptr, end_id;
-> >>>       void *shmem_base;
-> >>> @@ -479,7 +531,7 @@ static int mpxy_check_write_std_attr(struct
-> >>> sbi_mpxy_channel *channel,  static void mpxy_write_std_attr(struct
-> >> sbi_mpxy_channel *channel, u32 attr_id,
-> >>>                               u32 attr_val)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       struct sbi_mpxy_channel_attrs *attrs = &channel->attrs;
-> >>>
-> >>>       switch(attr_id) {
-> >>> @@ -513,7 +565,7 @@ static void mpxy_write_std_attr(struct
-> >>> sbi_mpxy_channel *channel, u32 attr_id,
-> >>>
-> >>>  int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32
-> >>> attr_count)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       u32 *mem_ptr, attr_id, end_id, attr_val;
-> >>>       struct sbi_mpxy_channel *channel;
-> >>>       int ret, mem_idx;
-> >>> @@ -603,7 +655,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8
-> >> msg_id,
-> >>>                         unsigned long msg_data_len,
-> >>>                         unsigned long *resp_data_len)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       struct sbi_mpxy_channel *channel;
-> >>>       void *shmem_base, *resp_buf;
-> >>>       u32 resp_bufsize;
-> >>> @@ -661,7 +713,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8
-> >>> msg_id,
-> >>>
-> >>>  int sbi_mpxy_get_notification_events(u32 channel_id, unsigned long
-> >>> *events_len)  {
-> >>> -     struct mpxy_state *ms =
-> >> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
-> >>> +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
-> >>>       struct sbi_mpxy_channel *channel;
-> >>>       void *eventsbuf, *shmem_base;
-> >>>       int ret;
-CONFIDENTIALITY NOTICE:
-
-This e-mail (and its attachments) may contain confidential and legally privileged information or information protected from disclosure. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein is strictly prohibited. In this case, please immediately notify the sender by return e-mail, delete the message (and any accompanying documents) and destroy all printed hard copies. Thank you for your cooperation.
-
-Copyright ANDES TECHNOLOGY CORPORATION - All Rights Reserved.
