@@ -1,225 +1,321 @@
-From: Samuel Holland <samuel.holland@sifive.com>
-Date: Mon, 24 Mar 2025 21:46:40 -0500
-Subject: [PATCH v4] Set the scratch allocation to alignment to cacheline
- size.
-In-Reply-To: <20250318185111.452620-1-Raj.Vishwanathan@gmail.com>
-References: <20250127202017.1043240-1-Raj.Vishwanathan>
- <20250318185111.452620-1-Raj.Vishwanathan@gmail.com>
-Message-ID: <56622c32-d405-464c-8b45-32c46e539a1d@sifive.com>
+From: Alvin Che-Chia Chang(張哲嘉) <alvinga@andestech.com>
+Date: Tue, 25 Mar 2025 03:13:39 +0000
+Subject: [PATCH v3] lib: sbi_mpxy: Change MPXY state as per-domain data
+In-Reply-To: <8ff01bb2-ff96-4223-983b-54c05f5c60fd@sifive.com>
+References: <20250324063951.2834253-1-alvinga@andestech.com>
+ <8ff01bb2-ff96-4223-983b-54c05f5c60fd@sifive.com>
+Message-ID: <SEYPR03MB6700306C62ED4EEA4ACACA39A8A72@SEYPR03MB6700.apcprd03.prod.outlook.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Raj,
+Hi Samuel,
 
-On 2025-03-18 1:51 PM, Raj Vishwanathan wrote:
-> We set the scratch allocation alignment to cacheline size,specified by
-> riscv,cbom-block-size in the dts file to avoid two atomic variables from
-> the same cache line causing livelock on some platforms. If the cacheline
-> is not specified, we set it a default value.
-> 
-> Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
-> ---
-> Changes in V3:
->     Remove platform specific references to 64 Bytes.
-> Changes in V2:
->     Added a new configuration to get the alignment size.
-> Change in V1:
->     Original Patch
-> ---
->  include/sbi/sbi_platform.h         |  2 ++
->  include/sbi_utils/fdt/fdt_helper.h |  1 +
->  lib/sbi/sbi_scratch.c              | 27 +++++++++++++++++++++++++--
->  lib/utils/fdt/fdt_helper.c         | 24 ++++++++++++++++++++++++
->  platform/generic/platform.c        |  7 +++++++
->  5 files changed, 59 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 6d5fbc7..0cea0fe 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -197,6 +197,8 @@ struct sbi_platform {
->  	 * 2. HART id < SBI_HARTMASK_MAX_BITS
->  	 */
->  	const u32 *hart_index2id;
-> +	/** Allocation alignment for Scratch */
-> +	u32 cbom_block_size;
->  };
->  
->  /**
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 7329b84..0b82159 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -55,6 +55,7 @@ bool fdt_node_is_enabled(const void *fdt, int nodeoff);
->  
->  int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid);
->  
-> +int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, u32 *cbom_block_size);
->  int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
+> -----Original Message-----
+> From: Samuel Holland <samuel.holland@sifive.com>
+> Sent: Tuesday, March 25, 2025 10:26 AM
+> To: Alvin Che-Chia Chang(???) <alvinga@andestech.com>;
+> opensbi at lists.infradead.org
+> Cc: anup at brainfault.org; peter.lin at sifive.com; yong.li at intel.com
+> Subject: Re: [PATCH v3] lib: sbi_mpxy: Change MPXY state as per-domain data
+>
+> [EXTERNAL MAIL]
+>
+> Hi Alvin,
+>
+> On 2025-03-24 1:39 AM, Alvin Chang wrote:
+> > OpenSBI supports multiple supervisor domains run on same platform.
+> > When these supervisor domains want to communicate with OpenSBI through
+> > MPXY channels, they will allocate MPXY shared memory from their own
+> > memory regions. Therefore, the MPXY state data structure must be
+> > per-domain and per-hart data structure.
+> >
+> > This commit registers per-domain MPXY state data in sbi_mpxy_init().
+> > The original MPXY state allocated in scratch region is also removed.
+> > We also replace sbi_scratch_thishart_offset_ptr() macro as new
+> > sbi_domain_mpxy_state_thishart_ptr() macro which gets MPXY state from
+> > per-domain data.
+> >
+> > Signed-off-by: Alvin Chang <alvinga@andestech.com>
+> > Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
+> > ---
+> >  include/sbi/sbi_mpxy.h |  16 +++++++
+> >  lib/sbi/sbi_mpxy.c     | 100
+> +++++++++++++++++++++++++++++++----------
+> >  2 files changed, 92 insertions(+), 24 deletions(-)
+> >
+> > diff --git a/include/sbi/sbi_mpxy.h b/include/sbi/sbi_mpxy.h index
+> > 9da2791..169f028 100644
+> > --- a/include/sbi/sbi_mpxy.h
+> > +++ b/include/sbi/sbi_mpxy.h
+> > @@ -12,6 +12,7 @@
+> >
+> >  #include <sbi/sbi_list.h>
+> >
+> > +struct sbi_domain;
+> >  struct sbi_scratch;
+> >
+> >  #define SBI_MPXY_MSGPROTO_VERSION(Major, Minor) ((Major << 16) |
+> > Minor) @@ -182,4 +183,19 @@ int sbi_mpxy_send_message(u32
+> channel_id,
+> > u8 msg_id,  int sbi_mpxy_get_notification_events(u32 channel_id,
+> >                                       unsigned long *events_len);
+> >
+> > +/**
+> > + * Get per-domain MPXY state pointer for a given domain and HART
+> > +index
+> > + * @param dom pointer to domain
+> > + * @param hartindex the HART index
+> > + *
+> > + * @return per-domain MPXY state pointer for given HART index  */
+> > +struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
+> > +                                          u32 hartindex);
+> > +
+> > +/** Macro to obtain the current hart's MPXY state pointer in current
+> domain */
+> > +#define sbi_domain_mpxy_state_thishart_ptr()                 \
+> > +     sbi_domain_get_mpxy_state(sbi_domain_thishart_ptr(),    \
+> > +                               current_hartindex())
+> > +
+> >  #endif
+> > diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c index
+> > c5d9d1b..4a14c4f 100644
+> > --- a/lib/sbi/sbi_mpxy.c
+> > +++ b/lib/sbi/sbi_mpxy.c
+> > @@ -11,6 +11,7 @@
+> >  #include <sbi/sbi_domain.h>
+> >  #include <sbi/sbi_error.h>
+> >  #include <sbi/sbi_hart.h>
+> > +#include <sbi/sbi_heap.h>
+> >  #include <sbi/sbi_platform.h>
+> >  #include <sbi/sbi_mpxy.h>
+> >  #include <sbi/sbi_scratch.h>
+> > @@ -22,9 +23,6 @@
+> >  /** Shared memory size across all harts */  static unsigned long
+> > mpxy_shmem_size = PAGE_SIZE;
+> >
+> > -/** Offset of pointer to MPXY state in scratch space */ -static
+> > unsigned long mpxy_state_offset;
+> > -
+> >  /** List of MPXY proxy channels */
+> >  static SBI_LIST_HEAD(mpxy_channel_list);
+> >
+> > @@ -89,6 +87,12 @@ struct mpxy_state {
+> >       struct mpxy_shmem shmem;
+> >  };
+> >
+> > +/** Per domain MPXY state */
+> > +struct domain_mpxy_state_priv {
+> > +     /** MPXY state for possible HARTs indexed by hartindex */
+> > +     struct mpxy_state
+> > +*hartindex_to_mpxy_state_table[SBI_HARTMASK_MAX_BITS];
+>
+> Please don't hardcode SBI_HARTMASK_MAX_BITS here. You can use
+> sbi_hart_count() to update .data_size before calling
+> sbi_domain_register_data(). Unfortunately, a struct cannot contain a flexible
+> array member by itself, so you'll either need to get rid of the struct or add a
+> dummy member.
 
-Please match the surrounding style (blank line between declarations).
+It seems we can use zero-length array in struct here.
 
->  
->  int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
-> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> index ccbbc68..fdb9e20 100644
-> --- a/lib/sbi/sbi_scratch.c
-> +++ b/lib/sbi/sbi_scratch.c
-> @@ -14,6 +14,8 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
->  
-> +#define DEFAULT_SCRATCH_ALLOC_ALIGN __SIZEOF_POINTER__
-> +
->  u32 last_hartindex_having_scratch = 0;
->  u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS + 1] = { -1U };
->  struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0 };
-> @@ -21,6 +23,20 @@ struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS + 1] = { 0
->  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
->  static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
->  
-> +static u32 sbi_get_scratch_alloc_align(void)
-> +{
-> +	const struct sbi_platform *plat;
-> +	/*
-> +	 * Get the alignment size. We will return DEFAULT_SCRATCH_ALLOC_ALIGNMENT
-> +	 * or riscv,cbom_block_size
-> +	 */
-> +	plat = sbi_platform_thishart_ptr();
-> +	if (!plat)
-> +		return DEFAULT_SCRATCH_ALLOC_ALIGN;
-> +	return plat->cbom_block_size ? plat->cbom_block_size : \
-> +                                  DEFAULT_SCRATCH_ALLOC_ALIGN;
+        struct domain_mpxy_state_priv {
+                struct mpxy_state *hartindex_to_mpxy_state_table[0];
+        };
 
-You can simplify this:
+The value of .data_size would be:
 
-	if (!plat || !plat->cbom_block_size)
-		return DEFAULT_SCRATCH_ALLOC_ALIGN;
-	return plat->cbom_block_size;
+        dmspriv.data_size = sizeof(struct mpxy_state *) * sbi_hart_count();
 
-> +
-> +}
->  u32 sbi_hartid_to_hartindex(u32 hartid)
+Do you have better idea?
 
-Please match the surrounding style (blank line between functions).
+>
+> > +};
+> > +
+> >  /** Disable hart shared memory */
+> >  static inline void sbi_mpxy_shmem_disable(struct mpxy_state *ms)  {
+> > @@ -171,7 +175,7 @@ bool sbi_mpxy_channel_available(void)
+> >
+> >  static void mpxy_std_attrs_init(struct sbi_mpxy_channel *channel)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       u32 capability = 0;
+> >
+> >       /* Reset values */
+> > @@ -240,25 +244,73 @@ int sbi_mpxy_register_channel(struct
+> sbi_mpxy_channel *channel)
+> >       return SBI_OK;
+> >  }
+> >
+> > -int sbi_mpxy_init(struct sbi_scratch *scratch)
+> > +/** Setup per domain MPXY state data */ static int
+> > +domain_mpxy_state_data_setup(struct sbi_domain *dom,
+> > +                                     struct sbi_domain_data
+> *data,
+> > +                                     void *data_ptr)
+> >  {
+> > +     struct domain_mpxy_state_priv *dmsp = data_ptr;
+> >       struct mpxy_state *ms;
+> > +     u32 i;
+> > +
+> > +     sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
+> > +             ms = sbi_zalloc(sizeof(*ms));
+> > +             if (!ms)
+> > +                     return SBI_ENOMEM;
+> > +
+> > +             /*
+> > +              * TODO: Proper support for checking msi support from
+> > +              * platform. Currently disable msi and sse and use
+> > +              * polling
+> > +              */
+> > +             ms->msi_avail = false;
+> > +             ms->sse_avail = false;
+> >
+> > -     mpxy_state_offset = sbi_scratch_alloc_type_offset(struct mpxy_state);
+> > -     if (!mpxy_state_offset)
+> > -             return SBI_ENOMEM;
+> > +             sbi_mpxy_shmem_disable(ms);
+> > +
+> > +             dmsp->hartindex_to_mpxy_state_table[i] = ms;
+> > +     }
+> >
+> > -     /**
+> > -      * TODO: Proper support for checking msi support from platform.
+> > -      * Currently disable msi and sse and use polling
+> > -      */
+> > -     ms = sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > -     ms->msi_avail = false;
+> > -     ms->sse_avail = false;
+> > +     return 0;
+> > +}
+> >
+> > -     sbi_mpxy_shmem_disable(ms);
+> > +/** Cleanup per domain MPXY state data */ static void
+> > +domain_mpxy_state_data_cleanup(struct sbi_domain *dom,
+> > +                                        struct sbi_domain_data
+> *data,
+> > +                                        void *data_ptr) {
+> > +     struct domain_mpxy_state_priv *dmsp = data_ptr;
+> > +     u32 i;
+> > +
+> > +     sbi_hartmask_for_each_hartindex(i, dom->possible_harts)
+> > +             sbi_free(dmsp->hartindex_to_mpxy_state_table[i]);
+> > +}
+> > +
+> > +static struct sbi_domain_data dmspriv = {
+> > +     .data_size = sizeof(struct domain_mpxy_state_priv),
+> > +     .data_setup = domain_mpxy_state_data_setup,
+> > +     .data_cleanup = domain_mpxy_state_data_cleanup, };
+> > +
+> > +struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
+> > +                                          u32 hartindex) {
+> > +     struct domain_mpxy_state_priv *dmsp =
+> > +             sbi_domain_data_ptr(dom, &dmspriv);
+> > +
+> > +     return (dmsp && hartindex < SBI_HARTMASK_MAX_BITS) ?
+>
+> sbi_hartindex_valid() would be appropriate here.
 
->  {
->  	u32 i;
-> @@ -57,6 +73,7 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
->  	void *ptr;
->  	unsigned long ret = 0;
->  	struct sbi_scratch *rscratch;
-> +	u32 scratch_alloc_align = 0;
+Will use sbi_hartindex_valid() here, thanks!
 
-Since the only user of this value needs it to be unsigned long, you can change
-the type here (and the return type of sbi_get_scratch_alloc_align()) and drop
-the cast below.
-
->  
->  	/*
->  	 * We have a simple brain-dead allocator which never expects
-> @@ -70,8 +87,14 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
->  	if (!size)
->  		return 0;
->  
-> -	size += __SIZEOF_POINTER__ - 1;
-> -	size &= ~((unsigned long)__SIZEOF_POINTER__ - 1);
-> +	scratch_alloc_align = sbi_get_scratch_alloc_align();
-> +
-> +	/*
-> +	 * We let the allocation align to cacheline bytes to avoid livelock on
-> +	 * certain platforms due to atomic variables from the same cache line.
-> +	 */
-> +    size += scratch_alloc_align - 1;
-> +    size &= ~((unsigned long)scratch_alloc_align - 1);
-
-Please match the documented coding style (use tabs for indent).
-
->  
->  	spin_lock(&extra_lock);
->  
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index cb350e5..bea4fdc 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -287,6 +287,30 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid)
->  
->  	return 0;
->  }
-> +int fdt_parse_cbom_block_size(const void *fdt,int cpu_offset,u32 *cbom_block_size)
-> +{
-> +    int len;
-
-Please match the documented coding style (use tabs for indent).
-
-> +    const void *prop;
-> +    const fdt32_t *val;
-> +
-> +    if (!fdt || cpu_offset < 0)
-> +        return SBI_EINVAL;
-> +
-> +    prop = fdt_getprop(fdt, cpu_offset, "device_type", &len);
-> +    if (!prop || !len)
-> +        return SBI_EINVAL;
-> +    if (strncmp (prop, "cpu", strlen ("cpu")))
-> +        return SBI_EINVAL;
-> +
-> +    val = fdt_getprop(fdt, cpu_offset, "riscv,cbom-block-size", &len);
-> +    if (!val || len < sizeof(fdt32_t))
-> +        return SBI_EINVAL;
-> +
-> +    if (cbom_block_size)
-> +        *cbom_block_size = fdt32_to_cpu(*val);
-> +    return 0;
-> +
-
-Please match the surrounding coding style (no blank line here).
-
-> +}
->  
->  int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid)
->  {
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index c03ed88..0ff8d46 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -174,6 +174,8 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
->  	const void *fdt = (void *)arg1;
->  	u32 hartid, hart_count = 0;
->  	int rc, root_offset, cpus_offset, cpu_offset, len;
-> +	u32 cbom_block_size = 0;
-> +	u32 tmp=0;
-
-Please match the surrounding coding style (spaces around assignments).
-
->  
->  	root_offset = fdt_path_offset(fdt, "/");
->  	if (root_offset < 0)
-> @@ -207,11 +209,16 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
->  			continue;
->  
->  		generic_hart_index2id[hart_count++] = hartid;
-
-Please add a blank line here.
 
 Regards,
-Samuel
+Alvin
 
-> +		rc = fdt_parse_cbom_block_size(fdt, cpu_offset,&tmp);
-> +		if (rc)
-> +			continue;
-> +		cbom_block_size = MAX(tmp,cbom_block_size);
->  	}
->  
->  	platform.hart_count = hart_count;
->  	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
->  	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
-> +	platform.cbom_block_size = cbom_block_size;
->  
->  	fw_platform_coldboot_harts_init(fdt);
->  
+>
+> Regards,
+> Samuel
+>
+> > +             dmsp->hartindex_to_mpxy_state_table[hartindex] : NULL; }
+> > +
+> > +int sbi_mpxy_init(struct sbi_scratch *scratch) {
+> > +     int ret;
+> > +
+> > +     ret = sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
+> > +     if (ret)
+> > +             return ret;
+> >
+> > -     return sbi_platform_mpxy_init(sbi_platform_ptr(scratch));
+> > +     return sbi_domain_register_data(&dmspriv);
+> >  }
+> >
+> >  unsigned long sbi_mpxy_get_shmem_size(void) @@ -270,7 +322,7 @@ int
+> > sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
+> >                      unsigned long shmem_phys_hi,
+> >                      unsigned long flags)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       unsigned long *ret_buf;
+> >
+> >       /** Disable shared memory if both hi and lo have all bit 1s */
+> > @@ -312,7 +364,7 @@ int sbi_mpxy_set_shmem(unsigned long
+> > shmem_phys_lo,
+> >
+> >  int sbi_mpxy_get_channel_ids(u32 start_index)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       u32 remaining, returned, max_channelids;
+> >       u32 node_index = 0, node_ret = 0;
+> >       struct sbi_mpxy_channel *channel; @@ -363,7 +415,7 @@ int
+> > sbi_mpxy_get_channel_ids(u32 start_index)
+> >
+> >  int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32
+> > attr_count)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       int ret = SBI_SUCCESS;
+> >       u32 *attr_ptr, end_id;
+> >       void *shmem_base;
+> > @@ -479,7 +531,7 @@ static int mpxy_check_write_std_attr(struct
+> > sbi_mpxy_channel *channel,  static void mpxy_write_std_attr(struct
+> sbi_mpxy_channel *channel, u32 attr_id,
+> >                               u32 attr_val)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       struct sbi_mpxy_channel_attrs *attrs = &channel->attrs;
+> >
+> >       switch(attr_id) {
+> > @@ -513,7 +565,7 @@ static void mpxy_write_std_attr(struct
+> > sbi_mpxy_channel *channel, u32 attr_id,
+> >
+> >  int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32
+> > attr_count)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       u32 *mem_ptr, attr_id, end_id, attr_val;
+> >       struct sbi_mpxy_channel *channel;
+> >       int ret, mem_idx;
+> > @@ -603,7 +655,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8
+> msg_id,
+> >                         unsigned long msg_data_len,
+> >                         unsigned long *resp_data_len)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       struct sbi_mpxy_channel *channel;
+> >       void *shmem_base, *resp_buf;
+> >       u32 resp_bufsize;
+> > @@ -661,7 +713,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8
+> > msg_id,
+> >
+> >  int sbi_mpxy_get_notification_events(u32 channel_id, unsigned long
+> > *events_len)  {
+> > -     struct mpxy_state *ms =
+> sbi_scratch_thishart_offset_ptr(mpxy_state_offset);
+> > +     struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+> >       struct sbi_mpxy_channel *channel;
+> >       void *eventsbuf, *shmem_base;
+> >       int ret;
 
+CONFIDENTIALITY NOTICE:
 
+This e-mail (and its attachments) may contain confidential and legally privileged information or information protected from disclosure. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein is strictly prohibited. In this case, please immediately notify the sender by return e-mail, delete the message (and any accompanying documents) and destroy all printed hard copies. Thank you for your cooperation.
+
+Copyright ANDES TECHNOLOGY CORPORATION - All Rights Reserved.
