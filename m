@@ -1,116 +1,219 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue, 25 Mar 2025 16:43:27 -0700
-Subject: [PATCH 04/10] platform: generic: Add an init hook matching fdt_driver
+Date: Tue, 25 Mar 2025 16:43:28 -0700
+Subject: [PATCH 05/10] platform: generic: Allow replacing platform operations
 In-Reply-To: <20250325234342.711447-1-samuel.holland@sifive.com>
 References: <20250325234342.711447-1-samuel.holland@sifive.com>
-Message-ID: <20250325234342.711447-5-samuel.holland@sifive.com>
+Message-ID: <20250325234342.711447-6-samuel.holland@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In preparation for reusing the fdt_driver code to match platform
-overrides, add a new .init hook matching the type signature from
-fdt_driver. This hook replaces the existing .fw_init hook, since
-it is called at roughly the same place in the init process.
+Currently the generic platform follows the middleware pattern: it
+implements the sbi_platform hooks, while providing its own set of hooks
+for further customization. This has a few disadvantages: each location
+where customization is needed requires a separate platform_override
+hook, including places where the generic function does nothing except
+forward to a platform_override hook, and the extra layer of function
+pointers adds runtime overhead.
+
+Let's restructure the generic platform to follow the helper pattern.
+Allow platform overrides to treat the generic platform as a template,
+adding or replacing the sbi_platform_operations as needed. Export the
+generic implementations, so they can be called as helpers from inside
+the override functions. With this pattern, the platform_override
+function pointers are replaced by direct calls, and the forwarding
+functions can be removed.
+
+The forwarding functions are not exported, since there is no reason for
+an override to call them. generic_vendor_ext_check() must be rewritten,
+since now there is a new way to override vendor_ext_provider.
 
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
- platform/generic/include/platform_override.h |  3 ++-
- platform/generic/platform.c                  | 11 +++++++----
- platform/generic/starfive/jh7110.c           |  7 +++++--
- 3 files changed, 14 insertions(+), 7 deletions(-)
+ platform/generic/include/platform_override.h | 15 +++++++
+ platform/generic/platform.c                  | 43 +++++++++++---------
+ 2 files changed, 38 insertions(+), 20 deletions(-)
 
 diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index 946fb8f7..0499b7e6 100644
+index 0499b7e6..6b4ac82e 100644
 --- a/platform/generic/include/platform_override.h
 +++ b/platform/generic/include/platform_override.h
-@@ -17,6 +17,8 @@
+@@ -12,6 +12,7 @@
  
- struct platform_override {
- 	const struct fdt_match *match_table;
-+	int (*init)(const void *fdt, int nodeoff,
-+		    const struct fdt_match *match);
- 	u64 (*features)(const struct fdt_match *match);
- 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
- 	u32 (*tlb_num_entries)(const struct fdt_match *match);
-@@ -29,7 +31,6 @@ struct platform_override {
- 	int (*extensions_init)(const struct fdt_match *match,
- 			       struct sbi_hart_features *hfeatures);
- 	int (*pmu_init)(const struct fdt_match *match);
--	void (*fw_init)(const void *fdt, const struct fdt_match *match);
- 	int (*vendor_ext_provider)(long funcid,
- 				   struct sbi_trap_regs *regs,
- 				   struct sbi_ecall_return *out,
+ #include <sbi/sbi_ecall.h>
+ #include <sbi/sbi_hart.h>
++#include <sbi/sbi_platform.h>
+ #include <sbi/sbi_types.h>
+ #include <sbi/sbi_trap.h>
+ 
+@@ -37,4 +38,18 @@ struct platform_override {
+ 				   const struct fdt_match *match);
+ };
+ 
++bool generic_cold_boot_allowed(u32 hartid);
++int generic_nascent_init(void);
++int generic_early_init(bool cold_boot);
++int generic_final_init(bool cold_boot);
++int generic_extensions_init(struct sbi_hart_features *hfeatures);
++int generic_domains_init(void);
++int generic_pmu_init(void);
++uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t data);
++u64 generic_tlbr_flush_limit(void);
++u32 generic_tlb_num_entries(void);
++int generic_mpxy_init(void);
++
++extern struct sbi_platform_operations generic_platform_ops;
++
+ #endif
 diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index b2f29e8b..f34521d6 100644
+index f34521d6..2427adac 100644
 --- a/platform/generic/platform.c
 +++ b/platform/generic/platform.c
-@@ -40,7 +40,7 @@ static void fw_platform_lookup_special(const void *fdt, int root_offset)
+@@ -223,7 +223,7 @@ fail:
+ 		wfi();
+ }
+ 
+-static bool generic_cold_boot_allowed(u32 hartid)
++bool generic_cold_boot_allowed(u32 hartid)
  {
- 	const struct platform_override *plat;
- 	const struct fdt_match *match;
--	int pos;
-+	int pos, rc;
+ 	if (generic_plat && generic_plat->cold_boot_allowed)
+ 		return generic_plat->cold_boot_allowed(
+@@ -237,14 +237,14 @@ static bool generic_cold_boot_allowed(u32 hartid)
+ 	return false;
+ }
  
- 	for (pos = 0; platform_override_modules[pos]; pos++) {
- 		plat = platform_override_modules[pos];
-@@ -51,6 +51,12 @@ static void fw_platform_lookup_special(const void *fdt, int root_offset)
- 		if (!match)
- 			continue;
+-static int generic_nascent_init(void)
++int generic_nascent_init(void)
+ {
+ 	if (platform_has_mlevel_imsic)
+ 		imsic_local_irqchip_init();
+ 	return 0;
+ }
  
-+		if (plat->init) {
-+			rc = plat->init(fdt, root_offset, match);
-+			if (rc)
-+				continue;
-+		}
-+
- 		generic_plat = plat;
- 		generic_plat_match = match;
- 		break;
-@@ -178,9 +184,6 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+-static int generic_early_init(bool cold_boot)
++int generic_early_init(bool cold_boot)
+ {
+ 	const void *fdt = fdt_get_address();
+ 	int rc;
+@@ -266,7 +266,7 @@ static int generic_early_init(bool cold_boot)
+ 	return generic_plat->early_init(cold_boot, fdt, generic_plat_match);
+ }
  
- 	fw_platform_lookup_special(fdt, root_offset);
+-static int generic_final_init(bool cold_boot)
++int generic_final_init(bool cold_boot)
+ {
+ 	void *fdt = fdt_get_address_rw();
+ 	int rc;
+@@ -293,12 +293,6 @@ static int generic_final_init(bool cold_boot)
+ 	return 0;
+ }
  
--	if (generic_plat && generic_plat->fw_init)
--		generic_plat->fw_init(fdt, generic_plat_match);
+-static bool generic_vendor_ext_check(void)
+-{
+-	return (generic_plat && generic_plat->vendor_ext_provider) ?
+-		true : false;
+-}
 -
- 	model = fdt_getprop(fdt, root_offset, "model", &len);
- 	if (model)
- 		sbi_strncpy(platform.name, model, sizeof(platform.name) - 1);
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index cd8ce27d..cc9c82f7 100644
---- a/platform/generic/starfive/jh7110.c
-+++ b/platform/generic/starfive/jh7110.c
-@@ -301,7 +301,8 @@ static bool starfive_jh7110_cold_boot_allowed(u32 hartid,
- 	return true;
+ static int generic_vendor_ext_provider(long funcid,
+ 				       struct sbi_trap_regs *regs,
+ 				       struct sbi_ecall_return *out)
+@@ -307,6 +301,16 @@ static int generic_vendor_ext_provider(long funcid,
+ 						 generic_plat_match);
  }
  
--static void starfive_jh7110_fw_init(const void *fdt, const struct fdt_match *match)
-+static int starfive_jh7110_platform_init(const void *fdt, int nodeoff,
-+					 const struct fdt_match *match)
- {
- 	const fdt32_t *val;
- 	int len, coff;
-@@ -312,6 +313,8 @@ static void starfive_jh7110_fw_init(const void *fdt, const struct fdt_match *mat
- 		if (val && len >= sizeof(fdt32_t))
- 			selected_hartid = (u32) fdt32_to_cpu(*val);
- 	}
++static bool generic_vendor_ext_check(void)
++{
++	if (generic_plat && generic_plat->vendor_ext_provider)
++		return true;
++	if (generic_platform_ops.vendor_ext_provider != generic_vendor_ext_provider)
++		return true;
 +
-+	return 0;
++	return false;
++}
++
+ static void generic_early_exit(void)
+ {
+ 	if (generic_plat && generic_plat->early_exit)
+@@ -319,7 +323,7 @@ static void generic_final_exit(void)
+ 		generic_plat->final_exit(generic_plat_match);
  }
  
- static const struct fdt_match starfive_jh7110_match[] = {
-@@ -321,7 +324,7 @@ static const struct fdt_match starfive_jh7110_match[] = {
+-static int generic_extensions_init(struct sbi_hart_features *hfeatures)
++int generic_extensions_init(struct sbi_hart_features *hfeatures)
+ {
+ 	int rc;
  
- const struct platform_override starfive_jh7110 = {
- 	.match_table = starfive_jh7110_match,
-+	.init = starfive_jh7110_platform_init,
- 	.cold_boot_allowed = starfive_jh7110_cold_boot_allowed,
--	.fw_init = starfive_jh7110_fw_init,
- 	.final_init = starfive_jh7110_final_init,
+@@ -337,7 +341,7 @@ static int generic_extensions_init(struct sbi_hart_features *hfeatures)
+ 	return 0;
+ }
+ 
+-static int generic_domains_init(void)
++int generic_domains_init(void)
+ {
+ 	const void *fdt = fdt_get_address();
+ 	int offset, ret;
+@@ -359,21 +363,21 @@ static int generic_domains_init(void)
+ 	return 0;
+ }
+ 
+-static u64 generic_tlbr_flush_limit(void)
++u64 generic_tlbr_flush_limit(void)
+ {
+ 	if (generic_plat && generic_plat->tlbr_flush_limit)
+ 		return generic_plat->tlbr_flush_limit(generic_plat_match);
+ 	return SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT;
+ }
+ 
+-static u32 generic_tlb_num_entries(void)
++u32 generic_tlb_num_entries(void)
+ {
+ 	if (generic_plat && generic_plat->tlb_num_entries)
+ 		return generic_plat->tlb_num_entries(generic_plat_match);
+ 	return sbi_hart_count();
+ }
+ 
+-static int generic_pmu_init(void)
++int generic_pmu_init(void)
+ {
+ 	int rc;
+ 
+@@ -390,8 +394,7 @@ static int generic_pmu_init(void)
+ 	return 0;
+ }
+ 
+-static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+-					       uint64_t data)
++uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t data)
+ {
+ 	uint64_t evt_val = 0;
+ 
+@@ -413,7 +416,7 @@ static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+ 	return evt_val;
+ }
+ 
+-static int generic_mpxy_init(void)
++int generic_mpxy_init(void)
+ {
+ 	const void *fdt = fdt_get_address();
+ 
+@@ -421,7 +424,7 @@ static int generic_mpxy_init(void)
+ 	return 0;
+ }
+ 
+-const struct sbi_platform_operations platform_ops = {
++struct sbi_platform_operations generic_platform_ops = {
+ 	.cold_boot_allowed	= generic_cold_boot_allowed,
+ 	.nascent_init		= generic_nascent_init,
+ 	.early_init		= generic_early_init,
+@@ -453,5 +456,5 @@ struct sbi_platform platform = {
+ 	.hart_index2id		= generic_hart_index2id,
+ 	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
+ 	.heap_size		= SBI_PLATFORM_DEFAULT_HEAP_SIZE(0),
+-	.platform_ops_addr	= (unsigned long)&platform_ops
++	.platform_ops_addr	= (unsigned long)&generic_platform_ops
  };
 -- 
 2.47.2
