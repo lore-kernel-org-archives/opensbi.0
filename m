@@ -1,76 +1,45 @@
 From: Samuel Holland <samuel.holland@sifive.com>
-Date: Tue, 25 Mar 2025 16:43:33 -0700
-Subject: [PATCH 10/10] lib: sbi_platform: Remove the vendor_ext_check hook
-In-Reply-To: <20250325234342.711447-1-samuel.holland@sifive.com>
-References: <20250325234342.711447-1-samuel.holland@sifive.com>
-Message-ID: <20250325234342.711447-11-samuel.holland@sifive.com>
+Date: Tue, 25 Mar 2025 21:02:29 -0500
+Subject: [PATCH v4] lib: sbi_mpxy: Change MPXY state as per-domain data
+In-Reply-To: <20250325071314.3113941-1-alvinga@andestech.com>
+References: <20250325071314.3113941-1-alvinga@andestech.com>
+Message-ID: <221bc465-f41b-4ac0-861d-be831a920b7a@sifive.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Now that the generic platform only sets .vendor_ext_provider if the
-function is really implemented, there is no need for a separate hook to
-check if a vendor extension is implemented.
+On 2025-03-25 2:13 AM, Alvin Chang wrote:
+> OpenSBI supports multiple supervisor domains run on same platform. When
+> these supervisor domains want to communicate with OpenSBI through MPXY
+> channels, they will allocate MPXY shared memory from their own memory
+> regions. Therefore, the MPXY state data structure must be per-domain and
+> per-hart data structure.
+> 
+> This commit registers per-domain MPXY state data in sbi_mpxy_init(). The
+> original MPXY state allocated in scratch region is also removed. We also
+> replace sbi_scratch_thishart_offset_ptr() macro as new
+> sbi_domain_mpxy_state_thishart_ptr() macro which gets MPXY state from
+> per-domain data.
+> 
+> Signed-off-by: Alvin Chang <alvinga@andestech.com>
+> Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
+> ---
+> Changes in V4:
+>     Rebase to master and apply Samuel's suggestions which improves memory usage
+> 
+> Changes in V3:
+>     Apply Anup's suggestions to merge some of patches and drop unnecessary
+>     modifications
+> 
+> Changes in V2:
+>     Rebase to master
+> ---
+>  include/sbi/sbi_mpxy.h |  16 +++++++
+>  lib/sbi/sbi_mpxy.c     | 102 +++++++++++++++++++++++++++++++----------
+>  2 files changed, 95 insertions(+), 23 deletions(-)
 
-Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
----
-
- include/sbi/sbi_platform.h  | 7 +------
- platform/generic/platform.c | 6 ------
- 2 files changed, 1 insertion(+), 12 deletions(-)
-
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index 3c99d439..6a8f47bd 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -129,8 +129,6 @@ struct sbi_platform_operations {
- 	/** Initialize the platform Message Proxy(MPXY) driver */
- 	int (*mpxy_init)(void);
- 
--	/** Check if SBI vendor extension is implemented or not */
--	bool (*vendor_ext_check)(void);
- 	/** platform specific SBI extension implementation provider */
- 	int (*vendor_ext_provider)(long funcid,
- 				   struct sbi_trap_regs *regs,
-@@ -604,10 +602,7 @@ static inline int sbi_platform_mpxy_init(const struct sbi_platform *plat)
- static inline bool sbi_platform_vendor_ext_check(
- 					const struct sbi_platform *plat)
- {
--	if (plat && sbi_platform_ops(plat)->vendor_ext_check)
--		return sbi_platform_ops(plat)->vendor_ext_check();
--
--	return false;
-+	return plat && sbi_platform_ops(plat)->vendor_ext_provider;
- }
- 
- /**
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 04448d71..f3072be8 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -240,11 +240,6 @@ int generic_final_init(bool cold_boot)
- 	return 0;
- }
- 
--static bool generic_vendor_ext_check(void)
--{
--	return !!generic_platform_ops.vendor_ext_provider;
--}
--
- int generic_extensions_init(struct sbi_hart_features *hfeatures)
- {
- 	/* Parse the ISA string from FDT and enable the listed extensions */
-@@ -340,7 +335,6 @@ struct sbi_platform_operations generic_platform_ops = {
- 	.get_tlb_num_entries	= generic_tlb_num_entries,
- 	.timer_init		= fdt_timer_init,
- 	.mpxy_init		= generic_mpxy_init,
--	.vendor_ext_check	= generic_vendor_ext_check,
- };
- 
- struct sbi_platform platform = {
--- 
-2.47.2
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 
 
