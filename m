@@ -1,99 +1,68 @@
-From: Alvin Chang <alvinga@andestech.com>
-Date: Wed, 26 Mar 2025 14:20:51 +0800
-Subject: [PATCH] lib: sbi_domain: Reduce memory usage of per-domain hart context
-Message-ID: <20250326062051.3763530-1-alvinga@andestech.com>
+From: Xiang W <wxjstz@126.com>
+Date: Wed, 26 Mar 2025 17:17:35 +0800
+Subject: [PATCH] lib: sbi: Fix location of sbi_domain_context_init
+Message-ID: <20250326091804.345785-1-wxjstz@126.com>
 List-Id: <opensbi.lists.infradead.org>
 To: opensbi@lists.infradead.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In current implementation, the length of hartindex_to_context_table[]
-array is fixed as SBI_HARTMASK_MAX_BITS. However, the number of harts
-supported by the platform might not be SBI_HARTMASK_MAX_BITS and is
-usually smaller than SBI_HARTMASK_MAX_BITS. This means it is unnecessary
-to allocate such fixed-length array here.
+sbi_domain_context_init needs to assign context to each hart of each
+domain, so it must be called after all the domains are registered.
 
-Precisely, current implementation always allocates 1024 bytes for
-hartindex_to_context_table[128] on RV64 platform. However, a platform
-supports two harts only needs hartindex_to_context_table[2], which only
-needs 16 bytes.
-
-This commit calculates needed size of hartindex_to_context_table[]
-according to supported number of harts on the platform when registering
-per-domain data, so that memory usage of per-domain context data can be
-reduced.
-
-Signed-off-by: Alvin Chang <alvinga@andestech.com>
+Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_domain_context.c | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ lib/sbi/sbi_domain.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 407c0d5..0e5c1c2 100644
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -53,31 +53,32 @@ struct hart_context {
- 	bool initialized;
- };
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 51c82a75..ad393644 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -765,6 +765,14 @@ int sbi_domain_finalize(struct sbi_scratch *scratch)
+ 	 */
+ 	domain_finalized = true;
  
--struct domain_context_priv {
--	/** Contexts for possible HARTs indexed by hartindex */
--	struct hart_context *hartindex_to_context_table[SBI_HARTMASK_MAX_BITS];
--};
++	/* Initialize domain context support */
++	rc = sbi_domain_context_init();
++	if (rc) {
++		sbi_printf("%s: sbi_domain_context_init() failed (error %d)\n",
++			   __func__, rc);
++		return rc;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -795,16 +803,11 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	if (!domain_hart_ptr_offset)
+ 		return SBI_ENOMEM;
+ 
+-	/* Initialize domain context support */
+-	rc = sbi_domain_context_init();
+-	if (rc)
+-		goto fail_free_domain_hart_ptr_offset;
 -
- static struct sbi_domain_data dcpriv = {
--	.data_size = sizeof(struct domain_context_priv),
-+
- };
+ 	root_memregs = sbi_calloc(sizeof(*root_memregs), ROOT_REGION_MAX + 1);
+ 	if (!root_memregs) {
+ 		sbi_printf("%s: no memory for root regions\n", __func__);
+ 		rc = SBI_ENOMEM;
+-		goto fail_deinit_context;
++		goto fail_free_domain_hart_ptr_offset;
+ 	}
+ 	root.regions = root_memregs;
  
- static inline struct hart_context *hart_context_get(struct sbi_domain *dom,
- 						    u32 hartindex)
- {
--	struct domain_context_priv *dcp = sbi_domain_data_ptr(dom, &dcpriv);
-+	struct hart_context **dom_hartindex_to_context_table;
-+
-+	dom_hartindex_to_context_table = sbi_domain_data_ptr(dom, &dcpriv);
-+	if (!dom_hartindex_to_context_table || !sbi_hartindex_valid(hartindex))
-+		return NULL;
- 
--	return (dcp && hartindex < SBI_HARTMASK_MAX_BITS) ?
--		dcp->hartindex_to_context_table[hartindex] : NULL;
-+	return dom_hartindex_to_context_table[hartindex];
- }
- 
- static void hart_context_set(struct sbi_domain *dom, u32 hartindex,
- 			     struct hart_context *hc)
- {
--	struct domain_context_priv *dcp = sbi_domain_data_ptr(dom, &dcpriv);
-+	struct hart_context **dom_hartindex_to_context_table;
- 
--	if (dcp && hartindex < SBI_HARTMASK_MAX_BITS)
--		dcp->hartindex_to_context_table[hartindex] = hc;
-+	dom_hartindex_to_context_table = sbi_domain_data_ptr(dom, &dcpriv);
-+	if (!dom_hartindex_to_context_table || !sbi_hartindex_valid(hartindex))
-+		return;
-+
-+	dom_hartindex_to_context_table[hartindex] = hc;
- }
- 
- /** Macro to obtain the current hart's context pointer */
-@@ -232,6 +233,14 @@ int sbi_domain_context_exit(void)
- 
- int sbi_domain_context_init(void)
- {
-+	/**
-+	 * Allocate per-domain and per-hart context data.
-+	 * The data type is "struct hart_context **" whose memory space will be
-+	 * dynamically allocated by domain_setup_data_one(). Calculate needed
-+	 * size of memory space here.
-+	 */
-+	dcpriv.data_size = sizeof(struct hart_context *) * sbi_hart_count();
-+
- 	return sbi_domain_register_data(&dcpriv);
- }
- 
+@@ -869,8 +872,6 @@ fail_free_root_hmask:
+ 	sbi_free(root_hmask);
+ fail_free_root_memregs:
+ 	sbi_free(root_memregs);
+-fail_deinit_context:
+-	sbi_domain_context_deinit();
+ fail_free_domain_hart_ptr_offset:
+ 	sbi_scratch_free_offset(domain_hart_ptr_offset);
+ 	return rc;
 -- 
-2.43.0
+2.47.2
 
 
