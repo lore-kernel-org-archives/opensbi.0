@@ -4,57 +4,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CCCDDC369AB
-	for <opensbi@archiver.kernel.org>; Fri, 18 Apr 2025 14:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E7E54C369D0
+	for <opensbi@archiver.kernel.org>; Fri, 18 Apr 2025 14:50:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=l2v+FUaCWmOEQvwPavzaA23m4d+YMpnTSBkJfVxSzc4=; b=R7DsUS74CCdZ+Z
-	E9IIqYw4nJk1NYIr6qkDhBDCSRe9XyfmZQ2CEJ7KqY+uuMvdTnCyC4D51jyNauvGaK7ylbLhDv6vi
-	1GGHKQS+GhxuLtGFduKU/ABj4vhAUXIrKUo0DowdiZDSVPPVdRifK5XJnxKI+EAT+3Ju3kGcg/Q7c
-	DnT5k64KNlYSgXz2311h3qa2VDr8PpHqo5CwPkRrZ0cyV1Wk4bW5Sp46MBdh7Got5n/fcxEQxIc32
-	ynyQQNa8RZrqd0I+UXDaSHiSu1O619RDAIGVZ2FzHg6o09yv9oiurTDtWV5gAvFzJYaa/ADEwUdJs
-	CUM1ES0i7a58ieYSfwTg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=h/6SLjoa1z5UYJ+BuHm0izKo4VPcfma8zvRbQ+gpd4g=; b=J5nLIWiebAFcIf
+	7Lu+3ouNSHsP+mI41PCUWR1ssHLmyz2cHXCFENoZ+V2GwJj3JrJknGBmywuPnZN3KZeQzeMZ2axcn
+	jBkZyoCRdkokQyzdlZJTvWv+/eP8REo0BhNxtWtHND+iloaZGRXtiSaVo2UPNUoXt4p23h9bsXHPV
+	Ov4CIfDLdIVd4sOchjr/mut9StioDriPjmqI0C+kFCH+5wbXZBwofmG+YcRj8mLhLQ85rtjeq5y05
+	B63eYXzkXZr86Oe5PZmwrtTv3IhD7QQM4wxRhVrNgcWLF7x8YEMXd8W96aOAEdfUMpVvm/G4vemgX
+	RGAGYvXsQW/Yt2IUkT6g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u5n2l-0000000GVTL-22qW;
+	id 1u5n2l-0000000GVT0-0D3t;
 	Fri, 18 Apr 2025 14:50:15 +0000
 Received: from layka.disroot.org ([178.21.23.139])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u5n0s-0000000GV0x-2wPr
+	id 1u5n0r-0000000GV0N-09Pw
 	for opensbi@lists.infradead.org;
-	Fri, 18 Apr 2025 14:48:20 +0000
+	Fri, 18 Apr 2025 14:48:18 +0000
 Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id B654F23C95;
-	Fri, 18 Apr 2025 16:48:15 +0200 (CEST)
+	by disroot.org (Postfix) with ESMTP id 4BDF125D53;
+	Fri, 18 Apr 2025 16:48:12 +0200 (CEST)
 X-Virus-Scanned: SPAM Filter at disroot.org
 Received: from layka.disroot.org ([127.0.0.1])
  by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id mnVm8SVG-9-Y; Fri, 18 Apr 2025 16:48:15 +0200 (CEST)
+ id DMeRWfDEnhzN; Fri, 18 Apr 2025 16:48:11 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1744987695; bh=UiJyLdTQVTYwswOwtQq+z3bV4X68ubXfJfDZfDL2OqM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=PzVtqk3kg+bhjoer6wOOTIFuo9hoWfBzRvEC5ps3v/j6vMNerN/JyA0WQKgs2DBEu
-	 ubeuiImHY2aEmG3C4tdtnN3TRFKdrVIUvIDOb2YM2txKvhjE4KvMxfOrOlKuN9YPjw
-	 oVe1GIwVe7x6wA7xty/18E2J62/PyAnGVHoslA/sshCB1+8px14stflqUxS9BxkWwt
-	 V3ICvd00VglxdhBRTjHYKDtbKxUNXkWlKsNgEb9mQj5qbhtCbl9RzsEvsxVt7jv380
-	 j9MJaiwJcSZyUm5U/w9ZayxLqFd+a5NNyMrNcorMMlJd9jDX9TS/2+1xCU6svdbMWM
-	 GhtTzWgIV+YQQ==
+	t=1744987691; bh=YFBTYKXxmjcpqNQiGE2XtXpbXKjseQhNvC/0GR43ycc=;
+	h=From:To:Cc:Subject:Date;
+	b=TSc21XYu1Z2PZpj4TG+Gi6DxwOCEE7+KhKrUTyzx/S4QlayJD0zQEtk8OEAqPXVQz
+	 LlZm7NkijBHidzcbKbykS7TPvNpozIAWrGZcOx0BIof89CAe2tdZ9RDHaSWXzq10Yl
+	 JZf73cCyB+E6jmtwjPmIN1wTa/JWTQ0OCV6Xez8Ptg6AcnSb9XHECfydJkYpquloPe
+	 VFcBTZOGSXviVfgf7VYthrdzju3cF/9tcDDLbIRXQpNomzBkpigeZXIVBTiruX2Z+J
+	 I8vdzQnelqzr0khU2NpmokaAFGPcmYX7+qFajAIiOrEtfP032Ia3VQRs3I1D4kRRG2
+	 JK6pfrosod0WQ==
 From: Yao Zi <ziyao@disroot.org>
 To: opensbi@lists.infradead.org
 Cc: Yao Zi <ziyao@disroot.org>
-Subject: [PATCH v2 2/2] lib: utils: fdt: Claim Zicntr if time CSR emulation is possible
-Date: Fri, 18 Apr 2025 14:47:58 +0000
-Message-ID: <20250418144758.2633-3-ziyao@disroot.org>
-In-Reply-To: <20250418144758.2633-1-ziyao@disroot.org>
-References: <20250418144758.2633-1-ziyao@disroot.org>
+Subject: [PATCH v2 0/2] Register Zicntr in FDT when emulating is possible
+Date: Fri, 18 Apr 2025 14:47:56 +0000
+Message-ID: <20250418144758.2633-1-ziyao@disroot.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250418_074818_908304_37B63377 
-X-CRM114-Status: GOOD (  11.59  )
+X-CRM114-CacheID: sfid-20250418_074817_493341_6A84F90A 
+X-CRM114-Status: UNSURE (   5.53  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -71,79 +70,37 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-OpenSBI is capable of emulating time CSR through an external timer for
-HARTs that don't implement a full Zicntr extension. Let's register
-Zicntr extension in the FDT if CSR emulation is active.
+OpenSBI is capable of emulating time CSR on HARTs without a full Zicntr
+extension. Previously, we hardcoded Zicntr extension in the devicetree
+for these cores, like JH7110 in mainline Linux[1]. This doesn't reflect
+the hardware and may confuse pre-SBI bootloaders, like U-Boot running in
+M-Mode.
 
-This avoids hardcoding the extension in the devicetree, which may
-confuse pre-SBI bootloaders.
+To solve the issue, let's register Zicntr in FDT dynamically for cores
+supporting it by SBI emulation, allowing pre-SBI stages to detect Zicntr
+availability reliably with riscv,isa-extensions.
 
-Signed-off-by: Yao Zi <ziyao@disroot.org>
----
+[1]: https://elixir.bootlin.com/linux/v6.14-rc3/source/arch/riscv/boot/dts/starfive/jh7110.dtsi#L61
+
+Changed from v1
+- Zicntr detection
+  - Introduce a bitmap to sbi_hart_features instead of using pseudo-
+    extensions to represent availability of CSRs
+  - Change possibly misleading abbreviation "RO" to "read-only" in
+    commit message
+- FDT fixup
+  - Don't register zicntr to (legacy) devicetrees where harts don't come
+    with a riscv,isa-extensions property
+
+Yao Zi (2):
+  lib: sbi: hart: Detect existence of cycle and instret CSRs for Zicntr
+  lib: utils: fdt: Claim Zicntr if time CSR emulation is possible
+
+ include/sbi/sbi_hart.h    |  9 +++++++++
+ lib/sbi/sbi_hart.c        | 35 ++++++++++++++++++++++++++++-------
  lib/utils/fdt/fdt_fixup.c | 33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ 3 files changed, 69 insertions(+), 8 deletions(-)
 
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index e237dd0..f3fe8af 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_timer.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <sbi_utils/fdt/fdt_pmu.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -107,10 +108,21 @@ int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
- 
- void fdt_cpu_fixup(void *fdt)
- {
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	int err, cpu_offset, cpus_offset, len;
--	const char *mmu_type;
-+	const char *mmu_type, *extensions;
- 	u32 hartid, hartindex;
-+	bool emulated_zicntr;
-+
-+	/*
-+	 * Claim Zicntr extension in riscv,isa-extensions if
-+	 *  1. OpenSBI can emulate time CSR with a timer
-+	 *  2. The other two CSRs specified by Zicntr are available
-+	 */
-+	emulated_zicntr = sbi_timer_get_device() != NULL &&
-+			  sbi_hart_has_csr(scratch, SBI_HART_CSR_CYCLE) &&
-+			  sbi_hart_has_csr(scratch, SBI_HART_CSR_INSTRET);
- 
- 	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
- 	if (err < 0)
-@@ -140,6 +152,25 @@ void fdt_cpu_fixup(void *fdt)
- 		    !mmu_type || !len)
- 			fdt_setprop_string(fdt, cpu_offset, "status",
- 					   "disabled");
-+
-+		if (!emulated_zicntr)
-+			continue;
-+
-+		extensions = fdt_getprop(fdt, cpu_offset,
-+					 "riscv,isa-extensions", &len);
-+		/*
-+		 * For legacy devicetrees, don't create riscv,isa-extensions
-+		 * property if there hasn't been already one.
-+		 */
-+		if (extensions &&
-+		    !fdt_stringlist_contains(extensions, len, "zicntr")) {
-+			err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 16);
-+			if (err)
-+				continue;
-+
-+			fdt_appendprop_string(fdt, cpu_offset,
-+					      "riscv,isa-extensions", "zicntr");
-+		}
- 	}
- }
- 
 -- 
 2.49.0
 
