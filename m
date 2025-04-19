@@ -4,56 +4,103 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E7E54C369D0
-	for <opensbi@archiver.kernel.org>; Fri, 18 Apr 2025 14:50:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E17F2C369BD
+	for <opensbi@archiver.kernel.org>; Sat, 19 Apr 2025 04:50:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=h/6SLjoa1z5UYJ+BuHm0izKo4VPcfma8zvRbQ+gpd4g=; b=J5nLIWiebAFcIf
-	7Lu+3ouNSHsP+mI41PCUWR1ssHLmyz2cHXCFENoZ+V2GwJj3JrJknGBmywuPnZN3KZeQzeMZ2axcn
-	jBkZyoCRdkokQyzdlZJTvWv+/eP8REo0BhNxtWtHND+iloaZGRXtiSaVo2UPNUoXt4p23h9bsXHPV
-	Ov4CIfDLdIVd4sOchjr/mut9StioDriPjmqI0C+kFCH+5wbXZBwofmG+YcRj8mLhLQ85rtjeq5y05
-	B63eYXzkXZr86Oe5PZmwrtTv3IhD7QQM4wxRhVrNgcWLF7x8YEMXd8W96aOAEdfUMpVvm/G4vemgX
-	RGAGYvXsQW/Yt2IUkT6g==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=chSlxhsCbpo1oeBkMpVQJsYm6RBYu+2Ioy2NPaCmedg=; b=KS/juITvAvY6iX
+	bWOh/tid9sn6yIJGyfoBnq4F7VEa9rPUq6pSSxCTIGnhqndJbtLaNizGuX2dfLRz7H63IsVgBLslG
+	UbClhJy5hrP/ujQOLag9KFKzq1WtQY+wEYIPmBlR/YpPkEICPmGgbXZtaUiFESIGDzJgBpOot0k5T
+	hyMIpWpjv6y27v6K6wP+TaGdqPByWHgF4J8DIi4qzvgzCcs3IFNKI1h4kjRNCjGlJLY5J8EH+Lb6t
+	oylOfnCxxdCD9FSiqI/2Jqti9rc5rMj59rf8tsai9HlwqF0xsOJSPx8SyPytnaKC9G1dUhkNPvSzc
+	sBlRLhud/VkNhWO4ENJQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u5n2l-0000000GVT0-0D3t;
-	Fri, 18 Apr 2025 14:50:15 +0000
-Received: from layka.disroot.org ([178.21.23.139])
-	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u5n0r-0000000GV0N-09Pw
+	id 1u609g-00000000q9I-0YPp;
+	Sat, 19 Apr 2025 04:50:16 +0000
+Received: from m16.mail.126.com ([220.197.31.8])
+	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1u609b-00000000q87-1AaI
 	for opensbi@lists.infradead.org;
-	Fri, 18 Apr 2025 14:48:18 +0000
-Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id 4BDF125D53;
-	Fri, 18 Apr 2025 16:48:12 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id DMeRWfDEnhzN; Fri, 18 Apr 2025 16:48:11 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1744987691; bh=YFBTYKXxmjcpqNQiGE2XtXpbXKjseQhNvC/0GR43ycc=;
-	h=From:To:Cc:Subject:Date;
-	b=TSc21XYu1Z2PZpj4TG+Gi6DxwOCEE7+KhKrUTyzx/S4QlayJD0zQEtk8OEAqPXVQz
-	 LlZm7NkijBHidzcbKbykS7TPvNpozIAWrGZcOx0BIof89CAe2tdZ9RDHaSWXzq10Yl
-	 JZf73cCyB+E6jmtwjPmIN1wTa/JWTQ0OCV6Xez8Ptg6AcnSb9XHECfydJkYpquloPe
-	 VFcBTZOGSXviVfgf7VYthrdzju3cF/9tcDDLbIRXQpNomzBkpigeZXIVBTiruX2Z+J
-	 I8vdzQnelqzr0khU2NpmokaAFGPcmYX7+qFajAIiOrEtfP032Ia3VQRs3I1D4kRRG2
-	 JK6pfrosod0WQ==
-From: Yao Zi <ziyao@disroot.org>
-To: opensbi@lists.infradead.org
-Cc: Yao Zi <ziyao@disroot.org>
-Subject: [PATCH v2 0/2] Register Zicntr in FDT when emulating is possible
-Date: Fri, 18 Apr 2025 14:47:56 +0000
-Message-ID: <20250418144758.2633-1-ziyao@disroot.org>
+	Sat, 19 Apr 2025 04:50:14 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=Message-ID:Subject:From:Date:Content-Type:
+	MIME-Version; bh=qbHaL3E5JmywFzZMZcOYmfaxxCyr7YKSv3Sfr3qy1P8=;
+	b=cHh6qic1oiOi8ZaOKlw5DJoxEtCpvBbuSaM/MxwmqqnwUDoqmI11+KlNnvsAma
+	7uvfbE4mpPn5OROuYNNj9kZXGC6B9z2Wdma7Wk/NNfxWntq02TDV7y8UyLQ/M7Iq
+	r1T0J1+ywt8DQ90Gn+S2/QN4tUfgdh9im9gtUSA6klaqU=
+Received: from [127.0.0.1] (unknown [])
+	by gzga-smtp-mtada-g0-4 (Coremail) with SMTP id _____wD3f_tuKwNogXbEBA--.54743S2;
+	Sat, 19 Apr 2025 12:49:52 +0800 (CST)
+Message-ID: <4c4f2f18223338f2fb276dc5ec5b7cba6c09b0ad.camel@126.com>
+Subject: Re: [PATCH v2 1/2] lib: sbi: hart: Detect existence of cycle and
+ instret CSRs for Zicntr
+From: Xiang W <wxjstz@126.com>
+To: Yao Zi <ziyao@disroot.org>, opensbi@lists.infradead.org
+Cc: Anup Patel <anup@brainfault.org>
+Date: Sat, 19 Apr 2025 12:49:50 +0800
+In-Reply-To: <20250418144758.2633-2-ziyao@disroot.org>
+References: <20250418144758.2633-1-ziyao@disroot.org>
+	 <20250418144758.2633-2-ziyao@disroot.org>
+Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
+ keydata=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
+User-Agent: Evolution 3.56.0-1 
 MIME-Version: 1.0
+X-CM-TRANSID: _____wD3f_tuKwNogXbEBA--.54743S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxKw1rKF4UXF48Ar1ktFWrKrg_yoW7XF1kpF
+	yxGF1qkr4vkryjya9xXws8Wr43J3WIqanxGryIk34SyFy7Wr15Wr12g3WFyFZrtrZ5Ww47
+	CFWaqry8uF4UGaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0ziXAw3UUUUU=
+X-Originating-IP: [153.35.240.177]
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi1w80OmgDETvcFAABse
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250418_074817_493341_6A84F90A 
-X-CRM114-Status: UNSURE (   5.53  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20250418_215011_732007_7ADA5F59 
+X-CRM114-Status: GOOD (  19.34  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -65,47 +112,101 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-OpenSBI is capable of emulating time CSR on HARTs without a full Zicntr
-extension. Previously, we hardcoded Zicntr extension in the devicetree
-for these cores, like JH7110 in mainline Linux[1]. This doesn't reflect
-the hardware and may confuse pre-SBI bootloaders, like U-Boot running in
-M-Mode.
-
-To solve the issue, let's register Zicntr in FDT dynamically for cores
-supporting it by SBI emulation, allowing pre-SBI stages to detect Zicntr
-availability reliably with riscv,isa-extensions.
-
-[1]: https://elixir.bootlin.com/linux/v6.14-rc3/source/arch/riscv/boot/dts/starfive/jh7110.dtsi#L61
-
-Changed from v1
-- Zicntr detection
-  - Introduce a bitmap to sbi_hart_features instead of using pseudo-
-    extensions to represent availability of CSRs
-  - Change possibly misleading abbreviation "RO" to "read-only" in
-    commit message
-- FDT fixup
-  - Don't register zicntr to (legacy) devicetrees where harts don't come
-    with a riscv,isa-extensions property
-
-Yao Zi (2):
-  lib: sbi: hart: Detect existence of cycle and instret CSRs for Zicntr
-  lib: utils: fdt: Claim Zicntr if time CSR emulation is possible
-
- include/sbi/sbi_hart.h    |  9 +++++++++
- lib/sbi/sbi_hart.c        | 35 ++++++++++++++++++++++++++++-------
- lib/utils/fdt/fdt_fixup.c | 33 ++++++++++++++++++++++++++++++++-
- 3 files changed, 69 insertions(+), 8 deletions(-)
-
--- 
-2.49.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+5ZyoIDIwMjUtMDQtMTjkupTnmoQgMTQ6NDcgKzAwMDDvvIxZYW8gWmnlhpnpgZPvvJoKPiBaaWNu
+dHIgZXh0ZW5zaW9uIHNwZWNpZmllcyB0aHJlZSByZWFkLW9ubHkgQ1NScywgdGltZSwgY3ljbGUg
+YW5kCj4gaW5zdHJldC4gSXQgaXNuJ3Qgc3VmZmljaWVudCB0byByZXBvcnQgWmljbnRyIGlzIGZ1
+bGx5IHN1cHBvcnRlZCB3aXRoCj4gb25seSB0aW1lIENTUiBkZXRlY3RlZC4KPiAKPiBUaGlzIHBh
+dGNoIGludHJvZHVjZXMgYSBiaXRtYXAgdG8gc2JpX2hhcnRfZmVhdHVyZXMgdG8gcmVjb3JkCj4g
+YXZhaWxhYmlsaXR5IG9mIHRoZXNlIENTUnMsIHdoaWNoIGFyZSBkZXRlY3RlZCB1c2luZyB0cmFw
+cy4gWmljbnRyIGlzCj4gcmVwb3J0ZWQgYXMgcHJlc2VudCBpZiBhbmQgb25seSBpZiB0aHJlZSBD
+U1JzIGFyZSBhbGwgYXZhaWxhYmxlIG9uIHRoZQo+IEhBUlRzLgo+IAo+IFN1Z2dlc3RlZC1ieTog
+QW51cCBQYXRlbCA8YW51cEBicmFpbmZhdWx0Lm9yZz4KPiBTaWduZWQtb2ZmLWJ5OiBZYW8gWmkg
+PHppeWFvQGRpc3Jvb3Qub3JnPgo+IC0tLQo+IMKgaW5jbHVkZS9zYmkvc2JpX2hhcnQuaCB8wqAg
+OSArKysrKysrKysKPiDCoGxpYi9zYmkvc2JpX2hhcnQuY8KgwqDCoMKgIHwgMzUgKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKy0tLS0tLS0KPiDCoDIgZmlsZXMgY2hhbmdlZCwgMzcgaW5zZXJ0
+aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmkvc2Jp
+X2hhcnQuaCBiL2luY2x1ZGUvc2JpL3NiaV9oYXJ0LmgKPiBpbmRleCBjM2E3ZmViLi40OGVkYWZl
+IDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvc2JpL3NiaV9oYXJ0LmgKPiArKysgYi9pbmNsdWRlL3Ni
+aS9zYmlfaGFydC5oCj4gQEAgLTkxLDYgKzkxLDEzIEBAIHN0cnVjdCBzYmlfaGFydF9leHRfZGF0
+YSB7Cj4gwqAKPiDCoGV4dGVybiBjb25zdCBzdHJ1Y3Qgc2JpX2hhcnRfZXh0X2RhdGEgc2JpX2hh
+cnRfZXh0W107Cj4gwqAKPiArLyoqIENTUnMgc2hvdWxkIGJlIGRldGVjdGVkIGJ5IGFjY2VzcyBh
+bmQgdHJhcHBpbmcgKi8KPiArZW51bSBzYmlfaGFydF9jc3JzIHsKPiArCVNCSV9IQVJUX0NTUl9D
+WUNMRSA9IDAsCj4gKwlTQklfSEFSVF9DU1JfVElNRSwKPiArCVNCSV9IQVJUX0NTUl9JTlNUUkVU
+LAphZGQgU0JJX0hBUlRfQ1NSX01BWAo+ICt9Owo+ICsKPiDCoC8qCj4gwqAgKiBTbWVwbXAgZW5m
+b3JjZXMgYWNjZXNzIGJvdW5kYXJpZXMgYmV0d2VlbiBNLW1vZGUgYW5kCj4gwqAgKiBTL1UtbW9k
+ZS4gV2hlbiBpdCBpcyBlbmFibGVkLCB0aGUgUE1QcyBhcmUgcHJvZ3JhbW1lZAo+IEBAIC0xMTAs
+NiArMTE3LDcgQEAgc3RydWN0IHNiaV9oYXJ0X2ZlYXR1cmVzIHsKPiDCoAlib29sIGRldGVjdGVk
+Owo+IMKgCWludCBwcml2X3ZlcnNpb247Cj4gwqAJdW5zaWduZWQgbG9uZyBleHRlbnNpb25zW0JJ
+VFNfVE9fTE9OR1MoU0JJX0hBUlRfRVhUX01BWCldOwo+ICsJdW5zaWduZWQgbG9uZyBjc3JzOwpj
+aGFuZ2UgdG8gdW5zaWduZWQgbG9uZyBjc3JzW0JJVFNfVE9fTE9OR1MoU0JJX0hBUlRfQ1NSX01B
+WCldOwoKVG8gbWFrZSB0aGUgY29kZSBtb3JlIGZsZXhpYmxlLCBpdCBpcyByZWNvbW1lbmRlZCB0
+byBhZGQgdGhlIGFib3ZlIG1vZGlmaWNhdGlvbgoKUmVnYXJkcywKWGlhbmcgVwo+IMKgCXVuc2ln
+bmVkIGludCBwbXBfY291bnQ7Cj4gwqAJdW5zaWduZWQgaW50IHBtcF9hZGRyX2JpdHM7Cj4gwqAJ
+dW5zaWduZWQgaW50IHBtcF9sb2cyZ3JhbjsKPiBAQCAtMTQ4LDYgKzE1Niw3IEBAIGJvb2wgc2Jp
+X2hhcnRfaGFzX2V4dGVuc2lvbihzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gsCj4gwqAJCQnC
+oMKgwqAgZW51bSBzYmlfaGFydF9leHRlbnNpb25zIGV4dCk7Cj4gwqB2b2lkIHNiaV9oYXJ0X2dl
+dF9leHRlbnNpb25zX3N0cihzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gsCj4gwqAJCQkJIGNo
+YXIgKmV4dGVuc2lvbl9zdHIsIGludCBuZXN0cik7Cj4gK2Jvb2wgc2JpX2hhcnRfaGFzX2Nzcihz
+dHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gsIGVudW0gc2JpX2hhcnRfY3NycyBjc3IpOwo+IMKg
+Cj4gwqB2b2lkIF9fYXR0cmlidXRlX18oKG5vcmV0dXJuKSkgc2JpX2hhcnRfaGFuZyh2b2lkKTsK
+PiDCoAo+IGRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9oYXJ0LmMgYi9saWIvc2JpL3NiaV9oYXJ0
+LmMKPiBpbmRleCBjMzQzODA1Li5mOThiNmIwIDEwMDY0NAo+IC0tLSBhL2xpYi9zYmkvc2JpX2hh
+cnQuYwo+ICsrKyBiL2xpYi9zYmkvc2JpX2hhcnQuYwo+IEBAIC03MzMsNiArNzMzLDIwIEBAIHZv
+aWQgc2JpX2hhcnRfZ2V0X2V4dGVuc2lvbnNfc3RyKHN0cnVjdCBzYmlfc2NyYXRjaCAqc2NyYXRj
+aCwKPiDCoAkJc2JpX3N0cm5jcHkoZXh0ZW5zaW9uc19zdHIsICJub25lIiwgbmVzdHIpOwo+IMKg
+fQo+IMKgCj4gKy8qKgo+ICsgKiBDaGVjayB3aGV0aGVyIGEgcGFydGljdWxhciBDU1IgaXMgcHJl
+c2VudCBvbiB0aGUgSEFSVAo+ICsgKgo+ICsgKiBAcGFyYW0gc2NyYXRjaCBwb2ludGVyIHRvIHRo
+ZSBIQVJUIHNjcmF0Y2ggc3BhY2UKPiArICogQHBhcmFtIGNzciB0aGUgQ1NSIG51bWJlciB0byBj
+aGVjawo+ICsgKi8KPiArYm9vbCBzYmlfaGFydF9oYXNfY3NyKHN0cnVjdCBzYmlfc2NyYXRjaCAq
+c2NyYXRjaCwgZW51bSBzYmlfaGFydF9jc3JzIGNzcikKPiArewo+ICsJc3RydWN0IHNiaV9oYXJ0
+X2ZlYXR1cmVzICpoZmVhdHVyZXMgPQo+ICsJCQlzYmlfc2NyYXRjaF9vZmZzZXRfcHRyKHNjcmF0
+Y2gsIGhhcnRfZmVhdHVyZXNfb2Zmc2V0KTsKPiArCj4gKwlyZXR1cm4gKGhmZWF0dXJlcy0+Y3Ny
+cyA+PiBjc3IpICYgMVVMOwo+ICt9Cj4gKwo+IMKgc3RhdGljIHVuc2lnbmVkIGxvbmcgaGFydF9w
+bXBfZ2V0X2FsbG93ZWRfYWRkcih2b2lkKQo+IMKgewo+IMKgCXVuc2lnbmVkIGxvbmcgdmFsID0g
+MDsKPiBAQCAtNzg5LDcgKzgwMyw2IEBAIHN0YXRpYyBpbnQgaGFydF9kZXRlY3RfZmVhdHVyZXMo
+c3RydWN0IHNiaV9zY3JhdGNoICpzY3JhdGNoKQo+IMKgCXN0cnVjdCBzYmlfaGFydF9mZWF0dXJl
+cyAqaGZlYXR1cmVzID0KPiDCoAkJc2JpX3NjcmF0Y2hfb2Zmc2V0X3B0cihzY3JhdGNoLCBoYXJ0
+X2ZlYXR1cmVzX29mZnNldCk7Cj4gwqAJdW5zaWduZWQgbG9uZyB2YWwsIG9sZHZhbDsKPiAtCWJv
+b2wgaGFzX3ppY250ciA9IGZhbHNlOwo+IMKgCWludCByYzsKPiDCoAo+IMKgCS8qIElmIGhhcnQg
+ZmVhdHVyZXMgYWxyZWFkeSBkZXRlY3RlZCB0aGVuIGRvIG5vdGhpbmcgKi8KPiBAQCAtNzk4LDYg
+KzgxMSw3IEBAIHN0YXRpYyBpbnQgaGFydF9kZXRlY3RfZmVhdHVyZXMoc3RydWN0IHNiaV9zY3Jh
+dGNoICpzY3JhdGNoKQo+IMKgCj4gwqAJLyogQ2xlYXIgaGFydCBmZWF0dXJlcyAqLwo+IMKgCXNi
+aV9tZW1zZXQoaGZlYXR1cmVzLT5leHRlbnNpb25zLCAwLCBzaXplb2YoaGZlYXR1cmVzLT5leHRl
+bnNpb25zKSk7Cj4gKwloZmVhdHVyZXMtPmNzcnMgPSAwOwo+IMKgCWhmZWF0dXJlcy0+cG1wX2Nv
+dW50ID0gMDsKPiDCoAloZmVhdHVyZXMtPm1ocG1fbWFzayA9IDA7Cj4gwqAJaGZlYXR1cmVzLT5w
+cml2X3ZlcnNpb24gPSBTQklfSEFSVF9QUklWX1ZFUl9VTktOT1dOOwo+IEBAIC05MjQsOSArOTM4
+LDYgQEAgX19wbXBfc2tpcDoKPiDCoAkvKiBEZXRlY3QgaWYgaGFydCBzdXBwb3J0cyBzc2NvZnBt
+ZiAqLwo+IMKgCV9fY2hlY2tfZXh0X2NzcihTQklfSEFSVF9QUklWX1ZFUl8xXzExLAo+IMKgCQkJ
+Q1NSX1NDT1VOVE9WRiwgU0JJX0hBUlRfRVhUX1NTQ09GUE1GKTsKPiAtCS8qIERldGVjdCBpZiBo
+YXJ0IHN1cHBvcnRzIHRpbWUgQ1NSICovCj4gLQlfX2NoZWNrX2V4dF9jc3IoU0JJX0hBUlRfUFJJ
+Vl9WRVJfVU5LTk9XTiwKPiAtCQkJQ1NSX1RJTUUsIFNCSV9IQVJUX0VYVF9aSUNOVFIpOwo+IMKg
+CS8qIERldGVjdCBpZiBoYXJ0IGhhcyBBSUEgbG9jYWwgaW50ZXJydXB0IENTUnMgKi8KPiDCoAlf
+X2NoZWNrX2V4dF9jc3IoU0JJX0hBUlRfUFJJVl9WRVJfVU5LTk9XTiwKPiDCoAkJCUNTUl9NVE9Q
+SSwgU0JJX0hBUlRfRVhUX1NNQUlBKTsKPiBAQCAtOTQ1LDggKzk1NiwxNiBAQCBfX3BtcF9za2lw
+Ogo+IMKgCj4gwqAjdW5kZWYgX19jaGVja19leHRfY3NyCj4gwqAKPiAtCS8qIFNhdmUgdHJhcCBi
+YXNlZCBkZXRlY3Rpb24gb2YgWmljbnRyICovCj4gLQloYXNfemljbnRyID0gc2JpX2hhcnRfaGFz
+X2V4dGVuc2lvbihzY3JhdGNoLCBTQklfSEFSVF9FWFRfWklDTlRSKTsKPiArI2RlZmluZSBfX2No
+ZWNrX2Nzcl9leGlzdGVuY2UoX19jc3IsIF9fY3NyX2lkKQkJCQlcCj4gKwljc3JfcmVhZF9hbGxv
+d2VkKF9fY3NyLCAmdHJhcCk7CQkJCQlcCj4gKwlpZiAoIXRyYXAuY2F1c2UpCQkJCQkJXAo+ICsJ
+CWhmZWF0dXJlcy0+Y3NycyB8PSAxIDw8IF9fY3NyX2lkOwo+ICsKPiArCV9fY2hlY2tfY3NyX2V4
+aXN0ZW5jZShDU1JfQ1lDTEUsIFNCSV9IQVJUX0NTUl9DWUNMRSk7Cj4gKwlfX2NoZWNrX2Nzcl9l
+eGlzdGVuY2UoQ1NSX1RJTUUsIFNCSV9IQVJUX0NTUl9USU1FKTsKPiArCV9fY2hlY2tfY3NyX2V4
+aXN0ZW5jZShDU1JfSU5TVFJFVCwgU0JJX0hBUlRfQ1NSX0lOU1RSRVQpOwo+ICsKPiArI3VuZGVm
+IF9fY2hlY2tfY3NyX2V4aXN0ZW5jZQo+IMKgCj4gwqAJLyogTGV0IHBsYXRmb3JtIHBvcHVsYXRl
+IGV4dGVuc2lvbnMgKi8KPiDCoAlyYyA9IHNiaV9wbGF0Zm9ybV9leHRlbnNpb25zX2luaXQoc2Jp
+X3BsYXRmb3JtX3RoaXNoYXJ0X3B0cigpLAo+IEBAIC05NTYsNyArOTc1LDkgQEAgX19wbXBfc2tp
+cDoKPiDCoAo+IMKgCS8qIFppY250ciBzaG91bGQgb25seSBiZSBkZXRlY3RlZCB1c2luZyB0cmFw
+cyAqLwo+IMKgCV9fc2JpX2hhcnRfdXBkYXRlX2V4dGVuc2lvbihoZmVhdHVyZXMsIFNCSV9IQVJU
+X0VYVF9aSUNOVFIsCj4gLQkJCQnCoMKgwqAgaGFzX3ppY250cik7Cj4gKwkJCcKgwqDCoCAoaGZl
+YXR1cmVzLT5jc3JzICYgQklUKFNCSV9IQVJUX0NTUl9DWUNMRSkpCSYmCj4gKwkJCcKgwqDCoCAo
+aGZlYXR1cmVzLT5jc3JzICYgQklUKFNCSV9IQVJUX0NTUl9USU1FKSkJJiYKPiArCQkJwqDCoMKg
+IChoZmVhdHVyZXMtPmNzcnMgJiBCSVQoU0JJX0hBUlRfQ1NSX0lOU1RSRVQpKSk7Cj4gwqAKPiDC
+oAkvKiBFeHRlbnNpb25zIGltcGxpZWQgYnkgb3RoZXIgZXh0ZW5zaW9ucyBhbmQgZmVhdHVyZXMg
+Ki8KPiDCoAlpZiAoaGZlYXR1cmVzLT5taHBtX21hc2spCj4gLS0gCj4gMi40OS4wCj4gCgoKLS0g
+Cm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
+bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
