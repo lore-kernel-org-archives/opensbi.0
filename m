@@ -4,8 +4,8 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 65150C369AB
-	for <opensbi@archiver.kernel.org>; Mon, 21 Apr 2025 06:25:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 67AA5C369D5
+	for <opensbi@archiver.kernel.org>; Mon, 21 Apr 2025 06:25:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:MIME-Version:Cc:List-Subscribe:
@@ -13,73 +13,72 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	In-Reply-To:Message-Id:Date:Subject:To:From:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Owner;
-	bh=8edEfdbcGUqZSetFiaGMUACtJhrl0sQ5j4SP7uhQ+SY=; b=AHwBqu2TVbXKLoI3ZSVciJ78DC
-	Cddhsu5+pQusd1ciabnXvmbe+M6EN6AzNZ1mwK8RFUiQO7iqjkiASynbZEaLlH42xommgzbaxAka6
-	1mmQvH7LPAExrCPeEoB72C5UU/9ReYxTTMl0G/S776La4uQLvlrg0nli7OYMs0BXZrWcf0q2jSqo4
-	LOsvH9+K6kXGQZui0wYM6fBVv00QnnbdaJmSZxwQKNoJlCkxBrxC7NDAHPm3myRpnjVpkjZ3Ltmqt
-	igrj9CXa4l2+9Wmjf9EMEJiemUmaJHv1De1MYghqMbWfgWuw2D6REP5bRboD8i/4DFGPrFyzQh1y8
-	f5peDsvw==;
+	bh=Iy/bo7wD9o/UpLY+SfTxmCho3wNhwEEGrD2iw7ub170=; b=JYoHORFkEOUXy2qwi+r6ELQb8M
+	OSRMIVtde9pEchvAEPhKBGA6XQI4xHP897KyjRTgpeHVLAja9Km0EOJaqwJh/zb9ND2pOkeuhb1yn
+	mUftg5B8Dr0JI0SQG1ljAZtw2MhnPjwHSdFQiuUN2LGYLoL28fzHpQhDmyMjyhOFmcuPMlS+LAbyd
+	WT4z3gtefl5ZtLEWiKnJo+kF5YmNAq5YL2qxpNGxuc8e7ZZaqH+kXoN6CCG7R98L6OT1kzzhAgH3S
+	kyJZU7l+WiM/PwbalrnalDRyhddZjC1nIm1XXpw0uVnBPdNcSVo5ZauwaTvZCKMd0rzq3fSpTGtKu
+	lfRdLzug==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u6kbB-00000003he0-0BXj;
-	Mon, 21 Apr 2025 06:25:45 +0000
-Received: from mail-pf1-x42a.google.com ([2607:f8b0:4864:20::42a])
+	id 1u6kbD-00000003hgk-3Pyb;
+	Mon, 21 Apr 2025 06:25:47 +0000
+Received: from mail-pf1-x432.google.com ([2607:f8b0:4864:20::432])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u6kb8-00000003hbs-47Ob
+	id 1u6kbB-00000003hdy-1izZ
 	for opensbi@lists.infradead.org;
-	Mon, 21 Apr 2025 06:25:44 +0000
-Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-73bf5aa95e7so3255765b3a.1
-        for <opensbi@lists.infradead.org>; Sun, 20 Apr 2025 23:25:42 -0700 (PDT)
+	Mon, 21 Apr 2025 06:25:46 +0000
+Received: by mail-pf1-x432.google.com with SMTP id d2e1a72fcca58-73bf5aa95e7so3255789b3a.1
+        for <opensbi@lists.infradead.org>; Sun, 20 Apr 2025 23:25:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1745216742; x=1745821542; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1745216744; x=1745821544; darn=lists.infradead.org;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=XfeDXAr8ZlzlCHph2DfeFUAZYRa+SgAlBatXUy2bJDU=;
-        b=VvTsdtEZJ+FCkf8ne3wuWSfnMd8zeI+P2RSb97H2o+IEE5I6ACl4foJCbgTS5nC9Uw
-         5vWoB8p1mwea5ZSv3Z+a0qMgESPWOa7E5LHR+K+IJ/An0vF35DW90ACNddAZNCkuioSZ
-         QBVVCJZBg+9BEtwOAArpA81KYMhLRLS81MpmNmzElTiJ+e37RgrLVrsjytIvT3/gJOpV
-         1U0S2txMfGI5bRdlTP2os2zAHoFv5riyDbmf7e01wL1J0HIsY4EgNe1auInhhCctZAnb
-         cwDoPVKLxS62uKXNjNYIUFdtLw7+YWGRIZW6w73MRV+78LXSBATqu2btxGsyb9LOar1L
-         suHg==
+        bh=ywK7tq74JJxI3cbKm4f/dPky6XAVb4M57+in7JVaZJs=;
+        b=a/OUrjq3M/K0j+FmC/zovynNMCkpwxD2WgAw4FhZjfO/rFiVPtyexudIZr1FfEiiFN
+         E4kCN25cHB0GUYjTRK7ZO0fD250lBmzWKbxKimxs4AFZm63WeZ1X+CCVWmeiAfIi3xV8
+         MHyfkAXGG13Rjd/ywcc/J61dG92F2IDKkwHA1WA9GtUpqudjF9QhjfgTsFRzKkyQpKfb
+         dh0bHmMCHZTjMqOrbJiHkTRgAa73Kj2suyH58vc4YbFlq7h4usxQ5JzkTWRxYD285+fX
+         gG+Kcvv7rn+QFmFvIs4UuFewUVOOFvYJwFjHSeGCbULpWK2ZVniU5RfDJbkoSXRkCyX6
+         uGuA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745216742; x=1745821542;
+        d=1e100.net; s=20230601; t=1745216744; x=1745821544;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=XfeDXAr8ZlzlCHph2DfeFUAZYRa+SgAlBatXUy2bJDU=;
-        b=uDHBv1VtVoX09fTc/mFQO3pvLmWZjxLr++IXR0dAYM6j/gNY7dJKMQwxcT9jNX++Bw
-         FxWueVeM/V73IMMhbqSP0cJzGcadskHDq5hOwLPzd1y52H7zkh1UzLAKOGBOWzFVTSPU
-         QBBMEMoWFqg/NA3SdZI2dEEbNEsRJ/Eur79rpIEm80YVyP6x+yit8H1ggLl4VCnkIKeS
-         P/WVet7InazPpEny4ib18m9OAkDNKJhtHcvkuF8+nYkA2rdXFASyayiurQzYZh+OSIr0
-         Kdzl2X5hOhLDQxtJjFb6dF2Ap85MlAH72nU7Pyp7YkgA9rgvVyrzKTglMiqxLgblq/FJ
-         E4zA==
-X-Gm-Message-State: AOJu0Yz40kBlSgfvouqX2YdLJem0wOTO5IUzcOn34QAF5fuFGl7Co5bK
-	ALBsgbE+xL4OYAYHycSot+MOkFJX7ivdwLxNYsioQRCjrd16Ow4BV9fqR7Ka6/6YlHds2K8APK9
-	sPt5pZgXMXE5H1PKKQnmhHNkx1pbeTevyaCmzZhlOhAoO2ibowuDnZFBXe4HHoiOcaWFUmxVrIX
-	2xGZxt9MEbyMBvB4F9UwzNFwOlax33OGnBWIxWdGY8aw==
-X-Gm-Gg: ASbGncvYeLBpD+e8EWuPp/POVqAoQFDgB2d18/ap+87n/t8GNVLrLUCSXQPyijKWy1a
-	tvVmCBGsKx+32g9PztkcpKEd/h4A0dopwyI2Qg0W35E88et9IBAl3wiJiRBj+l4NNPWt9jTQPov
-	vvcDpSdOaf0LJNawdLfGZZYSgAElzzFKgfocsfvo5X59S1AM9JcBi/UKH1Icm0kawJp7TJ81aQm
-	O+3TbphFo5joPP9d2cYadJtUBeYd7NIa/Mkd6Q2GwAlskwnhTq5lcueoqXLafqGV4Yr9TdNdLC9
-	RZGtu8+oQ8XQYQ98RlmiAOikNvkJFLn1mt+fM9wLC5FFxoNnsnoIMeUhzVqoMLL4nA5ECQHVpA=
-	=
-X-Google-Smtp-Source: AGHT+IFBHjVkZ166yeTZDhVjonH4cML/WgAQaeQKCqkG2R/gWcO8bLMJYQFP5ij5F9TxVZyiuHcM+w==
-X-Received: by 2002:a05:6a00:4606:b0:739:3f55:b23f with SMTP id d2e1a72fcca58-73dc14d3124mr13165355b3a.14.1745216741685;
-        Sun, 20 Apr 2025 23:25:41 -0700 (PDT)
+        bh=ywK7tq74JJxI3cbKm4f/dPky6XAVb4M57+in7JVaZJs=;
+        b=B9IDQLRVdSR+Jg+bKVIWnXmbA8nORwYY9mIPuFbrKS/EG4JEPdOCHqjnYdPg3XI6Zp
+         U9wad5RZk6x8sjK7J1NfqpymTzpqrV1FPodMBQ7xrqZseDzib4Ch/lrL7QkZvYp8tXsI
+         I0T9l+2mtifZfePFpjcEs41tSRsdYRxIej7myZMiB3XhLztxDPfjGSgg/JR7JF2CJ5rJ
+         37e8yG9+mvLi6/XrgSb23fjw6pNnNyQQOn7VzX5OsHcSk77KtVzY/XxGtnxTYcbXv/9V
+         rc7SLL2hsNTwwEDLabIeIHIGsff/b0bE8Vh9j7mOg3+nYrUmdTlwnrOfsx5t0sA0VdP1
+         cQnQ==
+X-Gm-Message-State: AOJu0YztzveNqn6LfVuBwNSV1ksFgIfgy7yh22Xk/gvtvsY69VUXcZrQ
+	uZzNZd+S7ThQ6oesZ7/txkT+ATXuxLB3EArw6bF+Ck76i3D31JZ5zvJkGiYzgQnWdp3rfFVM/KT
+	WDbQfaZjHzr6YabOmFvHZ8QthH8+9KodE6vvtwo0Kdoer6a5Hz7L+IwdzYhbiUl8JlH+oxZAPbu
+	KvhqMx5nce0hUbGgTckygHg9qomTnesmbSgtXdd3btYA==
+X-Gm-Gg: ASbGncvopaYoLqkDMk21IOWaUaG10txK/e26JYFaabA4NscZg7uYTKn72U7dThmCKk5
+	cCQxMJ6krfOno0+moJcvh4IrG62KDkO8J2/N9nxSJKTp+vDKKmXVDIymgNGm2SLfVBgRtQipYm9
+	UlSJH78DjMkogcl9sqk5LE29kuhlfytsJLK1bq+vPC4kBH7ufHY3HnWGSukj20oI1CD4lZlUX3k
+	C1udE5GJxT4rN5twHdTVqFl5pLvilbgd8PRd/XvRFhQgQ/GoIvt3so/+uyf9w77gyKu6LfMZuo3
+	0kqRFvIiWUh7riglChwl04VS0iDshVywlQI7Nko553T1drHVYsTmJPzqO4/1Uw8=
+X-Google-Smtp-Source: AGHT+IHFpT0CFSTkCA1udxVUx1YQMFr7jFzJKqa+NgxZWvry0QTj8aG1VON4jyqVu9lGGuJpMGJEVA==
+X-Received: by 2002:a05:6a21:2d07:b0:1f5:77ed:40b9 with SMTP id adf61e73a8af0-203cbd488b0mr17683744637.40.1745216744042;
+        Sun, 20 Apr 2025 23:25:44 -0700 (PDT)
 Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-73dbfaacf3dsm5961043b3a.134.2025.04.20.23.25.40
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-73dbfaacf3dsm5961043b3a.134.2025.04.20.23.25.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 20 Apr 2025 23:25:41 -0700 (PDT)
+        Sun, 20 Apr 2025 23:25:43 -0700 (PDT)
 From: Nick Hu <nick.hu@sifive.com>
 To: opensbi@lists.infradead.org
-Subject: [PATCH 4/5] lib: utils/cache: Add fdt cmo helpers
-Date: Mon, 21 Apr 2025 14:25:07 +0800
-Message-Id: <20250421062508.21187-5-nick.hu@sifive.com>
+Subject: [PATCH 5/5] platform: generic: Add SiFive development platform
+Date: Mon, 21 Apr 2025 14:25:08 +0800
+Message-Id: <20250421062508.21187-6-nick.hu@sifive.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250421062508.21187-1-nick.hu@sifive.com>
 References: <20250421062508.21187-1-nick.hu@sifive.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250420_232543_023852_F4F335E1 
-X-CRM114-Status: GOOD (  16.28  )
+X-CRM114-CacheID: sfid-20250420_232545_454409_128CE539 
+X-CRM114-Status: GOOD (  15.43  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,188 +97,102 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add the helpers to build up the cache hierarchy via FDT and provide some
-cmo functions for the user who want to flush the entire cache.
+From: Vincent Chen <vincent.chen@sifive.com>
 
+The sifive_dev_platform is a new platform which is compatible to the
+generic platform to place some features which are only for the SiFive
+development machine.
+
+Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
+Co-developed-by: Nick Hu <nick.hu@sifive.com>
 Signed-off-by: Nick Hu <nick.hu@sifive.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 ---
- include/sbi_utils/cache/fdt_cmo_helper.h |  34 +++++++
- lib/utils/cache/fdt_cmo_helper.c         | 111 +++++++++++++++++++++++
- lib/utils/cache/objects.mk               |   1 +
- 3 files changed, 146 insertions(+)
- create mode 100644 include/sbi_utils/cache/fdt_cmo_helper.h
- create mode 100644 lib/utils/cache/fdt_cmo_helper.c
+ platform/generic/Kconfig                      |  5 +++
+ platform/generic/configs/defconfig            |  1 +
+ platform/generic/sifive/objects.mk            |  3 ++
+ platform/generic/sifive/sifive_dev_platform.c | 31 +++++++++++++++++++
+ 4 files changed, 40 insertions(+)
+ create mode 100644 platform/generic/sifive/sifive_dev_platform.c
 
-diff --git a/include/sbi_utils/cache/fdt_cmo_helper.h b/include/sbi_utils/cache/fdt_cmo_helper.h
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 688da3f4..e27cb50e 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -43,6 +43,11 @@ config PLATFORM_RENESAS_RZFIVE
+ 	select ANDES_PMU
+ 	default n
+ 
++config PLATFORM_SIFIVE_DEV
++	bool "SiFive development platform support"
++	depends on FDT_CACHE
++	default n
++
+ config PLATFORM_SIFIVE_FU540
+ 	bool "SiFive FU540 support"
+ 	default n
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 09807207..39869c08 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -1,6 +1,7 @@
+ CONFIG_PLATFORM_ALLWINNER_D1=y
+ CONFIG_PLATFORM_ANDES_AE350=y
+ CONFIG_PLATFORM_RENESAS_RZFIVE=y
++CONFIG_PLATFORM_SIFIVE_DEV=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
+ CONFIG_PLATFORM_SOPHGO_SG2042=y
+diff --git a/platform/generic/sifive/objects.mk b/platform/generic/sifive/objects.mk
+index d75e444a..d32e1273 100644
+--- a/platform/generic/sifive/objects.mk
++++ b/platform/generic/sifive/objects.mk
+@@ -2,6 +2,9 @@
+ # SPDX-License-Identifier: BSD-2-Clause
+ #
+ 
++carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_DEV) += sifive_dev_platform
++platform-objs-$(CONFIG_PLATFORM_SIFIVE_DEV) += sifive/sifive_dev_platform.o
++
+ carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive_fu540
+ platform-objs-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive/fu540.o
+ 
+diff --git a/platform/generic/sifive/sifive_dev_platform.c b/platform/generic/sifive/sifive_dev_platform.c
 new file mode 100644
-index 00000000..3d4e0108
+index 00000000..2506c932
 --- /dev/null
-+++ b/include/sbi_utils/cache/fdt_cmo_helper.h
-@@ -0,0 +1,34 @@
++++ b/platform/generic/sifive/sifive_dev_platform.c
+@@ -0,0 +1,31 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2025 SiFive Inc.
 + */
 +
-+#ifndef __FDT_CMO_HELPER_H__
-+#define __FDT_CMO_HELPER_H__
-+
-+/**
-+ * Flush the private first level cache of the current hart
-+ *
-+ * @return 0 on success, or a negative error code on failure
-+ */
-+int fdt_cmo_private_flc_flush_all(void);
-+
-+/**
-+ * Flush the last level cache of the current hart
-+ *
-+ * @return 0 on success, or a negative error code on failure
-+ */
-+int fdt_cmo_llc_flush_all(void);
-+
-+/**
-+ * Initialize the cache devices for each hart
-+ *
-+ * @param fdt devicetree blob
-+ * @param cold_boot cold init or warm init
-+ *
-+ * @return 0 on success, or a negative error code on failure
-+ */
-+int fdt_cmo_init(const void *fdt, bool cold_boot);
-+
-+#endif
-diff --git a/lib/utils/cache/fdt_cmo_helper.c b/lib/utils/cache/fdt_cmo_helper.c
-new file mode 100644
-index 00000000..c6c05209
---- /dev/null
-+++ b/lib/utils/cache/fdt_cmo_helper.c
-@@ -0,0 +1,111 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 SiFive Inc.
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi_utils/cache/fdt_cache.h>
++#include <platform_override.h>
 +#include <sbi_utils/cache/fdt_cmo_helper.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
 +
-+static unsigned long flc_offset;
-+
-+#define get_hart_flc(_s) \
-+	sbi_scratch_read_type(_s, struct cache_device *, flc_offset)
-+#define set_hart_flc(_s, _p) \
-+	sbi_scratch_write_type(_s, struct cache_device *, flc_offset, _p)
-+
-+int fdt_cmo_private_flc_flush_all(void)
-+{
-+	struct cache_device *flc = get_hart_flc(sbi_scratch_thishart_ptr());
-+
-+	if (!flc || !flc->cpu_private)
-+		return SBI_ENODEV;
-+
-+	return cache_flush_all(flc);
-+}
-+
-+int fdt_cmo_llc_flush_all(void)
-+{
-+	struct cache_device *llc = get_hart_flc(sbi_scratch_thishart_ptr());
-+
-+	if (!llc)
-+		return SBI_ENODEV;
-+
-+	while (llc->next)
-+		llc = llc->next;
-+
-+	return cache_flush_all(llc);
-+}
-+
-+static int fdt_cmo_cold_init(const void *fdt)
-+{
-+	struct sbi_scratch *scratch;
-+	struct cache_device *dev;
-+	int cpu_offset, cpus_offset, rc;
-+	u32 hartid;
-+
-+	cpus_offset = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_offset < 0)
-+		return SBI_EINVAL;
-+
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-+		if (rc)
-+			continue;
-+
-+		scratch = sbi_hartid_to_scratch(hartid);
-+		if (!scratch)
-+			continue;
-+
-+		rc = fdt_next_cache_get(fdt, cpu_offset, &dev);
-+		if (rc)
-+			return rc;
-+
-+		set_hart_flc(scratch, dev);
-+	}
-+
-+	return SBI_OK;
-+}
-+
-+static int fdt_cmo_warm_init(void)
-+{
-+	struct cache_device *cur = get_hart_flc(sbi_scratch_thishart_ptr());
-+	int rc;
-+
-+	while (cur) {
-+		if (cur->ops && cur->ops->warm_init) {
-+			rc = cur->ops->warm_init(cur);
-+			if (rc)
-+				return rc;
-+		}
-+
-+		cur = cur->next;
-+	}
-+
-+	return SBI_OK;
-+}
-+
-+int fdt_cmo_init(const void *fdt, bool cold_boot)
++static int sifive_early_init(bool cold_boot, const void *fdt,
++			     const struct fdt_match *match)
 +{
 +	int rc;
 +
-+	if (cold_boot) {
-+		flc_offset = sbi_scratch_alloc_type_offset(struct cache_device *);
-+		if (!flc_offset)
-+			return SBI_ENOMEM;
-+
-+		rc = fdt_cmo_cold_init(fdt);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	rc = fdt_cmo_warm_init();
++	rc = fdt_cmo_init(fdt, cold_boot);
 +	if (rc)
 +		return rc;
 +
-+	return SBI_OK;
++	return 0;
 +}
-diff --git a/lib/utils/cache/objects.mk b/lib/utils/cache/objects.mk
-index a343eb8c..6829a966 100644
---- a/lib/utils/cache/objects.mk
-+++ b/lib/utils/cache/objects.mk
-@@ -6,6 +6,7 @@
- 
- libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cache.o
- libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cache_drivers.carray.o
-+libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cmo_helper.o
- 
- carray-fdt_cache_drivers-$(CONFIG_FDT_CACHE_SIFIVE_CCACHE) += fdt_sifive_ccache
- libsbiutils-objs-$(CONFIG_FDT_CACHE_SIFIVE_CCACHE) += cache/fdt_sifive_ccache.o
++
++static const struct fdt_match sifive_dev_platform_match[] = {
++	{ .compatible = "sifive-dev" },
++	{ },
++};
++
++const struct platform_override sifive_dev_platform = {
++	.match_table = sifive_dev_platform_match,
++	.early_init = sifive_early_init,
++};
 -- 
 2.17.1
 
