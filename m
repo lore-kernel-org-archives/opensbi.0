@@ -4,79 +4,79 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 75BA9C369D7
-	for <opensbi@archiver.kernel.org>; Wed, 23 Apr 2025 07:13:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A2584C369CB
+	for <opensbi@archiver.kernel.org>; Wed, 23 Apr 2025 09:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=3cspf3hjiNr5HqqVF+d+JFpnO18DBUqUJjMRAZ0+Uxk=; b=Pa8Yvv1uO9vs6d
-	n8KDzA35wwbt6njmqQI1iKdYn1aXYEJUiao6wOjHVWTolwhXx6ALGjyhUdr6e8gFSCoySZ+ARQLlP
-	A+zMXJnla4IItym2fVS1Y056qAbBXN6TafYC41LTvWKVF8uhRMUY/7vTRUKyulQYw8FM7Nm9++lxH
-	SFrSqgbafnzkSU9Y5FB39mpR4OL0nUuWcQCqotV1GJGKPVI6Vj2yG0Aup+1P5xqSoHe5faVWxoq3P
-	liv9QggEn5JKdL2WpU6gjETJl9MImEzbz1DuT9J7hpeFrn0AgvUj+bDKIKWnunN4gfh4iW+A2k//Q
-	w1xH5dZeaoJlcoYfKQhw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=DDuvUQlgQnN2Tck2Qrf482kqCN5+5kNX2f9ETt2yQr0=; b=tNxAq0LN120vPS
+	nMtEC2ej8FhE4uFcd7KJzKIKh3i5Pd4TaqEzeBfyljNPNUunVHJIX4WMbbx48axJzyEc+LPCRFOev
+	TbM6uEJkVf2/2A90xESstNQTAUL3LxZLMSy1IzX7tF15v/s3nJ/5oRSosaMWTblUy0fkvIhpn1Zhn
+	2mlredaON8CwSz6xqBt3GvqMffzNw4Kfs4OOBNFxWzKq/0Vvvr6HeCZvmnOKPhszdFPvlSoiZk1gj
+	ZvFk63ue1Ak4ZsG6g6ZMrWG+CKCBitIcdhAHiFN11zichSarq5vr4Rk9goIBgYfDPGdToYQ3X7Q48
+	X0BGCErIIvAt9wqt1MQA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u7UIZ-00000009T1b-3sdk;
-	Wed, 23 Apr 2025 07:13:35 +0000
-Received: from mail-io1-xd31.google.com ([2607:f8b0:4864:20::d31])
+	id 1u7W2S-00000009rrh-2oLl;
+	Wed, 23 Apr 2025 09:05:04 +0000
+Received: from mail-qk1-x733.google.com ([2607:f8b0:4864:20::733])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u7UEO-00000009ST7-190c
+	id 1u7VAe-00000009dvQ-0mip
 	for opensbi@lists.infradead.org;
-	Wed, 23 Apr 2025 07:09:17 +0000
-Received: by mail-io1-xd31.google.com with SMTP id ca18e2360f4ac-85b4170f1f5so206293839f.3
-        for <opensbi@lists.infradead.org>; Wed, 23 Apr 2025 00:09:15 -0700 (PDT)
+	Wed, 23 Apr 2025 08:09:29 +0000
+Received: by mail-qk1-x733.google.com with SMTP id af79cd13be357-7c5c815f8efso560371885a.2
+        for <opensbi@lists.infradead.org>; Wed, 23 Apr 2025 01:09:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1745392155; x=1745996955; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ji4TW/xO8uiMN0yPVgKKcxN3YPk5hnMLQbE8b2J3FrU=;
-        b=w9/B+BYzMKjPr7akM3TVtT30WhV8WCs1eDHDJrjsFkdboDCRsn6uwKggPCkIYo92ON
-         VXYJk2EpGNsnH3tnHEgTLZ8sLCWzw9RY5npgJA4J2D8vYdItaZcOyOnqSQfR9BWo5xM+
-         wZHWJSTfSVDFu3+eS6rEbjRdXTrxVK2MTr41dN4wShWrus5xq/8UjWse5S8SpjXjCXa0
-         Yb2IFnhZUHVXImsJFlTmY7rpL+xCttpSavmwvNf7tQoq2fpB3QkNrYlujfY29y+bnOCS
-         ui8L3QtTkJU93EHYVyuNSWzb1BjLJ+m4Hyivr+qq/KRf7x8St1EcTCYRdY3MDt9zN2YM
-         qfJQ==
+        d=gmail.com; s=20230601; t=1745395766; x=1746000566; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=IsLsCx2DMDeXKNT57jQE0phvSIj3H6RCgZAeI/Zl0cE=;
+        b=d8DZ5Ro+t7/g9RBGbhu+5E+t2OXHj/EH/ZI0eKuAhPD0sB59iTzNAkC7ojpgBVqEzo
+         CjsWCkXq3VRPBTe1gOr44mL6IGizRYAiU0uoDAjdkOM077ky5vQNAvcv5NaS7WEcvbV1
+         l2p9clDCGuOEMeO//pUGvaY/QVebVMom5TMzGs+GFDm63M/ZXE5ezHdEQ7OFLb1DHJh9
+         d4MWHbZ1CmlGqU2BxoW+JRkj1/VqjVp2fS9gBam/wU3VwlDPscUpb5JVSLMLPZsjNjoa
+         /RVvs1CFgrrFq5ffFsqh2apRrU4zDaTrxTLmhjcmqK5P6t9dUoHoSnER04eHwmL90R3E
+         GlTw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745392155; x=1745996955;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ji4TW/xO8uiMN0yPVgKKcxN3YPk5hnMLQbE8b2J3FrU=;
-        b=AFg0RpmCWrSp5QBrHvd1ja0ZMzS/Kr7GST9lGjPgyzgD0cVSxqW5wzlWTd4GiuvrDS
-         BB9+oQKctZ/zcZlC4giG0foY3o2vF8tnxVvkG1AQX/1+e4imiM5D3RLQxCBRmTz8B6il
-         uynw4yj760yrUG2vwUlZ/XwPUQZtU4G4AWdBerG1vsVEXBSpKsZQZ/TD5xM/qCt5ndm2
-         kuBTr+fpAsgUvsi++hW+dTiGXY0uxobz+QfHFBQLnKTzHcgpB+AV+Oz6VhkFzXJHtaZE
-         /Xy1MzMmyNCcqwlHJ4+M6az+0A22RPq+gKwuXcLmIeH3V+IpTTBnLfHQ88BYBVV+Hjno
-         V2qw==
-X-Gm-Message-State: AOJu0YzFdTToIQ6JjJLxrl+cfD1WhIAOjp+vM6aZ+aVtmJUFzf9JsxFl
-	XDOKLhzzBMX6yH3C9lzPaM385Y4ObEK2Ls3spcKGvN2rYBbOmMJj+hhYKjH+6Cjy1QRFeq6xg+f
-	jf7IXqhV51sIsBodoNOcyNhLZUs1MYLDLXPqEJpbYADTpnnSi
-X-Gm-Gg: ASbGncvbHDqa94lrSVVUKuA1wK1D6XS1D4BiS38FfH/0FDDVQzFj5WuAfvxeR8WeN/H
-	3a6JHl68JWkXXGl2ZVwkiGKkkAX/BaIEiuxEJvga80P/7KbTVF1lyC6slhsIH/kcuxhKedwOPA9
-	jRxd4oBazw9jv8mmtvCur/h10=
-X-Google-Smtp-Source: AGHT+IElzn9/YGZksTsuQkKA+wxWCxgjMSBjItVLpXssD8igMh22nvlSDcF9JhTYattZWja6uEo9rRkUJIJutWp+E+g=
-X-Received: by 2002:a05:6e02:b25:b0:3d3:fbae:3978 with SMTP id
- e9e14a558f8ab-3d88eda88b8mr145597865ab.9.1745392154665; Wed, 23 Apr 2025
- 00:09:14 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1745395766; x=1746000566;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=IsLsCx2DMDeXKNT57jQE0phvSIj3H6RCgZAeI/Zl0cE=;
+        b=Dc6J1tqPoREH4HgZMynO79nltpLpOmWatJ4xY7cVg3sK3sS4hWlsJ5T1uIhrChff8j
+         2o9Yp4Y7ALOpOEGTeLlcJYdVgqGEaV6H8rfNge3VG6Jhf7xI5ShY7X5MDldDT7xKwDfk
+         t3f53XR19Ht3zw9DnXQOvd5sDY4RMgqQvrU9pbOcPUynsBW4pxh4Q8YU4mb4VY8YcJjk
+         7H6o4kbptl3h3nAnwQvpes9OSea+K1EhETAZDqzTiOuDNt/6XNP1Y9edeDQnOFcBN7OG
+         Ls/7rf9rEkFgMqoQUoGcAFBv30k4laNBEv31GNu8iCPMiBjyRA//H/3q+15ohOw6mcHW
+         h56g==
+X-Gm-Message-State: AOJu0YxFCpfHLpE9VobGneHRnthoWzMO+AxJxlgwI6IAAQQ9yb6mI2Sz
+	Q6/0AFRpfYTLPuhee7aEnjIC07b6rqRqyiZkbRcv0e9W5DgaH5hNvjMdoA==
+X-Gm-Gg: ASbGncufWpfN6sTH046kmXDxCdq5t+AwhDJVySRAlPM3YSiR26aBHM0b88cXCBSA+7m
+	quMMK5NxXF7qQ2pMgcJV7AWDpIvbNCMmByzEKYxeEUEKqUOggXCeVdkOF+s/+CHlFvp+UG5Rkcr
+	2zFMF/8CTK9ZRDZKYD0mLBw1EUNc0ldy6Lovn2fwvL4piZAZXgJ7Opkf6nVWFDm+D3k6lxVqaEY
+	ri8gUB0QsQhocDJZscauId1qPLWT8SPI80M4+Kna7Wv/mLGNm9koIsSlxy0IiB53YI7fePQRdXA
+	xDrbCde8hKcTOKxQ
+X-Google-Smtp-Source: AGHT+IFLo9WDjpCaJ0rotNB1GuAgUgqqXHWBlM8SxGbjduUlL9cFn3glm1zrw7QWvH3jOrDKJ3Xc1A==
+X-Received: by 2002:a05:620a:260e:b0:7c5:4348:183e with SMTP id af79cd13be357-7c927f80540mr2774060585a.20.1745395766123;
+        Wed, 23 Apr 2025 01:09:26 -0700 (PDT)
+Received: from localhost ([2001:da8:7001:11::cb])
+        by smtp.gmail.com with UTF8SMTPSA id af79cd13be357-7c9280de4adsm630685785a.114.2025.04.23.01.09.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Apr 2025 01:09:25 -0700 (PDT)
+From: Inochi Amaoto <inochiama@gmail.com>
+To: opensbi@lists.infradead.org
+Cc: Inochi Amaoto <inochiama@gmail.com>
+Subject: [PATCH] lib: utils/irqchip: always parse msi information for each aplic device
+Date: Wed, 23 Apr 2025 16:09:14 +0800
+Message-ID: <20250423080915.1101707-1-inochiama@gmail.com>
+X-Mailer: git-send-email 2.49.0
 MIME-Version: 1.0
-References: <20250325234342.711447-1-samuel.holland@sifive.com>
-In-Reply-To: <20250325234342.711447-1-samuel.holland@sifive.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 23 Apr 2025 12:39:03 +0530
-X-Gm-Features: ATxdqUFOqKdRPKCJG52VQKKwbll-Ro37DhCJt8bkPPPUECQyDVvAeaePhcZRlDM
-Message-ID: <CAAhSdy3jPYqkm2BiKH+ocDiTtmoj9LBd=dZAHvxA3aN0RTPjmQ@mail.gmail.com>
-Subject: Re: [PATCH 00/10] Refactor generic platform overrides from middleware
- to helpers
-To: Samuel Holland <samuel.holland@sifive.com>
-Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250423_000916_511074_B06D8FC3 
-X-CRM114-Status: GOOD (  15.01  )
+X-CRM114-CacheID: sfid-20250423_010928_234159_115684CB 
+X-CRM114-Status: GOOD (  14.48  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -88,55 +88,205 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gV2VkLCBNYXIgMjYsIDIwMjUgYXQgNToxM+KAr0FNIFNhbXVlbCBIb2xsYW5kCjxzYW11ZWwu
-aG9sbGFuZEBzaWZpdmUuY29tPiB3cm90ZToKPgo+IFRoaXMgc2VyaWVzIHJlZmFjdG9ycyBob3cg
-b3ZlcnJpZGVzIHdvcmsgaW4gdGhlIGdlbmVyaWMgcGxhdGZvcm0uIFRoZQo+IHVsdGltYXRlIGdv
-YWwgaXMgdG8gbWFrZSBwbGF0Zm9ybSBvdmVycmlkZSBtYXRjaGluZyByZXNwZWN0IHRoZSBwcmlv
-cml0eQo+IG9yZGVyIG9mIHRoZSByb290IG5vZGUgY29tcGF0aWJsZSBzdHJpbmdzLCBhcyBpbXBs
-ZW1lbnRlZCBmb3IgZmR0X2RyaXZlcgo+IGluIGNvbW1pdCAwZmZlMjY1ZmQ5NjkgKCJsaWI6IHV0
-aWxzL2ZkdDogUmVzcGVjdCBjb21wYXRpYmxlIHN0cmluZwo+IGZhbGxiYWNrIHByaW9yaXR5Iiku
-IEJ1dCB0aGlzIHNlcmllcyBhbHNvIG1ha2VzIHRoZSBnZW5lcmljIHBsYXRmb3JtCj4gY29kZSBh
-IGJpdCBtb3JlIGVmZmljaWVudCwgYW5kIHNocmlua3MgdGhlIGZpcm13YXJlIGJ5IGFib3V0IGEg
-a2lsb2J5dGUuCj4gVGhlIGZpcnN0IHRocmVlIGNvbW1pdHMgZml4IG1pbm9yIGlzc3VlcyB3aXRo
-IHRoZSBleGlzdGluZyBvdmVycmlkZXMuCj4KPgo+IFNhbXVlbCBIb2xsYW5kICgxMCk6Cj4gICBw
-bGF0Zm9ybTogZ2VuZXJpYzogYW5kZXM6IFJlbW92ZSBpbmxpbmUgZGVmaW5pdGlvbnMKPiAgIHBs
-YXRmb3JtOiByemZpdmU6IENhbGwgYW5kZXNfcG1hX3NldHVwX3JlZ2lvbnMoKSBvbmx5IGR1cmlu
-ZyBjb2xkIGJvb3QKPiAgIHBsYXRmb3JtOiBnZW5lcmljOiB0aGVhZDogQXZvaWQgY2FzdGluZyBh
-d2F5IGNvbnN0Cj4gICBwbGF0Zm9ybTogZ2VuZXJpYzogQWRkIGFuIGluaXQgaG9vayBtYXRjaGlu
-ZyBmZHRfZHJpdmVyCj4gICBwbGF0Zm9ybTogZ2VuZXJpYzogQWxsb3cgcmVwbGFjaW5nIHBsYXRm
-b3JtIG9wZXJhdGlvbnMKPiAgIHBsYXRmb3JtOiBnZW5lcmljOiBNb2RpZnkgcGxhdGZvcm0gb3Bz
-IGluc3RlYWQgb2YgdXNpbmcgaG9va3MKPiAgIHBsYXRmb3JtOiBnZW5lcmljOiBSZW1vdmUgcGxh
-dGZvcm0gb3ZlcnJpZGUgaG9va3MKPiAgIHBsYXRmb3JtOiBnZW5lcmljOiBJbml0aWFsaXplIG92
-ZXJyaWRlcyB3aXRoIGZkdF9kcml2ZXIKPiAgIGxpYjogdXRpbHMvZmR0OiBSZW1vdmUgZmR0X21h
-dGNoX25vZGUoKQo+ICAgbGliOiBzYmlfcGxhdGZvcm06IFJlbW92ZSB0aGUgdmVuZG9yX2V4dF9j
-aGVjayBob29rCgpBcHBsaWVkIHRoaXMgc2VyaWVzIHRvIHRoZSByaXNjdi9vcGVuc2JpIHJlcG8u
-CgpUaGFua3MsCkFudXAKCj4KPiAgaW5jbHVkZS9zYmkvc2JpX3BsYXRmb3JtLmggICAgICAgICAg
-ICAgICAgICAgIHwgICA3ICstCj4gIGluY2x1ZGUvc2JpX3V0aWxzL2ZkdC9mZHRfaGVscGVyLmgg
-ICAgICAgICAgICB8ICAgMyAtCj4gIGxpYi91dGlscy9mZHQvZmR0X2hlbHBlci5jICAgICAgICAg
-ICAgICAgICAgICB8ICAxOSAtLS0KPiAgcGxhdGZvcm0vZ2VuZXJpYy9hbGx3aW5uZXIvc3VuMjBp
-LWQxLmMgICAgICAgIHwgIDUzICsrKystLS0KPiAgcGxhdGZvcm0vZ2VuZXJpYy9hbmRlcy9hZTM1
-MC5jICAgICAgICAgICAgICAgIHwgIDI1ICsrKy0KPiAgcGxhdGZvcm0vZ2VuZXJpYy9hbmRlcy9h
-bmRlc19wbXUuYyAgICAgICAgICAgIHwgIDEzICstCj4gIHBsYXRmb3JtL2dlbmVyaWMvYW5kZXMv
-YW5kZXNfc2JpLmMgICAgICAgICAgICB8ICAgMyArLQo+ICBwbGF0Zm9ybS9nZW5lcmljL2luY2x1
-ZGUvYW5kZXMvYW5kZXNfcG11LmggICAgfCAgMjMgKy0tCj4gIHBsYXRmb3JtL2dlbmVyaWMvaW5j
-bHVkZS9hbmRlcy9hbmRlc19zYmkuaCAgICB8ICAgNCArLQo+ICBwbGF0Zm9ybS9nZW5lcmljL2lu
-Y2x1ZGUvcGxhdGZvcm1fb3ZlcnJpZGUuaCAgfCAgMzcgKystLS0KPiAgcGxhdGZvcm0vZ2VuZXJp
-Yy9wbGF0Zm9ybS5jICAgICAgICAgICAgICAgICAgIHwgMTM4ICsrKy0tLS0tLS0tLS0tLS0tLQo+
-ICAuLi4vZ2VuZXJpYy9wbGF0Zm9ybV9vdmVycmlkZV9tb2R1bGVzLmNhcnJheSAgfCAgIDIgKy0K
-PiAgcGxhdGZvcm0vZ2VuZXJpYy9yZW5lc2FzL3J6Zml2ZS9yemZpdmUuYyAgICAgIHwgIDQ2ICsr
-KystLQo+ICBwbGF0Zm9ybS9nZW5lcmljL3NpZml2ZS9mdTU0MC5jICAgICAgICAgICAgICAgfCAg
-MTMgKy0KPiAgcGxhdGZvcm0vZ2VuZXJpYy9zaWZpdmUvZnU3NDAuYyAgICAgICAgICAgICAgIHwg
-IDIwICsrLQo+ICBwbGF0Zm9ybS9nZW5lcmljL3NvcGhnby9zZzIwNDIuYyAgICAgICAgICAgICAg
-fCAgMzEgKysrLQo+ICBwbGF0Zm9ybS9nZW5lcmljL3N0YXJmaXZlL2poNzExMC5jICAgICAgICAg
-ICAgfCAgMjYgKystLQo+ICBwbGF0Zm9ybS9nZW5lcmljL3RoZWFkL3RoZWFkLWdlbmVyaWMuYyAg
-ICAgICAgfCAgMzggKysrLS0KPiAgMTggZmlsZXMgY2hhbmdlZCwgMjIwIGluc2VydGlvbnMoKyks
-IDI4MSBkZWxldGlvbnMoLSkKPgo+IC0tCj4gMi40Ny4yCj4KPgo+IC0tCj4gb3BlbnNiaSBtYWls
-aW5nIGxpc3QKPiBvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkKCi0tIApvcGVuc2JpIG1haWxpbmcg
-bGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+For a root domain, it may keep direct delivery mode as its subdomains
+use msi to delivery interrupt. The currect parsing logic may lost this
+information and break the system if the domain is not set as MSI mode
+or the MSI domain is not a direct children of the root domain.
+
+For a non-root domain, it is safe to parse the MSI information of all
+its domain and write the msiaddrcfg register. The bus should ignore the
+write on this readonly address.
+
+Parse the aplic MSI information recursively for all aplic device.
+
+Signed-off-by: Inochi Amaoto <inochiama@gmail.com>
+---
+ lib/utils/fdt/fdt_helper.c | 138 ++++++++++++++++++-------------------
+ 1 file changed, 69 insertions(+), 69 deletions(-)
+
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 8939d90..0150725 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -6,6 +6,8 @@
+  * Copyright (C) 2020 Bin Meng <bmeng.cn@gmail.com>
+  */
+ 
++#include "sbi/sbi_error.h"
++#include "sbi/sbi_types.h"
+ #include <libfdt.h>
+ #include <sbi/riscv_asm.h>
+ #include <sbi/sbi_console.h>
+@@ -602,13 +604,56 @@ int fdt_parse_xlnx_uartlite_node(const void *fdt, int nodeoffset,
+ 	return fdt_parse_uart_node_common(fdt, nodeoffset, uart, 0, 0);
+ }
+ 
++static int fdt_aplic_find_imsic_node(const void *fdt, int nodeoff, struct imsic_data *imsic, bool mmode)
++{
++	const fdt32_t *val;
++	int i, len, noff, rc;
++
++	val = fdt_getprop(fdt, nodeoff, "msi-parent", &len);
++	if (val && len >= sizeof(fdt32_t)) {
++		noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
++		if (noff < 0)
++			return noff;
++
++		rc = fdt_parse_imsic_node(fdt, noff, imsic);
++		if (rc)
++			return rc;
++
++		rc = imsic_data_check(imsic);
++		if (rc)
++			return rc;
++
++		if (imsic->targets_mmode == mmode) {
++			return 0;
++		}
++	}
++
++	val = fdt_getprop(fdt, nodeoff, "riscv,children", &len);
++	if (!val || len < sizeof(fdt32_t))
++		return SBI_ENODEV;
++
++	len /= sizeof(fdt32_t);
++
++	for (i = 0; i < len; i++) {
++		noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(val[i]));
++		if (noff < 0)
++			return noff;
++
++		rc = fdt_aplic_find_imsic_node(fdt, noff, imsic, mmode);
++		if (!rc)
++			break;
++	}
++
++	return rc;
++}
++
+ int fdt_parse_aplic_node(const void *fdt, int nodeoff, struct aplic_data *aplic)
+ {
+ 	bool child_found;
+ 	const fdt32_t *val;
+ 	const fdt32_t *del;
+ 	struct imsic_data imsic = { 0 };
+-	int i, j, d, dcnt, len, noff, rc;
++	int i, j, d, dcnt, len, rc;
+ 	uint64_t reg_addr, reg_size;
+ 	struct aplic_delegate_data *deleg;
+ 
+@@ -635,78 +680,33 @@ int fdt_parse_aplic_node(const void *fdt, int nodeoff, struct aplic_data *aplic)
+ 			}
+ 		}
+ 		aplic->num_idc = len / 2;
+-		goto aplic_msi_parent_done;
+ 	}
+ 
+-	val = fdt_getprop(fdt, nodeoff, "msi-parent", &len);
+-	if (val && len >= sizeof(fdt32_t)) {
+-		noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
+-		if (noff < 0)
+-			return noff;
+-
+-		rc = fdt_parse_imsic_node(fdt, noff, &imsic);
+-		if (rc)
+-			return rc;
+-
+-		rc = imsic_data_check(&imsic);
+-		if (rc)
+-			return rc;
+-
+-		aplic->targets_mmode = imsic.targets_mmode;
+-
+-		if (imsic.targets_mmode) {
+-			aplic->has_msicfg_mmode = true;
+-			aplic->msicfg_mmode.lhxs = imsic.guest_index_bits;
+-			aplic->msicfg_mmode.lhxw = imsic.hart_index_bits;
+-			aplic->msicfg_mmode.hhxw = imsic.group_index_bits;
+-			aplic->msicfg_mmode.hhxs = imsic.group_index_shift;
+-			if (aplic->msicfg_mmode.hhxs <
+-					(2 * IMSIC_MMIO_PAGE_SHIFT))
+-				return SBI_EINVAL;
+-			aplic->msicfg_mmode.hhxs -= 24;
+-			aplic->msicfg_mmode.base_addr = imsic.regs[0].addr;
+-		} else {
+-			goto aplic_msi_parent_done;
+-		}
+-
+-		val = fdt_getprop(fdt, nodeoff, "riscv,children", &len);
+-		if (!val || len < sizeof(fdt32_t))
+-			goto aplic_msi_parent_done;
+-
+-		noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
+-		if (noff < 0)
+-			return noff;
+-
+-		val = fdt_getprop(fdt, noff, "msi-parent", &len);
+-		if (!val || len < sizeof(fdt32_t))
+-			goto aplic_msi_parent_done;
+-
+-		noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
+-		if (noff < 0)
+-			return noff;
+-
+-		rc = fdt_parse_imsic_node(fdt, noff, &imsic);
+-		if (rc)
+-			return rc;
+-
+-		rc = imsic_data_check(&imsic);
+-		if (rc)
+-			return rc;
++	rc = fdt_aplic_find_imsic_node(fdt, nodeoff, &imsic, true);
++	if (!rc) {
++		aplic->has_msicfg_mmode = true;
++		aplic->msicfg_mmode.lhxs = imsic.guest_index_bits;
++		aplic->msicfg_mmode.lhxw = imsic.hart_index_bits;
++		aplic->msicfg_mmode.hhxw = imsic.group_index_bits;
++		aplic->msicfg_mmode.hhxs = imsic.group_index_shift;
++		if (aplic->msicfg_mmode.hhxs < (2 * IMSIC_MMIO_PAGE_SHIFT))
++			return SBI_EINVAL;
++		aplic->msicfg_mmode.hhxs -= 24;
++		aplic->msicfg_mmode.base_addr = imsic.regs[0].addr;
++	}
+ 
+-		if (!imsic.targets_mmode) {
+-			aplic->has_msicfg_smode = true;
+-			aplic->msicfg_smode.lhxs = imsic.guest_index_bits;
+-			aplic->msicfg_smode.lhxw = imsic.hart_index_bits;
+-			aplic->msicfg_smode.hhxw = imsic.group_index_bits;
+-			aplic->msicfg_smode.hhxs = imsic.group_index_shift;
+-			if (aplic->msicfg_smode.hhxs <
+-					(2 * IMSIC_MMIO_PAGE_SHIFT))
+-				return SBI_EINVAL;
+-			aplic->msicfg_smode.hhxs -= 24;
+-			aplic->msicfg_smode.base_addr = imsic.regs[0].addr;
+-		}
++	rc = fdt_aplic_find_imsic_node(fdt, nodeoff, &imsic, false);
++	if (!rc) {
++		aplic->has_msicfg_smode = true;
++		aplic->msicfg_smode.lhxs = imsic.guest_index_bits;
++		aplic->msicfg_smode.lhxw = imsic.hart_index_bits;
++		aplic->msicfg_smode.hhxw = imsic.group_index_bits;
++		aplic->msicfg_smode.hhxs = imsic.group_index_shift;
++		if (aplic->msicfg_smode.hhxs < (2 * IMSIC_MMIO_PAGE_SHIFT))
++			return SBI_EINVAL;
++		aplic->msicfg_smode.hhxs -= 24;
++		aplic->msicfg_smode.base_addr = imsic.regs[0].addr;
+ 	}
+-aplic_msi_parent_done:
+ 
+ 	for (d = 0; d < APLIC_MAX_DELEGATE; d++) {
+ 		deleg = &aplic->delegate[d];
+-- 
+2.49.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
