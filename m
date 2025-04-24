@@ -4,86 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 034C9C369D3
-	for <opensbi@archiver.kernel.org>; Thu, 24 Apr 2025 01:17:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 19731C369AB
+	for <opensbi@archiver.kernel.org>; Thu, 24 Apr 2025 03:40:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
-	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Us7Y8Xkghr2FXksVEVFFjA3vudZcd76UlqCOffiFJlk=; b=Celudg+SXEz1uu
-	AYzUoKzcBfgqTQdfwoQkP5oeYjtXOE4SI+SEN0DQLlVcQKCYGUD0nSs5c613X6K6KP2+3SKKkZThj
-	8e/NzinI51yaVCBHHeXx+T0s18bfj2+3TS0pN/ZYxdu/4bkEJdXDOG825FGskrqpJEN5TM2tRyMIl
-	Heg9vACw2/OB3Dw6jffir27bhZiCl0Bgw9DhLdRnEr9VIyRw3hRzao48IQhYepUamLDnGzceBk5xC
-	k+eE0iKBKsP0b+/DdEFyOQlrGU+0XCZleEpUK0xE2q9kGOE/GvqvINCrCKSypGee/jLNVygYKHNri
-	pEFNDbbxFpTX7SQd25aQ==;
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Cc:List-Subscribe:
+	List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:References:
+	In-Reply-To:Message-Id:Date:Subject:To:From:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Owner;
+	bh=kDwl2tkm3FJNcdw3jDlknYDbwycUDNDsBn5091iQvxE=; b=KnavFViYdrU2g9i+yRJrssZ6EA
+	/x8ufhOYm0qYKCSt6V7Nn1VG+9b1WRKPqd9QIjQKkvMCJvW6YZXnPjjRkAUm3xmZZnzmEOc0IJONz
+	e8HUkghHEkvX8lqtbSn4qMtCq/lbv3Q2M8A00TpRIO+FpO/B8/zBw2E5wlzrCFp65iXWhf3ZyQbFo
+	kRStNJPAAsNUlS5Kr31RH0fAJYFCzuGVGrtmxztKNr85D8Cy1nSrN+kauzAzZCYt3CVjLcSDRntuh
+	pkqU/spSXN8G4wqepd1of8jL3wvjVGxfRCVxBmEMSKR4QeWlEbsBRwL0fpHG50Do2t+HB7qY1d7zZ
+	S/uK1eag==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u7lDe-0000000CV8S-3bzD;
-	Thu, 24 Apr 2025 01:17:38 +0000
-Received: from mail-io1-xd2a.google.com ([2607:f8b0:4864:20::d2a])
+	id 1u7nRn-0000000CkdS-3Eiy;
+	Thu, 24 Apr 2025 03:40:23 +0000
+Received: from mail-pl1-x62f.google.com ([2607:f8b0:4864:20::62f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1u7lDc-0000000CV7j-1cfi
+	id 1u7nRj-0000000Ckc7-1wTC
 	for opensbi@lists.infradead.org;
-	Thu, 24 Apr 2025 01:17:37 +0000
-Received: by mail-io1-xd2a.google.com with SMTP id ca18e2360f4ac-85b41281b50so19486839f.3
-        for <opensbi@lists.infradead.org>; Wed, 23 Apr 2025 18:17:35 -0700 (PDT)
+	Thu, 24 Apr 2025 03:40:22 +0000
+Received: by mail-pl1-x62f.google.com with SMTP id d9443c01a7336-225df540edcso18015385ad.0
+        for <opensbi@lists.infradead.org>; Wed, 23 Apr 2025 20:40:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1745457455; x=1746062255; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=k9XNB0dYrJsmjtdQH9PKGsrWGHPjyYdxLn52Ih3ks6U=;
-        b=nZekIt+IBSWEuc40ywxjG4w2/vM3srav3EYiSmDJATbxkkFksy+ekuN+mPOXPJ48Xr
-         IFijDLWCu/HyH6cuzUC5gjfYcqex3WhyHGqqD6WdIXwo3VBmov7lCcenHeB+tgkLZ3Yd
-         oet/J4QzYzGtxHtzwf5hvnv3vueo1gN1yu6Lm+lnn6rThkqFs5b/QTH6HpAVKXQALxdd
-         cme/s9YXxFnxikeIVRZ6jVOxahha+AOy8lxng03pjaT76Q12GPQwFNsro7JmWomhUc6e
-         ZEhZWTf12j4W3HeP6l4pX50CsfrsuAcy53++mbZZQjHxYU+OncLkf67gRK1LoBrmUhA7
-         IbCA==
+        d=sifive.com; s=google; t=1745466018; x=1746070818; darn=lists.infradead.org;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=QbNx1pxFkEn8bvXIHDi0izS4SvbWXBdyXAF68xbjGTs=;
+        b=K1uWm15X47TNvQNqSItUxYu7eIuxyWTwAwSoFT4UlGc6HMHmz6T1Fi7NKUyXc7GHx5
+         S0rCIOOoRwoO+ADyIM/sFRNPtg7gvuMjSKc73589h+sdwlS/aUaCNcRBtdC1Rbbywv1r
+         awcfABYLTS1nqMUUUdRndyQX43n8L8NqN26xYnyUHy0J4xgIz3LetUea9D2iQju/ccSF
+         seA7f6YKQ238A6maNmiVWreU5oYkG+zThGdob33/5EH3s4xj+Yy/eGsukyutJ069wpNp
+         mCRqp242Bkv5viMsG1b1Kgt9SolVPxBVWEbaVgg+/G4BstcBMI05r/Fy1hOTUF/Gru2F
+         SIBg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745457455; x=1746062255;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
+        d=1e100.net; s=20230601; t=1745466018; x=1746070818;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=k9XNB0dYrJsmjtdQH9PKGsrWGHPjyYdxLn52Ih3ks6U=;
-        b=QTbW7rNTF4ngJDE1TaNA/73ZR3Gr8+LzXOriAX2uVp2npZODugyJ1Y3XQ0bnWHrAAp
-         gMW70H8hfKXtqwmEGDdY83LHpFKlqTGMSaxbewcZ8GmupQwE8oFj408ll8pqQbgGc9dd
-         TANBMmGiHb6HQ9NfMaJswLqBg2MGa4mb6oNhSQ1iLZZ1c2ZOIIMpX9U8B09qXdra9PGH
-         zYARALIsa5/rKszDpU7aJV2q1OOtW1lBn+cBSj+IhYoHKCvyK663jP09wBGFyEUXfTpO
-         MEk5agRcCpWJXWHcNX5mLjZcZXZkbBygAwTfFnpvt/0ote3jPuEJ1kUPQEW5wmkxms4W
-         fRCw==
-X-Forwarded-Encrypted: i=1; AJvYcCUtr+0ywlaxWEI1lVzuQRUg5YUE69F6BlYyCQE+6dN+Om2RuOL/ek70vH7AGbELszqfnz6gdAJC@lists.infradead.org
-X-Gm-Message-State: AOJu0YwrGaFiP5Z9HbTQDj4PfvJbBoM6tqHzhj6nxH16M61FCE2jJwGf
-	d5Wa48YdX8duLMe8l+uJJ4BUtxwEJoK89IHD8Lx3EM/B3ciUuuUXRKIZTD29B2g=
-X-Gm-Gg: ASbGnctoFHiJzaoaxa/vFCHSITwjtPw95mOWIVIucnToOhvQikoD+8jaGM19nX5dReM
-	sR88hX/PuAC8wXS/GBOx4SYLXJ5aaBo3VJsUjv03V65CzbWPuGAXfKMIVyCRFwnBQiSMKxsB4Q7
-	G9p7TF7ATNoHt7/nOjhDtmbHTeDuMt1bZ1O34xHRXylREkkfGhr2Bx4rS0hLBXlNPuW5rTzR70a
-	mS/2q0oovmNbOJwz5GUM8EwxHe7xzQ83g89l0mdhx7BSXZT4ioEol8+PiYoz1n6tpzfx2DBs9lJ
-	CMEqD3iz8zX0W1jxNbtP49EcwzWYNcUYa4pjzR49TVE9TPZpFkkxsPnLmL5joSQ2zV82ag==
-X-Google-Smtp-Source: AGHT+IGHZ22nREe1vVnihLiIgLdBsUZLPBywYj/XnWOhM7HO58QOzWjXqvX1j6jV2uTV67pSgCTkKA==
-X-Received: by 2002:a05:6602:13c7:b0:85b:4ad1:70e with SMTP id ca18e2360f4ac-8644f9b4f03mr132489839f.6.1745457454834;
-        Wed, 23 Apr 2025 18:17:34 -0700 (PDT)
-Received: from [100.64.0.1] ([170.85.12.183])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4f824ba34c1sm51855173.126.2025.04.23.18.17.34
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 23 Apr 2025 18:17:34 -0700 (PDT)
-Message-ID: <13e2ca07-cc22-4d6e-9b93-088cec1078a4@sifive.com>
-Date: Wed, 23 Apr 2025 20:17:33 -0500
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6] lib: sbi: Set the scratch allocation to alignment to
- cacheline size.
-To: Raj Vishwanathan <raj.vishwanathan@gmail.com>, opensbi@lists.infradead.org
-Cc: rvishwanathan@mips.com
-References: <20250318185111.452620-1-Raj.Vishwanathan@gmail.com>
- <20250423225045.267983-1-Raj.Vishwanathan@gmail.com>
-From: Samuel Holland <samuel.holland@sifive.com>
-Content-Language: en-US
-In-Reply-To: <20250423225045.267983-1-Raj.Vishwanathan@gmail.com>
+        bh=QbNx1pxFkEn8bvXIHDi0izS4SvbWXBdyXAF68xbjGTs=;
+        b=apgc8B2cm29aJtNYo7Rk4EIfM6dYUyj8feuKaYaWEPfGcAaLIXukiOykx+t5oydRaC
+         D/G8cbJCwr2xgzgxu1x1dYSohAgJuALUIck+zzzkLwPdgDaKN4uNWZ9NhyxbFTqyvHam
+         Z81h4kowXmghpC9exWL+JFn4oxAiJQuxvghpjXQSB3wMkwtK8Pgmjrk8EH+HyE2q90ax
+         tarlICtjiXidcPiaFURAxbpmYtykczuPgT6onZ47Z0hu7ns2KbR5ScAbR7TKDwfJOHo6
+         6egImp7OulCb/AxBnTxHM1FgF1x6m105glL3d+57yaWOi/r+WZkWReilmA39mRBvegQm
+         8frg==
+X-Gm-Message-State: AOJu0Yz49ckzxg464mn4SA6s0Kmx6/ZxhIP7r4PubWpOgfiSQ0jynoga
+	LNEXKgwj7tljU7KIVYShEAYoSed+l5PHxyRLKdawOYGmX+pEE88sGHga7Y3ZApRNzUi1HpwzH+X
+	OCoInbIppJTzBXosZ0AHaCQe1vtY+l7PEf1GhbQR75R8EfHoX4FGPX3aYax9H9CLc8t7NdBYzyV
+	sJmQXygYGBTesRLVjGf7SlPWhkdF4uHut1ZzAV3w9sXQ==
+X-Gm-Gg: ASbGnctVWskJA0DdtkGpKTXuoHISAT/5kigxm5cPHxW2qjDbWNDLnEjasd+uiq2wia1
+	CT2BiEnDGC+K5ZXKLDFDvFwtGUysgSEYxZGCKEqCRI9Rffcxpw0G+UOAbdydJmE0R+wzKVxKb1I
+	YCbzfJALCqtQuaioRQO+bzyL5zml1ZJLBTZ2aWq4wetnlt+uryZE/wr42xLSxw4yWsTr2eR9Gzp
+	VYTmVnc+yjYkU64e/kZ1tMsS+H2MwRWycxLXRdxovt0gJej6lxyNb4fuS5R1V7sI2d4PfJ9gqMY
+	DQSfjTHcy9GZUHy0NA8hHTkR3t1nS6P4y5cjHQqNWSdIuOV4VdVVVkQR67o7aUkeRkgVebEm5A=
+	=
+X-Google-Smtp-Source: AGHT+IHe5LLP2br/RylxujZw52+oxgr6Ac5B+VVqUYXsHiSZOZgyuhSSIGmfKg48Jm0oH3CCYRSg8Q==
+X-Received: by 2002:a17:903:4052:b0:215:a303:24e9 with SMTP id d9443c01a7336-22db47aeb1dmr11086395ad.3.1745466018001;
+        Wed, 23 Apr 2025 20:40:18 -0700 (PDT)
+Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22db4dbd5f2sm2632025ad.66.2025.04.23.20.40.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Apr 2025 20:40:17 -0700 (PDT)
+From: Nick Hu <nick.hu@sifive.com>
+To: opensbi@lists.infradead.org
+Subject: [PATCH v2 1/5] lib: utils: Add cache flush library
+Date: Thu, 24 Apr 2025 11:39:59 +0800
+Message-Id: <20250424034003.28522-2-nick.hu@sifive.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20250424034003.28522-1-nick.hu@sifive.com>
+References: <20250424034003.28522-1-nick.hu@sifive.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250423_181736_446282_84EF6DC3 
-X-CRM114-Status: GOOD (  28.37  )
+X-CRM114-CacheID: sfid-20250423_204020_063720_2A4E0BFE 
+X-CRM114-Status: GOOD (  17.79  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,219 +91,202 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Cc: vincent.chen@sifive.com, anup@brainfault.org, Nick Hu <nick.hu@sifive.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Hi Raj,
+The current RISC-V CMO only defines how to flush a cache block. However,
+certain use cases, such as power management, may require flushing the
+entire cache. Therefore, a framework is being introduced to allow vendors
+to flush the entire cache using their own methods.
 
-On 2025-04-23 5:50 PM, Raj Vishwanathan wrote:
-> We set the scratch allocation alignment to cacheline size,specified by
-> riscv,cbom-block-size in the dts file to avoid two atomic variables from
-> the same cache line causing livelock on some platforms. If the cacheline
-> is not specified, we set it a default value.
-> 
-> Signed-off-by: Raj Vishwanathan <Raj.Vishwanathan@gmail.com>
-> --
-> Changes in V6:
-> 	Add assert for assert_member_offset for cbom_block_size
-> 	Update the subject line
-> Changes in V5:
-> 	Formatting issues
-> Changes in V4:
-> 	Pickup the cacheline size from the dts file
-> Changes in V3:
->     Remove platform specific references to 64 Bytes.
-> Changes in V2:
->     Added a new configuration to get the alignment size.
-> Change in V1:
->     Original Patch
-> ---
->  include/sbi/sbi_platform.h         |  5 +++++
->  include/sbi_utils/fdt/fdt_helper.h |  2 ++
->  lib/sbi/sbi_scratch.c              | 26 ++++++++++++++++++++++++--
->  lib/utils/fdt/fdt_helper.c         | 24 ++++++++++++++++++++++++
->  platform/generic/platform.c        |  9 +++++++++
->  5 files changed, 64 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index 82840ae..08ece32 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -39,6 +39,8 @@
->  #define SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET (0x60 + __SIZEOF_POINTER__)
->  /** Offset of hart_index2id in struct sbi_platform */
->  #define SBI_PLATFORM_HART_INDEX2ID_OFFSET (0x60 + (__SIZEOF_POINTER__ * 2))
-> +/** Offset of cbom_block_size in struct sbi_platform */
-> +#define SBI_PLATFORM_CBOM_BLOCK_SIZE_OFFSET (0x60 + (__SIZEOF_POINTER__ * 3))
->  
->  #define SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT		(1UL << 12)
->  
-> @@ -190,6 +192,8 @@ struct sbi_platform {
->  	 *     hart_index2id[<abc>] = <abc>
->  	 */
->  	const u32 *hart_index2id;
-> +	/** Allocation alignment for Scratch */
-> +	unsigned long cbom_block_size;
->  };
->  
->  /**
-> @@ -207,6 +211,7 @@ assert_member_offset(struct sbi_platform, reserved, SBI_PLATFORM_RESERVED_OFFSET
->  assert_member_offset(struct sbi_platform, platform_ops_addr, SBI_PLATFORM_OPS_OFFSET);
->  assert_member_offset(struct sbi_platform, firmware_context, SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET);
->  assert_member_offset(struct sbi_platform, hart_index2id, SBI_PLATFORM_HART_INDEX2ID_OFFSET);
-> +assert_member_offset(struct sbi_platform, cbom_block_size, SBI_PLATFORM_CBOM_BLOCK_SIZE_OFFSET);
->  
->  /** Get pointer to sbi_platform for sbi_scratch pointer */
->  #define sbi_platform_ptr(__s) \
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 5875880..04c850c 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -50,6 +50,8 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid);
->  
->  int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
->  
-> +int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long  *cbom_block_size);
-> +
->  int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
->  
->  int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
-> diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
-> index 8c7eeaf..916f283 100644
-> --- a/lib/sbi/sbi_scratch.c
-> +++ b/lib/sbi/sbi_scratch.c
-> @@ -14,6 +14,8 @@
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
->  
-> +#define DEFAULT_SCRATCH_ALLOC_ALIGN __SIZEOF_POINTER__
-> +
->  u32 sbi_scratch_hart_count;
->  u32 hartindex_to_hartid_table[SBI_HARTMASK_MAX_BITS] = { [0 ... SBI_HARTMASK_MAX_BITS-1] = -1U };
->  struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS];
-> @@ -21,6 +23,19 @@ struct sbi_scratch *hartindex_to_scratch_table[SBI_HARTMASK_MAX_BITS];
->  static spinlock_t extra_lock = SPIN_LOCK_INITIALIZER;
->  static unsigned long extra_offset = SBI_SCRATCH_EXTRA_SPACE_OFFSET;
->  
-> +static unsigned long sbi_get_scratch_alloc_align(void)
-> +{
-> +	const struct sbi_platform *plat;
-> +	/*
-> +	 * Get the alignment size. We will return DEFAULT_SCRATCH_ALLOC_ALIGNMENT
-> +	 * or riscv,cbom_block_size
-> +	 */
-> +	plat = sbi_platform_thishart_ptr();
-> +	if (!plat || !plat->cbom_block_size)
-> +		return DEFAULT_SCRATCH_ALLOC_ALIGN;
-> +	return plat->cbom_block_size;
-> +}
-> +
->  u32 sbi_hartid_to_hartindex(u32 hartid)
->  {
->  	sbi_for_each_hartindex(i)
-> @@ -57,6 +72,7 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
->  	void *ptr;
->  	unsigned long ret = 0;
->  	struct sbi_scratch *rscratch;
-> +	unsigned long scratch_alloc_align = 0;
-
-This variable is unconditionally assigned below, so it doesn't need to be
-initialized here.
-
->  
->  	/*
->  	 * We have a simple brain-dead allocator which never expects
-> @@ -70,8 +86,14 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
->  	if (!size)
->  		return 0;
->  
-> -	size += __SIZEOF_POINTER__ - 1;
-> -	size &= ~((unsigned long)__SIZEOF_POINTER__ - 1);
-> +	scratch_alloc_align = sbi_get_scratch_alloc_align();
-> +
-> +	/*
-> +	 * We let the allocation align to cacheline bytes to avoid livelock on
-> +	 * certain platforms due to atomic variables from the same cache line.
-> +	 */
-> +	size += scratch_alloc_align - 1;
-> +	size &= ~(scratch_alloc_align - 1);
->  
->  	spin_lock(&extra_lock);
->  
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 79e59dd..b2d91fd 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -246,6 +246,30 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid)
->  	return 0;
->  }
->  
-> +int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long *cbom_block_size)
-> +{
-> +	int len;
-> +	const void *prop;
-> +	const fdt32_t *val;
-> +
-> +	if (!fdt || cpu_offset < 0)
-> +		return SBI_EINVAL;
-> +
-> +	prop = fdt_getprop(fdt, cpu_offset, "device_type", &len);
-> +	if (!prop || !len)
-> +		return SBI_EINVAL;
-> +	if (strncmp (prop, "cpu", strlen ("cpu")))
-> +		return SBI_EINVAL;
-> +
-> +	val = fdt_getprop(fdt, cpu_offset, "riscv,cbom-block-size", &len);
-> +	if (!val || len < sizeof(fdt32_t))
-> +		return SBI_EINVAL;
-> +
-> +	if (cbom_block_size)
-> +		*cbom_block_size = fdt32_to_cpu(*val);
-> +	return 0;
-> +}
-> +
->  int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid)
->  {
->  	u32 hartid;
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index f3072be..2b1b949 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -147,6 +147,9 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
->  	const void *fdt = (void *)arg1;
->  	u32 hartid, hart_count = 0;
->  	int rc, root_offset, cpus_offset, cpu_offset, len;
-> +	unsigned long cbom_block_size = 0;
-> +	unsigned long tmp = 0;
-> +
->  
-
-Extra blank line here. These are trivial issues, so:
-
+Signed-off-by: Nick Hu <nick.hu@sifive.com>
 Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+---
+ include/sbi_utils/cache/cache.h | 69 +++++++++++++++++++++++++++++++++
+ lib/utils/Kconfig               |  2 +
+ lib/utils/cache/Kconfig         |  9 +++++
+ lib/utils/cache/cache.c         | 46 ++++++++++++++++++++++
+ lib/utils/cache/objects.mk      |  7 ++++
+ 5 files changed, 133 insertions(+)
+ create mode 100644 include/sbi_utils/cache/cache.h
+ create mode 100644 lib/utils/cache/Kconfig
+ create mode 100644 lib/utils/cache/cache.c
+ create mode 100644 lib/utils/cache/objects.mk
 
->  	root_offset = fdt_path_offset(fdt, "/");
->  	if (root_offset < 0)
-> @@ -174,11 +177,17 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
->  			continue;
->  
->  		generic_hart_index2id[hart_count++] = hartid;
-> +
-> +		rc = fdt_parse_cbom_block_size(fdt, cpu_offset, &tmp);
-> +		if (rc)
-> +			continue;
-> +		cbom_block_size = MAX(tmp, cbom_block_size);
->  	}
->  
->  	platform.hart_count = hart_count;
->  	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
->  	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
-> +	platform.cbom_block_size = cbom_block_size;
->  
->  	fw_platform_coldboot_harts_init(fdt);
->  
+diff --git a/include/sbi_utils/cache/cache.h b/include/sbi_utils/cache/cache.h
+new file mode 100644
+index 00000000..70d9286f
+--- /dev/null
++++ b/include/sbi_utils/cache/cache.h
+@@ -0,0 +1,69 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 SiFive Inc.
++ */
++
++#ifndef __CACHE_H__
++#define __CACHE_H__
++
++#include <sbi/sbi_list.h>
++#include <sbi/sbi_types.h>
++
++#define CACHE_NAME_LEN	32
++
++struct cache_device;
++
++struct cache_ops {
++	/** Warm init **/
++	int (*warm_init)(struct cache_device *dev);
++	/** Flush entire cache **/
++	int (*cache_flush_all)(struct cache_device *dev);
++};
++
++struct cache_device {
++	/** Name of the device **/
++	char name[CACHE_NAME_LEN];
++	/** List node for search **/
++	struct sbi_dlist node;
++	/** Point to the next level cache **/
++	struct cache_device *next;
++	/** Cache Management Operations **/
++	struct cache_ops *ops;
++	/** CPU private cache **/
++	bool cpu_private;
++	/** The unique id of this cache device **/
++	u32 id;
++};
++
++/**
++ * Find a registered cache device
++ *
++ * @param id unique ID of the cache device
++ *
++ * @return the cache device or NULL
++ */
++struct cache_device *cache_find(u32 id);
++
++/**
++ * Register a cache device
++ *
++ * cache_device->id must be initialized already and must not change during the life
++ * of the cache_device object.
++ *
++ * @param dev the cache device to register
++ *
++ * @return 0 on success, or a negative error code on failure
++ */
++int cache_add(struct cache_device *dev);
++
++/**
++ * Flush the entire cache
++ *
++ * @param dev the cache to flush
++ *
++ * @return 0 on success, or a negative error code on failure
++ */
++int cache_flush_all(struct cache_device *dev);
++
++#endif
+diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
+index 901ba564..5a5b3b1e 100644
+--- a/lib/utils/Kconfig
++++ b/lib/utils/Kconfig
+@@ -2,6 +2,8 @@
+ 
+ menu "Utils and Drivers Support"
+ 
++source "$(OPENSBI_SRC_DIR)/lib/utils/cache/Kconfig"
++
+ source "$(OPENSBI_SRC_DIR)/lib/utils/cppc/Kconfig"
+ 
+ source "$(OPENSBI_SRC_DIR)/lib/utils/fdt/Kconfig"
+diff --git a/lib/utils/cache/Kconfig b/lib/utils/cache/Kconfig
+new file mode 100644
+index 00000000..24aa41bc
+--- /dev/null
++++ b/lib/utils/cache/Kconfig
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: BSD-2-Clause
++
++menu "Cache Support"
++
++config CACHE
++	bool "Cache support"
++	default n
++
++endmenu
+diff --git a/lib/utils/cache/cache.c b/lib/utils/cache/cache.c
+new file mode 100644
+index 00000000..6bc3d10e
+--- /dev/null
++++ b/lib/utils/cache/cache.c
+@@ -0,0 +1,46 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 SiFive Inc.
++ */
++
++#include <sbi/sbi_error.h>
++#include <sbi_utils/cache/cache.h>
++
++static SBI_LIST_HEAD(cache_list);
++
++struct cache_device *cache_find(u32 id)
++{
++	struct cache_device *dev;
++
++	sbi_list_for_each_entry(dev, &cache_list, node) {
++		if (dev->id == id)
++			return dev;
++	}
++
++	return NULL;
++}
++
++int cache_add(struct cache_device *dev)
++{
++	if (!dev)
++		return SBI_ENODEV;
++
++	if (cache_find(dev->id))
++		return SBI_EALREADY;
++
++	sbi_list_add(&dev->node, &cache_list);
++
++	return SBI_OK;
++}
++
++int cache_flush_all(struct cache_device *dev)
++{
++	if (!dev)
++		return SBI_ENODEV;
++
++	if (!dev->ops || !dev->ops->cache_flush_all)
++		return SBI_ENOTSUPP;
++
++	return dev->ops->cache_flush_all(dev);
++}
+diff --git a/lib/utils/cache/objects.mk b/lib/utils/cache/objects.mk
+new file mode 100644
+index 00000000..21d30ce8
+--- /dev/null
++++ b/lib/utils/cache/objects.mk
+@@ -0,0 +1,7 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++# Copyright (c) 2025 SiFive
++#
++
++libsbiutils-objs-$(CONFIG_CACHE) += cache/cache.o
+-- 
+2.17.1
 
 
 -- 
