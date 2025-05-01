@@ -4,93 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CE98DC369D9
-	for <opensbi@archiver.kernel.org>; Wed, 30 Apr 2025 23:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8ACA8C369D9
+	for <opensbi@archiver.kernel.org>; Thu,  1 May 2025 00:05:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
-	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=imCnDYtSeAz40iBhyK/34DeEUUVJ6F++NHdSmKE94Uo=; b=HhI1vfdjgteMc7
-	k/ho+IhQkyytwfcRSgjY42eqRe7p8UhNZhCHw7Cy1AhXqZzcWBPiGZDz3dO2U5RoNiUDpx8X2XVUf
-	QuCW/dFTNzsFv43mYY8M6kjpR/1mft7qOTR6xiA5dIA6p/NsHUIzCIk+feP33Sry+w5qMod+GjbZ/
-	DEVSNNsKpEzz8IVItw6HW5XPpmtTUD85xuRpYSvryWps5s5+ebCK8y4q3rsGEGn7UazPzMfF5wOtW
-	kQauu9prp5OrvvZqq7obWsXZjzihhX0JhACSExvLtgr1Mxws7gegSm/my5QvGdodgVI3fd7vxr/p0
-	6Glc4/xl1ZR70gJS7xTg==;
+	List-Archive:List-Unsubscribe:List-Id:To:References:Message-Id:Cc:Date:
+	In-Reply-To:From:Subject:Mime-Version:Reply-To:Content-ID:Content-Description
+	:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=/cBNMPTX+bwjFAeqH9rkm4AHdmB/9a1DleGYxFwP2P0=; b=mpqIrRG4H1iqIk
+	qjHkpQN2CXt2KUd+5hD/G6xGKKQBcVwsoZdPLgjN+kJ6+ynQouBXBVKKNOkuZ4fcmn1iV/f7RKP/K
+	Z3P6Ex6bvn1Y7DyB7uYIBMCx5dJEeBaBTjXue5ErLiTj/LW0Qn3O5hFfvHJNAMouuvhHFzywB/hNE
+	Dxrsqec1UIP8GL6eKV6pOpmL6kTxNla5eRGs3M7gjH+O71BKCVVq+CQ52ADMTU61u7FbCKGK6S9nL
+	QjO6jtaedJXK/hmaepVV0rcNw8Q1qXLmOrXV8vaERyJuXUA6rtJRk5kQwFTqmCT8uQ0XgmX+yeg6+
+	EHObyyeeY7IgC34cJm5Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uAH13-0000000EGXs-0auh;
-	Wed, 30 Apr 2025 23:39:01 +0000
-Received: from mail-pf1-x42c.google.com ([2607:f8b0:4864:20::42c])
+	id 1uAHQ7-0000000EHoB-1ImT;
+	Thu, 01 May 2025 00:04:55 +0000
+Received: from mail-wr1-x431.google.com ([2a00:1450:4864:20::431])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uAH10-0000000EGXW-4AVe
+	id 1uAHQ4-0000000EHnE-13iQ
 	for opensbi@lists.infradead.org;
-	Wed, 30 Apr 2025 23:39:00 +0000
-Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-72d3b48d2ffso491104b3a.2
-        for <opensbi@lists.infradead.org>; Wed, 30 Apr 2025 16:38:58 -0700 (PDT)
+	Thu, 01 May 2025 00:04:53 +0000
+Received: by mail-wr1-x431.google.com with SMTP id ffacd0b85a97d-39ee5ac4321so361898f8f.1
+        for <opensbi@lists.infradead.org>; Wed, 30 Apr 2025 17:04:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1746056338; x=1746661138; darn=lists.infradead.org;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=q+y0gJFMTMbFVfr/MrPamaK88fdkS8CFPnyvuJ3dahg=;
-        b=XHC/UTXdfk7m2A31aHBm7hTjWmoxRWmKmLMRAAQFxokRemK5EstVFdg00lE/gFNopa
-         VG+XKcyb54Amm04kz2Br3PbelOp3Z4mkKTmPEwOVCbBimz6H0MWGxJcuFT0m4Ict9CDD
-         Vg4rZmMJqbM9l64oqUMiXKcIycgA/TnJf8i81v3o9AmdPICVgZttsUweLFWZkiNxG4f8
-         VAXu12G/NfNm5V8xux+CN78JUbumJSZpmDW8/W61OFSLIlZYLrXsgkFxsRA8mc6+iDxb
-         Geq36XUROPruFNDBdNE8nVB1+LKKDbM6mYdM60kevZYWzgG6SRVrBEQSFaNmIdRdVpKk
-         27kA==
+        d=jrtc27.com; s=gmail.jrtc27.user; t=1746057890; x=1746662690; darn=lists.infradead.org;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GCXMOgriUpnrUUq+tbGHuCf4pcHjk6HW8RB/rsfnCFc=;
+        b=YfRgnq2VdTkhMDG4AXBsA2QlfDJEnmEZSHqBp8E23PAwDXciKMw6QhvoHS0ozi8xfR
+         qx8wGXT9Adm0kGOlEzPiplzxAqT1Kqjh068V7l7MlPTcyL0k6gbAmxP+4xXLWleGznBo
+         esYHGovGIz6q0WYp6AWlAP8spsbgUBe4vIDnmVv8RVUC6egAAas3LlrDDwrFiANEig21
+         vlSrDbXntdoOLAmhHe67BwQC8/B6uRJh3EJLVxOjcAr88KXrHoerTq5Jhp/D7AsVqO4q
+         SAf5ODi0pDUgQJiV5x75nKTbzNKTmZkoAWKZ2DkVsPLHkmUJK53bnbwP3UqlaDd/5CBc
+         a5jQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746056338; x=1746661138;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=q+y0gJFMTMbFVfr/MrPamaK88fdkS8CFPnyvuJ3dahg=;
-        b=VWXrK7UkXoTMWo1Asw9J5sT9Hqiv1WZik00kw90LZk1MM/1g6MTahM88V6N7igzUAe
-         iHd/An1nMWxpkpjA/gLOoGQfoynVouGT9O8dYh8v6jfktska7pHED1xIEAwqFYghEJ0a
-         H99+5wE4MNmzZIn4tcBecIfAuAZy/gb0z/otONYJ3Hp43MRpmic1iVtMASaAVZpogGMo
-         X2ryacm6KPjwa6pYf9jNYxsrmoltcrAlHC8qybQP2Gh2ofw8YEcAgFRrpawZyH6HOJFL
-         lUIshLDlRwyiO9gLzecjFtnfh+Tek8cIsyd/2hpJOqAVOfbCSsvM4nU2h6kfk5O02LTX
-         ltvQ==
-X-Gm-Message-State: AOJu0YxG3a2WS+AygoXQtM3BM/WBn9UWxVJwOMdPgq12gmO4kaHaSd/9
-	yXblLDaH4GPIl6oG1zbCgOppcDJHv3qTuOO9SEoT34D3OxIzKuYPyZXO19mKOzOb3+6bHb0P0GN
-	Y
-X-Gm-Gg: ASbGnctjLbRluJqDUDfvFDE7HvM7OTvzEMxuzqKqGJrzNDCo0xoowp0jW4Ysmw4BKyo
-	8lk/BAvKQ2Nq9VGC5/2ikaL7jaqEfqKLkGGKBaqbAmonupTnx71lcUykX3YsvhbjfNP6r6OsDui
-	b0/ffV0arCAZkfJl2keGyw0EVgQ5AxALMU4ddTOMtbT18Gs1O/P7Qr6VvgG10ylAtUxzNl/bq/S
-	3fqy1fVEVazOE68KSq5A/cbAyTx3kG9wvA+htjgp/nJWC5D6U/QJ41LtuSgTX6HkUENqAEwZabD
-	mhokmMUspZ1bWe8yVWVezhj0+XTG+1u1EE4c8sL5MErqU7osTwGkIGyH
-X-Google-Smtp-Source: AGHT+IGlU1DgrJOF/nxxst1bFhzg7FGvIxTgMADgWD/mmdqUfM1CayejaBAIq9WEfoe8oJukaB/YWg==
-X-Received: by 2002:a05:6a21:9181:b0:20a:53e7:4a44 with SMTP id adf61e73a8af0-20aa2fc98ddmr6293972637.19.1746056337952;
-        Wed, 30 Apr 2025 16:38:57 -0700 (PDT)
-Received: from charlie.ba.rivosinc.com ([64.71.180.162])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-740398f9a6csm2315198b3a.7.2025.04.30.16.38.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Apr 2025 16:38:57 -0700 (PDT)
-From: Charlie Jenkins <charlie@rivosinc.com>
-Date: Wed, 30 Apr 2025 16:38:31 -0700
-Subject: [PATCH] Makefile: Make $(LLVM) more flexible
-MIME-Version: 1.0
-Message-Id: <20250430-improve_llvm_building-v1-1-caae96cc6be6@rivosinc.com>
-X-B4-Tracking: v=1; b=H4sIAHa0EmgC/x3MTQqAIBBA4avIrBM0K6qrREg/Yw2ohZIE0d2Tl
- t/ivQciBsIIPXsgYKJIh8+QBYNln/yGnNZsKEVZi0oJTu4MR0JtbXJ6vsiu5De+GKNkJ1uUUwO
- 5PQMauv/vML7vBwvRIp9nAAAA
-X-Change-ID: 20250430-improve_llvm_building-cff31918e1a6
-To: opensbi@lists.infradead.org
-Cc: Charlie Jenkins <charlie@rivosinc.com>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2006; i=charlie@rivosinc.com;
- h=from:subject:message-id; bh=Eb9eNvgqig3ObzEkS46qgoZAFHjPlNNTd9TywWjJmds=;
- b=kA0DAAoWjgFid219CPYByyZiAGgStImjXzNxX364JnnUdhzCKqoKi1wf9jWslb/ebIeqq4Cjh
- Yh1BAAWCgAdFiEEDNaAA4XcL3bFFXaQjgFid219CPYFAmgStIkACgkQjgFid219CPb1rAD/RSHi
- 7IZZWnB6gTBaW5a2CcPD3K9PWlEAmv4S2tjNl3ABAIVb9O+6y18FvkTEK1ZTw+Hfk/JO7bCZaj3
- 1JUKHwP4G
-X-Developer-Key: i=charlie@rivosinc.com; a=openpgp;
- fpr=7D834FF11B1D8387E61C776FFB10D1F27D6B1354
+        d=1e100.net; s=20230601; t=1746057890; x=1746662690;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=GCXMOgriUpnrUUq+tbGHuCf4pcHjk6HW8RB/rsfnCFc=;
+        b=AEzycgyAsKbRJk/B7OBTUaGydaxdgK/GRxcWo6BXuudYOgUsI+6tqY361wJ/E3KWNk
+         V7FU7psXV7zz7G/4vzpt4Nh/On5Uaf7QENypX4OBtoDALZzJ3rYr3Iy033bTsbzBKnQ6
+         zmlU5o8KbulkE4qbZgaSgW0642g2y3W1V8pu3vpJJjwYFtbzf35GB6L0oLj5OkZO2VXY
+         XULvdXuYpJEfyHBXbBiwRmKLPpAsS82q82W9NhJ9aNjbuJYAgf/W6oXne9+yv+fp8sSU
+         XaESLqmhxdNaoZDdAI5sJ/dlMJoJHl3/1I0FuuAA82zbUp6dSKKFcGKr6UKdsIegTRb0
+         iMvQ==
+X-Gm-Message-State: AOJu0YzEAYrfJjBIeYAlpHtvLdHAjQIIQfsh+PvN0q/Qd4SQz2pZSaib
+	h8NqLzOS9wcY45iKkf+Nc5sjXp8Gl0IiDRZYslURsKaSiEZpeekwwbxX2WHWtmA=
+X-Gm-Gg: ASbGncuKpW7CQpHHF2iWLYDXVOHJjKxaiVYS4XcsUbqquBAYrdWdUD1Vo8U8yXlqGz0
+	6xMzGs26I+FvWM+xAZpFzJjhJfyWIoEGjA7neNNjyXFCyjaWlLzVoLa+J+xf/h2wNR8aydb5fiM
+	DC5UCOSonyMZsswbs4lpU7wMegdOQnfBc1qtcIT4j7dgG17MF5BggsnkQVxbUMr4I/sdCZ/0AUf
+	JPxQblAcw80eJbdLufh/K3rvNPsIP53zcGuWZ+nNCFAWxCxRhEtrKVcNYBmIWS7t/Y8h54zJoQc
+	ooCqPrXdZvprQjX2eiR8x72V8uqiFAwjFLyhzIFXTiShJWPxQlgvrg==
+X-Google-Smtp-Source: AGHT+IHfkuyUctaLvDF/ZmGOaDTJ8ORs7WpIDOKJwNHlCHCa0/VPHWwUtW+ECHw8I+BRnwCg70tqVg==
+X-Received: by 2002:a05:6000:18a9:b0:391:41c9:7a8d with SMTP id ffacd0b85a97d-3a09417a4a7mr198772f8f.54.1746057889600;
+        Wed, 30 Apr 2025 17:04:49 -0700 (PDT)
+Received: from smtpclient.apple ([131.111.5.201])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a073e5e345sm18465369f8f.94.2025.04.30.17.04.48
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 30 Apr 2025 17:04:49 -0700 (PDT)
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.300.87.4.3\))
+Subject: Re: [PATCH] Makefile: Make $(LLVM) more flexible
+From: Jessica Clarke <jrtc27@jrtc27.com>
+In-Reply-To: <20250430-improve_llvm_building-v1-1-caae96cc6be6@rivosinc.com>
+Date: Thu, 1 May 2025 01:04:38 +0100
+Cc: opensbi@lists.infradead.org
+Message-Id: <18D74DFC-E63B-446A-806B-B7C51AA4CDA4@jrtc27.com>
+References: <20250430-improve_llvm_building-v1-1-caae96cc6be6@rivosinc.com>
+To: Charlie Jenkins <charlie@rivosinc.com>
+X-Mailer: Apple Mail (2.3826.300.87.4.3)
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250430_163859_040661_7BD30DCD 
-X-CRM114-Status: UNSURE (   9.74  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20250430_170452_311478_FD27442A 
+X-CRM114-Status: GOOD (  20.63  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,79 +91,56 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Introduce a way for developers to easily switch between LLVM versions
-with LLVM=/path/to/llvm/ and LLVM=-version. This is a useful
-addition to the existing LLVM=1 variable which will select the first
-clang and llvm binutils available on the path.
-
-Signed-off-by: Charlie Jenkins <charlie@rivosinc.com>
----
- Makefile  | 14 ++++++++++----
- README.md | 12 ++++++++++++
- 2 files changed, 22 insertions(+), 4 deletions(-)
-
-diff --git a/Makefile b/Makefile
-index e90836c7c4ad16c30d4d80649ff8b228413190ad..37d4cf41a2214e0a829f1d4a53f3f4f9ae09ee41 100644
---- a/Makefile
-+++ b/Makefile
-@@ -104,10 +104,16 @@ endif
- 
- # Setup compilation commands
- ifneq ($(LLVM),)
--CC		=	clang
--AR		=	llvm-ar
--LD		=	ld.lld
--OBJCOPY		=	llvm-objcopy
-+ifneq ($(filter %/,$(LLVM)),)
-+LLVM_PREFIX := $(LLVM)
-+else ifneq ($(filter -%,$(LLVM)),)
-+LLVM_SUFFIX := $(LLVM)
-+endif
-+
-+CC		=	$(LLVM_PREFIX)clang$(LLVM_SUFFIX)
-+AR		=	$(LLVM_PREFIX)llvm-ar$(LLVM_SUFFIX)
-+LD		=	$(LLVM_PREFIX)ld.lld$(LLVM_SUFFIX)
-+OBJCOPY		=	$(LLVM_PREFIX)llvm-objcopy$(LLVM_SUFFIX)
- else
- ifdef CROSS_COMPILE
- CC		=	$(CROSS_COMPILE)gcc
-diff --git a/README.md b/README.md
-index 2795cc1a5ff0df62d83a4b5c3062ff2b682dbcab..fd40be0b4988815d8d02386271aeaeb787541215 100644
---- a/README.md
-+++ b/README.md
-@@ -252,6 +252,18 @@ option with:
- make LLVM=1
- ```
- 
-+To build with a specific version of LLVM, a path to a directory containing the
-+LLVM tools can be provided:
-+```
-+make LLVM=/path/to/llvm/
-+```
-+
-+If you have versioned llvm tools you would like to use, such as `clang-17`, the LLVM variable can
-+be set as:
-+```
-+make LLVM=-17
-+```
-+
- When using Clang, *CROSS_COMPILE* often does not need to be defined unless
- using GNU binutils with prefixed binary names. *PLATFORM_RISCV_XLEN* will be
- used to infer a default triple to pass to Clang, so if *PLATFORM_RISCV_XLEN*
-
----
-base-commit: 316daaf1c299c29ac46e52145f65521f48ec63b5
-change-id: 20250430-improve_llvm_building-cff31918e1a6
--- 
-- Charlie
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gMSBNYXkgMjAyNSwgYXQgMDA6MzgsIENoYXJsaWUgSmVua2lucyA8Y2hhcmxpZUByaXZvc2lu
+Yy5jb20+IHdyb3RlOgo+IAo+IEludHJvZHVjZSBhIHdheSBmb3IgZGV2ZWxvcGVycyB0byBlYXNp
+bHkgc3dpdGNoIGJldHdlZW4gTExWTSB2ZXJzaW9ucwo+IHdpdGggTExWTT0vcGF0aC90by9sbHZt
+LyBhbmQgTExWTT0tdmVyc2lvbi4gVGhpcyBpcyBhIHVzZWZ1bAoKRnJlZUJTRCBkb2VzbuKAmXQg
+aW5jbHVkZSBhIGh5cGhlbiBpbiBpdHMgdmVyc2lvbiBudW1iZXIgc3VmZml4LCB5b3UgZ2V0CmNs
+YW5nMjAgZXRjLiBJbiB0aGUgTGludXggd29ybGQgd2hlcmUgeW914oCZdmUgY29waWVkIHRoaXMg
+cGF0dGVybiBmcm9tCnZlcmJhdGltIHRoYXQgbWF5IHdlbGwgaG9sZCwgYnV0IE9wZW5TQkkgc3Vw
+cG9ydHMgbW9yZSB0aGFuIGp1c3QgTGludXguCgpPbmUgY291bGQgc3BlY2lhbC1jYXNlIExMVk09
+MSBhbmQgdHJlYXQgYW55dGhpbmcgZWxzZSBhcyBhIHN1ZmZpeCBJCnN1cHBvc2UsIHRob3VnaCB0
+aGF0IHdvdWxkIGJlIGEgbGl0dGxlIHdlaXJkLgoKSmVzcwoKPiBhZGRpdGlvbiB0byB0aGUgZXhp
+c3RpbmcgTExWTT0xIHZhcmlhYmxlIHdoaWNoIHdpbGwgc2VsZWN0IHRoZSBmaXJzdAo+IGNsYW5n
+IGFuZCBsbHZtIGJpbnV0aWxzIGF2YWlsYWJsZSBvbiB0aGUgcGF0aC4KPiAKPiBTaWduZWQtb2Zm
+LWJ5OiBDaGFybGllIEplbmtpbnMgPGNoYXJsaWVAcml2b3NpbmMuY29tPgo+IC0tLQo+IE1ha2Vm
+aWxlICB8IDE0ICsrKysrKysrKystLS0tCj4gUkVBRE1FLm1kIHwgMTIgKysrKysrKysrKysrCj4g
+MiBmaWxlcyBjaGFuZ2VkLCAyMiBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQo+IAo+IGRp
+ZmYgLS1naXQgYS9NYWtlZmlsZSBiL01ha2VmaWxlCj4gaW5kZXggZTkwODM2YzdjNGFkMTZjMzBk
+NGQ4MDY0OWZmOGIyMjg0MTMxOTBhZC4uMzdkNGNmNDFhMjIxNGUwYTgyOWYxZDRhNTNmM2Y0Zjlh
+ZTA5ZWU0MSAxMDA2NDQKPiAtLS0gYS9NYWtlZmlsZQo+ICsrKyBiL01ha2VmaWxlCj4gQEAgLTEw
+NCwxMCArMTA0LDE2IEBAIGVuZGlmCj4gCj4gIyBTZXR1cCBjb21waWxhdGlvbiBjb21tYW5kcwo+
+IGlmbmVxICgkKExMVk0pLCkKPiAtQ0MgPSBjbGFuZwo+IC1BUiA9IGxsdm0tYXIKPiAtTEQgPSBs
+ZC5sbGQKPiAtT0JKQ09QWSA9IGxsdm0tb2JqY29weQo+ICtpZm5lcSAoJChmaWx0ZXIgJS8sJChM
+TFZNKSksKQo+ICtMTFZNX1BSRUZJWCA6PSAkKExMVk0pCj4gK2Vsc2UgaWZuZXEgKCQoZmlsdGVy
+IC0lLCQoTExWTSkpLCkKPiArTExWTV9TVUZGSVggOj0gJChMTFZNKQo+ICtlbmRpZgo+ICsKPiAr
+Q0MgPSAkKExMVk1fUFJFRklYKWNsYW5nJChMTFZNX1NVRkZJWCkKPiArQVIgPSAkKExMVk1fUFJF
+RklYKWxsdm0tYXIkKExMVk1fU1VGRklYKQo+ICtMRCA9ICQoTExWTV9QUkVGSVgpbGQubGxkJChM
+TFZNX1NVRkZJWCkKPiArT0JKQ09QWSA9ICQoTExWTV9QUkVGSVgpbGx2bS1vYmpjb3B5JChMTFZN
+X1NVRkZJWCkKPiBlbHNlCj4gaWZkZWYgQ1JPU1NfQ09NUElMRQo+IENDID0gJChDUk9TU19DT01Q
+SUxFKWdjYwo+IGRpZmYgLS1naXQgYS9SRUFETUUubWQgYi9SRUFETUUubWQKPiBpbmRleCAyNzk1
+Y2MxYTVmZjBkZjYyZDgzYTRiNWMzMDYyZmYyYjY4MmRiY2FiLi5mZDQwYmUwYjQ5ODg4MTVkOGQw
+MjM4NjI3MWFlYWViNzg3NTQxMjE1IDEwMDY0NAo+IC0tLSBhL1JFQURNRS5tZAo+ICsrKyBiL1JF
+QURNRS5tZAo+IEBAIC0yNTIsNiArMjUyLDE4IEBAIG9wdGlvbiB3aXRoOgo+IG1ha2UgTExWTT0x
+Cj4gYGBgCj4gCj4gK1RvIGJ1aWxkIHdpdGggYSBzcGVjaWZpYyB2ZXJzaW9uIG9mIExMVk0sIGEg
+cGF0aCB0byBhIGRpcmVjdG9yeSBjb250YWluaW5nIHRoZQo+ICtMTFZNIHRvb2xzIGNhbiBiZSBw
+cm92aWRlZDoKPiArYGBgCj4gK21ha2UgTExWTT0vcGF0aC90by9sbHZtLwo+ICtgYGAKPiArCj4g
+K0lmIHlvdSBoYXZlIHZlcnNpb25lZCBsbHZtIHRvb2xzIHlvdSB3b3VsZCBsaWtlIHRvIHVzZSwg
+c3VjaCBhcyBgY2xhbmctMTdgLCB0aGUgTExWTSB2YXJpYWJsZSBjYW4KPiArYmUgc2V0IGFzOgo+
+ICtgYGAKPiArbWFrZSBMTFZNPS0xNwo+ICtgYGAKPiArCj4gV2hlbiB1c2luZyBDbGFuZywgKkNS
+T1NTX0NPTVBJTEUqIG9mdGVuIGRvZXMgbm90IG5lZWQgdG8gYmUgZGVmaW5lZCB1bmxlc3MKPiB1
+c2luZyBHTlUgYmludXRpbHMgd2l0aCBwcmVmaXhlZCBiaW5hcnkgbmFtZXMuICpQTEFURk9STV9S
+SVNDVl9YTEVOKiB3aWxsIGJlCj4gdXNlZCB0byBpbmZlciBhIGRlZmF1bHQgdHJpcGxlIHRvIHBh
+c3MgdG8gQ2xhbmcsIHNvIGlmICpQTEFURk9STV9SSVNDVl9YTEVOKgo+IAo+IC0tLQo+IGJhc2Ut
+Y29tbWl0OiAzMTZkYWFmMWMyOTljMjlhYzQ2ZTUyMTQ1ZjY1NTIxZjQ4ZWM2M2I1Cj4gY2hhbmdl
+LWlkOiAyMDI1MDQzMC1pbXByb3ZlX2xsdm1fYnVpbGRpbmctY2ZmMzE5MThlMWE2Cj4gLS0gCj4g
+LSBDaGFybGllCj4gCj4gCj4gLS0gCj4gb3BlbnNiaSBtYWlsaW5nIGxpc3QKPiBvcGVuc2JpQGxp
+c3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL29wZW5zYmkKCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5p
+bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
+b3BlbnNiaQo=
