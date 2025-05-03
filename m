@@ -4,83 +4,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 62168C369D9
-	for <opensbi@archiver.kernel.org>; Thu,  1 May 2025 00:11:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2BCECC3ABAA
+	for <opensbi@archiver.kernel.org>; Sat,  3 May 2025 10:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=33EvFk/Jb9JtUigVcXVhTO+GFrSguUnd2KqPN8h7Krw=; b=qf/V0XtQjWjPKU
-	wkdbFlcQBTU4AIpAmBxkgAZ9p9Y9soL7ELBbb0IP4JW3DvUkuq6CTnf/gQTDvc6Vg2X+mls+Rhts1
-	qe6BwbLxwuIEuK6n2B1z30rpZ2OlGi9CY2kwGOzqG0quFgxTF0Gs8TuwWxoowVwCuqU0XwOOdbHh+
-	8hL1dM/oXV8LVEbVUU610OSUnPhH0hNlCDGBTiX3R4TO+FRgp1VYVNnIoSDo8akSC1powDXue1mbx
-	vlvkYUYg+GUA0wSXw1ynVCOSDtYV6QlBfQBDFKDOHOI/55jGhxsBCgy8uK9tT3yFrCaiql58BSUFP
-	p6NCVy93BPSCG7xmWLbg==;
+	List-Owner; bh=uMct6gmKpyobW83Cqs2rI1Ruwt/36TtLvxpb19ZmV80=; b=BK3zc0skjewPyt
+	xDa5/7bg3p41e8kMC1KhaDo913xOEElOtylMEBuL4fVJ8iBjaGHp4q1i8nnVKlZxQ4SqZY9NC2ldt
+	47GC/ie5Eueby0uFhJZRLU4IgtJEiGlY++1o0oqWZs6CPF7aqJ0XpVmGrMl2tjLla9t9acoht2Ugd
+	+HGrANeQzt2UUCV6KpYMVPEONS85xBSu0THhhPAVQuD+Q5yzATD6ShRwIok04yfia9YOZYL/x2tke
+	gYxVfmbZmtX9YkcUq3zMKU1bhEnYB7v6HZXq2Z3TGHvMnMpYhaHWaKaA1r/WKnZSBsN9ZIBmQA5o+
+	Zq8Tydy2H1f3PxcpETYw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uAHWc-0000000EICc-1Ej8;
-	Thu, 01 May 2025 00:11:38 +0000
-Received: from mail-pl1-x62a.google.com ([2607:f8b0:4864:20::62a])
+	id 1uBAZX-00000003mKD-2xOl;
+	Sat, 03 May 2025 10:58:19 +0000
+Received: from layka.disroot.org ([178.21.23.139])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uAHWZ-0000000EICH-0jhh
+	id 1uBAZT-00000003mIi-25Dy
 	for opensbi@lists.infradead.org;
-	Thu, 01 May 2025 00:11:36 +0000
-Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-227cf12df27so4710575ad.0
-        for <opensbi@lists.infradead.org>; Wed, 30 Apr 2025 17:11:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1746058294; x=1746663094; darn=lists.infradead.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=QVslvNTRCPyp2ag08G9ajJvRb63m5SVJq3aQIB9M4v4=;
-        b=lC8SMwXMgzIRP8kcpV58EUxA2y0Vi40CNWdzYTR6kVOJJ247IEaTAXoBUPjAQ12v6g
-         i2bxzvIwRyENuURU3K+4Ki5u7vE7gJFso+2iHwwm0yvj0Kj4rLDwKUoV5IX5IsZChI4f
-         8d624xjVO+XpA12iyQVIS36IujMIOmB88/U6OChKoqTI6mgF9F1S85yIZimXgCJtRcO5
-         smP8pq89rfMoF0dC+MH7OZ4jhtzYj8e6FzCmdi9HRLJTI6hUO29NQgIFRRiPxa0k7pWi
-         NtJcv/XucDZSkikiN58D+r46VR2yxkWgYvFR0kQlf4ezIHawo6CzFLMgHcRAVvMALz91
-         7SRg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746058294; x=1746663094;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=QVslvNTRCPyp2ag08G9ajJvRb63m5SVJq3aQIB9M4v4=;
-        b=HVEuFsw1zClsqyrBltTYkJ+1pxWjKhIeyCCueKJqcqu/c3K/uaxCA7UXMuHyZTfF3J
-         AIryaTODB1+NroVrg5gd82Su72g7Zedx2tSJLJ9TiKTGGvnpp+myOcaYVdsKKMw5woRU
-         FzoA3sAzks6PsC//T0QVpPoCoQb4L0SgyHtLisbCxT2U4ibgQdrqpcNzj2FXes4HjXNt
-         3cf8fgpCqMgDB6gjakPy+E3MDUisvNdVPKeUAm0TJVseKWwPy62OOSCv3sDREp8X1RTq
-         zYbK+fSmcghLqc3EWimBVbyXlbw+OiMX5Gxi42+79GCT6X7QX4lvVK65/2Mg+LAjYZIJ
-         VTeQ==
-X-Gm-Message-State: AOJu0YyvuOUuIkyjNZIl7R7bz94a5YzCM3B8uZAZme3zPUccZZ1TbJxf
-	yrZcxmiGWzRW9bnBVFTbSxtBGBf9ko6C5Q/iNCYRXrDywpYuEeaUzxHu3Jr3JeM=
-X-Gm-Gg: ASbGncuzx74yXqdTVankZqd3A0PSHTWs/QHmare7swhAhQ+vTei1Tr3l5jQmz6HHgQf
-	OlPpZjKoKfj4PKZTGPOcGBKSZgpYc2odPpFIbcUOZE8Gmylu7xHN7NkFoUlHaSCxgiTgrIFGP3k
-	zMqApEIr5U/ODnuGFRn+SMT+rV0DeDICvEbpCZ5sybQ+JwcxkFIz4obAlBbq0EfFu9Vt3Y/5jE2
-	9fIfaOucZXJeQEn6RbK8jgQasBoWJOmbJ5Alo0bzho1VqJgInTCzTTuSKShjWkJ2nx7LyF6vzM4
-	Lu7VNolMRApO0d77te1LG4Lnou6OJDGDh8Q=
-X-Google-Smtp-Source: AGHT+IFCDLwLZhGc+mhzypaLLvQ0EPD1cf9LaZ9CLLHqFXRXG79DjRUqobGthPvSp/m0iXLtxyJblQ==
-X-Received: by 2002:a17:902:ce06:b0:215:58be:3349 with SMTP id d9443c01a7336-22e087f00b6mr6170095ad.14.1746058293944;
-        Wed, 30 Apr 2025 17:11:33 -0700 (PDT)
-Received: from ghost ([2601:647:6700:64d0:42a0:d6d:e70f:4155])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22db4dbe5a2sm128424545ad.86.2025.04.30.17.11.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Apr 2025 17:11:33 -0700 (PDT)
-Date: Wed, 30 Apr 2025 17:11:31 -0700
-From: Charlie Jenkins <charlie@rivosinc.com>
-To: Jessica Clarke <jrtc27@jrtc27.com>
-Cc: opensbi@lists.infradead.org
-Subject: Re: [PATCH] Makefile: Make $(LLVM) more flexible
-Message-ID: <aBK8MwCoLXoZuLAY@ghost>
-References: <20250430-improve_llvm_building-v1-1-caae96cc6be6@rivosinc.com>
- <18D74DFC-E63B-446A-806B-B7C51AA4CDA4@jrtc27.com>
+	Sat, 03 May 2025 10:58:18 +0000
+Received: from mail01.disroot.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id 4607C25DB1;
+	Sat,  3 May 2025 12:58:08 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id YhqFSHZhoewi; Sat,  3 May 2025 12:58:07 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1746269887; bh=Oaxq0kuaYsIdzT3DKWUDCncl81q7vpIFa+Psfm1gCV8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=P1WCNjNktIB2XAxerne1aGtCJf9a8LRr+XW7RKP36KX362ezct9XZ+uPVQmvQ2Af7
+	 ykR/pWyf0jVlHK+zaZ+pJfr3v3x5hrcDulI4G6LRJIZZOLjVUDC2w4OwCvRGG/UAMb
+	 c7F1kf86caCG+Wy0ZLmh5DVatSyjAkiqIh0UdGwhWfbqnFCLiF/n/F2iuZaJA6IZxc
+	 U5FnBFSrToNxHXZZqdKuPxdHx1IgnLWEU82XbxUDvlsJEKE0mZgmxxzHHA0YFwF2Qv
+	 8n4cPv1LaxTymOJbenIiuJx6OPAgbRms4hlhVXVy5pIlbd0cTtNdcJCEm5+qhHUc4O
+	 7FGEvpszrrRbg==
+From: Yao Zi <ziyao@disroot.org>
+To: opensbi@lists.infradead.org
+Cc: Yao Zi <ziyao@disroot.org>,
+	Anup Patel <anup@brainfault.org>
+Subject: [PATCH v3 1/2] lib: sbi: hart: Detect existence of cycle and instret CSRs for Zicntr
+Date: Sat,  3 May 2025 10:57:15 +0000
+Message-ID: <20250503105715.16990-3-ziyao@disroot.org>
+In-Reply-To: <20250503105715.16990-2-ziyao@disroot.org>
+References: <20250503105715.16990-2-ziyao@disroot.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <18D74DFC-E63B-446A-806B-B7C51AA4CDA4@jrtc27.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250430_171135_484481_221F627B 
-X-CRM114-Status: GOOD (  24.25  )
+X-CRM114-CacheID: sfid-20250503_035816_057034_F2381197 
+X-CRM114-Status: GOOD (  14.36  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -92,64 +67,148 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVGh1LCBNYXkgMDEsIDIwMjUgYXQgMDE6MDQ6MzhBTSArMDEwMCwgSmVzc2ljYSBDbGFya2Ug
-d3JvdGU6Cj4gT24gMSBNYXkgMjAyNSwgYXQgMDA6MzgsIENoYXJsaWUgSmVua2lucyA8Y2hhcmxp
-ZUByaXZvc2luYy5jb20+IHdyb3RlOgo+ID4gCj4gPiBJbnRyb2R1Y2UgYSB3YXkgZm9yIGRldmVs
-b3BlcnMgdG8gZWFzaWx5IHN3aXRjaCBiZXR3ZWVuIExMVk0gdmVyc2lvbnMKPiA+IHdpdGggTExW
-TT0vcGF0aC90by9sbHZtLyBhbmQgTExWTT0tdmVyc2lvbi4gVGhpcyBpcyBhIHVzZWZ1bAo+IAo+
-IEZyZWVCU0QgZG9lc27igJl0IGluY2x1ZGUgYSBoeXBoZW4gaW4gaXRzIHZlcnNpb24gbnVtYmVy
-IHN1ZmZpeCwgeW91IGdldAo+IGNsYW5nMjAgZXRjLiBJbiB0aGUgTGludXggd29ybGQgd2hlcmUg
-eW914oCZdmUgY29waWVkIHRoaXMgcGF0dGVybiBmcm9tCj4gdmVyYmF0aW0gdGhhdCBtYXkgd2Vs
-bCBob2xkLCBidXQgT3BlblNCSSBzdXBwb3J0cyBtb3JlIHRoYW4ganVzdCBMaW51eC4KPiAKPiBP
-bmUgY291bGQgc3BlY2lhbC1jYXNlIExMVk09MSBhbmQgdHJlYXQgYW55dGhpbmcgZWxzZSBhcyBh
-IHN1ZmZpeCBJCj4gc3VwcG9zZSwgdGhvdWdoIHRoYXQgd291bGQgYmUgYSBsaXR0bGUgd2VpcmQu
-CgpUaGlzIHBhdHRlcm4gbm90IGJlaW5nIGFwcGxpY2FibGUgZm9yIGFsbCBzeXN0ZW1zIGRvZXNu
-J3QgaW52YWxpZGF0ZSB0aGUKdXNlY2FzZSBmb3Igc3lzdGVtcyB0aGF0IGRvIHN1cHBvcnQgaXQu
-IERldmVsb3BlcnMgY2FuIHN0aWxsIG1hbmlwdWxhdGUKdGhlaXIgUEFUSCB0byBnZXQgTExWTT0x
-IHRvIHNlbGVjdCB0aGUgY2xhbmcgdGhhdCB0aGV5IHdhbnQuCgotIENoYXJsaWUKCj4gCj4gSmVz
-cwo+IAo+ID4gYWRkaXRpb24gdG8gdGhlIGV4aXN0aW5nIExMVk09MSB2YXJpYWJsZSB3aGljaCB3
-aWxsIHNlbGVjdCB0aGUgZmlyc3QKPiA+IGNsYW5nIGFuZCBsbHZtIGJpbnV0aWxzIGF2YWlsYWJs
-ZSBvbiB0aGUgcGF0aC4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogQ2hhcmxpZSBKZW5raW5zIDxj
-aGFybGllQHJpdm9zaW5jLmNvbT4KPiA+IC0tLQo+ID4gTWFrZWZpbGUgIHwgMTQgKysrKysrKysr
-Ky0tLS0KPiA+IFJFQURNRS5tZCB8IDEyICsrKysrKysrKysrKwo+ID4gMiBmaWxlcyBjaGFuZ2Vk
-LCAyMiBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEv
-TWFrZWZpbGUgYi9NYWtlZmlsZQo+ID4gaW5kZXggZTkwODM2YzdjNGFkMTZjMzBkNGQ4MDY0OWZm
-OGIyMjg0MTMxOTBhZC4uMzdkNGNmNDFhMjIxNGUwYTgyOWYxZDRhNTNmM2Y0ZjlhZTA5ZWU0MSAx
-MDA2NDQKPiA+IC0tLSBhL01ha2VmaWxlCj4gPiArKysgYi9NYWtlZmlsZQo+ID4gQEAgLTEwNCwx
-MCArMTA0LDE2IEBAIGVuZGlmCj4gPiAKPiA+ICMgU2V0dXAgY29tcGlsYXRpb24gY29tbWFuZHMK
-PiA+IGlmbmVxICgkKExMVk0pLCkKPiA+IC1DQyA9IGNsYW5nCj4gPiAtQVIgPSBsbHZtLWFyCj4g
-PiAtTEQgPSBsZC5sbGQKPiA+IC1PQkpDT1BZID0gbGx2bS1vYmpjb3B5Cj4gPiAraWZuZXEgKCQo
-ZmlsdGVyICUvLCQoTExWTSkpLCkKPiA+ICtMTFZNX1BSRUZJWCA6PSAkKExMVk0pCj4gPiArZWxz
-ZSBpZm5lcSAoJChmaWx0ZXIgLSUsJChMTFZNKSksKQo+ID4gK0xMVk1fU1VGRklYIDo9ICQoTExW
-TSkKPiA+ICtlbmRpZgo+ID4gKwo+ID4gK0NDID0gJChMTFZNX1BSRUZJWCljbGFuZyQoTExWTV9T
-VUZGSVgpCj4gPiArQVIgPSAkKExMVk1fUFJFRklYKWxsdm0tYXIkKExMVk1fU1VGRklYKQo+ID4g
-K0xEID0gJChMTFZNX1BSRUZJWClsZC5sbGQkKExMVk1fU1VGRklYKQo+ID4gK09CSkNPUFkgPSAk
-KExMVk1fUFJFRklYKWxsdm0tb2JqY29weSQoTExWTV9TVUZGSVgpCj4gPiBlbHNlCj4gPiBpZmRl
-ZiBDUk9TU19DT01QSUxFCj4gPiBDQyA9ICQoQ1JPU1NfQ09NUElMRSlnY2MKPiA+IGRpZmYgLS1n
-aXQgYS9SRUFETUUubWQgYi9SRUFETUUubWQKPiA+IGluZGV4IDI3OTVjYzFhNWZmMGRmNjJkODNh
-NGI1YzMwNjJmZjJiNjgyZGJjYWIuLmZkNDBiZTBiNDk4ODgxNWQ4ZDAyMzg2MjcxYWVhZWI3ODc1
-NDEyMTUgMTAwNjQ0Cj4gPiAtLS0gYS9SRUFETUUubWQKPiA+ICsrKyBiL1JFQURNRS5tZAo+ID4g
-QEAgLTI1Miw2ICsyNTIsMTggQEAgb3B0aW9uIHdpdGg6Cj4gPiBtYWtlIExMVk09MQo+ID4gYGBg
-Cj4gPiAKPiA+ICtUbyBidWlsZCB3aXRoIGEgc3BlY2lmaWMgdmVyc2lvbiBvZiBMTFZNLCBhIHBh
-dGggdG8gYSBkaXJlY3RvcnkgY29udGFpbmluZyB0aGUKPiA+ICtMTFZNIHRvb2xzIGNhbiBiZSBw
-cm92aWRlZDoKPiA+ICtgYGAKPiA+ICttYWtlIExMVk09L3BhdGgvdG8vbGx2bS8KPiA+ICtgYGAK
-PiA+ICsKPiA+ICtJZiB5b3UgaGF2ZSB2ZXJzaW9uZWQgbGx2bSB0b29scyB5b3Ugd291bGQgbGlr
-ZSB0byB1c2UsIHN1Y2ggYXMgYGNsYW5nLTE3YCwgdGhlIExMVk0gdmFyaWFibGUgY2FuCj4gPiAr
-YmUgc2V0IGFzOgo+ID4gK2BgYAo+ID4gK21ha2UgTExWTT0tMTcKPiA+ICtgYGAKPiA+ICsKPiA+
-IFdoZW4gdXNpbmcgQ2xhbmcsICpDUk9TU19DT01QSUxFKiBvZnRlbiBkb2VzIG5vdCBuZWVkIHRv
-IGJlIGRlZmluZWQgdW5sZXNzCj4gPiB1c2luZyBHTlUgYmludXRpbHMgd2l0aCBwcmVmaXhlZCBi
-aW5hcnkgbmFtZXMuICpQTEFURk9STV9SSVNDVl9YTEVOKiB3aWxsIGJlCj4gPiB1c2VkIHRvIGlu
-ZmVyIGEgZGVmYXVsdCB0cmlwbGUgdG8gcGFzcyB0byBDbGFuZywgc28gaWYgKlBMQVRGT1JNX1JJ
-U0NWX1hMRU4qCj4gPiAKPiA+IC0tLQo+ID4gYmFzZS1jb21taXQ6IDMxNmRhYWYxYzI5OWMyOWFj
-NDZlNTIxNDVmNjU1MjFmNDhlYzYzYjUKPiA+IGNoYW5nZS1pZDogMjAyNTA0MzAtaW1wcm92ZV9s
-bHZtX2J1aWxkaW5nLWNmZjMxOTE4ZTFhNgo+ID4gLS0gCj4gPiAtIENoYXJsaWUKPiA+IAo+ID4g
-Cj4gPiAtLSAKPiA+IG9wZW5zYmkgbWFpbGluZyBsaXN0Cj4gPiBvcGVuc2JpQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKPiA+IGh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
-b3BlbnNiaQo+IAoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFk
-ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5z
-YmkK
+Zicntr extension specifies three read-only CSRs, time, cycle and
+instret. It isn't sufficient to report Zicntr is fully supported with
+only time CSR detected.
+
+This patch introduces a bitmap to sbi_hart_features to record
+availability of these CSRs, which are detected using traps. Zicntr is
+reported as present if and only if three CSRs are all available on the
+HARTs.
+
+Suggested-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Yao Zi <ziyao@disroot.org>
+---
+ include/sbi/sbi_hart.h | 10 ++++++++++
+ lib/sbi/sbi_hart.c     | 35 ++++++++++++++++++++++++++++-------
+ 2 files changed, 38 insertions(+), 7 deletions(-)
+
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index bce88c5..dfbe8e4 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -93,6 +93,14 @@ struct sbi_hart_ext_data {
+ 
+ extern const struct sbi_hart_ext_data sbi_hart_ext[];
+ 
++/** CSRs should be detected by access and trapping */
++enum sbi_hart_csrs {
++	SBI_HART_CSR_CYCLE = 0,
++	SBI_HART_CSR_TIME,
++	SBI_HART_CSR_INSTRET,
++	SBI_HART_CSR_MAX,
++};
++
+ /*
+  * Smepmp enforces access boundaries between M-mode and
+  * S/U-mode. When it is enabled, the PMPs are programmed
+@@ -112,6 +120,7 @@ struct sbi_hart_features {
+ 	bool detected;
+ 	int priv_version;
+ 	unsigned long extensions[BITS_TO_LONGS(SBI_HART_EXT_MAX)];
++	unsigned long csrs[BITS_TO_LONGS(SBI_HART_CSR_MAX)];
+ 	unsigned int pmp_count;
+ 	unsigned int pmp_addr_bits;
+ 	unsigned int pmp_log2gran;
+@@ -150,6 +159,7 @@ bool sbi_hart_has_extension(struct sbi_scratch *scratch,
+ 			    enum sbi_hart_extensions ext);
+ void sbi_hart_get_extensions_str(struct sbi_scratch *scratch,
+ 				 char *extension_str, int nestr);
++bool sbi_hart_has_csr(struct sbi_scratch *scratch, enum sbi_hart_csrs csr);
+ 
+ void __attribute__((noreturn)) sbi_hart_hang(void);
+ 
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index fc4925b..74ccdd8 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -747,6 +747,20 @@ void sbi_hart_get_extensions_str(struct sbi_scratch *scratch,
+ 		sbi_strncpy(extensions_str, "none", nestr);
+ }
+ 
++/**
++ * Check whether a particular CSR is present on the HART
++ *
++ * @param scratch pointer to the HART scratch space
++ * @param csr the CSR number to check
++ */
++bool sbi_hart_has_csr(struct sbi_scratch *scratch, enum sbi_hart_csrs csr)
++{
++	struct sbi_hart_features *hfeatures =
++			sbi_scratch_offset_ptr(scratch, hart_features_offset);
++
++	return __test_bit(csr, hfeatures->csrs);
++}
++
+ static unsigned long hart_pmp_get_allowed_addr(void)
+ {
+ 	unsigned long val = 0;
+@@ -803,7 +817,6 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	struct sbi_hart_features *hfeatures =
+ 		sbi_scratch_offset_ptr(scratch, hart_features_offset);
+ 	unsigned long val, oldval;
+-	bool has_zicntr = false;
+ 	int rc;
+ 
+ 	/* If hart features already detected then do nothing */
+@@ -812,6 +825,7 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 
+ 	/* Clear hart features */
+ 	sbi_memset(hfeatures->extensions, 0, sizeof(hfeatures->extensions));
++	sbi_memset(hfeatures->csrs, 0, sizeof(hfeatures->csrs));
+ 	hfeatures->pmp_count = 0;
+ 	hfeatures->mhpm_mask = 0;
+ 	hfeatures->priv_version = SBI_HART_PRIV_VER_UNKNOWN;
+@@ -938,9 +952,6 @@ __pmp_skip:
+ 	/* Detect if hart supports sscofpmf */
+ 	__check_ext_csr(SBI_HART_PRIV_VER_1_11,
+ 			CSR_SCOUNTOVF, SBI_HART_EXT_SSCOFPMF);
+-	/* Detect if hart supports time CSR */
+-	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+-			CSR_TIME, SBI_HART_EXT_ZICNTR);
+ 	/* Detect if hart has AIA local interrupt CSRs */
+ 	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
+ 			CSR_MTOPI, SBI_HART_EXT_SMAIA);
+@@ -962,8 +973,16 @@ __pmp_skip:
+ 
+ #undef __check_ext_csr
+ 
+-	/* Save trap based detection of Zicntr */
+-	has_zicntr = sbi_hart_has_extension(scratch, SBI_HART_EXT_ZICNTR);
++#define __check_csr_existence(__csr, __csr_id)				\
++	csr_read_allowed(__csr, &trap);					\
++	if (!trap.cause)						\
++		__set_bit(__csr_id, hfeatures->csrs);
++
++	__check_csr_existence(CSR_CYCLE, SBI_HART_CSR_CYCLE);
++	__check_csr_existence(CSR_TIME, SBI_HART_CSR_TIME);
++	__check_csr_existence(CSR_INSTRET, SBI_HART_CSR_INSTRET);
++
++#undef __check_csr_existence
+ 
+ 	/* Let platform populate extensions */
+ 	rc = sbi_platform_extensions_init(sbi_platform_thishart_ptr(),
+@@ -973,7 +992,9 @@ __pmp_skip:
+ 
+ 	/* Zicntr should only be detected using traps */
+ 	__sbi_hart_update_extension(hfeatures, SBI_HART_EXT_ZICNTR,
+-				    has_zicntr);
++			    sbi_hart_has_csr(scratch, SBI_HART_CSR_CYCLE) &&
++			    sbi_hart_has_csr(scratch, SBI_HART_CSR_TIME)  &&
++			    sbi_hart_has_csr(scratch, SBI_HART_CSR_INSTRET));
+ 
+ 	/* Extensions implied by other extensions and features */
+ 	if (hfeatures->mhpm_mask)
+-- 
+2.49.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
