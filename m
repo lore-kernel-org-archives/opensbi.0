@@ -4,52 +4,79 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3312AC369C2
-	for <opensbi@archiver.kernel.org>; Sat,  3 May 2025 16:20:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B5A53C369DC
+	for <opensbi@archiver.kernel.org>; Wed,  7 May 2025 06:24:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:CC
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=y7eDC35ffQsqZxYTDjLLzHeXs6o72vinkIB9aaBECqs=; b=X+DOw1F4Jm5eLq
-	Drgs4CpAFSdoa3Qp2hFcVTi5CuXBfbz9f7bV0ug4XbnVtV9fsxITM+nsDIAtKwlhKum6J1nXP+Ls+
-	J8M4HkgG5kgtD6pj78xRuI1jYPhsrgDPQHgBYpCjglv8zxTfHd1Ft2slwO5awp+ueHJ1UUR/b+OzK
-	kK11dlpU73jI3GA3iSqZSLnkTf7vfY2JRDg3/RRot5Zg3TiRWAHUtMDguCwHkZvgz8TFJlK2NCmgj
-	INtqt7uVoSDD66jiOPMP2YFo07tKtKDC9jqI8ZM4q8itfZJgp69RCv0i5OpWvomLkA7yruEfnfeo2
-	VIPkc42kBuXcX2tRQShQ==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=0ecOSIk3LlkDdYiwTNqXf2NTObAvE30CAYnmb6WMrXI=; b=KaKJMqTLOV0db8
+	LoYqL1okIYOlaeesW3fbCWD33Xgb5HcQjep0wtpu7XKEhO5pAVArjO9G9ps023eJyi+BLw7uD8+Lo
+	mbtzqpXBdBjgbTudAIGy2Q8mTPHNuH5dcorlkLzlOFKTYxUOhN9gOr92IIC/7WV3cNz1hYI589Z5o
+	4nul/YKPomFEQHvRvso2JrN3FZ1tDNOBxAF30qqDxEVGnGbDUvKLvNwt6RsJpWATE37gO/l0HJGi6
+	5OnxnDo419C6rNn0Yj6u0TQrO20qPluA9VGP/xknjKPu0Rut4Sw69vMGu9CRLwppHefSbjgg3h7us
+	ujPdslmDc0U30nRnOBjw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uBFb3-0000000496C-3Vxw;
-	Sat, 03 May 2025 16:20:13 +0000
-Received: from 60-248-80-70.hinet-ip.hinet.net ([60.248.80.70] helo=Atcsqr.andestech.com)
+	id 1uCYCQ-0000000EMQw-3vnK;
+	Wed, 07 May 2025 06:24:10 +0000
+Received: from mail-il1-x130.google.com ([2607:f8b0:4864:20::130])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uBFb0-00000004932-2rNZ
+	id 1uCYCN-0000000EMQI-31bY
 	for opensbi@lists.infradead.org;
-	Sat, 03 May 2025 16:20:12 +0000
-Received: from mail.andestech.com (ATCPCS31.andestech.com [10.0.1.89])
-	by Atcsqr.andestech.com with ESMTPS id 543GJnPH008205
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Sun, 4 May 2025 00:19:50 +0800 (+08)
-	(envelope-from alvinga@andestech.com)
-Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS31.andestech.com
- (10.0.1.89) with Microsoft SMTP Server id 14.3.498.0; Sun, 4 May 2025
- 00:19:49 +0800
-From: Alvin Chang <alvinga@andestech.com>
-To: <opensbi@lists.infradead.org>
-CC: <anup@brainfault.org>, Alvin Chang <alvinga@andestech.com>
-Subject: [PATCH] lib: utils: Initial compiler built-in stack protector support
-Date: Sun, 4 May 2025 00:19:38 +0800
-Message-ID: <20250503161938.646908-1-alvinga@andestech.com>
-X-Mailer: git-send-email 2.34.1
+	Wed, 07 May 2025 06:24:09 +0000
+Received: by mail-il1-x130.google.com with SMTP id e9e14a558f8ab-3d96d16b375so34319795ab.1
+        for <opensbi@lists.infradead.org>; Tue, 06 May 2025 23:24:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1746599046; x=1747203846; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=53Oj+R4zJOcK1bcHLAojUVCHUqVRtVbydi9t/FdmvC0=;
+        b=qpyV186KlqU5IYnm1XX/JL2ZSDCjHPKdUbiT3QC3N2a/XF7aaQIpTLThRRTGf8w5GJ
+         LcKASS4GUcLPzlsirzzyrE4gVsWEpacQkNTgrynsNPF8mW22PLdxDD9NitrhtWyp9kVx
+         eJ3pMQbM9xSu5cOIQ2tidQfCQ0l4sqOf5/mpTjoLzkXsb9MoANcupdc1ZppB10BOMp0D
+         vpqfPS2UD6+ZT3MzVnR/XGuRhgOTov7QA/1nqPdte8zNp3rn0KQNAW1R1x/MzXwUNQih
+         vwSm6lmnZKRWqZTOTre1I8r3ZUPC4UZyQBTeL/qQGQDXzgWURpSP05aETAiLs/07TSlY
+         XqtA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1746599046; x=1747203846;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=53Oj+R4zJOcK1bcHLAojUVCHUqVRtVbydi9t/FdmvC0=;
+        b=dhvqBDaE/oT+Uj1b83ZXFVldKRFeI5KJSfZJfjhV4gK9T2WJ6hZm7wjQGyCZVE9Fwr
+         gZ07d7qLF0eGirYdgW7/1WUgkVy/Y5cy0LGC136DlsyNZCJRFT/XsrNTui/F6JU2qrJs
+         5UgUVnBplyPFJs+wo/3gu6RuuNXZMPIfPexx8kcIw2tRGmXK1dS3NKd42HU19uqGsZ5Q
+         zIe98rUjJAFs55BFDCjobs0oy2mzD4oyHnJOkJTHKERKzcrzxwMpPyDYs3t9/asdxcpV
+         q7Y+HFdsUJL7ddhII9iUvwrKu2bDRnXPLARO63pUCe0Xpg7Azr4/LZd2DmiIc08Ypyyf
+         FZmA==
+X-Gm-Message-State: AOJu0Yw99hMJyVpAUzEqRg8CWvAu8r2jzukaFBGIt3YDWdQyJUQYnaRZ
+	OOpoJSUlyrKdU4F312r3UsJvAz3rbnUA+ZfMOXe7ILOMo2yMPXOMsiDYp/85e7VpcM1anLdfsrj
+	JaTSCGNHtCYmEGUp6bVOsoQo/DYqcLJAKHRUuOg==
+X-Gm-Gg: ASbGncsUWRQWpTJeG50R7rNKh/XTzJab3j1OjtXMisHYgyitc5nYnySjORDbUH2prmt
+	frdixD1qPsFD4KBNvJ2cLzA+4hkQHCdJwSd5gZQ5Ac4ybaa8EPXn6nLZvZGF3i/hZSQnSARnkSb
+	Tvk6UQiloR33LxDxL0Hovt
+X-Google-Smtp-Source: AGHT+IH2qy2wFXPvV0Ild+0GFXfHXickuMGWTxYhM2kxSbWARqvXhcMMMXJYVP5k8pqeeoyeHY10XBWBwgQdPjmCx1s=
+X-Received: by 2002:a92:c26a:0:b0:3d8:1ed0:e167 with SMTP id
+ e9e14a558f8ab-3da7392ad8cmr18321145ab.14.1746599046254; Tue, 06 May 2025
+ 23:24:06 -0700 (PDT)
 MIME-Version: 1.0
-X-Originating-IP: [10.0.15.183]
-X-DKIM-Results: atcpcs31.andestech.com; dkim=none;
-X-DNSRBL: 
-X-MAIL: Atcsqr.andestech.com 543GJnPH008205
+References: <20250503105715.16990-2-ziyao@disroot.org> <20250503105715.16990-3-ziyao@disroot.org>
+In-Reply-To: <20250503105715.16990-3-ziyao@disroot.org>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 7 May 2025 11:53:55 +0530
+X-Gm-Features: ATxdqUG5n9Vka9NCiuQTGRtxTCTOA9qj-t_6G0u43We2DUu-THPmazWW2bx6M_0
+Message-ID: <CAAhSdy0vWwu3RPkT4d64nowK_EAz7NpX+K4A8X8iPHSAtB=Hpg@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] lib: sbi: hart: Detect existence of cycle and
+ instret CSRs for Zicntr
+To: Yao Zi <ziyao@disroot.org>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250503_092011_035469_3F97C61C 
-X-CRM114-Status: GOOD (  17.05  )
+X-CRM114-CacheID: sfid-20250506_232408_028244_0BBEECF3 
+X-CRM114-Status: GOOD (  25.72  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -61,165 +88,110 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add stack_protector.c which defines the stack guard variable and the
-function which will be referenced by compiler built-in stack protector.
-
-This patch just try to support stack-protector so the value of the stack
-guard variable is simply fixed for now. It could be improved by
-deriving from a random number generator, such as Zkr extension or any
-platform-specific random number sources.
-
-Introduce three configurations for the stack protector:
-1. CONFIG_STACK_PROTECTOR to enable the stack protector feature by
-   providing "-fstack-protector" compiler flag
-2. CONFIG_STACK_PROTECTOR_STRONG to provide "-fstack-protector-strong"
-3. CONFIG_STACK_PROTECTOR_ALL to provide "-fstack-protector-all"
-
-Instead of fixing the compiler flag of stack-protector feature as
-"-fstack-protector", we derive it from the introduced Kconfig
-configurations. The compiler flag "stack-protector-cflags-y" is defined
-as Makefile "immediately expanded variables" with ":=". Thus, the
-stronger configuration of the stack protector can overwrite the
-preceding one.
-
-Signed-off-by: Alvin Chang <alvinga@andestech.com>
----
- Makefile                                    |  3 ++-
- lib/utils/Kconfig                           |  2 ++
- lib/utils/stack_protector/Kconfig           | 28 +++++++++++++++++++++
- lib/utils/stack_protector/objects.mk        | 18 +++++++++++++
- lib/utils/stack_protector/stack_protector.c | 18 +++++++++++++
- 5 files changed, 68 insertions(+), 1 deletion(-)
- create mode 100644 lib/utils/stack_protector/Kconfig
- create mode 100644 lib/utils/stack_protector/objects.mk
- create mode 100644 lib/utils/stack_protector/stack_protector.c
-
-diff --git a/Makefile b/Makefile
-index e90836c..eae6d16 100644
---- a/Makefile
-+++ b/Makefile
-@@ -360,7 +360,7 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
- GENFLAGS	+=	$(platform-genflags-y)
- GENFLAGS	+=	$(firmware-genflags-y)
- 
--CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -ffunction-sections -fdata-sections
-+CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-strict-aliasing -ffunction-sections -fdata-sections
- CFLAGS		+=	-fno-omit-frame-pointer -fno-optimize-sibling-calls
- # Optionally supported flags
- ifeq ($(CC_SUPPORT_VECTOR),y)
-@@ -379,6 +379,7 @@ CFLAGS		+=	$(GENFLAGS)
- CFLAGS		+=	$(platform-cflags-y)
- CFLAGS		+=	-fPIE -pie
- CFLAGS		+=	$(firmware-cflags-y)
-+CFLAGS		+=	$(stack-protector-cflags-y)
- 
- CPPFLAGS	+=	$(GENFLAGS)
- CPPFLAGS	+=	$(platform-cppflags-y)
-diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-index 901ba56..40e5633 100644
---- a/lib/utils/Kconfig
-+++ b/lib/utils/Kconfig
-@@ -26,6 +26,8 @@ source "$(OPENSBI_SRC_DIR)/lib/utils/reset/Kconfig"
- 
- source "$(OPENSBI_SRC_DIR)/lib/utils/serial/Kconfig"
- 
-+source "$(OPENSBI_SRC_DIR)/lib/utils/stack_protector/Kconfig"
-+
- source "$(OPENSBI_SRC_DIR)/lib/utils/suspend/Kconfig"
- 
- source "$(OPENSBI_SRC_DIR)/lib/utils/sys/Kconfig"
-diff --git a/lib/utils/stack_protector/Kconfig b/lib/utils/stack_protector/Kconfig
-new file mode 100644
-index 0000000..c1fee19
---- /dev/null
-+++ b/lib/utils/stack_protector/Kconfig
-@@ -0,0 +1,28 @@
-+# SPDX-License-Identifier: BSD-2-Clause
-+
-+menu "Stack Protector Support"
-+
-+config STACK_PROTECTOR
-+	bool "Stack Protector buffer overflow detection"
-+	default n
-+	help
-+	  This option turns on the "stack-protector" compiler feature.
-+
-+config STACK_PROTECTOR_STRONG
-+	bool "Strong Stack Protector"
-+	depends on STACK_PROTECTOR
-+	default n
-+	help
-+	  Turn on the "stack-protector" with "-fstack-protector-strong" option.
-+	  Like -fstack-protector but includes additional functions to be
-+	  protected.
-+
-+config STACK_PROTECTOR_ALL
-+	bool "Almighty Stack Protector"
-+	depends on STACK_PROTECTOR
-+	default n
-+	help
-+	  Turn on the "stack-protector" with "-fstack-protector-all" option.
-+	  Like -fstack-protector except that all functions are protected.
-+
-+endmenu
-diff --git a/lib/utils/stack_protector/objects.mk b/lib/utils/stack_protector/objects.mk
-new file mode 100644
-index 0000000..d7563e3
---- /dev/null
-+++ b/lib/utils/stack_protector/objects.mk
-@@ -0,0 +1,18 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (c) 2025 Andes Technology Corporation
-+#
-+# Authors:
-+#   Alvin Chang <alvinga@andestech.com>
-+#
-+
-+libsbiutils-objs-$(CONFIG_STACK_PROTECTOR) += stack_protector/stack_protector.o
-+
-+ifeq ($(CONFIG_STACK_PROTECTOR),y)
-+stack-protector-cflags-$(CONFIG_STACK_PROTECTOR) := -fstack-protector
-+stack-protector-cflags-$(CONFIG_STACK_PROTECTOR_STRONG) := -fstack-protector-strong
-+stack-protector-cflags-$(CONFIG_STACK_PROTECTOR_ALL) := -fstack-protector-all
-+else
-+stack-protector-cflags-y := -fno-stack-protector
-+endif
-diff --git a/lib/utils/stack_protector/stack_protector.c b/lib/utils/stack_protector/stack_protector.c
-new file mode 100644
-index 0000000..3088421
---- /dev/null
-+++ b/lib/utils/stack_protector/stack_protector.c
-@@ -0,0 +1,18 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Andes Technology Corporation
-+ *
-+ * Authors:
-+ *   Alvin Chang <alvinga@andestech.com>
-+ */
-+
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_types.h>
-+
-+void *__stack_chk_guard = (void *)0x95B5FF5AUL;
-+
-+void __noreturn __stack_chk_fail(void)
-+{
-+	sbi_panic("Stack corruption detected\n");
-+}
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gU2F0LCBNYXkgMywgMjAyNSBhdCA0OjI44oCvUE0gWWFvIFppIDx6aXlhb0BkaXNyb290Lm9y
+Zz4gd3JvdGU6Cj4KPiBaaWNudHIgZXh0ZW5zaW9uIHNwZWNpZmllcyB0aHJlZSByZWFkLW9ubHkg
+Q1NScywgdGltZSwgY3ljbGUgYW5kCj4gaW5zdHJldC4gSXQgaXNuJ3Qgc3VmZmljaWVudCB0byBy
+ZXBvcnQgWmljbnRyIGlzIGZ1bGx5IHN1cHBvcnRlZCB3aXRoCj4gb25seSB0aW1lIENTUiBkZXRl
+Y3RlZC4KPgo+IFRoaXMgcGF0Y2ggaW50cm9kdWNlcyBhIGJpdG1hcCB0byBzYmlfaGFydF9mZWF0
+dXJlcyB0byByZWNvcmQKPiBhdmFpbGFiaWxpdHkgb2YgdGhlc2UgQ1NScywgd2hpY2ggYXJlIGRl
+dGVjdGVkIHVzaW5nIHRyYXBzLiBaaWNudHIgaXMKPiByZXBvcnRlZCBhcyBwcmVzZW50IGlmIGFu
+ZCBvbmx5IGlmIHRocmVlIENTUnMgYXJlIGFsbCBhdmFpbGFibGUgb24gdGhlCj4gSEFSVHMuCj4K
+PiBTdWdnZXN0ZWQtYnk6IEFudXAgUGF0ZWwgPGFudXBAYnJhaW5mYXVsdC5vcmc+Cj4gU2lnbmVk
+LW9mZi1ieTogWWFvIFppIDx6aXlhb0BkaXNyb290Lm9yZz4KPiAtLS0KPiAgaW5jbHVkZS9zYmkv
+c2JpX2hhcnQuaCB8IDEwICsrKysrKysrKysKPiAgbGliL3NiaS9zYmlfaGFydC5jICAgICB8IDM1
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tCj4gIDIgZmlsZXMgY2hhbmdlZCwg
+MzggaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCldoeSBhcmUgdGhlIGNoYW5nZXMgaW4g
+bGliL3NiaS9zYmlfdGltZXIuYyBkcm9wcGVkID8KClJlZ2FyZHMsCkFudXAKCj4KPiBkaWZmIC0t
+Z2l0IGEvaW5jbHVkZS9zYmkvc2JpX2hhcnQuaCBiL2luY2x1ZGUvc2JpL3NiaV9oYXJ0LmgKPiBp
+bmRleCBiY2U4OGM1Li5kZmJlOGU0IDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvc2JpL3NiaV9oYXJ0
+LmgKPiArKysgYi9pbmNsdWRlL3NiaS9zYmlfaGFydC5oCj4gQEAgLTkzLDYgKzkzLDE0IEBAIHN0
+cnVjdCBzYmlfaGFydF9leHRfZGF0YSB7Cj4KPiAgZXh0ZXJuIGNvbnN0IHN0cnVjdCBzYmlfaGFy
+dF9leHRfZGF0YSBzYmlfaGFydF9leHRbXTsKPgo+ICsvKiogQ1NScyBzaG91bGQgYmUgZGV0ZWN0
+ZWQgYnkgYWNjZXNzIGFuZCB0cmFwcGluZyAqLwo+ICtlbnVtIHNiaV9oYXJ0X2NzcnMgewo+ICsg
+ICAgICAgU0JJX0hBUlRfQ1NSX0NZQ0xFID0gMCwKPiArICAgICAgIFNCSV9IQVJUX0NTUl9USU1F
+LAo+ICsgICAgICAgU0JJX0hBUlRfQ1NSX0lOU1RSRVQsCj4gKyAgICAgICBTQklfSEFSVF9DU1Jf
+TUFYLAo+ICt9Owo+ICsKPiAgLyoKPiAgICogU21lcG1wIGVuZm9yY2VzIGFjY2VzcyBib3VuZGFy
+aWVzIGJldHdlZW4gTS1tb2RlIGFuZAo+ICAgKiBTL1UtbW9kZS4gV2hlbiBpdCBpcyBlbmFibGVk
+LCB0aGUgUE1QcyBhcmUgcHJvZ3JhbW1lZAo+IEBAIC0xMTIsNiArMTIwLDcgQEAgc3RydWN0IHNi
+aV9oYXJ0X2ZlYXR1cmVzIHsKPiAgICAgICAgIGJvb2wgZGV0ZWN0ZWQ7Cj4gICAgICAgICBpbnQg
+cHJpdl92ZXJzaW9uOwo+ICAgICAgICAgdW5zaWduZWQgbG9uZyBleHRlbnNpb25zW0JJVFNfVE9f
+TE9OR1MoU0JJX0hBUlRfRVhUX01BWCldOwo+ICsgICAgICAgdW5zaWduZWQgbG9uZyBjc3JzW0JJ
+VFNfVE9fTE9OR1MoU0JJX0hBUlRfQ1NSX01BWCldOwo+ICAgICAgICAgdW5zaWduZWQgaW50IHBt
+cF9jb3VudDsKPiAgICAgICAgIHVuc2lnbmVkIGludCBwbXBfYWRkcl9iaXRzOwo+ICAgICAgICAg
+dW5zaWduZWQgaW50IHBtcF9sb2cyZ3JhbjsKPiBAQCAtMTUwLDYgKzE1OSw3IEBAIGJvb2wgc2Jp
+X2hhcnRfaGFzX2V4dGVuc2lvbihzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gsCj4gICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGVudW0gc2JpX2hhcnRfZXh0ZW5zaW9ucyBleHQpOwo+ICB2
+b2lkIHNiaV9oYXJ0X2dldF9leHRlbnNpb25zX3N0cihzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0
+Y2gsCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2hhciAqZXh0ZW5zaW9uX3N0
+ciwgaW50IG5lc3RyKTsKPiArYm9vbCBzYmlfaGFydF9oYXNfY3NyKHN0cnVjdCBzYmlfc2NyYXRj
+aCAqc2NyYXRjaCwgZW51bSBzYmlfaGFydF9jc3JzIGNzcik7Cj4KPiAgdm9pZCBfX2F0dHJpYnV0
+ZV9fKChub3JldHVybikpIHNiaV9oYXJ0X2hhbmcodm9pZCk7Cj4KPiBkaWZmIC0tZ2l0IGEvbGli
+L3NiaS9zYmlfaGFydC5jIGIvbGliL3NiaS9zYmlfaGFydC5jCj4gaW5kZXggZmM0OTI1Yi4uNzRj
+Y2RkOCAxMDA2NDQKPiAtLS0gYS9saWIvc2JpL3NiaV9oYXJ0LmMKPiArKysgYi9saWIvc2JpL3Ni
+aV9oYXJ0LmMKPiBAQCAtNzQ3LDYgKzc0NywyMCBAQCB2b2lkIHNiaV9oYXJ0X2dldF9leHRlbnNp
+b25zX3N0cihzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gsCj4gICAgICAgICAgICAgICAgIHNi
+aV9zdHJuY3B5KGV4dGVuc2lvbnNfc3RyLCAibm9uZSIsIG5lc3RyKTsKPiAgfQo+Cj4gKy8qKgo+
+ICsgKiBDaGVjayB3aGV0aGVyIGEgcGFydGljdWxhciBDU1IgaXMgcHJlc2VudCBvbiB0aGUgSEFS
+VAo+ICsgKgo+ICsgKiBAcGFyYW0gc2NyYXRjaCBwb2ludGVyIHRvIHRoZSBIQVJUIHNjcmF0Y2gg
+c3BhY2UKPiArICogQHBhcmFtIGNzciB0aGUgQ1NSIG51bWJlciB0byBjaGVjawo+ICsgKi8KPiAr
+Ym9vbCBzYmlfaGFydF9oYXNfY3NyKHN0cnVjdCBzYmlfc2NyYXRjaCAqc2NyYXRjaCwgZW51bSBz
+YmlfaGFydF9jc3JzIGNzcikKPiArewo+ICsgICAgICAgc3RydWN0IHNiaV9oYXJ0X2ZlYXR1cmVz
+ICpoZmVhdHVyZXMgPQo+ICsgICAgICAgICAgICAgICAgICAgICAgIHNiaV9zY3JhdGNoX29mZnNl
+dF9wdHIoc2NyYXRjaCwgaGFydF9mZWF0dXJlc19vZmZzZXQpOwo+ICsKPiArICAgICAgIHJldHVy
+biBfX3Rlc3RfYml0KGNzciwgaGZlYXR1cmVzLT5jc3JzKTsKPiArfQo+ICsKPiAgc3RhdGljIHVu
+c2lnbmVkIGxvbmcgaGFydF9wbXBfZ2V0X2FsbG93ZWRfYWRkcih2b2lkKQo+ICB7Cj4gICAgICAg
+ICB1bnNpZ25lZCBsb25nIHZhbCA9IDA7Cj4gQEAgLTgwMyw3ICs4MTcsNiBAQCBzdGF0aWMgaW50
+IGhhcnRfZGV0ZWN0X2ZlYXR1cmVzKHN0cnVjdCBzYmlfc2NyYXRjaCAqc2NyYXRjaCkKPiAgICAg
+ICAgIHN0cnVjdCBzYmlfaGFydF9mZWF0dXJlcyAqaGZlYXR1cmVzID0KPiAgICAgICAgICAgICAg
+ICAgc2JpX3NjcmF0Y2hfb2Zmc2V0X3B0cihzY3JhdGNoLCBoYXJ0X2ZlYXR1cmVzX29mZnNldCk7
+Cj4gICAgICAgICB1bnNpZ25lZCBsb25nIHZhbCwgb2xkdmFsOwo+IC0gICAgICAgYm9vbCBoYXNf
+emljbnRyID0gZmFsc2U7Cj4gICAgICAgICBpbnQgcmM7Cj4KPiAgICAgICAgIC8qIElmIGhhcnQg
+ZmVhdHVyZXMgYWxyZWFkeSBkZXRlY3RlZCB0aGVuIGRvIG5vdGhpbmcgKi8KPiBAQCAtODEyLDYg
+KzgyNSw3IEBAIHN0YXRpYyBpbnQgaGFydF9kZXRlY3RfZmVhdHVyZXMoc3RydWN0IHNiaV9zY3Jh
+dGNoICpzY3JhdGNoKQo+Cj4gICAgICAgICAvKiBDbGVhciBoYXJ0IGZlYXR1cmVzICovCj4gICAg
+ICAgICBzYmlfbWVtc2V0KGhmZWF0dXJlcy0+ZXh0ZW5zaW9ucywgMCwgc2l6ZW9mKGhmZWF0dXJl
+cy0+ZXh0ZW5zaW9ucykpOwo+ICsgICAgICAgc2JpX21lbXNldChoZmVhdHVyZXMtPmNzcnMsIDAs
+IHNpemVvZihoZmVhdHVyZXMtPmNzcnMpKTsKPiAgICAgICAgIGhmZWF0dXJlcy0+cG1wX2NvdW50
+ID0gMDsKPiAgICAgICAgIGhmZWF0dXJlcy0+bWhwbV9tYXNrID0gMDsKPiAgICAgICAgIGhmZWF0
+dXJlcy0+cHJpdl92ZXJzaW9uID0gU0JJX0hBUlRfUFJJVl9WRVJfVU5LTk9XTjsKPiBAQCAtOTM4
+LDkgKzk1Miw2IEBAIF9fcG1wX3NraXA6Cj4gICAgICAgICAvKiBEZXRlY3QgaWYgaGFydCBzdXBw
+b3J0cyBzc2NvZnBtZiAqLwo+ICAgICAgICAgX19jaGVja19leHRfY3NyKFNCSV9IQVJUX1BSSVZf
+VkVSXzFfMTEsCj4gICAgICAgICAgICAgICAgICAgICAgICAgQ1NSX1NDT1VOVE9WRiwgU0JJX0hB
+UlRfRVhUX1NTQ09GUE1GKTsKPiAtICAgICAgIC8qIERldGVjdCBpZiBoYXJ0IHN1cHBvcnRzIHRp
+bWUgQ1NSICovCj4gLSAgICAgICBfX2NoZWNrX2V4dF9jc3IoU0JJX0hBUlRfUFJJVl9WRVJfVU5L
+Tk9XTiwKPiAtICAgICAgICAgICAgICAgICAgICAgICBDU1JfVElNRSwgU0JJX0hBUlRfRVhUX1pJ
+Q05UUik7Cj4gICAgICAgICAvKiBEZXRlY3QgaWYgaGFydCBoYXMgQUlBIGxvY2FsIGludGVycnVw
+dCBDU1JzICovCj4gICAgICAgICBfX2NoZWNrX2V4dF9jc3IoU0JJX0hBUlRfUFJJVl9WRVJfVU5L
+Tk9XTiwKPiAgICAgICAgICAgICAgICAgICAgICAgICBDU1JfTVRPUEksIFNCSV9IQVJUX0VYVF9T
+TUFJQSk7Cj4gQEAgLTk2Miw4ICs5NzMsMTYgQEAgX19wbXBfc2tpcDoKPgo+ICAjdW5kZWYgX19j
+aGVja19leHRfY3NyCj4KPiAtICAgICAgIC8qIFNhdmUgdHJhcCBiYXNlZCBkZXRlY3Rpb24gb2Yg
+WmljbnRyICovCj4gLSAgICAgICBoYXNfemljbnRyID0gc2JpX2hhcnRfaGFzX2V4dGVuc2lvbihz
+Y3JhdGNoLCBTQklfSEFSVF9FWFRfWklDTlRSKTsKPiArI2RlZmluZSBfX2NoZWNrX2Nzcl9leGlz
+dGVuY2UoX19jc3IsIF9fY3NyX2lkKSAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gKyAgICAg
+ICBjc3JfcmVhZF9hbGxvd2VkKF9fY3NyLCAmdHJhcCk7ICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgXAo+ICsgICAgICAgaWYgKCF0cmFwLmNhdXNlKSAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiArICAgICAgICAgICAgICAgX19zZXRfYml0
+KF9fY3NyX2lkLCBoZmVhdHVyZXMtPmNzcnMpOwo+ICsKPiArICAgICAgIF9fY2hlY2tfY3NyX2V4
+aXN0ZW5jZShDU1JfQ1lDTEUsIFNCSV9IQVJUX0NTUl9DWUNMRSk7Cj4gKyAgICAgICBfX2NoZWNr
+X2Nzcl9leGlzdGVuY2UoQ1NSX1RJTUUsIFNCSV9IQVJUX0NTUl9USU1FKTsKPiArICAgICAgIF9f
+Y2hlY2tfY3NyX2V4aXN0ZW5jZShDU1JfSU5TVFJFVCwgU0JJX0hBUlRfQ1NSX0lOU1RSRVQpOwo+
+ICsKPiArI3VuZGVmIF9fY2hlY2tfY3NyX2V4aXN0ZW5jZQo+Cj4gICAgICAgICAvKiBMZXQgcGxh
+dGZvcm0gcG9wdWxhdGUgZXh0ZW5zaW9ucyAqLwo+ICAgICAgICAgcmMgPSBzYmlfcGxhdGZvcm1f
+ZXh0ZW5zaW9uc19pbml0KHNiaV9wbGF0Zm9ybV90aGlzaGFydF9wdHIoKSwKPiBAQCAtOTczLDcg
+Kzk5Miw5IEBAIF9fcG1wX3NraXA6Cj4KPiAgICAgICAgIC8qIFppY250ciBzaG91bGQgb25seSBi
+ZSBkZXRlY3RlZCB1c2luZyB0cmFwcyAqLwo+ICAgICAgICAgX19zYmlfaGFydF91cGRhdGVfZXh0
+ZW5zaW9uKGhmZWF0dXJlcywgU0JJX0hBUlRfRVhUX1pJQ05UUiwKPiAtICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBoYXNfemljbnRyKTsKPiArICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgc2JpX2hhcnRfaGFzX2NzcihzY3JhdGNoLCBTQklfSEFSVF9DU1JfQ1lDTEUpICYmCj4g
+KyAgICAgICAgICAgICAgICAgICAgICAgICAgIHNiaV9oYXJ0X2hhc19jc3Ioc2NyYXRjaCwgU0JJ
+X0hBUlRfQ1NSX1RJTUUpICAmJgo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICBzYmlfaGFy
+dF9oYXNfY3NyKHNjcmF0Y2gsIFNCSV9IQVJUX0NTUl9JTlNUUkVUKSk7Cj4KPiAgICAgICAgIC8q
+IEV4dGVuc2lvbnMgaW1wbGllZCBieSBvdGhlciBleHRlbnNpb25zIGFuZCBmZWF0dXJlcyAqLwo+
+ICAgICAgICAgaWYgKGhmZWF0dXJlcy0+bWhwbV9tYXNrKQo+IC0tCj4gMi40OS4wCj4KCi0tIApv
+cGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xp
+c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
