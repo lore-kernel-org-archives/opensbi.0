@@ -4,87 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id D8C82C3ABCC
-	for <opensbi@archiver.kernel.org>; Mon, 12 May 2025 08:41:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 81571C3ABBC
+	for <opensbi@archiver.kernel.org>; Mon, 12 May 2025 09:18:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=BXXD+89fOrvje0rUDX4jxvrEkDyP09DcE9CMoP/b3eo=; b=fVb37abOptKor8
-	zUQYaOv1Sz3ydrOT3iPRroSYsbV4iOOZXczePGYo2bqLWtbj+JTE+2J29BMoswcFCSL8IV7Rqg4Io
-	ah8/OfaM42+FESK6SWfR0Lfy19lhQlKCINdRqNFBeOYjy9lgzRn6+9Ffgbqz1nYcB04SVDjI4mVQ5
-	TX72mIwA+VZhgs9zhfeuzyLI0WtxPLsDhqA/jzEr8bJpl2zkr+ZK8SlxReQjWIrsJ9pGBZko2p9Xr
-	CY2iWqOazHIuppqQhE2B9Ee+hntXmy7/4fjz4w+NJx60QNOw4I6gHgBcr8ALZ7/xgvs+OZViac15e
-	En9pqf2fSNzZH2tIoRcQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=VwP+3pNO5A1IW3S0ZJPGCjGpNbf5N2i46VXGiQEDWuU=; b=r64xHFV6SK5mo5
+	YDgWge/AoTSRwdJH9CLzUGB9vzpO4qy1OkSGqfx2PlPQX0YPwVKRg7OM0Uq19g0uTAkp8uTGnqZ/i
+	29hQl6VhA4RAS2EmD+YRpYfpPN2oF+qgM+OttTFCcczFhhPcROwChy/BnmxFTAi2yheKqd1PZZYTl
+	F1MpTXGUy4a1pWfGkIXjmx4wG+SlA/RS/NER4PKcDsMP3J4e5UfWSNsGSBRrPHtyUobmIJe/zHqiP
+	8pE7mIfIwUVfth8+cSB9agsVM21AKcn4sp9Os/hv5y2V/mP+IWd/p3PgyicIeVkvB1AkAoOY5O+Iv
+	5VSI1LIuL19wYLhTHYQA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEOj3-00000008mu4-0hB2;
-	Mon, 12 May 2025 08:41:29 +0000
-Received: from mail-pf1-x434.google.com ([2607:f8b0:4864:20::434])
+	id 1uEPJ1-00000008tXJ-0r92;
+	Mon, 12 May 2025 09:18:39 +0000
+Received: from mail-pj1-x102c.google.com ([2607:f8b0:4864:20::102c])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEOgS-00000008mRv-0Xe8
+	id 1uEPIy-00000008tWc-3dEs
 	for opensbi@lists.infradead.org;
-	Mon, 12 May 2025 08:38:49 +0000
-Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-742596d8b95so1237424b3a.1
-        for <opensbi@lists.infradead.org>; Mon, 12 May 2025 01:38:47 -0700 (PDT)
+	Mon, 12 May 2025 09:18:38 +0000
+Received: by mail-pj1-x102c.google.com with SMTP id 98e67ed59e1d1-306b6ae4fb2so3847213a91.3
+        for <opensbi@lists.infradead.org>; Mon, 12 May 2025 02:18:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1747039127; x=1747643927; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AaUxnUEHXS6sylNYwyJmkLyZDhb2eUToFBYr46LhUho=;
-        b=bpjOgakScUlLjZEuHgFDzyRE2DeUOETF/bqdDrqfJzt0Bq6a07Cizb0cKMTksn/Cnz
-         Opf7w8yzBdzgIVrNd/n9c9YgKDMn2j/yoDUJGBcJDSLjK6pYj3CbjVhBZKwte95heUmS
-         3IcQk40aJ/aYi5Tt71uWRTMmKWu2KsbLAT/AGvjM/NuEku7oxwExI0GEAVWEVhoBPZk6
-         uHRY1D/2uultpurW7ohoAL5440nuscrfyoQF6e3oSJz9DBUsVVrQq8X3TRMDfENtxT4H
-         bF37W+faaendmoLHUX9XokD97UeSINOr3nYPaducbHMbP1SMq+bHYm7OW7HDGKm3KKks
-         IWgw==
+        d=gmail.com; s=20230601; t=1747041515; x=1747646315; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=PIBwFT0hiJoDMggsd0b3IKCrDfHiIXxJgZRPJ4LGieg=;
+        b=BwA6T06wHDw+0wka2ltjmTCXZXGl6mqyjnS2RgqAw/jukZd71P8MnVpsC6b3Ggd94A
+         sqJly44eLmUj8jzgXnBvZd6jR8HEH25pm042FIqZhZgo5k77QGZdj5uVMkrM4ZFu1RpM
+         /ji97Pfh310k7E9Awp3Nu1MnqMBjJqB66CmcL1ysB+RBezpmftNeggY8N+sesJAVRgqR
+         KiciPYTLSFox73SeP+iGG/6MvXtsA8NP9iYztjv5iY+a+wdUOlykC4MnL8BbDI2tvsBE
+         mpZluLNj46ZHYp/HcKPXzDrbVKxUCvTXWc56O2LIg6n/xANi2+1PpEzoEx1w3dixYar6
+         VrAQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747039127; x=1747643927;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=AaUxnUEHXS6sylNYwyJmkLyZDhb2eUToFBYr46LhUho=;
-        b=QXWwGvevOWstwB6ZK94V79Hvzs+p1WgdAmrXA12UpJJf7b6e3skJsYuDoq+qAarUsR
-         UbzNusmr37MNdK1sQM559mZx/VZztSTq/1/0537Wq+m7cEhkvlLEBPh9gNkmX/MPfeYY
-         +uI252TPGSjVz0JmSvf7E3nawkvF+/+67jvbDg70JZT3APOrWkTZIJaFQP1vD9mYhTsv
-         +RuwV7vEPvply0gFf1u3Td2+rF+MZItGQ+pReYCS5u+0nrDlMx1AzphahJL5nhyZiSs2
-         8rwRlVN0jaf7NwOEYRNq7GRSo9aQm9y3FmvIC4JGiVJaVFqBoqvZcRENW8DO8Q9sK/xH
-         S1Sw==
-X-Forwarded-Encrypted: i=1; AJvYcCVRo46+SyR15IxSv/1YxEixq7Z6TSjKPfLirEyFMago8b4uqwRc6rY4dewiooZYLpo5zUY+7u9N@lists.infradead.org
-X-Gm-Message-State: AOJu0Yyyqdo1I/imkcjhmEb2ED7ieZlKO0N3YqNzLmXaI160jbLxKZLV
-	V+b37xopEBPrxTnRZ6457ZveA7+rKqGd/IoLgVL6QP967VLv3IuAWLgQJOBxylU=
-X-Gm-Gg: ASbGncvX8xfd7AuvbyL5xa5hGdG019RwEbp/MiMfP33Hf9LbKAS9Gt4kvVle25OlSyc
-	dgP41grnJE8onm6C/BpxP3S72RNXA4yO6kLIEPNuRG9ZgOfbFnbe1XvjI5r5H7w0Z/M/dbu5Lt/
-	haTneArlDLFZ2LdyEDJHoOGCslA79IyR2YMzyALi83pIRrgIwyrimUTiIFDn+CCxCKqLA70slZI
-	FGO/ampIouWV8+8hec+8jIQfRuSRj5mqglFk4Vaw2oUM3aRaBbpXD4LRaBlQd0ELhNjYSHoQIQS
-	IR61qMhcuXXjx4br6WKziZBStUPW6NfWuA3cceW2/k6syf3Nnre/WInGEjNH1hJmlSD+4n3xQn6
-	OzmliXiWC1PYcrUIjUIXV50eW
-X-Google-Smtp-Source: AGHT+IE1gb9iP+MYN/BF9htFFzejPXEXM4exTUdRX30/gJ/dVJl0qQYEteyFvUkJdo4LhYfKU1zTdA==
-X-Received: by 2002:a05:6a00:2313:b0:736:692e:129 with SMTP id d2e1a72fcca58-7423c0421e7mr18704454b3a.24.1747039127161;
-        Mon, 12 May 2025 01:38:47 -0700 (PDT)
-Received: from anup-ubuntu-vm.localdomain ([122.171.16.16])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7423773dedfsm5520943b3a.72.2025.05.12.01.38.44
+        d=1e100.net; s=20230601; t=1747041515; x=1747646315;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=PIBwFT0hiJoDMggsd0b3IKCrDfHiIXxJgZRPJ4LGieg=;
+        b=g95H3V28QLJDZOg5oL4akRlLDke3KIMM+WIKv0BMJl60KiLxSUhoHiU8ZkwAlznbTA
+         f6N/5Tkz8RI6s766/CaHRK2KpkzA+fgltZKwH+Ozjbe5kUGKGvcQRFdA4/AzD+odUBur
+         B43L/JNP57PMX6r37EVWJHUuGUiT7RbZiLof+qk3rhrkUbXZeed1HC7+bj0WZApS1UEx
+         wz1lyy3kKyDkuKMtGkpEEnPVxDzttx/8tabIiHgJus9JSxJ4z0QMqRSbjuz8eeLXdNhS
+         cjoa/ou3M5ALFrmaj1sZUHxAJMJIc/PTkeDc21ePHO1QSUYTggZT9TrlGGrl2XlXT/78
+         h8gA==
+X-Gm-Message-State: AOJu0YzORzupbWsFZe59mM436YwJdhm7vNezMc6PPJH1trwazUhMohCk
+	ESXR6Q00RHSK4+LIAcea8xwOq2P7k5vLlb7qLLrumLZCQfBjWmLDW94kst9V
+X-Gm-Gg: ASbGncujT99lX0GZkRsNe7Z9PiN3Q+jvl4monaC+CbCiK92e4jJXi3d5GLtsAwNt+E3
+	59xRhZwxG5m0+xnus9VE5uWdvjT/ZBjWJiBjs44/O7Gk7b9uVAn5jyb4Tdely2X0f7TVyLQb5DJ
+	MI7ArPenF/ixrUlFuKNydvnVxoySg4CRkGxTM6uG41wBfgbctEUIQcUBCUtaIH0gUYy1MG3HaTc
+	2EDFTQ4V+FGRVG8c2+OXkuaCvRx9Io4IfFYixDCJp2Rv3qZfPV1p1N6MoOzXoNd9x+5hFcjJF6s
+	DgvBiw/6Hgitv/Q6RrrOkXmfgAyPZxjqrhMkuvvRNCORcg7oUZE3shi7prp0c/fS46GimfX6Jgp
+	SV8mO
+X-Google-Smtp-Source: AGHT+IE7h51xtC5sKG0DCWHVmEhbVyiOz9gXVdVtPndYtst/k2GuHJ6GmndC4jTtIudW49OzvA+gSg==
+X-Received: by 2002:a17:90b:5103:b0:305:5f28:2d5c with SMTP id 98e67ed59e1d1-30c3d3e8415mr21143105a91.15.1747041515143;
+        Mon, 12 May 2025 02:18:35 -0700 (PDT)
+Received: from JRT-PC.. (bb121-6-174-130.singnet.com.sg. [121.6.174.130])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-30c39dd4359sm6216146a91.16.2025.05.12.02.18.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 May 2025 01:38:46 -0700 (PDT)
-From: Anup Patel <apatel@ventanamicro.com>
-To: Atish Patra <atishp@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>,
-	Anup Patel <anup@brainfault.org>,
-	opensbi@lists.infradead.org,
-	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH 4/4] lib: utils/mpxy: Remove p2a_db_index from RPMI system MSI attributes
-Date: Mon, 12 May 2025 14:08:27 +0530
-Message-ID: <20250512083827.804151-5-apatel@ventanamicro.com>
+        Mon, 12 May 2025 02:18:34 -0700 (PDT)
+From: James Raphael Tiovalen <jamestiotio@gmail.com>
+To: opensbi@lists.infradead.org
+Cc: andrew.jones@linux.dev,
+	atishp@rivosinc.com,
+	James Raphael Tiovalen <jamestiotio@gmail.com>
+Subject: [PATCH v2] lib: sbi: pmu: Return SBI_EINVAL if cidx_mask is 0 in ctr_cfg_match
+Date: Mon, 12 May 2025 17:18:29 +0800
+Message-ID: <20250512091829.76556-1-jamestiotio@gmail.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250512083827.804151-1-apatel@ventanamicro.com>
-References: <20250512083827.804151-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250512_013848_164995_182AFF35 
-X-CRM114-Status: GOOD (  10.93  )
+X-CRM114-CacheID: sfid-20250512_021836_909417_7B1D685B 
+X-CRM114-Status: GOOD (  13.53  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -101,69 +96,48 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The discovery of P2A doorbell system MSI index is now through RPMI
-shared memory DT node so remove p2a_db_index from RPMI system MSI
-attributes and access it as a mailbox channel attribute.
+Currently, when configuring a matching programmable HPM counter with
+Sscofpmf being present, cidx_base > 2, and cidx_mask == 0 to monitor
+either the CPU_CYCLES or INSTRUCTIONS hardware event, ctr_cfg_match will
+succeed but it will configure the corresponding fixed counter instead of
+the counter specified by the cidx_base parameter.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+During counter configuration, the following issues may arise:
+- If the CLEAR_VALUE flag is set, the corresponding fixed counter will
+be reset, which could be considered unexpected behavior.
+
+- If the AUTO_START flag is set, ctr_start_hw will silently start the
+fixed counter, even though it has already started. From the supervisor's
+perspective, nothing has changed, which could be confusing. The
+supervisor will not see the SBI_ERR_ALREADY_STARTED error code since
+ctr_cfg_match does not return the error code of ctr_start_hw.
+
+The only way to detect these issues is to check the counter_idx return
+value of ctr_cfg_match and compare it with cidx_base.
+
+Fix these issues by returning the SBI_ERR_INVALID_PARAM error code if
+the cidx_mask parameter value being passed in is 0 since an invalid
+parameter should not lead to a successful ctr_cfg_match but with
+unexpected side effects. This also aligns OpenSBI's behavior with KVM's.
+
+Signed-off-by: James Raphael Tiovalen <jamestiotio@gmail.com>
 ---
- include/sbi_utils/mailbox/rpmi_msgprot.h |  1 -
- lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c    | 13 +++++++++----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ lib/sbi/sbi_pmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
-index 058b7e90..e0d73882 100644
---- a/include/sbi_utils/mailbox/rpmi_msgprot.h
-+++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
-@@ -285,7 +285,6 @@ enum rpmi_sysmsi_service_id {
- struct rpmi_sysmsi_get_attributes_resp {
- 	s32 status;
- 	u32 sys_num_msi;
--	u32 p2a_db_index;
- 	u32 flag0;
- 	u32 flag1;
- };
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
-index 87e6aa53..b4bab85a 100644
---- a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
-@@ -32,10 +32,9 @@ static int mpxy_rpmi_sysmis_xfer(void *context, struct mbox_chan *chan,
- 	case RPMI_SYSMSI_SRV_GET_ATTRIBUTES:
- 		((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_SUCCESS);
- 		((u32 *)xfer->rx)[1] = cpu_to_le32(smg->sys_num_msi);
--		((u32 *)xfer->rx)[2] = -1U;
-+		((u32 *)xfer->rx)[2] = 0;
- 		((u32 *)xfer->rx)[3] = 0;
--		((u32 *)xfer->rx)[4] = 0;
--		args->rx_data_len = 5 * sizeof(u32);
-+		args->rx_data_len = 4 * sizeof(u32);
- 		break;
- 	case RPMI_SYSMSI_SRV_GET_MSI_ATTRIBUTES:
- 	case RPMI_SYSMSI_SRV_SET_MSI_STATE:
-@@ -90,8 +89,14 @@ static int mpxy_rpmi_sysmsi_setup(void **context, struct mbox_chan *chan,
- 	struct rpmi_sysmsi_get_msi_attributes_req gmareq;
- 	struct rpmi_sysmsi_get_attributes_resp garesp;
- 	struct mpxy_rpmi_sysmsi *smg;
-+	u32 p2a_db_index;
- 	int rc, i;
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 5983a78..62ce770 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -840,7 +840,7 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+ 	u32 event_code;
  
-+	rc = mbox_chan_get_attribute(chan, RPMI_CHANNEL_ATTR_P2A_DOORBELL_SYSMSI_INDEX,
-+				     &p2a_db_index);
-+	if (rc)
-+		return rc;
-+
- 	rc = rpmi_normal_request_with_status(chan, RPMI_SYSMSI_SRV_GET_ATTRIBUTES,
- 					     NULL, 0, 0, &garesp, rpmi_u32_count(garesp),
- 					     rpmi_u32_count(garesp));
-@@ -122,7 +127,7 @@ static int mpxy_rpmi_sysmsi_setup(void **context, struct mbox_chan *chan,
- 			return rc;
- 		}
+ 	/* Do a basic sanity check of counter base & mask */
+-	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
++	if (!cidx_mask || ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs))
+ 		return SBI_EINVAL;
  
--		if (garesp.p2a_db_index == i ||
-+		if (p2a_db_index == i ||
- 		    (gmaresp.flag0 & RPMI_SYSMSI_MSI_ATTRIBUTES_FLAG0_PREF_PRIV))
- 			bitmap_set(smg->sys_msi_denied_bmap, i, 1);
- 	}
+ 	event_type = pmu_event_validate(phs, event_idx, event_data);
 -- 
 2.43.0
 
