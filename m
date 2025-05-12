@@ -4,88 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 55EDEC3ABC3
-	for <opensbi@archiver.kernel.org>; Mon, 12 May 2025 08:41:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 76954C3ABD2
+	for <opensbi@archiver.kernel.org>; Mon, 12 May 2025 08:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=zmF7TbP6rD1E9eWZNd1F5yPl/meXZEJo4POuDl36D0A=; b=DTBGYXsrM3eSZq
-	R/oZmiu66j5CGofMD/G61mWXovNvQFU7pZbq0L8eAIFXH9inA/6F9IPJ90X9/xDq+eFwGGfbuN1rf
-	mpdhHkJLk+KJ3MCuaQXxR95slsOnxwB7yiazJCxosvcJsUoUwFJIFSNJjhNszqcZ/IDxy84k+I5lI
-	6RHDTHPIvEIBXGHKGWvlUCpok0gplHM2/dez4XP3pbQhAvqhnnOYpxva1srxxYk73EE6d/63iHSft
-	l9ugCfxz/ISADT5I+Z7D+KsPSJrYyM1uOUIS70COnJdcjpXltatOGgJo/jCrjKpRLFlTgo+8N7MA+
-	pwEFzodDt+aTOH3ULg7w==;
+	List-Owner; bh=swtmwXPLu3Vnybl7texBYHl4ml1VLNqxPaAyLj1J7jw=; b=PMzXvPK2UFI6In
+	1upDGL1qOuJMdDwuHpC1g2Cd6+qRXTBN00ahuNOSNLowrrwnvWzvWUmXAjF6x9BSTanqGqBImD9Ix
+	De4/cadKR/+e0kA4C0et7pmIMfNHMdhDy2Fopkc/mM3hduztTBkhjdK/nWJ16hG9shZDckyzMLgfL
+	OEFUyiLZqRDAgE+5aQXz5mZJc19iwAuPWpAMFdzZJcLBnaVVYOY/CzhgVPLoMzm+L10xJ0x6K7/RB
+	+S3SDrXoABaISkuDru2Pgm/LnuFPiiD9r4VUIsrHRACX9WNxM93etgfftCmI8FSdFkYAtS69nMzcU
+	4Y4+PxYZbMTTI7ANM2LA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEOj1-00000008msF-1Rat;
+	id 1uEOj1-00000008msn-3gBk;
 	Mon, 12 May 2025 08:41:27 +0000
 Received: from mail-pf1-x436.google.com ([2607:f8b0:4864:20::436])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEOgI-00000008mQU-30fR
+	id 1uEOgL-00000008mQq-2juj
 	for opensbi@lists.infradead.org;
-	Mon, 12 May 2025 08:38:39 +0000
-Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-741b3e37a1eso3136734b3a.1
-        for <opensbi@lists.infradead.org>; Mon, 12 May 2025 01:38:38 -0700 (PDT)
+	Mon, 12 May 2025 08:38:42 +0000
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-7396f13b750so4524423b3a.1
+        for <opensbi@lists.infradead.org>; Mon, 12 May 2025 01:38:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1747039118; x=1747643918; darn=lists.infradead.org;
+        d=ventanamicro.com; s=google; t=1747039121; x=1747643921; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=TjU6mKE0ukl6eqhAjpLJpbvRuCocX5gAy/1qIc270DA=;
-        b=XWgVzE/48g/nOZBSHRcOcLp6+9JzP17uwHZasxS+ZGZr/s/pLwmblWvp8KNARQIr91
-         Y7o3tVVupuozjOr1GkoIwnC9MQvea07203M/ItvuZTL8E3BRFVt88Pmjg0OV0Oi056Hn
-         cpt6eAqwFeocTtMh6oFht+MKWDJ1o2QCGTL9Ba/mEqEwSofDrjamNaLQtUqfKXOiK94A
-         OH2yLYEj5j785wD/2mQyHAXde2U4zANPrOrQPehWAMRI8M9LMPFpQFjzNtpx4qUCisqa
-         /qRLP14Vrju/CcjHogfOiECcnJH56m/FGsA6RrNBafNC4CjsuxmTfCDFKK0P4QT40sBw
-         ZMRQ==
+        bh=nSrTvQmXV7IyCICmQc7ErgVFYstdTdWzKTd+2cOw7SQ=;
+        b=LRrBqcWLk2vGGFnMdygq6Fcj2hgH5bMdkT8SkTw9IcmebmHDJ/md/+lgdGHqmZKuXJ
+         9H/Z8/jPpBxkvHB8P0b0lVLn64VVzorlG1lBiGrx/b0t+K8K4a3lHWBtbLiQEFfGvzvq
+         Fmvi47CEirSe2mEvPt6XTdbFkXkK7QroIpfsV6Rgu5mACseHY8KFMss1uqvEdpVlWOuf
+         APIxna6atKchIhVvs3JUyU9fl3koA4WXrO784Pb2cEdRGyat8TXZa1F0CvWWpKJv+i1a
+         tTFYr/gJQmxt2xJ+9Rn3HNKn5v0PIomVODxYjLUaVrMuzVEJEiBGPsURDjeI2AijnWw9
+         BfrA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747039118; x=1747643918;
+        d=1e100.net; s=20230601; t=1747039121; x=1747643921;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=TjU6mKE0ukl6eqhAjpLJpbvRuCocX5gAy/1qIc270DA=;
-        b=uEmcKKc9WNXwx8F4tHPkRcmJnHL6+l+Cw55pMNyCxYkV8cO+9zsYBz5gzhwsvzAq/H
-         wCtC19IDGlpkQ3DCgT0aqW3ANf1Ukq+0UlnUzNHUc89OsBvgik8LqyPIbRXWTmB8JjKE
-         YUrFe97dvucqzVhtqAiR78xUZO2JiB8DucEpHAYpaJacCU3iRqxKkktdqzA3uinlR/YJ
-         jjkTbGSqrICpZPgEA1T3QRCHN/84VlucOcn32s3sqoiqoBsU6HLHvy4441gJlP2IwzTJ
-         t9XP7BDrVsuq6PeoShlv/4/sqQjGJpXOTergmrIJIJd/C1AJZicRNvOWte9MZJVMAeKw
-         kMgA==
-X-Forwarded-Encrypted: i=1; AJvYcCXQTFORqF2vRZIvOm5So3FTnlchPjVt9cNQ2NYVi90gRbtAov9jZ/CdyGep/jRwxGYHpawucxth@lists.infradead.org
-X-Gm-Message-State: AOJu0YwqFAPg30isLgNpEAeZWdKNQRd7U02fZywuKXo4z+ppdImytSEW
-	pS0/9mKD+Zb/B0ksGFsdYeQeeAuGM8YZOLisYgjK70TYegue03U9bqm+xB6ngfA=
-X-Gm-Gg: ASbGnct/xTETHKihhwAOvMmETyOkklEO3hxC5fa8KCe5YfOn5CJ4bCdYuHEB6OaKHbV
-	BfX8TVzmK7QVlJgewHOcmnw0G/ns26uVXIlPvSZbsRAf3ItUBNqICpXS0yidsP3EpLAtFSa7f3t
-	FJ84HLsfLVN73v0cBZTVJsZym0oXeLwQNwWrSjPBCOhl+1hwgwXYCngHyK8bKXM30iir8KqUTe2
-	xErQgqudG0Yg3DLjSkxinlOj9F6yJYWwLu9yQKQQZoOMeqAHM1ST+Bp2+BG6mQclCWKPiGiLhKl
-	84D+0P6oAlMs5CM7mfZS/J4J2bK+z8++Zg23q7nCmN0ufbYVXSeBHw7f0RNz3u4f48S/C451eSa
-	M4Zr0ac8BYBGo9Q==
-X-Google-Smtp-Source: AGHT+IHdZnp0i92laBVqCNo/9jHkJVJ3wTHIUf3os7m9NMA/H37yuZdi/WgTu1fHOI1CVd6ZIFIy1Q==
-X-Received: by 2002:a05:6a00:190f:b0:736:a8db:93bb with SMTP id d2e1a72fcca58-7423bc1eac3mr15342372b3a.5.1747039117913;
-        Mon, 12 May 2025 01:38:37 -0700 (PDT)
+        bh=nSrTvQmXV7IyCICmQc7ErgVFYstdTdWzKTd+2cOw7SQ=;
+        b=wiY7WpiSoQzOWwPwa9hAlUfz589u/vOpe0j/Ix6dNRCnuV66huFYSyIXBVSoorKWwb
+         +k+kULb17THkS/kVwjaZevZui4j6NuwV9SkYyOkdYm6+9+mbcasvcfChZUoYiahQn0Sy
+         hjDM6gb9KfJRFvNZBWKt3WzK6H3936m3TTJSldDbnEpE7lGFYwWwS0RbldjvErayoP3d
+         2iPHAdhCNIbM8LN7dHxgbrxniZoJHq8Tl7V48tdkE4OjgECfeJowsTAT1JrA/vKNixQ1
+         q3isEfQ9mDurrAgEdumocrn9/0bzRqBpSP3Bd8wvvXoEdJ4OH1mpu/mgSkxUS6EVBiyX
+         e9dA==
+X-Forwarded-Encrypted: i=1; AJvYcCW+hJzxvs5DTNXQWt43r/ZLK7TZEwlwOr4gtpyqTbEZwCXJhxMHRniudYSlriC0A2yjA9Gduaj2@lists.infradead.org
+X-Gm-Message-State: AOJu0YyOvhNa2UdD+31ezSmYvqPlD+G8zp1JY7TlNjcaFhmmbCyJC6pT
+	uuKTaZ4D1oQcGZ8pGurptmwUiu2RJPWjrvlHOSLck3EqW2MWkLv6xxvBIySuUns=
+X-Gm-Gg: ASbGnctKQC5hafdKpFyO3JyMuY5i87LZc/dLS9fqHTqxwmY1VMeq4tWxo3abX0VvlnH
+	e832HMPhn1kQn2r0eqPZAK3Lz2jBErtIr2yCKSHoDbsw0hBexycFgm8lRzaPUqmo5XmhpffVtOZ
+	QO6oc686WLnIleQwAcjKPvKeVQC/TlFaDq1pLSei9NhdVmhlZt4jYA2GUpVWoHa83q9XiFLA9wW
+	wyC2aXn9CP7jukS4rnGRah5PdZqieZmgaaNNhxj5GbthC7ldYIGX6QpVHSzwYCOzvmCXnhZvCcn
+	bR5zwnFG97rncqXPZClXL3GiqiZpcdKViiQ4MPrdBTCN6KjpNLf3/uQKyAUaXATZuK24p+zcQDD
+	Y07qWm+INYUrSeg==
+X-Google-Smtp-Source: AGHT+IHC9XrJxi2hxOjT1/7eic09QG1/SYt+wH9MZZjQH/+/p8XDJfDpisQ7T/BnlwFsBkaWg1pyfg==
+X-Received: by 2002:a05:6a00:4fce:b0:72d:9cbc:730d with SMTP id d2e1a72fcca58-7423bc3bbcamr16045446b3a.11.1747039120991;
+        Mon, 12 May 2025 01:38:40 -0700 (PDT)
 Received: from anup-ubuntu-vm.localdomain ([122.171.16.16])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7423773dedfsm5520943b3a.72.2025.05.12.01.38.35
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7423773dedfsm5520943b3a.72.2025.05.12.01.38.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 May 2025 01:38:37 -0700 (PDT)
+        Mon, 12 May 2025 01:38:40 -0700 (PDT)
 From: Anup Patel <apatel@ventanamicro.com>
 To: Atish Patra <atishp@rivosinc.com>
 Cc: Andrew Jones <ajones@ventanamicro.com>,
 	Anup Patel <anup@brainfault.org>,
 	opensbi@lists.infradead.org,
 	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH 1/4] lib: utils/mailbox: Update DT register name of A2P doorbell
-Date: Mon, 12 May 2025 14:08:24 +0530
-Message-ID: <20250512083827.804151-2-apatel@ventanamicro.com>
+Subject: [PATCH 2/4] lib: utils/mailbox: Parse P2A doorbell system MSI index from DT
+Date: Mon, 12 May 2025 14:08:25 +0530
+Message-ID: <20250512083827.804151-3-apatel@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20250512083827.804151-1-apatel@ventanamicro.com>
 References: <20250512083827.804151-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250512_013838_766981_8CB6E680 
-X-CRM114-Status: UNSURE (   9.82  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20250512_013841_694183_A9F42446 
+X-CRM114-Status: GOOD (  12.76  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,36 +101,89 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The latest device tree bindings define A2P doorbell register name as
-"a2p-doorbell" so update rpmi_shmem_transport_init() accordingly.
+The P2A doorbell system MSI index is expected to be discovered from
+device tree instead of RPMI system MSI service group attribute. This
+is based on ARC feedback before RPMI spec was frozen.
+
+Let's parse P2A doorbell system MSI index from device tree and also
+expose it as rpmi channel attribute to RPMI client drivers.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/sbi_utils/mailbox/rpmi_msgprot.h   |  1 +
+ lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 16 ++++++++++++----
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index 8d8fa5e5..058b7e90 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -193,6 +193,7 @@ struct rpmi_message_args {
+ enum rpmi_channel_attribute_id {
+ 	RPMI_CHANNEL_ATTR_PROTOCOL_VERSION = 0,
+ 	RPMI_CHANNEL_ATTR_MAX_DATA_LEN,
++	RPMI_CHANNEL_ATTR_P2A_DOORBELL_SYSMSI_INDEX,
+ 	RPMI_CHANNEL_ATTR_TX_TIMEOUT,
+ 	RPMI_CHANNEL_ATTR_RX_TIMEOUT,
+ 	RPMI_CHANNEL_ATTR_SERVICEGROUP_ID,
 diff --git a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-index 5b858d36..2faf51e4 100644
+index 2faf51e4..164ae14d 100644
 --- a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
 +++ b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-@@ -651,7 +651,7 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
- 		SPIN_LOCK_INIT(qctx->queue_lock);
+@@ -133,6 +133,7 @@ struct rpmi_shmem_mbox_controller {
+ 	/* Driver specific members */
+ 	u32 slot_size;
+ 	u32 queue_count;
++	u32 p2a_doorbell_sysmsi_index;
+ 	struct rpmi_mb_regs *mb_regs;
+ 	struct smq_queue_ctx queue_ctx_tbl[RPMI_QUEUE_IDX_MAX_COUNT];
+ 	/* Mailbox framework related members */
+@@ -505,6 +506,9 @@ static int rpmi_shmem_mbox_get_attribute(struct mbox_chan *chan,
+ 	case RPMI_CHANNEL_ATTR_MAX_DATA_LEN:
+ 		*((u32 *)out_value) = RPMI_MSG_DATA_SIZE(mctl->slot_size);
+ 		break;
++	case RPMI_CHANNEL_ATTR_P2A_DOORBELL_SYSMSI_INDEX:
++		*((u32 *)out_value) = mctl->p2a_doorbell_sysmsi_index;
++		break;
+ 	case RPMI_CHANNEL_ATTR_TX_TIMEOUT:
+ 		*((u32 *)out_value) = RPMI_DEF_TX_TIMEOUT;
+ 		break;
+@@ -574,9 +578,9 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
+ 				     const void *fdt, int nodeoff)
+ {
+ 	const char *name;
++	const fdt32_t *prop;
+ 	int count, len, ret, qid;
+ 	uint64_t reg_addr, reg_size;
+-	const fdt32_t *prop_slotsz;
+ 	struct smq_queue_ctx *qctx;
+ 
+ 	ret = fdt_node_check_compatible(fdt, nodeoff,
+@@ -585,17 +589,21 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
+ 		return ret;
+ 
+ 	/* get queue slot size in bytes */
+-	prop_slotsz = fdt_getprop(fdt, nodeoff, "riscv,slot-size", &len);
+-	if (!prop_slotsz)
++	prop = fdt_getprop(fdt, nodeoff, "riscv,slot-size", &len);
++	if (!prop)
+ 		return SBI_ENOENT;
+ 
+-	mctl->slot_size = fdt32_to_cpu(*prop_slotsz);
++	mctl->slot_size = fdt32_to_cpu(*prop);
+ 	if (mctl->slot_size < RPMI_SLOT_SIZE_MIN) {
+ 		sbi_printf("%s: slot_size < mimnum required message size\n",
+ 			   __func__);
+ 		mctl->slot_size = RPMI_SLOT_SIZE_MIN;
  	}
  
--	/* get the db-reg property name */
-+	/* get the a2p-doorbell property name */
- 	name = fdt_stringlist_get(fdt, nodeoff, "reg-names", qid, &len);
- 	if (!name || (name && len < 0))
- 		return len;
-@@ -659,7 +659,7 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
- 	/* fetch doorbell register address*/
- 	ret = fdt_get_node_addr_size(fdt, nodeoff, qid, &reg_addr,
- 				       &reg_size);
--	if (!ret && !(strncmp(name, "db-reg", strlen("db-reg")))) {
-+	if (!ret && !(strncmp(name, "a2p-doorbell", strlen("a2p-doorbell")))) {
- 		mctl->mb_regs = (void *)(unsigned long)reg_addr;
- 		ret = sbi_domain_root_add_memrange(reg_addr, reg_size, reg_size,
- 						   (SBI_DOMAIN_MEMREGION_MMIO |
++	/* get p2a doorbell system MSI index */
++	prop = fdt_getprop(fdt, nodeoff, "riscv,p2a-doorbell-sysmsi-index", &len);
++	mctl->p2a_doorbell_sysmsi_index = prop ? fdt32_to_cpu(*prop) : -1U;
++
+ 	/*
+ 	 * queue names count is taken as the number of queues
+ 	 * supported which make it mandatory to provide the
 -- 
 2.43.0
 
