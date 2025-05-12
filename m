@@ -4,79 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2F437C3ABC3
-	for <opensbi@archiver.kernel.org>; Mon, 12 May 2025 08:26:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 33B3FC3ABBC
+	for <opensbi@archiver.kernel.org>; Mon, 12 May 2025 08:41:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=ma+y9ly4fWtOqt+Sh1xUUddyLmBaeO35O0kKQDMphZA=; b=wt8L8bVQy6C5Ax
-	4RkTwU/H0IUiKNZstofPUBKzz4LAO0ZzHWisY1z5GXKBbKIqjQZMmRtq5BxwQOl06QKP9UIauut5N
-	jD+T8B63yVl0iiEPa5ge1ZB0ikw3Ry//VLjTNQAU8hPN9t1m/dFqfL0GWWxPr97J3hMSMKx8xX+e+
-	aCA0VjkaWiK8l5CLh5M6944LodeJCjGeX3zJtIjsltpBLpzYVuKPcDqO6UIeOuzUvZqtwEZhtenW5
-	KuuU5QdrfPhGVwj9NoVPUJeFogOOAan5u5CPiD1f4fOClDJuTqrmJ8/G3ShvyK4ikXIMRRKk8Dgu9
-	H426bgtCw2yolXcqtggA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=bf/mYBofQy229hCddVngSeT7+81VSchUec38ZvM3jeg=; b=aQJ5zhjp2qhpN5
+	RuDRNbqU9CPz1/UQvGcjrn37LiPhdpJE2+bDm3UTP5+BIBjMN9i1OPA/Sx+JnpWqPrF5Dm028XWw+
+	nXxy8OC++Ov//MsT8XMy0SjV3dc5nfEZ59icugU0lDcOwePf7yBKd1LvueFhUEw1wiBCb7Qv4P4Ey
+	0YRCSlhAxznzyrUUCGAFgWSxL/oFfrFNY6dw7ojs14Kt+sohYeD7v2ELBcQjptVjHDUn2Sdg+S7iN
+	veRaGB2aZoaTGRse8q6QVeQ0TClk1xqNJy1x/vbyq1duBnB9ddbFvaFnYdL+W21Ox6SM90ZoHvLj6
+	/2RTTIpRw3/4ZP0kT6Kw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEOUe-00000008k9K-0zHN;
-	Mon, 12 May 2025 08:26:36 +0000
-Received: from mail-ed1-x52b.google.com ([2a00:1450:4864:20::52b])
+	id 1uEOj0-00000008mro-3Tvj;
+	Mon, 12 May 2025 08:41:26 +0000
+Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEOOT-00000008j5X-28KB
+	id 1uEOgF-00000008mPw-3zRU
 	for opensbi@lists.infradead.org;
-	Mon, 12 May 2025 08:20:14 +0000
-Received: by mail-ed1-x52b.google.com with SMTP id 4fb4d7f45d1cf-5fd0d383b32so2328900a12.3
-        for <opensbi@lists.infradead.org>; Mon, 12 May 2025 01:20:13 -0700 (PDT)
+	Mon, 12 May 2025 08:38:37 +0000
+Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-740b3a18e26so3246146b3a.2
+        for <opensbi@lists.infradead.org>; Mon, 12 May 2025 01:38:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747038011; x=1747642811; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=kFqNtPJkQMW6bqZJqLZd4oMr48a0u3Va/2wx6yUiH80=;
-        b=mS5gdltUrdNTnQzLJdwXyCAA3yBdck/wa+Z++wQ6zCwVWnJ/UUvEDsjsnpbFKGdfUo
-         BZI5BqTLxh5wxjmcQh7nkBuOT7wLTw94UUrPtx7TCEu+8CJGRqTr3GLfAvKU7JNW15oa
-         WPvtUcf6Z7dhGVidHuCM118Me1Huoy+EQ0IkQ1dIkCQ/7pnI6pWMVk6eTgBzsJkyaSn7
-         ZrrwEWoEzsnfD78kcwZIgRuRKtoPkFEGzHcewaFwZryCXdO8qgJYbNR74Ke+wGt2nO70
-         BggCo7rn9LFI07EwlGXFYRI/lHx+leYIyDD679VdFfwnh13MIORA4bvpWYkho5Ok1/tu
-         Mqtg==
+        d=ventanamicro.com; s=google; t=1747039115; x=1747643915; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=oScVbrfF9marxzWDnq6/U3J9FR7vwN/FaTnuAVuVc5Y=;
+        b=hQqvBd9mH25pVNZls0SnCGgQRhaJI09FIOEYYh1VQVfwz9Kvx/oHF+FeOguWRZ9uFT
+         A7M+cqI8cgG8M1prEeLGlZWasY5SWKaAZRt87xaalEgUd7R3joncyBUpNY03oex/siQT
+         b3+zvTM5Tmgbpwqy5Seq9k3ObnHFOWF2V/Z7RNhlGPZfEyNRiyaN6Zo5FXA7QWkRoxIG
+         9vZLSt+yjd6iGUKyOecv3KCRV8NnopBXR2UwZQoeRANxemsvW3yUa8/elosEWG95NiDE
+         Q4WZ+OMbuGTfbyHy28+fxVXuPlLKUk48IUC+godTIidNEKqNiOynnoTzJaHrHh/f9BO1
+         JaGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747038011; x=1747642811;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kFqNtPJkQMW6bqZJqLZd4oMr48a0u3Va/2wx6yUiH80=;
-        b=gze69VuWZCt4DrMwVrINhXFQk9Gh+plxeXlUhWwgozp/zaFufJ97m0HMrpYe5rfnW/
-         SuaM6B5V/YiHKh4Lw0GNGNXQaKqiZzvxHwnsVsnbCaOZyV8LLiL63nxeTLbDsvxbTJmd
-         po1iirziO+XIspWInw7SH5jdSoaStH+Zdv9wxtyDxYDTNBA8neKguBFh8XDAsiKcXzS1
-         cU8czofZJZBs9AdjDNCcHSBvNHghEMOHs1NhkamoTZt/A1KdTOxg9qOWmXMTfERab2eT
-         8FqMyE2HEhZ/KKTdDFilnlKlutQdxsaRI7fzm7DrEzS7Q5n9N8XRmBLuKQRheuC+qu+S
-         MXIQ==
-X-Gm-Message-State: AOJu0YzVwLJ/7YtiRtyErOd4AE3Yg22zVU2EB8V1go4PIsFWGV5sNutl
-	yYW7RFKsyeayWmuVeCzUF/SmyIINVNjF2z3vHfGf+Xo/P+PYbQJL78ehrY6FnFOMiTXrRJBYExj
-	NucYrQzYB/WoomSwN8QBpNHVAPx2+EaVa86I=
-X-Gm-Gg: ASbGncvR/NWukZJJtZIFGR3tcwpHvx66qntDLgE/YS2zOEG/secPzgwiFN2OXMKLlBZ
-	Z/iI/I2zS1kx/cwcoBKO5Q5NccMxozkSpcUCtmF48jP3K7WyBa9goL9Y9EImdU2g+yhXgC8Lj7f
-	Usr/AKOKXJlAekx3QyJNyIN9aAOSGxemKWPNaOyiozQSvwfd89LgLvBm2TcZCsG+9LUxsCZZbyC
-	6r4wA==
-X-Google-Smtp-Source: AGHT+IGeleCfeOf/U3owUWvv02Q0OQ64IPulgJUT2GbtE4/IRRhQBFBFwLiQs3iN4jtq8Su/Yc9BQcY9nNJLlPt74Tk=
-X-Received: by 2002:a17:907:7fa5:b0:ad2:3f21:a0a3 with SMTP id
- a640c23a62f3a-ad23f21b35dmr687677366b.45.1747038011382; Mon, 12 May 2025
- 01:20:11 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1747039115; x=1747643915;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oScVbrfF9marxzWDnq6/U3J9FR7vwN/FaTnuAVuVc5Y=;
+        b=nJcwgSGSImCfv96MwR8bshwicUOaIwUHFl9BcDgQJEA+/Vo7PXQDmOBefGBE7DMOSB
+         urwWS5NklkzE+kmi/Uy9bFHvzQPAVl8jrAula2a6N61Ynxc+V1WEwI6jSUfB6XBWS7LN
+         RPzWChhDLRP/TzHUpV2cqkkTX52EzhQ4TMDvC0p5kOckJTVKor9e2cUFNpjJGDwPeYXl
+         PMW8w4LTk2ix4BUKPUsULlTNmfptlV9saQSOYQB6lzLILbCXHNN73p+YKB09PZ/v/46A
+         uM4Vb2PsYyp9GqmQOBPsYTnwAlms/qemScXeZqgo7nyO0rDM+u9WTidBGJH2dtO8vfRi
+         vT5w==
+X-Forwarded-Encrypted: i=1; AJvYcCVo36fM5Kv4jZVAFg9y5Cp7rAxktVaeChr2YUAlGNj23niqUBGCgg4HKdZn8hEuEi1c06TD++YV@lists.infradead.org
+X-Gm-Message-State: AOJu0YxjjS64Xu8gLJNqQIvXl4Xi02CAXISA5oHEs8za8tgTgy51go6Q
+	JfxtD26moVS03IzIXMx40brUmCEKCp+CNrzTvyCfZOwpXfxRGD/y/AwWRptBOj0=
+X-Gm-Gg: ASbGncuRi8cTIw8lguhKlOK3lylQ4eDorGOcQS4K4/uZlYN12ipzgAep79CmP84YS+L
+	1PUHrvrUOviCMheqwCDpCXy+9TIg2avQLm/5G8bVfxPsFzm2xQT3YkLFHWGAfYcWZNh1pqVLkXD
+	O78HAhL0uYPtkayOwohyJ9QMSZkX2Jov5GunSbR7cWkEEe0s3pkcMYWSunVaEJgiIniWX0BdjRk
+	LTjpx35r2YSpGnjA4PQT5/WLlnWrJQzVgPXauFc1K9Bca/RNLR7V0TtMng5CeBsXRleyY0XmJgS
+	T3kST91AW7DQUPt6bHRQL+Yc2mHo0r0VA6zlDVOKRHpoyWXCIMhPA7npbi/DXzclguR4ySbYzQH
+	9LOLLAvWoXEgNkQ==
+X-Google-Smtp-Source: AGHT+IEZwEHHvcEirFVG7cOiyCNv6AEMq15OPCeH4i+LzHPICIVeROur2avD4eyyR8aROrIBdUJ7gw==
+X-Received: by 2002:a05:6a20:149f:b0:215:df57:8fde with SMTP id adf61e73a8af0-215df579056mr1251826637.25.1747039114824;
+        Mon, 12 May 2025 01:38:34 -0700 (PDT)
+Received: from anup-ubuntu-vm.localdomain ([122.171.16.16])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7423773dedfsm5520943b3a.72.2025.05.12.01.38.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 May 2025 01:38:34 -0700 (PDT)
+From: Anup Patel <apatel@ventanamicro.com>
+To: Atish Patra <atishp@rivosinc.com>
+Cc: Andrew Jones <ajones@ventanamicro.com>,
+	Anup Patel <anup@brainfault.org>,
+	opensbi@lists.infradead.org,
+	Anup Patel <apatel@ventanamicro.com>
+Subject: [PATCH 0/4] Driver updates to match frozen RPMI specification
+Date: Mon, 12 May 2025 14:08:23 +0530
+Message-ID: <20250512083827.804151-1-apatel@ventanamicro.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-References: <20250512071648.89151-1-jamestiotio@gmail.com>
-In-Reply-To: <20250512071648.89151-1-jamestiotio@gmail.com>
-From: James R T <jamestiotio@gmail.com>
-Date: Mon, 12 May 2025 16:19:34 +0800
-X-Gm-Features: AX0GCFvlkfalBMP39p6r5O3zwcJYppq-XX0VDaSSL_0FPqtMWebKNPjocnPJVLQ
-Message-ID: <CAA_Li+t9Yrt91SNQen6UH+vrF+UUhLqcPaB_kjtSfr446=eJ_w@mail.gmail.com>
-Subject: Re: [PATCH] lib: sbi: pmu: Return SBI_EINVAL if cidx_mask is 0 in ctr_cfg_match
-To: opensbi@lists.infradead.org
-Cc: andrew.jones@linux.dev, atishp@rivosinc.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250512_012013_551366_93A269C7 
-X-CRM114-Status: GOOD (  16.12  )
+X-CRM114-CacheID: sfid-20250512_013835_988348_9A9B7206 
+X-CRM114-Status: UNSURE (   7.60  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -88,33 +94,41 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-QWZ0ZXIgc29tZSBtb3JlIHRob3VnaHQsIEkgaGF2ZSBkZWNpZGVkIHRvIHVwZGF0ZSB0aGUgY29t
-bWl0IG1lc3NhZ2UKb2YgdGhpcyBwYXRjaCB0byBzcGVjaWZ5IGhvdyBPcGVuU0JJJ3MgYmVoYXZp
-b3IgY2hhbmdlcyB3aXRoIHRoaXMKcGF0Y2guIFRoYXQgd2F5LCB3ZSBjYW4ga2VlcCB0cmFjayBv
-ZiBob3cgT3BlblNCSSdzIGJlaGF2aW9yIGhhcwpjaGFuZ2VkIGluIHRoZSBHaXQgaGlzdG9yeS4g
-SSB3aWxsIGRvIHRoYXQgaW4gdjIuCgpPbiBNb24sIE1heSAxMiwgMjAyNSBhdCAzOjE24oCvUE0g
-SmFtZXMgUmFwaGFlbCBUaW92YWxlbgo8amFtZXN0aW90aW9AZ21haWwuY29tPiB3cm90ZToKPgo+
-IFdoZW4gY29uZmlndXJpbmcgYSBtYXRjaGluZyBjb3VudGVyLCBpZiB0aGUgY2lkeF9tYXNrIHZh
-bHVlIGJlaW5nIHBhc3NlZAo+IGluIGlzIDAsIHJldHVybiB0aGUgU0JJX0VSUl9JTlZBTElEX1BB
-UkFNIGVycm9yIGNvZGUuCj4KPiBUaGlzIGFsc28gYWxpZ25zIE9wZW5TQkkncyBiZWhhdmlvciB3
-aXRoIEtWTSdzLgo+Cj4gU2lnbmVkLW9mZi1ieTogSmFtZXMgUmFwaGFlbCBUaW92YWxlbiA8amFt
-ZXN0aW90aW9AZ21haWwuY29tPgo+IC0tLQo+ICBsaWIvc2JpL3NiaV9wbXUuYyB8IDIgKy0KPiAg
-MSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4KPiBkaWZmIC0t
-Z2l0IGEvbGliL3NiaS9zYmlfcG11LmMgYi9saWIvc2JpL3NiaV9wbXUuYwo+IGluZGV4IDU5ODNh
-NzguLjYyY2U3NzAgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9zYmlfcG11LmMKPiArKysgYi9saWIv
-c2JpL3NiaV9wbXUuYwo+IEBAIC04NDAsNyArODQwLDcgQEAgaW50IHNiaV9wbXVfY3RyX2NmZ19t
-YXRjaCh1bnNpZ25lZCBsb25nIGNpZHhfYmFzZSwgdW5zaWduZWQgbG9uZyBjaWR4X21hc2ssCj4g
-ICAgICAgICB1MzIgZXZlbnRfY29kZTsKPgo+ICAgICAgICAgLyogRG8gYSBiYXNpYyBzYW5pdHkg
-Y2hlY2sgb2YgY291bnRlciBiYXNlICYgbWFzayAqLwo+IC0gICAgICAgaWYgKChjaWR4X2Jhc2Ug
-KyBzYmlfZmxzKGNpZHhfbWFzaykpID49IHRvdGFsX2N0cnMpCj4gKyAgICAgICBpZiAoIWNpZHhf
-bWFzayB8fCAoKGNpZHhfYmFzZSArIHNiaV9mbHMoY2lkeF9tYXNrKSkgPj0gdG90YWxfY3Rycykp
-Cj4gICAgICAgICAgICAgICAgIHJldHVybiBTQklfRUlOVkFMOwo+Cj4gICAgICAgICBldmVudF90
-eXBlID0gcG11X2V2ZW50X3ZhbGlkYXRlKHBocywgZXZlbnRfaWR4LCBldmVudF9kYXRhKTsKPiAt
-LQo+IDIuNDMuMAo+CgpCZXN0IHJlZ2FyZHMsCkphbWVzIFJhcGhhZWwgVGlvdmFsZW4KCi0tIApv
-cGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xp
-c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+The RPMI v1.0 specification is frozen and in public review so update
+RPMI drivers to match last minute specification changes which were
+based on ARC feedback.
+
+These patches can also be found in the rpmi_fixes_v1 branch at:
+https://github.com/avpatel/opensbi.git
+
+To test these patches, use the dev-upstream branch of the following repos:
+* https://github.com/ventanamicro/qemu.git
+* https://github.com/ventanamicro/linux.git
+
+To enable QEMU RPMI emulation (using librpmi) for virt machine, use
+"virt,rpmi=on,aia=aplic-imsic" as the QEMU machine name.
+
+Anup Patel (4):
+  lib: utils/mailbox: Update DT register name of A2P doorbell
+  lib: utils/mailbox: Parse P2A doorbell system MSI index from DT
+  lib: utils/mailbox: Parse A2P doorbell value from DT
+  lib: utils/mpxy: Remove p2a_db_index from RPMI system MSI attributes
+
+ include/sbi_utils/mailbox/rpmi_msgprot.h   |  2 +-
+ lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 34 +++++++++++++++-------
+ lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c      | 13 ++++++---
+ 3 files changed, 34 insertions(+), 15 deletions(-)
+
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
