@@ -4,53 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8720CC3ABC3
-	for <opensbi@archiver.kernel.org>; Tue, 13 May 2025 12:38:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7936FC3ABC3
+	for <opensbi@archiver.kernel.org>; Tue, 13 May 2025 13:55:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:References:From:In-Reply-To:
-	Mime-Version:Subject:To:Message-Id:Date:Reply-To:Cc:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Owner;
-	bh=7tceTi1a/y8kLXeBcxZaTL5UJ0W+3ggKCFnB44Ul/xk=; b=NXDknCs4smqVEhNh3ARwXZfNWz
-	dqukRKusT6oqQ1U0/HiY495LaHq3iqIf6l3lKyOZOmrlYlJ2NQD0GK66TmjBTHrJJ+0holFfq1TCg
-	EaoqXWVEJ5ye2HB4UHeb2kqmCpAJ/uJoMATzREKMuiZp9++vy0HkxOZ7cstJ75k9xXI131jYA20YR
-	duK+v/lsK/e6npAhBbhlks4wVSR4vFKNHZT8ppUK/GVZxbj05Uo6vBrFGwq3u6O4pJfB19M/JSYek
-	LhrhhXz14R46bengH45tWhYIFwRhdW/NpsR5iRGK2QhOxirr7m8zeAR2tFT6c80oOg5vTPcm0CgaF
-	rqXzNaxQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=HFqpwe6ZEVdpr4M4KWZ2jsdy5H034lPsG/g/ZQIoPrU=; b=NlKKV+16PqSkIb
+	rTf+KJsRcS4t1sdFANS/aHrZBx/hWrECzkPPKPfHtl3Xr77VWiTCwKOOQpExNLHAsou+eNzOtYk1u
+	POq9qYYQ84cp3L8LdWJLX3z7QCNjffqEFMymwoVxCjTS+hDgMXhrLIkoMSI3+YPqFshQMqxartc/2
+	5Z04p1NusOUghY3a4h93/BkPX3k68sW7SV7mUb3K4yNFZDBWOzgcVa6d+4ueM90HtFksoPcdgryIq
+	0LxpI9XEG3rdY2lL6oBqZRG3yPEFD4He0bHuFLTh5wHdkaX13Gm5GXOfkTnpuXx2uQRX/7wgu7oOZ
+	a9IvMZCeNQhwStOGaLWg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEotN-0000000CNXy-18Wu;
-	Tue, 13 May 2025 12:37:53 +0000
-Received: from sg-1-104.ptr.blmpb.com ([118.26.132.104])
+	id 1uEq6F-0000000CY3g-39Rw;
+	Tue, 13 May 2025 13:55:15 +0000
+Received: from mail-pf1-x42a.google.com ([2607:f8b0:4864:20::42a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEot1-0000000CNT4-0gEB
+	id 1uEpsU-0000000CW9W-2uDE
 	for opensbi@lists.infradead.org;
-	Tue, 13 May 2025 12:37:33 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=2212171451; d=bytedance.com; t=1747139840; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=55Ty3t7mFAIrlfR6cI068Nd6hyo7MDlPIAOXaXvn1iE=;
- b=hb3zNgAbpDguQjYhQlKU0xcf2q2pm78OjZ4ad0gNwR35Sc6+3AyChaH3r/HfrhEbFYtXJP
- 0jx6wGvl/Dxnc3Y3GOkoVnEM0Ro+5HkZpV0x+mRS+GLT4zL6rJSjQ41FyQ85+bl9RUz3gJ
- wCqPeXV0wQCol969r9wrAttEac9d5Oo9t9VBCVnwkVSAn47A3fPA0XmcHWGJT1qS6Sk9i+
- WG/b2a6I/8aHqmtC1UYaWY7zZWmcJ5+oB8Bbgpa36DdT3+fc0TVQ/dXnMcUe5ys1SfSwjP
- 0DXF6ikrOOIV55YSHlN4D6aC1O96MrzdVTGSoLRHLNhF+ouuzyDYRB9FjgYndQ==
-Date: Tue, 13 May 2025 20:37:17 +0800
-Message-Id: <a06ec789e9d7658f02b890ac037777d6604113be.ec4608d7.cac6.46f1.81bf.7a1202218be0@bytedance.com>
-To: <opensbi@lists.infradead.org>
-Subject: Re: [PATCH] lib: utils: hsm: Do not fail on EALREADY in rpmi-hsm fixup.
-Mime-Version: 1.0
-In-Reply-To: <a06ec789e9d7658f02b890ac037777d6604113be.fb0549c3.7405.4bb6.a560.39ac14d4a488@bytedance.com>
-From: "Ziang Wang" <wangziang.ok@bytedance.com>
-X-Lms-Return-Path: <lba+168233cfe+336f65+lists.infradead.org+wangziang.ok@bytedance.com>
-References: <20250507074620.3162747-1-wangziang.ok@bytedance.com>
-	<a06ec789e9d7658f02b890ac037777d6604113be.fb0549c3.7405.4bb6.a560.39ac14d4a488@bytedance.com>
+	Tue, 13 May 2025 13:41:04 +0000
+Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-7415d28381dso4636505b3a.1
+        for <opensbi@lists.infradead.org>; Tue, 13 May 2025 06:41:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747143660; x=1747748460; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=rlWrO2hF5BAV3U9zo0SorwTDzpVvf5oYAlFINeHpBrM=;
+        b=kiUANnfKzANuTJi05AnA/30jugZbC8GJqTEa89kJ7XhHa4mSdSmu10X7pyihPlSCs8
+         ZF9S4P04u7IiylXz2Cgy0D3yZrC5ReLPGVl3JP3YVbgCk0KurGuOOoR71TZl/DM6jh8M
+         K+4lNnzKshlN1PiF6vUtEoK3i1e1FheqUS5WZvunsumGV2iIZKXj81WXEntclY1Sihme
+         +KwfK33E6bbi1YINQA6rlS56HYf9um0SMhQ/Nn0ThF5+dPTME9xTlzyl7R4YnWdN+xzg
+         F6WxgbGuK+HKj9+o33m6K2W9Q4UTtP7LDbziNiDhZHftyG3bb3T5ytSIsFpDRSkdFmQq
+         cu5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747143660; x=1747748460;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=rlWrO2hF5BAV3U9zo0SorwTDzpVvf5oYAlFINeHpBrM=;
+        b=XcVkXqXU1gk9BkjRS9dnBzvmXQVDvepnmGIJ6Ddqf0iXL1fF9t//zhFnKPY+KFp7Oi
+         k4p+N7g5bDqxMlppyroqssJrBaHqIw5U2qkx/wCOLcDOi9HZkBq+oOJt2Qe9+QmXTeQc
+         qtp/uYiCj4Eoe+aCBWqZEHHcilL/+Ke9mVDegeOKsLRMsQbNP7mB0TMu1TAFy2CLxYM0
+         wrWWNofpdfFY/ZrEf6K/CBi7JXfGC1I4uTD8WwSFK5NFZAY6gqrMsVBTKsB3Z4jbHtEs
+         8duOeJoDthLb28S9xRe0N2zZRbdnaZtj70HAXVZor9E3PkDF9T7Y5RbdQ/PdM9lSqtrW
+         PaQA==
+X-Gm-Message-State: AOJu0YyvI4vkaI0kiomUByQ7hX4v5pA/dCpNaOHRbG/We2Pm8sYXLlzg
+	mFqwEp5fNeKqUL58JKiotgp5hTJgJOsuE+iao1bCP7ql4Hsu8LhWL0oddhEA
+X-Gm-Gg: ASbGncvWPonBJCX82l3AuC6CrmSkTVdQ6O/0DmbnztBapz89cU9no27q2+tH3tPZ3v5
+	gDW+FfoOmaxVB/7YT3N0n7gppiI69bF9Hdfwf9B9l5/CU7PEiEqPUH6x92oVVTWVnyj71kahnqt
+	RDzoiG8ymybAwH+HA/tV+R4p2ovRYU5/K2nQFUN/5YAuSMPJbHEAzt16yH56HuXUdTLHm8m6B6q
+	wyFg55HkjHIghRU5QXBef+MUdTtV4kl2kFbhYp+utwsEDmz1i2u88rYGakLPXNHkEbZd7MLQzle
+	3E57p5bU6rEasUuuL/Uv607WLS/aUJUb1Q4v8E44sWgYXo12OmR1oLkax3ZRWLowECRdmuOG07w
+	eklgL
+X-Google-Smtp-Source: AGHT+IE+UwRpMNlmLnH4iDjhJ5tt/4phVyCa/XNHoA8YowNaHqCgJGwjQ6gNlRJqPHjpO5akTPsb9w==
+X-Received: by 2002:a05:6a00:148a:b0:73d:fefb:325 with SMTP id d2e1a72fcca58-7423bc1d435mr21279017b3a.5.1747143660449;
+        Tue, 13 May 2025 06:41:00 -0700 (PDT)
+Received: from JRT-PC.. (bb121-6-174-130.singnet.com.sg. [121.6.174.130])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-74237761069sm7794413b3a.76.2025.05.13.06.40.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 May 2025 06:40:59 -0700 (PDT)
+From: James Raphael Tiovalen <jamestiotio@gmail.com>
+To: opensbi@lists.infradead.org
+Cc: andrew.jones@linux.dev,
+	atishp@rivosinc.com,
+	James Raphael Tiovalen <jamestiotio@gmail.com>
+Subject: [PATCH v3] lib: sbi: pmu: Return SBI_EINVAL if cidx_mask is 0
+Date: Tue, 13 May 2025 21:40:54 +0800
+Message-ID: <20250513134054.80863-1-jamestiotio@gmail.com>
+X-Mailer: git-send-email 2.43.0
+MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250513_053731_561356_43762651 
-X-CRM114-Status: GOOD (  16.86  )
+X-CRM114-CacheID: sfid-20250513_064102_734101_0FF1D481 
+X-CRM114-Status: GOOD (  15.65  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -62,52 +91,104 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T2ggSSB0aGluayBpdCdzIGJldHRlciB0byBpbnRyb2R1Y2UgbXlzZWxmIGZpcnN0IDpECk5pY2Ug
-dG8gbWVldCB5b3UgZm9sa3MhIHRoaXMgaXMgWmlhbmcuIEknbSBhbiBlbmdpbmVlciBmcm9tIEJ5
-dGVkYW5jZSBMdGQsIGN1cnJlbnRseSBiYXNlZCBpbiBTaGFuZ2hhaSwgQ2hpbmEuIFdlJ3ZlIGJl
-ZW4gY29uc3RhbnRseSBpbnRlcmVzdGVkIGluIHRoZSBhcHBsaWNhdGlvbiBvZiBSSVNDLVYgaW4g
-c2VydmVyIGFyZWEsIHBsdXMgdGhlIGNvbWJpbmF0aW9uIG9mIE9wZW5TQkkgYW5kIGNvcmVib290
-L0xpbnV4Ym9vdCBhcyB0aGUgZmlybXdhcmUgc29sdXRpb24uIFdlIGFyZSBlYWdlciB0byBjb250
-cmlidXRlLCBhbmQgYXJlIHJlY2VudGx5IGV4cGVyaW1lbnRpbmcgUlBNSSBvbiBvdXIgbG9jYWwg
-UklTQy1WIHByb2plY3QsIGdvdCBzb21lIGZpbmRpbmcsIGhlbmNlIGNvbWUgdGhpcyB0aW55IHBh
-dGNoLiBIb3BlIG15IGFicnVwdG5lc3MgZGlkbid0IGZyZWFrIHlvdSBvdXQgOiksIGFuZCB0aGlz
-IGNvdWxkIGJlIHRoZSBzdGFydGluZyBwb2ludCBvZiBvdXIgY29udHJpYnV0aW9uLgoKVGhhbmtz
-IQoKQmVzdCBSZWdhcmRzLApaaWFuZwo+IEZyb206ICLnjovlrZDmmIIiPHdhbmd6aWFuZy5va0Bi
-eXRlZGFuY2UuY29tPgo+IERhdGU6wqAgTW9uLCBNYXkgMTIsIDIwMjUsIDE1OjMwCj4gU3ViamVj
-dDrCoCBSZTogW1BBVENIXSBsaWI6IHV0aWxzOiBoc206IERvIG5vdCBmYWlsIG9uIEVBTFJFQURZ
-IGluIHJwbWktaHNtIGZpeHVwLgo+IFRvOiA8b3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnPgo+
-IEhpIGFsbCwKPiBJIHdvdWxkIGxpa2UgdG8gaGVhciB5b3VyIGZlZWRiYWNrIG9uIHRoaXMuCj7C
-oAo+IEl0IGlzIGNvbW1vbiB0byBoYXZlIGhhcnRzwqBncm91cGVkIGJ5IGRpZmZlcmVudCBtYWls
-Ym94ZXMgb24gYSBtdWx0aS1zb2NrZXQgc3lzdGVtLiBUaGUgY3VycmVudCBIU00gaW1wbGVtZW50
-YXRpb24gY2FuIGFjdHVhbGx5IHN1ZmZpY2UgdGhpcyBjYXNlLCB3aXRoIHRoZSBvbmx5IG1pbm9y
-IGNoYW5nZSBpbiB0aGlzIHBhdGNoLiBXZSBoYXZlIHRlc3RlZCBpdCBvbiBib3RoIFFFTVUgdmly
-dCBtYWNoaW5lIGFuZCBvdXIgUklTQy1WIHByb2plY3QuCj7CoAo+IEJlc3QgUmVnYXJkcywKPiBa
-aWFuZwo+wqAKPiA+IEZyb206ICJaaWFuZyBXYW5nIjx3YW5nemlhbmcub2tAYnl0ZWRhbmNlLmNv
-bT4KPiA+IERhdGU6wqAgV2VkLCBNYXkgNywgMjAyNSwgMTU6NDYKPiA+IFN1YmplY3Q6wqAgW1BB
-VENIXSBsaWI6IHV0aWxzOiBoc206IERvIG5vdCBmYWlsIG9uIEVBTFJFQURZIGluIHJwbWktaHNt
-IGZpeHVwLgo+ID4gVG86IDxvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmc+Cj4gPiBDYzogIlpp
-YW5nIFdhbmciPHdhbmd6aWFuZy5va0BieXRlZGFuY2UuY29tPgo+ID4gSW4gY2FzZSBoYXJ0cyBh
-cmUgZGl2aWRlZCBpbnRvIGdyb3VwcyB0aGF0IHVzZSBkaWZmZXJlbnQKPiA+IHJwbWktaHNtIGNo
-YW5uZWxzIGluIGRpZmZlcmVudCBtYWlsYm94ZXMsIHRoZSBzdXNwZW5kCj4gPiBzdGF0ZSBmaXh1
-cCBmdW5jdGlvbiB3aWxsIHJldHVybiBFQUxSRUFEWSBvbiBzZWNvbmRhcnkKPiA+IGVudHJ5LCBz
-aW1wbHkgc2tpcCBvbiB0aGlzIGVycm9yLgo+ID7CoAo+ID4gU2lnbmVkLW9mZi1ieTogWmlhbmcg
-V2FuZyA8d2FuZ3ppYW5nLm9rQGJ5dGVkYW5jZS5jb20+Cj4gPiAtLS0KPiA+IMKgbGliL3V0aWxz
-L2hzbS9mZHRfaHNtX3JwbWkuYyB8IDIgKy0KPiA+IMKgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0
-aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4gPsKgCj4gPiBkaWZmIC0tZ2l0IGEvbGliL3V0aWxzL2hz
-bS9mZHRfaHNtX3JwbWkuYyBiL2xpYi91dGlscy9oc20vZmR0X2hzbV9ycG1pLmMKPiA+IGluZGV4
-IGNjNzg0MzYuLjA5ZDBjOTEgMTAwNjQ0Cj4gPiAtLS0gYS9saWIvdXRpbHMvaHNtL2ZkdF9oc21f
-cnBtaS5jCj4gPiArKysgYi9saWIvdXRpbHMvaHNtL2ZkdF9oc21fcnBtaS5jCj4gPiBAQCAtMzMw
-LDcgKzMzMCw3IEBAIHNraXBfc3VzcGVuZF9zdGF0ZXM6Cj4gPiDCoAo+ID4gwqAgwqAgwqAgwqAg
-wqAvKiBSZWdpc3RlciBIU00gZml4dXAgY2FsbGJhY2sgKi8KPiA+IMKgIMKgIMKgIMKgIMKgcmMg
-PSBmZHRfcmVnaXN0ZXJfZ2VuZXJhbF9maXh1cCgmcnBtaV9oc21fZml4dXApOwo+ID4gLSDCoCDC
-oCDCoCDCoGlmIChyYykKPiA+ICsgwqAgwqAgwqAgwqBpZiAocmMgJiYgcmMgIT0gU0JJX0VBTFJF
-QURZKQo+ID4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBnb3RvIGZhaWxfZnJlZV9zdXNwX3N0
-YXRlX25hbWVzOwo+ID4gwqAKPiA+IMKgIMKgIMKgIMKgIMKgLyogUmVnaXN0ZXIgSFNNIGRldmlj
-ZSAqLwo+ID4gLS3CoAo+ID4gMi4zOS41Cj4gPsKgCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QK
-b3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
-aWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+Currently, when configuring a matching programmable HPM counter with
+Sscofpmf being present, cidx_base > 2, and cidx_mask == 0 to monitor
+either the CPU_CYCLES or INSTRUCTIONS hardware event,
+sbi_pmu_ctr_cfg_match will succeed but it will configure the
+corresponding fixed counter instead of the counter specified by the
+cidx_base parameter.
+
+During counter configuration, the following issues may arise:
+- If the SKIP_MATCH flag is set, an out-of-bounds memory read of the
+phs->active_events array would occur, which could lead to undefined
+behavior.
+
+- If the CLEAR_VALUE flag is set, the corresponding fixed counter will
+be reset, which could be considered unexpected behavior.
+
+- If the AUTO_START flag is set, pmu_ctr_start_hw will silently start
+the fixed counter, even though it has already started. From the
+supervisor's perspective, nothing has changed, which could be confusing.
+The supervisor will not see the SBI_ERR_ALREADY_STARTED error code since
+sbi_pmu_ctr_cfg_match does not return the error code of
+pmu_ctr_start_hw.
+
+The only way to detect these issues is to check the ctr_idx return value
+of sbi_pmu_ctr_cfg_match and compare it with cidx_base.
+
+Fix these issues by returning the SBI_ERR_INVALID_PARAM error code if
+the cidx_mask parameter value being passed in is 0 since an invalid
+parameter should not lead to a successful sbi_pmu_ctr_cfg_match but with
+unexpected side effects.
+
+Following a similar rationale, add the validation check to
+sbi_pmu_ctr_start and sbi_pmu_ctr_stop as well since sbi_fls is
+undefined when the mask is 0.
+
+This also aligns OpenSBI's behavior with KVM's.
+
+Signed-off-by: James Raphael Tiovalen <jamestiotio@gmail.com>
+---
+ lib/sbi/sbi_pmu.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 5983a78..353a8f2 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -206,6 +206,12 @@ static int pmu_ctr_validate(struct sbi_pmu_hart_state *phs,
+ 	return event_idx_type;
+ }
+ 
++static bool pmu_ctr_idx_validate(unsigned long cbase, unsigned long cmask)
++{
++	/* Do a basic sanity check of counter base & mask */
++	return cmask && ((cbase + sbi_fls(cmask)) < total_ctrs);
++}
++
+ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
+ {
+ 	int event_idx_type;
+@@ -472,7 +478,7 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
+ 	int i, cidx;
+ 	uint64_t edata;
+ 
+-	if ((cbase + sbi_fls(cmask)) >= total_ctrs)
++	if (!pmu_ctr_idx_validate(cbase, cmask))
+ 		return ret;
+ 
+ 	if (flags & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
+@@ -577,8 +583,8 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
+ 	uint32_t event_code;
+ 	int i, cidx;
+ 
+-	if ((cbase + sbi_fls(cmask)) >= total_ctrs)
+-		return SBI_EINVAL;
++	if (!pmu_ctr_idx_validate(cbase, cmask))
++		return ret;
+ 
+ 	if (flag & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
+ 		return SBI_ENO_SHMEM;
+@@ -839,8 +845,7 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+ 	int ret, event_type, ctr_idx = SBI_ENOTSUPP;
+ 	u32 event_code;
+ 
+-	/* Do a basic sanity check of counter base & mask */
+-	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
++	if (!pmu_ctr_idx_validate(cidx_base, cidx_mask))
+ 		return SBI_EINVAL;
+ 
+ 	event_type = pmu_event_validate(phs, event_idx, event_data);
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
