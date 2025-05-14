@@ -4,55 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CC867C3ABC9
-	for <opensbi@archiver.kernel.org>; Wed, 14 May 2025 00:23:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 671CFC3ABC3
+	for <opensbi@archiver.kernel.org>; Wed, 14 May 2025 00:25:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=H7ED/C0O9bg4Ceww6/6k/mTzixDz+EFJBBSUL7VLKUo=; b=RM2RojPbWA2buv
-	qtCeqj0stpc1nmuwtJIf2LPjZYxPeG45F/zg6PfUdMrig8MkUqlFCrZzwji2sMhgW/LTqHCd65XCd
-	CFWNVRrddNpjXjS3Qr14yEaiEVh4Yqml41/Ttj0vDH8FjcSwEHi8tjB7KGECu6BgBupgEzA0JPK0K
-	coaptH+Qo71KrrW5rzMhUXQmL6gOU/ZntLJ6s6nnKclrRw9R7GauNBlplpEi//PVAY9ZsaIzoeQmt
-	l3SFdeJOOI0+J2m14+AQ2eegqRZ/HVxMZB6cMv9wwJSiRO2lQcoCcKWZ8fPsWxHoshfq/1a9UonOD
-	ayzxc4qh1fjeJIMxFK8w==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
+	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=YjOgrEmOwE69tKeYNde7VbIMzJ8qfO2E8vbgCyT2sC0=; b=s2z0s/5jFKW1Lc
+	2ue2zwA4TRal1n/tJhJvOn4zE9WJk3IyV51LNskCseBoDEXLEBrrImX0ALadLiRFUq4JOJDMo1Anz
+	k8Vuk11iJrO4p2CbYuqAAqZ4rNzQTK42jQiKpo6bNobex0QNGun86NiGBgNoHlKOQYGoLTwPTHNgp
+	eoout6aY99my7cOeBsVuEB4Imd+1C68l9WhyWIHymrNNSL9d/t1AM5/iyL1mVJrkeAmWL72+tFSgC
+	2pjp3t6pcaUpHsPgZ3OJOM/4uOjk1CApoaLN0jBHj7hBAgoEKc2DAWxS58oGct9pxBaTw46YCJCKN
+	u/H1+rulJNrdRTKlYq+w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEzuP-0000000DmJu-0k34;
-	Wed, 14 May 2025 00:23:41 +0000
-Received: from out-170.mta0.migadu.com ([91.218.175.170])
+	id 1uEzw5-0000000DmQD-2wSA;
+	Wed, 14 May 2025 00:25:25 +0000
+Received: from mail-pl1-x62d.google.com ([2607:f8b0:4864:20::62d])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uEzuM-0000000DmHi-2rWD
+	id 1uEzw2-0000000DmPe-3DXd
 	for opensbi@lists.infradead.org;
-	Wed, 14 May 2025 00:23:40 +0000
-Message-ID: <21be2eff-91dd-4bf7-8794-8037012f80e9@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1747182203;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=dBU34hqU2IPxoLR1oRd91y/C987yo2EwEc0TAO9o9zs=;
-	b=qfWsCoqN3wSf9GTCdTmDIypqrp7SoTe//nIumf6B8bj2/Kcfd/EPJpRjZMOujZn7sOgUXY
-	zKB1oLSLSFf9fv06j0yeIK216Ko/iwkHmyWkqelT98NZKctFhy35b9wknzdA9IFhHMJyk4
-	O5Jzkv/CSj1Y093xvCjdtOLvRtub0HQ=
-Date: Tue, 13 May 2025 17:23:14 -0700
+	Wed, 14 May 2025 00:25:24 +0000
+Received: by mail-pl1-x62d.google.com with SMTP id d9443c01a7336-22e4db05fe8so59172595ad.0
+        for <opensbi@lists.infradead.org>; Tue, 13 May 2025 17:25:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1747182321; x=1747787121; darn=lists.infradead.org;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=QN5ezuqunDiNuD7UyUNhXBePs16bzf4Y6HAQYprjH1E=;
+        b=YR03VxluNIfk23qJserl62hCkRkrPpEAHOnIpAdWp4ioXNvUOUsVIP9HuTJyvJug+X
+         iPJF3DY4hXhAXnD6VbYR98wTOKFj6iJAr9aOl9WXi76vLI3+ujqO/aE6dYu32GoNhzSg
+         /4VtnA1TX8nmadxV5LsyGarXb8tNIfpkLMXnWO/ltz6Zz7KWw9h8cD8rUsBBsioWCgTG
+         BkxLGZWu0V7yVVppW87w7t8DfqL822AqOFiifhh8JkKVkJl0ZaHhW+MYoG3LkC6g1Axy
+         m1qNNTWDlyF7X/ykbempmFs7YAin6q+de1cA3d3jQqSb2IQsCEHHJbcgMuhzz3+7+Qaq
+         b5hQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747182321; x=1747787121;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=QN5ezuqunDiNuD7UyUNhXBePs16bzf4Y6HAQYprjH1E=;
+        b=FfwarwZK+a4fpiUb+/MmdL2MAC8+RjqSKsn5Q0JruNcEE1Fwc4KruBgQ2wVlmCaLQY
+         ph8OE4Sp+wKe8BqFi8z+eSu/Nr97yy/huCrKt9vu9AvlX0AAh2S9BnhDKUkc0YIHHAtX
+         6q6JQ0AwWOiRxaxhAte73/B9H1oJr6IXtSaKGp9hhDl7DgaPHAp3TxuuHcF9PpXotZWx
+         MN34hYSv8qGKxPM5gUkhp3xzT91Lfq0BUcLrbOy0oFkmHii7XLYwkCzhbjmWjiLmXId/
+         XEPwABY6SLhjuVyRI6e9LZTGUYCvId/EA2uO4GXPMUz/POssljjRQpGArZ9Jy2xjcBLt
+         vZTg==
+X-Gm-Message-State: AOJu0YzWmJibW1BNx+Z6tVblGhutPbatjQSP48t8JN8sffMcuak9F/EE
+	NiCyGFr/lV0WnqzUlkXmadw2YI57GiZ84DifeosudPaL+8kd7qBDNiYCxVyRtBtbIrtqqeQtYPk
+	3
+X-Gm-Gg: ASbGncshw7mQIkCRmMG8tU6YIk1oQBwyLUEAZ6zctqSA16Ie10JX2ik1ts3T4QPboS3
+	RZsw67NDeWgxkA8nPgcdtkGwMa3R5oP3uFuYCOJ2hdC8mnzGdGE9PZWUmbk40BqRDW5tOw3ZTR/
+	70xqczRIKLLd0GSnvAe5eSqJ7dH8ruNYEWUtjIAKkGvB7M2n3zx20w8jW//LeetMry2kl/+T0bG
+	db/EIXdXQCX2fW7hM28PnrTEG/Lga0XVFaTXM0QFJieFBDz7+udQyniY1NNl1Htgo+98RJwScFK
+	9C8uL51tAx/Sa2VWpz6CNJc1dqcoUJMuQYF6gOd7Ist9W5bzmto1Qa3VrzJB3hcG
+X-Google-Smtp-Source: AGHT+IGsx34VJNO1hfQc5In90KAVp7oclfptYYG5ar6YDL3U9GEWYilcNPfCubm+R33Dzet/IUon0g==
+X-Received: by 2002:a17:902:d2ce:b0:220:ca08:8986 with SMTP id d9443c01a7336-2319813d2b7mr16953975ad.22.1747182321111;
+        Tue, 13 May 2025 17:25:21 -0700 (PDT)
+Received: from atishp.ba.rivosinc.com ([64.71.180.162])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22fc754938asm87461615ad.22.2025.05.13.17.25.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 May 2025 17:25:20 -0700 (PDT)
+From: Atish Patra <atishp@rivosinc.com>
+Date: Tue, 13 May 2025 17:25:15 -0700
+Subject: [PATCH] lib: sbi: Only enable TM bit in scounteren
 MIME-Version: 1.0
-Subject: Re: [PATCH v3] lib: sbi: pmu: Return SBI_EINVAL if cidx_mask is 0
-To: James Raphael Tiovalen <jamestiotio@gmail.com>,
- opensbi@lists.infradead.org
-Cc: andrew.jones@linux.dev
-References: <20250513134054.80863-1-jamestiotio@gmail.com>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Atish Patra <atish.patra@linux.dev>
-In-Reply-To: <20250513134054.80863-1-jamestiotio@gmail.com>
-X-Migadu-Flow: FLOW_OUT
+Message-Id: <20250513-fix_scounteren-v1-1-01018e0c0b0a@rivosinc.com>
+X-B4-Tracking: v=1; b=H4sIAOriI2gC/x2MQQqAIBAAvxJ7TlBJk74SEWlb7UVDKwLx70nHg
+ ZnJkDASJhiaDBEfShR8BdE24I7F78horQySS8WVkGyjd04u3P7CiJ4Z21ttpLVGd1CjM2I1/uE
+ 4lfIBcOFgNGAAAAA=
+X-Change-ID: 20250512-fix_scounteren-8b7b682bb864
+To: anup@brainfault.org
+Cc: opensbi@lists.infradead.org, Atish Patra <atishp@rivosinc.com>
+X-Mailer: b4 0.15-dev-42535
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250513_172339_031441_8B22D1EE 
-X-CRM114-Status: GOOD (  24.95  )
+X-CRM114-CacheID: sfid-20250513_172523_009733_D9EF4D2A 
+X-CRM114-Status: GOOD (  10.58  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -64,102 +93,51 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On 5/13/25 6:40 AM, James Raphael Tiovalen wrote:
-> Currently, when configuring a matching programmable HPM counter with
-> Sscofpmf being present, cidx_base > 2, and cidx_mask == 0 to monitor
-> either the CPU_CYCLES or INSTRUCTIONS hardware event,
-> sbi_pmu_ctr_cfg_match will succeed but it will configure the
-> corresponding fixed counter instead of the counter specified by the
-> cidx_base parameter.
-> 
-> During counter configuration, the following issues may arise:
-> - If the SKIP_MATCH flag is set, an out-of-bounds memory read of the
-> phs->active_events array would occur, which could lead to undefined
-> behavior.
-> 
-> - If the CLEAR_VALUE flag is set, the corresponding fixed counter will
-> be reset, which could be considered unexpected behavior.
-> 
-> - If the AUTO_START flag is set, pmu_ctr_start_hw will silently start
-> the fixed counter, even though it has already started. From the
-> supervisor's perspective, nothing has changed, which could be confusing.
-> The supervisor will not see the SBI_ERR_ALREADY_STARTED error code since
-> sbi_pmu_ctr_cfg_match does not return the error code of
-> pmu_ctr_start_hw.
-> 
-> The only way to detect these issues is to check the ctr_idx return value
-> of sbi_pmu_ctr_cfg_match and compare it with cidx_base.
-> 
-> Fix these issues by returning the SBI_ERR_INVALID_PARAM error code if
-> the cidx_mask parameter value being passed in is 0 since an invalid
-> parameter should not lead to a successful sbi_pmu_ctr_cfg_match but with
-> unexpected side effects.
-> 
-> Following a similar rationale, add the validation check to
-> sbi_pmu_ctr_start and sbi_pmu_ctr_stop as well since sbi_fls is
-> undefined when the mask is 0.
-> 
-> This also aligns OpenSBI's behavior with KVM's.
-> 
-> Signed-off-by: James Raphael Tiovalen <jamestiotio@gmail.com>
-> ---
->   lib/sbi/sbi_pmu.c | 15 ++++++++++-----
->   1 file changed, 10 insertions(+), 5 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-> index 5983a78..353a8f2 100644
-> --- a/lib/sbi/sbi_pmu.c
-> +++ b/lib/sbi/sbi_pmu.c
-> @@ -206,6 +206,12 @@ static int pmu_ctr_validate(struct sbi_pmu_hart_state *phs,
->   	return event_idx_type;
->   }
->   
-> +static bool pmu_ctr_idx_validate(unsigned long cbase, unsigned long cmask)
-> +{
-> +	/* Do a basic sanity check of counter base & mask */
-> +	return cmask && ((cbase + sbi_fls(cmask)) < total_ctrs);
-> +}
-> +
->   int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
->   {
->   	int event_idx_type;
-> @@ -472,7 +478,7 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
->   	int i, cidx;
->   	uint64_t edata;
->   
-> -	if ((cbase + sbi_fls(cmask)) >= total_ctrs)
-> +	if (!pmu_ctr_idx_validate(cbase, cmask))
->   		return ret;
->   
->   	if (flags & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
-> @@ -577,8 +583,8 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
->   	uint32_t event_code;
->   	int i, cidx;
->   
-> -	if ((cbase + sbi_fls(cmask)) >= total_ctrs)
-> -		return SBI_EINVAL;
-> +	if (!pmu_ctr_idx_validate(cbase, cmask))
-> +		return ret;
->   
->   	if (flag & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
->   		return SBI_ENO_SHMEM;
-> @@ -839,8 +845,7 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
->   	int ret, event_type, ctr_idx = SBI_ENOTSUPP;
->   	u32 event_code;
->   
-> -	/* Do a basic sanity check of counter base & mask */
-> -	if ((cidx_base + sbi_fls(cidx_mask)) >= total_ctrs)
-> +	if (!pmu_ctr_idx_validate(cidx_base, cidx_mask))
->   		return SBI_EINVAL;
->   
->   	event_type = pmu_event_validate(phs, event_idx, event_data);
+The S-mode should disable Cycle and instruction counter for user space
+to avoid side channel attacks. The Linux kernel already does this so that
+any random user space code shouldn't be able to monitor cycle/instruction
+without higher privilege mode involvement.
 
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
+Remove the CY/IR bits in scountern in OpenSBI.
+
+Signed-off-by: Atish Patra <atishp@rivosinc.com>
+---
+To: anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org
+---
+ lib/sbi/sbi_hart.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index fc4925b57625..177f356b7b77 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -49,10 +49,10 @@ static void mstatus_init(struct sbi_scratch *scratch)
+ 
+ 	csr_write(CSR_MSTATUS, mstatus_val);
+ 
+-	/* Disable user mode usage of all perf counters except default ones (CY, TM, IR) */
++	/* Disable user mode usage of all perf counters except TM */
+ 	if (misa_extension('S') &&
+ 	    sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
+-		csr_write(CSR_SCOUNTEREN, 7);
++		csr_write(CSR_SCOUNTEREN, 0x02);
+ 
+ 	/**
+ 	 * OpenSBI doesn't use any PMU counters in M-mode.
+
+---
+base-commit: 316daaf1c299c29ac46e52145f65521f48ec63b5
+change-id: 20250512-fix_scounteren-8b7b682bb864
+--
+Regards,
+Atish patra
+
 
 -- 
 opensbi mailing list
