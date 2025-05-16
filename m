@@ -4,83 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B065FC54754
-	for <opensbi@archiver.kernel.org>; Fri, 16 May 2025 15:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 96602C3ABC9
+	for <opensbi@archiver.kernel.org>; Fri, 16 May 2025 18:37:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=K9JN04onqML7R5GeuPy8CcUrreS+XVGrhKcw4F8kQdY=; b=AgALTDqj7CIwPv
-	TvyIUXcvCb/jcPWdAvC9/6NVUardrqOVO92FeP2wDPL+HtDms0+B77WvJ/ud9Ep6WF1XFSaMD3Rlx
-	7TDGcnrlPNcSzGWaNlWmnzLiFoNaNHoiH9lRPpm2uQaKdKVBDcEniw1yeBJDWIt/0LJV8GXV2LyLl
-	Y+5wWf+psC/ECE1PYuN1AuqMO9rsnW2rjcXpgA3iPX/bToujtHDm9juW72Dgp7tOvDjO8ize4hOcZ
-	ZrWktURr4zatmkjlUro71Iz+6iB5oP/J88xOEt6kiaOjtccqpQoIxXsfMDWl/nYum8fOCmH/ZrJ3x
-	HaU+pRm/J+p17gYfKTcA==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=gelHmogJ6OP3WJMKbWiGAK51+fNWhmuSey7UCK18cLQ=; b=lLeNneB980DdEy
+	A2uXi2YIzcHLylwH8ZTnNJdKnOFTlRzngGkgQYLbUhERfmqzxl6/kls2pu1nOQo3aCkFIR8Bch7zi
+	VFm64tnJkhcgZzrtqLA9FoKa9zbPgHloAXKUuelbSSPbuLhc1mIW4KLmKK2VG3liJP3K7PVKr37AC
+	t5+lTR717cDxnoE+mjij7YLf3idLspJ6PQ+vZQcTdPnstV7wbJLnp9X/pNmM+qH6ROKttSCrxnbwc
+	XsEqo5U5IoRTaPSgTvxgQ1rJwCSddBNZmz+L4vnp1Kk5wuYkRmJxqMxNo6BK7Ub6E3gCg0EJrt9El
+	sQNIADoCy4eF03ETqjKg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uFxQ9-00000003v7t-0Og9;
-	Fri, 16 May 2025 15:56:25 +0000
-Received: from mail-pj1-x102a.google.com ([2607:f8b0:4864:20::102a])
+	id 1uFzvr-00000004LZU-0mYf;
+	Fri, 16 May 2025 18:37:19 +0000
+Received: from out-188.mta0.migadu.com ([2001:41d0:1004:224b::bc])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uFwsD-00000003pnF-1bHo
+	id 1uFzS2-00000004GHi-0DiK
 	for opensbi@lists.infradead.org;
-	Fri, 16 May 2025 15:21:22 +0000
-Received: by mail-pj1-x102a.google.com with SMTP id 98e67ed59e1d1-30e8f4dbb72so534537a91.1
-        for <opensbi@lists.infradead.org>; Fri, 16 May 2025 08:21:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1747408879; x=1748013679; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=/1C2gjEdI26e9ljiUMDYFLP0898QYHSBS1HCdRqC4CU=;
-        b=lUJns5PoUqbIxUMlC2rcntCd8YdDKLlp4ZTIeusPAWORjVh5Qy5JklzjTAB5J+eH1d
-         7gKztWG2Ehc4KJhxVVOLGnp3uTi29Q+zKB1gdMMyUeYajuDbVYvrgcpJ8b9pGid95+gU
-         PuWdWUXHyVI9Eo91r1zfo6nIcKB2Uj5wKjI4ixQAm0JAdqlUkC8FhWYbAeg0B3fumieb
-         tUC6wtvgBZBx2Id/xYTzBtIESevjHk/KDpydyg9ZuTBuN+A9za7r5rYVaDyHyPr3YEJb
-         mykRPjl2DzaZvhpeiXFMbfJCfadI8Z+4SLsbDvHeCPuGkLid5l8oZP2pVWZk8y6ndmJo
-         zkaQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747408879; x=1748013679;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=/1C2gjEdI26e9ljiUMDYFLP0898QYHSBS1HCdRqC4CU=;
-        b=ICkQB10PdWcYIV6X3UV7W9tBnLVCYyOSwCsVXMaXSqE+er86yoT8UNvHyxG0XIOYJ2
-         kqYeF3kkecZOiPH7uFZZPBogC8Mhnzae5MIXcXhTUblShxM9XRgUlznB6knj+w7URaDK
-         7JUFjRw39pL86BxXpu3dX4+0mVSm5Ft6O78Q4Nb6T/2jG49C+aQuQQYUwFXWbC2m5dRr
-         HHejCTfZ+02T02w9e8QikjpHnyr5kB38JGVjEmWN3Psnd9sm7q5KLCWuh0hD0fXG0c3V
-         p7mgtxDWzW+mAiVgVbh/rDPa7UNGyx7yl7ktZ0uOu7obQK3Nz2/Kpx5epENsx/DYgprt
-         foXA==
-X-Gm-Message-State: AOJu0YxVmf3edzLdD+/PWuiIm6eqFVHkGGdM9QxwAeYoH6LrGPNgXuD9
-	Q250KGrl9rBaYaNiWlw9IOqAI0CeP5wlKLajUJz/YYy7RN+31dzm20LKRTU8ICagkkBqKsOPFaT
-	qHcBsChA=
-X-Gm-Gg: ASbGnctaNDMWymjwzqpBuUQ9F2g4u65nIgWAnrFKsojQGyZQupLc5lK/upab+xaOY1t
-	pFoC6eCMgEwVp0NCaN1KOZ9tWEF/yTx79zv2QSS3W4x+aIkRFBZ+8PTBDvZ15rcF0uEg7Rsz8+D
-	fX3YcqFsJmzneQq/4eMwnArQrR2o0ubzXKCuaiyfWQ2XkZice63bBL81VmmilEZWK1tRbwcsoM7
-	ELov/rTKnwR8FJ50O91pQp3PuLQ1Ron3XwJ0v+LvcX+rvF6myx9gA3KZCUMIQP3COMsRDbQIJ+Q
-	pHJ40loRamXZxqxNjWY06yRCa5cq0dewDt6DUrb02BZyIVLIlyk4
-X-Google-Smtp-Source: AGHT+IG9ss+Gd0YSU0PGH91QCKCMEi9yeA3PUScF/91+S/DVuZwzji2aUPorRGWhEvZuB2UI1bo9lg==
-X-Received: by 2002:a17:90b:1dc2:b0:2ee:b2e6:4276 with SMTP id 98e67ed59e1d1-30e8322593dmr4151663a91.27.1747408879307;
-        Fri, 16 May 2025 08:21:19 -0700 (PDT)
-Received: from carbon-x1.. ([2a01:e0a:e17:9700:16d2:7456:6634:9626])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-30e7d489fa1sm1738715a91.13.2025.05.16.08.21.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 May 2025 08:21:18 -0700 (PDT)
-From: =?UTF-8?q?Cl=C3=A9ment=20L=C3=A9ger?= <cleger@rivosinc.com>
-To: opensbi@lists.infradead.org
-Cc: =?UTF-8?q?Cl=C3=A9ment=20L=C3=A9ger?= <cleger@rivosinc.com>,
-	Anup Patel <apatel@ventanamicro.com>,
-	Atish Patra <atishp@rivosinc.com>
-Subject: [PATCH] lib: sbi: pmu: Rework SSE callbacks
-Date: Fri, 16 May 2025 17:21:05 +0200
-Message-ID: <20250516152107.556643-1-cleger@rivosinc.com>
-X-Mailer: git-send-email 2.49.0
+	Fri, 16 May 2025 18:06:31 +0000
+Message-ID: <aa20489e-485b-4769-aeeb-81e5783e7c5d@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1747418776;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TTFM7wWaUqAG8I02nUF+EUdB8BHPzLiphfJ7K/KtBkE=;
+	b=NeW+6r8ucaOwTTYkSa7rsyx8h33WZp1RY/YMBL7bkyl7mXJMJRiv370Kd0jmBODDa20qlc
+	Y24FtyESMZ1fxSdQHaq+I893btsjRXbs2PP60feElihU5Vjl+TV2rfTjsK6lEd912cWVIS
+	IBm7MmuY1lRp1P77cYilEgJcnbkL65U=
+Date: Fri, 16 May 2025 11:06:12 -0700
 MIME-Version: 1.0
+Subject: Re: [PATCH] include: sbi: Change SBI spec version to 3.0
+To: Anup Patel <apatel@ventanamicro.com>
+Cc: Andrew Jones <ajones@ventanamicro.com>, Anup Patel <anup@brainfault.org>,
+ opensbi@lists.infradead.org
+References: <20250516122844.113423-1-apatel@ventanamicro.com>
+Content-Language: en-US
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Atish Patra <atish.patra@linux.dev>
+In-Reply-To: <20250516122844.113423-1-apatel@ventanamicro.com>
+X-Migadu-Flow: FLOW_OUT
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250516_082121_418532_6B6D3007 
-X-CRM114-Status: UNSURE (   9.74  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20250516_110630_529852_33C389F2 
+X-CRM114-Status: GOOD (  11.95  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -92,48 +64,91 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-VGhlIFMtbW9kZSBQTVUgZHJpdmVyIG1pZ2h0IG5lZWQgdG8gZW5hYmxlL2Rpc2FibGUgU1NFIGV2
-ZW50IHJlZ3VsYXJseQppbiBvcmRlciB0byBtYXNrIFNTRSBldmVudHMuVGhpcyBjb21taXRzIHJl
-d29ya3MgdGhlIFBNVSBTU0UgY2FsbGJhY2suClNTRSByZWdpc3Rlci91bnJlZ2lzdGVyIG5vdyBq
-dXN0IHNldHMgdGhlIE1JREVMRUcgcmVnaXN0ZXIgYW5kCmVuYWJsZS9kaXNhYmxlIG5vdyBzZXQv
-Y2xlYXIgTUlFLiBNSVAgY2xlYXJpbmcgaXMgYWxzbyByZW1vdmVkIGZyb20KcG11X3NzZV9lbmFi
-bGUoKSBzaW5jZSBpdCBjb3VsZCBsZWFkIHRvIGxvc2luZyBwZW5kaW5nIGludGVycnVwdHMuCgpT
-aWduZWQtb2ZmLWJ5OiBDbMOpbWVudCBMw6lnZXIgPGNsZWdlckByaXZvc2luYy5jb20+Ci0tLQog
-bGliL3NiaS9zYmlfcG11LmMgfCAyOSArKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLQogMSBm
-aWxlIGNoYW5nZWQsIDE5IGluc2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdp
-dCBhL2xpYi9zYmkvc2JpX3BtdS5jIGIvbGliL3NiaS9zYmlfcG11LmMKaW5kZXggNTk4M2E3ODQu
-LjQ2YzBlMGZiIDEwMDY0NAotLS0gYS9saWIvc2JpL3NiaV9wbXUuYworKysgYi9saWIvc2JpL3Ni
-aV9wbXUuYwpAQCAtMTA5NywyNCArMTA5NywxNSBAQCB2b2lkIHNiaV9wbXVfZXhpdChzdHJ1Y3Qg
-c2JpX3NjcmF0Y2ggKnNjcmF0Y2gpCiAKIHN0YXRpYyB2b2lkIHBtdV9zc2VfZW5hYmxlKHVpbnQz
-Ml90IGV2ZW50X2lkKQogewotCXN0cnVjdCBzYmlfcG11X2hhcnRfc3RhdGUgKnBocyA9IHBtdV90
-aGlzaGFydF9zdGF0ZV9wdHIoKTsKLQl1bnNpZ25lZCBsb25nIGlycV9tYXNrID0gc2JpX3BtdV9p
-cnFfbWFzaygpOwotCi0JcGhzLT5zc2VfZW5hYmxlZCA9IHRydWU7Ci0JY3NyX2NsZWFyKENTUl9N
-SURFTEVHLCBpcnFfbWFzayk7Ci0JY3NyX2NsZWFyKENTUl9NSVAsIGlycV9tYXNrKTsKLQljc3Jf
-c2V0KENTUl9NSUUsIGlycV9tYXNrKTsKKwljc3Jfc2V0KENTUl9NSUUsIHNiaV9wbXVfaXJxX21h
-c2soKSk7CiB9CiAKIHN0YXRpYyB2b2lkIHBtdV9zc2VfZGlzYWJsZSh1aW50MzJfdCBldmVudF9p
-ZCkKIHsKLQlzdHJ1Y3Qgc2JpX3BtdV9oYXJ0X3N0YXRlICpwaHMgPSBwbXVfdGhpc2hhcnRfc3Rh
-dGVfcHRyKCk7CiAJdW5zaWduZWQgbG9uZyBpcnFfbWFzayA9IHNiaV9wbXVfaXJxX21hc2soKTsK
-IAogCWNzcl9jbGVhcihDU1JfTUlFLCBpcnFfbWFzayk7CiAJY3NyX2NsZWFyKENTUl9NSVAsIGly
-cV9tYXNrKTsKLQljc3Jfc2V0KENTUl9NSURFTEVHLCBpcnFfbWFzayk7Ci0JcGhzLT5zc2VfZW5h
-YmxlZCA9IGZhbHNlOwogfQogCiBzdGF0aWMgdm9pZCBwbXVfc3NlX2NvbXBsZXRlKHVpbnQzMl90
-IGV2ZW50X2lkKQpAQCAtMTEyMiw3ICsxMTEzLDI1IEBAIHN0YXRpYyB2b2lkIHBtdV9zc2VfY29t
-cGxldGUodWludDMyX3QgZXZlbnRfaWQpCiAJY3NyX3NldChDU1JfTUlFLCBzYmlfcG11X2lycV9t
-YXNrKCkpOwogfQogCitzdGF0aWMgdm9pZCBwbXVfc3NlX3JlZ2lzdGVyKHVpbnQzMl90IGV2ZW50
-X2lkKQoreworCXN0cnVjdCBzYmlfcG11X2hhcnRfc3RhdGUgKnBocyA9IHBtdV90aGlzaGFydF9z
-dGF0ZV9wdHIoKTsKKworCXBocy0+c3NlX2VuYWJsZWQgPSB0cnVlOworCWNzcl9jbGVhcihDU1Jf
-TUlERUxFRywgc2JpX3BtdV9pcnFfbWFzaygpKTsKK30KKworc3RhdGljIHZvaWQgcG11X3NzZV91
-bnJlZ2lzdGVyKHVpbnQzMl90IGV2ZW50X2lkKQoreworCXN0cnVjdCBzYmlfcG11X2hhcnRfc3Rh
-dGUgKnBocyA9IHBtdV90aGlzaGFydF9zdGF0ZV9wdHIoKTsKKworCXBocy0+c3NlX2VuYWJsZWQg
-PSBmYWxzZTsKKwljc3Jfc2V0KENTUl9NSURFTEVHLCBzYmlfcG11X2lycV9tYXNrKCkpOworfQor
-CiBzdGF0aWMgY29uc3Qgc3RydWN0IHNiaV9zc2VfY2Jfb3BzIHBtdV9zc2VfY2Jfb3BzID0gewor
-CS5yZWdpc3Rlcl9jYiA9IHBtdV9zc2VfcmVnaXN0ZXIsCisJLnVucmVnaXN0ZXJfY2IgPSBwbXVf
-c3NlX3VucmVnaXN0ZXIsCiAJLmVuYWJsZV9jYiA9IHBtdV9zc2VfZW5hYmxlLAogCS5kaXNhYmxl
-X2NiID0gcG11X3NzZV9kaXNhYmxlLAogCS5jb21wbGV0ZV9jYiA9IHBtdV9zc2VfY29tcGxldGUs
-Ci0tIAoyLjQ5LjAKCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZy
-YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3Bl
-bnNiaQo=
+On 5/16/25 5:28 AM, Anup Patel wrote:
+> Now that SBI v3.0 specification is frozen, change runtime SBI version
+> implemented by OpenSBI to v3.0. Also, mark extensions defined by the
+> SBI v3.0 specification as non-experimental.
+> 
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>   include/sbi/sbi_ecall.h  | 2 +-
+>   lib/sbi/sbi_ecall_dbtr.c | 1 -
+>   lib/sbi/sbi_ecall_fwft.c | 1 -
+>   lib/sbi/sbi_ecall_mpxy.c | 1 -
+>   lib/sbi/sbi_ecall_sse.c  | 1 -
+>   5 files changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_ecall.h b/include/sbi/sbi_ecall.h
+> index 88a69bb3..15400e5a 100644
+> --- a/include/sbi/sbi_ecall.h
+> +++ b/include/sbi/sbi_ecall.h
+> @@ -13,7 +13,7 @@
+>   #include <sbi/sbi_types.h>
+>   #include <sbi/sbi_list.h>
+>   
+> -#define SBI_ECALL_VERSION_MAJOR		2
+> +#define SBI_ECALL_VERSION_MAJOR		3
+>   #define SBI_ECALL_VERSION_MINOR		0
+>   #define SBI_OPENSBI_IMPID		1
+>   
+> diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
+> index d28fd396..9c496c42 100644
+> --- a/lib/sbi/sbi_ecall_dbtr.c
+> +++ b/lib/sbi/sbi_ecall_dbtr.c
+> @@ -69,7 +69,6 @@ struct sbi_ecall_extension ecall_dbtr = {
+>   	.name			= "dbtr",
+>   	.extid_start		= SBI_EXT_DBTR,
+>   	.extid_end		= SBI_EXT_DBTR,
+> -	.experimental		= true,
+>   	.handle			= sbi_ecall_dbtr_handler,
+>   	.register_extensions	= sbi_ecall_dbtr_register_extensions,
+>   };
+> diff --git a/lib/sbi/sbi_ecall_fwft.c b/lib/sbi/sbi_ecall_fwft.c
+> index 3519285e..2277405e 100644
+> --- a/lib/sbi/sbi_ecall_fwft.c
+> +++ b/lib/sbi/sbi_ecall_fwft.c
+> @@ -45,7 +45,6 @@ struct sbi_ecall_extension ecall_fwft = {
+>   	.name			= "fwft",
+>   	.extid_start		= SBI_EXT_FWFT,
+>   	.extid_end		= SBI_EXT_FWFT,
+> -	.experimental		= true,
+>   	.register_extensions	= sbi_ecall_fwft_register_extensions,
+>   	.handle			= sbi_ecall_fwft_handler,
+>   };
+> diff --git a/lib/sbi/sbi_ecall_mpxy.c b/lib/sbi/sbi_ecall_mpxy.c
+> index 03ac71b2..0a5e3525 100644
+> --- a/lib/sbi/sbi_ecall_mpxy.c
+> +++ b/lib/sbi/sbi_ecall_mpxy.c
+> @@ -67,7 +67,6 @@ struct sbi_ecall_extension ecall_mpxy = {
+>   	.name			= "mpxy",
+>   	.extid_start		= SBI_EXT_MPXY,
+>   	.extid_end		= SBI_EXT_MPXY,
+> -	.experimental		= true,
+>   	.register_extensions	= sbi_ecall_mpxy_register_extensions,
+>   	.handle			= sbi_ecall_mpxy_handler,
+>   };
+> diff --git a/lib/sbi/sbi_ecall_sse.c b/lib/sbi/sbi_ecall_sse.c
+> index 303c0f2d..b7dbf072 100644
+> --- a/lib/sbi/sbi_ecall_sse.c
+> +++ b/lib/sbi/sbi_ecall_sse.c
+> @@ -59,7 +59,6 @@ struct sbi_ecall_extension ecall_sse = {
+>   	.name			= "sse",
+>   	.extid_start		= SBI_EXT_SSE,
+>   	.extid_end		= SBI_EXT_SSE,
+> -	.experimental		= true,
+>   	.register_extensions	= sbi_ecall_sse_register_extensions,
+>   	.handle			= sbi_ecall_sse_handler,
+>   };
+
+LGTM.
+Reviewed-by: Atish Patra <atishp@rivosinc.com>
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
