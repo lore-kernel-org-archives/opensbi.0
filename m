@@ -4,54 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E4714C3ABC9
-	for <opensbi@archiver.kernel.org>; Mon, 19 May 2025 01:49:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 27767C2D0CD
+	for <opensbi@archiver.kernel.org>; Mon, 19 May 2025 07:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	List-Subscribe:List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:CC:To:From:
-	Reply-To:Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date
-	:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Owner;
-	bh=8C2MkYqYFfVophvMRRzgK+MuPTFyqimONx/t0N8ZSgo=; b=FL2DB2n936d+f2akwLWAa0EZo9
-	9EuFZrfaTt6vCHcv4vK9xt70igSrn/do8N0PTja2GW3md1eSqu6Kzf+TeahZZvOJoPC2EfYu/V6Hy
-	FxeVGKtWsW9CmZc7XdIDhEOOnLjsaiRlsN/OYGlbvdyhxyLvO5N7v6uNRhUpC7V8wObu6D/IVHuz3
-	EXMESnq40i/YkqWPrYapqPPFdEejg14UGlW3UkujcZmoMwuwsrx2t0DCZdyznhBNJ13XOMS306bsx
-	WnGORiGKUAeZpi4uwSTzAoMvAaa8N4b8fe0TH//fgOpNmeAL/soM8EUpZ7B73r3LUcTcW2XquDF6y
-	7sgwMSog==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
+	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=aGaNq0KkVYdO4/i+YKAC9UuFmYQcVC/PwuS3fWWHWAU=; b=mipDr/cY6BsJlv
+	YR+9lfTHM0ZGmPoOmCshvqIbtys6qid8abXdp0fEmL4L5JAlAd6WgmjVLIG7H7Kf4ScYJ5LnEPpRH
+	4QA5FU4Y6H/oIRPTMqRxOaZS+e36MIXF5WzhhRCxTr9qol0gt1k9phNK13w6zx3g19Rai/ahzSA+0
+	wTJlRdFuj/T6Hj1r37wTIACo6DX4OUjx7wgO69Wc3DYZHYyX/0JgaQHIE7aT+Rn7EKxPxdT5CuIcp
+	NJwuijaYkp1fCDpioukZzUowlIs/a9OPXaybt7M5VJpNL/TFzUxdoZ7O1PxMEGAUCwmsaHYWGw4wH
+	/T350+2E7AfS0MMn6qqg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uGpcy-00000007nuJ-1imf;
-	Mon, 19 May 2025 01:49:16 +0000
-Received: from 60-248-80-70.hinet-ip.hinet.net ([60.248.80.70] helo=Atcsqr.andestech.com)
+	id 1uGv6v-00000008FOl-1osv;
+	Mon, 19 May 2025 07:40:33 +0000
+Received: from mail-pg1-x534.google.com ([2607:f8b0:4864:20::534])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uGpcv-00000007nr5-3KZo
+	id 1uGv5A-00000008FH6-3fBu
 	for opensbi@lists.infradead.org;
-	Mon, 19 May 2025 01:49:15 +0000
-Received: from mail.andestech.com (ATCPCS31.andestech.com [10.0.1.89])
-	by Atcsqr.andestech.com with ESMTPS id 54J1n1xL027161
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 19 May 2025 09:49:01 +0800 (+08)
-	(envelope-from alvinga@andestech.com)
-Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS31.andestech.com
- (10.0.1.89) with Microsoft SMTP Server id 14.3.498.0; Mon, 19 May 2025
- 09:49:01 +0800
-From: Alvin Chang <alvinga@andestech.com>
-To: <mail@yclin.org>
-CC: <opensbi@lists.infradead.org>, <alvinga@andestech.com>
-Subject: [PATCH] lib: utils: Initial compiler built-in stack protector support
-Date: Mon, 19 May 2025 09:48:56 +0800
-Message-ID: <20250519014856.2978228-1-alvinga@andestech.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250503161938.646908-1-alvinga@andestech.com>
-References: <20250503161938.646908-1-alvinga@andestech.com>
+	Mon, 19 May 2025 07:38:46 +0000
+Received: by mail-pg1-x534.google.com with SMTP id 41be03b00d2f7-af5085f7861so2614094a12.3
+        for <opensbi@lists.infradead.org>; Mon, 19 May 2025 00:38:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1747640323; x=1748245123; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ZYJAzcITmLwP1tMI+v71hhdY/cLSamJf709r6K/kwm8=;
+        b=0Zg0HEfhVJRFyYmy0DUQjX1mzXSh9Bb/BNi3iUGv9woETn3hCKQIughu2m4YDUPASV
+         Cn5o43miR8MGqC1XqxNYMDR8UGPCg1clBtPCiEL6t2F6/EkLSjnCNKwneA89IkRUXURW
+         nSIt9gxZhM2+pshuREezjOBCFEF7pQ/Yeq+xQJdtHsyjtsSBwIytsrrb/YNzsJlbiOnz
+         i8LkDWOEX9FStDS7dFdlBPRvA1zKirj2svIDF576JYup/5B78V5huTluImTsxA1jIt7F
+         hF4yAsnoHN0TjMelJR91FndH6/2qT4imlXhnZrHdK4wRkvWxmsNUi4+YsbMmq4d1sGGr
+         hb9A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747640323; x=1748245123;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZYJAzcITmLwP1tMI+v71hhdY/cLSamJf709r6K/kwm8=;
+        b=R+Ts6K+7cH/qRAeOIceiD3xUGNnNXcM5NIF8ZGJnpuLZ9LKK2Tq6c6WCum+Kdjn0xF
+         RAgTmm7BtrIVmgYs2nevnQ+3J4Wx+vdy2WeyJAOdNedPnbb9HDG6w8geSFMRRNvkq/1O
+         J1N4uEoI1+fjQWrspdI1xTIL+A1Pjj5PemW1sZc8w2ppJx48Xt257dCwZoffPBpmrviB
+         wZDMm1tCDxCKrnV8J8s1od/I0I/5ZM2+OZRv3NIRKGEGyAAMZ0zkcEFZERX8xurYmXqE
+         mb7vANtOb0ICvSzBhF17/wyWyiUPjsVenWxbRUqu3gAvIkHlc92SVbLSj1gHpvMOCBMZ
+         z3Bw==
+X-Forwarded-Encrypted: i=1; AJvYcCUpCzQDr8QvbuANy6Slmx2Zio7I+izF0uSOU7jKE3ZuYjdzbY4diiP3JMNnqjpI+Gx3dg8imz7F@lists.infradead.org
+X-Gm-Message-State: AOJu0YyYdFSDSMwEDteya1I2De+Oruin63sNrvvNAL3FFbCJ4ASTY144
+	ou/A2jbWyYBR/hADI0IdNIH1+hPU5WSBimkDEjd5wGtJWtDVxNbdH5MfI/eYLmOASos=
+X-Gm-Gg: ASbGncv7fuGbpXFWfFqHGhU+OkWRmCdQcXOylqBQz6h2HTHhmV1Yiioq6vMIzfJjBrj
+	PJTtz4tExo60zLrSVY10Vp9/2NzQQqDvtwrcqSlnqKmsX+uO9NzkSHGjl70mfLNRVwkL1/vmnfP
+	NkcK18WWw4Fa4q4SJAN5/2wAou1qiUEyP9m30I3J1lXmCgJPrVDfI0wdfX43rBsZn3CbgJZSOo4
+	jqbmPVSZ9Vvx9tk/WhVt/WbB9+j9xYJKnkB4082Yo5CzgGVhT8pd08v6w4+1R6XwqQXgEv61EQ5
+	KYYolkh6ZQrmD8f32fs/8pksLHaSnO3TUbyK1o9AmWi/Js7ZgZ+GDCAZxUsP8COUi0R8BKEK+oq
+	+mWzBvYRbuBvZLeixObK3bG3bEZxLqtc=
+X-Google-Smtp-Source: AGHT+IE/ZQqqWght/QMEPYs1pruDgTnprFoBAm2A9VTbMpQF4kL5fidjrCkk6v5TPKvABx1UvhkSfw==
+X-Received: by 2002:a17:903:40d0:b0:22e:847b:5bbd with SMTP id d9443c01a7336-231de370cebmr172153985ad.32.1747640323344;
+        Mon, 19 May 2025 00:38:43 -0700 (PDT)
+Received: from ?IPV6:2a01:e0a:e17:9700:16d2:7456:6634:9626? ([2a01:e0a:e17:9700:16d2:7456:6634:9626])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-231e2118b07sm50729645ad.43.2025.05.19.00.38.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 19 May 2025 00:38:42 -0700 (PDT)
+Message-ID: <9dd30014-1cf3-48c9-b666-8109485895a7@rivosinc.com>
+Date: Mon, 19 May 2025 09:38:36 +0200
 MIME-Version: 1.0
-X-Originating-IP: [10.0.15.183]
-X-DKIM-Results: atcpcs31.andestech.com; dkim=none;
-X-DNSRBL: 
-X-MAIL: Atcsqr.andestech.com 54J1n1xL027161
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] lib: sbi: pmu: Rework SSE callbacks
+To: Atish Patra <atish.patra@linux.dev>, opensbi@lists.infradead.org
+Cc: Anup Patel <apatel@ventanamicro.com>
+References: <20250516152107.556643-1-cleger@rivosinc.com>
+ <3522d188-0bd8-4fc6-abb4-fc3c54eb855a@linux.dev>
+Content-Language: en-US
+From: =?UTF-8?B?Q2zDqW1lbnQgTMOpZ2Vy?= <cleger@rivosinc.com>
+In-Reply-To: <3522d188-0bd8-4fc6-abb4-fc3c54eb855a@linux.dev>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250518_184914_169499_8F965188 
-X-CRM114-Status: GOOD (  29.48  )
+X-CRM114-CacheID: sfid-20250519_003845_173905_22354C08 
+X-CRM114-Status: GOOD (  13.99  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -63,304 +95,62 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============8549388536785974109=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
---===============8549388536785974109==
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-
-Hi Yu-Chien,=0D
-=0D
-> -----Original Message-----=0D
-> From: Yu-Chien Lin <mail@yclin.org>=0D
-> Sent: Wednesday, May 7, 2025 10:35 PM=0D
-> To: opensbi@lists.infradead.org; Alvin Che-Chia Chang(=E5=BC=B5=E5=93=B2=
-=E5=98=89)=0D
-> <alvinga@andestech.com>=0D
-> Subject: Re: [PATCH] lib: utils: Initial compiler built-in stack =0D
-> protector support=0D
-> =0D
-> [EXTERNAL MAIL]=0D
-> =0D
-> Hi Alvin,=0D
-> =0D
-> I encountered an issue when building with DEBUG=3D1 and =0D
-> CONFIG_STACK_PROTECTOR_ALL=3Dy. An exception occurs at the=0D
-> __check_csr_64 macro which calls sbi_hart_expected_trap_addr().=0D
-> Not sure the root cause but here's a workaround that disables stack =0D
-> protection specifically for this function:=0D
-> =0D
-> + #pragma GCC push_options=0D
-> + #pragma GCC optimize ("no-stack-protector")=0D
-> static inline ulong sbi_hart_expected_trap_addr(void) {=0D
->    return (ulong)sbi_hart_expected_trap; }=0D
-> + #pragma GCC pop_options=0D
-> =0D
-> Regards,=0D
-> Peter Lin=0D
-=0D
-Thanks for reporting this issue.=0D
-The root cause is that when OpenSBI is compiled with -O0 optimization level=
-,=0D
-the sbi_hart_expected_trap_addr() in the following code block becomes a "re=
-gular function call" rather than "inline function":=0D
-=0D
-    #define csr_read_allowed(csr_num, trap)                                =
- \=0D
-            ({                                                             =
- \=0D
-            register ulong tinfo asm("a3") =3D (ulong)trap;                =
-   \=0D
-            register ulong ttmp asm("a4");                                 =
- \=0D
-            register ulong mtvec =3D sbi_hart_expected_trap_addr();        =
-   \=0D
-            register ulong ret =3D 0;                                      =
-   \=0D
-            ((struct sbi_trap_info *)(trap))->cause =3D 0;                 =
-   \=0D
-            asm volatile(                                                  =
- \=0D
-                    "add %[ttmp], %[tinfo], zero\n"                        =
- \=0D
-                    "csrrw %[mtvec], " STR(CSR_MTVEC) ", %[mtvec]\n"       =
- \=0D
-                    "csrr %[ret], %[csr]\n"                                =
- \=0D
-                    "csrw " STR(CSR_MTVEC) ", %[mtvec]"                    =
- \=0D
-                : [mtvec] "+&r"(mtvec), [tinfo] "+&r"(tinfo),              =
- \=0D
-                  [ttmp] "+&r"(ttmp), [ret] "=3D&r" (ret)                  =
-   \=0D
-                : [csr] "i" (csr_num)                                      =
- \=0D
-                : "memory");                                               =
- \=0D
-            ret;                                                           =
- \=0D
-            })                                                             =
- \=0D
-=0D
-When compiling OpenSBI with -O0 and -fstack-protector-all:=0D
-Compiler uses register a3 in sbi_hart_expected_trap_addr() to check the sta=
-ck guard variable.=0D
-However, register a3 is not preserved when calling sbi_hart_expected_trap_a=
-ddr(), so a3 is clobbered by sbi_hart_expected_trap_addr().=0D
-=0D
-		val =3D csr_read_allowed(CSR_TSELECT, &trap);=0D
-    6dae:	fb040793          	addi	a5,s0,-80=0D
-    6db2:	86be                	mv	a3,a5=0D
-    6db4:	af5ff0ef          	jal	68a8 <sbi_hart_expected_trap_addr>=0D
-    6db8:	84aa                	mv	s1,a0=0D
-    6dba:	fa043823          	sd	zero,-80(s0)=0D
-    6dbe:	87a6                	mv	a5,s1=0D
-    6dc0:	00068733          	add	a4,a3,zero=0D
-    6dc4:	305797f3          	csrrw	a5,mtvec,a5=0D
-    6dc8:	7a002673          	csrr	a2,tselect=0D
-    6dcc:	30579073          	csrw	mtvec,a5=0D
-    6dd0:	8932                	mv	s2,a2=0D
-    6dd2:	87ca                	mv	a5,s2=0D
-    6dd4:	f8f43023          	sd	a5,-128(s0)=0D
-=0D
-=0D
-In addition to the workaround you provided, there are two workarounds I fou=
-nd:=0D
-1. Instead of calling sbi_hart_expected_trap_addr(), we can directly cast s=
-bi_hart_expected_trap since it is extern variable.=0D
-    - register ulong mtvec =3D sbi_hart_expected_trap_addr();=0D
-    + register ulong mtvec =3D (ulong)sbi_hart_expected_trap;=0D
-=0D
-2. Reorder sbi_hart_expected_trap_addr() before using a3:=0D
-=0D
-	register ulong mtvec =3D sbi_hart_expected_trap_addr();		\=0D
-	register ulong tinfo asm("a3") =3D (ulong)trap;			\=0D
-	register ulong ttmp asm("a4");=0D
-=0D
-=0D
-I am not sure which workaround is the best one.=0D
-Maybe there are better solutions which I am not aware of.=0D
-Need other reviewer's comments.=0D
-=0D
-=0D
-Regards,=0D
-Alvin Chang=0D
-=0D
-> =0D
-> On 5/4/25 12:19 AM, Alvin Chang wrote:=0D
-> > Add stack_protector.c which defines the stack guard variable and the =0D
-> > function which will be referenced by compiler built-in stack protector.=
-=0D
-> >=0D
-> > This patch just try to support stack-protector so the value of the =0D
-> > stack guard variable is simply fixed for now. It could be improved =0D
-> > by deriving from a random number generator, such as Zkr extension or =0D
-> > any platform-specific random number sources.=0D
-> >=0D
-> > Introduce three configurations for the stack protector:=0D
-> > 1. CONFIG_STACK_PROTECTOR to enable the stack protector feature by=0D
-> >     providing "-fstack-protector" compiler flag 2.=0D
-> > CONFIG_STACK_PROTECTOR_STRONG to provide "-fstack-protector-strong"=0D
-> > 3. CONFIG_STACK_PROTECTOR_ALL to provide "-fstack-protector-all"=0D
-> >=0D
-> > Instead of fixing the compiler flag of stack-protector feature as =0D
-> > "-fstack-protector", we derive it from the introduced Kconfig =0D
-> > configurations. The compiler flag "stack-protector-cflags-y" is =0D
-> > defined as Makefile "immediately expanded variables" with ":=3D". =0D
-> > Thus, the stronger configuration of the stack protector can =0D
-> > overwrite the preceding one.=0D
-> >=0D
-> > Signed-off-by: Alvin Chang <alvinga@andestech.com>=0D
-> > ---=0D
-> >   Makefile                                    |  3 ++-=0D
-> >   lib/utils/Kconfig                           |  2 ++=0D
-> >   lib/utils/stack_protector/Kconfig           | 28=0D
-> +++++++++++++++++++++=0D
-> >   lib/utils/stack_protector/objects.mk        | 18 +++++++++++++=0D
-> >   lib/utils/stack_protector/stack_protector.c | 18 +++++++++++++=0D
-> >   5 files changed, 68 insertions(+), 1 deletion(-)=0D
-> >   create mode 100644 lib/utils/stack_protector/Kconfig=0D
-> >   create mode 100644 lib/utils/stack_protector/objects.mk=0D
-> >   create mode 100644 lib/utils/stack_protector/stack_protector.c=0D
-> >=0D
-> > diff --git a/Makefile b/Makefile=0D
-> > index e90836c..eae6d16 100644=0D
-> > --- a/Makefile=0D
-> > +++ b/Makefile=0D
-> > @@ -360,7 +360,7 @@ GENFLAGS  +=3D      $(libsbiutils-genflags-y)=0D
-> >   GENFLAGS    +=3D      $(platform-genflags-y)=0D
-> >   GENFLAGS    +=3D      $(firmware-genflags-y)=0D
-> >=0D
-> > -CFLAGS               =3D       -g -Wall -Werror -ffreestanding -nostdl=
-ib=0D
-> -fno-stack-protector -fno-strict-aliasing -ffunction-sections =0D
-> -fdata-sections=0D
-> > +CFLAGS               =3D       -g -Wall -Werror -ffreestanding=0D
-> -nostdlib -fno-strict-aliasing -ffunction-sections -fdata-sections=0D
-> >   CFLAGS              +=3D      -fno-omit-frame-pointer=0D
-> -fno-optimize-sibling-calls=0D
-> >   # Optionally supported flags=0D
-> >   ifeq ($(CC_SUPPORT_VECTOR),y)=0D
-> > @@ -379,6 +379,7 @@ CFLAGS            +=3D      $(GENFLAGS)=0D
-> >   CFLAGS              +=3D      $(platform-cflags-y)=0D
-> >   CFLAGS              +=3D      -fPIE -pie=0D
-> >   CFLAGS              +=3D      $(firmware-cflags-y)=0D
-> > +CFLAGS               +=3D      $(stack-protector-cflags-y)=0D
-> >=0D
-> >   CPPFLAGS    +=3D      $(GENFLAGS)=0D
-> >   CPPFLAGS    +=3D      $(platform-cppflags-y)=0D
-> > diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig index=0D
-> > 901ba56..40e5633 100644=0D
-> > --- a/lib/utils/Kconfig=0D
-> > +++ b/lib/utils/Kconfig=0D
-> > @@ -26,6 +26,8 @@ source "$(OPENSBI_SRC_DIR)/lib/utils/reset/Kconfig"=0D
-> >=0D
-> >   source "$(OPENSBI_SRC_DIR)/lib/utils/serial/Kconfig"=0D
-> >=0D
-> > +source "$(OPENSBI_SRC_DIR)/lib/utils/stack_protector/Kconfig"=0D
-> > +=0D
-> >   source "$(OPENSBI_SRC_DIR)/lib/utils/suspend/Kconfig"=0D
-> >=0D
-> >   source "$(OPENSBI_SRC_DIR)/lib/utils/sys/Kconfig"=0D
-> > diff --git a/lib/utils/stack_protector/Kconfig=0D
-> > b/lib/utils/stack_protector/Kconfig=0D
-> > new file mode 100644=0D
-> > index 0000000..c1fee19=0D
-> > --- /dev/null=0D
-> > +++ b/lib/utils/stack_protector/Kconfig=0D
-> > @@ -0,0 +1,28 @@=0D
-> > +# SPDX-License-Identifier: BSD-2-Clause=0D
-> > +=0D
-> > +menu "Stack Protector Support"=0D
-> > +=0D
-> > +config STACK_PROTECTOR=0D
-> > +     bool "Stack Protector buffer overflow detection"=0D
-> > +     default n=0D
-> > +     help=0D
-> > +       This option turns on the "stack-protector" compiler feature.=0D
-> > +=0D
-> > +config STACK_PROTECTOR_STRONG=0D
-> > +     bool "Strong Stack Protector"=0D
-> > +     depends on STACK_PROTECTOR=0D
-> > +     default n=0D
-> > +     help=0D
-> > +       Turn on the "stack-protector" with "-fstack-protector-strong"=0D
-> option.=0D
-> > +       Like -fstack-protector but includes additional functions to be=
-=0D
-> > +       protected.=0D
-> > +=0D
-> > +config STACK_PROTECTOR_ALL=0D
-> > +     bool "Almighty Stack Protector"=0D
-> > +     depends on STACK_PROTECTOR=0D
-> > +     default n=0D
-> > +     help=0D
-> > +       Turn on the "stack-protector" with "-fstack-protector-all" opti=
-on.=0D
-> > +       Like -fstack-protector except that all functions are protected.=
-=0D
-> > +=0D
-> > +endmenu=0D
-> > diff --git a/lib/utils/stack_protector/objects.mk=0D
-> > b/lib/utils/stack_protector/objects.mk=0D
-> > new file mode 100644=0D
-> > index 0000000..d7563e3=0D
-> > --- /dev/null=0D
-> > +++ b/lib/utils/stack_protector/objects.mk=0D
-> > @@ -0,0 +1,18 @@=0D
-> > +#=0D
-> > +# SPDX-License-Identifier: BSD-2-Clause # # Copyright (c) 2025 =0D
-> > +Andes Technology Corporation # # Authors:=0D
-> > +#   Alvin Chang <alvinga@andestech.com>=0D
-> > +#=0D
-> > +=0D
-> > +libsbiutils-objs-$(CONFIG_STACK_PROTECTOR) +=3D =0D
-> > +stack_protector/stack_protector.o=0D
-> > +=0D
-> > +ifeq ($(CONFIG_STACK_PROTECTOR),y)=0D
-> > +stack-protector-cflags-$(CONFIG_STACK_PROTECTOR) :=3D =0D
-> > +-fstack-protector=0D
-> > +stack-protector-cflags-$(CONFIG_STACK_PROTECTOR_STRONG) :=3D =0D
-> > +-fstack-protector-strong=0D
-> > +stack-protector-cflags-$(CONFIG_STACK_PROTECTOR_ALL) :=3D =0D
-> > +-fstack-protector-all else stack-protector-cflags-y :=3D =0D
-> > +-fno-stack-protector endif=0D
-> > diff --git a/lib/utils/stack_protector/stack_protector.c=0D
-> > b/lib/utils/stack_protector/stack_protector.c=0D
-> > new file mode 100644=0D
-> > index 0000000..3088421=0D
-> > --- /dev/null=0D
-> > +++ b/lib/utils/stack_protector/stack_protector.c=0D
-> > @@ -0,0 +1,18 @@=0D
-> > +/*=0D
-> > + * SPDX-License-Identifier: BSD-2-Clause=0D
-> > + *=0D
-> > + * Copyright (c) 2025 Andes Technology Corporation=0D
-> > + *=0D
-> > + * Authors:=0D
-> > + *   Alvin Chang <alvinga@andestech.com>=0D
-> > + */=0D
-> > +=0D
-> > +#include <sbi/sbi_console.h>=0D
-> > +#include <sbi/sbi_types.h>=0D
-> > +=0D
-> > +void *__stack_chk_guard =3D (void *)0x95B5FF5AUL;=0D
-> > +=0D
-> > +void __noreturn __stack_chk_fail(void) {=0D
-> > +     sbi_panic("Stack corruption detected\n"); }=0D
-
-
---===============8549388536785974109==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
-
---===============8549388536785974109==--
+CgpPbiAxNy8wNS8yMDI1IDAyOjAyLCBBdGlzaCBQYXRyYSB3cm90ZToKPiBPbiA1LzE2LzI1IDg6
+MjEgQU0sIENsw4PCqW1lbnQgTMODwqlnZXIgd3JvdGU6Cj4+IFRoZSBTLW1vZGUgUE1VIGRyaXZl
+ciBtaWdodCBuZWVkIHRvIGVuYWJsZS9kaXNhYmxlIFNTRSBldmVudCByZWd1bGFybHkKPj4gaW4g
+b3JkZXIgdG8gbWFzayBTU0UgZXZlbnRzLlRoaXMgY29tbWl0cyByZXdvcmtzIHRoZSBQTVUgU1NF
+IGNhbGxiYWNrLgo+PiBTU0UgcmVnaXN0ZXIvdW5yZWdpc3RlciBub3cganVzdCBzZXRzIHRoZSBN
+SURFTEVHIHJlZ2lzdGVyIGFuZAo+PiBlbmFibGUvZGlzYWJsZSBub3cgc2V0L2NsZWFyIE1JRS4g
+TUlQIGNsZWFyaW5nIGlzIGFsc28gcmVtb3ZlZCBmcm9tCj4+IHBtdV9zc2VfZW5hYmxlKCkgc2lu
+Y2UgaXQgY291bGQgbGVhZCB0byBsb3NpbmcgcGVuZGluZyBpbnRlcnJ1cHRzLgo+Pgo+IAo+IFRo
+ZSBjaGFuZ2VzIGxvb2tzIGdvb2QuIEhvd2V2ZXIsIGNhbiB5b3UgcGxlYXNlIHNwbGl0IGludG8g
+dHdvIGNvbW1pdHMgPwo+IE9uZSBmb3IgcmVnaXN0ZXIvdW5yZWdpc3RlciBwYXJ0IGFuZCBhbm90
+aGVyIGZvciBNSVAgY2hhbmdlID8KPiAKPiBUaGUgTUlQIGNsZWFyaW5nIHBhcnQgaXMgYSBjcml0
+aWNhbCBjaGFuZ2UgZm9yIGFueSBmdXR1cmUgU1NFIGV2ZW50Cj4gc2ltaWxhciB0byBMQ09GSVAu
+IFRodXMsIEkgd291bGQgcHJlZmVyIHRoZSBoaXN0b3J5IHByZXNlcnZlcyB3aHkgTUlQCj4gd2Fz
+IHJlbW92ZWQgZXhwbGljaXRseS4KClllcyBzdXJlLCB0aGF0IG1ha2VzIHNlbnNlLgoKVGhhbmtz
+LAoKQ2zDqW1lbnQKCj4gCj4gCj4+IFNpZ25lZC1vZmYtYnk6IENsw6ltZW50IEzDqWdlciA8Y2xl
+Z2VyQHJpdm9zaW5jLmNvbT4KPj4gLS0tCj4+IMKgIGxpYi9zYmkvc2JpX3BtdS5jIHwgMjkgKysr
+KysrKysrKysrKysrKysrKy0tLS0tLS0tLS0KPj4gwqAgMSBmaWxlIGNoYW5nZWQsIDE5IGluc2Vy
+dGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlf
+cG11LmMgYi9saWIvc2JpL3NiaV9wbXUuYwo+PiBpbmRleCA1OTgzYTc4NC4uNDZjMGUwZmIgMTAw
+NjQ0Cj4+IC0tLSBhL2xpYi9zYmkvc2JpX3BtdS5jCj4+ICsrKyBiL2xpYi9zYmkvc2JpX3BtdS5j
+Cj4+IEBAIC0xMDk3LDI0ICsxMDk3LDE1IEBAIHZvaWQgc2JpX3BtdV9leGl0KHN0cnVjdCBzYmlf
+c2NyYXRjaCAqc2NyYXRjaCkKPj4gwqAgwqAgc3RhdGljIHZvaWQgcG11X3NzZV9lbmFibGUodWlu
+dDMyX3QgZXZlbnRfaWQpCj4+IMKgIHsKPj4gLcKgwqDCoCBzdHJ1Y3Qgc2JpX3BtdV9oYXJ0X3N0
+YXRlICpwaHMgPSBwbXVfdGhpc2hhcnRfc3RhdGVfcHRyKCk7Cj4+IC3CoMKgwqAgdW5zaWduZWQg
+bG9uZyBpcnFfbWFzayA9IHNiaV9wbXVfaXJxX21hc2soKTsKPj4gLQo+PiAtwqDCoMKgIHBocy0+
+c3NlX2VuYWJsZWQgPSB0cnVlOwo+PiAtwqDCoMKgIGNzcl9jbGVhcihDU1JfTUlERUxFRywgaXJx
+X21hc2spOwo+PiAtwqDCoMKgIGNzcl9jbGVhcihDU1JfTUlQLCBpcnFfbWFzayk7Cj4+IC3CoMKg
+wqAgY3NyX3NldChDU1JfTUlFLCBpcnFfbWFzayk7Cj4+ICvCoMKgwqAgY3NyX3NldChDU1JfTUlF
+LCBzYmlfcG11X2lycV9tYXNrKCkpOwo+PiDCoCB9Cj4+IMKgIMKgIHN0YXRpYyB2b2lkIHBtdV9z
+c2VfZGlzYWJsZSh1aW50MzJfdCBldmVudF9pZCkKPj4gwqAgewo+PiAtwqDCoMKgIHN0cnVjdCBz
+YmlfcG11X2hhcnRfc3RhdGUgKnBocyA9IHBtdV90aGlzaGFydF9zdGF0ZV9wdHIoKTsKPj4gwqDC
+oMKgwqDCoCB1bnNpZ25lZCBsb25nIGlycV9tYXNrID0gc2JpX3BtdV9pcnFfbWFzaygpOwo+PiDC
+oCDCoMKgwqDCoMKgIGNzcl9jbGVhcihDU1JfTUlFLCBpcnFfbWFzayk7Cj4+IMKgwqDCoMKgwqAg
+Y3NyX2NsZWFyKENTUl9NSVAsIGlycV9tYXNrKTsKPj4gLcKgwqDCoCBjc3Jfc2V0KENTUl9NSURF
+TEVHLCBpcnFfbWFzayk7Cj4+IC3CoMKgwqAgcGhzLT5zc2VfZW5hYmxlZCA9IGZhbHNlOwo+PiDC
+oCB9Cj4+IMKgIMKgIHN0YXRpYyB2b2lkIHBtdV9zc2VfY29tcGxldGUodWludDMyX3QgZXZlbnRf
+aWQpCj4+IEBAIC0xMTIyLDcgKzExMTMsMjUgQEAgc3RhdGljIHZvaWQgcG11X3NzZV9jb21wbGV0
+ZSh1aW50MzJfdCBldmVudF9pZCkKPj4gwqDCoMKgwqDCoCBjc3Jfc2V0KENTUl9NSUUsIHNiaV9w
+bXVfaXJxX21hc2soKSk7Cj4+IMKgIH0KPj4gwqAgK3N0YXRpYyB2b2lkIHBtdV9zc2VfcmVnaXN0
+ZXIodWludDMyX3QgZXZlbnRfaWQpCj4+ICt7Cj4+ICvCoMKgwqAgc3RydWN0IHNiaV9wbXVfaGFy
+dF9zdGF0ZSAqcGhzID0gcG11X3RoaXNoYXJ0X3N0YXRlX3B0cigpOwo+PiArCj4+ICvCoMKgwqAg
+cGhzLT5zc2VfZW5hYmxlZCA9IHRydWU7Cj4+ICvCoMKgwqAgY3NyX2NsZWFyKENTUl9NSURFTEVH
+LCBzYmlfcG11X2lycV9tYXNrKCkpOwo+PiArfQo+PiArCj4+ICtzdGF0aWMgdm9pZCBwbXVfc3Nl
+X3VucmVnaXN0ZXIodWludDMyX3QgZXZlbnRfaWQpCj4+ICt7Cj4+ICvCoMKgwqAgc3RydWN0IHNi
+aV9wbXVfaGFydF9zdGF0ZSAqcGhzID0gcG11X3RoaXNoYXJ0X3N0YXRlX3B0cigpOwo+PiArCj4+
+ICvCoMKgwqAgcGhzLT5zc2VfZW5hYmxlZCA9IGZhbHNlOwo+PiArwqDCoMKgIGNzcl9zZXQoQ1NS
+X01JREVMRUcsIHNiaV9wbXVfaXJxX21hc2soKSk7Cj4+ICt9Cj4+ICsKPj4gwqAgc3RhdGljIGNv
+bnN0IHN0cnVjdCBzYmlfc3NlX2NiX29wcyBwbXVfc3NlX2NiX29wcyA9IHsKPj4gK8KgwqDCoCAu
+cmVnaXN0ZXJfY2IgPSBwbXVfc3NlX3JlZ2lzdGVyLAo+PiArwqDCoMKgIC51bnJlZ2lzdGVyX2Ni
+ID0gcG11X3NzZV91bnJlZ2lzdGVyLAo+PiDCoMKgwqDCoMKgIC5lbmFibGVfY2IgPSBwbXVfc3Nl
+X2VuYWJsZSwKPj4gwqDCoMKgwqDCoCAuZGlzYWJsZV9jYiA9IHBtdV9zc2VfZGlzYWJsZSwKPj4g
+wqDCoMKgwqDCoCAuY29tcGxldGVfY2IgPSBwbXVfc3NlX2NvbXBsZXRlLAo+IAoKCi0tIApvcGVu
+c2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
