@@ -4,83 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0505AC54EDA
-	for <opensbi@archiver.kernel.org>; Thu, 22 May 2025 21:22:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 50158C54ED1
+	for <opensbi@archiver.kernel.org>; Thu, 22 May 2025 21:22:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=C0o7Vak+Z957Zw9DUEMUMbSbvSDY18D/2yPXqwFDgGc=; b=1o21I9eOA1IprY
-	zsxF2VLMuR5+1QXtPKCQR3A+t9XnYNwGWyiMb+41pp/Y8Jkp9rObAd/Y6SuA1hfSmzPHmBWWYqiHZ
-	97bCLSNiUeSU+S6ft9CWnZrIEeXcpfg9Z2mW+RcdzJUTKwq5/P8+oubZ8hC/lenFajaJQ3fx9SZjq
-	d6JNhaqP/05RZKEHitf6Htvvj+J9W85kci8qYDL8mqL2d5pNtTr5Hl4WH3+9yg1rSSPa48B+CWn7T
-	T7OUgWuLJMgc+Mdebjik3uRi4QRtsfPu1iVL2sDXWMpj7qnQXNMaLDY2DYcp4ZvvDFXG6MLTg40/H
-	I4Y+bsJiaOMzKxXCdKRA==;
+	List-Owner; bh=PVHOF68nOv0NY5OrwwEQ6Ek76goJZcbHOuBEPgukNgI=; b=cyjico/oep6Z7G
+	lUg00a6oChEwCepVptohPU6MoNHDWjK6LoUSYNxu2BrQ4Hnx6ntFy/HAFXlu0IuXPDxckUpr9IY0e
+	U/HjH9TGQdoLhtUUba6VeTMIZjvm5kBHpASSGrV6Tk2wimqcEcOUhz+Vaz9yH7A4AaBN0cd0BLjeC
+	e9JvEVVvnSuaQetvpD3TjuwWrSxE5zcRq7+GduYNgZ399RkWj0pGioVZb4xlV/gtGVt3f3+gzsK9O
+	SPvz6S4VUskgEcCnWhuEqbI5f9GEYbcu0oNazYgL1RwM2LMwLGgTKbLXqQN+HalgnVtVeDixRQ8xW
+	HyNLY/QnquqMR5G30qKQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uIDMZ-00000002C1S-2Ke8;
-	Thu, 22 May 2025 21:22:03 +0000
-Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
+	id 1uIDMc-00000002C4I-0YOq;
+	Thu, 22 May 2025 21:22:06 +0000
+Received: from mail-pf1-x432.google.com ([2607:f8b0:4864:20::432])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uIDMX-00000002ByL-2NLf
+	id 1uIDMY-00000002C01-1cvl
 	for opensbi@lists.infradead.org;
-	Thu, 22 May 2025 21:22:02 +0000
-Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-742c3d06de3so6422980b3a.0
-        for <opensbi@lists.infradead.org>; Thu, 22 May 2025 14:22:01 -0700 (PDT)
+	Thu, 22 May 2025 21:22:03 +0000
+Received: by mail-pf1-x432.google.com with SMTP id d2e1a72fcca58-7399838db7fso301627b3a.0
+        for <opensbi@lists.infradead.org>; Thu, 22 May 2025 14:22:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747948920; x=1748553720; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1747948921; x=1748553721; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=i0sKhGq5Hs2VK9+YgTyLFwoQR8WeEHRphMy+zS8gQJE=;
-        b=moL/QN+8pgfNeQqqgnL6H+0Ri6JyjETYN1wic+Xvn89LfyH9bXLF3j4SsVmGEtKa6T
-         y4UlkGiNf4YbDoPMEhDxFI5Kw4MGy7rHUMG6+GJkxT0m8XE9f49/7ccYQMv0OlbQHffK
-         w+fuKGEjb/Z7ZapIubuQZeuvWpzv7z7V4bCK3BNcK8z+3cGrLkj9CvwmcvDQRIc8XUwb
-         VPQKZFPMswdZ419ibD7yoGcZgMeb4Fz38HZBb0NUNjzOms5oaheiEKic57LamqsPT4oq
-         AN+ksKs7cvNV1tXWun46LNyHNMhwdiXg956qzrWb59vthw9YlH0dh8OVJOp3gfvADL+b
-         hBAw==
+        bh=G0BV69g64jA4dSO4GsGLyg+gQrs469MIjVlNrc1edcI=;
+        b=Q8g8ujwlMY9sqZwMHQh6nay7L+CDNJ0+c4uaUwOwrilfvzR1qpLfa2EW/JA3xTnnxK
+         jbt8Yc8Kt44EnbRf/nzUMY/2zmT7bsRgKvfqoetpSzmadk+k8/dMApUAO16lK2qH+jWR
+         SPyDZY+DB0pAjbSHWtsWSGzHNR5+czjt9yl73RTqzkwq0HxNoZjyWqkOe438kLdClX5P
+         GvU1mn1Rq0hJ7Ck2hIuZQOJ6rIAWZ78e2Ih43NAmpygU/DAoLKk4EsGdY9q0gTo7RbA4
+         sk1UkD/FKl13ia2aq6/SkWlKdhgIo0t3S5JBje6JyMmbihs4BnYmgd5ixx9T5kd3IExY
+         wMag==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747948920; x=1748553720;
+        d=1e100.net; s=20230601; t=1747948921; x=1748553721;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=i0sKhGq5Hs2VK9+YgTyLFwoQR8WeEHRphMy+zS8gQJE=;
-        b=cmLepAeTVFgzyMiJS1X5PxxMIMMQhlYNWsSuYfd8w+r6xp07j6UnsG4LWxT0AZdRsM
-         nuE1Dfq4mwSz0L/xmNRHFi2W7CQnWvEI6ZNKrmweC6vlhKf26HuyJe6sPvhQx1SQKUbE
-         BPtBpqXSZA3OaNYRKMWQ6YXV/w+rBGy1W3XAaqx22bP+Setf71Wo7W0F8gGaDDt0TxLh
-         sVUO3YV/cx5A5nxkQ2El0u6CzJ2eQRrZlL2nKTKKFSs7QG6OE2wugG4jMnDi02hZP19k
-         lG7iVoc6KtsRe/Og4NG9Z1KtZFpV+lQLlnHW2RN/vqiLGXcw9PrrkSeTEkG9u05kx4ul
-         Gmpg==
-X-Gm-Message-State: AOJu0YyFekw21OrJt2i/huFCLMs3OaAXVREZDO8s0ugtt/HfrK189qEm
-	F3B8MZyrDeY/Cvu1YOS9Vp/IQ+9b+sgBOX2eYbtw8+c+HlATc1MRNayowfO/2VY5
-X-Gm-Gg: ASbGncvkUqjS5H8mAMkdWUGejeA9Xaw4AXSFs2/x7ox3bQqQl0EIEzsAUTX2LidUeF4
-	1dHMLeSyy5g+SntB3OBPDJFvNq7l0IKhuziteFfn0Xz2YmRtouat+Az8zJ6lM7nM2yWdkkd3IZg
-	qY4+2Agby8qt17jSfMN99APvXeI6Qo+Kxs4RrTGxb6IgpnCifSlSh0fNf2cXGgC7W7fcFgGUBiS
-	alFJ0m7M5h4x3PNg/QfnmdJyM3CCPH+ZlwhnflSWEcbnvDwB7lxAXuawIhRvnfKv5f0EKibQ5mI
-	uy2wJWc404kLcpzJ40lXbyj1hNgQW8Gmz2ekg8/LiCEObH2NYqLcggOnYGXpSuVQMA==
-X-Google-Smtp-Source: AGHT+IEN9zO6xD2VDjkwArfr01IG/aOGZQoMxiwYsd24nyFADnnFXN8/xPW1YYDsZsfZE7Flu5A4Rw==
-X-Received: by 2002:a05:6a00:4fc2:b0:73e:598:7e5b with SMTP id d2e1a72fcca58-742acc906ccmr33191673b3a.1.1747948920133;
-        Thu, 22 May 2025 14:22:00 -0700 (PDT)
+        bh=G0BV69g64jA4dSO4GsGLyg+gQrs469MIjVlNrc1edcI=;
+        b=VYaXjzQXBGtmUCSzpt/O1lv/Cp5cOSZ/whetD7YRAgI5fqDDt4EhoYMJ3UdYMuiip4
+         TVXjxQjBzr1qWOWWFWtarBU52f1oyROyMDWu2TWVXqr+JnmflW1RxSB7dXPmIu8XbCyk
+         aaBbFTG56Lg+heJBKaFe4XJSg4uAvVWMw3YqX6+34l/UbyVYQ+WwqTnE84KBAgzF8PzM
+         rAm6OMLHspEGyyn7dKPfolvkImuuURNeTHFCMo2FI7mCnHVKScU9epANdPsS+IlbgFC+
+         MWqPMvct2IHMUjnuAWLnxBtEzIgHhPACElP6Q+pQhv64ZTq5vuHIbcvX/+Q6DLrtT2Wz
+         ef6A==
+X-Gm-Message-State: AOJu0YxztBJ//jDAkgbL1KcaD0bKeAKciHJ2tpz7D19RxA3jEQKThXpl
+	FbPL9HOaGHuFyy/xe+5FfWrPbzdtwLgGIwk7jwbEodnqC+noyfA2xb1Tu5D8f7P0
+X-Gm-Gg: ASbGncvfyuT07lO5A4DrVfY2PUHofxBMQ1EXlVFNbhCpVd5ItFn+lb4nOgGCYCrDykD
+	lzcpoggW/0hEJ3zMdoKqrn1PVekEFQ1k4Rh2js3WBKq/sUXI/vnDhn1vTFP95QGdlmOMX++nlgV
+	xk+5L9Pwn8nIeCDO34aM9jLctsrLA0lScAWhSvlM0ch947gbox0EP/ohBErKClEUTvaG3fgQOg9
+	ZlXdJcI/m4L6Avjm4ETJAWBcobPm8XdZZeH+xcHou8XNRPOda4DSY9UDxXOCOGSZuSjGoiEGJcj
+	ov6El5o85bATuv/GvRkRR0KIWizYnP5vAOCdy2jPDK+uDqNBfpT2w/JZKni2rUENMQ==
+X-Google-Smtp-Source: AGHT+IF5SolD/i7+Q/FtIrUGve9wtwwQK5HWSh41IFncH2BAZ0776XtRC558t5/p6SRc77KzCpH0YQ==
+X-Received: by 2002:a05:6a00:e06:b0:742:b31e:e9c1 with SMTP id d2e1a72fcca58-745ece8e3c9mr1218616b3a.11.1747948921327;
+        Thu, 22 May 2025 14:22:01 -0700 (PDT)
 Received: from localhost.localdomain ([50.175.154.178])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-742a96e1fc3sm11629766b3a.8.2025.05.22.14.21.58
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-742a96e1fc3sm11629766b3a.8.2025.05.22.14.22.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 May 2025 14:21:59 -0700 (PDT)
+        Thu, 22 May 2025 14:22:00 -0700 (PDT)
 From: Chao-ying Fu <icebergfu@gmail.com>
 X-Google-Original-From: Chao-ying Fu <cfu@mips.com>
 To: opensbi@lists.infradead.org
-Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Subject: [MIPS P8700 v6 6/7] Convey MMIO flag as specified by SBI_DOMAIN_MEMREGION_MMIO
-Date: Thu, 22 May 2025 14:21:39 -0700
-Message-ID: <20250522212141.3198-7-cfu@mips.com>
+Cc: Chao-ying Fu <cfu@wavecomp.com>,
+	Chao-ying Fu <cfu@mips.com>
+Subject: [MIPS P8700 v6 7/7] lib: sbi_platform: Add the platform pma_set function to set up cacheability
+Date: Thu, 22 May 2025 14:21:40 -0700
+Message-ID: <20250522212141.3198-8-cfu@mips.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <CAAhSdy2jObwq5SUymwVmwMhcQ_h0-4OJuhwitgcVN2gPq2B=XQ@mail.gmail.com>
 References: <CAAhSdy2jObwq5SUymwVmwMhcQ_h0-4OJuhwitgcVN2gPq2B=XQ@mail.gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250522_142201_627359_58DF8C7A 
-X-CRM114-Status: GOOD (  11.60  )
+X-CRM114-CacheID: sfid-20250522_142202_429616_EE8437ED 
+X-CRM114-Status: GOOD (  16.61  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,61 +98,178 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+From: Chao-ying Fu <cfu@wavecomp.com>
 
-Introduce non-architecture bit PMP_MMIO for this new flag, have it
-out of valid bit mask for the PMPCFG register to avoid side effects
+Before the corresponding PMP is changed, we allow platforms to set up PMA.
+Add mips_p8700_pma_set.
 
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+Signed-off-by: Chao-ying Fu <cfu@mips.com>
 ---
- include/sbi/riscv_asm.h |  2 ++
- lib/sbi/sbi_hart.c      | 13 +++++++++++++
- 2 files changed, 15 insertions(+)
+ include/sbi/sbi_platform.h    | 19 ++++++++
+ lib/sbi/riscv_asm.c           |  3 ++
+ platform/generic/mips/p8700.c | 91 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 113 insertions(+)
 
-diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
-index ef48dc8..1bb2be7 100644
---- a/include/sbi/riscv_asm.h
-+++ b/include/sbi/riscv_asm.h
-@@ -215,6 +215,8 @@ int pmp_disable(unsigned int n);
- /* Check if the matching field is set */
- int is_pmp_entry_mapped(unsigned long entry);
- 
-+#define PMP_MMIO   _UL(0x100)
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 08ece32..b3a5eda 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -142,6 +142,9 @@ struct sbi_platform_operations {
+ 	/** platform specific handler to fixup store fault */
+ 	int (*emulate_store)(int wlen, unsigned long addr,
+ 			     union sbi_ldst_data in_val);
 +
- int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- 	    unsigned long log2len);
++	/** platform specific pma set up */
++	void (*pma_set)(unsigned int n, unsigned long prot, unsigned long addr);
+ };
  
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 74ccdd8..49aaa49 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -361,6 +361,13 @@ static unsigned int sbi_hart_get_smepmp_flags(struct sbi_scratch *scratch,
- 			pmp_flags |= PMP_X;
- 	}
- 
-+	/*
-+	 * indicate whether it is MMIO, to be evaluated by code,
-+	 * out of pmpcfg mask
-+	 */
-+	if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
-+		pmp_flags |= PMP_MMIO;
-+
- 	return pmp_flags;
+ /** Platform default per-HART stack size for exception/interrupt handling */
+@@ -644,6 +647,22 @@ static inline int sbi_platform_emulate_store(const struct sbi_platform *plat,
+ 	return SBI_ENOTSUPP;
  }
  
-@@ -489,6 +496,12 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
- 			pmp_flags |= PMP_W;
- 		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
- 			pmp_flags |= PMP_X;
-+		/*
-+		 * indicate whether it is MMIO, to be evaluated by code,
-+		 * out of pmpcfg mask
-+		 */
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
-+			pmp_flags |= PMP_MMIO;
++/**
++ * PMA set up for cacheability based on the corresponding PMP
++ *
++ * @param plat pointer to struct sbi_platform
++ * @param n index of the pmp/pma entry
++ * @param prot attribute of the pmp entry
++ * @param addr address of the pmp entry
++ */
++static inline void sbi_platform_pma_set(const struct sbi_platform *plat,
++					unsigned int n, unsigned long prot,
++					unsigned long addr)
++{
++	if (plat && sbi_platform_ops(plat)->pma_set)
++		sbi_platform_ops(plat)->pma_set(n, prot, addr);
++}
++
+ #endif
  
- 		pmp_addr = reg->base >> PMP_SHIFT;
- 		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
+ #endif
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index c7d75ac..3b0cde5 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -312,6 +312,9 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
+ 		return SBI_EINVAL;
+ 
++	/* Allow the platform to set up PMA if needed */
++	sbi_platform_pma_set(sbi_platform_thishart_ptr(), n, prot, addr);
++
+ 	/* calculate PMP register and offset */
+ #if __riscv_xlen == 32
+ 	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
+diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
+index 6b68717..8ca497f 100644
+--- a/platform/generic/mips/p8700.c
++++ b/platform/generic/mips/p8700.c
+@@ -16,6 +16,96 @@
+ #include <mips/p8700.h>
+ #include <mips/mips-cm.h>
+ 
++static unsigned long mips_csr_read_num(int csr_num)
++{
++#define switchcase_csr_read(__csr_num, __val)		\
++	case __csr_num:					\
++		__val = csr_read(__csr_num);		\
++		break;
++#define switchcase_csr_read_2(__csr_num, __val)		\
++	switchcase_csr_read(__csr_num + 0, __val)	\
++	switchcase_csr_read(__csr_num + 1, __val)
++#define switchcase_csr_read_4(__csr_num, __val)		\
++	switchcase_csr_read_2(__csr_num + 0, __val)	\
++	switchcase_csr_read_2(__csr_num + 2, __val)
++#define switchcase_csr_read_8(__csr_num, __val)		\
++	switchcase_csr_read_4(__csr_num + 0, __val)	\
++	switchcase_csr_read_4(__csr_num + 4, __val)
++#define switchcase_csr_read_16(__csr_num, __val)	\
++	switchcase_csr_read_8(__csr_num + 0, __val)	\
++	switchcase_csr_read_8(__csr_num + 8, __val)
++
++	unsigned long ret = 0;
++
++	switch(csr_num) {
++	switchcase_csr_read_16(CSR_MIPSPMACFG0, ret)
++
++	default:
++		sbi_panic("%s: Unknown CSR %#x", __func__, csr_num);
++		break;
++	}
++
++	return ret;
++
++#undef switchcase_csr_read_16
++#undef switchcase_csr_read_8
++#undef switchcase_csr_read_4
++#undef switchcase_csr_read_2
++#undef switchcase_csr_read
++}
++
++static void mips_csr_write_num(int csr_num, unsigned long val)
++{
++#define switchcase_csr_write(__csr_num, __val)		\
++	case __csr_num:					\
++		csr_write(__csr_num, __val);		\
++		break;
++#define switchcase_csr_write_2(__csr_num, __val)	\
++	switchcase_csr_write(__csr_num + 0, __val)	\
++	switchcase_csr_write(__csr_num + 1, __val)
++#define switchcase_csr_write_4(__csr_num, __val)	\
++	switchcase_csr_write_2(__csr_num + 0, __val)	\
++	switchcase_csr_write_2(__csr_num + 2, __val)
++#define switchcase_csr_write_8(__csr_num, __val)	\
++	switchcase_csr_write_4(__csr_num + 0, __val)	\
++	switchcase_csr_write_4(__csr_num + 4, __val)
++#define switchcase_csr_write_16(__csr_num, __val)	\
++	switchcase_csr_write_8(__csr_num + 0, __val)	\
++	switchcase_csr_write_8(__csr_num + 8, __val)
++
++	switch(csr_num) {
++	switchcase_csr_write_16(CSR_MIPSPMACFG0, val)
++
++	default:
++		sbi_panic("%s: Unknown CSR %#x", __func__, csr_num);
++		break;
++	}
++
++#undef switchcase_csr_write_16
++#undef switchcase_csr_write_8
++#undef switchcase_csr_write_4
++#undef switchcase_csr_write_2
++#undef switchcase_csr_write
++}
++
++static void mips_p8700_pma_set(unsigned int n, unsigned long prot, unsigned long addr)
++{
++	int pmacfg_csr, pmacfg_shift;
++	unsigned long cfgmask;
++	unsigned long pmacfg, cca;
++
++	pmacfg_csr = (CSR_MIPSPMACFG0 + (n >> 2)) & ~1;
++	pmacfg_shift = (n & 7) << 3;
++	cfgmask = ~(0xffUL << pmacfg_shift);
++
++	/* Read pmacfg to change cacheability */
++	pmacfg = (mips_csr_read_num(pmacfg_csr) & cfgmask);
++	cca = (prot & PMP_MMIO) ? CCA_CACHE_DISABLE :
++				  CCA_CACHE_ENABLE | PMA_SPECULATION;
++	pmacfg |= ((cca << pmacfg_shift) & ~cfgmask);
++	mips_csr_write_num(pmacfg_csr, pmacfg);
++}
++
+ #if CLUSTERS_IN_PLATFORM > 1
+ static void power_up_other_cluster(u32 hartid)
+ {
+@@ -255,6 +345,7 @@ static int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct f
+ 	generic_platform_ops.early_init = mips_p8700_early_init;
+ 	generic_platform_ops.final_init = mips_p8700_final_init;
+ 	generic_platform_ops.nascent_init = mips_p8700_nascent_init;
++	generic_platform_ops.pma_set = mips_p8700_pma_set;
+ 
+ 	return 0;
+ }
 -- 
 2.47.1
 
