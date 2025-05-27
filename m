@@ -4,86 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 25B6BC54F30
-	for <opensbi@archiver.kernel.org>; Tue, 27 May 2025 12:48:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5152CC54F30
+	for <opensbi@archiver.kernel.org>; Tue, 27 May 2025 18:27:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=7RBw1ahMc7Zv6c8s5TQBBUcc2OmQcptuj+wQJe3Rmrw=; b=wbQS5mkx8WfxCn
-	nC8To/ZhQbIMETaugALS98m0L9mfsjUoJvwQ2HLroxIM9NhtFt+ouoFFviNecttNCtQwfkcuW3kjc
-	AFg9DzsynIUx5Co+2Kv7dsmh0e3R+87FA0eI5ltMu7JN004g1YYr7YZaWGFaq9rlOzz868ul+hnfX
-	+KDe4xjXhkKF0ZmOLzp81wyNf+Ii9fRRTj06ecsbuYgvuwnv3qC1rRQo0y2jlQq7k+9a3HSDx7JY8
-	zBdBdhUbSNL8p94moB4bUx0Qxc07a2ocg+v72QG759KM2ETpAy0t8qkTqmYBGKQqlQyu05fjYbdAh
-	TsAGC5Ni2U4s/BOg/I3Q==;
+	List-Owner; bh=Y658Jh+0n15CoQxQWKuideQCfotu00HDbFpbbIxI+Jw=; b=xqWyUUS636z77H
+	HFhqL+C2otuEnd0kEtMtQU6XMCyvJXyKOhxeHSKCDqTuvOJPmwOZ8vWSGXfXNd8DD71CKB3KqKC/m
+	bOV959uIjwNdFy7svQU3D8x1f0Q74+wJXeHjPW359E8GR2xit0L/UZd+MZY7ILxQieKPdNMhFFNK+
+	wqmT19PwylRtPbVp2Hc8lr8lWtmt0BiO42gwSTi7M81K/wHR1BrfayKjw9qWpbMZwdaYgawbyeeQz
+	WjBpQn+R8rurgHpm3MnJmlf2/nVWkzgZq5wYKdtEornVh6etWOHUZvRnjSfFFMUWPtT8TmdoB2Unt
+	atLyWCOzKDbHIapLhOnQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uJtjP-0000000Ajlp-0APb;
-	Tue, 27 May 2025 12:48:35 +0000
-Received: from mail-pg1-x534.google.com ([2607:f8b0:4864:20::534])
+	id 1uJz1D-0000000BLl0-0XXd;
+	Tue, 27 May 2025 18:27:19 +0000
+Received: from mail-qk1-x72e.google.com ([2607:f8b0:4864:20::72e])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uJtjL-0000000AjlL-0rm4
+	id 1uJz19-0000000BLkh-37xy
 	for opensbi@lists.infradead.org;
-	Tue, 27 May 2025 12:48:33 +0000
-Received: by mail-pg1-x534.google.com with SMTP id 41be03b00d2f7-b2c377d8982so1500941a12.3
-        for <opensbi@lists.infradead.org>; Tue, 27 May 2025 05:48:30 -0700 (PDT)
+	Tue, 27 May 2025 18:27:17 +0000
+Received: by mail-qk1-x72e.google.com with SMTP id af79cd13be357-7c5675dec99so391089685a.0
+        for <opensbi@lists.infradead.org>; Tue, 27 May 2025 11:27:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1748350110; x=1748954910; darn=lists.infradead.org;
+        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1748370434; x=1748975234; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=8Y2V14K0mJ9RQ1hHSe1gUMdzSRR+BFj8WSvwdG71KtI=;
-        b=EQCe+sIpU7LJsV7K8YyS0plz2AcrLZqifmq8Ip6UpqrC4nr8KRUyd/mbUxwlx1uVUc
-         kbMZ3gF0nDlDF8wJ2A8hTNOcesM7eTnfVSKueQVlApRenijHX8aqJhlSyo0lccc2ZnL4
-         YjrU0PgR0dv7sJaJ9+jgIgrn8iEjGDg7/KInyQllST3QGdDegyFGSS+5wNUY7B961P/A
-         NvhSQpOSxQxscYu8DEPPVSs4JzjkqM/g28+rAES5Xz4QCGYlyQpOokHRENkE+6uDKr0j
-         iBDV4NLqaUmwqn8vlOpzRdvWf5KMMj/iaZsoSXeMH6YCw7Yq7hUz0H3HYQU43pRCSN1s
-         HS7w==
+        bh=HJQGJ4w+Q6MYexhX6wbKDQyfm7Dfnuf686feIVXdLJE=;
+        b=3HYkwP2ZQ9JMKRBvf5tD2mi4CNEPRZO9slPcKAdZuGJ983SNCES2zxwA9Eou74aQ9o
+         dndl+Cvv7AgqMaU8JVoh7amFUoJQ8QfQmh0v98KSVN0FXgAM5IPqBXb8UKu+sq0HXEnD
+         NgydanZVsUx3uPgAB7hEe2Ajn4MfQtcwmFEwOqX95ozzifKZ8Yq2Skjj9jErpipohi2I
+         J6AIVn3gHUFmmDgwERcCOpQvfV8IuSIJbHNVJJGoaQ808Z6STxfDxH7PveyEIGMCjLQa
+         AYBFeDsV7gR8Xgn0YrsQ06MPqNmL+8L3pRhLd8dfOFDQw5PJs6Vul/AMVMmIcwTtPJv1
+         KQjA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748350110; x=1748954910;
+        d=1e100.net; s=20230601; t=1748370434; x=1748975234;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=8Y2V14K0mJ9RQ1hHSe1gUMdzSRR+BFj8WSvwdG71KtI=;
-        b=EyOFwIwHcdOqUk39HpSTpoAzh1GH76wivmClOlMMRRIUUegAmXNWP/oe/acvqiDL5V
-         vKioGMTTlSX9t/mmWXWqaYbso2bDQRazn3z7Tn/OApLTmIb336CfGGhMlZBmciOVoWtu
-         9fQ/GeW5KVFtIB05dBLibihxY9nFKdULqWFAv1EzIbz/NofBf+EqO+oSUEWcRywcFtx8
-         yMPfqxJ9njm3htBaAAAXchuiJNrEMRdNE5lBOK8XfHt/9y1SJ9bo73jaKsgys0ntsTOf
-         5qn6uiDJtlVmLxnVBSwkdo8ua1zEy4XZtIuImo8ri6TYOMwDLVznKmZW1C6jeAK2sQxB
-         Cyww==
-X-Forwarded-Encrypted: i=1; AJvYcCXxEA1eMfMXZg4T9iotOtfsJvfiRdpX/1tdFww4slT2tbi5mp0Zw9Q28ZLdGFBBGF+JD6Od0BJX@lists.infradead.org
-X-Gm-Message-State: AOJu0Yx6xdlqE67EtXLPfFaBcgHnQ2jJ+3GlxlUCHz54/1Ul+f5yHlKc
-	u7kC6aghZLS4EUhuJAPoLrekxiy4Z86LqeT8VzH0VDzwFN2ocp7S5R6aBBOTn/5MtiVY3VtrznD
-	O/1A0iWI=
-X-Gm-Gg: ASbGncsHbJprjiu08USCYv2vCUpViKvrMRW1NVW8JO9NuE1W445Rrj803h9Sk+ql1d8
-	SPXIGm7L+Q5T2XiuNG5p4aWyUSmbMxr56V85rw/wUzu5B+4rWDKga4Og4yz8ETbgQE77EoljjxC
-	uBn12VshFpMLGEKQE1pb3vDe8bpkzMjJbC7SUHXSvC8ZcoPw/oiWMUhqnGovjgD1QEpbfyTioIn
-	d33RIUs79kZpmLb42deFUt3liV/ybKQVybLcZTdfMjMPWTfNxDHHL1R/wuGCqCeKKOmyYkhijKF
-	sZ5KsiTGES8JPR5wueW+BLB5fM01Zo7VrEwHqlVCLH2B0bK8MwPAcvBTc13OiTIbyWM8BKUMx1h
-	oBKp9Hnl0ioaLlCib8YKd9QmqZQ==
-X-Google-Smtp-Source: AGHT+IF0hGELR5nH7L2AbeOzey8Njwj6/Bj6AvGgV5W4O3X2RXOuOV4KepvA9vq2VzOl/H7Yhik03Q==
-X-Received: by 2002:a17:90b:19c6:b0:311:9c9a:58e3 with SMTP id 98e67ed59e1d1-3119c9a5d25mr5416925a91.10.1748350109471;
-        Tue, 27 May 2025 05:48:29 -0700 (PDT)
-Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-31198382e19sm2542417a91.7.2025.05.27.05.48.26
+        bh=HJQGJ4w+Q6MYexhX6wbKDQyfm7Dfnuf686feIVXdLJE=;
+        b=KOYD5+1GBIz/HkX1bXgLvq4h9OGFK6VWetV01UKuZp0qX0wJP5muo2EaDKvobPF3zU
+         5IVtPJJtka3iqdVwPHe2LGz8zIfo9UA0HV6N/jCjWFgsNkQbed3sUKagbpxRf/P0vZXr
+         sD8tCgh8X1eRVDmbDC1auS6fqOYEVIiCNstL8dQ2a3HViW3ALo+Qk7afkGAgv6xRUnp/
+         dWhYEHV4GWN1TAqW0+DbX+uTG8KUbREle+mKscJ7xe2RE1Q4fNE2t7/PV+Mz913qAogk
+         357RYP2gnPtL3VTmRiQwSoYXwmTMrKcWY6IPBdCk3fD3qSIM1j2EehfFReYbESwpXidQ
+         jzKA==
+X-Gm-Message-State: AOJu0YwbZs5v9F9vfxTcNxID1UrweWbSKiOTUX5t4fFrbY2ehxqGiXBl
+	szNSBMfKzlc3TKIQ7JfzJOewuEJsfjN1vpmA17DOTe/LphOBBilNsQXr51aGJ/0/O3yvdRGTrs4
+	nt9nb
+X-Gm-Gg: ASbGncseM9TtNwRViu+cHNG+BOEPJEk9EGIxk37hix7FM27k4Iq68FL0gy/Kyh+BPh/
+	ARjI1apf/04n4i7EzJSr2K4pLRhNZefvHfqBbB3fC+CHz0eTlPvKhNNjtAy9+/3aLe4Lyjc5I7m
+	syZxRuOH87X/ZCdAkyxU/TvjCev9Ap9V8OI759MeBLq1gmpHu9tGt1zQTuJKpEWhJBQCFGRjhKw
+	SKAq8RR78W9xNFClMZ00fHHHo5Cicc7TlpnRstTSc3YhbSXjM13TA2CXnr9ihwZe4Vifzspwepk
+	BejqEmqB8uN/C1aRmsfzsYTcwlZd6zBs1WsMmMbpuUSdXRw7CMH1P5wtggi1pbeP90LBY0FIX79
+	OEoOUzzAtgTVD2n2RW07fA4NEwuUFViWV
+X-Google-Smtp-Source: AGHT+IH9+Zma+C2R8Li5RnHkpIULciQu7UmwN1qdHCxH0ZtHgtf0lYttrRBW7qinoQ0cB0A7KuSbRQ==
+X-Received: by 2002:a05:620a:27c3:b0:7cd:ba:7b63 with SMTP id af79cd13be357-7ceecc144famr2205020285a.45.1748370434343;
+        Tue, 27 May 2025 11:27:14 -0700 (PDT)
+Received: from jesse-lt.jtp-bos.lab (pool-108-26-224-24.bstnma.fios.verizon.net. [108.26.224.24])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7cd467bde34sm1772563385a.8.2025.05.27.11.27.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 May 2025 05:48:28 -0700 (PDT)
-From: Anup Patel <apatel@ventanamicro.com>
-To: Atish Patra <atishp@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>,
+        Tue, 27 May 2025 11:27:14 -0700 (PDT)
+From: Jesse Taube <jesse@rivosinc.com>
+To: opensbi@lists.infradead.org
+Cc: Himanshu Chauhan <hchauhan@ventanamicro.com>,
 	Anup Patel <anup@brainfault.org>,
-	Nick Hu <nick.hu@sifive.com>,
-	opensbi@lists.infradead.org,
-	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH] lib: sbi: Revert entry_count before doing hsm stop in hsm wait loop
-Date: Tue, 27 May 2025 18:18:21 +0530
-Message-ID: <20250527124821.2113467-1-apatel@ventanamicro.com>
+	Charlie Jenkins <charlie@rivosinc.com>,
+	Jesse Taube <jesse@rivosinc.com>
+Subject: [PATCH] lib: sbi: dbtr: Fix shared memory layout
+Date: Tue, 27 May 2025 11:27:13 -0700
+Message-ID: <20250527182713.527202-1-jesse@rivosinc.com>
 X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250527_054831_248375_33C95404 
-X-CRM114-Status: GOOD (  14.19  )
+X-CRM114-CacheID: sfid-20250527_112716_047704_B8B97F8D 
+X-CRM114-Status: UNSURE (   9.13  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -100,89 +99,39 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Using hsm stop in hsm wait loop causes secondary harts to be stuck
-forever in OpenSBI on RISC-V platforms where HSM hart hotplug is
-available and all harts come-up at the same time during system
-power-on.
+The existing sbi_dbtr_shmem_entry has a size of 5 * XLEN with the final
+entry being idx. This is in contrast to the SBI v3.0-rc7 Chapter 19.
+Debug Triggers Extension [0] where idx and trig_state share the same
+offset (0) in shared memory, with a total size of 4 * XLEN for all the
+SBI calls.
 
-For example, lets say we have two harts A and B on a RISC-V platform
-with HSM hart hotplug which come-up at the same time during system
-power-on. The hart A enters OpenSBI before hart B hence it becomes
-the primary (or cold-boot) hart whereas hart B becomes the secondary
-(or warm-boot) hart. The hart A follows the OpenSBI cold-boot path
-and registers hsm device before hart B enters OpenSBI. The hart B
-eventually enters OpenSBI and follows the OpenSBI warm-boot path
-so it will increment it's own entry_count before entering hsm wait
-loop where it sees hsm device and stops itself. Later as part of
-the Linux boot-up sequence, hart A issues SBI HSM start call to
-bring-up hart B but OpenSBI sees entry_count != init_count for
-hart B in sbi_hsm_hart_start() hence hsm_device_hart_start() is
-not called for hart B resulting in hart B stuck forever in OpenSBI.
+Add union to match memory layout described in SBI.
 
-To fix the above issue, revert entry_count before doing hsm stop
-in hsm wait loop.
+[0] https://github.com/riscv-non-isa/riscv-sbi-doc/tree/v3.0-rc7/src/ext-debug-triggers.adoc
 
-Fixes: d844deadec94 ("lib: sbi: Use hsm stop for hsm wait")
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
+Signed-off-by: Jesse Taube <jesse@rivosinc.com>
 ---
- include/sbi/sbi_init.h |  2 ++
- lib/sbi/sbi_hsm.c      |  4 +++-
- lib/sbi/sbi_init.c     | 13 +++++++++++++
- 3 files changed, 18 insertions(+), 1 deletion(-)
+ include/sbi/sbi_dbtr.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_init.h b/include/sbi/sbi_init.h
-index c9013ea4..ad068674 100644
---- a/include/sbi/sbi_init.h
-+++ b/include/sbi/sbi_init.h
-@@ -16,6 +16,8 @@ struct sbi_scratch;
+diff --git a/include/sbi/sbi_dbtr.h b/include/sbi/sbi_dbtr.h
+index a8b3a02..8cb776c 100644
+--- a/include/sbi/sbi_dbtr.h
++++ b/include/sbi/sbi_dbtr.h
+@@ -91,8 +91,10 @@ struct sbi_dbtr_hart_triggers_state {
  
- void __noreturn sbi_init(struct sbi_scratch *scratch);
+ /** SBI shared mem messages layout */
+ struct sbi_dbtr_shmem_entry {
+-	struct sbi_dbtr_data_msg data;
+-	struct sbi_dbtr_id_msg id;
++	union {
++		struct sbi_dbtr_data_msg data;
++		struct sbi_dbtr_id_msg id;
++	};
+ };
  
-+void sbi_revert_entry_count(struct sbi_scratch *scratch);
-+
- unsigned long sbi_entry_count(u32 hartindex);
- 
- unsigned long sbi_init_count(u32 hartindex);
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index e8128a39..557ab131 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -176,8 +176,10 @@ static void sbi_hsm_hart_wait(struct sbi_scratch *scratch)
- 		 * If the hsm_dev is ready and it support the hotplug, we can
- 		 * use the hsm stop for more power saving
- 		 */
--		if (hsm_device_has_hart_hotplug())
-+		if (hsm_device_has_hart_hotplug()) {
-+			sbi_revert_entry_count(scratch);
- 			hsm_device_hart_stop();
-+		}
- 
- 		wfi();
- 	}
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 62c32682..84a63748 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -579,6 +579,19 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 		init_warmboot(scratch, hartid);
- }
- 
-+void sbi_revert_entry_count(struct sbi_scratch *scratch)
-+{
-+	unsigned long *entry_count, *init_count;
-+
-+	if (!entry_count_offset || !init_count_offset)
-+		sbi_hart_hang();
-+
-+	entry_count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
-+	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
-+
-+	*entry_count = *init_count;
-+}
-+
- unsigned long sbi_entry_count(u32 hartindex)
- {
- 	struct sbi_scratch *scratch;
+ #define SBI_DBTR_SHMEM_ALIGN_MASK	((__riscv_xlen / 8) - 1)
 -- 
 2.43.0
 
